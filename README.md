@@ -152,7 +152,7 @@ controller. All API functions for looting and clicking items on the ground are b
 
 <h2>5. Known issues</h2>
 - Opening several frames while in combat may cause unresponsiveness until they are re-opened. 
-- Using the game menu module to open UI panes will not work when Circle is held down for longer than 200 ms.
+- Using the game menu module to open UI panes will not work when Circle is held down for longer than 100 ms.
 - First gossip option is not always highlighted when starting an NPC conversation with multiple gossip options.
 - Quest log iteration is sometimes not ordered from top to bottom.
 - Map iteration skips certain zones, Stormwind is one of them.
