@@ -132,7 +132,9 @@ Default static button setup:
   - Ctrl+shift: Talents
 - Center option button (PS/Guide):
   - No mod: Game Menu / Clear target / Close frame
-  - Shift: Extra Action Button 1
+  - Shift: Extra Action Button 1 (the popup button in certain quests/raids etc)
+  - Ctrl: Autorun
+  - Ctrl+shift: Follow
 - Right option button (Start):
   - No mod: Map / Questlog
   - Shift: Next camera view
