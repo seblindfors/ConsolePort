@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Profile Configuration Data. 2015-02-26 10:49:26 -->
+
+<Profile>
+  <useExclusiveMode>False</useExclusiveMode>
+  <startMinimized>False</startMinimized>
+  <formWidth>160</formWidth>
+  <formHeight>28</formHeight>
+  <Controller1>World of Warcraft</Controller1>
+  <Controller2>
+  </Controller2>
+  <Controller3>
+  </Controller3>
+  <Controller4>
+  </Controller4>
+  <LastChecked>2015-02-26 00:45:01</LastChecked>
+  <CheckWhen>1</CheckWhen>
+  <Notifications>True</Notifications>
+  <DisconnectBTAtStop>False</DisconnectBTAtStop>
+  <SwipeProfiles>True</SwipeProfiles>
+  <UseDS4ForMapping>True</UseDS4ForMapping>
+  <QuickCharge>False</QuickCharge>
+  <FirstXinputPort>1</FirstXinputPort>
+  <CloseMinimizes>False</CloseMinimizes>
+  <DownloadLang>True</DownloadLang>
+</Profile>
