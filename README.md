@@ -36,6 +36,7 @@ Upcoming features:
 - Professions
 - Pet spellbook
 - Collections (mounts, pets, toys, heirlooms)
+- Pet battles
 - Achievement UI
 - Guild frame
 - Battle.net frame
