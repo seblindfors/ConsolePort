@@ -8,7 +8,7 @@ how to set up your controller for World of Warcraft, but the most game-breaking 
 contribute to an easy game experience. It's a hassle just to sell a few items or turn in a quest. This addon will change all that.
 
 The main goal here is to turn an experience that was designed for mouse and keyboard into one that is equally fitting for
-a game controller, without losing gameplay quality in the interim. Using the addon, you should be able to effortlessly
+a game controller, without losing gameplay quality in return. Using the addon, you should be able to effortlessly
 do the same tasks with a controller as you would with a mouse and keyboard. On top of this, it will NOT interfere with your
 normal keyboard and mouse setup, leaving you to choose which way you want to play the game without having to rebind and
 reconfigure every time you change peripherals.
