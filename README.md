@@ -16,6 +16,7 @@ reconfigure every time you change peripherals.
 <h2>1. UI Support</h2>
 
 At the moment, this addon supports:
+- Combat: fully implemented combat system.
 - Quests: accepting, progressing and completing quests. Choosing rewards and previewing items.
 - Map/questlog: tracking, managing and reading quests. Map iteration works very well but not completely finished.
 - Bags: bag control is fully implemented, although quest items used in combat should be moved to an action bar.
