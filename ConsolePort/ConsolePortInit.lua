@@ -258,8 +258,8 @@ function ConsolePort:GetDefaultBinding(key)
 	elseif 	key == "CP_C_OPTION" then
 		nomod 		= "TOGGLEGAMEMENU";
 		modshift 	= "EXTRAACTIONBUTTON1";
-		modctrl 	= nil;
-		shiftctrl 	= nil;
+		modctrl 	= "TOGGLEAUTORUN";
+		shiftctrl 	= "FOLLOWTARGET";
 	elseif 	key == "CP_R_OPTION" then
 		nomod 		= "TOGGLEWORLDMAP";
 		modshift 	= "NEXTVIEW";
