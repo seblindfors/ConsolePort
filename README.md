@@ -154,7 +154,7 @@ controller. All API functions for looting and clicking items on the ground are b
 <h2>5. Suggested driver software</h2>
 - Mac OSX
   - ControllerMate (highly recommended for Mac users, http://www.orderedbytes.com/controllermate/)
-  - Joystick Mapper
+  - Joystick Mapper (http://joystickmapper.com/)
 - Windows 7/8/8.1
   - Keysticks (Xbox, http://keysticks.net)
   - DS4Windows (DualShock 4, http://ds4windows.com)
