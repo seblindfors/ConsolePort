@@ -125,7 +125,7 @@ execution. They are used for actions such as jumping, toggling protected frames,
 I have a system in place for changing these bindings, but it needs some work before being implemented. 
 
 Default static button setup:
-- Left option button (Share/Select/Back:
+- Left option button (Share/Select/Back):
   - No mod: Open All Bags
   - Shift: Character Pane
   - Ctrl: SpellBook
