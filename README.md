@@ -160,7 +160,7 @@ controller. All API functions for looting and clicking items on the ground are b
   - DS4Windows (DualShock 4, http://ds4windows.com)
   - Xpadder (all game pads, http://xpadder.com)
 
-Warning: I strongly recommend you do not use MotioninJoy due to suspicious net activity and difficulty removing the software.
+Warning: I strongly recommend you do not use MotioninJoy!
 
 <h2>6. Known issues</h2>
 - Opening several frames while in combat may cause unresponsiveness until they are re-opened. 
