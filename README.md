@@ -151,7 +151,18 @@ Default static button setup:
 Interacting with the game world can only be done the conventional way; by clicking with the virtual mouse setup on your
 controller. All API functions for looting and clicking items on the ground are blocked and cannot be called from unsecure code. Use R3 (right stick button) to click items in 3D-space, loot mobs and interact with NPCs. If you don't have a double right mouse button click macroed to your R3 button, looting can be quite cumbersome, since you have to click the button twice. If you think this is a hassle, get the item <b>Findle's Loot-A-Rang</b>, an item which will loot all nearby corpses.
 
-<h2>5. Known issues</h2>
+<h2>5. Suggested driver software</h2>
+- Mac OSX
+  - ControllerMate (highly recommended for Mac users, http://www.orderedbytes.com/controllermate/)
+  - Joystick Mapper
+- Windows 7/8/8.1
+  - Keysticks (Xbox, http://keysticks.net)
+  - DS4Windows (DualShock 4, http://ds4windows.com)
+  - Xpadder (all game pads, http://xpadder.com)
+
+Warning: I strongly recommend you do not use MotioninJoy due to suspicious net activity and difficulty removing the software.
+
+<h2>6. Known issues</h2>
 - Opening several frames while in combat may cause unresponsiveness until they are re-opened. 
 - Using the game menu module to open UI panes will not work when Circle is held down for longer than 100 ms.
 - First gossip option is not always highlighted when starting an NPC conversation with multiple gossip options.
