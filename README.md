@@ -29,6 +29,7 @@ At the moment, this addon supports:
 Work in progress:
 - Interface options: currently only supports changing button mappings for the controller. 
 - Dropdown menus: currently implemented, but not activated because of unresolved taint issues.
+- Manual looting (auto-loot turned off)
 - Talent picker and pet specialization
 - Professions
 - Pet spellbook
@@ -142,6 +143,10 @@ Default static button setup:
   - Shift: Target nearest enemy
   - Ctrl: Focus target
   - Ctrl+shift: Target focus target
+
+<h4>4.4. World interaction</h4>
+Interacting with the game world can only be done the conventional way; by clicking with the mouse. All API functions for
+looting and clicking items on the ground are blocked and cannot be called from unsecure code. Use R3 (right stick button) to click items in 3D-space, loot mobs and interact with NPCs. If you don't have a double right mouse button click macroed to your R3 button, looting can be quite cumbersome, since you have to click the button twice. If you think this is too much of a hassle, get the item <b>Findle's Loot-A-Rang</b>, an item which will loot all nearby corpses.
 
 <h2>5. Known issues</h2>
 - Opening several frames while in combat may cause unresponsiveness until they are re-opened. 
