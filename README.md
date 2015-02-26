@@ -160,3 +160,4 @@ controller. All API functions for looting and clicking items on the ground are b
 - The Maelstrom zone and subzones are not targetable with arrow buttons. Choosing it will open the Pandaria map.
 - Entering combat while the glyph frame is open will lock out the Up and Down buttons on the controller.
 - Unless overridden, old button combinations will appear on action buttons until the UI is reloaded.
+- Downwards glyph list iteration will sometimes stop working when the scrollbar reaches the bottom. 
