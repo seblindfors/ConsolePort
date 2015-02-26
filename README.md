@@ -27,7 +27,7 @@ At the moment, this addon supports:
 - Glyphs: iterating through and choosing glyphs is implemented, but stay out of combat while you do.
 - Menu: using the game menu is implemented, but the confirm button may not work properly if released slowly.
 
-Work in progress:
+Upcoming features:
 - Interface options: currently only supports changing button mappings for the controller. 
 - Dropdown menus: currently implemented, but not activated because of unresolved taint issues.
 - Manual looting (auto-loot turned off)
