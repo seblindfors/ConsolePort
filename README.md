@@ -10,7 +10,7 @@ The main goal here is to turn an experience that was designed for mouse and keyb
 a game controller, without losing gameplay quality in the interim. Using the addon, you should be able to effortlessly
 do the same tasks with a controller as you would with a mouse and keyboard. On top of this, it will NOT interfere with your
 normal keyboard and mouse setup, leaving you to choose which way you want to play the game without having to rebind and
-reconfigure every time you have a change of heart. 
+reconfigure every time you change peripherals.
 
 <h2>1. UI Support</h2>
 
