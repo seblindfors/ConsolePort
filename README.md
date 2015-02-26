@@ -3,7 +3,7 @@
 <h6>DualShock 4, DualShock 3, Xbox 360, Xbox One, Logitech Rumblepad, Razer Sabertooth</h6>
 
 ConsolePort is a lightweight interface add-on for World of Warcraft that will give you a handful of nifty features
-in order to let you play the game on a controller - without total inconvenience. There are a lot of tutorials and videos on
+in order to let you play the game on a controller - without inconvenience. There are a lot of tutorials and videos on
 how to set up your controller for World of Warcraft, but the most game-breaking part about all of them is how they in no way
 contribute to an easy game experience. It's a hassle just to sell a few items or turn in a quest. This addon will change all that.
 
