@@ -146,7 +146,7 @@ Default static button setup:
 
 <h4>4.4. World interaction</h4>
 Interacting with the game world can only be done the conventional way; by clicking with the virtual mouse setup on your
-controller. All API functions for looting and clicking items on the ground are blocked and cannot be called from unsecure code. Use R3 (right stick button) to click items in 3D-space, loot mobs and interact with NPCs. If you don't have a double right mouse button click macroed to your R3 button, looting can be quite cumbersome, since you have to click the button twice. If you think this is too much of a hassle, get the item <b>Findle's Loot-A-Rang</b>, an item which will loot all nearby corpses.
+controller. All API functions for looting and clicking items on the ground are blocked and cannot be called from unsecure code. Use R3 (right stick button) to click items in 3D-space, loot mobs and interact with NPCs. If you don't have a double right mouse button click macroed to your R3 button, looting can be quite cumbersome, since you have to click the button twice. If you think this is a hassle, get the item <b>Findle's Loot-A-Rang</b>, an item which will loot all nearby corpses.
 
 <h2>5. Known issues</h2>
 - Opening several frames while in combat may cause unresponsiveness until they are re-opened. 
