@@ -158,4 +158,5 @@ controller. All API functions for looting and clicking items on the ground are b
 - Map iteration skips certain zones, Stormwind is one of them.
 - Map highlighting does not work for the World map (Outland, Draenor, Azeroth). 
 - The Maelstrom zone and subzones are not targetable with arrow buttons. Choosing it will open the Pandaria map.
-- Entering combat while the glyph frame is open will lock out the Up and Down buttons on the controller. 
+- Entering combat while the glyph frame is open will lock out the Up and Down buttons on the controller.
+- Unless overridden, old button combinations will appear on action buttons until the UI is reloaded.
