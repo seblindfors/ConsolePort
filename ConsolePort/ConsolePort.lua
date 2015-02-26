@@ -43,7 +43,7 @@ local function LoadHooks ()
 		{ ContainerFrame5, 			ConsolePort.Bags, 	"bags" 	},
 		{ WorldMapFrame, 			ConsolePort.Map, 	"map" 	},
 		{ TaxiFrame, 				ConsolePort.Taxi, 	"taxi"	},
-		{ SpellBookSpellIconsFrame, ConsolePort.Book, 	"book"	},
+		{ SpellBookSpellIconsFrame,	ConsolePort.Book,	"book"	},
 		{ QuestFrame, 				ConsolePort.Quest, 	"quest"	},
 		{ GossipFrame, 				ConsolePort.Gossip,	"gossip"},
 		{ GuildInviteFrame,			ConsolePort.Guild,	"guild"	},

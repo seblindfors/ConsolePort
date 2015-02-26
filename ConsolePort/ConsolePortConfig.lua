@@ -2,26 +2,26 @@ local _
 local _, G = ...;
 local BUTTON_HEIGHT	 	= 40;
 local BUTTON_WIDTH 	 	= 180;
-local OVERLAY_WIDTH  	= 170;
-local OVERLAY_HEIGHT 	= 34;
+local OVERLAY_WIDTH		= 170;
+local OVERLAY_HEIGHT	= 34;
 local BIND_TARGET 	 	= false;
 local CONF_BUTTON 		= nil;
-local CP 				= "CP";
-local CONF 				= "_CONF";
-local CONFBG 			= "_CONF_BG";
-local GUIDE 			= "_GUIDE";
+local CP				= "CP";
+local CONF				= "_CONF";
+local CONFBG			= "_CONF_BG";
+local GUIDE				= "_GUIDE";
 local NOMOD				= "_NOMOD";
-local SHIFT 			= "_SHIFT";
-local CTRL 				= "_CTRL";
-local CTRLSH 			= "_CTRLSH";
-local TEXTURE 			= "TEXTURE_";
+local SHIFT				= "_SHIFT";
+local CTRL				= "_CTRL";
+local CTRLSH			= "_CTRLSH";
+local TEXTURE			= "TEXTURE_";
 
-G.panel 			= CreateFrame( "FRAME", "ConsolePortConfMain", InterfaceOptionsFramePanelContainer );
-G.binds 			= CreateFrame( "FRAME", "ConsolePortChild", G.panel);
-G.panel.name 		= "Console Port";
-G.binds.name 		= "Bindings";
-G.binds.parent 		= G.panel.name;
-G.binds.okay 		= function (self) ConsolePort:SubmitBindings(); end;
+G.panel				= CreateFrame( "FRAME", "ConsolePortConfMain", InterfaceOptionsFramePanelContainer );
+G.binds				= CreateFrame( "FRAME", "ConsolePortChild", G.panel);
+G.panel.name		= "Console Port";
+G.binds.name		= "Bindings";
+G.binds.parent		= G.panel.name;
+G.binds.okay		= function (self) ConsolePort:SubmitBindings(); end;
 G.binds:SetScript("OnShow", function(self)
 	InterfaceOptionsFrame:SetWidth(1100);
 	ConsolePort:SetButtonActionsConfig("rebind");
@@ -352,23 +352,3 @@ ConsolePort:CreateConfigGuideButton(CP..CTRLSH..2,	"LTWO",	G.binds, 180*4-25, 0)
 -- Or make the menu appear at the frame:
 -- menuFrame:SetPoint("Center", UIParent, "Center")
 -- EasyMenu(menu, menuFrame, menuFrame, 0 , 0, "MENU");
-
--- Message: Interface\FrameXML\QuestMapFrame.lua:803: Usage: GameTooltip:SetText("text" [, color])
--- Time: 02/07/15 17:15:14
--- Count: 2
--- Stack: [C]: in function `SetText'
--- Interface\FrameXML\QuestMapFrame.lua:803: in function `QuestMapLogTitleButton_OnEnter'
--- Interface\FrameXML\QuestMapFrame.lua:34: in function <Interface\FrameXML\QuestMapFrame.lua:23>
-
--- Locals: (*temporary) = GameTooltip {
---  0 = <userdata>
---  numMoneyFrames = 1
---  comparing = false
---  shoppingTooltips = <table> {
---  }
---  canAddRestStateLine = 1
---  needsReset = true
---  hasMoney = 1
---  updateTooltip = 0.067999993264675
--- }
--- (*temporary) = nil
