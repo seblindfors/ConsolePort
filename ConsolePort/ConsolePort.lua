@@ -45,14 +45,14 @@ local function LoadHooks ()
 		{ TaxiFrame, 				ConsolePort.Taxi, 	"taxi"	},
 		{ SpellBookSpellIconsFrame, ConsolePort.Book, 	"book"	},
 		{ QuestFrame, 				ConsolePort.Quest, 	"quest"	},
-		{ GossipFrame, 				ConsolePort.Gossip, "gossip"},
+		{ GossipFrame, 				ConsolePort.Gossip,	"gossip"},
 		{ GuildInviteFrame,			ConsolePort.Guild,	"guild"	},
 		{ StackSplitFrame,			ConsolePort.Stack, 	"stack"	},
-		{ StaticPopup1,				ConsolePort.Popup,  "popup"	},
-		{ StaticPopup2,				ConsolePort.Popup,  "popup"	},
-		{ StaticPopup3,				ConsolePort.Popup,  "popup"	},
-		{ StaticPopup4,				ConsolePort.Popup,  "popup"	},
-		{ CinematicFrame,			ConsolePort.Misc, 	 "misc"	}
+		{ StaticPopup1,				ConsolePort.Popup,	"popup"	},
+		{ StaticPopup2,				ConsolePort.Popup,	"popup"	},
+		{ StaticPopup3,				ConsolePort.Popup,	"popup"	},
+		{ StaticPopup4,				ConsolePort.Popup,	"popup"	},
+		{ CinematicFrame,			ConsolePort.Misc,	"misc"	}
 	}
 	for i, Frame in pairs(LoadFrames) do
 		PostLoadHook(Frame[1], Frame[2], Frame[3], i);

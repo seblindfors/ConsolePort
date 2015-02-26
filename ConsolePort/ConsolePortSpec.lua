@@ -64,7 +64,6 @@ function ConsolePort:Spec(key, state)
 		ConsolePort:Spec(G.PREPARE, G.STATE_UP);
 	end
 	if PlayerSpecTab2:IsVisible() then
-		CP_R_UP_NOMOD:SetAttribute("type", "click");
 		if ACTIVE_SPEC == "spec1" then
 			ConsolePort:SetClickButton(CP_R_UP_NOMOD, PlayerSpecTab2);
 		else
@@ -72,8 +71,7 @@ function ConsolePort:Spec(key, state)
 		end
 	end
 	if PlayerTalentFrameActivateButton:IsVisible() then
-		CP_R_RIGHT_NOMOD:SetAttribute("type", "click");
-		CP_R_RIGHT_NOMOD:SetAttribute("clickbutton", PlayerTalentFrameActivateButton);
+		ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, PlayerTalentFrameActivateButton);
 	end
 	if ACTIVE_TAB == SPECTAB then
 		ConsolePort:SpecTab(key, state);
