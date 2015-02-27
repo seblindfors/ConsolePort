@@ -35,6 +35,7 @@ Upcoming features:
 - Manual looting (auto-loot turned off)
 - Talent picker and pet specialization
 - Professions
+- Merchant
 - Pet spellbook
 - Collections (mounts, pets, toys, heirlooms)
 - Pet battles
