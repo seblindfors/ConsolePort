@@ -77,7 +77,7 @@ local function UpdateFrames(self)
 		end
 		if 	ButtonFocusFrame then
 			if 	not ButtonFocusFrame.isPrepared then
-				ButtonFocusFrame.func(G.PREPARE, G.STATE_UP);
+				ButtonFocusFrame.func(_, G.PREPARE, G.STATE_UP);
 				ButtonFocusFrame.isPrepared = true;
 			end
 			self:SetButtonActions(ButtonFocusFrame.attr);

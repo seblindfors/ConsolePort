@@ -17,11 +17,12 @@ function ConsolePort:InitializeGlyphs()
 				Glyph,
 				"SMALL",
 				"BOTTOM",
-				G.NAME_CP_R_LEFT));
+				"LTHREE"));
 		GuideGlyphs[i]:Hide();
 		Glyph:HookScript("OnEnter", function(self)
 			local id = self:GetID();
-			if GlyphMatchesSocket(id) then
+			if 	GlyphMatchesSocket(id) and
+				not GuideGlyphs[i]:IsVisible() then
 				GuideGlyphs[i]:Show();
 			end
 		end);
@@ -92,11 +93,6 @@ function ConsolePort:GlyphTab(key, state)
 	if glyph_iterator == 1 and not GlyphButtons[glyph_iterator]:IsVisible() then glyph_iterator = 2; end;
 	local GlyphButton = GlyphButtons[glyph_iterator];
 	if GlyphButton then
-		if 	(GlyphButton:GetTop() < 600 and glyph_iterator == 9) or
-			(GlyphButton:GetTop() < 900 and glyph_iterator == 1) then
-			if key == G.DOWN then scroll = 14; end;
-			scrollFrame:SetVerticalScroll(scroll);
-		end
 		if 		key == G.DOWN and
 				state == G.STATE_DOWN and
 				glyph_iterator < 9 then

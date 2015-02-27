@@ -4,8 +4,11 @@ local BUTTON_HEIGHT	 	= 40;
 local BUTTON_WIDTH 	 	= 180;
 local OVERLAY_WIDTH		= 170;
 local OVERLAY_HEIGHT	= 34;
+
 local BIND_TARGET 	 	= false;
+local BIND_MODIFIER 	= nil;
 local CONF_BUTTON 		= nil;
+
 local CP				= "CP";
 local CONF				= "_CONF";
 local CONFBG			= "_CONF_BG";
@@ -15,6 +18,10 @@ local SHIFT				= "_SHIFT";
 local CTRL				= "_CTRL";
 local CTRLSH			= "_CTRLSH";
 local TEXTURE			= "TEXTURE_";
+local BIND 				= "BINDING_NAME_";
+
+local ConsolePortSaveBindingSet = nil;
+local ConsolePortSaveBindings = nil;
 
 G.panel				= CreateFrame( "FRAME", "ConsolePortConfMain", InterfaceOptionsFramePanelContainer );
 G.binds				= CreateFrame( "FRAME", "ConsolePortChild", G.panel);
@@ -50,6 +57,8 @@ G.binds:SetScript("OnShow", function(self)
 	end);
 end);
 G.binds:SetScript("OnHide", function(self)
+	ConsolePortSaveBindings = nil;
+	ConsolePortSaveBindingSet = nil;
 	ConsolePort:SetButtonActionsConfig("click");
 	self:SetScript("OnUpdate", nil);
 end);
@@ -57,55 +66,61 @@ InterfaceOptions_AddCategory(G.panel);
 InterfaceOptions_AddCategory(G.binds);
 
 local function ChangeBinding(bindingName, bindingTitle)
-	print(bindingName, bindingTitle, BIND_TARGET);
-	_G[CONF_BUTTON]:SetText(bindingTitle);
+	CONF_BUTTON:SetText(bindingTitle);
+	if not ConsolePortSaveBindingSet then
+		ConsolePortSaveBindingSet = ConsolePortBindingSet;
+	end
+	local modifier;
+	if not BIND_MODIFIER then modifier = "action";
+	elseif BIND_MODIFIER == "SHIFT" then modifier = "shift";
+	elseif BIND_MODIFIER == "CTRL" then modifier = "ctrl";
+	elseif BIND_MODIFIER == "CTRL-SHIFT" then modifier = "ctrlsh"; end;
+	ConsolePortSaveBindingSet[BIND_TARGET][modifier] = bindingName;
 end
 
-
-local function GenerateMenuListItem(i)
-	local current 	= GetBinding(i);
-	local title 	= _G["BINDING_NAME_"..current];
-	local binding 	= { text = title, func = function() ChangeBinding(current, title); end };
-	return binding;
-end
-
-local function GenerateBindingsTable()
+function ConsolePort:GenerateBindingsTable()
 	local BindingsTable = {};
-	local SubTables 	= {};
-	local Movement 		= {};
-	local ActionBar 	= {};
-	local ExtraBar 		= {};
-	local ActionPage 	= {};
-	local MultiBarBL 	= {};
-	local MultiBarBR 	= {};
-	local MultiBarRR 	= {};
-	local MultiBarRL 	= {};
-	-- Binding iteration indices. 
-	Movement.name 		= "Movement";
-	Movement.jump 		= 8;
-	Movement.sheathe 	= 10;
-	Movement.run 		= 14;
-	Movement.follow 	= 15;
-	ActionBar.name 		= "Action Bar";			ActionBar.start 	= 26;		ActionBar.stop  	= 37;
-	MultiBarBL.name 	= "Left Bottom Bar";	MultiBarBL.start 	= 69;		MultiBarBL.stop		= 80;
-	MultiBarBR.name 	= "Right Bottom Bar";	MultiBarBR.start 	= 82;		MultiBarBR.stop 	= 93;
-	MultiBarRR.name 	= "Right Side Bar";		MultiBarRR.start 	= 95;		MultiBarRR.stop 	= 106;
-	MultiBarRL.name 	= "Left Side Bar";		MultiBarRL.start 	= 108;		MultiBarRL.stop 	= 119;
-	ExtraBar.name 		= "Extra Bar";			ExtraBar.start 		= 38;		ExtraBar.stop		= 58;
-	ActionPage.name 	= "Action Page";		ActionPage.start 	= 59;		ActionPage.stop		= 66;
-
-	table.insert(SubTables, ActionBar);
-	table.insert(SubTables, MultiBarBL);
-	table.insert(SubTables, MultiBarBR);
-	table.insert(SubTables, MultiBarRR);
-	table.insert(SubTables, MultiBarRL);
-	table.insert(SubTables, ActionPage);
-	table.insert(SubTables, ExtraBar);
+	local SubTables = {
+		{name = "Movement keys", 		start = 8,		stop = 15 },
+		{name = "Chat", 				start = 16, 	stop = 25 },
+		{name = "Action Bar", 			start =	26, 	stop = 37 },
+		{name = "Extra Bar", 			start = 38,		stop = 58 },
+		{name = "Action Page", 			start = 59,		stop = 66 },
+		{name = "Left Bottom Bar",		start = 69,		stop = 80 },
+		{name = "Right Bottom Bar", 	start = 82,		stop = 93 },
+		{name = "Right Side Bar", 		start = 95,		stop = 106},
+		{name = "Left Side Bar", 		start = 108,	stop = 119},
+		{name = "Target (tab)", 		start = 120,	stop = 128},
+		{name = "Target friend", 		start = 129,	stop = 137},
+		{name = "Target enemy", 		start = 138,	stop = 149},
+		{name = "Target general",		start = 150,	stop = 162},
+		{name = "Bags and menu", 		start = 163,	stop = 169},
+		{name = "Character", 			start = 171, 	stop = 174},
+		{name = "Spells and talents", 	start = 176,	stop = 181},
+		{name = "Quest and map", 		start = 186, 	stop = 192},
+		{name = "Social", 				start = 194, 	stop = 200},
+		{name = "PvE / PvP",			start = 202, 	stop = 204},
+		{name = "Collections",			start = 206, 	stop = 210},
+		{name = "Information",			start = 212, 	stop = 213},
+		{name = "Miscellaneous",		start = 214,	stop = 228},
+		{name = "Camera",				start = 229,	stop = 248},
+		{name = "Target Markers",		start = 249,	stop = 257},
+		{name = "Vehicle Controls",		start = 258, 	stop = 266}
+	}
 	for _, item in ipairs(SubTables) do
 		local t = {};
-		local SubMenu =  { text = item.name, hasArrow = true, notCheckable = true };
+		local SubMenu =  {
+			text = item.name,
+			hasArrow = true,
+			notCheckable = true
+		}
 		for i=item.start, item.stop do
-			table.insert(t, GenerateMenuListItem(i));
+			local binding = {
+				text = _G["BINDING_NAME_"..GetBinding(i)],
+				notCheckable = true,
+				func = function() ChangeBinding(GetBinding(i), _G["BINDING_NAME_"..GetBinding(i)]); end
+			}
+			table.insert(t, binding);
 		end
 		SubMenu.menuList = t;
 		table.insert(BindingsTable, SubMenu);
@@ -113,8 +128,38 @@ local function GenerateBindingsTable()
 	return BindingsTable;
 end 
 
-local menu = GenerateBindingsTable();
-local menuFrame = CreateFrame("Frame", "ExampleMenuFrame", UIParent, "UIDropDownMenuTemplate")
+-- appear at the cursor: 
+-- EasyMenu(menu, menuFrame, "cursor", 0 , 0, "MENU");
+
+-- appear at the frame:
+-- menuFrame:SetPoint("Center", UIParent, "Center")
+-- EasyMenu(menu, menuFrame, menuFrame, 0 , 0, "MENU");
+local bindMenu = ConsolePort:GenerateBindingsTable();
+local bindMenuFrame = CreateFrame("Frame", "ConsolePortBindMenu", UIParent, "UIDropDownMenuTemplate")
+
+function ConsolePort:CreateConfigStaticButton(name, modifier, xoffset, yoffset)
+	local b = CreateFrame("BUTTON", name..CONF, G.binds, "UIMenuButtonStretchTemplate");
+	b:SetWidth(BUTTON_WIDTH);
+	b:SetHeight(BUTTON_HEIGHT);
+	b:SetPoint("TOPLEFT", G.binds, xoffset*BUTTON_WIDTH-60, -BUTTON_HEIGHT*yoffset);
+	b:SetScript("OnShow", function(self)
+		local key1, key2 = GetBindingKey(name);
+		if key1 then b.key1 = key1; end;
+		if key2 then b.key2 = key2; end;
+		if key1 or key2 then
+			local key;
+			if key1 then key = key1; else key = key2; end;
+			if modifier then key = modifier.."-"..key; end;
+			b:SetText(_G[BIND..GetBindingAction(key, true)]);
+		end
+	end);
+	b:SetScript("OnClick", function(self, button, down)
+		BIND_TARGET = name;
+		CONF_BUTTON = self;
+		BIND_MODIFIER = modifier;
+		EasyMenu(bindMenu, bindMenuFrame, "cursor", 0 , 0, "MENU");
+	end);
+end
 
 function ConsolePort:CreateConfigButton(name, xoffset, yoffset)
 	local f = CreateFrame("FRAME", name..CONFBG, G.binds);
@@ -174,8 +219,8 @@ end
 function ConsolePort:CreateConfigGuideButton(name, title, parent, xoffset, yoffset)
 	local f = CreateFrame("Frame", name..GUIDE, parent);
 	local fN = title;
-	if 		string.find(fN, "Trigger 1") then fN = "LONE";
-	elseif 	string.find(fN, "Trigger 2") then fN = "LTWO"; end;
+	if 		string.find(fN, "Trigger 1") then fN = "RONE";
+	elseif 	string.find(fN, "Trigger 2") then fN = "RTWO"; end;
 	f.guide = ConsolePort:CreateIndicator(f, "SMALL", "CENTER", fN);
 	f.guide:SetScript("OnShow", nil);
 	f:SetPoint("TOPLEFT", parent, xoffset+20, -BUTTON_HEIGHT*yoffset);
@@ -184,13 +229,18 @@ function ConsolePort:CreateConfigGuideButton(name, title, parent, xoffset, yoffs
 	f:SetAlpha(1);
 	f.guide:SetAlpha(0.5);
 	f:Show();
+	return f;
 end
 
 function ConsolePort:SubmitBindings()
 	if ConsolePortSaveBindings then
 		ConsolePortBindingButtons = ConsolePortSaveBindings;
 	end
+	if ConsolePortSaveBindingSet then
+		ConsolePortBindingSet = ConsolePortSaveBindingSet;
+	end
 	ConsolePort:ReloadBindingActions();
+	ConsolePort:LoadBindingSet(true);
 end
 
 function ConsolePort:LoadBindingSet(enabled)
@@ -338,17 +388,24 @@ function ConsolePort:SetButtonActionsConfig(type)
 	end
 end
 
--- Create generic strings for bindings config
+-- Create guide buttons on the menu
 ConsolePort:CreateConfigGuideButton(CP..SHIFT, 		"LONE",	G.binds, 180*2-40, 0);
 ConsolePort:CreateConfigGuideButton(CP..CTRL,		"LTWO",	G.binds, 180*3-40, 0);
 ConsolePort:CreateConfigGuideButton(CP..CTRLSH..1, 	"LONE",	G.binds, 180*4-55, 0);
 ConsolePort:CreateConfigGuideButton(CP..CTRLSH..2,	"LTWO",	G.binds, 180*4-25, 0);
 
+-- "Option buttons"; static bindings able to call protected Blizzard API
+local optionButtons = {
+	{option = "CP_X_OPTION", icon = "CROSS"},
+	{option = "CP_C_OPTION", icon = "PSBTN"},
+	{option = "CP_L_OPTION", icon = "SELECT"},
+	{option = "CP_R_OPTION", icon = "START"}
+}
+for i, button in pairs(optionButtons) do
+	ConsolePort:CreateConfigGuideButton(button.option, button.icon, G.binds, 0, i+9);
+	ConsolePort:CreateConfigStaticButton(button.option, nil, 1, i+9);
+	ConsolePort:CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
+	ConsolePort:CreateConfigStaticButton(button.option, "CTRL", 3, i+9);
+	ConsolePort:CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
+end
 
-
--- Make the menu appear at the cursor: 
--- EasyMenu(menu, menuFrame, "cursor", 0 , 0, "MENU");
-
--- Or make the menu appear at the frame:
--- menuFrame:SetPoint("Center", UIParent, "Center")
--- EasyMenu(menu, menuFrame, menuFrame, 0 , 0, "MENU");
