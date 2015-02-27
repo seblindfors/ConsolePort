@@ -19,13 +19,13 @@ At the moment, this addon supports:
 - Combat: fully implemented combat system.
 - Quests: accepting, progressing and completing quests. Choosing rewards and previewing items.
 - Map/questlog: tracking, managing and reading quests. Map iteration works very well but not completely finished.
-- Bags: bag control is fully implemented, although quest items used in combat should be moved to an action bar.
+- Bags: bag control is fully implemented.
 - Gear: gear control is implemented, along with functionality to replace gear pieces on the fly.
 - Gossip: talking to NPCs is fully implemented.
 - Taxi: choosing and taking flight paths is fully implemented.
 - Spellbook: picking up and using spells directly out of the book is fully implemented.
 - Specialization: learning and changing specialization is fully implemented.
-- Glyphs: iterating through and choosing glyphs is implemented, but riddled with bugs.
+- Glyphs: iterating through and choosing glyphs is implemented, but may not work correctly. 
 - Menu: using the game menu is implemented, but the confirm button may not work properly if released slowly.
 
 Upcoming features:
@@ -46,7 +46,6 @@ Upcoming features:
 - Shop
 - Common third-party addon support (e.g. Bartender4)
 - Double tab system
-- Dynamic option buttons
 
 In its current state, a lot of features are missing, not fully implemented or prone to taint issues.
 If you run into a tainted execution path (an action was blocked), you might have to <b>/reload</b>. 
@@ -122,33 +121,6 @@ A few exceptions here for security purposes: Popups are accepted by clicking "Sq
   make a choice. "Circle" is exclusively used for mundane tasks, whereas "Square" is used for important decisions.
 The arrows on the controller are self-explanatory in most cases and are used to iterate through frames.
 Triggers will be added to the setup shortly to accomodate the double tab system on a handful of frames. 
-
-<h4>4.3. Static buttons (will be removed soon)</h4>
-The current static buttons are used for protected actions that Blizzard strictly forbids you to fiddle with through unsecure code
-execution. They are used for actions such as jumping, toggling protected frames, targeting enemies and applying focus.
-I have a system in place for changing these bindings, but it needs some work before being implemented. 
-
-Default static button setup:
-- Left option button (Share/Select/Back):
-  - No mod: Open All Bags
-  - Shift: Character Pane
-  - Ctrl: SpellBook
-  - Ctrl+shift: Talents
-- Center option button (PS/Guide):
-  - No mod: Game Menu / Clear target / Close frame
-  - Shift: Extra Action Button 1 (the popup button in certain quests/raids etc)
-  - Ctrl: Autorun
-  - Ctrl+shift: Follow
-- Right option button (Start):
-  - No mod: Map / Questlog
-  - Shift: Next camera view
-  - Ctrl: Previous camera view
-  - Ctrl+shift: Camera zoom out
-- Cross/A:
-  - No mod: Jump
-  - Shift: Target nearest enemy
-  - Ctrl: Focus target
-  - Ctrl+shift: Target focus target
 
 <h4>4.4. World interaction</h4>
 Interacting with the game world can only be done the conventional way; by clicking with the virtual mouse setup on your
