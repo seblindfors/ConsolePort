@@ -31,6 +31,7 @@ At the moment, this addon supports:
 Upcoming features:
 - Interface options: currently only supports changing button mappings for the controller. 
 - Dropdown menus: currently implemented, but not activated because of unresolved taint issues.
+- Party and raid frames
 - Manual looting (auto-loot turned off)
 - Talent picker and pet specialization
 - Professions
