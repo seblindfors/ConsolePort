@@ -78,7 +78,7 @@ local function ChangeBinding(bindingName, bindingTitle)
 	ConsolePortSaveBindingSet[BIND_TARGET][modifier] = bindingName;
 end
 
-function ConsolePort:GenerateBindingsTable()
+local function GenerateBindingsTable()
 	local BindingsTable = {};
 	local SubTables = {
 		{name = "Movement keys", 		start = 8,		stop = 15 },
@@ -134,7 +134,7 @@ end
 -- appear at the frame:
 -- menuFrame:SetPoint("Center", UIParent, "Center")
 -- EasyMenu(menu, menuFrame, menuFrame, 0 , 0, "MENU");
-local bindMenu = ConsolePort:GenerateBindingsTable();
+local bindMenu = GenerateBindingsTable();
 local bindMenuFrame = CreateFrame("Frame", "ConsolePortBindMenu", UIParent, "UIDropDownMenuTemplate")
 
 function ConsolePort:CreateConfigStaticButton(name, modifier, xoffset, yoffset)
