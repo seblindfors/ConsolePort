@@ -140,11 +140,10 @@ Warning: I strongly recommend you do not use MotioninJoy!
 <h2>6. Known issues</h2>
 - Opening several frames while in combat may cause unresponsiveness until they are re-opened. 
 - Using the game menu module to open UI panes will not work when Circle is held down for longer than 100 ms.
-- First gossip option is not always highlighted when starting an NPC conversation with multiple gossip options.
 - Quest log iteration is sometimes not ordered from top to bottom.
 - Map iteration skips certain zones, Stormwind is one of them.
-- Map highlighting does not work for the World map (Outland, Draenor, Azeroth). 
-- The Maelstrom zone and subzones are not targetable with arrow buttons. Choosing it will open the Pandaria map.
+- Map highlighting does not work for the planet map (arrow buttons are used to enter the planets directly).
+- The Maelstrom zone and subzones are not targetable with arrow buttons. Maelstrom will open the Pandaria map.
 - Entering combat while the glyph frame is open will lock out the Up and Down buttons on the controller.
 - Unless overridden, old button combinations will appear on action buttons until the UI is reloaded.
 - Downwards glyph list iteration will sometimes stop working when the scrollbar reaches the bottom.
