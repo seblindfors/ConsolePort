@@ -25,7 +25,7 @@ At the moment, this addon supports:
 - Taxi: choosing and taking flight paths is fully implemented.
 - Spellbook: picking up and using spells directly out of the book is fully implemented.
 - Specialization: learning and changing specialization is fully implemented.
-- Glyphs: iterating through and choosing glyphs is implemented, but stay out of combat while you do.
+- Glyphs: iterating through and choosing glyphs is implemented, but riddled with bugs.
 - Menu: using the game menu is implemented, but the confirm button may not work properly if released slowly.
 
 Upcoming features:
