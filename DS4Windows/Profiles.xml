@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Profile Configuration Data. 2015-02-26 10:49:26 -->
+<!-- Profile Configuration Data. 2015-02-28 00:20:33 -->
 
 <Profile>
   <useExclusiveMode>False</useExclusiveMode>
   <startMinimized>False</startMinimized>
-  <formWidth>160</formWidth>
-  <formHeight>28</formHeight>
+  <formWidth>438</formWidth>
+  <formHeight>225</formHeight>
   <Controller1>World of Warcraft</Controller1>
   <Controller2>
   </Controller2>
@@ -13,7 +13,7 @@
   </Controller3>
   <Controller4>
   </Controller4>
-  <LastChecked>2015-02-26 00:45:01</LastChecked>
+  <LastChecked>2015-02-27 21:23:45</LastChecked>
   <CheckWhen>1</CheckWhen>
   <Notifications>True</Notifications>
   <DisconnectBTAtStop>False</DisconnectBTAtStop>

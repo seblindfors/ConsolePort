@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- DS4Windows Configuration Data. 2015-02-20 23:30:18 -->
+<!-- DS4Windows Configuration Data. 2015-02-28 00:20:33 -->
 
 <DS4Windows>
   <flushHIDQueue>True</flushHIDQueue>
@@ -66,7 +66,7 @@
       <bnLeft>113</bnLeft>
       <bnL1>160</bnL1>
       <bnOptions>116</bnOptions>
-      <bnPS>48</bnPS>
+      <bnPS>106</bnPS>
       <bnShare>117</bnShare>
       <bnL2>162</bnL2>
       <bnR2>118</bnR2>
