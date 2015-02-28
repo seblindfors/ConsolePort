@@ -35,3 +35,6 @@ function ConsolePort:Gossip (key, state)
 		ConsolePort:Button(GossipFrameGreetingGoodbyeButton, state);
 	end
 end
+
+
+

@@ -75,7 +75,7 @@ function ConsolePort:Taxi (key, state)
 		ConsolePort:Highlight(iterator, nodes);
 		nodes[iterator]:GetScript("OnEnter")(nodes[iterator]);
 		if TaxiNodeGetType(nodes[iterator]:GetID()) ~= "CURRENT" then
-			GameTooltip:AddLine(CLICK_TAKETAXI, 1,1,1);
+			GameTooltip:AddLine(G.CLICK_TAKETAXI, 1,1,1);
 			GameTooltip:Show();
 		end
 	end

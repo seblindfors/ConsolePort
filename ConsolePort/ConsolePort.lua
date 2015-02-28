@@ -45,6 +45,7 @@ local function LoadHooks ()
 		{ TaxiFrame, 				ConsolePort.Taxi, 	"taxi"	},
 		{ SpellBookSpellIconsFrame,	ConsolePort.Book,	"book"	},
 		{ QuestFrame, 				ConsolePort.Quest, 	"quest"	},
+		{ QuestLogPopupDetailFrame, ConsolePort.Quest,	"quest"	},
 		{ GossipFrame, 				ConsolePort.Gossip,	"gossip"},
 		{ GuildInviteFrame,			ConsolePort.Guild,	"guild"	},
 		{ StackSplitFrame,			ConsolePort.Stack, 	"stack"	},

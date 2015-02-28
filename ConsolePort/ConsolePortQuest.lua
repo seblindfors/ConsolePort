@@ -9,10 +9,18 @@ function ConsolePort:Quest (key, state)
 		local VisibleButton;
 		if 		QuestFrameCompleteQuestButton:IsVisible() 	then VisibleButton = QuestFrameCompleteQuestButton;		
 		elseif 	QuestFrameCompleteButton:IsVisible() 		then VisibleButton = QuestFrameCompleteButton;
-		elseif 	QuestFrameAcceptButton:IsVisible() 			then VisibleButton = QuestFrameAcceptButton; end;
+		elseif 	QuestFrameAcceptButton:IsVisible() 			then VisibleButton = QuestFrameAcceptButton;
+		elseif	QuestLogPopupDetailFrameTrackButton:IsVisible() then VisibleButton = QuestLogPopupDetailFrameTrackButton; end;
+		if VisibleButton then ConsolePort:Button(VisibleButton, state); end;
+	elseif 	key == G.SQUARE then
+		local VisibleButton;
+		if 		QuestLogPopupDetailFrameAbandonButton:IsVisible() then VisibleButton = QuestLogPopupDetailFrameAbandonButton; end;
 		if VisibleButton then ConsolePort:Button(VisibleButton, state); end;
 	elseif	key == G.TRIANGLE then
-		ConsolePort:Button(QuestFrameDeclineButton, state);
+		local VisibleButton;
+		if 		QuestFrameDeclineButton:IsVisible() then VisibleButton = QuestFrameDeclineButton;
+		elseif 	QuestLogPopupDetailFrame.ShowMapButton:IsVisible() then VisibleButton = QuestLogPopupDetailFrame.ShowMapButton; end;
+		if VisibleButton then ConsolePort:Button(VisibleButton, state); end;
 	elseif	key == G.UP and not GreetingFrame then
 		ConsolePort:Button(QuestDetailScrollFrameScrollBarScrollUpButton, state);
 		ConsolePort:Button(QuestProgressScrollFrameScrollBarScrollUpButton, state);

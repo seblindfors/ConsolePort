@@ -38,6 +38,7 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = QuestFrameAcceptButton, 	size = "SMALL", anchor = "LEFT"	},
 		{frame = QuestFrameCompleteButton, 	size = "SMALL", anchor = "LEFT"	},
 		{frame = QuestFrameCompleteQuestButton, size = "SMALL", anchor = "LEFT"	},
+		{frame = QuestLogPopupDetailFrameTrackButton, size = "SMALL", anchor = "RIGHT" },
 		{frame = QuestMapFrame.DetailsFrame.TrackButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = QuestMapFrame.DetailsFrame.CompleteQuestFrame.CompleteButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = GuildInviteFrameDeclineButton, size = "SMALL", anchor = "RIGHT" },
@@ -53,6 +54,7 @@ function ConsolePort:GetIndicatorButtons(button)
 	-- Square
 	elseif button == BINDING_NAME_CP_R_LEFT then t = { 
 		{frame = OverrideActionBarButton1,	size = "SMALL", anchor = "CENTER" },
+		{frame = QuestLogPopupDetailFrameAbandonButton, size = "SMALL", anchor = "LEFT" },
 		{frame = QuestMapFrame.DetailsFrame.AbandonButton, size = "SMALL", anchor = "LEFT"},
 		{frame = WorldMapFrameTutorialButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = GuildInviteFrameJoinButton, size = "SMALL", anchor = "LEFT"},
@@ -68,6 +70,7 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = OverrideActionBarButton2,	size = "SMALL", anchor = "CENTER" },
 		{frame = QuestFrameDeclineButton,	size = "SMALL", anchor = "RIGHT"},
 		{frame = QuestFrameGoodbyeButton,	size = "SMALL", anchor = "RIGHT"},
+		{frame = QuestLogPopupDetailFrame.ShowMapButton, size = "SMALL", anchor = "RIGHT" },
 		{frame = SpellBookSkillLineTab2, 	size = "SMALL", anchor = "BOTTOM"},
 		{frame = PlayerSpecTab2, 			size = "SMALL", anchor = "BOTTOM"},
 		{frame = GossipFrameGreetingGoodbyeButton,		size = "SMALL", anchor = "RIGHT"},
