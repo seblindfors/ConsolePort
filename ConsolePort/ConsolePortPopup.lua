@@ -21,7 +21,7 @@ local function HookFadeScripts(table)
 		frame:HookScript("OnUpdate", function(self, elapsed)
 			if 	self:IsVisible() then
 				if table[i+1] and table[i+1]:IsVisible() then
-					self:SetAlpha(table[i+1]:GetAlpha()*0.6);
+					self:SetAlpha(table[i+1]:GetAlpha()*0.75);
 				else
 					self:SetAlpha(1);
 				end
@@ -39,6 +39,7 @@ for i, lootFrame in pairs(lootFrames) do
 			lootHasTooltip = true;
 		elseif lootHasTooltip then
 			lootLeave(lootFrame.IconFrame);
+			lootHasTooltip = false;
 		end
 	end);
 end
