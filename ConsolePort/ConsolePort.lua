@@ -49,14 +49,14 @@ local function LoadHooks ()
 		{ GossipFrame, 				ConsolePort.Gossip,	"gossip"},
 		{ GuildInviteFrame,			ConsolePort.Guild,	"guild"	},
 		{ StackSplitFrame,			ConsolePort.Stack, 	"stack"	},
-		{ StaticPopup1,				ConsolePort.Popup,	"popup"	},
-		{ StaticPopup2,				ConsolePort.Popup,	"popup"	},
-		{ StaticPopup3,				ConsolePort.Popup,	"popup"	},
-		{ StaticPopup4,				ConsolePort.Popup,	"popup"	},
 		{ GroupLootFrame1,			ConsolePort.Loot,	"loot"	},
 		{ GroupLootFrame2,			ConsolePort.Loot,	"loot"	},
 		{ GroupLootFrame3,			ConsolePort.Loot,	"loot"	},
 		{ GroupLootFrame4,			ConsolePort.Loot,	"loot"	},
+		{ StaticPopup1,				ConsolePort.Popup,	"popup"	},
+		{ StaticPopup2,				ConsolePort.Popup,	"popup"	},
+		{ StaticPopup3,				ConsolePort.Popup,	"popup"	},
+		{ StaticPopup4,				ConsolePort.Popup,	"popup"	},
 		{ CinematicFrame,			ConsolePort.Misc,	"misc"	}
 	}
 	for i, Frame in pairs(LoadFrames) do

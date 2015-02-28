@@ -1,72 +1,74 @@
 local _
 local _, G = ...;
+local interval = 0.3;
+local frameTimers = { 0,0,0,0,0,0,0,0 };
 local lootInspect = GroupLootFrame1.IconFrame:GetScript("OnEnter");
 local lootLeave   = GroupLootFrame1.IconFrame:GetScript("OnLeave");
 local lootHasTooltip = false;
-local lootFrames = {
+local popupFrames = {
 	GroupLootFrame1,
 	GroupLootFrame2,
 	GroupLootFrame3,
-	GroupLootFrame4
-}
-local popupFrames = {
+	GroupLootFrame4,
 	StaticPopup1,
 	StaticPopup2,
 	StaticPopup3,
 	StaticPopup4
 }
 
-local function HookFadeScripts(table)
-	for i, frame in pairs(table) do
-		frame:HookScript("OnUpdate", function(self, elapsed)
+local function IsStaticPopup(i) return i>4; end;
+
+local function IsLootFrame(i) return i<=4; end;
+
+local function ButtonsLinked(button, clickbutton)
+	return button:GetAttribute("clickbutton") == clickbutton;
+end
+
+for i, frame in pairs(popupFrames) do
+	frame:HookScript("OnUpdate", function(self, elapsed)
+		frameTimers[i] = frameTimers[i] + elapsed;
+		while frameTimers[i] > interval do
 			if 	self:IsVisible() then
-				if table[i+1] and table[i+1]:IsVisible() then
-					self:SetAlpha(table[i+1]:GetAlpha()*0.75);
+				if popupFrames[i+1] and popupFrames[i+1]:IsVisible() then
+					self:SetAlpha(popupFrames[i+1]:GetAlpha()*0.75);
 				else
 					self:SetAlpha(1);
 				end
+				if 	self:GetAlpha() == 1 and
+					not InCombatLockdown() then
+					if IsStaticPopup(i) then
+						if not ButtonsLinked(CP_R_RIGHT_NOMOD, _G[self:GetName().."Button2"]) then
+							ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, _G[self:GetName().."Button2"]);
+							ConsolePort:SetClickButton(CP_R_LEFT_NOMOD, _G[self:GetName().."Button1"]);
+						end
+					elseif IsLootFrame(i) then
+						if 	IsShiftKeyDown() then
+							lootInspect(self.IconFrame);
+							lootHasTooltip = self;
+						elseif lootHasTooltip == self then
+							lootLeave(self.IconFrame);
+							lootHasTooltip = nil;
+						end
+						if not ButtonsLinked(CP_R_UP_NOMOD, self.PassButton) then
+							ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, self.GreedButton);
+							ConsolePort:SetClickButton(CP_R_LEFT_NOMOD, self.NeedButton);
+							ConsolePort:SetClickButton(CP_R_UP_NOMOD, self.PassButton);
+							if self.DisenchantButton:IsVisible() then
+								ConsolePort:SetClickButton(CP_L_DOWN_NOMOD, self.DisenchantButton);
+							end
+						end
+					end
+				end
 			end
-		end);
-	end
-end
-
-for i, lootFrame in pairs(lootFrames) do
-	lootFrame:HookScript("OnUpdate", function(self, elapsed)
-		if 	self:IsVisible() and
-			self:GetAlpha() == 1 and
-			IsShiftKeyDown() then
-			lootInspect(lootFrame.IconFrame);
-			lootHasTooltip = true;
-		elseif lootHasTooltip then
-			lootLeave(lootFrame.IconFrame);
-			lootHasTooltip = false;
+			frameTimers[i] = frameTimers[i] - interval;
 		end
 	end);
 end
 
-HookFadeScripts(lootFrames);
-HookFadeScripts(popupFrames);
-
 function ConsolePort:Popup (key, state)
-	local PopupFocus = StaticPopup1;
-	if  	StaticPopup4:IsVisible() then PopupFocus = StaticPopup4;
-	elseif	StaticPopup3:IsVisible() then PopupFocus = StaticPopup3;
-	elseif	StaticPopup2:IsVisible() then PopupFocus = StaticPopup2; end
-	PopupFocus:SetAlpha(1);
-	ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, _G[PopupFocus:GetName().."Button2"]);
-	ConsolePort:SetClickButton(CP_R_LEFT_NOMOD, _G[PopupFocus:GetName().."Button1"]);
+	return;
 end
 
 function ConsolePort:Loot (key, state)
-	local LootFocus = GroupLootFrame1;
-	if  	GroupLootFrame4:IsVisible() then LootFocus = GroupLootFrame4;
-	elseif	GroupLootFrame3:IsVisible() then LootFocus = GroupLootFrame3;
-	elseif	GroupLootFrame2:IsVisible() then LootFocus = GroupLootFrame2; end
-	LootFocus:SetAlpha(1);
-	ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, LootFocus.GreedButton);
-	ConsolePort:SetClickButton(CP_R_LEFT_NOMOD, LootFocus.NeedButton);
-	ConsolePort:SetClickButton(CP_R_UP_NOMOD, LootFocus.PassButton);
-	if LootFocus.DisenchantButton:IsVisible() then
-		ConsolePort:SetClickButton(CP_L_DOWN_NOMOD, LootFocus.DisenchantButton);
-	end
+	return;
 end
