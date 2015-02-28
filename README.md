@@ -33,7 +33,6 @@ Upcoming features:
 - Dropdown menus: currently implemented, but not activated because of unresolved taint issues.
 - Party and raid frames
 - Manual looting (auto-loot turned off)
-- Loot rolls
 - Talent picker and pet specialization
 - Professions
 - Merchant
