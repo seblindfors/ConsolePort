@@ -94,7 +94,7 @@ Apart from this, you are free to map the buttons however you want. My suggestion
   up in the list. To remap a button combination, simply drag your mouse cursor over the action button on your action bars and
   press the key combination you want for that button. The icon in the palette will now change to your new assignment.
 
-  The last four buttons in the list are static and will remain unmodified by the addon at all times. This is to circumvent     the protected API restrictions and allow you to map actions such as jumping or targeting enemies. To change these bindings,   click on the corresponding button with the virtual mouse and choose the action you want from the dropdown list.
+  The last four buttons in the list are static and will remain unmodified by the addon at all times. This is to circumvent     the protected API restrictions and allow you to map actions such as jumping or targeting enemies. To change these bindings,   click on the corresponding button with the virtual mouse and choose the action you want from the dropdown list.<br>
   Press <b>Okay</b> when you are done. (This process will eventually be more straightforward.)
   
   <h2>4. Using the addon</h2>
