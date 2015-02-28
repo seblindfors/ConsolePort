@@ -1,11 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Profile Configuration Data. 2015-02-28 00:20:33 -->
+<!-- Profile Configuration Data. 2015-02-28 15:30:20 -->
 
 <Profile>
   <useExclusiveMode>False</useExclusiveMode>
   <startMinimized>False</startMinimized>
-  <formWidth>438</formWidth>
-  <formHeight>225</formHeight>
+  <formWidth>160</formWidth>
+  <formHeight>28</formHeight>
   <Controller1>World of Warcraft</Controller1>
   <Controller2>
   </Controller2>
