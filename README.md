@@ -58,12 +58,7 @@ If you run into a tainted execution path (an action was blocked), you might have
   ConsolePort is not restricted to any one controller, however, it is somewhat restricted to conventional controller layouts.
 It requires a set of 14-15 buttons, which is what you'll find on any version of the PlayStation, Xbox or Logitech controllers.
 At the moment, the addon is being developed with a PS4 controller in mind and lacks a few options, such as changing the guide
-textures and button names. Some of the functionality cannot be remapped without editing the SavedVariables file and manually
-typing binding references in the buttons mapping table. The center buttons are static at the moment and if you use an Xbox
-controller or Xpadder with an Xinput converted DS3 controller, you will come up one button short. This will be resolved shortly.
-If you do, however, have a DS4 controller, the files provided in this git will save you the pain of mapping keys or setting up confusing
-third-party software. Download DS4Windows from http://ds4windows.com and simply drop the files into the same directory.
-Run DS4Windows.exe, connect your controller and jump into the game.
+textures and button names. If you have a DS4 controller, the files provided in this git will save you the pain of mapping keys or setting up confusing third-party software. Download DS4Windows from http://ds4windows.com and simply drop the files into the same directory. Run DS4Windows.exe, connect your controller and jump into the game.
 
 
 <h2>3. Basic setup</h2>
