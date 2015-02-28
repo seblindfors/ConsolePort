@@ -31,7 +31,7 @@ for i, frame in pairs(popupFrames) do
 			if 	self:IsVisible() then
 				if popupFrames[i+1] and popupFrames[i+1]:IsVisible() then
 					self:SetAlpha(popupFrames[i+1]:GetAlpha()*0.75);
-				else
+				elseif not InCombatLockdown() then
 					self:SetAlpha(1);
 				end
 				if 	self:GetAlpha() == 1 and
