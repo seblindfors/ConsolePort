@@ -46,7 +46,11 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = StaticPopup1Button2, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup2Button2, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup3Button2, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup4Button2, 		size = "SMALL", anchor = "RIGHT"},
+		{frame = StaticPopup4Button2, 		size = "SMALL", anchor = "RIGHT"},	
+		{frame = GroupLootFrame1.GreedButton, size = "SMALL", anchor = "LEFT"},
+		{frame = GroupLootFrame2.GreedButton, size = "SMALL", anchor = "LEFT"},
+		{frame = GroupLootFrame3.GreedButton, size = "SMALL", anchor = "LEFT"},
+		{frame = GroupLootFrame4.GreedButton, size = "SMALL", anchor = "LEFT"},
 		{frame = QuestScrollFrame.ViewAll, 	size = "LARGE", anchor = "LEFT"},
 		{frame = SplashFrame.BottomCloseButton, size = "SMALL", anchor = "LEFT"},
 		{frame = CinematicFrameCloseDialogResumeButton, size = "SMALL", anchor = "RIGHT"}
@@ -63,6 +67,10 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = StaticPopup2Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup3Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup4Button1, 		size = "SMALL", anchor = "LEFT"},
+		{frame = GroupLootFrame1.NeedButton, size = "SMALL", anchor = "LEFT"},
+		{frame = GroupLootFrame2.NeedButton, size = "SMALL", anchor = "LEFT"},
+		{frame = GroupLootFrame3.NeedButton, size = "SMALL", anchor = "LEFT"},
+		{frame = GroupLootFrame4.NeedButton, size = "SMALL", anchor = "LEFT"},
 		{frame = CinematicFrameCloseDialogConfirmButton, size = "SMALL", anchor = "LEFT"}
 	}
 	-- Triangle
@@ -75,7 +83,11 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = PlayerSpecTab2, 			size = "SMALL", anchor = "BOTTOM"},
 		{frame = GossipFrameGreetingGoodbyeButton,		size = "SMALL", anchor = "RIGHT"},
 		{frame = QuestMapFrame.DetailsFrame.BackButton, size = "SMALL", anchor = "LEFT"},
-		{frame = WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button, size = "LARGE", anchor = "LEFT"}
+		{frame = WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button, size = "LARGE", anchor = "LEFT"},
+		{frame = GroupLootFrame1.PassButton, size = "SMALL", anchor = "RIGHT"},
+		{frame = GroupLootFrame2.PassButton, size = "SMALL", anchor = "RIGHT"},
+		{frame = GroupLootFrame3.PassButton, size = "SMALL", anchor = "RIGHT"},
+		{frame = GroupLootFrame4.PassButton, size = "SMALL", anchor = "RIGHT"},
 	}
 	elseif button == "Up" then t = {
 		{frame = OverrideActionBarButton5,	size = "SMALL", anchor = "CENTER" },
@@ -88,7 +100,11 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = OverrideActionBarButton6,	size = "SMALL", anchor = "CENTER" }
 	}
 	elseif button == "Down"	then t = {
-		{frame = GameMenuFrame, 			size = "SMALL", anchor = "RIGHT"}
+		{frame = GameMenuFrame, 			size = "SMALL", anchor = "RIGHT"},
+		{frame = GroupLootFrame1.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
+		{frame = GroupLootFrame2.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
+		{frame = GroupLootFrame3.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
+		{frame = GroupLootFrame4.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
 	}
 	end
 	return t;
@@ -142,6 +158,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn.gear 	= function(self) ConsolePort:Gear(self.command, self.state);	end;
 	btn.misc 	= function(self) ConsolePort:Misc(self.command, self.state);	end;
 	btn.popup 	= function(self) ConsolePort:Popup(self.command, self.state); 	end;
+	btn.loot 	= function(self) ConsolePort:Loot(self.command, self.state); 	end;
 	btn.stack 	= function(self) ConsolePort:Stack(self.command, self.state); 	end;
 --	btn.list 	= function(self) ConsolePort:List(self.command, self.state);	end; -- Causes execution taint atm
 	btn.menu 	= function(self) ConsolePort:Menu(self.command, self.state); 	end;

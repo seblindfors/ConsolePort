@@ -53,6 +53,10 @@ local function LoadHooks ()
 		{ StaticPopup2,				ConsolePort.Popup,	"popup"	},
 		{ StaticPopup3,				ConsolePort.Popup,	"popup"	},
 		{ StaticPopup4,				ConsolePort.Popup,	"popup"	},
+		{ GroupLootFrame1,			ConsolePort.Loot,	"loot"	},
+		{ GroupLootFrame2,			ConsolePort.Loot,	"loot"	},
+		{ GroupLootFrame3,			ConsolePort.Loot,	"loot"	},
+		{ GroupLootFrame4,			ConsolePort.Loot,	"loot"	},
 		{ CinematicFrame,			ConsolePort.Misc,	"misc"	}
 	}
 	for i, Frame in pairs(LoadFrames) do
@@ -212,25 +216,29 @@ function ConsolePort:SetButtonActions (type)
 	CP_L_RIGHT_NOMOD:SetAttribute("type", type);
 	CP_L_LEFT_NOMOD:SetAttribute("type", type);
 	-- Allows for secure button workaround
-	if (type ~= "popup") then
+	if (type ~= "loot" and
+		type ~= "popup") then
 		CP_R_LEFT_NOMOD:SetAttribute("type", type);
 	end
 	if 	(type == "bags" and MerchantFrame:IsVisible()) or 
 		(type ~= "bags" and
 		 type ~= "book" and
 		 type ~= "spec" and
+		 type ~= "loot" and
 		 type ~= "popup" and
 		 type ~= "glyph") then
 		CP_R_RIGHT_NOMOD:SetAttribute("type", type);
 	end
 	if (type ~= "spec" and
+		type ~= "loot" and
 		type ~= "glyph") then
 		CP_R_UP_NOMOD:SetAttribute("type", type);
 	end
 	if (type ~= "glyph") then
 		CP_L_UP_NOMOD:SetAttribute("type", type);
 	end
-	if (type ~= "glyph") then
+	if (type ~= "loot" and
+		type ~= "glyph") then
 		CP_L_DOWN_NOMOD:SetAttribute("type", type);
 	end
 end
