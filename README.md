@@ -138,9 +138,10 @@ controller. All API functions for looting and clicking items on the ground are b
 Warning: I strongly recommend you do not use MotioninJoy!
 
 <h2>6. Known issues</h2>
-- Opening several frames while in combat may cause unresponsiveness until they are re-opened. 
+- Bags have to be re-opened when another hooked frame has been opened after the bags. 
 - Using the game menu module to open UI panes will not work when Circle is held down for longer than 100 ms.
 - Quest log iteration is sometimes not ordered from top to bottom.
+- Quest tracking sometimes targets the wrong quest. (probably related to above issue)
 - Map iteration skips certain zones, Stormwind is one of them.
 - Map iteration doesn't work while flying over the Twisting Nether.
 - Map highlighting does not work for the planet map (arrow buttons are used to enter the planets directly).
