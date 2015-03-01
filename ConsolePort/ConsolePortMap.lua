@@ -3,6 +3,13 @@ local _, G = ...;
 local iterator = 1;
 local zones = {};
 local zcount = 0;
+local item = nil;
+
+QuestScrollFrame:HookScript("OnHide", function(self)
+	if item then
+		item:GetScript("OnLeave")(item);
+	end
+end);
 
 function ConsolePort:Map(key, state)
 	local titles 	= QuestScrollFrame.Contents.Titles;
@@ -69,7 +76,7 @@ function ConsolePort:MapQuest(key, state, count, items, icons)
 		QuestScrollFrame.ViewAll:UnlockHighlight();
 		QuestScrollFrame.ViewAll:GetChildren():Hide();
 	end
-	local item = items[iterator];
+	item = items[iterator];
 	if item then
 		if 		item:GetTop()-item:GetHeight() < QuestScrollFrameScrollBarScrollDownButton:GetTop() then
 			QuestScrollFrameScrollBarScrollDownButton:Click();

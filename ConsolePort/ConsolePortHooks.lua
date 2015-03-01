@@ -59,6 +59,7 @@ function ConsolePort:LoadHookScripts()
 			WorldMapFrameTutorialButton:GetChildren():Hide();
 		end
 	end);
+	-- This might be pointless
 	WorldMapFrame:HookScript("OnHide", function(self)
 		if 	GameTooltip:GetOwner() and
 			GameTooltip:GetOwner().questID then
