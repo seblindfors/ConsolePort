@@ -122,7 +122,7 @@ A few exceptions here for security purposes: Popups are accepted by clicking "Sq
 The arrows on the controller are self-explanatory in most cases and are used to iterate through frames.
 Triggers will be added to the setup shortly to accomodate the double tab system on a handful of frames. 
 
-<h4>4.4. World interaction</h4>
+<h4>4.3. World interaction</h4>
 Interacting with the game world can only be done the conventional way; by clicking with the virtual mouse setup on your
 controller. All API functions for looting and clicking items on the ground are blocked and cannot be called from unsecure code. Use R3 (right stick button) to click items in 3D-space, loot mobs and interact with NPCs. If you don't have a double right mouse button click macroed to your R3 button, looting can be quite cumbersome, since you have to click the button twice. If you think this is a hassle, get the item <b>Findle's Loot-A-Rang</b>, an item which will loot all nearby corpses.
 
