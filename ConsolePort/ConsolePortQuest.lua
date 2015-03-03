@@ -19,13 +19,16 @@ function ConsolePort:Quest (key, state)
 	elseif	key == G.TRIANGLE then
 		local VisibleButton;
 		if 		QuestFrameDeclineButton:IsVisible() then VisibleButton = QuestFrameDeclineButton;
-		elseif 	QuestLogPopupDetailFrame.ShowMapButton:IsVisible() then VisibleButton = QuestLogPopupDetailFrame.ShowMapButton; end;
+		elseif 	QuestLogPopupDetailFrame.ShowMapButton:IsVisible() then VisibleButton = QuestLogPopupDetailFrame.ShowMapButton;
+		elseif	QuestFrameGoodbyeButton then VisibleButton = QuestFrameGoodbyeButton end;
 		if VisibleButton then ConsolePort:Button(VisibleButton, state); end;
 	elseif	key == G.UP and not GreetingFrame then
+		ConsolePort:Button(QuestLogPopupDetailFrameScrollFrameScrollBarScrollUpButton, state);
 		ConsolePort:Button(QuestDetailScrollFrameScrollBarScrollUpButton, state);
 		ConsolePort:Button(QuestProgressScrollFrameScrollBarScrollUpButton, state);
 		ConsolePort:Button(QuestRewardScrollFrameScrollBarScrollUpButton, state);
 	elseif	key == G.DOWN and not GreetingFrame then
+		ConsolePort:Button(QuestLogPopupDetailFrameScrollFrameScrollBarScrollDownButton, state);
 		ConsolePort:Button(QuestDetailScrollFrameScrollBarScrollDownButton, state);
 		ConsolePort:Button(QuestProgressScrollFrameScrollBarScrollDownButton, state);
 		ConsolePort:Button(QuestRewardScrollFrameScrollBarScrollDownButton, state);
