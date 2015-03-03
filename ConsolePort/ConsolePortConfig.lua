@@ -128,12 +128,6 @@ local function GenerateBindingsTable()
 	return BindingsTable;
 end 
 
--- appear at the cursor: 
--- EasyMenu(menu, menuFrame, "cursor", 0 , 0, "MENU");
-
--- appear at the frame:
--- menuFrame:SetPoint("Center", UIParent, "Center")
--- EasyMenu(menu, menuFrame, menuFrame, 0 , 0, "MENU");
 local bindMenu = GenerateBindingsTable();
 local bindMenuFrame = CreateFrame("Frame", "ConsolePortBindMenu", UIParent, "UIDropDownMenuTemplate")
 
