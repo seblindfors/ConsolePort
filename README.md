@@ -29,7 +29,8 @@ At the moment, this addon supports:
 - Spellbook: picking up and using spells directly out of the book is fully implemented.
 - Specialization: learning and changing specialization is fully implemented.
 - Glyphs: iterating through and choosing glyphs is implemented, but may not work correctly. 
-- Menu: using the game menu is implemented, but the confirm button may not work properly if released slowly.
+- Menu
+- Merchant
 
 Upcoming features:
 - Interface options: currently only supports changing button mappings for the controller. 
@@ -38,7 +39,6 @@ Upcoming features:
 - Manual looting (auto-loot turned off)
 - Talent picker and pet specialization
 - Professions
-- Merchant
 - Pet spellbook
 - Collections (mounts, pets, toys, heirlooms)
 - Pet battles
@@ -139,8 +139,6 @@ controller. All API functions for looting and clicking items on the ground are b
 Warning: I strongly recommend you do not use MotioninJoy!
 
 <h2>6. Known issues</h2>
-- Bags have to be re-opened when another hooked frame has been opened after the bags. 
-- Using the game menu module to open UI panes will not work when Circle is held down for longer than 100 ms.
 - Quest log iteration is sometimes not ordered from top to bottom.
 - Quest tracking sometimes targets the wrong quest. (probably related to above issue)
 - Map iteration skips certain zones, Stormwind is one of them.
