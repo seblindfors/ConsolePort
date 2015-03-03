@@ -13,6 +13,7 @@ ConsolePortBook.lua
 ConsolePortGlyph.lua
 ConsolePortSpec.lua
 ConsolePortGear.lua
+ConsolePortShop.lua
 ConsolePortMap.lua
 ConsolePortQuest.lua
 ConsolePortGossip.lua

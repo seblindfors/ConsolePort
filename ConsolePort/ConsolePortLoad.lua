@@ -99,6 +99,7 @@ G.CLICK_TAKETAXI 		= _CIRCLE.."Fly to location|r";
 G.CLICK_PICKUP 			= _SQUARE.."Pick up|r";
 G.CLICK_QUEST_DETAILS 	= _SQUARE.."View quest details|r";
 G.CLICK_CANCEL 			= _TRIANGLE.."Cancel|r";
+G.CLICK_STACK_BUY 		= _TRIANGLE.."Buy a different amount|r";
 -- Small guide button measurements
 G.GUIDE_BORDER_S_SMALL 			= 56;
 G.GUIDE_BORDER_X_SMALL 			= -4.75;

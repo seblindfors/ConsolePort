@@ -156,6 +156,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn.glyph 	= function(self) ConsolePort:Spec(self.command, self.state); 	end;
 	btn.bags 	= function(self) ConsolePort:Bags(self.command, self.state);	end;
 	btn.gear 	= function(self) ConsolePort:Gear(self.command, self.state);	end;
+	btn.shop 	= function(self) ConsolePort:Shop(self.command, self.state);	end;
 	btn.misc 	= function(self) ConsolePort:Misc(self.command, self.state);	end;
 	btn.popup 	= function(self) ConsolePort:Popup(self.command, self.state); 	end;
 	btn.loot 	= function(self) ConsolePort:Loot(self.command, self.state); 	end;

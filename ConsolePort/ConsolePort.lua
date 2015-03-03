@@ -8,7 +8,7 @@ local MouseIsCentered = false;
 local f = ConsolePort;
 local m = ConsolePort:CreateMouseLooker();
 local HookFrames = {};
-local ButtonFocusFrame = nil;
+local FocusFrame = nil;
 
 local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 	local Hook = { 
@@ -18,7 +18,7 @@ local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 		isPrepared = false
 	}
 	Hook.frame:HookScript("OnShow", function(self)
-		ButtonFocusFrame = Hook;
+		FocusFrame = Hook;
 		if InCombatLockdown() then
 			UIFrameFadeIn(Hook.frame, 0.2, 0, 0.5);
 		else
@@ -41,6 +41,7 @@ local function LoadHooks ()
 		{ ContainerFrame3, 			ConsolePort.Bags, 	"bags" 	},
 		{ ContainerFrame4, 			ConsolePort.Bags, 	"bags" 	},
 		{ ContainerFrame5, 			ConsolePort.Bags, 	"bags" 	},
+		{ MerchantFrame, 			ConsolePort.Shop, 	"shop"	},
 		{ WorldMapFrame, 			ConsolePort.Map, 	"map" 	},
 		{ TaxiFrame, 				ConsolePort.Taxi, 	"taxi"	},
 		{ SpellBookSpellIconsFrame,	ConsolePort.Book,	"book"	},
@@ -67,25 +68,30 @@ end
 local function UpdateFrames(self)
 	local FramesOpen = 0;
 	local OpenFrame = nil;
-	if not G.binds:IsVisible() then
+	if 	not G.binds:IsVisible() and 
+		CP_R_RIGHT_NOMOD.state ~= G.STATE_DOWN then
 		for _, Hook in pairs(HookFrames) do
 			if Hook.frame:IsVisible() then
 				FramesOpen = FramesOpen + 1;
 				OpenFrame  = Hook;
 			end
 		end
-		if 	FramesOpen == 0 then
-			ButtonFocusFrame = nil;
-			self:SetButtonActionsDefault();
-		elseif 	FramesOpen == 1 then
-			ButtonFocusFrame = OpenFrame;
+		if 	FocusFrame and not
+			FocusFrame.frame:IsVisible() then
+			FocusFrame = nil;
 		end
-		if 	ButtonFocusFrame then
-			if 	not ButtonFocusFrame.isPrepared then
-				ButtonFocusFrame.func(_, G.PREPARE, G.STATE_UP);
-				ButtonFocusFrame.isPrepared = true;
+		if 	FramesOpen == 0 then
+			FocusFrame = nil;
+			self:SetButtonActionsDefault();
+		elseif 	FramesOpen >= 1 and not FocusFrame then
+			FocusFrame = OpenFrame;
+		end
+		if 	FocusFrame then
+			if 	not FocusFrame.isPrepared then
+				FocusFrame.func(self, G.PREPARE, G.STATE_UP);
+				FocusFrame.isPrepared = true;
 			end
-			self:SetButtonActions(ButtonFocusFrame.attr);
+			self:SetButtonActions(FocusFrame.attr);
 		elseif OverrideActionBar:IsVisible() then 
 			self:VehicleActionBarOverride();
 		elseif PetBattleFrame:IsVisible() then
