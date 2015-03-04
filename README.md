@@ -139,7 +139,6 @@ controller. All API functions for looting and clicking items on the ground are b
 Warning: I strongly recommend you do not use MotioninJoy!
 
 <h2>6. Known issues</h2>
-- Quest log iteration is sometimes not ordered from top to bottom.
 - Quest tracking sometimes targets the wrong quest. (probably related to above issue)
 - Map iteration skips certain zones, Stormwind is one of them.
 - Map iteration doesn't work while flying over the Twisting Nether.
