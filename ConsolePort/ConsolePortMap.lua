@@ -33,6 +33,7 @@ function ConsolePort:Map(key, state)
 			h_count = h_count + 1;
 		end
 	end
+	table.sort(quests, function(a,b) return a:GetTop()>b:GetTop() end);
 	quests[0] = QuestScrollFrame.ViewAll;
 	zones[0]  = QuestScrollFrame.ViewAll;
 	HelpPlate_Hide(true);
@@ -67,8 +68,8 @@ end
 
 function ConsolePort:MapQuest(key, state, count, items, icons)
 	if 		key == G.PREPARE then iterator = 1;
-	elseif 	key == G.UP		 and state == G.STATE_DOWN and iterator > 0 	  then iterator = iterator - 1;
-	elseif 	key == G.DOWN	 and state == G.STATE_DOWN and iterator < count then iterator = iterator + 1; end;
+	elseif 	key == G.UP		 and state == G.STATE_DOWN and iterator > 0 		then iterator = iterator - 1;
+	elseif 	key == G.DOWN	 and state == G.STATE_DOWN and iterator < count 	then iterator = iterator + 1; end;
 	if 	iterator == 0 then
 		QuestScrollFrame.ViewAll:LockHighlight();
 		QuestScrollFrame.ViewAll:GetChildren():Show();
