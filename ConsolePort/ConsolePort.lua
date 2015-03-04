@@ -58,7 +58,8 @@ local function LoadHooks ()
 		{ StaticPopup2,				ConsolePort.Popup,	"popup"	},
 		{ StaticPopup3,				ConsolePort.Popup,	"popup"	},
 		{ StaticPopup4,				ConsolePort.Popup,	"popup"	},
-		{ CinematicFrame,			ConsolePort.Misc,	"misc"	}
+		{ CinematicFrame,			ConsolePort.Misc,	"misc"	},
+		{ SplashFrame,				ConsolePort.Misc,	"misc"	},
 	}
 	for i, Frame in pairs(LoadFrames) do
 		PostLoadHook(Frame[1], Frame[2], Frame[3], i);
@@ -318,6 +319,10 @@ function ConsolePort:Misc (key, state)
 			ConsolePort:Button(CinematicFrameCloseDialogResumeButton, state);
 		elseif key == G.SQUARE then
 			ConsolePort:Button(CinematicFrameCloseDialogConfirmButton, state);
+		end
+	elseif SplashFrame:IsVisible() then
+		if key == G.CIRCLE then
+			ConsolePort:Button(SplashFrame.BottomCloseButton, state);
 		end
 	elseif 	GarrisonCapacitiveDisplayFrame then
 		if GarrisonCapacitiveDisplayFrame.StartWorkOrderButton:IsVisible() then
