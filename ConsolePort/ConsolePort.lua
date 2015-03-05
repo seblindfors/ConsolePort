@@ -4,11 +4,16 @@ local addOn, G = ...;
 local interval = 0.1;
 local time = 0;
 local view = 0;
+local yaw = false;
 local MouseIsCentered = false;
 local f = ConsolePort;
 local m = ConsolePort:CreateMouseLooker();
 local HookFrames = {};
 local FocusFrame = nil;
+
+function ConsolePort:GetFocusFrame()
+	return FocusFrame;
+end
 
 local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 	local Hook = { 
@@ -186,7 +191,7 @@ local function OnEvent (self, event, ...)
 			self:OnVariablesLoaded();
 			self:CreateBindingButtons(true);
 			self:LoadBindingSet(true);
-			self:GetIndicatorSet(ConsolePortController.type);
+			self:GetIndicatorSet(ConsolePortSettings.type);
 			self:ReloadBindingActions();
 		end
 	elseif	event == "PLAYER_REGEN_ENABLED" then
@@ -351,24 +356,31 @@ function ConsolePort:Guild (key, state)
 end
 
 function ConsolePort:AutoCameraView(event, ...)
-	if 	event == "QUEST_DETAIL" or
-		event == "QUEST_GREETING" or
-		event == "QUEST_PROGRESS" or
-		event == "QUEST_COMPLETE" or
-		event == "GOSSIP_SHOW" or
-		event == "TAXIMAP_OPENED" or
-		event == "MERCHANT_SHOW" then
-		if view ~= 3 then SaveView(5); view = 3; SetView(view); end;
-	elseif
-		event == "GOSSIP_CLOSED" or
-		event == "QUEST_FINISHED" or
-		event == "TAXIMAP_CLOSED" or
-		event == "MERCHANT_CLOSED" then
-		if view ~= 5 then view = 5; SetView(view); end;
+	if ConsolePortSettings then
+		if 	ConsolePortSettings.cam and
+			(event == "QUEST_DETAIL" or
+			event == "QUEST_GREETING" or
+			event == "QUEST_PROGRESS" or
+			event == "QUEST_COMPLETE" or
+			event == "GOSSIP_SHOW" or
+			event == "TAXIMAP_OPENED" or
+			event == "MERCHANT_SHOW") then
+			if not yaw then FlipCameraYaw(30); yaw = true; end;
+			if view ~= 3 then SaveView(5); view = 3; SetView(view); end;
+		elseif
+			event == "GOSSIP_CLOSED" or
+			event == "QUEST_FINISHED" or
+			event == "TAXIMAP_CLOSED" or
+			event == "MERCHANT_CLOSED" or
+			event == "PLAYER_STARTED_MOVING" then
+			if yaw then FlipCameraYaw(-30); yaw = false; end;
+			if view ~= 5 then view = 5; SetView(view); end;
+		end
 	end
 end
 
 f:RegisterEvent("PLAYER_ENTERING_WORLD");
+f:RegisterEvent("PLAYER_STARTED_MOVING");
 f:RegisterEvent("PLAYER_REGEN_DISABLED");
 f:RegisterEvent("PLAYER_REGEN_ENABLED");
 f:RegisterEvent("PLAYER_LOGOUT");

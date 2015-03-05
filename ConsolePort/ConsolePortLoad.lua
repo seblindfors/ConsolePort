@@ -95,6 +95,7 @@ G.CLICK_BUY 			= _CIRCLE.."Buy|r";
 G.CLICK_EQUIP			= _CIRCLE.."Equip|r";
 G.CLICK_REPLACE			= _CIRCLE.."Replace|r";
 G.CLICK_GLYPH_CAST		= _CIRCLE.."Use glyph|r";
+G.CLICK_TALENT 			= _CIRCLE.."Learn talent|r";
 G.CLICK_TAKETAXI 		= _CIRCLE.."Fly to location|r";
 G.CLICK_PICKUP 			= _SQUARE.."Pick up|r";
 G.CLICK_QUEST_DETAILS 	= _SQUARE.."View quest details|r";

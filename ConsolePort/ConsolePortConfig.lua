@@ -11,6 +11,7 @@ local CONF_BUTTON 		= nil;
 
 local CP				= "CP";
 local CONF				= "_CONF";
+local CHECK 			= "_CHECK";
 local CONFBG			= "_CONF_BG";
 local GUIDE				= "_GUIDE";
 local NOMOD				= "_NOMOD";
@@ -24,11 +25,22 @@ local ConsolePortSaveBindingSet = nil;
 local ConsolePortSaveBindings = nil;
 
 G.panel				= CreateFrame( "FRAME", "ConsolePortConfMain", InterfaceOptionsFramePanelContainer );
-G.binds				= CreateFrame( "FRAME", "ConsolePortChild", G.panel);
 G.panel.name		= "Console Port";
+G.panel.okay 		= function (self) SaveMainConfig(); end;
+G.panel.camCheck 	= CreateFrame("CheckButton", CP..CHECK.."_CAM", G.panel, "ChatConfigCheckButtonTemplate");
+G.panel.camCheck:SetPoint("TOPLEFT", 10, -50);
+G.panel.camCheck.tooltip = "Flip and zoom camera on interaction with NPCs";
+G.panel.camCheck:SetScript("OnClick", function(self, btn, down)
+	if 	self:GetChecked() then
+		ConsolePortSettings.cam = true;
+	else
+		ConsolePortSettings.cam = false;
+	end
+end);
+G.binds				= CreateFrame( "FRAME", "ConsolePortChild", G.panel);
 G.binds.name		= "Bindings";
 G.binds.parent		= G.panel.name;
-G.binds.okay		= function (self) ConsolePort:SubmitBindings(); end;
+G.binds.okay		= function (self) SubmitBindings(); end;
 G.binds:SetScript("OnShow", function(self)
 	InterfaceOptionsFrame:SetWidth(1100);
 	ConsolePort:SetButtonActionsConfig("rebind");
@@ -76,6 +88,17 @@ local function ChangeBinding(bindingName, bindingTitle)
 	elseif BIND_MODIFIER == "CTRL" then modifier = "ctrl";
 	elseif BIND_MODIFIER == "CTRL-SHIFT" then modifier = "ctrlsh"; end;
 	ConsolePortSaveBindingSet[BIND_TARGET][modifier] = bindingName;
+end
+
+local function SubmitBindings()
+	if ConsolePortSaveBindings then
+		ConsolePortBindingButtons = ConsolePortSaveBindings;
+	end
+	if ConsolePortSaveBindingSet then
+		ConsolePortBindingSet = ConsolePortSaveBindingSet;
+	end
+	ConsolePort:ReloadBindingActions();
+	ConsolePort:LoadBindingSet(true);
 end
 
 local function GenerateBindingsTable()
@@ -131,7 +154,7 @@ end
 local bindMenu = GenerateBindingsTable();
 local bindMenuFrame = CreateFrame("Frame", "ConsolePortBindMenu", UIParent, "UIDropDownMenuTemplate")
 
-function ConsolePort:CreateConfigStaticButton(name, modifier, xoffset, yoffset)
+local function CreateConfigStaticButton(name, modifier, xoffset, yoffset)
 	local b = CreateFrame("BUTTON", name..CONF, G.binds, "UIMenuButtonStretchTemplate");
 	b:SetWidth(BUTTON_WIDTH);
 	b:SetHeight(BUTTON_HEIGHT);
@@ -226,16 +249,6 @@ function ConsolePort:CreateConfigGuideButton(name, title, parent, xoffset, yoffs
 	return f;
 end
 
-function ConsolePort:SubmitBindings()
-	if ConsolePortSaveBindings then
-		ConsolePortBindingButtons = ConsolePortSaveBindings;
-	end
-	if ConsolePortSaveBindingSet then
-		ConsolePortBindingSet = ConsolePortSaveBindingSet;
-	end
-	ConsolePort:ReloadBindingActions();
-	ConsolePort:LoadBindingSet(true);
-end
 
 function ConsolePort:LoadBindingSet(enabled)
 	local keys = ConsolePortBindingSet;
@@ -397,9 +410,9 @@ local optionButtons = {
 }
 for i, button in pairs(optionButtons) do
 	ConsolePort:CreateConfigGuideButton(button.option, button.icon, G.binds, 0, i+9);
-	ConsolePort:CreateConfigStaticButton(button.option, nil, 1, i+9);
-	ConsolePort:CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
-	ConsolePort:CreateConfigStaticButton(button.option, "CTRL", 3, i+9);
-	ConsolePort:CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
+	CreateConfigStaticButton(button.option, nil, 1, i+9);
+	CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
+	CreateConfigStaticButton(button.option, "CTRL", 3, i+9);
+	CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
 end
 

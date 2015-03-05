@@ -383,9 +383,10 @@ function ConsolePort:GetDefaultButton(key)
 	return binding;
 end
 
-function ConsolePort:GetDefaultControllerType()
+function ConsolePort:GetDefaultAddonSettings()
 	local t = {};
 	t.type = "PS4";
+	t.cam = false;
 	return t;
 end
 
@@ -398,8 +399,8 @@ end
         	ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons();
         end
 
-        if not ConsolePortController then
-        	ConsolePortController = ConsolePort:GetDefaultControllerType();
+        if not ConsolePortSettings then
+        	ConsolePortSettings = ConsolePort:GetDefaultAddonSettings();
         end
 
         G.ConsolePort_Loaded = true;
