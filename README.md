@@ -29,6 +29,7 @@ At the moment, this addon supports:
 - Spellbook: picking up and using spells directly out of the book is fully implemented.
 - Specialization: learning and changing specialization is fully implemented.
 - Glyphs: iterating through and choosing glyphs is implemented, but may not work correctly. 
+- Talents
 - Menu
 - Merchant
 
@@ -37,7 +38,7 @@ Upcoming features:
 - Dropdown menus: currently implemented, but not activated because of unresolved taint issues.
 - Party and raid frames
 - Manual looting (auto-loot turned off)
-- Talent picker and pet specialization
+- Pet specialization
 - Professions
 - Pet spellbook
 - Collections (mounts, pets, toys, heirlooms)
@@ -139,6 +140,7 @@ controller. All API functions for looting and clicking items on the ground are b
 Warning: I strongly recommend you do not use MotioninJoy!
 
 <h2>6. Known issues</h2>
+- Using menu to click microbuttons will cause taint.
 - Map iteration skips certain zones, Stormwind is one of them.
 - Map iteration doesn't work while flying over the Twisting Nether.
 - Map highlighting does not work for the planet map (arrow buttons are used to enter the planets directly).
