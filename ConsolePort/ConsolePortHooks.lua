@@ -20,6 +20,10 @@ function ConsolePort:LoadHookScripts()
 			if		self:GetOwner():GetParent():GetName() and
 					string.find(self:GetOwner():GetParent():GetName(), "MerchantItem") ~= nil then
 					CLICK_STRING = G.CLICK_BUY;
+					local maxStack = GetMerchantItemMaxStack(self:GetOwner():GetID());
+					if maxStack > 1 then 
+						self:AddLine(G.CLICK_STACK_BUY, 1,1,1);
+					end
 			elseif 	MerchantFrame:IsVisible() 		 then CLICK_STRING = G.CLICK_SELL;
 			elseif 	IsEquippedItem(self:GetItem()) 	 then CLICK_STRING = G.CLICK_REPLACE;
 			elseif 	IsEquippableItem(self:GetItem()) then CLICK_STRING = G.CLICK_EQUIP;
@@ -28,8 +32,6 @@ function ConsolePort:LoadHookScripts()
 				MerchantFrame:IsVisible() then
 				if 	EquipmentFlyoutFrame:IsVisible() then
 					self:AddLine(G.CLICK_CANCEL, 1,1,1);
-				elseif MerchantFrame:IsVisible() then
-					self:AddLine(G.CLICK_STACK_BUY, 1,1,1);
 				end
 				self:AddLine(CLICK_STRING, 1,1,1);
 				self:AddLine(G.CLICK_PICKUP, 1,1,1);

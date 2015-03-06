@@ -1,7 +1,7 @@
 local _
 local _, G = ...;
 local iterator = 1;
-local Enter = MerchantItemButton_OnEnter;
+local Enter = MerchantItem1ItemButton:GetScript("OnEnter");
 local Leave = MerchantItem1ItemButton:GetScript("OnLeave");
 
 function ConsolePort:Shop(key, state)
@@ -16,8 +16,26 @@ function ConsolePort:Shop(key, state)
 		table.insert(items, _G["MerchantItem"..i.."ItemButton"]);
 	end
 	local slot = items[iterator];
-	local index = iterator+((page*10)-10);
+	local index = slot:GetID();
 	if key == G.PREPARE then iterator = 1;
+	elseif key == G.TRIANGLE and state == G.STATE_DOWN then
+		local maxStack = GetMerchantItemMaxStack(slot:GetID());
+		local _, _, price, stackCount, _, _, extendedCost = GetMerchantItemInfo(slot:GetID());
+		if stackCount > 1 and extendedCost then
+			slot:Click();
+			return;
+		end
+		local canAfford;
+		if 	price and price > 0 then
+			canAfford = floor(GetMoney() / (price / stackCount));
+		else
+			canAfford = maxStack;
+		end
+		if	maxStack > 1 then
+			local maxPurchasable = min(maxStack, canAfford);
+			Leave(slot);
+			OpenStackSplitFrame(maxPurchasable, slot, "BOTTOMLEFT", "TOPLEFT");
+		end
 	elseif 		state == G.STATE_DOWN then
 		local 	old = iterator;
 		if 		key == G.UP 	then iterator = iterator - 1;
@@ -37,7 +55,6 @@ function ConsolePort:Shop(key, state)
 			iterator = 1;
 		end
 		slot = items[iterator];
-		index = iterator+((page*10)-10);
 		ConsolePort:Highlight(iterator, items);
 		Enter(slot);
 		if 	key == G.CIRCLE then
@@ -45,24 +62,6 @@ function ConsolePort:Shop(key, state)
 		elseif key == G.SQUARE then
 			MouselookStop();
 			PickupMerchantItem(index);
-		end
-	elseif key == G.TRIANGLE then
-		local maxStack = GetMerchantItemMaxStack(slot:GetID());
-		local _, _, price, stackCount, _, _, extendedCost = GetMerchantItemInfo(slot:GetID());
-		if stackCount > 1 and extendedCost then
-			slot:Click();
-			return;
-		end
-		local canAfford;
-		if 	price and price > 0 then
-			canAfford = floor(GetMoney() / (price / stackCount));
-		else
-			canAfford = maxStack;
-		end
-		if	maxStack > 1 then
-			local maxPurchasable = min(maxStack, canAfford);
-			Leave(slot);
-			OpenStackSplitFrame(maxPurchasable, slot, "BOTTOMLEFT", "TOPLEFT");
 		end
 	end
 end

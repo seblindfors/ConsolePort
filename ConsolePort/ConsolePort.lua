@@ -148,6 +148,7 @@ local function OnEvent (self, event, ...)
 	end
 	if		event == "MERCHANT_SHOW" then
 		self:CleanBags();
+		CloseAllBags();
 	elseif	event == "WORLD_MAP_UPDATE" and not
 			QuestScrollFrame:GetAlpha() ~= 1 then
 		self:MapGetZones();
