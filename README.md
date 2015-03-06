@@ -33,6 +33,11 @@ At the moment, this addon supports:
 - Menu
 - Merchant
 
+Custom features:
+- Auto sell junk
+- Auto clean bags
+- Immersive camera
+
 Upcoming features:
 - Interface options: currently only supports changing button mappings for the controller. 
 - Dropdown menus: currently implemented, but not activated because of unresolved taint issues.
