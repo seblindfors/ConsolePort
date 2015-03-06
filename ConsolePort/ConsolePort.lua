@@ -226,20 +226,18 @@ function ConsolePort:SetButtonActionsDefault()
 end
 
 function ConsolePort:SetButtonActions (type)
-	CP_L_RIGHT_NOMOD:SetAttribute("type", type);
-	CP_L_LEFT_NOMOD:SetAttribute("type", type);
 	-- Allows for secure button workaround
 	if (type ~= "loot" and
 		type ~= "popup") then
 		CP_R_LEFT_NOMOD:SetAttribute("type", type);
 	end
-	if 	(type == "bags" and MerchantFrame:IsVisible()) or 
-		(type ~= "bags" and
-		 type ~= "book" and
-		 type ~= "spec" and
-		 type ~= "loot" and
-		 type ~= "popup" and
-		 type ~= "glyph") then
+	if (type == "bags" and MerchantFrame:IsVisible()) or 
+	   (type ~= "bags" and
+	   	type ~= "book" and
+	   	type ~= "spec" and
+		type ~= "loot" and
+		type ~= "popup" and
+		type ~= "glyph") then
 		CP_R_RIGHT_NOMOD:SetAttribute("type", type);
 	end
 	if (type ~= "spec" and
@@ -253,6 +251,12 @@ function ConsolePort:SetButtonActions (type)
 	if (type ~= "loot" and
 		type ~= "glyph") then
 		CP_L_DOWN_NOMOD:SetAttribute("type", type);
+	end
+	if (type ~= "book") then
+		CP_L_RIGHT_NOMOD:SetAttribute("type", type);
+	end
+	if (type ~= "book") then
+		CP_L_LEFT_NOMOD:SetAttribute("type", type);
 	end
 end
 
