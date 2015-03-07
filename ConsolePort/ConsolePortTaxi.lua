@@ -2,7 +2,7 @@ local _
 local _, G = ...;
 local iterator = 1;
 
-local function TaxiFindClosest(key, nodes)
+local function TaxiFindClosestNode(key, nodes)
 	local this 	= nodes[iterator];
 	local thisY = this:GetTop();
 	local thisX = this:GetLeft();
@@ -69,7 +69,7 @@ function ConsolePort:Taxi (key, state)
 		CloseTaxiMap();
 		return;
 	elseif state == G.STATE_DOWN then
-		TaxiFindClosest(key, nodes);
+		TaxiFindClosestNode(key, nodes);
 	end
 	if key ~= G.CIRCLE and key ~= G.TRIANGLE then
 		ConsolePort:Highlight(iterator, nodes);

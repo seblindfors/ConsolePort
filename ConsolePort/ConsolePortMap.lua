@@ -11,6 +11,47 @@ QuestScrollFrame:HookScript("OnHide", function(self)
 	end
 end);
 
+local function MapFindClosestZone(key, zones)
+	local this 	= zones[iterator];
+	local nodeY = 1;
+	local nodeX = 1;
+	local swap 	= false;
+	for i, dest in ipairs(zones) do
+		local diffY = abs(this.Y-dest.Y);
+		local diffX = abs(this.X-dest.X);
+		local total = diffX + diffY;
+		if total < nodeX + nodeY then
+			if 	key == G.DOWN then
+				if 	diffY > diffX and 	-- up/down
+					dest.Y > this.Y then 	-- up
+					swap = true;
+				end
+			elseif key == G.UP then
+				if 	diffY > diffX and 	-- up/down
+					dest.Y < this.Y then 	-- down
+					swap = true;
+				end
+			elseif key == G.LEFT then
+				if 	diffY < diffX and 	-- left/right
+					dest.X < this.X then 	-- left
+					swap = true;
+				end
+			elseif key == G.RIGHT then
+				if 	diffY < diffX and 	-- left/right
+					dest.X > this.X then 	-- right
+					swap = true;
+				end
+			end
+		end
+		if swap then
+			nodeX = diffX;
+			nodeY = diffY;
+			iterator = i;
+			swap = false;
+		end
+	end
+end
+
 function ConsolePort:Map(key, state)
 	local titles 	= QuestScrollFrame.Contents.Titles;
 	local headers 	= QuestScrollFrame.Contents.Headers;
@@ -187,7 +228,7 @@ function ConsolePort:MapZone(key, state)
 				WorldMapButton_OnClick(WorldMapButton, "RightButton");
 				iterator = floor((zcount/2)+1);
 			elseif zones[iterator] then
-				ConsolePort:ZoneFindClosest(key, zones);
+				MapFindClosestZone(key, zones);
 			end
 		end
 	elseif state == G.STATE_DOWN then
@@ -251,43 +292,4 @@ function ConsolePort:MapHighlight(_, elapsed)
 	end
 end
 
-function ConsolePort:ZoneFindClosest(key, zones)
-	local this 	= zones[iterator];
-	local nodeY = 1;
-	local nodeX = 1;
-	local swap 	= false;
-	for i, dest in ipairs(zones) do
-		local diffY = abs(this.Y-dest.Y);
-		local diffX = abs(this.X-dest.X);
-		local total = diffX + diffY;
-		if total < nodeX + nodeY then
-			if 	key == G.DOWN then
-				if 	diffY > diffX and 	-- up/down
-					dest.Y > this.Y then 	-- up
-					swap = true;
-				end
-			elseif key == G.UP then
-				if 	diffY > diffX and 	-- up/down
-					dest.Y < this.Y then 	-- down
-					swap = true;
-				end
-			elseif key == G.LEFT then
-				if 	diffY < diffX and 	-- left/right
-					dest.X < this.X then 	-- left
-					swap = true;
-				end
-			elseif key == G.RIGHT then
-				if 	diffY < diffX and 	-- left/right
-					dest.X > this.X then 	-- right
-					swap = true;
-				end
-			end
-		end
-		if swap then
-			nodeX = diffX;
-			nodeY = diffY;
-			iterator = i;
-			swap = false;
-		end
-	end
-end
+

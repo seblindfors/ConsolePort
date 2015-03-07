@@ -150,4 +150,3 @@ G.GUIDE_BUTTON_BOTTOM_SMALL_Y 	= -28;
 -- SPELLBOOK_HELP_2 	= SPELLBOOK_HELP_2.._TRIANGLE.."Switch active tab|r";
 -- SpellBookFrame_HelpPlate[1].ToolTipText = SPELLBOOK_HELP_1;
 -- SpellBookFrame_HelpPlate[2].ToolTipText = SPELLBOOK_HELP_2;
-

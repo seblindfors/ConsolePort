@@ -43,7 +43,9 @@ function ConsolePort:LoadHookScripts()
 		if not InCombatLockdown() then
 			if 	self:GetOwner():GetParent() == SpellBookSpellIconsFrame and not
 				self:GetOwner().isPassive then
-				self:AddLine(G.CLICK_USE_NOCOMBAT, 1,1,1);
+				if not self:GetOwner().UnlearnedFrame:IsVisible() then
+					self:AddLine(G.CLICK_USE_NOCOMBAT, 1,1,1);
+				end
 				self:AddLine(G.CLICK_PICKUP, 1,1,1);
 				self:Show();
 			end

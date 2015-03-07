@@ -34,7 +34,8 @@ local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 		Hook.isPrepared = false;
 		GameTooltip:Hide();
 	end);
-	table.insert(HookFrames, priority, Hook);
+	if priority then table.insert(HookFrames, priority, Hook);
+	else table.insert(HookFrames, Hook); end;
 end
 
 local function LoadHooks ()
@@ -186,6 +187,9 @@ local function OnEvent (self, event, ...)
 		elseif arg1 == "Blizzard_GlyphUI" then
 			PostLoadHook(GlyphFrame, self.Spec, "glyph", 12);
 			self:InitializeGlyphs();
+		elseif arg1 == "Blizzard_DeathRecap" then
+			PostLoadHook(DeathRecapFrame, self.Misc, "misc", nil);
+			self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME_CP_R_RIGHT);
 		elseif arg1 == addOn then
 			LoadHooks();
 			self:LoadHookScripts();
@@ -324,7 +328,13 @@ end
 
 function ConsolePort:Misc (key, state)
 	if key == G.PREPARE then return; end;
-	if CinematicFrameCloseDialog:IsVisible() then
+	if 	DeathRecapFrame and
+		DeathRecapFrame:IsVisible() then
+		if key == G.CIRCLE then
+			local button = select(8, DeathRecapFrame:GetChildren());
+			ConsolePort:Button(button, state);
+		end
+	elseif CinematicFrameCloseDialog:IsVisible() then
 		if key == G.CIRCLE then
 			ConsolePort:Button(CinematicFrameCloseDialogResumeButton, state);
 		elseif key == G.SQUARE then

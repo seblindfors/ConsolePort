@@ -24,6 +24,10 @@ local function ButtonsLinked(button, clickbutton)
 	return button:GetAttribute("clickbutton") == clickbutton;
 end
 
+local function PopupTypeAssigned(button, type)
+	return button:GetAttribute("type") == type;
+end
+
 for i, frame in pairs(popupFrames) do
 	frame:HookScript("OnUpdate", function(self, elapsed)
 		frameTimers[i] = frameTimers[i] + elapsed;
@@ -34,11 +38,18 @@ for i, frame in pairs(popupFrames) do
 				elseif not InCombatLockdown() then
 					self:SetAlpha(1);
 				end
-				if 	self:GetAlpha() == 1 and
+				if 	ConsolePort:GetFocusFrame().frame == self and
 					not InCombatLockdown() then
 					if IsStaticPopup(i) then
-						if not ButtonsLinked(CP_R_RIGHT_NOMOD, _G[self:GetName().."Button2"]) then
-							ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, _G[self:GetName().."Button2"]);
+						if 	not ButtonsLinked(CP_R_LEFT_NOMOD, _G[self:GetName().."Button1"]) or
+							not PopupTypeAssigned(CP_R_LEFT_NOMOD, "popup") then
+							CP_R_RIGHT_NOMOD:SetAttribute("type", "popup");
+							CP_R_LEFT_NOMOD:SetAttribute("type", "popup");
+							if _G[self:GetName().."Button3"]:IsVisible() then
+								ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, _G[self:GetName().."Button3"]);
+							else
+								ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, _G[self:GetName().."Button2"]);
+							end
 							ConsolePort:SetClickButton(CP_R_LEFT_NOMOD, _G[self:GetName().."Button1"]);
 						end
 					elseif IsLootFrame(i) then
@@ -49,7 +60,12 @@ for i, frame in pairs(popupFrames) do
 							lootLeave(self.IconFrame);
 							lootHasTooltip = nil;
 						end
-						if not ButtonsLinked(CP_R_UP_NOMOD, self.PassButton) then
+						if 	not ButtonsLinked(CP_R_UP_NOMOD, self.PassButton) or 
+							not PopupTypeAssigned("type", "loot") then
+							CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
+							CP_R_LEFT_NOMOD:SetAttribute("type", "loot");
+							CP_R_UP_NOMOD:SetAttribute("type", "loot");
+							CP_L_DOWN_NOMOD:SetAttribute("type", "loot");
 							ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, self.GreedButton);
 							ConsolePort:SetClickButton(CP_R_LEFT_NOMOD, self.NeedButton);
 							ConsolePort:SetClickButton(CP_R_UP_NOMOD, self.PassButton);
