@@ -2,10 +2,15 @@
 local _
 local addOn, G = ...;
 local interval = 0.1;
+local p_interval = 0.4;
 local time = 0;
+local pause = 0;
+
 local view = 0;
 local yaw = false;
-local MouseIsCentered = false;
+
+local DisableMouselook = false;
+local PauseMouselook = false;
 local f = ConsolePort;
 local m = ConsolePort:CreateMouseLooker();
 local HookFrames = {};
@@ -108,6 +113,25 @@ local function UpdateFrames(self)
 end
 
 local function OnUpdate (self, elapsed)
+	if  not DisableMouselook and IsMouseButtonDown(1) then
+		DisableMouselook = true;
+		if IsMouselooking() then
+			MouselookStop();
+		end
+	end
+	if  not PauseMouselook and IsMouseButtonDown(2) then
+		PauseMouselook = true;
+		pause = p_interval;
+		MouselookStop();
+	end
+	if pause > 0 then
+		pause = pause - elapsed;
+	elseif pause < 0 then
+		pause = 0;
+	end
+	if pause == 0 then
+		PauseMouselook = false;
+	end
 	time = time + elapsed;
 	while time > interval do
 		local TopFrameIsOverlay = (GetMouseFocus() == WorldFrame);
@@ -115,13 +139,13 @@ local function OnUpdate (self, elapsed)
 		if 	MouseIsOver(m) and
 			TopFrameIsOverlay and
 			CursorIsEmpty and
-			not MouseIsCentered and
+			not DisableMouselook and
+			not PauseMouselook and
 			not SpellIsTargeting() and
 			not IsMouseButtonDown(1) then
 			MouselookStart();
-			MouseIsCentered = true;
-		elseif not MouseIsOver(m) and MouseIsCentered then
-			MouseIsCentered = false;
+		elseif not MouseIsOver(m) and DisableMouselook then
+			DisableMouselook = false;
 		end
 		if not InCombatLockdown() then
 			UpdateFrames(self);
