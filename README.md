@@ -23,7 +23,8 @@ At the moment, this addon supports:
 - Map/questlog: tracking, managing and reading quests. Map iteration works very well but not completely finished.
 - Bags: bag control is fully implemented.
 - Gear: gear control is implemented, along with functionality to replace gear pieces on the fly.
-- Group loot: full support for group looting. 
+- Group loot: full support for group looting.
+- Manual looting (auto-loot turned off)
 - Gossip: talking to NPCs is fully implemented.
 - Taxi: choosing and taking flight paths is fully implemented.
 - Spellbook: picking up and using spells directly out of the book is fully implemented.
@@ -42,7 +43,6 @@ Upcoming features:
 - Interface options: currently only supports changing button mappings for the controller. 
 - Dropdown menus: currently implemented, but not activated because of unresolved taint issues.
 - Party and raid frames
-- Manual looting (auto-loot turned off)
 - Pet specialization
 - Professions
 - Pet spellbook
