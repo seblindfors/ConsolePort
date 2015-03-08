@@ -105,8 +105,8 @@ end);
 LootFrame:HookScript("OnUpdate", function(self, elapsed)
 	if self:IsVisible() then
 		if ConsolePort:GetFocusFrame().frame == self then
-			self:SetAlpha(1);
 			if not InCombatLockdown() then
+				self:SetAlpha(1);
 				if 	not PopupTypeAssigned(CP_R_RIGHT_NOMOD, "loot") or
 					not PopupTypeAssigned(CP_L_DOWN_NOMOD, "loot") or
 					not PopupTypeAssigned(CP_L_UP_NOMOD, "loot") then
