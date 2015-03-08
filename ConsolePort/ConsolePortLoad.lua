@@ -92,6 +92,7 @@ G.CLICK_QUEST_TRACKER 	= _CIRCLE.."Set current quest|r";
 G.CLICK_USE_NOCOMBAT 	= _CIRCLE.."Use (out of combat)|r";
 G.CLICK_SELL 			= _CIRCLE.."Sell|r";
 G.CLICK_BUY 			= _CIRCLE.."Buy|r";
+G.CLICK_LOOT			= _CIRCLE.."Loot|r";
 G.CLICK_EQUIP			= _CIRCLE.."Equip|r";
 G.CLICK_REPLACE			= _CIRCLE.."Replace|r";
 G.CLICK_GLYPH_CAST		= _CIRCLE.."Use glyph|r";

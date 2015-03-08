@@ -2,9 +2,12 @@ local _
 local _, G = ...;
 local interval = 0.3;
 local frameTimers = { 0,0,0,0,0,0,0,0 };
-local lootInspect = GroupLootFrame1.IconFrame:GetScript("OnEnter");
-local lootLeave   = GroupLootFrame1.IconFrame:GetScript("OnLeave");
+local groupLootInspect = GroupLootFrame1.IconFrame:GetScript("OnEnter");
+local groupLootLeave   = GroupLootFrame1.IconFrame:GetScript("OnLeave");
+local lootInspect 	= LootButton1:GetScript("OnEnter");
+local lootLeave 	= LootButton1:GetScript("OnLeave");
 local lootHasTooltip = false;
+local iterator = 1;
 local popupFrames = {
 	GroupLootFrame1,
 	GroupLootFrame2,
@@ -15,6 +18,14 @@ local popupFrames = {
 	StaticPopup3,
 	StaticPopup4
 }
+local lootButtons = {
+	LootButton1,
+	LootButton2,
+	LootButton3,
+	LootButton4	
+}
+
+function ConsolePort:Popup (key, state) return; end;
 
 local function IsStaticPopup(i) return i>4; end;
 
@@ -54,14 +65,14 @@ for i, frame in pairs(popupFrames) do
 						end
 					elseif IsLootFrame(i) then
 						if 	IsShiftKeyDown() then
-							lootInspect(self.IconFrame);
+							groupLootInspect(self.IconFrame);
 							lootHasTooltip = self;
 						elseif lootHasTooltip == self then
-							lootLeave(self.IconFrame);
+							groupLootLeave(self.IconFrame);
 							lootHasTooltip = nil;
 						end
 						if 	not ButtonsLinked(CP_R_UP_NOMOD, self.PassButton) or 
-							not PopupTypeAssigned("type", "loot") then
+							not PopupTypeAssigned(CP_R_LEFT_NOMOD, "loot") then
 							CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
 							CP_R_LEFT_NOMOD:SetAttribute("type", "loot");
 							CP_R_UP_NOMOD:SetAttribute("type", "loot");
@@ -81,10 +92,65 @@ for i, frame in pairs(popupFrames) do
 	end);
 end
 
-function ConsolePort:Popup (key, state)
-	return;
+LootFrameUpButton:HookScript("OnClick", function(_,_,down) if not down then iterator = 3; end; end);
+LootFrameDownButton:HookScript("OnClick", function(_,_,down) if not down then iterator = 1; end; end);
+LootFrame:HookScript("OnShow", function(self)
+	if 	not SpellIsTargeting() and
+		not IsMouseButtonDown(1) then
+		MouselookStart();
+	end
+end);
+LootFrame:HookScript("OnUpdate", function(self, elapsed)
+	if self:IsVisible() then
+		if 	not PopupTypeAssigned(CP_R_RIGHT_NOMOD, "loot") or
+			not PopupTypeAssigned(CP_L_DOWN_NOMOD, "loot") or
+			not PopupTypeAssigned(CP_L_UP_NOMOD, "loot") then
+			CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
+			CP_L_DOWN_NOMOD:SetAttribute("type", "loot");
+			CP_L_UP_NOMOD:SetAttribute("type", "loot");
+		end
+		local lootButton = lootButtons[iterator];
+		if lootButton:IsVisible() then
+			if IsShiftKeyDown() then
+				lootInspect(lootButton);
+			else
+				lootLeave(lootButton);
+			end
+			ConsolePort:Highlight(iterator, lootButtons);
+		end
+	end
+end);
+
+for i, button in pairs(lootButtons) do
+	button:HookScript("OnUpdate", function(self, elapsed)
+		if self:IsVisible() then
+			if 	lootButtons[iterator] == self then
+				self:SetAlpha(1);
+			else
+				self:SetAlpha(0.5);
+			end
+		end
+	end);
 end
 
 function ConsolePort:Loot (key, state)
-	return;
+	if key == G.PREPARE then iterator = 1; return; end;
+	if key == G.CIRCLE and lootButtons[iterator]:IsVisible() then
+		lootButtons[iterator]:Click();
+		return;
+	end
+	if key == G.UP then 
+		if iterator == 1 and LootFrameUpButton:IsVisible() then
+			ConsolePort:Button(LootFrameUpButton, state);
+		elseif state == G.STATE_UP and iterator ~= 1 then
+			iterator = iterator - 1;
+		end
+	elseif key == G.DOWN then
+		if ((iterator < 3) or (iterator == 3 and LootButton4:IsVisible())) and
+			state == G.STATE_UP then
+			iterator = iterator + 1;
+		elseif iterator == 3 and LootFrameDownButton:IsVisible() then
+			ConsolePort:Button(LootFrameDownButton, state);
+		end
+	end
 end

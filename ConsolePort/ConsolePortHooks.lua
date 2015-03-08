@@ -24,6 +24,8 @@ function ConsolePort:LoadHookScripts()
 					if maxStack > 1 then 
 						self:AddLine(G.CLICK_STACK_BUY, 1,1,1);
 					end
+			elseif	self:GetOwner():GetParent() == LootFrame then
+					self:AddLine(G.CLICK_LOOT, 1,1,1);
 			elseif 	MerchantFrame:IsVisible() 		 then CLICK_STRING = G.CLICK_SELL;
 			elseif 	IsEquippedItem(self:GetItem()) 	 then CLICK_STRING = G.CLICK_REPLACE;
 			elseif 	IsEquippableItem(self:GetItem()) then CLICK_STRING = G.CLICK_EQUIP;
@@ -34,7 +36,9 @@ function ConsolePort:LoadHookScripts()
 					self:AddLine(G.CLICK_CANCEL, 1,1,1);
 				end
 				self:AddLine(CLICK_STRING, 1,1,1);
-				self:AddLine(G.CLICK_PICKUP, 1,1,1);
+				if not self:GetOwner():GetParent() == LootFrame then
+					self:AddLine(G.CLICK_PICKUP, 1,1,1);
+				end
 				self:Show();
 			end
 		end

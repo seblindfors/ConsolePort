@@ -2,15 +2,12 @@
 local _
 local addOn, G = ...;
 local interval = 0.1;
-local p_interval = 0.4;
 local time = 0;
-local pause = 0;
 
 local view = 0;
 local yaw = false;
 
-local DisableMouselook = false;
-local PauseMouselook = false;
+local MouseIsCentered  = false;
 local f = ConsolePort;
 local m = ConsolePort:CreateMouseLooker();
 local HookFrames = {};
@@ -60,6 +57,7 @@ local function LoadHooks ()
 		{ QuestLogPopupDetailFrame, ConsolePort.Quest,	"quest"	},
 		{ GossipFrame, 				ConsolePort.Gossip,	"gossip"},
 		{ GuildInviteFrame,			ConsolePort.Guild,	"guild"	},
+		{ LootFrame,				ConsolePort.Loot, 	"loot"	},
 		{ StackSplitFrame,			ConsolePort.Stack, 	"stack"	},
 		{ GroupLootFrame1,			ConsolePort.Loot,	"loot"	},
 		{ GroupLootFrame2,			ConsolePort.Loot,	"loot"	},
@@ -113,25 +111,6 @@ local function UpdateFrames(self)
 end
 
 local function OnUpdate (self, elapsed)
-	if  not DisableMouselook and IsMouseButtonDown(1) then
-		DisableMouselook = true;
-		if IsMouselooking() then
-			MouselookStop();
-		end
-	end
-	if  not PauseMouselook and IsMouseButtonDown(2) then
-		PauseMouselook = true;
-		pause = p_interval;
-		MouselookStop();
-	end
-	if pause > 0 then
-		pause = pause - elapsed;
-	elseif pause < 0 then
-		pause = 0;
-	end
-	if pause == 0 then
-		PauseMouselook = false;
-	end
 	time = time + elapsed;
 	while time > interval do
 		local TopFrameIsOverlay = (GetMouseFocus() == WorldFrame);
@@ -139,13 +118,13 @@ local function OnUpdate (self, elapsed)
 		if 	MouseIsOver(m) and
 			TopFrameIsOverlay and
 			CursorIsEmpty and
-			not DisableMouselook and
-			not PauseMouselook and
+			not MouseIsCentered and
 			not SpellIsTargeting() and
 			not IsMouseButtonDown(1) then
 			MouselookStart();
-		elseif not MouseIsOver(m) and DisableMouselook then
-			DisableMouselook = false;
+			MouseIsCentered = true;
+		elseif not MouseIsOver(m) and MouseIsCentered then
+			MouseIsCentered = false;
 		end
 		if not InCombatLockdown() then
 			UpdateFrames(self);
@@ -273,7 +252,8 @@ function ConsolePort:SetButtonActions (type)
 		type ~= "glyph") then
 		CP_R_UP_NOMOD:SetAttribute("type", type);
 	end
-	if (type ~= "glyph") then
+	if (type ~= "loot" and
+		type ~= "glyph") then
 		CP_L_UP_NOMOD:SetAttribute("type", type);
 	end
 	if (type ~= "loot" and
