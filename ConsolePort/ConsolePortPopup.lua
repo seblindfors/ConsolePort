@@ -102,12 +102,14 @@ LootFrame:HookScript("OnShow", function(self)
 end);
 LootFrame:HookScript("OnUpdate", function(self, elapsed)
 	if self:IsVisible() then
-		if 	not PopupTypeAssigned(CP_R_RIGHT_NOMOD, "loot") or
-			not PopupTypeAssigned(CP_L_DOWN_NOMOD, "loot") or
-			not PopupTypeAssigned(CP_L_UP_NOMOD, "loot") then
-			CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
-			CP_L_DOWN_NOMOD:SetAttribute("type", "loot");
-			CP_L_UP_NOMOD:SetAttribute("type", "loot");
+		if not InCombatLockdown() then
+			if 	not PopupTypeAssigned(CP_R_RIGHT_NOMOD, "loot") or
+				not PopupTypeAssigned(CP_L_DOWN_NOMOD, "loot") or
+				not PopupTypeAssigned(CP_L_UP_NOMOD, "loot") then
+				CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
+				CP_L_DOWN_NOMOD:SetAttribute("type", "loot");
+				CP_L_UP_NOMOD:SetAttribute("type", "loot");
+			end
 		end
 		local lootButton = lootButtons[iterator];
 		if lootButton:IsVisible() then
