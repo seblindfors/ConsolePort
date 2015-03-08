@@ -1,6 +1,6 @@
 local _
 local _, G = ...;
-local interval = 0.3;
+local interval = 0.1;
 local frameTimers = { 0,0,0,0,0,0,0,0 };
 local groupLootInspect = GroupLootFrame1.IconFrame:GetScript("OnEnter");
 local groupLootLeave   = GroupLootFrame1.IconFrame:GetScript("OnLeave");
@@ -44,7 +44,9 @@ for i, frame in pairs(popupFrames) do
 		frameTimers[i] = frameTimers[i] + elapsed;
 		while frameTimers[i] > interval do
 			if 	self:IsVisible() then
-				if popupFrames[i+1] and popupFrames[i+1]:IsVisible() then
+				if LootFrame:IsVisible() then
+					self:SetAlpha(0.5);
+				elseif popupFrames[i+1] and popupFrames[i+1]:IsVisible() then
 					self:SetAlpha(popupFrames[i+1]:GetAlpha()*0.75);
 				elseif not InCombatLockdown() then
 					self:SetAlpha(1);
@@ -102,23 +104,28 @@ LootFrame:HookScript("OnShow", function(self)
 end);
 LootFrame:HookScript("OnUpdate", function(self, elapsed)
 	if self:IsVisible() then
-		if not InCombatLockdown() then
-			if 	not PopupTypeAssigned(CP_R_RIGHT_NOMOD, "loot") or
-				not PopupTypeAssigned(CP_L_DOWN_NOMOD, "loot") or
-				not PopupTypeAssigned(CP_L_UP_NOMOD, "loot") then
-				CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
-				CP_L_DOWN_NOMOD:SetAttribute("type", "loot");
-				CP_L_UP_NOMOD:SetAttribute("type", "loot");
+		if ConsolePort:GetFocusFrame().frame == self then
+			self:SetAlpha(1);
+			if not InCombatLockdown() then
+				if 	not PopupTypeAssigned(CP_R_RIGHT_NOMOD, "loot") or
+					not PopupTypeAssigned(CP_L_DOWN_NOMOD, "loot") or
+					not PopupTypeAssigned(CP_L_UP_NOMOD, "loot") then
+					CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
+					CP_L_DOWN_NOMOD:SetAttribute("type", "loot");
+					CP_L_UP_NOMOD:SetAttribute("type", "loot");
+				end
 			end
-		end
-		local lootButton = lootButtons[iterator];
-		if lootButton:IsVisible() then
-			if IsShiftKeyDown() then
-				lootInspect(lootButton);
-			else
-				lootLeave(lootButton);
+			local lootButton = lootButtons[iterator];
+			if lootButton:IsVisible() then
+				if IsShiftKeyDown() then
+					lootInspect(lootButton);
+				else
+					lootLeave(lootButton);
+				end
+				ConsolePort:Highlight(iterator, lootButtons);
 			end
-			ConsolePort:Highlight(iterator, lootButtons);
+		else
+			self:SetAlpha(0.5);
 		end
 	end
 end);
