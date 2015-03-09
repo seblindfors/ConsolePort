@@ -12,6 +12,9 @@ local function CinematicControllerInput(key, state)
 end
 
 function ConsolePort:LoadHookScripts()
+	hooksecurefunc("ToggleGameMenu", function(...)
+		if not IsMouselooking() then MouselookStart(); end;
+	end);
 	-- Add guides to tooltips
 	-- Bug: Currently shows on reagents to recipes
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
