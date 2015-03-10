@@ -64,8 +64,7 @@ If you run into a tainted execution path (an action was blocked), you might have
 
   ConsolePort is not restricted to any one controller, however, it is somewhat restricted to conventional controller layouts.
 It requires a set of 14-15 buttons, which is what you'll find on any version of the PlayStation, Xbox or Logitech controllers.
-At the moment, the addon is being developed with a PS4 controller in mind and lacks a few options, such as changing the guide
-textures and button names. If you have a DS4 controller, the files provided in this git will save you the pain of mapping keys or setting up confusing third-party software. Download DS4Windows from http://ds4windows.com and simply drop the files into the same directory. Run DS4Windows.exe, connect your controller and jump into the game.
+If you have a DS4 controller, the files provided in this git will save you the pain of mapping keys or setting up confusing third-party software. Download DS4Windows from http://ds4windows.com and simply drop the files into the same directory. Run DS4Windows.exe, connect your controller and jump into the game.
 
 
 <h2>3. Basic setup</h2>
