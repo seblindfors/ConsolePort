@@ -42,6 +42,7 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = QuestMapFrame.DetailsFrame.TrackButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = QuestMapFrame.DetailsFrame.CompleteQuestFrame.CompleteButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = GuildInviteFrameDeclineButton, size = "SMALL", anchor = "RIGHT" },
+		{frame = PetitionFrameSignButton, 	size = "SMALL", anchor = "LEFT" },
 		{frame = StackSplitCancelButton, 	size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup1Button2, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup2Button2, 		size = "SMALL", anchor = "RIGHT"},
@@ -88,6 +89,7 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = GossipFrameGreetingGoodbyeButton,		size = "SMALL", anchor = "RIGHT"},
 		{frame = QuestMapFrame.DetailsFrame.BackButton, size = "SMALL", anchor = "LEFT"},
 		{frame = WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button, size = "LARGE", anchor = "LEFT"},
+		{frame = PetitionFrameCancelButton,  size = "SMALL", anchor = "RIGHT"},
 		{frame = GroupLootFrame1.PassButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = GroupLootFrame2.PassButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = GroupLootFrame3.PassButton, size = "SMALL", anchor = "RIGHT"},
@@ -115,23 +117,12 @@ function ConsolePort:GetIndicatorButtons(button)
 end
 
 -- ConsolePort:CreateIndicator(parent, size, anchor, button)
-function ConsolePort:GetIndicatorSet(controller)
-	if 	controller == "PS3" or
-		controller == "PS4" then
-		BINDING_NAME_CP_R_UP			=	"Triangle";
-		BINDING_NAME_CP_X_OPTION		=	"Cross";
-		BINDING_NAME_CP_R_LEFT			=	"Square";
-		BINDING_NAME_CP_R_RIGHT			=	"Circle";
-	end
+function ConsolePort:GetIndicatorSet()
 	local t = {
 		BINDING_NAME_CP_R_UP,
-		BINDING_NAME_CP_X_OPTION,
-		BINDING_NAME_CP_R_LEFT,
 		BINDING_NAME_CP_R_RIGHT,
-		BINDING_NAME_CP_L_UP,
-		BINDING_NAME_CP_L_DOWN,
-		BINDING_NAME_CP_L_LEFT,
-		BINDING_NAME_CP_L_RIGHT
+		BINDING_NAME_CP_R_LEFT,
+		"Up","Down","Left","Right",
 	}
 	for i, button in pairs(t) do
 		local indicators = ConsolePort:GetIndicatorButtons(button);

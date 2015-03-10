@@ -57,6 +57,7 @@ local function LoadHooks ()
 		{ QuestLogPopupDetailFrame, ConsolePort.Quest,	"quest"	},
 		{ GossipFrame, 				ConsolePort.Gossip,	"gossip"},
 		{ GuildInviteFrame,			ConsolePort.Guild,	"guild"	},
+		{ PetitionFrame, 			ConsolePort.Misc,	"misc"	},
 		{ StackSplitFrame,			ConsolePort.Stack, 	"stack"	},
 		{ GroupLootFrame1,			ConsolePort.Loot,	"loot"	},
 		{ GroupLootFrame2,			ConsolePort.Loot,	"loot"	},
@@ -195,8 +196,10 @@ local function OnEvent (self, event, ...)
 			self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME_CP_R_RIGHT);
 		elseif arg1 == addOn then
 			LoadHooks();
-			self:LoadHookScripts();
 			self:OnVariablesLoaded();
+			self:LoadStrings();
+			self:LoadHookScripts();
+			self:CreateConfigPanel();
 			self:CreateBindingButtons(true);
 			self:LoadBindingSet(true);
 			self:GetIndicatorSet(ConsolePortSettings.type);
@@ -233,7 +236,7 @@ function ConsolePort:SetButtonActionsDefault()
 end
 
 function ConsolePort:SetButtonActions (type)
-	-- Allows for secure button workaround
+	-- Exceptions are for secure button workarounds
 	if (type ~= "loot" and
 		type ~= "popup") then
 		CP_R_LEFT_NOMOD:SetAttribute("type", type);
@@ -338,6 +341,12 @@ function ConsolePort:Misc (key, state)
 			local button = select(8, DeathRecapFrame:GetChildren());
 			ConsolePort:Button(button, state);
 		end
+	elseif PetitionFrame:IsVisible() then
+		if key == G.CIRCLE then
+			ConsolePort:Button(PetitionFrameSignButton, state);
+		elseif key == G.TRIANGLE then
+			ConsolePort:Button(PetitionFrameCancelButton, state);
+		end
 	elseif CinematicFrameCloseDialog:IsVisible() then
 		if key == G.CIRCLE then
 			ConsolePort:Button(CinematicFrameCloseDialogResumeButton, state);
@@ -398,11 +407,9 @@ function ConsolePort:AutoCameraView(event, ...)
 	end
 end
 
-f:RegisterEvent("PLAYER_ENTERING_WORLD");
 f:RegisterEvent("PLAYER_STARTED_MOVING");
 f:RegisterEvent("PLAYER_REGEN_DISABLED");
 f:RegisterEvent("PLAYER_REGEN_ENABLED");
-f:RegisterEvent("PLAYER_LOGOUT");
 f:RegisterEvent("ADDON_LOADED");
 f:RegisterEvent("UPDATE_BINDINGS");
 f:RegisterEvent("GOSSIP_SHOW");
@@ -428,6 +435,3 @@ f:RegisterEvent("UNIT_TARGET");
 f:RegisterEvent("UNIT_ENTERING_VEHICLE")
 f:SetScript("OnEvent", OnEvent);
 f:SetScript("OnUpdate", OnUpdate);
-
-
-

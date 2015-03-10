@@ -210,25 +210,12 @@ function ConsolePort:LoadBindingSet(enabled)
 end
 
 function ConsolePort:GetDefaultGuideTexture(button)
-	-- Right
-	if 		button == "CP_R_UP" 	then return G.TEXTURE_TRIANGLE;
-	elseif 	button == "CP_R_DOWN" 	then return G.TEXTURE_CROSS;
-	elseif 	button == "CP_R_LEFT" 	then return G.TEXTURE_SQUARE;
-	elseif 	button == "CP_R_RIGHT" 	then return G.TEXTURE_CIRCLE;
-	-- Left
-	elseif 	button == "CP_L_UP" 	then return G.TEXTURE_UP;
-	elseif 	button == "CP_L_DOWN" 	then return G.TEXTURE_DOWN;
-	elseif 	button == "CP_L_LEFT" 	then return G.TEXTURE_LEFT;
-	elseif 	button == "CP_L_RIGHT" 	then return G.TEXTURE_RIGHT;
-	-- Triggers
-	elseif 	button == "CP_TR1" 		then return G.TEXTURE_RONE;
+	if 		button == "CP_TR1" 		then return G.TEXTURE_RONE;
 	elseif 	button == "CP_TR2" 		then return G.TEXTURE_RTWO;
 	elseif 	button == "CP_TR3" 		then return G.TEXTURE_LONE;
 	elseif 	button == "CP_TR4" 		then return G.TEXTURE_LTWO;
+	else 	return G[TEXTURE..string.upper(G["NAME_"..button])];
 	end
---	elseif 	button == "CP_L_OPTION" then return TEXTURE_SELECT;
---	elseif 	button == "CP_C_OPTION" then return TEXTURE_GUIDEBTN;
---	elseif 	button == "CP_R_OPTION" then return TEXTURE_START;
 end
 
 function ConsolePort:UpdateActionGuideTexture(button, key, mod1, mod2)
@@ -323,7 +310,8 @@ function ConsolePort:ChangeButtonBinding(actionButton)
 			if 		modfierBtn == NOMOD 	then	ConsolePortSaveBindings[tableIndex].action 	= focusFrameName; 
 			elseif 	modfierBtn == SHIFT 	then	ConsolePortSaveBindings[tableIndex].shift 	= focusFrameName; 
 			elseif 	modfierBtn == CTRL 		then	ConsolePortSaveBindings[tableIndex].ctrl 	= focusFrameName; 
-			elseif 	modfierBtn == CTRLSH 	then	ConsolePortSaveBindings[tableIndex].ctrlsh 	= focusFrameName;	end
+			elseif 	modfierBtn == CTRLSH 	then	ConsolePortSaveBindings[tableIndex].ctrlsh 	= focusFrameName;
+			end
 		end
 	else 
 		confButton:SetButtonState("PUSHED");
@@ -342,76 +330,78 @@ function ConsolePort:SetButtonActionsConfig(type)
 	end
 end
 
-G.panel				= CreateFrame( "FRAME", "ConsolePortConfMain", InterfaceOptionsFramePanelContainer );
-G.panel.name		= "Console Port";
-G.panel.okay 		= function (self) SaveMainConfig(); end;
-G.panel.camCheck 	= CreateFrame("CheckButton", CP..CHECK.."_CAM", G.panel, "ChatConfigCheckButtonTemplate");
-G.panel.camCheck:SetPoint("TOPLEFT", 10, -50);
-G.panel.camCheck.tooltip = "Flip and zoom camera on interaction with NPCs";
-G.panel.camCheck:SetScript("OnClick", function(self, btn, down)
-	if 	self:GetChecked() then
-		ConsolePortSettings.cam = true;
-	else
-		ConsolePortSettings.cam = false;
-	end
-end);
-G.binds				= CreateFrame( "FRAME", "ConsolePortChild", G.panel);
-G.binds.name		= "Bindings";
-G.binds.parent		= G.panel.name;
-G.binds.okay		= function (self) SubmitBindings(); end;
-G.binds:SetScript("OnShow", function(self)
-	InterfaceOptionsFrame:SetWidth(1100);
-	ConsolePort:SetButtonActionsConfig("rebind");
-	self:SetScript("OnUpdate", function(self, elapsed)
-		if not 	IsModifierKeyDown() then
-			_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
-		elseif 	IsShiftKeyDown() and IsControlKeyDown() then
-			_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(1);
-			_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(1);
-		elseif 	IsShiftKeyDown() then
-			_G[CP..SHIFT..GUIDE].guide:SetAlpha(1);
-			_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
-		elseif	IsControlKeyDown() then
-			_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRL..GUIDE].guide:SetAlpha(1);
-			_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-			_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+function ConsolePort:CreateConfigPanel()
+	G.panel				= CreateFrame( "FRAME", "ConsolePortConfMain", InterfaceOptionsFramePanelContainer );
+	G.panel.name		= "Console Port";
+	G.panel.okay 		= function (self) SaveMainConfig(); end;
+	G.panel.camCheck 	= CreateFrame("CheckButton", CP..CHECK.."_CAM", G.panel, "ChatConfigCheckButtonTemplate");
+	G.panel.camCheck:SetPoint("TOPLEFT", 10, -50);
+	G.panel.camCheck.tooltip = "Flip and zoom camera on interaction with NPCs";
+	G.panel.camCheck:SetScript("OnClick", function(self, btn, down)
+		if 	self:GetChecked() then
+			ConsolePortSettings.cam = true;
+		else
+			ConsolePortSettings.cam = false;
 		end
 	end);
-end);
-G.binds:SetScript("OnHide", function(self)
-	ConsolePortSaveBindings = nil;
-	ConsolePortSaveBindingSet = nil;
-	ConsolePort:SetButtonActionsConfig("click");
-	self:SetScript("OnUpdate", nil);
-end);
-InterfaceOptions_AddCategory(G.panel);
-InterfaceOptions_AddCategory(G.binds);
+	G.binds				= CreateFrame( "FRAME", "ConsolePortChild", G.panel);
+	G.binds.name		= "Bindings";
+	G.binds.parent		= G.panel.name;
+	G.binds.okay		= function (self) SubmitBindings(); end;
+	G.binds:SetScript("OnShow", function(self)
+		InterfaceOptionsFrame:SetWidth(1100);
+		ConsolePort:SetButtonActionsConfig("rebind");
+		self:SetScript("OnUpdate", function(self, elapsed)
+			if not 	IsModifierKeyDown() then
+				_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+			elseif 	IsShiftKeyDown() and IsControlKeyDown() then
+				_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(1);
+				_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(1);
+			elseif 	IsShiftKeyDown() then
+				_G[CP..SHIFT..GUIDE].guide:SetAlpha(1);
+				_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+			elseif	IsControlKeyDown() then
+				_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRL..GUIDE].guide:SetAlpha(1);
+				_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
+				_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+			end
+		end);
+	end);
+	G.binds:SetScript("OnHide", function(self)
+		ConsolePortSaveBindings = nil;
+		ConsolePortSaveBindingSet = nil;
+		ConsolePort:SetButtonActionsConfig("click");
+		self:SetScript("OnUpdate", nil);
+	end);
+	InterfaceOptions_AddCategory(G.panel);
+	InterfaceOptions_AddCategory(G.binds);
 
--- Create guide buttons on the menu
-ConsolePort:CreateConfigGuideButton(CP..SHIFT, 		"LONE",	G.binds, 180*2-40, 0);
-ConsolePort:CreateConfigGuideButton(CP..CTRL,		"LTWO",	G.binds, 180*3-40, 0);
-ConsolePort:CreateConfigGuideButton(CP..CTRLSH..1, 	"LONE",	G.binds, 180*4-55, 0);
-ConsolePort:CreateConfigGuideButton(CP..CTRLSH..2,	"LTWO",	G.binds, 180*4-25, 0);
+	-- Create guide buttons on the menu
+	ConsolePort:CreateConfigGuideButton(CP..SHIFT, 		"LONE",	G.binds, 180*2-40, 0);
+	ConsolePort:CreateConfigGuideButton(CP..CTRL,		"LTWO",	G.binds, 180*3-40, 0);
+	ConsolePort:CreateConfigGuideButton(CP..CTRLSH..1, 	"LONE",	G.binds, 180*4-55, 0);
+	ConsolePort:CreateConfigGuideButton(CP..CTRLSH..2,	"LTWO",	G.binds, 180*4-25, 0);
 
--- "Option buttons"; static bindings able to call protected Blizzard API
-local optionButtons = {
-	{option = "CP_X_OPTION", icon = "CROSS"},
-	{option = "CP_C_OPTION", icon = "PSBTN"},
-	{option = "CP_L_OPTION", icon = "SELECT"},
-	{option = "CP_R_OPTION", icon = "START"}
-}
-for i, button in pairs(optionButtons) do
-	ConsolePort:CreateConfigGuideButton(button.option, button.icon, G.binds, 0, i+9);
-	CreateConfigStaticButton(button.option, nil, 1, i+9);
-	CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
-	CreateConfigStaticButton(button.option, "CTRL", 3, i+9);
-	CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
+	-- "Option buttons"; static bindings able to call protected Blizzard API
+	local optionButtons = {
+		{option = "CP_X_OPTION", icon = G.NAME_CP_X_OPTION},
+		{option = "CP_C_OPTION", icon = G.NAME_CP_C_OPTION},
+		{option = "CP_L_OPTION", icon = G.NAME_CP_L_OPTION},
+		{option = "CP_R_OPTION", icon = G.NAME_CP_R_OPTION},
+	}
+	for i, button in pairs(optionButtons) do
+		ConsolePort:CreateConfigGuideButton(button.option, button.icon, G.binds, 0, i+9);
+		CreateConfigStaticButton(button.option, nil, 1, i+9);
+		CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
+		CreateConfigStaticButton(button.option, "CTRL", 3, i+9);
+		CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
+	end
 end

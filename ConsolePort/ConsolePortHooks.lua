@@ -12,8 +12,22 @@ local function CinematicControllerInput(key, state)
 end
 
 function ConsolePort:LoadHookScripts()
+	-- Game Menu frame
 	hooksecurefunc("ToggleGameMenu", function(...)
 		if not IsMouselooking() then MouselookStart(); end;
+	end);
+	-- Add guides to game menu frame, hide when frame is hidden.
+	local leftArrow		= ConsolePort:CreateIndicator(CharacterMicroButton, "SMALL", "LEFT",  "left" );
+	local rightArrow	= ConsolePort:CreateIndicator(MainMenuMicroButton, 	"SMALL", "RIGHT", "right");
+	leftArrow:Hide();
+	rightArrow:Hide();
+	GameMenuFrame:HookScript("OnShow", function(self)
+		leftArrow:Show();
+		rightArrow:Show();
+	end);
+	GameMenuFrame:HookScript("OnHide", function(self)
+		leftArrow:Hide();
+		rightArrow:Hide();
 	end);
 	-- Add guides to tooltips
 	-- Bug: Currently shows on reagents to recipes
@@ -103,6 +117,8 @@ function ConsolePort:LoadHookScripts()
 	UIDefaultButtonExtend(QuestFrameCompleteQuestButton,	"RIGHT" );
 	UIDefaultButtonExtend(QuestFrameCompleteButton,			"RIGHT"	);
 	UIDefaultButtonExtend(QuestFrameGoodbyeButton,			"LEFT"	);
+	UIDefaultButtonExtend(PetitionFrameSignButton, 			"RIGHT" );
+	UIDefaultButtonExtend(PetitionFrameCancelButton,		"LEFT"	);
 	-- Add inputs to cinematic frame, behaves oddly after first dialog closing
 	CinematicFrame:HookScript("OnKeyDown", function(self, key)
 		CinematicControllerInput(key, G.STATE_DOWN);

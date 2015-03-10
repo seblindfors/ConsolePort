@@ -1,107 +1,12 @@
 local _
-
--- Binding strings (default: PlayStation)
-BINDING_HEADER_CP_LEFT 		=	"Arrow pad";
-BINDING_NAME_CP_L_UP		=	"Up";
-BINDING_NAME_CP_L_DOWN		=	"Down";
-BINDING_NAME_CP_L_LEFT		=	"Left";
-BINDING_NAME_CP_L_RIGHT		=	"Right";
-BINDING_HEADER_CP_RIGHT 	=	"Buttons";
-BINDING_NAME_CP_R_UP		=	"Triangle";
-BINDING_NAME_CP_X_OPTION	=	"Cross";
-BINDING_NAME_CP_R_LEFT		=	"Square";
-BINDING_NAME_CP_R_RIGHT		=	"Circle";
-BINDING_HEADER_CP_TRIG 		=	"Triggers";
-BINDING_NAME_CP_TR1			=	"Trigger 1";
-BINDING_NAME_CP_TR2			=	"Trigger 2";
-BINDING_HEADER_CP_CENTER 	=	"Center buttons";
-BINDING_NAME_CP_L_OPTION	= 	"Left Button";
-BINDING_NAME_CP_C_OPTION	=	"Center Button";
-BINDING_NAME_CP_R_OPTION	= 	"Right Button";
-
 local _, G = ...;
--- Button name strings (default: PlayStation)
-G.NAME_CP_L_UP				=	"Up";
-G.NAME_CP_L_DOWN			=	"Down";
-G.NAME_CP_L_LEFT			=	"Left";
-G.NAME_CP_L_RIGHT			=	"Right";
-G.NAME_CP_R_UP				=	"Triangle";
-G.NAME_CP_X_OPTION			=	"Cross";
-G.NAME_CP_R_LEFT			=	"Square";
-G.NAME_CP_R_RIGHT			=	"Circle";
-G.NAME_CP_TR1				=	"Trigger 1";
-G.NAME_CP_TR2				=	"Trigger 2";
-G.NAME_CP_L_OPTION			= 	"Left Button";
-G.NAME_CP_C_OPTION			=	"Center Button";
-G.NAME_CP_R_OPTION			= 	"Right Button";
-
-local f = CreateFrame("FRAME", "ConsolePort");
--- Interaction keys
-G.CIRCLE  					= 1;
-G.SQUARE 					= 2;
-G.TRIANGLE 					= 3;
-G.UP						= 4;
-G.DOWN						= 5;
-G.LEFT						= 6;
-G.RIGHT						= 7;
-G.PREPARE 					= 8;
-G.STATE_UP 					= "up";
-G.STATE_DOWN				= "down";
--- Global config variables
-G.BIND_TARGET 				= false;
-G.CONF_BUTTON 				= nil;
-G.CP 						= "CP";
-G.CONF 						= "_CONF";
-G.CONFBG 					= "_CONF_BG";
-G.GUIDE 					= "_GUIDE";
-G.NOMOD 					= "_NOMOD";
-G.SHIFT 					= "_SHIFT";
-G.CTRL 						= "_CTRL";
-G.CTRLSH 					= "_CTRLSH";
-G.TEXTURE 					= "TEXTURE_";
--- Colors
-G.COLOR_TRIANGLE 			= "62BBB2";
-G.COLOR_SQUARE 				= "D35280";
-G.COLOR_CIRCLE				= "D84E58";
-G.COLOR_CROSS 				= "6882A1";
--- Button textures
-G.TEXTURE_CIRCLE 			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\circle.tga";
-G.TEXTURE_SQUARE 			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\square.tga";
-G.TEXTURE_TRIANGLE			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\triangle.tga";
-G.TEXTURE_CROSS  			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\cross.tga";
-G.TEXTURE_UP 	   			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\up.tga";
-G.TEXTURE_DOWN   			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\down.tga";
-G.TEXTURE_LEFT   			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\left.tga";
-G.TEXTURE_RIGHT  			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\right.tga";
-G.TEXTURE_LONE   			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\l1.tga";
-G.TEXTURE_LTWO   			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\l2.tga";
-G.TEXTURE_LTHREE   			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\l3.tga";
-G.TEXTURE_RONE   			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\r1.tga";
-G.TEXTURE_RTWO   			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\r2.tga";
-G.TEXTURE_RTHREE			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\r3.tga";
-G.TEXTURE_SELECT			= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\select.tga";
-G.TEXTURE_START				= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\start.tga";
-G.TEXTURE_PSBTN				= "Interface\\AddOns\\ConsolePort\\Buttons\\ps4\\ps.tga";
--- Guide strings
-local POINTS 			= ":20:20:0:0";
-local _CIRCLE 			= "|T"..G.TEXTURE_CIRCLE..POINTS.."|t|cFF"..G.COLOR_CIRCLE;
-local _SQUARE 			= "|T"..G.TEXTURE_SQUARE..POINTS.."|t|cFF"..G.COLOR_SQUARE;
-local _TRIANGLE			= "|T"..G.TEXTURE_TRIANGLE..POINTS.."|t|cFF"..G.COLOR_TRIANGLE;
-G.CLICK_USE 			= _CIRCLE.."Use|r";
-G.CLICK_QUEST_TRACKER 	= _CIRCLE.."Set current quest|r";
-G.CLICK_USE_NOCOMBAT 	= _CIRCLE.."Use (out of combat)|r";
-G.CLICK_SELL 			= _CIRCLE.."Sell|r";
-G.CLICK_BUY 			= _CIRCLE.."Buy|r";
-G.CLICK_LOOT			= _CIRCLE.."Loot|r";
-G.CLICK_EQUIP			= _CIRCLE.."Equip|r";
-G.CLICK_REPLACE			= _CIRCLE.."Replace|r";
-G.CLICK_GLYPH_CAST		= _CIRCLE.."Use glyph|r";
-G.CLICK_TALENT 			= _CIRCLE.."Learn talent|r";
-G.CLICK_TAKETAXI 		= _CIRCLE.."Fly to location|r";
-G.CLICK_PICKUP 			= _SQUARE.."Pick up|r";
-G.CLICK_QUEST_DETAILS 	= _SQUARE.."View quest details|r";
-G.CLICK_CANCEL 			= _TRIANGLE.."Cancel|r";
-G.CLICK_STACK_BUY 		= _TRIANGLE.."Buy a different amount|r";
+local type = "PS4\\";
+local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Buttons\\";
+local TEXTURE = "TEXTURE_";
+local EXT = ".tga";
+local function AddTexture(BINDING, TYPE)
+	G[TEXTURE..string.upper(BINDING)] = TEXTURE_PATH..TYPE..BINDING..EXT;
+end
 -- Small guide button measurements
 G.GUIDE_BORDER_S_SMALL 			= 56;
 G.GUIDE_BORDER_X_SMALL 			= -4.75;
@@ -128,6 +33,146 @@ G.GUIDE_BUTTON_CENTER_LARGE_X 	= 0;
 G.GUIDE_BUTTON_CENTER_LARGE_Y 	= 0;
 G.GUIDE_BUTTON_BOTTOM_SMALL_X 	= 0;
 G.GUIDE_BUTTON_BOTTOM_SMALL_Y 	= -28;
+-- Global binding headers
+BINDING_HEADER_CP_LEFT 		=	"Arrow pad";
+BINDING_HEADER_CP_RIGHT 	=	"Buttons";
+BINDING_HEADER_CP_CENTER 	=	"Center buttons";
+BINDING_HEADER_CP_TRIG 		=	"Triggers";
+-- Global binding strings
+BINDING_NAME_CP_L_UP		=	"Up";		
+BINDING_NAME_CP_L_DOWN		=	"Down";
+BINDING_NAME_CP_L_LEFT		=	"Left";
+BINDING_NAME_CP_L_RIGHT		=	"Right";
+BINDING_NAME_CP_TR1			=	"Trigger 1";
+BINDING_NAME_CP_TR2			=	"Trigger 2";
+-- Local binding strings
+G.NAME_CP_L_UP				=	"Up";
+G.NAME_CP_L_DOWN			=	"Down";
+G.NAME_CP_L_LEFT			=	"Left";
+G.NAME_CP_L_RIGHT			=	"Right";
+G.NAME_CP_TR1				=	"Trigger 1";
+G.NAME_CP_TR2				=	"Trigger 2";
+
+local f = CreateFrame("FRAME", "ConsolePort");
+function ConsolePort:LoadStrings()
+	-- Specific controller strings
+	if (ConsolePortSettings and ConsolePortSettings.type == "Xbox") then
+		type = "Xbox\\";
+		-- Binding strings
+		BINDING_NAME_CP_R_UP		=	"Y";
+		BINDING_NAME_CP_X_OPTION	=	"A";
+		BINDING_NAME_CP_R_LEFT		=	"X";
+		BINDING_NAME_CP_R_RIGHT		=	"B";
+		BINDING_NAME_CP_L_OPTION	= 	"Back";
+		BINDING_NAME_CP_C_OPTION	=	"Guide";
+		BINDING_NAME_CP_R_OPTION	= 	"Start";
+		-- Button name strings
+		G.NAME_CP_R_UP				=	"Y";
+		G.NAME_CP_X_OPTION			=	"A";
+		G.NAME_CP_R_LEFT			=	"X";
+		G.NAME_CP_R_RIGHT			=	"B";
+		G.NAME_CP_L_OPTION			= 	"Back";
+		G.NAME_CP_C_OPTION			=	"Guide";
+		G.NAME_CP_R_OPTION			= 	"Start";
+		-- Colors
+		G.COLOR_UP 					= 	"FFE74F";
+		G.COLOR_LEFT 				= 	"00A2FF";
+		G.COLOR_RIGHT				= 	"FA4451";
+		G.COLOR_DOWN 				= 	"52C14E";
+		-- Textures
+	else
+		-- Binding strings (default: PlayStation)
+		BINDING_NAME_CP_R_UP		=	"Triangle";
+		BINDING_NAME_CP_X_OPTION	=	"Cross";
+		BINDING_NAME_CP_R_LEFT		=	"Square";
+		BINDING_NAME_CP_R_RIGHT		=	"Circle";
+		BINDING_NAME_CP_L_OPTION	= 	"Share";
+		BINDING_NAME_CP_C_OPTION	=	"PS";
+		BINDING_NAME_CP_R_OPTION	= 	"Options";
+		-- Button name strings (default: PlayStation)
+		G.NAME_CP_R_UP				=	"Triangle";
+		G.NAME_CP_X_OPTION			=	"Cross";
+		G.NAME_CP_R_LEFT			=	"Square";
+		G.NAME_CP_R_RIGHT			=	"Circle";
+		G.NAME_CP_L_OPTION			= 	"Share";
+		G.NAME_CP_C_OPTION			=	"PS";
+		G.NAME_CP_R_OPTION			= 	"Options";
+		-- Colors
+		G.COLOR_UP 					= 	"62BBB2";
+		G.COLOR_LEFT 				= 	"D35280";
+		G.COLOR_RIGHT				= 	"D84E58";
+		G.COLOR_DOWN 				= 	"6882A1";
+	end
+	-- Interaction keys
+	G.CIRCLE  					= 1;
+	G.SQUARE 					= 2;
+	G.TRIANGLE 					= 3;
+	G.UP						= 4;
+	G.DOWN						= 5;
+	G.LEFT						= 6;
+	G.RIGHT						= 7;
+	G.PREPARE 					= 8;
+	G.STATE_UP 					= "up";
+	G.STATE_DOWN				= "down";
+	-- Global config variables
+	G.TEXTURE 					= TEXTURE;
+	G.BIND_TARGET 				= false;
+	G.CONF_BUTTON 				= nil;
+	G.CP 						= "CP";
+	G.CONF 						= "_CONF";
+	G.CONFBG 					= "_CONF_BG";
+	G.GUIDE 					= "_GUIDE";
+	G.NOMOD 					= "_NOMOD";
+	G.SHIFT 					= "_SHIFT";
+	G.CTRL 						= "_CTRL";
+	G.CTRLSH 					= "_CTRLSH";
+	-- Arrows
+	AddTexture(G.NAME_CP_L_UP, type);
+	AddTexture(G.NAME_CP_L_DOWN, type);
+	AddTexture(G.NAME_CP_L_LEFT, type);
+	AddTexture(G.NAME_CP_L_RIGHT, type);
+	-- Action buttons
+	AddTexture(G.NAME_CP_R_UP, type);
+	AddTexture(G.NAME_CP_R_LEFT, type);
+	AddTexture(G.NAME_CP_R_RIGHT, type);
+	AddTexture(G.NAME_CP_X_OPTION, type);
+	-- Options
+	AddTexture(G.NAME_CP_L_OPTION, type);
+	AddTexture(G.NAME_CP_C_OPTION, type);
+	AddTexture(G.NAME_CP_R_OPTION, type);
+	-- L/R
+	G.TEXTURE_LONE   			= TEXTURE_PATH..type.."l1"..EXT;
+	G.TEXTURE_LTWO   			= TEXTURE_PATH..type.."l2"..EXT;
+	G.TEXTURE_LTHREE   			= TEXTURE_PATH..type.."l3"..EXT;
+	G.TEXTURE_RONE   			= TEXTURE_PATH..type.."r1"..EXT;
+	G.TEXTURE_RTWO   			= TEXTURE_PATH..type.."r2"..EXT;
+	G.TEXTURE_RTHREE			= TEXTURE_PATH..type.."r3"..EXT;
+	-- Guide strings
+	local POINTS 			= ":20:20:0:0";
+	local _RIGHT 			= "|T"..G[TEXTURE..string.upper(G.NAME_CP_R_RIGHT)]..POINTS.."|t|cFF"..G.COLOR_RIGHT;
+	local _LEFT 			= "|T"..G[TEXTURE..string.upper(G.NAME_CP_R_LEFT)]..POINTS.."|t|cFF"..G.COLOR_LEFT;
+	local _UP				= "|T"..G[TEXTURE..string.upper(G.NAME_CP_R_UP)]..POINTS.."|t|cFF"..G.COLOR_UP;
+	G.CLICK_USE 			= _RIGHT.."Use|r";
+	G.CLICK_QUEST_TRACKER 	= _RIGHT.."Set current quest|r";
+	G.CLICK_USE_NOCOMBAT 	= _RIGHT.."Use (out of combat)|r";
+	G.CLICK_SELL 			= _RIGHT.."Sell|r";
+	G.CLICK_BUY 			= _RIGHT.."Buy|r";
+	G.CLICK_LOOT			= _RIGHT.."Loot|r";
+	G.CLICK_EQUIP			= _RIGHT.."Equip|r";
+	G.CLICK_REPLACE			= _RIGHT.."Replace|r";
+	G.CLICK_GLYPH_CAST		= _RIGHT.."Use glyph|r";
+	G.CLICK_TALENT 			= _RIGHT.."Learn talent|r";
+	G.CLICK_TAKETAXI 		= _RIGHT.."Fly to location|r";
+	G.CLICK_PICKUP 			= _LEFT.."Pick up|r";
+	G.CLICK_QUEST_DETAILS 	= _LEFT.."View quest details|r";
+	G.CLICK_CANCEL 			= _UP.."Cancel|r";
+	G.CLICK_STACK_BUY 		= _UP.."Buy a different amount|r";
+end
+
+function ConsolePort:DumpG()
+	return G
+end
+
 -- Override tutorials
 -- local POINTS		= ":20:20:-3:-10";
 -- local _CIRCLE 		= "|T"..TEXTURE_CIRCLE..POINTG.."|t|cFF"..COLOR_CIRCLE;

@@ -15,8 +15,7 @@ end);
 
 local TOGGLE 		= false;
 local iterator 		= 1;
-local leftArrow		= ConsolePort:CreateIndicator(CharacterMicroButton, "SMALL", "LEFT",  "left" );
-local rightArrow	= ConsolePort:CreateIndicator(MainMenuMicroButton, 	"SMALL", "RIGHT", "right");
+
 local GAME_MENU 	= 12;
 local UTIL_MENU 	= 13;
 local NUM_BTNS		= 23;
@@ -45,17 +44,7 @@ local buttons 		= {
 	StoreMicroButton,
 	MainMenuMicroButton
 }
-leftArrow:Hide();
-rightArrow:Hide();
 
-GameMenuFrame:HookScript("OnShow", function(self)
-	leftArrow:Show();
-	rightArrow:Show();
-end);
-GameMenuFrame:HookScript("OnHide", function(self)
-	leftArrow:Hide();
-	rightArrow:Hide();
-end);
 for _, button in ipairs(buttons) do
 	button:HookScript("OnClick", function(self, button, down)
 		if not down and not InCombatLockdown() then
