@@ -398,6 +398,29 @@ end
         	ConsolePort:CreateSplashFrame();
         end
 
+        SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport";
+        local function SlashHandler(msg, editBox)
+        	if msg == "type" or msg == "controller" then
+        		ConsolePort:CreateSplashFrame();
+        	elseif msg == "resetAll" then
+        		ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet();
+        		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons();
+        		ConsolePortSettings = nil;
+        		ReloadUI();
+        	elseif 	msg == "binds" or
+        			msg == "binding" or
+        			msg == "bindings" then
+        		InterfaceOptionsFrame_OpenToCategory(G.binds);
+				InterfaceOptionsFrame_OpenToCategory(G.binds);
+        	else
+        		print("Console Port:");
+        		print("/cp type: Change controller type");
+        		print("/cp resetAll: Full addon reset");
+        		print("/cp binds: Open binding menu");
+        	end
+        end
+        SlashCmdList["CONSOLEPORT"] = SlashHandler;
+
         G.ConsolePort_Loaded = true;
  end
 
