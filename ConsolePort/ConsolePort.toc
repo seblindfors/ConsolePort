@@ -4,6 +4,7 @@
 ## SavedVariables: ConsolePortSettings
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons
 ConsolePortLoad.lua
+ConsolePortSplash.lua
 ConsolePortHooks.lua
 ConsolePortConfig.lua
 ConsolePortInit.lua

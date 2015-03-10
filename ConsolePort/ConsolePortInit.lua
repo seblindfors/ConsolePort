@@ -29,7 +29,6 @@ local function pairsByKeys(t,f)
 	return iter;
 end;
 
-
 function ConsolePort:GetIndicatorButtons(button)
 	local t = {};
 	-- Circle
@@ -396,6 +395,7 @@ end
 
         if not ConsolePortSettings then
         	ConsolePortSettings = ConsolePort:GetDefaultAddonSettings();
+        	ConsolePort:CreateSplashFrame();
         end
 
         G.ConsolePort_Loaded = true;
@@ -436,7 +436,7 @@ function ConsolePort:PetBattleActionBarOverride()
 end
 -- ConsolePort:CreateButton(name, clickbutton, UIcommand)
 -- ConsolePort:CreateConfigButton(name, parent, xoffset, yoffset)
-function ConsolePort:CreateBindingButtons(enabled)
+function ConsolePort:CreateBindingButtons()
 	local keys = ConsolePortBindingButtons;
 	local y = 1;
 	table.sort(keys);

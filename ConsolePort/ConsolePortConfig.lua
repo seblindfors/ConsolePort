@@ -45,7 +45,7 @@ local function SubmitBindings()
 		ConsolePortBindingSet = ConsolePortSaveBindingSet;
 	end
 	ConsolePort:ReloadBindingActions();
-	ConsolePort:LoadBindingSet(true);
+	ConsolePort:LoadBindingSet();
 end
 
 local function GenerateBindingsTable()
@@ -197,7 +197,7 @@ function ConsolePort:CreateConfigGuideButton(name, title, parent, xoffset, yoffs
 end
 
 
-function ConsolePort:LoadBindingSet(enabled)
+function ConsolePort:LoadBindingSet()
 	local keys = ConsolePortBindingSet;
 	local w = WorldFrame;
 	ClearOverrideBindings(w);

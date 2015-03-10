@@ -53,6 +53,10 @@ G.NAME_CP_L_RIGHT			=	"Right";
 G.NAME_CP_TR1				=	"Trigger 1";
 G.NAME_CP_TR2				=	"Trigger 2";
 
+G.SPLASH_LEFT = "Interface\\AddOns\\ConsolePort\\Graphic\\SplashLeft.tga";
+G.SPLASH_RIGHT = "Interface\\AddOns\\ConsolePort\\Graphic\\SplashRight.tga";
+G.SPLASH_BOTTOM = "Interface\\AddOns\\ConsolePort\\Graphic\\SplashBottom.tga";
+
 local f = CreateFrame("FRAME", "ConsolePort");
 function ConsolePort:LoadStrings()
 	-- Specific controller strings

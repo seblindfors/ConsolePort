@@ -200,9 +200,9 @@ local function OnEvent (self, event, ...)
 			self:LoadStrings();
 			self:LoadHookScripts();
 			self:CreateConfigPanel();
-			self:CreateBindingButtons(true);
-			self:LoadBindingSet(true);
-			self:GetIndicatorSet(ConsolePortSettings.type);
+			self:CreateBindingButtons();
+			self:LoadBindingSet();
+			self:GetIndicatorSet();
 			self:ReloadBindingActions();
 		end
 	elseif	event == "PLAYER_REGEN_ENABLED" then
@@ -280,7 +280,7 @@ function ConsolePort:SetButtonMapping (self, event)
 	if not InCombatLockdown() then
 		ClearOverrideBindings(ConsolePort);
 		if 		event == "UPDATE_BINDINGS" then
-			ConsolePort:LoadBindingSet(true);
+			ConsolePort:LoadBindingSet();
 		elseif 	event == "SHIPMENT_CRAFTER_OPENED" then
 			ConsolePort:SetButtonActions("work");
 		-- Revert to default behaviour
