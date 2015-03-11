@@ -2,6 +2,7 @@
 <h2>Game Controller Addon for World of Warcraft</h2>
 <h6>DualShock 4, DualShock 3, Xbox 360, Xbox One, Logitech Rumblepad, Razer Sabertooth</h6>
 <a href="http://imgur.com/a/MdfK3" target="_blank">Screenshots</a><br>
+<a href="http://youtu.be/PZgP5wq5Jag" target="_blank">Video (Basic in-game setup)</a><br>
 <a href="http://youtu.be/6EDvD2HfYJI" target="_blank">Video (Proving Grounds Gold)</a>
 
 ConsolePort is a lightweight interface add-on for World of Warcraft that will give you a handful of nifty features
