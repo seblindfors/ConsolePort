@@ -55,9 +55,9 @@ for i, frame in pairs(popupFrames) do
 					not InCombatLockdown() then
 					if IsStaticPopup(i) then
 						if 	not ButtonsLinked(CP_R_LEFT_NOMOD, _G[self:GetName().."Button1"]) or
-							not PopupTypeAssigned(CP_R_LEFT_NOMOD, "popup") then
-							CP_R_RIGHT_NOMOD:SetAttribute("type", "popup");
-							CP_R_LEFT_NOMOD:SetAttribute("type", "popup");
+							not PopupTypeAssigned(CP_R_LEFT_NOMOD, "Popup") then
+							CP_R_RIGHT_NOMOD:SetAttribute("type", "Popup");
+							CP_R_LEFT_NOMOD:SetAttribute("type", "Popup");
 							if _G[self:GetName().."Button3"]:IsVisible() then
 								ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, _G[self:GetName().."Button3"]);
 							else
@@ -74,11 +74,11 @@ for i, frame in pairs(popupFrames) do
 							lootHasTooltip = nil;
 						end
 						if 	not ButtonsLinked(CP_R_UP_NOMOD, self.PassButton) or 
-							not PopupTypeAssigned(CP_R_LEFT_NOMOD, "loot") then
-							CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
-							CP_R_LEFT_NOMOD:SetAttribute("type", "loot");
-							CP_R_UP_NOMOD:SetAttribute("type", "loot");
-							CP_L_DOWN_NOMOD:SetAttribute("type", "loot");
+							not PopupTypeAssigned(CP_R_LEFT_NOMOD, "Loot") then
+							CP_R_RIGHT_NOMOD:SetAttribute("type", "Loot");
+							CP_R_LEFT_NOMOD:SetAttribute("type", "Loot");
+							CP_R_UP_NOMOD:SetAttribute("type", "Loot");
+							CP_L_DOWN_NOMOD:SetAttribute("type", "Loot");
 							ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, self.GreedButton);
 							ConsolePort:SetClickButton(CP_R_LEFT_NOMOD, self.NeedButton);
 							ConsolePort:SetClickButton(CP_R_UP_NOMOD, self.PassButton);
@@ -107,12 +107,12 @@ LootFrame:HookScript("OnUpdate", function(self, elapsed)
 		if ConsolePort:GetFocusFrame().frame == self then
 			if not InCombatLockdown() then
 				self:SetAlpha(1);
-				if 	not PopupTypeAssigned(CP_R_RIGHT_NOMOD, "loot") or
-					not PopupTypeAssigned(CP_L_DOWN_NOMOD, "loot") or
-					not PopupTypeAssigned(CP_L_UP_NOMOD, "loot") then
-					CP_R_RIGHT_NOMOD:SetAttribute("type", "loot");
-					CP_L_DOWN_NOMOD:SetAttribute("type", "loot");
-					CP_L_UP_NOMOD:SetAttribute("type", "loot");
+				if 	not PopupTypeAssigned(CP_R_RIGHT_NOMOD, "Loot") or
+					not PopupTypeAssigned(CP_L_DOWN_NOMOD, "Loot") or
+					not PopupTypeAssigned(CP_L_UP_NOMOD, "Loot") then
+					CP_R_RIGHT_NOMOD:SetAttribute("type", "Loot");
+					CP_L_DOWN_NOMOD:SetAttribute("type", "Loot");
+					CP_L_UP_NOMOD:SetAttribute("type", "Loot");
 				end
 			end
 			local lootButton = lootButtons[iterator];

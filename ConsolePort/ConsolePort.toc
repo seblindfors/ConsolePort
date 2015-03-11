@@ -7,6 +7,7 @@ ConsolePortLoad.lua
 ConsolePortSplash.lua
 ConsolePortHooks.lua
 ConsolePortConfig.lua
+ConsolePortSecure.lua
 ConsolePortInit.lua
 ConsolePort.lua
 ConsolePortBags.lua

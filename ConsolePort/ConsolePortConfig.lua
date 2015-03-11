@@ -44,8 +44,12 @@ local function SubmitBindings()
 	if ConsolePortSaveBindingSet then
 		ConsolePortBindingSet = ConsolePortSaveBindingSet;
 	end
-	ConsolePort:ReloadBindingActions();
-	ConsolePort:LoadBindingSet();
+	-- Temporary
+	if ConsolePortSaveBindingSet or ConsolePortSaveBindings then
+		ReloadUI();
+	end
+--	ConsolePort:ReloadBindingActions();
+--	ConsolePort:LoadBindingSet();
 end
 
 local function GenerateBindingsTable()

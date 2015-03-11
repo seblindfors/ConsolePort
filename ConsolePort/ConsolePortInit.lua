@@ -11,6 +11,7 @@ local SHIFT 			= "_SHIFT";
 local CTRL 				= "_CTRL";
 local CTRLSH 			= "_CTRLSH";
 local TEXTURE 			= "TEXTURE_";
+
 G.ConsolePort_Loaded = false;
 G.ButtonGuides 		 = {};
 
@@ -33,7 +34,6 @@ function ConsolePort:GetIndicatorButtons(button)
 	local t = {};
 	-- Circle
 	if button == BINDING_NAME_CP_R_RIGHT then t = {
-		{frame = OverrideActionBarButton3,	size = "SMALL", anchor = "CENTER" },
 		{frame = QuestFrameAcceptButton, 	size = "SMALL", anchor = "LEFT"	},
 		{frame = QuestFrameCompleteButton, 	size = "SMALL", anchor = "LEFT"	},
 		{frame = QuestFrameCompleteQuestButton, size = "SMALL", anchor = "LEFT"	},
@@ -61,7 +61,6 @@ function ConsolePort:GetIndicatorButtons(button)
 	}
 	-- Square
 	elseif button == BINDING_NAME_CP_R_LEFT then t = { 
-		{frame = OverrideActionBarButton1,	size = "SMALL", anchor = "CENTER" },
 		{frame = QuestLogPopupDetailFrameAbandonButton, size = "SMALL", anchor = "LEFT" },
 		{frame = QuestMapFrame.DetailsFrame.AbandonButton, size = "SMALL", anchor = "LEFT"},
 		{frame = WorldMapFrameTutorialButton, size = "SMALL", anchor = "RIGHT"},
@@ -79,7 +78,6 @@ function ConsolePort:GetIndicatorButtons(button)
 	}
 	-- Triangle
 	elseif button == BINDING_NAME_CP_R_UP then t = {
-		{frame = OverrideActionBarButton2,	size = "SMALL", anchor = "CENTER" },
 		{frame = QuestFrameDeclineButton,	size = "SMALL", anchor = "RIGHT"},
 		{frame = QuestFrameGoodbyeButton,	size = "SMALL", anchor = "RIGHT"},
 		{frame = QuestLogPopupDetailFrame.ShowMapButton, size = "SMALL", anchor = "RIGHT" },
@@ -95,14 +93,13 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = GroupLootFrame4.PassButton, size = "SMALL", anchor = "RIGHT"},
 	}
 	elseif button == "Up" then t = {
-		{frame = OverrideActionBarButton5,	size = "SMALL", anchor = "CENTER" },
 		{frame = GameMenuFrame, 			size = "SMALL", anchor = "LEFT"}
 	}
 	elseif button == "Left"	then t = {
-		{frame = OverrideActionBarButton4,	size = "SMALL", anchor = "CENTER" }
+		--
 	}
 	elseif button == "Right" then t = {
-		{frame = OverrideActionBarButton6,	size = "SMALL", anchor = "CENTER" }
+		--
 	}
 	elseif button == "Down"	then t = {
 		{frame = GameMenuFrame, 			size = "SMALL", anchor = "RIGHT"},
@@ -130,77 +127,6 @@ function ConsolePort:GetIndicatorSet()
 		end
 	end
 end
-
-function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
-	local btn 	= CreateFrame("Button", name..modifier, UIParent, "SecureActionButtonTemplate");
-	local self 	= btn;
-	btn.name 	= name;
-	btn.timer 	= 0;
-	btn.state 	= G.STATE_UP;
-	btn.action 	= _G[clickbutton];
-	btn.command = UIcommand;
-	btn.mod 	= modifier;
-	btn.revert 	= function(self) ConsolePort:SetClickButton(btn, btn.action); 	end;
-	btn.taxi 	= function(self) ConsolePort:Taxi(self.command, self.state); 	end;
-	btn.gossip 	= function(self) ConsolePort:Gossip(self.command, self.state); 	end;
-	btn.quest 	= function(self) ConsolePort:Quest(self.command, self.state); 	end;
-	btn.map 	= function(self) ConsolePort:Map(self.command, self.state); 	end;
-	btn.book 	= function(self) ConsolePort:Book(self.command, self.state); 	end;
-	btn.spec 	= function(self) ConsolePort:Spec(self.command, self.state); 	end;
-	btn.glyph 	= function(self) ConsolePort:Spec(self.command, self.state); 	end;
-	btn.bags 	= function(self) ConsolePort:Bags(self.command, self.state);	end;
-	btn.gear 	= function(self) ConsolePort:Gear(self.command, self.state);	end;
-	btn.shop 	= function(self) ConsolePort:Shop(self.command, self.state);	end;
-	btn.misc 	= function(self) ConsolePort:Misc(self.command, self.state);	end;
-	btn.popup 	= function(self) ConsolePort:Popup(self.command, self.state); 	end;
-	btn.loot 	= function(self) ConsolePort:Loot(self.command, self.state); 	end;
-	btn.stack 	= function(self) ConsolePort:Stack(self.command, self.state); 	end;
---	btn.list 	= function(self) ConsolePort:List(self.command, self.state);	end; -- Causes execution taint atm
-	btn.menu 	= function(self) ConsolePort:Menu(self.command, self.state); 	end;
-	btn.rebind 	= function(self) ConsolePort:ChangeButtonBinding(self); 		end;
-	btn:SetAttribute("type", "click");
-	btn:SetAttribute("clickbutton", btn.action);
-	btn:SetAttribute("toggleForVehicle", true);
-	btn:RegisterEvent("PLAYER_REGEN_DISABLED");
-	btn:RegisterEvent("UNIT_ENTERED_VEHICLE");
-	btn:RegisterEvent("UNIT_EXITED_VEHICLE");
-	btn:SetScript("OnEvent", function(self, event, ...)
-		if not UnitInVehicle("player") then
-			btn:SetAttribute("clickbutton", btn.action);
-		elseif UnitInVehicle("player") and btn.vehicle then
-			btn:SetAttribute("clickbutton", btn.vehicle);
-		end
-		btn:SetAttribute("type", "click");
-	end);
-	btn:HookScript("OnMouseDown", function(self, button)
-		local func = self:GetAttribute("type");
-		local click = self:GetAttribute("clickbutton");
-		self.state = G.STATE_DOWN;
-		self.timer = 0;
-		-- Fire function twice where keystate is requested
-		if 	func == "click" then click:SetButtonState("PUSHED"); return; end;
-		if 	self[func] then self[func](self); end;
-	end);
-	btn:HookScript("OnMouseUp", function(self, button)
-		local func = self:GetAttribute("type");
-		local click = self:GetAttribute("clickbutton");
-		self.state = G.STATE_UP;
-		if func == "click" then click:SetButtonState("NORMAL"); end
-	end);
-	if 	btn.command == G.UP or
-		btn.command == G.DOWN or
-		btn.command == G.LEFT or
-		btn.command == G.RIGHT then
-		btn:SetScript("OnUpdate", function(self, elapsed)
-			self.timer = self.timer + elapsed;
-			if self.timer >= 0.2 and btn.state == G.STATE_DOWN then
-				local func = self:GetAttribute("type");
-				if self[func] then self[func](self); end;
-				self.timer = 0;
-			end
-		end);
-	end
-end 
 
 function ConsolePort:GetBindingNames()
 	return {
@@ -437,26 +363,6 @@ function ConsolePort:CreateMouseLooker()
 	return f;
 end
 
-function ConsolePort:VehicleActionBarOverride()
-	CP_R_LEFT_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarButton1 );
-	CP_R_UP_NOMOD:SetAttribute(		"clickbutton", OverrideActionBarButton2	);
-	CP_R_RIGHT_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarButton3 );
-	CP_L_LEFT_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarButton4 );
-	CP_L_UP_NOMOD:SetAttribute(		"clickbutton", OverrideActionBarButton5 );
-	CP_L_RIGHT_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarButton6 );
-	CP_L_DOWN_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarLeaveFrameLeaveButton );
-end
-
-function ConsolePort:PetBattleActionBarOverride()
-	-- not done
-	CP_R_LEFT_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarButton1 );
-	CP_R_UP_NOMOD:SetAttribute(		"clickbutton", OverrideActionBarButton2	);
-	CP_R_RIGHT_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarButton3 );
-	CP_L_LEFT_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarButton4 );
-	CP_L_UP_NOMOD:SetAttribute(		"clickbutton", OverrideActionBarButton5 );
-	CP_L_RIGHT_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarButton6 );
-	CP_L_DOWN_NOMOD:SetAttribute(	"clickbutton", OverrideActionBarLeaveFrameLeaveButton );
-end
 -- ConsolePort:CreateButton(name, clickbutton, UIcommand)
 -- ConsolePort:CreateConfigButton(name, parent, xoffset, yoffset)
 function ConsolePort:CreateBindingButtons()

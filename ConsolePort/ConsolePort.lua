@@ -42,34 +42,34 @@ end
 
 local function LoadHooks ()
 	local LoadFrames = {
-		{ PaperDollFrame, 			ConsolePort.Gear, 	"gear" 	},
-		{ GameMenuFrame, 			ConsolePort.Menu, 	"menu" 	},
-		{ ContainerFrame1, 			ConsolePort.Bags, 	"bags" 	},
-		{ ContainerFrame2, 			ConsolePort.Bags,	"bags" 	},
-		{ ContainerFrame3, 			ConsolePort.Bags, 	"bags" 	},
-		{ ContainerFrame4, 			ConsolePort.Bags, 	"bags" 	},
-		{ ContainerFrame5, 			ConsolePort.Bags, 	"bags" 	},
-		{ MerchantFrame, 			ConsolePort.Shop, 	"shop"	},
-		{ WorldMapFrame, 			ConsolePort.Map, 	"map" 	},
-		{ TaxiFrame, 				ConsolePort.Taxi, 	"taxi"	},
-		{ SpellBookSpellIconsFrame,	ConsolePort.Book,	"book"	},
-		{ QuestFrame, 				ConsolePort.Quest, 	"quest"	},
-		{ QuestLogPopupDetailFrame, ConsolePort.Quest,	"quest"	},
-		{ GossipFrame, 				ConsolePort.Gossip,	"gossip"},
-		{ GuildInviteFrame,			ConsolePort.Guild,	"guild"	},
-		{ PetitionFrame, 			ConsolePort.Misc,	"misc"	},
-		{ StackSplitFrame,			ConsolePort.Stack, 	"stack"	},
-		{ GroupLootFrame1,			ConsolePort.Loot,	"loot"	},
-		{ GroupLootFrame2,			ConsolePort.Loot,	"loot"	},
-		{ GroupLootFrame3,			ConsolePort.Loot,	"loot"	},
-		{ GroupLootFrame4,			ConsolePort.Loot,	"loot"	},
-		{ LootFrame,				ConsolePort.Loot, 	"loot"	},
-		{ StaticPopup1,				ConsolePort.Popup,	"popup"	},
-		{ StaticPopup2,				ConsolePort.Popup,	"popup"	},
-		{ StaticPopup3,				ConsolePort.Popup,	"popup"	},
-		{ StaticPopup4,				ConsolePort.Popup,	"popup"	},
-		{ CinematicFrame,			ConsolePort.Misc,	"misc"	},
-		{ SplashFrame,				ConsolePort.Misc,	"misc"	},
+		{ PaperDollFrame, 			ConsolePort.Gear, 	"Gear" 	},
+		{ GameMenuFrame, 			ConsolePort.Menu, 	"Menu" 	},
+		{ ContainerFrame1, 			ConsolePort.Bags, 	"Bags" 	},
+		{ ContainerFrame2, 			ConsolePort.Bags,	"Bags" 	},
+		{ ContainerFrame3, 			ConsolePort.Bags, 	"Bags" 	},
+		{ ContainerFrame4, 			ConsolePort.Bags, 	"Bags" 	},
+		{ ContainerFrame5, 			ConsolePort.Bags, 	"Bags" 	},
+		{ MerchantFrame, 			ConsolePort.Shop, 	"Shop"	},
+		{ WorldMapFrame, 			ConsolePort.Map, 	"Map" 	},
+		{ TaxiFrame, 				ConsolePort.Taxi, 	"Taxi"	},
+		{ SpellBookSpellIconsFrame,	ConsolePort.Book,	"Book"	},
+		{ QuestFrame, 				ConsolePort.Quest, 	"Quest"	},
+		{ QuestLogPopupDetailFrame, ConsolePort.Quest,	"Quest"	},
+		{ GossipFrame, 				ConsolePort.Gossip,	"Gossip"},
+		{ GuildInviteFrame,			ConsolePort.Guild,	"Guild"	},
+		{ PetitionFrame, 			ConsolePort.Misc,	"Misc"	},
+		{ StackSplitFrame,			ConsolePort.Stack, 	"Stack"	},
+		{ GroupLootFrame1,			ConsolePort.Loot,	"Loot"	},
+		{ GroupLootFrame2,			ConsolePort.Loot,	"Loot"	},
+		{ GroupLootFrame3,			ConsolePort.Loot,	"Loot"	},
+		{ GroupLootFrame4,			ConsolePort.Loot,	"Loot"	},
+		{ LootFrame,				ConsolePort.Loot, 	"Loot"	},
+		{ StaticPopup1,				ConsolePort.Popup,	"Popup"	},
+		{ StaticPopup2,				ConsolePort.Popup,	"Popup"	},
+		{ StaticPopup3,				ConsolePort.Popup,	"Popup"	},
+		{ StaticPopup4,				ConsolePort.Popup,	"Popup"	},
+		{ CinematicFrame,			ConsolePort.Misc,	"Misc"	},
+		{ SplashFrame,				ConsolePort.Misc,	"Misc"	},
 	}
 	for i, Frame in pairs(LoadFrames) do
 		PostLoadHook(Frame[1], Frame[2], Frame[3], i);
@@ -103,10 +103,6 @@ local function UpdateFrames(self)
 				FocusFrame.isPrepared = true;
 			end
 			self:SetButtonActions(FocusFrame.attr);
-		elseif OverrideActionBar:IsVisible() then 
-			self:VehicleActionBarOverride();
-		elseif PetBattleFrame:IsVisible() then
-			self:PetBattleActionBarOverride();
 		end
 	end
 end
@@ -138,13 +134,13 @@ local function OnEvent (self, event, ...)
 	self:SetButtonMapping(self, event);
 	self:AutoCameraView(event, ...);
 	if (event == "LOOT_CLOSED" or
-		event == "UNIT_TARGET" or 
 		event == "QUEST_DETAIL" or 
 		event == "QUEST_PROGRESS" or 
 		event == "QUEST_COMPLETE" or 
 		event == "GOSSIP_SHOW" or 
 		event == "TAXIMAP_OPENED" or 
 		event == "QUEST_GREETING" or 
+		event == "PLAYER_TARGET_CHANGED" or 
 		event == "SHIPMENT_CRAFTER_OPENED") and
 		(GetMouseFocus() == WorldFrame) and 
 		not SpellIsTargeting() and 
@@ -196,6 +192,7 @@ local function OnEvent (self, event, ...)
 			self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME_CP_R_RIGHT);
 		elseif arg1 == addOn then
 			LoadHooks();
+			self:CreateManager();
 			self:OnVariablesLoaded();
 			self:LoadStrings();
 			self:LoadHookScripts();
@@ -237,36 +234,36 @@ end
 
 function ConsolePort:SetButtonActions (type)
 	-- Exceptions are for secure button workarounds
-	if (type ~= "loot" and
-		type ~= "popup") then
+	if (type ~= "Loot" and
+		type ~= "Popup") then
 		CP_R_LEFT_NOMOD:SetAttribute("type", type);
 	end
-	if (type == "bags" and MerchantFrame:IsVisible()) or 
-	   (type ~= "bags" and
-	   	type ~= "book" and
-	   	type ~= "spec" and
-		type ~= "loot" and
-		type ~= "popup" and
-		type ~= "glyph") then
+	if (type == "Bags" and MerchantFrame:IsVisible()) or 
+	   (type ~= "Bags" and
+	   	type ~= "Book" and
+	   	type ~= "Spec" and
+		type ~= "Loot" and
+		type ~= "Popup" and
+		type ~= "Glyph") then
 		CP_R_RIGHT_NOMOD:SetAttribute("type", type);
 	end
-	if (type ~= "spec" and
-		type ~= "loot" and
-		type ~= "glyph") then
+	if (type ~= "Spec" and
+		type ~= "Loot" and
+		type ~= "Glyph") then
 		CP_R_UP_NOMOD:SetAttribute("type", type);
 	end
-	if (type ~= "loot" and
-		type ~= "glyph") then
+	if (type ~= "Loot" and
+		type ~= "Glyph") then
 		CP_L_UP_NOMOD:SetAttribute("type", type);
 	end
-	if (type ~= "loot" and
-		type ~= "glyph") then
+	if (type ~= "Loot" and
+		type ~= "Glyph") then
 		CP_L_DOWN_NOMOD:SetAttribute("type", type);
 	end
-	if (type ~= "book") then
+	if (type ~= "Book") then
 		CP_L_RIGHT_NOMOD:SetAttribute("type", type);
 	end
-	if (type ~= "book") then
+	if (type ~= "Book") then
 		CP_L_LEFT_NOMOD:SetAttribute("type", type);
 	end
 end
@@ -408,6 +405,7 @@ function ConsolePort:AutoCameraView(event, ...)
 end
 
 f:RegisterEvent("PLAYER_STARTED_MOVING");
+f:RegisterEvent("PLAYER_TARGET_CHANGED");
 f:RegisterEvent("PLAYER_REGEN_DISABLED");
 f:RegisterEvent("PLAYER_REGEN_ENABLED");
 f:RegisterEvent("ADDON_LOADED");
@@ -431,7 +429,6 @@ f:RegisterEvent("SHIPMENT_CRAFTER_CLOSED");
 f:RegisterEvent("WORLD_MAP_UPDATE");
 f:RegisterEvent("LOOT_CLOSED");
 f:RegisterEvent("CURRENT_SPELL_CAST_CHANGED");
-f:RegisterEvent("UNIT_TARGET");
 f:RegisterEvent("UNIT_ENTERING_VEHICLE")
 f:SetScript("OnEvent", OnEvent);
 f:SetScript("OnUpdate", OnUpdate);
