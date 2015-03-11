@@ -193,8 +193,8 @@ local function OnEvent (self, event, ...)
 		elseif arg1 == addOn then
 			LoadHooks();
 			self:CreateManager();
-			self:OnVariablesLoaded();
 			self:LoadStrings();
+			self:OnVariablesLoaded();
 			self:LoadHookScripts();
 			self:CreateConfigPanel();
 			self:CreateBindingButtons();

@@ -141,4 +141,4 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	SecureHandlerExecute(ConsolePortManager, [[
         CP_BUTTONS[self:GetFrameRef("NewButton")] = true
     ]]);
-end 
+end

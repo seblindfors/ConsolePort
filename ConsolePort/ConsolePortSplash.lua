@@ -3,15 +3,27 @@ function ConsolePort:CreateSplashFrame()
 		local A = "TOPLEFT";
 		local B = "TOPRIGHT";
 		local C = "TOP";
+		local P = {
+			off 	= { X = 512, 	Y =  -512	},
+			gra		= { L = -290, 	R =  290	},
+			cro		= { X = -14,	Y = -10,	},
+			btn		= { L = -210, 	R =  210,	Y = -160	},
+			txt 	= { Y = -16 },
+			sha 	= { Y = -38 },
+		}
+		local S = {
+			main 	= { x = 902, y = 581 },
+			button 	= { x = 350, y = 390 },
+		}
 		local Splash = CreateFrame("Frame", "ConsolePortSplashFrame", UIParent);
 		local SplashPlaystationButton = CreateFrame("Button", nil, Splash);
 		local SplashXboxButton = CreateFrame("Button", nil, Splash);
 		local SplashCloseButton = CreateFrame("Button", nil, Splash, "UIPanelCloseButtonNoScripts");
-		SplashPlaystationButton:SetSize(350, 390);
-		SplashXboxButton:SetSize(350, 390);
+		SplashPlaystationButton:SetSize(S.button.x, S.button.y);
+		SplashXboxButton:SetSize(S.button.x, S.button.y);
 		Splash:SetFrameStrata("DIALOG");
-		Splash:SetWidth(902);
-		Splash:SetHeight(581);
+		Splash:SetWidth(S.main.x);
+		Splash:SetHeight(S.main.y);
 		Splash:EnableMouse(true);
 		local SplashLeftTop 	= Splash:CreateTexture(nil, "BACKGROUND");
 		local SplashLeftBottom 	= Splash:CreateTexture(nil, "BACKGROUND");
@@ -33,18 +45,18 @@ function ConsolePort:CreateSplashFrame()
 		SplashXbox:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashXbox");
 		SplashXboxHighlight:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashXboxHighlight");
 		SplashLeftTop:SetPoint(A);
-		SplashLeftBottom:SetPoint(A, 0, -512);
-		SplashRightTop:SetPoint(A, 512, 0);
-		SplashRightBottom:SetPoint(A, 512, -512);
-		SplashShadow:SetPoint(C, 0, -38);
-		SplashHeader:SetPoint(C, -9, -16);
-		SplashCloseButton:SetPoint(B, -14, -10);
-		SplashPlaystation:SetPoint(C, 290, -160);
-		SplashPlaystationHighlight:SetPoint(C, 290, -160);
-		SplashPlaystationButton:SetPoint(C, 210, -160);
-		SplashXbox:SetPoint(C, -290, -160);
-		SplashXboxHighlight:SetPoint(C, -290, -160);
-		SplashXboxButton:SetPoint(C, -210, -160);
+		SplashLeftBottom:SetPoint(A, 0, P.off.Y);
+		SplashRightTop:SetPoint(A, P.off.X, 0);
+		SplashRightBottom:SetPoint(A, P.off.X, P.off.Y);
+		SplashShadow:SetPoint(C, 0, P.sha.Y);
+		SplashHeader:SetPoint(C, 0, P.txt.Y);
+		SplashCloseButton:SetPoint(B, P.cro.X, P.cro.Y);
+		SplashPlaystation:SetPoint(C, P.gra.R, P.btn.Y);
+		SplashPlaystationHighlight:SetPoint(C, P.gra.R, P.btn.Y);
+		SplashPlaystationButton:SetPoint(C, P.btn.R, P.btn.Y);
+		SplashXbox:SetPoint(C, P.gra.L, P.btn.Y);
+		SplashXboxHighlight:SetPoint(C, P.gra.L, P.btn.Y);
+		SplashXboxButton:SetPoint(C, P.btn.L, P.btn.Y);
 		Splash.SplashLeftTop 		= SplashLeftTop;
 		Splash.SplashLeftBottom		= SplashLeftBottom;
 		Splash.SplashRightTop 		= SplashRightTop;
