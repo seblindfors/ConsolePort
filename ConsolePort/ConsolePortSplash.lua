@@ -68,6 +68,7 @@ function ConsolePort:CreateSplashFrame()
 		end);
 		SplashPlaystationButton:SetScript("OnClick", function(...)
 			ConsolePortSettings.type = "PS4";
+			PlaySound("GLUEENTERWORLDBUTTON");
 			ReloadUI();
 		end);
 
@@ -81,14 +82,18 @@ function ConsolePort:CreateSplashFrame()
 		end);
 		SplashXboxButton:SetScript("OnClick", function(...)
 			ConsolePortSettings.type = "Xbox";
+			PlaySound("GLUEENTERWORLDBUTTON");
 			ReloadUI();
 		end);
 		SplashCloseButton:SetScript("OnClick", function(...)
 			Splash:Hide();
+			PlaySound("SPELLBOOKCLOSE");
 		end);
 		SplashPlaystationHighlight:Hide();
 		SplashXboxHighlight:Hide();
 		Splash:SetPoint("CENTER", 0,0);
 	end
 	ConsolePortSplashFrame:Show();
+	UIFrameFadeIn(ConsolePortSplashFrame, 0.5, 0, 1);
+	PlaySound("SPELLBOOKOPEN");
 end
