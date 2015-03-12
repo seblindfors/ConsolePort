@@ -2,7 +2,8 @@ local _
 local _, G = ...;
 
 local function MainBarAction(action)
-	if 	action:GetParent() and
+	if 	type(action) == "table" and
+		action:GetParent() and
 		action:GetParent() == MainMenuBarArtFrame then
 		return action:GetID();
 	else
@@ -89,7 +90,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	end
 	btn.rebind 	= function(btn) self:ChangeButtonBinding(btn); end;
 	btn.revert 	= function()
-		if btn.default.attr == "clickbutton" and MainBarAction(btn.default.val) then
+		if  MainBarAction(btn.default.val) then
 			btn.default.type = "action";
 			btn.default.attr = "action";
 			btn.default.val  = MainBarAction(btn.default.val);

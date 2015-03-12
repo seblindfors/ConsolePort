@@ -140,8 +140,9 @@ local function OnEvent (self, event, ...)
 		event == "GOSSIP_SHOW" or 
 		event == "TAXIMAP_OPENED" or 
 		event == "QUEST_GREETING" or 
-		event == "PLAYER_TARGET_CHANGED" or 
-		event == "SHIPMENT_CRAFTER_OPENED") and
+		event == "SHIPMENT_CRAFTER_OPENED" or
+	   (event == "PLAYER_TARGET_CHANGED" and
+		UnitName("target"))) and 
 		(GetMouseFocus() == WorldFrame) and 
 		not SpellIsTargeting() and 
 		not IsMouseButtonDown(1) then

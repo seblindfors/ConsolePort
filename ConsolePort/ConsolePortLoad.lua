@@ -173,6 +173,7 @@ function ConsolePort:LoadStrings()
 	G.CLICK_STACK_BUY 		= _UP.."Buy a different amount|r";
 end
 
+-- debug tool
 function ConsolePort:DumpG()
 	return G
 end

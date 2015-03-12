@@ -324,6 +324,10 @@ end
         	ConsolePort:CreateSplashFrame();
         end
 
+        if 	self:CheckUnassignedBindings() then
+        	self:CreateBindingWizard();
+        end
+
         SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport";
         local function SlashHandler(msg, editBox)
         	if msg == "type" or msg == "controller" then
