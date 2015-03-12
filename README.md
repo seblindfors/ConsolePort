@@ -2,6 +2,7 @@
 <h2>Game Controller Addon for World of Warcraft</h2>
 <h6>DualShock 4, DualShock 3, Xbox 360, Xbox One, Logitech Rumblepad, Razer Sabertooth</h6>
 <a href="http://imgur.com/a/MdfK3" target="_blank">Screenshots</a><br>
+<a href="https://youtu.be/lreNDsA1HP4" target="_blank">Video (NEW! Setup wizard)</a><br>
 <a href="http://youtu.be/PZgP5wq5Jag" target="_blank">Video (Basic in-game setup)</a><br>
 <a href="http://youtu.be/6EDvD2HfYJI" target="_blank">Video (Proving Grounds Gold)</a>
 
@@ -85,12 +86,7 @@ Apart from this, you are free to map the buttons however you want. My suggestion
   in game. Personally, I don't use the functional buttons, which is why I have F1-F12 mapped to the controller in the example profile.
   You will need to assign these buttons in the game, which is why it's preferable to have buttons that don't interfere with
   your standard keyboard and mouse setup.
-  <h4>3.2. Key bindings in game</h4>
-  
-  Once in game, open the <b>Key Bindings</b> interface and click the <b>Console Port</b> category in the list to the left.
-  Fill in your personal bindings by clicking each field and the corresponding button on your controller.
-  Hit okay when you're done. The default profile is now loaded and your buttons should work right away.
-  <h4>3.3. Mapping action buttons</h4>
+  <h4>3.2. Mapping action buttons</h4>
   
   If you do not like the default profile or wish to map your buttons differently, open the provided <b>Bindings</b> palette
   by opening the <b>Game Menu</b> and then pressing <b>Controller</b>. Once the palette is open, you will notice a list of
