@@ -1,7 +1,6 @@
 # ConsolePort
 <h2>Game Controller Addon for World of Warcraft</h2>
 <h6>DualShock 4, DualShock 3, Xbox 360, Xbox One, Logitech Rumblepad, Razer Sabertooth</h6>
-<a href="http://www.wowinterface.com/downloads/info23536-ConsolePort-GameControllerAddon.html" target="_blank">Wowinterface</a><br>
 <a href="http://imgur.com/a/MdfK3" target="_blank">Screenshots</a><br>
 <a href="https://youtu.be/lreNDsA1HP4" target="_blank">Video (NEW! Setup wizard)</a>    
 <a href="http://youtu.be/PZgP5wq5Jag" target="_blank">Video (Basic in-game setup)</a>   
