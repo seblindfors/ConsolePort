@@ -41,7 +41,7 @@ SpellBookSpellIconsFrame:HookScript("OnUpdate", function(self, elapsed)
 			if 	iterator >= 7 and SpellBookNextPageButton:IsEnabled() then
 				ConsolePort:SetClickButton(CP_L_RIGHT_NOMOD, SpellBookNextPageButton);
 			else
-				CP_L_RIGHT_NOMOD:SetAttribute("type", "book");
+				CP_L_RIGHT_NOMOD:SetAttribute("type", "Book");
 			end
 		end
 		if CP_L_LEFT_NOMOD.state == G.STATE_UP then
@@ -49,7 +49,7 @@ SpellBookSpellIconsFrame:HookScript("OnUpdate", function(self, elapsed)
 				SpellBookPrevPageButton:IsEnabled() then
 				ConsolePort:SetClickButton(CP_L_LEFT_NOMOD, SpellBookPrevPageButton);
 			else
-				CP_L_LEFT_NOMOD:SetAttribute("type", "book");
+				CP_L_LEFT_NOMOD:SetAttribute("type", "Book");
 			end
 		end
 	end

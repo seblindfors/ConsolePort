@@ -332,11 +332,19 @@ end
         local function SlashHandler(msg, editBox)
         	if msg == "type" or msg == "controller" then
         		ConsolePort:CreateSplashFrame();
-        	elseif msg == "resetAll" then
+        	elseif msg == "resetAll" and not InCombatLockdown() then
+        		local bindings = ConsolePort:GetBindingNames();
+        		for i, binding in pairs(bindings) do
+        			local key1, key2 = GetBindingKey(binding);
+        			if key1 then SetBinding(key1); end;
+        			if key2 then SetBinding(key2); end;
+        		end
+        		SaveBindings(GetCurrentBindingSet());
         		ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet();
         		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons();
         		ConsolePortSettings = nil;
         		ReloadUI();
+        	elseif 	msg == "resetAll" then print("Error: Cannot reset addon in combat!");
         	elseif 	msg == "binds" or
         			msg == "binding" or
         			msg == "bindings" then

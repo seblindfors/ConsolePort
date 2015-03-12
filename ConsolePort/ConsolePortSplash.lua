@@ -1,4 +1,5 @@
 local _, G = ...;
+local PATH = "Interface\\AddOns\\ConsolePort\\Graphic\\";
 
 function ConsolePort:CheckUnassignedBindings()
 	local ButtonUnassigned = false;
@@ -20,6 +21,15 @@ function ConsolePort:CreateBindingWizard()
 		local A = "TOPLEFT";
 		local B = "TOPRIGHT";
 		local C = "TOP";
+		-- Strings
+		local STRING_HEADER = "Assign Buttons";
+		local STRING_HEADLINE = "Your controller bindings are incomplete.\nPress the requested button to map it.";
+		local STRING_INVALID = "Invalid binding.\nDid you press the correct button?"
+		local STRING_COMBAT = "You are in combat!";
+		local STRING_EMPTY = "<Empty";
+		local STRING_TSIZE = ":16:16:0:0|t";
+		local STRING_SUCCESS = " was successfully bound to ";
+		local STRING_CONFIRM = "Press BTN again to confirm.";
 		-- Frames
 		local Wizard = CreateFrame("Frame", "ConsolePortWizardFrame", UIParent);
 		local WizardCloseButton = CreateFrame("Button", nil, Wizard, "UIPanelCloseButtonNoScripts");
@@ -30,6 +40,7 @@ function ConsolePort:CreateBindingWizard()
 		local WizardButtonGraphic = Wizard:CreateTexture(nil, "ARTWORK");
 		-- Fontstrings
 		local WizardHeader = Wizard:CreateFontString(nil, "OVERLAY", "SplashHeaderFont");
+		local WizardStatusText = Wizard:CreateFontString(nil, "OVERLAY", "SystemFont_Shadow_Med2");
 		local WizardButtonPress = Wizard:CreateFontString(nil, "OVERLAY", "SplashHeaderFont");
 		local WizardDescription = Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2");
 		local WizardConfirmText = Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2");
@@ -41,9 +52,9 @@ function ConsolePort:CreateBindingWizard()
 		WizardWrapper:SetSize(512, 128);
 		WizardButtonGraphic:SetSize(50, 50);
 		-- SetTextures
-		WizardBG:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\WizardBG");
-		WizardWrapper:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\WizardWrapper");
-		WizardBGOverlay:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\Wizard"..ConsolePortSettings.type);
+		WizardBG:SetTexture(PATH.."WizardBG");
+		WizardWrapper:SetTexture(PATH.."WizardWrapper");
+		WizardBGOverlay:SetTexture(PATH.."Wizard"..ConsolePortSettings.type);
 		-- Points
 		Wizard:SetPoint("CENTER", 0,0);
 		WizardBG:SetAllPoints(Wizard);
@@ -52,16 +63,18 @@ function ConsolePort:CreateBindingWizard()
 		WizardWrapper:SetPoint("CENTER", Wizard, 0, 0);
 		WizardButtonPress:SetPoint("CENTER", WizardWrapper, 10, 0);
 		WizardButtonGraphic:SetPoint("CENTER", WizardWrapper, -142, -4);
+		WizardStatusText:SetPoint(C, 0, -300);
 		WizardDescription:SetPoint(C, 0, -100);
-		WizardConfirmText:SetPoint(C, 0, -400);
+		WizardConfirmText:SetPoint(C, 0, -350);
 		WizardCloseButton:SetPoint(B, -50, -10);
 		-- Alpha
 		WizardBGOverlay:SetAlpha(0.1);
+		WizardStatusText:SetAlpha(0);
 		WizardConfirmText:SetAlpha(0);
 		-- Text values
-		WizardHeader:SetText("Assign Buttons");
-		WizardButtonPress:SetText("<Empty>")
-		WizardDescription:SetText("Your controller bindings are incomplete.\nPress the requested button to map it.");
+		WizardHeader:SetText(STRING_HEADER);
+		WizardButtonPress:SetText(STRING_EMPTY)
+		WizardDescription:SetText(STRING_HEADLINE);
 		-- Bind to frame
 		Wizard.BTN = nil;
 		Wizard.VAL = nil;
@@ -69,6 +82,8 @@ function ConsolePort:CreateBindingWizard()
 		Wizard.BG = WizardBG;
 		Wizard.Close = WizardCloseButton;
 		Wizard.Header = WizardHeader;
+		Wizard.Status = WizardStatusText;
+		Wizard.Overlay = WizardBGOverlay;
 		Wizard.Wrapper = WizardWrapper;
 		Wizard.Confirm = WizardConfirmText;
 		Wizard.Binding = WizardButtonPress;
@@ -79,26 +94,35 @@ function ConsolePort:CreateBindingWizard()
 			Wizard:Hide();
 			PlaySound("SPELLBOOKCLOSE");
 		end);
+		Wizard:SetScript("OnKeyDown", function(self, key)
+			self.Wrapper:SetVertexColor(1, 1, 0.5);
+		end);
 		Wizard:SetScript("OnKeyUp", function(self, key)
+			self.Wrapper:SetVertexColor(1, 1, 1);
+			self.Status:SetAlpha(0);
 			if self.VAL and self.VAL == key and self.SET then
 				if not InCombatLockdown() then
 					if not SetBinding(key, self.BTN) then
 						self.VAL = nil;
-						self.Confirm:SetText("Invalid binding.\nDid you press the correct button?");
+						self.Confirm:SetText("");
+						self.Status:SetText(STRING_INVALID);
+						self.Status:SetAlpha(1);
 					else
+						self.Status:SetText("|T"..self.Graphic:GetTexture()..STRING_TSIZE..STRING_SUCCESS..key..".");
+						UIFrameFadeIn(self.Status, 3, 1, 0);
 						SaveBindings(GetCurrentBindingSet());
-						self.Binding:SetText("<Empty>");
+						self.Binding:SetText(STRING_EMPTY);
 						self.Confirm:SetText("");
 						self.VAL = nil;
 						return;
 					end
 				else
-					self.Confirm:SetText("You are in combat!");
+					self.Status:SetText(STRING_COMBAT);
 				end
 			elseif self.VAL and self.VAL == key then
 				self.SET = true;
 				if self.BTN then
-					self.Confirm:SetText("Press "..G["NAME_"..self.BTN].." again to confirm.");
+					self.Confirm:SetText(string.gsub(STRING_CONFIRM, "BTN", G["NAME_"..self.BTN]));
 				end
 			else
 				self.SET = false;
@@ -178,15 +202,15 @@ function ConsolePort:CreateSplashFrame()
 		local SplashXboxHighlight = Splash:CreateTexture(nil, "ARTWORK");
 		local SplashShadow 		= Splash:CreateTexture(nil, "OVERLAY");
 		local SplashHeader 		= Splash:CreateFontString(nil, "OVERLAY", "SplashHeaderFont");
-		SplashLeftTop:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashLeftTop");
-		SplashLeftBottom:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashLeftBottom");
-		SplashRightTop:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashRightTop");
-		SplashRightBottom:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashRightBottom");
-		SplashShadow:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashShadow");
-		SplashPlaystation:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashPlaystation");
-		SplashPlaystationHighlight:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashPlaystationHighlight");
-		SplashXbox:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashXbox");
-		SplashXboxHighlight:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\SplashXboxHighlight");
+		SplashLeftTop:SetTexture(PATH.."SplashLeftTop");
+		SplashLeftBottom:SetTexture(PATH.."SplashLeftBottom");
+		SplashRightTop:SetTexture(PATH.."SplashRightTop");
+		SplashRightBottom:SetTexture(PATH.."SplashRightBottom");
+		SplashShadow:SetTexture(PATH.."SplashShadow");
+		SplashPlaystation:SetTexture(PATH.."SplashPlaystation");
+		SplashPlaystationHighlight:SetTexture(PATH.."SplashPlaystationHighlight");
+		SplashXbox:SetTexture(PATH.."SplashXbox");
+		SplashXboxHighlight:SetTexture(PATH.."SplashXboxHighlight");
 		SplashLeftTop:SetPoint(A);
 		SplashLeftBottom:SetPoint(A, 0, P.off.Y);
 		SplashRightTop:SetPoint(A, P.off.X, 0);
