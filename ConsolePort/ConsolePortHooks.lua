@@ -127,3 +127,28 @@ function ConsolePort:LoadHookScripts()
 		CinematicControllerInput(key, G.STATE_UP);
 	end);
 end
+
+function ConsolePort:LoadEvents()
+	-- Default events
+	local Events = {
+		["PLAYER_STARTED_MOVING"] 	= false,
+		["PLAYER_REGEN_DISABLED"] 	= false,
+		["PLAYER_REGEN_ENABLED"] 	= false,
+		["ADDON_LOADED"] 			= false,
+		["UPDATE_BINDINGS"] 		= false,
+		["CURSOR_UPDATE"] 			= false,
+		["QUEST_AUTOCOMPLETE"] 		= false,
+		["QUEST_LOG_UPDATE"] 		= false,
+		["WORLD_MAP_UPDATE"] 		= false,
+		["UNIT_ENTERING_VEHICLE"] 	= false
+	}
+	-- Mouse look events
+	for event, val in pairs(ConsolePortMouseSettings) do
+		Events[event] = val;
+	end
+	self:UnregisterAllEvents();
+	for event, _ in pairs(Events) do
+		self:RegisterEvent(event);
+	end
+	return Events;
+end

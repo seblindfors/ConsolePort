@@ -324,18 +324,82 @@ function ConsolePort:ChangeButtonBinding(actionButton)
 	end
 end
 
-function ConsolePort:SetButtonActionsConfig(type)
+function ConsolePort:SetButtonActionsConfig(set)
 	local Buttons = ConsolePort:GetBindingButtons();
-	for _, Button in ipairs(Buttons) do
-		_G[Button..CTRL]:SetAttribute("type", 	type);
-		_G[Button..NOMOD]:SetAttribute("type", 	type);
-		_G[Button..SHIFT]:SetAttribute("type", 	type);
-		_G[Button..CTRLSH]:SetAttribute("type", 	type);
+	if set and not InCombatLockdown() then
+		for _, Button in ipairs(Buttons) do
+			_G[Button..CTRL]:SetAttribute("type", 	"rebind");
+			_G[Button..NOMOD]:SetAttribute("type", 	"rebind");
+			_G[Button..SHIFT]:SetAttribute("type", 	"rebind");
+			_G[Button..CTRLSH]:SetAttribute("type", "rebind");
+		end
+	elseif not InCombatLockdown() then
+		for _, Button in ipairs(Buttons) do
+			_G[Button..CTRL].revert();
+			_G[Button..NOMOD].revert();
+			_G[Button..SHIFT].revert();
+			_G[Button..CTRLSH].revert();
+		end
 	end
 end
 
+
+
+function ConsolePort:GetMouseSettings()
+	local mouseSettings = {
+		{ 	event 	= {"PLAYER_STARTED_MOVING"},
+			desc 	= "Player starts moving",
+			toggle 	= ConsolePortMouseSettings["PLAYER_STARTED_MOVING"]
+		},
+		{ 	event	= {"PLAYER_TARGET_CHANGED"},
+			desc 	= "Player changes target",
+			toggle 	= ConsolePortMouseSettings["PLAYER_TARGET_CHANGED"]
+		},
+		{	event 	= {"CURRENT_SPELL_CAST_CHANGED"},
+			desc 	= "Player casts a direct spell",
+			toggle 	= ConsolePortMouseSettings["CURRENT_SPELL_CAST_CHANGED"]
+		},
+		{	event 	= {"GOSSIP_SHOW", "GOSSIP_CLOSED"},
+			desc 	= "NPC interaction",
+			toggle 	= ConsolePortMouseSettings["GOSSIP_SHOW"]
+		},
+		{	event 	= {"MERCHANT_SHOW", "MERCHANT_CLOSED"},
+			desc 	= "Merchant interaction", 
+			toggle 	= ConsolePortMouseSettings["MERCHANT_SHOW"]
+		},
+		{	event	= {"TAXIMAP_OPENED", "TAXIMAP_CLOSED"},
+			desc 	= "Flight master interaction",
+			toggle 	= ConsolePortMouseSettings["TAXIMAP_OPENED"]
+		},
+		{	event	= {"QUEST_GREETING", "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED"},
+			desc 	= "Quest giver interaction",
+			toggle 	= ConsolePortMouseSettings["QUEST_GREETING"]
+		},
+		{ 	event	= {"QUEST_AUTOCOMPLETE"},
+			desc 	= "Popup quest completion",
+			toggle 	= ConsolePortMouseSettings["QUEST_AUTOCOMPLETE"]
+		},
+		{ 	event 	= {"SHIPMENT_CRAFTER_OPENED", "SHIPMENT_CRAFTER_CLOSED"},
+			desc 	= "Garrison work order",
+			toggle 	= ConsolePortMouseSettings["SHIPMENT_CRAFTER_OPENED"]
+		},
+		{	event	= {"LOOT_CLOSED"},
+			desc 	= "Loot window closed",
+			toggle 	= ConsolePortMouseSettings["LOOT_CLOSED"]
+		}
+	}
+	return mouseSettings;
+end
+
+
+
+
+
+
+
+
 function ConsolePort:CreateConfigPanel()
-	G.panel				= CreateFrame( "FRAME", "ConsolePortConfMain", InterfaceOptionsFramePanelContainer );
+	G.panel				= CreateFrame( "FRAME", "ConsolePortConfigFrame", InterfaceOptionsFramePanelContainer );
 	G.panel.name		= "Console Port";
 	G.panel.okay 		= function (self) SaveMainConfig(); end;
 	G.panel.camCheck 	= CreateFrame("CheckButton", CP..CHECK.."_CAM", G.panel, "ChatConfigCheckButtonTemplate");
@@ -348,14 +412,19 @@ function ConsolePort:CreateConfigPanel()
 			ConsolePortSettings.cam = false;
 		end
 	end);
-	G.binds				= CreateFrame( "FRAME", "ConsolePortChild", G.panel);
+	G.binds				= CreateFrame( "FRAME", nil, G.panel);
 	G.binds.name		= "Bindings";
 	G.binds.parent		= G.panel.name;
 	G.binds.okay		= function (self) SubmitBindings(); end;
 	G.binds:SetScript("OnShow", function(self)
 		InterfaceOptionsFrame:SetWidth(1100);
-		ConsolePort:SetButtonActionsConfig("rebind");
 		self:SetScript("OnUpdate", function(self, elapsed)
+			if not InCombatLockdown() then
+				InterfaceOptionsFrame:SetAlpha(1);
+				ConsolePort:SetButtonActionsConfig(true);
+			else
+				InterfaceOptionsFrame:SetAlpha(0.2);
+			end
 			if not 	IsModifierKeyDown() then
 				_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
 				_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
@@ -382,11 +451,25 @@ function ConsolePort:CreateConfigPanel()
 	G.binds:SetScript("OnHide", function(self)
 		ConsolePortSaveBindings = nil;
 		ConsolePortSaveBindingSet = nil;
-		ConsolePort:SetButtonActionsConfig("click");
+		ConsolePort:SetButtonActionsConfig(false);
 		self:SetScript("OnUpdate", nil);
 	end);
+
+	G.Mouse 		= CreateFrame("FRAME", nil, G.panel);
+	G.Mouse.name 	= "Mouse";
+	G.Mouse.parent 	= G.panel.name;
+	G.Mouse.okay 	= function(self)
+		for i, Check in pairs(G.Mouse.Events) do
+			for i, Event in pairs(Check.Events) do
+				ConsolePortMouseSettings[Event] = Check:GetChecked();
+			end
+		end
+		ConsolePort:LoadEvents();
+	end
+
 	InterfaceOptions_AddCategory(G.panel);
 	InterfaceOptions_AddCategory(G.binds);
+	InterfaceOptions_AddCategory(G.Mouse);
 
 	-- Create guide buttons on the menu
 	ConsolePort:CreateConfigGuideButton(CP..SHIFT, 		"LONE",	G.binds, 180*2-40, 0);
@@ -407,5 +490,25 @@ function ConsolePort:CreateConfigPanel()
 		CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
 		CreateConfigStaticButton(button.option, "CTRL", 3, i+9);
 		CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
+	end
+
+	local MouseSettings = self:GetMouseSettings();
+	G.Mouse.Events = {};
+	G.Mouse.Header = G.Mouse:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
+	G.Mouse.Header:SetText("Toggle mouse look when...");
+	G.Mouse.Header:SetPoint("TOPLEFT", G.Mouse, 10, -10);
+	G.Mouse.Header:Show();
+	for i, setting in pairs(MouseSettings) do
+		local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, G.Mouse, "ChatConfigCheckButtonTemplate");
+		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+		text:SetText(setting.desc);
+		check:SetChecked(setting.toggle);
+		check.Events = setting.event;
+		check.Description = text;
+		check:SetPoint("TOPLEFT", 20, -30*i);
+		text:SetPoint("LEFT", check, 30, 0);
+		check:Show();
+		text:Show();
+		table.insert(G.Mouse.Events, check);
 	end
 end

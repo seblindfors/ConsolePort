@@ -2,7 +2,7 @@
 ## Title: Console Port
 ## Notes: Custom controller port
 ## SavedVariables: ConsolePortSettings
-## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons
+## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouseSettings
 ConsolePortLoad.lua
 ConsolePortSplash.lua
 ConsolePortHooks.lua

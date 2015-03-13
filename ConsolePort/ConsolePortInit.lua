@@ -303,6 +303,31 @@ function ConsolePort:GetDefaultButton(key)
 	return binding;
 end
 
+
+function ConsolePort:GetDefaultMouseSettings()
+	local mouseSettings = {
+		["PLAYER_STARTED_MOVING"] = false,
+		["PLAYER_TARGET_CHANGED"] = true,
+		["CURRENT_SPELL_CAST_CHANGED"] = true,
+		["GOSSIP_SHOW"] = true,
+		["GOSSIP_CLOSED"] = true,
+		["MERCHANT_SHOW"] = true,
+		["MERCHANT_CLOSED"] = true,
+		["TAXIMAP_OPENED"] = true,
+		["TAXIMAP_CLOSED"] = true,
+		["QUEST_GREETING"] = true,
+		["QUEST_DETAIL"] = true,
+		["QUEST_PROGRESS"] = true,
+		["QUEST_COMPLETE"] = true,
+		["QUEST_FINISHED"] = true,
+		["QUEST_AUTOCOMPLETE"] = true,
+		["SHIPMENT_CRAFTER_OPENED"] = true,
+		["SHIPMENT_CRAFTER_CLOSED"] = true,
+		["LOOT_CLOSED"] = true
+	}
+	return mouseSettings;
+end
+
 function ConsolePort:GetDefaultAddonSettings()
 	local t = {};
 	t.type = "PS4";
@@ -312,16 +337,20 @@ end
 
  function ConsolePort:OnVariablesLoaded()
         if not ConsolePortBindingSet then
-        	ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet();
+        	ConsolePortBindingSet = self:GetDefaultBindingSet();
         end
 
         if not ConsolePortBindingButtons then
-        	ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons();
+        	ConsolePortBindingButtons = self:GetDefaultBindingButtons();
+        end
+
+        if not ConsolePortMouseSettings then
+        	ConsolePortMouseSettings = self:GetDefaultMouseSettings();
         end
 
         if not ConsolePortSettings then
-        	ConsolePortSettings = ConsolePort:GetDefaultAddonSettings();
-        	ConsolePort:CreateSplashFrame();
+        	ConsolePortSettings = self:GetDefaultAddonSettings();
+        	self:CreateSplashFrame();
         end
 
         if 	self:CheckUnassignedBindings() then

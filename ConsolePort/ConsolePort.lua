@@ -4,7 +4,7 @@ local addOn, G = ...;
 local interval = 0.1;
 local time = 0;
 
-local view = 0;
+local view = 5;
 local yaw = false;
 
 local MouseIsCentered  = false;
@@ -15,6 +15,13 @@ local FocusFrame = nil;
 
 function ConsolePort:GetFocusFrame()
 	return FocusFrame;
+end
+
+local function ToggleMouseLook(frameEvent)
+	if 	ConsolePortMouseSettings then
+		return ConsolePortMouseSettings[frameEvent];
+	end
+	return true;
 end
 
 local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
@@ -133,16 +140,10 @@ end
 local function OnEvent (self, event, ...)
 	self:SetButtonMapping(self, event);
 	self:AutoCameraView(event, ...);
-	if (event == "LOOT_CLOSED" or
-		event == "QUEST_DETAIL" or 
-		event == "QUEST_PROGRESS" or 
-		event == "QUEST_COMPLETE" or 
-		event == "GOSSIP_SHOW" or 
-		event == "TAXIMAP_OPENED" or 
-		event == "QUEST_GREETING" or 
-		event == "SHIPMENT_CRAFTER_OPENED" or
-	   (event == "PLAYER_TARGET_CHANGED" and
-		UnitName("target"))) and 
+	if 	((event == "PLAYER_TARGET_CHANGED" and
+		ToggleMouseLook(event) and
+		UnitName("target")) or
+		ToggleMouseLook(event)) and
 		(GetMouseFocus() == WorldFrame) and 
 		not SpellIsTargeting() and 
 		not IsMouseButtonDown(1) then
@@ -168,7 +169,8 @@ local function OnEvent (self, event, ...)
 	elseif	event == "CURRENT_SPELL_CAST_CHANGED" then
 		if SpellIsTargeting() then
 			MouselookStop();
-		elseif GetMouseFocus() == WorldFrame then
+		elseif 	GetMouseFocus() == WorldFrame and
+				ToggleMouseLook(event) then
 			MouselookStart();
 		end
 	elseif	event == "UNIT_ENTERING_VEHICLE" then
@@ -183,19 +185,20 @@ local function OnEvent (self, event, ...)
 	elseif	event == "ADDON_LOADED" then
 		local arg1 = ...;
 		if arg1 == "Blizzard_TalentUI" then
-			PostLoadHook(PlayerTalentFrame, self.Spec, "spec", 11);
+			PostLoadHook(PlayerTalentFrame, self.Spec, "Spec", 11);
 			self:InitializeTalents();
 		elseif arg1 == "Blizzard_GlyphUI" then
-			PostLoadHook(GlyphFrame, self.Spec, "glyph", 12);
+			PostLoadHook(GlyphFrame, self.Spec, "Glyph", 12);
 			self:InitializeGlyphs();
 		elseif arg1 == "Blizzard_DeathRecap" then
-			PostLoadHook(DeathRecapFrame, self.Misc, "misc", nil);
+			PostLoadHook(DeathRecapFrame, self.Misc, "Misc", nil);
 			self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME_CP_R_RIGHT);
 		elseif arg1 == addOn then
 			LoadHooks();
 			self:CreateManager();
 			self:LoadStrings();
 			self:OnVariablesLoaded();
+			self:LoadEvents();
 			self:LoadHookScripts();
 			self:CreateConfigPanel();
 			self:CreateBindingButtons();
@@ -204,7 +207,7 @@ local function OnEvent (self, event, ...)
 			self:ReloadBindingActions();
 		end
 	elseif	event == "PLAYER_REGEN_ENABLED" then
-		ConsolePort:SetButtonActions("click");
+		ConsolePort:SetButtonActionsDefault();
 		for _, Hook in pairs(HookFrames) do
 			if 	Hook.frame:IsVisible() then
 				UIFrameFadeIn(Hook.frame, 0.2, 0.5, 1);
@@ -278,20 +281,14 @@ function ConsolePort:SetButtonMapping (self, event)
 	if not InCombatLockdown() then
 		ClearOverrideBindings(ConsolePort);
 		if 		event == "UPDATE_BINDINGS" then
-			ConsolePort:LoadBindingSet();
-		elseif 	event == "SHIPMENT_CRAFTER_OPENED" then
-			ConsolePort:SetButtonActions("work");
+			self:LoadBindingSet();
 		-- Revert to default behaviour
 		elseif	event == "TAXIMAP_CLOSED" or
 			  	event == "GOSSIP_CLOSED" or
 			  	event == "QUEST_FINISHED" or 
-			  	event == "MERCHANT_CLOSED" or
-			  	event == "SHIPMENT_CRAFTER_CLOSED" then
+			  	event == "MERCHANT_CLOSED" then
 			-- Hacky fix
 			GameTooltip:Hide();
-			ConsolePort:SetButtonActions("click");
-			CP_R_RIGHT_NOMOD:SetAttribute("type2", "click");
-			MouselookStart();
 			self:UnregisterEvent("MODIFIER_STATE_CHANGED");
 		end
 	end
@@ -405,31 +402,6 @@ function ConsolePort:AutoCameraView(event, ...)
 	end
 end
 
-f:RegisterEvent("PLAYER_STARTED_MOVING");
-f:RegisterEvent("PLAYER_TARGET_CHANGED");
-f:RegisterEvent("PLAYER_REGEN_DISABLED");
-f:RegisterEvent("PLAYER_REGEN_ENABLED");
 f:RegisterEvent("ADDON_LOADED");
-f:RegisterEvent("UPDATE_BINDINGS");
-f:RegisterEvent("GOSSIP_SHOW");
-f:RegisterEvent("GOSSIP_CLOSED");
-f:RegisterEvent("MERCHANT_SHOW");
-f:RegisterEvent("MERCHANT_CLOSED");
-f:RegisterEvent("TAXIMAP_OPENED");
-f:RegisterEvent("TAXIMAP_CLOSED");
-f:RegisterEvent("CURSOR_UPDATE");
-f:RegisterEvent("QUEST_GREETING");
-f:RegisterEvent("QUEST_DETAIL");
-f:RegisterEvent("QUEST_PROGRESS");
-f:RegisterEvent("QUEST_COMPLETE");
-f:RegisterEvent("QUEST_FINISHED");
-f:RegisterEvent("QUEST_AUTOCOMPLETE");
-f:RegisterEvent("QUEST_LOG_UPDATE");
-f:RegisterEvent("SHIPMENT_CRAFTER_OPENED");
-f:RegisterEvent("SHIPMENT_CRAFTER_CLOSED");
-f:RegisterEvent("WORLD_MAP_UPDATE");
-f:RegisterEvent("LOOT_CLOSED");
-f:RegisterEvent("CURRENT_SPELL_CAST_CHANGED");
-f:RegisterEvent("UNIT_ENTERING_VEHICLE")
 f:SetScript("OnEvent", OnEvent);
 f:SetScript("OnUpdate", OnUpdate);
