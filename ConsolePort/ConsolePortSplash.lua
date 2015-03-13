@@ -26,7 +26,7 @@ function ConsolePort:CreateBindingWizard()
 		local STRING_HEADLINE = "Your controller bindings are incomplete.\nPress the requested button to map it.";
 		local STRING_INVALID = "Invalid binding.\nDid you press the correct button?"
 		local STRING_COMBAT = "You are in combat!";
-		local STRING_EMPTY = "<Empty";
+		local STRING_EMPTY = "<Empty>";
 		local STRING_TSIZE = ":16:16:0:0|t";
 		local STRING_SUCCESS = " was successfully bound to ";
 		local STRING_CONFIRM = "Press BTN again to confirm.";
@@ -54,21 +54,21 @@ function ConsolePort:CreateBindingWizard()
 		-- SetTextures
 		WizardBG:SetTexture(PATH.."WizardBG");
 		WizardWrapper:SetTexture(PATH.."WizardWrapper");
-		WizardBGOverlay:SetTexture(PATH.."Wizard"..ConsolePortSettings.type);
+		WizardBGOverlay:SetTexture(PATH.."Splash"..ConsolePortSettings.type);
 		-- Points
 		Wizard:SetPoint("CENTER", 0,0);
 		WizardBG:SetAllPoints(Wizard);
 		WizardBGOverlay:SetAllPoints(Wizard);
-		WizardHeader:SetPoint(C, 0, -10);
+		WizardHeader:SetPoint(C, 0, -16);
 		WizardWrapper:SetPoint("CENTER", Wizard, 0, 0);
 		WizardButtonPress:SetPoint("CENTER", WizardWrapper, 10, 0);
 		WizardButtonGraphic:SetPoint("CENTER", WizardWrapper, -142, -4);
 		WizardStatusText:SetPoint(C, 0, -300);
 		WizardDescription:SetPoint(C, 0, -100);
 		WizardConfirmText:SetPoint(C, 0, -350);
-		WizardCloseButton:SetPoint(B, -50, -10);
+		WizardCloseButton:SetPoint(B, -10, -10);
 		-- Alpha
-		WizardBGOverlay:SetAlpha(0.1);
+		WizardBGOverlay:SetAlpha(0.075);
 		WizardStatusText:SetAlpha(0);
 		WizardConfirmText:SetAlpha(0);
 		-- Text values
@@ -172,11 +172,13 @@ function ConsolePort:CreateSplashFrame()
 		local C = "TOP";
 		local P = {
 			off 	= { X = 512, 	Y =  -512	},
-			gra		= { L = -290, 	R =  290	},
+			gra		= { L = -200, 	R =  200	},
 			cro		= { X = -14,	Y = -10,	},
-			btn		= { L = -210, 	R =  210,	Y = -160	},
+			btn		= { L = -210, 	R =  210,	Y = 10 },
 			txt 	= { Y = -16 },
 			sha 	= { Y = -38 },
+			rot 	= { P = 0.523598776, N = -0.523598776 },
+			size 	= { X = 710 }
 		}
 		local S = {
 			main 	= { x = 902, y = 581 },
@@ -192,6 +194,7 @@ function ConsolePort:CreateSplashFrame()
 		Splash:SetWidth(S.main.x);
 		Splash:SetHeight(S.main.y);
 		Splash:EnableMouse(true);
+		local SplashTop 		= Splash:CreateTexture(nil, "OVERLAY");
 		local SplashLeftTop 	= Splash:CreateTexture(nil, "BACKGROUND");
 		local SplashLeftBottom 	= Splash:CreateTexture(nil, "BACKGROUND");
 		local SplashRightTop 	= Splash:CreateTexture(nil, "BACKGROUND");
@@ -200,35 +203,44 @@ function ConsolePort:CreateSplashFrame()
 		local SplashPlaystationHighlight = Splash:CreateTexture(nil, "ARTWORK");
 		local SplashXbox 		= Splash:CreateTexture(nil, "ARTWORK");
 		local SplashXboxHighlight = Splash:CreateTexture(nil, "ARTWORK");
-		local SplashShadow 		= Splash:CreateTexture(nil, "OVERLAY");
 		local SplashHeader 		= Splash:CreateFontString(nil, "OVERLAY", "SplashHeaderFont");
+		-- Textures
+		SplashTop:SetTexture(PATH.."SplashTop");
 		SplashLeftTop:SetTexture(PATH.."SplashLeftTop");
 		SplashLeftBottom:SetTexture(PATH.."SplashLeftBottom");
 		SplashRightTop:SetTexture(PATH.."SplashRightTop");
 		SplashRightBottom:SetTexture(PATH.."SplashRightBottom");
-		SplashShadow:SetTexture(PATH.."SplashShadow");
-		SplashPlaystation:SetTexture(PATH.."SplashPlaystation");
-		SplashPlaystationHighlight:SetTexture(PATH.."SplashPlaystationHighlight");
+		SplashPlaystation:SetTexture(PATH.."SplashPS4");
+		SplashPlaystationHighlight:SetTexture(PATH.."SplashPS4Highlight");
 		SplashXbox:SetTexture(PATH.."SplashXbox");
 		SplashXboxHighlight:SetTexture(PATH.."SplashXboxHighlight");
+		--
+		SplashPlaystation:SetSize(P.size.X, P.size.X);
+		SplashPlaystationHighlight:SetSize(P.size.X, P.size.X);
+		SplashXbox:SetSize(P.size.X, P.size.X);
+		SplashXboxHighlight:SetSize(P.size.X, P.size.X);
+		SplashPlaystation:SetRotation(P.rot.N);
+		SplashPlaystationHighlight:SetRotation(P.rot.N);
+		SplashXbox:SetRotation(P.rot.P);
+		SplashXboxHighlight:SetRotation(P.rot.P);
+		--
+		SplashTop:SetPoint(C, 0, 0);
 		SplashLeftTop:SetPoint(A);
 		SplashLeftBottom:SetPoint(A, 0, P.off.Y);
-		SplashRightTop:SetPoint(A, P.off.X, 0);
-		SplashRightBottom:SetPoint(A, P.off.X, P.off.Y);
-		SplashShadow:SetPoint(C, 0, P.sha.Y);
+		SplashRightTop:SetPoint(B, 0, 0);
+		SplashRightBottom:SetPoint(B, 0, P.off.Y);
 		SplashHeader:SetPoint(C, 0, P.txt.Y);
 		SplashCloseButton:SetPoint(B, P.cro.X, P.cro.Y);
 		SplashPlaystation:SetPoint(C, P.gra.R, P.btn.Y);
 		SplashPlaystationHighlight:SetPoint(C, P.gra.R, P.btn.Y);
-		SplashPlaystationButton:SetPoint(C, P.btn.R, P.btn.Y);
+		SplashPlaystationButton:SetPoint("CENTER", P.btn.R, P.btn.Y-80);
 		SplashXbox:SetPoint(C, P.gra.L, P.btn.Y);
 		SplashXboxHighlight:SetPoint(C, P.gra.L, P.btn.Y);
-		SplashXboxButton:SetPoint(C, P.btn.L, P.btn.Y);
+		SplashXboxButton:SetPoint("CENTER", P.btn.L, P.btn.Y-80);
 		Splash.SplashLeftTop 		= SplashLeftTop;
 		Splash.SplashLeftBottom		= SplashLeftBottom;
 		Splash.SplashRightTop 		= SplashRightTop;
 		Splash.SplashRightBottom 	= SplashRightBottom;
-		Splash.SplashShadow 		= SplashShadow;
 		Splash.SplashPlaystation 	= SplashPlaystation;
 		Splash.SplashPlaystationHighlight = SplashPlaystationHighlight;
 		Splash.SplashXbox 			= SplashXbox;
