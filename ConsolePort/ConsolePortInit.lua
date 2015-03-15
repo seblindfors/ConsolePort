@@ -393,9 +393,9 @@ end
 
 
 function ConsolePort:CreateMouseLooker()
-	local p = UIParent;
-	local f = CreateFrame("Frame", "CP_MOUSELOOK", p);
-	local t = f:CreateTexture(nil,"BACKGROUND")
+	local f = CreateFrame("Frame", "ConsolePortMouseLook", UIParent);
+	local t = f:CreateTexture(nil, "BACKGROUND");
+	f.hoverButton = t;
 	f:SetPoint("CENTER", p, 0, -50);
 	f:SetWidth(70);
 	f:SetHeight(180);
