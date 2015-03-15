@@ -33,18 +33,14 @@ end
 
 -- This function eats a lot of memory O_O
 local function SetDesaturation(frame, value)
-   if frame:GetChildren() then
-      for i, child in pairs({frame:GetChildren()}) do
-         SetDesaturation(child, value);
-      end
-   end
-   if frame:GetRegions() then
-      for i, region in pairs({frame:GetRegions()}) do
-         if region.SetDesaturated then
-            region:SetDesaturated(value);
-         end
-      end
-   end
+  for i, child in pairs({frame:GetChildren()}) do
+     SetDesaturation(child, value);
+  end
+  for i, region in pairs({frame:GetRegions()}) do
+     if region.SetDesaturated then
+        region:SetDesaturated(value);
+     end
+  end
 end
 
 local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
@@ -52,7 +48,8 @@ local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 		frame = hookFrame,
 		func = prepFunction,
 		attr = attribute,
-		isPrepared = false
+		isPrepared = false,
+		isDesaturated = false
 	}
 	Hook.frame:HookScript("OnShow", function(self)
 		FocusFrame = Hook;
@@ -128,8 +125,10 @@ local function UpdateFrames(self)
 			FocusFrame = PriorityFrame;
 			for _, Hook in pairs(HookFrames) do
 				if 	Hook.frame:IsVisible() and
+					Hook.isDesaturated and
 					Hook.attr == FocusFrame.attr then
 					SetDesaturation(Hook.frame, nil);
+					Hook.isDesaturated = false;
 				end
 			end
 		end
@@ -137,10 +136,13 @@ local function UpdateFrames(self)
 			if 	not FocusFrame.isPrepared then
 				for _, Hook in pairs(HookFrames) do
 					if Hook.frame:IsVisible() then
-						if Hook.attr ~= FocusFrame.attr then
+						if 	Hook.attr ~= FocusFrame.attr and
+							not Hook.isDesaturated then
 							SetDesaturation(Hook.frame, 1);
-						else
+							Hook.isDesaturated = true;
+						elseif Hook.isDesaturated then
 							SetDesaturation(Hook.frame, nil);
+							Hook.isDesaturated = false;
 						end
 					end
 				end
