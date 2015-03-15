@@ -17,11 +17,34 @@ function ConsolePort:GetFocusFrame()
 	return FocusFrame;
 end
 
+-- In preparation for mouse look options
+local function MouseLookOnHover()
+	if MouseIsOver(m) then
+		return true;
+	end
+end
+
 local function ToggleMouseLook(frameEvent)
 	if 	ConsolePortMouseSettings then
 		return ConsolePortMouseSettings[frameEvent];
 	end
 	return true;
+end
+
+-- This function eats a lot of memory O_O
+local function SetDesaturation(frame, value)
+   if frame:GetChildren() then
+      for i, child in pairs({frame:GetChildren()}) do
+         SetDesaturation(child, value);
+      end
+   end
+   if frame:GetRegions() then
+      for i, region in pairs({frame:GetRegions()}) do
+         if region.SetDesaturated then
+            region:SetDesaturated(value);
+         end
+      end
+   end
 end
 
 local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
@@ -85,13 +108,13 @@ end
 
 local function UpdateFrames(self)
 	local FramesOpen = 0;
-	local OpenFrame = nil;
+	local PriorityFrame = nil;
 	if 	not G.binds:IsVisible() and 
 		CP_R_RIGHT_NOMOD.state ~= G.STATE_DOWN then
 		for _, Hook in pairs(HookFrames) do
 			if Hook.frame:IsVisible() then
 				FramesOpen = FramesOpen + 1;
-				OpenFrame  = Hook;
+				PriorityFrame = Hook;
 			end
 		end
 		if 	FocusFrame and not
@@ -102,10 +125,25 @@ local function UpdateFrames(self)
 			FocusFrame = nil;
 			self:SetButtonActionsDefault();
 		elseif 	FramesOpen >= 1 and not FocusFrame then
-			FocusFrame = OpenFrame;
+			FocusFrame = PriorityFrame;
+			for _, Hook in pairs(HookFrames) do
+				if 	Hook.frame:IsVisible() and
+					Hook.attr == FocusFrame.attr then
+					SetDesaturation(Hook.frame, nil);
+				end
+			end
 		end
 		if 	FocusFrame then
 			if 	not FocusFrame.isPrepared then
+				for _, Hook in pairs(HookFrames) do
+					if Hook.frame:IsVisible() then
+						if Hook.attr ~= FocusFrame.attr then
+							SetDesaturation(Hook.frame, 1);
+						else
+							SetDesaturation(Hook.frame, nil);
+						end
+					end
+				end
 				FocusFrame.func(self, G.PREPARE, G.STATE_UP);
 				FocusFrame.isPrepared = true;
 			end
@@ -119,7 +157,7 @@ local function OnUpdate (self, elapsed)
 	while time > interval do
 		local TopFrameIsOverlay = (GetMouseFocus() == WorldFrame);
 		local CursorIsEmpty 	= (GetCursorInfo() == nil);
-		if 	MouseIsOver(m) and
+		if 	MouseLookOnHover() and
 			TopFrameIsOverlay and
 			CursorIsEmpty and
 			not MouseIsCentered and
@@ -139,7 +177,9 @@ end
 
 local function OnEvent (self, event, ...)
 	self:SetButtonMapping(self, event);
-	self:AutoCameraView(event, ...);
+	if ConsolePortSettings and ConsolePortSettings.cam then
+		self:AutoCameraView(event, ...);
+	end
 	if 	((event == "PLAYER_TARGET_CHANGED" and
 		ToggleMouseLook(event) and
 		UnitName("target")) or
@@ -164,6 +204,7 @@ local function OnEvent (self, event, ...)
 		ShowQuestComplete(GetQuestLogIndexByID(arg1));
 	elseif 	event == "MODIFIER_STATE_CHANGED" then
 		self:Quest("preview", G.STATE_UP);
+	-- This is a bug fix. Will be removed eventually
 	elseif 	event == "QUEST_LOG_UPDATE" then
 		GameTooltip:Hide();
 	elseif	event == "CURRENT_SPELL_CAST_CHANGED" then
@@ -379,26 +420,23 @@ function ConsolePort:Guild (key, state)
 end
 
 function ConsolePort:AutoCameraView(event, ...)
-	if ConsolePortSettings then
-		if 	ConsolePortSettings.cam and
-			(event == "QUEST_DETAIL" or
-			event == "QUEST_GREETING" or
-			event == "QUEST_PROGRESS" or
-			event == "QUEST_COMPLETE" or
-			event == "GOSSIP_SHOW" or
-			event == "TAXIMAP_OPENED" or
-			event == "MERCHANT_SHOW") then
-			if not yaw then FlipCameraYaw(30); yaw = true; end;
-			if view ~= 3 then SaveView(5); view = 3; SetView(view); end;
-		elseif
-			event == "GOSSIP_CLOSED" or
-			event == "QUEST_FINISHED" or
-			event == "TAXIMAP_CLOSED" or
-			event == "MERCHANT_CLOSED" or
-			event == "PLAYER_STARTED_MOVING" then
-			if yaw then FlipCameraYaw(-30); yaw = false; end;
-			if view ~= 5 then view = 5; SetView(view); end;
-		end
+	if	(event == "QUEST_DETAIL" or
+		event == "QUEST_GREETING" or
+		event == "QUEST_PROGRESS" or
+		event == "QUEST_COMPLETE" or
+		event == "GOSSIP_SHOW" or
+		event == "TAXIMAP_OPENED" or
+		event == "MERCHANT_SHOW") then
+		if not yaw then FlipCameraYaw(30); yaw = true; end;
+		if view ~= 3 then SaveView(5); view = 3; SetView(view); end;
+	elseif
+		event == "GOSSIP_CLOSED" or
+		event == "QUEST_FINISHED" or
+		event == "TAXIMAP_CLOSED" or
+		event == "MERCHANT_CLOSED" or
+		event == "PLAYER_STARTED_MOVING" then
+		if yaw then FlipCameraYaw(-30); yaw = false; end;
+		if view ~= 5 then view = 5; SetView(view); end;
 	end
 end
 
