@@ -119,9 +119,6 @@ function ConsolePort:LoadHookScripts()
 	UIDefaultButtonExtend(QuestFrameGoodbyeButton,			"LEFT"	);
 	UIDefaultButtonExtend(PetitionFrameSignButton, 			"RIGHT" );
 	UIDefaultButtonExtend(PetitionFrameCancelButton,		"LEFT"	);
-	--
-	InterfaceOptionsFrameOkay:SetSize(150, 40);
-	InterfaceOptionsFrameCancel:SetSize(96, 40);
 	-- Add inputs to cinematic frame, behaves oddly after first dialog closing
 	CinematicFrame:HookScript("OnKeyDown", function(self, key)
 		CinematicControllerInput(key, G.STATE_DOWN);
