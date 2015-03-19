@@ -1,8 +1,9 @@
 local _
 local _, G = ...;
 local iterator = 1;
+local nodes = {};
 
-local function TaxiFindClosestNode(key, nodes)
+local function TaxiFindClosestNode(key)
 	local this 	= nodes[iterator];
 	local thisY = this:GetTop();
 	local thisX = this:GetLeft();
@@ -48,16 +49,14 @@ local function TaxiFindClosestNode(key, nodes)
 end
 
 function ConsolePort:Taxi (key, state)
-	local options = { TaxiFrame:GetChildren() };
-	local nodes = {};
-	for i, node in ipairs(options) do
-		if 	node:IsObjectType("Button") and
-			node:IsShown() and 
-			i ~= 1 then
-			table.insert(nodes, node);
+	if 	key == G.PREPARE then nodes = {};
+		for i, node in ipairs({TaxiFrame:GetChildren()}) do
+			if 	node:IsObjectType("Button") and
+				node:IsShown() and 
+				i ~= 1 then
+				table.insert(nodes, node);
+			end
 		end
-	end
-	if 	key == G.PREPARE then
 		for i, node in ipairs(nodes) do
 			if TaxiNodeGetType(node:GetID()) == "CURRENT" then
 				iterator = i;
@@ -69,7 +68,7 @@ function ConsolePort:Taxi (key, state)
 		CloseTaxiMap();
 		return;
 	elseif state == G.STATE_DOWN then
-		TaxiFindClosestNode(key, nodes);
+		TaxiFindClosestNode(key);
 	end
 	if key ~= G.CIRCLE and key ~= G.TRIANGLE then
 		ConsolePort:Highlight(iterator, nodes);
