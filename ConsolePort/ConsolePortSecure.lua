@@ -133,7 +133,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 			self.timer = self.timer + elapsed;
 			if self.timer >= 0.2 and btn.state == G.STATE_DOWN then
 				local func = self:GetAttribute("type");
-				if self[func] then self[func](self); end;
+				if func and self[func] then self[func](self); end;
 				self.timer = 0;
 			end
 		end);

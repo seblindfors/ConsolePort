@@ -24,12 +24,13 @@ function ConsolePort:CreateBindingWizard()
 		-- Strings
 		local STRING_HEADER = "Assign Buttons";
 		local STRING_HEADLINE = "Your controller bindings are incomplete.\nPress the requested button to map it.";
+		local STRING_OVERRIDE = "%s is already bound to %s.\nPress |T%s:20:20:0:0|t again to continue anyway."
 		local STRING_INVALID = "Invalid binding.\nDid you press the correct button?"
 		local STRING_COMBAT = "You are in combat!";
 		local STRING_EMPTY = "<Empty>";
-		local STRING_TSIZE = ":16:16:0:0|t";
-		local STRING_SUCCESS = " was successfully bound to ";
-		local STRING_CONFIRM = "Press BTN again to confirm.";
+		local STRING_SUCCESS = "|T%s:16:16:0:0|t was successfully bound to %s.";
+		local STRING_CONTINUE = "Press |T%s:20:20:0:0|t again to continue.";
+		local STRING_CONFIRM = "Press |T%s:20:20:0:0|t again to confirm.";
 		-- Frames
 		local Wizard = CreateFrame("Frame", "ConsolePortWizardFrame", UIParent);
 		local WizardCloseButton = CreateFrame("Button", nil, Wizard, "UIPanelCloseButtonNoScripts");
@@ -70,7 +71,6 @@ function ConsolePort:CreateBindingWizard()
 		-- Alpha
 		WizardBGOverlay:SetAlpha(0.075);
 		WizardStatusText:SetAlpha(0);
-		WizardConfirmText:SetAlpha(0);
 		-- Text values
 		WizardHeader:SetText(STRING_HEADER);
 		WizardButtonPress:SetText(STRING_EMPTY)
@@ -108,7 +108,7 @@ function ConsolePort:CreateBindingWizard()
 						self.Status:SetText(STRING_INVALID);
 						self.Status:SetAlpha(1);
 					else
-						self.Status:SetText("|T"..self.Graphic:GetTexture()..STRING_TSIZE..STRING_SUCCESS..key..".");
+						self.Status:SetText(format(STRING_SUCCESS, self.Graphic:GetTexture(), key));
 						UIFrameFadeIn(self.Status, 3, 1, 0);
 						SaveBindings(GetCurrentBindingSet());
 						self.Binding:SetText(STRING_EMPTY);
@@ -122,9 +122,14 @@ function ConsolePort:CreateBindingWizard()
 			elseif self.VAL and self.VAL == key then
 				self.SET = true;
 				if self.BTN then
-					self.Confirm:SetText(string.gsub(STRING_CONFIRM, "BTN", G["NAME_"..self.BTN]));
+					self.Confirm:SetText(format(STRING_CONFIRM, self.Graphic:GetTexture()));
 				end
 			else
+				if self.BTN and GetBindingAction(key) ~= "" then
+					self.Confirm:SetText(format(STRING_OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)], self.Graphic:GetTexture()));
+				elseif self.BTN then
+					self.Confirm:SetText(format(STRING_CONTINUE, self.Graphic:GetTexture()));
+				end
 				self.SET = false;
 			end
 			self.Binding:SetText(key);
@@ -147,11 +152,6 @@ function ConsolePort:CreateBindingWizard()
 							self.Graphic:SetTexture(G["TEXTURE_"..string.upper(G["NAME_"..self.BTN])]);
 						end
 					end
-					if self.SET then
-						self.Confirm:SetAlpha(1);
-					else
-						self.Confirm:SetAlpha(0);
-					end
 				else
 					self:SetScript("OnUpdate", nil);
 					ConsolePortWizardFrame.Close:Click();
@@ -170,12 +170,13 @@ function ConsolePort:CreateSplashFrame()
 		local A = "TOPLEFT";
 		local B = "TOPRIGHT";
 		local C = "TOP";
+		local STRING_TUTORIAL = "Select your preferred button layout by clicking a controller.";
 		local P = {
 			off 	= { X = 512, 	Y =  -512	},
 			gra		= { L = -200, 	R =  200	},
 			cro		= { X = -14,	Y = -10,	},
 			btn		= { L = -210, 	R =  210,	Y = 10 },
-			txt 	= { Y = -16 },
+			txt 	= { L = -175,	R = 175, 	Y = -90},
 			sha 	= { Y = -38 },
 			rot 	= { P = 0.523598776, N = -0.523598776 },
 			size 	= { X = 710 }
@@ -185,6 +186,7 @@ function ConsolePort:CreateSplashFrame()
 			button 	= { x = 350, y = 390 },
 		}
 		local Splash = CreateFrame("Frame", "ConsolePortSplashFrame", UIParent);
+		local SplashHelpButton = CreateFrame("Button", nil, Splash, "MainHelpPlateButton");
 		local SplashPlaystationButton = CreateFrame("Button", nil, Splash);
 		local SplashXboxButton = CreateFrame("Button", nil, Splash);
 		local SplashCloseButton = CreateFrame("Button", nil, Splash, "UIPanelCloseButtonNoScripts");
@@ -194,15 +196,19 @@ function ConsolePort:CreateSplashFrame()
 		Splash:SetWidth(S.main.x);
 		Splash:SetHeight(S.main.y);
 		Splash:EnableMouse(true);
-		local SplashTop 		= Splash:CreateTexture(nil, "OVERLAY");
+		-- Regions
+		local SplashTop 		= Splash:CreateTexture(nil, "ARTWORK", nil, 2);
 		local SplashLeftTop 	= Splash:CreateTexture(nil, "BACKGROUND");
 		local SplashLeftBottom 	= Splash:CreateTexture(nil, "BACKGROUND");
 		local SplashRightTop 	= Splash:CreateTexture(nil, "BACKGROUND");
 		local SplashRightBottom = Splash:CreateTexture(nil, "BACKGROUND");
+			-- Playstation
 		local SplashPlaystation = Splash:CreateTexture(nil, "ARTWORK");
-		local SplashPlaystationHighlight = Splash:CreateTexture(nil, "ARTWORK");
+		local SplashPlaystationHighlight = Splash:CreateTexture(nil, "ARTWORK", nil, 1);
+			-- Xbox
 		local SplashXbox 		= Splash:CreateTexture(nil, "ARTWORK");
-		local SplashXboxHighlight = Splash:CreateTexture(nil, "ARTWORK");
+		local SplashXboxHighlight = Splash:CreateTexture(nil, "ARTWORK", nil, 1);
+			-- Header
 		local SplashHeader 		= Splash:CreateFontString(nil, "OVERLAY", "SplashHeaderFont");
 		-- Textures
 		SplashTop:SetTexture(PATH.."SplashTop");
@@ -214,7 +220,8 @@ function ConsolePort:CreateSplashFrame()
 		SplashPlaystationHighlight:SetTexture(PATH.."SplashPS4Highlight");
 		SplashXbox:SetTexture(PATH.."SplashXbox");
 		SplashXboxHighlight:SetTexture(PATH.."SplashXboxHighlight");
-		--
+		-- Resize and rotate
+		SplashHelpButton:SetSize(75,75);
 		SplashPlaystation:SetSize(P.size.X, P.size.X);
 		SplashPlaystationHighlight:SetSize(P.size.X, P.size.X);
 		SplashXbox:SetSize(P.size.X, P.size.X);
@@ -223,39 +230,43 @@ function ConsolePort:CreateSplashFrame()
 		SplashPlaystationHighlight:SetRotation(P.rot.N);
 		SplashXbox:SetRotation(P.rot.P);
 		SplashXboxHighlight:SetRotation(P.rot.P);
-		--
+		-- Points
+		SplashHelpButton:SetPoint(C, 0, -128);
 		SplashTop:SetPoint(C, 0, 0);
 		SplashLeftTop:SetPoint(A);
 		SplashLeftBottom:SetPoint(A, 0, P.off.Y);
 		SplashRightTop:SetPoint(B, 0, 0);
 		SplashRightBottom:SetPoint(B, 0, P.off.Y);
-		SplashHeader:SetPoint(C, 0, P.txt.Y);
+		SplashHeader:SetPoint(C, 0, -16);
 		SplashCloseButton:SetPoint(B, P.cro.X, P.cro.Y);
 		SplashPlaystation:SetPoint(C, P.gra.R, P.btn.Y);
 		SplashPlaystationHighlight:SetPoint(C, P.gra.R, P.btn.Y);
 		SplashPlaystationButton:SetPoint("CENTER", P.btn.R, P.btn.Y-80);
-		SplashXbox:SetPoint(C, P.gra.L, P.btn.Y);
-		SplashXboxHighlight:SetPoint(C, P.gra.L, P.btn.Y);
+		SplashXbox:SetPoint(C, P.gra.L, P.btn.Y+10);
+		SplashXboxHighlight:SetPoint(C, P.gra.L, P.btn.Y+10);
 		SplashXboxButton:SetPoint("CENTER", P.btn.L, P.btn.Y-80);
-		Splash.SplashLeftTop 		= SplashLeftTop;
-		Splash.SplashLeftBottom		= SplashLeftBottom;
-		Splash.SplashRightTop 		= SplashRightTop;
-		Splash.SplashRightBottom 	= SplashRightBottom;
-		Splash.SplashPlaystation 	= SplashPlaystation;
-		Splash.SplashPlaystationHighlight = SplashPlaystationHighlight;
-		Splash.SplashXbox 			= SplashXbox;
-		Splash.SplashXboxHighlight 	= SplashXboxHighlight;
-		Splash.SplashHeader 		= SplashHeader;
+		-- Add references
+		Splash.HelpButton 			= SplashHelpButton;
+		Splash.Top 					= SplashTop;
+		Splash.LeftTop 				= SplashLeftTop;
+		Splash.LeftBottom			= SplashLeftBottom;
+		Splash.RightTop 			= SplashRightTop;
+		Splash.RightBottom 			= SplashRightBottom;
+		Splash.Playstation 			= SplashPlaystation;
+		Splash.PlaystationHighlight = SplashPlaystationHighlight;
+		Splash.Xbox 				= SplashXbox;
+		Splash.XboxHighlight 		= SplashXboxHighlight;
+		Splash.Header 				= SplashHeader;
 		Splash.PlaystationButton 	= SplashPlaystationButton;
 		Splash.XboxButton 			= SplashXboxButton;
-		SplashHeader:SetText("Choose Controller");
+		-- Text
+		SplashHeader:SetText("Select Controller");
+		-- Scripts
 		SplashPlaystationButton:SetScript("OnEnter", function(self)
-			SplashPlaystation:Hide();
-			SplashPlaystationHighlight:Show();
+			UIFrameFadeIn(SplashPlaystationHighlight, 0.1, 0, 1);
 		end);
 		SplashPlaystationButton:SetScript("OnLeave", function(self)
-			SplashPlaystation:Show();
-			SplashPlaystationHighlight:Hide();
+			UIFrameFadeIn(SplashPlaystationHighlight, 0.1, 1, 0);
 		end);
 		SplashPlaystationButton:SetScript("OnClick", function(...)
 			ConsolePortSettings.type = "PS4";
@@ -264,12 +275,10 @@ function ConsolePort:CreateSplashFrame()
 		end);
 
 		SplashXboxButton:SetScript("OnEnter", function(self)
-			SplashXbox:Hide();
-			SplashXboxHighlight:Show();
+			UIFrameFadeIn(SplashXboxHighlight, 0.1, 0, 1);
 		end);
 		SplashXboxButton:SetScript("OnLeave", function(self)
-			SplashXbox:Show();
-			SplashXboxHighlight:Hide();
+			UIFrameFadeIn(SplashXboxHighlight, 0.1, 1, 0);
 		end);
 		SplashXboxButton:SetScript("OnClick", function(...)
 			ConsolePortSettings.type = "Xbox";
@@ -280,11 +289,24 @@ function ConsolePort:CreateSplashFrame()
 			Splash:Hide();
 			PlaySound("SPELLBOOKCLOSE");
 		end);
-		SplashPlaystationHighlight:Hide();
-		SplashXboxHighlight:Hide();
+		SplashHelpButton:HookScript("OnEnter", function(self)
+			HelpPlateTooltip.ArrowRIGHT:Hide();
+			HelpPlateTooltip.ArrowGlowRIGHT:Hide();
+			HelpPlateTooltip.ArrowUP:Show();
+			HelpPlateTooltip.ArrowGlowUP:Show();
+			HelpPlateTooltip.Text:SetText(STRING_TUTORIAL);
+			HelpPlateTooltip:SetPoint("LEFT", self, "LEFT", -75, 75);
+			HelpPlateTooltip:Show();
+		end);
+		SplashHelpButton:HookScript("OnClick", function(...)
+			UIFrameFlash(SplashXboxHighlight, 0.25, 0.25, 0.75, false, 0.25, 0);
+			UIFrameFlash(SplashPlaystationHighlight, 0.25, 0.25, 0.75, false, 0.25, 0);
+		end);
+		SplashHelpButton.Ring:SetAlpha(0.5);
+		SplashPlaystationHighlight:SetAlpha(0);
+		SplashXboxHighlight:SetAlpha(0);
 		Splash:SetPoint("CENTER", 0,0);
 	end
 	ConsolePortSplashFrame:Show();
-	UIFrameFadeIn(ConsolePortSplashFrame, 0.5, 0, 1);
 	PlaySound("SPELLBOOKOPEN");
 end

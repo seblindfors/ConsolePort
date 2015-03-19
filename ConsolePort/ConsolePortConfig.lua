@@ -24,6 +24,52 @@ local BIND 				= "BINDING_NAME_";
 local ConsolePortSaveBindingSet = nil;
 local ConsolePortSaveBindings = nil;
 
+local function GetMouseSettings()
+	local mouseSettings = {
+		{ 	event 	= {"PLAYER_STARTED_MOVING"},
+			desc 	= "Player starts moving",
+			toggle 	= ConsolePortMouseSettings["PLAYER_STARTED_MOVING"]
+		},
+		{ 	event	= {"PLAYER_TARGET_CHANGED"},
+			desc 	= "Player changes target",
+			toggle 	= ConsolePortMouseSettings["PLAYER_TARGET_CHANGED"]
+		},
+		{	event 	= {"CURRENT_SPELL_CAST_CHANGED"},
+			desc 	= "Player casts a direct spell",
+			toggle 	= ConsolePortMouseSettings["CURRENT_SPELL_CAST_CHANGED"]
+		},
+		{	event 	= {"GOSSIP_SHOW", "GOSSIP_CLOSED"},
+			desc 	= "NPC interaction",
+			toggle 	= ConsolePortMouseSettings["GOSSIP_SHOW"]
+		},
+		{	event 	= {"MERCHANT_SHOW", "MERCHANT_CLOSED"},
+			desc 	= "Merchant interaction", 
+			toggle 	= ConsolePortMouseSettings["MERCHANT_SHOW"]
+		},
+		{	event	= {"TAXIMAP_OPENED", "TAXIMAP_CLOSED"},
+			desc 	= "Flight master interaction",
+			toggle 	= ConsolePortMouseSettings["TAXIMAP_OPENED"]
+		},
+		{	event	= {"QUEST_GREETING", "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED"},
+			desc 	= "Quest giver interaction",
+			toggle 	= ConsolePortMouseSettings["QUEST_GREETING"]
+		},
+		{ 	event	= {"QUEST_AUTOCOMPLETE"},
+			desc 	= "Popup quest completion",
+			toggle 	= ConsolePortMouseSettings["QUEST_AUTOCOMPLETE"]
+		},
+		{ 	event 	= {"SHIPMENT_CRAFTER_OPENED", "SHIPMENT_CRAFTER_CLOSED"},
+			desc 	= "Garrison work order",
+			toggle 	= ConsolePortMouseSettings["SHIPMENT_CRAFTER_OPENED"]
+		},
+		{	event	= {"LOOT_CLOSED"},
+			desc 	= "Loot window closed",
+			toggle 	= ConsolePortMouseSettings["LOOT_CLOSED"]
+		}
+	}
+	return mouseSettings;
+end
+
 local function ChangeBinding(bindingName, bindingTitle)
 	CONF_BUTTON:SetText(bindingTitle);
 	if not ConsolePortSaveBindingSet then
@@ -255,6 +301,10 @@ end
 function ConsolePort:ReloadBindingAction(button, action, name, mod1, mod2)
 	button.action = action;
 	button:SetAttribute("clickbutton", button.action);
+	if 	button.action:GetParent() == MainMenuBarArtFrame and
+		button.action.action and button.action:GetID() <= 6 then
+		ConsolePort:UpdateActionGuideTexture(_G["OverrideActionBarButton"..button.action:GetID()], name, mod1, mod2);
+	end
 	ConsolePort:UpdateActionGuideTexture(button.action, name, mod1, mod2);
 	button.action.HotKey:SetAlpha(0);
 end
@@ -343,61 +393,6 @@ function ConsolePort:SetButtonActionsConfig(set)
 	end
 end
 
-
-
-function ConsolePort:GetMouseSettings()
-	local mouseSettings = {
-		{ 	event 	= {"PLAYER_STARTED_MOVING"},
-			desc 	= "Player starts moving",
-			toggle 	= ConsolePortMouseSettings["PLAYER_STARTED_MOVING"]
-		},
-		{ 	event	= {"PLAYER_TARGET_CHANGED"},
-			desc 	= "Player changes target",
-			toggle 	= ConsolePortMouseSettings["PLAYER_TARGET_CHANGED"]
-		},
-		{	event 	= {"CURRENT_SPELL_CAST_CHANGED"},
-			desc 	= "Player casts a direct spell",
-			toggle 	= ConsolePortMouseSettings["CURRENT_SPELL_CAST_CHANGED"]
-		},
-		{	event 	= {"GOSSIP_SHOW", "GOSSIP_CLOSED"},
-			desc 	= "NPC interaction",
-			toggle 	= ConsolePortMouseSettings["GOSSIP_SHOW"]
-		},
-		{	event 	= {"MERCHANT_SHOW", "MERCHANT_CLOSED"},
-			desc 	= "Merchant interaction", 
-			toggle 	= ConsolePortMouseSettings["MERCHANT_SHOW"]
-		},
-		{	event	= {"TAXIMAP_OPENED", "TAXIMAP_CLOSED"},
-			desc 	= "Flight master interaction",
-			toggle 	= ConsolePortMouseSettings["TAXIMAP_OPENED"]
-		},
-		{	event	= {"QUEST_GREETING", "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED"},
-			desc 	= "Quest giver interaction",
-			toggle 	= ConsolePortMouseSettings["QUEST_GREETING"]
-		},
-		{ 	event	= {"QUEST_AUTOCOMPLETE"},
-			desc 	= "Popup quest completion",
-			toggle 	= ConsolePortMouseSettings["QUEST_AUTOCOMPLETE"]
-		},
-		{ 	event 	= {"SHIPMENT_CRAFTER_OPENED", "SHIPMENT_CRAFTER_CLOSED"},
-			desc 	= "Garrison work order",
-			toggle 	= ConsolePortMouseSettings["SHIPMENT_CRAFTER_OPENED"]
-		},
-		{	event	= {"LOOT_CLOSED"},
-			desc 	= "Loot window closed",
-			toggle 	= ConsolePortMouseSettings["LOOT_CLOSED"]
-		}
-	}
-	return mouseSettings;
-end
-
-
-
-
-
-
-
-
 function ConsolePort:CreateConfigPanel()
 	G.panel				= CreateFrame( "FRAME", "ConsolePortConfigFrame", InterfaceOptionsFramePanelContainer );
 	G.panel.name		= "Console Port";
@@ -472,10 +467,14 @@ function ConsolePort:CreateConfigPanel()
 	InterfaceOptions_AddCategory(G.Mouse);
 
 	-- Create guide buttons on the menu
-	ConsolePort:CreateConfigGuideButton(CP..SHIFT, 		"LONE",	G.binds, 180*2-40, 0);
-	ConsolePort:CreateConfigGuideButton(CP..CTRL,		"LTWO",	G.binds, 180*3-40, 0);
-	ConsolePort:CreateConfigGuideButton(CP..CTRLSH..1, 	"LONE",	G.binds, 180*4-55, 0);
-	ConsolePort:CreateConfigGuideButton(CP..CTRLSH..2,	"LTWO",	G.binds, 180*4-25, 0);
+	local modButtons = {
+		{modifier = SHIFT, 	texture = "LONE", xoffset = 180*2-40, xoffset2 = 180*4-55},
+		{modifier = CTRL,	texture = "LTWO", xoffset = 180*3-40, xoffset2 = 180*4-25},
+	}
+	for i, button in pairs(modButtons) do
+		ConsolePort:CreateConfigGuideButton(CP..button.modifier, button.texture, G.binds, button.xoffset, 0);
+		ConsolePort:CreateConfigGuideButton(CP..CTRLSH..i, button.texture, G.binds, button.xoffset2, 0);
+	end
 
 	-- "Option buttons"; static bindings able to call protected Blizzard API
 	local optionButtons = {
@@ -492,13 +491,12 @@ function ConsolePort:CreateConfigPanel()
 		CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
 	end
 
-	local MouseSettings = self:GetMouseSettings();
 	G.Mouse.Events = {};
 	G.Mouse.Header = G.Mouse:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
 	G.Mouse.Header:SetText("Toggle mouse look when...");
 	G.Mouse.Header:SetPoint("TOPLEFT", G.Mouse, 10, -10);
 	G.Mouse.Header:Show();
-	for i, setting in pairs(MouseSettings) do
+	for i, setting in pairs(GetMouseSettings()) do
 		local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, G.Mouse, "ChatConfigCheckButtonTemplate");
 		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
 		text:SetText(setting.desc);

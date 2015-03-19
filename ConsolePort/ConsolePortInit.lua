@@ -404,8 +404,6 @@ function ConsolePort:CreateMouseLooker()
 	return f;
 end
 
--- ConsolePort:CreateButton(name, clickbutton, UIcommand)
--- ConsolePort:CreateConfigButton(name, parent, xoffset, yoffset)
 function ConsolePort:CreateBindingButtons()
 	local keys = ConsolePortBindingButtons;
 	local y = 1;
