@@ -152,11 +152,17 @@ local bindMenu = GenerateBindingsTable();
 local bindMenuFrame = CreateFrame("Frame", "ConsolePortBindMenu", UIParent, "UIDropDownMenuTemplate")
 
 local function CreateConfigStaticButton(name, modifier, xoffset, yoffset)
-	local b = CreateFrame("BUTTON", name..CONF, G.binds, "UIMenuButtonStretchTemplate");
+	local title;
+	if 		modifier == "SHIFT" 	 then title = name..SHIFT..CONF;
+	elseif 	modifier == "CTRL" 		 then title = name..CTRL..CONF;
+	elseif 	modifier == "CTRL-SHIFT" then title = name..CTRLSH..CONF;
+	else 	title = name..NOMOD..CONF;
+	end
+	local b = CreateFrame("BUTTON", title, G.binds, "UIMenuButtonStretchTemplate");
 	b:SetWidth(BUTTON_WIDTH);
 	b:SetHeight(BUTTON_HEIGHT);
 	b:SetPoint("TOPLEFT", G.binds, xoffset*BUTTON_WIDTH-60, -BUTTON_HEIGHT*yoffset);
-	b:SetScript("OnShow", function(self)
+	b.OnShow = function(self)
 		local key1, key2 = GetBindingKey(name);
 		if key1 then b.key1 = key1; end;
 		if key2 then b.key2 = key2; end;
@@ -166,7 +172,8 @@ local function CreateConfigStaticButton(name, modifier, xoffset, yoffset)
 			if modifier then key = modifier.."-"..key; end;
 			b:SetText(_G[BIND..GetBindingAction(key, true)]);
 		end
-	end);
+	end
+	b:SetScript("OnShow", b.OnShow);
 	b:SetScript("OnClick", function(self, button, down)
 		BIND_TARGET = name;
 		CONF_BUTTON = self;
@@ -192,12 +199,13 @@ function ConsolePort:CreateConfigButton(name, xoffset, yoffset)
 	f:SetAlpha(0.35);
 	f:Show();
 	b.background = f;
-	b:SetScript("OnShow", function(self)
+	b.OnShow = function(self)
 		self:SetText(a.action:GetName());
 		if a.action.icon then
 			self.background.texture:SetTexture(a.action.icon:GetTexture());
 		end
-	end);
+	end
+	b:SetScript("OnShow", b.OnShow);
 	b:SetScript("OnClick", function()
 		ConsolePort:ChangeButtonBinding(a);
 	end);

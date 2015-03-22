@@ -2,17 +2,22 @@ local _
 local _, G = ...;
 local iterator = 1;
 local nodes = {};
+local points = {};
+
+TaxiFrame:HookScript("OnHide", function()
+	nodes = {}; points = {};
+end);
 
 local function TaxiFindClosestNode(key)
 	local this 	= nodes[iterator];
-	local thisY = this:GetTop();
-	local thisX = this:GetLeft();
+	local thisY = points[iterator].Y;
+	local thisX = points[iterator].X;
 	local nodeY = 1000;
 	local nodeX = 1000;
 	local swap 	= false;
 	for i, destination in ipairs(nodes) do
-		local destY = destination:GetTop();
-		local destX = destination:GetLeft();
+		local destY = points[i].Y;
+		local destX = points[i].X;
 		local diffY = abs(thisY-destY);
 		local diffX = abs(thisX-destX);
 		local total = diffX + diffY;
@@ -49,12 +54,13 @@ local function TaxiFindClosestNode(key)
 end
 
 function ConsolePort:Taxi (key, state)
-	if 	key == G.PREPARE then nodes = {};
+	if 	key == G.PREPARE then 
 		for i, node in ipairs({TaxiFrame:GetChildren()}) do
 			if 	node:IsObjectType("Button") and
 				node:IsShown() and 
 				i ~= 1 then
 				table.insert(nodes, node);
+				table.insert(points, {X = node:GetLeft(), Y = node:GetTop()});
 			end
 		end
 		for i, node in ipairs(nodes) do
@@ -62,20 +68,21 @@ function ConsolePort:Taxi (key, state)
 				iterator = i;
 			end
 		end
-	elseif	key == G.CIRCLE and state == G.STATE_DOWN then
-		nodes[iterator]:Click();
+	elseif	key == G.CIRCLE then
+		if state == G.STATE_DOWN then
+			nodes[iterator]:Click();
+		end
+		return;
 	elseif	(key == G.TRIANGLE or key == G.SQUARE) and state == G.STATE_DOWN then
 		CloseTaxiMap();
 		return;
 	elseif state == G.STATE_DOWN then
 		TaxiFindClosestNode(key);
 	end
-	if key ~= G.CIRCLE and key ~= G.TRIANGLE then
-		ConsolePort:Highlight(iterator, nodes);
-		nodes[iterator]:GetScript("OnEnter")(nodes[iterator]);
-		if TaxiNodeGetType(nodes[iterator]:GetID()) ~= "CURRENT" then
-			GameTooltip:AddLine(G.CLICK_TAKETAXI, 1,1,1);
-			GameTooltip:Show();
-		end
+	ConsolePort:Highlight(iterator, nodes);
+	nodes[iterator]:GetScript("OnEnter")(nodes[iterator]);
+	if TaxiNodeGetType(nodes[iterator]:GetID()) ~= "CURRENT" then
+		GameTooltip:AddLine(G.CLICK_TAKETAXI, 1,1,1);
+		GameTooltip:Show();
 	end
 end

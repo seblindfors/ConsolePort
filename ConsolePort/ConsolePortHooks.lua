@@ -16,19 +16,9 @@ function ConsolePort:LoadHookScripts()
 	hooksecurefunc("ToggleGameMenu", function(...)
 		if not IsMouselooking() then MouselookStart(); end;
 	end);
-	-- Add guides to game menu frame, hide when frame is hidden.
-	local leftArrow		= ConsolePort:CreateIndicator(CharacterMicroButton, "SMALL", "LEFT",  "left" );
-	local rightArrow	= ConsolePort:CreateIndicator(MainMenuMicroButton, 	"SMALL", "RIGHT", "right");
-	leftArrow:Hide();
-	rightArrow:Hide();
-	GameMenuFrame:HookScript("OnShow", function(self)
-		leftArrow:Show();
-		rightArrow:Show();
-	end);
-	GameMenuFrame:HookScript("OnHide", function(self)
-		leftArrow:Hide();
-		rightArrow:Hide();
-	end);
+	local Controller = GameMenuFrame:CreateTexture("GameMenuTextureController", "ARTWORK");
+	Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\Splash"..ConsolePortSettings.type);
+	Controller:SetPoint("CENTER", GameMenuFrame, "CENTER");
 	-- Add guides to tooltips
 	-- Bug: Currently shows on reagents to recipes
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)

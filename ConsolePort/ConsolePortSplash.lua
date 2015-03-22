@@ -50,6 +50,7 @@ function ConsolePort:CreateBindingWizard()
 		Wizard:SetSize(512,512);
 		Wizard:EnableMouse(true);
 		Wizard:EnableKeyboard(true);
+	--	Wizard:RegisterForDrag("LeftButton");
 		WizardWrapper:SetSize(512, 128);
 		WizardButtonGraphic:SetSize(50, 50);
 		-- SetTextures

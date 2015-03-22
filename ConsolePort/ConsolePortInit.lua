@@ -93,7 +93,7 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = GroupLootFrame4.PassButton, size = "SMALL", anchor = "RIGHT"},
 	}
 	elseif button == "Up" then t = {
-		{frame = GameMenuFrame, 			size = "SMALL", anchor = "LEFT"}
+		--
 	}
 	elseif button == "Left"	then t = {
 		--
@@ -102,7 +102,6 @@ function ConsolePort:GetIndicatorButtons(button)
 		--
 	}
 	elseif button == "Down"	then t = {
-		{frame = GameMenuFrame, 			size = "SMALL", anchor = "RIGHT"},
 		{frame = GroupLootFrame1.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = GroupLootFrame2.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
 		{frame = GroupLootFrame3.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
