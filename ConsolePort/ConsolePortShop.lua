@@ -10,10 +10,10 @@ function ConsolePort:Shop(key, state)
 	local count = GetMerchantNumItems();
 	local page = MerchantFrame.page;
 	for i=1, 9, 2 do
-		table.insert(items, _G["MerchantItem"..i.."ItemButton"]);
+		tinsert(items, _G["MerchantItem"..i.."ItemButton"]);
 	end
 	for i=2, 10, 2 do
-		table.insert(items, _G["MerchantItem"..i.."ItemButton"]);
+		tinsert(items, _G["MerchantItem"..i.."ItemButton"]);
 	end
 	local slot = items[iterator];
 	local index = slot:GetID();

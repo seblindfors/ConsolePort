@@ -66,7 +66,7 @@ function ConsolePort:InitializeTalents()
 	end);
 	for y=1, 7 do
 		for x=1, 3 do
-			table.insert(
+			tinsert(
 				talents,
 				_G["PlayerTalentFrameTalentsTalentRow"..y.."Talent"..x]
 			);
@@ -77,7 +77,7 @@ end
 function ConsolePort:SpecTab(key, state)
 	local SpecButtons = {};
 	for i=1, NUM_SPECS do
-		table.insert(SpecButtons, _G["PlayerTalentFrameSpecializationSpecButton"..i]);
+		tinsert(SpecButtons, _G["PlayerTalentFrameSpecializationSpecButton"..i]);
 	end
 	if key == G.PREPARE then
 		for i, spec in pairs(SpecButtons) do

@@ -31,7 +31,7 @@ local function ToggleMouseLook(frameEvent)
 	return true;
 end
 
--- This function eats a lot of memory O_O
+-- Recursively desaturate textures
 local function SetDesaturation(frame, value)
   for i, child in pairs({frame:GetChildren()}) do
      SetDesaturation(child, value);
@@ -49,7 +49,7 @@ local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 		func = prepFunction,
 		attr = attribute,
 		isPrepared = false,
-		isDesaturated = false
+		isFaded = false
 	}
 	Hook.frame:HookScript("OnShow", function(self)
 		FocusFrame = Hook;
@@ -63,8 +63,8 @@ local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 		Hook.isPrepared = false;
 		GameTooltip:Hide();
 	end);
-	if priority then table.insert(HookFrames, priority, Hook);
-	else table.insert(HookFrames, Hook); end;
+	if priority then tinsert(HookFrames, priority, Hook);
+	else tinsert(HookFrames, Hook); end;
 end
 
 local function LoadHooks ()
@@ -125,10 +125,10 @@ local function UpdateFrames(self)
 			FocusFrame = PriorityFrame;
 			for _, Hook in pairs(HookFrames) do
 				if 	Hook.frame:IsVisible() and
-					Hook.isDesaturated and
+					Hook.isFaded and
 					Hook.attr == FocusFrame.attr then
-					SetDesaturation(Hook.frame, nil);
-					Hook.isDesaturated = false;
+					Hook.frame:SetAlpha(1);
+					Hook.isFaded = false;
 				end
 			end
 		end
@@ -137,12 +137,12 @@ local function UpdateFrames(self)
 				for _, Hook in pairs(HookFrames) do
 					if Hook.frame:IsVisible() then
 						if 	Hook.attr ~= FocusFrame.attr and
-							not Hook.isDesaturated then
-							SetDesaturation(Hook.frame, 1);
-							Hook.isDesaturated = true;
-						elseif Hook.isDesaturated then
-							SetDesaturation(Hook.frame, nil);
-							Hook.isDesaturated = false;
+							not Hook.isFaded then
+							Hook.frame:SetAlpha(0.5);
+							Hook.isFaded = true;
+						elseif Hook.isFaded then
+							Hook.frame:SetAlpha(1);
+							Hook.isFaded = false;
 						end
 					end
 				end

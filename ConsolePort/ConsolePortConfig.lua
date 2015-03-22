@@ -140,10 +140,10 @@ local function GenerateBindingsTable()
 				notCheckable = true,
 				func = function() ChangeBinding(GetBinding(i), _G["BINDING_NAME_"..GetBinding(i)]); end
 			}
-			table.insert(t, binding);
+			tinsert(t, binding);
 		end
 		SubMenu.menuList = t;
-		table.insert(BindingsTable, SubMenu);
+		tinsert(BindingsTable, SubMenu);
 	end
 	return BindingsTable;
 end 
@@ -515,6 +515,6 @@ function ConsolePort:CreateConfigPanel()
 		text:SetPoint("LEFT", check, 30, 0);
 		check:Show();
 		text:Show();
-		table.insert(G.Mouse.Events, check);
+		tinsert(G.Mouse.Events, check);
 	end
 end

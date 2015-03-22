@@ -12,7 +12,7 @@ function ConsolePort:InitializeGlyphs()
 	local ScrollDown = GlyphFrameScrollFrameScrollBarScrollDownButton;
 	for i=1, 6 do
 		local Glyph = _G["GlyphFrameGlyph"..i];
-		table.insert(GuideGlyphs,
+		tinsert(GuideGlyphs,
 			ConsolePort:CreateIndicator(
 				Glyph,
 				"SMALL",
@@ -32,7 +32,7 @@ function ConsolePort:InitializeGlyphs()
 	end
 	for i=1, 10 do
 		local GlyphButton = _G["GlyphFrameScrollFrameButton"..i];
-		table.insert(GlyphButtons, GlyphButton);
+		tinsert(GlyphButtons, GlyphButton);
 		GlyphButton:HookScript("OnClick", function(self, button, down)
 			if self.selectedTex:IsVisible() then
 				GlyphFrame_PulseGlow();

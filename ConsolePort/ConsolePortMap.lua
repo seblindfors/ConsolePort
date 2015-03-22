@@ -62,14 +62,14 @@ function ConsolePort:Map(key, state)
 	local zones 	= {};
 	for i, quest in pairs(titles) do
 		if quest:IsVisible() then
-			table.insert(quests, quest);
+			tinsert(quests, quest);
 			quest:GetScript("OnLeave")(quest);
 			q_count = q_count + 1;
 		end
 	end
 	for i, header in pairs(headers) do
 		if header:IsVisible() then
-			table.insert(zones, header);
+			tinsert(zones, header);
 			header:GetScript("OnLeave")(header);
 			h_count = h_count + 1;
 		end

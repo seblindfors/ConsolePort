@@ -23,7 +23,7 @@ function ConsolePort:List(key, state)
 		if 	button:IsObjectType("Button") and
 			button:IsVisible() and
 			button:GetButtonState() ~= "DISABLED" then
-			table.insert(buttons, button);
+			tinsert(buttons, button);
 			Leave(button);
 			count = count + 1;
 		end

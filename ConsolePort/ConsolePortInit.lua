@@ -18,7 +18,7 @@ G.ButtonGuides 		 = {};
 -- Sort table by non-numeric key
 local function pairsByKeys(t,f)
 	local a = {};
-		for n in pairs(t) do table.insert(a, n); end;
+		for n in pairs(t) do tinsert(a, n); end;
 		table.sort(a, f);
 		local i = 0;      -- iterator variable
 		local iter = function ()   -- iterator function
@@ -122,7 +122,7 @@ function ConsolePort:GetIndicatorSet()
 	for i, button in pairs(t) do
 		local indicators = ConsolePort:GetIndicatorButtons(button);
 		for k, indicator in pairs(indicators) do
-			table.insert(G.ButtonGuides, ConsolePort:CreateIndicator(indicator.frame, indicator.size, indicator.anchor, button));
+			tinsert(G.ButtonGuides, ConsolePort:CreateIndicator(indicator.frame, indicator.size, indicator.anchor, button));
 		end
 	end
 end

@@ -59,8 +59,8 @@ function ConsolePort:Taxi (key, state)
 			if 	node:IsObjectType("Button") and
 				node:IsShown() and 
 				i ~= 1 then
-				table.insert(nodes, node);
-				table.insert(points, {X = node:GetLeft(), Y = node:GetTop()});
+				tinsert(nodes, node);
+				tinsert(points, {X = node:GetLeft(), Y = node:GetTop()});
 			end
 		end
 		for i, node in ipairs(nodes) do

@@ -31,7 +31,7 @@ function ConsolePort:Bags (key, state)
 	for bag = 1, 5 do
 		for slotNum = 1, GetContainerNumSlots(bag-1) do
 			slotCount = slotCount + 1;
-			table.insert(bagSlots, { 
+			tinsert(bagSlots, { 
 				slot 		= _G["ContainerFrame"..bag.."Item"..slotNum],
 				bagIndex  	= bag-1,
 				slotIndex 	= GetContainerNumSlots(bag-1)+1-slotNum,

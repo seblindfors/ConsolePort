@@ -9,7 +9,7 @@ function ConsolePort:CheckUnassignedBindings()
 		local key1, key2 = GetBindingKey(button);
 		if not key1 and not key2 then
 			ButtonUnassigned = true;
-			table.insert(unassigned, button);
+			tinsert(unassigned, button);
 		end
 	end
 	if not ButtonUnassigned then unassigned = nil; end;

@@ -42,22 +42,22 @@ function ConsolePort:CreateManager()
 		m:SetFrameRef("MainMenuBarArtFrame", MainMenuBarArtFrame)
 		m:SetFrameRef("OverrideActionBar", OverrideActionBar)
 		local state = {};
-		table.insert(state, "[overridebar][possessbar]possess");
+		tinsert(state, "[overridebar][possessbar]possess");
 		for i = 2, 6 do
-			table.insert(state, ("[bar:%d]%d"):format(i, i));
+			tinsert(state, ("[bar:%d]%d"):format(i, i));
 		end
 		local _, playerClass = UnitClass("player");
 		if playerClass == "DRUID" then
-			table.insert(state, "[bonusbar:1,stealth]8");
+			tinsert(state, "[bonusbar:1,stealth]7");
 		elseif playerClass == "WARRIOR" then
-			table.insert(state, "[stance:2]7");
-			table.insert(state, "[stance:3]8");
+			tinsert(state, "[stance:2]7");
+			tinsert(state, "[stance:3]8");
 		end
 		for i = 1, 4 do
-			table.insert(state, ("[bonusbar:%d]%d"):format(i, i+6));
+			tinsert(state, ("[bonusbar:%d]%d"):format(i, i+6));
 		end
-		table.insert(state, "[stance:1]tempshapeshift");
-		table.insert(state, "1");
+		tinsert(state, "[stance:1]tempshapeshift");
+		tinsert(state, "1");
 		state = table.concat(state, ";");
 		local now = SecureCmdOptionParse(state);
 		m:SetAttribute("actionpage", now);
@@ -131,7 +131,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 		btn.command == G.RIGHT then
 		btn:SetScript("OnUpdate", function(self, elapsed)
 			self.timer = self.timer + elapsed;
-			if self.timer >= 0.2 and btn.state == G.STATE_DOWN then
+			if self.timer >= 0.175 and btn.state == G.STATE_DOWN then
 				local func = self:GetAttribute("type");
 				if func and self[func] then self[func](self); end;
 				self.timer = 0;

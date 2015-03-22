@@ -8,7 +8,7 @@ function ConsolePort:Gossip (key, state)
 	local valid = {};
 	for i, item in ipairs(options) do
 		if item:IsShown() and item:IsObjectType("BUTTON") then
-			table.insert(valid, i);
+			tinsert(valid, i);
 		end
 	end
 	if  key == G.PREPARE then

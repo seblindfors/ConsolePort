@@ -14,11 +14,6 @@ MenuButton:SetScript("OnClick", function(self)
 	MouselookStop();
 end);
 
-local iterator 		= 1;
-local NUM_BTNS		= 26;
-local STANDARD 		= 12;
-local CUSTOM 		= 13;
-
 local buttons 		= {
 	GameMenuButtonHelp,
 	GameMenuButtonStore,
@@ -34,7 +29,6 @@ local buttons 		= {
 	GameMenuButtonContinue
 }
 
--- Custom menu buttons
 local function AddCustomMenuButtons()
 	-- Wrapper functions that are not predefined
 	local function ToggleGarrisonReport()
@@ -77,15 +71,34 @@ local function AddCustomMenuButtons()
 			ToggleFrame(GameMenuFrame);
 			btn.ClickFunc(btn.arg);
 		end);
-		table.insert(buttons, button);
+		tinsert(buttons, button);
 	end
 end
 
 local function CreateControllerInstructions()
-	local eol = ":16:16:0:0|t";
+	local eol = ":20:20:0:0|t";
 	local shiftTexture = "|T"..G["TEXTURE_LONE"]..eol;
 	local ctrlTexture = "|T"..G["TEXTURE_LTWO"]..eol;
-	local function CreateInstructionFrame(binding, xoffset, yoffset)
+	local type, offsets = ConsolePortSettings.type, {};
+	if type == "Xbox" then
+		offsets = {
+			{462,-116},{490,-90},{518,-116}, -- Right abilities
+			{308,-180},{334,-160},{358,-180},{334,-200}, -- D-pad
+			{490,-63},{490,-37}, -- Triggers
+			{490,-144},{362,-116},{386,-70},{418,-116} -- Option buttons
+		}
+	else
+		offsets = {
+			{488,-118},{518,-86},{550,-118}, -- Right abilities
+			{229,-118},{254,-95},{276,-118},{254,-140}, -- D-pad
+			{518,-60},{518,-34}, -- Triggers
+			{518,-148},{300,-80},{386,-176},{470,-80} -- Option buttons
+		}
+	end
+	local bindings = ConsolePort:GetBindingNames();
+	local buttons = {};
+	for i, binding in pairs(bindings) do
+		local xoffset, yoffset = offsets[i][1], offsets[i][2];
 		local f = CreateFrame("FRAME", binding.."_INSTRUCTION", GameMenuFrame);
 		local texture;
 		if binding == "CP_TR1" then 
@@ -117,39 +130,25 @@ local function CreateControllerInstructions()
 			if GameTooltip:GetOwner() and GameTooltip:GetOwner() == self then
 				GameTooltip:Hide();
 			end
-		end)
-	end
-	local x, y, type, offsets = 1, 2, ConsolePortSettings.type, {};
-	if type == "Xbox" then
-		offsets = {
-			{462,-116},{490,-90},{518,-116}, -- Right abilities
-			{308,-180},{334,-160},{358,-180},{334,-200}, -- D-pad
-			{490,-63},{490,-37}, -- Triggers
-			{490,-144},{362,-116},{418,-116},{386,-70} -- Option buttons
-		}
-	else
-		offsets = {
-			{488,-118},{518,-86},{550,-118}, -- Right abilities
-			{229,-118},{254,-95},{276,-118},{254,-140}, -- D-pad
-			{518,-60},{518,-34}, -- Triggers
-			{518,-148},{300,-80},{470,-80},{386,-176} -- Option buttons
-		}
-	end
-	local bindings = ConsolePort:GetBindingNames();
-	local buttons = {};
-	for i, binding in pairs(bindings) do
-		CreateInstructionFrame(binding, offsets[i][x], offsets[i][y]);
+		end);
 	end
 end
 
-
-AddCustomMenuButtons();
+local OnLoad = true;
 GameMenuFrame:HookScript("OnShow", function(self)
-	CreateControllerInstructions();
+	if OnLoad then
+		AddCustomMenuButtons();
+		CreateControllerInstructions();
+		OnLoad = false;
+	end
 	GameMenuFrame:SetSize(800, 350);
 	GameMenuButtonLogout:SetPoint("TOP", GameMenuButtonAddons, "BOTTOM", 0, -23);
 end);
 
+local iterator 		= 1;
+local NUM_BTNS		= 26;
+local STANDARD 		= 12;
+local CUSTOM 		= 13;
 function ConsolePort:Menu (key, state)
 	if key == G.PREPARE then
 		iterator = 1;

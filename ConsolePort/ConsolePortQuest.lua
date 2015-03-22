@@ -41,7 +41,7 @@ function ConsolePort:Quest (key, state)
 		local count = 0;
 		for i, item in pairs(rewards) do
 			if item.objectType == "item" then
-				table.insert(items, item);
+				tinsert(items, item);
 				count = count + 1;
 			end
 		end
@@ -68,7 +68,7 @@ function ConsolePort:Quest (key, state)
 		for i, item in ipairs(options) do
 			-- Bug? :IsShown() 
 			if item["isActive"] ~= nil then
-				table.insert(valid, i);
+				tinsert(valid, i);
 				count = count + 1;
 			end
 		end

@@ -4,17 +4,21 @@ local iterator = 1;
 local slot = nil;
 local spells = {};
 for i=1, 11, 2 do
-	table.insert(spells, _G["SpellButton"..i]);
+	tinsert(spells, _G["SpellButton"..i]);
 end
 for i=2, 12, 2 do
-	table.insert(spells, _G["SpellButton"..i]);
+	tinsert(spells, _G["SpellButton"..i]);
 end
 
 local function ResetIterator(self)
 	if self == SpellBookNextPageButton then
-		iterator = iterator - 6;
+		if iterator > 6 then
+			iterator = iterator - 6;
+		end
 	elseif self == SpellBookPrevPageButton then
-		iterator = iterator + 6;
+		if iterator < 6 then
+			iterator = iterator + 6;
+		end
 	else
 		iterator = 1;
 	end
@@ -82,7 +86,7 @@ function ConsolePort:Book(key, state)
 			local activeTabs = {};
 			for i, tab in pairs(allTabs) do
 				if not tab.isOffSpec and tab.tooltip then
-					table.insert(activeTabs, tab);
+					tinsert(activeTabs, tab);
 				end
 			end
 			if 		currentTab == 1 then activeTabs[2]:Click();
