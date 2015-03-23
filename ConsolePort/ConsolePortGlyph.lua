@@ -78,6 +78,7 @@ function ConsolePort:InitializeGlyphs()
 			ClearOverrideBindings(ScrollDown);
 		end
 	end);
+	-- If in combat when the frame is closed, reset bindings when combat ends.
 	GlyphFrame:HookScript("OnEvent", function(self, event, ...)
 		if 	event == "PLAYER_REGEN_ENABLED" and
 			not self:IsVisible() then

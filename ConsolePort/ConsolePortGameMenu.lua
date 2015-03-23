@@ -43,20 +43,20 @@ local function AddCustomMenuButtons()
 		ShowUIPanel(PlayerTalentFrame);
 	end
 	local customButtons = {
-		{name = "Character", 	title = "Character Info", 	ClickFunc = ToggleCharacter, 			arg = "PaperDollFrame"},
-		{name = "Spellbook", 	title = "Spellbook", 		ClickFunc = ToggleFrame, 				arg = SpellBookFrame},
-		{name = "Talent", 		title = "Specialization", 	ClickFunc = ToggleTalentUI, 			arg = nil},
-		{name = "Bag",			title = "Bags",				ClickFunc = ToggleAllBags,				arg = nil},
-		{name = "Achievement", 	title = "Achievements", 	ClickFunc = ToggleAchievementFrame, 	arg = nil},
-		{name = "QuestLog", 	title = "Quest Log", 		ClickFunc = ToggleQuestLog, 			arg = nil},
-		{name = "LFD", 			title = "Group Finder",	 	ClickFunc = PVEFrame_ToggleFrame, 		arg = nil},
-		{name = "PvP", 			title = "PvP",	 			ClickFunc = TogglePVPUI, 				arg = nil},
-		{name = "Collections", 	title = "Collections", 		ClickFunc = ToggleCollectionsJournal, 	arg = nil},
-		{name = "EJ", 			title = "Dungeon Journal", 	ClickFunc = ToggleEncounterJournal, 	arg = nil},
-		{name = "Garrison", 	title = "Garrison Report", 	ClickFunc = ToggleGarrisonReport, 		arg = nil},
-		{name = "Score", 		title = "Score Screen", 	ClickFunc = ToggleWorldStateScoreFrame, arg = nil},
-		{name = "Social", 		title = "Social", 			ClickFunc = ToggleFriendsFrame, 		arg = nil},
-		{name = "Guild", 		title = "Guild", 			ClickFunc = ToggleGuildFrame, 			arg = nil},
+		{name = "Character", 	title = "Character Info", 	ClickFunc = ToggleCharacter, 	arg = "PaperDollFrame"},
+		{name = "Spellbook", 	title = "Spellbook", 		ClickFunc = ToggleFrame, 		arg = SpellBookFrame},
+		{name = "Talent", 		title = "Specialization", 	ClickFunc = ToggleTalentUI				},
+		{name = "Bag",			title = "Bags",				ClickFunc = ToggleAllBags				},
+		{name = "Achievement", 	title = "Achievements", 	ClickFunc = ToggleAchievementFrame		},
+		{name = "QuestLog", 	title = "Quest Log", 		ClickFunc = ToggleQuestLog				},
+		{name = "LFD", 			title = "Group Finder",	 	ClickFunc = PVEFrame_ToggleFrame		},
+		{name = "PvP", 			title = "PvP",	 			ClickFunc = TogglePVPUI					},
+		{name = "Collections", 	title = "Collections", 		ClickFunc = ToggleCollectionsJournal	},
+		{name = "EJ", 			title = "Dungeon Journal", 	ClickFunc = ToggleEncounterJournal		},
+		{name = "Garrison", 	title = "Garrison Report", 	ClickFunc = ToggleGarrisonReport		},
+		{name = "Score", 		title = "Score Screen", 	ClickFunc = ToggleWorldStateScoreFrame	},
+		{name = "Social", 		title = "Social", 			ClickFunc = ToggleFriendsFrame			},
+		{name = "Guild", 		title = "Guild", 			ClickFunc = ToggleGuildFrame			},
 	}
 	for i, btn in pairs(customButtons) do
 		local button = CreateFrame("BUTTON", "GameMenuButton"..btn.name, GameMenuFrame, "GameMenuButtonTemplate");
@@ -82,17 +82,17 @@ local function CreateControllerInstructions()
 	local type, offsets = ConsolePortSettings.type, {};
 	if type == "Xbox" then
 		offsets = {
-			{462,-116},{490,-90},{518,-116}, -- Right abilities
-			{308,-180},{334,-160},{358,-180},{334,-200}, -- D-pad
-			{490,-63},{490,-37}, -- Triggers
-			{490,-144},{362,-116},{386,-70},{418,-116} -- Option buttons
+			{462,-116},{490,-90},{518,-116}, 				-- Right abilities
+			{308,-180},{334,-160},{358,-180},{334,-200}, 	-- D-pad
+			{490,-63},{490,-37}, 							-- Triggers
+			{490,-144},{362,-116},{386,-70},{418,-116} 		-- Option buttons
 		}
 	else
 		offsets = {
-			{488,-118},{518,-86},{550,-118}, -- Right abilities
-			{229,-118},{254,-95},{276,-118},{254,-140}, -- D-pad
-			{518,-60},{518,-34}, -- Triggers
-			{518,-148},{300,-80},{386,-176},{470,-80} -- Option buttons
+			{488,-118},{518,-86},{550,-118}, 				-- Right abilities
+			{229,-118},{254,-95},{276,-118},{254,-140},		-- D-pad
+			{518,-60},{518,-34},							-- Triggers
+			{518,-148},{300,-80},{386,-176},{470,-80}		-- Option buttons
 		}
 	end
 	local bindings = ConsolePort:GetBindingNames();
@@ -114,10 +114,10 @@ local function CreateControllerInstructions()
 		f:SetSize(30,30);
 		f:Show();
 		local bindings = {
-			{ref = _G[binding.."_NOMOD_CONF"],	text = nil, alpha = 1, icon = bindTexture},
-			{ref = _G[binding.."_SHIFT_CONF"],	text = nil, alpha = 1, icon = shiftTexture..bindTexture},
-			{ref = _G[binding.."_CTRL_CONF"],	text = nil, alpha = 1, icon = ctrlTexture..bindTexture},
-			{ref = _G[binding.."_CTRLSH_CONF"], text = nil, alpha = 1, icon = shiftTexture..ctrlTexture..bindTexture}
+			{ref = _G[binding.."_NOMOD_CONF"],	alpha = 1, icon = bindTexture},
+			{ref = _G[binding.."_SHIFT_CONF"],	alpha = 1, icon = shiftTexture..bindTexture},
+			{ref = _G[binding.."_CTRL_CONF"],	alpha = 1, icon = ctrlTexture..bindTexture},
+			{ref = _G[binding.."_CTRLSH_CONF"],	alpha = 1, icon = shiftTexture..ctrlTexture..bindTexture}
 		}
 		f:SetScript("OnEnter", function(self)
 			for i, binding in pairs(bindings) do
@@ -145,7 +145,13 @@ local function CreateControllerInstructions()
 			GameTooltip:SetOwner(self, "ANCHOR_BOTTOM");
 			GameTooltip:AddLine("Bindings");
 			for i, binding in pairs(bindings) do
-				GameTooltip:AddDoubleLine(binding.icon, binding.text, 1,1,1,binding.alpha,binding.alpha,binding.alpha);
+				GameTooltip:AddDoubleLine(
+					binding.icon,
+					binding.text,
+					1,1,1,
+					binding.alpha,
+					binding.alpha,
+					binding.alpha);
 			end
 			GameTooltip:Show();
 		end);

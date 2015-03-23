@@ -1,8 +1,13 @@
 local _
 local _, G = ...;
 local iterator = 16;
+local slotCount = 0;
+local bagSlots = {};
 local Enter = ContainerFrame1Item1:GetScript("OnEnter");
 local Leave = ContainerFrame1Item1:GetScript("OnLeave");
+
+hooksecurefunc("ToggleAllBags", function(...) bagSlots = {} end);
+hooksecurefunc("CloseAllBags", function(...) bagSlots = {} end);
 
 function ConsolePort:CleanBags() 
 	local i, item;
@@ -26,16 +31,18 @@ end
 
 function ConsolePort:Bags (key, state)
 	UnlockAll();
-	local bagSlots = {};
-	local slotCount = 0;
-	for bag = 1, 5 do
-		for slotNum = 1, GetContainerNumSlots(bag-1) do
-			slotCount = slotCount + 1;
-			tinsert(bagSlots, { 
-				slot 		= _G["ContainerFrame"..bag.."Item"..slotNum],
-				bagIndex  	= bag-1,
-				slotIndex 	= GetContainerNumSlots(bag-1)+1-slotNum,
-			});
+	if 		key == G.PREPARE then
+		slotCount = 0;
+		bagSlots = {};
+		for bag = 1, 5 do
+			for slotNum = 1, GetContainerNumSlots(bag-1) do
+				slotCount = slotCount + 1;
+				tinsert(bagSlots, { 
+					slot 		= _G["ContainerFrame"..bag.."Item"..slotNum],
+					bagIndex  	= bag-1,
+					slotIndex 	= GetContainerNumSlots(bag-1)+1-slotNum,
+				});
+			end
 		end
 	end
 	if iterator > slotCount then iterator = 16; end;
@@ -49,8 +56,8 @@ function ConsolePort:Bags (key, state)
 			CP_R_RIGHT_NOMOD:SetAttribute("item", slot.bagIndex.." "..slot.slotIndex);
 		end
 	end
-	if 		key == G.PREPARE then return;
-	elseif 	key == G.CIRCLE then
+	
+	if 		key == G.CIRCLE then
 		UseContainerItem(slot.bagIndex, slot.slotIndex);
 	elseif 	key == G.SQUARE then
 		if 	state == G.STATE_DOWN then

@@ -317,7 +317,9 @@ function ConsolePort:ReloadBindingAction(button, action, name, mod1, mod2)
 		ConsolePort:UpdateActionGuideTexture(_G["OverrideActionBarButton"..button.action:GetID()], name, mod1, mod2);
 	end
 	ConsolePort:UpdateActionGuideTexture(button.action, name, mod1, mod2);
-	button.action.HotKey:SetAlpha(0);
+	if button.action.HotKey then
+		button.action.HotKey:SetAlpha(0);
+	end
 end
 
 function ConsolePort:ReloadBindingActions()
