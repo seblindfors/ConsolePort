@@ -76,7 +76,7 @@ local function AddCustomMenuButtons()
 end
 
 local function CreateControllerInstructions()
-	local eol = ":20:20:0:0|t";
+	local eol = ":30:30:0:0|t";
 	local shiftTexture = "|T"..G["TEXTURE_LONE"]..eol;
 	local ctrlTexture = "|T"..G["TEXTURE_LTWO"]..eol;
 	local type, offsets = ConsolePortSettings.type, {};
@@ -112,21 +112,41 @@ local function CreateControllerInstructions()
 		f:SetPoint("TOPLEFT", GameMenuFrame, "TOPLEFT", xoffset, yoffset);
 		f:SetSize(30,30);
 		f:Show();
+		local bindings = {
+			{ref = _G[binding.."_NOMOD_CONF"],	text = nil, alpha = 1, icon = bindTexture},
+			{ref = _G[binding.."_SHIFT_CONF"],	text = nil, alpha = 1, icon = shiftTexture..bindTexture},
+			{ref = _G[binding.."_CTRL_CONF"],	text = nil, alpha = 1, icon = ctrlTexture..bindTexture},
+			{ref = _G[binding.."_CTRLSH_CONF"], text = nil, alpha = 1, icon = shiftTexture..ctrlTexture..bindTexture}
+		}
 		f:SetScript("OnEnter", function(self)
-			_G[binding.."_NOMOD_CONF"].OnShow(_G[binding.."_NOMOD_CONF"]);
-			_G[binding.."_SHIFT_CONF"].OnShow(_G[binding.."_SHIFT_CONF"]);
-			_G[binding.."_CTRL_CONF"].OnShow(_G[binding.."_CTRL_CONF"]);
-			_G[binding.."_CTRLSH_CONF"].OnShow(_G[binding.."_CTRLSH_CONF"]);
+			for i, binding in pairs(bindings) do
+				binding.ref.OnShow(binding.ref);
+				if binding.ref.background and binding.ref.background.texture:GetTexture() then
+					if binding.ref.secure and binding.ref.secure.action and binding.ref.secure.action.NewActionTexture then
+						binding.ref.secure.action.NewActionTexture:Show();
+					end
+					bindings[i].text = "|T"..binding.ref.background.texture:GetTexture()..eol;
+				elseif binding.ref.background then
+					bindings[i].alpha = 0.25;
+					bindings[i].text = "N/A";
+				else
+					bindings[i].text = binding.ref:GetText();
+				end
+			end
 			GameTooltip:Hide();
 			GameTooltip:SetOwner(self, "ANCHOR_BOTTOM");
 			GameTooltip:AddLine("Bindings");
-			GameTooltip:AddDoubleLine(bindTexture, _G[binding.."_NOMOD_CONF"]:GetText(), 1,1,1,1,1,1);
-			GameTooltip:AddDoubleLine(shiftTexture..bindTexture, _G[binding.."_SHIFT_CONF"]:GetText(), 1,1,1,1,1,1);
-			GameTooltip:AddDoubleLine(ctrlTexture..bindTexture, _G[binding.."_CTRL_CONF"]:GetText(), 1,1,1,1,1,1);
-			GameTooltip:AddDoubleLine(shiftTexture..ctrlTexture..bindTexture, _G[binding.."_CTRLSH_CONF"]:GetText(), 1,1,1,1,1,1);
+			for i, binding in pairs(bindings) do
+				GameTooltip:AddDoubleLine(binding.icon, binding.text, 1,1,1,binding.alpha,binding.alpha,binding.alpha);
+			end
 			GameTooltip:Show();
 		end);
 		f:SetScript("OnLeave", function(self)
+			for i, binding in pairs(bindings) do
+				if binding.ref.secure and binding.ref.secure.action and binding.ref.secure.action.NewActionTexture then
+					binding.ref.secure.action.NewActionTexture:Hide();
+				end
+			end
 			if GameTooltip:GetOwner() and GameTooltip:GetOwner() == self then
 				GameTooltip:Hide();
 			end

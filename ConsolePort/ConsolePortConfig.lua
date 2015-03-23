@@ -199,10 +199,13 @@ function ConsolePort:CreateConfigButton(name, xoffset, yoffset)
 	f:SetAlpha(0.35);
 	f:Show();
 	b.background = f;
+	b.secure = a;
 	b.OnShow = function(self)
 		self:SetText(a.action:GetName());
-		if a.action.icon then
+		if a.action.icon and a.action.icon:IsVisible() then
 			self.background.texture:SetTexture(a.action.icon:GetTexture());
+		else
+			self.background.texture:SetTexture(nil);
 		end
 	end
 	b:SetScript("OnShow", b.OnShow);
