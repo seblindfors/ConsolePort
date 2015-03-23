@@ -76,7 +76,7 @@ local function AddCustomMenuButtons()
 end
 
 local function CreateControllerInstructions()
-	local eol = ":30:30:0:0|t";
+	local eol = ":24:24:0:0|t";
 	local shiftTexture = "|T"..G["TEXTURE_LONE"]..eol;
 	local ctrlTexture = "|T"..G["TEXTURE_LTWO"]..eol;
 	local type, offsets = ConsolePortSettings.type, {};
@@ -122,8 +122,8 @@ local function CreateControllerInstructions()
 			for i, binding in pairs(bindings) do
 				binding.ref.OnShow(binding.ref);
 				if binding.ref.background and binding.ref.background.texture:GetTexture() then
-					if binding.ref.secure and binding.ref.secure.action and binding.ref.secure.action.NewActionTexture then
-						binding.ref.secure.action.NewActionTexture:Show();
+					if binding.ref.secure and binding.ref.secure.action and binding.ref.secure.action then
+						ActionButton_ShowOverlayGlow(binding.ref.secure.action);
 					end
 					bindings[i].text = "|T"..binding.ref.background.texture:GetTexture()..eol;
 				elseif binding.ref.background then
@@ -143,8 +143,8 @@ local function CreateControllerInstructions()
 		end);
 		f:SetScript("OnLeave", function(self)
 			for i, binding in pairs(bindings) do
-				if binding.ref.secure and binding.ref.secure.action and binding.ref.secure.action.NewActionTexture then
-					binding.ref.secure.action.NewActionTexture:Hide();
+				if binding.ref.secure and binding.ref.secure.action then
+					ActionButton_HideOverlayGlow(binding.ref.secure.action);
 				end
 			end
 			if GameTooltip:GetOwner() and GameTooltip:GetOwner() == self then
