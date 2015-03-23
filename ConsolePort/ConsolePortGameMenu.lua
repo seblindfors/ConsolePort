@@ -109,6 +109,7 @@ local function CreateControllerInstructions()
 			texture = G["TEXTURE_"..string.upper(G["NAME_"..binding])];
 		end
 		local bindTexture = "|T"..texture..eol;
+		f.timer = {0,0,0,0};
 		f:SetPoint("TOPLEFT", GameMenuFrame, "TOPLEFT", xoffset, yoffset);
 		f:SetSize(30,30);
 		f:Show();
@@ -123,7 +124,14 @@ local function CreateControllerInstructions()
 				binding.ref.OnShow(binding.ref);
 				if binding.ref.background and binding.ref.background.texture:GetTexture() then
 					if binding.ref.secure and binding.ref.secure.action and binding.ref.secure.action then
-						ActionButton_ShowOverlayGlow(binding.ref.secure.action);
+						self.timer[i] = 0;
+						self:HookScript("OnUpdate", function(self, elapsed)
+							self.timer[i] = self.timer[i] + elapsed;
+							if self.timer[i] > 0.5 and self.timer[i] < 1 then
+								ActionButton_ShowOverlayGlow(binding.ref.secure.action);
+								self.timer[i] = 1;
+							end
+						end);
 					end
 					bindings[i].text = "|T"..binding.ref.background.texture:GetTexture()..eol;
 				elseif binding.ref.background then
@@ -142,6 +150,7 @@ local function CreateControllerInstructions()
 			GameTooltip:Show();
 		end);
 		f:SetScript("OnLeave", function(self)
+			self:SetScript("OnUpdate", nil);
 			for i, binding in pairs(bindings) do
 				if binding.ref.secure and binding.ref.secure.action then
 					ActionButton_HideOverlayGlow(binding.ref.secure.action);
