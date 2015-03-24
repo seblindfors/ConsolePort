@@ -407,119 +407,158 @@ function ConsolePort:SetButtonActionsConfig(set)
 end
 
 function ConsolePort:CreateConfigPanel()
-	G.panel				= CreateFrame( "FRAME", "ConsolePortConfigFrame", InterfaceOptionsFramePanelContainer );
-	G.panel.name		= "Console Port";
-	G.panel.okay 		= function (self) SaveMainConfig(); end;
-	G.panel.camCheck 	= CreateFrame("CheckButton", CP..CHECK.."_CAM", G.panel, "ChatConfigCheckButtonTemplate");
-	G.panel.camCheck:SetPoint("TOPLEFT", 10, -50);
-	G.panel.camCheck.tooltip = "Flip and zoom camera on interaction with NPCs";
-	G.panel.camCheck:SetScript("OnClick", function(self, btn, down)
-		if 	self:GetChecked() then
-			ConsolePortSettings.cam = true;
-		else
-			ConsolePortSettings.cam = false;
-		end
-	end);
-	G.binds				= CreateFrame( "FRAME", nil, G.panel);
-	G.binds.name		= "Bindings";
-	G.binds.parent		= G.panel.name;
-	G.binds.okay		= function (self) SubmitBindings(); end;
-	G.binds:SetScript("OnShow", function(self)
-		InterfaceOptionsFrame:SetWidth(1100);
-		self:SetScript("OnUpdate", function(self, elapsed)
-			if not InCombatLockdown() then
-				InterfaceOptionsFrame:SetAlpha(1);
-				ConsolePort:SetButtonActionsConfig(true);
+	if not G.panel then
+		G.panel				= CreateFrame( "FRAME", "ConsolePortConfigFrame", InterfaceOptionsFramePanelContainer );
+		G.panel.name		= "Console Port";
+		G.panel.okay 		= function (self) SaveMainConfig(); end;
+		G.panel.camCheck 	= CreateFrame("CheckButton", CP..CHECK.."_CAM", G.panel, "ChatConfigCheckButtonTemplate");
+		G.panel.camCheck:SetPoint("TOPLEFT", 10, -50);
+		G.panel.camCheck.tooltip = "Flip and zoom camera on interaction with NPCs";
+		G.panel.camCheck:SetScript("OnClick", function(self, btn, down)
+			if 	self:GetChecked() then
+				ConsolePortSettings.cam = true;
 			else
-				InterfaceOptionsFrame:SetAlpha(0.2);
-			end
-			if not 	IsModifierKeyDown() then
-				_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
-			elseif 	IsShiftKeyDown() and IsControlKeyDown() then
-				_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(1);
-				_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(1);
-			elseif 	IsShiftKeyDown() then
-				_G[CP..SHIFT..GUIDE].guide:SetAlpha(1);
-				_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
-			elseif	IsControlKeyDown() then
-				_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRL..GUIDE].guide:SetAlpha(1);
-				_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-				_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+				ConsolePortSettings.cam = false;
 			end
 		end);
-	end);
-	G.binds:SetScript("OnHide", function(self)
-		ConsolePortSaveBindings = nil;
-		ConsolePortSaveBindingSet = nil;
-		ConsolePort:SetButtonActionsConfig(false);
-		self:SetScript("OnUpdate", nil);
-	end);
 
-	G.Mouse 		= CreateFrame("FRAME", nil, G.panel);
-	G.Mouse.name 	= "Mouse";
-	G.Mouse.parent 	= G.panel.name;
-	G.Mouse.okay 	= function(self)
-		for i, Check in pairs(G.Mouse.Events) do
-			for i, Event in pairs(Check.Events) do
-				ConsolePortMouseSettings[Event] = Check:GetChecked();
+		-- Binding palette frame
+		G.binds				= CreateFrame( "FRAME", nil, G.panel);
+		G.binds.name		= "Bindings";
+		G.binds.parent		= G.panel.name;
+		G.binds.okay		= function (self) SubmitBindings(); end;
+		G.binds:SetScript("OnShow", function(self)
+			InterfaceOptionsFrame:SetWidth(1100);
+			self:SetScript("OnUpdate", function(self, elapsed)
+				if not InCombatLockdown() then
+					InterfaceOptionsFrame:SetAlpha(1);
+					ConsolePort:SetButtonActionsConfig(true);
+				else
+					InterfaceOptionsFrame:SetAlpha(0.2);
+				end
+				if not 	IsModifierKeyDown() then
+					_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+				elseif 	IsShiftKeyDown() and IsControlKeyDown() then
+					_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(1);
+					_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(1);
+				elseif 	IsShiftKeyDown() then
+					_G[CP..SHIFT..GUIDE].guide:SetAlpha(1);
+					_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+				elseif	IsControlKeyDown() then
+					_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRL..GUIDE].guide:SetAlpha(1);
+					_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
+					_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+				end
+			end);
+		end);
+		G.binds:SetScript("OnHide", function(self)
+			HelpPlate_Hide();
+			ConsolePortSaveBindings = nil;
+			ConsolePortSaveBindingSet = nil;
+			ConsolePort:SetButtonActionsConfig(false);
+			self:SetScript("OnUpdate", nil);
+		end);
+
+		G.binds.bgUpper = CreateFrame("FRAME", nil, G.binds, "InsetFrameTemplate");
+		G.binds.bgUpper:SetSize(856, 398);
+		G.binds.bgUpper:SetPoint("TOPLEFT", G.binds, "TOPLEFT", 4, -4);
+		G.binds.bgLower = CreateFrame("FRAME", nil, G.binds, "InsetFrameTemplate");
+		G.binds.bgLower:SetSize(856, 165);
+		G.binds.bgLower:SetPoint("TOPLEFT", G.binds, "TOPLEFT", 4, -399);
+		local tutorialCursor = "|TInterface\\AddOns\\ConsolePort\\Graphic\\TutorialCursor:64:128:0:0|t";
+		local exampleTexture = G.TEXTURE_Y or G.TEXTURE_TRIANGLE;
+		local exampleCombo = "|T"..G.TEXTURE_LONE..":20:20:0:0|t".."|T"..exampleTexture..":20:20:0:0|t";
+		local dynamicString = "       |cFFFFD200[Rebind Instructions]|r\n\n1. Mouse over an action button\n2.  Press a button combination\n"..tutorialCursor.."+   "..exampleCombo;
+		local staticString = "       |cFFFFD200[Rebind Instructions]|r\n\n1.   Click on a combination\n2. Choose action from the list\n";
+		local modifierString = "              |cFFFFD200[Modifiers]|r\nThese columns represent all button combinations. Every button in the list to the left\nhas four combinations each.";
+		local actionString = "          |cFFFFD200[Action Buttons]|r\nThese buttons can be used for abilities, macros and items. They are also used to control the interface.";
+		local optionString = "          |cFFFFD200[Option Buttons]|r\nThese buttons can be used to perform any action defined in the regular key bindings.";
+		G.binds.tutorials = {
+			FramePos = { x = 0,	y = 0 },
+			FrameSize = { width = 700, height = 600	},
+			[1] = { ButtonPos = { x = 18,	y = -196},	HighLightBox = { x = 40, y = -40, width = 60, height = 360 },	ToolTipDir = "LEFT",	ToolTipText = actionString },
+			[2] = { ButtonPos = { x = 18,	y = -456},	HighLightBox = { x = 40, y = -400, width = 60, height = 160 },	ToolTipDir = "LEFT",	ToolTipText = optionString },
+			[3] = { ButtonPos = { x = 180,	y = 0 },	HighLightBox = { x = 118, y = -6, width = 720, height = 32 },	ToolTipDir = "UP",	ToolTipText = modifierString},
+			[4] = { ButtonPos = { x = 456,	y = -100 },	HighLightBox = { x = 118, y = -40, width = 720, height = 360 },	ToolTipDir = "DOWN",	ToolTipText = dynamicString},
+			[5] = { ButtonPos = { x = 456,	y = -456},	HighLightBox = { x = 118, y = -400, width = 720, height = 160 },	ToolTipDir = "UP",	ToolTipText = staticString },
+		}
+		G.binds.helpButton = CreateFrame("Button", nil, G.binds, "MainHelpPlateButton");
+		G.binds.helpButton:SetPoint("TOPLEFT", G.binds, "TOPLEFT", -20, 20);
+		G.binds.helpButton:SetFrameStrata("TOOLTIP");
+		G.binds.helpButton:SetScript("OnClick", function(...)
+			if HelpPlate:IsVisible() then
+				HelpPlate_Hide();
+			else
+				HelpPlate_Show(G.binds.tutorials, G.binds, G.binds.helpButton, true);
 			end
+		end);
+		
+		G.Mouse 		= CreateFrame("FRAME", nil, G.panel);
+		G.Mouse.name 	= "Mouse";
+		G.Mouse.parent 	= G.panel.name;
+		G.Mouse.okay 	= function(self)
+			for i, Check in pairs(G.Mouse.Events) do
+				for i, Event in pairs(Check.Events) do
+					ConsolePortMouseSettings[Event] = Check:GetChecked();
+				end
+			end
+			ConsolePort:LoadEvents();
 		end
-		ConsolePort:LoadEvents();
-	end
 
-	InterfaceOptions_AddCategory(G.panel);
-	InterfaceOptions_AddCategory(G.binds);
-	InterfaceOptions_AddCategory(G.Mouse);
+		InterfaceOptions_AddCategory(G.panel);
+		InterfaceOptions_AddCategory(G.binds);
+		InterfaceOptions_AddCategory(G.Mouse);
 
-	-- Create guide buttons on the menu
-	local modButtons = {
-		{modifier = SHIFT, 	texture = "LONE", xoffset = 180*2-40, xoffset2 = 180*4-55},
-		{modifier = CTRL,	texture = "LTWO", xoffset = 180*3-40, xoffset2 = 180*4-25},
-	}
-	for i, button in pairs(modButtons) do
-		ConsolePort:CreateConfigGuideButton(CP..button.modifier, button.texture, G.binds, button.xoffset, 0);
-		ConsolePort:CreateConfigGuideButton(CP..CTRLSH..i, button.texture, G.binds, button.xoffset2, 0);
-	end
+		-- Create guide buttons on the binding palette
+		local modButtons = {
+			{modifier = SHIFT, 	texture = "LONE", xoffset = 180*2-40, xoffset2 = 180*4-55},
+			{modifier = CTRL,	texture = "LTWO", xoffset = 180*3-40, xoffset2 = 180*4-25},
+		}
+		for i, button in pairs(modButtons) do
+			ConsolePort:CreateConfigGuideButton(CP..button.modifier, button.texture, G.binds, button.xoffset, 0);
+			ConsolePort:CreateConfigGuideButton(CP..CTRLSH..i, button.texture, G.binds, button.xoffset2, 0);
+		end
 
-	-- "Option buttons"; static bindings able to call protected Blizzard API
-	local optionButtons = {
-		{option = "CP_X_OPTION", icon = G.NAME_CP_X_OPTION},
-		{option = "CP_C_OPTION", icon = G.NAME_CP_C_OPTION},
-		{option = "CP_L_OPTION", icon = G.NAME_CP_L_OPTION},
-		{option = "CP_R_OPTION", icon = G.NAME_CP_R_OPTION},
-	}
-	for i, button in pairs(optionButtons) do
-		ConsolePort:CreateConfigGuideButton(button.option, button.icon, G.binds, 0, i+9);
-		CreateConfigStaticButton(button.option, nil, 1, i+9);
-		CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
-		CreateConfigStaticButton(button.option, "CTRL", 3, i+9);
-		CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
-	end
+		-- "Option buttons"; static bindings able to call protected Blizzard API
+		local optionButtons = {
+			{option = "CP_X_OPTION", icon = G.NAME_CP_X_OPTION},
+			{option = "CP_C_OPTION", icon = G.NAME_CP_C_OPTION},
+			{option = "CP_L_OPTION", icon = G.NAME_CP_L_OPTION},
+			{option = "CP_R_OPTION", icon = G.NAME_CP_R_OPTION},
+		}
+		for i, button in pairs(optionButtons) do
+			ConsolePort:CreateConfigGuideButton(button.option, button.icon, G.binds, 0, i+9);
+			CreateConfigStaticButton(button.option, nil, 1, i+9);
+			CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
+			CreateConfigStaticButton(button.option, "CTRL", 3, i+9);
+			CreateConfigStaticButton(button.option, "CTRL-SHIFT", 4, i+9);
+		end
 
-	G.Mouse.Events = {};
-	G.Mouse.Header = G.Mouse:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
-	G.Mouse.Header:SetText("Toggle mouse look when...");
-	G.Mouse.Header:SetPoint("TOPLEFT", G.Mouse, 10, -10);
-	G.Mouse.Header:Show();
-	for i, setting in pairs(GetMouseSettings()) do
-		local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, G.Mouse, "ChatConfigCheckButtonTemplate");
-		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
-		text:SetText(setting.desc);
-		check:SetChecked(setting.toggle);
-		check.Events = setting.event;
-		check.Description = text;
-		check:SetPoint("TOPLEFT", 20, -30*i);
-		text:SetPoint("LEFT", check, 30, 0);
-		check:Show();
-		text:Show();
-		tinsert(G.Mouse.Events, check);
+		G.Mouse.Events = {};
+		G.Mouse.Header = G.Mouse:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge");
+		G.Mouse.Header:SetText("Toggle mouse look when...");
+		G.Mouse.Header:SetPoint("TOPLEFT", G.Mouse, 10, -10);
+		G.Mouse.Header:Show();
+		for i, setting in pairs(GetMouseSettings()) do
+			local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, G.Mouse, "ChatConfigCheckButtonTemplate");
+			local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight");
+			text:SetText(setting.desc);
+			check:SetChecked(setting.toggle);
+			check.Events = setting.event;
+			check.Description = text;
+			check:SetPoint("TOPLEFT", 20, -30*i);
+			text:SetPoint("LEFT", check, 30, 0);
+			check:Show();
+			text:Show();
+			tinsert(G.Mouse.Events, check);
+		end
 	end
 end

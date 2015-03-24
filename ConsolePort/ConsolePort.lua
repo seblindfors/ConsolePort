@@ -4,9 +4,6 @@ local addOn, G = ...;
 local interval = 0.1;
 local time = 0;
 
-local view = 5;
-local yaw = false;
-
 local MouseIsCentered  = false;
 local f = ConsolePort;
 local m = ConsolePort:CreateMouseLooker();
@@ -421,6 +418,8 @@ function ConsolePort:Guild (key, state)
 	end
 end
 
+local view = 5;
+local yaw = false;
 function ConsolePort:AutoCameraView(event, ...)
 	if	(event == "QUEST_DETAIL" or
 		event == "QUEST_GREETING" or

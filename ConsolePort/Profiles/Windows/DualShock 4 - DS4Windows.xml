@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- DS4Windows Configuration Data. 2015-03-07 22:20:19 -->
+<!-- DS4Windows Configuration Data. 2015-03-23 21:07:38 -->
 
 <DS4Windows>
   <flushHIDQueue>True</flushHIDQueue>
@@ -52,7 +52,7 @@
       <bnGyroXN>Unbound</bnGyroXN>
     </Button>
     <Macro>
-      <bnR3>257/325/257/350/257/325/257</bnR3>
+      <bnR3>257/325/257/350</bnR3>
     </Macro>
     <Key>
       <bnR1>119</bnR1>
@@ -76,7 +76,7 @@
       <bnLSDown>83</bnLSDown>
     </Key>
     <KeyType>
-      <bnR3>Macro</bnR3>
+      <bnR3>HoldMacroMacro</bnR3>
       <bnGyroZN>Unbound</bnGyroZN>
       <bnGyroZP>Unbound</bnGyroZP>
       <bnGyroXP>Unbound</bnGyroXP>
