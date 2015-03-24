@@ -24,6 +24,51 @@ local BIND 				= "BINDING_NAME_";
 local ConsolePortSaveBindingSet = nil;
 local ConsolePortSaveBindings = nil;
 
+G.HotKeys = {};
+
+local function AnimateBindingChange(target, destination)
+	if not ConsolePortAnimationFrame then
+		local f = CreateFrame("FRAME", "ConsolePortAnimationFrame");
+		local t = f:CreateTexture();
+		local aniGroup = f:CreateAnimationGroup();
+		local ani = aniGroup:CreateAnimation("Translation");
+		f:SetFrameStrata("TOOLTIP");
+		f:SetSize(40,40);
+		t:SetAllPoints(f);
+		f.texture = t;
+		f.group = aniGroup;
+		f.animation = ani;
+		f.correction = 0.725;
+		ani:SetDuration(0.6);
+		ani:SetSmoothing("OUT");
+		aniGroup:SetScript("OnPlay", function()
+			f:Show();
+		     ActionButton_ShowOverlayGlow(f.target);
+		end);
+		aniGroup:SetScript("OnFinished", function()
+			f:Hide();
+			if f.target.icon then
+				f.dest.background.texture:SetTexture(f.target.icon:GetTexture());
+			else
+				f.dest.background.texture:SetTexture(nil);
+			end
+			UIFrameFadeIn(f.dest.background, 1.5, 1, 0.25);
+			ActionButton_HideOverlayGlow(f.target);
+		end);
+	end
+	local f = ConsolePortAnimationFrame;
+	local dX, dY = destination:GetCenter();
+	local tX, tY = target:GetCenter();
+	if target.icon then
+		f.texture:SetTexture(target.icon:GetTexture());
+	end
+	f.target = target;
+	f.dest = destination;
+	f:SetPoint("CENTER", target, "CENTER", 0,0);
+	f.animation:SetOffset((dX-tX)*f.correction, (dY-tY)*f.correction);
+	f.group:Play();
+end
+
 local function GetMouseSettings()
 	local mouseSettings = {
 		{ 	event 	= {"PLAYER_STARTED_MOVING"},
@@ -84,18 +129,20 @@ local function ChangeBinding(bindingName, bindingTitle)
 end
 
 local function SubmitBindings()
-	if ConsolePortSaveBindings then
-		ConsolePortBindingButtons = ConsolePortSaveBindings;
-	end
-	if ConsolePortSaveBindingSet then
-		ConsolePortBindingSet = ConsolePortSaveBindingSet;
-	end
-	-- Temporary
 	if ConsolePortSaveBindingSet or ConsolePortSaveBindings then
-		ReloadUI();
+		if not InCombatLockdown() then
+			for i, guide in pairs(G.HotKeys) do
+				guide:SetTexture(nil);
+				if 	guide:GetParent().HotKey then
+					guide:GetParent().HotKey:SetAlpha(1);
+				end
+			end
+			ConsolePort:ReloadBindingActions();
+			ConsolePort:LoadBindingSet();
+		else
+			ReloadUI();
+		end
 	end
---	ConsolePort:ReloadBindingActions();
---	ConsolePort:LoadBindingSet();
 end
 
 local function GenerateBindingsTable()
@@ -187,6 +234,7 @@ function ConsolePort:CreateConfigButton(name, xoffset, yoffset)
 	local b = CreateFrame("BUTTON", name..CONF, G.binds, "UIMenuButtonStretchTemplate");
 	local t = f:CreateTexture(nil, "background");
 	local a = _G[name];
+	b:SetBackdrop(nil);
 	b:SetWidth(BUTTON_WIDTH);
 	b:SetHeight(BUTTON_HEIGHT);
 	b:SetPoint("TOPLEFT", G.binds, xoffset*BUTTON_WIDTH-60, -BUTTON_HEIGHT*yoffset);
@@ -196,7 +244,7 @@ function ConsolePort:CreateConfigButton(name, xoffset, yoffset)
 	f:SetPoint("CENTER", b);
 	f:SetWidth(OVERLAY_WIDTH);
 	f:SetHeight(OVERLAY_HEIGHT);
-	f:SetAlpha(0.35);
+	f:SetAlpha(0.25);
 	f:Show();
 	b.background = f;
 	b.secure = a;
@@ -259,7 +307,7 @@ end
 
 
 function ConsolePort:LoadBindingSet()
-	local keys = ConsolePortBindingSet;
+	local keys = ConsolePortSaveBindingSet or ConsolePortBindingSet;
 	local w = WorldFrame;
 	ClearOverrideBindings(w);
 	for name, key in pairs(keys) do
@@ -287,6 +335,7 @@ function ConsolePort:UpdateActionGuideTexture(button, key, mod1, mod2)
 		button.guide = button:CreateTexture();
 		button.guide:SetPoint("TOPRIGHT", button, 0, 0);
 		button.guide:SetSize(14, 14);
+		tinsert(G.HotKeys, button.guide);
 	end
 	button.guide:SetTexture(ConsolePort:GetDefaultGuideTexture(key));
 	ConsolePort:UpdateModifiedActionGuideTexture(button, mod1, "TOP");
@@ -301,6 +350,7 @@ function ConsolePort:UpdateModifiedActionGuideTexture(button, modifier, anchor)
 		button[mod] = button:CreateTexture();
 		button[mod]:SetPoint(anchor, button, 0, 0);
 		button[mod]:SetSize(14, 14);
+		tinsert(G.HotKeys, button.guide);
 	elseif not modifier and button[mod] then
 		button[mod]:Hide();
 	end
@@ -323,7 +373,7 @@ function ConsolePort:ReloadBindingAction(button, action, name, mod1, mod2)
 end
 
 function ConsolePort:ReloadBindingActions()
-	local keys = ConsolePortBindingButtons;
+	local keys = ConsolePortSaveBindings or ConsolePortBindingButtons;
 	for name, key in pairs(keys) do
 		if key.action then 
 			ConsolePort:ReloadBindingAction(_G[name..NOMOD], _G[key.action], name, nil, nil);
@@ -347,30 +397,15 @@ function ConsolePort:ChangeButtonBinding(actionButton)
 	local tableIndex = actionButton.name;
 	local modfierBtn = actionButton.mod;
 	local focusFrame = GetMouseFocus();
-	local focusParent = nil;
 	local focusFrameName = focusFrame:GetName();
-	if focusFrame:GetParent() then
-		focusParent = focusFrame:GetParent():GetName();
-	end
-	local TARGET_VALID = (	focusParent == "MainMenuBarArtFrame" 	or 
-							focusParent == "PetActionBarFrame" 		or
-							focusParent == "StanceBarFrame" 		or
-							focusParent == "MultiBarBottomLeft" 	or
-							focusParent == "MultiBarBottomRight" 	or
-							focusParent == "MultiBarLeft" 			or
-							focusParent == "MultiBarRight") 		and
-							focusFrame:IsObjectType("Button");
+	local TARGET_VALID = focusFrame:IsObjectType("Button") and focusFrameName ~= confButton:GetText();
 	if confButton:GetButtonState() == "PUSHED" then
 		confButton:SetButtonState("NORMAL");
 		confString.guide:SetAlpha(0.5);
 		confButton:UnlockHighlight();
 		if TARGET_VALID then
 			confButton:SetText(focusFrameName);
-			if focusFrame.icon then
-				confButton.background.texture:SetTexture(focusFrame.icon:GetTexture());
-			else
-				confButton.background.texture:SetTexture(nil);
-			end
+			AnimateBindingChange(focusFrame, confButton);
 			if not ConsolePortSaveBindings then
 				ConsolePortSaveBindings = ConsolePortBindingButtons;
 			end

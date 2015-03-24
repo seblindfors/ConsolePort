@@ -97,8 +97,11 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 		end
 		btn:SetAttribute("type", btn.default.type);
 		btn:SetAttribute(btn.default.attr, btn.default.val);
+		btn:SetAttribute("clickbutton", btn.action);
 	end
-	btn:SetID(btn.action:GetID());
+	if btn.action then
+		btn:SetID(btn.action:GetID());
+	end
 	btn.revert();
 	btn:SetAttribute("actionpage", ConsolePortManager:GetAttribute("actionpage"));
 	btn:RegisterEvent("PLAYER_REGEN_DISABLED");
@@ -110,7 +113,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 		local click = self:GetAttribute("clickbutton");
 		self.state = G.STATE_DOWN;
 		self.timer = 0;
-		if 	func == "click" or func == "action" then
+		if 	(func == "click" or func == "action") and click then
 			click:SetButtonState("PUSHED");
 			return;
 		end
@@ -121,7 +124,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 		local func = self:GetAttribute("type");
 		local click = self:GetAttribute("clickbutton");
 		self.state = G.STATE_UP;
-		if func == "click" or func == "action" then
+		if 	(func == "click" or func == "action") and click then
 			click:SetButtonState("NORMAL");
 		end
 	end);
@@ -133,7 +136,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 			self.timer = self.timer + elapsed;
 			if self.timer >= 0.175 and btn.state == G.STATE_DOWN then
 				local func = self:GetAttribute("type");
-				if func and self[func] then self[func](self); end;
+				if func and func ~= "action" and self[func] then self[func](self); end;
 				self.timer = 0;
 			end
 		end);
