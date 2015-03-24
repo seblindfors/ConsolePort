@@ -3,8 +3,8 @@ local _, G = ...;
 
 local function MainBarAction(action)
 	if 	type(action) == "table" and
-		action:GetParent() and
-		action:GetParent() == MainMenuBarArtFrame then
+		action:GetParent() == MainMenuBarArtFrame and
+		action.action then
 		return action:GetID();
 	else
 		return nil;
@@ -80,28 +80,30 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn.action 	= _G[clickbutton];
 	btn.command = UIcommand;
 	btn.mod 	= modifier;
-	btn.default = {
-		type = "click",
-		attr = "clickbutton",
-		val  = btn.action
-	};
+	btn.default = {};
 	for i, func in pairs(functionRefs) do
 		btn[func] = function(btn) self[func](self, btn.command, btn.state); end;
 	end
 	btn.rebind 	= function(btn) self:ChangeButtonBinding(btn); end;
+	btn.reset 	= function()
+		btn.default = {
+			type = "click",
+			attr = "clickbutton",
+			val  = btn.action
+		}
+	end
 	btn.revert 	= function()
 		if  MainBarAction(btn.default.val) then
 			btn.default.type = "action";
 			btn.default.attr = "action";
 			btn.default.val  = MainBarAction(btn.default.val);
+			btn:SetID(btn.default.val);
 		end
 		btn:SetAttribute("type", btn.default.type);
 		btn:SetAttribute(btn.default.attr, btn.default.val);
 		btn:SetAttribute("clickbutton", btn.action);
 	end
-	if btn.action then
-		btn:SetID(btn.action:GetID());
-	end
+	btn.reset();
 	btn.revert();
 	btn:SetAttribute("actionpage", ConsolePortManager:GetAttribute("actionpage"));
 	btn:RegisterEvent("PLAYER_REGEN_DISABLED");

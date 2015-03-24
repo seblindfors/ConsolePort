@@ -61,6 +61,8 @@ local function AnimateBindingChange(target, destination)
 	local tX, tY = target:GetCenter();
 	if target.icon then
 		f.texture:SetTexture(target.icon:GetTexture());
+	else
+		f.texture:SetTexture("Interface\\TUTORIALFRAME\\UI-TutorialFrame-GloveCursor");
 	end
 	f.target = target;
 	f.dest = destination;
@@ -361,7 +363,8 @@ end
 
 function ConsolePort:ReloadBindingAction(button, action, name, mod1, mod2)
 	button.action = action;
-	button:SetAttribute("clickbutton", button.action);
+	button.reset();
+	button.revert();
 	if 	button.action:GetParent() == MainMenuBarArtFrame and
 		button.action.action and button.action:GetID() <= 6 then
 		ConsolePort:UpdateActionGuideTexture(_G["OverrideActionBarButton"..button.action:GetID()], name, mod1, mod2);
@@ -398,7 +401,10 @@ function ConsolePort:ChangeButtonBinding(actionButton)
 	local modfierBtn = actionButton.mod;
 	local focusFrame = GetMouseFocus();
 	local focusFrameName = focusFrame:GetName();
-	local TARGET_VALID = focusFrame:IsObjectType("Button") and focusFrameName ~= confButton:GetText();
+	local NotConfigButton = focusFrame:GetParent() ~= G.binds;
+	local TARGET_VALID = 	focusFrame:IsObjectType("Button") and
+							focusFrameName ~= confButton:GetText() and
+							NotConfigButton;
 	if confButton:GetButtonState() == "PUSHED" then
 		confButton:SetButtonState("NORMAL");
 		confString.guide:SetAlpha(0.5);
