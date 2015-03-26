@@ -1,12 +1,9 @@
 -- ConsolePort 
-local _
 local addOn, G = ...;
-local interval = 0.1;
-local time = 0;
 
-local MouseIsCentered  = false;
 local f = ConsolePort;
 local m = ConsolePort:CreateMouseLooker();
+
 local HookFrames = {};
 local FocusFrame = nil;
 
@@ -14,9 +11,12 @@ function ConsolePort:GetFocusFrame()
 	return FocusFrame;
 end
 
--- In preparation for mouse look options
-local function MouseLookOnHover()
-	if MouseIsOver(m) then
+local function MouseLookShouldStart()
+	if 	not SpellIsTargeting() 			and
+		not IsMouseButtonDown(1) 		and
+		not GetCursorInfo() 			and
+		MouseIsOver(m) 					and
+		(GetMouseFocus() == WorldFrame) then
 		return true;
 	end
 end
@@ -26,18 +26,6 @@ local function ToggleMouseLook(frameEvent)
 		return ConsolePortMouseSettings[frameEvent];
 	end
 	return true;
-end
-
--- Recursively desaturate textures
-local function SetDesaturation(frame, value)
-  for i, child in pairs({frame:GetChildren()}) do
-     SetDesaturation(child, value);
-  end
-  for i, region in pairs({frame:GetRegions()}) do
-     if region.SetDesaturated then
-        region:SetDesaturated(value);
-     end
-  end
 end
 
 local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
@@ -100,11 +88,12 @@ local function LoadHooks ()
 	end
 end
 
+local DefaultActions = true;
+local FocusAttr = nil;
 local function UpdateFrames(self)
 	local FramesOpen = 0;
 	local PriorityFrame = nil;
-	if 	not G.binds:IsVisible() and 
-		CP_R_RIGHT_NOMOD.state ~= G.STATE_DOWN then
+	if 	not G.Binds:IsVisible() then
 		for _, Hook in pairs(HookFrames) do
 			if Hook.frame:IsVisible() then
 				FramesOpen = FramesOpen + 1;
@@ -114,10 +103,15 @@ local function UpdateFrames(self)
 		if 	FocusFrame and not
 			FocusFrame.frame:IsVisible() then
 			FocusFrame = nil;
+			FocusAttr = nil;
 		end
 		if 	FramesOpen == 0 then
 			FocusFrame = nil;
-			self:SetButtonActionsDefault();
+			FocusAttr = nil;
+			if not DefaultActions then
+				self:SetButtonActionsDefault();
+				DefaultActions = true;
+			end
 		elseif 	FramesOpen >= 1 and not FocusFrame then
 			FocusFrame = PriorityFrame;
 			for _, Hook in pairs(HookFrames) do
@@ -146,22 +140,25 @@ local function UpdateFrames(self)
 				FocusFrame.func(self, G.PREPARE, G.STATE_UP);
 				FocusFrame.isPrepared = true;
 			end
-			self:SetButtonActions(FocusFrame.attr);
+			if FocusAttr ~= FocusFrame.attr then
+				self:SetButtonActions(FocusFrame.attr);
+				FocusAttr = FocusFrame.attr;
+			end
+			if 	DefaultActions then
+				DefaultActions = false;
+			end
 		end
 	end
 end
 
+local interval = 0.1;
+local time = 0;
+local MouseIsCentered  = false;
 local function OnUpdate (self, elapsed)
 	time = time + elapsed;
 	while time > interval do
-		local TopFrameIsOverlay = (GetMouseFocus() == WorldFrame);
-		local CursorIsEmpty 	= (GetCursorInfo() == nil);
-		if 	MouseLookOnHover() and
-			TopFrameIsOverlay and
-			CursorIsEmpty and
-			not MouseIsCentered and
-			not SpellIsTargeting() and
-			not IsMouseButtonDown(1) then
+		if 	not MouseIsCentered and
+			MouseLookShouldStart() then
 			MouselookStart();
 			MouseIsCentered = true;
 		elseif not MouseIsOver(m) and MouseIsCentered then
@@ -175,6 +172,10 @@ local function OnUpdate (self, elapsed)
 end
 
 local function OnEvent (self, event, ...)
+	if 	self[event] then
+		self[event](self, ...);
+		return;
+	end
 	self:SetButtonMapping(self, event);
 	if ConsolePortSettings and ConsolePortSettings.cam then
 		self:AutoCameraView(event, ...);
@@ -222,32 +223,8 @@ local function OnEvent (self, event, ...)
 				end
 			end
 		end
-	elseif	event == "ADDON_LOADED" then
-		local arg1 = ...;
-		if arg1 == "Blizzard_TalentUI" then
-			PostLoadHook(PlayerTalentFrame, self.Spec, "Spec", 11);
-			self:InitializeTalents();
-		elseif arg1 == "Blizzard_GlyphUI" then
-			PostLoadHook(GlyphFrame, self.Spec, "Glyph", 12);
-			self:InitializeGlyphs();
-		elseif arg1 == "Blizzard_DeathRecap" then
-			PostLoadHook(DeathRecapFrame, self.Misc, "Misc", nil);
-			self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME_CP_R_RIGHT);
-		elseif arg1 == addOn then
-			LoadHooks();
-			self:CreateManager();
-			self:LoadStrings();
-			self:OnVariablesLoaded();
-			self:LoadEvents();
-			self:LoadHookScripts();
-			self:CreateConfigPanel();
-			self:CreateBindingButtons();
-			self:LoadBindingSet();
-			self:GetIndicatorSet();
-			self:ReloadBindingActions();
-		end
 	elseif	event == "PLAYER_REGEN_ENABLED" then
-		ConsolePort:SetButtonActionsDefault();
+		self:SetButtonActionsDefault();
 		for _, Hook in pairs(HookFrames) do
 			if 	Hook.frame:IsVisible() then
 				UIFrameFadeIn(Hook.frame, 0.2, 0.5, 1);
@@ -266,49 +243,69 @@ local function OnEvent (self, event, ...)
 	end
 end
 
+function ConsolePort:ADDON_LOADED(...)
+	local arg1 = ...;
+	if arg1 == "Blizzard_TalentUI" then
+		PostLoadHook(PlayerTalentFrame, self.Spec, "Spec", 11);
+		self:InitializeTalents();
+	elseif arg1 == "Blizzard_GlyphUI" then
+		PostLoadHook(GlyphFrame, self.Spec, "Glyph", 12);
+		self:InitializeGlyphs();
+	elseif arg1 == "Blizzard_DeathRecap" then
+		PostLoadHook(DeathRecapFrame, self.Misc, "Misc", nil);
+		self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME.CP_R_RIGHT);
+	elseif arg1 == addOn then
+		LoadHooks();
+		self:CreateManager();
+		self:LoadStrings();
+		self:OnVariablesLoaded();
+		self:LoadEvents();
+		self:LoadHookScripts();
+		self:CreateConfigPanel();
+		self:CreateBindingButtons();
+		self:LoadBindingSet();
+		self:GetIndicatorSet();
+		self:ReloadBindingActions();
+	end
+end
+
+function ConsolePort:GetInterfaceButtons()
+	return {
+		CP_L_UP_NOMOD, 		--1
+		CP_L_DOWN_NOMOD,	--2
+		CP_L_RIGHT_NOMOD,	--3
+		CP_L_LEFT_NOMOD,	--4
+		CP_R_LEFT_NOMOD,	--5
+		CP_R_RIGHT_NOMOD,	--6
+		CP_R_UP_NOMOD		--7
+	}
+end
+
 function ConsolePort:SetButtonActionsDefault()
-	CP_L_UP_NOMOD.revert();
-	CP_L_DOWN_NOMOD.revert();
-	CP_L_RIGHT_NOMOD.revert();
-	CP_L_LEFT_NOMOD.revert();
-	CP_R_LEFT_NOMOD.revert();
-	CP_R_RIGHT_NOMOD.revert();
-	CP_R_UP_NOMOD.revert();
+	FocusAttr = nil;
+	for _, button in pairs(self:GetInterfaceButtons()) do
+		button.revert();
+	end
 end
 
 function ConsolePort:SetButtonActions (type)
-	-- Exceptions are for secure button workarounds
-	if (type ~= "Loot" and
-		type ~= "Popup") then
-		CP_R_LEFT_NOMOD:SetAttribute("type", type);
+	local Buttons = self:GetInterfaceButtons();
+	local IgnoreIndex = {};
+	if 		type == "Loot" 	then IgnoreIndex = {1, 2, 5, 6};
+	elseif 	type == "Popup" then IgnoreIndex = {5, 6};
+	elseif 	type == "Book" 	then IgnoreIndex = {3, 4, 6};
+	elseif 	type == "Spec" 	then IgnoreIndex = {6, 7};
+	elseif 	type == "Glyph" then IgnoreIndex = {1, 2, 6, 7};
+	elseif 	type == "Shop" 	then IgnoreIndex = {6};
+	elseif 	type == "Bags" 	then IgnoreIndex = {6};
 	end
-	if (type == "Bags" and MerchantFrame:IsVisible()) or 
-	   (type ~= "Bags" and
-	   	type ~= "Book" and
-	   	type ~= "Spec" and
-		type ~= "Loot" and
-		type ~= "Popup" and
-		type ~= "Glyph") then
-		CP_R_RIGHT_NOMOD:SetAttribute("type", type);
+	for _, index in pairs(IgnoreIndex) do
+		Buttons[index] = false;
 	end
-	if (type ~= "Spec" and
-		type ~= "Loot" and
-		type ~= "Glyph") then
-		CP_R_UP_NOMOD:SetAttribute("type", type);
-	end
-	if (type ~= "Loot" and
-		type ~= "Glyph") then
-		CP_L_UP_NOMOD:SetAttribute("type", type);
-	end
-	if (type ~= "Loot" and
-		type ~= "Glyph") then
-		CP_L_DOWN_NOMOD:SetAttribute("type", type);
-	end
-	if (type ~= "Book") then
-		CP_L_RIGHT_NOMOD:SetAttribute("type", type);
-	end
-	if (type ~= "Book") then
-		CP_L_LEFT_NOMOD:SetAttribute("type", type);
+	for i, button in pairs(Buttons) do
+		if 	button then
+			button:SetAttribute("type", type);
+		end
 	end
 end
 
@@ -442,5 +439,6 @@ function ConsolePort:AutoCameraView(event, ...)
 end
 
 f:RegisterEvent("ADDON_LOADED");
+f:RegisterEvent("PLAYER_LOGOUT");
 f:SetScript("OnEvent", OnEvent);
 f:SetScript("OnUpdate", OnUpdate);

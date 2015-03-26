@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local MenuButton = CreateFrame("BUTTON", "GameMenuButtonController", GameMenuFrame, "GameMenuButtonTemplate");
 MenuButton:SetPoint("TOP", GameMenuButtonWhatsNew, "BOTTOM", 0, -23);
@@ -9,8 +8,8 @@ MenuButton:SetText("Controller");
 MenuButton:SetScript("OnClick", function(self)
 	ToggleFrame(GameMenuFrame);
 	-- Call twice because of blizzard code bug
-	InterfaceOptionsFrame_OpenToCategory(G.binds);
-	InterfaceOptionsFrame_OpenToCategory(G.binds);
+	InterfaceOptionsFrame_OpenToCategory(G.Binds);
+	InterfaceOptionsFrame_OpenToCategory(G.Binds);
 	MouselookStop();
 end);
 
@@ -77,8 +76,8 @@ end
 
 local function CreateControllerInstructions()
 	local eol = ":24:24:0:0|t";
-	local shiftTexture = "|T"..G["TEXTURE_LONE"]..eol;
-	local ctrlTexture = "|T"..G["TEXTURE_LTWO"]..eol;
+	local shiftTexture = "|T"..G.TEXTURE.LONE..eol;
+	local ctrlTexture = "|T"..G.TEXTURE.LTWO..eol;
 	local type, offsets = ConsolePortSettings.type, {};
 	if type == "Xbox" then
 		offsets = {
@@ -102,11 +101,11 @@ local function CreateControllerInstructions()
 		local f = CreateFrame("FRAME", binding.."_INSTRUCTION", GameMenuFrame);
 		local texture;
 		if binding == "CP_TR1" then 
-			texture = G["TEXTURE_RONE"];
+			texture = G.TEXTURE.RONE;
 		elseif binding == "CP_TR2" then
-			texture = G["TEXTURE_RTWO"];
+			texture = G.TEXTURE.RTWO;
 		else
-			texture = G["TEXTURE_"..string.upper(G["NAME_"..binding])];
+			texture = G.TEXTURE[string.upper(G.NAME[binding])];
 		end
 		local bindTexture = "|T"..texture..eol;
 		f.timer = {0,0,0,0};
@@ -235,8 +234,6 @@ function ConsolePort:Menu (key, state)
 	end
 	for _, button in pairs(buttons) do
 		button:UnlockHighlight();
-		button:GetScript("OnLeave")(button);
 	end
 	buttons[iterator]:LockHighlight();
-	buttons[iterator]:GetScript("OnEnter")(buttons[iterator]);
 end

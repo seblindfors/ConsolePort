@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local _DROPDOWN = "DropDownList";
 local iterator = { 1, 1, 1 };

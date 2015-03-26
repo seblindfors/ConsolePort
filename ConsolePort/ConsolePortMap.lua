@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local iterator = 1;
 local zones = {};
@@ -127,8 +126,6 @@ function ConsolePort:MapQuest(key, state, count, items, icons)
 			QuestScrollFrameScrollBarScrollUpButton:Click();
 		end
 		item:GetScript("OnEnter")(item);
-		GameTooltip:AddLine(CLICK_QUEST_TRACKER, GREEN_FONT_COLOR.r, GREEN_FONT_COLOR.g, GREEN_FONT_COLOR.b);
-		GameTooltip:Show();
 		if key == G.CIRCLE then
 			local button = nil;
 			for i, icon in pairs(icons.numeric) do

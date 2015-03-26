@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local currentInput = nil;
 local keyDown = false;

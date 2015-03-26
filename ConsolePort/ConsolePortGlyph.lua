@@ -49,7 +49,7 @@ function ConsolePort:InitializeGlyphs()
 					ConsolePort:SetClickButton(CP_R_RIGHT_NOMOD, GlyphButton);
 				end
 				if not GlyphButton.disabledBG:IsVisible() then
-					GameTooltip:AddLine(G.CLICK_GLYPH_CAST, 1,1,1);
+					GameTooltip:AddLine(G.CLICK.GLYPH_CAST, 1,1,1);
 					GameTooltip:Show();
 				end
 				ConsolePort:Highlight(glyph_iterator, GlyphButtons);

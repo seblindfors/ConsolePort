@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local NUM_SPECS;
 local _, _, class = UnitClass("player");
@@ -25,12 +24,12 @@ local TalentInUse = false;
 
 function ConsolePort:InitializeTalents()
 	-- Indicators
-	self:CreateIndicator(PlayerTalentFrameActivateButton, "SMALL", "RIGHT", G.NAME_CP_R_RIGHT);
-	self:CreateIndicator(PlayerTalentFrameSpecializationLearnButton, "SMALL", "LEFT", G.NAME_CP_R_LEFT);
-	self:CreateIndicator(PlayerTalentFrameTalentsLearnButton, "SMALL", "LEFT", G.NAME_CP_R_LEFT);
+	self:CreateIndicator(PlayerTalentFrameActivateButton, "SMALL", "RIGHT", G.NAME.CP_R_RIGHT);
+	self:CreateIndicator(PlayerTalentFrameSpecializationLearnButton, "SMALL", "LEFT", G.NAME.CP_R_LEFT);
+	self:CreateIndicator(PlayerTalentFrameTalentsLearnButton, "SMALL", "LEFT", G.NAME.CP_R_LEFT);
 	-- Spec stuff
-	GuideSpec1 = self:CreateIndicator(PlayerSpecTab1, "SMALL", "RIGHT", G.NAME_CP_R_UP);
-	GuideSpec2 = self:CreateIndicator(PlayerSpecTab2, "SMALL", "RIGHT", G.NAME_CP_R_UP);
+	GuideSpec1 = self:CreateIndicator(PlayerSpecTab1, "SMALL", "RIGHT", G.NAME.CP_R_UP);
+	GuideSpec2 = self:CreateIndicator(PlayerSpecTab2, "SMALL", "RIGHT", G.NAME.CP_R_UP);
 	if PlayerTalentFrame.selectedPlayerSpec == "spec1" then GuideSpec2:Hide(); else GuideSpec1:Hide(); end;
 	PlayerSpecTab1:HookScript("OnClick", function(self)
 		GuideSpec1:Hide();
@@ -57,7 +56,7 @@ function ConsolePort:InitializeTalents()
 			target:Show();
 			if IsShiftKeyDown() then
 				EnterTalent(talents[talent_iterator]);
-				GameTooltip:AddLine(G.CLICK_TALENT, 1,1,1);
+				GameTooltip:AddLine(G.CLICK.TALENT, 1,1,1);
 				GameTooltip:Show();
 			else
 				LeaveTalent(talents[talent_iterator]);

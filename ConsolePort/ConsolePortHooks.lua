@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local function UIDefaultButtonExtend(Button, Anchor)
 	Button:SetPoint(Anchor, Button:GetParent(), "BOTTOM", 0);
@@ -11,11 +10,47 @@ local function CinematicControllerInput(key, state)
 	if button then ConsolePort:Misc(button, state); end;
 end
 
+local function ExportCharacterSettings()
+	local index = GetUnitName("player").."-"..GetRealmName();
+	if not ConsolePortCharacterSettings then
+		ConsolePortCharacterSettings = {};
+	end
+	if not ConsolePortCharacterSettings[index] then
+		ConsolePortCharacterSettings[index] = {};
+	end
+	ConsolePortCharacterSettings[index] = {
+		BindingSet = ConsolePortBindingSet;
+		BindingBtn = ConsolePortBindingButtons,
+		MouseEvent = ConsolePortMouseSettings
+	}
+end
+
+-- Hacky replacement for the very broken event PLAYER_LOGOUT
+local _Quit = Quit;
+local _Logout = Logout;
+local _ReloadUI = ReloadUI;
+local _ConsoleExec = ConsoleExec;
+function Quit()
+	ExportCharacterSettings();
+	return _Quit();
+end
+function Logout()
+	ExportCharacterSettings();
+	return _Logout();
+end
+function ReloadUI()
+	ExportCharacterSettings();
+	return _ReloadUI();
+end
+function ConsoleExec(msg)
+	if msg == "reloadui" then
+		ExportCharacterSettings();
+	end
+	return _ConsoleExec(msg);
+end
+
 function ConsolePort:LoadHookScripts()
 	-- Game Menu frame
-	hooksecurefunc("ToggleGameMenu", function(...)
-		if not IsMouselooking() then MouselookStart(); end;
-	end);
 	local Controller = GameMenuFrame:CreateTexture("GameMenuTextureController", "ARTWORK");
 	Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\Splash"..ConsolePortSettings.type);
 	Controller:SetPoint("CENTER", GameMenuFrame, "CENTER");
@@ -26,17 +61,17 @@ function ConsolePort:LoadHookScripts()
 			local 	CLICK_STRING;
 			if		self:GetOwner():GetParent():GetName() and
 					string.find(self:GetOwner():GetParent():GetName(), "MerchantItem") ~= nil then
-					CLICK_STRING = G.CLICK_BUY;
+					CLICK_STRING = G.CLICK.BUY;
 					local maxStack = GetMerchantItemMaxStack(self:GetOwner():GetID());
 					if maxStack > 1 then 
-						self:AddLine(G.CLICK_STACK_BUY, 1,1,1);
+						self:AddLine(G.CLICK.STACK_BUY, 1,1,1);
 					end
 			elseif	self:GetOwner():GetParent() == LootFrame then
 					self:AddLine(G.CLICK_LOOT, 1,1,1);
-			elseif 	MerchantFrame:IsVisible() 		 then CLICK_STRING = G.CLICK_SELL;
-			elseif 	IsEquippedItem(self:GetItem()) 	 then CLICK_STRING = G.CLICK_REPLACE;
-			elseif 	IsEquippableItem(self:GetItem()) then CLICK_STRING = G.CLICK_EQUIP;
-			else 	CLICK_STRING = G.CLICK_USE; end
+			elseif 	MerchantFrame:IsVisible() 		 then CLICK_STRING = G.CLICK.SELL;
+			elseif 	IsEquippedItem(self:GetItem()) 	 then CLICK_STRING = G.CLICK.REPLACE;
+			elseif 	IsEquippableItem(self:GetItem()) then CLICK_STRING = G.CLICK.EQUIP;
+			else 	CLICK_STRING = G.CLICK.USE; end
 			if 	GetItemCount(self:GetItem(), false) ~= 0 or
 				MerchantFrame:IsVisible() then
 				if 	EquipmentFlyoutFrame:IsVisible() then
@@ -44,7 +79,7 @@ function ConsolePort:LoadHookScripts()
 				end
 				self:AddLine(CLICK_STRING, 1,1,1);
 				if not self:GetOwner():GetParent() == LootFrame then
-					self:AddLine(G.CLICK_PICKUP, 1,1,1);
+					self:AddLine(G.CLICK.PICKUP, 1,1,1);
 				end
 				self:Show();
 			end
@@ -55,9 +90,9 @@ function ConsolePort:LoadHookScripts()
 			if 	self:GetOwner():GetParent() == SpellBookSpellIconsFrame and not
 				self:GetOwner().isPassive then
 				if not self:GetOwner().UnlearnedFrame:IsVisible() then
-					self:AddLine(G.CLICK_USE_NOCOMBAT, 1,1,1);
+					self:AddLine(G.CLICK.USE_NOCOMBAT, 1,1,1);
 				end
-				self:AddLine(G.CLICK_PICKUP, 1,1,1);
+				self:AddLine(G.CLICK.PICKUP, 1,1,1);
 				self:Show();
 			end
 		end
@@ -65,8 +100,8 @@ function ConsolePort:LoadHookScripts()
 	GameTooltip:HookScript("OnShow", function(self)
 		if 	self:GetOwner() and
 			self:GetOwner().questID then
-			self:AddLine(G.CLICK_QUEST_DETAILS, 1,1,1);
-			self:AddLine(G.CLICK_QUEST_TRACKER, 1,1,1);
+			self:AddLine(G.CLICK.QUEST_DETAILS, 1,1,1);
+			self:AddLine(G.CLICK.QUEST_TRACKER, 1,1,1);
 		end
  	end);
 	-- Map hooks
@@ -109,9 +144,6 @@ function ConsolePort:LoadHookScripts()
 	UIDefaultButtonExtend(QuestFrameGoodbyeButton,			"LEFT"	);
 	UIDefaultButtonExtend(PetitionFrameSignButton, 			"RIGHT" );
 	UIDefaultButtonExtend(PetitionFrameCancelButton,		"LEFT"	);
-	--
-	InterfaceOptionsFrameOkay:SetSize(150, 40);
-	InterfaceOptionsFrameCancel:SetSize(96, 40);
 	-- Add inputs to cinematic frame, behaves oddly after first dialog closing
 	CinematicFrame:HookScript("OnKeyDown", function(self, key)
 		CinematicControllerInput(key, G.STATE_DOWN);

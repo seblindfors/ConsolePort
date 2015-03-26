@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local iterator = 1;
 local Enter = MerchantItem1ItemButton:GetScript("OnEnter");
@@ -19,6 +18,7 @@ function ConsolePort:Shop(key, state)
 	local index = slot:GetID();
 	if key == G.PREPARE then iterator = 1;
 	elseif state == G.STATE_DOWN then
+		CP_R_RIGHT_NOMOD:SetAttribute("type", "Shop");
 		if key == G.CIRCLE then
 			slot:Click("RightButton");
 		elseif key == G.SQUARE then

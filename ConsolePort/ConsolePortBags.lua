@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local iterator = 16;
 local slotCount = 0;
@@ -47,13 +46,16 @@ function ConsolePort:Bags (key, state)
 	end
 	if iterator > slotCount then iterator = 16; end;
 	local slot = bagSlots[iterator];
-	if 	slot.slot then 
+	if 	slot and slot.slot then 
 		slot.slot:LockHighlight();
 		Enter(slot.slot);
-		if	not MerchantFrame:IsVisible() and
-			not InCombatLockdown() then
-			CP_R_RIGHT_NOMOD:SetAttribute("type", "item");
-			CP_R_RIGHT_NOMOD:SetAttribute("item", slot.bagIndex.." "..slot.slotIndex);
+		if not InCombatLockdown() then
+			if	not MerchantFrame:IsVisible() then
+				CP_R_RIGHT_NOMOD:SetAttribute("type", "item");
+				CP_R_RIGHT_NOMOD:SetAttribute("item", slot.bagIndex.." "..slot.slotIndex);
+			else
+				CP_R_RIGHT_NOMOD:SetAttribute("type", "Bags");
+			end
 		end
 	end
 	

@@ -146,11 +146,11 @@ function ConsolePort:CreateBindingWizard()
 					self.BTN = unassigned[1];
 					if self.BTN then
 						if self.BTN == "CP_TR1" then
-							self.Graphic:SetTexture(G.TEXTURE_RONE);
+							self.Graphic:SetTexture(G.TEXTURE.RONE);
 						elseif self.BTN == "CP_TR2" then
-							self.Graphic:SetTexture(G.TEXTURE_RTWO);
+							self.Graphic:SetTexture(G.TEXTURE.RTWO);
 						else
-							self.Graphic:SetTexture(G["TEXTURE_"..string.upper(G["NAME_"..self.BTN])]);
+							self.Graphic:SetTexture(G.TEXTURE[string.upper(G.NAME[self.BTN])]);
 						end
 					end
 				else

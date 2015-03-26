@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local iterator = 1;
 local slot = nil;
@@ -31,16 +30,16 @@ SpellBookNextPageButton:HookScript("OnClick", ResetIterator);
 SpellBookPrevPageButton:HookScript("OnClick", ResetIterator);
 
 SpellBookSpellIconsFrame:HookScript("OnUpdate", function(self, elapsed)
-	if self:IsVisible() and ConsolePort:GetFocusFrame().frame == self then
+	if  self:IsVisible() and
+		ConsolePort:GetFocusFrame().frame == self and
+		not InCombatLockdown() then
 		slot = spells[iterator];
 		ConsolePort:Highlight(iterator, spells);
 		slot:GetScript("OnEnter")(slot);
-		if not InCombatLockdown() then
-			local _,_, spellID = SpellBook_GetSpellBookSlot(slot);
-			local name = GetSpellInfo(spellID);
-			CP_R_RIGHT_NOMOD:SetAttribute("type", "spell");
-			CP_R_RIGHT_NOMOD:SetAttribute("spell", name);
-		end
+		local _,_, spellID = SpellBook_GetSpellBookSlot(slot);
+		local name = GetSpellInfo(spellID);
+		CP_R_RIGHT_NOMOD:SetAttribute("type", "spell");
+		CP_R_RIGHT_NOMOD:SetAttribute("spell", name);
 		if CP_L_RIGHT_NOMOD.state == G.STATE_UP then
 			if 	iterator >= 7 and SpellBookNextPageButton:IsEnabled() then
 				ConsolePort:SetClickButton(CP_L_RIGHT_NOMOD, SpellBookNextPageButton);

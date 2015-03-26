@@ -1,9 +1,4 @@
-local _
 local _, G = ...;
-local BUTTON_HEIGHT	 	= 40;
-local BUTTON_WIDTH 	 	= 180;
-local OVERLAY_WIDTH		= 170;
-local OVERLAY_HEIGHT	= 34;
 
 local BIND_TARGET 	 	= false;
 local BIND_MODIFIER 	= nil;
@@ -18,13 +13,27 @@ local NOMOD				= "_NOMOD";
 local SHIFT				= "_SHIFT";
 local CTRL				= "_CTRL";
 local CTRLSH			= "_CTRLSH";
-local TEXTURE			= "TEXTURE_";
 local BIND 				= "BINDING_NAME_";
 
-local ConsolePortSaveBindingSet = nil;
-local ConsolePortSaveBindings = nil;
+local SaveBindingSet = nil; -- static
+local SaveBindingBtn = nil; -- dynamic
 
 G.HotKeys = {};
+
+local function Copy(src)
+	local srcType = type(src);
+	local copy;
+	if srcType == "table" then
+		copy = {};
+		for key, value in next, src, nil do
+			copy[Copy(key)] = Copy(value);
+		end
+		setmetatable(copy, Copy(getmetatable(src)));
+	else
+		copy = src;
+	end
+	return copy;
+end
 
 local function AnimateBindingChange(target, destination)
 	if not ConsolePortAnimationFrame then
@@ -119,28 +128,50 @@ end
 
 local function ChangeBinding(bindingName, bindingTitle)
 	CONF_BUTTON:SetText(bindingTitle);
-	if not ConsolePortSaveBindingSet then
-		ConsolePortSaveBindingSet = ConsolePortBindingSet;
+	if not SaveBindingSet then
+		SaveBindingSet = Copy(ConsolePortBindingSet);
 	end
 	local modifier;
 	if not BIND_MODIFIER then modifier = "action";
 	elseif BIND_MODIFIER == "SHIFT" then modifier = "shift";
 	elseif BIND_MODIFIER == "CTRL" then modifier = "ctrl";
 	elseif BIND_MODIFIER == "CTRL-SHIFT" then modifier = "ctrlsh"; end;
-	ConsolePortSaveBindingSet[BIND_TARGET][modifier] = bindingName;
+	SaveBindingSet[BIND_TARGET][modifier] = bindingName;
+end
+
+local function ResetGuides()
+	for i, guide in pairs(G.HotKeys) do
+		guide:SetTexture(nil);
+		if 	guide:GetParent().HotKey then
+			guide:GetParent().HotKey:SetAlpha(1);
+		end
+	end
+end
+
+local function ReloadBindings()
+	ConsolePort:ReloadBindingActions();
+	ConsolePort:LoadBindingSet();
 end
 
 local function SubmitBindings()
-	if ConsolePortSaveBindingSet or ConsolePortSaveBindings then
+	if 	SaveBindingSet or SaveBindingBtn then
+		ConsolePortBindingSet = SaveBindingSet or ConsolePortBindingSet;
+		ConsolePortBindingButtons = SaveBindingBtn or ConsolePortBindingButtons;
 		if not InCombatLockdown() then
-			for i, guide in pairs(G.HotKeys) do
-				guide:SetTexture(nil);
-				if 	guide:GetParent().HotKey then
-					guide:GetParent().HotKey:SetAlpha(1);
-				end
-			end
-			ConsolePort:ReloadBindingActions();
-			ConsolePort:LoadBindingSet();
+			ResetGuides();
+			ReloadBindings();
+		else
+			ReloadUI();
+		end
+	end
+end
+
+local function RevertBindings()
+	if 	SaveBindingBtn or SaveBindingSet then
+		SaveBindingBtn = nil;
+		SaveBindingSet = nil;
+		if not InCombatLockdown() then
+			ReloadBindings();
 		else
 			ReloadUI();
 		end
@@ -185,9 +216,9 @@ local function GenerateBindingsTable()
 		}
 		for i=item.start, item.stop do
 			local binding = {
-				text = _G["BINDING_NAME_"..GetBinding(i)],
+				text = _G[BIND..GetBinding(i)],
 				notCheckable = true,
-				func = function() ChangeBinding(GetBinding(i), _G["BINDING_NAME_"..GetBinding(i)]); end
+				func = function() ChangeBinding(GetBinding(i), _G[BIND..GetBinding(i)]); end
 			}
 			tinsert(t, binding);
 		end
@@ -207,10 +238,10 @@ local function CreateConfigStaticButton(name, modifier, xoffset, yoffset)
 	elseif 	modifier == "CTRL-SHIFT" then title = name..CTRLSH..CONF;
 	else 	title = name..NOMOD..CONF;
 	end
-	local b = CreateFrame("BUTTON", title, G.binds, "UIMenuButtonStretchTemplate");
-	b:SetWidth(BUTTON_WIDTH);
-	b:SetHeight(BUTTON_HEIGHT);
-	b:SetPoint("TOPLEFT", G.binds, xoffset*BUTTON_WIDTH-60, -BUTTON_HEIGHT*yoffset);
+	local b = CreateFrame("BUTTON", title, G.Binds, "UIMenuButtonStretchTemplate");
+	b:SetWidth(180);
+	b:SetHeight(40);
+	b:SetPoint("TOPLEFT", G.Binds, xoffset*180-60, -40*yoffset);
 	b.OnShow = function(self)
 		local key1, key2 = GetBindingKey(name);
 		if key1 then b.key1 = key1; end;
@@ -229,23 +260,24 @@ local function CreateConfigStaticButton(name, modifier, xoffset, yoffset)
 		BIND_MODIFIER = modifier;
 		EasyMenu(bindMenu, bindMenuFrame, "cursor", 0 , 0, "MENU");
 	end);
+	tinsert(G.Binds.Buttons, b);
 end
 
 function ConsolePort:CreateConfigButton(name, xoffset, yoffset)
-	local f = CreateFrame("FRAME", name..CONFBG, G.binds);
-	local b = CreateFrame("BUTTON", name..CONF, G.binds, "UIMenuButtonStretchTemplate");
+	local f = CreateFrame("FRAME", name..CONFBG, G.Binds);
+	local b = CreateFrame("BUTTON", name..CONF, G.Binds, "UIMenuButtonStretchTemplate");
 	local t = f:CreateTexture(nil, "background");
 	local a = _G[name];
 	b:SetBackdrop(nil);
-	b:SetWidth(BUTTON_WIDTH);
-	b:SetHeight(BUTTON_HEIGHT);
-	b:SetPoint("TOPLEFT", G.binds, xoffset*BUTTON_WIDTH-60, -BUTTON_HEIGHT*yoffset);
+	b:SetWidth(180);
+	b:SetHeight(40);
+	b:SetPoint("TOPLEFT", G.Binds, xoffset*180-60, -40*yoffset);
 	t:SetTexCoord(0.05, 0.95, 0.45, 0.65);
 	t:SetAllPoints(f);
 	f.texture = t;
 	f:SetPoint("CENTER", b);
-	f:SetWidth(OVERLAY_WIDTH);
-	f:SetHeight(OVERLAY_HEIGHT);
+	f:SetWidth(170);
+	f:SetHeight(34);
 	f:SetAlpha(0.25);
 	f:Show();
 	b.background = f;
@@ -264,6 +296,7 @@ function ConsolePort:CreateConfigButton(name, xoffset, yoffset)
 	end);
 	b:SetAlpha(1);
 	b:Show();
+	tinsert(G.Binds.Buttons, b);
 end	
 
 function ConsolePort:CreateIndicator(parent, size, anchor, button)
@@ -274,14 +307,14 @@ function ConsolePort:CreateIndicator(parent, size, anchor, button)
 	f.texture = t;
 	f.overlay = o;
 	o:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder.blp");
-	o:SetPoint("TOPLEFT", f, G["GUIDE_BORDER_X_"..size], G["GUIDE_BORDER_Y_"..size]);
-	o:SetWidth(G["GUIDE_BORDER_S_"..size]);
-	o:SetHeight(G["GUIDE_BORDER_S_"..size]);
-	t:SetTexture(G[TEXTURE..button]);
+	o:SetPoint("TOPLEFT", f, G.GUIDE["BORDER_X_"..size], G.GUIDE["BORDER_Y_"..size]);
+	o:SetWidth(G.GUIDE["BORDER_S_"..size]);
+	o:SetHeight(G.GUIDE["BORDER_S_"..size]);
+	t:SetTexture(G.TEXTURE[button]);
 	t:SetAllPoints(f);
-	f:SetPoint(anchor, parent, G["GUIDE_BUTTON_"..anchor.."_"..size.."_X"], G["GUIDE_BUTTON_"..anchor.."_"..size.."_Y"]);
-	f:SetWidth(G["GUIDE_BUTTON_S_"..size]);
-	f:SetHeight(G["GUIDE_BUTTON_S_"..size]);
+	f:SetPoint(anchor, parent, G.GUIDE["BUTTON_"..anchor.."_"..size.."_X"], G.GUIDE["BUTTON_"..anchor.."_"..size.."_Y"]);
+	f:SetWidth(G.GUIDE["BUTTON_S_"..size]);
+	f:SetHeight(G.GUIDE["BUTTON_S_"..size]);
 	f:SetAlpha(1);
 	f:SetScript("OnShow", function(self)
 		UIFrameFadeIn(self, 0.3, 0, 1);
@@ -298,18 +331,18 @@ function ConsolePort:CreateConfigGuideButton(name, title, parent, xoffset, yoffs
 	elseif 	string.find(fN, "Trigger 2") then fN = "RTWO"; end;
 	f.guide = ConsolePort:CreateIndicator(f, "SMALL", "CENTER", fN);
 	f.guide:SetScript("OnShow", nil);
-	f:SetPoint("TOPLEFT", parent, xoffset+20, -BUTTON_HEIGHT*yoffset);
+	f:SetPoint("TOPLEFT", parent, xoffset+20, -40*yoffset);
 	f:SetWidth(100);
-	f:SetHeight(BUTTON_HEIGHT);
+	f:SetHeight(40);
 	f:SetAlpha(1);
-	f.guide:SetAlpha(0.5);
+
 	f:Show();
 	return f;
 end
 
 
 function ConsolePort:LoadBindingSet()
-	local keys = ConsolePortSaveBindingSet or ConsolePortBindingSet;
+	local keys = SaveBindingSet or ConsolePortBindingSet;
 	local w = WorldFrame;
 	ClearOverrideBindings(w);
 	for name, key in pairs(keys) do
@@ -321,11 +354,11 @@ function ConsolePort:LoadBindingSet()
 end
 
 function ConsolePort:GetDefaultGuideTexture(button)
-	if 		button == "CP_TR1" 		then return G.TEXTURE_RONE;
-	elseif 	button == "CP_TR2" 		then return G.TEXTURE_RTWO;
-	elseif 	button == "CP_TR3" 		then return G.TEXTURE_LONE;
-	elseif 	button == "CP_TR4" 		then return G.TEXTURE_LTWO;
-	else 	return G[TEXTURE..string.upper(G["NAME_"..button])];
+	if 		button == "CP_TR1" 		then return G.TEXTURE.RONE;
+	elseif 	button == "CP_TR2" 		then return G.TEXTURE.RTWO;
+	elseif 	button == "CP_TR3" 		then return G.TEXTURE.LONE;
+	elseif 	button == "CP_TR4" 		then return G.TEXTURE.LTWO;
+	else 	return G.TEXTURE[string.upper(G.NAME[button])];
 	end
 end
 
@@ -376,7 +409,7 @@ function ConsolePort:ReloadBindingAction(button, action, name, mod1, mod2)
 end
 
 function ConsolePort:ReloadBindingActions()
-	local keys = ConsolePortSaveBindings or ConsolePortBindingButtons;
+	local keys = SaveBindingBtn or ConsolePortBindingButtons;
 	for name, key in pairs(keys) do
 		if key.action then 
 			ConsolePort:ReloadBindingAction(_G[name..NOMOD], _G[key.action], name, nil, nil);
@@ -401,29 +434,28 @@ function ConsolePort:ChangeButtonBinding(actionButton)
 	local modfierBtn = actionButton.mod;
 	local focusFrame = GetMouseFocus();
 	local focusFrameName = focusFrame:GetName();
-	local NotConfigButton = focusFrame:GetParent() ~= G.binds;
 	local TARGET_VALID = 	focusFrame:IsObjectType("Button") and
 							focusFrameName ~= confButton:GetText() and
-							NotConfigButton;
+							focusFrame:GetParent() ~= G.Binds;
 	if confButton:GetButtonState() == "PUSHED" then
 		confButton:SetButtonState("NORMAL");
-		confString.guide:SetAlpha(0.5);
 		confButton:UnlockHighlight();
 		if TARGET_VALID then
 			confButton:SetText(focusFrameName);
 			AnimateBindingChange(focusFrame, confButton);
-			if not ConsolePortSaveBindings then
-				ConsolePortSaveBindings = ConsolePortBindingButtons;
+			if not SaveBindingBtn then
+				SaveBindingBtn = Copy(ConsolePortBindingButtons);
 			end
-			if 		modfierBtn == NOMOD 	then	ConsolePortSaveBindings[tableIndex].action 	= focusFrameName; 
-			elseif 	modfierBtn == SHIFT 	then	ConsolePortSaveBindings[tableIndex].shift 	= focusFrameName; 
-			elseif 	modfierBtn == CTRL 		then	ConsolePortSaveBindings[tableIndex].ctrl 	= focusFrameName; 
-			elseif 	modfierBtn == CTRLSH 	then	ConsolePortSaveBindings[tableIndex].ctrlsh 	= focusFrameName;
+			if 		modfierBtn == NOMOD 	then	SaveBindingBtn[tableIndex].action 	= focusFrameName; 
+			elseif 	modfierBtn == SHIFT 	then	SaveBindingBtn[tableIndex].shift 	= focusFrameName; 
+			elseif 	modfierBtn == CTRL 		then	SaveBindingBtn[tableIndex].ctrl 	= focusFrameName; 
+			elseif 	modfierBtn == CTRLSH 	then	SaveBindingBtn[tableIndex].ctrlsh 	= focusFrameName;
 			end
+			ResetGuides();
+			ReloadBindings();
 		end
 	else 
 		confButton:SetButtonState("PUSHED");
-		confString.guide:SetAlpha(1);
 		confButton:LockHighlight();
 	end
 end
@@ -449,27 +481,47 @@ end
 
 function ConsolePort:CreateConfigPanel()
 	if not G.panel then
+		local player = GetUnitName("player").."-"..GetRealmName();
 		G.panel				= CreateFrame( "FRAME", "ConsolePortConfigFrame", InterfaceOptionsFramePanelContainer );
 		G.panel.name		= "Console Port";
 		G.panel.okay 		= function (self) SaveMainConfig(); end;
-		G.panel.camCheck 	= CreateFrame("CheckButton", CP..CHECK.."_CAM", G.panel, "ChatConfigCheckButtonTemplate");
-		G.panel.camCheck:SetPoint("TOPLEFT", 10, -50);
-		G.panel.camCheck.tooltip = "Flip and zoom camera on interaction with NPCs";
-		G.panel.camCheck:SetScript("OnClick", function(self, btn, down)
-			if 	self:GetChecked() then
-				ConsolePortSettings.cam = true;
-			else
-				ConsolePortSettings.cam = false;
-			end
-		end);
-
 		-- Binding palette frame
-		G.binds				= CreateFrame( "FRAME", nil, G.panel);
-		G.binds.name		= "Bindings";
-		G.binds.parent		= G.panel.name;
-		G.binds.okay		= function (self) SubmitBindings(); end;
-		G.binds:SetScript("OnShow", function(self)
+		G.Binds				= CreateFrame( "FRAME", nil, G.panel);
+		G.Binds.Buttons 	= {};
+		G.Binds.name		= "Bindings";
+		G.Binds.parent		= G.panel.name;
+		G.Binds.okay		= function (self) SubmitBindings(); end;
+		G.Binds.cancel 		= function (self) RevertBindings(); end;
+		G.Binds:SetScript("OnShow", function(self)
 			InterfaceOptionsFrame:SetWidth(1100);
+			local index, exists = 1, false;
+			UIDropDownMenu_Initialize(G.Binds.dropdown, function()
+				if ConsolePortCharacterSettings then
+					local count = 1;
+					for character, _ in pairs(ConsolePortCharacterSettings) do
+						info = {};
+						info.text = character;
+						info.value = character;
+						info.func = G.Binds.dropdown.Click;
+						UIDropDownMenu_AddButton(info, 1);
+						if not exists and character == player then
+							exists = true;
+							index = count;
+						end
+						count = count + 1;
+					end
+				else
+					G.Binds.import:SetButtonState("DISABLED");
+				end
+			end);
+			UIDropDownMenu_SetSelectedID(G.Binds.dropdown, index);
+			UIDropDownMenu_SetWidth(G.Binds.dropdown, 150);
+			if not ConsolePortCharacterSettings then
+				UIDropDownMenu_SetText(G.Binds.dropdown, "No saved profiles");
+			end
+			local mods = {
+				_G[CP..SHIFT..GUIDE], _G[CP..CTRL..GUIDE], _G[CP..CTRLSH.."1"..GUIDE], _G[CP..CTRLSH.."2"..GUIDE]
+			}
 			self:SetScript("OnUpdate", function(self, elapsed)
 				if not InCombatLockdown() then
 					InterfaceOptionsFrame:SetAlpha(1);
@@ -477,68 +529,83 @@ function ConsolePort:CreateConfigPanel()
 				else
 					InterfaceOptionsFrame:SetAlpha(0.2);
 				end
-				if not 	IsModifierKeyDown() then
-					_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
-				elseif 	IsShiftKeyDown() and IsControlKeyDown() then
-					_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(1);
-					_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(1);
-				elseif 	IsShiftKeyDown() then
-					_G[CP..SHIFT..GUIDE].guide:SetAlpha(1);
-					_G[CP..CTRL..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
-				elseif	IsControlKeyDown() then
-					_G[CP..SHIFT..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRL..GUIDE].guide:SetAlpha(1);
-					_G[CP..CTRLSH.."1"..GUIDE].guide:SetAlpha(0.5);
-					_G[CP..CTRLSH.."2"..GUIDE].guide:SetAlpha(0.5);
+				if not 	IsModifierKeyDown() then for i=1, 4 do mods[i]:SetAlpha(0.5); end
+				elseif 	IsShiftKeyDown() and IsControlKeyDown() then for i=1, 2 do mods[i]:SetAlpha(0.5); mods[i+2]:SetAlpha(1); end
+				elseif 	IsShiftKeyDown() then for i=2, 4 do mods[i]:SetAlpha(0.5); end mods[1]:SetAlpha(1);
+				elseif	IsControlKeyDown() then for i=1, 4 do mods[i]:SetAlpha(0.5); end mods[2]:SetAlpha(1);
 				end
 			end);
 		end);
-		G.binds:SetScript("OnHide", function(self)
+		G.Binds:SetScript("OnHide", function(self)
 			HelpPlate_Hide();
-			ConsolePortSaveBindings = nil;
-			ConsolePortSaveBindingSet = nil;
+			RevertBindings();
 			ConsolePort:SetButtonActionsConfig(false);
 			self:SetScript("OnUpdate", nil);
 		end);
 
-		G.binds.bgUpper = CreateFrame("FRAME", nil, G.binds, "InsetFrameTemplate");
-		G.binds.bgUpper:SetSize(856, 398);
-		G.binds.bgUpper:SetPoint("TOPLEFT", G.binds, "TOPLEFT", 4, -4);
-		G.binds.bgLower = CreateFrame("FRAME", nil, G.binds, "InsetFrameTemplate");
-		G.binds.bgLower:SetSize(856, 165);
-		G.binds.bgLower:SetPoint("TOPLEFT", G.binds, "TOPLEFT", 4, -399);
-		local tutorialCursor = "|TInterface\\AddOns\\ConsolePort\\Graphic\\TutorialCursor:64:128:0:0|t";
-		local exampleTexture = G.TEXTURE_Y or G.TEXTURE_TRIANGLE;
-		local exampleCombo = "|T"..G.TEXTURE_LONE..":20:20:0:0|t".."|T"..exampleTexture..":20:20:0:0|t";
-		local dynamicString = "       |cFFFFD200[Rebind Instructions]|r\n\n1. Mouse over an action button\n2.  Press a button combination\n"..tutorialCursor.."+   "..exampleCombo;
-		local staticString = "       |cFFFFD200[Rebind Instructions]|r\n\n1.   Click on a combination\n2. Choose action from the list\n";
-		local modifierString = "              |cFFFFD200[Modifiers]|r\nThese columns represent all button combinations. Every button in the list to the left\nhas four combinations each.";
-		local actionString = "          |cFFFFD200[Action Buttons]|r\nThese buttons can be used for abilities, macros and items. They are also used to control the interface.";
-		local optionString = "          |cFFFFD200[Option Buttons]|r\nThese buttons can be used to perform any action defined in the regular key bindings.";
-		G.binds.tutorials = {
-			FramePos = { x = 0,	y = 0 },
-			FrameSize = { width = 700, height = 600	},
-			[1] = { ButtonPos = { x = 18,	y = -196},	HighLightBox = { x = 40, y = -40, width = 60, height = 360 },	ToolTipDir = "LEFT",	ToolTipText = actionString },
-			[2] = { ButtonPos = { x = 18,	y = -456},	HighLightBox = { x = 40, y = -400, width = 60, height = 160 },	ToolTipDir = "LEFT",	ToolTipText = optionString },
-			[3] = { ButtonPos = { x = 180,	y = 0 },	HighLightBox = { x = 118, y = -6, width = 720, height = 32 },	ToolTipDir = "UP",	ToolTipText = modifierString},
-			[4] = { ButtonPos = { x = 456,	y = -100 },	HighLightBox = { x = 118, y = -40, width = 720, height = 360 },	ToolTipDir = "DOWN",	ToolTipText = dynamicString},
-			[5] = { ButtonPos = { x = 456,	y = -456},	HighLightBox = { x = 118, y = -400, width = 720, height = 160 },	ToolTipDir = "UP",	ToolTipText = staticString },
+		local insetBackgrounds = {
+			{name = "bgCorner", size = {w = 272, h = 30}, 	anchor = {p = "BOTTOMRIGHT", r = "TOPRIGHT"}, 	offset = {x = -24, y = 0}},
+			{name = "bgUpper", 	size = {w = 856, h = 398}, 	anchor = {p = "TOPLEFT", r = "TOPLEFT"}, 		offset = {x =  4,  y = -4}},
+			{name = "bgLower", 	size = {w = 856, h = 165}, 	anchor = {p = "TOPLEFT", r = "TOPLEFT"}, 		offset = {x =  4,  y = -398}},
 		}
-		G.binds.helpButton = CreateFrame("Button", nil, G.binds, "MainHelpPlateButton");
-		G.binds.helpButton:SetPoint("TOPLEFT", G.binds, "TOPLEFT", -20, 20);
-		G.binds.helpButton:SetFrameStrata("TOOLTIP");
-		G.binds.helpButton:SetScript("OnClick", function(...)
+		for _, bg in pairs(insetBackgrounds) do
+			G.Binds[bg.name] = CreateFrame("FRAME", nil, G.Binds, "InsetFrameTemplate");
+			G.Binds[bg.name]:SetSize(bg.size.w, bg.size.h);
+			G.Binds[bg.name]:SetPoint(bg.anchor.p, G.Binds, bg.anchor.r, bg.offset.x, bg.offset.y);
+		end
+
+		G.Binds.dropdown = CreateFrame("BUTTON", "ConsolePortImportDropdown", G.Binds, "UIDropDownMenuTemplate");
+		G.Binds.dropdown:SetPoint("LEFT", G.Binds.bgCorner, "LEFT", -12, -2);
+		G.Binds.dropdown.Click = function (self)
+			UIDropDownMenu_SetSelectedID(G.Binds.dropdown, self:GetID());
+		end
+
+		G.Binds.import = CreateFrame("BUTTON", nil, G.Binds, "UIPanelButtonTemplate");
+		G.Binds.import:SetPoint("RIGHT", G.Binds.bgCorner, "RIGHT", -4, 0);
+		G.Binds.import:SetWidth(96);
+		G.Binds.import:SetText("Import");
+		G.Binds.import:SetScript("OnClick", function(self, ...)
+			local ImportTable = ConsolePortCharacterSettings[UIDropDownMenu_GetText(G.Binds.dropdown)];
+			if ImportTable then
+				SaveBindingSet = ImportTable.BindingSet;
+				SaveBindingBtn = ImportTable.BindingBtn;
+				ReloadBindings();
+				for i, Button in pairs(G.Binds.Buttons) do
+					Button.OnShow(Button);
+				end
+			end
+		end);
+
+		G.Binds.tutorials = {
+			FramePos = { x = 40,	y = 8 },
+			FrameSize = { width = 700, height = 600	},
+			[1] = { ButtonPos = { x = 504,	y = 30},
+					HighLightBox = { x = 526, y = 22, width = 274, height = 32 },
+					ToolTipDir = "LEFT",	ToolTipText = G.TUTORIAL.BIND.IMPORT},
+			[2] = { ButtonPos = { x = -22,	y = -204},
+					HighLightBox = { x = 0, y = -48, width = 60, height = 360 },
+					ToolTipDir = "LEFT",	ToolTipText = G.TUTORIAL.BIND.ACTION},
+			[3] = { ButtonPos = { x = -22,	y = -464},	
+					HighLightBox = { x = 0, y = -410, width = 60, height = 160 },
+					ToolTipDir = "LEFT",	ToolTipText = G.TUTORIAL.BIND.OPTION},
+			[4] = { ButtonPos = { x = 140,	y = -8 },
+					HighLightBox = { x = 80, y = -14, width = 720, height = 32 },
+					ToolTipDir = "UP",		ToolTipText = G.TUTORIAL.BIND.MOD},
+			[5] = { ButtonPos = { x = 416,	y = -108 },
+					HighLightBox = { x = 80, y = -48, width = 720, height = 360 },
+					ToolTipDir = "DOWN",	ToolTipText = G.TUTORIAL.BIND.DYNAMIC},
+			[6] = { ButtonPos = { x = 416,	y = -464},
+					HighLightBox = { x = 80, y = -410, width = 720, height = 160 },
+					ToolTipDir = "UP",	ToolTipText = G.TUTORIAL.BIND.STATIC },
+		}
+		G.Binds.helpButton = CreateFrame("Button", nil, G.Binds, "MainHelpPlateButton");
+		G.Binds.helpButton:SetPoint("TOPLEFT", G.Binds, "TOPLEFT", 40, 8);
+		G.Binds.helpButton:SetFrameStrata("TOOLTIP");
+		G.Binds.helpButton:SetScript("OnClick", function(...)
 			if HelpPlate:IsVisible() then
 				HelpPlate_Hide();
 			else
-				HelpPlate_Show(G.binds.tutorials, G.binds, G.binds.helpButton, true);
+				HelpPlate_Show(G.Binds.tutorials, G.Binds, G.Binds.helpButton, true);
 			end
 		end);
 		
@@ -555,7 +622,7 @@ function ConsolePort:CreateConfigPanel()
 		end
 
 		InterfaceOptions_AddCategory(G.panel);
-		InterfaceOptions_AddCategory(G.binds);
+		InterfaceOptions_AddCategory(G.Binds);
 		InterfaceOptions_AddCategory(G.Mouse);
 
 		-- Create guide buttons on the binding palette
@@ -564,19 +631,19 @@ function ConsolePort:CreateConfigPanel()
 			{modifier = CTRL,	texture = "LTWO", xoffset = 180*3-40, xoffset2 = 180*4-25},
 		}
 		for i, button in pairs(modButtons) do
-			ConsolePort:CreateConfigGuideButton(CP..button.modifier, button.texture, G.binds, button.xoffset, 0);
-			ConsolePort:CreateConfigGuideButton(CP..CTRLSH..i, button.texture, G.binds, button.xoffset2, 0);
+			ConsolePort:CreateConfigGuideButton(CP..button.modifier, button.texture, G.Binds, button.xoffset, 0.1);
+			ConsolePort:CreateConfigGuideButton(CP..CTRLSH..i, button.texture, G.Binds, button.xoffset2, 0.1);
 		end
 
 		-- "Option buttons"; static bindings able to call protected Blizzard API
 		local optionButtons = {
-			{option = "CP_X_OPTION", icon = G.NAME_CP_X_OPTION},
-			{option = "CP_C_OPTION", icon = G.NAME_CP_C_OPTION},
-			{option = "CP_L_OPTION", icon = G.NAME_CP_L_OPTION},
-			{option = "CP_R_OPTION", icon = G.NAME_CP_R_OPTION},
+			{option = "CP_X_OPTION", icon = G.NAME.CP_X_OPTION},
+			{option = "CP_C_OPTION", icon = G.NAME.CP_C_OPTION},
+			{option = "CP_L_OPTION", icon = G.NAME.CP_L_OPTION},
+			{option = "CP_R_OPTION", icon = G.NAME.CP_R_OPTION},
 		}
 		for i, button in pairs(optionButtons) do
-			ConsolePort:CreateConfigGuideButton(button.option, button.icon, G.binds, 0, i+9);
+			ConsolePort:CreateConfigGuideButton(button.option, button.icon, G.Binds, 0, i+9);
 			CreateConfigStaticButton(button.option, nil, 1, i+9);
 			CreateConfigStaticButton(button.option, "SHIFT", 2, i+9);
 			CreateConfigStaticButton(button.option, "CTRL", 3, i+9);

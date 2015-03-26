@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local BIND_TARGET 	 	= false;
 local CONF_BUTTON 		= nil;
@@ -10,7 +9,6 @@ local NOMOD				= "_NOMOD";
 local SHIFT 			= "_SHIFT";
 local CTRL 				= "_CTRL";
 local CTRLSH 			= "_CTRLSH";
-local TEXTURE 			= "TEXTURE_";
 
 G.ConsolePort_Loaded = false;
 G.ButtonGuides 		 = {};
@@ -376,8 +374,8 @@ end
         	elseif 	msg == "binds" or
         			msg == "binding" or
         			msg == "bindings" then
-        		InterfaceOptionsFrame_OpenToCategory(G.binds);
-				InterfaceOptionsFrame_OpenToCategory(G.binds);
+        		InterfaceOptionsFrame_OpenToCategory(G.Binds);
+				InterfaceOptionsFrame_OpenToCategory(G.Binds);
         	else
         		print("Console Port:");
         		print("/cp type: Change controller type");
@@ -409,7 +407,7 @@ function ConsolePort:CreateBindingButtons()
 	table.sort(keys);
 	for name, key in pairsByKeys(keys) do
 		local x = 1;
-		ConsolePort:CreateConfigGuideButton(name, G["NAME_"..name], G.binds, 0, y);
+		ConsolePort:CreateConfigGuideButton(name, G.NAME[name], G.Binds, 0, y);
 		if key.action 	then ConsolePort:CreateSecureButton(name, NOMOD,	key.action,	key.ui);
 							 ConsolePort:CreateConfigButton(name..NOMOD, x, y);	x = x + 1;	end;
 		if key.shift 	then ConsolePort:CreateSecureButton(name,	SHIFT, 	key.shift, 	key.ui);

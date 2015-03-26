@@ -1,7 +1,7 @@
 ## Interface: 60100
 ## Title: Console Port
 ## Notes: Custom controller port
-## SavedVariables: ConsolePortSettings
+## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouseSettings
 ConsolePortLoad.lua
 ConsolePortSplash.lua
@@ -24,4 +24,3 @@ ConsolePortGameMenu.lua
 ConsolePortStack.lua
 ConsolePortPopup.lua
 ConsolePortDropDown.lua
-

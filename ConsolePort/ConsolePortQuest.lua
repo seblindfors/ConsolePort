@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 local iterator = 1;
 

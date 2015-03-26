@@ -1,4 +1,3 @@
-local _
 local _, G = ...;
 
 local function MainBarAction(action)
