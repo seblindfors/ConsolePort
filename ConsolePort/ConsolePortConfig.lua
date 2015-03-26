@@ -385,9 +385,9 @@ function ConsolePort:UpdateModifiedActionGuideTexture(button, modifier, anchor)
 		button[mod] = button:CreateTexture();
 		button[mod]:SetPoint(anchor, button, 0, 0);
 		button[mod]:SetSize(14, 14);
-		tinsert(G.HotKeys, button.guide);
+		tinsert(G.HotKeys, button[mod]);
 	elseif not modifier and button[mod] then
-		button[mod]:Hide();
+		button[mod]:SetTexture(nil);
 	end
 	if 	modifier then
 		button[mod]:SetTexture(ConsolePort:GetDefaultGuideTexture(modifier));
@@ -567,8 +567,8 @@ function ConsolePort:CreateConfigPanel()
 		G.Binds.import:SetScript("OnClick", function(self, ...)
 			local ImportTable = ConsolePortCharacterSettings[UIDropDownMenu_GetText(G.Binds.dropdown)];
 			if ImportTable then
-				SaveBindingSet = ImportTable.BindingSet;
-				SaveBindingBtn = ImportTable.BindingBtn;
+				SaveBindingSet = Copy(ImportTable.BindingSet);
+				SaveBindingBtn = Copy(ImportTable.BindingBtn);
 				ReloadBindings();
 				for i, Button in pairs(G.Binds.Buttons) do
 					Button.OnShow(Button);
