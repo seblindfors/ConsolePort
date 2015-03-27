@@ -31,10 +31,11 @@ function ConsolePort:Quest (key, state)
 		ConsolePort:Button(QuestDetailScrollFrameScrollBarScrollDownButton, state);
 		ConsolePort:Button(QuestProgressScrollFrameScrollBarScrollDownButton, state);
 		ConsolePort:Button(QuestRewardScrollFrameScrollBarScrollDownButton, state);
-	elseif 	key == "rewards" or 
+	elseif (key == "rewards" or 
 			key == "preview" or 
 			key == G.LEFT or 
-			key == G.RIGHT then
+			key == G.RIGHT) and
+			QuestInfoRewardsFrame:IsVisible() then
 		local rewards = { QuestInfoRewardsFrame:GetChildren() };
 		local items = {};
 		local count = 0;

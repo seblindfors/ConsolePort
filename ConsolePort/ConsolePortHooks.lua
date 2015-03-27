@@ -10,19 +10,51 @@ local function CinematicControllerInput(key, state)
 	if button then ConsolePort:Misc(button, state); end;
 end
 
+-- Recursively compare two tables 
+local function CompareTables(t1,t2)
+	if t1 == t2 then
+		return true;
+	end
+	if type(t1) ~= "table" then
+		return false;
+	end
+	local mt1, mt2 = getmetatable(t1), getmetatable(t2);
+	if not CompareTables(mt1,mt2) then
+		return false;
+	end
+	for k1, v1 in pairs(t1) do
+		local v2 = t2[k1];
+		if not CompareTables(v1,v2) then
+			return false;
+		end
+	end
+	for k2, v2 in pairs(t2) do
+		local v1 = t1[k2];
+		if not CompareTables(v1,v2) then
+			return false;
+		end
+	end
+	return true;
+end
+
 local function ExportCharacterSettings()
 	local index = GetUnitName("player").."-"..GetRealmName();
-	if not ConsolePortCharacterSettings then
-		ConsolePortCharacterSettings = {};
+	if 	not CompareTables(ConsolePortBindingSet, ConsolePort:GetDefaultBindingSet()) or
+		not CompareTables(ConsolePortBindingButtons, ConsolePort:GetDefaultBindingButtons()) then
+		if not ConsolePortCharacterSettings then
+			ConsolePortCharacterSettings = {};
+		end
+		if not ConsolePortCharacterSettings[index] then
+			ConsolePortCharacterSettings[index] = {};
+		end
+		ConsolePortCharacterSettings[index] = {
+			BindingSet = ConsolePortBindingSet;
+			BindingBtn = ConsolePortBindingButtons,
+			MouseEvent = ConsolePortMouseSettings
+		}
+	elseif ConsolePortCharacterSettings then
+		ConsolePortCharacterSettings[index] = nil;
 	end
-	if not ConsolePortCharacterSettings[index] then
-		ConsolePortCharacterSettings[index] = {};
-	end
-	ConsolePortCharacterSettings[index] = {
-		BindingSet = ConsolePortBindingSet;
-		BindingBtn = ConsolePortBindingButtons,
-		MouseEvent = ConsolePortMouseSettings
-	}
 end
 
 -- Hacky replacement for the very broken event PLAYER_LOGOUT

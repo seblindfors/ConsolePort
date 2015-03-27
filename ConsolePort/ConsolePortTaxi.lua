@@ -7,6 +7,7 @@ TaxiFrame:HookScript("OnHide", function()
 	nodes = {}; points = {};
 end);
 
+-- BUG: attempt to index nil value at line 13
 local function TaxiFindClosestNode(key)
 	local this 	= nodes[iterator];
 	local thisY = points[iterator].Y;
