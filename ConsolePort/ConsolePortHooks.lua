@@ -11,7 +11,7 @@ local function CinematicControllerInput(key, state)
 end
 
 -- Recursively compare two tables 
-local function CompareTables(t1,t2)
+local function CompareTables(t1, t2)
 	if t1 == t2 then
 		return true;
 	end
@@ -86,9 +86,15 @@ function ConsolePort:LoadHookScripts()
 	local Controller = GameMenuFrame:CreateTexture("GameMenuTextureController", "ARTWORK");
 	Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\Splash"..ConsolePortSettings.type);
 	Controller:SetPoint("CENTER", GameMenuFrame, "CENTER");
+	--
+	InterfaceOptionsFrame:SetMovable(true);
+	InterfaceOptionsFrame:RegisterForDrag("LeftButton");
+	InterfaceOptionsFrame:HookScript("OnDragStart", InterfaceOptionsFrame.StartMoving);
+	InterfaceOptionsFrame:HookScript("OnDragStop", InterfaceOptionsFrame.StopMovingOrSizing);
 	-- Add guides to tooltips
 	-- Bug: Currently shows on reagents to recipes
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
+		local item = self:GetItem();
 		if 	not InCombatLockdown() then
 			local 	CLICK_STRING;
 			if		self:GetOwner():GetParent():GetName() and
@@ -100,16 +106,20 @@ function ConsolePort:LoadHookScripts()
 					end
 			elseif	self:GetOwner():GetParent() == LootFrame then
 					self:AddLine(G.CLICK_LOOT, 1,1,1);
-			elseif 	MerchantFrame:IsVisible() 		 then CLICK_STRING = G.CLICK.SELL;
-			elseif 	IsEquippedItem(self:GetItem()) 	 then CLICK_STRING = G.CLICK.REPLACE;
-			elseif 	IsEquippableItem(self:GetItem()) then CLICK_STRING = G.CLICK.EQUIP;
-			else 	CLICK_STRING = G.CLICK.USE; end
-			if 	GetItemCount(self:GetItem(), false) ~= 0 or
+			elseif 	MerchantFrame:IsVisible()	then CLICK_STRING = G.CLICK.SELL;
+			elseif 	IsEquippedItem(item)		then CLICK_STRING = G.CLICK.REPLACE;
+			elseif 	IsEquippableItem(item) 		then CLICK_STRING = G.CLICK.EQUIP;
+			elseif 	GetItemSpell(item) 	 		then CLICK_STRING = G.CLICK.USE;
+			end
+			if 	GetItemCount(item, false) ~= 0 or
 				MerchantFrame:IsVisible() then
 				if 	EquipmentFlyoutFrame:IsVisible() then
 					self:AddLine(G.CLICK_CANCEL, 1,1,1);
 				end
 				self:AddLine(CLICK_STRING, 1,1,1);
+				if CLICK_STRING == G.CLICK.USE then
+					self:AddLine(G.CLICK.ADD_TO_EXTRA, 1,1,1);
+				end
 				if not self:GetOwner():GetParent() == LootFrame then
 					self:AddLine(G.CLICK.PICKUP, 1,1,1);
 				end

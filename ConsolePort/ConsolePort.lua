@@ -260,6 +260,7 @@ function ConsolePort:ADDON_LOADED(...)
 		self:LoadStrings();
 		self:OnVariablesLoaded();
 		self:LoadEvents();
+		self:UpdateExtraButton();
 		self:LoadHookScripts();
 		self:CreateConfigPanel();
 		self:CreateBindingButtons();
@@ -300,12 +301,10 @@ function ConsolePort:SetButtonActions (type)
 	elseif 	type == "Bags" 	then IgnoreIndex = {6};
 	end
 	for _, index in pairs(IgnoreIndex) do
-		Buttons[index] = false;
+		Buttons[index] = nil;
 	end
 	for i, button in pairs(Buttons) do
-		if 	button then
-			button:SetAttribute("type", type);
-		end
+		button:SetAttribute("type", type);
 	end
 end
 

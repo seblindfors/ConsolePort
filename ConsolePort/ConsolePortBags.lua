@@ -61,6 +61,13 @@ function ConsolePort:Bags (key, state)
 	
 	if 		key == G.CIRCLE then
 		UseContainerItem(slot.bagIndex, slot.slotIndex);
+	elseif 	key == G.TRIANGLE and state == G.STATE_DOWN then
+		local link = GetContainerItemLink(slot.bagIndex, slot.slotIndex);
+		if 	link and GetItemSpell(link) then
+			self:UpdateExtraButton(link);
+		else
+			self:UpdateExtraButton();
+		end
 	elseif 	key == G.SQUARE then
 		if 	state == G.STATE_DOWN then
 			PickupContainerItem(slot.bagIndex, slot.slotIndex);

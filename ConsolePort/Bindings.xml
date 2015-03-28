@@ -41,4 +41,5 @@
 	<Binding name="CP_TR2" header="CP_TRIG" category="Console Port">
 		-- 
 	</Binding>
+	<Binding name="CLICK ConsolePortExtraButton:LeftButton" category="Console Port" hidden="true"/>
 </Bindings>

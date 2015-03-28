@@ -48,6 +48,7 @@ BINDING_NAME_CP_L_LEFT		=	"Left";
 BINDING_NAME_CP_L_RIGHT		=	"Right";
 BINDING_NAME_CP_TR1			=	"Trigger 1";
 BINDING_NAME_CP_TR2			=	"Trigger 2";
+setglobal("BINDING_NAME_CLICK ConsolePortExtraButton:LeftButton", "ConsolePort Extra"); 
 -- Local binding strings
 G.NAME.CP_L_UP				=	"Up";
 G.NAME.CP_L_DOWN			=	"Down";
@@ -172,6 +173,7 @@ function ConsolePort:LoadStrings()
 	G.CLICK.QUEST_DETAILS 	= _LEFT.."View quest details|r";
 	G.CLICK.CANCEL 			= _UP.."Cancel|r";
 	G.CLICK.STACK_BUY 		= _UP.."Buy a different amount|r";
+	G.CLICK.ADD_TO_EXTRA	= _UP.."Bind|r";
 	-- Tutorial strings
 	local tutorialCursor 	= "|TInterface\\AddOns\\ConsolePort\\Graphic\\TutorialCursor:64:128:0:0|t";
 	local exampleTexture 	= G.TEXTURE.Y or G.TEXTURE.TRIANGLE;

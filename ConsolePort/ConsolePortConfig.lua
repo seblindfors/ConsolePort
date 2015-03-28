@@ -215,16 +215,24 @@ local function GenerateBindingsTable()
 			notCheckable = true
 		}
 		for i=item.start, item.stop do
+			local bind = _G[BIND..GetBinding(i)];
 			local binding = {
-				text = _G[BIND..GetBinding(i)],
+				text = bind,
 				notCheckable = true,
-				func = function() ChangeBinding(GetBinding(i), _G[BIND..GetBinding(i)]); end
+				func = function() ChangeBinding(GetBinding(i), bind); end
 			}
 			tinsert(t, binding);
 		end
 		SubMenu.menuList = t;
 		tinsert(BindingsTable, SubMenu);
 	end
+	local ExtraBind = "CLICK ConsolePortExtraButton:LeftButton";
+	local binding = {
+		text = _G[BIND..ExtraBind],
+		notCheckable = true,
+		func = function() ChangeBinding(ExtraBind, _G[BIND..ExtraBind]); end;
+	}
+	tinsert(BindingsTable, binding);
 	return BindingsTable;
 end 
 
@@ -367,7 +375,7 @@ function ConsolePort:UpdateActionGuideTexture(button, key, mod1, mod2)
 		button.HotKey:SetAlpha(0);
 	end
 	if not button.guide then
-		button.guide = button:CreateTexture();
+		button.guide = button:CreateTexture(nil, "OVERLAY", nil, 7);
 		button.guide:SetPoint("TOPRIGHT", button, 0, 0);
 		button.guide:SetSize(14, 14);
 		tinsert(G.HotKeys, button.guide);
@@ -382,7 +390,7 @@ function ConsolePort:UpdateModifiedActionGuideTexture(button, modifier, anchor)
 	if 		anchor == "TOP"  	then mod = "mod1";
 	elseif 	anchor == "TOPLEFT" then mod = "mod2"; end;
 	if  modifier and not button[mod] then
-		button[mod] = button:CreateTexture();
+		button[mod] = button:CreateTexture(nil, "OVERLAY", nil, 7);
 		button[mod]:SetPoint(anchor, button, 0, 0);
 		button[mod]:SetSize(14, 14);
 		tinsert(G.HotKeys, button[mod]);
@@ -494,6 +502,7 @@ function ConsolePort:CreateConfigPanel()
 		G.Binds.cancel 		= function (self) RevertBindings(); end;
 		G.Binds:SetScript("OnShow", function(self)
 			InterfaceOptionsFrame:SetWidth(1100);
+			ConsolePortExtraButton:ForceShow(true);
 			local index, exists = 1, false;
 			UIDropDownMenu_Initialize(G.Binds.dropdown, function()
 				if ConsolePortCharacterSettings then
@@ -541,6 +550,7 @@ function ConsolePort:CreateConfigPanel()
 			RevertBindings();
 			ConsolePort:SetButtonActionsConfig(false);
 			self:SetScript("OnUpdate", nil);
+			ConsolePortExtraButton:ForceShow(false);
 		end);
 
 		local insetBackgrounds = {
