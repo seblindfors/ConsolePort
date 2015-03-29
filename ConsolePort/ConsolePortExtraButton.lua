@@ -8,7 +8,11 @@ local function OnUpdate(self, elapsed)
 		if not InCombatLockdown() and not self.forceShow then
 			local count = GetItemCount(self:GetAttribute("item"));
 			if count < 1 then
-				ConsolePort:UpdateExtraButton();
+				if ConsolePortSettings.autoExtra then
+					self:CheckQuest();
+				else
+					self:UpdateButton();
+				end
 			end
 		end
 		self.timer = self.timer - 0.5;
@@ -32,7 +36,6 @@ local function OnEvent(self, event, ...)
 end
 
 local function CheckQuest(self)
-	local current = self and self:GetAttribute("item");
 	if not InCombatLockdown() then
 		watchQuests, count = {}, 0;
 		for i=1, GetNumQuestWatches() do
@@ -46,7 +49,11 @@ local function CheckQuest(self)
 				end
 			end
 		end
-		ConsolePort:UpdateExtraButton(questItem);
+		if count == 1 then
+			self:UpdateButton(questItem);
+		else
+			self:UpdateButton();
+		end
 	end
 end
 
@@ -67,12 +74,12 @@ local function CreateExtraButton()
 	f.Update = OnUpdate;
 	f.ForceShow = ForceShow;
 	f.CheckQuest = CheckQuest;
+	f.UpdateButton = ConsolePort.UpdateExtraButton;
 	f:SetMovable(true);
 	f:RegisterForDrag("LeftButton");
 	f:RegisterEvent("PLAYER_REGEN_ENABLED");
 	f:RegisterEvent("PLAYER_REGEN_DISABLED");
 	f:RegisterEvent("QUEST_LOG_UPDATE");
-	f:SetScript("OnShow", function(self) ActionButton_ShowOverlayGlow(self); self.glow = 1; end);
 	f:SetScript("OnDragStart", f.StartMoving);
 	f:SetScript("OnDragStop", f.StopMovingOrSizing);
 	f:SetScript("OnUpdate", OnUpdate);
@@ -96,10 +103,12 @@ function ConsolePort:UpdateExtraButton(item)
 	if item and GetItemCount(item) > 0 and GetItemInfo(item) ~= Extra:GetAttribute("item") then
 		local name, _, _, _, _, class, sub, _, _, texture = GetItemInfo(item);
 		Extra.quest:SetShown(class=="Quest");
+		Extra.glow = 1;
 		Extra:SetAttribute("item", name);
 		Extra.icon:SetTexture(texture);
 		Extra:SetAlpha(1);
 		Extra:Show();
+		ActionButton_ShowOverlayGlow(Extra);
 	else
 		Extra.icon:SetTexture(nil);
 		Extra:SetAttribute("item", nil);

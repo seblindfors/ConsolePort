@@ -329,6 +329,7 @@ function ConsolePort:GetDefaultAddonSettings()
 	local t = {};
 	t.type = "PS4";
 	t.cam = false;
+	t.autoExtra = true;
 	return t;
 end
 
