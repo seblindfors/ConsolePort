@@ -13,6 +13,9 @@ local function OnUpdate(self, elapsed)
 				else
 					self:UpdateButton();
 				end
+			elseif self.itemID then
+				local time, cooldown, _ = GetItemCooldown(self.itemID);
+				self.cooldown:SetCooldown(time, cooldown);
 			end
 		end
 		self.timer = self.timer - 0.5;
@@ -68,6 +71,7 @@ end
 
 local function CreateExtraButton()
 	local f = CreateFrame("BUTTON", "ConsolePortExtraButton", UIParent, "SecureActionButtonTemplate, ActionButtonTemplate");
+	local c = CreateFrame("COOLDOWN", nil, f, "CooldownFrameTemplate");
 	local t = f:CreateTexture(nil, "OVERLAY", nil, 0);
 	local q = f:CreateTexture(nil, "OVERLAY", nil, 1);
 	f.timer = 0;
@@ -89,19 +93,24 @@ local function CreateExtraButton()
 	f:SetAttribute("type", "item");
 	f.style = t;
 	f.quest = q;
+	f.cooldown = c;
 	t:SetSize(256,128);
 	t:SetPoint("CENTER", f, "CENTER", -2, 0);
 	t:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\ExtraButton"..ConsolePortSettings.type);
 	q:SetSize(64,64);
 	q:SetPoint("CENTER", f, "CENTER", 0, -26);
 	q:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\QuestButton");
+	c:SetAllPoints(f);
+	c:SetSize(52,52);
 	return f;
 end
 
 function ConsolePort:UpdateExtraButton(item)
 	local Extra = ConsolePortExtraButton or CreateExtraButton();
 	if item and GetItemCount(item) > 0 and GetItemInfo(item) ~= Extra:GetAttribute("item") then
-		local name, _, _, _, _, class, sub, _, _, texture = GetItemInfo(item);
+		local name, link, _, _, _, class, sub, _, _, texture = GetItemInfo(item);
+		local _, itemID = strsplit(":", strmatch(link, "item[%-?%d:]+"));
+		Extra.itemID = itemID; 
 		Extra.quest:SetShown(class=="Quest");
 		Extra.glow = 1;
 		Extra:SetAttribute("item", name);
@@ -110,6 +119,7 @@ function ConsolePort:UpdateExtraButton(item)
 		Extra:Show();
 		ActionButton_ShowOverlayGlow(Extra);
 	else
+		Extra.itemID = nil;
 		Extra.icon:SetTexture(nil);
 		Extra:SetAttribute("item", nil);
 		Extra:Hide();
