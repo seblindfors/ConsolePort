@@ -56,11 +56,11 @@ local function LoadHooks ()
 	local LoadFrames = {
 		{ PaperDollFrame, 			ConsolePort.Gear, 	"Gear" 	},
 		{ GameMenuFrame, 			ConsolePort.Menu, 	"Menu" 	},
-		{ ContainerFrame1, 			ConsolePort.Bags, 	"Bags" 	},
-		{ ContainerFrame2, 			ConsolePort.Bags,	"Bags" 	},
-		{ ContainerFrame3, 			ConsolePort.Bags, 	"Bags" 	},
-		{ ContainerFrame4, 			ConsolePort.Bags, 	"Bags" 	},
-		{ ContainerFrame5, 			ConsolePort.Bags, 	"Bags" 	},
+		-- { ContainerFrame1, 			ConsolePort.Bags, 	"Bags" 	},
+		-- { ContainerFrame2, 			ConsolePort.Bags,	"Bags" 	},
+		-- { ContainerFrame3, 			ConsolePort.Bags, 	"Bags" 	},
+		-- { ContainerFrame4, 			ConsolePort.Bags, 	"Bags" 	},
+		-- { ContainerFrame5, 			ConsolePort.Bags, 	"Bags" 	},
 		{ MerchantFrame, 			ConsolePort.Shop, 	"Shop"	},
 		{ WorldMapFrame, 			ConsolePort.Map, 	"Map" 	},
 		{ TaxiFrame, 				ConsolePort.Taxi, 	"Taxi"	},
@@ -254,6 +254,8 @@ function ConsolePort:ADDON_LOADED(...)
 	elseif arg1 == "Blizzard_DeathRecap" then
 		PostLoadHook(DeathRecapFrame, self.Misc, "Misc", nil);
 		self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME.CP_R_RIGHT);
+	elseif arg1 == "ConsolePort_Container" then
+		PostLoadHook(ConsolePortContainerFrame, self.Bags, "Bags", 3);
 	elseif arg1 == addOn then
 		LoadHooks();
 		self:CreateManager();

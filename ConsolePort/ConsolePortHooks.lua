@@ -92,19 +92,27 @@ function ConsolePort:LoadHookScripts()
 	InterfaceOptionsFrame:HookScript("OnDragStart", InterfaceOptionsFrame.StartMoving);
 	InterfaceOptionsFrame:HookScript("OnDragStop", InterfaceOptionsFrame.StopMovingOrSizing);
 	-- Add guides to tooltips
-	-- Bug: Currently shows on reagents to recipes
+	-- Pending removal for cleaner solution
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
+		self:SetAlpha(0);
+		local owner = self:GetOwner();
+		if owner == ConsolePortExtraButton then
+			return;
+		elseif owner.isListItem then
+			local yoffset = (ConsolePortContainerFrame:GetTop()-owner:GetTop())+32;
+			self:SetAnchorType("ANCHOR_BOTTOMLEFT", -10, yoffset);
+		end
 		local item = self:GetItem();
 		if 	not InCombatLockdown() then
 			local 	CLICK_STRING;
-			if		self:GetOwner():GetParent():GetName() and
-					string.find(self:GetOwner():GetParent():GetName(), "MerchantItem") ~= nil then
+			if		owner:GetParent():GetName() and
+					string.find(owner:GetParent():GetName(), "MerchantItem") ~= nil then
 					CLICK_STRING = G.CLICK.BUY;
-					local maxStack = GetMerchantItemMaxStack(self:GetOwner():GetID());
+					local maxStack = GetMerchantItemMaxStack(owner:GetID());
 					if maxStack > 1 then 
 						self:AddLine(G.CLICK.STACK_BUY, 1,1,1);
 					end
-			elseif	self:GetOwner():GetParent() == LootFrame then
+			elseif	owner:GetParent() == LootFrame then
 					self:AddLine(G.CLICK_LOOT, 1,1,1);
 			elseif 	MerchantFrame:IsVisible()	then CLICK_STRING = G.CLICK.SELL;
 			elseif 	IsEquippedItem(item)		then CLICK_STRING = G.CLICK.REPLACE;
@@ -120,7 +128,7 @@ function ConsolePort:LoadHookScripts()
 				if CLICK_STRING == G.CLICK.USE then
 					self:AddLine(G.CLICK.ADD_TO_EXTRA, 1,1,1);
 				end
-				if not self:GetOwner():GetParent() == LootFrame then
+				if not owner:GetParent() == LootFrame then
 					self:AddLine(G.CLICK.PICKUP, 1,1,1);
 				end
 				self:Show();
