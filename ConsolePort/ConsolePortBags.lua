@@ -11,6 +11,12 @@ for i=1, 5 do
 	end);
 end
 
+for i=0, 3 do
+	_G["CharacterBag"..i.."Slot"]:SetScript("OnClick", function(...) ToggleAllBags() end);
+end
+
+MainMenuBarBackpackButton:SetScript("OnClick", function (...) ToggleAllBags() end);
+
 hooksecurefunc("ToggleAllBags", function(...)
 	if not ConsolePortContainerFrame then
 		Container = ConsolePort:CreateContainerFrame();
@@ -358,27 +364,48 @@ function ConsolePort:CreateContainerFrame()
 		f.Header.BagIcon = f.Header:CreateTexture(nil, "ARTWORK");
 		f.Header.BagIcon:SetTexture("Interface\\Buttons\\Button-Backpack-Up");
 		f.Header.BagIcon:SetSize(38,38);
-		f.Header.BagIcon:SetPoint("CENTER", f.Header, "CENTER", -1, 2);
 		f.Header.BagIconFrame = f.Header:CreateTexture(nil, "OVERLAY");
 		f.Header.BagIconFrame:SetTexture("Interface\\AchievementFrame\\UI-Achievement-IconFrame");
 		f.Header.BagIconFrame:SetTexCoord(0, 0.5625, 0, 0.5625);
 		f.Header.BagIconFrame:SetSize(44, 44);
-		f.Header.BagIconFrame:SetPoint("CENTER", f.Header, "CENTER");
 		f.Header.TitleBar = f.Header:CreateTexture(nil, "BACKGROUND");
 		f.Header.TitleBar:SetTexture("Interface\\AchievementFrame\\UI-Achievement-Category-Background");
 		f.Header.TitleBar:SetSize(170, 32);
 		f.Header.TitleBar:SetTexCoord(0, 0.6640625, 0, 1);
-		f.Header.TitleBar:SetPoint("TOPRIGHT", f.Header, "TOPLEFT", 10, -14);
 		f.Header.TitleText = f.Header:CreateFontString(nil, "ARTWORK", "GameFontNormalLeftBottom");
 		f.Header.TitleText:SetText("Inventory");
-		f.Header.TitleText:SetPoint("CENTER", f.Header.TitleBar, "CENTER", -24, 2);
 
+		f.AutoSort = CreateFrame("Button", name.."AutoSort", f);
 		f.CurrencyFrame = CreateFrame("Frame", name.."CurrencyFrame", f);
 		f.MoneyFrame = CreateFrame("Frame", name.."MoneyFrame", f.CurrencyFrame, "SmallMoneyFrameTemplate");
 		f.SlotsUsed = f.Header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
 		f.SetItem = SetItem;
 		f.ClearList = ClearList;
 		f.GetInventory = GetInventory;
+
+		local n, p = f.AutoSort:CreateTexture(nil, "ARTWORK"), f.AutoSort:CreateTexture(nil, "ARTWORK");
+		local nName, _, _, nL, nR, nT, nB = GetAtlasInfo("bags-button-autosort-up");
+		local pName, _, _, pL, pR, pT, pB = GetAtlasInfo("bags-button-autosort-down");
+		n:SetTexture(nName);
+		n:SetTexCoord(nL, nR, nT, nB);
+		n:SetAllPoints(f.AutoSort);
+		p:SetTexture(pName);
+		p:SetTexCoord(pL, pR, pT, pB);
+		p:SetAllPoints(f.AutoSort);
+
+		f.AutoSort:SetSize(28,26);
+		f.AutoSort:SetNormalTexture(n);
+		f.AutoSort:SetPushedTexture(p);
+		f.AutoSort:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD");
+		f.AutoSort:SetScript("OnClick", function()
+			PlaySound("UI_BagSorting_01");
+			SortBags();
+		end);
+		f.AutoSort:SetScript("OnEnter", function(self)
+			GameTooltip:SetOwner(self);
+			GameTooltip:SetText(BAG_CLEANUP_BAGS);
+			GameTooltip:Show();
+		end);
 
 		f.GridView:SetScript("OnShow", function(s)
 			f.ListView:Hide();
@@ -495,6 +522,11 @@ function ConsolePort:CreateContainerFrame()
 		local Points = {
 			{f, 				"BOTTOMRIGHT", 	UIParent, 			"BOTTOMRIGHT", -93, 130},
 			{f.Header,			"TOPLEFT",		f, 					"TOPRIGHT", -22, 42},
+			{f.Header.BagIcon,	"CENTER", 		f.Header,			"CENTER", -1, 2},
+			{f.Header.BagIconFrame, "CENTER",	f.Header,			"CENTER"},
+			{f.Header.TitleBar,	"TOPRIGHT",		f.Header, 			"TOPLEFT", 10, -14},
+			{f.Header.TitleText,"CENTER", 		f.Header.TitleBar, 	"CENTER", -24, 2},
+			{f.AutoSort,		"TOPRIGHT", 	f,					"TOPRIGHT", -10, -10},
 			{f.ListView, 		"TOPLEFT", 		f, 					"TOPLEFT"},
 			{f.ListView, 		"BOTTOMRIGHT", 	f, 					"BOTTOMRIGHT", 0, 20},
 			{f.GridView, 		"TOPLEFT", 		f, 					"TOPLEFT"},
