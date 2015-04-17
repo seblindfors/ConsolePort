@@ -4,10 +4,11 @@ local 	Inventory, GridItem, ListItem, GridIterator, ListIterator,
 		ItemButtons, ItemTypeButtons = nil, nil, nil, 1, 1, 0, 8, {}, {}, {};
 local Container;
 
-
-for i=1, 5 do
-	_G["ContainerFrame"..i]:SetScript("OnShow", function(self)
-		self:Hide();
+for i=1, 13 do
+	_G["ContainerFrame"..i]:HookScript("OnShow", function(self)
+		if self:GetID() <= 4 then
+			self:Hide();
+		end
 	end);
 end
 
@@ -18,7 +19,7 @@ end
 MainMenuBarBackpackButton:SetScript("OnClick", function (...) ToggleAllBags() end);
 
 hooksecurefunc("ToggleAllBags", function(...)
-	if not ConsolePortContainerFrame then
+	if not Container then
 		Container = ConsolePort:CreateContainerFrame();
 		Container.GridView:Show();
 	elseif Container:IsVisible() then
@@ -379,6 +380,7 @@ function ConsolePort:CreateContainerFrame()
 		f.CurrencyFrame = CreateFrame("Frame", name.."CurrencyFrame", f);
 		f.MoneyFrame = CreateFrame("Frame", name.."MoneyFrame", f.CurrencyFrame, "SmallMoneyFrameTemplate");
 		f.SlotsUsed = f.Header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+		
 		f.SetItem = SetItem;
 		f.ClearList = ClearList;
 		f.GetInventory = GetInventory;
