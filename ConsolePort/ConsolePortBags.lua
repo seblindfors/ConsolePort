@@ -30,12 +30,11 @@ hooksecurefunc("ToggleAllBags", function(...)
 end);
 
 function ConsolePort:CleanBags() 
-	local i, item;
+	local quality;
 	for bag=0, 4 do
 		for slot=1, GetContainerNumSlots(bag) do
-			i = { GetContainerItemInfo(bag, slot) };
-			item = i[7];
-			if item and string.find(item,"9d9d9d") then
+			quality = select(4, GetContainerItemInfo(bag, slot));
+			if quality and quality == 0 then
 				UseContainerItem(bag, slot);
 			end
 		end
@@ -313,6 +312,180 @@ local function UpdateGridView(self, updateCooldown)
 	end
 end
 
+local function BagIconUpdate(self, _, updateID)
+	local ID = self:GetID();
+	if GetContainerNumSlots(ID) == 0 then
+		self:Hide();
+		return;
+	end
+	if ID == updateID then
+		SetBagPortraitTexture(self.Portrait, ID);
+		self:Show();
+		self.Filter:Hide();
+		if ID ~= 0 and not IsInventoryItemProfessionBag("player", ContainerIDToInventoryID(ID)) then
+			for i = LE_BAG_FILTER_FLAG_EQUIPMENT, NUM_LE_BAG_FILTER_FLAGS do
+				if 	GetBagSlotFlag(ID, i) then
+					self.Filter:SetAtlas(BAG_FILTER_ICONS[i], true);
+					self.FlagText = BAG_FILTER_ASSIGNED_TO:format(BAG_FILTER_LABELS[i]);
+					self.Filter:Show();
+					break;
+				else
+					self.FlagText = nil;
+				end
+			end
+		end
+	end 
+end
+
+local function AppendFilterFlag(self)
+	local ID = self:GetID();
+	GameTooltip:AddLine("Bag size: |cffffffff"..GetContainerNumSlots(ID).."|r");
+	if self.localFlag and BAG_FILTER_LABELS[self.localFlag] then
+		GameTooltip:AddLine(BAG_FILTER_ASSIGNED_TO:format(BAG_FILTER_LABELS[self.localFlag]));
+	elseif not self.localFlag then
+		for i = LE_BAG_FILTER_FLAG_EQUIPMENT, NUM_LE_BAG_FILTER_FLAGS do
+			local active = false;
+			if  ID > NUM_BAG_SLOTS then
+				active = GetBankBagSlotFlag(ID - NUM_BAG_SLOTS, i);
+			else
+				active = GetBagSlotFlag(ID, i);
+			end
+			if 	active then
+				GameTooltip:AddLine(BAG_FILTER_ASSIGNED_TO:format(BAG_FILTER_LABELS[i]));
+				break;
+			end
+		end
+	end
+end
+
+local function BagIconEnter(self)
+	GameTooltip:SetOwner(self, "ANCHOR_LEFT");
+	local ID = self:GetID();
+	if  ID == 0 then
+		GameTooltip:SetText(BACKPACK_TOOLTIP, 1.0, 1.0, 1.0);
+		GameTooltip:AddLine("Bag size: |cffffffff"..GetContainerNumSlots(ID).."|r");
+	else
+		local link = GetInventoryItemLink("player", ContainerIDToInventoryID(ID));
+		local name, _, quality = GetItemInfo(link);
+		local r, g, b = GetItemQualityColor(quality);
+		GameTooltip:SetText(name, r, g, b);
+		AppendFilterFlag(self);
+	end
+	GameTooltip:AddLine(CLICK_BAG_SETTINGS);
+	GameTooltip:Show();
+	local slotOffset = 0;
+	for i=1, ID do
+		slotOffset = slotOffset + GetContainerNumSlots(i-1);
+	end
+	for i=slotOffset+1, slotOffset+GetContainerNumSlots(ID) do
+		GridButtons[i].itemBtn.flashAnim:Play();
+		GridButtons[i].itemBtn.flash:Show();
+	end
+end
+
+local function BagIconLeave(self)
+	GameTooltip:Hide();
+	local ID = self:GetID();
+	local slotOffset = 0;
+	for i=1, ID do
+		slotOffset = slotOffset + GetContainerNumSlots(i-1);
+	end
+	for i=slotOffset+1, slotOffset+GetContainerNumSlots(ID) do
+		GridButtons[i].itemBtn.flashAnim:Stop();
+		GridButtons[i].itemBtn.flash:Hide();
+	end
+end
+
+local function BagIconClick(self)
+	PlaySound("igMainMenuOptionCheckBoxOn");
+	ToggleDropDownMenu(1, nil, self.DropDown, self, 0, 0);
+end
+
+local function FilterDropDown(self, level)
+	local frame = self:GetParent();
+	local ID = frame:GetID();
+
+	local info = UIDropDownMenu_CreateInfo();	
+
+	if ID > 0 and not IsInventoryItemProfessionBag("player", ContainerIDToInventoryID(ID)) then
+		info.text = BAG_FILTER_ASSIGN_TO;
+		info.isTitle = 1;
+		info.notCheckable = 1;
+		UIDropDownMenu_AddButton(info);
+
+		info.isTitle = nil;
+		info.notCheckable = nil;
+		info.tooltipWhileDisabled = 1;
+		info.tooltipOnButton = 1;
+
+		for i = LE_BAG_FILTER_FLAG_EQUIPMENT, NUM_LE_BAG_FILTER_FLAGS do
+			if  i ~= LE_BAG_FILTER_FLAG_JUNK  then
+				info.text = BAG_FILTER_LABELS[i];
+				info.func = function(_, _, _, value)
+					value = not value;
+					if ID > NUM_BAG_SLOTS then
+						SetBankBagSlotFlag(ID - NUM_BAG_SLOTS, i, value);
+					else
+						SetBagSlotFlag(ID, i, value);
+					end
+					if 	value then
+						frame.localFlag = i;
+						frame.Filter:SetAtlas(BAG_FILTER_ICONS[i]);
+						frame.Filter:Show();
+					else
+						frame.Filter:Hide();
+						frame.localFlag = -1;						
+					end
+				end;
+				if 	frame.localFlag then
+					info.checked = frame.localFlag == i;
+				else
+					if 	ID > NUM_BAG_SLOTS then
+						info.checked = GetBankBagSlotFlag(ID - NUM_BAG_SLOTS, i);
+					else
+						info.checked = GetBagSlotFlag(ID, i);
+					end
+				end
+				info.disabled = nil;
+				info.tooltipTitle = nil;
+				UIDropDownMenu_AddButton(info);
+			end
+		end
+	end
+
+	info.text = BAG_FILTER_CLEANUP;
+	info.isTitle = 1;
+	info.notCheckable = 1;
+	UIDropDownMenu_AddButton(info);
+
+	info.isTitle = nil;
+	info.notCheckable = nil;
+	info.isNotRadio = true;
+	info.disabled = nil;
+
+	info.text = BAG_FILTER_IGNORE;
+	info.func = function(_, _, _, value)
+		if 	ID == -1 then
+			SetBankAutosortDisabled(not value);
+		elseif ID == 0 then
+			SetBackpackAutosortDisabled(not value);
+		elseif ID > NUM_BAG_SLOTS then
+			SetBankBagSlotFlag(ID - NUM_BAG_SLOTS, LE_BAG_FILTER_FLAG_IGNORE_CLEANUP, not value);
+		else
+			SetBagSlotFlag(ID, LE_BAG_FILTER_FLAG_IGNORE_CLEANUP, not value);
+		end
+	end;
+	if 	ID == -1 then
+		info.checked = GetBankAutosortDisabled();
+	elseif ID == 0 then
+		info.checked = GetBackpackAutosortDisabled();
+	elseif ID > NUM_BAG_SLOTS then
+		info.checked = GetBankBagSlotFlag(ID - NUM_BAG_SLOTS, LE_BAG_FILTER_FLAG_IGNORE_CLEANUP);
+	else
+		info.checked = GetBagSlotFlag(ID, LE_BAG_FILTER_FLAG_IGNORE_CLEANUP);
+	end
+	UIDropDownMenu_AddButton(info);
+end
 
 local function GetInventory()
 	local _, _free, _used, _special = GetSlotCount();
@@ -344,6 +517,7 @@ local function GetInventory()
 	return inventory;
 end
 
+
 function ConsolePort:CreateContainerFrame()
 	if not ConsolePortContainerFrame then
 		local backdrop = {
@@ -362,6 +536,7 @@ function ConsolePort:CreateContainerFrame()
 		f.GridView = CreateFrame("Frame", nil, f);
 		f.Header = CreateFrame("Button", nil, f);
 		f.Header:SetSize(40,40);
+		f.Header:SetScript("OnClick", function() f:Hide(); end);
 		f.Header.BagIcon = f.Header:CreateTexture(nil, "ARTWORK");
 		f.Header.BagIcon:SetTexture("Interface\\Buttons\\Button-Backpack-Up");
 		f.Header.BagIcon:SetSize(38,38);
@@ -376,10 +551,16 @@ function ConsolePort:CreateContainerFrame()
 		f.Header.TitleText = f.Header:CreateFontString(nil, "ARTWORK", "GameFontNormalLeftBottom");
 		f.Header.TitleText:SetText("Inventory");
 
+		f.ToggleView = CreateFrame("Button", name.."ToggleView", f, "GameMenuButtonTemplate");
 		f.AutoSort = CreateFrame("Button", name.."AutoSort", f);
 		f.CurrencyFrame = CreateFrame("Frame", name.."CurrencyFrame", f);
 		f.MoneyFrame = CreateFrame("Frame", name.."MoneyFrame", f.CurrencyFrame, "SmallMoneyFrameTemplate");
 		f.SlotsUsed = f.Header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
+
+		-- Temporary
+		f.ToggleView:SetSize(120, 21);
+		f.ToggleView:SetText("Toggle view");
+		f.ToggleView:SetButtonState("DISABLED");
 		
 		f.SetItem = SetItem;
 		f.ClearList = ClearList;
@@ -408,6 +589,47 @@ function ConsolePort:CreateContainerFrame()
 			GameTooltip:SetText(BAG_CLEANUP_BAGS);
 			GameTooltip:Show();
 		end);
+		f.AutoSort:SetScript("OnLeave", function()
+			GameTooltip:Hide();
+		end);
+
+		for i=0, 4 do
+			local p = CreateFrame("BUTTON", nil, f.GridView);
+			local pD = CreateFrame("FRAME", name.."Portrait"..i.."DropDown", p, "UIDropDownMenuTemplate");
+			local pB = p:CreateTexture(nil, "BACKGROUND");
+			local pT = p:CreateTexture(nil, "ARTWORK");
+			local pO = p:CreateTexture(nil, "OVERLAY", nil, 1);
+			local pF = p:CreateTexture(nil, "OVERLAY", nil, 3);
+			local pH = p:CreateTexture(nil, "OVERLAY", nil, 2);
+			f.GridView["PortraitButton"..i] = p;
+			p:SetPoint("RIGHT", f.AutoSort, "LEFT", -30*i-4, 0);
+			p:SetID(i);
+			p:SetSize(22,22);
+			pT:SetAllPoints(p);
+			SetBagPortraitTexture(pT, i);
+			pB:SetAllPoints(p);
+			pB:SetTexture("Interface\\Buttons\\Button-Backpack-Up");
+			pO:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder.blp");
+			pO:SetPoint("TOPLEFT", p, G.GUIDE.BORDER_X_LARGE, G.GUIDE.BORDER_Y_SMALL);
+			pO:SetSize(G.GUIDE.BORDER_S_SMALL, G.GUIDE.BORDER_S_SMALL);
+			pF:SetAtlas("bags-icon-consumables");
+			pF:SetPoint("TOPLEFT", p, "TOPLEFT", 6, -6);
+			pF:SetPoint("BOTTOMRIGHT", p, "BOTTOMRIGHT", 8, -8);
+			pH:SetTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight");
+			pH:SetAllPoints(p);
+			p:SetHighlightTexture(pH);
+			p.DropDown = pD;
+			p.Portrait = pT;
+			p.Border = pO;
+			p.Filter = pF;
+			p:RegisterEvent("BAG_UPDATE");
+			p:SetScript("OnEvent", BagIconUpdate);
+			p:SetScript("OnEnter", BagIconEnter);
+			p:SetScript("OnLeave", BagIconLeave);
+			p:SetScript("OnClick", BagIconClick);
+			BagIconUpdate(p, nil, i);
+			UIDropDownMenu_Initialize(pD, FilterDropDown, "MENU");
+		end
 
 		f.GridView:SetScript("OnShow", function(s)
 			f.ListView:Hide();
@@ -528,6 +750,7 @@ function ConsolePort:CreateContainerFrame()
 			{f.Header.BagIconFrame, "CENTER",	f.Header,			"CENTER"},
 			{f.Header.TitleBar,	"TOPRIGHT",		f.Header, 			"TOPLEFT", 10, -14},
 			{f.Header.TitleText,"CENTER", 		f.Header.TitleBar, 	"CENTER", -24, 2},
+			{f.ToggleView,		"TOPLEFT", 		f, 					"TOPLEFT", 10, -14},
 			{f.AutoSort,		"TOPRIGHT", 	f,					"TOPRIGHT", -10, -10},
 			{f.ListView, 		"TOPLEFT", 		f, 					"TOPLEFT"},
 			{f.ListView, 		"BOTTOMRIGHT", 	f, 					"BOTTOMRIGHT", 0, 20},
