@@ -17,60 +17,15 @@ do the same tasks with a controller as you would with a mouse and keyboard. On t
 normal keyboard and mouse setup, leaving you to choose which way you want to play the game without having to rebind and
 reconfigure every time you change peripherals.
 
-<h2>1. UI Support</h2>
-
-At the moment, this addon supports:
-- Combat: fully implemented combat system.
-- Quests: accepting, progressing and completing quests. Choosing rewards and previewing items.
-- Map/questlog: tracking, managing and reading quests. Map iteration works very well but not completely finished.
-- Bags: bag control is fully implemented.
-- Gear: gear control is implemented, along with functionality to replace gear pieces on the fly.
-- Group loot: full support for group looting.
-- Manual looting (auto-loot turned off)
-- Gossip: talking to NPCs is fully implemented.
-- Taxi: choosing and taking flight paths is fully implemented.
-- Spellbook: picking up and using spells directly out of the book is fully implemented.
-- Specialization: learning and changing specialization is fully implemented.
-- Glyphs: iterating through and choosing glyphs is implemented, but may not work correctly. 
-- Talents
-- Menu
-- Merchant
-
-Custom features:
-- Auto sell junk
-- Auto clean bags
-- Immersive camera
-
-Upcoming features:
-- Interface options: currently only supports changing button mappings for the controller. 
-- Dropdown menus: currently implemented, but not activated because of unresolved taint issues.
-- Party and raid frames
-- Pet specialization
-- Professions
-- Pet spellbook
-- Collections (mounts, pets, toys, heirlooms)
-- Pet battles
-- Achievement UI
-- Guild frame
-- Battle.net frame
-- Group finder
-- Dungeon journal
-- Shop
-- Common third-party addon support (e.g. Bartender4)
-- Double tab system
-
-In its current state, a lot of features are missing, not fully implemented or prone to taint issues.
-If you run into a tainted execution path (an action was blocked), you might have to <b>/reload</b>. 
-
-<h2>2. Controller support</h2>
+<h2>1. Controller support</h2>
 
   ConsolePort is not restricted to any one controller, however, it is somewhat restricted to conventional controller layouts.
 It requires a set of 14-15 buttons, which is what you'll find on any version of the PlayStation, Xbox or Logitech controllers.
 If you have a DS4 controller, the files provided in this git will save you the pain of mapping keys or setting up confusing third-party software. Download DS4Windows from http://ds4windows.com and simply drop the files into the same directory. Run DS4Windows.exe, connect your controller and jump into the game.
 
 
-<h2>3. Basic setup</h2>
-<h4>3.1. Mapping keys to the controller</h4>
+<h2>2. Basic setup</h2>
+<h4>2.1. Mapping keys to the controller</h4>
   The addon is designed with a few restrictions in mind; you will need to map both mouse buttons and you will need to assign
   two buttons to modifiers. These modfiers have to be Shift and Ctrl. You also have to assign one of the sticks to your
   WASD or arrow keys and the other stick to move your mouse. If you're not sure how to do this, download DS4Windows
@@ -86,7 +41,7 @@ Apart from this, you are free to map the buttons however you want. My suggestion
   in game. Personally, I don't use the functional buttons, which is why I have F1-F12 mapped to the controller in the example profile.
   You will need to assign these buttons in the game, which is why it's preferable to have buttons that don't interfere with
   your standard keyboard and mouse setup.
-  <h4>3.2. Mapping action buttons</h4>
+  <h4>2.2. Mapping action buttons</h4>
   
   If you do not like the default profile or wish to map your buttons differently, open the provided <b>Bindings</b> palette
   by opening the <b>Game Menu</b> and then pressing <b>Controller</b>. Once the palette is open, you will notice a list of
@@ -97,8 +52,8 @@ Apart from this, you are free to map the buttons however you want. My suggestion
   The last four buttons in the list are static and will remain unmodified by the addon at all times. This is to circumvent     the protected API restrictions and allow you to map actions such as jumping or targeting enemies. To change these bindings,   click on the corresponding button with the virtual mouse and choose the action you want from the dropdown list.<br>
   Press <b>Okay</b> when you are done. (This process will eventually be more straightforward.)
   
-  <h2>4. Using the addon</h2>
-  <h4>4.1. A few notes about mouse look</h4>
+  <h2>3. Using the addon</h2>
+  <h4>3.1. A few notes about mouse look</h4>
   Mouse look is a feature within the game where you lock your mouse cursor in order to control the camera in 3D-space.
   This state is usually triggered by holding down the right mouse button, but it can also be done programmatically.
   ConsolePort utilizes this feature to a great extent, to get rid of that mouse/keyboard feeling and keep you from having to
@@ -111,7 +66,7 @@ Apart from this, you are free to map the buttons however you want. My suggestion
   your character, when you're using non-direct spells (e.g. Trap Launcher, Rain of Fire, Mass Dispel) or when you have
   an item, glyph, spell or macro picked up on your cursor.
   
-  <h4>4.2. Using the interface</h4>
+  <h4>3.2. Using the interface</h4>
   Note: Due to Blizzard API restrictions, you cannot use the interface with the controller while in combat.
   Affected frames will fade out when you enter combat, and fade back in when you exit combat.
   You can always use the mouse mode on the controller to click and use the frames, if absolutely necessary.<br><br>
@@ -125,11 +80,11 @@ A few exceptions here for security purposes: Popups are accepted by clicking "Sq
 The arrows on the controller are self-explanatory in most cases and are used to iterate through frames.
 Triggers will be added to the setup shortly to accomodate the double tab system on a handful of frames. 
 
-<h4>4.3. World interaction</h4>
+<h4>3.3. World interaction</h4>
 Interacting with the game world can only be done the conventional way; by clicking with the virtual mouse setup on your
 controller. All API functions for looting and clicking items on the ground are blocked and cannot be called from unsecure code. Use R3 (right stick button) to click items in 3D-space, loot mobs and interact with NPCs. If you don't have a double right mouse button click macroed to your R3 button, looting can be quite cumbersome, since you have to click the button twice. If you think this is a hassle, get the item <b>Findle's Loot-A-Rang</b>, an item which will loot all nearby corpses.
 
-<h2>5. Suggested driver software</h2>
+<h2>4. Suggested driver software</h2>
 - Mac OSX
   - <a href="http://www.orderedbytes.com/controllermate/">ControllerMate</a> (highly recommended for Mac users) 
   - <a href="http://joystickmapper.com/">Joystick Mapper</a>
@@ -140,7 +95,7 @@ controller. All API functions for looting and clicking items on the ground are b
 
 Warning: I strongly recommend you do not use MotioninJoy!
 
-<h2>6. Known issues</h2>
+<h2>5. Known issues</h2>
 - Using menu to click microbuttons will cause taint.
 - Map iteration skips certain zones, Stormwind is one of them.
 - Map iteration doesn't work while flying over the Twisting Nether.
