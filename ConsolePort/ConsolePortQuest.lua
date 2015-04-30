@@ -1,40 +1,41 @@
 local _, G = ...;
+local KEY = G.KEY;
 local iterator = 1;
 
 -- Write for QuestLogPopupDetailFrame
 function ConsolePort:Quest (key, state)
 	local GreetingFrame = QuestGreetingScrollChildFrame:IsVisible();
-	if 	key == G.CIRCLE and not GreetingFrame then
+	if 	key == KEY.CIRCLE and not GreetingFrame then
 		local VisibleButton;
 		if 		QuestFrameCompleteQuestButton:IsVisible() 	then VisibleButton = QuestFrameCompleteQuestButton;		
 		elseif 	QuestFrameCompleteButton:IsVisible() 		then VisibleButton = QuestFrameCompleteButton;
 		elseif 	QuestFrameAcceptButton:IsVisible() 			then VisibleButton = QuestFrameAcceptButton;
 		elseif	QuestLogPopupDetailFrameTrackButton:IsVisible() then VisibleButton = QuestLogPopupDetailFrameTrackButton; end;
 		if VisibleButton then ConsolePort:Button(VisibleButton, state); end;
-	elseif 	key == G.SQUARE then
+	elseif 	key == KEY.SQUARE then
 		local VisibleButton;
 		if 		QuestLogPopupDetailFrameAbandonButton:IsVisible() then VisibleButton = QuestLogPopupDetailFrameAbandonButton; end;
 		if VisibleButton then ConsolePort:Button(VisibleButton, state); end;
-	elseif	key == G.TRIANGLE then
+	elseif	key == KEY.TRIANGLE then
 		local VisibleButton;
 		if 		QuestFrameDeclineButton:IsVisible() then VisibleButton = QuestFrameDeclineButton;
 		elseif 	QuestLogPopupDetailFrame.ShowMapButton:IsVisible() then VisibleButton = QuestLogPopupDetailFrame.ShowMapButton;
 		elseif	QuestFrameGoodbyeButton then VisibleButton = QuestFrameGoodbyeButton end;
 		if VisibleButton then ConsolePort:Button(VisibleButton, state); end;
-	elseif	key == G.UP and not GreetingFrame then
+	elseif	key == KEY.UP and not GreetingFrame then
 		ConsolePort:Button(QuestLogPopupDetailFrameScrollFrameScrollBarScrollUpButton, state);
 		ConsolePort:Button(QuestDetailScrollFrameScrollBarScrollUpButton, state);
 		ConsolePort:Button(QuestProgressScrollFrameScrollBarScrollUpButton, state);
 		ConsolePort:Button(QuestRewardScrollFrameScrollBarScrollUpButton, state);
-	elseif	key == G.DOWN and not GreetingFrame then
+	elseif	key == KEY.DOWN and not GreetingFrame then
 		ConsolePort:Button(QuestLogPopupDetailFrameScrollFrameScrollBarScrollDownButton, state);
 		ConsolePort:Button(QuestDetailScrollFrameScrollBarScrollDownButton, state);
 		ConsolePort:Button(QuestProgressScrollFrameScrollBarScrollDownButton, state);
 		ConsolePort:Button(QuestRewardScrollFrameScrollBarScrollDownButton, state);
 	elseif (key == "rewards" or 
 			key == "preview" or 
-			key == G.LEFT or 
-			key == G.RIGHT) and
+			key == KEY.LEFT or 
+			key == KEY.RIGHT) and
 			QuestInfoRewardsFrame:IsVisible() then
 		local rewards = { QuestInfoRewardsFrame:GetChildren() };
 		local items = {};
@@ -45,8 +46,8 @@ function ConsolePort:Quest (key, state)
 				count = count + 1;
 			end
 		end
-		if 		key == G.LEFT  and state == G.STATE_DOWN 	then iterator = iterator - 1
-		elseif 	key == G.RIGHT and state == G.STATE_DOWN	then iterator = iterator + 1 end 
+		if 		key == KEY.LEFT  and state == KEY.STATE_DOWN 	then iterator = iterator - 1
+		elseif 	key == KEY.RIGHT and state == KEY.STATE_DOWN	then iterator = iterator + 1 end 
 		if 		iterator > count then iterator = 1
 		elseif 	iterator < 1 	 then iterator = count end
 		local item = items[iterator];
@@ -58,10 +59,10 @@ function ConsolePort:Quest (key, state)
 				item:GetScript("OnLeave")(item);
 			end
 		end
-	elseif (key == G.UP or 
-			key == G.DOWN or 
-			key == G.CIRCLE or 
-			key == G.PREPARE) and state == G.STATE_UP then
+	elseif (key == KEY.UP or 
+			key == KEY.DOWN or 
+			key == KEY.CIRCLE or 
+			key == KEY.PREPARE) and state == KEY.STATE_UP then
 		local options = { QuestGreetingScrollChildFrame:GetChildren() };
 		local count = 0;
 		local valid = {};
@@ -72,18 +73,18 @@ function ConsolePort:Quest (key, state)
 				count = count + 1;
 			end
 		end
-		if key == G.UP then
+		if key == KEY.UP then
 			iterator = iterator - 1;
 			if iterator < 1 then iterator = count end
 			ConsolePort:Highlight(valid[iterator], options);
-		elseif	key == G.DOWN then 
+		elseif	key == KEY.DOWN then 
 			iterator = iterator + 1;
 			if iterator > count then iterator = 1 end
 			ConsolePort:Highlight(valid[iterator], options);
-		elseif	key == G.CIRCLE then
+		elseif	key == KEY.CIRCLE then
 			options[valid[iterator]]:Click();
 			iterator = 1;
-		elseif	key == G.PREPARE then
+		elseif	key == KEY.PREPARE then
 			iterator = 1;
 			options[1]:LockHighlight();
 			for i=2, count do

@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local PATH = "Interface\\AddOns\\ConsolePort\\Graphic\\";
 
 function ConsolePort:CheckUnassignedBindings()
@@ -150,7 +151,7 @@ function ConsolePort:CreateBindingWizard()
 						elseif self.BTN == "CP_TR2" then
 							self.Graphic:SetTexture(G.TEXTURE.RTWO);
 						else
-							self.Graphic:SetTexture(G.TEXTURE[string.upper(G.NAME[self.BTN])]);
+							self.Graphic:SetTexture(G.TEXTURE[strupper(G.NAME[self.BTN])]);
 						end
 					end
 				else

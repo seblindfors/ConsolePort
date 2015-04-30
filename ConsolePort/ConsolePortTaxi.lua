@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local iterator = 1;
 local nodes = {};
 local points = {};
@@ -22,22 +23,22 @@ local function TaxiFindClosestNode(key)
 		local diffX = abs(thisX-destX);
 		local total = diffX + diffY;
 		if total < nodeX + nodeY then
-			if 	key == G.UP then
+			if 	key == KEY.UP then
 				if 	diffY > diffX and 	-- up/down
 					destY > thisY then 	-- up
 					swap = true;
 				end
-			elseif key == G.DOWN then
+			elseif key == KEY.DOWN then
 				if 	diffY > diffX and 	-- up/down
 					destY < thisY then 	-- down
 					swap = true;
 				end
-			elseif key == G.LEFT then
+			elseif key == KEY.LEFT then
 				if 	diffY < diffX and 	-- left/right
 					destX < thisX then 	-- left
 					swap = true;
 				end
-			elseif key == G.RIGHT then
+			elseif key == KEY.RIGHT then
 				if 	diffY < diffX and 	-- left/right
 					destX > thisX then 	-- right
 					swap = true;
@@ -54,7 +55,7 @@ local function TaxiFindClosestNode(key)
 end
 
 function ConsolePort:Taxi (key, state)
-	if 	key == G.PREPARE then 
+	if 	key == KEY.PREPARE then 
 		for i, node in ipairs({TaxiFrame:GetChildren()}) do
 			if 	node:IsObjectType("Button") and
 				node:IsShown() and 
@@ -68,15 +69,15 @@ function ConsolePort:Taxi (key, state)
 				iterator = i;
 			end
 		end
-	elseif	key == G.CIRCLE then
-		if state == G.STATE_DOWN then
+	elseif	key == KEY.CIRCLE then
+		if state == KEY.STATE_DOWN then
 			nodes[iterator]:Click();
 		end
 		return;
-	elseif	(key == G.TRIANGLE or key == G.SQUARE) and state == G.STATE_DOWN then
+	elseif	(key == KEY.TRIANGLE or key == KEY.SQUARE) and state == KEY.STATE_DOWN then
 		CloseTaxiMap();
 		return;
-	elseif state == G.STATE_DOWN then
+	elseif state == KEY.STATE_DOWN then
 		TaxiFindClosestNode(key);
 	end
 	ConsolePort:Highlight(iterator, nodes);

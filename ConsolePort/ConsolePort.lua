@@ -1,5 +1,6 @@
 -- ConsolePort 
 local addOn, G = ...;
+local KEY = G.KEY;
 
 local f = ConsolePort;
 local m = ConsolePort:CreateMouseLooker();
@@ -56,11 +57,6 @@ local function LoadHooks ()
 	local LoadFrames = {
 		{ PaperDollFrame, 			ConsolePort.Gear, 	"Gear" 	},
 		{ GameMenuFrame, 			ConsolePort.Menu, 	"Menu" 	},
-		-- { ContainerFrame1, 			ConsolePort.Bags, 	"Bags" 	},
-		-- { ContainerFrame2, 			ConsolePort.Bags,	"Bags" 	},
-		-- { ContainerFrame3, 			ConsolePort.Bags, 	"Bags" 	},
-		-- { ContainerFrame4, 			ConsolePort.Bags, 	"Bags" 	},
-		-- { ContainerFrame5, 			ConsolePort.Bags, 	"Bags" 	},
 		{ MerchantFrame, 			ConsolePort.Shop, 	"Shop"	},
 		{ WorldMapFrame, 			ConsolePort.Map, 	"Map" 	},
 		{ TaxiFrame, 				ConsolePort.Taxi, 	"Taxi"	},
@@ -137,7 +133,7 @@ local function UpdateFrames(self)
 						end
 					end
 				end
-				FocusFrame.func(self, G.PREPARE, G.STATE_UP);
+				FocusFrame.func(self, KEY.PREPARE, KEY.STATE_UP);
 				FocusFrame.isPrepared = true;
 			end
 			if FocusAttr ~= FocusFrame.attr then
@@ -198,12 +194,12 @@ local function OnEvent (self, event, ...)
 	elseif	event == "QUEST_DETAIL" or 
 			event == "QUEST_COMPLETE" then
 		self:RegisterEvent("MODIFIER_STATE_CHANGED");
-		self:Quest("rewards", G.STATE_UP);
+		self:Quest("rewards", KEY.STATE_UP);
 	elseif 	event == "QUEST_AUTOCOMPLETE" then
 		local arg1 = ...;
 		ShowQuestComplete(GetQuestLogIndexByID(arg1));
 	elseif 	event == "MODIFIER_STATE_CHANGED" then
-		self:Quest("preview", G.STATE_UP);
+		self:Quest("preview", KEY.STATE_UP);
 	-- This is a bug fix. Will be removed eventually
 	elseif 	event == "QUEST_LOG_UPDATE" then
 		GameTooltip:Hide();
@@ -255,7 +251,7 @@ function ConsolePort:ADDON_LOADED(...)
 		PostLoadHook(DeathRecapFrame, self.Misc, "Misc", nil);
 		self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME.CP_R_RIGHT);
 	elseif arg1 == "ConsolePort_Container" then
-		PostLoadHook(ConsolePortContainerFrame, self.Bags, "Bags", 3);
+		PostLoadHook(ConsolePortContainer, self.Bags, "Bags", 3);
 	elseif arg1 == addOn then
 		LoadHooks();
 		self:CreateManager();
@@ -355,10 +351,10 @@ end
 function ConsolePort:Button (button, state)
 	if 	button:IsObjectType("BUTTON") and
 		button:GetButtonState() ~= "DISABLED" then
-		if 	state == G.STATE_DOWN then
+		if 	state == KEY.STATE_DOWN then
 			button:LockHighlight();
 			button:SetButtonState("PUSHED", false);
-		elseif state == G.STATE_UP then
+		elseif state == KEY.STATE_UP then
 			button:UnlockHighlight();
 			button:SetButtonState("NORMAL", false);
 			button:Click();
@@ -367,32 +363,32 @@ function ConsolePort:Button (button, state)
 end
 
 function ConsolePort:Misc (key, state)
-	if key == G.PREPARE then return; end;
+	if key == KEY.PREPARE then return; end;
 	if 	DeathRecapFrame and
 		DeathRecapFrame:IsVisible() then
-		if key == G.CIRCLE then
+		if key == KEY.CIRCLE then
 			local button = select(8, DeathRecapFrame:GetChildren());
 			ConsolePort:Button(button, state);
 		end
 	elseif PetitionFrame:IsVisible() then
-		if key == G.CIRCLE then
+		if key == KEY.CIRCLE then
 			ConsolePort:Button(PetitionFrameSignButton, state);
-		elseif key == G.TRIANGLE then
+		elseif key == KEY.TRIANGLE then
 			ConsolePort:Button(PetitionFrameCancelButton, state);
 		end
 	elseif CinematicFrameCloseDialog:IsVisible() then
-		if key == G.CIRCLE then
+		if key == KEY.CIRCLE then
 			ConsolePort:Button(CinematicFrameCloseDialogResumeButton, state);
-		elseif key == G.SQUARE then
+		elseif key == KEY.SQUARE then
 			ConsolePort:Button(CinematicFrameCloseDialogConfirmButton, state);
 		end
 	elseif SplashFrame:IsVisible() then
-		if key == G.CIRCLE then
+		if key == KEY.CIRCLE then
 			ConsolePort:Button(SplashFrame.BottomCloseButton, state);
 		end
 	elseif 	GarrisonCapacitiveDisplayFrame then
 		if GarrisonCapacitiveDisplayFrame.StartWorkOrderButton:IsVisible() then
-			if key == G.CIRCLE then
+			if key == KEY.CIRCLE then
 				ConsolePort:Button(GarrisonCapacitiveDisplayFrame.StartWorkOrderButton, state);
 			end
 		end
@@ -409,9 +405,9 @@ function ConsolePort:Highlight (index, options)
 end
 
 function ConsolePort:Guild (key, state)
-	if 		key == G.CIRCLE and GuildInviteFrame:IsVisible() then
+	if 		key == KEY.CIRCLE and GuildInviteFrame:IsVisible() then
 		ConsolePort:Button(GuildInviteFrameDeclineButton, state);
-	elseif	key == G.TRIANGLE and GuildInviteFrame:IsVisible() then
+	elseif	key == KEY.TRIANGLE and GuildInviteFrame:IsVisible() then
 		ConsolePort:Button(GuildInviteFrameJoinButton, state);
 	end
 end

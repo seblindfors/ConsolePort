@@ -1,12 +1,13 @@
 local _, G = ...;
+local KEY = G.KEY;
 local function UIDefaultButtonExtend(Button, Anchor)
 	Button:SetPoint(Anchor, Button:GetParent(), "BOTTOM", 0);
 end
 
 local function CinematicControllerInput(key, state)
 	local keybind = GetBindingFromClick(key), button;
-	if 		keybind == "CLICK CP_R_RIGHT_NOMOD:LeftButton" 	then button = G.CIRCLE;
-	elseif 	keybind == "CLICK CP_R_LEFT_NOMOD:LeftButton" 	then button = G.SQUARE; end;
+	if 		keybind == "CLICK CP_R_RIGHT_NOMOD:LeftButton" 	then button = KEY.CIRCLE;
+	elseif 	keybind == "CLICK CP_R_LEFT_NOMOD:LeftButton" 	then button = KEY.SQUARE; end;
 	if button then ConsolePort:Misc(button, state); end;
 end
 
@@ -93,14 +94,18 @@ function ConsolePort:LoadHookScripts()
 	InterfaceOptionsFrame:HookScript("OnDragStop", InterfaceOptionsFrame.StopMovingOrSizing);
 	-- Add guides to tooltips
 	-- Pending removal for cleaner solution
+	GameTooltip.Backdrop = GameTooltip:GetBackdrop();
+	GameTooltip.DropColors = {GameTooltip:GetBackdropColor()};
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
 		self:SetAlpha(0);
 		local owner = self:GetOwner();
 		if owner == ConsolePortExtraButton then
 			return;
 		elseif owner.isListItem then
-			local yoffset = (ConsolePortContainerFrame:GetTop()-owner:GetTop())+32;
+			local yoffset = (ConsolePortContainer:GetTop()-owner:GetTop())+32;
 			self:SetAnchorType("ANCHOR_BOTTOMLEFT", -10, yoffset);
+			self:SetBackdrop(nil);
+			self:SetMinimumWidth(232);
 		end
 		local item = self:GetItem();
 		if 	not InCombatLockdown() then
@@ -196,10 +201,10 @@ function ConsolePort:LoadHookScripts()
 	UIDefaultButtonExtend(PetitionFrameCancelButton,		"LEFT"	);
 	-- Add inputs to cinematic frame, behaves oddly after first dialog closing
 	CinematicFrame:HookScript("OnKeyDown", function(self, key)
-		CinematicControllerInput(key, G.STATE_DOWN);
+		CinematicControllerInput(key, KEY.STATE_DOWN);
 	end);
 	CinematicFrame:HookScript("OnKeyUp", function(self, key)
-		CinematicControllerInput(key, G.STATE_UP);
+		CinematicControllerInput(key, KEY.STATE_UP);
 	end);
 end
 

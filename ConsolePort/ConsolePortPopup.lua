@@ -1,5 +1,5 @@
-local _
 local _, G = ...;
+local KEY = G.KEY;
 local interval = 0.1;
 local frameTimers = { 0,0,0,0,0,0,0,0 };
 local groupLootInspect = GroupLootFrame1.IconFrame:GetScript("OnEnter");
@@ -143,20 +143,20 @@ for i, button in pairs(lootButtons) do
 end
 
 function ConsolePort:Loot (key, state)
-	if key == G.PREPARE then iterator = 1; return; end;
-	if key == G.CIRCLE and lootButtons[iterator]:IsVisible() then
+	if key == KEY.PREPARE then iterator = 1; return; end;
+	if key == KEY.CIRCLE and lootButtons[iterator]:IsVisible() then
 		lootButtons[iterator]:Click();
 		return;
 	end
-	if key == G.UP then 
+	if key == KEY.UP then 
 		if iterator == 1 and LootFrameUpButton:IsVisible() then
 			ConsolePort:Button(LootFrameUpButton, state);
-		elseif state == G.STATE_UP and iterator ~= 1 then
+		elseif state == KEY.STATE_UP and iterator ~= 1 then
 			iterator = iterator - 1;
 		end
-	elseif key == G.DOWN then
+	elseif key == KEY.DOWN then
 		if ((iterator < 3) or (iterator == 3 and LootButton4:IsVisible())) and
-			state == G.STATE_UP then
+			state == KEY.STATE_UP then
 			iterator = iterator + 1;
 		elseif iterator == 3 and LootFrameDownButton:IsVisible() then
 			ConsolePort:Button(LootFrameDownButton, state);

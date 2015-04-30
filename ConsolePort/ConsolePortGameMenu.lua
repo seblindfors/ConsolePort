@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local MenuButton = CreateFrame("BUTTON", "GameMenuButtonController", GameMenuFrame, "GameMenuButtonTemplate");
 MenuButton:SetPoint("TOP", GameMenuButtonWhatsNew, "BOTTOM", 0, -23);
 GameMenuButtonOptions:SetPoint("TOP", MenuButton, "BOTTOM", 0, -1);
@@ -105,7 +106,7 @@ local function CreateControllerInstructions()
 		elseif binding == "CP_TR2" then
 			texture = G.TEXTURE.RTWO;
 		else
-			texture = G.TEXTURE[string.upper(G.NAME[binding])];
+			texture = G.TEXTURE[strupper(G.NAME[binding])];
 		end
 		local bindTexture = "|T"..texture..eol;
 		f.timer = {0,0,0,0};
@@ -184,17 +185,17 @@ local NUM_BTNS		= 26;
 local STANDARD 		= 12;
 local CUSTOM 		= 13;
 function ConsolePort:Menu (key, state)
-	if key == G.PREPARE then
+	if key == KEY.PREPARE then
 		iterator = 1;
-	elseif 	key == G.CIRCLE then
+	elseif 	key == KEY.CIRCLE then
 		ConsolePort:Button(buttons[iterator], state);
 		return;
-	elseif	key == G.TRIANGLE and state == G.STATE_UP and GameMenuFrame:IsVisible() then
+	elseif	key == KEY.TRIANGLE and state == KEY.STATE_UP and GameMenuFrame:IsVisible() then
 		ToggleFrame(GameMenuFrame);
 		return;
 	end
-	if state == G.STATE_DOWN then
-		if 			key == G.UP then
+	if state == KEY.STATE_DOWN then
+		if 			key == KEY.UP then
 			if iterator == 1 then
 				iterator = STANDARD;
 			elseif iterator == CUSTOM then
@@ -202,7 +203,7 @@ function ConsolePort:Menu (key, state)
 			else
 				iterator = iterator - 1;
 			end
-		elseif 		key == G.DOWN then
+		elseif 		key == KEY.DOWN then
 			if iterator == STANDARD then
 				iterator = 1;
 			elseif iterator == NUM_BTNS then
@@ -210,7 +211,7 @@ function ConsolePort:Menu (key, state)
 			else
 				iterator = iterator + 1;
 			end
-		elseif 		key == G.LEFT then
+		elseif 		key == KEY.LEFT then
 			if iterator > STANDARD then
 				if iterator > 22 then
 					iterator = iterator - 14;
@@ -220,7 +221,7 @@ function ConsolePort:Menu (key, state)
 					iterator = iterator - 12;
 				end
 			end
-		elseif 		key == G.RIGHT then
+		elseif 		key == KEY.RIGHT then
 			if iterator < CUSTOM then
 				if iterator > 9 then
 					iterator = iterator + 14;

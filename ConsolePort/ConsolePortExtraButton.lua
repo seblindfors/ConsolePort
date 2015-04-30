@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local watchQuests = {};
 local questItem = nil;
 

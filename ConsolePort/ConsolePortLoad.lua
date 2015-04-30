@@ -2,9 +2,10 @@ local _, G = ...;
 local type = "PS4\\";
 local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Buttons\\";
 local function AddTexture(BINDING, TYPE)
-	G.TEXTURE[string.upper(BINDING)] = TEXTURE_PATH..TYPE..BINDING;
+	G.TEXTURE[strupper(BINDING)] = TEXTURE_PATH..TYPE..BINDING;
 end
 -- Init string tables
+G.KEY 		= {};
 G.GUIDE 	= {};
 G.TEXTURE 	= {};
 G.NAME 		= {};
@@ -112,16 +113,16 @@ function ConsolePort:LoadStrings()
 		G.COLOR_DOWN 				= 	"6882A1";
 	end
 	-- Interaction keys
-	G.CIRCLE  					= 1;
-	G.SQUARE 					= 2;
-	G.TRIANGLE 					= 3;
-	G.UP						= 4;
-	G.DOWN						= 5;
-	G.LEFT						= 6;
-	G.RIGHT						= 7;
-	G.PREPARE 					= 8;
-	G.STATE_UP 					= "up";
-	G.STATE_DOWN				= "down";
+	G.KEY.CIRCLE  					= 1;
+	G.KEY.SQUARE 					= 2;
+	G.KEY.TRIANGLE 					= 3;
+	G.KEY.UP						= 4;
+	G.KEY.DOWN						= 5;
+	G.KEY.LEFT						= 6;
+	G.KEY.RIGHT						= 7;
+	G.KEY.PREPARE 					= 8;
+	G.KEY.STATE_UP 					= "up";
+	G.KEY.STATE_DOWN				= "down";
 	-- Global config variables
 	G.BIND_TARGET 				= false;
 	G.CONF_BUTTON 				= nil;
@@ -155,9 +156,9 @@ function ConsolePort:LoadStrings()
 	G.TEXTURE.RTHREE			= TEXTURE_PATH..type.."r3";
 	-- Click strings
 	local POINTS 			= ":20:20:0:0";
-	local _RIGHT 			= "|T"..G.TEXTURE[string.upper(G.NAME.CP_R_RIGHT)]..POINTS.."|t|cFF"..G.COLOR_RIGHT;
-	local _LEFT 			= "|T"..G.TEXTURE[string.upper(G.NAME.CP_R_LEFT)]..POINTS.."|t|cFF"..G.COLOR_LEFT;
-	local _UP				= "|T"..G.TEXTURE[string.upper(G.NAME.CP_R_UP)]..POINTS.."|t|cFF"..G.COLOR_UP;
+	local _RIGHT 			= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_RIGHT)]..POINTS.."|t|cFF"..G.COLOR_RIGHT;
+	local _LEFT 			= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_LEFT)]..POINTS.."|t|cFF"..G.COLOR_LEFT;
+	local _UP				= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_UP)]..POINTS.."|t|cFF"..G.COLOR_UP;
 	G.CLICK.USE 			= _RIGHT.."Use|r";
 	G.CLICK.QUEST_TRACKER 	= _RIGHT.."Set current quest|r";
 	G.CLICK.USE_NOCOMBAT 	= _RIGHT.."Use (out of combat)|r";

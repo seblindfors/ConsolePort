@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 
 local function MainBarAction(action)
 	if 	type(action) == "table" and
@@ -75,7 +76,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	}
 	btn.name 	= name;
 	btn.timer 	= 0;
-	btn.state 	= G.STATE_UP;
+	btn.state 	= KEY.STATE_UP;
 	btn.action 	= _G[clickbutton];
 	btn.command = UIcommand;
 	btn.mod 	= modifier;
@@ -112,7 +113,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn:HookScript("OnMouseDown", function(self, button)
 		local func = self:GetAttribute("type");
 		local click = self:GetAttribute("clickbutton");
-		self.state = G.STATE_DOWN;
+		self.state = KEY.STATE_DOWN;
 		self.timer = 0;
 		if 	(func == "click" or func == "action") and click then
 			click:SetButtonState("PUSHED");
@@ -124,18 +125,18 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn:HookScript("OnMouseUp", function(self, button)
 		local func = self:GetAttribute("type");
 		local click = self:GetAttribute("clickbutton");
-		self.state = G.STATE_UP;
+		self.state = KEY.STATE_UP;
 		if 	(func == "click" or func == "action") and click then
 			click:SetButtonState("NORMAL");
 		end
 	end);
-	if 	btn.command == G.UP or
-		btn.command == G.DOWN or
-		btn.command == G.LEFT or
-		btn.command == G.RIGHT then
+	if 	btn.command == KEY.UP or
+		btn.command == KEY.DOWN or
+		btn.command == KEY.LEFT or
+		btn.command == KEY.RIGHT then
 		btn:SetScript("OnUpdate", function(self, elapsed)
 			self.timer = self.timer + elapsed;
-			if self.timer >= 0.175 and btn.state == G.STATE_DOWN then
+			if self.timer >= 0.15 and btn.state == KEY.STATE_DOWN then
 				local func = self:GetAttribute("type");
 				if func and func ~= "action" and self[func] then self[func](self); end;
 				self.timer = 0;

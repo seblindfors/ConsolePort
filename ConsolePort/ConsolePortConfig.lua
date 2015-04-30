@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 
 local BIND_TARGET 	 	= false;
 local BIND_MODIFIER 	= nil;
@@ -311,7 +312,7 @@ function ConsolePort:CreateIndicator(parent, size, anchor, button)
 	local f = CreateFrame("BUTTON", nil, parent);
 	local t = f:CreateTexture(nil, "BACKGROUND");
 	local o = f:CreateTexture(nil, "OVERLAY");
-	button = string.upper(button);
+	button = strupper(button);
 	f.texture = t;
 	f.overlay = o;
 	o:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder.blp");
@@ -366,7 +367,7 @@ function ConsolePort:GetDefaultGuideTexture(button)
 	elseif 	button == "CP_TR2" 		then return G.TEXTURE.RTWO;
 	elseif 	button == "CP_TR3" 		then return G.TEXTURE.LONE;
 	elseif 	button == "CP_TR4" 		then return G.TEXTURE.LTWO;
-	else 	return G.TEXTURE[string.upper(G.NAME[button])];
+	else 	return G.TEXTURE[strupper(G.NAME[button])];
 	end
 end
 

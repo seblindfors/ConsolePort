@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local currentInput = nil;
 local keyDown = false;
 local keyHeldDown = false;
@@ -19,11 +20,11 @@ StackSplitFrame:HookScript("OnUpdate", function(self,elapsed)
 		if keyHeldDown then
 			time = time + elapsed;
 			while time > 0.1 do
-				if 	currentInput == G.RIGHT then
+				if 	currentInput == KEY.RIGHT then
 					for i=1, exponent do
 						StackSplitRightButton:Click();
 					end
-				elseif currentInput == G.LEFT then
+				elseif currentInput == KEY.LEFT then
 					for i=1, exponent do
 						StackSplitLeftButton:Click();
 					end
@@ -36,15 +37,15 @@ end);
 
 function ConsolePort:Stack (key, state)
 	currentInput = key;
-	keyDown = (state == G.STATE_DOWN);
-	if 		key == G.RIGHT then
+	keyDown = (state == KEY.STATE_DOWN);
+	if 		key == KEY.RIGHT then
 		ConsolePort:Button(StackSplitRightButton, state);
-	elseif	key == G.LEFT then
+	elseif	key == KEY.LEFT then
 		ConsolePort:Button(StackSplitLeftButton, state);
-	elseif	key == G.SQUARE then
+	elseif	key == KEY.SQUARE then
 		ConsolePort:Button(StackSplitOkayButton, state);
-		if state == G.STATE_UP then MouselookStop(); end;
-	elseif	key == G.CIRCLE then
+		if state == KEY.STATE_UP then MouselookStop(); end;
+	elseif	key == KEY.CIRCLE then
 		ConsolePort:Button(StackSplitCancelButton, state);
 	end
 end

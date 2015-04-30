@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local NUM_SPECS;
 local _, _, class = UnitClass("player");
 if class == 11 then NUM_SPECS = 4; else NUM_SPECS = 3; end;
@@ -34,12 +35,12 @@ function ConsolePort:InitializeTalents()
 	PlayerSpecTab1:HookScript("OnClick", function(self)
 		GuideSpec1:Hide();
 		GuideSpec2:Show();
-		ConsolePort:Spec(G.PREPARE, G.STATE_UP);
+		ConsolePort:Spec(KEY.PREPARE, KEY.STATE_UP);
 	end);
 	PlayerSpecTab2:HookScript("OnClick", function(self)
 		GuideSpec2:Hide();
 		GuideSpec1:Show();
-		ConsolePort:Spec(G.PREPARE, G.STATE_UP);
+		ConsolePort:Spec(KEY.PREPARE, KEY.STATE_UP);
 	end);
 	-- Talent stuff
 	EnterTalent	= PlayerTalentFrameTalentsTalentRow1Talent1:GetScript("OnEnter");
@@ -78,32 +79,32 @@ function ConsolePort:SpecTab(key, state)
 	for i=1, NUM_SPECS do
 		tinsert(SpecButtons, _G["PlayerTalentFrameSpecializationSpecButton"..i]);
 	end
-	if key == G.PREPARE then
+	if key == KEY.PREPARE then
 		for i, spec in pairs(SpecButtons) do
 			if 	spec.selected then spec_iterator = i; break; end;
 		end
-	elseif key == G.UP and state == G.STATE_DOWN then
+	elseif key == KEY.UP and state == KEY.STATE_DOWN then
 		if 	 spec_iterator == 1 then spec_iterator = NUM_SPECS;
 		else spec_iterator = spec_iterator - 1; end;
-	elseif key == G.DOWN and state == G.STATE_DOWN then
+	elseif key == KEY.DOWN and state == KEY.STATE_DOWN then
 		if 	 spec_iterator == NUM_SPECS then spec_iterator = 1;
 		else spec_iterator = spec_iterator + 1; end;
-	elseif key == G.SQUARE then
+	elseif key == KEY.SQUARE then
 		ConsolePort:Button(PlayerTalentFrameSpecializationLearnButton, state);
 	end
 	SpecButtons[spec_iterator]:Click();
 end
 
 function ConsolePort:TalentTab(key, state)
-	if key == G.SQUARE then 
+	if key == KEY.SQUARE then 
 		ConsolePort:Button(PlayerTalentFrameTalentsLearnButton, state);
-		if state == G.STATE_UP and talents[talent_iterator].learnSelection:IsVisible() then TalentInUse = true; end;
-	elseif key ~= G.PREPARE and state == G.STATE_DOWN then
+		if state == KEY.STATE_UP and talents[talent_iterator].learnSelection:IsVisible() then TalentInUse = true; end;
+	elseif key ~= KEY.PREPARE and state == KEY.STATE_DOWN then
 		if not TalentInUse then talents[talent_iterator].knownSelection:Hide(); end;
-		if 		key == G.UP 	then if talent_iterator > 3 then talent_iterator = talent_iterator - 3; else talent_iterator = talent_iterator + 18; end;
-		elseif 	key == G.DOWN 	then if talent_iterator < 19 then talent_iterator = talent_iterator + 3; else talent_iterator = talent_iterator - 18; end;
-		elseif 	key == G.LEFT 	then if talent_iterator > 1 then talent_iterator = talent_iterator - 1; else talent_iterator = 21; end;
-		elseif 	key == G.RIGHT 	then if talent_iterator < 21 then talent_iterator = talent_iterator + 1; else talent_iterator = 1; end;
+		if 		key == KEY.UP 	then if talent_iterator > 3 then talent_iterator = talent_iterator - 3; else talent_iterator = talent_iterator + 18; end;
+		elseif 	key == KEY.DOWN 	then if talent_iterator < 19 then talent_iterator = talent_iterator + 3; else talent_iterator = talent_iterator - 18; end;
+		elseif 	key == KEY.LEFT 	then if talent_iterator > 1 then talent_iterator = talent_iterator - 1; else talent_iterator = 21; end;
+		elseif 	key == KEY.RIGHT 	then if talent_iterator < 21 then talent_iterator = talent_iterator + 1; else talent_iterator = 1; end;
 		end;
 		if talents[talent_iterator].knownSelection:IsVisible() then TalentInUse = true; else TalentInUse = false; end;
 	end
@@ -117,7 +118,7 @@ function ConsolePort:Spec(key, state)
 	ACTIVE_TAB = PlayerTalentFrame.selectedTab;
 	if 	ACTIVE_SPEC ~= PlayerTalentFrame.selectedPlayerSpec then
 		ACTIVE_SPEC = PlayerTalentFrame.selectedPlayerSpec;
-		ConsolePort:Spec(G.PREPARE, G.STATE_UP);
+		ConsolePort:Spec(KEY.PREPARE, KEY.STATE_UP);
 	end
 	if PlayerSpecTab2:IsVisible() then
 		if ACTIVE_SPEC == "spec1" then

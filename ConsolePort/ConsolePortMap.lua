@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local iterator = 1;
 local zones = {};
 local zcount = 0;
@@ -20,22 +21,22 @@ local function MapFindClosestZone(key, zones)
 		local diffX = abs(this.X-dest.X);
 		local total = diffX + diffY;
 		if total < nodeX + nodeY then
-			if 	key == G.DOWN then
+			if 	key == KEY.DOWN then
 				if 	diffY > diffX and 	-- up/down
 					dest.Y > this.Y then 	-- up
 					swap = true;
 				end
-			elseif key == G.UP then
+			elseif key == KEY.UP then
 				if 	diffY > diffX and 	-- up/down
 					dest.Y < this.Y then 	-- down
 					swap = true;
 				end
-			elseif key == G.LEFT then
+			elseif key == KEY.LEFT then
 				if 	diffY < diffX and 	-- left/right
 					dest.X < this.X then 	-- left
 					swap = true;
 				end
-			elseif key == G.RIGHT then
+			elseif key == KEY.RIGHT then
 				if 	diffY < diffX and 	-- left/right
 					dest.X > this.X then 	-- right
 					swap = true;
@@ -88,16 +89,16 @@ function ConsolePort:Map(key, state)
 end
 
 function ConsolePort:MapQuestDetail(key, state)
-	if 		key == G.UP then
+	if 		key == KEY.UP then
 		ConsolePort:Button(QuestMapDetailsScrollFrameScrollBarScrollUpButton, state);
-	elseif	key == G.DOWN then
+	elseif	key == KEY.DOWN then
 		ConsolePort:Button(QuestMapDetailsScrollFrameScrollBarScrollDownButton, state);
-	elseif 	key == G.TRIANGLE then
+	elseif 	key == KEY.TRIANGLE then
 		ConsolePort:Button(QuestMapFrame.DetailsFrame.BackButton, state);
 		ConsolePort:Map("right", "up");
-	elseif	key == G.SQUARE then
+	elseif	key == KEY.SQUARE then
 		ConsolePort:Button(QuestMapFrame.DetailsFrame.AbandonButton, state);
-	elseif 	key == G.CIRCLE then
+	elseif 	key == KEY.CIRCLE then
 		if QuestMapFrame.DetailsFrame.CompleteQuestFrame.CompleteButton:IsVisible() then
 			ConsolePort:Button(QuestMapFrame.DetailsFrame.CompleteQuestFrame.CompleteButton, state);
 		else
@@ -107,9 +108,9 @@ function ConsolePort:MapQuestDetail(key, state)
 end
 
 function ConsolePort:MapQuest(key, state, count, items, icons)
-	if 		key == G.PREPARE then iterator = 1;
-	elseif 	key == G.UP		 and state == G.STATE_DOWN and iterator > 0 		then iterator = iterator - 1;
-	elseif 	key == G.DOWN	 and state == G.STATE_DOWN and iterator < count 	then iterator = iterator + 1; end;
+	if 		key == KEY.PREPARE then iterator = 1;
+	elseif 	key == KEY.UP		 and state == KEY.STATE_DOWN and iterator > 0 		then iterator = iterator - 1;
+	elseif 	key == KEY.DOWN	 and state == KEY.STATE_DOWN and iterator < count 	then iterator = iterator + 1; end;
 	if 	iterator == 0 then
 		QuestScrollFrame.ViewAll:LockHighlight();
 		QuestScrollFrame.ViewAll:GetChildren():Show();
@@ -126,7 +127,7 @@ function ConsolePort:MapQuest(key, state, count, items, icons)
 			QuestScrollFrameScrollBarScrollUpButton:Click();
 		end
 		item:GetScript("OnEnter")(item);
-		if key == G.CIRCLE then
+		if key == KEY.CIRCLE then
 			local button = nil;
 			for i, icon in pairs(icons.numeric) do
 				if icon.parent == item then
@@ -142,22 +143,22 @@ function ConsolePort:MapQuest(key, state, count, items, icons)
 				ConsolePort:Button(button, state);
 			else
 				ConsolePort:Button(item, state);
-				if state == G.STATE_UP then
-					ConsolePort:Map(G.PREPARE, state);
+				if state == KEY.STATE_UP then
+					ConsolePort:Map(KEY.PREPARE, state);
 				end
 			end
-		elseif key == G.SQUARE then
+		elseif key == KEY.SQUARE then
 			ConsolePort:Button(item, state);
-			if state == G.STATE_UP then
+			if state == KEY.STATE_UP then
 				item:GetScript("OnLeave")(item);
 			end
 		end
 	end
-	if key == G.TRIANGLE and state == G.STATE_UP then
+	if key == KEY.TRIANGLE and state == KEY.STATE_UP then
 		QuestScrollFrame:SetAlpha(0.5);
 		WorldMapFrameTutorialButton:GetChildren():Show();
 		if item then item:GetScript("OnLeave")(item); end;
-		ConsolePort:Map(G.PREPARE, state);
+		ConsolePort:Map(KEY.PREPARE, state);
 	end
 end
 
@@ -205,7 +206,7 @@ function ConsolePort:MapGetZones()
 end
 
 function ConsolePort:MapZone(key, state)
-	if 	key == G.TRIANGLE and state == G.STATE_UP then
+	if 	key == KEY.TRIANGLE and state == KEY.STATE_UP then
 		WorldMapHighlight:Hide();
 		QuestScrollFrame:SetAlpha(1);
 		WorldMapFrameTutorialButton:GetChildren():Hide();
@@ -213,14 +214,14 @@ function ConsolePort:MapZone(key, state)
 		return;
 	end
 	if not AzerothButton:IsVisible() then
-		if state == G.STATE_DOWN then
-			if 	key == G.PREPARE then
+		if state == KEY.STATE_DOWN then
+			if 	key == KEY.PREPARE then
 				--
-			elseif	key == G.CIRCLE and zones[iterator] then
+			elseif	key == KEY.CIRCLE and zones[iterator] then
 				WorldMapHighlight:Hide();
 				ProcessMapClick(zones[iterator].X, zones[iterator].Y);
 				iterator = floor((zcount/2)+1);
-			elseif	key == G.SQUARE then
+			elseif	key == KEY.SQUARE then
 				WorldMapHighlight:Hide();
 				WorldMapButton_OnClick(WorldMapButton, "RightButton");
 				iterator = floor((zcount/2)+1);
@@ -228,13 +229,13 @@ function ConsolePort:MapZone(key, state)
 				MapFindClosestZone(key, zones);
 			end
 		end
-	elseif state == G.STATE_DOWN then
+	elseif state == KEY.STATE_DOWN then
 		-- Hacky fix
-		if key == G.RIGHT then
+		if key == KEY.RIGHT then
 			AzerothButton:Click();
-		elseif key == G.LEFT then
+		elseif key == KEY.LEFT then
 			OutlandButton:Click();
-		elseif key == G.UP then
+		elseif key == KEY.UP then
 			DraenorButton:Click();
 		end
 	end

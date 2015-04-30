@@ -1,4 +1,5 @@
 local _, G = ...
+local KEY = G.KEY;
 local glyph_iterator = 2;
 local GuideGlyphs = {};
 local GlyphButtons = {};
@@ -94,12 +95,12 @@ function ConsolePort:GlyphTab(key, state)
 	if glyph_iterator == 1 and not GlyphButtons[glyph_iterator]:IsVisible() then glyph_iterator = 2; end;
 	local GlyphButton = GlyphButtons[glyph_iterator];
 	if GlyphButton then
-		if 		key == G.DOWN and
-				state == G.STATE_DOWN and
+		if 		key == KEY.DOWN and
+				state == KEY.STATE_DOWN and
 				glyph_iterator < 9 then
 			glyph_iterator = glyph_iterator + 1;
-		elseif 	key == G.UP and
-				state == G.STATE_DOWN and
+		elseif 	key == KEY.UP and
+				state == KEY.STATE_DOWN and
 				glyph_iterator > 1 and
 				GlyphButtons[glyph_iterator-1]:IsVisible() then
 			glyph_iterator = glyph_iterator - 1;

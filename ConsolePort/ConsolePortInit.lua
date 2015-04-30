@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local BIND_TARGET 	 	= false;
 local CONF_BUTTON 		= nil;
 local CP 				= "CP";
@@ -14,7 +15,7 @@ G.ConsolePort_Loaded = false;
 G.ButtonGuides 		 = {};
 
 -- Sort table by non-numeric key
-local function pairsByKeys(t,f)
+G.pairsByKeys = function (t,f)
 	local a = {};
 	for n in pairs(t) do tinsert(a, n); end;
 	table.sort(a, f);
@@ -234,19 +235,19 @@ function ConsolePort:GetDefaultButton(key)
 	local ctrl 		= nil;
 	local modshiftctrl = nil;
 	if 		key == "CP_R_LEFT" then
-		command		= G.SQUARE;
+		command		= KEY.SQUARE;
 		nomod 		= "ActionButton1";
 		modshift 	= "ActionButton6";
 		modctrl 	= "MultiBarBottomLeftButton1";
 		shiftctrl 	= "MultiBarBottomLeftButton6";
 	elseif key == "CP_R_UP" then
-		command		= G.TRIANGLE;
+		command		= KEY.TRIANGLE;
 		nomod 		= "ActionButton2";
 		modshift 	= "ActionButton7";
 		modctrl 	= "MultiBarBottomLeftButton2";
 		shiftctrl 	= "MultiBarBottomLeftButton7";
 	elseif key == "CP_R_RIGHT" then
-		command 	= G.CIRCLE;
+		command 	= KEY.CIRCLE;
 		nomod 		= "ActionButton3";
 		modshift 	= "ActionButton8";
 		modctrl 	= "MultiBarBottomLeftButton3";
@@ -266,25 +267,25 @@ function ConsolePort:GetDefaultButton(key)
 		shiftctrl 	= "MultiBarBottomLeftButton10";
 	-- Left side
 	elseif key == "CP_L_DOWN" then
-		command		= G.DOWN;
+		command		= KEY.DOWN;
 		nomod 		= "ActionButton11";
 		modshift 	= "MultiBarBottomRightButton4";
 		modctrl  	= "MultiBarBottomRightButton8";
 		shiftctrl	= "MultiBarBottomRightButton12";
 	elseif key == "CP_L_LEFT" then
-		command		= G.LEFT;
+		command		= KEY.LEFT;
 		nomod 		= "MultiBarBottomLeftButton11";
 		modshift 	= "MultiBarBottomRightButton1";
 		modctrl 	= "MultiBarBottomRightButton5";
 		shiftctrl 	= "MultiBarBottomRightButton9";
 	elseif key == "CP_L_UP" then
-		command		= G.UP;
+		command		= KEY.UP;
 		nomod 		= "MultiBarBottomLeftButton12";
 		modshift 	= "MultiBarBottomRightButton2";
 		modctrl 	= "MultiBarBottomRightButton6";
 		shiftctrl 	= "MultiBarBottomRightButton10";
 	elseif key == "CP_L_RIGHT" then
-		command		= G.RIGHT;
+		command		= KEY.RIGHT;
 		nomod 		= "ActionButton12";
 		modshift 	= "MultiBarBottomRightButton3";
 		modctrl 	= "MultiBarBottomRightButton7";
@@ -406,7 +407,7 @@ function ConsolePort:CreateBindingButtons()
 	local keys = ConsolePortBindingButtons;
 	local y = 1;
 	table.sort(keys);
-	for name, key in pairsByKeys(keys) do
+	for name, key in G.pairsByKeys(keys) do
 		local x = 1;
 		ConsolePort:CreateConfigGuideButton(name, G.NAME[name], G.Binds, 0, y);
 		if key.action 	then ConsolePort:CreateSecureButton(name, NOMOD,	key.action,	key.ui);

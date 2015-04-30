@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local iterator = 1;
 local slot = nil;
 local spells = {};
@@ -40,14 +41,14 @@ SpellBookSpellIconsFrame:HookScript("OnUpdate", function(self, elapsed)
 		local name = GetSpellInfo(spellID);
 		CP_R_RIGHT_NOMOD:SetAttribute("type", "spell");
 		CP_R_RIGHT_NOMOD:SetAttribute("spell", name);
-		if CP_L_RIGHT_NOMOD.state == G.STATE_UP then
+		if CP_L_RIGHT_NOMOD.state == KEY.STATE_UP then
 			if 	iterator >= 7 and SpellBookNextPageButton:IsEnabled() then
 				ConsolePort:SetClickButton(CP_L_RIGHT_NOMOD, SpellBookNextPageButton);
 			else
 				CP_L_RIGHT_NOMOD:SetAttribute("type", "Book");
 			end
 		end
-		if CP_L_LEFT_NOMOD.state == G.STATE_UP then
+		if CP_L_LEFT_NOMOD.state == KEY.STATE_UP then
 			if 	iterator <= 6 and
 				SpellBookPrevPageButton:IsEnabled() then
 				ConsolePort:SetClickButton(CP_L_LEFT_NOMOD, SpellBookPrevPageButton);
@@ -62,13 +63,13 @@ function ConsolePort:Book(key, state)
 	local currentTab = SpellBookFrame.selectedSkillLine;
 	local a, b, offSet, numSpells = GetSpellTabInfo(currentTab);
 	local count = offSet + numSpells;
-	if key == G.PREPARE then iterator = 1;
-	elseif 		state == G.STATE_DOWN then
+	if key == KEY.PREPARE then iterator = 1;
+	elseif 		state == KEY.STATE_DOWN then
 		local 	old = iterator;
-		if 		key == G.UP 	then iterator = iterator - 1;
-		elseif	key == G.DOWN 	then iterator = iterator + 1;
-		elseif 	key == G.RIGHT 	then iterator = iterator + 6;
-		elseif 	key == G.LEFT 	then iterator = iterator - 6; end;
+		if 		key == KEY.UP 	then iterator = iterator - 1;
+		elseif	key == KEY.DOWN 	then iterator = iterator + 1;
+		elseif 	key == KEY.RIGHT 	then iterator = iterator + 6;
+		elseif 	key == KEY.LEFT 	then iterator = iterator - 6; end;
 		if iterator < 1 or iterator > 12 then
 			iterator = old;
 		end
@@ -76,11 +77,11 @@ function ConsolePort:Book(key, state)
 			iterator = old;
 		end
 		local _,_, spellID = SpellBook_GetSpellBookSlot(slot);
-		if 	key == G.SQUARE and
+		if 	key == KEY.SQUARE and
 			not slot.IsPassive then
 			MouselookStop();
 			PickupSpell(spellID);
-		elseif key == G.TRIANGLE then
+		elseif key == KEY.TRIANGLE then
 			local allTabs = { SpellBookSideTabsFrame:GetChildren() };
 			local activeTabs = {};
 			for i, tab in pairs(allTabs) do

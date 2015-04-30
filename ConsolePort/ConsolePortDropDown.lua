@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local _DROPDOWN = "DropDownList";
 local iterator = { 1, 1, 1 };
 local list = 1;
@@ -27,11 +28,11 @@ function ConsolePort:List(key, state)
 			count = count + 1;
 		end
 	end
-	if state == G.STATE_UP then
-		if 		key == G.UP then
+	if state == KEY.STATE_UP then
+		if 		key == KEY.UP then
 			if 	 iterator[list] == 1 then iterator[list] = count;
 			else iterator[list] = iterator[list] - 1; end;
-		elseif 	key == G.DOWN then
+		elseif 	key == KEY.DOWN then
 			if 	 iterator[list] == count then iterator[list] = 1;
 			else iterator[list] = iterator[list] + 1; end;
 		end
@@ -40,24 +41,24 @@ function ConsolePort:List(key, state)
 	if button then
 		Enter(button);
 		CP_R_RIGHT_NOMOD:SetAttribute("clickbutton", button);
-	--	if key == G.CIRCLE and not button.hasArrow then
+	--	if key == KEY.CIRCLE and not button.hasArrow then
 	--		ConsolePort:Button(button, state);
-	--		if state == G.STATE_UP then iterator[list] = 1; end;
+	--		if state == KEY.STATE_UP then iterator[list] = 1; end;
 	--	end
 	end
-	if 	key == G.LEFT or key == G.SQUARE then
+	if 	key == KEY.LEFT or key == KEY.SQUARE then
 		if 	_G[_DROPDOWN..(list-1)] and
 			_G[_DROPDOWN..(list-1)]:IsVisible() then
 			Leave(buttons[iterator[list]]);
 			list = list - 1;
-			ConsolePort:List(0, G.STATE_DOWN);
+			ConsolePort:List(0, KEY.STATE_DOWN);
 		end
-	elseif 	key == G.RIGHT then
+	elseif 	key == KEY.RIGHT then
 		if 	_G[_DROPDOWN..(list+1)] and
 			_G[_DROPDOWN..(list+1)]:IsVisible() then
 			list = list + 1;
 			iterator[list] = 1;
-			ConsolePort:List(0, G.STATE_DOWN);
+			ConsolePort:List(0, KEY.STATE_DOWN);
 		end
 	end
 end

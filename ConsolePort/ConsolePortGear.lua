@@ -1,20 +1,21 @@
 local _, G = ...;
+local KEY = G.KEY;
 local iterator = 1;
 local extra = 1;
 
 function ConsolePort:Gear (key, state)
 	local gear = { PaperDollItemsFrame:GetChildren() };
-	if key == G.PREPARE then
+	if key == KEY.PREPARE then
 		gear[1]:LockHighlight();
 	end
 	if not EquipmentFlyoutFrame:IsVisible() then
-		if 	key == G.UP and state == G.STATE_DOWN then
+		if 	key == KEY.UP and state == KEY.STATE_DOWN then
 			if 		iterator == 17 	then iterator = 8
 			elseif 	iterator == 18	then iterator = 16
 			elseif	iterator ~= 1 	then iterator = iterator - 1 end
 			ConsolePort:Highlight(iterator, gear);
 			gear[iterator]:GetScript("OnEnter")(gear[iterator]);
-		elseif 	key == G.DOWN and state == G.STATE_DOWN then
+		elseif 	key == KEY.DOWN and state == KEY.STATE_DOWN then
 			if 	iterator ~= 8 and
 				iterator ~= 16 and
 				iterator ~= 17 and
@@ -23,7 +24,7 @@ function ConsolePort:Gear (key, state)
 			end
 			ConsolePort:Highlight(iterator, gear);
 			gear[iterator]:GetScript("OnEnter")(gear[iterator]);
-		elseif	key == G.RIGHT and state == G.STATE_DOWN then
+		elseif	key == KEY.RIGHT and state == KEY.STATE_DOWN then
 			if 		iterator == 17 	then iterator = 18
 			elseif 	iterator == 18 	then iterator = 16
 			elseif 	iterator == 8 	then iterator = 17
@@ -33,7 +34,7 @@ function ConsolePort:Gear (key, state)
 			end 
 			ConsolePort:Highlight(iterator, gear);
 			gear[iterator]:GetScript("OnEnter")(gear[iterator]);
-		elseif	key == G.LEFT and state == G.STATE_DOWN then
+		elseif	key == KEY.LEFT and state == KEY.STATE_DOWN then
 			if 		iterator == 18	then iterator = 17
 			elseif 	iterator == 17 	then iterator = 8
 			elseif 	iterator == 16 	then iterator = 18
@@ -42,10 +43,10 @@ function ConsolePort:Gear (key, state)
 			end		
 			ConsolePort:Highlight(iterator, gear);
 			gear[iterator]:GetScript("OnEnter")(gear[iterator]);
-		elseif	key == G.CIRCLE then
-			if state == G.STATE_DOWN then
+		elseif	key == KEY.CIRCLE then
+			if state == KEY.STATE_DOWN then
 				gear[iterator]:LockHighlight();
-			elseif state == G.STATE_UP then
+			elseif state == KEY.STATE_UP then
 				EquipmentFlyout_UpdateFlyout(gear[iterator]);
 				EquipmentFlyout_Show(gear[iterator]);
 				gear[iterator].popoutButton.flyoutLocked = true;
@@ -53,15 +54,15 @@ function ConsolePort:Gear (key, state)
 				extra = 1;
 			end
 		end
-	elseif	EquipmentFlyoutFrame:IsVisible() and state == G.STATE_DOWN then
-		if 		key == G.RIGHT 	then extra = extra + 1;
-		elseif 	key == G.LEFT	then extra = extra - 1;
-		elseif	key == G.CIRCLE then
+	elseif	EquipmentFlyoutFrame:IsVisible() and state == KEY.STATE_DOWN then
+		if 		key == KEY.RIGHT 	then extra = extra + 1;
+		elseif 	key == KEY.LEFT	then extra = extra - 1;
+		elseif	key == KEY.CIRCLE then
 			local items = { EquipmentFlyoutFrameButtons:GetChildren() };
 			items[extra]:Click();
 			gear[iterator].popoutButton.flyoutLocked = false;
 			EquipmentFlyoutFrame:Hide();
-		elseif 	key == G.TRIANGLE then
+		elseif 	key == KEY.TRIANGLE then
 			gear[iterator].popoutButton.flyoutLocked = false;
 			ConsolePort:Highlight(iterator, gear);
 			gear[iterator]:GetScript("OnEnter")(gear[iterator]);

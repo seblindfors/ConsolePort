@@ -1,4 +1,5 @@
 local _, G = ...;
+local KEY = G.KEY;
 local iterator = 1;
 local Enter = MerchantItem1ItemButton:GetScript("OnEnter");
 local Leave = MerchantItem1ItemButton:GetScript("OnLeave");
@@ -16,16 +17,16 @@ function ConsolePort:Shop(key, state)
 	end
 	local slot = items[iterator];
 	local index = slot:GetID();
-	if key == G.PREPARE then iterator = 1;
-	elseif state == G.STATE_DOWN then
+	if key == KEY.PREPARE then iterator = 1;
+	elseif state == KEY.STATE_DOWN then
 		CP_R_RIGHT_NOMOD:SetAttribute("type", "Shop");
-		if key == G.CIRCLE then
+		if key == KEY.CIRCLE then
 			slot:Click("RightButton");
-		elseif key == G.SQUARE then
+		elseif key == KEY.SQUARE then
 			MouselookStop();
 			OpenAllBags();
 			PickupMerchantItem(index);
-		elseif key == G.TRIANGLE then
+		elseif key == KEY.TRIANGLE then
 			local maxStack = GetMerchantItemMaxStack(slot:GetID());
 			local _, _, price, stackCount, _, _, extendedCost = GetMerchantItemInfo(slot:GetID());
 			if stackCount > 1 and extendedCost then
@@ -45,10 +46,10 @@ function ConsolePort:Shop(key, state)
 			end
 		else
 			local 	old = iterator;
-			if 		key == G.UP 	then iterator = iterator - 1;
-			elseif	key == G.DOWN 	then iterator = iterator + 1;
-			elseif 	key == G.RIGHT 	then iterator = iterator + 5;
-			elseif 	key == G.LEFT 	then iterator = iterator - 5; end;
+			if 		key == KEY.UP 	then iterator = iterator - 1;
+			elseif	key == KEY.DOWN 	then iterator = iterator + 1;
+			elseif 	key == KEY.RIGHT 	then iterator = iterator + 5;
+			elseif 	key == KEY.LEFT 	then iterator = iterator - 5; end;
 			if iterator > 10 and MerchantNextPageButton:IsEnabled() and MerchantNextPageButton:IsVisible() then
 				MerchantNextPageButton:Click();
 				iterator = old - 5;
