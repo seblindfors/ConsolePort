@@ -94,18 +94,10 @@ function ConsolePort:LoadHookScripts()
 	InterfaceOptionsFrame:HookScript("OnDragStop", InterfaceOptionsFrame.StopMovingOrSizing);
 	-- Add guides to tooltips
 	-- Pending removal for cleaner solution
-	GameTooltip.Backdrop = GameTooltip:GetBackdrop();
-	GameTooltip.DropColors = {GameTooltip:GetBackdropColor()};
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
-		self:SetAlpha(0);
 		local owner = self:GetOwner();
 		if owner == ConsolePortExtraButton then
 			return;
-		elseif owner.isListItem then
-			local yoffset = (ConsolePortContainer:GetTop()-owner:GetTop())+32;
-			self:SetAnchorType("ANCHOR_BOTTOMLEFT", -10, yoffset);
-			self:SetBackdrop(nil);
-			self:SetMinimumWidth(232);
 		end
 		local item = self:GetItem();
 		if 	not InCombatLockdown() then

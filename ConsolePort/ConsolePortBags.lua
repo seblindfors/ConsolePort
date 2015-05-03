@@ -1,5 +1,6 @@
 local _, G = ...;
 local KEY = G.KEY;
+local CLICK = G.CLICK;
 local 	Inventory, GridItem, ListItem, List, GridIterator,
 		VisibleGridItems, GridMod, GridButtons,
 		ItemButtons, CategoryButtons = nil, nil, nil, nil, 1, 0, 8, {}, {}, {};
@@ -59,28 +60,26 @@ end
 
 local function GetInventory()
 	local _, _free, _used, _special = GetSlotCount();
-	local inventory = {Slots = {free = _free, used = _used, special = _special, categories = 0}};
+	local inventory = {	Slots = {free = _free, used = _used, special = _special, categories = 0}, All = {}};
+	local texture, itemCount, locked, quality, readable, lootable, itemLink, item, itemType;
 	for bag=0, 4 do
 		for slot=1, GetContainerNumSlots(bag) do
 			if GetContainerItemInfo(bag, slot) then
-				local 	texture,
-						itemCount,
-						locked,
-						quality,
-						readable,
-						lootable,
-						itemLink = GetContainerItemInfo(bag, slot);
-				local 	type = select(6, GetItemInfo(itemLink));
-				if not inventory[type] then
-					inventory[type] = {};
+				texture, itemCount, locked, quality,readable, lootable, itemLink = GetContainerItemInfo(bag, slot);
+				itemType = lootable and "Lootable" or readable and "Readable" or select(6, GetItemInfo(itemLink));
+				if not inventory[itemType] then
+					inventory[itemType] = {};
 					inventory.Slots.categories = inventory.Slots.categories + 1;
 				end
-				tinsert(inventory[type], {
+				item = {
 					icon = texture,
 					link = itemLink,
 					count = itemCount,
 					isLoot = lootable,
-					index = {bag = bag, slot = slot}});
+					index = {bag = bag, slot = slot}
+				};
+				tinsert(inventory[itemType], item);
+				tinsert(inventory.All, item);
 			end
 		end
 	end
@@ -136,25 +135,48 @@ local function SetIndex(self, bag, slot)
 end
 
 local function UpdateItem(self, updateCooldown)
-	local bagID, slotID = self.bagID, self.slotID;
-	local _, count, _, _, _, _, link =  GetContainerItemInfo(bagID, slotID);
-	if 	link and bagID >= 0 and slotID >= 0 then
-		if 	updateCooldown then
-			local time, cooldown, _ = GetContainerItemCooldown(bagID, slotID);
-			self.itemBtn.Cooldown:SetCooldown(time, cooldown);
-		end
-		if count > 1 then
-			self.itemBtn.Count:SetText(count);
-			self.itemBtn.Count:Show();
-		else
-			self.itemBtn.Count:Hide();
-		end
-		self.link = link;
-		self.itemBtn.icon:SetTexture(GetContainerItemInfo(bagID, slotID));
-		self.title:SetText(link:gsub("|H(.-)|h%[(.-)%]|h", "|H%1|h%2|h"));
-		self:Show();
+	local itemBtn = self.itemBtn;
+	local slotID = self.slotID or itemBtn:GetID();
+	local bagID = self.bagID or self:GetID();
+	local texture, count, locked, quality, _, _, link =  GetContainerItemInfo(bagID, slotID);
+	local isQuestItem, questID, isActive = GetContainerItemQuestInfo(bagID, slotID);
+	local time, cooldown = GetContainerItemCooldown(bagID, slotID);
+	itemBtn.Cooldown:SetCooldown(time, cooldown);
+	if 	updateCooldown and not self.isListItem then
+		return;
+	end
+	SetItemButtonTexture(itemBtn, texture);
+	SetItemButtonCount(itemBtn, count);
+	SetItemButtonDesaturated(itemBtn, locked);
+	if questID and not isActive then
+		itemBtn.QuestTexture:SetTexture(TEXTURE_ITEM_QUEST_BANG);
+		itemBtn.QuestTexture:Show();
+	elseif questID or isQuestItem then
+		itemBtn.QuestTexture:SetTexture(TEXTURE_ITEM_QUEST_BORDER);
+		itemBtn.QuestTexture:Show();
 	else
-		self:Hide();
+		itemBtn.QuestTexture:Hide();
+	end
+	if quality then
+		if quality >= LE_ITEM_QUALITY_COMMON and BAG_ITEM_QUALITY_COLORS[quality] then
+			itemBtn.IconBorder:Show();
+			itemBtn.IconBorder:SetVertexColor(
+				BAG_ITEM_QUALITY_COLORS[quality].r,
+				BAG_ITEM_QUALITY_COLORS[quality].g,
+				BAG_ITEM_QUALITY_COLORS[quality].b);
+		else
+			itemBtn.IconBorder:Hide();
+		end
+	else
+		itemBtn.IconBorder:Hide();
+	end
+	if self.isListItem then
+		if link then
+			self.title:SetText(link:gsub("|H(.-)|h%[(.-)%]|h", "|H%1|h%2|h"));
+			self:Show();
+		else
+			self:Hide();
+		end
 	end
 end
 
@@ -224,6 +246,7 @@ local function CreateListItem(index, scrollFrame)
 	f.title 		= f:CreateFontString(nil, "OVERLAY", "GameTooltipHeaderText");
 	f.bagID = -1;
 	f.slotID = -1;
+	f.isListItem = true;
 	f.bag:SetID(f.bagID);
 	f.itemBtn:SetID(f.slotID);
 	f:RegisterForClicks("AnyUp");
@@ -242,44 +265,36 @@ local function CreateListItem(index, scrollFrame)
 	local Enter = function()
 		local typeFrame = Container.ListView.TypeScrollFrame;
 		local model = Container.Model;
+		local tooltip = Container.Tooltip;
 		local item = GetContainerItemLink(f.bagID, f.slotID);
-		Container:SetWidth(floor(GameTooltip:GetWidth())+348);
+		tooltip:SetBagItem(f, f.bagID, f.slotID);
+		model:TryOn(item);
+		Container:SetWidth(floor(tooltip:GetWidth())+348);
 		Fade(f.highlight, true);
 		Fade(typeFrame, false);
-		if IsDressableItem(item) then
-			model:Show();
-			model:Dress();
-			model:TryOn(item);
-			UIFrameFadeIn(model, 2, 0, 0.5);
-		else
-			model:Hide();
-		end
 	end
 	local Leave = function()
 		local typeFrame = Container.ListView.TypeScrollFrame;
 		local model = Container.Model;
-		local tooltip = GameTooltip;
-		local colors = tooltip.DropColors;
-		Container:SetWidth(600);
-		tooltip:SetBackdrop(tooltip.Backdrop);
- 		tooltip:SetBackdropColor(colors[1], colors[2], colors[3], colors[4]);
+		local tooltip = Container.Tooltip;
+		Container:ResetSize();
 		Fade(f.highlight, false);
 		Fade(typeFrame, true);
 		model:Hide();
+		tooltip:Hide();
 	end
 
 	f.itemBtn.Enter = Enter;
 	f.itemBtn.Leave = Leave;
-	f:HookScript("OnEnter", Enter);
-	f:HookScript("OnLeave", Leave);
-	f.itemBtn:HookScript("OnEnter", Enter);
-	f.itemBtn:HookScript("OnLeave", Leave);
+	f:SetScript("OnEnter", Enter);
+	f:SetScript("OnLeave", Leave);
+	f.itemBtn:SetScript("OnEnter", Enter);
+	f.itemBtn:SetScript("OnLeave", Leave);
 
 	f.SetIndex = SetIndex;
 	f.UpdateItem = UpdateItem;
 	f.itemBtn.Enter = f.itemBtn:GetScript("OnEnter");
 	f.itemBtn.Leave = f.itemBtn:GetScript("OnLeave");
-	f.itemBtn.isListItem = true;
 
 	f:RegisterEvent("BAG_UPDATE");
 	f:RegisterEvent("BAG_UPDATE_COOLDOWN");
@@ -303,7 +318,7 @@ local function CreateListItem(index, scrollFrame)
 	
 	f:SetSize(310, 44);
 	f.bag:SetSize(36,36);
-	f.title:SetWidth(300);
+	f.title:SetWidth(280);
 	f.itemBtn:SetSize(300, 36);
 	f.itemBtn.icon:SetSize(36,36);
 	f.itemBtn.Cooldown:SetSize(36,36);
@@ -472,43 +487,12 @@ local function UpdateGridView(self, updateCooldown)
 			button = GridButtons[index];
 			itemBtn = button.itemBtn;
 			index = index + 1;
+			button:SetID(bag);
+			itemBtn:SetID(slot);
 			if not button:IsVisible() then
 				button:Show();
 			end
-			if  updateCooldown then
-				time, cooldown = GetContainerItemCooldown(bag, slot);
-				itemBtn.Cooldown:SetCooldown(time, cooldown);
-			else
-				texture, count, locked, quality = GetContainerItemInfo(bag, slot);
-				isQuestItem, questID, isActive = GetContainerItemQuestInfo(bag, slot);
-				button:SetID(bag);
-				itemBtn:SetID(slot);
-				SetItemButtonTexture(itemBtn, texture);
-				SetItemButtonCount(itemBtn, count);
-				SetItemButtonDesaturated(itemBtn, locked);
-				if questID and not isActive then
-					itemBtn.QuestTexture:SetTexture(TEXTURE_ITEM_QUEST_BANG);
-					itemBtn.QuestTexture:Show();
-				elseif questID or isQuestItem then
-					itemBtn.QuestTexture:SetTexture(TEXTURE_ITEM_QUEST_BORDER);
-					itemBtn.QuestTexture:Show();
-				else
-					itemBtn.QuestTexture:Hide();
-				end
-				if quality then
-					if quality >= LE_ITEM_QUALITY_COMMON and BAG_ITEM_QUALITY_COLORS[quality] then
-						itemBtn.IconBorder:Show();
-						itemBtn.IconBorder:SetVertexColor(
-							BAG_ITEM_QUALITY_COLORS[quality].r,
-							BAG_ITEM_QUALITY_COLORS[quality].g,
-							BAG_ITEM_QUALITY_COLORS[quality].b);
-					else
-						itemBtn.IconBorder:Hide();
-					end
-				else
-					itemBtn.IconBorder:Hide();
-				end
-			end
+			UpdateItem(button, updateCooldown);
 		end
 	end
 	if 	not updateCooldown then
@@ -539,8 +523,7 @@ local function UpdateGridView(self, updateCooldown)
 			end
 			self.GridView.height = 26+40*(ceil(slotsTotal/GridMod));
 			self.GridView.width = GridMod*40+10;
-			self:SetHeight(self.GridView.height);
-			self:SetWidth(self.GridView.width);
+			self:ResetSize();
 		end
 	end
 end
@@ -722,6 +705,9 @@ end
 
 function ConsolePort:CreateContainerFrame()
 	if not ConsolePortContainer then
+		-----------------------------------
+		-- Create main bag frame wrapper --
+		-----------------------------------
 		local backdrop = {
 			bgFile = "Interface\\TutorialFrame\\TutorialFrameBackground",
 			edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -735,12 +721,96 @@ function ConsolePort:CreateContainerFrame()
 		local name = "ConsolePortContainer";
 		local f = CreateFrame("Frame", name, UIParent);
 		Container = f;
+		f.GetInventory = GetInventory;
+		f.UpdateGridView = UpdateGridView;
+		f:SetSize(600, 550);
+		f:Show();
+		f.ResetSize = function(self)
+			if 	self.GridView:IsVisible() then
+				self:SetSize(self.GridView.width, self.GridView.height);
+			else
+				self:SetSize(600, 550);
+			end
+		end
+		----------------------
+		-- View mode frames --
+		----------------------
 		f.ListView = CreateFrame("Frame", nil, f);
 		f.GridView = CreateFrame("Frame", nil, f);
 		f.ListView.ItemScrollFrame = CreateListScrollFrame(f.ListView, name.."Item", "RIGHT", false);
 		f.ListView.TypeScrollFrame = CreateListScrollFrame(f.ListView, name.."Type", "LEFT", true);
 		f.ListView.ItemScrollFrame.NextList = f.ListView.TypeScrollFrame;
 		f.ListView.TypeScrollFrame.NextList = f.ListView.ItemScrollFrame;
+		f.GridView:SetScript("OnShow", function(s)
+			f.ListView:Hide();
+			UpdateGridView(f);
+			UpdateGridView(f, true);
+		end);
+		f.ListView:SetScript("OnShow", function(s)
+			s.ItemScrollFrame:UpdateListScrollFrame();
+			s.TypeScrollFrame:UpdateListScrollFrame();
+			f.CurrencyFrame:SetWidth(600);
+			f.GridView:Hide();
+			f:ResetSize();
+		end);
+		f.ListView:Hide();
+		f.GridView:Hide();
+		List = f.ListView.TypeScrollFrame; -- set default list
+		-------------------------
+		-- Custom game tooltip --
+		-------------------------
+		f.Tooltip = CreateFrame("GameTooltip", name.."Tooltip", f, "GameTooltipTemplate");
+		f.Tooltip:SetBackdrop(nil);
+		f.Tooltip.shoppingTooltips = GameTooltip.shoppingTooltips;
+		f.Tooltip.CompareItem = GameTooltip_ShowCompareItem;
+		f.Tooltip.AddBagItem = f.Tooltip.SetBagItem;
+		f.Tooltip.SetBagItem = function(self, owner, bagID, slotID)
+			local yOffset = (f:GetTop()-owner:GetTop())+42;
+			self:SetOwner(owner);
+			self:SetAnchorType("ANCHOR_BOTTOMLEFT", -8, yOffset);
+			local cooldown = self:AddBagItem(bagID, slotID);
+		end
+		f.Tooltip:HookScript("OnTooltipSetItem", function(self)
+			self:SetMinimumWidth(232);
+			local item = self:GetItem();
+			if not InCombatLockdown() then
+				local clickString = MerchantFrame:IsVisible() 	and CLICK.SELL or
+									IsEquippableItem(item) 		and CLICK.EQUIP or
+									GetItemSpell(item) 			and CLICK.USE;
+				self:AddDoubleLine(	clickString,
+									(clickString == CLICK.USE) and CLICK.ADD_TO_EXTRA or
+									(clickString == CLICK.EQUIP) and CLICK.COMPARE, 1, 1, 1);
+			end
+		end);
+		f.Tooltip:HookScript("OnEvent", function(self, event, ...)
+			self[event](self, ...);
+		end);
+		f.Tooltip.MODIFIER_STATE_CHANGED = function(self, ...)
+			local modifier, down = ...;
+			if 	IsShiftKeyDown() then
+				self:CompareItem();
+			else
+				self.shoppingTooltips[1]:Hide();
+				self.shoppingTooltips[2]:Hide();
+			end
+		end
+		f.Tooltip.UpdateItem = function(self)
+			local owner = self:GetOwner();
+			local bagID, slotID = owner and owner.bagID, owner and owner.slotID;
+			if owner and not owner:IsVisible() or not bagID or not slotID then
+				self:Hide();
+			else
+				self:SetBagItem(owner, bagID, slotID);
+			end
+		end
+		f.Tooltip.BAG_UPDATE = f.Tooltip.UpdateItem;
+		f.Tooltip.BAG_UPDATE_COOLDOWN = f.Tooltip.UpdateItem;
+		f.Tooltip:RegisterEvent("BAG_UPDATE");
+		f.Tooltip:RegisterEvent("BAG_UPDATE_COOLDOWN");
+		f.Tooltip:RegisterEvent("MODIFIER_STATE_CHANGED");
+		--------------------------------
+		-- Header frames and textures --
+		--------------------------------
 		f.Header = CreateFrame("Button", nil, f);
 		f.Header:SetSize(40,40);
 		f.Header:SetScript("OnClick", function() f:Hide(); end);
@@ -759,11 +829,9 @@ function ConsolePort:CreateContainerFrame()
 		f.Header.TitleBar:SetTexCoord(0, 0.6640625, 0, 1);
 		f.Header.TitleText = f.Header:CreateFontString(nil, "ARTWORK", "GameFontNormalLeftBottom");
 		f.Header.TitleText:SetText("Inventory");
-
-		List = f.ListView.TypeScrollFrame;
-
-
-		-- testmodel
+		-----------------------------------------
+		-- Dress up model for previewing items --
+		-----------------------------------------
 		f.Model = CreateFrame("DressUpModel", name.."Model", f.ListView);
 		f.Model:SetWidth(250);
 		f.Model:SetAllPoints(f.ListView.TypeScrollFrame);
@@ -774,27 +842,40 @@ function ConsolePort:CreateContainerFrame()
 		f.Model:SetUnit("player");
 		f.Model.rotation = 0;
 		f.Model:Hide();
-		f.Model:SetScript("OnUpdate", function(s, e)
-			if s.rotation >= 2 then
-				s.rotation = 0;
+		f.Model.TryOnItem = f.Model.TryOn;
+		f.Model.TryOn = function(self, item)
+			if IsDressableItem(item) then
+				self:Show();
+				self:Dress();
+				self:TryOnItem(item);
+				UIFrameFadeIn(self, 2, 0, 0.5);
 			else
-				s.rotation = s.rotation + 0.0025;
+				self:Hide();
 			end
+		end
+		f.Model:SetScript("OnUpdate", function(s, e)
+			s.rotation = s.rotation >= 2 and 0 or s.rotation + 0.0025;
 			s:SetFacing(math.pi*s.rotation);
 		end);
-
-		-- test texture
-		local test = f:CreateTexture("BACKGROUND");
-		test:SetAtlas("QuestLogBackground");
-		test:SetAllPoints(f);
-		test:SetAlpha(0.5);
-
+		------------------------
+		-- Background texture --
+		------------------------
+		local bg = f:CreateTexture(nil, "BACKGROUND");
+		bg:SetAtlas("QuestLogBackground");
+		bg:SetAllPoints(f);
+		bg:SetAlpha(0.5);
+		--------------------------------------
+		-- Currency frames and sort buttons --
+		--------------------------------------
 		f.ToggleView = CreateFrame("Button", name.."ToggleView", f);
 		f.AutoSort = CreateFrame("Button", name.."AutoSort", f);
 		f.CurrencyFrame = CreateFrame("Frame", name.."CurrencyFrame", f);
+		f.CurrencyFrame:SetHeight(20);
 		f.MoneyFrame = CreateFrame("Frame", name.."MoneyFrame", f.CurrencyFrame, "SmallMoneyFrameTemplate");
 		f.SlotsUsed = f.Header:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall");
-
+		------------------------
+		-- View toggler setup --
+		------------------------
 		f.ToggleView:SetSize(32, 32);
 		f.ToggleView:SetNormalTexture("Interface\\Buttons\\UI-Panel-BiggerButton-Up");
 		f.ToggleView:SetPushedTexture("Interface\\Buttons\\UI-Panel-BiggerButton-Down");
@@ -802,10 +883,9 @@ function ConsolePort:CreateContainerFrame()
 		f.ToggleView:SetScript("OnClick", function(self)
 			if f.GridView:IsVisible() then f.ListView:Show(); else f.GridView:Show(); end
 		end);
-		
-		f.ClearList = ClearList;
-		f.GetInventory = GetInventory;
-
+		----------------------
+		-- Auto sort button --
+		----------------------
 		local n, p = f.AutoSort:CreateTexture(nil, "ARTWORK"), f.AutoSort:CreateTexture(nil, "ARTWORK");
 		local nName, _, _, nL, nR, nT, nB = GetAtlasInfo("bags-button-autosort-up");
 		local pName, _, _, pL, pR, pT, pB = GetAtlasInfo("bags-button-autosort-down");
@@ -832,7 +912,9 @@ function ConsolePort:CreateContainerFrame()
 		f.AutoSort:SetScript("OnLeave", function()
 			GameTooltip:Hide();
 		end);
-
+		------------------------------
+		-- Container filter buttons --
+		------------------------------
 		for i=0, 4 do
 			local p = CreateFrame("BUTTON", nil, f);
 			local pD = CreateFrame("FRAME", name.."Portrait"..i.."DropDown", p, "UIDropDownMenuTemplate");
@@ -871,34 +953,17 @@ function ConsolePort:CreateContainerFrame()
 			BagIconUpdate(p, nil, i);
 			UIDropDownMenu_Initialize(pD, FilterDropDown, "MENU");
 		end
-
-		f.GridView:SetScript("OnShow", function(s)
-			f.ListView:Hide();
-			UpdateGridView(f);
-			UpdateGridView(f, true);
-		end);
-		f.ListView:SetScript("OnShow", function(s)
-			s.ItemScrollFrame:UpdateListScrollFrame();
-			s.TypeScrollFrame:UpdateListScrollFrame();
-			f:SetSize(600, 550);
-			f.CurrencyFrame:SetWidth(600);
-			f.GridView:Hide();
-		end);
-
-		f.UpdateGridView = UpdateGridView;
-
-		f:SetSize(600, 550);
-		f.CurrencyFrame:SetHeight(20);
-
-		f.ListView:Hide();
-		f.GridView:Hide();
-
+		----------------------------------------
+		-- Hijack and move token to bag frame --
+		----------------------------------------
 		for i=1, 3 do
 			f["Token"..i] = _G["BackpackTokenFrameToken"..i];
 			f["Token"..i]:SetParent(f);
 			f["Token"..i]:ClearAllPoints();
 		end
-
+		------------------------------------------
+		-- Frame border textures and properties --
+		------------------------------------------
 		local Corner, Vertical, Horizontal, Lion, TL, TR, BL, BR =
 			"Interface\\AchievementFrame\\UI-Achievement-WoodBorder-Corner",
 			"Interface\\AchievementFrame\\UI-Achievement-MetalBorder-Left",
@@ -965,7 +1030,8 @@ function ConsolePort:CreateContainerFrame()
 						texture = Lion, parent = f.Header, level = 7,
 			},
 			ListSeparator = {	width = 12, height = 0,
-						anchor1 = {TR, f.ListView.ItemScrollFrame, TL, 0, 4},	anchor2 = {BR, f.ListView.ItemScrollFrame, BL, 0, 0},
+						anchor1 = {TR, f.ListView.ItemScrollFrame, TL, 0, 4},
+						anchor2 = {BR, f.ListView.ItemScrollFrame, BL, 0, 0},
 						texture = Vertical,  coord = {1, 0, 0.87, 0}, parent = f.ListView,
 			},
 		}
@@ -975,15 +1041,17 @@ function ConsolePort:CreateContainerFrame()
 			f["Border"..name] = t;
 			t:SetTexture(b.texture);
 			t:SetSize(b.width, b.height);
-			t:SetPoint(b.anchor1[1], b.anchor1[2], b.anchor1[3], b.anchor1[4], b.anchor1[5]);
+			t:SetPoint(unpack(b.anchor1));
 			if b.anchor2 then
-				t:SetPoint(b.anchor2[1], b.anchor2[2], b.anchor2[3], b.anchor2[4], b.anchor2[5]);
+				t:SetPoint(unpack(b.anchor2));
 			end
 			if b.coord then
-				t:SetTexCoord(b.coord[1], b.coord[2], b.coord[3], b.coord[4]);
+				t:SetTexCoord(unpack(b.coord));
 			end
 		end
-
+		-------------------------------------------------
+		-- Set points for container frame and children --
+		-------------------------------------------------
 		local Points = {
 			{f, 				"BOTTOMRIGHT", 	UIParent, 			"BOTTOMRIGHT", -93, 130},
 			{f.Header,			"TOPLEFT",		f, 					"TOPRIGHT", -24, 42},
@@ -1010,19 +1078,25 @@ function ConsolePort:CreateContainerFrame()
 		for i, point in pairs(Points) do
 			point[1]:SetPoint(point[2], point[3], point[4], point[5], point[6]);
 		end
-
+		----------------------------
+		-- Add backdrop to frames --
+		----------------------------
 		f:SetBackdrop(backdrop);
 		f.CurrencyFrame:SetBackdrop(backdrop);
 		f:SetBackdropBorderColor(1, 0.675, 0.125, 1);
 		f.CurrencyFrame:SetBackdropBorderColor(1, 0.675, 0.125, 1);
-
+		--------------------------
+		-- Frame re-positioning --
+		--------------------------
 		f:EnableMouse(true);
 		f:SetMovable(true);
 		f:RegisterForDrag("LeftButton");
 
 		f:SetScript("OnDragStart", f.StartMoving);
 		f:SetScript("OnDragStop", f.StopMovingOrSizing);
-
+		-------------------
+		-- Event handler --
+		-------------------
 		f:RegisterEvent("BAG_UPDATE");
 		f:RegisterEvent("BAG_UPDATE_COOLDOWN");
 		f:SetScript("OnEvent", function(s,e,...)
@@ -1044,11 +1118,16 @@ function ConsolePort:CreateContainerFrame()
 				s.SlotsUsed:SetText(used.." / "..(free+used));
 			end
 		end);
-		f:Show();
-		for i=1, 180 do
+		----------------------------------
+		-- Create the grid view buttons --
+		----------------------------------
+		for i=1, 180 do -- each bag has 36 potential slots so create 5*36 = 180 (backpack only has 16 but w/e)
 			local gridItem = CreateGridItem(i);
 			tinsert(GridButtons, gridItem);
 		end
+		------------------------------------------------------------------
+		-- Declare the frame special and hook it to binding redirection --
+		------------------------------------------------------------------
 		tinsert(UISpecialFrames, name);
 		self:ADDON_LOADED("ConsolePort_Container");
 	elseif ConsolePortContainer:IsVisible() then
@@ -1122,14 +1201,18 @@ function ConsolePort:Bags (key, state)
 	elseif Container.ListView:IsVisible() then
 		if state == KEY.STATE_DOWN then
 			ListItem = slot;
-			local change = 0;
-			if 		key == KEY.UP then change = -1;
-			elseif 	key == KEY.DOWN then change = 1;
-			elseif 	key == KEY.LEFT or key == KEY.RIGHT then List = List.NextList;
+			local change = 	key == KEY.UP and -1 or
+							key == KEY.DOWN and 1 or 0; 
+			if 	key == KEY.LEFT or key == KEY.RIGHT then
+				List = List.NextList;
 			end
 			List.iterator = List.iterator + change;
-			if 		List.iterator > 12 	then List.iterator = 12; List:Scroll(-1);
-			elseif 	List.iterator < 1 	then List.iterator = 1; List:Scroll(1);
+			if 	List.iterator > 12 	then
+				List.iterator = 12;
+				List:Scroll(-1);
+			elseif 	List.iterator < 1 then
+				List.iterator = 1;
+				List:Scroll(1);
 			end
 		elseif state == KEY.STATE_UP and List.isCategory then
 			List.NextList.iterator = 1;
@@ -1137,21 +1220,16 @@ function ConsolePort:Bags (key, state)
 		end
 	elseif Container.GridView:IsVisible() and state == KEY.STATE_DOWN then
 		GridItem = slot;
-		local change;
 		local count = GetSlotCount();
-		if 		key == KEY.UP 		then change = -GridMod;
-		elseif 	key == KEY.DOWN 	then change = GridMod;
-		elseif 	key == KEY.LEFT 	then change = -1;
-		elseif 	key == KEY.RIGHT 	then change = 1;
-		end
-		GridIterator = GridIterator + change;
-		if 		GridIterator > count 	then GridIterator = GridIterator - count;
-		elseif 	GridIterator < 1 		then GridIterator = GridIterator + count;
-		end
+		local change = 	key == KEY.UP 		and -GridMod or
+						key == KEY.DOWN 	and GridMod or
+						key == KEY.LEFT 	and -1 or
+						key == KEY.RIGHT 	and 1;
+		GridIterator = 	GridIterator + change;
+		GridIterator = 	(GridIterator > count) and GridIterator - count or
+						(GridIterator < 1) and GridIterator + count or GridIterator;
 	end
 end
 
 
 -- Bug 1: Entering an empty category causes lua error (can only happen on characters with NO ITEMS)
--- Bug 2: Gametooltip not resizing the frame correctly when inventory changes
--- Bug 3: Gametooltip backdrop change persists if listitem is programmatically entered

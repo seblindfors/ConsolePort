@@ -9,6 +9,7 @@ G.KEY 		= {};
 G.GUIDE 	= {};
 G.TEXTURE 	= {};
 G.NAME 		= {};
+G.COLOR 	= {};
 G.CLICK 	= {};
 G.TUTORIAL 	= {};
 -- Small guide button measurements
@@ -84,10 +85,10 @@ function ConsolePort:LoadStrings()
 		G.NAME.CP_C_OPTION			=	"Guide";
 		G.NAME.CP_R_OPTION			= 	"Start";
 		-- Colors
-		G.COLOR_UP 					= 	"FFE74F";
-		G.COLOR_LEFT 				= 	"00A2FF";
-		G.COLOR_RIGHT				= 	"FA4451";
-		G.COLOR_DOWN 				= 	"52C14E";
+		G.COLOR.UP 					= 	"FFE74F";
+		G.COLOR.LEFT 				= 	"00A2FF";
+		G.COLOR.RIGHT				= 	"FA4451";
+		G.COLOR.DOWN 				= 	"52C14E";
 		-- Textures
 	else
 		-- Binding strings (default: PlayStation)
@@ -107,10 +108,10 @@ function ConsolePort:LoadStrings()
 		G.NAME.CP_C_OPTION			=	"PS";
 		G.NAME.CP_R_OPTION			= 	"Options";
 		-- Colors
-		G.COLOR_UP 					= 	"62BBB2";
-		G.COLOR_LEFT 				= 	"D35280";
-		G.COLOR_RIGHT				= 	"D84E58";
-		G.COLOR_DOWN 				= 	"6882A1";
+		G.COLOR.UP 					= 	"62BBB2";
+		G.COLOR.LEFT 				= 	"D35280";
+		G.COLOR.RIGHT				= 	"D84E58";
+		G.COLOR.DOWN 				= 	"6882A1";
 	end
 	-- Interaction keys
 	G.KEY.CIRCLE  					= 1;
@@ -156,9 +157,11 @@ function ConsolePort:LoadStrings()
 	G.TEXTURE.RTHREE			= TEXTURE_PATH..type.."r3";
 	-- Click strings
 	local POINTS 			= ":20:20:0:0";
-	local _RIGHT 			= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_RIGHT)]..POINTS.."|t|cFF"..G.COLOR_RIGHT;
-	local _LEFT 			= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_LEFT)]..POINTS.."|t|cFF"..G.COLOR_LEFT;
-	local _UP				= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_UP)]..POINTS.."|t|cFF"..G.COLOR_UP;
+	local _SHIFT 			= "|T"..G.TEXTURE.LONE..POINTS.."|t |cFF6882A1";
+	local _RIGHT 			= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_RIGHT)]..POINTS.."|t |cFF"..G.COLOR.RIGHT;
+	local _LEFT 			= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_LEFT)]..POINTS.."|t |cFF"..G.COLOR.LEFT;
+	local _UP				= "|T"..G.TEXTURE[strupper(G.NAME.CP_R_UP)]..POINTS.."|t |cFF"..G.COLOR.UP;
+	G.CLICK.COMPARE 		= _SHIFT.."Compare|r";
 	G.CLICK.USE 			= _RIGHT.."Use|r";
 	G.CLICK.QUEST_TRACKER 	= _RIGHT.."Set current quest|r";
 	G.CLICK.USE_NOCOMBAT 	= _RIGHT.."Use (out of combat)|r";
