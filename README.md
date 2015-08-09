@@ -94,13 +94,3 @@ controller. All API functions for looting and clicking items on the ground are b
   - <a href="http://xpadder.com">Xpadder</a> (all game pads)
 
 Warning: I strongly recommend you do not use MotioninJoy!
-
-<h2>5. Known issues</h2>
-- Using menu to click microbuttons will cause taint.
-- Map iteration skips certain zones, Stormwind is one of them.
-- Map iteration doesn't work while flying over the Twisting Nether.
-- Map highlighting does not work for the planet map (arrow buttons are used to enter the planets directly).
-- The Maelstrom zone and subzones are not targetable with arrow buttons. Maelstrom will open the Pandaria map.
-- Entering combat while the glyph frame is open will lock out the Up and Down buttons on the controller.
-- Unless overridden, old button combinations will appear on action buttons until the UI is reloaded.
-- Downwards glyph list iteration will sometimes stop working when the scrollbar reaches the bottom.
