@@ -1,6 +1,6 @@
 -- ConsolePort 
-local addOn, G = ...;
-local KEY = G.KEY;
+local addOn, db = ...;
+local KEY = db.KEY;
 
 local f = ConsolePort;
 local m = ConsolePort:CreateMouseLooker();
@@ -89,7 +89,7 @@ local FocusAttr = nil;
 local function UpdateFrames(self)
 	local FramesOpen = 0;
 	local PriorityFrame = nil;
-	if 	not G.Binds:IsVisible() then
+	if 	not db.Binds:IsVisible() then
 		for _, Hook in pairs(HookFrames) do
 			if Hook.frame:IsVisible() then
 				FramesOpen = FramesOpen + 1;
@@ -249,7 +249,7 @@ function ConsolePort:ADDON_LOADED(...)
 		self:InitializeGlyphs();
 	elseif arg1 == "Blizzard_DeathRecap" then
 		PostLoadHook(DeathRecapFrame, self.Misc, "Misc", nil);
-		self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", G.NAME.CP_R_RIGHT);
+		self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", db.NAME.CP_R_RIGHT);
 	elseif arg1 == "ConsolePort_Container" then
 		PostLoadHook(ConsolePortContainer, self.Bags, "Bags", 3);
 	elseif arg1 == addOn then

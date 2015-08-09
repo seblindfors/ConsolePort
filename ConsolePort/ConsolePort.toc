@@ -1,27 +1,34 @@
-## Interface: 60100
+## Interface: 60200
 ## Title: Console Port
 ## Notes: Custom controller port
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouseSettings
-ConsolePortLoad.lua
-ConsolePortSplash.lua
-ConsolePortHooks.lua
-ConsolePortConfig.lua
-ConsolePortSecure.lua
-ConsolePortInit.lua
+
+Init\Load.lua
+Init\Atlas.lua
+Init\Init.lua
+Init\Hooks.lua
+
+Config\Splash.lua
+Config\Config.lua
+Config\Secure.lua
+
 ConsolePort.lua
-ConsolePortBags.lua
-ConsolePortBook.lua
-ConsolePortGlyph.lua
-ConsolePortSpec.lua
-ConsolePortGear.lua
-ConsolePortShop.lua
-ConsolePortMap.lua
-ConsolePortQuest.lua
-ConsolePortGossip.lua
-ConsolePortTaxi.lua
-ConsolePortGameMenu.lua
-ConsolePortStack.lua
-ConsolePortPopup.lua
-ConsolePortDropDown.lua
-ConsolePortExtraButton.lua
+
+Frames\Main.lua
+
+Frames\Bags.lua
+Frames\Book.lua
+Frames\Glyph.lua
+Frames\Spec.lua
+Frames\Gear.lua
+Frames\Shop.lua
+Frames\Map.lua
+Frames\Quest.lua
+Frames\Gossip.lua
+Frames\Taxi.lua
+Frames\GameMenu.lua
+Frames\Stack.lua
+Frames\Popup.lua
+Frames\DropDown.lua
+Frames\ExtraButton.lua
