@@ -46,7 +46,6 @@ function ConsolePort:CreateManager()
 		-- ----
 		m:SetFrameRef("MainMenuBarArtFrame", MainMenuBarArtFrame)
 		m:SetFrameRef("OverrideActionBar", OverrideActionBar)
-		m:SetFrameRef("AddonUI", ConsolePortUI)
 		local state = {};
 		tinsert(state, "[overridebar][possessbar]possess");
 		for i = 2, 6 do

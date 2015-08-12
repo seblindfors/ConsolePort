@@ -1,16 +1,20 @@
 local _, db = ...
 local path = "Interface\\AddOns\\ConsolePort\\Textures\\"
+local overlays = "Interface\\TALENTFRAME\\"
 local prefix = "Set"
 local suffix = "Texture"
 
 db.Atlas = {}
+db.Atlas.Model = {}
 db.Atlas.Icons = {}
 db.Atlas.Icons.Item = {}
+db.Atlas.Backdrops = {}
 
 db.Atlas.Size 	= {
-	Frame 		= {1024, 	1024},
-	Inset 		= {512,		1024},
-	Icons 		= {1024,	1024},
+	Frame 				= {1024, 	1024},
+	Inset 				= {512,		1024},
+	Icons 				= {1024,	1024},
+	BNetGradientMain 	= {1024, 1024},
 }
 
 db.Atlas.TextureType = {
@@ -298,6 +302,102 @@ db.Atlas.Icons.Item.Disabled = {
 	Quiver		= {0.640625,			0.6806640625,		0.8369140625, 		0.876953125},
 	Heal		= {0.6806640625,		0.720703125,		0.8369140625, 		0.876953125},
 }
+
+db.Atlas.BNetGradientMain = {
+	Main 		= {0,					1,					0, 					0.70703125},
+	TopBarLeft 	= {0,					0.0107421875, 		0.70703125,			0.7197265625},
+	TopBarMid	= {0.0107421875,		0.0126953125,		0.70703125,			0.7197265625},
+	TopBarRight	= {0.0126953125,		0.0234375,			0.70703125,			0.7197265625},
+	Manage		= {0.0517578125,		0.1171875,			0.70703125,			0.720703125},
+	Stand 		= {0.5361328125,		1,					0.9326171875,		1},
+}
+
+db.Atlas.Backdrops = {
+	Inset 			= {
+		bgFile 		= path.."BNetGradientInset",
+		edgeFile 	= path.."BNetEdgeInset",
+		tile 		= true,
+		tileSize 	= 1024,
+		edgeSize 	= 8,
+		insets 		= {left = 8, right = 8, top = 8, bottom = 8}
+	},
+	ShadowBorder 	= {
+		bgFile 		= path.."BNetGradientLarge",
+		edgeFile 	= path.."BNetEdgeMain",
+		edgeSize 	= 8,
+		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
+	},
+	SimpleBorder = {
+		edgeFile 	= path.."BNetEdgeInset",
+		edgeSize 	= 8,
+		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
+	}
+}
+
+db.Atlas.Overlays = {
+	Coords 			= {0, 1, 0, 0.64453125},
+	MAGE 			= {[62]  = "bg-mage-arcane", 			[63]  = "bg-mage-fire", 		[64]  = "bg-mage-frost"},
+	PALADIN 		= {[65]  = "bg-paladin-holy", 			[66]  = "bg-paladin-protection",[70]  = "bg-paladin-retribution"},
+	WARRIOR 		= {[71]  = "bg-warrior-arms", 			[72]  = "bg-warrior-fury", 		[73]  = "bg-warrior-protection"},
+	DRUID 			= {[102] = "bg-druid-balance", 			[103] = "bg-druid-cat",			[104] = "bg-druid-bear", [105] = "bg-druid-restoration"},
+	DEATHKNIGHT 	= {[250] = "bg-deathknight-blood", 		[251] = "bg-deathknight-frost", [252] = "bg-deathknight-unholy"},
+	HUNTER 			= {[253] = "bg-hunter-beastmaster",		[254] = "bg-hunter-marksman", 	[255] = "bg-hunter-survival"},
+	PRIEST 			= {[256] = "bg-priest-discipline", 		[257] = "bg-priest-holy", 		[258] = "bg-priest-shadow"},
+	ROGUE 			= {[259] = "bg-rogue-assassination", 	[260] = "bg-rogue-combat", 		[261] = "bg-rogue-subtlety"},
+	SHAMAN 			= {[262] = "bg-shaman-elemental", 		[263] = "bg-shaman-enhancement",[264] = "bg-shaman-restoration"},
+	WARLOCK 		= {[265] = "bg-warlock-affliction", 	[266] = "bg-warlock-demonology",[267] = "bg-warlock-destruction"},
+	MONK 			= {[268] = "bg-monk-brewmaster", 		[269] = "bg-monk-battledancer", [270] = "bg-monk-mistweaver"},
+--	DEMONHUNTER		= {[000] = "bg-demonhunter-", 			[000] = "bg-demonhunter-"},
+}
+
+db.Atlas.Overlays.Predefined = {
+	MAGE 			= "bg-mage-arcane",
+	PALADIN 		= "bg-paladin-retribution",
+	WARRIOR 		= "bg-warrior-protection",
+	DRUID 			= "bg-druid-bear",
+	DEATHKNIGHT 	= "bg-deathknight-unholy",
+	HUNTER 			= "bg-hunter-survival",
+	PRIEST 			= "bg-priest-holy",
+	ROGUE 			= "bg-rogue-subtlety",
+	SHAMAN 			= "bg-shaman-enhancement",
+	WARLOCK 		= "bg-warlock-affliction",
+	MONK 			= "bg-monk-mistweaver",
+--	DEMONHUNTER 	= "bg-demonhunter-",
+}
+
+-- 2 == male, 3 == female
+db.Atlas.Model.Animation = {
+	Human 			= {[2] 	= 29, 	[3] = 193},
+	Orc				= {[2] 	= 29, 	[3] = 193},
+	Dwarf			= {[2] 	= 29, 	[3] = 29},
+	NightElf		= {[2] 	= 0, 	[3] = 29},
+	Scourge			= {[2] 	= 193, 	[3] = 193},
+	Tauren			= {[2] 	= 0, 	[3] = 193},
+	Gnome 			= {[2] 	= 29, 	[3] = 29},
+	Troll 			= {[2] 	= 193,	[3] = 193},
+	Goblin			= {[2] 	= 29, 	[3] = 29},
+	BloodElf 		= {[2] 	= 193, 	[3] = 193},
+	Draenei			= {[2] 	= 0, 	[3] = 0},
+	Worgen			= {[2] 	= 29, 	[3] = 0},
+	Pandaren		= {[2] 	= 29, 	[3] = 29},
+}
+
+db.Atlas.Model.Facing = {
+	Human 			= {[2] 	= -0, 					[3] = -0.3141592653589793},
+	Orc				= {[2] 	= -0, 					[3] = -0.3141592653589793},
+	Dwarf			= {[2] 	= -0, 					[3] = -0},
+	NightElf		= {[2] 	= -0.3141592653589793, 	[3] = 0.6283185307179586},
+	Scourge			= {[2] 	= -0.3141592653589793, 	[3] = -0.3141592653589793},
+	Tauren			= {[2] 	= -0.3141592653589793, 	[3] = -0.3141592653589793},
+	Gnome 			= {[2] 	= -0.6283185307179586, 	[3] = -0.6283185307179586},
+	Troll 			= {[2] 	= -0.3141592653589793,	[3] = -0.3141592653589793},
+	Goblin			= {[2] 	= -0.6283185307179586, 	[3] = -0},
+	BloodElf 		= {[2] 	= -0.3141592653589793, 	[3] = -0.3141592653589793},
+	Draenei			= {[2] 	= -0.3141592653589793, 	[3] = -0.3141592653589793},
+	Worgen			= {[2] 	= -0, 					[3] = -0.3141592653589793},
+	Pandaren		= {[2] 	= 0.6283185307179586, 	[3] = -0},
+}
+
 
 local function GetSize(sourceSize, subTexture)
 	local width, height = unpack(sourceSize)
