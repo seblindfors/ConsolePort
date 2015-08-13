@@ -14,10 +14,14 @@ local _, db = ...
 
 
 
-local f = Test or CreateFrame("Frame", "Test", UIParent)
-local x = Testy or CreateFrame("Frame", "Testy", Test)
-local z = Testr or CreateFrame("Frame", "Testr", Test)
+local f = CreateFrame("Frame", "ConsolePortUI", UIParent)
+local x = CreateFrame("Frame", nil, f)
+local z = CreateFrame("Frame", nil, f)
 local m = ConsolePort
+
+f.Sidebar = x
+f.Main = z
+
 f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 f:SetSize(1000, 700)
 
@@ -132,6 +136,7 @@ Dress:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 350, 8)
 Dress:SetLight(1, 0, -100, -120, 120, 0.25, cc.r, cc.g, cc.b, 100, 1,1,1)
 
 Dress.Settings = db.Atlas.Model
+Dress.Timer = 0
 
 local function RefreshModel(self)
 	local Settings 	= self.Settings
@@ -147,9 +152,32 @@ local function RefreshModel(self)
 	end
 end
 
+local xVal 	= Dress:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+local yVal 	= Dress:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+Dress.xVal 	= xVal
+Dress.yVal 	= yVal
+xVal:SetPoint("TOPLEFT", Dress, "BOTTOM", -100, -10)
+yVal:SetPoint("TOPLEFT", Dress, "BOTTOM", -100, -25)
+
+local interval = 0.05
+local function UpdateLighting(self, elapsed)
+	self.Timer = self.Timer + elapsed
+	while self.Timer > interval do
+		local cursorX, cursorY = GetCursorPosition()
+		local scale = self:GetEffectiveScale()
+		local modelX, modelY = self:GetCenter()
+		local x, y = modelX - (cursorX/scale), modelY - (cursorY/scale)
+		self:SetLight(1, 0, -200, x, y,  0.25, cc.r, cc.g, cc.b, 1, 1, 1, 1)
+		self.xVal:SetText("X: "..x)
+		self.yVal:SetText("Y: "..y)
+		self.Timer = self.Timer - interval
+	end
+end
+
 Dress.RefreshModel = RefreshModel
 
 Dress:SetScript("OnShow", RefreshModel)
+Dress:SetScript("OnUpdate", UpdateLighting)
 
 function f:Toggle()
 	if f:IsVisible() then
@@ -159,4 +187,4 @@ function f:Toggle()
 	end
 end
 
-tinsert(UISpecialFrames, "Test")
+tinsert(UISpecialFrames, "ConsolePortUI")

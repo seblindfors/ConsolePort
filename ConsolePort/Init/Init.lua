@@ -378,6 +378,8 @@ end
         			msg == "bindings" then
         		InterfaceOptionsFrame_OpenToCategory(db.Binds);
 				InterfaceOptionsFrame_OpenToCategory(db.Binds);
+			elseif 	msg == "test" then
+				_G["ConsolePortUI"]:Toggle();
         	else
         		print("Console Port:");
         		print("/cp type: Change controller type");
