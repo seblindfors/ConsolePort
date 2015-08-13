@@ -46,7 +46,7 @@ z.Blacken:SetAlpha(0.25)
 z.Inset = z.Inset or CreateFrame("Frame", nil, z)
 z.Inset:SetBackdrop(m:G().Atlas.Backdrops.ShadowBorder)
 z.Inset:SetPoint("TOPLEFT", z, "TOPLEFT", 10, -10)
-z.Inset:SetSize(200, 100)
+z.Inset:SetSize(300, 600)
 
 
 local manage = f.Manage or m:CreateAtlasTexture(f, "BNetGradientMain", "Manage", "OVERLAY", "Manage")
@@ -121,57 +121,35 @@ right:SetGradientAlpha(unpack(gradient))
 -- Weird ass character stand 
 local Stand = f.Stand or m:CreateAtlasTexture(f, "BNetGradientMain", "Stand", "OVERLAY")
 Stand:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -8, 8)
-Stand:SetPoint("TOPLEFT", f, "BOTTOMRIGHT", -475-8, 69+8)
-Stand:SetGradientAlpha("VERTICAL", 1,1,1,1, cc.r,cc.g,cc.b, 0.75)
-
-
+Stand:SetPoint("TOPLEFT", f, "BOTTOMRIGHT", -400-8, 75+8)
+Stand:SetGradientAlpha("HORIZONTAL", cc.r,cc.g,cc.b, 1, 1,1,1,1 )
 
 local Dress = f.Dress or CreateFrame("DressUpModel", nil, f)
 f.Dress = Dress
 
-f.Val = (race == "BloodElf" or race == "Scourge") and 193 or 0
-
-
-Dress:SetAllPoints(f)
-Dress:SetPoint("TOPLEFT", f, "TOPRIGHT", -550, 0)
-Dress:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 150, 0)
-Dress:SetUnit("player")
-Dress:SetAnimation(f.Val)
-Dress:UndressSlot(16)
-Dress:UndressSlot(17)
-Dress:SetAlpha(1)
-Dress:SetScale(1)
+Dress:SetPoint("TOPLEFT", f, "TOPRIGHT", -750, 0)
+Dress:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", 350, 8)
 Dress:SetLight(1, 0, -100, -120, 120, 0.25, cc.r, cc.g, cc.b, 100, 1,1,1)
-Dress:SetFacing(-0.10*math.pi)
 
 Dress.Settings = db.Atlas.Model
 
-Dress:SetScript("OnShow", function(self)
-	self:SetUnit("player")
-	self:SetAnimation(self.Settings.Animation[race][sex])
-	self:SetFacing(self.Settings.Facing[race][sex])
-	self:UndressSlot(16)
-	self:UndressSlot(17)
-end)
-
-Dress:SetScript("OnEnter", function(self)
-	self:SetAnimation(15)
-	self:SetFacing(0)
-end)
-
-Dress:SetScript("OnLeave", function(self)
-	self:SetAnimation(self.Settings.Animation[race][sex])
-	self:SetFacing(self.Settings.Facing[race][sex])
-end)
-
-Dress:SetScript("OnMouseWheel", function(self, delta)
-	if self:GetFacing() > 0 then
-		self:SetFacing(0)
-	else
-		self:SetFacing(math.pi)
+local function RefreshModel(self)
+	local Settings 	= self.Settings
+	local Position 	= Settings.Zoom[race][sex]
+	local Animation = Settings.Animation[race][sex]
+	local Facing 	= Settings.Facing[race][sex]
+	-- have to run twice to position and scale correctly
+	for i=1, 2 do
+		self:SetUnit("player")
+		self:SetPosition(unpack(Position))
+		self:SetAnimation(Animation)
+		self:SetFacing(Facing)
 	end
-end)
+end
 
+Dress.RefreshModel = RefreshModel
+
+Dress:SetScript("OnShow", RefreshModel)
 
 function f:Toggle()
 	if f:IsVisible() then

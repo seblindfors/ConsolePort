@@ -5,10 +5,11 @@ local prefix = "Set"
 local suffix = "Texture"
 
 db.Atlas = {}
-db.Atlas.Model = {}
 db.Atlas.Icons = {}
 db.Atlas.Icons.Item = {}
 db.Atlas.Backdrops = {}
+
+db.Atlas.Model = {}
 
 db.Atlas.Size 	= {
 	Frame 				= {1024, 	1024},
@@ -365,39 +366,61 @@ db.Atlas.Overlays.Predefined = {
 --	DEMONHUNTER 	= "bg-demonhunter-",
 }
 
+
+local left 		= -0.3141592653589793
+local right 	= 0.3141592653589793
+local stand 	= 0
+local action	= 29
+local hover 	= 193
+
 -- 2 == male, 3 == female
 db.Atlas.Model.Animation = {
-	Human 			= {[2] 	= 29, 	[3] = 193},
-	Orc				= {[2] 	= 29, 	[3] = 193},
-	Dwarf			= {[2] 	= 29, 	[3] = 29},
-	NightElf		= {[2] 	= 0, 	[3] = 29},
-	Scourge			= {[2] 	= 193, 	[3] = 193},
-	Tauren			= {[2] 	= 0, 	[3] = 193},
-	Gnome 			= {[2] 	= 29, 	[3] = 29},
-	Troll 			= {[2] 	= 193,	[3] = 193},
-	Goblin			= {[2] 	= 29, 	[3] = 29},
-	BloodElf 		= {[2] 	= 193, 	[3] = 193},
-	Draenei			= {[2] 	= 0, 	[3] = 0},
-	Worgen			= {[2] 	= 29, 	[3] = 0},
-	Pandaren		= {[2] 	= 29, 	[3] = 29},
+	Human 			= {[2] 	= hover, 	[3] = hover	},
+	Orc				= {[2] 	= hover, 	[3] = hover	},
+	Dwarf			= {[2] 	= hover, 	[3] = hover	},
+	NightElf		= {[2] 	= stand, 	[3] = action},
+	Scourge			= {[2] 	= hover, 	[3] = hover	},
+	Tauren			= {[2] 	= hover, 	[3] = hover	},
+	Gnome 			= {[2] 	= hover, 	[3] = hover	},
+	Troll 			= {[2] 	= hover,	[3] = hover	},
+	Goblin			= {[2] 	= action, 	[3] = action},
+	BloodElf 		= {[2] 	= hover, 	[3] = hover	},
+	Draenei			= {[2] 	= stand, 	[3] = stand	},
+	Worgen			= {[2] 	= action, 	[3] = stand },
+	Pandaren		= {[2] 	= action, 	[3] = stand },
 }
 
 db.Atlas.Model.Facing = {
-	Human 			= {[2] 	= -0, 					[3] = -0.3141592653589793},
-	Orc				= {[2] 	= -0, 					[3] = -0.3141592653589793},
-	Dwarf			= {[2] 	= -0, 					[3] = -0},
-	NightElf		= {[2] 	= -0.3141592653589793, 	[3] = 0.6283185307179586},
-	Scourge			= {[2] 	= -0.3141592653589793, 	[3] = -0.3141592653589793},
-	Tauren			= {[2] 	= -0.3141592653589793, 	[3] = -0.3141592653589793},
-	Gnome 			= {[2] 	= -0.6283185307179586, 	[3] = -0.6283185307179586},
-	Troll 			= {[2] 	= -0.3141592653589793,	[3] = -0.3141592653589793},
-	Goblin			= {[2] 	= -0.6283185307179586, 	[3] = -0},
-	BloodElf 		= {[2] 	= -0.3141592653589793, 	[3] = -0.3141592653589793},
-	Draenei			= {[2] 	= -0.3141592653589793, 	[3] = -0.3141592653589793},
-	Worgen			= {[2] 	= -0, 					[3] = -0.3141592653589793},
-	Pandaren		= {[2] 	= 0.6283185307179586, 	[3] = -0},
+	Human 			= {[2] 	= left, 	[3] = left	},
+	Orc				= {[2] 	= left, 	[3] = left	},
+	Dwarf			= {[2] 	= left, 	[3] = left	},
+	NightElf		= {[2] 	= left, 	[3] = right	},
+	Scourge			= {[2] 	= left, 	[3] = left	},
+	Tauren			= {[2] 	= left, 	[3] = left	},
+	Gnome 			= {[2] 	= left, 	[3] = left	},
+	Troll 			= {[2] 	= left,		[3] = left	},
+	Goblin			= {[2] 	= right, 	[3] = right	},
+	BloodElf 		= {[2] 	= left, 	[3] = left	},
+	Draenei			= {[2] 	= left, 	[3] = left	},
+	Worgen			= {[2] 	= left, 	[3] = left	},
+	Pandaren		= {[2] 	= right, 	[3] = left	},
 }
 
+db.Atlas.Model.Zoom = {
+	Human 			= {[2] 	= {-1,0,0}, 	[3] = {-1,0,0}},
+	Orc				= {[2] 	= {-1.5,0,0}, 	[3] = {-1,0,0}},
+	Dwarf			= {[2] 	= {-1,0,0}, 	[3] = {-1,0,0}},
+	NightElf		= {[2] 	= {-1,0,0}, 	[3] = {-1,0,-0.1}},
+	Scourge			= {[2] 	= {-1,0,0}, 	[3] = {-1,0,0}},
+	Tauren			= {[2] 	= {-1,0,0}, 	[3] = {-1,0,-0.25}},
+	Gnome 			= {[2] 	= {-1,0,0}, 	[3] = {-1,0,0}},
+	Troll 			= {[2] 	= {-2,0,0}, 	[3] = {-1,0,0}},
+	Goblin			= {[2] 	= {-1,0,-0.25}, [3] = {-1,0,-0.15}},
+	BloodElf 		= {[2] 	= {-1,0,0}, 	[3] = {-1,0,0}},
+	Draenei			= {[2] 	= {-1.5,0,-0.1},[3] = {-1,0,-0.1}},
+	Worgen			= {[2] 	= {-1,0,-0.15}, [3] = {-0.5,0,0}},
+	Pandaren		= {[2] 	= {-1,0,-0.1}, 	[3] = {-1,0,-0.05}},
+}
 
 local function GetSize(sourceSize, subTexture)
 	local width, height = unpack(sourceSize)
