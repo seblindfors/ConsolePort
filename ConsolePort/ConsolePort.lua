@@ -53,31 +53,45 @@ local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 	else tinsert(HookFrames, Hook); end;
 end
 
-local function LoadHooks ()
+local function LoadHooks(self)
 	local LoadFrames = {
-		{ PaperDollFrame, 			ConsolePort.Gear, 	"Gear" 	},
-		{ GameMenuFrame, 			ConsolePort.Menu, 	"Menu" 	},
-		{ MerchantFrame, 			ConsolePort.Shop, 	"Shop"	},
-		{ WorldMapFrame, 			ConsolePort.Map, 	"Map" 	},
-		{ TaxiFrame, 				ConsolePort.Taxi, 	"Taxi"	},
-		{ SpellBookSpellIconsFrame,	ConsolePort.Book,	"Book"	},
-		{ QuestFrame, 				ConsolePort.Quest, 	"Quest"	},
-		{ QuestLogPopupDetailFrame, ConsolePort.Quest,	"Quest"	},
-		{ GossipFrame, 				ConsolePort.Gossip,	"Gossip"},
-		{ GuildInviteFrame,			ConsolePort.Guild,	"Guild"	},
-		{ PetitionFrame, 			ConsolePort.Misc,	"Misc"	},
-		{ StackSplitFrame,			ConsolePort.Stack, 	"Stack"	},
-		{ GroupLootFrame1,			ConsolePort.Loot,	"Loot"	},
-		{ GroupLootFrame2,			ConsolePort.Loot,	"Loot"	},
-		{ GroupLootFrame3,			ConsolePort.Loot,	"Loot"	},
-		{ GroupLootFrame4,			ConsolePort.Loot,	"Loot"	},
-		{ LootFrame,				ConsolePort.Loot, 	"Loot"	},
-		{ StaticPopup1,				ConsolePort.Popup,	"Popup"	},
-		{ StaticPopup2,				ConsolePort.Popup,	"Popup"	},
-		{ StaticPopup3,				ConsolePort.Popup,	"Popup"	},
-		{ StaticPopup4,				ConsolePort.Popup,	"Popup"	},
-		{ CinematicFrame,			ConsolePort.Misc,	"Misc"	},
-		{ SplashFrame,				ConsolePort.Misc,	"Misc"	},
+		{ AddonList,				self.General,	"General"	},
+		{ BankFrame,				self.General,	"General"	},
+		{ CharacterFrame, 			self.General, 	"General" 	},
+		{ DropDownList1,			self.General, 	"General"	},
+		{ DropDownList2,			self.General, 	"General"	},
+		{ FriendsFrame,				self.General, 	"General"	},
+		{ GameMenuFrame, 			self.General, 	"General" 	},
+		{ GossipFrame, 				self.General,	"General"	},
+		{ GuildInviteFrame,			self.General,	"General"	},
+		{ InterfaceOptionsFrame,	self.General, 	"General"	},
+		{ ItemRefTooltip,			self.General, 	"General"	},
+		{ ItemTextFrame,			self.General,	"General"	},
+		{ LootFrame,				self.General, 	"General"	},
+		{ MailFrame,				self.General,	"General"	},
+		{ MerchantFrame, 			self.General, 	"General"	},
+		{ OpenMailFrame,			self.General, 	"General"	},
+		{ PetBattleFrame,			self.General, 	"General"	},
+		{ PetitionFrame, 			self.General,	"General"	},
+		{ PVEFrame,					self.General,	"General"	},
+	--	{ PVPReadyDialog,			self.General,	"General"	}, -- bug
+		{ QuestFrame, 				self.General, 	"General"	},
+		{ QuestLogPopupDetailFrame, self.General,	"General"	},
+		{ SpellBookFrame,			self.General,	"General"	},
+		{ SplashFrame,				self.General,	"General"	},
+		{ StackSplitFrame,			self.General, 	"General"	},
+		{ TaxiFrame, 				self.General, 	"General"	},
+		{ VideoOptionsFrame,		self.General,	"General"	},
+		{ WorldMapFrame, 			self.General, 	"General" 	},
+		{ GroupLootFrame1,			self.General,	"General"	},
+		{ GroupLootFrame2,			self.General,	"General"	},
+		{ GroupLootFrame3,			self.General,	"General"	},
+		{ GroupLootFrame4,			self.General,	"General"	},
+		{ StaticPopup1,				self.Popup,		"Popup"	},
+		{ StaticPopup2,				self.Popup,		"Popup"	},
+		{ StaticPopup3,				self.Popup,		"Popup"	},
+		{ StaticPopup4,				self.Popup,		"Popup"	},
+		{ CinematicFrame,			self.Misc,		"Misc"	},
 	}
 	for i, Frame in pairs(LoadFrames) do
 		PostLoadHook(Frame[1], Frame[2], Frame[3], i);
@@ -147,23 +161,35 @@ local function UpdateFrames(self)
 	end
 end
 
-local interval = 0.1;
-local time = 0;
-local MouseIsCentered  = false;
+function ConsolePort:GetFrameStack()
+	local stack = {}
+	for _, Hook in pairs(HookFrames) do
+		if Hook.frame:IsVisible() then
+			tinsert(stack, Hook.frame)
+		end
+	end
+	return stack
+end
+
+local interval = 0.1
+local time = 0
+local MouseIsCentered = false
 local function OnUpdate (self, elapsed)
-	time = time + elapsed;
+	time = time + elapsed
 	while time > interval do
-		if 	not MouseIsCentered and
+		if GetCursorInfo() then
+			MouselookStop()
+		elseif not MouseIsCentered and
 			MouseLookShouldStart() then
-			MouselookStart();
+			MouselookStart()
 			MouseIsCentered = true;
 		elseif not MouseIsOver(m) and MouseIsCentered then
-			MouseIsCentered = false;
+			MouseIsCentered = false
 		end
 		if not InCombatLockdown() then
-			UpdateFrames(self);
+			UpdateFrames(self)
 		end
-		time = time - interval;
+		time = time - interval
 	end
 end
 
@@ -173,9 +199,6 @@ local function OnEvent (self, event, ...)
 		return;
 	end
 	self:SetButtonMapping(self, event);
-	if ConsolePortSettings and ConsolePortSettings.cam then
-		self:AutoCameraView(event, ...);
-	end
 	if 	((event == "PLAYER_TARGET_CHANGED" and
 		ToggleMouseLook(event) and
 		UnitName("target")) or
@@ -187,19 +210,12 @@ local function OnEvent (self, event, ...)
 	end
 	if		event == "MERCHANT_SHOW" then
 		self:CleanBags();
-		CloseAllBags();
 	elseif	event == "WORLD_MAP_UPDATE" and not
 			QuestScrollFrame:GetAlpha() ~= 1 then
 		self:MapGetZones();
-	elseif	event == "QUEST_DETAIL" or 
-			event == "QUEST_COMPLETE" then
-		self:RegisterEvent("MODIFIER_STATE_CHANGED");
-		self:Quest("rewards", KEY.STATE_UP);
 	elseif 	event == "QUEST_AUTOCOMPLETE" then
 		local arg1 = ...;
 		ShowQuestComplete(GetQuestLogIndexByID(arg1));
-	elseif 	event == "MODIFIER_STATE_CHANGED" then
-		self:Quest("preview", KEY.STATE_UP);
 	-- This is a bug fix. Will be removed eventually
 	elseif 	event == "QUEST_LOG_UPDATE" then
 		GameTooltip:Hide();
@@ -240,31 +256,60 @@ local function OnEvent (self, event, ...)
 end
 
 function ConsolePort:ADDON_LOADED(...)
-	local arg1 = ...;
-	if arg1 == "Blizzard_TalentUI" then
-		PostLoadHook(PlayerTalentFrame, self.Spec, "Spec", 11);
-		self:InitializeTalents();
-	elseif arg1 == "Blizzard_GlyphUI" then
-		PostLoadHook(GlyphFrame, self.Spec, "Glyph", 12);
-		self:InitializeGlyphs();
-	elseif arg1 == "Blizzard_DeathRecap" then
-		PostLoadHook(DeathRecapFrame, self.Misc, "Misc", nil);
-		self:CreateIndicator(select(8, DeathRecapFrame:GetChildren()), "SMALL", "LEFT", db.NAME.CP_R_RIGHT);
-	elseif arg1 == "ConsolePort_Container" then
-		PostLoadHook(ConsolePortContainer, self.Bags, "Bags", 3);
-	elseif arg1 == addOn then
-		LoadHooks();
-		self:CreateManager();
-		self:LoadStrings();
-		self:OnVariablesLoaded();
-		self:LoadEvents();
-		self:UpdateExtraButton();
-		self:LoadHookScripts();
-		self:CreateConfigPanel();
-		self:CreateBindingButtons();
-		self:LoadBindingSet();
-		self:GetIndicatorSet();
-		self:ReloadBindingActions();
+	local name = ...
+	if name == addOn then
+		LoadHooks(self)
+		self:CreateManager()
+		self:LoadStrings()
+		self:OnVariablesLoaded()
+		self:LoadEvents()
+		self:UpdateExtraButton()
+		self:LoadHookScripts()
+		self:CreateConfigPanel()
+		self:CreateBindingButtons()
+		self:LoadBindingSet()
+		self:GetIndicatorSet()
+		self:ReloadBindingActions()
+		self.PostLoadHook = PostLoadHook
+	elseif name == "Blizzard_TalentUI" then
+		PostLoadHook(PlayerTalentFrame, self.General, "General", nil);
+	elseif name == "Blizzard_AchievementUI" then
+		PostLoadHook(AchievementFrame, self.General, "General", nil)
+	elseif name == "Blizzard_ArchaeologyUI" then
+		PostLoadHook(ArchaeologyFrame, self.General, "General", nil)
+	elseif name == "Blizzard_Calendar" then
+		PostLoadHook(CalendarFrame, self.General, "General", nil)
+	elseif name == "Blizzard_Collections" then
+		PostLoadHook(CollectionsJournal, self.General, "General", nil)
+	elseif name == "Blizzard_DeathRecap" then
+		PostLoadHook(DeathRecapFrame, self.General, "General", nil);
+	elseif name == "Blizzard_EncounterJournal" then
+		PostLoadHook(EncounterJournal, self.General, "General", nil)
+	elseif name == "Blizzard_GarrisonUI" then
+		PostLoadHook(GarrisonLandingPage, self.General, "General", nil)
+		PostLoadHook(GarrisonMissionFrame, self.General, "General", nil)
+		PostLoadHook(GarrisonMonumentFrame, self.General, "General", nil)
+		PostLoadHook(GarrisonCapacitiveDisplayFrame, self.General, "General", nil)
+	elseif name == "Blizzard_GuildUI" then
+		PostLoadHook(GuildFrame, self.General, "General", nil)
+	elseif name == "Blizzard_InspectUI" then
+		PostLoadHook(InspectFrame, self.General, "General", nil)
+	elseif name == "Blizzard_ItemAlterationUI" then
+		PostLoadHook(TransmogrifyFrame, self.General, "General", nil)
+	elseif name == "Blizzard_LookingForGuildUI" then
+		PostLoadHook(LookingForGuildFrame, self.General, "General", nil)
+	elseif name == "Blizzard_MacroUI" then
+		PostLoadHook(MacroFrame, self.General, "General", nil)
+	elseif name == "Blizzard_QuestChoice" then
+		PostLoadHook(QuestChoiceFrame, self.General, "General", nil)
+	elseif name == "Blizzard_TradeSkillUI" then
+		PostLoadHook(TradeSkillFrame, self.General, "General", nil)
+	elseif name == "Blizzard_TrainerUI" then
+		PostLoadHook(ClassTrainerFrame, self.General, "General", nil)
+	elseif name == "Blizzard_VoidStorageUI" then
+		PostLoadHook(VoidStorageFrame, self.General, "General", nil)
+	elseif name == "ConsolePort_Container" then
+		PostLoadHook(ConsolePortContainer, self.General, "General", nil)
 	end
 end
 
@@ -276,7 +321,7 @@ function ConsolePort:GetInterfaceButtons()
 		CP_L_LEFT_NOMOD,	--4
 		CP_R_LEFT_NOMOD,	--5
 		CP_R_RIGHT_NOMOD,	--6
-		CP_R_UP_NOMOD		--7
+		CP_R_UP_NOMOD,		--7
 	}
 end
 
@@ -290,13 +335,10 @@ end
 function ConsolePort:SetButtonActions (type)
 	local Buttons = self:GetInterfaceButtons();
 	local IgnoreIndex = {};
-	if 		type == "Loot" 	then IgnoreIndex = {1, 2, 5, 6};
-	elseif 	type == "Popup" then IgnoreIndex = {5, 6};
-	elseif 	type == "Book" 	then IgnoreIndex = {3, 4, 6};
-	elseif 	type == "Spec" 	then IgnoreIndex = {6, 7};
-	elseif 	type == "Glyph" then IgnoreIndex = {1, 2, 6, 7};
-	elseif 	type == "Shop" 	then IgnoreIndex = {6};
-	elseif 	type == "Bags" 	then IgnoreIndex = {6};
+	if 		type == "Loot" 		then IgnoreIndex = {1, 2, 5, 6};
+	elseif 	type == "Popup" 	then IgnoreIndex = {5, 6};
+	elseif 	type == "Bags" 		then IgnoreIndex = {6};
+	elseif 	type == "General" 	then IgnoreIndex = {5, 6};
 	end
 	for _, index in pairs(IgnoreIndex) do
 		Buttons[index] = nil;
@@ -317,13 +359,6 @@ function ConsolePort:SetButtonMapping (self, event)
 		if 		event == "UPDATE_BINDINGS" then
 			self:LoadBindingSet();
 		-- Revert to default behaviour
-		elseif	event == "TAXIMAP_CLOSED" or
-			  	event == "GOSSIP_CLOSED" or
-			  	event == "QUEST_FINISHED" or 
-			  	event == "MERCHANT_CLOSED" then
-			-- Hacky fix
-			GameTooltip:Hide();
-			self:UnregisterEvent("MODIFIER_STATE_CHANGED");
 		end
 	end
 end
@@ -364,33 +399,11 @@ end
 
 function ConsolePort:Misc (key, state)
 	if key == KEY.PREPARE then return; end;
-	if 	DeathRecapFrame and
-		DeathRecapFrame:IsVisible() then
-		if key == KEY.CIRCLE then
-			local button = select(8, DeathRecapFrame:GetChildren());
-			ConsolePort:Button(button, state);
-		end
-	elseif PetitionFrame:IsVisible() then
-		if key == KEY.CIRCLE then
-			ConsolePort:Button(PetitionFrameSignButton, state);
-		elseif key == KEY.TRIANGLE then
-			ConsolePort:Button(PetitionFrameCancelButton, state);
-		end
-	elseif CinematicFrameCloseDialog:IsVisible() then
+	if CinematicFrameCloseDialog:IsVisible() then
 		if key == KEY.CIRCLE then
 			ConsolePort:Button(CinematicFrameCloseDialogResumeButton, state);
 		elseif key == KEY.SQUARE then
 			ConsolePort:Button(CinematicFrameCloseDialogConfirmButton, state);
-		end
-	elseif SplashFrame:IsVisible() then
-		if key == KEY.CIRCLE then
-			ConsolePort:Button(SplashFrame.BottomCloseButton, state);
-		end
-	elseif 	GarrisonCapacitiveDisplayFrame then
-		if GarrisonCapacitiveDisplayFrame.StartWorkOrderButton:IsVisible() then
-			if key == KEY.CIRCLE then
-				ConsolePort:Button(GarrisonCapacitiveDisplayFrame.StartWorkOrderButton, state);
-			end
 		end
 	end
 end
@@ -401,37 +414,6 @@ function ConsolePort:Highlight (index, options)
 			if i == index then item:LockHighlight();
 			else item:UnlockHighlight(); end
 		end
-	end
-end
-
-function ConsolePort:Guild (key, state)
-	if 		key == KEY.CIRCLE and GuildInviteFrame:IsVisible() then
-		ConsolePort:Button(GuildInviteFrameDeclineButton, state);
-	elseif	key == KEY.TRIANGLE and GuildInviteFrame:IsVisible() then
-		ConsolePort:Button(GuildInviteFrameJoinButton, state);
-	end
-end
-
-local view = 5;
-local yaw = false;
-function ConsolePort:AutoCameraView(event, ...)
-	if	(event == "QUEST_DETAIL" or
-		event == "QUEST_GREETING" or
-		event == "QUEST_PROGRESS" or
-		event == "QUEST_COMPLETE" or
-		event == "GOSSIP_SHOW" or
-		event == "TAXIMAP_OPENED" or
-		event == "MERCHANT_SHOW") then
-		if not yaw then FlipCameraYaw(30); yaw = true; end;
-		if view ~= 3 then SaveView(5); view = 3; SetView(view); end;
-	elseif
-		event == "GOSSIP_CLOSED" or
-		event == "QUEST_FINISHED" or
-		event == "TAXIMAP_CLOSED" or
-		event == "MERCHANT_CLOSED" or
-		event == "PLAYER_STARTED_MOVING" then
-		if yaw then FlipCameraYaw(-30); yaw = false; end;
-		if view ~= 5 then view = 5; SetView(view); end;
 	end
 end
 

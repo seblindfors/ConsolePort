@@ -33,15 +33,6 @@ function ConsolePort:GetIndicatorButtons(button)
 	local t = {};
 	-- Circle
 	if button == BINDING_NAME_CP_R_RIGHT then t = {
-		{frame = QuestFrameAcceptButton, 	size = "SMALL", anchor = "LEFT"	},
-		{frame = QuestFrameCompleteButton, 	size = "SMALL", anchor = "LEFT"	},
-		{frame = QuestFrameCompleteQuestButton, size = "SMALL", anchor = "LEFT"	},
-		{frame = QuestLogPopupDetailFrameTrackButton, size = "SMALL", anchor = "RIGHT" },
-		{frame = QuestMapFrame.DetailsFrame.TrackButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = QuestMapFrame.DetailsFrame.CompleteQuestFrame.CompleteButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = GuildInviteFrameDeclineButton, size = "SMALL", anchor = "RIGHT" },
-		{frame = PetitionFrameSignButton, 	size = "SMALL", anchor = "LEFT" },
-		{frame = StackSplitCancelButton, 	size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup1Button2, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup2Button2, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup3Button2, 		size = "SMALL", anchor = "RIGHT"},
@@ -50,46 +41,19 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = StaticPopup2Button3, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup3Button3, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup4Button3, 		size = "SMALL", anchor = "RIGHT"},	
-		{frame = GroupLootFrame1.GreedButton, size = "SMALL", anchor = "LEFT"},
-		{frame = GroupLootFrame2.GreedButton, size = "SMALL", anchor = "LEFT"},
-		{frame = GroupLootFrame3.GreedButton, size = "SMALL", anchor = "LEFT"},
-		{frame = GroupLootFrame4.GreedButton, size = "SMALL", anchor = "LEFT"},
-		{frame = QuestScrollFrame.ViewAll, 	size = "LARGE", anchor = "LEFT"},
-		{frame = SplashFrame.BottomCloseButton, size = "SMALL", anchor = "LEFT"},
 		{frame = CinematicFrameCloseDialogResumeButton, size = "SMALL", anchor = "RIGHT"}
 	}
 	-- Square
 	elseif button == BINDING_NAME_CP_R_LEFT then t = { 
-		{frame = QuestLogPopupDetailFrameAbandonButton, size = "SMALL", anchor = "LEFT" },
-		{frame = QuestMapFrame.DetailsFrame.AbandonButton, size = "SMALL", anchor = "LEFT"},
-		{frame = WorldMapFrameTutorialButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = GuildInviteFrameJoinButton, size = "SMALL", anchor = "LEFT"},
-		{frame = StackSplitOkayButton, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup1Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup2Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup3Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup4Button1, 		size = "SMALL", anchor = "LEFT"},
-		{frame = GroupLootFrame1.NeedButton, size = "SMALL", anchor = "LEFT"},
-		{frame = GroupLootFrame2.NeedButton, size = "SMALL", anchor = "LEFT"},
-		{frame = GroupLootFrame3.NeedButton, size = "SMALL", anchor = "LEFT"},
-		{frame = GroupLootFrame4.NeedButton, size = "SMALL", anchor = "LEFT"},
 		{frame = CinematicFrameCloseDialogConfirmButton, size = "SMALL", anchor = "LEFT"}
 	}
 	-- Triangle
 	elseif button == BINDING_NAME_CP_R_UP then t = {
-		{frame = QuestFrameDeclineButton,	size = "SMALL", anchor = "RIGHT"},
-		{frame = QuestFrameGoodbyeButton,	size = "SMALL", anchor = "RIGHT"},
-		{frame = QuestLogPopupDetailFrame.ShowMapButton, size = "SMALL", anchor = "RIGHT" },
-		{frame = SpellBookSkillLineTab2, 	size = "SMALL", anchor = "BOTTOM"},
-		{frame = PlayerSpecTab2, 			size = "SMALL", anchor = "BOTTOM"},
-		{frame = GossipFrameGreetingGoodbyeButton,		size = "SMALL", anchor = "RIGHT"},
-		{frame = QuestMapFrame.DetailsFrame.BackButton, size = "SMALL", anchor = "LEFT"},
-		{frame = WorldMapFrame.UIElementsFrame.TrackingOptionsButton.Button, size = "LARGE", anchor = "LEFT"},
-		{frame = PetitionFrameCancelButton,  size = "SMALL", anchor = "RIGHT"},
-		{frame = GroupLootFrame1.PassButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = GroupLootFrame2.PassButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = GroupLootFrame3.PassButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = GroupLootFrame4.PassButton, size = "SMALL", anchor = "RIGHT"},
+		--
 	}
 	elseif button == "Up" then t = {
 		--
@@ -101,10 +65,7 @@ function ConsolePort:GetIndicatorButtons(button)
 		--
 	}
 	elseif button == "Down"	then t = {
-		{frame = GroupLootFrame1.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = GroupLootFrame2.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = GroupLootFrame3.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
-		{frame = GroupLootFrame4.DisenchantButton, size = "SMALL", anchor = "RIGHT"},
+		--
 	}
 	end
 	return t;
@@ -321,6 +282,7 @@ function ConsolePort:GetDefaultMouseSettings()
 		["QUEST_AUTOCOMPLETE"] = true,
 		["SHIPMENT_CRAFTER_OPENED"] = true,
 		["SHIPMENT_CRAFTER_CLOSED"] = true,
+		["LOOT_OPENED"] = true,
 		["LOOT_CLOSED"] = true
 	}
 	return mouseSettings;
@@ -378,7 +340,7 @@ end
         			msg == "bindings" then
         		InterfaceOptionsFrame_OpenToCategory(db.Binds);
 				InterfaceOptionsFrame_OpenToCategory(db.Binds);
-			elseif 	msg == "test" then
+			elseif 	msg == "test" and _G["ConsolePortUI"] then
 				_G["ConsolePortUI"]:Toggle();
         	else
         		print("Console Port:");

@@ -10,7 +10,7 @@ local function OnUpdate(self, elapsed)
 	if 	self.glow and self.glow > 0 then
 		self.glow = self.glow - elapsed;
 	elseif self.glow then
-		ActionButton_HideOverlayGlow(self);
+	--	ActionButton_HideOverlayGlow(self);
 		self.glow = nil;
 	end
 end
@@ -119,10 +119,10 @@ local function CreateExtraButton()
 	f.cooldown = c;
 	t:SetSize(256,128);
 	t:SetPoint("CENTER", f, "CENTER", -2, 0);
-	t:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\ExtraButton"..ConsolePortSettings.type);
+	t:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\ExtraButton"..ConsolePortSettings.type);
 	q:SetSize(64,64);
 	q:SetPoint("CENTER", f, "CENTER", 0, -26);
-	q:SetTexture("Interface\\AddOns\\ConsolePort\\Graphic\\QuestButton");
+	q:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\QuestButton");
 	c:SetAllPoints(f);
 	c:SetSize(52,52);
 	return f;
@@ -142,7 +142,7 @@ function ConsolePort:UpdateExtraButton(item)
 			Extra:SetAlpha(1);
 			Extra:Show();
 			Extra:UpdateItem();
-			ActionButton_ShowOverlayGlow(Extra);
+		--	ActionButton_ShowOverlayGlow(Extra);
 		else
 			Extra.itemID = nil;
 			Extra.icon:SetTexture(nil);

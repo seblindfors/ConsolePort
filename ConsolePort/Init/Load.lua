@@ -1,14 +1,15 @@
 local _, db = ...;
 local type = "PS4\\";
-local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Buttons\\";
+local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\";
 local function AddTexture(BINDING, TYPE)
 	db.TEXTURE[strupper(BINDING)] = TEXTURE_PATH..TYPE..BINDING;
 end
 -- Init string tables
-db.TEXTURE 	= {};
-db.COLOR 	= {};
-db.CLICK 	= {};
-db.TUTORIAL = {};
+db.TEXTURE 	= {}
+db.COLOR 	= {}
+db.CLICK 	= {}
+db.TUTORIAL = {}
+db.SECURE 	= {}
 -- Guide button measurements
 db.GUIDE = {
 	BORDER_S_SMALL 			= 56,
@@ -73,11 +74,12 @@ BINDING_NAME_CP_TR1			=	"Trigger 1";
 BINDING_NAME_CP_TR2			=	"Trigger 2";
 setglobal("BINDING_NAME_CLICK ConsolePortExtraButton:LeftButton", "ConsolePort Extra"); 
 
-db.SPLASH_LEFT = "Interface\\AddOns\\ConsolePort\\Graphic\\SplashLeft";
-db.SPLASH_RIGHT = "Interface\\AddOns\\ConsolePort\\Graphic\\SplashRight";
-db.SPLASH_BOTTOM = "Interface\\AddOns\\ConsolePort\\Graphic\\SplashBottom";
-db.BUTTON_WRAP = "Interface\\AddOns\\ConsolePort\\Graphic\\ButtonWrapper";
-db.BUTTON_HILITE = "Interface\\AddOns\\ConsolePort\\Graphic\\ButtonWrapperHiLite";
+local SPLASH 		= "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\%s"
+db.SPLASH_LEFT 		= format(SPLASH, "SplashLeft")
+db.SPLASH_RIGHT 	= format(SPLASH, "SplashRight")
+db.SPLASH_BOTTOM 	= format(SPLASH, "SplashBottom")
+db.BUTTON_WRAP 		= format(SPLASH, "ButtonWrapper")
+db.BUTTON_HILITE 	= format(SPLASH, "ButtonWrapperHiLite")
 
 local f = CreateFrame("FRAME", "ConsolePort");
 function ConsolePort:LoadStrings()
@@ -165,32 +167,27 @@ function ConsolePort:LoadStrings()
 	db.TEXTURE.RTWO   		= TEXTURE_PATH..type.."r2";
 	db.TEXTURE.RTHREE		= TEXTURE_PATH..type.."r3";
 	-- Click strings
-	local POINTS 			= ":20:20:0:0";
-	local _SHIFT 			= "|T"..db.TEXTURE.LONE..POINTS.."|t |cFF6882A1";
-	local _RIGHT 			= "|T"..db.TEXTURE[strupper(db.NAME.CP_R_RIGHT)]..POINTS.."|t |cFF"..db.COLOR.RIGHT;
-	local _LEFT 			= "|T"..db.TEXTURE[strupper(db.NAME.CP_R_LEFT)]..POINTS.."|t |cFF"..db.COLOR.LEFT;
-	local _UP				= "|T"..db.TEXTURE[strupper(db.NAME.CP_R_UP)]..POINTS.."|t |cFF"..db.COLOR.UP;
+	local ICON				= "|T%s:20:20:0:0|t |cFF%s%s|r"
+	local SHIFT 			= format(ICON, db.TEXTURE.LONE, "6882A1", "%s")
+	local RIGHT 			= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_RIGHT)], db.COLOR.RIGHT, "%s")
+	local LEFT 				= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_LEFT)], db.COLOR.LEFT, "%s")
+	local UP 				= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_UP)], db.COLOR.UP, "%s")
 	db.CLICK = {
-		COMPARE 			= _SHIFT.."Compare|r",
-		USE 				= _RIGHT.."Use|r",
-		QUEST_TRACKER 		= _RIGHT.."Set current quest|r",
-		USE_NOCOMBAT 		= _RIGHT.."Use (out of combat)|r",
-		SELL 				= _RIGHT.."Sell|r",
-		BUY 				= _RIGHT.."Buy|r",
-		LOOT				= _RIGHT.."Loot|r",
-		EQUIP				= _RIGHT.."Equip|r",
-		REPLACE				= _RIGHT.."Replace|r",
-		GLYPH_CAST			= _RIGHT.."Use glyph|r",
-		TALENT 				= _RIGHT.."Learn talent|r",
-		TAKETAXI 			= _RIGHT.."Fly to location|r",
-		PICKUP 				= _LEFT.."Pick up|r",
-		QUEST_DETAILS 		= _LEFT.."View quest details|r",
-		CANCEL 				= _UP.."Cancel|r",
-		STACK_BUY 			= _UP.."Buy a different amount|r",
-		ADD_TO_EXTRA		= _UP.."Bind|r",
+		COMPARE 			= format(SHIFT, "Compare"),
+		QUEST_TRACKER 		= format(RIGHT, "Set current quest"),
+		USE_NOCOMBAT 		= format(RIGHT, "Use (out of combat)"),
+		BUY 				= format(LEFT, 	"Buy"),
+		USE 				= format(LEFT, 	"Use"),
+		EQUIP				= format(LEFT, 	"Equip"),
+		SELL 				= format(LEFT, 	"Sell"),
+		QUEST_DETAILS 		= format(LEFT, 	"View quest details"),
+		PICKUP 				= format(UP, 	"Pick up"),
+		CANCEL 				= format(UP, 	"Cancel"),
+		STACK_BUY 			= format(UP, 	"Buy a different amount"),
+		ADD_TO_EXTRA		= format(UP, 	"Bind"),
 	}
 	-- Tutorial strings
-	local tutorialCursor 	= "|TInterface\\AddOns\\ConsolePort\\Graphic\\TutorialCursor:64:128:0:0|t";
+	local tutorialCursor 	= "|TInterface\\AddOns\\ConsolePort\\Textures\\TutorialCursor:64:128:0:0|t";
 	local exampleTexture 	= db.TEXTURE.Y or db.TEXTURE.TRIANGLE;
 	local exampleCombo 		= "|T"..db.TEXTURE.LONE..":20:20:0:0|t".."|T"..exampleTexture..":20:20:0:0|t";
 	db.TUTORIAL.BIND 		= {

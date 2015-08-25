@@ -1,0 +1,45 @@
+<Bindings>
+	<Binding name="CP_L_UP" header="CP_LEFT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_L_DOWN" header="CP_LEFT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_L_LEFT" header="CP_LEFT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_L_RIGHT" header="CP_LEFT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_R_UP" header="CP_RIGHT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_X_OPTION" header="CP_RIGHT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_R_LEFT" header="CP_RIGHT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_R_RIGHT" header="CP_RIGHT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_X_OPTION" header="CP_RIGHT" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_R_OPTION" header="CP_CENTER" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_C_OPTION" header="CP_CENTER" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_L_OPTION" header="CP_CENTER" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_TR1" header="CP_TRIG" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CP_TR2" header="CP_TRIG" category="Console Port">
+		-- 
+	</Binding>
+	<Binding name="CLICK ConsolePortExtraButton:LeftButton" category="Console Port" hidden="true"/>
+</Bindings>

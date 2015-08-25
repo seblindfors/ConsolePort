@@ -1,6 +1,6 @@
 local _, db = ...;
 local KEY = db.KEY;
-local PATH = "Interface\\AddOns\\ConsolePort\\Graphic\\";
+local PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\";
 
 function ConsolePort:CheckUnassignedBindings()
 	local ButtonUnassigned = false;

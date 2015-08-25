@@ -128,7 +128,7 @@ local function CreateControllerInstructions()
 						self:HookScript("OnUpdate", function(self, elapsed)
 							self.timer[i] = self.timer[i] + elapsed;
 							if self.timer[i] > 0.5 and self.timer[i] < 1 then
-								ActionButton_ShowOverlayGlow(binding.ref.secure.action);
+							--	ActionButton_ShowOverlayGlow(binding.ref.secure.action);
 								self.timer[i] = 1;
 							end
 						end);
@@ -159,7 +159,7 @@ local function CreateControllerInstructions()
 			self:SetScript("OnUpdate", nil);
 			for i, binding in pairs(bindings) do
 				if binding.ref.secure and binding.ref.secure.action then
-					ActionButton_HideOverlayGlow(binding.ref.secure.action);
+				--	ActionButton_HideOverlayGlow(binding.ref.secure.action);
 				end
 			end
 			if GameTooltip:GetOwner() and GameTooltip:GetOwner() == self then
@@ -179,62 +179,3 @@ GameMenuFrame:HookScript("OnShow", function(self)
 	GameMenuFrame:SetSize(800, 350);
 	GameMenuButtonLogout:SetPoint("TOP", GameMenuButtonAddons, "BOTTOM", 0, -23);
 end);
-
-local iterator 		= 1;
-local NUM_BTNS		= 26;
-local STANDARD 		= 12;
-local CUSTOM 		= 13;
-function ConsolePort:Menu (key, state)
-	if key == KEY.PREPARE then
-		iterator = 1;
-	elseif 	key == KEY.CIRCLE then
-		ConsolePort:Button(buttons[iterator], state);
-		return;
-	elseif	key == KEY.TRIANGLE and state == KEY.STATE_UP and GameMenuFrame:IsVisible() then
-		ToggleFrame(GameMenuFrame);
-		return;
-	end
-	if state == KEY.STATE_DOWN then
-		if 			key == KEY.UP then
-			if iterator == 1 then
-				iterator = STANDARD;
-			elseif iterator == CUSTOM then
-				iterator = NUM_BTNS;
-			else
-				iterator = iterator - 1;
-			end
-		elseif 		key == KEY.DOWN then
-			if iterator == STANDARD then
-				iterator = 1;
-			elseif iterator == NUM_BTNS then
-				iterator = CUSTOM;
-			else
-				iterator = iterator + 1;
-			end
-		elseif 		key == KEY.LEFT then
-			if iterator > STANDARD then
-				if iterator > 22 then
-					iterator = iterator - 14;
-				elseif iterator > 15 then
-					iterator = iterator - 13;
-				else
-					iterator = iterator - 12;
-				end
-			end
-		elseif 		key == KEY.RIGHT then
-			if iterator < CUSTOM then
-				if iterator > 9 then
-					iterator = iterator + 14;
-				elseif iterator > 3 then
-					iterator = iterator + 13;
-				else
-					iterator = iterator + 12;
-				end
-			end
-		end
-	end
-	for _, button in pairs(buttons) do
-		button:UnlockHighlight();
-	end
-	buttons[iterator]:LockHighlight();
-end
