@@ -16,20 +16,6 @@ Cursor.Button:SetPoint("BOTTOMRIGHT", Cursor, "BOTTOMRIGHT", -9, 6)
 Cursor:SetSize(46,46)
 Cursor.Timer = 0
 
-local function OnShow(self)
-	self.Button:SetTexture(TEXTURE.CIRCLE or TEXTURE.B)
-end
-
-local function OnHide(self)
-	if not InCombatLockdown() then
-		ClearOverrideBindings(self)
-	end
-end
-
-local function OnEvent(self)
-	ClearOverrideBindings(self)
-end
-
 local function SetCursorPosition(anchor)
 	if not Cursor:IsVisible() then
 		Cursor:Show()
@@ -90,12 +76,6 @@ local function UpdateCursor(self, elapsed)
 		self.Timer = self.Timer - 0.1
 	end
 end
-
-Cursor:SetScript("OnEvent", OnEvent)
-Cursor:SetScript("OnHide", OnHide)
-Cursor:SetScript("OnShow", OnShow)
-Cursor:SetScript("OnUpdate", UpdateCursor)
-Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
 
 local function FindClosestNode(key)
 	if current then
@@ -196,16 +176,20 @@ local function RefreshNodes(self)
 	Setcurrent()
 end
 
+local function AddReference(node)
+	local reference = addOn.."ReferenceNode"
+	_G[reference] = node
+	return reference
+end
+
 local function EnterNode(self, node)
 	if node:IsEnabled() then
+		local name = node:GetName() or AddReference(node)
 		if node.direction then
-			self:OverrideBindingClick(Cursor, "CP_R_RIGHT", node:GetName(), "LeftButton");
+			self:OverrideBindingClick(Cursor, "CP_R_RIGHT", name, "LeftButton");
 		else
 			self:SetClickButton(CP_R_RIGHT_NOMOD, node)
-			-- not perfect
-			if node:GetName() then
-				self:OverrideBindingClick(Cursor, "CP_R_LEFT", node:GetName(), "RightButton");
-			end
+			self:OverrideBindingClick(Cursor, "CP_R_LEFT", name, "RightButton");
 		end
 		local enter = node:GetScript("OnEnter")
 		node:LockHighlight()
@@ -252,6 +236,27 @@ local function SpecialAction(self)
 		end
 	end
 end
+
+local function OnShow(self)
+	self.Button:SetTexture(TEXTURE.CIRCLE or TEXTURE.B)
+end
+
+local function OnHide(self)
+	ClearNodes()
+	if not InCombatLockdown() then
+		ClearOverrideBindings(self)
+	end
+end
+
+local function OnEvent(self)
+	ClearOverrideBindings(self)
+end
+
+Cursor:SetScript("OnEvent", OnEvent)
+Cursor:SetScript("OnHide", OnHide)
+Cursor:SetScript("OnShow", OnShow)
+Cursor:SetScript("OnUpdate", UpdateCursor)
+Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
 
 function ConsolePort:General(key, state)
 	RefreshNodes(self)

@@ -53,10 +53,15 @@ local function PostLoadHook(hookFrame, prepFunction, attribute, priority)
 	else tinsert(HookFrames, Hook); end;
 end
 
+local function HookGeneralFrame(hookFrame)
+	PostLoadHook(hookFrame, ConsolePort.General, "General", nil)
+end
+
 local function LoadHooks(self)
 	local LoadFrames = {
 		{ AddonList,				self.General,	"General"	},
 		{ BankFrame,				self.General,	"General"	},
+		{ BasicScriptErrors,		self.General,	"General"	},
 		{ CharacterFrame, 			self.General, 	"General" 	},
 		{ DropDownList1,			self.General, 	"General"	},
 		{ DropDownList2,			self.General, 	"General"	},
@@ -271,45 +276,33 @@ function ConsolePort:ADDON_LOADED(...)
 		self:GetIndicatorSet()
 		self:ReloadBindingActions()
 		self.PostLoadHook = PostLoadHook
-	elseif name == "Blizzard_TalentUI" then
-		PostLoadHook(PlayerTalentFrame, self.General, "General", nil);
-	elseif name == "Blizzard_AchievementUI" then
-		PostLoadHook(AchievementFrame, self.General, "General", nil)
-	elseif name == "Blizzard_ArchaeologyUI" then
-		PostLoadHook(ArchaeologyFrame, self.General, "General", nil)
-	elseif name == "Blizzard_Calendar" then
-		PostLoadHook(CalendarFrame, self.General, "General", nil)
-	elseif name == "Blizzard_Collections" then
-		PostLoadHook(CollectionsJournal, self.General, "General", nil)
-	elseif name == "Blizzard_DeathRecap" then
-		PostLoadHook(DeathRecapFrame, self.General, "General", nil);
-	elseif name == "Blizzard_EncounterJournal" then
-		PostLoadHook(EncounterJournal, self.General, "General", nil)
-	elseif name == "Blizzard_GarrisonUI" then
-		PostLoadHook(GarrisonLandingPage, self.General, "General", nil)
-		PostLoadHook(GarrisonMissionFrame, self.General, "General", nil)
-		PostLoadHook(GarrisonMonumentFrame, self.General, "General", nil)
-		PostLoadHook(GarrisonCapacitiveDisplayFrame, self.General, "General", nil)
-	elseif name == "Blizzard_GuildUI" then
-		PostLoadHook(GuildFrame, self.General, "General", nil)
-	elseif name == "Blizzard_InspectUI" then
-		PostLoadHook(InspectFrame, self.General, "General", nil)
-	elseif name == "Blizzard_ItemAlterationUI" then
-		PostLoadHook(TransmogrifyFrame, self.General, "General", nil)
-	elseif name == "Blizzard_LookingForGuildUI" then
-		PostLoadHook(LookingForGuildFrame, self.General, "General", nil)
-	elseif name == "Blizzard_MacroUI" then
-		PostLoadHook(MacroFrame, self.General, "General", nil)
-	elseif name == "Blizzard_QuestChoice" then
-		PostLoadHook(QuestChoiceFrame, self.General, "General", nil)
-	elseif name == "Blizzard_TradeSkillUI" then
-		PostLoadHook(TradeSkillFrame, self.General, "General", nil)
-	elseif name == "Blizzard_TrainerUI" then
-		PostLoadHook(ClassTrainerFrame, self.General, "General", nil)
-	elseif name == "Blizzard_VoidStorageUI" then
-		PostLoadHook(VoidStorageFrame, self.General, "General", nil)
-	elseif name == "ConsolePort_Container" then
-		PostLoadHook(ConsolePortContainer, self.General, "General", nil)
+	else
+		local addOns = {
+			["Blizzard_AchievementUI"] 		= {	AchievementFrame },
+			["Blizzard_ArchaeologyUI"] 		= {	ArchaeologyFrame },
+			["Blizzard_Calendar"]			= {	CalendarFrame },
+			["Blizzard_Collections"]		= {	CollectionsJournal },
+			["Blizzard_DeathRecap"]			= {	DeathRecapFrame },
+			["Blizzard_EncounterJournal"] 	= {	EncounterJournal },
+			["Blizzard_GarrisonUI"]			= {	GarrisonBuildingFrame, GarrisonLandingPage, GarrisonMissionFrame,
+												GarrisonMonumentFrame, GarrisonCapacitiveDisplayFrame, GarrisonShipyardFrame },
+			["Blizzard_GuildUI"]			= {	GuildFrame },
+			["Blizzard_InspectUI"]			= {	InspectFrame },
+			["Blizzard_ItemAlterationUI"] 	= {	TransmogrifyFrame },
+			["Blizzard_LookingForGuildUI"] 	= {	LookingForGuildFrame },
+			["Blizzard_MacroUI"] 			= {	MacroFrame },
+			["Blizzard_QuestChoice"] 		= {	QuestChoiceFrame },
+			["Blizzard_TalentUI"] 			= {	PlayerTalentFrame },
+			["Blizzard_TradeSkillUI"]		= { TradeSkillFrame },
+			["Blizzard_TrainerUI"] 			= {	ClassTrainerFrame },
+			["Blizzard_VoidStorageUI"]		= {	VoidStorageFrame },
+			["ConsolePort_Container"] 		= {	ConsolePortContainer },
+		}
+		if addOns[name] then
+			for i, frame in pairs(addOns[name]) do
+				HookGeneralFrame(frame)
+			end
+		end
 	end
 end
 
@@ -375,11 +368,11 @@ function ConsolePort:OverrideBinding(self, priority, modifier, old, new)
 	end
 end
 
-function ConsolePort:OverrideBindingClick(self, old, button, mouseClick)
+function ConsolePort:OverrideBindingClick(owner, old, button, mouseClick)
 	if not InCombatLockdown() then
-		local key1, key2 = GetBindingKey(old);
-		if key1 then SetOverrideBindingClick(self, true, key1, button, mouseClick); end;
-		if key2 then SetOverrideBindingClick(self, true, key2, button, mouseClick); end;
+		local key1, key2 = GetBindingKey(old)
+		if key1 then SetOverrideBindingClick(owner, true, key1, button, mouseClick) end
+		if key2 then SetOverrideBindingClick(owner, true, key2, button, mouseClick) end
 	end
 end
 
