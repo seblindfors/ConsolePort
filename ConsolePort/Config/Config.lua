@@ -360,10 +360,10 @@ function ConsolePort:LoadBindingSet()
 	local w = WorldFrame;
 	ClearOverrideBindings(w);
 	for name, key in pairs(keys) do
-		if key.action 	then ConsolePort:OverrideBinding(w, true, nil, 			name, key.action);	end
-		if key.ctrl 	then ConsolePort:OverrideBinding(w, true, "CTRL", 		name, key.ctrl); 	end 
-		if key.shift 	then ConsolePort:OverrideBinding(w, true, "SHIFT",		name, key.shift); 	end
-		if key.ctrlsh 	then ConsolePort:OverrideBinding(w, true, "CTRL-SHIFT", name, key.ctrlsh);	end
+		if key.action 	then self:OverrideBinding(w, true, nil, 			name, key.action);	end
+		if key.ctrl 	then self:OverrideBinding(w, true, "CTRL", 			name, key.ctrl); 	end 
+		if key.shift 	then self:OverrideBinding(w, true, "SHIFT",			name, key.shift); 	end
+		if key.ctrlsh 	then self:OverrideBinding(w, true, "CTRL-SHIFT", 	name, key.ctrlsh);	end
 	end
 end
 

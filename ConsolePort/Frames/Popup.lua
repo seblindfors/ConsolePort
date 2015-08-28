@@ -1,6 +1,6 @@
-local _, db = ...;
-local interval = 0.1;
-local frameTimers = { 0,0,0,0 };
+local _, db = ...
+local interval = 0.1
+local frameTimers = { 0,0,0,0 }
 local popupFrames = {
 	StaticPopup1,
 	StaticPopup2,
@@ -8,7 +8,7 @@ local popupFrames = {
 	StaticPopup4
 }
 
-function ConsolePort:Popup (key, state) return; end;
+function ConsolePort:Popup (key, state) return end
 
 local function ButtonsLinked(button, clickbutton)
 	return button:GetAttribute("clickbutton") == clickbutton

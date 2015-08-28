@@ -4,12 +4,14 @@ local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\";
 local function AddTexture(BINDING, TYPE)
 	db.TEXTURE[strupper(BINDING)] = TEXTURE_PATH..TYPE..BINDING;
 end
--- Init string tables
+-- Init tables
 db.TEXTURE 	= {}
 db.COLOR 	= {}
 db.CLICK 	= {}
 db.TUTORIAL = {}
 db.SECURE 	= {}
+db.UI 		= {}
+db.UI.Controls = {}
 -- Guide button measurements
 db.GUIDE = {
 	BORDER_S_SMALL 			= 56,
@@ -166,6 +168,8 @@ function ConsolePort:LoadStrings()
 	db.TEXTURE.RONE   		= TEXTURE_PATH..type.."r1";
 	db.TEXTURE.RTWO   		= TEXTURE_PATH..type.."r2";
 	db.TEXTURE.RTHREE		= TEXTURE_PATH..type.."r3";
+	db.TEXTURE.VERTICAL		= TEXTURE_PATH.."VERTICAL";
+	db.TEXTURE.HORIZONTAL	= TEXTURE_PATH.."HORIZONTAL";
 	-- Click strings
 	local ICON				= "|T%s:20:20:0:0|t |cFF%s%s|r"
 	local SHIFT 			= format(ICON, db.TEXTURE.LONE, "6882A1", "%s")

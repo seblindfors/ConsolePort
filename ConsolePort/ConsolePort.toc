@@ -5,7 +5,6 @@
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouseSettings
 
 Init\Load.lua
-Init\Atlas.lua
 Init\Init.lua
 Init\Hooks.lua
 
@@ -13,14 +12,13 @@ Config\Splash.lua
 Config\Config.lua
 Config\Secure.lua
 
-ConsolePort.lua
+Events.lua
+UICore.lua
+Core.lua
 
-Frames\Main.lua
-Frames\General.lua
-Frames\Bags.lua
+Frames\UIControl.lua
+Frames\Popup.lua
 Frames\Map.lua
 Frames\GameMenu.lua
 Frames\Stack.lua
-Frames\Popup.lua
-Frames\DropDown.lua
 Frames\ExtraButton.lua

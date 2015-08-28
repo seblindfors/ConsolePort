@@ -30,9 +30,8 @@ db.pairsByKeys = function (t,f)
 end
 
 function ConsolePort:GetIndicatorButtons(button)
-	local t = {};
 	-- Circle
-	if button == BINDING_NAME_CP_R_RIGHT then t = {
+	if button == BINDING_NAME_CP_R_RIGHT then return {
 		{frame = StaticPopup1Button2, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup2Button2, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup3Button2, 		size = "SMALL", anchor = "RIGHT"},
@@ -44,31 +43,16 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = CinematicFrameCloseDialogResumeButton, size = "SMALL", anchor = "RIGHT"}
 	}
 	-- Square
-	elseif button == BINDING_NAME_CP_R_LEFT then t = { 
+	elseif button == BINDING_NAME_CP_R_LEFT then return { 
 		{frame = StaticPopup1Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup2Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup3Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup4Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = CinematicFrameCloseDialogConfirmButton, size = "SMALL", anchor = "LEFT"}
 	}
-	-- Triangle
-	elseif button == BINDING_NAME_CP_R_UP then t = {
-		--
-	}
-	elseif button == "Up" then t = {
-		--
-	}
-	elseif button == "Left"	then t = {
-		--
-	}
-	elseif button == "Right" then t = {
-		--
-	}
-	elseif button == "Down"	then t = {
-		--
-	}
+	else
+		return {}
 	end
-	return t;
 end
 
 -- ConsolePort:CreateIndicator(parent, size, anchor, button)

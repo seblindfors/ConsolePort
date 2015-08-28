@@ -3,13 +3,6 @@ local KEY = db.KEY;
 local iterator = 1;
 local zones = {};
 local zcount = 0;
-local item = nil;
-
-QuestScrollFrame:HookScript("OnHide", function(self)
-	if item then
-		item:GetScript("OnLeave")(item);
-	end
-end);
 
 local function MapFindClosestZone(key, zones)
 	local this 	= zones[iterator];
@@ -49,116 +42,6 @@ local function MapFindClosestZone(key, zones)
 			iterator = i;
 			swap = false;
 		end
-	end
-end
-
-function ConsolePort:Map(key, state)
-	local titles 	= QuestScrollFrame.Contents.Titles;
-	local headers 	= QuestScrollFrame.Contents.Headers;
-	local icons 	= QuestScrollFrame.Contents.poiTable;
-	local q_count 	= 0;
-	local h_count	= 0;
-	local quests 	= {};
-	local zones 	= {};
-	for i, quest in pairs(titles) do
-		if quest:IsVisible() then
-			tinsert(quests, quest);
-			quest:GetScript("OnLeave")(quest);
-			q_count = q_count + 1;
-		end
-	end
-	for i, header in pairs(headers) do
-		if header:IsVisible() then
-			tinsert(zones, header);
-			header:GetScript("OnLeave")(header);
-			h_count = h_count + 1;
-		end
-	end
-	table.sort(quests, function(a,b) return a:GetTop()>b:GetTop() end);
-	quests[0] = QuestScrollFrame.ViewAll;
-	zones[0]  = QuestScrollFrame.ViewAll;
-	HelpPlate_Hide(true);
-	if QuestMapDetailsScrollFrame:IsVisible() then
-		ConsolePort:MapQuestDetail(key, state);
-	elseif QuestScrollFrame:GetAlpha() == 1 then
-		if h_count > 0 then ConsolePort:MapQuest(key, state, h_count, zones, icons);
-		else ConsolePort:MapQuest(key, state, q_count, quests, icons); end;
-	else
-		ConsolePort:MapZone(key, state);
-	end
-end
-
-function ConsolePort:MapQuestDetail(key, state)
-	if 		key == KEY.UP then
-		ConsolePort:Button(QuestMapDetailsScrollFrameScrollBarScrollUpButton, state);
-	elseif	key == KEY.DOWN then
-		ConsolePort:Button(QuestMapDetailsScrollFrameScrollBarScrollDownButton, state);
-	elseif 	key == KEY.TRIANGLE then
-		ConsolePort:Button(QuestMapFrame.DetailsFrame.BackButton, state);
-		ConsolePort:Map("right", "up");
-	elseif	key == KEY.SQUARE then
-		ConsolePort:Button(QuestMapFrame.DetailsFrame.AbandonButton, state);
-	elseif 	key == KEY.CIRCLE then
-		if QuestMapFrame.DetailsFrame.CompleteQuestFrame.CompleteButton:IsVisible() then
-			ConsolePort:Button(QuestMapFrame.DetailsFrame.CompleteQuestFrame.CompleteButton, state);
-		else
-			ConsolePort:Button(QuestMapFrame.DetailsFrame.TrackButton, state);
-		end
-	end
-end
-
-function ConsolePort:MapQuest(key, state, count, items, icons)
-	if 		key == KEY.PREPARE then iterator = 1;
-	elseif 	key == KEY.UP		 and state == KEY.STATE_DOWN and iterator > 0 		then iterator = iterator - 1;
-	elseif 	key == KEY.DOWN	 and state == KEY.STATE_DOWN and iterator < count 	then iterator = iterator + 1; end;
-	if 	iterator == 0 then
-		QuestScrollFrame.ViewAll:LockHighlight();
-		QuestScrollFrame.ViewAll:SetAlpha(1);
-	else
-		QuestScrollFrame.ViewAll:UnlockHighlight();
-		QuestScrollFrame.ViewAll:SetAlpha(0.5);
-	end
-	item = items[iterator];
-	if item then
-		if 		item:GetTop()-item:GetHeight() < QuestScrollFrameScrollBarScrollDownButton:GetTop() then
-			QuestScrollFrameScrollBarScrollDownButton:Click();
-		elseif 	item:GetTop() > QuestScrollFrameScrollBarScrollUpButton:GetTop() or
-				iterator == 1 then
-			QuestScrollFrameScrollBarScrollUpButton:Click();
-		end
-		item:GetScript("OnEnter")(item);
-		if key == KEY.CIRCLE then
-			local button = nil;
-			for i, icon in pairs(icons.numeric) do
-				if icon.parent == item then
-					button = icon;
-				end
-			end
-			for i, icon in pairs(icons.completed) do
-				if icon.parent == item then
-					button = icon;
-				end
-			end
-			if button then
-				ConsolePort:Button(button, state);
-			else
-				ConsolePort:Button(item, state);
-				if state == KEY.STATE_UP then
-					ConsolePort:Map(KEY.PREPARE, state);
-				end
-			end
-		elseif key == KEY.SQUARE then
-			ConsolePort:Button(item, state);
-			if state == KEY.STATE_UP then
-				item:GetScript("OnLeave")(item);
-			end
-		end
-	end
-	if key == KEY.TRIANGLE and state == KEY.STATE_UP then
-		QuestScrollFrame:SetAlpha(0.5);
-		WorldMapFrameTutorialButton:GetChildren():Show();
-		if item then item:GetScript("OnLeave")(item); end;
-		ConsolePort:Map(KEY.PREPARE, state);
 	end
 end
 

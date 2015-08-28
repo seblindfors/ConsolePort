@@ -142,12 +142,8 @@ function ConsolePort:LoadHookScripts()
 	WorldMapButton:HookScript("OnUpdate", ConsolePort.MapHighlight);
 	-- Disable keyboard input (will obstruct controller input)
 	StackSplitFrame:EnableKeyboard(false);
-	-- Ignore stuff
-	GossipFrameCloseButton.ignoreNode = true
-	QuestFrameCloseButton.ignoreNode = true
-	LootFrameCloseButton.ignoreNode = true
-	WorldMapTitleButton.ignoreNode = true
-	WorldMapButton.ignoreNode = true
+	-- Get rid of mouselook when trying to interact with mouse
+	hooksecurefunc("InteractUnit", MouselookStop)
 	-- Add inputs to cinematic frame, behaves oddly after first dialog closing
 	CinematicFrame:HookScript("OnKeyDown", function(self, key)
 		CinematicControllerInput(key, KEY.STATE_DOWN);

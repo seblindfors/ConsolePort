@@ -1,16 +1,6 @@
 local _, db = ...;
 local KEY = db.KEY;
 
-local function MainBarAction(action)
-	if 	type(action) == "table" and
-		action:GetParent() == MainMenuBarArtFrame and
-		action.action then
-		return action:GetID();
-	else
-		return nil;
-	end
-end
-
 function ConsolePort:CreateManager()
 	if not ConsolePortManager then
 		local m = CreateFrame("Frame", "ConsolePortManager", ConsolePort, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate");
@@ -68,11 +58,65 @@ function ConsolePort:CreateManager()
 	end
 end
 
+local function MainBarAction(action)
+	if 	type(action) == "table" and
+		action:GetParent() == MainMenuBarArtFrame and
+		action.action then
+		return action:GetID();
+	else
+		return nil;
+	end
+end
+
+local function OnMouseDown(self, button)
+	local func = self:GetAttribute("type")
+	local click = self:GetAttribute("clickbutton")
+	self.state = KEY.STATE_DOWN
+	self.timer = 0
+	if 	(func == "click" or func == "action") and click then
+		click:SetButtonState("PUSHED")
+		return
+	end
+	-- Fire function twice where keystate is requested
+	if 	self[func] then self[func](self) end
+end
+
+local function OnMouseUp(self, button)
+	local func = self:GetAttribute("type")
+	local click = self:GetAttribute("clickbutton")
+	self.state = KEY.STATE_UP
+	if 	(func == "click" or func == "action") and click then
+		click:SetButtonState("NORMAL")
+	end
+end
+
+local function CheckHeldDown(self, elapsed)
+	self.timer = self.timer + elapsed
+	if self.timer >= 0.125 and self.state == KEY.STATE_DOWN then
+		local func = self:GetAttribute("type")
+		if func and func ~= "action" and self[func] then self[func](self) end
+		self.timer = 0
+	end
+end
+
+local function PostClick(self)
+	local click = self:GetAttribute("clickbutton")
+	if click and not click:IsEnabled() then
+		self:SetAttribute("clickbutton", nil)
+	end
+end
+
+local function UIControl(self)
+	ConsolePort:UIControl(self.command, self.state)
+end
+
+local function Popup(self)
+	ConsolePort:Popup(self.command, self.state)
+end
+
 function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	local btn 	= CreateFrame("Button", name..modifier, UIParent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate");
-	local functionRefs = {
-		"Map", "Menu", "Bags", "Misc", "Popup", "Loot", "Stack", "General"
-	}
+	local functionRefs = { "UIControl" }
 	btn.name 	= name;
 	btn.timer 	= 0;
 	btn.state 	= KEY.STATE_UP;
@@ -80,9 +124,8 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn.command = UIcommand;
 	btn.mod 	= modifier;
 	btn.default = {};
-	for i, func in pairs(functionRefs) do
-		btn[func] = function(btn) self[func](self, btn.command, btn.state); end;
-	end
+	btn.UIControl 	= UIControl
+	btn.Popup		= Popup
 	btn.rebind 	= function(btn) self:ChangeButtonBinding(btn); end;
 	btn.reset 	= function()
 		btn.default = {
@@ -107,38 +150,11 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn:SetAttribute("actionpage", ConsolePortManager:GetAttribute("actionpage"));
 	btn:RegisterEvent("PLAYER_REGEN_DISABLED");
 	btn:SetScript("OnEvent", btn.revert);
-	btn:HookScript("OnMouseDown", function(self, button)
-		local func = self:GetAttribute("type");
-		local click = self:GetAttribute("clickbutton");
-		self.state = KEY.STATE_DOWN;
-		self.timer = 0;
-		if 	(func == "click" or func == "action") and click then
-			click:SetButtonState("PUSHED");
-			return;
-		end
-		-- Fire function twice where keystate is requested
-		if 	self[func] then self[func](self); end;
-	end);
-	btn:HookScript("OnMouseUp", function(self, button)
-		local func = self:GetAttribute("type");
-		local click = self:GetAttribute("clickbutton");
-		self.state = KEY.STATE_UP;
-		if 	(func == "click" or func == "action") and click then
-			click:SetButtonState("NORMAL");
-		end
-	end);
-	if 	btn.command == KEY.UP or
-		btn.command == KEY.DOWN or
-		btn.command == KEY.LEFT or
-		btn.command == KEY.RIGHT then
-		btn:SetScript("OnUpdate", function(self, elapsed)
-			self.timer = self.timer + elapsed;
-			if self.timer >= 0.15 and btn.state == KEY.STATE_DOWN then
-				local func = self:GetAttribute("type");
-				if func and func ~= "action" and self[func] then self[func](self); end;
-				self.timer = 0;
-			end
-		end);
+	btn:HookScript("PostClick", PostClick)
+	btn:HookScript("OnMouseDown", OnMouseDown)
+	btn:HookScript("OnMouseUp", OnMouseUp)
+	if 	btn.command == KEY.UP or btn.command == KEY.DOWN or btn.command == KEY.LEFT or btn.command == KEY.RIGHT then
+		btn:SetScript("OnUpdate", CheckHeldDown)
 	end
 	ConsolePortManager:SetFrameRef("NewButton", btn);
 	SecureHandlerExecute(ConsolePortManager, [[
