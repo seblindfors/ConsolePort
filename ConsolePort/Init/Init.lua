@@ -39,8 +39,7 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = StaticPopup1Button3, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup2Button3, 		size = "SMALL", anchor = "RIGHT"},
 		{frame = StaticPopup3Button3, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup4Button3, 		size = "SMALL", anchor = "RIGHT"},	
-		{frame = CinematicFrameCloseDialogResumeButton, size = "SMALL", anchor = "RIGHT"}
+		{frame = StaticPopup4Button3, 		size = "SMALL", anchor = "RIGHT"},
 	}
 	-- Square
 	elseif button == BINDING_NAME_CP_R_LEFT then return { 
@@ -48,7 +47,6 @@ function ConsolePort:GetIndicatorButtons(button)
 		{frame = StaticPopup2Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup3Button1, 		size = "SMALL", anchor = "LEFT"},
 		{frame = StaticPopup4Button1, 		size = "SMALL", anchor = "LEFT"},
-		{frame = CinematicFrameCloseDialogConfirmButton, size = "SMALL", anchor = "LEFT"}
 	}
 	else
 		return {}

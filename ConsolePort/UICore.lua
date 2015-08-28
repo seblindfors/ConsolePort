@@ -31,8 +31,7 @@ local addOns = {
 	Blizzard_TradeSkillUI		= { "TradeSkillFrame" },
 	Blizzard_TrainerUI 			= {	"ClassTrainerFrame" },
 	Blizzard_VoidStorageUI		= {	"VoidStorageFrame" },
---	ConsolePortBags 			= {	"ConsolePortContainer" },
-	-- Core
+-- Core
 	ConsolePort					= {
 		"AddonList",
 		"BankFrame",

@@ -1,9 +1,9 @@
 -- ConsolePort 
-local addOn, db = ...;
-local KEY = db.KEY;
+local addOn, db = ...
+local KEY = db.KEY
 
-local f = ConsolePort;
-local m = ConsolePort:CreateMouseLooker();
+local f = ConsolePort
+local m = ConsolePort:CreateMouseLooker()
 
 local UIControls = db.UI.Controls
 
@@ -75,7 +75,7 @@ end
 function ConsolePort:SetButtonActionsDefault()
 	FocusAttr = nil;
 	for _, button in pairs(self:GetInterfaceButtons()) do
-		button.revert();
+		button.revert()
 	end
 end
 

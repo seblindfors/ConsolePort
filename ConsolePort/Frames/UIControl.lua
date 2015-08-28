@@ -8,28 +8,20 @@ local nodes, current, old = {}, nil, nil
 | UIControl: Override click bindings	|
 |---------------------------------------|
 ]]--
-local function OverrideBindingClick(owner, old, button, mouseClick)
+local function OverrideBindingClick(owner, old, button, mouseClick, mod)
 	if not InCombatLockdown() then
 		local key1, key2 = GetBindingKey(old)
-		if key1 then SetOverrideBindingClick(owner, true, key1, button, mouseClick) end
-		if key2 then SetOverrideBindingClick(owner, true, key2, button, mouseClick) end
+		if key1 then SetOverrideBindingClick(owner, true, mod and mod..key1 or key1, button, mouseClick) end
+		if key2 then SetOverrideBindingClick(owner, true, mod and mod..key2 or key2, button, mouseClick) end
 	end
 end
 
 local function OverrideBindingShiftClick(owner, old, button, mouseClick)
-	if not InCombatLockdown() then
-		local key1, key2 = GetBindingKey(old)
-		if key1 then SetOverrideBindingClick(owner, true, "SHIFT-"..key1, button, mouseClick) end
-		if key2 then SetOverrideBindingClick(owner, true, "SHIFT-"..key2, button, mouseClick) end
-	end
+	OverrideBindingClick(owner, old, button, mouseClick, "SHIFT-")
 end
 
 local function OverrideBindingCtrlClick(owner, old, button, mouseClick)
-	if not InCombatLockdown() then
-		local key1, key2 = GetBindingKey(old)
-		if key1 then SetOverrideBindingClick(owner, true, "CTRL-"..key1, button, mouseClick) end
-		if key2 then SetOverrideBindingClick(owner, true, "CTRL-"..key2, button, mouseClick) end
-	end
+	OverrideBindingClick(owner, old, button, mouseClick, "CTRL-")
 end
 
 --[[
