@@ -1,8 +1,8 @@
 local _, db = ...;
-local type = "PS4\\";
-local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\";
-local function AddTexture(BINDING, TYPE)
-	db.TEXTURE[strupper(BINDING)] = TEXTURE_PATH..TYPE..BINDING;
+local type = "PS4";
+local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s";
+local function AddTexture(BINDING, type)
+	db.TEXTURE[strupper(BINDING)] = format(TEXTURE_PATH, type, BINDING)
 end
 -- Init tables
 db.TEXTURE 	= {}
@@ -52,15 +52,16 @@ db.KEY = {
 	STATE_UP 				= "up";
 	STATE_DOWN				= "down";
 }
--- Local binding strings
-db.NAME = {
-	CP_L_UP					=	"Up",
-	CP_L_DOWN				=	"Down",
-	CP_L_LEFT				=	"Left",
-	CP_L_RIGHT				=	"Right",
-	CP_TR1					=	"Trigger 1",
-	CP_TR2					=	"Trigger 2"
-
+-- Tutorial tables
+db.TUTORIAL.BIND  = {
+	DEFAULT = "Click on a button to change its behaviour.",
+	COMBO 	= "Click on a combination of %s to change it.",
+	STATIC 	= "Select an action from the list to change %s",
+	DYNAMIC = "Select any interface button with the cursor to change %s\n%s Apply %s Cancel ",
+	APPLIED = "%s was applied to %s.",
+	INVALID = "Error: Invalid button. New binding was discarded.",
+	COMBAT 	= "Error: In combat! Exit combat to change your settings.",
+	IMPORT 	= "Settings imported from %s. Press Okay to apply.",
 }
 -- Global binding headers
 BINDING_HEADER_CP_LEFT 		=	"Arrow pad";
@@ -86,55 +87,101 @@ db.BUTTON_HILITE 	= format(SPLASH, "ButtonWrapperHiLite")
 local f = CreateFrame("FRAME", "ConsolePort");
 function ConsolePort:LoadStrings()
 	-- Specific controller strings
-	if (ConsolePortSettings and ConsolePortSettings.type == "Xbox") then
-		type = "Xbox\\";
+	local type = ConsolePortSettings and ConsolePortSettings.type or type
+	if 	type == "Xbox" then
 		-- Binding strings
-		BINDING_NAME_CP_R_UP		=	"Y";
-		BINDING_NAME_CP_X_OPTION	=	"A";
-		BINDING_NAME_CP_R_LEFT		=	"X";
-		BINDING_NAME_CP_R_RIGHT		=	"B";
-		BINDING_NAME_CP_L_OPTION	= 	"Back";
-		BINDING_NAME_CP_C_OPTION	=	"Guide";
-		BINDING_NAME_CP_R_OPTION	= 	"Start";
+		BINDING_NAME_CP_R_UP		=	"Y"
+		BINDING_NAME_CP_X_OPTION	=	"A"
+		BINDING_NAME_CP_R_LEFT		=	"X"
+		BINDING_NAME_CP_R_RIGHT		=	"B"
+		BINDING_NAME_CP_L_OPTION	= 	"Back"
+		BINDING_NAME_CP_C_OPTION	=	"Guide"
+		BINDING_NAME_CP_R_OPTION	= 	"Start"
 		-- Button name strings
-		db.NAME.CP_R_UP				=	"Y";
-		db.NAME.CP_X_OPTION			=	"A";
-		db.NAME.CP_R_LEFT			=	"X";
-		db.NAME.CP_R_RIGHT			=	"B";
-		db.NAME.CP_L_OPTION			= 	"Back";
-		db.NAME.CP_C_OPTION			=	"Guide";
-		db.NAME.CP_R_OPTION			= 	"Start";
+		db.NAME = {
+			CP_L_UP					=	"Up",
+			CP_L_DOWN				=	"Down",
+			CP_L_LEFT				=	"Left",
+			CP_L_RIGHT				=	"Right",
+			CP_TR1					=	"Trigger 1",
+			CP_TR2					=	"Trigger 2",
+			CP_R_UP					=	"Y",
+			CP_X_OPTION				=	"A",
+			CP_R_LEFT				=	"X",
+			CP_R_RIGHT				=	"B",
+			CP_L_OPTION				= 	"Back",
+			CP_C_OPTION				=	"Guide",
+			CP_R_OPTION				= 	"Start",
+		}
 		-- Colors
 		db.COLOR = {
-			UP 		= 	"FFE74F",
-			LEFT 	= 	"00A2FF",
-			RIGHT	= 	"FA4451",
-			DOWN 	= 	"52C14E",
+			UP 						= 	"FFE74F",
+			LEFT 					= 	"00A2FF",
+			RIGHT					= 	"FA4451",
+			DOWN 					= 	"52C14E",
+		}
+		db.BINDINGS = {
+			CP_R_LEFT				= {X = 318,	Y = -196},
+			CP_R_UP					= {X = 346,	Y = -170},
+			CP_R_RIGHT				= {X = 374,	Y = -196},
+			CP_L_LEFT				= {X = 164,	Y = -260},
+			CP_L_UP					= {X = 190,	Y = -240},
+			CP_L_RIGHT				= {X = 214,	Y = -260},
+			CP_L_DOWN				= {X = 190,	Y = -280},
+			CP_TR1					= {X = 346,	Y = -143},
+			CP_TR2					= {X = 346,	Y = -117},
+			CP_X_OPTION				= {X = 346,	Y = -224},
+			CP_L_OPTION				= {X = 218,	Y = -196},
+			CP_C_OPTION				= {X = 242,	Y = -150},
+			CP_R_OPTION				= {X = 274,	Y = -196},
 		}
 		-- Textures
 	else
 		-- Binding strings (default: PlayStation)
-		BINDING_NAME_CP_R_UP		=	"Triangle";
-		BINDING_NAME_CP_X_OPTION	=	"Cross";
-		BINDING_NAME_CP_R_LEFT		=	"Square";
-		BINDING_NAME_CP_R_RIGHT		=	"Circle";
-		BINDING_NAME_CP_L_OPTION	= 	"Share";
-		BINDING_NAME_CP_C_OPTION	=	"PS";
-		BINDING_NAME_CP_R_OPTION	= 	"Options";
+		BINDING_NAME_CP_R_UP		=	"Triangle"
+		BINDING_NAME_CP_X_OPTION	=	"Cross"
+		BINDING_NAME_CP_R_LEFT		=	"Square"
+		BINDING_NAME_CP_R_RIGHT		=	"Circle"
+		BINDING_NAME_CP_L_OPTION	= 	"Share"
+		BINDING_NAME_CP_C_OPTION	=	"PS"
+		BINDING_NAME_CP_R_OPTION	= 	"Options"
 		-- Button name strings (default: PlayStation)
-		db.NAME.CP_R_UP				=	"Triangle";
-		db.NAME.CP_X_OPTION			=	"Cross";
-		db.NAME.CP_R_LEFT			=	"Square";
-		db.NAME.CP_R_RIGHT			=	"Circle";
-		db.NAME.CP_L_OPTION			= 	"Share";
-		db.NAME.CP_C_OPTION			=	"PS";
-		db.NAME.CP_R_OPTION			= 	"Options";
+		db.NAME = {
+			CP_L_UP					=	"Up",
+			CP_L_DOWN				=	"Down",
+			CP_L_LEFT				=	"Left",
+			CP_L_RIGHT				=	"Right",
+			CP_TR1					=	"Trigger 1",
+			CP_TR2					=	"Trigger 2",
+			CP_R_UP					=	"Triangle",
+			CP_X_OPTION				=	"Cross",
+			CP_R_LEFT				=	"Square",
+			CP_R_RIGHT				=	"Circle",
+			CP_L_OPTION				= 	"Share",
+			CP_C_OPTION				=	"PS",
+			CP_R_OPTION				= 	"Options",
+		}
 		-- Colors
 		db.COLOR = {
-			UP 		= 	"62BBB2",
-			LEFT 	= 	"D35280",
-			RIGHT	= 	"D84E58",
-			DOWN 	= 	"6882A1",
+			UP 						= 	"62BBB2",
+			LEFT 					= 	"D35280",
+			RIGHT					= 	"D84E58",
+			DOWN 					= 	"6882A1",
+		}
+		db.BINDINGS = {
+			CP_R_LEFT				= {X = 344,	Y = -198},
+			CP_R_UP					= {X = 374,	Y = -166},
+			CP_R_RIGHT				= {X = 406,	Y = -198}, 
+			CP_L_LEFT				= {X = 85,	Y = -198},
+			CP_L_UP					= {X = 110,	Y = -175},
+			CP_L_RIGHT				= {X = 132,	Y = -198},
+			CP_L_DOWN				= {X = 110,	Y = -220},
+			CP_TR1					= {X = 374,	Y = -140},
+			CP_TR2					= {X = 374,	Y = -114},
+			CP_X_OPTION				= {X = 374,	Y = -228},
+			CP_L_OPTION				= {X = 156,	Y = -160},
+			CP_C_OPTION				= {X = 242,	Y = -256},
+			CP_R_OPTION				= {X = 326,	Y = -160},
 		}
 	end
 	-- Global config variables
@@ -162,14 +209,14 @@ function ConsolePort:LoadStrings()
 	AddTexture(db.NAME.CP_C_OPTION, type);
 	AddTexture(db.NAME.CP_R_OPTION, type);
 	-- L/R
-	db.TEXTURE.LONE   		= TEXTURE_PATH..type.."l1";
-	db.TEXTURE.LTWO   		= TEXTURE_PATH..type.."l2";
-	db.TEXTURE.LTHREE   	= TEXTURE_PATH..type.."l3";
-	db.TEXTURE.RONE   		= TEXTURE_PATH..type.."r1";
-	db.TEXTURE.RTWO   		= TEXTURE_PATH..type.."r2";
-	db.TEXTURE.RTHREE		= TEXTURE_PATH..type.."r3";
-	db.TEXTURE.VERTICAL		= TEXTURE_PATH.."VERTICAL";
-	db.TEXTURE.HORIZONTAL	= TEXTURE_PATH.."HORIZONTAL";
+	db.TEXTURE.LONE   		= format(TEXTURE_PATH, type, "l1")
+	db.TEXTURE.LTWO   		= format(TEXTURE_PATH, type, "l2")
+	db.TEXTURE.LTHREE   	= format(TEXTURE_PATH, type, "l3")
+	db.TEXTURE.RONE   		= format(TEXTURE_PATH, type, "r1")
+	db.TEXTURE.RTWO   		= format(TEXTURE_PATH, type, "r2")
+	db.TEXTURE.RTHREE		= format(TEXTURE_PATH, type, "r3")
+	db.TEXTURE.VERTICAL		= "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\VERTICAL"
+	db.TEXTURE.HORIZONTAL	= "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\HORIZONTAL"
 	-- Click strings
 	local ICON				= "|T%s:20:20:0:0|t |cFF%s%s|r"
 	local SHIFT 			= format(ICON, db.TEXTURE.LONE, "6882A1", "%s")
@@ -189,18 +236,6 @@ function ConsolePort:LoadStrings()
 		CANCEL 				= format(UP, 	"Cancel"),
 		STACK_BUY 			= format(UP, 	"Buy a different amount"),
 		ADD_TO_EXTRA		= format(UP, 	"Bind"),
-	}
-	-- Tutorial strings
-	local tutorialCursor 	= "|TInterface\\AddOns\\ConsolePort\\Textures\\TutorialCursor:64:128:0:0|t";
-	local exampleTexture 	= db.TEXTURE.Y or db.TEXTURE.TRIANGLE;
-	local exampleCombo 		= "|T"..db.TEXTURE.LONE..":20:20:0:0|t".."|T"..exampleTexture..":20:20:0:0|t";
-	db.TUTORIAL.BIND 		= {
-		IMPORT 	= "You can import bindings from your other characters here. Your current bindings will be exported when you log out.\nPress |cFFFFD200Okay|r to apply.",
-		DYNAMIC = "       |cFFFFD200[Rebind Instructions]|r\n\n1. Mouse over an action button\n2.  Press a button combination\n"..tutorialCursor.."+   "..exampleCombo,
-		STATIC 	= "       |cFFFFD200[Rebind Instructions]|r\n\n1.   Click on a combination\n2. Choose action from the list\n",
-		MOD 	= "              |cFFFFD200[Modifiers]|r\nThese columns represent all button combinations. Every button in the list to the left\nhas four combinations each.",
-		ACTION 	= "          |cFFFFD200[Action Buttons]|r\nThese buttons can be used for abilities, macros and items. They are also used to control the interface.",
-		OPTION 	= "          |cFFFFD200[Option Buttons]|r\nThese buttons can be used to perform any action defined in the regular key bindings.",
 	}
 end
 

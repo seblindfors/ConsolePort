@@ -4,7 +4,7 @@
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouseSettings
 
-Init\Load.lua
+Init\Strings.lua
 Init\Init.lua
 Init\Hooks.lua
 

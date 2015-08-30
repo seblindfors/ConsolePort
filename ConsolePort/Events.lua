@@ -1,9 +1,9 @@
 local addOn, db = ...
 local UIControls = db.UI.Controls
 
-local function IsMouselookEvent(frameEvent)
+local function IsMouselookEvent(event)
 	if 	ConsolePortMouseSettings then
-		return ConsolePortMouseSettings[frameEvent]
+		return ConsolePortMouseSettings[event]
 	end
 	return true
 end
@@ -65,7 +65,7 @@ function ConsolePort:PLAYER_REGEN_ENABLED(...)
 	self:SetButtonActionsDefault()
 	for i, UIControl in pairs(UIControls) do
 		if UIControl.frame:IsVisible() then
-			UIFrameFadeIn(UIControl.frame, 0.2, 0.5, 1)
+			UIFrameFadeIn(UIControl.frame, 0.2, 0.75, 1)
 		else
 			UIControl.frame:SetAlpha(1)
 		end
@@ -75,7 +75,7 @@ end
 function ConsolePort:PLAYER_REGEN_DISABLED(...)
 	for i, UIControl in pairs(UIControls) do
 		if UIControl.frame:IsVisible() then
-			UIFrameFadeOut(UIControl.frame, 0.2, 1, 0.5)
+			UIFrameFadeOut(UIControl.frame, 0.2, 1, 0.75)
 		else
 			UIControl.frame:SetAlpha(0.75)
 		end

@@ -80,11 +80,6 @@ function ConsoleExec(msg)
 end
 
 function ConsolePort:LoadHookScripts()
-	-- Game Menu frame
-	local Controller = GameMenuFrame:CreateTexture("GameMenuTextureController", "ARTWORK");
-	Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type);
-	Controller:SetPoint("CENTER", GameMenuFrame, "CENTER");
-	--
 	InterfaceOptionsFrame:SetMovable(true);
 	InterfaceOptionsFrame:RegisterForDrag("LeftButton");
 	InterfaceOptionsFrame:HookScript("OnDragStart", InterfaceOptionsFrame.StartMoving);

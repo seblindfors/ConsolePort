@@ -19,9 +19,24 @@ end
 
 function ConsolePort:GetFrameStack()
 	local stack = {}
-	for _, UIControl in pairs(UIControls) do
-		if UIControl.frame:IsVisible() then
-			tinsert(stack, UIControl.frame)
+	if ConsolePortRebindFrame:IsVisible() then
+		if ConsolePortRebindFrame.isRebinding then
+			for _, Frame in pairs({UIParent:GetChildren()}) do
+				if not Frame:IsForbidden() and
+					Frame:IsVisible() and
+					Frame ~= InterfaceOptionsFrame then
+					tinsert(stack, Frame)
+				end
+			end
+		end
+		tinsert(stack, DropDownList1)
+		tinsert(stack, DropDownList2)
+		tinsert(stack, ConsolePortRebindFrame)
+	else
+		for _, UIControl in pairs(UIControls) do
+			if UIControl.frame:IsVisible() then
+				tinsert(stack, UIControl.frame)
+			end
 		end
 	end
 	return stack
@@ -73,9 +88,8 @@ function ConsolePort:GetInterfaceButtons()
 end
 
 function ConsolePort:SetButtonActionsDefault()
-	FocusAttr = nil;
 	for _, button in pairs(self:GetInterfaceButtons()) do
-		button.revert()
+		button:Revert()
 	end
 end
 

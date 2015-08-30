@@ -1,7 +1,7 @@
 local addOn, db = ...
 local KEY 		= db.KEY
 local TEXTURE 	= db.TEXTURE
-local nodes, current, old = {}, nil, nil
+local nodes, current, old, rebindNode = {}, nil, nil, nil
 
 --[[
 |---------------------------------------|
@@ -47,9 +47,10 @@ local function SetCursorTexture(self, texture)
 end
 
 local function SetCursorPosition(self, anchor, object)
+	local x, y = anchor:GetCenter()
 	self:SetCursorTexture()
 	self:ClearAllPoints()
-	self:SetPoint("TOPLEFT", anchor, "CENTER", -4, 4)
+	self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x-4, y+4)
 	self:Show()
 end
 
@@ -88,7 +89,7 @@ local function AnimateCursor(self)
 		local dX, dY = current.node:GetCenter();
 		local tX, tY = old.node:GetCenter();
 		if dX and dY and tX and tY then
-			Animation:SetPoint("TOPLEFT", old.node, "CENTER", -4, 4);
+			Animation:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", tX-4, tY+4);
 			Animation.Type:SetOffset((dX-tX), (dY-tY))
 			Animation.Button:SetTexture(self.Button:GetTexture())
 			Animation.Group:Play()
@@ -182,12 +183,14 @@ local function SetCurrent()
 end
 
 local function RefreshNodes(self)
-	ClearNodes()
-	ClearOverrideBindings(Cursor)
-	for i, frame in pairs(self:GetFrameStack()) do
-		GetNodes(frame)
+	if not InCombatLockdown() then
+		ClearNodes()
+		ClearOverrideBindings(Cursor)
+		for i, frame in pairs(self:GetFrameStack()) do
+			GetNodes(frame)
+		end
+		SetCurrent()
 	end
-	SetCurrent()
 end
 
 local function FindClosestNode(key)
@@ -237,10 +240,10 @@ local function FindClosestNode(key)
 end
 
 local function EnterNode(self, node, object)
-	if 	IsClickable[object] and node:IsEnabled() then
-		local name = node.direction and node:GetName()
-		self:SetClickButton(CP_R_RIGHT_NOMOD, node)
-		self:SetClickButton(CP_R_LEFT_NOMOD, node)
+	if IsClickable[object] and node:IsEnabled() then
+		local name = rebindNode and nil or node.direction and node:GetName()
+		self:SetClickButton(CP_R_RIGHT_NOMOD, rebindNode or node)
+		self:SetClickButton(CP_R_LEFT_NOMOD, rebindNode or node)
 		OverrideBindingClick(Cursor, "CP_R_RIGHT", name or "CP_R_RIGHT_NOMOD", "LeftButton")
 		OverrideBindingClick(Cursor, "CP_R_LEFT", name or "CP_R_LEFT_NOMOD", "RightButton") 
 		local enter = node:GetScript("OnEnter")
@@ -344,13 +347,46 @@ Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
 
 --[[
 |---------------------------------------|
-| UIControl: Command parser / main func	|
+| UIControl: Global node manipulation	|
 |---------------------------------------|
 ]]--
 function ConsolePort:GetUIControlNodes()
 	return nodes
 end
 
+function ConsolePort:GetCurrentNode()
+	return current and current.node
+end
+
+function ConsolePort:SetCurrentNode(UIobject)
+	RefreshNodes(self)
+	for i, node in pairs(nodes) do
+		if node.node == UIobject then
+			old = current
+			current = node
+			Cursor:SetCursorPosition(node.node, node.object)
+			Cursor:Animate()
+			break
+		end
+	end
+	self:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
+end
+
+--[[
+|---------------------------------------|
+| UIControl: Toggle rebind mode			|
+|---------------------------------------|
+]]--
+function ConsolePort:SetRebinding(button)
+	ConsolePortRebindFrame.isRebinding = button
+	rebindNode = button
+end
+
+--[[
+|---------------------------------------|
+| UIControl: Command parser / main func	|
+|---------------------------------------|
+]]--
 function ConsolePort:UIControl(key, state)
 	RefreshNodes(self)
 	if state == KEY.STATE_DOWN then

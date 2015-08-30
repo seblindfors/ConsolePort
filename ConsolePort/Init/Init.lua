@@ -1,32 +1,32 @@
-local _, db = ...;
-local KEY = db.KEY;
-local BIND_TARGET 	 	= false;
-local CONF_BUTTON 		= nil;
-local CP 				= "CP";
-local CONF 				= "_CONF";
-local CONFBG 			= "_CONF_BG";
-local GUIDE 			= "_GUIDE";
-local NOMOD				= "_NOMOD";
-local SHIFT 			= "_SHIFT";
-local CTRL 				= "_CTRL";
-local CTRLSH 			= "_CTRLSH";
+local _, db = ...
+local KEY = db.KEY
+local GINFO = db.GUIDE
+local BIND_TARGET 	 	= false
+local CONF_BUTTON 		= nil
+local CP 				= "CP"
+local CONF 				= "_CONF"
+local CONFBG 			= "_CONF_BG"
+local GUIDE 			= "_GUIDE"
+local NOMOD				= "_NOMOD"
+local SHIFT 			= "_SHIFT"
+local CTRL 				= "_CTRL"
+local CTRLSH 			= "_CTRLSH"
 
-db.ConsolePort_Loaded = false;
-db.ButtonGuides 		 = {};
+db.ButtonGuides 		 = {}
 
 -- Sort table by non-numeric key
 db.pairsByKeys = function (t,f)
-	local a = {};
-	for n in pairs(t) do tinsert(a, n); end;
-	table.sort(a, f);
-	local i = 0;      -- iterator variable
+	local a = {}
+	for n in pairs(t) do tinsert(a, n) end
+	table.sort(a, f)
+	local i = 0      -- iterator variable
 	local iter = function ()   -- iterator function
-		i = i + 1;
-		if a[i] == nil then return nil;
-		else return a[i], t[a[i]];
+		i = i + 1
+		if a[i] == nil then return nil
+		else return a[i], t[a[i]]
 		end
 	end
-	return iter;
+	return iter
 end
 
 function ConsolePort:GetIndicatorButtons(button)
@@ -53,6 +53,30 @@ function ConsolePort:GetIndicatorButtons(button)
 	end
 end
 
+function ConsolePort:CreateIndicator(parent, size, anchor, button)
+	local f = CreateFrame("BUTTON", nil, parent)
+	local t = f:CreateTexture(nil, "BACKGROUND")
+	local o = f:CreateTexture(nil, "OVERLAY")
+	button = strupper(button)
+	f.texture = t
+	f.overlay = o
+	o:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder.blp")
+	o:SetPoint("TOPLEFT", f, GINFO["BORDER_X_"..size], GINFO["BORDER_Y_"..size])
+	o:SetWidth(GINFO["BORDER_S_"..size])
+	o:SetHeight(GINFO["BORDER_S_"..size])
+	t:SetTexture(db.TEXTURE[button])
+	t:SetAllPoints(f)
+	f:SetPoint(anchor, parent, GINFO["BUTTON_"..anchor.."_"..size.."_X"], GINFO["BUTTON_"..anchor.."_"..size.."_Y"])
+	f:SetWidth(GINFO["BUTTON_S_"..size])
+	f:SetHeight(GINFO["BUTTON_S_"..size])
+	f:SetAlpha(1)
+	f:SetScript("OnShow", function(self)
+		UIFrameFadeIn(self, 0.3, 0, 1)
+	end)
+	f:Show()
+	return f
+end
+
 -- ConsolePort:CreateIndicator(parent, size, anchor, button)
 function ConsolePort:GetIndicatorSet()
 	local t = {
@@ -62,9 +86,9 @@ function ConsolePort:GetIndicatorSet()
 		"Up","Down","Left","Right",
 	}
 	for i, button in pairs(t) do
-		local indicators = ConsolePort:GetIndicatorButtons(button);
+		local indicators = ConsolePort:GetIndicatorButtons(button)
 		for k, indicator in pairs(indicators) do
-			tinsert(db.ButtonGuides, ConsolePort:CreateIndicator(indicator.frame, indicator.size, indicator.anchor, button));
+			tinsert(db.ButtonGuides, ConsolePort:CreateIndicator(indicator.frame, indicator.size, indicator.anchor, button))
 		end
 	end
 end
@@ -102,51 +126,51 @@ function ConsolePort:GetBindingButtons()
 end
 
 function ConsolePort:GetDefaultBindingSet()
-	local bindingSet = {};
-	local Buttons = ConsolePort:GetBindingNames();
+	local bindingSet = {}
+	local Buttons = ConsolePort:GetBindingNames()
 	for _, Button in ipairs(Buttons) do
-		bindingSet[Button] = ConsolePort:GetDefaultBinding(Button);
+		bindingSet[Button] = ConsolePort:GetDefaultBinding(Button)
 	end
-	return bindingSet;
+	return bindingSet
 end
 
 function ConsolePort:GetDefaultBindingButtons()
-	local bindingSet = {};
-	local Buttons = ConsolePort:GetBindingButtons();
+	local bindingSet = {}
+	local Buttons = ConsolePort:GetBindingButtons()
 	for _, Button in ipairs(Buttons) do
-		bindingSet[Button] = ConsolePort:GetDefaultButton(Button);
+		bindingSet[Button] = ConsolePort:GetDefaultButton(Button)
 	end
-	return bindingSet;
+	return bindingSet
 end
 
 
 function ConsolePort:GetDefaultBinding(key)
-	local nomod 	= nil;
-	local modshift 	= nil;
-	local ctrl 		= nil;
-	local shiftctrl = nil;
+	local nomod
+	local modshift
+	local modctrl
+	local shiftctrl
 	-- Right side
 	if 		key == "CP_X_OPTION" then
-		nomod 		= "JUMP";
-		modshift 	= "TARGETNEARESTENEMY";
-		modctrl  	= "FOCUSTARGET";
-		shiftctrl 	= "TARGETFOCUS";
+		nomod 		= "JUMP"
+		modshift 	= "TARGETNEARESTENEMY"
+		modctrl  	= "FOCUSTARGET"
+		shiftctrl 	= "TARGETFOCUS"
 	-- Utility Buttons
 	elseif 	key == "CP_L_OPTION" then
-		nomod 		= "OPENALLBAGS";
-		modshift 	= "TOGGLECHARACTER0";
-		modctrl 	= "TOGGLESPELLBOOK";
-		shiftctrl 	= "TOGGLETALENTS";
+		nomod 		= "OPENALLBAGS"
+		modshift 	= "TOGGLECHARACTER0"
+		modctrl 	= "TOGGLESPELLBOOK"
+		shiftctrl 	= "TOGGLETALENTS"
 	elseif 	key == "CP_C_OPTION" then
-		nomod 		= "TOGGLEGAMEMENU";
-		modshift 	= "EXTRAACTIONBUTTON1";
-		modctrl 	= "TOGGLEAUTORUN";
-		shiftctrl 	= "FOLLOWTARGET";
+		nomod 		= "TOGGLEGAMEMENU"
+		modshift 	= "EXTRAACTIONBUTTON1"
+		modctrl 	= "TOGGLEAUTORUN"
+		shiftctrl 	= "FOLLOWTARGET"
 	elseif 	key == "CP_R_OPTION" then
-		nomod 		= "TOGGLEWORLDMAP";
-		modshift 	= "NEXTVIEW";
-		modctrl 	= "PREVVIEW";
-		shiftctrl 	= "CAMERAZOOMOUT";
+		nomod 		= "TOGGLEWORLDMAP"
+		modshift 	= "NEXTVIEW"
+		modctrl 	= "PREVVIEW"
+		shiftctrl 	= "CAMERAZOOMOUT"
 	-- Actionbuttons
 	elseif 	key == "CP_R_LEFT" 	or 
 			key == "CP_R_UP" 	or
@@ -157,10 +181,10 @@ function ConsolePort:GetDefaultBinding(key)
 			key == "CP_L_LEFT" 	or 
 			key == "CP_L_UP" 	or 
 			key == "CP_L_RIGHT" then
-		nomod 		= "CLICK "..key.."_NOMOD:LeftButton";
-		modshift 	= "CLICK "..key.."_SHIFT:LeftButton";
-		modctrl 	= "CLICK "..key.."_CTRL:LeftButton";
-		shiftctrl 	= "CLICK "..key.."_CTRLSH:LeftButton";
+		nomod 		= "CLICK "..key.."_NOMOD:LeftButton"
+		modshift 	= "CLICK "..key.."_SHIFT:LeftButton"
+		modctrl 	= "CLICK "..key.."_CTRL:LeftButton"
+		shiftctrl 	= "CLICK "..key.."_CTRLSH:LeftButton"
 	end
 	local binding = {
 		action 	= nomod,
@@ -168,71 +192,69 @@ function ConsolePort:GetDefaultBinding(key)
 		ctrl 	= modctrl,
 		ctrlsh 	= shiftctrl
 	}
-	return binding;
+	return binding
 end
 
 function ConsolePort:GetDefaultButton(key)
-	local command 	= nil;
-	local nomod 	= nil;
-	local modshift 	= nil;
-	local ctrl 		= nil;
-	local modshiftctrl = nil;
+	local command 	= nil
+	local nomod 	= nil
+	local modshift 	= nil
+	local ctrl 		= nil
+	local modshiftctrl = nil
 	if 		key == "CP_R_LEFT" then
-		command		= KEY.SQUARE;
-		nomod 		= "ActionButton1";
-		modshift 	= "ActionButton6";
-		modctrl 	= "MultiBarBottomLeftButton1";
-		shiftctrl 	= "MultiBarBottomLeftButton6";
+		command		= KEY.SQUARE
+		nomod 		= "ActionButton1"
+		modshift 	= "ActionButton6"
+		modctrl 	= "MultiBarBottomLeftButton1"
+		shiftctrl 	= "MultiBarBottomLeftButton6"
 	elseif key == "CP_R_UP" then
-		command		= KEY.TRIANGLE;
-		nomod 		= "ActionButton2";
-		modshift 	= "ActionButton7";
-		modctrl 	= "MultiBarBottomLeftButton2";
-		shiftctrl 	= "MultiBarBottomLeftButton7";
+		command		= KEY.TRIANGLE
+		nomod 		= "ActionButton2"
+		modshift 	= "ActionButton7"
+		modctrl 	= "MultiBarBottomLeftButton2"
+		shiftctrl 	= "MultiBarBottomLeftButton7"
 	elseif key == "CP_R_RIGHT" then
-		command 	= KEY.CIRCLE;
-		nomod 		= "ActionButton3";
-		modshift 	= "ActionButton8";
-		modctrl 	= "MultiBarBottomLeftButton3";
-		shiftctrl 	= "MultiBarBottomLeftButton8";
+		command 	= KEY.CIRCLE
+		nomod 		= "ActionButton3"
+		modshift 	= "ActionButton8"
+		modctrl 	= "MultiBarBottomLeftButton3"
+		shiftctrl 	= "MultiBarBottomLeftButton8"
 	-- Triggers
 	elseif key == "CP_TR1" then
-		command		= "none";
-		nomod 		= "ActionButton4";
-		modshift 	= "ActionButton9";
-		modctrl 	= "MultiBarBottomLeftButton4";
-		shiftctrl 	= "MultiBarBottomLeftButton9";
+		nomod 		= "ActionButton4"
+		modshift 	= "ActionButton9"
+		modctrl 	= "MultiBarBottomLeftButton4"
+		shiftctrl 	= "MultiBarBottomLeftButton9"
 	elseif key == "CP_TR2" then
-		command		= "none";
-		nomod 		= "ActionButton5";
-		modshift 	= "ActionButton10";
-		modctrl 	= "MultiBarBottomLeftButton5";
-		shiftctrl 	= "MultiBarBottomLeftButton10";
+		nomod 		= "ActionButton5"
+		modshift 	= "ActionButton10"
+		modctrl 	= "MultiBarBottomLeftButton5"
+		shiftctrl 	= "MultiBarBottomLeftButton10"
 	-- Left side
 	elseif key == "CP_L_DOWN" then
-		command		= KEY.DOWN;
-		nomod 		= "ActionButton11";
-		modshift 	= "MultiBarBottomRightButton4";
-		modctrl  	= "MultiBarBottomRightButton8";
-		shiftctrl	= "MultiBarBottomRightButton12";
+		command		= KEY.DOWN
+		nomod 		= "ActionButton11"
+		modshift 	= "MultiBarBottomRightButton4"
+		modctrl  	= "MultiBarBottomRightButton8"
+		shiftctrl	= "MultiBarBottomRightButton12"
 	elseif key == "CP_L_LEFT" then
-		command		= KEY.LEFT;
-		nomod 		= "MultiBarBottomLeftButton11";
-		modshift 	= "MultiBarBottomRightButton1";
-		modctrl 	= "MultiBarBottomRightButton5";
-		shiftctrl 	= "MultiBarBottomRightButton9";
+		command		= KEY.LEFT
+		nomod 		= "MultiBarBottomLeftButton11"
+		modshift 	= "MultiBarBottomRightButton1"
+		modctrl 	= "MultiBarBottomRightButton5"
+		shiftctrl 	= "MultiBarBottomRightButton9"
 	elseif key == "CP_L_UP" then
-		command		= KEY.UP;
-		nomod 		= "MultiBarBottomLeftButton12";
-		modshift 	= "MultiBarBottomRightButton2";
-		modctrl 	= "MultiBarBottomRightButton6";
-		shiftctrl 	= "MultiBarBottomRightButton10";
+		command		= KEY.UP
+		nomod 		= "MultiBarBottomLeftButton12"
+		modshift 	= "MultiBarBottomRightButton2"
+		modctrl 	= "MultiBarBottomRightButton6"
+		shiftctrl 	= "MultiBarBottomRightButton10"
 	elseif key == "CP_L_RIGHT" then
-		command		= KEY.RIGHT;
-		nomod 		= "ActionButton12";
-		modshift 	= "MultiBarBottomRightButton3";
-		modctrl 	= "MultiBarBottomRightButton7";
-		shiftctrl 	= "MultiBarBottomRightButton11";
+		command		= KEY.RIGHT
+		nomod 		= "ActionButton12"
+		modshift 	= "MultiBarBottomRightButton3"
+		modctrl 	= "MultiBarBottomRightButton7"
+		shiftctrl 	= "MultiBarBottomRightButton11"
 	end
 	local binding = {
 		ui 		= command,
@@ -241,7 +263,7 @@ function ConsolePort:GetDefaultButton(key)
 		ctrl 	= modctrl,
 		ctrlsh 	= shiftctrl
 	}
-	return binding;
+	return binding
 end
 
 
@@ -267,103 +289,106 @@ function ConsolePort:GetDefaultMouseSettings()
 		["LOOT_OPENED"] = true,
 		["LOOT_CLOSED"] = true
 	}
-	return mouseSettings;
+	return mouseSettings
 end
 
 function ConsolePort:GetDefaultAddonSettings()
-	local t = {};
-	t.type = "PS4";
-	t.cam = false;
-	t.autoExtra = true;
-	return t;
+	local t = {}
+	t.type = "PS4"
+	t.cam = false
+	t.autoExtra = true
+	return t
 end
 
  function ConsolePort:OnVariablesLoaded()
         if not ConsolePortBindingSet then
-        	ConsolePortBindingSet = self:GetDefaultBindingSet();
+        	ConsolePortBindingSet = self:GetDefaultBindingSet()
         end
 
         if not ConsolePortBindingButtons then
-        	ConsolePortBindingButtons = self:GetDefaultBindingButtons();
+        	ConsolePortBindingButtons = self:GetDefaultBindingButtons()
         end
 
         if not ConsolePortMouseSettings then
-        	ConsolePortMouseSettings = self:GetDefaultMouseSettings();
+        	ConsolePortMouseSettings = self:GetDefaultMouseSettings()
         end
 
         if not ConsolePortSettings then
-        	ConsolePortSettings = self:GetDefaultAddonSettings();
-        	self:CreateSplashFrame();
+        	ConsolePortSettings = self:GetDefaultAddonSettings()
+        	self:CreateSplashFrame()
         end
 
         if 	self:CheckUnassignedBindings() then
-        	self:CreateBindingWizard();
+        	self:CreateBindingWizard()
         end
 
-        SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport";
+        SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
         local function SlashHandler(msg, editBox)
         	if msg == "type" or msg == "controller" then
-        		ConsolePort:CreateSplashFrame();
+        		ConsolePort:CreateSplashFrame()
         	elseif msg == "resetAll" and not InCombatLockdown() then
-        		local bindings = ConsolePort:GetBindingNames();
+        		local bindings = ConsolePort:GetBindingNames()
         		for i, binding in pairs(bindings) do
-        			local key1, key2 = GetBindingKey(binding);
-        			if key1 then SetBinding(key1); end;
-        			if key2 then SetBinding(key2); end;
+        			local key1, key2 = GetBindingKey(binding)
+        			if key1 then SetBinding(key1) end
+        			if key2 then SetBinding(key2) end
         		end
-        		SaveBindings(GetCurrentBindingSet());
-        		ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet();
-        		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons();
-        		ConsolePortSettings = nil;
-        		ReloadUI();
-        	elseif 	msg == "resetAll" then print("Error: Cannot reset addon in combat!");
+        		SaveBindings(GetCurrentBindingSet())
+        		ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet()
+        		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
+        		ConsolePortSettings = nil
+        		ReloadUI()
+        	elseif 	msg == "resetAll" then print("Error: Cannot reset addon in combat!")
         	elseif 	msg == "binds" or
         			msg == "binding" or
         			msg == "bindings" then
-        		InterfaceOptionsFrame_OpenToCategory(db.Binds);
-				InterfaceOptionsFrame_OpenToCategory(db.Binds);
+        		InterfaceOptionsFrame_OpenToCategory(db.Binds)
+				InterfaceOptionsFrame_OpenToCategory(db.Binds)
 			elseif 	msg == "test" and _G["ConsolePortUI"] then
-				_G["ConsolePortUI"]:Toggle();
+				_G["ConsolePortUI"]:Toggle()
         	else
-        		print("Console Port:");
-        		print("/cp type: Change controller type");
-        		print("/cp resetAll: Full addon reset");
-        		print("/cp binds: Open binding menu");
+        		print("Console Port:")
+        		print("/cp type: Change controller type")
+        		print("/cp resetAll: Full addon reset")
+        		print("/cp binds: Open binding menu")
         	end
         end
-        SlashCmdList["CONSOLEPORT"] = SlashHandler;
-
-        db.ConsolePort_Loaded = true;
+        SlashCmdList["CONSOLEPORT"] = SlashHandler
  end
 
 
 function ConsolePort:CreateMouseLooker()
-	local f = CreateFrame("Frame", "ConsolePortMouseLook", UIParent);
-	local t = f:CreateTexture(nil, "BACKGROUND");
-	f.hoverButton = t;
-	f:SetPoint("CENTER", p, 0, -50);
-	f:SetWidth(70);
-	f:SetHeight(180);
-	f:SetAlpha(0);
-	f:Show();
-	return f;
+	local f = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)
+	local t = f:CreateTexture(nil, "BACKGROUND")
+	f.hoverButton = t
+	f:SetPoint("CENTER", p, 0, -50)
+	f:SetWidth(70)
+	f:SetHeight(180)
+	f:SetAlpha(0)
+	f:Show()
+	return f
 end
 
 function ConsolePort:CreateBindingButtons()
-	local keys = ConsolePortBindingButtons;
-	local y = 1;
-	table.sort(keys);
+	local keys = ConsolePortBindingButtons
+	local y = 1
+	table.sort(keys)
 	for name, key in db.pairsByKeys(keys) do
-		local x = 1;
-		ConsolePort:CreateConfigGuideButton(name, db.NAME[name], db.Binds, 0, y);
-		if key.action 	then ConsolePort:CreateSecureButton(name, NOMOD,	key.action,	key.ui);
-							 ConsolePort:CreateConfigButton(name..NOMOD, x, y);	x = x + 1;	end;
-		if key.shift 	then ConsolePort:CreateSecureButton(name,	SHIFT, 	key.shift, 	key.ui);
-							 ConsolePort:CreateConfigButton(name..SHIFT, x, y);	x = x + 1; 	end;
-		if key.ctrl 	then ConsolePort:CreateSecureButton(name,	CTRL,  	key.ctrl, 	key.ui);
-							 ConsolePort:CreateConfigButton(name..CTRL, x, y);	x = x + 1; 	end;
-		if key.ctrlsh 	then ConsolePort:CreateSecureButton(name, CTRLSH,	key.ctrlsh, key.ui); 	
-							 ConsolePort:CreateConfigButton(name..CTRLSH, x, y);	x = x + 1; 	end;
-		y = y + 1;
+		if key.action 	then 
+			self:CreateSecureButton(name, 	NOMOD,	key.action,	key.ui)
+			self:CreateConfigButton(name, 	NOMOD, 0)
+		end
+		if key.shift 	then
+			self:CreateSecureButton(name,	SHIFT, 	key.shift, 	key.ui)
+			self:CreateConfigButton(name, 	SHIFT, 1)
+		end
+		if key.ctrl 	then
+			self:CreateSecureButton(name,	CTRL,  	key.ctrl, 	key.ui)
+			self:CreateConfigButton(name,	CTRL,  2)
+		end
+		if key.ctrlsh 	then
+			self:CreateSecureButton(name, 	CTRLSH,	key.ctrlsh, key.ui)
+			self:CreateConfigButton(name,	CTRLSH, 3)
+		end
 	end
 end

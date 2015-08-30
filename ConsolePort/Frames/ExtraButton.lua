@@ -59,7 +59,8 @@ local function OnLeave(self)
 end
 
 local function CheckQuest(self)
-	watchQuests, count = {}, 0;
+	local count = 0
+	watchQuests = {}
 	for i=1, GetNumQuestWatches() do
 		tinsert(watchQuests, GetQuestIndexForWatch(i));
 	end
@@ -142,7 +143,6 @@ function ConsolePort:UpdateExtraButton(item)
 			Extra:SetAlpha(1);
 			Extra:Show();
 			Extra:UpdateItem();
-		--	ActionButton_ShowOverlayGlow(Extra);
 		else
 			Extra.itemID = nil;
 			Extra.icon:SetTexture(nil);
