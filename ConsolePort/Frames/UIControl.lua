@@ -194,17 +194,18 @@ end
 
 local function FindClosestNode(key)
 	if current then
+		local destY, destX, diffY, diffX, total
 		local thisY = current.Y
 		local thisX = current.X
 		local nodeY = 10000
 		local nodeX = 10000
 		local swap 	= false
 		for i, destination in ipairs(nodes) do
-			local destY = destination.Y
-			local destX = destination.X
-			local diffY = abs(thisY-destY)
-			local diffX = abs(thisX-destX)
-			local total = diffX + diffY
+			destY = destination.Y
+			destX = destination.X
+			diffY = abs(thisY-destY)
+			diffX = abs(thisX-destX)
+			total = diffX + diffY
 			if total < nodeX + nodeY then
 				if 	key == KEY.UP then
 					if 	diffY > diffX and 	-- up/down

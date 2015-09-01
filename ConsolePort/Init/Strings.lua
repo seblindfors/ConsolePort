@@ -27,15 +27,27 @@ db.KEY = {
 }
 -- Tutorial tables
 db.TUTORIAL.BIND  = {
-	DEFAULT = "Click on a button to change its behaviour.",
-	COMBO 	= "Click on a combination of %s to change it.",
-	STATIC 	= "Select an action from the list to change %s",
-	DYNAMIC = "Select any interface button with the cursor to change %s\n%s Apply %s Cancel ",
-	APPLIED = "%s was applied to %s.",
-	INVALID = "Error: Invalid button. New binding was discarded.",
-	COMBAT 	= "Error: In combat! Exit combat to change your settings.",
-	IMPORT 	= "Settings imported from %s. Press Okay to apply.",
-	RESET 	= "Default settings loaded. Press Okay to apply.",
+	DEFAULT 	= "Click on a button to change its behaviour.",
+	COMBO 		= "Click on a combination of %s to change it.",
+	STATIC 		= "Select an action from the list to change %s",
+	DYNAMIC 	= "Select any interface button with the cursor to change %s\n%s Apply %s Cancel ",
+	APPLIED 	= "%s was applied to %s.",
+	INVALID 	= "Error: Invalid button. New binding was discarded.",
+	COMBAT 		= "Error: In combat! Exit combat to change your settings.",
+	IMPORT 		= "Settings imported from %s. Press Okay to apply.",
+	RESET 		= "Default settings loaded. Press Okay to apply.",
+}
+db.TUTORIAL.SETUP = {
+	HEADER 		= "Setup: Assign controller buttons",
+	HEADLINE 	= "Your controller bindings are incomplete.\nPress the requested button to map it.",
+	OVERRIDE 	= "%s is already bound to %s.\nPress |T%s:20:20:0:0|t again to continue anyway.",
+	INVALID 	= "Invalid binding.\nDid you press the correct button?",
+	COMBAT 		= "You are in combat!",
+	EMPTY 		= "<Empty>",
+	SUCCESS 	= "|T%s:16:16:0:0|t was successfully bound to %s.",
+	CONTINUE 	= "Press |T%s:20:20:0:0|t again to continue.",
+	CONFIRM 	= "Press |T%s:20:20:0:0|t again to confirm.",
+	CONTROLLER 	= "Select your preferred button layout by clicking a controller.",
 }
 -- Global binding headers
 BINDING_HEADER_CP_LEFT 		=	"Arrow pad"

@@ -1,7 +1,6 @@
 local addOn, db = ...
 local KEY = db.KEY
 local UIControls = db.UI.Controls
-local focusFrame = nil
 local hasUIFocus = false
 
 local addOns = {	
@@ -23,10 +22,10 @@ local addOns = {
 		"EncounterJournal" },
 	Blizzard_GarrisonUI			= {
 		"GarrisonBuildingFrame",
+		"GarrisonCapacitiveDisplayFrame",
 		"GarrisonLandingPage",
 		"GarrisonMissionFrame",
 		"GarrisonMonumentFrame",
-		"GarrisonCapacitiveDisplayFrame",
 		"GarrisonShipyardFrame" },
 	Blizzard_GuildUI			= {
 		"GuildFrame" },
@@ -92,8 +91,10 @@ local addOns = {
 		"PetBattleFrame",
 		"PetitionFrame",
 		"PVEFrame",
+		"PVPReadyDialog",
 		"QuestFrame",	
 		"QuestLogPopupDetailFrame",
+		"RecruitAFriendFrame",
 		"SpellBookFrame",
 		"SpellFlyout",	
 		"SplashFrame",	
@@ -163,9 +164,9 @@ function ConsolePort:UpdateFrames()
 	if not InCombatLockdown() then
 		local defaultActions = true
 		for i, UIControl in pairs(UIControls) do
-			if UIControl:IsVisible() then
+			if 	UIControl:IsVisible() and
+				UIControl:GetPoint() then
 				defaultActions = false
-				focusFrame = UIControl
 				if not hasUIFocus then
 					hasUIFocus = true
 					ConsolePortCursor:Show()
@@ -208,6 +209,7 @@ function ConsolePort:ADDON_LOADED(...)
 	end
 end
 
+
 function ConsolePort:GetFrameStack()
 	local stack = {}
 	if ConsolePortRebindFrame:IsVisible() then
@@ -225,7 +227,7 @@ function ConsolePort:GetFrameStack()
 		tinsert(stack, ConsolePortRebindFrame)
 	else
 		for _, UIControl in pairs(UIControls) do
-			if UIControl:IsVisible() then
+			if 	UIControl:IsVisible() then
 				tinsert(stack, UIControl)
 			end
 		end

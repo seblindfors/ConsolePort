@@ -63,6 +63,7 @@ end
 
 function ConsolePort:PLAYER_REGEN_ENABLED(...)
 	self:SetButtonActionsDefault()
+	self:UpdateFrames()
 	for i, UIControl in pairs(UIControls) do
 		if UIControl:IsVisible() then
 			UIFrameFadeIn(UIControl, 0.2, 0.75, 1)

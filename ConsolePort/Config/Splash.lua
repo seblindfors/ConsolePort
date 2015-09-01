@@ -1,178 +1,236 @@
-local _, db = ...;
-local KEY = db.KEY;
-local PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\";
+local _, db = ...
+local KEY = db.KEY
+local SETUP = db.TUTORIAL.SETUP
+local PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\"
 
 function ConsolePort:CheckUnassignedBindings()
-	local ButtonUnassigned = false;
-	local buttons = self:GetBindingNames();
-	local unassigned = {};
+	local ButtonUnassigned = false
+	local buttons = self:GetBindingNames()
+	local unassigned = {}
 	for i, button in pairs(buttons) do
-		local key1, key2 = GetBindingKey(button);
+		local key1, key2 = GetBindingKey(button)
 		if not key1 and not key2 then
-			ButtonUnassigned = true;
-			tinsert(unassigned, button);
+			ButtonUnassigned = true
+			tinsert(unassigned, button)
 		end
 	end
-	if not ButtonUnassigned then unassigned = nil; end;
-	return unassigned;
+	if not ButtonUnassigned then unassigned = nil end
+	return unassigned
 end
 
 function ConsolePort:CreateBindingWizard()
 	if not ConsolePortWizardFrame then
-		local A = "TOPLEFT";
-		local B = "TOPRIGHT";
-		local C = "TOP";
-		-- Strings
-		local STRING_HEADER = "Assign Buttons";
-		local STRING_HEADLINE = "Your controller bindings are incomplete.\nPress the requested button to map it.";
-		local STRING_OVERRIDE = "%s is already bound to %s.\nPress |T%s:20:20:0:0|t again to continue anyway."
-		local STRING_INVALID = "Invalid binding.\nDid you press the correct button?"
-		local STRING_COMBAT = "You are in combat!";
-		local STRING_EMPTY = "<Empty>";
-		local STRING_SUCCESS = "|T%s:16:16:0:0|t was successfully bound to %s.";
-		local STRING_CONTINUE = "Press |T%s:20:20:0:0|t again to continue.";
-		local STRING_CONFIRM = "Press |T%s:20:20:0:0|t again to confirm.";
-		-- Frames
-		local Wizard = CreateFrame("Frame", "ConsolePortWizardFrame", UIParent);
-		local WizardCloseButton = CreateFrame("Button", nil, Wizard, "UIPanelCloseButtonNoScripts");
-		-- Textures
-		local WizardBG 	= Wizard:CreateTexture(nil, "BACKGROUND");
-		local WizardBGOverlay = Wizard:CreateTexture(nil, "ARTWORK");
-		local WizardWrapper = Wizard:CreateTexture(nil, "OVERLAY");
-		local WizardButtonGraphic = Wizard:CreateTexture(nil, "ARTWORK");
-		-- Fontstrings
-		local WizardHeader = Wizard:CreateFontString(nil, "OVERLAY", "SplashHeaderFont");
-		local WizardStatusText = Wizard:CreateFontString(nil, "OVERLAY", "SystemFont_Shadow_Med2");
-		local WizardButtonPress = Wizard:CreateFontString(nil, "OVERLAY", "SplashHeaderFont");
-		local WizardDescription = Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2");
-		local WizardConfirmText = Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2");
-		-- Set up sizes and inputs
-		Wizard:SetFrameStrata("DIALOG");
-		Wizard:SetSize(512,512);
-		Wizard:EnableMouse(true);
-		Wizard:EnableKeyboard(true);
-	--	Wizard:RegisterForDrag("LeftButton");
-		WizardWrapper:SetSize(512, 128);
-		WizardButtonGraphic:SetSize(50, 50);
-		-- SetTextures
-		WizardBG:SetTexture(PATH.."WizardBG");
-		WizardWrapper:SetTexture(PATH.."ButtonWrapper");
-		WizardBGOverlay:SetTexture(PATH.."Splash"..ConsolePortSettings.type);
+		local Wizard = CreateFrame("Frame", "ConsolePortWizardFrame", UIParent)
+
+		Wizard:SetPoint("CENTER", 0,0)
+		Wizard:SetFrameStrata("DIALOG")
+		Wizard:SetSize(600,544)
+		Wizard:EnableMouse(true)
+		Wizard:EnableKeyboard(true)
+
+		Wizard.Close = CreateFrame("Button", nil, Wizard, "UIPanelCloseButtonNoScripts");
+		-- Regions
+		-- Corner
+		Wizard.BottomLeftCorner 	= Wizard:CreateTexture(nil, "BORDER")
+		Wizard.BottomRightCorner 	= Wizard:CreateTexture(nil, "BORDER")
+		Wizard.TopLeftCorner 		= Wizard:CreateTexture(nil, "BORDER")
+		Wizard.TopRightCorner 		= Wizard:CreateTexture(nil, "BORDER")
+		-- Border
+		Wizard.BottomBorder			= Wizard:CreateTexture(nil, "BORDER")	
+		Wizard.TopBorder			= Wizard:CreateTexture(nil, "BORDER")
+		Wizard.LeftBorder			= Wizard:CreateTexture(nil, "BORDER")
+		Wizard.RightBorder			= Wizard:CreateTexture(nil, "BORDER")
+		-- BG
+		Wizard.BG					= Wizard:CreateTexture(nil, "BACKGROUND")
+		Wizard.Overlay 				= Wizard:CreateTexture(nil, "ARTWORK")
+		Wizard.ButtonTex 			= Wizard:CreateTexture(nil, "ARTWORK")
+		Wizard.Wrapper 				= Wizard:CreateTexture(nil, "OVERLAY")
+		Wizard.TopRight				= Wizard:CreateTexture(nil, "OVERLAY")
+		Wizard.TopLeft				= Wizard:CreateTexture(nil, "OVERLAY")
+		Wizard.TopMiddle			= Wizard:CreateTexture(nil, "OVERLAY")
+		-- Text fields
+		Wizard.Header 				= Wizard:CreateFontString(nil, "OVERLAY", "GameFontHighlightMedium", 1)
+		Wizard.Status 				= Wizard:CreateFontString(nil, "OVERLAY", "SystemFont_Shadow_Med2")
+		Wizard.Binding 				= Wizard:CreateFontString(nil, "OVERLAY", "SplashHeaderFont")
+		Wizard.Description 			= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2")
+		Wizard.Confirm 				= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2")
+
+		-- Size
+		Wizard.BottomLeftCorner:SetSize(209,158)
+		Wizard.BottomRightCorner:SetSize(209,158)
+		Wizard.TopLeftCorner:SetSize(209,158)
+		Wizard.TopRightCorner:SetSize(208,158)
+
+		Wizard.BottomBorder:SetSize(256,86)
+		Wizard.TopBorder:SetSize(256,91)
+		Wizard.LeftBorder:SetSize(93,256)
+		Wizard.RightBorder:SetSize(94,256)	
+
+		Wizard.ButtonTex:SetSize(50, 50)
+		Wizard.Wrapper:SetSize(512, 128)
+		Wizard.TopRight:SetSize(220,85)
+		Wizard.TopLeft:SetSize(219,85)
+		Wizard.TopMiddle:SetSize(256,85)
+
+		-- Texture coords
+		Wizard.BottomLeftCorner:SetTexCoord(0.00195313, 0.41015625, 0.30468750, 0.61328125)
+		Wizard.BottomRightCorner:SetTexCoord(0.41406250, 0.82226563, 0.30468750, 0.61328125)
+		Wizard.TopLeftCorner:SetTexCoord(0.00195313, 0.41015625, 0.61718750, 0.92578125)
+		Wizard.TopRightCorner:SetTexCoord(0.41406250, 0.82031250, 0.61718750, 0.92578125)
+
+		Wizard.BottomBorder:SetTexCoord(0.00000000, 1.00000000, 0.17187500, 0.33984375)
+		Wizard.TopBorder:SetTexCoord(0.00000000, 1.00000000, 0.34375000, 0.52148438)
+		Wizard.LeftBorder:SetTexCoord(0.00390625, 0.36718750, 0.00000000, 1.00000000)
+		Wizard.RightBorder:SetTexCoord(0.37500000, 0.74218750, 0.00000000, 1.00000000)
+
+		Wizard.TopRight:SetTexCoord(0.00195313, 0.43164063, 0.13476563, 0.30078125)
+		Wizard.TopLeft:SetTexCoord(0.43554688, 0.86328125, 0.13476563, 0.30078125)
+		Wizard.TopMiddle:SetTexCoord(0.00000000, 1.00000000, 0.00195313, 0.16796875)
+
 		-- Points
-		Wizard:SetPoint("CENTER", 0,0);
-		WizardBG:SetAllPoints(Wizard);
-		WizardBGOverlay:SetAllPoints(Wizard);
-		WizardHeader:SetPoint(C, 0, -16);
-		WizardWrapper:SetPoint("CENTER", Wizard, 0, 0);
-		WizardButtonPress:SetPoint("CENTER", WizardWrapper, 10, 0);
-		WizardButtonGraphic:SetPoint("CENTER", WizardWrapper, -142, -4);
-		WizardStatusText:SetPoint(C, 0, -300);
-		WizardDescription:SetPoint(C, 0, -100);
-		WizardConfirmText:SetPoint(C, 0, -350);
-		WizardCloseButton:SetPoint(B, -10, -10);
+		Wizard.BottomLeftCorner:SetPoint("BOTTOMLEFT")
+		Wizard.BottomRightCorner:SetPoint("BOTTOMRIGHT")
+		Wizard.TopLeftCorner:SetPoint("TOPLEFT")
+		Wizard.TopRightCorner:SetPoint("TOPRIGHT")
+
+		Wizard.BottomBorder:SetPoint("BOTTOMLEFT", Wizard.BottomLeftCorner, "BOTTOMRIGHT", 0, 2)
+		Wizard.BottomBorder:SetPoint("BOTTOMRIGHT", Wizard.BottomRightCorner, "BOTTOMLEFT", 0, 2)
+		Wizard.TopBorder:SetPoint("TOPLEFT", Wizard.TopLeftCorner, "TOPRIGHT", 0, -1)
+		Wizard.TopBorder:SetPoint("TOPRIGHT", Wizard.TopRightCorner, "TOPLEFT", 0, -1)
+		Wizard.LeftBorder:SetPoint("TOPLEFT", Wizard.TopLeftCorner, "BOTTOMLEFT", 2, 0)
+		Wizard.LeftBorder:SetPoint("BOTTOMLEFT", Wizard.BottomLeftCorner, "TOPLEFT", 2, 0)
+		Wizard.RightBorder:SetPoint("TOPRIGHT", Wizard.TopRightCorner, "BOTTOMRIGHT", 0, 0)
+		Wizard.RightBorder:SetPoint("BOTTOMRIGHT", Wizard.BottomRightCorner, "TOPRIGHT", 0, 0)
+
+		Wizard.BG:SetPoint("TOPLEFT", 20, -20)
+		Wizard.BG:SetPoint("BOTTOMRIGHT", -20, 20)
+		Wizard.Overlay:SetPoint("TOPLEFT")
+		Wizard.Overlay:SetPoint("BOTTOMRIGHT")
+		Wizard.ButtonTex:SetPoint("CENTER", Wizard.Wrapper, -142, -4)
+		Wizard.Wrapper:SetPoint("CENTER", 0, -20)
+		Wizard.TopRight:SetPoint("TOPRIGHT", -42, -44)
+		Wizard.TopLeft:SetPoint("TOPLEFT", 42, -44)
+		Wizard.TopMiddle:SetPoint("TOPLEFT", Wizard.TopLeft, "TOPRIGHT")
+		Wizard.TopMiddle:SetPoint("TOPRIGHT", Wizard.TopRight, "TOPLEFT")
+
+		Wizard.Header:SetPoint("LEFT", Wizard.TopLeft, "LEFT")
+		Wizard.Header:SetPoint("RIGHT", Wizard.TopRight, "RIGHT")
+		Wizard.Binding:SetPoint("CENTER", Wizard.Wrapper, 10, 0)
+		Wizard.Status:SetPoint("TOP", 0, -350)
+		Wizard.Description:SetPoint("TOP", 0, -175)
+		Wizard.Confirm:SetPoint("TOP", 0, -400)
+		Wizard.Close:SetPoint("TOPRIGHT", -10, -10)
+
+		-- File
+		local prefix = "Interface\\QuestionFrame\\Question-"
+		Wizard.BottomLeftCorner:SetTexture(prefix.."Main")
+		Wizard.BottomRightCorner:SetTexture(prefix.."Main")
+		Wizard.TopLeftCorner:SetTexture(prefix.."Main")
+		Wizard.TopRightCorner:SetTexture(prefix.."Main")
+
+		Wizard.BottomBorder:SetTexture(prefix.."HTile")
+		Wizard.TopBorder:SetTexture(prefix.."HTile")
+		Wizard.LeftBorder:SetTexture(prefix.."VTile")
+		Wizard.RightBorder:SetTexture(prefix.."VTile")	
+
+		Wizard.BG:SetTexture(prefix.."Background")
+		Wizard.Overlay:SetTexture(PATH.."Splash"..ConsolePortSettings.type)
+		Wizard.Wrapper:SetTexture(PATH.."ButtonWrapper")
+		Wizard.TopRight:SetTexture(prefix.."Main")
+		Wizard.TopLeft:SetTexture(prefix.."Main")
+		Wizard.TopMiddle:SetTexture(prefix.."HTile")
+
 		-- Alpha
-		WizardBGOverlay:SetAlpha(0.075);
-		WizardStatusText:SetAlpha(0);
+		Wizard.Overlay:SetAlpha(0.075)
+		Wizard.Status:SetAlpha(0)
 		-- Text values
-		WizardHeader:SetText(STRING_HEADER);
-		WizardButtonPress:SetText(STRING_EMPTY)
-		WizardDescription:SetText(STRING_HEADLINE);
+		Wizard.Header:SetText(SETUP.HEADER);
+		Wizard.Binding:SetText(SETUP.EMPTY)
+		Wizard.Description:SetText(SETUP.HEADLINE);
 		-- Bind to frame
-		Wizard.BTN = nil;
-		Wizard.VAL = nil;
-		Wizard.SET = false;
-		Wizard.BG = WizardBG;
-		Wizard.Close = WizardCloseButton;
-		Wizard.Header = WizardHeader;
-		Wizard.Status = WizardStatusText;
-		Wizard.Overlay = WizardBGOverlay;
-		Wizard.Wrapper = WizardWrapper;
-		Wizard.Confirm = WizardConfirmText;
-		Wizard.Binding = WizardButtonPress;
-		Wizard.Graphic = WizardButtonGraphic;
-		Wizard.Description = WizardDescription;
+		Wizard.BTN = nil
+		Wizard.VAL = nil
+		Wizard.SET = false
 		-- Scripts
-		WizardCloseButton:SetScript("OnClick", function(...)
+		Wizard.Close:SetScript("OnClick", function(...)
 			Wizard:Hide();
 			PlaySound("SPELLBOOKCLOSE");
 		end);
 		Wizard:SetScript("OnKeyDown", function(self, key)
-			self.Wrapper:SetVertexColor(1, 1, 0.5);
+			self.Wrapper:SetVertexColor(1, 1, 0.5)
 		end);
 		Wizard:SetScript("OnKeyUp", function(self, key)
-			self.Wrapper:SetVertexColor(1, 1, 1);
-			self.Status:SetAlpha(0);
+			self.Wrapper:SetVertexColor(1, 1, 1)
+			self.Status:SetAlpha(0)
 			if self.VAL and self.VAL == key and self.SET then
 				if not InCombatLockdown() then
 					if not SetBinding(key, self.BTN) then
-						self.VAL = nil;
-						self.Confirm:SetText("");
-						self.Status:SetText(STRING_INVALID);
-						self.Status:SetAlpha(1);
+						self.VAL = nil
+						self.Confirm:SetText("")
+						self.Status:SetText(SETUP.INVALID)
+						self.Status:SetAlpha(1)
 					else
-						self.Status:SetText(format(STRING_SUCCESS, self.Graphic:GetTexture(), key));
-						UIFrameFadeIn(self.Status, 3, 1, 0);
-						SaveBindings(GetCurrentBindingSet());
-						self.Binding:SetText(STRING_EMPTY);
-						self.Confirm:SetText("");
-						self.VAL = nil;
-						return;
+						self.Status:SetText(format(SETUP.SUCCESS, self.ButtonTex:GetTexture(), key))
+						UIFrameFadeIn(self.Status, 3, 1, 0)
+						SaveBindings(GetCurrentBindingSet())
+						self.Binding:SetText(SETUP.EMPTY)
+						self.Confirm:SetText("")
+						self.VAL = nil
+						return
 					end
 				else
-					self.Status:SetText(STRING_COMBAT);
+					self.Status:SetText(SETUP.COMBAT)
 				end
 			elseif self.VAL and self.VAL == key then
-				self.SET = true;
+				self.SET = true
 				if self.BTN then
-					self.Confirm:SetText(format(STRING_CONFIRM, self.Graphic:GetTexture()));
+					self.Confirm:SetText(format(SETUP.CONFIRM, self.ButtonTex:GetTexture()))
 				end
 			else
 				if self.BTN and GetBindingAction(key) ~= "" then
-					self.Confirm:SetText(format(STRING_OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)], self.Graphic:GetTexture()));
+					self.Confirm:SetText(format(SETUP.OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)], self.ButtonTex:GetTexture()))
 				elseif self.BTN then
-					self.Confirm:SetText(format(STRING_CONTINUE, self.Graphic:GetTexture()));
+					self.Confirm:SetText(format(SETUP.CONTINUE, self.ButtonTex:GetTexture()))
 				end
-				self.SET = false;
+				self.SET = false
 			end
-			self.Binding:SetText(key);
-			self.VAL = key;
+			self.Binding:SetText(key)
+			self.VAL = key
 		end);
 		Wizard:SetScript("OnUpdate", function(self, elapsed)
 			if 	ConsolePortSplashFrame and
 				ConsolePortSplashFrame:IsVisible() then
-				self:Hide();
+				self:Hide()
 			else
-				local unassigned = ConsolePort:CheckUnassignedBindings();
+				local unassigned = ConsolePort:CheckUnassignedBindings()
 				if unassigned then
 					self.BTN = unassigned[1];
 					if self.BTN then
 						if self.BTN == "CP_TR1" then
-							self.Graphic:SetTexture(db.TEXTURE.RONE);
+							self.ButtonTex:SetTexture(db.TEXTURE.RONE)
 						elseif self.BTN == "CP_TR2" then
-							self.Graphic:SetTexture(db.TEXTURE.RTWO);
+							self.ButtonTex:SetTexture(db.TEXTURE.RTWO)
 						else
-							self.Graphic:SetTexture(db.TEXTURE[strupper(db.NAME[self.BTN])]);
+							self.ButtonTex:SetTexture(db.TEXTURE[strupper(db.NAME[self.BTN])])
 						end
 					end
 				else
-					self:SetScript("OnUpdate", nil);
-					ConsolePortWizardFrame.Close:Click();
+					self:Hide()
 				end
 			end
-		end);
+		end)
 	elseif self:CheckUnassignedBindings() then
-		ConsolePortWizardFrame:Show();
-		PlaySound("SPELLBOOKOPEN");
+		ConsolePortWizardFrame:Show()
+		PlaySound("SPELLBOOKOPEN")
 	end
 end
 
 
 function ConsolePort:CreateSplashFrame()
 	if not ConsolePortSplashFrame then
-		local A = "TOPLEFT";
-		local B = "TOPRIGHT";
-		local C = "TOP";
-		local STRING_TUTORIAL = "Select your preferred button layout by clicking a controller.";
+		local A = "TOPLEFT"
+		local B = "TOPRIGHT"
+		local C = "TOP"
 		local P = {
 			off 	= { X = 512, 	Y =  -512	},
 			gra		= { L = -200, 	R =  200	},
@@ -296,7 +354,7 @@ function ConsolePort:CreateSplashFrame()
 			HelpPlateTooltip.ArrowGlowRIGHT:Hide();
 			HelpPlateTooltip.ArrowUP:Show();
 			HelpPlateTooltip.ArrowGlowUP:Show();
-			HelpPlateTooltip.Text:SetText(STRING_TUTORIAL);
+			HelpPlateTooltip.Text:SetText(SETUP.CONTROLLER);
 			HelpPlateTooltip:SetPoint("LEFT", self, "LEFT", -75, 75);
 			HelpPlateTooltip:Show();
 		end);
