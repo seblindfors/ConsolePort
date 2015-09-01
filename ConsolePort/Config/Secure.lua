@@ -183,7 +183,6 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn.mod 	= modifier
 	btn.default = {}
 	btn.UIControl 	= UIControl
-	btn.Popup		= Popup
 	btn.Reset 		= ResetBinding
 	btn.Revert 		= RevertBinding
 	btn:Reset()

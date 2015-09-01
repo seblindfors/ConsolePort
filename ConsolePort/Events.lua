@@ -16,7 +16,7 @@ function ConsolePort:CheckMouselookEvent(event, ...)
 		GetMouseFocus() == WorldFrame and
 		not SpellIsTargeting() and
 		not IsMouseButtonDown(1) then
-		MouselookStart()
+		self:StartMouse()
 	end
 end
 
@@ -43,10 +43,10 @@ end
 
 function ConsolePort:CURRENT_SPELL_CAST_CHANGED(...)
 	if SpellIsTargeting() then
-		MouselookStop()
+		self:StopMouse()
 	elseif 	GetMouseFocus() == WorldFrame and
 		IsMouselookEvent(event) then
-		MouselookStart()
+		self:StartMouse()
 	end
 end
 
@@ -64,20 +64,20 @@ end
 function ConsolePort:PLAYER_REGEN_ENABLED(...)
 	self:SetButtonActionsDefault()
 	for i, UIControl in pairs(UIControls) do
-		if UIControl.frame:IsVisible() then
-			UIFrameFadeIn(UIControl.frame, 0.2, 0.75, 1)
+		if UIControl:IsVisible() then
+			UIFrameFadeIn(UIControl, 0.2, 0.75, 1)
 		else
-			UIControl.frame:SetAlpha(1)
+			UIControl:SetAlpha(1)
 		end
 	end
 end
 
 function ConsolePort:PLAYER_REGEN_DISABLED(...)
 	for i, UIControl in pairs(UIControls) do
-		if UIControl.frame:IsVisible() then
-			UIFrameFadeOut(UIControl.frame, 0.2, 1, 0.75)
+		if UIControl:IsVisible() then
+			UIFrameFadeOut(UIControl, 0.2, 1, 0.75)
 		else
-			UIControl.frame:SetAlpha(0.75)
+			UIControl:SetAlpha(0.75)
 		end
 	end
 end

@@ -1,6 +1,5 @@
 local _, db = ...
 local KEY = db.KEY
-local GINFO = db.GUIDE
 local BIND_TARGET 	 	= false
 local CONF_BUTTON 		= nil
 local CP 				= "CP"
@@ -27,70 +26,6 @@ db.pairsByKeys = function (t,f)
 		end
 	end
 	return iter
-end
-
-function ConsolePort:GetIndicatorButtons(button)
-	-- Circle
-	if button == BINDING_NAME_CP_R_RIGHT then return {
-		{frame = StaticPopup1Button2, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup2Button2, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup3Button2, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup4Button2, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup1Button3, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup2Button3, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup3Button3, 		size = "SMALL", anchor = "RIGHT"},
-		{frame = StaticPopup4Button3, 		size = "SMALL", anchor = "RIGHT"},
-	}
-	-- Square
-	elseif button == BINDING_NAME_CP_R_LEFT then return { 
-		{frame = StaticPopup1Button1, 		size = "SMALL", anchor = "LEFT"},
-		{frame = StaticPopup2Button1, 		size = "SMALL", anchor = "LEFT"},
-		{frame = StaticPopup3Button1, 		size = "SMALL", anchor = "LEFT"},
-		{frame = StaticPopup4Button1, 		size = "SMALL", anchor = "LEFT"},
-	}
-	else
-		return {}
-	end
-end
-
-function ConsolePort:CreateIndicator(parent, size, anchor, button)
-	local f = CreateFrame("BUTTON", nil, parent)
-	local t = f:CreateTexture(nil, "BACKGROUND")
-	local o = f:CreateTexture(nil, "OVERLAY")
-	button = strupper(button)
-	f.texture = t
-	f.overlay = o
-	o:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder.blp")
-	o:SetPoint("TOPLEFT", f, GINFO["BORDER_X_"..size], GINFO["BORDER_Y_"..size])
-	o:SetWidth(GINFO["BORDER_S_"..size])
-	o:SetHeight(GINFO["BORDER_S_"..size])
-	t:SetTexture(db.TEXTURE[button])
-	t:SetAllPoints(f)
-	f:SetPoint(anchor, parent, GINFO["BUTTON_"..anchor.."_"..size.."_X"], GINFO["BUTTON_"..anchor.."_"..size.."_Y"])
-	f:SetWidth(GINFO["BUTTON_S_"..size])
-	f:SetHeight(GINFO["BUTTON_S_"..size])
-	f:SetAlpha(1)
-	f:SetScript("OnShow", function(self)
-		UIFrameFadeIn(self, 0.3, 0, 1)
-	end)
-	f:Show()
-	return f
-end
-
--- ConsolePort:CreateIndicator(parent, size, anchor, button)
-function ConsolePort:GetIndicatorSet()
-	local t = {
-		BINDING_NAME_CP_R_UP,
-		BINDING_NAME_CP_R_RIGHT,
-		BINDING_NAME_CP_R_LEFT,
-		"Up","Down","Left","Right",
-	}
-	for i, button in pairs(t) do
-		local indicators = ConsolePort:GetIndicatorButtons(button)
-		for k, indicator in pairs(indicators) do
-			tinsert(db.ButtonGuides, ConsolePort:CreateIndicator(indicator.frame, indicator.size, indicator.anchor, button))
-		end
-	end
 end
 
 function ConsolePort:GetBindingNames()
@@ -358,15 +293,14 @@ end
 
 
 function ConsolePort:CreateMouseLooker()
-	local f = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)
-	local t = f:CreateTexture(nil, "BACKGROUND")
-	f.hoverButton = t
-	f:SetPoint("CENTER", p, 0, -50)
-	f:SetWidth(70)
-	f:SetHeight(180)
-	f:SetAlpha(0)
-	f:Show()
-	return f
+	local MouseLook = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)
+	MouseLook.hoverButton = MouseLook:CreateTexture(nil, "BACKGROUND")
+	MouseLook:SetPoint("CENTER", p, 0, -50)
+	MouseLook:SetWidth(70)
+	MouseLook:SetHeight(180)
+	MouseLook:SetAlpha(0)
+	MouseLook:Show()
+	return MouseLook
 end
 
 function ConsolePort:CreateBindingButtons()

@@ -1,6 +1,6 @@
 local _, db = ...;
 local type = "PS4";
-local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s";
+local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s"
 local function AddTexture(BINDING, type)
 	db.TEXTURE[strupper(BINDING)] = format(TEXTURE_PATH, type, BINDING)
 end
@@ -12,33 +12,6 @@ db.TUTORIAL = {}
 db.SECURE 	= {}
 db.UI 		= {}
 db.UI.Controls = {}
--- Guide button measurements
-db.GUIDE = {
-	BORDER_S_SMALL 			= 56,
-	BORDER_X_SMALL 			= -4.75,
-	BORDER_Y_SMALL 			= 3.6,
-	BUTTON_S_SMALL 			= 24,
-	BUTTON_LEFT_SMALL_X 	= -16,
-	BUTTON_LEFT_SMALL_Y 	= 0,
-	BUTTON_RIGHT_SMALL_X 	= 16,
-	BUTTON_RIGHT_SMALL_Y 	= 0,
-	BUTTON_CENTER_SMALL_X 	= 0,
-	BUTTON_CENTER_SMALL_Y 	= 0,
-	BUTTON_BOTTOM_SMALL_X 	= 0,
-	BUTTON_BOTTOM_SMALL_Y 	= -20,
-	BORDER_S_LARGE 			= 70,
-	BORDER_X_LARGE 			= -5,
-	BORDER_Y_LARGE 			= 3.2,
-	BUTTON_S_LARGE 			= 32,
-	BUTTON_LEFT_LARGE_X 	= -26,
-	BUTTON_LEFT_LARGE_Y 	= 0,
-	BUTTON_RIGHT_LARGE_X 	= 26,
-	BUTTON_RIGHT_LARGE_Y 	= 0,
-	BUTTON_CENTER_LARGE_X 	= 0,
-	BUTTON_CENTER_LARGE_Y 	= 0,
-	BUTTON_BOTTOM_SMALL_X 	= 0,
-	BUTTON_BOTTOM_SMALL_Y 	= -28
-}
 -- Interaction keys
 db.KEY = {
 	CIRCLE  				= 1;
@@ -62,20 +35,21 @@ db.TUTORIAL.BIND  = {
 	INVALID = "Error: Invalid button. New binding was discarded.",
 	COMBAT 	= "Error: In combat! Exit combat to change your settings.",
 	IMPORT 	= "Settings imported from %s. Press Okay to apply.",
+	RESET 	= "Default settings loaded. Press Okay to apply.",
 }
 -- Global binding headers
-BINDING_HEADER_CP_LEFT 		=	"Arrow pad";
-BINDING_HEADER_CP_RIGHT 	=	"Buttons";
-BINDING_HEADER_CP_CENTER 	=	"Center buttons";
-BINDING_HEADER_CP_TRIG 		=	"Triggers";
+BINDING_HEADER_CP_LEFT 		=	"Arrow pad"
+BINDING_HEADER_CP_RIGHT 	=	"Buttons"
+BINDING_HEADER_CP_CENTER 	=	"Center buttons"
+BINDING_HEADER_CP_TRIG 		=	"Triggers"
 -- Global binding strings
-BINDING_NAME_CP_L_UP		=	"Up";		
-BINDING_NAME_CP_L_DOWN		=	"Down";
-BINDING_NAME_CP_L_LEFT		=	"Left";
+BINDING_NAME_CP_L_UP		=	"Up"
+BINDING_NAME_CP_L_DOWN		=	"Down"
+BINDING_NAME_CP_L_LEFT		=	"Left"
 BINDING_NAME_CP_L_RIGHT		=	"Right";
-BINDING_NAME_CP_TR1			=	"Trigger 1";
-BINDING_NAME_CP_TR2			=	"Trigger 2";
-setglobal("BINDING_NAME_CLICK ConsolePortExtraButton:LeftButton", "ConsolePort Extra"); 
+BINDING_NAME_CP_TR1			=	"Trigger 1"
+BINDING_NAME_CP_TR2			=	"Trigger 2"
+setglobal("BINDING_NAME_CLICK ConsolePortExtraButton:LeftButton", "ConsolePort Extra") 
 
 local SPLASH 		= "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\%s"
 db.SPLASH_LEFT 		= format(SPLASH, "SplashLeft")

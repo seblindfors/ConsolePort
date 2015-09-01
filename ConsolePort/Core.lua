@@ -17,48 +17,22 @@ local function MouseLookShouldStart()
 	end
 end
 
-function ConsolePort:GetFrameStack()
-	local stack = {}
-	if ConsolePortRebindFrame:IsVisible() then
-		if ConsolePortRebindFrame.isRebinding then
-			for _, Frame in pairs({UIParent:GetChildren()}) do
-				if not Frame:IsForbidden() and
-					Frame:IsVisible() and
-					Frame ~= InterfaceOptionsFrame then
-					tinsert(stack, Frame)
-				end
-			end
-		end
-		tinsert(stack, DropDownList1)
-		tinsert(stack, DropDownList2)
-		tinsert(stack, ConsolePortRebindFrame)
-	else
-		for _, UIControl in pairs(UIControls) do
-			if UIControl.frame:IsVisible() then
-				tinsert(stack, UIControl.frame)
-			end
-		end
-	end
-	return stack
-end
-
 local interval = 0.1
 local time = 0
 local MouseIsCentered = false
+local CursorInfo = false
+local UpdateQueued = false
 local function OnUpdate (self, elapsed)
 	time = time + elapsed
 	while time > interval do
-		if GetCursorInfo() then
-			MouselookStop()
+		if 	not CursorInfo and GetCursorInfo() then
+			self:StopMouse()
 		elseif not MouseIsCentered and
 			MouseLookShouldStart() then
-			MouselookStart()
+			self:StartMouse()
 			MouseIsCentered = true;
 		elseif not MouseIsOver(m) and MouseIsCentered then
 			MouseIsCentered = false
-		end
-		if not InCombatLockdown() then
-			self:UpdateFrames()
 		end
 		time = time - interval
 	end
@@ -66,13 +40,23 @@ end
 
 local function OnEvent (self, event, ...)
 	if 	self[event] then
-		self[event](self, ...);
+		self[event](self, ...)
 		return
 	end
 	self:CheckMouselookEvent(event)
 	if not InCombatLockdown() then
 		ClearOverrideBindings(self)
 	end
+end
+
+function ConsolePort:StopMouse()
+	CursorInfo = true
+	MouselookStop()
+end
+
+function ConsolePort:StartMouse()
+	CursorInfo = nil
+	MouselookStart()
 end
 
 function ConsolePort:GetInterfaceButtons()
@@ -93,12 +77,12 @@ function ConsolePort:SetButtonActionsDefault()
 	end
 end
 
-function ConsolePort:SetButtonActions(type)
+function ConsolePort:SetButtonActionsUI()
 	local buttons = self:GetInterfaceButtons()
 	buttons[5] = nil -- ignore square
 	buttons[6] = nil -- ignore circle
 	for i, button in pairs(buttons) do
-		button:SetAttribute("type", type)
+		button:SetAttribute("type", "UIControl")
 	end
 end
 

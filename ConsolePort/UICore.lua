@@ -2,8 +2,7 @@ local addOn, db = ...
 local KEY = db.KEY
 local UIControls = db.UI.Controls
 local focusFrame = nil
-local defaultActions = true
-local focusAttr = nil
+local hasUIFocus = false
 
 local addOns = {	
 	Blizzard_AchievementUI 		= {
@@ -51,7 +50,12 @@ local addOns = {
 		"VoidStorageFrame" },
 -- Core
 	ConsolePort					= {
+		"StaticPopup1",
+		"StaticPopup2",
+		"StaticPopup3",
+		"StaticPopup4",
 		"AddonList",
+		"BagHelpBox",
 		"BankFrame",
 		"BasicScriptErrors",
 		"CharacterFrame",
@@ -80,6 +84,7 @@ local addOns = {
 		"InterfaceOptionsFrame",
 		"ItemRefTooltip",
 		"ItemTextFrame",
+		"LFGDungeonReadyDialog",
 		"LootFrame",	
 		"MailFrame",	
 		"MerchantFrame",
@@ -93,7 +98,8 @@ local addOns = {
 		"SpellFlyout",	
 		"SplashFrame",	
 		"StackSplitFrame",
-		"TaxiFrame",	
+		"TaxiFrame",
+		"TutorialFrame",
 		"VideoOptionsFrame",	
 		"WorldMapFrame",
 		"GroupLootFrame1",
@@ -132,116 +138,51 @@ for i, node in pairs(ignoreNode) do
 	node.ignoreNode = true
 end
 
-local function AddFrame(controlFrame, prepFunction, attribute, priority)
-	local UIControl = { 
-		frame = controlFrame,
-		func = prepFunction,
-		attr = attribute,
-		isPrepared = false,
-		isFaded = false
-	}
-	UIControl.frame:HookScript("OnShow", function(self)
-		focusFrame = UIControl
-		if InCombatLockdown() then
-			UIFrameFadeIn(UIControl.frame, 0.2, 0, 0.5)
-		else
-			UIFrameFadeIn(UIControl.frame, 0.2, 0, 1)
-		end
-	end)
-	UIControl.frame:HookScript("OnHide", function(self)
-		UIControl.isPrepared = false
-		GameTooltip:Hide()
-	end)
+local function FrameShow(self)
+	ConsolePort:UpdateFrames()
+	if InCombatLockdown() then
+		self:SetAlpha(0.75)
+	else
+		self:SetAlpha(1)
+	end
+end
+
+local function FrameHide(self)
+	hasUIFocus = nil
+	ConsolePort:UpdateFrames()
+end
+
+local function AddUIControlFrame(self, UIControl, priority)
+	UIControl:HookScript("OnShow", FrameShow)
+	UIControl:HookScript("OnHide", FrameHide)
 	if priority then tinsert(UIControls, priority, UIControl)
 	else tinsert(UIControls, UIControl) end
-	-- ConsolePortUIHandler:SetFrameRef("NewFrame", controlFrame)
-	-- ConsolePortUIHandler:Execute([[
-	-- 	local frame = self:GetFrameRef("NewFrame")
-	-- 	FrameStack[frame] = true
-	-- ]])
-end
-
-local function AddUIControlFrame(self, controlFrame)
-	AddFrame(controlFrame, self.UIControl, "UIControl", nil)
-end
-
-local function AddPopupFrames(self)
-	local specialFrames = {
-		{ StaticPopup1,				self.Popup,		"Popup"	},
-		{ StaticPopup2,				self.Popup,		"Popup"	},
-		{ StaticPopup3,				self.Popup,		"Popup"	},
-		{ StaticPopup4,				self.Popup,		"Popup"	},
-	}
-	for i, frame in pairs(specialFrames) do
-		AddFrame(frame[1], frame[2], frame[3], i)
-	end
 end
 
 function ConsolePort:UpdateFrames()
-	local framesOpen = 0
-	local priorityFrame = nil
-	for i, UIControl in pairs(UIControls) do
-		if UIControl.frame:IsVisible() then
-			framesOpen = framesOpen + 1
-			priorityFrame = UIControl
-		end
-	end
-	if 	focusFrame and not
-		focusFrame.frame:IsVisible() then
-		focusFrame = nil
-		focusAttr = nil
-	end
-	if 	framesOpen == 0 then
-		focusFrame = nil
-		focusAttr = nil
-		if not defaultActions then
-			self:SetButtonActionsDefault()
-			defaultActions = true
-		end
-	elseif 	framesOpen >= 1 and not focusFrame then
-		focusFrame = priorityFrame
+	if not InCombatLockdown() then
+		local defaultActions = true
 		for i, UIControl in pairs(UIControls) do
-			if 	UIControl.frame:IsVisible() and
-				UIControl.isFaded and
-				UIControl.attr == focusFrame.attr then
-				UIControl.frame:SetAlpha(1)
-				UIControl.isFaded = false
-			end
-		end
-	end
-	if 	focusFrame then
-		if 	not focusFrame.isPrepared then
-			for i, UIControl in pairs(UIControls) do
-				if UIControl.frame:IsVisible() then
-					if 	UIControl.attr ~= focusFrame.attr and
-						not UIControl.isFaded then
-						UIControl.frame:SetAlpha(0.75)
-						UIControl.isFaded = true
-					elseif UIControl.isFaded then
-						UIControl.frame:SetAlpha(1)
-						UIControl.isFaded = false
-					end
+			if UIControl:IsVisible() then
+				defaultActions = false
+				focusFrame = UIControl
+				if not hasUIFocus then
+					hasUIFocus = true
+					ConsolePortCursor:Show()
+					self:SetButtonActionsUI()
+					self:UIControl(KEY.PREPARE, KEY.STATE_UP)
 				end
+				break
 			end
-			focusFrame.func(self, KEY.PREPARE, KEY.STATE_UP)
-			focusFrame.isPrepared = true
 		end
-		if focusAttr ~= focusFrame.attr then
-			self:SetButtonActions(focusFrame.attr)
-			focusAttr = focusFrame.attr
-		end
-		if 	defaultActions then
-			defaultActions = false
+		if defaultActions then
+			self:SetButtonActionsDefault()
 		end
 	end
 end
 
-function ConsolePort:GetFocusFrame()
-	return focusFrame
-end
-
-function ConsolePort:GetFocusAttribute()
-	return focusAttr
+function ConsolePort:HasUIFocus()
+	return hasUIFocus
 end
 
 function ConsolePort:ADDON_LOADED(...)
@@ -255,12 +196,10 @@ function ConsolePort:ADDON_LOADED(...)
 		self:UpdateExtraButton()
 		self:LoadHookScripts()
 		self:LoadBindingSet()
-		self:GetIndicatorSet()
 		self:CreateConfigPanel()
 		self:CreateBindingButtons()
 		self:ReloadBindingActions()
-	--	self:CreateUIHandler()
-		AddPopupFrames(self)
+--		self:CreateUIHandler()
 	end
 	if addOns[name] then
 		for i, frame in pairs(addOns[name]) do
@@ -269,27 +208,30 @@ function ConsolePort:ADDON_LOADED(...)
 	end
 end
 
--- local hasPriority = {
--- 	ContainerFrame1Item16,
--- 	GossipTitleButton1,
--- 	HonorFrameSoloQueueButton,
--- 	LFDQueueFrameFindGroupButton,
--- 	MerchantItem1ItemButton,
--- 	MerchantRepairAllButton,
--- 	PaperDollSidebarTab3,
--- 	QuestFrameAcceptButton,
--- 	QuestFrameCompleteButton,
--- 	QuestFrameCompleteQuestButton,
--- 	QuestTitleButton1,
--- 	QuestMapFrame.DetailsFrame.BackButton,
--- 	QuestScrollFrame.ViewAll,
--- }
-
--- local ignoreNode = {
--- 	LootFrameCloseButton,
--- 	WorldMapTitleButton,
--- 	WorldMapButton,
--- }
+function ConsolePort:GetFrameStack()
+	local stack = {}
+	if ConsolePortRebindFrame:IsVisible() then
+		if ConsolePortRebindFrame.isRebinding then
+			for _, Frame in pairs({UIParent:GetChildren()}) do
+				if not Frame:IsForbidden() and
+					Frame:IsVisible() and
+					Frame ~= InterfaceOptionsFrame then
+					tinsert(stack, Frame)
+				end
+			end
+		end
+		tinsert(stack, DropDownList1)
+		tinsert(stack, DropDownList2)
+		tinsert(stack, ConsolePortRebindFrame)
+	else
+		for _, UIControl in pairs(UIControls) do
+			if UIControl:IsVisible() then
+				tinsert(stack, UIControl)
+			end
+		end
+	end
+	return stack
+end
 
 -- function ConsolePort:CreateUIHandler()
 -- 	if not ConsolePortUIHandler then
@@ -433,7 +375,7 @@ end
 -- 				end
 -- 				Nodes = newtable()
 -- 				for Frame in pairs(FrameStack) do
--- 					if Frame:IsVisible() then
+-- 					if Frame:IsVisible() and not Frame:IsProtected() then
 -- 						CurrentNode = Frame
 -- 						self:Run(GetNodes)
 -- 					end

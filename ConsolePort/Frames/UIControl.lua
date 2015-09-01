@@ -47,10 +47,9 @@ local function SetCursorTexture(self, texture)
 end
 
 local function SetCursorPosition(self, anchor, object)
-	local x, y = anchor:GetCenter()
 	self:SetCursorTexture()
 	self:ClearAllPoints()
-	self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x-4, y+4)
+	self:SetPoint("TOPLEFT", anchor, "CENTER", -4, 4)
 	self:Show()
 end
 
@@ -245,8 +244,9 @@ local function EnterNode(self, node, object)
 		self:SetClickButton(CP_R_RIGHT_NOMOD, rebindNode or node)
 		self:SetClickButton(CP_R_LEFT_NOMOD, rebindNode or node)
 		OverrideBindingClick(Cursor, "CP_R_RIGHT", name or "CP_R_RIGHT_NOMOD", "LeftButton")
-		OverrideBindingClick(Cursor, "CP_R_LEFT", name or "CP_R_LEFT_NOMOD", "RightButton") 
-		local enter = node:GetScript("OnEnter")
+		OverrideBindingClick(Cursor, "CP_R_LEFT", name or "CP_R_LEFT_NOMOD", "RightButton")
+		-- Check for HotKey to avoid taint on action buttons in rebind mode
+		local enter = not node.HotKey and node:GetScript("OnEnter")
 		node:LockHighlight()
 		if enter then
 			enter(node)
@@ -305,7 +305,7 @@ local function UpdateCursor(self, elapsed)
 			self:Hide()
 			current = nil
 			if 	not InCombatLockdown() and
-				ConsolePort:GetFocusAttribute() == "UIControl" then
+				ConsolePort:HasUIFocus()  then
 				ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
 			end
 		end

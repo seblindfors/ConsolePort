@@ -138,7 +138,7 @@ function ConsolePort:LoadHookScripts()
 	-- Disable keyboard input (will obstruct controller input)
 	StackSplitFrame:EnableKeyboard(false);
 	-- Get rid of mouselook when trying to interact with mouse
-	hooksecurefunc("InteractUnit", MouselookStop)
+	hooksecurefunc("InteractUnit", self.StopMouse)
 	-- Add inputs to cinematic frame, behaves oddly after first dialog closing
 	CinematicFrame:HookScript("OnKeyDown", function(self, key)
 		CinematicControllerInput(key, KEY.STATE_DOWN);

@@ -308,6 +308,8 @@ function ConsolePort:CreateSplashFrame()
 		SplashPlaystationHighlight:SetAlpha(0);
 		SplashXboxHighlight:SetAlpha(0);
 		Splash:SetPoint("CENTER", 0,0);
+		Splash.HelpButton.hasPriority = true
+		self:AddFrame(Splash)
 	end
 	ConsolePortSplashFrame:Show();
 	PlaySound("SPELLBOOKOPEN");

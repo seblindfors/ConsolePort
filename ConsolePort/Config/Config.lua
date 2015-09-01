@@ -365,7 +365,7 @@ function ConsolePort:CreateConfigButton(name, mod, modNum)
 				end
 				ConsolePort:SetRebinding(false)
 				ConsolePort:SetCurrentNode(self)
-				ConsolePort:SetButtonActions("UIControl")
+				ConsolePort:SetButtonActionsUI()
 				ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
 			end
 		end
@@ -543,7 +543,7 @@ local function ImportOnClick(self)
 			NewBindingSet = Copy(settings.BindingSet)
 			NewBindingButtons = Copy(settings.BindingBtn)
 			ReloadBindings()
-			ConsolePort:SetButtonActions("UIControl")
+			ConsolePort:SetButtonActionsUI()
 			for i, Buttons in pairs(db.Binds.Buttons) do
 				for i, Button in pairs(Buttons) do
 					Button:OnShow()
@@ -560,6 +560,32 @@ local function RemoveOnClick(self)
 	BindingsOnShow(self:GetParent())
 end
 
+
+local function ResetOnClick(self)
+	db.Binds.Tutorial:SetText(TUTORIAL.RESET)
+	NewBindingSet = ConsolePort:GetDefaultBindingSet()
+	NewBindingButtons = ConsolePort:GetDefaultBindingButtons()
+end
+
+local function ResetControllerOnClick(self)
+	InterfaceOptionsFrame:Hide()
+	ConsolePort:CreateSplashFrame()
+	ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
+end
+
+local function ResetBindingsOnClick(self)
+	if not InCombatLockdown() then
+		InterfaceOptionsFrame:Hide()
+		local bindings = ConsolePort:GetBindingNames()
+		for i, binding in pairs(bindings) do
+			local key1, key2 = GetBindingKey(binding)
+			if key1 then SetBinding(key1) end
+			if key2 then SetBinding(key2) end
+		end
+		SaveBindings(GetCurrentBindingSet())
+		ConsolePort:CreateBindingWizard()
+	end
+end
 
 --[[
 |---------------------------------------|
@@ -659,6 +685,22 @@ function ConsolePort:CreateConfigPanel()
 
 		Config.name = addOn
 		Config.okay = SaveMainConfig
+
+		Config.Header = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+		Config.Header:SetText("ConsolePort")
+		Config.Header:SetPoint("TOPLEFT", Config, 16, -16)
+
+		Config.ResetController = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
+		Config.ResetController:SetWidth(150)
+		Config.ResetController:SetText("Change controller")
+		Config.ResetController:SetPoint("TOPLEFT", 16, -44)
+		Config.ResetController:SetScript("OnClick", ResetControllerOnClick)
+
+		Config.ResetBindings = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
+		Config.ResetBindings:SetWidth(150)
+		Config.ResetBindings:SetText("Reset bindings")
+		Config.ResetBindings:SetPoint("TOP", Config.ResetController, "BOTTOM", 0, -2)
+		Config.ResetBindings:SetScript("OnClick", ResetBindingsOnClick)
 	
 		Binds.name = "Bindings"
 		Binds.parent = addOn
@@ -718,6 +760,12 @@ function ConsolePort:CreateConfigPanel()
 		Binds.remove:SetWidth(82)
 		Binds.remove:SetText("Remove")
 		Binds.remove:SetScript("OnClick", RemoveOnClick)
+
+		Binds.reset = CreateFrame("BUTTON", addOn.."BindingReset", Binds, "UIPanelButtonTemplate")
+		Binds.reset:SetPoint("BOTTOMLEFT", Binds, "BOTTOMLEFT", 16, 16)
+		Binds.reset:SetWidth(82)
+		Binds.reset:SetText("Reset")
+		Binds.reset:SetScript("OnClick", ResetOnClick)
 
 		Binds.Buttons = {}
 		for buttonName, position in pairs(db.BINDINGS) do
