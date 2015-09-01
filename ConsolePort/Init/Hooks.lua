@@ -46,9 +46,9 @@ local function ExportCharacterSettings()
 			ConsolePortCharacterSettings[index] = {}
 		end
 		ConsolePortCharacterSettings[index] = {
-			BindingSet = ConsolePortBindingSet
+			BindingSet = ConsolePortBindingSet,
 			BindingBtn = ConsolePortBindingButtons,
-			MouseEvent = ConsolePortMouseSettings
+			MouseEvent = ConsolePortMouseSettings,
 		}
 	elseif ConsolePortCharacterSettings then
 		ConsolePortCharacterSettings[index] = nil
