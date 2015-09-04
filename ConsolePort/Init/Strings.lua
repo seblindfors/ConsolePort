@@ -1,10 +1,11 @@
 local _, db = ...;
 local type = "PS4";
 local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s"
+--local UIScale = UIParent:GetEffectiveScale()
 local function AddTexture(BINDING, type)
 	db.TEXTURE[strupper(BINDING)] = format(TEXTURE_PATH, type, BINDING)
 end
--- Init tables
+-- Tables
 db.TEXTURE 	= {}
 db.COLOR 	= {}
 db.CLICK 	= {}

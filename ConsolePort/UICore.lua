@@ -84,6 +84,7 @@ local addOns = {
 		"ItemRefTooltip",
 		"ItemTextFrame",
 		"LFGDungeonReadyDialog",
+		"LFDRoleCheckPopup",
 		"LootFrame",	
 		"MailFrame",	
 		"MerchantFrame",
@@ -106,7 +107,10 @@ local addOns = {
 		"GroupLootFrame1",
 		"GroupLootFrame2",
 		"GroupLootFrame3",
-		"GroupLootFrame4" }
+		"GroupLootFrame4" },
+	Storyline = {
+		"Storyline_NPCFrame"
+	}
 }
 
 local hasPriority = {
@@ -227,7 +231,8 @@ function ConsolePort:GetFrameStack()
 		tinsert(stack, ConsolePortRebindFrame)
 	else
 		for _, UIControl in pairs(UIControls) do
-			if 	UIControl:IsVisible() then
+			if 	UIControl:IsVisible() and 
+				UIControl:GetPoint() then
 				tinsert(stack, UIControl)
 			end
 		end

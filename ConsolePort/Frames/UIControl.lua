@@ -1,4 +1,5 @@
 local addOn, db = ...
+local UI 		= db.UI
 local KEY 		= db.KEY
 local TEXTURE 	= db.TEXTURE
 local nodes, current, old, rebindNode = {}, nil, nil, nil
@@ -135,6 +136,14 @@ local function HasInteraction(node, object)
 	end
 end
 
+local function IsNodeDrawn(node)
+	local x, y = node:GetCenter()
+	if 	x and x <= UIParent:GetWidth() and x >= 0 and
+		y and y <= UIParent:GetHeight() and y >= 0 then
+		return true
+	end
+end
+
 local function GetNodes(parent)
 	if parent.ignoreNode then
 		return
@@ -146,14 +155,12 @@ local function GetNodes(parent)
 			GetNodes(child)
 		end
 	end
-	if 	HasInteraction(parent, object) then
+	if 	HasInteraction(parent, object) and IsNodeDrawn(parent) then
 		local x, y = parent:GetCenter()
-		if x and y then
-			if parent.hasPriority then
-				tinsert(nodes, 1, {node = parent, object = object, X = x, Y = y})
-			else
-				tinsert(nodes, {node = parent, object = object, X = x, Y = y})
-			end
+		if parent.hasPriority then
+			tinsert(nodes, 1, {node = parent, object = object, X = x, Y = y})
+		else
+			tinsert(nodes, {node = parent, object = object, X = x, Y = y})
 		end
 	end
 end
@@ -174,7 +181,7 @@ local function ClearNodes()
 end
 
 local function SetCurrent()
-	if old and old.node:IsVisible() then
+	if old and old.node:IsVisible() and IsNodeDrawn(old.node) then
 		current = old
 	elseif (not current and nodes[1]) or (current and nodes[1] and not current.node:IsVisible()) then
 		current = nodes[1]
@@ -194,7 +201,7 @@ end
 
 local function FindClosestNode(key)
 	if current then
-		local destY, destX, diffY, diffX, total
+		local destY, destX, diffY, diffX
 		local thisY = current.Y
 		local thisX = current.X
 		local nodeY = 10000
@@ -205,8 +212,7 @@ local function FindClosestNode(key)
 			destX = destination.X
 			diffY = abs(thisY-destY)
 			diffX = abs(thisX-destX)
-			total = diffX + diffY
-			if total < nodeX + nodeY then
+			if diffX + diffY < nodeX + nodeY then
 				if 	key == KEY.UP then
 					if 	diffY > diffX and 	-- up/down
 						destY > thisY then 	-- up
@@ -302,8 +308,9 @@ end
 local function UpdateCursor(self, elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
-		if not current or (current and not current.node:IsVisible()) then
+		if not current or (current and not current.node:IsVisible()) or (current and not IsNodeDrawn(current.node)) then
 			self:Hide()
+			local p = current and current.node:GetName()
 			current = nil
 			if 	not InCombatLockdown() and
 				ConsolePort:HasUIFocus()  then
@@ -325,7 +332,7 @@ local function OnEvent(self, event)
 	if 		event == "PLAYER_REGEN_DISABLED" then
 		ClearOverrideBindings(self)
 	elseif 	event == "MODIFIER_STATE_CHANGED" and not InCombatLockdown()  then
-		if IsShiftKeyDown() and current then
+		if 	IsShiftKeyDown() and current then
 			self:SetCursorTexture(TEXTURE.VERTICAL)
 			local slider = current.node
 			local up, down = slider:GetChildren()
@@ -335,13 +342,13 @@ local function OnEvent(self, event)
 			end
 		else
 			self:SetCursorTexture()
-			ClearOverrideBindings(self)
 		end
 	end
 end
 
 Cursor:SetScript("OnEvent", OnEvent)
 Cursor:SetScript("OnHide", OnHide)
+Cursor:SetScript("OnShow", OnShow)
 Cursor:SetScript("OnUpdate", UpdateCursor)
 Cursor:RegisterEvent("MODIFIER_STATE_CHANGED")
 Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
