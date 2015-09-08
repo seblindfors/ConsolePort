@@ -2,8 +2,8 @@ local addOn, db = ...
 local UIControls = db.UI.Controls
 
 local function IsMouselookEvent(event)
-	if 	ConsolePortMouseSettings then
-		return ConsolePortMouseSettings[event]
+	if 	ConsolePortMouse.Events then
+		return ConsolePortMouse.Events[event]
 	end
 	return true
 end

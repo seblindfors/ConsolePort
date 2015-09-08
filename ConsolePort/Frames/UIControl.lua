@@ -2,7 +2,12 @@ local addOn, db = ...
 local UI 		= db.UI
 local KEY 		= db.KEY
 local TEXTURE 	= db.TEXTURE
+local NOMOD 	= "_NOMOD"
+local L1, L2 	= "CP_TR3", "CP_TR4"
 local nodes, current, old, rebindNode = {}, nil, nil, nil
+
+
+local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
 
 --[[
 |---------------------------------------|
@@ -27,28 +32,17 @@ end
 
 --[[
 |---------------------------------------|
-| UIControl: Cursor init				|
+| UIControl: Cursor texture functions	|
 |---------------------------------------|
 ]]--
-local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
-Cursor.Icon = Cursor:CreateTexture(nil, "OVERLAY")
-Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")
-Cursor.Icon:SetAllPoints(Cursor)
-Cursor.Button = Cursor:CreateTexture(nil, "ARTWORK")
-Cursor.Button:SetPoint("TOPLEFT", Cursor, "TOPLEFT", 15, -18)
-Cursor.Button:SetPoint("BOTTOMRIGHT", Cursor, "BOTTOMRIGHT", -9, 6)
-
-Cursor:SetFrameStrata("TOOLTIP")
-Cursor:SetSize(46,46)
-Cursor.Timer = 0
 
 local function SetCursorTexture(self, texture)
-	local object = current and current.object
-	self.Button:SetTexture(texture or object == "Slider" and TEXTURE.LONE or TEXTURE.CIRCLE or TEXTURE.B)
+	local object = current and current.object 
+	self.Button:SetTexture(texture or object == "Slider" and self.ScrollGuide or self.Indicator)
 end
 
 local function SetCursorPosition(self, anchor, object)
-	self:SetCursorTexture()
+	self:SetTexture()
 	self:ClearAllPoints()
 	self:SetPoint("TOPLEFT", anchor, "CENTER", -4, 4)
 	self:Show()
@@ -97,9 +91,37 @@ local function AnimateCursor(self)
 	end
 end
 
-Cursor.Animate = AnimateCursor
-Cursor.SetCursorTexture = SetCursorTexture
-Cursor.SetCursorPosition = SetCursorPosition
+function ConsolePort:SetupCursor()
+	Cursor.Icon = Cursor.Icon or Cursor:CreateTexture(nil, "OVERLAY")
+	Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")
+	Cursor.Icon:SetAllPoints(Cursor)
+	Cursor.Button = Cursor.Button or Cursor:CreateTexture(nil, "ARTWORK")
+	Cursor.Button:SetPoint("TOPLEFT", Cursor, "TOPLEFT", 15, -18)
+	Cursor.Button:SetPoint("BOTTOMRIGHT", Cursor, "BOTTOMRIGHT", -9, 6)
+
+	Cursor:SetFrameStrata("TOOLTIP")
+	Cursor:SetSize(46,46)
+	Cursor.Timer = 0
+
+	Cursor.Animate 		= AnimateCursor
+	Cursor.SetTexture 	= SetCursorTexture
+	Cursor.SetPosition 	= SetCursorPosition
+
+	Cursor.Left 		= ConsolePortMouse.Cursor.Left
+	Cursor.Right 		= ConsolePortMouse.Cursor.Right
+	Cursor.Scroll 		= ConsolePortMouse.Cursor.Scroll
+	Cursor.Special 		= ConsolePortMouse.Cursor.Special
+
+	Cursor.LeftClick 	= _G[Cursor.Left..NOMOD]
+	Cursor.RightClick 	= _G[Cursor.Right..NOMOD]
+	Cursor.SpecialClick = _G[Cursor.Special..NOMOD]
+
+	Cursor.Indicator 	= TEXTURE[strupper(db.NAME[Cursor.Left])]
+	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.LONE or TEXTURE.LTWO
+
+	Cursor.SpecialAction = Cursor.SpecialClick.command
+end
+
 
 --[[
 |---------------------------------------|
@@ -204,8 +226,8 @@ local function FindClosestNode(key)
 		local destY, destX, diffY, diffX
 		local thisY = current.Y
 		local thisX = current.X
-		local nodeY = 10000
-		local nodeX = 10000
+		local nodeY = 10000 -- default values have to 
+		local nodeX = 10000 -- exceed screen resolution
 		local swap 	= false
 		for i, destination in ipairs(nodes) do
 			destY = destination.Y
@@ -248,10 +270,10 @@ end
 local function EnterNode(self, node, object)
 	if IsClickable[object] and node:IsEnabled() then
 		local name = rebindNode and nil or node.direction and node:GetName()
-		self:SetClickButton(CP_R_RIGHT_NOMOD, rebindNode or node)
-		self:SetClickButton(CP_R_LEFT_NOMOD, rebindNode or node)
-		OverrideBindingClick(Cursor, "CP_R_RIGHT", name or "CP_R_RIGHT_NOMOD", "LeftButton")
-		OverrideBindingClick(Cursor, "CP_R_LEFT", name or "CP_R_LEFT_NOMOD", "RightButton")
+		self:SetClickButton(Cursor.LeftClick, rebindNode or node)
+		self:SetClickButton(Cursor.RightClick, rebindNode or node)
+		OverrideBindingClick(Cursor, Cursor.Left, 	name or Cursor.Left..NOMOD, 	"LeftButton")
+		OverrideBindingClick(Cursor, Cursor.Right, 	name or Cursor.Right..NOMOD, 	"RightButton")
 		-- Check for HotKey to avoid taint on action buttons in rebind mode
 		local enter = not node.HotKey and node:GetScript("OnEnter")
 		node:LockHighlight()
@@ -259,8 +281,8 @@ local function EnterNode(self, node, object)
 			enter(node)
 		end
 	else
-		self:SetClickButton(CP_R_RIGHT_NOMOD, nil)
-		self:SetClickButton(CP_R_LEFT_NOMOD, nil)
+		self:SetClickButton(Cursor.LeftClick, nil)
+		self:SetClickButton(Cursor.RightClick, nil)
 	end
 end
 
@@ -310,7 +332,6 @@ local function UpdateCursor(self, elapsed)
 	while self.Timer > 0.1 do
 		if not current or (current and not current.node:IsVisible()) or (current and not IsNodeDrawn(current.node)) then
 			self:Hide()
-			local p = current and current.node:GetName()
 			current = nil
 			if 	not InCombatLockdown() and
 				ConsolePort:HasUIFocus()  then
@@ -332,23 +353,29 @@ local function OnEvent(self, event)
 	if 		event == "PLAYER_REGEN_DISABLED" then
 		ClearOverrideBindings(self)
 	elseif 	event == "MODIFIER_STATE_CHANGED" and not InCombatLockdown()  then
-		if 	IsShiftKeyDown() and current then
-			self:SetCursorTexture(TEXTURE.VERTICAL)
+		if 	current and
+			(self.Scroll == L1 and IsShiftKeyDown()) or
+			(self.Scroll == L2 and IsControlKeyDown()) then
+			self:SetTexture(TEXTURE.VERTICAL)
 			local slider = current.node
 			local up, down = slider:GetChildren()
 			if up and down then
-				OverrideBindingShiftClick(self, "CP_L_UP", up:GetName() or "CP_L_UP_SHIFT", "LeftButton")
-				OverrideBindingShiftClick(self, "CP_L_DOWN", down:GetName() or "CP_L_DOWN_SHIFT", "LeftButton")
+				if 	self.Scroll == L1 then
+					OverrideBindingShiftClick(self, "CP_L_UP", up:GetName() or "CP_L_UP_SHIFT", "LeftButton")
+					OverrideBindingShiftClick(self, "CP_L_DOWN", down:GetName() or "CP_L_DOWN_SHIFT", "LeftButton")
+				else
+					OverrideBindingCtrlClick(self, "CP_L_UP", up:GetName() or "CP_L_UP_CTRL", "LeftButton")
+					OverrideBindingCtrlClick(self, "CP_L_DOWN", down:GetName() or "CP_L_DOWN_CTRL", "LeftButton")
+				end
 			end
 		else
-			self:SetCursorTexture()
+			self:SetTexture()
 		end
 	end
 end
 
 Cursor:SetScript("OnEvent", OnEvent)
 Cursor:SetScript("OnHide", OnHide)
-Cursor:SetScript("OnShow", OnShow)
 Cursor:SetScript("OnUpdate", UpdateCursor)
 Cursor:RegisterEvent("MODIFIER_STATE_CHANGED")
 Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
@@ -372,7 +399,7 @@ function ConsolePort:SetCurrentNode(UIobject)
 		if node.node == UIobject then
 			old = current
 			current = node
-			Cursor:SetCursorPosition(node.node, node.object)
+			Cursor:SetPosition(node.node, node.object)
 			Cursor:Animate()
 			break
 		end
@@ -399,13 +426,13 @@ function ConsolePort:UIControl(key, state)
 	RefreshNodes(self)
 	if state == KEY.STATE_DOWN then
 		FindClosestNode(key)
-	elseif key == KEY.TRIANGLE then
+	elseif key == Cursor.SpecialAction then
 		SpecialAction(self)
 	end
 	local node = current and current.node
 	if node then
 		EnterNode(self, node, current.object)
-		Cursor:SetCursorPosition(node, current.object)
+		Cursor:SetPosition(node, current.object)
 		Cursor:Animate()
 	end
 end

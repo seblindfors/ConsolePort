@@ -79,8 +79,8 @@ end
 
 function ConsolePort:SetButtonActionsUI()
 	local buttons = self:GetInterfaceButtons()
-	buttons[5] = nil -- ignore square
-	buttons[6] = nil -- ignore circle
+	buttons[_G[ConsolePortMouse.Cursor.Left.."_NOMOD"]] = nil
+	buttons[_G[ConsolePortMouse.Cursor.Right.."_NOMOD"]] = nil
 	for i, button in pairs(buttons) do
 		button:SetAttribute("type", "UIControl")
 	end

@@ -6,6 +6,7 @@ local function AddTexture(BINDING, type)
 	db.TEXTURE[strupper(BINDING)] = format(TEXTURE_PATH, type, BINDING)
 end
 -- Tables
+db.NAME 	= {}
 db.TEXTURE 	= {}
 db.COLOR 	= {}
 db.CLICK 	= {}
@@ -15,61 +16,61 @@ db.UI 		= {}
 db.UI.Controls = {}
 -- Interaction keys
 db.KEY = {
-	CIRCLE  				= 1;
-	SQUARE 					= 2;
-	TRIANGLE 				= 3;
-	UP						= 4;
-	DOWN					= 5;
-	LEFT					= 6;
-	RIGHT					= 7;
-	PREPARE 				= 8;
-	STATE_UP 				= "up";
-	STATE_DOWN				= "down";
+	CIRCLE  						= 1;
+	SQUARE 							= 2;
+	TRIANGLE 						= 3;
+	UP								= 4;
+	DOWN							= 5;
+	LEFT							= 6;
+	RIGHT							= 7;
+	PREPARE 						= 8;
+	STATE_UP 						= "up";
+	STATE_DOWN						= "down";
 }
 -- Tutorial tables
 db.TUTORIAL.BIND  = {
-	DEFAULT 	= "Click on a button to change its behaviour.",
-	COMBO 		= "Click on a combination of %s to change it.",
-	STATIC 		= "Select an action from the list to change %s",
-	DYNAMIC 	= "Select any interface button with the cursor to change %s\n%s Apply %s Cancel ",
-	APPLIED 	= "%s was applied to %s.",
-	INVALID 	= "Error: Invalid button. New binding was discarded.",
-	COMBAT 		= "Error: In combat! Exit combat to change your settings.",
-	IMPORT 		= "Settings imported from %s. Press Okay to apply.",
-	RESET 		= "Default settings loaded. Press Okay to apply.",
+	DEFAULT 						= "Click on a button to change its behaviour.",
+	COMBO 							= "Click on a combination of %s to change it.",
+	STATIC 							= "Select an action from the list to change %s",
+	DYNAMIC 						= "Select any interface button with the cursor to change %s\n%s Apply %s Cancel ",
+	APPLIED 						= "%s was applied to %s.",
+	INVALID 						= "Error: Invalid button. New binding was discarded.",
+	COMBAT 							= "Error: In combat! Exit combat to change your settings.",
+	IMPORT 							= "Settings imported from %s. Press Okay to apply.",
+	RESET 							= "Default settings loaded. Press Okay to apply.",
 }
 db.TUTORIAL.SETUP = {
-	HEADER 		= "Setup: Assign controller buttons",
-	HEADLINE 	= "Your controller bindings are incomplete.\nPress the requested button to map it.",
-	OVERRIDE 	= "%s is already bound to %s.\nPress |T%s:20:20:0:0|t again to continue anyway.",
-	INVALID 	= "Invalid binding.\nDid you press the correct button?",
-	COMBAT 		= "You are in combat!",
-	EMPTY 		= "<Empty>",
-	SUCCESS 	= "|T%s:16:16:0:0|t was successfully bound to %s.",
-	CONTINUE 	= "Press |T%s:20:20:0:0|t again to continue.",
-	CONFIRM 	= "Press |T%s:20:20:0:0|t again to confirm.",
-	CONTROLLER 	= "Select your preferred button layout by clicking a controller.",
+	HEADER 							= "Setup: Assign controller buttons",
+	HEADLINE 						= "Your controller bindings are incomplete.\nPress the requested button to map it.",
+	OVERRIDE 						= "%s is already bound to %s.\nPress |T%s:20:20:0:0|t again to continue anyway.",
+	INVALID 						= "Invalid binding.\nDid you press the correct button?",
+	COMBAT 							= "You are in combat!",
+	EMPTY 							= "<Empty>",
+	SUCCESS 						= "|T%s:16:16:0:0|t was successfully bound to %s.",
+	CONTINUE 						= "Press |T%s:20:20:0:0|t again to continue.",
+	CONFIRM 						= "Press |T%s:20:20:0:0|t again to confirm.",
+	CONTROLLER 						= "Select your preferred button layout by clicking a controller.",
 }
 -- Global binding headers
-BINDING_HEADER_CP_LEFT 		=	"Arrow pad"
-BINDING_HEADER_CP_RIGHT 	=	"Buttons"
-BINDING_HEADER_CP_CENTER 	=	"Center buttons"
-BINDING_HEADER_CP_TRIG 		=	"Triggers"
+BINDING_HEADER_CP_LEFT 				=	"Arrow pad"
+BINDING_HEADER_CP_RIGHT 			=	"Buttons"
+BINDING_HEADER_CP_CENTER 			=	"Center buttons"
+BINDING_HEADER_CP_TRIG 				=	"Triggers"
 -- Global binding strings
-BINDING_NAME_CP_L_UP		=	"Up"
-BINDING_NAME_CP_L_DOWN		=	"Down"
-BINDING_NAME_CP_L_LEFT		=	"Left"
-BINDING_NAME_CP_L_RIGHT		=	"Right";
-BINDING_NAME_CP_TR1			=	"Trigger 1"
-BINDING_NAME_CP_TR2			=	"Trigger 2"
+BINDING_NAME_CP_L_UP				=	"Up"
+BINDING_NAME_CP_L_DOWN				=	"Down"
+BINDING_NAME_CP_L_LEFT				=	"Left"
+BINDING_NAME_CP_L_RIGHT				=	"Right";
+BINDING_NAME_CP_TR1					=	"Trigger 1"
+BINDING_NAME_CP_TR2					=	"Trigger 2"
 setglobal("BINDING_NAME_CLICK ConsolePortExtraButton:LeftButton", "ConsolePort Extra") 
 
-local SPLASH 		= "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\%s"
-db.SPLASH_LEFT 		= format(SPLASH, "SplashLeft")
-db.SPLASH_RIGHT 	= format(SPLASH, "SplashRight")
-db.SPLASH_BOTTOM 	= format(SPLASH, "SplashBottom")
-db.BUTTON_WRAP 		= format(SPLASH, "ButtonWrapper")
-db.BUTTON_HILITE 	= format(SPLASH, "ButtonWrapperHiLite")
+local SPLASH 						= "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\%s"
+db.SPLASH_LEFT 						= format(SPLASH, "SplashLeft")
+db.SPLASH_RIGHT 					= format(SPLASH, "SplashRight")
+db.SPLASH_BOTTOM 					= format(SPLASH, "SplashBottom")
+db.BUTTON_WRAP 						= format(SPLASH, "ButtonWrapper")
+db.BUTTON_HILITE 					= format(SPLASH, "ButtonWrapperHiLite")
 
 local f = CreateFrame("FRAME", "ConsolePort");
 function ConsolePort:LoadStrings()
@@ -172,15 +173,15 @@ function ConsolePort:LoadStrings()
 		}
 	end
 	-- Global config variables
-	db.BIND_TARGET 				= false;
-	db.CONF_BUTTON 				= nil;
-	db.CP 						= "CP";
-	db.CONF 					= "_CONF";
-	db.CONFBG 					= "_CONF_BG";
-	db.NOMOD 					= "_NOMOD";
-	db.SHIFT 					= "_SHIFT";
-	db.CTRL 					= "_CTRL";
-	db.CTRLSH 					= "_CTRLSH";
+	db.BIND_TARGET 					= false;
+	db.CONF_BUTTON 					= nil;
+	db.CP 							= "CP";
+	db.CONF 						= "_CONF";
+	db.CONFBG 						= "_CONF_BG";
+	db.NOMOD 						= "_NOMOD";
+	db.SHIFT 						= "_SHIFT";
+	db.CTRL 						= "_CTRL";
+	db.CTRLSH 						= "_CTRLSH";
 	-- Arrows
 	AddTexture(db.NAME.CP_L_UP, type);
 	AddTexture(db.NAME.CP_L_DOWN, type);
@@ -196,33 +197,33 @@ function ConsolePort:LoadStrings()
 	AddTexture(db.NAME.CP_C_OPTION, type);
 	AddTexture(db.NAME.CP_R_OPTION, type);
 	-- L/R
-	db.TEXTURE.LONE   		= format(TEXTURE_PATH, type, "l1")
-	db.TEXTURE.LTWO   		= format(TEXTURE_PATH, type, "l2")
-	db.TEXTURE.LTHREE   	= format(TEXTURE_PATH, type, "l3")
-	db.TEXTURE.RONE   		= format(TEXTURE_PATH, type, "r1")
-	db.TEXTURE.RTWO   		= format(TEXTURE_PATH, type, "r2")
-	db.TEXTURE.RTHREE		= format(TEXTURE_PATH, type, "r3")
-	db.TEXTURE.VERTICAL		= "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\VERTICAL"
-	db.TEXTURE.HORIZONTAL	= "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\HORIZONTAL"
+	db.TEXTURE.LONE   				= format(TEXTURE_PATH, type, "l1")
+	db.TEXTURE.LTWO   				= format(TEXTURE_PATH, type, "l2")
+	db.TEXTURE.LTHREE   			= format(TEXTURE_PATH, type, "l3")
+	db.TEXTURE.RONE   				= format(TEXTURE_PATH, type, "r1")
+	db.TEXTURE.RTWO   				= format(TEXTURE_PATH, type, "r2")
+	db.TEXTURE.RTHREE				= format(TEXTURE_PATH, type, "r3")
+	db.TEXTURE.VERTICAL				= "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\VERTICAL"
+	db.TEXTURE.HORIZONTAL			= "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\HORIZONTAL"
 	-- Click strings
-	local ICON				= "|T%s:20:20:0:0|t |cFF%s%s|r"
-	local SHIFT 			= format(ICON, db.TEXTURE.LONE, "6882A1", "%s")
-	local RIGHT 			= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_RIGHT)], db.COLOR.RIGHT, "%s")
-	local LEFT 				= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_LEFT)], db.COLOR.LEFT, "%s")
-	local UP 				= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_UP)], db.COLOR.UP, "%s")
+	local ICON						= "|T%s:20:20:0:0|t |cFF%s%s|r"
+	local SHIFT 					= format(ICON, db.TEXTURE.LONE, "6882A1", "%s")
+	local RIGHT 					= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_RIGHT)], db.COLOR.RIGHT, "%s")
+	local LEFT 						= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_LEFT)], db.COLOR.LEFT, "%s")
+	local UP 						= format(ICON, db.TEXTURE[strupper(db.NAME.CP_R_UP)], db.COLOR.UP, "%s")
 	db.CLICK = {
-		COMPARE 			= format(SHIFT, "Compare"),
-		QUEST_TRACKER 		= format(RIGHT, "Set current quest"),
-		USE_NOCOMBAT 		= format(RIGHT, "Use (out of combat)"),
-		BUY 				= format(LEFT, 	"Buy"),
-		USE 				= format(LEFT, 	"Use"),
-		EQUIP				= format(LEFT, 	"Equip"),
-		SELL 				= format(LEFT, 	"Sell"),
-		QUEST_DETAILS 		= format(LEFT, 	"View quest details"),
-		PICKUP 				= format(UP, 	"Pick up"),
-		CANCEL 				= format(UP, 	"Cancel"),
-		STACK_BUY 			= format(UP, 	"Buy a different amount"),
-		ADD_TO_EXTRA		= format(UP, 	"Bind"),
+		COMPARE 					= format(SHIFT, "Compare"),
+		QUEST_TRACKER 				= format(RIGHT, "Set current quest"),
+		USE_NOCOMBAT 				= format(RIGHT, "Use (out of combat)"),
+		BUY 						= format(LEFT, 	"Buy"),
+		USE 						= format(LEFT, 	"Use"),
+		EQUIP						= format(LEFT, 	"Equip"),
+		SELL 						= format(LEFT, 	"Sell"),
+		QUEST_DETAILS 				= format(LEFT, 	"View quest details"),
+		PICKUP 						= format(UP, 	"Pick up"),
+		CANCEL 						= format(UP, 	"Cancel"),
+		STACK_BUY 					= format(UP, 	"Buy a different amount"),
+		ADD_TO_EXTRA				= format(UP, 	"Bind"),
 	}
 end
 

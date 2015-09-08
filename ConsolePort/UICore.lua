@@ -83,8 +83,8 @@ local addOns = {
 		"InterfaceOptionsFrame",
 		"ItemRefTooltip",
 		"ItemTextFrame",
-		"LFGDungeonReadyDialog",
 		"LFDRoleCheckPopup",
+		"LFGDungeonReadyDialog",
 		"LootFrame",	
 		"MailFrame",	
 		"MerchantFrame",
@@ -196,14 +196,15 @@ function ConsolePort:ADDON_LOADED(...)
 		self.AddFrame = AddUIControlFrame
 		self:CreateButtonHandler()
 		self:LoadStrings()
-		self:OnVariablesLoaded()
+		self:LoadSettings()
 		self:LoadEvents()
 		self:UpdateExtraButton()
 		self:LoadHookScripts()
 		self:LoadBindingSet()
 		self:CreateConfigPanel()
-		self:CreateBindingButtons()
+		self:CreateActionButtons()
 		self:ReloadBindingActions()
+		self:SetupCursor()
 --		self:CreateUIHandler()
 	end
 	if addOns[name] then

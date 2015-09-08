@@ -48,7 +48,7 @@ local function ExportCharacterSettings()
 		ConsolePortCharacterSettings[index] = {
 			BindingSet = ConsolePortBindingSet,
 			BindingBtn = ConsolePortBindingButtons,
-			MouseEvent = ConsolePortMouseSettings,
+			MouseEvent = ConsolePortMouse.Events,
 		}
 	elseif ConsolePortCharacterSettings then
 		ConsolePortCharacterSettings[index] = nil
@@ -165,7 +165,7 @@ function ConsolePort:LoadEvents()
 		["UNIT_ENTERING_VEHICLE"] 	= false,
 	}
 	-- Mouse look events
-	for event, val in pairs(ConsolePortMouseSettings) do
+	for event, val in pairs(ConsolePortMouse.Events) do
 		Events[event] = val
 	end
 	self:UnregisterAllEvents()

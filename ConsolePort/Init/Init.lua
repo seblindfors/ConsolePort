@@ -202,8 +202,8 @@ function ConsolePort:GetDefaultButton(key)
 end
 
 
-function ConsolePort:GetDefaultMouseSettings()
-	local mouseSettings = {
+local function GetDefaultMouseEvents()
+	return {
 		["PLAYER_STARTED_MOVING"] = false,
 		["PLAYER_TARGET_CHANGED"] = true,
 		["CURRENT_SPELL_CAST_CHANGED"] = true,
@@ -224,7 +224,15 @@ function ConsolePort:GetDefaultMouseSettings()
 		["LOOT_OPENED"] = true,
 		["LOOT_CLOSED"] = true
 	}
-	return mouseSettings
+end
+
+local function GetDefaultMouseCursor()
+	return {
+		Left 	= "CP_R_RIGHT",
+		Right 	= "CP_R_LEFT",
+		Special = "CP_R_UP",
+		Scroll 	= "CP_TR3",
+	}
 end
 
 function ConsolePort:GetDefaultAddonSettings()
@@ -235,7 +243,7 @@ function ConsolePort:GetDefaultAddonSettings()
 	return t
 end
 
- function ConsolePort:OnVariablesLoaded()
+ function ConsolePort:LoadSettings()
         if not ConsolePortBindingSet then
         	ConsolePortBindingSet = self:GetDefaultBindingSet()
         end
@@ -244,8 +252,11 @@ end
         	ConsolePortBindingButtons = self:GetDefaultBindingButtons()
         end
 
-        if not ConsolePortMouseSettings then
-        	ConsolePortMouseSettings = self:GetDefaultMouseSettings()
+        if not ConsolePortMouse then
+        	ConsolePortMouse = {
+        		Events = GetDefaultMouseEvents(),
+        		Cursor = GetDefaultMouseCursor(),
+        	}
         end
 
         if not ConsolePortSettings then
@@ -303,7 +314,7 @@ function ConsolePort:CreateMouseLooker()
 	return MouseLook
 end
 
-function ConsolePort:CreateBindingButtons()
+function ConsolePort:CreateActionButtons()
 	local keys = ConsolePortBindingButtons
 	local y = 1
 	table.sort(keys)
