@@ -159,6 +159,7 @@ local function ResetGuides()
 			guide:GetParent().HotKey:SetAlpha(1)
 		end
 	end
+	wipe(db.HotKeys)
 end
 
 
@@ -673,25 +674,35 @@ end
 | Config: Create panel and children		|
 |---------------------------------------|
 ]]--
+local function CreatePanel(parent, name, desc, header, okay, cancel)
+	local panel = CreateFrame("FRAME", addOn.."ConfigFrame"..name, parent or InterfaceOptionsFramePanelContainer)
+
+	panel.name = desc
+	panel.okay = okay
+	panel.cancel = cancel
+	panel.parent = parent
+
+	panel.Header = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	panel.Header:SetText(header)
+	panel.Header:SetPoint("TOPLEFT", panel, 16, -16)
+
+	InterfaceOptions_AddCategory(panel)
+end
+
 function ConsolePort:CreateConfigPanel()
 	if not db.Config then
 
 		local player = GetUnitName("player").."-"..GetRealmName()
 
-		local Config = CreateFrame("FRAME", addOn.."ConfigFrame", InterfaceOptionsFramePanelContainer)
-		local Binds = CreateFrame( "FRAME", addOn.."ConfigFrameBinds", Config)
-		local Mouse = CreateFrame("FRAME", addOn.."ConfigFrameMouse", Config)
+		local Config = CreatePanel(nil, "Main", addOn, addOn, SaveMainConfig)
+		local Binds = CreatePanel(Config, "Binds", "Bindings", "Binding settings", SubmitBindings, RevertBindings)
+		local Mouse = CreatePanel(Config, "Mouse", "Mouse", "Toggle mouse look when...", SaveMouseConfig)
+		local UICtrl = CreatePanel(Config, "UICtrl", "Interface", "Interface settings", nil, nil)
 
 		db.Config	= Config
 		db.Binds	= Binds
-		db.Mouse 	= Mouse 
-
-		Config.name = addOn
-		Config.okay = SaveMainConfig
-
-		Config.Header = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-		Config.Header:SetText("ConsolePort")
-		Config.Header:SetPoint("TOPLEFT", Config, 16, -16)
+		db.Mouse 	= Mouse
+		db.UICtrl 	= UICtrl
 
 		Config.ResetController = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
 		Config.ResetController:SetWidth(150)
@@ -704,11 +715,6 @@ function ConsolePort:CreateConfigPanel()
 		Config.ResetBindings:SetText("Reset bindings")
 		Config.ResetBindings:SetPoint("TOP", Config.ResetController, "BOTTOM", 0, -2)
 		Config.ResetBindings:SetScript("OnClick", ResetBindingsOnClick)
-
-		Binds.name = "Bindings"
-		Binds.parent = addOn
-		Binds.okay = SubmitBindings
-		Binds.cancel = RevertBindings
 
 		Binds.Controller = Binds:CreateTexture("GameMenuTextureController", "ARTWORK");
 		Binds.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type);
@@ -744,7 +750,7 @@ function ConsolePort:CreateConfigPanel()
 						self.selectedID = item:GetID()
 						self.text:SetText(character)
 					end
-					self.info.checked = self.info.text == GetUnitName("player").."-"..GetRealmName()
+					self.info.checked = self.info.text == player
 					UIDropDownMenu_AddButton(self.info, 1)
 				end
 			else
@@ -817,14 +823,7 @@ function ConsolePort:CreateConfigPanel()
 			CreateConfigStaticButton(button.option, "CTRL-SHIFT", 3);
 		end
 
-		Mouse.name 	= "Mouse"
-		Mouse.parent = addOn
-		Mouse.okay 	= SaveMouseConfig
-
 		Mouse.Events = {}
-		Mouse.EventHeader = Mouse:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-		Mouse.EventHeader:SetText("Toggle mouse look when...")
-		Mouse.EventHeader:SetPoint("TOPLEFT", Mouse, 16, -16)
 		for i, setting in pairs(GetMouseSettings()) do
 			local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, Mouse, "ChatConfigCheckButtonTemplate")
 			local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -914,6 +913,7 @@ function ConsolePort:CreateConfigPanel()
 		InterfaceOptions_AddCategory(Config)
 		InterfaceOptions_AddCategory(Binds)
 		InterfaceOptions_AddCategory(Mouse)
+		InterfaceOptions_AddCategory(UICtrl)
 		
 	end
 end

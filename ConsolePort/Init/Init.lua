@@ -264,6 +264,10 @@ end
         	self:CreateSplashFrame()
         end
 
+        if not ConsolePortUIFrames then
+        	ConsolePortUIFrames = self:GetDefaultUIFrames()
+        end
+
         if 	self:CheckUnassignedBindings() then
         	self:CreateBindingWizard()
         end

@@ -3,115 +3,128 @@ local KEY = db.KEY
 local UIControls = db.UI.Controls
 local hasUIFocus = false
 
-local addOns = {	
-	Blizzard_AchievementUI 		= {
-		"AchievementFrame" },
-	Blizzard_ArchaeologyUI 		= {
-		"ArchaeologyFrame" },
-	Blizzard_AuctionUI 			= {
-		"AuctionFrame" },
-	Blizzard_BarbershopUI		= {
-		"BarberShopFrame" },
-	Blizzard_Calendar			= {
-		"CalendarFrame" },
-	Blizzard_Collections		= {
-		"CollectionsJournal" },
-	Blizzard_DeathRecap			= {
-		"DeathRecapFrame" },
-	Blizzard_EncounterJournal 	= {
-		"EncounterJournal" },
-	Blizzard_GarrisonUI			= {
-		"GarrisonBuildingFrame",
-		"GarrisonCapacitiveDisplayFrame",
-		"GarrisonLandingPage",
-		"GarrisonMissionFrame",
-		"GarrisonMonumentFrame",
-		"GarrisonShipyardFrame" },
-	Blizzard_GuildUI			= {
-		"GuildFrame" },
-	Blizzard_InspectUI			= {
-		"InspectFrame" },
-	Blizzard_ItemAlterationUI 	= {
-		"TransmogrifyFrame" },
-	Blizzard_LookingForGuildUI 	= {
-		"LookingForGuildFrame" },
-	Blizzard_MacroUI 			= {
-		"MacroFrame" },
-	Blizzard_QuestChoice 		= {
-		"QuestChoiceFrame" },
-	Blizzard_TalentUI 			= {
-		"PlayerTalentFrame" },
-	Blizzard_TradeSkillUI		= {
-		"TradeSkillFrame" },
-	Blizzard_TrainerUI 			= {
-		"ClassTrainerFrame" },
-	Blizzard_VoidStorageUI		= {
-		"VoidStorageFrame" },
--- Core
-	ConsolePort					= {
-		"StaticPopup1",
-		"StaticPopup2",
-		"StaticPopup3",
-		"StaticPopup4",
-		"AddonList",
-		"BagHelpBox",
-		"BankFrame",
-		"BasicScriptErrors",
-		"CharacterFrame",
-		"ChatMenu",
-		"CinematicFrameCloseDialog",
-		"ContainerFrame1",
-		"ContainerFrame2",
-		"ContainerFrame3",
-		"ContainerFrame4",
-		"ContainerFrame5",
-		"ContainerFrame6",
-		"ContainerFrame7",
-		"ContainerFrame8",
-		"ContainerFrame9",
-		"ContainerFrame10",
-		"ContainerFrame11",
-		"ContainerFrame12",
-		"ContainerFrame13",
-		"DressUpFrame",
-		"DropDownList1",
-		"DropDownList2",
-		"FriendsFrame",	
-		"GameMenuFrame",
-		"GossipFrame",	
-		"GuildInviteFrame",
-		"InterfaceOptionsFrame",
-		"ItemRefTooltip",
-		"ItemTextFrame",
-		"LFDRoleCheckPopup",
-		"LFGDungeonReadyDialog",
-		"LootFrame",	
-		"MailFrame",	
-		"MerchantFrame",
-		"OpenMailFrame",
-		"PetBattleFrame",
-		"PetitionFrame",
-		"PVEFrame",
-		"PVPReadyDialog",
-		"QuestFrame",	
-		"QuestLogPopupDetailFrame",
-		"RecruitAFriendFrame",
-		"SpellBookFrame",
-		"SpellFlyout",	
-		"SplashFrame",	
-		"StackSplitFrame",
-		"TaxiFrame",
-		"TutorialFrame",
-		"VideoOptionsFrame",	
-		"WorldMapFrame",
-		"GroupLootFrame1",
-		"GroupLootFrame2",
-		"GroupLootFrame3",
-		"GroupLootFrame4" },
-	Storyline = {
-		"Storyline_NPCFrame"
+-- UIControl tables
+local loadedAddOns = {}
+local stack = {}
+local addOns {}
+
+--- Localize frequently used globals
+-- Functions
+local InCombatLockdown = InCombatLockdown
+local tinsert = tinsert
+local pairs = pairs
+local wipe = wipe
+-- Widgets
+local ConsolePort = ConsolePort
+
+function ConsolePort:GetDefaultUIFrames()
+	return {	
+		Blizzard_AchievementUI 		= {
+			"AchievementFrame" },
+		Blizzard_ArchaeologyUI 		= {
+			"ArchaeologyFrame" },
+		Blizzard_AuctionUI 			= {
+			"AuctionFrame" },
+		Blizzard_BarbershopUI		= {
+			"BarberShopFrame" },
+		Blizzard_Calendar			= {
+			"CalendarFrame" },
+		Blizzard_Collections		= {
+			"CollectionsJournal" },
+		Blizzard_DeathRecap			= {
+			"DeathRecapFrame" },
+		Blizzard_EncounterJournal 	= {
+			"EncounterJournal" },
+		Blizzard_GarrisonUI			= {
+			"GarrisonBuildingFrame",
+			"GarrisonCapacitiveDisplayFrame",
+			"GarrisonLandingPage",
+			"GarrisonMissionFrame",
+			"GarrisonMonumentFrame",
+			"GarrisonShipyardFrame" },
+		Blizzard_GuildUI			= {
+			"GuildFrame" },
+		Blizzard_InspectUI			= {
+			"InspectFrame" },
+		Blizzard_ItemAlterationUI 	= {
+			"TransmogrifyFrame" },
+		Blizzard_LookingForGuildUI 	= {
+			"LookingForGuildFrame" },
+		Blizzard_MacroUI 			= {
+			"MacroFrame" },
+		Blizzard_QuestChoice 		= {
+			"QuestChoiceFrame" },
+		Blizzard_TalentUI 			= {
+			"PlayerTalentFrame" },
+		Blizzard_TradeSkillUI		= {
+			"TradeSkillFrame" },
+		Blizzard_TrainerUI 			= {
+			"ClassTrainerFrame" },
+		Blizzard_VoidStorageUI		= {
+			"VoidStorageFrame" },
+	-- Core
+		ConsolePort					= {
+			"StaticPopup1",
+			"StaticPopup2",
+			"StaticPopup3",
+			"StaticPopup4",
+			"AddonList",
+			"BagHelpBox",
+			"BankFrame",
+			"BasicScriptErrors",
+			"CharacterFrame",
+			"ChatMenu",
+			"CinematicFrameCloseDialog",
+			"ContainerFrame1",
+			"ContainerFrame2",
+			"ContainerFrame3",
+			"ContainerFrame4",
+			"ContainerFrame5",
+			"ContainerFrame6",
+			"ContainerFrame7",
+			"ContainerFrame8",
+			"ContainerFrame9",
+			"ContainerFrame10",
+			"ContainerFrame11",
+			"ContainerFrame12",
+			"ContainerFrame13",
+			"DressUpFrame",
+			"DropDownList1",
+			"DropDownList2",
+			"FriendsFrame",	
+			"GameMenuFrame",
+			"GossipFrame",	
+			"GuildInviteFrame",
+			"InterfaceOptionsFrame",
+			"ItemRefTooltip",
+			"ItemTextFrame",
+			"LFDRoleCheckPopup",
+			"LFGDungeonReadyDialog",
+			"LootFrame",	
+			"MailFrame",	
+			"MerchantFrame",
+			"OpenMailFrame",
+			"PetBattleFrame",
+			"PetitionFrame",
+			"PVEFrame",
+			"PVPReadyDialog",
+			"QuestFrame",	
+			"QuestLogPopupDetailFrame",
+			"RecruitAFriendFrame",
+			"SpellBookFrame",
+			"SpellFlyout",	
+			"SplashFrame",	
+			"StackSplitFrame",
+			"TaxiFrame",
+			"TutorialFrame",
+			"VideoOptionsFrame",	
+			"WorldMapFrame",
+			"GroupLootFrame1",
+			"GroupLootFrame2",
+			"GroupLootFrame3",
+			"GroupLootFrame4" },
 	}
-}
+end
 
 local hasPriority = {
 	ContainerFrame1Item16,
@@ -164,6 +177,18 @@ local function AddUIControlFrame(self, UIControl, priority)
 	else tinsert(UIControls, UIControl) end
 end
 
+function ConsolePort:CheckLoadedAddons()
+	local addOnList = ConsolePortUIFrames or addOns
+	for name, frames in pairs(addOnList) do
+		if IsAddOnLoaded(name) and not loadedAddOns[name] then
+			for i, frame in pairs(frames) do
+				self:AddFrame(frame)
+			end
+			loadedAddOns[name] = true
+		end
+	end
+end
+
 function ConsolePort:UpdateFrames()
 	if not InCombatLockdown() then
 		local defaultActions = true
@@ -205,18 +230,23 @@ function ConsolePort:ADDON_LOADED(...)
 		self:CreateActionButtons()
 		self:ReloadBindingActions()
 		self:SetupCursor()
+		self:CheckLoadedAddons()
 --		self:CreateUIHandler()
 	end
-	if addOns[name] then
-		for i, frame in pairs(addOns[name]) do
+	if not addOns then
+		addOns = ConsolePortUIFrames
+	end
+	if addOns and addOns[name] and not loadedAddOns[name] then
+		for i, frame in pairs(addOnList[name]) do
 			AddUIControlFrame(self, _G[frame])
 		end
+		loadedAddOns[name] = true
 	end
 end
 
 
 function ConsolePort:GetFrameStack()
-	local stack = {}
+	wipe(stack)
 	if ConsolePortRebindFrame:IsVisible() then
 		if ConsolePortRebindFrame.isRebinding then
 			for _, Frame in pairs({UIParent:GetChildren()}) do

@@ -6,7 +6,21 @@ local NOMOD 	= "_NOMOD"
 local L1, L2 	= "CP_TR3", "CP_TR4"
 local nodes, current, old, rebindNode = {}, nil, nil, nil
 
+--- Localize frequently used globals
+-- Functions
+local SetOverrideBindingClick = SetOverrideBindingClick
+local ClearOverrideBindings = ClearOverrideBindings
+local InCombatLockdown = InCombatLockdown
+local tinsert = tinsert
+local ipairs = ipairs
+local pairs = pairs
+local wipe = wipe
+-- Widgets
+local ConsolePort = ConsolePort
+local UIParent = UIParent
 
+
+-- Initiate the cursor frame
 local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
 
 --[[
@@ -91,37 +105,6 @@ local function AnimateCursor(self)
 	end
 end
 
-function ConsolePort:SetupCursor()
-	Cursor.Icon = Cursor.Icon or Cursor:CreateTexture(nil, "OVERLAY")
-	Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")
-	Cursor.Icon:SetAllPoints(Cursor)
-	Cursor.Button = Cursor.Button or Cursor:CreateTexture(nil, "ARTWORK")
-	Cursor.Button:SetPoint("TOPLEFT", Cursor, "TOPLEFT", 15, -18)
-	Cursor.Button:SetPoint("BOTTOMRIGHT", Cursor, "BOTTOMRIGHT", -9, 6)
-
-	Cursor:SetFrameStrata("TOOLTIP")
-	Cursor:SetSize(46,46)
-	Cursor.Timer = 0
-
-	Cursor.Animate 		= AnimateCursor
-	Cursor.SetTexture 	= SetCursorTexture
-	Cursor.SetPosition 	= SetCursorPosition
-
-	Cursor.Left 		= ConsolePortMouse.Cursor.Left
-	Cursor.Right 		= ConsolePortMouse.Cursor.Right
-	Cursor.Scroll 		= ConsolePortMouse.Cursor.Scroll
-	Cursor.Special 		= ConsolePortMouse.Cursor.Special
-
-	Cursor.LeftClick 	= _G[Cursor.Left..NOMOD]
-	Cursor.RightClick 	= _G[Cursor.Right..NOMOD]
-	Cursor.SpecialClick = _G[Cursor.Special..NOMOD]
-
-	Cursor.Indicator 	= TEXTURE[strupper(db.NAME[Cursor.Left])]
-	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.LONE or TEXTURE.LTWO
-
-	Cursor.SpecialAction = Cursor.SpecialClick.command
-end
-
 
 --[[
 |---------------------------------------|
@@ -199,7 +182,7 @@ local function ClearNodes()
 		end
 		old = current
 	end
-	nodes = {}
+	wipe(nodes)
 end
 
 local function SetCurrent()
@@ -374,12 +357,6 @@ local function OnEvent(self, event)
 	end
 end
 
-Cursor:SetScript("OnEvent", OnEvent)
-Cursor:SetScript("OnHide", OnHide)
-Cursor:SetScript("OnUpdate", UpdateCursor)
-Cursor:RegisterEvent("MODIFIER_STATE_CHANGED")
-Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
-
 --[[
 |---------------------------------------|
 | UIControl: Global node manipulation	|
@@ -435,4 +412,46 @@ function ConsolePort:UIControl(key, state)
 		Cursor:SetPosition(node, current.object)
 		Cursor:Animate()
 	end
+end
+
+--[[
+|---------------------------------------|
+| UIControl: Initialize Cursor			|
+|---------------------------------------|
+]]--
+function ConsolePort:SetupCursor()
+	Cursor.Icon = Cursor.Icon or Cursor:CreateTexture(nil, "OVERLAY")
+	Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")
+	Cursor.Icon:SetAllPoints(Cursor)
+	Cursor.Button = Cursor.Button or Cursor:CreateTexture(nil, "ARTWORK")
+	Cursor.Button:SetPoint("TOPLEFT", Cursor, "TOPLEFT", 15, -18)
+	Cursor.Button:SetPoint("BOTTOMRIGHT", Cursor, "BOTTOMRIGHT", -9, 6)
+
+	Cursor:SetFrameStrata("TOOLTIP")
+	Cursor:SetSize(46,46)
+	Cursor.Timer = 0
+
+	Cursor.Animate 		= AnimateCursor
+	Cursor.SetTexture 	= SetCursorTexture
+	Cursor.SetPosition 	= SetCursorPosition
+
+	Cursor.Left 		= ConsolePortMouse.Cursor.Left
+	Cursor.Right 		= ConsolePortMouse.Cursor.Right
+	Cursor.Scroll 		= ConsolePortMouse.Cursor.Scroll
+	Cursor.Special 		= ConsolePortMouse.Cursor.Special
+
+	Cursor.LeftClick 	= _G[Cursor.Left..NOMOD]
+	Cursor.RightClick 	= _G[Cursor.Right..NOMOD]
+	Cursor.SpecialClick = _G[Cursor.Special..NOMOD]
+
+	Cursor.Indicator 	= TEXTURE[strupper(db.NAME[Cursor.Left])]
+	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.LONE or TEXTURE.LTWO
+
+	Cursor.SpecialAction = Cursor.SpecialClick.command
+
+	Cursor:SetScript("OnEvent", OnEvent)
+	Cursor:SetScript("OnHide", OnHide)
+	Cursor:SetScript("OnUpdate", UpdateCursor)
+	Cursor:RegisterEvent("MODIFIER_STATE_CHANGED")
+	Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
 end
