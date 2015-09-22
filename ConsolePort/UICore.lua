@@ -6,7 +6,7 @@ local hasUIFocus = false
 -- UIControl tables
 local loadedAddOns = {}
 local stack = {}
-local addOns {}
+local addOns
 
 --- Localize frequently used globals
 -- Functions
@@ -182,7 +182,7 @@ function ConsolePort:CheckLoadedAddons()
 	for name, frames in pairs(addOnList) do
 		if IsAddOnLoaded(name) and not loadedAddOns[name] then
 			for i, frame in pairs(frames) do
-				self:AddFrame(frame)
+				self:AddFrame(_G[frame])
 			end
 			loadedAddOns[name] = true
 		end
@@ -237,7 +237,7 @@ function ConsolePort:ADDON_LOADED(...)
 		addOns = ConsolePortUIFrames
 	end
 	if addOns and addOns[name] and not loadedAddOns[name] then
-		for i, frame in pairs(addOnList[name]) do
+		for i, frame in pairs(addOns[name]) do
 			AddUIControlFrame(self, _G[frame])
 		end
 		loadedAddOns[name] = true

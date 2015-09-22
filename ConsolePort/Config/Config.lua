@@ -674,19 +674,20 @@ end
 | Config: Create panel and children		|
 |---------------------------------------|
 ]]--
-local function CreatePanel(parent, name, desc, header, okay, cancel)
-	local panel = CreateFrame("FRAME", addOn.."ConfigFrame"..name, parent or InterfaceOptionsFramePanelContainer)
+local function CreatePanel(parent, name, title, header, okay, cancel)
+	local panel = CreateFrame("FRAME", addOn.."ConfigFrame"..name, parent)
 
-	panel.name = desc
+	panel.name = title
 	panel.okay = okay
 	panel.cancel = cancel
-	panel.parent = parent
+	panel.parent = parent.name
 
 	panel.Header = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	panel.Header:SetText(header)
 	panel.Header:SetPoint("TOPLEFT", panel, 16, -16)
 
 	InterfaceOptions_AddCategory(panel)
+	return panel
 end
 
 function ConsolePort:CreateConfigPanel()
@@ -694,7 +695,7 @@ function ConsolePort:CreateConfigPanel()
 
 		local player = GetUnitName("player").."-"..GetRealmName()
 
-		local Config = CreatePanel(nil, "Main", addOn, addOn, SaveMainConfig)
+		local Config = CreatePanel(InterfaceOptionsFramePanelContainer, "Main", addOn, addOn, SaveMainConfig)
 		local Binds = CreatePanel(Config, "Binds", "Bindings", "Binding settings", SubmitBindings, RevertBindings)
 		local Mouse = CreatePanel(Config, "Mouse", "Mouse", "Toggle mouse look when...", SaveMouseConfig)
 		local UICtrl = CreatePanel(Config, "UICtrl", "Interface", "Interface settings", nil, nil)
@@ -719,10 +720,6 @@ function ConsolePort:CreateConfigPanel()
 		Binds.Controller = Binds:CreateTexture("GameMenuTextureController", "ARTWORK");
 		Binds.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type);
 		Binds.Controller:SetPoint("CENTER", Binds, "CENTER");
-
-		Binds.Header = Binds:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-		Binds.Header:SetText("Binding settings")
-		Binds.Header:SetPoint("TOPLEFT", Binds, 16, -16)
 
 		Binds.Tutorial = Binds:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 		Binds.Tutorial:SetPoint("TOP", Binds.Controller, 0, -80)
@@ -909,11 +906,6 @@ function ConsolePort:CreateConfigPanel()
 				num = num + 1
 			end
 		end
-
-		InterfaceOptions_AddCategory(Config)
-		InterfaceOptions_AddCategory(Binds)
-		InterfaceOptions_AddCategory(Mouse)
-		InterfaceOptions_AddCategory(UICtrl)
 		
 	end
 end
