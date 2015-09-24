@@ -7,6 +7,10 @@ local m = ConsolePort:CreateMouseLooker()
 
 local UIControls = db.UI.Controls
 
+local buttonWatchers = 0
+local hasButtonWatch = false
+local buttonWatch = {}
+
 local function MouseLookShouldStart()
 	if 	not SpellIsTargeting() 			and
 		not IsMouseButtonDown(1) 		and
@@ -14,6 +18,21 @@ local function MouseLookShouldStart()
 		MouseIsOver(m) 					and
 		(GetMouseFocus() == WorldFrame) then
 		return true
+	end
+end
+
+function CheckButtonWatchers(self)
+	buttonWatchers = 0
+	for button, info in pairs(buttonWatch) do
+		buttonWatchers = buttonWatchers + 1
+		if _G[info.action] then
+			self:ReloadBindingAction(button, info.action, info.name, info.mod1, info.mod2)
+			button.buttonWatch = nil
+			buttonWatch[button] = nil
+		end
+	end
+	if buttonWatchers == 0 then
+		hasButtonWatch = false
 	end
 end
 
@@ -25,6 +44,9 @@ local UpdateQueued = false
 local function OnUpdate (self, elapsed)
 	time = time + elapsed
 	while time > interval do
+		if hasButtonWatch and not InCombatLockdown() then
+			CheckButtonWatchers(self)
+		end
 		if 	not CursorInfo and GetCursorInfo() then
 			self:StopMouse()
 		elseif not MouseIsCentered and
@@ -49,6 +71,7 @@ local function OnEvent (self, event, ...)
 	end
 end
 
+
 function ConsolePort:StopMouse()
 	CursorInfo = true
 	MouselookStop()
@@ -69,6 +92,12 @@ function ConsolePort:GetInterfaceButtons()
 		CP_R_RIGHT_NOMOD,	--6
 		CP_R_UP_NOMOD,		--7
 	}
+end
+
+function ConsolePort:QueueButtonWatch(button, action, name, mod1, mod2)
+	buttonWatch[button] = {action = action, name = name, mod1 = mod1, mod2 = mod2}
+	button.buttonWatch = action
+	hasButtonWatch = true
 end
 
 function ConsolePort:SetButtonActionsDefault()

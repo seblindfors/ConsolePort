@@ -171,10 +171,19 @@ local function FrameHide(self)
 end
 
 local function AddUIControlFrame(self, UIControl, priority)
-	UIControl:HookScript("OnShow", FrameShow)
-	UIControl:HookScript("OnHide", FrameHide)
-	if priority then tinsert(UIControls, priority, UIControl)
-	else tinsert(UIControls, UIControl) end
+	if not UIControl.ConsolePortHook then
+		UIControl.ConsolePortHook = true
+		UIControl:HookScript("OnShow", FrameShow)
+		UIControl:HookScript("OnHide", FrameHide)
+		if priority then tinsert(UIControls, priority, UIControl)
+		else tinsert(UIControls, UIControl) end
+	end
+end
+
+function ConsolePort:UncheckLoadedAddon(name)
+	if loadedAddOns then
+		loadedAddOns[name] = nil
+	end
 end
 
 function ConsolePort:CheckLoadedAddons()
