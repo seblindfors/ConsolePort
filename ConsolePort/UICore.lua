@@ -4,9 +4,14 @@ local UIControls = db.UI.Controls
 local hasUIFocus = false
 
 -- UIControl tables
-local loadedAddOns = {}
 local stack = {}
 local addOns
+
+-- UIControl frame watcher
+local frameWatchers = 0
+local hasFrameWatch = false
+local frameWatch = {}
+
 
 --- Localize frequently used globals
 -- Functions
@@ -170,30 +175,44 @@ local function FrameHide(self)
 	ConsolePort:UpdateFrames()
 end
 
-local function AddUIControlFrame(self, UIControl, priority)
-	if not UIControl.ConsolePortHook then
-		UIControl.ConsolePortHook = true
+local function CheckFrameWatchers(self)
+	frameWatchers = 0
+	for frame, _ in pairs(frameWatch) do
+		if self:AddFrame(frame) then
+			frameWatch[frame] = nil
+		else
+			frameWatchers = frameWatchers + 1
+		end
+	end
+	if 	frameWatchers == 0 then
+		hasFrameWatch = false
+	end
+end
+
+function ConsolePort:AddFrame(frame, priority)
+	local UIControl = _G[frame]
+	if 	UIControl then
 		UIControl:HookScript("OnShow", FrameShow)
 		UIControl:HookScript("OnHide", FrameHide)
 		if priority then tinsert(UIControls, priority, UIControl)
 		else tinsert(UIControls, UIControl) end
+		return true
+	else
+		self:AddFrameWatch(frame)
 	end
 end
 
-function ConsolePort:UncheckLoadedAddon(name)
-	if loadedAddOns then
-		loadedAddOns[name] = nil
-	end
+function ConsolePort:Watch()
+	return frameWatch
 end
 
 function ConsolePort:CheckLoadedAddons()
 	local addOnList = ConsolePortUIFrames or addOns
 	for name, frames in pairs(addOnList) do
-		if IsAddOnLoaded(name) and not loadedAddOns[name] then
+		if IsAddOnLoaded(name) then
 			for i, frame in pairs(frames) do
-				self:AddFrame(_G[frame])
+				self:AddFrame(frame)
 			end
-			loadedAddOns[name] = true
 		end
 	end
 end
@@ -201,6 +220,9 @@ end
 function ConsolePort:UpdateFrames()
 	if not InCombatLockdown() then
 		local defaultActions = true
+		if hasFrameWatch then
+			CheckFrameWatchers(self)
+		end
 		for i, UIControl in pairs(UIControls) do
 			if 	UIControl:IsVisible() and
 				UIControl:GetPoint() then
@@ -227,7 +249,6 @@ end
 function ConsolePort:ADDON_LOADED(...)
 	local name = ...
 	if name == addOn then
-		self.AddFrame = AddUIControlFrame
 		self:CreateButtonHandler()
 		self:LoadStrings()
 		self:LoadSettings()
@@ -245,14 +266,18 @@ function ConsolePort:ADDON_LOADED(...)
 	if not addOns then
 		addOns = ConsolePortUIFrames
 	end
-	if addOns and addOns[name] and not loadedAddOns[name] then
+	if addOns and addOns[name] then
 		for i, frame in pairs(addOns[name]) do
-			AddUIControlFrame(self, _G[frame])
+			self:AddFrame(frame)
 		end
-		loadedAddOns[name] = true
 	end
+	self:UpdateFrames()
 end
 
+function ConsolePort:AddFrameWatch(frame)
+	frameWatch[frame] = true
+	hasFrameWatch = true
+end
 
 function ConsolePort:GetFrameStack()
 	wipe(stack)

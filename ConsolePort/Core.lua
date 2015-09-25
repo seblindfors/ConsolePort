@@ -21,7 +21,7 @@ local function MouseLookShouldStart()
 	end
 end
 
-function CheckButtonWatchers(self)
+local function CheckButtonWatchers(self)
 	buttonWatchers = 0
 	for button, info in pairs(buttonWatch) do
 		buttonWatchers = buttonWatchers + 1
@@ -94,7 +94,7 @@ function ConsolePort:GetInterfaceButtons()
 	}
 end
 
-function ConsolePort:QueueButtonWatch(button, action, name, mod1, mod2)
+function ConsolePort:AddButtonWatch(button, action, name, mod1, mod2)
 	buttonWatch[button] = {action = action, name = name, mod1 = mod1, mod2 = mod2}
 	button.buttonWatch = action
 	hasButtonWatch = true

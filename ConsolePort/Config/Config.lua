@@ -23,11 +23,10 @@ local NewBindingButtons = nil
 
 db.HotKeys = {}
 
---[[
-|---------------------------------------|
-| Config: Recursive table duplicator 	|
-|---------------------------------------|
-]]--
+
+---------------------------------------------------------------
+-- Config: Recursive table duplicator
+---------------------------------------------------------------
 local function Copy(src)
 	local srcType = type(src)
 	local copy
@@ -43,11 +42,9 @@ local function Copy(src)
 	return copy
 end
 
---[[
-|---------------------------------------|
-| Config: Secure/UI button animation 	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Secure UI/Button animation
+---------------------------------------------------------------
 local function AnimateBindingChange(target, destination)
 	if not ConsolePortAnimationFrame then
 		local AniFrame = CreateFrame("FRAME", "ConsolePortAnimationFrame", UIParent)
@@ -78,12 +75,9 @@ local function AnimateBindingChange(target, destination)
 	AniFrame.group:Play()
 end
 
-
---[[
-|---------------------------------------|
-| Config: Returns events for mouselook	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Returns events for mouselook
+---------------------------------------------------------------
 local function GetMouseSettings()
 	return {
 		{ 	event 	= {"PLAYER_STARTED_MOVING"},
@@ -133,11 +127,9 @@ local function GetMouseSettings()
 	}
 end
 
---[[
-|---------------------------------------|
-| Config: Add static binding to new set |
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Add static binding to new set
+---------------------------------------------------------------
 local function ChangeBinding(bindingName, bindingTitle)
 	CONF_BUTTON:SetText(bindingTitle)
 	if not NewBindingSet then
@@ -162,12 +154,9 @@ local function ResetGuides()
 	wipe(db.HotKeys)
 end
 
-
---[[
-|---------------------------------------|
-| Config: Reload, save and revert binds |
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Reload, save and revert binds
+---------------------------------------------------------------
 local function ReloadBindings()
 	ConsolePort:ReloadBindingActions()
 	ConsolePort:LoadBindingSet()
@@ -198,12 +187,9 @@ local function RevertBindings()
 	end
 end
 
-
---[[
-|---------------------------------------|
-| Config: Dropdown keybinding table   	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Dropdown keybinding table
+---------------------------------------------------------------
 local function GenerateBindingsTable()
 	local BindingsTable = {}
 	local SubTables = {
@@ -265,12 +251,9 @@ end
 local bindMenu = GenerateBindingsTable()
 local bindMenuFrame = CreateFrame("Frame", "ConsolePortBindMenu", UIParent, "UIDropDownMenuTemplate")
 
-
---[[
-|---------------------------------------|
-| Config: Static blizzard API button  	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Static blizzard API button 
+---------------------------------------------------------------
 local function CreateConfigStaticButton(name, modifier, modNum)
 	local title = name.."%s"..CONF
 	local title = 	modifier == "SHIFT" 		and format(title, SHIFT) 	or
@@ -314,12 +297,9 @@ local function CreateConfigStaticButton(name, modifier, modNum)
 	tinsert(db.Binds.Buttons[name], button)
 end
 
-
---[[
-|---------------------------------------|
-| Config: Dynamic secure/UI button  	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Dynamic secure/UI button 
+---------------------------------------------------------------
 function ConsolePort:CreateConfigButton(name, mod, modNum)
 	local button = CreateFrame("BUTTON", name..mod..CONF, db.Binds.Rebind, "UIMenuButtonStretchTemplate")
 	button:SetBackdrop(nil)
@@ -386,12 +366,9 @@ function ConsolePort:CreateConfigButton(name, mod, modNum)
 	tinsert(db.Binds.Buttons[name], button)
 end
 
-
---[[
-|---------------------------------------|
-| Config: Create addon dummy bindings  	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Create addon dummy bindings
+---------------------------------------------------------------
 function ConsolePort:LoadBindingSet()
 	local keys = NewBindingSet or ConsolePortBindingSet
 	local w = WorldFrame
@@ -414,12 +391,9 @@ local function GetDefaultGuideTexture(button)
 	return triggers[button] or db.TEXTURE[strupper(db.NAME[button])]
 end
 
-
---[[
-|---------------------------------------|
-| Config: Hotkey guides on UI button 	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Hotkey guides on UI button 
+---------------------------------------------------------------
 function ConsolePort:UpdateActionGuideTexture(button, key, mod1, mod2)
 	if button.HotKey then
 		button.HotKey:SetAlpha(0)
@@ -452,12 +426,9 @@ function ConsolePort:UpdateModifiedActionGuideTexture(button, modifier, anchor)
 	end
 end
 
-
---[[
-|---------------------------------------|
-| Config: Reload bindings from table 	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Reload bindings from table
+---------------------------------------------------------------
 function ConsolePort:ReloadBindingAction(button, UIbutton, name, mod1, mod2)
 	local action = _G[UIbutton]
 	if action then
@@ -473,7 +444,7 @@ function ConsolePort:ReloadBindingAction(button, UIbutton, name, mod1, mod2)
 			button.action.HotKey:SetAlpha(0)
 		end
 	else
-		self:QueueButtonWatch(button, UIbutton, name, mod1, mod2)
+		self:AddButtonWatch(button, UIbutton, name, mod1, mod2)
 	end
 end
 
@@ -495,12 +466,9 @@ function ConsolePort:ReloadBindingActions()
 	end
 end
 
-
---[[
-|---------------------------------------|
-| Config: Secure button binding change 	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Secure button binding change
+---------------------------------------------------------------
 function ConsolePort:ChangeButtonBinding(actionButton)
 	local buttonName 	= actionButton:GetName()
 	local confButton 	= _G[buttonName..CONF]
@@ -529,24 +497,18 @@ function ConsolePort:ChangeButtonBinding(actionButton)
 	end
 end
 
-
---[[
-|---------------------------------------|
-| Config: Binding palette show function |
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Binding palette show function
+---------------------------------------------------------------
 local function BindingsOnShow(self)
 	self.Tutorial:SetText(TUTORIAL.DEFAULT)
 	self.Rebind:Hide()
 	self.dropdown:initialize()
 end
 
-
---[[
-|---------------------------------------|
-| Config: Import profile functions 		|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Import profile functions 
+---------------------------------------------------------------
 local function ImportOnClick(self)
 	if not InCombatLockdown() then
 		local character = self:GetParent().dropdown.text:GetText()
@@ -593,11 +555,9 @@ local function ResetBindingsOnClick(self)
 	end
 end
 
---[[
-|---------------------------------------|
-| Config: Save mouse info/reload events |
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Save mouse info/reload events
+---------------------------------------------------------------
 local function SaveMouseConfig(self)
 	for i, Check in pairs(self.Events) do
 		for i, Event in pairs(Check.Events) do
@@ -611,12 +571,9 @@ local function SaveMouseConfig(self)
 	ConsolePort:SetupCursor()
 end
 
-
---[[
-|---------------------------------------|
-| Config: Binding buttons and tooltip	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Binding buttons and tooltip
+---------------------------------------------------------------
 local function SetBindingTooltip(self)
 	GameTooltip:Hide()
 	GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
@@ -674,11 +631,9 @@ local function RebindSetButton(self, button)
 	self:Show()
 end
 
---[[
-|---------------------------------------|
-| Config: UICtrl addons/frames scripts	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: UICtrl addons/frames scripts
+---------------------------------------------------------------
 local function NewAddonOnClick(self)
 	local self = self:GetParent()
 	local dialog = StaticPopup_Show("CONSOLEPORT_ADDADDON")
@@ -720,12 +675,9 @@ local function RemoveFrameOnClick(self)
 	end
 end
 
---[[
-|---------------------------------------|
-| Config: UICtrl addons and frames		|
-|---------------------------------------|
-]]--
-
+---------------------------------------------------------------
+-- Config: UICtrl addons and frames
+---------------------------------------------------------------
 local function CreateUICtrlConfigButton(parent, num, clickScript, removeScript)
 	local button = CreateFrame("Button", "$parentButton"..num, parent, "UIMenuButtonStretchTemplate")
 	button:SetHeight(32)
@@ -810,12 +762,9 @@ local function RefreshAddonList(self)
 	self:SetHeight(num*32)
 end
 
-
---[[
-|---------------------------------------|
-| Config: UICtrl popup functions		|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: UICtrl popup functions
+---------------------------------------------------------------
 local function AddFramePopupAccept(self, addonButton)
 	local list = ConsolePortUIFrames
 	local addon = list[addonButton:GetText()]
@@ -833,7 +782,6 @@ local function AddFramePopupAccept(self, addonButton)
 		end
 	end
 	RefreshFrameList(addonButton)
-	ConsolePort:UncheckLoadedAddon(addon)
 	ConsolePort:CheckLoadedAddons()
 end
 
@@ -850,7 +798,6 @@ local function RemoveAddonPopupAccept(self, addonList, addon)
 	local list = ConsolePortUIFrames
 	list[addon] = nil
 	RefreshAddonList(addonList)
-	ConsolePort:UncheckLoadedAddon(addon)
 	ConsolePort:CheckLoadedAddons()
 end
 
@@ -864,16 +811,12 @@ local function RemoveFramePopupAccept(self, frame, addon)
 		end
 	end
 	RefreshFrameList(addon)
-	ConsolePort:UncheckLoadedAddon(addon:GetText())
 	ConsolePort:CheckLoadedAddons()
 end
 
-
---[[
-|---------------------------------------|
-| Config: Default functions				|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Default functions	
+---------------------------------------------------------------
 local function LoadDefaultUICtrl(self)
 	ConsolePortUIFrames = ConsolePort:GetDefaultUIFrames()
 	RefreshAddonList(self.AddonList)
@@ -885,11 +828,9 @@ local function LoadDefaultBinds(self)
 	NewBindingButtons = ConsolePort:GetDefaultBindingButtons()
 end
 
---[[
-|---------------------------------------|
-| Config: Create panel and children		|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- Config: Create panel and children	
+---------------------------------------------------------------
 local function CreatePanel(parent, name, title, header, okay, cancel, default)
 	local panel = CreateFrame("FRAME", addOn.."ConfigFrame"..name, parent)
 
@@ -1005,7 +946,7 @@ local function ConfigurePanelBinds(self, Binds)
 	Binds.Cancel = format(Binds.IconFormat, TEXTURE.SQUARE or TEXTURE.X)
 	Binds.Apply = format(Binds.IconFormat, TEXTURE.CIRCLE or TEXTURE.B)
 
-	self:AddFrame(Binds.Rebind)
+	self:AddFrame(Binds.Rebind:GetName())
 
 	-- Static bindings able to call protected Blizzard API
 	local optionButtons = {
