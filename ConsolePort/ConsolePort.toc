@@ -1,20 +1,24 @@
 ## Interface: 60200
 ## Title: Console Port
-## Notes: Custom controller port
-## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings
-## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouse, ConsolePortUIFrames
+## Notes: Game controller addon
+## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames
+## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouse
 
-Init\Strings.lua
+Locale\Locale.xml
+
 Init\Init.lua
+Init\Theme.lua
 Init\Hooks.lua
 
 Config\Splash.lua
 Config\Config.lua
 Config\Secure.lua
 
-Events.lua
-UICore.lua
-Core.lua
+Core\Update.lua
+Core\Mouse.lua
+Core\Events.lua
+Core\UICore.lua
+Core\Core.lua
 
 Frames\UIControl.lua
 Frames\Popup.lua

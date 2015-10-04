@@ -23,7 +23,6 @@ local NewBindingButtons = nil
 
 db.HotKeys = {}
 
-
 ---------------------------------------------------------------
 -- Config: Recursive table duplicator
 ---------------------------------------------------------------
@@ -254,6 +253,32 @@ local bindMenuFrame = CreateFrame("Frame", "ConsolePortBindMenu", UIParent, "UID
 ---------------------------------------------------------------
 -- Config: Static blizzard API button 
 ---------------------------------------------------------------
+local function StaticConfigButtonOnShow(self)
+	local key1, key2 = GetBindingKey(self.name)
+	if key1 then self.key1 = key1 end
+	if key2 then self.key2 = key2 end
+	if key1 or key2 then
+		local key
+		if key1 then key = key1 else key = key2 end
+		if self.modifier then key = self.modifier.."-"..key end
+		self:SetText(_G[BIND..GetBindingAction(key, true)])
+		self.indicator:SetText(self.icon)
+	end
+end
+
+local function StaticConfigButtonOnClick(self, button, down)
+	BIND_TARGET = self.name
+	BIND_MODIFIER = self.modifier
+	CONF_BUTTON = self
+	if DropDownList1:IsVisible() then
+		db.Binds.Tutorial:SetText(format(TUTORIAL.COMBO, db.Binds.Rebind.button.bindings[1].icons))
+		CloseDropDownMenus()
+	else
+		db.Binds.Tutorial:SetText(format(TUTORIAL.STATIC, self.indicator:GetText()))
+		EasyMenu(bindMenu, bindMenuFrame, self, 320 , 0, "MENU")
+	end
+end
+
 local function CreateConfigStaticButton(name, modifier, modNum)
 	local title = name.."%s"..CONF
 	local title = 	modifier == "SHIFT" 		and format(title, SHIFT) 	or
@@ -265,32 +290,12 @@ local function CreateConfigStaticButton(name, modifier, modNum)
 	button.indicator:SetPoint("LEFT", button, "LEFT", 4, 0)
 	button:SetSize(320, 40)
 	button:SetPoint("TOPLEFT", db.Binds.Rebind, 10, -40*modNum-28)
-	button.OnShow = function(self)
-		local key1, key2 = GetBindingKey(name)
-		if key1 then self.key1 = key1 end
-		if key2 then self.key2 = key2 end
-		if key1 or key2 then
-			local key
-			if key1 then key = key1 else key = key2 end
-			if modifier then key = modifier.."-"..key end
-			self:SetText(_G[BIND..GetBindingAction(key, true)])
-			self.indicator:SetText(self.icon)
-		end
-	end
+	button.name = name
+	button.modifier = modifier
 
-	button:SetScript("OnShow", button.OnShow)
-	button:SetScript("OnClick", function(self, button, down)
-		BIND_TARGET = name
-		CONF_BUTTON = self
-		BIND_MODIFIER = modifier
-		if DropDownList1:IsVisible() then
-			db.Binds.Tutorial:SetText(format(TUTORIAL.COMBO, db.Binds.Rebind.button.bindings[1].icons))
-			CloseDropDownMenus()
-		else
-			db.Binds.Tutorial:SetText(format(TUTORIAL.STATIC, self.indicator:GetText()))
-			EasyMenu(bindMenu, bindMenuFrame, self, 320 , 0, "MENU")
-		end
-	end)
+	button:SetScript("OnShow", StaticConfigButtonOnShow)
+	button:SetScript("OnClick", StaticConfigButtonOnClick)
+
 	if not db.Binds.Buttons[name] then
 		db.Binds.Buttons[name] = {}
 	end
@@ -300,6 +305,50 @@ end
 ---------------------------------------------------------------
 -- Config: Dynamic secure/UI button 
 ---------------------------------------------------------------
+local function DynamicConfigButtonOnShow(self)
+	if self.secure.action then
+		self:SetText(self.secure.action:GetName())
+		self.indicator:SetText(self.icon)
+		if self.secure.action.icon and self.secure.action.icon:IsVisible() then
+			self.background:SetTexture(self.secure.action.icon:GetTexture())
+		else
+			self.background:SetTexture(nil)
+		end
+	elseif self.secure.buttonWatch then
+		self.indicator:SetText(self.icon)
+		self:SetText(format("|cFFFF1111%s|r", self.secure.buttonWatch))
+	else
+		self.indicator:SetText(self.icon)
+		self.background:SetTexture(nil)
+	end
+end
+
+local function DynamicConfigButtonOnClick(self, mouseButton)
+	if not InCombatLockdown() then
+		if not ConsolePortRebindFrame.isRebinding then
+			db.Binds.Tutorial:SetText(format(TUTORIAL.DYNAMIC, self.indicator:GetText(), db.Binds.Apply, db.Binds.Cancel))
+			ConsolePort:SetRebinding(self)
+			ConsolePort:SetCurrentNode(self.secure.action)
+		else
+			if mouseButton == "LeftButton" then
+				local frame = ConsolePort:GetCurrentNode()
+				local name = frame:GetName()
+				if ConsolePort:ChangeButtonBinding(self.secure) then
+					db.Binds.Tutorial:SetText(format(TUTORIAL.APPLIED, self.indicator:GetText(), name))
+				else
+					db.Binds.Tutorial:SetText(TUTORIAL.INVALID)
+				end
+			else
+				db.Binds.Tutorial:SetText(format(TUTORIAL.COMBO, db.Binds.Rebind.button.bindings[1].icons))
+			end
+			ConsolePort:SetRebinding(false)
+			ConsolePort:SetCurrentNode(self)
+			ConsolePort:SetButtonActionsUI()
+			ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
+		end
+	end
+end
+
 function ConsolePort:CreateConfigButton(name, mod, modNum)
 	local button = CreateFrame("BUTTON", name..mod..CONF, db.Binds.Rebind, "UIMenuButtonStretchTemplate")
 	button:SetBackdrop(nil)
@@ -315,49 +364,8 @@ function ConsolePort:CreateConfigButton(name, mod, modNum)
 	button.background:SetSize(34, 34)
 
 	button.secure = _G[name..mod]
-	button.OnShow = function(self)
-		if self.secure.action then
-			self:SetText(self.secure.action:GetName())
-			self.indicator:SetText(self.icon)
-			if self.secure.action.icon and self.secure.action.icon:IsVisible() then
-				self.background:SetTexture(self.secure.action.icon:GetTexture())
-			else
-				self.background:SetTexture(nil)
-			end
-		elseif self.secure.buttonWatch then
-			self.indicator:SetText(self.icon)
-			self:SetText(format("|cFFFF1111%s|r", self.secure.buttonWatch))
-		else
-			self.indicator:SetText(self.icon)
-			self.background:SetTexture(nil)
-		end
-	end
-	button:SetScript("OnShow", button.OnShow)
-	button:SetScript("OnClick", function(self, mouseButton)
-		if not InCombatLockdown() then
-			if not ConsolePortRebindFrame.isRebinding then
-				db.Binds.Tutorial:SetText(format(TUTORIAL.DYNAMIC, self.indicator:GetText(), db.Binds.Apply, db.Binds.Cancel))
-				ConsolePort:SetRebinding(self)
-				ConsolePort:SetCurrentNode(self.secure.action)
-			else
-				if mouseButton == "LeftButton" then
-					local frame = ConsolePort:GetCurrentNode()
-					local name = frame:GetName()
-					if ConsolePort:ChangeButtonBinding(self.secure) then
-						db.Binds.Tutorial:SetText(format(TUTORIAL.APPLIED, self.indicator:GetText(), name))
-					else
-						db.Binds.Tutorial:SetText(TUTORIAL.INVALID)
-					end
-				else
-					db.Binds.Tutorial:SetText(format(TUTORIAL.COMBO, db.Binds.Rebind.button.bindings[1].icons))
-				end
-				ConsolePort:SetRebinding(false)
-				ConsolePort:SetCurrentNode(self)
-				ConsolePort:SetButtonActionsUI()
-				ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
-			end
-		end
-	end)
+	button:SetScript("OnShow", DynamicConfigButtonOnShow)
+	button:SetScript("OnClick", DynamicConfigButtonOnClick)
 	button:SetAlpha(1)
 	button:Show()
 	if not db.Binds.Buttons[name] then
@@ -829,7 +837,7 @@ local function LoadDefaultBinds(self)
 end
 
 ---------------------------------------------------------------
--- Config: Create panel and children	
+-- Config: Create panel and children 
 ---------------------------------------------------------------
 local function CreatePanel(parent, name, title, header, okay, cancel, default)
 	local panel = CreateFrame("FRAME", addOn.."ConfigFrame"..name, parent)
@@ -943,8 +951,8 @@ local function ConfigurePanelBinds(self, Binds)
 	Binds.Rebind:SetScript("OnEvent", Binds.Rebind.Hide)
 
 	Binds.IconFormat = "|T%s:24:24:0:0|t"
-	Binds.Cancel = format(Binds.IconFormat, TEXTURE.SQUARE or TEXTURE.X)
-	Binds.Apply = format(Binds.IconFormat, TEXTURE.CIRCLE or TEXTURE.B)
+	Binds.Cancel = format("|T%s:16:16:0:0|t", TEXTURE.SQUARE or TEXTURE.X)
+	Binds.Apply = format("|T%s:16:16:0:0|t", TEXTURE.CIRCLE or TEXTURE.B)
 
 	self:AddFrame(Binds.Rebind:GetName())
 

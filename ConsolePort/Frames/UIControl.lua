@@ -23,11 +23,9 @@ local UIParent = UIParent
 -- Initiate the cursor frame
 local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
 
---[[
-|---------------------------------------|
-| UIControl: Override click bindings	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- UIControl: Override click bindings
+---------------------------------------------------------------
 local function OverrideBindingClick(owner, old, button, mouseClick, mod)
 	if not InCombatLockdown() then
 		local key1, key2 = GetBindingKey(old)
@@ -44,12 +42,9 @@ local function OverrideBindingCtrlClick(owner, old, button, mouseClick)
 	OverrideBindingClick(owner, old, button, mouseClick, "CTRL-")
 end
 
---[[
-|---------------------------------------|
-| UIControl: Cursor texture functions	|
-|---------------------------------------|
-]]--
-
+---------------------------------------------------------------
+-- UIControl: Cursor texture functions
+---------------------------------------------------------------
 local function SetCursorTexture(self, texture)
 	local object = current and current.object 
 	self.Button:SetTexture(texture or object == "Slider" and self.ScrollGuide or self.Indicator)
@@ -105,12 +100,9 @@ local function AnimateCursor(self)
 	end
 end
 
-
---[[
-|---------------------------------------|
-| UIControl: Node management functions	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- UIControl: Node management functions
+---------------------------------------------------------------
 local IsUsable = {
 	Button 		= true,
 	CheckButton = true,
@@ -155,7 +147,7 @@ local function GetNodes(parent)
 	end
 	local children = {parent:GetChildren()}
 	local object = parent:GetObjectType()
-	if 	object ~= "Slider" then
+	if 	object ~= "Slider" and not parent.hasArrow then
 		for i, child in pairs(children) do
 			GetNodes(child)
 		end
@@ -250,7 +242,7 @@ local function FindClosestNode(key)
 	end
 end
 
-local function EnterNode(self, node, object)
+local function EnterNode(self, node, object, state)
 	if IsClickable[object] and node:IsEnabled() then
 		local name = rebindNode and nil or node.direction and node:GetName()
 		self:SetClickButton(Cursor.LeftClick, rebindNode or node)
@@ -260,7 +252,7 @@ local function EnterNode(self, node, object)
 		-- Check for HotKey to avoid taint on action buttons in rebind mode
 		local enter = not node.HotKey and node:GetScript("OnEnter")
 		node:LockHighlight()
-		if enter then
+		if enter and state == KEY.STATE_UP then
 			enter(node)
 		end
 	else
@@ -305,11 +297,9 @@ local function SpecialAction(self)
 	end
 end
 
---[[
-|---------------------------------------|
-| UIControl: Cursor scripts and events	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- UIControl: Cursor scripts and events
+---------------------------------------------------------------
 local function UpdateCursor(self, elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
@@ -357,11 +347,9 @@ local function OnEvent(self, event)
 	end
 end
 
---[[
-|---------------------------------------|
-| UIControl: Global node manipulation	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- UIControl: Global node manipulation
+---------------------------------------------------------------
 function ConsolePort:GetUIControlNodes()
 	return nodes
 end
@@ -384,21 +372,17 @@ function ConsolePort:SetCurrentNode(UIobject)
 	self:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
 end
 
---[[
-|---------------------------------------|
-| UIControl: Toggle rebind mode			|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- UIControl: Toggle rebind mode	
+---------------------------------------------------------------
 function ConsolePort:SetRebinding(button)
 	ConsolePortRebindFrame.isRebinding = button
 	rebindNode = button
 end
 
---[[
-|---------------------------------------|
-| UIControl: Command parser / main func	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- UIControl: Command parser / main func
+---------------------------------------------------------------
 function ConsolePort:UIControl(key, state)
 	RefreshNodes(self)
 	if state == KEY.STATE_DOWN then
@@ -408,17 +392,15 @@ function ConsolePort:UIControl(key, state)
 	end
 	local node = current and current.node
 	if node then
-		EnterNode(self, node, current.object)
+		EnterNode(self, node, current.object, state)
 		Cursor:SetPosition(node, current.object)
 		Cursor:Animate()
 	end
 end
 
---[[
-|---------------------------------------|
-| UIControl: Initialize Cursor			|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- UIControl: Initialize Cursor
+---------------------------------------------------------------
 function ConsolePort:SetupCursor()
 	Cursor.Icon = Cursor.Icon or Cursor:CreateTexture(nil, "OVERLAY")
 	Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")

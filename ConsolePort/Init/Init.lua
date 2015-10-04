@@ -1,31 +1,47 @@
-local _, db = ...
+local addOn, db = ...
+-- Main
+local ConsolePort = CreateFrame("FRAME", addOn)
+
+-- Tables
+db.TEXTURE 	= {}
+db.SECURE 	= {}
+db.UIControls = {}
+db.ButtonGuides  = {}
+
+-- Interaction keys
+db.KEY = {
+	CIRCLE  						= 1,
+	SQUARE 							= 2,
+	TRIANGLE 						= 3,
+	UP								= 4,
+	DOWN							= 5,
+	LEFT							= 6,
+	RIGHT							= 7,
+	PREPARE 						= 8,
+	STATE_UP 						= "up",
+	STATE_DOWN						= "down",
+}
+
+
 local KEY = db.KEY
-local BIND_TARGET 	 	= false
-local CONF_BUTTON 		= nil
-local CP 				= "CP"
-local CONF 				= "_CONF"
-local CONFBG 			= "_CONF_BG"
-local GUIDE 			= "_GUIDE"
-local NOMOD				= "_NOMOD"
-local SHIFT 			= "_SHIFT"
-local CTRL 				= "_CTRL"
-local CTRLSH 			= "_CTRLSH"
-
-db.ButtonGuides 		 = {}
-
 -- Sort table by non-numeric key
 db.pairsByKeys = function (t,f)
 	local a = {}
 	for n in pairs(t) do tinsert(a, n) end
 	table.sort(a, f)
 	local i = 0      -- iterator variable
-	local iter = function ()   -- iterator function
+	local function iter()   -- iterator function
 		i = i + 1
 		if a[i] == nil then return nil
 		else return a[i], t[a[i]]
 		end
 	end
 	return iter
+end
+
+-- debug tool
+function ConsolePort:G()
+	return db
 end
 
 function ConsolePort:GetBindingNames()
@@ -236,11 +252,11 @@ local function GetDefaultMouseCursor()
 end
 
 function ConsolePort:GetDefaultAddonSettings()
-	local t = {}
-	t.type = "PS4"
-	t.cam = false
-	t.autoExtra = true
-	return t
+	return {
+		["type"] = "PS4",
+		["cam"] = false,
+		["autoExtra"] = true
+	}
 end
 
  function ConsolePort:LoadSettings()
@@ -288,7 +304,7 @@ end
         		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
         		ConsolePortSettings = nil
         		ReloadUI()
-        	elseif 	msg == "resetAll" then print("Error: Cannot reset addon in combat!")
+        	elseif 	msg == "resetAll" then print(db.TUTORIAL.SLASH.COMBAT)
         	elseif 	msg == "binds" or
         			msg == "binding" or
         			msg == "bindings" then
@@ -297,10 +313,11 @@ end
 			elseif 	msg == "test" and _G["ConsolePortUI"] then
 				_G["ConsolePortUI"]:Toggle()
         	else
-        		print("Console Port:")
-        		print("/cp type: Change controller type")
-        		print("/cp resetAll: Full addon reset")
-        		print("/cp binds: Open binding menu")
+        		local instruction = "|cff69ccf0%s|r: %s"
+        		print("|cffffe00aConsolePort|r:")
+        		print(format(instruction, "/cp type", db.TUTORIAL.SLASH.TYPE))
+        		print(format(instruction, "/cp resetAll", db.TUTORIAL.SLASH.TYPE))
+        		print(format(instruction, "/cp binds", db.TUTORIAL.SLASH.TYPE))
         	end
         end
         SlashCmdList["CONSOLEPORT"] = SlashHandler
@@ -309,7 +326,7 @@ end
 
 function ConsolePort:CreateMouseLooker()
 	local MouseLook = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)
-	MouseLook.hoverButton = MouseLook:CreateTexture(nil, "BACKGROUND")
+--	MouseLook.hoverButton = MouseLook:CreateTexture(nil, "BACKGROUND")
 	MouseLook:SetPoint("CENTER", p, 0, -50)
 	MouseLook:SetWidth(70)
 	MouseLook:SetHeight(180)
@@ -324,20 +341,21 @@ function ConsolePort:CreateActionButtons()
 	table.sort(keys)
 	for name, key in db.pairsByKeys(keys) do
 		if key.action 	then 
-			self:CreateSecureButton(name, 	NOMOD,	key.action,	key.ui)
-			self:CreateConfigButton(name, 	NOMOD, 0)
+			self:CreateSecureButton(name, "_NOMOD",	key.action,	key.ui)
+			self:CreateConfigButton(name, "_NOMOD", 0)
 		end
 		if key.shift 	then
-			self:CreateSecureButton(name,	SHIFT, 	key.shift, 	key.ui)
-			self:CreateConfigButton(name, 	SHIFT, 1)
+			self:CreateSecureButton(name, "_SHIFT", key.shift, 	key.ui)
+			self:CreateConfigButton(name, "_SHIFT", 1)
 		end
 		if key.ctrl 	then
-			self:CreateSecureButton(name,	CTRL,  	key.ctrl, 	key.ui)
-			self:CreateConfigButton(name,	CTRL,  2)
+			self:CreateSecureButton(name, "_CTRL",  key.ctrl, 	key.ui)
+			self:CreateConfigButton(name, "_CTRL",  2)
 		end
 		if key.ctrlsh 	then
-			self:CreateSecureButton(name, 	CTRLSH,	key.ctrlsh, key.ui)
-			self:CreateConfigButton(name,	CTRLSH, 3)
+			self:CreateSecureButton(name, "_CTRLSH", key.ctrlsh, key.ui)
+			self:CreateConfigButton(name, "_CTRLSH", 3)
 		end
 	end
 end
+

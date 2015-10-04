@@ -14,9 +14,6 @@
 	<Binding name="CP_R_UP" header="CP_RIGHT" category="Console Port">
 		-- 
 	</Binding>
-	<Binding name="CP_X_OPTION" header="CP_RIGHT" category="Console Port">
-		-- 
-	</Binding>
 	<Binding name="CP_R_LEFT" header="CP_RIGHT" category="Console Port">
 		-- 
 	</Binding>

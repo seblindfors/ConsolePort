@@ -2,61 +2,24 @@
 local addOn, db = ...
 local KEY = db.KEY
 
-local f = ConsolePort
-local m = ConsolePort:CreateMouseLooker()
-
-local UIControls = db.UI.Controls
-
 local buttonWatchers = 0
 local hasButtonWatch = false
 local buttonWatch = {}
 
-local function MouseLookShouldStart()
-	if 	not SpellIsTargeting() 			and
-		not IsMouseButtonDown(1) 		and
-		not GetCursorInfo() 			and
-		MouseIsOver(m) 					and
-		(GetMouseFocus() == WorldFrame) then
-		return true
-	end
-end
-
 local function CheckButtonWatchers(self)
-	buttonWatchers = 0
-	for button, info in pairs(buttonWatch) do
-		buttonWatchers = buttonWatchers + 1
-		if _G[info.action] then
-			self:ReloadBindingAction(button, info.action, info.name, info.mod1, info.mod2)
-			button.buttonWatch = nil
-			buttonWatch[button] = nil
+	if hasButtonWatch and not InCombatLockdown() then
+		buttonWatchers = 0
+		for button, info in pairs(buttonWatch) do
+			buttonWatchers = buttonWatchers + 1
+			if _G[info.action] then
+				self:ReloadBindingAction(button, info.action, info.name, info.mod1, info.mod2)
+				button.buttonWatch = nil
+				buttonWatch[button] = nil
+			end
 		end
-	end
-	if buttonWatchers == 0 then
-		hasButtonWatch = false
-	end
-end
-
-local interval = 0.1
-local time = 0
-local MouseIsCentered = false
-local CursorInfo = false
-local UpdateQueued = false
-local function OnUpdate (self, elapsed)
-	time = time + elapsed
-	while time > interval do
-		if hasButtonWatch and not InCombatLockdown() then
-			CheckButtonWatchers(self)
+		if buttonWatchers == 0 then
+			hasButtonWatch = false
 		end
-		if 	not CursorInfo and GetCursorInfo() then
-			self:StopMouse()
-		elseif not MouseIsCentered and
-			MouseLookShouldStart() then
-			self:StartMouse()
-			MouseIsCentered = true;
-		elseif not MouseIsOver(m) and MouseIsCentered then
-			MouseIsCentered = false
-		end
-		time = time - interval
 	end
 end
 
@@ -69,17 +32,6 @@ local function OnEvent (self, event, ...)
 	if not InCombatLockdown() then
 		ClearOverrideBindings(self)
 	end
-end
-
-
-function ConsolePort:StopMouse()
-	CursorInfo = true
-	MouselookStop()
-end
-
-function ConsolePort:StartMouse()
-	CursorInfo = nil
-	MouselookStart()
 end
 
 function ConsolePort:GetInterfaceButtons()
@@ -132,7 +84,8 @@ function ConsolePort:OverrideBinding(self, priority, modifier, old, new)
 	end
 end
 
-f:RegisterEvent("ADDON_LOADED");
-f:RegisterEvent("PLAYER_LOGOUT");
-f:SetScript("OnEvent", OnEvent);
-f:SetScript("OnUpdate", OnUpdate);
+
+ConsolePort:AddUpdateSnippet(CheckButtonWatchers)
+ConsolePort:RegisterEvent("ADDON_LOADED");
+ConsolePort:RegisterEvent("PLAYER_LOGOUT");
+ConsolePort:SetScript("OnEvent", OnEvent);

@@ -1,13 +1,6 @@
 local _, db = ...
 local KEY = db.KEY
 
-local function CinematicControllerInput(key, state)
-	local keybind = GetBindingFromClick(key), button
-	if 		keybind == "CLICK CP_R_RIGHT_NOMOD:LeftButton" 	then button = KEY.CIRCLE
-	elseif 	keybind == "CLICK CP_R_LEFT_NOMOD:LeftButton" 	then button = KEY.SQUARE end
-	if button then ConsolePort:Misc(button, state) end
-end
-
 -- Recursively compare two tables 
 local function CompareTables(t1, t2)
 	if t1 == t2 then
@@ -97,8 +90,7 @@ function ConsolePort:LoadHookScripts()
 			if		owner:GetParent():GetName() and
 					string.find(owner:GetParent():GetName(), "MerchantItem") ~= nil then
 					CLICK_STRING = db.CLICK.BUY
-					local maxStack = GetMerchantItemMaxStack(owner:GetID())
-					if maxStack > 1 then 
+					if GetMerchantItemMaxStack(owner:GetID()) > 1 then 
 						self:AddLine(db.CLICK.STACK_BUY, 1,1,1)
 					end
 			elseif	owner:GetParent() == LootFrame then
@@ -139,38 +131,6 @@ function ConsolePort:LoadHookScripts()
 	StackSplitFrame:EnableKeyboard(false)
 	-- Get rid of mouselook when trying to interact with mouse
 	hooksecurefunc("InteractUnit", self.StopMouse)
-	-- Add inputs to cinematic frame, behaves oddly after first dialog closing
-	CinematicFrame:HookScript("OnKeyDown", function(self, key)
-		CinematicControllerInput(key, KEY.STATE_DOWN)
-	end)
-	CinematicFrame:HookScript("OnKeyUp", function(self, key)
-		CinematicControllerInput(key, KEY.STATE_UP)
-	end)
 	--
 	StaticPopupDialogs.DELETE_GOOD_ITEM = StaticPopupDialogs.DELETE_ITEM
-end
-
-function ConsolePort:LoadEvents()
-	-- Default events
-	local Events = {
-		["PLAYER_STARTED_MOVING"] 	= false,
-		["PLAYER_REGEN_DISABLED"] 	= false,
-		["PLAYER_REGEN_ENABLED"] 	= false,
-		["ADDON_LOADED"] 			= false,
-		["UPDATE_BINDINGS"] 		= false,
-		["CURSOR_UPDATE"] 			= false,
-		["QUEST_AUTOCOMPLETE"] 		= false,
-		["QUEST_LOG_UPDATE"] 		= false,
-		["WORLD_MAP_UPDATE"] 		= false,
-		["UNIT_ENTERING_VEHICLE"] 	= false,
-	}
-	-- Mouse look events
-	for event, val in pairs(ConsolePortMouse.Events) do
-		Events[event] = val
-	end
-	self:UnregisterAllEvents()
-	for event, _ in pairs(Events) do
-		self:RegisterEvent(event)
-	end
-	return Events
 end

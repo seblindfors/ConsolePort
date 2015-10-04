@@ -1,6 +1,6 @@
 local addOn, db = ...
 local KEY = db.KEY
-local UIControls = db.UI.Controls
+local UIControls = db.UIControls
 local hasUIFocus = false
 
 -- UIControl tables
@@ -11,7 +11,6 @@ local addOns
 local frameWatchers = 0
 local hasFrameWatch = false
 local frameWatch = {}
-
 
 --- Localize frequently used globals
 -- Functions
@@ -69,65 +68,22 @@ function ConsolePort:GetDefaultUIFrames()
 			"VoidStorageFrame" },
 	-- Core
 		ConsolePort					= {
-			"StaticPopup1",
-			"StaticPopup2",
-			"StaticPopup3",
-			"StaticPopup4",
-			"AddonList",
-			"BagHelpBox",
-			"BankFrame",
-			"BasicScriptErrors",
-			"CharacterFrame",
-			"ChatMenu",
-			"CinematicFrameCloseDialog",
-			"ContainerFrame1",
-			"ContainerFrame2",
-			"ContainerFrame3",
-			"ContainerFrame4",
-			"ContainerFrame5",
-			"ContainerFrame6",
-			"ContainerFrame7",
-			"ContainerFrame8",
-			"ContainerFrame9",
-			"ContainerFrame10",
-			"ContainerFrame11",
-			"ContainerFrame12",
-			"ContainerFrame13",
-			"DressUpFrame",
-			"DropDownList1",
-			"DropDownList2",
-			"FriendsFrame",	
-			"GameMenuFrame",
-			"GossipFrame",	
-			"GuildInviteFrame",
-			"InterfaceOptionsFrame",
-			"ItemRefTooltip",
-			"ItemTextFrame",
-			"LFDRoleCheckPopup",
-			"LFGDungeonReadyDialog",
-			"LootFrame",	
-			"MailFrame",	
-			"MerchantFrame",
-			"OpenMailFrame",
-			"PetBattleFrame",
-			"PetitionFrame",
-			"PVEFrame",
-			"PVPReadyDialog",
-			"QuestFrame",	
-			"QuestLogPopupDetailFrame",
-			"RecruitAFriendFrame",
-			"SpellBookFrame",
-			"SpellFlyout",	
-			"SplashFrame",	
-			"StackSplitFrame",
-			"TaxiFrame",
-			"TutorialFrame",
-			"VideoOptionsFrame",	
-			"WorldMapFrame",
-			"GroupLootFrame1",
-			"GroupLootFrame2",
-			"GroupLootFrame3",
-			"GroupLootFrame4" },
+			"StaticPopup1", "StaticPopup2", "StaticPopup3", "StaticPopup4",
+			"AddonList", "BagHelpBox", "BankFrame", "BasicScriptErrors",
+			"CharacterFrame", "ChatMenu", "CinematicFrameCloseDialog", "ContainerFrame1",
+			"ContainerFrame2", "ContainerFrame3", "ContainerFrame4", "ContainerFrame5",
+			"ContainerFrame6", "ContainerFrame7", "ContainerFrame8", "ContainerFrame9",
+			"ContainerFrame10", "ContainerFrame11", "ContainerFrame12", "ContainerFrame13",
+			"DressUpFrame", "DropDownList1", "DropDownList2", "FriendsFrame",	
+			"GameMenuFrame", "GossipFrame",	"GuildInviteFrame", "InterfaceOptionsFrame",
+			"ItemRefTooltip", "ItemTextFrame", "LFDRoleCheckPopup", "LFGDungeonReadyDialog",
+			"LootFrame", "MailFrame", "MerchantFrame", "OpenMailFrame",
+			"PetBattleFrame", "PetitionFrame", "PVEFrame", "PVPReadyDialog",
+			"QuestFrame","QuestLogPopupDetailFrame","RecruitAFriendFrame", "SpellBookFrame",
+			"SpellFlyout", "SplashFrame", "StackSplitFrame", "TaxiFrame", "TutorialFrame",
+			"VideoOptionsFrame", "WorldMapFrame",
+			"GroupLootFrame1", "GroupLootFrame2", "GroupLootFrame3", "GroupLootFrame4"
+		},
 	}
 end
 
@@ -202,10 +158,6 @@ function ConsolePort:AddFrame(frame, priority)
 	end
 end
 
-function ConsolePort:Watch()
-	return frameWatch
-end
-
 function ConsolePort:CheckLoadedAddons()
 	local addOnList = ConsolePortUIFrames or addOns
 	for name, frames in pairs(addOnList) do
@@ -250,7 +202,7 @@ function ConsolePort:ADDON_LOADED(...)
 	local name = ...
 	if name == addOn then
 		self:CreateButtonHandler()
-		self:LoadStrings()
+		self:LoadControllerTheme()
 		self:LoadSettings()
 		self:LoadEvents()
 		self:UpdateExtraButton()
@@ -261,7 +213,6 @@ function ConsolePort:ADDON_LOADED(...)
 		self:ReloadBindingActions()
 		self:SetupCursor()
 		self:CheckLoadedAddons()
---		self:CreateUIHandler()
 	end
 	if not addOns then
 		addOns = ConsolePortUIFrames

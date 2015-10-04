@@ -1,12 +1,9 @@
 local addOn, db = ...
 local KEY = db.KEY
 
-
---[[
-|---------------------------------------|
-| SecureBtn: Actionpage state handler 	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- SecureBtn: Actionpage state handler
+---------------------------------------------------------------
 function ConsolePort:CreateButtonHandler()
 	if not ConsolePortButtonHandler then
 		local ButtonHandler = CreateFrame("Frame", addOn.."ButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
@@ -68,12 +65,9 @@ function ConsolePort:CreateButtonHandler()
 	end
 end
 
-
---[[
-|---------------------------------------|
-| SecureBtn: Main bar button ref check 	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- SecureBtn: Main bar button ref check
+---------------------------------------------------------------
 local function MainBarAction(action)
 	if 	type(action) == "table" and
 		action:GetParent() == MainMenuBarArtFrame and
@@ -84,11 +78,9 @@ local function MainBarAction(action)
 	end
 end
 
---[[
-|---------------------------------------|
-| SecureBtn: Input scripts  			|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- SecureBtn: Input scripts 
+---------------------------------------------------------------
 local function OnMouseDown(self, button)
 	local func = self:GetAttribute("type")
 	local click = self:GetAttribute("clickbutton")
@@ -127,12 +119,9 @@ local function PostClick(self)
 	end
 end
 
-
---[[
-|---------------------------------------|
-| SecureBtn: Global frame references 	|
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- SecureBtn: Global frame references
+---------------------------------------------------------------
 local function UIControl(self)
 	ConsolePort:UIControl(self.command, self.state)
 end
@@ -141,12 +130,9 @@ local function Popup(self)
 	ConsolePort:Popup(self.command, self.state)
 end
 
-
---[[
-|---------------------------------------|
-| SecureBtn: Combat reversion functions |
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- SecureBtn: Combat reversion functions
+---------------------------------------------------------------
 local function RevertBinding(self)
 	if  MainBarAction(self.default.val) then
 		self.default.type = "action"
@@ -167,12 +153,9 @@ local function ResetBinding(self)
 	}
 end
 
-
---[[
-|---------------------------------------|
-| SecureBtn: Mock ActionBar button init |
-|---------------------------------------|
-]]--
+---------------------------------------------------------------
+-- SecureBtn: Mock ActionBar button init
+---------------------------------------------------------------
 function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	local btn 	= CreateFrame("Button", name..modifier, UIParent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 	btn.name 	= name
