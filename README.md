@@ -7,7 +7,7 @@
 <a href="http://youtu.be/6EDvD2HfYJI" target="_blank">Video (Relevant: Proving Grounds Gold)</a>
 
 <h2>DISCLAIMER</h2>
-This git serves as a testing ground for new code, where uploaded nightly builds might have weird bugs or may not even work at all. Most of the code published here is untested. Please refer to either Wowinterface or Curse for stable versions. 
+This git serves as a testing ground for new code, where uploaded nightly builds might have weird bugs or may not even work at all. Most of the code published here is untested. Please refer to Wowinterface or Curse for stable versions. 
 
 <h2>What is ConsolePort?</h2>
 ConsolePort is a lightweight interface add-on for World of Warcraft that will give you a handful of nifty features
