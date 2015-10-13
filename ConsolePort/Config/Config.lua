@@ -24,7 +24,7 @@ local NewBindingButtons = nil
 db.HotKeys = {}
 
 ---------------------------------------------------------------
--- Config: Recursive table duplicator
+-- Table: Recursive table duplicator
 ---------------------------------------------------------------
 local function Copy(src)
 	local srcType = type(src)
@@ -39,6 +39,35 @@ local function Copy(src)
 		copy = src
 	end
 	return copy
+end
+
+---------------------------------------------------------------
+-- Table: Recursive table comparator
+---------------------------------------------------------------
+local function Compare(t1, t2)
+	if t1 == t2 then
+		return true
+	end
+	if type(t1) ~= "table" then
+		return false
+	end
+	local mt1, mt2 = getmetatable(t1), getmetatable(t2)
+	if not Compare(mt1,mt2) then
+		return false
+	end
+	for k1, v1 in pairs(t1) do
+		local v2 = t2[k1]
+		if not Compare(v1,v2) then
+			return false
+		end
+	end
+	for k2, v2 in pairs(t2) do
+		local v1 = t1[k2]
+		if not Compare(v1,v2) then
+			return false
+		end
+	end
+	return true
 end
 
 ---------------------------------------------------------------
@@ -161,6 +190,26 @@ local function ReloadBindings()
 	ConsolePort:LoadBindingSet()
 end
 
+local function ExportCharacterSettings()
+	local this = GetUnitName("player").."-"..GetRealmName()
+	if 	not Compare(ConsolePortBindingSet, ConsolePort:GetDefaultBindingSet()) or
+		not Compare(ConsolePortBindingButtons, ConsolePort:GetDefaultBindingButtons()) then
+		if not ConsolePortCharacterSettings then
+			ConsolePortCharacterSettings = {}
+		end
+		if not ConsolePortCharacterSettings[this] then
+			ConsolePortCharacterSettings[this] = {}
+		end
+		ConsolePortCharacterSettings[this] = {
+			BindingSet = ConsolePortBindingSet,
+			BindingBtn = ConsolePortBindingButtons,
+			MouseEvent = ConsolePortMouse.Events,
+		}
+	elseif ConsolePortCharacterSettings then
+		ConsolePortCharacterSettings[this] = nil
+	end
+end
+
 local function SubmitBindings()
 	if 	NewBindingSet or NewBindingButtons then
 		ConsolePortBindingSet = NewBindingSet or ConsolePortBindingSet
@@ -171,6 +220,7 @@ local function SubmitBindings()
 		else
 			ReloadUI()
 		end
+		ExportCharacterSettings()
 	end
 end
 
@@ -288,8 +338,8 @@ local function CreateConfigStaticButton(name, modifier, modNum)
 	button.hasPriority = modifier == nil
 	button.indicator = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	button.indicator:SetPoint("LEFT", button, "LEFT", 4, 0)
-	button:SetSize(320, 40)
-	button:SetPoint("TOPLEFT", db.Binds.Rebind, 10, -40*modNum-28)
+	button:SetSize(350, 40)
+	button:SetPoint("TOP", db.Binds.Rebind, 0, -40*modNum-28)
 	button.name = name
 	button.modifier = modifier
 
@@ -305,20 +355,28 @@ end
 ---------------------------------------------------------------
 -- Config: Dynamic secure/UI button 
 ---------------------------------------------------------------
+local function GetStaticBinding(self)
+	local key  = GetBindingKey(self.name)
+	if key then
+		key = self.modifier and self.modifier.."-"..key or key
+		return _G[BIND..GetBindingAction(key, true)]
+	end
+end
+
 local function DynamicConfigButtonOnShow(self)
+	self.indicator:SetText(self.icon)
 	if self.secure.action then
 		self:SetText(self.secure.action:GetName())
-		self.indicator:SetText(self.icon)
 		if self.secure.action.icon and self.secure.action.icon:IsVisible() then
 			self.background:SetTexture(self.secure.action.icon:GetTexture())
 		else
 			self.background:SetTexture(nil)
 		end
 	elseif self.secure.buttonWatch then
-		self.indicator:SetText(self.icon)
 		self:SetText(format("|cFFFF1111%s|r", self.secure.buttonWatch))
+	elseif GetStaticBinding(self) then
+		self:SetText(GetStaticBinding(self))
 	else
-		self.indicator:SetText(self.icon)
 		self.background:SetTexture(nil)
 	end
 end
@@ -349,12 +407,23 @@ local function DynamicConfigButtonOnClick(self, mouseButton)
 	end
 end
 
+local function GetModifierString(mod)
+	
+	local modString = {
+		_SHIFT 	= "SHIFT",
+		_CTRL 	= "CTRL",
+		_CTRLSH = "CTRL-SHIFT",
+	}
+	return modString[mod]
+end
+
 function ConsolePort:CreateConfigButton(name, mod, modNum)
-	local button = CreateFrame("BUTTON", name..mod..CONF, db.Binds.Rebind, "UIMenuButtonStretchTemplate")
+	local button = CreateFrame("BUTTON", name..mod..CONF, db.Binds.Rebind, "OptionsListButtonTemplate")
 	button:SetBackdrop(nil)
-	button:SetSize(320,40)
-	button:SetPoint("TOPLEFT", db.Binds.Rebind, "TOPLEFT", 10, -40*modNum-28)
+	button:SetSize(360,40)
+	button:SetPoint("TOP", db.Binds.Rebind, "TOP", 0, -40*modNum-28)
 	button.hasPriority = mod == NOMOD
+	button.text:SetJustifyH("CENTER")
 
 	button.indicator = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	button.indicator:SetPoint("LEFT", button, "LEFT", 4, 0)
@@ -362,6 +431,9 @@ function ConsolePort:CreateConfigButton(name, mod, modNum)
 	button.background = button:CreateTexture(nil, "OVERLAY")
 	button.background:SetPoint("RIGHT", button, "RIGHT", -4, 0)
 	button.background:SetSize(34, 34)
+
+	button.modifier = GetModifierString(mod)
+	button.name = name
 
 	button.secure = _G[name..mod]
 	button:SetScript("OnShow", DynamicConfigButtonOnShow)
@@ -687,8 +759,8 @@ end
 -- Config: UICtrl addons and frames
 ---------------------------------------------------------------
 local function CreateUICtrlConfigButton(parent, num, clickScript, removeScript)
-	local button = CreateFrame("Button", "$parentButton"..num, parent, "UIMenuButtonStretchTemplate")
-	button:SetHeight(32)
+	local button = CreateFrame("Button", "$parentButton"..num, parent, "OptionsListButtonTemplate")
+	button:SetHeight(24)
 	button:SetScript("OnClick", clickScript)
 	button.Remove = CreateFrame("Button", "$parentRemove", button)
 	button.Remove:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
@@ -698,8 +770,8 @@ local function CreateUICtrlConfigButton(parent, num, clickScript, removeScript)
 	button.Remove:SetScript("OnClick", removeScript)
 	tinsert(parent.Buttons, button)
 	if num == 1 then
-		button:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
-		button:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
+		button:SetPoint("TOPLEFT", parent, "TOPLEFT", 4, 0)
+		button:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -4, 0)
 	else
 		button:SetPoint("TOPLEFT", parent.Buttons[num-1], "BOTTOMLEFT")
 		button:SetPoint("TOPRIGHT", parent.Buttons[num-1], "BOTTOMRIGHT")
@@ -743,7 +815,7 @@ local function RefreshFrameList(self)
 		button.owner = self
 	end
 
-	frameList:SetHeight(num*32)
+	frameList:SetHeight(num*24)
 end
 
 local function RefreshAddonList(self)
@@ -767,7 +839,7 @@ local function RefreshAddonList(self)
 		button.list = frames
 	end
 
-	self:SetHeight(num*32)
+	self:SetHeight(num*24)
 end
 
 ---------------------------------------------------------------
@@ -928,7 +1000,6 @@ local function ConfigurePanelBinds(self, Binds)
 		local button = CreateFrame("Button", buttonName.."_BINDING", Binds)
 		button.name = buttonName
 		button.icon = "|T%s:24:24:0:0|t"
-		button.isSecureButton = _G[buttonName..NOMOD] and true
 		button.texture = format(button.icon, GetDefaultGuideTexture(buttonName))
 		button:SetPoint("TOPLEFT", Binds.Controller, "TOPLEFT", position.X, position.Y)
 		button:SetSize(30, 30)
@@ -939,7 +1010,7 @@ local function ConfigurePanelBinds(self, Binds)
 
 	Binds.Rebind = CreateFrame("Frame", addOn.."RebindFrame", Binds, "UIPanelDialogTemplate")
 	Binds.Rebind:SetPoint("BOTTOM", Binds, "BOTTOM", 0, 0)
-	Binds.Rebind:SetSize(336, 200)
+	Binds.Rebind:SetSize(370, 200)
 	Binds.Rebind:Hide()
 
 	Binds.Rebind.SetButton = RebindSetButton
@@ -950,25 +1021,12 @@ local function ConfigurePanelBinds(self, Binds)
 	Binds.Rebind:RegisterEvent("PLAYER_REGEN_DISABLED")
 	Binds.Rebind:SetScript("OnEvent", Binds.Rebind.Hide)
 
+	self:AddFrame(Binds.Rebind:GetName())
+
 	Binds.IconFormat = "|T%s:24:24:0:0|t"
 	Binds.Cancel = format("|T%s:16:16:0:0|t", TEXTURE.SQUARE or TEXTURE.X)
 	Binds.Apply = format("|T%s:16:16:0:0|t", TEXTURE.CIRCLE or TEXTURE.B)
 
-	self:AddFrame(Binds.Rebind:GetName())
-
-	-- Static bindings able to call protected Blizzard API
-	local optionButtons = {
-		{option = "CP_X_OPTION", icon = db.NAME.CP_X_OPTION},
-		{option = "CP_C_OPTION", icon = db.NAME.CP_C_OPTION},
-		{option = "CP_L_OPTION", icon = db.NAME.CP_L_OPTION},
-		{option = "CP_R_OPTION", icon = db.NAME.CP_R_OPTION},
-	}
-	for i, button in pairs(optionButtons) do
-		CreateConfigStaticButton(button.option, nil, 0);
-		CreateConfigStaticButton(button.option, "SHIFT", 1);
-		CreateConfigStaticButton(button.option, "CTRL", 2);
-		CreateConfigStaticButton(button.option, "CTRL-SHIFT", 3);
-	end
 end
 
 local function ConfigurePanelMouse(self, Mouse)

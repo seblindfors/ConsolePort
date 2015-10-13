@@ -14,13 +14,13 @@
 	<Binding name="CP_R_UP" header="CP_RIGHT" category="Console Port">
 		-- 
 	</Binding>
+	<Binding name="CP_R_DOWN" header="CP_RIGHT" category="Console Port">
+		-- 
+	</Binding>
 	<Binding name="CP_R_LEFT" header="CP_RIGHT" category="Console Port">
 		-- 
 	</Binding>
 	<Binding name="CP_R_RIGHT" header="CP_RIGHT" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_X_OPTION" header="CP_RIGHT" category="Console Port">
 		-- 
 	</Binding>
 	<Binding name="CP_R_OPTION" header="CP_CENTER" category="Console Port">

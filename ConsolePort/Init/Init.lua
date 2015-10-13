@@ -17,7 +17,11 @@ db.KEY = {
 	DOWN							= 5,
 	LEFT							= 6,
 	RIGHT							= 7,
-	PREPARE 						= 8,
+	CROSS 							= 8,
+	SHARE 							= 9,
+	OPTIONS 						= 10,
+	CENTER 							= 11,
+	PREPARE 						= 12,
 	STATE_UP 						= "up",
 	STATE_DOWN						= "down",
 }
@@ -46,8 +50,9 @@ end
 
 function ConsolePort:GetBindingNames()
 	return {
-		"CP_R_LEFT",
 		"CP_R_UP",
+		"CP_R_DOWN",
+		"CP_R_LEFT",
 		"CP_R_RIGHT",
 		"CP_L_LEFT",
 		"CP_L_UP",
@@ -55,53 +60,34 @@ function ConsolePort:GetBindingNames()
 		"CP_L_DOWN",
 		"CP_TR1",
 		"CP_TR2",
-		"CP_X_OPTION",
 		"CP_L_OPTION",
 		"CP_C_OPTION",
 		"CP_R_OPTION"
 	}
 end
 
-function ConsolePort:GetBindingButtons()
-	return {
-		"CP_R_LEFT",
-		"CP_R_UP",
-		"CP_R_RIGHT",
-		"CP_L_LEFT",
-		"CP_L_UP",
-		"CP_L_RIGHT",
-		"CP_L_DOWN",
-		"CP_TR1",
-		"CP_TR2",
-	}
-end
-
 function ConsolePort:GetDefaultBindingSet()
 	local bindingSet = {}
-	local Buttons = ConsolePort:GetBindingNames()
+	local Buttons = self:GetBindingNames()
 	for _, Button in ipairs(Buttons) do
-		bindingSet[Button] = ConsolePort:GetDefaultBinding(Button)
+		bindingSet[Button] = self:GetDefaultBinding(Button)
 	end
 	return bindingSet
 end
 
 function ConsolePort:GetDefaultBindingButtons()
 	local bindingSet = {}
-	local Buttons = ConsolePort:GetBindingButtons()
-	for _, Button in ipairs(Buttons) do
-		bindingSet[Button] = ConsolePort:GetDefaultButton(Button)
+	for _, Button in ipairs(self:GetBindingNames()) do
+		bindingSet[Button] = self:GetDefaultButton(Button)
 	end
 	return bindingSet
 end
 
 
 function ConsolePort:GetDefaultBinding(key)
-	local nomod
-	local modshift
-	local modctrl
-	local shiftctrl
+	local nomod, modshift, modctrl, shiftctrl
 	-- Right side
-	if 		key == "CP_X_OPTION" then
+	if 		key == "CP_R_DOWN" then
 		nomod 		= "JUMP"
 		modshift 	= "TARGETNEARESTENEMY"
 		modctrl  	= "FOCUSTARGET"
@@ -147,74 +133,85 @@ function ConsolePort:GetDefaultBinding(key)
 end
 
 function ConsolePort:GetDefaultButton(key)
-	local command 	= nil
-	local nomod 	= nil
-	local modshift 	= nil
-	local ctrl 		= nil
-	local modshiftctrl = nil
-	if 		key == "CP_R_LEFT" then
-		command		= KEY.SQUARE
-		nomod 		= "ActionButton1"
-		modshift 	= "ActionButton6"
-		modctrl 	= "MultiBarBottomLeftButton1"
-		shiftctrl 	= "MultiBarBottomLeftButton6"
-	elseif key == "CP_R_UP" then
-		command		= KEY.TRIANGLE
-		nomod 		= "ActionButton2"
-		modshift 	= "ActionButton7"
-		modctrl 	= "MultiBarBottomLeftButton2"
-		shiftctrl 	= "MultiBarBottomLeftButton7"
-	elseif key == "CP_R_RIGHT" then
-		command 	= KEY.CIRCLE
-		nomod 		= "ActionButton3"
-		modshift 	= "ActionButton8"
-		modctrl 	= "MultiBarBottomLeftButton3"
-		shiftctrl 	= "MultiBarBottomLeftButton8"
-	-- Triggers
-	elseif key == "CP_TR1" then
-		nomod 		= "ActionButton4"
-		modshift 	= "ActionButton9"
-		modctrl 	= "MultiBarBottomLeftButton4"
-		shiftctrl 	= "MultiBarBottomLeftButton9"
-	elseif key == "CP_TR2" then
-		nomod 		= "ActionButton5"
-		modshift 	= "ActionButton10"
-		modctrl 	= "MultiBarBottomLeftButton5"
-		shiftctrl 	= "MultiBarBottomLeftButton10"
-	-- Left side
-	elseif key == "CP_L_DOWN" then
-		command		= KEY.DOWN
-		nomod 		= "ActionButton11"
-		modshift 	= "MultiBarBottomRightButton4"
-		modctrl  	= "MultiBarBottomRightButton8"
-		shiftctrl	= "MultiBarBottomRightButton12"
-	elseif key == "CP_L_LEFT" then
-		command		= KEY.LEFT
-		nomod 		= "MultiBarBottomLeftButton11"
-		modshift 	= "MultiBarBottomRightButton1"
-		modctrl 	= "MultiBarBottomRightButton5"
-		shiftctrl 	= "MultiBarBottomRightButton9"
-	elseif key == "CP_L_UP" then
-		command		= KEY.UP
-		nomod 		= "MultiBarBottomLeftButton12"
-		modshift 	= "MultiBarBottomRightButton2"
-		modctrl 	= "MultiBarBottomRightButton6"
-		shiftctrl 	= "MultiBarBottomRightButton10"
-	elseif key == "CP_L_RIGHT" then
-		command		= KEY.RIGHT
-		nomod 		= "ActionButton12"
-		modshift 	= "MultiBarBottomRightButton3"
-		modctrl 	= "MultiBarBottomRightButton7"
-		shiftctrl 	= "MultiBarBottomRightButton11"
-	end
-	local binding = {
-		ui 		= command,
-		action 	= nomod,
-		shift 	= modshift,
-		ctrl 	= modctrl,
-		ctrlsh 	= shiftctrl
+	local keys = {
+		["CP_R_UP"] = 	{
+			ui			= KEY.TRIANGLE,
+			action 		= "ActionButton2",
+			shift 		= "ActionButton7",
+			ctrl 		= "MultiBarBottomLeftButton2",
+			ctrlsh 		= "MultiBarBottomLeftButton7",
+		},
+		["CP_R_DOWN"] = {
+			ui 			= KEY.CROSS,
+		},
+		["CP_R_LEFT"] = {
+			ui			= KEY.SQUARE,
+			action 		= "ActionButton1",
+			shift 		= "ActionButton6",
+			ctrl 		= "MultiBarBottomLeftButton1",
+			ctrlsh 		= "MultiBarBottomLeftButton6",
+		},
+		["CP_R_RIGHT"] = {
+			ui 			= KEY.CIRCLE,
+			action 		= "ActionButton3",
+			shift 		= "ActionButton8",
+			ctrl 		= "MultiBarBottomLeftButton3",
+			ctrlsh 		= "MultiBarBottomLeftButton8",
+		},
+		-- Triggers
+		["CP_TR1"] =	{
+			action 		= "ActionButton4",
+			shift 		= "ActionButton9",
+			ctrl 		= "MultiBarBottomLeftButton4",
+			ctrlsh 		= "MultiBarBottomLeftButton9",
+		},
+		["CP_TR2"] = 	{
+			action 		= "ActionButton5",
+			shift 		= "ActionButton10",
+			ctrl 		= "MultiBarBottomLeftButton5",
+			ctrlsh 		= "MultiBarBottomLeftButton10",
+		},
+		-- Left side
+		["CP_L_UP"] = {
+			ui			= KEY.UP,
+			action 		= "MultiBarBottomLeftButton12",
+			shift 		= "MultiBarBottomRightButton2",
+			ctrl 		= "MultiBarBottomRightButton6",
+			ctrlsh 		= "MultiBarBottomRightButton10",
+		},
+		["CP_L_DOWN"] = {
+			ui			= KEY.DOWN,
+			action 		= "ActionButton11",
+			shift 		= "MultiBarBottomRightButton4",
+			ctrl  		= "MultiBarBottomRightButton8",
+			ctrlsh		= "MultiBarBottomRightButton12",
+		},
+		["CP_L_LEFT"] = {
+			ui			= KEY.LEFT,
+			action 		= "MultiBarBottomLeftButton11",
+			shift 		= "MultiBarBottomRightButton1",
+			ctrl 		= "MultiBarBottomRightButton5",
+			ctrlsh 		= "MultiBarBottomRightButton9",
+		},
+		["CP_L_RIGHT"] = {
+			ui			= KEY.RIGHT,
+			action 		= "ActionButton12",
+			shift 		= "MultiBarBottomRightButton3",
+			ctrl 		= "MultiBarBottomRightButton7",
+			ctrlsh 		= "MultiBarBottomRightButton11",
+		},		
+		["CP_L_OPTION"] = {
+			ui 			= KEY.SHARE,
+		},
+		["CP_C_OPTION"] = {
+			ui 			= KEY.CENTER,
+		},
+		["CP_R_OPTION"] = {
+			ui 			= KEY.OPTIONS,
+		},
 	}
-	return binding
+	print(unpack(keys[key]))
+	return keys[key]
 end
 
 
@@ -340,22 +337,22 @@ function ConsolePort:CreateActionButtons()
 	local y = 1
 	table.sort(keys)
 	for name, key in db.pairsByKeys(keys) do
-		if key.action 	then 
+--		if key.action 	then 
 			self:CreateSecureButton(name, "_NOMOD",	key.action,	key.ui)
 			self:CreateConfigButton(name, "_NOMOD", 0)
-		end
-		if key.shift 	then
+--		end
+--		if key.shift 	then
 			self:CreateSecureButton(name, "_SHIFT", key.shift, 	key.ui)
 			self:CreateConfigButton(name, "_SHIFT", 1)
-		end
-		if key.ctrl 	then
+--		end
+--		if key.ctrl 	then
 			self:CreateSecureButton(name, "_CTRL",  key.ctrl, 	key.ui)
 			self:CreateConfigButton(name, "_CTRL",  2)
-		end
-		if key.ctrlsh 	then
+--		end
+--		if key.ctrlsh 	then
 			self:CreateSecureButton(name, "_CTRLSH", key.ctrlsh, key.ui)
 			self:CreateConfigButton(name, "_CTRLSH", 3)
-		end
+--		end
 	end
 end
 

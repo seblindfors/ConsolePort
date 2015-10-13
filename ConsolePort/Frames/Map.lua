@@ -45,6 +45,10 @@ local function MapFindClosestZone(key, zones)
 	end
 end
 
+function ConsolePort:DumpZones()
+	return zones
+end
+
 -- Eats a lot of memory, only run on event WORLD_MAP_UPDATE
 function ConsolePort:MapGetZones()
 	local zone = {};

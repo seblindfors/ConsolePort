@@ -23,7 +23,7 @@ function ConsolePort:LoadControllerTheme()
 			CP_L_DOWN				= {X = 190,	Y = -280},
 			CP_TR1					= {X = 346,	Y = -143},
 			CP_TR2					= {X = 346,	Y = -117},
-			CP_X_OPTION				= {X = 346,	Y = -224},
+			CP_R_DOWN				= {X = 346,	Y = -224},
 			CP_L_OPTION				= {X = 218,	Y = -196},
 			CP_C_OPTION				= {X = 242,	Y = -150},
 			CP_R_OPTION				= {X = 274,	Y = -196},
@@ -47,7 +47,7 @@ function ConsolePort:LoadControllerTheme()
 			CP_L_DOWN				= {X = 110,	Y = -220},
 			CP_TR1					= {X = 374,	Y = -140},
 			CP_TR2					= {X = 374,	Y = -114},
-			CP_X_OPTION				= {X = 374,	Y = -228},
+			CP_R_DOWN				= {X = 374,	Y = -228},
 			CP_L_OPTION				= {X = 156,	Y = -160},
 			CP_C_OPTION				= {X = 242,	Y = -256},
 			CP_R_OPTION				= {X = 326,	Y = -160},
@@ -68,7 +68,7 @@ function ConsolePort:LoadControllerTheme()
 	BINDING_NAME_CP_TR1			=	db[ctrlType].CP_TR1
 	BINDING_NAME_CP_TR2			=	db[ctrlType].CP_TR2
 	BINDING_NAME_CP_R_UP		=	db[ctrlType].CP_R_UP
-	BINDING_NAME_CP_X_OPTION	=	db[ctrlType].CP_X_OPTION
+	BINDING_NAME_CP_R_DOWN	=	db[ctrlType].CP_R_DOWN
 	BINDING_NAME_CP_R_LEFT		=	db[ctrlType].CP_R_LEFT
 	BINDING_NAME_CP_R_RIGHT		=	db[ctrlType].CP_R_RIGHT
 	BINDING_NAME_CP_L_OPTION	= 	db[ctrlType].CP_L_OPTION
@@ -90,7 +90,7 @@ function ConsolePort:LoadControllerTheme()
 	AddTexture(db.NAME.CP_R_UP, ctrlType);
 	AddTexture(db.NAME.CP_R_LEFT, ctrlType);
 	AddTexture(db.NAME.CP_R_RIGHT, ctrlType);
-	AddTexture(db.NAME.CP_X_OPTION, ctrlType);
+	AddTexture(db.NAME.CP_R_DOWN, ctrlType);
 	-- Options
 	AddTexture(db.NAME.CP_L_OPTION, ctrlType);
 	AddTexture(db.NAME.CP_C_OPTION, ctrlType);

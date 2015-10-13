@@ -71,7 +71,7 @@ function ConsolePort:CURRENT_SPELL_CAST_CHANGED(...)
 	if SpellIsTargeting() then
 		self:StopMouse()
 	elseif 	GetMouseFocus() == WorldFrame and
-		IsMouselookEvent(event) then
+		IsMouselookEvent("CURRENT_SPELL_CAST_CHANGED") then
 		self:StartMouse()
 	end
 end
