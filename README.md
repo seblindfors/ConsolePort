@@ -16,7 +16,7 @@ how to set up your controller for World of Warcraft, but the most game-breaking 
 
 The main <i>goal</i> here is to turn an experience that was designed for mouse and keyboard into one that is equally fitting for a game controller, without losing gameplay quality in return. Using the addon, you should be able to effortlessly do the same tasks with a controller as you would with a mouse and keyboard. On top of this, it will NOT interfere with your normal keyboard and mouse setup, leaving you to choose which way you want to play the game without having to rebind and reconfigure every time you change peripherals.
 
-<h2>Resources</h2>
+<h2>Downloads</h2>
 <a href="http://www.wowinterface.com/downloads/info23536-ConsolePort-GameControllerAddon.html" target="_blank">Download the latest stable version at Wowinterface.</a></br>
 <a href="http://www.curse.com/addons/wow/console-port" target="_blank">Download the latest stable version at Curse.</a>
 
