@@ -12,7 +12,8 @@ This git serves as a testing ground for new code, where uploaded nightly builds 
 <h2>What is ConsolePort?</h2>
 ConsolePort is a lightweight interface add-on for World of Warcraft that will give you a handful of nifty features
 in order to let you play the game on a controller - without inconvenience. There are a lot of tutorials and videos on
-how to set up your controller for World of Warcraft, but the most game-breaking part about all of them is how they in no way contribute to an easy game experience. It's a hassle just to sell a few items or turn in a quest. This addon will change all that.
+how to set up your controller for World of Warcraft, but the most game-breaking part about all of them is how they in no way contribute to an easy game experience. It's a hassle just to sell a few items or turn in a quest.
+This addon will change all that.
 
 The main <i>goal</i> here is to turn an experience that was designed for mouse and keyboard into one that is equally fitting for a game controller, without losing gameplay quality in return. Using the addon, you should be able to effortlessly do the same tasks with a controller as you would with a mouse and keyboard. On top of this, it will NOT interfere with your normal keyboard and mouse setup, leaving you to choose which way you want to play the game without having to rebind and reconfigure every time you change peripherals.
 
