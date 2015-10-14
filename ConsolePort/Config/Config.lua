@@ -239,6 +239,42 @@ end
 ---------------------------------------------------------------
 -- Config: Dropdown keybinding table
 ---------------------------------------------------------------
+-- local function CreateBindHeaderButton(parent, num)
+-- 	local button = CreateFrame("Button", "$parentButton"..num, parent, "OptionsListButtonTemplate")
+-- 	button:SetHeight(24)
+-- 	button:SetScript("OnClick", clickScript)
+-- 	button.Remove = CreateFrame("Button", "$parentRemove", button)
+-- 	button.Remove:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
+-- 	button.Remove:SetSize(14, 14)
+-- 	button.Remove:SetPoint("RIGHT", button, "RIGHT", -8, 0)
+-- 	button.Remove:SetAlpha(0.5)
+-- 	button.Remove:SetScript("OnClick", removeScript)
+-- 	tinsert(parent.Buttons, button)
+-- 	if num == 1 then
+-- 		button:SetPoint("TOPLEFT", parent, "TOPLEFT", 4, 0)
+-- 		button:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -4, 0)
+-- 	else
+-- 		button:SetPoint("TOPLEFT", parent.Buttons[num-1], "BOTTOMLEFT")
+-- 		button:SetPoint("TOPRIGHT", parent.Buttons[num-1], "BOTTOMRIGHT")
+-- 	end
+-- 	return button
+-- end
+
+-- local function RefreshHeaderList(self)
+-- 	local buttons = self.Buttons
+-- 	local binding
+-- 	local num = 0
+-- 	for i=1, GetNumBindings() do
+-- 		binding = GetBinding(i)
+-- 		if 	binding:match("^HEADER") and
+-- 			not binding:match("^HEADER_BLANK") and
+-- 			not binding:match("^HEADER_CONSOLEPORT") do
+-- 			num = num + 1
+-- 		--	if not buttons[_G[BIND..binding]] then
+-- 		end
+-- 	end
+-- end
+
 local function GenerateBindingsTable()
 	local BindingsTable = {}
 	local SubTables = {
@@ -1020,6 +1056,31 @@ local function ConfigurePanelBinds(self, Binds)
 	Binds.Rebind.Close:HookScript("OnClick", function(self) CloseDropDownMenus() end)
 	Binds.Rebind:RegisterEvent("PLAYER_REGEN_DISABLED")
 	Binds.Rebind:SetScript("OnEvent", Binds.Rebind.Hide)
+
+	Binds.Rebind.Static = CreateFrame("Frame", "$parentStatic", Binds.Rebind, "UIPanelDialogTemplate")
+	Binds.Rebind.Static.Parent = Binds.Rebind
+	Binds.Rebind.Static:SetPoint("TOPLEFT", InterfaceOptionsFrame, "TOPRIGHT", 0, 0)
+	Binds.Rebind.Static:SetPoint("BOTTOMLEFT", InterfaceOptionsFrame, "BOTTOMRIGHT", 0, 0)
+	Binds.Rebind.Static:SetWidth(300)
+
+	Binds.Rebind.Static.Values = CreateFrame("Frame", "$parentValues", Binds.Rebind.Static)
+	Binds.Rebind.Static.Values.Buttons = {}
+
+	Binds.Rebind.Static.ValueScroll = CreateFrame("ScrollFrame", "$parentValueScrollFrame", Binds.Rebind.Static, "UIPanelScrollFrameTemplate")
+	Binds.Rebind.Static.ValueScroll:SetPoint("TOPRIGHT", Binds.Rebind.Static, "TOPRIGHT", 0, 0)
+	Binds.Rebind.Static.ValueScroll:SetPoint("BOTTOMLEFT", Binds.Rebind.Static, "BOTTOM", 0, 0)
+	Binds.Rebind.Static.ValueScroll:SetScrollChild(Binds.Rebind.Static.Values)
+
+	Binds.Rebind.Static.Headers = CreateFrame("Frame", "$parentHeaders", Binds.Rebind.Static)
+	Binds.Rebind.Static.Headers.Buttons = {}
+	Binds.Rebind.Static.Headers.Values = Binds.Rebind.Static.Values
+	Binds.Rebind.Static.Headers:SetScript("OnShow", RefreshHeaderList)
+
+	Binds.Rebind.Static.HeaderScroll = CreateFrame("ScrollFrame", "$parentHeaderScrollFrame", Binds.Rebind.Static, "UIPanelScrollFrameTemplate")
+	Binds.Rebind.Static.HeaderScroll:SetPoint("TOPLEFT", Binds.Rebind.Static, "TOPLEFT", 0, 0)
+	Binds.Rebind.Static.HeaderScroll:SetPoint("BOTTOMRIGHT", Binds.Rebind.Static, "BOTTOM", 0, 0)
+	Binds.Rebind.Static.HeaderScroll:SetScrollChild(Binds.Rebind.Static.Headers)
+
 
 	self:AddFrame(Binds.Rebind:GetName())
 
