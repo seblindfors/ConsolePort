@@ -38,5 +38,14 @@ function ConsolePort:StartMouse()
 	MouselookStart()
 end
 
+function ConsolePort:ToggleMouse()
+	if CursorInfo then
+		MouselookStart()
+		CursorInfo = nil
+	else
+		MouselookStop()
+		CursorInfo = true
+	end
+end
 
 ConsolePort:AddUpdateSnippet(MouseUpdate)

@@ -1,42 +1,28 @@
 <Bindings>
-	<Binding name="CP_L_UP" header="CP_LEFT" category="Console Port">
-		-- 
+	<Binding name="CP_L_UP" header="CP_LEFT" category="ConsolePort "/>
+	<Binding name="CP_L_DOWN" header="CP_LEFT" category="ConsolePort "/>
+	<Binding name="CP_L_LEFT" header="CP_LEFT" category="ConsolePort "/>
+	<Binding name="CP_L_RIGHT" header="CP_LEFT" category="ConsolePort "/>
+	<Binding name="CP_R_UP" header="CP_RIGHT" category="ConsolePort "/>
+	<Binding name="CP_R_DOWN" header="CP_RIGHT" category="ConsolePort "/>
+	<Binding name="CP_R_LEFT" header="CP_RIGHT" category="ConsolePort "/>
+	<Binding name="CP_R_RIGHT" header="CP_RIGHT" category="ConsolePort "/>
+	<Binding name="CP_R_OPTION" header="CP_CENTER" category="ConsolePort "/>
+	<Binding name="CP_C_OPTION" header="CP_CENTER" category="ConsolePort "/>
+	<Binding name="CP_L_OPTION" header="CP_CENTER" category="ConsolePort "/>
+	<Binding name="CP_TR1" header="CP_TRIG" category="ConsolePort "/>
+	<Binding name="CP_TR2" header="CP_TRIG" category="ConsolePort "/>
+	<!-- Extra button -->
+	<Binding name="CLICK ConsolePortExtraButton:LeftButton" category="ConsolePort " hidden="true"/>
+
+	<!-- Custom bindings -->
+	<Binding name="CP_TOGGLEMOUSE" category="ConsolePort " hidden="true" >
+		ConsolePort:ToggleMouse()
 	</Binding>
-	<Binding name="CP_L_DOWN" header="CP_LEFT" category="Console Port">
-		-- 
+	<Binding name="CP_CAMZOOMIN" category="ConsolePort " hidden="true" >
+			CameraZoomIn(5.0);
 	</Binding>
-	<Binding name="CP_L_LEFT" header="CP_LEFT" category="Console Port">
-		-- 
+	<Binding name="CP_CAMZOOMOUT" category="ConsolePort " hidden="true" >
+			CameraZoomOut(5.0);
 	</Binding>
-	<Binding name="CP_L_RIGHT" header="CP_LEFT" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_R_UP" header="CP_RIGHT" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_R_DOWN" header="CP_RIGHT" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_R_LEFT" header="CP_RIGHT" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_R_RIGHT" header="CP_RIGHT" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_R_OPTION" header="CP_CENTER" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_C_OPTION" header="CP_CENTER" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_L_OPTION" header="CP_CENTER" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_TR1" header="CP_TRIG" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CP_TR2" header="CP_TRIG" category="Console Port">
-		-- 
-	</Binding>
-	<Binding name="CLICK ConsolePortExtraButton:LeftButton" category="Console Port" hidden="true"/>
 </Bindings>

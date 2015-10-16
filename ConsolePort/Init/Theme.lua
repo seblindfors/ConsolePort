@@ -68,7 +68,7 @@ function ConsolePort:LoadControllerTheme()
 	BINDING_NAME_CP_TR1			=	db[ctrlType].CP_TR1
 	BINDING_NAME_CP_TR2			=	db[ctrlType].CP_TR2
 	BINDING_NAME_CP_R_UP		=	db[ctrlType].CP_R_UP
-	BINDING_NAME_CP_R_DOWN	=	db[ctrlType].CP_R_DOWN
+	BINDING_NAME_CP_R_DOWN		=	db[ctrlType].CP_R_DOWN
 	BINDING_NAME_CP_R_LEFT		=	db[ctrlType].CP_R_LEFT
 	BINDING_NAME_CP_R_RIGHT		=	db[ctrlType].CP_R_RIGHT
 	BINDING_NAME_CP_L_OPTION	= 	db[ctrlType].CP_L_OPTION
@@ -79,6 +79,10 @@ function ConsolePort:LoadControllerTheme()
 	BINDING_HEADER_CP_RIGHT 	=	db[ctrlType].HEADER_CP_RIGHT
 	BINDING_HEADER_CP_CENTER 	=	db[ctrlType].HEADER_CP_CENTER
 	BINDING_HEADER_CP_TRIG 		=	db[ctrlType].HEADER_CP_TRIG
+	-- Invisible bindings
+	BINDING_NAME_CP_TOGGLEMOUSE = 	db[ctrlType].CP_TOGGLEMOUSE
+	BINDING_NAME_CP_CAMZOOMIN	= 	db[ctrlType].CP_CAMZOOMIN
+	BINDING_NAME_CP_CAMZOOMOUT	= 	db[ctrlType].CP_CAMZOOMOUT
 	-- Nametable
 	db.NAME = db[ctrlType]
 	-- Arrows
@@ -96,8 +100,8 @@ function ConsolePort:LoadControllerTheme()
 	AddTexture(db.NAME.CP_C_OPTION, ctrlType);
 	AddTexture(db.NAME.CP_R_OPTION, ctrlType);
 	-- L/R
-	db.TEXTURE.LONE   				= format(TEXTURE_PATH, ctrlType, "l1")
-	db.TEXTURE.LTWO   				= format(TEXTURE_PATH, ctrlType, "l2")
+	db.TEXTURE.LONE   				= ConsolePortSettings and ConsolePortSettings.flipMod and format(TEXTURE_PATH, ctrlType, "l2") or format(TEXTURE_PATH, ctrlType, "l1")
+	db.TEXTURE.LTWO   				= ConsolePortSettings and ConsolePortSettings.flipMod and format(TEXTURE_PATH, ctrlType, "l1") or format(TEXTURE_PATH, ctrlType, "l2")
 	db.TEXTURE.LTHREE   			= format(TEXTURE_PATH, ctrlType, "l3")
 	db.TEXTURE.RONE   				= format(TEXTURE_PATH, ctrlType, "r1")
 	db.TEXTURE.RTWO   				= format(TEXTURE_PATH, ctrlType, "r2")

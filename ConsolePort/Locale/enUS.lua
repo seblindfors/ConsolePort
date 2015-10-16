@@ -5,8 +5,7 @@ if not db.TUTORIAL then
 		BIND  = {
 			DEFAULT 			= "Click on a button to change its behaviour.",
 			COMBO 				= "Click on a combination of %s to change it.",
-			STATIC 				= "Select an action from the list to change %s",
-			DYNAMIC 			= "Select any interface button with the cursor to change %s\n%s Apply %s Cancel ",
+			REBIND 				= "Select an interface button or key binding with the cursor to change:\n%s",
 			APPLIED 			= "%s was applied to %s.",
 			INVALID 			= "Error: Invalid button. New binding was discarded.",
 			COMBAT 				= "Error: In combat! Exit combat to change your settings.",
@@ -30,6 +29,7 @@ if not db.TUTORIAL then
 			TYPE				= "Change controller type",
 			RESET 				= "Full addon reset",
 			BINDS 				= "Open binding menu",
+			CRITICALUPDATE		= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?",
 		}
 	}
 end
@@ -70,6 +70,9 @@ if not db.XBOX then
 		HEADER_CP_RIGHT			= 	"Action buttons",
 		HEADER_CP_CENTER		= 	"Center buttons",
 		HEADER_CP_TRIG			=	"Triggers",
+		CP_TOGGLEMOUSE			= 	"Toggle mouse look",
+		CP_CAMZOOMIN			= 	"Zoom in (custom)",
+		CP_CAMZOOMOUT			= 	"Zoom out (custom)",
 	}
 end
 if not db.PS4 then
@@ -91,5 +94,8 @@ if not db.PS4 then
 		HEADER_CP_RIGHT			= 	"Action buttons",
 		HEADER_CP_CENTER		= 	"Center buttons",
 		HEADER_CP_TRIG			=	"Triggers",
+		CP_TOGGLEMOUSE			= 	"Toggle mouse look",
+		CP_CAMZOOMIN			= 	"Zoom in (custom)",
+		CP_CAMZOOMOUT			= 	"Zoom out (custom)",
 	}
 end

@@ -92,7 +92,7 @@ function ConsolePort:PLAYER_REGEN_ENABLED(...)
 	self:UpdateFrames()
 	for i, UIControl in pairs(UIControls) do
 		if UIControl:IsVisible() then
-			UIFrameFadeIn(UIControl, 0.2, 0.75, 1)
+			db.UIFrameFadeIn(UIControl, 0.2, 0.75, 1)
 		else
 			UIControl:SetAlpha(1)
 		end
@@ -102,7 +102,7 @@ end
 function ConsolePort:PLAYER_REGEN_DISABLED(...)
 	for i, UIControl in pairs(UIControls) do
 		if UIControl:IsVisible() then
-			UIFrameFadeOut(UIControl, 0.2, 1, 0.75)
+			db.UIFrameFadeOut(UIControl, 0.2, 1, 0.75)
 		else
 			UIControl:SetAlpha(0.75)
 		end

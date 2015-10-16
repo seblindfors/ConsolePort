@@ -2,6 +2,10 @@ local addOn, db = ...
 -- Main
 local ConsolePort = CreateFrame("FRAME", addOn)
 
+local CRITICALUPDATE = true
+local VERSION = gsub(GetAddOnMetadata(addOn, "Version"), "%.", "")
+VERSION = tonumber(VERSION)
+
 -- Tables
 db.TEXTURE 	= {}
 db.SECURE 	= {}
@@ -26,8 +30,8 @@ db.KEY = {
 	STATE_DOWN						= "down",
 }
 
-
 local KEY = db.KEY
+
 -- Sort table by non-numeric key
 db.pairsByKeys = function (t,f)
 	local a = {}
@@ -62,7 +66,7 @@ function ConsolePort:GetBindingNames()
 		"CP_TR2",
 		"CP_L_OPTION",
 		"CP_C_OPTION",
-		"CP_R_OPTION"
+		"CP_R_OPTION",
 	}
 end
 
@@ -90,8 +94,8 @@ function ConsolePort:GetDefaultBinding(key)
 	if 		key == "CP_R_DOWN" then
 		nomod 		= "JUMP"
 		modshift 	= "TARGETNEARESTENEMY"
-		modctrl  	= "FOCUSTARGET"
-		shiftctrl 	= "TARGETFOCUS"
+		modctrl  	= "INTERACTMOUSEOVER"
+		shiftctrl 	= "TARGETPREVIOUSENEMY"
 	-- Utility Buttons
 	elseif 	key == "CP_L_OPTION" then
 		nomod 		= "OPENALLBAGS"
@@ -105,9 +109,9 @@ function ConsolePort:GetDefaultBinding(key)
 		shiftctrl 	= "FOLLOWTARGET"
 	elseif 	key == "CP_R_OPTION" then
 		nomod 		= "TOGGLEWORLDMAP"
-		modshift 	= "NEXTVIEW"
-		modctrl 	= "PREVVIEW"
-		shiftctrl 	= "CAMERAZOOMOUT"
+		modshift 	= "CP_CAMZOOMOUT"
+		modctrl 	= "CP_CAMZOOMIN"
+		shiftctrl 	= "SETVIEW1"
 	-- Actionbuttons
 	elseif 	key == "CP_R_LEFT" 	or 
 			key == "CP_R_UP" 	or
@@ -210,7 +214,6 @@ function ConsolePort:GetDefaultButton(key)
 			ui 			= KEY.OPTIONS,
 		},
 	}
-	print(unpack(keys[key]))
 	return keys[key]
 end
 
@@ -251,9 +254,30 @@ end
 function ConsolePort:GetDefaultAddonSettings()
 	return {
 		["type"] = "PS4",
-		["cam"] = false,
-		["autoExtra"] = true
+		["autoExtra"] = true,
+		["flipMod"] = false,
+		["version"] = VERSION,
 	}
+end
+
+local function ResetAllSettings()
+	if not InCombatLockdown() then
+		local bindings = ConsolePort:GetBindingNames()
+		for i, binding in pairs(bindings) do
+			local key1, key2 = GetBindingKey(binding)
+			if key1 then SetBinding(key1) end
+			if key2 then SetBinding(key2) end
+		end
+		SaveBindings(GetCurrentBindingSet())
+		ConsolePortBindingSet = nil
+		ConsolePortBindingButtons = nil
+		ConsolePortMouse = nil
+		ConsolePortSettings = nil
+		ConsolePortCharacterSettings = nil
+		ReloadUI()
+	else
+		print(db.TUTORIAL.SLASH.COMBAT)
+	end
 end
 
  function ConsolePort:LoadSettings()
@@ -307,8 +331,6 @@ end
         			msg == "bindings" then
         		InterfaceOptionsFrame_OpenToCategory(db.Binds)
 				InterfaceOptionsFrame_OpenToCategory(db.Binds)
-			elseif 	msg == "test" and _G["ConsolePortUI"] then
-				_G["ConsolePortUI"]:Toggle()
         	else
         		local instruction = "|cff69ccf0%s|r: %s"
         		print("|cffffe00aConsolePort|r:")
@@ -319,6 +341,26 @@ end
         end
         SlashCmdList["CONSOLEPORT"] = SlashHandler
  end
+
+function ConsolePort:CheckLoadedSettings()
+    if 	(ConsolePortSettings and not ConsolePortSettings.version) or 
+		(ConsolePortSettings.version < VERSION and CRITICALUPDATE) then
+		StaticPopupDialogs["CONSOLEPORT_CRITICALUPDATE"] = {
+			text = format(db.TUTORIAL.SLASH.CRITICALUPDATE, GetAddOnMetadata(addOn, "Version")),
+			button1 = "Yes (recommended)",
+			button2 = "Cancel",
+			showAlert = true,
+			timeout = 0,
+			whileDead = true,
+			hideOnEscape = true,
+			preferredIndex = 3,
+			enterClicksFirstButton = true,
+			exclusive = true,
+			OnAccept = ResetAllSettings,
+		}
+		StaticPopup_Show("CONSOLEPORT_CRITICALUPDATE")
+	end
+end
 
 
 function ConsolePort:CreateMouseLooker()
@@ -337,22 +379,14 @@ function ConsolePort:CreateActionButtons()
 	local y = 1
 	table.sort(keys)
 	for name, key in db.pairsByKeys(keys) do
---		if key.action 	then 
-			self:CreateSecureButton(name, "_NOMOD",	key.action,	key.ui)
-			self:CreateConfigButton(name, "_NOMOD", 0)
---		end
---		if key.shift 	then
-			self:CreateSecureButton(name, "_SHIFT", key.shift, 	key.ui)
-			self:CreateConfigButton(name, "_SHIFT", 1)
---		end
---		if key.ctrl 	then
-			self:CreateSecureButton(name, "_CTRL",  key.ctrl, 	key.ui)
-			self:CreateConfigButton(name, "_CTRL",  2)
---		end
---		if key.ctrlsh 	then
-			self:CreateSecureButton(name, "_CTRLSH", key.ctrlsh, key.ui)
-			self:CreateConfigButton(name, "_CTRLSH", 3)
---		end
+		self:CreateSecureButton(name, "_NOMOD",	key.action,	key.ui)
+		self:CreateConfigButton(name, "_NOMOD", 0)
+		self:CreateSecureButton(name, "_SHIFT", key.shift, 	key.ui)
+		self:CreateConfigButton(name, "_SHIFT", 1)
+		self:CreateSecureButton(name, "_CTRL",  key.ctrl, 	key.ui)
+		self:CreateConfigButton(name, "_CTRL",  2)
+		self:CreateSecureButton(name, "_CTRLSH", key.ctrlsh, key.ui)
+		self:CreateConfigButton(name, "_CTRLSH", 3)
 	end
 end
 

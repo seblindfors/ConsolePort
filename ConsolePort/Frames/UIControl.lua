@@ -89,10 +89,10 @@ local function AnimateCursor(self)
 		return
 	elseif old and current then
 		local Animation = self.Animation;
-		local dX, dY = current.node:GetCenter();
-		local tX, tY = old.node:GetCenter();
+		local dX, dY = current.node:GetCenter()
+		local tX, tY = old.node:GetCenter()
 		if dX and dY and tX and tY then
-			Animation:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", tX-4, tY+4);
+			Animation:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", tX-4, tY+4)
 			Animation.Type:SetOffset((dX-tX), (dY-tY))
 			Animation.Button:SetTexture(self.Button:GetTexture())
 			Animation.Group:Play()

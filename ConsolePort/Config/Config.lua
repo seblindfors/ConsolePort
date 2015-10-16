@@ -71,36 +71,28 @@ local function Compare(t1, t2)
 end
 
 ---------------------------------------------------------------
--- Config: Secure UI/Button animation
+-- Config: Returns converted modifier for binding table use
 ---------------------------------------------------------------
-local function AnimateBindingChange(target, destination)
-	if not ConsolePortAnimationFrame then
-		local AniFrame = CreateFrame("FRAME", "ConsolePortAnimationFrame", UIParent)
-		AniFrame.texture = AniFrame:CreateTexture()
-		AniFrame:SetFrameStrata("TOOLTIP")
-		AniFrame:SetSize(40,40)
-		AniFrame.texture:SetAllPoints(AniFrame)
-		AniFrame.group = AniFrame:CreateAnimationGroup()
-		AniFrame.animation = AniFrame.group:CreateAnimation("Translation")
-		AniFrame.animation:SetDuration(0.6)
-		AniFrame.animation:SetSmoothing("OUT")
-		AniFrame.group:SetScript("OnPlay", function()
-			AniFrame:Show()
-		end)
-		AniFrame.group:SetScript("OnFinished", function()
-			AniFrame:Hide()
-			AniFrame.dest.background:SetTexture(AniFrame.texture:GetTexture())
-			UIFrameFadeIn(AniFrame.dest.background, 1.5, 0.25, 1)
-		end)
-	end
-	local AniFrame = ConsolePortAnimationFrame
-	local dX, dY = destination:GetCenter()
-	local tX, tY = target:GetCenter()
-	AniFrame.texture:SetTexture(target.icon and target.icon:GetTexture())
-	AniFrame.dest = destination
-	AniFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", tX,tY)
-	AniFrame.animation:SetOffset((dX-tX), (dY-tY))
-	AniFrame.group:Play()
+local function GetBindingModifier(modifier)
+	local modName = {
+		_NOMOD 		= "action",
+		_SHIFT 		= "shift",
+		_CTRL 		= "ctrl",
+		_CTRLSH 	= "ctrlsh",
+	}
+	return modName[modifier]
+end
+
+---------------------------------------------------------------
+-- Config: Returns converted modifier for faux binding use
+---------------------------------------------------------------
+local function GetBindingPrefix(modifier)
+	local modName = {
+		_SHIFT 	= "SHIFT",
+		_CTRL 	= "CTRL",
+		_CTRLSH = "CTRL-SHIFT",
+	}
+	return modName[modifier]
 end
 
 ---------------------------------------------------------------
@@ -155,23 +147,22 @@ local function GetMouseSettings()
 	}
 end
 
----------------------------------------------------------------
--- Config: Add static binding to new set
----------------------------------------------------------------
-local function ChangeBinding(bindingName, bindingTitle)
-	CONF_BUTTON:SetText(bindingTitle)
-	if not NewBindingSet then
-		NewBindingSet = Copy(ConsolePortBindingSet)
-	end
-	local modifiers = {
-		["SHIFT"] 		= "shift",
-		["CTRL"]		= "ctrl",
-		["CTRL-SHIFT"] 	= "ctrlsh",
+local function GetAddonSettings()
+	return {
+		{	cvar = "flipMod",
+			desc = "Flip modifiers (requires reload)",
+			toggle = ConsolePortSettings.flipMod,
+		},
+		{	cvar = "autoExtra",
+			desc = "Auto bind appropriate quest items",
+			toggle = ConsolePortSettings.autoExtra,
+		}
 	}
-	local modifier = modifiers[BIND_MODIFIER] or "action"
-	NewBindingSet[BIND_TARGET][modifier] = bindingName
 end
 
+---------------------------------------------------------------
+-- Config: Reset button guides
+---------------------------------------------------------------
 local function ResetGuides()
 	for i, guide in pairs(db.HotKeys) do
 		guide:SetTexture(nil)
@@ -237,155 +228,193 @@ local function RevertBindings()
 end
 
 ---------------------------------------------------------------
--- Config: Dropdown keybinding table
+-- Config: Secure UI/Button rebind animation
 ---------------------------------------------------------------
--- local function CreateBindHeaderButton(parent, num)
--- 	local button = CreateFrame("Button", "$parentButton"..num, parent, "OptionsListButtonTemplate")
--- 	button:SetHeight(24)
--- 	button:SetScript("OnClick", clickScript)
--- 	button.Remove = CreateFrame("Button", "$parentRemove", button)
--- 	button.Remove:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
--- 	button.Remove:SetSize(14, 14)
--- 	button.Remove:SetPoint("RIGHT", button, "RIGHT", -8, 0)
--- 	button.Remove:SetAlpha(0.5)
--- 	button.Remove:SetScript("OnClick", removeScript)
--- 	tinsert(parent.Buttons, button)
--- 	if num == 1 then
--- 		button:SetPoint("TOPLEFT", parent, "TOPLEFT", 4, 0)
--- 		button:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -4, 0)
--- 	else
--- 		button:SetPoint("TOPLEFT", parent.Buttons[num-1], "BOTTOMLEFT")
--- 		button:SetPoint("TOPRIGHT", parent.Buttons[num-1], "BOTTOMRIGHT")
--- 	end
--- 	return button
--- end
+local function AnimateBindingChange(target, destination)
+	if not ConsolePortAnimationFrame then
+		local AniFrame = CreateFrame("FRAME", "ConsolePortAnimationFrame", UIParent)
+		AniFrame.texture = AniFrame:CreateTexture()
+		AniFrame:SetFrameStrata("TOOLTIP")
+		AniFrame:SetSize(40,40)
+		AniFrame.texture:SetAllPoints(AniFrame)
+		AniFrame.group = AniFrame:CreateAnimationGroup()
+		AniFrame.animation = AniFrame.group:CreateAnimation("Translation")
+		AniFrame.animation:SetDuration(0.6)
+		AniFrame.animation:SetSmoothing("OUT")
+		AniFrame.group:SetScript("OnPlay", function()
+			AniFrame:Show()
+		end)
+		AniFrame.group:SetScript("OnFinished", function()
+			AniFrame:Hide()
+			AniFrame.dest.background:SetTexture(AniFrame.texture:GetTexture())
+			db.UIFrameFadeIn(AniFrame.dest.background, 1.5, 0.25, 1)
+			db.UIFrameFlash(db.Binds.FlashGlow, 0.25, 0.25, 0.75, false, 0.25, 0)
+		end)
+	end
+	local AniFrame = ConsolePortAnimationFrame
+	local dX, dY = destination:GetCenter()
+	local tX, tY = target:GetCenter()
+	AniFrame.texture:SetTexture(target.icon and target.icon:GetTexture())
+	AniFrame.dest = destination
+	AniFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", tX,tY)
+	AniFrame.animation:SetOffset((dX-tX), (dY-tY))
+	AniFrame.group:Play()
+end
 
--- local function RefreshHeaderList(self)
--- 	local buttons = self.Buttons
--- 	local binding
--- 	local num = 0
--- 	for i=1, GetNumBindings() do
--- 		binding = GetBinding(i)
--- 		if 	binding:match("^HEADER") and
--- 			not binding:match("^HEADER_BLANK") and
--- 			not binding:match("^HEADER_CONSOLEPORT") do
--- 			num = num + 1
--- 		--	if not buttons[_G[BIND..binding]] then
--- 		end
--- 	end
--- end
+---------------------------------------------------------------
+-- Config: Secure UI/Button binding changer
+---------------------------------------------------------------
+local function ChangeButtonBinding(actionButton)
+	local buttonName 	= actionButton:GetName()
+	local confButton 	= _G[buttonName..CONF]
+	local tableIndex 	= actionButton.name
+	local modifier 		= actionButton.mod
+	local focusFrame 	= ConsolePort:GetCurrentNode()
+	local focusFrameName = focusFrame:GetName()
+	-- Rebind checkup
+	if 	focusFrameName and
+		focusFrame:IsObjectType("Button") then
 
-local function GenerateBindingsTable()
-	local BindingsTable = {}
-	local SubTables = {
-		{name = "Movement keys", 		start = 8,		stop = 15 },
-		{name = "Chat", 				start = 16, 	stop = 25 },
-		{name = "Action Bar", 			start =	26, 	stop = 37 },
-		{name = "Extra Bar", 			start = 38,		stop = 58 },
-		{name = "Action Page", 			start = 59,		stop = 66 },
-		{name = "Left Bottom Bar",		start = 69,		stop = 80 },
-		{name = "Right Bottom Bar", 	start = 82,		stop = 93 },
-		{name = "Right Side Bar", 		start = 95,		stop = 106},
-		{name = "Left Side Bar", 		start = 108,	stop = 119},
-		{name = "Target (tab)", 		start = 120,	stop = 128},
-		{name = "Target friend", 		start = 129,	stop = 137},
-		{name = "Target enemy", 		start = 138,	stop = 149},
-		{name = "Target general",		start = 150,	stop = 162},
-		{name = "Bags and menu", 		start = 163,	stop = 169},
-		{name = "Character", 			start = 171, 	stop = 174},
-		{name = "Spells and talents", 	start = 176,	stop = 181},
-		{name = "Quest and map", 		start = 186, 	stop = 192},
-		{name = "Social", 				start = 194, 	stop = 200},
-		{name = "PvE / PvP",			start = 202, 	stop = 204},
-		{name = "Collections",			start = 206, 	stop = 210},
-		{name = "Information",			start = 212, 	stop = 213},
-		{name = "Miscellaneous",		start = 214,	stop = 228},
-		{name = "Camera",				start = 229,	stop = 248},
-		{name = "Target Markers",		start = 249,	stop = 257},
-		{name = "Vehicle Controls",		start = 258, 	stop = 266}
-	}
-	for _, item in ipairs(SubTables) do
-		local t = {}
-		local SubMenu =  {
-			text = item.name,
-			hasArrow = true,
-			notCheckable = true
-		}
-		for i=item.start, item.stop do
-			local bind = _G[BIND..GetBinding(i)]
-			local binding = {
-				text = bind,
-				notCheckable = true,
-				func = function() ChangeBinding(GetBinding(i), bind) CloseDropDownMenus() end
-			}
-			tinsert(t, binding)
+		local isValid = false
+		local isStatic = false
+
+		if focusFrame.Binding then
+			isStatic = true
+			isValid = true
+		elseif focusFrame:GetParent() ~= ConsolePortRebindFrame then
+			isStatic = false
+			isValid = true
 		end
-		SubMenu.menuList = t
-		tinsert(BindingsTable, SubMenu)
+
+		if isValid then
+			if not NewBindingSet then
+				NewBindingSet = Copy(ConsolePortBindingSet)
+			end
+			if not NewBindingButtons then
+				NewBindingButtons = Copy(ConsolePortBindingButtons)
+			end
+
+			local mod = GetBindingModifier(modifier)
+
+			if isStatic then
+				local text = _G["BINDING_NAME_"..focusFrame.Binding] or focusFrame.Binding
+				NewBindingSet[tableIndex][mod] = focusFrame.Binding
+				NewBindingButtons[tableIndex][mod] = nil
+				_G[buttonName].action = nil
+				confButton:SetText(text)
+				isValid = text
+			else
+				NewBindingSet[tableIndex][mod] = "CLICK "..buttonName..":LeftButton"
+				NewBindingButtons[tableIndex][mod] = focusFrameName
+				confButton:SetText(focusFrameName)
+				isValid = focusFrameName
+			end
+
+			AnimateBindingChange(focusFrame, confButton)
+			ResetGuides()
+			ReloadBindings()
+		end
+
+		return isValid
 	end
-	local ExtraBind = "CLICK ConsolePortExtraButton:LeftButton"
-	local binding = {
-		text = _G[BIND..ExtraBind],
-		notCheckable = true,
-		func = function() ChangeBinding(ExtraBind, _G[BIND..ExtraBind]) end
+end
+
+---------------------------------------------------------------
+-- Config: Static key binding table
+---------------------------------------------------------------
+local function GetAddonBindings()
+	return {
+		{name = "ConsolePort Extra", binding = "CLICK ConsolePortExtraButton:LeftButton"},
+		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
+		{name = BINDING_NAME_CP_CAMZOOMIN, binding = "CP_CAMZOOMIN"},
+		{name = BINDING_NAME_CP_CAMZOOMOUT, binding = "CP_CAMZOOMOUT"},
 	}
-	tinsert(BindingsTable, binding)
-	return BindingsTable
-end 
-
-local bindMenu = GenerateBindingsTable()
-local bindMenuFrame = CreateFrame("Frame", "ConsolePortBindMenu", UIParent, "UIDropDownMenuTemplate")
-
----------------------------------------------------------------
--- Config: Static blizzard API button 
----------------------------------------------------------------
-local function StaticConfigButtonOnShow(self)
-	local key1, key2 = GetBindingKey(self.name)
-	if key1 then self.key1 = key1 end
-	if key2 then self.key2 = key2 end
-	if key1 or key2 then
-		local key
-		if key1 then key = key1 else key = key2 end
-		if self.modifier then key = self.modifier.."-"..key end
-		self:SetText(_G[BIND..GetBindingAction(key, true)])
-		self.indicator:SetText(self.icon)
-	end
 end
 
-local function StaticConfigButtonOnClick(self, button, down)
-	BIND_TARGET = self.name
-	BIND_MODIFIER = self.modifier
-	CONF_BUTTON = self
-	if DropDownList1:IsVisible() then
-		db.Binds.Tutorial:SetText(format(TUTORIAL.COMBO, db.Binds.Rebind.button.bindings[1].icons))
-		CloseDropDownMenus()
+local function CreateStaticBindButton(parent, num, clickScript)
+	local button = CreateFrame("Button", "$parentButton"..num, parent, "OptionsListButtonTemplate")
+	button:SetHeight(16)
+	button:SetScript("OnClick", clickScript)
+	tinsert(parent.Buttons, button)
+	if num == 1 then
+		button:SetPoint("TOPLEFT", parent, "TOPLEFT", 4, -4)
+		button:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -4, -4)
 	else
-		db.Binds.Tutorial:SetText(format(TUTORIAL.STATIC, self.indicator:GetText()))
-		EasyMenu(bindMenu, bindMenuFrame, self, 320 , 0, "MENU")
+		button:SetPoint("TOPLEFT", parent.Buttons[num-1], "BOTTOMLEFT")
+		button:SetPoint("TOPRIGHT", parent.Buttons[num-1], "BOTTOMRIGHT")
+	end
+	return button
+end
+
+local function BindValueOnClick(self)
+	if ConsolePortRebindFrame.isRebinding and not InCombatLockdown() then
+		ConsolePort:SetCurrentNode(self)
+		ConsolePortRebindFrame.isRebinding:GetScript("OnClick")(ConsolePortRebindFrame.isRebinding, "LeftButton")
 	end
 end
 
-local function CreateConfigStaticButton(name, modifier, modNum)
-	local title = name.."%s"..CONF
-	local title = 	modifier == "SHIFT" 		and format(title, SHIFT) 	or
-					modifier == "CTRL"			and format(title, CTRL) 	or
-					modifier == "CTRL-SHIFT" 	and format(title, CTRLSH) 	or format(title, NOMOD)
-	local button = CreateFrame("BUTTON", title, db.Binds.Rebind, "UIMenuButtonStretchTemplate")
-	button.hasPriority = modifier == nil
-	button.indicator = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	button.indicator:SetPoint("LEFT", button, "LEFT", 4, 0)
-	button:SetSize(350, 40)
-	button:SetPoint("TOP", db.Binds.Rebind, 0, -40*modNum-28)
-	button.name = name
-	button.modifier = modifier
-
-	button:SetScript("OnShow", StaticConfigButtonOnShow)
-	button:SetScript("OnClick", StaticConfigButtonOnClick)
-
-	if not db.Binds.Buttons[name] then
-		db.Binds.Buttons[name] = {}
+local function BindHeaderOnClick(self)
+	local bindings = self.Bindings
+	local buttons = self.ValueList.Buttons
+	for i, button in pairs(buttons) do
+		button:Hide()
 	end
-	tinsert(db.Binds.Buttons[name], button)
+	local vCount = 0
+	for i, binding in pairs(bindings) do
+		vCount = vCount + 1 
+		local button = buttons[i] or CreateStaticBindButton(self.ValueList, vCount, BindValueOnClick)
+		local font = _G[button:GetName().."Text"]
+		font:SetTextColor(binding.binding and 1, 1, 1, 1 or 1, 0, 1, 1)
+		button:SetEnabled(binding.binding and true or false)
+		button:SetText(binding.name)
+		button:Show()
+		button.Binding = binding.binding
+	end
+	self.ValueList:SetHeight(vCount*16)
+	self.ValueList:SetWidth(218)
+end
+
+local function RefreshHeaderList(self)
+	local buttons = self.Buttons
+	local bindings = self.Bindings
+	local category, name
+	wipe(bindings)
+	for i=1, GetNumBindings() do
+		binding, header = GetBinding(i)
+		if header then
+			category = _G[header] or header
+			if not bindings[category] then
+				bindings[category] = {}
+			end
+			name = _G["BINDING_NAME_"..binding] or _G["BINDING_"..binding]
+			tinsert(bindings[category], {name = name, binding = _G["BINDING_NAME_"..binding] and binding})
+		elseif 	(binding:match("^HEADER") and not
+				binding:match("^HEADER_BLANK") and not
+				binding:match("^CP_")) or not
+				binding:match("^HEADER") then
+			if not bindings["Other"] then
+				bindings["Other"] = {}
+			end
+			name = _G["BINDING_NAME_"..binding] or _G["BINDING_"..binding]
+			tinsert(bindings["Other"], {name = name, binding = _G["BINDING_NAME_"..binding] and binding})
+		end
+	end
+	bindings["ConsolePort "] = GetAddonBindings()
+	local hCount = 0
+	for i, button in pairs(self.Buttons) do
+		button:Hide()
+	end
+	for category, bindings in db.pairsByKeys(bindings) do
+		hCount = hCount + 1
+		local button = buttons[hCount] or CreateStaticBindButton(self, hCount, BindHeaderOnClick)
+		button:SetText(category)
+		button:Show()
+		button.Bindings = bindings
+		button.ValueList = self.Values
+	end
+	self:SetHeight(hCount*16)
+	self:GetParent():SetHeight(hCount*(16+1) <= 330 and hCount*(16+1) or 330)
+	self:SetWidth(218)
 end
 
 ---------------------------------------------------------------
@@ -393,10 +422,15 @@ end
 ---------------------------------------------------------------
 local function GetStaticBinding(self)
 	local key  = GetBindingKey(self.name)
+	local binding 
 	if key then
 		key = self.modifier and self.modifier.."-"..key or key
-		return _G[BIND..GetBindingAction(key, true)]
+		binding = _G[BIND..GetBindingAction(key, true)]
 	end
+	if not binding then
+		binding = _G[BIND..ConsolePortBindingSet[self.secure.name][GetBindingModifier(self.secure.mod)]]
+	end
+	return binding 
 end
 
 local function DynamicConfigButtonOnShow(self)
@@ -420,44 +454,43 @@ end
 local function DynamicConfigButtonOnClick(self, mouseButton)
 	if not InCombatLockdown() then
 		if not ConsolePortRebindFrame.isRebinding then
-			db.Binds.Tutorial:SetText(format(TUTORIAL.DYNAMIC, self.indicator:GetText(), db.Binds.Apply, db.Binds.Cancel))
+			db.Binds.Tutorial:SetText(format(TUTORIAL.REBIND, self.indicator:GetText()))
 			ConsolePort:SetRebinding(self)
 			ConsolePort:SetCurrentNode(self.secure.action)
 		else
+			local stopRebind = true
 			if mouseButton == "LeftButton" then
 				local frame = ConsolePort:GetCurrentNode()
 				local name = frame:GetName()
-				if ConsolePort:ChangeButtonBinding(self.secure) then
-					db.Binds.Tutorial:SetText(format(TUTORIAL.APPLIED, self.indicator:GetText(), name))
-				else
-					db.Binds.Tutorial:SetText(TUTORIAL.INVALID)
+				if 	frame:GetParent() == ConsolePortRebindFrameStaticHeaders then
+					stopRebind = false
+					BindHeaderOnClick(frame)
+				else 
+					local newBind = ChangeButtonBinding(self.secure)
+					if newBind then
+						db.Binds.Tutorial:SetText(format(TUTORIAL.APPLIED, self.indicator:GetText(), newBind))
+					else
+						db.Binds.Tutorial:SetText(TUTORIAL.INVALID)
+					end
 				end
 			else
 				db.Binds.Tutorial:SetText(format(TUTORIAL.COMBO, db.Binds.Rebind.button.bindings[1].icons))
 			end
-			ConsolePort:SetRebinding(false)
-			ConsolePort:SetCurrentNode(self)
-			ConsolePort:SetButtonActionsUI()
-			ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
+			if stopRebind then
+				ConsolePort:SetRebinding(false)
+				ConsolePort:SetCurrentNode(self)
+				ConsolePort:SetButtonActionsUI()
+				ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
+			end
 		end
 	end
-end
-
-local function GetModifierString(mod)
-	
-	local modString = {
-		_SHIFT 	= "SHIFT",
-		_CTRL 	= "CTRL",
-		_CTRLSH = "CTRL-SHIFT",
-	}
-	return modString[mod]
 end
 
 function ConsolePort:CreateConfigButton(name, mod, modNum)
 	local button = CreateFrame("BUTTON", name..mod..CONF, db.Binds.Rebind, "OptionsListButtonTemplate")
 	button:SetBackdrop(nil)
-	button:SetSize(360,40)
-	button:SetPoint("TOP", db.Binds.Rebind, "TOP", 0, -40*modNum-28)
+	button:SetSize(390,40)
+	button:SetPoint("TOP", db.Binds.Rebind, "TOP", 0, -40*modNum-8)
 	button.hasPriority = mod == NOMOD
 	button.text:SetJustifyH("CENTER")
 
@@ -468,7 +501,7 @@ function ConsolePort:CreateConfigButton(name, mod, modNum)
 	button.background:SetPoint("RIGHT", button, "RIGHT", -4, 0)
 	button.background:SetSize(34, 34)
 
-	button.modifier = GetModifierString(mod)
+	button.modifier = GetBindingPrefix(mod)
 	button.name = name
 
 	button.secure = _G[name..mod]
@@ -583,37 +616,6 @@ function ConsolePort:ReloadBindingActions()
 end
 
 ---------------------------------------------------------------
--- Config: Secure button binding change
----------------------------------------------------------------
-function ConsolePort:ChangeButtonBinding(actionButton)
-	local buttonName 	= actionButton:GetName()
-	local confButton 	= _G[buttonName..CONF]
-	local tableIndex 	= actionButton.name
-	local modifier 		= actionButton.mod
-	local focusFrame 	= ConsolePort:GetCurrentNode()
-	local focusFrameName = focusFrame:GetName()
-	if 	focusFrameName and
-		focusFrame:IsObjectType("Button") and
-		focusFrame:GetParent() ~= ConsolePortRebindFrame then
-		confButton:SetText(focusFrameName)
-		AnimateBindingChange(focusFrame, confButton)
-		if not NewBindingButtons then
-			NewBindingButtons = Copy(ConsolePortBindingButtons)
-		end
-		local modName = {
-			_NOMOD 		= "action",
-			_SHIFT 		= "shift",
-			_CTRL 		= "ctrl",
-			_CTRLSH 	= "ctrlsh",
-		}
-		NewBindingButtons[tableIndex][modName[modifier]] = focusFrameName
-		ResetGuides()
-		ReloadBindings()
-		return true
-	end
-end
-
----------------------------------------------------------------
 -- Config: Binding palette show function
 ---------------------------------------------------------------
 local function BindingsOnShow(self)
@@ -647,7 +649,10 @@ local function ImportOnClick(self)
 end
 
 local function RemoveOnClick(self)
-	ConsolePortCharacterSettings[UIDropDownMenu_GetText(self:GetParent().dropdown)] = nil
+	if ConsolePortCharacterSettings then
+		ConsolePortCharacterSettings[UIDropDownMenu_GetText(self:GetParent().dropdown)] = nil
+	end
+	self:GetParent().dropdown.text:SetText("Choose character")
 	BindingsOnShow(self:GetParent())
 end
 
@@ -688,6 +693,15 @@ local function SaveMouseConfig(self)
 end
 
 ---------------------------------------------------------------
+-- Config: Save general addon cvars
+---------------------------------------------------------------
+local function SaveGeneralConfig(self)
+	for i, Check in pairs(self.General) do
+		ConsolePortSettings[Check.Cvar] = Check:GetChecked()
+	end
+end
+
+---------------------------------------------------------------
 -- Config: Binding buttons and tooltip
 ---------------------------------------------------------------
 local function SetBindingTooltip(self)
@@ -722,6 +736,7 @@ local function SetBindingTooltip(self)
 						binding.button.action:GetName() or
 						NewBindingSet and
 						_G["BINDING_NAME_"..NewBindingSet[self.name][indices[i]]] or
+						_G["BINDING_NAME_"..ConsolePortBindingSet[self.name][indices[i]]] or
 						_G["BINDING_NAME_"..GetBindingAction(binding.mod..GetBindingKey(self.name), true)] or "N/A"
 		GameTooltip:AddDoubleLine(binding.icons, text, 1,1,1,1,1,1)
 	end
@@ -968,7 +983,7 @@ local function ConfigurePanelConfig(self, Config)
 	Config.ResetController = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
 	Config.ResetController:SetWidth(150)
 	Config.ResetController:SetText("Change controller")
-	Config.ResetController:SetPoint("TOPLEFT", 16, -44)
+	Config.ResetController:SetPoint("TOPRIGHT", -16, -44)
 	Config.ResetController:SetScript("OnClick", ResetControllerOnClick)
 
 	Config.ResetBindings = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
@@ -976,14 +991,34 @@ local function ConfigurePanelConfig(self, Config)
 	Config.ResetBindings:SetText("Reset bindings")
 	Config.ResetBindings:SetPoint("TOP", Config.ResetController, "BOTTOM", 0, -2)
 	Config.ResetBindings:SetScript("OnClick", ResetBindingsOnClick)
+
+	Config.General = {}
+	for i, setting in pairs(GetAddonSettings()) do
+		local check = CreateFrame("CheckButton", "$parentGeneralSetting"..i, Config, "ChatConfigCheckButtonTemplate")
+		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		text:SetText(setting.desc)
+		check:SetChecked(setting.toggle)
+		check.Description = text
+		check.Cvar = setting.cvar
+		check:SetPoint("TOPLEFT", 16, -30*i-10)
+		text:SetPoint("LEFT", check, 30, 0)
+		check:Show()
+		text:Show()
+		tinsert(Config.General, check)
+	end
 end
 
 local function ConfigurePanelBinds(self, Binds)
 	local player = GetUnitName("player").."-"..GetRealmName()
 
-	Binds.Controller = Binds:CreateTexture("GameMenuTextureController", "ARTWORK");
-	Binds.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type);
-	Binds.Controller:SetPoint("CENTER", Binds, "CENTER");
+	Binds.Controller = Binds:CreateTexture("GameMenuTextureController", "ARTWORK")
+	Binds.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type)
+	Binds.Controller:SetPoint("CENTER", Binds, "CENTER")
+
+	Binds.FlashGlow = Binds:CreateTexture("GameMenuTextureController", "OVERLAY")
+	Binds.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type.."Highlight")
+	Binds.FlashGlow:SetPoint("CENTER", Binds, "CENTER")
+	Binds.FlashGlow:SetAlpha(0)
 
 	Binds.Tutorial = Binds:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Binds.Tutorial:SetPoint("TOP", Binds.Controller, 0, -80)
@@ -1044,50 +1079,61 @@ local function ConfigurePanelBinds(self, Binds)
 		button:SetScript("OnLeave", function(self) if GameTooltip:GetOwner() == self then GameTooltip:Hide() end end)
 	end
 
-	Binds.Rebind = CreateFrame("Frame", addOn.."RebindFrame", Binds, "UIPanelDialogTemplate")
+	Binds.Rebind = CreateFrame("Frame", addOn.."RebindFrame", Binds)
 	Binds.Rebind:SetPoint("BOTTOM", Binds, "BOTTOM", 0, 0)
-	Binds.Rebind:SetSize(370, 200)
+	Binds.Rebind:SetSize(400, 180)
 	Binds.Rebind:Hide()
 
 	Binds.Rebind.SetButton = RebindSetButton
-	Binds.Rebind.Close = ConsolePortRebindFrameClose
 	Binds.Rebind.Parent = Binds
 	Binds.Rebind:SetScript("OnHide", function (self) Binds.Tutorial:SetText(TUTORIAL.DEFAULT) ConsolePort:SetRebinding() end)
-	Binds.Rebind.Close:HookScript("OnClick", function(self) CloseDropDownMenus() end)
 	Binds.Rebind:RegisterEvent("PLAYER_REGEN_DISABLED")
 	Binds.Rebind:SetScript("OnEvent", Binds.Rebind.Hide)
 
-	Binds.Rebind.Static = CreateFrame("Frame", "$parentStatic", Binds.Rebind, "UIPanelDialogTemplate")
+	Binds.Rebind.Close = CreateFrame("Button", "$parentCloseButton", Binds.Rebind)
+	Binds.Rebind.Close:SetNormalTexture("Interface\\Buttons\\UI-StopButton")
+	Binds.Rebind.Close:SetScript("OnClick", function(self) self:GetParent():Hide() end)
+	Binds.Rebind.Close:SetPoint("TOPRIGHT", Binds.Rebind, "TOPRIGHT", -4, 16)
+	Binds.Rebind.Close:SetSize(16, 16)
+
+	Binds.Rebind.BG = Binds.Rebind:CreateTexture(nil, "BACKGROUND")
+	Binds.Rebind.BG:SetAllPoints(Binds.Rebind)
+	Binds.Rebind.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
+	Binds.Rebind.BG:SetBlendMode("ADD")
+	Binds.Rebind.BG:SetVertexColor(0.5, 0, 0, 0.25)
+
+	Binds.Rebind.Static = CreateFrame("Frame", "$parentStatic", Binds.Rebind, "InsetFrameTemplate3")
 	Binds.Rebind.Static.Parent = Binds.Rebind
 	Binds.Rebind.Static:SetPoint("TOPLEFT", InterfaceOptionsFrame, "TOPRIGHT", 0, 0)
 	Binds.Rebind.Static:SetPoint("BOTTOMLEFT", InterfaceOptionsFrame, "BOTTOMRIGHT", 0, 0)
-	Binds.Rebind.Static:SetWidth(300)
-
-	Binds.Rebind.Static.Values = CreateFrame("Frame", "$parentValues", Binds.Rebind.Static)
-	Binds.Rebind.Static.Values.Buttons = {}
-
-	Binds.Rebind.Static.ValueScroll = CreateFrame("ScrollFrame", "$parentValueScrollFrame", Binds.Rebind.Static, "UIPanelScrollFrameTemplate")
-	Binds.Rebind.Static.ValueScroll:SetPoint("TOPRIGHT", Binds.Rebind.Static, "TOPRIGHT", 0, 0)
-	Binds.Rebind.Static.ValueScroll:SetPoint("BOTTOMLEFT", Binds.Rebind.Static, "BOTTOM", 0, 0)
-	Binds.Rebind.Static.ValueScroll:SetScrollChild(Binds.Rebind.Static.Values)
+	Binds.Rebind.Static:SetWidth(250)
 
 	Binds.Rebind.Static.Headers = CreateFrame("Frame", "$parentHeaders", Binds.Rebind.Static)
 	Binds.Rebind.Static.Headers.Buttons = {}
-	Binds.Rebind.Static.Headers.Values = Binds.Rebind.Static.Values
+	Binds.Rebind.Static.Headers.Bindings = {}
 	Binds.Rebind.Static.Headers:SetScript("OnShow", RefreshHeaderList)
 
 	Binds.Rebind.Static.HeaderScroll = CreateFrame("ScrollFrame", "$parentHeaderScrollFrame", Binds.Rebind.Static, "UIPanelScrollFrameTemplate")
-	Binds.Rebind.Static.HeaderScroll:SetPoint("TOPLEFT", Binds.Rebind.Static, "TOPLEFT", 0, 0)
-	Binds.Rebind.Static.HeaderScroll:SetPoint("BOTTOMRIGHT", Binds.Rebind.Static, "BOTTOM", 0, 0)
+	Binds.Rebind.Static.HeaderScroll:SetPoint("TOPLEFT", Binds.Rebind.Static, "TOPLEFT", 8, -8)
+	Binds.Rebind.Static.HeaderScroll:SetPoint("TOPRIGHT", Binds.Rebind.Static, "TOPRIGHT", -32, -8)
 	Binds.Rebind.Static.HeaderScroll:SetScrollChild(Binds.Rebind.Static.Headers)
 
+	Binds.Rebind.Static.HeaderWrap = CreateFrame("Frame", "$parentHeaderWrap", Binds.Rebind.Static, "InsetFrameTemplate3")
+	Binds.Rebind.Static.HeaderWrap:SetAllPoints(Binds.Rebind.Static.HeaderScroll)
+
+	Binds.Rebind.Static.Values = CreateFrame("Frame", "$parentValues", Binds.Rebind.Static)
+	Binds.Rebind.Static.Values.Buttons = {}
+	Binds.Rebind.Static.Headers.Values = Binds.Rebind.Static.Values
+
+	Binds.Rebind.Static.ValueScroll = CreateFrame("ScrollFrame", "$parentValueScrollFrame", Binds.Rebind.Static, "UIPanelScrollFrameTemplate")
+	Binds.Rebind.Static.ValueScroll:SetPoint("TOPLEFT", Binds.Rebind.Static.Headers, "BOTTOMLEFT", 0, -16)
+	Binds.Rebind.Static.ValueScroll:SetPoint("BOTTOMRIGHT", Binds.Rebind.Static, "BOTTOMRIGHT", -32, 8)
+	Binds.Rebind.Static.ValueScroll:SetScrollChild(Binds.Rebind.Static.Values)
+
+	Binds.Rebind.Static.ValueWrap = CreateFrame("Frame", "$parentValueWrap", Binds.Rebind.Static, "InsetFrameTemplate3")
+	Binds.Rebind.Static.ValueWrap:SetAllPoints(Binds.Rebind.Static.ValueScroll)
 
 	self:AddFrame(Binds.Rebind:GetName())
-
-	Binds.IconFormat = "|T%s:24:24:0:0|t"
-	Binds.Cancel = format("|T%s:16:16:0:0|t", TEXTURE.SQUARE or TEXTURE.X)
-	Binds.Apply = format("|T%s:16:16:0:0|t", TEXTURE.CIRCLE or TEXTURE.B)
-
 end
 
 local function ConfigurePanelMouse(self, Mouse)
@@ -1138,6 +1184,7 @@ local function ConfigurePanelMouse(self, Mouse)
 		CP_R_RIGHT 	= TEXTURE[strupper(db.NAME.CP_R_RIGHT)],
 		CP_R_LEFT 	= TEXTURE[strupper(db.NAME.CP_R_LEFT)],
 		CP_R_UP		= TEXTURE[strupper(db.NAME.CP_R_UP)],
+		CP_R_DOWN	= TEXTURE[strupper(db.NAME.CP_R_DOWN)],
 	}
 
 	local scrollButtons = {
@@ -1292,7 +1339,7 @@ end
 function ConsolePort:CreateConfigPanel()
 	if not db.Config then
 
-		local Config = CreatePanel(InterfaceOptionsFramePanelContainer, "Main", addOn, addOn, SaveMainConfig)
+		local Config = CreatePanel(InterfaceOptionsFramePanelContainer, "Main", addOn, addOn, SaveGeneralConfig)
 		local Binds = CreatePanel(Config, "Binds", "Bindings", "Binding settings", SubmitBindings, RevertBindings, LoadDefaultBinds)
 		local Mouse = CreatePanel(Config, "Mouse", "Mouse", "Toggle mouse look when...", SaveMouseConfig)
 		local UICtrl = CreatePanel(Config, "UICtrl", "Interface", "Interface settings (advanced)", nil, nil, LoadDefaultUICtrl)
@@ -1308,3 +1355,5 @@ function ConsolePort:CreateConfigPanel()
 		ConfigurePanelUICtrl(self, UICtrl)
 	end
 end
+
+-- holy crap this file is a mess :(

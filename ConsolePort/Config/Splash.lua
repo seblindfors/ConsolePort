@@ -171,7 +171,7 @@ function ConsolePort:CreateBindingWizard()
 						self.Status:SetAlpha(1)
 					else
 						self.Status:SetText(format(SETUP.SUCCESS, self.ButtonTex:GetTexture(), key))
-						UIFrameFadeIn(self.Status, 3, 1, 0)
+						db.UIFrameFadeIn(self.Status, 3, 1, 0)
 						SaveBindings(GetCurrentBindingSet())
 						self.Binding:SetText(SETUP.EMPTY)
 						self.Confirm:SetText("")
@@ -323,10 +323,10 @@ function ConsolePort:CreateSplashFrame()
 		SplashHeader:SetText("Select Controller");
 		-- Scripts
 		SplashPlaystationButton:SetScript("OnEnter", function(self)
-			UIFrameFadeIn(SplashPlaystationHighlight, 0.1, 0, 1);
+			db.UIFrameFadeIn(SplashPlaystationHighlight, 0.1, 0, 1);
 		end);
 		SplashPlaystationButton:SetScript("OnLeave", function(self)
-			UIFrameFadeIn(SplashPlaystationHighlight, 0.1, 1, 0);
+			db.UIFrameFadeIn(SplashPlaystationHighlight, 0.1, 1, 0);
 		end);
 		SplashPlaystationButton:SetScript("OnClick", function(...)
 			ConsolePortSettings.type = "PS4";
@@ -335,10 +335,10 @@ function ConsolePort:CreateSplashFrame()
 		end);
 
 		SplashXboxButton:SetScript("OnEnter", function(self)
-			UIFrameFadeIn(SplashXboxHighlight, 0.1, 0, 1);
+			db.UIFrameFadeIn(SplashXboxHighlight, 0.1, 0, 1);
 		end);
 		SplashXboxButton:SetScript("OnLeave", function(self)
-			UIFrameFadeIn(SplashXboxHighlight, 0.1, 1, 0);
+			db.UIFrameFadeIn(SplashXboxHighlight, 0.1, 1, 0);
 		end);
 		SplashXboxButton:SetScript("OnClick", function(...)
 			ConsolePortSettings.type = "Xbox";
@@ -359,8 +359,8 @@ function ConsolePort:CreateSplashFrame()
 			HelpPlateTooltip:Show();
 		end);
 		SplashHelpButton:HookScript("OnClick", function(...)
-			UIFrameFlash(SplashXboxHighlight, 0.25, 0.25, 0.75, false, 0.25, 0);
-			UIFrameFlash(SplashPlaystationHighlight, 0.25, 0.25, 0.75, false, 0.25, 0);
+			db.UIFrameFlash(SplashXboxHighlight, 0.25, 0.25, 0.75, false, 0.25, 0);
+			db.UIFrameFlash(SplashPlaystationHighlight, 0.25, 0.25, 0.75, false, 0.25, 0);
 		end);
 		SplashHelpButton.Ring:SetAlpha(0.5);
 		SplashPlaystationHighlight:SetAlpha(0);

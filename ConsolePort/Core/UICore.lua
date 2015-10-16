@@ -213,6 +213,7 @@ function ConsolePort:ADDON_LOADED(...)
 		self:ReloadBindingActions()
 		self:SetupCursor()
 		self:CheckLoadedAddons()
+		self:CheckLoadedSettings()
 	end
 	if not addOns then
 		addOns = ConsolePortUIFrames
