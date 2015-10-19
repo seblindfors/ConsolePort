@@ -2,7 +2,7 @@ local addOn, db = ...
 -- Main
 local ConsolePort = CreateFrame("FRAME", addOn)
 
-local CRITICALUPDATE = true
+local CRITICALUPDATE = false
 local VERSION = gsub(GetAddOnMetadata(addOn, "Version"), "%.", "")
 VERSION = tonumber(VERSION)
 
@@ -138,24 +138,24 @@ end
 
 function ConsolePort:GetDefaultButton(key)
 	local keys = {
-		["CP_R_UP"] = 	{
+		CP_R_UP = 	{
 			ui			= KEY.TRIANGLE,
 			action 		= "ActionButton2",
 			shift 		= "ActionButton7",
 			ctrl 		= "MultiBarBottomLeftButton2",
 			ctrlsh 		= "MultiBarBottomLeftButton7",
 		},
-		["CP_R_DOWN"] = {
+		CP_R_DOWN = {
 			ui 			= KEY.CROSS,
 		},
-		["CP_R_LEFT"] = {
+		CP_R_LEFT = {
 			ui			= KEY.SQUARE,
 			action 		= "ActionButton1",
 			shift 		= "ActionButton6",
 			ctrl 		= "MultiBarBottomLeftButton1",
 			ctrlsh 		= "MultiBarBottomLeftButton6",
 		},
-		["CP_R_RIGHT"] = {
+		CP_R_RIGHT = {
 			ui 			= KEY.CIRCLE,
 			action 		= "ActionButton3",
 			shift 		= "ActionButton8",
@@ -163,54 +163,54 @@ function ConsolePort:GetDefaultButton(key)
 			ctrlsh 		= "MultiBarBottomLeftButton8",
 		},
 		-- Triggers
-		["CP_TR1"] =	{
+		CP_TR1 =	{
 			action 		= "ActionButton4",
 			shift 		= "ActionButton9",
 			ctrl 		= "MultiBarBottomLeftButton4",
 			ctrlsh 		= "MultiBarBottomLeftButton9",
 		},
-		["CP_TR2"] = 	{
+		CP_TR2 = 	{
 			action 		= "ActionButton5",
 			shift 		= "ActionButton10",
 			ctrl 		= "MultiBarBottomLeftButton5",
 			ctrlsh 		= "MultiBarBottomLeftButton10",
 		},
 		-- Left side
-		["CP_L_UP"] = {
+		CP_L_UP = {
 			ui			= KEY.UP,
 			action 		= "MultiBarBottomLeftButton12",
 			shift 		= "MultiBarBottomRightButton2",
 			ctrl 		= "MultiBarBottomRightButton6",
 			ctrlsh 		= "MultiBarBottomRightButton10",
 		},
-		["CP_L_DOWN"] = {
+		CP_L_DOWN = {
 			ui			= KEY.DOWN,
 			action 		= "ActionButton11",
 			shift 		= "MultiBarBottomRightButton4",
 			ctrl  		= "MultiBarBottomRightButton8",
 			ctrlsh		= "MultiBarBottomRightButton12",
 		},
-		["CP_L_LEFT"] = {
+		CP_L_LEFT = {
 			ui			= KEY.LEFT,
 			action 		= "MultiBarBottomLeftButton11",
 			shift 		= "MultiBarBottomRightButton1",
 			ctrl 		= "MultiBarBottomRightButton5",
 			ctrlsh 		= "MultiBarBottomRightButton9",
 		},
-		["CP_L_RIGHT"] = {
+		CP_L_RIGHT = {
 			ui			= KEY.RIGHT,
 			action 		= "ActionButton12",
 			shift 		= "MultiBarBottomRightButton3",
 			ctrl 		= "MultiBarBottomRightButton7",
 			ctrlsh 		= "MultiBarBottomRightButton11",
 		},		
-		["CP_L_OPTION"] = {
+		CP_L_OPTION = {
 			ui 			= KEY.SHARE,
 		},
-		["CP_C_OPTION"] = {
+		CP_C_OPTION = {
 			ui 			= KEY.CENTER,
 		},
-		["CP_R_OPTION"] = {
+		CP_R_OPTION = {
 			ui 			= KEY.OPTIONS,
 		},
 	}
@@ -281,66 +281,66 @@ local function ResetAllSettings()
 end
 
  function ConsolePort:LoadSettings()
-        if not ConsolePortBindingSet then
-        	ConsolePortBindingSet = self:GetDefaultBindingSet()
-        end
+    if not ConsolePortBindingSet then
+    	ConsolePortBindingSet = self:GetDefaultBindingSet()
+    end
 
-        if not ConsolePortBindingButtons then
-        	ConsolePortBindingButtons = self:GetDefaultBindingButtons()
-        end
+    if not ConsolePortBindingButtons then
+    	ConsolePortBindingButtons = self:GetDefaultBindingButtons()
+    end
 
-        if not ConsolePortMouse then
-        	ConsolePortMouse = {
-        		Events = GetDefaultMouseEvents(),
-        		Cursor = GetDefaultMouseCursor(),
-        	}
-        end
+    if not ConsolePortMouse then
+    	ConsolePortMouse = {
+    		Events = GetDefaultMouseEvents(),
+    		Cursor = GetDefaultMouseCursor(),
+    	}
+    end
 
-        if not ConsolePortSettings then
-        	ConsolePortSettings = self:GetDefaultAddonSettings()
-        	self:CreateSplashFrame()
-        end
+    if not ConsolePortSettings then
+    	ConsolePortSettings = self:GetDefaultAddonSettings()
+    	self:CreateSplashFrame()
+    end
 
-        if not ConsolePortUIFrames then
-        	ConsolePortUIFrames = self:GetDefaultUIFrames()
-        end
+    if not ConsolePortUIFrames then
+    	ConsolePortUIFrames = self:GetDefaultUIFrames()
+    end
 
-        if 	self:CheckUnassignedBindings() then
-        	self:CreateBindingWizard()
-        end
+    if 	self:CheckUnassignedBindings() then
+    	self:CreateBindingWizard()
+    end
 
-        SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
-        local function SlashHandler(msg, editBox)
-        	if msg == "type" or msg == "controller" then
-        		ConsolePort:CreateSplashFrame()
-        	elseif msg == "resetAll" and not InCombatLockdown() then
-        		local bindings = ConsolePort:GetBindingNames()
-        		for i, binding in pairs(bindings) do
-        			local key1, key2 = GetBindingKey(binding)
-        			if key1 then SetBinding(key1) end
-        			if key2 then SetBinding(key2) end
-        		end
-        		SaveBindings(GetCurrentBindingSet())
-        		ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet()
-        		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
-        		ConsolePortSettings = nil
-        		ReloadUI()
-        	elseif 	msg == "resetAll" then print(db.TUTORIAL.SLASH.COMBAT)
-        	elseif 	msg == "binds" or
-        			msg == "binding" or
-        			msg == "bindings" then
-        		InterfaceOptionsFrame_OpenToCategory(db.Binds)
-				InterfaceOptionsFrame_OpenToCategory(db.Binds)
-        	else
-        		local instruction = "|cff69ccf0%s|r: %s"
-        		print("|cffffe00aConsolePort|r:")
-        		print(format(instruction, "/cp type", db.TUTORIAL.SLASH.TYPE))
-        		print(format(instruction, "/cp resetAll", db.TUTORIAL.SLASH.TYPE))
-        		print(format(instruction, "/cp binds", db.TUTORIAL.SLASH.TYPE))
-        	end
-        end
-        SlashCmdList["CONSOLEPORT"] = SlashHandler
- end
+    SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
+    local function SlashHandler(msg, editBox)
+    	if msg == "type" or msg == "controller" then
+    		ConsolePort:CreateSplashFrame()
+    	elseif msg == "resetAll" and not InCombatLockdown() then
+    		local bindings = ConsolePort:GetBindingNames()
+    		for i, binding in pairs(bindings) do
+    			local key1, key2 = GetBindingKey(binding)
+    			if key1 then SetBinding(key1) end
+    			if key2 then SetBinding(key2) end
+    		end
+    		SaveBindings(GetCurrentBindingSet())
+    		ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet()
+    		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
+    		ConsolePortSettings = nil
+    		ReloadUI()
+    	elseif 	msg == "resetAll" then print(db.TUTORIAL.SLASH.COMBAT)
+    	elseif 	msg == "binds" or
+    			msg == "binding" or
+    			msg == "bindings" then
+    		InterfaceOptionsFrame_OpenToCategory(db.Binds)
+			InterfaceOptionsFrame_OpenToCategory(db.Binds)
+    	else
+    		local instruction = "|cff69ccf0%s|r: %s"
+    		print("|cffffe00aConsolePort|r:")
+    		print(format(instruction, "/cp type", db.TUTORIAL.SLASH.TYPE))
+    		print(format(instruction, "/cp resetAll", db.TUTORIAL.SLASH.TYPE))
+    		print(format(instruction, "/cp binds", db.TUTORIAL.SLASH.TYPE))
+    	end
+    end
+    SlashCmdList["CONSOLEPORT"] = SlashHandler
+end
 
 function ConsolePort:CheckLoadedSettings()
     if 	(ConsolePortSettings and not ConsolePortSettings.version) or 
@@ -380,13 +380,13 @@ function ConsolePort:CreateActionButtons()
 	table.sort(keys)
 	for name, key in db.pairsByKeys(keys) do
 		self:CreateSecureButton(name, "_NOMOD",	key.action,	key.ui)
-		self:CreateConfigButton(name, "_NOMOD", 0)
 		self:CreateSecureButton(name, "_SHIFT", key.shift, 	key.ui)
-		self:CreateConfigButton(name, "_SHIFT", 1)
 		self:CreateSecureButton(name, "_CTRL",  key.ctrl, 	key.ui)
+		self:CreateSecureButton(name, "_CTRLSH",key.ctrlsh, key.ui)
+		self:CreateConfigButton(name, "_NOMOD", 0)
+		self:CreateConfigButton(name, "_SHIFT", 1)
 		self:CreateConfigButton(name, "_CTRL",  2)
-		self:CreateSecureButton(name, "_CTRLSH", key.ctrlsh, key.ui)
-		self:CreateConfigButton(name, "_CTRLSH", 3)
+		self:CreateConfigButton(name, "_CTRLSH",3)
 	end
 end
 

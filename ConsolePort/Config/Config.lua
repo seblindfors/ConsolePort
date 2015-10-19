@@ -3,23 +3,16 @@ local KEY = db.KEY
 local TUTORIAL = db.TUTORIAL.BIND
 local TEXTURE = db.TEXTURE
 
-local BIND_TARGET 	 	= false
-local BIND_MODIFIER 	= nil
-local CONF_BUTTON 		= nil
-
 local CP				= "CP"
 local CONF				= "_CONF"
-local CHECK 			= "_CHECK"
-local CONFBG			= "_CONF_BG"
-local GUIDE				= "_GUIDE"
 local NOMOD				= "_NOMOD"
 local SHIFT				= "_SHIFT"
 local CTRL				= "_CTRL"
 local CTRLSH			= "_CTRLSH"
 local BIND 				= "BINDING_NAME_"
 
-local NewBindingSet = nil 
-local NewBindingButtons = nil 
+local NewBindingSet
+local NewBindingButtons
 
 db.HotKeys = {}
 
@@ -297,7 +290,7 @@ local function ChangeButtonBinding(actionButton)
 			local mod = GetBindingModifier(modifier)
 
 			if isStatic then
-				local text = _G["BINDING_NAME_"..focusFrame.Binding] or focusFrame.Binding
+				local text = _G[BIND..focusFrame.Binding] or focusFrame.Binding
 				NewBindingSet[tableIndex][mod] = focusFrame.Binding
 				NewBindingButtons[tableIndex][mod] = nil
 				_G[buttonName].action = nil
@@ -386,8 +379,8 @@ local function RefreshHeaderList(self)
 			if not bindings[category] then
 				bindings[category] = {}
 			end
-			name = _G["BINDING_NAME_"..binding] or _G["BINDING_"..binding]
-			tinsert(bindings[category], {name = name, binding = _G["BINDING_NAME_"..binding] and binding})
+			name = _G[BIND..binding] or _G["BINDING_"..binding]
+			tinsert(bindings[category], {name = name, binding = _G[BIND..binding] and binding})
 		elseif 	(binding:match("^HEADER") and not
 				binding:match("^HEADER_BLANK") and not
 				binding:match("^CP_")) or not
@@ -395,8 +388,8 @@ local function RefreshHeaderList(self)
 			if not bindings["Other"] then
 				bindings["Other"] = {}
 			end
-			name = _G["BINDING_NAME_"..binding] or _G["BINDING_"..binding]
-			tinsert(bindings["Other"], {name = name, binding = _G["BINDING_NAME_"..binding] and binding})
+			name = _G[BIND..binding] or _G["BINDING_"..binding]
+			tinsert(bindings["Other"], {name = name, binding = _G[BIND..binding] and binding})
 		end
 	end
 	bindings["ConsolePort "] = GetAddonBindings()
@@ -518,18 +511,33 @@ end
 ---------------------------------------------------------------
 -- Config: Create addon dummy bindings
 ---------------------------------------------------------------
+local function SetFauxBinding(self, priority, modifier, old, new)
+	if not InCombatLockdown() then
+		local key1, key2 = GetBindingKey(old);
+		if modifier then
+			if key1 then key1 = modifier.."-"..key1 end
+			if key2 then key2 = modifier.."-"..key2 end
+		end
+		if key1 then SetOverrideBinding(self, priority, key1, new) end
+		if key2 then SetOverrideBinding(self, priority, key2, new) end
+	end
+end
+
 function ConsolePort:LoadBindingSet()
 	local keys = NewBindingSet or ConsolePortBindingSet
 	local w = WorldFrame
 	ClearOverrideBindings(w)
 	for name, key in pairs(keys) do
-		if key.action 	then self:OverrideBinding(w, true, nil, 			name, key.action)	end
-		if key.ctrl 	then self:OverrideBinding(w, true, "CTRL", 			name, key.ctrl) 	end 
-		if key.shift 	then self:OverrideBinding(w, true, "SHIFT",			name, key.shift) 	end
-		if key.ctrlsh 	then self:OverrideBinding(w, true, "CTRL-SHIFT", 	name, key.ctrlsh)	end
+		if key.action 	then SetFauxBinding(w, false, nil, 			name, key.action)	end
+		if key.ctrl 	then SetFauxBinding(w, false, "CTRL", 		name, key.ctrl) 	end 
+		if key.shift 	then SetFauxBinding(w, false, "SHIFT",		name, key.shift) 	end
+		if key.ctrlsh 	then SetFauxBinding(w, false, "CTRL-SHIFT", name, key.ctrlsh)	end
 	end
 end
 
+---------------------------------------------------------------
+-- Config: Hotkey guides on UI button 
+---------------------------------------------------------------
 local function GetDefaultGuideTexture(button)
 	local triggers = {
 		CP_TR1 = db.TEXTURE.RONE,
@@ -540,25 +548,7 @@ local function GetDefaultGuideTexture(button)
 	return triggers[button] or db.TEXTURE[strupper(db.NAME[button])]
 end
 
----------------------------------------------------------------
--- Config: Hotkey guides on UI button 
----------------------------------------------------------------
-function ConsolePort:UpdateActionGuideTexture(button, key, mod1, mod2)
-	if button.HotKey then
-		button.HotKey:SetAlpha(0)
-	end
-	if not button.guide then
-		button.guide = button:CreateTexture(nil, "OVERLAY", nil, 7)
-		button.guide:SetPoint("TOPRIGHT", button, 0, 0)
-		button.guide:SetSize(14, 14)
-		tinsert(db.HotKeys, button.guide)
-	end
-	button.guide:SetTexture(GetDefaultGuideTexture(key))
-	self:UpdateModifiedActionGuideTexture(button, mod1, "TOP")
-	self:UpdateModifiedActionGuideTexture(button, mod2, "TOPLEFT")
-end
-
-function ConsolePort:UpdateModifiedActionGuideTexture(button, modifier, anchor)
+local function UpdateModifiedActionGuideTexture(button, modifier, anchor)
 	local mod
 	if 		anchor == "TOP"  	then mod = "mod1"
 	elseif 	anchor == "TOPLEFT" then mod = "mod2" end
@@ -575,6 +565,21 @@ function ConsolePort:UpdateModifiedActionGuideTexture(button, modifier, anchor)
 	end
 end
 
+local function UpdateActionGuideTexture(button, key, mod1, mod2)
+	if button.HotKey then
+		button.HotKey:SetAlpha(0)
+	end
+	if not button.guide then
+		button.guide = button:CreateTexture(nil, "OVERLAY", nil, 7)
+		button.guide:SetPoint("TOPRIGHT", button, 0, 0)
+		button.guide:SetSize(14, 14)
+		tinsert(db.HotKeys, button.guide)
+	end
+	button.guide:SetTexture(GetDefaultGuideTexture(key))
+	UpdateModifiedActionGuideTexture(button, mod1, "TOP")
+	UpdateModifiedActionGuideTexture(button, mod2, "TOPLEFT")
+end
+
 ---------------------------------------------------------------
 -- Config: Reload bindings from table
 ---------------------------------------------------------------
@@ -586,9 +591,9 @@ function ConsolePort:ReloadBindingAction(button, UIbutton, name, mod1, mod2)
 		button:Revert()
 		if 	button.action:GetParent() == MainMenuBarArtFrame and
 			button.action.action and button.action:GetID() <= 6 then
-			self:UpdateActionGuideTexture(_G["OverrideActionBarButton"..button.action:GetID()], name, mod1, mod2)
+			UpdateActionGuideTexture(_G["OverrideActionBarButton"..button.action:GetID()], name, mod1, mod2)
 		end
-		self:UpdateActionGuideTexture(button.action, name, mod1, mod2)
+		UpdateActionGuideTexture(button.action, name, mod1, mod2)
 		if button.action.HotKey then
 			button.action.HotKey:SetAlpha(0)
 		end
@@ -735,9 +740,9 @@ local function SetBindingTooltip(self)
 						binding.button.action and
 						binding.button.action:GetName() or
 						NewBindingSet and
-						_G["BINDING_NAME_"..NewBindingSet[self.name][indices[i]]] or
-						_G["BINDING_NAME_"..ConsolePortBindingSet[self.name][indices[i]]] or
-						_G["BINDING_NAME_"..GetBindingAction(binding.mod..GetBindingKey(self.name), true)] or "N/A"
+						_G[BIND..NewBindingSet[self.name][indices[i]]] or
+						_G[BIND..ConsolePortBindingSet[self.name][indices[i]]] or
+						_G[BIND..GetBindingAction(binding.mod..GetBindingKey(self.name), true)] or "N/A"
 		GameTooltip:AddDoubleLine(binding.icons, text, 1,1,1,1,1,1)
 	end
 	GameTooltip:AddLine("<Click to change>")

@@ -399,6 +399,47 @@ function ConsolePort:UIControl(key, state)
 end
 
 ---------------------------------------------------------------
+-- UIControl: Rebinding functions for cursor
+---------------------------------------------------------------
+local function GetActionButtons()
+	return {
+		CP_L_UP_NOMOD,
+		CP_L_DOWN_NOMOD,
+		CP_L_RIGHT_NOMOD,
+		CP_L_LEFT_NOMOD,
+		CP_R_UP_NOMOD,
+		CP_R_DOWN_NOMOD,
+		CP_R_RIGHT_NOMOD,
+		CP_R_LEFT_NOMOD,
+	}
+end
+
+local function GetInterfaceButtons()
+	return {
+		CP_L_UP_NOMOD,
+		CP_L_DOWN_NOMOD,
+		CP_L_RIGHT_NOMOD,
+		CP_L_LEFT_NOMOD,
+		_G[ConsolePortMouse.Cursor.Special..NOMOD],
+	}
+end
+
+function ConsolePort:SetButtonActionsDefault()
+	ClearOverrideBindings(self)
+	for _, button in pairs(GetActionButtons()) do
+		button:Revert()
+	end
+end
+
+function ConsolePort:SetButtonActionsUI()
+	local buttons, key = GetInterfaceButtons()
+	for i, button in pairs(buttons) do
+		OverrideBindingClick(self, button.name, button:GetName(), "LeftButton")
+		button:SetAttribute("type", "UIControl")
+	end
+end
+
+---------------------------------------------------------------
 -- UIControl: Initialize Cursor
 ---------------------------------------------------------------
 function ConsolePort:SetupCursor()
