@@ -4,8 +4,7 @@ if GetLocale() == "ptBR" then
 		BIND  = {
 			DEFAULT 			= "Clique em um botão para alterar seu comportamento.",
 			COMBO 				= "Clique em uma combinação de %s para alterar.",
-			STATIC 				= "Selecione uma ação da lista para alterar %s",
-			DYNAMIC 			= "Selecione qualquer botão da interface com o cursor para alterar %s\n%s Aplicar %s Cancelar ",
+			REBIND 				= "Select an interface button or key binding with the cursor to change:\n%s",
 			APPLIED 			= "%s foi aplicado a %s.",
 			INVALID 			= "Erro: Botão inválido. Nova atribuição foi descartada.",
 			COMBAT 				= "Erro: Em combate! Saia de combate para alterar suas configurações.",
@@ -29,6 +28,7 @@ if GetLocale() == "ptBR" then
 			TYPE				= "Mudar tipo de controle",
 			RESET 				= "Redefinir completamente o addon",
 			BINDS 				= "Abrir menu de atribuições",
+			CRITICALUPDATE		= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?",
 		}
 	}
 	db.TOOLTIP = {
@@ -65,6 +65,9 @@ if GetLocale() == "ptBR" then
 		HEADER_CP_RIGHT			= 	"Botões de ação",
 		HEADER_CP_CENTER		= 	"Botões centrais",
 		HEADER_CP_TRIG			=	"Gatilhos",
+		CP_TOGGLEMOUSE			= 	"Toggle mouse look",
+		CP_CAMZOOMIN			= 	"Zoom in (custom)",
+		CP_CAMZOOMOUT			= 	"Zoom out (custom)",
 	}
 	db.PS4 = {
 		CP_L_UP					=	"Cima",
@@ -84,5 +87,8 @@ if GetLocale() == "ptBR" then
 		HEADER_CP_RIGHT			= 	"Botões de ação",
 		HEADER_CP_CENTER		= 	"Botões centrais",
 		HEADER_CP_TRIG			=	"Gatilhos",
+		CP_TOGGLEMOUSE			= 	"Toggle mouse look",
+		CP_CAMZOOMIN			= 	"Zoom in (custom)",
+		CP_CAMZOOMOUT			= 	"Zoom out (custom)",
 	}
 end
