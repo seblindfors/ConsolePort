@@ -238,7 +238,7 @@ local function GetDefaultMouseEvents()
 		["SHIPMENT_CRAFTER_OPENED"] = true,
 		["SHIPMENT_CRAFTER_CLOSED"] = true,
 		["LOOT_OPENED"] = true,
-		["LOOT_CLOSED"] = true
+		["LOOT_CLOSED"] = true,
 	}
 end
 
@@ -361,7 +361,6 @@ function ConsolePort:CheckLoadedSettings()
 		StaticPopup_Show("CONSOLEPORT_CRITICALUPDATE")
 	end
 end
-
 
 function ConsolePort:CreateMouseLooker()
 	local MouseLook = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)

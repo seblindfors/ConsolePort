@@ -35,6 +35,30 @@ function ConsolePort:LoadControllerTheme()
 			RIGHT					= 	"FA4451",
 			DOWN 					= 	"52C14E",
 		}
+	elseif 	ctrlType == "STEAM" then
+		-- Config frame coords
+		db.BINDINGS = { 
+			CP_R_UP					= {X = 294,	Y = -223},
+			CP_R_DOWN				= {X = 294,	Y = -279},
+			CP_R_LEFT				= {X = 267,	Y = -252},
+			CP_R_RIGHT				= {X = 323,	Y = -252},
+			CP_L_UP					= {X = 122,	Y = -155},
+			CP_L_DOWN				= {X = 122,	Y = -225},
+			CP_L_LEFT				= {X = 90,	Y = -187},
+			CP_L_RIGHT				= {X = 156,	Y = -187},
+			CP_TR1					= {X = 360,	Y = -114},
+			CP_TR2					= {X = 122,	Y = -114},
+			CP_L_OPTION				= {X = 205,	Y = -187},
+			CP_C_OPTION				= {X = 242,	Y = -187},
+			CP_R_OPTION				= {X = 279,	Y = -187},
+		}
+		-- Colors
+		db.COLOR = {
+			UP 						= 	"FFE74F",
+			LEFT 					= 	"00A2FF",
+			RIGHT					= 	"FA4451",
+			DOWN 					= 	"52C14E",
+		}
 	else -- PS4
 		-- Config frame coords
 		db.BINDINGS = {
