@@ -824,6 +824,10 @@ local function CreateUICtrlConfigButton(parent, num, clickScript, removeScript)
 	button.Remove:SetPoint("RIGHT", button, "RIGHT", -8, 0)
 	button.Remove:SetAlpha(0.5)
 	button.Remove:SetScript("OnClick", removeScript)
+	button.Loaded = button:CreateTexture()
+	button.Loaded:SetSize(16, 16)
+	button.Loaded:SetPoint("LEFT", button.Remove, "RIGHT", -2, -1)
+	button.Loaded:SetAlpha(0.5)
 	tinsert(parent.Buttons, button)
 	if num == 1 then
 		button:SetPoint("TOPLEFT", parent, "TOPLEFT", 4, 0)
@@ -833,6 +837,20 @@ local function CreateUICtrlConfigButton(parent, num, clickScript, removeScript)
 		button:SetPoint("TOPRIGHT", parent.Buttons[num-1], "BOTTOMRIGHT")
 	end
 	return button
+end
+
+local function RefreshFrameStatus(self)
+	if self:IsVisible() then
+		for i, button in pairs(self.Buttons) do
+			if button:IsVisible() then
+				if _G[button:GetText()] then
+					button.Loaded:SetTexture("Interface\\FriendsFrame\\StatusIcon-Online")
+				else
+					button.Loaded:SetTexture("Interface\\FriendsFrame\\StatusIcon-Offline")
+				end
+			end
+		end
+	end
 end
 
 local function RefreshFrameList(self)
@@ -871,6 +889,7 @@ local function RefreshFrameList(self)
 		button.owner = self
 	end
 
+	RefreshFrameStatus(frameList)
 	frameList:SetHeight(num*24)
 end
 
@@ -890,12 +909,17 @@ local function RefreshAddonList(self)
 		else
 			button = self.Buttons[num]
 		end
+		if IsAddOnLoaded(addon) then
+			button.Loaded:SetTexture("Interface\\FriendsFrame\\StatusIcon-Online")
+		else
+			button.Loaded:SetTexture("Interface\\FriendsFrame\\StatusIcon-Offline")
+		end
 		button:Show()
 		button:SetText(addon)
 		button.list = frames
 	end
-
 	self:SetHeight(num*24)
+	self:RegisterEvent("ADDON_LOADED")
 end
 
 ---------------------------------------------------------------
@@ -1237,6 +1261,8 @@ local function ConfigurePanelUICtrl(self, UICtrl)
 	UICtrl.AddonList.parent = UICtrl
 	UICtrl.AddonList.Buttons = {}
 	UICtrl.AddonList:SetScript("OnShow", RefreshAddonList)
+	UICtrl.AddonList:SetScript("OnEvent", RefreshAddonList)
+	UICtrl.AddonList:SetScript("OnHide", UICtrl.AddonList.UnregisterAllEvents)
 
 	UICtrl.AddonScroll = CreateFrame("ScrollFrame", "$parentAddonScrollFrame", UICtrl, "UIPanelScrollFrameTemplate")
 	UICtrl.AddonScroll:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 16, -64)
@@ -1258,6 +1284,8 @@ local function ConfigurePanelUICtrl(self, UICtrl)
 	UICtrl.NewAddon:SetScript("OnClick", NewAddonOnClick)
 
 	UICtrl.FrameList = CreateFrame("Frame", "$parentFrameList", UICtrl)
+	UICtrl.FrameList:RegisterEvent("ADDON_LOADED")
+	UICtrl.FrameList:SetScript("OnEvent", RefreshFrameStatus)
 	UICtrl.FrameList:SetSize(260, 1000)
 	UICtrl.FrameList.parent = UICtrl
 	UICtrl.FrameList.Buttons = {}

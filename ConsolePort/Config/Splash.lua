@@ -242,7 +242,7 @@ end
 function ConsolePort:CreateSplashFrame()
 	if not ConsolePortSplashFrame then
 		local Splash = SetupWindow("ConsolePortSplashFrame")
-		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE = 200, 390, 710
+		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE, TEX_ROTATION = 200, 390, 710, 0.523598776
 		local Controllers = {
 			Playstation = {id = "PS4", pos = 1},
 			Xbox 		= {id = "XBOX", pos = 2},
@@ -281,13 +281,13 @@ function ConsolePort:CreateSplashFrame()
 			Controller.Normal:SetSize(TEX_SIZE, TEX_SIZE)
 			Controller.Normal:SetPoint("CENTER", 0, 0)
 			Controller.Normal:SetTexture(PATH.."Splash"..info.id)
-			Controller.Normal:SetRotation(0.523598776)
+			Controller.Normal:SetRotation(TEX_ROTATION)
 
 			Controller.Highlight = Controller:CreateTexture(nil, "ARTWORK", nil, info.pos+3)
 			Controller.Highlight:SetSize(TEX_SIZE, TEX_SIZE)
 			Controller.Highlight:SetPoint("CENTER", 0, 0)
 			Controller.Highlight:SetTexture(PATH.."Splash"..info.id.."Highlight")
-			Controller.Highlight:SetRotation(0.523598776)
+			Controller.Highlight:SetRotation(TEX_ROTATION)
 			Controller.Highlight:SetAlpha(0)
 
 			Controller:SetScript("OnEnter", OnEnter)
