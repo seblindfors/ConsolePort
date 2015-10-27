@@ -76,7 +76,7 @@ function ConsolePort:GetDefaultUIFrames()
 			"ContainerFrame10", "ContainerFrame11", "ContainerFrame12", "ContainerFrame13",
 			"DressUpFrame", "DropDownList1", "DropDownList2", "FriendsFrame",	
 			"GameMenuFrame", "GossipFrame",	"GuildInviteFrame", "InterfaceOptionsFrame",
-			"ItemRefTooltip", "ItemTextFrame", "LFDRoleCheckPopup", "LFGDungeonReadyDialog",
+			"ItemRefTooltip", "ItemTextFrame", "LFDRoleCheckPopup", "LFGDungeonReadyDialog", "LFGInvitePopup",
 			"LootFrame", "MailFrame", "MerchantFrame", "OpenMailFrame",
 			"PetBattleFrame", "PetitionFrame", "PVEFrame", "PVPReadyDialog",
 			"QuestFrame","QuestLogPopupDetailFrame","RecruitAFriendFrame", "SpellBookFrame",

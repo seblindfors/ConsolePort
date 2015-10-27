@@ -139,6 +139,7 @@ function Keyboard:SelectSet()
 
 	if self.Sets[DIR] then
 		self.Sets[DIR]:Enter()
+		PlaySound("igMainMenuOptionCheckBoxOn")
 		Current = self.Sets[DIR]
 	else
 		Current = nil
@@ -254,6 +255,7 @@ function Keyboard:SetFocus(newFocus)
 	self.Focus:EnableKeyboard(false)
 	self:SetParent(self.Focus)
 	self:Show()
+	PlaySound("igMainMenuOptionCheckBoxOn")
 end
 
 
