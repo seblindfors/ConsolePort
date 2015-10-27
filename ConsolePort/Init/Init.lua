@@ -48,7 +48,7 @@ db.pairsByKeys = function (t,f)
 end
 
 -- debug tool
-function ConsolePort:G()
+function ConsolePort:DB()
 	return db
 end
 
@@ -106,7 +106,7 @@ function ConsolePort:GetDefaultBinding(key)
 		nomod 		= "TOGGLEGAMEMENU"
 		modshift 	= "EXTRAACTIONBUTTON1"
 		modctrl 	= "TOGGLEAUTORUN"
-		shiftctrl 	= "FOLLOWTARGET"
+		shiftctrl 	= "OPENCHAT"
 	elseif 	key == "CP_R_OPTION" then
 		nomod 		= "TOGGLEWORLDMAP"
 		modshift 	= "CP_CAMZOOMOUT"

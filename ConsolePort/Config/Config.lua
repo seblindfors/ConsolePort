@@ -34,6 +34,8 @@ local function Copy(src)
 	return copy
 end
 
+db.Copy = Copy
+
 ---------------------------------------------------------------
 -- Table: Recursive table comparator
 ---------------------------------------------------------------
@@ -62,6 +64,8 @@ local function Compare(t1, t2)
 	end
 	return true
 end
+
+db.Compare = Compare
 
 ---------------------------------------------------------------
 -- Config: Returns converted modifier for binding table use
@@ -511,15 +515,30 @@ end
 ---------------------------------------------------------------
 -- Config: Create addon dummy bindings
 ---------------------------------------------------------------
-local function SetFauxBinding(self, priority, modifier, old, new)
+local function SetFauxBinding(self, modifier, old, new)
 	if not InCombatLockdown() then
-		local key1, key2 = GetBindingKey(old);
-		if modifier then
-			if key1 then key1 = modifier.."-"..key1 end
-			if key2 then key2 = modifier.."-"..key2 end
+		local key1, key2 = GetBindingKey(old)
+		if key1 then SetOverrideBinding(self, false, modifier..key1, new) end
+		if key2 then SetOverrideBinding(self, false, modifier..key2, new) end
+	end
+end
+
+local function SetFauxMovementBindings(self)
+	local movement = {
+		MOVEFORWARD 	= {"W", "UP"},
+		MOVEBACKWARD 	= {"S", "DOWN"},
+		STRAFELEFT 		= {"A", "LEFT"},
+		STRAFERIGHT 	= {"D", "RIGHT"},
+	}
+	local modifiers = {
+		"", "SHIFT-", "CTRL-", "CTRL-SHIFT-",
+	}
+	for direction, keys in pairs(movement) do
+		for _, key in pairs(keys) do
+			for _, modifier in pairs(modifiers) do
+				SetOverrideBinding(self, false, modifier..key, direction)
+			end
 		end
-		if key1 then SetOverrideBinding(self, priority, key1, new) end
-		if key2 then SetOverrideBinding(self, priority, key2, new) end
 	end
 end
 
@@ -527,11 +546,12 @@ function ConsolePort:LoadBindingSet()
 	local keys = NewBindingSet or ConsolePortBindingSet
 	local w = WorldFrame
 	ClearOverrideBindings(w)
+	SetFauxMovementBindings(w)
 	for name, key in pairs(keys) do
-		if key.action 	then SetFauxBinding(w, false, nil, 			name, key.action)	end
-		if key.ctrl 	then SetFauxBinding(w, false, "CTRL", 		name, key.ctrl) 	end 
-		if key.shift 	then SetFauxBinding(w, false, "SHIFT",		name, key.shift) 	end
-		if key.ctrlsh 	then SetFauxBinding(w, false, "CTRL-SHIFT", name, key.ctrlsh)	end
+		SetFauxBinding(w, "", 	name, key.action)
+		SetFauxBinding(w, "CTRL-", name, key.ctrl)
+		SetFauxBinding(w, "SHIFT-", name, key.shift)
+		SetFauxBinding(w, "CTRL-SHIFT-", name, key.ctrlsh)
 	end
 end
 
@@ -1381,6 +1401,8 @@ function ConsolePort:CreateConfigPanel()
 		db.Binds	= Binds
 		db.Mouse 	= Mouse
 		db.UICtrl 	= UICtrl
+
+		db.CreatePanel = CreatePanel
 
 		ConfigurePanelConfig(self, Config)
 		ConfigurePanelBinds(self, Binds)
