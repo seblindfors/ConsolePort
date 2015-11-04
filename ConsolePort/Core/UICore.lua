@@ -23,49 +23,28 @@ local ConsolePort = ConsolePort
 
 function ConsolePort:GetDefaultUIFrames()
 	return {	
-		Blizzard_AchievementUI 		= {
-			"AchievementFrame" },
-		Blizzard_ArchaeologyUI 		= {
-			"ArchaeologyFrame" },
-		Blizzard_AuctionUI 			= {
-			"AuctionFrame" },
-		Blizzard_BarbershopUI		= {
-			"BarberShopFrame" },
-		Blizzard_Calendar			= {
-			"CalendarFrame" },
-		Blizzard_Collections		= {
-			"CollectionsJournal" },
-		Blizzard_DeathRecap			= {
-			"DeathRecapFrame" },
-		Blizzard_EncounterJournal 	= {
-			"EncounterJournal" },
+		Blizzard_AchievementUI 		= { "AchievementFrame" },
+		Blizzard_ArchaeologyUI 		= { "ArchaeologyFrame" },
+		Blizzard_AuctionUI 			= { "AuctionFrame" },
+		Blizzard_BarbershopUI		= { "BarberShopFrame" },
+		Blizzard_Calendar			= { "CalendarFrame" },
+		Blizzard_Collections		= { "CollectionsJournal" },
+		Blizzard_DeathRecap			= { "DeathRecapFrame" },
+		Blizzard_EncounterJournal 	= { "EncounterJournal" },
 		Blizzard_GarrisonUI			= {
-			"GarrisonBuildingFrame",
-			"GarrisonCapacitiveDisplayFrame",
-			"GarrisonLandingPage",
-			"GarrisonMissionFrame",
-			"GarrisonMonumentFrame",
-			"GarrisonShipyardFrame" },
-		Blizzard_GuildUI			= {
-			"GuildFrame" },
-		Blizzard_InspectUI			= {
-			"InspectFrame" },
-		Blizzard_ItemAlterationUI 	= {
-			"TransmogrifyFrame" },
-		Blizzard_LookingForGuildUI 	= {
-			"LookingForGuildFrame" },
-		Blizzard_MacroUI 			= {
-			"MacroFrame" },
-		Blizzard_QuestChoice 		= {
-			"QuestChoiceFrame" },
-		Blizzard_TalentUI 			= {
-			"PlayerTalentFrame" },
-		Blizzard_TradeSkillUI		= {
-			"TradeSkillFrame" },
-		Blizzard_TrainerUI 			= {
-			"ClassTrainerFrame" },
-		Blizzard_VoidStorageUI		= {
-			"VoidStorageFrame" },
+			"GarrisonBuildingFrame", "GarrisonCapacitiveDisplayFrame",
+			"GarrisonLandingPage", "GarrisonMissionFrame",
+			"GarrisonMonumentFrame", "GarrisonShipyardFrame" },
+		Blizzard_GuildUI			= { "GuildFrame" },
+		Blizzard_InspectUI			= { "InspectFrame" },
+		Blizzard_ItemAlterationUI 	= { "TransmogrifyFrame" },
+		Blizzard_LookingForGuildUI 	= { "LookingForGuildFrame" },
+		Blizzard_MacroUI 			= { "MacroFrame" },
+		Blizzard_QuestChoice 		= { "QuestChoiceFrame" },
+		Blizzard_TalentUI 			= { "PlayerTalentFrame" },
+		Blizzard_TradeSkillUI		= { "TradeSkillFrame" },
+		Blizzard_TrainerUI 			= { "ClassTrainerFrame" },
+		Blizzard_VoidStorageUI		= { "VoidStorageFrame" },
 	-- Core
 		ConsolePort					= {
 			"StaticPopup1", "StaticPopup2", "StaticPopup3", "StaticPopup4",

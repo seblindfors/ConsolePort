@@ -18,7 +18,7 @@ local CMD = {
 	CP_L_LEFT = "LEFT",
 	CP_L_RIGHT = "RIGHT",
 	CP_L_DOWN = "DOWN",
-	CP_TR2 = "ENTER",
+	CP_TR2 = "AUTOCOMPLETE",
 	CP_TR1 = "SPACE",
 	CP_C_OPTION = "CLOSE",
 	CP_R_OPTION = "NEXT",
@@ -118,6 +118,7 @@ end
 function Keyboard:ENTER()
 	if self.Focus:HasScript("OnEnterPressed") then
 		self.Focus:GetScript("OnEnterPressed")(self.Focus)
+		self:UpdateDictionary()
 	else
 		self.Focus:Insert("\n")
 	end
@@ -253,7 +254,6 @@ function Keyboard:SetFocus(newFocus)
 	end
 	self.Focus = newFocus
 	self.Focus:EnableKeyboard(false)
-	self:SetParent(self.Focus)
 	self:Show()
 	PlaySound("igMainMenuOptionCheckBoxOn")
 end
@@ -267,6 +267,11 @@ function Keyboard:LoadSettings()
 			Language = Language[Language.Default[locale]] and Language.Default[locale] or "English",
 		}
 	end
+	if not ConsolePortKeyboardDictionary then
+		ConsolePortKeyboardDictionary = self:GenerateDictionary()
+	end
+	self.Dictionary = ConsolePortKeyboardDictionary
+	self:NormalizeDictionary()
 end
 
 function Keyboard:ADDON_LOADED(...)
@@ -309,9 +314,11 @@ function Keyboard:OnUpdate(elapsed)
 			if text ~= self.Mime:GetText() then
 				self.Mime:SetText(text)
 				self.Mime:SetTextColor(self.Focus:GetTextColor())
+				self:GetSuggestions()
 			end
 		else
 			self.Mime:SetText("")
+			self.Complete:SetText("")
 		end
 		self.Timer = 0
 	end
@@ -341,7 +348,6 @@ function Keyboard:Timeout(time)
 end
 
 function Keyboard:OnHide()
-	self.Mime:SetText("")
 	for key, state in pairs(KEY) do
 		KEY[key] = false
 	end
@@ -351,6 +357,7 @@ end
 -- Keyboard regions
 ---------------------------------------------------------------
 Keyboard:SetPoint("CENTER", UIParent, 0, 0)
+Keyboard:SetFrameStrata("TOOLTIP")
 Keyboard:SetSize(300, 300)
 Keyboard:Hide()
 

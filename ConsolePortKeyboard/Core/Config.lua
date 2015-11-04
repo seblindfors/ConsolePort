@@ -92,21 +92,19 @@ function Keyboard:CreateConfig()
 		end
 	end
 
+	local instructions = {
+		"|T"..db.TEXTURE.LONE..":0|t "..KEY_SPACE,
+		"|T"..db.TEXTURE.LTWO..":0|t "..COMPLETE,
+		"\n1: |T"..db.TEXTURE.RONE..":0|t",
+		"2: |cFF757575<"..strlower(CHAT_DEFAULT)..">|r",
+		"3: |T"..db.TEXTURE.RTWO..":0|t",
+		"4: |T"..db.TEXTURE.RONE..":0|t|T"..db.TEXTURE.RTWO..":0|t",
+	}
 	-- alpha stuff
 	local tutString = Config:CreateFontString(nil, "BACKGROUND", "Game18Font")
 	tutString:SetPoint("TOPLEFT", Config, "TOPLEFT", 16, -100)
 	tutString:SetJustifyH("LEFT")
-	tutString:SetText("Instructions:")
-	tutString:SetText(tutString:GetText().."\n\nSPACE shortcut: |T"..db.TEXTURE.LONE..":0|t")
-	tutString:SetText(tutString:GetText().."\nENTER shortcut: |T"..db.TEXTURE.LTWO..":0|t")
-	tutString:SetText(tutString:GetText().."\n\nUse left stick to select a character set.")
-	tutString:SetText(tutString:GetText().."\nUse right hand buttons to type.")
-	tutString:SetText(tutString:GetText().."\n\nSet 1: |T"..db.TEXTURE.RONE..":0|t")
-	tutString:SetText(tutString:GetText().."\nSet 2: <default>")
-	tutString:SetText(tutString:GetText().."\nSet 3: |T"..db.TEXTURE.RTWO..":0|t")
-	tutString:SetText(tutString:GetText().."\nSet 4: |T"..db.TEXTURE.RONE..":0|t|T"..db.TEXTURE.RTWO..":0|t")
-	tutString:SetText(tutString:GetText().."\n\n\n{rtX}: Target markers")
-	tutString:SetText(tutString:GetText().."\n%T: Target name")
+	tutString:SetText(table.concat(instructions, "\n"))
 
 	Config.dropdown = CreateFrame("BUTTON", "$parentDropdown", Config, "UIDropDownMenuTemplate")
 	Config.dropdown:SetPoint("TOPLEFT", Config, "TOPLEFT", 0, -44)

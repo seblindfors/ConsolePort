@@ -1,12 +1,14 @@
 ## Interface: 60200
 ## Title: Console Port |cff69ccf0Keyboard|r
 ## Notes: Keyboard extension for Console Port
-## SavedVariables: ConsolePortKeyboardSettings
+## SavedVariables: ConsolePortKeyboardSettings, ConsolePortKeyboardDictionary
 ## RequiredDeps: ConsolePort
 
 Languages\Languages.xml
 
 Core\Keyboard.lua
+Core\Dictionary.lua
+Core\AutoComplete.lua
 Core\Mime.lua
 Core\Charset.lua
 Core\Dispatcher.lua
