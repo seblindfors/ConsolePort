@@ -132,54 +132,6 @@ function Keyboard:GetCurrentWord()
 	end
 end
 
--- function Keyboard:GetSuggestions()
--- 	local word = self:GetCurrentWord()
--- 	wipe(suggestions)
--- 	if word then
--- 		word = strlower(word)
--- 		-- copy the dictionary and remove redundant suggestions
--- 		local dictionary = Copy(self.Dictionary)
--- 		for c in word:gmatch(".") do
--- 			for currentWord, weight in pairs(dictionary) do
--- 				-- if the current character does not exist or word is exact match
--- 				if not strfind(currentWord, c) or currentWord == word then
--- 					dictionary[currentWord] = nil
--- 				end
--- 			end
--- 		end
-
--- 		local length = word:len()
--- 		local pWord, pWeight, pMatch, nMatch, pLen, nLen, priority = "", 0, false, false, 100, 0, 1
-		
--- 		for nWord, nWeight in pairs(dictionary) do
--- 			priority = 1
--- 			-- prioritize literal matches
--- 			nMatch = strfind(nWord, word) and true or false
--- 			-- prioritize strings with similar length
--- 			nLen = abs(length - nWord:len()) 
-
--- 			-- 1. if the literal string exists in this iteration but not in the previous iteration
--- 			-- 2. if this iteration and the previous iteration both have literal match, check weight
--- 			-- 3. if there's no literal match yet, check weight
--- 			if 	( nMatch and not pMatch ) or
--- 				( nMatch and pMatch and ( nLen < pLen or nWeight > pWeight )) or 
--- 				( not nMatch and not pMatch and ( nLen < pLen or nWeight > pWeight )) then
-
--- 				pLen = nLen
--- 				pWord = nWord
--- 				pMatch = nMatch
--- 				pWeight = nWeight
--- 				tinsert(suggestions, 1, nWord)
-
--- 			end
--- 		end
-
--- 		Auto:SetText(pWord)
--- 		self.GuessWord = pWord
--- 	end
--- 	self:SetSuggestions(1)
--- end
-
 function Keyboard:GetSuggestions()
 	local word = self:GetCurrentWord()
 	wipe(suggestions)

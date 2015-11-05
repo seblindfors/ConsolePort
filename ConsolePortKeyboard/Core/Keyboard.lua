@@ -65,6 +65,7 @@ end
 function Keyboard:CLOSE()
 	self.Focus:ClearFocus()
 	self.Focus:EnableKeyboard(true)
+	self:Hide()
 end
 
 function Keyboard:LEFT()
