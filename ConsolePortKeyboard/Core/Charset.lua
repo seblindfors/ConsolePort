@@ -113,7 +113,7 @@ function Keyboard:CreateCharset(i)
 	for char=1, 4 do
 		local angle = (char) * (360 / 4) * math.pi / 180
 		local ptx, pty = x + inner * math.cos( angle ), y + inner * math.sin( angle )
-		local Char = CreateFrame("Button", nil, Charset)
+		local Char = CreateFrame("Button", "$parentButton"..char, Charset)
 		Char:SetSize(inner, inner)
 		Char:SetPoint("CENTER", Charset, "CENTER", ptx, pty)
 

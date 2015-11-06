@@ -3,20 +3,6 @@ local Keyboard = ConsolePortKeyboard
 ---------------------------------------------------------------
 -- Local resources
 ---------------------------------------------------------------
-local function Copy(src)
-	local copy
-	if type(src) == "table" then
-		copy = {}
-		for key, value in next, src, nil do
-			copy[Copy(key)] = Copy(value)
-		end
-		setmetatable(copy, Copy(getmetatable(src)))
-	else
-		copy = src
-	end
-	return copy
-end
-
 local function Union(str)
 	local out = ""
 	for s in str:gmatch(".") do
@@ -137,70 +123,83 @@ function Keyboard:GetSuggestions()
 	wipe(suggestions)
 	if word then
 		word = strlower(word)
-		-- copy the dictionary and remove redundant suggestions
 		local length = word:len()
-		local dictionary = Copy(self.Dictionary)
+		local dictionary = self.Dictionary
 		local chars, numChars = Union(word)
 
-		for c in chars:gmatch(".") do
+		local this, priority, valid
 
-			for currentWord, weight in pairs(dictionary) do
-				-- if the current character does not exist or word is exact match
-				if not strfind(currentWord, c) or currentWord == word or numChars * 4 < currentWord:len() then
-					dictionary[currentWord] = nil
-				end
+		-- Iterate through dictionary and push valid words to suggestion list
+		for thisWord, thisWeight in pairs(dictionary) do
+			valid = true
 
+			-- skip exact matches and matches that are vastly longer than the union of input characters
+			if thisWord == word or numChars * 4 < thisWord:len() then
+				valid = false
 			end
-		end
 
-		local nextMatch, nextLength
-		local priority
-
-		for nextWord, nextWeight in pairs(dictionary) do
-			priority = nil
-
-			nextMatch = strfind( nextWord, word )
-			nextLength = abs( length - nextWord:len() )
-
-			for index, check in pairs(suggestions) do
-
-				-- not worth the overhead to sort beyond 20 matches
-				if ( index >= 20 ) then
+			-- check if word contains all characters to elicit a match
+			for c in chars:gmatch(".") do
+				if not strfind(thisWord, c) then
+					valid = false
 					break
 				end
+			end
 
-				priority = index
+			if valid then
+				priority = 1
 
-				if  ( nextMatch and not check.match ) then
-					break
-				elseif ( nextMatch and check.match and ( nextMatch <= check.match ) ) or ( not nextMatch and not check.match ) then
-					if ( nextLength < check.length or ( nextLength == check.length and nextWeight > check.weight ) ) then
+				this = {
+					word = thisWord,
+					weight = thisWeight,
+					match = strfind( thisWord, word ),
+					length = abs( length - thisWord:len() )
+				}
+
+				-- calculate priority in relevance to already suggested words
+				for index, compare in pairs(suggestions) do
+
+					-- don't calculate order beyond the 20th index, just push to list
+					if ( index >= 20 ) then
 						break
 					end
-				end
-			end
 
-			if priority then
-				tinsert( suggestions, priority, { word = nextWord, weight = nextWeight, match = nextMatch, length = nextLength} )
-			else
-				tinsert( suggestions, { word = nextWord, weight = nextWeight, match = nextMatch, length = nextLength} )
+					-- fix: if the best suggestion was pushed first, make sure its priority isn't nudged down
+					priority = #suggestions > 1 and index or 2
+
+					-- words with literal matches have higher priority 
+					if  ( this.match and not compare.match ) then
+						break
+					-- if both have literal match and this word is more favorable, or neither have literal match
+					elseif 	( this.match and compare.match and ( this.match <= compare.match ) ) or
+							( not this.match and not compare.match ) then
+
+						-- if the next word is shorter, or equally long but has a higher weight
+						if 	( this.length < compare.length or
+							( this.length == compare.length and this.weight > compare.weight ) ) then
+							break
+						end
+
+					end
+				end
+				tinsert( suggestions, priority, this )
 			end
 		end
-
 	end
 	self:SetSuggestions(1)
 end
 
 function Keyboard:SetSuggestions(newIndex)
-	local first, second, third = self.Complete.Previous, self.Complete, self.Complete.Next
-
 	self.CompleteIndex = newIndex or self.CompleteIndex
 
-	first:SetText( suggestions[self.CompleteIndex-1] and suggestions[self.CompleteIndex-1].word  or "" )
-	second:SetText( suggestions[self.CompleteIndex] and suggestions[self.CompleteIndex].word  or "" )
-	third:SetText( suggestions[self.CompleteIndex+1] and suggestions[self.CompleteIndex+1].word  or "" )
+	local Prev, Current, Next = self.Complete.Previous, self.Complete, self.Complete.Next
+	local guessWord = suggestions[self.CompleteIndex] and suggestions[self.CompleteIndex].word
 
-	self.GuessWord = suggestions[self.CompleteIndex] and suggestions[self.CompleteIndex].word
+	Prev:SetText( suggestions[self.CompleteIndex-1] and suggestions[self.CompleteIndex-1].word  or "" )
+	Next:SetText( suggestions[self.CompleteIndex+1] and suggestions[self.CompleteIndex+1].word  or "" )
+	
+	Current:SetText( guessWord  or "" )
+	self.GuessWord = guessWord
 end
 
 function Keyboard:AUTOCOMPLETE()

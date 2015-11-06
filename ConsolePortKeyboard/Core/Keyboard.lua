@@ -65,6 +65,8 @@ end
 function Keyboard:CLOSE()
 	self.Focus:ClearFocus()
 	self.Focus:EnableKeyboard(true)
+	self.Focus = nil
+	self:UpdateDictionary()
 	self:Hide()
 end
 
@@ -86,6 +88,7 @@ function Keyboard:INPUT(input)
 	local index = CLICK[input]
 	if Current then
 		Current.Buttons[index]:Click()
+		self.CenterSet.Buttons[index]:Flash()
 	end
 end
 
@@ -110,16 +113,17 @@ function Keyboard:ERASE()
 end
 
 function Keyboard:SPACE()
-	if self.Focus:HasScript("OnSpacePressed") then
-		self.Focus:GetScript("OnSpacePressed")(self.Focus)
+	local script = self.Focus:GetScript("OnSpacePressed")
+	if script then
+		script(self.Focus)
 	end
 	self.Focus:Insert(" ")
 end
 
 function Keyboard:ENTER()
-	if self.Focus:HasScript("OnEnterPressed") then
-		self.Focus:GetScript("OnEnterPressed")(self.Focus)
-		self:UpdateDictionary()
+	local script = self.Focus:GetScript("OnEnterPressed")
+	if script then
+		script(self.Focus)
 	else
 		self.Focus:Insert("\n")
 	end
@@ -140,6 +144,7 @@ function Keyboard:SelectSet()
 	end
 
 	if self.Sets[DIR] then
+		self.CenterSet:Update()
 		self.Sets[DIR]:Enter()
 		PlaySound("igMainMenuOptionCheckBoxOn")
 		Current = self.Sets[DIR]
@@ -213,31 +218,38 @@ function Keyboard:LoadFrame()
 		Char.Set = {"{ck"..i.."}", "{ck"..i.."}", "{ck"..i.."}", "{ck"..i.."}"}
 	end
 
-	CenterSet:ClearAllPoints()
-	CenterSet:SetPoint("CENTER", self, 0, 0)
-	CenterSet:SetScript("OnShow", nil)
-
 	local function Flash(self)
 		db.UIFrameFadeOut(self.RingHiLite, 0.2, 1, 0)
 		db.UIFrameFadeOut(self.RingBrighten, 0.2, 1, 0)
 	end
 
-	local function Space(self) Flash(self) Keyboard:SPACE() end
-	local function Erase(self) Flash(self) Keyboard:ERASE() end
-	local function Close(self) Flash(self) Keyboard:CLOSE() end
-	local function Enter(self) Flash(self) Keyboard:ENTER() end
+	local functions = {
+		function (self) Keyboard:SPACE() end,
+		function (self) Keyboard:ERASE() end,
+		function (self) Keyboard:CLOSE() end,
+		function (self) Keyboard:ENTER() end,
+		function (self) Flash(self) end,
+	}
+	
+	local function UpdateCenter(self)
+		for index, button in pairs(self.Buttons) do
+			button.Text:SetText(Keyboard.Sets[DIR].Buttons[index].Text:GetText())
+		end
+	end
 
-	CenterSet.Buttons[1].Click = Space
-	CenterSet.Buttons[1]:SetScript("OnClick", Space)
+	CenterSet.Timer = 0
+	CenterSet.Update = UpdateCenter
+	CenterSet:ClearAllPoints()
+	CenterSet:SetPoint("CENTER", self, 0, 0)
+	CenterSet:SetScript("OnShow", nil)
 
-	CenterSet.Buttons[2].Click = Erase
-	CenterSet.Buttons[2]:SetScript("OnClick", Erase)
+	for index, Button in pairs(CenterSet.Buttons) do
+		Button.Flash = functions[5]
+		Button.Click = functions[index]
+		Button:SetScript("OnClick", functions[index])
+	end
 
-	CenterSet.Buttons[3].Click = Close
-	CenterSet.Buttons[3]:SetScript("OnClick", Close)	
-
-	CenterSet.Buttons[4].Click = Enter
-	CenterSet.Buttons[4]:SetScript("OnClick", Enter)
+	Keyboard.CenterSet = CenterSet
 
 	self:SelectSet()
 	self:CheckModifier()
@@ -305,6 +317,7 @@ function Keyboard:CheckModifier(...)
 			Char:SetChar(SetIndex)
 		end
 	end
+	self.CenterSet:Update()
 end
 
 function Keyboard:OnUpdate(elapsed)
@@ -317,9 +330,6 @@ function Keyboard:OnUpdate(elapsed)
 				self.Mime:SetTextColor(self.Focus:GetTextColor())
 				self:GetSuggestions()
 			end
-		else
-			self.Mime:SetText("")
-			self.Complete:SetText("")
 		end
 		self.Timer = 0
 	end
