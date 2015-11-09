@@ -97,11 +97,6 @@ end
 
 local function FrameShow(self)
 	ConsolePort:UpdateFrames()
-	if InCombatLockdown() then
-		self:SetAlpha(0.75)
-	else
-		self:SetAlpha(1)
-	end
 end
 
 local function FrameHide(self)
@@ -159,7 +154,7 @@ function ConsolePort:UpdateFrames()
 				defaultActions = false
 				if not hasUIFocus then
 					hasUIFocus = true
-					ConsolePortCursor:Show()
+					self.Cursor:Show()
 					self:SetButtonActionsUI()
 					self:UIControl(KEY.PREPARE, KEY.STATE_UP)
 				end

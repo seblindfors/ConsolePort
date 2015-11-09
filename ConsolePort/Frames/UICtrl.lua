@@ -22,6 +22,7 @@ local UIParent = UIParent
 
 -- Initiate the cursor frame
 local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
+ConsolePort.Cursor = Cursor
 
 ---------------------------------------------------------------
 -- UIControl: Override click bindings

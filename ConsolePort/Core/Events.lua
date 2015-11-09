@@ -90,22 +90,19 @@ end
 function ConsolePort:PLAYER_REGEN_ENABLED(...)
 	self:SetButtonActionsDefault()
 	self:UpdateFrames()
-	for i, UIControl in pairs(UIControls) do
-		if UIControl:IsVisible() then
-			db.UIFrameFadeIn(UIControl, 0.2, 0.75, 1)
-		else
-			UIControl:SetAlpha(1)
-		end
+	if self.Cursor:IsVisible() then
+		db.UIFrameFadeIn(self.Cursor, 0.2, self.Cursor:GetAlpha(), 1)
+	else
+		self.Cursor:SetAlpha(1)
 	end
 end
 
 function ConsolePort:PLAYER_REGEN_DISABLED(...)
-	for i, UIControl in pairs(UIControls) do
-		if UIControl:IsVisible() then
-			db.UIFrameFadeOut(UIControl, 0.2, 1, 0.75)
-		else
-			UIControl:SetAlpha(0.75)
-		end
+	self:SetButtonActionsDefault()
+	if self.Cursor:IsVisible() then
+		db.UIFrameFadeOut(self.Cursor, 0.2, self.Cursor:GetAlpha(), 0)
+	else
+		self.Cursor:SetAlpha(0)
 	end
 end
 
