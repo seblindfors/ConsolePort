@@ -38,7 +38,7 @@ Auto.Text = Auto:CreateFontString("$parentTextCurrent", "BACKGROUND")
 Auto.Text:SetFont("Interface\\AddOns\\ConsolePortKeyboard\\Fonts\\arial.TTF", 16)
 Auto.Text:SetShadowColor(0, 0, 0, 1)
 Auto.Text:SetTextColor(0.75, 0.75, 0.75, 1)
-Auto.Text:SetShadowOffset(1, -2)
+Auto.Text:SetShadowOffset(2, -2)
 Auto.Text:SetPoint("CENTER", Auto, 0, 0)
 
 Auto.Previous = Auto:CreateFontString("$parentTextPrevious", "BACKGROUND")

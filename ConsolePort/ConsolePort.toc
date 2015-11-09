@@ -1,7 +1,7 @@
 ## Interface: 60200
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 0.8.5
+## Version: 0.8.11
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouse
 
@@ -12,8 +12,12 @@ Init\Animation.lua
 Init\Theme.lua
 Init\Hooks.lua
 
+Config\Lookup.lua
 Config\Splash.lua
 Config\Config.lua
+Config\Binds.lua
+Config\Mouse.lua
+Config\UICtrl.lua
 Config\Secure.lua
 
 Core\Update.lua
@@ -22,7 +26,7 @@ Core\Events.lua
 Core\UICore.lua
 Core\Core.lua
 
-Frames\UIControl.lua
+Frames\UICtrl.lua
 Frames\Popup.lua
 Frames\Map.lua
 Frames\GameMenu.lua

@@ -5,7 +5,6 @@ local hasUIFocus = false
 
 -- UIControl tables
 local stack = {}
-local addOns
 
 -- UIControl frame watcher
 local frameWatchers = 0
@@ -138,7 +137,7 @@ function ConsolePort:AddFrame(frame, priority)
 end
 
 function ConsolePort:CheckLoadedAddons()
-	local addOnList = ConsolePortUIFrames or addOns
+	local addOnList = ConsolePortUIFrames
 	for name, frames in pairs(addOnList) do
 		if IsAddOnLoaded(name) then
 			for i, frame in pairs(frames) do
@@ -175,34 +174,6 @@ end
 
 function ConsolePort:HasUIFocus()
 	return hasUIFocus
-end
-
-function ConsolePort:ADDON_LOADED(...)
-	local name = ...
-	if name == addOn then
-		self:CreateButtonHandler()
-		self:LoadControllerTheme()
-		self:LoadSettings()
-		self:LoadEvents()
-		self:UpdateExtraButton()
-		self:LoadHookScripts()
-		self:LoadBindingSet()
-		self:CreateConfigPanel()
-		self:CreateActionButtons()
-		self:ReloadBindingActions()
-		self:SetupCursor()
-		self:CheckLoadedAddons()
-		self:CheckLoadedSettings()
-	end
-	if not addOns then
-		addOns = ConsolePortUIFrames
-	end
-	if addOns and addOns[name] then
-		for i, frame in pairs(addOns[name]) do
-			self:AddFrame(frame)
-		end
-	end
-	self:UpdateFrames()
 end
 
 function ConsolePort:AddFrameWatch(frame)

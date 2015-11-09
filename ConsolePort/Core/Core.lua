@@ -12,7 +12,7 @@ local function CheckButtonWatchers(self)
 		for button, info in pairs(buttonWatch) do
 			buttonWatchers = buttonWatchers + 1
 			if _G[info.action] then
-				self:ReloadBindingAction(button, info.action, info.name, info.mod1, info.mod2)
+				self:LoadBindingAction(button, info.action, info.name, info.mod1, info.mod2)
 				button.buttonWatch = nil
 				buttonWatch[button] = nil
 			end

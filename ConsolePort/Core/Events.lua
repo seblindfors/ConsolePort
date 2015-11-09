@@ -114,3 +114,30 @@ function ConsolePort:UPDATE_BINDINGS(...)
 		self:LoadBindingSet()
 	end
 end
+
+
+function ConsolePort:ADDON_LOADED(...)
+	local name = ...
+	if name == addOn then
+		self:CreateButtonHandler()
+		self:LoadControllerTheme()
+		self:LoadSettings()
+		self:LoadEvents()
+		self:UpdateExtraButton()
+		self:LoadHookScripts()
+		self:LoadBindingSet()
+		self:CreateConfigPanel()
+		self:CreateActionButtons()
+		self:LoadBindingActions()
+		self:SetupCursor()
+		self:CheckLoadedAddons()
+		self:CheckLoadedSettings()
+	end
+	if ConsolePortUIFrames and ConsolePortUIFrames[name] then
+		for i, frame in pairs(ConsolePortUIFrames[name]) do
+			self:AddFrame(frame)
+		end
+	end
+	self:UpdateFrames()
+	self:LoadHotKeyTextures()
+end

@@ -17,7 +17,6 @@ local function Hex2RGB(hex)
     return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
 end
 
-
 local function SaveKeyboardConfig()
 	ConsolePortKeyboardSettings.Layout = NewLayout and db.Copy(NewLayout) or ConsolePortKeyboardSettings.Layout
 	ConsolePortKeyboardSettings.Language = NewLanguage or ConsolePortKeyboardSettings.Language
@@ -34,9 +33,8 @@ local function DiscardKeyboardConfig()
 	NewLayout = nil
 end
 
-
 function Keyboard:CreateConfig()
-	local Config = db.CreatePanel(ConsolePortConfigFrameMain, "Keyboard", "Keyboard", "Keyboard settings", SaveKeyboardConfig, DiscardKeyboardConfig, LoadDefaultKeyboardConfig)
+	local Config = db.CreatePanel(ConsolePortConfigFrameConfig, "Keyboard", "Keyboard", "Keyboard settings", SaveKeyboardConfig, DiscardKeyboardConfig, LoadDefaultKeyboardConfig)
 
 	Config.Dispatcher = ConsolePortKeyboardDispatcher
 

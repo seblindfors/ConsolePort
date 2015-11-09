@@ -19,5 +19,14 @@ ConsolePort:SetScript("OnUpdate", OnUpdate);
 function ConsolePort:AddUpdateSnippet(snippet)
 	if type(snippet) == "function" then
 		tinsert(UpdateSnippets, snippet)
+		return #UpdateSnippets
 	end
+end
+
+function ConsolePort:RemoveUpdateSnippet(index)
+	UpdateSnippets[index] = nil
+end
+
+function ConsolePort:GetUpdateSnippets()
+	return UpdateSnippets
 end

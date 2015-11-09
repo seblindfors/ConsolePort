@@ -40,13 +40,6 @@ function ConsolePort:CreateButtonHandler()
 		for i = 2, 6 do
 			tinsert(state, ("[bar:%d]%d"):format(i, i))
 		end
-		local _, playerClass = UnitClass("player")
-		if playerClass == "DRUID" then
-			tinsert(state, "[bonusbar:1,stealth]7")
-		elseif playerClass == "WARRIOR" then
-			tinsert(state, "[stance:2]7")
-			tinsert(state, "[stance:3]8")
-		end
 		for i = 1, 4 do
 			tinsert(state, ("[bonusbar:%d]%d"):format(i, i+6))
 		end
@@ -154,16 +147,44 @@ local function ResetBinding(self)
 end
 
 ---------------------------------------------------------------
+-- SecureBtn: HotKey textures and indicators
+---------------------------------------------------------------
+local function GetTexture(button)
+	local triggers = {
+		CP_TR1 = db.TEXTURE.RONE,
+		CP_TR2 = db.TEXTURE.RTWO,
+		CP_TR3 = db.TEXTURE.LONE,
+		CP_TR4 = db.TEXTURE.LTWO,
+	}
+	return triggers[button] or db.TEXTURE[strupper(db.NAME[button])]
+end
+
+local function GetHotKeyTexture(self)
+	local texFile = GetTexture(self.name)
+	local texture = "|T%s:14:14:2:0|t"
+	local plain = format("|T%s:14:14:3:0|t", texFile)
+	local mods = {
+		_NOMOD = plain,
+		_SHIFT = format("|T%s:14:14:7:0|t", db.TEXTURE.LONE)..plain,
+		_CTRL = format("|T%s:14:14:7:0|t", db.TEXTURE.LTWO)..plain,
+		_CTRLSH = format("|T%s:14:14:11:0|t", db.TEXTURE.LONE)..format("|T%s:14:14:7:0|t", db.TEXTURE.LTWO)..plain,
+	}
+	return mods[self.mod]
+end
+
+---------------------------------------------------------------
 -- SecureBtn: Mock ActionBar button init
 ---------------------------------------------------------------
 function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
-	local btn 	= CreateFrame("Button", name..modifier, UIParent, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
+	local btn 	= CreateFrame("Button", name..modifier, nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 	btn.name 	= name
 	btn.timer 	= 0
 	btn.state 	= KEY.STATE_UP
 	btn.action 	= _G[clickbutton]
 	btn.command = UIcommand
 	btn.mod 	= modifier
+	btn.HotKey 	= GetHotKeyTexture(btn)
+	btn.HotKeys = {}
 	btn.default = {}
 	btn.UIControl 	= UIControl
 	btn.Reset 		= ResetBinding
@@ -176,7 +197,10 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn:HookScript("PostClick", PostClick)
 	btn:HookScript("OnMouseDown", OnMouseDown)
 	btn:HookScript("OnMouseUp", OnMouseUp)
-	if 	btn.command == KEY.UP or btn.command == KEY.DOWN or btn.command == KEY.LEFT or btn.command == KEY.RIGHT then
+	if 	btn.command == KEY.UP or
+		btn.command == KEY.DOWN or
+		btn.command == KEY.LEFT or
+		btn.command == KEY.RIGHT then
 		btn:SetScript("OnUpdate", CheckHeldDown)
 	end
 	ConsolePortButtonHandler:SetFrameRef("NewButton", btn)

@@ -13,7 +13,7 @@ Mime:SetSize(1, 1)
 Mime.Text = Mime:CreateFontString("$parentText", "BACKGROUND")
 Mime.Text:SetFont("Interface\\AddOns\\ConsolePortKeyboard\\Fonts\\arial.TTF", 18)
 Mime.Text:SetShadowColor(0, 0, 0, 1)
-Mime.Text:SetShadowOffset(1, -2)
+Mime.Text:SetShadowOffset(2, -2)
 Mime.Text:SetPoint("LEFT", Mime, "LEFT", 0, 0)
 
 Mime.Backdrop = Keyboard:CreateTexture(nil, "BACKGROUND")
