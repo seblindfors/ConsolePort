@@ -142,23 +142,22 @@ local function IsNodeDrawn(node)
 	end
 end
 
-local function GetNodes(parent)
-	if parent.ignoreNode then
+local function GetNodes(node)
+	if node.ignoreNode then
 		return
 	end
-	local children = {parent:GetChildren()}
-	local object = parent:GetObjectType()
-	if 	object ~= "Slider" and not parent.hasArrow then
-		for i, child in pairs(children) do
+	local object = node:GetObjectType()
+	if 	object ~= "Slider" and not node.hasArrow then
+		for i, child in pairs({node:GetChildren()}) do
 			GetNodes(child)
 		end
 	end
-	if 	HasInteraction(parent, object) and IsNodeDrawn(parent) then
-		local x, y = parent:GetCenter()
-		if parent.hasPriority then
-			tinsert(nodes, 1, {node = parent, object = object, X = x, Y = y})
+	if 	HasInteraction(node, object) and IsNodeDrawn(node) then
+		local x, y = node:GetCenter()
+		if node.hasPriority then
+			tinsert(nodes, 1, {node = node, object = object, X = x, Y = y})
 		else
-			tinsert(nodes, {node = parent, object = object, X = x, Y = y})
+			tinsert(nodes, {node = node, object = object, X = x, Y = y})
 		end
 	end
 end

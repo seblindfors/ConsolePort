@@ -1,12 +1,5 @@
 local addOn, db = ...
 ---------------------------------------------------------------
--- Config: Default functions	
----------------------------------------------------------------
-local function LoadDefaultUICtrl(self)
-	ConsolePortUIFrames = ConsolePort:GetDefaultUIFrames()
-	RefreshAddonList(self.AddonList)
-end
----------------------------------------------------------------
 -- Config: UICtrl addons/frames scripts
 ---------------------------------------------------------------
 local function NewAddonOnClick(self)
@@ -211,6 +204,14 @@ local function RemoveFramePopupAccept(self, frame, addon)
 	end
 	RefreshFrameList(addon)
 	ConsolePort:CheckLoadedAddons()
+end
+
+---------------------------------------------------------------
+-- Config: Default functions	
+---------------------------------------------------------------
+local function LoadDefaultUICtrl(self)
+	ConsolePortUIFrames = ConsolePort:GetDefaultUIFrames()
+	RefreshAddonList(self.AddonList)
 end
 
 

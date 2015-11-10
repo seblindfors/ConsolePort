@@ -59,7 +59,7 @@ function ConsolePort:MERCHANT_SHOW(...)
 end
 
 function ConsolePort:WORLD_MAP_UPDATE(...)
-	self:MapGetZones()
+	self:GetMapNodes()
 end
 
 function ConsolePort:QUEST_AUTOCOMPLETE(...)

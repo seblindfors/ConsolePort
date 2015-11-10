@@ -159,17 +159,17 @@ local function GetTexture(button)
 	return triggers[button] or db.TEXTURE[strupper(db.NAME[button])]
 end
 
-local function GetHotKeyTexture(self)
-	local texFile = GetTexture(self.name)
-	local texture = "|T%s:14:14:2:0|t"
-	local plain = format("|T%s:14:14:3:0|t", texFile)
+local function GetHotKeyTexture(button)
+	local texFile = GetTexture(button.name)
+	local texture = "|T%s:14:14:%s:0|t" -- texture, offsetX
+	local plain = format(texture, texFile, 3)
 	local mods = {
 		_NOMOD = plain,
-		_SHIFT = format("|T%s:14:14:7:0|t", db.TEXTURE.LONE)..plain,
-		_CTRL = format("|T%s:14:14:7:0|t", db.TEXTURE.LTWO)..plain,
-		_CTRLSH = format("|T%s:14:14:11:0|t", db.TEXTURE.LONE)..format("|T%s:14:14:7:0|t", db.TEXTURE.LTWO)..plain,
+		_SHIFT = format(texture, db.TEXTURE.LONE, 7)..plain,
+		_CTRL = format(texture, db.TEXTURE.LTWO, 7)..plain,
+		_CTRLSH = format(strrep(texture, 2), db.TEXTURE.LONE, 11, db.TEXTURE.LTWO, 7)..plain,
 	}
-	return mods[self.mod]
+	return mods[button.mod]
 end
 
 ---------------------------------------------------------------
