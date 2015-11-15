@@ -54,8 +54,6 @@ function ConsolePort:LoadHookScripts()
 			end
 		end
 	end)
-	-- Map hooks
---	WorldMapButton:HookScript("OnUpdate", ConsolePort.MapHighlight)
 	-- Disable keyboard input (will obstruct controller input)
 	StackSplitFrame:EnableKeyboard(false)
 	-- Get rid of mouselook when trying to interact with mouse

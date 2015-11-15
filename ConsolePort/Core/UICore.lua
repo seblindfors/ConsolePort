@@ -10,6 +10,7 @@ local stack = {}
 local frameWatchers = 0
 local hasFrameWatch = false
 local frameWatch = {}
+local specialframes = {}
 
 --- Localize frequently used globals
 -- Functions
@@ -118,6 +119,17 @@ local function CheckFrameWatchers(self)
 	end
 end
 
+local function CheckSpecialFrames(self)
+	local frames = UISpecialFrames
+	for i, frame in pairs(frames) do
+		if not specialframes[frame] then
+			if self:AddFrame(frame) then
+				specialframes[frame] = true
+			end
+		end
+	end
+end
+
 function ConsolePort:AddFrame(frame, priority)
 	local UIControl = _G[frame]
 	if 	UIControl then
@@ -148,6 +160,7 @@ function ConsolePort:UpdateFrames()
 		if hasFrameWatch then
 			CheckFrameWatchers(self)
 		end
+		CheckSpecialFrames(self)
 		for i, UIControl in pairs(UIControls) do
 			if 	UIControl:IsVisible() and
 				UIControl:GetPoint() then
