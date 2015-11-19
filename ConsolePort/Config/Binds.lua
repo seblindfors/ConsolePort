@@ -94,13 +94,14 @@ end
 -- Config: Hotkey textures for action buttons / UI
 ---------------------------------------------------------------
 local function GetTexture(button)
-	local triggers = {
-		CP_TR1 = db.TEXTURE.RONE,
-		CP_TR2 = db.TEXTURE.RTWO,
-		CP_TR3 = db.TEXTURE.LONE,
-		CP_TR4 = db.TEXTURE.LTWO,
-	}
-	return triggers[button] or db.TEXTURE[strupper(db.NAME[button])]
+-- 	local triggers = {
+-- 		CP_TR1 = db.TEXTURE.RONE,
+-- 		CP_TR2 = db.TEXTURE.RTWO,
+-- 		CP_TR3 = db.TEXTURE.LONE,
+-- 		CP_TR4 = db.TEXTURE.LTWO,
+-- 	}
+-- 	return triggers[button] or db.TEXTURE[strupper(db.NAME[button])]
+	return db.TEXTURE[button]
 end
 
 local function GetActionButtons(buttons, this)
@@ -334,7 +335,7 @@ end
 ---------------------------------------------------------------
 local function GetAddonBindings()
 	return {
-		{name = "ConsolePort Extra", binding = "CLICK ConsolePortExtraButton:LeftButton"},
+		{name = BINDING_NAME_CP_EXTRABUTTON, binding = "CLICK ConsolePortExtraButton:LeftButton"},
 		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
 		{name = BINDING_NAME_CP_CAMZOOMIN, binding = "CP_CAMZOOMIN"},
 		{name = BINDING_NAME_CP_CAMZOOMOUT, binding = "CP_CAMZOOMOUT"},
@@ -402,11 +403,11 @@ local function RefreshHeaderList(self)
 				binding:match("^HEADER_BLANK") and not
 				binding:match("^CP_")) or not
 				binding:match("^HEADER") then
-			if not bindings["Other"] then
-				bindings["Other"] = {}
+			if not bindings[TUTORIAL.OTHERCATEGORY] then
+				bindings[TUTORIAL.OTHERCATEGORY] = {}
 			end
 			name = _G[BIND..binding] or _G["BINDING_"..binding]
-			tinsert(bindings["Other"], {name = name, binding = _G[BIND..binding] and binding})
+			tinsert(bindings[TUTORIAL.OTHERCATEGORY], {name = name, binding = _G[BIND..binding] and binding})
 		end
 	end
 	bindings["ConsolePort "] = GetAddonBindings()
@@ -645,7 +646,7 @@ local function RemoveOnClick(self)
 	if ConsolePortCharacterSettings then
 		ConsolePortCharacterSettings[UIDropDownMenu_GetText(self:GetParent().dropdown)] = nil
 	end
-	self:GetParent().dropdown.text:SetText("Choose character")
+	self:GetParent().dropdown.text:SetText(TUTORIAL.IMPORTDEFAULT)
 	BindingsOnShow(self:GetParent())
 end
 
@@ -655,20 +656,20 @@ end
 local function SetBindingTooltip(self)
 	GameTooltip:Hide()
 	GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
-	GameTooltip:AddLine("Bindings")
+	GameTooltip:AddLine(TUTORIAL.TOOLTIPHEADER)
 	if not self.bindings then
 		self.bindings = {
 			{	button = _G[self.name..NOMOD], mod = "",
 				icons = self.texture,
 			},
 			{	button = _G[self.name..SHIFT], mod = "SHIFT-",
-				icons = format(self.icon, db.TEXTURE.LONE)..self.texture,
+				icons = format(self.icon, db.TEXTURE.CP_TL1)..self.texture,
 			},
 			{	button = _G[self.name..CTRL], mod = "CTRL-",
-				icons = format(self.icon, db.TEXTURE.LTWO)..self.texture,
+				icons = format(self.icon, db.TEXTURE.CP_TL2)..self.texture,
 			},
 			{	button = _G[self.name..CTRLSH], mod = "CTRL-SHIFT-",
-				icons = format(self.icon, db.TEXTURE.LONE)..format(self.icon, db.TEXTURE.LTWO)..self.texture,
+				icons = format(self.icon, db.TEXTURE.CP_TL1)..format(self.icon, db.TEXTURE.CP_TL2)..self.texture,
 			},
 		}
 	end
@@ -688,7 +689,7 @@ local function SetBindingTooltip(self)
 						_G[BIND..GetBindingAction(binding.mod..GetBindingKey(self.name), true)] or "N/A"
 		GameTooltip:AddDoubleLine(binding.icons, text, 1,1,1,1,1,1)
 	end
-	GameTooltip:AddLine("<Click to change>")
+	GameTooltip:AddLine(TUTORIAL.TOOLTIPCLICK)
 	GameTooltip:Show()
 end
 
@@ -720,7 +721,7 @@ local function LoadDefaultBinds(self)
 end
 
 
-local function ConfigurePanelBinds(self, Binds)
+tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "Binds", TUTORIAL.SIDEBAR, TUTORIAL.HEADER, SubmitBindings, RevertBindings, LoadDefaultBinds, function(self, Binds)
 	local player = GetUnitName("player").."-"..GetRealmName()
 
 	Binds.Controller = Binds:CreateTexture("GameMenuTextureController", "ARTWORK")
@@ -745,7 +746,7 @@ local function ConfigurePanelBinds(self, Binds)
 	Binds.dropdown.middle:SetWidth(150)
 	Binds.dropdown:SetWidth(200)
 	Binds.dropdown.text = _G[addOn.."ImportDropdownText"]
-	Binds.dropdown.text:SetText("Choose character")
+	Binds.dropdown.text:SetText(TUTORIAL.IMPORTDEFAULT)
 	Binds.dropdown.info = {}
 	Binds.dropdown:EnableMouse(false)
 	Binds.dropdown.initialize = function(self)
@@ -769,13 +770,13 @@ local function ConfigurePanelBinds(self, Binds)
 	Binds.import = CreateFrame("BUTTON", addOn.."ImportImport", Binds, "UIPanelButtonTemplate")
 	Binds.import:SetPoint("TOPRIGHT", Binds.dropdown, "BOTTOMRIGHT", -16, 0)
 	Binds.import:SetWidth(82)
-	Binds.import:SetText("Import")
+	Binds.import:SetText(TUTORIAL.IMPORTBUTTON)
 	Binds.import:SetScript("OnClick", ImportOnClick)
 
 	Binds.remove = CreateFrame("BUTTON", addOn.."ImportRemove", Binds, "UIPanelButtonTemplate")
 	Binds.remove:SetPoint("RIGHT", Binds.import, "LEFT", -4, 0)
 	Binds.remove:SetWidth(82)
-	Binds.remove:SetText("Remove")
+	Binds.remove:SetText(TUTORIAL.REMOVEBUTTON)
 	Binds.remove:SetScript("OnClick", RemoveOnClick)
 
 	Binds.Buttons = {}
@@ -845,7 +846,5 @@ local function ConfigurePanelBinds(self, Binds)
 	Binds.Rebind.Static.ValueWrap = CreateFrame("Frame", "$parentValueWrap", Binds.Rebind.Static, "InsetFrameTemplate3")
 	Binds.Rebind.Static.ValueWrap:SetAllPoints(Binds.Rebind.Static.ValueScroll)
 
-	self:AddFrame(Binds.Rebind:GetName())
-end
-
-tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "Binds", "Bindings", "Binding settings", SubmitBindings, RevertBindings, LoadDefaultBinds, ConfigurePanelBinds})
+	self:AddFrame(addOn.."RebindFrame")
+end})

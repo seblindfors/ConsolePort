@@ -112,7 +112,6 @@ function ConsolePort:UPDATE_BINDINGS(...)
 	end
 end
 
-
 function ConsolePort:ADDON_LOADED(...)
 	local name = ...
 	if name == addOn then

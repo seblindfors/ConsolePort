@@ -1,8 +1,15 @@
 local _, db = ...
-if not (not db.TUTORIAL or not db.TOOLTIP or not db.XBOX or not db.PS4) then return end
 
-db.TUTORIAL = {
+-- Use English as default locale.
+
+local DEFAULT = {
+
+TUTORIAL = {
 	BIND  = {
+		HEADER 				= "Binding settings",
+		SIDEBAR 			= "Bindings",
+		TOOLTIPHEADER 		= "Bindings",
+		TOOLTIPCLICK 		= "<Click to change>",
 		DEFAULT 			= "Click on a button to change its behaviour.",
 		COMBO 				= "Click on a combination of %s to change it.",
 		REBIND 				= "Select an interface button or key binding with the cursor to change:\n%s",
@@ -11,10 +18,53 @@ db.TUTORIAL = {
 		COMBAT 				= "Error: In combat! Exit combat to change your settings.",
 		IMPORT 				= "Settings imported from %s. Press Okay to apply.",
 		RESET 				= "Default settings loaded. Press Okay to apply.",
+		IMPORTDEFAULT 		= "Choose character",
+		IMPORTBUTTON 		= "Import",
+		REMOVEBUTTON		= "Remove",
+		OTHERCATEGORY 		= "Other",
+	},
+	MOUSE = {
+		HEADER 				= "Toggle mouse look when...",
+		SIDEBAR 			= "Mouse",
+		VIRTUALCURSOR 		= "Virtual cursor settings",
+		STARTED_MOVING 		= "Player starts moving",
+		TARGET_CHANGED 		= "Player changes target",
+		DIRECT_SPELL_CAST 	= "Player casts a direct spell",
+		NPC_INTERACTION 	= "NPC interaction",
+		QUEST_AUTOCOMPLETE 	= "Popup quest completion",
+		GARRISON_ORDER 		= "Garrison work order",
+		LOOT_OPENED 		= "Loot window opened",
+		LOOT_CLOSED 		= "Loot window closed",
+	},
+	UICTRL = {
+		HEADER 				= "Interface settings (advanced)",
+		SIDEBAR 			= "Interface",
+		ADDONLISTHEADER 	= "AddOns:",
+		FRAMELISTHEADER 	= "Frames:",
+		FRAMELISTFORMAT 	= "Frames in |cffffe00a%s|r:",
+		NEWADDON			= "New addon",
+		NEWFRAME			= "New frame",
+		ADDADDON 			= "Enter name of addon or module:",
+		ADDFRAME 			= "Enter name to add frame to addon |cffffe00a%s|r:",
+		REMOVEADDON 		= "Do you want to remove addon |cffffe00a%s|r from virtual cursor?",
+		REMOVEFRAME 		= "Do you want to remove frame |cffffe00a%s|r in addon |cffffe00a%s|r from virtual cursor?",
+		ADD 				= "Add",
+		CANCEL 				= "Cancel",
+		REMOVE 				= "Remove",
+	},
+	CONFIG = {
+		TRIGGERHEADER		= "Trigger textures (requires reload)",
+		AUTOEXTRA 			= "Auto bind appropriate quest items",
+		CONTROLLER 			= "Change controller",
+		BINDRESET 			= "Reset bindings",
+		FULLRESET 			= "Reset all settings",
+		CONFIRMRESET 		= "Are you sure?",
+		SHOWSLASH 			= "Slash commands",
 	},
 	SETUP = {
+		LAYOUT  			= "Setup: Select controller layout",
 		HEADER 				= "Setup: Assign controller buttons",
-		HEADLINE 			= "Your controller bindings are incomplete.\nPress the requested button to map it.",
+		HEADLINE 			= "Your controller bindings are incomplete.\nPress the requested button on your controller.",
 		OVERRIDE 			= "%s is already bound to %s.\nPress |T%s:20:20:0:0|t again to continue anyway.",
 		INVALID 			= "Invalid binding.\nDid you press the correct button?",
 		COMBAT 				= "You are in combat!",
@@ -27,12 +77,12 @@ db.TUTORIAL = {
 	SLASH = {
 		COMBAT 				= "Error: Cannot reset addon in combat!",
 		TYPE				= "Change controller type",
-		RESET 				= "Full addon reset",
+		RESET 				= "Full addon reset (irreversible)",
 		BINDS 				= "Open binding menu",
 		CRITICALUPDATE		= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?",
 	}
-}
-db.TOOLTIP = {
+},
+TOOLTIP = {
 	CLICK = {
 		COMPARE 			=	"Compare",
 		QUEST_TRACKER 		=	"Set current quest",
@@ -47,70 +97,41 @@ db.TOOLTIP = {
 		STACK_BUY 			= 	"Buy a different amount",
 		ADD_TO_EXTRA		= 	"Bind",
 	}
-}
-db.XBOX = {
-	CP_L_UP					=	"Up",
-	CP_L_DOWN				=	"Down",
-	CP_L_LEFT				=	"Left",
-	CP_L_RIGHT				=	"Right",
-	CP_TR1					=	"RB",
-	CP_TR2					=	"RT",
-	CP_R_UP					=	"Y",
-	CP_R_DOWN				=	"A",
-	CP_R_LEFT				=	"X",
-	CP_R_RIGHT				=	"B",
-	CP_L_OPTION				= 	"Back",
-	CP_C_OPTION				=	"Guide",
-	CP_R_OPTION				= 	"Start",
-	HEADER_CP_LEFT 			= 	"Directional pad",
-	HEADER_CP_RIGHT			= 	"Action buttons",
-	HEADER_CP_CENTER		= 	"Center buttons",
-	HEADER_CP_TRIG			=	"Triggers",
+},
+CUSTOMBINDS = {
+	CP_EXTRABUTTON			= 	"Custom extra button",
 	CP_TOGGLEMOUSE			= 	"Toggle mouse look",
 	CP_CAMZOOMIN			= 	"Zoom in (custom)",
 	CP_CAMZOOMOUT			= 	"Zoom out (custom)",
+},
+HEADERS = {
+	CP_LEFT 				= 	"Directional pad",
+	CP_RIGHT				= 	"Action buttons",
+	CP_CENTER				= 	"Center buttons",
+	CP_TRIG					=	"Triggers",
+},
+
 }
-db.PS4 = {
-	CP_L_UP					=	"Up",
-	CP_L_DOWN				=	"Down",
-	CP_L_LEFT				=	"Left",
-	CP_L_RIGHT				=	"Right",
-	CP_TR1					=	"R1",
-	CP_TR2					=	"R2",
-	CP_R_UP					=	"Triangle",
-	CP_R_DOWN				=	"Cross",
-	CP_R_LEFT				=	"Square",
-	CP_R_RIGHT				=	"Circle",
-	CP_L_OPTION				= 	"Share",
-	CP_C_OPTION				=	"PS",
-	CP_R_OPTION				= 	"Options",
-	HEADER_CP_LEFT 			= 	"Directional pad",
-	HEADER_CP_RIGHT			= 	"Action buttons",
-	HEADER_CP_CENTER		= 	"Center buttons",
-	HEADER_CP_TRIG			=	"Triggers",
-	CP_TOGGLEMOUSE			= 	"Toggle mouse look",
-	CP_CAMZOOMIN			= 	"Zoom in (custom)",
-	CP_CAMZOOMOUT			= 	"Zoom out (custom)",
-}
-db.STEAM = {
-	CP_L_UP					=	"Up",
-	CP_L_DOWN				=	"Down",
-	CP_L_LEFT				=	"Left",
-	CP_L_RIGHT				=	"Right",
-	CP_TR1					=	"RB",
-	CP_TR2					=	"LB",
-	CP_R_UP					=	"Y",
-	CP_R_DOWN				=	"A",
-	CP_R_LEFT				=	"X",
-	CP_R_RIGHT				=	"B",
-	CP_L_OPTION				= 	"Back",
-	CP_C_OPTION				=	"Steam",
-	CP_R_OPTION				= 	"Forward",
-	HEADER_CP_LEFT 			= 	"Directional pad",
-	HEADER_CP_RIGHT			= 	"Action buttons",
-	HEADER_CP_CENTER		= 	"Center buttons",
-	HEADER_CP_TRIG			=	"Triggers",
-	CP_TOGGLEMOUSE			= 	"Toggle mouse look",
-	CP_CAMZOOMIN			= 	"Zoom in (custom)",
-	CP_CAMZOOMOUT			= 	"Zoom out (custom)",
-}
+
+
+-- Compare a database table against a default table
+-- Fill in non-existing values in the database tables
+local function CheckTable(dbTable, defaultTable)
+	for key, value in pairs(defaultTable) do
+		if type(value) == "table" then
+			if not dbTable[key] then
+				dbTable[key] = {}
+			end
+			CheckTable(dbTable[key], value)
+		elseif type(value) == "string" and not dbTable[key] then
+			dbTable[key] = value
+		end
+	end
+end
+
+for val, tbl in pairs(DEFAULT) do
+	if not db[val] then
+		db[val] = tbl
+	end
+	CheckTable(db[val], tbl)
+end

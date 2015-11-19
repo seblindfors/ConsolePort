@@ -1,4 +1,5 @@
 local addOn, db = ...
+local TUTORIAL = db.TUTORIAL.UICTRL
 ---------------------------------------------------------------
 -- Config: UICtrl addons/frames scripts
 ---------------------------------------------------------------
@@ -94,7 +95,7 @@ local function RefreshFrameList(self)
 	self.parent.CurrentAddon = self
 
 	local header = self.parent.FrameListText
-	header:SetText(format("Frames in |cffffe00a%s|r:", self:GetText()))
+	header:SetText(format(TUTORIAL.FRAMELISTFORMAT, self:GetText()))
 
 	for i, button in pairs(addonButtons) do
 		button:UnlockHighlight()
@@ -214,8 +215,7 @@ local function LoadDefaultUICtrl(self)
 	RefreshAddonList(self.AddonList)
 end
 
-
-local function ConfigurePanelUICtrl(self, UICtrl)
+tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "UICtrl", TUTORIAL.SIDEBAR, TUTORIAL.HEADER, false, false, LoadDefaultUICtrl, function(self, UICtrl)
 	UICtrl.AddonList = CreateFrame("Frame", "$parentAddonList", UICtrl)
 	UICtrl.AddonList:SetSize(260, 1000)
 	UICtrl.AddonList.parent = UICtrl
@@ -235,12 +235,12 @@ local function ConfigurePanelUICtrl(self, UICtrl)
 
 	UICtrl.AddonListText = UICtrl:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	UICtrl.AddonListText:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "TOPLEFT", 0, 8)
-	UICtrl.AddonListText:SetText("AddOns:")
+	UICtrl.AddonListText:SetText(TUTORIAL.ADDONLISTHEADER)
 
 	UICtrl.NewAddon = CreateFrame("BUTTON", "$parentNewAddonButton", UICtrl, "UIPanelButtonTemplate")
 	UICtrl.NewAddon:SetPoint("TOPLEFT", UICtrl.AddonScroll, "BOTTOMLEFT", 0, -12)
 	UICtrl.NewAddon:SetWidth(100)
-	UICtrl.NewAddon:SetText("New addon")
+	UICtrl.NewAddon:SetText(TUTORIAL.NEWADDON)
 	UICtrl.NewAddon:SetScript("OnClick", NewAddonOnClick)
 
 	UICtrl.FrameList = CreateFrame("Frame", "$parentFrameList", UICtrl)
@@ -261,19 +261,19 @@ local function ConfigurePanelUICtrl(self, UICtrl)
 
 	UICtrl.FrameListText = UICtrl:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	UICtrl.FrameListText:SetPoint("BOTTOMLEFT", UICtrl.FrameScroll, "TOPLEFT", 0, 8)
-	UICtrl.FrameListText:SetText("Frames:")
+	UICtrl.FrameListText:SetText(TUTORIAL.FRAMELISTHEADER)
 
 	UICtrl.NewFrame = CreateFrame("BUTTON", "$parentNewFrameButton", UICtrl, "UIPanelButtonTemplate")
 	UICtrl.NewFrame:SetPoint("TOPLEFT", UICtrl.FrameScroll, "BOTTOMLEFT", 0, -12)
 	UICtrl.NewFrame:SetWidth(100)
-	UICtrl.NewFrame:SetText("New frame")
+	UICtrl.NewFrame:SetText(TUTORIAL.NEWFRAME)
 	UICtrl.NewFrame:SetButtonState("DISABLED")
 	UICtrl.NewFrame:SetScript("OnClick", NewFrameOnClick)
 
 	StaticPopupDialogs["CONSOLEPORT_ADDADDON"] = {
-		text = "Enter name of addon or module:",
-		button1 = "Add",
-		button2 = "Cancel",
+		text = TUTORIAL.ADDADDON,
+		button1 = TUTORIAL.ADD,
+		button2 = TUTORIAL.CANCEL,
 		showAlert = true,
 		hasEditBox = true,
 		timeout = 0,
@@ -286,9 +286,9 @@ local function ConfigurePanelUICtrl(self, UICtrl)
 	}
 
 	StaticPopupDialogs["CONSOLEPORT_ADDFRAME"] = {
-		text = "Enter name to add frame to addon |cffffe00a%s|r:",
-		button1 = "Add",
-		button2 = "Cancel",
+		text = TUTORIAL.ADDFRAME,
+		button1 = TUTORIAL.ADD,
+		button2 = TUTORIAL.CANCEL,
 		showAlert = true,
 		hasEditBox = true,
 		timeout = 0,
@@ -301,9 +301,9 @@ local function ConfigurePanelUICtrl(self, UICtrl)
 	}
 
 	StaticPopupDialogs["CONSOLEPORT_REMOVEFRAME"] = {
-		text = "Do you want to remove frame |cffffe00a%s|r in addon |cffffe00a%s|r from virtual cursor?",
-		button1 = "Remove",
-		button2 = "Cancel",
+		text = TUTORIAL.REMOVEFRAME,
+		button1 = TUTORIAL.REMOVE,
+		button2 = TUTORIAL.CANCEL,
 		showAlert = true,
 		timeout = 0,
 		whileDead = true,
@@ -315,9 +315,9 @@ local function ConfigurePanelUICtrl(self, UICtrl)
 	}
 
 	StaticPopupDialogs["CONSOLEPORT_REMOVEADDON"] = {
-		text = "Do you want to remove addon |cffffe00a%s|r from virtual cursor?",
-		button1 = "Remove",
-		button2 = "Cancel",
+		text = TUTORIAL.REMOVEADDON,
+		button1 = TUTORIAL.REMOVE,
+		button2 = TUTORIAL.CANCEL,
 		showAlert = true,
 		timeout = 0,
 		whileDead = true,
@@ -327,6 +327,4 @@ local function ConfigurePanelUICtrl(self, UICtrl)
 		exclusive = true,
 		OnAccept =  RemoveAddonPopupAccept
 	}
-end
-
-tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "UICtrl", "Interface", "Interface settings (advanced)", false, false, LoadDefaultUICtrl, ConfigurePanelUICtrl})
+end})

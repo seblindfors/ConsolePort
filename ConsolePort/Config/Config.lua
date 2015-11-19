@@ -1,4 +1,5 @@
 local addOn, db = ...
+local TUTORIAL = db.TUTORIAL.CONFIG
 ---------------------------------------------------------------
 -- Config: Panel table
 ---------------------------------------------------------------
@@ -6,12 +7,8 @@ db.Panels = {}
 
 local function GetAddonSettings()
 	return {
-		{	cvar = "flipMod",
-			desc = "Flip modifiers (requires reload)",
-			toggle = ConsolePortSettings.flipMod,
-		},
 		{	cvar = "autoExtra",
-			desc = "Auto bind appropriate quest items",
+			desc = TUTORIAL.AUTOEXTRA,
 			toggle = ConsolePortSettings.autoExtra,
 		}
 	}
@@ -23,6 +20,9 @@ end
 local function SaveGeneralConfig(self)
 	for i, Check in pairs(self.General) do
 		ConsolePortSettings[Check.Cvar] = Check:GetChecked()
+	end
+	for i, Check in pairs(self.Triggers) do
+		ConsolePortSettings[Check.Cvar] = Check.Value or ConsolePortSettings[Check.Cvar]
 	end
 end
 
@@ -66,18 +66,35 @@ db.CreatePanel = function(parent, name, title, header, okay, cancel, default)
 	return panel
 end
 
-local function ConfigurePanelConfig(self, Config)
+tinsert(db.Panels, {"InterfaceOptionsFramePanelContainer", "Config", addOn, addOn, SaveGeneralConfig, false, false, function(self, Config)
 	Config.ResetController = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
-	Config.ResetController:SetWidth(150)
-	Config.ResetController:SetText("Change controller")
+	Config.ResetController:SetWidth(160)
+	Config.ResetController:SetText(TUTORIAL.CONTROLLER)
 	Config.ResetController:SetPoint("TOPRIGHT", -16, -44)
 	Config.ResetController:SetScript("OnClick", ResetControllerOnClick)
 
 	Config.ResetBindings = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
-	Config.ResetBindings:SetWidth(150)
-	Config.ResetBindings:SetText("Reset bindings")
+	Config.ResetBindings:SetWidth(160)
+	Config.ResetBindings:SetText(TUTORIAL.BINDRESET)
 	Config.ResetBindings:SetPoint("TOP", Config.ResetController, "BOTTOM", 0, -2)
 	Config.ResetBindings:SetScript("OnClick", ResetBindingsOnClick)
+
+	Config.ResetAll = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
+	Config.ResetAll:SetWidth(160)
+	Config.ResetAll:SetText(TUTORIAL.FULLRESET)
+	Config.ResetAll:SetPoint("TOP", Config.ResetBindings, "BOTTOM", 0, -2)
+	Config.ResetAll:SetScript("OnClick", function(self)
+		self:SetText(TUTORIAL.CONFIRMRESET)
+		self:SetScript("OnClick", function(self)
+			SlashCmdList["CONSOLEPORT"]("resetAll")
+		end)
+	end)
+
+	Config.ShowSlash = CreateFrame("BUTTON", "$parentShowSlashButton", Config, "UIPanelButtonTemplate")
+	Config.ShowSlash:SetWidth(160)
+	Config.ShowSlash:SetText(TUTORIAL.SHOWSLASH)
+	Config.ShowSlash:SetPoint("TOP", Config.ResetAll, "BOTTOM", 0, -2)
+	Config.ShowSlash:SetScript("OnClick", SlashCmdList["CONSOLEPORT"])
 
 	Config.General = {}
 	for i, setting in pairs(GetAddonSettings()) do
@@ -93,20 +110,96 @@ local function ConfigurePanelConfig(self, Config)
 		text:Show()
 		tinsert(Config.General, check)
 	end
-end
 
-tinsert(db.Panels, {"InterfaceOptionsFramePanelContainer", "Config", addOn, addOn, SaveGeneralConfig, false, false, ConfigurePanelConfig})
+	Config.TriggerHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	Config.TriggerHeader:SetText(TUTORIAL.TRIGGERHEADER)
+	Config.TriggerHeader:SetPoint("TOPLEFT", Config, 16, -420)
+
+	Config.Triggers = {}
+
+	local triggerGraphics = {
+		["Shift"] 	= {X = 16, Y = -450, cvar = "shift"},
+		["Ctrl"] 	= {X = 16+140, Y = -450, cvar = "ctrl"},
+		["1st"] 	= {X = 16+280, Y = -450, cvar = "trigger1"},
+		["2nd"] 	= {X = 16+420, Y = -450, cvar = "trigger2"},
+	}
+
+	for name, info in pairs(triggerGraphics) do
+		local trigger = Config:CreateTexture(nil, "ARTWORK")
+		trigger:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
+		trigger:SetSize(76, 101)
+		trigger:SetTexCoord(0.154296875, 0.30078125, 0.80078125, 1)
+		trigger:SetPoint("TOPLEFT", Config, "TOPLEFT", info.X, info.Y)
+		trigger.Value = ConsolePortSettings[info.cvar]
+		trigger.Cvar = info.cvar
+
+		local triggerText = Config:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+		triggerText:SetText(name)
+		triggerText:SetPoint("CENTER", trigger, 0, 20)
+		triggerText:SetTextColor(1, 0, 0, 1)
+
+		tinsert(Config.Triggers, trigger)
+
+		Config[name] = trigger
+	end
+
+	local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s"
+	local triggers = {
+		CP_TL1 = format(TEXTURE_PATH, ConsolePortSettings.type, "CP_TL1"),
+		CP_TL2 = format(TEXTURE_PATH, ConsolePortSettings.type, "CP_TL2"),
+		CP_TR1 = format(TEXTURE_PATH, ConsolePortSettings.type, "CP_TR1"),
+		CP_TR2 = format(TEXTURE_PATH, ConsolePortSettings.type, "CP_TR2"),
+	}
+
+	local RadioButtons = {
+		{parent = Config["Shift"],	default = ConsolePortSettings.shift},
+		{parent = Config["Ctrl"], 	default = ConsolePortSettings.ctrl},
+		{parent = Config["1st"], 	default = ConsolePortSettings.trigger1},
+		{parent = Config["2nd"], 	default = ConsolePortSettings.trigger2},
+	}
+
+	local function CheckOnClick(self)
+		for i, button in pairs(self.set) do
+			button:SetChecked(false)
+		end
+		self:SetChecked(true)
+		self.parent.Value = self.name
+	end
+
+	for i, radio in pairs(RadioButtons) do
+		local num = 1
+		local radioset = {}
+		for name, texture in db.pairsByKeys(triggers) do
+			local button = CreateFrame("CheckButton", "$parentTrigger"..i..name, Config, "UIRadioButtonTemplate")
+			button.set = radioset
+			button.name = name
+			button.parent = radio.parent
+			button.text = _G[button:GetName().."Text"]
+			button.text:SetText(format("|T%s:24:24:0:0|t", texture))
+			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", 5, -24*(num-1)-8)
+			if name == radio.default then
+				radio.parent.Value = name
+				button:SetChecked(true)
+			else
+				button:SetChecked(false)
+			end
+			tinsert(radioset, button)
+			button:SetScript("OnClick", CheckOnClick)
+			num = num + 1
+		end
+	end
+
+end})
 
 function ConsolePort:CreateConfigPanel()
-	if not db.Config then
-
-		for i, panel in pairs(db.Panels) do
-			local parentName, name, sideHeader, bigHeader, okay, cancel, default, configure = unpack(panel)
-			local panel = db.CreatePanel(_G[parentName], name, sideHeader, bigHeader, okay, cancel, default)
-			configure(self, panel)
-			db[name] = panel
-		end
-
+	for i, panel in pairs(db.Panels) do
+		local parentName, name, sideHeader, bigHeader, okay, cancel, default, configure = unpack(panel)
+		local panel = db.CreatePanel(_G[parentName], name, sideHeader, bigHeader, okay, cancel, default)
+		configure(self, panel)
+		db[name] = panel
 	end
+
+	db.Panels = nil
+	self.CreateConfigPanel = nil
 end
 

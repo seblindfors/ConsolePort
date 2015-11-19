@@ -91,12 +91,12 @@ function Keyboard:CreateConfig()
 	end
 
 	local instructions = {
-		"|T"..db.TEXTURE.LONE..":0|t "..KEY_SPACE,
-		"|T"..db.TEXTURE.LTWO..":0|t "..COMPLETE,
-		"\n1: |T"..db.TEXTURE.RONE..":0|t",
+		"|T"..db.TEXTURE.CP_TL1..":0|t "..KEY_SPACE,
+		"|T"..db.TEXTURE.CP_TL2..":0|t "..COMPLETE,
+		"\n1: |T"..db.TEXTURE.CP_TR1..":0|t",
 		"2: |cFF757575<"..strlower(CHAT_DEFAULT)..">|r",
-		"3: |T"..db.TEXTURE.RTWO..":0|t",
-		"4: |T"..db.TEXTURE.RONE..":0|t|T"..db.TEXTURE.RTWO..":0|t",
+		"3: |T"..db.TEXTURE.CP_TR2..":0|t",
+		"4: |T"..db.TEXTURE.CP_TR1..":0|t|T"..db.TEXTURE.CP_TR2..":0|t",
 	}
 	-- alpha stuff
 	local tutString = Config:CreateFontString(nil, "BACKGROUND", "Game18Font")

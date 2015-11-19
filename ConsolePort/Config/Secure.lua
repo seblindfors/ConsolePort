@@ -1,61 +1,61 @@
 local addOn, db = ...
 local KEY = db.KEY
+local TEXTURE = db.TEXTURE
 
 ---------------------------------------------------------------
 -- SecureBtn: Actionpage state handler
 ---------------------------------------------------------------
 function ConsolePort:CreateButtonHandler()
-	if not ConsolePortButtonHandler then
-		local ButtonHandler = CreateFrame("Frame", addOn.."ButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
-		ButtonHandler:Execute([[
-			SecureButtons = newtable()
-			UpdateActionPage = [=[
-				local page = ...
-				if page == "tempshapeshift" then
-					if HasTempShapeshiftActionBar() then
-						page = GetTempShapeshiftBarIndex()
-					else
-						page = 1
-					end
-				elseif page == "possess" then
-					page = self:GetFrameRef("MainMenuBarArtFrame"):GetAttribute("actionpage")
-					if page <= 10 then
-						page = self:GetFrameRef("OverrideActionBar"):GetAttribute("actionpage")
-					end
-					if page <= 10 then
-						page = 12
-					end
+	local ButtonHandler = CreateFrame("Frame", addOn.."ButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
+	ButtonHandler:Execute([[
+		SecureButtons = newtable()
+		UpdateActionPage = [=[
+			local page = ...
+			if page == "tempshapeshift" then
+				if HasTempShapeshiftActionBar() then
+					page = GetTempShapeshiftBarIndex()
+				else
+					page = 1
 				end
-				self:SetAttribute("actionpage", page)
-				for btn in pairs(SecureButtons) do
-					btn:SetAttribute("actionpage", page)
+			elseif page == "possess" then
+				page = self:GetFrameRef("MainMenuBarArtFrame"):GetAttribute("actionpage")
+				if page <= 10 then
+					page = self:GetFrameRef("OverrideActionBar"):GetAttribute("actionpage")
 				end
-			]=]
-		]])
-		ButtonHandler:SetFrameRef("MainMenuBarArtFrame", MainMenuBarArtFrame)
-		ButtonHandler:SetFrameRef("OverrideActionBar", OverrideActionBar)
+				if page <= 10 then
+					page = 12
+				end
+			end
+			self:SetAttribute("actionpage", page)
+			for btn in pairs(SecureButtons) do
+				btn:SetAttribute("actionpage", page)
+			end
+		]=]
+	]])
+	ButtonHandler:SetFrameRef("MainMenuBarArtFrame", MainMenuBarArtFrame)
+	ButtonHandler:SetFrameRef("OverrideActionBar", OverrideActionBar)
 
-		local state = {}
-		tinsert(state, "[overridebar][possessbar]possess")
-		for i = 2, 6 do
-			tinsert(state, ("[bar:%d]%d"):format(i, i))
-		end
-		for i = 1, 4 do
-			tinsert(state, ("[bonusbar:%d]%d"):format(i, i+6))
-		end
-		tinsert(state, "[stance:1]tempshapeshift")
-		tinsert(state, "1")
-		state = table.concat(state, ";")
-		local now = SecureCmdOptionParse(state)
-		ButtonHandler:SetAttribute("actionpage", now)
-		RegisterStateDriver(ButtonHandler, "page", state)
-		ButtonHandler:Execute([[
-			self:Run(UpdateActionPage, self:GetAttribute("actionpage"))
-		]])
-		ButtonHandler:SetAttribute("_onstate-page", [=[
-			self:Run(UpdateActionPage, newstate)
-		]=])
+	local state = {}
+	tinsert(state, "[overridebar][possessbar]possess")
+	for i = 2, 6 do
+		tinsert(state, ("[bar:%d]%d"):format(i, i))
 	end
+	for i = 1, 4 do
+		tinsert(state, ("[bonusbar:%d]%d"):format(i, i+6))
+	end
+	tinsert(state, "[stance:1]tempshapeshift")
+	tinsert(state, "1")
+	state = table.concat(state, ";")
+	local now = SecureCmdOptionParse(state)
+	ButtonHandler:SetAttribute("actionpage", now)
+	RegisterStateDriver(ButtonHandler, "page", state)
+	ButtonHandler:Execute([[
+		self:Run(UpdateActionPage, self:GetAttribute("actionpage"))
+	]])
+	ButtonHandler:SetAttribute("_onstate-page", [=[
+		self:Run(UpdateActionPage, newstate)
+	]=])
+	self.CreateButtonHandler = nil
 end
 
 ---------------------------------------------------------------
@@ -150,13 +150,7 @@ end
 -- SecureBtn: HotKey textures and indicators
 ---------------------------------------------------------------
 local function GetTexture(button)
-	local triggers = {
-		CP_TR1 = db.TEXTURE.RONE,
-		CP_TR2 = db.TEXTURE.RTWO,
-		CP_TR3 = db.TEXTURE.LONE,
-		CP_TR4 = db.TEXTURE.LTWO,
-	}
-	return triggers[button] or db.TEXTURE[strupper(db.NAME[button])]
+	return TEXTURE[button]
 end
 
 local function GetHotKeyTexture(button)
@@ -165,9 +159,9 @@ local function GetHotKeyTexture(button)
 	local plain = format(texture, texFile, 3)
 	local mods = {
 		_NOMOD = plain,
-		_SHIFT = format(texture, db.TEXTURE.LONE, 7)..plain,
-		_CTRL = format(texture, db.TEXTURE.LTWO, 7)..plain,
-		_CTRLSH = format(strrep(texture, 2), db.TEXTURE.LONE, 11, db.TEXTURE.LTWO, 7)..plain,
+		_SHIFT = format(texture, TEXTURE.CP_TL1, 7)..plain,
+		_CTRL = format(texture, TEXTURE.CP_TL2, 7)..plain,
+		_CTRLSH = format(strrep(texture, 2), TEXTURE.CP_TL1, 11, TEXTURE.CP_TL2, 7)..plain,
 	}
 	return mods[button.mod]
 end

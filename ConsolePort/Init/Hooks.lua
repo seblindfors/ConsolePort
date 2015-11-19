@@ -60,4 +60,5 @@ function ConsolePort:LoadHookScripts()
 	hooksecurefunc("InteractUnit", self.StopMouse)
 	--
 	StaticPopupDialogs.DELETE_GOOD_ITEM = StaticPopupDialogs.DELETE_ITEM
+	self.LoadHookScripts = nil
 end

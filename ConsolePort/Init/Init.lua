@@ -33,13 +33,21 @@ function ConsolePort:DB()
 	return db
 end
 
-function ConsolePort:GetDefaultAddonSettings()
-	return {
+function ConsolePort:GetDefaultAddonSettings(setting)
+	local settings = {
 		["type"] = "PS4",
 		["autoExtra"] = true,
-		["flipMod"] = false,
+		["shift"] = "CP_TL1",
+		["ctrl"] = "CP_TL2",
+		["trigger1"] = "CP_TR1",
+		["trigger2"] = "CP_TR2",
 		["version"] = VERSION,
 	}
+	if setting then
+		return settings[setting]
+	else
+		return settings
+	end
 end
 
 local function ResetAllSettings()
@@ -105,7 +113,9 @@ end
     		SaveBindings(GetCurrentBindingSet())
     		ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet()
     		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
+    		ConsolePortUIFrames = nil
     		ConsolePortSettings = nil
+    		ConsolePortMouse = nil
     		ReloadUI()
     	elseif 	msg == "resetAll" then print(db.TUTORIAL.SLASH.COMBAT)
     	elseif 	msg == "binds" or
@@ -117,11 +127,12 @@ end
     		local instruction = "|cff69ccf0%s|r: %s"
     		print("|cffffe00aConsolePort|r:")
     		print(format(instruction, "/cp type", db.TUTORIAL.SLASH.TYPE))
-    		print(format(instruction, "/cp resetAll", db.TUTORIAL.SLASH.TYPE))
-    		print(format(instruction, "/cp binds", db.TUTORIAL.SLASH.TYPE))
+    		print(format(instruction, "/cp resetAll", db.TUTORIAL.SLASH.RESET))
+    		print(format(instruction, "/cp binds", db.TUTORIAL.SLASH.BINDS))
     	end
     end
     SlashCmdList["CONSOLEPORT"] = SlashHandler
+    self.LoadSettings = nil
 end
 
 function ConsolePort:CheckLoadedSettings()
@@ -142,6 +153,7 @@ function ConsolePort:CheckLoadedSettings()
 		}
 		StaticPopup_Show("CONSOLEPORT_CRITICALUPDATE")
 	end
+	self.CheckLoadedSettings = nil
 end
 
 function ConsolePort:CreateMouseLooker()
@@ -169,5 +181,6 @@ function ConsolePort:CreateActionButtons()
 		self:CreateConfigButton(name, "_CTRL",  2)
 		self:CreateConfigButton(name, "_CTRLSH",3)
 	end
+	self.CreateActionButtons = nil
 end
 

@@ -219,13 +219,7 @@ function ConsolePort:CreateBindingWizard()
 				if unassigned then
 					self.BTN = unassigned[1]
 					if self.BTN then
-						if self.BTN == "CP_TR1" then
-							self.ButtonTex:SetTexture(db.TEXTURE.RONE)
-						elseif self.BTN == "CP_TR2" then
-							self.ButtonTex:SetTexture(db.TEXTURE.RTWO)
-						else
-							self.ButtonTex:SetTexture(db.TEXTURE[strupper(db.NAME[self.BTN])])
-						end
+						self.ButtonTex:SetTexture(db.TEXTURE[self.BTN])
 					end
 				else
 					self:Hide()
@@ -300,7 +294,7 @@ function ConsolePort:CreateSplashFrame()
 		Splash:SetSize(750, 550)
 		Splash:EnableMouse(true)
 		-- Text
-		Splash.Header:SetText("Setup: Select controller layout")
+		Splash.Header:SetText(SETUP.LAYOUT)
 	end
 	ConsolePortSplashFrame:Show()
 	PlaySound("SPELLBOOKOPEN")

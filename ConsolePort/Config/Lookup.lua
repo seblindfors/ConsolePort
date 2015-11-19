@@ -364,6 +364,6 @@ function ConsolePort:GetDefaultMouseCursor()
 		Left 	= "CP_R_RIGHT",
 		Right 	= "CP_R_LEFT",
 		Special = "CP_R_UP",
-		Scroll 	= "CP_TR3",
+		Scroll 	= "CP_TL1",
 	}
 end

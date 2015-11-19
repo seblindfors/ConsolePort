@@ -43,18 +43,18 @@ local function AddCustomMenuButtons()
 	end
 	local prefix = "Interface\\Buttons\\UI-MicroButton"
 	local customButtons = {
-		{name = "Character", 	icon = "Character", 	title = "Character Info", 	ClickFunc = ToggleCharacter, 	arg = "PaperDollFrame"},
-		{name = "Spellbook", 	icon = "Spellbook", 	title = "Spellbook", 		ClickFunc = ToggleFrame, 		arg = SpellBookFrame},
-		{name = "Talent", 		icon = "Talents", 		title = "Specialization", 	ClickFunc = ToggleTalentUI				},
-		{name = "Achievement", 	icon = "Achievement", 	title = "Achievements", 	ClickFunc = ToggleAchievementFrame		},
-		{name = "QuestLog", 	icon = "Quest", 		title = "Quest Log", 		ClickFunc = ToggleQuestLog				},
-		{name = "LFD", 			icon = "LFG", 			title = "Group Finder",	 	ClickFunc = PVEFrame_ToggleFrame		},
-		{name = "PvP", 			icon = "Raid", 			title = "PvP",	 			ClickFunc = TogglePVPUI					},
-		{name = "Collections", 	icon = "Mounts", 		title = "Collections", 		ClickFunc = ToggleCollectionsJournal	},
-		{name = "EJ", 			icon = "EJ", 			title = "Adventure Guide", 	ClickFunc = ToggleEncounterJournal		},
-		{name = "Social", 		icon = "World",			title = "Social", 			ClickFunc = ToggleFriendsFrame			},
-		{name = "Guild", 		icon = "Socials", 		title = "Guild", 			ClickFunc = ToggleGuildFrame			},
-		{name = "Garrison", 	icon = "Abilities", 	title = "Garrison Report", 	ClickFunc = ToggleGarrisonReport		},
+		{name = "Character", 	icon = "Character", 	title = CHARACTER_BUTTON, 	ClickFunc = ToggleCharacter, 	arg = "PaperDollFrame"},
+		{name = "Spellbook", 	icon = "Spellbook", 	title = SPELLBOOK_BUTTON, 	ClickFunc = ToggleFrame, 		arg = SpellBookFrame},
+		{name = "Talent", 		icon = "Talents", 		title = TALENTS_BUTTON, 	ClickFunc = ToggleTalentUI				},
+		{name = "Achievement", 	icon = "Achievement", 	title = ACHIEVEMENT_BUTTON, ClickFunc = ToggleAchievementFrame		},
+		{name = "QuestLog", 	icon = "Quest", 		title = QUESTLOG_BUTTON, 	ClickFunc = ToggleQuestLog				},
+		{name = "LFD", 			icon = "LFG", 			title = DUNGEONS_BUTTON,	ClickFunc = PVEFrame_ToggleFrame		},
+		{name = "PvP", 			icon = "Raid", 			title = PVP,	 			ClickFunc = TogglePVPUI					},
+		{name = "Collections", 	icon = "Mounts", 		title = COLLECTIONS, 		ClickFunc = ToggleCollectionsJournal	},
+		{name = "EJ", 			icon = "EJ", 			title = ADVENTURE_JOURNAL, 	ClickFunc = ToggleEncounterJournal		},
+		{name = "Social", 		icon = "World",			title = SOCIAL_BUTTON, 		ClickFunc = ToggleFriendsFrame			},
+		{name = "Guild", 		icon = "Socials", 		title = GUILD, 				ClickFunc = ToggleGuildFrame			},
+		{name = "Garrison", 	icon = "Abilities", 	title = GARRISON_LANDING_PAGE_TITLE, ClickFunc = ToggleGarrisonReport},
 	}
 	for i, btn in pairs(customButtons) do
 		local button = CreateFrame("BUTTON", "GameMenuButton"..btn.name, GameMenuFrame)

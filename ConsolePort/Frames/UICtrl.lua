@@ -3,7 +3,7 @@ local UI 		= db.UI
 local KEY 		= db.KEY
 local TEXTURE 	= db.TEXTURE
 local NOMOD 	= "_NOMOD"
-local L1, L2 	= "CP_TR3", "CP_TR4"
+local L1, L2 	= "CP_TL1", "CP_TL2"
 local nodes, current, old, rebindNode = {}, nil, nil, nil
 
 --- Localize frequently used globals
@@ -467,8 +467,8 @@ function ConsolePort:SetupCursor()
 	Cursor.RightClick 	= _G[Cursor.Right..NOMOD]
 	Cursor.SpecialClick = _G[Cursor.Special..NOMOD]
 
-	Cursor.Indicator 	= TEXTURE[strupper(db.NAME[Cursor.Left])]
-	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.LONE or TEXTURE.LTWO
+	Cursor.Indicator 	= TEXTURE[Cursor.Left]
+	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.CP_TL1 or TEXTURE.CP_TL2
 
 	Cursor.SpecialAction = Cursor.SpecialClick.command
 

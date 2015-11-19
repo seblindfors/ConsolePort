@@ -1,52 +1,45 @@
 local addOn, db = ...
 local TEXTURE = db.TEXTURE
+local TUTORIAL = db.TUTORIAL.MOUSE
 ---------------------------------------------------------------
 -- Config: Returns events for mouselook
 ---------------------------------------------------------------
 local function GetMouseSettings()
 	return {
 		{ 	event 	= {"PLAYER_STARTED_MOVING"},
-			desc 	= "Player starts moving",
+			desc 	= TUTORIAL.STARTED_MOVING,
 			toggle 	= ConsolePortMouse.Events["PLAYER_STARTED_MOVING"]
 		},
 		{ 	event	= {"PLAYER_TARGET_CHANGED"},
-			desc 	= "Player changes target",
+			desc 	= TUTORIAL.TARGET_CHANGED,
 			toggle 	= ConsolePortMouse.Events["PLAYER_TARGET_CHANGED"]
 		},
 		{	event 	= {"CURRENT_SPELL_CAST_CHANGED"},
-			desc 	= "Player casts a direct spell",
+			desc 	= TUTORIAL.DIRECT_SPELL_CAST,
 			toggle 	= ConsolePortMouse.Events["CURRENT_SPELL_CAST_CHANGED"]
 		},
-		{	event 	= {"GOSSIP_SHOW", "GOSSIP_CLOSED"},
-			desc 	= "NPC interaction",
+		{	event 	= {	"GOSSIP_SHOW", "GOSSIP_CLOSED",
+						"MERCHANT_SHOW", "MERCHANT_CLOSED",
+						"TAXIMAP_OPENED", "TAXIMAP_CLOSED",
+						"QUEST_GREETING", "QUEST_DETAIL",
+						"QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED"},
+			desc 	= TUTORIAL.NPC_INTERACTION,
 			toggle 	= ConsolePortMouse.Events["GOSSIP_SHOW"]
 		},
-		{	event 	= {"MERCHANT_SHOW", "MERCHANT_CLOSED"},
-			desc 	= "Merchant interaction", 
-			toggle 	= ConsolePortMouse.Events["MERCHANT_SHOW"]
-		},
-		{	event	= {"TAXIMAP_OPENED", "TAXIMAP_CLOSED"},
-			desc 	= "Flight master interaction",
-			toggle 	= ConsolePortMouse.Events["TAXIMAP_OPENED"]
-		},
-		{	event	= {"QUEST_GREETING", "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED"},
-			desc 	= "Quest giver interaction",
-			toggle 	= ConsolePortMouse.Events["QUEST_GREETING"]
-		},
 		{ 	event	= {"QUEST_AUTOCOMPLETE"},
-			desc 	= "Popup quest completion",
+			desc 	= TUTORIAL.QUEST_AUTOCOMPLETE,
 			toggle 	= ConsolePortMouse.Events["QUEST_AUTOCOMPLETE"]
 		},
 		{ 	event 	= {"SHIPMENT_CRAFTER_OPENED", "SHIPMENT_CRAFTER_CLOSED"},
-			desc 	= "Garrison work order",
+			desc 	= TUTORIAL.GARRISON_ORDER,
 			toggle 	= ConsolePortMouse.Events["SHIPMENT_CRAFTER_OPENED"]
 		},
 		{	event	= {"LOOT_OPENED"},
-			desc 	= "Loot window opened",
+			desc 	= TUTORIAL.LOOT_OPENED,
 			toggle 	= ConsolePortMouse.Events["LOOT_OPENED"]
 		},
 		{	event	= {"LOOT_CLOSED"},
-			desc 	= "Loot window closed",
+			desc 	= TUTORIAL.LOOT_CLOSED,
 			toggle 	= ConsolePortMouse.Events["LOOT_CLOSED"]
 		}
 	}
@@ -65,9 +58,10 @@ local function SaveMouseConfig(self)
 	ConsolePortMouse.Cursor.Scroll = self.ScrollClick.button
 	ConsolePort:LoadEvents()
 	ConsolePort:SetupCursor()
+	ConsolePort:LoadControllerTheme()
 end
 
-local function ConfigurePanelMouse(self, Mouse)
+tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "Mouse", TUTORIAL.SIDEBAR, TUTORIAL.HEADER, SaveMouseConfig, false, false, function(self, Mouse)
 	Mouse.Events = {}
 	for i, setting in pairs(GetMouseSettings()) do
 		local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, Mouse, "ChatConfigCheckButtonTemplate")
@@ -84,7 +78,7 @@ local function ConfigurePanelMouse(self, Mouse)
 	end
 
 	Mouse.CursorHeader = Mouse:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Mouse.CursorHeader:SetText("Virtual cursor settings")
+	Mouse.CursorHeader:SetText(TUTORIAL.VIRTUALCURSOR)
 	Mouse.CursorHeader:SetPoint("TOPLEFT", Mouse, 16, -420)
 
 	Mouse.LeftClick = Mouse:CreateTexture()
@@ -112,15 +106,15 @@ local function ConfigurePanelMouse(self, Mouse)
 	Mouse.ScrollClick:SetPoint("LEFT", Mouse.SpecialClick, "RIGHT", 85, 0)
 
 	local clickButtons 	= {
-		CP_R_RIGHT 	= TEXTURE[strupper(db.NAME.CP_R_RIGHT)],
-		CP_R_LEFT 	= TEXTURE[strupper(db.NAME.CP_R_LEFT)],
-		CP_R_UP		= TEXTURE[strupper(db.NAME.CP_R_UP)],
-		CP_R_DOWN	= TEXTURE[strupper(db.NAME.CP_R_DOWN)],
+		CP_R_RIGHT 	= TEXTURE.CP_R_RIGHT,
+		CP_R_LEFT 	= TEXTURE.CP_R_LEFT,
+		CP_R_UP		= TEXTURE.CP_R_UP,
+		CP_R_DOWN	= TEXTURE.CP_R_DOWN,
 	}
 
 	local scrollButtons = {
-		CP_TR3 		= db.TEXTURE.LONE,
-		CP_TR4 		= db.TEXTURE.LTWO,
+		CP_TL1 		= TEXTURE.CP_TL1,
+		CP_TL2 		= TEXTURE.CP_TL2,
 	}
 
 	local RadioButtons = {
@@ -155,6 +149,6 @@ local function ConfigurePanelMouse(self, Mouse)
 			num = num + 1
 		end
 	end
-end
+end})
 
-tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "Mouse", "Mouse", "Toggle mouse look when...", SaveMouseConfig, false, false, ConfigurePanelMouse})
+
