@@ -11,5 +11,5 @@ Core\Dictionary.lua
 Core\AutoComplete.lua
 Core\Mime.lua
 Core\Charset.lua
-Core\Dispatcher.lua
+Core\Update.lua
 Core\Config.lua

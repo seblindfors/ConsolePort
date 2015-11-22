@@ -586,6 +586,7 @@ function ConsolePort:LoadBindingAction(button, UIbutton, name, mod1, mod2)
 		if button.action.HotKey then
 			button.action.HotKey:SetAlpha(0)
 		end
+		ShowInterfaceHotKey(button)
 	else
 		self:AddButtonWatch(button, UIbutton, name, mod1, mod2)
 	end
@@ -693,6 +694,12 @@ local function SetBindingTooltip(self)
 	GameTooltip:Show()
 end
 
+local function SetBindingFocus(self)
+	local parent = self:GetParent()
+	parent.Rebind:SetButton(self)
+	ConsolePort:SetCurrentNode(parent.Buttons[self.name][1])
+end
+
 local function RebindSetButton(self, button)
 	self.button = button
 	local allButtons = self:GetParent().Buttons
@@ -788,7 +795,7 @@ tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "Binds", TUTORIAL.SIDEBAR, T
 		button:SetPoint("TOPLEFT", Binds.Controller, "TOPLEFT", position.X, position.Y)
 		button:SetSize(30, 30)
 		button:SetScript("OnEnter", SetBindingTooltip)
-		button:SetScript("OnClick", function(self) Binds.Rebind:SetButton(self) ConsolePort:SetCurrentNode(Binds.Buttons[button.name][1]) end)
+		button:SetScript("OnClick", SetBindingFocus)
 		button:SetScript("OnLeave", function(self) if GameTooltip:GetOwner() == self then GameTooltip:Hide() end end)
 	end
 

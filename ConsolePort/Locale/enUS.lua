@@ -75,9 +75,12 @@ TUTORIAL = {
 		CONTROLLER 			= "Select your preferred button layout by clicking a controller.",
 	},
 	SLASH = {
-		COMBAT 				= "Error: Cannot reset addon in combat!",
+		COMBAT 				= "Error! Cannot reset addon in combat!",
 		TYPE				= "Change controller type",
 		RESET 				= "Full addon reset (irreversible)",
+		TOGGLEMOUSE 		= "Toggle centered cursor lock",
+		MOUSEOFF 			= "Centered cursor lock is |cFFFF1111OFF|r.",
+		MOUSEON 			= "Centered cursor lock is |cFF11FF11ON|r.",
 		BINDS 				= "Open binding menu",
 		CRITICALUPDATE		= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?",
 	}

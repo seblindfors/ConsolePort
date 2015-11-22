@@ -1,8 +1,10 @@
 local addOn, db = ...
 
 local ConsolePort = ConsolePort
-local mToggle = ConsolePort:CreateMouseLooker()
-
+local mToggle = CreateFrame("Frame", addOn.."MouseLook", UIParent)
+mToggle:SetPoint("CENTER", 0, 0)
+mToggle:SetSize(70, 180)
+mToggle:Hide()
 
 local function MouseLookShouldStart()
 	if 	not SpellIsTargeting() 			and

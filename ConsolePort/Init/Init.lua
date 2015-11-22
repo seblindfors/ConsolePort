@@ -70,69 +70,95 @@ local function ResetAllSettings()
 	end
 end
 
- function ConsolePort:LoadSettings()
-    if not ConsolePortBindingSet then
-    	ConsolePortBindingSet = self:GetDefaultBindingSet()
-    end
+function ConsolePort:LoadSettings()
+	if not ConsolePortBindingSet then
+		ConsolePortBindingSet = self:GetDefaultBindingSet()
+	end
 
-    if not ConsolePortBindingButtons then
-    	ConsolePortBindingButtons = self:GetDefaultBindingButtons()
-    end
+	-- Interface binding buttons and interface commands.
+	if not ConsolePortBindingButtons then
+		ConsolePortBindingButtons = self:GetDefaultBindingButtons()
+	end
 
-    if not ConsolePortMouse then
-    	ConsolePortMouse = {
-    		Events = self:GetDefaultMouseEvents(),
-    		Cursor = self:GetDefaultMouseCursor(),
-    	}
-    end
+	if not ConsolePortMouse then
+		ConsolePortMouse = {
+			Events = self:GetDefaultMouseEvents(),
+			Cursor = self:GetDefaultMouseCursor(),
+		}
+	end
 
-    if not ConsolePortSettings then
-    	ConsolePortSettings = self:GetDefaultAddonSettings()
-    	self:CreateSplashFrame()
-    end
+	if not ConsolePortSettings then
+		ConsolePortSettings = self:GetDefaultAddonSettings()
+		self:CreateSplashFrame()
+	end
 
-    if not ConsolePortUIFrames then
-    	ConsolePortUIFrames = self:GetDefaultUIFrames()
-    end
+	-- Use these frames in the virtual cursor stack
+	if not ConsolePortUIFrames then
+		ConsolePortUIFrames = self:GetDefaultUIFrames()
+	end
 
-    if 	self:CheckUnassignedBindings() then
-    	self:CreateBindingWizard()
-    end
+	-- Load the binding wizard if a button does not have a registered mock binding
+	if 	self:CheckUnassignedBindings() then
+		self:CreateBindingWizard()
+	end
 
-    SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
-    local function SlashHandler(msg, editBox)
-    	if msg == "type" or msg == "controller" then
-    		ConsolePort:CreateSplashFrame()
-    	elseif msg == "resetAll" and not InCombatLockdown() then
-    		local bindings = ConsolePort:GetBindingNames()
-    		for i, binding in pairs(bindings) do
-    			local key1, key2 = GetBindingKey(binding)
-    			if key1 then SetBinding(key1) end
-    			if key2 then SetBinding(key2) end
-    		end
-    		SaveBindings(GetCurrentBindingSet())
-    		ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet()
-    		ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
-    		ConsolePortUIFrames = nil
-    		ConsolePortSettings = nil
-    		ConsolePortMouse = nil
-    		ReloadUI()
-    	elseif 	msg == "resetAll" then print(db.TUTORIAL.SLASH.COMBAT)
-    	elseif 	msg == "binds" or
-    			msg == "binding" or
-    			msg == "bindings" then
-    		InterfaceOptionsFrame_OpenToCategory(db.Binds)
-			InterfaceOptionsFrame_OpenToCategory(db.Binds)
-    	else
-    		local instruction = "|cff69ccf0%s|r: %s"
-    		print("|cffffe00aConsolePort|r:")
-    		print(format(instruction, "/cp type", db.TUTORIAL.SLASH.TYPE))
-    		print(format(instruction, "/cp resetAll", db.TUTORIAL.SLASH.RESET))
-    		print(format(instruction, "/cp binds", db.TUTORIAL.SLASH.BINDS))
-    	end
-    end
-    SlashCmdList["CONSOLEPORT"] = SlashHandler
-    self.LoadSettings = nil
+	-- Slash handler and stuff related to that
+	local SLASH = db.TUTORIAL.SLASH
+
+	local function ShowSplash() ConsolePort:CreateSplashFrame() end
+	local function ShowBinds() for i=1, 2 do InterfaceOptionsFrame_OpenToCategory(db.Binds) end end
+
+	local function ResetAll()
+		if not InCombatLockdown() then
+			local bindings = ConsolePort:GetBindingNames()
+			for i, binding in pairs(bindings) do
+				local key1, key2 = GetBindingKey(binding)
+				if key1 then SetBinding(key1) end
+				if key2 then SetBinding(key2) end
+			end
+			SaveBindings(GetCurrentBindingSet())
+			ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet()
+			ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
+			ConsolePortUIFrames = nil
+			ConsolePortSettings = nil
+			ConsolePortMouse = nil
+			ReloadUI()
+		else
+			print("|cffffe00aConsolePort|r:", SLASH.COMBAT)
+		end
+	end
+
+	local function CursorLock()
+		if ConsolePortMouseLook:GetPoint() then
+			ConsolePortMouseLook:SetPoint("LEFT", UIParent, "RIGHT")
+			ConsolePortMouseLook:ClearAllPoints()
+			print("|cffffe00aConsolePort|r:", SLASH.MOUSEOFF)
+		else
+			ConsolePortMouseLook:SetPoint("CENTER", 0, 0)
+			print("|cffffe00aConsolePort|r:", SLASH.MOUSEON)
+		end
+	end
+
+	local instructions = {
+		["type"] = {desc = SLASH.TYPE, func = ShowSplash},
+		["binds"] = {desc = SLASH.BINDS, func = ShowBinds},
+		["resetall"] = {desc = SLASH.RESET, func = ResetAll},
+		["lockcursor"] = {desc = SLASH.TOGGLEMOUSE, func = CursorLock},
+	}
+
+	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
+	local function SlashHandler(msg, editBox)
+		if instructions[msg] then
+			instructions[msg].func()
+		else
+			print("|cffffe00aConsolePort|r:")
+			for k, v in pairs(instructions) do
+				print(format("|cff69ccf0/cp %s|r: %s", k, v.desc))
+			end
+		end
+	end
+	SlashCmdList["CONSOLEPORT"] = SlashHandler
+	self.LoadSettings = nil
 end
 
 function ConsolePort:CheckLoadedSettings()
@@ -154,17 +180,6 @@ function ConsolePort:CheckLoadedSettings()
 		StaticPopup_Show("CONSOLEPORT_CRITICALUPDATE")
 	end
 	self.CheckLoadedSettings = nil
-end
-
-function ConsolePort:CreateMouseLooker()
-	local MouseLook = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)
---	MouseLook.hoverButton = MouseLook:CreateTexture(nil, "BACKGROUND")
-	MouseLook:SetPoint("CENTER", p, 0, -50)
-	MouseLook:SetWidth(70)
-	MouseLook:SetHeight(180)
-	MouseLook:SetAlpha(0)
-	MouseLook:Show()
-	return MouseLook
 end
 
 function ConsolePort:CreateActionButtons()

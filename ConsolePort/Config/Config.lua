@@ -1,7 +1,7 @@
 local addOn, db = ...
 local TUTORIAL = db.TUTORIAL.CONFIG
 ---------------------------------------------------------------
--- Config: Panel table
+-- Config: Panel table used for modular config creation
 ---------------------------------------------------------------
 db.Panels = {}
 
@@ -26,10 +26,12 @@ local function SaveGeneralConfig(self)
 	end
 end
 
+---------------------------------------------------------------
+-- Config: Reset buttons
+---------------------------------------------------------------
 local function ResetControllerOnClick(self)
 	InterfaceOptionsFrame:Hide()
 	ConsolePort:CreateSplashFrame()
-	ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
 end
 
 local function ResetBindingsOnClick(self)
@@ -44,6 +46,13 @@ local function ResetBindingsOnClick(self)
 		SaveBindings(GetCurrentBindingSet())
 		ConsolePort:CreateBindingWizard()
 	end
+end
+
+local function ResetAllOnClick(self)
+	self:SetText(TUTORIAL.CONFIRMRESET)
+	self:SetScript("OnClick", function(self)
+		SlashCmdList["CONSOLEPORT"]("resetAll")
+	end)
 end
 
 ---------------------------------------------------------------
@@ -67,34 +76,20 @@ db.CreatePanel = function(parent, name, title, header, okay, cancel, default)
 end
 
 tinsert(db.Panels, {"InterfaceOptionsFramePanelContainer", "Config", addOn, addOn, SaveGeneralConfig, false, false, function(self, Config)
-	Config.ResetController = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
-	Config.ResetController:SetWidth(160)
-	Config.ResetController:SetText(TUTORIAL.CONTROLLER)
-	Config.ResetController:SetPoint("TOPRIGHT", -16, -44)
-	Config.ResetController:SetScript("OnClick", ResetControllerOnClick)
 
-	Config.ResetBindings = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
-	Config.ResetBindings:SetWidth(160)
-	Config.ResetBindings:SetText(TUTORIAL.BINDRESET)
-	Config.ResetBindings:SetPoint("TOP", Config.ResetController, "BOTTOM", 0, -2)
-	Config.ResetBindings:SetScript("OnClick", ResetBindingsOnClick)
+	local function CreateButton(name, text, OnClick, point)
+		local button = CreateFrame("Button", "$parent"..name, Config, "UIPanelButtonTemplate")
+		button:SetPoint(unpack(point))
+		button:SetWidth(160)
+		button:SetText(text)
+		button:SetScript("OnClick", OnClick)
+		return button
+	end
 
-	Config.ResetAll = CreateFrame("BUTTON", addOn.."ResetController", Config, "UIPanelButtonTemplate")
-	Config.ResetAll:SetWidth(160)
-	Config.ResetAll:SetText(TUTORIAL.FULLRESET)
-	Config.ResetAll:SetPoint("TOP", Config.ResetBindings, "BOTTOM", 0, -2)
-	Config.ResetAll:SetScript("OnClick", function(self)
-		self:SetText(TUTORIAL.CONFIRMRESET)
-		self:SetScript("OnClick", function(self)
-			SlashCmdList["CONSOLEPORT"]("resetAll")
-		end)
-	end)
-
-	Config.ShowSlash = CreateFrame("BUTTON", "$parentShowSlashButton", Config, "UIPanelButtonTemplate")
-	Config.ShowSlash:SetWidth(160)
-	Config.ShowSlash:SetText(TUTORIAL.SHOWSLASH)
-	Config.ShowSlash:SetPoint("TOP", Config.ResetAll, "BOTTOM", 0, -2)
-	Config.ShowSlash:SetScript("OnClick", SlashCmdList["CONSOLEPORT"])
+	Config.ResetController = CreateButton("ResetController", TUTORIAL.CONTROLLER, ResetControllerOnClick, {"TOPRIGHT", -16, -44})
+	Config.ResetBindings = CreateButton("ResetBindings", TUTORIAL.BINDRESET, ResetBindingsOnClick, {"TOP", Config.ResetController, "BOTTOM", 0, -2})
+	Config.ResetAll = CreateButton("ResetAll", TUTORIAL.FULLRESET, ResetAllOnClick, {"TOP", Config.ResetBindings, "BOTTOM", 0, -2})
+	Config.ShowSlash = CreateButton("ShowSlash", TUTORIAL.SHOWSLASH, SlashCmdList["CONSOLEPORT"], {"TOP", Config.ResetAll, "BOTTOM", 0, -2})
 
 	Config.General = {}
 	for i, setting in pairs(GetAddonSettings()) do
@@ -118,10 +113,10 @@ tinsert(db.Panels, {"InterfaceOptionsFramePanelContainer", "Config", addOn, addO
 	Config.Triggers = {}
 
 	local triggerGraphics = {
-		["Shift"] 	= {X = 16, Y = -450, cvar = "shift"},
-		["Ctrl"] 	= {X = 16+140, Y = -450, cvar = "ctrl"},
-		["1st"] 	= {X = 16+280, Y = -450, cvar = "trigger1"},
-		["2nd"] 	= {X = 16+420, Y = -450, cvar = "trigger2"},
+		["Shift"] 	= {offset = 16, cvar = "shift"},
+		["Ctrl"] 	= {offset = 16+140, cvar = "ctrl"},
+		["1st"] 	= {offset = 16+280, cvar = "trigger1"},
+		["2nd"] 	= {offset = 16+420, cvar = "trigger2"},
 	}
 
 	for name, info in pairs(triggerGraphics) do
@@ -129,7 +124,7 @@ tinsert(db.Panels, {"InterfaceOptionsFramePanelContainer", "Config", addOn, addO
 		trigger:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
 		trigger:SetSize(76, 101)
 		trigger:SetTexCoord(0.154296875, 0.30078125, 0.80078125, 1)
-		trigger:SetPoint("TOPLEFT", Config, "TOPLEFT", info.X, info.Y)
+		trigger:SetPoint("TOPLEFT", Config, "TOPLEFT", info.offset, -450)
 		trigger.Value = ConsolePortSettings[info.cvar]
 		trigger.Cvar = info.cvar
 
