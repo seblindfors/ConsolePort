@@ -26,7 +26,8 @@ Core\Events.lua
 Core\UICore.lua
 Core\Core.lua
 
-Frames\UICtrl.lua
+Frames\CursorUI.lua
+Frames\CursorRaid.lua
 Frames\Popup.lua
 Frames\Map.lua
 Frames\GameMenu.lua

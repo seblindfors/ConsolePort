@@ -3,7 +3,8 @@ local init = true
 local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s"
 local TEXTURE_ESC = "|T%s:20:20:0:0|t"
 
-setglobal("BINDING_NAME_CLICK ConsolePortExtraButton:LeftButton", "ConsolePort Extra")
+setglobal("BINDING_NAME_CLICK ConsolePortExtraButton:LeftButton", db.CUSTOMBINDS.CP_EXTRABUTTON)
+setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorToggle:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR)
 
 local function LoadTooltipLines()
 	local Left = ConsolePortMouse and ConsolePortMouse.Cursor.Left or "CP_R_RIGHT"

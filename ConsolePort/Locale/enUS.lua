@@ -103,6 +103,7 @@ TOOLTIP = {
 },
 CUSTOMBINDS = {
 	CP_EXTRABUTTON			= 	"Custom extra button",
+	CP_RAIDCURSOR			= 	"Toggle raid cursor",
 	CP_TOGGLEMOUSE			= 	"Toggle mouse look",
 	CP_CAMZOOMIN			= 	"Zoom in (custom)",
 	CP_CAMZOOMOUT			= 	"Zoom out (custom)",

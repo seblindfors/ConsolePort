@@ -36,14 +36,12 @@ end
 function Keyboard:CreateConfig()
 	local Config = db.CreatePanel(ConsolePortConfigFrameConfig, "Keyboard", "Keyboard", "Keyboard settings", SaveKeyboardConfig, DiscardKeyboardConfig, LoadDefaultKeyboardConfig)
 
-	Config.Dispatcher = ConsolePortKeyboardDispatcher
-
 	Config:SetScript("OnShow", function(self)
-		self.Dispatcher:SetScript("OnUpdate", nil)
+		Keyboard:SetEnabled(false)
 	end)
 
 	Config:SetScript("OnHide", function(self)
-		self.Dispatcher:SetScript("OnUpdate", self.Dispatcher.OnUpdate)
+		Keyboard:SetEnabled(true)
 	end)
 
 	function Config:UpdateFields()

@@ -93,17 +93,6 @@ end
 ---------------------------------------------------------------
 -- Config: Hotkey textures for action buttons / UI
 ---------------------------------------------------------------
-local function GetTexture(button)
--- 	local triggers = {
--- 		CP_TR1 = db.TEXTURE.RONE,
--- 		CP_TR2 = db.TEXTURE.RTWO,
--- 		CP_TR3 = db.TEXTURE.LONE,
--- 		CP_TR4 = db.TEXTURE.LTWO,
--- 	}
--- 	return triggers[button] or db.TEXTURE[strupper(db.NAME[button])]
-	return db.TEXTURE[button]
-end
-
 local function GetActionButtons(buttons, this)
 	buttons = buttons or {}
 	this = this or UIParent
@@ -177,6 +166,7 @@ end
 local function ReloadBindings()
 	ConsolePort:LoadBindingActions()
 	ConsolePort:LoadBindingSet()
+	ConsolePort:LoadHotKeyTextures()
 end
 
 local function ExportCharacterSettings()
@@ -322,7 +312,6 @@ local function ChangeButtonBinding(actionButton)
 			end
 
 			AnimateBindingChange(focusFrame, confButton)
-			ConsolePort:LoadHotKeyTextures()
 			ReloadBindings()
 		end
 
@@ -336,6 +325,7 @@ end
 local function GetAddonBindings()
 	return {
 		{name = BINDING_NAME_CP_EXTRABUTTON, binding = "CLICK ConsolePortExtraButton:LeftButton"},
+		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
 		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
 		{name = BINDING_NAME_CP_CAMZOOMIN, binding = "CP_CAMZOOMIN"},
 		{name = BINDING_NAME_CP_CAMZOOMOUT, binding = "CP_CAMZOOMOUT"},
@@ -791,7 +781,7 @@ tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "Binds", TUTORIAL.SIDEBAR, T
 		local button = CreateFrame("Button", buttonName.."_BINDING", Binds)
 		button.name = buttonName
 		button.icon = "|T%s:24:24:0:0|t"
-		button.texture = format(button.icon, GetTexture(buttonName))
+		button.texture = format(button.icon, db.TEXTURE[buttonName])
 		button:SetPoint("TOPLEFT", Binds.Controller, "TOPLEFT", position.X, position.Y)
 		button:SetSize(30, 30)
 		button:SetScript("OnEnter", SetBindingTooltip)

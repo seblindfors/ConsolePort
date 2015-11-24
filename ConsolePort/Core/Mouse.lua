@@ -1,52 +1,51 @@
 local addOn, db = ...
 
 local ConsolePort = ConsolePort
-local mToggle = CreateFrame("Frame", addOn.."MouseLook", UIParent)
-mToggle:SetPoint("CENTER", 0, 0)
-mToggle:SetSize(70, 180)
-mToggle:Hide()
+local IsCentered, IsVisible
+local Locker = CreateFrame("Frame", addOn.."MouseLook", UIParent)
+Locker:SetPoint("CENTER", 0, 0)
+Locker:SetSize(70, 180)
+Locker:Hide()
 
 local function MouseLookShouldStart()
 	if 	not SpellIsTargeting() 			and
 		not IsMouseButtonDown(1) 		and
 		not GetCursorInfo() 			and
-		MouseIsOver(mToggle) 			and
+		MouseIsOver(Locker) 			and
 		(GetMouseFocus() == WorldFrame) then
 		return true
 	end
 end
 
-local MouseIsCentered = false
-local CursorInfo = false
 local function MouseUpdate(self)
-	if 	not CursorInfo and GetCursorInfo() then
+	if 	not IsVisible and GetCursorInfo() then
 		self:StopMouse()
-	elseif not MouseIsCentered and
+	elseif not IsCentered and
 		MouseLookShouldStart() then
 		self:StartMouse()
-		MouseIsCentered = true;
-	elseif not MouseIsOver(mToggle) and MouseIsCentered then
-		MouseIsCentered = false
+		IsCentered = true
+	elseif not MouseIsOver(Locker) and IsCentered then
+		IsCentered = false
 	end
 end
 
 function ConsolePort:StopMouse()
-	CursorInfo = true
+	IsVisible = true
 	MouselookStop()
 end
 
 function ConsolePort:StartMouse()
-	CursorInfo = nil
+	IsVisible = nil
 	MouselookStart()
 end
 
 function ConsolePort:ToggleMouse()
-	if CursorInfo then
+	if IsVisible then
 		MouselookStart()
-		CursorInfo = nil
+		IsVisible = nil
 	else
 		MouselookStop()
-		CursorInfo = true
+		IsVisible = true
 	end
 end
 

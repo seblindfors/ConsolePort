@@ -128,6 +128,7 @@ function ConsolePort:ADDON_LOADED(...)
 		self:SetupCursor()
 		self:CheckLoadedAddons()
 		self:CheckLoadedSettings()
+		self:CreateRaidCursor()
 	end
 	if ConsolePortUIFrames and ConsolePortUIFrames[name] then
 		for i, frame in pairs(ConsolePortUIFrames[name]) do

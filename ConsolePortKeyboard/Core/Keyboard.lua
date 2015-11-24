@@ -246,7 +246,7 @@ function Keyboard:LoadFrame()
 	for index, Button in pairs(CenterSet.Buttons) do
 		Button.Flash = functions[5]
 		Button.Click = functions[index]
-		Button:SetScript("OnClick", functions[index])
+		Button:SetScript("OnClick", Button.Click)
 	end
 
 	Keyboard.CenterSet = CenterSet

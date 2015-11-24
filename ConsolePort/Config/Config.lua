@@ -18,11 +18,18 @@ end
 -- Config: Save general addon cvars
 ---------------------------------------------------------------
 local function SaveGeneralConfig(self)
+	local needReload = false
 	for i, Check in pairs(self.General) do
 		ConsolePortSettings[Check.Cvar] = Check:GetChecked()
 	end
 	for i, Check in pairs(self.Triggers) do
-		ConsolePortSettings[Check.Cvar] = Check.Value or ConsolePortSettings[Check.Cvar]
+		if Check.Value and Check.Value ~= ConsolePortSettings[Check.Cvar] then
+			ConsolePortSettings[Check.Cvar] = Check.Value
+			needReload = true
+		end
+	end
+	if needReload and not InCombatLockdown() then
+		ReloadUI()
 	end
 end
 
