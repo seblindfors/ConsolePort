@@ -46,7 +46,12 @@ function ConsolePort:CreateRaidCursor()
 			if old and old:IsVisible() then
 				current = old
 			elseif (not current and Nodes[1]) or (current and Nodes[1] and not current:IsVisible()) then
-				current = Nodes[1]
+				for i, Node in pairs(Nodes) do
+					if Node:IsVisible() then
+						current = Node
+						break
+					end
+				end
 			end
 		]=]
 	]])
