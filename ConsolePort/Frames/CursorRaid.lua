@@ -1,10 +1,10 @@
 local addOn, db = ...
 local FadeIn = db.UIFrameFadeIn
 local FadeOut = db.UIFrameFadeOut
-local UIHandle
+local UIHandle, Indicator
 
 function ConsolePort:CreateRaidCursor()
-	UIHandle = CreateFrame("Frame", addOn.."UIHandle", ConsolePort, "SecureHandlerBaseTemplate")
+	UIHandle = CreateFrame("Frame", "$parentUIHandle", self, "SecureHandlerBaseTemplate")
 	local Key = {
 		Up 		= self:GetUIControlKey("CP_L_UP"),
 		Down 	= self:GetUIControlKey("CP_L_DOWN"),
@@ -118,7 +118,10 @@ function ConsolePort:CreateRaidCursor()
 			self:Run(FindClosestNode)
 
 			if current then
+				self:SetAttribute("unit", current:GetAttribute("unit"))
 				self:SetAttribute("node", current)
+			else
+				self:SetAttribute("unit", nil)
 			end
 		]=]
 	]])		
@@ -168,7 +171,7 @@ function ConsolePort:CreateRaidCursor()
 		local UIHandle = self:GetFrameRef("UIHandle")
 		UIHandle:Run(ToggleCursor, IsEnabled)
 		if IsEnabled then
-			self:SetAttribute("unit", UIHandle:GetAttribute("node") and UIHandle:GetAttribute("node"):GetAttribute("unit"))
+			self:SetAttribute("unit", UIHandle:GetAttribute("unit"))
 		else
 			self:SetAttribute("unit", nil)
 		end
@@ -190,7 +193,7 @@ function ConsolePort:CreateRaidCursor()
 			local UIHandle = self:GetFrameRef("UIHandle")
 			if down then
 				UIHandle:Run(SelectNode, %s)
-				self:SetAttribute("unit", UIHandle:GetAttribute("node") and UIHandle:GetAttribute("node"):GetAttribute("unit"))
+				self:SetAttribute("unit", UIHandle:GetAttribute("unit"))
 			else
 				self:SetAttribute("unit", nil)
 			end
@@ -199,10 +202,14 @@ function ConsolePort:CreateRaidCursor()
 			Bindings.%s = "%s"
 		]], button.binding, name))
 	end
+
+	Indicator.Timer = 0
+	Indicator:SetScript("OnUpdate", Indicator.Update)
+
 	self.CreateRaidCursor = nil
 end
 
-local Indicator = CreateFrame("Frame", addOn.."RaidCursorIndicator", UIParent)
+Indicator = CreateFrame("Frame", addOn.."RaidCursorIndicator", UIParent)
 Indicator:SetSize(32,32)
 Indicator:SetFrameStrata("TOOLTIP")
 Indicator:SetPoint("CENTER", 0, 0)
@@ -249,42 +256,38 @@ end
 function Indicator:Update(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
-		if UIHandle then
-			local node = UIHandle:GetAttribute("node")
-			if node then
-				if ConsolePortCursor:IsVisible() then
-					self.node = nil
-					self:SetAlpha(0)
-				elseif node:GetName() ~= self.node then
-					self.node = node:GetName()
-					local object = _G[self.node]
-					if object then 
-						self.object = object
-						if self:GetAlpha() == 0 then
-							self.Scale1:SetScale(3, 3)
-							self.Scale2:SetScale(1/3, 1/3)
-							self.Scale2:SetDuration(0.5)
-							FadeOut(self.Glow, 0.5, 1, 0.5)
-						else
-							self.Scale1:SetScale(1.5, 1.5)
-							self.Scale2:SetScale(1/1.5, 1/1.5)
-							self.Scale2:SetDuration(0.2)
-						end
-						self:Animate()
-						self:SetAlpha(1)
-					end
-				end
-			else
+		local node = UIHandle:GetAttribute("node")
+		if node then
+			local name = node:GetName()
+			if ConsolePortCursor:IsVisible() then
 				self.node = nil
 				self:SetAlpha(0)
+			elseif name ~= self.node then
+				self.node = name
+				local object = _G[name]
+				if object then 
+					self.object = object
+					if self:GetAlpha() == 0 then
+						self.Scale1:SetScale(3, 3)
+						self.Scale2:SetScale(1/3, 1/3)
+						self.Scale2:SetDuration(0.5)
+						FadeOut(self.Glow, 0.5, 1, 0.5)
+					else
+						self.Scale1:SetScale(1.5, 1.5)
+						self.Scale2:SetScale(1/1.5, 1/1.5)
+						self.Scale2:SetDuration(0.2)
+					end
+					self:Animate()
+					self:SetAlpha(1)
+				end
 			end
+		else
+			self.node = nil
+			self:SetAlpha(0)
 		end
 		self.Timer = self.Timer - elapsed
 	end
 end
-
-Indicator.Timer = 0
-Indicator:SetScript("OnUpdate", Indicator.Update)
 
 -- 38262
 -- 38327
