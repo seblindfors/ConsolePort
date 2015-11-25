@@ -18,9 +18,9 @@ function ConsolePort:CreateRaidCursor()
 		Key.Down = %s
 		Key.Left = %s
 		Key.Right = %s
-			FrameStack = newtable()
-			Bindings = newtable()
-			Nodes = newtable()
+		Bindings = newtable()
+		FrameStack = newtable()
+		Nodes = newtable()
 	]], Key.Up, Key.Down, Key.Left, Key.Right))
 
 	UIHandle:Execute([[
@@ -61,13 +61,11 @@ function ConsolePort:CreateRaidCursor()
 				local left, bottom, width, height = current:GetRect()
 				local thisY = bottom+height/2
 				local thisX = left+width/2
-				local nodeY = 10000
-				local nodeX = 10000
-				local swap 	= false
-				local destY, destX, diffY, diffX, total
-				for i, destination in ipairs(Nodes) do
+				local nodeY, nodeX = 10000, 10000
+				local destY, destX, diffY, diffX, total, swap
+				for i, destination in pairs(Nodes) do
 					if destination:IsVisible() then
-						local left, bottom, width, height = destination:GetRect()
+						left, bottom, width, height = destination:GetRect()
 						destY = bottom+height/2
 						destX = left+width/2
 						diffY = abs(thisY-destY)
@@ -128,12 +126,9 @@ function ConsolePort:CreateRaidCursor()
 	UIHandle:Execute([[
 		UpdateFrameStack = [=[
 			Nodes = newtable()
-			local children = newtable(self:GetFrameRef("UIParent"):GetChildren())
-			for i, Frame in pairs(children) do
-				if Frame:IsVisible() or Frame:IsProtected() then
-					CurrentNode = Frame
-					self:Run(GetNodes)
-				end
+			for Frame in pairs(FrameStack) do
+				CurrentNode = Frame
+				self:Run(GetNodes)
 			end
 		]=]
 	]])
@@ -209,6 +204,19 @@ function ConsolePort:CreateRaidCursor()
 	self.CreateRaidCursor = nil
 end
 
+function ConsolePort:UpdateSecureFrameStack()
+	if not InCombatLockdown() then
+		for i, child in pairs({UIParent:GetChildren()}) do
+			if not child:IsForbidden() and child:IsProtected() then
+				UIHandle:SetFrameRef("NewChild", child)
+				UIHandle:Execute([[
+					FrameStack[self:GetFrameRef("NewChild")] = true
+				]])
+			end
+		end
+	end
+end
+
 Indicator = CreateFrame("Frame", addOn.."RaidCursorIndicator", UIParent)
 Indicator:SetSize(32,32)
 Indicator:SetFrameStrata("TOOLTIP")
@@ -228,10 +236,6 @@ Indicator.Glow:SetDisplayInfo(41039)
 Indicator.Glow:SetRotation(1)
 
 Indicator.Group = Indicator:CreateAnimationGroup()
-Indicator.Translation = Indicator.Group:CreateAnimation("Translation")
-Indicator.Translation:SetDuration(0.05)
-Indicator.Translation:SetSmoothing("NONE")
-Indicator.Translation:SetOrder(2)
 
 Indicator.Scale1 = Indicator.Group:CreateAnimation("Scale")
 Indicator.Scale1:SetDuration(0.1)
@@ -246,8 +250,6 @@ Indicator.Scale2:SetOrigin("TOPLEFT", 0, 0)
 
 
 function Indicator:Animate()
-	local tX, tY = self:GetLeft(), self:GetTop()
-	local dX, dY = self.object:GetCenter()
 	self:ClearAllPoints()
 	self:SetPoint("TOPLEFT", self.object, "CENTER", 0, 0)
 	self.Group:Play()

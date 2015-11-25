@@ -4,12 +4,12 @@ local UIControls = db.UIControls
 function ConsolePort:LoadEvents()
 	-- Default events
 	local Events = {
+		["ADDON_LOADED"] 			= false,
+		["GROUP_JOINED"] 			= false,
 		["PLAYER_STARTED_MOVING"] 	= false,
 		["PLAYER_REGEN_DISABLED"] 	= false,
 		["PLAYER_REGEN_ENABLED"] 	= false,
-		["ADDON_LOADED"] 			= false,
 		["UPDATE_BINDINGS"] 		= false,
-		["CURSOR_UPDATE"] 			= false,
 		["QUEST_AUTOCOMPLETE"] 		= false,
 		["QUEST_LOG_UPDATE"] 		= false,
 		["WORLD_MAP_UPDATE"] 		= false,
@@ -89,6 +89,7 @@ end
 
 function ConsolePort:PLAYER_REGEN_ENABLED(...)
 	self:SetButtonActionsDefault()
+	self:UpdateSecureFrameStack()
 	self:UpdateFrames()
 	if self.Cursor:IsVisible() then
 		db.UIFrameFadeIn(self.Cursor, 0.2, self.Cursor:GetAlpha(), 1)
@@ -112,6 +113,10 @@ function ConsolePort:UPDATE_BINDINGS(...)
 	end
 end
 
+function ConsolePort:GROUP_JOINED(...)
+	self:UpdateSecureFrameStack()
+end
+
 function ConsolePort:ADDON_LOADED(...)
 	local name = ...
 	if name == addOn then
@@ -129,6 +134,7 @@ function ConsolePort:ADDON_LOADED(...)
 		self:CheckLoadedAddons()
 		self:CheckLoadedSettings()
 		self:CreateRaidCursor()
+		self:UpdateSecureFrameStack()
 	end
 	if ConsolePortUIFrames and ConsolePortUIFrames[name] then
 		for i, frame in pairs(ConsolePortUIFrames[name]) do
