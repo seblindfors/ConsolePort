@@ -11,6 +11,7 @@ local nodes, current, old, rebindNode = {}, nil, nil, nil
 local SetOverrideBindingClick = SetOverrideBindingClick
 local ClearOverrideBindings = ClearOverrideBindings
 local InCombatLockdown = InCombatLockdown
+local FadeOut = db.UIFrameFadeOut
 local tinsert = tinsert
 local ipairs = ipairs
 local pairs = pairs
@@ -46,58 +47,59 @@ end
 ---------------------------------------------------------------
 -- UIControl: Cursor texture functions
 ---------------------------------------------------------------
-local function SetCursorTexture(self, texture)
+function Cursor:SetTexture(texture)
 	local object = current and current.object 
 	self.Button:SetTexture(texture or object == "Slider" and self.ScrollGuide or self.Indicator)
 end
 
-local function SetCursorPosition(self, anchor, object)
+function Cursor:SetPosition(anchor, object)
 	self:SetTexture()
 	self:ClearAllPoints()
 	self:SetPoint("TOPLEFT", anchor, "CENTER", -4, 4)
-	self:Show()
+	self:Animate()
+	if not self:IsVisible() then
+		self:Show()
+	end
 end
 
-local function AnimateCursor(self)
-	if not self.Animation then
-		self.Animation = CreateFrame("FRAME", nil, UIParent)
-		self.Animation.Texture = self.Animation:CreateTexture()
-		self.Animation.Button = self.Animation:CreateTexture()
-		self.Animation.Group = self.Animation:CreateAnimationGroup()
-		self.Animation.Type = self.Animation.Group:CreateAnimation("Translation")
-		local Animation = self.Animation
-		local Texture = Animation.Texture
-		local Button = Animation.Button
-		local Group = Animation.Group
-		local Type = Animation.Type
-		Animation:SetFrameStrata("TOOLTIP")
-		Animation:SetSize(46,46);
-		Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")
-		Texture:SetAllPoints(Animation)
-		Button:SetPoint("TOPLEFT", Animation, "TOPLEFT", 15, -18)
-		Button:SetPoint("BOTTOMRIGHT", Animation, "BOTTOMRIGHT", -9, 6)
-		Type:SetDuration(0.1)
-		Type:SetSmoothing("NONE")
-		Group:SetScript("OnPlay", function()
-			self:SetAlpha(0)
-			Animation:Show()
-		end)
-		Group:SetScript("OnFinished", function()
-			self:SetAlpha(1)
-			Animation:Hide()
-		end)
-	elseif old == current then
+function Cursor:Animate()
+	if old == current and not self.Flash then
 		return
-	elseif old and current then
-		local Animation = self.Animation;
-		local dX, dY = current.node:GetCenter()
-		local tX, tY = old.node:GetCenter()
-		if dX and dY and tX and tY then
-			Animation:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", tX-4, tY+4)
-			Animation.Type:SetOffset((dX-tX), (dY-tY))
-			Animation.Button:SetTexture(self.Button:GetTexture())
-			Animation.Group:Play()
+	end
+	if current then
+		if old and not old.node:IsVisible() or self.Flash then
+			self.Flash = nil
+			self.Scale1:SetScale(2, 2)
+			self.Scale2:SetScale(1/2, 1/2)
+			self.Scale2:SetDuration(0.5)
+			FadeOut(self.Glow, 0.5, 1, 0.25)
+		else
+			self.Scale1:SetScale(1.25, 1.25)
+			self.Scale2:SetScale(1/1.25, 1/1.25)
+			self.Scale2:SetDuration(0.2)
 		end
+		self.Group:Play()
+	end
+end
+
+function Cursor:SetHighlight()
+	local highlight = current and current.node.GetHighlightTexture and current.node:GetHighlightTexture()
+	if highlight and current.node:IsEnabled() then
+		if highlight:GetAtlas() then
+			self.Highlight:SetAtlas(highlight:GetAtlas())
+		else
+			self.Highlight:SetTexture(highlight:GetTexture())
+			self.Highlight:SetBlendMode(highlight:GetBlendMode())
+			self.Highlight:SetVertexColor(highlight:GetVertexColor())
+		end
+		self.Highlight:SetSize(highlight:GetSize())
+		self.Highlight:SetTexCoord(highlight:GetTexCoord())
+		self.Highlight:ClearAllPoints()
+		self.Highlight:SetPoint(highlight:GetPoint())
+		self.Highlight:Show()
+	else
+		self.Highlight:ClearAllPoints()
+		self.Highlight:Hide()
 	end
 end
 
@@ -166,9 +168,7 @@ local function ClearNodes()
 	if current then
 		local node = current.node
 		local leave = node:GetScript("OnLeave")
-		if node:IsObjectType("Button") then
-			node:UnlockHighlight()
-		end
+		Cursor:SetHighlight()
 		if leave then
 			leave(node)
 		end
@@ -251,7 +251,7 @@ local function EnterNode(self, node, object, state)
 		OverrideBindingClick(Cursor, Cursor.Right, 	name or Cursor.Right..NOMOD, 	"RightButton")
 		-- Check for HotKey to avoid taint on action buttons in rebind mode
 		local enter = not node.HotKey and node:GetScript("OnEnter")
-		node:LockHighlight()
+		Cursor:SetHighlight()
 		if enter and state == KEY.STATE_UP then
 			enter(node)
 		end
@@ -300,7 +300,7 @@ end
 ---------------------------------------------------------------
 -- UIControl: Cursor scripts and events
 ---------------------------------------------------------------
-local function UpdateCursor(self, elapsed)
+function Cursor:OnUpdate(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
 		if not current or (current and not current.node:IsVisible()) or (current and not IsNodeDrawn(current.node)) then
@@ -315,15 +315,17 @@ local function UpdateCursor(self, elapsed)
 	end
 end
 
-local function OnHide(self)
+function Cursor:OnHide()
+	self.Flash = true
 	ClearNodes()
 	if not InCombatLockdown() then
 		ClearOverrideBindings(self)
 	end
 end
 
-local function OnEvent(self, event)
+function Cursor:OnEvent(event)
 	if 		event == "PLAYER_REGEN_DISABLED" then
+		self.Flash = true
 		ClearOverrideBindings(self)
 	elseif 	event == "MODIFIER_STATE_CHANGED" and not InCombatLockdown()  then
 		if 	current and
@@ -365,7 +367,6 @@ function ConsolePort:SetCurrentNode(UIobject)
 			old = current
 			current = node
 			Cursor:SetPosition(node.node, node.object)
-			Cursor:Animate()
 			break
 		end
 	end
@@ -394,7 +395,6 @@ function ConsolePort:UIControl(key, state)
 	if node then
 		EnterNode(self, node, current.object, state)
 		Cursor:SetPosition(node, current.object)
-		Cursor:Animate()
 	end
 end
 
@@ -443,21 +443,6 @@ end
 -- UIControl: Initialize Cursor
 ---------------------------------------------------------------
 function ConsolePort:SetupCursor()
-	Cursor.Icon = Cursor.Icon or Cursor:CreateTexture(nil, "OVERLAY")
-	Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")
-	Cursor.Icon:SetAllPoints(Cursor)
-	Cursor.Button = Cursor.Button or Cursor:CreateTexture(nil, "ARTWORK")
-	Cursor.Button:SetPoint("TOPLEFT", Cursor, "TOPLEFT", 15, -18)
-	Cursor.Button:SetPoint("BOTTOMRIGHT", Cursor, "BOTTOMRIGHT", -9, 6)
-
-	Cursor:SetFrameStrata("TOOLTIP")
-	Cursor:SetSize(46,46)
-	Cursor.Timer = 0
-
-	Cursor.Animate 		= AnimateCursor
-	Cursor.SetTexture 	= SetCursorTexture
-	Cursor.SetPosition 	= SetCursorPosition
-
 	Cursor.Left 		= ConsolePortMouse.Cursor.Left
 	Cursor.Right 		= ConsolePortMouse.Cursor.Right
 	Cursor.Scroll 		= ConsolePortMouse.Cursor.Scroll
@@ -472,9 +457,47 @@ function ConsolePort:SetupCursor()
 
 	Cursor.SpecialAction = Cursor.SpecialClick.command
 
-	Cursor:SetScript("OnEvent", OnEvent)
-	Cursor:SetScript("OnHide", OnHide)
-	Cursor:SetScript("OnUpdate", UpdateCursor)
+	Cursor:SetScript("OnShow", Cursor.Animate)
+	Cursor:SetScript("OnEvent", Cursor.OnEvent)
+	Cursor:SetScript("OnHide", Cursor.OnHide)
+	Cursor:SetScript("OnUpdate", Cursor.OnUpdate)
 	Cursor:RegisterEvent("MODIFIER_STATE_CHANGED")
 	Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
 end
+
+
+Cursor.Icon = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
+Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")
+Cursor.Icon:SetAllPoints(Cursor)
+
+Cursor.Button = Cursor:CreateTexture(nil, "OVERLAY", nil, 6)
+Cursor.Button:SetPoint("TOPLEFT", Cursor, "CENTER", -9, 6)
+Cursor.Button:SetPoint("BOTTOMRIGHT", Cursor, "BOTTOMRIGHT", -9, 6)
+
+Cursor.Highlight = Cursor:CreateTexture(nil, "OVERLAY")
+
+Cursor:SetFrameStrata("TOOLTIP")
+Cursor:SetSize(46,46)
+Cursor.Timer = 0
+
+Cursor.Glow = Cursor.Glow or CreateFrame("PlayerModel", nil, Cursor)
+Cursor.Glow:SetFrameStrata("DIALOG")
+Cursor.Glow:SetSize(300, 300)
+Cursor.Glow:SetPoint("CENTER", 0, 0)
+Cursor.Glow:SetAlpha(0.25)
+Cursor.Glow:SetCamDistanceScale(5)
+Cursor.Glow:SetDisplayInfo(41039)
+Cursor.Glow:SetRotation(1)
+
+Cursor.Group = Cursor:CreateAnimationGroup()
+
+Cursor.Scale1 = Cursor.Group:CreateAnimation("Scale")
+Cursor.Scale1:SetDuration(0.1)
+Cursor.Scale1:SetSmoothing("IN")
+Cursor.Scale1:SetOrder(1)
+Cursor.Scale1:SetOrigin("CENTER", 0, 0)
+
+Cursor.Scale2 = Cursor.Group:CreateAnimation("Scale")
+Cursor.Scale2:SetSmoothing("OUT")
+Cursor.Scale2:SetOrder(2)
+Cursor.Scale2:SetOrigin("CENTER", 0, 0)

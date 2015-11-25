@@ -40,8 +40,6 @@ function ConsolePort:CreateRaidCursor()
 				end
 			end
 		]=]
-	]])
-	UIHandle:Execute([[
 		SetCurrent = [=[
 			if old and old:IsVisible() then
 				current = old
@@ -54,8 +52,6 @@ function ConsolePort:CreateRaidCursor()
 				end
 			end
 		]=]
-	]])
-	UIHandle:Execute([[
 		FindClosestNode = [=[
 			if current then
 				local left, bottom, width, height = current:GetRect()
@@ -104,8 +100,6 @@ function ConsolePort:CreateRaidCursor()
 				end
 			end
 		]=]
-	]])
-	UIHandle:Execute([[
 		SelectNode = [=[
 			key = ...
 			if current then
@@ -122,20 +116,15 @@ function ConsolePort:CreateRaidCursor()
 				self:SetAttribute("unit", nil)
 			end
 		]=]
-	]])		
-	UIHandle:Execute([[
 		UpdateFrameStack = [=[
-			Nodes = newtable()
+			Nodes = wipe(Nodes)
 			for Frame in pairs(FrameStack) do
 				CurrentNode = Frame
 				self:Run(GetNodes)
 			end
 		]=]
-	]])
-	UIHandle:Execute([[
 		ToggleCursor = [=[
-			local state = ...
-			if state then
+			if IsEnabled then
 				for binding, name in pairs(Bindings) do
 					local key = GetBindingKey(binding)
 					self:SetBindingClick(true, key, "ConsolePortRaidCursorButton"..name)
@@ -149,22 +138,14 @@ function ConsolePort:CreateRaidCursor()
 		]=]
 	]])
 
-	UIHandle:SetFrameRef("UIParent", UIParent)
-	UIHandle:Execute([[
-		CurrentNode = self:GetFrameRef("UIParent")
-	]])
-
 	local ToggleCursor = CreateFrame("Button", addOn.."RaidCursorToggle", nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 	ToggleCursor:RegisterForClicks("LeftButtonDown")
 	ToggleCursor:SetFrameRef("UIHandle", UIHandle)
 	ToggleCursor:SetAttribute("type", "target")
-	ToggleCursor:Execute([[
-		IsEnabled = false
-	]])
 	UIHandle:WrapScript(ToggleCursor, "OnClick", [[
-		IsEnabled = not IsEnabled
 		local UIHandle = self:GetFrameRef("UIHandle")
-		UIHandle:Run(ToggleCursor, IsEnabled)
+		IsEnabled = not IsEnabled
+		UIHandle:Run(ToggleCursor)
 		if IsEnabled then
 			self:SetAttribute("unit", UIHandle:GetAttribute("unit"))
 		else
@@ -228,6 +209,7 @@ Indicator.BG:SetTexture("Interface\\Cursor\\Attack")
 Indicator.BG:SetAllPoints(Indicator)
 
 Indicator.Glow = CreateFrame("PlayerModel", nil, Indicator)
+Indicator.Glow:SetFrameStrata("FULLSCREEN_DIALOG")
 Indicator.Glow:SetSize(300, 300)
 Indicator.Glow:SetPoint("CENTER", 0, 0)
 Indicator.Glow:SetAlpha(0.5)
@@ -248,13 +230,6 @@ Indicator.Scale2:SetSmoothing("OUT")
 Indicator.Scale2:SetOrder(2)
 Indicator.Scale2:SetOrigin("TOPLEFT", 0, 0)
 
-
-function Indicator:Animate()
-	self:ClearAllPoints()
-	self:SetPoint("TOPLEFT", self.object, "CENTER", 0, 0)
-	self.Group:Play()
-end
-
 function Indicator:Update(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
@@ -266,9 +241,8 @@ function Indicator:Update(elapsed)
 				self:SetAlpha(0)
 			elseif name ~= self.node then
 				self.node = name
-				local object = _G[name]
-				if object then 
-					self.object = object
+				local frame = _G[name]
+				if frame then
 					if self:GetAlpha() == 0 then
 						self.Scale1:SetScale(3, 3)
 						self.Scale2:SetScale(1/3, 1/3)
@@ -279,7 +253,9 @@ function Indicator:Update(elapsed)
 						self.Scale2:SetScale(1/1.5, 1/1.5)
 						self.Scale2:SetDuration(0.2)
 					end
-					self:Animate()
+					self:ClearAllPoints()
+					self:SetPoint("TOPLEFT", frame, "CENTER", 0, 0)
+					self.Group:Play()
 					self:SetAlpha(1)
 				end
 			end

@@ -99,6 +99,7 @@ function ConsolePort:PLAYER_REGEN_ENABLED(...)
 end
 
 function ConsolePort:PLAYER_REGEN_DISABLED(...)
+	self:SetUIFocus(false)
 	self:SetButtonActionsDefault()
 	if self.Cursor:IsVisible() then
 		db.UIFrameFadeOut(self.Cursor, 0.2, self.Cursor:GetAlpha(), 0)

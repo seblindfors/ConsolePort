@@ -184,6 +184,10 @@ function ConsolePort:HasUIFocus()
 	return hasUIFocus
 end
 
+function ConsolePort:SetUIFocus(focus)
+	hasUIFocus = focus
+end
+
 function ConsolePort:AddFrameWatch(frame)
 	frameWatch[frame] = true
 	hasFrameWatch = true
