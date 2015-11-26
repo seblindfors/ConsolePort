@@ -1,8 +1,8 @@
 local addOn, db = ...
 local UI 		= db.UI
 local KEY 		= db.KEY
+local SECURE 	= db.SECURE
 local TEXTURE 	= db.TEXTURE
-local NOMOD 	= "_NOMOD"
 local L1, L2 	= "CP_TL1", "CP_TL2"
 local nodes, current, old, rebindNode = {}, nil, nil, nil
 
@@ -11,6 +11,7 @@ local nodes, current, old, rebindNode = {}, nil, nil, nil
 local SetOverrideBindingClick = SetOverrideBindingClick
 local ClearOverrideBindings = ClearOverrideBindings
 local InCombatLockdown = InCombatLockdown
+local PlaySound = PlaySound
 local FadeOut = db.UIFrameFadeOut
 local tinsert = tinsert
 local ipairs = ipairs
@@ -56,7 +57,9 @@ function Cursor:SetPosition(anchor, object)
 	self:SetTexture()
 	self:ClearAllPoints()
 	self:SetPoint("TOPLEFT", anchor, "CENTER", -4, 4)
+	self:SetHighlight()
 	self:Animate()
+	PlaySound("igMainMenuOptionCheckBoxOn")
 	if not self:IsVisible() then
 		self:Show()
 	end
@@ -69,15 +72,16 @@ function Cursor:Animate()
 	if current then
 		if old and not old.node:IsVisible() or self.Flash then
 			self.Flash = nil
-			self.Scale1:SetScale(2, 2)
-			self.Scale2:SetScale(1/2, 1/2)
+			self.Scale1:SetScale(1.75, 1.75)
+			self.Scale2:SetScale(1/1.75, 1/1.75)
 			self.Scale2:SetDuration(0.5)
-			FadeOut(self.Glow, 0.5, 1, 0.25)
+			FadeOut(self.Glow, 1.5, 1, 0.25)
 		else
 			self.Scale1:SetScale(1.25, 1.25)
 			self.Scale2:SetScale(1/1.25, 1/1.25)
 			self.Scale2:SetDuration(0.2)
 		end
+		self.Group:Stop()
 		self.Group:Play()
 	end
 end
@@ -196,72 +200,59 @@ local function RefreshNodes(self)
 	end
 end
 
+local SwapFunc = {
+	[KEY.UP] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY > thisY) end,
+	[KEY.DOWN] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY < thisY) end,
+	[KEY.LEFT] 	= function(_, destX, vert, horz, thisX, _) return (vert < horz and destX < thisX) end,
+	[KEY.RIGHT] = function(_, destX, vert, horz, thisX, _) return (vert < horz and destX > thisX) end,
+}
+
 local function FindClosestNode(key)
 	if current then
-		local destY, destX, diffY, diffX
-		local thisY = current.Y
-		local thisX = current.X
-		local nodeY = 10000 -- default values have to 
-		local nodeX = 10000 -- exceed screen resolution
-		local swap 	= false
-		for i, destination in ipairs(nodes) do
-			destY = destination.Y
-			destX = destination.X
-			diffY = abs(thisY-destY)
-			diffX = abs(thisX-destX)
-			if diffX + diffY < nodeX + nodeY then
-				if 	key == KEY.UP then
-					if 	diffY > diffX and 	-- up/down
-						destY > thisY then 	-- up
-						swap = true
-					end
-				elseif key == KEY.DOWN then
-					if 	diffY > diffX and 	-- up/down
-						destY < thisY then 	-- down
-						swap = true
-					end
-				elseif key == KEY.LEFT then
-					if 	diffY < diffX and 	-- left/right
-						destX < thisX then 	-- left
-						swap = true
-					end
-				elseif key == KEY.RIGHT then
-					if 	diffY < diffX and 	-- left/right
-						destX > thisX then 	-- right
-						swap = true
-					end
+		local SwapFunc = SwapFunc[key]
+		if SwapFunc then
+			local destY, destX, vert, horz
+			local thisY, thisX = current.Y, current.X
+			local nodeY, nodeX = 10000, 10000
+			for i, destination in ipairs(nodes) do
+				destY = destination.Y
+				destX = destination.X
+				vert = abs(thisY-destY)
+				horz = abs(thisX-destX)
+				if 	horz + vert < nodeX + nodeY and
+					SwapFunc(destY, destX, vert, horz, thisX, thisY) then
+					nodeX = horz
+					nodeY = vert
+					current = destination
 				end
-			end
-			if swap then
-				nodeX = diffX
-				nodeY = diffY
-				current = destination
-				swap = false
 			end
 		end
 	end
 end
 
 local function EnterNode(self, node, object, state)
+	local name = rebindNode and nil or node.direction and node:GetName()
+	local override
 	if IsClickable[object] and node:IsEnabled() then
-		local name = rebindNode and nil or node.direction and node:GetName()
-		self:SetClickButton(Cursor.LeftClick, rebindNode or node)
-		self:SetClickButton(Cursor.RightClick, rebindNode or node)
-		OverrideBindingClick(Cursor, Cursor.Left, 	name or Cursor.Left..NOMOD, 	"LeftButton")
-		OverrideBindingClick(Cursor, Cursor.Right, 	name or Cursor.Right..NOMOD, 	"RightButton")
-		-- Check for HotKey to avoid taint on action buttons in rebind mode
+		override = true
 		local enter = not node.HotKey and node:GetScript("OnEnter")
-		Cursor:SetHighlight()
 		if enter and state == KEY.STATE_UP then
 			enter(node)
 		end
-	else
-		self:SetClickButton(Cursor.LeftClick, nil)
-		self:SetClickButton(Cursor.RightClick, nil)
+	end
+	for click, button in pairs(Cursor.Override) do
+		for extension, modifier in pairs(Cursor.Modifiers) do
+			if override then
+				self:SetClickButton(_G[button..extension], rebindNode or node)
+				OverrideBindingClick(Cursor, button, name or button..extension, click, modifier)
+			else
+				self:SetClickButton(_G[button..extension], nil)
+			end
+		end
 	end
 end
 
--- Perform special actions for triangle input
+-- Perform non secure special actions
 local function SpecialAction(self)
 	if current then
 		local node = current.node
@@ -289,9 +280,22 @@ local function SpecialAction(self)
 			self:UpdateExtraButton(GetItemSpell(link) and link)
 		-- Spell button
 		elseif node.SpellName then
-			local _,_, spellID = SpellBook_GetSpellBookSlot(node)
+			local book, id, spellID, _ = SpellBookFrame, node:GetID()
 			if 	not node.IsPassive then
-				PickupSpell(spellID)
+				if book.bookType == BOOKTYPE_PROFESSION then
+					spellID = id + node:GetParent().spellOffset
+				elseif book.bookType == BOOKTYPE_PET then
+					spellID = id + (SPELLS_PER_PAGE * (SPELLBOOK_PAGENUMBERS[BOOKTYPE_PET] - 1))
+				else
+					local relativeSlot = id + ( SPELLS_PER_PAGE * (SPELLBOOK_PAGENUMBERS[book.selectedSkillLine] - 1))
+					if book.selectedSkillLineNumSlots and relativeSlot <= book.selectedSkillLineNumSlots then
+						local slot = book.selectedSkillLineOffset + relativeSlot
+						_, spellID = GetSpellBookItemInfo(slot, book.bookType)
+					end
+				end
+				if spellID then
+					PickupSpell(spellID)
+				end
 			end
 		end
 	end
@@ -401,32 +405,19 @@ end
 ---------------------------------------------------------------
 -- UIControl: Rebinding functions for cursor
 ---------------------------------------------------------------
-local function GetActionButtons()
-	return {
-		CP_L_UP_NOMOD,
-		CP_L_DOWN_NOMOD,
-		CP_L_RIGHT_NOMOD,
-		CP_L_LEFT_NOMOD,
-		CP_R_UP_NOMOD,
-		CP_R_DOWN_NOMOD,
-		CP_R_RIGHT_NOMOD,
-		CP_R_LEFT_NOMOD,
-	}
-end
-
 local function GetInterfaceButtons()
 	return {
 		CP_L_UP_NOMOD,
 		CP_L_DOWN_NOMOD,
 		CP_L_RIGHT_NOMOD,
 		CP_L_LEFT_NOMOD,
-		_G[ConsolePortMouse.Cursor.Special..NOMOD],
+		_G[ConsolePortMouse.Cursor.Special.."_NOMOD"],
 	}
 end
 
 function ConsolePort:SetButtonActionsDefault()
 	ClearOverrideBindings(self)
-	for _, button in pairs(GetActionButtons()) do
+	for button in pairs(SECURE) do
 		button:Revert()
 	end
 end
@@ -443,19 +434,21 @@ end
 -- UIControl: Initialize Cursor
 ---------------------------------------------------------------
 function ConsolePort:SetupCursor()
-	Cursor.Left 		= ConsolePortMouse.Cursor.Left
-	Cursor.Right 		= ConsolePortMouse.Cursor.Right
-	Cursor.Scroll 		= ConsolePortMouse.Cursor.Scroll
 	Cursor.Special 		= ConsolePortMouse.Cursor.Special
+	Cursor.SpecialClick = _G[Cursor.Special.."_NOMOD"]
+	Cursor.SpecialAction = Cursor.SpecialClick.command
 
-	Cursor.LeftClick 	= _G[Cursor.Left..NOMOD]
-	Cursor.RightClick 	= _G[Cursor.Right..NOMOD]
-	Cursor.SpecialClick = _G[Cursor.Special..NOMOD]
+	Cursor.Override = {
+		LeftButton 	= ConsolePortMouse.Cursor.Left,
+		RightButton = ConsolePortMouse.Cursor.Right,
+	}
 
-	Cursor.Indicator 	= TEXTURE[Cursor.Left]
+	Cursor.Indicator 	= TEXTURE[ConsolePortMouse.Cursor.Left]
+	Cursor.IndicatorR 	= TEXTURE[ConsolePortMouse.Cursor.Right]
+
+	Cursor.Scroll 		= ConsolePortMouse.Cursor.Scroll
 	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.CP_TL1 or TEXTURE.CP_TL2
 
-	Cursor.SpecialAction = Cursor.SpecialClick.command
 
 	Cursor:SetScript("OnShow", Cursor.Animate)
 	Cursor:SetScript("OnEvent", Cursor.OnEvent)
@@ -465,6 +458,11 @@ function ConsolePort:SetupCursor()
 	Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
 end
 
+Cursor.Modifiers = {
+	_NOMOD	= false,
+	_SHIFT 	= "SHIFT-",
+	_CTRL 	= "CTRL-",
+}
 
 Cursor.Icon = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
 Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")

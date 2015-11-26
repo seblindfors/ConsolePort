@@ -4,7 +4,7 @@ local FadeOut = db.UIFrameFadeOut
 local UIHandle, Indicator
 
 function ConsolePort:CreateRaidCursor()
-	UIHandle = CreateFrame("Frame", "$parentUIHandle", self, "SecureHandlerBaseTemplate")
+	UIHandle = CreateFrame("Frame", addOn.."UIHandle", UIParent, "SecureHandlerBaseTemplate")
 	local Key = {
 		Up 		= self:GetUIControlKey("CP_L_UP"),
 		Down 	= self:GetUIControlKey("CP_L_DOWN"),
@@ -19,7 +19,6 @@ function ConsolePort:CreateRaidCursor()
 		Key.Left = %s
 		Key.Right = %s
 		Bindings = newtable()
-		FrameStack = newtable()
 		Nodes = newtable()
 	]], Key.Up, Key.Down, Key.Left, Key.Right))
 
@@ -53,7 +52,7 @@ function ConsolePort:CreateRaidCursor()
 			end
 		]=]
 		FindClosestNode = [=[
-			if current then
+			if current and key ~= 0 then
 				local left, bottom, width, height = current:GetRect()
 				local thisY = bottom+height/2
 				local thisX = left+width/2
@@ -118,9 +117,11 @@ function ConsolePort:CreateRaidCursor()
 		]=]
 		UpdateFrameStack = [=[
 			Nodes = wipe(Nodes)
-			for Frame in pairs(FrameStack) do
-				CurrentNode = Frame
-				self:Run(GetNodes)
+			for _, Frame in pairs(newtable(self:GetParent():GetChildren())) do
+				if Frame:IsProtected() then
+					CurrentNode = Frame
+					self:Run(GetNodes)
+				end
 			end
 		]=]
 		ToggleCursor = [=[
@@ -185,19 +186,6 @@ function ConsolePort:CreateRaidCursor()
 	self.CreateRaidCursor = nil
 end
 
-function ConsolePort:UpdateSecureFrameStack()
-	if not InCombatLockdown() then
-		for i, child in pairs({UIParent:GetChildren()}) do
-			if not child:IsForbidden() and child:IsProtected() then
-				UIHandle:SetFrameRef("NewChild", child)
-				UIHandle:Execute([[
-					FrameStack[self:GetFrameRef("NewChild")] = true
-				]])
-			end
-		end
-	end
-end
-
 Indicator = CreateFrame("Frame", addOn.."RaidCursorIndicator", UIParent)
 Indicator:SetSize(32,32)
 Indicator:SetFrameStrata("TOOLTIP")
@@ -248,6 +236,7 @@ function Indicator:Update(elapsed)
 						self.Scale2:SetScale(1/3, 1/3)
 						self.Scale2:SetDuration(0.5)
 						FadeOut(self.Glow, 0.5, 1, 0.5)
+						PlaySound("AchievementMenuOpen")
 					else
 						self.Scale1:SetScale(1.5, 1.5)
 						self.Scale2:SetScale(1/1.5, 1/1.5)
@@ -266,8 +255,3 @@ function Indicator:Update(elapsed)
 		self.Timer = self.Timer - elapsed
 	end
 end
-
--- 38262
--- 38327
--- 41039
--- 41110
