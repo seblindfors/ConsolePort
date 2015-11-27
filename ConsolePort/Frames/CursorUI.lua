@@ -27,7 +27,7 @@ local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
 ConsolePort.Cursor = Cursor
 
 ---------------------------------------------------------------
--- UIControl: Override click bindings
+-- UIControl: Wrappers for overriding click bindings
 ---------------------------------------------------------------
 local function OverrideBindingClick(owner, old, button, mouseClick, mod)
 	if not InCombatLockdown() then
@@ -45,12 +45,22 @@ local function OverrideBindingCtrlClick(owner, old, button, mouseClick)
 	OverrideBindingClick(owner, old, button, mouseClick, "CTRL-")
 end
 
+local function OverrideScroll(owner, up, down)
+	if 	owner.Scroll == L1 then
+		OverrideBindingShiftClick(owner, "CP_L_UP", up:GetName() or "CP_L_UP_SHIFT", "LeftButton")
+		OverrideBindingShiftClick(owner, "CP_L_DOWN", down:GetName() or "CP_L_DOWN_SHIFT", "LeftButton")
+	else
+		OverrideBindingCtrlClick(owner, "CP_L_UP", up:GetName() or "CP_L_UP_CTRL", "LeftButton")
+		OverrideBindingCtrlClick(owner, "CP_L_DOWN", down:GetName() or "CP_L_DOWN_CTRL", "LeftButton")
+	end
+end
+
 ---------------------------------------------------------------
 -- UIControl: Cursor texture functions
 ---------------------------------------------------------------
 function Cursor:SetTexture(texture)
 	local object = current and current.object 
-	self.Button:SetTexture(texture or object == "Slider" and self.ScrollGuide or self.Indicator)
+	self.Button:SetTexture(texture or object == "EditBox" and self.IndicatorS or object == "Slider" and self.ScrollGuide or self.Indicator)
 end
 
 function Cursor:SetPosition(anchor, object)
@@ -211,14 +221,14 @@ local function FindClosestNode(key)
 	if current then
 		local SwapFunc = SwapFunc[key]
 		if SwapFunc then
-			local destY, destX, vert, horz
-			local thisY, thisX = current.Y, current.X
-			local nodeY, nodeX = 10000, 10000
+			local destX, destY, vert, horz
+			local thisX, thisY = current.node:GetCenter()
+			local nodeX, nodeY = 10000, 10000
 			for i, destination in ipairs(nodes) do
-				destY = destination.Y
 				destX = destination.X
-				vert = abs(thisY-destY)
+				destY = destination.Y
 				horz = abs(thisX-destX)
+				vert = abs(thisY-destY)
 				if 	horz + vert < nodeX + nodeY and
 					SwapFunc(destY, destX, vert, horz, thisX, thisY) then
 					nodeX = horz
@@ -230,7 +240,31 @@ local function FindClosestNode(key)
 	end
 end
 
+local function GetScrollButtons(node)
+	if node then
+		if node:IsObjectType("ScrollFrame") then
+			local up, down
+			for _, frame in pairs({node:GetChildren()}) do
+				if frame:IsObjectType("Slider") then
+					up, down = frame:GetChildren()
+					break
+				end
+			end
+			return up, down
+		elseif node:IsObjectType("Slider") then
+			return node:GetChildren()
+		else
+			return GetScrollButtons(node:GetParent())
+		end
+	end
+end
+
 local function EnterNode(self, node, object, state)
+	local scrollUp, scrollDown = GetScrollButtons(node)
+	if scrollUp and scrollDown then
+		OverrideScroll(Cursor, scrollUp, scrollDown)
+	end
+
 	local name = rebindNode and nil or node.direction and node:GetName()
 	local override
 	if IsClickable[object] and node:IsEnabled() then
@@ -297,6 +331,9 @@ local function SpecialAction(self)
 					PickupSpell(spellID)
 				end
 			end
+		-- Text field
+		elseif node:IsObjectType("EditBox") then
+			node:SetFocus(true)
 		end
 	end
 end
@@ -331,22 +368,11 @@ function Cursor:OnEvent(event)
 	if 		event == "PLAYER_REGEN_DISABLED" then
 		self.Flash = true
 		ClearOverrideBindings(self)
-	elseif 	event == "MODIFIER_STATE_CHANGED" and not InCombatLockdown()  then
+	elseif 	event == "MODIFIER_STATE_CHANGED" and not InCombatLockdown() then
 		if 	current and
 			(self.Scroll == L1 and IsShiftKeyDown()) or
 			(self.Scroll == L2 and IsControlKeyDown()) then
-			self:SetTexture(TEXTURE.VERTICAL)
-			local slider = current.node
-			local up, down = slider:GetChildren()
-			if up and down then
-				if 	self.Scroll == L1 then
-					OverrideBindingShiftClick(self, "CP_L_UP", up:GetName() or "CP_L_UP_SHIFT", "LeftButton")
-					OverrideBindingShiftClick(self, "CP_L_DOWN", down:GetName() or "CP_L_DOWN_SHIFT", "LeftButton")
-				else
-					OverrideBindingCtrlClick(self, "CP_L_UP", up:GetName() or "CP_L_UP_CTRL", "LeftButton")
-					OverrideBindingCtrlClick(self, "CP_L_DOWN", down:GetName() or "CP_L_DOWN_CTRL", "LeftButton")
-				end
-			end
+			self:SetTexture(self.ScrollGuide)
 		else
 			self:SetTexture()
 		end
@@ -445,6 +471,7 @@ function ConsolePort:SetupCursor()
 
 	Cursor.Indicator 	= TEXTURE[ConsolePortMouse.Cursor.Left]
 	Cursor.IndicatorR 	= TEXTURE[ConsolePortMouse.Cursor.Right]
+	Cursor.IndicatorS 	= TEXTURE[ConsolePortMouse.Cursor.Special]
 
 	Cursor.Scroll 		= ConsolePortMouse.Cursor.Scroll
 	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.CP_TL1 or TEXTURE.CP_TL2

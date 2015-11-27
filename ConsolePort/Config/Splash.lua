@@ -201,7 +201,7 @@ function ConsolePort:CreateBindingWizard()
 				end
 			else
 				if self.BTN and GetBindingAction(key) ~= "" then
-					self.Confirm:SetText(format(SETUP.OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)], self.ButtonTex:GetTexture()))
+					self.Confirm:SetText(format(SETUP.OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)] or SETUP.NOEXISTFIX, self.ButtonTex:GetTexture()))
 				elseif self.BTN then
 					self.Confirm:SetText(format(SETUP.CONTINUE, self.ButtonTex:GetTexture()))
 				end

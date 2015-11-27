@@ -131,9 +131,6 @@ function ConsolePort:LoadControllerTheme()
 		for name, description in pairs(db.CUSTOMBINDS) do
 			_G["BINDING_NAME_"..name] = description
 		end
-		-- Scroll textures
-		db.TEXTURE.VERTICAL		= "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\VERTICAL"
-		db.TEXTURE.HORIZONTAL	= "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\HORIZONTAL"
 		-- Button textures
 		for i, name in pairs(self:GetBindingNames()) do
 			db.TEXTURE[name] = format(TEXTURE_PATH, ctrlType, name)

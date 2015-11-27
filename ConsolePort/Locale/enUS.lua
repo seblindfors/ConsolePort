@@ -66,6 +66,7 @@ TUTORIAL = {
 		HEADER 				= "Setup: Assign controller buttons",
 		HEADLINE 			= "Your controller bindings are incomplete.\nPress the requested button on your controller.",
 		OVERRIDE 			= "%s is already bound to %s.\nPress |T%s:20:20:0:0|t again to continue anyway.",
+		NOEXISTFIX 			= "something else",			
 		INVALID 			= "Invalid binding.\nDid you press the correct button?",
 		COMBAT 				= "You are in combat!",
 		EMPTY 				= "<Empty>",
