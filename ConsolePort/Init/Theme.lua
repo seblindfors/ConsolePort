@@ -1,3 +1,9 @@
+---------------------------------------------------------------
+-- Theme.lua: Controller theme loader
+---------------------------------------------------------------
+-- Provides controller specific textures and tooltip lines.
+-- Provides coordinates for drawing clickable binding buttons.
+
 local _, db = ...
 local init = true
 local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s"

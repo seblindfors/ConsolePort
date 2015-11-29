@@ -1,8 +1,18 @@
-local addOn, db = ...
+---------------------------------------------------------------
+-- Mouse.lua: Smart camera control and mouse function wrappers
+---------------------------------------------------------------
+-- Removes the need of holding right click to control camera.
+-- Allows user to mouseover their character to control camera.
+-- Toggles off on targeted spells, InteractUnit and pickups. 
 
-local ConsolePort = ConsolePort
+local MouseIsOver = MouseIsOver
+local HasCursorItem = GetCursorInfo
+local GetMouseFocus = GetMouseFocus
+local SpellIsTargeting = SpellIsTargeting
+local IsMouseButtonDown = IsMouseButtonDown
+
 local IsCentered, IsVisible
-local Locker = CreateFrame("Frame", addOn.."MouseLook", UIParent)
+local Locker = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)
 Locker:SetPoint("CENTER", 0, 0)
 Locker:SetSize(70, 180)
 Locker:Hide()
@@ -10,7 +20,7 @@ Locker:Hide()
 local function MouseLookShouldStart()
 	if 	not SpellIsTargeting() 			and
 		not IsMouseButtonDown(1) 		and
-		not GetCursorInfo() 			and
+		not HasCursorItem() 			and
 		MouseIsOver(Locker) 			and
 		(GetMouseFocus() == WorldFrame) then
 		return true
@@ -18,7 +28,7 @@ local function MouseLookShouldStart()
 end
 
 local function MouseUpdate(self)
-	if 	not IsVisible and GetCursorInfo() then
+	if 	not IsVisible and HasCursorItem() then
 		self:StopMouse()
 	elseif not IsCentered and
 		MouseLookShouldStart() then
@@ -29,6 +39,9 @@ local function MouseUpdate(self)
 	end
 end
 
+---------------------------------------------------------------
+-- Mouse function wrappers
+---------------------------------------------------------------
 function ConsolePort:StopMouse()
 	IsVisible = true
 	MouselookStop()
@@ -49,4 +62,16 @@ function ConsolePort:ToggleMouse()
 	end
 end
 
-ConsolePort:AddUpdateSnippet(MouseUpdate)
+---------------------------------------------------------------
+-- Toggle smart mouse behaviour on/off
+---------------------------------------------------------------
+function ConsolePort:UpdateSmartMouse()
+	if ConsolePortSettings.disableSmartMouse then
+		self:RemoveUpdateSnippet(MouseUpdate)
+	else
+		self:AddUpdateSnippet(MouseUpdate)
+	end
+end
+
+-- Get rid of mouselook when trying to interact with mouse
+hooksecurefunc("InteractUnit", ConsolePort.StopMouse)

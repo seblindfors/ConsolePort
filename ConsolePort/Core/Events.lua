@@ -1,10 +1,15 @@
-local addOn, db = ...
-local UIControls = db.UIControls
+---------------------------------------------------------------
+-- Events.lua: Event management and event-specific functions
+---------------------------------------------------------------
+-- Collection of functions related to event management.
+-- Manages mouse look triggering from events.
 
 function ConsolePort:LoadEvents()
 	-- Default events
 	local Events = {
 		["ADDON_LOADED"] 			= false,
+		["CVAR_UPDATE"]				= false,
+		["PLAYER_LOGOUT"] 			= false,
 		["PLAYER_STARTED_MOVING"] 	= false,
 		["PLAYER_REGEN_DISABLED"] 	= false,
 		["PLAYER_REGEN_ENABLED"] 	= false,
@@ -19,12 +24,10 @@ function ConsolePort:LoadEvents()
 		Events[event] = val
 	end
 	self:UnregisterAllEvents()
-	for event, _ in pairs(Events) do
+	for event in pairs(Events) do
 		self:RegisterEvent(event)
 	end
-	return Events
 end
-
 
 local function IsMouselookEvent(event)
 	if 	ConsolePortMouse.Events then
@@ -45,7 +48,13 @@ function ConsolePort:CheckMouselookEvent(event, ...)
 	end
 end
 
-function ConsolePort:MERCHANT_SHOW(...)
+---------------------------------------------------------------
+-- Event specific functions
+---------------------------------------------------------------
+local Events = {}
+
+function Events:MERCHANT_SHOW(...)
+	-- Automatically sell junk
 	local quality
 	for bag=0, 4 do
 		for slot=1, GetContainerNumSlots(bag) do
@@ -57,16 +66,16 @@ function ConsolePort:MERCHANT_SHOW(...)
 	end
 end
 
-function ConsolePort:WORLD_MAP_UPDATE(...)
+function Events:WORLD_MAP_UPDATE(...)
 	self:GetMapNodes()
 end
 
-function ConsolePort:QUEST_AUTOCOMPLETE(...)
+function Events:QUEST_AUTOCOMPLETE(...)
 	local id = ...
 	ShowQuestComplete(GetQuestLogIndexByID(id))
 end
 
-function ConsolePort:CURRENT_SPELL_CAST_CHANGED(...)
+function Events:CURRENT_SPELL_CAST_CHANGED(...)
 	if SpellIsTargeting() then
 		self:StopMouse()
 	elseif 	GetMouseFocus() == WorldFrame and
@@ -75,7 +84,7 @@ function ConsolePort:CURRENT_SPELL_CAST_CHANGED(...)
 	end
 end
 
-function ConsolePort:UNIT_ENTERING_VEHICLE(...)
+function Events:UNIT_ENTERING_VEHICLE(...)
 	local unit = ...
 	if unit == "player" then
 		for i=1, NUM_OVERRIDE_BUTTONS do
@@ -86,35 +95,35 @@ function ConsolePort:UNIT_ENTERING_VEHICLE(...)
 	end
 end
 
-function ConsolePort:PLAYER_REGEN_ENABLED(...)
+function Events:PLAYER_REGEN_ENABLED(...)
 	self:SetButtonActionsDefault()
 	self:UpdateFrames()
-	if self.Cursor:IsVisible() then
-		db.UIFrameFadeIn(self.Cursor, 0.2, self.Cursor:GetAlpha(), 1)
-	else
-		self.Cursor:SetAlpha(1)
-	end
+	self:UpdateCVars(false)
 end
 
-function ConsolePort:PLAYER_REGEN_DISABLED(...)
+function Events:PLAYER_REGEN_DISABLED(...)
 	self:SetUIFocus(false)
 	self:SetButtonActionsDefault()
-	if self.Cursor:IsVisible() then
-		db.UIFrameFadeOut(self.Cursor, 0.2, self.Cursor:GetAlpha(), 0)
-	else
-		self.Cursor:SetAlpha(0)
-	end
+	self:UpdateCVars(true)
 end
 
-function ConsolePort:UPDATE_BINDINGS(...)
+function Events:PLAYER_LOGOUT(...)
+	self:ResetCVars()
+end
+
+function Events:CVAR_UPDATE(...)
+	self:UpdateCVars(nil, ...)
+end
+
+function Events:UPDATE_BINDINGS(...)
 	if not InCombatLockdown() then
 		self:LoadBindingSet()
 	end
 end
 
-function ConsolePort:ADDON_LOADED(...)
+function Events:ADDON_LOADED(...)
 	local name = ...
-	if name == addOn then
+	if name == "ConsolePort" then
 		self:CreateButtonHandler()
 		self:LoadControllerTheme()
 		self:LoadSettings()
@@ -124,11 +133,13 @@ function ConsolePort:ADDON_LOADED(...)
 		self:LoadBindingSet()
 		self:CreateConfigPanel()
 		self:CreateActionButtons()
-		self:LoadBindingActions()
+		self:LoadInterfaceBindings()
 		self:SetupCursor()
 		self:CheckLoadedAddons()
 		self:CheckLoadedSettings()
 		self:CreateRaidCursor()
+		self:UpdateCVars()
+		self:UpdateSmartMouse()
 	end
 	if ConsolePortUIFrames and ConsolePortUIFrames[name] then
 		for i, frame in pairs(ConsolePortUIFrames[name]) do
@@ -138,3 +149,14 @@ function ConsolePort:ADDON_LOADED(...)
 	self:UpdateFrames()
 	self:LoadHotKeyTextures()
 end
+
+local function OnEvent (self, event, ...)
+	if 	Events[event] then
+		Events[event](self, ...)
+		return
+	end
+	self:CheckMouselookEvent(event)
+end
+
+ConsolePort:RegisterEvent("ADDON_LOADED")
+ConsolePort:SetScript("OnEvent", OnEvent)

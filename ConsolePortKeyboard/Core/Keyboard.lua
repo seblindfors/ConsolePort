@@ -124,9 +124,8 @@ function Keyboard:ENTER()
 	local script = self.Focus:GetScript("OnEnterPressed")
 	if script then
 		script(self.Focus)
-	else
-		self.Focus:Insert("\n")
 	end
+	self:CLOSE()
 end
 
 function Keyboard:SelectSet()

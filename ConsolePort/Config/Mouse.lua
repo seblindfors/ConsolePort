@@ -1,8 +1,14 @@
+---------------------------------------------------------------
+-- Mouse.lua (config): Mouse look events, button overrides
+---------------------------------------------------------------
+-- Provides management for events that trigger mouse look.
+-- Provides management for UI cursor button overrides.
+
 local addOn, db = ...
 local TEXTURE = db.TEXTURE
 local TUTORIAL = db.TUTORIAL.MOUSE
 ---------------------------------------------------------------
--- Config: Returns events for mouselook
+-- Mouse: Returns events for mouselook
 ---------------------------------------------------------------
 local function GetMouseSettings()
 	return {
@@ -45,7 +51,7 @@ local function GetMouseSettings()
 	}
 end
 ---------------------------------------------------------------
--- Config: Save mouse info/reload events
+-- Mouse: Save mouse info/reload events
 ---------------------------------------------------------------
 local function SaveMouseConfig(self)
 	for i, Check in pairs(self.Events) do

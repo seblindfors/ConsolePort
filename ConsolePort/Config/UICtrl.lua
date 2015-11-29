@@ -1,7 +1,14 @@
+---------------------------------------------------------------
+-- UICtrl.lua: Advanced interface settings
+---------------------------------------------------------------
+-- Provides detailed management of the frame stack used by the
+-- UI cursor. User has full control over which frames to bind
+-- and may add custom frames from other addons.
+
 local addOn, db = ...
 local TUTORIAL = db.TUTORIAL.UICTRL
 ---------------------------------------------------------------
--- Config: UICtrl addons/frames scripts
+-- UICtrl: UICtrl addons/frames scripts
 ---------------------------------------------------------------
 local function NewAddonOnClick(self)
 	local self = self:GetParent()
@@ -45,7 +52,7 @@ local function RemoveFrameOnClick(self)
 end
 
 ---------------------------------------------------------------
--- Config: UICtrl addons and frames
+-- UICtrl: UICtrl addons and frames
 ---------------------------------------------------------------
 local function CreateUICtrlConfigButton(parent, num, clickScript, removeScript)
 	local button = CreateFrame("Button", "$parentButton"..num, parent, "OptionsListButtonTemplate")
@@ -156,7 +163,7 @@ local function RefreshAddonList(self)
 end
 
 ---------------------------------------------------------------
--- Config: UICtrl popup functions
+-- UICtrl: UICtrl popup functions
 ---------------------------------------------------------------
 local function AddFramePopupAccept(self, addonButton)
 	local list = ConsolePortUIFrames
@@ -208,7 +215,7 @@ local function RemoveFramePopupAccept(self, frame, addon)
 end
 
 ---------------------------------------------------------------
--- Config: Default functions	
+-- UICtrl: Default function
 ---------------------------------------------------------------
 local function LoadDefaultUICtrl(self)
 	ConsolePortUIFrames = ConsolePort:GetDefaultUIFrames()

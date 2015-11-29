@@ -1,3 +1,13 @@
+---------------------------------------------------------------
+-- Map.lua: Map nodes and relevant scripts for UI cursor
+---------------------------------------------------------------
+-- Since the map is one big button with an update script,
+-- the map is scanned pixel by pixel for zone information which
+-- is then used to generate nodes that can be targeted by the
+-- UI cursor. These nodes provide the same functionality as
+-- clicking the zones on the map with an actual mouse.
+-- Nodes are recycled and never exceed visible zones.
+
 local zones = {}
 local nodes = {}
 local node

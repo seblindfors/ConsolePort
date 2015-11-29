@@ -25,4 +25,11 @@
 	<Binding name="CP_CAMZOOMOUT" category="ConsolePort " hidden="true" >
 			CameraZoomOut(5.0);
 	</Binding>
+	<Binding name="CP_CAMLOOKBEHIND" runOnUp="true" category="ConsolePort " hidden="true">
+		if ( keystate == "down" ) then
+			FlipCameraYaw(180);
+		else
+			FlipCameraYaw(180);
+		end
+	</Binding>
 </Bindings>

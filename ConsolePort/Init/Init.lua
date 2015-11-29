@@ -1,54 +1,33 @@
+---------------------------------------------------------------
+-- Init.lua: Main frame creation, version checking, slash cmd
+---------------------------------------------------------------
+-- Create the main frame and check all loaded settings.
+-- Validate compatibility with older versions.
+-- Create the slash handler function.
+
 local addOn, db = ...
--- Main
+---------------------------------------------------------------
+-- Create main frame (not visible to user)
+---------------------------------------------------------------
 local ConsolePort = CreateFrame("FRAME", addOn)
-
+---------------------------------------------------------------
+-- CRITICALUPDATE: flag when old settings are incompatible. 
+---------------------------------------------------------------
 local CRITICALUPDATE = false
-local VERSION = gsub(GetAddOnMetadata(addOn, "Version"), "%.", "")
-VERSION = tonumber(VERSION)
-
--- Tables
+---------------------------------------------------------------
+-- VERSION: generate a comparable integer from addon metadata 
+---------------------------------------------------------------
+local v1, v2, v3 = strsplit("%d+.", GetAddOnMetadata(addOn, "Version"))
+local VERSION = v1*10000+v2*100+v3
+---------------------------------------------------------------
+-- Initialize crucial addon-wide tables
+---------------------------------------------------------------
 db.TEXTURE 	= {}
 db.SECURE 	= {}
-db.UIControls = {}
-db.ButtonGuides  = {}
-
-local KEY = db.KEY
-
--- Sort table by non-numeric key
-db.pairsByKeys = function (t,f)
-	local a = {}
-	for n in pairs(t) do tinsert(a, n) end
-	table.sort(a, f)
-	local i = 0      -- iterator variable
-	local function iter()   -- iterator function
-		i = i + 1
-		if a[i] == nil then return nil
-		else return a[i], t[a[i]]
-		end
-	end
-	return iter
-end
-
-function ConsolePort:DB()
-	return db
-end
-
-function ConsolePort:GetDefaultAddonSettings(setting)
-	local settings = {
-		["type"] = "PS4",
-		["autoExtra"] = true,
-		["shift"] = "CP_TL1",
-		["ctrl"] = "CP_TL2",
-		["trigger1"] = "CP_TR1",
-		["trigger2"] = "CP_TR2",
-		["version"] = VERSION,
-	}
-	if setting then
-		return settings[setting]
-	else
-		return settings
-	end
-end
+---------------------------------------------------------------
+-- Plug-in access to addon table
+---------------------------------------------------------------
+function ConsolePort:DB() return db end
 
 local function ResetAllSettings()
 	if not InCombatLockdown() then

@@ -54,7 +54,13 @@ TUTORIAL = {
 	},
 	CONFIG = {
 		TRIGGERHEADER		= "Trigger textures (requires reload)",
+		CLICKTOMOVE 		= "Enable click-to-move when using a controller",
+		TURNMOVE 			= "Turn instead of strafe when mouse look is off",
+		DISABLEMOUSE 		= "Disable smart mouse behaviour",
 		AUTOEXTRA 			= "Auto bind appropriate quest items",
+		FASTCAM 			= "Enable fast camera zooming",
+		AUTOLOOT 			= "Force auto loot in combat",
+		AUTOBLOCK 			= "Block trades in combat",
 		CONTROLLER 			= "Change controller",
 		BINDRESET 			= "Reset bindings",
 		FULLRESET 			= "Reset all settings",
@@ -108,6 +114,7 @@ CUSTOMBINDS = {
 	CP_TOGGLEMOUSE			= 	"Toggle mouse look",
 	CP_CAMZOOMIN			= 	"Zoom in (custom)",
 	CP_CAMZOOMOUT			= 	"Zoom out (custom)",
+	CP_CAMLOOKBEHIND		= 	"Look behind",
 },
 HEADERS = {
 	CP_LEFT 				= 	"Directional pad",

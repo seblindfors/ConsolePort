@@ -1,9 +1,17 @@
+---------------------------------------------------------------
+-- Secure.lua: Secure action button management 
+---------------------------------------------------------------
+-- Creates all secure action buttons used by the addon.
+-- These buttons are also used to bind UI widgets, since
+-- direct "clicking" causes taint to spread in a lot of cases.
+-- These buttons are under-the-hood and invisible to the user.
+
 local addOn, db = ...
-local KEY = db.KEY
 local TEXTURE = db.TEXTURE
+local KEY = db.KEY
 
 ---------------------------------------------------------------
--- SecureBtn: Actionpage state handler
+-- SecureBtn: Actionpage state handler (hardly useful anymore)
 ---------------------------------------------------------------
 function ConsolePort:CreateButtonHandler()
 	local ButtonHandler = CreateFrame("Frame", addOn.."ButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
@@ -56,19 +64,6 @@ function ConsolePort:CreateButtonHandler()
 		self:Run(UpdateActionPage, newstate)
 	]=])
 	self.CreateButtonHandler = nil
-end
-
----------------------------------------------------------------
--- SecureBtn: Main bar button ref check
----------------------------------------------------------------
-local function MainBarAction(action)
-	if 	type(action) == "table" and
-		action:GetParent() == MainMenuBarArtFrame and
-		action.action then
-		return action:GetID()
-	else
-		return nil
-	end
 end
 
 ---------------------------------------------------------------
@@ -127,12 +122,6 @@ end
 -- SecureBtn: Combat reversion functions
 ---------------------------------------------------------------
 local function RevertBinding(self)
-	if  MainBarAction(self.default.val) then
-		self.default.type = "action"
-		self.default.attr = "action"
-		self.default.val  = MainBarAction(self.default.val)
-		self:SetID(self.default.val)
-	end
 	self:SetAttribute("type", self.default.type)
 	self:SetAttribute(self.default.attr, self.default.val)
 	self:SetAttribute("clickbutton", self.action)

@@ -1,4 +1,11 @@
-local addOn, db = ...
+---------------------------------------------------------------
+-- Animation.lua: Taint-free animation framework
+---------------------------------------------------------------
+-- Provides a framework for managing alpha animations without
+-- risk of spreading taint, which might happen when the "real"
+-- functions are called from secure code.
+
+local _, db = ...
 
 ---------------------------------------------------------------
 -- Fade: Taint-free fade functions

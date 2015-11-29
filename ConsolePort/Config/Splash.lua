@@ -1,8 +1,14 @@
+---------------------------------------------------------------
+-- Splash.lua: Init splash frame and binding wizard
+---------------------------------------------------------------
+-- Creates initial tutorial and helper frames for new users. 
+
 local _, db = ...
 local KEY = db.KEY
 local SETUP = db.TUTORIAL.SETUP
 local PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\"
 
+-- Determine if the base (unmodified) bindings are assigned.
 function ConsolePort:CheckUnassignedBindings()
 	local ButtonUnassigned = false
 	local buttons = self:GetBindingNames()
@@ -18,6 +24,7 @@ function ConsolePort:CheckUnassignedBindings()
 	return unassigned
 end
 
+-- Template setup window function
 local function SetupWindow(name)
 	local self = CreateFrame("Frame", name, UIParent)
 

@@ -1,5 +1,13 @@
+---------------------------------------------------------------
+-- GameMenu.lua: Custom game menu with convenience buttons
+---------------------------------------------------------------
+-- Customizes the game menu to provide the normal functionality
+-- from the action bar menu buttons. This makes it easy to
+-- open UI panels, since no mouse is required to click here.
+
 local _, db = ...
-local KEY = db.KEY
+
+-- Create a shortcut menu button to quickly open the binding manager.
 local GameMenuControllerButton = CreateFrame("BUTTON", "GameMenuButtonController", GameMenuFrame, "GameMenuButtonTemplate")
 GameMenuControllerButton:SetText("Controller")
 GameMenuControllerButton:SetScript("OnClick", function(self)

@@ -1,26 +1,66 @@
+---------------------------------------------------------------
+-- Config.lua: Base config, reset buttons, triggers, cvars
+---------------------------------------------------------------
+-- Creates the base config panel and account-wide cvar options.
+-- Provides a template function for convenient panel creation.
+
 local addOn, db = ...
 local TUTORIAL = db.TUTORIAL.CONFIG
 ---------------------------------------------------------------
 -- Config: Panel table used for modular config creation
 ---------------------------------------------------------------
 db.Panels = {}
-
+---------------------------------------------------------------
+-- Config: Account-wide addon CVars.
+---------------------------------------------------------------
 local function GetAddonSettings()
-	return {
+	return {		
+		{	cvar = "autoInteract",
+			desc = TUTORIAL.CLICKTOMOVE,
+			toggle = ConsolePortSettings.autoInteract,
+		},
+		{	cvar = "turnCharacter",
+			desc = TUTORIAL.TURNMOVE,
+			toggle = ConsolePortSettings.turnCharacter,
+			needReload = true, 
+		},
+		{	cvar = "disableSmartMouse",
+			desc = TUTORIAL.DISABLEMOUSE,
+			toggle = ConsolePortSettings.disableSmartMouse,
+		},
 		{	cvar = "autoExtra",
 			desc = TUTORIAL.AUTOEXTRA,
 			toggle = ConsolePortSettings.autoExtra,
-		}
+		},
+		{
+			cvar = "cameraDistanceMoveSpeed",
+			desc = TUTORIAL.FASTCAM,
+			toggle = ConsolePortSettings.cameraDistanceMoveSpeed,
+		},
+		{
+			cvar = "autoLootDefault",
+			desc = TUTORIAL.AUTOLOOT,
+			toggle = ConsolePortSettings.autoLootDefault,
+		},
+		{
+			cvar = "blockTrades",
+			desc = TUTORIAL.AUTOBLOCK,
+			toggle = ConsolePortSettings.blockTrades,
+		},
 	}
 end
 
 ---------------------------------------------------------------
--- Config: Save general addon cvars
+-- Config: Save general addon CVars.
 ---------------------------------------------------------------
 local function SaveGeneralConfig(self)
 	local needReload = false
 	for i, Check in pairs(self.General) do
+		local old = ConsolePortSettings[Check.Cvar]
 		ConsolePortSettings[Check.Cvar] = Check:GetChecked()
+		if Check.Reload and Check:GetChecked() ~= old then
+			needReload = true
+		end
 	end
 	for i, Check in pairs(self.Triggers) do
 		if Check.Value and Check.Value ~= ConsolePortSettings[Check.Cvar] then
@@ -31,6 +71,8 @@ local function SaveGeneralConfig(self)
 	if needReload and not InCombatLockdown() then
 		ReloadUI()
 	end
+	ConsolePort:UpdateCVars()
+	ConsolePort:UpdateSmartMouse()
 end
 
 ---------------------------------------------------------------
@@ -106,6 +148,7 @@ tinsert(db.Panels, {"InterfaceOptionsFramePanelContainer", "Config", addOn, addO
 		check:SetChecked(setting.toggle)
 		check.Description = text
 		check.Cvar = setting.cvar
+		check.Reload = setting.needReload
 		check:SetPoint("TOPLEFT", 16, -30*i-10)
 		text:SetPoint("LEFT", check, 30, 0)
 		check:Show()
@@ -193,6 +236,9 @@ tinsert(db.Panels, {"InterfaceOptionsFramePanelContainer", "Config", addOn, addO
 
 end})
 
+---------------------------------------------------------------
+-- Config: Creates all config panels in panel table on load.
+---------------------------------------------------------------
 function ConsolePort:CreateConfigPanel()
 	for i, panel in pairs(db.Panels) do
 		local parentName, name, sideHeader, bigHeader, okay, cancel, default, configure = unpack(panel)

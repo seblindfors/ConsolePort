@@ -1,4 +1,10 @@
-local _, db = ...
+---------------------------------------------------------------
+-- Popup.lua: Redirect cursor to an appropriate popup on show
+---------------------------------------------------------------
+-- Since popups normally appear in response to an event or
+-- crucial action, the UI cursor will automatically move to
+-- a popup when it is shown. StaticPopup1 has first priority.
+
 local popupFrames = {
 	StaticPopup1,
 	StaticPopup2,

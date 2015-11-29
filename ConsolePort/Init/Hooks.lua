@@ -1,13 +1,18 @@
+---------------------------------------------------------------
+-- Hooks.lua: Default interface hooking and script alteration
+---------------------------------------------------------------
+-- Customizes the behaviour of Blizzard frames to accommodate
+-- the gimmicky nature of controller input. Also contains a
+-- terrible tooltip hook to provide click instructions.
+
 local _, db = ...
-local KEY = db.KEY
 
 function ConsolePort:LoadHookScripts()
 	InterfaceOptionsFrame:SetMovable(true)
 	InterfaceOptionsFrame:RegisterForDrag("LeftButton")
 	InterfaceOptionsFrame:HookScript("OnDragStart", InterfaceOptionsFrame.StartMoving)
 	InterfaceOptionsFrame:HookScript("OnDragStop", InterfaceOptionsFrame.StopMovingOrSizing)
-	-- Add guides to tooltips
-	-- Pending removal for cleaner solution
+	-- Click instruction hooks. Pending removal for cleaner solution
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
 		local owner = self:GetOwner()
 		if owner == ConsolePortExtraButton then
@@ -54,11 +59,10 @@ function ConsolePort:LoadHookScripts()
 			end
 		end
 	end)
-	-- Disable keyboard input (will obstruct controller input)
+	-- Disable keyboard input when splitting stacks (will obstruct controller input)
 	StackSplitFrame:EnableKeyboard(false)
-	-- Get rid of mouselook when trying to interact with mouse
-	hooksecurefunc("InteractUnit", self.StopMouse)
-	--
+	-- Remove the need to type "DELETE" when removing rare or better quality items
 	StaticPopupDialogs.DELETE_GOOD_ITEM = StaticPopupDialogs.DELETE_ITEM
+
 	self.LoadHookScripts = nil
 end

@@ -1,3 +1,9 @@
+---------------------------------------------------------------
+-- Lookup.lua: Lookup tables for all intents and purposes
+---------------------------------------------------------------
+-- Tables/functions in this file are used to get static data
+-- used when generating settings. Essentially, it's a database.
+
 local addOn, db = ...
 ---------------------------------------------------------------
 -- Lookup: Integer keys for interface manipulation
@@ -14,7 +20,6 @@ db.KEY = {
 	SHARE 		= 9,
 	OPTIONS 	= 10,
 	CENTER 		= 11,
-	PREPARE 	= 12,
 	STATE_UP 	= "up",
 	STATE_DOWN	= "down",
 }
@@ -25,135 +30,70 @@ local KEY = db.KEY
 -- Lookup: Action IDs and their corresponding binding
 ---------------------------------------------------------------
 local actionIDs = {
-	[1] 	= "ACTIONBUTTON1",
-	[2] 	= "ACTIONBUTTON2",
-	[3] 	= "ACTIONBUTTON3",
-	[4] 	= "ACTIONBUTTON4",
-	[5] 	= "ACTIONBUTTON5",
-	[6] 	= "ACTIONBUTTON6",
-	[7] 	= "ACTIONBUTTON7",
-	[8] 	= "ACTIONBUTTON8",
-	[9] 	= "ACTIONBUTTON9",
-	[10] 	= "ACTIONBUTTON10",
-	[11] 	= "ACTIONBUTTON11",
-	[12] 	= "ACTIONBUTTON12",
+	[1] 	= "ACTIONBUTTON1",				[13] 	= "ACTIONBUTTON1",
+	[2] 	= "ACTIONBUTTON2",				[14] 	= "ACTIONBUTTON2",
+	[3] 	= "ACTIONBUTTON3",				[15] 	= "ACTIONBUTTON3",
+	[4] 	= "ACTIONBUTTON4",				[16] 	= "ACTIONBUTTON4",
+	[5] 	= "ACTIONBUTTON5",				[17] 	= "ACTIONBUTTON5",
+	[6] 	= "ACTIONBUTTON6",				[18] 	= "ACTIONBUTTON6",
+	[7] 	= "ACTIONBUTTON7",				[19] 	= "ACTIONBUTTON7",
+	[8] 	= "ACTIONBUTTON8",				[20] 	= "ACTIONBUTTON8",
+	[9] 	= "ACTIONBUTTON9",				[21] 	= "ACTIONBUTTON9",
+	[10] 	= "ACTIONBUTTON10",				[22] 	= "ACTIONBUTTON10",
+	[11] 	= "ACTIONBUTTON11",				[23] 	= "ACTIONBUTTON11",
+	[12] 	= "ACTIONBUTTON12",				[24] 	= "ACTIONBUTTON12",
+	
+	[25] 	= "MULTIACTIONBAR3BUTTON1",		[37] 	= "MULTIACTIONBAR4BUTTON1",
+	[26] 	= "MULTIACTIONBAR3BUTTON2",		[38] 	= "MULTIACTIONBAR4BUTTON2",
+	[27] 	= "MULTIACTIONBAR3BUTTON3",		[39] 	= "MULTIACTIONBAR4BUTTON3",
+	[28] 	= "MULTIACTIONBAR3BUTTON4",		[40] 	= "MULTIACTIONBAR4BUTTON4",
+	[29] 	= "MULTIACTIONBAR3BUTTON5",		[41] 	= "MULTIACTIONBAR4BUTTON5",
+	[30] 	= "MULTIACTIONBAR3BUTTON6",		[42] 	= "MULTIACTIONBAR4BUTTON6",
+	[31] 	= "MULTIACTIONBAR3BUTTON7",		[43] 	= "MULTIACTIONBAR4BUTTON7",
+	[32] 	= "MULTIACTIONBAR3BUTTON8",		[44] 	= "MULTIACTIONBAR4BUTTON8",
+	[33] 	= "MULTIACTIONBAR3BUTTON9",		[45] 	= "MULTIACTIONBAR4BUTTON9",
+	[34] 	= "MULTIACTIONBAR3BUTTON10",	[46] 	= "MULTIACTIONBAR4BUTTON10",
+	[35] 	= "MULTIACTIONBAR3BUTTON11",	[47] 	= "MULTIACTIONBAR4BUTTON11",
+	[36] 	= "MULTIACTIONBAR3BUTTON12",	[48] 	= "MULTIACTIONBAR4BUTTON12",
 
-	[13] 	= "ACTIONBUTTON1",
-	[14] 	= "ACTIONBUTTON2",
-	[15] 	= "ACTIONBUTTON3",
-	[16] 	= "ACTIONBUTTON4",
-	[17] 	= "ACTIONBUTTON5",
-	[18] 	= "ACTIONBUTTON6",
-	[19] 	= "ACTIONBUTTON7",
-	[20] 	= "ACTIONBUTTON8",
-	[21] 	= "ACTIONBUTTON9",
-	[22] 	= "ACTIONBUTTON10",
-	[23] 	= "ACTIONBUTTON11",
-	[24] 	= "ACTIONBUTTON12",
+	[49] 	= "MULTIACTIONBAR2BUTTON1",		[61] 	= "MULTIACTIONBAR1BUTTON1",
+	[50] 	= "MULTIACTIONBAR2BUTTON2",		[62] 	= "MULTIACTIONBAR1BUTTON2",
+	[51] 	= "MULTIACTIONBAR2BUTTON3",		[63] 	= "MULTIACTIONBAR1BUTTON3",
+	[52] 	= "MULTIACTIONBAR2BUTTON4",		[64] 	= "MULTIACTIONBAR1BUTTON4",
+	[53] 	= "MULTIACTIONBAR2BUTTON5",		[65] 	= "MULTIACTIONBAR1BUTTON5",
+	[54] 	= "MULTIACTIONBAR2BUTTON6",		[66] 	= "MULTIACTIONBAR1BUTTON6",
+	[55] 	= "MULTIACTIONBAR2BUTTON7",		[67] 	= "MULTIACTIONBAR1BUTTON7",
+	[56] 	= "MULTIACTIONBAR2BUTTON8",		[68] 	= "MULTIACTIONBAR1BUTTON8",
+	[57] 	= "MULTIACTIONBAR2BUTTON9",		[69] 	= "MULTIACTIONBAR1BUTTON9",
+	[58] 	= "MULTIACTIONBAR2BUTTON10",	[70] 	= "MULTIACTIONBAR1BUTTON10",
+	[59] 	= "MULTIACTIONBAR2BUTTON11",	[71] 	= "MULTIACTIONBAR1BUTTON11",
+	[60] 	= "MULTIACTIONBAR2BUTTON12",	[72] 	= "MULTIACTIONBAR1BUTTON12",
 
-	[25] 	= "MULTIACTIONBAR3BUTTON1",
-	[26] 	= "MULTIACTIONBAR3BUTTON2",
-	[27] 	= "MULTIACTIONBAR3BUTTON3",
-	[28] 	= "MULTIACTIONBAR3BUTTON4",
-	[29] 	= "MULTIACTIONBAR3BUTTON5",
-	[30] 	= "MULTIACTIONBAR3BUTTON6",
-	[31] 	= "MULTIACTIONBAR3BUTTON7",
-	[32] 	= "MULTIACTIONBAR3BUTTON8",
-	[33] 	= "MULTIACTIONBAR3BUTTON9",
-	[34] 	= "MULTIACTIONBAR3BUTTON10",
-	[35] 	= "MULTIACTIONBAR3BUTTON11",
-	[36] 	= "MULTIACTIONBAR3BUTTON12",
+	[73] 	= "ACTIONBUTTON1",				[85] 	= "ACTIONBUTTON1",
+	[74] 	= "ACTIONBUTTON2",				[86] 	= "ACTIONBUTTON2",
+	[75] 	= "ACTIONBUTTON3",				[87] 	= "ACTIONBUTTON3",
+	[76] 	= "ACTIONBUTTON4",				[88] 	= "ACTIONBUTTON4",
+	[77] 	= "ACTIONBUTTON5",				[89] 	= "ACTIONBUTTON5",
+	[78] 	= "ACTIONBUTTON6",				[90] 	= "ACTIONBUTTON6",
+	[79] 	= "ACTIONBUTTON7",				[91] 	= "ACTIONBUTTON7",
+	[80] 	= "ACTIONBUTTON8",				[92] 	= "ACTIONBUTTON8",
+	[81] 	= "ACTIONBUTTON9",				[93] 	= "ACTIONBUTTON9",
+	[82] 	= "ACTIONBUTTON10",				[94] 	= "ACTIONBUTTON10",
+	[83] 	= "ACTIONBUTTON11",				[95] 	= "ACTIONBUTTON11",
+	[84] 	= "ACTIONBUTTON12",				[96] 	= "ACTIONBUTTON12",
 
-	[37] 	= "MULTIACTIONBAR4BUTTON1",
-	[38] 	= "MULTIACTIONBAR4BUTTON2",
-	[39] 	= "MULTIACTIONBAR4BUTTON3",
-	[40] 	= "MULTIACTIONBAR4BUTTON4",
-	[41] 	= "MULTIACTIONBAR4BUTTON5",
-	[42] 	= "MULTIACTIONBAR4BUTTON6",
-	[43] 	= "MULTIACTIONBAR4BUTTON7",
-	[44] 	= "MULTIACTIONBAR4BUTTON8",
-	[45] 	= "MULTIACTIONBAR4BUTTON9",
-	[46] 	= "MULTIACTIONBAR4BUTTON10",
-	[47] 	= "MULTIACTIONBAR4BUTTON11",
-	[48] 	= "MULTIACTIONBAR4BUTTON12",
-
-	[49] 	= "MULTIACTIONBAR2BUTTON1",
-	[50] 	= "MULTIACTIONBAR2BUTTON2",
-	[51] 	= "MULTIACTIONBAR2BUTTON3",
-	[52] 	= "MULTIACTIONBAR2BUTTON4",
-	[53] 	= "MULTIACTIONBAR2BUTTON5",
-	[54] 	= "MULTIACTIONBAR2BUTTON6",
-	[55] 	= "MULTIACTIONBAR2BUTTON7",
-	[56] 	= "MULTIACTIONBAR2BUTTON8",
-	[57] 	= "MULTIACTIONBAR2BUTTON9",
-	[58] 	= "MULTIACTIONBAR2BUTTON10",
-	[59] 	= "MULTIACTIONBAR2BUTTON11",
-	[60] 	= "MULTIACTIONBAR2BUTTON12",
-
-	[61] 	= "MULTIACTIONBAR1BUTTON1",
-	[62] 	= "MULTIACTIONBAR1BUTTON2",
-	[63] 	= "MULTIACTIONBAR1BUTTON3",
-	[64] 	= "MULTIACTIONBAR1BUTTON4",
-	[65] 	= "MULTIACTIONBAR1BUTTON5",
-	[66] 	= "MULTIACTIONBAR1BUTTON6",
-	[67] 	= "MULTIACTIONBAR1BUTTON7",
-	[68] 	= "MULTIACTIONBAR1BUTTON8",
-	[69] 	= "MULTIACTIONBAR1BUTTON9",
-	[70] 	= "MULTIACTIONBAR1BUTTON10",
-	[71] 	= "MULTIACTIONBAR1BUTTON11",
-	[72] 	= "MULTIACTIONBAR1BUTTON12",
-
-	[73] 	= "ACTIONBUTTON1",
-	[74] 	= "ACTIONBUTTON2",
-	[75] 	= "ACTIONBUTTON3",
-	[76] 	= "ACTIONBUTTON4",
-	[77] 	= "ACTIONBUTTON5",
-	[78] 	= "ACTIONBUTTON6",
-	[79] 	= "ACTIONBUTTON7",
-	[80] 	= "ACTIONBUTTON8",
-	[81] 	= "ACTIONBUTTON9",
-	[82] 	= "ACTIONBUTTON10",
-	[83] 	= "ACTIONBUTTON11",
-	[84] 	= "ACTIONBUTTON12",
-
-	[85] 	= "ACTIONBUTTON1",
-	[86] 	= "ACTIONBUTTON2",
-	[87] 	= "ACTIONBUTTON3",
-	[88] 	= "ACTIONBUTTON4",
-	[89] 	= "ACTIONBUTTON5",
-	[90] 	= "ACTIONBUTTON6",
-	[91] 	= "ACTIONBUTTON7",
-	[92] 	= "ACTIONBUTTON8",
-	[93] 	= "ACTIONBUTTON9",
-	[94] 	= "ACTIONBUTTON10",
-	[95] 	= "ACTIONBUTTON11",
-	[96] 	= "ACTIONBUTTON12",
-
-	[97] 	= "ACTIONBUTTON1",
-	[98] 	= "ACTIONBUTTON2",
-	[99] 	= "ACTIONBUTTON3",
-	[100] 	= "ACTIONBUTTON4",
-	[101] 	= "ACTIONBUTTON5",
-	[102] 	= "ACTIONBUTTON6",
-	[103] 	= "ACTIONBUTTON7",
-	[104] 	= "ACTIONBUTTON8",
-	[105] 	= "ACTIONBUTTON9",
-	[106] 	= "ACTIONBUTTON10",
-	[107] 	= "ACTIONBUTTON11",
-	[108] 	= "ACTIONBUTTON12",
-
-	[109] 	= "ACTIONBUTTON1",
-	[110] 	= "ACTIONBUTTON2",
-	[111] 	= "ACTIONBUTTON3",
-	[112] 	= "ACTIONBUTTON4",
-	[113] 	= "ACTIONBUTTON5",
-	[114] 	= "ACTIONBUTTON6",
-	[115] 	= "ACTIONBUTTON7",
-	[116] 	= "ACTIONBUTTON8",
-	[117] 	= "ACTIONBUTTON9",
-	[118] 	= "ACTIONBUTTON10",
-	[119] 	= "ACTIONBUTTON11",
-	[120] 	= "ACTIONBUTTON12",
+	[97] 	= "ACTIONBUTTON1",				[109] 	= "ACTIONBUTTON1",
+	[98] 	= "ACTIONBUTTON2",				[110] 	= "ACTIONBUTTON2",
+	[99] 	= "ACTIONBUTTON3",				[111] 	= "ACTIONBUTTON3",
+	[100] 	= "ACTIONBUTTON4",				[112] 	= "ACTIONBUTTON4",
+	[101] 	= "ACTIONBUTTON5",				[113] 	= "ACTIONBUTTON5",
+	[102] 	= "ACTIONBUTTON6",				[114] 	= "ACTIONBUTTON6",
+	[103] 	= "ACTIONBUTTON7",				[115] 	= "ACTIONBUTTON7",
+	[104] 	= "ACTIONBUTTON8",				[116] 	= "ACTIONBUTTON8",
+	[105] 	= "ACTIONBUTTON9",				[117] 	= "ACTIONBUTTON9",
+	[106] 	= "ACTIONBUTTON10",				[118] 	= "ACTIONBUTTON10",
+	[107] 	= "ACTIONBUTTON11",				[119] 	= "ACTIONBUTTON11",
+	[108] 	= "ACTIONBUTTON12",				[120] 	= "ACTIONBUTTON12",
 
 	[169] 	= "EXTRAACTIONBUTTON1",
 
@@ -359,6 +299,32 @@ end
 
 
 ---------------------------------------------------------------
+-- Lookup: Default addon settings (client wide)
+---------------------------------------------------------------
+local v1, v2, v3 = strsplit("%d+.", GetAddOnMetadata(addOn, "Version"))
+local VERSION = v1*10000+v2*100+v3
+
+function ConsolePort:GetDefaultAddonSettings(setting)
+	local settings = {
+		["version"] = VERSION,
+		["type"] = "PS4",
+		["shift"] = "CP_TL1",
+		["ctrl"] = "CP_TL2",
+		["trigger1"] = "CP_TR1",
+		["trigger2"] = "CP_TR2",
+		["autoExtra"] = true,
+		["autoLootDefault"] = true,
+		["cameraDistanceMoveSpeed"] = true,
+	}
+	if setting then
+		return settings[setting]
+	else
+		return settings
+	end
+end
+
+
+---------------------------------------------------------------
 -- Lookup: Mouse events and default cursor handler
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultMouseEvents()
@@ -391,5 +357,133 @@ function ConsolePort:GetDefaultMouseCursor()
 		Right 	= "CP_R_LEFT",
 		Special = "CP_R_UP",
 		Scroll 	= "CP_TL1",
+	}
+end
+
+
+---------------------------------------------------------------
+-- Lookup: Get all hidden customly created convenience bindings 
+---------------------------------------------------------------
+function ConsolePort:GetAddonBindings()
+	return {
+		{name = BINDING_NAME_CP_EXTRABUTTON, binding = "CLICK ConsolePortExtraButton:LeftButton"},
+		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
+		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
+		{name = BINDING_NAME_CP_CAMZOOMIN, binding = "CP_CAMZOOMIN"},
+		{name = BINDING_NAME_CP_CAMZOOMOUT, binding = "CP_CAMZOOMOUT"},
+		{name = BINDING_NAME_CP_CAMLOOKBEHIND, binding = "CP_CAMLOOKBEHIND"},
+	}
+end
+
+
+---------------------------------------------------------------
+-- Lookup: UI cursor frames to be handled with D-pad
+---------------------------------------------------------------
+function ConsolePort:GetDefaultUIFrames()
+	return {	
+		Blizzard_AchievementUI 		= {
+			"AchievementFrame" },
+		Blizzard_ArchaeologyUI 		= {
+			"ArchaeologyFrame" },
+		Blizzard_AuctionUI 			= {
+			"AuctionFrame" },
+		Blizzard_BarbershopUI		= {
+			"BarberShopFrame" },
+		Blizzard_Calendar			= {
+			"CalendarFrame" },
+		Blizzard_Collections		= {
+			"CollectionsJournal" },
+		Blizzard_DeathRecap			= {
+			"DeathRecapFrame" },
+		Blizzard_EncounterJournal 	= {
+			"EncounterJournal" },
+		Blizzard_GarrisonUI			= {
+			"GarrisonBuildingFrame",
+			"GarrisonCapacitiveDisplayFrame",
+			"GarrisonLandingPage",
+			"GarrisonMissionFrame",
+			"GarrisonMonumentFrame",
+			"GarrisonShipyardFrame" },
+		Blizzard_GuildUI			= {
+			"GuildFrame" },
+		Blizzard_InspectUI			= {
+			"InspectFrame" },
+		Blizzard_ItemAlterationUI 	= {
+			"TransmogrifyFrame" },
+		Blizzard_LookingForGuildUI 	= {
+			"LookingForGuildFrame" },
+		Blizzard_MacroUI 			= {
+			"MacroFrame" },
+		Blizzard_QuestChoice 		= {
+			"QuestChoiceFrame" },
+		Blizzard_TalentUI 			= {
+			"PlayerTalentFrame" },
+		Blizzard_TradeSkillUI		= {
+			"TradeSkillFrame" },
+		Blizzard_TrainerUI 			= {
+			"ClassTrainerFrame" },
+		Blizzard_VoidStorageUI		= {
+			"VoidStorageFrame" },
+		ConsolePort					= {
+			"AddonList",
+			"BagHelpBox",
+			"BankFrame",
+			"BasicScriptErrors",
+			"CharacterFrame",
+			"ChatMenu",
+			"CinematicFrameCloseDialog",
+			"ContainerFrame1",
+			"ContainerFrame2",
+			"ContainerFrame3",
+			"ContainerFrame4",
+			"ContainerFrame5",
+			"ContainerFrame6",
+			"ContainerFrame7",
+			"ContainerFrame8",
+			"ContainerFrame9",
+			"ContainerFrame10",
+			"ContainerFrame11",
+			"ContainerFrame12",
+			"ContainerFrame13",
+			"DressUpFrame",
+			"DropDownList1",
+			"DropDownList2",
+			"FriendsFrame",	
+			"GameMenuFrame",
+			"GossipFrame",
+			"GuildInviteFrame",
+			"InterfaceOptionsFrame",
+			"ItemRefTooltip",
+			"ItemTextFrame",
+			"LFDRoleCheckPopup",
+			"LFGDungeonReadyDialog",
+			"LFGInvitePopup",
+			"LootFrame",
+			"MailFrame",
+			"MerchantFrame",
+			"OpenMailFrame",
+			"PetBattleFrame",
+			"PetitionFrame",
+			"PVEFrame",
+			"PVPReadyDialog",
+			"QuestFrame","QuestLogPopupDetailFrame",
+			"RecruitAFriendFrame",
+			"SpellBookFrame",
+			"SpellFlyout",
+			"SplashFrame",
+			"StackSplitFrame",
+			"StaticPopup1",
+			"StaticPopup2",
+			"StaticPopup3",
+			"StaticPopup4",
+			"TaxiFrame",
+			"TutorialFrame",
+			"VideoOptionsFrame",
+			"WorldMapFrame",
+			"GroupLootFrame1",
+			"GroupLootFrame2",
+			"GroupLootFrame3",
+			"GroupLootFrame4"
+		},
 	}
 end

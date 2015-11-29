@@ -1,18 +1,26 @@
+---------------------------------------------------------------
+-- CursorUI.lua: Interface cursor and node management.
+---------------------------------------------------------------
+-- Creates a cursor used to manage the interface with D-pad.
+-- Operates recursively on a stack of frames provided in
+-- UICore.lua and calculates appropriate actions based on
+-- node priority and where nodes are drawn on screen.
+
 local addOn, db = ...
-local UI 		= db.UI
 local KEY 		= db.KEY
 local SECURE 	= db.SECURE
 local TEXTURE 	= db.TEXTURE
 local L1, L2 	= "CP_TL1", "CP_TL2"
-local nodes, current, old, rebindNode = {}, nil, nil, nil
+local nodes, current, old, rebindNode = {}
 
---- Localize frequently used globals
--- Functions
+-- Upvalue functions since they are used very frequently.
 local SetOverrideBindingClick = SetOverrideBindingClick
 local ClearOverrideBindings = ClearOverrideBindings
 local InCombatLockdown = InCombatLockdown
 local PlaySound = PlaySound
 local FadeOut = db.UIFrameFadeOut
+local FadeIn = db.UIFrameFadeIn
+-- Table stuff
 local tinsert = tinsert
 local ipairs = ipairs
 local pairs = pairs
@@ -20,7 +28,6 @@ local wipe = wipe
 -- Widgets
 local ConsolePort = ConsolePort
 local UIParent = UIParent
-
 
 -- Initiate the cursor frame
 local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
@@ -53,6 +60,11 @@ local function OverrideScroll(owner, up, down)
 		OverrideBindingCtrlClick(owner, "CP_L_UP", up:GetName() or "CP_L_UP_CTRL", "LeftButton")
 		OverrideBindingCtrlClick(owner, "CP_L_DOWN", down:GetName() or "CP_L_DOWN_CTRL", "LeftButton")
 	end
+end
+
+local function SetClickButton(button, clickbutton)
+	button:SetAttribute("type", "click")
+	button:SetAttribute("clickbutton", clickbutton)
 end
 
 ---------------------------------------------------------------
@@ -277,10 +289,10 @@ local function EnterNode(self, node, object, state)
 	for click, button in pairs(Cursor.Override) do
 		for extension, modifier in pairs(Cursor.Modifiers) do
 			if override then
-				self:SetClickButton(_G[button..extension], rebindNode or node)
+				SetClickButton(_G[button..extension], rebindNode or node)
 				OverrideBindingClick(Cursor, button, name or button..extension, click, modifier)
 			else
-				self:SetClickButton(_G[button..extension], nil)
+				SetClickButton(_G[button..extension], nil)
 			end
 		end
 	end
@@ -349,7 +361,7 @@ function Cursor:OnUpdate(elapsed)
 			current = nil
 			if 	not InCombatLockdown() and
 				ConsolePort:HasUIFocus()  then
-				ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
+				ConsolePort:UIControl(nil, KEY.STATE_DOWN)
 			end
 		end
 		self.Timer = self.Timer - 0.1
@@ -364,11 +376,18 @@ function Cursor:OnHide()
 	end
 end
 
-function Cursor:OnEvent(event)
-	if 		event == "PLAYER_REGEN_DISABLED" then
-		self.Flash = true
-		ClearOverrideBindings(self)
-	elseif 	event == "MODIFIER_STATE_CHANGED" and not InCombatLockdown() then
+function Cursor:PLAYER_REGEN_DISABLED()
+	self.Flash = true
+	ClearOverrideBindings(self)
+	FadeOut(self, 0.2, self:GetAlpha(), 0)
+end
+
+function Cursor:PLAYER_REGEN_ENABLED()
+	FadeIn(self, 0.2, self:GetAlpha(), 1)
+end
+
+function Cursor:MODIFIER_STATE_CHANGED()
+	if not InCombatLockdown() then
 		if 	current and
 			(self.Scroll == L1 and IsShiftKeyDown()) or
 			(self.Scroll == L2 and IsControlKeyDown()) then
@@ -377,6 +396,10 @@ function Cursor:OnEvent(event)
 			self:SetTexture()
 		end
 	end
+end
+
+function Cursor:OnEvent(event)
+	self[event](self)
 end
 
 ---------------------------------------------------------------
@@ -400,7 +423,7 @@ function ConsolePort:SetCurrentNode(UIobject)
 			break
 		end
 	end
-	self:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
+	self:UIControl(nil, KEY.STATE_DOWN)
 end
 
 ---------------------------------------------------------------
@@ -483,6 +506,7 @@ function ConsolePort:SetupCursor()
 	Cursor:SetScript("OnUpdate", Cursor.OnUpdate)
 	Cursor:RegisterEvent("MODIFIER_STATE_CHANGED")
 	Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
+	Cursor:RegisterEvent("PLAYER_REGEN_ENABLED")
 end
 
 Cursor.Modifiers = {

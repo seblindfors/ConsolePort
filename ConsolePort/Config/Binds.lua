@@ -1,9 +1,17 @@
+---------------------------------------------------------------
+-- Binds.lua: Binding manager and functions related to bindings
+---------------------------------------------------------------
+-- Creates the faux binding manager and all things related
+-- to bindings. Also includes hotkey texture management.
+-- The system converts one static binding for each button
+-- into four combinations (no mod, shift, ctrl, shift+ctrl)
+-- which then run override bindings that perish on logout.
+
 local addOn, db = ...
 local KEY = db.KEY
 local TUTORIAL = db.TUTORIAL.BIND
 local TEXTURE = db.TEXTURE
 
-local CP				= "CP"
 local CONF				= "_CONF"
 local NOMOD				= "_NOMOD"
 local SHIFT				= "_SHIFT"
@@ -14,59 +22,11 @@ local BIND 				= "BINDING_NAME_"
 local NewBindingSet
 local NewBindingButtons
 
----------------------------------------------------------------
--- Table: Recursive table duplicator
----------------------------------------------------------------
-local function Copy(src)
-	local srcType = type(src)
-	local copy
-	if srcType == "table" then
-		copy = {}
-		for key, value in next, src, nil do
-			copy[Copy(key)] = Copy(value)
-		end
-		setmetatable(copy, Copy(getmetatable(src)))
-	else
-		copy = src
-	end
-	return copy
-end
-
-db.Copy = Copy
+local Compare = db.Compare
+local Copy = db.Copy
 
 ---------------------------------------------------------------
--- Table: Recursive table comparator
----------------------------------------------------------------
-local function Compare(t1, t2)
-	if t1 == t2 then
-		return true
-	end
-	if type(t1) ~= "table" then
-		return false
-	end
-	local mt1, mt2 = getmetatable(t1), getmetatable(t2)
-	if not Compare(mt1,mt2) then
-		return false
-	end
-	for k1, v1 in pairs(t1) do
-		local v2 = t2[k1]
-		if not Compare(v1,v2) then
-			return false
-		end
-	end
-	for k2, v2 in pairs(t2) do
-		local v1 = t1[k2]
-		if not Compare(v1,v2) then
-			return false
-		end
-	end
-	return true
-end
-
-db.Compare = Compare
-
----------------------------------------------------------------
--- Config: Returns converted modifier for binding table use
+-- Binds: Returns converted modifier for binding table use
 ---------------------------------------------------------------
 local function GetBindingModifier(modifier)
 	local modName = {
@@ -79,7 +39,7 @@ local function GetBindingModifier(modifier)
 end
 
 ---------------------------------------------------------------
--- Config: Returns converted modifier for faux binding use
+-- Binds: Returns converted modifier for faux binding use
 ---------------------------------------------------------------
 local function GetBindingPrefix(modifier)
 	local modName = {
@@ -91,7 +51,7 @@ local function GetBindingPrefix(modifier)
 end
 
 ---------------------------------------------------------------
--- Config: Hotkey textures for action buttons / UI
+-- Binds: Hotkey textures for action buttons / UI
 ---------------------------------------------------------------
 local function GetActionButtons(buttons, this)
 	buttons = buttons or {}
@@ -161,10 +121,10 @@ function ConsolePort:LoadHotKeyTextures()
 end
 
 ---------------------------------------------------------------
--- Config: Reload, save and revert binds
+-- Binds: Reload, save and revert binds
 ---------------------------------------------------------------
 local function ReloadBindings()
-	ConsolePort:LoadBindingActions()
+	ConsolePort:LoadInterfaceBindings()
 	ConsolePort:LoadBindingSet()
 	ConsolePort:LoadHotKeyTextures()
 end
@@ -216,7 +176,7 @@ local function RevertBindings()
 end
 
 ---------------------------------------------------------------
--- Config: Secure UI/Button rebind animation
+-- Binds: Secure UI/Button rebind animation
 ---------------------------------------------------------------
 local function AnimateBindingChange(target, destination)
 	if not ConsolePortAnimationFrame then
@@ -250,7 +210,7 @@ local function AnimateBindingChange(target, destination)
 end
 
 ---------------------------------------------------------------
--- Config: Secure UI/Button binding changer
+-- Binds: Secure UI/Button binding changer
 ---------------------------------------------------------------
 local function ChangeButtonBinding(actionButton)
 	local buttonName 	= actionButton:GetName()
@@ -320,18 +280,8 @@ local function ChangeButtonBinding(actionButton)
 end
 
 ---------------------------------------------------------------
--- Config: Static key binding table
+-- Binds: Static key binding table
 ---------------------------------------------------------------
-local function GetAddonBindings()
-	return {
-		{name = BINDING_NAME_CP_EXTRABUTTON, binding = "CLICK ConsolePortExtraButton:LeftButton"},
-		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
-		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
-		{name = BINDING_NAME_CP_CAMZOOMIN, binding = "CP_CAMZOOMIN"},
-		{name = BINDING_NAME_CP_CAMZOOMOUT, binding = "CP_CAMZOOMOUT"},
-	}
-end
-
 local function CreateStaticBindButton(parent, num, clickScript)
 	local button = CreateFrame("Button", "$parentButton"..num, parent, "OptionsListButtonTemplate")
 	button:SetHeight(16)
@@ -400,7 +350,7 @@ local function RefreshHeaderList(self)
 			tinsert(bindings[TUTORIAL.OTHERCATEGORY], {name = name, binding = _G[BIND..binding] and binding})
 		end
 	end
-	bindings["ConsolePort "] = GetAddonBindings()
+	bindings["ConsolePort "] = ConsolePort:GetAddonBindings()
 	local hCount = 0
 	for i, button in pairs(self.Buttons) do
 		button:Hide()
@@ -419,7 +369,7 @@ local function RefreshHeaderList(self)
 end
 
 ---------------------------------------------------------------
--- Config: Dynamic secure/UI button 
+-- Binds: Dynamic secure/UI button 
 ---------------------------------------------------------------
 local function GetStaticBindingName(self)
 	local key  = GetBindingKey(self.name)
@@ -447,8 +397,8 @@ local function DynamicConfigButtonOnShow(self)
 		else
 			self.background:SetTexture(nil)
 		end
-	elseif self.secure.buttonWatch then
-		self:SetText(format("|cFFFF1111%s|r", self.secure.buttonWatch))
+	elseif self.secure.widgetTracker then
+		self:SetText(format("|cFFFF1111%s|r", self.secure.widgetTracker))
 	elseif GetStaticBindingName(self) then
 		self:SetText(GetStaticBindingName(self))
 		self.background:SetTexture(ConsolePort:GetActionTexture(GetStaticBinding(self)))
@@ -486,7 +436,7 @@ local function DynamicConfigButtonOnClick(self, mouseButton)
 				ConsolePort:SetRebinding(false)
 				ConsolePort:SetCurrentNode(self)
 				ConsolePort:SetButtonActionsUI()
-				ConsolePort:UIControl(KEY.PREPARE, KEY.STATE_DOWN)
+				ConsolePort:UIControl(nil, KEY.STATE_DOWN)
 			end
 		end
 	end
@@ -522,7 +472,7 @@ function ConsolePort:CreateConfigButton(name, mod, modNum)
 end
 
 ---------------------------------------------------------------
--- Config: Create addon dummy bindings
+-- Binds: Create addon dummy bindings
 ---------------------------------------------------------------
 local function SetFauxBinding(self, modifier, old, new)
 	if not InCombatLockdown() then
@@ -533,12 +483,20 @@ local function SetFauxBinding(self, modifier, old, new)
 end
 
 local function SetFauxMovementBindings(self)
-	local movement = {
+	local movement
+	if ConsolePortSettings.turnCharacter then movement = {
+		MOVEFORWARD 	= {"W", "UP"},
+		MOVEBACKWARD 	= {"S", "DOWN"},
+		TURNLEFT 		= {"A", "LEFT"},
+		TURNRIGHT 		= {"D", "RIGHT"},
+	}
+	else movement = {
 		MOVEFORWARD 	= {"W", "UP"},
 		MOVEBACKWARD 	= {"S", "DOWN"},
 		STRAFELEFT 		= {"A", "LEFT"},
 		STRAFERIGHT 	= {"D", "RIGHT"},
-	}
+		}
+	end
 	local modifiers = {
 		"", "SHIFT-", "CTRL-", "CTRL-SHIFT-",
 	}
@@ -565,9 +523,9 @@ function ConsolePort:LoadBindingSet()
 end
 
 ---------------------------------------------------------------
--- Config: Reload bindings from table
+-- Binds: Reload bindings from table
 ---------------------------------------------------------------
-function ConsolePort:LoadBindingAction(button, UIbutton, name, mod1, mod2)
+function ConsolePort:LoadInterfaceBinding(button, UIbutton)
 	local action = _G[UIbutton]
 	if action then
 		button.action = action
@@ -578,30 +536,25 @@ function ConsolePort:LoadBindingAction(button, UIbutton, name, mod1, mod2)
 		end
 		ShowInterfaceHotKey(button)
 	else
-		self:AddButtonWatch(button, UIbutton, name, mod1, mod2)
+		self:AddWidgetTracker(button, UIbutton)
 	end
 end
 
-function ConsolePort:LoadBindingActions()
-	local keys = NewBindingButtons or ConsolePortBindingButtons
-	for name, key in pairs(keys) do
-		if key.action then 
-			self:LoadBindingAction(_G[name..NOMOD], key.action, name, nil, nil)
-		end
-		if key.ctrl then
-			self:LoadBindingAction(_G[name..CTRL], key.ctrl, name, "CP_TR4", nil)
-		end
-		if key.shift then
-			self:LoadBindingAction(_G[name..SHIFT], key.shift, name, "CP_TR3", nil)
-		end
-		if key.ctrlsh then
-			self:LoadBindingAction(_G[name..CTRLSH], key.ctrlsh, name, "CP_TR4", "CP_TR3")
-		end
+function ConsolePort:LoadInterfaceBindings()
+	local buttons = NewBindingButtons or ConsolePortBindingButtons
+	local extensions = { action = NOMOD, ctrlsh = CTRLSH, shift = SHIFT, ctrl = CTRL}
+	for name, button in pairs(buttons) do
+		for modifier, UIbutton in pairs(button) do
+			local extension = extensions[modifier]
+			if extension then
+				self:LoadInterfaceBinding(_G[name..extension], UIbutton)
+			end 
+		end 
 	end
 end
 
 ---------------------------------------------------------------
--- Config: Binding palette show function
+-- Binds: Binding palette show function
 ---------------------------------------------------------------
 local function BindingsOnShow(self)
 	self.Tutorial:SetText(TUTORIAL.DEFAULT)
@@ -610,7 +563,7 @@ local function BindingsOnShow(self)
 end
 
 ---------------------------------------------------------------
--- Config: Import profile functions 
+-- Binds: Import profile functions 
 ---------------------------------------------------------------
 local function ImportOnClick(self)
 	if not InCombatLockdown() then
@@ -642,7 +595,7 @@ local function RemoveOnClick(self)
 end
 
 ---------------------------------------------------------------
--- Config: Binding buttons and tooltip
+-- Binds: Binding buttons and tooltip
 ---------------------------------------------------------------
 local function SetBindingTooltip(self)
 	GameTooltip:Hide()
@@ -709,7 +662,7 @@ local function RebindSetButton(self, button)
 end
 
 ---------------------------------------------------------------
--- Config: Default functions	
+-- Binds: Default function
 ---------------------------------------------------------------
 local function LoadDefaultBinds(self)
 	self.Tutorial:SetText(TUTORIAL.RESET)

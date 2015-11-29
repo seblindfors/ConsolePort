@@ -1,3 +1,12 @@
+---------------------------------------------------------------
+-- CursorRaid.lua: Secure unit targeting cursor for combat
+---------------------------------------------------------------
+-- Creates a cursor inside the secure environment that is used
+-- to iterate over unit frames and select units based on where
+-- their respective frame is drawn on screen.
+-- Gathers all nodes by recursively scanning UIParent for
+-- secure frames with the "unit" attribute assigned.
+
 local addOn, db = ...
 local FadeIn = db.UIFrameFadeIn
 local FadeOut = db.UIFrameFadeOut
