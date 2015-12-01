@@ -7,69 +7,54 @@
 
 local _, db = ...
 
--- Create a shortcut menu button to quickly open the binding manager.
-local GameMenuControllerButton = CreateFrame("BUTTON", "GameMenuButtonController", GameMenuFrame, "GameMenuButtonTemplate")
-GameMenuControllerButton:SetText("Controller")
-GameMenuControllerButton:SetScript("OnClick", function(self)
-	ToggleFrame(GameMenuFrame)
-	-- Need to call it twice
-	InterfaceOptionsFrame_OpenToCategory(db.Binds)
-	InterfaceOptionsFrame_OpenToCategory(db.Binds)
-end)
+local function ConfigureMenu()
 
-local buttons 		= {
-	GameMenuButtonHelp,
-	GameMenuButtonStore,
-	GameMenuButtonWhatsNew,
-	GameMenuButtonController,
-	GameMenuButtonOptions,
-	GameMenuButtonUIOptions,
-	GameMenuButtonKeybindings,
-	GameMenuButtonMacros,
-	GameMenuButtonAddons,
-	GameMenuButtonLogout,
-	GameMenuButtonQuit,
-	GameMenuButtonContinue
-}
-
-for i, button in pairs(buttons) do
-	button:SetSize(167, 21)
-end
-
-local function AddCustomMenuButtons()
-	-- Wrapper functions that are not predefined
-	local function ToggleGarrisonReport()
-		if GarrisonLandingPageMinimapButton:IsShown() then
-			GarrisonLandingPage_Toggle()
-		end
-	end
-	local function ToggleTalentUI()
-		if not PlayerTalentFrame then
-			LoadAddOn("Blizzard_TalentUI")
-		end
-		ShowUIPanel(PlayerTalentFrame)
-	end
 	local prefix = "Interface\\Buttons\\UI-MicroButton"
-	local customButtons = {
-		{name = "Character", 	icon = "Character", 	title = CHARACTER_BUTTON, 	ClickFunc = ToggleCharacter, 	arg = "PaperDollFrame"},
-		{name = "Spellbook", 	icon = "Spellbook", 	title = SPELLBOOK_BUTTON, 	ClickFunc = ToggleFrame, 		arg = SpellBookFrame},
-		{name = "Talent", 		icon = "Talents", 		title = TALENTS_BUTTON, 	ClickFunc = ToggleTalentUI				},
-		{name = "Achievement", 	icon = "Achievement", 	title = ACHIEVEMENT_BUTTON, ClickFunc = ToggleAchievementFrame		},
-		{name = "QuestLog", 	icon = "Quest", 		title = QUESTLOG_BUTTON, 	ClickFunc = ToggleQuestLog				},
-		{name = "LFD", 			icon = "LFG", 			title = DUNGEONS_BUTTON,	ClickFunc = PVEFrame_ToggleFrame		},
-		{name = "PvP", 			icon = "Raid", 			title = PVP,	 			ClickFunc = TogglePVPUI					},
-		{name = "Collections", 	icon = "Mounts", 		title = COLLECTIONS, 		ClickFunc = ToggleCollectionsJournal	},
-		{name = "EJ", 			icon = "EJ", 			title = ADVENTURE_JOURNAL, 	ClickFunc = ToggleEncounterJournal		},
-		{name = "Social", 		icon = "World",			title = SOCIAL_BUTTON, 		ClickFunc = ToggleFriendsFrame			},
-		{name = "Guild", 		icon = "Socials", 		title = GUILD, 				ClickFunc = ToggleGuildFrame			},
-		{name = "Garrison", 	icon = "Abilities", 	title = GARRISON_LANDING_PAGE_TITLE, ClickFunc = ToggleGarrisonReport},
+	local secureButtons = {}
+
+	local function PreClick(self)
+		ToggleFrame(GameMenuFrame)
+	end
+
+	local function OnEnter(self)
+		GameTooltip:Hide()
+		GameTooltip:SetOwner(self, "ANCHOR_TOP")
+		GameTooltip:AddLine(self.tooltipText)
+		GameTooltip:Show()
+	end
+
+	local function OnLeave(self)
+		if GameTooltip:GetOwner() == self then
+			GameTooltip:Hide()
+		end
+	end
+
+	local microButtons = {
+		{icon = "Character", 	microButton = CharacterMicroButton, 		title = CHARACTER_BUTTON},
+		{icon = "Spellbook", 	microButton = SpellbookMicroButton, 		title = SPELLBOOK_BUTTON},
+		{icon = "Talents", 		microButton = TalentMicroButton, 			title = TALENTS_BUTTON},
+		{icon = "Achievement", 	microButton = AchievementMicroButton, 		title = ACHIEVEMENT_BUTTON},
+		{icon = "Quest", 		microButton = QuestLogMicroButton, 			title = QUESTLOG_BUTTON},
+		{icon = "LFG", 			microButton = LFDMicroButton, 				title = DUNGEONS_BUTTON},
+		{icon = "Mounts", 		microButton = CollectionsMicroButton, 		title = COLLECTIONS},
+		{icon = "EJ", 			microButton = EJMicroButton, 				title = ADVENTURE_JOURNAL},
+		{icon = "World",		microButton = FriendsMicroButton, 			title = SOCIAL_BUTTON},
+		{icon = "Socials", 		microButton = GuildMicroButton, 			title = GUILD},
+		{icon = "Abilities", 	microButton = GarrisonLandingPageMinimapButton, title = GARRISON_LANDING_PAGE_TITLE},
+		{icon = "Help", 		microButton = GameMenuButtonHelp, 			title = GAMEMENU_HELP},
 	}
-	for i, btn in pairs(customButtons) do
-		local button = CreateFrame("BUTTON", "GameMenuButton"..btn.name, GameMenuFrame)
+
+	for i, info in pairs(microButtons) do
+		local button = CreateFrame("Button", "GameMenuButton"..info.icon, GameMenuFrame, "SecureActionButtonTemplate")
 		button:SetSize(28, 58)
-		button.tooltipText = btn.title
-		button:RegisterForClicks("LeftButtonUp", "RightButtonUp");
-		if i == 1 then
+		button.tooltipText = info.title
+		button:SetAttribute("type", "click")
+		button:SetAttribute("clickbutton", info.microButton)
+		button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+		button:SetScript("PreClick", PreClick)
+		button:SetScript("OnEnter", OnEnter)
+		button:SetScript("OnLeave", OnLeave)
+		if 	i == 1 then
 			button:SetNormalTexture(prefix.."Character-Up")
 			button:SetPushedTexture(prefix.."Character-Down")
 			button:SetHighlightTexture(prefix.."-Hilight")
@@ -83,47 +68,63 @@ local function AddCustomMenuButtons()
 			button:SetScript("OnEvent", function(self, event, ...)
 				SetPortraitTexture(self.Portrait, "player")
 			end)
+			button:HookScript("OnClick", function(self)
+				ToggleCharacter("PaperDollFrame")
+			end)
 		else
-			button:SetNormalTexture(prefix.."-"..btn.icon.."-Up")
-			button:SetPushedTexture(prefix.."-"..btn.icon.."-Down")
-			button:SetDisabledTexture(prefix.."-"..btn.icon.."-Disabled")
+			button:SetNormalTexture(prefix.."-"..info.icon.."-Up")
+			button:SetPushedTexture(prefix.."-"..info.icon.."-Down")
+			button:SetDisabledTexture(prefix.."-"..info.icon.."-Disabled")
 			button:SetHighlightTexture(prefix.."-Hilight")
 		end
-		button:SetScript("OnEnter", function(self)
-			GameTooltip:Hide()
-			GameTooltip:SetOwner(self, "ANCHOR_TOP")
-			GameTooltip:AddLine(self.tooltipText)
-			GameTooltip:Show()
-		end)
-		button:SetScript("OnLeave", function(self)
-			if GameTooltip:GetOwner() == self then
-				GameTooltip:Hide()
-			end
-		end)
-
-		local anchor = customButtons[i-1] and customButtons[i-1].name or nil
-		if anchor then button:SetPoint("LEFT", _G["GameMenuButton"..anchor], "RIGHT", 0, 0)
-		else button:SetPoint("TOPLEFT", GameMenuFrame, "TOPLEFT", 16, 4) end
-
-		button:SetScript("OnClick", function(...)
-			ToggleFrame(GameMenuFrame)
-			btn.ClickFunc(btn.arg)
-		end)
-		tinsert(buttons, button)
+		if #secureButtons == 6 then
+			button:SetPoint("BOTTOM", secureButtons[1], "TOP", 0, -20)
+		elseif #secureButtons > 0 then
+			button:SetPoint("LEFT", secureButtons[i-1], "RIGHT", 0, 0)
+		else
+			button:SetPoint("TOPLEFT", GameMenuFrame, "TOPLEFT", 14, -46)
+		end
+		tinsert(secureButtons, button)
 	end
+
+	-- Create a shortcut menu button to quickly open the binding manager.
+	local GameMenuButtonController = CreateFrame("BUTTON", "GameMenuButtonController", GameMenuFrame, "GameMenuButtonTemplate")
+	GameMenuButtonController.hasPriority = true
+	GameMenuButtonController:SetText(db.TUTORIAL.BIND.MENUHEADER)
+	GameMenuButtonController:SetScript("PreClick", PreClick)
+	GameMenuButtonController:SetScript("OnClick", function(self)
+		-- Need to call it twice
+		InterfaceOptionsFrame_OpenToCategory(db.Binds)
+		InterfaceOptionsFrame_OpenToCategory(db.Binds)
+	end)
+
+	local buttons = {
+		GameMenuButtonHelp,
+		GameMenuButtonStore,
+		GameMenuButtonWhatsNew,
+		GameMenuButtonController,
+		GameMenuButtonOptions,
+		GameMenuButtonUIOptions,
+		GameMenuButtonKeybindings,
+		GameMenuButtonMacros,
+		GameMenuButtonAddons,
+		GameMenuButtonLogout,
+		GameMenuButtonQuit,
+		GameMenuButtonContinue
+	}
+
+	for i, button in pairs(buttons) do
+		button:SetSize(167, 21)
+	end
+
+	GameMenuFrame:SetHeight(410)
+	GameMenuFrame:SetScript("OnShow", nil)
+	GameMenuButtonHelp:Hide()
+	GameMenuButtonController:SetPoint("CENTER", GameMenuFrame, "TOP", 0, -120)
+	GameMenuButtonStore:ClearAllPoints()
+	GameMenuButtonStore:SetPoint("TOP", GameMenuButtonController, "BOTTOM", 0, -1)
+
+	ConfigureMenu = nil
 end
 
-local OnLoad = true
-GameMenuFrame:HookScript("OnShow", function(self)
-	if OnLoad then
-		AddCustomMenuButtons()
-		OnLoad = false
-	end
-	GameMenuFrame:SetSize(368, 250);
-	GameMenuFrameHeader:SetPoint("TOP", 0, -56)
-	GameMenuButtonHelp:SetPoint("TOPLEFT", GameMenuFrame, "TOPLEFT", 16, -100)
-	GameMenuControllerButton:SetPoint("TOPRIGHT", GameMenuFrame, "TOPRIGHT", -16, -100)
-	GameMenuButtonOptions:SetPoint("TOP", GameMenuControllerButton, "BOTTOM", 0, -1)
-	GameMenuButtonContinue:SetPoint("TOP", GameMenuButtonQuit, "BOTTOM", 0, -1)
-	GameMenuButtonLogout:SetPoint("TOP", GameMenuButtonWhatsNew, "BOTTOM", 0, -1)
-end)
+ConfigureMenu()

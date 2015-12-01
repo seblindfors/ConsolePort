@@ -15,11 +15,10 @@ function ConsolePort:LoadEvents()
 		["PLAYER_REGEN_ENABLED"] 	= false,
 		["UPDATE_BINDINGS"] 		= false,
 		["QUEST_AUTOCOMPLETE"] 		= false,
-		["QUEST_LOG_UPDATE"] 		= false,
 		["WORLD_MAP_UPDATE"] 		= false,
 		["UNIT_ENTERING_VEHICLE"] 	= false,
 	}
-	-- Mouse look events
+	-- Union of general events and mouse look events
 	for event, val in pairs(ConsolePortMouse.Events) do
 		Events[event] = val
 	end
@@ -39,7 +38,7 @@ end
 function ConsolePort:CheckMouselookEvent(event, ...)
 	if ( (	event == "PLAYER_TARGET_CHANGED"
 			and IsMouselookEvent(event)
-			and UnitName("target"))
+			and UnitExists("target"))
 			or IsMouselookEvent(event) ) and
 		GetMouseFocus() == WorldFrame and
 		not SpellIsTargeting() and

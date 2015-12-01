@@ -8,6 +8,7 @@ TUTORIAL = {
 	BIND  = {
 		HEADER 				= "Binding settings",
 		SIDEBAR 			= "Bindings",
+		MENUHEADER 			= "Controller",
 		TOOLTIPHEADER 		= "Bindings",
 		TOOLTIPCLICK 		= "<Click to change>",
 		DEFAULT 			= "Click on a button to change its behaviour.",

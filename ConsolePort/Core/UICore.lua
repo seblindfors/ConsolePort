@@ -28,6 +28,7 @@ local hasPriority = {
 	LFDQueueFrameFindGroupButton,
 	MerchantItem1ItemButton,
 	MerchantRepairAllButton,
+	InterfaceOptionsFrameCancel,
 	PaperDollSidebarTab3,
 	QuestFrameAcceptButton,
 	QuestFrameCompleteButton,
@@ -48,6 +49,8 @@ local ignoreNode = {
 for _, node in pairs(hasPriority) do node.hasPriority = true end
 for _, node in pairs(ignoreNode) do node.ignoreNode = true end
 
+-- Update the cursor state whenever a hooked
+-- frame changes visibility. 
 local function FrameShow(self)
 	ConsolePort:UpdateFrames()
 end
@@ -113,6 +116,9 @@ function ConsolePort:SetUIFocus(focus)
 	hasUIFocus = focus
 end
 
+-- Returns a stack of visible frames.
+-- Uses the predefined cursor stack,
+-- or UIParent when rebinding.
 function ConsolePort:GetFrameStack()
 	wipe(visibleStack)
 	if ConsolePortRebindFrame:IsVisible() then

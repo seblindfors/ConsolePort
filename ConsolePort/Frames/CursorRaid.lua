@@ -10,7 +10,7 @@
 local addOn, db = ...
 local FadeIn = db.UIFrameFadeIn
 local FadeOut = db.UIFrameFadeOut
-local UIHandle, Indicator
+local UIHandle, Cursor
 
 function ConsolePort:CreateRaidCursor()
 	UIHandle = CreateFrame("Frame", addOn.."UIHandle", UIParent, "SecureHandlerBaseTemplate")
@@ -137,7 +137,9 @@ function ConsolePort:CreateRaidCursor()
 			if IsEnabled then
 				for binding, name in pairs(Bindings) do
 					local key = GetBindingKey(binding)
-					self:SetBindingClick(true, key, "ConsolePortRaidCursorButton"..name)
+					if key then
+						self:SetBindingClick(true, key, "ConsolePortRaidCursorButton"..name)
+					end
 				end
 				self:Run(UpdateFrameStack)
 				self:Run(SelectNode, 0)
@@ -189,45 +191,45 @@ function ConsolePort:CreateRaidCursor()
 		]], button.binding, name))
 	end
 
-	Indicator.Timer = 0
-	Indicator:SetScript("OnUpdate", Indicator.Update)
+	Cursor.Timer = 0
+	Cursor:SetScript("OnUpdate", Cursor.Update)
 
 	self.CreateRaidCursor = nil
 end
 
-Indicator = CreateFrame("Frame", addOn.."RaidCursorIndicator", UIParent)
-Indicator:SetSize(32,32)
-Indicator:SetFrameStrata("TOOLTIP")
-Indicator:SetPoint("CENTER", 0, 0)
-Indicator:SetAlpha(0)
+Cursor = CreateFrame("Frame", addOn.."RaidCursor", UIParent)
+Cursor:SetSize(32,32)
+Cursor:SetFrameStrata("TOOLTIP")
+Cursor:SetPoint("CENTER", 0, 0)
+Cursor:SetAlpha(0)
 
-Indicator.BG = Indicator:CreateTexture(nil, "OVERLAY")
-Indicator.BG:SetTexture("Interface\\Cursor\\Attack")
-Indicator.BG:SetAllPoints(Indicator)
+Cursor.BG = Cursor:CreateTexture(nil, "OVERLAY")
+Cursor.BG:SetTexture("Interface\\Cursor\\Attack")
+Cursor.BG:SetAllPoints(Cursor)
 
-Indicator.Glow = CreateFrame("PlayerModel", nil, Indicator)
-Indicator.Glow:SetFrameStrata("FULLSCREEN_DIALOG")
-Indicator.Glow:SetSize(300, 300)
-Indicator.Glow:SetPoint("CENTER", 0, 0)
-Indicator.Glow:SetAlpha(0.5)
-Indicator.Glow:SetCamDistanceScale(5)
-Indicator.Glow:SetDisplayInfo(41039)
-Indicator.Glow:SetRotation(1)
+Cursor.Glow = CreateFrame("PlayerModel", nil, Cursor)
+Cursor.Glow:SetFrameStrata("FULLSCREEN_DIALOG")
+Cursor.Glow:SetSize(300, 300)
+Cursor.Glow:SetPoint("CENTER", 0, 0)
+Cursor.Glow:SetAlpha(0.5)
+Cursor.Glow:SetCamDistanceScale(5)
+Cursor.Glow:SetDisplayInfo(41039)
+Cursor.Glow:SetRotation(1)
 
-Indicator.Group = Indicator:CreateAnimationGroup()
+Cursor.Group = Cursor:CreateAnimationGroup()
 
-Indicator.Scale1 = Indicator.Group:CreateAnimation("Scale")
-Indicator.Scale1:SetDuration(0.1)
-Indicator.Scale1:SetSmoothing("IN")
-Indicator.Scale1:SetOrder(1)
-Indicator.Scale1:SetOrigin("TOPLEFT", 0, 0)
+Cursor.Scale1 = Cursor.Group:CreateAnimation("Scale")
+Cursor.Scale1:SetDuration(0.1)
+Cursor.Scale1:SetSmoothing("IN")
+Cursor.Scale1:SetOrder(1)
+Cursor.Scale1:SetOrigin("TOPLEFT", 0, 0)
 
-Indicator.Scale2 = Indicator.Group:CreateAnimation("Scale")
-Indicator.Scale2:SetSmoothing("OUT")
-Indicator.Scale2:SetOrder(2)
-Indicator.Scale2:SetOrigin("TOPLEFT", 0, 0)
+Cursor.Scale2 = Cursor.Group:CreateAnimation("Scale")
+Cursor.Scale2:SetSmoothing("OUT")
+Cursor.Scale2:SetOrder(2)
+Cursor.Scale2:SetOrigin("TOPLEFT", 0, 0)
 
-function Indicator:Update(elapsed)
+function Cursor:Update(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
 		local node = UIHandle:GetAttribute("node")
@@ -251,8 +253,9 @@ function Indicator:Update(elapsed)
 						self.Scale2:SetScale(1/1.5, 1/1.5)
 						self.Scale2:SetDuration(0.2)
 					end
+					local x, y = frame:GetCenter()
 					self:ClearAllPoints()
-					self:SetPoint("TOPLEFT", frame, "CENTER", 0, 0)
+					self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
 					self.Group:Play()
 					self:SetAlpha(1)
 				end

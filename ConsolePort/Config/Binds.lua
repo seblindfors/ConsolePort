@@ -436,7 +436,7 @@ local function DynamicConfigButtonOnClick(self, mouseButton)
 				ConsolePort:SetRebinding(false)
 				ConsolePort:SetCurrentNode(self)
 				ConsolePort:SetButtonActionsUI()
-				ConsolePort:UIControl(nil, KEY.STATE_DOWN)
+				ConsolePort:UIControl()
 			end
 		end
 	end

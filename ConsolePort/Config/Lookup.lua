@@ -312,7 +312,6 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["ctrl"] = "CP_TL2",
 		["trigger1"] = "CP_TR1",
 		["trigger2"] = "CP_TR2",
-		["autoExtra"] = true,
 		["autoLootDefault"] = true,
 		["cameraDistanceMoveSpeed"] = true,
 	}
@@ -430,6 +429,7 @@ function ConsolePort:GetDefaultUIFrames()
 			"BankFrame",
 			"BasicScriptErrors",
 			"CharacterFrame",
+			"ChatConfigFrame",
 			"ChatMenu",
 			"CinematicFrameCloseDialog",
 			"ContainerFrame1",

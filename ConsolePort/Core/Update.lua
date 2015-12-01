@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- Update.lua: Update management
 ---------------------------------------------------------------
--- Keeps a stack of update snippets to run continously. 
+-- Keeps a stack of update snippets to run continuously. 
 -- Allows plug-ins to hook/unhook scripts on the main frame.
 
 local interval = 0.1

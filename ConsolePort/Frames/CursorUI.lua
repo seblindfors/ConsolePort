@@ -103,8 +103,16 @@ function Cursor:Animate()
 			self.Scale2:SetScale(1/1.25, 1/1.25)
 			self.Scale2:SetDuration(0.2)
 		end
+		self.Highlight:SetParent(self)
 		self.Group:Stop()
 		self.Group:Play()
+	end
+end
+
+function Cursor:OnFinished()
+	self = self:GetParent()
+	if current then
+		self.Highlight:SetParent(current.node)
 	end
 end
 
@@ -162,11 +170,31 @@ local function HasInteraction(node, object)
 	end
 end
 
+local function GetScrollFrame(node)
+	if node then
+		if node:IsObjectType("ScrollFrame") then
+			return node
+		else
+			return GetScrollFrame(node:GetParent())
+		end
+	end
+end
+
 local function IsNodeDrawn(node)
 	local x, y = node:GetCenter()
+	local scrollFrame = GetScrollFrame(node)
 	if 	x and x <= UIParent:GetWidth() and x >= 0 and
 		y and y <= UIParent:GetHeight() and y >= 0 then
-		return true
+		-- if the node is a scroll child and it's anchored inside the scroll frame
+		if scrollFrame and scrollFrame == GetScrollFrame(select(2, node:GetPoint())) then
+			local left, bottom, width, height = scrollFrame:GetRect()
+			if 	x > left and x < left+width and
+				y > bottom and y < bottom+height then
+				return true
+			end
+		else
+			return true
+		end
 	end
 end
 
@@ -187,38 +215,6 @@ local function GetNodes(node)
 		else
 			tinsert(nodes, {node = node, object = object, X = x, Y = y})
 		end
-	end
-end
-
-local function ClearNodes()
-	if current then
-		local node = current.node
-		local leave = node:GetScript("OnLeave")
-		Cursor:SetHighlight()
-		if leave then
-			leave(node)
-		end
-		old = current
-	end
-	wipe(nodes)
-end
-
-local function SetCurrent()
-	if old and old.node:IsVisible() and IsNodeDrawn(old.node) then
-		current = old
-	elseif (not current and nodes[1]) or (current and nodes[1] and not current.node:IsVisible()) then
-		current = nodes[1]
-	end
-end
-
-local function RefreshNodes(self)
-	if not InCombatLockdown() then
-		ClearNodes()
-		ClearOverrideBindings(Cursor)
-		for i, frame in pairs(self:GetFrameStack()) do
-			GetNodes(frame)
-		end
-		SetCurrent()
 	end
 end
 
@@ -252,17 +248,70 @@ local function FindClosestNode(key)
 	end
 end
 
+local function ClearNodes()
+	if current then
+		local node = current.node
+		local leave = node:GetScript("OnLeave")
+		Cursor:SetHighlight()
+		if leave then
+			leave(node)
+		end
+		old = current
+	end
+	wipe(nodes)
+end
+
+local function SetCurrent()
+	if old and old.node:IsVisible() and IsNodeDrawn(old.node) then
+		current = old
+	elseif (not current and #nodes > 0) or (current and #nodes > 0 and not current.node:IsVisible()) then
+		local x, y, targetNode = Cursor:GetCenter()
+		if not x or not y then
+			targetNode = nodes[1]
+		else
+			local targetDistance, targetParent, newDistance, newParent, newNode, hasPriority, swap
+			for i, node in pairs(nodes) do swap = false
+				newDistance = abs(x-node.X)+abs(y-node.Y)
+				newParent = node.node:GetParent()
+				-- if no target node exists yet, just assign it
+				if not targetNode then
+					swap = true
+				elseif node.node.hasPriority and not targetNode.node.hasPriority then
+					targetNode = node
+					break
+				elseif not targetNode.node.hasPriority and newDistance < targetDistance then
+					swap = true
+				end
+				if swap then
+					targetNode = node
+					targetDistance = newDistance
+					targetParent = newParent
+				end
+			end
+		end
+		current = targetNode
+	end
+end
+
+local function RefreshNodes(self)
+	if not InCombatLockdown() then
+		ClearNodes()
+		ClearOverrideBindings(Cursor)
+		for i, frame in pairs(self:GetFrameStack()) do
+			GetNodes(frame)
+		end
+		SetCurrent()
+	end
+end
+
 local function GetScrollButtons(node)
 	if node then
 		if node:IsObjectType("ScrollFrame") then
-			local up, down
 			for _, frame in pairs({node:GetChildren()}) do
 				if frame:IsObjectType("Slider") then
-					up, down = frame:GetChildren()
-					break
+					return frame:GetChildren()
 				end
 			end
-			return up, down
 		elseif node:IsObjectType("Slider") then
 			return node:GetChildren()
 		else
@@ -361,7 +410,7 @@ function Cursor:OnUpdate(elapsed)
 			current = nil
 			if 	not InCombatLockdown() and
 				ConsolePort:HasUIFocus()  then
-				ConsolePort:UIControl(nil, KEY.STATE_DOWN)
+				ConsolePort:UIControl()
 			end
 		end
 		self.Timer = self.Timer - 0.1
@@ -423,7 +472,7 @@ function ConsolePort:SetCurrentNode(UIobject)
 			break
 		end
 	end
-	self:UIControl(nil, KEY.STATE_DOWN)
+	self:UIControl()
 end
 
 ---------------------------------------------------------------
@@ -539,6 +588,7 @@ Cursor.Glow:SetDisplayInfo(41039)
 Cursor.Glow:SetRotation(1)
 
 Cursor.Group = Cursor:CreateAnimationGroup()
+Cursor.Group:SetScript("OnFinished", Cursor.OnFinished)
 
 Cursor.Scale1 = Cursor.Group:CreateAnimation("Scale")
 Cursor.Scale1:SetDuration(0.1)
