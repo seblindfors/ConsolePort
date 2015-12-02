@@ -4,24 +4,22 @@
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. Stack is processed in CursorUI.lua.
 
-local hasUIFocus = false
-
--- Frame stacks
-local visibleStack = {}
-local cursorStack = {}
+local visibleStack, hasUIFocus = {}
 
 local InCombatLockdown = InCombatLockdown
-local tinsert = tinsert
 local pairs = pairs
-local wipe = wipe
+local next = next
 
 -- Upvalue because of explicit use in hook scripts
 local ConsolePort = ConsolePort
 
+function ConsolePort:HasUIFocus() return hasUIFocus end
+function ConsolePort:SetUIFocus(focus) hasUIFocus = focus end
+
 -- Cursor will choose these nodes above all else,
 -- providing smart snap behaviour when searching
 -- for the most appropriate node to focus.
-local hasPriority = {
+for _, node in pairs({
 	ContainerFrame1Item16,
 	GossipTitleButton1,
 	HonorFrameSoloQueueButton,
@@ -36,37 +34,36 @@ local hasPriority = {
 	QuestTitleButton1,
 	QuestMapFrame.DetailsFrame.BackButton,
 	QuestScrollFrame.ViewAll,
-}
+}) do node.hasPriority = true end
 
 -- Cursor will ignore these nodes completely,
 -- since they are pointless or annoying to deal with.
-local ignoreNode = {
+for _, node in pairs({
 	LootFrameCloseButton,
 	WorldMapTitleButton,
 	WorldMapButton,
-}
+}) do node.ignoreNode = true end
 
-for _, node in pairs(hasPriority) do node.hasPriority = true end
-for _, node in pairs(ignoreNode) do node.ignoreNode = true end
-
--- Update the cursor state whenever a hooked
--- frame changes visibility. 
+-- Update the cursor state on visibility change.
+-- Check for point because frames can be visible but not drawn.
 local function FrameShow(self)
+	visibleStack[self] = self:GetPoint() and true or nil
 	ConsolePort:UpdateFrames()
 end
 
 local function FrameHide(self)
 	hasUIFocus = nil
+	visibleStack[self] = nil
 	ConsolePort:UpdateFrames()
 end
 
 function ConsolePort:AddFrame(frame)
 	local widget = _G[frame]
 	if widget then
-		if not cursorStack[widget] then
-			widget:HookScript("OnShow", FrameShow)
-			widget:HookScript("OnHide", FrameHide)
-			cursorStack[widget] = true
+		widget:HookScript("OnShow", FrameShow)
+		widget:HookScript("OnHide", FrameHide)
+		if widget:IsVisible() and widget:GetPoint() then
+			visibleStack[widget] = true
 		end
 		return true
 	else
@@ -87,60 +84,38 @@ end
 
 function ConsolePort:UpdateFrames()
 	if not InCombatLockdown() then
-		local defaultActions = true
 		self:UpdateFrameTracker(self)
-		for frame in pairs(cursorStack) do
-			if 	frame:IsVisible() and
-				frame:GetPoint() then
-				defaultActions = false
-				if not hasUIFocus then
-					hasUIFocus = true
-					self.Cursor:Show()
-					self:SetButtonActionsUI()
-					self:UIControl()
-				end
-				break
+		if next(visibleStack) then
+			if not hasUIFocus then
+				hasUIFocus = true
+				self.Cursor:Show()
+				self:SetButtonActionsUI()
+				self:UIControl()
 			end
-		end
-		if defaultActions then
+		else
 			self:SetButtonActionsDefault()
 		end
 	end
 end
 
-function ConsolePort:HasUIFocus()
-	return hasUIFocus
-end
-
-function ConsolePort:SetUIFocus(focus)
-	hasUIFocus = focus
-end
-
 -- Returns a stack of visible frames.
--- Uses the predefined cursor stack,
--- or UIParent when rebinding.
+-- Uses UIParent when rebinding.
 function ConsolePort:GetFrameStack()
-	wipe(visibleStack)
-	if ConsolePortRebindFrame:IsVisible() then
+	if self.rebindMode then
+		local rebindStack = {}
 		if ConsolePortRebindFrame.isRebinding then
 			for _, Frame in pairs({UIParent:GetChildren()}) do
-				if not Frame:IsForbidden() and
-					Frame:IsVisible() and
-					Frame ~= InterfaceOptionsFrame then
-					tinsert(visibleStack, Frame)
+				if not Frame:IsForbidden() and Frame:IsVisible() then
+					rebindStack[Frame] = true
 				end
 			end
 		end
-		tinsert(visibleStack, DropDownList1)
-		tinsert(visibleStack, DropDownList2)
-		tinsert(visibleStack, ConsolePortRebindFrame)
+		rebindStack[DropDownList1] = true
+		rebindStack[DropDownList2] = true
+		rebindStack[InterfaceOptionsFrame] = nil
+		rebindStack[ConsolePortRebindFrame] = true
+		return rebindStack
 	else
-		for frame in pairs(cursorStack) do
-			if 	frame:IsVisible() and 
-				frame:GetPoint() then
-				tinsert(visibleStack, frame)
-			end
-		end
+		return visibleStack
 	end
-	return visibleStack
 end

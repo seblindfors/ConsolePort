@@ -297,7 +297,7 @@ local function RefreshNodes(self)
 	if not InCombatLockdown() then
 		ClearNodes()
 		ClearOverrideBindings(Cursor)
-		for i, frame in pairs(self:GetFrameStack()) do
+		for frame in pairs(self:GetFrameStack()) do
 			GetNodes(frame)
 		end
 		SetCurrent()
@@ -432,6 +432,8 @@ function Cursor:PLAYER_REGEN_DISABLED()
 end
 
 function Cursor:PLAYER_REGEN_ENABLED()
+	self.Flash = true
+
 	FadeIn(self, 0.2, self:GetAlpha(), 1)
 end
 
@@ -454,10 +456,6 @@ end
 ---------------------------------------------------------------
 -- UIControl: Global node manipulation
 ---------------------------------------------------------------
-function ConsolePort:GetUIControlNodes()
-	return nodes
-end
-
 function ConsolePort:GetCurrentNode()
 	return current and current.node
 end

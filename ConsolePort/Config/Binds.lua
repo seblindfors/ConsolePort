@@ -749,9 +749,16 @@ tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "Binds", TUTORIAL.SIDEBAR, T
 
 	Binds.Rebind.SetButton = RebindSetButton
 	Binds.Rebind.Parent = Binds
-	Binds.Rebind:SetScript("OnHide", function (self) Binds.Tutorial:SetText(TUTORIAL.DEFAULT) ConsolePort:SetRebinding() end)
 	Binds.Rebind:RegisterEvent("PLAYER_REGEN_DISABLED")
 	Binds.Rebind:SetScript("OnEvent", Binds.Rebind.Hide)
+	Binds.Rebind:SetScript("OnHide", function (self)
+		Binds.Tutorial:SetText(TUTORIAL.DEFAULT)
+		ConsolePort:SetRebinding()
+		ConsolePort.rebindMode = nil
+	end)
+	Binds.Rebind:SetScript("OnShow", function (self)
+		ConsolePort.rebindMode = true
+	end)
 
 	Binds.Rebind.Close = CreateFrame("Button", "$parentCloseButton", Binds.Rebind)
 	Binds.Rebind.Close:SetNormalTexture("Interface\\Buttons\\UI-StopButton")

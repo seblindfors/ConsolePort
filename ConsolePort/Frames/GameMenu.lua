@@ -99,10 +99,9 @@ local function ConfigureMenu()
 	end)
 
 	local buttons = {
-		GameMenuButtonHelp,
+		GameMenuButtonController,
 		GameMenuButtonStore,
 		GameMenuButtonWhatsNew,
-		GameMenuButtonController,
 		GameMenuButtonOptions,
 		GameMenuButtonUIOptions,
 		GameMenuButtonKeybindings,
