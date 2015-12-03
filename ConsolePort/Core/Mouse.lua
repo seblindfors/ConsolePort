@@ -16,11 +16,16 @@ local Locker = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)
 Locker:SetPoint("CENTER", 0, 0)
 Locker:SetSize(70, 180)
 Locker:Hide()
+local UnLocker = CreateFrame("Frame", "ConsolePortMouseCenter")
+UnLocker:SetPoint("CENTER", 0 0)
+UnLocker:SetSize(3,3)
+UnLocker:Hide()
 
 local function MouseLookShouldStart()
 	if 	not SpellIsTargeting() 			and
 		not IsMouseButtonDown(1) 		and
 		not HasCursorItem() 			and
+		not MouseIsOver(UnLocker)	and
 		MouseIsOver(Locker) 			and
 		(GetMouseFocus() == WorldFrame) then
 		return true
