@@ -93,9 +93,7 @@ local function ConfigureMenu()
 	GameMenuButtonController:SetText(db.TUTORIAL.BIND.MENUHEADER)
 	GameMenuButtonController:SetScript("PreClick", PreClick)
 	GameMenuButtonController:SetScript("OnClick", function(self)
-		-- Need to call it twice
-		InterfaceOptionsFrame_OpenToCategory(db.Binds)
-		InterfaceOptionsFrame_OpenToCategory(db.Binds)
+		ConsolePortConfig:Show()
 	end)
 
 	local buttons = {
@@ -116,12 +114,16 @@ local function ConfigureMenu()
 		button:SetSize(167, 21)
 	end
 
-	GameMenuFrame:SetHeight(410)
+	GameMenuFrame:SetSize(196, 410)
 	GameMenuFrame:SetScript("OnShow", nil)
 	GameMenuButtonHelp:Hide()
 	GameMenuButtonController:SetPoint("CENTER", GameMenuFrame, "TOP", 0, -120)
 	GameMenuButtonStore:ClearAllPoints()
 	GameMenuButtonStore:SetPoint("TOP", GameMenuButtonController, "BOTTOM", 0, -1)
+
+	local cc = RAID_CLASS_COLORS[select(2, UnitClass("player"))]
+	GameMenuFrame:SetBackdrop(db.Atlas.Backdrops.Tooltip)
+	GameMenuFrame:SetBackdropColor(cc.r*0.1, cc.g*0.1, cc.b*0.1, 1)
 
 	ConfigureMenu = nil
 end

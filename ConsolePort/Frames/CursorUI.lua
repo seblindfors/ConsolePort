@@ -461,16 +461,18 @@ function ConsolePort:GetCurrentNode()
 end
 
 function ConsolePort:SetCurrentNode(UIobject)
-	RefreshNodes(self)
-	for i, node in pairs(nodes) do
-		if node.node == UIobject then
-			old = current
-			current = node
-			Cursor:SetPosition(node.node, node.object)
-			break
+	if not InCombatLockdown() then
+		RefreshNodes(self)
+		for i, node in pairs(nodes) do
+			if node.node == UIobject then
+				old = current
+				current = node
+				Cursor:SetPosition(node.node, node.object)
+				break
+			end
 		end
+		self:UIControl()
 	end
-	self:UIControl()
 end
 
 ---------------------------------------------------------------

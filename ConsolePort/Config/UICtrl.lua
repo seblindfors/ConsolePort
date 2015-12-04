@@ -6,13 +6,41 @@
 -- and may add custom frames from other addons.
 
 local addOn, db = ...
+local FadeIn = db.UIFrameFadeIn
+local FadeOut = db.UIFrameFadeOut
 local TUTORIAL = db.TUTORIAL.UICTRL
+local DefaultBackdrop = StaticPopup1:GetBackdrop()
+local Popup
+
+local function ShowPopup(...)
+	Popup = StaticPopup_Show(...)
+	Popup:EnableKeyboard(false)
+	Popup:SetBackdrop(db.Atlas.Backdrops.Full)
+	return Popup
+end
+
+local function ClearPopup()
+	if Popup then
+		Popup:SetBackdrop(DefaultBackdrop)
+		Popup = nil
+	end
+end
+
+local function GetOuterParent(node)
+	if node then
+		if node:GetParent() == UIParent then
+			return node
+		else
+			return GetOuterParent(node:GetParent())
+		end
+	end
+end
 ---------------------------------------------------------------
 -- UICtrl: UICtrl addons/frames scripts
 ---------------------------------------------------------------
 local function NewAddonOnClick(self)
 	local self = self:GetParent()
-	local dialog = StaticPopup_Show("CONSOLEPORT_ADDADDON")
+	local dialog = ShowPopup("CONSOLEPORT_ADDADDON")
 	if dialog then
 		dialog.data = self.AddonList
 	end
@@ -21,18 +49,22 @@ end
 local function NewFrameOnClick(self)
 	local self = self:GetParent()
 	if self.CurrentAddon then
-		local dialog = StaticPopup_Show("CONSOLEPORT_ADDFRAME", self.CurrentAddon:GetText())
+		local dialog = ShowPopup("CONSOLEPORT_ADDFRAME", self.CurrentAddon:GetText())
 		if dialog then
 			dialog.data = self.CurrentAddon
 		end
 	end
 end
 
+local function AddAddonOnClick(self)
+	ConsolePortUIFrames[self:GetParent():GetText()] = {}
+end
+
 local function RemoveAddonOnClick(self)
 	local self = self:GetParent()
 	local addonList = self.parent.AddonList
 	local addon = self:GetText()
-	local dialog = StaticPopup_Show("CONSOLEPORT_REMOVEADDON", addon)
+	local dialog = ShowPopup("CONSOLEPORT_REMOVEADDON", addon)
 	if dialog then
 		dialog.data = addonList
 		dialog.data2 = addon
@@ -44,7 +76,7 @@ local function RemoveFrameOnClick(self)
 	local frame = self:GetText()
 	local owner = self.owner
 	local addon = owner:GetText()
-	local dialog = StaticPopup_Show("CONSOLEPORT_REMOVEFRAME", frame, addon)
+	local dialog = ShowPopup("CONSOLEPORT_REMOVEFRAME", frame, addon)
 	if dialog then
 		dialog.data = self
 		dialog.data2 = owner
@@ -54,19 +86,20 @@ end
 ---------------------------------------------------------------
 -- UICtrl: UICtrl addons and frames
 ---------------------------------------------------------------
-local function CreateUICtrlConfigButton(parent, num, clickScript, removeScript)
+local function CreateUICtrlConfigButton(parent, num, clickScript)
 	local button = CreateFrame("Button", "$parentButton"..num, parent, "OptionsListButtonTemplate")
 	button:SetHeight(24)
 	button:SetScript("OnClick", clickScript)
-	button.Remove = CreateFrame("Button", "$parentRemove", button)
-	button.Remove:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
-	button.Remove:SetSize(14, 14)
-	button.Remove:SetPoint("RIGHT", button, "RIGHT", -8, 0)
-	button.Remove:SetAlpha(0.5)
-	button.Remove:SetScript("OnClick", removeScript)
+	button.text:ClearAllPoints()
+	button.text:SetPoint("LEFT", 24, 0)
+	button.Alter = CreateFrame("Button", "$parentAlter", button)
+	button.Alter:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
+	button.Alter:SetSize(14, 14)
+	button.Alter:SetPoint("RIGHT", button, "RIGHT", -8, 0)
+	button.Alter:SetAlpha(0.5)
 	button.Loaded = button:CreateTexture()
 	button.Loaded:SetSize(16, 16)
-	button.Loaded:SetPoint("LEFT", button.Remove, "RIGHT", -2, -1)
+	button.Loaded:SetPoint("LEFT", 0, 0)
 	button.Loaded:SetAlpha(0.5)
 	tinsert(parent.Buttons, button)
 	if num == 1 then
@@ -98,11 +131,18 @@ local function RefreshFrameList(self)
 	local frameButtons = self.parent.FrameList.Buttons
 	local frameList = self.parent.FrameList
 
-	self.parent.NewFrame:SetButtonState("NORMAL")
-	self.parent.CurrentAddon = self
+	self.parent.NewFrame:Show()
+	self.parent.NewMouseover:Show()
+	self.parent.FrameScroll:Show()
+	self.parent.FrameWrap:Show()
+	self.parent.FrameListText:Show()
+	self.parent.TutorialFrame:Hide()
 
-	local header = self.parent.FrameListText
-	header:SetText(format(TUTORIAL.FRAMELISTFORMAT, self:GetText()))
+	self.parent.CurrentAddon = self
+	self.parent.NewMouseover.Addon = self:GetText()
+
+	self.parent.FrameListText:SetText(format(TUTORIAL.FRAMELISTFORMAT, self:GetText()))
+	self.parent.NewFrame:SetText(format(TUTORIAL.NEWFRAME, self:GetText()))
 
 	for i, button in pairs(addonButtons) do
 		button:UnlockHighlight()
@@ -119,7 +159,8 @@ local function RefreshFrameList(self)
 		num = num + 1
 		local button
 		if not frameButtons[num] then
-			button = CreateUICtrlConfigButton(frameList, num, nil, RemoveFrameOnClick)
+			button = CreateUICtrlConfigButton(frameList, num)
+			button.Alter:SetScript("OnClick", RemoveFrameOnClick)
 		else
 			button = frameButtons[num]
 		end
@@ -134,17 +175,29 @@ local function RefreshFrameList(self)
 end
 
 local function RefreshAddonList(self)
-	local list = ConsolePortUIFrames
+	local UIFrames, list = ConsolePortUIFrames, {}
 	for i, button in pairs(self.Buttons) do
 		button:Hide()
 	end
 
+	for addon, frames in db.pairsByKeys(UIFrames) do
+		list[addon] = frames
+	end
+
+	for i=1, GetNumAddOns() do
+		local name = GetAddOnInfo(i)
+		if not list[name] then
+			list[name] = {}
+		end
+	end
+
 	local num = 0
+
 	for addon, frames in db.pairsByKeys(list) do
 		num = num + 1
 		local button
 		if not self.Buttons[num] then
-			button = CreateUICtrlConfigButton(self, num, RefreshFrameList, RemoveAddonOnClick)
+			button = CreateUICtrlConfigButton(self, num)
 			button.parent = self.parent
 		else
 			button = self.Buttons[num]
@@ -154,10 +207,28 @@ local function RefreshAddonList(self)
 		else
 			button.Loaded:SetTexture("Interface\\FriendsFrame\\StatusIcon-Offline")
 		end
+		if UIFrames[addon] then
+			button:SetScript("OnClick", RefreshFrameList)
+			button.Alter:SetScript("OnClick", RemoveAddonOnClick)
+			button.Alter:SetNormalTexture("Interface\\Buttons\\UI-GroupLoot-Pass-Up")
+		else
+			button:SetScript("OnClick", function() RefreshAddonList(self) end)
+			button.Alter:SetScript("OnClick", AddAddonOnClick)
+			button.Alter:HookScript("OnClick", function() RefreshAddonList(self) end)
+			button.Alter:SetNormalTexture("Interface\\PaperDollInfoFrame\\Character-Plus")
+		end
 		button:Show()
 		button:SetText(addon)
 		button.list = frames
 	end
+
+	self.parent.NewFrame:Hide()
+	self.parent.NewMouseover:Hide()
+	self.parent.FrameScroll:Hide()
+	self.parent.FrameWrap:Hide()
+	self.parent.FrameListText:Hide()
+	self.parent.TutorialFrame:Show()
+
 	self:SetHeight(num*24)
 	self:RegisterEvent("ADDON_LOADED")
 end
@@ -185,15 +256,6 @@ local function AddFramePopupAccept(self, addonButton)
 	ConsolePort:CheckLoadedAddons()
 end
 
-local function AddAddonPopupAccept(self, addonList)
-	local list = ConsolePortUIFrames
-	local addon = self.editBox:GetText():trim()
-	if not list[addon] then
-		list[addon] = {}
-	end
-	RefreshAddonList(addonList)
-end
-
 local function RemoveAddonPopupAccept(self, addonList, addon)
 	local list = ConsolePortUIFrames
 	list[addon] = nil
@@ -215,6 +277,44 @@ local function RemoveFramePopupAccept(self, frame, addon)
 end
 
 ---------------------------------------------------------------
+-- UICtrl: Mouseover frame catcher
+---------------------------------------------------------------
+local function NewMouseoverOnClick(self)
+	if self.MouseOver then
+		local list = ConsolePortUIFrames[self.Addon]
+		local exists
+		for i, frame in pairs(list) do
+			if frame == self.MouseOver then
+				exists = true
+				break
+			end
+		end
+		if not exists then
+			tinsert(list, self.MouseOver)
+		end
+		RefreshFrameList(self:GetParent().CurrentAddon)
+		ConsolePort:CheckLoadedAddons()
+	end
+end
+
+local timer, mouseFocus, outerParent = 0
+local function NewMouseoverUpdate(self, elapsed)
+	timer = timer + elapsed
+	if timer > 0.1 then
+		mouseFocus = GetMouseFocus()
+		outerParent = mouseFocus ~= WorldFrame and GetOuterParent(mouseFocus)
+		if outerParent and outerParent ~= ConsolePortConfig and outerParent:IsMouseEnabled() and outerParent:GetName() then
+			self.MouseOver = outerParent:GetName()
+			self:SetText(format(TUTORIAL.MOUSEOVERVALID, self.MouseOver, self.Addon))
+		else
+			self.MouseOver = nil
+			self:SetText(TUTORIAL.MOUSEOVERINVALID)
+		end
+		timer = 0
+	end
+end
+
+---------------------------------------------------------------
 -- UICtrl: Default function
 ---------------------------------------------------------------
 local function LoadDefaultUICtrl(self)
@@ -222,7 +322,7 @@ local function LoadDefaultUICtrl(self)
 	RefreshAddonList(self.AddonList)
 end
 
-tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "UICtrl", TUTORIAL.SIDEBAR, TUTORIAL.HEADER, false, false, LoadDefaultUICtrl, function(self, UICtrl)
+tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultUICtrl, function(self, UICtrl)
 	UICtrl.AddonList = CreateFrame("Frame", "$parentAddonList", UICtrl)
 	UICtrl.AddonList:SetSize(260, 1000)
 	UICtrl.AddonList.parent = UICtrl
@@ -231,24 +331,51 @@ tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "UICtrl", TUTORIAL.SIDEBAR, 
 	UICtrl.AddonList:SetScript("OnEvent", RefreshAddonList)
 	UICtrl.AddonList:SetScript("OnHide", UICtrl.AddonList.UnregisterAllEvents)
 
+	UICtrl.TutorialFrame = db.Atlas.GetGlassWindow("$parentTutorialFrame", UICtrl, nil, true)
+	UICtrl.TutorialFrame:SetBackdrop(db.Atlas.Backdrops.Border)
+	UICtrl.TutorialFrame:SetSize(500, 300)
+	UICtrl.TutorialFrame:SetPoint("CENTER", 150, 0)
+	UICtrl.TutorialFrame.Close:Hide()
+	UICtrl.TutorialFrame.BG:SetAlpha(0.1)
+	UICtrl.TutorialFrame:SetScript("OnShow", function(self)
+		FadeIn(self, 0.5, 0, 1)
+	end)
+
+	UICtrl.TutorialFrame.Text = UICtrl.TutorialFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	UICtrl.TutorialFrame.Text:SetPoint("BOTTOM", UICtrl.TutorialFrame, 0, 56)
+	UICtrl.TutorialFrame.Text:SetText(TUTORIAL.TUTORIALFRAME)
+
+	UICtrl.TutorialFrame.Background = UICtrl.TutorialFrame:CreateTexture("$parentBackground" ,"ARTWORK")
+	UICtrl.TutorialFrame.Background:SetPoint("CENTER", 0, 0)
+	UICtrl.TutorialFrame.Background:SetTexture("Interface\\TUTORIALFRAME\\UI-TutorialFrame-Spellbook")
+	UICtrl.TutorialFrame.Background:SetSize(256, 256)
+
 	UICtrl.AddonScroll = CreateFrame("ScrollFrame", "$parentAddonScrollFrame", UICtrl, "UIPanelScrollFrameTemplate")
-	UICtrl.AddonScroll:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 16, -64)
-	UICtrl.AddonScroll:SetPoint("BOTTOMRIGHT", UICtrl, "BOTTOM", -32, 46)
+	UICtrl.AddonScroll:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 16, -40)
+	UICtrl.AddonScroll:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOMLEFT", 16, 16)
+	UICtrl.AddonScroll:SetWidth(260)
 	UICtrl.AddonScroll:SetScrollChild(UICtrl.AddonList)
 
-	UICtrl.AddonWrap = CreateFrame("Frame", "$parentAddonWrap", UICtrl, "InsetFrameTemplate3")
-	UICtrl.AddonWrap:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 14, -60)
-	UICtrl.AddonWrap:SetPoint("BOTTOMRIGHT", UICtrl, "BOTTOM", -32, 42)
+	UICtrl.AddonScroll.ScrollBar.scrollStep = 64
+	UICtrl.AddonScroll.ScrollBar:ClearAllPoints()
+	UICtrl.AddonScroll.ScrollBar:SetPoint("TOPLEFT", UICtrl.AddonScroll, "TOPRIGHT", 0, 0)
+	UICtrl.AddonScroll.ScrollBar:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "BOTTOMRIGHT", 0, 0)
+	UICtrl.AddonScroll.ScrollBar.Thumb = UICtrl.AddonScroll.ScrollBar:GetThumbTexture()
+	UICtrl.AddonScroll.ScrollBar.Thumb:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Thumb")
+	UICtrl.AddonScroll.ScrollBar.Thumb:SetTexCoord(0, 1, 0, 1)
+	UICtrl.AddonScroll.ScrollBar.Thumb:SetSize(18, 34)
+	UICtrl.AddonScroll.ScrollBar.ScrollUpButton:SetAlpha(0)
+	UICtrl.AddonScroll.ScrollBar.ScrollDownButton:SetAlpha(0)
+
+	UICtrl.AddonWrap = CreateFrame("Frame", "$parentAddonWrap", UICtrl)
+	UICtrl.AddonWrap:SetBackdrop(db.Atlas.Backdrops.Border)
+	UICtrl.AddonWrap:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 8, -32)
+	UICtrl.AddonWrap:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOMLEFT", 8, 8)
+	UICtrl.AddonWrap:SetWidth(300)
 
 	UICtrl.AddonListText = UICtrl:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	UICtrl.AddonListText:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "TOPLEFT", 0, 8)
+	UICtrl.AddonListText:SetPoint("BOTTOMLEFT", UICtrl.AddonWrap, "TOPLEFT", 8, 0)
 	UICtrl.AddonListText:SetText(TUTORIAL.ADDONLISTHEADER)
-
-	UICtrl.NewAddon = CreateFrame("BUTTON", "$parentNewAddonButton", UICtrl, "UIPanelButtonTemplate")
-	UICtrl.NewAddon:SetPoint("TOPLEFT", UICtrl.AddonScroll, "BOTTOMLEFT", 0, -12)
-	UICtrl.NewAddon:SetWidth(100)
-	UICtrl.NewAddon:SetText(TUTORIAL.NEWADDON)
-	UICtrl.NewAddon:SetScript("OnClick", NewAddonOnClick)
 
 	UICtrl.FrameList = CreateFrame("Frame", "$parentFrameList", UICtrl)
 	UICtrl.FrameList:RegisterEvent("ADDON_LOADED")
@@ -258,39 +385,45 @@ tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "UICtrl", TUTORIAL.SIDEBAR, 
 	UICtrl.FrameList.Buttons = {}
 
 	UICtrl.FrameScroll = CreateFrame("ScrollFrame", "$parentFrameScrollFrame", UICtrl, "UIPanelScrollFrameTemplate")
-	UICtrl.FrameScroll:SetPoint("TOPRIGHT", UICtrl, "TOPRIGHT", -48, -64)
-	UICtrl.FrameScroll:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOM", 0, 46)
+	UICtrl.FrameScroll:SetPoint("TOPLEFT", UICtrl.AddonScroll, "TOPRIGHT", 40, 0)
+	UICtrl.FrameScroll:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "BOTTOMRIGHT", 40, 0)
 	UICtrl.FrameScroll:SetScrollChild(UICtrl.FrameList)
+	UICtrl.FrameScroll:SetWidth(260)
 
-	UICtrl.FrameWrap = CreateFrame("Frame", "$parentFrameWrap", UICtrl, "InsetFrameTemplate3")
-	UICtrl.FrameWrap:SetPoint("TOPRIGHT", UICtrl, "TOPRIGHT", -48, -60)
-	UICtrl.FrameWrap:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOM", -4, 42)
+	UICtrl.FrameScroll.ScrollBar.scrollStep = 64
+	UICtrl.FrameScroll.ScrollBar:ClearAllPoints()
+	UICtrl.FrameScroll.ScrollBar:SetPoint("TOPLEFT", UICtrl.FrameScroll, "TOPRIGHT", 0, 0)
+	UICtrl.FrameScroll.ScrollBar:SetPoint("BOTTOMLEFT", UICtrl.FrameScroll, "BOTTOMRIGHT", 0, 0)
+	UICtrl.FrameScroll.ScrollBar.Thumb = UICtrl.FrameScroll.ScrollBar:GetThumbTexture()
+	UICtrl.FrameScroll.ScrollBar.Thumb:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Thumb")
+	UICtrl.FrameScroll.ScrollBar.Thumb:SetTexCoord(0, 1, 0, 1)
+	UICtrl.FrameScroll.ScrollBar.Thumb:SetSize(18, 34)
+	UICtrl.FrameScroll.ScrollBar.ScrollUpButton:SetAlpha(0)
+	UICtrl.FrameScroll.ScrollBar.ScrollDownButton:SetAlpha(0)
+
+	UICtrl.FrameWrap = CreateFrame("Frame", "$parentFrameWrap", UICtrl)
+	UICtrl.FrameWrap:SetBackdrop(db.Atlas.Backdrops.Border)
+	UICtrl.FrameWrap:SetPoint("TOPLEFT", UICtrl.AddonWrap, "TOPRIGHT", 0, 0)
+	UICtrl.FrameWrap:SetPoint("BOTTOMLEFT", UICtrl.AddonWrap, "BOTTOMRIGHT", 0, 0)
+	UICtrl.FrameWrap:SetWidth(300)
 
 	UICtrl.FrameListText = UICtrl:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	UICtrl.FrameListText:SetPoint("BOTTOMLEFT", UICtrl.FrameScroll, "TOPLEFT", 0, 8)
 	UICtrl.FrameListText:SetText(TUTORIAL.FRAMELISTHEADER)
 
-	UICtrl.NewFrame = CreateFrame("BUTTON", "$parentNewFrameButton", UICtrl, "UIPanelButtonTemplate")
-	UICtrl.NewFrame:SetPoint("TOPLEFT", UICtrl.FrameScroll, "BOTTOMLEFT", 0, -12)
-	UICtrl.NewFrame:SetWidth(100)
+	UICtrl.NewFrame = db.Atlas.GetFutureButton("$parentNewFrameButton", UICtrl, nil, nil, 358, 50)
+	UICtrl.NewFrame:SetPoint("RIGHT", UICtrl, "RIGHT", -16, 33)
 	UICtrl.NewFrame:SetText(TUTORIAL.NEWFRAME)
-	UICtrl.NewFrame:SetButtonState("DISABLED")
 	UICtrl.NewFrame:SetScript("OnClick", NewFrameOnClick)
+	UICtrl.NewFrame:Hide()
 
-	StaticPopupDialogs["CONSOLEPORT_ADDADDON"] = {
-		text = TUTORIAL.ADDADDON,
-		button1 = TUTORIAL.ADD,
-		button2 = TUTORIAL.CANCEL,
-		showAlert = true,
-		hasEditBox = true,
-		timeout = 0,
-		whileDead = true,
-		hideOnEscape = true,
-		preferredIndex = 3,
-		enterClicksFirstButton = true,
-		exclusive = true,
-		OnAccept = AddAddonPopupAccept,
-	}
+	UICtrl.NewMouseover = db.Atlas.GetFutureButton("$parentNewFrameButton", UICtrl, nil, nil, 358, 50)
+	UICtrl.NewMouseover:SetPoint("TOP", UICtrl.NewFrame, "BOTTOM", 0, -16)
+	UICtrl.NewMouseover:SetText(TUTORIAL.MOUSEOVERINVALID)
+	UICtrl.NewMouseover:SetScript("OnUpdate", NewMouseoverUpdate)
+	UICtrl.NewMouseover:SetScript("OnClick", NewMouseoverOnClick)
+	UICtrl.NewMouseover.Timer = 0
+	UICtrl.NewMouseover:Hide()
 
 	StaticPopupDialogs["CONSOLEPORT_ADDFRAME"] = {
 		text = TUTORIAL.ADDFRAME,
@@ -304,7 +437,8 @@ tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "UICtrl", TUTORIAL.SIDEBAR, 
 		preferredIndex = 3,
 		enterClicksFirstButton = true,
 		exclusive = true,
-		OnAccept = AddFramePopupAccept
+		OnAccept = AddFramePopupAccept,
+		OnCancel = ClearPopup,
 	}
 
 	StaticPopupDialogs["CONSOLEPORT_REMOVEFRAME"] = {
@@ -318,7 +452,8 @@ tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "UICtrl", TUTORIAL.SIDEBAR, 
 		preferredIndex = 3,
 		enterClicksFirstButton = true,
 		exclusive = true,
-		OnAccept = RemoveFramePopupAccept
+		OnAccept = RemoveFramePopupAccept,
+		OnCancel = ClearPopup,
 	}
 
 	StaticPopupDialogs["CONSOLEPORT_REMOVEADDON"] = {
@@ -332,6 +467,7 @@ tinsert(db.Panels, {"ConsolePortConfigFrameConfig", "UICtrl", TUTORIAL.SIDEBAR, 
 		preferredIndex = 3,
 		enterClicksFirstButton = true,
 		exclusive = true,
-		OnAccept =  RemoveAddonPopupAccept
+		OnAccept =  RemoveAddonPopupAccept,
+		OnCancel = ClearPopup,
 	}
 end})

@@ -112,7 +112,7 @@ function ConsolePort:GetFrameStack()
 		end
 		rebindStack[DropDownList1] = true
 		rebindStack[DropDownList2] = true
-		rebindStack[InterfaceOptionsFrame] = nil
+		rebindStack[ConsolePortConfig] = nil
 		rebindStack[ConsolePortRebindFrame] = true
 		return rebindStack
 	else

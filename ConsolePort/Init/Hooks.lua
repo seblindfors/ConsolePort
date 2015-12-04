@@ -8,10 +8,6 @@
 local _, db = ...
 
 function ConsolePort:LoadHookScripts()
-	InterfaceOptionsFrame:SetMovable(true)
-	InterfaceOptionsFrame:RegisterForDrag("LeftButton")
-	InterfaceOptionsFrame:HookScript("OnDragStart", InterfaceOptionsFrame.StartMoving)
-	InterfaceOptionsFrame:HookScript("OnDragStop", InterfaceOptionsFrame.StopMovingOrSizing)
 	-- Click instruction hooks. Pending removal for cleaner solution
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
 		local owner = self:GetOwner()

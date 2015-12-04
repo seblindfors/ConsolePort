@@ -24,6 +24,7 @@ local VERSION = v1*10000+v2*100+v3
 ---------------------------------------------------------------
 db.TEXTURE 	= {}
 db.SECURE 	= {}
+db.PANELS 	= {}
 ---------------------------------------------------------------
 -- Plug-in access to addon table
 ---------------------------------------------------------------
@@ -85,7 +86,7 @@ function ConsolePort:LoadSettings()
 	local SLASH = db.TUTORIAL.SLASH
 
 	local function ShowSplash() ConsolePort:CreateSplashFrame() end
-	local function ShowBinds() for i=1, 2 do InterfaceOptionsFrame_OpenToCategory(db.Binds) end end
+	local function ShowBinds() for i=1, 2 do ConsolePortConfig:OpenCategory(2) end end
 
 	local function ResetAll()
 		if not InCombatLockdown() then

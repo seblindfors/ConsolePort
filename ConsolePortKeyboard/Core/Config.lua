@@ -33,9 +33,7 @@ local function DiscardKeyboardConfig()
 	NewLayout = nil
 end
 
-function Keyboard:CreateConfig()
-	local Config = db.CreatePanel(ConsolePortConfigFrameConfig, "Keyboard", "Keyboard", "Keyboard settings", SaveKeyboardConfig, DiscardKeyboardConfig, LoadDefaultKeyboardConfig)
-
+local function ConfigureConfig(self, Config)
 	Config:SetScript("OnShow", function(self)
 		Keyboard:SetEnabled(false)
 	end)
@@ -77,7 +75,7 @@ function Keyboard:CreateConfig()
 				Field.Update = UpdateField
 				Field:SetSize(50, 16)
 				Field:SetAutoFocus(false)
-				Field:SetPoint("TOPRIGHT", Config, "TOPRIGHT", ((index-1)*60)-184, -((setIndex-1)*4*17.5 + btnIndex*16)+10)
+				Field:SetPoint("TOPRIGHT", Config, "TOPRIGHT", ((index-1)*60)-200, -((setIndex-1)*4*17.5 + btnIndex*16))
 				Field:SetFont("Interface\\AddOns\\ConsolePortKeyboard\\Fonts\\arial.TTF", 14)
 				Field:SetTextColor(red/255, green/255, blue/255, 1)
 				Field:SetText(string)
@@ -129,4 +127,8 @@ function Keyboard:CreateConfig()
 			end
 		end
 	end
+end
+
+function Keyboard:CreateConfig()
+	ConsolePortConfig:AddPanel("Keyboard", "Keyboard", nil, SaveKeyboardConfig, DiscardKeyboardConfig, LoadDefaultKeyboardConfig, ConfigureConfig)
 end

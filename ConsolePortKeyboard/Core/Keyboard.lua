@@ -157,6 +157,7 @@ function Keyboard:SetLayout()
 	local layout = ConsolePortKeyboardSettings.Layout
 	for i, Set in pairs(self.Sets) do
 		for j, Char in pairs(Set.Buttons) do
+			if i > 8 then break end
 			Char.Set[1] = layout[i][j][1]
 			Char.Set[2] = layout[i][j][2]
 			Char.Set[3] = layout[i][j][3]
