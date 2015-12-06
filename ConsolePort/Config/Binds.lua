@@ -262,6 +262,7 @@ local function ChangeButtonBinding(actionButton)
 
 			local mod = GetBindingModifier(modifier)
 
+			-- specific to the list of bindings
 			if isStatic then
 				local text = _G[BIND..focusFrame.Binding] or focusFrame.Binding
 				for bindName, bindTable in pairs(NewBindingSet) do
@@ -282,11 +283,11 @@ local function ChangeButtonBinding(actionButton)
 				actionButton.action = nil
 				confButton:SetText(text)
 				isValid = text
-			else
+			else -- action buttons, interface buttons
 				local newAction = focusFrame:GetAttribute("action") or focusFrame.action or focusFrame
 
 				local actionBinding = ConsolePort:GetActionBinding(newAction)
-				if actionBinding then
+				if actionBinding then -- item is an action button
 					local text = _G[BIND..actionBinding] or focusFrameName
 					for bindName, bindTable in pairs(NewBindingSet) do
 						for bindMod, bindAction in pairs(bindTable) do
@@ -306,13 +307,19 @@ local function ChangeButtonBinding(actionButton)
 					actionButton.action = nil
 					confButton:SetText(text)
 					isValid = text
-				else
+				else -- item is a non-action interface button
 					NewBindingSet[tableIndex][mod] = "CLICK "..buttonName..":LeftButton"
 					NewBindingButtons[tableIndex][mod] = focusFrameName
 					confButton:SetText(focusFrameName)
 					isValid = focusFrameName
 				end
 
+			end
+
+			-- don't add swap info if the binding was swapped to itself
+			if swapIndex and swapIndex == tableIndex and swapMod == mod then
+				swapIndex = nil
+				swapText = nil
 			end
 
 			AnimateBindingChange(focusFrame, confButton)

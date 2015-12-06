@@ -11,8 +11,11 @@ local KEY 		= db.KEY
 local SECURE 	= db.SECURE
 local TEXTURE 	= db.TEXTURE
 local L1, L2 	= "CP_TL1", "CP_TL2"
+---------------------------------------------------------------
+local MAX_WIDTH, MAX_HEIGHT
+---------------------------------------------------------------
 local nodes, current, old, rebindNode = {}
-
+---------------------------------------------------------------
 -- Upvalue functions since they are used very frequently.
 local SetOverrideBindingClick = SetOverrideBindingClick
 local ClearOverrideBindings = ClearOverrideBindings
@@ -20,19 +23,17 @@ local InCombatLockdown = InCombatLockdown
 local PlaySound = PlaySound
 local FadeOut = db.UIFrameFadeOut
 local FadeIn = db.UIFrameFadeIn
--- Table stuff
+---------------------------------------------------------------
 local tinsert = tinsert
 local ipairs = ipairs
 local pairs = pairs
 local wipe = wipe
--- Widgets
+---------------------------------------------------------------
 local ConsolePort = ConsolePort
-local UIParent = UIParent
-
+---------------------------------------------------------------
 -- Initiate the cursor frame
 local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
 ConsolePort.Cursor = Cursor
-
 ---------------------------------------------------------------
 -- UIControl: Wrappers for overriding click bindings
 ---------------------------------------------------------------
@@ -183,8 +184,8 @@ end
 local function IsNodeDrawn(node)
 	local x, y = node:GetCenter()
 	local scrollFrame = GetScrollFrame(node)
-	if 	x and x <= UIParent:GetWidth() and x >= 0 and
-		y and y <= UIParent:GetHeight() and y >= 0 then
+	if 	x and x <= MAX_WIDTH and x >= 0 and
+		y and y <= MAX_HEIGHT and y >= 0 then
 		-- if the node is a scroll child and it's anchored inside the scroll frame
 		if scrollFrame and scrollFrame == GetScrollFrame(select(2, node:GetPoint())) then
 			local left, bottom, width, height = scrollFrame:GetRect()
@@ -209,11 +210,10 @@ local function GetNodes(node)
 		end
 	end
 	if 	HasInteraction(node, object) and IsNodeDrawn(node) then
-		local x, y = node:GetCenter()
 		if node.hasPriority then
-			tinsert(nodes, 1, {node = node, object = object, X = x, Y = y})
+			tinsert(nodes, 1, {node = node, object = object})
 		else
-			tinsert(nodes, {node = node, object = object, X = x, Y = y})
+			tinsert(nodes, {node = node, object = object})
 		end
 	end
 end
@@ -233,10 +233,8 @@ local function FindClosestNode(key)
 			local thisX, thisY = current.node:GetCenter()
 			local nodeX, nodeY = 10000, 10000
 			for i, destination in ipairs(nodes) do
-				destX = destination.X
-				destY = destination.Y
-				horz = abs(thisX-destX)
-				vert = abs(thisY-destY)
+				destX, destY = destination.node:GetCenter()
+				horz, vert = abs(thisX-destX), abs(thisY-destY)
 				if 	horz + vert < nodeX + nodeY and
 					SwapFunc(destY, destX, vert, horz, thisX, thisY) then
 					nodeX = horz
@@ -269,9 +267,10 @@ local function SetCurrent()
 		if not x or not y then
 			targetNode = nodes[1]
 		else
-			local targetDistance, targetParent, newDistance, newParent, newNode, hasPriority, swap
+			local targetDistance, targetParent, newDistance, newParent, swap, nodeX, nodeY
 			for i, node in pairs(nodes) do swap = false
-				newDistance = abs(x-node.X)+abs(y-node.Y)
+				nodeX, nodeY = node.node:GetCenter()
+				newDistance = abs(x-nodeX)+abs(y-nodeY)
 				newParent = node.node:GetParent()
 				-- if no target node exists yet, just assign it
 				if not targetNode then
@@ -437,6 +436,11 @@ function Cursor:PLAYER_REGEN_ENABLED()
 	FadeIn(self, 0.2, self:GetAlpha(), 1)
 end
 
+function Cursor:PLAYER_ENTERING_WORLD()
+	MAX_WIDTH, MAX_HEIGHT = UIParent:GetSize()
+	self:UnregisterEvent("PLAYER_ENTERING_WORLD")
+end
+
 function Cursor:MODIFIER_STATE_CHANGED()
 	if not InCombatLockdown() then
 		if 	current and
@@ -460,15 +464,20 @@ function ConsolePort:GetCurrentNode()
 	return current and current.node
 end
 
-function ConsolePort:SetCurrentNode(UIobject)
+function ConsolePort:SetCurrentNode(node)
 	if not InCombatLockdown() then
-		RefreshNodes(self)
-		for i, node in pairs(nodes) do
-			if node.node == UIobject then
+		if node then
+			local object = node:GetObjectType()
+			if 	HasInteraction(node, object) and IsNodeDrawn(node) then
+				local x, y = node:GetCenter()
 				old = current
-				current = node
-				Cursor:SetPosition(node.node, node.object)
-				break
+				current = {
+					node = node,
+					object = object,
+					X = x,
+					Y = y,
+				}
+				Cursor:SetPosition(current.node, current.object)
 			end
 		end
 		self:UIControl()
@@ -556,6 +565,7 @@ function ConsolePort:SetupCursor()
 	Cursor:RegisterEvent("MODIFIER_STATE_CHANGED")
 	Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
 	Cursor:RegisterEvent("PLAYER_REGEN_ENABLED")
+	Cursor:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
 
 Cursor.Modifiers = {

@@ -224,7 +224,9 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
 	self.Overlay:SetAlpha(0.1)
 
 	self:HookScript("OnShow", function(self)
-		local specTexture = db.Atlas.Overlays[class][GetSpecializationInfo(GetSpecialization())]
+		local spec = GetSpecialization()
+		local specInfo = spec and GetSpecializationInfo(spec)
+		local specTexture = specInfo and db.Atlas.Overlays[class][specInfo]
 		if specTexture then
 			self.Overlay:SetTexture("Interface\\TALENTFRAME\\"..specTexture)
 			self.Overlay:SetTexCoord(0, 1, 0, 0.64453125)

@@ -187,6 +187,7 @@ function Popup:SetPopup(header, frame, button1, button2)
 	self.Button2:SetText(button2:GetText())
 	self:Show()
 	self.frame = frame
+	ConsolePort:SetCurrentNode(self.Close)
 end
 
 function Popup:SetSelection(value)

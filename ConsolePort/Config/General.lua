@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- Config.lua: Base config, reset buttons, triggers, cvars
+-- General.lua: Base config, reset buttons, triggers, cvars
 ---------------------------------------------------------------
 -- Creates the base config panel and account-wide cvar options.
 -- Provides a template function for convenient panel creation.
@@ -91,7 +91,7 @@ local function GetMouseSettings()
 end
 
 ---------------------------------------------------------------
--- Config: Save general addon CVars.
+-- Config/Mouse: Save general addon CVars.
 ---------------------------------------------------------------
 local function SaveGeneralConfig(self)
 	local needReload = false
