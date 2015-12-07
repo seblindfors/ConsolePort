@@ -77,6 +77,8 @@ db.Atlas.Overlays = {
 	DEMONHUNTER		= {}--{[000] = "bg-demonhunter-", 			[000] = "bg-demonhunter-"},
 }
 ---------------------------------------------------------------
+db.Atlas.GetCC = function() return cc.r, cc.g, cc.b end
+---------------------------------------------------------------
 db.Atlas.SetGlassStyle = function(self, classColored, alpha)
 	self:SetBackdrop(db.Atlas.Backdrops.Border)
 	self.BG = self.BG or self:CreateTexture(nil, "BACKGROUND")

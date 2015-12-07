@@ -142,7 +142,7 @@ function Keyboard:CreateCharset(i)
 
 		local red, green, blue = Hex2RGB(colors[char])
 		Char.Index = 2
-		Char.Set = ConsolePortKeyboardSettings.Layout[i] and ConsolePortKeyboardSettings.Layout[i][char]
+		Char.Set = ConsolePortKeyboardLayout[i] and ConsolePortKeyboardLayout[i][char]
 		Char.Text = Char:CreateFontString(nil, "ARTWORK")
 		Char.Text:SetFont("Interface\\AddOns\\ConsolePortKeyboard\\Fonts\\arial.TTF", 18)
 		Char.Text:SetTextColor(red/255, green/255, blue/255, 1)

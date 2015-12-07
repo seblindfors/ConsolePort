@@ -7,6 +7,7 @@
 local visibleStack, hasUIFocus = {}
 
 local InCombatLockdown = InCombatLockdown
+local Callback = C_Timer.After
 local pairs = pairs
 local next = next
 
@@ -45,10 +46,13 @@ for _, node in pairs({
 }) do node.ignoreNode = true end
 
 -- Update the cursor state on visibility change.
+-- Use callback to circumvent frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
 local function FrameShow(self)
-	visibleStack[self] = self:GetPoint() and true or nil
-	ConsolePort:UpdateFrames()
+	Callback(0.02, function()
+		visibleStack[self] = self:GetPoint() and true or nil
+		ConsolePort:UpdateFrames()
+	end)
 end
 
 local function FrameHide(self)
@@ -103,6 +107,7 @@ end
 function ConsolePort:GetFrameStack()
 	if self.rebindMode then
 		local rebindStack = {}
+		-- a button is waiting to be bound, allow access to the whole interface 
 		if ConsolePortRebindFrame.isRebinding then
 			for _, Frame in pairs({UIParent:GetChildren()}) do
 				if not Frame:IsForbidden() and Frame:IsVisible() then

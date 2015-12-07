@@ -154,7 +154,7 @@ function Keyboard:SelectSet()
 end
 
 function Keyboard:SetLayout()
-	local layout = ConsolePortKeyboardSettings.Layout
+	local layout = ConsolePortKeyboardLayout
 	for i, Set in pairs(self.Sets) do
 		for j, Char in pairs(Set.Buttons) do
 			if i > 8 then break end
@@ -273,12 +273,9 @@ end
 
 
 function Keyboard:LoadSettings()
-	if not ConsolePortKeyboardSettings then
+	if not ConsolePortKeyboardLayout then
 		local locale = GetLocale()
-		ConsolePortKeyboardSettings = {
-			Layout = Language[Language.Default[locale]] or Language.English,
-			Language = Language[Language.Default[locale]] and Language.Default[locale] or "English",
-		}
+		ConsolePortKeyboardLayout = Language[Language.Default[locale]] or Language.English
 	end
 	if not ConsolePortKeyboardDictionary then
 		ConsolePortKeyboardDictionary = self:GenerateDictionary()

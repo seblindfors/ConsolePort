@@ -2,7 +2,6 @@
 -- General.lua: Base config, reset buttons, triggers, cvars
 ---------------------------------------------------------------
 -- Creates the base config panel and account-wide cvar options.
--- Provides a template function for convenient panel creation.
 
 local addOn, db = ...
 local TUTORIAL = db.TUTORIAL

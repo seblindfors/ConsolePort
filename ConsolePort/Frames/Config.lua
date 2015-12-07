@@ -106,7 +106,7 @@ function Default:ResetThis()
 end
 
 function Default:OnClick()
-	Popup:SetPopup(TUTORIAL.DEFAULTHEADER, self.PopupFrame, self.PopupFrame.Apply, self.PopupFrame.Cancel)
+	Popup:SetPopup(TUTORIAL.DEFAULTHEADER, self.PopupFrame, self.PopupFrame.Apply, self.PopupFrame.Cancel, 220)
 end
 
 function Default.PopupFrame:OnHide()
@@ -135,9 +135,19 @@ Default.PopupFrame.ResetThis:SetScript("OnClick", Default.PopupFrame.ResetThis.O
 
 ---------------------------------------------------------------
 local Tooltip = CreateFrame("GameTooltip", "$parentTooltip", Config, "GameTooltipTemplate")
+local red, green, blue = db.Atlas.GetCC()
 Config.Tooltip = Tooltip
 
 function Tooltip:OnShow()
+	-- edge file fractioned pixel fix, pretty unncessary
+	local width, height = self:GetSize()
+	width, height = floor(width + 0.5) + 4, floor(height + 0.5) + 4
+	local point, anchor, relativePoint, x, y = self:GetPoint()
+	self:ClearAllPoints()
+	self:SetPoint(point, anchor, relativePoint, floor(x + 0.5), floor(y + 0.5))
+	self:SetSize(width - (width % 2), height - (height % 2))
+	-- set CC backdrop
+	self:SetBackdropColor(red*0.15, green*0.15, blue*0.15,  0.75)
 	FadeIn(self, 0.2, 0, 1)
 end
 
@@ -171,7 +181,7 @@ function Popup:WrapClick(wrapper, button)
 	end)
 end
 
-function Popup:SetPopup(header, frame, button1, button2)
+function Popup:SetPopup(header, frame, button1, button2, height)
 	if self.frame then
 		self.frame:Hide()
 	end
@@ -186,17 +196,13 @@ function Popup:SetPopup(header, frame, button1, button2)
 	self.Button1:SetText(button1:GetText())
 	self.Button2:SetText(button2:GetText())
 	self:Show()
+	self:SetHeight(height or 500)
 	self.frame = frame
 	ConsolePort:SetCurrentNode(self.Close)
 end
 
-function Popup:SetSelection(value)
-	self.selected = value
-end
-
-function Popup:GetSelection()
-	return self.selected
-end
+function Popup:SetSelection(value) self.selected = value end
+function Popup:GetSelection() return self.selected end
 
 function Popup:OnShow()
 	Config.ignoreNode = true

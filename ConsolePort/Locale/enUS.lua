@@ -79,6 +79,7 @@ TUTORIAL = {
 		DEFAULTHEADER 		= "Reset settings",
 		DEFAULTTHIS			= "Reset these settings",
 		DEFAULTALL			= "Reset all settings",
+		KEYBOARDLANG 		= "Pre-defined languages:",
 	},
 	SETUP = {
 		LAYOUT  			= "Setup: Select controller layout",
@@ -160,3 +161,5 @@ for val, tbl in pairs(DEFAULT) do
 	end
 	CheckTable(db[val], tbl)
 end
+
+DEFAULT = nil
