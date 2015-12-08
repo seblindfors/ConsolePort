@@ -55,10 +55,15 @@ local function FrameShow(self)
 	end)
 end
 
+-- Use callback to circumvent node jumping when closing multiple frames,
+-- which leads to the cursor ending up in an unexpected place on re-show.
+-- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
 local function FrameHide(self)
-	hasUIFocus = nil
-	visibleStack[self] = nil
-	ConsolePort:UpdateFrames()
+	Callback(0.02, function()
+		hasUIFocus = nil
+		visibleStack[self] = nil
+		ConsolePort:UpdateFrames()
+	end)
 end
 
 function ConsolePort:AddFrame(frame)

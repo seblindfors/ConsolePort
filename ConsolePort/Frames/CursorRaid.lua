@@ -13,7 +13,7 @@ local FadeOut = db.UIFrameFadeOut
 local UIHandle, Cursor
 
 function ConsolePort:CreateRaidCursor()
-	UIHandle = CreateFrame("Frame", addOn.."UIHandle", UIParent, "SecureHandlerBaseTemplate")
+	UIHandle = CreateFrame("Frame", addOn.."UIHandle", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
 	local Key = {
 		Up 		= self:GetUIControlKey("CP_L_UP"),
 		Down 	= self:GetUIControlKey("CP_L_DOWN"),
@@ -22,15 +22,19 @@ function ConsolePort:CreateRaidCursor()
 	}
 
 	UIHandle:Execute(format([[
+		ALL = newtable()
+
 		Key = newtable()
 		Key.Up = %s
 		Key.Down = %s
 		Key.Left = %s
 		Key.Right = %s
-		Bindings = newtable()
+		DPAD = newtable()
 		Nodes = newtable()
 	]], Key.Up, Key.Down, Key.Left, Key.Right))
 
+	-- Raid cursor run snippets
+	------------------------------------------------------------------------------------------------------------------------------
 	UIHandle:Execute([[
 		GetNodes = [=[
 			local node = CurrentNode
@@ -135,7 +139,7 @@ function ConsolePort:CreateRaidCursor()
 		]=]
 		ToggleCursor = [=[
 			if IsEnabled then
-				for binding, name in pairs(Bindings) do
+				for binding, name in pairs(DPAD) do
 					local key = GetBindingKey(binding)
 					if key then
 						self:SetBindingClick(true, key, "ConsolePortRaidCursorButton"..name)
@@ -148,8 +152,12 @@ function ConsolePort:CreateRaidCursor()
 				self:ClearBindings()
 			end
 		]=]
+		UpdateMouseOver = [=[
+
+		]=]
 	]])
 
+	------------------------------------------------------------------------------------------------------------------------------
 	local ToggleCursor = CreateFrame("Button", addOn.."RaidCursorToggle", nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 	ToggleCursor:RegisterForClicks("LeftButtonDown")
 	ToggleCursor:SetFrameRef("UIHandle", UIHandle)
@@ -187,9 +195,33 @@ function ConsolePort:CreateRaidCursor()
 			end
 		]], button.key))
 		UIHandle:Execute(format([[
-			Bindings.%s = "%s"
+			DPAD.%s = "%s"
 		]], button.binding, name))
 	end
+
+	-- Mouse over state driver
+	------------------------------------------------------------------------------------------------------------------------------
+	UIHandle:SetAttribute('_onstate-mousestate', [[
+		if newstate then
+			for binding in pairs(ALL) do
+				local key = GetBindingKey(binding)
+				if key then
+					self:SetBinding(true, key, "INTERACTMOUSEOVER")
+				end
+			end
+		else
+			self:ClearBindings()
+		end
+	]])
+
+
+	for _, binding in pairs(self:GetBindingNames()) do
+		UIHandle:Execute(format([[
+			ALL.%s = true
+		]], binding, binding))
+	end
+
+	------------------------------------------------------------------------------------------------------------------------------
 
 	Cursor.Timer = 0
 	Cursor:SetScript("OnUpdate", Cursor.Update)
@@ -197,16 +229,29 @@ function ConsolePort:CreateRaidCursor()
 	self.CreateRaidCursor = nil
 end
 
+
+---------------------------------------------------------------
+-- Toggle mouse over driver on/off
+---------------------------------------------------------------
+function ConsolePort:UpdateStateDriver()
+	if ConsolePortSettings.mouseOverMode then
+		RegisterStateDriver(UIHandle, "mousestate", "[@mouseover,exists] true; nil")
+	else
+		UnregisterStateDriver(UIHandle, "mousestate")
+	end
+end
+
+---------------------------------------------------------------
 Cursor = CreateFrame("Frame", addOn.."RaidCursor", UIParent)
 Cursor:SetSize(32,32)
 Cursor:SetFrameStrata("TOOLTIP")
 Cursor:SetPoint("CENTER", 0, 0)
 Cursor:SetAlpha(0)
-
+---------------------------------------------------------------
 Cursor.BG = Cursor:CreateTexture(nil, "OVERLAY")
 Cursor.BG:SetTexture("Interface\\Cursor\\Attack")
 Cursor.BG:SetAllPoints(Cursor)
-
+---------------------------------------------------------------
 Cursor.Glow = CreateFrame("PlayerModel", nil, Cursor)
 Cursor.Glow:SetFrameStrata("FULLSCREEN_DIALOG")
 Cursor.Glow:SetSize(300, 300)
@@ -215,20 +260,20 @@ Cursor.Glow:SetAlpha(0.5)
 Cursor.Glow:SetCamDistanceScale(5)
 Cursor.Glow:SetDisplayInfo(41039)
 Cursor.Glow:SetRotation(1)
-
+---------------------------------------------------------------
 Cursor.Group = Cursor:CreateAnimationGroup()
-
+---------------------------------------------------------------
 Cursor.Scale1 = Cursor.Group:CreateAnimation("Scale")
 Cursor.Scale1:SetDuration(0.1)
 Cursor.Scale1:SetSmoothing("IN")
 Cursor.Scale1:SetOrder(1)
 Cursor.Scale1:SetOrigin("TOPLEFT", 0, 0)
-
+---------------------------------------------------------------
 Cursor.Scale2 = Cursor.Group:CreateAnimation("Scale")
 Cursor.Scale2:SetSmoothing("OUT")
 Cursor.Scale2:SetOrder(2)
 Cursor.Scale2:SetOrigin("TOPLEFT", 0, 0)
-
+---------------------------------------------------------------
 function Cursor:Update(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do

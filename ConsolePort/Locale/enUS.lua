@@ -63,6 +63,7 @@ TUTORIAL = {
 		CLICKTOMOVE 		= "Enable click-to-move when using a controller",
 		TURNMOVE 			= "Turn instead of strafe when mouse look is off",
 		DISABLEMOUSE 		= "Disable smart mouse behaviour",
+		MOUSEOVERMODE 		= "Enable automatic targeting on mouseover",
 		AUTOEXTRA 			= "Auto bind appropriate quest items",
 		FASTCAM 			= "Enable fast camera zooming",
 		AUTOLOOT 			= "Force auto loot in combat",
@@ -79,7 +80,7 @@ TUTORIAL = {
 		DEFAULTHEADER 		= "Reset settings",
 		DEFAULTTHIS			= "Reset these settings",
 		DEFAULTALL			= "Reset all settings",
-		KEYBOARDLANG 		= "Pre-defined languages:",
+		KEYBOARDLANG 		= "Language templates:",
 	},
 	SETUP = {
 		LAYOUT  			= "Setup: Select controller layout",

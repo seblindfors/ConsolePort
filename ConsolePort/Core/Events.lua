@@ -16,6 +16,7 @@ function ConsolePort:LoadEvents()
 		["UPDATE_BINDINGS"] 		= false,
 		["QUEST_AUTOCOMPLETE"] 		= false,
 		["WORLD_MAP_UPDATE"] 		= false,
+		["UI_ERROR_MESSAGE"] 		= false,
 		["UNIT_ENTERING_VEHICLE"] 	= false,
 	}
 	-- Union of general events and mouse look events
@@ -61,6 +62,22 @@ function Events:MERCHANT_SHOW(...)
 			if quality and quality == 0 then
 				UseContainerItem(bag, slot)
 			end
+		end
+	end
+end
+
+function Events:UI_ERROR_MESSAGE(...)
+	if ConsolePortSettings.mouseOverMode then
+		local msg = ...
+		if 	msg == ERR_NO_ATTACK_TARGET and (not UnitExists("target") or not UnitIsEnemy("player", "target")) and IsMouselooking() or
+			msg == ERR_INVALID_ATTACK_TARGET or
+			msg == ERR_GENERIC_NO_TARGET then
+			self:StopMouse()
+		end
+		if 	msg == ERR_NO_ATTACK_TARGET or 
+			msg == ERR_INVALID_ATTACK_TARGET or
+			msg == ERR_GENERIC_NO_TARGET then
+			UIErrorsFrame:Clear()
 		end
 	end
 end
@@ -139,6 +156,7 @@ function Events:ADDON_LOADED(...)
 		self:CreateRaidCursor()
 		self:UpdateCVars()
 		self:UpdateSmartMouse()
+		self:UpdateStateDriver()
 	end
 	if ConsolePortUIFrames and ConsolePortUIFrames[name] then
 		for i, frame in pairs(ConsolePortUIFrames[name]) do

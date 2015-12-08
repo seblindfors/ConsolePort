@@ -259,50 +259,6 @@ local function ClearNodes()
 	wipe(nodes)
 end
 
-local function SetCurrent()
-	if old and old.node:IsVisible() and IsNodeDrawn(old.node) then
-		current = old
-	elseif (not current and #nodes > 0) or (current and #nodes > 0 and not current.node:IsVisible()) then
-		local x, y, targetNode = Cursor:GetCenter()
-		if not x or not y then
-			targetNode = nodes[1]
-		else
-			local targetDistance, targetParent, newDistance, newParent, swap, nodeX, nodeY
-			for i, node in pairs(nodes) do swap = false
-				nodeX, nodeY = node.node:GetCenter()
-				newDistance = abs(x-nodeX)+abs(y-nodeY)
-				newParent = node.node:GetParent()
-				-- if no target node exists yet, just assign it
-				if not targetNode then
-					swap = true
-				elseif node.node.hasPriority and not targetNode.node.hasPriority then
-					targetNode = node
-					break
-				elseif not targetNode.node.hasPriority and newDistance < targetDistance then
-					swap = true
-				end
-				if swap then
-					targetNode = node
-					targetDistance = newDistance
-					targetParent = newParent
-				end
-			end
-		end
-		current = targetNode
-	end
-end
-
-local function RefreshNodes(self)
-	if not InCombatLockdown() then
-		ClearNodes()
-		ClearOverrideBindings(Cursor)
-		for frame in pairs(self:GetFrameStack()) do
-			GetNodes(frame)
-		end
-		SetCurrent()
-	end
-end
-
 local function GetScrollButtons(node)
 	if node then
 		if node:IsObjectType("ScrollFrame") then
@@ -315,33 +271,6 @@ local function GetScrollButtons(node)
 			return node:GetChildren()
 		else
 			return GetScrollButtons(node:GetParent())
-		end
-	end
-end
-
-local function EnterNode(self, node, object, state)
-	local scrollUp, scrollDown = GetScrollButtons(node)
-	if scrollUp and scrollDown then
-		OverrideScroll(Cursor, scrollUp, scrollDown)
-	end
-
-	local name = rebindNode and nil or node.direction and node:GetName()
-	local override
-	if IsClickable[object] and node:IsEnabled() then
-		override = true
-		local enter = not node.HotKey and node:GetScript("OnEnter")
-		if enter and state == KEY.STATE_UP then
-			enter(node)
-		end
-	end
-	for click, button in pairs(Cursor.Override) do
-		for extension, modifier in pairs(Cursor.Modifiers) do
-			if override then
-				SetClickButton(_G[button..extension], rebindNode or node)
-				OverrideBindingClick(Cursor, button, name or button..extension, click, modifier)
-			else
-				SetClickButton(_G[button..extension], nil)
-			end
 		end
 	end
 end
@@ -458,8 +387,82 @@ function Cursor:OnEvent(event)
 end
 
 ---------------------------------------------------------------
--- UIControl: Global node manipulation
+-- UIControl: Node manipulation
 ---------------------------------------------------------------
+function ConsolePort:EnterNode(node, object, state)
+	local scrollUp, scrollDown = GetScrollButtons(node)
+	if scrollUp and scrollDown then
+		OverrideScroll(Cursor, scrollUp, scrollDown)
+	end
+
+	local name = rebindNode and nil or node.direction and node:GetName()
+	local override
+	if IsClickable[object] and node:IsEnabled() then
+		override = true
+		local enter = not node.HotKey and node:GetScript("OnEnter")
+		if enter and state == KEY.STATE_UP then
+			enter(node)
+		end
+	end
+	for click, button in pairs(Cursor.Override) do
+		for extension, modifier in pairs(Cursor.Modifiers) do
+			if override then
+				SetClickButton(_G[button..extension], rebindNode or node)
+				OverrideBindingClick(Cursor, button, name or button..extension, click, modifier)
+			else
+				SetClickButton(_G[button..extension], nil)
+			end
+		end
+	end
+end
+
+function ConsolePort:CheckCurrentNode()
+	if old and old.node:IsVisible() and IsNodeDrawn(old.node) then
+		current = old
+	elseif (not current and #nodes > 0) or (current and #nodes > 0 and not current.node:IsVisible()) then
+		local x, y, targetNode = Cursor:GetCenter()
+		if not x or not y then
+			targetNode = nodes[1]
+		else
+			local targetDistance, targetParent, newDistance, newParent, swap, nodeX, nodeY
+			for i, node in pairs(nodes) do swap = false
+				nodeX, nodeY = node.node:GetCenter()
+				newDistance = abs(x-nodeX)+abs(y-nodeY)
+				newParent = node.node:GetParent()
+				-- if no target node exists yet, just assign it
+				if not targetNode then
+					swap = true
+				elseif node.node.hasPriority and not targetNode.node.hasPriority then
+					targetNode = node
+					break
+				elseif not targetNode.node.hasPriority and newDistance < targetDistance then
+					swap = true
+				end
+				if swap then
+					targetNode = node
+					targetDistance = newDistance
+					targetParent = newParent
+				end
+			end
+		end
+		current = targetNode
+	end
+	if current and current ~= old then
+		self:EnterNode(current.node, current.object, KEY.STATE_UP)
+	end
+end
+
+function ConsolePort:RefreshNodes()
+	if not InCombatLockdown() then
+		ClearNodes()
+		ClearOverrideBindings(Cursor)
+		for frame in pairs(self:GetFrameStack()) do
+			GetNodes(frame)
+		end
+		self:CheckCurrentNode()
+	end
+end
+
 function ConsolePort:GetCurrentNode()
 	return current and current.node
 end
@@ -474,8 +477,6 @@ function ConsolePort:SetCurrentNode(node)
 				current = {
 					node = node,
 					object = object,
-					X = x,
-					Y = y,
 				}
 				Cursor:SetPosition(current.node, current.object)
 			end
@@ -496,7 +497,7 @@ end
 -- UIControl: Command parser / main func
 ---------------------------------------------------------------
 function ConsolePort:UIControl(key, state)
-	RefreshNodes(self)
+	self:RefreshNodes()
 	if state == KEY.STATE_DOWN then
 		FindClosestNode(key)
 	elseif key == Cursor.SpecialAction then
@@ -504,7 +505,7 @@ function ConsolePort:UIControl(key, state)
 	end
 	local node = current and current.node
 	if node then
-		EnterNode(self, node, current.object, state)
+		self:EnterNode(node, current.object, state)
 		Cursor:SetPosition(node, current.object)
 	end
 end

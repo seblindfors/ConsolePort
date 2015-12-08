@@ -15,6 +15,11 @@ local function GetAddonSettings()
 			desc = TUTORIAL.CONFIG.CLICKTOMOVE,
 			toggle = ConsolePortSettings.autoInteract,
 		},
+		{
+			cvar = "mouseOverMode",
+			desc = TUTORIAL.CONFIG.MOUSEOVERMODE,
+			toggle = ConsolePortSettings.mouseOverMode,
+		},
 		{	cvar = "turnCharacter",
 			desc = TUTORIAL.CONFIG.TURNMOVE,
 			toggle = ConsolePortSettings.turnCharacter,
@@ -124,7 +129,7 @@ local function SaveGeneralConfig(self)
 	ConsolePort:LoadEvents()
 	ConsolePort:SetupCursor()
 	ConsolePort:LoadControllerTheme()
-
+	ConsolePort:UpdateStateDriver()
 end
 
 ---------------------------------------------------------------
