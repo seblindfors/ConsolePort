@@ -11,6 +11,25 @@ local TEXTURE = db.TEXTURE
 local KEY = db.KEY
 
 ---------------------------------------------------------------
+-- Get current action page and an optional statedriver string
+---------------------------------------------------------------
+function ConsolePort:GetActionPageState()
+	local state = {}
+	tinsert(state, "[overridebar][possessbar]possess")
+	for i = 2, 6 do
+		tinsert(state, ("[bar:%d]%d"):format(i, i))
+	end
+	for i = 1, 4 do
+		tinsert(state, ("[bonusbar:%d]%d"):format(i, i+6))
+	end
+	tinsert(state, "[stance:1]tempshapeshift")
+	tinsert(state, "1")
+	state = table.concat(state, ";")
+	local now = SecureCmdOptionParse(state)
+	return now, state
+end
+
+---------------------------------------------------------------
 -- SecureBtn: Actionpage state handler (hardly useful anymore)
 ---------------------------------------------------------------
 function ConsolePort:CreateButtonHandler()
@@ -43,18 +62,8 @@ function ConsolePort:CreateButtonHandler()
 	ButtonHandler:SetFrameRef("MainMenuBarArtFrame", MainMenuBarArtFrame)
 	ButtonHandler:SetFrameRef("OverrideActionBar", OverrideActionBar)
 
-	local state = {}
-	tinsert(state, "[overridebar][possessbar]possess")
-	for i = 2, 6 do
-		tinsert(state, ("[bar:%d]%d"):format(i, i))
-	end
-	for i = 1, 4 do
-		tinsert(state, ("[bonusbar:%d]%d"):format(i, i+6))
-	end
-	tinsert(state, "[stance:1]tempshapeshift")
-	tinsert(state, "1")
-	state = table.concat(state, ";")
-	local now = SecureCmdOptionParse(state)
+	local now, state = self:GetActionPageState()
+
 	ButtonHandler:SetAttribute("actionpage", now)
 	RegisterStateDriver(ButtonHandler, "page", state)
 	ButtonHandler:Execute([[

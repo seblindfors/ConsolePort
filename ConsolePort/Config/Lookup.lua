@@ -312,6 +312,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["ctrl"] = "CP_TL2",
 		["trigger1"] = "CP_TR1",
 		["trigger2"] = "CP_TR2",
+		["interactWith"] = "CP_TR1",
 		["autoLootDefault"] = true,
 		["cameraDistanceMoveSpeed"] = true,
 	}

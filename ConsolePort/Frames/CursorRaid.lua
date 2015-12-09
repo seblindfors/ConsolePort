@@ -23,13 +23,13 @@ function ConsolePort:CreateRaidCursor()
 
 	UIHandle:Execute(format([[
 		ALL = newtable()
+		DPAD = newtable()
 
 		Key = newtable()
 		Key.Up = %s
 		Key.Down = %s
 		Key.Left = %s
 		Key.Right = %s
-		DPAD = newtable()
 		Nodes = newtable()
 	]], Key.Up, Key.Down, Key.Left, Key.Right))
 
@@ -152,9 +152,6 @@ function ConsolePort:CreateRaidCursor()
 				self:ClearBindings()
 			end
 		]=]
-		UpdateMouseOver = [=[
-
-		]=]
 	]])
 
 	------------------------------------------------------------------------------------------------------------------------------
@@ -199,46 +196,12 @@ function ConsolePort:CreateRaidCursor()
 		]], button.binding, name))
 	end
 
-	-- Mouse over state driver
-	------------------------------------------------------------------------------------------------------------------------------
-	UIHandle:SetAttribute('_onstate-mousestate', [[
-		if newstate then
-			for binding in pairs(ALL) do
-				local key = GetBindingKey(binding)
-				if key then
-					self:SetBinding(true, key, "INTERACTMOUSEOVER")
-				end
-			end
-		else
-			self:ClearBindings()
-		end
-	]])
-
-
-	for _, binding in pairs(self:GetBindingNames()) do
-		UIHandle:Execute(format([[
-			ALL.%s = true
-		]], binding, binding))
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------
 
 	Cursor.Timer = 0
 	Cursor:SetScript("OnUpdate", Cursor.Update)
 
 	self.CreateRaidCursor = nil
-end
-
-
----------------------------------------------------------------
--- Toggle mouse over driver on/off
----------------------------------------------------------------
-function ConsolePort:UpdateStateDriver()
-	if ConsolePortSettings.mouseOverMode then
-		RegisterStateDriver(UIHandle, "mousestate", "[@mouseover,exists] true; nil")
-	else
-		UnregisterStateDriver(UIHandle, "mousestate")
-	end
 end
 
 ---------------------------------------------------------------

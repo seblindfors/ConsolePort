@@ -6,6 +6,7 @@
 local addOn, db = ...
 local TUTORIAL = db.TUTORIAL
 local TEXTURE  = db.TEXTURE
+local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
 ---------------------------------------------------------------
 -- Config: Account-wide addon CVars.
 ---------------------------------------------------------------
@@ -48,6 +49,19 @@ local function GetAddonSettings()
 			desc = TUTORIAL.CONFIG.AUTOBLOCK,
 			toggle = ConsolePortSettings.blockTrades,
 		},
+		-- Mouse "events" to the user, but cvars internally
+		{
+			mouse = true,
+			cvar = "mouseOnJump",
+			desc = TUTORIAL.MOUSE.JUMPING,
+			toggle = ConsolePortSettings.mouseOnJump,
+		},
+		{
+			mouse = true,
+			cvar = "mouseOnCenter",
+			desc = TUTORIAL.MOUSE.CENTERCURSOR,
+			toggle = ConsolePortSettings.mouseOnCenter,
+		},
 	}
 end
 ---------------------------------------------------------------
@@ -71,7 +85,8 @@ local function GetMouseSettings()
 						"MERCHANT_SHOW", "MERCHANT_CLOSED",
 						"TAXIMAP_OPENED", "TAXIMAP_CLOSED",
 						"QUEST_GREETING", "QUEST_DETAIL",
-						"QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED"},
+						"QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED",
+						"SHIPMENT_CRAFTER_OPENED", "SHIPMENT_CRAFTER_CLOSED"},
 			desc 	= TUTORIAL.MOUSE.NPC_INTERACTION,
 			toggle 	= ConsolePortMouse.Events["GOSSIP_SHOW"]
 		},
@@ -79,17 +94,9 @@ local function GetMouseSettings()
 			desc 	= TUTORIAL.MOUSE.QUEST_AUTOCOMPLETE,
 			toggle 	= ConsolePortMouse.Events["QUEST_AUTOCOMPLETE"]
 		},
-		{ 	event 	= {"SHIPMENT_CRAFTER_OPENED", "SHIPMENT_CRAFTER_CLOSED"},
-			desc 	= TUTORIAL.MOUSE.GARRISON_ORDER,
-			toggle 	= ConsolePortMouse.Events["SHIPMENT_CRAFTER_OPENED"]
-		},
-		{	event	= {"LOOT_OPENED"},
-			desc 	= TUTORIAL.MOUSE.LOOT_OPENED,
+		{	event	= {"LOOT_OPENED", "LOOT_CLOSED"},
+			desc 	= TUTORIAL.MOUSE.LOOTING,
 			toggle 	= ConsolePortMouse.Events["LOOT_OPENED"]
-		},
-		{	event	= {"LOOT_CLOSED"},
-			desc 	= TUTORIAL.MOUSE.LOOT_CLOSED,
-			toggle 	= ConsolePortMouse.Events["LOOT_CLOSED"]
 		}
 	}
 end
@@ -123,6 +130,13 @@ local function SaveGeneralConfig(self)
 			ConsolePortMouse.Events[Event] = Check:GetChecked()
 		end
 	end
+
+	if self.InteractModule.Check:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
+		ConsolePortSettings.interactWith = self.InteractModule.BindCatcher.CurrentButton
+	else
+		ConsolePortSettings.interactWith = false
+	end
+
 	ConsolePortMouse.Cursor.Left = self.LeftClick.button
 	ConsolePortMouse.Cursor.Right = self.RightClick.button
 	ConsolePortMouse.Cursor.Scroll = self.ScrollClick.button
@@ -157,9 +171,60 @@ end
 local function ResetAllOnClick(self)
 	self:SetText(TUTORIAL.CONFIG.CONFIRMRESET)
 	self:SetScript("OnClick", function(self)
-		SlashCmdList["CONSOLEPORT"]("resetAll")
+		SlashCmdList["CONSOLEPORT"]("resetall")
 	end)
 end
+
+---------------------------------------------------------------
+-- Binds: Bind catcher
+---------------------------------------------------------------
+local function BindCatcherOnKey(self, key)
+	local action = key and GetBindingAction(key) and _G[GetBindingAction(key).."_BINDING"]
+	FadeIn(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 1)
+	self:SetScript("OnKeyUp", nil)
+	self:EnableKeyboard(false)
+	if action then
+		self.CurrentButton = action.name
+		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, _G["BINDING_NAME_"..self.CurrentButton]))
+	elseif key then
+		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
+	end
+end
+
+local function BindCatcherOnClick(self)
+	self:EnableKeyboard(true)
+	self:SetScript("OnKeyUp", BindCatcherOnKey)
+	FadeOut(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 0)
+	self:SetText(TUTORIAL.BIND.CATCHER)
+end
+
+local function BindCatcherOnHide(self)
+	BindCatcherOnKey(self)
+	FadeOut(self, 0.2, self:GetAlpha(), 0)
+end
+
+local function BindCatcherOnShow(self)
+	self.CurrentButton = ConsolePortSettings.interactWith
+	if self.CurrentButton then
+		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, _G["BINDING_NAME_"..self.CurrentButton]))
+	else
+		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
+	end
+	FadeIn(self, 0.2, self:GetAlpha(), 1)
+end
+
+local function InteractModuleOnShow(self)
+	if self.Check:GetChecked() then
+		FadeOut(self.Hand, 0.5, 1, 0.1)
+		FadeOut(self.BG, 0.5, 1, 0.1)
+		self.BindWrapper:Show()
+	else
+		self.BindWrapper:Hide()
+		FadeIn(self.Hand, 0.5, 0.1, 1)
+		FadeIn(self.BG, 0.5, 0.1, 1)
+	end
+end
+
 
 ---------------------------------------------------------------
 -- Config: Create panel and children 
@@ -179,39 +244,126 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.ResetAll = CreateButton("ResetAll", TUTORIAL.CONFIG.FULLRESET, ResetAllOnClick, {"TOP", Config.ResetBindings, "BOTTOM", 0, -2})
 	Config.ShowSlash = CreateButton("ShowSlash", TUTORIAL.CONFIG.SHOWSLASH, SlashCmdList["CONSOLEPORT"], {"TOP", Config.ResetAll, "BOTTOM", 0, -2})
 
-	Config.GeneralWrapper = CreateFrame("Frame", nil, Config)
-	Config.GeneralWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-	Config.GeneralWrapper:SetPoint("TOPLEFT", 8, -8)
-	Config.GeneralWrapper:SetSize(674, 300)
+	------------------------------------------------------------------------------------------------------------------------------
 
-	Config.GeneralHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Config.GeneralHeader:SetText(TUTORIAL.CONFIG.GENERALHEADER)
-	Config.GeneralHeader:SetPoint("TOPLEFT", Config.GeneralWrapper, 16, -16)
+	Config.InteractModule = CreateFrame("Frame", nil, Config)
+	Config.InteractModule:SetBackdrop(db.Atlas.Backdrops.Border)
+	Config.InteractModule:SetPoint("TOPRIGHT", -302, -8)
+	Config.InteractModule:SetSize(300, 300)
+	Config.InteractModule:SetScript("OnShow", InteractModuleOnShow)
 
+	Config.MouseModule = CreateFrame("Frame", nil, Config)
+	Config.MouseModule:SetBackdrop(db.Atlas.Backdrops.Border)
+	Config.MouseModule:SetPoint("TOPRIGHT", -8, -8)
+	Config.MouseModule:SetSize(300, 300)
+
+	Config.GeneralModule = CreateFrame("Frame", nil, Config)
+	Config.GeneralModule:SetBackdrop(db.Atlas.Backdrops.Border)
+	Config.GeneralModule:SetPoint("TOPLEFT", 8, -8)
+	Config.GeneralModule:SetSize(380, 300)
+
+	------------------------------------------------------------------------------------------------------------------------------
+	Config.InteractModule.Header = Config.InteractModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	Config.InteractModule.Header:SetText(TUTORIAL.CONFIG.INTERACTHEADER)
+	Config.InteractModule.Header:SetPoint("TOPLEFT", 16, -16)
+
+	Config.InteractModule.BG = Config.InteractModule:CreateTexture(nil, "BACKGROUND", nil, 1)
+	Config.InteractModule.BG:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-QuestGiver")
+	Config.InteractModule.BG:SetPoint("CENTER", 0, 0)
+	Config.InteractModule.BG:SetSize(128, 128)
+
+	Config.InteractModule.Hand = Config.InteractModule:CreateTexture(nil, "BACKGROUND", nil, 2)
+	Config.InteractModule.Hand:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-GloveCursor")
+	Config.InteractModule.Hand:SetPoint("CENTER", 16, -50)
+	Config.InteractModule.Hand:SetSize(64, 64)
+
+	Config.InteractModule.Description = Config.InteractModule:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+	Config.InteractModule.Description:SetPoint("BOTTOM", 0, 32)
+	Config.InteractModule.Description:SetText(TUTORIAL.CONFIG.INTERACTDESC)
+	Config.InteractModule.Description:SetJustifyH("CENTER")
+
+	Config.InteractModule.BindWrapper = db.Atlas.GetGlassWindow("$parentBindWrapper", Config.InteractModule, nil, true)
+	Config.InteractModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
+	Config.InteractModule.BindWrapper:SetPoint("CENTER", 0, 0)
+	Config.InteractModule.BindWrapper:SetSize(240, 140)
+	Config.InteractModule.BindWrapper.Close:Hide()
+	Config.InteractModule.BindWrapper:Hide()
+
+	Config.InteractModule.BindCatcher = db.Atlas.GetFutureButton("$parentBindCatcher", Config.InteractModule.BindWrapper, nil, nil, 200)
+	Config.InteractModule.BindCatcher:SetHeight(64)
+	Config.InteractModule.BindCatcher:SetPoint("CENTER", 0, 0)
+	Config.InteractModule.BindCatcher:SetScript("OnClick", BindCatcherOnClick)
+	Config.InteractModule.BindCatcher:SetScript("OnHide", BindCatcherOnHide)
+	Config.InteractModule.BindCatcher:SetScript("OnShow", BindCatcherOnShow)
+	Config.InteractModule.BindCatcher.Cover:Hide()
+
+	Config.InteractModule.Check = CreateFrame("CheckButton", nil, Config.InteractModule, "ChatConfigCheckButtonTemplate")
+	Config.InteractModule.Check:SetPoint("TOPLEFT", 16, -40)
+	Config.InteractModule.Check:SetChecked(ConsolePortSettings.interactWith)
+	Config.InteractModule.Check:SetScript("OnClick", function(self) InteractModuleOnShow(self:GetParent()) end)
+
+	Config.InteractModule.Check.Text = Config.InteractModule.Check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	Config.InteractModule.Check.Text:SetText(TUTORIAL.CONFIG.INTERACTCHECK)
+	Config.InteractModule.Check.Text:SetPoint("LEFT", 30, 0)
+
+
+	------------------------------------------------------------------------------------------------------------------------------
+	Config.MouseModule.Header = Config.MouseModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	Config.MouseModule.Header:SetText(TUTORIAL.CONFIG.MOUSEHEADER)
+	Config.MouseModule.Header:SetPoint("TOPLEFT", 16, -16)
+
+	Config.Events = {}
+	for i, setting in pairs(GetMouseSettings()) do
+		local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, Config.MouseModule, "ChatConfigCheckButtonTemplate")
+		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		text:SetText(setting.desc)
+		check:SetChecked(setting.toggle)
+		check.Events = setting.event
+		check.Description = text
+		check:SetPoint("TOPLEFT", 16, -30*i-10)
+		text:SetPoint("LEFT", check, 30, 0)
+		check:Show()
+		text:Show()
+		tinsert(Config.Events, check)
+	end
+
+	------------------------------------------------------------------------------------------------------------------------------
+	Config.GeneralModule.Header = Config.GeneralModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	Config.GeneralModule.Header:SetText(TUTORIAL.CONFIG.GENERALHEADER)
+	Config.GeneralModule.Header:SetPoint("TOPLEFT", 16, -16)
+
+	local mouseCvarOffset = #Config.Events
 	Config.General = {}
 	for i, setting in pairs(GetAddonSettings()) do
-		local check = CreateFrame("CheckButton", "$parentGeneralSetting"..i, Config.GeneralWrapper, "ChatConfigCheckButtonTemplate")
+		local check = CreateFrame("CheckButton", "$parentGeneralSetting"..i, Config.GeneralModule, "ChatConfigCheckButtonTemplate")
 		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		text:SetText(setting.desc)
 		check:SetChecked(setting.toggle)
 		check.Description = text
 		check.Cvar = setting.cvar
 		check.Reload = setting.needReload
-		check:SetPoint("TOPLEFT", 16, -30*i-10)
 		text:SetPoint("LEFT", check, 30, 0)
 		check:Show()
 		text:Show()
+		if setting.mouse then
+			mouseCvarOffset = mouseCvarOffset + 1
+			check:SetPoint("TOPLEFT", Config.MouseModule, "TOPLEFT", 16, -30*mouseCvarOffset-10)
+		else
+			check:SetPoint("TOPLEFT", 16, -30*i-10)
+		end
 		tinsert(Config.General, check)
 	end
 
-	Config.RadioWrapper = CreateFrame("Frame", nil, Config)
-	Config.RadioWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-	Config.RadioWrapper:SetPoint("BOTTOMLEFT", 8, 8)
-	Config.RadioWrapper:SetSize(674, 276)
+	------------------------------------------------------------------------------------------------------------------------------
+
+	Config.MultiChoiceModule = CreateFrame("Frame", nil, Config)
+	Config.MultiChoiceModule:SetBackdrop(db.Atlas.Backdrops.Border)
+	Config.MultiChoiceModule:SetPoint("BOTTOMLEFT", 8, 8)
+	Config.MultiChoiceModule:SetSize(674, 276)
 
 	Config.TriggerHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.TriggerHeader:SetText(TUTORIAL.CONFIG.TRIGGERHEADER)
-	Config.TriggerHeader:SetPoint("TOPLEFT", Config.RadioWrapper, 16, -138)
+	Config.TriggerHeader:SetPoint("TOPLEFT", Config.MultiChoiceModule, 16, -138)
 
 	Config.Triggers = {}
 
@@ -290,7 +442,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	Config.CursorHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.CursorHeader:SetText(TUTORIAL.CONFIG.VIRTUALCURSOR)
-	Config.CursorHeader:SetPoint("TOPLEFT", Config.RadioWrapper, 16, -16)
+	Config.CursorHeader:SetPoint("TOPLEFT", Config.MultiChoiceModule, 16, -16)
 
 	Config.LeftClick = Config:CreateTexture()
 	Config.LeftClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
@@ -361,29 +513,4 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			num = num + 1
 		end
 	end
-
-	Config.MouseWrapper = CreateFrame("Frame", nil, Config)
-	Config.MouseWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-	Config.MouseWrapper:SetPoint("TOPRIGHT", -8, -8)
-	Config.MouseWrapper:SetSize(300, 300)
-
-	Config.MouseHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Config.MouseHeader:SetText(TUTORIAL.CONFIG.MOUSEHEADER)
-	Config.MouseHeader:SetPoint("TOPLEFT", Config.MouseWrapper, 16, -16)
-
-	Config.Events = {}
-	for i, setting in pairs(GetMouseSettings()) do
-		local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, Config.MouseWrapper, "ChatConfigCheckButtonTemplate")
-		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		text:SetText(setting.desc)
-		check:SetChecked(setting.toggle)
-		check.Events = setting.event
-		check.Description = text
-		check:SetPoint("TOPLEFT", 16, -30*i-10)
-		text:SetPoint("LEFT", check, 30, 0)
-		check:Show()
-		text:Show()
-		tinsert(Config.Events, check)
-	end
-
 end})

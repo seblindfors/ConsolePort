@@ -82,6 +82,16 @@ function ConsolePort:LoadSettings()
 		self:CreateBindingWizard()
 	end
 
+	db.Bindings = ConsolePortBindingSet
+	db.Bindbtns = ConsolePortBindingButtons
+	db.Settings = ConsolePortSettings
+	db.UIStack = ConsolePortUIFrames
+	db.Mouse = ConsolePortMouse
+
+	if db.Settings.mouseOnCenter == nil then
+		db.Settings.mouseOnCenter = true
+	end
+
 	-- Slash handler and stuff related to that
 	local SLASH = db.TUTORIAL.SLASH
 
@@ -108,22 +118,10 @@ function ConsolePort:LoadSettings()
 		end
 	end
 
-	local function CursorLock()
-		if ConsolePortMouseLook:GetPoint() then
-			ConsolePortMouseLook:SetPoint("LEFT", UIParent, "RIGHT")
-			ConsolePortMouseLook:ClearAllPoints()
-			print("|cffffe00aConsolePort|r:", SLASH.MOUSEOFF)
-		else
-			ConsolePortMouseLook:SetPoint("CENTER", 0, 0)
-			print("|cffffe00aConsolePort|r:", SLASH.MOUSEON)
-		end
-	end
-
 	local instructions = {
 		["type"] = {desc = SLASH.TYPE, func = ShowSplash},
 		["binds"] = {desc = SLASH.BINDS, func = ShowBinds},
 		["resetall"] = {desc = SLASH.RESET, func = ResetAll},
-		["lockcursor"] = {desc = SLASH.TOGGLEMOUSE, func = CursorLock},
 	}
 
 	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"

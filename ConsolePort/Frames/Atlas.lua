@@ -166,7 +166,7 @@ db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored)
 
 	return self
 end
-
+---------------------------------------------------------------
 db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
 	local self = CreateAtlasFrame(name, parent, secure)
 	local assets = path.."Window\\Assets"
@@ -240,7 +240,7 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
 		local interval, timer, cycle, rev, red, green, blue = 0.2, 0, 0
 		self:SetScript("OnUpdate", function (self, elapsed)
 			timer = timer + elapsed
-			while timer > 0.2 do
+			if timer > 0.2 then
 				red = (math.sin(0.05*cycle + 0) * 127 + 128)/255
 				green = (math.sin(0.05*cycle + 2) * 127 + 128)/255
 		   		blue = (math.sin(0.05*cycle + 4) * 127 + 128)/255
@@ -270,7 +270,7 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
 		local timer, glow, red, green, blue, fadeAway = 0, 1
 		self:SetScript("OnUpdate", function(self, elapsed)
 			timer = timer + elapsed
-			while timer > 0.1 do
+			if timer > 0.1 then
 				glow = fadeAway and glow - 0.01 or glow + 0.01
 
 				red 	= cc.r * glow

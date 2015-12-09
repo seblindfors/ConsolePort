@@ -464,15 +464,8 @@ end
 -- Binds: Dynamic secure/UI button 
 ---------------------------------------------------------------
 local function GetStaticBindingName(self)
-	local key  = GetBindingKey(self.name)
-	local binding 
-	if key then
-		key = self.modifier and self.modifier.."-"..key or key
-		binding = _G[BIND..GetBindingAction(key, true)]
-	end
-	if not binding then
-		binding = _G[BIND..ConsolePortBindingSet[self.name][GetBindingModifier(self.secure.mod)]]
-	end
+	local binding =	NewBindingSet and _G[BIND..NewBindingSet[self.name][GetBindingModifier(self.secure.mod)]] or
+					ConsolePortBindingSet and _G[BIND..ConsolePortBindingSet[self.name][GetBindingModifier(self.secure.mod)]]
 	return binding 
 end
 
