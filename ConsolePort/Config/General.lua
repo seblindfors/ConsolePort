@@ -185,7 +185,7 @@ local function BindCatcherOnKey(self, key)
 	self:EnableKeyboard(false)
 	if action then
 		self.CurrentButton = action.name
-		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, _G["BINDING_NAME_"..self.CurrentButton]))
+		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton]))
 	elseif key then
 		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
 	end
@@ -206,7 +206,7 @@ end
 local function BindCatcherOnShow(self)
 	self.CurrentButton = ConsolePortSettings.interactWith
 	if self.CurrentButton then
-		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, _G["BINDING_NAME_"..self.CurrentButton]))
+		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton]))
 	else
 		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
 	end
@@ -290,7 +290,9 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.InteractModule.BindWrapper:Hide()
 
 	Config.InteractModule.BindCatcher = db.Atlas.GetFutureButton("$parentBindCatcher", Config.InteractModule.BindWrapper, nil, nil, 200)
-	Config.InteractModule.BindCatcher:SetHeight(64)
+	Config.InteractModule.BindCatcher.HighlightTexture:ClearAllPoints()
+	Config.InteractModule.BindCatcher.HighlightTexture:SetAllPoints(Config.InteractModule.BindCatcher)
+	Config.InteractModule.BindCatcher:SetHeight(84)
 	Config.InteractModule.BindCatcher:SetPoint("CENTER", 0, 0)
 	Config.InteractModule.BindCatcher:SetScript("OnClick", BindCatcherOnClick)
 	Config.InteractModule.BindCatcher:SetScript("OnHide", BindCatcherOnHide)

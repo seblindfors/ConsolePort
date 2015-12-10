@@ -74,93 +74,80 @@ MouseHandle:Execute([[
 	PAGE = 0
 	ID = 0
 ]])
-MouseHandle:SetAttribute("_onstate-targetenemy", [[
-	local exists = newstate
-	local interact = false
+MouseHandle:Execute([[
+	UpdateTarget = [=[
+		local exists = ...
+		local interact = false
 
-	if exists then
-		local id = ID >= 0 and ID <= 12 and (PAGE-1) * 12 + ID or ID >= 0 and ID
-		if id then
-			local actionType, actionID, subType = GetActionInfo(id)
-			if actionType == "spell" and subType == "spell" then
-				local spellBookID = SPELLS[actionID]
-				if spellBookID and IsHarmfulSpell(spellBookID, subType) then
-					self:ClearBindings()
+		if exists == "enemy" or exists == "friend" then
+			local id = ID >= 0 and ID <= 12 and (PAGE-1) * 12 + ID or ID >= 0 and ID
+			if id then
+				local actionType, actionID, subType = GetActionInfo(id)
+				if actionType == "spell" and subType == "spell" then
+					local spellBookID = SPELLS[actionID]
+					if exists == "friend" then
+						if spellBookID and IsHelpfulSpell(spellBookID, subType) then
+							self:ClearBindings()
+						end
+					elseif exists == "enemy" then
+						if spellBookID and IsHarmfulSpell(spellBookID, subType) then
+							self:ClearBindings()
+						end
+					end
 				end
+			else
+				self:ClearBindings()
 			end
 		else
-			self:ClearBindings()
+			interact = true
 		end
-	else
-		interact = true
-	end
 
-	if interact and USE then
-		local key = GetBindingKey(USE)
-		if key then
-			self:SetBinding(true, key, "INTERACTMOUSEOVER")
-		end
-	end
-]])
-MouseHandle:SetAttribute("_onstate-targetfriend", [[
-	local exists = newstate
-	local interact = false
-
-	if exists then
-		local id = ID >= 0 and ID <= 12 and (PAGE-1) * 12 + ID or ID >= 0 and ID
-		if id then
-			local actionType, actionID, subType = GetActionInfo(id)
-			if actionType == "spell" and subType == "spell" then
-				local spellBookID = SPELLS[actionID]
-				if spellBookID and IsHelpfulSpell(spellBookID, subType) then
-					self:ClearBindings()
-				end
-			end
-		else
-			self:ClearBindings()
-		end
-	else
-		interact = true
-	end
-
-	if interact and USE then
-		local key = GetBindingKey(USE)
-		if key then
-			self:SetBinding(true, key, "INTERACTMOUSEOVER")
-		end
-	end
-]])
-MouseHandle:SetAttribute("_onstate-mousestate", [[
-	self:SetAttribute("mousestate", newstate and true)
-	if newstate then
-		for binding in pairs(ALL) do
-			local key = GetBindingKey(binding)
+		if interact and USE then
+			local key = GetBindingKey(USE)
 			if key then
 				self:SetBinding(true, key, "INTERACTMOUSEOVER")
 			end
 		end
-	else
-		self:ClearBindings()
-	end
-]])
-MouseHandle:SetAttribute("_onstate-actionpage", [[
-	PAGE = newstate
-	if PAGE == "tempshapeshift" then
-		if HasTempShapeshiftActionBar() then
-			PAGE = GetTempShapeshiftBarIndex()
+	]=]
+
+	UpdateMouseOver = [=[
+		local mouseover = ...
+		self:SetAttribute("mousestate", mouseover and true)
+		if mouseover then
+			for binding in pairs(ALL) do
+				local key = GetBindingKey(binding)
+				if key then
+					self:SetBinding(true, key, "INTERACTMOUSEOVER")
+				end
+			end
 		else
-			PAGE = 1
+			self:ClearBindings()
 		end
-	elseif PAGE == "possess" then
-		PAGE = self:GetFrameRef("ActionBar"):GetAttribute("actionpage")
-		if PAGE <= 10 then
-			PAGE = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage")
+	]=]
+
+	UpdateActionPage = [=[
+		PAGE = ...
+		if PAGE == "tempshapeshift" then
+			if HasTempShapeshiftActionBar() then
+				PAGE = GetTempShapeshiftBarIndex()
+			else
+				PAGE = 1
+			end
+		elseif PAGE == "possess" then
+			PAGE = self:GetFrameRef("ActionBar"):GetAttribute("actionpage")
+			if PAGE <= 10 then
+				PAGE = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage")
+			end
+			if PAGE <= 10 then
+				PAGE = 12
+			end
 		end
-		if PAGE <= 10 then
-			PAGE = 12
-		end
-	end
+	]=]
 ]])
+
+MouseHandle:SetAttribute("_onstate-targetstate", 	[[ self:Run(UpdateTarget, newstate) ]])
+MouseHandle:SetAttribute("_onstate-mousestate", 	[[ self:Run(UpdateMouseOver, newstate) ]])
+MouseHandle:SetAttribute("_onstate-actionpage", 	[[ self:Run(UpdateActionPage, newstate) ]])
 
 -- Index the entire spellbook by using spell ID as key and spell book slot as value.
 -- IsHarmfulSpell/IsHelpfulSpell functions can use spell book slot, but not actual spell IDs.
@@ -196,7 +183,7 @@ local CursorTrail = CreateFrame("Frame", "ConsolePortCursorTrail", UIParent, "")
 
 local function CursorTrailUpdate(self)
 	posX, posY = GetCursorPosition()
-	self:SetPoint("BOTTOMLEFT", posX+24, posY-40)
+	self:SetPoint("BOTTOMLEFT", posX+24, posY-46)
 	if GameTooltip:GetOwner() == UIParent and not IsMouselooking() then
 		self:SetAlpha(GameTooltip:GetAlpha())
 	else
@@ -266,28 +253,30 @@ function ConsolePort:UpdateStateDriver()
 	end
 
 	if ConsolePortSettings.interactWith then
-		local currentPage, stateString = self:GetActionPageState()
+		local currentPage, actionpage = self:GetActionPageState()
 		local button = ConsolePortSettings.interactWith
 		local original = ConsolePortBindingSet[button].action
 		local id = original and self:GetActionID(original)
+
+		local targetstate = "[@playertarget,exists,harm,nodead] enemy; [@playertarget,exists,noharm,nodead] friend; nil"
+		local currentTarget = SecureCmdOptionParse(targetstate)
 
 		CursorTrail.Texture:SetTexture(db.TEXTURE[button])
 		CursorTrail:SetScript("OnUpdate", CursorTrailUpdate)
 		CursorTrail:Show()
 
-		RegisterStateDriver(MouseHandle, "actionpage", stateString)
-		RegisterStateDriver(MouseHandle, "targetenemy", "[@playertarget,exists,harm,nodead] true; nil")
-		RegisterStateDriver(MouseHandle, "targetfriend", "[@playertarget,exists,noharm,nodead] true; nil")
+		RegisterStateDriver(MouseHandle, "actionpage", actionpage)
+		RegisterStateDriver(MouseHandle, "targetstate", targetstate)
+		MouseHandle:SetAttribute("actionpage", currentPage)
+		MouseHandle:SetAttribute("target", currentTarget)
 		MouseHandle:Execute(format([[
 			USE = "%s"
 			ID = %d
-			PAGE = %d
-			self:ClearBindings()
-			local key = GetBindingKey(USE)
-			if key then
-				self:SetBinding(true, key, "INTERACTMOUSEOVER")
-			end
-		]], button, id or -1, currentPage))
+			self:Run(UpdateActionPage, self:GetAttribute("actionpage"))
+			self:Run(UpdateTarget, self:GetAttribute("target"))
+			self:SetAttribute("actionpage", nil)
+			self:SetAttribute("target", nil)
+		]], button, id or -1))
 
 		self:AddUpdateSnippet(SecureSpellBookUpdate)
 	else
@@ -299,8 +288,7 @@ function ConsolePort:UpdateStateDriver()
 		]])
 
 		UnregisterStateDriver(MouseHandle, "actionpage")
-		UnregisterStateDriver(MouseHandle, "targetenemy")
-		UnregisterStateDriver(MouseHandle, "targetfriend")
+		UnregisterStateDriver(MouseHandle, "targetstate")
 	end
 end
 
