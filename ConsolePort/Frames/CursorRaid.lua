@@ -250,7 +250,7 @@ function Cursor:Update(elapsed)
 		local node = UIHandle:GetAttribute("node")
 		if node then
 			local name = node:GetName()
-			if ConsolePortCursor:IsVisible() then
+			if ConsolePortCursor:IsVisible() and not InCombatLockdown() then
 				self.node = nil
 				self:SetAlpha(0)
 			elseif name ~= self.node then
@@ -266,8 +266,9 @@ function Cursor:Update(elapsed)
 					self.Scale2:SetScale(1/1.5, 1/1.5)
 					self.Scale2:SetDuration(0.2)
 				end
+				local x, y = UIHandle:GetCenter()
 				self:ClearAllPoints()
-				self:SetPoint("TOPLEFT", UIHandle, "CENTER", 0, 0)
+				self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
 				self.Group:Play()
 				self:SetAlpha(1)
 			end
