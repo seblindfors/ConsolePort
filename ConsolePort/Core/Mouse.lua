@@ -9,6 +9,8 @@ local _, db = ...
 ---------------------------------------------------------------
 local Settings
 ---------------------------------------------------------------
+local ConsolePort = ConsolePort
+---------------------------------------------------------------
 local WorldFrame = WorldFrame
 local HasCursorItem = GetCursorInfo
 local GetMouseFocus = GetMouseFocus
@@ -60,8 +62,8 @@ end
 -- should be used to cast spells or to interact with mouseover.
 -- The behaviour alters itself depending on whether the button
 -- is bound to a healing spell or harmful spell.
--- Helpful: will interact with no target, cast on friendly.
--- Harmful: will interact with no target, cast on enemy.
+-- Helpful: interact with no target/enemy, cast on friend.
+-- Harmful: interact with no target/friend, cast on enemy.
 ---------------------------------------------------------------
 local MouseHandle = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerStateTemplate")
 MouseHandle:RegisterEvent("LEARNED_SPELL_IN_TAB")
@@ -159,6 +161,8 @@ local function SecureSpellBookUpdate(self)
 				MouseHandle:Execute(format([[
 					SPELLS[%d] = %d
 				]], spellID, id))
+			else
+				break
 			end
 		end
 		self:RemoveUpdateSnippet(SecureSpellBookUpdate)

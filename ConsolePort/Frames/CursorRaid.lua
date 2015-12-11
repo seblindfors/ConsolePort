@@ -39,13 +39,18 @@ function ConsolePort:CreateRaidCursor()
 		GetNodes = [=[
 			local node = CurrentNode
 			local children = newtable(node:GetChildren())
+			local unit = node:GetAttribute("unit")
+			local childUnit
 			if not node:IsObjectType("Slider") then
 				for i, child in pairs(children) do
-					CurrentNode = child
-					self:Run(GetNodes)
+					childUnit = child:GetAttribute("unit")
+					if childUnit == nil or childUnit ~= unit then
+						CurrentNode = child
+						self:Run(GetNodes)
+					end
 				end
 			end
-			if node:GetAttribute("unit") then
+			if node:GetAttribute("unit") and node ~= self then
 				local left, bottom, width, height = node:GetRect()
 				if left and bottom then
 					tinsert(Nodes, node)
@@ -122,6 +127,8 @@ function ConsolePort:CreateRaidCursor()
 			self:Run(FindClosestNode)
 
 			if current then
+				self:ClearAllPoints()
+				self:SetPoint("CENTER", current, "CENTER", 0, 0)
 				self:SetAttribute("unit", current:GetAttribute("unit"))
 				self:SetAttribute("node", current)
 			else
@@ -248,25 +255,21 @@ function Cursor:Update(elapsed)
 				self:SetAlpha(0)
 			elseif name ~= self.node then
 				self.node = name
-				local frame = _G[name]
-				if frame then
-					if self:GetAlpha() == 0 then
-						self.Scale1:SetScale(3, 3)
-						self.Scale2:SetScale(1/3, 1/3)
-						self.Scale2:SetDuration(0.5)
-						FadeOut(self.Glow, 0.5, 1, 0.5)
-						PlaySound("AchievementMenuOpen")
-					else
-						self.Scale1:SetScale(1.5, 1.5)
-						self.Scale2:SetScale(1/1.5, 1/1.5)
-						self.Scale2:SetDuration(0.2)
-					end
-					local x, y = frame:GetCenter()
-					self:ClearAllPoints()
-					self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
-					self.Group:Play()
-					self:SetAlpha(1)
+				if self:GetAlpha() == 0 then
+					self.Scale1:SetScale(3, 3)
+					self.Scale2:SetScale(1/3, 1/3)
+					self.Scale2:SetDuration(0.5)
+					FadeOut(self.Glow, 0.5, 1, 0.5)
+					PlaySound("AchievementMenuOpen")
+				else
+					self.Scale1:SetScale(1.5, 1.5)
+					self.Scale2:SetScale(1/1.5, 1/1.5)
+					self.Scale2:SetDuration(0.2)
 				end
+				self:ClearAllPoints()
+				self:SetPoint("TOPLEFT", UIHandle, "CENTER", 0, 0)
+				self.Group:Play()
+				self:SetAlpha(1)
 			end
 		else
 			self.node = nil
