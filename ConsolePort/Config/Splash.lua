@@ -10,14 +10,18 @@ local PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\"
 
 -- Determine if the base (unmodified) bindings are assigned.
 function ConsolePort:CheckUnassignedBindings()
+	local ctrlType = ConsolePortSettings.type
 	local ButtonUnassigned = false
 	local buttons = self:GetBindingNames()
 	local unassigned = {}
 	for i, button in pairs(buttons) do
-		local key1, key2 = GetBindingKey(button)
-		if not key1 and not key2 then
-			ButtonUnassigned = true
-			tinsert(unassigned, button)
+		-- temporary Steam guide button fix, remove this.
+		if not (ctrlType == "STEAM" and button == "CP_C_OPTION") then 
+			local key1, key2 = GetBindingKey(button)
+			if not key1 and not key2 then
+				ButtonUnassigned = true
+				tinsert(unassigned, button)
+			end
 		end
 	end
 	if not ButtonUnassigned then unassigned = nil end
@@ -26,7 +30,8 @@ end
 
 function ConsolePort:CreateBindingWizard()
 	if not ConsolePortWizardFrame then
-		local Wizard = db.Atlas.GetSetupWindow("ConsolePortWizardFrame") 
+		local Wizard = db.Atlas.GetSetupWindow("ConsolePortWizardFrame")
+		local ctrlType = ConsolePortSettings.type
 
 		Wizard:SetPoint("CENTER", 0,0)
 		Wizard:SetFrameStrata("DIALOG")
@@ -58,7 +63,7 @@ function ConsolePort:CreateBindingWizard()
 		Wizard.Description:SetPoint("TOP", 0, -175)
 		Wizard.Confirm:SetPoint("TOP", 0, -400)
 
-		Wizard.Overlay:SetTexture(PATH.."Splash"..ConsolePortSettings.type)
+		Wizard.Overlay:SetTexture(PATH.."Splash"..ctrlType)
 		Wizard.Wrapper:SetTexture(PATH.."ButtonWrapper")
 
 		-- Alpha

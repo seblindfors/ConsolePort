@@ -23,6 +23,12 @@ Locker:SetPoint("CENTER", 0, 0)
 Locker:SetSize(70, 180)
 Locker:Hide()
 ---------------------------------------------------------------
+local IsOutside
+local DriftProtection = CreateFrame("Frame", "ConsolePortMouseLookRim", UIParent)
+DriftProtection:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 50, -50)
+DriftProtection:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 50)
+DriftProtection:Show()
+---------------------------------------------------------------
 local function MouseLookOnJump()
 	if 	Settings.mouseOnJump and
 		not SpellIsTargeting() and
@@ -42,6 +48,16 @@ local function MouselookShouldStart()
 		MouselookOnCenter() 			and
 		(GetMouseFocus() == WorldFrame) then
 		return true
+	end
+end
+
+local function MouselookDriftingUpdate(self)
+	if not DriftProtection:IsMouseOver() and not IsOutside and
+		(GetMouseFocus() == WorldFrame) then
+		IsOutside = true
+		self:StartMouse()
+	elseif DriftProtection:IsMouseOver() then
+		IsOutside = false
 	end
 end
 
@@ -71,7 +87,6 @@ MouseHandle:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 MouseHandle:SetFrameRef("OverrideBar", OverrideActionBar)
 MouseHandle:Execute([[
 	SPELLS = newtable()
-	ALL = newtable()
 	USE = false
 	PAGE = 0
 	ID = 0
@@ -81,7 +96,7 @@ MouseHandle:Execute([[
 		local exists = ...
 		local interact = false
 
-		if exists == "enemy" or exists == "friend" then
+		if exists ~= "hover" and (exists == "enemy" or exists == "friend") then
 			local id = ID >= 0 and ID <= 12 and (PAGE-1) * 12 + ID or ID >= 0 and ID
 			if id then
 				local actionType, actionID, subType = GetActionInfo(id)
@@ -112,21 +127,6 @@ MouseHandle:Execute([[
 		end
 	]=]
 
-	UpdateMouseOver = [=[
-		local mouseover = ...
-		self:SetAttribute("mousestate", mouseover and true)
-		if mouseover then
-			for binding in pairs(ALL) do
-				local key = GetBindingKey(binding)
-				if key then
-					self:SetBinding(true, key, "INTERACTMOUSEOVER")
-				end
-			end
-		else
-			self:ClearBindings()
-		end
-	]=]
-
 	UpdateActionPage = [=[
 		PAGE = ...
 		if PAGE == "tempshapeshift" then
@@ -136,9 +136,9 @@ MouseHandle:Execute([[
 				PAGE = 1
 			end
 		elseif PAGE == "possess" then
-			PAGE = self:GetFrameRef("ActionBar"):GetAttribute("actionpage")
+			PAGE = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
 			if PAGE <= 10 then
-				PAGE = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage")
+				PAGE = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
 			end
 			if PAGE <= 10 then
 				PAGE = 12
@@ -148,7 +148,6 @@ MouseHandle:Execute([[
 ]])
 
 MouseHandle:SetAttribute("_onstate-targetstate", 	[[ self:Run(UpdateTarget, newstate) ]])
-MouseHandle:SetAttribute("_onstate-mousestate", 	[[ self:Run(UpdateMouseOver, newstate) ]])
 MouseHandle:SetAttribute("_onstate-actionpage", 	[[ self:Run(UpdateActionPage, newstate) ]])
 
 -- Index the entire spellbook by using spell ID as key and spell book slot as value.
@@ -236,26 +235,17 @@ function ConsolePort:UpdateSmartMouse()
 	else
 		self:AddUpdateSnippet(MouselookUpdate)
 	end
+	if Settings.preventMouseDrift then
+		self:AddUpdateSnippet(MouselookDriftingUpdate)
+	else
+		self:RemoveUpdateSnippet(MouselookDriftingUpdate)
+	end
 end
 
 ---------------------------------------------------------------
 -- Toggle interactive mouse driver on/off
 ---------------------------------------------------------------
 function ConsolePort:UpdateStateDriver()
-	if ConsolePortSettings.mouseOverMode then
-		RegisterStateDriver(MouseHandle, "mousestate", "[@mouseover,exists] true; nil")
-		MouseHandle:Execute([[
-			ALL = newtable()
-		]])
-		for _, binding in pairs(self:GetBindingNames()) do
-			MouseHandle:Execute(format([[
-				ALL.%s = true
-			]], binding, binding))
-		end
-	else
-		UnregisterStateDriver(MouseHandle, "mousestate")
-	end
-
 	if ConsolePortSettings.interactWith then
 		local currentPage, actionpage = self:GetActionPageState()
 		local button = ConsolePortSettings.interactWith
@@ -263,6 +253,11 @@ function ConsolePort:UpdateStateDriver()
 		local id = original and self:GetActionID(original)
 
 		local targetstate = "[@playertarget,exists,harm,nodead] enemy; [@playertarget,exists,noharm,nodead] friend; nil"
+
+		if ConsolePortSettings.mouseOverMode then
+			targetstate = "[@mouseover,exists] hover; "..targetstate
+		end
+
 		local currentTarget = SecureCmdOptionParse(targetstate)
 
 		CursorTrail.Texture:SetTexture(db.TEXTURE[button])

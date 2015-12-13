@@ -95,6 +95,14 @@ local actionIDs = {
 	[107] 	= "ACTIONBUTTON11",				[119] 	= "ACTIONBUTTON11",
 	[108] 	= "ACTIONBUTTON12",				[120] 	= "ACTIONBUTTON12",
 
+	-- OverrideBar
+	[133] 	= "ACTIONBUTTON1",
+	[134] 	= "ACTIONBUTTON2",
+	[135] 	= "ACTIONBUTTON3",
+	[136] 	= "ACTIONBUTTON4",
+	[137] 	= "ACTIONBUTTON5",
+	[138] 	= "ACTIONBUTTON6",
+
 	[169] 	= "EXTRAACTIONBUTTON1",
 
 	["StanceButton1"]	 	= "SHAPESHIFTBUTTON1",
@@ -403,6 +411,7 @@ function ConsolePort:GetDefaultUIFrames()
 			"GarrisonLandingPage",
 			"GarrisonMissionFrame",
 			"GarrisonMonumentFrame",
+			"GarrisonRecruiterFrame",
 			"GarrisonShipyardFrame" },
 		Blizzard_GuildUI			= {
 			"GuildFrame" },

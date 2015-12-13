@@ -265,6 +265,7 @@ local function ChangeButtonBinding(actionButton)
 			-- specific to the list of bindings
 			if isStatic then
 				local text = _G[BIND..focusFrame.Binding] or focusFrame.Binding
+				-- check for duplicate bindings 
 				for bindName, bindTable in pairs(NewBindingSet) do
 					for bindMod, bindAction in pairs(bindTable) do
 						if focusFrame.Binding == bindAction then
@@ -289,6 +290,7 @@ local function ChangeButtonBinding(actionButton)
 				local actionBinding = ConsolePort:GetActionBinding(newAction)
 				if actionBinding then -- item is an action button
 					local text = _G[BIND..actionBinding] or focusFrameName
+					-- check for duplicate bindings
 					for bindName, bindTable in pairs(NewBindingSet) do
 						for bindMod, bindAction in pairs(bindTable) do
 							if actionBinding == bindAction then
@@ -885,11 +887,11 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 		self.Group:Play()
 	end
 
-	Binds.Controller.Texture = Binds.Controller:CreateTexture("GameMenuTextureController", "ARTWORK")
+	Binds.Controller.Texture = Binds.Controller:CreateTexture("$parentTexture", "ARTWORK")
 	Binds.Controller.Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type)
 	Binds.Controller.Texture:SetAllPoints(Binds.Controller)
 
-	Binds.Controller.FlashGlow = Binds.Controller:CreateTexture("GameMenuTextureControllerGlow", "OVERLAY")
+	Binds.Controller.FlashGlow = Binds.Controller:CreateTexture("$parentGlow", "OVERLAY")
 	Binds.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type.."Highlight")
 	Binds.Controller.FlashGlow:SetAllPoints(Binds.Controller)
 	Binds.Controller.FlashGlow:SetAlpha(0)
@@ -964,15 +966,18 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 
 	Binds.Buttons = {}
 	for buttonName, position in pairs(db.BINDINGS) do
-		local button = CreateFrame("Button", buttonName.."_BINDING", Binds)
-		button.name = buttonName
-		button.icon = "|T%s:24:24:0:0|t"
-		button.texture = format(button.icon, db.TEXTURE[buttonName])
-		button:SetPoint("TOPLEFT", Binds.Controller, "TOPLEFT", position.X, position.Y)
-		button:SetSize(30, 30)
-		button:SetScript("OnEnter", SetBindingTooltip)
-		button:SetScript("OnClick", SetBindingFocus)
-		button:SetScript("OnLeave", ClearBindingTooltip)
+		-- temporary Steam guide button fix, remove this.
+		if not (ConsolePortSettings.type == "STEAM" and buttonName == "CP_C_OPTION") then
+			local button = CreateFrame("Button", buttonName.."_BINDING", Binds)
+			button.name = buttonName
+			button.icon = "|T%s:24:24:0:0|t"
+			button.texture = format(button.icon, db.TEXTURE[buttonName])
+			button:SetPoint("TOPLEFT", Binds.Controller, "TOPLEFT", position.X, position.Y)
+			button:SetSize(30, 30)
+			button:SetScript("OnEnter", SetBindingTooltip)
+			button:SetScript("OnClick", SetBindingFocus)
+			button:SetScript("OnLeave", ClearBindingTooltip)
+		end
 	end
 
 	Binds.Rebind = db.Atlas.GetGlassWindow(addOn.."RebindFrame", Binds.Controller, nil, true)

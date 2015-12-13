@@ -16,15 +16,15 @@ local function GetAddonSettings()
 			desc = TUTORIAL.CONFIG.CLICKTOMOVE,
 			toggle = ConsolePortSettings.autoInteract,
 		},
-		{
-			cvar = "mouseOverMode",
-			desc = TUTORIAL.CONFIG.MOUSEOVERMODE,
-			toggle = ConsolePortSettings.mouseOverMode,
-		},
 		{	cvar = "turnCharacter",
 			desc = TUTORIAL.CONFIG.TURNMOVE,
 			toggle = ConsolePortSettings.turnCharacter,
 			needReload = true, 
+		},
+		{
+			cvar = "preventMouseDrift",
+			desc = TUTORIAL.CONFIG.MOUSEDRIFTING,
+			toggle = ConsolePortSettings.preventMouseDrift,
 		},
 		{	cvar = "disableSmartMouse",
 			desc = TUTORIAL.CONFIG.DISABLEMOUSE,
@@ -131,10 +131,12 @@ local function SaveGeneralConfig(self)
 		end
 	end
 
-	if self.InteractModule.Check:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
+	if self.InteractModule.Enable:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
 		ConsolePortSettings.interactWith = self.InteractModule.BindCatcher.CurrentButton
+		ConsolePortSettings.mouseOverMode = self.InteractModule.MouseOver:GetChecked()
 	else
 		ConsolePortSettings.interactWith = false
+		ConsolePortSettings.mouseOverMode = false
 	end
 
 	ConsolePortMouse.Cursor.Left = self.LeftClick.button
@@ -214,14 +216,16 @@ local function BindCatcherOnShow(self)
 end
 
 local function InteractModuleOnShow(self)
-	if self.Check:GetChecked() then
+	if self.Enable:GetChecked() then
 		FadeOut(self.Hand, 0.5, 1, 0.1)
-		FadeOut(self.BG, 0.5, 1, 0.1)
+		FadeOut(self.Dude, 0.5, 1, 0.1)
+		self.MouseOver:Show()
 		self.BindWrapper:Show()
 	else
+		self.MouseOver:Hide()
 		self.BindWrapper:Hide()
 		FadeIn(self.Hand, 0.5, 0.1, 1)
-		FadeIn(self.BG, 0.5, 0.1, 1)
+		FadeIn(self.Dude, 0.5, 0.1, 1)
 	end
 end
 
@@ -267,14 +271,14 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.InteractModule.Header:SetText(TUTORIAL.CONFIG.INTERACTHEADER)
 	Config.InteractModule.Header:SetPoint("TOPLEFT", 16, -16)
 
-	Config.InteractModule.BG = Config.InteractModule:CreateTexture(nil, "BACKGROUND", nil, 1)
-	Config.InteractModule.BG:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-QuestGiver")
-	Config.InteractModule.BG:SetPoint("CENTER", 0, 0)
-	Config.InteractModule.BG:SetSize(128, 128)
+	Config.InteractModule.Dude = Config.InteractModule:CreateTexture(nil, "BACKGROUND", nil, 1)
+	Config.InteractModule.Dude:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-QuestGiver")
+	Config.InteractModule.Dude:SetPoint("CENTER", 0, 0)
+	Config.InteractModule.Dude:SetSize(128, 128)
 
 	Config.InteractModule.Hand = Config.InteractModule:CreateTexture(nil, "BACKGROUND", nil, 2)
 	Config.InteractModule.Hand:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-GloveCursor")
-	Config.InteractModule.Hand:SetPoint("CENTER", 16, -50)
+	Config.InteractModule.Hand:SetPoint("CENTER", 16, -40)
 	Config.InteractModule.Hand:SetSize(64, 64)
 
 	Config.InteractModule.Description = Config.InteractModule:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -284,7 +288,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	Config.InteractModule.BindWrapper = db.Atlas.GetGlassWindow("$parentBindWrapper", Config.InteractModule, nil, true)
 	Config.InteractModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-	Config.InteractModule.BindWrapper:SetPoint("CENTER", 0, 0)
+	Config.InteractModule.BindWrapper:SetPoint("CENTER", 0, 8)
 	Config.InteractModule.BindWrapper:SetSize(240, 140)
 	Config.InteractModule.BindWrapper.Close:Hide()
 	Config.InteractModule.BindWrapper:Hide()
@@ -298,16 +302,26 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.InteractModule.BindCatcher:SetScript("OnHide", BindCatcherOnHide)
 	Config.InteractModule.BindCatcher:SetScript("OnShow", BindCatcherOnShow)
 	Config.InteractModule.BindCatcher.Cover:Hide()
+	-- Show it once to populate settings
+	BindCatcherOnShow(Config.InteractModule.BindCatcher)
 
-	Config.InteractModule.Check = CreateFrame("CheckButton", nil, Config.InteractModule, "ChatConfigCheckButtonTemplate")
-	Config.InteractModule.Check:SetPoint("TOPLEFT", 16, -40)
-	Config.InteractModule.Check:SetChecked(ConsolePortSettings.interactWith)
-	Config.InteractModule.Check:SetScript("OnClick", function(self) InteractModuleOnShow(self:GetParent()) end)
+	Config.InteractModule.Enable = CreateFrame("CheckButton", nil, Config.InteractModule, "ChatConfigCheckButtonTemplate")
+	Config.InteractModule.Enable:SetPoint("TOPLEFT", 16, -40)
+	Config.InteractModule.Enable:SetChecked(ConsolePortSettings.interactWith)
+	Config.InteractModule.Enable:SetScript("OnClick", function(self) InteractModuleOnShow(self:GetParent()) end)
 
-	Config.InteractModule.Check.Text = Config.InteractModule.Check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	Config.InteractModule.Check.Text:SetText(TUTORIAL.CONFIG.INTERACTCHECK)
-	Config.InteractModule.Check.Text:SetPoint("LEFT", 30, 0)
+	Config.InteractModule.Enable.Text = Config.InteractModule.Enable:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	Config.InteractModule.Enable.Text:SetText(TUTORIAL.CONFIG.INTERACTCHECK)
+	Config.InteractModule.Enable.Text:SetPoint("LEFT", 30, 0)
 
+	Config.InteractModule.MouseOver = CreateFrame("CheckButton", nil, Config.InteractModule, "ChatConfigCheckButtonTemplate")
+	Config.InteractModule.MouseOver:SetPoint("BOTTOMLEFT", 16, 56)
+	Config.InteractModule.MouseOver:SetChecked(ConsolePortSettings.mouseOverMode)
+	Config.InteractModule.MouseOver:SetScript("OnClick", function(self) InteractModuleOnShow(self:GetParent()) end)
+
+	Config.InteractModule.MouseOver.Text = Config.InteractModule.MouseOver:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	Config.InteractModule.MouseOver.Text:SetText(TUTORIAL.CONFIG.MOUSEOVERMODE)
+	Config.InteractModule.MouseOver.Text:SetPoint("LEFT", 30, 0)
 
 	------------------------------------------------------------------------------------------------------------------------------
 	Config.MouseModule.Header = Config.MouseModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")

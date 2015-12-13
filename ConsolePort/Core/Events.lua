@@ -3,8 +3,14 @@
 ---------------------------------------------------------------
 -- Collection of functions related to event management.
 -- Manages mouse look triggering from events.
+---------------------------------------------------------------
+local Callback = C_Timer.After
+---------------------------------------------------------------
+local MouseEvents
+---------------------------------------------------------------
 
 function ConsolePort:LoadEvents()
+	MouseEvents = ConsolePortMouse.Events
 	-- Default events
 	local Events = {
 		["ADDON_LOADED"] 			= false,
@@ -20,7 +26,7 @@ function ConsolePort:LoadEvents()
 		["UNIT_ENTERING_VEHICLE"] 	= false,
 	}
 	-- Union of general events and mouse look events
-	for event, val in pairs(ConsolePortMouse.Events) do
+	for event, val in pairs(MouseEvents) do
 		Events[event] = val
 	end
 	self:UnregisterAllEvents()
@@ -30,17 +36,11 @@ function ConsolePort:LoadEvents()
 end
 
 local function IsMouselookEvent(event)
-	if 	ConsolePortMouse.Events then
-		return ConsolePortMouse.Events[event]
-	end
-	return true
+	return MouseEvents[event]
 end
 
 function ConsolePort:CheckMouselookEvent(event, ...)
-	if ( (	event == "PLAYER_TARGET_CHANGED"
-			and IsMouselookEvent(event)
-			and UnitExists("target"))
-			or IsMouselookEvent(event) ) and
+	if 	IsMouselookEvent(event) and
 		GetMouseFocus() == WorldFrame and
 		not SpellIsTargeting() and
 		not IsMouseButtonDown(1) then
@@ -52,6 +52,18 @@ end
 -- Event specific functions
 ---------------------------------------------------------------
 local Events = {}
+
+function Events:PLAYER_TARGET_CHANGED(...)
+	Callback(0.02, function()
+		if IsMouselookEvent("PLAYER_TARGET_CHANGED") and
+			UnitExists("target") and
+			GetMouseFocus() == WorldFrame and
+			not SpellIsTargeting() and
+			not IsMouseButtonDown(1) then
+			self:StartMouse()
+		end
+	end)
+end
 
 function Events:MERCHANT_SHOW(...)
 	-- Automatically sell junk
@@ -115,6 +127,9 @@ function Events:PLAYER_REGEN_ENABLED(...)
 	self:SetButtonActionsDefault()
 	self:UpdateFrames()
 	self:UpdateCVars(false)
+	-- Add callback here later to prevent accidental input.
+	--Callback(1, function()
+	--end)
 end
 
 function Events:PLAYER_REGEN_DISABLED(...)

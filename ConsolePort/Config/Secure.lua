@@ -45,11 +45,11 @@ function ConsolePort:CreateButtonHandler()
 					page = 1
 				end
 			elseif page == "possess" then
-				page = self:GetFrameRef("MainMenuBarArtFrame"):GetAttribute("actionpage")
-				if page <= 10 then
-					page = self:GetFrameRef("OverrideActionBar"):GetAttribute("actionpage")
+				page = self:GetFrameRef("MainMenuBarArtFrame"):GetAttribute("actionpage") or 1
+				if  page <= 10 then
+					page = self:GetFrameRef("OverrideActionBar"):GetAttribute("actionpage") or 12
 				end
-				if page <= 10 then
+				if  page <= 10 then
 					page = 12
 				end
 			end
