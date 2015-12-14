@@ -26,6 +26,11 @@ local function GetAddonSettings()
 			desc = TUTORIAL.CONFIG.MOUSEDRIFTING,
 			toggle = ConsolePortSettings.preventMouseDrift,
 		},
+		{
+			cvar = "doubleModTap",
+			desc = format(TUTORIAL.CONFIG.DOUBLEMODTAP, TEXTURE[ConsolePortSettings.shift], TEXTURE[ConsolePortSettings.ctrl]),
+			toggle = ConsolePortSettings.doubleModTap,
+		},
 		{	cvar = "disableSmartMouse",
 			desc = TUTORIAL.CONFIG.DISABLEMOUSE,
 			toggle = ConsolePortSettings.disableSmartMouse,
@@ -43,11 +48,6 @@ local function GetAddonSettings()
 			cvar = "autoLootDefault",
 			desc = TUTORIAL.CONFIG.AUTOLOOT,
 			toggle = ConsolePortSettings.autoLootDefault,
-		},
-		{
-			cvar = "blockTrades",
-			desc = TUTORIAL.CONFIG.AUTOBLOCK,
-			toggle = ConsolePortSettings.blockTrades,
 		},
 		-- Mouse "events" to the user, but cvars internally
 		{

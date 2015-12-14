@@ -18,7 +18,7 @@ local SpellIsTargeting = SpellIsTargeting
 local IsMouseButtonDown = IsMouseButtonDown
 ---------------------------------------------------------------
 local IsCentered, IsVisible
-local Locker = CreateFrame("Frame", "ConsolePortMouseLook", UIParent)
+local Locker = CreateFrame("Frame", "ConsolePortMouseLookCenter", UIParent)
 Locker:SetPoint("CENTER", 0, 0)
 Locker:SetSize(70, 180)
 Locker:Hide()
@@ -27,8 +27,13 @@ local IsOutside
 local DriftProtection = CreateFrame("Frame", "ConsolePortMouseLookRim", UIParent)
 DriftProtection:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 50, -50)
 DriftProtection:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 50)
-DriftProtection:Show()
+DriftProtection:Hide()
 ---------------------------------------------------------------
+local DoubleTapCatcher = CreateFrame("Frame")
+DoubleTapCatcher.Num = 0
+DoubleTapCatcher.Timer = 0
+---------------------------------------------------------------
+
 local function MouseLookOnJump()
 	if 	Settings.mouseOnJump and
 		not SpellIsTargeting() and
@@ -58,6 +63,33 @@ local function MouselookDriftingUpdate(self)
 		self:StartMouse()
 	elseif DriftProtection:IsMouseOver() then
 		IsOutside = false
+	end
+end
+
+local function MouselookDoubleTapUpdate(self, elapsed)
+	self.Timer = self.Timer + elapsed
+	
+	if self.Timer > 0.25 then
+		if self.Num > 1 then
+			ConsolePort:ToggleMouse()
+			self.Num = 0
+			self.Mod = 0
+		end
+		self.Num = self.Num > 0 and self.Num - 1 or 0
+		self.Timer = self.Timer - 0.25
+	end
+end
+
+local function MouselookDoubleTapEvent(self, _, ...)
+	local modifier, down = ...
+	if down == 1 and (modifier == "LSHIFT" or modifier == "RSHIFT") then
+		self.Timer = 0
+		self.Num = self.Mod == "SHIFT" and self.Num + 1 or 1
+		self.Mod = "SHIFT"
+	elseif down == 1 and (modifier == "LCTRL" or modifier == "RCTRL") then
+		self.Timer = 0
+		self.Num = self.Mod == "CTRL" and self.Num + 1 or 1
+		self.Mod = "CTRL"
 	end
 end
 
@@ -239,6 +271,15 @@ function ConsolePort:UpdateSmartMouse()
 		self:AddUpdateSnippet(MouselookDriftingUpdate)
 	else
 		self:RemoveUpdateSnippet(MouselookDriftingUpdate)
+	end
+	if Settings.doubleModTap then
+		DoubleTapCatcher:SetScript("OnEvent", MouselookDoubleTapEvent)
+		DoubleTapCatcher:SetScript("OnUpdate", MouselookDoubleTapUpdate)
+		DoubleTapCatcher:RegisterEvent("MODIFIER_STATE_CHANGED")
+	else
+		DoubleTapCatcher:SetScript("OnEvent", nil)
+		DoubleTapCatcher:SetScript("OnUpdate", nil)
+		DoubleTapCatcher:UnregisterEvent("MODIFIER_STATE_CHANGED")
 	end
 end
 

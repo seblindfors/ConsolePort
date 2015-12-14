@@ -7,7 +7,6 @@
 
 local CVars = {
 	autoLootDefault 			= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
-	blockTrades 				= 	{value = true, 	isCombatCVar = true, 	event = "BLOCK_TRADES"},
 	autoInteract 				= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
 	cameraDistanceMoveSpeed 	=	{value = 50, 	isCombatCVar = false},
 }

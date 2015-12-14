@@ -911,7 +911,6 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 
 	Binds:HookScript("OnEvent", BindingsOnEvent)
 	Binds:HookScript("OnShow", BindingsOnShow)
-	Binds:HookScript("OnHide", RevertBindings)
 
 	Binds:RegisterEvent("PLAYER_REGEN_ENABLED")
 	Binds:RegisterEvent("PLAYER_REGEN_DISABLED")
