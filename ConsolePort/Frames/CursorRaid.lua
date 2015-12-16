@@ -13,7 +13,7 @@ local FadeOut = db.UIFrameFadeOut
 local UIHandle, Cursor
 
 function ConsolePort:CreateRaidCursor()
-	UIHandle = CreateFrame("Frame", addOn.."UIHandle", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
+	UIHandle = CreateFrame("Frame", addOn.."UIHandle", UIParent, "SecureHandlerBaseTemplate")
 	local Key = {
 		Up 		= self:GetUIControlKey("CP_L_UP"),
 		Down 	= self:GetUIControlKey("CP_L_DOWN"),

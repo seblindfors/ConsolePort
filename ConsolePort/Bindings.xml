@@ -12,8 +12,8 @@
 	<Binding name="CP_L_OPTION" header="CP_CENTER" category="ConsolePort "/>
 	<Binding name="CP_TR1" header="CP_TRIG" category="ConsolePort "/>
 	<Binding name="CP_TR2" header="CP_TRIG" category="ConsolePort "/>
-	<!-- Extra button -->
-	<Binding name="CLICK ConsolePortExtraButton:LeftButton" category="ConsolePort " hidden="true"/>
+	<!-- Utility belt -->
+	<Binding name="CLICK ConsolePortUtilityToggle:LeftButton" category="ConsolePort " hidden="true"/>
 
 	<!-- Custom bindings -->
 	<Binding name="CP_TOGGLEMOUSE" category="ConsolePort " hidden="true" >

@@ -77,6 +77,11 @@ function ConsolePort:LoadSettings()
 		ConsolePortUIFrames = self:GetDefaultUIFrames()
 	end
 
+	-- Use this table to populate radial action bar
+	if not ConsolePortUtility then
+		ConsolePortUtility = {}
+	end
+
 	-- Load the binding wizard if a button does not have a registered mock binding
 	if 	self:CheckUnassignedBindings() then
 		self:CreateBindingWizard()
@@ -88,8 +93,14 @@ function ConsolePort:LoadSettings()
 	db.UIStack = ConsolePortUIFrames
 	db.Mouse = ConsolePortMouse
 
+	-- Compatibility fixes.
 	if db.Settings.mouseOnCenter == nil then
 		db.Settings.mouseOnCenter = true
+	end
+
+	if db.Settings.shift == nil or db.Settings.ctrl == nil then
+		db.Settings.shift = "CP_TL1"
+		db.Settings.ctrl = "CP_TL2"
 	end
 
 	-- Slash handler and stuff related to that
@@ -111,6 +122,7 @@ function ConsolePort:LoadSettings()
 			ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
 			ConsolePortUIFrames = nil
 			ConsolePortSettings = nil
+			ConsolePortUtility = nil
 			ConsolePortMouse = nil
 			ReloadUI()
 		else

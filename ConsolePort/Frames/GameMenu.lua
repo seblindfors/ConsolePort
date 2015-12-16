@@ -88,7 +88,7 @@ local function ConfigureMenu()
 	end
 
 	-- Create a shortcut menu button to quickly open the binding manager.
-	local GameMenuButtonController = CreateFrame("BUTTON", "GameMenuButtonController", GameMenuFrame, "GameMenuButtonTemplate")
+	local GameMenuButtonController = CreateFrame("BUTTON", "GameMenuButtonController", GameMenuFrame, "GameMenuButtonTemplate, SecureHandlerBaseTemplate")
 	GameMenuButtonController.hasPriority = true
 	GameMenuButtonController:SetText(db.TUTORIAL.BIND.MENUHEADER)
 	GameMenuButtonController:SetScript("PreClick", PreClick)

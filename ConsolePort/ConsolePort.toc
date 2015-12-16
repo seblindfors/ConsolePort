@@ -3,7 +3,7 @@
 ## Notes: Game controller addon
 ## Version: 0.9.22
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames
-## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouse
+## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouse, ConsolePortUtility
 
 Locale\Locale.xml
 
@@ -37,4 +37,4 @@ Frames\Popup.lua
 Frames\Map.lua
 Frames\GameMenu.lua
 Frames\Stack.lua
-Frames\ExtraButton.lua
+Frames\Utility.lua

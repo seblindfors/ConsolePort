@@ -146,6 +146,7 @@ local function SaveGeneralConfig(self)
 	ConsolePort:SetupCursor()
 	ConsolePort:LoadControllerTheme()
 	ConsolePort:UpdateStateDriver()
+	ConsolePort:SetupUtilityBelt()
 end
 
 ---------------------------------------------------------------

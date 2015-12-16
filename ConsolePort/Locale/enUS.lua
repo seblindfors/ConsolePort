@@ -71,7 +71,7 @@ TUTORIAL = {
 		TURNMOVE 			= "Turn instead of strafe when mouse look is off",
 		DOUBLEMODTAP 		= "Double tap |T%s:16:16:0:0|t or |T%s:16:16:0:0|t to toggle mouse cursor",
 		DISABLEMOUSE 		= "Disable smart mouse behaviour",
-		AUTOEXTRA 			= "Auto bind appropriate quest items",
+		AUTOEXTRA 			= "Auto bind items from tracked quests",
 		FASTCAM 			= "Fast camera zooming",
 		AUTOLOOT 			= "Force auto loot in combat",
 		CONTROLLER 			= "Change controller",
@@ -127,7 +127,7 @@ TOOLTIP = {
 	}
 },
 CUSTOMBINDS = {
-	CP_EXTRABUTTON			= 	"Custom extra button",
+	CP_UTILITYBELT			= 	"Utility belt",
 	CP_RAIDCURSOR			= 	"Toggle raid cursor",
 	CP_TOGGLEMOUSE			= 	"Toggle mouse look",
 	CP_CAMZOOMIN			= 	"Zoom in (custom)",

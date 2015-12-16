@@ -11,9 +11,6 @@ function ConsolePort:LoadHookScripts()
 	-- Click instruction hooks. Pending removal for cleaner solution
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
 		local owner = self:GetOwner()
-		if owner == ConsolePortExtraButton then
-			return
-		end
 		local item = self:GetItem()
 		if 	not InCombatLockdown() then
 			local 	CLICK_STRING

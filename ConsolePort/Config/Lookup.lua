@@ -186,7 +186,7 @@ function ConsolePort:GetDefaultBinding(key)
 			action 		= "JUMP",
 			shift 		= "TARGETNEARESTENEMY",
 			ctrl  		= "INTERACTMOUSEOVER",
-			ctrlsh 		= "TARGETPREVIOUSENEMY",
+			ctrlsh 		= "CLICK ConsolePortUtilityToggle:LeftButton",
 		},
 		CP_R_LEFT = {
 			action 		= "ACTIONBUTTON1",
@@ -246,7 +246,7 @@ function ConsolePort:GetDefaultBinding(key)
 		},
 		CP_C_OPTION = {
 			action 		= "TOGGLEGAMEMENU",
-			shift 		= "EXTRAACTIONBUTTON1",
+			shift 		= "CLICK ConsolePortRaidCursorToggle:LeftButton",
 			ctrl 		= "TOGGLEAUTORUN",
 			ctrlsh 		= "OPENCHAT",
 		},
@@ -321,6 +321,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["trigger1"] = "CP_TR1",
 		["trigger2"] = "CP_TR2",
 		["interactWith"] = "CP_TR1",
+		["autoExtra"] = true,
 		["autoLootDefault"] = true,
 		["cameraDistanceMoveSpeed"] = true,
 	}
@@ -374,8 +375,8 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetAddonBindings()
 	return {
-		{name = BINDING_NAME_CP_EXTRABUTTON, binding = "CLICK ConsolePortExtraButton:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
+		{name = BINDING_NAME_CP_UTILITYBELT, binding = "CLICK ConsolePortUtilityToggle:LeftButton"},
 		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
 		{name = BINDING_NAME_CP_CAMZOOMIN, binding = "CP_CAMZOOMIN"},
 		{name = BINDING_NAME_CP_CAMZOOMOUT, binding = "CP_CAMZOOMOUT"},

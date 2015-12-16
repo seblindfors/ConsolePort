@@ -300,7 +300,8 @@ local function SpecialAction(self)
 		-- Item button
 		elseif node.JunkIcon then
 			local link = GetContainerItemLink(node:GetParent():GetID(), node:GetID())
-			self:UpdateExtraButton(GetItemSpell(link) and link)
+			local _, itemID = strsplit(":", strmatch(link, "item[%-?%d:]+"))
+			self:AddUtilityAction("item", GetItemSpell(link) and itemID)
 		-- Spell button
 		elseif node.SpellName then
 			local book, id, spellID, _ = SpellBookFrame, node:GetID()
