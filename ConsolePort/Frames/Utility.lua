@@ -83,17 +83,20 @@ Animation.Group:SetScript("OnFinished", AnimateOnFinished)
 ---------------------------------------------------------------
 
 local function AddAction(actionType, ID)
-	local currentType
+	local currentType, isIdentical
 	for i, ActionButton in pairs(ActionButtons) do
 		currentType = ActionButton:GetAttribute("type")
-		if not currentType or (currentType == actionType and (ActionButton:GetAttribute("cursorID") == ID or ActionButton:GetAttribute(actionType) == ID)) then
+		isIdentical = (currentType == actionType and (ActionButton:GetAttribute("cursorID") == ID or ActionButton:GetAttribute(actionType) == ID))
+		if not currentType or isIdentical then
 			if actionType == "item" then
 				ActionButton:SetAttribute("cursorID", ID)
 			end
 			ActionButton:SetAttribute("type", actionType)
 			ActionButton:SetAttribute(actionType, ID)
 			ActionButton:Show()
-			Animation:ShowNewAction(ActionButton)
+			if not isIdentical then
+				Animation:ShowNewAction(ActionButton)
+			end
 			break
 		end 
 	end
@@ -120,12 +123,19 @@ end
 Utility:SetPoint("CENTER", 0, 0)
 Utility:Hide()
 ---------------------------------------------------------------
+Utility.Background = Utility:CreateTexture(nil, "BACKGROUND")
+Utility.Background:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Circle")
+Utility.Background:SetBlendMode("ADD")
+Utility.Background:SetVertexColor(red, green, blue, 1)
+Utility.Background:SetPoint("CENTER", 0, 0)
+Utility.Background:SetSize(512, 512)
+---------------------------------------------------------------
 Utility.Gradient = Utility:CreateTexture(nil, "BACKGROUND")
 Utility.Gradient:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Circle")
 Utility.Gradient:SetBlendMode("ADD")
 Utility.Gradient:SetVertexColor(red, green, blue, 1)
 Utility.Gradient:SetPoint("CENTER", 0, 0)
-Utility.Gradient:SetSize(512, 512)
+Utility.Gradient:SetSize(256, 256)
 ---------------------------------------------------------------
 Utility.Tooltip = Tooltip
 
@@ -158,19 +168,36 @@ Utility:HookScript("OnEvent", function(self, event, ...)
 end)
 Utility:HookScript("OnAttributeChanged", function(self, attribute, detail)
 	if attribute == "index" then
+		local actionButton = ActionButtons[detail]
 		if ActionButtons[OldIndex] then
 			ActionButtons[OldIndex]:Leave()
 		end
-		if ActionButtons[detail] then
-			ActionButtons[detail]:Enter()
+		if 	actionButton then
+			actionButton:Enter()
+		end
+		if actionButton and actionButton:IsVisible() then
+			self.Gradient:Show()
+			self.Gradient:ClearAllPoints()
+			self.Gradient:SetPoint("CENTER", ActionButtons[detail], "CENTER", 0, 0)
+			FadeIn(self.Gradient, 0.2, self.Gradient:GetAlpha(), 1)
+		else
+			self.Gradient:SetAlpha(0)
+			self.Gradient:ClearAllPoints()
+			self.Gradient:Hide()
 		end
 		OldIndex = detail
 	end
+end)
+Utility:HookScript("OnShow", function(self)
+	Animation:Hide()
 end)
 Utility:HookScript("OnHide", function(self)
 	for i, ActionButton in pairs(ActionButtons) do
 		ActionButton:Leave()
 	end
+	self.Gradient:SetAlpha(0)
+	self.Gradient:ClearAllPoints()
+	self.Gradient:Hide()
 end)
 Utility:Execute([[
 	---------------------------------------------------------------
@@ -258,6 +285,7 @@ Utility:Execute([[
 			end
 			self:ClearBindings()
 			self:Hide()
+			self:Run(CursorUpdate, nil)
 		end
 	]=]
 ]])
@@ -302,6 +330,7 @@ Utility:WrapScript(UseUtility, "OnClick", [[
 Utility:WrapScript(UseUtility, "OnDoubleClick", [[
 	local Utility = self:GetFrameRef("Utility")
 	Utility:Run(UseUtility, true)
+	Utility:Run(CursorUpdate, true)
 ]])
 GameMenuButtonController:SetFrameRef("Utility", Utility)
 Utility:WrapScript(GameMenuButtonController, "OnClick", [[
@@ -341,7 +370,6 @@ local function ActionButtonPreClick(self, button)
 		if button == "RightButton" then
 			self:SetAttribute("type", nil)
 			Utility:Execute([[ self:Run(CursorUpdate, nil)  ]])
-			self:Hide()
 			self.cooldown:SetCooldown(0, 0)
 			ClearCursor()
 		elseif dropTypes[GetCursorInfo()] then
@@ -359,9 +387,25 @@ local function ActionButtonPostClick(self, button)
 			return
 		end
 
+		local newValue
+
+		-- Garrison ability
+		if cursorType == "spell" and spellID == 161691 then
+			newValue = spellID
+		-- Convert spellID to name
+		elseif cursorType == "spell" then
+			newValue = GetSpellInfo(id, "spell")
+		-- Summon favorite mount, not yet supported
+		elseif cursorType == "mount" and id == 268435455 then
+			return
+		-- Use mountID instead of id when assigning mount
+		elseif cursorType == "mount" then
+			newValue = mountID
+		end
+
 		self:SetAttribute("type", cursorType)
 		self:SetAttribute("cursorID", id)
-		self:SetAttribute(cursorType, cursorType == "spell" and spellID or cursorType == "mount" and mountID or id)
+		self:SetAttribute(cursorType, newValue or id)
 	end
 end
 
@@ -383,6 +427,7 @@ local function ActionButtonOnAttributeChanged(self, attribute, detail)
 				texture = select(2, GetMacroInfo(detail))
 			elseif attribute == "mount" then
 				local spellID = MountJournal_GetMountInfo(detail)
+				self:SetAttribute("mountID", spellID)
 				self:SetAttribute("type", "spell")
 				self:SetAttribute("spell", spellID)
 				return
@@ -455,8 +500,10 @@ local function ActionButtonOnUpdate(self, elapsed)
 		elseif actionType == "spell" then
 			local spellID = self:GetAttribute("spell")
 			local count = GetSpellCharges(spellID)
-			local time, cooldown = GetSpellCooldown(spellID)
-			self.cooldown:SetCooldown(time, cooldown)
+			if spellID then
+				local time, cooldown = GetSpellCooldown(spellID)
+				self.cooldown:SetCooldown(time, cooldown)
+			end
 			if count then
 				self.Count:SetText(count)
 			else
@@ -470,8 +517,11 @@ local function ActionButtonOnUpdate(self, elapsed)
 					Tooltip:SetOwner(self, "ANCHOR_BOTTOM")
 					Tooltip:SetItemByID(self:GetAttribute("cursorID"))
 				elseif actionType == "spell" then
-					Tooltip:SetOwner(self, "ANCHOR_BOTTOM")
-					Tooltip:SetSpellByID(self:GetAttribute("spell"))
+					local id = select(7, GetSpellInfo(self:GetAttribute("spell")))
+					if id then
+						Tooltip:SetOwner(self, "ANCHOR_BOTTOM")
+						Tooltip:SetSpellByID(id)
+					end
 				end
 				self.HasFocus = nil
 			end
@@ -566,22 +616,25 @@ function ConsolePort:AddUtilityAction(actionType, value)
 end
 
 function ConsolePort:SetupUtilityBelt()
-	for index, info in pairs(ConsolePortUtility) do
-		local actionButton = ActionButtons[index]
-		if info.action then
-			actionButton:SetAttribute("type", info.action)
-			actionButton:SetAttribute("cursorID", info.cursorID)
-			actionButton:SetAttribute(info.action, info.value)
-			actionButton:Show()
+	if not InCombatLockdown() then
+		for index, info in pairs(ConsolePortUtility) do
+			local actionButton = ActionButtons[index]
+			if info.action then
+				actionButton:SetAttribute("type", info.action)
+				actionButton:SetAttribute("cursorID", info.cursorID)
+				actionButton:SetAttribute(info.action, info.value)
+				actionButton:Show()
+			end
 		end
-	end
 
-	if ConsolePortSettings.autoExtra then
-		self:AddUpdateSnippet(CheckQuestWatches)
-		Utility:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
-	else
-		Utility:UnregisterEvent("QUEST_WATCH_LIST_CHANGED")
-	end
+		if ConsolePortSettings.autoExtra then
+			self:AddUpdateSnippet(CheckQuestWatches)
+			Utility:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
+		else
+			Utility:UnregisterEvent("QUEST_WATCH_LIST_CHANGED")
+		end
 
-	Utility:RegisterEvent("BAG_UPDATE")
+		Utility:RegisterEvent("BAG_UPDATE")
+		self:RemoveUpdateSnippet(self.SetupUtilityBelt)
+	end
 end

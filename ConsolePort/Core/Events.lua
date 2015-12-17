@@ -148,13 +148,15 @@ function Events:ADDON_LOADED(...)
 		self:CreateActionButtons()
 		self:LoadInterfaceBindings()
 		self:SetupCursor()
-		self:SetupUtilityBelt()
 		self:CheckLoadedAddons()
 		self:CheckLoadedSettings()
 		self:CreateRaidCursor()
 		self:UpdateCVars()
 		self:UpdateSmartMouse()
 		self:UpdateStateDriver()
+		Callback(2, function()
+			self:AddUpdateSnippet(self.SetupUtilityBelt)
+		end)
 	end
 	if ConsolePortUIFrames and ConsolePortUIFrames[name] then
 		for i, frame in pairs(ConsolePortUIFrames[name]) do
