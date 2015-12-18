@@ -19,6 +19,7 @@ Config.Category = Category
 Config.Container = Container
 ---------------------------------------------------------------
 Config.Close:Hide()
+Config:SetFrameStrata("DIALOG")
 Config:SetSize(1000, 720)
 Config:SetPoint("CENTER", 0, 0)
 Config:EnableMouse(true)
@@ -219,7 +220,7 @@ Popup:SetPoint("CENTER", 0, 0)
 Popup:EnableMouse(true)
 Popup:SetScript("OnShow", Popup.OnShow)
 Popup:SetScript("OnHide", Popup.OnHide)
-Popup:SetFrameStrata("DIALOG")
+Popup:SetFrameStrata("FULLSCREEN_DIALOG")
 Popup:Hide()
 ---------------------------------------------------------------
 

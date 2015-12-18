@@ -15,31 +15,45 @@ local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
 local GetItemCooldown = GetItemCooldown
 local InCombatLockdown = InCombatLockdown
 ---------------------------------------------------------------
+local pairs = pairs
+local select = select
+---------------------------------------------------------------
 local Utility = CreateFrame("Frame", addOn.."UtilityFrame", UIParent, "SecureHandlerBaseTemplate")
 ---------------------------------------------------------------
 local Tooltip = CreateFrame("GameTooltip", "$parentTooltip", Utility, "GameTooltipTemplate")
 ---------------------------------------------------------------
 local Animation = CreateFrame("Frame", addOn.."UtilityAnimation", UIParent)
 ---------------------------------------------------------------
-local Watches = {}
----------------------------------------------------------------
 local ActionButtons = {}
+---------------------------------------------------------------
+local Watches = {}
 ---------------------------------------------------------------
 local OldIndex = 0
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
-local QUEST_STRING = select(10, GetAuctionItemClasses())
+local QUEST = select(10, GetAuctionItemClasses())
 ---------------------------------------------------------------
 
-local function AnimateNewAction(self, actionButton)
+local function AnimateNewAction(self, actionButton, autoAssigned)
+	if  autoAssigned and self.Group:IsPlaying() then
+		local progress = self.Group:GetDuration() * self.Group:GetProgress()
+		local delay = self.Group:GetDuration() - progress
+		C_Timer.After(delay, function() AnimateNewAction(self, actionButton, true) end)
+		return
+	end
+	if actionButton.isQuest then
+		self.Quest:Show()
+	else
+		self.Quest:Hide()
+	end
 	local x, y = actionButton:GetCenter()
 	SetPortraitToTexture(self.Icon, actionButton.icon.texture)
 	self:ClearAllPoints()
 	self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
 	self:SetSize(120, 120)
-	self.Icon:SetSize(90, 90)
 	self:Show()
+	self.Group:Stop()
 	self.Group:Play()
 end
 
@@ -52,10 +66,13 @@ end
 Animation:SetSize(76, 76)
 Animation:SetFrameStrata("TOOLTIP")
 Animation.Group = Animation:CreateAnimationGroup()
+---------------------------------------------------------------
 Animation.Icon = Animation:CreateTexture(nil, "ARTWORK")
+Animation.Quest = Animation:CreateTexture(nil, "OVERLAY")
 Animation.Border = Animation:CreateTexture(nil, "OVERLAY")
 Animation.Fade = Animation.Group:CreateAnimation("Alpha")
 Animation.Scale = Animation.Group:CreateAnimation("Scale")
+---------------------------------------------------------------
 Animation.Scale:SetScale(76/120, 76/120)
 Animation.Scale:SetDuration(0.5)
 Animation.Scale:SetSmoothing("IN")
@@ -68,8 +85,12 @@ Animation.Fade:SetDuration(0.2)
 ---------------------------------------------------------------
 Animation.Border:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorder")
 Animation.Border:SetAllPoints(Animation)
-Animation.Icon:SetSize(62, 62)
+Animation.Icon:SetSize(90, 90)
 Animation.Icon:SetPoint("CENTER", 0, 0)
+---------------------------------------------------------------
+Animation.Quest:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\QuestButton")
+Animation.Quest:SetPoint("CENTER", 0, 0)
+Animation.Quest:SetSize(100, 100)
 ---------------------------------------------------------------
 Animation.Gradient = Animation:CreateTexture(nil, "BACKGROUND")
 Animation.Gradient:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Circle")
@@ -82,7 +103,7 @@ Animation.ShowNewAction = AnimateNewAction
 Animation.Group:SetScript("OnFinished", AnimateOnFinished)
 ---------------------------------------------------------------
 
-local function AddAction(actionType, ID)
+local function AddAction(actionType, ID, autoAssigned)
 	local currentType, isIdentical
 	for i, ActionButton in pairs(ActionButtons) do
 		currentType = ActionButton:GetAttribute("type")
@@ -94,8 +115,8 @@ local function AddAction(actionType, ID)
 			ActionButton:SetAttribute("type", actionType)
 			ActionButton:SetAttribute(actionType, ID)
 			ActionButton:Show()
-			if not isIdentical then
-				Animation:ShowNewAction(ActionButton)
+			if not (isIdentical and autoAssigned) then
+				Animation:ShowNewAction(ActionButton, autoAssigned)
 			end
 			break
 		end 
@@ -112,7 +133,7 @@ local function CheckQuestWatches(self)
 			if GetQuestLogSpecialItemInfo(questID) then
 				local name, link, _, _, _, class, sub, _, _, texture = GetItemInfo(GetQuestLogSpecialItemInfo(questID))
 				local _, itemID = strsplit(":", strmatch(link, "item[%-?%d:]+"))
-				AddAction("item", itemID)
+				AddAction("item", itemID, true)
 			end
 		end
 		self:RemoveUpdateSnippet(CheckQuestWatches)
@@ -162,7 +183,7 @@ Utility:HookScript("OnEvent", function(self, event, ...)
 		ConsolePort:AddUpdateSnippet(CheckQuestWatches)
 	elseif event == "BAG_UPDATE" then
 		for i, ActionButton in pairs(ActionButtons) do
-			ActionButton:Update(0.25)
+			ActionButton:Update(0.3)
 		end
 	end
 end)
@@ -420,7 +441,7 @@ local function ActionButtonOnAttributeChanged(self, attribute, detail)
 					return
 				end
 				texture = select(10, GetItemInfo(detail))
-				isQuest = select(6, GetItemInfo(detail)) == QUEST_STRING
+				isQuest = select(6, GetItemInfo(detail)) == QUEST
 			elseif attribute == "spell" then
 				texture = select(3, GetSpellInfo(detail))
 			elseif attribute == "macro" then
@@ -444,8 +465,10 @@ local function ActionButtonOnAttributeChanged(self, attribute, detail)
 			self:SetAlpha(0.5)
 		end
 		if isQuest then
+			self.isQuest = true
 			self.Quest:Show()
 		else
+			self.isQuest = nil
 			self.Quest:Hide()
 		end
 	end
@@ -483,18 +506,23 @@ local function ActionButtonOnUpdate(self, elapsed)
 	while self.Timer > 0.25 do
 		local actionType = self:GetAttribute("type")
 		if actionType == "item" then
-			local count = GetItemCount(self:GetAttribute("item"))
-			if count < 1 and not InCombatLockdown() then
+			local item = self:GetAttribute("item")
+			local count = GetItemCount(item)
+			local class, _, maxStack = select(6, GetItemInfo(item))
+			if  class == QUEST and count < 1 and not InCombatLockdown() then
 				self:SetAttribute("type", nil)
 				self:SetAttribute("item", nil)
 				self:Hide()
 			else
 				local time, cooldown = GetItemCooldown(self:GetAttribute("cursorID"))
 				self.cooldown:SetCooldown(time, cooldown)
-				if count > 1 then
+				if maxStack and maxStack > 1 then
 					self.Count:SetText(count)
 				else
 					self.Count:SetText("")
+				end
+				if count == 0 then
+					self.icon:SetVertexColor(0.5, 0.5, 0.5, 1)
 				end
 			end
 		elseif actionType == "spell" then

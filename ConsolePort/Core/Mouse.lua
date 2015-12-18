@@ -68,13 +68,12 @@ end
 
 local function MouselookDoubleTapUpdate(self, elapsed)
 	self.Timer = self.Timer + elapsed
-	
+	if self.Num > 1 then
+		ConsolePort:ToggleMouse()
+		self.Num = 0
+		self.Mod = 0
+	end
 	if self.Timer > 0.25 then
-		if self.Num > 1 then
-			ConsolePort:ToggleMouse()
-			self.Num = 0
-			self.Mod = 0
-		end
 		self.Num = self.Num > 0 and self.Num - 1 or 0
 		self.Timer = self.Timer - 0.25
 	end
