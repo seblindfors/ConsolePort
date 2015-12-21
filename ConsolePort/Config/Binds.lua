@@ -101,7 +101,7 @@ local function ShowInterfaceHotKey(button)
 end
 
 function ConsolePort:LoadHotKeyTextures()
-	local set = NewBindingSet or ConsolePortBindingSet
+	local set = NewBindingSet or db.Bindings
 	local actionButtons = GetActionButtons()
 	local index, modifier, binding, ID
 
@@ -147,8 +147,8 @@ end
 local function ExportCharacterSettings()
 	local this = GetUnitName("player").."-"..GetRealmName()
 	local class = select(2, UnitClass("player"))
-	if 	not Compare(ConsolePortBindingSet, ConsolePort:GetDefaultBindingSet()) or
-		not Compare(ConsolePortBindingButtons, ConsolePort:GetDefaultBindingButtons()) then
+	if 	not Compare(db.Bindings, ConsolePort:GetDefaultBindingSet()) or
+		not Compare(db.Bindbtns, ConsolePort:GetDefaultBindingButtons()) then
 		if not ConsolePortCharacterSettings then
 			ConsolePortCharacterSettings = {}
 		end
@@ -156,9 +156,9 @@ local function ExportCharacterSettings()
 			ConsolePortCharacterSettings[this] = {}
 		end
 		ConsolePortCharacterSettings[this] = {
-			BindingSet = ConsolePortBindingSet,
-			BindingBtn = ConsolePortBindingButtons,
-			MouseEvent = ConsolePortMouse.Events,
+			BindingSet = db.Bindings,
+			BindingBtn = db.Bindbtns,
+			MouseEvent = db.Mouse.Events,
 			Class = class,
 		}
 	elseif ConsolePortCharacterSettings then
@@ -168,8 +168,8 @@ end
 
 local function SubmitBindings()
 	if 	NewBindingSet or NewBindingButtons then
-		ConsolePortBindingSet = NewBindingSet or ConsolePortBindingSet
-		ConsolePortBindingButtons = NewBindingButtons or ConsolePortBindingButtons
+		db.Bindings = NewBindingSet or db.Bindings
+		db.Bindbtns = NewBindingButtons or db.Bindbtns
 		if not InCombatLockdown() then
 			ReloadBindings()
 		else
@@ -254,10 +254,10 @@ local function ChangeButtonBinding(actionButton)
 
 		if isValid then
 			if not NewBindingSet then
-				NewBindingSet = Copy(ConsolePortBindingSet)
+				NewBindingSet = Copy(db.Bindings)
 			end
 			if not NewBindingButtons then
-				NewBindingButtons = Copy(ConsolePortBindingButtons)
+				NewBindingButtons = Copy(db.Bindbtns)
 			end
 
 			local mod = GetBindingModifier(modifier)
@@ -467,12 +467,12 @@ end
 ---------------------------------------------------------------
 local function GetStaticBindingName(self)
 	local binding =	NewBindingSet and _G[BIND..NewBindingSet[self.name][GetBindingModifier(self.secure.mod)]] or
-					ConsolePortBindingSet and _G[BIND..ConsolePortBindingSet[self.name][GetBindingModifier(self.secure.mod)]]
+					db.Bindings and _G[BIND..db.Bindings[self.name][GetBindingModifier(self.secure.mod)]]
 	return binding 
 end
 
 local function GetStaticBinding(self)
-	return ConsolePortBindingSet[self.secure.name][GetBindingModifier(self.secure.mod)]
+	return db.Bindings[self.secure.name][GetBindingModifier(self.secure.mod)]
 end
 
 local function DynamicConfigButtonOnShow(self)
@@ -576,7 +576,7 @@ end
 
 local function SetFauxMovementBindings(self)
 	local movement
-	if ConsolePortSettings.turnCharacter then movement = {
+	if db.Settings.turnCharacter then movement = {
 		MOVEFORWARD 	= {"W", "UP"},
 		MOVEBACKWARD 	= {"S", "DOWN"},
 		TURNLEFT 		= {"A", "LEFT"},
@@ -602,7 +602,7 @@ local function SetFauxMovementBindings(self)
 end
 
 function ConsolePort:LoadBindingSet()
-	local keys = NewBindingSet or ConsolePortBindingSet
+	local keys = NewBindingSet or db.Bindings
 	local w = WorldFrame
 	ClearOverrideBindings(w)
 	SetFauxMovementBindings(w)
@@ -633,7 +633,7 @@ function ConsolePort:LoadInterfaceBinding(button, UIbutton)
 end
 
 function ConsolePort:LoadInterfaceBindings()
-	local buttons = NewBindingButtons or ConsolePortBindingButtons
+	local buttons = NewBindingButtons or db.Bindbtns
 	local extensions = { action = NOMOD, ctrlsh = CTRLSH, shift = SHIFT, ctrl = CTRL}
 	for name, button in pairs(buttons) do
 		for modifier, UIbutton in pairs(button) do
@@ -766,7 +766,7 @@ local function SetBindingTooltip(self)
 	local indices = { "action", "shift", "ctrl", "ctrlsh" }
 	for i, binding in pairs(self.bindings) do
 		local static =  NewBindingSet and NewBindingSet[self.name][indices[i]] or
-						ConsolePortBindingSet[self.name][indices[i]]
+						db.Bindings[self.name][indices[i]]
 
 		local text 	= 	binding.button.action and
 						((binding.button.action.icon and
@@ -888,11 +888,11 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	end
 
 	Binds.Controller.Texture = Binds.Controller:CreateTexture("$parentTexture", "ARTWORK")
-	Binds.Controller.Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type)
+	Binds.Controller.Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..db.Settings.type)
 	Binds.Controller.Texture:SetAllPoints(Binds.Controller)
 
 	Binds.Controller.FlashGlow = Binds.Controller:CreateTexture("$parentGlow", "OVERLAY")
-	Binds.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..ConsolePortSettings.type.."Highlight")
+	Binds.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..db.Settings.type.."Highlight")
 	Binds.Controller.FlashGlow:SetAllPoints(Binds.Controller)
 	Binds.Controller.FlashGlow:SetAlpha(0)
 
@@ -964,9 +964,9 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Import.ProfileScroll.ScrollBar.ScrollDownButton:SetAlpha(0)
 
 	Binds.Buttons = {}
-	for buttonName, position in pairs(db.BINDINGS) do
+	for buttonName, position in pairs(db.ButtonCoords) do
 		-- temporary Steam guide button fix, remove this.
-		if not (ConsolePortSettings.type == "STEAM" and buttonName == "CP_C_OPTION") then
+		if not (db.Settings.type == "STEAM" and buttonName == "CP_C_OPTION") then
 			local button = CreateFrame("Button", buttonName.."_BINDING", Binds)
 			button.name = buttonName
 			button.icon = "|T%s:24:24:0:0|t"
@@ -978,6 +978,8 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 			button:SetScript("OnLeave", ClearBindingTooltip)
 		end
 	end
+
+	db.ButtonCoords = nil
 
 	Binds.Rebind = db.Atlas.GetGlassWindow(addOn.."RebindFrame", Binds.Controller, nil, true)
 	Binds.Rebind:SetBackdrop(db.Atlas.Backdrops.Border)

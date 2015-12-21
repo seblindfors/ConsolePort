@@ -316,14 +316,26 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 	local settings = {
 		["version"] = VERSION,
 		["type"] = "PS4",
+		-------------------------------
 		["shift"] = "CP_TL1",
 		["ctrl"] = "CP_TL2",
 		["trigger1"] = "CP_TR1",
 		["trigger2"] = "CP_TR2",
+		-------------------------------
 		["interactWith"] = "CP_TR1",
+		["mouseOverMode"] = true,
+		-------------------------------
 		["autoExtra"] = true,
+		["autoInteract"] = false,
 		["autoLootDefault"] = true,
 		["cameraDistanceMoveSpeed"] = true,
+		["disableSmartMouse"] = false,
+		["doubleModTap"] = true,
+		["preventMouseDrift"] = false,
+		["turnCharacter"] = false,
+		-------------------------------
+		["mouseOnCenter"] = true,
+		["mouseOnJump"] = false,
 	}
 	if setting then
 		return settings[setting]
@@ -331,7 +343,6 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		return settings
 	end
 end
-
 
 ---------------------------------------------------------------
 -- Lookup: Mouse events and default cursor handler

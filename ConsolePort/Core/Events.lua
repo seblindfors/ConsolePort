@@ -4,13 +4,15 @@
 -- Collection of functions related to event management.
 -- Manages mouse look triggering from events.
 ---------------------------------------------------------------
+local _, db = ...
+---------------------------------------------------------------
 local Callback = C_Timer.After
 ---------------------------------------------------------------
 local MouseEvents
 ---------------------------------------------------------------
 
 function ConsolePort:LoadEvents()
-	MouseEvents = ConsolePortMouse.Events
+	MouseEvents = db.Mouse.Events
 	-- Default events
 	local Events = {
 		["ADDON_LOADED"] 			= false,

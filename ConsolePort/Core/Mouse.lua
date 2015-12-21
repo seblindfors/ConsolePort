@@ -259,7 +259,7 @@ end
 ---------------------------------------------------------------
 function ConsolePort:UpdateSmartMouse()
 	if not Settings then
-		Settings = ConsolePortSettings
+		Settings = db.Settings
 	end
 	if Settings.disableSmartMouse then
 		self:RemoveUpdateSnippet(MouselookUpdate)
@@ -286,15 +286,15 @@ end
 -- Toggle interactive mouse driver on/off
 ---------------------------------------------------------------
 function ConsolePort:UpdateStateDriver()
-	if ConsolePortSettings.interactWith then
+	if db.Settings.interactWith then
 		local currentPage, actionpage = self:GetActionPageState()
-		local button = ConsolePortSettings.interactWith
-		local original = ConsolePortBindingSet[button].action
+		local button = db.Settings.interactWith
+		local original = db.Bindings[button].action
 		local id = original and self:GetActionID(original)
 
 		local targetstate = "[@playertarget,exists,harm,nodead] enemy; [@playertarget,exists,noharm,nodead] friend; nil"
 
-		if ConsolePortSettings.mouseOverMode then
+		if db.Settings.mouseOverMode then
 			targetstate = "[@mouseover,exists] hover; "..targetstate
 		end
 

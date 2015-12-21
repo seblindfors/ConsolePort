@@ -7,6 +7,7 @@ local addOn, db = ...
 local TUTORIAL = db.TUTORIAL
 local TEXTURE  = db.TEXTURE
 local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
+local Settings
 ---------------------------------------------------------------
 -- Config: Account-wide addon CVars.
 ---------------------------------------------------------------
@@ -14,53 +15,53 @@ local function GetAddonSettings()
 	return {		
 		{	cvar = "autoInteract",
 			desc = TUTORIAL.CONFIG.CLICKTOMOVE,
-			toggle = ConsolePortSettings.autoInteract,
+			toggle = Settings.autoInteract,
 		},
 		{	cvar = "turnCharacter",
 			desc = TUTORIAL.CONFIG.TURNMOVE,
-			toggle = ConsolePortSettings.turnCharacter,
+			toggle = Settings.turnCharacter,
 			needReload = true, 
 		},
 		{
 			cvar = "preventMouseDrift",
 			desc = TUTORIAL.CONFIG.MOUSEDRIFTING,
-			toggle = ConsolePortSettings.preventMouseDrift,
+			toggle = Settings.preventMouseDrift,
 		},
 		{
 			cvar = "doubleModTap",
-			desc = format(TUTORIAL.CONFIG.DOUBLEMODTAP, TEXTURE[ConsolePortSettings.shift], TEXTURE[ConsolePortSettings.ctrl]),
-			toggle = ConsolePortSettings.doubleModTap,
+			desc = format(TUTORIAL.CONFIG.DOUBLEMODTAP, TEXTURE[Settings.shift], TEXTURE[Settings.ctrl]),
+			toggle = Settings.doubleModTap,
 		},
 		{	cvar = "disableSmartMouse",
 			desc = TUTORIAL.CONFIG.DISABLEMOUSE,
-			toggle = ConsolePortSettings.disableSmartMouse,
+			toggle = Settings.disableSmartMouse,
 		},
 		{	cvar = "autoExtra",
 			desc = TUTORIAL.CONFIG.AUTOEXTRA,
-			toggle = ConsolePortSettings.autoExtra,
+			toggle = Settings.autoExtra,
 		},
 		{
 			cvar = "cameraDistanceMoveSpeed",
 			desc = TUTORIAL.CONFIG.FASTCAM,
-			toggle = ConsolePortSettings.cameraDistanceMoveSpeed,
+			toggle = Settings.cameraDistanceMoveSpeed,
 		},
 		{
 			cvar = "autoLootDefault",
 			desc = TUTORIAL.CONFIG.AUTOLOOT,
-			toggle = ConsolePortSettings.autoLootDefault,
+			toggle = Settings.autoLootDefault,
 		},
 		-- Mouse "events" to the user, but cvars internally
 		{
 			mouse = true,
 			cvar = "mouseOnJump",
 			desc = TUTORIAL.MOUSE.JUMPING,
-			toggle = ConsolePortSettings.mouseOnJump,
+			toggle = Settings.mouseOnJump,
 		},
 		{
 			mouse = true,
 			cvar = "mouseOnCenter",
 			desc = TUTORIAL.MOUSE.CENTERCURSOR,
-			toggle = ConsolePortSettings.mouseOnCenter,
+			toggle = Settings.mouseOnCenter,
 		},
 	}
 end
@@ -71,15 +72,15 @@ local function GetMouseSettings()
 	return {
 		{ 	event 	= {"PLAYER_STARTED_MOVING"},
 			desc 	= TUTORIAL.MOUSE.STARTED_MOVING,
-			toggle 	= ConsolePortMouse.Events["PLAYER_STARTED_MOVING"]
+			toggle 	= db.Mouse.Events["PLAYER_STARTED_MOVING"]
 		},
 		{ 	event	= {"PLAYER_TARGET_CHANGED"},
 			desc 	= TUTORIAL.MOUSE.TARGET_CHANGED,
-			toggle 	= ConsolePortMouse.Events["PLAYER_TARGET_CHANGED"]
+			toggle 	= db.Mouse.Events["PLAYER_TARGET_CHANGED"]
 		},
 		{	event 	= {"CURRENT_SPELL_CAST_CHANGED"},
 			desc 	= TUTORIAL.MOUSE.DIRECT_SPELL_CAST,
-			toggle 	= ConsolePortMouse.Events["CURRENT_SPELL_CAST_CHANGED"]
+			toggle 	= db.Mouse.Events["CURRENT_SPELL_CAST_CHANGED"]
 		},
 		{	event 	= {	"GOSSIP_SHOW", "GOSSIP_CLOSED",
 						"MERCHANT_SHOW", "MERCHANT_CLOSED",
@@ -88,15 +89,15 @@ local function GetMouseSettings()
 						"QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED",
 						"SHIPMENT_CRAFTER_OPENED", "SHIPMENT_CRAFTER_CLOSED"},
 			desc 	= TUTORIAL.MOUSE.NPC_INTERACTION,
-			toggle 	= ConsolePortMouse.Events["GOSSIP_SHOW"]
+			toggle 	= db.Mouse.Events["GOSSIP_SHOW"]
 		},
 		{ 	event	= {"QUEST_AUTOCOMPLETE"},
 			desc 	= TUTORIAL.MOUSE.QUEST_AUTOCOMPLETE,
-			toggle 	= ConsolePortMouse.Events["QUEST_AUTOCOMPLETE"]
+			toggle 	= db.Mouse.Events["QUEST_AUTOCOMPLETE"]
 		},
 		{	event	= {"LOOT_OPENED", "LOOT_CLOSED"},
 			desc 	= TUTORIAL.MOUSE.LOOTING,
-			toggle 	= ConsolePortMouse.Events["LOOT_OPENED"]
+			toggle 	= db.Mouse.Events["LOOT_OPENED"]
 		}
 	}
 end
@@ -107,15 +108,15 @@ end
 local function SaveGeneralConfig(self)
 	local needReload = false
 	for i, Check in pairs(self.General) do
-		local old = ConsolePortSettings[Check.Cvar]
-		ConsolePortSettings[Check.Cvar] = Check:GetChecked()
+		local old = Settings[Check.Cvar]
+		Settings[Check.Cvar] = Check:GetChecked()
 		if Check.Reload and Check:GetChecked() ~= old then
 			needReload = true
 		end
 	end
 	for i, Check in pairs(self.Triggers) do
-		if Check.Value and Check.Value ~= ConsolePortSettings[Check.Cvar] then
-			ConsolePortSettings[Check.Cvar] = Check.Value
+		if Check.Value and Check.Value ~= Settings[Check.Cvar] then
+			Settings[Check.Cvar] = Check.Value
 			needReload = true
 		end
 	end
@@ -127,21 +128,21 @@ local function SaveGeneralConfig(self)
 
 	for i, Check in pairs(self.Events) do
 		for i, Event in pairs(Check.Events) do
-			ConsolePortMouse.Events[Event] = Check:GetChecked()
+			db.Mouse.Events[Event] = Check:GetChecked()
 		end
 	end
 
 	if self.InteractModule.Enable:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
-		ConsolePortSettings.interactWith = self.InteractModule.BindCatcher.CurrentButton
-		ConsolePortSettings.mouseOverMode = self.InteractModule.MouseOver:GetChecked()
+		Settings.interactWith = self.InteractModule.BindCatcher.CurrentButton
+		Settings.mouseOverMode = self.InteractModule.MouseOver:GetChecked()
 	else
-		ConsolePortSettings.interactWith = false
-		ConsolePortSettings.mouseOverMode = false
+		Settings.interactWith = false
+		Settings.mouseOverMode = false
 	end
 
-	ConsolePortMouse.Cursor.Left = self.LeftClick.button
-	ConsolePortMouse.Cursor.Right = self.RightClick.button
-	ConsolePortMouse.Cursor.Scroll = self.ScrollClick.button
+	db.Mouse.Cursor.Left = self.LeftClick.button
+	db.Mouse.Cursor.Right = self.RightClick.button
+	db.Mouse.Cursor.Scroll = self.ScrollClick.button
 	ConsolePort:LoadEvents()
 	ConsolePort:SetupCursor()
 	ConsolePort:LoadControllerTheme()
@@ -153,7 +154,7 @@ end
 -- Config: Reset buttons
 ---------------------------------------------------------------
 local function ResetControllerOnClick(self)
-	InterfaceOptionsFrame:Hide()
+	self:GetParent():GetParent():Hide()
 	ConsolePort:CreateSplashFrame()
 end
 
@@ -207,7 +208,7 @@ local function BindCatcherOnHide(self)
 end
 
 local function BindCatcherOnShow(self)
-	self.CurrentButton = ConsolePortSettings.interactWith
+	self.CurrentButton = Settings.interactWith
 	if self.CurrentButton then
 		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton]))
 	else
@@ -235,6 +236,8 @@ end
 -- Config: Create panel and children 
 ---------------------------------------------------------------
 tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false, function(self, Config)
+
+	Settings = db.Settings
 
 	local function CreateButton(name, text, OnClick, point)
 		local button = db.Atlas.GetFutureButton("$parent"..name, Config)
@@ -308,7 +311,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	Config.InteractModule.Enable = CreateFrame("CheckButton", nil, Config.InteractModule, "ChatConfigCheckButtonTemplate")
 	Config.InteractModule.Enable:SetPoint("TOPLEFT", 16, -40)
-	Config.InteractModule.Enable:SetChecked(ConsolePortSettings.interactWith)
+	Config.InteractModule.Enable:SetChecked(Settings.interactWith)
 	Config.InteractModule.Enable:SetScript("OnClick", function(self) InteractModuleOnShow(self:GetParent()) end)
 
 	Config.InteractModule.Enable.Text = Config.InteractModule.Enable:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -317,7 +320,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	Config.InteractModule.MouseOver = CreateFrame("CheckButton", nil, Config.InteractModule, "ChatConfigCheckButtonTemplate")
 	Config.InteractModule.MouseOver:SetPoint("BOTTOMLEFT", 16, 56)
-	Config.InteractModule.MouseOver:SetChecked(ConsolePortSettings.mouseOverMode)
+	Config.InteractModule.MouseOver:SetChecked(Settings.mouseOverMode)
 	Config.InteractModule.MouseOver:SetScript("OnClick", function(self) InteractModuleOnShow(self:GetParent()) end)
 
 	Config.InteractModule.MouseOver.Text = Config.InteractModule.MouseOver:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -331,7 +334,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	Config.Events = {}
 	for i, setting in pairs(GetMouseSettings()) do
-		local check = CreateFrame("CheckButton", "ConsolePortMouseEvent"..i, Config.MouseModule, "ChatConfigCheckButtonTemplate")
+		local check = CreateFrame("CheckButton", "db.MouseEvent"..i, Config.MouseModule, "ChatConfigCheckButtonTemplate")
 		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		text:SetText(setting.desc)
 		check:SetChecked(setting.toggle)
@@ -397,7 +400,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		trigger:SetSize(76, 101)
 		trigger:SetTexCoord(0.154296875, 0.30078125, 0.80078125, 1)
 		trigger:SetPoint("TOPLEFT", Config.TriggerHeader, "TOPLEFT", info.offset, -24)
-		trigger.Value = ConsolePortSettings[info.cvar]
+		trigger.Value = Settings[info.cvar]
 		trigger.Cvar = info.cvar
 
 		local triggerText = Config:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -412,17 +415,17 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s"
 	local triggers = {
-		CP_TL1 = format(TEXTURE_PATH, ConsolePortSettings.type, "CP_TL1"),
-		CP_TL2 = format(TEXTURE_PATH, ConsolePortSettings.type, "CP_TL2"),
-		CP_TR1 = format(TEXTURE_PATH, ConsolePortSettings.type, "CP_TR1"),
-		CP_TR2 = format(TEXTURE_PATH, ConsolePortSettings.type, "CP_TR2"),
+		CP_TL1 = format(TEXTURE_PATH, Settings.type, "CP_TL1"),
+		CP_TL2 = format(TEXTURE_PATH, Settings.type, "CP_TL2"),
+		CP_TR1 = format(TEXTURE_PATH, Settings.type, "CP_TR1"),
+		CP_TR2 = format(TEXTURE_PATH, Settings.type, "CP_TR2"),
 	}
 
 	local RadioButtons = {
-		{parent = Config["Shift"],	default = ConsolePortSettings.shift},
-		{parent = Config["Ctrl"], 	default = ConsolePortSettings.ctrl},
-		{parent = Config["1st"], 	default = ConsolePortSettings.trigger1},
-		{parent = Config["2nd"], 	default = ConsolePortSettings.trigger2},
+		{parent = Config["Shift"],	default = Settings.shift},
+		{parent = Config["Ctrl"], 	default = Settings.ctrl},
+		{parent = Config["1st"], 	default = Settings.trigger1},
+		{parent = Config["2nd"], 	default = Settings.trigger2},
 	}
 
 	local function CheckOnClick(self)
@@ -498,10 +501,10 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	}
 
 	local RadioButtons = {
-		{parent = Config.LeftClick, 	selection = clickButtons,	default = ConsolePortMouse.Cursor.Left},
-		{parent = Config.RightClick, 	selection = clickButtons,	default = ConsolePortMouse.Cursor.Right},
-		{parent = Config.SpecialClick, 	selection = clickButtons, 	default = ConsolePortMouse.Cursor.Special},
-		{parent = Config.ScrollClick, 	selection = scrollButtons,	default = ConsolePortMouse.Cursor.Scroll},
+		{parent = Config.LeftClick, 	selection = clickButtons,	default = db.Mouse.Cursor.Left},
+		{parent = Config.RightClick, 	selection = clickButtons,	default = db.Mouse.Cursor.Right},
+		{parent = Config.SpecialClick, 	selection = clickButtons, 	default = db.Mouse.Cursor.Special},
+		{parent = Config.ScrollClick, 	selection = scrollButtons,	default = db.Mouse.Cursor.Scroll},
 	}
 
 	for i, radio in pairs(RadioButtons) do

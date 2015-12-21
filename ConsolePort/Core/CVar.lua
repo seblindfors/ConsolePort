@@ -5,6 +5,8 @@
 -- applying permanent changes to global CVars. Allows
 -- cvar updates when entering/leaving combat.
 
+local _, db = ...
+
 local CVars = {
 	autoLootDefault 			= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
 	autoInteract 				= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
@@ -12,7 +14,7 @@ local CVars = {
 }
 
 function ConsolePort:UpdateCVars(inCombat, ...)
-	local isToggled = ConsolePortSettings
+	local isToggled = db.Settings
 	local newCvar, newValue = ...
 	for cvar, info in pairs(CVars) do
 		if inCombat == nil then

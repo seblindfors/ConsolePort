@@ -421,7 +421,9 @@ local function ActionButtonPostClick(self, button)
 			return
 		-- Use mountID instead of id when assigning mount
 		elseif cursorType == "mount" then
-			newValue = mountID
+			newValue = MountJournal_GetMountInfo(mountID)
+		--	newValue = mountID
+			cursorType = "spell"
 		end
 
 		self:SetAttribute("type", cursorType)
@@ -459,6 +461,7 @@ local function ActionButtonOnAttributeChanged(self, attribute, detail)
 			self.icon.texture = texture
 			SetPortraitToTexture(self.icon, texture)
 			self:SetAlpha(1)
+			self.icon:SetVertexColor(1, 1, 1)
 		else
 			self.icon.texture = nil
 			self.icon:SetTexture(nil)
@@ -515,14 +518,20 @@ local function ActionButtonOnUpdate(self, elapsed)
 				self:Hide()
 			else
 				local time, cooldown = GetItemCooldown(self:GetAttribute("cursorID"))
-				self.cooldown:SetCooldown(time, cooldown)
+				if time and cooldown then
+					self.cooldown:SetCooldown(time, cooldown)
+				else
+					self.cooldown:SetCooldown(0, 0)
+				end
 				if maxStack and maxStack > 1 then
 					self.Count:SetText(count)
 				else
 					self.Count:SetText("")
 				end
-				if count == 0 then
+				if count and count == 0 then
 					self.icon:SetVertexColor(0.5, 0.5, 0.5, 1)
+				elseif count and count > 0 then
+					self.icon:SetVertexColor(1, 1, 1) 
 				end
 			end
 		elseif actionType == "spell" then
@@ -530,7 +539,11 @@ local function ActionButtonOnUpdate(self, elapsed)
 			local count = GetSpellCharges(spellID)
 			if spellID then
 				local time, cooldown = GetSpellCooldown(spellID)
-				self.cooldown:SetCooldown(time, cooldown)
+				if time and cooldown then
+					self.cooldown:SetCooldown(time, cooldown)
+				else
+					self.cooldown:SetCooldown(0, 0)
+				end
 			end
 			if count then
 				self.Count:SetText(count)
@@ -655,7 +668,7 @@ function ConsolePort:SetupUtilityBelt()
 			end
 		end
 
-		if ConsolePortSettings.autoExtra then
+		if db.Settings.autoExtra then
 			self:AddUpdateSnippet(CheckQuestWatches)
 			Utility:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
 		else

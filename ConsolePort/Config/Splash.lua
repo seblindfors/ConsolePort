@@ -10,7 +10,7 @@ local PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\"
 
 -- Determine if the base (unmodified) bindings are assigned.
 function ConsolePort:CheckUnassignedBindings()
-	local ctrlType = ConsolePortSettings.type
+	local ctrlType = db.Settings.type
 	local ButtonUnassigned = false
 	local buttons = self:GetBindingNames()
 	local unassigned = {}
@@ -31,7 +31,7 @@ end
 function ConsolePort:CreateBindingWizard()
 	if not ConsolePortWizardFrame then
 		local Wizard = db.Atlas.GetSetupWindow("ConsolePortWizardFrame")
-		local ctrlType = ConsolePortSettings.type
+		local ctrlType = db.Settings.type
 
 		Wizard:SetPoint("CENTER", 0,0)
 		Wizard:SetFrameStrata("DIALOG")
@@ -161,7 +161,7 @@ function ConsolePort:CreateSplashFrame()
 		end
 
 		local function OnClick(self)
-			ConsolePortSettings.type = self.ID
+			db.Settings.type = self.ID
 			PlaySound("GLUEENTERWORLDBUTTON")
 			ReloadUI()
 		end

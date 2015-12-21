@@ -44,7 +44,7 @@ local function FadeOnUpdate(self, elapsed)
 				fadeInfo.fadeHoldTime = fadeInfo.fadeHoldTime - elapsed
 			else
 				-- Complete the fade and call the finished function if there is one
-				FadeRemoveFrame(frame);
+				FadeRemoveFrame(frame)
 				if fadeInfo.finishedFunc then
 					fadeInfo.finishedFunc(fadeInfo.finishedArg1, fadeInfo.finishedArg2, fadeInfo.finishedArg3, fadeInfo.finishedArg4)
 					fadeInfo.finishedFunc = nil
@@ -56,7 +56,7 @@ local function FadeOnUpdate(self, elapsed)
 	end
 	
 	if #FADEFRAMES == 0 then
-		self:SetScript("OnUpdate", nil);
+		self:SetScript("OnUpdate", nil)
 	end
 end
 
@@ -76,7 +76,7 @@ local function FadeFrame(frame, fadeInfo)
 		if not fadeInfo.endAlpha then
 			fadeInfo.endAlpha = 1.0
 		end
-		alpha = 0;
+		alpha = 0
 	elseif fadeInfo.mode == "OUT" then
 		if not fadeInfo.startAlpha then
 			fadeInfo.startAlpha = 1.0

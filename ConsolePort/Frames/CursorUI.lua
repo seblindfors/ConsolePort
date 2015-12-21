@@ -218,7 +218,7 @@ local function GetNodes(node)
 	end
 end
 
-local SwapFunc = {
+local CompFunc = {
 	[KEY.UP] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY > thisY) end,
 	[KEY.DOWN] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY < thisY) end,
 	[KEY.LEFT] 	= function(_, destX, vert, horz, thisX, _) return (vert < horz and destX < thisX) end,
@@ -227,18 +227,18 @@ local SwapFunc = {
 
 local function FindClosestNode(key)
 	if current then
-		local SwapFunc = SwapFunc[key]
-		if SwapFunc then
+		local CompFunc = CompFunc[key]
+		if CompFunc then
 			local destX, destY, vert, horz
 			local thisX, thisY = current.node:GetCenter()
-			local nodeX, nodeY = 10000, 10000
+			local compH, compV = 10000, 10000 
 			for i, destination in ipairs(nodes) do
 				destX, destY = destination.node:GetCenter()
 				horz, vert = abs(thisX-destX), abs(thisY-destY)
-				if 	horz + vert < nodeX + nodeY and
-					SwapFunc(destY, destX, vert, horz, thisX, thisY) then
-					nodeX = horz
-					nodeY = vert
+				if 	horz + vert < compH + compV and
+					CompFunc(destY, destX, vert, horz, thisX, thisY) then
+					compH = horz
+					compV = vert
 					current = destination
 				end
 			end
@@ -473,7 +473,6 @@ function ConsolePort:SetCurrentNode(node)
 		if node then
 			local object = node:GetObjectType()
 			if 	HasInteraction(node, object) and IsNodeDrawn(node) then
-				local x, y = node:GetCenter()
 				old = current
 				current = {
 					node = node,
@@ -520,7 +519,7 @@ local function GetInterfaceButtons()
 		CP_L_DOWN_NOMOD,
 		CP_L_RIGHT_NOMOD,
 		CP_L_LEFT_NOMOD,
-		_G[ConsolePortMouse.Cursor.Special.."_NOMOD"],
+		_G[db.Mouse.Cursor.Special.."_NOMOD"],
 	}
 end
 
@@ -543,20 +542,20 @@ end
 -- UIControl: Initialize Cursor
 ---------------------------------------------------------------
 function ConsolePort:SetupCursor()
-	Cursor.Special 		= ConsolePortMouse.Cursor.Special
+	Cursor.Special 		= db.Mouse.Cursor.Special
 	Cursor.SpecialClick = _G[Cursor.Special.."_NOMOD"]
 	Cursor.SpecialAction = Cursor.SpecialClick.command
 
 	Cursor.Override = {
-		LeftButton 	= ConsolePortMouse.Cursor.Left,
-		RightButton = ConsolePortMouse.Cursor.Right,
+		LeftButton 	= db.Mouse.Cursor.Left,
+		RightButton = db.Mouse.Cursor.Right,
 	}
 
-	Cursor.Indicator 	= TEXTURE[ConsolePortMouse.Cursor.Left]
-	Cursor.IndicatorR 	= TEXTURE[ConsolePortMouse.Cursor.Right]
-	Cursor.IndicatorS 	= TEXTURE[ConsolePortMouse.Cursor.Special]
+	Cursor.Indicator 	= TEXTURE[db.Mouse.Cursor.Left]
+	Cursor.IndicatorR 	= TEXTURE[db.Mouse.Cursor.Right]
+	Cursor.IndicatorS 	= TEXTURE[db.Mouse.Cursor.Special]
 
-	Cursor.Scroll 		= ConsolePortMouse.Cursor.Scroll
+	Cursor.Scroll 		= db.Mouse.Cursor.Scroll
 	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.CP_TL1 or TEXTURE.CP_TL2
 
 

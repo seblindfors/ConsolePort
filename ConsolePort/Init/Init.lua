@@ -82,11 +82,6 @@ function ConsolePort:LoadSettings()
 		ConsolePortUtility = {}
 	end
 
-	-- Load the binding wizard if a button does not have a registered mock binding
-	if 	self:CheckUnassignedBindings() then
-		self:CreateBindingWizard()
-	end
-
 	db.Bindings = ConsolePortBindingSet
 	db.Bindbtns = ConsolePortBindingButtons
 	db.Settings = ConsolePortSettings
@@ -102,6 +97,12 @@ function ConsolePort:LoadSettings()
 		db.Settings.shift = "CP_TL1"
 		db.Settings.ctrl = "CP_TL2"
 	end
+
+	-- Load the binding wizard if a button does not have a registered mock binding
+	if 	self:CheckUnassignedBindings() then
+		self:CreateBindingWizard()
+	end
+
 
 	-- Slash handler and stuff related to that
 	local SLASH = db.TUTORIAL.SLASH

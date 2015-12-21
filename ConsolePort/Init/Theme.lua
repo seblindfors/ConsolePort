@@ -13,9 +13,9 @@ setglobal("BINDING_NAME_CLICK ConsolePortUtilityToggle:LeftButton", db.CUSTOMBIN
 setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorToggle:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR)
 
 local function LoadTooltipLines()
-	local Left = ConsolePortMouse and ConsolePortMouse.Cursor.Left or "CP_R_RIGHT"
-	local Right = ConsolePortMouse and ConsolePortMouse.Cursor.Right or "CP_R_LEFT"
-	local Special = ConsolePortMouse and ConsolePortMouse.Cursor.Special or "CP_R_UP"
+	local Left = db.Mouse and db.Mouse.Cursor.Left or "CP_R_RIGHT"
+	local Right = db.Mouse and db.Mouse.Cursor.Right or "CP_R_LEFT"
+	local Special = db.Mouse and db.Mouse.Cursor.Special or "CP_R_UP"
 	-- Click strings
 	local ICON				= "|T%s:20:20:0:0|t |cFF%s%s|r"
 	local ShiftHold 		= format(ICON, db.TEXTURE.CP_TL1, "6882A1", "%s")
@@ -40,10 +40,10 @@ end
 
 local function LoadTriggerTextures(ctrlType)
 	-- Trigger textures
-	db.TEXTURE.CP_TR1 = format(TEXTURE_PATH, ctrlType, ConsolePortSettings and ConsolePortSettings.trigger1 or "CP_TR1")
-	db.TEXTURE.CP_TR2 = format(TEXTURE_PATH, ctrlType, ConsolePortSettings and ConsolePortSettings.trigger2 or "CP_TR2")
-	db.TEXTURE.CP_TL1 = format(TEXTURE_PATH, ctrlType, ConsolePortSettings and ConsolePortSettings.shift 	or "CP_TL1")
-	db.TEXTURE.CP_TL2 = format(TEXTURE_PATH, ctrlType, ConsolePortSettings and ConsolePortSettings.ctrl 	or "CP_TL2")
+	db.TEXTURE.CP_TR1 = format(TEXTURE_PATH, ctrlType, db.Settings and db.Settings.trigger1 or "CP_TR1")
+	db.TEXTURE.CP_TR2 = format(TEXTURE_PATH, ctrlType, db.Settings and db.Settings.trigger2 or "CP_TR2")
+	db.TEXTURE.CP_TL1 = format(TEXTURE_PATH, ctrlType, db.Settings and db.Settings.shift 	or "CP_TL1")
+	db.TEXTURE.CP_TL2 = format(TEXTURE_PATH, ctrlType, db.Settings and db.Settings.ctrl 	or "CP_TL2")
 	db.TEXTURE.CP_TR3 = format(TEXTURE_PATH, ctrlType, "CP_TR3")
 	db.TEXTURE.CP_TL3 = format(TEXTURE_PATH, ctrlType, "CP_TL3")
 	-- Change global binding names
@@ -52,13 +52,13 @@ local function LoadTriggerTextures(ctrlType)
 end
 
 function ConsolePort:LoadControllerTheme()
-	local ctrlType = ConsolePortSettings and strupper(ConsolePortSettings.type) or "PS4"
+	local ctrlType = db.Settings and strupper(db.Settings.type) or "PS4"
 	if init then
 		init = nil -- Don't repeat this section
 		-- Controller specific
 		if 	ctrlType == "XBOX" then
 			-- Config frame coords
-			db.BINDINGS = {
+			db.ButtonCoords = {
 				CP_R_LEFT			= {X = 318,	Y = -196},
 				CP_R_UP				= {X = 346,	Y = -170},
 				CP_R_RIGHT			= {X = 374,	Y = -196},
@@ -82,7 +82,7 @@ function ConsolePort:LoadControllerTheme()
 			}
 		elseif 	ctrlType == "STEAM" then
 			-- Config frame coords
-			db.BINDINGS = { 
+			db.ButtonCoords = { 
 				CP_R_UP				= {X = 294,	Y = -223},
 				CP_R_DOWN			= {X = 294,	Y = -279},
 				CP_R_LEFT			= {X = 267,	Y = -252},
@@ -106,7 +106,7 @@ function ConsolePort:LoadControllerTheme()
 			}
 		else -- PS4
 			-- Config frame coords
-			db.BINDINGS = {
+			db.ButtonCoords = {
 				CP_R_LEFT			= {X = 344,	Y = -198},
 				CP_R_UP				= {X = 374,	Y = -166},
 				CP_R_RIGHT			= {X = 406,	Y = -198}, 
