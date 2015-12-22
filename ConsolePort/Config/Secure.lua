@@ -9,6 +9,9 @@
 local addOn, db = ...
 local TEXTURE = db.TEXTURE
 local KEY = db.KEY
+---------------------------------------------------------------
+local ConsolePort = ConsolePort
+---------------------------------------------------------------
 
 ---------------------------------------------------------------
 -- Get current action page and an optional statedriver string

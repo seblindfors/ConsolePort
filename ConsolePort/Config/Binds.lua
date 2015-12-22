@@ -170,6 +170,8 @@ local function SubmitBindings()
 	if 	NewBindingSet or NewBindingButtons then
 		db.Bindings = NewBindingSet or db.Bindings
 		db.Bindbtns = NewBindingButtons or db.Bindbtns
+		ConsolePortBindingSet = db.Bindings
+		ConsolePortBindingButtons = db.Bindbtns
 		if not InCombatLockdown() then
 			ReloadBindings()
 		else
@@ -966,7 +968,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Buttons = {}
 	for buttonName, position in pairs(db.ButtonCoords) do
 		-- temporary Steam guide button fix, remove this.
-		if not (db.Settings.type == "STEAM" and buttonName == "CP_C_OPTION") then
+		if not (db.Settings.skipGuideBtn and buttonName == "CP_C_OPTION") then
 			local button = CreateFrame("Button", buttonName.."_BINDING", Binds)
 			button.name = buttonName
 			button.icon = "|T%s:24:24:0:0|t"

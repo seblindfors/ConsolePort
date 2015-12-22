@@ -91,6 +91,7 @@ TUTORIAL = {
 	SETUP = {
 		LAYOUT  			= "Setup: Select controller layout",
 		HEADER 				= "Setup: Assign controller buttons",
+		SKIPGUIDE 			= "Skip this button",
 		HEADLINE 			= "Your controller bindings are incomplete.\nPress the requested button on your controller.",
 		OVERRIDE 			= "%s is already bound to %s.\nPress |T%s:20:20:0:0|t again to continue anyway.",
 		NOEXISTFIX 			= "something else",			

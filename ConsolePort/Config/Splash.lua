@@ -16,7 +16,7 @@ function ConsolePort:CheckUnassignedBindings()
 	local unassigned = {}
 	for i, button in pairs(buttons) do
 		-- temporary Steam guide button fix, remove this.
-		if not (ctrlType == "STEAM" and button == "CP_C_OPTION") then 
+		if not (db.Settings.skipGuideBtn and button == "CP_C_OPTION") then
 			local key1, key2 = GetBindingKey(button)
 			if not key1 and not key2 then
 				ButtonUnassigned = true
@@ -38,6 +38,18 @@ function ConsolePort:CreateBindingWizard()
 		Wizard:SetSize(600,544)
 		Wizard:EnableMouse(true)
 		Wizard:EnableKeyboard(true)
+
+		if ctrlType ~= "PS4" then
+			Wizard.Skip = CreateFrame("Button", nil, Wizard, "UIPanelButtonTemplate")
+			Wizard.Skip:SetSize(175, 22)
+			Wizard.Skip:SetPoint("BOTTOM", 0, 42)
+			Wizard.Skip:SetText(SETUP.SKIPGUIDE)
+			Wizard.Skip:Hide()
+			Wizard.Skip:SetScript("OnClick", function()
+				db.Settings.skipGuideBtn = true
+				self:CheckUnassignedBindings()
+			end)
+		end
 
 		-- Regions
 		-- BG
@@ -127,6 +139,11 @@ function ConsolePort:CreateBindingWizard()
 				local unassigned = ConsolePort:CheckUnassignedBindings()
 				if unassigned then
 					self.BTN = unassigned[1]
+					if self.Skip and self.BTN == "CP_C_OPTION" then
+						self.Skip:Show()
+					elseif self.Skip then
+						self.Skip:Hide()
+					end
 					if self.BTN then
 						self.ButtonTex:SetTexture(db.TEXTURE[self.BTN])
 					end
@@ -162,6 +179,7 @@ function ConsolePort:CreateSplashFrame()
 
 		local function OnClick(self)
 			db.Settings.type = self.ID
+			db.Settings.skipGuideBtn = self.ID == "STEAM"
 			PlaySound("GLUEENTERWORLDBUTTON")
 			ReloadUI()
 		end

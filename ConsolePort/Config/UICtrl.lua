@@ -57,7 +57,7 @@ local function NewFrameOnClick(self)
 end
 
 local function AddAddonOnClick(self)
-	ConsolePortUIFrames[self:GetParent():GetText()] = {}
+	db.UIStack[self:GetParent():GetText()] = {}
 end
 
 local function RemoveAddonOnClick(self)
@@ -175,7 +175,7 @@ local function RefreshFrameList(self)
 end
 
 local function RefreshAddonList(self)
-	local UIFrames, list = ConsolePortUIFrames, {}
+	local UIFrames, list = db.UIStack, {}
 	for i, button in pairs(self.Buttons) do
 		button:Hide()
 	end
@@ -237,7 +237,7 @@ end
 -- UICtrl: UICtrl popup functions
 ---------------------------------------------------------------
 local function AddFramePopupAccept(self, addonButton)
-	local list = ConsolePortUIFrames
+	local list = db.UIStack
 	local addon = list[addonButton:GetText()]
 	if addon then
 		local exists
@@ -257,14 +257,14 @@ local function AddFramePopupAccept(self, addonButton)
 end
 
 local function RemoveAddonPopupAccept(self, addonList, addon)
-	local list = ConsolePortUIFrames
+	local list = db.UIStack
 	list[addon] = nil
 	RefreshAddonList(addonList)
 	ConsolePort:CheckLoadedAddons()
 end
 
 local function RemoveFramePopupAccept(self, frame, addon)
-	local list = ConsolePortUIFrames[addon:GetText()]
+	local list = db.UIStack[addon:GetText()]
 	local name = frame:GetText()
 	for i, frame in pairs(list) do
 		if frame == name then
@@ -281,7 +281,7 @@ end
 ---------------------------------------------------------------
 local function NewMouseoverOnClick(self)
 	if self.MouseOver then
-		local list = ConsolePortUIFrames[self.Addon]
+		local list = db.UIStack[self.Addon]
 		local exists
 		for i, frame in pairs(list) do
 			if frame == self.MouseOver then
@@ -318,7 +318,8 @@ end
 -- UICtrl: Default function
 ---------------------------------------------------------------
 local function LoadDefaultUICtrl(self)
-	ConsolePortUIFrames = ConsolePort:GetDefaultUIFrames()
+	db.UIStack = ConsolePort:GetDefaultUIFrames()
+	ConsolePortUIFrames = db.UIStack
 	RefreshAddonList(self.AddonList)
 end
 

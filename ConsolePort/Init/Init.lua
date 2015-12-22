@@ -51,6 +51,7 @@ local function ResetAllSettings()
 end
 
 function ConsolePort:LoadSettings()
+
 	if not ConsolePortBindingSet then
 		ConsolePortBindingSet = self:GetDefaultBindingSet()
 	end

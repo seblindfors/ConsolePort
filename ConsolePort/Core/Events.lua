@@ -141,8 +141,8 @@ function Events:ADDON_LOADED(...)
 	local name = ...
 	if name == "ConsolePort" then
 		self:CreateButtonHandler()
-		self:LoadControllerTheme()
 		self:LoadSettings()
+		self:LoadControllerTheme()
 		self:LoadEvents()
 		self:LoadHookScripts()
 		self:LoadBindingSet()

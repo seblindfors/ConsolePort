@@ -140,9 +140,13 @@ local function SaveGeneralConfig(self)
 		Settings.mouseOverMode = false
 	end
 
+	ConsolePortSettings = db.Settings
+	ConsolePortMouse = db.Mouse
+
 	db.Mouse.Cursor.Left = self.LeftClick.button
 	db.Mouse.Cursor.Right = self.RightClick.button
 	db.Mouse.Cursor.Scroll = self.ScrollClick.button
+	
 	ConsolePort:LoadEvents()
 	ConsolePort:SetupCursor()
 	ConsolePort:LoadControllerTheme()
@@ -160,7 +164,7 @@ end
 
 local function ResetBindingsOnClick(self)
 	if not InCombatLockdown() then
-		InterfaceOptionsFrame:Hide()
+		self:GetParent():GetParent():Hide()
 		local bindings = ConsolePort:GetBindingNames()
 		for i, binding in pairs(bindings) do
 			local key1, key2 = GetBindingKey(binding)
