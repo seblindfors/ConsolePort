@@ -2,7 +2,7 @@
 <h2>Game Controller Addon for World of Warcraft</h2>
 <h6>DualShock 4, DualShock 3, Xbox 360, Xbox One, Logitech Rumblepad, Razer Sabertooth</h6>
 <a href="http://imgur.com/a/MdfK3" target="_blank">Screenshots of iteration and development process</a><br>
-<a href="https://www.youtube.com/playlist?list=PLdymHo01mBgXTNFOCCrf85803XqwlCpdt4" target="_blank">YouTube playlist: Demos and instructional videos</a>
+<a href="https://www.youtube.com/playlist?list=PLdymHo01mBgXTNFOCCrf85803XqwlCpdt4" target="_blank">YouTube playlist: demos and instructional videos</a>
 
 <h2>DISCLAIMER</h2>
 This git serves as a testing ground for new code, where uploaded nightly builds might have weird bugs or may not even work at all. Most of the code published here is untested. Please refer to Wowinterface or Curse for stable versions. Feel free to post suggestions or bug reports here, though, even if it's related to stable releases. 
