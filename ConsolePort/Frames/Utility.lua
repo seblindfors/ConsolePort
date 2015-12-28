@@ -55,6 +55,7 @@ local function AnimateNewAction(self, actionButton, autoAssigned)
 	self:Show()
 	self.Group:Stop()
 	self.Group:Play()
+	FadeOut(self.Spell, 3, 0.15, 0)
 end
 
 local function AnimateOnFinished(self)
@@ -98,6 +99,14 @@ Animation.Gradient:SetBlendMode("ADD")
 Animation.Gradient:SetVertexColor(red, green, blue, 1)
 Animation.Gradient:SetPoint("CENTER", 0, 0)
 Animation.Gradient:SetSize(512, 512)
+---------------------------------------------------------------
+Animation.Spell = CreateFrame("PlayerModel", nil, UIParent)
+Animation.Spell:SetFrameStrata("TOOLTIP")
+Animation.Spell:SetPoint("CENTER", Animation.Icon, "CENTER", 0, 14)
+Animation.Spell:SetSize(256, 256)
+Animation.Spell:SetAlpha(0.25)
+Animation.Spell:SetDisplayInfo(42486)
+Animation.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 ---------------------------------------------------------------
 Animation.ShowNewAction = AnimateNewAction
 Animation.Group:SetScript("OnFinished", AnimateOnFinished)
@@ -158,6 +167,13 @@ Utility.Gradient:SetVertexColor(red, green, blue, 1)
 Utility.Gradient:SetPoint("CENTER", 0, 0)
 Utility.Gradient:SetSize(256, 256)
 ---------------------------------------------------------------
+Utility.Spell = CreateFrame("PlayerModel", nil, Utility)
+Utility.Spell:SetPoint("CENTER", 0, 14)
+Utility.Spell:SetSize(256, 256)
+Utility.Spell:SetAlpha(0)
+Utility.Spell:SetDisplayInfo(42486)
+Utility.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+---------------------------------------------------------------
 Utility.Tooltip = Tooltip
 
 function Tooltip:OnShow()
@@ -201,10 +217,20 @@ Utility:HookScript("OnAttributeChanged", function(self, attribute, detail)
 			self.Gradient:ClearAllPoints()
 			self.Gradient:SetPoint("CENTER", ActionButtons[detail], "CENTER", 0, 0)
 			FadeIn(self.Gradient, 0.2, self.Gradient:GetAlpha(), 1)
+
+			self.Spell:Show()
+			self.Spell:ClearAllPoints()
+			self.Spell:SetPoint("CENTER", ActionButtons[detail], "CENTER", 0, 14)
+			FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.15)
 		else
 			self.Gradient:SetAlpha(0)
 			self.Gradient:ClearAllPoints()
 			self.Gradient:Hide()
+
+
+			self.Spell:SetAlpha(0)
+			self.Spell:ClearAllPoints()
+			self.Spell:Hide()
 		end
 		OldIndex = detail
 	end
@@ -555,12 +581,12 @@ local function ActionButtonOnUpdate(self, elapsed)
 			self.Idle = self.Idle + self.Timer
 			if self.Idle > 1 then
 				if actionType == "item" then
-					Tooltip:SetOwner(self, "ANCHOR_BOTTOM")
+					Tooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -16)
 					Tooltip:SetItemByID(self:GetAttribute("cursorID"))
 				elseif actionType == "spell" then
 					local id = select(7, GetSpellInfo(self:GetAttribute("spell")))
 					if id then
-						Tooltip:SetOwner(self, "ANCHOR_BOTTOM")
+						Tooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -16)
 						Tooltip:SetSpellByID(id)
 					end
 				end

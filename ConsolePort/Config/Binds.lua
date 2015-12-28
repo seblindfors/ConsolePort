@@ -578,24 +578,20 @@ local function SetFauxBinding(self, modifier, old, new)
 end
 
 local function SetFauxMovementBindings(self)
-	local movement
-	if db.Settings.turnCharacter then movement = {
-		MOVEFORWARD 	= {"W", "UP"},
-		MOVEBACKWARD 	= {"S", "DOWN"},
-		TURNLEFT 		= {"A", "LEFT"},
-		TURNRIGHT 		= {"D", "RIGHT"},
-	}
-	else movement = {
+	local movement = {
 		MOVEFORWARD 	= {"W", "UP"},
 		MOVEBACKWARD 	= {"S", "DOWN"},
 		STRAFELEFT 		= {"A", "LEFT"},
 		STRAFERIGHT 	= {"D", "RIGHT"},
-		}
-	end
+	}
 	local modifiers = {
 		"", "SHIFT-", "CTRL-", "CTRL-SHIFT-",
 	}
-	for direction, keys in pairs(movement) do
+	if db.Settings.turnCharacter then
+		movement.TURNLEFT = movement.STRAFELEFT
+		movement.TURNRIGHT = movement.STRAFERIGHT
+	end
+	for direction, keys in db.pairsByKeys(movement) do
 		for _, key in pairs(keys) do
 			for _, modifier in pairs(modifiers) do
 				SetOverrideBinding(self, false, modifier..key, direction)

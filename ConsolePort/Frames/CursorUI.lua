@@ -35,6 +35,9 @@ local ConsolePort = ConsolePort
 local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
 ConsolePort.Cursor = Cursor
 ---------------------------------------------------------------
+local StepL = CreateFrame("Button", addOn.."CursorStepLeft")
+local StepR = CreateFrame("Button", addOn.."CursorStepRight")
+---------------------------------------------------------------
 -- UIControl: Wrappers for overriding click bindings
 ---------------------------------------------------------------
 local function OverrideBindingClick(owner, old, button, mouseClick, mod)
@@ -51,6 +54,18 @@ end
 
 local function OverrideBindingCtrlClick(owner, old, button, mouseClick)
 	OverrideBindingClick(owner, old, button, mouseClick, "CTRL-")
+end
+
+local function OverrideHorizontalScroll(owner, widget)
+	if 	owner.Scroll == L1 then
+		OverrideBindingShiftClick(owner, "CP_L_LEFT", StepL:GetName(), "LeftButton")
+		OverrideBindingShiftClick(owner, "CP_L_RIGHT", StepR:GetName(), "LeftButton")
+	else
+		OverrideBindingCtrlClick(owner, "CP_L_LEFT", StepL:GetName(), "LeftButton")
+		OverrideBindingCtrlClick(owner, "CP_L_RIGHT", StepR:GetName(), "LeftButton")
+	end
+	StepL.widget = widget
+	StepR.widget = widget
 end
 
 local function OverrideScroll(owner, up, down)
@@ -397,6 +412,8 @@ function ConsolePort:EnterNode(node, object, state)
 	local scrollUp, scrollDown = GetScrollButtons(node)
 	if scrollUp and scrollDown then
 		OverrideScroll(Cursor, scrollUp, scrollDown)
+	elseif object == "Slider" then
+		OverrideHorizontalScroll(Cursor, node)
 	end
 
 	local name = rebindNode and nil or node.direction and node:GetName()
@@ -410,9 +427,9 @@ function ConsolePort:EnterNode(node, object, state)
 	end
 	for click, button in pairs(Cursor.Override) do
 		for extension, modifier in pairs(Cursor.Modifiers) do
+			OverrideBindingClick(Cursor, button, name or button..extension, click, modifier)
 			if override then
 				SetClickButton(_G[button..extension], rebindNode or node)
-				OverrideBindingClick(Cursor, button, name or button..extension, click, modifier)
 			else
 				SetClickButton(_G[button..extension], nil)
 			end
@@ -541,7 +558,7 @@ function ConsolePort:SetButtonActionsDefault()
 end
 
 function ConsolePort:SetButtonActionsUI()
-	local buttons, key = GetInterfaceButtons()
+	local buttons = GetInterfaceButtons()
 	for i, button in pairs(buttons) do
 		OverrideBindingClick(self, button.name, button:GetName(), "LeftButton")
 		button:SetAttribute("type", "UIControl")
@@ -578,7 +595,7 @@ function ConsolePort:SetupCursor()
 	Cursor:RegisterEvent("PLAYER_REGEN_ENABLED")
 	Cursor:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
-
+---------------------------------------------------------------
 Cursor.Modifiers = {
 	_NOMOD	= false,
 	_SHIFT 	= "SHIFT-",
@@ -629,3 +646,23 @@ Cursor.Scale2 = Cursor.Group:CreateAnimation("Scale")
 Cursor.Scale2:SetSmoothing("OUT")
 Cursor.Scale2:SetOrder(2)
 Cursor.Scale2:SetOrigin("CENTER", 0, 0)
+---------------------------------------------------------------
+
+-- Horizontal scroll wrappers
+---------------------------------------------------------------
+local function StepOnClick(self)
+	local slider = self.widget
+	if slider then
+		local change = self.delta * slider:GetValueStep()
+		local min, max = slider:GetMinMaxValues()
+		local newValue = slider:GetValue() + change
+		newValue = newValue <= min and min or newValue >= max and max or newValue
+		slider:SetValue(newValue)
+	end
+end
+
+StepL.delta = -1
+StepR.delta = 1
+
+StepL:SetScript("OnClick", StepOnClick)
+StepR:SetScript("OnClick", StepOnClick)

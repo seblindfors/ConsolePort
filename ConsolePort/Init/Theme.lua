@@ -6,9 +6,8 @@
 
 local _, db = ...
 local init = true
---local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s"
 local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons64x64\\%s"
-local TEXTURE_ESC = "|T%s:20:20:0:0|t"
+local TEXTURE_ESC = "|T%s:24:24:0:0|t"
 
 setglobal("BINDING_NAME_CLICK ConsolePortUtilityToggle:LeftButton", db.CUSTOMBINDS.CP_UTILITYBELT)
 setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorToggle:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR)
@@ -18,7 +17,7 @@ local function LoadTooltipLines()
 	local Right = db.Mouse and db.Mouse.Cursor.Right or "CP_R_LEFT"
 	local Special = db.Mouse and db.Mouse.Cursor.Special or "CP_R_UP"
 	-- Click strings
-	local ICON				= "|T%s:20:20:0:0|t |cFF%s%s|r"
+	local ICON				= "|T%s:24:24:0:0|t |cFF%s%s|r"
 	local ShiftHold 		= format(ICON, db.TEXTURE.CP_TL1, "6882A1", "%s")
 	local LeftClick 		= format(ICON, db.TEXTURE[Left], db.COLOR[gsub(Left, "CP_%w_", "")], "%s")
 	local RightClick 		= format(ICON, db.TEXTURE[Right], db.COLOR[gsub(Right, "CP_%w_", "")], "%s")

@@ -57,6 +57,7 @@ local function ConfigureMenu()
 		button:SetScript("PreClick", PreClick)
 		button:SetScript("OnEnter", OnEnter)
 		button:SetScript("OnLeave", OnLeave)
+		button:SetScript("OnHide", OnLeave)
 		if 	i == 1 then
 			button:SetNormalTexture(prefix.."Character-Up")
 			button:SetPushedTexture(prefix.."Character-Down")
