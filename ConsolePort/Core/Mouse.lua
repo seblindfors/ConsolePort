@@ -7,6 +7,8 @@
 
 local _, db = ...
 ---------------------------------------------------------------
+local TEXTURE = db.TEXTURE
+---------------------------------------------------------------
 local Settings
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
@@ -22,6 +24,11 @@ local Locker = CreateFrame("Frame", "ConsolePortMouseLookCenter", UIParent)
 Locker:SetPoint("CENTER", 0, 0)
 Locker:SetSize(70, 180)
 Locker:Hide()
+---------------------------------------------------------------
+local Deadzone = CreateFrame("Frame", "ConsolePortMouseLookDeadzone", UIParent)
+Deadzone:SetPoint("CENTER", 0, 0)
+Deadzone:SetSize(4, 4)
+Deadzone:Hide()
 ---------------------------------------------------------------
 local IsOutside
 local DriftProtection = CreateFrame("Frame", "ConsolePortMouseLookRim", UIParent)
@@ -43,7 +50,7 @@ local function MouseLookOnJump()
 end
 
 local function MouselookOnCenter()
-	return Settings.mouseOnCenter and Locker:IsMouseOver()
+	return Settings.mouseOnCenter and Locker:IsMouseOver() and not Deadzone:IsMouseOver()
 end
 
 local function MouselookShouldStart()
@@ -218,7 +225,11 @@ local CursorTrail = CreateFrame("Frame", "ConsolePortCursorTrail", UIParent, "")
 local function CursorTrailUpdate(self)
 	posX, posY = GetCursorPosition()
 	self:SetPoint("BOTTOMLEFT", posX+24, posY-46)
-	if GameTooltip:GetOwner() == UIParent and not IsMouselooking() then
+	if SpellIsTargeting() then
+		self.Texture:SetTexture(TEXTURE.CP_TL3)
+		self:SetAlpha(1)
+	elseif GameTooltip:GetOwner() == UIParent and not IsMouselooking() then
+		self.Texture:SetTexture(self.Default)
 		self:SetAlpha(GameTooltip:GetAlpha())
 	else
 		self:SetAlpha(0)
@@ -300,7 +311,8 @@ function ConsolePort:UpdateStateDriver()
 
 		local currentTarget = SecureCmdOptionParse(targetstate)
 
-		CursorTrail.Texture:SetTexture(db.TEXTURE[button])
+		CursorTrail.Default = TEXTURE[button]
+		CursorTrail.Texture:SetTexture(CursorTrail.Default)
 		CursorTrail:SetScript("OnUpdate", CursorTrailUpdate)
 		CursorTrail:Show()
 

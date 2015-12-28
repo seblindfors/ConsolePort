@@ -6,6 +6,7 @@
 
 local visibleStack, hasUIFocus = {}
 
+local IsOptionFrameOpen = IsOptionFrameOpen
 local InCombatLockdown = InCombatLockdown
 local Callback = C_Timer.After
 local pairs = pairs
@@ -44,6 +45,21 @@ for _, node in pairs({
 	WorldMapTitleButton,
 	WorldMapButton,
 }) do node.ignoreNode = true end
+
+-- Cursor will not cause the game menu to hide itself
+-- whenever one of these nodes are clicked.
+for _, node in pairs({
+	ObjectiveTrackerFrame.HeaderMenu.MinimizeButton,
+	MinimapZoomIn,
+	MinimapZoomOut,
+}) do node.ignoreMenu = true end
+
+-- Cursor will ignore the host frame, but include all
+-- children widgets contained inside.
+for _, node in pairs({
+	DropDownList1,
+	DropDownList2,
+}) do node.includeChildren = true end
 
 -- Update the cursor state on visibility change.
 -- Use callback to circumvent frames that set their points on show.
@@ -125,6 +141,14 @@ function ConsolePort:GetFrameStack()
 		rebindStack[ConsolePortConfig] = nil
 		rebindStack[ConsolePortRebindFrame] = true
 		return rebindStack
+	elseif IsOptionFrameOpen() then
+		local fullStack = {}
+		for _, Frame in pairs({UIParent:GetChildren()}) do
+			if not Frame:IsForbidden() and Frame:IsVisible() then
+				fullStack[Frame] = true
+			end
+		end
+		return fullStack
 	else
 		return visibleStack
 	end

@@ -11,6 +11,10 @@ local TEXTURE = db.TEXTURE
 local KEY = db.KEY
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
+local GameMenuFrame = GameMenuFrame
+---------------------------------------------------------------
+local IsControlKeyDown = IsControlKeyDown
+local IsShiftKeyDown = IsShiftKeyDown
 ---------------------------------------------------------------
 
 ---------------------------------------------------------------
@@ -112,6 +116,15 @@ local function CheckHeldDown(self, elapsed)
 	end
 end
 
+local function PreClick(self)
+	if GameMenuFrame:IsVisible() then
+		local clickbutton = self:GetAttribute("clickbutton")
+		if not (clickbutton and clickbutton.ignoreMenu) then 
+			ToggleFrame(GameMenuFrame)
+		end
+	end
+end
+
 local function PostClick(self)
 	local click = self:GetAttribute("clickbutton")
 	if click and not click:IsEnabled() then
@@ -124,10 +137,6 @@ end
 ---------------------------------------------------------------
 local function UIControl(self)
 	ConsolePort:UIControl(self.command, self.state)
-end
-
-local function Popup(self)
-	ConsolePort:Popup(self.command, self.state)
 end
 
 ---------------------------------------------------------------
@@ -150,12 +159,8 @@ end
 ---------------------------------------------------------------
 -- SecureBtn: HotKey textures and indicators
 ---------------------------------------------------------------
-local function GetTexture(button)
-	return TEXTURE[button]
-end
-
 local function GetHotKeyTexture(button)
-	local texFile = GetTexture(button.name)
+	local texFile = TEXTURE[button.name]
 	local texture = "|T%s:14:14:%s:0|t" -- texture, offsetX
 	local plain = format(texture, texFile, 3)
 	local mods = {
@@ -165,6 +170,93 @@ local function GetHotKeyTexture(button)
 		_CTRLSH = format(strrep(texture, 2), TEXTURE.CP_TL1, 11, TEXTURE.CP_TL2, 7)..plain,
 	}
 	return mods[button.mod]
+end
+
+local function OnModifierChanged(self)
+	local ctrl, shift = IsControlKeyDown(), IsShiftKeyDown()
+	if self.mod == "_NOMOD" then
+		if shift or ctrl then
+			self:Hide()
+		else
+			self:Show()
+		end
+	else
+		self:Show()
+		if 	self.mod == "_CTRLSH" and (ctrl and shift) or
+			self.mod == "_CTRL" and (ctrl and not shift) or
+			self.mod == "_SHIFT" and (shift and not ctrl) then
+			self.mod1:Hide()
+			if self.mod2 then
+				self.mod2:Hide()
+			end
+			self:ClearAllPoints()
+			self:SetPoint("TOP", 0, 12)
+			self.main:ClearAllPoints()
+			self.main:SetPoint("TOP", 0, 0)
+			self.main.Group:Play()
+		elseif self.mod == "_CTRLSH" and (ctrl or shift) or
+			self.mod == "_CTRL" and shift or
+			self.mod == "_SHIFT" and ctrl then
+			self:Hide()
+		else
+			self.mod1:Show()
+			if self.mod2 then
+				self.mod2:Show()
+			end
+			self:ClearAllPoints()
+			self:SetPoint("TOPRIGHT", 0, 0)
+			self.main:ClearAllPoints()
+			self.main:SetPoint("TOPRIGHT", 12, 12)
+		end
+	end
+end
+
+local function CreateHotKey(self)
+	local hotKey = CreateFrame("Frame", "$parent_HOTKEY"..#self.HotKeys+1, self)
+	hotKey:SetSize(1,1)
+	hotKey.mod = self.mod
+	hotKey:SetScript("OnEvent", OnModifierChanged)
+	hotKey:RegisterEvent("MODIFIER_STATE_CHANGED")
+
+	local main = hotKey:CreateTexture("$parent_MAIN", "OVERLAY", nil, 7)
+	hotKey.main = main
+	main:SetSize(32, 32)
+	main:SetTexture(gsub(TEXTURE[self.name], "Icons64x64", "Icons32x32"))
+	main:SetPoint("TOPRIGHT", 12, 12)
+
+	main.Group = main:CreateAnimationGroup()
+	main.Group:SetScript("OnFinished", function() main:SetSize(32, 32) end)
+	main.Group:SetScript("OnPlay", function() main:SetSize(64, 64) end)
+	main.Animation = main.Group:CreateAnimation("SCALE")
+
+	main.Animation:SetScale(0.5, 0.5)
+	main.Animation:SetDuration(0.2)
+	main.Animation:SetSmoothing("OUT")
+	main.Animation:SetOrigin("TOP", 0, 0)
+
+	if self.mod ~= "_NOMOD" then
+		local mod1 = hotKey:CreateTexture("$parent_MOD1", "OVERLAY", nil, 6)
+		hotKey.mod1 = mod1
+		mod1:SetPoint("RIGHT", main, "LEFT", 14, -2)
+		mod1:SetSize(24, 24)
+
+		if self.mod == "_SHIFT" then
+			mod1:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
+		elseif self.mod == "_CTRL" then
+			mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "Icons32x32"))
+		elseif self.mod == "_CTRLSH" then
+			mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "Icons32x32"))
+			mod1:SetPoint("RIGHT", main, "LEFT", 15, -2)
+
+			local mod2 = hotKey:CreateTexture("$parent_MOD2", "OVERLAY", nil, 5)
+			hotKey.mod2 = mod2
+			mod2:SetPoint("RIGHT", mod1, "LEFT", 14, 0)
+			mod2:SetSize(24, 24)
+			mod2:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
+		end
+	end
+
+	return hotKey
 end
 
 ---------------------------------------------------------------
@@ -181,6 +273,7 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn.HotKey 	= GetHotKeyTexture(btn)
 	btn.HotKeys = {}
 	btn.default = {}
+	btn.CreateHotKey = CreateHotKey
 	btn.UIControl 	= UIControl
 	btn.Reset 		= ResetBinding
 	btn.Revert 		= RevertBinding
@@ -192,11 +285,16 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn:HookScript("PostClick", PostClick)
 	btn:HookScript("OnMouseDown", OnMouseDown)
 	btn:HookScript("OnMouseUp", OnMouseUp)
-	if 	btn.command == KEY.UP or
-		btn.command == KEY.DOWN or
-		btn.command == KEY.LEFT or
-		btn.command == KEY.RIGHT then
+	if 		btn.command == KEY.UP or
+			btn.command == KEY.DOWN or
+			btn.command == KEY.LEFT or
+			btn.command == KEY.RIGHT then
 		btn:SetScript("OnUpdate", CheckHeldDown)
+	elseif 	btn.command == KEY.CROSS or
+			btn.command == KEY.CIRCLE or
+			btn.command == KEY.SQUARE or
+			btn.command == KEY.TRIANGLE then
+		btn:SetScript("PreClick", PreClick)
 	end
 	ConsolePortButtonHandler:SetFrameRef("NewButton", btn)
 	ConsolePortButtonHandler:Execute([[

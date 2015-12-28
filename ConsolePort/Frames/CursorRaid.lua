@@ -131,8 +131,10 @@ function ConsolePort:CreateRaidCursor()
 				self:SetPoint("CENTER", current, "CENTER", 0, 0)
 				self:SetAttribute("unit", current:GetAttribute("unit"))
 				self:SetAttribute("node", current)
+				self:SetBindingClick(true, "BUTTON2", current, "RightButton")
 			else
 				self:SetAttribute("unit", nil)
+				self:ClearBinding("BUTTON2")
 			end
 		]=]
 		UpdateFrameStack = [=[

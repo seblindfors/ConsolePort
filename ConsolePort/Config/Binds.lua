@@ -86,7 +86,6 @@ end
 local function ShowHotKey(index, secureBtn, actionButton)
 	local HotKey = secureBtn.HotKeys[index]
 	HotKey:SetParent(actionButton)
-	HotKey:SetText(secureBtn.HotKey)
 	HotKey:ClearAllPoints()
 	HotKey:SetPoint("TOPRIGHT", actionButton, 0, 0)
 	HotKey:Show()
@@ -96,7 +95,7 @@ local function ShowInterfaceHotKey(button)
 	for i, HotKey in pairs(button.HotKeys) do
 		HotKey:Hide()
 	end
-	button.HotKeys[1] = button.HotKeys[1] or button:CreateFontString(nil, "OVERLAY", "ChatFontNormal")
+	button.HotKeys[1] = button.HotKeys[1] or button:CreateHotKey()
 	ShowHotKey(1, button, button.action)
 end
 
@@ -107,6 +106,8 @@ function ConsolePort:LoadHotKeyTextures()
 
 	for secureBtn in pairs(db.SECURE) do
 		for i, HotKey in pairs(secureBtn.HotKeys) do
+			HotKey:ClearAllPoints()
+			HotKey:SetParent(secureBtn)
 			HotKey:Hide()
 		end
 		index = 0
@@ -120,7 +121,7 @@ function ConsolePort:LoadHotKeyTextures()
 					self:GetActionBinding(ID) == self:GetActionBinding(actionID) then
 					index = index + 1
 					secureBtn.HotKeys[index] = 	secureBtn.HotKeys[index] or
-												secureBtn:CreateFontString(nil, "OVERLAY", "ChatFontNormal")
+												secureBtn:CreateHotKey()
 
 					ShowHotKey(index, secureBtn, actionButton)
 
@@ -539,14 +540,14 @@ end
 function ConsolePort:CreateConfigButton(name, mod, modNum)
 	local button = db.Atlas.GetFutureButton(name..mod..CONF, db.Binds.Rebind)
 	button.SelectedTexture:SetTexCoord(button.HighlightTexture:GetTexCoord())
-	button:SetSize(400, 46)
+	button:SetSize(440, 46)
 	button:SetPoint("TOP", db.Binds.Rebind, "TOP", 0, -44*modNum-10)
 
 	button.indicator = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	button.indicator:SetPoint("LEFT", button, "LEFT", 4, 0)
 
 	button.background = button:CreateTexture(nil, "OVERLAY")
-	button.background:SetPoint("RIGHT", button, "RIGHT", -4, 0)
+	button.background:SetPoint("RIGHT", button, "RIGHT", -32, 0)
 	button.background:SetSize(34, 34)
 
 	button.modifier = GetBindingPrefix(mod)
@@ -971,7 +972,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 		if not (db.Settings.skipGuideBtn and buttonName == "CP_C_OPTION") then
 			local button = CreateFrame("Button", buttonName.."_BINDING", Binds)
 			button.name = buttonName
-			button.icon = "|T%s:24:24:0:0|t"
+			button.icon = "|T%s:32:32:0:0|t"
 			button.texture = format(button.icon, db.TEXTURE[buttonName])
 			button:SetPoint("TOPLEFT", Binds.Controller, "TOPLEFT", position.X, position.Y)
 			button:SetSize(30, 30)
@@ -985,8 +986,8 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 
 	Binds.Rebind = db.Atlas.GetGlassWindow(addOn.."RebindFrame", Binds.Controller, nil, true)
 	Binds.Rebind:SetBackdrop(db.Atlas.Backdrops.Border)
-	Binds.Rebind:SetPoint("BOTTOMLEFT", Binds, "BOTTOMLEFT", 46, 16)
-	Binds.Rebind:SetSize(420, 200)
+	Binds.Rebind:SetPoint("BOTTOMLEFT", Binds, "BOTTOMLEFT", 24, 16)
+	Binds.Rebind:SetSize(460, 200)
 	Binds.Rebind:Hide()
 
 	Binds.Rebind.SetButton = RebindSetButton

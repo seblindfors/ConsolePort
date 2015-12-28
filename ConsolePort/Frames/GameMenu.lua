@@ -12,10 +12,6 @@ local function ConfigureMenu()
 	local prefix = "Interface\\Buttons\\UI-MicroButton"
 	local secureButtons = {}
 
-	local function PreClick(self)
-		ToggleFrame(GameMenuFrame)
-	end
-
 	local function OnEnter(self)
 		GameTooltip:Hide()
 		GameTooltip:SetOwner(self, "ANCHOR_TOP")
@@ -26,6 +22,12 @@ local function ConfigureMenu()
 	local function OnLeave(self)
 		if GameTooltip:GetOwner() == self then
 			GameTooltip:Hide()
+		end
+	end
+
+	local function PreClick(self)
+		if IsOptionFrameOpen() then
+			ToggleFrame(GameMenuFrame)
 		end
 	end
 
@@ -48,6 +50,7 @@ local function ConfigureMenu()
 		local button = CreateFrame("Button", "GameMenuButton"..info.icon, GameMenuFrame, "SecureActionButtonTemplate")
 		button:SetSize(28, 58)
 		button.tooltipText = info.title
+		button.ignoreMenu = true
 		button:SetAttribute("type", "click")
 		button:SetAttribute("clickbutton", info.microButton)
 		button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
@@ -90,6 +93,7 @@ local function ConfigureMenu()
 	-- Create a shortcut menu button to quickly open the binding manager.
 	local GameMenuButtonController = CreateFrame("BUTTON", "GameMenuButtonController", GameMenuFrame, "GameMenuButtonTemplate, SecureHandlerBaseTemplate")
 	GameMenuButtonController.hasPriority = true
+	GameMenuButtonController.ignoreMenu = true
 	GameMenuButtonController:SetText(db.TUTORIAL.BIND.MENUHEADER)
 	GameMenuButtonController:SetScript("PreClick", PreClick)
 	GameMenuButtonController:SetScript("OnClick", function(self)
@@ -114,8 +118,27 @@ local function ConfigureMenu()
 		button:SetSize(167, 21)
 	end
 
+	local function OnEvent(event, ...)
+		if event == "PLAYER_REGEN_DISABLED" then
+			ConsolePort:ClearCurrentNode()
+		end
+	end
+
+	local function OnShow(self)
+		self:SetScript("OnEvent", OnEvent)
+	end
+
+	local function OnHide(self)
+		if not InCombatLockdown() then
+			ConsolePort:ClearCurrentNode()
+		end
+		self:SetScript("OnEvent", nil)
+	end
+
 	GameMenuFrame:SetSize(196, 410)
-	GameMenuFrame:SetScript("OnShow", nil)
+	GameMenuFrame:SetScript("OnShow", OnShow)
+	GameMenuFrame:HookScript("OnHide", OnHide)
+	GameMenuFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 	GameMenuButtonHelp:Hide()
 	GameMenuButtonController:SetPoint("CENTER", GameMenuFrame, "TOP", 0, -120)
 	GameMenuButtonStore:ClearAllPoints()

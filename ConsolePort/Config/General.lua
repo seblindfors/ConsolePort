@@ -29,7 +29,7 @@ local function GetAddonSettings()
 		},
 		{
 			cvar = "doubleModTap",
-			desc = format(TUTORIAL.CONFIG.DOUBLEMODTAP, TEXTURE[Settings.shift], TEXTURE[Settings.ctrl]),
+			desc = gsub(format(TUTORIAL.CONFIG.DOUBLEMODTAP, TEXTURE[Settings.shift], TEXTURE[Settings.ctrl]), "Icons64x64", "Icons32x32"),
 			toggle = Settings.doubleModTap,
 		},
 		{	cvar = "disableSmartMouse",
@@ -304,7 +304,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.InteractModule.BindCatcher = db.Atlas.GetFutureButton("$parentBindCatcher", Config.InteractModule.BindWrapper, nil, nil, 200)
 	Config.InteractModule.BindCatcher.HighlightTexture:ClearAllPoints()
 	Config.InteractModule.BindCatcher.HighlightTexture:SetAllPoints(Config.InteractModule.BindCatcher)
-	Config.InteractModule.BindCatcher:SetHeight(84)
+	Config.InteractModule.BindCatcher:SetHeight(108)
 	Config.InteractModule.BindCatcher:SetPoint("CENTER", 0, 0)
 	Config.InteractModule.BindCatcher:SetScript("OnClick", BindCatcherOnClick)
 	Config.InteractModule.BindCatcher:SetScript("OnHide", BindCatcherOnHide)
@@ -417,7 +417,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		Config[name] = trigger
 	end
 
-	local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Buttons\\%s\\%s"
+	local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons32x32\\%s"
 	local triggers = {
 		CP_TL1 = format(TEXTURE_PATH, Settings.type, "CP_TL1"),
 		CP_TL2 = format(TEXTURE_PATH, Settings.type, "CP_TL2"),
@@ -449,7 +449,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			button.name = name
 			button.parent = radio.parent
 			button.text = _G[button:GetName().."Text"]
-			button.text:SetText(format("|T%s:24:24:0:0|t", texture))
+			button.text:SetText(format("|T%s:40:40:0:0|t", texture))
 			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", 8, -24*(num-1)-8)
 			if name == radio.default then
 				radio.parent.Value = name
@@ -517,7 +517,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		for name, texture in pairs(radio.selection) do
 			local button = CreateFrame("CheckButton", addOn.."VirtualClick"..i..num, Config, "UIRadioButtonTemplate")
 			button.text = _G[button:GetName().."Text"]
-			button.text:SetText(format("|T%s:24:24:0:0|t", texture))
+			button.text:SetText(gsub(format("|T%s:40:40:0:0|t", texture), "Icons64x64", "Icons32x32"))
 
 			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", 24, -24*(num-1))
 			if name == radio.default then

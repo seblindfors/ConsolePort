@@ -79,7 +79,7 @@ end
 function Cursor:SetPosition(anchor, object)
 	self:SetTexture()
 	self:ClearAllPoints()
-	self:SetPoint("TOPLEFT", anchor, "CENTER", -4, 4)
+	self:SetPoint("TOPLEFT", anchor, "CENTER", 0, 0)
 	self:SetHighlight()
 	self:Animate()
 	PlaySound("igMainMenuOptionCheckBoxOn")
@@ -98,10 +98,11 @@ function Cursor:Animate()
 			self.Scale1:SetScale(1.75, 1.75)
 			self.Scale2:SetScale(1/1.75, 1/1.75)
 			self.Scale2:SetDuration(0.5)
-			FadeOut(self.Glow, 1.5, 1, 0.25)
+			FadeOut(self.Spell, 1.5, 1, 0.25)
+			FadeOut(self.Spell2, 1, 1, 0.1)
 		else
-			self.Scale1:SetScale(1.25, 1.25)
-			self.Scale2:SetScale(1/1.25, 1/1.25)
+			self.Scale1:SetScale(1.15, 1.15)
+			self.Scale2:SetScale(1/1.15, 1/1.15)
 			self.Scale2:SetDuration(0.2)
 		end
 		self.Highlight:SetParent(self)
@@ -111,9 +112,8 @@ function Cursor:Animate()
 end
 
 function Cursor:OnFinished()
-	self = self:GetParent()
 	if current then
-		self.Highlight:SetParent(current.node)
+		self:GetParent().Highlight:SetParent(current.node)
 	end
 end
 
@@ -158,7 +158,8 @@ local IsClickable = {
 }
 
 local function HasInteraction(node, object)
-	if  node:IsMouseEnabled() and
+	if  not node.includeChildren and
+		node:IsMouseEnabled() and
 		node:IsVisible() and
 		IsUsable[object] then
 		if IsClickable[object] then
@@ -189,9 +190,11 @@ local function IsNodeDrawn(node)
 		-- if the node is a scroll child and it's anchored inside the scroll frame
 		if scrollFrame and scrollFrame == GetScrollFrame(select(2, node:GetPoint())) then
 			local left, bottom, width, height = scrollFrame:GetRect()
-			if 	x > left and x < left+width and
-				y > bottom and y < bottom+height then
-				return true
+			if left and bottom and width and height then
+				if 	x > left and x < ( left + width + 20 ) and -- +20 padding to include sliders
+					y > bottom and y < ( bottom + height ) then
+					return true
+				end
 			end
 		else
 			return true
@@ -204,7 +207,7 @@ local function GetNodes(node)
 		return
 	end
 	local object = node:GetObjectType()
-	if 	object ~= "Slider" and not node.hasArrow then
+	if 	not node.ignoreChildren then
 		for i, child in pairs({node:GetChildren()}) do
 			GetNodes(child)
 		end
@@ -464,6 +467,13 @@ function ConsolePort:RefreshNodes()
 	end
 end
 
+function ConsolePort:ClearCurrentNode()
+	current = nil
+	old = nil
+	Cursor.Highlight:Hide()
+	self:UIControl()
+end
+
 function ConsolePort:GetCurrentNode()
 	return current and current.node
 end
@@ -576,27 +586,35 @@ Cursor.Modifiers = {
 }
 
 Cursor.Icon = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
-Cursor.Icon:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Cursor")
+Cursor.Icon:SetTexture("Interface\\CURSOR\\Item")
 Cursor.Icon:SetAllPoints(Cursor)
 
-Cursor.Button = Cursor:CreateTexture(nil, "OVERLAY", nil, 6)
-Cursor.Button:SetPoint("TOPLEFT", Cursor, "CENTER", -9, 6)
-Cursor.Button:SetPoint("BOTTOMRIGHT", Cursor, "BOTTOMRIGHT", -9, 6)
+Cursor.Button = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
+Cursor.Button:SetPoint("CENTER", 4, -4)
+Cursor.Button:SetSize(32, 32)
 
 Cursor.Highlight = Cursor:CreateTexture(nil, "OVERLAY")
 
 Cursor:SetFrameStrata("TOOLTIP")
-Cursor:SetSize(46,46)
+Cursor:SetSize(32,32)
 Cursor.Timer = 0
 
-Cursor.Glow = Cursor.Glow or CreateFrame("PlayerModel", nil, Cursor)
-Cursor.Glow:SetFrameStrata("DIALOG")
-Cursor.Glow:SetSize(300, 300)
-Cursor.Glow:SetPoint("CENTER", 0, 0)
-Cursor.Glow:SetAlpha(0.25)
-Cursor.Glow:SetCamDistanceScale(5)
-Cursor.Glow:SetDisplayInfo(41039)
-Cursor.Glow:SetRotation(1)
+local red, green, blue = db.Atlas:GetCC()
+
+Cursor.Spell = CreateFrame("PlayerModel", nil, Cursor)
+Cursor.Spell:SetFrameStrata("DIALOG")
+Cursor.Spell:SetPoint("CENTER", 4, 2)
+Cursor.Spell:SetSize(110, 110)
+Cursor.Spell:SetAlpha(0.25)
+Cursor.Spell:SetDisplayInfo(42486)
+Cursor.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+
+Cursor.Spell2 = CreateFrame("PlayerModel", nil, Cursor)
+Cursor.Spell2:SetPoint("CENTER", 4, 2)
+Cursor.Spell2:SetSize(110, 110)
+Cursor.Spell2:SetAlpha(0.1)
+Cursor.Spell2:SetDisplayInfo(42486)
+Cursor.Spell2:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 
 Cursor.Group = Cursor:CreateAnimationGroup()
 Cursor.Group:SetScript("OnFinished", Cursor.OnFinished)

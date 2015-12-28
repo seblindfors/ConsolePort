@@ -499,6 +499,7 @@ function ConsolePort:GetDefaultUIFrames()
 			"StaticPopup3",
 			"StaticPopup4",
 			"TaxiFrame",
+			"TimeManagerFrame",
 			"TutorialFrame",
 			"VideoOptionsFrame",
 			"WorldMapFrame",
