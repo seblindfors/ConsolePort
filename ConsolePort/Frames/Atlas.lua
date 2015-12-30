@@ -79,6 +79,21 @@ db.Atlas.Overlays = {
 ---------------------------------------------------------------
 db.Atlas.GetCC = function() return cc.r, cc.g, cc.b end
 ---------------------------------------------------------------
+db.Atlas.Hex2RGB = function(hex, inPercent)
+	if hex then
+	    hex = hex:gsub("#","")
+	    if inPercent then
+	    	return 	tonumber("0x"..hex:sub(1,2)) / 255,
+					tonumber("0x"..hex:sub(3,4)) / 255,
+					tonumber("0x"..hex:sub(5,6)) / 255
+		else
+			return 	tonumber("0x"..hex:sub(1,2)),
+					tonumber("0x"..hex:sub(3,4)),
+					tonumber("0x"..hex:sub(5,6))
+		end
+	end
+end
+---------------------------------------------------------------
 db.Atlas.SetGlassStyle = function(self, classColored, alpha)
 	self:SetBackdrop(db.Atlas.Backdrops.Border)
 	self.BG = self.BG or self:CreateTexture(nil, "BACKGROUND")

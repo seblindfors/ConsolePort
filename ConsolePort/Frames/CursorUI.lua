@@ -12,7 +12,7 @@ local SECURE 	= db.SECURE
 local TEXTURE 	= db.TEXTURE
 local L1, L2 	= "CP_TL1", "CP_TL2"
 ---------------------------------------------------------------
-local MAX_WIDTH, MAX_HEIGHT
+local MAX_WIDTH, MAX_HEIGHT, UI_SCALE
 ---------------------------------------------------------------
 local nodes, current, old, rebindNode = {}
 ---------------------------------------------------------------
@@ -28,6 +28,7 @@ local tinsert = tinsert
 local ipairs = ipairs
 local pairs = pairs
 local wipe = wipe
+local abs = abs
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
 ---------------------------------------------------------------
@@ -37,6 +38,15 @@ ConsolePort.Cursor = Cursor
 ---------------------------------------------------------------
 local StepL = CreateFrame("Button", addOn.."CursorStepLeft")
 local StepR = CreateFrame("Button", addOn.."CursorStepRight")
+---------------------------------------------------------------
+UIParent:HookScript("OnSizeChanged", function(self)
+	UI_SCALE = self:GetScale()
+	MAX_WIDTH, MAX_HEIGHT = self:GetSize()
+	if Cursor.Spell then
+		Cursor.Spell:Hide()
+		Cursor.Spell:Show()
+	end
+end)
 ---------------------------------------------------------------
 -- UIControl: Wrappers for overriding click bindings
 ---------------------------------------------------------------
@@ -108,18 +118,31 @@ function Cursor:Animate()
 		return
 	end
 	if current then
-		if old and not old.node:IsVisible() or self.Flash then
-			self.Flash = nil
-			self.Scale1:SetScale(1.75, 1.75)
-			self.Scale2:SetScale(1/1.75, 1/1.75)
-			self.Scale2:SetDuration(0.5)
-			FadeOut(self.Spell, 1.5, 1, 0.25)
-			FadeOut(self.Spell2, 1, 1, 0.1)
-		else
-			self.Scale1:SetScale(1.15, 1.15)
-			self.Scale2:SetScale(1/1.15, 1/1.15)
-			self.Scale2:SetDuration(0.2)
+		local scaleAmount = 1.15
+		local scaleDuration = 0.2
+		-- use distance between nodes as animation basis when auto-selecting a node
+		if old and not old.node:IsVisible() then
+			local oldX, oldY = old.node:GetCenter()
+			local newX, newY = current.node:GetCenter()
+			local scale, amount, duration, alpha
+			if oldX and oldY and newX and newY then
+				scale = ( abs(oldX-newX) + abs(oldY-newY) ) / ( (MAX_WIDTH + MAX_HEIGHT) / 2 )
+				amount = 1.75 * scale
+				duration = 0.5 * scale
+				alpha = self.Spell:GetAlpha()
+			end
+			scaleAmount = amount and amount < scaleAmount and scaleAmount or amount
+			scaleDuration = duration and duration < scaleDuration and scaleDuration or duration
+			FadeOut(self.Spell, 1, scale and scale > alpha and scale or alpha, 0.1)
+		elseif self.Flash then
+			scaleAmount = 1.75
+			scaleDuration = 0.5
+			FadeOut(self.Spell, 1, 1, 0.1)
 		end
+		self.Flash = nil
+		self.Scale1:SetScale(scaleAmount, scaleAmount)
+		self.Scale2:SetScale(1/scaleAmount, 1/scaleAmount)
+		self.Scale2:SetDuration(scaleDuration)
 		self.Highlight:SetParent(self)
 		self.Group:Stop()
 		self.Group:Play()
@@ -569,6 +592,8 @@ end
 -- UIControl: Initialize Cursor
 ---------------------------------------------------------------
 function ConsolePort:SetupCursor()
+	UI_SCALE = UIParent:GetScale()
+
 	Cursor.Special 		= db.Mouse.Cursor.Special
 	Cursor.SpecialClick = _G[Cursor.Special.."_NOMOD"]
 	Cursor.SpecialAction = Cursor.SpecialClick.command
@@ -582,9 +607,19 @@ function ConsolePort:SetupCursor()
 	Cursor.IndicatorR 	= TEXTURE[db.Mouse.Cursor.Right]
 	Cursor.IndicatorS 	= TEXTURE[db.Mouse.Cursor.Special]
 
+	local red, green, blue = db.Atlas.Hex2RGB(db.COLOR[gsub(db.Mouse.Cursor.Left, "CP_._", "")], true)
+
 	Cursor.Scroll 		= db.Mouse.Cursor.Scroll
 	Cursor.ScrollGuide 	= Cursor.Scroll == L1 and TEXTURE.CP_TL1 or TEXTURE.CP_TL2
 
+	Cursor.Spell = Cursor.Spell or CreateFrame("PlayerModel", nil, Cursor)
+	Cursor.Spell:SetAlpha(0.1)
+	Cursor.Spell:SetDisplayInfo(42486)
+	Cursor.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+	Cursor.Spell:SetScript("OnShow", function(self)
+		self:SetSize(78 / UI_SCALE, 78 / UI_SCALE)
+		self:SetPoint("CENTER", Cursor, "BOTTOMLEFT", 20, 13 / UI_SCALE)
+	end)
 
 	Cursor:SetScript("OnShow", Cursor.Animate)
 	Cursor:SetScript("OnEvent", Cursor.OnEvent)
@@ -615,23 +650,6 @@ Cursor.Highlight = Cursor:CreateTexture(nil, "OVERLAY")
 Cursor:SetFrameStrata("TOOLTIP")
 Cursor:SetSize(32,32)
 Cursor.Timer = 0
-
-local red, green, blue = db.Atlas:GetCC()
-
-Cursor.Spell = CreateFrame("PlayerModel", nil, Cursor)
-Cursor.Spell:SetFrameStrata("DIALOG")
-Cursor.Spell:SetPoint("CENTER", 4, 2)
-Cursor.Spell:SetSize(110, 110)
-Cursor.Spell:SetAlpha(0.25)
-Cursor.Spell:SetDisplayInfo(42486)
-Cursor.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
-
-Cursor.Spell2 = CreateFrame("PlayerModel", nil, Cursor)
-Cursor.Spell2:SetPoint("CENTER", 4, 2)
-Cursor.Spell2:SetSize(110, 110)
-Cursor.Spell2:SetAlpha(0.1)
-Cursor.Spell2:SetDisplayInfo(42486)
-Cursor.Spell2:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 
 Cursor.Group = Cursor:CreateAnimationGroup()
 Cursor.Group:SetScript("OnFinished", Cursor.OnFinished)

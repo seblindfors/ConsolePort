@@ -55,13 +55,18 @@ Cancel:SetScript("OnClick", Cancel.OnClick)
 ---------------------------------------------------------------
 local Save = db.Atlas.GetFutureButton("$parentSave", Config)
 function Save:OnClick()
+	local reload
 	if not InCombatLockdown() then
 		for i, frame in pairs(Container.Frames) do
 			if frame.Save then
-				frame:Save()
+				reload = frame:Save() or reload
 			end
 		end
-		Config:Hide()
+		if reload then
+			ReloadUI()
+		else
+			Config:Hide()
+		end
 	end
 end
 

@@ -34,6 +34,12 @@ local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local QUEST = select(10, GetAuctionItemClasses())
 ---------------------------------------------------------------
+local UI_SCALE = UIParent:GetScale()
+---------------------------------------------------------------
+UIParent:HookScript("OnSizeChanged", function(self)
+	UI_SCALE = self:GetScale()
+end)
+---------------------------------------------------------------
 
 local function AnimateNewAction(self, actionButton, autoAssigned)
 	if  autoAssigned and self.Group:IsPlaying() then
@@ -49,6 +55,8 @@ local function AnimateNewAction(self, actionButton, autoAssigned)
 	end
 	local x, y = actionButton:GetCenter()
 	SetPortraitToTexture(self.Icon, actionButton.icon.texture)
+	self.Spell:SetSize(175 / UI_SCALE, 175 / UI_SCALE)
+	self.Spell:SetPoint("CENTER", self.Icon, "BOTTOMLEFT", 44, 44 / UI_SCALE)
 	self:ClearAllPoints()
 	self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
 	self:SetSize(120, 120)
@@ -168,11 +176,12 @@ Utility.Gradient:SetPoint("CENTER", 0, 0)
 Utility.Gradient:SetSize(256, 256)
 ---------------------------------------------------------------
 Utility.Spell = CreateFrame("PlayerModel", nil, Utility)
-Utility.Spell:SetPoint("CENTER", 0, 14)
-Utility.Spell:SetSize(256, 256)
+Utility.Spell:SetPoint("CENTER", 0, 0)
+Utility.Spell:SetSize(175, 175)
 Utility.Spell:SetAlpha(0)
 Utility.Spell:SetDisplayInfo(42486)
 Utility.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+Utility.Spell:Hide()
 ---------------------------------------------------------------
 Utility.Tooltip = Tooltip
 
@@ -220,7 +229,7 @@ Utility:HookScript("OnAttributeChanged", function(self, attribute, detail)
 
 			self.Spell:Show()
 			self.Spell:ClearAllPoints()
-			self.Spell:SetPoint("CENTER", ActionButtons[detail], "CENTER", 0, 14)
+			self.Spell:SetPoint("CENTER", ActionButtons[detail], "BOTTOMLEFT", 23, 27 / UI_SCALE)
 			FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.15)
 		else
 			self.Gradient:SetAlpha(0)
@@ -236,6 +245,7 @@ Utility:HookScript("OnAttributeChanged", function(self, attribute, detail)
 	end
 end)
 Utility:HookScript("OnShow", function(self)
+	self.Spell:SetSize(175 / UI_SCALE, 175 / UI_SCALE)
 	Animation:Hide()
 end)
 Utility:HookScript("OnHide", function(self)

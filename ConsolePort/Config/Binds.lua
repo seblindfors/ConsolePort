@@ -173,11 +173,7 @@ local function SubmitBindings()
 		db.Bindbtns = NewBindingButtons or db.Bindbtns
 		ConsolePortBindingSet = db.Bindings
 		ConsolePortBindingButtons = db.Bindbtns
-		if not InCombatLockdown() then
-			ReloadBindings()
-		else
-			ReloadUI()
-		end
+		ReloadBindings()
 		ExportCharacterSettings()
 	end
 end
@@ -856,7 +852,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	local cc = RAID_CLASS_COLORS[select(2, UnitClass("player"))]
 
 	Binds.Controller = CreateFrame("Frame", "$parentController", Binds)
-	Binds.Controller:SetPoint("CENTER", Binds, "CENTER", 0, 40)
+	Binds.Controller:SetPoint("CENTER", Binds, "CENTER", 0, 30)
 	Binds.Controller:SetSize(512, 512)
 
 	Binds.Controller.Group = Binds.Controller:CreateAnimationGroup()
@@ -865,7 +861,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Controller.Animation:SetSmoothing("OUT")
 	Binds.Controller.Animation:SetDuration(0.2)
 	Binds.Controller.Group:SetScript("OnFinished", function()
-		Binds.Controller:SetPoint("CENTER", Binds.Controller.offset < 0 and Binds.Controller.offset or 0, 40)
+		Binds.Controller:SetPoint("CENTER", Binds.Controller.offset < 0 and Binds.Controller.offset or 0, 30)
 		local rebindFocus = Binds.Controller.rebindFocus
 		if rebindFocus then
 			Binds.Rebind:SetButton(rebindFocus)
@@ -896,7 +892,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Controller.FlashGlow:SetAlpha(0)
 
 	Binds.Tutorial = Binds.Controller:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Binds.Tutorial:SetPoint("TOP", Binds.Controller, 0, -80)
+	Binds.Tutorial:SetPoint("TOP", Binds.Controller, 0, -70)
 	Binds.Tutorial.SetNewText = Binds.Tutorial.SetText
 
 	function Binds.Tutorial:SetText(...)

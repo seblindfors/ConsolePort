@@ -325,6 +325,8 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["interactWith"] = "CP_TR1",
 		["mouseOverMode"] = true,
 		-------------------------------
+		["actionBarStyle"] = 1,
+		-------------------------------
 		["autoExtra"] = true,
 		["autoInteract"] = false,
 		["autoLootDefault"] = true,

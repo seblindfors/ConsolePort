@@ -66,7 +66,7 @@ for _, node in pairs({
 -- Check for point because frames can be visible but not drawn.
 local function FrameShow(self)
 	Callback(0.02, function()
-		visibleStack[self] = self:GetPoint() and true or nil
+		visibleStack[self] = self:GetPoint() and self:IsVisible() and true or nil
 		ConsolePort:UpdateFrames()
 	end)
 end

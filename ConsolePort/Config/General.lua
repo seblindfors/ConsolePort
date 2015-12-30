@@ -106,7 +106,7 @@ end
 -- Config/Mouse: Save general addon CVars.
 ---------------------------------------------------------------
 local function SaveGeneralConfig(self)
-	local needReload = false
+	local needReload
 	for i, Check in pairs(self.General) do
 		local old = Settings[Check.Cvar]
 		Settings[Check.Cvar] = Check:GetChecked()
@@ -120,9 +120,7 @@ local function SaveGeneralConfig(self)
 			needReload = true
 		end
 	end
-	if needReload and not InCombatLockdown() then
-		ReloadUI()
-	end
+
 	ConsolePort:UpdateCVars()
 	ConsolePort:UpdateSmartMouse()
 
@@ -140,6 +138,12 @@ local function SaveGeneralConfig(self)
 		Settings.mouseOverMode = false
 	end
 
+	local actionBarStyle = self.ActionBarModule:GetID()
+	if not Settings.actionBarStyle or Settings.actionBarStyle ~= actionBarStyle then
+		Settings.actionBarStyle = actionBarStyle
+		needReload = true
+	end
+
 	ConsolePortSettings = db.Settings
 	ConsolePortMouse = db.Mouse
 
@@ -152,6 +156,7 @@ local function SaveGeneralConfig(self)
 	ConsolePort:LoadControllerTheme()
 	ConsolePort:UpdateStateDriver()
 	ConsolePort:SetupUtilityBelt()
+	return needReload
 end
 
 ---------------------------------------------------------------
@@ -383,7 +388,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.MultiChoiceModule = CreateFrame("Frame", nil, Config)
 	Config.MultiChoiceModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.MultiChoiceModule:SetPoint("BOTTOMLEFT", 8, 8)
-	Config.MultiChoiceModule:SetSize(674, 276)
+	Config.MultiChoiceModule:SetSize(500, 276)
 
 	Config.TriggerHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.TriggerHeader:SetText(TUTORIAL.CONFIG.TRIGGERHEADER)
@@ -392,10 +397,10 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.Triggers = {}
 
 	local triggerGraphics = {
-		["Shift"] 	= {offset = 16, cvar = "shift"},
-		["Ctrl"] 	= {offset = 16+140, cvar = "ctrl"},
-		["1st"] 	= {offset = 16+280, cvar = "trigger1"},
-		["2nd"] 	= {offset = 16+420, cvar = "trigger2"},
+		["Shift"] 	= {offset = -8, cvar = "shift"},
+		["Ctrl"] 	= {offset = 120-12, cvar = "ctrl"},
+		["1st"] 	= {offset = 240-14, cvar = "trigger1"},
+		["2nd"] 	= {offset = 360-16, cvar = "trigger2"},
 	}
 
 	for name, info in pairs(triggerGraphics) do
@@ -425,7 +430,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		CP_TR2 = format(TEXTURE_PATH, Settings.type, "CP_TR2"),
 	}
 
-	local RadioButtons = {
+	local radioButtons = {
 		{parent = Config["Shift"],	default = Settings.shift},
 		{parent = Config["Ctrl"], 	default = Settings.ctrl},
 		{parent = Config["1st"], 	default = Settings.trigger1},
@@ -440,7 +445,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		self.parent.Value = self.name
 	end
 
-	for i, radio in pairs(RadioButtons) do
+	for i, radio in pairs(radioButtons) do
 		local num = 1
 		local radioset = {}
 		for name, texture in db.pairsByKeys(triggers) do
@@ -448,9 +453,11 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			button.set = radioset
 			button.name = name
 			button.parent = radio.parent
-			button.text = _G[button:GetName().."Text"]
-			button.text:SetText(format("|T%s:40:40:0:0|t", texture))
-			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", 8, -24*(num-1)-8)
+			button.text = button:CreateTexture(nil, "OVERLAY")
+			button.text:SetTexture(texture)
+			button.text:SetPoint("CENTER", 24, 0)
+			button.text:SetSize(32, 32)
+			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", -3, -24*(num-1)-8)
 			if name == radio.default then
 				radio.parent.Value = name
 				button:SetChecked(true)
@@ -472,25 +479,25 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.LeftClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
 	Config.LeftClick:SetSize(76*0.75, 101*0.75)
 	Config.LeftClick:SetTexCoord(0.0019531, 0.1484375, 0.4257813, 0.6210938)
-	Config.LeftClick:SetPoint("TOPLEFT", Config.CursorHeader, "TOPLEFT", 16, -24)
+	Config.LeftClick:SetPoint("TOPLEFT", Config.CursorHeader, "TOPLEFT", 0, -24)
 
 	Config.RightClick = Config:CreateTexture()
 	Config.RightClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
 	Config.RightClick:SetSize(76*0.75, 101*0.75)
 	Config.RightClick:SetTexCoord(0.0019531, 0.1484375, 0.6269531, 0.8222656)
-	Config.RightClick:SetPoint("LEFT", Config.LeftClick, "RIGHT", 85, 0)
+	Config.RightClick:SetPoint("LEFT", Config.LeftClick, "RIGHT", 60, 0)
 
 	Config.SpecialClick = Config:CreateTexture()
 	Config.SpecialClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
 	Config.SpecialClick:SetSize(76*0.75, 101*0.75)
 	Config.SpecialClick:SetTexCoord(0.1542969, 0.3007813, 0.2246094, 0.4199219)
-	Config.SpecialClick:SetPoint("LEFT", Config.RightClick, "RIGHT", 85, 0)
+	Config.SpecialClick:SetPoint("LEFT", Config.RightClick, "RIGHT", 60, 0)
 
 	Config.ScrollClick = Config:CreateTexture()
 	Config.ScrollClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
 	Config.ScrollClick:SetSize(76*0.75, 101*0.75)
 	Config.ScrollClick:SetTexCoord(0.0019531, 0.1484375, 0.2246094, 0.4199219)
-	Config.ScrollClick:SetPoint("LEFT", Config.SpecialClick, "RIGHT", 85, 0)
+	Config.ScrollClick:SetPoint("LEFT", Config.SpecialClick, "RIGHT", 60, 0)
 
 	local clickButtons 	= {
 		CP_R_RIGHT 	= TEXTURE.CP_R_RIGHT,
@@ -504,22 +511,25 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		CP_TL2 		= TEXTURE.CP_TL2,
 	}
 
-	local RadioButtons = {
+	local radioButtons = {
 		{parent = Config.LeftClick, 	selection = clickButtons,	default = db.Mouse.Cursor.Left},
 		{parent = Config.RightClick, 	selection = clickButtons,	default = db.Mouse.Cursor.Right},
 		{parent = Config.SpecialClick, 	selection = clickButtons, 	default = db.Mouse.Cursor.Special},
 		{parent = Config.ScrollClick, 	selection = scrollButtons,	default = db.Mouse.Cursor.Scroll},
 	}
 
-	for i, radio in pairs(RadioButtons) do
+	for i, radio in pairs(radioButtons) do
 		local num = 1
 		local radioSet = {}
 		for name, texture in pairs(radio.selection) do
 			local button = CreateFrame("CheckButton", addOn.."VirtualClick"..i..num, Config, "UIRadioButtonTemplate")
-			button.text = _G[button:GetName().."Text"]
-			button.text:SetText(gsub(format("|T%s:40:40:0:0|t", texture), "Icons64x64", "Icons32x32"))
 
-			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", 24, -24*(num-1))
+			button.text = button:CreateTexture(nil, "OVERLAY")
+			button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
+			button.text:SetPoint("CENTER", 24, 0)
+			button.text:SetSize(32, 32)
+
+			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", 8, -24*(num-1))
 			if name == radio.default then
 				radio.parent.button = name
 				button:SetChecked(true)
@@ -537,4 +547,84 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			num = num + 1
 		end
 	end
+
+
+	Config.ActionBarModule = CreateFrame("Frame", nil, Config)
+	Config.ActionBarModule:SetBackdrop(db.Atlas.Backdrops.Border)
+	Config.ActionBarModule:SetPoint("BOTTOMLEFT", Config.MultiChoiceModule,"BOTTOMRIGHT", -8, 0)
+	Config.ActionBarModule:SetSize(182, 276)
+	Config.ActionBarModule.Styles = {}
+	Config.ActionBarModule:SetID(1)
+
+	Config.ActionBarModule.Header = Config.ActionBarModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	Config.ActionBarModule.Header:SetText(TUTORIAL.CONFIG.ACTIONBARHEADER)
+	Config.ActionBarModule.Header:SetPoint("TOPLEFT", 16, -16)
+
+	local class = select(2, UnitClass("player"))
+	local classIcon = "Interface\\Icons\\ClassIcon_"..class
+
+	local actionIcons = {}
+	for i=1, 8 do
+		tinsert(actionIcons, _G["ActionButton"..i].icon:GetTexture() or classIcon)
+	end
+
+	local actionBarStyles = {
+		[1] = {name = "CP_R_UP"},
+		[2] = {name = "CP_R_DOWN"},
+		[3] = {name = "CP_R_LEFT"},
+		[4] = {name = "CP_R_RIGHT"},
+	}
+
+	local styles = Config.ActionBarModule.Styles
+
+	for index, info in pairs(actionBarStyles) do
+		local button = CreateFrame("CheckButton", "$parentStyle"..#Config.ActionBarModule.Styles+1, Config.ActionBarModule, "UIRadioButtonTemplate")
+
+		button.mockButton1 = CreateFrame("Button", "$parentFakeActionButton", button)
+		button.mockButton1:SetPoint("LEFT", button, "RIGHT", 16, 0)
+		button.mockButton1:SetSize(36, 36)
+		button.mockButton1:SetBackdrop({bgFile = actionIcons[index], tile = false})
+		button.mockButton1:SetScript("OnClick", function() button:Click() end)
+
+		button.mockButton1.mod = "_NOMOD"
+		button.mockButton1.name = info.name
+
+		button.HotKey1 = ConsolePort.CreateHotKey(button.mockButton1, index)
+		button.HotKey1:Show()
+		button.HotKey1:SetPoint("TOPRIGHT", 0, 0)
+
+		button.mockButton2 = CreateFrame("Button", "$parentFakeActionButton", button)
+		button.mockButton2:SetPoint("LEFT", button.mockButton1, "RIGHT", 16, 0)
+		button.mockButton2:SetSize(36, 36)
+		button.mockButton2:SetBackdrop({bgFile = actionIcons[index+4], tile = false})
+		button.mockButton2:SetScript("OnClick", function() button:Click() end)
+
+		button.mockButton2.mod = "_CTRLSH"
+		button.mockButton2.name = info.name
+
+		button.HotKey2 = ConsolePort.CreateHotKey(button.mockButton2, index)
+		button.HotKey2:Show()
+		button.HotKey2:SetPoint("TOPRIGHT", 0, 0)
+
+		if info.func then
+			info.func(button)
+		end
+
+		button:SetPoint("TOPLEFT", Config.ActionBarModule, "TOPLEFT", 16, -52*(index-1)-64)
+		if ( index == Settings.actionBarStyle ) or ( index == 1 and not Settings.actionBarStyle ) then
+			Config.ActionBarModule:SetID(index)
+			button:SetChecked(true)
+		else
+			button:SetChecked(false)
+		end
+		tinsert(styles, button)
+		button:SetScript("OnClick", function(self)
+			for i, button in pairs(styles) do
+				button:SetChecked(false)
+			end
+			self:SetChecked(true)
+			Config.ActionBarModule:SetID(index)
+		end)
+	end
+
 end})
