@@ -24,6 +24,7 @@ local PlaySound = PlaySound
 local FadeOut = db.UIFrameFadeOut
 local FadeIn = db.UIFrameFadeIn
 ---------------------------------------------------------------
+local Callback = C_Timer.After
 local tinsert = tinsert
 local ipairs = ipairs
 local pairs = pairs
@@ -101,10 +102,14 @@ function Cursor:SetTexture(texture)
 	self.Button:SetTexture(texture or object == "EditBox" and self.IndicatorS or object == "Slider" and self.ScrollGuide or self.Indicator)
 end
 
-function Cursor:SetPosition(anchor, object)
+function Cursor:SetPosition(anchor)
 	self:SetTexture()
 	self:ClearAllPoints()
-	self:SetPoint("TOPLEFT", anchor, "CENTER", 0, 0)
+	if anchor.customAnchor then
+		self:SetPoint(unpack(anchor.customAnchor))
+	else
+		self:SetPoint("TOPLEFT", anchor, "CENTER", 0, 0)
+	end
 	self:SetHighlight()
 	self:Animate()
 	PlaySound("igMainMenuOptionCheckBoxOn")
@@ -124,15 +129,17 @@ function Cursor:Animate()
 		if old and not old.node:IsVisible() then
 			local oldX, oldY = old.node:GetCenter()
 			local newX, newY = current.node:GetCenter()
-			local scale, amount, duration, alpha
+			local alpha = self.Spell:GetAlpha()
+			local scale, amount, duration
 			if oldX and oldY and newX and newY then
 				scale = ( abs(oldX-newX) + abs(oldY-newY) ) / ( (MAX_WIDTH + MAX_HEIGHT) / 2 )
 				amount = 1.75 * scale
 				duration = 0.5 * scale
-				alpha = self.Spell:GetAlpha()
 			end
-			scaleAmount = amount and amount < scaleAmount and scaleAmount or amount
-			scaleDuration = duration and duration < scaleDuration and scaleDuration or duration
+			if amount and duration then
+				scaleAmount = amount < scaleAmount and scaleAmount or amount
+				scaleDuration = duration < scaleDuration and scaleDuration or duration
+			end
 			FadeOut(self.Spell, 1, scale and scale > alpha and scale or alpha, 0.1)
 		elseif self.Flash then
 			scaleAmount = 1.75
@@ -403,8 +410,11 @@ end
 
 function Cursor:PLAYER_REGEN_ENABLED()
 	self.Flash = true
-
-	FadeIn(self, 0.2, self:GetAlpha(), 1)
+	Callback(0.5, function()
+		if not InCombatLockdown() then
+			FadeIn(self, 0.2, self:GetAlpha(), 1)
+		end
+	end)
 end
 
 function Cursor:PLAYER_ENTERING_WORLD()
@@ -528,7 +538,7 @@ function ConsolePort:SetCurrentNode(node)
 					node = node,
 					object = object,
 				}
-				Cursor:SetPosition(current.node, current.object)
+				Cursor:SetPosition(current.node)
 			end
 		end
 		self:UIControl()
@@ -556,7 +566,7 @@ function ConsolePort:UIControl(key, state)
 	local node = current and current.node
 	if node then
 		self:EnterNode(node, current.object, state)
-		Cursor:SetPosition(node, current.object)
+		Cursor:SetPosition(node)
 	end
 end
 

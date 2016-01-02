@@ -255,6 +255,7 @@ Utility:HookScript("OnHide", function(self)
 	self.Gradient:SetAlpha(0)
 	self.Gradient:ClearAllPoints()
 	self.Gradient:Hide()
+	self.Spell:Hide()
 end)
 Utility:Execute([[
 	---------------------------------------------------------------
@@ -308,7 +309,7 @@ Utility:Execute([[
 		if hasItem then
 			self:Show()
 			for _, child in pairs(children) do
-				if not child:GetAttribute("type") then
+				if child:IsProtected() and not child:GetAttribute("type") then
 					child:Show()
 					child:SetAlpha(0.5)
 				end
@@ -562,7 +563,7 @@ local function ActionButtonOnUpdate(self, elapsed)
 				if maxStack and maxStack > 1 then
 					self.Count:SetText(count)
 				else
-					self.Count:SetText("")
+					self.Count:SetText()
 				end
 				if count and count == 0 then
 					self.icon:SetVertexColor(0.5, 0.5, 0.5, 1)
@@ -584,7 +585,7 @@ local function ActionButtonOnUpdate(self, elapsed)
 			if count then
 				self.Count:SetText(count)
 			else
-				self.Count:SetText("")
+				self.Count:SetText()
 			end
 		end
 		if self.HasFocus then

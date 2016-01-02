@@ -6,6 +6,8 @@
 
 local addOn, db = ...
 ---------------------------------------------------------------
+local class = select(2, UnitClass("player"))
+---------------------------------------------------------------
 -- Lookup: Integer keys for interface manipulation
 ---------------------------------------------------------------
 db.KEY = {
@@ -30,6 +32,7 @@ local KEY = db.KEY
 -- Lookup: Action IDs and their corresponding binding
 ---------------------------------------------------------------
 local actionIDs = {
+	-- Main bar 							-- Second page
 	[1] 	= "ACTIONBUTTON1",				[13] 	= "ACTIONBUTTON1",
 	[2] 	= "ACTIONBUTTON2",				[14] 	= "ACTIONBUTTON2",
 	[3] 	= "ACTIONBUTTON3",				[15] 	= "ACTIONBUTTON3",
@@ -42,7 +45,7 @@ local actionIDs = {
 	[10] 	= "ACTIONBUTTON10",				[22] 	= "ACTIONBUTTON10",
 	[11] 	= "ACTIONBUTTON11",				[23] 	= "ACTIONBUTTON11",
 	[12] 	= "ACTIONBUTTON12",				[24] 	= "ACTIONBUTTON12",
-	
+	-- Right 								-- Left
 	[25] 	= "MULTIACTIONBAR3BUTTON1",		[37] 	= "MULTIACTIONBAR4BUTTON1",
 	[26] 	= "MULTIACTIONBAR3BUTTON2",		[38] 	= "MULTIACTIONBAR4BUTTON2",
 	[27] 	= "MULTIACTIONBAR3BUTTON3",		[39] 	= "MULTIACTIONBAR4BUTTON3",
@@ -55,7 +58,7 @@ local actionIDs = {
 	[34] 	= "MULTIACTIONBAR3BUTTON10",	[46] 	= "MULTIACTIONBAR4BUTTON10",
 	[35] 	= "MULTIACTIONBAR3BUTTON11",	[47] 	= "MULTIACTIONBAR4BUTTON11",
 	[36] 	= "MULTIACTIONBAR3BUTTON12",	[48] 	= "MULTIACTIONBAR4BUTTON12",
-
+	-- Bottom Right 						-- Bottom Left
 	[49] 	= "MULTIACTIONBAR2BUTTON1",		[61] 	= "MULTIACTIONBAR1BUTTON1",
 	[50] 	= "MULTIACTIONBAR2BUTTON2",		[62] 	= "MULTIACTIONBAR1BUTTON2",
 	[51] 	= "MULTIACTIONBAR2BUTTON3",		[63] 	= "MULTIACTIONBAR1BUTTON3",
@@ -68,7 +71,7 @@ local actionIDs = {
 	[58] 	= "MULTIACTIONBAR2BUTTON10",	[70] 	= "MULTIACTIONBAR1BUTTON10",
 	[59] 	= "MULTIACTIONBAR2BUTTON11",	[71] 	= "MULTIACTIONBAR1BUTTON11",
 	[60] 	= "MULTIACTIONBAR2BUTTON12",	[72] 	= "MULTIACTIONBAR1BUTTON12",
-
+	-- Bonusbar 7							-- Bonusbar 8
 	[73] 	= "ACTIONBUTTON1",				[85] 	= "ACTIONBUTTON1",
 	[74] 	= "ACTIONBUTTON2",				[86] 	= "ACTIONBUTTON2",
 	[75] 	= "ACTIONBUTTON3",				[87] 	= "ACTIONBUTTON3",
@@ -81,7 +84,7 @@ local actionIDs = {
 	[82] 	= "ACTIONBUTTON10",				[94] 	= "ACTIONBUTTON10",
 	[83] 	= "ACTIONBUTTON11",				[95] 	= "ACTIONBUTTON11",
 	[84] 	= "ACTIONBUTTON12",				[96] 	= "ACTIONBUTTON12",
-
+	-- Bonusbar 9 (druid only) 				-- Bonusbar 10 (druid only)
 	[97] 	= "ACTIONBUTTON1",				[109] 	= "ACTIONBUTTON1",
 	[98] 	= "ACTIONBUTTON2",				[110] 	= "ACTIONBUTTON2",
 	[99] 	= "ACTIONBUTTON3",				[111] 	= "ACTIONBUTTON3",
@@ -128,8 +131,61 @@ local actionIDs = {
 
 }
 
+local classPage = {
+	["WARRIOR"]	= "[bonusbar:1] 7; [bonusbar:2] 8;",
+	["ROGUE"]	= "[stance:1] 7; [stance:2] 7; [stance:3] 7;",
+	["DRUID"]	= "[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 8; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;",
+	["MONK"]	= "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;",
+	["PRIEST"] 	= "[bonusbar:1] 7;"
+}
+
+local classReserved = {
+	["WARRIOR"] = {7, 8},
+	["ROGUE"] 	= {7, 7},
+	["DRUID"] 	= {7, 10},
+	["MONK"] 	= {7, 9},
+	["PRIEST"] 	= {7, 7},
+}
+
+local reserved = classReserved[class]
+
+---------------------------------------------------------------
+-- Functions for grabbing action button data
+---------------------------------------------------------------
+function ConsolePort:GetActionPageState()
+	local state = {}
+	local classSpecific = classPage[class]
+
+	tinsert(state, "[overridebar][possessbar] possess; ")
+	for i = 2, 6 do
+		tinsert(state, ("[bar:%d] %d; "):format(i, i))
+	end
+
+	state = table.concat(state)
+
+	if classSpecific then
+		state = state..classSpecific
+	end
+
+	state = state.."[stance:1] temp; 1"
+
+	local now = SecureCmdOptionParse(state)
+	return now, state
+end
+
 function ConsolePort:GetActionBinding(id)
-	return actionIDs[id]
+	-- reserve bars for classes with stances
+	if reserved then
+		local min, max = unpack(reserved)
+		min = (min - 1) * 12
+		max = (max - 1) * 12
+		if (id < min or id > max) then
+			return actionIDs[id]
+		end
+	-- let other classes use bars 7-10 
+	elseif (id < 73 or id > 120) then
+		return actionIDs[id]
+	end
 end
 
 function ConsolePort:GetActionID(bindName)
@@ -143,7 +199,7 @@ end
 function ConsolePort:GetActionTexture(bindName)
 	local ID = self:GetActionID(bindName)
 	if ID then
-		local actionpage = MainMenuBarArtFrame:GetAttribute("actionpage")
+		local actionpage = self:GetActionPageState()
 		return ID < 73 and GetActionTexture(ID + (actionpage - 1) * 12) or GetActionTexture(ID)
 	end
 end

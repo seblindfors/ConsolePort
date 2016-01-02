@@ -66,7 +66,7 @@ local function GetBindingPrefix(modifier)
 end
 
 ---------------------------------------------------------------
--- Binds: Hotkey textures for action buttons / UI
+-- Binds: Recursively gather all action buttons 
 ---------------------------------------------------------------
 local function GetActionButtons(buttons, this)
 	buttons = buttons or {}
@@ -83,66 +83,13 @@ local function GetActionButtons(buttons, this)
 	return buttons
 end
 
-local function ShowHotKey(index, secureBtn, actionButton)
-	local HotKey = secureBtn.HotKeys[index]
-	HotKey:SetParent(actionButton)
-	HotKey:ClearAllPoints()
-	HotKey:SetPoint("TOPRIGHT", actionButton, 0, 0)
-	HotKey:Show()
-end
-
-local function ShowInterfaceHotKey(button)
-	for i, HotKey in pairs(button.HotKeys) do
-		HotKey:Hide()
-	end
-	button.HotKeys[1] = button.HotKeys[1] or button:CreateHotKey()
-	ShowHotKey(1, button, button.action)
-end
-
-function ConsolePort:LoadHotKeyTextures()
-	local set = NewBindingSet or db.Bindings
-	local actionButtons = GetActionButtons()
-	local index, modifier, binding, ID
-
-	for secureBtn in pairs(db.SECURE) do
-		for i, HotKey in pairs(secureBtn.HotKeys) do
-			HotKey:ClearAllPoints()
-			HotKey:SetParent(secureBtn)
-			HotKey:Hide()
-		end
-		index = 0
-		modifier = GetBindingModifier(secureBtn.mod)
-		binding = set[secureBtn.name][modifier]
-		ID = self:GetActionID(binding)
-
-		if ID then
-			for actionButton, actionID in pairs(actionButtons) do
-				if 	ID == actionID or 
-					self:GetActionBinding(ID) == self:GetActionBinding(actionID) then
-					index = index + 1
-					secureBtn.HotKeys[index] = 	secureBtn.HotKeys[index] or
-												secureBtn:CreateHotKey()
-
-					ShowHotKey(index, secureBtn, actionButton)
-
-					if actionButton.HotKey then
-						actionButton.HotKey:SetAlpha(0)
-					end
-				end
-			end
-		elseif secureBtn.action then
-			ShowInterfaceHotKey(secureBtn)
-		end
-	end
-end
-
 ---------------------------------------------------------------
 -- Binds: Reload, save and revert binds
 ---------------------------------------------------------------
 local function ReloadBindings()
 	ConsolePort:LoadInterfaceBindings()
 	ConsolePort:LoadBindingSet()
-	ConsolePort:LoadHotKeyTextures()
+	ConsolePort:LoadHotKeyTextures(NewBindingSet)
 end
 
 local function ExportCharacterSettings()
@@ -286,7 +233,7 @@ local function ChangeButtonBinding(actionButton)
 			else -- action buttons, interface buttons
 				local newAction = focusFrame:GetAttribute("action") or focusFrame.action or focusFrame
 
-				local actionBinding = ConsolePort:GetActionBinding(newAction)
+				local actionBinding = ConsolePort:GetActionBinding(newAction or focusFrameName)
 				if actionBinding then -- item is an action button
 					local text = _G[BIND..actionBinding] or focusFrameName
 					-- check for duplicate bindings
@@ -621,7 +568,7 @@ function ConsolePort:LoadInterfaceBinding(button, UIbutton)
 		if button.action.HotKey then
 			button.action.HotKey:SetAlpha(0)
 		end
-		ShowInterfaceHotKey(button)
+		button:ShowInterfaceHotKey()
 	else
 		self:AddWidgetTracker(button, UIbutton)
 	end
@@ -985,6 +932,14 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Rebind.SetButton = RebindSetButton
 	Binds.Rebind.Parent = Binds
 	Binds.Rebind:SetScript("OnHide", function (self)
+		if not InCombatLockdown() and GetCVar("alwaysShowActionBars") == "0" then
+			for frame, action in pairs(GetActionButtons()) do
+				if not GetActionInfo(action) and frame.forceShow then
+					frame.forceShow = nil
+					frame:Hide()
+				end
+			end
+		end
 		Binds.BindCatcher:Show()
 		Binds.Tutorial:SetText(TUTORIAL.DEFAULT)
 		Binds.Controller:SetConfigMode()
@@ -995,6 +950,12 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 		if InCombatLockdown() then
 			self:Hide()
 			return
+		end
+		for frame in pairs(GetActionButtons()) do
+			if not frame:IsVisible() then
+				frame.forceShow = true
+				frame:Show()
+			end
 		end
 		Binds.BindCatcher:Hide()
 		ConsolePort.rebindMode = true

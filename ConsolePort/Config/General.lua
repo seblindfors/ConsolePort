@@ -563,11 +563,6 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	local class = select(2, UnitClass("player"))
 	local classIcon = "Interface\\Icons\\ClassIcon_"..class
 
-	local actionIcons = {}
-	for i=1, 8 do
-		tinsert(actionIcons, _G["ActionButton"..i].icon:GetTexture() or classIcon)
-	end
-
 	local actionBarStyles = {
 		[1] = {name = "CP_R_UP"},
 		[2] = {name = "CP_R_DOWN"},
@@ -580,11 +575,13 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	for index, info in pairs(actionBarStyles) do
 		local button = CreateFrame("CheckButton", "$parentStyle"..#Config.ActionBarModule.Styles+1, Config.ActionBarModule, "UIRadioButtonTemplate")
 
-		button.mockButton1 = CreateFrame("Button", "$parentFakeActionButton", button)
+		button.mockButton1 = CreateFrame("Button", "$parentFakeActionButton1", button)
 		button.mockButton1:SetPoint("LEFT", button, "RIGHT", 16, 0)
 		button.mockButton1:SetSize(36, 36)
-		button.mockButton1:SetBackdrop({bgFile = actionIcons[index], tile = false})
 		button.mockButton1:SetScript("OnClick", function() button:Click() end)
+		button.mockButton1:SetScript("OnShow", function(self)
+			self:SetBackdrop({bgFile = _G["ActionButton"..index].icon:GetTexture() or classIcon})
+		end)
 
 		button.mockButton1.mod = "_NOMOD"
 		button.mockButton1.name = info.name
@@ -593,11 +590,13 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		button.HotKey1:Show()
 		button.HotKey1:SetPoint("TOPRIGHT", 0, 0)
 
-		button.mockButton2 = CreateFrame("Button", "$parentFakeActionButton", button)
+		button.mockButton2 = CreateFrame("Button", "$parentFakeActionButton2", button)
 		button.mockButton2:SetPoint("LEFT", button.mockButton1, "RIGHT", 16, 0)
 		button.mockButton2:SetSize(36, 36)
-		button.mockButton2:SetBackdrop({bgFile = actionIcons[index+4], tile = false})
 		button.mockButton2:SetScript("OnClick", function() button:Click() end)
+		button.mockButton2:SetScript("OnShow", function(self)
+			self:SetBackdrop({bgFile = _G["ActionButton"..index+4].icon:GetTexture() or classIcon})
+		end)
 
 		button.mockButton2.mod = "_CTRLSH"
 		button.mockButton2.name = info.name

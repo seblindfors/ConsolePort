@@ -12,25 +12,7 @@ local KEY = db.KEY
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
 local GameMenuFrame = GameMenuFrame
-
 ---------------------------------------------------------------
--- Get current action page and an optional statedriver string
----------------------------------------------------------------
-function ConsolePort:GetActionPageState()
-	local state = {}
-	tinsert(state, "[overridebar][possessbar]possess")
-	for i = 2, 6 do
-		tinsert(state, ("[bar:%d]%d"):format(i, i))
-	end
-	for i = 1, 4 do
-		tinsert(state, ("[bonusbar:%d]%d"):format(i, i+6))
-	end
-	tinsert(state, "[stance:1]tempshapeshift")
-	tinsert(state, "1")
-	state = table.concat(state, ";")
-	local now = SecureCmdOptionParse(state)
-	return now, state
-end
 
 ---------------------------------------------------------------
 -- SecureBtn: Actionpage state handler (hardly useful anymore)
@@ -41,7 +23,7 @@ function ConsolePort:CreateButtonHandler()
 		SecureButtons = newtable()
 		UpdateActionPage = [=[
 			local page = ...
-			if page == "tempshapeshift" then
+			if page == "temp" then
 				if HasTempShapeshiftActionBar() then
 					page = GetTempShapeshiftBarIndex()
 				else
@@ -168,6 +150,22 @@ local function GetHotKeyTexture(button)
 	return mods[button.mod]
 end
 
+local function ShowHotKey(button, index, actionButton)
+	local HotKey = button.HotKeys[index]
+	HotKey:SetParent(actionButton)
+	HotKey:ClearAllPoints()
+	HotKey:SetPoint("TOPRIGHT", actionButton, 0, 0)
+	HotKey:Show()
+end
+
+local function ShowInterfaceHotKey(button, custom)
+	for i, HotKey in pairs(button.HotKeys) do
+		HotKey:Hide()
+	end
+	button.HotKeys[1] = button.HotKeys[1] or button:CreateHotKey()
+	ShowHotKey(button, 1, custom or button.action)
+end
+
 ---------------------------------------------------------------
 -- SecureBtn: Mock ActionBar button init
 ---------------------------------------------------------------
@@ -179,21 +177,29 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn.action 	= _G[clickbutton]
 	btn.command = UIcommand
 	btn.mod 	= modifier
-	btn.HotKey 	= GetHotKeyTexture(btn)
-	btn.HotKeys = {}
 	btn.default = {}
+	-----------------------------------------------------------
+	btn.HotKey 		= GetHotKeyTexture(btn)
+	btn.HotKeys 	= {}
 	btn.CreateHotKey = ConsolePort.CreateHotKey
+	-----------------------------------------------------------
+	btn.ShowHotKey 	= ShowHotKey
+	btn.ShowInterfaceHotKey = ShowInterfaceHotKey
+	-----------------------------------------------------------
 	btn.UIControl 	= UIControl
 	btn.Reset 		= ResetBinding
 	btn.Revert 		= RevertBinding
+	-----------------------------------------------------------
 	btn:Reset()
 	btn:Revert()
 	btn:SetAttribute("actionpage", ConsolePortButtonHandler:GetAttribute("actionpage"))
 	btn:RegisterEvent("PLAYER_REGEN_DISABLED")
+	-----------------------------------------------------------
 	btn:SetScript("OnEvent", btn.Revert)
 	btn:HookScript("PostClick", PostClick)
 	btn:HookScript("OnMouseDown", OnMouseDown)
 	btn:HookScript("OnMouseUp", OnMouseUp)
+	-----------------------------------------------------------
 	if 		btn.command == KEY.UP or
 			btn.command == KEY.DOWN or
 			btn.command == KEY.LEFT or

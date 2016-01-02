@@ -31,10 +31,10 @@ Deadzone:SetSize(4, 4)
 Deadzone:Hide()
 ---------------------------------------------------------------
 local IsOutside
-local DriftProtection = CreateFrame("Frame", "ConsolePortMouseLookRim", UIParent)
-DriftProtection:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 50, -50)
-DriftProtection:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 50)
-DriftProtection:Hide()
+local Padding = CreateFrame("Frame", "ConsolePortMouseLookRim", UIParent)
+Padding:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 50, -50)
+Padding:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 50)
+Padding:Hide()
 ---------------------------------------------------------------
 local DoubleTapCatcher = CreateFrame("Frame")
 DoubleTapCatcher.Num = 0
@@ -63,12 +63,12 @@ local function MouselookShouldStart()
 	end
 end
 
-local function MouselookDriftingUpdate(self)
-	if not DriftProtection:IsMouseOver() and not IsOutside and
+local function MouselookPaddingUpdate(self)
+	if not Padding:IsMouseOver() and not IsOutside and
 		(GetMouseFocus() == WorldFrame) then
 		IsOutside = true
 		self:StartMouse()
-	elseif DriftProtection:IsMouseOver() then
+	elseif Padding:IsMouseOver() then
 		IsOutside = false
 	end
 end
@@ -121,7 +121,6 @@ end
 ---------------------------------------------------------------
 local MouseHandle = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerStateTemplate")
 MouseHandle:RegisterEvent("LEARNED_SPELL_IN_TAB")
-MouseHandle:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 MouseHandle:SetFrameRef("OverrideBar", OverrideActionBar)
 MouseHandle:Execute([[
 	SPELLS = newtable()
@@ -140,14 +139,14 @@ MouseHandle:Execute([[
 				local actionType, actionID, subType = GetActionInfo(id)
 				if actionType == "spell" and subType == "spell" then
 					local spellBookID = SPELLS[actionID]
-					if exists == "friend" then
-						if spellBookID and IsHelpfulSpell(spellBookID, subType) then
-							self:ClearBindings()
-						end
-					elseif exists == "enemy" then
-						if spellBookID and IsHarmfulSpell(spellBookID, subType) then
-							self:ClearBindings()
-						end
+					local helpful = spellBookID and IsHelpfulSpell(spellBookID, subType)
+					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
+					if not helpful and not harmful then
+						self:ClearBindings()
+					elseif exists == "friend" and helpful then
+						self:ClearBindings()
+					elseif exists == "enemy" and harmful then
+						self:ClearBindings()
 					end
 				end
 			else
@@ -167,7 +166,7 @@ MouseHandle:Execute([[
 
 	UpdateActionPage = [=[
 		PAGE = ...
-		if PAGE == "tempshapeshift" then
+		if PAGE == "temp" then
 			if HasTempShapeshiftActionBar() then
 				PAGE = GetTempShapeshiftBarIndex()
 			else
@@ -278,9 +277,9 @@ function ConsolePort:UpdateSmartMouse()
 		self:AddUpdateSnippet(MouselookUpdate)
 	end
 	if Settings.preventMouseDrift then
-		self:AddUpdateSnippet(MouselookDriftingUpdate)
+		self:AddUpdateSnippet(MouselookPaddingUpdate)
 	else
-		self:RemoveUpdateSnippet(MouselookDriftingUpdate)
+		self:RemoveUpdateSnippet(MouselookPaddingUpdate)
 	end
 	if Settings.doubleModTap then
 		DoubleTapCatcher:SetScript("OnEvent", MouselookDoubleTapEvent)

@@ -22,6 +22,7 @@ function ConsolePort:LoadEvents()
 		["PLAYER_REGEN_DISABLED"] 	= false,
 		["PLAYER_REGEN_ENABLED"] 	= false,
 		["UPDATE_BINDINGS"] 		= false,
+		["VARIABLES_LOADED"] 		= false,
 		["QUEST_AUTOCOMPLETE"] 		= false,
 		["WORLD_MAP_UPDATE"] 		= false,
 		["UNIT_ENTERING_VEHICLE"] 	= false,
@@ -53,6 +54,7 @@ end
 -- Event specific functions
 ---------------------------------------------------------------
 local Events = {}
+local Loaded = false
 
 function Events:PLAYER_TARGET_CHANGED(...)
 	Callback(0.02, function()
@@ -109,12 +111,13 @@ function Events:UNIT_ENTERING_VEHICLE(...)
 end
 
 function Events:PLAYER_REGEN_ENABLED(...)
-	self:SetButtonActionsDefault()
-	self:UpdateFrames()
 	self:UpdateCVars(false)
-	-- Add callback here later to prevent accidental input.
-	--Callback(1, function()
-	--end)
+	Callback(0.5, function()
+		if not InCombatLockdown() then
+			self:SetButtonActionsDefault()
+			self:UpdateFrames()
+		end
+	end)
 end
 
 function Events:PLAYER_REGEN_DISABLED(...)
@@ -156,6 +159,12 @@ function Events:ADDON_LOADED(...)
 		self:UpdateCVars()
 		self:UpdateSmartMouse()
 		self:UpdateStateDriver()
+		-- Delay hotkey loading
+		Callback(2, function()
+			Loaded = true
+			self:LoadHotKeyTextures()
+		end)
+		-- Delay utility belt setup
 		Callback(2, function()
 			self:AddUpdateSnippet(self.SetupUtilityBelt)
 		end)
@@ -166,7 +175,9 @@ function Events:ADDON_LOADED(...)
 		end
 	end
 	self:UpdateFrames()
-	self:LoadHotKeyTextures()
+	if Loaded then
+		self:LoadHotKeyTextures()
+	end
 end
 
 local function OnEvent (self, event, ...)

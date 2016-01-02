@@ -10,7 +10,31 @@ local TEXTURE = db.TEXTURE
 local IsControlKeyDown = IsControlKeyDown
 local IsShiftKeyDown = IsShiftKeyDown
 ---------------------------------------------------------------
-
+local function GetActionButtons(buttons, this)
+	buttons = buttons or {}
+	this = this or UIParent
+	if this:IsForbidden() then
+		return buttons
+	end
+	if this:GetAttribute("action") or this.action then
+		buttons[this] = this:GetAttribute("action") or this.action 
+	end
+	for _, object in pairs({this:GetChildren()}) do
+		GetActionButtons(buttons, object)
+	end
+	return buttons
+end
+---------------------------------------------------------------
+local function GetBindingModifier(modifier)
+	local modName = {
+		_NOMOD 		= "action",
+		_SHIFT 		= "shift",
+		_CTRL 		= "ctrl",
+		_CTRLSH 	= "ctrlsh",
+	}
+	return modName[modifier]
+end
+---------------------------------------------------------------
 local function AnimateModifierChange(self)
 	local ctrl, shift = IsControlKeyDown(), IsShiftKeyDown()
 	if self.mod == "_NOMOD" then
@@ -50,6 +74,8 @@ local function AnimateModifierChange(self)
 	end
 end
 
+---------------------------------------------------------------
+
 function ConsolePort:CreateHotKey(forceStyle)
 	-- self is the secure button wrapper in this case
 	local count = self.HotKeys and #self.HotKeys+1 or 1
@@ -57,11 +83,23 @@ function ConsolePort:CreateHotKey(forceStyle)
 	hotKey:SetSize(1,1)
 	hotKey.mod = self.mod
 
+	local mod1, mod2
 	local main = hotKey:CreateTexture("$parent_MAIN", "OVERLAY", nil, 7)
 	hotKey.main = main
 
+	if self.mod ~= "_NOMOD" then
+		mod1 = hotKey:CreateTexture("$parent_MOD1", "OVERLAY", nil, 6)
+		hotKey.mod1 = mod1
+		if self.mod == "_CTRLSH" then
+			mod2 = hotKey:CreateTexture("$parent_MOD2", "OVERLAY", nil, 5)
+			hotKey.mod2 = mod2
+		end
+	end
+
 	local style = forceStyle or ConsolePortSettings.actionBarStyle
 
+	-- Animated revamp, static revamp
+	---------------------------------------------------------------
 	if not style or style == 1 or style == 2 then
 		main:SetSize(32, 32)
 		main:SetTexture(gsub(TEXTURE[self.name], "Icons64x64", "Icons32x32"))
@@ -84,11 +122,8 @@ function ConsolePort:CreateHotKey(forceStyle)
 		end
 
 		if self.mod ~= "_NOMOD" then
-			local mod1 = hotKey:CreateTexture("$parent_MOD1", "OVERLAY", nil, 6)
-			hotKey.mod1 = mod1
 			mod1:SetPoint("RIGHT", main, "LEFT", 14, -2)
 			mod1:SetSize(24, 24)
-
 			if self.mod == "_SHIFT" then
 				mod1:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
 			elseif self.mod == "_CTRL" then
@@ -97,13 +132,14 @@ function ConsolePort:CreateHotKey(forceStyle)
 				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "Icons32x32"))
 				mod1:SetPoint("RIGHT", main, "LEFT", 15, -2)
 
-				local mod2 = hotKey:CreateTexture("$parent_MOD2", "OVERLAY", nil, 5)
-				hotKey.mod2 = mod2
 				mod2:SetPoint("RIGHT", mod1, "LEFT", 14, 0)
 				mod2:SetSize(24, 24)
 				mod2:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
 			end
 		end
+
+	-- Consistent revamp
+	---------------------------------------------------------------
 	elseif style == 3 then
 		main:SetSize(24, 24)
 		main:SetTexture(gsub(TEXTURE[self.name], "Icons64x64", "Icons32x32"))
@@ -111,8 +147,6 @@ function ConsolePort:CreateHotKey(forceStyle)
 		main:SetPoint("TOPRIGHT", 4, 4)
 
 		if self.mod ~= "_NOMOD" then
-			local mod1 = hotKey:CreateTexture("$parent_MOD1", "OVERLAY", nil, 6)
-			hotKey.mod1 = mod1
 			mod1:SetPoint("RIGHT", main, "LEFT", 14, 0)
 			mod1:SetSize(24, 24)
 
@@ -123,13 +157,14 @@ function ConsolePort:CreateHotKey(forceStyle)
 			elseif self.mod == "_CTRLSH" then
 				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "Icons32x32"))
 
-				local mod2 = hotKey:CreateTexture("$parent_MOD2", "OVERLAY", nil, 5)
-				hotKey.mod2 = mod2
 				mod2:SetPoint("RIGHT", mod1, "LEFT", 14, 0)
 				mod2:SetSize(24, 24)
 				mod2:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
 			end
 		end
+
+	-- Classic
+	---------------------------------------------------------------
 	elseif style == 4 then
 		main:SetSize(16, 16)
 		main:SetTexture(gsub(TEXTURE[self.name], "Icons64x64", "IconsClassic"))
@@ -137,8 +172,6 @@ function ConsolePort:CreateHotKey(forceStyle)
 		main:SetPoint("TOPRIGHT", 0, 0)
 
 		if self.mod ~= "_NOMOD" then
-			local mod1 = hotKey:CreateTexture("$parent_MOD1", "OVERLAY", nil, 6)
-			hotKey.mod1 = mod1
 			mod1:SetPoint("RIGHT", main, "LEFT", 5, 0)
 			mod1:SetSize(16, 16)
 
@@ -149,8 +182,6 @@ function ConsolePort:CreateHotKey(forceStyle)
 			elseif self.mod == "_CTRLSH" then
 				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "IconsClassic"))
 
-				local mod2 = hotKey:CreateTexture("$parent_MOD2", "OVERLAY", nil, 5)
-				hotKey.mod2 = mod2
 				mod2:SetPoint("RIGHT", mod1, "LEFT", 5, 0)
 				mod2:SetSize(16, 16)
 				mod2:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "IconsClassic"))
@@ -159,4 +190,48 @@ function ConsolePort:CreateHotKey(forceStyle)
 	end
 
 	return hotKey
+end
+
+---------------------------------------------------------------
+
+function ConsolePort:LoadHotKeyTextures(newSet)
+	local set = newSet or db.Bindings
+	local index, modifier, binding, ID
+	local actionButtons = GetActionButtons()
+
+	for secureBtn in pairs(db.SECURE) do
+		for i, HotKey in pairs(secureBtn.HotKeys) do
+			HotKey:ClearAllPoints()
+			HotKey:SetParent(secureBtn)
+			HotKey:Hide()
+		end
+		index = 0
+		modifier = GetBindingModifier(secureBtn.mod)
+		binding = set[secureBtn.name][modifier]
+		ID = self:GetActionID(binding)
+
+		if ID then
+			for actionButton, actionID in pairs(actionButtons) do
+				if 	ID == actionID or 
+					self:GetActionBinding(ID) == self:GetActionBinding(actionID) then
+					index = index + 1
+					secureBtn.HotKeys[index] = 	secureBtn.HotKeys[index] or
+												secureBtn:CreateHotKey()
+
+					secureBtn:ShowHotKey(index, actionButton)
+
+					if actionButton.HotKey then
+						actionButton.HotKey:SetAlpha(0)
+					end
+				end
+			end
+		elseif secureBtn.action then
+			secureBtn:ShowInterfaceHotKey()
+		else
+			local button = _G[(gsub(gsub(binding, "CLICK ", ""), ":.+", ""))]
+			if button then
+				secureBtn:ShowInterfaceHotKey(button)
+			end
+		end
+	end
 end
