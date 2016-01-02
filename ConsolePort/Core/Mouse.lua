@@ -121,6 +121,7 @@ end
 ---------------------------------------------------------------
 local MouseHandle = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerStateTemplate")
 MouseHandle:RegisterEvent("LEARNED_SPELL_IN_TAB")
+MouseHandle:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 MouseHandle:SetFrameRef("OverrideBar", OverrideActionBar)
 MouseHandle:Execute([[
 	SPELLS = newtable()

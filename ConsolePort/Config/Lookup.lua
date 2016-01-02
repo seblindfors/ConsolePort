@@ -199,7 +199,7 @@ end
 function ConsolePort:GetActionTexture(bindName)
 	local ID = self:GetActionID(bindName)
 	if ID then
-		local actionpage = self:GetActionPageState()
+		local actionpage = MainMenuBarArtFrame:GetAttribute("actionpage")
 		return ID < 73 and GetActionTexture(ID + (actionpage - 1) * 12) or GetActionTexture(ID)
 	end
 end

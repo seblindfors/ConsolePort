@@ -30,9 +30,9 @@ function ConsolePort:CreateButtonHandler()
 					page = 1
 				end
 			elseif page == "possess" then
-				page = self:GetFrameRef("MainMenuBarArtFrame"):GetAttribute("actionpage") or 1
+				page = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
 				if  page <= 10 then
-					page = self:GetFrameRef("OverrideActionBar"):GetAttribute("actionpage") or 12
+					page = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
 				end
 				if  page <= 10 then
 					page = 12
@@ -44,8 +44,8 @@ function ConsolePort:CreateButtonHandler()
 			end
 		]=]
 	]])
-	ButtonHandler:SetFrameRef("MainMenuBarArtFrame", MainMenuBarArtFrame)
-	ButtonHandler:SetFrameRef("OverrideActionBar", OverrideActionBar)
+	ButtonHandler:SetFrameRef("ActionBar", MainMenuBarArtFrame)
+	ButtonHandler:SetFrameRef("OverrideBar", OverrideActionBar)
 
 	local now, state = self:GetActionPageState()
 
