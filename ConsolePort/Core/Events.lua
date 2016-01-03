@@ -112,9 +112,9 @@ end
 
 function Events:PLAYER_REGEN_ENABLED(...)
 	self:UpdateCVars(false)
+	self:SetButtonActionsDefault()
 	Callback(0.5, function()
 		if not InCombatLockdown() then
-			self:SetButtonActionsDefault()
 			self:UpdateFrames()
 		end
 	end)

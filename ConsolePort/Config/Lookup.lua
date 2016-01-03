@@ -139,15 +139,21 @@ local classPage = {
 	["PRIEST"] 	= "[bonusbar:1] 7;"
 }
 
+-- action ID thresholds
 local classReserved = {
-	["WARRIOR"] = {7, 8},
-	["ROGUE"] 	= {7, 7},
-	["DRUID"] 	= {7, 10},
-	["MONK"] 	= {7, 9},
-	["PRIEST"] 	= {7, 7},
+	["WARRIOR"] = 96,
+	["ROGUE"] 	= 84,
+	["DRUID"] 	= 120,
+	["MONK"] 	= 108,
+	["PRIEST"] 	= 84,
 }
 
+---------------------------------------------------------------
 local reserved = classReserved[class]
+local normalRange = 72
+local stanceRange = 120
+---------------------------------------------------------------
+local DefaultBar = MainMenuBarArtFrame
 
 ---------------------------------------------------------------
 -- Functions for grabbing action button data
@@ -176,16 +182,13 @@ end
 function ConsolePort:GetActionBinding(id)
 	-- reserve bars for classes with stances
 	if reserved then
-		local min, max = unpack(reserved)
-		min = (min - 1) * 12
-		max = (max - 1) * 12
-		if (id < min or id > max) then
+		if (id <= reserved or id > stanceRange) then
 			return actionIDs[id]
 		end
 	-- let other classes use bars 7-10 
-	elseif (id < 73 or id > 120) then
+	elseif (id <= normalRange or id > stanceRange) then
 		return actionIDs[id]
-	end
+	end	
 end
 
 function ConsolePort:GetActionID(bindName)
@@ -199,7 +202,7 @@ end
 function ConsolePort:GetActionTexture(bindName)
 	local ID = self:GetActionID(bindName)
 	if ID then
-		local actionpage = MainMenuBarArtFrame:GetAttribute("actionpage")
+		local actionpage = DefaultBar:GetAttribute("actionpage")
 		return ID < 73 and GetActionTexture(ID + (actionpage - 1) * 12) or GetActionTexture(ID)
 	end
 end
