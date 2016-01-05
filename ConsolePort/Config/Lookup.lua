@@ -6,6 +6,10 @@
 
 local addOn, db = ...
 ---------------------------------------------------------------
+local tonumber = tonumber
+local ipairs = ipairs
+local pairs = pairs
+---------------------------------------------------------------
 local class = select(2, UnitClass("player"))
 ---------------------------------------------------------------
 -- Lookup: Integer keys for interface manipulation
@@ -149,7 +153,7 @@ local classReserved = {
 }
 
 ---------------------------------------------------------------
-local reserved = classReserved[class]
+local customRange = classReserved[class]
 local normalRange = 72
 local stanceRange = 120
 ---------------------------------------------------------------
@@ -181,8 +185,8 @@ end
 
 function ConsolePort:GetActionBinding(id)
 	-- reserve bars for classes with stances
-	if reserved then
-		if (id <= reserved or id > stanceRange) then
+	if customRange then
+		if (id <= customRange or id > stanceRange) then
 			return actionIDs[id]
 		end
 	-- let other classes use bars 7-10 
@@ -217,12 +221,15 @@ function ConsolePort:GetBindingNames()
 		"CP_R_DOWN",
 		"CP_R_LEFT",
 		"CP_R_RIGHT",
+		----------------
 		"CP_L_LEFT",
 		"CP_L_UP",
 		"CP_L_RIGHT",
 		"CP_L_DOWN",
+		----------------
 		"CP_TR1",
 		"CP_TR2",
+		----------------
 		"CP_L_OPTION",
 		"CP_C_OPTION",
 		"CP_R_OPTION",

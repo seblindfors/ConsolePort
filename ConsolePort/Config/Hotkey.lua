@@ -16,8 +16,9 @@ local function GetActionButtons(buttons, this)
 	if this:IsForbidden() then
 		return buttons
 	end
-	if this:GetAttribute("action") or this.action then
-		buttons[this] = this:GetAttribute("action") or this.action 
+	local action = this:GetAttribute("action") or this.action
+	if action then
+		buttons[this] = action
 	end
 	for _, object in pairs({this:GetChildren()}) do
 		GetActionButtons(buttons, object)

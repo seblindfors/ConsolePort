@@ -206,7 +206,7 @@ local function SecureSpellBookUpdate(self)
 	end
 end
 
--- Update the spell table when a new spell is learned. Not sure if actually necessary.
+-- Update the spell table when a new spell is learned.
 MouseHandle:SetScript("OnEvent", function(self, event, ...)
 	if event == "LEARNED_SPELL_IN_TAB" then
 		ConsolePort:AddUpdateSnippet(SecureSpellBookUpdate)

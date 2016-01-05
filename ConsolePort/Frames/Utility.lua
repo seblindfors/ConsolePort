@@ -412,11 +412,10 @@ local dropTypes = {
 ---------------------------------------------------------------
 for direction, keys in pairs(buttons) do
 	for _, key in pairs(keys) do
-		local button = CreateFrame("Button", addOn.."UtilityButton"..key, nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
+		local button = CreateFrame("Button", addOn.."UtilityButton"..key, Utility, "SecureActionButtonTemplate")
 		button:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
-		button:SetFrameRef("Utility", Utility)
 		Utility:WrapScript(button, "OnClick", format([[
-			local Utility = self:GetFrameRef("Utility")
+			local Utility = self:GetParent()
 			Utility:Run(OnKey, "%s", down)
 		]], direction, direction))
 	end

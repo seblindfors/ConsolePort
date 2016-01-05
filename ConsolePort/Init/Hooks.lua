@@ -57,5 +57,21 @@ function ConsolePort:LoadHookScripts()
 	-- Remove the need to type "DELETE" when removing rare or better quality items
 	StaticPopupDialogs.DELETE_GOOD_ITEM = StaticPopupDialogs.DELETE_ITEM
 
+	-- test
+	local bars = {
+		["ActionButton"] = 1,
+		["MultiBarRightButton"] = 3,
+		["MultiBarLeftButton"] = 4,
+		["MultiBarBottomRightButton"] = 5,
+		["MultiBarBottomLeftButton"] = 6,
+	}
+
+	for bar, page in pairs(bars) do
+		for btn=1, 12 do
+			local button = _G[bar..btn]
+			button:SetAttribute("action", (12 * (page - 1)) + btn)
+		end
+	end
+
 	self.LoadHookScripts = nil
 end

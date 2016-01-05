@@ -31,10 +31,15 @@ local dropDowns = {
 	DropDownList2,
 }
 
-for _, DD in pairs(dropDowns) do
+local forbidden = {
+	["SET_FOCUS"] = true,
+	["PET_DISMISS"] = true,
+}
+
+for i, DD in pairs(dropDowns) do
 	DD:HookScript("OnShow", function(self)
 		local children = {self:GetChildren()}
-		for _, child in pairs(children) do
+		for j, child in pairs(children) do
 			if (child.IsVisible and not child:IsVisible()) or (child.IsEnabled and not child:IsEnabled()) then
 				child.ignoreNode = true
 			else
@@ -44,6 +49,9 @@ for _, DD in pairs(dropDowns) do
 				child.ignoreChildren = true
 			else
 				child.ignoreChildren = false
+			end
+			if forbidden[child.value] then
+				child:Hide()
 			end
 		end
 	end)
