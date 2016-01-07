@@ -135,10 +135,11 @@ local actionIDs = {
 
 }
 
+-- These can be modified to work with other addons if they are incorrect out of the box.
 local classPage = {
 	["WARRIOR"]	= "[bonusbar:1] 7; [bonusbar:2] 8;",
 	["ROGUE"]	= "[stance:1] 7; [stance:2] 7; [stance:3] 7;",
-	["DRUID"]	= "[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 8; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;",
+	["DRUID"]	= "[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;",
 	["MONK"]	= "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;",
 	["PRIEST"] 	= "[bonusbar:1] 7;"
 }
