@@ -147,6 +147,7 @@ function Events:SPELLS_CHANGED(...)
 	self:UpdateStateDriver()
 	self:SetupUtilityBelt()
 	self:UnregisterEvent("SPELLS_CHANGED")
+	Events.SPELLS_CHANGED = nil
 end
 
 function Events:ADDON_LOADED(...)

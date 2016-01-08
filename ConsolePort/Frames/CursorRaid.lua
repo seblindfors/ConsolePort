@@ -345,7 +345,6 @@ function ConsolePort:SetupRaidCursor()
 	buttons = nil
 	Key = nil
 
-	self.SetupRaidCursor = nil
 end
 
 ---------------------------------------------------------------
