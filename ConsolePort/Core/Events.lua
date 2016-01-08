@@ -21,6 +21,7 @@ function ConsolePort:LoadEvents()
 		["PLAYER_STARTED_MOVING"] 	= false,
 		["PLAYER_REGEN_DISABLED"] 	= false,
 		["PLAYER_REGEN_ENABLED"] 	= false,
+		["SPELLS_CHANGED"] 			= false,
 		["UPDATE_BINDINGS"] 		= false,
 		["VARIABLES_LOADED"] 		= false,
 		["QUEST_AUTOCOMPLETE"] 		= false,
@@ -140,6 +141,14 @@ function Events:UPDATE_BINDINGS(...)
 	end
 end
 
+function Events:SPELLS_CHANGED(...)
+	self:SetupRaidCursor()
+	self:UpdateSmartMouse()
+	self:UpdateStateDriver()
+	self:SetupUtilityBelt()
+	self:UnregisterEvent("SPELLS_CHANGED")
+end
+
 function Events:ADDON_LOADED(...)
 	local name = ...
 	if name == "ConsolePort" then
@@ -155,18 +164,12 @@ function Events:ADDON_LOADED(...)
 		self:SetupCursor()
 		self:CheckLoadedAddons()
 		self:CheckLoadedSettings()
-		self:CreateRaidCursor()
 		self:UpdateCVars()
-		self:UpdateSmartMouse()
-		self:UpdateStateDriver()
-		-- Delay hotkey loading
+		-- Delay hotkey loading to
+		-- prevent unnecessary updates on load
 		Callback(2, function()
 			Loaded = true
 			self:LoadHotKeyTextures()
-		end)
-		-- Delay utility belt setup
-		Callback(2, function()
-			self:AddUpdateSnippet(self.SetupUtilityBelt)
 		end)
 	end
 	if ConsolePortUIFrames and ConsolePortUIFrames[name] then

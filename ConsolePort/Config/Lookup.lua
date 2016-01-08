@@ -243,85 +243,85 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultBinding(key)
 	local keys = {
-		CP_R_UP = 	{
-			action 		= "ACTIONBUTTON2",
-			shift 		= "ACTIONBUTTON7",
-			ctrl 		= "MULTIACTIONBAR1BUTTON2",
-			ctrlsh 		= "MULTIACTIONBAR1BUTTON7",
+		["CP_R_UP"] = 	{
+			["action"] 		= "ACTIONBUTTON2",
+			["shift"] 		= "ACTIONBUTTON7",
+			["ctrl"] 		= "MULTIACTIONBAR1BUTTON2",
+			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON7",
 		},
-		CP_R_DOWN = {
-			action 		= "JUMP",
-			shift 		= "TARGETNEARESTENEMY",
-			ctrl  		= "INTERACTMOUSEOVER",
-			ctrlsh 		= "CLICK ConsolePortUtilityToggle:LeftButton",
+		["CP_R_DOWN"] = {
+			["action"] 		= "JUMP",
+			["shift"] 		= "TARGETNEARESTENEMY",
+			["ctrl"]  		= "INTERACTMOUSEOVER",
+			["ctrlsh"] 		= "CLICK ConsolePortUtilityToggle:LeftButton",
 		},
-		CP_R_LEFT = {
-			action 		= "ACTIONBUTTON1",
-			shift 		= "ACTIONBUTTON6",
-			ctrl 		= "MULTIACTIONBAR1BUTTON1",
-			ctrlsh 		= "MULTIACTIONBAR1BUTTON6",
+		["CP_R_LEFT"] = {
+			["action"] 		= "ACTIONBUTTON1",
+			["shift"] 		= "ACTIONBUTTON6",
+			["ctrl"] 		= "MULTIACTIONBAR1BUTTON1",
+			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON6",
 		},
-		CP_R_RIGHT = {
-			action 		= "ACTIONBUTTON3",
-			shift 		= "ACTIONBUTTON8",
-			ctrl 		= "MULTIACTIONBAR1BUTTON3",
-			ctrlsh 		= "MULTIACTIONBAR1BUTTON8",
+		["CP_R_RIGHT"] = {
+			["action"] 		= "ACTIONBUTTON3",
+			["shift"] 		= "ACTIONBUTTON8",
+			["ctrl"] 		= "MULTIACTIONBAR1BUTTON3",
+			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON8",
 		},
 		-- Triggers
-		CP_TR1 =	{
-			action 		= "ACTIONBUTTON4",
-			shift 		= "ACTIONBUTTON9",
-			ctrl 		= "MULTIACTIONBAR1BUTTON4",
-			ctrlsh 		= "MULTIACTIONBAR1BUTTON9",
+		["CP_TR1"] =	{
+			["action"] 		= "ACTIONBUTTON4",
+			["shift"] 		= "ACTIONBUTTON9",
+			["ctrl"] 		= "MULTIACTIONBAR1BUTTON4",
+			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON9",
 		},
-		CP_TR2 = 	{
-			action 		= "ACTIONBUTTON5",
-			shift 		= "ACTIONBUTTON10",
-			ctrl 		= "MULTIACTIONBAR1BUTTON5",
-			ctrlsh 		= "MULTIACTIONBAR1BUTTON10",
+		["CP_TR2"] = 	{
+			["action"] 		= "ACTIONBUTTON5",
+			["shift"] 		= "ACTIONBUTTON10",
+			["ctrl"] 		= "MULTIACTIONBAR1BUTTON5",
+			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON10",
 		},
 		-- Left side
-		CP_L_UP = {
-			action 		= "MULTIACTIONBAR1BUTTON12",
-			shift 		= "MULTIACTIONBAR2BUTTON2",
-			ctrl 		= "MULTIACTIONBAR2BUTTON6",
-			ctrlsh 		= "MULTIACTIONBAR2BUTTON10",
+		["CP_L_UP"] = {
+			["action"] 		= "MULTIACTIONBAR1BUTTON12",
+			["shift"] 		= "MULTIACTIONBAR2BUTTON2",
+			["ctrl"] 		= "MULTIACTIONBAR2BUTTON6",
+			["ctrlsh"] 		= "MULTIACTIONBAR2BUTTON10",
 		},
-		CP_L_DOWN = {
-			action 		= "ACTIONBUTTON11",
-			shift 		= "MULTIACTIONBAR2BUTTON4",
-			ctrl  		= "MULTIACTIONBAR2BUTTON8",
-			ctrlsh		= "MULTIACTIONBAR2BUTTON12",
+		["CP_L_DOWN"] = {
+			["action"] 		= "ACTIONBUTTON11",
+			["shift"] 		= "MULTIACTIONBAR2BUTTON4",
+			["ctrl"]  		= "MULTIACTIONBAR2BUTTON8",
+			["ctrlsh"]		= "MULTIACTIONBAR2BUTTON12",
 		},
-		CP_L_LEFT = {
-			action 		= "MULTIACTIONBAR1BUTTON11",
-			shift 		= "MULTIACTIONBAR2BUTTON1",
-			ctrl 		= "MULTIACTIONBAR2BUTTON5",
-			ctrlsh 		= "MULTIACTIONBAR2BUTTON9",
+		["CP_L_LEFT"] = {
+			["action"] 		= "MULTIACTIONBAR1BUTTON11",
+			["shift"] 		= "MULTIACTIONBAR2BUTTON1",
+			["ctrl"] 		= "MULTIACTIONBAR2BUTTON5",
+			["ctrlsh"] 		= "MULTIACTIONBAR2BUTTON9",
 		},
-		CP_L_RIGHT = {
-			action 		= "ACTIONBUTTON12",
-			shift 		= "MULTIACTIONBAR2BUTTON3",
-			ctrl 		= "MULTIACTIONBAR2BUTTON7",
-			ctrlsh 		= "MULTIACTIONBAR2BUTTON11",
+		["CP_L_RIGHT"] = {
+			["action"] 		= "ACTIONBUTTON12",
+			["shift"] 		= "MULTIACTIONBAR2BUTTON3",
+			["ctrl"] 		= "MULTIACTIONBAR2BUTTON7",
+			["ctrlsh"] 		= "MULTIACTIONBAR2BUTTON11",
 		},		
-		CP_L_OPTION = {
-			action 		= "OPENALLBAGS",
-			shift 		= "TOGGLECHARACTER0",
-			ctrl 		= "TOGGLESPELLBOOK",
-			ctrlsh 		= "TOGGLETALENTS",
+		["CP_L_OPTION"] = {
+			["action"] 		= "OPENALLBAGS",
+			["shift"] 		= "TOGGLECHARACTER0",
+			["ctrl"] 		= "TOGGLESPELLBOOK",
+			["ctrlsh"] 		= "TOGGLETALENTS",
 		},
-		CP_C_OPTION = {
-			action 		= "TOGGLEGAMEMENU",
-			shift 		= "CLICK ConsolePortRaidCursorToggle:LeftButton",
-			ctrl 		= "TOGGLEAUTORUN",
-			ctrlsh 		= "OPENCHAT",
+		["CP_C_OPTION"] = {
+			["action"] 		= "TOGGLEGAMEMENU",
+			["shift"] 		= "CLICK ConsolePortRaidCursorToggle:LeftButton",
+			["ctrl"] 		= "TOGGLEAUTORUN",
+			["ctrlsh"] 		= "OPENCHAT",
 		},
-		CP_R_OPTION = {
-			action 		= "TOGGLEWORLDMAP",
-			shift 		= "CP_CAMZOOMOUT",
-			ctrl 		= "CP_CAMZOOMIN",
-			ctrlsh 		= "SETVIEW1",
+		["CP_R_OPTION"] = {
+			["action"] 		= "TOGGLEWORLDMAP",
+			["shift"] 		= "CP_CAMZOOMOUT",
+			["ctrl"] 		= "CP_CAMZOOMIN",
+			["ctrlsh"] 		= "SETVIEW1",
 		},
 	}
 	return keys[key]
@@ -334,19 +334,19 @@ end
 function ConsolePort:GetUIControlKey(key)
 	local keys = {
 		-- Right side
-		CP_R_UP =  KEY.TRIANGLE,
-		CP_R_DOWN = KEY.CROSS,
-		CP_R_LEFT = KEY.SQUARE,
-		CP_R_RIGHT = KEY.CIRCLE,
+		["CP_R_UP"] 	= KEY.TRIANGLE,
+		["CP_R_DOWN"] 	= KEY.CROSS,
+		["CP_R_LEFT"] 	= KEY.SQUARE,
+		["CP_R_RIGHT"] 	= KEY.CIRCLE,
 		-- Left side
-		CP_L_UP = KEY.UP,
-		CP_L_DOWN = KEY.DOWN,
-		CP_L_LEFT = KEY.LEFT,
-		CP_L_RIGHT = KEY.RIGHT,
+		["CP_L_UP"] 	= KEY.UP,
+		["CP_L_DOWN"] 	= KEY.DOWN,
+		["CP_L_LEFT"] 	= KEY.LEFT,
+		["CP_L_RIGHT"] 	= KEY.RIGHT,
 		-- Option buttons
-		CP_L_OPTION = KEY.SHARE,
-		CP_C_OPTION = KEY.CENTER,
-		CP_R_OPTION = KEY.OPTIONS,
+		["CP_L_OPTION"] = KEY.SHARE,
+		["CP_C_OPTION"] = KEY.CENTER,
+		["CP_R_OPTION"] = KEY.OPTIONS,
 	}
 	return keys[key]
 end
@@ -470,23 +470,23 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultUIFrames()
 	return {	
-		Blizzard_AchievementUI 		= {
+		["Blizzard_AchievementUI"] 		= {
 			"AchievementFrame" },
-		Blizzard_ArchaeologyUI 		= {
+		["Blizzard_ArchaeologyUI"] 		= {
 			"ArchaeologyFrame" },
-		Blizzard_AuctionUI 			= {
+		["Blizzard_AuctionUI"] 			= {
 			"AuctionFrame" },
-		Blizzard_BarbershopUI		= {
+		["Blizzard_BarbershopUI"]		= {
 			"BarberShopFrame" },
-		Blizzard_Calendar			= {
+		["Blizzard_Calendar"]			= {
 			"CalendarFrame" },
-		Blizzard_Collections		= {
+		["Blizzard_Collections"]		= {
 			"CollectionsJournal" },
-		Blizzard_DeathRecap			= {
+		["Blizzard_DeathRecap"]			= {
 			"DeathRecapFrame" },
-		Blizzard_EncounterJournal 	= {
+		["Blizzard_EncounterJournal"] 	= {
 			"EncounterJournal" },
-		Blizzard_GarrisonUI			= {
+		["Blizzard_GarrisonUI"]			= {
 			"GarrisonBuildingFrame",
 			"GarrisonCapacitiveDisplayFrame",
 			"GarrisonLandingPage",
@@ -494,27 +494,27 @@ function ConsolePort:GetDefaultUIFrames()
 			"GarrisonMonumentFrame",
 			"GarrisonRecruiterFrame",
 			"GarrisonShipyardFrame" },
-		Blizzard_GuildUI			= {
+		["Blizzard_GuildUI"]			= {
 			"GuildFrame" },
-		Blizzard_InspectUI			= {
+		["Blizzard_InspectUI"]			= {
 			"InspectFrame" },
-		Blizzard_ItemAlterationUI 	= {
+		["Blizzard_ItemAlterationUI"] 	= {
 			"TransmogrifyFrame" },
-		Blizzard_LookingForGuildUI 	= {
+		["Blizzard_LookingForGuildUI"] 	= {
 			"LookingForGuildFrame" },
-		Blizzard_MacroUI 			= {
+		["Blizzard_MacroUI"] 			= {
 			"MacroFrame" },
-		Blizzard_QuestChoice 		= {
+		["Blizzard_QuestChoice"] 		= {
 			"QuestChoiceFrame" },
-		Blizzard_TalentUI 			= {
+		["Blizzard_TalentUI"] 			= {
 			"PlayerTalentFrame" },
-		Blizzard_TradeSkillUI		= {
+		["Blizzard_TradeSkillUI"]		= {
 			"TradeSkillFrame" },
-		Blizzard_TrainerUI 			= {
+		["Blizzard_TrainerUI"] 			= {
 			"ClassTrainerFrame" },
-		Blizzard_VoidStorageUI		= {
+		["Blizzard_VoidStorageUI"]		= {
 			"VoidStorageFrame" },
-		ConsolePort					= {
+		["ConsolePort"]					= {
 			"AddonList",
 			"BagHelpBox",
 			"BankFrame",

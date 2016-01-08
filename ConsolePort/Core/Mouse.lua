@@ -119,14 +119,14 @@ end
 -- Helpful: interact with no target/enemy, cast on friend.
 -- Harmful: interact with no target/friend, cast on enemy.
 ---------------------------------------------------------------
-local MouseHandle = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerStateTemplate")
+local MouseHandle = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
 MouseHandle:RegisterEvent("LEARNED_SPELL_IN_TAB")
 MouseHandle:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 MouseHandle:SetFrameRef("OverrideBar", OverrideActionBar)
 MouseHandle:Execute([[
 	SPELLS = newtable()
 	USE = false
-	PAGE = 0
+	PAGE = 1
 	ID = 0
 ]])
 MouseHandle:Execute([[
@@ -157,6 +157,12 @@ MouseHandle:Execute([[
 			interact = true
 		end
 
+		if exists == "hover" then
+			self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")
+		else
+			self:ClearBinding("SHIFT-BUTTON1")
+		end
+
 		if interact and USE then
 			local key = GetBindingKey(USE)
 			if key then
@@ -184,6 +190,13 @@ MouseHandle:Execute([[
 		end
 	]=]
 ]])
+---------------------------------------------------------------
+local Focus = CreateFrame("Button", "ConsolePortMouseHandleMouseoverFocus", MouseHandle, "SecureActionButtonTemplate")
+Focus:SetAttribute("type", "focus")
+Focus:SetAttribute("unit", "mouseover")
+MouseHandle:SetFrameRef("Focus", Focus)
+MouseHandle:Execute([[ Focus = self:GetFrameRef("Focus") ]])
+---------------------------------------------------------------
 
 MouseHandle:SetAttribute("_onstate-targetstate", 	[[ self:Run(UpdateTarget, newstate) ]])
 MouseHandle:SetAttribute("_onstate-actionpage", 	[[ self:Run(UpdateActionPage, newstate) ]])

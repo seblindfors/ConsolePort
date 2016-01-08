@@ -468,22 +468,45 @@ local function ActionButtonPostClick(self, button)
 	end
 end
 
+local function ActionButtonGetTexture(self, actionType, actionValue)
+	local texture, isQuest
+	if actionValue then
+		if actionType == "item" then
+			texture = select(10, GetItemInfo(actionValue))
+			isQuest = select(6, GetItemInfo(actionValue)) == QUEST
+		elseif actionType == "spell" then
+			texture = select(3, GetSpellInfo(actionValue))
+		elseif actionType == "macro" then
+			texture = select(2, GetMacroInfo(actionValue))
+		end
+	end
+	if texture then
+		self.icon.texture = texture
+		SetPortraitToTexture(self.icon, texture)
+		self:SetAlpha(1)
+		self.icon:SetVertexColor(1, 1, 1)
+	else
+		self.icon.texture = nil
+		self.icon:SetTexture(nil)
+		self:SetAlpha(0.5)
+	end
+	if isQuest then
+		self.isQuest = true
+		self.Quest:Show()
+	else
+		self.isQuest = nil
+		self.Quest:Hide()
+	end
+end
+
 local function ActionButtonOnAttributeChanged(self, attribute, detail)
 	if not InCombatLockdown() then
 		local texture, isQuest
 		if detail then
-			if attribute == "item" then
-				if tonumber(detail) then
-					local name = GetItemInfo(detail)
-					self:SetAttribute("item", name)
-					return
-				end
-				texture = select(10, GetItemInfo(detail))
-				isQuest = select(6, GetItemInfo(detail)) == QUEST
-			elseif attribute == "spell" then
-				texture = select(3, GetSpellInfo(detail))
-			elseif attribute == "macro" then
-				texture = select(2, GetMacroInfo(detail))
+			if attribute == "item" and tonumber(detail) then
+				local name = GetItemInfo(detail)
+				self:SetAttribute("item", name)
+				return
 			elseif attribute == "mount" then
 				local spellID = MountJournal_GetMountInfo(detail)
 				self:SetAttribute("mountID", spellID)
@@ -493,23 +516,7 @@ local function ActionButtonOnAttributeChanged(self, attribute, detail)
 			end
 			ClearCursor()
 		end
-		if texture then
-			self.icon.texture = texture
-			SetPortraitToTexture(self.icon, texture)
-			self:SetAlpha(1)
-			self.icon:SetVertexColor(1, 1, 1)
-		else
-			self.icon.texture = nil
-			self.icon:SetTexture(nil)
-			self:SetAlpha(0.5)
-		end
-		if isQuest then
-			self.isQuest = true
-			self.Quest:Show()
-		else
-			self.isQuest = nil
-			self.Quest:Hide()
-		end
+		ActionButtonGetTexture(self, attribute, detail)
 	end
 	local actionType = self:GetAttribute("type")
 	if actionType then
@@ -544,6 +551,9 @@ local function ActionButtonOnUpdate(self, elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.25 do
 		local actionType = self:GetAttribute("type")
+		if actionType and not self.icon.texture then
+			ActionButtonGetTexture(self, actionType, self:GetAttribute(actionType))
+		end
 		if actionType == "item" then
 			local item = self:GetAttribute("item")
 			local count = GetItemCount(item)

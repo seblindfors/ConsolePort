@@ -51,7 +51,7 @@ for i, DD in pairs(dropDowns) do
 				child.ignoreChildren = false
 			end
 			if forbidden[child.value] then
-				child:Hide()
+				child.ignoreNode = true
 			end
 		end
 	end)
