@@ -1,9 +1,8 @@
 ---------------------------------------------------------------
 -- CursorRaid.lua: Secure unit targeting cursor for combat
 ---------------------------------------------------------------
--- Creates a cursor inside the secure environment that is used
--- to iterate over unit frames and select units based on where
--- their respective frame is drawn on screen.
+-- Creates a secure cursor that is used to iterate over unit frames
+-- and select units based on where the frame is drawn on screen.
 -- Gathers all nodes by recursively scanning UIParent for
 -- secure frames with the "unit" attribute assigned.
 
@@ -267,10 +266,15 @@ UIHandle:Execute([[
 ------------------------------------------------------------------------------------------------------------------------------
 local ToggleCursor = CreateFrame("Button", addOn.."RaidCursorToggle", UIHandle, "SecureActionButtonTemplate")
 ToggleCursor:RegisterForClicks("LeftButtonDown")
+UIHandle:SetFrameRef("MouseHandle", ConsolePortMouseHandle)
 UIHandle:WrapScript(ToggleCursor, "OnClick", [[
 	local UIHandle = self:GetParent()
+	local MouseHandle =	UIHandle:GetFrameRef("MouseHandle")
+
 	IsEnabled = not IsEnabled
+
 	UIHandle:Run(ToggleCursor)
+	MouseHandle:SetAttribute("override", not IsEnabled)
 ]])
 ------------------------------------------------------------------------------------------------------------------------------
 local SetFocus = CreateFrame("Button", addOn.."RaidCursorFocus", UIHandle, "SecureActionButtonTemplate")
@@ -520,13 +524,13 @@ function Cursor:Update(elapsed)
 			local name = node:GetName()
 			if ConsolePortCursor:IsVisible() and not InCombatLockdown() then
 				self.node = nil
-				self:SetAlpha(0)
+				self:SetAlpha(0.25)
 			elseif name ~= self.node then
 				local unit = node:GetAttribute("unit")
 
 				self.unit = unit
 				self.node = name
-				if self:GetAlpha() == 0 then
+				if self:GetAlpha() < 1 then
 					self.Scale1:SetScale(1.5, 1.5)
 					self.Scale2:SetScale(1/1.5, 1/1.5)
 					self.Scale2:SetDuration(0.5)

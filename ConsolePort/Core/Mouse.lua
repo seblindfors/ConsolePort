@@ -119,22 +119,31 @@ end
 -- Helpful: interact with no target/enemy, cast on friend.
 -- Harmful: interact with no target/friend, cast on enemy.
 ---------------------------------------------------------------
-local MouseHandle = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
+local MouseHandle = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerStateTemplate, SecureHandlerAttributeTemplate")
 MouseHandle:RegisterEvent("LEARNED_SPELL_IN_TAB")
 MouseHandle:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 MouseHandle:SetFrameRef("OverrideBar", OverrideActionBar)
 MouseHandle:Execute([[
+	---------------------------------------------------------------
 	SPELLS = newtable()
 	USE = false
 	PAGE = 1
 	ID = 0
-]])
-MouseHandle:Execute([[
+	---------------------------------------------------------------
+	IsEnabled = true
+	Target = false
+	---------------------------------------------------------------
+
 	UpdateTarget = [=[
-		local exists = ...
+		Target = ...
+
+		if not IsEnabled then
+			return
+		end
+
 		local interact = false
 
-		if exists ~= "hover" and (exists == "enemy" or exists == "friend") then
+		if Target ~= "hover" and (Target == "enemy" or Target == "friend") then
 			local id = ID >= 0 and ID <= 12 and (PAGE-1) * 12 + ID or ID >= 0 and ID
 			if id then
 				local actionType, actionID, subType = GetActionInfo(id)
@@ -144,9 +153,9 @@ MouseHandle:Execute([[
 					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
 					if not helpful and not harmful then
 						self:ClearBindings()
-					elseif exists == "friend" and helpful then
+					elseif Target == "friend" and helpful then
 						self:ClearBindings()
-					elseif exists == "enemy" and harmful then
+					elseif Target == "enemy" and harmful then
 						self:ClearBindings()
 					end
 				end
@@ -157,7 +166,7 @@ MouseHandle:Execute([[
 			interact = true
 		end
 
-		if exists == "hover" then
+		if Target == "hover" then
 			self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")
 		else
 			self:ClearBinding("SHIFT-BUTTON1")
@@ -189,6 +198,22 @@ MouseHandle:Execute([[
 			end
 		end
 	]=]
+
+	UpdateAttribute = [=[
+		local attribute, value = ...
+		if attribute == "state-targetstate" then
+			self:Run(UpdateTarget, value)
+		elseif attribute == "state-actionpage" then
+			self:Run(UpdateActionPage, value)
+		elseif attribute == "override" then
+			IsEnabled = value
+			if not IsEnabled then
+				self:ClearBindings()
+			else
+				self:Run(UpdateTarget, Target)
+			end
+		end
+	]=]
 ]])
 ---------------------------------------------------------------
 local Focus = CreateFrame("Button", "ConsolePortMouseHandleMouseoverFocus", MouseHandle, "SecureActionButtonTemplate")
@@ -197,9 +222,7 @@ Focus:SetAttribute("unit", "mouseover")
 MouseHandle:SetFrameRef("Focus", Focus)
 MouseHandle:Execute([[ Focus = self:GetFrameRef("Focus") ]])
 ---------------------------------------------------------------
-
-MouseHandle:SetAttribute("_onstate-targetstate", 	[[ self:Run(UpdateTarget, newstate) ]])
-MouseHandle:SetAttribute("_onstate-actionpage", 	[[ self:Run(UpdateActionPage, newstate) ]])
+MouseHandle:SetAttribute("_onattributechanged", "self:Run(UpdateAttribute, name, value)")
 
 -- Index the entire spellbook by using spell ID as key and spell book slot as value.
 -- IsHarmfulSpell/IsHelpfulSpell functions can use spell book slot, but not actual spell IDs.
