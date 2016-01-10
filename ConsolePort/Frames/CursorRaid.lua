@@ -98,6 +98,9 @@ UIHandle:Execute([[
 						tinsert(Helpful, node)
 					elseif harmful then
 						tinsert(Harmful, node)
+					else
+						tinsert(Helpful, node)
+						tinsert(Harmful, node)
 					end
 				end
 			end
@@ -107,10 +110,31 @@ UIHandle:Execute([[
 		if old and old:IsVisible() then
 			current = old
 		elseif (not current and Units[1]) or (current and Units[1] and not current:IsVisible()) then
-			for i, Node in pairs(Units) do
-				if Node:IsVisible() then
-					current = Node
-					break
+			local thisX, thisY = self:GetRect()
+
+			if thisX and thisY then
+				local node, dist
+
+				for i, Node in pairs(Units) do
+					if Node:IsVisible() then
+						local left, bottom, width, height = Node:GetRect()
+						local destDistance = abs(thisX - (left + width / 2)) + abs(thisY - (bottom + height / 2))
+
+						if not dist or destDistance < dist then
+							node = Node
+							dist = destDistance
+						end
+					end
+				end
+				if node then
+					current = node
+				end
+			else
+				for i, Node in pairs(Units) do
+					if Node:IsVisible() then
+						current = Node
+						break
+					end
 				end
 			end
 		end
@@ -183,6 +207,8 @@ UIHandle:Execute([[
 		if current then
 			local unit = current:GetAttribute("unit")
 			Focus:SetAttribute("focus", unit)
+			RegisterStateDriver(self, "unitexists", "[@"..unit..",exists] true; nil")
+
 			self:ClearAllPoints()
 			self:SetPoint("CENTER", current, "CENTER", 0, 0)
 			self:SetAttribute("node", current)
@@ -204,6 +230,8 @@ UIHandle:Execute([[
 				end
 			end
 		else
+			UnregisterStateDriver(self, "unitexists")
+
 			self:ClearBinding("BUTTON2")
 			self:ClearBinding("SHIFT-BUTTON2")
 			self:ClearBinding("SHIFT-BUTTON1")
@@ -231,6 +259,8 @@ UIHandle:Execute([[
 			self:Run(UpdateFrameStack)
 			self:Run(SelectNode, 0)
 		else
+			UnregisterStateDriver(self, "unitexists")
+
 			self:SetAttribute("node", nil)
 			self:ClearBindings()
 
@@ -261,6 +291,12 @@ UIHandle:Execute([[
 			end
 		end
 		self:Run(UpdateFrameStack)
+	]=]
+	UpdateUnitExists = [=[
+		local exists = ...
+		if not exists then
+			self:Run(SelectNode, 0)
+		end
 	]=]
 ]])
 ------------------------------------------------------------------------------------------------------------------------------
@@ -307,6 +343,7 @@ end
 local currentPage, actionpage = ConsolePort:GetActionPageState()
 RegisterStateDriver(UIHandle, "actionpage", actionpage)
 UIHandle:SetAttribute("_onstate-actionpage", [[ self:Run(UpdateActionPage, newstate) ]])
+UIHandle:SetAttribute("_onstate-unitexists", [[ self:Run(UpdateUnitExists, newstate) ]])
 UIHandle:SetAttribute("actionpage", currentPage)
 ---------------------------------------------------------------
 

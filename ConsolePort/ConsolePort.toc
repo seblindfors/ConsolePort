@@ -1,7 +1,7 @@
 ## Interface: 60200
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 0.10.11
+## Version: 0.10.12
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouse, ConsolePortUtility
 
