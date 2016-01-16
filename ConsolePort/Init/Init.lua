@@ -31,7 +31,25 @@ db.PANELS 	= {}
 -- Plug-in access to addon table
 ---------------------------------------------------------------
 function ConsolePort:DB() return db end
+---------------------------------------------------------------
+-- Popup management
+---------------------------------------------------------------
+local DefaultBackdrop = StaticPopup1:GetBackdrop()
+local Popup
 
+local function ShowPopup(...)
+	Popup = StaticPopup_Show(...)
+	Popup:EnableKeyboard(false)
+	Popup:SetBackdrop(db.Atlas.Backdrops.Full)
+	return Popup
+end
+local function ClearPopup()
+	if Popup then
+		Popup:SetBackdrop(DefaultBackdrop)
+		Popup = nil
+	end
+end
+---------------------------------------------------------------
 local function ResetAllSettings()
 	if not InCombatLockdown() then
 		local bindings = ConsolePort:GetBindingNames()
@@ -125,7 +143,7 @@ function ConsolePort:LoadSettings()
 	local SLASH = db.TUTORIAL.SLASH
 
 	local function ShowSplash() ConsolePort:CreateSplashFrame() end
-	local function ShowBinds() for i=1, 2 do ConsolePortConfig:OpenCategory(2) end end
+	local function ShowBinds() ConsolePortConfig:OpenCategory(2) end
 
 	local function ResetAll()
 		if not InCombatLockdown() then
@@ -136,8 +154,8 @@ function ConsolePort:LoadSettings()
 				if key2 then SetBinding(key2) end
 			end
 			SaveBindings(GetCurrentBindingSet())
-			ConsolePortBindingSet = nil --ConsolePort:GetDefaultBindingSet()
 			ConsolePortBindingButtons = nil -- ConsolePort:GetDefaultUIBindingRefs()
+			ConsolePortBindingSet = nil --ConsolePort:GetDefaultBindingSet()
 			ConsolePortUIFrames = nil
 			ConsolePortSettings = nil
 			ConsolePortUtility = nil
@@ -184,8 +202,9 @@ function ConsolePort:CheckLoadedSettings()
 			enterClicksFirstButton = true,
 			exclusive = true,
 			OnAccept = ResetAllSettings,
+			OnCancel = ClearPopup,
 		}
-		StaticPopup_Show("CONSOLEPORT_CRITICALUPDATE")
+		ShowPopup("CONSOLEPORT_CRITICALUPDATE")
 	elseif ConsolePortSettings and ConsolePortSettings.newController then
 		StaticPopupDialogs["CONSOLEPORT_NEWCONTROLLER"] = {
 			text = db.TUTORIAL.SLASH.NEWCONTROLLER,
@@ -199,8 +218,9 @@ function ConsolePort:CheckLoadedSettings()
 			enterClicksFirstButton = true,
 			exclusive = true,
 			OnAccept = LoadDefaultBindings,
+			OnCancel = ClearPopup,
 		}
-		StaticPopup_Show("CONSOLEPORT_NEWCONTROLLER")
+		ShowPopup("CONSOLEPORT_NEWCONTROLLER")
 		ConsolePortSettings.newController = nil
 	elseif ConsolePortSettings and newChar then
 		StaticPopupDialogs["CONSOLEPORT_NEWCHARACTER"] = {
@@ -215,8 +235,9 @@ function ConsolePort:CheckLoadedSettings()
 			enterClicksFirstButton = true,
 			exclusive = true,
 			OnAccept = LoadDefaultBindings,
+			OnCancel = ClearPopup,
 		}
-		StaticPopup_Show("CONSOLEPORT_NEWCHARACTER")
+		ShowPopup("CONSOLEPORT_NEWCHARACTER")
 	end
 	self.CheckLoadedSettings = nil
 end

@@ -94,10 +94,12 @@ Cursor:Execute([[
 					local helpful = spellBookID and IsHelpfulSpell(spellBookID, subType)
 					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
 					if helpful then
+					--	print(id, node:GetName(), "Helpful")
 						tinsert(Helpful, node)
 					elseif harmful then
 						tinsert(Harmful, node)
 					else
+					--	print(id, node:GetName(), "Neither/both")
 						tinsert(Helpful, node)
 						tinsert(Harmful, node)
 					end
@@ -212,9 +214,9 @@ Cursor:Execute([[
 			self:SetPoint("CENTER", current, "CENTER", 0, 0)
 			self:SetAttribute("node", current)
 			self:SetAttribute("unit", unit)
-			self:SetBindingClick(true, "BUTTON2", current, "LeftButton")
-			self:SetBindingClick(true, "SHIFT-BUTTON2", current, "RightButton")
 			self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")
+			self:SetBindingClick(true, "SHIFT-BUTTON2", current, "LeftButton")
+			self:SetBindingClick(true, "CTRL-SHIFT-BUTTON2", current, "RightButton")
 			if PlayerCanAttack(unit) then
 				self:SetAttribute("relation", "harm")
 				for i, action in pairs(Harmful) do
@@ -231,9 +233,9 @@ Cursor:Execute([[
 		else
 			UnregisterStateDriver(self, "unitexists")
 
-			self:ClearBinding("BUTTON2")
-			self:ClearBinding("SHIFT-BUTTON2")
 			self:ClearBinding("SHIFT-BUTTON1")
+			self:ClearBinding("SHIFT-BUTTON2")
+			self:ClearBinding("CTRL-SHIFT-BUTTON2")
 		end
 	]=]
 	UpdateFrameStack = [=[
@@ -351,6 +353,7 @@ Cursor:SetAttribute("actionpage", currentPage)
 local function SecureSpellBookUpdate(self)
 	if not InCombatLockdown() then
 		if Cursor then
+			Cursor:Execute([[ SPELLS = wipe(SPELLS) ]])
 			for id=1, MAX_SPELLS do
 				local ok, err, _, _, _, _, _, spellID = pcall(GetSpellInfo, id, "spell")
 				if ok then
@@ -361,6 +364,7 @@ local function SecureSpellBookUpdate(self)
 					break
 				end
 			end
+			Cursor:Execute([[ self:Run(UpdateFrameStack) ]])
 		end
 		self:RemoveUpdateSnippet(SecureSpellBookUpdate)
 	end
