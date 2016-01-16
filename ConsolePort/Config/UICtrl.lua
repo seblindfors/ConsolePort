@@ -8,6 +8,7 @@
 local addOn, db = ...
 local FadeIn = db.UIFrameFadeIn
 local FadeOut = db.UIFrameFadeOut
+local pairsByKeys = db.Table.pairsByKeys
 local TUTORIAL = db.TUTORIAL.UICTRL
 local DefaultBackdrop = StaticPopup1:GetBackdrop()
 local Popup
@@ -180,7 +181,7 @@ local function RefreshAddonList(self)
 		button:Hide()
 	end
 
-	for addon, frames in db.pairsByKeys(UIFrames) do
+	for addon, frames in pairsByKeys(UIFrames) do
 		list[addon] = frames
 	end
 
@@ -193,7 +194,7 @@ local function RefreshAddonList(self)
 
 	local num = 0
 
-	for addon, frames in db.pairsByKeys(list) do
+	for addon, frames in pairsByKeys(list) do
 		num = num + 1
 		local button
 		if not self.Buttons[num] then

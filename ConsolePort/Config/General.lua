@@ -7,6 +7,7 @@ local addOn, db = ...
 local TUTORIAL = db.TUTORIAL
 local TEXTURE  = db.TEXTURE
 local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
+local pairsByKeys = db.Table.pairsByKeys
 local Settings
 ---------------------------------------------------------------
 -- Config: Account-wide addon CVars.
@@ -147,9 +148,9 @@ local function SaveGeneralConfig(self)
 	ConsolePortSettings = db.Settings
 	ConsolePortMouse = db.Mouse
 
-	db.Mouse.Cursor.Left = self.LeftClick.button
-	db.Mouse.Cursor.Right = self.RightClick.button
-	db.Mouse.Cursor.Scroll = self.ScrollClick.button
+	db.Mouse.Cursor.Left = self.LeftClick.Value
+	db.Mouse.Cursor.Right = self.RightClick.Value
+	db.Mouse.Cursor.Scroll = self.ScrollClick.Value
 	
 	ConsolePort:LoadEvents()
 	ConsolePort:SetupCursor()
@@ -385,6 +386,34 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	------------------------------------------------------------------------------------------------------------------------------
 
+	local function CheckOnClick(self)
+		local parent = self.parent
+		local oldVal = parent.Index
+		local allSets = parent.AllSets
+		parent.Index = self.num
+		parent.Value = self.name
+		if allSets then
+			for x, trigger in pairs(allSets) do
+				if trigger ~= parent then
+					for i, button in pairs(trigger.Set) do
+						if i == self.num and button:GetChecked() then
+							button:SetChecked(false)
+							local swapTo = trigger.Set[oldVal]
+							swapTo:SetChecked(true)
+							trigger.Value = swapTo.name
+							trigger.Index = swapTo.num
+						end
+					end
+				end
+			end
+		end
+		for i, button in pairs(self.set) do
+			button:SetChecked(false)
+		end
+		self:SetChecked(true)
+	end
+	------------------------------------------------------------------------------------------------------------------------------
+
 	Config.MultiChoiceModule = CreateFrame("Frame", nil, Config)
 	Config.MultiChoiceModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.MultiChoiceModule:SetPoint("BOTTOMLEFT", 8, 8)
@@ -404,11 +433,12 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	}
 
 	for name, info in pairs(triggerGraphics) do
-		local trigger = Config:CreateTexture(nil, "ARTWORK")
+		local trigger = Config:CreateTexture("$parent"..name, "ARTWORK")
 		trigger:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
 		trigger:SetSize(76, 101)
 		trigger:SetTexCoord(0.154296875, 0.30078125, 0.80078125, 1)
 		trigger:SetPoint("TOPLEFT", Config.TriggerHeader, "TOPLEFT", info.offset, -24)
+		trigger.AllSets = Config.Triggers
 		trigger.Value = Settings[info.cvar]
 		trigger.Cvar = info.cvar
 
@@ -437,20 +467,13 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		{parent = Config["2nd"], 	default = Settings.trigger2},
 	}
 
-	local function CheckOnClick(self)
-		for i, button in pairs(self.set) do
-			button:SetChecked(false)
-		end
-		self:SetChecked(true)
-		self.parent.Value = self.name
-	end
-
 	for i, radio in pairs(radioButtons) do
 		local num = 1
-		local radioset = {}
-		for name, texture in db.pairsByKeys(triggers) do
+		radio.parent.Set = {}
+		for name, texture in pairsByKeys(triggers) do
 			local button = CreateFrame("CheckButton", "$parentTrigger"..i..name, Config, "UIRadioButtonTemplate")
-			button.set = radioset
+			button.num = num
+			button.set = radio.parent.Set
 			button.name = name
 			button.parent = radio.parent
 			button.text = button:CreateTexture(nil, "OVERLAY")
@@ -459,45 +482,51 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			button.text:SetSize(32, 32)
 			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", -3, -24*(num-1)-8)
 			if name == radio.default then
+				radio.parent.Index = num
 				radio.parent.Value = name
 				button:SetChecked(true)
 			else
 				button:SetChecked(false)
 			end
-			tinsert(radioset, button)
+			tinsert(radio.parent.Set, button)
 			button:SetScript("OnClick", CheckOnClick)
 			num = num + 1
 		end
 	end
 
+	Config.ClickButtons = {}
 
 	Config.CursorHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.CursorHeader:SetText(TUTORIAL.CONFIG.VIRTUALCURSOR)
 	Config.CursorHeader:SetPoint("TOPLEFT", Config.MultiChoiceModule, 16, -16)
 
-	Config.LeftClick = Config:CreateTexture()
-	Config.LeftClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
-	Config.LeftClick:SetSize(76*0.75, 101*0.75)
-	Config.LeftClick:SetTexCoord(0.0019531, 0.1484375, 0.4257813, 0.6210938)
-	Config.LeftClick:SetPoint("TOPLEFT", Config.CursorHeader, "TOPLEFT", 0, -24)
+	local clickGraphics = {
+		{name = "LeftClick", 	coords = {0.0019531, 0.1484375, 0.4257813, 0.6210938}},
+		{name = "RightClick", 	coords = {0.0019531, 0.1484375, 0.6269531, 0.8222656}},
+		{name = "SpecialClick", coords = {0.1542969, 0.3007813, 0.2246094, 0.4199219}},
+		{name = "ScrollClick", 	coords = {0.0019531, 0.1484375, 0.2246094, 0.4199219}},
+	}
 
-	Config.RightClick = Config:CreateTexture()
-	Config.RightClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
-	Config.RightClick:SetSize(76*0.75, 101*0.75)
-	Config.RightClick:SetTexCoord(0.0019531, 0.1484375, 0.6269531, 0.8222656)
-	Config.RightClick:SetPoint("LEFT", Config.LeftClick, "RIGHT", 60, 0)
+	for i, info in pairs(clickGraphics) do
+		local click = Config:CreateTexture()
+		click:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
+		click:SetSize(76*0.75, 101*0.75)
+		click:SetTexCoord(unpack(info.coords))
 
-	Config.SpecialClick = Config:CreateTexture()
-	Config.SpecialClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
-	Config.SpecialClick:SetSize(76*0.75, 101*0.75)
-	Config.SpecialClick:SetTexCoord(0.1542969, 0.3007813, 0.2246094, 0.4199219)
-	Config.SpecialClick:SetPoint("LEFT", Config.RightClick, "RIGHT", 60, 0)
+		if info.name ~= "ScrollClick" then
+			click.AllSets = Config.ClickButtons
+			tinsert(Config.ClickButtons, click)
+		end
 
-	Config.ScrollClick = Config:CreateTexture()
-	Config.ScrollClick:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
-	Config.ScrollClick:SetSize(76*0.75, 101*0.75)
-	Config.ScrollClick:SetTexCoord(0.0019531, 0.1484375, 0.2246094, 0.4199219)
-	Config.ScrollClick:SetPoint("LEFT", Config.SpecialClick, "RIGHT", 60, 0)
+		local previous = Config.ClickButtons[i-1]
+		if previous then
+			click:SetPoint("LEFT", previous, "RIGHT", 60, 0)
+		else
+			click:SetPoint("TOPLEFT", Config.CursorHeader, "TOPLEFT", 0, -24)
+		end
+
+		Config[info.name] = click
+	end
 
 	local clickButtons 	= {
 		CP_R_RIGHT 	= TEXTURE.CP_R_RIGHT,
@@ -520,9 +549,14 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	for i, radio in pairs(radioButtons) do
 		local num = 1
-		local radioSet = {}
+		radio.parent.Set = {}
 		for name, texture in pairs(radio.selection) do
-			local button = CreateFrame("CheckButton", addOn.."VirtualClick"..i..num, Config, "UIRadioButtonTemplate")
+			local button = CreateFrame("CheckButton", "ConsolePortVirtualClick"..i..num, Config, "UIRadioButtonTemplate")
+
+			button.num = num
+			button.set = radio.parent.Set
+			button.name = name
+			button.parent = radio.parent
 
 			button.text = button:CreateTexture(nil, "OVERLAY")
 			button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
@@ -531,23 +565,17 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", 8, -24*(num-1))
 			if name == radio.default then
-				radio.parent.button = name
+				radio.parent.Index = num
+				radio.parent.Value = name
 				button:SetChecked(true)
 			else
 				button:SetChecked(false)
 			end
-			tinsert(radioSet, button)
-			button:SetScript("OnClick", function(self)
-				for i, button in pairs(radioSet) do
-					button:SetChecked(false)
-				end
-				self:SetChecked(true)
-				radio.parent.button = name
-			end)
+			tinsert(radio.parent.Set, button)
+			button:SetScript("OnClick", CheckOnClick)
 			num = num + 1
 		end
 	end
-
 
 	Config.ActionBarModule = CreateFrame("Frame", nil, Config)
 	Config.ActionBarModule:SetBackdrop(db.Atlas.Backdrops.Border)

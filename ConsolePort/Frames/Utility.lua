@@ -18,11 +18,11 @@ local InCombatLockdown = InCombatLockdown
 local pairs = pairs
 local select = select
 ---------------------------------------------------------------
-local Utility = CreateFrame("Frame", addOn.."UtilityFrame", UIParent, "SecureHandlerBaseTemplate")
+local Utility = CreateFrame("Frame", "ConsolePortUtilityFrame", UIParent, "SecureHandlerBaseTemplate")
 ---------------------------------------------------------------
 local Tooltip = CreateFrame("GameTooltip", "$parentTooltip", Utility, "GameTooltipTemplate")
 ---------------------------------------------------------------
-local Animation = CreateFrame("Frame", addOn.."UtilityAnimation", UIParent)
+local Animation = CreateFrame("Frame", "ConsolePortUtilityAnimation", UIParent)
 ---------------------------------------------------------------
 local ActionButtons = {}
 ---------------------------------------------------------------
@@ -349,7 +349,7 @@ Utility:Execute([[
 ]])
 
 ------------------------------------------------------------------------------------------------------------------------------
-local UseUtility = CreateFrame("Button", addOn.."UtilityToggle", nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
+local UseUtility = CreateFrame("Button", "ConsolePortUtilityToggle", nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
 ------------------------------------------------------------------------------------------------------------------------------
 local Timer = 0
 local CursorItem
@@ -412,7 +412,7 @@ local dropTypes = {
 ---------------------------------------------------------------
 for direction, keys in pairs(buttons) do
 	for _, key in pairs(keys) do
-		local button = CreateFrame("Button", addOn.."UtilityButton"..key, Utility, "SecureActionButtonTemplate")
+		local button = CreateFrame("Button", "ConsolePortUtilityButton"..key, Utility, "SecureActionButtonTemplate")
 		button:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
 		Utility:WrapScript(button, "OnClick", format([[
 			local Utility = self:GetParent()
@@ -625,7 +625,7 @@ for i=1, 8 do
 	local x, y, r = 0, 0, 180
 	local angle = (i+1) * (360 / 8) * math.pi / 180
 	local ptx, pty = x + r * math.cos( angle ), y + r * math.sin( angle )
-	local ActionButton = CreateFrame("Button", addOn.."UtilityActionButton"..i, Utility, "ActionButtonTemplate, SecureActionButtonTemplate")
+	local ActionButton = CreateFrame("Button", "ConsolePortUtilityActionButton"..i, Utility, "ActionButtonTemplate, SecureActionButtonTemplate")
 
 	ActionButton.Timer = 0
 	ActionButton.Idle = 0

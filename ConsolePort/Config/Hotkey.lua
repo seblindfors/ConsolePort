@@ -16,7 +16,7 @@ local function GetActionButtons(buttons, this)
 	if this:IsForbidden() then
 		return buttons
 	end
-	local action = this:GetAttribute("action") or this.action
+	local action = this:GetAttribute("action")
 	if action then
 		buttons[this] = action
 	end
@@ -197,7 +197,7 @@ end
 
 function ConsolePort:LoadHotKeyTextures(newSet)
 	local set = newSet or db.Bindings
-	local index, modifier, binding, ID
+	local index, subSet, modifier, binding, ID
 	local actionButtons = GetActionButtons()
 
 	for secureBtn in pairs(db.SECURE) do
@@ -208,8 +208,9 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 		end
 		index = 0
 		modifier = GetBindingModifier(secureBtn.mod)
-		binding = set[secureBtn.name][modifier]
-		ID = self:GetActionID(binding)
+		subSet = set[secureBtn.name]
+		binding = subSet and subSet[modifier]
+		ID = binding and self:GetActionID(binding)
 
 		if ID then
 			for actionButton, actionID in pairs(actionButtons) do
@@ -228,7 +229,7 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 			end
 		elseif secureBtn.action then
 			secureBtn:ShowInterfaceHotKey()
-		else
+		elseif binding then
 			local button = _G[(gsub(gsub(binding, "CLICK ", ""), ":.+", ""))]
 			if button then
 				secureBtn:ShowInterfaceHotKey(button)

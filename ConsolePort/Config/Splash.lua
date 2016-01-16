@@ -6,7 +6,6 @@
 local _, db = ...
 local KEY = db.KEY
 local SETUP = db.TUTORIAL.SETUP
-local PATH = "Interface\\AddOns\\ConsolePort\\Textures\\Splash\\"
 
 -- Determine if the base (unmodified) bindings are assigned.
 function ConsolePort:CheckUnassignedBindings()
@@ -30,75 +29,127 @@ end
 
 function ConsolePort:CreateBindingWizard()
 	if not ConsolePortWizardFrame then
-		local Wizard = db.Atlas.GetSetupWindow("ConsolePortWizardFrame")
+		local Wizard = db.Atlas.GetFutureWindow("ConsolePortWizardFrame")
 		local ctrlType = db.Settings.type
+		local red, green, blue = db.Atlas.GetCC()
+
+		Wizard.Shortcut = db.Atlas.GetFutureButton("$parentShortcut", Wizard)
+		Wizard.Container = CreateFrame("Frame", "$parentContainer", Wizard)
+		Wizard.Container:SetBackdrop(db.Atlas.Backdrops.Border)
+		Wizard.Container:SetPoint("TOPLEFT", 8, -64)
+		Wizard.Container:SetPoint("BOTTOMRIGHT", -8, 8)
 
 		Wizard:SetPoint("CENTER", 0,0)
 		Wizard:SetFrameStrata("DIALOG")
-		Wizard:SetSize(600,544)
-		Wizard:EnableMouse(true)
-		Wizard:EnableKeyboard(true)
+		Wizard:SetSize(580, 416)
+		Wizard:Hide()
+		Wizard:Show()
 
 		if ctrlType ~= "PS4" then
-			Wizard.Skip = CreateFrame("Button", nil, Wizard, "UIPanelButtonTemplate")
-			Wizard.Skip:SetSize(175, 22)
-			Wizard.Skip:SetPoint("BOTTOM", 0, 42)
+
+			Wizard.Skip = db.Atlas.GetFutureButton("$parentSkip", Wizard)
+			Wizard.Skip:SetPoint("BOTTOM", 0, 24)
 			Wizard.Skip:SetText(SETUP.SKIPGUIDE)
 			Wizard.Skip:Hide()
+			Wizard.Shortcut:SetScript("OnShow", function(self)
+				Wizard.Shortcut:Hide()
+			end)
 			Wizard.Skip:SetScript("OnClick", function()
 				db.Settings.skipGuideBtn = true
 				self:CheckUnassignedBindings()
 			end)
 		end
 
+		Wizard.Shortcut:SetPoint("BOTTOM", 0, 24)
+		Wizard.Shortcut:SetText(SETUP.MODSHORTCUT)
+		Wizard.Shortcut:Hide()
+		Wizard.Shortcut:SetScript("OnShow", function(self)
+			if Wizard.Skip and Wizard.Skip:IsVisible() then
+				self:Hide()
+			end
+		end)
+		Wizard.Shortcut:SetScript("OnClick", function(self)
+			self:Hide()
+			Wizard:Hide()
+			ConsolePortConfig:OpenCategory(1)
+		end)
+
+		Wizard.Overlay:SetAlpha(0.035)
+
 		-- Regions
 		-- BG
-		Wizard.Overlay 				= Wizard:CreateTexture(nil, "ARTWORK")
-		Wizard.ButtonTex 			= Wizard:CreateTexture(nil, "ARTWORK")
-		Wizard.Wrapper 				= Wizard:CreateTexture(nil, "OVERLAY")
+		Wizard.Controller 	= Wizard:CreateTexture(nil, "ARTWORK", nil, 7)
+		Wizard.ButtonRim 	= Wizard:CreateTexture(nil, "OVERLAY", nil, 5)
+		Wizard.ButtonTex 	= Wizard:CreateTexture(nil, "OVERLAY", nil, 6)
+		Wizard.ButtonPress 	= Wizard:CreateTexture(nil, "OVERLAY", nil, 7)
+		Wizard.Wrapper 		= Wizard:CreateTexture(nil, "ARTWORK", nil, 6)
 		-- Text fields
-		Wizard.Status 				= Wizard:CreateFontString(nil, "OVERLAY", "SystemFont_Shadow_Med2")
-		Wizard.Binding 				= Wizard:CreateFontString(nil, "OVERLAY", "SplashHeaderFont")
-		Wizard.Description 			= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2")
-		Wizard.Confirm 				= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2")
+		Wizard.Header 		= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+		Wizard.Status 		= Wizard:CreateFontString(nil, "OVERLAY", "SystemFont_Shadow_Med2")
+		Wizard.Binding 		= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2")
+		Wizard.Description 	= Wizard:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		Wizard.Confirm 		= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 
-		Wizard.ButtonTex:SetSize(50, 50)
-		Wizard.Wrapper:SetSize(512, 128)
-
-		Wizard.Overlay:SetPoint("TOPLEFT")
-		Wizard.Overlay:SetPoint("BOTTOMRIGHT")
-		Wizard.ButtonTex:SetPoint("CENTER", Wizard.Wrapper, -142, -4)
-		Wizard.Wrapper:SetPoint("CENTER", 0, -20)
-
-		Wizard.Binding:SetPoint("CENTER", Wizard.Wrapper, 10, 0)
-		Wizard.Status:SetPoint("TOP", 0, -350)
-		Wizard.Description:SetPoint("TOP", 0, -175)
-		Wizard.Confirm:SetPoint("TOP", 0, -400)
-
-		Wizard.Overlay:SetTexture(PATH.."Splash"..ctrlType)
-		Wizard.Wrapper:SetTexture(PATH.."ButtonWrapper")
-
-		-- Alpha
-		Wizard.Overlay:SetAlpha(0.075)
-		Wizard.Status:SetAlpha(0)
-		-- Text values
+		-- FontStrings
+		Wizard.Header:SetPoint("TOP", 0, -40)
 		Wizard.Header:SetText(SETUP.HEADER)
+
+		Wizard.Status:SetPoint("CENTER", 0, -54)
+		Wizard.Status:SetAlpha(0)
+
+		Wizard.Binding:SetPoint("CENTER", 0, 0)
 		Wizard.Binding:SetText(SETUP.EMPTY)
+		Wizard.Binding:SetJustifyH("CENTER")
+
 		Wizard.Description:SetText(SETUP.HEADLINE)
-		-- Bind to frame
-		Wizard.BTN = nil
-		Wizard.VAL = nil
-		Wizard.SET = false
+		Wizard.Description:SetPoint("TOP", Wizard.Wrapper, 0, 50)
+
+		Wizard.Confirm:SetPoint("BOTTOM", 0, 72)
+
+		-- Textures
+		Wizard.ButtonTex:SetSize(50, 50)
+		Wizard.ButtonTex:SetPoint("CENTER", Wizard.Wrapper, -142, 0)
+
+		Wizard.ButtonPress:SetSize(50, 50)
+		Wizard.ButtonPress:SetPoint("CENTER", Wizard.ButtonTex, 0, 2)
+		Wizard.ButtonPress:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask")
+		Wizard.ButtonPress:Hide()
+
+		Wizard.ButtonRim:SetSize(60, 60)
+		Wizard.ButtonRim:SetPoint("CENTER", Wizard.Wrapper, -142, 0)
+		Wizard.ButtonRim:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask64")
+
+		Wizard.Wrapper:SetSize(400, 72)
+		Wizard.Wrapper:SetPoint("CENTER", 0, 0)
+		Wizard.Wrapper:SetTexCoord(0, 0.640625, 0, 1)
+		Wizard.Wrapper:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Highlight")
+		Wizard.Wrapper:SetBlendMode("ADD")
+		Wizard.Wrapper:SetGradientAlpha("HORIZONTAL", red, green, blue, 1, 1, 1, 1, 1)
+
+		Wizard.Controller:SetSize(512, 512)
+		Wizard.Controller:SetPoint("CENTER", 0, 0)
+		Wizard.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
+		Wizard.Controller:SetPoint("TOPLEFT", 8, -8)
+		Wizard.Controller:SetPoint("BOTTOMRIGHT", -8, 8)
+		Wizard.Controller:SetTexCoord(0.345703125, 0.0625, 0.0703125, 0.53515625, 1, 0.4453125, 0.73046875, 0.91796875)
+		Wizard.Controller:SetAlpha(0.075)
+
 		-- Scripts
 		Wizard:SetScript("OnKeyDown", function(self, key)
-			self.Wrapper:SetVertexColor(1, 1, 0.5)
+			self.ButtonPress:Show()
+			self.ButtonTex:SetPoint("CENTER", self.Wrapper, -142, -2)
 		end)
 		Wizard:SetScript("OnKeyUp", function(self, key)
-			self.Wrapper:SetVertexColor(1, 1, 1)
+			self.ButtonTex:SetPoint("CENTER", self.Wrapper, -142, 0)
+			self.ButtonPress:Hide()
+			self.Shortcut:Hide()
 			self.Status:SetAlpha(0)
 			if self.VAL and self.VAL == key and self.SET then
 				if not InCombatLockdown() then
 					if not SetBinding(key, self.BTN) then
+						if key:match("SHIFT") or key:match("CTRL") then
+							self.Shortcut:Show()
+						end
 						self.VAL = nil
 						self.Confirm:SetText("")
 						self.Status:SetText(SETUP.INVALID)
@@ -132,10 +183,18 @@ function ConsolePort:CreateBindingWizard()
 			self.VAL = key
 		end)
 		Wizard:SetScript("OnUpdate", function(self, elapsed)
-			if 	ConsolePortSplashFrame and
-				ConsolePortSplashFrame:IsVisible() then
+			if 	ConsolePortSplashFrame and ConsolePortSplashFrame:IsVisible() then
 				self:Hide()
+			elseif ConsolePortConfig and ConsolePortConfig:IsVisible() then
+				self.Close:Hide()
+				self:SetAlpha(0)
+				self:EnableKeyboard(false)
+				self:EnableMouse(false)
 			else
+				self.Close:Show()
+				self:SetAlpha(1)
+				self:EnableKeyboard(true)
+				self:EnableMouse(true)
 				local unassigned = ConsolePort:CheckUnassignedBindings()
 				if unassigned then
 					self.BTN = unassigned[1]
@@ -158,10 +217,10 @@ function ConsolePort:CreateBindingWizard()
 	end
 end
 
-
 function ConsolePort:CreateSplashFrame()
 	if not ConsolePortSplashFrame then
-		local Splash = db.Atlas.GetSetupWindow("ConsolePortSplashFrame")
+	--	local Splash = db.Atlas.GetSetupWindow("ConsolePortSplashFrame")
+		local Splash = db.Atlas.GetFutureWindow("ConsolePortSplashFrame")
 		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE, TEX_ROTATION = 200, 390, 710, 0.523598776
 		local Controllers = {
 			Playstation = {id = "PS4", pos = 1},
@@ -179,35 +238,53 @@ function ConsolePort:CreateSplashFrame()
 
 		local function OnClick(self)
 			db.Settings.type = self.ID
-			db.Settings.skipGuideBtn = self.ID == "STEAM"
+
+			for key, value in pairs(db.Controllers[self.ID].Settings) do
+				db.Settings[key] = value
+			end
+
+			db.Settings.newController = true
+
 			PlaySound("GLUEENTERWORLDBUTTON")
 			ReloadUI()
 		end
 
-		Splash.Center = CreateFrame("Frame", nil, Splash)
-		Splash.Center:SetPoint("BOTTOM", 0, 50)
+		Splash.Header = Splash:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+		Splash.Header:SetPoint("TOP", 0, -40)
+		Splash.Header:SetText(SETUP.LAYOUT)
+
+		Splash.Container = CreateFrame("Frame", "$parentContainer", Splash)
+		Splash.Container:SetBackdrop(db.Atlas.Backdrops.Border)
+		Splash.Container:SetPoint("TOPLEFT", 8, -64)
+		Splash.Container:SetPoint("BOTTOMRIGHT", -8, 8)
+
+		Splash.Center = CreateFrame("Frame", "$parentCenter", Splash)
+		Splash.Center:SetPoint("CENTER", -24, 0)
 		Splash.Center:SetHeight(BTN_HEIGHT)
 
-		for ctrl, info in pairs(Controllers) do
+		local pos = 0
+		for name, template in pairs(db.Controllers) do
+			pos = pos + 1
+
 			Splash.Center:SetWidth(Splash.Center:GetWidth() + BTN_WIDTH)
 
 			local Controller = CreateFrame("Button", nil, Splash)
-			Splash[ctrl] = Controller
+			Splash[name] = Controller
 
 			Controller:SetSize(BTN_WIDTH, BTN_HEIGHT)
-			Controller:SetPoint("LEFT", Splash.Center, "LEFT", BTN_WIDTH*(info.pos-1), 0)
-			Controller.ID = info.id
+			Controller:SetPoint("LEFT", Splash.Center, "LEFT", BTN_WIDTH*(pos-1), 0)
+			Controller.ID = name
 
-			Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, info.pos)
+			Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, pos)
 			Controller.Normal:SetSize(TEX_SIZE, TEX_SIZE)
 			Controller.Normal:SetPoint("CENTER", 0, 0)
-			Controller.Normal:SetTexture(PATH.."Splash"..info.id)
+			Controller.Normal:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\Front")
 			Controller.Normal:SetRotation(TEX_ROTATION)
 
-			Controller.Highlight = Controller:CreateTexture(nil, "ARTWORK", nil, info.pos+3)
+			Controller.Highlight = Controller:CreateTexture(nil, "ARTWORK", nil, pos+3)
 			Controller.Highlight:SetSize(TEX_SIZE, TEX_SIZE)
 			Controller.Highlight:SetPoint("CENTER", 0, 0)
-			Controller.Highlight:SetTexture(PATH.."Splash"..info.id.."Highlight")
+			Controller.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\FrontHighlight")
 			Controller.Highlight:SetRotation(TEX_ROTATION)
 			Controller.Highlight:SetAlpha(0)
 
@@ -220,8 +297,10 @@ function ConsolePort:CreateSplashFrame()
 		Splash:SetPoint("CENTER", 0,0)
 		Splash:SetSize(750, 550)
 		Splash:EnableMouse(true)
+		Splash:Hide()
+		Splash:Show()
 		-- Text
-		Splash.Header:SetText(SETUP.LAYOUT)
+	--	Splash.Header:SetText(SETUP.LAYOUT)
 	end
 	ConsolePortSplashFrame:Show()
 	PlaySound("SPELLBOOKOPEN")

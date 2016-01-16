@@ -11,8 +11,7 @@ local Flash = db.UIFrameFlash
 local FadeIn = db.UIFrameFadeIn
 local FadeOut = db.UIFrameFadeOut
 ---------------------------------------------------------------
-local UIHandle = CreateFrame("Frame", addOn.."UIHandle", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
-local Cursor = CreateFrame("Frame", addOn.."RaidCursor", UIParent)
+local Cursor = CreateFrame("Frame", "ConsolePortRaidCursor", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
 ---------------------------------------------------------------
 local UnitClass = UnitClass
 local UnitExists = UnitExists
@@ -44,7 +43,7 @@ local Key = {
 	Right 	= ConsolePort:GetUIControlKey("CP_L_RIGHT"),
 }
 ---------------------------------------------------------------
-UIHandle:Execute(format([[
+Cursor:Execute(format([[
 	ALL = newtable()
 	DPAD = newtable()
 
@@ -67,7 +66,7 @@ UIHandle:Execute(format([[
 
 -- Raid cursor run snippets
 ---------------------------------------------------------------
-UIHandle:Execute([[
+Cursor:Execute([[
 	GetNodes = [=[
 		local node = CurrentNode
 		local children = newtable(node:GetChildren())
@@ -300,23 +299,23 @@ UIHandle:Execute([[
 	]=]
 ]])
 ------------------------------------------------------------------------------------------------------------------------------
-local ToggleCursor = CreateFrame("Button", addOn.."RaidCursorToggle", UIHandle, "SecureActionButtonTemplate")
+local ToggleCursor = CreateFrame("Button", "$parentToggle", Cursor, "SecureActionButtonTemplate")
 ToggleCursor:RegisterForClicks("LeftButtonDown")
-UIHandle:SetFrameRef("MouseHandle", ConsolePortMouseHandle)
-UIHandle:WrapScript(ToggleCursor, "OnClick", [[
-	local UIHandle = self:GetParent()
-	local MouseHandle =	UIHandle:GetFrameRef("MouseHandle")
+Cursor:SetFrameRef("MouseHandle", ConsolePortMouseHandle)
+Cursor:WrapScript(ToggleCursor, "OnClick", [[
+	local Cursor = self:GetParent()
+	local MouseHandle =	Cursor:GetFrameRef("MouseHandle")
 
 	IsEnabled = not IsEnabled
 
-	UIHandle:Run(ToggleCursor)
+	Cursor:Run(ToggleCursor)
 	MouseHandle:SetAttribute("override", not IsEnabled)
 ]])
 ------------------------------------------------------------------------------------------------------------------------------
-local SetFocus = CreateFrame("Button", addOn.."RaidCursorFocus", UIHandle, "SecureActionButtonTemplate")
+local SetFocus = CreateFrame("Button", "$parentFocus", Cursor, "SecureActionButtonTemplate")
 SetFocus:SetAttribute("type", "focus")
-UIHandle:SetFrameRef("SetFocus", SetFocus)
-UIHandle:Execute([[ Focus = self:GetFrameRef("SetFocus") ]])
+Cursor:SetFrameRef("SetFocus", SetFocus)
+Cursor:Execute([[ Focus = self:GetFrameRef("SetFocus") ]])
 ------------------------------------------------------------------------------------------------------------------------------
 local buttons = {
 	Up 		= {binding = "CP_L_UP", 	key = Key.Up},
@@ -326,36 +325,36 @@ local buttons = {
 }
 
 for name, button in pairs(buttons) do
-	local btn = CreateFrame("Button", addOn.."RaidCursorButton"..name, UIHandle, "SecureActionButtonTemplate")
+	local btn = CreateFrame("Button", "$parentButton"..name, Cursor, "SecureActionButtonTemplate")
 	btn:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
 	btn:SetAttribute("type", "target")
-	UIHandle:WrapScript(btn, "OnClick", format([[
-		local UIHandle = self:GetParent()
+	Cursor:WrapScript(btn, "OnClick", format([[
+		local Cursor = self:GetParent()
 		if down then
-			UIHandle:Run(SelectNode, %s)
+			Cursor:Run(SelectNode, %s)
 		end
 	]], button.key))
-	UIHandle:Execute(format([[
+	Cursor:Execute(format([[
 		DPAD.%s = "%s"
 	]], button.binding, name))
 end
 ---------------------------------------------------------------
 local currentPage, actionpage = ConsolePort:GetActionPageState()
-RegisterStateDriver(UIHandle, "actionpage", actionpage)
-UIHandle:SetAttribute("_onstate-actionpage", [[ self:Run(UpdateActionPage, newstate) ]])
-UIHandle:SetAttribute("_onstate-unitexists", [[ self:Run(UpdateUnitExists, newstate) ]])
-UIHandle:SetAttribute("actionpage", currentPage)
+RegisterStateDriver(Cursor, "actionpage", actionpage)
+Cursor:SetAttribute("_onstate-actionpage", "self:Run(UpdateActionPage, newstate)")
+Cursor:SetAttribute("_onstate-unitexists", "self:Run(UpdateUnitExists, newstate)")
+Cursor:SetAttribute("actionpage", currentPage)
 ---------------------------------------------------------------
 
 -- Index the entire spellbook by using spell ID as key and spell book slot as value.
 -- IsHarmfulSpell/IsHelpfulSpell functions can use spell book slot, but not actual spell IDs.
 local function SecureSpellBookUpdate(self)
 	if not InCombatLockdown() then
-		if UIHandle then
+		if Cursor then
 			for id=1, MAX_SPELLS do
 				local ok, err, _, _, _, _, _, spellID = pcall(GetSpellInfo, id, "spell")
 				if ok then
-					UIHandle:Execute(format([[
+					Cursor:Execute(format([[
 						SPELLS[%d] = %d
 					]], spellID, id))
 				else
@@ -371,7 +370,7 @@ function ConsolePort:SetupRaidCursor()
 	self:AddUpdateSnippet(SecureSpellBookUpdate)
 
 	-- Update the spell table when a new spell is learned.
-	UIHandle:SetScript("OnEvent", function(_, event, ...)
+	Cursor:SetScript("OnEvent", function(_, event, ...)
 		if event == "LEARNED_SPELL_IN_TAB" then
 			self:AddUpdateSnippet(SecureSpellBookUpdate)
 		end
@@ -461,10 +460,11 @@ function Cursor:Event(event, ...)
 		return
 	end
 
+	-- doesn't work atm, fix this. 
 	if event == "UNIT_SPELLCAST_CHANNEL_START" then
 		local name, _, _, texture, startTime, endTime, _, _, _ = UnitChannelInfo("player")
 
-		local targetRelation = UIHandle:GetAttribute("relation")
+		local targetRelation = self:GetAttribute("relation")
 		local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
 
 		if targetRelation == spellRelation then
@@ -502,7 +502,7 @@ function Cursor:Event(event, ...)
 	elseif event == "UNIT_SPELLCAST_START" then 
 		local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo("player")
 
-		local targetRelation = UIHandle:GetAttribute("relation")
+		local targetRelation = self:GetAttribute("relation")
 		local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
 
 		if targetRelation == spellRelation then
@@ -532,7 +532,7 @@ function Cursor:Event(event, ...)
 		local name, _, icon = GetSpellInfo(spell)
 
 		if name and icon then
-			local targetRelation = UIHandle:GetAttribute("relation")
+			local targetRelation = self:GetAttribute("relation")
 			local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
 
 			if targetRelation == spellRelation then
@@ -549,14 +549,11 @@ function Cursor:Event(event, ...)
 	end
 end
 
---(frame, fadeInTime, fadeOutTime, flashDuration, showWhenDone, flashInHoldTime, flashOutHoldTime, syncId)
-
 function Cursor:Update(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
-		local node = UIHandle:GetAttribute("node")
-		local x, y = UIHandle:GetCenter()
-		self:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
+		local node = self:GetAttribute("node")
+		local x, y = self:GetCenter()
 		if node then
 			local name = node:GetName()
 			if ConsolePortCursor:IsVisible() and not InCombatLockdown() then

@@ -20,6 +20,8 @@ local CRITICALUPDATE = false
 local v1, v2, v3 = strsplit("%d+.", GetAddOnMetadata(addOn, "Version"))
 local VERSION = v1*10000+v2*100+v3
 ---------------------------------------------------------------
+local newChar
+---------------------------------------------------------------
 -- Initialize crucial addon-wide tables
 ---------------------------------------------------------------
 db.TEXTURE 	= {}
@@ -50,15 +52,35 @@ local function ResetAllSettings()
 	end
 end
 
+local function LoadDefaultBindings()
+	ConsolePortConfig:Show()
+	ConsolePortConfigContainerBinds:Default()
+end
+
 function ConsolePort:LoadSettings()
 
+	local fullReset
+
+	if not ConsolePortSettings then
+		fullReset = true
+		ConsolePortSettings = self:GetDefaultAddonSettings()
+		self:CreateSplashFrame()
+	end
+
+	db.Settings = ConsolePortSettings
+
+	self:LoadLookup()
+
 	if not ConsolePortBindingSet then
-		ConsolePortBindingSet = self:GetDefaultBindingSet()
+		if not fullReset and not db.Settings.newController then
+			newChar = true
+		end
+		ConsolePortBindingSet = {} --self:GetDefaultBindingSet()
 	end
 
 	-- Interface binding buttons and interface commands.
 	if not ConsolePortBindingButtons then
-		ConsolePortBindingButtons = self:GetDefaultBindingButtons()
+		ConsolePortBindingButtons = self:GetDefaultUIBindingRefs()
 	end
 
 	if not ConsolePortMouse then
@@ -66,11 +88,6 @@ function ConsolePort:LoadSettings()
 			Events = self:GetDefaultMouseEvents(),
 			Cursor = self:GetDefaultMouseCursor(),
 		}
-	end
-
-	if not ConsolePortSettings then
-		ConsolePortSettings = self:GetDefaultAddonSettings()
-		self:CreateSplashFrame()
 	end
 
 	-- Use these frames in the virtual cursor stack
@@ -85,7 +102,6 @@ function ConsolePort:LoadSettings()
 
 	db.Bindings = ConsolePortBindingSet
 	db.Bindbtns = ConsolePortBindingButtons
-	db.Settings = ConsolePortSettings
 	db.UIStack = ConsolePortUIFrames
 	db.Mouse = ConsolePortMouse
 
@@ -120,8 +136,8 @@ function ConsolePort:LoadSettings()
 				if key2 then SetBinding(key2) end
 			end
 			SaveBindings(GetCurrentBindingSet())
-			ConsolePortBindingSet = ConsolePort:GetDefaultBindingSet()
-			ConsolePortBindingButtons = ConsolePort:GetDefaultBindingButtons()
+			ConsolePortBindingSet = nil --ConsolePort:GetDefaultBindingSet()
+			ConsolePortBindingButtons = nil -- ConsolePort:GetDefaultUIBindingRefs()
 			ConsolePortUIFrames = nil
 			ConsolePortSettings = nil
 			ConsolePortUtility = nil
@@ -158,8 +174,8 @@ function ConsolePort:CheckLoadedSettings()
 		(ConsolePortSettings.version < VERSION and CRITICALUPDATE) then
 		StaticPopupDialogs["CONSOLEPORT_CRITICALUPDATE"] = {
 			text = format(db.TUTORIAL.SLASH.CRITICALUPDATE, GetAddOnMetadata(addOn, "Version")),
-			button1 = "Yes (recommended)",
-			button2 = "Cancel",
+			button1 = db.TUTORIAL.SLASH.ACCEPT,
+			button2 = db.TUTORIAL.SLASH.CANCEL,
 			showAlert = true,
 			timeout = 0,
 			whileDead = true,
@@ -170,19 +186,51 @@ function ConsolePort:CheckLoadedSettings()
 			OnAccept = ResetAllSettings,
 		}
 		StaticPopup_Show("CONSOLEPORT_CRITICALUPDATE")
+	elseif ConsolePortSettings and ConsolePortSettings.newController then
+		StaticPopupDialogs["CONSOLEPORT_NEWCONTROLLER"] = {
+			text = db.TUTORIAL.SLASH.NEWCONTROLLER,
+			button1 = db.TUTORIAL.SLASH.ACCEPT,
+			button2 = db.TUTORIAL.SLASH.CANCEL,
+			showAlert = true,
+			timeout = 0,
+			whileDead = true,
+			hideOnEscape = true,
+			preferredIndex = 3,
+			enterClicksFirstButton = true,
+			exclusive = true,
+			OnAccept = LoadDefaultBindings,
+		}
+		StaticPopup_Show("CONSOLEPORT_NEWCONTROLLER")
+		ConsolePortSettings.newController = nil
+	elseif ConsolePortSettings and newChar then
+		StaticPopupDialogs["CONSOLEPORT_NEWCHARACTER"] = {
+			text = db.TUTORIAL.SLASH.NEWCHARACTER,
+			button1 = db.TUTORIAL.SLASH.ACCEPT,
+			button2 = db.TUTORIAL.SLASH.CANCEL,
+			showAlert = true,
+			timeout = 0,
+			whileDead = true,
+			hideOnEscape = true,
+			preferredIndex = 3,
+			enterClicksFirstButton = true,
+			exclusive = true,
+			OnAccept = LoadDefaultBindings,
+		}
+		StaticPopup_Show("CONSOLEPORT_NEWCHARACTER")
 	end
 	self.CheckLoadedSettings = nil
 end
 
 function ConsolePort:CreateActionButtons()
 	local keys = ConsolePortBindingButtons
-	local y = 1
-	table.sort(keys)
-	for name, key in db.pairsByKeys(keys) do
-		self:CreateSecureButton(name, "_NOMOD",	key.action,	key.ui)
-		self:CreateSecureButton(name, "_SHIFT", key.shift, 	key.ui)
-		self:CreateSecureButton(name, "_CTRL",  key.ctrl, 	key.ui)
-		self:CreateSecureButton(name, "_CTRLSH",key.ctrlsh, key.ui)
+	local buttons = db.Controllers[db.Settings.type].Buttons
+	for _, name in pairs(buttons) do
+		local key = keys[name]
+		local ui = key and key.ui
+		self:CreateSecureButton(name, "_NOMOD",	 key and key.action,	ui)
+		self:CreateSecureButton(name, "_SHIFT",  key and key.shift, 	ui)
+		self:CreateSecureButton(name, "_CTRL",   key and key.ctrl, 		ui)
+		self:CreateSecureButton(name, "_CTRLSH", key and key.ctrlsh, 	ui)
 		self:CreateConfigButton(name, "_NOMOD", 0)
 		self:CreateConfigButton(name, "_SHIFT", 1)
 		self:CreateConfigButton(name, "_CTRL",  2)

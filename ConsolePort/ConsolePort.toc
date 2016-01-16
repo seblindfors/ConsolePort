@@ -1,11 +1,12 @@
 ## Interface: 60200
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 0.10.12
+## Version: 0.11.1
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortBindingButtons, ConsolePortMouse, ConsolePortUtility
 
 Locale\Locale.xml
+Controllers\Controllers.xml
 
 Init\Init.lua
 Init\Table.lua

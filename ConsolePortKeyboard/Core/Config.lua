@@ -1,6 +1,8 @@
 local addOn, Language = ...
 ---------------------------------------------------------------
 local db = ConsolePort:DB()
+local Copy = db.Table.Copy
+local pairsByKeys = db.Table.pairsByKeys
 ---------------------------------------------------------------
 local Keyboard = ConsolePortKeyboard
 local NewLayout
@@ -18,7 +20,7 @@ local function Hex2RGB(hex)
 end
 ---------------------------------------------------------------
 local function SaveKeyboardConfig()
-	ConsolePortKeyboardLayout = NewLayout and db.Copy(NewLayout) or ConsolePortKeyboardLayout
+	ConsolePortKeyboardLayout = NewLayout and Copy(NewLayout) or ConsolePortKeyboardLayout
 	Keyboard:SetLayout()
 end
 
@@ -48,13 +50,13 @@ local function CreateLanguageButton(parent, num)
 end
 
 local function LanguageButtonOnClick(self)
-	NewLayout = db.Copy(self.layout)
+	NewLayout = Copy(self.layout)
 	self.parent:UpdateFields()
 end
 
 local function RefreshLanguageList(self)
 	local num = 0
-	for name, layout in db.pairsByKeys(Language) do
+	for name, layout in pairsByKeys(Language) do
 		if name ~= "Default" and name ~= "Markers" then
 			num = num + 1
 			local button
@@ -99,7 +101,7 @@ local function ConfigureConfig(self, Config)
 	local function TextChanged(self, userInput)
 		if userInput then
 			if not NewLayout then
-				NewLayout = db.Copy(ConsolePortKeyboardLayout)
+				NewLayout = Copy(ConsolePortKeyboardLayout)
 			end
 			NewLayout[self.Index[1]][self.Index[2]][self.Index[3]] = self:GetText()
 		end

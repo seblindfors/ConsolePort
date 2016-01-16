@@ -3,14 +3,14 @@
 ---------------------------------------------------------------
 -- Provides a template function for convenient panel creation.
 
-local addOn, db = ...
+local _, db = ...
 local TUTORIAL = db.TUTORIAL.CONFIG
 local FadeOut = db.UIFrameFadeOut
 local FadeIn = db.UIFrameFadeIn
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
-local Popup = db.Atlas.GetFutureWindow(addOn.."Popup", nil, nil, true)
-local Config = db.Atlas.GetFutureWindow(addOn.."Config")
+local Popup = db.Atlas.GetFutureWindow("ConsolePortPopup", nil, nil, true)
+local Config = db.Atlas.GetFutureWindow("ConsolePortConfig")
 local Category = CreateFrame("Frame", "$parentCategory", Config)
 local Container = CreateFrame("Frame", "$parentContainer", Config)
 ---------------------------------------------------------------
@@ -153,11 +153,11 @@ function Tooltip:OnShow()
 	self:SetPoint(point, anchor, relativePoint, floor(x + 0.5), floor(y + 0.5))
 	self:SetSize(width - (width % 2), height - (height % 2))
 	-- set CC backdrop
-	self:SetBackdropColor(red*0.15, green*0.15, blue*0.15,  0.75)
+	self:SetBackdrop(db.Atlas.Backdrops.Full)
+	self:SetBackdropColor(red, green, blue,  0.9)
 	FadeIn(self, 0.2, 0, 1)
 end
 
-Tooltip:SetBackdrop(db.Atlas.Backdrops.Tooltip)
 Tooltip:SetScript("OnShow", Tooltip.OnShow)
 Tooltip:Show()
 Tooltip:Hide()
@@ -168,7 +168,7 @@ Popup.Button2 = db.Atlas.GetFutureButton("$parentButton2", Popup, nil, nil, 180,
 Popup.Container = db.Atlas.GetGlassWindow("$parentContainer", Popup, nil, true)
 Popup.Container.BG:SetAlpha(0.1)
 Popup.Container.Close:Hide()
-Popup.Container:SetBackdrop(db.Atlas.Backdrops.Border)
+Popup.Container:SetBackdrop(db.Atlas.Backdrops.BorderInset)
 Popup.Container:SetPoint("TOPLEFT", Popup, "TOPLEFT", 16, -52)
 Popup.Container:SetPoint("BOTTOMRIGHT", Popup, "BOTTOMRIGHT", -16, 52)
 ---------------------------------------------------------------

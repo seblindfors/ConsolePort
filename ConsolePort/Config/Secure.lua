@@ -6,7 +6,7 @@
 -- direct "clicking" causes taint to spread in a lot of cases.
 -- These buttons are under-the-hood and invisible to the user.
 
-local addOn, db = ...
+local _, db = ...
 local TEXTURE = db.TEXTURE
 local KEY = db.KEY
 ---------------------------------------------------------------
@@ -18,7 +18,7 @@ local GameMenuFrame = GameMenuFrame
 -- SecureBtn: Actionpage state handler (hardly useful anymore)
 ---------------------------------------------------------------
 function ConsolePort:CreateButtonHandler()
-	local ButtonHandler = CreateFrame("Frame", addOn.."ButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
+	local ButtonHandler = CreateFrame("Frame", "ConsolePortButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
 	ButtonHandler:Execute([[
 		SecureButtons = newtable()
 		UpdateActionPage = [=[
@@ -200,10 +200,11 @@ function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
 	btn:HookScript("OnMouseDown", OnMouseDown)
 	btn:HookScript("OnMouseUp", OnMouseUp)
 	-----------------------------------------------------------
-	if 		btn.command == KEY.UP or
+	if 		ConsolePortSettings.type ~= "STEAM" and
+			(btn.command == KEY.UP or
 			btn.command == KEY.DOWN or
 			btn.command == KEY.LEFT or
-			btn.command == KEY.RIGHT then
+			btn.command == KEY.RIGHT) then
 		btn:SetScript("OnUpdate", CheckHeldDown)
 	elseif 	btn.command == KEY.CROSS or
 			btn.command == KEY.CIRCLE or

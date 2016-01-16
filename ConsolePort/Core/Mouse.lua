@@ -336,7 +336,7 @@ function ConsolePort:UpdateStateDriver()
 	if db.Settings.interactWith then
 		local currentPage, actionpage = self:GetActionPageState()
 		local button = db.Settings.interactWith
-		local original = db.Bindings[button].action
+		local original = db.Bindings and db.Bindings[button] and db.Bindings[button].action
 		local id = original and self:GetActionID(original)
 
 		local targetstate = "[@playertarget,exists,harm,nodead] enemy; [@playertarget,exists,noharm,nodead] friend; nil"

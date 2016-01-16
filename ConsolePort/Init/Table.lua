@@ -3,10 +3,12 @@
 ---------------------------------------------------------------
 -- These table functions are used to perform special operations
 -- that are not natively supported.  
-
-local _, db = ...
 ---------------------------------------------------------------
--- Table: Recursive table duplicator, creates a deep copy
+local _, db = ...
+local Table = {}
+---------------------------------------------------------------
+db.Table = Table
+---------------------------------------------------------------
 ---------------------------------------------------------------
 local function Copy(src)
 	local srcType = type(src)
@@ -22,15 +24,28 @@ local function Copy(src)
 	end
 	return copy
 end
-
-db.Copy = Copy
-
 ---------------------------------------------------------------
--- Table: Recursive table comparator, checks if identical
+local function Flip(src)
+	local srcType = type(src)
+	local copy
+	if srcType == "table" then
+		copy = {}
+		for key, value in pairs(src) do
+			if not copy[value] then
+				copy[value] = key
+			else
+				return src
+			end
+		end
+	end
+	return copy or src
+end
 ---------------------------------------------------------------
 local function Compare(t1, t2)
 	if t1 == t2 then
 		return true
+	elseif t1 and not t2 or t2 and not t1 then
+		return false
 	end
 	if type(t1) ~= "table" then
 		return false
@@ -53,11 +68,6 @@ local function Compare(t1, t2)
 	end
 	return true
 end
-
-db.Compare = Compare
-
----------------------------------------------------------------
--- Table: Sort by non-numeric key, handy for string indices.
 ---------------------------------------------------------------
 local function PairsByKeys(t, f)
 	local a = {}
@@ -72,5 +82,20 @@ local function PairsByKeys(t, f)
 	end
 	return iter
 end
-
-db.pairsByKeys = PairsByKeys
+---------------------------------------------------------------
+---------------------------------------------------------------
+-- Copy: Recursive table duplicator, creates a deep copy
+---------------------------------------------------------------
+Table.Copy = Copy
+---------------------------------------------------------------
+-- Flip: Flips the table associations. (only for unique values)
+---------------------------------------------------------------
+Table.Flip = Flip
+---------------------------------------------------------------
+-- Compare: Recursive table comparator, checks if identical
+---------------------------------------------------------------
+Table.Compare = Compare
+---------------------------------------------------------------
+-- PairsByKeys: Sort by non-numeric key, handy for string keys
+---------------------------------------------------------------
+Table.pairsByKeys = PairsByKeys

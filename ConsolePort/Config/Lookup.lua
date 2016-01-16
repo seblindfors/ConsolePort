@@ -6,6 +6,8 @@
 
 local addOn, db = ...
 ---------------------------------------------------------------
+local Controller
+---------------------------------------------------------------
 local tonumber = tonumber
 local ipairs = ipairs
 local pairs = pairs
@@ -30,6 +32,13 @@ db.KEY = {
 	STATE_DOWN	= "down",
 }
 local KEY = db.KEY
+
+---------------------------------------------------------------
+function ConsolePort:LoadLookup()
+	Controller = db.Controllers[db.Settings.type]
+	self.LoadLookup = nil
+end
+---------------------------------------------------------------
 
 
 ---------------------------------------------------------------
@@ -185,15 +194,20 @@ function ConsolePort:GetActionPageState()
 end
 
 function ConsolePort:GetActionBinding(id)
-	-- reserve bars for classes with stances
-	if customRange then
-		if (id <= customRange or id > stanceRange) then
+	local idType = type(id)
+	if idType == "number" then
+		-- reserve bars for classes with stances
+		if customRange then
+			if (id <= customRange or id > stanceRange) then
+				return actionIDs[id]
+			end
+		-- let other classes use bars 7-10 
+		elseif (id <= normalRange or id > stanceRange) then
 			return actionIDs[id]
 		end
-	-- let other classes use bars 7-10 
-	elseif (id <= normalRange or id > stanceRange) then
+	elseif idType == "string" then
 		return actionIDs[id]
-	end	
+	end
 end
 
 function ConsolePort:GetActionID(bindName)
@@ -216,117 +230,12 @@ end
 ---------------------------------------------------------------
 -- Lookup: Get the clean binding names for various uses
 ---------------------------------------------------------------
-function ConsolePort:GetBindingNames()
-	return {
-		"CP_R_UP",
-		"CP_R_DOWN",
-		"CP_R_LEFT",
-		"CP_R_RIGHT",
-		----------------
-		"CP_L_LEFT",
-		"CP_L_UP",
-		"CP_L_RIGHT",
-		"CP_L_DOWN",
-		----------------
-		"CP_TR1",
-		"CP_TR2",
-		----------------
-		"CP_L_OPTION",
-		"CP_C_OPTION",
-		"CP_R_OPTION",
-	}
-end
-
+function ConsolePort:GetBindingNames() return Controller.Buttons end
 
 ---------------------------------------------------------------
 -- Lookup: Default faux binding settings
 ---------------------------------------------------------------
-function ConsolePort:GetDefaultBinding(key)
-	local keys = {
-		["CP_R_UP"] = 	{
-			["action"] 		= "ACTIONBUTTON2",
-			["shift"] 		= "ACTIONBUTTON7",
-			["ctrl"] 		= "MULTIACTIONBAR1BUTTON2",
-			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON7",
-		},
-		["CP_R_DOWN"] = {
-			["action"] 		= "JUMP",
-			["shift"] 		= "TARGETNEARESTENEMY",
-			["ctrl"]  		= "INTERACTMOUSEOVER",
-			["ctrlsh"] 		= "CLICK ConsolePortUtilityToggle:LeftButton",
-		},
-		["CP_R_LEFT"] = {
-			["action"] 		= "ACTIONBUTTON1",
-			["shift"] 		= "ACTIONBUTTON6",
-			["ctrl"] 		= "MULTIACTIONBAR1BUTTON1",
-			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON6",
-		},
-		["CP_R_RIGHT"] = {
-			["action"] 		= "ACTIONBUTTON3",
-			["shift"] 		= "ACTIONBUTTON8",
-			["ctrl"] 		= "MULTIACTIONBAR1BUTTON3",
-			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON8",
-		},
-		-- Triggers
-		["CP_TR1"] =	{
-			["action"] 		= "ACTIONBUTTON4",
-			["shift"] 		= "ACTIONBUTTON9",
-			["ctrl"] 		= "MULTIACTIONBAR1BUTTON4",
-			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON9",
-		},
-		["CP_TR2"] = 	{
-			["action"] 		= "ACTIONBUTTON5",
-			["shift"] 		= "ACTIONBUTTON10",
-			["ctrl"] 		= "MULTIACTIONBAR1BUTTON5",
-			["ctrlsh"] 		= "MULTIACTIONBAR1BUTTON10",
-		},
-		-- Left side
-		["CP_L_UP"] = {
-			["action"] 		= "MULTIACTIONBAR1BUTTON12",
-			["shift"] 		= "MULTIACTIONBAR2BUTTON2",
-			["ctrl"] 		= "MULTIACTIONBAR2BUTTON6",
-			["ctrlsh"] 		= "MULTIACTIONBAR2BUTTON10",
-		},
-		["CP_L_DOWN"] = {
-			["action"] 		= "ACTIONBUTTON11",
-			["shift"] 		= "MULTIACTIONBAR2BUTTON4",
-			["ctrl"]  		= "MULTIACTIONBAR2BUTTON8",
-			["ctrlsh"]		= "MULTIACTIONBAR2BUTTON12",
-		},
-		["CP_L_LEFT"] = {
-			["action"] 		= "MULTIACTIONBAR1BUTTON11",
-			["shift"] 		= "MULTIACTIONBAR2BUTTON1",
-			["ctrl"] 		= "MULTIACTIONBAR2BUTTON5",
-			["ctrlsh"] 		= "MULTIACTIONBAR2BUTTON9",
-		},
-		["CP_L_RIGHT"] = {
-			["action"] 		= "ACTIONBUTTON12",
-			["shift"] 		= "MULTIACTIONBAR2BUTTON3",
-			["ctrl"] 		= "MULTIACTIONBAR2BUTTON7",
-			["ctrlsh"] 		= "MULTIACTIONBAR2BUTTON11",
-		},		
-		["CP_L_OPTION"] = {
-			["action"] 		= "OPENALLBAGS",
-			["shift"] 		= "TOGGLECHARACTER0",
-			["ctrl"] 		= "TOGGLESPELLBOOK",
-			["ctrlsh"] 		= "TOGGLETALENTS",
-		},
-		["CP_C_OPTION"] = {
-			["action"] 		= "TOGGLEGAMEMENU",
-			["shift"] 		= "CLICK ConsolePortRaidCursorToggle:LeftButton",
-			["ctrl"] 		= "TOGGLEAUTORUN",
-			["ctrlsh"] 		= "OPENCHAT",
-		},
-		["CP_R_OPTION"] = {
-			["action"] 		= "TOGGLEWORLDMAP",
-			["shift"] 		= "CP_CAMZOOMOUT",
-			["ctrl"] 		= "CP_CAMZOOMIN",
-			["ctrlsh"] 		= "SETVIEW1",
-		},
-	}
-	return keys[key]
-end
-
+function ConsolePort:GetDefaultBinding(key) return Controller.Bindings[key] end
 
 ---------------------------------------------------------------
 -- Lookup: Get the integer key used to perform UI operations
@@ -357,17 +266,16 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultBindingSet()
 	local bindingSet = {}
-	local Buttons = self:GetBindingNames()
-	for _, Button in ipairs(Buttons) do
+	for _, Button in ipairs(Controller.Buttons) do
 		bindingSet[Button] = self:GetDefaultBinding(Button)
 	end
 	return bindingSet
 end
 
-function ConsolePort:GetDefaultBindingButtons()
+function ConsolePort:GetDefaultUIBindingRefs()
 	local bindingSet = {}
 	for _, Button in ipairs(self:GetBindingNames()) do
-		bindingSet[Button] = { ui = self:GetUIControlKey(Button) }
+		bindingSet[Button] = { ui = self:GetUIControlKey(Button) or 0 }
 	end
 	return bindingSet
 end
@@ -406,6 +314,11 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["mouseOnCenter"] = true,
 		["mouseOnJump"] = false,
 	}
+	if Controller then
+		for key, value in pairs(Controller.Settings) do
+			settings[key] = value
+		end
+	end
 	if setting then
 		return settings[setting]
 	else

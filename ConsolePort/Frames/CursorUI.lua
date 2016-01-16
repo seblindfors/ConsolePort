@@ -12,7 +12,8 @@ local SECURE 	= db.SECURE
 local TEXTURE 	= db.TEXTURE
 local L1, L2 	= "CP_TL1", "CP_TL2"
 ---------------------------------------------------------------
-local MAX_WIDTH, MAX_HEIGHT, UI_SCALE
+local MAX_WIDTH, MAX_HEIGHT = UIParent:GetSize()
+local UI_SCALE = UIParent:GetScale()
 ---------------------------------------------------------------
 local nodes, current, old, rebindNode = {}
 ---------------------------------------------------------------
@@ -34,11 +35,11 @@ local abs = abs
 local ConsolePort = ConsolePort
 ---------------------------------------------------------------
 -- Initiate the cursor frame
-local Cursor = CreateFrame("Frame", addOn.."Cursor", UIParent)
+local Cursor = CreateFrame("Frame", "ConsolePortCursor", UIParent)
 ConsolePort.Cursor = Cursor
 ---------------------------------------------------------------
-local StepL = CreateFrame("Button", addOn.."CursorStepLeft")
-local StepR = CreateFrame("Button", addOn.."CursorStepRight")
+local StepL = CreateFrame("Button", "ConsolePortCursorStepLeft")
+local StepR = CreateFrame("Button", "ConsolePortCursorStepRight")
 ---------------------------------------------------------------
 UIParent:HookScript("OnSizeChanged", function(self)
 	UI_SCALE = self:GetScale()
@@ -603,6 +604,7 @@ end
 ---------------------------------------------------------------
 function ConsolePort:SetupCursor()
 	UI_SCALE = UIParent:GetScale()
+	MAX_WIDTH, MAX_HEIGHT = UIParent:GetSize()
 
 	Cursor.Special 		= db.Mouse.Cursor.Special
 	Cursor.SpecialClick = _G[Cursor.Special.."_NOMOD"]

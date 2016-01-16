@@ -59,6 +59,11 @@ db.Atlas.Backdrops = {
 		edgeFile 	= path.."Window\\Edgefile",
 		edgeSize 	= 8,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
+	},
+	BorderInset = {
+		edgeFile 	= path.."Window\\EdgefileInset",
+		edgeSize 	= 8,
+		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	}
 }
 ---------------------------------------------------------------

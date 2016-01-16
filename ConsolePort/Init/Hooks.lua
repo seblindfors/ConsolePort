@@ -57,7 +57,12 @@ function ConsolePort:LoadHookScripts()
 	-- Remove the need to type "DELETE" when removing rare or better quality items
 	StaticPopupDialogs.DELETE_GOOD_ITEM = StaticPopupDialogs.DELETE_ITEM
 
-	-- test
+	-- Give default UI action buttons their correct action IDs.
+	-- This is to make it easier to distinguish action buttons,
+	-- since action bar addons use this attribute to perform actions.
+	-- Blizzard's own system does not use the attribute by default,
+	-- instead resorting to table keys to determine correct action.
+	-- Assigning the attribute manually unifies default UI with addons.
 	local bars = {
 		["ActionButton"] = 1,
 		["MultiBarRightButton"] = 3,

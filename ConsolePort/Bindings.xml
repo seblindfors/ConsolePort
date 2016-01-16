@@ -10,6 +10,8 @@
 	<Binding name="CP_R_OPTION" header="CP_CENTER" category="ConsolePort "/>
 	<Binding name="CP_C_OPTION" header="CP_CENTER" category="ConsolePort "/>
 	<Binding name="CP_L_OPTION" header="CP_CENTER" category="ConsolePort "/>
+	<Binding name="CP_L_GRIP" header="CP_GRIP" category="ConsolePort "/>
+	<Binding name="CP_R_GRIP" header="CP_GRIP" category="ConsolePort "/>
 	<Binding name="CP_TR1" header="CP_TRIG" category="ConsolePort "/>
 	<Binding name="CP_TR2" header="CP_TRIG" category="ConsolePort "/>
 	<!-- Utility belt -->

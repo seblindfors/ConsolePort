@@ -6,8 +6,12 @@
 -- The system converts one static binding for each button
 -- into four combinations (no mod, shift, ctrl, shift+ctrl)
 -- which then run override bindings that perish on logout.
+-- 
+-- This system is somewhat nonsensical, because it's fundamental
+-- to the addon's functionality, but constructed poorly due to
+-- limited lua knowledge at the time of original conceptualization.
 
-local addOn, db = ...
+local _, db = ...
 local KEY = db.KEY
 local TUTORIAL = db.TUTORIAL.BIND
 local TEXTURE = db.TEXTURE
@@ -20,13 +24,35 @@ local CTRLSH			= "_CTRLSH"
 local BIND 				= "BINDING_NAME_"
 
 local NewBindingSet
-local NewBindingButtons
+local NewUIBindingRefs
 
 local FadeIn = db.UIFrameFadeIn
 local FadeOut = db.UIFrameFadeOut
 
-local Compare = db.Compare
-local Copy = db.Copy
+local pairsByKeys = db.Table.pairsByKeys
+local Compare = db.Table.Compare
+local Copy = db.Table.Copy
+
+---------------------------------------------------------------
+-- Binds: Get new binding sets and UI references
+---------------------------------------------------------------
+local function GetNewBindingSet(default)
+	if default then
+		NewBindingSet = ConsolePort:GetDefaultBindingSet()
+	elseif not NewBindingSet then
+		NewBindingSet = Copy(db.Bindings) or ConsolePort:GetDefaultBindingSet()
+	end
+	return NewBindingSet
+end
+
+local function GetNewUIBindingRefs(default)
+	if default then
+		NewUIBindingRefs = ConsolePort:GetDefaultUIBindingRefs()
+	elseif not NewUIBindingRefs then
+		NewUIBindingRefs = Copy(db.Bindbtns) or ConsolePort:GetDefaultUIBindingRefs()
+	end
+	return NewUIBindingRefs
+end
 
 ---------------------------------------------------------------
 -- Binds: Returns converted modifier for binding table use
@@ -74,7 +100,7 @@ local function GetActionButtons(buttons, this)
 	if this:IsForbidden() then
 		return buttons
 	end
-	local action = this:GetAttribute("action") or this.action
+	local action = this:GetAttribute("action")
 	if action then
 		buttons[this] = action
 	end
@@ -97,7 +123,7 @@ local function ExportCharacterSettings()
 	local this = GetUnitName("player").."-"..GetRealmName()
 	local class = select(2, UnitClass("player"))
 	if 	not Compare(db.Bindings, ConsolePort:GetDefaultBindingSet()) or
-		not Compare(db.Bindbtns, ConsolePort:GetDefaultBindingButtons()) then
+		not Compare(db.Bindbtns, ConsolePort:GetDefaultUIBindingRefs()) then
 		if not ConsolePortCharacterSettings then
 			ConsolePortCharacterSettings = {}
 		end
@@ -108,6 +134,7 @@ local function ExportCharacterSettings()
 			BindingSet = db.Bindings,
 			BindingBtn = db.Bindbtns,
 			MouseEvent = db.Mouse.Events,
+			Type = db.Settings.type,
 			Class = class,
 		}
 	elseif ConsolePortCharacterSettings then
@@ -116,9 +143,9 @@ local function ExportCharacterSettings()
 end
 
 local function SubmitBindings()
-	if 	NewBindingSet or NewBindingButtons then
+	if 	NewBindingSet or NewUIBindingRefs then
 		db.Bindings = NewBindingSet or db.Bindings
-		db.Bindbtns = NewBindingButtons or db.Bindbtns
+		db.Bindbtns = NewUIBindingRefs or db.Bindbtns
 		ConsolePortBindingSet = db.Bindings
 		ConsolePortBindingButtons = db.Bindbtns
 		ReloadBindings()
@@ -127,8 +154,8 @@ local function SubmitBindings()
 end
 
 local function RevertBindings()
-	if 	NewBindingButtons or NewBindingSet then
-		NewBindingButtons = nil
+	if 	NewUIBindingRefs or NewBindingSet then
+		NewUIBindingRefs = nil
 		NewBindingSet = nil
 		ConsolePort:LoadHotKeyTextures()
 		if not InCombatLockdown() then
@@ -166,16 +193,28 @@ local function AnimateBindingChange(target, destination)
 	local AniFrame = ConsolePortAnimationFrame
 	local dX, dY = destination:GetCenter()
 	local tX, tY = target:GetCenter()
-	AniFrame.texture:SetTexture(target.icon and target.icon:GetTexture() or target.Icon and target.Icon:GetTexture())
+	local targetIcon = target.icon or target.Icon
+	local texture = targetIcon.IsObjectType and targetIcon:IsObjectType("Texture") and targetIcon:GetTexture() 
+	AniFrame.texture:SetTexture(texture)
 	AniFrame.dest = destination
 	AniFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", tX,tY)
 	AniFrame.animation:SetOffset((dX-tX), (dY-tY))
+	AniFrame.group:Stop()
 	AniFrame.group:Play()
 end
 
 ---------------------------------------------------------------
 -- Binds: Secure UI/Button binding changer
 ---------------------------------------------------------------
+local function ClearButtonBinding(actionButton)
+	local set = GetNewBindingSet()
+	local name = actionButton.name
+	local mod = GetBindingModifier(actionButton.mod)
+	if set[name] and set[name][mod] then
+		set[name][mod] = nil
+	end
+end
+
 local function ChangeButtonBinding(actionButton)
 	local buttonName 	= actionButton:GetName()
 	local confButton 	= _G[buttonName..CONF]
@@ -184,61 +223,77 @@ local function ChangeButtonBinding(actionButton)
 	local focusFrame 	= ConsolePort:GetCurrentNode()
 	local focusFrameName = focusFrame:GetName()
 	-- Rebind checkup
-	if 	focusFrameName and
-		focusFrame:IsObjectType("Button") then
+	if 	focusFrameName and focusFrame:IsObjectType("Button") then
 
-		local isValid = false
-		local isStatic = false
+		local isValid
 		local swapIndex, swapMod, swapText
 
-		if focusFrame.Binding then
-			isStatic = true
-			isValid = true
-		elseif focusFrame:GetParent() ~= ConsolePortRebindFrame then
-			isStatic = false
-			isValid = true
-		end
+		local focusedBinding = focusFrame.StaticBinding
+
+		isValid = focusedBinding ~= nil or focusFrame:GetParent() ~= ConsolePortRebindFrame
 
 		if isValid then
-			if not NewBindingSet then
-				NewBindingSet = Copy(db.Bindings)
+
+			local set = GetNewBindingSet()
+			local refs = GetNewUIBindingRefs()
+
+			-- create sub tables if they don't exist (if controller was changed)
+			if not set[tableIndex] then
+				set[tableIndex] = {}
+			end					
+			if not refs[tableIndex] then
+				refs[tableIndex] = {}
 			end
-			if not NewBindingButtons then
-				NewBindingButtons = Copy(db.Bindbtns)
-			end
+
+			-----------------------
 
 			local mod = GetBindingModifier(modifier)
+			local currentButtonRef = set[tableIndex]
+			local currentUIRef = refs[tableIndex]
 
 			-- specific to the list of bindings
-			if isStatic then
-				local text = _G[BIND..focusFrame.Binding] or focusFrame.Binding
+			if focusedBinding then
+				local text = _G[BIND..focusedBinding] or focusedBinding
 				-- check for duplicate bindings 
-				for bindName, bindTable in pairs(NewBindingSet) do
+				for bindName, bindTable in pairs(set) do
 					for bindMod, bindAction in pairs(bindTable) do
-						if focusFrame.Binding == bindAction then
+						if focusedBinding == bindAction then
 							swapIndex = bindName
 							swapMod = bindMod
 							break
 						end
 					end
 				end
+				
+				local swappedButton
+
 				if swapIndex then
-					NewBindingSet[swapIndex][swapMod] = NewBindingSet[tableIndex][mod]
+					if not set[swapIndex] then
+						set[swapIndex] = {}
+					end
+
+					swappedButton = set[swapIndex]
+					swappedButton[swapMod] = currentButtonRef[mod]
+
 					swapText = confButton:GetText()
 				end
-				NewBindingSet[tableIndex][mod] = focusFrame.Binding
-				NewBindingButtons[tableIndex][mod] = nil
+
+				currentButtonRef[mod] = focusedBinding
+
+				currentUIRef[mod] = nil
 				actionButton.action = nil
 				confButton:SetText(text)
 				isValid = text
 			else -- action buttons, interface buttons
-				local newAction = focusFrame:GetAttribute("action") or focusFrame.action or focusFrame
-
+				local newAction = focusFrame:GetAttribute("action") or focusFrame
 				local actionBinding = ConsolePort:GetActionBinding(newAction or focusFrameName)
-				if actionBinding then -- item is an action button
+
+				-- item is an action button
+				if actionBinding then 
 					local text = _G[BIND..actionBinding] or focusFrameName
+
 					-- check for duplicate bindings
-					for bindName, bindTable in pairs(NewBindingSet) do
+					for bindName, bindTable in pairs(set) do
 						for bindMod, bindAction in pairs(bindTable) do
 							if actionBinding == bindAction then
 								swapIndex = bindName
@@ -247,18 +302,24 @@ local function ChangeButtonBinding(actionButton)
 							end
 						end
 					end
+
 					if swapIndex then
-						NewBindingSet[swapIndex][swapMod] = NewBindingSet[tableIndex][mod]
+						set[swapIndex][swapMod] = currentButtonRef[mod]
 						swapText = confButton:GetText()
 					end
-					NewBindingSet[tableIndex][mod] = actionBinding
-					NewBindingButtons[tableIndex][mod] = nil
+
+					currentButtonRef[mod] = actionBinding
+
+					currentUIRef[mod] = nil
 					actionButton.action = nil
 					confButton:SetText(text)
 					isValid = text
+
 				else -- item is a non-action interface button
-					NewBindingSet[tableIndex][mod] = "CLICK "..buttonName..":LeftButton"
-					NewBindingButtons[tableIndex][mod] = focusFrameName
+
+					currentButtonRef[mod] = "CLICK "..buttonName..":LeftButton"
+					currentUIRef[mod] = focusFrameName
+
 					confButton:SetText(focusFrameName)
 					isValid = focusFrameName
 				end
@@ -337,7 +398,7 @@ local function BindHeaderSetValues(self)
 		button:SetEnabled(binding.binding and true or false)
 		button:SetText(binding.name)
 		button:Show()
-		button.Binding = binding.binding
+		button.StaticBinding = binding.binding
 		FadeIn(button, vCount*0.05, 0, 1)
 	end
 	self.ValueList:SetHeight(vCount*32+8)
@@ -395,7 +456,7 @@ local function RefreshHeaderList(self)
 	for i, button in pairs(buttons) do
 		button:Hide()
 	end
-	for category, bindings in db.pairsByKeys(bindings) do
+	for category, bindings in pairsByKeys(bindings) do
 		hCount = hCount + 1
 		local button = buttons[hCount] or CreateListButton(self, hCount, BindHeaderOnClick, 200, 32)
 		button:SetScript("OnEnter", BindHeaderOnEnter)
@@ -413,9 +474,11 @@ end
 -- Binds: Dynamic secure/UI button 
 ---------------------------------------------------------------
 local function GetStaticBindingName(self)
-	local binding =	NewBindingSet and _G[BIND..NewBindingSet[self.name][GetBindingModifier(self.secure.mod)]] or
-					db.Bindings and _G[BIND..db.Bindings[self.name][GetBindingModifier(self.secure.mod)]]
-	return binding 
+	local set = NewBindingSet or db.Bindings
+	local subSet = set and set[self.name]
+	local modifier = GetBindingModifier(self.secure.mod)
+	local binding = subSet and subSet[modifier]
+	return binding and _G[BIND..binding]
 end
 
 local function GetStaticBinding(self)
@@ -423,6 +486,7 @@ local function GetStaticBinding(self)
 end
 
 local function DynamicConfigButtonOnShow(self)
+	self.StaticBinding = GetStaticBinding(self)
 	self.indicator:SetText(self.icon)
 	self.SelectedTexture:Hide()
 	if self.secure.action then
@@ -438,17 +502,24 @@ local function DynamicConfigButtonOnShow(self)
 		self:SetText(GetStaticBindingName(self))
 		self.background:SetTexture(ConsolePort:GetActionTexture(GetStaticBinding(self)))
 	else
+		self:SetText(TUTORIAL.NOTASSIGNED)
 		self.background:SetTexture(nil)
 	end
 end
 
 local function DynamicConfigButtonOnClick(self, mouseButton)
+	local tutorial = db.Binds.Tutorial
 	if not InCombatLockdown() then
 		if not ConsolePortRebindFrame.isRebinding then
-			self.SelectedTexture:Show()
-			db.Binds.Tutorial:SetText(format(TUTORIAL.REBIND, self.indicator:GetText()))
-			ConsolePort:SetRebinding(self)
-			ConsolePort:SetCurrentNode(self.secure.action)
+			if mouseButton == "RightButton" then
+				ClearButtonBinding(self.secure)
+				tutorial:SetText(format(TUTORIAL.UNASSIGN, self.indicator:GetText()))
+			else
+				self.SelectedTexture:Show()
+				tutorial:SetText(format(TUTORIAL.REBIND, self.indicator:GetText()))
+				ConsolePort:SetRebinding(self)
+				ConsolePort:SetCurrentNode(self.secure.action)
+			end
 		else
 			local stopRebind = true
 			if mouseButton == "LeftButton" then
@@ -461,15 +532,23 @@ local function DynamicConfigButtonOnClick(self, mouseButton)
 					local newBind, swapped, swapBind = ChangeButtonBinding(self.secure)
 					if newBind and swapped then
 						local swappedTexture = _G[swapped].HotKey
-						db.Binds.Tutorial:SetText(format(TUTORIAL.SWAPPED, self.indicator:GetText(), newBind, swappedTexture, swapBind))
+						if swappedTexture then
+							if swapBind == TUTORIAL.NOTASSIGNED then
+								tutorial:SetText(format(TUTORIAL.SWAPUNASSIGN, self.indicator:GetText(), newBind, swappedTexture))
+							else
+								tutorial:SetText(format(TUTORIAL.SWAPPED, self.indicator:GetText(), newBind, swappedTexture, swapBind))
+							end
+						else
+							tutorial:SetText(format(TUTORIAL.APPLIED, self.indicator:GetText(), newBind))
+						end
 					elseif newBind then
-						db.Binds.Tutorial:SetText(format(TUTORIAL.APPLIED, self.indicator:GetText(), newBind))
+						tutorial:SetText(format(TUTORIAL.APPLIED, self.indicator:GetText(), newBind))
 					else
-						db.Binds.Tutorial:SetText(TUTORIAL.INVALID)
+						tutorial:SetText(TUTORIAL.INVALID)
 					end
 				end
 			else
-				db.Binds.Tutorial:SetText(TUTORIAL.COMBO)
+				tutorial:SetText(TUTORIAL.COMBO)
 			end
 			if stopRebind then
 				self.SelectedTexture:Hide()
@@ -479,6 +558,10 @@ local function DynamicConfigButtonOnClick(self, mouseButton)
 				ConsolePort:UIControl()
 			end
 		end
+		for _, button in pairs(db.Binds.Buttons[self.name]) do
+			button:Hide()
+			button:Show()
+		end
 	end
 end
 function ConsolePort:CreateConfigButton(name, mod, modNum)
@@ -486,6 +569,8 @@ function ConsolePort:CreateConfigButton(name, mod, modNum)
 	button.SelectedTexture:SetTexCoord(button.HighlightTexture:GetTexCoord())
 	button:SetSize(440, 46)
 	button:SetPoint("TOP", db.Binds.Rebind, "TOP", 0, -44*modNum-10)
+
+	button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
 	button.indicator = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 	button.indicator:SetPoint("LEFT", button, "LEFT", 4, 0)
@@ -535,7 +620,7 @@ local function SetFauxMovementBindings(self)
 		movement.TURNLEFT = movement.STRAFELEFT
 		movement.TURNRIGHT = movement.STRAFERIGHT
 	end
-	for direction, keys in db.pairsByKeys(movement) do
+	for direction, keys in pairsByKeys(movement) do
 		for _, key in pairs(keys) do
 			for _, modifier in pairs(modifiers) do
 				SetOverrideBinding(self, false, modifier..key, direction)
@@ -576,7 +661,7 @@ function ConsolePort:LoadInterfaceBinding(button, UIbutton)
 end
 
 function ConsolePort:LoadInterfaceBindings()
-	local buttons = NewBindingButtons or db.Bindbtns
+	local buttons = NewUIBindingRefs or db.Bindbtns
 	local extensions = { action = NOMOD, ctrlsh = CTRLSH, shift = SHIFT, ctrl = CTRL}
 	for name, button in pairs(buttons) do
 		for modifier, UIbutton in pairs(button) do
@@ -593,6 +678,7 @@ end
 ---------------------------------------------------------------
 local function BindingsOnShow(self)
 	ConsolePort:SetCurrentNode(self.BindCatcher)
+	FadeIn(self.Overlay, 1, 0, 1)
 	self.Tutorial:SetText(TUTORIAL.DEFAULT)
 	self.Rebind:Hide()
 end
@@ -626,7 +712,7 @@ local function RefreshProfileList(self)
 	for i, button in pairs(buttons) do
 		button:Hide()
 	end
-	for character, settings in db.pairsByKeys(ConsolePortCharacterSettings) do
+	for character, settings in pairsByKeys(ConsolePortCharacterSettings) do
 		pCount = pCount + 1
 		local button = buttons[pCount] or CreateListButton(self, pCount, ProfileOnSelect)
 		button:SetText(character)
@@ -636,6 +722,12 @@ local function RefreshProfileList(self)
 			button.Cover:SetVertexColor(cc.r, cc.g, cc.b, 1)
 		else
 			button.Cover:SetVertexColor(1, 1, 1, 1)
+		end
+		if settings.Type and db.Controllers[settings.Type] then
+			button.Controller = button:CreateTexture(nil, "OVERLAY")
+			button.Controller:SetSize(32, 32)
+			button.Controller:SetPoint("LEFT", button, "LEFT", 12, 0)
+			button.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.Type.."\\Icons64x64\\CP_C_OPTION")
 		end
 		button.Popup = popup
 		button.name = character
@@ -653,7 +745,7 @@ local function ImportOnClick(self)
 		if settings then
 			db.Binds.Tutorial:SetText(format(TUTORIAL.IMPORT, character))
 			NewBindingSet = Copy(settings.BindingSet)
-			NewBindingButtons = Copy(settings.BindingBtn)
+			NewUIBindingRefs = Copy(settings.BindingBtn)
 			ReloadBindings()
 			ConsolePort:SetButtonActionsUI()
 			for i, Buttons in pairs(db.Binds.Buttons) do
@@ -685,49 +777,148 @@ local function ClearBindingTooltip(self)
 	end
 end
 
+local function GetBindingText(self, secure, static, modifier)
+
+	local id = static and ConsolePort:GetActionID(static)
+
+	if secure and secure.action then
+		if secure.action.icon and secure.action.icon:GetTexture() then
+			return format(self.icon, secure.action.icon:GetTexture())
+		elseif secure.action:GetName() then
+			return secure.action:GetName()
+		end
+	elseif id then
+		local actionpage = MainMenuBarArtFrame:GetAttribute("actionpage")
+
+		id = id <= 24 and id + (actionpage - 1) * 12 or id
+
+		local texture = GetActionTexture(id)
+		local binding = _G[BIND..static]
+
+		local actionType, actionID, subType, spellID = GetActionInfo(id)
+
+		local name
+		if actionType == "spell" and actionID then
+			name = GetSpellInfo(actionID) or TUTORIAL.SPELL
+		elseif actionType == "item" and actionID then
+			name = GetItemInfo(actionID) or TUTORIAL.ITEM
+		elseif actionType == "macro" then
+			name = GetActionText(id)..TUTORIAL.MACRO
+		elseif actionType == "companion" then
+			name = TUTORIAL[subType]
+		elseif actionType == "summonmount" then
+			name = TUTORIAL.MOUNT
+		elseif actionType == "equipmentset" then
+			name = actionID..TUTORIAL.EQSET
+		end
+
+		name = name and binding and name.."\n|cFF575757"..binding
+
+		if name then
+			return name, texture
+		elseif texture then
+			return nil, texture
+		else
+			local header = _G[self:GetParent().Bindings[static]]
+			return header and _G[BIND..static].."\n|cFF575757"..header or _G[BIND..static]
+		end
+	elseif static and _G[BIND..static] then
+		local header = _G[self:GetParent().Bindings[static]]
+		return header and _G[BIND..static].."\n|cFF575757"..header or _G[BIND..static]
+--	elseif modifier then
+--		return _G[BIND..GetBindingAction(modifier..GetBindingKey(self.name), true)] or format("|cFF575757%s|r", TUTORIAL.NOTASSIGNED)
+	else
+		return TUTORIAL.NOTASSIGNED
+	end
+end
+
 local function SetBindingTooltip(self)
 	local tooltip = ConsolePortConfig.Tooltip
 	tooltip:Hide()
-	tooltip:SetOwner(self, "ANCHOR_BOTTOM")
+	if self.anchor == "CENTER" then
+		tooltip:SetOwner(self, "ANCHOR_BOTTOM")
+	else
+		tooltip:SetOwner(self, "ANCHOR_BOTTOM"..self.anchor, 0, 46)
+	end
 	tooltip:AddLine(TUTORIAL.TOOLTIPHEADER)
 	if not self.bindings then
 		self.bindings = {
-			{	button = _G[self.name..NOMOD], mod = "",
+			{	extension = NOMOD, mod = "",
 				icons = self.texture,
 			},
-			{	button = _G[self.name..SHIFT], mod = "SHIFT-",
+			{	extension = SHIFT, mod = "SHIFT-",
 				icons = format(self.icon, db.TEXTURE.CP_TL1)..self.texture,
 			},
-			{	button = _G[self.name..CTRL], mod = "CTRL-",
+			{	extension = CTRL, mod = "CTRL-",
 				icons = format(self.icon, db.TEXTURE.CP_TL2)..self.texture,
 			},
-			{	button = _G[self.name..CTRLSH], mod = "CTRL-SHIFT-",
+			{	extension = CTRLSH, mod = "CTRL-SHIFT-",
 				icons = format(self.icon, db.TEXTURE.CP_TL1)..format(self.icon, db.TEXTURE.CP_TL2)..self.texture,
 			},
 		}
 	end
 	local indices = { "action", "shift", "ctrl", "ctrlsh" }
 	for i, binding in pairs(self.bindings) do
-		local static =  NewBindingSet and NewBindingSet[self.name][indices[i]] or
-						db.Bindings[self.name][indices[i]]
-
-		local text 	= 	binding.button.action and
-						((binding.button.action.icon and
-						binding.button.action.icon:GetTexture() and
-						format(self.icon, binding.button.action.icon:GetTexture())) or
-						binding.button.action:GetName()) or
-						ConsolePort:GetActionTexture(static) and
-						format(self.icon, ConsolePort:GetActionTexture(static)) or
-						_G[BIND..static] or
-						_G[BIND..GetBindingAction(binding.mod..GetBindingKey(self.name), true)] or "N/A"
-		tooltip:AddDoubleLine(binding.icons, text, 1,1,1,1,1,1)
+		local staticIndex = indices[i]
+		local static
+		if NewBindingSet then
+			static = NewBindingSet[self.name] and NewBindingSet[self.name][staticIndex]
+		else
+			static = db.Bindings[self.name] and db.Bindings[self.name][staticIndex]
+		end
+		local text, icon = GetBindingText(self, _G[self.name..binding.extension], static, binding.mod)
+		local _, newLines = gsub(text, "\n", "")
+		newLines = strrep("\n", 2 - newLines)
+		local tooltipText = (icon and text) and format(self.icon, icon).." "..text or text and text..newLines or icon and format(self.icon, icon)
+		tooltip:AddDoubleLine(tooltipText, binding.icons, 1,1,1,1,1,1)
 	end
 	tooltip:AddLine(TUTORIAL.TOOLTIPCLICK)
 	tooltip:Show()
 end
 
+local function OverlayBindingModifierChanged(self)
+	self:Hide()
+	self:Show()
+end
+
+local function ShowOverlayBinding(self)
+	self:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+	self:RegisterEvent("MODIFIER_STATE_CHANGED")
+	self:SetScript("OnEvent", OverlayBindingModifierChanged)
+	local shift = IsShiftKeyDown()
+	local ctrl = IsControlKeyDown()
+	local extension = (ctrl and shift) and CTRLSH or ctrl and CTRL or shift and SHIFT or NOMOD
+	local staticIndex = (ctrl and shift) and "ctrlsh" or ctrl and "ctrl" or shift and "shift" or "action"
+	local secure = _G[self.name..extension]
+	local static
+	if NewBindingSet then
+		static = NewBindingSet[self.name] and NewBindingSet[self.name][staticIndex]
+	else
+		static = db.Bindings[self.name] and db.Bindings[self.name][staticIndex]
+	end
+	local text, icon = GetBindingText(self, secure, static)
+	if text and icon then
+		self.Mask:Show()
+		self.Text:SetText(text)
+		SetPortraitToTexture(self.Icon, icon)
+	elseif icon then
+		self.Mask:Show()
+		self.Text:SetText()
+		SetPortraitToTexture(self.Icon, icon)
+	elseif text then
+		self.Mask:Hide()
+		self.Icon:SetTexture()
+		self.Text:SetText(text)
+	end
+end
+
+local function HideOverlayBinding(self)
+	self:UnregisterEvent("MODIFIER_STATE_CHANGED")
+	self:SetScript("OnEvent", nil)
+end
+
 local function SetBindingFocus(self)
-	local parent = self:GetParent()
+	local parent = self:GetParent():GetParent()
 	ConsolePortConfig.Tooltip:Hide()
 	ConsolePortCursor:Hide()
 	parent.Tutorial:SetAlpha(0)
@@ -740,6 +931,7 @@ local function RebindSetButton(self, button)
 	local rebindButtons = allButtons[button.name]
 	local bindings = button.bindings
 	self.Parent.Tutorial:SetText(TUTORIAL.COMBO)
+	self.rebindButtons = rebindButtons
 	for name, modButtons in pairs(allButtons) do
 		for i, button in pairs(modButtons) do
 			button:Hide()
@@ -791,16 +983,23 @@ end
 ---------------------------------------------------------------
 local function LoadDefaultBinds(self)
 	self.Tutorial:SetText(TUTORIAL.RESET)
-	NewBindingSet = ConsolePort:GetDefaultBindingSet()
-	NewBindingButtons = ConsolePort:GetDefaultBindingButtons()
+	GetNewBindingSet(true)
+	GetNewUIBindingRefs(true)
+	for _, button in pairs(self.Overlay.Buttons) do
+		ShowOverlayBinding(button)
+	end
+	if not InCombatLockdown() then
+		ReloadBindings()
+	end
 end
 
 tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindings, LoadDefaultBinds, function(self, Binds)
+	local settings = db.Settings
 	local player = GetUnitName("player").."-"..GetRealmName()
 	local cc = RAID_CLASS_COLORS[select(2, UnitClass("player"))]
 
 	Binds.Controller = CreateFrame("Frame", "$parentController", Binds)
-	Binds.Controller:SetPoint("CENTER", Binds, "CENTER", 0, 30)
+	Binds.Controller:SetPoint("CENTER", 0, 0)
 	Binds.Controller:SetSize(512, 512)
 
 	Binds.Controller.Group = Binds.Controller:CreateAnimationGroup()
@@ -809,7 +1008,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Controller.Animation:SetSmoothing("OUT")
 	Binds.Controller.Animation:SetDuration(0.2)
 	Binds.Controller.Group:SetScript("OnFinished", function()
-		Binds.Controller:SetPoint("CENTER", Binds.Controller.offset < 0 and Binds.Controller.offset or 0, 30)
+		Binds.Controller:SetPoint("CENTER", Binds.Controller.offset < 0 and Binds.Controller.offset or 0, 0)
 		local rebindFocus = Binds.Controller.rebindFocus
 		if rebindFocus then
 			Binds.Rebind:SetButton(rebindFocus)
@@ -821,8 +1020,15 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 		local dontAnimate
 		local pos = self:GetCenter()
 		local origin = self:GetParent():GetCenter()
+		local overlay = self:GetParent().Overlay
 		if newFocus and self.rebindFocus then
 			dontAnimate = true
+		end
+		if newFocus then
+			overlay:Hide()
+		else
+			FadeIn(overlay, 1, 0, 1)
+			overlay:Show()
 		end
 		self.rebindFocus = newFocus
 		self.offset = newFocus and -240 or abs(pos-origin)
@@ -831,16 +1037,33 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	end
 
 	Binds.Controller.Texture = Binds.Controller:CreateTexture("$parentTexture", "ARTWORK")
-	Binds.Controller.Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..db.Settings.type)
+	Binds.Controller.Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Front")
 	Binds.Controller.Texture:SetAllPoints(Binds.Controller)
 
 	Binds.Controller.FlashGlow = Binds.Controller:CreateTexture("$parentGlow", "OVERLAY")
-	Binds.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Splash\\Splash"..db.Settings.type.."Highlight")
+	Binds.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\FrontHighlight")
 	Binds.Controller.FlashGlow:SetAllPoints(Binds.Controller)
 	Binds.Controller.FlashGlow:SetAlpha(0)
 
+	Binds.Overlay = CreateFrame("Frame", "$parentOverlay", Binds)
+	Binds.Overlay:SetPoint("CENTER", 0, 0)
+	Binds.Overlay:SetSize(1024, 512)
+	Binds.Overlay.Lines = Binds.Overlay:CreateTexture("$parentLines", "OVERLAY", nil, 7)
+	Binds.Overlay.Lines:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Overlay")
+	Binds.Overlay.Lines:SetAllPoints(Binds.Overlay)
+	Binds.Overlay.Lines:SetVertexColor(cc.r * 1.25, cc.g * 1.25, cc.b * 1.25, 0.75)
+
+	Binds.Overlay.Bindings = {}
+	Binds.Overlay.Buttons = {}
+
+	local bindingCache = Binds.Overlay.Bindings
+	for i=1, GetNumBindings() do
+		local name, header = GetBinding(i)
+		bindingCache[name] = header
+	end
+
 	Binds.Tutorial = Binds.Controller:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Binds.Tutorial:SetPoint("TOP", Binds.Controller, 0, -70)
+	Binds.Tutorial:SetPoint("TOP", Binds.Controller, 0, -40)
 	Binds.Tutorial.SetNewText = Binds.Tutorial.SetText
 
 	function Binds.Tutorial:SetText(...)
@@ -907,24 +1130,81 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Import.ProfileScroll.ScrollBar.ScrollDownButton:SetAlpha(0)
 
 	Binds.Buttons = {}
-	for buttonName, position in pairs(db.ButtonCoords) do
-		-- temporary Steam guide button fix, remove this.
-		if not (db.Settings.skipGuideBtn and buttonName == "CP_C_OPTION") then
-			local button = CreateFrame("Button", buttonName.."_BINDING", Binds)
-			button.name = buttonName
+
+	local staticBindings = {
+		["CP_TL3"] = TUTORIAL.LEFTCLICK,
+		["CP_TR3"] = TUTORIAL.RIGHTCLICK,
+		[settings.ctrl] = TUTORIAL.CTRL,
+		[settings.shift] = TUTORIAL.SHIFT,
+	}
+
+	local triggers = {
+		[settings.trigger1] = "CP_TR1",
+		[settings.trigger2] = "CP_TR2",
+	}
+
+	local iconPath = "Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Icons64x64\\"
+	for buttonName, info in pairs(db.BindLayout) do
+		if not (settings.skipGuideBtn and buttonName == "CP_C_OPTION") then
+			local button = CreateFrame("Button", buttonName.."_BINDING", Binds.Overlay)
+			local texture = iconPath..buttonName
+			--
+			button.anchor = info.anchor
 			button.icon = "|T%s:32:32:0:0|t"
-			button.texture = format(button.icon, db.TEXTURE[buttonName])
-			button:SetPoint("TOPLEFT", Binds.Controller, "TOPLEFT", position.X, position.Y)
+			button.texture = format(button.icon, texture)
+			--
 			button:SetSize(30, 30)
-			button:SetScript("OnEnter", SetBindingTooltip)
-			button:SetScript("OnClick", SetBindingFocus)
-			button:SetScript("OnLeave", ClearBindingTooltip)
+			button.BG = button:CreateTexture(nil, "OVERLAY")
+			button.BG:SetAllPoints(button)
+			button.BG:SetTexture(texture)
+			button.Text = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			button.Text:SetSpacing(2)
+			button.Text:SetWordWrap(true)
+			button.Text:SetWidth(180)
+			button.Text:SetTextHeight(11)
+			button.Text:SetJustifyH(info.anchor)
+			button.Icon = button:CreateTexture(nil, "ARTWORK")
+			button.Icon:SetSize(30, 30)
+			button.Mask = button:CreateTexture(nil, "OVERLAY", nil, 7)
+			button.Mask:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask")
+			button.Mask:SetPoint("CENTER", button.Icon, "CENTER", 0, 0)
+			button.Mask:SetSize(32, 32)
+			button.Mask:Hide()
+			if info.anchor == "LEFT" then
+				button.Text:SetPoint("LEFT", button, "RIGHT", 4, 0)
+				button.Icon:SetPoint("RIGHT", button, "LEFT", -4, 0)
+				button:SetPoint("TOP", -400, (info.index - 1) * -48 - 80)
+				button:SetHitRectInsets(0, -180,  0, 0)
+			elseif info.anchor == "RIGHT" then
+				button.Text:SetPoint("RIGHT", button, "LEFT", -4, 0)
+				button.Icon:SetPoint("LEFT", button, "RIGHT", 4, 0)
+				button:SetPoint("TOP", 400, (info.index - 1) * -48 - 80)
+				button:SetHitRectInsets(-180, 0,  0, 0)
+			elseif info.anchor == "CENTER" then
+				button.Text:SetPoint("TOP", button, "BOTTOM", 0, -12)
+				button.Icon:SetPoint("BOTTOM", button, "TOP", 0, 4)
+				button:SetPoint("CENTER", 0, info.index * -48 - 80)
+			end
+			--
+			if staticBindings[buttonName] then
+				button.Text:SetText("|cFF757575"..staticBindings[buttonName].."|r")
+				button.Text:SetPoint(info.anchor, info.anchor == "LEFT" and 36 or -36, 0)
+			else
+				button.name = triggers[buttonName] or buttonName
+				--
+				button:SetScript("OnShow", ShowOverlayBinding)
+				button:SetScript("OnHide", HideOverlayBinding)
+				button:SetScript("OnEnter", SetBindingTooltip)
+				button:SetScript("OnClick", SetBindingFocus)
+				button:SetScript("OnLeave", ClearBindingTooltip)
+				tinsert(Binds.Overlay.Buttons, button)
+			end
 		end
 	end
 
 	db.ButtonCoords = nil
 
-	Binds.Rebind = db.Atlas.GetGlassWindow(addOn.."RebindFrame", Binds.Controller, nil, true)
+	Binds.Rebind = db.Atlas.GetGlassWindow("ConsolePortRebindFrame", Binds.Controller, nil, true)
 	Binds.Rebind:SetBackdrop(db.Atlas.Backdrops.Border)
 	Binds.Rebind:SetPoint("BOTTOMLEFT", Binds, "BOTTOMLEFT", 24, 16)
 	Binds.Rebind:SetSize(460, 200)
@@ -1028,5 +1308,5 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Rebind.ValueScroll.ScrollBar.ScrollUpButton:SetAlpha(0)
 	Binds.Rebind.ValueScroll.ScrollBar.ScrollDownButton:SetAlpha(0)
 
-	self:AddFrame(addOn.."RebindFrame")
+	self:AddFrame("ConsolePortRebindFrame")
 end})
