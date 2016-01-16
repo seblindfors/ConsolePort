@@ -78,5 +78,9 @@ function ConsolePort:LoadHookScripts()
 		end
 	end
 
+	for i=1, 6 do
+		_G["OverrideActionBarButton"..i]:SetAttribute("action", 132 + i)
+	end
+
 	self.LoadHookScripts = nil
 end

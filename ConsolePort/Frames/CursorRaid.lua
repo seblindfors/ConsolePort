@@ -280,7 +280,7 @@ Cursor:Execute([[
 			else
 				PAGE = 1
 			end
-		elseif PAGE == "possess" then
+		elseif PAGE and PAGE == "possess" then
 			PAGE = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
 			if PAGE <= 10 then
 				PAGE = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
@@ -388,6 +388,8 @@ function ConsolePort:SetupRaidCursor()
 end
 
 ---------------------------------------------------------------
+Cursor:SetFrameRef("ActionBar", MainMenuBarArtFrame)
+Cursor:SetFrameRef("OverrideBar", OverrideActionBar)
 Cursor:SetSize(32,32)
 Cursor:SetFrameStrata("TOOLTIP")
 Cursor:SetPoint("CENTER", 0, 0)
