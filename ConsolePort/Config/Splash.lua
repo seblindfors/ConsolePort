@@ -33,7 +33,7 @@ function ConsolePort:CreateBindingWizard()
 		local ctrlType = db.Settings.type
 		local red, green, blue = db.Atlas.GetCC()
 
-		Wizard.Shortcut = db.Atlas.GetFutureButton("$parentShortcut", Wizard)
+		Wizard.Reload = db.Atlas.GetFutureButton("$parentReload", Wizard)
 		Wizard.Container = CreateFrame("Frame", "$parentContainer", Wizard)
 		Wizard.Container:SetBackdrop(db.Atlas.Backdrops.Border)
 		Wizard.Container:SetPoint("TOPLEFT", 8, -64)
@@ -51,8 +51,8 @@ function ConsolePort:CreateBindingWizard()
 			Wizard.Skip:SetPoint("BOTTOM", 0, 24)
 			Wizard.Skip:SetText(SETUP.SKIPGUIDE)
 			Wizard.Skip:Hide()
-			Wizard.Shortcut:SetScript("OnShow", function(self)
-				Wizard.Shortcut:Hide()
+			Wizard.Reload:SetScript("OnShow", function(self)
+				Wizard.Reload:Hide()
 			end)
 			Wizard.Skip:SetScript("OnClick", function()
 				db.Settings.skipGuideBtn = true
@@ -60,18 +60,18 @@ function ConsolePort:CreateBindingWizard()
 			end)
 		end
 
-		Wizard.Shortcut:SetPoint("BOTTOM", 0, 24)
-		Wizard.Shortcut:SetText(SETUP.MODSHORTCUT)
-		Wizard.Shortcut:Hide()
-		Wizard.Shortcut:SetScript("OnShow", function(self)
+		Wizard.Reload:SetPoint("BOTTOM", 0, 24)
+		Wizard.Reload:SetText(SETUP.CONTINUECLICK)
+		Wizard.Reload:Hide()
+		Wizard.Reload:SetScript("OnShow", function(self)
 			if Wizard.Skip and Wizard.Skip:IsVisible() then
 				self:Hide()
 			end
 		end)
-		Wizard.Shortcut:SetScript("OnClick", function(self)
-			self:Hide()
-			Wizard:Hide()
-			ConsolePortConfig:OpenCategory(1)
+		Wizard.Reload:SetScript("OnClick", function(self)
+			if not InCombatLockdown() then
+				ReloadUI()
+			end
 		end)
 
 		Wizard.Overlay:SetAlpha(0.035)
@@ -142,17 +142,51 @@ function ConsolePort:CreateBindingWizard()
 		Wizard:SetScript("OnKeyUp", function(self, key)
 			self.ButtonTex:SetPoint("CENTER", self.Wrapper, -142, 0)
 			self.ButtonPress:Hide()
-			self.Shortcut:Hide()
+			self.Reload:Hide()
 			self.Status:SetAlpha(0)
 			if self.VAL and self.VAL == key and self.SET then
 				if not InCombatLockdown() then
 					if not SetBinding(key, self.BTN) then
-						if key:match("SHIFT") or key:match("CTRL") then
-							self.Shortcut:Show()
+						local isTrigger = self.BTN:match("CP_T")
+						local changeModifier = isTrigger and (key:match("SHIFT") and "shift" or key:match("CTRL") and "ctrl")
+						if changeModifier then
+							self:SetScript("OnUpdate", nil)
+							self:EnableKeyboard(false)
+
+							local settings = db.Settings
+							local pairsByKeys = db.Table.pairsByKeys
+							
+							local triggers = {
+								["CP_TL1"] = true,
+								["CP_TL2"] = true,
+								["CP_TR1"] = true,
+								["CP_TR2"] = true,
+ 							}
+
+ 							local keys = {
+ 								changeModifier == "shift" and "ctrl" or "shift",
+ 								"trigger1",
+ 								"trigger2",
+ 							}
+
+ 							local newModifier = self.ButtonTex:GetTexture():match("CP_T%a%d")
+
+ 							triggers[newModifier] = nil
+ 							settings[changeModifier] = newModifier
+
+ 							local i, key
+ 							for trigger in pairsByKeys(triggers) do
+ 								i, key = next(keys, i)
+ 								settings[key] = trigger
+ 							end
+
+							self.Reload:Show()
+							self.Status:SetText(SETUP.NEWMODIFIER)
+						else
+							self.Status:SetText(SETUP.INVALID)
 						end
 						self.VAL = nil
 						self.Confirm:SetText("")
-						self.Status:SetText(SETUP.INVALID)
 						self.Status:SetAlpha(1)
 					else
 						self.Status:SetText(format(SETUP.SUCCESS, self.ButtonTex:GetTexture(), key))
