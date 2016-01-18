@@ -43,6 +43,8 @@ local Key = {
 	Right 	= ConsolePort:GetUIControlKey("CP_L_RIGHT"),
 }
 ---------------------------------------------------------------
+Cursor:SetFrameRef("ActionBar", MainMenuBarArtFrame)
+Cursor:SetFrameRef("OverrideBar", OverrideActionBar)
 Cursor:Execute(format([[
 	ALL = newtable()
 	DPAD = newtable()
@@ -60,6 +62,9 @@ Cursor:Execute(format([[
 	Units = newtable()
 	Actions = newtable()
 
+	MainBar = self:GetFrameRef("ActionBar")
+	OverrideBar = self:GetFrameRef("OverrideBar")
+
 	Helpful = newtable()
 	Harmful = newtable()
 ]], Key.Up, Key.Down, Key.Left, Key.Right))
@@ -67,6 +72,30 @@ Cursor:Execute(format([[
 -- Raid cursor run snippets
 ---------------------------------------------------------------
 Cursor:Execute([[
+	RefreshActions = [=[
+		Helpful = wipe(Helpful)
+		Harmful = wipe(Harmful)
+		for actionButton in pairs(Actions) do
+			local action = actionButton:GetAttribute("action")
+			local id = action >= 0 and action <= 12 and (PAGE-1) * 12 + action or action >= 0 and action
+			if id then
+				local actionType, actionID, subType = GetActionInfo(id)
+				if actionType == "spell" and subType == "spell" then
+					local spellBookID = SPELLS[actionID]
+					local helpful = spellBookID and IsHelpfulSpell(spellBookID, subType)
+					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
+					if helpful then
+						tinsert(Helpful, actionButton)
+					elseif harmful then
+						tinsert(Harmful, actionButton)
+					else
+						tinsert(Helpful, actionButton)
+						tinsert(Harmful, actionButton)
+					end
+				end
+			end
+		end
+	]=]
 	GetNodes = [=[
 		local node = CurrentNode
 		local children = newtable(node:GetChildren())
@@ -80,30 +109,14 @@ Cursor:Execute([[
 				self:Run(GetNodes)
 			end
 		end
-		if unit and not action and node ~= self then
-			local left, bottom, width, height = node:GetRect()
-			if left and bottom then
-				tinsert(Units, node)
-			end
-		elseif action and node ~= self then
-			local id = action >= 0 and action <= 12 and (PAGE-1) * 12 + action or action >= 0 and action
-			if id then
-				local actionType, actionID, subType = GetActionInfo(id)
-				if actionType == "spell" and subType == "spell" then
-					local spellBookID = SPELLS[actionID]
-					local helpful = spellBookID and IsHelpfulSpell(spellBookID, subType)
-					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
-					if helpful then
-					--	print(id, node:GetName(), "Helpful")
-						tinsert(Helpful, node)
-					elseif harmful then
-						tinsert(Harmful, node)
-					else
-					--	print(id, node:GetName(), "Neither/both")
-						tinsert(Helpful, node)
-						tinsert(Harmful, node)
-					end
+		if node ~= self then
+			if unit and not action then
+				local left, bottom, width, height = node:GetRect()
+				if left and bottom then
+					tinsert(Units, node)
 				end
+			elseif action then
+				Actions[node] = true
 			end
 		end
 	]=]
@@ -240,14 +253,13 @@ Cursor:Execute([[
 	]=]
 	UpdateFrameStack = [=[
 		Units = wipe(Units)
-		Helpful = wipe(Helpful)
-		Harmful = wipe(Harmful)
 		for _, Frame in pairs(newtable(self:GetParent():GetChildren())) do
-			if Frame:IsProtected() then
+			if Frame:IsProtected() and Frame ~= MainBar and Frame ~= OverrideBar then
 				CurrentNode = Frame
 				self:Run(GetNodes)
 			end
 		end
+		self:Run(RefreshActions)
 	]=]
 	ToggleCursor = [=[
 		if IsEnabled then
@@ -283,9 +295,9 @@ Cursor:Execute([[
 				PAGE = 1
 			end
 		elseif PAGE and PAGE == "possess" then
-			PAGE = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
+			PAGE = MainBar:GetAttribute("actionpage") or 1
 			if PAGE <= 10 then
-				PAGE = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
+				PAGE = OverrideBar:GetAttribute("actionpage") or 12
 			end
 			if PAGE <= 10 then
 				PAGE = 12
@@ -364,7 +376,15 @@ local function SecureSpellBookUpdate(self)
 					break
 				end
 			end
-			Cursor:Execute([[ self:Run(UpdateFrameStack) ]])
+			Cursor:Execute([[
+				CurrentNode = MainBar
+				self:Run(GetNodes)
+
+				CurrentNode = OverrideBar
+				self:Run(GetNodes)
+
+				self:Run(UpdateFrameStack)
+			]])
 		end
 		self:RemoveUpdateSnippet(SecureSpellBookUpdate)
 	end
@@ -392,8 +412,6 @@ function ConsolePort:SetupRaidCursor()
 end
 
 ---------------------------------------------------------------
-Cursor:SetFrameRef("ActionBar", MainMenuBarArtFrame)
-Cursor:SetFrameRef("OverrideBar", OverrideActionBar)
 Cursor:SetSize(32,32)
 Cursor:SetFrameStrata("TOOLTIP")
 Cursor:SetPoint("CENTER", 0, 0)
