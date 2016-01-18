@@ -155,6 +155,9 @@ function ConsolePort:CreateBindingWizard()
 
 							local settings = db.Settings
 							local pairsByKeys = db.Table.pairsByKeys
+
+							local otherModifierKey = changeModifier == "shift" and "ctrl" or "shift"
+							local otherModifier = settings[otherModifierKey]
 							
 							local triggers = {
 								["CP_TL1"] = true,
@@ -163,21 +166,16 @@ function ConsolePort:CreateBindingWizard()
 								["CP_TR2"] = true,
  							}
 
- 							local keys = {
- 								changeModifier == "shift" and "ctrl" or "shift",
- 								"trigger1",
- 								"trigger2",
- 							}
-
  							local newModifier = self.ButtonTex:GetTexture():match("CP_T%a%d")
 
  							triggers[newModifier] = nil
+ 							triggers[otherModifier] = nil
  							settings[changeModifier] = newModifier
 
- 							local i, key
+ 							local i = 0
  							for trigger in pairsByKeys(triggers) do
- 								i, key = next(keys, i)
- 								settings[key] = trigger
+ 								i = i + 1
+ 								settings["trigger"..i] = trigger
  							end
 
 							self.Reload:Show()
