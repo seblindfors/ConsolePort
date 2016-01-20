@@ -13,6 +13,14 @@ local CVars = {
 	cameraDistanceMoveSpeed 	=	{value = 50, 	isCombatCVar = false},
 }
 
+function ConsolePort:LoadDefaultCVars()
+	C_Timer.After(2, function()
+		for cvar, info in pairs(CVars) do
+			info.default = GetCVar(cvar)
+		end
+	end)
+end
+
 function ConsolePort:UpdateCVars(inCombat, ...)
 	local isToggled = db.Settings
 	local newCvar, newValue = ...

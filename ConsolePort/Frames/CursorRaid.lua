@@ -224,7 +224,7 @@ Cursor:Execute([[
 			RegisterStateDriver(self, "unitexists", "[@"..unit..",exists] true; nil")
 
 			self:ClearAllPoints()
-			self:SetPoint("CENTER", current, "CENTER", 0, 0)
+			self:SetPoint("TOPLEFT", current, "CENTER", 0, 0)
 			self:SetAttribute("node", current)
 			self:SetAttribute("unit", unit)
 			self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")

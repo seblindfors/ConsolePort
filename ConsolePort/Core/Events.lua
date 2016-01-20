@@ -165,6 +165,7 @@ function Events:ADDON_LOADED(...)
 		self:SetupCursor()
 		self:CheckLoadedAddons()
 		self:CheckLoadedSettings()
+		self:LoadDefaultCVars()
 		self:UpdateCVars()
 		-- Delay hotkey loading to
 		-- prevent unnecessary updates on load
