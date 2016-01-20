@@ -22,7 +22,7 @@ function ConsolePort:SetUIFocus(focus) hasUIFocus = focus end
 -- providing smart snap behaviour when searching
 -- for the most appropriate node to focus.
 for _, node in pairs({
-	ContainerFrame1Item16,
+--	ContainerFrame1Item16,
 	GossipTitleButton1,
 	HonorFrameSoloQueueButton,
 	LFDQueueFrameFindGroupButton,

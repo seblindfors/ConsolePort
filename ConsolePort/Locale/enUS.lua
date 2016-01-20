@@ -11,6 +11,7 @@ TUTORIAL = {
 		MENUHEADER 			= "Controller",
 		TOOLTIPHEADER 		= "Bindings",
 		TOOLTIPCLICK 		= "<Click to change>",
+		PROFILEPRESET 		= " Preset",
 		DEFAULT 			= "Click here to change a binding.",
 		COMBATTEXT 			= "Exit combat to change your settings.",
 		CATCHER 			= "Press a button on your controller.",

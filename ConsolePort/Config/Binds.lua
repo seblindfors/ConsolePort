@@ -631,14 +631,14 @@ end
 
 function ConsolePort:LoadBindingSet()
 	local keys = NewBindingSet or db.Bindings
-	local w = WorldFrame
-	ClearOverrideBindings(w)
-	SetFauxMovementBindings(w)
+	local handler = ConsolePortButtonHandler
+	ClearOverrideBindings(handler)
+	SetFauxMovementBindings(handler)
 	for name, key in pairs(keys) do
-		SetFauxBinding(w, "", 	name, key.action)
-		SetFauxBinding(w, "CTRL-", name, key.ctrl)
-		SetFauxBinding(w, "SHIFT-", name, key.shift)
-		SetFauxBinding(w, "CTRL-SHIFT-", name, key.ctrlsh)
+		SetFauxBinding(handler, "", 	name, key.action)
+		SetFauxBinding(handler, "CTRL-", name, key.ctrl)
+		SetFauxBinding(handler, "SHIFT-", name, key.shift)
+		SetFauxBinding(handler, "CTRL-SHIFT-", name, key.ctrlsh)
 	end
 end
 
@@ -712,7 +712,20 @@ local function RefreshProfileList(self)
 	for i, button in pairs(buttons) do
 		button:Hide()
 	end
-	for character, settings in pairsByKeys(ConsolePortCharacterSettings) do
+
+	local profiles = Copy(ConsolePortCharacterSettings)
+	self.ProfileData = profiles
+
+	for name, data in pairs(db.Controllers) do
+		profiles["|cFFFFFFFF"..name.."|r"..TUTORIAL.PROFILEPRESET] = {
+			Type = name,
+			BindingSet = data.Bindings, 
+			BindingBtn = ConsolePort:GetDefaultUIBindingRefs(),
+			Preset = true,
+		}
+	end
+
+	for character, settings in pairsByKeys(profiles) do
 		pCount = pCount + 1
 		local button = buttons[pCount] or CreateListButton(self, pCount, ProfileOnSelect)
 		button:SetText(character)
@@ -720,6 +733,8 @@ local function RefreshProfileList(self)
 		if settings.Class then
 			local cc = RAID_CLASS_COLORS[settings.Class]
 			button.Cover:SetVertexColor(cc.r, cc.g, cc.b, 1)
+		elseif settings.Preset then
+			button.Cover:SetAlpha(0.25)
 		else
 			button.Cover:SetVertexColor(1, 1, 1, 1)
 		end
@@ -741,17 +756,16 @@ end
 local function ImportOnClick(self)
 	if not InCombatLockdown() then
 		local character = ConsolePortPopup:GetSelection()
-		local settings = ConsolePortCharacterSettings[character]
+		local settings = db.Binds.Import.Profiles.ProfileData[character]
 		if settings then
 			db.Binds.Tutorial:SetText(format(TUTORIAL.IMPORT, character))
 			NewBindingSet = Copy(settings.BindingSet)
 			NewUIBindingRefs = Copy(settings.BindingBtn)
 			ReloadBindings()
 			ConsolePort:SetButtonActionsUI()
-			for i, Buttons in pairs(db.Binds.Buttons) do
-				for i, Button in pairs(Buttons) do
-					--Button:OnShow()
-				end
+			for _, Button in pairs(db.Binds.Overlay.Buttons) do
+				Button:Hide()
+				Button:Show()
 			end
 		end
 	else

@@ -303,7 +303,10 @@ Cursor:Execute([[
 				PAGE = 12
 			end
 		end
-		self:Run(UpdateFrameStack)
+		if IsEnabled then
+			self:Run(RefreshActions)
+			self:Run(SelectNode, 0)
+		end
 	]=]
 	UpdateUnitExists = [=[
 		local exists = ...
