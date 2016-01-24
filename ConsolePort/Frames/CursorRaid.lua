@@ -65,6 +65,12 @@ Cursor:Execute(format([[
 	MainBar = self:GetFrameRef("ActionBar")
 	OverrideBar = self:GetFrameRef("OverrideBar")
 
+	Cache = newtable()
+
+	Cache[self] = true
+	Cache[MainBar] = true
+	Cache[OverrideBar] = true
+
 	Helpful = newtable()
 	Harmful = newtable()
 ]], Key.Up, Key.Down, Key.Left, Key.Right))
@@ -103,34 +109,40 @@ Cursor:Execute([[
 		local action = node:GetAttribute("action")
 		local childUnit
 		for i, child in pairs(children) do
-			childUnit = child:GetAttribute("unit")
-			if childUnit == nil or childUnit ~= unit then
-				CurrentNode = child
-				self:Run(GetNodes)
+			if child:IsProtected() then
+				childUnit = child:GetAttribute("unit")
+				if childUnit == nil or childUnit ~= unit then
+					CurrentNode = child
+					self:Run(GetNodes)
+				end
 			end
 		end
-		if node ~= self then
+		if Cache[node] then
+			return
+		else
 			if unit and not action then
 				local left, bottom, width, height = node:GetRect()
 				if left and bottom then
-					tinsert(Units, node)
+					Units[node] = true
+					Cache[node] = true
 				end
 			elseif action then
 				Actions[node] = true
+				Cache[node] = true
 			end
 		end
 	]=]
 	SetCurrent = [=[
-		if old and old:IsVisible() then
+		if old and old:IsVisible() and UnitExists(old:GetAttribute("unit")) then
 			current = old
-		elseif (not current and Units[1]) or (current and Units[1] and not current:IsVisible()) then
+		elseif (not current and next(Units)) or (current and next(Units) and not current:IsVisible()) then
 			local thisX, thisY = self:GetRect()
 
 			if thisX and thisY then
 				local node, dist
 
-				for i, Node in pairs(Units) do
-					if Node:IsVisible() then
+				for Node in pairs(Units) do
+					if Node ~= old and Node:IsVisible() then
 						local left, bottom, width, height = Node:GetRect()
 						local destDistance = abs(thisX - (left + width / 2)) + abs(thisY - (bottom + height / 2))
 
@@ -144,7 +156,7 @@ Cursor:Execute([[
 					current = node
 				end
 			else
-				for i, Node in pairs(Units) do
+				for Node in pairs(Units) do
 					if Node:IsVisible() then
 						current = Node
 						break
@@ -160,7 +172,7 @@ Cursor:Execute([[
 			local thisX = left+width/2
 			local nodeY, nodeX = 10000, 10000
 			local destY, destX, diffY, diffX, total, swap
-			for i, destination in pairs(Units) do
+			for destination in pairs(Units) do
 				if destination:IsVisible() then
 					left, bottom, width, height = destination:GetRect()
 					destY = bottom+height/2
@@ -252,9 +264,8 @@ Cursor:Execute([[
 		end
 	]=]
 	UpdateFrameStack = [=[
-		Units = wipe(Units)
 		for _, Frame in pairs(newtable(self:GetParent():GetChildren())) do
-			if Frame:IsProtected() and Frame ~= MainBar and Frame ~= OverrideBar then
+			if Frame:IsProtected() and not Cache[Frame] then
 				CurrentNode = Frame
 				self:Run(GetNodes)
 			end

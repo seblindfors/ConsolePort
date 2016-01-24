@@ -14,11 +14,10 @@ local CVars = {
 }
 
 function ConsolePort:LoadDefaultCVars()
-	C_Timer.After(2, function()
-		for cvar, info in pairs(CVars) do
-			info.default = GetCVar(cvar)
-		end
-	end)
+	for cvar, info in pairs(CVars) do
+		info.default = GetCVar(cvar)
+	end
+	self.LoadDefaultCVars = nil
 end
 
 function ConsolePort:UpdateCVars(inCombat, ...)

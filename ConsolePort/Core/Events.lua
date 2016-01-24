@@ -136,9 +136,7 @@ function Events:CVAR_UPDATE(...)
 end
 
 function Events:UPDATE_BINDINGS(...)
-	if not InCombatLockdown() then
-		self:LoadBindingSet()
-	end
+	self:AddUpdateSnippet(self.LoadBindingSet)
 end
 
 function Events:SPELLS_CHANGED(...)
@@ -165,12 +163,11 @@ function Events:ADDON_LOADED(...)
 		self:SetupCursor()
 		self:CheckLoadedAddons()
 		self:CheckLoadedSettings()
-		self:LoadDefaultCVars()
 		self:UpdateCVars()
-		-- Delay hotkey loading to
-		-- prevent unnecessary updates on load
+		-- Delay hotkeys and cvars.
 		Callback(2, function()
 			Loaded = true
+			self:LoadDefaultCVars()
 			self:LoadHotKeyTextures()
 		end)
 	end

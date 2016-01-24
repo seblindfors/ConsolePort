@@ -14,6 +14,7 @@ local popupFrames = {
 
 for i, Popup in pairs(popupFrames) do
 	Popup:HookScript("OnShow", function(self)
+		self:EnableKeyboard(false)
 		if not InCombatLockdown() then
 			if not popupFrames[i-1] or popupFrames[i-1] and not popupFrames[i-1]:IsVisible() then
 				ConsolePort:SetCurrentNode(self.button1)

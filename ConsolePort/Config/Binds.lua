@@ -630,15 +630,18 @@ local function SetFauxMovementBindings(self)
 end
 
 function ConsolePort:LoadBindingSet()
-	local keys = NewBindingSet or db.Bindings
-	local handler = ConsolePortButtonHandler
-	ClearOverrideBindings(handler)
-	SetFauxMovementBindings(handler)
-	for name, key in pairs(keys) do
-		SetFauxBinding(handler, "", 	name, key.action)
-		SetFauxBinding(handler, "CTRL-", name, key.ctrl)
-		SetFauxBinding(handler, "SHIFT-", name, key.shift)
-		SetFauxBinding(handler, "CTRL-SHIFT-", name, key.ctrlsh)
+	if not InCombatLockdown() then
+		local keys = NewBindingSet or db.Bindings
+		local handler = ConsolePortButtonHandler
+		ClearOverrideBindings(handler)
+		SetFauxMovementBindings(handler)
+		for name, key in pairs(keys) do
+			SetFauxBinding(handler, "", 	name, key.action)
+			SetFauxBinding(handler, "CTRL-", name, key.ctrl)
+			SetFauxBinding(handler, "SHIFT-", name, key.shift)
+			SetFauxBinding(handler, "CTRL-SHIFT-", name, key.ctrlsh)
+		end
+		self:RemoveUpdateSnippet(self.LoadBindingSet)
 	end
 end
 
