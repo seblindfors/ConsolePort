@@ -333,49 +333,52 @@ end
 -- Toggle interactive mouse driver on/off
 ---------------------------------------------------------------
 function ConsolePort:UpdateStateDriver()
-	if db.Settings.interactWith then
-		local currentPage, actionpage = self:GetActionPageState()
-		local button = db.Settings.interactWith
-		local original = db.Bindings and db.Bindings[button] and db.Bindings[button].action
-		local id = original and self:GetActionID(original)
+	if not InCombatLockdown() then
+		if db.Settings.interactWith then
+			local currentPage, actionpage = self:GetActionPageState()
+			local button = db.Settings.interactWith
+			local original = db.Bindings and db.Bindings[button] and db.Bindings[button].action
+			local id = original and self:GetActionID(original)
 
-		local targetstate = "[@playertarget,exists,harm,nodead] enemy; [@playertarget,exists,noharm,nodead] friend; nil"
+			local targetstate = "[@playertarget,exists,harm,nodead] enemy; [@playertarget,exists,noharm,nodead] friend; nil"
 
-		if db.Settings.mouseOverMode then
-			targetstate = "[@mouseover,exists] hover; "..targetstate
+			if db.Settings.mouseOverMode then
+				targetstate = "[@mouseover,exists] hover; "..targetstate
+			end
+
+			local currentTarget = SecureCmdOptionParse(targetstate)
+
+			CursorTrail.Default = TEXTURE[button]
+			CursorTrail.Texture:SetTexture(CursorTrail.Default)
+			CursorTrail:SetScript("OnUpdate", CursorTrailUpdate)
+			CursorTrail:Show()
+
+			RegisterStateDriver(MouseHandle, "actionpage", actionpage)
+			RegisterStateDriver(MouseHandle, "targetstate", targetstate)
+			MouseHandle:SetAttribute("actionpage", currentPage)
+			MouseHandle:SetAttribute("target", currentTarget)
+			MouseHandle:Execute(format([[
+				USE = "%s"
+				ID = %d
+				self:Run(UpdateActionPage, self:GetAttribute("actionpage"))
+				self:Run(UpdateTarget, self:GetAttribute("target"))
+				self:SetAttribute("actionpage", nil)
+				self:SetAttribute("target", nil)
+			]], button, id or -1))
+
+			self:AddUpdateSnippet(SecureSpellBookUpdate)
+		else
+			CursorTrail:SetScript("OnUpdate", nil)
+			CursorTrail:Hide()
+
+			MouseHandle:Execute([[
+				self:ClearBindings()
+			]])
+
+			UnregisterStateDriver(MouseHandle, "actionpage")
+			UnregisterStateDriver(MouseHandle, "targetstate")
 		end
-
-		local currentTarget = SecureCmdOptionParse(targetstate)
-
-		CursorTrail.Default = TEXTURE[button]
-		CursorTrail.Texture:SetTexture(CursorTrail.Default)
-		CursorTrail:SetScript("OnUpdate", CursorTrailUpdate)
-		CursorTrail:Show()
-
-		RegisterStateDriver(MouseHandle, "actionpage", actionpage)
-		RegisterStateDriver(MouseHandle, "targetstate", targetstate)
-		MouseHandle:SetAttribute("actionpage", currentPage)
-		MouseHandle:SetAttribute("target", currentTarget)
-		MouseHandle:Execute(format([[
-			USE = "%s"
-			ID = %d
-			self:Run(UpdateActionPage, self:GetAttribute("actionpage"))
-			self:Run(UpdateTarget, self:GetAttribute("target"))
-			self:SetAttribute("actionpage", nil)
-			self:SetAttribute("target", nil)
-		]], button, id or -1))
-
-		self:AddUpdateSnippet(SecureSpellBookUpdate)
-	else
-		CursorTrail:SetScript("OnUpdate", nil)
-		CursorTrail:Hide()
-
-		MouseHandle:Execute([[
-			self:ClearBindings()
-		]])
-
-		UnregisterStateDriver(MouseHandle, "actionpage")
-		UnregisterStateDriver(MouseHandle, "targetstate")
+		self:RemoveUpdateSnippet(self.UpdateStateDriver)
 	end
 end
 

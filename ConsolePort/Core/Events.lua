@@ -142,8 +142,11 @@ end
 function Events:SPELLS_CHANGED(...)
 	self:SetupRaidCursor()
 	self:UpdateSmartMouse()
-	self:UpdateStateDriver()
-	self:SetupUtilityBelt()
+	self:AddUpdateSnippet(self.UpdateStateDriver)
+	self:AddUpdateSnippet(self.SetupUtilityBelt)
+	if InCombatLockdown() then
+		print(db.TUTORIAL.SLASH.WARNINGCOMBATLOGIN)
+	end
 	self:UnregisterEvent("SPELLS_CHANGED")
 	Events.SPELLS_CHANGED = nil
 end

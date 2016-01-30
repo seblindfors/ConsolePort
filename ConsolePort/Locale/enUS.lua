@@ -127,6 +127,7 @@ TUTORIAL = {
 		TYPE				= "Change controller type",
 		RESET 				= "Full addon reset (irreversible)",
 		BINDS 				= "Open binding menu",
+		WARNINGCOMBATLOGIN 	= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You reloaded your interface in combat.\nLeave combat to complete initialization.",
 		CRITICALUPDATE		= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?",
 		NEWCONTROLLER 		= "|cffffe00a[ConsolePort]|r\nYou have loaded a new controller profile. Would you like to load the default button bindings for this controller?",
 		NEWCHARACTER 		= "|cffffe00a[ConsolePort]|r\nWould you like to load the default button bindings for your controller?",

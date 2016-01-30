@@ -121,22 +121,31 @@ Animation.Group:SetScript("OnFinished", AnimateOnFinished)
 ---------------------------------------------------------------
 
 local function AddAction(actionType, ID, autoAssigned)
-	local currentType, isIdentical
-	for i, ActionButton in pairs(ActionButtons) do
-		currentType = ActionButton:GetAttribute("type")
-		isIdentical = (currentType == actionType and (ActionButton:GetAttribute("cursorID") == ID or ActionButton:GetAttribute(actionType) == ID))
-		if not currentType or isIdentical then
-			if actionType == "item" then
-				ActionButton:SetAttribute("cursorID", ID)
-			end
-			ActionButton:SetAttribute("type", actionType)
-			ActionButton:SetAttribute(actionType, ID)
-			ActionButton:Show()
-			if not (isIdentical and autoAssigned) then
-				Animation:ShowNewAction(ActionButton, autoAssigned)
-			end
+	ID = tonumber(ID) or ID
+	local alreadyBound
+	for id, ActionButton in pairs(ActionButtons) do
+		alreadyBound = 	( ActionButton:GetAttribute("type") == actionType and
+						( ActionButton:GetAttribute("cursorID") == ID or ActionButton:GetAttribute(actionType) == ID) ) and id
+		if alreadyBound then
 			break
-		end 
+		end
+	end
+	if alreadyBound and not autoAssigned then
+		Animation:ShowNewAction(ActionButtons[alreadyBound])
+	elseif not alreadyBound then
+		for i, ActionButton in pairs(ActionButtons) do
+			if not ActionButton:GetAttribute("type") then
+				if actionType == "item" then
+					ActionButton:SetAttribute("cursorID", ID)
+				end
+				ActionButton:SetAttribute("autoAssigned", autoAssigned)
+				ActionButton:SetAttribute("type", actionType)
+				ActionButton:SetAttribute(actionType, ID)
+				ActionButton:Show()
+				Animation:ShowNewAction(ActionButton, autoAssigned)
+				break
+			end 
+		end
 	end
 end
 
@@ -500,32 +509,37 @@ local function ActionButtonGetTexture(self, actionType, actionValue)
 end
 
 local function ActionButtonOnAttributeChanged(self, attribute, detail)
-	if not InCombatLockdown() then
-		local texture, isQuest
-		if detail then
-			if attribute == "item" and tonumber(detail) then
-				local name = GetItemInfo(detail)
-				self:SetAttribute("item", name)
-				return
-			elseif attribute == "mount" then
-				local spellID = MountJournal_GetMountInfo(detail)
-				self:SetAttribute("mountID", spellID)
-				self:SetAttribute("type", "spell")
-				self:SetAttribute("spell", spellID)
-				return
-			end
-			ClearCursor()
-		end
-		ActionButtonGetTexture(self, attribute, detail)
+	if attribute == "autoassigned" or attribute == "statehidden" then
+		return
 	end
+
+	local texture, isQuest
+	if detail then
+		if attribute == "item" and tonumber(detail) then
+			local name = GetItemInfo(detail)
+			self:SetAttribute("item", name)
+			return
+		elseif attribute == "mount" then
+			local spellID = MountJournal_GetMountInfo(detail)
+			self:SetAttribute("mountID", spellID)
+			self:SetAttribute("type", "spell")
+			self:SetAttribute("spell", spellID)
+			return
+		end
+		ClearCursor()
+	end
+	ActionButtonGetTexture(self, attribute, detail)
+	
 	local actionType = self:GetAttribute("type")
 	if actionType then
 		ConsolePortUtility[self.ID] = {
 			action = actionType,
 			value = self:GetAttribute(actionType),
-			cursorID = self:GetAttribute("cursorID")
+			cursorID = self:GetAttribute("cursorID"),
+			autoAssigned = self:GetAttribute("autoAssigned"),
 		}
 	else
+		self:SetAttribute("autoAssigned", nil)
 		ConsolePortUtility[self.ID] = nil
 	end
 end
@@ -557,8 +571,8 @@ local function ActionButtonOnUpdate(self, elapsed)
 		if actionType == "item" then
 			local item = self:GetAttribute("item")
 			local count = GetItemCount(item)
-			local class, _, maxStack = select(6, GetItemInfo(item))
-			if  class == QUEST and count < 1 and not InCombatLockdown() then
+			local _, _, maxStack = select(6, GetItemInfo(item))
+			if  self:GetAttribute("autoAssigned") and count < 1 and not InCombatLockdown() then
 				self:SetAttribute("type", nil)
 				self:SetAttribute("item", nil)
 				self:Hide()
@@ -631,6 +645,7 @@ for i=1, 8 do
 	ActionButton.Idle = 0
 	ActionButton.ID = i
 	ActionButton:Hide()
+	ActionButton:SetID(i)
 	ActionButton:SetSize(46, 46)
 	ActionButton:SetPoint("CENTER", self, "CENTER", -ptx, pty)
 	ActionButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
@@ -677,6 +692,7 @@ for i=1, 8 do
 	ActionButton.Quest:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\QuestButton")
 	ActionButton.Quest:SetPoint("CENTER", 0, 0)
 	ActionButton.Quest:SetSize(64, 64)
+	ActionButton.Quest:Hide()
 
 	ActionButton:SetScript("PreClick", ActionButtonPreClick)
 	ActionButton:SetScript("PostClick", ActionButtonPostClick)
@@ -707,6 +723,7 @@ function ConsolePort:SetupUtilityBelt()
 		for index, info in pairs(ConsolePortUtility) do
 			local actionButton = ActionButtons[index]
 			if info.action then
+				actionButton:SetAttribute("autoAssigned", info.autoAssigned)
 				actionButton:SetAttribute("type", info.action)
 				actionButton:SetAttribute("cursorID", info.cursorID)
 				actionButton:SetAttribute(info.action, info.value)
