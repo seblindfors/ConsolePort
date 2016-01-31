@@ -127,9 +127,6 @@ local function ExportCharacterSettings()
 		if not ConsolePortCharacterSettings then
 			ConsolePortCharacterSettings = {}
 		end
-		if not ConsolePortCharacterSettings[this] then
-			ConsolePortCharacterSettings[this] = {}
-		end
 		ConsolePortCharacterSettings[this] = {
 			BindingSet = db.Bindings,
 			BindingBtn = db.Bindbtns,

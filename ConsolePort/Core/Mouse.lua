@@ -148,9 +148,11 @@ MouseHandle:Execute([[
 			if id then
 				local actionType, actionID, subType = GetActionInfo(id)
 				if actionType == "spell" and subType == "spell" then
+					
 					local spellBookID = SPELLS[actionID]
 					local helpful = spellBookID and IsHelpfulSpell(spellBookID, subType)
 					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
+
 					if not helpful and not harmful then
 						self:ClearBindings()
 					elseif Target == "friend" and helpful then

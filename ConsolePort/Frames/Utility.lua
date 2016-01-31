@@ -647,7 +647,7 @@ for i=1, 8 do
 	ActionButton:Hide()
 	ActionButton:SetID(i)
 	ActionButton:SetSize(46, 46)
-	ActionButton:SetPoint("CENTER", self, "CENTER", -ptx, pty)
+	ActionButton:SetPoint("CENTER", -ptx, pty)
 	ActionButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
 	ActionButton.Border = CreateFrame("Frame", "$parentBorder", ActionButton)

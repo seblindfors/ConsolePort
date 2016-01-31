@@ -91,12 +91,12 @@ Cursor:Execute([[
 					local helpful = spellBookID and IsHelpfulSpell(spellBookID, subType)
 					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
 					if helpful then
-						tinsert(Helpful, actionButton)
+						Helpful[actionButton] = true
 					elseif harmful then
-						tinsert(Harmful, actionButton)
+						Harmful[actionButton] = true
 					else
-						tinsert(Helpful, actionButton)
-						tinsert(Harmful, actionButton)
+						Helpful[actionButton] = true
+						Harmful[actionButton] = true
 					end
 				end
 			end
@@ -127,7 +127,7 @@ Cursor:Execute([[
 					Cache[node] = true
 				end
 			elseif action then
-				Actions[node] = true
+				Actions[node] = unit or false
 				Cache[node] = true
 			end
 		end
@@ -222,12 +222,8 @@ Cursor:Execute([[
 		self:Run(SetCurrent)
 		self:Run(FindClosestNode)
 
-		for i, action in pairs(Helpful) do
-			action:SetAttribute("unit", action:GetAttribute("originalUnit"))
-		end
-
-		for i, action in pairs(Harmful) do
-			action:SetAttribute("unit", action:GetAttribute("originalUnit"))
+		for action, unit in pairs(Actions) do
+			action:SetAttribute("unit", unit)
 		end
 
 		if current then
@@ -244,14 +240,12 @@ Cursor:Execute([[
 			self:SetBindingClick(true, "CTRL-SHIFT-BUTTON2", current, "RightButton")
 			if PlayerCanAttack(unit) then
 				self:SetAttribute("relation", "harm")
-				for i, action in pairs(Harmful) do
-					action:SetAttribute("originalUnit", action:GetAttribute("unit"))
+				for action in pairs(Harmful) do
 					action:SetAttribute("unit", unit)
 				end
 			elseif PlayerCanAssist(unit) then
 				self:SetAttribute("relation", "help")
-				for i, action in pairs(Helpful) do
-					action:SetAttribute("originalUnit", action:GetAttribute("unit"))
+				for action in pairs(Helpful) do
 					action:SetAttribute("unit", unit)
 				end
 			end
@@ -288,12 +282,8 @@ Cursor:Execute([[
 			self:SetAttribute("node", nil)
 			self:ClearBindings()
 
-			for i, action in pairs(Helpful) do
-				action:SetAttribute("unit", action:GetAttribute("originalUnit"))
-			end
-			
-			for i, action in pairs(Harmful) do
-				action:SetAttribute("unit", action:GetAttribute("originalUnit"))
+			for action, unit in pairs(Actions) do
+				action:SetAttribute("unit", unit)
 			end
 		end
 	]=]
