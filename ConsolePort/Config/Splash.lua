@@ -129,8 +129,8 @@ function ConsolePort:CreateBindingWizard()
 		Wizard.Controller:SetSize(512, 512)
 		Wizard.Controller:SetPoint("CENTER", 0, 0)
 		Wizard.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
-		Wizard.Controller:SetPoint("TOPLEFT", 8, -8)
-		Wizard.Controller:SetPoint("BOTTOMRIGHT", -8, 8)
+		Wizard.Controller:SetPoint("TOPLEFT", 16, -16)
+		Wizard.Controller:SetPoint("BOTTOMRIGHT", -16, 16)
 		Wizard.Controller:SetTexCoord(0.345703125, 0.0625, 0.0703125, 0.53515625, 1, 0.4453125, 0.73046875, 0.91796875)
 		Wizard.Controller:SetAlpha(0.075)
 
@@ -262,10 +262,14 @@ function ConsolePort:CreateSplashFrame()
 
 		local function OnEnter(self)
 			db.UIFrameFadeIn(self.Highlight, 0.1, 0, 1)
+			self.Normal:SetDrawLayer("ARTWORK", 6)
+			self.Highlight:SetDrawLayer("ARTWORK", 7)
 		end
 
 		local function OnLeave(self)
 			db.UIFrameFadeIn(self.Highlight, 0.1, 1, 0)
+			self.Normal:SetDrawLayer("ARTWORK", self.Strata)
+			self.Highlight:SetDrawLayer("ARTWORK", self.Strata + 1)
 		end
 
 		local function OnClick(self)
@@ -294,6 +298,7 @@ function ConsolePort:CreateSplashFrame()
 		Splash.Center:SetPoint("CENTER", -24, 0)
 		Splash.Center:SetHeight(BTN_HEIGHT)
 
+		local red, green, blue = db.Atlas.GetCC()
 		local pos = 0
 		for name, template in pairs(db.Controllers) do
 			pos = pos + 1
@@ -302,6 +307,8 @@ function ConsolePort:CreateSplashFrame()
 
 			local Controller = CreateFrame("Button", nil, Splash)
 			Splash[name] = Controller
+
+			Controller.Strata = pos
 
 			Controller:SetSize(BTN_WIDTH, BTN_HEIGHT)
 			Controller:SetPoint("LEFT", Splash.Center, "LEFT", BTN_WIDTH*(pos-1), 0)
@@ -319,6 +326,7 @@ function ConsolePort:CreateSplashFrame()
 			Controller.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\FrontHighlight")
 			Controller.Highlight:SetRotation(TEX_ROTATION)
 			Controller.Highlight:SetAlpha(0)
+			Controller.Highlight:SetVertexColor(red, green, blue)
 
 			Controller:SetScript("OnEnter", OnEnter)
 			Controller:SetScript("OnLeave", OnLeave)

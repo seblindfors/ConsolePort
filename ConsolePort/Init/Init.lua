@@ -259,10 +259,3 @@ function ConsolePort:CreateActionButtons()
 	end
 	self.CreateActionButtons = nil
 end
-
--- hooksecurefunc("CreateFrame", function(...) 
--- 	local type, name, parent, template = ...
--- 	if template and template:match("SecureActionButtonTemplate") then
--- 		print(name, parent, template)
--- 	end
--- end)

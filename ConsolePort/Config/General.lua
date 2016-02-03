@@ -267,23 +267,23 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.InteractModule = CreateFrame("Frame", nil, Config)
 	Config.InteractModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.InteractModule:SetPoint("TOPRIGHT", -302, -8)
-	Config.InteractModule:SetSize(300, 300)
+	Config.InteractModule:SetSize(308, 308)
 	Config.InteractModule:SetScript("OnShow", InteractModuleOnShow)
 
 	Config.MouseModule = CreateFrame("Frame", nil, Config)
 	Config.MouseModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.MouseModule:SetPoint("TOPRIGHT", -8, -8)
-	Config.MouseModule:SetSize(300, 300)
+	Config.MouseModule:SetSize(316, 308)
 
 	Config.GeneralModule = CreateFrame("Frame", nil, Config)
 	Config.GeneralModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.GeneralModule:SetPoint("TOPLEFT", 8, -8)
-	Config.GeneralModule:SetSize(380, 300)
+	Config.GeneralModule:SetSize(388, 308)
 
 	------------------------------------------------------------------------------------------------------------------------------
 	Config.InteractModule.Header = Config.InteractModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.InteractModule.Header:SetText(TUTORIAL.CONFIG.INTERACTHEADER)
-	Config.InteractModule.Header:SetPoint("TOPLEFT", 16, -16)
+	Config.InteractModule.Header:SetPoint("TOPLEFT", 24, -24)
 
 	Config.InteractModule.Dude = Config.InteractModule:CreateTexture(nil, "BACKGROUND", nil, 1)
 	Config.InteractModule.Dude:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-QuestGiver")
@@ -303,7 +303,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.InteractModule.BindWrapper = db.Atlas.GetGlassWindow("$parentBindWrapper", Config.InteractModule, nil, true)
 	Config.InteractModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.InteractModule.BindWrapper:SetPoint("CENTER", 0, 8)
-	Config.InteractModule.BindWrapper:SetSize(240, 140)
+	Config.InteractModule.BindWrapper:SetSize(256, 140)
 	Config.InteractModule.BindWrapper.Close:Hide()
 	Config.InteractModule.BindWrapper:Hide()
 
@@ -320,7 +320,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	BindCatcherOnShow(Config.InteractModule.BindCatcher)
 
 	Config.InteractModule.Enable = CreateFrame("CheckButton", nil, Config.InteractModule, "ChatConfigCheckButtonTemplate")
-	Config.InteractModule.Enable:SetPoint("TOPLEFT", 16, -40)
+	Config.InteractModule.Enable:SetPoint("TOPLEFT", 24, -48)
 	Config.InteractModule.Enable:SetChecked(Settings.interactWith)
 	Config.InteractModule.Enable:SetScript("OnClick", function(self) InteractModuleOnShow(self:GetParent()) end)
 
@@ -329,7 +329,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.InteractModule.Enable.Text:SetPoint("LEFT", 30, 0)
 
 	Config.InteractModule.MouseOver = CreateFrame("CheckButton", nil, Config.InteractModule, "ChatConfigCheckButtonTemplate")
-	Config.InteractModule.MouseOver:SetPoint("BOTTOMLEFT", 16, 56)
+	Config.InteractModule.MouseOver:SetPoint("BOTTOMLEFT", 24, 64)
 	Config.InteractModule.MouseOver:SetChecked(Settings.mouseOverMode)
 	Config.InteractModule.MouseOver:SetScript("OnClick", function(self) InteractModuleOnShow(self:GetParent()) end)
 
@@ -340,7 +340,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	------------------------------------------------------------------------------------------------------------------------------
 	Config.MouseModule.Header = Config.MouseModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.MouseModule.Header:SetText(TUTORIAL.CONFIG.MOUSEHEADER)
-	Config.MouseModule.Header:SetPoint("TOPLEFT", 16, -16)
+	Config.MouseModule.Header:SetPoint("TOPLEFT", 24, -24)
 
 	Config.Events = {}
 	for i, setting in pairs(GetMouseSettings()) do
@@ -350,7 +350,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		check:SetChecked(setting.toggle)
 		check.Events = setting.event
 		check.Description = text
-		check:SetPoint("TOPLEFT", 16, -30*i-10)
+		check:SetPoint("TOPLEFT", 24, -30*i-18)
 		text:SetPoint("LEFT", check, 30, 0)
 		check:Show()
 		text:Show()
@@ -360,7 +360,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	------------------------------------------------------------------------------------------------------------------------------
 	Config.GeneralModule.Header = Config.GeneralModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.GeneralModule.Header:SetText(TUTORIAL.CONFIG.GENERALHEADER)
-	Config.GeneralModule.Header:SetPoint("TOPLEFT", 16, -16)
+	Config.GeneralModule.Header:SetPoint("TOPLEFT", 24, -24)
 
 	local mouseCvarOffset = #Config.Events
 	Config.General = {}
@@ -377,9 +377,9 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		text:Show()
 		if setting.mouse then
 			mouseCvarOffset = mouseCvarOffset + 1
-			check:SetPoint("TOPLEFT", Config.MouseModule, "TOPLEFT", 16, -30*mouseCvarOffset-10)
+			check:SetPoint("TOPLEFT", Config.MouseModule, "TOPLEFT", 24, -30*mouseCvarOffset-18)
 		else
-			check:SetPoint("TOPLEFT", 16, -30*i-10)
+			check:SetPoint("TOPLEFT", 24, -30*i-18)
 		end
 		tinsert(Config.General, check)
 	end
@@ -417,11 +417,11 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.MultiChoiceModule = CreateFrame("Frame", nil, Config)
 	Config.MultiChoiceModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.MultiChoiceModule:SetPoint("BOTTOMLEFT", 8, 8)
-	Config.MultiChoiceModule:SetSize(500, 276)
+	Config.MultiChoiceModule:SetSize(508, 284)
 
 	Config.TriggerHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.TriggerHeader:SetText(TUTORIAL.CONFIG.TRIGGERHEADER)
-	Config.TriggerHeader:SetPoint("TOPLEFT", Config.MultiChoiceModule, 16, -138)
+	Config.TriggerHeader:SetPoint("TOPLEFT", Config.MultiChoiceModule, 24, -138)
 
 	Config.Triggers = {}
 
@@ -498,7 +498,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	Config.CursorHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.CursorHeader:SetText(TUTORIAL.CONFIG.VIRTUALCURSOR)
-	Config.CursorHeader:SetPoint("TOPLEFT", Config.MultiChoiceModule, 16, -16)
+	Config.CursorHeader:SetPoint("TOPLEFT", Config.MultiChoiceModule, 24, -24)
 
 	local clickGraphics = {
 		{name = "LeftClick", 	coords = {0.0019531, 0.1484375, 0.4257813, 0.6210938}},
@@ -579,14 +579,14 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	Config.ActionBarModule = CreateFrame("Frame", nil, Config)
 	Config.ActionBarModule:SetBackdrop(db.Atlas.Backdrops.Border)
-	Config.ActionBarModule:SetPoint("BOTTOMLEFT", Config.MultiChoiceModule,"BOTTOMRIGHT", -8, 0)
-	Config.ActionBarModule:SetSize(182, 276)
+	Config.ActionBarModule:SetPoint("BOTTOMLEFT", Config.MultiChoiceModule, "BOTTOMRIGHT", -22, 0)
+	Config.ActionBarModule:SetSize(188, 284)
 	Config.ActionBarModule.Styles = {}
 	Config.ActionBarModule:SetID(1)
 
 	Config.ActionBarModule.Header = Config.ActionBarModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Config.ActionBarModule.Header:SetText(TUTORIAL.CONFIG.ACTIONBARHEADER)
-	Config.ActionBarModule.Header:SetPoint("TOPLEFT", 16, -16)
+	Config.ActionBarModule.Header:SetPoint("TOPLEFT", 24, -24)
 
 	local class = select(2, UnitClass("player"))
 	local classIcon = "Interface\\Icons\\ClassIcon_"..class
@@ -637,7 +637,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			info.func(button)
 		end
 
-		button:SetPoint("TOPLEFT", Config.ActionBarModule, "TOPLEFT", 16, -52*(index-1)-64)
+		button:SetPoint("TOPLEFT", Config.ActionBarModule, "TOPLEFT", 24, -52*(index-1)-72)
 		if ( index == Settings.actionBarStyle ) or ( index == 1 and not Settings.actionBarStyle ) then
 			Config.ActionBarModule:SetID(index)
 			button:SetChecked(true)

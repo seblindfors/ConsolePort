@@ -345,8 +345,8 @@ local function CreateListButton(parent, num, clickScript, width, height)
 	button:SetScript("OnClick", clickScript)
 	tinsert(parent.Buttons, button)
 	if num == 1 then
-		button:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
-		button:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
+		button:SetPoint("TOPLEFT", parent, "TOPLEFT", 8, 0)
+		button:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -16, 0)
 	else
 		button:SetPoint("TOPLEFT", parent.Buttons[num-1], "BOTTOMLEFT")
 		button:SetPoint("TOPRIGHT", parent.Buttons[num-1], "BOTTOMRIGHT")
@@ -398,8 +398,8 @@ local function BindHeaderSetValues(self)
 		button.StaticBinding = binding.binding
 		FadeIn(button, vCount*0.05, 0, 1)
 	end
-	self.ValueList:SetHeight(vCount*32+8)
-	self.ValueList:GetParent():SetHeight(vCount*(32+1)+8 <= 552 and vCount*(32+1)+8 or 552)
+	self.ValueList:SetHeight(vCount*32)
+	self.ValueList:GetParent():SetHeight(vCount*(32+1)+8 <= 536 and vCount*(32+1)+8 or 536)
 end
 
 local function BindHeaderOnClick(self)
@@ -463,8 +463,8 @@ local function RefreshHeaderList(self)
 		button.ValueList = self.Values
 		FadeIn(button, hCount*0.05, 0, 1)
 	end
-	self:SetHeight(hCount*32+8)
-	self:GetParent():SetHeight(hCount*(32+1)+8 <= 552 and hCount*(32+1)+8 or 552)
+	self:SetHeight(hCount*32)
+	self:GetParent():SetHeight(hCount*(32+1)+8 <= 536 and hCount*(32+1)+8 or 536)
 end
 
 ---------------------------------------------------------------
@@ -565,7 +565,7 @@ function ConsolePort:CreateConfigButton(name, mod, modNum)
 	local button = db.Atlas.GetFutureButton(name..mod..CONF, db.Binds.Rebind)
 	button.SelectedTexture:SetTexCoord(button.HighlightTexture:GetTexCoord())
 	button:SetSize(440, 46)
-	button:SetPoint("TOP", db.Binds.Rebind, "TOP", 0, -44*modNum-10)
+	button:SetPoint("TOP", db.Binds.Rebind, "TOP", 0, -44*modNum-18)
 
 	button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
@@ -1058,6 +1058,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\FrontHighlight")
 	Binds.Controller.FlashGlow:SetAllPoints(Binds.Controller)
 	Binds.Controller.FlashGlow:SetAlpha(0)
+	Binds.Controller.FlashGlow:SetVertexColor(cc.r, cc.g, cc.b)
 
 	Binds.Overlay = CreateFrame("Frame", "$parentOverlay", Binds)
 	Binds.Overlay:SetPoint("CENTER", 0, 0)
@@ -1220,8 +1221,8 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 
 	Binds.Rebind = db.Atlas.GetGlassWindow("ConsolePortRebindFrame", Binds.Controller, nil, true)
 	Binds.Rebind:SetBackdrop(db.Atlas.Backdrops.Border)
-	Binds.Rebind:SetPoint("BOTTOMLEFT", Binds, "BOTTOMLEFT", 24, 16)
-	Binds.Rebind:SetSize(460, 200)
+	Binds.Rebind:SetPoint("BOTTOMLEFT", Binds, "BOTTOMLEFT", 16, 16)
+	Binds.Rebind:SetSize(476, 216)
 	Binds.Rebind:Hide()
 
 	Binds.Rebind.SetButton = RebindSetButton
@@ -1256,22 +1257,22 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 		ConsolePort.rebindMode = true
 	end)
 
-	Binds.Rebind.Close:SetPoint("TOPRIGHT", Binds.Rebind, "TOPRIGHT", -4, 16)
+	Binds.Rebind.Close:SetPoint("TOPRIGHT", Binds.Rebind, "TOPRIGHT", -16, 8)
 	Binds.Rebind.Close:HookScript("OnClick", function(self)
 		ConsolePort:SetCurrentNode(Binds.BindCatcher)
 	end)
 
 	Binds.Rebind.Backdrop1 = CreateFrame("Frame", "$parentBackdrop1", Binds.Rebind)
 	Binds.Rebind.Backdrop1:SetBackdrop(db.Atlas.Backdrops.Border)
-	Binds.Rebind.Backdrop1:SetPoint("TOPLEFT", Binds, "TOP", 0, -8)
-	Binds.Rebind.Backdrop1:SetPoint("BOTTOMLEFT", Binds, "BOTTOM", 0, 8)
-	Binds.Rebind.Backdrop1:SetWidth(246)
+	Binds.Rebind.Backdrop1:SetPoint("TOPLEFT", Binds, "TOP", -16, -8)
+	Binds.Rebind.Backdrop1:SetPoint("BOTTOMLEFT", Binds, "BOTTOM", 16, 8)
+	Binds.Rebind.Backdrop1:SetWidth(262)
 
 	Binds.Rebind.Backdrop2 = CreateFrame("Frame", "$parentBackdrop2", Binds.Rebind)
 	Binds.Rebind.Backdrop2:SetBackdrop(db.Atlas.Backdrops.Border)
-	Binds.Rebind.Backdrop2:SetPoint("TOPLEFT", Binds.Rebind.Backdrop1, "TOPRIGHT", -8, 0)
+	Binds.Rebind.Backdrop2:SetPoint("TOPLEFT", Binds.Rebind.Backdrop1, "TOPRIGHT", -24, 0)
 	Binds.Rebind.Backdrop2:SetPoint("BOTTOMLEFT", Binds.Rebind.Backdrop1, "BOTTOMRIGHT", -8, 0)
-	Binds.Rebind.Backdrop2:SetWidth(246)
+	Binds.Rebind.Backdrop2:SetWidth(262)
 
 	Binds.Rebind.Headers = CreateFrame("Frame", "$parentHeaders", Binds.Rebind)
 	Binds.Rebind.Headers:SetWidth(232)
@@ -1280,7 +1281,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Rebind.Headers:SetScript("OnShow", RefreshHeaderList)
 
 	Binds.Rebind.HeaderScroll = CreateFrame("ScrollFrame", "$parentHeaderScrollFrame", Binds.Rebind, "UIPanelScrollFrameTemplate")
-	Binds.Rebind.HeaderScroll:SetPoint("BOTTOMLEFT", Binds, "BOTTOM", 0, 16)
+	Binds.Rebind.HeaderScroll:SetPoint("BOTTOMLEFT", Binds, "BOTTOM", -8, 24)
 	Binds.Rebind.HeaderScroll:SetSize(246, 300)
 	Binds.Rebind.HeaderScroll:SetScrollChild(Binds.Rebind.Headers)
 
@@ -1289,8 +1290,8 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 
 	Binds.Rebind.HeaderScroll.ScrollBar.scrollStep = 32
 	Binds.Rebind.HeaderScroll.ScrollBar:ClearAllPoints()
-	Binds.Rebind.HeaderScroll.ScrollBar:SetPoint("TOPLEFT", Binds.Rebind.Backdrop1, "TOPRIGHT", -28, -16)
-	Binds.Rebind.HeaderScroll.ScrollBar:SetPoint("BOTTOMLEFT", Binds.Rebind.Backdrop1, "BOTTOMRIGHT", -28, 16)
+	Binds.Rebind.HeaderScroll.ScrollBar:SetPoint("TOPLEFT", Binds.Rebind.Backdrop1, "TOPRIGHT", -36, -16)
+	Binds.Rebind.HeaderScroll.ScrollBar:SetPoint("BOTTOMLEFT", Binds.Rebind.Backdrop1, "BOTTOMRIGHT", -36, 16)
 	Binds.Rebind.HeaderScroll.ScrollBar.Thumb = Binds.Rebind.HeaderScroll.ScrollBar:GetThumbTexture()
 	Binds.Rebind.HeaderScroll.ScrollBar.Thumb:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Thumb")
 	Binds.Rebind.HeaderScroll.ScrollBar.Thumb:SetTexCoord(0, 1, 0, 1)
@@ -1304,8 +1305,8 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Rebind.Headers.Values = Binds.Rebind.Values
 
 	Binds.Rebind.ValueScroll = CreateFrame("ScrollFrame", "$parentValueScrollFrame", Binds.Rebind, "UIPanelScrollFrameTemplate")
-	Binds.Rebind.ValueScroll:SetPoint("BOTTOMRIGHT", Binds, "BOTTOMRIGHT", -8, 16)
-	Binds.Rebind.ValueScroll:SetWidth(246)
+	Binds.Rebind.ValueScroll:SetPoint("BOTTOMRIGHT", Binds, "BOTTOMRIGHT", -8, 24)
+	Binds.Rebind.ValueScroll:SetWidth(254)
 	Binds.Rebind.ValueScroll:SetScrollChild(Binds.Rebind.Values)
 
 	Binds.Rebind.Values:ClearAllPoints()
@@ -1313,8 +1314,8 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 
 	Binds.Rebind.ValueScroll.ScrollBar.scrollStep = 32
 	Binds.Rebind.ValueScroll.ScrollBar:ClearAllPoints()
-	Binds.Rebind.ValueScroll.ScrollBar:SetPoint("TOPLEFT", Binds.Rebind.Backdrop2, "TOPRIGHT", -28, -16)
-	Binds.Rebind.ValueScroll.ScrollBar:SetPoint("BOTTOMLEFT", Binds.Rebind.Backdrop2, "BOTTOMRIGHT", -28, 16)
+	Binds.Rebind.ValueScroll.ScrollBar:SetPoint("TOPLEFT", Binds.Rebind.Backdrop2, "TOPRIGHT", -36, -16)
+	Binds.Rebind.ValueScroll.ScrollBar:SetPoint("BOTTOMLEFT", Binds.Rebind.Backdrop2, "BOTTOMRIGHT", -36, 16)
 	Binds.Rebind.ValueScroll.ScrollBar.Thumb = Binds.Rebind.ValueScroll.ScrollBar:GetThumbTexture()
 	Binds.Rebind.ValueScroll.ScrollBar.Thumb:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Thumb")
 	Binds.Rebind.ValueScroll.ScrollBar.Thumb:SetTexCoord(0, 1, 0, 1)

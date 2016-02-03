@@ -353,8 +353,8 @@ tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultU
 	UICtrl.TutorialFrame.Background:SetSize(256, 256)
 
 	UICtrl.AddonScroll = CreateFrame("ScrollFrame", "$parentAddonScrollFrame", UICtrl, "UIPanelScrollFrameTemplate")
-	UICtrl.AddonScroll:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 16, -40)
-	UICtrl.AddonScroll:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOMLEFT", 16, 16)
+	UICtrl.AddonScroll:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 24, -40)
+	UICtrl.AddonScroll:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOMLEFT", 24, 24)
 	UICtrl.AddonScroll:SetWidth(260)
 	UICtrl.AddonScroll:SetScrollChild(UICtrl.AddonList)
 
@@ -371,12 +371,12 @@ tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultU
 
 	UICtrl.AddonWrap = CreateFrame("Frame", "$parentAddonWrap", UICtrl)
 	UICtrl.AddonWrap:SetBackdrop(db.Atlas.Backdrops.Border)
-	UICtrl.AddonWrap:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 8, -32)
+	UICtrl.AddonWrap:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 8, -24)
 	UICtrl.AddonWrap:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOMLEFT", 8, 8)
-	UICtrl.AddonWrap:SetWidth(300)
+	UICtrl.AddonWrap:SetWidth(316)
 
 	UICtrl.AddonListText = UICtrl:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	UICtrl.AddonListText:SetPoint("BOTTOMLEFT", UICtrl.AddonWrap, "TOPLEFT", 8, 0)
+	UICtrl.AddonListText:SetPoint("BOTTOMLEFT", UICtrl.AddonWrap, "TOPLEFT", 16, -8)
 	UICtrl.AddonListText:SetText(TUTORIAL.ADDONLISTHEADER)
 
 	UICtrl.FrameList = CreateFrame("Frame", "$parentFrameList", UICtrl)
@@ -387,8 +387,8 @@ tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultU
 	UICtrl.FrameList.Buttons = {}
 
 	UICtrl.FrameScroll = CreateFrame("ScrollFrame", "$parentFrameScrollFrame", UICtrl, "UIPanelScrollFrameTemplate")
-	UICtrl.FrameScroll:SetPoint("TOPLEFT", UICtrl.AddonScroll, "TOPRIGHT", 40, 0)
-	UICtrl.FrameScroll:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "BOTTOMRIGHT", 40, 0)
+	UICtrl.FrameScroll:SetPoint("TOPLEFT", UICtrl.AddonScroll, "TOPRIGHT", 32, 0)
+	UICtrl.FrameScroll:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "BOTTOMRIGHT", 32, 0)
 	UICtrl.FrameScroll:SetScrollChild(UICtrl.FrameList)
 	UICtrl.FrameScroll:SetWidth(260)
 
@@ -405,9 +405,9 @@ tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultU
 
 	UICtrl.FrameWrap = CreateFrame("Frame", "$parentFrameWrap", UICtrl)
 	UICtrl.FrameWrap:SetBackdrop(db.Atlas.Backdrops.Border)
-	UICtrl.FrameWrap:SetPoint("TOPLEFT", UICtrl.AddonWrap, "TOPRIGHT", 0, 0)
-	UICtrl.FrameWrap:SetPoint("BOTTOMLEFT", UICtrl.AddonWrap, "BOTTOMRIGHT", 0, 0)
-	UICtrl.FrameWrap:SetWidth(300)
+	UICtrl.FrameWrap:SetPoint("TOPLEFT", UICtrl.AddonWrap, "TOPRIGHT", -24, 0)
+	UICtrl.FrameWrap:SetPoint("BOTTOMLEFT", UICtrl.AddonWrap, "BOTTOMRIGHT", -24, 0)
+	UICtrl.FrameWrap:SetWidth(316)
 
 	UICtrl.FrameListText = UICtrl:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	UICtrl.FrameListText:SetPoint("BOTTOMLEFT", UICtrl.FrameScroll, "TOPLEFT", 0, 8)

@@ -118,7 +118,7 @@ local function ConfigureConfig(self, Config)
 					floor( (116+(xOffset)+(index-2)*60) + 0.5 ),
 					floor( (60+(yOffset*((setIndex == 1 or setIndex == 5) and 1.125 or 0.8))-btnIndex*24) + 0.5))
 				Field:SetSize(72, 36)
-				Field:SetBackdrop(db.Atlas.Backdrops.Full)
+				Field:SetBackdrop(db.Atlas.Backdrops.FullSmall)
 				------------------------------------------
 				Field:SetJustifyH("CENTER")
 				Field.Index = {setIndex, btnIndex, index}
@@ -150,8 +150,8 @@ local function ConfigureConfig(self, Config)
 	Config.LanguageList:SetScript("OnShow", RefreshLanguageList)
 
 	Config.LanguageScroll = CreateFrame("ScrollFrame", "$parentLanguageScrollFrame", Config, "UIPanelScrollFrameTemplate")
-	Config.LanguageScroll:SetPoint("TOPLEFT", Config, "TOPLEFT", 16, -40)
-	Config.LanguageScroll:SetPoint("BOTTOMLEFT", Config, "BOTTOMLEFT", 16, 16)
+	Config.LanguageScroll:SetPoint("TOPLEFT", Config, "TOPLEFT", 24, -40)
+	Config.LanguageScroll:SetPoint("BOTTOMLEFT", Config, "BOTTOMLEFT", 24, 16)
 	Config.LanguageScroll:SetWidth(260)
 	Config.LanguageScroll:SetScrollChild(Config.LanguageList)
 
@@ -168,12 +168,12 @@ local function ConfigureConfig(self, Config)
 
 	Config.ScrollWrap = CreateFrame("Frame", "$parentScrollFrameWrap", Config)
 	Config.ScrollWrap:SetBackdrop(db.Atlas.Backdrops.Border)
-	Config.ScrollWrap:SetPoint("TOPLEFT", Config, "TOPLEFT", 8, -32)
+	Config.ScrollWrap:SetPoint("TOPLEFT", Config, "TOPLEFT", 8, -24)
 	Config.ScrollWrap:SetPoint("BOTTOMLEFT", Config, "BOTTOMLEFT", 8, 8)
-	Config.ScrollWrap:SetWidth(300)
+	Config.ScrollWrap:SetWidth(316)
 
 	Config.LanguageListText = Config:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	Config.LanguageListText:SetPoint("BOTTOMLEFT", Config.ScrollWrap, "TOPLEFT", 8, 0)
+	Config.LanguageListText:SetPoint("BOTTOMLEFT", Config.ScrollWrap, "TOPLEFT", 16, -8)
 	Config.LanguageListText:SetText(db.TUTORIAL.CONFIG.KEYBOARDLANG)
 end
 ---------------------------------------------------------------

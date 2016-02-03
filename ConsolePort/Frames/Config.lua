@@ -31,7 +31,7 @@ Config:HookScript("OnDragStop", Config.StopMovingOrSizing)
 ---------------------------------------------------------------
 Category.Buttons = {}
 Category:SetHeight(46)
-Category:SetPoint("TOP", Config, "TOP", 0, -28)
+Category:SetPoint("TOP", Config, "TOP", 0, -34)
 Container:SetPoint("TOPLEFT", Config, "TOPLEFT", 8, -80)
 Container:SetPoint("BOTTOMRIGHT", Config, "BOTTOMRIGHT", -8, 54)
 ---------------------------------------------------------------
@@ -49,7 +49,7 @@ function Cancel:OnClick()
 	end
 end
 
-Cancel:SetPoint("BOTTOMRIGHT", -12, 12)
+Cancel:SetPoint("BOTTOMRIGHT", -20, 20)
 Cancel:SetText(TUTORIAL.CANCEL)
 Cancel:SetScript("OnClick", Cancel.OnClick)
 ---------------------------------------------------------------
@@ -75,7 +75,7 @@ Save:SetText(TUTORIAL.SAVE)
 Save:SetScript("OnClick", Save.OnClick)
 ---------------------------------------------------------------
 local Default = db.Atlas.GetFutureButton("$parentDefault", Config)
-Default:SetPoint("BOTTOMLEFT", 12, 12)
+Default:SetPoint("BOTTOMLEFT", 20, 20)
 Default:SetText(TUTORIAL.DEFAULT)
 Default:SetScript("OnClick", Default.OnClick)
 ---------------------------------------------------------------
@@ -145,15 +145,8 @@ local red, green, blue = db.Atlas.GetCC()
 Config.Tooltip = Tooltip
 
 function Tooltip:OnShow()
-	-- edge file fractioned pixel fix, pretty unncessary
-	local width, height = self:GetSize()
-	width, height = floor(width + 0.5) + 4, floor(height + 0.5) + 4
-	local point, anchor, relativePoint, x, y = self:GetPoint()
-	self:ClearAllPoints()
-	self:SetPoint(point, anchor, relativePoint, floor(x + 0.5), floor(y + 0.5))
-	self:SetSize(width - (width % 2), height - (height % 2))
 	-- set CC backdrop
-	self:SetBackdrop(db.Atlas.Backdrops.Full)
+	self:SetBackdrop(db.Atlas.Backdrops.FullSmall)
 	self:SetBackdropColor(red, green, blue,  0.9)
 	FadeIn(self, 0.2, 0, 1)
 end
@@ -168,15 +161,15 @@ Popup.Button2 = db.Atlas.GetFutureButton("$parentButton2", Popup, nil, nil, 180,
 Popup.Container = db.Atlas.GetGlassWindow("$parentContainer", Popup, nil, true)
 Popup.Container.BG:SetAlpha(0.1)
 Popup.Container.Close:Hide()
-Popup.Container:SetBackdrop(db.Atlas.Backdrops.BorderInset)
-Popup.Container:SetPoint("TOPLEFT", Popup, "TOPLEFT", 16, -52)
-Popup.Container:SetPoint("BOTTOMRIGHT", Popup, "BOTTOMRIGHT", -16, 52)
+Popup.Container.Tint:Hide()
+Popup.Container:SetPoint("TOPLEFT", Popup, "TOPLEFT", 8, -44)
+Popup.Container:SetPoint("BOTTOMRIGHT", Popup, "BOTTOMRIGHT", -8, 44)
 ---------------------------------------------------------------
 Popup.Header = Popup:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 Popup.Header:SetPoint("TOP", 0, -32)
 ---------------------------------------------------------------
-Popup.Button1:SetPoint("BOTTOMLEFT", Popup, "BOTTOMLEFT", 16, 16)
-Popup.Button2:SetPoint("BOTTOMRIGHT", Popup, "BOTTOMRIGHT", -16, 16)
+Popup.Button1:SetPoint("BOTTOMLEFT", Popup, "BOTTOMLEFT", 20, 20)
+Popup.Button2:SetPoint("BOTTOMRIGHT", Popup, "BOTTOMRIGHT", -20, 20)
 ---------------------------------------------------------------
 function Popup:WrapClick(wrapper, button)
 	wrapper:SetScript("OnClick", function()
@@ -194,8 +187,8 @@ function Popup:SetPopup(header, frame, button1, button2, height)
 	frame:Show()
 	frame:SetParent(self)
 	frame:ClearAllPoints()
-	frame:SetPoint("TOPLEFT", self.Container, "TOPLEFT", 8, -8)
-	frame:SetPoint("BOTTOMRIGHT", self.Container, "BOTTOMRIGHT", -8, 8)
+	frame:SetPoint("TOPLEFT", self.Container, "TOPLEFT", 16, -16)
+	frame:SetPoint("BOTTOMRIGHT", self.Container, "BOTTOMRIGHT", -16, 16)
 	self.Header:SetText(header)
 	self:WrapClick(self.Button1, button1)
 	self:WrapClick(self.Button2, button2)

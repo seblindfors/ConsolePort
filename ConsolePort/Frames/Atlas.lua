@@ -45,8 +45,14 @@ db.Atlas = {}
 db.Atlas.Backdrops = {
 	Full = {
 		bgFile 		= path.."Window\\Gradient",
-		edgeFile 	= path.."Window\\Edgefile",
-		edgeSize 	= 8,
+		edgeFile 	= path.."Window\\EdgefileBig",
+		edgeSize 	= 32,
+		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
+	},
+	FullSmall = {
+		bgFile 		= path.."Window\\Gradient",
+		edgeFile 	= path.."Window\\EdgefileBig",
+		edgeSize 	= 16,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	},
 	Tooltip = {
@@ -56,8 +62,13 @@ db.Atlas.Backdrops = {
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	},
 	Border = {
-		edgeFile 	= path.."Window\\Edgefile",
-		edgeSize 	= 8,
+		edgeFile 	= path.."Window\\EdgefileBig",
+		edgeSize 	= 32,
+		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
+	},
+	BorderSmall = {
+		edgeFile 	= path.."Window\\EdgefileBig",
+		edgeSize 	= 16,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	},
 	BorderInset = {
@@ -173,10 +184,17 @@ db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored)
 	self.Close:SetPoint("TOPRIGHT", -20, -20)
 
 	self.BG = self:CreateTexture(nil, "BACKGROUND")
-	self.BG:SetPoint("TOPLEFT", self, "TOPLEFT", 8, -8)
-	self.BG:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -8, 8)
+	self.BG:SetPoint("TOPLEFT", self, "TOPLEFT", 16, -16)
+	self.BG:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -16, 16)
 	self.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
 	self.BG:SetBlendMode("ADD")
+
+	self.Tint = self:CreateTexture(nil, "BACKGROUND", nil, 2)
+	self.Tint:SetTexture(path.."Window\\BoxTint")
+	self.Tint:SetPoint("TOPLEFT", 16, -16)
+	self.Tint:SetPoint("BOTTOMRIGHT", self, "RIGHT", -16, 0)
+	self.Tint:SetBlendMode("ADD")
+	self.Tint:SetAlpha(0.75)
 
 	if classColored then
 		self.BG:SetVertexColor(cc.r, cc.g, cc.b, 0.25)
@@ -197,51 +215,34 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
 	self.Close.Texture:SetAllPoints(self.Close)
 	self.Close:SetNormalTexture(self.Close.Texture)
 	self.Close:SetSize(13, 14)
-	self.Close:SetPoint("TOPRIGHT", -20, -20)
+	self.Close:SetPoint("TOPRIGHT", -24, -24)
 
-	self.TopLine = self:CreateTexture(nil, "BACKGROUND")
-	self.TopMid = self:CreateTexture(nil, "OVERLAY")
-	self.TopLeft = self:CreateTexture(nil, "OVERLAY")
-	self.TopRight = self:CreateTexture(nil, "OVERLAY")
+	self.TopLine = self:CreateTexture(nil, "BACKGROUND", nil, 7)
+	self.TopLine:SetPoint("TOPLEFT", 16, -16)
+	self.TopLine:SetPoint("BOTTOMRIGHT", self, "TOPRIGHT", -16, -20)
 
-	self.TopLine:SetPoint("TOPLEFT", self.TopLeft, "TOPLEFT", 1, 1)
-	self.TopLine:SetPoint("TOPRIGHT", self.TopRight, "TOPRIGHT", -1, 1)
-	self.TopLine:SetPoint("BOTTOMLEFT", self.TopLeft, "TOPLEFT", 0, 0)
-	self.TopLine:SetPoint("BOTTOMRIGHT", self.TopRight, "TOPRIGHT", 0, 0)
-
-	self.TopLeft:SetPoint("TOPLEFT", self, "TOPLEFT", 145, -4)
-	self.TopLeft:SetPoint("BOTTOMRIGHT", self, "TOPLEFT", 160, -24)
-
-	self.TopRight:SetPoint("TOPRIGHT", self, "TOPRIGHT", -145, -4)
-	self.TopRight:SetPoint("BOTTOMLEFT", self, "TOPRIGHT", -160, -24)
-
-	self.TopMid:SetPoint("TOPLEFT", self.TopLeft, "TOPRIGHT", 0, 0)
-	self.TopMid:SetPoint("BOTTOMRIGHT", self.TopRight, "BOTTOMLEFT", 0, 0)
-
-	self.TopLine:SetTexture(0.05,0.05,0.05)
-	self.TopMid:SetTexture(assets)
-	self.TopLeft:SetTexture(assets)
-	self.TopRight:SetTexture(assets)
-
-	self.TopMid:SetTexCoord(0.34375, 0.40625, 0.0, 0.40625)
-	self.TopLeft:SetTexCoord(0.0, 0.34375, 0.0, 0.40625)
-	self.TopRight:SetTexCoord(0.40625, 0.75, 0.0, 0.40625)
 
 	local gradient = {
-		"VERTICAL",
+		"HORIZONTAL",
 	   cc.r, cc.g, cc.b, 1,
-	   cc.r*0.85, cc.g*0.85, cc.b*0.85, 1,
+	   1, 1, 1, 0,
 	}
 
-	self.TopMid:SetGradientAlpha(unpack(gradient))
-	self.TopLeft:SetGradientAlpha(unpack(gradient))
-	self.TopRight:SetGradientAlpha(unpack(gradient))
+	self.Tint = self:CreateTexture(nil, "BACKGROUND", nil, 2)
+	self.Tint:SetTexture(path.."Window\\BoxTint")
+	self.Tint:SetPoint("TOPLEFT", 16, -16)
+	self.Tint:SetPoint("BOTTOMRIGHT", self, "RIGHT", -16, 0)
+	self.Tint:SetBlendMode("ADD")
+	self.Tint:SetAlpha(0.75)
+
+	self.TopLine:SetTexture(1,1,1)
+	self.TopLine:SetGradientAlpha(unpack(gradient))
 
 	self:SetBackdrop(db.Atlas.Backdrops.Full)
 
 	self.Overlay = self:CreateTexture(nil, "ARTWORK", nil, 7)
-	self.Overlay:SetPoint("TOPLEFT", self, "TOPLEFT", 8, -8)
-	self.Overlay:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -8, 8)
+	self.Overlay:SetPoint("TOPLEFT", self, "TOPLEFT", 16, -16)
+	self.Overlay:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -16, 16)
 	self.Overlay:SetBlendMode("BLEND")
 	self.Overlay:SetAlpha(0.1)
 
@@ -260,7 +261,7 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
 		local interval, timer, cycle, rev, red, green, blue = 0.2, 0, 0
 		self:SetScript("OnUpdate", function (self, elapsed)
 			timer = timer + elapsed
-			if timer > 0.2 then
+			if timer > interval then
 				red = (math.sin(0.05*cycle + 0) * 127 + 128)/255
 				green = (math.sin(0.05*cycle + 2) * 127 + 128)/255
 		   		blue = (math.sin(0.05*cycle + 4) * 127 + 128)/255
@@ -273,9 +274,7 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
 		   		gradient[7] = green*0.85
 		   		gradient[8] = blue*0.85
 
-		   		self.TopMid:SetGradientAlpha(unpack(gradient))
-				self.TopLeft:SetGradientAlpha(unpack(gradient))
-				self.TopRight:SetGradientAlpha(unpack(gradient))
+		   		self.TopLine:SetGradientAlpha(unpack(gradient))
 
 				if cycle == 1 then
 					rev = false
@@ -283,38 +282,6 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
 					rev = true
 				end
 				cycle = rev and cycle - 1 or cycle + 1
-				timer = 0
-			end
-		end)
-	else
-		local timer, glow, red, green, blue, fadeAway = 0, 1
-		self:SetScript("OnUpdate", function(self, elapsed)
-			timer = timer + elapsed
-			if timer > 0.1 then
-				glow = fadeAway and glow - 0.01 or glow + 0.01
-
-				red 	= cc.r * glow
-				green 	= cc.g * glow
-				blue 	= cc.b * glow
-
-				gradient[2] = red
-				gradient[3] = green
-				gradient[4] = blue
-
-				gradient[6] = red	* glow
-				gradient[7] = green * glow
-				gradient[8] = blue 	* glow
-
-				if glow > 1 then
-					fadeAway = true
-				elseif glow < 0.80 then
-					fadeAway = false
-				end
-
-				self.TopMid:SetGradientAlpha(unpack(gradient))
-				self.TopLeft:SetGradientAlpha(unpack(gradient))
-				self.TopRight:SetGradientAlpha(unpack(gradient))
-
 				timer = 0
 			end
 		end)
