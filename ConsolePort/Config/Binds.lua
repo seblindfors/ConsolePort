@@ -831,7 +831,14 @@ local function GetBindingText(self, secure, static, modifier)
 		if name then
 			return name, texture
 		elseif texture then
-			return nil, texture
+			local header
+
+			if static and _G[BIND..static] then
+				header = _G[self:GetParent().Bindings[static]]
+				header = header and _G[BIND..static].."\n|cFF575757"..header or _G[BIND..static]
+			end
+
+			return header, texture
 		else
 			local header = _G[self:GetParent().Bindings[static]]
 			return header and _G[BIND..static].."\n|cFF575757"..header or _G[BIND..static]
@@ -839,8 +846,6 @@ local function GetBindingText(self, secure, static, modifier)
 	elseif static and _G[BIND..static] then
 		local header = _G[self:GetParent().Bindings[static]]
 		return header and _G[BIND..static].."\n|cFF575757"..header or _G[BIND..static]
---	elseif modifier then
---		return _G[BIND..GetBindingAction(modifier..GetBindingKey(self.name), true)] or format("|cFF575757%s|r", TUTORIAL.NOTASSIGNED)
 	else
 		return TUTORIAL.NOTASSIGNED
 	end
@@ -881,7 +886,7 @@ local function SetBindingTooltip(self)
 			static = db.Bindings[self.name] and db.Bindings[self.name][staticIndex]
 		end
 		local text, icon = GetBindingText(self, _G[self.name..binding.extension], static, binding.mod)
-		local _, newLines = gsub(text, "\n", "")
+		local _, newLines = gsub(text or "", "\n", "")
 		newLines = strrep("\n", 2 - newLines)
 		local tooltipText = (icon and text) and format(self.icon, icon).." "..text or text and text..newLines or icon and format(self.icon, icon)
 		tooltip:AddDoubleLine(tooltipText, binding.icons, 1,1,1,1,1,1)
