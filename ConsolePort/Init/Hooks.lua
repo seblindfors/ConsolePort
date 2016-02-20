@@ -14,15 +14,18 @@ function ConsolePort:LoadHookScripts()
 		local item = self:GetItem()
 		if 	not InCombatLockdown() then
 			local 	CLICK_STRING
-			if		owner:GetParent():GetName() and
-					string.find(owner:GetParent():GetName(), "MerchantItem") ~= nil then
+			local parentName = owner:GetParent():GetName()
+			if		parentName and parentName:match("MerchantItem") then
+				--	string.find(owner:GetParent():GetName(), "MerchantItem") ~= nil then
 					CLICK_STRING = db.CLICK.BUY
 					if GetMerchantItemMaxStack(owner:GetID()) > 1 then 
 						self:AddLine(db.CLICK.STACK_BUY, 1,1,1)
 					end
 			elseif	owner:GetParent() == LootFrame then
 					self:AddLine(db.CLICK_LOOT, 1,1,1)
-			elseif 	GetItemSpell(item) 	 		then CLICK_STRING = db.CLICK.USE
+			elseif 	MerchantFrame:IsVisible() and not IsEquippedItem(item) then CLICK_STRING = db.CLICK.SELL
+			elseif 	IsEquippableItem(item) and not IsEquippedItem(item) then CLICK_STRING = db.CLICK.EQUIP
+			elseif 	GetItemSpell(item) then CLICK_STRING = db.CLICK.USE
 			end
 			if 	GetItemCount(item, false) ~= 0 or
 				MerchantFrame:IsVisible() then
@@ -32,6 +35,8 @@ function ConsolePort:LoadHookScripts()
 				self:AddLine(CLICK_STRING, 1,1,1)
 				if CLICK_STRING == db.CLICK.USE then
 					self:AddLine(db.CLICK.ADD_TO_EXTRA, 1,1,1)
+				elseif select(8, GetItemInfo(item)) > 1 then
+					self:AddLine(db.CLICK.STACK_SPLIT)
 				end
 				if not owner:GetParent() == LootFrame then
 					self:AddLine(db.CLICK.PICKUP, 1,1,1)

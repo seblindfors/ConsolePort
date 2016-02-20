@@ -15,6 +15,7 @@ TUTORIAL = {
 		DEFAULT 			= "Click here to change a binding.",
 		COMBATTEXT 			= "Exit combat to change your settings.",
 		CATCHER 			= "Press a button on your controller.",
+		RETURN 				= "Return to blueprint",
 		COMBO 				= "Left click on a combination to change it.\nRight click to clear the combination.",
 		REBIND 				= "Select an interface button or key binding to change:\n%s",
 		APPLIED 			= "%s was bound to %s.",
@@ -146,7 +147,8 @@ TOOLTIP = {
 		PICKUP 				= 	"Pick up",
 		CANCEL 				= 	"Cancel",
 		STACK_BUY 			= 	"Buy a different amount",
-		ADD_TO_EXTRA		= 	"Bind",
+		STACK_SPLIT 		= 	"Split stack",
+		ADD_TO_EXTRA		= 	"Quick bind",
 	}
 },
 CUSTOMBINDS = {
@@ -159,6 +161,8 @@ CUSTOMBINDS = {
 	CP_C_OPTION				= 	"Guide (disabled)",
 	CP_L_GRIP 				= 	"Left Grip (disabled)",
 	CP_R_GRIP 				= 	"Right Grip (disabled)",
+	CAMERAORSELECTORMOVE 	= 	"Left Mouse Button",
+	TURNORACTION 			= 	"Right Mouse Button",
 },
 HEADERS = {
 	CP_LEFT 				= 	"Directional Pad",

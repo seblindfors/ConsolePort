@@ -33,6 +33,7 @@ local function LoadTooltipLines()
 		PICKUP 				= format(SpecialClick, 	db.TOOLTIP.CLICK.PICKUP),
 		CANCEL 				= format(SpecialClick, 	db.TOOLTIP.CLICK.CANCEL),
 		STACK_BUY 			= format(SpecialClick, 	db.TOOLTIP.CLICK.STACK_BUY),
+		STACK_SPLIT 		= format(SpecialClick, 	db.TOOLTIP.CLICK.STACK_SPLIT),
 		ADD_TO_EXTRA		= format(SpecialClick, 	db.TOOLTIP.CLICK.ADD_TO_EXTRA),
 	}
 end

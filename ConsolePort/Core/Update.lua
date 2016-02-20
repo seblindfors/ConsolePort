@@ -12,7 +12,7 @@ local function OnUpdate (self, elapsed)
 	time = time + elapsed
 	while time > interval do
 		for Snippet in pairs(UpdateSnippets) do
-			Snippet(self)
+			Snippet(self, elapsed)
 		end
 		time = time - interval
 	end

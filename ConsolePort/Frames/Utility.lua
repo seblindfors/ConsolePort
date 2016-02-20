@@ -301,14 +301,15 @@ Utility:Execute([[
 		else
 			KEYS[key] = false
 		end
-		INDEX = ( KEYS.UP and KEYS.RIGHT 	) and 2 or
-				( KEYS.DOWN and KEYS.RIGHT 	) and 4 or
-				( KEYS.DOWN and KEYS.LEFT 	) and 6 or
-				( KEYS.UP and KEYS.LEFT 	) and 8 or
-				( KEYS.UP 					) and 1 or
-				( KEYS.RIGHT 				) and 3 or
-				( KEYS.DOWN 				) and 5 or
-				( KEYS.LEFT 				) and 7 or 0
+		INDEX = 
+			( KEYS.UP and KEYS.RIGHT 	) and 2 or
+			( KEYS.DOWN and KEYS.RIGHT 	) and 4 or
+			( KEYS.DOWN and KEYS.LEFT 	) and 6 or
+			( KEYS.UP and KEYS.LEFT 	) and 8 or
+			( KEYS.UP 					) and 1 or
+			( KEYS.RIGHT 				) and 3 or
+			( KEYS.DOWN 				) and 5 or
+			( KEYS.LEFT 				) and 7 or 0
 		self:SetAttribute("index", INDEX)
 	]=]
 
@@ -426,7 +427,7 @@ for direction, keys in pairs(buttons) do
 		Utility:WrapScript(button, "OnClick", format([[
 			local Utility = self:GetParent()
 			Utility:Run(OnKey, "%s", down)
-		]], direction, direction))
+		]], direction))
 	end
 end
 ---------------------------------------------------------------

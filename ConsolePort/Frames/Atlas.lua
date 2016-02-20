@@ -57,8 +57,8 @@ db.Atlas.Backdrops = {
 	},
 	Tooltip = {
 		bgFile 		= "Interface\\Tooltips\\UI-Tooltip-Background",
-		edgeFile 	= path.."Window\\Edgefile",
-		edgeSize 	= 8,
+		edgeFile 	= path.."Window\\EdgefileBig",
+		edgeSize 	= 16,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	},
 	Border = {
@@ -169,8 +169,8 @@ db.Atlas.GetFutureButton = function(name, parent, secure, buttonAtlas, width, he
 	return button
 end
 ---------------------------------------------------------------
-db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored)
-	local self = CreateAtlasFrame(name, parent, secure)
+db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored, buttonTemplate)
+	local self = CreateAtlasFrame(name, parent, secure, buttonTemplate)
 	local assets = path.."Window\\Assets"
 
 	self:SetBackdrop(db.Atlas.Backdrops.Border)
@@ -205,8 +205,8 @@ db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored)
 	return self
 end
 ---------------------------------------------------------------
-db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow)
-	local self = CreateAtlasFrame(name, parent, secure)
+db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplate)
+	local self = CreateAtlasFrame(name, parent, secure, buttonTemplate)
 	local assets = path.."Window\\Assets"
 
 	self.Close.Texture = self.Close:CreateTexture(nil, "ARTWORK")

@@ -15,7 +15,7 @@ function ConsolePort:CheckUnassignedBindings()
 	local unassigned = {}
 	for i, button in pairs(buttons) do
 		-- temporary Steam guide button fix, remove this.
-		if not (db.Settings.skipGuideBtn and button == "CP_C_OPTION") then
+		if 	not (db.Settings.skipGuideBtn and button == "CP_C_OPTION") and not button:match("CP_T.3") then
 			local key1, key2 = GetBindingKey(button)
 			if not key1 and not key2 then
 				ButtonUnassigned = true

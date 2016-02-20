@@ -350,7 +350,17 @@ local function SpecialAction(self)
 		elseif node.JunkIcon then
 			local link = GetContainerItemLink(node:GetParent():GetID(), node:GetID())
 			local _, itemID = strsplit(":", strmatch(link, "item[%-?%d:]+"))
-			self:AddUtilityAction("item", GetItemSpell(link) and itemID)
+			if GetItemSpell(link) then
+				self:AddUtilityAction("item", itemID)
+			else
+				local _, itemCount, locked = GetContainerItemInfo(node:GetParent():GetID(), node:GetID())
+				if ( not locked and itemCount and itemCount > 1) then
+					node.SplitStack = function(button, split)
+						SplitContainerItem(button:GetParent():GetID(), button:GetID(), split)
+					end
+					OpenStackSplitFrame(itemCount, node, "BOTTOMRIGHT", "TOPRIGHT")
+				end
+			end
 		-- Spell button
 		elseif node.SpellName then
 			local book, id, spellID, _ = SpellBookFrame, node:GetID()

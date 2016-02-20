@@ -6,7 +6,7 @@
 
 local visibleStack, hasUIFocus = {}
 
-local IsOptionFrameOpen = IsOptionFrameOpen
+local GameMenuFrame = GameMenuFrame
 local InCombatLockdown = InCombatLockdown
 local Callback = C_Timer.After
 local pairs = pairs
@@ -141,7 +141,7 @@ function ConsolePort:GetFrameStack()
 		rebindStack[ConsolePortConfig] = nil
 		rebindStack[ConsolePortRebindFrame] = true
 		return rebindStack
-	elseif IsOptionFrameOpen() then
+	elseif GameMenuFrame:IsVisible() then
 		local fullStack = {}
 		for _, Frame in pairs({UIParent:GetChildren()}) do
 			if not Frame:IsForbidden() and Frame:IsVisible() then

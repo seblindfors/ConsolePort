@@ -168,16 +168,16 @@ MouseHandle:Execute([[
 			interact = true
 		end
 
-		if Target == "hover" then
-			self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")
-		else
-			self:ClearBinding("SHIFT-BUTTON1")
-		end
+		-- if Target == "hover" then
+		-- 	self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")
+		-- else
+		-- 	self:ClearBinding("SHIFT-BUTTON1")
+		-- end
 
 		if interact and USE then
 			local key = GetBindingKey(USE)
 			if key then
-				self:SetBinding(true, key, "INTERACTMOUSEOVER")
+				self:SetBinding(true, key, "TURNORACTION")
 			end
 		end
 	]=]
@@ -386,5 +386,6 @@ end
 
 -- Get rid of mouselook when trying to interact with mouse
 hooksecurefunc("InteractUnit", ConsolePort.StopMouse)
+hooksecurefunc("TurnOrActionStop", ConsolePort.StopMouse)
 -- Hook jump and lock mouse if it's enabled
 hooksecurefunc("JumpOrAscendStart", MouseLookOnJump)

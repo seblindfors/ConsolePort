@@ -43,6 +43,9 @@ db.Controllers.PS4 = {
 		'CP_TR1',
 		'CP_TR2',
 		----------------
+		'CP_TL3',
+		'CP_TR3',
+		----------------
 		'CP_L_OPTION',
 		'CP_C_OPTION',
 		'CP_R_OPTION',

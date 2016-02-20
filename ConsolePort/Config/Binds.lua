@@ -479,7 +479,8 @@ local function GetStaticBindingName(self)
 end
 
 local function GetStaticBinding(self)
-	return db.Bindings[self.secure.name][GetBindingModifier(self.secure.mod)]
+	local subSet = db.Bindings[self.secure.name]
+	return subSet and subSet[GetBindingModifier(self.secure.mod)]
 end
 
 local function DynamicConfigButtonOnShow(self)
@@ -593,12 +594,34 @@ end
 ---------------------------------------------------------------
 -- Binds: Create addon dummy bindings
 ---------------------------------------------------------------
-local function SetFauxBinding(self, modifier, old, new)
+local MouseOverrides = {
+	["CP_TL3"] = "BUTTON1",
+	["CP_TR3"] = "BUTTON2",
+}
+
+local function SetFauxBinding(self, modifier, original, override)
 	if not InCombatLockdown() then
-		if old and new then
-			local key1, key2 = GetBindingKey(old)
-			if key1 then SetOverrideBinding(self, false, modifier..key1, new) end
-			if key2 then SetOverrideBinding(self, false, modifier..key2, new) end
+		if original and override then
+			local key1, key2 = GetBindingKey(original) or MouseOverrides[original]
+			if key1 then SetOverrideBinding(self, false, modifier..key1, override) end
+			if key2 then SetOverrideBinding(self, false, modifier..key2, override) end
+		end
+	end
+end
+
+local function SetFauxMouseBindings(self, keys)
+	local modifiers = {
+		"SHIFT-", "CTRL-", "CTRL-SHIFT-",
+	}
+	local default = {
+		["BUTTON1"] = "CAMERAORSELECTORMOVE",
+		["BUTTON2"] = "TURNORACTION",
+	}
+	for stick, button in pairs(MouseOverrides) do
+		if keys[stick] and keys[stick].action then
+			for _, modifier in pairs(modifiers) do
+				SetOverrideBinding(self, false, modifier..button, default[button])
+			end
 		end
 	end
 end
@@ -632,6 +655,7 @@ function ConsolePort:LoadBindingSet()
 		local handler = ConsolePortButtonHandler
 		ClearOverrideBindings(handler)
 		SetFauxMovementBindings(handler)
+		SetFauxMouseBindings(handler, keys)
 		for name, key in pairs(keys) do
 			SetFauxBinding(handler, "", 	name, key.action)
 			SetFauxBinding(handler, "CTRL-", name, key.ctrl)
@@ -847,7 +871,7 @@ local function GetBindingText(self, secure, static, modifier)
 		local header = _G[self:GetParent().Bindings[static]]
 		return header and _G[BIND..static].."\n|cFF575757"..header or _G[BIND..static]
 	else
-		return TUTORIAL.NOTASSIGNED
+		return self.Default or TUTORIAL.NOTASSIGNED
 	end
 end
 
@@ -1207,9 +1231,12 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 			end
 			--
 			if staticBindings[buttonName] then
-				button.Text:SetText("|cFF757575"..staticBindings[buttonName].."|r")
+				button.Default = "|cFF757575"..staticBindings[buttonName].."|r"
+				button.Text:SetText(button.Default)
 				button.Text:SetPoint(info.anchor, info.anchor == "LEFT" and 36 or -36, 0)
-			else
+			end
+
+			if not staticBindings[buttonName] or MouseOverrides[buttonName] then
 				button.name = triggers[buttonName] or buttonName
 				--
 				button:SetScript("OnShow", ShowOverlayBinding)
@@ -1224,7 +1251,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 
 	db.ButtonCoords = nil
 
-	Binds.Rebind = db.Atlas.GetGlassWindow("ConsolePortRebindFrame", Binds.Controller, nil, true)
+	Binds.Rebind = db.Atlas.GetGlassWindow("ConsolePortRebindFrame", Binds.Controller, nil, true, "LFGListCategoryTemplate")
 	Binds.Rebind:SetBackdrop(db.Atlas.Backdrops.Border)
 	Binds.Rebind:SetPoint("BOTTOMLEFT", Binds, "BOTTOMLEFT", 16, 16)
 	Binds.Rebind:SetSize(476, 216)
@@ -1233,19 +1260,22 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.Rebind.SetButton = RebindSetButton
 	Binds.Rebind.Parent = Binds
 	Binds.Rebind:SetScript("OnHide", function (self)
-		if not InCombatLockdown() and GetCVar("alwaysShowActionBars") == "0" then
-			for frame, action in pairs(GetActionButtons()) do
-				if not GetActionInfo(action) and frame.forceShow then
-					frame.forceShow = nil
-					frame:Hide()
-				end
-			end
-		end
 		Binds.BindCatcher:Show()
 		Binds.Tutorial:SetText(TUTORIAL.DEFAULT)
 		Binds.Controller:SetConfigMode()
 		ConsolePort:SetRebinding()
 		ConsolePort.rebindMode = nil
+		if not InCombatLockdown() then
+			ConsolePort:ClearCurrentNode()
+			if GetCVar("alwaysShowActionBars") == "0" then
+				for frame, action in pairs(GetActionButtons()) do
+					if not GetActionInfo(action) and frame.forceShow then
+						frame.forceShow = nil
+						frame:Hide()
+					end
+				end
+			end
+		end
 	end)
 	Binds.Rebind:SetScript("OnShow", function (self)
 		if InCombatLockdown() then
@@ -1262,7 +1292,16 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 		ConsolePort.rebindMode = true
 	end)
 
-	Binds.Rebind.Close:SetPoint("TOPRIGHT", Binds.Rebind, "TOPRIGHT", -16, 8)
+	Binds.Rebind.Close:ClearAllPoints()
+	Binds.Rebind.Close:SetSize(300, 46)
+	Binds.Rebind.Close:SetPoint("BOTTOM", Binds.Rebind, "TOP", 0, -12)
+	Binds.Rebind.Close.Icon:Hide()
+	Binds.Rebind.Close.Texture:Hide()
+	Binds.Rebind.Close.Texture:ClearAllPoints()
+	Binds.Rebind.Close.Label:SetJustifyH("CENTER")
+	Binds.Rebind.Close.Label:ClearAllPoints()
+	Binds.Rebind.Close.Label:SetPoint("CENTER", 0, 0)
+	Binds.Rebind.Close:SetText(TUTORIAL.RETURN)
 	Binds.Rebind.Close:HookScript("OnClick", function(self)
 		ConsolePort:SetCurrentNode(Binds.BindCatcher)
 	end)

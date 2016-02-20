@@ -16,7 +16,7 @@ local Popup
 local function ShowPopup(...)
 	Popup = StaticPopup_Show(...)
 	Popup:EnableKeyboard(false)
-	Popup:SetBackdrop(db.Atlas.Backdrops.Full)
+	Popup:SetBackdrop(db.Atlas.Backdrops.FullSmall)
 	return Popup
 end
 

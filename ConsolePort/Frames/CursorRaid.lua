@@ -229,7 +229,7 @@ Cursor:Execute([[
 		if current then
 			local unit = current:GetAttribute("unit")
 			Focus:SetAttribute("focus", unit)
-			RegisterStateDriver(self, "unitexists", "[@"..unit..",exists] true; nil")
+			RegisterStateDriver(self, "unitexists", "[@"..unit..",exists,nodead] true; nil")
 
 			self:ClearAllPoints()
 			self:SetPoint("TOPLEFT", current, "CENTER", 0, 0)
@@ -238,15 +238,17 @@ Cursor:Execute([[
 			self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")
 			self:SetBindingClick(true, "SHIFT-BUTTON2", current, "LeftButton")
 			self:SetBindingClick(true, "CTRL-SHIFT-BUTTON2", current, "RightButton")
-			if PlayerCanAttack(unit) then
-				self:SetAttribute("relation", "harm")
-				for action in pairs(Harmful) do
-					action:SetAttribute("unit", unit)
-				end
-			elseif PlayerCanAssist(unit) then
-				self:SetAttribute("relation", "help")
-				for action in pairs(Helpful) do
-					action:SetAttribute("unit", unit)
+			if not UnitIsDead(unit) then
+				if PlayerCanAttack(unit) then
+					self:SetAttribute("relation", "harm")
+					for action in pairs(Harmful) do
+						action:SetAttribute("unit", unit)
+					end
+				elseif PlayerCanAssist(unit) then
+					self:SetAttribute("relation", "help")
+					for action in pairs(Helpful) do
+						action:SetAttribute("unit", unit)
+					end
 				end
 			end
 		else

@@ -368,6 +368,8 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetAddonBindings()
 	return {
+		{name = BINDING_NAME_CAMERAORSELECTORMOVE, binding = "CAMERAORSELECTORMOVE"},
+		{name = BINDING_NAME_TURNORACTION, binding = "TURNORACTION"},
 		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
 		{name = BINDING_NAME_CP_UTILITYBELT, binding = "CLICK ConsolePortUtilityToggle:LeftButton"},
 		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
@@ -472,6 +474,7 @@ function ConsolePort:GetDefaultUIFrames()
 			"PVPReadyDialog",
 			"QuestFrame","QuestLogPopupDetailFrame",
 			"RecruitAFriendFrame",
+			"ReadyCheckFrame",
 			"SpellBookFrame",
 			"SpellFlyout",
 			"SplashFrame",
