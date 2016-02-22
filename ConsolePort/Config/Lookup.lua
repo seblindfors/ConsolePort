@@ -368,10 +368,18 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetAddonBindings()
 	return {
+		-- Mouse bindings
+		{name = BINDING_NAME_CP_MOUSE},
 		{name = BINDING_NAME_CAMERAORSELECTORMOVE, binding = "CAMERAORSELECTORMOVE"},
 		{name = BINDING_NAME_TURNORACTION, binding = "TURNORACTION"},
+		-- Utility
+		{name = BINDING_NAME_CP_UTILITY},
 		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
+		{name = BINDING_NAME_CP_RAIDCURSOR_F, binding = "CLICK ConsolePortRaidCursorFocus:LeftButton"},
+		{name = BINDING_NAME_CP_RAIDCURSOR_T, binding = "CLICK ConsolePortRaidCursorTarget:LeftButton"},
 		{name = BINDING_NAME_CP_UTILITYBELT, binding = "CLICK ConsolePortUtilityToggle:LeftButton"},
+		-- Camera
+		{name = BINDING_NAME_CP_CAMERA},
 		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
 		{name = BINDING_NAME_CP_CAMZOOMIN, binding = "CP_CAMZOOMIN"},
 		{name = BINDING_NAME_CP_CAMZOOMOUT, binding = "CP_CAMZOOMOUT"},

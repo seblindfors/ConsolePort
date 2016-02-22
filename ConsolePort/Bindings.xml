@@ -18,16 +18,16 @@
 	<Binding name="CLICK ConsolePortUtilityToggle:LeftButton" category="ConsolePort " hidden="true"/>
 
 	<!-- Custom bindings -->
-	<Binding name="CP_TOGGLEMOUSE" category="ConsolePort " hidden="true" >
+	<Binding name="CP_TOGGLEMOUSE" hidden="true" >
 		ConsolePort:ToggleMouse()
 	</Binding>
-	<Binding name="CP_CAMZOOMIN" category="ConsolePort " hidden="true" >
+	<Binding name="CP_CAMZOOMIN" hidden="true" >
 			CameraZoomIn(5.0);
 	</Binding>
-	<Binding name="CP_CAMZOOMOUT" category="ConsolePort " hidden="true" >
+	<Binding name="CP_CAMZOOMOUT" hidden="true" >
 			CameraZoomOut(5.0);
 	</Binding>
-	<Binding name="CP_CAMLOOKBEHIND" runOnUp="true" category="ConsolePort " hidden="true">
+	<Binding name="CP_CAMLOOKBEHIND" runOnUp="true" hidden="true">
 		if ( keystate == "down" ) then
 			FlipCameraYaw(180);
 		else

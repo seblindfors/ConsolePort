@@ -45,6 +45,15 @@ local Key = {
 ---------------------------------------------------------------
 Cursor:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 Cursor:SetFrameRef("OverrideBar", OverrideActionBar)
+---------------------------------------------------------------
+local SetFocus = CreateFrame("Button", "$parentFocus", Cursor, "SecureActionButtonTemplate")
+SetFocus:SetAttribute("type", "focus")
+Cursor:SetFrameRef("SetFocus", SetFocus)
+---------------------------------------------------------------
+local SetTarget = CreateFrame("Button", "$parentTarget", Cursor, "SecureActionButtonTemplate")
+SetTarget:SetAttribute("type", "target")
+Cursor:SetFrameRef("SetTarget", SetTarget)
+---------------------------------------------------------------
 Cursor:Execute(format([[
 	ALL = newtable()
 	DPAD = newtable()
@@ -64,6 +73,9 @@ Cursor:Execute(format([[
 
 	MainBar = self:GetFrameRef("ActionBar")
 	OverrideBar = self:GetFrameRef("OverrideBar")
+
+	Focus = self:GetFrameRef("SetFocus")
+	Target = self:GetFrameRef("SetTarget")
 
 	Cache = newtable()
 
@@ -228,16 +240,17 @@ Cursor:Execute([[
 
 		if current then
 			local unit = current:GetAttribute("unit")
-			Focus:SetAttribute("focus", unit)
+
+			Focus:SetAttribute("unit", unit)
+			Target:SetAttribute("unit", unit)
+
 			RegisterStateDriver(self, "unitexists", "[@"..unit..",exists,nodead] true; nil")
 
 			self:ClearAllPoints()
 			self:SetPoint("TOPLEFT", current, "CENTER", 0, 0)
 			self:SetAttribute("node", current)
 			self:SetAttribute("unit", unit)
-			self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")
-			self:SetBindingClick(true, "SHIFT-BUTTON2", current, "LeftButton")
-			self:SetBindingClick(true, "CTRL-SHIFT-BUTTON2", current, "RightButton")
+			
 			if not UnitIsDead(unit) then
 				if PlayerCanAttack(unit) then
 					self:SetAttribute("relation", "harm")
@@ -254,9 +267,8 @@ Cursor:Execute([[
 		else
 			UnregisterStateDriver(self, "unitexists")
 
-			self:ClearBinding("SHIFT-BUTTON1")
-			self:ClearBinding("SHIFT-BUTTON2")
-			self:ClearBinding("CTRL-SHIFT-BUTTON2")
+			Focus:SetAttribute("unit", nil)
+			Target:SetAttribute("unit", nil)
 		end
 	]=]
 	UpdateFrameStack = [=[
@@ -280,6 +292,9 @@ Cursor:Execute([[
 			self:Run(SelectNode, 0)
 		else
 			UnregisterStateDriver(self, "unitexists")
+
+			Focus:SetAttribute("unit", nil)
+			Target:SetAttribute("unit", nil)
 
 			self:SetAttribute("node", nil)
 			self:ClearBindings()
@@ -331,11 +346,6 @@ Cursor:WrapScript(ToggleCursor, "OnClick", [[
 	Cursor:Run(ToggleCursor)
 	MouseHandle:SetAttribute("override", not IsEnabled)
 ]])
-------------------------------------------------------------------------------------------------------------------------------
-local SetFocus = CreateFrame("Button", "$parentFocus", Cursor, "SecureActionButtonTemplate")
-SetFocus:SetAttribute("type", "focus")
-Cursor:SetFrameRef("SetFocus", SetFocus)
-Cursor:Execute([[ Focus = self:GetFrameRef("SetFocus") ]])
 ------------------------------------------------------------------------------------------------------------------------------
 local buttons = {
 	Up 		= {binding = "CP_L_UP", 	key = Key.Up},
@@ -474,11 +484,6 @@ Cursor.CastBar:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Castbar\\Ca
 ---------------------------------------------------------------
 Cursor:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 Cursor:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
---Cursor:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
---Cursor:RegisterEvent("UNIT_SPELLCAST_DELAYED")
---Cursor:RegisterEvent("UNIT_SPELLCAST_FAILED")
---Cursor:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
---Cursor:RegisterEvent("UNIT_SPELLCAST_SENT")
 Cursor:RegisterEvent("UNIT_SPELLCAST_START")
 Cursor:RegisterEvent("UNIT_SPELLCAST_STOP")
 Cursor:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
@@ -515,19 +520,8 @@ function Cursor:Event(event, ...)
 			self.SpellPortrait:Hide()
 		end
 
-
 	elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then self.isChanneling = false
 		FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
-
-	elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE" then
-
-	elseif event == "UNIT_SPELLCAST_DELAYED" then
-
-	elseif event == "UNIT_SPELLCAST_FAILED" then
-
-	elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
-
-	elseif event == "UNIT_SPELLCAST_SENT" then
 
 	elseif event == "UNIT_SPELLCAST_START" then 
 		local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo("player")
@@ -552,7 +546,6 @@ function Cursor:Event(event, ...)
 			self.CastBar:Hide()
 			self.SpellPortrait:Hide()
 		end
-
 
 	elseif event == "UNIT_SPELLCAST_STOP" then self.isCasting = false
 		FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)

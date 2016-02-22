@@ -11,7 +11,8 @@ local FadeIn = db.UIFrameFadeIn
 local ConsolePort = ConsolePort
 local Popup = db.Atlas.GetFutureWindow("ConsolePortPopup", nil, nil, true)
 local Config = db.Atlas.GetFutureWindow("ConsolePortConfig")
-local Category = CreateFrame("Frame", "$parentCategory", Config)
+local Scroll = CreateFrame("ScrollFrame", "$parentBannerScroll", Config)
+local Category = CreateFrame("Frame", "$parentCategories", Scroll)
 local Container = CreateFrame("Frame", "$parentContainer", Config)
 ---------------------------------------------------------------
 db.ConfigWindow = Config
@@ -29,14 +30,50 @@ Config:RegisterForDrag("LeftButton")
 Config:HookScript("OnDragStart", Config.StartMoving)
 Config:HookScript("OnDragStop", Config.StopMovingOrSizing)
 ---------------------------------------------------------------
+Scroll.StepSize = 100
+Scroll:SetScrollChild(Category)
+Scroll:SetWidth(1000)
+Scroll:SetPoint("TOPLEFT", Config, 16, -34)
+Scroll:SetPoint("BOTTOMRIGHT", Config, "TOPRIGHT", -16, -80)
+---------------------------------------------------------------
 Category.Buttons = {}
 Category:SetHeight(46)
-Category:SetPoint("TOP", Config, "TOP", 0, -34)
+Category:SetPoint("CENTER", 0, 0)
+---------------------------------------------------------------
 Container:SetPoint("TOPLEFT", Config, "TOPLEFT", 8, -80)
 Container:SetPoint("BOTTOMRIGHT", Config, "BOTTOMRIGHT", -8, 54)
 ---------------------------------------------------------------
 Container.Frames = {}
 ---------------------------------------------------------------
+function Scroll:SmoothScroll(elapsed)
+	local current = self:GetHorizontalScroll()
+	if abs(current - self.Target) < 2 then
+		self:SetHorizontalScroll(self.Target)
+		self:SetScript("OnUpdate", nil)
+		return
+	end
+	local delta = current > self.Target and -1 or 1
+	self:SetHorizontalScroll(current + (delta * abs(current - self.Target) / self.StepSize * 4 ) )
+end
+
+function Scroll:OnMouseWheel(delta)
+	local maxScroll = self:GetHorizontalScrollRange()
+	local current = self:GetHorizontalScroll()
+	local new = current - delta * 100
+	self:SetHorizontalScroll(new < 0 and 0 or new > maxScroll and maxScroll or new)
+end
+
+function Scroll:ScrollTo(id)
+	local maxScroll = self:GetHorizontalScrollRange()
+	local stepSize = maxScroll / #Category.Buttons
+	local new = id <= 3 and 0 or id >= (#Category.Buttons - 2) and maxScroll or stepSize * (id - 1)
+	self.StepSize = stepSize
+	self.Target = new < 0 and 0 or new > maxScroll and maxScroll or new
+	self:SetScript("OnUpdate", self.SmoothScroll)
+end
+---------------------------------------------------------------
+Scroll:SetScript("OnMouseWheel", Scroll.OnMouseWheel)
+
 local Cancel = db.Atlas.GetFutureButton("$parentCancel", Config)
 function Cancel:OnClick()
 	if not InCombatLockdown() then
@@ -239,16 +276,28 @@ function Container:ShowFrame(id)
 end
 
 ---------------------------------------------------------------
+local function CategoryOnClick(self)
+	Container:ShowFrame(self.id)
+end
+
+local function CategoryOnEnter(self)
+	if ConsolePort:GetCurrentNode() == self then
+		Scroll:ScrollTo(self.id)
+	end
+end
 
 function Category:AddNew(header, bannerAtlas)
 	local id = #self.Buttons+1
 	local banner = db.Atlas.GetFutureButton("$parentHeader"..id, self, nil, bannerAtlas, nil, nil, true)
 	banner.id = id
 	banner:SetText(header)
-	banner:SetScript("OnClick", function(self) Container:ShowFrame(self.id) end)
+	banner:SetScript("OnClick", CategoryOnClick)
+	banner:SetScript("OnEnter", CategoryOnEnter)
 	banner:SetPoint("LEFT", self.Buttons[id-1] or self, self.Buttons[id-1] and "RIGHT" or "LEFT", 0, 0)
 	self.Buttons[id] = banner
 	self:SetWidth(id*banner:GetWidth())
+	self:ClearAllPoints()
+	self:SetPoint("CENTER", 0, 0)
 	return id
 end
 
@@ -256,6 +305,7 @@ end
 
 function Config:OpenCategory(index)
 	if Container.Frames[index] then
+		Scroll:ScrollTo(index)
 		Container:ShowFrame(index)
 		self:Show()
 	end

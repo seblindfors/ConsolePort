@@ -30,6 +30,7 @@ TUTORIAL = {
 		IMPORTBUTTON 		= "Import",
 		REMOVEBUTTON		= "Remove",
 		OTHERCATEGORY 		= "Other",
+		MAINCATEGORY 		= "Controller",
 		NOTASSIGNED 		= "|cFF575757Not assigned|r",
 		SPELL 				= "Spell",
 		ITEM 				= "Item",
@@ -152,8 +153,15 @@ TOOLTIP = {
 	}
 },
 CUSTOMBINDS = {
+	-- Headers
+	CP_MOUSE 				= 	"Mouse Simulation",
+	CP_UTILITY 				= 	"Utility",
+	CP_CAMERA 				= 	"Camera",
+	-- Bindings
 	CP_UTILITYBELT			= 	"Utility Belt",
 	CP_RAIDCURSOR			= 	"Toggle Raid Cursor",
+	CP_RAIDCURSOR_F 		= 	"Focus Raid Cursor",
+	CP_RAIDCURSOR_T 		= 	"Target Raid Cursor",
 	CP_TOGGLEMOUSE			= 	"Toggle Mouse Look",
 	CP_CAMZOOMIN			= 	"Zoom In (x5)",
 	CP_CAMZOOMOUT			= 	"Zoom Out (x5)",

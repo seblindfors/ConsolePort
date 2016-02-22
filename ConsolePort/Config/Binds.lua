@@ -426,7 +426,7 @@ end
 local function RefreshHeaderList(self)
 	local buttons = self.Buttons
 	local bindings = self.Bindings
-	local category, name
+	local category, name, binding, header
 	wipe(bindings)
 	for i=1, GetNumBindings() do
 		binding, header = GetBinding(i)
@@ -448,7 +448,8 @@ local function RefreshHeaderList(self)
 			tinsert(bindings[TUTORIAL.OTHERCATEGORY], {name = name, binding = _G[BIND..binding] and binding})
 		end
 	end
-	bindings["ConsolePort "] = ConsolePort:GetAddonBindings()
+	bindings["ConsolePort "] = nil
+	bindings[" |cFFFF6600"..TUTORIAL.MAINCATEGORY.."|r "] = ConsolePort:GetAddonBindings()
 	local hCount = 0
 	for i, button in pairs(buttons) do
 		button:Hide()
