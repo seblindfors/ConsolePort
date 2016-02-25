@@ -278,7 +278,7 @@ Cursor:Execute([[
 				self:Run(GetNodes)
 			end
 		end
-		self:Run(RefreshActions)
+		self:Run(UpdateActionPage, SecureCmdOptionParse(self:GetAttribute("driver")))
 	]=]
 	ToggleCursor = [=[
 		if IsEnabled then
@@ -289,7 +289,6 @@ Cursor:Execute([[
 				end
 			end
 			self:Run(UpdateFrameStack)
-			self:Run(SelectNode, 0)
 		else
 			UnregisterStateDriver(self, "unitexists")
 
@@ -322,9 +321,9 @@ Cursor:Execute([[
 			end
 		end
 		if IsEnabled then
-			self:Run(RefreshActions)
 			self:Run(SelectNode, 0)
 		end
+		self:Run(RefreshActions)
 	]=]
 	UpdateUnitExists = [=[
 		local exists = ...
@@ -371,6 +370,7 @@ end
 ---------------------------------------------------------------
 local currentPage, actionpage = ConsolePort:GetActionPageState()
 RegisterStateDriver(Cursor, "actionpage", actionpage)
+Cursor:SetAttribute("driver", actionpage)
 Cursor:SetAttribute("_onstate-actionpage", "self:Run(UpdateActionPage, newstate)")
 Cursor:SetAttribute("_onstate-unitexists", "self:Run(UpdateUnitExists, newstate)")
 Cursor:SetAttribute("actionpage", currentPage)

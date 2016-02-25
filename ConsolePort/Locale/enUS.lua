@@ -92,7 +92,7 @@ TUTORIAL = {
 		FASTCAM 			= "Fast camera zooming",
 		AUTOLOOT 			= "Force auto loot in combat",
 		CONTROLLER 			= "Change controller",
-		BINDRESET 			= "Reset bindings",
+		BINDRESET 			= "Calibrate controller",
 		FULLRESET 			= "Reset all settings",
 		CONFIRMRESET 		= "Are you sure?",
 		SHOWSLASH 			= "Slash commands",
@@ -107,7 +107,7 @@ TUTORIAL = {
 	},
 	SETUP = {
 		LAYOUT  			= "Setup: Select controller layout",
-		HEADER 				= "Setup: Assign controller buttons",
+		HEADER 				= "Setup: Calibrate controller",
 		CONTINUECLICK 		= "Click here to continue",
 		SKIPGUIDE 			= "Skip this button",
 		HEADLINE 			= "Your controller mapping is incomplete.\nPress the requested button on your controller.",

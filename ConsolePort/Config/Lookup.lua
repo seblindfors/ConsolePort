@@ -226,6 +226,26 @@ function ConsolePort:GetActionTexture(bindName)
 	end
 end
 
+local function GetActionButtons(buttons, this)
+	buttons = buttons or {}
+	this = this or UIParent
+	if this:IsForbidden() then
+		return buttons
+	end
+	local action = this:GetAttribute("action")
+	if action then
+		buttons[this] = action
+	end
+	for _, object in pairs({this:GetChildren()}) do
+		GetActionButtons(buttons, object)
+	end
+	return buttons
+end
+
+---------------------------------------------------------------
+-- Lookup: Get all buttons that look like action buttons
+---------------------------------------------------------------
+function ConsolePort:GetActionButtons(parent) return GetActionButtons(parent) end
 
 ---------------------------------------------------------------
 -- Lookup: Get the clean binding names for various uses

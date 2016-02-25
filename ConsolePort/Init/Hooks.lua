@@ -33,9 +33,13 @@ function ConsolePort:LoadHookScripts()
 					self:AddLine(db.CLICK_CANCEL, 1,1,1)
 				end
 				self:AddLine(CLICK_STRING, 1,1,1)
+
+				local hasStack = select(8, GetItemInfo(item))
+				hasStack = hasStack and hasStack > 1
+				
 				if CLICK_STRING == db.CLICK.USE then
 					self:AddLine(db.CLICK.ADD_TO_EXTRA, 1,1,1)
-				elseif select(8, GetItemInfo(item)) > 1 then
+				elseif hasStack then
 					self:AddLine(db.CLICK.STACK_SPLIT)
 				end
 				if not owner:GetParent() == LootFrame then
