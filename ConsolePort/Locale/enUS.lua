@@ -160,6 +160,7 @@ CUSTOMBINDS = {
 	-- Bindings
 	CP_UTILITYBELT			= 	"Utility Belt",
 	CP_RAIDCURSOR			= 	"Toggle Raid Cursor",
+	CP_WORLDCURSOR			= 	"Toggle Combat Cursor",
 	CP_RAIDCURSOR_F 		= 	"Focus Raid Cursor",
 	CP_RAIDCURSOR_T 		= 	"Target Raid Cursor",
 	CP_TOGGLEMOUSE			= 	"Toggle Mouse Look",

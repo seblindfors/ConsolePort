@@ -394,6 +394,7 @@ function ConsolePort:GetAddonBindings()
 		{name = BINDING_NAME_TURNORACTION, binding = "TURNORACTION"},
 		-- Utility
 		{name = BINDING_NAME_CP_UTILITY},
+		{name = BINDING_NAME_CP_WORLDCURSOR, binding = "CLICK ConsolePortWorldCursor:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR_F, binding = "CLICK ConsolePortRaidCursorFocus:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR_T, binding = "CLICK ConsolePortRaidCursorTarget:LeftButton"},

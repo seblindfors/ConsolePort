@@ -158,11 +158,11 @@ local function ShowHotKey(button, index, actionButton)
 	HotKey:Show()
 end
 
-local function ShowInterfaceHotKey(button, custom)
+local function ShowInterfaceHotKey(button, custom, forceStyle)
 	for i, HotKey in pairs(button.HotKeys) do
 		HotKey:Hide()
 	end
-	button.HotKeys[1] = button.HotKeys[1] or button:CreateHotKey()
+	button.HotKeys[1] = button.HotKeys[1] or button:CreateHotKey(forceStyle)
 	ShowHotKey(button, 1, custom or button.action)
 end
 
