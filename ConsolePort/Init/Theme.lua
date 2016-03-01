@@ -10,6 +10,7 @@ local TEXTURE_ESC = "|T%s:24:24:0:0|t"
 
 setglobal("BINDING_NAME_CLICK ConsolePortUtilityToggle:LeftButton", db.CUSTOMBINDS.CP_UTILITYBELT)
 setglobal("BINDING_NAME_CLICK ConsolePortWorldCursor:LeftButton", db.CUSTOMBINDS.CP_WORLDCURSOR)
+setglobal("BINDING_NAME_CLICK ConsolePortNameplateCycle:LeftButton", db.CUSTOMBINDS.CP_CYCLEPLATES)
 setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorToggle:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR)
 setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorFocus:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR_F)
 setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorTarget:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR_T)

@@ -102,7 +102,7 @@ db.Controllers.STEAM = {
 		},
 		['CP_R_DOWN'] = {
 			['action'] 	= 'JUMP',
-			['shift'] 	= 'TARGETNEARESTENEMY',
+			['shift'] 	= 'CLICK ConsolePortWorldCursor:LeftButton',
 			['ctrl']  	= 'INTERACTMOUSEOVER',
 			['ctrlsh'] 	= 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
@@ -119,17 +119,17 @@ db.Controllers.STEAM = {
 			['ctrlsh'] 	= 'MULTIACTIONBAR1BUTTON8',
 		},
 		-- Trigger buttons
-		["CP_TR1"] = {
-			["shift"] 	= "STOPATTACK",
-			["ctrl"] 	= "TARGETSELF",
-			["action"] 	= "PREVIOUSACTIONPAGE",
-			["ctrlsh"] 	= "FRIENDNAMEPLATES",
+		['CP_TR1'] = {
+			['shift'] 	= 'STOPATTACK',
+			['ctrl'] 	= 'TARGETSELF',
+			['action'] 	= 'PREVIOUSACTIONPAGE',
+			['ctrlsh'] 	= 'CP_CAMLOOKBEHIND',
 		},
-		["CP_TR2"] = {
-			["shift"] 	= "FOLLOWTARGET",
-			["ctrl"] 	= "TOGGLERUN",
-			["action"] 	= "NEXTACTIONPAGE",
-			["ctrlsh"] 	= "NAMEPLATES",
+		['CP_TR2'] = {
+			['shift'] 	= 'FOLLOWTARGET',
+			['ctrl'] 	= 'TOGGLERUN',
+			['action'] 	= 'NEXTACTIONPAGE',
+			['ctrlsh'] 	= 'CLICK ConsolePortNameplateCycle:LeftButton',
 		},
 		-- Left touch pad
 		['CP_L_UP'] = {

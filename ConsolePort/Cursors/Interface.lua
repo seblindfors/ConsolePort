@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- CursorUI.lua: Interface cursor and node management.
+-- Interface.lua: Interface cursor and node management.
 ---------------------------------------------------------------
 -- Creates a cursor used to manage the interface with D-pad.
 -- Operates recursively on a stack of frames provided in

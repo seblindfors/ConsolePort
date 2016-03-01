@@ -97,7 +97,7 @@ local actionIDs = {
 	[82] 	= "ACTIONBUTTON10",				[94] 	= "ACTIONBUTTON10",
 	[83] 	= "ACTIONBUTTON11",				[95] 	= "ACTIONBUTTON11",
 	[84] 	= "ACTIONBUTTON12",				[96] 	= "ACTIONBUTTON12",
-	-- Bonusbar 9 (druid only) 				-- Bonusbar 10 (druid only)
+	-- Bonusbar 9 (druid / monk only) 		-- Bonusbar 10 (druid only)
 	[97] 	= "ACTIONBUTTON1",				[109] 	= "ACTIONBUTTON1",
 	[98] 	= "ACTIONBUTTON2",				[110] 	= "ACTIONBUTTON2",
 	[99] 	= "ACTIONBUTTON3",				[111] 	= "ACTIONBUTTON3",
@@ -392,9 +392,12 @@ function ConsolePort:GetAddonBindings()
 		{name = BINDING_NAME_CP_MOUSE},
 		{name = BINDING_NAME_CAMERAORSELECTORMOVE, binding = "CAMERAORSELECTORMOVE"},
 		{name = BINDING_NAME_TURNORACTION, binding = "TURNORACTION"},
+		-- Name Plates
+		{name = BINDING_NAME_CP_NAMEPLATES},
+		{name = BINDING_NAME_CP_WORLDCURSOR, binding = "CLICK ConsolePortWorldCursor:LeftButton"},
+		{name = BINDING_NAME_CP_CYCLEPLATES, binding = "CLICK ConsolePortNameplateCycle:LeftButton"},
 		-- Utility
 		{name = BINDING_NAME_CP_UTILITY},
-		{name = BINDING_NAME_CP_WORLDCURSOR, binding = "CLICK ConsolePortWorldCursor:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR_F, binding = "CLICK ConsolePortRaidCursorFocus:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR_T, binding = "CLICK ConsolePortRaidCursorTarget:LeftButton"},

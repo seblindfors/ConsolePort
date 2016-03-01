@@ -100,7 +100,7 @@ db.Controllers.XBOX = {
 		},
 		['CP_R_DOWN'] = {
 			['action'] 	= 'JUMP',
-			['shift'] 	= 'TARGETNEARESTENEMY',
+			['shift'] 	= 'CLICK ConsolePortWorldCursor:LeftButton',
 			['ctrl']  	= 'INTERACTMOUSEOVER',
 			['ctrlsh'] 	= 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
@@ -165,7 +165,7 @@ db.Controllers.XBOX = {
 			['action'] 	= 'TOGGLECHARACTER0',
 			['shift'] 	= 'TOGGLESPELLBOOK',
 			['ctrl'] 	= 'TOGGLETALENTS',
-			['ctrlsh'] 	= 'SETVIEW1',
+			['ctrlsh'] 	= 'CLICK ConsolePortNameplateCycle:LeftButton',
 		},
 		['CP_R_OPTION'] = {
 			['action'] 	= 'TOGGLEGAMEMENU',

@@ -2,7 +2,7 @@
 -- UICore.lua: Core functionality for UI cursor
 ---------------------------------------------------------------
 -- Keeps a stack of frames to control with the D-pad when they
--- are visible on screen. Stack is processed in CursorUI.lua.
+-- are visible on screen. Stack is processed in Interface.lua.
 
 local visibleStack, hasUIFocus = {}
 

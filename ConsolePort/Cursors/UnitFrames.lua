@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- CursorRaid.lua: Secure unit targeting cursor for combat
+-- UnitFrames.lua: Secure unit targeting cursor for combat
 ---------------------------------------------------------------
 -- Creates a secure cursor that is used to iterate over unit frames
 -- and select units based on where the frame is drawn on screen.

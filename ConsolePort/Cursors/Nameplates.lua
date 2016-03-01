@@ -1,14 +1,53 @@
 ---------------------------------------------------------------
--- CursorWorld.lua: Secure world targeting cursor for combat
+-- Nameplates.lua: Secure nameplate targeting cursor for combat
 ---------------------------------------------------------------
+-- Creates a secure cursor that is used to iterate over nameplates
+-- and select a target based on where the plate is drawn on screen.
+-- Scans WorldFrame for active nameplates, scales them up to
+-- cover the entire screen, then uses a mouseover macro to target.
 
 local _, db = ...
+local WorldFrame = WorldFrame
+local GetCVarBool = GetCVarBool
+local IsMouselooking = IsMouselooking
+local InCombatLockdown = InCombatLockdown
 
-local Cursor = CreateFrame("Button", "ConsolePortWorldCursor", WorldFrame, "SecureActionButtonTemplate, SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate")
+---------------------------------------------------------------
+-- This is just a convenience button for cycling
+-- active nameplates, instead of occupying several bindings to
+-- achieve the same result.
+
+local PlateCycle = CreateFrame("Button", "ConsolePortNameplateCycle", nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
+
+PlateCycle:SetAttribute("type", "macro")
+PlateCycle:Execute([[
+	Scripts = newtable()
+
+	Scripts[1] = "/click InterfaceOptionsNamesPanelUnitNameplatesEnemies"
+	Scripts[2] = "/click InterfaceOptionsNamesPanelUnitNameplatesFriends"
+]])
+PlateCycle:WrapScript(PlateCycle, "PreClick", [[
+	Index = Index == 1 and 2 or 1
+	self:SetAttribute("macrotext", Scripts[Index])
+]])
+
+---------------------------------------------------------------
+---------------------------------------------------------------
+
+local Cursor = CreateFrame("Button", "ConsolePortWorldCursor", WorldFrame, "SecureActionButtonTemplate, SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate")
 
 Cursor:RegisterForClicks("AnyUp", "AnyDown")
 Cursor:SetAttribute("type", "macro")
-Cursor:SetAttribute("macrotext", "/target [@mouseover, exists]")
+Cursor:SetAttribute("macrotext1", "/target [@mouseover, exists]")
+Cursor:SetAttribute("downbutton", "omit")
+Cursor:SetAttribute("_onstate-modifier", "Mod = newstate")
+
+RegisterStateDriver(Cursor, "modifier", "[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ")
+
+Cursor:SetSize(32, 32)
+Cursor:Hide()
+
+Cursor:HookScript("OnShow", function(self) PlaySound("INTERFACESOUND_LOSTTARGETUNIT") end)
 
 function Cursor:SetClamped(plateName) _G[plateName]:SetClampedToScreen(true) end
 
@@ -22,6 +61,7 @@ local Key = {
 ---------------------------------------------------------------
 
 Cursor:SetFrameRef("WorldFrame", WorldFrame)
+Cursor:SetFrameRef("MouseHandle", ConsolePortMouseHandle)
 
 Cursor:Execute(format([[	
 	---------------------------------------------------------------
@@ -36,15 +76,21 @@ Cursor:Execute(format([[
 	Key.Left = %s
 	Key.Right = %s
 	---------------------------------------------------------------
-	Mod = newtable()
+	Cancel = newtable()
+	Cancel.CP_C_OPTION = true
+	Cancel.CP_L_OPTION = true
+	Cancel.CP_R_OPTION = true
 	---------------------------------------------------------------
-	Mod.nomod = ""
-	Mod.ctrl = "CTRL-"
-	Mod.shift = "SHIFT-"
-	Mod.ctrlsh = "CTRL-SHIFT"
+	Target = newtable()
+	Target.CP_TR1 = true
+	Target.CP_TR2 = true
+	Target.CP_R_UP = true
+	Target.CP_R_LEFT = true
+	Target.CP_R_RIGHT = true
 	---------------------------------------------------------------
 
 	WorldFrame = self:GetFrameRef("WorldFrame")
+	MouseHandle = self:GetFrameRef("MouseHandle")
 
 
 	---------------------------------------------------------------
@@ -224,11 +270,22 @@ Cursor:WrapScript(Cursor, "OnClick", [[
 					local key = GetBindingKey(binding)
 					if key then
 						self:SetBindingClick(true, key, "ConsolePortWorldCursorButton"..name)
+						if Mod then
+							self:SetBindingClick(true, Mod..key, "ConsolePortWorldCursorButton"..name)
+						end
 					end
 				end
-				local guide = GetBindingKey("CP_C_OPTION")
-				if guide then
-					self:SetBinding(true, guide, "CLICK ConsolePortWorldCursor:RightButton")
+				for button in pairs(Cancel) do
+					local key = GetBindingKey(button)
+					if key then
+						self:SetBindingClick(true, key, self, "RightButton")
+					end
+				end
+				for button in pairs(Target) do
+					local key = GetBindingKey(button)
+					if key then
+						self:SetBindingClick(true, key, self, "LeftButton")
+					end
 				end
 				self:Run(SelectPlate, 0)
 				self:Show()
@@ -245,8 +302,10 @@ Cursor:WrapScript(Cursor, "OnClick", [[
 			-- 		-- room for improvement when another plate is in the way
 			-- 	end
 			-- end
-			self:ClearBindings()
 			self:Hide()
+			if not down then
+				self:ClearBindings()
+			end
 		end
 	end
 ]])
@@ -262,6 +321,13 @@ Cursor:WrapScript(Cursor, "PostClick", [[
 local wasMouseLooking
 
 Cursor:HookScript("PreClick", function(self, button, down)
+	if 	down and
+		not GetCVarBool("nameplateShowEnemies") and
+		not GetCVarBool("nameplateShowFriends") then
+		if not InCombatLockdown() then
+			SetCVar("nameplateShowEnemies", 1)
+		end
+	end
 	if self:IsVisible() and button == "LeftButton" then
 		wasMouseLooking = IsMouselooking()
 		ConsolePort:StopMouse()
@@ -296,13 +362,10 @@ for name, button in pairs(buttons) do
 	]], button.binding, name))
 end
 
-
-Cursor:SetSize(32, 32)
-Cursor:Hide()
-
-Cursor:HookScript("OnShow", function(self)
-	PlaySound("INTERFACESOUND_LOSTTARGETUNIT")
-end)
+---------------------------------------------------------------
+-- Crosshairs are drawn on top of the current nameplate.
+-- This frame updates smoothly to look more similar to
+-- an actual mouse instead of instantly jumping between plates.
 
 local Crosshairs = CreateFrame("Frame", "ConsolePortWorldCursorCrosshairs", WorldFrame)
 Crosshairs:SetBackdrop({bgFile = "Interface\\Cursor\\Crosshairs"})

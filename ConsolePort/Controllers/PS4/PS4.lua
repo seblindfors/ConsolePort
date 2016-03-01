@@ -99,7 +99,7 @@ db.Controllers.PS4 = {
 		},
 		['CP_R_DOWN'] = {
 			['action'] 	= 'JUMP',
-			['shift'] 	= 'TARGETNEARESTENEMY',
+			['shift'] 	= 'CLICK ConsolePortWorldCursor:LeftButton',
 			['ctrl']  	= 'INTERACTMOUSEOVER',
 			['ctrlsh'] 	= 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
@@ -170,7 +170,7 @@ db.Controllers.PS4 = {
 			['action'] 	= 'TOGGLEWORLDMAP',
 			['shift'] 	= 'CP_CAMZOOMOUT',
 			['ctrl'] 	= 'CP_CAMZOOMIN',
-			['ctrlsh'] 	= 'SETVIEW1',
+			['ctrlsh'] 	= 'CLICK ConsolePortNameplateCycle:LeftButton',
 		},
 	}
 }
