@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- UnitFrames.lua: Secure unit targeting cursor for combat
+-- Cursors\UnitFrames.lua: Secure unit frames targeting cursor 
 ---------------------------------------------------------------
 -- Creates a secure cursor that is used to iterate over unit frames
 -- and select units based on where the frame is drawn on screen.

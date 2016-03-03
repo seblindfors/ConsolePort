@@ -1,10 +1,11 @@
 ---------------------------------------------------------------
--- Nameplates.lua: Secure nameplate targeting cursor for combat
+-- Cursors\Nameplates.lua: Secure nameplate targeting cursor
 ---------------------------------------------------------------
 -- Creates a secure cursor that is used to iterate over nameplates
 -- and select a target based on where the plate is drawn on screen.
 -- Scans WorldFrame for active nameplates, scales them up to
 -- cover the entire screen, then uses a mouseover macro to target.
+-- Based loosely on semlar's LazyPlates concept. 
 
 local _, db = ...
 local WorldFrame = WorldFrame
@@ -118,40 +119,36 @@ Cursor:Execute(format([[
 		elseif (not current and next(Plates)) or (current and next(Plates) and not current:IsVisible()) then
 			local thisX, thisY = self:GetRect()
 
-			if thisX and thisY then
-				local plate, dist
+			if not thisX or not thisY then
+				local _, _, wfWidth, wfHeight = WorldFrame:GetRect()
+				thisX, thisY = wfWidth / 2, wfHeight / 2
+			end
 
-				for Plate in pairs(Plates) do
-					if Plate ~= old and Plate:IsShown() then
-						local left, bottom, width, height = Plate:GetRect()
+			local plate, dist
 
-						if left and bottom and width and height then
-							local destDistance = abs(thisX - (left + width / 2)) + abs(thisY - (bottom + height / 2))
+			for Plate in pairs(Plates) do
+				if Plate ~= old then
+					local left, bottom, width, height = Plate:GetRect()
 
-							if not dist or destDistance < dist then
-								plate = Plate
-								dist = destDistance
-							end
+					if left and bottom and width and height then
+						local destDistance = abs(thisX - (left + width / 2)) + abs(thisY - (bottom + height / 2))
+
+						if not dist or destDistance < dist then
+							plate = Plate
+							dist = destDistance
 						end
 					end
 				end
-				if plate then
-					current = plate
-				end
-			else
-				for Plate in pairs(Plates) do
-					if Plate:IsShown() then
-						current = Plate
-						break
-					end
-				end
+			end
+			if plate then
+				current = plate
 			end
 		end
 		self:SetAttribute("plate", current)
 	]=]
 
 	FindClosestPlate = [=[
-		if current then
+		if current and key ~= 0 then
 			local left, bottom, width, height = current:GetRect()
 			local thisY = bottom+height/2
 			local thisX = left+width/2
@@ -195,7 +192,7 @@ Cursor:Execute(format([[
 					swap = false
 				end
 			end
-			if not newTarget and key ~= 0 then
+			if not newTarget then
 				for destination in pairs(Plates) do
 					if destination ~= current then
 						left, bottom, width, height = destination:GetRect()
@@ -230,7 +227,7 @@ Cursor:Execute(format([[
 	]=]
 
 	SelectPlate = [=[
-		key = ...
+		key, onHide = ...
 		if current then
 			old = current
 		end
@@ -240,12 +237,13 @@ Cursor:Execute(format([[
 		self:Run(FindClosestPlate)
 
 		if current and current:IsShown() then
+			self:Show()
 			self:CallMethod("SetClamped", current:GetName())
 			self:SetParent(current)
 			self:ClearAllPoints()
 			self:SetPoint("BOTTOM", current, "TOP", 0, 0)
 		else
-			self:Run(Disable)
+			self:Run(Disable, onHide)
 		end
 	]=]
 ]], Key.Up, Key.Down, Key.Left, Key.Right))
@@ -253,7 +251,7 @@ Cursor:Execute(format([[
 
 Cursor:SetAttribute("_onhide", [[
 	if IsEnabled then
-		self:Run(SelectPlate, 0)
+		self:Run(SelectPlate, 0, true)
 	end
 ]])
 
@@ -288,7 +286,6 @@ Cursor:WrapScript(Cursor, "OnClick", [[
 					end
 				end
 				self:Run(SelectPlate, 0)
-				self:Show()
 			end
 		else
 			if current and down then
@@ -308,6 +305,7 @@ Cursor:WrapScript(Cursor, "OnClick", [[
 			end
 		end
 	end
+	MouseHandle:SetAttribute("override", not IsEnabled and not down)
 ]])
 
 Cursor:WrapScript(Cursor, "PostClick", [[
