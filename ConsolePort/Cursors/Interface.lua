@@ -349,7 +349,7 @@ local function SpecialAction(self)
 		-- Item button
 		elseif node.JunkIcon then
 			local link = GetContainerItemLink(node:GetParent():GetID(), node:GetID())
-			local _, itemID = strsplit(":", strmatch(link, "item[%-?%d:]+"))
+			local _, itemID = strsplit(":", strmatch(link or "", "item[%-?%d:]+"))
 			if GetItemSpell(link) then
 				self:AddUtilityAction("item", itemID)
 			else

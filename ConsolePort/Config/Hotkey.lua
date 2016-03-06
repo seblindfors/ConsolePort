@@ -138,6 +138,12 @@ function ConsolePort:CreateHotKey(forceStyle)
 				mod2:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
 			end
 		end
+		if mod1 then
+			mod1:SetAlpha(0.75)
+		end
+		if mod2 then
+			mod2:SetAlpha(0.75)
+		end
 
 	-- Consistent revamp
 	---------------------------------------------------------------

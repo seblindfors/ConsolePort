@@ -54,9 +54,9 @@ local function AnimateNewAction(self, actionButton, autoAssigned)
 		self.Quest:Hide()
 	end
 	local x, y = actionButton:GetCenter()
-	SetPortraitToTexture(self.Icon, actionButton.icon.texture)
+	self.Icon:SetTexture(actionButton.icon.texture)
 	self.Spell:SetSize(175 / UI_SCALE, 175 / UI_SCALE)
-	self.Spell:SetPoint("CENTER", self.Icon, "BOTTOMLEFT", 44, 44 / UI_SCALE)
+	self.Spell:SetPoint("CENTER", self.Icon, "BOTTOMLEFT", 48, 44 / UI_SCALE)
 	self:ClearAllPoints()
 	self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
 	self:SetSize(120, 120)
@@ -92,10 +92,12 @@ Animation.Fade:SetOrder(2)
 Animation.Fade:SetStartDelay(3)
 Animation.Fade:SetDuration(0.2)
 ---------------------------------------------------------------
-Animation.Border:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorder")
+Animation.Border:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+Animation.Border:SetAlpha(0.5)
 Animation.Border:SetAllPoints(Animation)
-Animation.Icon:SetSize(90, 90)
+Animation.Icon:SetSize(100, 100)
 Animation.Icon:SetPoint("CENTER", 0, 0)
+Animation.Icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
 ---------------------------------------------------------------
 Animation.Quest:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\QuestButton")
 Animation.Quest:SetPoint("CENTER", 0, 0)
@@ -492,7 +494,7 @@ local function ActionButtonGetTexture(self, actionType, actionValue)
 	end
 	if texture then
 		self.icon.texture = texture
-		SetPortraitToTexture(self.icon, texture)
+		self.icon:SetTexture(texture)
 		self:SetAlpha(1)
 		self.icon:SetVertexColor(1, 1, 1)
 	else
@@ -549,6 +551,7 @@ local function ActionButtonOnEnter(self)
 	self.HasFocus = true
 	FadeIn(self.Pushed, 0.2, self.Pushed:GetAlpha(), 1)
 	FadeIn(self.Highlight, 0.2, self.Highlight:GetAlpha(), 0.5)
+	FadeOut(self.NormalTexture, 0.2, self.NormalTexture:GetAlpha(), 0.5)
 	FadeOut(self.Quest, 0.2, self.Quest:GetAlpha(), 0)
 end
 
@@ -559,6 +562,7 @@ local function ActionButtonOnLeave(self)
 	end
 	FadeOut(self.Pushed, 0.2, self.Pushed:GetAlpha(), 0)
 	FadeOut(self.Highlight, 0.2, self.Highlight:GetAlpha(), 0)
+	FadeIn(self.NormalTexture, 0.2, self.NormalTexture:GetAlpha(), 0.75)
 	FadeIn(self.Quest, 0.2, self.Quest:GetAlpha(), 1)
 end
 
@@ -581,6 +585,7 @@ local function ActionButtonOnUpdate(self, elapsed)
 				local time, cooldown = GetItemCooldown(self:GetAttribute("cursorID"))
 				if time and cooldown then
 					self.cooldown:SetCooldown(time, cooldown)
+					self.cooldown:SetSwipeColor(0.17, 0, 0)
 				else
 					self.cooldown:SetCooldown(0, 0)
 				end
@@ -602,6 +607,7 @@ local function ActionButtonOnUpdate(self, elapsed)
 				local time, cooldown = GetSpellCooldown(spellID)
 				if time and cooldown then
 					self.cooldown:SetCooldown(time, cooldown)
+					self.cooldown:SetSwipeColor(0.17, 0, 0)
 				else
 					self.cooldown:SetCooldown(0, 0)
 				end
@@ -654,38 +660,44 @@ for i=1, 8 do
 	ActionButton.Border = CreateFrame("Frame", "$parentBorder", ActionButton)
 	ActionButton.Border:SetAllPoints(ActionButton)
 
-	ActionButton.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorder")
+	ActionButton.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
 	ActionButton.NormalTexture:ClearAllPoints()
 	ActionButton.NormalTexture:SetParent(ActionButton.Border)
 	ActionButton.NormalTexture:SetPoint("CENTER", 0, 0)
+	ActionButton.NormalTexture:SetAlpha(0.75)
 	ActionButton.NormalTexture:SetSize(76, 76)
 	ActionButton.NormalTexture:SetDrawLayer("OVERLAY", 4)
 
+	ActionButton.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
 	ActionButton.cooldown:ClearAllPoints()
-	ActionButton.cooldown:SetPoint("CENTER", ActionButton, 0, 0)
-	ActionButton.cooldown:SetSize(46, 46)
+	ActionButton.cooldown:SetPoint("CENTER")
+	ActionButton.cooldown:SetSize(76, 76)
+	ActionButton.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+	ActionButton.cooldown:SetDrawEdge(false)
 
 	ActionButton.Count:ClearAllPoints()
 	ActionButton.Count:SetPoint("BOTTOM", 0, 2)
 
 	ActionButton.icon:ClearAllPoints()
 	ActionButton.icon:SetPoint("CENTER", 0, 0)
-	ActionButton.icon:SetSize(54, 54)
+	ActionButton.icon:SetSize(64, 64)
+	ActionButton.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
 
 	ActionButton.Pushed = ActionButton:GetPushedTexture()
-	ActionButton.Pushed:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorder")
+	ActionButton.Pushed:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
 	ActionButton.Pushed:SetParent(ActionButton.Border)
 	ActionButton.Pushed:SetAllPoints(ActionButton.NormalTexture)
 	ActionButton.Pushed:SetVertexColor(red, green, blue, 1)
 	ActionButton.Pushed:SetDrawLayer("OVERLAY", 5)
+	ActionButton.Pushed:SetBlendMode("ADD")
 	ActionButton.Pushed:SetAlpha(0)
 
 	ActionButton:GetHighlightTexture():SetTexture(nil)
 
 	ActionButton.Highlight = ActionButton.Border:CreateTexture(nil, "OVERLAY", nil, 6)
-	ActionButton.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorderHighlight")
+	ActionButton.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
 	ActionButton.Highlight:SetAllPoints(ActionButton.NormalTexture)
-	ActionButton.Highlight:SetVertexColor(red, green, blue, 0.5)
+	ActionButton.Highlight:SetVertexColor(red, green, blue, 1)
 	ActionButton.Highlight:SetBlendMode("ADD")
 	ActionButton.Highlight:SetAlpha(0)
 

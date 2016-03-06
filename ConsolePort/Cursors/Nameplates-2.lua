@@ -39,8 +39,8 @@ local Cursor = CreateFrame("Button", "ConsolePortWorldCursor", WorldFrame, "Secu
 
 Cursor:RegisterForClicks("AnyUp", "AnyDown")
 Cursor:SetAttribute("type", "macro")
-Cursor:SetAttribute("macrotext1", "/target [@mouseover, exists]")
-Cursor:SetAttribute("downbutton", "omit")
+Cursor:SetAttribute("macrotext", "/target [@mouseover, exists]")
+--Cursor:SetAttribute("downbutton", "omit")
 Cursor:SetAttribute("_onstate-modifier", "Mod = newstate")
 
 RegisterStateDriver(Cursor, "modifier", "[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ")
@@ -236,13 +236,17 @@ Cursor:Execute(format([[
 		self:Run(SetCurrent)
 		self:Run(FindClosestPlate)
 
+		self:SetAttribute("current", current)
+
 		if current and current:IsShown() then
 			self:Show()
 			self:CallMethod("SetClamped", current:GetName())
 			self:SetParent(current)
 			self:ClearAllPoints()
 			self:SetPoint("BOTTOM", current, "TOP", 0, 0)
+			self:SetAttribute("macrotext", "/target [@mouseover, exists]")
 		else
+			self:SetAttribute("macrotext", "/targetenemy")
 			self:Run(Disable, onHide)
 		end
 	]=]
@@ -258,12 +262,12 @@ Cursor:SetAttribute("_onhide", [[
 Cursor:WrapScript(Cursor, "OnClick", [[
 	if button == "RightButton" then
 		self:Run(Disable, true)
-	elseif button == "LeftButton" then
-		if down then 
+	else
+		if button == "LeftButton" and down then 
 			IsEnabled = not IsEnabled
 		end
 		if IsEnabled then
-			if down then
+			if button == "LeftButton" and down then
 				for binding, name in pairs(DPAD) do
 					local key = GetBindingKey(binding)
 					if key then
@@ -276,13 +280,19 @@ Cursor:WrapScript(Cursor, "OnClick", [[
 						self:SetBindingClick(true, key, self, "RightButton")
 					end
 				end
-				for button in pairs(Target) do
-					local key = GetBindingKey(button)
-					if key then
-						self:SetBindingClick(true, key, self, "LeftButton")
-					end
-				end
 				self:Run(SelectPlate, 0)
+			elseif down then
+				self:Run(SelectPlate, Key[button])
+				if current then
+					local left, bottom = self:GetRect()
+					self:ClearAllPoints()
+					self:SetParent(WorldFrame)
+					self:SetPoint("BOTTOMLEFT", WorldFrame, "BOTTOMLEFT", left, bottom)
+					self:CallMethod("SetClamped", current:GetName())
+					self:SetFrameLevel(20)
+					current:SetFrameLevel(1)
+					current:SetScale(100)
+				end
 			end
 		else
 			if current and down then
@@ -291,25 +301,20 @@ Cursor:WrapScript(Cursor, "OnClick", [[
 				current:SetFrameLevel(1)
 				current:SetScale(100)
 			end
-			-- for Plate in pairs(Plates) do
-			-- 	if Plate:IsUnderMouse() and Plate ~= current then
-			-- 		-- room for improvement when another plate is in the way
-			-- 	end
-			-- end
-			self:Hide()
-			if not down then
+			if button == "LeftButton" and not down then
 				self:ClearBindings()
 			end
 		end
-	elseif down then
-		self:Run(SelectPlate, Key[button])
 	end
 	MouseHandle:SetAttribute("override", not IsEnabled and not down)
 ]])
 
 Cursor:WrapScript(Cursor, "PostClick", [[
-	if not IsEnabled and not down and current then
+	if ((button ~= "LeftButton") or (not IsEnabled)) and not down and current then
 		current:SetScale(1)
+		self:ClearAllPoints()
+		self:SetParent(current)
+		self:SetPoint("BOTTOM", current, "TOP", 0, 0)
 	end
 ]])
 
@@ -325,7 +330,7 @@ Cursor:HookScript("PreClick", function(self, button, down)
 			SetCVar("nameplateShowEnemies", 1)
 		end
 	end
-	if self:IsVisible() and button == "LeftButton" then
+	if self:IsVisible() and button ~= "RightButton" then
 		wasMouseLooking = IsMouselooking()
 		ConsolePort:StopMouse()
 	end
@@ -346,7 +351,9 @@ local buttons = {
 }
 ---------------------------------------------------------------
 for name, binding in pairs(buttons) do
-	Cursor:Execute(format("DPAD.%s = \"%s\"", binding, name))
+	Cursor:Execute(format([[
+		DPAD.%s = "%s"
+	]], binding, name))
 end
 
 ---------------------------------------------------------------
@@ -360,18 +367,18 @@ Crosshairs:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", 0, 0)
 Crosshairs:SetSize(32, 32)
 Crosshairs:Lower()
 Crosshairs:SetScript("OnUpdate", function(self, elapsed)
-	if Cursor:IsVisible() then
-		if self:GetAlpha() < 1 then
-			for i, child in pairs({Cursor:GetChildren()}) do
-				if child.mod then
-					child:SetParent(self)
-					local point, _, relativePoint, xOffset, yOffset = child:GetPoint()
-					child:SetPoint(point, self, relativePoint, xOffset, yOffset)
-					break
-				end
-			end
-		end
-		self:SetAlpha(1)
+	local current = Cursor:GetAttribute("current")
+	-- if self:GetAlpha() < 1 then
+	-- 	for i, child in pairs({Cursor:GetChildren()}) do
+	-- 		if child.mod then
+	-- 			child:SetParent(self)
+	-- 			local point, _, relativePoint, xOffset, yOffset = child:GetPoint()
+	-- 			child:SetPoint(point, self, relativePoint, xOffset, yOffset)
+	-- 			break
+	-- 		end
+	-- 	end
+	-- end
+	if Cursor:GetParent() ~= WorldFrame then
 		local targetX, targetY = Cursor:GetCenter()
 		local currX, currY = self:GetCenter()
 		if targetX and targetY then
@@ -383,7 +390,8 @@ Crosshairs:SetScript("OnUpdate", function(self, elapsed)
 				self:SetPoint("TOP", WorldFrame, "BOTTOMLEFT", currX + horz * 0.25, currY + vert * 0.25 + 8)
 			end
 		end
-	else
-		self:SetAlpha(0)
 	end
 end)
+
+Cursor:HookScript("OnShow", function() Crosshairs:Show() end)
+Cursor:HookScript("OnHide", function() Crosshairs:Hide() end)
