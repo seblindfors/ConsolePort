@@ -242,7 +242,9 @@ Cursor:Execute(format([[
 			self:SetParent(current)
 			self:ClearAllPoints()
 			self:SetPoint("BOTTOM", current, "TOP", 0, 0)
+			self:SetAttribute("macrotext1", "/target [@mouseover, exists]")
 		else
+			self:SetAttribute("macrotext1", "/targetenemy")
 			self:Run(Disable, onHide)
 		end
 	]=]
@@ -318,13 +320,13 @@ Cursor:WrapScript(Cursor, "PostClick", [[
 local wasMouseLooking
 
 Cursor:HookScript("PreClick", function(self, button, down)
-	if 	down and
-		not GetCVarBool("nameplateShowEnemies") and
-		not GetCVarBool("nameplateShowFriends") then
-		if not InCombatLockdown() then
-			SetCVar("nameplateShowEnemies", 1)
-		end
-	end
+	-- if 	down and
+	-- 	not GetCVarBool("nameplateShowEnemies") and
+	-- 	not GetCVarBool("nameplateShowFriends") then
+	-- 	if not InCombatLockdown() then
+	-- 		SetCVar("nameplateShowEnemies", 1)
+	-- 	end
+	-- end
 	if self:IsVisible() and button == "LeftButton" then
 		wasMouseLooking = IsMouselooking()
 		ConsolePort:StopMouse()
