@@ -13,7 +13,7 @@ local IsShiftKeyDown = IsShiftKeyDown
 local function GetActionButtons(buttons, this)
 	buttons = buttons or {}
 	this = this or UIParent
-	if this:IsForbidden() then
+	if this:IsForbidden() or this.isForbidden then
 		return buttons
 	end
 	local action = this:GetAttribute("action")

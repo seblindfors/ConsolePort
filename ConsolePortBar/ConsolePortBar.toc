@@ -4,12 +4,9 @@
 ## SavedVariablesPerCharacter: ConsolePortBarSetup
 ## RequiredDeps: ConsolePort
 
-#@no-lib-strip@
-Libs\LibStub\LibStub.lua
-Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
-Libs\LibButtonGlow-1.0\LibButtonGlow-1.0.lua
-Libs\LibActionButton-1.0\LibActionButton-1.0.lua
-#@end-no-lib-strip@
+Libs\CallbackHandler.lua
+Libs\ButtonGlow.lua
+Libs\ActionButton.lua
 
 Core\Button.lua
 Core\Bar.lua

@@ -31,17 +31,17 @@ Bindings:
 db.Controllers.PS4 = {
 	Buttons = {
 		'CP_R_UP',
-		'CP_R_DOWN',
 		'CP_R_LEFT',
 		'CP_R_RIGHT',
+		'CP_R_DOWN',
+		----------------
+		'CP_TR1',
+		'CP_TR2',
 		----------------
 		'CP_L_LEFT',
 		'CP_L_UP',
 		'CP_L_RIGHT',
 		'CP_L_DOWN',
-		----------------
-		'CP_TR1',
-		'CP_TR2',
 		----------------
 		'CP_TL3',
 		'CP_TR3',

@@ -15,106 +15,151 @@ local classPage = {
 }
 
 local Bar = CreateFrame("Frame", addOn, UIParent, "SecureHandlerStateTemplate")
-local Lib = LibStub("LibActionButton-1.0-ConsolePort")
-local state = select(2, ConsolePort:GetActionPageState())
+local Lib = ab.libs.button
+local now, state = ConsolePort:GetActionPageState()
 
-Bar:SetPoint("BOTTOM", UIParent, -470, 50)
+Bar.Buttons = {}
+Bar.isForbidden = true
+Bar:SetPoint("BOTTOM", UIParent, 0, 0)
 RegisterStateDriver(Bar, "page", state)
-Bar:SetAttribute("_onstate-page", [[
-    self:SetAttribute("state", newstate)
-    control:ChildUpdate("state", newstate)
+RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] ctrlsh; [mod:ctrl] ctrl; [mod:shift] shift; action")
+Bar:SetAttribute("_onstate-modifier", [[
+	self:SetAttribute("state", newstate)
+	control:ChildUpdate("state", newstate)
 ]])
-
+Bar:SetAttribute("_onstate-page", [[
+	local page = newstate
+	if page == "temp" then
+		if HasTempShapeshiftActionBar() then
+			page = GetTempShapeshiftBarIndex()
+		else
+			page = 1
+		end
+	elseif page == "possess" then
+		page = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
+		if  page <= 10 then
+			page = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
+		end
+		if  page <= 10 then
+			page = 12
+		end
+	end
+	self:SetAttribute("actionpage", page)
+	control:ChildUpdate("actionpage", page)
+]])
+Bar:Execute(format([[
+	self:RunAttribute("_onstate-page", "%s")
+]], now))
 ---------------------------------------------------------------
 -- 1
 ---------------------------------------------------------------
-for btn=1, 12 do
-	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
-	button:SetPoint("LEFT", Bar, (btn-1)*70, 0)
-	button:Show()
-	button:SetState(1, "action", btn)
-	button:SetState(2, "action", btn)
-	button:SetSize(64, 64)
+-- for btn=1, 12 do
+-- 	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
+-- 	button:SetPoint("LEFT", Bar, (btn-1)*70, 0)
+-- 	button:Show()
+-- 	button:SetState(1, "action", btn)
+-- 	button:SetState(2, "action", btn)
+-- 	button:SetSize(64, 64)
 
-	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+-- 	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
 
-	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-	button.NormalTexture:SetAlpha(0.75)
-	button.NormalTexture:ClearAllPoints()
-	button.NormalTexture:SetPoint("CENTER", 0, 0)
-	button.NormalTexture:SetSize(74, 74)
-	button:HookScript("OnAttributeChanged", function(self, ...)
-	--	print(...)
-	end)
+-- 	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+-- 	button.NormalTexture:SetAlpha(0.75)
+-- 	button.NormalTexture:ClearAllPoints()
+-- 	button.NormalTexture:SetPoint("CENTER", 0, 0)
+-- 	button.NormalTexture:SetSize(74, 74)
+-- 	button:HookScript("OnAttributeChanged", function(self, ...)
+-- 	--	print(...)
+-- 	end)
 
-	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
-	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+-- 	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+-- 	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
+-- 	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
 
-	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+-- 	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+-- 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+-- end
+
+-- ---------------------------------------------------------------
+-- -- 2
+-- ---------------------------------------------------------------
+-- for btn=61, 72 do
+-- 	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
+-- 	button:SetPoint("LEFT", Bar, ((btn-61)*54), 64)
+-- 	button:Show()
+-- 	button:SetState(1, "action", btn)
+-- 	button:SetState(2, "action", btn)
+-- 	button:SetSize(64*0.75, 64*0.75)
+
+-- 	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+
+-- 	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+-- 	button.NormalTexture:SetAlpha(0.75)
+-- 	button.NormalTexture:ClearAllPoints()
+-- 	button.NormalTexture:SetPoint("CENTER", 0, 0)
+-- 	button.NormalTexture:SetSize(74*0.75, 74*0.75)
+-- 	button:HookScript("OnAttributeChanged", function(self, ...)
+-- 	--	print(...)
+-- 	end)
+
+-- 	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+-- 	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
+-- 	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+
+-- 	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+-- 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+-- end
+
+-- ---------------------------------------------------------------
+-- -- 3
+-- ---------------------------------------------------------------
+-- for btn=49, 60 do
+-- 	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
+-- 	button:SetPoint("LEFT", Bar, ((btn-49)*54), 120)
+-- 	button:Show()
+-- 	button:SetState(1, "action", btn)
+-- 	button:SetState(2, "action", btn)
+-- 	button:SetSize(64*0.75, 64*0.75)
+
+-- 	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+
+-- 	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+-- 	button.NormalTexture:SetAlpha(0.75)
+-- 	button.NormalTexture:ClearAllPoints()
+-- 	button.NormalTexture:SetPoint("CENTER", 0, 0)
+-- 	button.NormalTexture:SetSize(74*0.75, 74*0.75)
+-- 	button:HookScript("OnAttributeChanged", function(self, ...)
+-- 	--	print(...)
+-- 	end)
+
+-- 	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+-- 	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
+-- 	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+
+-- 	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+-- 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+-- end
+
+function ConsolePort:GetBindingIcon(binding)
+	local icons = {
+		["JUMP"] = "Interface\\Icons\\Ability_Karoz_Leap",
+	}
+	return icons[binding]
 end
 
----------------------------------------------------------------
--- 2
----------------------------------------------------------------
-for btn=61, 72 do
-	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
-	button:SetPoint("LEFT", Bar, ((btn-61)*54), 64)
-	button:Show()
-	button:SetState(1, "action", btn)
-	button:SetState(2, "action", btn)
-	button:SetSize(64*0.75, 64*0.75)
+for i, binding in pairs(ConsolePort:GetBindingNames()) do
+	local button = Lib:Create(Bar, binding)
+	Lib:SetState(button, db.Bindings[binding])
 
-	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
-
-	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-	button.NormalTexture:SetAlpha(0.75)
-	button.NormalTexture:ClearAllPoints()
-	button.NormalTexture:SetPoint("CENTER", 0, 0)
-	button.NormalTexture:SetSize(74*0.75, 74*0.75)
-	button:HookScript("OnAttributeChanged", function(self, ...)
-	--	print(...)
-	end)
-
-	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
-	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-
-	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+	if i > 10 then
+		button:SetPoint("RIGHT", UIParent, -30, (i-10) * -110 + 300)
+	else
+		button:SetPoint("LEFT", Bar, (i-1)*110 + 51, 16)
+	end
+	Bar.Buttons[i] = button
 end
 
----------------------------------------------------------------
--- 3
----------------------------------------------------------------
-for btn=49, 60 do
-	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
-	button:SetPoint("LEFT", Bar, ((btn-49)*54), 120)
-	button:Show()
-	button:SetState(1, "action", btn)
-	button:SetState(2, "action", btn)
-	button:SetSize(64*0.75, 64*0.75)
-
-	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
-
-	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-	button.NormalTexture:SetAlpha(0.75)
-	button.NormalTexture:ClearAllPoints()
-	button.NormalTexture:SetPoint("CENTER", 0, 0)
-	button.NormalTexture:SetSize(74*0.75, 74*0.75)
-	button:HookScript("OnAttributeChanged", function(self, ...)
-	--	print(...)
-	end)
-
-	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
-	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-
-	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
-end
-
+Bar:SetWidth(#Bar.Buttons > 10 and (10 * 110) + 55 or (#Bar.Buttons * 110) + 55)
 
 Bar:SetAttribute("page", 1)
 
@@ -226,3 +271,17 @@ Bar:HideBlizzard()
 
 
 ConsolePort:LoadHotKeyTextures()
+
+Bar:SetBackdrop(db.Atlas.Backdrops.Border)
+
+Bar.BG = Bar:CreateTexture(nil, "BACKGROUND")
+Bar.BG:SetPoint("TOPLEFT", Bar, "TOPLEFT", 16, -16)
+Bar.BG:SetPoint("BOTTOMRIGHT", Bar, "BOTTOMRIGHT", -16, 16)
+Bar.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
+Bar.BG:SetBlendMode("ADD")
+
+local red, green, blue = db.Atlas.GetCC()
+
+Bar.BG:SetVertexColor(red, green, blue, 0.25)
+
+Bar:SetHeight(150)
