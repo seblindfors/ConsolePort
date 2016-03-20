@@ -94,6 +94,7 @@ db.Atlas.Overlays = {
 }
 ---------------------------------------------------------------
 db.Atlas.GetCC = function() return cc.r, cc.g, cc.b end
+db.Atlas.GetOverlay = function() return GetSpecialization() and db.Atlas.Overlays[class][GetSpecializationInfo(GetSpecialization())] end
 ---------------------------------------------------------------
 db.Atlas.Hex2RGB = function(hex, inPercent)
 	if hex then

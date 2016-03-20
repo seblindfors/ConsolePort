@@ -8,6 +8,9 @@ Libs\CallbackHandler.lua
 Libs\ButtonGlow.lua
 Libs\ActionButton.lua
 
-Core\Button.lua
+Core\Wrapper.lua
 Core\Bar.lua
 Core\Config.lua
+
+Options\Pet.lua
+Options\Stance.lua

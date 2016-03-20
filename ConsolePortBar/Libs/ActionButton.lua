@@ -36,9 +36,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --if not lib then return end
 
 local _, ab = ...
+local db = ConsolePort:DB()
 local lib = {}
 ab.libs = ab.libs or {}
 ab.libs.acb = lib
+
+local UIFrameFadeIn = db.UIFrameFadeIn
+local UIFrameFadeOut = db.UIFrameFadeOut
 
 -- Lua functions
 local _G = _G
@@ -118,6 +122,7 @@ local Update, UpdateButtonState, UpdateUsable, UpdateCount, UpdateCooldown, Upda
 local StartFlash, StopFlash, UpdateFlash, UpdateHotkeys, UpdateRangeTimer, UpdateOverlayGlow
 local UpdateFlyout, ShowGrid, HideGrid, UpdateGrid, SetupSecureSnippets, WrapOnClick
 local ShowOverlayGlow, HideOverlayGlow
+local FadeIn, FadeOut
 local EndChargeCooldown
 
 local InitializeEventHandler, OnEvent, ForAllButtons, OnUpdate
@@ -144,7 +149,7 @@ local DefaultConfig = {
 -- @param id Internal id of the button (not used by LibActionButton-1.0, only for tracking inside the calling addon)
 -- @param name Name of the button frame to be created (not used by LibActionButton-1.0 aside from naming the frame)
 -- @param header Header that drives these action buttons (if any)
-function lib:CreateButton(id, name, header, config)
+function lib:CreateButton(id, name, header, config, template)
 	if type(name) ~= "string" then
 		error("Usage: CreateButton(id, name. header): Buttons must have a valid name!", 2)
 	end
@@ -152,7 +157,13 @@ function lib:CreateButton(id, name, header, config)
 		error("Usage: CreateButton(id, name, header): Buttons without a secure header are not yet supported!", 2)
 	end
 
-	local button = setmetatable(CreateFrame("CheckButton", name, header, "SecureActionButtonTemplate, ActionButtonTemplate"), Generic_MT)
+	local templates = "SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, ActionButtonTemplate"
+
+	if template then
+		templates = templates..", "..template
+	end
+
+	local button = setmetatable(CreateFrame("CheckButton", name, header, templates), Generic_MT)
 	button:RegisterForDrag("LeftButton", "RightButton")
 	button:RegisterForClicks("AnyUp")
 
@@ -228,22 +239,27 @@ function SetupSecureSnippets(button)
 	button:SetAttribute("actionpage", 1)
 	button:SetAttribute("UpdatePage", [[
 		local newpage = ...
-		local oldpage = self:GetAttribute("actionpage")
+		if newpage then
+			local oldpage = self:GetAttribute("actionpage")
 
-		local startIdx = (oldpage - 1) * 12
-		local endIdx = startIdx + 12
+			local startIdx = (oldpage - 1) * 12
+			local endIdx = startIdx + 12
 
-		self:SetAttribute("actionpage", newpage)
+			self:SetAttribute("actionpage", newpage)
 
-		for i, state in pairs(newtable("ctrlsh", "ctrl", "shift", "action")) do
-			local type, action = (self:GetAttribute(format("labtype-%s", state)) or "empty"), self:GetAttribute(format("labaction-%s", state))
-			if type == "action" and action > startIdx and action <= endIdx then
+			for i, state in pairs(newtable("ctrlsh", "ctrl", "shift", "action", "onenter")) do
+				local type, action = (self:GetAttribute(format("labtype-%s", state)) or "empty"), self:GetAttribute(format("labaction-%s", state))
+				if type == "action" and action > startIdx and action <= endIdx then
 
-				local newID = (action - startIdx) + (newpage - 1) * 12
+					local newID = (action - startIdx) + (newpage - 1) * 12
 
-				self:SetAttribute(format("labtype-%s", state), "action")
-				self:SetAttribute(format("labaction-%s", state), newID)
-				self:CallMethod("ButtonContentsChanged", state, "action", newID)
+					self:SetAttribute(format("labtype-%s", state), "action")
+					self:SetAttribute(format("labaction-%s", state), newID)
+					self:CallMethod("ButtonContentsChanged", state, "action", newID)
+					if self:GetAttribute("state") == state then
+						self:RunAttribute("UpdateState", state)
+					end
+				end
 			end
 		end
 	]])
@@ -256,10 +272,30 @@ function SetupSecureSnippets(button)
 
 	button:SetAttribute("_childupdate-actionpage", [[
 		self:RunAttribute("UpdatePage", message)
-		self:RunAttribute("UpdateState", self:GetAttribute("state"))
 		self:CallMethod("UpdateAction", true)
 	]])
 
+	button:SetAttribute("_childupdate-hover", [[
+		self:CallMethod("Hover", message)
+		-- if self:GetAttribute("labtype-onenter") then
+		-- 	if message then
+		-- 		self:RunAttribute("UpdateState", "onenter")
+		-- 	else
+		-- 		self:RunAttribute("UpdateState", self:GetAttribute("mainstate"))
+		-- 	end
+		-- 	self:CallMethod("UpdateAction", true)
+		-- end
+	]])
+
+	button:SetAttribute("_onenter", [[
+		print(self:GetName())
+		self:CallMethod("Hover", true)
+	]])
+
+	button:SetAttribute("_onleave", [[
+		self:CallMethod("Hover", false)
+		self:CallMethod("UpdateCooldown")
+	]])
 
 	-- secure PickupButton(self, kind, value, ...)
 	-- utility function to place a object on the cursor
@@ -552,6 +588,7 @@ local function PickupAny(kind, target, detail, ...)
 end
 
 function Generic:OnEnter()
+	FadeIn(self)
 	if self.config.tooltip ~= "disabled" and (self.config.tooltip ~= "nocombat" or not InCombatLockdown()) then
 		UpdateTooltip(self)
 	end
@@ -563,6 +600,9 @@ function Generic:OnEnter()
 end
 
 function Generic:OnLeave()
+	if not self.isGlowing and not self.isMainButton then
+		FadeOut(self)
+	end
 	GameTooltip:Hide()
 end
 
@@ -815,12 +855,18 @@ function OnEvent(frame, event, arg1, ...)
 		for button in next, ActiveButtons do
 			local spellId = button:GetSpellId()
 			if spellId and spellId == arg1 then
+				if not button.isMainButton then
+					button:SetAlpha(1)
+					button.isGlowing = true
+				end
 				ShowOverlayGlow(button)
 			else
 				if button._state_type == "action" then
 					local actionType, id = GetActionInfo(button._state_action)
 					if actionType == "flyout" and FlyoutHasSpell(id, arg1) then
+						button.isGlowing = true
 						ShowOverlayGlow(button)
+						FadeIn(button)
 					end
 				end
 			end
@@ -830,10 +876,16 @@ function OnEvent(frame, event, arg1, ...)
 			local spellId = button:GetSpellId()
 			if spellId and spellId == arg1 then
 				HideOverlayGlow(button)
+				if not button.isMainButton then
+					button.isGlowing = false
+					UIFrameFadeOut(button, 0.2, button:GetAlpha(), 0)
+					UpdateCooldown(button)
+				end
 			else
 				if button._state_type == "action" then
 					local actionType, id = GetActionInfo(button._state_action)
 					if actionType == "flyout" and FlyoutHasSpell(id, arg1) then
+						button.isGlowing = false
 						HideOverlayGlow(button)
 					end
 				end
@@ -1017,6 +1069,14 @@ end
 -----------------------------------------------------------
 --- button management
 
+function Generic:Hover(show)
+	if show and not self.isMainButton then
+		FadeIn(self)
+	elseif  not self.isMainButton then
+		FadeOut(self)
+	end
+end
+
 function Generic:UpdateAction(force)
 	local type, action = self:GetAction()
 	if force or type ~= self._state_type or action ~= self._state_action then
@@ -1041,7 +1101,7 @@ function Update(self)
 			ActionButtons[self] = nil
 			NonActionButtons[self] = true
 		end
-		self:SetAlpha(1.0)
+	--	self:SetAlpha(1.0)
 		UpdateButtonState(self)
 		UpdateUsable(self)
 		UpdateCooldown(self)
@@ -1051,7 +1111,7 @@ function Update(self)
 		ActionButtons[self] = nil
 		NonActionButtons[self] = nil
 		if gridCounter == 0 and not self.config.showGrid then
-			self:SetAlpha(0.0)
+	--		self:SetAlpha(0.0)
 		end
 		self.cooldown:Hide()
 		self:SetChecked(false)
@@ -1215,9 +1275,11 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration)
 		local cooldown = tremove(lib.ChargeCooldowns)
 		if not cooldown then
 			lib.NumChargeCooldowns = lib.NumChargeCooldowns + 1
-			cooldown = CreateFrame("Cooldown", "LAB10ChargeCooldown"..lib.NumChargeCooldowns, parent, "CooldownFrameTemplate");
+			cooldown = CreateFrame("Cooldown", "$parentChargeCooldown", parent, "CooldownFrameTemplate");
 			cooldown:SetScript("OnCooldownDone", EndChargeCooldown)
 			cooldown:SetHideCountdownNumbers(true)
+			cooldown:SetEdgeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Edge")
+			cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
 			cooldown:SetDrawEdge(true)
 			cooldown:SetDrawSwipe(false)
 		end
@@ -1240,12 +1302,24 @@ local function OnCooldownDone(self)
 	UpdateCooldown(self:GetParent())
 end
 
+local function OnModifierCooldownDone(self)
+	self:SetScript("OnCooldownDone", nil)
+	FadeOut(self:GetParent())
+end
+
 function UpdateCooldown(self)
 	local locStart, locDuration = self:GetLossOfControlCooldown()
 	local start, duration, enable = self:GetCooldown()
 	local charges, maxCharges, chargeStart, chargeDuration = self:GetCharges()
 
 	self.cooldown:SetDrawBling(self.cooldown:GetEffectiveAlpha() > 0.5)
+
+	if not self.isMainButton and not self.isGlowing then
+		if (duration > 2) then
+			FadeIn(self)
+			self.cooldown:SetScript("OnCooldownDone", OnModifierCooldownDone)
+		end
+	end
 
 	if (locStart + locDuration) > (start + duration) then
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_LOSS_OF_CONTROL then
@@ -1341,6 +1415,14 @@ function UpdateOverlayGlow(self)
 	else
 		HideOverlayGlow(self)
 	end
+end
+
+function FadeIn(self, newAlpha)
+	UIFrameFadeIn(self, 0.2, self:GetAlpha(), newAlpha or 1)
+end
+
+function FadeOut(self, newAlpha)
+	UIFrameFadeOut(self, 0.2, self:GetAlpha(), newAlpha or 0)
 end
 
 hooksecurefunc("MarkNewActionHighlight", function(action, flag)
