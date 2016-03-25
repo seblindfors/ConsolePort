@@ -141,6 +141,56 @@ db.Atlas.SetGlassInsetStyle = function(self, classColored, alpha)
 	end
 end
 ---------------------------------------------------------------
+db.Atlas.SetFutureButtonStyle = function(button, width, height, classColored, buttonAtlas, oldLabel, oldIcon)
+	assert(type(button) == "table" and (button:IsObjectType("Button") or button:IsObjectType("CheckButton")))
+
+	button.Icon = button.icon or button.Icon or oldIcon or button:CreateTexture("$parentIcon", "BACKGROUND")
+	button.Icon:SetPoint("CENTER")
+
+	button.Cover = button.Cover or button:CreateTexture("$parentCover", "ARTWORK")
+	button.Cover:SetAtlas("groupfinder-button-cover")
+	button.Cover:SetAllPoints()
+
+	button.SelectedTexture = button.SelectedTexture or button:CreateTexture("$parentSelectedTexture", "OVERLAY")
+	button.SelectedTexture:Hide()
+	button.SelectedTexture:SetTexture("Interface\\PVPFrame\\PvPMegaQueue")
+	button.SelectedTexture:SetPoint("CENTER")
+	button.SelectedTexture:SetTexCoord(0.00195313, 0.63867188, 0.76953125, 0.83007813)
+
+	button.HighlightTexture = button.HighlightTexture or button:CreateTexture("$parentHighlightTexture", "HIGHLIGHT")
+	button.HighlightTexture:SetTexture("Interface\\PVPFrame\\PvPMegaQueue")
+	button.HighlightTexture:SetPoint("CENTER")
+	button.HighlightTexture:SetTexCoord(0.00195313, 0.63867188, 0.70703125, 0.76757813)
+
+	button:SetHighlightTexture(button.HighlightTexture)
+
+	button.Label = button.Label or button:CreateFontString("$parentLabel", nil, "GameFontNormal")
+	button.Label:SetJustifyH("CENTER")
+	button.Label:SetPoint("CENTER")
+	button.Label:SetText(button:GetText())
+	button:SetFontString(button.Label)
+
+	button:SetSize(width or 240, height or 46)
+	button.Cover:SetSize(width or 240, height or 46)
+	button.SelectedTexture:SetSize(width or 240, height and height*0.7828 or 46*0.7828)
+	button.HighlightTexture:SetSize(width or 240, height and height*0.7828 or 46*0.7828)
+	button.Icon:SetSize(width or 240, height or 46)
+	if buttonAtlas then
+		local texture, left, right, top, bottom = unpack(buttonAtlas)
+		button.Icon:SetTexture(texture)
+		button.Icon:SetTexCoord(left, right, top, bottom)
+		button.Icon:SetAlpha(0.25)
+	else
+		button.Icon:SetTexture(nil)
+	end
+	if classColored then
+		local highlight = path.."Window\\Highlight"
+		button.SelectedTexture:SetTexCoord(0, 0.640625, 0, 1)
+		button.SelectedTexture:SetTexture(highlight)
+		button.SelectedTexture:SetVertexColor(cc.r, cc.g, cc.b, 1)
+	end
+end
+---------------------------------------------------------------
 db.Atlas.GetFutureButton = function(name, parent, secure, buttonAtlas, width, height, classColored)
 	local button = CreateAtlasButton(name, parent, secure, "LFGListCategoryTemplate")
 	button.Label:ClearAllPoints()
@@ -288,4 +338,50 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 		end)
 	end
 	return self
+end
+
+db.Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates)
+	if InCombatLockdown() then
+		error("GetRoundActionButton: SecureActionButtonTemplate cannot be inherited in combat!", 2)
+	elseif not name or isCheck == nil or not parent then
+		error("Usage: GetRoundActionButton(name, isCheck, parent[ [, size,] templates]): Buttons without name or parent not supported!", 2)
+	else
+		local template = "ActionButtonTemplate, SecureActionButtonTemplate"
+		
+		if templates and type(templates) == "string" then
+			template = template..", "..templates
+		elseif templates then
+			error("Usage: GetRoundActionButton(name, isCheck, parent[ [, size,] templates]): Templates must be of string type!", 2)
+		end
+
+		local button = CreateFrame(isCheck and "CheckButton" or "Button", name, parent, template)
+
+		button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+
+		button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+		button.NormalTexture:SetAlpha(0.75)
+		button.NormalTexture:ClearAllPoints()
+		button.NormalTexture:SetPoint("CENTER", 0, 0)
+
+		button.PushedTexture = button:GetPushedTexture()
+		button.PushedTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
+
+		button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+
+		if isCheck then
+			button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+		end
+
+		button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+		button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+
+		local size = size or 64
+		local texSize = size * (74 / 64)
+
+		button:SetSize(size, size)
+		button.NormalTexture:SetSize(texSize, texSize)
+		button.PushedTexture:SetSize(texSize, texSize)
+
+		return button
+	end
 end

@@ -6,7 +6,10 @@ local an, ab = ...
 local lib = ab.libs.acb
 ---------------------------------------------------------------
 ab.libs.button = Wrapper
-
+---------------------------------------------------------------
+local WrapperRegistry = {}
+ab.libs.registry = WrapperRegistry
+---------------------------------------------------------------
 local divisor = 1.5
 local size = 64
 local mods = {
@@ -15,7 +18,7 @@ local mods = {
 	["ctrl"] 	= {size = {size / divisor, size * (74 / 64) / divisor }, point = {"TOP", "BOTTOM", 32, 24}}, 
 	["ctrlsh"] 	= {size = {size / divisor, size * (74 / 64) / divisor }, point = {"TOP", "BOTTOM", 0, 8}},
 }
-
+---------------------------------------------------------------
 local config = {
 	outOfRangeColoring = "button",
 	tooltip = "enabled",
@@ -33,6 +36,7 @@ local config = {
 	clickOnDown = false,
 	flyoutDirection = "UP",
 }
+---------------------------------------------------------------
 
 function Wrapper:CreateButton(parent, id, name, size, texSize, config, template)
 	local button = lib:CreateButton(id, name, parent, config, template)
@@ -49,6 +53,11 @@ function Wrapper:CreateButton(parent, id, name, size, texSize, config, template)
 
 	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
 	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+
+	button.Border:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+	button.Border:ClearAllPoints()
+	button.Border:SetPoint("CENTER", 0, 0)
+	button.Border:SetSize(texSize, texSize)
 
 	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
@@ -107,6 +116,8 @@ function Wrapper:Create(parent, id)
 	wrapper.SetSize = Wrapper.SetSize
 	wrapper.SetPoint = Wrapper.SetPoint
 
+	WrapperRegistry[id] = wrapper
+
 	return wrapper
 end
 
@@ -144,6 +155,15 @@ local swapTypes = {
 	end,
 }
 
+function Wrapper:UpdateAllBindings(newBindings)
+	local bindings = newBindings or db.Bindings
+	if type(bindings) == "table" then
+		for binding, wrapper in pairs(WrapperRegistry) do
+			self:SetState(wrapper, bindings[binding])
+		end
+	end
+end
+
 function Wrapper:SetState(wrapper, bindings)
 	local main = wrapper.action
 
@@ -176,6 +196,10 @@ function Wrapper:SetState(wrapper, bindings)
 					button.isMainButton = true
 				end
 				button:SetAttribute("mainstate", id)
+				button:Execute(format([[
+					self:RunAttribute("UpdateState", "%s")
+					self:CallMethod("UpdateAction")
+				]], id))
 				button:Show()
 			end
 		end

@@ -664,6 +664,7 @@ function ConsolePort:LoadBindingSet()
 			SetFauxBinding(handler, "CTRL-SHIFT-", name, key.ctrlsh)
 		end
 		self:RemoveUpdateSnippet(self.LoadBindingSet)
+		return keys
 	end
 end
 

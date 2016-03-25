@@ -22,8 +22,13 @@ local now, state = ConsolePort:GetActionPageState()
 ab.bar = Bar
 ---------------------------------------------------------------
 
+Bar.ignoreNode = true
 Bar.Buttons = {}
 Bar.isForbidden = true
+Bar:SetClampedToScreen(true)
+Bar:SetScript("OnMouseDown", Bar.StartMoving)
+Bar:SetScript("OnMouseUp", Bar.StopMovingOrSizing)
+Bar:SetMovable(true)
 Bar:SetPoint("BOTTOM", UIParent, 0, 0)
 RegisterStateDriver(Bar, "page", state)
 RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] ctrlsh; [mod:ctrl] ctrl; [mod:shift] shift; action")
@@ -62,96 +67,6 @@ Bar:SetAttribute("_onstate-page", [[
 	control:ChildUpdate("actionpage", page)
 ]])
 
----------------------------------------------------------------
--- 1
----------------------------------------------------------------
--- for btn=1, 12 do
--- 	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
--- 	button:SetPoint("LEFT", Bar, (btn-1)*70, 0)
--- 	button:Show()
--- 	button:SetState(1, "action", btn)
--- 	button:SetState(2, "action", btn)
--- 	button:SetSize(64, 64)
-
--- 	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
-
--- 	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
--- 	button.NormalTexture:SetAlpha(0.75)
--- 	button.NormalTexture:ClearAllPoints()
--- 	button.NormalTexture:SetPoint("CENTER", 0, 0)
--- 	button.NormalTexture:SetSize(74, 74)
--- 	button:HookScript("OnAttributeChanged", function(self, ...)
--- 	--	print(...)
--- 	end)
-
--- 	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
--- 	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
--- 	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-
--- 	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
--- 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
--- end
-
--- ---------------------------------------------------------------
--- -- 2
--- ---------------------------------------------------------------
--- for btn=61, 72 do
--- 	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
--- 	button:SetPoint("LEFT", Bar, ((btn-61)*54), 64)
--- 	button:Show()
--- 	button:SetState(1, "action", btn)
--- 	button:SetState(2, "action", btn)
--- 	button:SetSize(64*0.75, 64*0.75)
-
--- 	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
-
--- 	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
--- 	button.NormalTexture:SetAlpha(0.75)
--- 	button.NormalTexture:ClearAllPoints()
--- 	button.NormalTexture:SetPoint("CENTER", 0, 0)
--- 	button.NormalTexture:SetSize(74*0.75, 74*0.75)
--- 	button:HookScript("OnAttributeChanged", function(self, ...)
--- 	--	print(...)
--- 	end)
-
--- 	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
--- 	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
--- 	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-
--- 	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
--- 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
--- end
-
--- ---------------------------------------------------------------
--- -- 3
--- ---------------------------------------------------------------
--- for btn=49, 60 do
--- 	local button = Lib:CreateButton(1, "LABTest"..btn, Bar)
--- 	button:SetPoint("LEFT", Bar, ((btn-49)*54), 120)
--- 	button:Show()
--- 	button:SetState(1, "action", btn)
--- 	button:SetState(2, "action", btn)
--- 	button:SetSize(64*0.75, 64*0.75)
-
--- 	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
-
--- 	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
--- 	button.NormalTexture:SetAlpha(0.75)
--- 	button.NormalTexture:ClearAllPoints()
--- 	button.NormalTexture:SetPoint("CENTER", 0, 0)
--- 	button.NormalTexture:SetSize(74*0.75, 74*0.75)
--- 	button:HookScript("OnAttributeChanged", function(self, ...)
--- 	--	print(...)
--- 	end)
-
--- 	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
--- 	button:GetPushedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
--- 	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-
--- 	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
--- 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
--- end
-
 function ConsolePort:GetBindingIcon(binding)
 	local icons = {
 		["JUMP"] = [[Interface\Icons\Ability_Karoz_Leap]],
@@ -181,7 +96,7 @@ local layout = {
 
 for i, binding in pairs(ConsolePort:GetBindingNames()) do
 	local button = Lib:Create(Bar, binding)
-	Lib:SetState(button, db.Bindings[binding])
+--	Lib:SetState(button, db.Bindings[binding])
 
 	local position = layout[binding]
 
@@ -197,6 +112,8 @@ for i, binding in pairs(ConsolePort:GetBindingNames()) do
 	Bar.Buttons[i] = button
 end
 
+Lib:UpdateAllBindings()
+
 Bar:SetWidth(#Bar.Buttons > 10 and (10 * 110) + 55 or (#Bar.Buttons * 110) + 55)
 
 Bar:SetAttribute("page", 1)
@@ -204,6 +121,14 @@ Bar:SetAttribute("page", 1)
 
 
 function Bar:HideBlizzard()
+	-- causes taint spread 
+	-- for _, suffix in pairs({"BottomLeft", "BottomRight", "Right", "RightTwo"}) do
+	-- 	local button = _G["InterfaceOptionsActionBarsPanel"..suffix]
+	-- 	if button:GetValue() == "0" then
+	-- 		button:Click()
+	-- 	end
+	-- end
+
 	-- Hidden parent frame
 	local UIHider = CreateFrame("Frame")
 	UIHider:Hide()
@@ -236,6 +161,9 @@ function Bar:HideBlizzard()
 		_G["MultiBarLeftButton" .. i]:UnregisterAllEvents()
 		_G["MultiBarLeftButton" .. i]:SetAttribute("statehidden", true)
 	end
+
+	function MultiActionBar_Update() end
+	
 	--UIPARENT_MANAGED_FRAME_POSITIONS["MultiBarRight"] = nil
 	--UIPARENT_MANAGED_FRAME_POSITIONS["MultiBarLeft"] = nil
 	--UIPARENT_MANAGED_FRAME_POSITIONS["MultiBarBottomLeft"] = nil
@@ -244,13 +172,6 @@ function Bar:HideBlizzard()
 	UIPARENT_MANAGED_FRAME_POSITIONS["StanceBarFrame"] = nil
 	UIPARENT_MANAGED_FRAME_POSITIONS["PossessBarFrame"] = nil
 	UIPARENT_MANAGED_FRAME_POSITIONS["PETACTIONBAR_YPOS"] = nil
-
-	if InterfaceOptionsActionBarsPanelRight:GetValue() == "0" then
-		InterfaceOptionsActionBarsPanelRight:Click()
-	end
-	if InterfaceOptionsActionBarsPanelRightTwo:GetValue() == "0" then
-		InterfaceOptionsActionBarsPanelRightTwo:Click()
-	end
 
 	--MainMenuBar:UnregisterAllEvents()
 	--MainMenuBar:Hide()
@@ -359,8 +280,6 @@ Bar.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
 Bar.BG:SetBlendMode("ADD")
 
 
-
-
 Bar.BG:SetVertexColor(red, green, blue, 0.25)
 
 Bar:SetHeight(170)
@@ -368,11 +287,11 @@ Bar:SetHeight(170)
 function Bar:UpdateArt()
 	self.ArtOverlay:SetMask(nil)
 	self.ArtOverlay:SetTexture("Interface\\TALENTFRAME\\"..(db.Atlas.GetOverlay() or ""))
-	self.ArtOverlay:SetTexCoord(0, 1, 0, 0.12890625)
+	self.ArtOverlay:SetTexCoord(0, 1, 0, 0.12890625 + 0.025)
 	self.ArtOverlay:SetSize(988, 170)
 	self.ArtOverlay:SetPoint("CENTER", 0, 0)
 	self.ArtOverlay:SetMask("Interface\\GLUES\\Models\\UI_Dwarf\\UI_Goblin_GodRaysMask")
-	self.ArtOverlay:SetAlpha(0.25)
+	self.ArtOverlay:SetAlpha(0.4)
 end
 
 function Bar:PLAYER_LOGIN()
@@ -385,6 +304,9 @@ function Bar:ACTIVE_TALENT_GROUP_CHANGED()
 	self:UpdateArt()
 end
 
+function Bar:PLAYER_TALENT_UPDATE()
+	self:UpdateArt()
+end
 
 function Bar:OnEvent(event, ...)
 	if self[event] then
@@ -392,9 +314,17 @@ function Bar:OnEvent(event, ...)
 	end
 end
 
+hooksecurefunc(ConsolePort, "LoadBindingSet", function(self, ...)
+	if not InCombatLockdown() then
+		Lib:UpdateAllBindings(...)
+	end
+end)
+
+
 Bar:SetScript("OnEvent", Bar.OnEvent)
 Bar:RegisterEvent("PLAYER_LOGIN")
 Bar:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+Bar:RegisterEvent("PLAYER_TALENT_UPDATE")
 
 Bar:Execute(format([[
 	control:ChildUpdate("state", "action")

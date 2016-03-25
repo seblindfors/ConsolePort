@@ -239,6 +239,8 @@ Cursor:Execute([[
 		end
 
 		if current then
+			self:Show()
+
 			local unit = current:GetAttribute("unit")
 
 			Focus:SetAttribute("unit", unit)
@@ -269,6 +271,8 @@ Cursor:Execute([[
 
 			Focus:SetAttribute("unit", nil)
 			Target:SetAttribute("unit", nil)
+
+			self:Hide()
 		end
 	]=]
 	UpdateFrameStack = [=[
@@ -289,6 +293,7 @@ Cursor:Execute([[
 				end
 			end
 			self:Run(UpdateFrameStack)
+			self:Show()
 		else
 			UnregisterStateDriver(self, "unitexists")
 
@@ -301,6 +306,8 @@ Cursor:Execute([[
 			for action, unit in pairs(Actions) do
 				action:SetAttribute("unit", unit)
 			end
+
+			self:Hide()
 		end
 	]=]
 	UpdateActionPage = [=[
@@ -417,6 +424,7 @@ function ConsolePort:SetupRaidCursor()
 	end)
 	---------------------------------------------------------------
 
+	Cursor.onShow = true
 	Cursor.Timer = 0
 	Cursor:SetScript("OnUpdate", Cursor.Update)
 	Cursor:SetScript("OnEvent", Cursor.Event)
@@ -431,7 +439,7 @@ end
 Cursor:SetSize(32,32)
 Cursor:SetFrameStrata("TOOLTIP")
 Cursor:SetPoint("CENTER", 0, 0)
-Cursor:SetAlpha(0)
+Cursor:Hide()
 ---------------------------------------------------------------
 Cursor.BG = Cursor:CreateTexture(nil, "BACKGROUND")
 Cursor.BG:SetTexture("Interface\\Cursor\\Item")
@@ -477,182 +485,216 @@ Cursor.Scale2:SetOrder(2)
 Cursor.Scale2:SetOrigin("CENTER", 0, 0)
 ---------------------------------------------------------------
 Cursor.CastBar = Cursor:CreateTexture(nil, "OVERLAY")
-Cursor.CastBar:SetAlpha(0)
-Cursor.CastBar:SetSize(128, 128)
+Cursor.CastBar:SetSize(54, 54)
 Cursor.CastBar:SetPoint("CENTER", Cursor.UnitPortrait, 0, 0)
 Cursor.CastBar:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Castbar\\CastBarShadow")
 ---------------------------------------------------------------
+-- Player specific
 Cursor:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 Cursor:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
 Cursor:RegisterEvent("UNIT_SPELLCAST_START")
 Cursor:RegisterEvent("UNIT_SPELLCAST_STOP")
 Cursor:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 ---------------------------------------------------------------
+Cursor:RegisterEvent("UNIT_HEALTH")
+Cursor:RegisterEvent("PLAYER_TARGET_CHANGED")
+---------------------------------------------------------------
 function Cursor:Event(event, ...)
 	local unit, spell, _, _, spellID = ...
 
-	if unit ~= "player" then
-		return
+	if event == "UNIT_HEALTH" and unit == self.unit then
+		local hp = UnitHealth(unit)
+		local max = UnitHealthMax(unit)
+		self.Health:SetTexCoord(0, 1, abs(1 - hp / max), 1)
+		self.Health:SetHeight(54 * hp / max)
+	elseif event == "PLAYER_TARGET_CHANGED" and self.unit then
+		self:UpdateUnit(self.unit)
+	elseif event == "PLAYER_REGEN_DISABLED" then
+		self:SetAlpha(1)
+	elseif event == "PLAYER_REGEN_ENABLED" and ConsolePortCursor:IsVisible() then
+		self:SetAlpha(0.25)
 	end
 
-	-- doesn't work atm, fix this. 
-	if event == "UNIT_SPELLCAST_CHANNEL_START" then
-		local name, _, _, texture, startTime, endTime, _, _, _ = UnitChannelInfo("player")
+	if unit == "player" then
+		if event == "UNIT_SPELLCAST_CHANNEL_START" then
+			local name, _, _, texture, startTime, endTime, _, _, _ = UnitChannelInfo("player")
 
-		local targetRelation = self:GetAttribute("relation")
-		local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
-
-		if targetRelation == spellRelation then
-			local color = self.color
-			if color then
-				self.CastBar:SetVertexColor(color.r, color.g, color.b)
-			end
-			self.SpellPortrait:Show()
-			self.CastBar:SetRotation(0)
-			self.isChanneling = true
-			self.spellTexture = texture
-			self.startChannel = startTime
-			self.endChannel = endTime
-			FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
-			FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
-		else
-			self.CastBar:Hide()
-			self.SpellPortrait:Hide()
-		end
-
-	elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then self.isChanneling = false
-		FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
-
-	elseif event == "UNIT_SPELLCAST_START" then 
-		local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo("player")
-
-		local targetRelation = self:GetAttribute("relation")
-		local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
-
-		if targetRelation == spellRelation then
-			local color = self.color
-			if color then
-				self.CastBar:SetVertexColor(color.r, color.g, color.b)
-			end
-			self.SpellPortrait:Show()
-			self.CastBar:SetRotation(0)
-			self.isCasting = true
-			self.spellTexture = texture
-			self.startCast = startTime
-			self.endCast = endTime
-			FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
-			FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
-		else
-			self.CastBar:Hide()
-			self.SpellPortrait:Hide()
-		end
-
-	elseif event == "UNIT_SPELLCAST_STOP" then self.isCasting = false
-		FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
-		FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
-
-	elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-		local name, _, icon = GetSpellInfo(spell)
-
-		if name and icon then
 			local targetRelation = self:GetAttribute("relation")
 			local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
 
 			if targetRelation == spellRelation then
-				SetPortraitToTexture(self.SpellPortrait, icon)
-				if not self.isCasting and not self.isChanneling then 
-					Flash(self.SpellPortrait, 0.25, 0.25, 0.75, false, 0.25, 0) 
-				else
-					self.SpellPortrait:Show()
-					FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+				local color = self.color
+				if color then
+					self.CastBar:SetVertexColor(color.r, color.g, color.b)
+				end
+				self.SpellPortrait:Show()
+				self.CastBar:SetRotation(0)
+				self.isChanneling = true
+				self.resetPortrait = true
+				self.spellTexture = texture
+				self.startChannel = startTime
+				self.endChannel = endTime
+				FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
+				FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
+			else
+				self.CastBar:Hide()
+				self.SpellPortrait:Hide()
+			end
+
+		elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then self.isChanneling = false
+			FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
+
+		elseif event == "UNIT_SPELLCAST_START" then
+			local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo("player")
+
+			local targetRelation = self:GetAttribute("relation")
+			local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
+
+			if targetRelation == spellRelation then
+				local color = self.color
+				if color then
+					self.CastBar:SetVertexColor(color.r, color.g, color.b)
+				end
+				self.SpellPortrait:Show()
+				self.CastBar:SetRotation(0)
+				self.isCasting = true
+				self.resetPortrait = true
+				self.spellTexture = texture
+				self.startCast = startTime
+				self.endCast = endTime
+				FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
+				FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
+			else
+				self.CastBar:Hide()
+				self.SpellPortrait:Hide()
+			end
+
+		elseif event == "UNIT_SPELLCAST_STOP" then self.isCasting = false
+			FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
+			FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+
+		elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+			local name, _, icon = GetSpellInfo(spell)
+
+			if name and icon then
+				local targetRelation = self:GetAttribute("relation")
+				local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
+
+				if targetRelation == spellRelation then
+					SetPortraitToTexture(self.SpellPortrait, icon)
+					if not self.isCasting and not self.isChanneling then 
+						Flash(self.SpellPortrait, 0.25, 0.25, 0.75, false, 0.25, 0) 
+					else
+						self.SpellPortrait:Show()
+						FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+					end
 				end
 			end
+			self.isCasting = false
 		end
-		self.isCasting = false
+	end
+end
+
+function Cursor:UpdateUnit(unit)
+	self.unit = unit
+	if UnitExists(unit) then
+		self.color = RAID_CLASS_COLORS[select(2, UnitClass(unit))]
+		local hp = UnitHealth(unit)
+		local max = UnitHealthMax(unit)
+		self.Health:SetTexCoord(0, 1, abs(1 - hp / max), 1)
+		self.Health:SetHeight(54 * hp / max)
+		if self.color then
+			local red, green, blue = self.color.r, self.color.g, self.color.b
+			self.Health:SetVertexColor(red, green, blue)
+			self.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+		else
+			self.Health:SetVertexColor(0.5, 0.5, 0.5)
+			self.Spell:SetLight(1, 0, 0, 0, 120, 1, 1, 1, 1, 100, 1, 1, 1)
+		end
+	end
+	SetPortraitTexture(self.UnitPortrait, self.unit)
+end
+
+function Cursor:UpdateNode(node)
+	if node then
+		local name = node:GetName()
+		if name ~= self.node then
+			local unit = node:GetAttribute("unit")
+
+			self.unit = unit
+			self.node = name
+			--- FIX!!!!!
+			-------
+			if self.onShow then
+				self.onShow = nil
+				self.Scale1:SetScale(1.5, 1.5)
+				self.Scale2:SetScale(1/1.5, 1/1.5)
+				self.Scale2:SetDuration(0.5)
+				FadeOut(self.Spell, 1, 1, 0.1)
+				PlaySound("AchievementMenuOpen")
+			else
+				self.Scale1:SetScale(1.15, 1.15)
+				self.Scale2:SetScale(1/1.15, 1/1.15)
+				self.Scale2:SetDuration(0.2)
+			end
+			self.Group:Stop()
+			self.Group:Play()
+			self:SetAlpha(1)
+		end
+	else
+		self.onShow = true
+		self.node = nil
+		self.unit = nil
+	end
+end
+
+function Cursor:AttributeChanged(attribute, value)
+	if attribute == "unit" and value then
+		self:UpdateUnit(value)
+	elseif attribute == "node" then
+		self:UpdateNode(value)
 	end
 end
 
 function Cursor:Update(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
-		local node = self:GetAttribute("node")
-		local x, y = self:GetCenter()
-		if node then
-			local name = node:GetName()
-			if ConsolePortCursor:IsVisible() and not InCombatLockdown() then
-				self.node = nil
-				self:SetAlpha(0.25)
-			elseif name ~= self.node then
-				local unit = node:GetAttribute("unit")
-
-				self.unit = unit
-				self.node = name
-				if self:GetAlpha() < 1 then
-					self.Scale1:SetScale(1.5, 1.5)
-					self.Scale2:SetScale(1/1.5, 1/1.5)
-					self.Scale2:SetDuration(0.5)
-					FadeOut(self.Spell, 1, 1, 0.1)
-					PlaySound("AchievementMenuOpen")
-				else
-					self.Scale1:SetScale(1.15, 1.15)
-					self.Scale2:SetScale(1/1.15, 1/1.15)
-					self.Scale2:SetDuration(0.2)
-				end
-				self.Group:Stop()
-				self.Group:Play()
-				self:SetAlpha(1)
-			end
-		else
-			self.node = nil
-			self.unit = nil
-			self:SetAlpha(0)
-		end
-		if self.unit then
-			if UnitExists(self.unit) then
-				local hp = UnitHealth(self.unit)
-				local max = UnitHealthMax(self.unit)
-				self.color = RAID_CLASS_COLORS[select(2, UnitClass(self.unit))]
-				if self.color then
-					local red, green, blue = self.color.r, self.color.g, self.color.b
-					self.Health:SetVertexColor(red, green, blue)
-					self.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
-				else
-					self.Health:SetVertexColor(0.5, 0.5, 0.5)
-					self.Spell:SetLight(1, 0, 0, 0, 120, 1, 1, 1, 1, 100, 1, 1, 1)
-				end
-				self.Health:SetTexCoord(0, 1, abs(1 - hp / max), 1)
-				self.Health:SetHeight(54 * hp / max)
-				self.Spell:Show()
-				self.Health:Show()
-				self.Border:Show()
-				self.UnitPortrait:Show()
-				self.CastBar:Show()
+		if self.unit and UnitExists(self.unit) then
+			if self.isCasting then
+				local time = GetTime() * 1000
+				local progress = (time - self.startCast) / (self.endCast - self.startCast)
+				local resize = 128 - (40 * (1 - progress))
+				self.CastBar:SetRotation(-2 * progress * pi)
+				self.CastBar:SetSize(resize, resize)
+				SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
+			elseif self.isChanneling then
+				local time = GetTime() * 1000
+				local progress = (time - self.startChannel) / (self.endChannel - self.startChannel)
+				local resize = 128 - (40 * (1 - progress))
+				self.CastBar:SetRotation(-2 * progress * pi)
+				self.CastBar:SetSize(resize, resize)
+				SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
+			elseif self.resetPortrait then
+				self.resetPortrait = false
 				SetPortraitTexture(self.UnitPortrait, self.unit)
-				if self.isCasting then
-					local time = GetTime() * 1000
-					local progress = (time - self.startCast) / (self.endCast - self.startCast)
-					local resize = 128 - (40 * (1 - progress))
-					self.CastBar:SetRotation(-2 * progress * pi)
-					self.CastBar:SetSize(resize, resize)
-					SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
-				elseif self.isChanneling then
-					local time = GetTime() * 1000
-					local progress = (time - self.startChannel) / (self.endChannel - self.startChannel)
-					local resize = 128 - (40 * (1 - progress))
-					self.CastBar:SetRotation(-2 * progress * pi)
-					self.CastBar:SetSize(resize, resize)
-					SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
-				else
-					SetPortraitTexture(self.UnitPortrait, self.unit)
-				end
-			else
-				self.Health:Hide()
-				self.Border:Hide()
-				self.UnitPortrait:Hide()
-				self.SpellPortrait:Hide()
-				self.CastBar:Hide()
 			end
 		end
 		self.Timer = self.Timer - elapsed
 	end
 end
+
+Cursor:HookScript("OnAttributeChanged", Cursor.AttributeChanged)
+
+ConsolePortCursor:HookScript("OnShow", function(self)
+	Cursor:RegisterEvent("PLAYER_REGEN_ENABLED")
+	Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
+	if not InCombatLockdown() then
+		Cursor:SetAlpha(0.25)
+	end
+end)
+
+ConsolePortCursor:HookScript("OnHide", function(self)
+	Cursor:UnRegisterEvent("PLAYER_REGEN_ENABLED")
+	Cursor:UnRegisterEvent("PLAYER_REGEN_DISABLED")
+	Cursor:SetAlpha(1)
+end)

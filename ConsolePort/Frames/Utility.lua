@@ -155,7 +155,10 @@ local function CheckQuestWatches(self)
 	if not InCombatLockdown() then
 		wipe(Watches)
 		for i=1, GetNumQuestWatches() do
-			Watches[GetQuestIndexForWatch(i)] = true
+			local watchIndex = GetQuestIndexForWatch(i)
+			if watchIndex then
+				Watches[watchIndex] = true
+			end
 		end
 		for questID in pairs(Watches) do
 			if GetQuestLogSpecialItemInfo(questID) then

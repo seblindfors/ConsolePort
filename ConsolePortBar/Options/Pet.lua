@@ -25,8 +25,12 @@ Pet.Buttons = {}
 Pet.showgrid = 0
 Pet.locked = 0
 Pet.mode = "show"
+Pet:SetMovable(true)
+Pet:SetClampedToScreen(true)
+Pet:SetScript("OnMouseDown", Pet.StartMoving)
+Pet:SetScript("OnMouseUp", Pet.StopMovingOrSizing)
 Pet:SetPoint("BOTTOMRIGHT", Bar, "TOPRIGHT", 0, 0)
-Pet:SetSize((BUTTON_SIZE * NUM_PET_ACTION_SLOTS) + ((NUM_PET_ACTION_SLOTS - 2) * 4), 64)
+Pet:SetSize((BUTTON_SIZE * NUM_PET_ACTION_SLOTS) + ((NUM_PET_ACTION_SLOTS) * 4), 64)
 Pet:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
 Pet:RegisterEvent("PET_BAR_UPDATE")
 RegisterStateDriver(Pet, "visibility", "[pet] show; hide")
@@ -78,6 +82,7 @@ for i=1, NUM_PET_ACTION_SLOTS do
 end
 
 Pet:HookScript("OnShow", function(self)
+	self:Update()
 	FadeIn(self, 0.2, 0, 1)
 end)
 
@@ -134,8 +139,7 @@ end
 
 function Pet:Update()
 	local petActionButton, petActionIcon, petAutoCastableTexture, petAutoCastShine
-	for i=1, NUM_PET_ACTION_SLOTS, 1 do
-		petActionButton = Pet.Buttons[i]
+	for i, petActionButton in pairs(Pet.Buttons) do
 		petActionIcon = petActionButton.icon
 		petAutoCastableTexture = petActionButton.AutoCastable
 		petAutoCastShine = petActionButton.Shine

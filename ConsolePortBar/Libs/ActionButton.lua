@@ -28,12 +28,12 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ]]
---local MAJOR_VERSION = "LibActionButton-1.0-ConsolePort"
---local MINOR_VERSION = 63 -- (of LibActionButton-1.0)
 
---if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
---local lib, oldversion = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
---if not lib then return end
+--[[
+This version is modified for ConsolePort and removes the use of LibStub to make sure
+ConsolePort is using a separate button registry in case other action bar addons are
+simultaneously loaded. Do not copy this library for other uses.
+]]
 
 local _, ab = ...
 local db = ConsolePort:DB()
@@ -119,7 +119,7 @@ local type_meta_map = {
 local ButtonRegistry, ActiveButtons, ActionButtons, NonActionButtons = lib.buttonRegistry, lib.activeButtons, lib.actionButtons, lib.nonActionButtons
 
 local Update, UpdateButtonState, UpdateUsable, UpdateCount, UpdateCooldown, UpdateTooltip, UpdateNewAction
-local StartFlash, StopFlash, UpdateFlash, UpdateHotkeys, UpdateRangeTimer, UpdateOverlayGlow
+local StartFlash, StopFlash, UpdateFlash, UpdateRangeTimer, UpdateOverlayGlow
 local UpdateFlyout, ShowGrid, HideGrid, UpdateGrid, SetupSecureSnippets, WrapOnClick
 local ShowOverlayGlow, HideOverlayGlow
 local FadeIn, FadeOut
@@ -205,7 +205,6 @@ function lib:CreateButton(id, name, header, config, template)
 
 	-- run an initial update
 	button:UpdateAction()
-	UpdateHotkeys(button)
 
 	-- somewhat of a hack for the Flyout buttons to not error.
 	button.action = 0
@@ -216,6 +215,7 @@ function lib:CreateButton(id, name, header, config, template)
 end
 
 function SetupSecureSnippets(button)
+	button:Execute([[States = newtable("ctrlsh", "ctrl", "shift", "action")]])
 	button:SetAttribute("_custom", Custom.RunCustom)
 	-- secure UpdateState(self, state)
 	-- update the type and action of the button based on the state
@@ -247,7 +247,7 @@ function SetupSecureSnippets(button)
 
 			self:SetAttribute("actionpage", newpage)
 
-			for i, state in pairs(newtable("ctrlsh", "ctrl", "shift", "action", "onenter")) do
+			for i, state in pairs(States) do
 				local type, action = (self:GetAttribute(format("labtype-%s", state)) or "empty"), self:GetAttribute(format("labaction-%s", state))
 				if type == "action" and action > startIdx and action <= endIdx then
 
@@ -258,6 +258,7 @@ function SetupSecureSnippets(button)
 					self:CallMethod("ButtonContentsChanged", state, "action", newID)
 					if self:GetAttribute("state") == state then
 						self:RunAttribute("UpdateState", state)
+						self:CallMethod("UpdateAction", true)
 					end
 				end
 			end
@@ -266,25 +267,18 @@ function SetupSecureSnippets(button)
 
 	-- this function is invoked by the header when the state changes
 	button:SetAttribute("_childupdate-state", [[
-		self:RunAttribute("UpdateState", message)
-		self:CallMethod("UpdateAction")
+		if self:GetAttribute("mainbutton") then
+			self:RunAttribute("UpdateState", message)
+			self:CallMethod("UpdateAction")
+		end
 	]])
 
 	button:SetAttribute("_childupdate-actionpage", [[
 		self:RunAttribute("UpdatePage", message)
-		self:CallMethod("UpdateAction", true)
 	]])
 
 	button:SetAttribute("_childupdate-hover", [[
 		self:CallMethod("Hover", message)
-		-- if self:GetAttribute("labtype-onenter") then
-		-- 	if message then
-		-- 		self:RunAttribute("UpdateState", "onenter")
-		-- 	else
-		-- 		self:RunAttribute("UpdateState", self:GetAttribute("mainstate"))
-		-- 	end
-		-- 	self:CallMethod("UpdateAction", true)
-		-- end
 	]])
 
 	button:SetAttribute("_onenter", [[
@@ -699,7 +693,6 @@ function Generic:UpdateConfig(config)
 
 	self:SetAttribute("flyoutDirection", self.config.flyoutDirection)
 
-	UpdateHotkeys(self)
 	UpdateGrid(self)
 	Update(self)
 	self:RegisterForClicks(self.config.clickOnDown and "AnyDown" or "AnyUp")
@@ -724,7 +717,7 @@ function InitializeEventHandler()
 	--lib.eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
 	lib.eventFrame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
 	lib.eventFrame:RegisterEvent("UPDATE_BINDINGS")
-	lib.eventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
+--	lib.eventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
 	lib.eventFrame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
 
 	lib.eventFrame:RegisterEvent("ACTIONBAR_UPDATE_STATE")
@@ -782,8 +775,6 @@ function OnEvent(frame, event, arg1, ...)
 		ShowGrid()
 	elseif event == "ACTIONBAR_HIDEGRID" then
 		HideGrid()
-	elseif event == "UPDATE_BINDINGS" then
-		ForAllButtons(UpdateHotkeys)
 	elseif event == "PLAYER_TARGET_CHANGED" then
 		UpdateRangeTimer()
 	elseif (event == "ACTIONBAR_UPDATE_STATE") or
@@ -1155,30 +1146,19 @@ function Update(self)
 		end
 	end
 
-	if texture then
+	-- Cache textures instead of updating on every change,
+	-- since masked textures are a lot more expensive to swap
+	if texture and texture ~= self.cachedTexture then
+		self.cachedTexture = texture
 		self.icon:SetTexture(texture)
 		self.icon:Show()
 		self.rangeTimer = - 1
-	--	self:SetNormalTexture("Interface\\Buttons\\UI-Quickslot2")
-		if not self.LBFSkinned and not self.MasqueSkinned then
-		--	self.NormalTexture:SetTexCoord(0, 0, 0, 0)
-		end
-	else
+	elseif not texture then
+		self.cachedTexture = nil
 		self.icon:Hide()
 		self.cooldown:Hide()
 		self.rangeTimer = nil
-	--	self:SetNormalTexture("Interface\\Buttons\\UI-Quickslot")
-		if self.HotKey:GetText() == RANGE_INDICATOR then
-			self.HotKey:Hide()
-		else
-			self.HotKey:SetVertexColor(0.75, 0.75, 0.75)
-		end
-		if not self.LBFSkinned and not self.MasqueSkinned then
-		--	self.NormalTexture:SetTexCoord(-0.15, 1.15, -0.15, 1.17)
-		end
 	end
-
-	self:UpdateLocal()
 
 	UpdateCount(self)
 
@@ -1204,10 +1184,6 @@ function Update(self)
 		end
 	end
 	lib.callbacks:Fire("OnButtonUpdate", self)
-end
-
-function Generic:UpdateLocal()
--- dummy function the other button types can override for special updating
 end
 
 function UpdateButtonState(self)
@@ -1250,13 +1226,18 @@ function UpdateCount(self)
 		if count > (self.maxDisplayCount or 9999) then
 			self.Count:SetText("*")
 		else
+			FadeIn(self)
 			self.Count:SetText(count)
 		end
 	else
 		local charges, maxCharges, chargeStart, chargeDuration = self:GetCharges()
 		if charges and maxCharges and maxCharges > 0 then
+			FadeIn(self)
 			self.Count:SetText(charges)
 		else
+			if not self.isGlowing and not self.isMainButton and not self.isOnCooldown then
+				FadeOut(self)
+			end
 			self.Count:SetText("")
 		end
 	end
@@ -1303,6 +1284,7 @@ local function OnCooldownDone(self)
 end
 
 local function OnModifierCooldownDone(self)
+	self.isOnCooldown = nil
 	self:SetScript("OnCooldownDone", nil)
 	FadeOut(self:GetParent())
 end
@@ -1317,6 +1299,7 @@ function UpdateCooldown(self)
 	if not self.isMainButton and not self.isGlowing then
 		if (duration > 2) then
 			FadeIn(self)
+			self.isOnCooldown = true
 			self.cooldown:SetScript("OnCooldownDone", OnModifierCooldownDone)
 		end
 	end
@@ -1380,19 +1363,6 @@ function UpdateTooltip(self)
 		self.UpdateTooltip = UpdateTooltip
 	else
 		self.UpdateTooltip = nil
-	end
-end
-
-function UpdateHotkeys(self)
-	local key = self:GetHotkey()
-	if not key or key == "" or self.config.hideElements.hotkey then
-		self.HotKey:SetText(RANGE_INDICATOR)
-		self.HotKey:SetPoint("TOPLEFT", self, "TOPLEFT", 1, - 2)
-		self.HotKey:Hide()
-	else
-		self.HotKey:SetText(key)
-		self.HotKey:SetPoint("TOPLEFT", self, "TOPLEFT", - 2, - 2)
-		self.HotKey:Show()
 	end
 end
 
