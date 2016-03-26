@@ -34,6 +34,9 @@ RegisterStateDriver(Bar, "page", state)
 RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] ctrlsh; [mod:ctrl] ctrl; [mod:shift] shift; action")
 RegisterStateDriver(Bar, "visibility", "[petbattle][vehicleui] hide; show")
 
+Bar:SetFrameRef("ActionBar", MainMenuBarArtFrame)
+Bar:SetFrameRef("OverrideBar", OverrideActionBar)
+
 Bar:SetAttribute("_onstate-modifier", [[
 	self:SetAttribute("state", newstate)
 	control:ChildUpdate("state", newstate)
@@ -121,14 +124,6 @@ Bar:SetAttribute("page", 1)
 
 
 function Bar:HideBlizzard()
-	-- causes taint spread 
-	-- for _, suffix in pairs({"BottomLeft", "BottomRight", "Right", "RightTwo"}) do
-	-- 	local button = _G["InterfaceOptionsActionBarsPanel"..suffix]
-	-- 	if button:GetValue() == "0" then
-	-- 		button:Click()
-	-- 	end
-	-- end
-
 	-- Hidden parent frame
 	local UIHider = CreateFrame("Frame")
 	UIHider:Hide()
@@ -162,43 +157,19 @@ function Bar:HideBlizzard()
 		_G["MultiBarLeftButton" .. i]:SetAttribute("statehidden", true)
 	end
 
-	function MultiActionBar_Update() end
-	
-	--UIPARENT_MANAGED_FRAME_POSITIONS["MultiBarRight"] = nil
-	--UIPARENT_MANAGED_FRAME_POSITIONS["MultiBarLeft"] = nil
-	--UIPARENT_MANAGED_FRAME_POSITIONS["MultiBarBottomLeft"] = nil
-	--UIPARENT_MANAGED_FRAME_POSITIONS["MultiBarBottomRight"] = nil
 	UIPARENT_MANAGED_FRAME_POSITIONS["MainMenuBar"] = nil
 	UIPARENT_MANAGED_FRAME_POSITIONS["StanceBarFrame"] = nil
 	UIPARENT_MANAGED_FRAME_POSITIONS["PossessBarFrame"] = nil
 	UIPARENT_MANAGED_FRAME_POSITIONS["PETACTIONBAR_YPOS"] = nil
 
-	--MainMenuBar:UnregisterAllEvents()
-	--MainMenuBar:Hide()
-	--MainMenuBar:SetParent(UIHider)
 	MainMenuBar:EnableMouse(false)
 
 	local animations = {MainMenuBar.slideOut:GetAnimations()}
 	animations[1]:SetOffset(0,0)
 
-	animations = {OverrideActionBar.slideOut:GetAnimations()}
-	animations[1]:SetOffset(0,0)
-
-	--MainMenuBarArtFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
-	--MainMenuBarArtFrame:UnregisterEvent("BAG_UPDATE")
-	--MainMenuBarArtFrame:UnregisterEvent("ACTIONBAR_PAGE_CHANGED")
-	--MainMenuBarArtFrame:UnregisterEvent("KNOWN_CURRENCY_TYPES_UPDATE")
-	--MainMenuBarArtFrame:UnregisterEvent("CURRENCY_DISPLAY_UPDATE")
-	--MainMenuBarArtFrame:UnregisterEvent("ADDON_LOADED")
-	--MainMenuBarArtFrame:UnregisterEvent("UNIT_ENTERING_VEHICLE")
-	--MainMenuBarArtFrame:UnregisterEvent("UNIT_ENTERED_VEHICLE")
-	--MainMenuBarArtFrame:UnregisterEvent("UNIT_EXITING_VEHICLE")
-	--MainMenuBarArtFrame:UnregisterEvent("UNIT_EXITED_VEHICLE")
 	MainMenuBarArtFrame:Hide()
 	MainMenuBarArtFrame:SetParent(UIHider)
 
-	--MainMenuExpBar:UnregisterAllEvents()
-	--MainMenuExpBar:Hide()
 	MainMenuExpBar:SetParent(Bar)
 	MainMenuExpBar:ClearAllPoints()
 	MainMenuExpBar:SetPoint("BOTTOM", 0, 3)
@@ -227,8 +198,6 @@ function Bar:HideBlizzard()
 	MainMenuBarMaxLevelBar:Hide()
 	MainMenuBarMaxLevelBar:SetParent(UIHider)
 
-	--ReputationWatchBar:UnregisterAllEvents()
-	--ReputationWatchBar:Hide()
 	ReputationWatchBar:Hide()
 	ReputationWatchBar:SetParent(UIHider)
 
@@ -236,11 +205,6 @@ function Bar:HideBlizzard()
 	StanceBarFrame:Hide()
 	StanceBarFrame:SetParent(UIHider)
 
-	--BonusActionBarFrame:UnregisterAllEvents()
-	--BonusActionBarFrame:Hide()
-	--BonusActionBarFrame:SetParent(UIHider)
-
-	--PossessBarFrame:UnregisterAllEvents()
 	PossessBarFrame:Hide()
 	PossessBarFrame:SetParent(UIHider)
 
@@ -248,13 +212,14 @@ function Bar:HideBlizzard()
 	PetActionBarFrame:Hide()
 	PetActionBarFrame:SetParent(UIHider)
 
+	ObjectiveTrackerFrame:SetPoint("TOPRIGHT", MinimapCluster, "BOTTOMRIGHT", -100, -132)
+
 	if PlayerTalentFrame then
 		PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 	else
 		hooksecurefunc("TalentFrame_LoadUI", function() PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED") end)
 	end
 
-	--self:RegisterPetBattleDriver()
 end
 
 Bar:HideBlizzard()

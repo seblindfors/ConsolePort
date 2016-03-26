@@ -529,6 +529,7 @@ function Cursor:Event(event, ...)
 				end
 				self.SpellPortrait:Show()
 				self.CastBar:SetRotation(0)
+				self.isCasting = false
 				self.isChanneling = true
 				self.resetPortrait = true
 				self.spellTexture = texture
@@ -536,6 +537,7 @@ function Cursor:Event(event, ...)
 				self.endChannel = endTime
 				FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
 				FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
+				SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
 			else
 				self.CastBar:Hide()
 				self.SpellPortrait:Hide()
@@ -558,12 +560,14 @@ function Cursor:Event(event, ...)
 				self.SpellPortrait:Show()
 				self.CastBar:SetRotation(0)
 				self.isCasting = true
+				self.isChanneling = false
 				self.resetPortrait = true
 				self.spellTexture = texture
 				self.startCast = startTime
 				self.endCast = endTime
 				FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
 				FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
+				SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
 			else
 				self.CastBar:Hide()
 				self.SpellPortrait:Hide()
@@ -666,14 +670,12 @@ function Cursor:Update(elapsed)
 				local resize = 128 - (40 * (1 - progress))
 				self.CastBar:SetRotation(-2 * progress * pi)
 				self.CastBar:SetSize(resize, resize)
-				SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
 			elseif self.isChanneling then
 				local time = GetTime() * 1000
 				local progress = (time - self.startChannel) / (self.endChannel - self.startChannel)
 				local resize = 128 - (40 * (1 - progress))
 				self.CastBar:SetRotation(-2 * progress * pi)
 				self.CastBar:SetSize(resize, resize)
-				SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
 			elseif self.resetPortrait then
 				self.resetPortrait = false
 				SetPortraitTexture(self.UnitPortrait, self.unit)

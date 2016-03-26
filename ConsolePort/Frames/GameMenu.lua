@@ -226,8 +226,8 @@ local function ConfigureMenu()
 		button.Label:SetShadowOffset(2, -2)
 	end
 
-	LFDTeleport:SetSize(160, 32)
-	LFDJoinLeave:SetSize(160, 32)
+	LFDTeleport:SetSize(240, 32)
+	LFDJoinLeave:SetSize(240, 32)
 
 	local function OnEvent(self, event, ...)
 		if event == "PLAYER_REGEN_DISABLED" and self:IsVisible() then
@@ -266,9 +266,23 @@ local function ConfigureMenu()
 
 	GameMenuFrameHeader:SetHeight(32)
 	GameMenuFrameHeader:SetTexCoord(0, 0.640625, 0.3, 1)
-	GameMenuFrameHeader:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Highlight")
-	GameMenuFrameHeader:SetVertexColor(cc.r, cc.g, cc.b, 1)
+	GameMenuFrameHeader:SetTexture(nil)
 	GameMenuFrameHeader:SetBlendMode("ADD")
+	GameMenuFrameHeader:SetPoint("BOTTOM", GameMenuFrame, "TOP", 0, 8)
+
+	GameMenuFrame.TopLine = GameMenuFrame:CreateTexture(nil, "BORDER")
+	GameMenuFrame.TopLine:SetTexture("Interface\\LevelUp\\LevelUpTex")
+	GameMenuFrame.TopLine:SetTexCoord(0.00195313, 0.81835938, 0.00195313, 0.01562500)
+	GameMenuFrame.TopLine:SetHeight(7)
+	GameMenuFrame.TopLine:SetPoint("TOP", 0, -9)
+	GameMenuFrame.TopLine:SetVertexColor(cc.r, cc.g, cc.b, 1)
+
+	GameMenuFrame.BottomLine = GameMenuFrame:CreateTexture(nil, "BORDER")
+	GameMenuFrame.BottomLine:SetTexture("Interface\\LevelUp\\LevelUpTex")
+	GameMenuFrame.BottomLine:SetTexCoord(0.00195313, 0.81835938, 0.00195313, 0.01562500)
+	GameMenuFrame.BottomLine:SetHeight(7)
+	GameMenuFrame.BottomLine:SetPoint("BOTTOM", 0, 16)
+	GameMenuFrame.BottomLine:SetVertexColor(cc.r, cc.g, cc.b, 1)
 
 	GameMenuFrame.ArtOverlay = GameMenuFrame:CreateTexture(nil, "BACKGROUND")
 
