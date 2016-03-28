@@ -66,7 +66,6 @@ local str_match, format, tinsert, tremove = string.match, format, tinsert, tremo
 -- GLOBALS: RANGE_INDICATOR, ATTACK_BUTTON_FLASH_TIME, TOOLTIP_UPDATE_TIME
 -- GLOBALS: DraenorZoneAbilityFrame, HasDraenorZoneAbility, GetLastDraenorSpellTexture
 
---local KeyBound = LibStub("LibKeyBound-1.0", true)
 local CBH = ab.libs.cbh
 local LBG = ab.libs.glow
 
@@ -267,10 +266,8 @@ function SetupSecureSnippets(button)
 
 	-- this function is invoked by the header when the state changes
 	button:SetAttribute("_childupdate-state", [[
-		if self:GetAttribute("mainbutton") then
-			self:RunAttribute("UpdateState", message)
-			self:CallMethod("UpdateAction")
-		end
+		self:RunAttribute("UpdateState", message)
+		self:CallMethod("UpdateAction")
 	]])
 
 	button:SetAttribute("_childupdate-actionpage", [[
@@ -930,20 +927,6 @@ function OnUpdate(_, elapsed)
 				if oldRange ~= button.outOfRange then
 					if button.config.outOfRangeColoring == "button" then
 						UpdateUsable(button)
-					elseif button.config.outOfRangeColoring == "hotkey" then
-						local hotkey = button.HotKey
-						if hotkey:GetText() == RANGE_INDICATOR then
-							if inRange == false then
-								hotkey:Show()
-							else
-								hotkey:Hide()
-							end
-						end
-						if inRange == false then
-							hotkey:SetVertexColor(unpack(button.config.colors.range))
-						else
-							hotkey:SetVertexColor(0.75, 0.75, 0.75)
-						end
 					end
 				end
 			end
@@ -1092,7 +1075,6 @@ function Update(self)
 			ActionButtons[self] = nil
 			NonActionButtons[self] = true
 		end
-	--	self:SetAlpha(1.0)
 		UpdateButtonState(self)
 		UpdateUsable(self)
 		UpdateCooldown(self)
@@ -1101,9 +1083,6 @@ function Update(self)
 		ActiveButtons[self] = nil
 		ActionButtons[self] = nil
 		NonActionButtons[self] = nil
-		if gridCounter == 0 and not self.config.showGrid then
-	--		self:SetAlpha(0.0)
-		end
 		self.cooldown:Hide()
 		self:SetChecked(false)
 
@@ -1132,7 +1111,7 @@ function Update(self)
 
 	-- Draenor zone button handling
 	self.draenorZoneDisabled = false
-	self.icon:SetDesaturated(false)
+--	self.icon:SetDesaturated(false)
 	if self._state_type == "action" then
 		local action_type, id = GetActionInfo(self._state_action)
 		if ((action_type == "spell" or action_type == "companion") and DraenorZoneAbilityFrame and DraenorZoneAbilityFrame.baseName and not HasDraenorZoneAbility()) then
@@ -1141,7 +1120,7 @@ function Update(self)
 			if name == abilityName then
 				texture = GetLastDraenorSpellTexture()
 				self.draenorZoneDisabled = true
-				self.icon:SetDesaturated(true)
+			--	self.icon:SetDesaturated(true)
 			end
 		end
 	end

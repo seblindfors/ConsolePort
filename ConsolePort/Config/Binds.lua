@@ -213,9 +213,9 @@ local function ClearButtonBinding(actionButton)
 end
 
 local function ChangeButtonBinding(actionButton)
-	local buttonName 	= actionButton:GetName()
-	local confButton 	= _G[buttonName..CONF]
-	local tableIndex 	= actionButton.name
+	local secureName 	= actionButton:GetName()
+	local confButton 	= _G[secureName..CONF]
+	local buttonID 		= actionButton.name
 	local modifier 		= actionButton.mod
 	local focusFrame 	= ConsolePort:GetCurrentNode()
 	local focusFrameName = focusFrame:GetName()
@@ -235,18 +235,18 @@ local function ChangeButtonBinding(actionButton)
 			local refs = GetNewUIBindingRefs()
 
 			-- create sub tables if they don't exist (if controller was changed)
-			if not set[tableIndex] then
-				set[tableIndex] = {}
+			if not set[buttonID] then
+				set[buttonID] = {}
 			end					
-			if not refs[tableIndex] then
-				refs[tableIndex] = {}
+			if not refs[buttonID] then
+				refs[buttonID] = {}
 			end
 
 			-----------------------
 
 			local mod = GetBindingModifier(modifier)
-			local currentButtonRef = set[tableIndex]
-			local currentUIRef = refs[tableIndex]
+			local currentButtonRef = set[buttonID]
+			local currentUIRef = refs[buttonID]
 
 			-- specific to the list of bindings
 			if focusedBinding then
@@ -314,7 +314,7 @@ local function ChangeButtonBinding(actionButton)
 
 				else -- item is a non-action interface button
 
-					currentButtonRef[mod] = "CLICK "..buttonName..":LeftButton"
+					currentButtonRef[mod] = "CLICK "..secureName..":LeftButton"
 					currentUIRef[mod] = focusFrameName
 
 					confButton:SetText(focusFrameName)
@@ -324,7 +324,7 @@ local function ChangeButtonBinding(actionButton)
 			end
 
 			-- don't add swap info if the binding was swapped to itself
-			if swapIndex and swapIndex == tableIndex and swapMod == mod then
+			if swapIndex and swapIndex == buttonID and swapMod == mod then
 				swapIndex = nil
 				swapText = nil
 			end

@@ -101,8 +101,11 @@ function Wrapper:Create(parent, id)
 		if point then
 			local point, relativePoint, xoffset, yoffset = unpack(point)
 			button:SetPoint(point, wrapper.action, relativePoint, xoffset, yoffset)
+			button:SetAttribute("_childupdate-state", nil)
 		end
 	end
+
+	wrapper.action.isMainButton = true
 
 	wrapper.action:SetFrameLevel(4)
 
@@ -191,11 +194,6 @@ function Wrapper:SetState(wrapper, bindings)
 					}
 				end
 				swapTypes["noswap"](wrapper, id, button, stateType, stateID)
-				if id == "action" then
-					button:SetAttribute("mainbutton", true)
-					button.isMainButton = true
-				end
-				button:SetAttribute("mainstate", id)
 				button:Execute(format([[
 					self:RunAttribute("UpdateState", "%s")
 					self:CallMethod("UpdateAction")

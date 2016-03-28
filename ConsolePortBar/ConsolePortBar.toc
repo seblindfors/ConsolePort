@@ -1,6 +1,7 @@
 ## Interface: 60200
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar extension for Console Port
+## Version: 0.0.1
 ## SavedVariablesPerCharacter: ConsolePortBarSetup
 ## RequiredDeps: ConsolePort
 

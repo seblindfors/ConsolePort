@@ -187,6 +187,26 @@ function Bar:HideBlizzard()
 	MainMenuXPBarTextureLeftCap:SetGradientAlpha("VERTICAL", 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.75)
 	MainMenuXPBarTextureRightCap:SetGradientAlpha("VERTICAL", 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.75)
 
+	MainMenuMicroButton:SetParent(self)
+	MainMenuMicroButton:ClearAllPoints()
+	MainMenuMicroButton:SetPoint("TOP", 0, -16)
+	MainMenuMicroButton:SetHitRectInsets(0, 0, 0, 0)
+	MainMenuMicroButton:SetSize(80, 42)
+	MainMenuMicroButton:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal")
+	MainMenuMicroButton:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal")
+	MainMenuMicroButton:SetPushedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuPushed")
+
+	MainMenuMicroButton:GetNormalTexture():SetVertexColor(red, green, blue, 0.25)
+
+	MainMenuMicroButton.SetNormalTexture = function() end
+	MainMenuMicroButton.SetHighlightTexture = function() end
+	MainMenuMicroButton.SetPushedTexture = function() end
+
+	MainMenuMicroButton.SetPoint = function() end
+
+	MainMenuBarPerformanceBar:SetParent(UIHider)
+	MainMenuBarPerformanceBar:ClearAllPoints()
+
 	MainMenuXPBarTextureMid:SetAlpha(0.5)
 	MainMenuXPBarTextureLeftCap:SetAlpha(0.5)
 	MainMenuXPBarTextureRightCap:SetAlpha(0.5)
@@ -243,6 +263,22 @@ Bar.BG:SetPoint("TOPLEFT", Bar, "TOPLEFT", 16, -16)
 Bar.BG:SetPoint("BOTTOMRIGHT", Bar, "BOTTOMRIGHT", -16, 16)
 Bar.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
 Bar.BG:SetBlendMode("ADD")
+
+Bar.TopLine = Bar:CreateTexture(nil, "BORDER")
+Bar.TopLine:SetTexture("Interface\\LevelUp\\LevelUpTex")
+Bar.TopLine:SetTexCoord(0.00195313, 0.81835938, 0.00195313, 0.01562500)
+Bar.TopLine:SetHeight(7)
+Bar.TopLine:SetPoint("TOPLEFT", 0, -9)
+Bar.TopLine:SetPoint("TOPRIGHT", 0, -9)
+Bar.TopLine:SetVertexColor(red, green, blue, 1)
+
+Bar.BottomLine = Bar:CreateTexture(nil, "BORDER")
+Bar.BottomLine:SetTexture("Interface\\LevelUp\\LevelUpTex")
+Bar.BottomLine:SetTexCoord(0.00195313, 0.81835938, 0.00195313, 0.01562500)
+Bar.BottomLine:SetHeight(7)
+Bar.BottomLine:SetPoint("BOTTOMLEFT", 0, 16)
+Bar.BottomLine:SetPoint("BOTTOMRIGHT", 0, 16)
+Bar.BottomLine:SetVertexColor(red, green, blue, 1)
 
 
 Bar.BG:SetVertexColor(red, green, blue, 0.25)

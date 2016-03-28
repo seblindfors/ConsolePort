@@ -564,6 +564,10 @@ function ConsolePort:SetRebinding(button)
 	rebindNode = button
 end
 
+function ConsolePort:GetRebinding()
+	return rebindNode
+end
+
 ---------------------------------------------------------------
 -- UIControl: Command parser / main func
 ---------------------------------------------------------------
