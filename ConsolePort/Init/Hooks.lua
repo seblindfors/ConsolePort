@@ -10,22 +10,26 @@ local _, db = ...
 function ConsolePort:LoadHookScripts()
 	-- Click instruction hooks. Pending removal for cleaner solution
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
-		local owner = self:GetOwner()
-		local item = self:GetItem()
 		if 	not InCombatLockdown() then
-			local 	CLICK_STRING
-			local parentName = owner:GetParent():GetName()
+			local CLICK_STRING
+			local owner = self:GetOwner()
+			local item = self:GetItem()
+			local ownerParent = owner and owner:GetParent()
+			local parentName = ownerParent and ownerParent:GetName()
 			if		parentName and parentName:match("MerchantItem") then
 				--	string.find(owner:GetParent():GetName(), "MerchantItem") ~= nil then
 					CLICK_STRING = db.CLICK.BUY
 					if GetMerchantItemMaxStack(owner:GetID()) > 1 then 
 						self:AddLine(db.CLICK.STACK_BUY, 1,1,1)
 					end
-			elseif	owner:GetParent() == LootFrame then
+			elseif	ownerParent == LootFrame then
 					self:AddLine(db.CLICK_LOOT, 1,1,1)
-			elseif 	MerchantFrame:IsVisible() and not IsEquippedItem(item) then CLICK_STRING = db.CLICK.SELL
-			elseif 	IsEquippableItem(item) and not IsEquippedItem(item) then CLICK_STRING = db.CLICK.EQUIP
-			elseif 	GetItemSpell(item) then CLICK_STRING = db.CLICK.USE
+			elseif 	MerchantFrame:IsVisible() and not IsEquippedItem(item) then 
+				CLICK_STRING = db.CLICK.SELL
+			elseif 	IsEquippableItem(item) and not IsEquippedItem(item) then 
+				CLICK_STRING = db.CLICK.EQUIP
+			elseif 	GetItemSpell(item) then 
+				CLICK_STRING = db.CLICK.USE
 			end
 			if 	GetItemCount(item, false) ~= 0 or
 				MerchantFrame:IsVisible() then
@@ -42,7 +46,7 @@ function ConsolePort:LoadHookScripts()
 				elseif hasStack then
 					self:AddLine(db.CLICK.STACK_SPLIT)
 				end
-				if not owner:GetParent() == LootFrame then
+				if not ownerParent == LootFrame then
 					self:AddLine(db.CLICK.PICKUP, 1,1,1)
 				end
 				self:Show()

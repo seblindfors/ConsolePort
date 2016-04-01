@@ -42,3 +42,4 @@ Frames\Map.lua
 Frames\GameMenu.lua
 Frames\Stack.lua
 Frames\Utility.lua
+Frames\Spellwheel.lua
