@@ -29,6 +29,7 @@ Bindings:
 ]]-------------------------------------------------------------
 
 db.Controllers.PS4 = {
+	Hint = 'Use WoWmapper to play the game with a DualShock 4 controller.',
 	Buttons = {
 		'CP_R_LEFT',
 		'CP_R_UP',

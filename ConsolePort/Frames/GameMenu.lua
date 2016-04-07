@@ -258,6 +258,36 @@ local function ConfigureMenu()
 		end
 	end
 
+	local region
+	-- Corners
+	region = GameMenuFrame:CreateTexture(nil, "ARTWORK", nil, -7)
+		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+		region:SetTexCoord(132/1024, 198/1024, 16/1024, 84/1024)
+		region:SetSize(66, 68)
+		region:SetPoint("TOPLEFT", 8, -10)
+	region = GameMenuFrame:CreateTexture(nil, "ARTWORK", nil, -7)
+		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+		region:SetTexCoord(198/1024, 264/1024, 16/1024, 84/1024)
+		region:SetSize(66, 68)
+		region:SetPoint("TOPRIGHT", -9, -10)
+	region = GameMenuFrame:CreateTexture(nil, "ARTWORK", nil, -7)
+		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+		region:SetTexCoord(0/1024, 66/1024, 16/1024, 84/1024)
+		region:SetSize(66, 68)
+		region:SetPoint("BOTTOMLEFT", 8, 10)
+	region = GameMenuFrame:CreateTexture(nil, "ARTWORK", nil, -7)
+		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+		region:SetTexCoord(66/1024, 132/1024, 16/1024, 84/1024)
+		region:SetSize(66, 68)
+		region:SetPoint("BOTTOMRIGHT", -9, 10)
+	-- Tint
+	region = GameMenuFrame:CreateTexture(nil, "BACKGROUND", nil, 2)
+		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\BoxTint")
+		region:SetPoint("TOPLEFT", 16, -16)
+		region:SetPoint("BOTTOMRIGHT", GameMenuFrame, "RIGHT", -16, 0)
+		region:SetBlendMode("ADD")
+		region:SetAlpha(0.75)
+
 	GameMenuFrame:SetSize(530, 530)
 	GameMenuFrame:SetScript("OnEvent", OnEvent)
 	GameMenuFrame:SetScript("OnShow", OnShow)
@@ -284,29 +314,17 @@ local function ConfigureMenu()
 	GameMenuFrame.BottomLine:SetPoint("BOTTOM", 0, 16)
 	GameMenuFrame.BottomLine:SetVertexColor(cc.r, cc.g, cc.b, 1)
 
-	GameMenuFrame.ArtOverlay = GameMenuFrame:CreateTexture(nil, "BACKGROUND")
+	GameMenuFrame.ArtOverlay = GameMenuFrame:CreateTexture(nil, "BACKGROUND", nil, 6)
 
-	GameMenuFrame.BG = GameMenuFrame:CreateTexture(nil, "BACKGROUND")
+	GameMenuFrame.BG = GameMenuFrame:CreateTexture(nil, "BACKGROUND", 4)
 	GameMenuFrame.BG:SetPoint("TOPLEFT", GameMenuFrame, "TOPLEFT", 16, -16)
 	GameMenuFrame.BG:SetPoint("BOTTOMRIGHT", GameMenuFrame, "BOTTOMRIGHT", -16, 16)
 	GameMenuFrame.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
 	GameMenuFrame.BG:SetBlendMode("ADD")
 
-	GameMenuFrame.BG2 = GameMenuFrame:CreateTexture(nil, "BACKGROUND", nil, -1)
-	GameMenuFrame.BG2:SetPoint("TOPLEFT", GameMenuFrame, "TOPLEFT", 16, -16)
-	GameMenuFrame.BG2:SetPoint("BOTTOMRIGHT", GameMenuFrame, "BOTTOMRIGHT", -16, 16)
-	GameMenuFrame.BG2:SetTexture("Interface\\ACHIEVEMENTFRAME\\UI-Achievement-StatsBackground")
-	GameMenuFrame.BG2:SetMask("Interface\\PetBattles\\PadEffect-HealingRain")
-
-	GameMenuFrame.BG2:SetVertexColor(cc.r, cc.g, cc.b, 0.25)
 	GameMenuFrame.BG:SetVertexColor(cc.r, cc.g, cc.b, 0.25)
-
-
-	GameMenuFrame:SetBackdrop({
-		edgeFile 	= "Interface\\AddOns\\ConsolePort\\Textures\\Window\\EdgefileNoSides",
-		edgeSize 	= 32,
-		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
-	})
+	GameMenuFrame:SetBackdrop(db.Atlas.Backdrops.Full)
+	GameMenuFrame:SetBackdropColor(1, 1, 1, 0.9)
 
 	ConfigureMenu = nil
 end

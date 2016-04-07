@@ -121,6 +121,9 @@ TUTORIAL = {
 		CONTINUE 			= "Press |T%s:20:20:0:0|t again to continue.",
 		CONFIRM 			= "Press |T%s:20:20:0:0|t again to confirm.",
 		CONTROLLER 			= "Select your preferred button layout by clicking a controller.",
+		WTFTEXT				= "What is this?",
+		AHATEXT				= "|cFF888888World of Warcraft doesn't natively support controllers. \nTo solve this problem, the controller has to emulate mouse and keyboard input.|r\n\n%s",
+		DISCLAIMER			= "Using an input mapper is legal and does not violate the terms of use.",
 	},
 	SLASH = {
 		ACCEPT 				= "Yes (recommended)",

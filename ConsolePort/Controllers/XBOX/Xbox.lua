@@ -29,6 +29,7 @@ Bindings:
 ]]-------------------------------------------------------------
 
 db.Controllers.XBOX = {
+	Hint = 'Use WoWmapper to play the game with any type of Xbox controller.',
 	Buttons = {
 		'CP_R_UP',
 		'CP_R_DOWN',

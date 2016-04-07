@@ -256,7 +256,7 @@ db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored, buttonTe
 	return self
 end
 ---------------------------------------------------------------
-db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplate)
+db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplate, artCorners)
 	local self = CreateAtlasFrame(name, parent, secure, buttonTemplate)
 	local assets = path.."Window\\Assets"
 
@@ -266,7 +266,7 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 	self.Close.Texture:SetAllPoints(self.Close)
 	self.Close:SetNormalTexture(self.Close.Texture)
 	self.Close:SetSize(13, 14)
-	self.Close:SetPoint("TOPRIGHT", -24, -24)
+	self.Close:SetPoint("TOPRIGHT", -32, -32)
 
 	self.TopLine = self:CreateTexture(nil, "BACKGROUND", nil, 7)
 	self.TopLine:SetPoint("TOPLEFT", 16, -16)
@@ -278,6 +278,30 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 	   cc.r, cc.g, cc.b, 1,
 	   1, 1, 1, 0,
 	}
+
+	if artCorners then
+		local region
+		region = self:CreateTexture(nil, "ARTWORK", nil, -7)
+			region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+			region:SetTexCoord(132/1024, 198/1024, 16/1024, 84/1024)
+			region:SetSize(66, 68)
+			region:SetPoint("TOPLEFT", 8, -10)
+		region = self:CreateTexture(nil, "ARTWORK", nil, -7)
+			region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+			region:SetTexCoord(198/1024, 264/1024, 16/1024, 84/1024)
+			region:SetSize(66, 68)
+			region:SetPoint("TOPRIGHT", -9, -10)
+		region = self:CreateTexture(nil, "ARTWORK", nil, -7)
+			region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+			region:SetTexCoord(0/1024, 66/1024, 16/1024, 84/1024)
+			region:SetSize(66, 68)
+			region:SetPoint("BOTTOMLEFT", 8, 10)
+		region = self:CreateTexture(nil, "ARTWORK", nil, -7)
+			region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+			region:SetTexCoord(66/1024, 132/1024, 16/1024, 84/1024)
+			region:SetSize(66, 68)
+			region:SetPoint("BOTTOMRIGHT", -9, 10)
+	end
 
 	self.Tint = self:CreateTexture(nil, "BACKGROUND", nil, 2)
 	self.Tint:SetTexture(path.."Window\\BoxTint")
@@ -310,6 +334,9 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 	-- Eye candy!
 	if rainbow then
 		local interval, timer, cycle, rev, red, green, blue = 0.2, 0, 0
+		local red2, green2, blue2
+		gradient[5] = 0.75
+		gradient[9] = 0.75
 		self:SetScript("OnUpdate", function (self, elapsed)
 			timer = timer + elapsed
 			if timer > interval then
@@ -317,13 +344,18 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 				green = (math.sin(0.05*cycle + 2) * 127 + 128)/255
 		   		blue = (math.sin(0.05*cycle + 4) * 127 + 128)/255
 
+
+				red2 = (math.sin(0.05*cycle + 0) * 127 + 255)/255
+				green2 = (math.sin(0.05*cycle + 2) * 127 + 255)/255
+		   		blue2 = (math.sin(0.05*cycle + 4) * 127 + 255)/255
+
 		   		gradient[2] = red
 		   		gradient[3] = green
 		   		gradient[4] = blue
 
-		   		gradient[6] = red*0.85
-		   		gradient[7] = green*0.85
-		   		gradient[8] = blue*0.85
+		   		gradient[6] = red2
+		   		gradient[7] = green2
+		   		gradient[8] = blue2
 
 		   		self.TopLine:SetGradientAlpha(unpack(gradient))
 

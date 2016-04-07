@@ -6,6 +6,7 @@
 local _, db = ...
 local KEY = db.KEY
 local SETUP = db.TUTORIAL.SETUP
+local HelpFrame
 
 -- Determine if the base (unmodified) bindings are assigned.
 function ConsolePort:CheckUnassignedBindings()
@@ -27,6 +28,49 @@ function ConsolePort:CheckUnassignedBindings()
 	return unassigned
 end
 
+local function CreateHelpFrame()
+	if not HelpFrame then
+		local ctrlType = db.Settings.type
+		HelpFrame = db.Atlas.GetFutureWindow("ConsolePortHelpFrame")
+		HelpFrame:SetPoint("CENTER", 0,0)
+		HelpFrame:SetFrameStrata("DIALOG")
+		HelpFrame:SetSize(760, 350)
+
+		HelpFrame:SetScript("OnShow", nil)
+
+		HelpFrame.MapperTexture = HelpFrame:CreateTexture(nil, "ARTWORK")
+		HelpFrame.MapperTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+		HelpFrame.MapperTexture:SetTexCoord(0, 576/1024, 921/1024, 1)
+		HelpFrame.MapperTexture:SetSize(576, 103)
+		HelpFrame.MapperTexture:SetPoint("CENTER", 70, 0)
+
+		HelpFrame.Controller = HelpFrame:CreateTexture(nil, "ARTWORK")
+		HelpFrame.Controller:SetSize(165, 165)
+		HelpFrame.Controller:SetPoint("RIGHT", HelpFrame.MapperTexture, "LEFT", 10, 0)
+		HelpFrame.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
+
+		HelpFrame.Continue = db.Atlas.GetFutureButton("$parentContinue", HelpFrame)
+		HelpFrame.Continue:SetPoint("BOTTOM", 0, 24)
+		HelpFrame.Continue:SetText(SETUP.CONTINUECLICK)
+		HelpFrame.Continue:SetScript("OnClick", function(self)
+			HelpFrame:Hide()
+			ConsolePort:CreateBindingWizard()
+		end)
+
+
+		HelpFrame.Description = HelpFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		HelpFrame.Description:SetText(format(SETUP.AHATEXT, db.Controllers[ctrlType].Hint))
+		HelpFrame.Description:SetPoint("TOP", 0, -46)
+
+		HelpFrame.Disclaimer = HelpFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		HelpFrame.Disclaimer:SetText("|cFF888888"..SETUP.DISCLAIMER.."|r")
+		HelpFrame.Disclaimer:SetPoint("BOTTOM", HelpFrame.Continue, "TOP", 0, 20)
+
+
+	end
+	HelpFrame:Show()
+end
+
 function ConsolePort:CreateBindingWizard()
 	if not ConsolePortWizardFrame then
 		local Wizard = db.Atlas.GetFutureWindow("ConsolePortWizardFrame")
@@ -38,6 +82,26 @@ function ConsolePort:CreateBindingWizard()
 		Wizard.Container:SetBackdrop(db.Atlas.Backdrops.Border)
 		Wizard.Container:SetPoint("TOPLEFT", 8, -64)
 		Wizard.Container:SetPoint("BOTTOMRIGHT", -8, 8)
+
+		Wizard.HelpButton = CreateFrame("Button", "$parentHelpButton", Wizard)
+		Wizard.HelpButton:SetSize(64, 64)
+		Wizard.HelpButton:SetNormalTexture("Interface\\Common\\help-i")
+		Wizard.HelpButton:SetHighlightTexture("Interface\\Common\\help-i")
+		Wizard.HelpButton:SetPoint("BOTTOMRIGHT", -16, 16)
+		Wizard.HelpButton:SetScript("OnEnter", function(self)
+			GameTooltip:Hide()
+			GameTooltip:SetOwner(self, "ANCHOR_TOP")
+			GameTooltip:SetText(SETUP.WTFTEXT)
+			GameTooltip:Show()
+		end)
+		Wizard.HelpButton:SetScript("OnLeave", function(self)
+			GameTooltip:Hide()
+		end)
+
+		Wizard.HelpButton:SetScript("OnClick", function(self)
+			CreateHelpFrame()
+			Wizard:Hide()
+		end)
 
 		Wizard:SetPoint("CENTER", 0,0)
 		Wizard:SetFrameStrata("DIALOG")
@@ -215,7 +279,8 @@ function ConsolePort:CreateBindingWizard()
 			self.VAL = key
 		end)
 		Wizard:SetScript("OnUpdate", function(self, elapsed)
-			if 	ConsolePortSplashFrame and ConsolePortSplashFrame:IsVisible() then
+			if 	(ConsolePortSplashFrame and ConsolePortSplashFrame:IsVisible()) or
+				(HelpFrame and HelpFrame:IsVisible()) then
 				self:Hide()
 			elseif ConsolePortConfig and ConsolePortConfig:IsVisible() then
 				self.Close:Hide()
@@ -251,7 +316,6 @@ end
 
 function ConsolePort:CreateSplashFrame()
 	if not ConsolePortSplashFrame then
-	--	local Splash = db.Atlas.GetSetupWindow("ConsolePortSplashFrame")
 		local Splash = db.Atlas.GetFutureWindow("ConsolePortSplashFrame")
 		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE, TEX_ROTATION = 200, 390, 710, 0.523598776
 		local Controllers = {

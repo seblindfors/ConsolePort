@@ -7,6 +7,7 @@ local _, db = ...
 local TUTORIAL = db.TUTORIAL.CONFIG
 local FadeOut = db.UIFrameFadeOut
 local FadeIn = db.UIFrameFadeIn
+local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
 local Popup = db.Atlas.GetFutureWindow("ConsolePortPopup", nil, nil, true)
@@ -89,6 +90,7 @@ end
 Cancel:SetPoint("BOTTOMRIGHT", -20, 20)
 Cancel:SetText(TUTORIAL.CANCEL)
 Cancel:SetScript("OnClick", Cancel.OnClick)
+Cancel.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 1, 1, 1, 1, 0.25)
 ---------------------------------------------------------------
 local Save = db.Atlas.GetFutureButton("$parentSave", Config)
 function Save:OnClick()
@@ -115,6 +117,7 @@ local Default = db.Atlas.GetFutureButton("$parentDefault", Config)
 Default:SetPoint("BOTTOMLEFT", 20, 20)
 Default:SetText(TUTORIAL.DEFAULT)
 Default:SetScript("OnClick", Default.OnClick)
+Default.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 0.25, 1, 1, 1, 1)
 ---------------------------------------------------------------
 Default.PopupFrame = CreateFrame("Frame", "$parentPopup", Default)
 Default.PopupFrame.Apply = CreateFrame("Button", "$parentApply", Default.PopupFrame)
@@ -178,7 +181,6 @@ Default.PopupFrame.ResetThis:SetScript("OnClick", Default.PopupFrame.ResetThis.O
 
 ---------------------------------------------------------------
 local Tooltip = CreateFrame("GameTooltip", "$parentTooltip", Config, "GameTooltipTemplate")
-local red, green, blue = db.Atlas.GetCC()
 Config.Tooltip = Tooltip
 
 function Tooltip:OnShow()

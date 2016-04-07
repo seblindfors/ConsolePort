@@ -29,6 +29,7 @@ Bindings:
 ]]-------------------------------------------------------------
 
 db.Controllers.STEAM = {
+	Hint = 'You should launch the game through big picture mode and use the controller profile provided on our forums.',
 	Buttons = {
 		'CP_R_UP',
 		'CP_R_DOWN',
