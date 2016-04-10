@@ -62,12 +62,18 @@ for _, node in pairs({
 }) do node.includeChildren = true end
 
 -- Update the cursor state on visibility change.
--- Use callback to circumvent frames that set their points on show.
+-- Use callback to circumvent omitting frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
+local updateQueued = false
+
 local function FrameShow(self)
+	updateQueued = true
 	Callback(0.02, function()
 		visibleStack[self] = self:GetPoint() and self:IsVisible() and true or nil
-		ConsolePort:UpdateFrames()
+		if updateQueued then
+			updateQueued = false
+			ConsolePort:UpdateFrames()
+		end
 	end)
 end
 

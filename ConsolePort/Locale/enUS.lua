@@ -160,10 +160,10 @@ CUSTOMBINDS = {
 	CP_MOUSE 				= 	"Mouse Simulation",
 	CP_UTILITY 				= 	"Utility",
 	CP_CAMERA 				= 	"Camera",
-	CP_NAMEPLATES 			= 	"Name Plates",
+	CP_NAMEPLATES 			= 	"Targeting (custom)",
 	-- Bindings
 	CP_CYCLEPLATES 			= 	"Cycle Name Plates",
-	CP_WORLDCURSOR			= 	"Target Name Plate",
+	CP_WORLDCURSOR			= 	"Smart Target",
 	CP_UTILITYBELT			= 	"Utility Belt",
 	CP_RAIDCURSOR			= 	"Toggle Raid Cursor",
 	CP_RAIDCURSOR_F 		= 	"Focus Raid Cursor",

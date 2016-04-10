@@ -67,6 +67,7 @@ Cursor:SetFrameRef("MouseHandle", ConsolePortMouseHandle)
 Cursor:Execute(format([[	
 	---------------------------------------------------------------
 	Plates = newtable()
+	Visible = 0
 	---------------------------------------------------------------
 	DPAD = newtable()
 	---------------------------------------------------------------
@@ -104,11 +105,13 @@ Cursor:Execute(format([[
 		end
 
 		Plates = wipe(Plates)
+		Visible = 0
 
 		for i, frame in pairs(newtable(WorldFrame:GetChildren())) do
 			local name = frame:GetName()
 			if name and strmatch(name, "NamePlate") and frame:IsShown() then
 				Plates[frame] = true
+				Visible = Visible + 1
 			end
 		end
 	]=]
@@ -236,7 +239,10 @@ Cursor:Execute(format([[
 		self:Run(SetCurrent)
 		self:Run(FindClosestPlate)
 
-		if current and current:IsShown() then
+		if Visible == 1 then
+			self:SetAttribute("macrotext1", "/targetenemy")
+			self:Run(Disable, onHide)
+		elseif current and current:IsShown() then
 			self:Show()
 			self:CallMethod("SetClamped", current:GetName())
 			self:SetParent(current)
@@ -361,31 +367,39 @@ Crosshairs:SetBackdrop({bgFile = "Interface\\Cursor\\Crosshairs"})
 Crosshairs:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", 0, 0)
 Crosshairs:SetSize(32, 32)
 Crosshairs:Lower()
-Crosshairs:SetScript("OnUpdate", function(self, elapsed)
-	if Cursor:IsVisible() then
-		if self:GetAlpha() < 1 then
-			for i, child in pairs({Cursor:GetChildren()}) do
-				if child.mod then
-					child:SetParent(self)
-					local point, _, relativePoint, xOffset, yOffset = child:GetPoint()
-					child:SetPoint(point, self, relativePoint, xOffset, yOffset)
-					break
-				end
-			end
+Crosshairs:Hide()
+
+function Crosshairs:Update(elapsed)
+--	print("Update Crosshairs")
+	local targetX, targetY = Cursor:GetCenter()
+	local currX, currY = self:GetCenter()
+	if targetX and targetY then
+		local horz, vert = (targetX - currX), (targetY - currY)
+		local distX, distY = abs(horz), abs(vert)
+		if distX < 10 and distY < 42 then
+			self:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", targetX, targetY)
+		else
+			self:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", currX + horz * 0.25, currY + vert * 0.25)
 		end
-		self:SetAlpha(1)
-		local targetX, targetY = Cursor:GetCenter()
-		local currX, currY = self:GetCenter()
-		if targetX and targetY then
-			local horz, vert = (targetX - currX), (targetY - currY)
-			local distX, distY = abs(horz), abs(vert)
-			if distX < 10 and distY < 10 then
-				self:SetPoint("TOP", WorldFrame, "BOTTOMLEFT", targetX, targetY + 8)
-			else
-				self:SetPoint("TOP", WorldFrame, "BOTTOMLEFT", currX + horz * 0.25, currY + vert * 0.25 + 8)
-			end
+	end
+end
+
+Cursor:HookScript("OnShow", function(self)
+	Crosshairs:Show()
+	for i, child in pairs({self:GetChildren()}) do
+		if child.mod then
+			child:SetParent(Crosshairs)
+			local point, _, relativePoint, xOffset, yOffset = child:GetPoint()
+			child:ClearAllPoints()
+			child:SetPoint(point, Crosshairs, relativePoint, xOffset, yOffset)
+			break
 		end
-	else
-		self:SetAlpha(0)
 	end
 end)
+
+Cursor:HookScript("OnHide", function(self)
+	Crosshairs:Hide()
+end)
+
+
+Crosshairs:SetScript("OnUpdate", Crosshairs.Update)
