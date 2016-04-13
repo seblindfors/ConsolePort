@@ -326,13 +326,6 @@ Cursor:WrapScript(Cursor, "PostClick", [[
 local wasMouseLooking
 
 Cursor:HookScript("PreClick", function(self, button, down)
-	-- if 	down and
-	-- 	not GetCVarBool("nameplateShowEnemies") and
-	-- 	not GetCVarBool("nameplateShowFriends") then
-	-- 	if not InCombatLockdown() then
-	-- 		SetCVar("nameplateShowEnemies", 1)
-	-- 	end
-	-- end
 	if self:IsVisible() and button == "LeftButton" then
 		wasMouseLooking = IsMouselooking()
 		ConsolePort:StopMouse()
@@ -370,7 +363,6 @@ Crosshairs:Lower()
 Crosshairs:Hide()
 
 function Crosshairs:Update(elapsed)
---	print("Update Crosshairs")
 	local targetX, targetY = Cursor:GetCenter()
 	local currX, currY = self:GetCenter()
 	if targetX and targetY then

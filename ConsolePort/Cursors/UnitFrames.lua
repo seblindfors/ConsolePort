@@ -138,7 +138,7 @@ Cursor:Execute([[
 					Units[node] = true
 					Cache[node] = true
 				end
-			elseif action then
+			elseif action and tonumber(action) then
 				Actions[node] = unit or false
 				Cache[node] = true
 			end
@@ -339,6 +339,15 @@ Cursor:Execute([[
 		end
 	]=]
 ]])
+Cursor:SetAttribute("_spellupdate", [[
+	CurrentNode = MainBar
+	self:Run(GetNodes)
+
+	CurrentNode = OverrideBar
+	self:Run(GetNodes)
+
+	self:Run(UpdateFrameStack)
+]])
 ------------------------------------------------------------------------------------------------------------------------------
 local ToggleCursor = CreateFrame("Button", "$parentToggle", Cursor, "SecureActionButtonTemplate")
 ToggleCursor:RegisterForClicks("LeftButtonDown")
@@ -383,47 +392,8 @@ Cursor:SetAttribute("_onstate-unitexists", "self:Run(UpdateUnitExists, newstate)
 Cursor:SetAttribute("actionpage", currentPage)
 ---------------------------------------------------------------
 
--- Index the entire spellbook by using spell ID as key and spell book slot as value.
--- IsHarmfulSpell/IsHelpfulSpell functions can use spell book slot, but not actual spell IDs.
-local function SecureSpellBookUpdate(self)
-	if not InCombatLockdown() then
-		if Cursor then
-			Cursor:Execute([[ SPELLS = wipe(SPELLS) ]])
-			for id=1, MAX_SPELLS do
-				local ok, err, _, _, _, _, _, spellID = pcall(GetSpellInfo, id, "spell")
-				if ok then
-					Cursor:Execute(format([[
-						SPELLS[%d] = %d
-					]], spellID, id))
-				else
-					break
-				end
-			end
-			Cursor:Execute([[
-				CurrentNode = MainBar
-				self:Run(GetNodes)
-
-				CurrentNode = OverrideBar
-				self:Run(GetNodes)
-
-				self:Run(UpdateFrameStack)
-			]])
-		end
-		self:RemoveUpdateSnippet(SecureSpellBookUpdate)
-	end
-end
-
 function ConsolePort:SetupRaidCursor()
-	self:AddUpdateSnippet(SecureSpellBookUpdate)
-
-	-- Update the spell table when a new spell is learned.
-	Cursor:SetScript("OnEvent", function(_, event, ...)
-		if event == "LEARNED_SPELL_IN_TAB" then
-			self:AddUpdateSnippet(SecureSpellBookUpdate)
-		end
-	end)
-	---------------------------------------------------------------
-
+	ConsolePort:RegisterSpellbook(Cursor)
 	Cursor.onShow = true
 	Cursor.Timer = 0
 	Cursor:SetScript("OnUpdate", Cursor.Update)

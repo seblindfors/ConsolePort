@@ -645,11 +645,13 @@ local function ActionButtonOnUpdate(self, elapsed)
 end
 
 ---------------------------------------------------------------
-for i=1, 8 do
-	local x, y, r = 0, 0, 180
-	local angle = (i+1) * (360 / 8) * math.pi / 180
+local NUM_BUTTONS = 8
+for i=1, NUM_BUTTONS do
+	local x, y, r = 0, 0, 180 -- xOffset, yOffset, radius
+	local angle = (i+1) * (360 / NUM_BUTTONS) * math.pi / 180
 	local ptx, pty = x + r * math.cos( angle ), y + r * math.sin( angle )
 	local ActionButton = CreateFrame("Button", "ConsolePortUtilityActionButton"..i, Utility, "ActionButtonTemplate, SecureActionButtonTemplate")
+	ActionButton:SetPoint("CENTER", -ptx, pty)
 
 	ActionButton.Timer = 0
 	ActionButton.Idle = 0

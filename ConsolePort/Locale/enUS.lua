@@ -153,6 +153,7 @@ TOOLTIP = {
 		STACK_BUY 			= 	"Buy a different amount",
 		STACK_SPLIT 		= 	"Split stack",
 		ADD_TO_EXTRA		= 	"Quick bind",
+		FLYOUT 				= 	"Press %s or %s to cast.",
 	}
 },
 CUSTOMBINDS = {
@@ -165,6 +166,7 @@ CUSTOMBINDS = {
 	CP_CYCLEPLATES 			= 	"Cycle Name Plates",
 	CP_WORLDCURSOR			= 	"Smart Target",
 	CP_UTILITYBELT			= 	"Utility Belt",
+	CP_SPELLWHEEL 			= 	"Spell Wheel",
 	CP_RAIDCURSOR			= 	"Toggle Raid Cursor",
 	CP_RAIDCURSOR_F 		= 	"Focus Raid Cursor",
 	CP_RAIDCURSOR_T 		= 	"Target Raid Cursor",

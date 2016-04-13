@@ -27,6 +27,7 @@ local newChar
 db.TEXTURE 	= {}
 db.SECURE 	= {}
 db.PANELS 	= {}
+db.PLUGINS 	= {}
 ---------------------------------------------------------------
 -- Plug-in access to addon table
 ---------------------------------------------------------------

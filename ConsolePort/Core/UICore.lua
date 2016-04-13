@@ -13,6 +13,7 @@ local pairs = pairs
 local next = next
 
 -- Upvalue because of explicit use in hook scripts
+local _, db = ...
 local ConsolePort = ConsolePort
 
 function ConsolePort:HasUIFocus() return hasUIFocus end
@@ -109,6 +110,11 @@ function ConsolePort:CheckLoadedAddons()
 			for i, frame in pairs(frames) do
 				self:AddFrame(frame)
 			end
+		end
+	end
+	for name, loadFunc in pairs(db.PLUGINS) do
+		if IsAddOnLoaded(name) then
+			loadFunc(self)
 		end
 	end
 end

@@ -85,6 +85,7 @@ function Events:MERCHANT_SHOW(...)
 end
 
 function Events:WORLD_MAP_UPDATE(...)
+	-- Add clickable nodes to the world map
 	self:GetMapNodes()
 end
 
@@ -153,6 +154,10 @@ function Events:SPELLS_CHANGED(...)
 	Events.SPELLS_CHANGED = nil
 end
 
+function Events:LEARNED_SPELL_IN_TAB()
+	self:AddUpdateSnippet(self.UpdateSecureSpellbook, "_spellupdate")
+end
+
 function Events:ADDON_LOADED(...)
 	local name = ...
 	if name == "ConsolePort" then
@@ -180,6 +185,9 @@ function Events:ADDON_LOADED(...)
 		for i, frame in pairs(ConsolePortUIFrames[name]) do
 			self:AddFrame(frame)
 		end
+	end
+	if db.PLUGINS[name] then
+		db.PLUGINS[name](self)
 	end
 	self:UpdateFrames()
 	if Loaded then

@@ -402,6 +402,7 @@ function ConsolePort:GetAddonBindings()
 		{name = BINDING_NAME_CP_RAIDCURSOR_F, binding = "CLICK ConsolePortRaidCursorFocus:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR_T, binding = "CLICK ConsolePortRaidCursorTarget:LeftButton"},
 		{name = BINDING_NAME_CP_UTILITYBELT, binding = "CLICK ConsolePortUtilityToggle:LeftButton"},
+		{name = BINDING_NAME_CP_SPELLWHEEL, binding = "CLICK ConsolePortSpellWheel:LeftButton"},
 		-- Camera
 		{name = BINDING_NAME_CP_CAMERA},
 		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
@@ -508,7 +509,6 @@ function ConsolePort:GetDefaultUIFrames()
 			"RecruitAFriendFrame",
 			"ReadyCheckFrame",
 			"SpellBookFrame",
-			"SpellFlyout",
 			"SplashFrame",
 			"StackSplitFrame",
 			"StaticPopup1",

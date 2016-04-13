@@ -14,6 +14,7 @@ setglobal("BINDING_NAME_CLICK ConsolePortNameplateCycle:LeftButton", db.CUSTOMBI
 setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorToggle:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR)
 setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorFocus:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR_F)
 setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorTarget:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR_T)
+setglobal("BINDING_NAME_CLICK ConsolePortSpellWheel:LeftButton", db.CUSTOMBINDS.CP_SPELLWHEEL)
 
 local function LoadTooltipLines()
 	local Left = db.Mouse and db.Mouse.Cursor.Left or "CP_R_RIGHT"

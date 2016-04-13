@@ -226,31 +226,6 @@ MouseHandle:Execute([[ Focus = self:GetFrameRef("Focus") ]])
 ---------------------------------------------------------------
 MouseHandle:SetAttribute("_onattributechanged", "self:Run(UpdateAttribute, name, value)")
 
--- Index the entire spellbook by using spell ID as key and spell book slot as value.
--- IsHarmfulSpell/IsHelpfulSpell functions can use spell book slot, but not actual spell IDs.
-local function SecureSpellBookUpdate(self)
-	if not InCombatLockdown() then
-		for id=1, MAX_SPELLS do
-			local ok, err, _, _, _, _, _, spellID = pcall(GetSpellInfo, id, "spell")
-			if ok then
-				MouseHandle:Execute(format([[
-					SPELLS[%d] = %d
-				]], spellID, id))
-			else
-				break
-			end
-		end
-		self:RemoveUpdateSnippet(SecureSpellBookUpdate)
-	end
-end
-
--- Update the spell table when a new spell is learned.
-MouseHandle:SetScript("OnEvent", function(self, event, ...)
-	if event == "LEARNED_SPELL_IN_TAB" then
-		ConsolePort:AddUpdateSnippet(SecureSpellBookUpdate)
-	end
-end)
-
 ---------------------------------------------------------------
 -- Cursor trail for interact button
 ---------------------------------------------------------------
@@ -368,7 +343,7 @@ function ConsolePort:UpdateStateDriver()
 				self:SetAttribute("target", nil)
 			]], button, id or -1))
 
-			self:AddUpdateSnippet(SecureSpellBookUpdate)
+			self:RegisterSpellbook(MouseHandle)
 		else
 			CursorTrail:SetScript("OnUpdate", nil)
 			CursorTrail:Hide()
@@ -379,6 +354,7 @@ function ConsolePort:UpdateStateDriver()
 
 			UnregisterStateDriver(MouseHandle, "actionpage")
 			UnregisterStateDriver(MouseHandle, "targetstate")
+			self:UnregisterSpellbook(MouseHandle)
 		end
 		self:RemoveUpdateSnippet(self.UpdateStateDriver)
 	end

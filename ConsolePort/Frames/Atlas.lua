@@ -372,13 +372,19 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 	return self
 end
 
-db.Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates)
-	if InCombatLockdown() then
+db.Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, notSecure)
+	if InCombatLockdown() and not notSecure then
 		error("GetRoundActionButton: SecureActionButtonTemplate cannot be inherited in combat!", 2)
 	elseif not name or isCheck == nil or not parent then
 		error("Usage: GetRoundActionButton(name, isCheck, parent[ [, size,] templates]): Buttons without name or parent not supported!", 2)
 	else
-		local template = "ActionButtonTemplate, SecureActionButtonTemplate"
+		local template
+
+		if notSecure then
+			template = "ActionButtonTemplate"
+		else
+			template = "ActionButtonTemplate, SecureActionButtonTemplate"
+		end
 		
 		if templates and type(templates) == "string" then
 			template = template..", "..templates
