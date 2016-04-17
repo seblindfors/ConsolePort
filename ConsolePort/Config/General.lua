@@ -197,9 +197,11 @@ local function BindCatcherOnKey(self, key)
 	FadeIn(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 1)
 	self:SetScript("OnKeyUp", nil)
 	self:EnableKeyboard(false)
-	if action then
+	if action and type(action) == "table" and action.name then
 		self.CurrentButton = action.name
-		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton]))
+		if self.CurrentButton then
+			self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton]))
+		end
 	elseif key then
 		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
 	end

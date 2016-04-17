@@ -68,7 +68,7 @@ function ConsolePort:UpdateSecureSpellbook()
 		for id=1, MAX_SPELLS do
 			local ok, err, _, _, _, _, _, spellID = pcall(GetSpellInfo, id, "spell")
 			if ok then
-				if spellID and IsSpellKnown(spellID) then
+				if spellID and IsPlayerSpell(spellID) then
 					spellsByID[spellID] = id
 					spellsByName[GetSpellInfo(spellID)] = spellID
 				end

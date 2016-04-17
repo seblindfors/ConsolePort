@@ -472,99 +472,102 @@ Cursor:RegisterEvent("PLAYER_TARGET_CHANGED")
 function Cursor:Event(event, ...)
 	local unit, spell, _, _, spellID = ...
 
-	if event == "UNIT_HEALTH" and unit == self.unit then
-		local hp = UnitHealth(unit)
-		local max = UnitHealthMax(unit)
-		self.Health:SetTexCoord(0, 1, abs(1 - hp / max), 1)
-		self.Health:SetHeight(54 * hp / max)
-	elseif event == "PLAYER_TARGET_CHANGED" and self.unit then
-		self:UpdateUnit(self.unit)
-	elseif event == "PLAYER_REGEN_DISABLED" then
-		self:SetAlpha(1)
-	elseif event == "PLAYER_REGEN_ENABLED" and ConsolePortCursor:IsVisible() then
-		self:SetAlpha(0.25)
-	end
+	if self:IsVisible() then
 
-	if unit == "player" then
-		if event == "UNIT_SPELLCAST_CHANNEL_START" then
-			local name, _, _, texture, startTime, endTime, _, _, _ = UnitChannelInfo("player")
+		if event == "UNIT_HEALTH" and unit == self.unit then
+			local hp = UnitHealth(unit)
+			local max = UnitHealthMax(unit)
+			self.Health:SetTexCoord(0, 1, abs(1 - hp / max), 1)
+			self.Health:SetHeight(54 * hp / max)
+		elseif event == "PLAYER_TARGET_CHANGED" and self.unit then
+			self:UpdateUnit(self.unit)
+		elseif event == "PLAYER_REGEN_DISABLED" then
+			self:SetAlpha(1)
+		elseif event == "PLAYER_REGEN_ENABLED" and ConsolePortCursor:IsVisible() then
+			self:SetAlpha(0.25)
+		end
 
-			local targetRelation = self:GetAttribute("relation")
-			local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
+		if unit == "player" then
+			if event == "UNIT_SPELLCAST_CHANNEL_START" then
+				local name, _, _, texture, startTime, endTime, _, _, _ = UnitChannelInfo("player")
 
-			if targetRelation == spellRelation then
-				local color = self.color
-				if color then
-					self.CastBar:SetVertexColor(color.r, color.g, color.b)
-				end
-				self.SpellPortrait:Show()
-				self.CastBar:SetRotation(0)
-				self.isCasting = false
-				self.isChanneling = true
-				self.resetPortrait = true
-				self.spellTexture = texture
-				self.startChannel = startTime
-				self.endChannel = endTime
-				FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
-				FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
-				SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
-			else
-				self.CastBar:Hide()
-				self.SpellPortrait:Hide()
-			end
-
-		elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then self.isChanneling = false
-			FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
-
-		elseif event == "UNIT_SPELLCAST_START" then
-			local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo("player")
-
-			local targetRelation = self:GetAttribute("relation")
-			local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
-
-			if targetRelation == spellRelation then
-				local color = self.color
-				if color then
-					self.CastBar:SetVertexColor(color.r, color.g, color.b)
-				end
-				self.SpellPortrait:Show()
-				self.CastBar:SetRotation(0)
-				self.isCasting = true
-				self.isChanneling = false
-				self.resetPortrait = true
-				self.spellTexture = texture
-				self.startCast = startTime
-				self.endCast = endTime
-				FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
-				FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
-				SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
-			else
-				self.CastBar:Hide()
-				self.SpellPortrait:Hide()
-			end
-
-		elseif event == "UNIT_SPELLCAST_STOP" then self.isCasting = false
-			FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
-			FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
-
-		elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-			local name, _, icon = GetSpellInfo(spell)
-
-			if name and icon then
 				local targetRelation = self:GetAttribute("relation")
 				local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
 
 				if targetRelation == spellRelation then
-					SetPortraitToTexture(self.SpellPortrait, icon)
-					if not self.isCasting and not self.isChanneling then 
-						Flash(self.SpellPortrait, 0.25, 0.25, 0.75, false, 0.25, 0) 
-					else
-						self.SpellPortrait:Show()
-						FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+					local color = self.color
+					if color then
+						self.CastBar:SetVertexColor(color.r, color.g, color.b)
+					end
+					self.SpellPortrait:Show()
+					self.CastBar:SetRotation(0)
+					self.isCasting = false
+					self.isChanneling = true
+					self.resetPortrait = true
+					self.spellTexture = texture
+					self.startChannel = startTime
+					self.endChannel = endTime
+					FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
+					FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
+					SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
+				else
+					self.CastBar:Hide()
+					self.SpellPortrait:Hide()
+				end
+
+			elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then self.isChanneling = false
+				FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
+
+			elseif event == "UNIT_SPELLCAST_START" then
+				local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo("player")
+
+				local targetRelation = self:GetAttribute("relation")
+				local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
+
+				if targetRelation == spellRelation then
+					local color = self.color
+					if color then
+						self.CastBar:SetVertexColor(color.r, color.g, color.b)
+					end
+					self.SpellPortrait:Show()
+					self.CastBar:SetRotation(0)
+					self.isCasting = true
+					self.isChanneling = false
+					self.resetPortrait = true
+					self.spellTexture = texture
+					self.startCast = startTime
+					self.endCast = endTime
+					FadeIn(self.CastBar, 0.2, self.CastBar:GetAlpha(), 1)
+					FadeIn(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
+					SetPortraitToTexture(self.SpellPortrait, self.spellTexture)
+				else
+					self.CastBar:Hide()
+					self.SpellPortrait:Hide()
+				end
+
+			elseif event == "UNIT_SPELLCAST_STOP" then self.isCasting = false
+				FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
+				FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+
+			elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+				local name, _, icon = GetSpellInfo(spell)
+
+				if name and icon then
+					local targetRelation = self:GetAttribute("relation")
+					local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
+
+					if targetRelation == spellRelation then
+						SetPortraitToTexture(self.SpellPortrait, icon)
+						if not self.isCasting and not self.isChanneling then 
+							Flash(self.SpellPortrait, 0.25, 0.25, 0.75, false, 0.25, 0) 
+						else
+							self.SpellPortrait:Show()
+							FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+						end
 					end
 				end
+				self.isCasting = false
 			end
-			self.isCasting = false
 		end
 	end
 end

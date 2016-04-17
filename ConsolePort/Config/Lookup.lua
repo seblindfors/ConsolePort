@@ -233,7 +233,7 @@ local function GetActionButtons(buttons, this)
 		return buttons
 	end
 	local action = this:GetAttribute("action")
-	if action then
+	if action and tonumber(action) then
 		buttons[this] = action
 	end
 	for _, object in pairs({this:GetChildren()}) do
