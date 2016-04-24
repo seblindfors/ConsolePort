@@ -55,6 +55,12 @@ for _, node in pairs({
 	MinimapZoomOut,
 }) do node.ignoreMenu = true end
 
+-- Cursor will not attempt to automatically scroll
+-- these frames when a child node within is focused.
+for _, node in pairs({
+	WorldMapScrollFrame,
+}) do node.ignoreScroll = true end
+
 -- Cursor will ignore the host frame, but include all
 -- children widgets contained inside.
 for _, node in pairs({

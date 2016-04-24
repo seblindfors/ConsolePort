@@ -8,7 +8,7 @@ Language.Default = {
 	itIT = "Italiano",
 	koKR = "한국어",
 	ptBR = "Português",
-	ruRU = "Русский",
+	ruRU = "Russian",
 	zhCN = "简体",
 	zhTW = "繁體",
 }

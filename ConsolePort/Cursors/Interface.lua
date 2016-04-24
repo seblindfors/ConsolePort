@@ -228,6 +228,76 @@ local function GetScrollFrame(node)
 	end
 end
 
+----------
+-- Scroll management
+----------
+local Scroll = CreateFrame("Frame")
+local hybridScroll = HybridScrollFrame_OnLoad
+
+function Scroll:SmoothScrollRange(elapsed)
+	local current = self.scrollFrame:GetVerticalScroll()
+	local maxScroll = self.scrollFrame:GetVerticalScrollRange()
+	-- close enough, stop scrolling and set to target
+	if abs(current - self.Target) < 2 then
+		self.scrollFrame:SetVerticalScroll(self.Target)
+		self:SetScript("OnUpdate", nil)
+		return
+	end
+	local delta = current > self.Target and -1 or 1
+	local new = current + (delta * abs(current - self.Target) / 16 * 4 ) 
+	self.scrollFrame:SetVerticalScroll(new < 0 and 0 or new > maxScroll and maxScroll or new)
+end
+
+-- function Scroll:SmoothScrollBar(elapsed)
+-- 	local current = self.scrollBar:GetValue()
+-- 	local step = self.scrollBar:GetValueStep()
+-- 	local min, max = self.scrollBar:GetMinMaxValues()
+-- 	if abs(current - self.Target) < 2 then
+-- 		self.scrollBar:SetValue(self.Target)
+-- 		self:SetScript("OnUpdate", nil)
+-- 	end
+-- 	local delta = current > self.Target and -1 or 1
+-- 	local new = current + (delta * abs(current - self.Target) / 16 * 4 )
+-- 	new = new < step and step or new 
+-- 	self.scrollBar:SetValue(new < min and min or new > max and max or new)
+-- end
+
+function Scroll:ScrollTo(node, scrollFrame)
+	self.scrollFrame = scrollFrame
+	local _, nodeY = node:GetCenter()
+	local _, scrollY = scrollFrame:GetCenter()
+	if nodeY and scrollY then
+		-- this is a hybrid scroll frame, use the slider values
+		if scrollFrame:GetScript("OnLoad") == hybridScroll then
+			-- local bar = scrollFrame.scrollBar
+			-- local min, max = bar:GetMinMaxValues()
+			-- local obeyStep = bar:GetObeyStepOnDrag()
+			-- local numSteps = bar:GetStepsPerPage()
+			-- local current = bar:GetValue()
+			-- local step = bar:GetValueStep()
+
+			-- -- the distance between the node and scroll center is within
+			-- -- the two center-most scroll child nodes. 
+			-- if abs(nodeY - scrollY) < (step * 2) then
+			-- 	local delta = nodeY < scrollY and 1 or -1
+			-- 	local new = current + (step * delta)
+			-- 	self.Target = new < min and min or new > max and max or new
+			-- 	self.scrollBar = bar
+			-- 	self:SetScript("OnUpdate", self.SmoothScrollBar)
+			-- end
+
+		else -- this is a traditional scroll frame, use scroll range.
+			local max = scrollFrame:GetVerticalScrollRange()
+			local current = scrollFrame:GetVerticalScroll()
+
+			local new = current + (scrollY - nodeY)
+			self.Target = new < 0 and 0 or new > max and max or new
+			self:SetScript("OnUpdate", self.SmoothScrollRange)
+		end
+	end
+end
+----------
+
 local function IsNodeDrawn(node)
 	local x, y = node:GetCenter()
 	local scrollFrame = GetScrollFrame(node)
@@ -262,7 +332,7 @@ local function GetNodes(node)
 		if node.hasPriority then
 			tinsert(nodes, 1, {node = node, object = object})
 		else
-			tinsert(nodes, {node = node, object = object})
+			nodes[#nodes + 1] = {node = node, object = object}
 		end
 	end
 end
@@ -458,6 +528,11 @@ function ConsolePort:EnterNode(node, object, state)
 		OverrideScroll(Cursor, scrollUp, scrollDown)
 	elseif object == "Slider" then
 		OverrideHorizontalScroll(Cursor, node)
+	end
+
+	local scrollFrame = GetScrollFrame(node)
+	if scrollFrame and not scrollFrame.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
+		Scroll:ScrollTo(node, scrollFrame)
 	end
 
 	local name = rebindNode and nil or node.direction and node:GetName()

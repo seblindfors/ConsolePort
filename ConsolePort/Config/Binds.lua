@@ -340,6 +340,9 @@ end
 ---------------------------------------------------------------
 -- Binds: Static key binding table
 ---------------------------------------------------------------
+local function ListButtonOnEnter(self) FadeIn(self.hotKey, 0.2, self.hotKey:GetAlpha(), 1) end
+local function ListButtonOnLeave(self) FadeOut(self.hotKey, 0.2, self.hotKey:GetAlpha(), 0.1) end
+
 local function CreateListButton(parent, num, clickScript, width, height)
 	local button = db.Atlas.GetFutureButton("$parentButton"..num, parent, nil, nil, width, height)
 	button:SetScript("OnClick", clickScript)
@@ -351,6 +354,12 @@ local function CreateListButton(parent, num, clickScript, width, height)
 		button:SetPoint("TOPLEFT", parent.Buttons[num-1], "BOTTOMLEFT")
 		button:SetPoint("TOPRIGHT", parent.Buttons[num-1], "BOTTOMRIGHT")
 	end
+	button.hotKey = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	button.hotKey:SetPoint("TOPRIGHT")
+	button.hotKey:SetAlpha(0.1)
+	button:HookScript("OnEnter", ListButtonOnEnter)
+	button:HookScript("OnLeave", ListButtonOnLeave)
+	button.Icon:SetMask("Interface\\GLUES\\Models\\UI_Dwarf\\UI_Goblin_GodRaysMask")
 	return button
 end
 
@@ -361,45 +370,77 @@ local function BindValueOnClick(self)
 	end
 end
 
+local LIST_BUTTON_HEIGHT = 42
 local function BindHeaderSetValues(self)
 	local bindings = self.Bindings
 	local buttons = self.ValueList.Buttons
+	local set = NewBindingSet or ConsolePortBindingSet
 	for i, button in pairs(buttons) do
 		button:Hide()
 	end
 	local vCount = 0
 	for i, binding in pairs(bindings) do
 		vCount = vCount + 1 
-		local button = buttons[i] or CreateListButton(self.ValueList, vCount, BindValueOnClick, 200, 32)
+		local button = buttons[i] or CreateListButton(self.ValueList, vCount, BindValueOnClick, 200, LIST_BUTTON_HEIGHT)
 		local font = button.Label
-		if not binding.binding then
+		local bindingID = binding.binding
+		if not bindingID then
 			button.Cover:Hide()
 			button.Icon:Hide()
+			button.hotKey:SetText()
+			button.ignoreNode = true
 		else
-			local texture = ConsolePort:GetActionTexture(binding.binding)
+			local texture = ConsolePort:GetActionTexture(bindingID)
 			if texture then
 				button.Icon:SetTexture(texture)
-				button.Icon:SetTexCoord(3/64, 61/64, 21/64, 26/64)
 				button.Icon:ClearAllPoints()
-				button.Icon:SetPoint("CENTER", button, "CENTER", 0, 0)
-				button.Icon:SetSize(192, 24)
-				button.Icon:SetAlpha(0.25)
+				button.Icon:SetPoint("LEFT", 8, 0)
+				button.Icon:SetSize(32, 32)
 				button.Icon:Show()
 			else
 				button.Icon:SetTexture(nil)
 				button.Icon:Hide()
 			end
+
+			local boundToKey, boundToMod
+
+			for key, subSet in pairs(ConsolePortBindingSet) do
+				for mod, value in pairs(subSet) do
+					if value == bindingID then
+						boundToKey, boundToMod = key, mod
+						break
+					end
+				end
+			end
+
+			if boundToKey then
+				local texture = "|T" .. gsub(db.TEXTURE[boundToKey], "Icons64x64", "Icons32x32") .. ":24:24:0:0|t"
+				local formatTexture = texture
+				if boundToMod ~= "action" then
+					local modtexture = db.TEXTURE[db.Settings[boundToMod]]
+					if modtexture then
+						formatTexture = "|T" .. gsub(modtexture, "Icons64x64", "Icons32x32") .. ":24:24:10:0|t" .. texture
+					else
+						formatTexture = "|T" .. gsub(db.TEXTURE[db.Settings.shift], "Icons64x64", "Icons32x32") .. ":24:24:21:0|t" ..
+										"|T" .. gsub(db.TEXTURE[db.Settings.ctrl], "Icons64x64", "Icons32x32") .. ":24:24:10:0|t" .. texture
+					end
+				end
+				button.hotKey:SetText(formatTexture)
+				FadeOut(button.hotKey, 1, 0.25, 0.1)
+			else
+				button.hotKey:SetText()
+			end
+			button.ignoreNode = nil
 			button.Cover:Show()
 		end
-		font:SetTextColor(binding.binding and 1, 1, 1, 1 or 1, 0, 1, 1)
-		button:SetEnabled(binding.binding and true or false)
+		font:SetTextColor(bindingID and 1, 1, 1, 1 or 1, 0, 1, 1)
+		button:SetEnabled(bindingID and true or false)
 		button:SetText(binding.name)
 		button:Show()
-		button.StaticBinding = binding.binding
-		FadeIn(button, vCount*0.05, 0, 1)
+		button.StaticBinding = bindingID
 	end
-	self.ValueList:SetHeight(vCount*32)
-	self.ValueList:GetParent():SetHeight(vCount*(32+1)+8 <= 536 and vCount*(32+1)+8 or 536)
+	self.ValueList:SetHeight(vCount*LIST_BUTTON_HEIGHT)
+	self.ValueList:GetParent():SetHeight(vCount*(LIST_BUTTON_HEIGHT+1)+8 <= 536 and vCount*(LIST_BUTTON_HEIGHT+1)+8 or 536)
 end
 
 local function BindHeaderOnClick(self)
@@ -456,7 +497,7 @@ local function RefreshHeaderList(self)
 	end
 	for category, bindings in pairsByKeys(bindings) do
 		hCount = hCount + 1
-		local button = buttons[hCount] or CreateListButton(self, hCount, BindHeaderOnClick, 200, 32)
+		local button = buttons[hCount] or CreateListButton(self, hCount, BindHeaderOnClick, 200, LIST_BUTTON_HEIGHT)
 		button:SetScript("OnEnter", BindHeaderOnEnter)
 		button:SetText(category)
 		button:Show()
@@ -464,8 +505,8 @@ local function RefreshHeaderList(self)
 		button.ValueList = self.Values
 		FadeIn(button, hCount*0.05, 0, 1)
 	end
-	self:SetHeight(hCount*32)
-	self:GetParent():SetHeight(hCount*(32+1)+8 <= 536 and hCount*(32+1)+8 or 536)
+	self:SetHeight(hCount*LIST_BUTTON_HEIGHT)
+	self:GetParent():SetHeight(hCount*(LIST_BUTTON_HEIGHT+1)+8 <= 536 and hCount*(LIST_BUTTON_HEIGHT+1)+8 or 536)
 end
 
 ---------------------------------------------------------------
@@ -480,7 +521,8 @@ local function GetStaticBindingName(self)
 end
 
 local function GetStaticBinding(self)
-	local subSet = db.Bindings[self.secure.name]
+	local set = NewBindingSet or db.Bindings
+	local subSet = set and set[self.secure.name]
 	return subSet and subSet[GetBindingModifier(self.secure.mod)]
 end
 

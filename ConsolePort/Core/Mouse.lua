@@ -36,6 +36,7 @@ Padding:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 50, -50)
 Padding:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 50)
 Padding:Hide()
 ---------------------------------------------------------------
+---------------------------------------------------------------
 local DoubleTapCatcher = CreateFrame("Frame")
 DoubleTapCatcher.Num = 0
 DoubleTapCatcher.Timer = 0

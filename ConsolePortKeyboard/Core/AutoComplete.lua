@@ -89,7 +89,7 @@ Auto:SetScript("OnHide", Auto.Hide)
 function Keyboard:GetCurrentWord()
 	local text = self.Focus and self.Focus:GetText()
 	if text then
-		local position = self.Focus:GetCursorPosition()
+		local position = self.Focus:GetUTF8CursorPosition()
 		local length = text:len()+1
 
 		local startPos, endPos

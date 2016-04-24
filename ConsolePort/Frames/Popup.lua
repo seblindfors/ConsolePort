@@ -27,33 +27,33 @@ end
 -- Dropdowns: Child widget filtering to remove unwanted entries
 ---------------------------------------------------------------
 
-local dropDowns = {
-	DropDownList1,
-	DropDownList2,
-}
+-- local dropDowns = {
+-- 	DropDownList1,
+-- 	DropDownList2,
+-- }
 
-local forbidden = {
-	["SET_FOCUS"] = true,
-	["PET_DISMISS"] = true,
-}
+-- local forbidden = {
+-- 	["SET_FOCUS"] = true,
+-- 	["PET_DISMISS"] = true,
+-- }
 
-for i, DD in pairs(dropDowns) do
-	DD:HookScript("OnShow", function(self)
-		local children = {self:GetChildren()}
-		for j, child in pairs(children) do
-			if (child.IsVisible and not child:IsVisible()) or (child.IsEnabled and not child:IsEnabled()) then
-				child.ignoreNode = true
-			else
-				child.ignoreNode = nil
-			end
-			if child.hasArrow then
-				child.ignoreChildren = true
-			else
-				child.ignoreChildren = false
-			end
-			if forbidden[child.value] then
-				child.ignoreNode = true
-			end
-		end
-	end)
-end
+-- for i, DD in pairs(dropDowns) do
+-- 	DD:HookScript("OnShow", function(self)
+-- 		local children = {self:GetChildren()}
+-- 		for j, child in pairs(children) do
+-- 			if (child.IsVisible and not child:IsVisible()) or (child.IsEnabled and not child:IsEnabled()) then
+-- 				child.ignoreNode = true
+-- 			else
+-- 				child.ignoreNode = nil
+-- 			end
+-- 			if child.hasArrow then
+-- 				child.ignoreChildren = true
+-- 			else
+-- 				child.ignoreChildren = false
+-- 			end
+-- 			if forbidden[child.value] then
+-- 				child.ignoreNode = true
+-- 			end
+-- 		end
+-- 	end)
+-- end

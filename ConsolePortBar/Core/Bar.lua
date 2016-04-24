@@ -173,11 +173,13 @@ function Bar:HideBlizzard()
 	MainMenuExpBar:SetParent(Bar)
 	MainMenuExpBar:ClearAllPoints()
 	MainMenuExpBar:SetPoint("BOTTOM", 0, 3)
-	MainMenuExpBar.OldSetStatusBarColor = MainMenuExpBar.SetStatusBarColor
 
-	function MainMenuExpBar:SetStatusBarColor(...)
-		self:OldSetStatusBarColor(red, green, blue)
-	end
+	hooksecurefunc(MainMenuExpBar, "SetStatusBarColor", function(self, r, g, b, a)
+		if r ~= red or g ~= green or b ~= blue then
+			self:SetStatusBarColor(red, green, blue)
+		end
+	end)
+
 
 	MainMenuXPBarTextureMid:SetTexCoord(0, 1, 1, 0)
 	MainMenuXPBarTextureLeftCap:SetTexCoord(0.18750000, 0.43750000, 0.26562500, 0.01562500)
@@ -198,11 +200,29 @@ function Bar:HideBlizzard()
 
 	MainMenuMicroButton:GetNormalTexture():SetVertexColor(red, green, blue, 0.25)
 
-	MainMenuMicroButton.SetNormalTexture = function() end
-	MainMenuMicroButton.SetHighlightTexture = function() end
-	MainMenuMicroButton.SetPushedTexture = function() end
-
-	MainMenuMicroButton.SetPoint = function() end
+	hooksecurefunc(MainMenuMicroButton, "SetNormalTexture", function(self, texture)
+		if texture ~= "Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal" then
+			self:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal")
+		end
+ 	end)
+	hooksecurefunc(MainMenuMicroButton, "SetHighlightTexture", function(self, texture)
+		if texture ~= "Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal" then
+			self:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal")
+		end
+ 	end)
+	hooksecurefunc(MainMenuMicroButton, "SetPushedTexture", function(self, texture)
+		if texture ~= "Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuPushed" then
+			self:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuPushed")
+		end
+ 	end)
+	hooksecurefunc(MainMenuMicroButton, "SetPoint", function(self, anchor, xoff, yoff)
+		if not InCombatLockdown() then
+			if anchor ~= "TOP" or xoff ~= 0 or yoff ~= -16 then
+				self:ClearAllPoints()
+				self:SetPoint("TOP", 0, -16)
+			end
+		end
+ 	end)
 
 	MainMenuBarPerformanceBar:SetParent(UIHider)
 	MainMenuBarPerformanceBar:ClearAllPoints()
@@ -256,8 +276,6 @@ local backdrop = {
 
 Bar:SetBackdrop(backdrop)
 
-Bar.ArtOverlay = Bar:CreateTexture(nil, "BACKGROUND")
-
 Bar.BG = Bar:CreateTexture(nil, "BACKGROUND")
 Bar.BG:SetPoint("TOPLEFT", Bar, "TOPLEFT", 16, -16)
 Bar.BG:SetPoint("BOTTOMRIGHT", Bar, "BOTTOMRIGHT", -16, 16)
@@ -284,30 +302,6 @@ Bar.BottomLine:SetVertexColor(red, green, blue, 1)
 Bar.BG:SetVertexColor(red, green, blue, 0.25)
 
 Bar:SetHeight(170)
-
-function Bar:UpdateArt()
-	self.ArtOverlay:SetMask(nil)
-	self.ArtOverlay:SetTexture("Interface\\TALENTFRAME\\"..(db.Atlas.GetOverlay() or ""))
-	self.ArtOverlay:SetTexCoord(0, 1, 0, 0.12890625 + 0.025)
-	self.ArtOverlay:SetSize(988, 170)
-	self.ArtOverlay:SetPoint("CENTER", 0, 0)
-	self.ArtOverlay:SetMask("Interface\\GLUES\\Models\\UI_Dwarf\\UI_Goblin_GodRaysMask")
-	self.ArtOverlay:SetAlpha(0.4)
-end
-
-function Bar:PLAYER_LOGIN()
-	-- add art overlay on login
-	self:UpdateArt()
-	self:UnregisterEvent("PLAYER_LOGIN")
-end
-
-function Bar:ACTIVE_TALENT_GROUP_CHANGED()
-	self:UpdateArt()
-end
-
-function Bar:PLAYER_TALENT_UPDATE()
-	self:UpdateArt()
-end
 
 function Bar:OnEvent(event, ...)
 	if self[event] then

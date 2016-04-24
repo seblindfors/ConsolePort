@@ -72,14 +72,14 @@ end
 
 function Keyboard:LEFT()
 	local text = self.Focus:GetText()
-	local pos = self.Focus:GetCursorPosition()
+	local pos = self.Focus:GetUTF8CursorPosition()
 	local marker = text:sub(pos-4, pos):find("{rt%d}")
 	self.Focus:SetCursorPosition(marker and pos-5 or pos-1)
 end
 
 function Keyboard:RIGHT()
 	local text = self.Focus:GetText()
-	local pos = self.Focus:GetCursorPosition()
+	local pos = self.Focus:GetUTF8CursorPosition()
 	local marker = text:sub(pos, pos+5):find("{rt%d}")
 	self.Focus:SetCursorPosition(marker and pos+5 or pos+1)
 end
@@ -93,7 +93,7 @@ function Keyboard:INPUT(input)
 end
 
 function Keyboard:ERASE()
-	local pos = self.Focus:GetCursorPosition()
+	local pos = self.Focus:GetUTF8CursorPosition()
 	if pos ~= 0 then 
 		local text = self.Focus:GetText()
 		local offset
