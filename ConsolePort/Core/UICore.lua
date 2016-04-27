@@ -4,7 +4,7 @@
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. Stack is processed in Interface.lua.
 
-local visibleStack, hasUIFocus = {}
+local frameStack, visibleStack, hasUIFocus = {}, {}
 
 local GameMenuFrame = GameMenuFrame
 local InCombatLockdown = InCombatLockdown
@@ -72,34 +72,37 @@ for _, node in pairs({
 -- Use callback to circumvent omitting frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
 local updateQueued = false
-
-local function FrameShow(self)
-	updateQueued = true
-	Callback(0.02, function()
-		visibleStack[self] = self:GetPoint() and self:IsVisible() and true or nil
-		if updateQueued then
-			updateQueued = false
-			ConsolePort:UpdateFrames()
-		end
-	end)
-end
+hooksecurefunc(getmetatable(ConsolePort).__index, "Show", function(self)
+	if frameStack[self] then
+		updateQueued = true
+		Callback(0.02, function()
+			visibleStack[self] = self:GetPoint() and self:IsVisible() and true or nil
+			if updateQueued then
+				updateQueued = false
+				ConsolePort:UpdateFrames()
+			end
+		end)
+	end
+end)
 
 -- Use callback to circumvent node jumping when closing multiple frames,
 -- which leads to the cursor ending up in an unexpected place on re-show.
 -- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
-local function FrameHide(self)
-	Callback(0.02, function()
-		hasUIFocus = nil
-		visibleStack[self] = nil
-		ConsolePort:UpdateFrames()
-	end)
-end
+hooksecurefunc(getmetatable(ConsolePort).__index, "Hide", function(self)
+	if frameStack[self] then
+		Callback(0.02, function()
+			hasUIFocus = nil
+			visibleStack[self] = nil
+			ConsolePort:UpdateFrames()
+		end)
+	end
+end)
+
 
 function ConsolePort:AddFrame(frame)
-	local widget = _G[frame]
+	local widget = (type(frame) == "string" and _G[frame]) or (type(frame) == "table" and frame)
 	if widget then
-		widget:HookScript("OnShow", FrameShow)
-		widget:HookScript("OnHide", FrameHide)
+		frameStack[widget] = true
 		if widget:IsVisible() and widget:GetPoint() then
 			visibleStack[widget] = true
 		end
@@ -107,6 +110,10 @@ function ConsolePort:AddFrame(frame)
 	else
 		self:AddFrameTracker(frame)
 	end
+end
+
+function ConsolePort:RemoveFrame(frame)
+	frameStack[frame] = nil
 end
 
 function ConsolePort:CheckLoadedAddons()

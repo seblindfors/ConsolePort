@@ -473,7 +473,18 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		local num = 1
 		radio.parent.Set = {}
 		for name, texture in pairsByKeys(triggers) do
-			local button = CreateFrame("CheckButton", "$parentTrigger"..i..name, Config, "UIRadioButtonTemplate")
+			local button = CreateFrame("CheckButton", "$parentTrigger"..i..name, Config)
+
+			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
+
+			button:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
+			button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
+			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
+
+			button:GetCheckedTexture():SetTexCoord(0, 1, 1, 0)
+			button:GetHighlightTexture():SetTexCoord(0, 1, 1, 0)
+			button:SetSize(32, 20)
+
 			button.num = num
 			button.set = radio.parent.Set
 			button.name = name

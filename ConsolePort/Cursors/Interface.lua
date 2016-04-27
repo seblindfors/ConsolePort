@@ -27,6 +27,7 @@ local FadeIn = db.UIFrameFadeIn
 ---------------------------------------------------------------
 local Callback = C_Timer.After
 local tinsert = tinsert
+local select = select
 local ipairs = ipairs
 local pairs = pairs
 local wipe = wipe
@@ -218,19 +219,9 @@ local function HasInteraction(node, object)
 	end
 end
 
-local function GetScrollFrame(node)
-	if node then
-		if node:IsObjectType("ScrollFrame") then
-			return node
-		else
-			return GetScrollFrame(node:GetParent())
-		end
-	end
-end
-
-----------
--- Scroll management
-----------
+---------------------------------------------------------------
+-- UIControl: Scroll management
+---------------------------------------------------------------
 local Scroll = CreateFrame("Frame")
 local hybridScroll = HybridScrollFrame_OnLoad
 
@@ -298,13 +289,12 @@ function Scroll:ScrollTo(node, scrollFrame)
 end
 ----------
 
-local function IsNodeDrawn(node)
+local function IsNodeDrawn(node, scrollFrame)
 	local x, y = node:GetCenter()
-	local scrollFrame = GetScrollFrame(node)
 	if 	x and x <= MAX_WIDTH and x >= 0 and
 		y and y <= MAX_HEIGHT and y >= 0 then
 		-- if the node is a scroll child and it's anchored inside the scroll frame
-		if scrollFrame and scrollFrame == GetScrollFrame(select(2, node:GetPoint())) then
+		if scrollFrame and select(2, node:GetPoint()) == scrollFrame then
 			local left, bottom, width, height = scrollFrame:GetRect()
 			if left and bottom and width and height then
 				if 	x > left and x < ( left + width + 20 ) and -- +20 padding to include sliders
@@ -318,26 +308,26 @@ local function IsNodeDrawn(node)
 	end
 end
 
-local function GetNodes(node)
+local function GetNodes(node, scrollFrame)
 	if node.ignoreNode then
 		return
 	end
 	local object = node:GetObjectType()
 	if 	not node.ignoreChildren then
 		for i, child in pairs({node:GetChildren()}) do
-			GetNodes(child)
+			GetNodes(child, object == "ScrollFrame" and node or scrollFrame)
 		end
 	end
-	if 	HasInteraction(node, object) and IsNodeDrawn(node) then
+	if 	HasInteraction(node, object) and IsNodeDrawn(node, scrollFrame) then
 		if node.hasPriority then
-			tinsert(nodes, 1, {node = node, object = object})
+			tinsert(nodes, 1, {node = node, object = object, scrollFrame = scrollFrame})
 		else
-			nodes[#nodes + 1] = {node = node, object = object}
+			nodes[#nodes + 1] = {node = node, object = object, scrollFrame = scrollFrame}
 		end
 	end
 end
 
-local CompFunc = {
+local dirComparators = {
 	[KEY.UP] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY > thisY) end,
 	[KEY.DOWN] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY < thisY) end,
 	[KEY.LEFT] 	= function(_, destX, vert, horz, thisX, _) return (vert < horz and destX < thisX) end,
@@ -346,8 +336,8 @@ local CompFunc = {
 
 local function FindClosestNode(key)
 	if current then
-		local CompFunc = CompFunc[key]
-		if CompFunc then
+		local dirComparator = dirComparators[key]
+		if dirComparator then
 			local destX, destY, vert, horz
 			local thisX, thisY = current.node:GetCenter()
 			local compH, compV = 10000, 10000 
@@ -355,7 +345,7 @@ local function FindClosestNode(key)
 				destX, destY = destination.node:GetCenter()
 				horz, vert = abs(thisX-destX), abs(thisY-destY)
 				if 	horz + vert < compH + compV and
-					CompFunc(destY, destX, vert, horz, thisX, thisY) then
+					dirComparator(destY, destX, vert, horz, thisX, thisY) then
 					compH = horz
 					compV = vert
 					current = destination
@@ -522,7 +512,7 @@ end
 ---------------------------------------------------------------
 -- UIControl: Node manipulation
 ---------------------------------------------------------------
-function ConsolePort:EnterNode(node, object, state)
+function ConsolePort:EnterNode(node, object, scrollFrame, state)
 	local scrollUp, scrollDown = GetScrollButtons(node)
 	if scrollUp and scrollDown then
 		OverrideScroll(Cursor, scrollUp, scrollDown)
@@ -530,7 +520,6 @@ function ConsolePort:EnterNode(node, object, state)
 		OverrideHorizontalScroll(Cursor, node)
 	end
 
-	local scrollFrame = GetScrollFrame(node)
 	if scrollFrame and not scrollFrame.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
 		Scroll:ScrollTo(node, scrollFrame)
 	end
@@ -588,7 +577,7 @@ function ConsolePort:CheckCurrentNode()
 		current = targetNode
 	end
 	if current and current ~= old then
-		self:EnterNode(current.node, current.object, KEY.STATE_UP)
+		self:EnterNode(current.node, current.object, current.scrollFrame, KEY.STATE_UP)
 	end
 end
 
@@ -655,7 +644,7 @@ function ConsolePort:UIControl(key, state)
 	end
 	local node = current and current.node
 	if node then
-		self:EnterNode(node, current.object, state)
+		self:EnterNode(node, current.object, current.scrollFrame, state)
 		Cursor:SetPosition(node)
 	end
 end
