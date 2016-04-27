@@ -416,6 +416,8 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	end
 	------------------------------------------------------------------------------------------------------------------------------
 
+	local red, green, blue = db.Atlas.GetCC()
+
 	Config.MultiChoiceModule = CreateFrame("Frame", nil, Config)
 	Config.MultiChoiceModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.MultiChoiceModule:SetPoint("BOTTOMLEFT", 8, 8)
@@ -476,7 +478,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
 
 			button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
-			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
+			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
 
 			button.Checked = button:GetCheckedTexture()
 			button.Highlight = button:GetHighlightTexture()
@@ -487,6 +489,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			button.Checked:ClearAllPoints()
 			button.Checked:SetPoint("CENTER", 0, 0)
 			button.Checked:SetSize(84, 8)
+			button.Checked:SetVertexColor(red, green, blue)
 
 			button.Highlight:ClearAllPoints()
 			button.Highlight:SetPoint("CENTER", 0, 0)
@@ -581,7 +584,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
 
 			button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
-			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
+			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
 
 			button.Checked = button:GetCheckedTexture()
 			button.Highlight = button:GetHighlightTexture()
@@ -592,6 +595,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			button.Checked:ClearAllPoints()
 			button.Checked:SetPoint("CENTER", 0, 0)
 			button.Checked:SetSize(84, 8)
+			button.Checked:SetVertexColor(red, green, blue)
 
 			button.Highlight:ClearAllPoints()
 			button.Highlight:SetPoint("CENTER", 0, 0)
@@ -607,8 +611,12 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			elseif i == 4 then
 				button.text = button:CreateTexture(nil, "OVERLAY")
 				button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
-				button.text:SetPoint("LEFT", button, "LEFT", 0, 0)
+				button.text:SetPoint("RIGHT", button, "LEFT", 8, 0)
 				button.text:SetSize(32, 32)
+
+				button:SetWidth(80)
+				button.Highlight:SetWidth(64)
+				button.Checked:SetWidth(64)		
 			end
 
 			button:SetPoint("TOP", radio.parent, "TOP", 0, -24*(num-1)-12)
