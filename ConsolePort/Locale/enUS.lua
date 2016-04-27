@@ -42,6 +42,8 @@ TUTORIAL = {
 		RIGHTCLICK 			= "Right Click / Mouse",
 		SHIFT 				= "Modifier 1 / Shift",
 		CTRL 				= "Modifier 2 / Ctrl",
+		TR1 				= "Trigger 1",
+		TR2 				= "Trigger 2",
 	},
 	MOUSE = {
 		STARTED_MOVING 		= "Player starts moving",
@@ -77,7 +79,7 @@ TUTORIAL = {
 		GENERALHEADER 		= "General settings",
 		INTERACTHEADER 		= "Interact button",
 		MOUSEHEADER 		= "Lock mouse cursor when...",
-		TRIGGERHEADER		= "Trigger textures (requires reload)",
+		TRIGGERHEADER		= "Trigger settings",
 		INTERACTCATCHER 	= "Click here to assign.",
 		INTERACTASSIGNED 	= "Assigned to\n|T%s:64:64:0:-8|t",
 		INTERACTCHECK 		= "Enable",

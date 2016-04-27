@@ -428,18 +428,16 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.Triggers = {}
 
 	local triggerGraphics = {
-		["Shift"] 	= {offset = -8, cvar = "shift"},
-		["Ctrl"] 	= {offset = 120-12, cvar = "ctrl"},
-		["1st"] 	= {offset = 240-14, cvar = "trigger1"},
-		["2nd"] 	= {offset = 360-16, cvar = "trigger2"},
+		[TUTORIAL.BIND.SHIFT] 	= {offset = 0, cvar = "shift"},
+		[TUTORIAL.BIND.CTRL] 	= {offset = 1, cvar = "ctrl"},
+		[TUTORIAL.BIND.TR1] 	= {offset = 2, cvar = "trigger1"},
+		[TUTORIAL.BIND.TR2] 	= {offset = 3, cvar = "trigger2"},
 	}
 
 	for name, info in pairs(triggerGraphics) do
 		local trigger = Config:CreateTexture("$parent"..name, "ARTWORK")
-		trigger:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
-		trigger:SetSize(76, 101)
-		trigger:SetTexCoord(0.154296875, 0.30078125, 0.80078125, 1)
-		trigger:SetPoint("TOPLEFT", Config.TriggerHeader, "TOPLEFT", info.offset, -24)
+		trigger:SetSize(76, 50)
+		trigger:SetPoint("TOPLEFT", Config.TriggerHeader, "TOPLEFT", info.offset * 110 + 38, -24)
 		trigger.AllSets = Config.Triggers
 		trigger.Value = Settings[info.cvar]
 		trigger.Cvar = info.cvar
@@ -447,7 +445,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		local triggerText = Config:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		triggerText:SetText(name)
 		triggerText:SetPoint("CENTER", trigger, 0, 20)
-		triggerText:SetTextColor(1, 0, 0, 1)
+		triggerText:SetTextColor(0.5, 0.5, 0.5)
 
 		tinsert(Config.Triggers, trigger)
 
@@ -463,10 +461,10 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	}
 
 	local radioButtons = {
-		{parent = Config["Shift"],	default = Settings.shift},
-		{parent = Config["Ctrl"], 	default = Settings.ctrl},
-		{parent = Config["1st"], 	default = Settings.trigger1},
-		{parent = Config["2nd"], 	default = Settings.trigger2},
+		{parent = Config[TUTORIAL.BIND.SHIFT],	default = Settings.shift},
+		{parent = Config[TUTORIAL.BIND.CTRL], 	default = Settings.ctrl},
+		{parent = Config[TUTORIAL.BIND.TR1], 	default = Settings.trigger1},
+		{parent = Config[TUTORIAL.BIND.TR2], 	default = Settings.trigger2},
 	}
 
 	for i, radio in pairs(radioButtons) do
@@ -477,23 +475,36 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
 
-			button:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
 			button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
 			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
 
-			button:GetCheckedTexture():SetTexCoord(0, 1, 1, 0)
-			button:GetHighlightTexture():SetTexCoord(0, 1, 1, 0)
-			button:SetSize(32, 20)
+			button.Checked = button:GetCheckedTexture()
+			button.Highlight = button:GetHighlightTexture()
+
+			button.Checked:SetTexCoord(0, 1, 1, 0)
+			button.Highlight:SetTexCoord(0, 1, 1, 0)
+
+			button.Checked:ClearAllPoints()
+			button.Checked:SetPoint("CENTER", 0, 0)
+			button.Checked:SetSize(84, 8)
+
+			button.Highlight:ClearAllPoints()
+			button.Highlight:SetPoint("CENTER", 0, 0)
+			button.Highlight:SetSize(84, 8)
+
+			button:SetSize(100, 20)
 
 			button.num = num
 			button.set = radio.parent.Set
 			button.name = name
 			button.parent = radio.parent
-			button.text = button:CreateTexture(nil, "OVERLAY")
-			button.text:SetTexture(texture)
-			button.text:SetPoint("CENTER", 24, 0)
-			button.text:SetSize(32, 32)
-			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", -3, -24*(num-1)-8)
+			if i == 1 then
+				button.text = button:CreateTexture(nil, "OVERLAY")
+				button.text:SetTexture(texture)
+				button.text:SetPoint("RIGHT", button, "LEFT", 0, 0)
+				button.text:SetSize(32, 32)
+			end
+			button:SetPoint("TOP", radio.parent, "TOP", 0, -24*(num-1)-12)
 			if name == radio.default then
 				radio.parent.Index = num
 				radio.parent.Value = name
@@ -523,7 +534,8 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	for i, info in pairs(clickGraphics) do
 		local click = Config:CreateTexture()
 		click:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
-		click:SetSize(76*0.75, 101*0.75)
+		click:SetSize(76, 101)
+		click:SetGradientAlpha("VERTICAL", 0, 0, 0, 0, 1, 1, 1, 0.5)
 		click:SetTexCoord(unpack(info.coords))
 
 		if info.name ~= "ScrollClick" then
@@ -531,12 +543,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 			tinsert(Config.ClickButtons, click)
 		end
 
-		local previous = Config.ClickButtons[i-1]
-		if previous then
-			click:SetPoint("LEFT", previous, "RIGHT", 60, 0)
-		else
-			click:SetPoint("TOPLEFT", Config.CursorHeader, "TOPLEFT", 0, -24)
-		end
+		click:SetPoint("TOPLEFT", Config.CursorHeader, "TOPLEFT", (i-1) * 110 + 38, -8)
 
 		Config[info.name] = click
 	end
@@ -564,19 +571,47 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		local num = 1
 		radio.parent.Set = {}
 		for name, texture in pairs(radio.selection) do
-			local button = CreateFrame("CheckButton", "ConsolePortVirtualClick"..i..num, Config, "UIRadioButtonTemplate")
+			local button = CreateFrame("CheckButton", "ConsolePortVirtualClick"..i..num, Config)
 
 			button.num = num
 			button.set = radio.parent.Set
 			button.name = name
 			button.parent = radio.parent
 
-			button.text = button:CreateTexture(nil, "OVERLAY")
-			button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
-			button.text:SetPoint("CENTER", 24, 0)
-			button.text:SetSize(32, 32)
+			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
 
-			button:SetPoint("TOPLEFT", radio.parent, "TOPRIGHT", 8, -24*(num-1))
+			button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
+			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
+
+			button.Checked = button:GetCheckedTexture()
+			button.Highlight = button:GetHighlightTexture()
+
+			button.Checked:SetTexCoord(0, 1, 1, 0)
+			button.Highlight:SetTexCoord(0, 1, 1, 0)
+
+			button.Checked:ClearAllPoints()
+			button.Checked:SetPoint("CENTER", 0, 0)
+			button.Checked:SetSize(84, 8)
+
+			button.Highlight:ClearAllPoints()
+			button.Highlight:SetPoint("CENTER", 0, 0)
+			button.Highlight:SetSize(84, 8)
+
+			button:SetSize(100, 20)
+
+			if i == 1 then
+				button.text = button:CreateTexture(nil, "OVERLAY")
+				button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
+				button.text:SetPoint("RIGHT", button, "LEFT", 0, 0)
+				button.text:SetSize(32, 32)
+			elseif i == 4 then
+				button.text = button:CreateTexture(nil, "OVERLAY")
+				button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
+				button.text:SetPoint("LEFT", button, "LEFT", 0, 0)
+				button.text:SetSize(32, 32)
+			end
+
+			button:SetPoint("TOP", radio.parent, "TOP", 0, -24*(num-1)-12)
 			if name == radio.default then
 				radio.parent.Index = num
 				radio.parent.Value = name
