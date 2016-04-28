@@ -72,7 +72,7 @@ for _, node in pairs({
 -- Use callback to circumvent omitting frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
 local updateQueued = false
-hooksecurefunc(getmetatable(ConsolePort).__index, "Show", function(self)
+local function showHook(self)
 	if frameStack[self] then
 		updateQueued = true
 		Callback(0.02, function()
@@ -83,12 +83,12 @@ hooksecurefunc(getmetatable(ConsolePort).__index, "Show", function(self)
 			end
 		end)
 	end
-end)
+end
 
 -- Use callback to circumvent node jumping when closing multiple frames,
 -- which leads to the cursor ending up in an unexpected place on re-show.
 -- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
-hooksecurefunc(getmetatable(ConsolePort).__index, "Hide", function(self)
+local function hideHook(self)
 	if frameStack[self] then
 		Callback(0.02, function()
 			hasUIFocus = nil
@@ -96,12 +96,28 @@ hooksecurefunc(getmetatable(ConsolePort).__index, "Hide", function(self)
 			ConsolePort:UpdateFrames()
 		end)
 	end
-end)
+end
 
+-- Store metatable functions for hooking show/hide on frames.
+-- Most frames will use the same standard Show/Hide, but addons 
+-- may use custom metatables for extra functionality. 
+local hookStack = {}
 
 function ConsolePort:AddFrame(frame)
 	local widget = (type(frame) == "string" and _G[frame]) or (type(frame) == "table" and frame)
 	if widget then
+		local mt = getmetatable(widget).__index
+
+		if not hookStack[mt.Show] then
+			hooksecurefunc(mt, "Show", showHook)
+			hookStack[mt.Show] = true
+		end
+
+		if not hookStack[mt.Hide] then
+			hooksecurefunc(mt, "Hide", hideHook)
+			hookStack[mt.Hide] = true
+		end
+
 		frameStack[widget] = true
 		if widget:IsVisible() and widget:GetPoint() then
 			visibleStack[widget] = true

@@ -46,9 +46,9 @@ end
 -- spell ID as key and spell book slot as value.
 
 -- Attributes headers can use:
--- _spellupdate: a snippet that fires after the spell update.
--- _spellusable: filter out passives/spells that can't be used.
--- _spellsorted: sort spellIDs by bookID, omit bookID.
+-- spellupdate: a snippet that fires after the spell update.
+-- spellusable: filter out passives/spells that can't be used.
+-- spellsorted: sort spellIDs by bookID, omit bookID.
 
 local Headers = {}
 
@@ -84,8 +84,8 @@ function ConsolePort:UpdateSecureSpellbook()
 					SPELLS = newtable()
 				end
 			]])
-			local sorted = header:GetAttribute("_spellsorted")
-			local usable = header:GetAttribute("_spellusable")
+			local sorted = header:GetAttribute("spellsorted")
+			local usable = header:GetAttribute("spellusable")
 			if sorted then
 				for name, spellID in spairs(spellsByName) do
 					if (not usable) or (usable and not IsPassiveSpell(spellsByID[spellID], "spell")) then
@@ -103,11 +103,72 @@ function ConsolePort:UpdateSecureSpellbook()
 					end
 				end
 			end
-			local postUpdateSnippet = header:GetAttribute("_spellupdate")
+			local postUpdateSnippet = header:GetAttribute("spellupdate")
 			if postUpdateSnippet then
 				header:Execute(postUpdateSnippet)
 			end
 		end
 		self:RemoveUpdateSnippet(self.UpdateSecureSpellbook)
+	end
+end
+
+---------------------------------------------------------------
+-- This is a wrapper for securely changing action page on 
+-- multiple headers, instead of repeating the page update for
+-- each of the individual and specialized headers.
+
+-- Attributes headers can use:
+-- pageupdate: a snippet that fires after the page update.
+-- force-pageupdate: a snippet that forces a page update.
+
+-- Value changed:
+-- PAGE: global variable available inside each registered header.
+
+function ConsolePort:RegisterActionPage(header)
+	if not InCombatLockdown() then
+		local currentPage, actionpage = self:GetActionPageState()
+		RegisterStateDriver(header, "actionpage", actionpage)
+		header:SetFrameRef("ActionBar", MainMenuBarArtFrame)
+		header:SetFrameRef("OverrideBar", OverrideActionBar)
+		header:SetAttribute("pagedriver", actionpage)
+		header:SetAttribute("force-pageupdate", [[
+			self:RunAttribute("updateactionpage", SecureCmdOptionParse(self:GetAttribute("pagedriver")))
+		]])
+		header:SetAttribute("_onstate-actionpage", [[
+			self:RunAttribute("updateactionpage", newstate)
+		]])
+		header:SetAttribute("updateactionpage", [[
+			PAGE = ...
+			if PAGE == "temp" then
+				if HasTempShapeshiftActionBar() then
+					PAGE = GetTempShapeshiftBarIndex()
+				else
+					PAGE = 1
+				end
+			elseif PAGE and PAGE == "possess" then
+				PAGE = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
+				if PAGE <= 10 then
+					PAGE = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
+				end
+				if PAGE <= 10 then
+					PAGE = 12
+				end
+			end
+			if self:GetAttribute("pageupdate") then
+				self:RunAttribute("pageupdate", PAGE)
+			end
+		]])
+		header:Execute(header:GetAttribute("force-pageupdate"))
+	end
+end
+
+function ConsolePort:UnregisterActionPage(header)
+	-- scrub the header from action page updating
+	if not InCombatLockdown() then
+		UnregisterStateDriver(header, "actionpage")
+		header:SetAttribute("pagedriver", nil)
+		header:SetAttribute("force-pageupdate", nil)
+		header:SetAttribute("updateactionpage", nil)
+		header:SetAttribute("_onstate-actionpage", nil)
 	end
 end

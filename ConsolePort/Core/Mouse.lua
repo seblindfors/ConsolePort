@@ -144,7 +144,7 @@ MouseHandle:Execute([[
 
 		local interact = false
 
-		if Target ~= "hover" and (Target == "enemy" or Target == "friend") then
+		if Target ~= "hover" and ( Target == "enemy" or Target == "friend" ) then
 			local id = ID >= 0 and ID <= 12 and (PAGE-1) * 12 + ID or ID >= 0 and ID
 			if id then
 				local actionType, actionID, subType = GetActionInfo(id)
@@ -154,11 +154,9 @@ MouseHandle:Execute([[
 					local helpful = spellBookID and IsHelpfulSpell(spellBookID, subType)
 					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
 
-					if not helpful and not harmful then
-						self:ClearBindings()
-					elseif Target == "friend" and helpful then
-						self:ClearBindings()
-					elseif Target == "enemy" and harmful then
+					if 	( not helpful and not harmful ) or
+						( Target == "friend" and helpful ) or
+						( Target == "enemy" and harmful ) then
 						self:ClearBindings()
 					end
 				end
@@ -169,12 +167,6 @@ MouseHandle:Execute([[
 			interact = true
 		end
 
-		-- if Target == "hover" then
-		-- 	self:SetBindingClick(true, "SHIFT-BUTTON1", Focus, "LeftButton")
-		-- else
-		-- 	self:ClearBinding("SHIFT-BUTTON1")
-		-- end
-
 		if interact and USE then
 			local key = GetBindingKey(USE)
 			if key then
@@ -183,31 +175,10 @@ MouseHandle:Execute([[
 		end
 	]=]
 
-	UpdateActionPage = [=[
-		PAGE = ...
-		if PAGE == "temp" then
-			if HasTempShapeshiftActionBar() then
-				PAGE = GetTempShapeshiftBarIndex()
-			else
-				PAGE = 1
-			end
-		elseif PAGE == "possess" then
-			PAGE = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
-			if PAGE <= 10 then
-				PAGE = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
-			end
-			if PAGE <= 10 then
-				PAGE = 12
-			end
-		end
-	]=]
-
 	UpdateAttribute = [=[
 		local attribute, value = ...
 		if attribute == "state-targetstate" then
 			self:Run(UpdateTarget, value)
-		elseif attribute == "state-actionpage" then
-			self:Run(UpdateActionPage, value)
 		elseif attribute == "override" then
 			IsEnabled = value
 			if not IsEnabled then
@@ -313,7 +284,6 @@ end
 function ConsolePort:UpdateStateDriver()
 	if not InCombatLockdown() then
 		if db.Settings.interactWith then
-			local currentPage, actionpage = self:GetActionPageState()
 			local button = db.Settings.interactWith
 			local original = db.Bindings and db.Bindings[button] and db.Bindings[button].action
 			local id = original and self:GetActionID(original)
@@ -331,20 +301,18 @@ function ConsolePort:UpdateStateDriver()
 			CursorTrail:SetScript("OnUpdate", CursorTrailUpdate)
 			CursorTrail:Show()
 
-			RegisterStateDriver(MouseHandle, "actionpage", actionpage)
 			RegisterStateDriver(MouseHandle, "targetstate", targetstate)
-			MouseHandle:SetAttribute("actionpage", currentPage)
 			MouseHandle:SetAttribute("target", currentTarget)
+
+			self:RegisterSpellbook(MouseHandle)
+			self:RegisterActionPage(MouseHandle)
+
 			MouseHandle:Execute(format([[
 				USE = "%s"
 				ID = %d
-				self:Run(UpdateActionPage, self:GetAttribute("actionpage"))
 				self:Run(UpdateTarget, self:GetAttribute("target"))
-				self:SetAttribute("actionpage", nil)
 				self:SetAttribute("target", nil)
 			]], button, id or -1))
-
-			self:RegisterSpellbook(MouseHandle)
 		else
 			CursorTrail:SetScript("OnUpdate", nil)
 			CursorTrail:Hide()
@@ -353,9 +321,10 @@ function ConsolePort:UpdateStateDriver()
 				self:ClearBindings()
 			]])
 
-			UnregisterStateDriver(MouseHandle, "actionpage")
 			UnregisterStateDriver(MouseHandle, "targetstate")
+
 			self:UnregisterSpellbook(MouseHandle)
+			self:UnregisterActionPage(MouseHandle)
 		end
 		self:RemoveUpdateSnippet(self.UpdateStateDriver)
 	end

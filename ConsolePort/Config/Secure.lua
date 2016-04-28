@@ -21,42 +21,15 @@ function ConsolePort:CreateButtonHandler()
 	local ButtonHandler = CreateFrame("Frame", "ConsolePortButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
 	ButtonHandler:Execute([[
 		SecureButtons = newtable()
-		UpdateActionPage = [=[
-			local page = ...
-			if page == "temp" then
-				if HasTempShapeshiftActionBar() then
-					page = GetTempShapeshiftBarIndex()
-				else
-					page = 1
-				end
-			elseif page == "possess" then
-				page = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
-				if  page <= 10 then
-					page = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
-				end
-				if  page <= 10 then
-					page = 12
-				end
-			end
-			self:SetAttribute("actionpage", page)
-			for btn in pairs(SecureButtons) do
-				btn:SetAttribute("actionpage", page)
-			end
-		]=]
 	]])
-	ButtonHandler:SetFrameRef("ActionBar", MainMenuBarArtFrame)
-	ButtonHandler:SetFrameRef("OverrideBar", OverrideActionBar)
-
-	local now, state = self:GetActionPageState()
-
-	ButtonHandler:SetAttribute("actionpage", now)
-	RegisterStateDriver(ButtonHandler, "page", state)
-	ButtonHandler:Execute([[
-		self:Run(UpdateActionPage, self:GetAttribute("actionpage"))
+	ButtonHandler:SetAttribute("pageupdate", [[
+		local page = ...
+		self:SetAttribute("actionpage", page)
+		for btn in pairs(SecureButtons) do
+			btn:SetAttribute("actionpage", page)
+		end
 	]])
-	ButtonHandler:SetAttribute("_onstate-page", [=[
-		self:Run(UpdateActionPage, newstate)
-	]=])
+	self:RegisterActionPage(ButtonHandler)
 	self.CreateButtonHandler = nil
 end
 

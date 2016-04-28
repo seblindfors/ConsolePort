@@ -249,12 +249,12 @@ SpellWheel:Execute([[
 	Add.LEFT 	= "UP"
 	---------------------------------------------------------------
 ]])
-SpellWheel:SetAttribute("_spellupdate", [[
+SpellWheel:SetAttribute("spellupdate", [[
 	self:SetAttribute("position", -1)
 	self:SetAttribute("spellpos", #SPELLS - 10)
 ]])
-SpellWheel:SetAttribute("_spellusable", true)
-SpellWheel:SetAttribute("_spellsorted", true)
+SpellWheel:SetAttribute("spellusable", true)
+SpellWheel:SetAttribute("spellsorted", true)
 ConsolePort:RegisterSpellbook(SpellWheel)
 
 function SpellWheel:OnAttributeChanged(attribute, detail)

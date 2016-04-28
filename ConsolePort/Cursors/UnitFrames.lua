@@ -43,9 +43,6 @@ local Key = {
 	Right 	= ConsolePort:GetUIControlKey("CP_L_RIGHT"),
 }
 ---------------------------------------------------------------
-Cursor:SetFrameRef("ActionBar", MainMenuBarArtFrame)
-Cursor:SetFrameRef("OverrideBar", OverrideActionBar)
----------------------------------------------------------------
 local SetFocus = CreateFrame("Button", "$parentFocus", Cursor, "SecureActionButtonTemplate")
 SetFocus:SetAttribute("type", "focus")
 Cursor:SetFrameRef("SetFocus", SetFocus)
@@ -54,6 +51,7 @@ local SetTarget = CreateFrame("Button", "$parentTarget", Cursor, "SecureActionBu
 SetTarget:SetAttribute("type", "target")
 Cursor:SetFrameRef("SetTarget", SetTarget)
 ---------------------------------------------------------------
+ConsolePort:RegisterActionPage(Cursor)
 Cursor:Execute(format([[
 	ALL = newtable()
 	DPAD = newtable()
@@ -282,7 +280,7 @@ Cursor:Execute([[
 				self:Run(GetNodes)
 			end
 		end
-		self:Run(UpdateActionPage, SecureCmdOptionParse(self:GetAttribute("driver")))
+		self:RunAttribute("force-pageupdate")
 	]=]
 	ToggleCursor = [=[
 		if IsEnabled then
@@ -310,28 +308,6 @@ Cursor:Execute([[
 			self:Hide()
 		end
 	]=]
-	UpdateActionPage = [=[
-		PAGE = ...
-		if PAGE == "temp" then
-			if HasTempShapeshiftActionBar() then
-				PAGE = GetTempShapeshiftBarIndex()
-			else
-				PAGE = 1
-			end
-		elseif PAGE and PAGE == "possess" then
-			PAGE = MainBar:GetAttribute("actionpage") or 1
-			if PAGE <= 10 then
-				PAGE = OverrideBar:GetAttribute("actionpage") or 12
-			end
-			if PAGE <= 10 then
-				PAGE = 12
-			end
-		end
-		if IsEnabled then
-			self:Run(SelectNode, 0)
-		end
-		self:Run(RefreshActions)
-	]=]
 	UpdateUnitExists = [=[
 		local exists = ...
 		if not exists then
@@ -339,7 +315,13 @@ Cursor:Execute([[
 		end
 	]=]
 ]])
-Cursor:SetAttribute("_spellupdate", [[
+Cursor:SetAttribute("pageupdate", [[
+	if IsEnabled then
+		self:Run(SelectNode, 0)
+	end
+	self:Run(RefreshActions)
+]])
+Cursor:SetAttribute("spellupdate", [[
 	CurrentNode = MainBar
 	self:Run(GetNodes)
 
@@ -384,12 +366,7 @@ for name, button in pairs(buttons) do
 	]], button.binding, name))
 end
 ---------------------------------------------------------------
-local currentPage, actionpage = ConsolePort:GetActionPageState()
-RegisterStateDriver(Cursor, "actionpage", actionpage)
-Cursor:SetAttribute("driver", actionpage)
-Cursor:SetAttribute("_onstate-actionpage", "self:Run(UpdateActionPage, newstate)")
 Cursor:SetAttribute("_onstate-unitexists", "self:Run(UpdateUnitExists, newstate)")
-Cursor:SetAttribute("actionpage", currentPage)
 ---------------------------------------------------------------
 
 function ConsolePort:SetupRaidCursor()
