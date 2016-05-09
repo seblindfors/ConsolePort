@@ -5,20 +5,31 @@
 -- crucial action, the UI cursor will automatically move to
 -- a popup when it is shown. StaticPopup1 has first priority.
 
-local popupFrames = {
-	StaticPopup1,
-	StaticPopup2,
-	StaticPopup3,
-	StaticPopup4
+local oldNode
+
+local popups = {
+	[StaticPopup1] = false,
+	[StaticPopup2] = StaticPopup1,
+	[StaticPopup3] = StaticPopup2,
+	[StaticPopup4] = StaticPopup3,
 }
 
-for i, Popup in pairs(popupFrames) do
+for Popup, previous in pairs(popups) do
 	Popup:HookScript("OnShow", function(self)
 		self:EnableKeyboard(false)
 		if not InCombatLockdown() then
-			if not popupFrames[i-1] or popupFrames[i-1] and not popupFrames[i-1]:IsVisible() then
+			if not popups[previous] or ( popups[previous] and not popups[previous]:IsVisible() ) then
+				local current = ConsolePort:GetCurrentNode()
+				if current and not popups[current:GetParent()] then
+					oldNode = current
+				end
 				ConsolePort:SetCurrentNode(self.button1)
 			end
+		end
+	end)
+	Popup:HookScript("OnHide", function(self)
+		if not InCombatLockdown() and oldNode then
+			ConsolePort:SetCurrentNode(oldNode)
 		end
 	end)
 end

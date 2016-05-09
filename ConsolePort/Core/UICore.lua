@@ -194,3 +194,11 @@ function ConsolePort:GetFrameStack()
 		return visibleStack
 	end
 end
+
+function ConsolePort:IsFrameVisible(...)
+	for i, frame in pairs({...}) do
+		if visibleStack[frame] then
+			return true
+		end
+	end
+end 

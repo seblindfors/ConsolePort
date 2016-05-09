@@ -75,7 +75,7 @@ TUTORIAL = {
 	},
 	CONFIG = {
 		VIRTUALCURSOR 		= "Interface cursor settings",
-		ACTIONBARHEADER		= "Action bars",
+		ACTIONBARHEADER		= "Hotkey style",
 		GENERALHEADER 		= "General settings",
 		INTERACTHEADER 		= "Interact button",
 		MOUSEHEADER 		= "Lock mouse cursor when...",
@@ -136,7 +136,7 @@ TUTORIAL = {
 		BINDS 				= "Open binding menu",
 		WARNINGCOMBATLOGIN 	= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You reloaded your interface in combat.\nLeave combat to complete initialization.",
 		CRITICALUPDATE		= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?",
-		NEWCONTROLLER 		= "|cffffe00a[ConsolePort]|r\nYou have loaded a new controller profile. Would you like to load the default button bindings for this controller?",
+		NEWCONTROLLER 		= "|cffffe00a[ConsolePort]|r\nYou have loaded a new controller profile. Would you like to load the default bindings for this controller?",
 		NEWCHARACTER 		= "|cffffe00a[ConsolePort]|r\nWould you like to load the default button bindings for your controller?",
 	}
 },

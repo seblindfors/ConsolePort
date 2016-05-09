@@ -122,7 +122,7 @@ Bar:SetWidth(#Bar.Buttons > 10 and (10 * 110) + 55 or (#Bar.Buttons * 110) + 55)
 Bar:SetAttribute("page", 1)
 
 
-
+-- this was stolen from Bartender4
 function Bar:HideBlizzard()
 	-- Hidden parent frame
 	local UIHider = CreateFrame("Frame")
@@ -215,6 +215,7 @@ function Bar:HideBlizzard()
 			self:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuPushed")
 		end
  	end)
+
 	hooksecurefunc(MainMenuMicroButton, "SetPoint", function(self, anchor, xoff, yoff)
 		if not InCombatLockdown() then
 			if anchor ~= "TOP" or xoff ~= 0 or yoff ~= -16 then
@@ -282,13 +283,6 @@ Bar.BG:SetPoint("BOTTOMRIGHT", Bar, "BOTTOMRIGHT", -16, 16)
 Bar.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
 Bar.BG:SetBlendMode("ADD")
 
-Bar.TopLine = Bar:CreateTexture(nil, "BORDER")
-Bar.TopLine:SetTexture("Interface\\LevelUp\\LevelUpTex")
-Bar.TopLine:SetTexCoord(0.00195313, 0.81835938, 0.00195313, 0.01562500)
-Bar.TopLine:SetHeight(7)
-Bar.TopLine:SetPoint("TOPLEFT", 0, -9)
-Bar.TopLine:SetPoint("TOPRIGHT", 0, -9)
-Bar.TopLine:SetVertexColor(red, green, blue, 1)
 
 Bar.BottomLine = Bar:CreateTexture(nil, "BORDER")
 Bar.BottomLine:SetTexture("Interface\\LevelUp\\LevelUpTex")
@@ -300,6 +294,7 @@ Bar.BottomLine:SetVertexColor(red, green, blue, 1)
 
 
 Bar.BG:SetVertexColor(red, green, blue, 0.25)
+Bar.BG:SetGradientAlpha("VERTICAL", red, green, blue, 0.5, red, green, blue, 0)
 
 Bar:SetHeight(170)
 

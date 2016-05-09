@@ -6,22 +6,18 @@
 -- The system converts one static binding for each button
 -- into four combinations (no mod, shift, ctrl, shift+ctrl)
 -- which then run override bindings that perish on logout.
--- 
--- This system is somewhat nonsensical, because it's fundamental
--- to the addon's functionality, but constructed poorly due to
--- limited lua knowledge at the time of original conceptualization.
 
 local _, db = ...
 local KEY = db.KEY
 local TUTORIAL = db.TUTORIAL.BIND
 local TEXTURE = db.TEXTURE
 
-local CONF				= "_CONF"
-local NOMOD				= "_NOMOD"
-local SHIFT				= "_SHIFT"
-local CTRL				= "_CTRL"
-local CTRLSH			= "_CTRLSH"
-local BIND 				= "BINDING_NAME_"
+local CONF		= "_CONF"
+local NOMOD		= "_NOMOD"
+local SHIFT		= "_SHIFT"
+local CTRL		= "_CTRL"
+local CTRLSH	= "_CTRLSH"
+local BIND 		= "BINDING_NAME_"
 
 local NewBindingSet
 local NewUIBindingRefs
@@ -143,6 +139,10 @@ local function SubmitBindings()
 	if 	NewBindingSet or NewUIBindingRefs then
 		db.Bindings = NewBindingSet or db.Bindings
 		db.Bindbtns = NewUIBindingRefs or db.Bindbtns
+
+		NewBindingSet = nil
+		NewUIBindingRefs = nil
+
 		ConsolePortBindingSet = db.Bindings
 		ConsolePortBindingButtons = db.Bindbtns
 		ReloadBindings()
