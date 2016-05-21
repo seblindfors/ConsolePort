@@ -1,6 +1,8 @@
 ---------------------------------------------------------------
--- Map.lua: Map nodes and relevant scripts for UI cursor
+-- Map.lua: Nodes and relevant scripts for UI cursor
 ---------------------------------------------------------------
+
+---- World map nodes:
 -- Since the map is one big button with an update script,
 -- the map is scanned pixel by pixel for zone information which
 -- is then used to generate nodes that can be targeted by the
@@ -9,7 +11,7 @@
 -- Nodes are recycled and never exceed visible zones.
 
 local zones = {}
-local nodes = {}
+local mapNodes = {}
 local node
 
 local function UpdateMap(self)
@@ -60,29 +62,29 @@ local function LeaveNode(self)
 	node = nil
 end
 
-local function ClickNode(self)
+local function ClickMapNode(self)
 	ProcessMapClick(self.info.X, self.info.Y)
 end
 
-local function CreateNode()
-	local node = CreateFrame("Button", "MapNode"..#nodes+1, WorldMapScrollFrame)
+local function CreateMapNode()
+	local node = CreateFrame("Button", "MapNode"..#mapNodes+1, WorldMapScrollFrame)
 	node:SetScript("OnEnter", EnterNode)
 	node:SetScript("OnLeave", LeaveNode)
-	node:SetScript("OnClick", ClickNode)
+	node:SetScript("OnClick", ClickMapNode)
 	node:SetSize(4,4)
-	tinsert(nodes, node)
+	mapNodes[#mapNodes + 1] = node
 	return node
 end
 
-local function DrawNodes()
+local function DrawMapNodes()
 	local count = 0
-	for i, node in pairs(nodes) do
+	for i, node in pairs(mapNodes) do
 		node:Hide()
 	end
 	for name, info in pairs(zones) do
 		count = count + 1
 
-		local node = nodes[count] or CreateNode()
+		local node = mapNodes[count] or CreateMapNode()
 		local width, height = WorldMapScrollFrame:GetSize()
 		node.name = name
 		node.info = info
@@ -116,7 +118,9 @@ function ConsolePort:GetMapNodes()
 			end
 		end
 	end
-	DrawNodes()
+	DrawMapNodes()
 end
 
 WorldMapButton:HookScript("OnUpdate", UpdateMap)
+
+

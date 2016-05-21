@@ -85,19 +85,22 @@ TUTORIAL = {
 		INTERACTCHECK 		= "Enable",
 		INTERACTDESC 		= "Used to interact when you don't have a valid target.\nChanges behaviour depending on original action.",
 		MOUSEOVERMODE 		= "Always interact with mouseover",
+		-----------------------------------------------------------
 		MOUSEDRIFTING 		= "Prevent mouse cursor from drifting off screen",
-		CLICKTOMOVE 		= "Click-to-move / move to target on interaction",
+		ACTIONCAM 			= "Use action camera",
 		TURNMOVE 			= "Turn instead of strafe when mouse look is off",
 		DOUBLEMODTAP 		= "Double tap |T%s:32:32:0:0|t or |T%s:32:32:0:0|t to toggle mouse cursor",
-		DISABLEMOUSE 		= "Disable smart mouse behaviour",
+		DISABLEMOUSE 		= "Disable automatic mouse behaviour",
 		AUTOEXTRA 			= "Auto bind items from tracked quests",
 		FASTCAM 			= "Fast camera zooming",
 		AUTOLOOT 			= "Force auto loot in combat",
+		-----------------------------------------------------------
 		CONTROLLER 			= "Change controller",
 		BINDRESET 			= "Calibrate controller",
 		FULLRESET 			= "Reset all settings",
 		CONFIRMRESET 		= "Are you sure?",
 		SHOWSLASH 			= "Slash commands",
+		-----------------------------------------------------------
 		SAVE 				= "Save settings",
 		APPLY 				= "Apply",
 		CANCEL 				= "Cancel",
@@ -105,6 +108,7 @@ TUTORIAL = {
 		DEFAULTHEADER 		= "Reset settings",
 		DEFAULTTHIS			= "Reset these settings",
 		DEFAULTALL			= "Reset all settings",
+		-----------------------------------------------------------
 		KEYBOARDLANG 		= "Language templates:",
 	},
 	SETUP = {

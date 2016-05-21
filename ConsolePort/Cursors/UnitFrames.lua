@@ -560,10 +560,10 @@ function Cursor:UpdateUnit(unit)
 		if self.color then
 			local red, green, blue = self.color.r, self.color.g, self.color.b
 			self.Health:SetVertexColor(red, green, blue)
-			self.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+			self.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 		else
 			self.Health:SetVertexColor(0.5, 0.5, 0.5)
-			self.Spell:SetLight(1, 0, 0, 0, 120, 1, 1, 1, 1, 100, 1, 1, 1)
+			self.Spell:SetLight(true, false, 0, 0, 120, 1, 1, 1, 1, 100, 1, 1, 1)
 		end
 	end
 	SetPortraitTexture(self.UnitPortrait, self.unit)

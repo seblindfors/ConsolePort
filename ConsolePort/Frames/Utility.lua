@@ -32,13 +32,7 @@ local OldIndex = 0
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
-local QUEST = select(10, GetAuctionItemClasses())
----------------------------------------------------------------
-local UI_SCALE = UIParent:GetScale()
----------------------------------------------------------------
-UIParent:HookScript("OnSizeChanged", function(self)
-	UI_SCALE = self:GetScale()
-end)
+local QUEST =  "Quest" -- temp fix --select(10, GetAuctionItemClasses())
 ---------------------------------------------------------------
 
 local function AnimateNewAction(self, actionButton, autoAssigned)
@@ -55,8 +49,8 @@ local function AnimateNewAction(self, actionButton, autoAssigned)
 	end
 	local x, y = actionButton:GetCenter()
 	self.Icon:SetTexture(actionButton.icon.texture)
-	self.Spell:SetSize(175 / UI_SCALE, 175 / UI_SCALE)
-	self.Spell:SetPoint("CENTER", self.Icon, "BOTTOMLEFT", 48, 44 / UI_SCALE)
+	self.Spell:SetSize(175, 175)
+	self.Spell:SetPoint("CENTER", self.Icon, "BOTTOMLEFT", 48, 44)
 	self:ClearAllPoints()
 	self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
 	self:SetSize(120, 120)
@@ -86,7 +80,7 @@ Animation.Scale:SetScale(76/120, 76/120)
 Animation.Scale:SetDuration(0.5)
 Animation.Scale:SetSmoothing("IN")
 Animation.Scale:SetOrder(1)
-Animation.Fade:SetChange(-1)
+--Animation.Fade:SetChange(-1)
 Animation.Fade:SetSmoothing("OUT")
 Animation.Fade:SetOrder(2)
 Animation.Fade:SetStartDelay(3)
@@ -116,11 +110,12 @@ Animation.Spell:SetPoint("CENTER", Animation.Icon, "CENTER", 0, 14)
 Animation.Spell:SetSize(256, 256)
 Animation.Spell:SetAlpha(0.25)
 Animation.Spell:SetDisplayInfo(42486)
-Animation.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+Animation.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 ---------------------------------------------------------------
 Animation.ShowNewAction = AnimateNewAction
 Animation.Group:SetScript("OnFinished", AnimateOnFinished)
 ---------------------------------------------------------------
+function Utility:AnimateNew(button) print(button) Animation:ShowNewAction(_G[button], true) end
 
 local function AddAction(actionType, ID, autoAssigned)
 	ID = tonumber(ID) or ID
@@ -194,7 +189,7 @@ Utility.Spell:SetPoint("CENTER", 0, 0)
 Utility.Spell:SetSize(175, 175)
 Utility.Spell:SetAlpha(0)
 Utility.Spell:SetDisplayInfo(42486)
-Utility.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+Utility.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 Utility.Spell:Hide()
 ---------------------------------------------------------------
 Utility.Tooltip = Tooltip
@@ -243,7 +238,7 @@ Utility:HookScript("OnAttributeChanged", function(self, attribute, detail)
 
 			self.Spell:Show()
 			self.Spell:ClearAllPoints()
-			self.Spell:SetPoint("CENTER", ActionButtons[detail], "BOTTOMLEFT", 23, 27 / UI_SCALE)
+			self.Spell:SetPoint("CENTER", ActionButtons[detail], "BOTTOMLEFT", 23, 27)
 			FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.15)
 		else
 			self.Gradient:SetAlpha(0)
@@ -259,7 +254,7 @@ Utility:HookScript("OnAttributeChanged", function(self, attribute, detail)
 	end
 end)
 Utility:HookScript("OnShow", function(self)
-	self.Spell:SetSize(175 / UI_SCALE, 175 / UI_SCALE)
+	self.Spell:SetSize(175, 175)
 	Animation:Hide()
 end)
 Utility:HookScript("OnHide", function(self)
@@ -272,6 +267,9 @@ Utility:HookScript("OnHide", function(self)
 	self.Spell:Hide()
 end)
 Utility:Execute([[
+	Utility = self
+	---------------------------------------------------------------
+	BUTTONS = newtable()
 	---------------------------------------------------------------
 	KEYS = newtable()
 	---------------------------------------------------------------
@@ -320,20 +318,19 @@ Utility:Execute([[
 
 	CursorUpdate = [=[
 		local hasItem = ...
-		local children = newtable(self:GetChildren())
 		if hasItem then
 			self:Show()
-			for _, child in pairs(children) do
-				if child:IsProtected() and not child:GetAttribute("type") then
-					child:Show()
-					child:SetAlpha(0.5)
+			for _, button in pairs(BUTTONS) do
+				if button:IsProtected() and not button:GetAttribute("type") then
+					button:Show()
+					button:SetAlpha(0.5)
 				end
 			end
 		elseif not hasItem and not TOGGLED then
 			self:Hide() 
-			for _, child in pairs(children) do
-				if not child:GetAttribute("type") then
-					child:Hide()
+			for _, button in pairs(BUTTONS) do
+				if not button:GetAttribute("type") then
+					button:Hide()
 				end
 			end
 		end
@@ -385,29 +382,30 @@ end)
 ---------------------------------------------------------------
 UseUtility:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
 UseUtility:SetFrameRef("Utility", Utility)
-UseUtility:SetAttribute("type", "macro")
 Utility:WrapScript(UseUtility, "OnClick", [[
-	local Utility = self:GetFrameRef("Utility")
 	Utility:Run(UseUtility, down)
 	if down then
-		self:SetAttribute("macrotext", nil)
+		self:SetAttribute("type", nil)
 	else
-		local button = Utility:GetFrameRef(tostring(INDEX))
+		local button = BUTTONS[INDEX]
 		if button then
-			self:SetAttribute("macrotext", "/click "..button:GetName().." LeftButton")
+			local actionType = button:GetAttribute("type")
+			local id = actionType and button:GetAttribute(actionType)
+			if id then
+				self:SetAttribute("type", actionType)
+				self:SetAttribute(actionType, id)
+			end
 		else
-			self:SetAttribute("macrotext", nil)
+			self:SetAttribute("type", nil)
 		end
 	end
 ]])
 Utility:WrapScript(UseUtility, "OnDoubleClick", [[
-	local Utility = self:GetFrameRef("Utility")
 	Utility:Run(UseUtility, true)
 	Utility:Run(CursorUpdate, true)
 ]])
 GameMenuButtonController:SetFrameRef("Utility", Utility)
 Utility:WrapScript(GameMenuButtonController, "OnClick", [[
-	local Utility = self:GetFrameRef("Utility")
 	Utility:Run(UseUtility, nil)
 ]])
 ---------------------------------------------------------------
@@ -430,7 +428,6 @@ for direction, keys in pairs(buttons) do
 		local button = CreateFrame("Button", "ConsolePortUtilityButton"..key, Utility, "SecureActionButtonTemplate")
 		button:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
 		Utility:WrapScript(button, "OnClick", format([[
-			local Utility = self:GetParent()
 			Utility:Run(OnKey, "%s", down)
 		]], direction))
 	end
@@ -493,6 +490,8 @@ local function ActionButtonGetTexture(self, actionType, actionValue)
 			texture = select(3, GetSpellInfo(actionValue))
 		elseif actionType == "macro" then
 			texture = select(2, GetMacroInfo(actionValue))
+		elseif actionType == "action" then
+			texture = GetActionTexture(actionValue)
 		end
 	end
 	if texture then
@@ -620,6 +619,17 @@ local function ActionButtonOnUpdate(self, elapsed)
 			else
 				self.Count:SetText()
 			end
+		elseif actionType == "action" then
+			local actionID = self:GetAttribute("action")
+			if actionID then
+				local time, cooldown = GetActionCooldown(actionID)
+				if time and cooldown then
+					self.cooldown:SetCooldown(time, cooldown)
+					self.cooldown:SetSwipeColor(0.17, 0, 0)
+				else
+					self.cooldown:SetCooldown(0, 0)
+				end
+			end
 		end
 		if self.HasFocus then
 			self.Idle = self.Idle + self.Timer
@@ -725,6 +735,7 @@ for i=1, NUM_BUTTONS do
 	ActionButton:HookScript("OnUpdate", ActionButtonOnUpdate)
 
 	Utility:SetFrameRef(tostring(i), ActionButton)
+	Utility:Execute(format([[ BUTTONS[%d] = self:GetFrameRef("%d")]], i, i))
 	tinsert(ActionButtons, ActionButton)
 end
 
@@ -760,3 +771,35 @@ function ConsolePort:SetupUtilityBelt()
 		self:RemoveUpdateSnippet(self.SetupUtilityBelt)
 	end
 end
+
+-- Extra action button
+Utility:WrapScript(ExtraActionButton1, "OnShow", [[
+	local extraID = self:GetAttribute("action")
+	for _, button in pairs(BUTTONS) do
+		if 	button:GetAttribute("type") == "action" and button:GetAttribute("action") == extraID then
+			Utility:CallMethod("AnimateNew", button:GetName())
+			return
+		end
+	end
+	for _, button in pairs(BUTTONS) do
+		if 	not button:GetAttribute("type") then
+			button:Show()
+			button:SetAlpha(1)
+			button:SetAttribute("type", "action")
+			button:SetAttribute("action", extraID)
+			Utility:CallMethod("AnimateNew", button:GetName())
+			return
+		end
+	end
+]])
+
+Utility:WrapScript(ExtraActionButton1, "OnHide", [[
+	local extraID = self:GetAttribute("action")
+	for _, button in pairs(BUTTONS) do
+		if 	button:GetAttribute("type") == "action" and button:GetAttribute("action") == extraID then
+			button:Hide()
+			button:SetAttribute("type", nil)
+			button:SetAttribute("action", nil)
+		end
+	end
+]])

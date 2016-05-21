@@ -9,7 +9,7 @@ local addOn, db = ...
 ---------------------------------------------------------------
 -- Create main frame (not visible to user)
 ---------------------------------------------------------------
-local ConsolePort = CreateFrame("FRAME", addOn)
+local ConsolePort = CreateFrame("FRAME", "ConsolePort")
 ---------------------------------------------------------------
 -- CRITICALUPDATE: flag when old settings are incompatible. 
 ---------------------------------------------------------------

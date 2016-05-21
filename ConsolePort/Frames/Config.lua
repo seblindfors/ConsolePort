@@ -10,7 +10,7 @@ local FadeIn = db.UIFrameFadeIn
 local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
-local Popup = db.Atlas.GetFutureWindow("ConsolePortPopup", nil, nil, true)
+local Popup = db.Atlas.GetFutureWindow("ConsolePortPopup")
 local Config = db.Atlas.GetFutureWindow("ConsolePortConfig")
 local Scroll = CreateFrame("ScrollFrame", "$parentBannerScroll", Config)
 local Category = CreateFrame("Frame", "$parentCategories", Scroll)
@@ -22,7 +22,7 @@ Config.Container = Container
 ---------------------------------------------------------------
 Config.Close:Hide()
 Config:SetFrameStrata("DIALOG")
-Config:SetSize(1000, 720)
+Config:SetSize(1000, 800)
 Config:SetPoint("CENTER", 0, 0)
 Config:EnableMouse(true)
 Config:Hide()
@@ -90,7 +90,7 @@ end
 Cancel:SetPoint("BOTTOMRIGHT", -20, 20)
 Cancel:SetText(TUTORIAL.CANCEL)
 Cancel:SetScript("OnClick", Cancel.OnClick)
-Cancel.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 1, 1, 1, 1, 0.25)
+Cancel.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 1, 1, 1, 1, 0.5)
 ---------------------------------------------------------------
 local Save = db.Atlas.GetFutureButton("$parentSave", Config)
 function Save:OnClick()
@@ -117,7 +117,7 @@ local Default = db.Atlas.GetFutureButton("$parentDefault", Config)
 Default:SetPoint("BOTTOMLEFT", 20, 20)
 Default:SetText(TUTORIAL.DEFAULT)
 Default:SetScript("OnClick", Default.OnClick)
-Default.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 0.25, 1, 1, 1, 1)
+Default.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 0.5, 1, 1, 1, 1)
 ---------------------------------------------------------------
 Default.PopupFrame = CreateFrame("Frame", "$parentPopup", Default)
 Default.PopupFrame.Apply = CreateFrame("Button", "$parentApply", Default.PopupFrame)

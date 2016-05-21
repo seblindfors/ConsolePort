@@ -78,19 +78,20 @@ db.Atlas.Backdrops = {
 	}
 }
 ---------------------------------------------------------------
+local oPath = "Interface\\TALENTFRAME\\" 
 db.Atlas.Overlays = {
-	MAGE 			= {[62]  = "bg-mage-arcane", 			[63]  = "bg-mage-fire", 		[64]  = "bg-mage-frost"},
-	PALADIN 		= {[65]  = "bg-paladin-holy", 			[66]  = "bg-paladin-protection",[70]  = "bg-paladin-retribution"},
-	WARRIOR 		= {[71]  = "bg-warrior-arms", 			[72]  = "bg-warrior-fury", 		[73]  = "bg-warrior-protection"},
-	DRUID 			= {[102] = "bg-druid-balance", 			[103] = "bg-druid-cat",			[104] = "bg-druid-bear", [105] = "bg-druid-restoration"},
-	DEATHKNIGHT 	= {[250] = "bg-deathknight-blood", 		[251] = "bg-deathknight-frost", [252] = "bg-deathknight-unholy"},
-	HUNTER 			= {[253] = "bg-hunter-beastmaster",		[254] = "bg-hunter-marksman", 	[255] = "bg-hunter-survival"},
-	PRIEST 			= {[256] = "bg-priest-discipline", 		[257] = "bg-priest-holy", 		[258] = "bg-priest-shadow"},
-	ROGUE 			= {[259] = "bg-rogue-assassination", 	[260] = "bg-rogue-combat", 		[261] = "bg-rogue-subtlety"},
-	SHAMAN 			= {[262] = "bg-shaman-elemental", 		[263] = "bg-shaman-enhancement",[264] = "bg-shaman-restoration"},
-	WARLOCK 		= {[265] = "bg-warlock-affliction", 	[266] = "bg-warlock-demonology",[267] = "bg-warlock-destruction"},
-	MONK 			= {[268] = "bg-monk-brewmaster", 		[269] = "bg-monk-battledancer", [270] = "bg-monk-mistweaver"},
-	DEMONHUNTER		= {}--{[000] = "bg-demonhunter-", 			[000] = "bg-demonhunter-"},
+	MAGE 			= {ATLAS = "Artifacts-MageArcane-BG", 		[62]  = "bg-mage-arcane", 			[63]  = "bg-mage-fire", 		[64]  = "bg-mage-frost"},
+	PALADIN 		= {ATLAS = "Artifacts-Paladin-BG", 			[65]  = "bg-paladin-holy", 			[66]  = "bg-paladin-protection",[70]  = "bg-paladin-retribution"},
+	WARRIOR 		= {ATLAS = "Artifacts-Warrior-BG", 			[71]  = "bg-warrior-arms", 			[72]  = "bg-warrior-fury", 		[73]  = "bg-warrior-protection"},
+	DRUID 			= {ATLAS = "Artifacts-Druid-BG", 			[102] = "bg-druid-balance", 		[103] = "bg-druid-cat",			[104] = "bg-druid-bear", [105] = "bg-druid-restoration"},
+	DEATHKNIGHT 	= {ATLAS = "Artifacts-DeathKnightFrost-BG", [250] = "bg-deathknight-blood", 	[251] = "bg-deathknight-frost", [252] = "bg-deathknight-unholy"},
+	HUNTER 			= {ATLAS = "Artifacts-Hunter-BG", 			[253] = "bg-hunter-beastmaster",	[254] = "bg-hunter-marksman", 	[255] = "bg-hunter-survival"},
+	PRIEST 			= {ATLAS = "Artifacts-Priest-BG", 			[256] = "bg-priest-discipline", 	[257] = "bg-priest-holy", 		[258] = "bg-priest-shadow"},
+	ROGUE 			= {ATLAS = "Artifacts-Rogue-BG", 			[259] = "bg-rogue-assassination", 	[260] = "bg-rogue-combat", 		[261] = "bg-rogue-subtlety"},
+	SHAMAN 			= {ATLAS = "Artifacts-Shaman-BG", 			[262] = "bg-shaman-elemental", 		[263] = "bg-shaman-enhancement",[264] = "bg-shaman-restoration"},
+	WARLOCK 		= {ATLAS = "Artifacts-Warlock-BG", 			[265] = "bg-warlock-affliction", 	[266] = "bg-warlock-demonology",[267] = "bg-warlock-destruction"},
+	MONK 			= {ATLAS = "Artifacts-Monk-BG", 			[268] = "bg-monk-brewmaster", 		[269] = "bg-monk-battledancer", [270] = "bg-monk-mistweaver"},
+	DEMONHUNTER		= {ATLAS = "Artifacts-DemonHunter-BG"}
 }
 ---------------------------------------------------------------
 db.Atlas.GetCC = function() return cc.r, cc.g, cc.b end
@@ -256,7 +257,7 @@ db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored, buttonTe
 	return self
 end
 ---------------------------------------------------------------
-db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplate, artCorners)
+db.Atlas.GetFutureWindow = function(name, parent, secure, buttonTemplate, artCorners)
 	local self = CreateAtlasFrame(name, parent, secure, buttonTemplate)
 	local assets = path.."Window\\Assets"
 
@@ -277,6 +278,15 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 		"HORIZONTAL",
 	   cc.r, cc.g, cc.b, 1,
 	   1, 1, 1, 0,
+	}
+
+	local gBase = 0.15
+	local gMulti = 1.2
+
+	local classGradient = {
+		"HORIZONTAL",
+		(cc.r + gBase) * gMulti, (cc.g + gBase) * gMulti, (cc.b + gBase) * gMulti, 1,
+		1 - (cc.r + gBase) * gMulti, 1 - (cc.g + gBase) * gMulti, 1 - (cc.b + gBase) * gMulti, 1,
 	}
 
 	if artCorners then
@@ -310,10 +320,16 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 	self.Tint:SetBlendMode("ADD")
 	self.Tint:SetAlpha(0.75)
 
-	self.TopLine:SetTexture(1,1,1)
+	self.BG = self:CreateTexture(nil, "BACKGROUND", nil, 0)
+	self.BG:SetTexture(path.."Window\\Gradient")
+	self.BG:SetGradientAlpha(unpack(classGradient))
+	self.BG:SetPoint("TOPLEFT", 16, -16)
+	self.BG:SetPoint("BOTTOMRIGHT", -16, 16)
+
+	self.TopLine:SetColorTexture(1,1,1)
 	self.TopLine:SetGradientAlpha(unpack(gradient))
 
-	self:SetBackdrop(db.Atlas.Backdrops.Full)
+	self:SetBackdrop(db.Atlas.Backdrops.Border)
 
 	self.Overlay = self:CreateTexture(nil, "ARTWORK", nil, 7)
 	self.Overlay:SetPoint("TOPLEFT", self, "TOPLEFT", 16, -16)
@@ -325,50 +341,16 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, rainbow, buttonTemplat
 		local spec = GetSpecialization()
 		local specInfo = spec and GetSpecializationInfo(spec)
 		local specTexture = specInfo and db.Atlas.Overlays[class][specInfo]
-		if specTexture then
+		local atlas = db.Atlas.Overlays[class].ATLAS
+		if atlas then
+			self.Overlay:SetAtlas(atlas)
+			self.Overlay:SetAlpha(0.25)
+		elseif specTexture then
 			self.Overlay:SetTexture("Interface\\TALENTFRAME\\"..specTexture)
 			self.Overlay:SetTexCoord(0, 1, 0, 0.64453125)
 		end
 	end)
 
-	-- Eye candy!
-	if rainbow then
-		local interval, timer, cycle, rev, red, green, blue = 0.2, 0, 0
-		local red2, green2, blue2
-		gradient[5] = 0.75
-		gradient[9] = 0.75
-		self:SetScript("OnUpdate", function (self, elapsed)
-			timer = timer + elapsed
-			if timer > interval then
-				red = (math.sin(0.05*cycle + 0) * 127 + 128)/255
-				green = (math.sin(0.05*cycle + 2) * 127 + 128)/255
-		   		blue = (math.sin(0.05*cycle + 4) * 127 + 128)/255
-
-
-				red2 = (math.sin(0.05*cycle + 0) * 127 + 255)/255
-				green2 = (math.sin(0.05*cycle + 2) * 127 + 255)/255
-		   		blue2 = (math.sin(0.05*cycle + 4) * 127 + 255)/255
-
-		   		gradient[2] = red
-		   		gradient[3] = green
-		   		gradient[4] = blue
-
-		   		gradient[6] = red2
-		   		gradient[7] = green2
-		   		gradient[8] = blue2
-
-		   		self.TopLine:SetGradientAlpha(unpack(gradient))
-
-				if cycle == 1 then
-					rev = false
-				elseif cycle == 255 then
-					rev = true
-				end
-				cycle = rev and cycle - 1 or cycle + 1
-				timer = 0
-			end
-		end)
-	end
 	return self
 end
 

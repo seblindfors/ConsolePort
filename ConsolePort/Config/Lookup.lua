@@ -422,6 +422,9 @@ function ConsolePort:GetDefaultUIFrames()
 			"AchievementFrame" },
 		["Blizzard_ArchaeologyUI"] 		= {
 			"ArchaeologyFrame" },
+		["Blizzard_ArtifactUI"] 		= {
+			"ArtifactFrame",
+		},
 		["Blizzard_AuctionUI"] 			= {
 			"AuctionFrame" },
 		["Blizzard_BarbershopUI"]		= {
@@ -429,7 +432,8 @@ function ConsolePort:GetDefaultUIFrames()
 		["Blizzard_Calendar"]			= {
 			"CalendarFrame" },
 		["Blizzard_Collections"]		= {
-			"CollectionsJournal" },
+			"CollectionsJournal",
+			"WardrobeFrame", },
 		["Blizzard_DeathRecap"]			= {
 			"DeathRecapFrame" },
 		["Blizzard_EncounterJournal"] 	= {
@@ -441,7 +445,9 @@ function ConsolePort:GetDefaultUIFrames()
 			"GarrisonMissionFrame",
 			"GarrisonMonumentFrame",
 			"GarrisonRecruiterFrame",
-			"GarrisonShipyardFrame" },
+			"GarrisonShipyardFrame",
+			"OrderHallMissionFrame",
+			"OrderHallTalentFrame", },
 		["Blizzard_GuildUI"]			= {
 			"GuildFrame" },
 		["Blizzard_InspectUI"]			= {

@@ -1173,7 +1173,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	Binds.BindCatcher.HighlightTexture:ClearAllPoints()
 	Binds.BindCatcher.HighlightTexture:SetPoint("TOP", Binds.BindCatcher, "TOP")
 	Binds.BindCatcher:SetHeight(64)
-	Binds.BindCatcher:SetPoint("TOP", 0, -68)
+	Binds.BindCatcher:SetPoint("TOP", 0, -108)
 	Binds.BindCatcher:SetScript("OnClick", BindCatcherOnClick)
 	Binds.BindCatcher:SetScript("OnHide", BindCatcherOnHide)
 	Binds.BindCatcher:SetScript("OnShow", BindCatcherOnShow)
@@ -1232,6 +1232,7 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 	}
 
 	local iconPath = "Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Icons64x64\\"
+	local distanceFromEdge = 420
 	for buttonName, info in pairs(db.BindLayout) do
 		if not (settings.skipGuideBtn and buttonName == "CP_C_OPTION") then
 			local button = CreateFrame("Button", buttonName.."_BINDING", Binds.Overlay)
@@ -1248,8 +1249,8 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 			button.Text = button:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 			button.Text:SetSpacing(2)
 			button.Text:SetWordWrap(true)
-			button.Text:SetWidth(180)
-			button.Text:SetTextHeight(11)
+			button.Text:SetWidth(200)
+			button.Text:SetTextHeight(12)
 			button.Text:SetJustifyH(info.anchor)
 			button.Icon = button:CreateTexture(nil, "ARTWORK")
 			button.Icon:SetSize(30, 30)
@@ -1261,12 +1262,12 @@ tinsert(db.PANELS, {"Binds", TUTORIAL.HEADER, false, SubmitBindings, RevertBindi
 			if info.anchor == "LEFT" then
 				button.Text:SetPoint("LEFT", button, "RIGHT", 4, 0)
 				button.Icon:SetPoint("RIGHT", button, "LEFT", -4, 0)
-				button:SetPoint("TOP", -400, (info.index - 1) * -48 - 80)
+				button:SetPoint("TOP", -distanceFromEdge, (info.index - 1) * -48 - 80)
 				button:SetHitRectInsets(0, -180,  0, 0)
 			elseif info.anchor == "RIGHT" then
 				button.Text:SetPoint("RIGHT", button, "LEFT", -4, 0)
 				button.Icon:SetPoint("LEFT", button, "RIGHT", 4, 0)
-				button:SetPoint("TOP", 400, (info.index - 1) * -48 - 80)
+				button:SetPoint("TOP", distanceFromEdge, (info.index - 1) * -48 - 80)
 				button:SetHitRectInsets(-180, 0,  0, 0)
 			elseif info.anchor == "CENTER" then
 				button.Text:SetPoint("TOP", button, "BOTTOM", 0, -12)

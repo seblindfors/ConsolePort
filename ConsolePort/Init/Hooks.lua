@@ -91,6 +91,8 @@ function ConsolePort:LoadHookScripts()
 		end
 	end
 
+	ExtraActionButton1:SetAttribute("action", 169)
+
 	for i=1, 6 do
 		_G["OverrideActionBarButton"..i]:SetAttribute("action", 132 + i)
 	end

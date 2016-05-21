@@ -8,16 +8,29 @@
 local _, db = ...
 
 local CVars = {
+	actionCam					= 	{value = "focusOff", default = "off", console = true},
 	autoLootDefault 			= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
 	autoInteract 				= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
-	cameraDistanceMoveSpeed 	=	{value = 50, 	isCombatCVar = false},
+	cameraDistanceMoveSpeed 	=	{value = 50, 	isCombatCVar = false, 	default = 8.33},
 }
 
 function ConsolePort:LoadDefaultCVars()
 	for cvar, info in pairs(CVars) do
-		info.default = GetCVar(cvar)
+		if info.default then
+			info.protected = true
+		else
+			info.default = GetCVar(cvar)
+		end
 	end
 	self.LoadDefaultCVars = nil
+end
+
+local function SetNew(cvar, newValue, isConsole)
+	if isConsole then
+		SlashCmdList["CONSOLE"](cvar.." "..newValue)
+	else
+		SetCVar(cvar, newValue)
+	end
 end
 
 function ConsolePort:UpdateCVars(inCombat, ...)
@@ -32,18 +45,20 @@ function ConsolePort:UpdateCVars(inCombat, ...)
 			-- If the cvar is not combat related, toggle it on until logout/disable
 			if not info.isCombatCVar and isToggled[cvar] then
 				info.default = info.default or GetCVar(cvar)
-				SetCVar(cvar, info.value)
+				SetNew(cvar, info.value, info.console)
 			-- If the cvar is not toggled but has a stored default value, then set default
 			elseif not isToggled[cvar] and info.default then
-				SetCVar(cvar, info.default)
-				info.default = nil
+				SetNew(cvar, info.default, info.console)
+				if not info.protected then
+					info.default = nil
+				end
 			end
 			-- If the cvar is combat related and toggled on
 		elseif info.isCombatCVar and isToggled[cvar] then
 			if inCombat then
-				SetCVar(cvar, info.value)
+				SetNew(cvar, info.value, info.console)
 			else
-				SetCVar(cvar, info.default)
+				SetNew(cvar, info.default, info.console)
 			end
 		end
 	end

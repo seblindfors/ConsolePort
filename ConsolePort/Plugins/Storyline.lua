@@ -386,8 +386,8 @@ db.PLUGINS["Storyline"] = function(self)
 	-----------------------------------------------
 	-- Custom model lighting
 	-----------------------------------------------
-	Storyline_NPCFrameModelsMe:SetLight(1, 0, -100, -300, -500, 0.25, 1, 1, 1, 100, 1,1,1)
-	Storyline_NPCFrameModelsYou:SetLight(1, 0, -300, -300, -500, 0.25, 1, 1, 1, 100, 1,1,1)
+	Storyline_NPCFrameModelsMe:SetLight(true, false, -100, -300, -500, 0.25, 1, 1, 1, 100, 1,1,1)
+	Storyline_NPCFrameModelsYou:SetLight(true, false, -300, -300, -500, 0.25, 1, 1, 1, 100, 1,1,1)
 
 	-- these shadows are unlikely to be drawn in the correct spot, but adds flavor nonetheless
 	region = Frame:CreateTexture(nil, "BACKGROUND", nil, 7)

@@ -14,9 +14,9 @@ local Settings
 ---------------------------------------------------------------
 local function GetAddonSettings()
 	return {		
-		{	cvar = "autoInteract",
-			desc = TUTORIAL.CONFIG.CLICKTOMOVE,
-			toggle = Settings.autoInteract,
+		{	cvar = "actionCam",
+			desc = TUTORIAL.CONFIG.ACTIONCAM,
+			toggle = Settings.actionCam,
 		},
 		{	cvar = "turnCharacter",
 			desc = TUTORIAL.CONFIG.TURNMOVE,
@@ -664,7 +664,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		button.mockButton1:SetSize(36, 36)
 		button.mockButton1:SetScript("OnClick", function() button:Click() end)
 		button.mockButton1:SetScript("OnShow", function(self)
-			self:SetBackdrop({bgFile = _G["ActionButton"..index].icon:GetTexture() or classIcon})
+			self:SetBackdrop({bgFile = classIcon})
 		end)
 
 		button.mockButton1.mod = "_NOMOD"
@@ -679,7 +679,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		button.mockButton2:SetSize(36, 36)
 		button.mockButton2:SetScript("OnClick", function() button:Click() end)
 		button.mockButton2:SetScript("OnShow", function(self)
-			self:SetBackdrop({bgFile = _G["ActionButton"..index+4].icon:GetTexture() or classIcon})
+			self:SetBackdrop({bgFile = classIcon})
 		end)
 
 		button.mockButton2.mod = "_CTRLSH"

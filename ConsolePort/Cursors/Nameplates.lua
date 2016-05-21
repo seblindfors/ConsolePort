@@ -38,9 +38,7 @@ PlateCycle:WrapScript(PlateCycle, "PreClick", [[
 local Cursor = CreateFrame("Button", "ConsolePortWorldCursor", WorldFrame, "SecureActionButtonTemplate, SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate")
 
 Cursor:RegisterForClicks("AnyUp", "AnyDown")
-Cursor:SetAttribute("type", "macro")
-Cursor:SetAttribute("macrotext1", "/target [@mouseover, exists]")
-Cursor:SetAttribute("downbutton", "omit")
+Cursor:SetAttribute("type", "target")
 Cursor:SetAttribute("_onstate-modifier", "Mod = newstate")
 
 RegisterStateDriver(Cursor, "modifier", "[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ")
@@ -49,8 +47,6 @@ Cursor:SetSize(32, 32)
 Cursor:Hide()
 
 Cursor:HookScript("OnShow", function(self) PlaySound("INTERFACESOUND_LOSTTARGETUNIT") end)
-
-function Cursor:SetClamped(plateName) _G[plateName]:SetClampedToScreen(true) end
 
 ---------------------------------------------------------------
 local Key = {
@@ -94,15 +90,9 @@ Cursor:Execute(format([[
 	WorldFrame = self:GetFrameRef("WorldFrame")
 	MouseHandle = self:GetFrameRef("MouseHandle")
 
-
 	---------------------------------------------------------------
 
 	GetPlates = [=[
-
-		for Plate in pairs(Plates) do
-			Plate:SetScale(1)
-			Plate:SetFrameLevel(0)
-		end
 
 		Plates = wipe(Plates)
 		Visible = 0
@@ -110,7 +100,11 @@ Cursor:Execute(format([[
 		for i, frame in pairs(newtable(WorldFrame:GetChildren())) do
 			local name = frame:GetName()
 			if name and strmatch(name, "NamePlate") and frame:IsShown() then
-				Plates[frame] = true
+				local unitFrame = frame:GetChildren()
+				local unit = unitFrame and unitFrame:GetAttribute("unit")
+				if unitFrame and unit and PlayerCanAttack(unit) then
+					Plates[unitFrame] = true
+				end
 				Visible = Visible + 1
 			end
 		end
@@ -240,16 +234,19 @@ Cursor:Execute(format([[
 		self:Run(FindClosestPlate)
 
 		if Visible == 1 then
-			self:SetAttribute("macrotext1", "/targetenemy")
+			print("vis1")
+			self:SetAttribute("type", "target")
+			self:SetAttribute("unit", current and current:GetAttribute("unit"))
 			self:Run(Disable, onHide)
 		elseif current and current:IsShown() then
+			print(current, current:GetName())
 			self:Show()
-			self:CallMethod("SetClamped", current:GetName())
-			self:SetParent(current)
 			self:ClearAllPoints()
-			self:SetPoint("BOTTOM", current, "TOP", 0, 0)
-			self:SetAttribute("macrotext1", "/target [@mouseover, exists]")
+			self:SetAttribute("type", "target")
+			self:SetAttribute("unit", current:GetAttribute("unit"))
 		else
+			print("none")
+			self:SetAttribute("type", "macro")
 			self:SetAttribute("macrotext1", "/targetenemy")
 			self:Run(Disable, onHide)
 		end
@@ -293,17 +290,6 @@ Cursor:WrapScript(Cursor, "OnClick", [[
 				self:Run(SelectPlate, 0)
 			end
 		else
-			if current and down then
-				self:CallMethod("SetClamped", current:GetName())
-				self:SetFrameLevel(20)
-				current:SetFrameLevel(1)
-				current:SetScale(100)
-			end
-			-- for Plate in pairs(Plates) do
-			-- 	if Plate:IsUnderMouse() and Plate ~= current then
-			-- 		-- room for improvement when another plate is in the way
-			-- 	end
-			-- end
 			self:Hide()
 			if not down then
 				self:ClearBindings()
@@ -355,43 +341,43 @@ end
 -- This frame updates smoothly to look more similar to
 -- an actual mouse instead of instantly jumping between plates.
 
-local Crosshairs = CreateFrame("Frame", "ConsolePortWorldCursorCrosshairs", WorldFrame)
-Crosshairs:SetBackdrop({bgFile = "Interface\\Cursor\\Crosshairs"})
-Crosshairs:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", 0, 0)
-Crosshairs:SetSize(32, 32)
-Crosshairs:Lower()
-Crosshairs:Hide()
+-- local Crosshairs = CreateFrame("Frame", "ConsolePortWorldCursorCrosshairs", WorldFrame)
+-- Crosshairs:SetBackdrop({bgFile = "Interface\\Cursor\\Crosshairs"})
+-- Crosshairs:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", 0, 0)
+-- Crosshairs:SetSize(32, 32)
+-- Crosshairs:Lower()
+-- Crosshairs:Hide()
 
-function Crosshairs:Update(elapsed)
-	local targetX, targetY = Cursor:GetCenter()
-	local currX, currY = self:GetCenter()
-	if targetX and targetY then
-		local horz, vert = (targetX - currX), (targetY - currY)
-		local distX, distY = abs(horz), abs(vert)
-		if distX < 10 and distY < 42 then
-			self:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", targetX, targetY)
-		else
-			self:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", currX + horz * 0.25, currY + vert * 0.25)
-		end
-	end
-end
+-- function Crosshairs:Update(elapsed)
+-- 	local targetX, targetY = Cursor:GetCenter()
+-- 	local currX, currY = self:GetCenter()
+-- 	if targetX and targetY then
+-- 		local horz, vert = (targetX - currX), (targetY - currY)
+-- 		local distX, distY = abs(horz), abs(vert)
+-- 		if distX < 10 and distY < 42 then
+-- 			self:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", targetX, targetY)
+-- 		else
+-- 			self:SetPoint("CENTER", WorldFrame, "BOTTOMLEFT", currX + horz * 0.25, currY + vert * 0.25)
+-- 		end
+-- 	end
+-- end
 
-Cursor:HookScript("OnShow", function(self)
-	Crosshairs:Show()
-	for i, child in pairs({self:GetChildren()}) do
-		if child.mod then
-			child:SetParent(Crosshairs)
-			local point, _, relativePoint, xOffset, yOffset = child:GetPoint()
-			child:ClearAllPoints()
-			child:SetPoint(point, Crosshairs, relativePoint, xOffset, yOffset)
-			break
-		end
-	end
-end)
+-- Cursor:HookScript("OnShow", function(self)
+-- 	Crosshairs:Show()
+-- 	for i, child in pairs({self:GetChildren()}) do
+-- 		if child.mod then
+-- 			child:SetParent(Crosshairs)
+-- 			local point, _, relativePoint, xOffset, yOffset = child:GetPoint()
+-- 			child:ClearAllPoints()
+-- 			child:SetPoint(point, Crosshairs, relativePoint, xOffset, yOffset)
+-- 			break
+-- 		end
+-- 	end
+-- end)
 
-Cursor:HookScript("OnHide", function(self)
-	Crosshairs:Hide()
-end)
+-- Cursor:HookScript("OnHide", function(self)
+-- 	Crosshairs:Hide()
+-- end)
 
 
-Crosshairs:SetScript("OnUpdate", Crosshairs.Update)
+-- Crosshairs:SetScript("OnUpdate", Crosshairs.Update)

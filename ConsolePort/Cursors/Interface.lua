@@ -224,19 +224,27 @@ end
 ---------------------------------------------------------------
 local Scroll = CreateFrame("Frame")
 local hybridScroll = HybridScrollFrame_OnLoad
+local SCROLL_FACTOR = 16
+local SCROLL_MULTIPLY = 4
 
 function Scroll:SmoothScrollRange(elapsed)
-	local current = self.scrollFrame:GetVerticalScroll()
-	local maxScroll = self.scrollFrame:GetVerticalScrollRange()
+	local currHorz, currVert = self.scrollFrame:GetHorizontalScroll(), self.scrollFrame:GetVerticalScroll()
+	local maxHorz, maxVert = self.scrollFrame:GetHorizontalScrollRange(), self.scrollFrame:GetVerticalScrollRange()
 	-- close enough, stop scrolling and set to target
-	if abs(current - self.Target) < 2 then
-		self.scrollFrame:SetVerticalScroll(self.Target)
+	if ( abs(currHorz - self.targetHorz) < 2 ) and ( abs(currVert - self.targetVert) < 2 ) then
+		self.scrollFrame:SetVerticalScroll(self.targetVert)
+		self.scrollFrame:SetHorizontalScroll(self.targetHorz)
 		self:SetScript("OnUpdate", nil)
 		return
 	end
-	local delta = current > self.Target and -1 or 1
-	local new = current + (delta * abs(current - self.Target) / 16 * 4 ) 
-	self.scrollFrame:SetVerticalScroll(new < 0 and 0 or new > maxScroll and maxScroll or new)
+	local deltaX, deltaY = ( currHorz > self.targetHorz and -1 or 1 ), ( currVert > self.targetVert and -1 or 1 )
+	local newX = ( currHorz + (deltaX * abs(currHorz - self.targetHorz) / SCROLL_FACTOR * SCROLL_MULTIPLY) )
+	local newY = ( currVert + (deltaY * abs(currVert - self.targetVert) / SCROLL_FACTOR * SCROLL_MULTIPLY) )
+
+--	print(currHorz, self.targetHorz, newX)
+
+	self.scrollFrame:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
+	self.scrollFrame:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
 end
 
 -- function Scroll:SmoothScrollBar(elapsed)
@@ -255,8 +263,8 @@ end
 
 function Scroll:ScrollTo(node, scrollFrame)
 	self.scrollFrame = scrollFrame
-	local _, nodeY = node:GetCenter()
-	local _, scrollY = scrollFrame:GetCenter()
+	local nodeX, nodeY = node:GetCenter()
+	local scrollX, scrollY = scrollFrame:GetCenter()
 	if nodeY and scrollY then
 		-- this is a hybrid scroll frame, use the slider values
 		if scrollFrame:GetScript("OnLoad") == hybridScroll then
@@ -278,11 +286,18 @@ function Scroll:ScrollTo(node, scrollFrame)
 			-- end
 
 		else -- this is a traditional scroll frame, use scroll range.
-			local max = scrollFrame:GetVerticalScrollRange()
-			local current = scrollFrame:GetVerticalScroll()
 
-			local new = current + (scrollY - nodeY)
-			self.Target = new < 0 and 0 or new > max and max or new
+			local currHorz, currVert = scrollFrame:GetHorizontalScroll(), scrollFrame:GetVerticalScroll()
+			local maxHorz, maxVert = scrollFrame:GetHorizontalScrollRange(), scrollFrame:GetVerticalScrollRange()
+
+			local newVert = currVert + (scrollY - nodeY)
+			local newHorz = 0
+		--	local newHorz = currHorz + (scrollX - nodeX)
+		--	print(floor(currHorz), floor(scrollX), floor(nodeX), floor(newHorz))
+
+			self.targetVert = newVert < 0 and 0 or newVert > maxVert and maxVert or newVert
+			self.targetHorz = newHorz < 0 and 0 or newHorz > maxHorz and maxHorz or newHorz
+
 			self:SetScript("OnUpdate", self.SmoothScrollRange)
 		end
 	end
@@ -705,10 +720,10 @@ function ConsolePort:SetupCursor()
 	Cursor.Spell = Cursor.Spell or CreateFrame("PlayerModel", nil, Cursor)
 	Cursor.Spell:SetAlpha(0.1)
 	Cursor.Spell:SetDisplayInfo(42486)
-	Cursor.Spell:SetLight(1, 0, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+	Cursor.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 	Cursor.Spell:SetScript("OnShow", function(self)
-		self:SetSize(78 / UI_SCALE, 78 / UI_SCALE)
-		self:SetPoint("CENTER", Cursor, "BOTTOMLEFT", 20, 13 / UI_SCALE)
+		self:SetSize(70, 70)
+		self:SetPoint("CENTER", Cursor, "BOTTOMLEFT", 20, 13)
 	end)
 
 	Cursor:SetScript("OnShow", Cursor.Animate)
