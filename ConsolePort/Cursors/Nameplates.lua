@@ -75,9 +75,9 @@ Cursor:Execute(format([[
 	Key.Right = %s
 	---------------------------------------------------------------
 	Cancel = newtable()
-	Cancel.CP_C_OPTION = true
-	Cancel.CP_L_OPTION = true
-	Cancel.CP_R_OPTION = true
+	Cancel.CP_X_CENTER = true
+	Cancel.CP_X_LEFT = true
+	Cancel.CP_X_RIGHT = true
 	---------------------------------------------------------------
 	Target = newtable()
 	Target.CP_TR1 = true

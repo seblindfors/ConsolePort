@@ -116,7 +116,6 @@ end
 
 function Events:PLAYER_REGEN_ENABLED(...)
 	self:UpdateCVars(false)
-	self:SetButtonActionsDefault()
 	Callback(0.5, function()
 		if not InCombatLockdown() then
 			self:UpdateFrames()
@@ -125,8 +124,8 @@ function Events:PLAYER_REGEN_ENABLED(...)
 end
 
 function Events:PLAYER_REGEN_DISABLED(...)
+	self:ClearCursor()
 	self:SetUIFocus(false)
-	self:SetButtonActionsDefault()
 	self:UpdateCVars(true)
 end
 
@@ -145,7 +144,7 @@ end
 function Events:SPELLS_CHANGED(...)
 	self:SetupRaidCursor()
 	self:UpdateSmartMouse()
-	self:AddUpdateSnippet(self.UpdateStateDriver)
+	self:AddUpdateSnippet(self.UpdateMouseDriver)
 	self:AddUpdateSnippet(self.SetupUtilityBelt)
 	if InCombatLockdown() then
 		print(db.TUTORIAL.SLASH.WARNINGCOMBATLOGIN)
@@ -154,14 +153,9 @@ function Events:SPELLS_CHANGED(...)
 	Events.SPELLS_CHANGED = nil
 end
 
-function Events:LEARNED_SPELL_IN_TAB()
-	self:AddUpdateSnippet(self.UpdateSecureSpellbook, "_spellupdate")
-end
-
 function Events:ADDON_LOADED(...)
 	local name = ...
 	if name == "ConsolePort" then
-		self:CreateButtonHandler()
 		self:LoadSettings()
 		self:LoadControllerTheme()
 		self:LoadEvents()
@@ -169,10 +163,12 @@ function Events:ADDON_LOADED(...)
 		self:LoadBindingSet()
 		self:CreateConfigPanel()
 		self:CreateActionButtons()
-		self:LoadInterfaceBindings()
+		self:ToggleUICore()
 		self:SetupCursor()
 		self:CheckLoadedAddons()
-		self:CheckLoadedSettings()
+		if not self.calibrationFrame then
+			self:CheckLoadedSettings()
+		end
 		self:UpdateCVars()
 		-- Delay hotkeys and cvars.
 		Callback(2, function()

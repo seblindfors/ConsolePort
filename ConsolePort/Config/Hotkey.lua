@@ -5,40 +5,14 @@
 
 local addOn, db = ...
 ---------------------------------------------------------------
-local TEXTURE = db.TEXTURE
+local ICONS = db.ICONS
 ---------------------------------------------------------------
 local IsControlKeyDown = IsControlKeyDown
 local IsShiftKeyDown = IsShiftKeyDown
 ---------------------------------------------------------------
-local function GetActionButtons(buttons, this)
-	buttons = buttons or {}
-	this = this or UIParent
-	if this:IsForbidden() or this.isForbidden then
-		return buttons
-	end
-	local action = this:GetAttribute("action")
-	if action and tonumber(action) then
-		buttons[this] = action
-	end
-	for _, object in pairs({this:GetChildren()}) do
-		GetActionButtons(buttons, object)
-	end
-	return buttons
-end
----------------------------------------------------------------
-local function GetBindingModifier(modifier)
-	local modName = {
-		_NOMOD 		= "action",
-		_SHIFT 		= "shift",
-		_CTRL 		= "ctrl",
-		_CTRLSH 	= "ctrlsh",
-	}
-	return modName[modifier]
-end
----------------------------------------------------------------
 local function AnimateModifierChange(self)
 	local ctrl, shift = IsControlKeyDown(), IsShiftKeyDown()
-	if self.mod == "_NOMOD" then
+	if self.mod == "" then
 		if shift or ctrl then
 			self:Hide()
 		else
@@ -46,9 +20,9 @@ local function AnimateModifierChange(self)
 		end
 	else
 		self:Show()
-		if 	self.mod == "_CTRLSH" and (ctrl and shift) or
-			self.mod == "_CTRL" and (ctrl and not shift) or
-			self.mod == "_SHIFT" and (shift and not ctrl) then
+		if 	self.mod == "CTRL-SHIFT-" and (ctrl and shift) or
+			self.mod == "CTRL-" and (ctrl and not shift) or
+			self.mod == "SHIFT-" and (shift and not ctrl) then
 			self.mod1:Hide()
 			if self.mod2 then
 				self.mod2:Hide()
@@ -58,9 +32,9 @@ local function AnimateModifierChange(self)
 			self.main:ClearAllPoints()
 			self.main:SetPoint("TOP", 0, 0)
 			self.main.Group:Play()
-		elseif self.mod == "_CTRLSH" and (ctrl or shift) or
-			self.mod == "_CTRL" and shift or
-			self.mod == "_SHIFT" and ctrl then
+		elseif self.mod == "CTRL-SHIFT-" and (ctrl or shift) or
+			self.mod == "CTRL-" and shift or
+			self.mod == "SHIFT-" and ctrl then
 			self:Hide()
 		else
 			self.mod1:Show()
@@ -80,7 +54,7 @@ end
 function ConsolePort:CreateHotKey(forceStyle)
 	-- self is the secure button wrapper in this case
 	local count = self.HotKeys and #self.HotKeys+1 or 1
-	local hotKey = CreateFrame("Frame", "$parent_HOTKEY"..count, self)
+	local hotKey = CreateFrame("Frame", "$parentHOTKEY"..count, self)
 	hotKey:SetSize(1,1)
 	hotKey.mod = self.mod
 
@@ -88,10 +62,10 @@ function ConsolePort:CreateHotKey(forceStyle)
 	local main = hotKey:CreateTexture("$parent_MAIN", "OVERLAY", nil, 7)
 	hotKey.main = main
 
-	if self.mod ~= "_NOMOD" then
+	if self.mod ~= "" then
 		mod1 = hotKey:CreateTexture("$parent_MOD1", "OVERLAY", nil, 6)
 		hotKey.mod1 = mod1
-		if self.mod == "_CTRLSH" then
+		if self.mod == "CTRL-SHIFT-" then
 			mod2 = hotKey:CreateTexture("$parent_MOD2", "OVERLAY", nil, 5)
 			hotKey.mod2 = mod2
 		end
@@ -103,7 +77,7 @@ function ConsolePort:CreateHotKey(forceStyle)
 	---------------------------------------------------------------
 	if not style or style == 1 or style == 2 then
 		main:SetSize(32, 32)
-		main:SetTexture(gsub(TEXTURE[self.name], "Icons64x64", "Icons32x32"))
+		main:SetTexture(ICONS[self.name])
 		main:SetPoint("TOPRIGHT", 12, 12)
 
 		-- Animated
@@ -122,20 +96,20 @@ function ConsolePort:CreateHotKey(forceStyle)
 			hotKey:RegisterEvent("MODIFIER_STATE_CHANGED")
 		end
 
-		if self.mod ~= "_NOMOD" then
+		if self.mod ~= "" then
 			mod1:SetPoint("RIGHT", main, "LEFT", 14, -2)
 			mod1:SetSize(24, 24)
-			if self.mod == "_SHIFT" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
-			elseif self.mod == "_CTRL" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "Icons32x32"))
-			elseif self.mod == "_CTRLSH" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "Icons32x32"))
+			if self.mod == "SHIFT-" then
+				mod1:SetTexture(ICONS.CP_M1)
+			elseif self.mod == "CTRL-" then
+				mod1:SetTexture(ICONS.CP_M2)
+			elseif self.mod == "CTRL-SHIFT-" then
+				mod1:SetTexture(ICONS.CP_M2)
 				mod1:SetPoint("RIGHT", main, "LEFT", 15, -2)
 
 				mod2:SetPoint("RIGHT", mod1, "LEFT", 14, 0)
 				mod2:SetSize(24, 24)
-				mod2:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
+				mod2:SetTexture(ICONS.CP_M1)
 			end
 		end
 		if mod1 then
@@ -145,53 +119,28 @@ function ConsolePort:CreateHotKey(forceStyle)
 			mod2:SetAlpha(0.75)
 		end
 
-	-- Consistent revamp
+	-- Consistent
 	---------------------------------------------------------------
 	elseif style == 3 then
 		main:SetSize(24, 24)
-		main:SetTexture(gsub(TEXTURE[self.name], "Icons64x64", "Icons32x32"))
+		main:SetTexture(ICONS[self.name])
 
 		main:SetPoint("TOPRIGHT", 4, 4)
 
-		if self.mod ~= "_NOMOD" then
+		if self.mod ~= "" then
 			mod1:SetPoint("RIGHT", main, "LEFT", 14, 0)
 			mod1:SetSize(24, 24)
 
-			if self.mod == "_SHIFT" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
-			elseif self.mod == "_CTRL" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "Icons32x32"))
-			elseif self.mod == "_CTRLSH" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "Icons32x32"))
+			if self.mod == "SHIFT-" then
+				mod1:SetTexture(ICONS.CP_M1)
+			elseif self.mod == "CTRL-" then
+				mod1:SetTexture(ICONS.CP_M2)
+			elseif self.mod == "CTRL-SHIFT-" then
+				mod1:SetTexture(ICONS.CP_M2)
 
 				mod2:SetPoint("RIGHT", mod1, "LEFT", 14, 0)
 				mod2:SetSize(24, 24)
-				mod2:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "Icons32x32"))
-			end
-		end
-
-	-- Classic
-	---------------------------------------------------------------
-	elseif style == 4 then
-		main:SetSize(16, 16)
-		main:SetTexture(gsub(TEXTURE[self.name], "Icons64x64", "IconsClassic"))
-
-		main:SetPoint("TOPRIGHT", 0, 0)
-
-		if self.mod ~= "_NOMOD" then
-			mod1:SetPoint("RIGHT", main, "LEFT", 5, 0)
-			mod1:SetSize(16, 16)
-
-			if self.mod == "_SHIFT" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "IconsClassic"))
-			elseif self.mod == "_CTRL" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "IconsClassic"))
-			elseif self.mod == "_CTRLSH" then
-				mod1:SetTexture(gsub(TEXTURE.CP_TL2, "Icons64x64", "IconsClassic"))
-
-				mod2:SetPoint("RIGHT", mod1, "LEFT", 5, 0)
-				mod2:SetSize(16, 16)
-				mod2:SetTexture(gsub(TEXTURE.CP_TL1, "Icons64x64", "IconsClassic"))
+				mod2:SetTexture(ICONS.CP_M1)
 			end
 		end
 	end
@@ -204,7 +153,7 @@ end
 function ConsolePort:LoadHotKeyTextures(newSet)
 	local set = newSet or db.Bindings
 	local index, subSet, modifier, binding, ID
-	local actionButtons = GetActionButtons()
+	local actionButtons = self:GetActionButtons(true)
 
 	for secureBtn in pairs(db.SECURE) do
 		for i, HotKey in pairs(secureBtn.HotKeys) do
@@ -213,7 +162,7 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 			HotKey:Hide()
 		end
 		index = 0
-		modifier = GetBindingModifier(secureBtn.mod)
+		modifier = secureBtn.mod
 		subSet = set[secureBtn.name]
 		binding = subSet and subSet[modifier]
 		ID = binding and self:GetActionID(binding)
@@ -223,8 +172,7 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 				if 	ID == actionID or 
 					self:GetActionBinding(ID) == self:GetActionBinding(actionID) then
 					index = index + 1
-					secureBtn.HotKeys[index] = 	secureBtn.HotKeys[index] or
-												secureBtn:CreateHotKey()
+					secureBtn.HotKeys[index] = 	secureBtn.HotKeys[index] or secureBtn:CreateHotKey()
 
 					secureBtn:ShowHotKey(index, actionButton)
 
@@ -233,8 +181,6 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 					end
 				end
 			end
-		elseif secureBtn.action then
-			secureBtn:ShowInterfaceHotKey()
 		elseif binding then
 			local button = _G[(gsub(gsub(binding, "CLICK ", ""), ":.+", ""))]
 			if button then

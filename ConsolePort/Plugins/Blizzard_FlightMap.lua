@@ -45,7 +45,9 @@ db.PLUGINS["Blizzard_FlightMap"] = function(self)
 
 		if path.taxiNodeData then
 			if path.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_REACHABLE then
-				path.owner:RemoveRoute()
+				if path.owner.highlightLinePool then
+					path.owner:RemoveRoute()
+				end
 			end
 			GameTooltip:Hide()
 		end

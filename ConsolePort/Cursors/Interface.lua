@@ -13,17 +13,14 @@ local TEXTURE 	= db.TEXTURE
 local L1, L2 	= "CP_TL1", "CP_TL2"
 ---------------------------------------------------------------
 local MAX_WIDTH, MAX_HEIGHT = UIParent:GetSize()
-local UI_SCALE = UIParent:GetScale()
 ---------------------------------------------------------------
-local nodes, current, old, rebindNode = {}
+local nodes, current, old = {}
 ---------------------------------------------------------------
 -- Upvalue functions since they are used very frequently.
-local SetOverrideBindingClick = SetOverrideBindingClick
-local ClearOverrideBindings = ClearOverrideBindings
+local SetOverrideBindingClick, ClearOverrideBindings = SetOverrideBindingClick, ClearOverrideBindings
 local InCombatLockdown = InCombatLockdown
 local PlaySound = PlaySound
-local FadeOut = db.UIFrameFadeOut
-local FadeIn = db.UIFrameFadeIn
+local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
 ---------------------------------------------------------------
 local Callback = C_Timer.After
 local tinsert = tinsert
@@ -39,17 +36,10 @@ local ConsolePort = ConsolePort
 local Cursor = CreateFrame("Frame", "ConsolePortCursor", UIParent)
 ConsolePort.Cursor = Cursor
 ---------------------------------------------------------------
-local StepL = CreateFrame("Button", "ConsolePortCursorStepLeft")
-local StepR = CreateFrame("Button", "ConsolePortCursorStepRight")
+local StepL = CreateFrame("Button")
+local StepR = CreateFrame("Button")
 ---------------------------------------------------------------
-UIParent:HookScript("OnSizeChanged", function(self)
-	UI_SCALE = self:GetScale()
-	MAX_WIDTH, MAX_HEIGHT = self:GetSize()
-	if Cursor.Spell then
-		Cursor.Spell:Hide()
-		Cursor.Spell:Show()
-	end
-end)
+UIParent:HookScript("OnSizeChanged", function(self, width, height) MAX_WIDTH, MAX_HEIGHT = width, height end)
 ---------------------------------------------------------------
 -- UIControl: Wrappers for overriding click bindings
 ---------------------------------------------------------------
@@ -106,27 +96,26 @@ end
 
 function Cursor:SetPosition(anchor)
 	self:SetTexture()
-	self:ClearAllPoints()
-	if anchor.customAnchor then
-		self:SetPoint(unpack(anchor.customAnchor))
-	else
-		self:SetPoint("TOPLEFT", anchor, "CENTER", 0, 0)
-	end
-	self:SetHighlight()
-	self:Animate()
+--	self:ClearAllPoints()
+--	if anchor.customAnchor then
+--		self:SetPoint(unpack(anchor.customAnchor))
+--	else
+--		self:SetPoint("TOPLEFT", anchor, "CENTER", 0, 0)
+--	end
+	self.anchor = anchor.customAnchor or {"TOPLEFT", anchor, "CENTER", 0, 0}
+--	self:Animate()
+	self:Move()
 	PlaySound("igMainMenuOptionCheckBoxOn")
 	if not self:IsVisible() then
 		self:Show()
 	end
 end
 
-function Cursor:Animate()
-	if old == current and not self.Flash then
-		return
-	end
+function Cursor:Scale()
+	if old == current and not self.Flash then return end
 	if current then
-		local scaleAmount = 1.15
-		local scaleDuration = 0.2
+		local scaleAmount, scaleDuration = 1.15, 0.2
+		local offsetX, offsetY
 		-- use distance between nodes as animation basis when auto-selecting a node
 		if old and not old.node:IsVisible() then
 			local oldX, oldY = old.node:GetCenter()
@@ -153,16 +142,61 @@ function Cursor:Animate()
 		self.Scale2:SetScale(1/scaleAmount, 1/scaleAmount)
 		self.Scale2:SetDuration(scaleDuration)
 		self.Highlight:SetParent(self)
-		self.Group:Stop()
-		self.Group:Play()
+		self.SGroup:Stop()
+		self.SGroup:Play()
 	end
 end
 
-function Cursor:OnFinished()
+function Cursor:ScaleOnStop()
+	local self = self:GetParent()
+	self.Highlight:Hide()
+end
+
+function Cursor:ScaleOnPlay()
+	local self = self:GetParent()
+	self.Highlight:Hide()
+	self:SetHighlight()
+end
+
+function Cursor:ScaleOnFinished()
 	if current then
 		self:GetParent().Highlight:SetParent(current.node)
 	end
 end
+
+
+-- FIX 
+local d = CreateFrame("Frame", nil, UIParent)
+d:SetSize(32, 32)
+
+function Cursor:Move(anchor)
+	if current then
+		d:ClearAllPoints()
+		d:SetParent(current.node)
+		d:SetPoint(unpack(self.anchor))
+		local newX, newY = d:GetCenter()
+		local oldX, oldY = self:GetCenter()
+		if oldX and oldY and newX and newY and self:IsVisible() then
+			local offX, offY = (newX - oldX), (newY - oldY)
+			self.Translate:SetOffset(offX, offY)
+			self.Scale1:SetStartDelay(0.05)
+			self.TGroup:Play()
+
+		else
+			self.Scale1:SetStartDelay(0)
+			self.MoveOnFinished(self.TGroup)
+		end
+	end
+end
+
+function Cursor:MoveOnFinished()
+	local self = self:GetParent()
+	self:ClearAllPoints()
+	self:SetPoint(unpack(self.anchor))
+	self:Scale()
+end
+
+
 
 function Cursor:SetHighlight()
 	local highlight = current and current.node.GetHighlightTexture and current.node:GetHighlightTexture()
@@ -247,45 +281,13 @@ function Scroll:SmoothScrollRange(elapsed)
 	self.scrollFrame:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
 end
 
--- function Scroll:SmoothScrollBar(elapsed)
--- 	local current = self.scrollBar:GetValue()
--- 	local step = self.scrollBar:GetValueStep()
--- 	local min, max = self.scrollBar:GetMinMaxValues()
--- 	if abs(current - self.Target) < 2 then
--- 		self.scrollBar:SetValue(self.Target)
--- 		self:SetScript("OnUpdate", nil)
--- 	end
--- 	local delta = current > self.Target and -1 or 1
--- 	local new = current + (delta * abs(current - self.Target) / 16 * 4 )
--- 	new = new < step and step or new 
--- 	self.scrollBar:SetValue(new < min and min or new > max and max or new)
--- end
-
 function Scroll:ScrollTo(node, scrollFrame)
 	self.scrollFrame = scrollFrame
 	local nodeX, nodeY = node:GetCenter()
 	local scrollX, scrollY = scrollFrame:GetCenter()
 	if nodeY and scrollY then
-		-- this is a hybrid scroll frame, use the slider values
-		if scrollFrame:GetScript("OnLoad") == hybridScroll then
-			-- local bar = scrollFrame.scrollBar
-			-- local min, max = bar:GetMinMaxValues()
-			-- local obeyStep = bar:GetObeyStepOnDrag()
-			-- local numSteps = bar:GetStepsPerPage()
-			-- local current = bar:GetValue()
-			-- local step = bar:GetValueStep()
-
-			-- -- the distance between the node and scroll center is within
-			-- -- the two center-most scroll child nodes. 
-			-- if abs(nodeY - scrollY) < (step * 2) then
-			-- 	local delta = nodeY < scrollY and 1 or -1
-			-- 	local new = current + (step * delta)
-			-- 	self.Target = new < min and min or new > max and max or new
-			-- 	self.scrollBar = bar
-			-- 	self:SetScript("OnUpdate", self.SmoothScrollBar)
-			-- end
-
-		else -- this is a traditional scroll frame, use scroll range.
+		-- make sure this isn't a hybrid scroll frame
+		if scrollFrame:GetScript("OnLoad") ~= hybridScroll then
 
 			local currHorz, currVert = scrollFrame:GetHorizontalScroll(), scrollFrame:GetVerticalScroll()
 			local maxHorz, maxVert = scrollFrame:GetHorizontalScrollRange(), scrollFrame:GetVerticalScrollRange()
@@ -539,7 +541,7 @@ function ConsolePort:EnterNode(node, object, scrollFrame, state)
 		Scroll:ScrollTo(node, scrollFrame)
 	end
 
-	local name = rebindNode and nil or node.direction and node:GetName()
+	local name = node.direction and node:GetName()
 	local override
 	if IsClickable[object] and node:IsEnabled() then
 		override = true
@@ -549,12 +551,12 @@ function ConsolePort:EnterNode(node, object, scrollFrame, state)
 		end
 	end
 	for click, button in pairs(Cursor.Override) do
-		for extension, modifier in pairs(Cursor.Modifiers) do
-			OverrideBindingClick(Cursor, button, name or button..extension, click, modifier)
+		for modifier in self:GetModifiers() do
+			OverrideBindingClick(Cursor, button, name or button..modifier, click, modifier)
 			if override then
-				SetClickButton(_G[button..extension], rebindNode or node)
+				SetClickButton(_G[button..modifier], node)
 			else
-				SetClickButton(_G[button..extension], nil)
+				SetClickButton(_G[button..modifier], nil)
 			end
 		end
 	end
@@ -607,19 +609,11 @@ function ConsolePort:RefreshNodes()
 	end
 end
 
-function ConsolePort:ClearCurrentNode()
-	current = nil
-	old = nil
-	Cursor.Highlight:Hide()
-	self:UIControl()
-end
+function ConsolePort:IsCurrentNode(node) return current and current.node == node end
+function ConsolePort:GetCurrentNode() return current and current.node end
 
-function ConsolePort:GetCurrentNode()
-	return current and current.node
-end
-
-function ConsolePort:SetCurrentNode(node)
-	if not InCombatLockdown() then
+function ConsolePort:SetCurrentNode(node, force)
+	if not db.Settings.disableUI and not InCombatLockdown() then
 		if node then
 			local object = node:GetObjectType()
 			if 	HasInteraction(node, object) and IsNodeDrawn(node) then
@@ -635,16 +629,27 @@ function ConsolePort:SetCurrentNode(node)
 	end
 end
 
----------------------------------------------------------------
--- UIControl: Toggle rebind mode	
----------------------------------------------------------------
-function ConsolePort:SetRebinding(button)
-	ConsolePortRebindFrame.isRebinding = button
-	rebindNode = button
+function ConsolePort:ClearCurrentNode()
+	current = nil
+	old = nil
+	Cursor.Highlight:Hide()
+	self:UIControl()
 end
 
-function ConsolePort:GetRebinding()
-	return rebindNode
+function ConsolePort:ScrollToNode(node, scrollFrame, dontFocus)
+	-- use responsibly
+	if node and scrollFrame then
+		Scroll:ScrollTo(node, scrollFrame)
+		local hasMoved
+		if not dontFocus and not db.Settings.disableUI and Scroll:GetScript("OnUpdate") then
+			Scroll:HookScript("OnUpdate", function()
+				if not hasMoved and IsNodeDrawn(node, scrollFrame) then
+					self:SetCurrentNode(node)
+					hasMoved = true
+				end
+			end)
+		end
+	end
 end
 
 ---------------------------------------------------------------
@@ -669,38 +674,45 @@ end
 ---------------------------------------------------------------
 local function GetInterfaceButtons()
 	return {
-		CP_L_UP_NOMOD,
-		CP_L_DOWN_NOMOD,
-		CP_L_RIGHT_NOMOD,
-		CP_L_LEFT_NOMOD,
-		_G[db.Mouse.Cursor.Special.."_NOMOD"],
+		CP_L_UP,
+		CP_L_DOWN,
+		CP_L_RIGHT,
+		CP_L_LEFT,
+		_G[db.Mouse.Cursor.Special],
 	}
 end
 
-function ConsolePort:SetButtonActionsDefault()
-	ClearOverrideBindings(self)
-	for button in pairs(SECURE) do
-		button:Revert()
+function ConsolePort:SetButtonOverride(enabled)
+	if enabled then
+		local buttons = GetInterfaceButtons()
+		for i, button in pairs(buttons) do
+			OverrideBindingClick(self, button.name, button:GetName(), "LeftButton")
+			button:SetAttribute("type", "UIControl")
+		end
+	else
+		self:ClearCursor()
+		for button in pairs(SECURE) do
+			button:Clear(true)
+		end
 	end
 end
 
-function ConsolePort:SetButtonActionsUI()
-	local buttons = GetInterfaceButtons()
-	for i, button in pairs(buttons) do
-		OverrideBindingClick(self, button.name, button:GetName(), "LeftButton")
-		button:SetAttribute("type", "UIControl")
-	end
-end
+function ConsolePort:ClearCursor() ClearOverrideBindings(self) end
 
 ---------------------------------------------------------------
 -- UIControl: Initialize Cursor
 ---------------------------------------------------------------
 function ConsolePort:SetupCursor()
-	UI_SCALE = UIParent:GetScale()
+	if db.Settings.disableUI then
+		Cursor:SetParent(UIParent)
+		Cursor:Hide()
+		return
+	end
+
 	MAX_WIDTH, MAX_HEIGHT = UIParent:GetSize()
 
 	Cursor.Special 		= db.Mouse.Cursor.Special
-	Cursor.SpecialClick = _G[Cursor.Special.."_NOMOD"]
+	Cursor.SpecialClick = _G[Cursor.Special]
 	Cursor.SpecialAction = Cursor.SpecialClick.command
 
 	Cursor.Override = {
@@ -736,12 +748,6 @@ function ConsolePort:SetupCursor()
 	Cursor:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
 ---------------------------------------------------------------
-Cursor.Modifiers = {
-	_NOMOD	= false,
-	_SHIFT 	= "SHIFT-",
-	_CTRL 	= "CTRL-",
-}
-
 Cursor.Icon = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
 Cursor.Icon:SetTexture("Interface\\CURSOR\\Item")
 Cursor.Icon:SetAllPoints(Cursor)
@@ -756,19 +762,29 @@ Cursor:SetFrameStrata("TOOLTIP")
 Cursor:SetSize(32,32)
 Cursor.Timer = 0
 
-Cursor.Group = Cursor:CreateAnimationGroup()
-Cursor.Group:SetScript("OnFinished", Cursor.OnFinished)
+Cursor.SGroup = Cursor:CreateAnimationGroup()
+Cursor.SGroup:SetScript("OnFinished", Cursor.ScaleOnFinished)
+Cursor.SGroup:SetScript("OnPlay", Cursor.ScaleOnPlay)
+Cursor.SGroup:SetScript("OnStop", Cursor.ScaleOnStop)
 
-Cursor.Scale1 = Cursor.Group:CreateAnimation("Scale")
+Cursor.TGroup = Cursor:CreateAnimationGroup()
+Cursor.TGroup:SetScript("OnFinished", Cursor.MoveOnFinished)
+
+Cursor.Translate = Cursor.TGroup:CreateAnimation("Translation")
+Cursor.Translate:SetSmoothing("OUT")
+Cursor.Translate:SetDuration(0.05)
+
+Cursor.Scale1 = Cursor.SGroup:CreateAnimation("Scale")
 Cursor.Scale1:SetDuration(0.1)
-Cursor.Scale1:SetSmoothing("IN")
 Cursor.Scale1:SetOrder(1)
+Cursor.Scale1:SetSmoothing("IN")
 Cursor.Scale1:SetOrigin("CENTER", 0, 0)
 
-Cursor.Scale2 = Cursor.Group:CreateAnimation("Scale")
+Cursor.Scale2 = Cursor.SGroup:CreateAnimation("Scale")
 Cursor.Scale2:SetSmoothing("OUT")
-Cursor.Scale2:SetOrder(2)
 Cursor.Scale2:SetOrigin("CENTER", 0, 0)
+Cursor.Scale2:SetOrder(2)
+Cursor.Scale1:SetStartDelay(0.1)
 ---------------------------------------------------------------
 
 -- Horizontal scroll wrappers

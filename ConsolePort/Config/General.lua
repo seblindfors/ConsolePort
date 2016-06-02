@@ -4,11 +4,10 @@
 -- Creates the base config panel and account-wide cvar options.
 
 local addOn, db = ...
-local TUTORIAL = db.TUTORIAL
-local TEXTURE  = db.TEXTURE
+local TUTORIAL, TEXTURE, ICONS = db.TUTORIAL, db.TEXTURE, db.ICONS
 local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
-local pairsByKeys = db.Table.pairsByKeys
-local Settings
+local spairs = db.table.spairs
+local WindowMixin, Settings = {}
 ---------------------------------------------------------------
 -- Config: Account-wide addon CVars.
 ---------------------------------------------------------------
@@ -30,7 +29,7 @@ local function GetAddonSettings()
 		},
 		{
 			cvar = "doubleModTap",
-			desc = gsub(format(TUTORIAL.CONFIG.DOUBLEMODTAP, TEXTURE[Settings.shift], TEXTURE[Settings.ctrl]), "Icons64x64", "Icons32x32"),
+			desc = format(TUTORIAL.CONFIG.DOUBLEMODTAP, ICONS.CP_M1, ICONS.CP_M2),
 			toggle = Settings.doubleModTap,
 		},
 		{	cvar = "disableSmartMouse",
@@ -104,81 +103,23 @@ local function GetMouseSettings()
 end
 
 ---------------------------------------------------------------
--- Config/Mouse: Save general addon CVars.
----------------------------------------------------------------
-local function SaveGeneralConfig(self)
-	local needReload
-	for i, Check in pairs(self.General) do
-		local old = Settings[Check.Cvar]
-		Settings[Check.Cvar] = Check:GetChecked()
-		if Check.Reload and Check:GetChecked() ~= old then
-			needReload = true
-		end
-	end
-	for i, Check in pairs(self.Triggers) do
-		if Check.Value and Check.Value ~= Settings[Check.Cvar] then
-			Settings[Check.Cvar] = Check.Value
-			needReload = true
-		end
-	end
-
-	ConsolePort:UpdateCVars()
-	ConsolePort:UpdateSmartMouse()
-
-	for i, Check in pairs(self.Events) do
-		for i, Event in pairs(Check.Events) do
-			db.Mouse.Events[Event] = Check:GetChecked()
-		end
-	end
-
-	if self.InteractModule.Enable:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
-		Settings.interactWith = self.InteractModule.BindCatcher.CurrentButton
-		Settings.mouseOverMode = self.InteractModule.MouseOver:GetChecked()
-	else
-		Settings.interactWith = false
-		Settings.mouseOverMode = false
-	end
-
-	local actionBarStyle = self.ActionBarModule:GetID()
-	if not Settings.actionBarStyle or Settings.actionBarStyle ~= actionBarStyle then
-		Settings.actionBarStyle = actionBarStyle
-		needReload = true
-	end
-
-	ConsolePortSettings = db.Settings
-	ConsolePortMouse = db.Mouse
-
-	db.Mouse.Cursor.Left = self.LeftClick.Value
-	db.Mouse.Cursor.Right = self.RightClick.Value
-	db.Mouse.Cursor.Scroll = self.ScrollClick.Value
-	
-	ConsolePort:LoadEvents()
-	ConsolePort:SetupCursor()
-	ConsolePort:LoadControllerTheme()
-	ConsolePort:UpdateStateDriver()
-	ConsolePort:SetupUtilityBelt()
-	return needReload
-end
-
----------------------------------------------------------------
 -- Config: Reset buttons
 ---------------------------------------------------------------
 local function ResetControllerOnClick(self)
 	self:GetParent():GetParent():Hide()
-	ConsolePort:CreateSplashFrame()
+	ConsolePort:SelectController()
 end
 
 local function ResetBindingsOnClick(self)
 	if not InCombatLockdown() then
 		self:GetParent():GetParent():Hide()
-		local bindings = ConsolePort:GetBindingNames()
-		for i, binding in pairs(bindings) do
+		for binding in ConsolePort:GetBindings() do
 			local key1, key2 = GetBindingKey(binding)
 			if key1 then SetBinding(key1) end
 			if key2 then SetBinding(key2) end
 		end
 		SaveBindings(GetCurrentBindingSet())
-		ConsolePort:CreateBindingWizard()
+		ConsolePort:CalibrateController()
 	end
 end
 
@@ -193,14 +134,14 @@ end
 -- Binds: Bind catcher
 ---------------------------------------------------------------
 local function BindCatcherOnKey(self, key)
-	local action = key and GetBindingAction(key) and _G[GetBindingAction(key).."_BINDING"]
 	FadeIn(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 1)
 	self:SetScript("OnKeyUp", nil)
 	self:EnableKeyboard(false)
-	if action and type(action) == "table" and action.name then
-		self.CurrentButton = action.name
+	local action = key and GetBindingAction(key)
+	if action and action:match("CP_*") then
+		self.CurrentButton = action
 		if self.CurrentButton then
-			self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton]))
+			self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[action]))
 		end
 	elseif key then
 		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
@@ -243,11 +184,53 @@ local function InteractModuleOnShow(self)
 	end
 end
 
+function WindowMixin:Save()
+	local needReload
+	for i, Check in pairs(self.General) do
+		local old = Settings[Check.Cvar]
+		Settings[Check.Cvar] = Check:GetChecked()
+		if Check.Reload and Check:GetChecked() ~= old then
+			needReload = true
+		end
+	end
+	for i, Check in pairs(self.Triggers) do
+		if Check.Value and Check.Value ~= Settings[Check.Cvar] then
+			Settings[Check.Cvar] = Check.Value
+			needReload = true
+		end
+	end
+
+	ConsolePort:UpdateCVars()
+	ConsolePort:UpdateSmartMouse()
+
+	for i, Check in pairs(self.Events) do
+		for i, Event in pairs(Check.Events) do
+			db.Mouse.Events[Event] = Check:GetChecked()
+		end
+	end
+
+	if self.InteractModule.Enable:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
+		Settings.interactWith = self.InteractModule.BindCatcher.CurrentButton
+		Settings.mouseOverMode = self.InteractModule.MouseOver:GetChecked()
+	else
+		Settings.interactWith = false
+		Settings.mouseOverMode = false
+	end
+
+	ConsolePortSettings = db.Settings
+	ConsolePortMouse = db.Mouse
+
+	ConsolePort:LoadEvents()
+	ConsolePort:LoadControllerTheme()
+	ConsolePort:UpdateMouseDriver()
+	ConsolePort:SetupUtilityBelt()
+	return needReload
+end
 
 ---------------------------------------------------------------
 -- Config: Create panel and children 
 ---------------------------------------------------------------
-tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false, function(self, Config)
+db.PANELS[#db.PANELS + 1] = {"Config", CONTROLS_LABEL, false, WindowMixin, function(self, Config)
 
 	Settings = db.Settings
 
@@ -346,7 +329,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 
 	Config.Events = {}
 	for i, setting in pairs(GetMouseSettings()) do
-		local check = CreateFrame("CheckButton", "db.MouseEvent"..i, Config.MouseModule, "ChatConfigCheckButtonTemplate")
+		local check = CreateFrame("CheckButton", "$parentMouseEvent"..i, Config.MouseModule, "ChatConfigCheckButtonTemplate")
 		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 		text:SetText(setting.desc)
 		check:SetChecked(setting.toggle)
@@ -430,10 +413,10 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	Config.Triggers = {}
 
 	local triggerGraphics = {
-		[TUTORIAL.BIND.SHIFT] 	= {offset = 0, cvar = "shift"},
-		[TUTORIAL.BIND.CTRL] 	= {offset = 1, cvar = "ctrl"},
-		[TUTORIAL.BIND.TR1] 	= {offset = 2, cvar = "trigger1"},
-		[TUTORIAL.BIND.TR2] 	= {offset = 3, cvar = "trigger2"},
+		[TUTORIAL.BIND.SHIFT] 	= {offset = 0, cvar = "CP_M1"},
+		[TUTORIAL.BIND.CTRL] 	= {offset = 1, cvar = "CP_M2"},
+		[TUTORIAL.BIND.T1] 		= {offset = 2, cvar = "CP_T1"},
+		[TUTORIAL.BIND.T2] 		= {offset = 3, cvar = "CP_T2"},
 	}
 
 	for name, info in pairs(triggerGraphics) do
@@ -454,7 +437,7 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		Config[name] = trigger
 	end
 
-	local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons32x32\\%s"
+	local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons32\\%s"
 	local triggers = {
 		CP_TL1 = format(TEXTURE_PATH, Settings.type, "CP_TL1"),
 		CP_TL2 = format(TEXTURE_PATH, Settings.type, "CP_TL2"),
@@ -463,16 +446,16 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 	}
 
 	local radioButtons = {
-		{parent = Config[TUTORIAL.BIND.SHIFT],	default = Settings.shift},
-		{parent = Config[TUTORIAL.BIND.CTRL], 	default = Settings.ctrl},
-		{parent = Config[TUTORIAL.BIND.TR1], 	default = Settings.trigger1},
-		{parent = Config[TUTORIAL.BIND.TR2], 	default = Settings.trigger2},
+		{parent = Config[TUTORIAL.BIND.SHIFT],	default = Settings.CP_M1},
+		{parent = Config[TUTORIAL.BIND.CTRL], 	default = Settings.CP_M2},
+		{parent = Config[TUTORIAL.BIND.T1], 	default = Settings.CP_T1},
+		{parent = Config[TUTORIAL.BIND.T2], 	default = Settings.CP_T2},
 	}
 
 	for i, radio in pairs(radioButtons) do
 		local num = 1
 		radio.parent.Set = {}
-		for name, texture in pairsByKeys(triggers) do
+		for name, texture in spairs(triggers) do
 			local button = CreateFrame("CheckButton", "$parentTrigger"..i..name, Config)
 
 			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
@@ -521,193 +504,4 @@ tinsert(db.PANELS, {"Config", "General", false, SaveGeneralConfig, false, false,
 		end
 	end
 
-	Config.ClickButtons = {}
-
-	Config.CursorHeader = Config:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Config.CursorHeader:SetText(TUTORIAL.CONFIG.VIRTUALCURSOR)
-	Config.CursorHeader:SetPoint("TOPLEFT", Config.MultiChoiceModule, 24, -24)
-
-	local clickGraphics = {
-		{name = "LeftClick", 	coords = {0.0019531, 0.1484375, 0.4257813, 0.6210938}},
-		{name = "RightClick", 	coords = {0.0019531, 0.1484375, 0.6269531, 0.8222656}},
-		{name = "SpecialClick", coords = {0.1542969, 0.3007813, 0.2246094, 0.4199219}},
-		{name = "ScrollClick", 	coords = {0.0019531, 0.1484375, 0.2246094, 0.4199219}},
-	}
-
-	for i, info in pairs(clickGraphics) do
-		local click = Config:CreateTexture()
-		click:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
-		click:SetSize(76, 101)
-		click:SetGradientAlpha("VERTICAL", 0, 0, 0, 0, 1, 1, 1, 0.5)
-		click:SetTexCoord(unpack(info.coords))
-
-		if info.name ~= "ScrollClick" then
-			click.AllSets = Config.ClickButtons
-			tinsert(Config.ClickButtons, click)
-		end
-
-		click:SetPoint("TOPLEFT", Config.CursorHeader, "TOPLEFT", (i-1) * 110 + 38, -8)
-
-		Config[info.name] = click
-	end
-
-	local clickButtons 	= {
-		CP_R_RIGHT 	= TEXTURE.CP_R_RIGHT,
-		CP_R_LEFT 	= TEXTURE.CP_R_LEFT,
-		CP_R_UP		= TEXTURE.CP_R_UP,
-		CP_R_DOWN	= TEXTURE.CP_R_DOWN,
-	}
-
-	local scrollButtons = {
-		CP_TL1 		= TEXTURE.CP_TL1,
-		CP_TL2 		= TEXTURE.CP_TL2,
-	}
-
-	local radioButtons = {
-		{parent = Config.LeftClick, 	selection = clickButtons,	default = db.Mouse.Cursor.Left},
-		{parent = Config.RightClick, 	selection = clickButtons,	default = db.Mouse.Cursor.Right},
-		{parent = Config.SpecialClick, 	selection = clickButtons, 	default = db.Mouse.Cursor.Special},
-		{parent = Config.ScrollClick, 	selection = scrollButtons,	default = db.Mouse.Cursor.Scroll},
-	}
-
-	for i, radio in pairs(radioButtons) do
-		local num = 1
-		radio.parent.Set = {}
-		for name, texture in pairs(radio.selection) do
-			local button = CreateFrame("CheckButton", "ConsolePortVirtualClick"..i..num, Config)
-
-			button.num = num
-			button.set = radio.parent.Set
-			button.name = name
-			button.parent = radio.parent
-
-			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
-
-			button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Gradient")
-			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
-
-			button.Checked = button:GetCheckedTexture()
-			button.Highlight = button:GetHighlightTexture()
-
-			button.Checked:SetTexCoord(0, 1, 1, 0)
-			button.Highlight:SetTexCoord(0, 1, 1, 0)
-
-			button.Checked:ClearAllPoints()
-			button.Checked:SetPoint("CENTER", 0, 0)
-			button.Checked:SetSize(84, 8)
-			button.Checked:SetVertexColor(red, green, blue)
-
-			button.Highlight:ClearAllPoints()
-			button.Highlight:SetPoint("CENTER", 0, 0)
-			button.Highlight:SetSize(84, 8)
-
-			button:SetSize(100, 20)
-
-			if i == 1 then
-				button.text = button:CreateTexture(nil, "OVERLAY")
-				button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
-				button.text:SetPoint("RIGHT", button, "LEFT", 0, 0)
-				button.text:SetSize(32, 32)
-			elseif i == 4 then
-				button.text = button:CreateTexture(nil, "OVERLAY")
-				button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
-				button.text:SetPoint("RIGHT", button, "LEFT", 8, 0)
-				button.text:SetSize(32, 32)
-
-				button:SetWidth(80)
-				button.Highlight:SetWidth(64)
-				button.Checked:SetWidth(64)		
-			end
-
-			button:SetPoint("TOP", radio.parent, "TOP", 0, -24*(num-1)-12)
-			if name == radio.default then
-				radio.parent.Index = num
-				radio.parent.Value = name
-				button:SetChecked(true)
-			else
-				button:SetChecked(false)
-			end
-			tinsert(radio.parent.Set, button)
-			button:SetScript("OnClick", CheckOnClick)
-			num = num + 1
-		end
-	end
-
-	Config.ActionBarModule = CreateFrame("Frame", nil, Config)
-	Config.ActionBarModule:SetBackdrop(db.Atlas.Backdrops.Border)
-	Config.ActionBarModule:SetPoint("BOTTOMLEFT", Config.MultiChoiceModule, "BOTTOMRIGHT", -22, 0)
-	Config.ActionBarModule:SetSize(188, 284)
-	Config.ActionBarModule.Styles = {}
-	Config.ActionBarModule:SetID(1)
-
-	Config.ActionBarModule.Header = Config.ActionBarModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Config.ActionBarModule.Header:SetText(TUTORIAL.CONFIG.ACTIONBARHEADER)
-	Config.ActionBarModule.Header:SetPoint("TOPLEFT", 24, -24)
-
-	local class = select(2, UnitClass("player"))
-	local classIcon = "Interface\\Icons\\ClassIcon_"..class
-
-	local actionBarStyles = {
-		[1] = {name = "CP_R_UP"},
-		[2] = {name = "CP_R_DOWN"},
-		[3] = {name = "CP_R_LEFT"},
-		[4] = {name = "CP_R_RIGHT"},
-	}
-
-	local styles = Config.ActionBarModule.Styles
-
-	for index, info in pairs(actionBarStyles) do
-		local button = CreateFrame("CheckButton", "$parentStyle"..#Config.ActionBarModule.Styles+1, Config.ActionBarModule, "UIRadioButtonTemplate")
-
-		button.mockButton1 = CreateFrame("Button", "$parentFakeActionButton1", button)
-		button.mockButton1:SetPoint("LEFT", button, "RIGHT", 16, 0)
-		button.mockButton1:SetSize(36, 36)
-		button.mockButton1:SetScript("OnClick", function() button:Click() end)
-		button.mockButton1:SetScript("OnShow", function(self)
-			self:SetBackdrop({bgFile = classIcon})
-		end)
-
-		button.mockButton1.mod = "_NOMOD"
-		button.mockButton1.name = info.name
-
-		button.HotKey1 = ConsolePort.CreateHotKey(button.mockButton1, index)
-		button.HotKey1:Show()
-		button.HotKey1:SetPoint("TOPRIGHT", 0, 0)
-
-		button.mockButton2 = CreateFrame("Button", "$parentFakeActionButton2", button)
-		button.mockButton2:SetPoint("LEFT", button.mockButton1, "RIGHT", 16, 0)
-		button.mockButton2:SetSize(36, 36)
-		button.mockButton2:SetScript("OnClick", function() button:Click() end)
-		button.mockButton2:SetScript("OnShow", function(self)
-			self:SetBackdrop({bgFile = classIcon})
-		end)
-
-		button.mockButton2.mod = "_CTRLSH"
-		button.mockButton2.name = info.name
-
-		button.HotKey2 = ConsolePort.CreateHotKey(button.mockButton2, index)
-		button.HotKey2:Show()
-		button.HotKey2:SetPoint("TOPRIGHT", 0, 0)
-
-		if info.func then
-			info.func(button)
-		end
-
-		button:SetPoint("TOPLEFT", Config.ActionBarModule, "TOPLEFT", 24, -52*(index-1)-72)
-		if ( index == Settings.actionBarStyle ) or ( index == 1 and not Settings.actionBarStyle ) then
-			Config.ActionBarModule:SetID(index)
-			button:SetChecked(true)
-		else
-			button:SetChecked(false)
-		end
-		tinsert(styles, button)
-		button:SetScript("OnClick", function(self)
-			for i, button in pairs(styles) do
-				button:SetChecked(false)
-			end
-			self:SetChecked(true)
-			Config.ActionBarModule:SetID(index)
-		end)
-	end
-
-end})
+end}

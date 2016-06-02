@@ -7,9 +7,7 @@
 -- secure frames with the "unit" attribute assigned.
 
 local addOn, db = ...
-local Flash = db.UIFrameFlash
-local FadeIn = db.UIFrameFadeIn
-local FadeOut = db.UIFrameFadeOut
+local Flash, FadeIn, FadeOut = db.UIFrameFlash, db.UIFrameFadeIn, db.UIFrameFadeOut
 ---------------------------------------------------------------
 local Cursor = CreateFrame("Frame", "ConsolePortRaidCursor", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
 ---------------------------------------------------------------
@@ -22,19 +20,7 @@ local SetPortraitToTexture = SetPortraitToTexture
 ---------------------------------------------------------------
 local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 ---------------------------------------------------------------
-local UI_SCALE = UIParent:GetScale()
----------------------------------------------------------------
-local pi = math.pi
-local abs = abs
-local GetTime = GetTime
----------------------------------------------------------------
-UIParent:HookScript("OnSizeChanged", function(self)
-	UI_SCALE = self:GetScale()
-	if Cursor and Cursor.Spell then
-		Cursor.Spell:Hide()
-		Cursor.Spell:Show()
-	end
-end)
+local pi, abs, GetTime = math.pi, abs, GetTime
 ---------------------------------------------------------------
 local Key = {
 	Up 		= ConsolePort:GetUIControlKey("CP_L_UP"),
@@ -51,7 +37,7 @@ local SetTarget = CreateFrame("Button", "$parentTarget", Cursor, "SecureActionBu
 SetTarget:SetAttribute("type", "target")
 Cursor:SetFrameRef("SetTarget", SetTarget)
 ---------------------------------------------------------------
-ConsolePort:RegisterActionPage(Cursor)
+ConsolePort:RegisterSpellHeader(Cursor)
 Cursor:Execute(format([[
 	ALL = newtable()
 	DPAD = newtable()
@@ -62,15 +48,13 @@ Cursor:Execute(format([[
 	Key.Left = %s
 	Key.Right = %s
 
-	SPELLS = newtable()
-	PAGE = 1
 	ID = 0
 
 	Units = newtable()
 	Actions = newtable()
 
-	MainBar = self:GetFrameRef("ActionBar")
-	OverrideBar = self:GetFrameRef("OverrideBar")
+	MainBar = self:GetFrameRef("actionBar")
+	OverrideBar = self:GetFrameRef("overrideBar")
 
 	Focus = self:GetFrameRef("SetFocus")
 	Target = self:GetFrameRef("SetTarget")
@@ -93,22 +77,13 @@ Cursor:Execute([[
 		Harmful = wipe(Harmful)
 		for actionButton in pairs(Actions) do
 			local action = actionButton:GetAttribute("action")
-			local id = action >= 0 and action <= 12 and (PAGE-1) * 12 + action or action >= 0 and action
-			if id then
-				local actionType, actionID, subType = GetActionInfo(id)
-				if actionType == "spell" and subType == "spell" then
-					local spellBookID = SPELLS[actionID]
-					local helpful = spellBookID and IsHelpfulSpell(spellBookID, subType)
-					local harmful = spellBookID and IsHarmfulSpell(spellBookID, subType)
-					if helpful then
-						Helpful[actionButton] = true
-					elseif harmful then
-						Harmful[actionButton] = true
-					else
-						Helpful[actionButton] = true
-						Harmful[actionButton] = true
-					end
-				end
+			if self:RunAttribute("IsHelpfulAction", action) then
+				Helpful[actionButton] = true
+			elseif self:RunAttribute("IsHarmfulAction", action) then
+				Harmful[actionButton] = true
+			else
+				Helpful[actionButton] = true
+				Harmful[actionButton] = true
 			end
 		end
 	]=]
@@ -280,7 +255,6 @@ Cursor:Execute([[
 				self:Run(GetNodes)
 			end
 		end
-		self:RunAttribute("force-pageupdate")
 	]=]
 	ToggleCursor = [=[
 		if IsEnabled then
@@ -370,7 +344,6 @@ Cursor:SetAttribute("_onstate-unitexists", "self:Run(UpdateUnitExists, newstate)
 ---------------------------------------------------------------
 
 function ConsolePort:SetupRaidCursor()
-	ConsolePort:RegisterSpellbook(Cursor)
 	Cursor.onShow = true
 	Cursor.Timer = 0
 	Cursor:SetScript("OnUpdate", Cursor.Update)
@@ -646,7 +619,7 @@ ConsolePortCursor:HookScript("OnShow", function(self)
 end)
 
 ConsolePortCursor:HookScript("OnHide", function(self)
-	Cursor:UnRegisterEvent("PLAYER_REGEN_ENABLED")
-	Cursor:UnRegisterEvent("PLAYER_REGEN_DISABLED")
+	Cursor:UnregisterEvent("PLAYER_REGEN_ENABLED")
+	Cursor:UnregisterEvent("PLAYER_REGEN_DISABLED")
 	Cursor:SetAlpha(1)
 end)

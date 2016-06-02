@@ -6,11 +6,6 @@ if not db.Controllers then db.Controllers = {} end
 --[[ Steam Controller template by Munk
 ---------------------------------------------------------------
 
-Buttons: 
-	Binding code for each controller button.
-	CP_TR* represents trigger buttons 1 & 2 here, whereas
-	it represents right side shoulder inputs elsewhere.
-
 Color:
 	Hex color codes for the right hand action buttons.
 	Used to color text and tint spell effect on cursor.
@@ -30,29 +25,6 @@ Bindings:
 
 db.Controllers.STEAM = {
 	Hint = 'You should launch the game through big picture mode and use the controller profile provided on our forums.',
-	Buttons = {
-		'CP_R_UP',
-		'CP_R_DOWN',
-		'CP_R_LEFT',
-		'CP_R_RIGHT',
-		----------------
-		'CP_L_LEFT',
-		'CP_L_UP',
-		'CP_L_RIGHT',
-		'CP_L_DOWN',
-		----------------
-		'CP_TR1',
-		'CP_TR2',
-		----------------
-		'CP_TL3',
-		'CP_TR3',
-		----------------
-		'CP_L_OPTION',
-		'CP_R_OPTION',
-		----------------
-		'CP_L_GRIP',
-		'CP_R_GRIP',
-	},
 	Color = {
 		['UP'] 			= 	'FFE74F',
 		['LEFT'] 		= 	'00A2FF',
@@ -60,10 +32,10 @@ db.Controllers.STEAM = {
 		['DOWN'] 		= 	'52C14E',
 	},
 	Settings = {
-		['shift'] 		= 'CP_TL2',
-		['ctrl'] 		= 'CP_TR2',
-		['trigger1'] 	= 'CP_TL1',
-		['trigger2'] 	= 'CP_TR1',
+		['CP_M1'] 		= 'CP_TL2',
+		['CP_M2'] 		= 'CP_TR2',
+		['CP_T1'] 		= 'CP_TL1',
+		['CP_T2'] 		= 'CP_TR1',
 		-------------------------------
 		['skipGuideBtn'] = true,
 		-------------------------------
@@ -79,109 +51,112 @@ db.Controllers.STEAM = {
 		['CP_L_LEFT']	= {index = 5, anchor = 'LEFT'},
 		['CP_L_DOWN']	= {index = 6, anchor = 'LEFT'},
 		['CP_L_RIGHT']	= {index = 7, anchor = 'LEFT'},
-		['CP_TL3'] 		= {index = 8, anchor = 'LEFT'},
-		['CP_L_OPTION']	= {index = 9, anchor = 'LEFT'},
+		['CP_T_L3'] 	= {index = 8, anchor = 'LEFT'},
+		['CP_X_LEFT']	= {index = 9, anchor = 'LEFT'},
 		-------------------------------------------------
 		['CP_TR1']		= {index = 1, anchor = 'RIGHT'},
 		['CP_TR2']		= {index = 2, anchor = 'RIGHT'},
 		['CP_R_GRIP']	= {index = 3, anchor = 'RIGHT'},
-		['CP_TR3'] 		= {index = 4, anchor = 'RIGHT'},
+		['CP_T_R3'] 	= {index = 4, anchor = 'RIGHT'},
 		['CP_R_UP']		= {index = 5, anchor = 'RIGHT'},
 		['CP_R_RIGHT']	= {index = 6, anchor = 'RIGHT'},
 		['CP_R_DOWN']	= {index = 7, anchor = 'RIGHT'},
 		['CP_R_LEFT']	= {index = 8, anchor = 'RIGHT'},
-		['CP_R_OPTION']	= {index = 9, anchor = 'RIGHT'},
+		['CP_X_RIGHT']	= {index = 9, anchor = 'RIGHT'},
 		-------------------------------------------------
 	},
 	Bindings = {
 		-- XYAB
 		['CP_R_UP'] = 	{
-			['action'] 	= 'ACTIONBUTTON2',
-			['shift'] 	= 'ACTIONBUTTON7',
-			['ctrl'] 	= 'MULTIACTIONBAR1BUTTON2',
-			['ctrlsh'] 	= 'MULTIACTIONBAR1BUTTON7',
+			[''] 			= 'ACTIONBUTTON2',
+			['SHIFT-']	 	= 'ACTIONBUTTON7',
+			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON2',
+			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON7',
 		},
 		['CP_R_DOWN'] = {
-			['action'] 	= 'JUMP',
-			['shift'] 	= 'CLICK ConsolePortWorldCursor:LeftButton',
-			['ctrl']  	= 'INTERACTMOUSEOVER',
-			['ctrlsh'] 	= 'CLICK ConsolePortUtilityToggle:LeftButton',
+			[''] 			= 'JUMP',
+			['SHIFT-']	 	= 'CLICK ConsolePortWorldCursor:LeftButton',
+			['CTRL-']  		= 'INTERACTMOUSEOVER',
+			['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
 		['CP_R_LEFT'] = {
-			['action'] 	= 'ACTIONBUTTON1',
-			['shift'] 	= 'ACTIONBUTTON6',
-			['ctrl'] 	= 'MULTIACTIONBAR1BUTTON1',
-			['ctrlsh'] 	= 'MULTIACTIONBAR1BUTTON6',
+			[''] 			= 'ACTIONBUTTON1',
+			['SHIFT-']	 	= 'ACTIONBUTTON6',
+			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON1',
+			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON6',
 		},
 		['CP_R_RIGHT'] = {
-			['action'] 	= 'ACTIONBUTTON3',
-			['shift'] 	= 'ACTIONBUTTON8',
-			['ctrl'] 	= 'MULTIACTIONBAR1BUTTON3',
-			['ctrlsh'] 	= 'MULTIACTIONBAR1BUTTON8',
+			[''] 			= 'ACTIONBUTTON3',
+			['SHIFT-']	 	= 'ACTIONBUTTON8',
+			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON3',
+			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON8',
 		},
 		-- Trigger buttons
 		['CP_TR1'] = {
-			['shift'] 	= 'STOPATTACK',
-			['ctrl'] 	= 'TARGETSELF',
-			['action'] 	= 'PREVIOUSACTIONPAGE',
-			['ctrlsh'] 	= 'CP_CAMLOOKBEHIND',
+			[''] 			= 'PREVIOUSACTIONPAGE',
+			['SHIFT-']	 	= 'STOPATTACK',
+			['CTRL-'] 		= 'TARGETSELF',
+			['CTRL-SHIFT-'] = 'CP_CAMLOOKBEHIND',
 		},
 		['CP_TR2'] = {
-			['shift'] 	= 'FOLLOWTARGET',
-			['ctrl'] 	= 'TOGGLERUN',
-			['action'] 	= 'NEXTACTIONPAGE',
-			['ctrlsh'] 	= 'CLICK ConsolePortNameplateCycle:LeftButton',
+			[''] 			= 'NEXTACTIONPAGE',
+			['SHIFT-']	 	= 'FOLLOWTARGET',
+			['CTRL-'] 		= 'TOGGLERUN',
+			['CTRL-SHIFT-'] = 'CLICK ConsolePortNameplateCycle:LeftButton',
 		},
 		-- Left touch pad
 		['CP_L_UP'] = {
-			['action'] 	= 'MULTIACTIONBAR1BUTTON12',
-			['shift'] 	= 'MULTIACTIONBAR2BUTTON2',
-			['ctrl'] 	= 'MULTIACTIONBAR2BUTTON6',
-			['ctrlsh'] 	= 'MULTIACTIONBAR2BUTTON10',
+			[''] 			= 'MULTIACTIONBAR1BUTTON12',
+			['SHIFT-']	 	= 'MULTIACTIONBAR2BUTTON2',
+			['CTRL-'] 		= 'MULTIACTIONBAR2BUTTON6',
+			['CTRL-SHIFT-'] = 'MULTIACTIONBAR2BUTTON10',
 		},
 		['CP_L_DOWN'] = {
-			['action'] 	= 'ACTIONBUTTON11',
-			['shift'] 	= 'MULTIACTIONBAR2BUTTON4',
-			['ctrl']  	= 'MULTIACTIONBAR2BUTTON8',
-			['ctrlsh']	= 'MULTIACTIONBAR2BUTTON12',
+			[''] 			= 'ACTIONBUTTON11',
+			['SHIFT-']	 	= 'MULTIACTIONBAR2BUTTON4',
+			['CTRL-']  		= 'MULTIACTIONBAR2BUTTON8',
+			['CTRL-SHIFT-']	= 'MULTIACTIONBAR2BUTTON12',
 		},
 		['CP_L_LEFT'] = {
-			['action'] 	= 'MULTIACTIONBAR1BUTTON11',
-			['shift'] 	= 'MULTIACTIONBAR2BUTTON1',
-			['ctrl'] 	= 'MULTIACTIONBAR2BUTTON5',
-			['ctrlsh'] 	= 'MULTIACTIONBAR2BUTTON9',
+			[''] 			= 'MULTIACTIONBAR1BUTTON11',
+			['SHIFT-']	 	= 'MULTIACTIONBAR2BUTTON1',
+			['CTRL-'] 		= 'MULTIACTIONBAR2BUTTON5',
+			['CTRL-SHIFT-'] = 'MULTIACTIONBAR2BUTTON9',
 		},
 		['CP_L_RIGHT'] = {
-			['action'] 	= 'ACTIONBUTTON12',
-			['shift'] 	= 'MULTIACTIONBAR2BUTTON3',
-			['ctrl'] 	= 'MULTIACTIONBAR2BUTTON7',
-			['ctrlsh'] 	= 'MULTIACTIONBAR2BUTTON11',
+			[''] 			= 'ACTIONBUTTON12',
+			['SHIFT-']	 	= 'MULTIACTIONBAR2BUTTON3',
+			['CTRL-'] 		= 'MULTIACTIONBAR2BUTTON7',
+			['CTRL-SHIFT-'] = 'MULTIACTIONBAR2BUTTON11',
 		},		
 		-- Center buttons
-		['CP_L_OPTION'] = {
-			['action'] 	= 'OPENALLBAGS',
-			['shift'] 	= 'TOGGLEWORLDMAP',
-			['ctrl'] 	= 'CP_CAMZOOMOUT',
-			['ctrlsh'] 	= 'CP_CAMZOOMIN',
+		['CP_X_LEFT'] = {
+			[''] 			= 'OPENALLBAGS',
+			['SHIFT-']	 	= 'TOGGLEWORLDMAP',
+			['CTRL-'] 		= 'CP_CAMZOOMOUT',
+			['CTRL-SHIFT-'] = 'CP_CAMZOOMIN',
 		},
-		['CP_R_OPTION'] = {
-			['action'] 	= 'TOGGLEGAMEMENU',
-			['shift'] 	= 'TOGGLEAUTORUN',
-			['ctrl'] 	= 'OPENCHAT',
-			['ctrlsh'] 	= 'CLICK ConsolePortRaidCursorToggle:LeftButton',
+		['CP_X_RIGHT'] = {
+			[''] 			= 'TOGGLEGAMEMENU',
+			['SHIFT-']	 	= 'TOGGLEAUTORUN',
+			['CTRL-'] 		= 'OPENCHAT',
+			['CTRL-SHIFT-'] = 'CLICK ConsolePortRaidCursorToggle:LeftButton',
 		},
 		-- Grip buttons
 		['CP_L_GRIP'] = {
-			['action'] 	= 'ACTIONBUTTON4',
-			['shift'] 	= 'ACTIONBUTTON9',
-			['ctrl'] 	= 'MULTIACTIONBAR1BUTTON4',
-			['ctrlsh'] 	= 'MULTIACTIONBAR1BUTTON9',
+			[''] 			= 'ACTIONBUTTON4',
+			['SHIFT-']	 	= 'ACTIONBUTTON9',
+			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON4',
+			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON9',
 		},
 		['CP_R_GRIP'] = {
-			['action'] 	= 'ACTIONBUTTON5',
-			['shift'] 	= 'ACTIONBUTTON10',
-			['ctrl'] 	= 'MULTIACTIONBAR1BUTTON5',
-			['ctrlsh'] 	= 'MULTIACTIONBAR1BUTTON10',
+			[''] 			= 'ACTIONBUTTON5',
+			['SHIFT-']	 	= 'ACTIONBUTTON10',
+			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON5',
+			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON10',
 		},
+		-- Stick buttons
+		['CP_T_R3'] = {},
+		['CP_T_L3'] = {},
 	},
 }

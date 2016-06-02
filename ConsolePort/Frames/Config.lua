@@ -5,8 +5,7 @@
 
 local _, db = ...
 local TUTORIAL = db.TUTORIAL.CONFIG
-local FadeOut = db.UIFrameFadeOut
-local FadeIn = db.UIFrameFadeIn
+local FadeIn, FadeOut, Mixin = db.UIFrameFadeOut, db.UIFrameFadeIn, db.table.mixin
 local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
@@ -16,7 +15,14 @@ local Scroll = CreateFrame("ScrollFrame", "$parentBannerScroll", Config)
 local Category = CreateFrame("Frame", "$parentCategories", Scroll)
 local Container = CreateFrame("Frame", "$parentContainer", Config)
 ---------------------------------------------------------------
-db.ConfigWindow = Config
+-- beta
+Config.Beta = Config:CreateTexture(nil, "ARTWORK")
+Config.Beta:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+Config.Beta:SetTexCoord(0.9121, 1, 0, 0.0878)
+Config.Beta:SetSize(70, 70)
+Config.Beta:SetPoint("TOPRIGHT", -16, -16)
+---------------------------------------------------------------
+ConsolePort.configFrame = Config
 Config.Category = Category
 Config.Container = Container
 ---------------------------------------------------------------
@@ -255,7 +261,7 @@ end
 Popup:SetSize(400, 500)
 Popup:SetPoint("CENTER", 0, 0)
 Popup:EnableMouse(true)
-Popup:SetScript("OnShow", Popup.OnShow)
+Popup:HookScript("OnShow", Popup.OnShow)
 Popup:SetScript("OnHide", Popup.OnHide)
 Popup:SetFrameStrata("FULLSCREEN_DIALOG")
 Popup:Hide()
@@ -315,14 +321,14 @@ end
 
 ---------------------------------------------------------------
 
-function Config:AddPanel(name, header, bannerAtlas, save, cancel, default, configure)
+function Config:AddPanel(name, header, bannerAtlas, mixin, configure)
 	local frame = CreateFrame("FRAME", "$parent"..name, Container)
 	frame:SetBackdrop(db.Atlas.Backdrops.Border)
 	local id = Category:AddNew(header, bannerAtlas)
 	Container.Frames[id] = frame
-	frame.Default = default
-	frame.Cancel = cancel
-	frame.Save = save
+
+	Mixin(frame, mixin)
+
 	frame:SetParent(self)
 	frame:SetAllPoints(Container)
 	frame:Hide()

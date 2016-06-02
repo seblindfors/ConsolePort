@@ -198,22 +198,10 @@ local function ConfigureMenu()
 		db.Atlas.SetFutureButtonStyle(button, nil, nil, true)
 		button:SetPoint(unpack(info.pos))
 
-		button.Cover2 = button.Cover2 or button:CreateTexture("$parentCover2", "ARTWORK")
-		button.Cover2:SetAtlas("groupfinder-button-cover")
-		button.Cover2:SetAllPoints()
-
-		button.Cover3 = button.Cover3 or button:CreateTexture("$parentCover3", "ARTWORK")
-		button.Cover3:SetAtlas("groupfinder-button-cover")
-		button.Cover3:SetAllPoints()
-
 		if info.fadeFrom == "RIGHT" then
-			button.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 1, cc.r, cc.g, cc.b, 0)
-			button.Cover2:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 1, cc.r, cc.g, cc.b, 0)
-			button.Cover3:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 1, cc.r, cc.g, cc.b, 0)
+			button.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 1, cc.r, cc.g, cc.b, 1)
 		elseif info.fadeFrom == "LEFT" then
-			button.Cover:SetGradientAlpha("HORIZONTAL", cc.r, cc.g, cc.b, 0, 1, 1, 1, 1)
-			button.Cover2:SetGradientAlpha("HORIZONTAL", cc.r, cc.g, cc.b, 0, 1, 1, 1, 1)
-			button.Cover3:SetGradientAlpha("HORIZONTAL", cc.r, cc.g, cc.b, 0, 1, 1, 1, 1)
+			button.Cover:SetGradientAlpha("HORIZONTAL", cc.r, cc.g, cc.b, 1, 1, 1, 1, 1)
 		end
 
 		if button.Middle then
@@ -236,13 +224,6 @@ local function ConfigureMenu()
 	end
 
 	local function OnShow(self)
-		self.ArtOverlay:SetMask(nil)
-		self.ArtOverlay:SetTexture("Interface\\TALENTFRAME\\"..(db.Atlas.GetOverlay() or ""))
-		self.ArtOverlay:SetTexCoord(0, 1, 0, 0.64453125)
-		self.ArtOverlay:SetSize(550, 400)
-		self.ArtOverlay:SetPoint("CENTER", 0, -80)
-		self.ArtOverlay:SetMask("Interface\\GLUES\\Models\\UI_Dwarf\\UI_Goblin_GodRaysMask")
-
 		if IsInLFGDungeon() or IsPartyLFG() then
 			LFDJoinLeave:Show()
 			LFDTeleport:Show()
@@ -281,7 +262,7 @@ local function ConfigureMenu()
 		region:SetSize(66, 68)
 		region:SetPoint("BOTTOMRIGHT", -9, 10)
 	-- Tint
-	region = GameMenuFrame:CreateTexture(nil, "BACKGROUND", nil, 2)
+	region = GameMenuFrame:CreateTexture(nil, "BACKGROUND", nil, 7)
 		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\BoxTint")
 		region:SetPoint("TOPLEFT", 16, -16)
 		region:SetPoint("BOTTOMRIGHT", GameMenuFrame, "RIGHT", -16, 0)
@@ -314,7 +295,9 @@ local function ConfigureMenu()
 	GameMenuFrame.BottomLine:SetPoint("BOTTOM", 0, 16)
 	GameMenuFrame.BottomLine:SetVertexColor(cc.r, cc.g, cc.b, 1)
 
-	GameMenuFrame.ArtOverlay = GameMenuFrame:CreateTexture(nil, "BACKGROUND", nil, 6)
+	db.Atlas.GetArtOverlay(GameMenuFrame)
+	GameMenuFrame.Overlay:SetAlpha(0.5)
+	GameMenuFrame.Overlay:SetDrawLayer("BACKGROUND", 6)
 
 	GameMenuFrame.BG = GameMenuFrame:CreateTexture(nil, "BACKGROUND", 4)
 	GameMenuFrame.BG:SetPoint("TOPLEFT", GameMenuFrame, "TOPLEFT", 16, -16)

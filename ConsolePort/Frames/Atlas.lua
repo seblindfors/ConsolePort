@@ -41,8 +41,9 @@ local function CreateAtlasButton(name, parent, secure, template)
 end
 ---------------------------------------------------------------
 db.Atlas = {}
+local Atlas = db.Atlas
 ---------------------------------------------------------------
-db.Atlas.Backdrops = {
+Atlas.Backdrops = {
 	Full = {
 		bgFile 		= path.."Window\\Gradient",
 		edgeFile 	= path.."Window\\EdgefileBig",
@@ -78,26 +79,25 @@ db.Atlas.Backdrops = {
 	}
 }
 ---------------------------------------------------------------
-local oPath = "Interface\\TALENTFRAME\\" 
-db.Atlas.Overlays = {
-	MAGE 			= {ATLAS = "Artifacts-MageArcane-BG", 		[62]  = "bg-mage-arcane", 			[63]  = "bg-mage-fire", 		[64]  = "bg-mage-frost"},
-	PALADIN 		= {ATLAS = "Artifacts-Paladin-BG", 			[65]  = "bg-paladin-holy", 			[66]  = "bg-paladin-protection",[70]  = "bg-paladin-retribution"},
-	WARRIOR 		= {ATLAS = "Artifacts-Warrior-BG", 			[71]  = "bg-warrior-arms", 			[72]  = "bg-warrior-fury", 		[73]  = "bg-warrior-protection"},
-	DRUID 			= {ATLAS = "Artifacts-Druid-BG", 			[102] = "bg-druid-balance", 		[103] = "bg-druid-cat",			[104] = "bg-druid-bear", [105] = "bg-druid-restoration"},
-	DEATHKNIGHT 	= {ATLAS = "Artifacts-DeathKnightFrost-BG", [250] = "bg-deathknight-blood", 	[251] = "bg-deathknight-frost", [252] = "bg-deathknight-unholy"},
-	HUNTER 			= {ATLAS = "Artifacts-Hunter-BG", 			[253] = "bg-hunter-beastmaster",	[254] = "bg-hunter-marksman", 	[255] = "bg-hunter-survival"},
-	PRIEST 			= {ATLAS = "Artifacts-Priest-BG", 			[256] = "bg-priest-discipline", 	[257] = "bg-priest-holy", 		[258] = "bg-priest-shadow"},
-	ROGUE 			= {ATLAS = "Artifacts-Rogue-BG", 			[259] = "bg-rogue-assassination", 	[260] = "bg-rogue-combat", 		[261] = "bg-rogue-subtlety"},
-	SHAMAN 			= {ATLAS = "Artifacts-Shaman-BG", 			[262] = "bg-shaman-elemental", 		[263] = "bg-shaman-enhancement",[264] = "bg-shaman-restoration"},
-	WARLOCK 		= {ATLAS = "Artifacts-Warlock-BG", 			[265] = "bg-warlock-affliction", 	[266] = "bg-warlock-demonology",[267] = "bg-warlock-destruction"},
-	MONK 			= {ATLAS = "Artifacts-Monk-BG", 			[268] = "bg-monk-brewmaster", 		[269] = "bg-monk-battledancer", [270] = "bg-monk-mistweaver"},
-	DEMONHUNTER		= {ATLAS = "Artifacts-DemonHunter-BG"}
+Atlas.Overlays = {
+	MAGE 			= "Artifacts-MageArcane-BG",
+	PALADIN 		= "Artifacts-Paladin-BG",
+	WARRIOR 		= "Artifacts-Warrior-BG",
+	DRUID 			= "Artifacts-Druid-BG",
+	DEATHKNIGHT 	= "Artifacts-DeathKnightFrost-BG",
+	HUNTER 			= "Artifacts-Hunter-BG",
+	PRIEST 			= "Artifacts-Priest-BG",
+	ROGUE 			= "Artifacts-Rogue-BG",
+	SHAMAN 			= "Artifacts-Shaman-BG",
+	WARLOCK 		= "Artifacts-Warlock-BG",
+	MONK 			= "Artifacts-Monk-BG",
+	DEMONHUNTER		= "Artifacts-DemonHunter-BG",
 }
 ---------------------------------------------------------------
-db.Atlas.GetCC = function() return cc.r, cc.g, cc.b end
-db.Atlas.GetOverlay = function() return GetSpecialization() and db.Atlas.Overlays[class][GetSpecializationInfo(GetSpecialization())] end
+Atlas.GetCC = function() return cc.r, cc.g, cc.b end
+Atlas.GetOverlay = function(otherClass) return Atlas.Overlays[otherClass or class] end
 ---------------------------------------------------------------
-db.Atlas.Hex2RGB = function(hex, inPercent)
+Atlas.Hex2RGB = function(hex, inPercent)
 	if hex then
 	    hex = hex:gsub("#","")
 	    if inPercent then
@@ -112,13 +112,20 @@ db.Atlas.Hex2RGB = function(hex, inPercent)
 	end
 end
 ---------------------------------------------------------------
-db.Atlas.SetGlassStyle = function(self, classColored, alpha)
-	self:SetBackdrop(db.Atlas.Backdrops.Border)
+Atlas.SetGlassStyle = function(self, classColored, alpha)
+	self:SetBackdrop(Atlas.Backdrops.Border)
 	self.BG = self.BG or self:CreateTexture(nil, "BACKGROUND")
 	self.BG:SetPoint("TOPLEFT", self, "TOPLEFT", 8, -8)
 	self.BG:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -8, 8)
 	self.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
 	self.BG:SetBlendMode("ADD")
+
+	self.Tint = self:CreateTexture(nil, "BACKGROUND", nil, 2)
+	self.Tint:SetTexture(path.."Window\\BoxTint")
+	self.Tint:SetPoint("TOPLEFT", 16, -16)
+	self.Tint:SetPoint("BOTTOMRIGHT", self, "RIGHT", -16, 0)
+	self.Tint:SetBlendMode("ADD")
+	self.Tint:SetAlpha(0.75)
 
 	if classColored then
 		self.BG:SetVertexColor(cc.r, cc.g, cc.b, alpha or 0.25)
@@ -127,8 +134,8 @@ db.Atlas.SetGlassStyle = function(self, classColored, alpha)
 	end
 end
 ---------------------------------------------------------------
-db.Atlas.SetGlassInsetStyle = function(self, classColored, alpha)
-	self:SetBackdrop(db.Atlas.Backdrops.Border)
+Atlas.SetGlassInsetStyle = function(self, classColored, alpha)
+	self:SetBackdrop(Atlas.Backdrops.Border)
 	self.BG = self.BG or self:CreateTexture(nil, "BACKGROUND")
 	self.BG:SetPoint("TOPLEFT", self, "TOPLEFT", 8, -8)
 	self.BG:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -8, 8)
@@ -142,11 +149,8 @@ db.Atlas.SetGlassInsetStyle = function(self, classColored, alpha)
 	end
 end
 ---------------------------------------------------------------
-db.Atlas.SetFutureButtonStyle = function(button, width, height, classColored, buttonAtlas, oldLabel, oldIcon)
+Atlas.SetFutureButtonStyle = function(button, width, height, classColored)
 	assert(type(button) == "table" and (button:IsObjectType("Button") or button:IsObjectType("CheckButton")))
-
-	button.Icon = button.icon or button.Icon or oldIcon or button:CreateTexture("$parentIcon", "BACKGROUND")
-	button.Icon:SetPoint("CENTER")
 
 	button.Cover = button.Cover or button:CreateTexture("$parentCover", "ARTWORK")
 	button.Cover:SetAtlas("groupfinder-button-cover")
@@ -157,6 +161,7 @@ db.Atlas.SetFutureButtonStyle = function(button, width, height, classColored, bu
 	button.SelectedTexture:SetTexture("Interface\\PVPFrame\\PvPMegaQueue")
 	button.SelectedTexture:SetPoint("CENTER")
 	button.SelectedTexture:SetTexCoord(0.00195313, 0.63867188, 0.76953125, 0.83007813)
+	button.SelectedTexture:SetBlendMode("ADD")
 
 	button.HighlightTexture = button.HighlightTexture or button:CreateTexture("$parentHighlightTexture", "HIGHLIGHT")
 	button.HighlightTexture:SetTexture("Interface\\PVPFrame\\PvPMegaQueue")
@@ -165,7 +170,7 @@ db.Atlas.SetFutureButtonStyle = function(button, width, height, classColored, bu
 
 	button:SetHighlightTexture(button.HighlightTexture)
 
-	button.Label = button.Label or button:CreateFontString("$parentLabel", nil, "GameFontNormal")
+	button.Label = button.Label or button:GetFontString() or button:CreateFontString("$parentLabel", nil, "GameFontNormal")
 	button.Label:SetJustifyH("CENTER")
 	button.Label:SetPoint("CENTER")
 	button.Label:SetText(button:GetText())
@@ -175,15 +180,7 @@ db.Atlas.SetFutureButtonStyle = function(button, width, height, classColored, bu
 	button.Cover:SetSize(width or 240, height or 46)
 	button.SelectedTexture:SetSize(width or 240, height and height*0.7828 or 46*0.7828)
 	button.HighlightTexture:SetSize(width or 240, height and height*0.7828 or 46*0.7828)
-	button.Icon:SetSize(width or 240, height or 46)
-	if buttonAtlas then
-		local texture, left, right, top, bottom = unpack(buttonAtlas)
-		button.Icon:SetTexture(texture)
-		button.Icon:SetTexCoord(left, right, top, bottom)
-		button.Icon:SetAlpha(0.25)
-	else
-		button.Icon:SetTexture(nil)
-	end
+
 	if classColored then
 		local highlight = path.."Window\\Highlight"
 		button.SelectedTexture:SetTexCoord(0, 0.640625, 0, 1)
@@ -192,7 +189,47 @@ db.Atlas.SetFutureButtonStyle = function(button, width, height, classColored, bu
 	end
 end
 ---------------------------------------------------------------
-db.Atlas.GetFutureButton = function(name, parent, secure, buttonAtlas, width, height, classColored)
+Atlas.GetArtOverlay = function(self)
+	local overlay = Atlas.GetOverlay()
+	local texture = GetAtlasInfo(overlay)
+	local maxWidth, maxHeight, texSize = 722, 617, 1024
+	local maxCoordX, maxCoordY, centerCoordX, centerCoordY = 
+			maxWidth / texSize, maxHeight / texSize,
+			( maxWidth / 2 ) / texSize, ( maxHeight / 2) / texSize
+
+	self.Overlay = self:CreateTexture(nil, "ARTWORK", nil, 7)
+	self.Overlay:SetPoint("TOPLEFT", self, "TOPLEFT", 16, -16)
+	self.Overlay:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -16, 16)
+	self.Overlay:SetBlendMode("BLEND")
+	self.Overlay:SetAlpha(0.25)
+	self.Overlay:SetAtlas(Atlas.GetOverlay())
+
+	local function FixAspectRatio(self)
+		local width, height = self:GetSize()
+		local left, right, top, bottom
+		if width > height then
+			local newHeight = ( height / width ) * maxWidth
+			left, right = 0, maxCoordX
+			top = centerCoordY - ( (newHeight / 2) / texSize )
+			bottom = centerCoordY + ( (newHeight / 2 ) / texSize )
+		else
+			local newWidth = ( width / height ) * maxHeight
+			top, bottom = 0, maxCoordY
+			left = centerCoordX - ( ( newWidth / 2 ) / texSize )
+			right = centerCoordX + ( ( newWidth / 2 ) / texSize )
+		end
+		self.Overlay:SetAtlas(nil)
+		self.Overlay:SetTexture(texture)
+		self.Overlay:SetTexCoord(left, right, top, bottom)
+	end
+
+	self:HookScript("OnShow", FixAspectRatio)
+	self:HookScript("OnSizeChanged", FixAspectRatio)
+	
+	return self.Overlay
+end
+---------------------------------------------------------------
+Atlas.GetFutureButton = function(name, parent, secure, buttonAtlas, width, height, classColored)
 	local button = CreateAtlasButton(name, parent, secure, "LFGListCategoryTemplate")
 	button.Label:ClearAllPoints()
 	button.Label:SetJustifyH("CENTER")
@@ -221,11 +258,11 @@ db.Atlas.GetFutureButton = function(name, parent, secure, buttonAtlas, width, he
 	return button
 end
 ---------------------------------------------------------------
-db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored, buttonTemplate)
+Atlas.GetGlassWindow  = function(name, parent, secure, classColored, buttonTemplate)
 	local self = CreateAtlasFrame(name, parent, secure, buttonTemplate)
 	local assets = path.."Window\\Assets"
 
-	self:SetBackdrop(db.Atlas.Backdrops.Border)
+	self:SetBackdrop(Atlas.Backdrops.Border)
 
 	self.Close.Texture = self.Close:CreateTexture(nil, "ARTWORK")
 	self.Close.Texture:SetTexture(assets)
@@ -257,7 +294,7 @@ db.Atlas.GetGlassWindow  = function(name, parent, secure, classColored, buttonTe
 	return self
 end
 ---------------------------------------------------------------
-db.Atlas.GetFutureWindow = function(name, parent, secure, buttonTemplate, artCorners)
+Atlas.GetFutureWindow = function(name, parent, secure, buttonTemplate, artCorners, noOverlay)
 	local self = CreateAtlasFrame(name, parent, secure, buttonTemplate)
 	local assets = path.."Window\\Assets"
 
@@ -329,32 +366,341 @@ db.Atlas.GetFutureWindow = function(name, parent, secure, buttonTemplate, artCor
 	self.TopLine:SetColorTexture(1,1,1)
 	self.TopLine:SetGradientAlpha(unpack(gradient))
 
-	self:SetBackdrop(db.Atlas.Backdrops.Border)
+	self:SetBackdrop(Atlas.Backdrops.Border)
 
-	self.Overlay = self:CreateTexture(nil, "ARTWORK", nil, 7)
-	self.Overlay:SetPoint("TOPLEFT", self, "TOPLEFT", 16, -16)
-	self.Overlay:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -16, 16)
-	self.Overlay:SetBlendMode("BLEND")
-	self.Overlay:SetAlpha(0.1)
-
-	self:HookScript("OnShow", function(self)
-		local spec = GetSpecialization()
-		local specInfo = spec and GetSpecializationInfo(spec)
-		local specTexture = specInfo and db.Atlas.Overlays[class][specInfo]
-		local atlas = db.Atlas.Overlays[class].ATLAS
-		if atlas then
-			self.Overlay:SetAtlas(atlas)
-			self.Overlay:SetAlpha(0.25)
-		elseif specTexture then
-			self.Overlay:SetTexture("Interface\\TALENTFRAME\\"..specTexture)
-			self.Overlay:SetTexCoord(0, 1, 0, 0.64453125)
-		end
-	end)
+	if not noOverlay then
+		Atlas.GetArtOverlay(self)
+	end
 
 	return self
 end
+---------------------------------------------------------------
+Atlas.ScrollMeta = {}
 
-db.Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, notSecure)
+function Atlas.ScrollMeta:Refresh(numVisible)
+	numVisible = numVisible or #self.Buttons
+	if self.Child then
+		for i, button in pairs(self.Buttons) do
+			button:SetShown(i <= numVisible)
+		end
+		local newHeight = numVisible * self.stepSize
+		self.Child:SetHeight(newHeight)
+		return newHeight
+	else
+		return self:GetParent():Refresh(numVisible)
+	end
+end
+
+function Atlas.ScrollMeta:AddButton(button, xOffset, yOffset)
+	if not self.Child then
+		self:GetParent():AddButton(button, xOffset, yOffset)
+	elseif button then
+		button:SetParent(self.Child)
+		button:ClearAllPoints()
+		button:SetPoint("TOPLEFT", xOffset or 0, - #self.Buttons * self.stepSize + (yOffset or 0))
+		self.Buttons[#self.Buttons + 1] = button
+		return true
+	end
+end
+
+Atlas.GetScrollFrame = function(name, parent, config)
+	local self = CreateFrame("ScrollFrame", name, parent, "UIPanelScrollFrameTemplate")
+	assert(config, "Atlas.GetScrollFrame: No config provided.")
+	---------------------------------
+	local 	parentKey, size, points, 
+			childKey, childWidth,
+			stepSize, scrollStep,
+			customBackdrop, noBackdrop,
+			anchor, anchorOffset = 
+			--------------------------------
+			config.parentKey, config.size, config.points,
+			config.childKey, config.childWidth, 
+			config.stepSize, config.scrollStep, 
+			config.backdrop, config.noBackdrop,
+			config.anchor, config.anchorOffset
+			---------------------------------
+
+	local child = CreateFrame("Frame", "$parent"..(childKey or "ScrollChild"), self)
+	local bar = self.ScrollBar
+	local thumb = bar:GetThumbTexture()
+
+	if not noBackdrop then
+		local backdrop = CreateFrame("Frame", "$parentBackdrop", self)
+		backdrop:SetBackdrop(customBackdrop or Atlas.Backdrops.Border)
+		backdrop:SetPoint("TOPLEFT", -16, 16)
+		backdrop:SetPoint("BOTTOMRIGHT", 38, -16)
+		backdrop:SetFrameLevel(self:GetFrameLevel() - 1)
+		self.Backdrop = backdrop
+	end
+
+	if parentKey then parent[parentKey] = self end
+	if childKey then self[childKey] = child end
+
+	self.Child = child
+	self:SetScrollChild(child)
+
+	child:SetWidth(childWidth or 0)
+
+	self.stepSize = stepSize or 32
+
+	bar.Thumb = thumb
+	thumb = bar:GetThumbTexture()
+	thumb:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Thumb")
+	thumb:SetTexCoord(0, 1, 0, 1)
+	thumb:SetSize(18, 34)
+
+	bar.scrollStep = scrollStep or self.stepSize
+	bar:ClearAllPoints()
+	bar.ignoreNode = true
+	bar:SetPoint("TOPLEFT", self, "TOPRIGHT", 0, 0)
+	bar:SetPoint("BOTTOMLEFT", self, "BOTTOMRIGHT", 0, 0)
+	bar.ScrollUpButton:SetAlpha(0)
+	bar.ScrollUpButton:ClearAllPoints()
+	bar.ScrollDownButton:SetAlpha(0)
+	bar.ScrollDownButton:ClearAllPoints()
+
+	self.Buttons = {}
+	child.Buttons = self.Buttons
+
+	self.AddButton = Atlas.ScrollMeta.AddButton
+	child.AddButton = self.AddButton
+
+	self.Refresh = Atlas.ScrollMeta.Refresh
+	child.Refresh = self.Refresh
+
+	return self
+end
+---------------------------------------------------------------
+Atlas.BindingMeta = {
+	Bindings = {},
+	Headers = {},
+}
+
+local bindPrefix = "BINDING_NAME_" -- this prefix is used for actual bindings
+local sortPrefix = "BINDING_" -- this prefix is used for headers inside categories
+local bindFormat = "%s\n|cFF575757%s|r"
+local bindingCounter = 0
+
+function Atlas.BindingMeta:GetBindingInfo()
+	local binding = self.binding
+	if binding then
+		local bindingText = binding and _G[bindPrefix..binding]
+		local header, name = not self.omitHeader and binding and self.Headers[binding]
+
+		local id = ConsolePort:GetActionID(binding)
+		-- this binding has an action ID
+		if id then
+			-- re-calculate an action ID based on the current action page
+			local loc = db.TUTORIAL.BIND
+			local actionpage = MainMenuBarArtFrame:GetAttribute("actionpage") or 1
+			id = id <= 12 and id + ( ( actionpage - 1 ) * 12 ) or id
+
+			local texture = GetActionTexture(id)
+
+			local actionType, actionID, subType, spellID = GetActionInfo(id)
+			
+			if actionType == "spell" and actionID then
+				name = GetSpellInfo(actionID) or loc.SPELL
+			elseif actionType == "item" and actionID then
+				name = GetItemInfo(actionID) or loc.ITEM
+			elseif actionType == "macro" then
+				name = GetActionText(id)..loc.MACRO
+			elseif actionType == "companion" then
+				name = loc[subType]
+			elseif actionType == "summonmount" then
+				name = loc.MOUNT
+			elseif actionType == "equipmentset" then
+				name = actionID..loc.EQSET
+			end
+
+			-- if the action has a name, suffix the binding and omit the header
+			name = name and format(bindFormat, name, bindingText)
+
+			if name then
+				-- at this point there's a name and texture for the action ID
+				return name, texture
+			elseif texture then
+				if bindingText then
+					name = header and _G[header]
+					name = name and format(bindFormat, bindingText, name) or bindingText 
+				end
+				return name, texture
+			else
+				name = header and _G[header]
+				return name and format(bindFormat, bindingText, name) or bindingText
+			end
+		-- this binding does not have an action ID, just return the binding and header names
+		elseif bindingText then
+			name = header and _G[header]
+			return name and format(bindFormat, bindingText, name) or bindingText
+		-- at this point, this is not an usual binding. this is most likely a click binding.
+		else
+			name = gsub(binding, "(.* ([^:]+).*)", "%2")
+			return name
+		end
+	else
+		return self.default
+	end
+end
+
+function Atlas.BindingMeta:Refresh()
+	if bindingCounter ~= GetNumBindings() then
+		self:RefreshBindings()
+	end
+
+	local name, texture = self:GetBindingInfo()
+	
+	if name and texture then
+		self.Mask:Show()
+		self:SetText(name)
+		self.SetIcon(self.Icon, texture)
+	elseif texture then
+		self.Mask:Show()
+		self:SetText(self.default)
+		self.SetIcon(self.Icon, texture)
+	elseif name then
+		self.Mask:Hide()
+		self.Icon:SetTexture()
+		self:SetText(name)
+	end
+end
+
+function Atlas.BindingMeta:RefreshBindings()
+	local numBindings = GetNumBindings()
+	-- check if the bindings have been updated since the last run (bindings can be added, but not removed)
+	if numBindings ~= bindingCounter then
+		local bindings = self.Bindings
+		local headers = self.Headers
+
+		-- wipe all current bindings, since indices may have changed
+		wipe(bindings)
+		wipe(headers)
+
+		for i=1, numBindings do
+			local id, header = GetBinding(i)
+
+			-- link bindings to their respective header, so reverse lookup can be performed
+			headers[id] = header
+
+			local binding = _G[bindPrefix..id]
+			local name = binding or _G[sortPrefix..id]
+			-- if the binding has a designated header
+			if header then
+				-- use the header title if there is one.
+				local hTitle = _G[header] or header
+				local category = bindings[hTitle]
+				if not category then
+					category = {}
+					bindings[hTitle] = category
+				end
+				-- add binding to its designated category table, omit binding index if not an actual binding
+				category[#category + 1] = {name = name, binding = id}
+			-- else check that this isn't (1) a header which isn't blank and is not a controller header or (2) just a header
+			elseif ( id:match("^HEADER") and not id:match("^HEADER_BLANK") and not id:match("^CP_") ) or ( not id:match("^HEADER") ) then
+				-- at this point, the binding definitely belongs in the "Other" category
+				local otherCategory = bindings[BINDING_HEADER_OTHER]
+				if not otherCategory then
+					otherCategory = {}
+					bindings[BINDING_HEADER_OTHER] = otherCategory
+				end
+				-- add binding to the "Other" table, omit binding index if not an actual binding
+				otherCategory[#otherCategory + 1] = {name = name, binding = id}
+			end
+		end
+		-- scrub base controller bindings, since they're not relevant.
+		bindings["ConsolePort "] = nil
+		-- include hidden bindings
+		bindings[db.TUTORIAL.BIND.MAINCATEGORY] = ConsolePort:GetAddonBindings()
+		-- update/add the counter
+		bindingCounter = numBindings
+	end
+	return self.Bindings, self.Headers
+end
+
+Atlas.GetBindingMetaButton = function(name, parent, config)
+	assert(config, "Atlas.GetBindingTooltipButton: No config provided.")
+	---------------------------------
+	local 	width, height, templates, hitRects,
+			justifyH, textWidth, textPoint,
+			iconPoint, iconSpaceX, iconSpaceY,
+			useButton, buttonTexture, buttonPoint,
+			binding, default, anchor = 
+	---------------------------------
+			config.width, config.height, config.templates, config.hitRects,
+			config.justifyH, config.textWidth, config.textPoint,
+			config.iconPoint, config.iconSpaceX, config.iconSpaceY,
+			config.useButton, config.buttonTexture, config.buttonPoint,
+			config.binding, config.default, config.anchor
+	---------------------------------
+	local self = CreateFrame("Button", name, parent, templates)
+	local text = self:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	local icon = self:CreateTexture(nil, "ARTWORK", nil, 7)
+	local mask = self:CreateTexture(nil, "OVERLAY", nil, 7)
+
+	self.Icon = icon
+	self.Text = text
+	self.Mask = mask
+
+	self:SetSize(width or 200, height or 30)
+
+	self.default = default or db.TUTORIAL.BIND.NOTASSIGNED
+	self.omitHeader = config.omitHeader
+
+	self:SetFontString(text)
+	self:SetText(self.default)
+
+	text:SetWidth(textWidth or width or 200)
+	text:SetTextHeight(12)
+	text:SetSpacing(2)
+	text:SetWordWrap(true)
+	text:SetJustifyH(justifyH or "LEFT")
+
+	icon:SetSize(30, 30)
+
+	self.SetIcon = SetPortraitToTexture
+
+	if hitRects then
+		self:SetHitRectInsets(unpack(hitRects))
+	end
+
+	if useButton then
+		local button = self:CreateTexture(nil, "OVERLAY")
+		button:SetSize(30, 30)
+		button:SetTexture(buttonTexture)
+		if buttonPoint then
+			local point, relativePoint, xOffset, yOffset = unpack(buttonPoint)
+			button:SetPoint(point, self, relativePoint, xOffset, yOffset)
+		end
+		self.ButtonTexture = button
+	end
+	if iconPoint then
+		local point, relativePoint, xOffset, yOffset = unpack(iconPoint)
+		icon:SetPoint(point, self, relativePoint, xOffset, yOffset)
+	end	
+	if textPoint then
+		local point, relativePoint, xOffset, yOffset = unpack(textPoint)
+		text:SetPoint(point, self, relativePoint, xOffset, yOffset)
+	end
+	if anchor then
+		local point, relativePoint, xOffset, yOffset = unpack(anchor)
+		self.customAnchor = {point, self, relativePoint, xOffset, yOffset}
+	end
+
+	mask:SetPoint("CENTER", icon, "CENTER", 0, 0)
+	mask:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask")
+	mask:SetSize(32, 32)
+	mask:Hide()
+
+	for k, v in pairs(Atlas.BindingMeta) do
+		self[k] = v
+	end
+	
+	return self
+end
+
+---------------------------------------------------------------
+
+Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, notSecure)
 	if InCombatLockdown() and not notSecure then
 		error("GetRoundActionButton: SecureActionButtonTemplate cannot be inherited in combat!", 2)
 	elseif not name or isCheck == nil or not parent then

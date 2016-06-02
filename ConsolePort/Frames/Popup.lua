@@ -14,11 +14,15 @@ local popups = {
 	[StaticPopup4] = StaticPopup3,
 }
 
+local visible = {}
+
 for Popup, previous in pairs(popups) do
 	Popup:HookScript("OnShow", function(self)
+		visible[self] = true
 		self:EnableKeyboard(false)
 		if not InCombatLockdown() then
-			if not popups[previous] or ( popups[previous] and not popups[previous]:IsVisible() ) then
+			local priorityPopup = popups[previous]
+			if not priorityPopup or ( priorityPopup and not priorityPopup:IsVisible() ) then
 				local current = ConsolePort:GetCurrentNode()
 				if current and not popups[current:GetParent()] then
 					oldNode = current
@@ -28,10 +32,32 @@ for Popup, previous in pairs(popups) do
 		end
 	end)
 	Popup:HookScript("OnHide", function(self)
-		if not InCombatLockdown() and oldNode then
+		visible[self] = nil
+		if not next(visible) and not InCombatLockdown() and oldNode then
 			ConsolePort:SetCurrentNode(oldNode)
 		end
 	end)
+end
+
+---------------------------------------------------------------
+-- Popup restyling: temporarily re-style popups 
+---------------------------------------------------------------
+local _, db = ...
+local popup, defaultBackdrop
+
+function ConsolePort:ShowPopup(...)
+	popup = StaticPopup_Show(...)
+	defaultBackdrop = popup:GetBackdrop()
+	popup:EnableKeyboard(false)
+	popup:SetBackdrop(db.Atlas.Backdrops.FullSmall)
+	return popup
+end
+
+function ConsolePort:ClearPopup()
+	if popup then
+		popup:SetBackdrop(defaultBackdrop)
+		popup = nil
+	end
 end
 
 ---------------------------------------------------------------

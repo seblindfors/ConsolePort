@@ -6,204 +6,202 @@
 local _, db = ...
 local KEY = db.KEY
 local SETUP = db.TUTORIAL.SETUP
-local HelpFrame
 
 -- Determine if the base (unmodified) bindings are assigned.
-function ConsolePort:CheckUnassignedBindings()
+function ConsolePort:CheckCalibration()
 	local ctrlType = db.Settings.type
 	local ButtonUnassigned = false
-	local buttons = self:GetBindingNames()
-	local unassigned = {}
-	for i, button in pairs(buttons) do
+	local unassigned
+	for button in self:GetBindings() do
 		-- temporary Steam guide button fix, remove this.
-		if 	not (db.Settings.skipGuideBtn and button == "CP_C_OPTION") and not button:match("CP_T.3") then
+		if 	not (db.Settings.skipGuideBtn and button == "CP_X_CENTER") and not button:match("CP_T_.3") then
 			local key1, key2 = GetBindingKey(button)
 			if not key1 and not key2 then
-				ButtonUnassigned = true
-				tinsert(unassigned, button)
+				if not unassigned then
+					unassigned = {button}
+				else
+					unassigned[#unassigned + 1] = button
+				end
 			end
 		end
 	end
-	if not ButtonUnassigned then unassigned = nil end
 	return unassigned
 end
 
-local function CreateHelpFrame()
-	if not HelpFrame then
-		local ctrlType = db.Settings.type
-		HelpFrame = db.Atlas.GetFutureWindow("ConsolePortHelpFrame")
-		HelpFrame:SetPoint("CENTER", 0,0)
-		HelpFrame:SetFrameStrata("DIALOG")
-		HelpFrame:SetSize(760, 350)
-
-		HelpFrame:SetScript("OnShow", nil)
-
-		HelpFrame.MapperTexture = HelpFrame:CreateTexture(nil, "ARTWORK")
-		HelpFrame.MapperTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
-		HelpFrame.MapperTexture:SetTexCoord(0, 576/1024, 921/1024, 1)
-		HelpFrame.MapperTexture:SetSize(576, 103)
-		HelpFrame.MapperTexture:SetPoint("CENTER", 70, 0)
-
-		HelpFrame.Controller = HelpFrame:CreateTexture(nil, "ARTWORK")
-		HelpFrame.Controller:SetSize(165, 165)
-		HelpFrame.Controller:SetPoint("RIGHT", HelpFrame.MapperTexture, "LEFT", 10, 0)
-		HelpFrame.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
-
-		HelpFrame.Continue = db.Atlas.GetFutureButton("$parentContinue", HelpFrame)
-		HelpFrame.Continue:SetPoint("BOTTOM", 0, 24)
-		HelpFrame.Continue:SetText(SETUP.CONTINUECLICK)
-		HelpFrame.Continue:SetScript("OnClick", function(self)
-			HelpFrame:Hide()
-			ConsolePort:CreateBindingWizard()
-		end)
-
-
-		HelpFrame.Description = HelpFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		HelpFrame.Description:SetText(format(SETUP.AHATEXT, db.Controllers[ctrlType].Hint))
-		HelpFrame.Description:SetPoint("TOP", 0, -46)
-
-		HelpFrame.Disclaimer = HelpFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		HelpFrame.Disclaimer:SetText("|cFF888888"..SETUP.DISCLAIMER.."|r")
-		HelpFrame.Disclaimer:SetPoint("BOTTOM", HelpFrame.Continue, "TOP", 0, 20)
-
-
-	end
-	HelpFrame:Show()
-end
-
-function ConsolePort:CreateBindingWizard()
-	if not ConsolePortWizardFrame then
-		local Wizard = db.Atlas.GetFutureWindow("ConsolePortWizardFrame")
+function ConsolePort:CalibrateController()
+	if not self.calibrationFrame then
+		local cbF = db.Atlas.GetFutureWindow("ConsolePortCalibrationFrame", nil, nil, nil, nil, true)
 		local ctrlType = db.Settings.type
 		local red, green, blue = db.Atlas.GetCC()
 
-		Wizard.Reload = db.Atlas.GetFutureButton("$parentReload", Wizard)
-		Wizard.Container = CreateFrame("Frame", "$parentContainer", Wizard)
-		Wizard.Container:SetBackdrop(db.Atlas.Backdrops.Border)
-		Wizard.Container:SetPoint("TOPLEFT", 8, -64)
-		Wizard.Container:SetPoint("BOTTOMRIGHT", -8, 8)
+		self.calibrationFrame = cbF
 
-		Wizard.HelpButton = CreateFrame("Button", "$parentHelpButton", Wizard)
-		Wizard.HelpButton:SetSize(64, 64)
-		Wizard.HelpButton:SetNormalTexture("Interface\\Common\\help-i")
-		Wizard.HelpButton:SetHighlightTexture("Interface\\Common\\help-i")
-		Wizard.HelpButton:SetPoint("BOTTOMRIGHT", -16, 16)
-		Wizard.HelpButton:SetScript("OnEnter", function(self)
+		cbF.Reload = db.Atlas.GetFutureButton("$parentReload", cbF)
+		cbF.Container = CreateFrame("Frame", "$parentContainer", cbF)
+		cbF.Container:SetBackdrop(db.Atlas.Backdrops.Border)
+		cbF.Container:SetPoint("TOPLEFT", 8, -64)
+		cbF.Container:SetPoint("BOTTOMRIGHT", -8, 8)
+
+		cbF.HelpButton = CreateFrame("Button", "$parentHelpButton", cbF)
+		cbF.HelpButton:SetSize(64, 64)
+		cbF.HelpButton:SetNormalTexture("Interface\\Common\\help-i")
+		cbF.HelpButton:SetHighlightTexture("Interface\\Common\\help-i")
+		cbF.HelpButton:SetPoint("BOTTOMRIGHT", -16, 16)
+		cbF.HelpButton:SetScript("OnEnter", function(self)
 			GameTooltip:Hide()
 			GameTooltip:SetOwner(self, "ANCHOR_TOP")
 			GameTooltip:SetText(SETUP.WTFTEXT)
 			GameTooltip:Show()
 		end)
-		Wizard.HelpButton:SetScript("OnLeave", function(self)
+		cbF.HelpButton:SetScript("OnLeave", function(self)
 			GameTooltip:Hide()
 		end)
 
-		Wizard.HelpButton:SetScript("OnClick", function(self)
-			CreateHelpFrame()
-			Wizard:Hide()
+		-- Show the clarifying helper frame if the user is confused about mapping their controller.
+		cbF.HelpButton:SetScript("OnClick", function(self)
+			if not cbF.helpFrame then
+				local ctrlType = db.Settings.type
+				local helpFrame = db.Atlas.GetFutureWindow("ConsolePortCalibrationHelpFrame", nil, nil, nil, nil, true)
+				helpFrame:SetPoint("CENTER", 0,0)
+				helpFrame:SetFrameStrata("DIALOG")
+				helpFrame:SetSize(760, 350)
+
+				helpFrame.MapperTexture = helpFrame:CreateTexture(nil, "ARTWORK")
+				helpFrame.MapperTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+				helpFrame.MapperTexture:SetTexCoord(0, 576/1024, 921/1024, 1)
+				helpFrame.MapperTexture:SetSize(576, 103)
+				helpFrame.MapperTexture:SetPoint("CENTER", 70, 0)
+
+				helpFrame.Controller = helpFrame:CreateTexture(nil, "ARTWORK")
+				helpFrame.Controller:SetSize(165, 165)
+				helpFrame.Controller:SetPoint("RIGHT", helpFrame.MapperTexture, "LEFT", 10, 0)
+				helpFrame.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
+
+				helpFrame.Continue = db.Atlas.GetFutureButton("$parentContinue", helpFrame)
+				helpFrame.Continue:SetPoint("BOTTOM", 0, 24)
+				helpFrame.Continue:SetText(SETUP.CONTINUECLICK)
+				helpFrame.Continue:SetScript("OnClick", function(self)
+					helpFrame:Hide()
+					ConsolePort:CalibrateController()
+				end)
+
+				helpFrame.Description = helpFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+				helpFrame.Description:SetText(format(SETUP.AHATEXT, db.Controllers[ctrlType].Hint))
+				helpFrame.Description:SetPoint("TOP", 0, -46)
+
+				helpFrame.Disclaimer = helpFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+				helpFrame.Disclaimer:SetText("|cFF888888"..SETUP.DISCLAIMER.."|r")
+				helpFrame.Disclaimer:SetPoint("BOTTOM", helpFrame.Continue, "TOP", 0, 20)
+
+				cbF.helpFrame = helpFrame
+			end
+			cbF.helpFrame:Show()
+			cbF:Hide()
 		end)
 
-		Wizard:SetPoint("CENTER", 0,0)
-		Wizard:SetFrameStrata("DIALOG")
-		Wizard:SetSize(580, 416)
-		Wizard:Hide()
-		Wizard:Show()
+		cbF:SetPoint("CENTER", 0,0)
+		cbF:SetFrameStrata("DIALOG")
+		cbF:SetSize(580, 416)
 
 		if ctrlType ~= "PS4" then
 
-			Wizard.Skip = db.Atlas.GetFutureButton("$parentSkip", Wizard)
-			Wizard.Skip:SetPoint("BOTTOM", 0, 24)
-			Wizard.Skip:SetText(SETUP.SKIPGUIDE)
-			Wizard.Skip:Hide()
-			Wizard.Reload:SetScript("OnShow", function(self)
-				Wizard.Reload:Hide()
+			cbF.Skip = db.Atlas.GetFutureButton("$parentSkip", cbF)
+			cbF.Skip:SetPoint("BOTTOM", 0, 24)
+			cbF.Skip:SetText(SETUP.SKIPGUIDE)
+			cbF.Skip:Hide()
+			cbF.Reload:SetScript("OnShow", function(self)
+				cbF.Reload:Hide()
 			end)
-			Wizard.Skip:SetScript("OnClick", function()
+			cbF.Skip:SetScript("OnClick", function()
 				db.Settings.skipGuideBtn = true
-				self:CheckUnassignedBindings()
+				self:CheckCalibration()
 			end)
 		end
 
-		Wizard.Reload:SetPoint("BOTTOM", 0, 24)
-		Wizard.Reload:SetText(SETUP.CONTINUECLICK)
-		Wizard.Reload:Hide()
-		Wizard.Reload:SetScript("OnShow", function(self)
-			if Wizard.Skip and Wizard.Skip:IsVisible() then
+		cbF.Reload:SetPoint("BOTTOM", 0, 24)
+		cbF.Reload:SetText(SETUP.CONTINUECLICK)
+		cbF.Reload:Hide()
+		cbF.Reload:SetScript("OnShow", function(self)
+			if cbF.Skip and cbF.Skip:IsVisible() then
 				self:Hide()
 			end
 		end)
-		Wizard.Reload:SetScript("OnClick", function(self)
+		cbF.Reload:SetScript("OnClick", function(self)
 			if not InCombatLockdown() then
 				ReloadUI()
 			end
 		end)
 
-		Wizard.Overlay:SetAlpha(0.035)
-
 		-- Regions
 		-- BG
-		Wizard.Controller 	= Wizard:CreateTexture(nil, "ARTWORK", nil, 7)
-		Wizard.ButtonRim 	= Wizard:CreateTexture(nil, "OVERLAY", nil, 5)
-		Wizard.ButtonTex 	= Wizard:CreateTexture(nil, "OVERLAY", nil, 6)
-		Wizard.ButtonPress 	= Wizard:CreateTexture(nil, "OVERLAY", nil, 7)
-		Wizard.Wrapper 		= Wizard:CreateTexture(nil, "ARTWORK", nil, 6)
+		cbF.Controller 	= cbF:CreateTexture(nil, "ARTWORK", nil, 7)
+		cbF.ButtonRim 	= cbF:CreateTexture(nil, "OVERLAY", nil, 5)
+		cbF.ButtonTex 	= cbF:CreateTexture(nil, "OVERLAY", nil, 6)
+		cbF.ButtonPress = cbF:CreateTexture(nil, "OVERLAY", nil, 7)
+		cbF.Wrapper 	= cbF:CreateTexture(nil, "ARTWORK", nil, 6)
 		-- Text fields
-		Wizard.Header 		= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-		Wizard.Status 		= Wizard:CreateFontString(nil, "OVERLAY", "SystemFont_Shadow_Med2")
-		Wizard.Binding 		= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2")
-		Wizard.Description 	= Wizard:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		Wizard.Confirm 		= Wizard:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+		cbF.Header 		= cbF:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+		cbF.Status 		= cbF:CreateFontString(nil, "OVERLAY", "SystemFont_Shadow_Med2")
+		cbF.Binding 	= cbF:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge2")
+		cbF.Description = cbF:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		cbF.Confirm 	= cbF:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 
 		-- FontStrings
-		Wizard.Header:SetPoint("TOP", 0, -40)
-		Wizard.Header:SetText(SETUP.HEADER)
+		cbF.Header:SetPoint("TOP", 0, -40)
+		cbF.Header:SetText(SETUP.HEADER)
 
-		Wizard.Status:SetPoint("CENTER", 0, -54)
-		Wizard.Status:SetAlpha(0)
+		cbF.Status:SetPoint("CENTER", 0, -54)
+		cbF.Status:SetAlpha(0)
 
-		Wizard.Binding:SetPoint("CENTER", 0, 0)
-		Wizard.Binding:SetText(SETUP.EMPTY)
-		Wizard.Binding:SetJustifyH("CENTER")
+		cbF.Binding:SetPoint("CENTER", 0, 0)
+		cbF.Binding:SetText(SETUP.EMPTY)
+		cbF.Binding:SetJustifyH("CENTER")
 
-		Wizard.Description:SetText(SETUP.HEADLINE)
-		Wizard.Description:SetPoint("TOP", Wizard.Wrapper, 0, 50)
+		cbF.Description:SetText(SETUP.HEADLINE)
+		cbF.Description:SetPoint("TOP", cbF.Wrapper, 0, 50)
 
-		Wizard.Confirm:SetPoint("BOTTOM", 0, 72)
+		cbF.Confirm:SetPoint("BOTTOM", 0, 72)
 
 		-- Textures
-		Wizard.ButtonTex:SetSize(50, 50)
-		Wizard.ButtonTex:SetPoint("CENTER", Wizard.Wrapper, -142, 0)
+		cbF.ButtonTex:SetSize(50, 50)
+		cbF.ButtonTex:SetPoint("CENTER", cbF.Wrapper, -142, 0)
 
-		Wizard.ButtonPress:SetSize(50, 50)
-		Wizard.ButtonPress:SetPoint("CENTER", Wizard.ButtonTex, 0, 2)
-		Wizard.ButtonPress:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask")
-		Wizard.ButtonPress:Hide()
+		cbF.ButtonPress:SetSize(50, 50)
+		cbF.ButtonPress:SetPoint("CENTER", cbF.ButtonTex, 0, 2)
+		cbF.ButtonPress:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask")
+		cbF.ButtonPress:Hide()
 
-		Wizard.ButtonRim:SetSize(60, 60)
-		Wizard.ButtonRim:SetPoint("CENTER", Wizard.Wrapper, -142, 0)
-		Wizard.ButtonRim:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask64")
+		cbF.ButtonRim:SetSize(60, 60)
+		cbF.ButtonRim:SetPoint("CENTER", cbF.Wrapper, -142, 0)
+		cbF.ButtonRim:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask64")
 
-		Wizard.Wrapper:SetSize(400, 72)
-		Wizard.Wrapper:SetPoint("CENTER", 0, 0)
-		Wizard.Wrapper:SetTexCoord(0, 0.640625, 0, 1)
-		Wizard.Wrapper:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Highlight")
-		Wizard.Wrapper:SetBlendMode("ADD")
-		Wizard.Wrapper:SetGradientAlpha("HORIZONTAL", red, green, blue, 1, 1, 1, 1, 1)
+		cbF.Wrapper:SetSize(400, 72)
+		cbF.Wrapper:SetPoint("CENTER", 0, 0)
+		cbF.Wrapper:SetTexCoord(0, 0.640625, 0, 1)
+		cbF.Wrapper:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Highlight")
+		cbF.Wrapper:SetBlendMode("ADD")
+		cbF.Wrapper:SetGradientAlpha("HORIZONTAL", red, green, blue, 1, 1, 1, 1, 1)
 
-		Wizard.Controller:SetSize(512, 512)
-		Wizard.Controller:SetPoint("CENTER", 0, 0)
-		Wizard.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
-		Wizard.Controller:SetPoint("TOPLEFT", 16, -16)
-		Wizard.Controller:SetPoint("BOTTOMRIGHT", -16, 16)
-		Wizard.Controller:SetTexCoord(0.345703125, 0.0625, 0.0703125, 0.53515625, 1, 0.4453125, 0.73046875, 0.91796875)
-		Wizard.Controller:SetAlpha(0.075)
+		cbF.Controller:SetSize(512, 512)
+		cbF.Controller:SetPoint("CENTER", 0, 0)
+		cbF.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
+		cbF.Controller:SetPoint("TOPLEFT", 16, -16)
+		cbF.Controller:SetPoint("BOTTOMRIGHT", -16, 16)
+		cbF.Controller:SetTexCoord(0.345703125, 0.0625, 0.0703125, 0.53515625, 1, 0.4453125, 0.73046875, 0.91796875)
+		cbF.Controller:SetAlpha(0.075)
 
 		-- Scripts
-		Wizard:SetScript("OnKeyDown", function(self, key)
+		cbF:SetScript("OnKeyDown", function(self, key)
+			if key == "ESCAPE" then
+				self:Hide()
+				return
+			end
 			self.ButtonPress:Show()
 			self.ButtonTex:SetPoint("CENTER", self.Wrapper, -142, -2)
 		end)
-		Wizard:SetScript("OnKeyUp", function(self, key)
+
+		cbF:SetScript("OnKeyUp", function(self, key)
+			if key == "ESCAPE" then return end
 			self.ButtonTex:SetPoint("CENTER", self.Wrapper, -142, 0)
 			self.ButtonPress:Hide()
 			self.Reload:Hide()
@@ -212,15 +210,14 @@ function ConsolePort:CreateBindingWizard()
 				if not InCombatLockdown() then
 					if not SetBinding(key, self.BTN) then
 						local isTrigger = self.BTN:match("CP_T")
-						local changeModifier = isTrigger and (key:match("SHIFT") and "shift" or key:match("CTRL") and "ctrl")
+						local changeModifier = isTrigger and (key:match("SHIFT") and "CP_M1" or key:match("CTRL") and "CP_M2")
 						if changeModifier then
 							self:SetScript("OnUpdate", nil)
 							self:EnableKeyboard(false)
 
 							local settings = db.Settings
-							local pairsByKeys = db.Table.pairsByKeys
 
-							local otherModifierKey = changeModifier == "shift" and "ctrl" or "shift"
+							local otherModifierKey = changeModifier == "CP_M1" and "CP_M2" or "CP_M1"
 							local otherModifier = settings[otherModifierKey]
 							
 							local triggers = {
@@ -237,9 +234,9 @@ function ConsolePort:CreateBindingWizard()
  							settings[changeModifier] = newModifier
 
  							local i = 0
- 							for trigger in pairsByKeys(triggers) do
+ 							for trigger in db.table.spairs(triggers) do
  								i = i + 1
- 								settings["trigger"..i] = trigger
+ 								settings["CP_T"..i] = trigger
  							end
 
 							self.Reload:Show()
@@ -278,7 +275,7 @@ function ConsolePort:CreateBindingWizard()
 			self.Binding:SetText(key)
 			self.VAL = key
 		end)
-		Wizard:SetScript("OnUpdate", function(self, elapsed)
+		cbF:SetScript("OnUpdate", function(self, elapsed)
 			if 	(ConsolePortSplashFrame and ConsolePortSplashFrame:IsVisible()) or
 				(HelpFrame and HelpFrame:IsVisible()) then
 				self:Hide()
@@ -292,10 +289,10 @@ function ConsolePort:CreateBindingWizard()
 				self:SetAlpha(1)
 				self:EnableKeyboard(true)
 				self:EnableMouse(true)
-				local unassigned = ConsolePort:CheckUnassignedBindings()
+				local unassigned = ConsolePort:CheckCalibration()
 				if unassigned then
 					self.BTN = unassigned[1]
-					if self.Skip and self.BTN == "CP_C_OPTION" then
+					if self.Skip and self.BTN == "CP_X_CENTER" then
 						self.Skip:Show()
 					elseif self.Skip then
 						self.Skip:Hide()
@@ -308,13 +305,21 @@ function ConsolePort:CreateBindingWizard()
 				end
 			end
 		end)
-	elseif self:CheckUnassignedBindings() then
-		ConsolePortWizardFrame:Show()
+		cbF:SetScript("OnHide", function(self)
+			if self.helpFrame and self.helpFrame:IsVisible() then
+				return
+			end
+			if ConsolePort.CheckLoadedSettings then
+				ConsolePort:CheckLoadedSettings()
+			end
+		end)
+	elseif self:CheckCalibration() then
+		ConsolePortCalibrationFrame:Show()
 		PlaySound("SPELLBOOKOPEN")
 	end
 end
 
-function ConsolePort:CreateSplashFrame()
+function ConsolePort:SelectController()
 	if not ConsolePortSplashFrame then
 		local Splash = db.Atlas.GetFutureWindow("ConsolePortSplashFrame")
 		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE, TEX_ROTATION = 200, 390, 710, 0.523598776
@@ -403,8 +408,6 @@ function ConsolePort:CreateSplashFrame()
 		Splash:EnableMouse(true)
 		Splash:Hide()
 		Splash:Show()
-		-- Text
-	--	Splash.Header:SetText(SETUP.LAYOUT)
 	end
 	ConsolePortSplashFrame:Show()
 	PlaySound("SPELLBOOKOPEN")

@@ -8,13 +8,12 @@ local addOn, db = ...
 ---------------------------------------------------------------
 local Controller
 ---------------------------------------------------------------
-local tonumber = tonumber
-local ipairs = ipairs
-local pairs = pairs
+local tonumber, ipairs, pairs = tonumber, ipairs, pairs
+local spairs, copy = db.table.spairs, db.table.copy
 ---------------------------------------------------------------
 local class = select(2, UnitClass("player"))
 ---------------------------------------------------------------
--- Lookup: Integer keys for interface manipulation
+-- Integer keys for interface manipulation
 ---------------------------------------------------------------
 db.KEY = {
 	CIRCLE  	= 1,
@@ -39,10 +38,12 @@ function ConsolePort:LoadLookup()
 	self.LoadLookup = nil
 end
 ---------------------------------------------------------------
-
+-- Plug-in access to addon table
+---------------------------------------------------------------
+function ConsolePort:GetData() return db end
 
 ---------------------------------------------------------------
--- Lookup: Action IDs and their corresponding binding
+-- Action IDs and their corresponding binding
 ---------------------------------------------------------------
 local actionIDs = {
 	-- Main bar 							-- Second page
@@ -145,13 +146,6 @@ local actionIDs = {
 }
 
 -- These can be modified to work with other addons if they are incorrect out of the box.
-local classPage = {
-	["WARRIOR"]	= "[bonusbar:1] 7; [bonusbar:2] 8;",
-	["ROGUE"]	= "[stance:1] 7; [stance:2] 7; [stance:3] 7;",
-	["DRUID"]	= "[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;",
-	["MONK"]	= "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;",
-	["PRIEST"] 	= "[bonusbar:1] 7;"
-}
 
 -- action ID thresholds
 local classReserved = {
@@ -172,25 +166,21 @@ local DefaultBar = MainMenuBarArtFrame
 ---------------------------------------------------------------
 -- Functions for grabbing action button data
 ---------------------------------------------------------------
-function ConsolePort:GetActionPageState()
-	local state = {}
-	local classSpecific = classPage[class]
-
-	tinsert(state, "[overridebar][possessbar] possess; ")
-	for i = 2, 6 do
-		tinsert(state, ("[bar:%d] %d; "):format(i, i))
+function ConsolePort:GetActionPageDriver()
+	local driver = "[vehicleui] 1; [possessbar] 2; [overridebar] 3; [shapeshift] 4; [bar:2] 5; [bar:3] 6; [bar:4] 7; [bar:5] 8; [bar:6] 9; [bonusbar:1] 10; [bonusbar:2] 11; [bonusbar:3] 12; [bonusbar:4] 13; 14"
+	local newstate
+	if HasVehicleActionBar() then
+		newstate = GetVehicleBarIndex()
+	elseif HasOverrideActionBar() then
+		newstate = GetOverrideBarIndex()
+	elseif HasTempShapeshiftActionBar() then
+		newstate = GetTempShapeshiftBarIndex()
+	elseif GetBonusBarOffset() > 0 then
+		newstate = GetBonusBarOffset()+6
+	else
+		newstate = GetActionBarPage()
 	end
-
-	state = table.concat(state)
-
-	if classSpecific then
-		state = state..classSpecific
-	end
-
-	state = state.."[stance:1] temp; 1"
-
-	local now = SecureCmdOptionParse(state)
-	return now, state
+	return driver, newstate
 end
 
 function ConsolePort:GetActionBinding(id)
@@ -226,13 +216,20 @@ function ConsolePort:GetActionTexture(bindName)
 	end
 end
 
+local valid_action_buttons = {
+	Button = true,
+	CheckButton = true,
+}
+
+-- Wrap this function since it's recursive.
 local function GetActionButtons(buttons, this)
 	buttons = buttons or {}
 	this = this or UIParent
 	if this:IsForbidden() then
 		return buttons
 	end
-	local action = this:GetAttribute("action")
+	local objType = this:GetObjectType()
+	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute("action")
 	if action and tonumber(action) then
 		buttons[this] = action
 	end
@@ -243,66 +240,99 @@ local function GetActionButtons(buttons, this)
 end
 
 ---------------------------------------------------------------
--- Lookup: Get all buttons that look like action buttons
+-- Get all buttons that look like action buttons
 ---------------------------------------------------------------
-function ConsolePort:GetActionButtons(parent) return GetActionButtons(parent) end
+function ConsolePort:GetActionButtons(getTable, parent)
+	if getTable then
+		return GetActionButtons(parent)
+	else
+		return pairs(GetActionButtons(parent))
+	end
+end
 
 ---------------------------------------------------------------
--- Lookup: Get the clean binding names for various uses
+-- Get the clean bindings for various uses
 ---------------------------------------------------------------
-function ConsolePort:GetBindingNames() return Controller.Buttons end
+function ConsolePort:GetBindings(tbl) return tbl and Controller.Bindings or spairs(Controller.Bindings) end
 
 ---------------------------------------------------------------
--- Lookup: Default faux binding settings
+-- Default faux binding settings
 ---------------------------------------------------------------
-function ConsolePort:GetDefaultBinding(key) return Controller.Bindings[key] end
+function ConsolePort:GetDefaultBinding(key) return copy(Controller.Bindings[key]) end
 
 ---------------------------------------------------------------
--- Lookup: Get the integer key used to perform UI operations
+-- Get the button that's currently bound to a defined ID
+---------------------------------------------------------------
+function ConsolePort:GetCurrentBindingOwner(bindingID, set)
+	local set = set or ConsolePortBindingSet
+	if set then
+		for key, subSet in pairs(set) do
+			for mod, value in pairs(subSet) do
+				if value == bindingID then
+					return key, mod
+				end
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------
+-- Get the integer key used to perform UI operations
 ---------------------------------------------------------------
 function ConsolePort:GetUIControlKey(key)
 	local keys = {
 		-- Right side
-		["CP_R_UP"] 	= KEY.TRIANGLE,
-		["CP_R_DOWN"] 	= KEY.CROSS,
-		["CP_R_LEFT"] 	= KEY.SQUARE,
-		["CP_R_RIGHT"] 	= KEY.CIRCLE,
+		CP_R_UP 	= KEY.TRIANGLE,
+		CP_R_DOWN 	= KEY.CROSS,
+		CP_R_LEFT 	= KEY.SQUARE,
+		CP_R_RIGHT 	= KEY.CIRCLE,
 		-- Left side
-		["CP_L_UP"] 	= KEY.UP,
-		["CP_L_DOWN"] 	= KEY.DOWN,
-		["CP_L_LEFT"] 	= KEY.LEFT,
-		["CP_L_RIGHT"] 	= KEY.RIGHT,
+		CP_L_UP 	= KEY.UP,
+		CP_L_DOWN 	= KEY.DOWN,
+		CP_L_LEFT 	= KEY.LEFT,
+		CP_L_RIGHT 	= KEY.RIGHT,
 		-- Option buttons
-		["CP_L_OPTION"] = KEY.SHARE,
-		["CP_C_OPTION"] = KEY.CENTER,
-		["CP_R_OPTION"] = KEY.OPTIONS,
+		CP_X_LEFT = KEY.SHARE,
+		CP_X_CENTER = KEY.CENTER,
+		CP_X_RIGHT = KEY.OPTIONS,
 	}
 	return keys[key]
 end
 
+---------------------------------------------------------------
+-- Get the modifiers currently used by ConsolePort
+---------------------------------------------------------------
+local IsShiftKeyDown, IsControlKeyDown = IsShiftKeyDown, IsControlKeyDown
+local modifiers = {
+	[""] 		= function() return ( not IsShiftKeyDown() and not IsControlKeyDown() ) end,
+	["SHIFT-"] 	= function() return ( IsShiftKeyDown() and not IsControlKeyDown() ) end,
+	["CTRL-"] 	= function() return ( IsControlKeyDown() and not IsShiftKeyDown() ) end,
+	["CTRL-SHIFT-"] = function() return ( IsShiftKeyDown() and IsControlKeyDown() ) end,
+}
+
+function ConsolePort:GetModifiers() return pairs(modifiers) end
+
+function ConsolePort:GetCurrentModifier()
+	for modifier, isCurrent in self:GetModifiers() do
+		if isCurrent() then
+			return modifier
+		end
+	end
+end
 
 ---------------------------------------------------------------
--- Lookup: Binding set / buttons for faux binding system
+-- Binding set / buttons for faux binding system
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultBindingSet()
 	local bindingSet = {}
-	for _, Button in ipairs(Controller.Buttons) do
+	for Button in self:GetBindings() do
 		bindingSet[Button] = self:GetDefaultBinding(Button)
 	end
 	return bindingSet
 end
 
-function ConsolePort:GetDefaultUIBindingRefs()
-	local bindingSet = {}
-	for _, Button in ipairs(self:GetBindingNames()) do
-		bindingSet[Button] = { ui = self:GetUIControlKey(Button) or 0 }
-	end
-	return bindingSet
-end
-
-
 ---------------------------------------------------------------
--- Lookup: Default addon settings (client wide)
+-- Default addon settings (client wide)
 ---------------------------------------------------------------
 local v1, v2, v3 = strsplit("%d+.", GetAddOnMetadata(addOn, "Version"))
 local VERSION = v1*10000+v2*100+v3
@@ -312,12 +342,12 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["version"] = VERSION,
 		["type"] = "PS4",
 		-------------------------------
-		["shift"] = "CP_TL1",
-		["ctrl"] = "CP_TL2",
-		["trigger1"] = "CP_TR1",
-		["trigger2"] = "CP_TR2",
+		["CP_M1"] = "CP_TL1",
+		["CP_M2"] = "CP_TL2",
+		["CP_T1"] = "CP_TR1",
+		["CP_T2"] = "CP_TR2",
 		-------------------------------
-		["interactWith"] = "CP_TR1",
+		["interactWith"] = "CP_T1",
 		["mouseOverMode"] = true,
 		-------------------------------
 		["actionBarStyle"] = 1,
@@ -347,7 +377,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 end
 
 ---------------------------------------------------------------
--- Lookup: Mouse events and default cursor handler
+-- Mouse events and default cursor handler
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultMouseEvents()
 	return {
@@ -378,13 +408,13 @@ function ConsolePort:GetDefaultMouseCursor()
 		Left 	= "CP_R_RIGHT",
 		Right 	= "CP_R_LEFT",
 		Special = "CP_R_UP",
-		Scroll 	= "CP_TL1",
+		Scroll 	= "CP_M1",
 	}
 end
 
 
 ---------------------------------------------------------------
--- Lookup: Get all hidden customly created convenience bindings 
+-- Get all hidden customly created convenience bindings 
 ---------------------------------------------------------------
 function ConsolePort:GetAddonBindings()
 	return {
@@ -414,7 +444,7 @@ end
 
 
 ---------------------------------------------------------------
--- Lookup: UI cursor frames to be handled with D-pad
+-- UI cursor frames to be handled with D-pad
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultUIFrames()
 	return {	

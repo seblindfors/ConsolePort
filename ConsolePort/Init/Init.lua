@@ -24,44 +24,22 @@ local newChar
 ---------------------------------------------------------------
 -- Initialize crucial addon-wide tables
 ---------------------------------------------------------------
+db.ICONS 	= {}
 db.TEXTURE 	= {}
 db.SECURE 	= {}
 db.PANELS 	= {}
 db.PLUGINS 	= {}
----------------------------------------------------------------
--- Plug-in access to addon table
----------------------------------------------------------------
-function ConsolePort:DB() return db end
----------------------------------------------------------------
--- Popup management
----------------------------------------------------------------
-local DefaultBackdrop = StaticPopup1:GetBackdrop()
-local Popup
 
-local function ShowPopup(...)
-	Popup = StaticPopup_Show(...)
-	Popup:EnableKeyboard(false)
-	Popup:SetBackdrop(db.Atlas.Backdrops.FullSmall)
-	return Popup
-end
-local function ClearPopup()
-	if Popup then
-		Popup:SetBackdrop(DefaultBackdrop)
-		Popup = nil
-	end
-end
 ---------------------------------------------------------------
 local function ResetAllSettings()
 	if not InCombatLockdown() then
-		local bindings = ConsolePort:GetBindingNames()
-		for i, binding in pairs(bindings) do
+		for binding in ConsolePort:GetBindings() do
 			local key1, key2 = GetBindingKey(binding)
 			if key1 then SetBinding(key1) end
 			if key2 then SetBinding(key2) end
 		end
 		SaveBindings(GetCurrentBindingSet())
 		ConsolePortBindingSet = nil
-		ConsolePortBindingButtons = nil
 		ConsolePortMouse = nil
 		ConsolePortSettings = nil
 		ConsolePortCharacterSettings = nil
@@ -83,25 +61,61 @@ function ConsolePort:LoadSettings()
 	if not ConsolePortSettings then
 		fullReset = true
 		ConsolePortSettings = self:GetDefaultAddonSettings()
-		self:CreateSplashFrame()
+		self:SelectController()
+	-- compatibility fix:
+	elseif ConsolePortSettings.shift then
+		ConsolePortSettings = self:GetDefaultAddonSettings()
 	end
 
 	db.Settings = ConsolePortSettings
 
 	self:LoadLookup()
 
+	-----------------------------------------------------------
+	-- Set/load binding table
+	-----------------------------------------------------------
 	if not ConsolePortBindingSet then
 		if not fullReset and not db.Settings.newController then
 			newChar = true
 		end
-		ConsolePortBindingSet = {} --self:GetDefaultBindingSet()
+		ConsolePortBindingSet = {}
+	else
+		-- compatibility fix: convert binding tables from old format (0.14.5) to new (1.*.*)
+		-- remove in a future patch.
+		local convertModifier = {
+			action 	= "",
+			shift 	= "SHIFT-",
+			ctrl 	= "CTRL-",
+			ctrlsh 	= "CTRL-SHIFT-",
+		}
+		local convertButton = {
+			CP_C_OPTION = "CP_X_CENTER",
+			CP_L_OPTION = "CP_X_LEFT",
+			CP_R_OPTION = "CP_X_RIGHT",
+			CP_TR1 = "CP_T1",
+			CP_TR2 = "CP_T2",
+			CP_TR3 = "CP_T_R3",
+			CP_TL3 = "CP_T_L3",
+		}
+		for button, subSet in pairs(ConsolePortBindingSet) do
+			local newSubset
+			for modifier, binding in pairs(subSet) do
+				local converted = convertModifier[modifier]
+				if converted then
+					if not newSubset then
+						newSubset = {}
+					end
+					newSubset[converted] = binding
+				end
+			end
+			button = convertButton[button] or button
+			ConsolePortBindingSet[button] = newSubset or subSet
+		end
 	end
 
-	-- Interface binding buttons and interface commands.
-	if not ConsolePortBindingButtons then
-		ConsolePortBindingButtons = self:GetDefaultUIBindingRefs()
-	end
-
+	-----------------------------------------------------------
+	-- Set/load mouse settings
+	-----------------------------------------------------------
 	if not ConsolePortMouse then
 		ConsolePortMouse = {
 			Events = self:GetDefaultMouseEvents(),
@@ -109,6 +123,9 @@ function ConsolePort:LoadSettings()
 		}
 	end
 
+	-----------------------------------------------------------
+	-- Extra features
+	-----------------------------------------------------------
 	-- Use these frames in the virtual cursor stack
 	if not ConsolePortUIFrames then
 		ConsolePortUIFrames = self:GetDefaultUIFrames()
@@ -119,43 +136,33 @@ function ConsolePort:LoadSettings()
 		ConsolePortUtility = {}
 	end
 
+	----------------------------------------------------------
+
 	db.Bindings = ConsolePortBindingSet
-	db.Bindbtns = ConsolePortBindingButtons
 	db.UIStack = ConsolePortUIFrames
 	db.Mouse = ConsolePortMouse
 
-	-- Compatibility fixes.
-	if db.Settings.mouseOnCenter == nil then
-		db.Settings.mouseOnCenter = true
-	end
+	----------------------------------------------------------
 
-	if db.Settings.shift == nil or db.Settings.ctrl == nil then
-		db.Settings.shift = "CP_TL1"
-		db.Settings.ctrl = "CP_TL2"
+	-- Load the calibration wizard if a button does not have a registered mock binding
+	if 	self:CheckCalibration() then
+		self:CalibrateController()
 	end
-
-	-- Load the binding wizard if a button does not have a registered mock binding
-	if 	self:CheckUnassignedBindings() then
-		self:CreateBindingWizard()
-	end
-
 
 	-- Slash handler and stuff related to that
 	local SLASH = db.TUTORIAL.SLASH
 
-	local function ShowSplash() ConsolePort:CreateSplashFrame() end
+	local function ShowSplash() ConsolePort:SelectController() end
 	local function ShowBinds() ConsolePortConfig:OpenCategory(2) end
 
 	local function ResetAll()
 		if not InCombatLockdown() then
-			local bindings = ConsolePort:GetBindingNames()
-			for i, binding in pairs(bindings) do
+			for binding in ConsolePort:GetBindings() do
 				local key1, key2 = GetBindingKey(binding)
 				if key1 then SetBinding(key1) end
 				if key2 then SetBinding(key2) end
 			end
 			SaveBindings(GetCurrentBindingSet())
-			ConsolePortBindingButtons = nil -- ConsolePort:GetDefaultUIBindingRefs()
 			ConsolePortBindingSet = nil --ConsolePort:GetDefaultBindingSet()
 			ConsolePortUIFrames = nil
 			ConsolePortSettings = nil
@@ -174,7 +181,7 @@ function ConsolePort:LoadSettings()
 	}
 
 	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
-	local function SlashHandler(msg, editBox)
+	SlashCmdList["CONSOLEPORT"] = function(msg, editBox)
 		if instructions[msg] then
 			instructions[msg].func()
 		else
@@ -184,7 +191,6 @@ function ConsolePort:LoadSettings()
 			end
 		end
 	end
-	SlashCmdList["CONSOLEPORT"] = SlashHandler
 	self.LoadSettings = nil
 end
 
@@ -203,9 +209,9 @@ function ConsolePort:CheckLoadedSettings()
 			enterClicksFirstButton = true,
 			exclusive = true,
 			OnAccept = ResetAllSettings,
-			OnCancel = ClearPopup,
+			OnCancel = self.ClearPopup,
 		}
-		ShowPopup("CONSOLEPORT_CRITICALUPDATE")
+		self:ShowPopup("CONSOLEPORT_CRITICALUPDATE")
 	elseif ConsolePortSettings and ConsolePortSettings.newController then
 		StaticPopupDialogs["CONSOLEPORT_NEWCONTROLLER"] = {
 			text = db.TUTORIAL.SLASH.NEWCONTROLLER,
@@ -219,9 +225,9 @@ function ConsolePort:CheckLoadedSettings()
 			enterClicksFirstButton = true,
 			exclusive = true,
 			OnAccept = LoadDefaultBindings,
-			OnCancel = ClearPopup,
+			OnCancel = self.ClearPopup,
 		}
-		ShowPopup("CONSOLEPORT_NEWCONTROLLER")
+		self:ShowPopup("CONSOLEPORT_NEWCONTROLLER")
 		ConsolePortSettings.newController = nil
 	elseif ConsolePortSettings and newChar then
 		StaticPopupDialogs["CONSOLEPORT_NEWCHARACTER"] = {
@@ -236,27 +242,23 @@ function ConsolePort:CheckLoadedSettings()
 			enterClicksFirstButton = true,
 			exclusive = true,
 			OnAccept = LoadDefaultBindings,
-			OnCancel = ClearPopup,
+			OnCancel = self.ClearPopup,
 		}
-		ShowPopup("CONSOLEPORT_NEWCHARACTER")
+		self:ShowPopup("CONSOLEPORT_NEWCHARACTER")
 	end
 	self.CheckLoadedSettings = nil
 end
 
 function ConsolePort:CreateActionButtons()
-	local keys = ConsolePortBindingButtons
-	local buttons = db.Controllers[db.Settings.type].Buttons
-	for _, name in pairs(buttons) do
-		local key = keys[name]
-		local ui = key and key.ui
-		self:CreateSecureButton(name, "_NOMOD",	 key and key.action,	ui)
-		self:CreateSecureButton(name, "_SHIFT",  key and key.shift, 	ui)
-		self:CreateSecureButton(name, "_CTRL",   key and key.ctrl, 		ui)
-		self:CreateSecureButton(name, "_CTRLSH", key and key.ctrlsh, 	ui)
-		self:CreateConfigButton(name, "_NOMOD", 0)
-		self:CreateConfigButton(name, "_SHIFT", 1)
-		self:CreateConfigButton(name, "_CTRL",  2)
-		self:CreateConfigButton(name, "_CTRLSH",3)
+	for name in self:GetBindings() do
+		local i = 0
+		for modifier in self:GetModifiers() do
+			local secure = self:CreateSecureButton(name, modifier, self:GetUIControlKey(name))
+			self:CreateConfigButton(name, modifier, secure)
+			i = i + 1
+		end
 	end
+	db.Binds.Rebind:Refresh()
+	db.Binds.Rebind.ShortcutScroll:Refresh()
 	self.CreateActionButtons = nil
 end

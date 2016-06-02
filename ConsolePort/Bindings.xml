@@ -3,17 +3,26 @@
 	<Binding name="CP_L_DOWN" header="CP_LEFT" category="ConsolePort "/>
 	<Binding name="CP_L_LEFT" header="CP_LEFT" category="ConsolePort "/>
 	<Binding name="CP_L_RIGHT" header="CP_LEFT" category="ConsolePort "/>
+	
 	<Binding name="CP_R_UP" header="CP_RIGHT" category="ConsolePort "/>
 	<Binding name="CP_R_DOWN" header="CP_RIGHT" category="ConsolePort "/>
 	<Binding name="CP_R_LEFT" header="CP_RIGHT" category="ConsolePort "/>
 	<Binding name="CP_R_RIGHT" header="CP_RIGHT" category="ConsolePort "/>
-	<Binding name="CP_R_OPTION" header="CP_CENTER" category="ConsolePort "/>
-	<Binding name="CP_C_OPTION" header="CP_CENTER" category="ConsolePort "/>
-	<Binding name="CP_L_OPTION" header="CP_CENTER" category="ConsolePort "/>
+
+	<Binding name="CP_X_RIGHT" header="CP_CENTER" category="ConsolePort "/>
+	<Binding name="CP_X_CENTER" header="CP_CENTER" category="ConsolePort "/>
+	<Binding name="CP_X_LEFT" header="CP_CENTER" category="ConsolePort "/>
+
 	<Binding name="CP_L_GRIP" header="CP_GRIP" category="ConsolePort "/>
 	<Binding name="CP_R_GRIP" header="CP_GRIP" category="ConsolePort "/>
-	<Binding name="CP_TR1" header="CP_TRIG" category="ConsolePort "/>
-	<Binding name="CP_TR2" header="CP_TRIG" category="ConsolePort "/>
+	<Binding name="CP_L_GRIP2" header="CP_GRIP" category="ConsolePort "/>
+	<Binding name="CP_R_GRIP2" header="CP_GRIP" category="ConsolePort "/>
+
+	<Binding name="CP_L_PULL" header="CP_TRIG" category="ConsolePort "/>
+	<Binding name="CP_R_PULL" header="CP_TRIG" category="ConsolePort "/>
+
+	<Binding name="CP_T1" header="CP_TRIG" category="ConsolePort "/>
+	<Binding name="CP_T2" header="CP_TRIG" category="ConsolePort "/>
 	<!-- Utility belt -->
 	<Binding name="CLICK ConsolePortUtilityToggle:LeftButton" category="ConsolePort " hidden="true"/>
 

@@ -4,7 +4,7 @@
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. Stack is processed in Interface.lua.
 
-local frameStack, visibleStack, hasUIFocus = {}, {}
+local frameStack, visibleStack, hasUIFocus, isEnabled = {}, {}
 
 local GameMenuFrame = GameMenuFrame
 local InCombatLockdown = InCombatLockdown
@@ -19,61 +19,73 @@ local ConsolePort = ConsolePort
 function ConsolePort:HasUIFocus() return hasUIFocus end
 function ConsolePort:SetUIFocus(focus) hasUIFocus = focus end
 
--- Cursor will choose these nodes above all else,
--- providing smart snap behaviour when searching
--- for the most appropriate node to focus.
-for _, node in pairs({
---	ContainerFrame1Item16,
-	GossipTitleButton1,
-	HonorFrameSoloQueueButton,
-	LFDQueueFrameFindGroupButton,
-	MerchantItem1ItemButton,
-	MerchantRepairAllButton,
-	InterfaceOptionsFrameCancel,
-	PaperDollSidebarTab3,
-	QuestFrameAcceptButton,
-	QuestFrameCompleteButton,
-	QuestFrameCompleteQuestButton,
-	QuestTitleButton1,
-	QuestMapFrame.DetailsFrame.BackButton,
-	QuestScrollFrame.ViewAll,
-}) do node.hasPriority = true end
-
--- Cursor will ignore these nodes completely,
--- since they are pointless or annoying to deal with.
-for _, node in pairs({
-	LootFrameCloseButton,
-	WorldMapTitleButton,
-	WorldMapButton,
-}) do node.ignoreNode = true end
-
--- Cursor will not cause the game menu to hide itself
--- whenever one of these nodes are clicked.
-for _, node in pairs({
-	ObjectiveTrackerFrame.HeaderMenu.MinimizeButton,
-	MinimapZoomIn,
-	MinimapZoomOut,
-}) do node.ignoreMenu = true end
-
--- Cursor will not attempt to automatically scroll
--- these frames when a child node within is focused.
-for _, node in pairs({
-	WorldMapScrollFrame,
-}) do node.ignoreScroll = true end
-
--- Cursor will ignore the host frame, but include all
--- children widgets contained inside.
-for _, node in pairs({
-	DropDownList1,
-	DropDownList2,
-}) do node.includeChildren = true end
+---------------------------------------------------------------
+-- Node modification to prevent unwanted and wonky UI behaviour.
+---------------------------------------------------------------
+--[[ flag: a flag that is read by the UI cursor upon recursive lookup.
+	 nodes: a table of nodes to apply the modifier flag to.
+	 flags:
+		hasPriority:
+			Choose these nodes above all else,
+			providing smart snap behaviour when searching
+			for the most appropriate node to focus.
+		ignoreNode:
+			Ignore these nodes completely,
+			since they are pointless or annoying to deal with.
+		ignoreMenu:
+			Will not cause the game menu to hide itself
+			whenever one of these nodes are clicked.
+		ignoreScroll:
+			Will not attempt to automatically scroll
+			these frames when a child node within is focused.
+		includeChildren:
+			Will ignore the host widget, but include all
+			children widgets contained inside.
+]]
+---------------------------------------------------------------
+for flag, nodes in pairs({
+	-----------------------------------------------------------
+	hasPriority = {
+		GossipTitleButton1,
+		HonorFrameSoloQueueButton,
+		LFDQueueFrameFindGroupButton,
+		MerchantItem1ItemButton,
+		MerchantRepairAllButton,
+		InterfaceOptionsFrameCancel,
+		PaperDollSidebarTab3,
+		QuestFrameAcceptButton,
+		QuestFrameCompleteButton,
+		QuestFrameCompleteQuestButton,
+		QuestTitleButton1,
+		QuestMapFrame.DetailsFrame.BackButton,
+	},
+	ignoreNode = {
+		LootFrameCloseButton,
+		WorldMapTitleButton,
+		WorldMapButton,
+	},
+	ignoreMenu = {
+		ObjectiveTrackerFrame.HeaderMenu.MinimizeButton,
+		MinimapZoomIn,
+		MinimapZoomOut,
+	},
+	ignoreScroll = {
+		WorldMapScrollFrame,
+	},
+	includeChildren = {
+		DropDownList1,
+		DropDownList2,
+	},
+	-----------------------------------------------------------
+}) do for _, node in pairs(nodes) do node[flag] = true end end
+---------------------------------------------------------------
 
 -- Update the cursor state on visibility change.
 -- Use callback to circumvent omitting frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
 local updateQueued = false
 local function showHook(self)
-	if frameStack[self] then
+	if isEnabled and frameStack[self] then
 		updateQueued = true
 		Callback(0.02, function()
 			visibleStack[self] = self:GetPoint() and self:IsVisible() and true or nil
@@ -89,7 +101,7 @@ end
 -- which leads to the cursor ending up in an unexpected place on re-show.
 -- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
 local function hideHook(self)
-	if frameStack[self] then
+	if isEnabled and frameStack[self] then
 		Callback(0.02, function()
 			hasUIFocus = nil
 			visibleStack[self] = nil
@@ -129,7 +141,10 @@ function ConsolePort:AddFrame(frame)
 end
 
 function ConsolePort:RemoveFrame(frame)
-	frameStack[frame] = nil
+	if frame then
+		visibleStack[frame] = nil
+		frameStack[frame] = nil
+	end
 end
 
 function ConsolePort:CheckLoadedAddons()
@@ -148,6 +163,13 @@ function ConsolePort:CheckLoadedAddons()
 	end
 end
 
+function ConsolePort:ToggleUICore()
+	isEnabled = not db.Settings.disableUI
+	if not isEnabled then
+		self:SetButtonOverride(false)
+	end
+end
+
 function ConsolePort:UpdateFrames()
 	if not InCombatLockdown() then
 		self:UpdateFrameTracker(self)
@@ -155,38 +177,22 @@ function ConsolePort:UpdateFrames()
 			if not hasUIFocus then
 				hasUIFocus = true
 				self.Cursor:Show()
-				self:SetButtonActionsUI()
+				self:SetButtonOverride(true)
 				self:UIControl()
 			end
 		else
-			self:SetButtonActionsDefault()
+			self:SetButtonOverride(false)
 		end
 	end
 end
 
 -- Returns a stack of visible frames.
--- Uses UIParent when rebinding.
 function ConsolePort:GetFrameStack()
-	if self.rebindMode then
-		local rebindStack = {}
-		-- a button is waiting to be bound, allow access to the whole interface 
-		if ConsolePortRebindFrame.isRebinding then
-			for _, Frame in pairs({UIParent:GetChildren()}) do
-				if not Frame:IsForbidden() and Frame:IsVisible() then
-					rebindStack[Frame] = true
-				end
-			end
-		end
-		rebindStack[DropDownList1] = true
-		rebindStack[DropDownList2] = true
-		rebindStack[ConsolePortConfig] = nil
-		rebindStack[ConsolePortRebindFrame] = true
-		return rebindStack
-	elseif GameMenuFrame:IsVisible() then
+	if GameMenuFrame:IsVisible() then
 		local fullStack = {}
-		for _, Frame in pairs({UIParent:GetChildren()}) do
-			if not Frame:IsForbidden() and Frame:IsVisible() then
-				fullStack[Frame] = true
+		for _, frame in pairs({UIParent:GetChildren()}) do
+			if not frame:IsForbidden() and frame:IsVisible() then
+				fullStack[frame] = true
 			end
 		end
 		return fullStack

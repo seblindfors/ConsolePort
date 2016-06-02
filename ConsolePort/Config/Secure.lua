@@ -10,28 +10,15 @@ local _, db = ...
 local TEXTURE = db.TEXTURE
 local KEY = db.KEY
 ---------------------------------------------------------------
-local ConsolePort = ConsolePort
-local GameMenuFrame = GameMenuFrame
+local ConsolePort, GameMenuFrame = ConsolePort, GameMenuFrame
 ---------------------------------------------------------------
-
+local Handler = CreateFrame("Frame", "ConsolePortButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
 ---------------------------------------------------------------
--- SecureBtn: Actionpage state handler (hardly useful anymore)
+RegisterStateDriver(Handler, "combat", "[combat] true; nil")
+Handler:SetAttribute("_onstate-combat", [[
+	control:ChildUpdate("combat", newstate)
+]])
 ---------------------------------------------------------------
-function ConsolePort:CreateButtonHandler()
-	local ButtonHandler = CreateFrame("Frame", "ConsolePortButtonHandler", ConsolePort, "SecureHandlerStateTemplate")
-	ButtonHandler:Execute([[
-		SecureButtons = newtable()
-	]])
-	ButtonHandler:SetAttribute("pageupdate", [[
-		local page = ...
-		self:SetAttribute("actionpage", page)
-		for btn in pairs(SecureButtons) do
-			btn:SetAttribute("actionpage", page)
-		end
-	]])
-	self:RegisterActionPage(ButtonHandler)
-	self.CreateButtonHandler = nil
-end
 
 ---------------------------------------------------------------
 -- SecureBtn: Input scripts 
@@ -87,42 +74,25 @@ end
 -- SecureBtn: Global frame references
 ---------------------------------------------------------------
 local function UIControl(self)
+	self:Show()
 	ConsolePort:UIControl(self.command, self.state)
 end
 
 ---------------------------------------------------------------
 -- SecureBtn: Combat reversion functions
 ---------------------------------------------------------------
-local function RevertBinding(self)
-	self:SetAttribute("type", self.default.type)
-	self:SetAttribute(self.default.attr, self.default.val)
-	self:SetAttribute("clickbutton", self.action)
-end
-
-local function ResetBinding(self)
-	self.default = {
-			type = "click",
-			attr = "clickbutton",
-			val  = self.action
-	}
+local function ClearOverride(self, manualClear)
+	self.timer = 0
+	self.state = KEY.STATE_UP
+	if manualClear then
+		self:Hide()
+		self:SetAttribute("clickbutton", nil)
+	end
 end
 
 ---------------------------------------------------------------
 -- SecureBtn: HotKey textures and indicators
 ---------------------------------------------------------------
-local function GetHotKeyTexture(button)
-	local texFile = TEXTURE[button.name]
-	local texture = "|T%s:14:14:%s:0|t" -- texture, offsetX
-	local plain = format(texture, texFile, 3)
-	local mods = {
-		_NOMOD = plain,
-		_SHIFT = format(texture, TEXTURE.CP_TL1, 7)..plain,
-		_CTRL = format(texture, TEXTURE.CP_TL2, 7)..plain,
-		_CTRLSH = format(strrep(texture, 2), TEXTURE.CP_TL1, 11, TEXTURE.CP_TL2, 7)..plain,
-	}
-	return mods[button.mod]
-end
-
 local function ShowHotKey(button, index, actionButton)
 	local HotKey = button.HotKeys[index]
 	HotKey:SetParent(actionButton)
@@ -140,54 +110,58 @@ local function ShowInterfaceHotKey(button, custom, forceStyle)
 end
 
 ---------------------------------------------------------------
--- SecureBtn: Mock ActionBar button init
+local keyClick = {
+	[KEY.CROSS] = {"PreClick", PreClick},
+	[KEY.CIRCLE] = {"PreClick", PreClick},
+	[KEY.SQUARE] = {"PreClick", PreClick},
+	[KEY.TRIANGLE] = {"PreClick", PreClick},
+}
+local keyUpdate = {
+	[KEY.UP] = {"OnUpdate", CheckHeldDown},
+	[KEY.DOWN] = {"OnUpdate", CheckHeldDown},
+	[KEY.LEFT] = {"OnUpdate", CheckHeldDown},
+	[KEY.RIGHT] = {"OnUpdate", CheckHeldDown},
+}
+
 ---------------------------------------------------------------
-function ConsolePort:CreateSecureButton(name, modifier, clickbutton, UIcommand)
-	local btn 	= CreateFrame("Button", name..modifier, nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
-	btn.name 	= name
-	btn.timer 	= 0
-	btn.state 	= KEY.STATE_UP
-	btn.action 	= _G[clickbutton]
-	btn.command = UIcommand
-	btn.mod 	= modifier
-	btn.default = {}
+-- SecureBtn: Button init
+---------------------------------------------------------------
+function ConsolePort:CreateSecureButton(name, modifier, command)
+	local btn 	= CreateFrame("Button", name..modifier, Handler, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
+	btn:Hide()
+	btn.command = command
+	btn.state = KEY.STATE_UP
+	btn.timer = 0
+	btn.name = name
+	btn.mod = modifier
 	-----------------------------------------------------------
-	btn.HotKey 		= GetHotKeyTexture(btn)
-	btn.HotKeys 	= {}
+	btn.HotKeys = {}
 	btn.CreateHotKey = ConsolePort.CreateHotKey
 	-----------------------------------------------------------
-	btn.ShowHotKey 	= ShowHotKey
+	btn.ShowHotKey = ShowHotKey
 	btn.ShowInterfaceHotKey = ShowInterfaceHotKey
 	-----------------------------------------------------------
-	btn.UIControl 	= UIControl
-	btn.Reset 		= ResetBinding
-	btn.Revert 		= RevertBinding
+	btn.UIControl = UIControl
+	btn.Clear = ClearOverride
 	-----------------------------------------------------------
-	btn:Reset()
-	btn:Revert()
-	btn:SetAttribute("actionpage", ConsolePortButtonHandler:GetAttribute("actionpage"))
-	btn:RegisterEvent("PLAYER_REGEN_DISABLED")
+	btn:SetAttribute("_childupdate-combat", [[
+		if message then
+			self:SetAttribute("clickbutton", nil)
+			self:Hide()
+			self:CallMethod("Clear")
+		end
+	]])
 	-----------------------------------------------------------
-	btn:SetScript("OnEvent", btn.Revert)
 	btn:HookScript("PostClick", PostClick)
 	btn:HookScript("OnMouseDown", OnMouseDown)
 	btn:HookScript("OnMouseUp", OnMouseUp)
 	-----------------------------------------------------------
-	if 		ConsolePortSettings.type ~= "STEAM" and
-			(btn.command == KEY.UP or
-			btn.command == KEY.DOWN or
-			btn.command == KEY.LEFT or
-			btn.command == KEY.RIGHT) then
-		btn:SetScript("OnUpdate", CheckHeldDown)
-	elseif 	btn.command == KEY.CROSS or
-			btn.command == KEY.CIRCLE or
-			btn.command == KEY.SQUARE or
-			btn.command == KEY.TRIANGLE then
-		btn:SetScript("PreClick", PreClick)
+	local keyClick, keyUpdate = keyClick[command], keyUpdate[command]
+	if keyClick then
+		btn:SetScript(unpack(keyClick))
+	elseif keyUpdate and db.Settings.type ~= "STEAM" then
+		btn:SetScript(unpack(keyUpdate))
 	end
-	ConsolePortButtonHandler:SetFrameRef("NewButton", btn)
-	ConsolePortButtonHandler:Execute([[
-        SecureButtons[self:GetFrameRef("NewButton")] = true
-    ]])
     db.SECURE[btn] = true
+    return btn
 end

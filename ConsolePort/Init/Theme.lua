@@ -5,8 +5,9 @@
 
 local _, db = ...
 local init = true
-local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons64x64\\%s"
+local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons%s\\%s"
 local TEXTURE_ESC = "|T%s:24:24:0:0|t"
+local x32, x64 = "32", "64"
 
 setglobal("BINDING_NAME_CLICK ConsolePortUtilityToggle:LeftButton", db.CUSTOMBINDS.CP_UTILITYBELT)
 setglobal("BINDING_NAME_CLICK ConsolePortWorldCursor:LeftButton", db.CUSTOMBINDS.CP_WORLDCURSOR)
@@ -22,7 +23,7 @@ local function LoadTooltipLines()
 	local Special = db.Mouse and db.Mouse.Cursor.Special or "CP_R_UP"
 	-- Click strings
 	local ICON				= "|T%s:24:24:0:0|t |cFF%s%s|r"
-	local ShiftHold 		= format(ICON, db.TEXTURE.CP_TL1, "6882A1", "%s")
+	local ShiftHold 		= format(ICON, db.TEXTURE.CP_M1, "6882A1", "%s")
 	local LeftClick 		= format(ICON, db.TEXTURE[Left], db.COLOR[gsub(Left, "CP_%w_", "")], "%s")
 	local RightClick 		= format(ICON, db.TEXTURE[Right], db.COLOR[gsub(Right, "CP_%w_", "")], "%s")
 	local SpecialClick		= format(ICON, db.TEXTURE[Special], db.COLOR[gsub(Special, "CP_%w_", "")], "%s")
@@ -43,27 +44,41 @@ local function LoadTooltipLines()
 	}
 end
 
-local function LoadTriggerTextures(ctrlType)
+local function LoadTriggerTextures(ctrlType, settings)
 	-- Trigger textures
-	db.TEXTURE.CP_TR1 = format(TEXTURE_PATH, ctrlType, db.Settings and db.Settings.trigger1 or "CP_TR1")
-	db.TEXTURE.CP_TR2 = format(TEXTURE_PATH, ctrlType, db.Settings and db.Settings.trigger2 or "CP_TR2")
-	db.TEXTURE.CP_TL1 = format(TEXTURE_PATH, ctrlType, db.Settings and db.Settings.shift 	or "CP_TL1")
-	db.TEXTURE.CP_TL2 = format(TEXTURE_PATH, ctrlType, db.Settings and db.Settings.ctrl 	or "CP_TL2")
-	db.TEXTURE.CP_TR3 = format(TEXTURE_PATH, ctrlType, "CP_TR3")
-	db.TEXTURE.CP_TL3 = format(TEXTURE_PATH, ctrlType, "CP_TL3")
+	local t1, t2, m1, m2
+	if settings then
+		t1, t2, m1, m2 = settings.CP_T1, settings.CP_T2, settings.CP_M1, settings.CP_M2
+	end
+	if not t1 or not t2 or not m1 or not m2 then
+		t1, t2, m1, m2 = "CP_TR1", "CP_TR2", "CP_TL1", "CP_TL2"
+	end
+	local formatConfig = {
+		[x32] = db.ICONS,
+		[x64] = db.TEXTURE,
+	}
+	for size, tbl in pairs(formatConfig) do
+		tbl.CP_T1 = format(TEXTURE_PATH, ctrlType, size, t1)
+		tbl.CP_T2 = format(TEXTURE_PATH, ctrlType, size, t2)
+		tbl.CP_M1 = format(TEXTURE_PATH, ctrlType, size, m1)
+		tbl.CP_M2 = format(TEXTURE_PATH, ctrlType, size, m2)
+		tbl.CP_T_R3 = format(TEXTURE_PATH, ctrlType, size, "CP_T_R3")
+		tbl.CP_T_L3 = format(TEXTURE_PATH, ctrlType, size, "CP_T_L3")
+	end
 	-- Change global binding names
-	BINDING_NAME_CP_TR1 = format(TEXTURE_ESC, db.TEXTURE.CP_TR1)
-	BINDING_NAME_CP_TR2 = format(TEXTURE_ESC, db.TEXTURE.CP_TR2)
+	BINDING_NAME_CP_T1 = format(TEXTURE_ESC, db.TEXTURE.CP_T1)
+	BINDING_NAME_CP_T2 = format(TEXTURE_ESC, db.TEXTURE.CP_T2)
 end
 
 function ConsolePort:LoadControllerTheme()
-	local ctrlType = db.Settings and strupper(db.Settings.type) or "PS4"
+	local settings = db.Settings
+	local ctrlType = settings and strupper(settings.type) or "PS4"
 	if init then
 		init = nil -- Don't repeat this section
 		-- Controller specific
 
 		db.Controller = db.Controllers[ctrlType]
-		db.BindLayout = db.Controller.Layout
+		db.Layout = db.Controller.Layout
 		db.COLOR = db.Controller.Color
 
 		-- Global binding headers
@@ -75,12 +90,13 @@ function ConsolePort:LoadControllerTheme()
 			_G["BINDING_NAME_"..name] = description
 		end
 		-- Button textures
-		for i, name in pairs(self:GetBindingNames()) do
-			db.TEXTURE[name] = format(TEXTURE_PATH, ctrlType, name)
+		for name in self:GetBindings() do
+			db.TEXTURE[name] = format(TEXTURE_PATH, ctrlType, x64, name)
+			db.ICONS[name] = format(TEXTURE_PATH, ctrlType, x32, name)
 			_G["BINDING_NAME_"..name] = format(TEXTURE_ESC, db.TEXTURE[name])
 		end
 	end
 
-	LoadTriggerTextures(ctrlType)
+	LoadTriggerTextures(ctrlType, settings)
 	LoadTooltipLines()
 end

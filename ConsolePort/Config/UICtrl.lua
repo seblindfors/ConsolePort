@@ -6,26 +6,10 @@
 -- and may add custom frames from other addons.
 
 local addOn, db = ...
-local FadeIn = db.UIFrameFadeIn
-local FadeOut = db.UIFrameFadeOut
-local pairsByKeys = db.Table.pairsByKeys
-local TUTORIAL = db.TUTORIAL.UICTRL
-local DefaultBackdrop = StaticPopup1:GetBackdrop()
-local Popup
-
-local function ShowPopup(...)
-	Popup = StaticPopup_Show(...)
-	Popup:EnableKeyboard(false)
-	Popup:SetBackdrop(db.Atlas.Backdrops.FullSmall)
-	return Popup
-end
-
-local function ClearPopup()
-	if Popup then
-		Popup:SetBackdrop(DefaultBackdrop)
-		Popup = nil
-	end
-end
+local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
+local spairs = db.table.spairs
+local TUTORIAL, ICONS = db.TUTORIAL.UICTRL, db.ICONS
+local WindowMixin = {}
 
 local function GetOuterParent(node)
 	if node then
@@ -41,7 +25,7 @@ end
 ---------------------------------------------------------------
 local function NewAddonOnClick(self)
 	local self = self:GetParent()
-	local dialog = ShowPopup("CONSOLEPORT_ADDADDON")
+	local dialog = ConsolePort:ShowPopup("CONSOLEPORT_ADDADDON")
 	if dialog then
 		dialog.data = self.AddonList
 	end
@@ -50,8 +34,9 @@ end
 local function NewFrameOnClick(self)
 	local self = self:GetParent()
 	if self.CurrentAddon then
-		local dialog = ShowPopup("CONSOLEPORT_ADDFRAME", self.CurrentAddon:GetText())
+		local dialog = ConsolePort:ShowPopup("CONSOLEPORT_ADDFRAME", self.CurrentAddon:GetText())
 		if dialog then
+			dialog:EnableKeyboard(true)
 			dialog.data = self.CurrentAddon
 		end
 	end
@@ -65,7 +50,7 @@ local function RemoveAddonOnClick(self)
 	local self = self:GetParent()
 	local addonList = self.parent.AddonList
 	local addon = self:GetText()
-	local dialog = ShowPopup("CONSOLEPORT_REMOVEADDON", addon)
+	local dialog = ConsolePort:ShowPopup("CONSOLEPORT_REMOVEADDON", addon)
 	if dialog then
 		dialog.data = addonList
 		dialog.data2 = addon
@@ -77,7 +62,7 @@ local function RemoveFrameOnClick(self)
 	local frame = self:GetText()
 	local owner = self.owner
 	local addon = owner:GetText()
-	local dialog = ShowPopup("CONSOLEPORT_REMOVEFRAME", frame, addon)
+	local dialog = ConsolePort:ShowPopup("CONSOLEPORT_REMOVEFRAME", frame, addon)
 	if dialog then
 		dialog.data = self
 		dialog.data2 = owner
@@ -135,15 +120,25 @@ local function RefreshFrameList(self)
 	self.parent.NewFrame:Show()
 	self.parent.NewMouseover:Show()
 	self.parent.FrameScroll:Show()
-	self.parent.FrameWrap:Show()
 	self.parent.FrameListText:Show()
-	self.parent.TutorialFrame:Hide()
+	self.parent.HideFrameList:Show()
+	
+	self.parent.HotKeyModule:Hide()
+	self.parent.MultiChoiceModule:Hide()
+
+	self.parent.TutorialFrame:ClearAllPoints()
+	self.parent.TutorialFrame:SetPoint("RIGHT", -24, 0)
+	self.parent.TutorialFrame:SetWidth(350)
+	self.parent.TutorialFrame.Text:SetText(TUTORIAL.TUTORIALFRAMEMO)
 
 	self.parent.CurrentAddon = self
 	self.parent.NewMouseover.Addon = self:GetText()
 
+	if self.parent.NewMouseover.MouseOver then
+		self.parent.NewMouseover:SetText(format(TUTORIAL.MOUSEOVERVALID, self.parent.NewMouseover.MouseOver, self.parent.NewMouseover.Addon))
+	end
+
 	self.parent.FrameListText:SetText(format(TUTORIAL.FRAMELISTFORMAT, self:GetText()))
-	self.parent.NewFrame:SetText(format(TUTORIAL.NEWFRAME, self:GetText()))
 
 	for i, button in pairs(addonButtons) do
 		button:UnlockHighlight()
@@ -173,6 +168,41 @@ local function RefreshFrameList(self)
 
 	RefreshFrameStatus(frameList)
 	frameList:SetHeight(num*24)
+
+	if not self.parent.FrameStack then
+
+		self.parent.FrameStack = CreateFrame("GameTooltip", "$parentFrameStack", self.parent.FrameScroll, "GameTooltipTemplate")
+		self.parent.FrameStack:SetOwner(self.parent.FrameScroll, "ANCHOR_BOTTOMRIGHT")
+		self.parent.FrameStack:SetPoint("TOP", 0, 0)
+
+		local FRAMESTACK_UPDATE_TIME = .1
+		local _timeSinceLast = 0
+
+		self.parent.FrameStack:SetBackdrop(db.Atlas.Backdrops.FullSmall)
+		self.parent.FrameStack.config = self.parent:GetParent()
+		self.parent.FrameStack:SetScript("OnUpdate", function(self, elapsed)
+			if self.config:IsMouseOver() then
+				self:SetAlpha(0)
+				return
+			else
+				self:SetAlpha(1)
+			end
+
+			_timeSinceLast = _timeSinceLast - elapsed
+			if ( _timeSinceLast <= 0 ) then
+				_timeSinceLast = FRAMESTACK_UPDATE_TIME
+				local highlightFrame = self:SetFrameStack(false, false)
+			end
+		end)
+
+		self.parent.FrameStack:HookScript("OnShow", function(self)
+			self:SetBackdrop(db.Atlas.Backdrops.FullSmall)
+		end)
+
+	end
+	self.parent.FrameStack:SetOwner(self.parent.FrameScroll, "ANCHOR_BOTTOMRIGHT", 32, self.parent.FrameScroll:GetHeight() + 8)
+	self.parent.FrameStack:SetFrameStack(false, false, 1)
+	self.parent.FrameStack:Show()
 end
 
 local function RefreshAddonList(self)
@@ -181,20 +211,37 @@ local function RefreshAddonList(self)
 		button:Hide()
 	end
 
-	for addon, frames in pairsByKeys(UIFrames) do
-		list[addon] = frames
-	end
+	if db.Settings.showAllAddons then
+		for addon, frames in spairs(UIFrames) do
+			list[addon] = frames
+		end
 
-	for i=1, GetNumAddOns() do
-		local name = GetAddOnInfo(i)
-		if not list[name] then
-			list[name] = {}
+		for i=1, GetNumAddOns() do
+			local name = GetAddOnInfo(i)
+			if not list[name] then
+				list[name] = {}
+			end
+		end
+	else
+		for addon, frames in spairs(UIFrames) do
+			if not addon:match("ConsolePort") and not addon:match("Blizzard_") then
+				list[addon] = frames
+			end
+		end
+
+		for i=1, GetNumAddOns() do
+			local name = GetAddOnInfo(i)
+			if 	( name ~= "ConsolePort") then
+				if not list[name] then
+					list[name] = {}
+				end
+			end
 		end
 	end
 
 	local num = 0
 
-	for addon, frames in pairsByKeys(list) do
+	for addon, frames in spairs(list) do
 		num = num + 1
 		local button
 		if not self.Buttons[num] then
@@ -226,9 +273,19 @@ local function RefreshAddonList(self)
 	self.parent.NewFrame:Hide()
 	self.parent.NewMouseover:Hide()
 	self.parent.FrameScroll:Hide()
-	self.parent.FrameWrap:Hide()
-	self.parent.FrameListText:Hide()
-	self.parent.TutorialFrame:Show()
+	self.parent.HideFrameList:Hide()
+
+	self.parent.HotKeyModule:Show()
+	self.parent.MultiChoiceModule:Show()
+
+	self.parent.TutorialFrame:ClearAllPoints()
+	self.parent.TutorialFrame:SetPoint("CENTER", 150, 160)
+	self.parent.TutorialFrame:SetWidth(500)
+	self.parent.TutorialFrame.Text:SetText(TUTORIAL.TUTORIALFRAME)
+
+	if self.parent.FrameStack then
+		self.parent.FrameStack:Hide()
+	end
 
 	self:SetHeight(num*24)
 	self:RegisterEvent("ADDON_LOADED")
@@ -274,6 +331,7 @@ local function RemoveFramePopupAccept(self, frame, addon)
 		end
 	end
 	RefreshFrameList(addon)
+	ConsolePort:RemoveFrame(_G[name])
 	ConsolePort:CheckLoadedAddons()
 end
 
@@ -305,38 +363,57 @@ local function NewMouseoverUpdate(self, elapsed)
 		mouseFocus = GetMouseFocus()
 		outerParent = mouseFocus ~= WorldFrame and GetOuterParent(mouseFocus)
 		if outerParent and outerParent ~= ConsolePortConfig and outerParent:IsMouseEnabled() and outerParent:GetName() then
-			self.MouseOver = outerParent:GetName()
-			self:SetText(format(TUTORIAL.MOUSEOVERVALID, self.MouseOver, self.Addon))
-		else
-			self.MouseOver = nil
-			self:SetText(TUTORIAL.MOUSEOVERINVALID)
+			local name = outerParent:GetName()
+			if not name:match("ConsolePort") then 
+				self.MouseOver = outerParent:GetName()
+				self:SetText(format(TUTORIAL.MOUSEOVERVALID, self.MouseOver, self.Addon))
+			else
+				self:SetText(TUTORIAL.MOUSEOVERINVALID)
+				self.MouseOver = nil
+			end
 		end
 		timer = 0
 	end
 end
 
 ---------------------------------------------------------------
--- UICtrl: Default function
+-- UICtrl: Config mixin functions
 ---------------------------------------------------------------
-local function LoadDefaultUICtrl(self)
+function WindowMixin:Default()
 	db.UIStack = ConsolePort:GetDefaultUIFrames()
 	ConsolePortUIFrames = db.UIStack
 	RefreshAddonList(self.AddonList)
 end
 
-tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultUICtrl, function(self, UICtrl)
-	UICtrl.AddonList = CreateFrame("Frame", "$parentAddonList", UICtrl)
-	UICtrl.AddonList:SetSize(260, 1000)
-	UICtrl.AddonList.parent = UICtrl
-	UICtrl.AddonList.Buttons = {}
-	UICtrl.AddonList:SetScript("OnShow", RefreshAddonList)
-	UICtrl.AddonList:SetScript("OnEvent", RefreshAddonList)
-	UICtrl.AddonList:SetScript("OnHide", UICtrl.AddonList.UnregisterAllEvents)
+function WindowMixin:Save()
+	local needReload
+
+	db.Mouse.Cursor.Left = self.LeftClick.Value
+	db.Mouse.Cursor.Right = self.RightClick.Value
+	db.Mouse.Cursor.Scroll = self.ScrollClick.Value
+
+	db.Settings.disableUI = not self.ToggleCursor:GetChecked()
+
+	local actionBarStyle = self.HotKeyModule:GetID()
+	if not db.Settings.actionBarStyle or db.Settings.actionBarStyle ~= actionBarStyle then
+		db.Settings.actionBarStyle = actionBarStyle
+		needReload = true
+	end
+
+	ConsolePort:ToggleUICore()
+	ConsolePort:SetupCursor()
+	ConsolePort:LoadControllerTheme()
+
+	return needReload
+end
+
+db.PANELS[#db.PANELS + 1] = {"UICtrl", UIOPTIONS_MENU, false, WindowMixin, function(self, UICtrl)
+---------------------------------------------------------------
 
 	UICtrl.TutorialFrame = db.Atlas.GetGlassWindow("$parentTutorialFrame", UICtrl, nil, true)
 	UICtrl.TutorialFrame:SetBackdrop(db.Atlas.Backdrops.Border)
 	UICtrl.TutorialFrame:SetSize(500, 300)
-	UICtrl.TutorialFrame:SetPoint("CENTER", 150, 0)
+	UICtrl.TutorialFrame:SetPoint("CENTER", 150, 200)
 	UICtrl.TutorialFrame.Close:Hide()
 	UICtrl.TutorialFrame.BG:SetAlpha(0.1)
 	UICtrl.TutorialFrame:SetScript("OnShow", function(self)
@@ -352,80 +429,328 @@ tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultU
 	UICtrl.TutorialFrame.Background:SetTexture("Interface\\TUTORIALFRAME\\UI-TutorialFrame-Spellbook")
 	UICtrl.TutorialFrame.Background:SetSize(256, 256)
 
-	UICtrl.AddonScroll = CreateFrame("ScrollFrame", "$parentAddonScrollFrame", UICtrl, "UIPanelScrollFrameTemplate")
-	UICtrl.AddonScroll:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 24, -40)
-	UICtrl.AddonScroll:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOMLEFT", 24, 24)
+	UICtrl.TutorialFrame.Arrow = UICtrl.TutorialFrame:CreateTexture("$parentArrow", "ARTWORK", nil, 7)
+	UICtrl.TutorialFrame.Arrow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
+	UICtrl.TutorialFrame.Arrow:SetTexCoord(0.4296, 0.3398, 0.9052, 0.9970)
+	UICtrl.TutorialFrame.Arrow:SetSize(92*0.75, 94*0.75)
+	UICtrl.TutorialFrame.Arrow:SetPoint("LEFT", -28, 0)
+
+---------------------------------------------------------------
+
+	UICtrl.MultiChoiceModule = db.Atlas.GetGlassWindow("$parentMultiChoiceModule", UICtrl, nil, true)
+	UICtrl.MultiChoiceModule.Close:Hide()
+	UICtrl.MultiChoiceModule.BG:SetAlpha(0.1)
+	UICtrl.MultiChoiceModule:SetPoint("TOP", UICtrl.TutorialFrame, "BOTTOM", 0, 8)
+	UICtrl.MultiChoiceModule:SetSize(500, 210)
+	UICtrl.MultiChoiceModule:SetScript("OnShow", function(self)
+		FadeIn(self, 0.5, 0, 1)
+	end)
+
+	local function CheckOnClick(self)
+		local parent = self.parent
+		local oldVal = parent.Index
+		local allSets = parent.AllSets
+		parent.Index = self.num
+		parent.Value = self.name
+		if allSets then
+			for x, trigger in pairs(allSets) do
+				if trigger ~= parent then
+					for i, button in pairs(trigger.Set) do
+						if i == self.num and button:GetChecked() then
+							button:SetChecked(false)
+							local swapTo = trigger.Set[oldVal]
+							swapTo:SetChecked(true)
+							trigger.Value = swapTo.name
+							trigger.Index = swapTo.num
+						end
+					end
+				end
+			end
+		end
+		for i, button in pairs(self.set) do
+			button:SetChecked(false)
+		end
+		self:SetChecked(true)
+	end
+
+	UICtrl.ClickButtons = {}
+
+	UICtrl.MultiChoiceModule.CursorHeader = UICtrl.MultiChoiceModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	UICtrl.MultiChoiceModule.CursorHeader:SetText(TUTORIAL.VIRTUALCURSOR)
+	UICtrl.MultiChoiceModule.CursorHeader:SetPoint("TOPLEFT", UICtrl.MultiChoiceModule, 24, -24)
+
+	local red, green, blue = db.Atlas.GetCC()
+
+	local clickGraphics = {
+		{name = "LeftClick", 	coords = {0.0019531, 0.1484375, 0.4257813, 0.5160}},
+		{name = "RightClick", 	coords = {0.0019531, 0.1484375, 0.6269531, 0.7172}},
+		{name = "SpecialClick", coords = {0.1542969, 0.3007813, 0.2246094, 0.3149}},
+		{name = "ScrollClick", 	coords = {0.0019531, 0.1484375, 0.2246094, 0.3149}},
+	}
+
+	for i, info in pairs(clickGraphics) do
+		local click = UICtrl.MultiChoiceModule:CreateTexture()
+		click:SetTexture("Interface\\TutorialFrame\\UI-TUTORIAL-FRAME")
+		click:SetSize(76, 50)
+		click:SetGradientAlpha("VERTICAL", 1, 1, 1, 0.15, 1, 1, 1, 1)
+		click:SetTexCoord(unpack(info.coords))
+
+		if info.name ~= "ScrollClick" then
+			click.AllSets = UICtrl.ClickButtons
+			tinsert(UICtrl.ClickButtons, click)
+		end
+
+		click:SetPoint("TOPLEFT", UICtrl.MultiChoiceModule.CursorHeader, "TOPLEFT", (i-1) * 110 + 40, -16)
+
+		UICtrl[info.name] = click
+	end
+
+	local clickButtons 	= {
+		CP_R_RIGHT 	= ICONS.CP_R_RIGHT,
+		CP_R_LEFT 	= ICONS.CP_R_LEFT,
+		CP_R_UP		= ICONS.CP_R_UP,
+		CP_R_DOWN	= ICONS.CP_R_DOWN,
+	}
+
+	local scrollButtons = {
+		CP_M1 		= ICONS.CP_M1,
+		CP_M2 		= ICONS.CP_M2,
+	}
+
+	local radioButtons = {
+		{parent = UICtrl.LeftClick, 	selection = clickButtons,	default = db.Mouse.Cursor.Left},
+		{parent = UICtrl.RightClick, 	selection = clickButtons,	default = db.Mouse.Cursor.Right},
+		{parent = UICtrl.SpecialClick, 	selection = clickButtons, 	default = db.Mouse.Cursor.Special},
+		{parent = UICtrl.ScrollClick, 	selection = scrollButtons,	default = db.Mouse.Cursor.Scroll},
+	}
+
+	for i, radio in pairs(radioButtons) do
+		local num = 1
+		radio.parent.Set = {}
+		for name, texture in pairs(radio.selection) do
+			local button = CreateFrame("CheckButton", "ConsolePortVirtualClick"..i..num, UICtrl.MultiChoiceModule)
+
+			button.num = num
+			button.set = radio.parent.Set
+			button.name = name
+			button.parent = radio.parent
+
+			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
+
+			button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
+			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
+
+			button.Checked = button:GetCheckedTexture()
+			button.Highlight = button:GetHighlightTexture()
+
+			button.Checked:SetTexCoord(0, 1, 1, 0)
+			button.Highlight:SetTexCoord(0, 1, 1, 0)
+
+			button.Checked:ClearAllPoints()
+			button.Checked:SetPoint("CENTER", 0, 0)
+			button.Checked:SetSize(84, 16)
+			button.Checked:SetVertexColor(red, green, blue)
+
+			button.Highlight:ClearAllPoints()
+			button.Highlight:SetPoint("CENTER", 0, 0)
+			button.Highlight:SetSize(84, 16)
+
+			button:SetSize(100, 32)
+
+			if i == 1 then
+				button.text = button:CreateTexture(nil, "OVERLAY")
+				button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
+				button.text:SetPoint("RIGHT", button, "LEFT", 0, 0)
+				button.text:SetSize(32, 32)
+			elseif i == 4 then
+				button.text = button:CreateTexture(nil, "OVERLAY")
+				button.text:SetTexture(gsub(texture, "Icons64x64", "Icons32x32"))
+				button.text:SetPoint("RIGHT", button, "LEFT", 8, 0)
+				button.text:SetSize(32, 32)
+
+				button:SetWidth(80)
+				button.Highlight:SetWidth(64)
+				button.Checked:SetWidth(64)		
+			end
+
+			button:SetPoint("TOP", radio.parent, "TOP", 0, -24*(num-1)-42)
+			if name == radio.default then
+				radio.parent.Index = num
+				radio.parent.Value = name
+				button:SetChecked(true)
+			else
+				button:SetChecked(false)
+			end
+			tinsert(radio.parent.Set, button)
+			button:SetScript("OnClick", CheckOnClick)
+			num = num + 1
+		end
+	end
+
+---------------------------------------------------------------
+
+	UICtrl.AddonScroll = db.Atlas.GetScrollFrame("$parentAddonScrollFrame", UICtrl, {
+		childKey = "List",
+		childWidth = 260,
+		stepSize = 64,
+	})
+
+	UICtrl.AddonScroll:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 24, -41)
+	UICtrl.AddonScroll:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOMLEFT", 24, 91)
 	UICtrl.AddonScroll:SetWidth(260)
-	UICtrl.AddonScroll:SetScrollChild(UICtrl.AddonList)
 
-	UICtrl.AddonScroll.ScrollBar.scrollStep = 64
-	UICtrl.AddonScroll.ScrollBar:ClearAllPoints()
-	UICtrl.AddonScroll.ScrollBar:SetPoint("TOPLEFT", UICtrl.AddonScroll, "TOPRIGHT", 0, 0)
-	UICtrl.AddonScroll.ScrollBar:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "BOTTOMRIGHT", 0, 0)
-	UICtrl.AddonScroll.ScrollBar.Thumb = UICtrl.AddonScroll.ScrollBar:GetThumbTexture()
-	UICtrl.AddonScroll.ScrollBar.Thumb:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Thumb")
-	UICtrl.AddonScroll.ScrollBar.Thumb:SetTexCoord(0, 1, 0, 1)
-	UICtrl.AddonScroll.ScrollBar.Thumb:SetSize(18, 34)
-	UICtrl.AddonScroll.ScrollBar.ScrollUpButton:SetAlpha(0)
-	UICtrl.AddonScroll.ScrollBar.ScrollDownButton:SetAlpha(0)
+	UICtrl.AddonList = UICtrl.AddonScroll.Child
+	UICtrl.AddonList.parent = UICtrl
+	UICtrl.AddonList.Buttons = UICtrl.AddonScroll.Buttons
+	UICtrl.AddonList:SetScript("OnShow", RefreshAddonList)
+	UICtrl.AddonList:SetScript("OnEvent", RefreshAddonList)
+	UICtrl.AddonList:SetScript("OnHide", UICtrl.AddonList.UnregisterAllEvents)
 
-	UICtrl.AddonWrap = CreateFrame("Frame", "$parentAddonWrap", UICtrl)
-	UICtrl.AddonWrap:SetBackdrop(db.Atlas.Backdrops.Border)
-	UICtrl.AddonWrap:SetPoint("TOPLEFT", UICtrl, "TOPLEFT", 8, -24)
-	UICtrl.AddonWrap:SetPoint("BOTTOMLEFT", UICtrl, "BOTTOMLEFT", 8, 8)
-	UICtrl.AddonWrap:SetWidth(316)
+	UICtrl.AddonShowAll = CreateFrame("CheckButton", "$parentShowAllButton", UICtrl, "ChatConfigCheckButtonTemplate")
+	UICtrl.AddonShowAll.Text = UICtrl.AddonShowAll:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	UICtrl.AddonShowAll.Text:SetText(TUTORIAL.SHOWALLADDONS)
+	UICtrl.AddonShowAll.Text:SetPoint("LEFT", 30, 1)
+	UICtrl.AddonShowAll:SetPoint("BOTTOMLEFT", 24, 24)
+	UICtrl.AddonShowAll:SetScript("OnShow", function(self)
+		self:SetChecked(db.Settings.showAllAddons)
+	end)
+	UICtrl.AddonShowAll:SetScript("OnClick", function(self)
+		db.Settings.showAllAddons = self:GetChecked()
+		RefreshAddonList(UICtrl.AddonList)
+	end)
 
-	UICtrl.AddonListText = UICtrl:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	UICtrl.AddonListText:SetPoint("BOTTOMLEFT", UICtrl.AddonWrap, "TOPLEFT", 16, -8)
+	UICtrl.AddonListText = UICtrl.AddonScroll:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	UICtrl.AddonListText:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "TOPLEFT", 0, 8)
 	UICtrl.AddonListText:SetText(TUTORIAL.ADDONLISTHEADER)
 
-	UICtrl.FrameList = CreateFrame("Frame", "$parentFrameList", UICtrl)
-	UICtrl.FrameList:RegisterEvent("ADDON_LOADED")
-	UICtrl.FrameList:SetScript("OnEvent", RefreshFrameStatus)
-	UICtrl.FrameList:SetSize(260, 1000)
-	UICtrl.FrameList.parent = UICtrl
-	UICtrl.FrameList.Buttons = {}
+	UICtrl.ToggleCursor = CreateFrame("CheckButton", "$parentToggleButton", UICtrl, "ChatConfigCheckButtonTemplate")
+	UICtrl.ToggleCursor.Text = UICtrl.ToggleCursor:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	UICtrl.ToggleCursor.Text:SetText(TUTORIAL.ENABLECURSOR)
+	UICtrl.ToggleCursor.Text:SetPoint("LEFT", 30, 1)
+	UICtrl.ToggleCursor:SetPoint("BOTTOM", UICtrl.AddonShowAll, "TOP", 0, 8)
+	UICtrl.ToggleCursor:SetChecked(not db.Settings.disableUI)
+	UICtrl.ToggleCursor:SetScript("OnShow", function(self)
+		self:SetChecked(not db.Settings.disableUI)
+	end)
 
-	UICtrl.FrameScroll = CreateFrame("ScrollFrame", "$parentFrameScrollFrame", UICtrl, "UIPanelScrollFrameTemplate")
+	UICtrl.FrameScroll = db.Atlas.GetScrollFrame("$parentFrameScrollFrame", UICtrl, {
+		childKey = "List",
+		childWidth = 260,
+		scrollStep = 64,
+		stepSize = 24,
+	})
+
 	UICtrl.FrameScroll:SetPoint("TOPLEFT", UICtrl.AddonScroll, "TOPRIGHT", 32, 0)
 	UICtrl.FrameScroll:SetPoint("BOTTOMLEFT", UICtrl.AddonScroll, "BOTTOMRIGHT", 32, 0)
-	UICtrl.FrameScroll:SetScrollChild(UICtrl.FrameList)
 	UICtrl.FrameScroll:SetWidth(260)
 
-	UICtrl.FrameScroll.ScrollBar.scrollStep = 64
-	UICtrl.FrameScroll.ScrollBar:ClearAllPoints()
-	UICtrl.FrameScroll.ScrollBar:SetPoint("TOPLEFT", UICtrl.FrameScroll, "TOPRIGHT", 0, 0)
-	UICtrl.FrameScroll.ScrollBar:SetPoint("BOTTOMLEFT", UICtrl.FrameScroll, "BOTTOMRIGHT", 0, 0)
-	UICtrl.FrameScroll.ScrollBar.Thumb = UICtrl.FrameScroll.ScrollBar:GetThumbTexture()
-	UICtrl.FrameScroll.ScrollBar.Thumb:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Thumb")
-	UICtrl.FrameScroll.ScrollBar.Thumb:SetTexCoord(0, 1, 0, 1)
-	UICtrl.FrameScroll.ScrollBar.Thumb:SetSize(18, 34)
-	UICtrl.FrameScroll.ScrollBar.ScrollUpButton:SetAlpha(0)
-	UICtrl.FrameScroll.ScrollBar.ScrollDownButton:SetAlpha(0)
+	UICtrl.FrameList = UICtrl.FrameScroll.Child
+	UICtrl.FrameList:RegisterEvent("ADDON_LOADED")
+	UICtrl.FrameList:SetScript("OnEvent", RefreshFrameStatus)
+	UICtrl.FrameList.parent = UICtrl
+	UICtrl.FrameList.Buttons = UICtrl.FrameScroll.Buttons
 
-	UICtrl.FrameWrap = CreateFrame("Frame", "$parentFrameWrap", UICtrl)
-	UICtrl.FrameWrap:SetBackdrop(db.Atlas.Backdrops.Border)
-	UICtrl.FrameWrap:SetPoint("TOPLEFT", UICtrl.AddonWrap, "TOPRIGHT", -24, 0)
-	UICtrl.FrameWrap:SetPoint("BOTTOMLEFT", UICtrl.AddonWrap, "BOTTOMRIGHT", -24, 0)
-	UICtrl.FrameWrap:SetWidth(316)
-
-	UICtrl.FrameListText = UICtrl:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	UICtrl.FrameListText = UICtrl.FrameScroll:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	UICtrl.FrameListText:SetPoint("BOTTOMLEFT", UICtrl.FrameScroll, "TOPLEFT", 0, 8)
 	UICtrl.FrameListText:SetText(TUTORIAL.FRAMELISTHEADER)
 
-	UICtrl.NewFrame = db.Atlas.GetFutureButton("$parentNewFrameButton", UICtrl, nil, nil, 358, 50)
-	UICtrl.NewFrame:SetPoint("RIGHT", UICtrl, "RIGHT", -16, 33)
+	UICtrl.NewFrame = db.Atlas.GetFutureButton("$parentNewFrameButton", UICtrl)
+	UICtrl.NewFrame:SetPoint("TOP", UICtrl.FrameScroll.Backdrop, "BOTTOM", 0, 0)
 	UICtrl.NewFrame:SetText(TUTORIAL.NEWFRAME)
 	UICtrl.NewFrame:SetScript("OnClick", NewFrameOnClick)
 	UICtrl.NewFrame:Hide()
 
-	UICtrl.NewMouseover = db.Atlas.GetFutureButton("$parentNewFrameButton", UICtrl, nil, nil, 358, 50)
-	UICtrl.NewMouseover:SetPoint("TOP", UICtrl.NewFrame, "BOTTOM", 0, -16)
+	UICtrl.HideFrameList = db.Atlas.GetFutureButton("$parentHideFrameListButton", UICtrl, nil, nil, 330)
+	UICtrl.HideFrameList:SetPoint("BOTTOMRIGHT", UICtrl, -32, 28)
+	UICtrl.HideFrameList:SetText(TUTORIAL.HIDEFRAMELIST)
+	UICtrl.HideFrameList:SetScript("OnClick", function(self)
+		RefreshAddonList(UICtrl.AddonList)
+	end)
+	UICtrl.HideFrameList:Hide()
+
+	UICtrl.NewMouseover = db.Atlas.GetFutureButton("$parentNewFrameButton", UICtrl, nil, nil, 330)
+	UICtrl.NewMouseover:SetPoint("BOTTOM", UICtrl.HideFrameList, "TOP", 0, 12)
 	UICtrl.NewMouseover:SetText(TUTORIAL.MOUSEOVERINVALID)
 	UICtrl.NewMouseover:SetScript("OnUpdate", NewMouseoverUpdate)
 	UICtrl.NewMouseover:SetScript("OnClick", NewMouseoverOnClick)
 	UICtrl.NewMouseover.Timer = 0
 	UICtrl.NewMouseover:Hide()
+
+---------------------------------------------------------------
+
+	UICtrl.HotKeyModule = db.Atlas.GetGlassWindow("$parentHotkeyModule", UICtrl, nil, true)
+	UICtrl.HotKeyModule:SetID(1)
+	UICtrl.HotKeyModule:SetBackdrop(db.Atlas.Backdrops.Border)
+	UICtrl.HotKeyModule:SetSize(500, 130)
+	UICtrl.HotKeyModule:SetPoint("TOP", UICtrl.MultiChoiceModule, "BOTTOM", 0, 8)
+	UICtrl.HotKeyModule.Close:Hide()
+	UICtrl.HotKeyModule.BG:SetAlpha(0.1)
+	UICtrl.HotKeyModule:SetScript("OnShow", function(self)
+		FadeIn(self, 0.5, 0, 1)
+	end)
+
+
+	UICtrl.HotKeyModule.Styles = {}
+
+	UICtrl.HotKeyModule.Header = UICtrl.HotKeyModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	UICtrl.HotKeyModule.Header:SetText(TUTORIAL.ACTIONBARHEADER)
+	UICtrl.HotKeyModule.Header:SetPoint("TOPLEFT", 24, -24)
+
+	local class = select(2, UnitClass("player"))
+	local classIcon = "Interface\\Icons\\ClassIcon_"..class
+
+	local actionBarStyles = {
+		[1] = {name = "CP_R_UP"},
+		[2] = {name = "CP_R_DOWN"},
+		[3] = {name = "CP_R_LEFT"},
+	}
+
+	local styles = UICtrl.HotKeyModule.Styles
+
+	for index, info in pairs(actionBarStyles) do
+		local button = CreateFrame("CheckButton", "$parentStyle"..#UICtrl.HotKeyModule.Styles+1, UICtrl.HotKeyModule)
+		button:SetSize(39, 39)
+
+		button.Checked = button:CreateTexture(nil, "ARTWORK")
+		button.Checked:SetAtlas("orderhalltalents-spellborder-yellow")
+		button.Checked:SetSize(50, 50)
+		button.Checked:SetPoint("TOP", 0, 5)
+
+		button:SetCheckedTexture(button.Checked)
+
+		button.Icon = button:CreateTexture(nil, "ARTWORK")
+		button.Icon:SetPoint("CENTER")
+		button.Icon:SetSize(39, 39)
+
+		button.Icon:SetTexture(classIcon)
+
+		button.name = info.name
+		button.mod = "CTRL-SHIFT-"
+
+		button.HotKey = ConsolePort.CreateHotKey(button, index)
+		button.HotKey:Show()
+		button.HotKey:SetPoint("TOPRIGHT", 0, 0)
+
+		button:SetPoint("TOPLEFT", UICtrl.HotKeyModule, "LEFT", 32 + 52 * (index - 1), 8)
+		if ( index == db.Settings.actionBarStyle ) or ( index == 1 and not db.Settings.actionBarStyle ) then
+			UICtrl.HotKeyModule:SetID(index)
+			button:SetChecked(true)
+		else
+			button:SetChecked(false)
+		end
+
+		styles[#styles + 1] = button
+
+		button:SetScript("OnClick", function(self)
+			for i, button in pairs(styles) do
+				button:SetChecked(false)
+			end
+			self:SetChecked(true)
+			UICtrl.HotKeyModule:SetID(index)
+		end)
+	end
+
+---------------------------------------------------------------
 
 	StaticPopupDialogs["CONSOLEPORT_ADDFRAME"] = {
 		text = TUTORIAL.ADDFRAME,
@@ -440,7 +765,7 @@ tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultU
 		enterClicksFirstButton = true,
 		exclusive = true,
 		OnAccept = AddFramePopupAccept,
-		OnCancel = ClearPopup,
+		OnCancel = ConsolePort.ClearPopup,
 	}
 
 	StaticPopupDialogs["CONSOLEPORT_REMOVEFRAME"] = {
@@ -455,7 +780,7 @@ tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultU
 		enterClicksFirstButton = true,
 		exclusive = true,
 		OnAccept = RemoveFramePopupAccept,
-		OnCancel = ClearPopup,
+		OnCancel = ConsolePort.ClearPopup,
 	}
 
 	StaticPopupDialogs["CONSOLEPORT_REMOVEADDON"] = {
@@ -470,6 +795,6 @@ tinsert(db.PANELS, {"UICtrl", TUTORIAL.HEADER, false, false, false, LoadDefaultU
 		enterClicksFirstButton = true,
 		exclusive = true,
 		OnAccept =  RemoveAddonPopupAccept,
-		OnCancel = ClearPopup,
+		OnCancel = ConsolePort.ClearPopup,
 	}
-end})
+end}
