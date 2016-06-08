@@ -6,9 +6,7 @@
 ---------------------------------------------------------------
 local _, db = ...
 ---------------------------------------------------------------
-local Callback = C_Timer.After
----------------------------------------------------------------
-local WorldFrame = WorldFrame
+local Callback, WorldFrame = C_Timer.After, WorldFrame
 ---------------------------------------------------------------
 local MouseEvents
 ---------------------------------------------------------------
@@ -49,7 +47,7 @@ function ConsolePort:CheckMouselookEvent(event, ...)
 		GetMouseFocus() == WorldFrame and
 		not SpellIsTargeting() and
 		not IsMouseButtonDown(1) then
-		self:StartMouse()
+		self:StartCamera()
 	end
 end
 
@@ -66,7 +64,7 @@ function Events:PLAYER_TARGET_CHANGED(...)
 			GetMouseFocus() == WorldFrame and
 			not SpellIsTargeting() and
 			not IsMouseButtonDown(1) then
-			self:StartMouse()
+			self:StartCamera()
 		end
 	end)
 end
@@ -74,11 +72,13 @@ end
 function Events:MERCHANT_SHOW(...)
 	-- Automatically sell junk
 	local quality
-	for bag=0, 4 do
-		for slot=1, GetContainerNumSlots(bag) do
-			quality = select(4, GetContainerItemInfo(bag, slot))
-			if quality and quality == 0 then
-				UseContainerItem(bag, slot)
+	for i=1, 2 do
+		for bag=0, 4 do
+			for slot=1, GetContainerNumSlots(bag) do
+				quality = select(4, GetContainerItemInfo(bag, slot))
+				if quality and quality == 0 then
+					UseContainerItem(bag, slot)
+				end
 			end
 		end
 	end
@@ -96,10 +96,10 @@ end
 
 function Events:CURRENT_SPELL_CAST_CHANGED(...)
 	if SpellIsTargeting() then
-		self:StopMouse()
+		self:StopCamera()
 	elseif 	GetMouseFocus() == WorldFrame and
 		IsMouselookEvent("CURRENT_SPELL_CAST_CHANGED") then
-		self:StartMouse()
+		self:StartCamera()
 	end
 end
 

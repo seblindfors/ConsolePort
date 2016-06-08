@@ -12,6 +12,7 @@ TUTORIAL = {
 		TOOLTIPHEADER 		= "Bindings",
 		TOOLTIPCLICK 		= "<Click to change>",
 		PROFILEPRESET 		= " Preset",
+		PROFILEEMPTY 		= "Empty",
 		DEFAULT 			= "Click here to change a binding.",
 		COMBATTEXT 			= "Exit combat to change your settings.",
 		CATCHER 			= "Press a button on your controller.",
@@ -50,7 +51,7 @@ TUTORIAL = {
 		CENTERCURSOR 		= "Cursor is centered",
 	},
 	UICTRL = {
-		VIRTUALCURSOR 		= "Interface cursor settings",
+		VIRTUALCURSOR 		= "Interface cursor",
 		ACTIONBARHEADER		= "Hotkey style",
 		HEADER 				= "Interface",
 		SIDEBAR 			= "Interface",
@@ -75,6 +76,7 @@ TUTORIAL = {
 	},
 	CONFIG = {
 		GENERALHEADER 		= "General settings",
+		CONTROLLERBUTTON 	= "Controller",
 		INTERACTHEADER 		= "Interact button",
 		MOUSEHEADER 		= "Lock mouse cursor when...",
 		TRIGGERHEADER		= "Trigger settings",
@@ -86,7 +88,7 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		MOUSEDRIFTING 		= "Prevent mouse cursor from drifting off screen",
 		ACTIONCAM 			= "Focus camera on target",
-		TURNMOVE 			= "Turn instead of strafe when mouse look is off",
+		TURNMOVE 			= "Turn instead of strafe when the cursor is visible",
 		DOUBLEMODTAP 		= "Double tap |T%s:32:32:0:0|t or |T%s:32:32:0:0|t to toggle mouse cursor",
 		DISABLEMOUSE 		= "Disable automatic mouse behaviour",
 		AUTOEXTRA 			= "Auto bind items from tracked quests",

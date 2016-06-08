@@ -7,107 +7,82 @@
 
 local _, db = ...
 ---------------------------------------------------------------
-local TEXTURE = db.TEXTURE
+local TEXTURE, Settings = db.TEXTURE
 ---------------------------------------------------------------
-local Settings, IsCentered, IsVisible, IsOutside
+local 	ConsolePort, WorldFrame, UIParent, GameTooltip = 
+		ConsolePort, WorldFrame, UIParent, GameTooltip
 ---------------------------------------------------------------
-local ConsolePort, WorldFrame = ConsolePort, WorldFrame
----------------------------------------------------------------
+-- Camera functions
 local 	GetMouseFocus, HasCursorItem, SpellIsTargeting, IsMouseButtonDown, IsMouselooking = 
 		GetMouseFocus, GetCursorInfo, SpellIsTargeting, IsMouseButtonDown, IsMouselooking
 ---------------------------------------------------------------
-local Locker = CreateFrame("Frame", "ConsolePortMouseLookCenter", UIParent)
-Locker:SetPoint("CENTER", 0, 0)
-Locker:SetSize(70, 180)
-Locker:Hide()
+-- Mouse functions
+local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition = 
+		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition
 ---------------------------------------------------------------
-local Deadzone = CreateFrame("Frame", "ConsolePortMouseLookDeadzone", UIParent)
-Deadzone:SetPoint("CENTER", 0, 0)
-Deadzone:SetSize(4, 4)
-Deadzone:Hide()
+local Camera = CreateFrame("Frame", "ConsolePortCamera", UIParent)
+Camera.numTap = 0
+Camera.timer = 0
+Camera.Start = MouselookStart
+Camera.Stop = MouselookStop
 ---------------------------------------------------------------
-local UIBlocker = CreateFrame("Frame", "ConsolePortUIBlocker", UIParent)
-UIBlocker:SetAllPoints()
-UIBlocker:SetFrameStrata("FULLSCREEN_DIALOG")
-UIBlocker:EnableMouse(true)
-UIBlocker:Hide()
+Camera.Locker = CreateFrame("Frame", "$parentLocker", Camera)
+Camera.Locker:SetPoint("CENTER", UIParent, 0, 0)
+Camera.Locker:SetSize(70, 180)
+Camera.Locker:Hide()
 ---------------------------------------------------------------
+Camera.Edge = CreateFrame("Frame", "$parentEdge", Camera)
+Camera.Edge:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 50, -50)
+Camera.Edge:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 50)
+Camera.Edge:Hide()
+---------------------------------------------------------------
+Camera.Deadzone = CreateFrame("Frame", "$parentDeadzone", Camera)
+Camera.Deadzone:SetPoint("CENTER", UIParent, 0, 0)
+Camera.Deadzone:SetSize(4, 4)
+Camera.Deadzone:Hide()
+---------------------------------------------------------------
+Camera.BlockUI = CreateFrame("Frame", "ConsolePortUIBlocker", UIParent)
+Camera.BlockUI:SetAllPoints()
+Camera.BlockUI:SetFrameStrata("FULLSCREEN_DIALOG")
+Camera.BlockUI:EnableMouse(true)
+Camera.BlockUI:Hide()
+---------------------------------------------------------------
+local blockCursor, cameraMode, isCentered, isOutside, isTargeting, hasItem, hasWorldFocus 
 
-local function MouseLookOnJump()
-	if 	Settings.mouseOnJump and
-		not SpellIsTargeting() and
-		not HasCursorItem() then
-		ConsolePort:StartMouse()
+function Camera:Toggle() if cameraMode then self:Stop() else self:Start() end end
+function Camera:IsCentered() return self.Locker:IsMouseOver() and not self.Deadzone:IsMouseOver() end
+function Camera:ShouldStart() return not isTargeting and not isMouseDown and not hasItem and self:IsCentered() and hasWorldFocus end
+function Camera:OnJump() if Settings.mouseOnJump and not isTargeting and not hasItem then Camera:Start() end end
+
+function Camera:OnUpdate(elapsed)
+	cameraMode = IsMouselooking()
+	isTargeting = SpellIsTargeting()
+	isMouseDown = IsMouseButtonDown(1)
+	hasItem = HasCursorItem()
+	hasWorldFocus = GetMouseFocus() == WorldFrame
+	---------------
+	self.BlockUI:SetShown(cameraMode)
+end
+
+function Camera:CheckCursor()
+	if cameraMode and hasItem then
+		self:Stop()
 	end
 end
 
-local function MouselookOnCenter()
-	return Settings.mouseOnCenter and Locker:IsMouseOver() and not Deadzone:IsMouseOver()
-end
-
-local function MouselookShouldStart()
-	if 	not SpellIsTargeting() 			and
-		not IsMouseButtonDown(1) 		and
-		not HasCursorItem() 			and
-		MouselookOnCenter() 			and
-		(GetMouseFocus() == WorldFrame) then
-		return true
+function Camera:CheckCenter()
+	if not isCentered and self:ShouldStart() then
+		self:Start()
+		isCentered = true
+	elseif not self.Locker:IsMouseOver() and isCentered then
+		isCentered = false
 	end
 end
 
-local function MouselookUpdate(self)
-	UIBlocker:SetShown(IsMouselooking())
-	if 	not IsVisible and HasCursorItem() then
-		self:StopMouse()
-	elseif not IsCentered and
-		MouselookShouldStart() then
-		self:StartMouse()
-		IsCentered = true
-	elseif not Locker:IsMouseOver() and IsCentered then
-		IsCentered = false
-	end
-end
-
----------------------------------------------------------------
--- Cursor drift catcher: This frame looks for whether the cursor
--- is at the very edge of the screen. (fullscreen recommended)
----------------------------------------------------------------
-local Padding = CreateFrame("Frame", "ConsolePortMouseLookRim", UIParent)
-Padding:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 50, -50)
-Padding:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -50, 50)
-Padding:Hide()
-
-local function MouselookPaddingUpdate(self)
-	if not Padding:IsMouseOver() and not IsOutside and
-		(GetMouseFocus() == WorldFrame) then
-		IsOutside = true
-		self:StartMouse()
-	elseif Padding:IsMouseOver() then
-		IsOutside = false
-	end
-end
-
----------------------------------------------------------------
--- Double tap catcher: This frame looks for double-tapping on
--- a modifier, which is then used to toggle the cursor on/off.
----------------------------------------------------------------
-local DoubleTapCatcher = CreateFrame("Frame")
-DoubleTapCatcher.numTap = 0
-DoubleTapCatcher.timer = 0
-
-local dtModifiers = {
-	RSHIFT = "SHIFT",
-	LSHIFT = "SHIFT",
-	SHIFT = "SHIFT",
-	LCTRL = "CTRL",
-	RCTRL = "CTRL",
-	CTRL = "CTRL",
-}
-
-local function MouselookDoubleTapUpdate(self, elapsed)
+function Camera:CheckDoubleTap(elapsed)
 	self.timer = self.timer + elapsed
 	if self.numTap > 1 then
-		ConsolePort:ToggleMouse()
+		self:Toggle()
 		self.numTap = 0
 		self.modTap = 0
 	end
@@ -117,14 +92,87 @@ local function MouselookDoubleTapUpdate(self, elapsed)
 	end
 end
 
-local function MouselookDoubleTapEvent(self, _, ...)
+function Camera:CheckEdge()
+	if not self.Edge:IsMouseOver() and not isOutside and hasWorldFocus then
+		isOutside = true
+		self:Start()
+	elseif self.Edge:IsMouseOver() then
+		isOutside = false
+	end
+end
+
+function Camera:OnEvent(event, ...)
 	local modifier, down = ...
 	if down == 1 then
-		local dtMod = dtModifiers[modifier]
-		if dtMod then
+		if modifier then
 			self.timer = 0
-			self.numTap = self.modTap == dtMod and self.numTap + 1 or 1
-			self.modTap = dtMod
+			self.numTap = self.modTap == modifier and self.numTap + 1 or 1
+			self.modTap = modifier
+		end
+	end
+end
+
+function Camera:OnInteract()
+	local guid, hasLoot = UnitGUID("target")
+	if guid then
+		hasLoot = CanLootUnit(guid)
+	end
+	if hasLoot then
+		blockCursor = true
+		Camera:Start()
+	else
+		Camera:Stop()
+	end
+end
+
+function Camera:OnStop()
+	if blockCursor then
+		blockCursor = nil
+		Camera:Start()
+	end
+end
+
+function Camera:OnRightClick() blockCursor = nil end
+
+-- Get rid of mouselook when trying to interact with mouse
+hooksecurefunc("MouselookStop", Camera.OnStop)
+-- InteractUnit removes mouse look, restart if target has loot
+hooksecurefunc("InteractUnit", Camera.OnInteract)
+-- Releasing 'right click' should remove the cursor block
+hooksecurefunc("TurnOrActionStop", Camera.OnRightClick)
+-- Hook jump to use it as a camera trigger
+hooksecurefunc("JumpOrAscendStart", Camera.OnJump)
+
+---------------------------------------------------------------
+-- Mouse function wrappers in case of extended functionality
+---------------------------------------------------------------
+
+function ConsolePort:StopCamera() Camera:Stop() end
+function ConsolePort:StartCamera() Camera:Start() end
+
+---------------------------------------------------------------
+-- Toggle smart mouse behaviour on/off
+---------------------------------------------------------------
+function ConsolePort:UpdateSmartMouse()
+	Settings = Settings or db.Settings
+
+	Camera:SetScript("OnEvent", nil)
+	Camera:SetScript("OnUpdate", Camera.OnUpdate)
+	Camera:UnregisterEvent("MODIFIER_STATE_CHANGED")
+
+	if not Settings.disableSmartMouse then
+		Camera:HookScript("OnUpdate", Camera.CheckCursor)
+
+		if Settings.mouseOnCenter then
+			Camera:HookScript("OnUpdate", Camera.CheckCenter)
+		end
+		if Settings.preventMouseDrift then
+			Camera:HookScript("OnUpdate", Camera.CheckEdge)
+		end
+		if Settings.doubleModTap then
+			Camera:SetScript("OnEvent", Camera.OnEvent)
+			Camera:RegisterEvent("MODIFIER_STATE_CHANGED")
+			Camera:HookScript("OnUpdate", Camera.CheckDoubleTap)
 		end
 	end
 end
@@ -134,15 +182,10 @@ end
 -- should be used to cast spells or to interact with mouseover.
 -- The behaviour alters itself depending on whether the button
 -- is bound to a healing spell or harmful spell.
--- Helpful: interact with no target/enemy, cast on friend.
--- Harmful: interact with no target/friend, cast on enemy.
 ---------------------------------------------------------------
-local MouseHandle = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerStateTemplate, SecureHandlerAttributeTemplate")
-MouseHandle:SetFrameRef("ActionBar", MainMenuBarArtFrame)
-MouseHandle:SetFrameRef("OverrideBar", OverrideActionBar)
-MouseHandle:Execute([[
+local Mouse = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerStateTemplate, SecureHandlerAttributeTemplate")
+Mouse:Execute([[
 	---------------------------------------------------------------
-	USE = false
 	id = 0
 	---------------------------------------------------------------
 	isEnabled = true
@@ -201,38 +244,35 @@ MouseHandle:Execute([[
 	]=]
 ]])
 ---------------------------------------------------------------
-local Focus = CreateFrame("Button", "ConsolePortMouseHandleMouseoverFocus", MouseHandle, "SecureActionButtonTemplate")
+local Focus = CreateFrame("Button", "$parentFocus", Mouse, "SecureActionButtonTemplate")
 Focus:SetAttribute("type", "focus")
 Focus:SetAttribute("unit", "mouseover")
-MouseHandle:SetFrameRef("Focus", Focus)
-MouseHandle:Execute([[ Focus = self:GetFrameRef("Focus") ]])
+Mouse:SetFrameRef("Focus", Focus)
+Mouse:Execute([[ Focus = self:GetFrameRef("Focus") ]])
 ---------------------------------------------------------------
-MouseHandle:SetAttribute("_onattributechanged", "self:Run(UpdateAttribute, name, value)")
+Mouse:SetAttribute("_onattributechanged", "self:Run(UpdateAttribute, name, value)")
 
-MouseHandle:SetPoint("CENTER", 0, -300)
-MouseHandle:SetSize(300, 64)
-MouseHandle:SetAlpha(0)
+Mouse:SetPoint("CENTER", 0, -300)
+Mouse:SetSize(300, 64)
+Mouse:SetAlpha(0)
 
-MouseHandle.Line = MouseHandle:CreateTexture("$parentLine", "ARTWORK")
-MouseHandle.Line:SetAtlas("legioninvasion-title-bg")
-MouseHandle.Line:SetPoint("BOTTOM")
-MouseHandle.Line:SetSize(300, 100)
-MouseHandle.Line:SetVertexColor(1, 0.75, 0.75)
+Mouse.Line = Mouse:CreateTexture("$parentLine", "ARTWORK")
+Mouse.Line:SetAtlas("legioninvasion-title-bg")
+Mouse.Line:SetPoint("BOTTOM")
+Mouse.Line:SetSize(300, 100)
+Mouse.Line:SetVertexColor(1, 0.75, 0.75)
 
-MouseHandle.Button = MouseHandle:CreateTexture("$parentButton", "ARTWORK")
-MouseHandle.Button:SetPoint("LEFT", 50, 16)
-MouseHandle.Button:SetSize(32, 32)
+Mouse.Button = Mouse:CreateTexture("$parentButton", "ARTWORK")
+Mouse.Button:SetPoint("LEFT", 50, 16)
+Mouse.Button:SetSize(32, 32)
 
-MouseHandle.Text = MouseHandle:CreateFontString("$parentText", "OVERLAY", "MovieSubtitleFont")
-MouseHandle.Text:SetPoint("CENTER", 0, 16)
+Mouse.Text = Mouse:CreateFontString("$parentText", "OVERLAY", "MovieSubtitleFont")
+Mouse.Text:SetPoint("CENTER", 0, 16)
 
-local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit = 
-		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit
+Mouse.FadeIn = db.UIFrameFadeIn
+Mouse.FadeOut = db.UIFrameFadeOut
 
-MouseHandle.FadeIn = db.UIFrameFadeIn
-MouseHandle.FadeOut = db.UIFrameFadeOut
-
-function MouseHandle:CheckLoot(elapsed)
+function Mouse:CheckLoot(elapsed)
 	local alpha = self:GetAlpha()
 	local guid, hasLoot, canLoot = UnitGUID("target")
 	if guid then
@@ -252,7 +292,7 @@ function MouseHandle:CheckLoot(elapsed)
 	end
 end
 
-function MouseHandle:CheckHover(elapsed)
+function Mouse:CheckHover(elapsed)
 	local guid, hasLoot, canLoot = UnitGUID("mouseover")
 	local exists = UnitExists("mouseover")
 	local isDead, isEnemy = UnitIsDead("mouseover"), UnitCanAttack("player", "mouseover")
@@ -272,7 +312,7 @@ function MouseHandle:CheckHover(elapsed)
 	end
 end
 
-function MouseHandle:TrackUnit(unitType)
+function Mouse:TrackUnit(unitType)
 	local hasScript = self:GetScript("OnUpdate")
 	if not hasScript and unitType == "loot" then
 		self:SetScript("OnUpdate", self.CheckLoot)
@@ -290,81 +330,30 @@ end
 ---------------------------------------------------------------
 -- Cursor trail for interact button
 ---------------------------------------------------------------
-local UIParent = UIParent
-local GameTooltip = GameTooltip
-local IsMouselooking = IsMouselooking
-local GetCursorPosition, posX, posY = GetScaledCursorPosition
-local CursorTrail = CreateFrame("Frame", "ConsolePortCursorTrail", UIParent, "")
+local Trail = CreateFrame("Frame", "ConsolePortCursorTrail", UIParent)
+Trail:SetFrameStrata("TOOLTIP")
+Trail:SetSize(24,24)
+Trail.Texture = Trail:CreateTexture(nil, "OVERLAY", nil, 7)
+Trail.Texture:SetAllPoints(Trail)
 
-local function CursorTrailUpdate(self)
-	posX, posY = GetCursorPosition()
+function Trail:OnUpdate()
+	local posX, posY = GetCursorPosition()
 	self:SetPoint("BOTTOMLEFT", posX+24, posY-46)
-	if SpellIsTargeting() then
-		self.Texture:SetTexture(TEXTURE.CP_T_L3)
+	if isTargeting then
+		if not self.isTargeting then
+			self.Texture:SetTexture(TEXTURE.CP_T_L3)
+			self.isTargeting = true
+		end
 		self:SetAlpha(1)
-	elseif GameTooltip:GetOwner() == UIParent and not IsMouselooking() then
-		self.Texture:SetTexture(self.Default)
+	elseif GameTooltip:GetOwner() == UIParent and not cameraMode then
+		if self.isTargeting then
+			self.Texture:SetTexture(self.Default)
+			self.isTargeting = nil
+		end
 		self:SetAlpha(GameTooltip:GetAlpha())
+		self.default = true
 	else
 		self:SetAlpha(0)
-	end
-end
-
-CursorTrail:SetFrameStrata("TOOLTIP")
-CursorTrail:SetSize(24,24)
-CursorTrail.Texture = CursorTrail:CreateTexture(nil, "OVERLAY", nil, 7)
-CursorTrail.Texture:SetAllPoints(CursorTrail)
-CursorTrail:Hide()
-
----------------------------------------------------------------
--- Mouse function wrappers
----------------------------------------------------------------
-
-function ConsolePort:StopMouse(...)
-	IsVisible = true
-	MouselookStop()
-end
-
-function ConsolePort:StartMouse()
-	IsVisible = nil
-	MouselookStart()
-end
-
-function ConsolePort:ToggleMouse()
-	if IsVisible then
-		MouselookStart()
-		IsVisible = nil
-	else
-		MouselookStop()
-		IsVisible = true
-	end
-end
-
----------------------------------------------------------------
--- Toggle smart mouse behaviour on/off
----------------------------------------------------------------
-function ConsolePort:UpdateSmartMouse()
-	if not Settings then
-		Settings = db.Settings
-	end
-	if Settings.disableSmartMouse then
-		self:RemoveUpdateSnippet(MouselookUpdate)
-	else
-		self:AddUpdateSnippet(MouselookUpdate)
-	end
-	if Settings.preventMouseDrift then
-		self:AddUpdateSnippet(MouselookPaddingUpdate)
-	else
-		self:RemoveUpdateSnippet(MouselookPaddingUpdate)
-	end
-	if Settings.doubleModTap then
-		DoubleTapCatcher:SetScript("OnEvent", MouselookDoubleTapEvent)
-		DoubleTapCatcher:SetScript("OnUpdate", MouselookDoubleTapUpdate)
-		DoubleTapCatcher:RegisterEvent("MODIFIER_STATE_CHANGED")
-	else
-		DoubleTapCatcher:SetScript("OnEvent", nil)
-		DoubleTapCatcher:SetScript("OnUpdate", nil)
-		DoubleTapCatcher:UnregisterEvent("MODIFIER_STATE_CHANGED")
 	end
 end
 
@@ -386,72 +375,37 @@ function ConsolePort:UpdateMouseDriver()
 
 			local currentTarget = SecureCmdOptionParse(targetstate)
 
-			CursorTrail.Default = TEXTURE[button]
-			CursorTrail.Texture:SetTexture(CursorTrail.Default)
-			CursorTrail:SetScript("OnUpdate", CursorTrailUpdate)
-			CursorTrail:Show()
+			Trail.Default = TEXTURE[button]
+			Trail.Targeting = TEXTURE.CP_T_L3
+			Trail.Texture:SetTexture(Trail.Default)
+			Trail:SetScript("OnUpdate", Trail.OnUpdate)
+			Trail:Show()
 
-			MouseHandle.Button:SetTexture(db.TEXTURE[db.Settings.interactWith])
+			Mouse.Button:SetTexture(db.TEXTURE[db.Settings.interactWith])
 
-			RegisterStateDriver(MouseHandle, "targetstate", targetstate)
-			MouseHandle:SetAttribute("target", currentTarget)
+			RegisterStateDriver(Mouse, "targetstate", targetstate)
+			Mouse:SetAttribute("target", currentTarget)
 
-			self:RegisterSpellHeader(MouseHandle)
+			self:RegisterSpellHeader(Mouse)
 
-			MouseHandle:Execute(format([[
+			Mouse:Execute(format([[
 				USE = "%s"
 				id = %d
 				self:Run(UpdateTarget, self:GetAttribute("target"))
 				self:SetAttribute("target", nil)
 			]], button, id or -1))
 		else
-			CursorTrail:SetScript("OnUpdate", nil)
-			CursorTrail:Hide()
+			Trail:SetScript("OnUpdate", nil)
+			Trail:Hide()
 
-			MouseHandle:Execute([[
+			Mouse:Execute([[
 				self:ClearBindings()
 			]])
 
-			UnregisterStateDriver(MouseHandle, "targetstate")
-			self:UnregisterSpellHeader(MouseHandle)
+			UnregisterStateDriver(Mouse, "targetstate")
+			self:UnregisterSpellHeader(Mouse)
 
 		end
 		self:RemoveUpdateSnippet(self.UpdateMouseDriver)
 	end
 end
-
-
-local blockStop = false
-
-local function MouselookStopWrap()
-	if blockStop then
-		MouselookStart()
-		blockStop = false
-	end
-end
-
-local function InteractUnitWrap()
-	local guid, hasLoot = UnitGUID("target")
-	if guid then
-		hasLoot = CanLootUnit(guid)
-	end
-	if hasLoot then
-		blockStop = true
-		ConsolePort:StartMouse()
-	else
-		ConsolePort:StopMouse()
-	end
-end
-
-local function TurnOrActionStopWrap()
-	blockStop = false
-	ConsolePort:StopMouse()
-end
-
-
--- Get rid of mouselook when trying to interact with mouse
-hooksecurefunc("MouselookStop", MouselookStopWrap)
-hooksecurefunc("InteractUnit", InteractUnitWrap)
-hooksecurefunc("TurnOrActionStop", TurnOrActionStopWrap)
--- Hook jump and lock mouse if it's enabled
-hooksecurefunc("JumpOrAscendStart", MouseLookOnJump)

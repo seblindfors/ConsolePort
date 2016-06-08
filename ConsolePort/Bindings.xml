@@ -27,14 +27,14 @@
 	<Binding name="CLICK ConsolePortUtilityToggle:LeftButton" category="ConsolePort " hidden="true"/>
 
 	<!-- Custom bindings -->
-	<Binding name="CP_TOGGLEMOUSE" hidden="true" >
-		ConsolePort:ToggleMouse()
+	<Binding name="CP_TOGGLEMOUSE" hidden="true">
+		ConsolePortCamera:Toggle()
 	</Binding>
-	<Binding name="CP_CAMZOOMIN" hidden="true" >
-			CameraZoomIn(5.0);
+	<Binding name="CP_CAMZOOMIN" hidden="true">
+		CameraZoomIn(5.0);
 	</Binding>
-	<Binding name="CP_CAMZOOMOUT" hidden="true" >
-			CameraZoomOut(5.0);
+	<Binding name="CP_CAMZOOMOUT" hidden="true">
+		CameraZoomOut(5.0);
 	</Binding>
 	<Binding name="CP_CAMLOOKBEHIND" runOnUp="true" hidden="true">
 		if ( keystate == "down" ) then

@@ -145,8 +145,6 @@ local actionIDs = {
 
 }
 
--- These can be modified to work with other addons if they are incorrect out of the box.
-
 -- action ID thresholds
 local classReserved = {
 	["WARRIOR"] = 96,

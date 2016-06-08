@@ -4,7 +4,7 @@
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. Stack is processed in Interface.lua.
 
-local frameStack, visibleStack, hasUIFocus, isEnabled = {}, {}
+local frameStack, visibleStack, customStack, hasUIFocus, isEnabled = {}, {}
 
 local GameMenuFrame = GameMenuFrame
 local InCombatLockdown = InCombatLockdown
@@ -199,6 +199,10 @@ function ConsolePort:GetFrameStack()
 	else
 		return visibleStack
 	end
+end
+
+function ConsolePort:SetFrameStack()
+
 end
 
 function ConsolePort:IsFrameVisible(...)

@@ -332,13 +332,13 @@ Cursor:HookScript("PreClick", function(self, button, down)
 	end
 	if self:IsVisible() and button ~= "RightButton" then
 		wasMouseLooking = IsMouselooking()
-		ConsolePort:StopMouse()
+		ConsolePort:StopCamera()
 	end
 end)
 
 Cursor:HookScript("PostClick", function(self, button, down)
 	if wasMouseLooking and not down then
-		ConsolePort:StartMouse()
+		ConsolePort:StartCamera()
 	end
 end)
 

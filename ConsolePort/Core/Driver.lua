@@ -1,3 +1,24 @@
+local Pager = CreateFrame("Frame", nil, nil, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
+RegisterStateDriver(Pager, "actionpage", ConsolePort:GetActionPageDriver())
+Pager:Execute("headers = newtable()")
+Pager:SetAttribute("_onstate-actionpage", [[
+	if HasVehicleActionBar() then
+		newstate = GetVehicleBarIndex()
+	elseif HasOverrideActionBar() then
+		newstate = GetOverrideBarIndex()
+	elseif HasTempShapeshiftActionBar() then
+		newstate = GetTempShapeshiftBarIndex()
+	elseif GetBonusBarOffset() > 0 then
+		newstate = GetBonusBarOffset()+6
+	else
+		newstate = GetActionBarPage()
+	end
+	for header in pairs(headers) do
+		header:SetAttribute("actionpage", newstate)
+	end
+]])
+
+
 -- GetActionID: Returns the correct ID for an action slot
 -- GetActionInfo: Returns information about an action slot
 -- GetActionSpellSlot: Returns spell information about an action slot
@@ -7,28 +28,12 @@
 
 function ConsolePort:RegisterSpellHeader(header)
 	if not InCombatLockdown() then
-		local driver, current = self:GetActionPageDriver()
+		local _, current = self:GetActionPageDriver()
 		
 		header:SetAttribute("actionpage", current)
-		RegisterStateDriver(header, "actionpage", driver)
 
 		header:SetFrameRef("actionBar", MainMenuBarArtFrame)
 		header:SetFrameRef("overrideBar", OverrideActionBar)
-
-		header:SetAttribute("_onstate-actionpage", [[      
-			if HasVehicleActionBar() then
-				newstate = GetVehicleBarIndex()
-			elseif HasOverrideActionBar() then
-				newstate = GetOverrideBarIndex()
-			elseif HasTempShapeshiftActionBar() then
-				newstate = GetTempShapeshiftBarIndex()
-			elseif GetBonusBarOffset() > 0 then
-				newstate = GetBonusBarOffset()+6
-			else
-				newstate = GetActionBarPage()
-			end
-			self:SetAttribute("actionpage", newstate)
-		]])
 
 		header:SetAttribute("GetActionID", [[
 			local id = ...
@@ -76,22 +81,28 @@ function ConsolePort:RegisterSpellHeader(header)
 		header:SetAttribute("IsNeutralAction", [[
 			return self:RunAttribute("IsHelpfulAction", ...) == self:RunAttribute("IsHarmfulAction", ...)
 		]])
+
+		Pager:SetFrameRef("header", header)
+		Pager:Execute([[ headers[self:GetFrameRef("header")] = true ]])
 	end
 end
 
-function ConsolePort:UnegisterSpellHeader(header)
+function ConsolePort:UnregisterSpellHeader(header)
 	if not InCombatLockdown() then
-		UnregisterStateDriver(header, "actionpage")
 
-		header:SetFrameRef("actionBar", nil)
-		header:SetFrameRef("overrideBar", nil)
+	-- NYI
+	--	Pager:SetFrameRef("header", header)
+	--	Pager:Execute([[ headers[self:GetFrameRef("header")] = nil ]])
 
-		header:SetAttribute("actionpage", nil)
-		header:SetAttribute("GetActionInfo", nil)
-		header:SetAttribute("GetActionSpellSlot", nil)
-		header:SetAttribute("IsHarmfulAction", nil)
-		header:SetAttribute("IsHelpfulAction", nil)
-		header:SetAttribute("IsNeutralAction", nil)
+	--	header:SetFrameRef("actionBar", nil)
+	--	header:SetFrameRef("overrideBar", nil)
+
+	--	header:SetAttribute("actionpage", nil)
+	--	header:SetAttribute("GetActionInfo", nil)
+	--	header:SetAttribute("GetActionSpellSlot", nil)
+	--	header:SetAttribute("IsHarmfulAction", nil)
+	--	header:SetAttribute("IsHelpfulAction", nil)
+	--	header:SetAttribute("IsNeutralAction", nil)
 	end
 end
 

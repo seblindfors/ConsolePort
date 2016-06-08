@@ -217,12 +217,19 @@ Popup.Button1:SetPoint("BOTTOMLEFT", Popup, "BOTTOMLEFT", 20, 20)
 Popup.Button2:SetPoint("BOTTOMRIGHT", Popup, "BOTTOMRIGHT", -20, 20)
 ---------------------------------------------------------------
 function Popup:WrapClick(wrapper, button)
-	wrapper:SetScript("OnClick", function()
-		button:Click()
-		if not button.dontHide then
-			self:Hide()
-		end
-	end)
+	if button then
+		wrapper:SetText(button:GetText())
+		wrapper:SetScript("OnClick", function()
+			button:Click()
+			if not button.dontHide then
+				self:Hide()
+			end
+		end)
+	else
+		wrapper:SetText()
+		wrapper:SetScript("OnClick", nil)
+		wrapper:Hide()
+	end
 end
 
 function Popup:SetPopup(header, frame, button1, button2, height)
@@ -237,8 +244,6 @@ function Popup:SetPopup(header, frame, button1, button2, height)
 	self.Header:SetText(header)
 	self:WrapClick(self.Button1, button1)
 	self:WrapClick(self.Button2, button2)
-	self.Button1:SetText(button1:GetText())
-	self.Button2:SetText(button2:GetText())
 	self:Show()
 	self:SetHeight(height or 500)
 	self.frame = frame

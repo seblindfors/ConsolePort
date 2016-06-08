@@ -406,6 +406,7 @@ function ConsolePort:SelectController()
 		Splash:SetPoint("CENTER", 0,0)
 		Splash:SetSize(750, 550)
 		Splash:EnableMouse(true)
+		Splash:SetScript("OnShow", MouselookStop)
 		Splash:Hide()
 		Splash:Show()
 	end

@@ -307,10 +307,10 @@ Cursor:SetAttribute("spellupdate", [[
 ------------------------------------------------------------------------------------------------------------------------------
 local ToggleCursor = CreateFrame("Button", "$parentToggle", Cursor, "SecureActionButtonTemplate")
 ToggleCursor:RegisterForClicks("LeftButtonDown")
-Cursor:SetFrameRef("MouseHandle", ConsolePortMouseHandle)
+Cursor:SetFrameRef("Mouse", ConsolePortMouseHandle)
 Cursor:WrapScript(ToggleCursor, "OnClick", [[
 	local Cursor = self:GetParent()
-	local MouseHandle =	Cursor:GetFrameRef("MouseHandle")
+	local MouseHandle =	Cursor:GetFrameRef("Mouse")
 
 	IsEnabled = not IsEnabled
 

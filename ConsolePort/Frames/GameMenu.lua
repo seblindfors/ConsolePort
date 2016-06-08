@@ -16,7 +16,6 @@ local function ConfigureMenu()
 	local function OnEnter(self)
 		GameTooltip:Hide()
 		GameTooltip:SetOwner(self, "ANCHOR_TOP")
-	--	GameTooltip:AddLine(self.tooltipText)
 		GameTooltip:SetText(self.tooltipText)
 		GameTooltip:Show()
 	end

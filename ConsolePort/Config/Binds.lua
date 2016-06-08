@@ -578,6 +578,11 @@ local function RefreshProfileList(self)
 		}
 	end
 
+	profiles["|cFFFFFFFF"..TUTORIAL.PROFILEEMPTY.."|r"..TUTORIAL.PROFILEPRESET] = {
+		BindingSet = {},
+		Preset = true,
+	}
+
 	for character, settings in spairs(profiles) do
 		pCount = pCount + 1
 		local button = buttons[pCount]
@@ -588,6 +593,7 @@ local function RefreshProfileList(self)
 		end
 		button:SetText(character)
 		button:Show()
+		button.preset = settings.Preset
 		if settings.Class then
 			local cc = RAID_CLASS_COLORS[settings.Class]
 			button.Cover:SetVertexColor(cc.r, cc.g, cc.b, 1)
@@ -597,10 +603,12 @@ local function RefreshProfileList(self)
 			button.Cover:SetVertexColor(1, 1, 1, 1)
 		end
 		if settings.Type and db.Controllers[settings.Type] then
-			button.Controller = button:CreateTexture(nil, "OVERLAY")
+			button.Controller = button.Controller or button:CreateTexture(nil, "OVERLAY")
 			button.Controller:SetSize(32, 32)
 			button.Controller:SetPoint("RIGHT", button, "LEFT", -8, 0)
 			button.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.Type.."\\Icons64\\CP_X_CENTER")
+		elseif button.Controller then
+			button.Controller:SetTexture()
 		end
 		button.Popup = popup
 		button.name = character
@@ -641,7 +649,9 @@ function LayoutMixin:OnClick()
 	window.BindCatcher:SetAlpha(0)
 	window.Tutorial:SetAlpha(0)
 	window:OnShow(2)
-	ConsolePort:ScrollToNode(window.Buttons[self.name][1], rebindFrame)
+	C_Timer.After(0.1, function()
+		ConsolePort:ScrollToNode(window.Buttons[self.name][1], rebindFrame)
+	end)
 end
 
 function LayoutMixin:OnEnter()

@@ -45,35 +45,35 @@ local Atlas = db.Atlas
 ---------------------------------------------------------------
 Atlas.Backdrops = {
 	Full = {
-		bgFile 		= path.."Window\\Gradient",
-		edgeFile 	= path.."Window\\EdgefileBig",
+		bgFile 		= path.."Window\\Gradient.blp",
+		edgeFile 	= path.."Window\\EdgefileBig.blp",
 		edgeSize 	= 32,
 		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
 	},
 	FullSmall = {
-		bgFile 		= path.."Window\\Gradient",
-		edgeFile 	= path.."Window\\EdgefileBig",
+		bgFile 		= path.."Window\\Gradient.blp",
+		edgeFile 	= path.."Window\\EdgefileBig.blp",
 		edgeSize 	= 16,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	},
 	Tooltip = {
-		bgFile 		= "Interface\\Tooltips\\UI-Tooltip-Background",
-		edgeFile 	= path.."Window\\EdgefileBig",
+		bgFile 		= "Interface\\Tooltips\\UI-Tooltip-Background.blp",
+		edgeFile 	= path.."Window\\EdgefileBig.blp",
 		edgeSize 	= 16,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	},
 	Border = {
-		edgeFile 	= path.."Window\\EdgefileBig",
+		edgeFile 	= path.."Window\\EdgefileBig.blp",
 		edgeSize 	= 32,
 		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
 	},
 	BorderSmall = {
-		edgeFile 	= path.."Window\\EdgefileBig",
+		edgeFile 	= path.."Window\\EdgefileBig.blp",
 		edgeSize 	= 16,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	},
 	BorderInset = {
-		edgeFile 	= path.."Window\\EdgefileInset",
+		edgeFile 	= path.."Window\\EdgefileInset.blp",
 		edgeSize 	= 8,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
 	}
