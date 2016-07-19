@@ -9,12 +9,16 @@ local _, db = ...
 ---------------------------------------------------------------
 local TEXTURE, Settings = db.TEXTURE
 ---------------------------------------------------------------
-local 	ConsolePort, WorldFrame, UIParent, GameTooltip = 
-		ConsolePort, WorldFrame, UIParent, GameTooltip
+local 	WorldFrame, UIParent, GameTooltip, Core = 
+		WorldFrame, UIParent, GameTooltip, ConsolePort
 ---------------------------------------------------------------
 -- Camera functions
 local 	GetMouseFocus, HasCursorItem, SpellIsTargeting, IsMouseButtonDown, IsMouselooking = 
 		GetMouseFocus, GetCursorInfo, SpellIsTargeting, IsMouseButtonDown, IsMouselooking
+---------------------------------------------------------------
+-- Highlight functions
+local 	HighlightStart, HighlightStop = 
+		TargetPriorityHighlightStart, TargetPriorityHighlightEnd
 ---------------------------------------------------------------
 -- Mouse functions
 local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition = 
@@ -23,6 +27,7 @@ local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPo
 local Camera = CreateFrame("Frame", "ConsolePortCamera", UIParent)
 Camera.numTap = 0
 Camera.timer = 0
+Camera.highlightTimer = 0
 Camera.Start = MouselookStart
 Camera.Stop = MouselookStop
 ---------------------------------------------------------------
@@ -47,7 +52,7 @@ Camera.BlockUI:SetFrameStrata("FULLSCREEN_DIALOG")
 Camera.BlockUI:EnableMouse(true)
 Camera.BlockUI:Hide()
 ---------------------------------------------------------------
-local blockCursor, cameraMode, isCentered, isOutside, isTargeting, hasItem, hasWorldFocus 
+local blockCursor, cameraMode, isMouseDown, isCentered, isOutside, isTargeting, hasItem, hasWorldFocus
 
 function Camera:Toggle() if cameraMode then self:Stop() else self:Start() end end
 function Camera:IsCentered() return self.Locker:IsMouseOver() and not self.Deadzone:IsMouseOver() end
@@ -101,6 +106,24 @@ function Camera:CheckEdge()
 	end
 end
 
+function Camera:HighlightNoTarget(elapsed)
+	self.highlightTimer = self.highlightTimer + elapsed
+	if self.highlightTimer > 3 then
+		if not UnitExists("target") then
+			HighlightStart()
+		end
+		self.highlightTimer = self.highlightTimer - 3
+	end
+end
+
+function Camera:HighlightAlways(elapsed)
+	self.highlightTimer = self.highlightTimer + elapsed
+	if self.highlightTimer > 3 then
+		HighlightStart()
+		self.highlightTimer = self.highlightTimer - 3
+	end
+end
+
 function Camera:OnEvent(event, ...)
 	local modifier, down = ...
 	if down == 1 then
@@ -147,13 +170,13 @@ hooksecurefunc("JumpOrAscendStart", Camera.OnJump)
 -- Mouse function wrappers in case of extended functionality
 ---------------------------------------------------------------
 
-function ConsolePort:StopCamera() Camera:Stop() end
-function ConsolePort:StartCamera() Camera:Start() end
+function Core:StopCamera() Camera:Stop() end
+function Core:StartCamera() Camera:Start() end
 
 ---------------------------------------------------------------
 -- Toggle smart mouse behaviour on/off
 ---------------------------------------------------------------
-function ConsolePort:UpdateSmartMouse()
+function Core:UpdateCameraDriver()
 	Settings = Settings or db.Settings
 
 	Camera:SetScript("OnEvent", nil)
@@ -174,6 +197,12 @@ function ConsolePort:UpdateSmartMouse()
 			Camera:RegisterEvent("MODIFIER_STATE_CHANGED")
 			Camera:HookScript("OnUpdate", Camera.CheckDoubleTap)
 		end
+	end
+
+	if Settings.alwaysHighlight == 1 then
+		Camera:HookScript("OnUpdate", Camera.HighlightNoTarget)
+	elseif Settings.alwaysHighlight == 2 then
+		Camera:HookScript("OnUpdate", Camera.HighlightAlways)
 	end
 end
 
@@ -360,7 +389,7 @@ end
 ---------------------------------------------------------------
 -- Toggle interactive mouse driver on/off
 ---------------------------------------------------------------
-function ConsolePort:UpdateMouseDriver()
+function Core:UpdateMouseDriver()
 	if not InCombatLockdown() then
 		if db.Settings.interactWith then
 			local button = db.Settings.interactWith

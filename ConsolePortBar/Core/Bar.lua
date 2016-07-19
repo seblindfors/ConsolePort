@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
-local db = ConsolePort:DB()
+local db = ConsolePort:GetData()
 ---------------------------------------------------------------
 local addOn, ab = ...
 ---------------------------------------------------------------
@@ -7,21 +7,14 @@ local class = select(2, UnitClass("player"))
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
 
-local classPage = {
-	["WARRIOR"]	= "[bonusbar:1] 7; [bonusbar:2] 8;",
-	["ROGUE"]	= "[stance:1] 7; [stance:2] 7; [stance:3] 7;",
-	["DRUID"]	= "[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 7; [bonusbar:2] 8; [bonusbar:3] 9; [bonusbar:4] 10;",
-	["MONK"]	= "[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;",
-	["PRIEST"] 	= "[bonusbar:1] 7;"
-}
 
 local Bar = CreateFrame("Frame", addOn, UIParent, "SecureHandlerStateTemplate, SecureHandlerEnterLeaveTemplate")
 local Lib = ab.libs.button
-local now, state = ConsolePort:GetActionPageState()
+local state, now = ConsolePort:GetActionPageDriver()
 ---------------------------------------------------------------
 ab.bar = Bar
 ---------------------------------------------------------------
-
+Bar:SetAttribute("actionpage", now)
 Bar.ignoreNode = true
 Bar.Buttons = {}
 Bar.isForbidden = true
@@ -31,7 +24,7 @@ Bar:SetScript("OnMouseUp", Bar.StopMovingOrSizing)
 Bar:SetMovable(true)
 Bar:SetPoint("BOTTOM", UIParent, 0, 0)
 RegisterStateDriver(Bar, "page", state)
-RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] ctrlsh; [mod:ctrl] ctrl; [mod:shift] shift; action")
+RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ")
 RegisterStateDriver(Bar, "visibility", "[petbattle][vehicleui] hide; show")
 
 Bar:SetFrameRef("ActionBar", MainMenuBarArtFrame)
@@ -50,21 +43,16 @@ Bar:SetAttribute("_onleave", [[
 	end
 ]])
 Bar:SetAttribute("_onstate-page", [[
-	local page = newstate
-	if page == "temp" then
-		if HasTempShapeshiftActionBar() then
-			page = GetTempShapeshiftBarIndex()
-		else
-			page = 1
-		end
-	elseif page == "possess" then
-		page = self:GetFrameRef("ActionBar"):GetAttribute("actionpage") or 1
-		if  page <= 10 then
-			page = self:GetFrameRef("OverrideBar"):GetAttribute("actionpage") or 12
-		end
-		if  page <= 10 then
-			page = 12
-		end
+	if HasVehicleActionBar() then
+		newstate = GetVehicleBarIndex()
+	elseif HasOverrideActionBar() then
+		newstate = GetOverrideBarIndex()
+	elseif HasTempShapeshiftActionBar() then
+		newstate = GetTempShapeshiftBarIndex()
+	elseif GetBonusBarOffset() > 0 then
+		newstate = GetBonusBarOffset()+6
+	else
+		newstate = GetActionBarPage()
 	end
 	self:SetAttribute("actionpage", page)
 	control:ChildUpdate("actionpage", page)
@@ -83,21 +71,21 @@ function ConsolePort:GetBindingIcon(binding)
 end
 
 local layout = {
-	-- ["CP_TR1"] = {"CENTER", -56, 0},
-	-- ["CP_TR2"] = {"CENTER", 56, 0},
-	-- ---
-	-- ["CP_L_LEFT"] 	= {"LEFT", 160, 55},
-	-- ["CP_L_RIGHT"] 	= {"LEFT", 360, 55},
-	-- ["CP_L_UP"] 	= {"LEFT", 260, 110},
-	-- ["CP_L_DOWN"] 	= {"LEFT", 260, 0},
-	-- ---
-	-- ["CP_R_LEFT"] 	= {"RIGHT", -160, 55},
-	-- ["CP_R_RIGHT"] 	= {"RIGHT", -360, 55},
-	-- ["CP_R_UP"] 	= {"RIGHT", -260, 110},
-	-- ["CP_R_DOWN"] 	= {"RIGHT", -260, 0},
+	["CP_T1"] = {"CENTER", -50, 10},
+	["CP_T2"] = {"CENTER", 50, 10},
+	---
+	["CP_L_LEFT"] 	= {"LEFT", 240, 50},
+	["CP_L_RIGHT"] 	= {"LEFT", 400, 50},
+	["CP_L_UP"] 	= {"LEFT", 320, 95},
+	["CP_L_DOWN"] 	= {"LEFT", 320, 10},
+	---
+	["CP_R_LEFT"] 	= {"RIGHT", -400, 50},
+	["CP_R_RIGHT"] 	= {"RIGHT", -240, 50},
+	["CP_R_UP"] 	= {"RIGHT", -320, 95},
+	["CP_R_DOWN"] 	= {"RIGHT", -320, 10},
 }
 
-for i, binding in pairs(ConsolePort:GetBindingNames()) do
+for binding in ConsolePort:GetBindings() do
 	local button = Lib:Create(Bar, binding)
 --	Lib:SetState(button, db.Bindings[binding])
 
@@ -105,14 +93,8 @@ for i, binding in pairs(ConsolePort:GetBindingNames()) do
 
 	if position then
 		button:SetPoint(unpack(position))
-	else
-		if i > 10 then
-			button:SetPoint("RIGHT", UIParent, -30, (i-10) * -110 + 300)
-		else
-			button:SetPoint("LEFT", Bar, (i-1)*110 + 51, 0)
-		end
 	end
-	Bar.Buttons[i] = button
+	Bar.Buttons[#Bar.Buttons + 1] = button
 end
 
 Lib:UpdateAllBindings()
@@ -283,7 +265,6 @@ Bar.BG:SetPoint("BOTTOMRIGHT", Bar, "BOTTOMRIGHT", -16, 16)
 Bar.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
 Bar.BG:SetBlendMode("ADD")
 
-
 Bar.BottomLine = Bar:CreateTexture(nil, "BORDER")
 Bar.BottomLine:SetTexture("Interface\\LevelUp\\LevelUpTex")
 Bar.BottomLine:SetTexCoord(0.00195313, 0.81835938, 0.00195313, 0.01562500)
@@ -294,9 +275,9 @@ Bar.BottomLine:SetVertexColor(red, green, blue, 1)
 
 
 Bar.BG:SetVertexColor(red, green, blue, 0.25)
-Bar.BG:SetGradientAlpha("VERTICAL", red, green, blue, 0.5, red, green, blue, 0)
+Bar.BG:SetGradientAlpha("VERTICAL", red, green, blue, 0.25, red, green, blue, 0)
 
-Bar:SetHeight(170)
+Bar:SetHeight(120)
 
 function Bar:OnEvent(event, ...)
 	if self[event] then

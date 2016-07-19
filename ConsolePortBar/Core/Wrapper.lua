@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
-local db = ConsolePort:DB()
+local db = ConsolePort:GetData()
 local Wrapper = {}
 ---------------------------------------------------------------
 local an, ab = ...
@@ -11,12 +11,12 @@ local WrapperRegistry = {}
 ab.libs.registry = WrapperRegistry
 ---------------------------------------------------------------
 local divisor = 1.5
-local size = 64
+local size = 52
 local mods = {
-	["action"] 	= {size = {size, size * (74 / 64)}},
-	["shift"] 	= {size = {size / divisor, size * (74 / 64) / divisor }, point = {"TOP", "BOTTOM", -32, 24}}, 
-	["ctrl"] 	= {size = {size / divisor, size * (74 / 64) / divisor }, point = {"TOP", "BOTTOM", 32, 24}}, 
-	["ctrlsh"] 	= {size = {size / divisor, size * (74 / 64) / divisor }, point = {"TOP", "BOTTOM", 0, 8}},
+	[""] 	= {size = {size, size * (74 / 64)}},
+	["SHIFT-"] 	= {size = {size / divisor, size * (74 / 64) / divisor }, point = {"TOP", "BOTTOM", -28, 24}}, 
+	["CTRL-"] 	= {size = {size / divisor, size * (74 / 64) / divisor }, point = {"TOP", "BOTTOM", 28, 24}}, 
+	["CTRL-SHIFT-"] = {size = {size / divisor, size * (74 / 64) / divisor }, point = {"TOP", "BOTTOM", 0, 8}},
 }
 ---------------------------------------------------------------
 local config = {
@@ -70,21 +70,21 @@ function Wrapper:CreateButton(parent, id, name, size, texSize, config, template)
 end
 
 function Wrapper:SetPoint(...)
-	return self.action and self.action:SetPoint(...)
+	return self[""] and self[""]:SetPoint(...)
 end
 
 function Wrapper:SetSize(width, height)
-	self.action:SetSize(width, height)
-	self.action.NormalTexture:SetSize(width * (74 / 64), height * (74 / 64))
+	self[""]:SetSize(width, height)
+	self[""].NormalTexture:SetSize(width * (74 / 64), height * (74 / 64))
 
-	self.shift:SetSize(width / divisor, height / divisor)
-	self.shift.NormalTexture:SetSize((width / divisor) * (74 / 64), (height / divisor) * (74 / 64))
+	self["SHIFT-"]:SetSize(width / divisor, height / divisor)
+	self["SHIFT-"].NormalTexture:SetSize((width / divisor) * (74 / 64), (height / divisor) * (74 / 64))
 
-	self.ctrl:SetSize(width / divisor, height / divisor)
-	self.ctrl.NormalTexture:SetSize((width / divisor) * (74 / 64), (height / divisor) * (74 / 64))
+	self["CTRL-"]:SetSize(width / divisor, height / divisor)
+	self["CTRL-"].NormalTexture:SetSize((width / divisor) * (74 / 64), (height / divisor) * (74 / 64))
 
-	self.ctrlsh:SetSize(width / divisor, height / divisor)
-	self.ctrlsh.NormalTexture:SetSize((width / divisor) * (74 / 64), (height / divisor) * (74 / 64))
+	self["CTRL-SHIFT-"]:SetSize(width / divisor, height / divisor)
+	self["CTRL-SHIFT-"].NormalTexture:SetSize((width / divisor) * (74 / 64), (height / divisor) * (74 / 64))
 end
 
 function Wrapper:Create(parent, id)
@@ -100,21 +100,23 @@ function Wrapper:Create(parent, id)
 		local point = mods[mod].point
 		if point then
 			local point, relativePoint, xoffset, yoffset = unpack(point)
-			button:SetPoint(point, wrapper.action, relativePoint, xoffset, yoffset)
+			button:SetPoint(point, wrapper[""], relativePoint, xoffset, yoffset)
 			button:SetAttribute("_childupdate-state", nil)
 		end
 	end
 
-	wrapper.action.isMainButton = true
+	local main = wrapper[""]
+	main.isMainButton = true
 
-	wrapper.action:SetFrameLevel(4)
+	main:SetFrameLevel(4)
+	main:SetAlpha(1)
 
-	wrapper.action.hotkey = CreateFrame("Frame", "$parent_HOTKEY", wrapper.action)
-	wrapper.action.hotkey:SetPoint("TOP", 0, 12)
-	wrapper.action.hotkey:SetSize(32, 32)
-	wrapper.action.hotkey.texture = wrapper.action.hotkey:CreateTexture("$parent_HOTKEY", "OVERLAY", nil, 7)
-	wrapper.action.hotkey.texture:SetTexture(gsub(db.TEXTURE[id], "Icons64x64", "Icons32x32"))
-	wrapper.action.hotkey.texture:SetAllPoints()
+	-- main.hotkey = CreateFrame("Frame", "$parent_HOTKEY", main)
+	-- main.hotkey:SetPoint("TOP", 0, 12)
+	-- main.hotkey:SetSize(32, 32)
+	-- main.hotkey.texture = main.hotkey:CreateTexture("$parent_HOTKEY", "OVERLAY", nil, 7)
+	-- main.hotkey.texture:SetTexture(db.ICONS[id])
+	-- main.hotkey.texture:SetAllPoints()
 
 	wrapper.SetSize = Wrapper.SetSize
 	wrapper.SetPoint = Wrapper.SetPoint
@@ -127,34 +129,34 @@ end
 --- Temporary stuff
 local swapTypes = {
 	["noswap"] = function(wrapper, id, button, stateType, stateID)
-		if id ~= "action" then
-			button:SetState("action", stateType, stateID)
-			button:SetState("shift", stateType, stateID)
-			button:SetState("ctrl", stateType, stateID)
-			button:SetState("ctrlsh", stateType, stateID)
+		if id ~= "" then
+			button:SetState("", stateType, stateID)
+			button:SetState("SHIFT-", stateType, stateID)
+			button:SetState("CTRL-", stateType, stateID)
+			button:SetState("CTRL-SHIFT-", stateType, stateID)
 		end
-		wrapper.action:SetState(id, stateType, stateID)
+		wrapper[""]:SetState(id, stateType, stateID)
 	end,
 	["swaphide"] = function(wrapper, id, button, stateType, stateID)
-		if id ~= "action" then
+		if id ~= "" then
 			button:SetState("action", stateType, stateID)
-			button:SetState("shift", stateType, stateID)
-			button:SetState("ctrl", stateType, stateID)
-			button:SetState("ctrlsh", stateType, stateID)
+			button:SetState("SHIFT-", stateType, stateID)
+			button:SetState("CTRL-", stateType, stateID)
+			button:SetState("CTRL-SHIFT-", stateType, stateID)
 			button:SetState(id, "empty")
 		end
-		wrapper.action:SetState(id, stateType, stateID)
+		wrapper[""]:SetState(id, stateType, stateID)
 	end,
 	["swapmain"] = function(wrapper, id, button, stateType, stateID)
-		if id == "action" then
-			wrapper.ctrlsh:SetState("ctrlsh", stateType, stateID)
-			wrapper.ctrlsh:SetState("shift", stateType, stateID)
-			wrapper.ctrlsh:SetState("ctrl", stateType, stateID)
+		if id == "" then
+			wrapper["CTRL-SHIFT-"]:SetState("CTRL-SHIFT-", stateType, stateID)
+			wrapper["CTRL-SHIFT-"]:SetState("SHIFT-", stateType, stateID)
+			wrapper["CTRL-SHIFT-"]:SetState("CTRL-", stateType, stateID)
 		end
-		wrapper.action:SetState(id, stateType, stateID)
+		wrapper[""]:SetState(id, stateType, stateID)
 	end,
 	["onlymain"] = function(wrapper, id, button, stateType, stateID)
-		wrapper.action:SetState(id, stateType, stateID)
+		wrapper[""]:SetState(id, stateType, stateID)
 	end,
 }
 
@@ -168,7 +170,7 @@ function Wrapper:UpdateAllBindings(newBindings)
 end
 
 function Wrapper:SetState(wrapper, bindings)
-	local main = wrapper.action
+	local main = wrapper[""]
 
 	if bindings then
 		for id, button in pairs(wrapper) do

@@ -23,8 +23,6 @@
 
 	<Binding name="CP_T1" header="CP_TRIG" category="ConsolePort "/>
 	<Binding name="CP_T2" header="CP_TRIG" category="ConsolePort "/>
-	<!-- Utility belt -->
-	<Binding name="CLICK ConsolePortUtilityToggle:LeftButton" category="ConsolePort " hidden="true"/>
 
 	<!-- Custom bindings -->
 	<Binding name="CP_TOGGLEMOUSE" hidden="true">

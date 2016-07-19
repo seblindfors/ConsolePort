@@ -10,20 +10,16 @@ local class = select(2, UnitClass("player"))
 local cc = RAID_CLASS_COLORS[class]
 ---------------------------------------------------------------
 
-local function CreateAtlasFrame(name, parent, secure, buttonTemplate)
+local function CreateAtlasFrame(name, parent, templates, buttonTemplate)
 	local frame
-	if secure then
-		frame = CreateFrame("Frame", name, parent or UIParent, "SecureHandlerBaseTemplate")
-		frame.Close = CreateFrame("Button", nil, frame, "SecureActionButtonTemplate"..(buttonTemplate and ", "..buttonTemplate or ""))
-		frame:WrapScript(frame.Close, "OnClick", [[
-			self:GetParent():Hide()
-		]])
+	if templates then
+		frame = CreateFrame("Frame", name, parent or UIParent, templates)
 	else
 		frame = CreateFrame("Frame", name, parent or UIParent)
 		frame.Close = CreateFrame("Button", nil, frame, buttonTemplate)
 		frame.Close:SetScript("OnClick",  function() frame:Hide() end)
+		frame.Close:HookScript("OnClick", function() PlaySound("SPELLBOOKCLOSE") end)
 	end
-	frame.Close:HookScript("OnClick", function() PlaySound("SPELLBOOKCLOSE") end)
 	return frame
 end
 
@@ -258,8 +254,8 @@ Atlas.GetFutureButton = function(name, parent, secure, buttonAtlas, width, heigh
 	return button
 end
 ---------------------------------------------------------------
-Atlas.GetGlassWindow  = function(name, parent, secure, classColored, buttonTemplate)
-	local self = CreateAtlasFrame(name, parent, secure, buttonTemplate)
+Atlas.GetGlassWindow  = function(name, parent, templates, classColored, buttonTemplate)
+	local self = CreateAtlasFrame(name, parent, templates, buttonTemplate)
 	local assets = path.."Window\\Assets"
 
 	self:SetBackdrop(Atlas.Backdrops.Border)
@@ -294,17 +290,19 @@ Atlas.GetGlassWindow  = function(name, parent, secure, classColored, buttonTempl
 	return self
 end
 ---------------------------------------------------------------
-Atlas.GetFutureWindow = function(name, parent, secure, buttonTemplate, artCorners, noOverlay)
-	local self = CreateAtlasFrame(name, parent, secure, buttonTemplate)
+Atlas.GetFutureWindow = function(name, parent, templates, buttonTemplate, artCorners, noOverlay)
+	local self = CreateAtlasFrame(name, parent, templates, buttonTemplate)
 	local assets = path.."Window\\Assets"
 
-	self.Close.Texture = self.Close:CreateTexture(nil, "ARTWORK")
-	self.Close.Texture:SetTexture(assets)
-	self.Close.Texture:SetTexCoord(0, 0.40625, 0.5625, 1)
-	self.Close.Texture:SetAllPoints(self.Close)
-	self.Close:SetNormalTexture(self.Close.Texture)
-	self.Close:SetSize(13, 14)
-	self.Close:SetPoint("TOPRIGHT", -32, -32)
+	if self.Close then
+		self.Close.Texture = self.Close:CreateTexture(nil, "ARTWORK")
+		self.Close.Texture:SetTexture(assets)
+		self.Close.Texture:SetTexCoord(0, 0.40625, 0.5625, 1)
+		self.Close.Texture:SetAllPoints(self.Close)
+		self.Close:SetNormalTexture(self.Close.Texture)
+		self.Close:SetSize(13, 14)
+		self.Close:SetPoint("TOPRIGHT", -32, -32)
+	end
 
 	self.TopLine = self:CreateTexture(nil, "BACKGROUND", nil, 7)
 	self.TopLine:SetPoint("TOPLEFT", 16, -16)
@@ -482,64 +480,68 @@ local bindFormat = "%s\n|cFF575757%s|r"
 local bindingCounter = 0
 
 function Atlas.BindingMeta:GetBindingInfo()
-	local binding = self.binding
-	if binding then
-		local bindingText = binding and _G[bindPrefix..binding]
-		local header, name = not self.omitHeader and binding and self.Headers[binding]
+	if self.reserved then
+		return self.reserved
+	else
+		local binding = self.binding
+		if binding then
+			local bindingText = binding and _G[bindPrefix..binding]
+			local header, name = not self.omitHeader and binding and self.Headers[binding]
 
-		local id = ConsolePort:GetActionID(binding)
-		-- this binding has an action ID
-		if id then
-			-- re-calculate an action ID based on the current action page
-			local loc = db.TUTORIAL.BIND
-			local actionpage = MainMenuBarArtFrame:GetAttribute("actionpage") or 1
-			id = id <= 12 and id + ( ( actionpage - 1 ) * 12 ) or id
+			local id = ConsolePort:GetActionID(binding)
+			-- this binding has an action ID
+			if id then
+				-- re-calculate an action ID based on the current action page
+				local loc = db.TUTORIAL.BIND
+				local actionpage = MainMenuBarArtFrame:GetAttribute("actionpage") or 1
+				id = id <= 12 and id + ( ( actionpage - 1 ) * 12 ) or id
 
-			local texture = GetActionTexture(id)
+				local texture = GetActionTexture(id)
 
-			local actionType, actionID, subType, spellID = GetActionInfo(id)
-			
-			if actionType == "spell" and actionID then
-				name = GetSpellInfo(actionID) or loc.SPELL
-			elseif actionType == "item" and actionID then
-				name = GetItemInfo(actionID) or loc.ITEM
-			elseif actionType == "macro" then
-				name = GetActionText(id)..loc.MACRO
-			elseif actionType == "companion" then
-				name = loc[subType]
-			elseif actionType == "summonmount" then
-				name = loc.MOUNT
-			elseif actionType == "equipmentset" then
-				name = actionID..loc.EQSET
-			end
-
-			-- if the action has a name, suffix the binding and omit the header
-			name = name and format(bindFormat, name, bindingText)
-
-			if name then
-				-- at this point there's a name and texture for the action ID
-				return name, texture
-			elseif texture then
-				if bindingText then
-					name = header and _G[header]
-					name = name and format(bindFormat, bindingText, name) or bindingText 
+				local actionType, actionID, subType, spellID = GetActionInfo(id)
+				
+				if actionType == "spell" and actionID then
+					name = GetSpellInfo(actionID) or loc.SPELL
+				elseif actionType == "item" and actionID then
+					name = GetItemInfo(actionID) or loc.ITEM
+				elseif actionType == "macro" then
+					name = GetActionText(id)..loc.MACRO
+				elseif actionType == "companion" then
+					name = loc[subType]
+				elseif actionType == "summonmount" then
+					name = loc.MOUNT
+				elseif actionType == "equipmentset" then
+					name = actionID..loc.EQSET
 				end
-				return name, texture
-			else
+
+				-- if the action has a name, suffix the binding and omit the header
+				name = name and format(bindFormat, name, bindingText)
+
+				if name then
+					-- at this point there's a name and texture for the action ID
+					return name, texture
+				elseif texture then
+					if bindingText then
+						name = header and _G[header]
+						name = name and format(bindFormat, bindingText, name) or bindingText 
+					end
+					return name, texture
+				else
+					name = header and _G[header]
+					return name and format(bindFormat, bindingText, name) or bindingText
+				end
+			-- this binding does not have an action ID, just return the binding and header names
+			elseif bindingText then
 				name = header and _G[header]
 				return name and format(bindFormat, bindingText, name) or bindingText
+			-- at this point, this is not an usual binding. this is most likely a click binding.
+			else
+				name = gsub(binding, "(.* ([^:]+).*)", "%2")
+				return name
 			end
-		-- this binding does not have an action ID, just return the binding and header names
-		elseif bindingText then
-			name = header and _G[header]
-			return name and format(bindFormat, bindingText, name) or bindingText
-		-- at this point, this is not an usual binding. this is most likely a click binding.
 		else
-			name = gsub(binding, "(.* ([^:]+).*)", "%2")
-			return name
+			return self.default
 		end
-	else
-		return self.default
 	end
 end
 
@@ -618,7 +620,7 @@ function Atlas.BindingMeta:RefreshBindings()
 end
 
 Atlas.GetBindingMetaButton = function(name, parent, config)
-	assert(config, "Atlas.GetBindingTooltipButton: No config provided.")
+	assert(config, "Atlas.GetBindingMetaButton: No config provided.")
 	---------------------------------
 	local 	width, height, templates, hitRects,
 			justifyH, textWidth, textPoint,
@@ -702,9 +704,9 @@ end
 
 Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, notSecure)
 	if InCombatLockdown() and not notSecure then
-		error("GetRoundActionButton: SecureActionButtonTemplate cannot be inherited in combat!", 2)
+		error("Atlas.GetRoundActionButton: SecureActionButtonTemplate cannot be inherited in combat!", 2)
 	elseif not name or isCheck == nil or not parent then
-		error("Usage: GetRoundActionButton(name, isCheck, parent[ [, size,] templates]): Buttons without name or parent not supported!", 2)
+		error("Usage: Atlas.GetRoundActionButton(name, isCheck, parent[ [, size,] templates]): Buttons without name or parent not supported!", 2)
 	else
 		local template
 
@@ -717,7 +719,7 @@ Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, no
 		if templates and type(templates) == "string" then
 			template = template..", "..templates
 		elseif templates then
-			error("Usage: GetRoundActionButton(name, isCheck, parent[ [, size,] templates]): Templates must be of string type!", 2)
+			error("Usage: Atlas.GetRoundActionButton(name, isCheck, parent[ [, size,] templates]): Templates must be of string type!", 2)
 		end
 
 		local button = CreateFrame(isCheck and "CheckButton" or "Button", name, parent, template)

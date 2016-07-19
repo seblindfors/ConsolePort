@@ -92,13 +92,13 @@ db.Controllers.STEAM = {
 			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON8',
 		},
 		-- Trigger buttons
-		['CP_TR1'] = {
+		['CP_T1'] = {
 			[''] 			= 'PREVIOUSACTIONPAGE',
 			['SHIFT-']	 	= 'STOPATTACK',
 			['CTRL-'] 		= 'TARGETSELF',
 			['CTRL-SHIFT-'] = 'CP_CAMLOOKBEHIND',
 		},
-		['CP_TR2'] = {
+		['CP_T2'] = {
 			[''] 			= 'NEXTACTIONPAGE',
 			['SHIFT-']	 	= 'FOLLOWTARGET',
 			['CTRL-'] 		= 'TOGGLERUN',

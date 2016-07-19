@@ -4,60 +4,61 @@ local cc = RAID_CLASS_COLORS[class]
 
 local Keyboard = CreateFrame("Frame", addOn, UIParent)
 local DIR, Current = 0
-local db = ConsolePort:DB()
+local db = ConsolePort:GetData()
 
-local KEY = {
-	RIGHT = false,
-	LEFT = false,
-	DOWN = false,
-	UP = false,
+local cfg = {
+	KEY = {
+		RIGHT = false,
+		LEFT = false,
+		DOWN = false,
+		UP = false,
+	},
+	CMD = {
+		CP_L_UP = "UP",
+		CP_L_LEFT = "LEFT",
+		CP_L_RIGHT = "RIGHT",
+		CP_L_DOWN = "DOWN",
+		CP_T2 = "AUTOCOMPLETE",
+		CP_T1 = "SPACE",
+		CP_C_OPTION = "CLOSE",
+		CP_R_OPTION = "NEXT",
+		CP_L_OPTION = "PREV",
+		CP_R_LEFT = "INPUT",
+		CP_R_RIGHT = "INPUT",
+		CP_R_DOWN = "INPUT",
+		CP_R_UP = "INPUT",
+		TOGGLERUN = "OMIT",
+	},
+	CLICK = {
+		CP_R_UP = 1,
+		CP_R_LEFT = 2,
+		CP_R_DOWN = 3,
+		CP_R_RIGHT = 4,
+	},
+	DIRKEY = {
+		UP = true,
+		DOWN = true,
+		LEFT = true,
+		RIGHT = true,
+		W = true,
+		A = true,
+		S = true,
+		D = true,
+	},
+	MODKEY = {
+		SHIFT = true,
+		LSHIFT = true,
+		RSHIFT = true,
+		CTRL = true,
+		LCTRL = true,
+		RCTRL = true,
+		ALT = true,
+		LALT = true,
+		RALT = true,
+	},
 }
 
-local CMD = {
-	CP_L_UP = "UP",
-	CP_L_LEFT = "LEFT",
-	CP_L_RIGHT = "RIGHT",
-	CP_L_DOWN = "DOWN",
-	CP_TR2 = "AUTOCOMPLETE",
-	CP_TR1 = "SPACE",
-	CP_C_OPTION = "CLOSE",
-	CP_R_OPTION = "NEXT",
-	CP_L_OPTION = "PREV",
-	CP_R_LEFT = "INPUT",
-	CP_R_RIGHT = "INPUT",
-	CP_R_DOWN = "INPUT",
-	CP_R_UP = "INPUT",
-}
-
-local CLICK = {
-	CP_R_UP = 1,
-	CP_R_LEFT = 2,
-	CP_R_DOWN = 3,
-	CP_R_RIGHT = 4,
-}
-
-local DIRKEY = {
-	UP = true,
-	DOWN = true,
-	LEFT = true,
-	RIGHT = true,
-	W = true,
-	A = true,
-	S = true,
-	D = true,
-}
-
-local MODKEY = {
-	SHIFT = true,
-	LSHIFT = true,
-	RSHIFT = true,
-	CTRL = true,
-	LCTRL = true,
-	RCTRL = true,
-	ALT = true,
-	LALT = true,
-	RALT = true,
-}
+local KEY, CMD, CLICK, DIRKEY, MODKEY = cfg.KEY, cfg.CMD, cfg.CLICK, cfg.DIRKEY, cfg.MODKEY
 
 function Keyboard:OMIT()
 end
@@ -296,7 +297,7 @@ end
 
 function Keyboard:UPDATE_BINDINGS()
 	self.Bindings = {}
-	for i, binding in pairs(ConsolePort:GetBindingNames()) do
+	for binding in ConsolePort:GetBindings() do
 		local key1, key2 = GetBindingKey(binding)
 		if key1 then
 			self.Bindings[key1] = binding

@@ -351,6 +351,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["actionBarStyle"] = 1,
 		-------------------------------
 		["autoExtra"] = true,
+		["autoSellJunk"] = true,
 		["autoInteract"] = false,
 		["autoLootDefault"] = true,
 		["cameraDistanceMoveSpeed"] = true,
@@ -420,17 +421,12 @@ function ConsolePort:GetAddonBindings()
 		{name = BINDING_NAME_CP_MOUSE},
 		{name = BINDING_NAME_CAMERAORSELECTORMOVE, binding = "CAMERAORSELECTORMOVE"},
 		{name = BINDING_NAME_TURNORACTION, binding = "TURNORACTION"},
-		-- Name Plates
-		{name = BINDING_NAME_CP_NAMEPLATES},
-		{name = BINDING_NAME_CP_WORLDCURSOR, binding = "CLICK ConsolePortWorldCursor:LeftButton"},
-		{name = BINDING_NAME_CP_CYCLEPLATES, binding = "CLICK ConsolePortNameplateCycle:LeftButton"},
 		-- Utility
 		{name = BINDING_NAME_CP_UTILITY},
 		{name = BINDING_NAME_CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR_F, binding = "CLICK ConsolePortRaidCursorFocus:LeftButton"},
 		{name = BINDING_NAME_CP_RAIDCURSOR_T, binding = "CLICK ConsolePortRaidCursorTarget:LeftButton"},
 		{name = BINDING_NAME_CP_UTILITYBELT, binding = "CLICK ConsolePortUtilityToggle:LeftButton"},
-		{name = BINDING_NAME_CP_SPELLWHEEL, binding = "CLICK ConsolePortSpellWheel:LeftButton"},
 		-- Camera
 		{name = BINDING_NAME_CP_CAMERA},
 		{name = BINDING_NAME_CP_TOGGLEMOUSE, binding = "CP_TOGGLEMOUSE"},
@@ -446,27 +442,26 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultUIFrames()
 	return {	
-		["Blizzard_AchievementUI"] 		= {
+		Blizzard_AchievementUI 		= {
 			"AchievementFrame" },
-		["Blizzard_ArchaeologyUI"] 		= {
+		Blizzard_ArchaeologyUI 		= {
 			"ArchaeologyFrame" },
-		["Blizzard_ArtifactUI"] 		= {
-			"ArtifactFrame",
-		},
-		["Blizzard_AuctionUI"] 			= {
+		Blizzard_ArtifactUI 		= {
+			"ArtifactFrame" },
+		Blizzard_AuctionUI 			= {
 			"AuctionFrame" },
-		["Blizzard_BarbershopUI"]		= {
+		Blizzard_BarbershopUI		= {
 			"BarberShopFrame" },
-		["Blizzard_Calendar"]			= {
+		Blizzard_Calendar			= {
 			"CalendarFrame" },
-		["Blizzard_Collections"]		= {
+		Blizzard_Collections		= {
 			"CollectionsJournal",
 			"WardrobeFrame", },
-		["Blizzard_DeathRecap"]			= {
+		Blizzard_DeathRecap			= {
 			"DeathRecapFrame" },
-		["Blizzard_EncounterJournal"] 	= {
+		Blizzard_EncounterJournal 	= {
 			"EncounterJournal" },
-		["Blizzard_GarrisonUI"]			= {
+		Blizzard_GarrisonUI			= {
 			"GarrisonBuildingFrame",
 			"GarrisonCapacitiveDisplayFrame",
 			"GarrisonLandingPage",
@@ -476,27 +471,27 @@ function ConsolePort:GetDefaultUIFrames()
 			"GarrisonShipyardFrame",
 			"OrderHallMissionFrame",
 			"OrderHallTalentFrame", },
-		["Blizzard_GuildUI"]			= {
+		Blizzard_GuildUI			= {
 			"GuildFrame" },
-		["Blizzard_InspectUI"]			= {
+		Blizzard_InspectUI			= {
 			"InspectFrame" },
-		["Blizzard_ItemAlterationUI"] 	= {
+		Blizzard_ItemAlterationUI 	= {
 			"TransmogrifyFrame" },
-		["Blizzard_LookingForGuildUI"] 	= {
+		Blizzard_LookingForGuildUI 	= {
 			"LookingForGuildFrame" },
-		["Blizzard_MacroUI"] 			= {
+		Blizzard_MacroUI 			= {
 			"MacroFrame" },
-		["Blizzard_QuestChoice"] 		= {
+		Blizzard_QuestChoice 		= {
 			"QuestChoiceFrame" },
-		["Blizzard_TalentUI"] 			= {
+		Blizzard_TalentUI 			= {
 			"PlayerTalentFrame" },
-		["Blizzard_TradeSkillUI"]		= {
+		Blizzard_TradeSkillUI		= {
 			"TradeSkillFrame" },
-		["Blizzard_TrainerUI"] 			= {
+		Blizzard_TrainerUI 			= {
 			"ClassTrainerFrame" },
-		["Blizzard_VoidStorageUI"]		= {
+		Blizzard_VoidStorageUI		= {
 			"VoidStorageFrame" },
-		["ConsolePort"]					= {
+		ConsolePort					= {
 			"AddonList",
 			"BagHelpBox",
 			"BankFrame",

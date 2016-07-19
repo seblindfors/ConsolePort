@@ -8,9 +8,19 @@ local KEY = db.KEY
 local SETUP = db.TUTORIAL.SETUP
 
 -- Determine if the base (unmodified) bindings are assigned.
-function ConsolePort:CheckCalibration()
+function ConsolePort:CheckCalibration(forceCustom)
 	local ctrlType = db.Settings.type
-	local ButtonUnassigned = false
+
+	if not forceCustom then
+		local calibration = db.Settings.calibration
+		if calibration then
+			for binding, key in pairs(calibration) do
+				SetBinding(key, binding)
+			end
+			return
+		end
+	end
+
 	local unassigned
 	for button in self:GetBindings() do
 		-- temporary Steam guide button fix, remove this.
@@ -18,7 +28,7 @@ function ConsolePort:CheckCalibration()
 			local key1, key2 = GetBindingKey(button)
 			if not key1 and not key2 then
 				if not unassigned then
-					unassigned = {button}
+					unassigned = { button }
 				else
 					unassigned[#unassigned + 1] = button
 				end
@@ -28,7 +38,17 @@ function ConsolePort:CheckCalibration()
 	return unassigned
 end
 
-function ConsolePort:CalibrateController()
+function ConsolePort:CalibrateController(reset)
+	if reset then
+		db.Settings.calibration = nil
+		for button in self:GetBindings() do
+			if not button:match("CP_T_.3") then
+				local key1, key2 = GetBindingKey(button)
+				if key1 then SetBinding(key1) end
+				if key2 then SetBinding(key2) end
+			end
+		end
+	end
 	if not self.calibrationFrame then
 		local cbF = db.Atlas.GetFutureWindow("ConsolePortCalibrationFrame", nil, nil, nil, nil, true)
 		local ctrlType = db.Settings.type
@@ -114,7 +134,7 @@ function ConsolePort:CalibrateController()
 			end)
 			cbF.Skip:SetScript("OnClick", function()
 				db.Settings.skipGuideBtn = true
-				self:CheckCalibration()
+				self:CheckCalibration(true)
 			end)
 		end
 
@@ -248,9 +268,12 @@ function ConsolePort:CalibrateController()
 						self.Confirm:SetText("")
 						self.Status:SetAlpha(1)
 					else
+						if not db.Settings.calibration then
+							db.Settings.calibration = {}
+						end
+						db.Settings.calibration[self.BTN] = key
 						self.Status:SetText(format(SETUP.SUCCESS, self.ButtonTex:GetTexture(), key))
 						db.UIFrameFadeIn(self.Status, 3, 1, 0)
-						SaveBindings(GetCurrentBindingSet())
 						self.Binding:SetText(SETUP.EMPTY)
 						self.Confirm:SetText("")
 						self.VAL = nil
@@ -289,7 +312,7 @@ function ConsolePort:CalibrateController()
 				self:SetAlpha(1)
 				self:EnableKeyboard(true)
 				self:EnableMouse(true)
-				local unassigned = ConsolePort:CheckCalibration()
+				local unassigned = ConsolePort:CheckCalibration(true)
 				if unassigned then
 					self.BTN = unassigned[1]
 					if self.Skip and self.BTN == "CP_X_CENTER" then
@@ -313,7 +336,7 @@ function ConsolePort:CalibrateController()
 				ConsolePort:CheckLoadedSettings()
 			end
 		end)
-	elseif self:CheckCalibration() then
+	elseif self:CheckCalibration(true) then
 		ConsolePortCalibrationFrame:Show()
 		PlaySound("SPELLBOOKOPEN")
 	end
@@ -349,6 +372,7 @@ function ConsolePort:SelectController()
 			end
 
 			db.Settings.newController = true
+			db.Settings.forceController = self.ID
 
 			PlaySound("GLUEENTERWORLDBUTTON")
 			ReloadUI()

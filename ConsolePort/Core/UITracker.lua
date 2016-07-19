@@ -1,3 +1,4 @@
+local Core = ConsolePort
 ---------------------------------------------------------------
 -- UITracker.lua: Widget tracking
 ---------------------------------------------------------------
@@ -23,7 +24,7 @@ local function CheckWidgetTrackers(self)
 	end
 end
 
-function ConsolePort:AddWidgetTracker(button, action)
+function Core:AddWidgetTracker(button, action)
 	widgetTrackers[button] = action
 	button.widgetTracker = action
 	self:AddUpdateSnippet(CheckWidgetTrackers)
@@ -36,9 +37,7 @@ end
 -- Necessary since all frames do not exist on ADDON_LOADED.
 -- Automatically adds all special frames, i.e. closed with ESC.
 
-local allFramesLoaded = false
-local specialFrames = {}
-local frameTrackers = {}
+local specialFrames, frameTrackers, allFramesLoaded = {}, {}
 
 local function CheckSpecialFrames(self)
 	local frames = UISpecialFrames
@@ -51,7 +50,7 @@ local function CheckSpecialFrames(self)
 	end
 end
 
-function ConsolePort:UpdateFrameTracker(self)
+function Core:UpdateFrameTracker(self)
 	CheckSpecialFrames(self)
 	if not allFramesLoaded then
 		local numTrackers = 0
@@ -68,7 +67,7 @@ function ConsolePort:UpdateFrameTracker(self)
 	end
 end
 
-function ConsolePort:AddFrameTracker(frame)
+function Core:AddFrameTracker(frame)
 	frameTrackers[frame] = true
 	allFramesLoaded = false
 end

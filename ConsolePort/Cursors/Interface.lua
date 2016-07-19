@@ -7,34 +7,36 @@
 -- node priority and where nodes are drawn on screen.
 
 local addOn, db = ...
-local KEY, SECURE, TEXTURE, M1, M2 = db.KEY, db.SECURE, db.TEXTURE, "CP_M1", "CP_M2"
-
 ---------------------------------------------------------------
 local MAX_WIDTH, MAX_HEIGHT = UIParent:GetSize()
 ---------------------------------------------------------------
 UIParent:HookScript("OnSizeChanged", function(self, width, height) MAX_WIDTH, MAX_HEIGHT = width, height end)
 ---------------------------------------------------------------
+		-- Resources
+local	KEY, SECURE, TEXTURE, M1, M2,
 		-- Override wrappers
-local 	SetOverride, ClearOverride,
+	 	SetOverride, ClearOverride,
 		-- General functions
-		InCombatLockdown, PlaySound, Callback,
+		InCombat, PlaySound, Callback,
 		-- Fade wrappers
-		FadeIn, FadeOut, -- fade wrappers
+		FadeIn, FadeOut,
 		-- Table functions
 		select, ipairs, pairs, wipe, abs, tinsert,
 		-- Misc
 		ConsolePort, Override, current, old =
 		--------------------------------------------
+		db.KEY, db.SECURE, db.TEXTURE, "CP_M1", "CP_M2",
 		SetOverrideBindingClick, ClearOverrideBindings,
 		InCombatLockdown, PlaySound, C_Timer.After,
 		db.UIFrameFadeIn, db.UIFrameFadeOut,
 		select, ipairs, pairs, wipe, abs, tinsert,
 		ConsolePort, {}
 ---------------------------------------------------------------
+		-- Cursor frame and scroll helpers
 local 	Cursor, StepL, StepR, Scroll =
 		CreateFrame("Frame", "ConsolePortCursor", UIParent),
-		CreateFrame("Button"),
-		CreateFrame("Button"),
+		CreateFrame("Button", "ConsolePortCursorStepL"),
+		CreateFrame("Button", "ConsolePortCursorStepR"),
 		CreateFrame("Frame")
 
 ConsolePort.Cursor = Cursor
@@ -56,18 +58,18 @@ function Override:Click(owner, old, button, mouseClick, mod)
 	end
 end
 
-function Override:Shift(owner, old, button, mouseClick, mod)
+function Override:Shift(owner, old, button, mouseClick)
 	self:Click(owner, old, button, mouseClick, "SHIFT-")
 end
 
-function Override:Ctrl(owner, old, button, mouseClick, mod)
+function Override:Ctrl(owner, old, button, mouseClick)
 	self:Click(owner, old, button, mouseClick, "CTRL-")
 end
 
 function Override:HorizontalScroll(owner, widget)
 	local wrapperFunc = owner.Scroll == M1 and self.Shift or self.Ctrl
-	wrapperFunc(self, owner, "CP_L_LEFT", StepL:GetName(), "LeftButton")
-	wrapperFunc(self, owner, "CP_L_RIGHT", StepR:GetName(), "LeftButton")
+	wrapperFunc(self, owner, "CP_L_LEFT", "ConsolePortCursorStepL", "LeftButton")
+	wrapperFunc(self, owner, "CP_L_RIGHT", "ConsolePortCursorStepR", "LeftButton")
 	StepL.widget = widget
 	StepR.widget = widget
 end
@@ -147,8 +149,7 @@ function Cursor:Move(anchor)
 		local newX, newY = self.Pointer:GetCenter()
 		local oldX, oldY = self:GetCenter()
 		if oldX and oldY and newX and newY and self:IsVisible() then
-			local offX, offY = (newX - oldX), (newY - oldY)
-			self.Translate:SetOffset(offX, offY)
+			self.Translate:SetOffset(newX - oldX, newY - oldY)
 			self.Enlarge:SetStartDelay(0.05)
 			self.Moving:Play()
 		else
@@ -212,7 +213,6 @@ local Node = {
 	[KEY.RIGHT] = function(_, destX, vert, horz, thisX, _) return (vert < horz and destX > thisX) end,
 	cache = {}
 }
-
 
 function Node:IsInteractive(node, object)
 	return not node.includeChildren and node:IsMouseEnabled() and node:IsVisible() and IsUsable[object]
@@ -498,7 +498,7 @@ function Cursor:OnUpdate(elapsed)
 		if not current or (current and not current.node:IsVisible()) or (current and not Node:IsDrawn(current.node)) then
 			self:Hide()
 			current = nil
-			if 	not InCombatLockdown() and
+			if 	not InCombat() and
 				ConsolePort:HasUIFocus()  then
 				ConsolePort:UIControl()
 			end
@@ -511,7 +511,7 @@ function Cursor:OnHide()
 	self.Flash = true
 	Node:Clear()
 	self:SetHighlight()
-	if not InCombatLockdown() then
+	if not InCombat() then
 		ClearOverride(self)
 	end
 end
@@ -529,7 +529,7 @@ end
 function Cursor:PLAYER_REGEN_ENABLED()
 	self.Flash = true
 	Callback(0.5, function()
-		if not InCombatLockdown() then
+		if not InCombat() then
 			FadeIn(self, 0.2, self:GetAlpha(), 1)
 		end
 	end)
@@ -541,7 +541,7 @@ function Cursor:PLAYER_ENTERING_WORLD()
 end
 
 function Cursor:MODIFIER_STATE_CHANGED()
-	if not InCombatLockdown() then
+	if not InCombat() then
 		if 	current and
 			(self.Scroll == M1 and IsShiftKeyDown()) or
 			(self.Scroll == M2 and IsControlKeyDown()) then
@@ -560,7 +560,7 @@ function ConsolePort:IsCurrentNode(node) return current and current.node == node
 function ConsolePort:GetCurrentNode() return current and current.node end
 
 function ConsolePort:RefreshNodes()
-	if not InCombatLockdown() then
+	if not InCombat() then
 		Node:Clear()
 		ClearOverride(Cursor)
 		for frame in pairs(self:GetFrameStack()) do
@@ -571,7 +571,7 @@ function ConsolePort:RefreshNodes()
 end
 
 function ConsolePort:SetCurrentNode(node, force)
-	if not db.Settings.disableUI and not InCombatLockdown() then
+	if not db.Settings.disableUI and not InCombat() then
 		if node then
 			local object = node:GetObjectType()
 			if 	Node:IsInteractive(node, object) and Node:IsDrawn(node) then

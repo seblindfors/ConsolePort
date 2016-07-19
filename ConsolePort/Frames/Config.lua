@@ -8,7 +8,7 @@ local TUTORIAL = db.TUTORIAL.CONFIG
 local FadeIn, FadeOut, Mixin = db.UIFrameFadeOut, db.UIFrameFadeIn, db.table.mixin
 local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
-local ConsolePort = ConsolePort
+local ConsolePort, WindowMixin = ConsolePort, {}
 local Popup = db.Atlas.GetFutureWindow("ConsolePortPopup")
 local Config = db.Atlas.GetFutureWindow("ConsolePortConfig")
 local Scroll = CreateFrame("ScrollFrame", "$parentBannerScroll", Config)
@@ -16,11 +16,15 @@ local Category = CreateFrame("Frame", "$parentCategories", Scroll)
 local Container = CreateFrame("Frame", "$parentContainer", Config)
 ---------------------------------------------------------------
 -- beta
-Config.Beta = Config:CreateTexture(nil, "ARTWORK")
+Config.BetaCorner = CreateFrame("Frame", nil, Config)
+Config.BetaCorner:SetFrameLevel(3)
+Config.BetaCorner:SetPoint("TOPRIGHT", -16, -16)
+Config.BetaCorner:SetSize(70, 70)
+Config.Beta = Config.BetaCorner:CreateTexture(nil, "ARTWORK")
 Config.Beta:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
 Config.Beta:SetTexCoord(0.9121, 1, 0, 0.0878)
 Config.Beta:SetSize(70, 70)
-Config.Beta:SetPoint("TOPRIGHT", -16, -16)
+Config.Beta:SetPoint("TOPRIGHT")
 ---------------------------------------------------------------
 ConsolePort.configFrame = Config
 Config.Category = Category
@@ -218,6 +222,7 @@ Popup.Button2:SetPoint("BOTTOMRIGHT", Popup, "BOTTOMRIGHT", -20, 20)
 ---------------------------------------------------------------
 function Popup:WrapClick(wrapper, button)
 	if button then
+		wrapper:Show()
 		wrapper:SetText(button:GetText())
 		wrapper:SetScript("OnClick", function()
 			button:Click()
@@ -326,7 +331,7 @@ end
 
 ---------------------------------------------------------------
 
-function Config:AddPanel(name, header, bannerAtlas, mixin, configure)
+function WindowMixin:AddPanel(name, header, bannerAtlas, mixin, configure)
 	local frame = CreateFrame("FRAME", "$parent"..name, Container)
 	frame:SetBackdrop(db.Atlas.Backdrops.Border)
 	local id = Category:AddNew(header, bannerAtlas)
@@ -341,8 +346,32 @@ function Config:AddPanel(name, header, bannerAtlas, mixin, configure)
 	db[name] = frame
 end
 
+function WindowMixin:OnHide()
+	if not self.combatHide then
+		self:UnregisterAllEvents()
+	end
+end
+
+function WindowMixin:OnShow()
+	self:RegisterEvent("PLAYER_REGEN_DISABLED")
+	self:RegisterEvent("PLAYER_REGEN_ENABLED")
+end
+
+function WindowMixin:OnEvent(event)
+	if event == "PLAYER_REGEN_DISABLED" then
+		self.combatHide = true
+		self:Hide()
+	elseif event == "PLAYER_REGEN_ENABLED" then
+		FadeIn(self, 0.5, 0, 1)
+		self.combatHide = nil
+		self:Show()
+	end
+end
+
+Mixin(Config, WindowMixin)
+
 ---------------------------------------------------------------
--- Config: Creates all config panels in panel table on load.
+-- Creates all config panels in panel table on load.
 ---------------------------------------------------------------
 function ConsolePort:CreateConfigPanel()
 	for i, panel in pairs(db.PANELS) do

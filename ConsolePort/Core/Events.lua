@@ -6,12 +6,12 @@
 ---------------------------------------------------------------
 local _, db = ...
 ---------------------------------------------------------------
-local Callback, WorldFrame = C_Timer.After, WorldFrame
----------------------------------------------------------------
-local MouseEvents
+local 	Callback, WorldFrame, MouseEvents, Settings =
+		C_Timer.After, WorldFrame
 ---------------------------------------------------------------
 
 function ConsolePort:LoadEvents()
+	Settings = db.Settings
 	MouseEvents = db.Mouse.Events
 	-- Default events
 	local Events = {
@@ -47,7 +47,7 @@ function ConsolePort:CheckMouselookEvent(event, ...)
 		GetMouseFocus() == WorldFrame and
 		not SpellIsTargeting() and
 		not IsMouseButtonDown(1) then
-		self:StartCamera()
+		self:StartCamera(event)
 	end
 end
 
@@ -58,26 +58,29 @@ local Events = {}
 local Loaded = false
 
 function Events:PLAYER_TARGET_CHANGED(...)
-	Callback(0.02, function()
-		if IsMouselookEvent("PLAYER_TARGET_CHANGED") and
-			UnitExists("target") and
-			GetMouseFocus() == WorldFrame and
-			not SpellIsTargeting() and
-			not IsMouseButtonDown(1) then
-			self:StartCamera()
-		end
-	end)
+	if UnitExists("target") then
+		Callback(0.02, function()
+			if IsMouselookEvent("PLAYER_TARGET_CHANGED") and
+				GetMouseFocus() == WorldFrame and
+				not SpellIsTargeting() and
+				not IsMouseButtonDown(1) then
+				self:StartCamera("PLAYER_TARGET_CHANGED")
+			end
+		end)
+	end
 end
 
 function Events:MERCHANT_SHOW(...)
 	-- Automatically sell junk
-	local quality
-	for i=1, 2 do
-		for bag=0, 4 do
-			for slot=1, GetContainerNumSlots(bag) do
-				quality = select(4, GetContainerItemInfo(bag, slot))
-				if quality and quality == 0 then
-					UseContainerItem(bag, slot)
+	if Settings.autoSellJunk then
+		local quality
+		for i=1, 2 do
+			for bag=0, 4 do
+				for slot=1, GetContainerNumSlots(bag) do
+					quality = select(4, GetContainerItemInfo(bag, slot))
+					if quality and quality == 0 then
+						UseContainerItem(bag, slot)
+					end
 				end
 			end
 		end
@@ -99,7 +102,7 @@ function Events:CURRENT_SPELL_CAST_CHANGED(...)
 		self:StopCamera()
 	elseif 	GetMouseFocus() == WorldFrame and
 		IsMouselookEvent("CURRENT_SPELL_CAST_CHANGED") then
-		self:StartCamera()
+		self:StartCamera("CURRENT_SPELL_CAST_CHANGED")
 	end
 end
 
@@ -143,7 +146,7 @@ end
 
 function Events:SPELLS_CHANGED(...)
 	self:SetupRaidCursor()
-	self:UpdateSmartMouse()
+	self:UpdateCameraDriver()
 	self:AddUpdateSnippet(self.UpdateMouseDriver)
 	self:AddUpdateSnippet(self.SetupUtilityBelt)
 	if InCombatLockdown() then
@@ -184,6 +187,7 @@ function Events:ADDON_LOADED(...)
 	end
 	if db.PLUGINS[name] then
 		db.PLUGINS[name](self)
+		db.PLUGINS[name] = nil
 	end
 	self:UpdateFrames()
 	if Loaded then

@@ -23,7 +23,7 @@ local abs = abs
 local class = select(2, UnitClass("player"))
 local cc = RAID_CLASS_COLORS[class]
 
-local Fade = ConsolePort:DB().UIFrameFadeIn
+local Fade = ConsolePort:GetData().UIFrameFadeIn
 
 local suggestions = {}
 

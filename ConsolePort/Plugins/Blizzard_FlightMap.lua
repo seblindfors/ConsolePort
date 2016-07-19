@@ -8,31 +8,27 @@
 local _, db = ...
 db.PLUGINS["Blizzard_FlightMap"] = function(self)
 	-----------------------------------------
-	local flightNodes = {}
-	-----------------------------------------
-	local FP = FlightMapFrame
+	local Path, flightNodes, FP, Mixin = {}, {}, FlightMapFrame, db.table.mixin
 	-----------------------------------------
 
-	local function EnterFlightNode(self)
-		local path = self:GetParent()
-
-		if path.taxiNodeData then
-			GameTooltip:SetOwner(path, "ANCHOR_PRESERVE")
+	function Path:OnEnter() self = self:GetParent()
+		if self.taxiNodeData then
+			GameTooltip:SetOwner(self, "ANCHOR_PRESERVE")
 			GameTooltip:ClearAllPoints()
-			GameTooltip:SetPoint("TOPLEFT", path, "TOPRIGHT", 20, 0)
+			GameTooltip:SetPoint("TOPLEFT", self, "TOPRIGHT", 20, 0)
 
-			GameTooltip:AddLine(path.taxiNodeData.name, nil, nil, nil, true)
+			GameTooltip:AddLine(self.taxiNodeData.name, nil, nil, nil, true)
 
-			if path.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_CURRENT then
+			if self.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_CURRENT then
 				GameTooltip:AddLine(TAXINODEYOUAREHERE, 1.0, 1.0, 1.0, true)
-			elseif path.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_REACHABLE then
-				local cost = TaxiNodeCost(path.taxiNodeData.slotIndex)
+			elseif self.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_REACHABLE then
+				local cost = TaxiNodeCost(self.taxiNodeData.slotIndex)
 				if cost > 0 then
 					SetTooltipMoney(GameTooltip, cost)
 				end
 
-				path.owner:HighlightRouteToPin(path)
-			elseif path.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_UNREACHABLE then
+				self.owner:HighlightRouteToPin(self)
+			elseif self.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_UNREACHABLE then
 				GameTooltip:AddLine(TAXI_PATH_UNREACHABLE, RED_FONT_COLOR.r, RED_FONT_COLOR.g, RED_FONT_COLOR.b, true)
 			end
 
@@ -40,42 +36,37 @@ db.PLUGINS["Blizzard_FlightMap"] = function(self)
 		end
 	end
 
-	local function LeaveFlightNode(self)
-		local path = self:GetParent()
-
-		if path.taxiNodeData then
-			if path.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_REACHABLE then
-				if path.owner.highlightLinePool then
-					path.owner:RemoveRoute()
+	function Path:OnLeave() self = self:GetParent()
+		if self.taxiNodeData then
+			if self.taxiNodeData.type == LE_FLIGHT_PATH_TYPE_REACHABLE then
+				if self.owner.highlightLinePool then
+					self.owner:RemoveRoute()
 				end
 			end
 			GameTooltip:Hide()
 		end
-	end	
+	end
 
-	local function ClickFlightNode(self)
-		local path = self:GetParent()
-		if path.taxiNodeData then
-			TakeTaxiNode(path.taxiNodeData.slotIndex)
+	function Path:OnClick() self = self:GetParent()
+		if self.taxiNodeData then
+			TakeTaxiNode(self.taxiNodeData.slotIndex)
 		end
 		GameTooltip:Hide()
 	end
 
 	local function CreateFlightNode(parent)
 		local node = CreateFrame("Button", "FlightNode"..#flightNodes+1, parent)
-		node:SetScript("OnEnter", EnterFlightNode)
-		node:SetScript("OnLeave", LeaveFlightNode)
-		node:SetScript("OnClick", ClickFlightNode)
+		Mixin(node, Path)
 		node:SetSize(4,4)
 		flightNodes[#flightNodes + 1] = node
 		return node
 	end
 
-
 	-----------------------------------------
+	-- Gather all visible flight paths in a table and
+	-- create an overlapping click button for each.
 	-----------------------------------------
-
-	local function GetFlightNodes(self)
+	FP:HookScript("OnShow", function(self)
 		for _, node in pairs(flightNodes) do
 			node:Hide()
 		end
@@ -94,9 +85,9 @@ db.PLUGINS["Blizzard_FlightMap"] = function(self)
 			node:SetPoint("CENTER", path, 0, 0)
 			node:Show()
 		end
-	end
+	end)
 
-	FP:HookScript("OnShow", GetFlightNodes)
+	FP.ScrollContainer.ignoreScroll = true
 
 	self:AddFrame(FP)
 end

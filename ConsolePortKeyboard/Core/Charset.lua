@@ -5,7 +5,7 @@ local Keyboard = ConsolePortKeyboard
 local class = select(2, UnitClass("player"))
 local cc = RAID_CLASS_COLORS[class]
 
-local db = ConsolePort:DB()
+local db = ConsolePort:GetData()
 
 local colors = {
 	db.COLOR.UP,

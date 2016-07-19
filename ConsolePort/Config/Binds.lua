@@ -8,17 +8,23 @@
 -- which then run override bindings that perish on logout.
 
 local _, db = ...
-local TUTORIAL, BIND = db.TUTORIAL.BIND, "BINDING_NAME_"
-local TEXTURE, ICONS, tbl = db.TEXTURE, db.ICONS, db.table
 ---------------------------------------------------------------
-local window, rebindFrame, newBindingSet
----------------------------------------------------------------
-local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
-local Mixin, spairs, compare, copy = tbl.mixin, tbl.spairs, tbl.compare, tbl.copy
----------------------------------------------------------------
-local 	BindingMixin, ButtonMixin, CatcherMixin, 
+		-- Resources
+local 	TUTORIAL, BIND, TEXTURE, ICONS,
+		-- Fade wrappers
+		FadeIn, FadeOut,
+		-- Table functions
+		Mixin, spairs, compare, copy,
+		-- Mixins
+		BindingMixin, ButtonMixin, CatcherMixin, 
 		HeaderMixin, LayoutMixin, RebindMixin,
-		ShortcutMixin, SwapperMixin, WindowMixin = 
+		ShortcutMixin, SwapperMixin, WindowMixin,
+		-- Reference variables
+		window, rebindFrame, newBindingSet = 
+		-------------------------------------
+		db.TUTORIAL.BIND, "BINDING_NAME_", db.TEXTURE, db.ICONS,
+		db.UIFrameFadeIn, db.UIFrameFadeOut,
+		db.table.mixin, db.table.spairs, db.table.compare, db.table.copy,
 		{}, {}, {}, {}, {}, {}, {}, {}, {}
 ---------------------------------------------------------------
 local config = {
@@ -148,7 +154,7 @@ function BindingMixin:CreateButton(name, parent, isScrollButton, config)
 		parent:AddButton(button)
 	end
 
-	-- add these format strings to draw modifier icons next to main button icons
+	-- add these format strings to draw icons on binding buttons.
 	-- need to be populated post load because they're using saved variables
 	if not BindingMixin[""] then
 		BindingMixin[""] = "|T%s:24:24:0:0|t"
@@ -183,7 +189,7 @@ function BindingMixin:OnShow()
 
 	if notHeader then
 		key, mod = ConsolePort:GetCurrentBindingOwner(binding, newBindingSet)
-		if key then
+		if key and mod then
 			local texture = format(self[mod], ICONS[key])
 			self.hotKey:SetText(texture)
 			owner = _G[key..mod.."_CONF"]
@@ -361,7 +367,7 @@ function ButtonMixin:OnHide() self.Line:SetAlpha(0.35) end
 function ButtonMixin:OnClick(mouseButton)
 	local tutorial = window.Tutorial
 	local swapper, swapOwner = rebindFrame.Swapper, rebindFrame.Swapper.owner
-	if not InCombatLockdown() then
+	if not self.reserved then
 		if mouseButton == "RightButton" then
 			self:SetBinding()
 			self.SelectedTexture:Hide()
@@ -473,13 +479,12 @@ end
 ---------------------------------------------------------------
 -- Binds: Create addon dummy bindings
 ---------------------------------------------------------------
-local function SetBinding(self, modifier, original, override)
-	if not InCombatLockdown() then
-		if original and override then
-			local key1, key2 = GetBindingKey(original) or config.mouseBindings[original]
-			if key1 then SetOverrideBinding(self, false, modifier..key1, override) end
-			if key2 then SetOverrideBinding(self, false, modifier..key2, override) end
-		end
+local function SetFakeBinding(self, modifier, original, override)
+	if original and override then
+		local key1, key2 = GetBindingKey(original) or config.mouseBindings[original]
+	--	print(GetTime(), original, key1, key2)
+		if key1 then SetOverrideBinding(self, false, modifier..key1, override) end
+		if key2 then SetOverrideBinding(self, false, modifier..key2, override) end
 	end
 end
 
@@ -518,20 +523,25 @@ local function SetMovementBindings(self, handler)
 end
 
 function ConsolePort:LoadBindingSet()
-	if not InCombatLockdown() then
-		local keys = newBindingSet or db.Bindings
-		local handler = ConsolePortButtonHandler
-		ClearOverrideBindings(handler)
-		SetMovementBindings(self, handler)
-		SetMouseBindings(self, handler, keys)
-		for name, key in pairs(keys) do
-			for modifier in self:GetModifiers() do
-				SetBinding(handler, modifier, name, key[modifier])
-			end
+	--	print(GetTime(), "LoadBindingSet")
+	local calibration = db.Settings.calibration
+	if calibration then
+		for binding, key in pairs(calibration) do
+			SetBinding(key, binding)
 		end
-		self:RemoveUpdateSnippet(self.LoadBindingSet)
-		return keys
 	end
+	local keys = newBindingSet or db.Bindings
+	local handler = ConsolePortButtonHandler
+	ClearOverrideBindings(handler)
+	SetMovementBindings(self, handler)
+	SetMouseBindings(self, handler, keys)
+	for name, key in pairs(keys) do
+		for modifier in self:GetModifiers() do
+			SetFakeBinding(handler, modifier, name, key[modifier])
+		end
+	end
+	self:RemoveUpdateSnippet(self.LoadBindingSet)
+	return keys
 end
 
 function ConsolePort:LoadInterfaceBinding(button, UIbutton)
@@ -566,6 +576,10 @@ local function RefreshProfileList(self)
 	local popup = ConsolePortPopup
 	local maxHeight = popup.Container:GetHeight()
 	local pCount = 0
+
+	if not ConsolePortCharacterSettings then
+		ConsolePortCharacterSettings = {}
+	end
 
 	local profiles = copy(ConsolePortCharacterSettings)
 	self.ProfileData = profiles
@@ -619,16 +633,12 @@ local function RefreshProfileList(self)
 end
 
 local function ImportOnClick(self)
-	if not InCombatLockdown() then
-		local character = ConsolePortPopup:GetSelection()
-		local settings = window.Import.Profiles.ProfileData[character]
-		if settings then
-			newBindingSet = copy(settings.BindingSet)
-			window.Tutorial:SetText(format(TUTORIAL.IMPORT, character))
-			window:Reload()
-		end
-	else
-		window.Tutorial:SetText(TUTORIAL.COMBAT)
+	local character = ConsolePortPopup:GetSelection()
+	local settings = window.Import.Profiles.ProfileData[character]
+	if settings then
+		newBindingSet = copy(settings.BindingSet)
+		window.Tutorial:SetText(format(TUTORIAL.IMPORT, character))
+		window:Reload()
 	end
 end
 
@@ -763,14 +773,12 @@ function RebindMixin:OnMouseWheel()
 end
 
 function RebindMixin:OnHide()
-	if not InCombatLockdown() then
-		ConsolePort:ClearCurrentNode()
-		if GetCVar("alwaysShowActionBars") == "0" then
-			for button, action in ConsolePort:GetActionButtons() do
-				if not GetActionInfo(action) and button.forceShow then
-					button.forceShow = nil
-					button:Hide()
-				end
+	ConsolePort:ClearCurrentNode()
+	if GetCVar("alwaysShowActionBars") == "0" then
+		for button, action in ConsolePort:GetActionButtons() do
+			if not GetActionInfo(action) and button.forceShow then
+				button.forceShow = nil
+				button:Hide()
 			end
 		end
 	end
@@ -819,9 +827,7 @@ end
 function WindowMixin:Default()
 	self.Tutorial:SetText(TUTORIAL.RESET)
 	GetNewBindingSet(true)
-	if not InCombatLockdown() then
-		self:Reload()
-	end
+	self:Reload()
 end
 
 function WindowMixin:Save()
@@ -840,20 +846,7 @@ function WindowMixin:Cancel()
 	if 	newBindingSet then
 		newBindingSet = nil
 		ConsolePort:LoadHotKeyTextures()
-		if not InCombatLockdown() then
-			self:Reload()
-		else
-			ReloadUI()
-		end
-	end
-end
-
-function WindowMixin:OnEvent(event)
-	if event == "PLAYER_REGEN_DISABLED" then
-		self.Rebind:Hide()
-		self.Tutorial:SetText(TUTORIAL.COMBATTEXT)
-	elseif event == "PLAYER_REGEN_ENABLED" then
-		self.Tutorial:SetText(TUTORIAL.DEFAULT)
+		self:Reload()
 	end
 end
 
@@ -918,16 +911,9 @@ db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, functio
 	Binds.Tutorial.SetNewText = Binds.Tutorial.SetText
 
 	function Binds.Tutorial:SetText(...)
-		if InCombatLockdown() then
-			self:SetNewText(TUTORIAL.COMBATTEXT)
-		else
-			self:SetNewText(...)
-		end
+		self:SetNewText(...)
 		FadeIn(self, 1, 0, 1)
 	end
-
-	Binds:RegisterEvent("PLAYER_REGEN_ENABLED")
-	Binds:RegisterEvent("PLAYER_REGEN_DISABLED")
 
 ---------------------------------------------------------------
 

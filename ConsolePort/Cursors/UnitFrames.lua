@@ -90,8 +90,9 @@ Cursor:Execute([[
 	GetNodes = [=[
 		local node = CurrentNode
 		local children = newtable(node:GetChildren())
-		local unit = node:GetAttribute("unit")
-		local action = node:GetAttribute("action")
+		local isProtected = node:IsProtected()
+		local unit = isProtected and node:GetAttribute("unit")
+		local action = isProtected and node:GetAttribute("action")
 		local childUnit
 		for i, child in pairs(children) do
 			if child:IsProtected() then
@@ -249,11 +250,16 @@ Cursor:Execute([[
 		end
 	]=]
 	UpdateFrameStack = [=[
-		for _, Frame in pairs(newtable(self:GetParent():GetChildren())) do
-			if Frame:IsProtected() and not Cache[Frame] then
-				CurrentNode = Frame
+		local frames = newtable(self:GetParent():GetChildren())
+		for i, frame in pairs(frames) do
+			if frame:IsProtected() and not Cache[frame] then
+				CurrentNode = frame
 				self:Run(GetNodes)
 			end
+		end
+		self:Run(RefreshActions)
+		if IsEnabled then
+			self:Run(SelectNode, 0)
 		end
 	]=]
 	ToggleCursor = [=[
@@ -290,10 +296,10 @@ Cursor:Execute([[
 	]=]
 ]])
 Cursor:SetAttribute("pageupdate", [[
+	self:Run(RefreshActions)
 	if IsEnabled then
 		self:Run(SelectNode, 0)
 	end
-	self:Run(RefreshActions)
 ]])
 Cursor:SetAttribute("spellupdate", [[
 	CurrentNode = MainBar
@@ -386,10 +392,6 @@ Cursor.Health:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorde
 Cursor.Spell = CreateFrame("PlayerModel", nil, Cursor)
 Cursor.Spell:SetAlpha(1)
 Cursor.Spell:SetDisplayInfo(42486)
-Cursor.Spell:SetScript("OnShow", function(self)
-	self:SetSize(110 / UI_SCALE, 110 / UI_SCALE)
-	self:SetPoint("CENTER", Cursor, "BOTTOMLEFT", 36, 2 / UI_SCALE)
-end)
 ---------------------------------------------------------------
 Cursor.Group = Cursor:CreateAnimationGroup()
 ---------------------------------------------------------------

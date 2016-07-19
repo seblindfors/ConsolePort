@@ -3,19 +3,28 @@
 ---------------------------------------------------------------
 -- Creates the base config panel and account-wide cvar options.
 
-local addOn, db = ...
-local TUTORIAL, TEXTURE, ICONS = db.TUTORIAL, db.TEXTURE, db.ICONS
-local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
-local Mixin, spairs = db.table.mixin, db.table.spairs
-local CatcherMixin, InteractMixin, PopupMixin, WindowMixin, Settings = {}, {}, {}, {}
+local _, db = ...
+---------------------------------------------------------------
+		-- Resource tables.
+local 	Settings, TUTORIAL, TEXTURE, ICONS,
+		-- Fade wrappers
+		FadeIn, FadeOut,
+		-- Table functions
+		Mixin, spairs,
+		-- Mixins
+		Catcher, CheckButton, PopupMixin, WindowMixin = 
+		-------------------------------------
+		nil, db.TUTORIAL, db.TEXTURE, db.ICONS,
+		db.UIFrameFadeIn, db.UIFrameFadeOut,
+		db.table.mixin, db.table.spairs,
+		{}, {}, {}, {}
 ---------------------------------------------------------------
 -- Controls: Account-wide addon CVars.
 ---------------------------------------------------------------
 local function GetAddonSettings()
-	return {		
-		{	cvar = "actionCam",
-			desc = TUTORIAL.CONFIG.ACTIONCAM,
-			toggle = Settings.actionCam,
+	return {
+		{
+			desc = TUTORIAL.CONFIG.MOUSEHANDLE,
 		},
 		{	cvar = "turnCharacter",
 			desc = TUTORIAL.CONFIG.TURNMOVE,
@@ -36,6 +45,9 @@ local function GetAddonSettings()
 			desc = TUTORIAL.CONFIG.DISABLEMOUSE,
 			toggle = Settings.disableSmartMouse,
 		},
+		{
+			desc = TUTORIAL.CONFIG.CONVENIENCE,
+		},
 		{	cvar = "autoExtra",
 			desc = TUTORIAL.CONFIG.AUTOEXTRA,
 			toggle = Settings.autoExtra,
@@ -49,6 +61,17 @@ local function GetAddonSettings()
 			cvar = "autoLootDefault",
 			desc = TUTORIAL.CONFIG.AUTOLOOT,
 			toggle = Settings.autoLootDefault,
+		},
+		{
+			cvar = "autoSellJunk",
+			desc = TUTORIAL.CONFIG.AUTOSELL,
+			toggle = Settings.autoSellJunk,
+		},
+		{
+			cvar = "disableMenu",
+			desc = TUTORIAL.CONFIG.CPMENU,
+			toggle = Settings.disableMenu,
+			needReload = true,
 		},
 		-- Mouse "events" to the user, but cvars internally
 		{
@@ -117,13 +140,7 @@ end
 local function ResetBindingsOnClick(self)
 	if not InCombatLockdown() then
 		self:GetParent():GetParent():Hide()
-		for binding in ConsolePort:GetBindings() do
-			local key1, key2 = GetBindingKey(binding)
-			if key1 then SetBinding(key1) end
-			if key2 then SetBinding(key2) end
-		end
-		SaveBindings(GetCurrentBindingSet())
-		ConsolePort:CalibrateController()
+		ConsolePort:CalibrateController(true)
 	end
 end
 
@@ -137,7 +154,7 @@ end
 ---------------------------------------------------------------
 -- Bind catcher
 ---------------------------------------------------------------
-function CatcherMixin:OnCatch(key)
+function Catcher:OnCatch(key)
 	FadeIn(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 1)
 	self:SetScript("OnKeyUp", nil)
 	self:EnableKeyboard(false)
@@ -152,19 +169,19 @@ function CatcherMixin:OnCatch(key)
 	end
 end
 
-function CatcherMixin:OnClick()
+function Catcher:OnClick()
 	self:EnableKeyboard(true)
 	self:SetScript("OnKeyUp", self.OnCatch)
 	FadeOut(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 0)
 	self:SetText(TUTORIAL.BIND.CATCHER)
 end
 
-function CatcherMixin:OnHide()
+function Catcher:OnHide()
 	self:OnCatch()
 	FadeOut(self, 0.2, self:GetAlpha(), 0)
 end
 
-function CatcherMixin:OnShow()
+function Catcher:OnShow()
 	self.CurrentButton = Settings.interactWith
 	if self.CurrentButton then
 		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton]))
@@ -174,18 +191,14 @@ function CatcherMixin:OnShow()
 	FadeIn(self, 0.2, self:GetAlpha(), 1)
 end
 
-function InteractMixin:OnShow()
-	if self.Enable:GetChecked() then
-		FadeOut(self.Hand, 0.5, 1, 0.1)
-		FadeOut(self.Dude, 0.5, 1, 0.1)
-		self.MouseOver:Show()
-		self.BindWrapper:Show()
-	else
-		self.MouseOver:Hide()
-		self.BindWrapper:Hide()
-		FadeIn(self.Hand, 0.5, 0.1, 1)
-		FadeIn(self.Dude, 0.5, 0.1, 1)
+---------------------------------------------------------------
+-- Checkbutton wrapper
+---------------------------------------------------------------
+function CheckButton:OnClick()
+	for i, button in pairs(self.set) do
+		button:SetChecked(false)
 	end
+	self:SetChecked(true)
 end
 
 ---------------------------------------------------------------
@@ -193,6 +206,7 @@ end
 ---------------------------------------------------------------
 function WindowMixin:Save()
 	local needReload
+	-- general settings
 	for i, Check in pairs(self.General) do
 		local old = Settings[Check.Cvar]
 		Settings[Check.Cvar] = Check:GetChecked()
@@ -200,6 +214,7 @@ function WindowMixin:Save()
 			needReload = true
 		end
 	end
+	-- trigger textures
 	for i, Check in pairs(self.Triggers) do
 		if Check.Value and Check.Value ~= Settings[Check.Cvar] then
 			Settings[Check.Cvar] = Check.Value
@@ -207,15 +222,20 @@ function WindowMixin:Save()
 		end
 	end
 
-	ConsolePort:UpdateCVars()
-	ConsolePort:UpdateSmartMouse()
+	-- target highlight
+	Settings.alwaysHighlight = self.AssistModule.Mode
 
+	ConsolePort:UpdateCVars()
+	ConsolePort:UpdateCameraDriver()
+
+	-- mouse events
 	for i, Check in pairs(self.Events) do
 		for i, Event in pairs(Check.Events) do
 			db.Mouse.Events[Event] = Check:GetChecked()
 		end
 	end
 
+	-- interact button
 	if self.InteractModule.Enable:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
 		Settings.interactWith = self.InteractModule.BindCatcher.CurrentButton
 		Settings.mouseOverMode = self.InteractModule.MouseOver:GetChecked()
@@ -238,6 +258,7 @@ end
 -- Controls: Create panel and children 
 ---------------------------------------------------------------
 db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, function(self, Controls)
+	local red, green, blue = db.Atlas.GetCC()
 
 	Settings = db.Settings
 
@@ -273,8 +294,6 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 	Controls.InteractModule:SetPoint("TOPRIGHT", -302, -8)
 	Controls.InteractModule:SetSize(308, 308)
 
-	Mixin(Controls.InteractModule, InteractMixin)
-
 	Controls.MouseModule = CreateFrame("Frame", nil, Controls)
 	Controls.MouseModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Controls.MouseModule:SetPoint("TOPRIGHT", -8, -8)
@@ -283,9 +302,41 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 	Controls.GeneralModule = CreateFrame("Frame", nil, Controls)
 	Controls.GeneralModule:SetBackdrop(db.Atlas.Backdrops.Border)
 	Controls.GeneralModule:SetPoint("TOPLEFT", 8, -8)
-	Controls.GeneralModule:SetSize(388, 308)
+	Controls.GeneralModule:SetSize(388, 480)
+
+	Controls.AssistModule = CreateFrame("Frame", nil, Controls)
+	Controls.AssistModule:SetBackdrop(db.Atlas.Backdrops.Border)
+	Controls.AssistModule:SetPoint("TOPLEFT", Controls.InteractModule, "BOTTOMLEFT", 0, 20)
+	Controls.AssistModule:SetSize(214, 192)
+
+	Controls.CameraModule = CreateFrame("Frame", nil, Controls)
+	Controls.CameraModule:SetBackdrop(db.Atlas.Backdrops.Border)
+	Controls.CameraModule:SetPoint("BOTTOMRIGHT", -8, 8)
+	Controls.CameraModule:SetSize(410, 362)
+
+	Controls.TriggerModule = db.Atlas.GetGlassWindow("$parentTriggerModule", Controls, nil, true)
+	Controls.TriggerModule.Close:Hide()
+	Controls.TriggerModule.BG:SetAlpha(0.1)
+	Controls.TriggerModule:SetPoint("BOTTOMLEFT", 8, 8)
+	Controls.TriggerModule:SetSize(580, 190)
 
 	------------------------------------------------------------------------------------------------------------------------------
+	function Controls.InteractModule:OnShow()
+		if self.Enable:GetChecked() then
+			FadeOut(self.Hand, 0.5, 1, 0.1)
+			FadeOut(self.Dude, 0.5, 1, 0.1)
+			self.MouseOver:Show()
+			self.BindWrapper:Show()
+		else
+			self.MouseOver:Hide()
+			self.BindWrapper:Hide()
+			FadeIn(self.Hand, 0.5, 0.1, 1)
+			FadeIn(self.Dude, 0.5, 0.1, 1)
+		end
+	end
+
+	Mixin(Controls.InteractModule, Controls.InteractModule)
+
 	Controls.InteractModule.Header = Controls.InteractModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Controls.InteractModule.Header:SetText(TUTORIAL.CONFIG.INTERACTHEADER)
 	Controls.InteractModule.Header:SetPoint("TOPLEFT", 24, -24)
@@ -319,7 +370,7 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 	Controls.InteractModule.BindCatcher:SetPoint("CENTER", 0, 0)
 	Controls.InteractModule.BindCatcher.Cover:Hide()
 
-	Mixin(Controls.InteractModule.BindCatcher, CatcherMixin)
+	Mixin(Controls.InteractModule.BindCatcher, Catcher)
 	Controls.InteractModule.BindCatcher:OnShow()
 
 	Controls.InteractModule.Enable = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
@@ -368,28 +419,31 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 	local mouseCvarOffset = #Controls.Events
 	Controls.General = {}
 	for i, setting in pairs(GetAddonSettings()) do
-		local check = CreateFrame("CheckButton", "$parentGeneralSetting"..i, Controls.GeneralModule, "ChatConfigCheckButtonTemplate")
-		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		text:SetText(setting.desc)
-		check:SetChecked(setting.toggle)
-		check.Description = text
-		check.Cvar = setting.cvar
-		check.Reload = setting.needReload
-		text:SetPoint("LEFT", check, 30, 0)
-		check:Show()
-		text:Show()
-		if setting.mouse then
-			mouseCvarOffset = mouseCvarOffset + 1
-			check:SetPoint("TOPLEFT", Controls.MouseModule, "TOPLEFT", 24, -30*mouseCvarOffset-18)
+		if setting.cvar then
+			local check = CreateFrame("CheckButton", "$parentGeneralSetting"..i, Controls.GeneralModule, "ChatConfigCheckButtonTemplate")
+			local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+			text:SetText(setting.desc)
+			check:SetChecked(setting.toggle)
+			check.Description = text
+			check.Cvar = setting.cvar
+			check.Reload = setting.needReload
+			text:SetPoint("LEFT", check, 30, 0)
+			if setting.mouse then
+				mouseCvarOffset = mouseCvarOffset + 1
+				check:SetPoint("TOPLEFT", Controls.MouseModule, "TOPLEFT", 24, -30*mouseCvarOffset-18)
+			else
+				check:SetPoint("TOPLEFT", 24, -30*i-18)
+			end
+			tinsert(Controls.General, check)
 		else
-			check:SetPoint("TOPLEFT", 24, -30*i-18)
+			local text = Controls.GeneralModule:CreateFontString("$parentGeneralSetting"..i, "OVERLAY", "GameFontNormalLeftOrange")
+			text:SetText(setting.desc)
+			text:SetPoint("TOPLEFT", 24, -30*i-24)
 		end
-		tinsert(Controls.General, check)
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------
-
-	local function CheckOnClick(self)
+	local function TriggerClick(self)
 		local parent = self.parent
 		local oldVal = parent.Index
 		local allSets = parent.AllSets
@@ -410,24 +464,11 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 				end
 			end
 		end
-		for i, button in pairs(self.set) do
-			button:SetChecked(false)
-		end
-		self:SetChecked(true)
 	end
 	------------------------------------------------------------------------------------------------------------------------------
-
-	local red, green, blue = db.Atlas.GetCC()
-
-	Controls.TriggerModule = db.Atlas.GetGlassWindow("$parentTriggerModule", Controls, nil, true)
-	Controls.TriggerModule.Close:Hide()
-	Controls.TriggerModule.BG:SetAlpha(0.1)
-	Controls.TriggerModule:SetPoint("BOTTOMLEFT", 8, 8)
-	Controls.TriggerModule:SetSize(508, 190)
-
-	Controls.TriggerHeader = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Controls.TriggerHeader:SetText(TUTORIAL.CONFIG.TRIGGERHEADER)
-	Controls.TriggerHeader:SetPoint("TOPLEFT", Controls.TriggerModule, 24, -24)
+	Controls.TriggerModule.Header = Controls.TriggerModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	Controls.TriggerModule.Header:SetText(TUTORIAL.CONFIG.TRIGGERHEADER)
+	Controls.TriggerModule.Header:SetPoint("TOPLEFT", 24, -24)
 
 	Controls.Triggers = {}
 
@@ -439,9 +480,9 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 	}
 
 	for name, info in pairs(triggerGraphics) do
-		local trigger = Controls:CreateTexture("$parent"..name, "ARTWORK")
+		local trigger = Controls:CreateTexture("$parent"..info.cvar, "ARTWORK")
 		trigger:SetSize(76, 50)
-		trigger:SetPoint("TOPLEFT", Controls.TriggerHeader, "TOPLEFT", info.offset * 110 + 38, -24)
+		trigger:SetPoint("TOPLEFT", Controls.TriggerModule.Header, "TOPLEFT", info.offset * 120 + 60, -24)
 		trigger.AllSets = Controls.Triggers
 		trigger.Value = Settings[info.cvar]
 		trigger.Cvar = info.cvar
@@ -490,14 +531,14 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 
 			button.Checked:ClearAllPoints()
 			button.Checked:SetPoint("CENTER", 0, 0)
-			button.Checked:SetSize(84, 16)
+			button.Checked:SetSize(104, 16)
 			button.Checked:SetVertexColor(red, green, blue)
 
 			button.Highlight:ClearAllPoints()
 			button.Highlight:SetPoint("CENTER", 0, 0)
-			button.Highlight:SetSize(84, 16)
+			button.Highlight:SetSize(104, 16)
 
-			button:SetSize(100, 32)
+			button:SetSize(120, 32)
 
 			button.num = num
 			button.set = radio.parent.Set
@@ -518,8 +559,53 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 				button:SetChecked(false)
 			end
 			tinsert(radio.parent.Set, button)
-			button:SetScript("OnClick", CheckOnClick)
+			button:SetScript("OnClick", TriggerClick)
+			Mixin(button, CheckButton)
 			num = num + 1
 		end
 	end
+
+	------------------------------------------------------------------------------------------------------------------------------
+	Controls.AssistModule.Header = Controls.AssistModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	Controls.AssistModule.Header:SetText(TUTORIAL.CONFIG.TARGETHEADER)
+	Controls.AssistModule.Header:SetPoint("TOPLEFT", 24, -24)
+
+	radioButtons = {
+		{name = TUTORIAL.CONFIG.TARGETSCAN},
+		{name = TUTORIAL.CONFIG.TARGETNONE, value = 1},
+		{name = TUTORIAL.CONFIG.TARGETALWAYS, value = 2},
+	}
+
+	Controls.AssistModule.Set = {}
+
+	local function AssistClick(self)
+		self:GetParent().Mode = self.Value
+	end
+
+	for i, radio in pairs(radioButtons) do
+		local check = CreateFrame("CheckButton", "$parentRadio"..i, Controls.AssistModule, "UIRadioButtonTemplate")			
+		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		text:SetText(radio.name)
+		check:SetChecked(Settings.alwaysHighlight == radio.value)
+		check.Value = radio.value
+		text:SetPoint("LEFT", check, 20, 0)
+		check:SetPoint("TOPLEFT", 20, -30*i-30)
+		check.set = Controls.AssistModule.Set
+		tinsert(check.set, check)
+		check:SetScript("OnClick", AssistClick)
+		Mixin(check, CheckButton)
+	end
+
+	------------------------------------------------------------------------------------------------------------------------------
+	Controls.CameraModule.Header = Controls.CameraModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	Controls.CameraModule.Header:SetText(TUTORIAL.CONFIG.CAMERAHEADER)
+	Controls.CameraModule.Header:SetPoint("TOPLEFT", 24, -24)
+
+	---- Under construction 
+	Controls.UnderConstruction = Controls.CameraModule:CreateTexture("ARTWORK")
+	Controls.UnderConstruction:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset.blp")
+	Controls.UnderConstruction:SetTexCoord(0.875, 1, 0.875, 1)
+	Controls.UnderConstruction:SetSize(128, 128)
+	Controls.UnderConstruction:SetPoint("CENTER")
+	----
 end}

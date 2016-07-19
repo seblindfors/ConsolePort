@@ -7,7 +7,7 @@
 
 local _, db = ...
 
-local function ConfigureMenu()
+function ConsolePort:SetCustomMenu()
 	local class = select(2, UnitClass("player"))
 	local cc = RAID_CLASS_COLORS[class]
 	local prefix = "Interface\\Buttons\\UI-MicroButton"
@@ -308,7 +308,5 @@ local function ConfigureMenu()
 	GameMenuFrame:SetBackdrop(db.Atlas.Backdrops.Full)
 	GameMenuFrame:SetBackdropColor(1, 1, 1, 0.9)
 
-	ConfigureMenu = nil
+	self.SetCustomMenu = nil
 end
-
-ConfigureMenu()

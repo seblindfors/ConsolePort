@@ -200,15 +200,15 @@ db.PLUGINS["Storyline"] = function(self)
 	end
 
 	-- remove obscuring graphics that are unreferenced
-	for k, v in pairs({Frame:GetRegions()}) do 
-		if v:IsObjectType("Texture") then
-			local texture = v:GetTexture()
-			if texture and (texture:match("question%-background") or texture:match("DressUpBackground%-NightElf1")) then
-				v:Hide()
-				v:SetTexture(nil)
-			end
-		end
-	end
+	-- for k, v in pairs({Frame:GetRegions()}) do 
+	-- 	if v:IsObjectType("Texture") then
+	-- 		local texture = v:GetTexture()
+	-- 		if texture and (texture:match("question%-background") or texture:match("DressUpBackground%-NightElf1")) then
+	-- 			v:Hide()
+	-- 			v:SetTexture(nil)
+	-- 		end
+	-- 	end
+	-- end
 
 	hooksecurefunc(Frame, "SetSize", function(self, width, height)
 		-- draw the main frame on even pixels to ensure crisp graphics
@@ -445,7 +445,4 @@ db.PLUGINS["Storyline"] = function(self)
 
 	-- add the frame to ConsolePort's frame stack.
 	self:AddFrame(Frame:GetName())
-
-	-- remove the load function
-	db.PLUGINS["Storyline"] = nil
 end

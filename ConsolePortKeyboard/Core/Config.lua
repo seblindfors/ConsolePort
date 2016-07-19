@@ -1,8 +1,8 @@
 local addOn, Language = ...
 ---------------------------------------------------------------
-local db = ConsolePort:DB()
-local Copy = db.Table.Copy
-local pairsByKeys = db.Table.pairsByKeys
+local db = ConsolePort:GetData()
+local Copy = db.table.copy
+local pairsByKeys = db.table.spairs
 ---------------------------------------------------------------
 local Keyboard = ConsolePortKeyboard
 local NewLayout
@@ -19,19 +19,24 @@ local function Hex2RGB(hex)
     return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
 end
 ---------------------------------------------------------------
-local function SaveKeyboardConfig()
+local WindowMixin = {}
+
+function WindowMixin:Save()
 	ConsolePortKeyboardLayout = NewLayout and Copy(NewLayout) or ConsolePortKeyboardLayout
+	db.Settings.disableKeyboard = not self.ToggleKeyboard:GetChecked()
 	Keyboard:SetLayout()
+	Keyboard:SetEnabled(not db.Settings.disableKeyboard)
 end
 
-local function LoadDefaultKeyboardConfig()
+function WindowMixin:Default()
 	ConsolePortKeyboardLayout = nil
 	Keyboard:LoadSettings()
 end
 
-local function DiscardKeyboardConfig()
+function WindowMixin:Cancel()
 	NewLayout = nil
 end
+
 ---------------------------------------------------------------
 local function CreateLanguageButton(parent, num)
 	local button = CreateFrame("Button", "$parentButton"..num, parent, "OptionsListButtonTemplate")
@@ -81,7 +86,7 @@ local function ConfigureConfig(self, Config)
 	end)
 
 	Config:SetScript("OnHide", function(self)
-		Keyboard:SetEnabled(true)
+		Keyboard:SetEnabled(not db.Settings.disableKeyboard)
 	end)
 
 	function Config:UpdateFields()
@@ -135,8 +140,8 @@ local function ConfigureConfig(self, Config)
 	end
 
 	local instructions = {
-		"|T"..db.TEXTURE[ConsolePortSettings.shift]..":0|t "..KEY_SPACE,
-		"|T"..db.TEXTURE[ConsolePortSettings.ctrl]..":0|t "..COMPLETE,
+		"|T"..db.TEXTURE.CP_M1..":0|t "..KEY_SPACE,
+		"|T"..db.TEXTURE.CP_M2..":0|t "..COMPLETE,
 	}
 	local tutString = Config:CreateFontString(nil, "BACKGROUND", "Game18Font")
 	tutString:SetPoint("CENTER", Config, "CENTER", 146, 0)
@@ -151,7 +156,7 @@ local function ConfigureConfig(self, Config)
 
 	Config.LanguageScroll = CreateFrame("ScrollFrame", "$parentLanguageScrollFrame", Config, "UIPanelScrollFrameTemplate")
 	Config.LanguageScroll:SetPoint("TOPLEFT", Config, "TOPLEFT", 24, -40)
-	Config.LanguageScroll:SetPoint("BOTTOMLEFT", Config, "BOTTOMLEFT", 24, 16)
+	Config.LanguageScroll:SetPoint("BOTTOMLEFT", Config, "BOTTOMLEFT", 24, 40)
 	Config.LanguageScroll:SetWidth(260)
 	Config.LanguageScroll:SetScrollChild(Config.LanguageList)
 
@@ -169,14 +174,26 @@ local function ConfigureConfig(self, Config)
 	Config.ScrollWrap = CreateFrame("Frame", "$parentScrollFrameWrap", Config)
 	Config.ScrollWrap:SetBackdrop(db.Atlas.Backdrops.Border)
 	Config.ScrollWrap:SetPoint("TOPLEFT", Config, "TOPLEFT", 8, -24)
-	Config.ScrollWrap:SetPoint("BOTTOMLEFT", Config, "BOTTOMLEFT", 8, 8)
+	Config.ScrollWrap:SetPoint("BOTTOMLEFT", Config, "BOTTOMLEFT", 8, 40)
 	Config.ScrollWrap:SetWidth(316)
 
 	Config.LanguageListText = Config:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 	Config.LanguageListText:SetPoint("BOTTOMLEFT", Config.ScrollWrap, "TOPLEFT", 16, -8)
 	Config.LanguageListText:SetText(db.TUTORIAL.CONFIG.KEYBOARDLANG)
+
+	Config.ToggleKeyboard = CreateFrame("CheckButton", "$parentToggleButton", Config, "ChatConfigCheckButtonTemplate")
+	Config.ToggleKeyboard.Text = Config.ToggleKeyboard:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	Config.ToggleKeyboard.Text:SetText("Enable keyboard")
+	Config.ToggleKeyboard.Text:SetPoint("LEFT", 30, 1)
+	Config.ToggleKeyboard:SetPoint("BOTTOMLEFT", 24, 24)
+	Config.ToggleKeyboard:SetChecked(not db.Settings.disableKeyboard)
+	Config.ToggleKeyboard:SetScript("OnShow", function(self)
+		self:SetChecked(not db.Settings.disableKeyboard)
+	end)
+
+	Keyboard:SetEnabled(not db.Settings.disableKeyboard)
 end
 ---------------------------------------------------------------
 function Keyboard:CreateConfig()
-	ConsolePortConfig:AddPanel("Keyboard", "Keyboard", nil, SaveKeyboardConfig, DiscardKeyboardConfig, LoadDefaultKeyboardConfig, ConfigureConfig)
+	ConsolePortConfig:AddPanel("Keyboard", "Keyboard", nil, WindowMixin, ConfigureConfig)
 end

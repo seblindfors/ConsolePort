@@ -74,7 +74,7 @@ db.Controllers.PS4 = {
 		},
 		['CP_R_DOWN'] = {
 			[''] 			= 'JUMP',
-			['SHIFT-'] 		= 'TARGETNEARESTENEMY',
+			['SHIFT-'] 		= 'ACTIONBUTTON9',
 			['CTRL-']  		= 'INTERACTMOUSEOVER',
 			['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
@@ -93,7 +93,7 @@ db.Controllers.PS4 = {
 		-- Trigger buttons
 		['CP_T1'] =	{
 			[''] 			= 'ACTIONBUTTON4',
-			['SHIFT-'] 		= 'ACTIONBUTTON9',
+			['SHIFT-'] 		= 'TARGETSCANENEMY',
 			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON4',
 			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON9',
 		},

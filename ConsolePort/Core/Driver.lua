@@ -18,13 +18,63 @@ Pager:SetAttribute("_onstate-actionpage", [[
 	end
 ]])
 
+--[[ Functions:
+	GetActionID: Returns the correct ID for an action slot
+	GetActionInfo: Returns information about an action slot
+	GetActionSpellSlot: Returns spell information about an action slot
+	IsHarmfulAction: Returns whether the action slot is harmful or not
+	IsHelpfulAction: Returns whether the action slot is helpful or not
+	IsNeutralAction: Returns whether the action slot has no particular target implication
+]]
 
--- GetActionID: Returns the correct ID for an action slot
--- GetActionInfo: Returns information about an action slot
--- GetActionSpellSlot: Returns spell information about an action slot
--- IsHarmfulAction: Returns whether the action slot is harmful or not
--- IsHelpfulAction: Returns whether the action slot is helpful or not
--- IsNeutralAction: Returns whether the action slot has no particular target implication
+local functions = {
+	GetActionID = [[
+		local id = ...
+		if id then
+			local page = self:GetAttribute("actionpage")
+			if id >= 1 and id <= 12 then
+				return ( ( page - 1 ) * 12 ) + id
+			else
+				return id
+			end
+		end
+	]],
+	GetActionInfo = [[
+		local id = self:RunAttribute("GetActionID", ...)
+		return GetActionInfo(id)
+	]],
+	GetActionSpellSlot = [[
+		local type, spellID, subType = self:RunAttribute("GetActionInfo", ...)
+		if type == "spell" and subType == "spell" then
+			return FindSpellBookSlotBySpellID(spellID)
+		end
+	]],
+	IsHarmfulAction = [[
+		local type, id = self:RunAttribute("GetActionInfo", ...)
+		if type == "spell" then
+			local slot = self:RunAttribute("GetActionSpellSlot", ...)
+			if slot then
+				return IsHarmfulSpell(slot, "spell")
+			end
+		elseif type == "item" then
+			return IsHarmfulItem(id)
+		end
+	]],
+	IsHelpfulAction = [[
+		local type, id = self:RunAttribute("GetActionInfo", ...)
+		if type == "spell" then
+			local slot = self:RunAttribute("GetActionSpellSlot", ...)
+			if slot then
+				return IsHelpfulSpell(slot, "spell")
+			end
+		elseif type == "item" then
+			return IsHelpfulItem(id)
+		end
+	]],
+	IsNeutralAction = [[
+		return self:RunAttribute("IsHelpfulAction", ...) == self:RunAttribute("IsHarmfulAction", ...)
+	]],
+}
 
 function ConsolePort:RegisterSpellHeader(header)
 	if not InCombatLockdown() then
@@ -35,52 +85,9 @@ function ConsolePort:RegisterSpellHeader(header)
 		header:SetFrameRef("actionBar", MainMenuBarArtFrame)
 		header:SetFrameRef("overrideBar", OverrideActionBar)
 
-		header:SetAttribute("GetActionID", [[
-			local id = ...
-			if id then
-				local page = self:GetAttribute("actionpage")
-				if id >= 1 and id <= 12 then
-					return ( ( page - 1) * 12 ) + id
-				else
-					return id
-				end
-			end
-		]])
-		header:SetAttribute("GetActionInfo", [[
-			local id = self:RunAttribute("GetActionID", ...)
-			return GetActionInfo(id)
-		]])
-		header:SetAttribute("GetActionSpellSlot", [[
-			local type, spellID, subType = self:RunAttribute("GetActionInfo", ...)
-			if type == "spell" and subType == "spell" then
-				return FindSpellBookSlotBySpellID(spellID)
-			end
-		]])
-		header:SetAttribute("IsHarmfulAction", [[
-			local type, id = self:RunAttribute("GetActionInfo", ...)
-			if type == "spell" then
-				local slot = self:RunAttribute("GetActionSpellSlot", ...)
-				if slot then
-					return IsHarmfulSpell(slot, "spell")
-				end
-			elseif type == "item" then
-				return IsHarmfulItem(id)
-			end
-		]])
-		header:SetAttribute("IsHelpfulAction", [[
-			local type, id = self:RunAttribute("GetActionInfo", ...)
-			if type == "spell" then
-				local slot = self:RunAttribute("GetActionSpellSlot", ...)
-				if slot then
-					return IsHelpfulSpell(slot, "spell")
-				end
-			elseif type == "item" then
-				return IsHelpfulItem(id)
-			end
-		]])
-		header:SetAttribute("IsNeutralAction", [[
-			return self:RunAttribute("IsHelpfulAction", ...) == self:RunAttribute("IsHarmfulAction", ...)
-		]])
+		for name, func in pairs(functions) do
+			header:SetAttribute(name, func)
+		end
 
 		Pager:SetFrameRef("header", header)
 		Pager:Execute([[ headers[self:GetFrameRef("header")] = true ]])

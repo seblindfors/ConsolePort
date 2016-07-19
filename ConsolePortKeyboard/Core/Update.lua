@@ -10,7 +10,7 @@ local function UpdateKeyboardFocus(self, elapsed)
 		focus = GetCurrentKeyBoardFocus()
 		if focus and focus:IsObjectType("EditBox") and Keyboard.Focus ~= focus then
 			Keyboard:SetFocus(focus)
-		elseif Keyboard.Focus and not Keyboard.Focus:IsVisible() then
+		elseif not focus and Keyboard.Focus then
 			Keyboard:CLOSE()
 		end
 	end
@@ -18,9 +18,12 @@ end
 
 function Keyboard:SetEnabled(newstate)
 	isEnabled = newstate
-	if not isEnabled and Keyboard.Focus then
-		Keyboard:CLOSE()
+	if isEnabled then
+		ConsolePort:AddUpdateSnippet(UpdateKeyboardFocus)
+	else
+		ConsolePort:RemoveUpdateSnippet(UpdateKeyboardFocus)
+		if Keyboard.Focus then
+			Keyboard:CLOSE()
+		end
 	end
 end
-
-ConsolePort:AddUpdateSnippet(UpdateKeyboardFocus)

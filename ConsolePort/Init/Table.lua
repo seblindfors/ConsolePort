@@ -91,8 +91,19 @@ local function spairs(t, order)
 	end
 end
 ---------------------------------------------------------------
+local function global_mixin(object, ...)
+	for i = 1, select("#", ...) do
+		local mixin = select(i, ...);
+		for k, v in pairs(mixin) do
+			object[k] = v;
+		end
+	end
+
+	return object;
+end
+
 local function mixin(t, ...)
-	t = Mixin(t, ...)
+	t = global_mixin(t, ...)
 	if t.HasScript then
 		for k, v in pairs(t) do
 			if t:HasScript(k) then

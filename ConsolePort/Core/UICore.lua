@@ -2,22 +2,28 @@
 -- UICore.lua: Core functionality for UI cursor
 ---------------------------------------------------------------
 -- Keeps a stack of frames to control with the D-pad when they
--- are visible on screen. Stack is processed in Interface.lua.
-
-local frameStack, visibleStack, customStack, hasUIFocus, isEnabled = {}, {}
-
-local GameMenuFrame = GameMenuFrame
-local InCombatLockdown = InCombatLockdown
-local Callback = C_Timer.After
-local pairs = pairs
-local next = next
-
--- Upvalue because of explicit use in hook scripts
+-- are visible on screen. See Cursors\Interface.lua.
+---------------------------------------------------------------
 local _, db = ...
-local ConsolePort = ConsolePort
+---------------------------------------------------------------
+		-- Upvalue menu and main frame due to frequent calls
+local 	GameMenu, Core, 
+		-- General functions
+		InCombat, Callback, SetHook, IsLoaded,
+		-- Table functions
+		pairs, next,
+		-- Stacks: all frames, visible frames, show/hide hooks
+		frameStack, visibleStack, hookStack, customStack,
+		-- Boolean checks (default nil)
+		hasUIFocus, isEnabled, updateQueued =
+		-------------------------------------
+		GameMenuFrame, ConsolePort,
+		InCombatLockdown, C_Timer.After, hooksecurefunc, IsAddOnLoaded,
+		pairs, next, {}, {}, {}
+---------------------------------------------------------------
 
-function ConsolePort:HasUIFocus() return hasUIFocus end
-function ConsolePort:SetUIFocus(focus) hasUIFocus = focus end
+function Core:HasUIFocus() return hasUIFocus end
+function Core:SetUIFocus(focus) hasUIFocus = focus end
 
 ---------------------------------------------------------------
 -- Node modification to prevent unwanted and wonky UI behaviour.
@@ -83,7 +89,6 @@ for flag, nodes in pairs({
 -- Update the cursor state on visibility change.
 -- Use callback to circumvent omitting frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
-local updateQueued = false
 local function showHook(self)
 	if isEnabled and frameStack[self] then
 		updateQueued = true
@@ -91,7 +96,7 @@ local function showHook(self)
 			visibleStack[self] = self:GetPoint() and self:IsVisible() and true or nil
 			if updateQueued then
 				updateQueued = false
-				ConsolePort:UpdateFrames()
+				Core:UpdateFrames()
 			end
 		end)
 	end
@@ -105,28 +110,27 @@ local function hideHook(self)
 		Callback(0.02, function()
 			hasUIFocus = nil
 			visibleStack[self] = nil
-			ConsolePort:UpdateFrames()
+			Core:UpdateFrames()
 		end)
 	end
 end
 
--- Store metatable functions for hooking show/hide on frames.
+-- When adding a new frame:
+-- Store metatable functions for hooking show/hide scripts.
 -- Most frames will use the same standard Show/Hide, but addons 
--- may use custom metatables for extra functionality. 
-local hookStack = {}
-
-function ConsolePort:AddFrame(frame)
+-- may use custom metatables, which should still work with this approach.
+function Core:AddFrame(frame)
 	local widget = (type(frame) == "string" and _G[frame]) or (type(frame) == "table" and frame)
 	if widget then
 		local mt = getmetatable(widget).__index
 
 		if not hookStack[mt.Show] then
-			hooksecurefunc(mt, "Show", showHook)
+			SetHook(mt, "Show", showHook)
 			hookStack[mt.Show] = true
 		end
 
 		if not hookStack[mt.Hide] then
-			hooksecurefunc(mt, "Hide", hideHook)
+			SetHook(mt, "Hide", hideHook)
 			hookStack[mt.Hide] = true
 		end
 
@@ -140,38 +144,42 @@ function ConsolePort:AddFrame(frame)
 	end
 end
 
-function ConsolePort:RemoveFrame(frame)
+function Core:RemoveFrame(frame)
 	if frame then
 		visibleStack[frame] = nil
 		frameStack[frame] = nil
 	end
 end
 
-function ConsolePort:CheckLoadedAddons()
-	local addOnList = ConsolePortUIFrames
+function Core:CheckLoadedAddons()
+	local addOnList, loaded = ConsolePortUIFrames, {}
 	for name, frames in pairs(addOnList) do
-		if IsAddOnLoaded(name) then
+		if IsLoaded(name) then
 			for i, frame in pairs(frames) do
 				self:AddFrame(frame)
 			end
 		end
 	end
-	for name, loadFunc in pairs(db.PLUGINS) do
-		if IsAddOnLoaded(name) then
-			loadFunc(self)
+	for name, loadPlugin in pairs(db.PLUGINS) do
+		if IsLoaded(name) then
+			loadPlugin(self)
+			loaded[name] = true
 		end
+	end
+	for name in pairs(loaded) do
+		db.PLUGINS[name] = nil
 	end
 end
 
-function ConsolePort:ToggleUICore()
+function Core:ToggleUICore()
 	isEnabled = not db.Settings.disableUI
 	if not isEnabled then
 		self:SetButtonOverride(false)
 	end
 end
 
-function ConsolePort:UpdateFrames()
-	if not InCombatLockdown() then
+function Core:UpdateFrames()
+	if not InCombat() then
 		self:UpdateFrameTracker(self)
 		if next(visibleStack) then
 			if not hasUIFocus then
@@ -187,8 +195,10 @@ function ConsolePort:UpdateFrames()
 end
 
 -- Returns a stack of visible frames.
-function ConsolePort:GetFrameStack()
-	if GameMenuFrame:IsVisible() then
+function Core:GetFrameStack()
+	if customStack then
+		return customStack
+	elseif GameMenu:IsVisible() then
 		local fullStack = {}
 		for _, frame in pairs({UIParent:GetChildren()}) do
 			if not frame:IsForbidden() and frame:IsVisible() then
@@ -201,11 +211,11 @@ function ConsolePort:GetFrameStack()
 	end
 end
 
-function ConsolePort:SetFrameStack()
-
+function Core:SetFrameStack(stack)
+	customStack = stack
 end
 
-function ConsolePort:IsFrameVisible(...)
+function Core:IsFrameVisible(...)
 	for i, frame in pairs({...}) do
 		if visibleStack[frame] then
 			return true

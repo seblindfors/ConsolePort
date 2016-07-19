@@ -36,7 +36,7 @@ simultaneously loaded. Do not copy this library for other uses.
 ]]
 
 local _, ab = ...
-local db = ConsolePort:DB()
+local db = ConsolePort:GetData()
 local lib = {}
 ab.libs = ab.libs or {}
 ab.libs.acb = lib
@@ -1290,7 +1290,7 @@ function UpdateCooldown(self)
 			self.cooldown:SetHideCountdownNumbers(true)
 			self.cooldown.currentCooldownType = COOLDOWN_TYPE_LOSS_OF_CONTROL
 		end
-		CooldownFrame_SetTimer(self.cooldown, locStart, locDuration, 1, true)
+	--	CooldownFrame_SetTimer(self.cooldown, locStart, locDuration, 1, true)
 	else
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_NORMAL then
 		--	self.cooldown:SetEdgeTexture("Interface\\Cooldown\\edge")
@@ -1308,7 +1308,7 @@ function UpdateCooldown(self)
 			EndChargeCooldown(self.chargeCooldown)
 		end
 
-		CooldownFrame_SetTimer(self.cooldown, start, duration, enable)
+	--	CooldownFrame_SetTimer(self.cooldown, start, duration, enable)
 	end
 end
 

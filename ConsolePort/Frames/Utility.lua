@@ -113,7 +113,7 @@ Animation.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, 
 Animation.ShowNewAction = AnimateNewAction
 Animation.Group:SetScript("OnFinished", AnimateOnFinished)
 ---------------------------------------------------------------
-function Utility:AnimateNew(button) print(button) Animation:ShowNewAction(_G[button], true) end
+function Utility:AnimateNew(button) Animation:ShowNewAction(_G[button], true) end
 
 local function AddAction(actionType, ID, autoAssigned)
 	ID = tonumber(ID) or ID
@@ -156,8 +156,10 @@ local function CheckQuestWatches(self)
 		for questID in pairs(Watches) do
 			if GetQuestLogSpecialItemInfo(questID) then
 				local name, link, _, _, _, class, sub, _, _, texture = GetItemInfo(GetQuestLogSpecialItemInfo(questID))
-				local _, itemID = strsplit(":", strmatch(link, "item[%-?%d:]+"))
-				AddAction("item", itemID, true)
+				local _, itemID = link and strsplit(":", strmatch(link, "item[%-?%d:]+"))
+				if itemID then
+					AddAction("item", itemID, true)
+				end
 			end
 		end
 		self:RemoveUpdateSnippet(CheckQuestWatches)
@@ -401,10 +403,6 @@ Utility:WrapScript(UseUtility, "OnClick", [[
 Utility:WrapScript(UseUtility, "OnDoubleClick", [[
 	Utility:Run(UseUtility, true)
 	Utility:Run(CursorUpdate, true)
-]])
-GameMenuButtonController:SetFrameRef("Utility", Utility)
-Utility:WrapScript(GameMenuButtonController, "OnClick", [[
-	Utility:Run(UseUtility, nil)
 ]])
 ---------------------------------------------------------------
 local buttons = {
@@ -756,6 +754,14 @@ function ConsolePort:SetupUtilityBelt()
 				actionButton:SetAttribute(info.action, info.value)
 				actionButton:Show()
 			end
+		end
+
+		if GameMenuButtonController and not GameMenuButtonController.loaded then
+			GameMenuButtonController.loaded = true
+			GameMenuButtonController:SetFrameRef("Utility", Utility)
+			Utility:WrapScript(GameMenuButtonController, "OnClick", [[
+				Utility:Run(UseUtility, nil)
+			]])
 		end
 
 		if db.Settings.autoExtra then

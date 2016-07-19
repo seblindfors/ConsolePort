@@ -17,7 +17,6 @@ function ConsolePort:LoadHookScripts()
 			local ownerParent = owner and owner:GetParent()
 			local parentName = ownerParent and ownerParent:GetName()
 			if		parentName and parentName:match("MerchantItem") then
-				--	string.find(owner:GetParent():GetName(), "MerchantItem") ~= nil then
 					CLICK_STRING = db.CLICK.BUY
 					if GetMerchantItemMaxStack(owner:GetID()) > 1 then 
 						self:AddLine(db.CLICK.STACK_BUY, 1,1,1)
@@ -55,9 +54,9 @@ function ConsolePort:LoadHookScripts()
 	end)
 	GameTooltip:HookScript("OnTooltipSetSpell", function(self)
 		if not InCombatLockdown() then
-			if 	self:GetOwner():GetParent() == SpellBookSpellIconsFrame and not
-				self:GetOwner().isPassive then
-				if not self:GetOwner().UnlearnedFrame:IsVisible() then
+			local owner = self:GetOwner()
+			if 	owner and owner:GetParent() == SpellBookSpellIconsFrame and not owner.isPassive then
+				if not owner.UnlearnedFrame:IsVisible() then
 					self:AddLine(db.CLICK.USE_NOCOMBAT, 1,1,1)
 					self:AddLine(db.CLICK.PICKUP, 1,1,1)
 				end
