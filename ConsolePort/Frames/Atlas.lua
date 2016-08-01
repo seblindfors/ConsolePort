@@ -505,7 +505,7 @@ function Atlas.BindingMeta:GetBindingInfo()
 				elseif actionType == "item" and actionID then
 					name = GetItemInfo(actionID) or loc.ITEM
 				elseif actionType == "macro" then
-					name = GetActionText(id)..loc.MACRO
+					name = GetActionText(id) and GetActionText(id)..loc.MACRO
 				elseif actionType == "companion" then
 					name = loc[subType]
 				elseif actionType == "summonmount" then

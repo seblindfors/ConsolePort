@@ -626,9 +626,8 @@ function ConsolePort:UIControl(key, state)
 		if state == KEY.STATE_DOWN or state == nil then
 			Cursor:SetPosition(node)
 		end
-	else
-		self:SetButtonOverride(false)
 	end
+	return node
 end
 
 ---------------------------------------------------------------

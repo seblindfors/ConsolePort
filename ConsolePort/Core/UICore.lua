@@ -186,7 +186,10 @@ function Core:UpdateFrames()
 				hasUIFocus = true
 				self.Cursor:Show()
 				self:SetButtonOverride(true)
-				self:UIControl()
+				if not self:UIControl() then
+					self:SetButtonOverride(false)
+					hasUIFocus = false
+				end
 			end
 		else
 			self:SetButtonOverride(false)
