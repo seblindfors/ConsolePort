@@ -42,7 +42,7 @@ function ConsolePort:CalibrateController(reset)
 	if reset then
 		db.Settings.calibration = nil
 		for button in self:GetBindings() do
-			if not button:match("CP_T_.3") then
+			if not button:match("CP_T_.3") then -- ignore mouse buttons
 				local key1, key2 = GetBindingKey(button)
 				if key1 then SetBinding(key1) end
 				if key2 then SetBinding(key2) end

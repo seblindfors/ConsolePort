@@ -101,9 +101,9 @@ local function GetMouseSettings()
 			desc 	= TUTORIAL.MOUSE.TARGET_CHANGED,
 			toggle 	= db.Mouse.Events["PLAYER_TARGET_CHANGED"]
 		},
-		{	event 	= {"CURRENT_SPELL_CAST_CHANGED"},
+		{	event 	= {"UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_FAILED"},
 			desc 	= TUTORIAL.MOUSE.DIRECT_SPELL_CAST,
-			toggle 	= db.Mouse.Events["CURRENT_SPELL_CAST_CHANGED"]
+			toggle 	= db.Mouse.Events["UNIT_SPELLCAST_SENT"]
 		},
 		{	event 	= {	"GOSSIP_SHOW", "GOSSIP_CLOSED",
 						"MERCHANT_SHOW", "MERCHANT_CLOSED",

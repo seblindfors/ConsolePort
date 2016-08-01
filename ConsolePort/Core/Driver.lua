@@ -15,6 +15,9 @@ Pager:SetAttribute("_onstate-actionpage", [[
 	end
 	for header in pairs(headers) do
 		header:SetAttribute("actionpage", newstate)
+		if header:GetAttribute("pageupdate") then
+			header:RunAttribute("pageupdate", newstate)
+		end
 	end
 ]])
 

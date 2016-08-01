@@ -11,9 +11,7 @@ local addOn, db = ...
 ---------------------------------------------------------------
 local ConsolePort = CreateFrame("FRAME", "ConsolePort")
 ---------------------------------------------------------------
--- CRITICALUPDATE: flag when old settings are incompatible. 
----------------------------------------------------------------
-local CRITICALUPDATE, NOBINDINGS
+local CRITICALUPDATE, NOBINDINGS, NEWCALIBRATION
 ---------------------------------------------------------------
 -- VERSION: generate a comparable integer from addon metadata 
 ---------------------------------------------------------------
@@ -29,10 +27,21 @@ db.PANELS 	= {}
 db.PLUGINS 	= {}
 
 ---------------------------------------------------------------
+-- Popup functions 
+---------------------------------------------------------------
 local function LoadDefaultBindings()
 	ConsolePortConfig:Show()
 	ConsolePortConfigContainerBinds:Default()
+	ConsolePort:CheckLoadedSettings()
 end	
+
+local function LoadWoWmapper()
+	db.Settings.calibration = db.table.copy(WoWmapper.Keys)
+	for k, v in pairs(WoWmapper.Settings) do
+		db.Settings[k] = v
+	end
+	db.Settings.type = db.Settings.forceController or db.Settings.type
+end
 
 local function ResetAll()
 	if not InCombatLockdown() then
@@ -46,6 +55,13 @@ local function ResetAll()
 		print("|cffffe00aConsolePort|r:", SLASH.COMBAT)
 	end
 end
+
+local function CancelPopup()
+	ConsolePort:ClearPopup()
+	ConsolePort:CheckLoadedSettings()
+end
+
+---------------------------------------------------------------
 
 function ConsolePort:LoadSettings()
 
@@ -65,11 +81,24 @@ function ConsolePort:LoadSettings()
 	-- Load exported WoWmapper settings
 	-----------------------------------------------------------
 	if WoWmapper then
-		db.Settings.calibration = db.table.copy(WoWmapper.Keys)
-		for k, v in pairs(WoWmapper.Settings) do
-			db.Settings[k] = v
+		if not db.Settings.calibration then
+			LoadWoWmapper()
+		else
+			local cs, ws = db.Settings, WoWmapper.Settings
+			local cb, wk = cs.calibration, WoWmapper.Keys
+			for k, v in pairs(cb) do
+				if wk[k] ~= v then
+					NEWCALIBRATION = true
+					break
+				end
+			end
+			for k, v in pairs(ws) do
+				if k ~= "type" and cs[k] ~= v then
+					NEWCALIBRATION = true
+					break
+				end
+			end
 		end
-		db.Settings.type = db.Settings.forceController or db.Settings.type
 		selectController = false
 	end
 
@@ -162,8 +191,9 @@ function ConsolePort:LoadSettings()
 end
 
 function ConsolePort:CheckLoadedSettings()
-    if 	(ConsolePortSettings and not ConsolePortSettings.version) or 
-		(ConsolePortSettings.version < VERSION and CRITICALUPDATE) then
+	local settings = ConsolePortSettings
+    if 	(settings and not settings.version) or 
+		(settings.version < VERSION and CRITICALUPDATE) then
 		StaticPopupDialogs["CONSOLEPORT_CRITICALUPDATE"] = {
 			text = format(db.TUTORIAL.SLASH.CRITICALUPDATE, GetAddOnMetadata(addOn, "Version")),
 			button1 = db.TUTORIAL.SLASH.ACCEPT,
@@ -176,10 +206,10 @@ function ConsolePort:CheckLoadedSettings()
 			enterClicksFirstButton = true,
 			exclusive = true,
 			OnAccept = ResetAll,
-			OnCancel = self.ClearPopup,
+			OnCancel = CancelPopup,
 		}
 		self:ShowPopup("CONSOLEPORT_CRITICALUPDATE")
-	elseif ConsolePortSettings then
+	elseif settings then
 		local bindingPopup = {
 			button1 = db.TUTORIAL.SLASH.ACCEPT,
 			button2 = db.TUTORIAL.SLASH.CANCEL,
@@ -191,30 +221,47 @@ function ConsolePort:CheckLoadedSettings()
 			enterClicksFirstButton = true,
 			exclusive = true,
 			OnAccept = LoadDefaultBindings,
-			OnCancel = self.ClearPopup,
+			OnCancel = CancelPopup,
 		}
 		StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"] = bindingPopup
-		if ConsolePortSettings.newController then
+		if settings.newController then
 			bindingPopup.text = db.TUTORIAL.SLASH.NEWCONTROLLER
 			self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
-			ConsolePortSettings.newController = nil
+			settings.newController = nil
 		elseif NOBINDINGS then
+			NOBINDINGS = nil
 			bindingPopup.text = db.TUTORIAL.SLASH.NOBINDINGS
 			self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
-		else
-			StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"] = nil
+		elseif NEWCALIBRATION and ( not settings.id or settings.id ~= WoWmapper.Settings.id ) then
+			NEWCALIBRATION = nil
+			settings.id = WoWmapper.Settings.id
+			StaticPopupDialogs["CONSOLEPORT_CALIBRATIONUPDATE"] = {
+				text = db.TUTORIAL.SLASH.CALIBRATIONUPDATE,
+				button1 = db.TUTORIAL.SLASH.ACCEPT,
+				button2 = db.TUTORIAL.SLASH.CANCEL,
+				showAlert = true,
+				timeout = 0,
+				whileDead = true,
+				hideOnEscape = true,
+				preferredIndex = 3,
+				enterClicksFirstButton = true,
+				exclusive = true,
+				OnAccept = function()
+					LoadWoWmapper()
+					ReloadUI()
+				end,
+				OnCancel = CancelPopup,
+			}
+			self:ShowPopup("CONSOLEPORT_CALIBRATIONUPDATE")
 		end
 	end
-	self.CheckLoadedSettings = nil
 end
 
 function ConsolePort:CreateActionButtons()
 	for name in self:GetBindings() do
-		local i = 0
 		for modifier in self:GetModifiers() do
 			local secure = self:CreateSecureButton(name, modifier, self:GetUIControlKey(name))
 			self:CreateConfigButton(name, modifier, secure)
-			i = i + 1
 		end
 	end
 	db.Binds.Rebind:Refresh()

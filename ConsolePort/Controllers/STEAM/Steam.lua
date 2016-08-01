@@ -75,7 +75,7 @@ db.Controllers.STEAM = {
 		},
 		['CP_R_DOWN'] = {
 			[''] 			= 'JUMP',
-			['SHIFT-']	 	= 'CLICK ConsolePortWorldCursor:LeftButton',
+			['SHIFT-']	 	= 'TARGETSCANENEMY',
 			['CTRL-']  		= 'INTERACTMOUSEOVER',
 			['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
@@ -96,13 +96,11 @@ db.Controllers.STEAM = {
 			[''] 			= 'PREVIOUSACTIONPAGE',
 			['SHIFT-']	 	= 'STOPATTACK',
 			['CTRL-'] 		= 'TARGETSELF',
-			['CTRL-SHIFT-'] = 'CP_CAMLOOKBEHIND',
 		},
 		['CP_T2'] = {
 			[''] 			= 'NEXTACTIONPAGE',
 			['SHIFT-']	 	= 'FOLLOWTARGET',
 			['CTRL-'] 		= 'TOGGLERUN',
-			['CTRL-SHIFT-'] = 'CLICK ConsolePortNameplateCycle:LeftButton',
 		},
 		-- Left touch pad
 		['CP_L_UP'] = {

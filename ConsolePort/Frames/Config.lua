@@ -35,11 +35,20 @@ Config:SetFrameStrata("DIALOG")
 Config:SetSize(1000, 800)
 Config:SetPoint("CENTER", 0, 0)
 Config:EnableMouse(true)
+Config:EnableKeyboard(true)
+Config:SetPropagateKeyboardInput(true)
 Config:Hide()
 Config:SetMovable(true)
 Config:RegisterForDrag("LeftButton")
 Config:HookScript("OnDragStart", Config.StartMoving)
 Config:HookScript("OnDragStop", Config.StopMovingOrSizing)
+---------------------------------------------------------------
+Category.NextIcon = Category:CreateTexture(nil, "ARTWORK")
+Category.NextIcon:SetSize(24, 24)
+Category.NextIcon:SetPoint("LEFT", Category, "RIGHT", 0, 0)
+Category.PrevIcon = Category:CreateTexture(nil, "ARTWORK")
+Category.PrevIcon:SetSize(24, 24)
+Category.PrevIcon:SetPoint("RIGHT", Category, "LEFT", 0, 0)
 ---------------------------------------------------------------
 Scroll.StepSize = 100
 Scroll:SetScrollChild(Category)
@@ -122,6 +131,9 @@ end
 Save:SetPoint("RIGHT", Cancel, "LEFT", 0, 0)
 Save:SetText(TUTORIAL.SAVE)
 Save:SetScript("OnClick", Save.OnClick)
+Save.Icon = Save:CreateTexture(nil, "OVERLAY")
+Save.Icon:SetPoint("LEFT", 10, 0)
+Save.Icon:SetSize(24, 24)
 ---------------------------------------------------------------
 local Default = db.Atlas.GetFutureButton("$parentDefault", Config)
 Default:SetPoint("BOTTOMLEFT", 20, 20)
@@ -289,6 +301,7 @@ function Container:ShowFrame(id)
 	self.Current = self.Frames[id]
 	self:HideAll()
 	self.Current:Show()
+	self.id = id
 	Category.Buttons[id].hasPriority = true
 	Category.Buttons[id].SelectedTexture:Show()
 end
@@ -350,21 +363,88 @@ function WindowMixin:OnHide()
 	if not self.combatHide then
 		self:UnregisterAllEvents()
 	end
+	ClearOverrideBindings(self)
+end
+
+local shortCuts = {
+	CP_R_LEFT = true,
+	CP_R_RIGHT = true,
+	CP_R_UP = true,
+	CP_R_DOWN = true,
+}
+
+local function SetSaveShortCut(self)
+	if not InCombatLockdown() then
+		for key, value in pairs(shortCuts) do
+			shortCuts[key] = true
+		end
+		for _, key in pairs(db.Mouse.Cursor) do
+			shortCuts[key] = false
+		end
+		local freeKey
+		for key, value in pairs(shortCuts) do
+			if value then
+				freeKey = key
+				break
+			end
+		end
+		local key = freeKey and GetBindingKey(freeKey)
+		if key then
+			Save.Icon:SetTexture(db.ICONS[freeKey])
+			SetOverrideBindingClick(self, true, key, Save:GetName())
+		else
+			Save.Icon:SetTexture()
+		end
+	else
+		Save.Icon:SetTexture()
+	end
 end
 
 function WindowMixin:OnShow()
 	self:RegisterEvent("PLAYER_REGEN_DISABLED")
 	self:RegisterEvent("PLAYER_REGEN_ENABLED")
+
+	self:SetPropagateKeyboardInput(true)
+	self.Category.NextIcon:SetTexture(db.ICONS.CP_M2)
+	self.Category.PrevIcon:SetTexture(db.ICONS.CP_M1)
+
+	SetSaveShortCut(self)
 end
 
 function WindowMixin:OnEvent(event)
 	if event == "PLAYER_REGEN_DISABLED" then
 		self.combatHide = true
 		self:Hide()
+		ClearOverrideBindings(self)
 	elseif event == "PLAYER_REGEN_ENABLED" then
 		FadeIn(self, 0.5, 0, 1)
 		self.combatHide = nil
 		self:Show()
+		SetSaveShortCut(self)
+	end
+end
+
+---------------------------------------------------------------
+local M1, M2 = "CP_M1", "CP_M2"
+local modRoute = {
+	LSHIFT = M1, 	RSHIFT = M1, 	SHIFT = M1,
+	LCTRL = M2,		RCTRL = M2,		CTRL = M2,
+}
+---------------------------------------------------------------
+
+function WindowMixin:OnKeyDown(key)
+	local modifier = modRoute[key]
+	if modifier then
+		local containerID, numCategories = self.Container.id, #self.Category.Buttons
+		if containerID then
+			if modifier == M1 and containerID - 1 > 0 then
+				self:OpenCategory(containerID - 1)
+				ConsolePort:SetCurrentNode(Category.Buttons[containerID - 1])
+			elseif modifier == M2 and containerID + 1 <= numCategories then
+				self:OpenCategory(containerID + 1)
+				ConsolePort:SetCurrentNode(Category.Buttons[containerID + 1])
+			end
+		end
 	end
 end
 

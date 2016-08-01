@@ -165,6 +165,8 @@ hooksecurefunc("InteractUnit", Camera.OnInteract)
 hooksecurefunc("TurnOrActionStop", Camera.OnRightClick)
 -- Hook jump to use it as a camera trigger
 hooksecurefunc("JumpOrAscendStart", Camera.OnJump)
+-- Get rid of mouselook when moving the pet
+hooksecurefunc("PetMoveTo", Camera.Stop)
 
 ---------------------------------------------------------------
 -- Mouse function wrappers in case of extended functionality
@@ -204,6 +206,8 @@ function Core:UpdateCameraDriver()
 	elseif Settings.alwaysHighlight == 2 then
 		Camera:HookScript("OnUpdate", Camera.HighlightAlways)
 	end
+
+	Camera.lockOnLoot = db.Mouse.Events.LOOT_OPENED
 end
 
 ---------------------------------------------------------------

@@ -57,7 +57,7 @@ end
 local function PreClick(self)
 	if GameMenuFrame:IsVisible() then
 		local clickbutton = self:GetAttribute("clickbutton")
-		if not (clickbutton and clickbutton.ignoreMenu) then 
+		if not (clickbutton and clickbutton.ignoreMenu) then
 			ToggleFrame(GameMenuFrame)
 		end
 	end

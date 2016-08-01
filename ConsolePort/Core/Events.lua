@@ -16,6 +16,7 @@ function ConsolePort:LoadEvents()
 	-- Default events
 	local Events = {
 		["ADDON_LOADED"] 			= false,
+		["CURRENT_SPELL_CAST_CHANGED"] = false,
 		["CVAR_UPDATE"]				= false,
 		["PLAYER_LOGOUT"] 			= false,
 		["PLAYER_STARTED_MOVING"] 	= false,
@@ -97,12 +98,23 @@ function Events:QUEST_AUTOCOMPLETE(...)
 	ShowQuestComplete(GetQuestLogIndexByID(id))
 end
 
+function Events:UNIT_SPELLCAST_SENT(...)
+	if 	GetMouseFocus() == WorldFrame and
+		IsMouselookEvent("UNIT_SPELLCAST_SENT") then
+		self:StartCamera("UNIT_SPELLCAST_SENT")
+	end
+end
+
 function Events:CURRENT_SPELL_CAST_CHANGED(...)
 	if SpellIsTargeting() then
 		self:StopCamera()
-	elseif 	GetMouseFocus() == WorldFrame and
-		IsMouselookEvent("CURRENT_SPELL_CAST_CHANGED") then
-		self:StartCamera("CURRENT_SPELL_CAST_CHANGED")
+	end
+end
+
+function Events:UNIT_SPELLCAST_FAILED(...)
+	if 	GetMouseFocus() == WorldFrame and
+		IsMouselookEvent("UNIT_SPELLCAST_FAILED") then
+		self:StartCamera("UNIT_SPELLCAST_FAILED")
 	end
 end
 

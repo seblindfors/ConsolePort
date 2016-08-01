@@ -144,17 +144,20 @@ TUTORIAL = {
 	SLASH = {
 		ACCEPT 				= "Yes (recommended)",
 		CANCEL 				= "Cancel",
+		-----------------------------------------------------------
 		COMBAT 				= "Error! Cannot reset addon in combat!",
 		TYPE				= "Change controller type",
 		CONFIG 				= "Open the configuration panel",
 		RESET 				= "Full addon reset (irreversible)",
 		BINDS 				= "Open binding menu",
+		-----------------------------------------------------------
 		WARNINGBINDINGUI 	= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You can only customize your controller calibration from this panel.\n\nModifying keyboard bindings while using ConsolePort is not recommended.\n\nWould you like to open the controller configuration instead?",
 		WARNINGCOMBATLOGIN 	= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You reloaded your interface in combat.\nLeave combat to complete initialization.",
 		CRITICALUPDATE		= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?",
 		NEWCONTROLLER 		= "|cffffe00a[ConsolePort]|r\nYou have loaded a new controller profile. Would you like to load the default bindings for this controller?",
 		NEWCHARACTER 		= "|cffffe00a[ConsolePort]|r\nWould you like to load the default bindings for your controller?",
 		NOBINDINGS 			= "|cffffe00a[ConsolePort]|r\nYou don't have any bindings configured. Would you like to load the default bindings for your controller?",
+		CALIBRATIONUPDATE	= "|cffffe00a[ConsolePort]|r\nYour current calibration doesn't match your WoWmapper settings. Would you like to update your calibration?",
 	}
 },
 TOOLTIP = {
@@ -177,11 +180,13 @@ TOOLTIP = {
 },
 CUSTOMBINDS = {
 	-- Headers
+	-----------------------------------------------------------
 	CP_MOUSE 				= 	"Mouse Simulation",
 	CP_UTILITY 				= 	"Utility",
 	CP_CAMERA 				= 	"Camera",
 	CP_NAMEPLATES 			= 	"Targeting (custom)",
 	-- Bindings
+	-----------------------------------------------------------
 	CP_CYCLEPLATES 			= 	"Cycle Name Plates",
 	CP_WORLDCURSOR			= 	"Smart Target",
 	CP_UTILITYBELT			= 	"Utility Ring",
@@ -194,6 +199,7 @@ CUSTOMBINDS = {
 	CP_CAMZOOMOUT			= 	"Zoom Out (x5)",
 	CP_CAMLOOKBEHIND		= 	"Look Behind",
 	-- Strings in case controller has no texture for the binding XML
+	-----------------------------------------------------------
 	CP_X_CENTER				= 	"|c75757575Guide |caaee5555(disabled)|r",
 	CP_L_GRIP 				= 	"|c75757575Left Grip 1 |caaee5555(disabled)|r",
 	CP_R_GRIP 				= 	"|c75757575Right Grip 1 |caaee5555(disabled)|r",
@@ -202,6 +208,7 @@ CUSTOMBINDS = {
 	CP_L_PULL 				= 	"|c75757575Left Hard Pull |caaee5555(disabled)|r",
 	CP_R_PULL 				= 	"|c75757575Right Hard Pull |caaee5555(disabled)|r",
 	-- Headers
+	-----------------------------------------------------------
 	CAMERAORSELECTORMOVE 	= 	"Left Mouse Button",
 	TURNORACTION 			= 	"Right Mouse Button",
 },
@@ -211,9 +218,7 @@ HEADERS = {
 	CP_CENTER				= 	"Center Buttons",
 	CP_GRIP 				= 	"Grip Buttons",
 	CP_TRIG					=	"Triggers",
-},
-
-}
+}}
 
 
 -- Compare a database table against a default table
