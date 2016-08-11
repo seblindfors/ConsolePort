@@ -6,21 +6,15 @@
 -- Gathers all nodes by recursively scanning UIParent for
 -- secure frames with the "unit" attribute assigned.
 
-local addOn, db = ...
-local Flash, FadeIn, FadeOut = db.UIFrameFlash, db.UIFrameFadeIn, db.UIFrameFadeOut
+local 	addOn, db = ...
+local 	Flash, FadeIn, FadeOut = db.UIFrameFlash, db.UIFrameFadeIn, db.UIFrameFadeOut
 ---------------------------------------------------------------
-local Cursor = CreateFrame("Frame", "ConsolePortRaidCursor", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
+local 	Cursor = CreateFrame("Frame", "ConsolePortRaidCursor", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
 ---------------------------------------------------------------
-local UnitClass = UnitClass
-local UnitExists = UnitExists
-local UnitHealth = UnitHealth
-local UnitHealthMax = UnitHealthMax
-local SetPortraitTexture = SetPortraitTexture
-local SetPortraitToTexture = SetPortraitToTexture
+local 	UnitClass, UnitExists, UnitHealth, UnitHealthMax, SetPortraitTexture, SetPortraitToTexture, RAID_CLASS_COLORS = 
+		UnitClass, UnitExists, UnitHealth, UnitHealthMax, SetPortraitTexture, SetPortraitToTexture, RAID_CLASS_COLORS
 ---------------------------------------------------------------
-local RAID_CLASS_COLORS = RAID_CLASS_COLORS
----------------------------------------------------------------
-local pi, abs, GetTime = math.pi, abs, GetTime
+local 	pi, abs, GetTime = math.pi, abs, GetTime
 ---------------------------------------------------------------
 local Key = {
 	Up 		= ConsolePort:GetUIControlKey("CP_L_UP"),
@@ -89,32 +83,36 @@ Cursor:Execute([[
 	]=]
 	GetNodes = [=[
 		local node = CurrentNode
-		local children = newtable(node:GetChildren())
 		local isProtected = node:IsProtected()
+		local children = isProtected and node:GetChildList(newtable())  --newtable(node:GetChildren())
 		local unit = isProtected and node:GetAttribute("unit")
 		local action = isProtected and node:GetAttribute("action")
 		local childUnit
-		for i, child in pairs(children) do
-			if child:IsProtected() then
-				childUnit = child:GetAttribute("unit")
-				if childUnit == nil or childUnit ~= unit then
-					CurrentNode = child
-					self:Run(GetNodes)
+		if children then
+			for i, child in pairs(children) do
+				if child:IsProtected() then
+					childUnit = child:GetAttribute("unit")
+					if childUnit == nil or childUnit ~= unit then
+						CurrentNode = child
+						self:Run(GetNodes)
+					end
 				end
 			end
 		end
-		if Cache[node] then
-			return
-		else
-			if unit and not action then
-				local left, bottom, width, height = node:GetRect()
-				if left and bottom then
-					Units[node] = true
+		if isProtected then
+			if Cache[node] then
+				return
+			else
+				if unit and not action then
+					local left, bottom, width, height = node:GetRect()
+					if left and bottom then
+						Units[node] = true
+						Cache[node] = true
+					end
+				elseif action and tonumber(action) then
+					Actions[node] = unit or false
 					Cache[node] = true
 				end
-			elseif action and tonumber(action) then
-				Actions[node] = unit or false
-				Cache[node] = true
 			end
 		end
 	]=]

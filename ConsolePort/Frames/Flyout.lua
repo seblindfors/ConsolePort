@@ -46,6 +46,7 @@ Selector:SetFrameRef("Flyout", Flyout)
 Selector:SetPoint("CENTER", 0, -200)
 
 Selector:Execute([[
+	Visible = 0
 	Spells = newtable()
 	Flyout = self:GetFrameRef("Flyout")
 	Selector = self
@@ -58,14 +59,19 @@ Selector:SetAttribute("SelectSpell", [[
 	elseif key == "Left" then
 		Index = Index > 1 and Index - 1 or Index
 	elseif key == "Right" then
-		Index = Index < #Spells and Index + 1 or Index
+		Index = Index < Visible and Index + 1 or Index
 	end
 	self:SetAttribute("index", Index)
 ]])
 
 Selector:SetAttribute("ShowSpells", [[
 	Spells = newtable(Flyout:GetChildren())
-	self:SetWidth(#Spells * 74)
+	for i, spell in pairs(Spells) do
+		if spell:IsVisible() then
+			Visible = i
+		end
+	end
+	self:SetWidth(Visible * 74)
 	if not Spells[Index]:IsVisible() then
 		Index = 1
 	end
@@ -151,15 +157,20 @@ function Selector:OnShow()
 	ActionStatus_DisplayMessage(format(db.TOOLTIP.CLICK.FLYOUT, BINDING_NAME_CP_L_UP, BINDING_NAME_CP_L_DOWN), true)
 	for i, spell in pairs({Flyout:GetChildren()}) do
 		local button = self.Buttons[i]
-		if not button then
-			button = db.Atlas.GetRoundActionButton("$parentFlyoutButton"..i, false, self, nil, nil, true)
-			button:SetButtonState("DISABLED")
-			button:SetID(i)
-			self.Buttons[i] = button
+		if spell:IsVisible() then
+			if not button then
+				button = db.Atlas.GetRoundActionButton("$parentFlyoutButton"..i, false, self, nil, nil, true)
+				button:SetButtonState("DISABLED")
+				button:SetID(i)
+				self.Buttons[i] = button
+			end
+			button.icon:SetTexture(spell.icon:GetTexture())
+			button.spellID = spell.spellID
+			button:SetPoint("LEFT", (i-1) * 74, 0)
+			button:Show()
+		elseif button and button:IsVisible() then
+			button:Hide()
 		end
-		button.icon:SetTexture(spell.icon:GetTexture())
-		button.spellID = spell.spellID
-		button:SetPoint("LEFT", (i-1) * 74, 0)
 	end
 	self:SetSelection(self:GetAttribute("index") or 1)
 end

@@ -50,7 +50,7 @@ local function CheckSpecialFrames(self)
 	end
 end
 
-function Core:UpdateFrameTracker(self)
+function Core:UpdateFrameTracker()
 	CheckSpecialFrames(self)
 	if not allFramesLoaded then
 		local numTrackers = 0

@@ -180,15 +180,16 @@ end
 
 function Core:UpdateFrames()
 	if not InCombat() then
-		self:UpdateFrameTracker(self)
+		self:UpdateFrameTracker()
 		if next(visibleStack) then
 			if not hasUIFocus then
 				hasUIFocus = true
-				self.Cursor:Show()
 				self:SetButtonOverride(true)
 				if not self:UIControl() then
-					self:SetButtonOverride(false)
-					hasUIFocus = false
+					-- there are visible frames, but no eligible nodes -> flag frames as hidden.
+					for frame in pairs(visibleStack) do
+						hideHook(frame)
+					end
 				end
 			end
 		else
