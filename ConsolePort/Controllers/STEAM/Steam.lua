@@ -24,7 +24,10 @@ Bindings:
 ]]-------------------------------------------------------------
 
 db.Controllers.STEAM = {
-	Hint = 'You should launch the game through big picture mode and use the controller profile provided on our forums.',
+	Win = 'You should launch the game through big picture mode and use the Steam controller profile for ConsolePort.',
+	Mac = 'You should launch the game through big picture mode and use the Steam controller profile for ConsolePort.',
+	LinkWin = 'http://www.steamcontrollerdb.com/config/world-of-warcraft/consoleport-official/5852',
+	LinkMac = 'http://www.steamcontrollerdb.com/config/world-of-warcraft/consoleport-official/5852',
 	Color = {
 		['UP'] 			= 	'FFE74F',
 		['LEFT'] 		= 	'00A2FF',

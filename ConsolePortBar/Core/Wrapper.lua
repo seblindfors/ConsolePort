@@ -63,6 +63,7 @@ function Wrapper:CreateButton(parent, id, name, size, texSize, config, template)
 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
 
 	button:SetSize(size, size)
+	button:SetAlpha(0)
 	button.NormalTexture:SetSize(texSize, texSize)
 	button.PushedTexture:SetSize(texSize, texSize)
 
@@ -92,7 +93,7 @@ function Wrapper:Create(parent, id)
 
 	for mod, info in pairs(mods) do
 		local bSize, tSize = unpack(info.size)
-		local button = Wrapper:CreateButton(parent, id..mod, id.."_"..mod, bSize, tSize, mod == "action" and config)
+		local button = Wrapper:CreateButton(parent, id..mod, id.."_"..mod, bSize, tSize, mod == "" and config)
 		wrapper[mod] = button
 	end
 
@@ -111,12 +112,12 @@ function Wrapper:Create(parent, id)
 	main:SetFrameLevel(4)
 	main:SetAlpha(1)
 
-	-- main.hotkey = CreateFrame("Frame", "$parent_HOTKEY", main)
-	-- main.hotkey:SetPoint("TOP", 0, 12)
-	-- main.hotkey:SetSize(32, 32)
-	-- main.hotkey.texture = main.hotkey:CreateTexture("$parent_HOTKEY", "OVERLAY", nil, 7)
-	-- main.hotkey.texture:SetTexture(db.ICONS[id])
-	-- main.hotkey.texture:SetAllPoints()
+	main.hotkey = CreateFrame("Frame", "$parent_HOTKEY", main)
+	main.hotkey:SetPoint("TOP", 0, 12)
+	main.hotkey:SetSize(32, 32)
+	main.hotkey.texture = main.hotkey:CreateTexture("$parent_HOTKEY", "OVERLAY", nil, 7)
+	main.hotkey.texture:SetTexture(db.ICONS[id])
+	main.hotkey.texture:SetAllPoints()
 
 	wrapper.SetSize = Wrapper.SetSize
 	wrapper.SetPoint = Wrapper.SetPoint
@@ -139,7 +140,7 @@ local swapTypes = {
 	end,
 	["swaphide"] = function(wrapper, id, button, stateType, stateID)
 		if id ~= "" then
-			button:SetState("action", stateType, stateID)
+			button:SetState("", stateType, stateID)
 			button:SetState("SHIFT-", stateType, stateID)
 			button:SetState("CTRL-", stateType, stateID)
 			button:SetState("CTRL-SHIFT-", stateType, stateID)
@@ -179,19 +180,22 @@ function Wrapper:SetState(wrapper, bindings)
 				local actionID = binding and ConsolePort:GetActionID(binding)
 				local stateType, stateID
 				if actionID then
+					button:SetAttribute("LABdisableDragNDrop", false)
 					stateType, stateID = "action", actionID
 				elseif binding then
+					button:SetAttribute("LABdisableDragNDrop", true)
 					stateType = "custom"
 					stateID = {
 						tooltip = _G["BINDING_NAME_"..binding] or binding,
-						texture = ConsolePort:GetBindingIcon(binding) or "Interface\\ICONS\\Temp",
+						texture = ConsolePort:GetBindingIcon(binding) or "Interface\\MacroFrame\\MacroFrame-Icon",
 						func = function() end,
 					}
 				else
+					button:SetAttribute("LABdisableDragNDrop", true)
 					stateType = "custom"
 					stateID = {
-						tooltip = "NOTBOUND",
-						texture = "Interface\\ICONS\\Temp",
+						tooltip = NOT_BOUND,
+						texture = "Interface\\RAIDFRAME\\ReadyCheck-Waiting",
 						func = function() end,
 					}
 				end
@@ -214,7 +218,7 @@ function Wrapper:SetState(wrapper, bindings)
 			end
 		end
 	end
-	local maintype, mainaction = main:GetAttribute("labtype-action"), main:GetAttribute("labaction-action")
+	local maintype, mainaction = main:GetAttribute("labtype-"), main:GetAttribute("labaction-")
 	if maintype == "action" and mainaction > 0 and mainaction <= 12 then
 		main:SetID(mainaction)
 	end

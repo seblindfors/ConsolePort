@@ -7,7 +7,7 @@
 
 local _, db = ...
 ---------------------------------------------------------------
-local TEXTURE, Settings = db.TEXTURE
+local TEXTURE, ICONS, Settings = db.TEXTURE, db.ICONS
 ---------------------------------------------------------------
 local 	WorldFrame, UIParent, GameTooltip, Core = 
 		WorldFrame, UIParent, GameTooltip, ConsolePort
@@ -365,30 +365,103 @@ end
 ---------------------------------------------------------------
 local Trail = CreateFrame("Frame", "ConsolePortCursorTrail", UIParent)
 Trail:SetFrameStrata("TOOLTIP")
-Trail:SetSize(24,24)
+Trail:SetSize(32,32)
 Trail.Texture = Trail:CreateTexture(nil, "OVERLAY", nil, 7)
 Trail.Texture:SetAllPoints(Trail)
+Trail.Icon = Trail:CreateTexture(nil, "OVERLAY")
+Trail.Icon:SetPoint("LEFT", Trail, "RIGHT", -6, 0)
+Trail.Icon:SetSize(24, 24)
+Trail.Texture2 = Trail:CreateTexture(nil, "OVERLAY", nil, 7)
+Trail.Texture2:SetSize(32, 32)
+Trail.Texture2:SetPoint("TOP", Trail, "BOTTOM", 0, 10)
+Trail.Icon2 = Trail:CreateTexture(nil, "OVERLAY")
+Trail.Icon2:SetPoint("LEFT", Trail.Texture2, "RIGHT", -6, 0)
+Trail.Icon2:SetSize(24, 24)
+
+function Trail:ResetStates()
+	self.Icon:SetTexture()
+	self.Icon2:SetTexture()
+	self.Texture:SetTexture()
+	self.Texture2:SetTexture()
+	self.isMouseOver = nil
+	self.isTargeting = nil
+	self.hasItem = nil
+	self.default = true
+end
+
+function Trail.OnAction(...)
+	local action = ...
+	local self = Trail
+	if SpellIsTargeting() then
+		self:ResetStates()
+		self.isTargeting = true
+		self.default = nil
+		self.Icon:SetTexture(GetActionTexture(action) or "Interface\\RAIDFRAME\\ReadyCheck-Ready")
+		self.Texture:SetTexture(db.ICONS.CP_T_L3)
+		if GetBindingAction("BUTTON2", true) == "TURNORACTION" then
+			self.Texture2:SetTexture(db.ICONS.CP_T_R3)
+			self.Icon2:SetTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+		else
+			self.Texture2:SetTexture()
+			self.Icon2:SetTexture()
+		end
+	else
+		self.isTargeting = nil
+	end
+end
+
+function Trail.OnItemAdd(...)
+	local self = Trail
+	self:ResetStates()
+	self.hasItem = true
+	if GetBindingAction("BUTTON1", true) == "CAMERAORSELECTORMOVE" then
+		self.Texture:SetTexture(db.ICONS.CP_T_L3)
+		self.Icon:SetTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+	end
+end
+
+function Trail.OnTooltipAdd(_, owner)
+	local self = Trail
+	if not hasItem and not isTargeting then
+		if owner == UIParent then
+			self:ResetStates()
+			self.isMouseOver = true
+			self.Texture:SetTexture(self.Default)
+		else
+			self.isMouseOver = nil
+		end
+	end
+end
+
+function Trail.OnTooltipClear()
+	Trail.isMouseOver = nil
+end
 
 function Trail:OnUpdate()
 	local posX, posY = GetCursorPosition()
 	self:SetPoint("BOTTOMLEFT", posX+24, posY-46)
-	if isTargeting then
-		if not self.isTargeting then
-			self.Texture:SetTexture(TEXTURE.CP_T_L3)
-			self.isTargeting = true
+	if ( self.isTargeting and isTargeting ) then
+		self:SetAlpha(1)
+	elseif ( self.hasItem and hasItem ) then
+		if hasWorldFocus and not self.hasWorldFocus then
+			self.hasWorldFocus = true
+			self.Icon:SetTexture("Interface\\RAIDFRAME\\ReadyCheck-NotReady")
+		elseif not hasWorldFocus and self.hasWorldFocus then
+			self.hasWorldFocus = nil
+			self.Icon:SetTexture("Interface\\RAIDFRAME\\ReadyCheck-Ready")
 		end
 		self:SetAlpha(1)
-	elseif GameTooltip:GetOwner() == UIParent and not cameraMode then
-		if self.isTargeting then
-			self.Texture:SetTexture(self.Default)
-			self.isTargeting = nil
-		end
+	elseif self.isMouseOver and not cameraMode then
 		self:SetAlpha(GameTooltip:GetAlpha())
-		self.default = true
 	else
 		self:SetAlpha(0)
 	end
 end
+
+hooksecurefunc("UseAction", Trail.OnAction)
+hooksecurefunc("PickupContainerItem", Trail.OnItemAdd)
+hooksecurefunc(GameTooltip, "SetOwner", Trail.OnTooltipAdd)
+GameTooltip:HookScript("OnTooltipCleared", Trail.OnTooltipClear)
 
 ---------------------------------------------------------------
 -- Toggle interactive mouse driver on/off
@@ -408,13 +481,13 @@ function Core:UpdateMouseDriver()
 
 			local currentTarget = SecureCmdOptionParse(targetstate)
 
-			Trail.Default = TEXTURE[button]
-			Trail.Targeting = TEXTURE.CP_T_L3
+			Trail.Default = ICONS[button]
+			Trail.Targeting = ICONS.CP_T_L3
 			Trail.Texture:SetTexture(Trail.Default)
 			Trail:SetScript("OnUpdate", Trail.OnUpdate)
 			Trail:Show()
 
-			Mouse.Button:SetTexture(db.TEXTURE[db.Settings.interactWith])
+			Mouse.Button:SetTexture(ICONS[db.Settings.interactWith])
 
 			RegisterStateDriver(Mouse, "targetstate", targetstate)
 			Mouse:SetAttribute("target", currentTarget)
@@ -428,8 +501,8 @@ function Core:UpdateMouseDriver()
 				self:SetAttribute("target", nil)
 			]], button, id or -1))
 		else
-			Trail:SetScript("OnUpdate", nil)
-			Trail:Hide()
+			Trail.Default = ICONS.CP_T_R3
+			Trail.Targeting = ICONS.CP_T_L3
 
 			Mouse:Execute([[
 				self:ClearBindings()
@@ -439,6 +512,8 @@ function Core:UpdateMouseDriver()
 			self:UnregisterSpellHeader(Mouse)
 
 		end
+		Trail:SetScript("OnUpdate", Trail.OnUpdate)
+		Trail:Show()
 		self:RemoveUpdateSnippet(self.UpdateMouseDriver)
 	end
 end

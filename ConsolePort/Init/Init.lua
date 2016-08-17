@@ -165,29 +165,83 @@ function ConsolePort:LoadSettings()
 	-- Slash handler and stuff related to that
 	local SLASH = db.TUTORIAL.SLASH
 
-	local function ShowSplash() ConsolePort:SelectController() end
+	local function ShowSplash(...)
+		local controller = ...
+		controller = controller and strupper(controller)
+		if db.Controllers[controller] then
+			db.Settings.type = controller
+
+			for key, value in pairs(db.Controllers[controller].Settings) do
+				db.Settings[key] = value
+			end
+
+			db.Settings.newController = true
+			db.Settings.forceController = controller
+
+			PlaySound("GLUEENTERWORLDBUTTON")
+			ReloadUI()
+		else
+			ConsolePort:SelectController()
+		end
+	end
 	local function ShowBinds() ConsolePortConfig:OpenCategory(2) end
 	local function ShowConfig() ConsolePortConfig:Show() end
+	local function ShowCalibration() if ConsolePortConfig:IsVisible() then ConsolePortConfig:Hide() end ConsolePort:CalibrateController(true) end
 
 	local instructions = {
 		["type"] = {desc = SLASH.TYPE, func = ShowSplash},
 		["config"] = {desc = SLASH.CONFIG, func = ShowConfig},
 		["binds"] = {desc = SLASH.BINDS, func = ShowBinds},
+		["recalibrate"] = {desc = SLASH.RECALIBRATE, func = ShowCalibration},
 		["resetall"] = {desc = SLASH.RESET, func = ResetAll},
 	}
 
+	-------------------------------------------------------
+	-- Action bar testing
+	if IsAddOnLoadOnDemand("ConsolePortBar") then
+		local function ShowActionBar(...)
+			if not InCombatLockdown() then
+				local state = ...
+				state = state and strlower(state)
+				if state == "on" then
+					db.Settings.actionBarTest = true
+					LoadAddOn("ConsolePortBar")
+				elseif state == "off" then
+					db.Settings.actionBarTest = nil
+					ReloadUI()
+				end
+			else
+				print("|cffffe00aConsolePort|r:", "Action bar cannot be loaded in combat.")
+			end
+		end
+		instructions.actionbar = {desc = "|cffffe00a(on / off)|r Use experimental action bar", func = ShowActionBar}
+	end
+	-------------------------------------------------------
+
 	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
 	SlashCmdList["CONSOLEPORT"] = function(msg, editBox)
-		if instructions[msg] then
-			instructions[msg].func()
+		local inputs = {}
+		for word in msg:gmatch("%w+") do
+			inputs[#inputs + 1] = word
+		end
+		local funcName = inputs[1]
+		if funcName and instructions[funcName] then
+			tremove(inputs, 1)
+			instructions[funcName].func(unpack(inputs))
 		else
-			print( ( BINDING_NAME_CP_X_CENTER or "" ) .. " |cffffe00aConsolePort|r:")
+			print( "|T" .. ( db.TEXTURE.CP_X_CENTER or "" ) .. ":32:32:0:0|t |cffffe00aConsolePort|r:")
 			for k, v in pairs(instructions) do
 				print(format("|cff69ccf0/cp %s|r: %s", k, v.desc))
 			end
 		end
 	end
 	self.LoadSettings = nil
+end
+
+function ConsolePort:LoadActionBar()
+	if db.Settings.actionBarTest and IsAddOnLoadOnDemand("ConsolePortBar") then
+		LoadAddOn("ConsolePortBar")
+	end
 end
 
 function ConsolePort:CheckLoadedSettings()

@@ -28,6 +28,7 @@ for Popup, previous in pairs(popups) do
 					oldNode = current
 				end
 				ConsolePort:SetCurrentNode(self.button1)
+				ConsolePort:UIControl()
 			end
 		end
 	end)

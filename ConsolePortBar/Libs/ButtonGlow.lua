@@ -27,17 +27,15 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ]]
--- local MAJOR_VERSION = "LibButtonGlow-1.0"
--- local MINOR_VERSION = 4
-
--- if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
--- local lib, oldversion = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
--- if not lib then return end
-
---local Masque = LibStub("Masque", true)
 
 
-local _, ab = ...
+--[[
+This version is modified for ConsolePort and removes the use of LibStub to make sure
+ConsolePort is using a separate button registry in case other action bar addons are
+simultaneously loaded. Do not copy this library for other uses.
+]]
+
+local addOn, ab = ...
 local lib = {}
 
 ab.libs = ab.libs or {}
@@ -75,17 +73,19 @@ local function CreateScaleAnim(group, target, order, duration, x, y, delay)
 	end
 end
 
-local function CreateAlphaAnim(group, target, order, duration, change, delay)
+local function CreateAlphaAnim(group, target, order, duration, fromAlpha, toAlpha, delay)
 	local alpha = group:CreateAnimation("Alpha")
 	alpha:SetTarget(target:GetName())
 	alpha:SetOrder(order)
 	alpha:SetDuration(duration)
-	alpha:SetChange(change)
+	alpha:SetFromAlpha(fromAlpha)
+	alpha:SetToAlpha(toAlpha)
 
 	if delay then
 		alpha:SetStartDelay(delay)
 	end
 end
+
 
 local function AnimIn_OnPlay(group)
 	local frame = group:GetParent()
@@ -127,14 +127,14 @@ local function CreateOverlayGlow()
 	overlay.spark = overlay:CreateTexture(name .. "Spark", "BACKGROUND")
 	overlay.spark:SetPoint("CENTER")
 	overlay.spark:SetAlpha(0)
-	overlay.spark:SetTexture([[Interface\SpellActivationOverlay\IconAlert]])
+	overlay.spark:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\IconAlert]])
 	overlay.spark:SetTexCoord(0.00781250, 0.61718750, 0.00390625, 0.26953125)
 
 	-- inner glow
 	overlay.innerGlow = overlay:CreateTexture(name .. "InnerGlow", "ARTWORK")
 	overlay.innerGlow:SetPoint("CENTER")
 	overlay.innerGlow:SetAlpha(0)
-	overlay.innerGlow:SetTexture([[Interface\SpellActivationOverlay\IconAlert]])
+	overlay.innerGlow:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\IconAlert]])
 	overlay.innerGlow:SetTexCoord(0.00781250, 0.50781250, 0.27734375, 0.52734375)
 
 	-- inner glow over
@@ -142,14 +142,14 @@ local function CreateOverlayGlow()
 	overlay.innerGlowOver:SetPoint("TOPLEFT", overlay.innerGlow, "TOPLEFT")
 	overlay.innerGlowOver:SetPoint("BOTTOMRIGHT", overlay.innerGlow, "BOTTOMRIGHT")
 	overlay.innerGlowOver:SetAlpha(0)
---	overlay.innerGlowOver:SetTexture([[Interface\SpellActivationOverlay\IconAlert]])
+--	overlay.innerGlowOver:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\IconAlert]])
 	overlay.innerGlowOver:SetTexCoord(0.00781250, 0.50781250, 0.53515625, 0.78515625)
 
 	-- outer glow
 	overlay.outerGlow = overlay:CreateTexture(name .. "OuterGlow", "ARTWORK")
 	overlay.outerGlow:SetPoint("CENTER")
 	overlay.outerGlow:SetAlpha(0)
---	overlay.outerGlow:SetTexture([[Interface\SpellActivationOverlay\IconAlert]])
+--	overlay.outerGlow:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\IconAlert]])
 	overlay.outerGlow:SetTexCoord(0.00781250, 0.50781250, 0.27734375, 0.52734375)
 
 	-- outer glow over
@@ -157,37 +157,37 @@ local function CreateOverlayGlow()
 	overlay.outerGlowOver:SetPoint("TOPLEFT", overlay.outerGlow, "TOPLEFT")
 	overlay.outerGlowOver:SetPoint("BOTTOMRIGHT", overlay.outerGlow, "BOTTOMRIGHT")
 	overlay.outerGlowOver:SetAlpha(0)
-	overlay.outerGlowOver:SetTexture([[Interface\SpellActivationOverlay\IconAlert]])
+	overlay.outerGlowOver:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\IconAlert]])
 	overlay.outerGlowOver:SetTexCoord(0.00781250, 0.50781250, 0.53515625, 0.78515625)
 
 	-- ants
 	overlay.ants = overlay:CreateTexture(name .. "Ants", "OVERLAY")
 	overlay.ants:SetPoint("CENTER")
 	overlay.ants:SetAlpha(0)
-	overlay.ants:SetTexture([[Interface\AddOns\ConsolePortBar\Textures\Ants]])
+	overlay.ants:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\Ants]])
 
 	-- setup antimations
 	overlay.animIn = overlay:CreateAnimationGroup()
 	CreateScaleAnim(overlay.animIn, overlay.spark,          1, 0.2, 1.5, 1.5)
-	CreateAlphaAnim(overlay.animIn, overlay.spark,          1, 0.2, 1)
+	CreateAlphaAnim(overlay.animIn, overlay.spark,          1, 0.2, 0, 1)
 	CreateScaleAnim(overlay.animIn, overlay.innerGlow,      1, 0.3, 2, 2)
 	CreateScaleAnim(overlay.animIn, overlay.innerGlowOver,  1, 0.3, 2, 2)
-	CreateAlphaAnim(overlay.animIn, overlay.innerGlowOver,  1, 0.3, -1)
+	CreateAlphaAnim(overlay.animIn, overlay.innerGlowOver,  1, 0.3, 1, 0)
 	CreateScaleAnim(overlay.animIn, overlay.outerGlow,      1, 0.3, 0.5, 0.5)
 	CreateScaleAnim(overlay.animIn, overlay.outerGlowOver,  1, 0.3, 0.5, 0.5)
-	CreateAlphaAnim(overlay.animIn, overlay.outerGlowOver,  1, 0.3, -1)
+	CreateAlphaAnim(overlay.animIn, overlay.outerGlowOver,  1, 0.3, 1, 0)
 	CreateScaleAnim(overlay.animIn, overlay.spark,          1, 0.2, 2/3, 2/3, 0.2)
-	CreateAlphaAnim(overlay.animIn, overlay.spark,          1, 0.2, -1, 0.2)
-	CreateAlphaAnim(overlay.animIn, overlay.innerGlow,      1, 0.2, -1, 0.3)
-	CreateAlphaAnim(overlay.animIn, overlay.ants,           1, 0.2, 1, 0.3)
+	CreateAlphaAnim(overlay.animIn, overlay.spark,          1, 0.2, 1, 0, 0.2)
+	CreateAlphaAnim(overlay.animIn, overlay.innerGlow,      1, 0.2, 1, 0, 0.3)
+	CreateAlphaAnim(overlay.animIn, overlay.ants,           1, 0.2, 0, 1, 0.3)
 	overlay.animIn:SetScript("OnPlay", AnimIn_OnPlay)
 	overlay.animIn:SetScript("OnFinished", AnimIn_OnFinished)
 
 	overlay.animOut = overlay:CreateAnimationGroup()
-	CreateAlphaAnim(overlay.animOut, overlay.outerGlowOver, 1, 0.2, 1)
-	CreateAlphaAnim(overlay.animOut, overlay.ants,          1, 0.2, -1)
-	CreateAlphaAnim(overlay.animOut, overlay.outerGlowOver, 2, 0.2, -1)
-	CreateAlphaAnim(overlay.animOut, overlay.outerGlow,     2, 0.2, -1)
+	CreateAlphaAnim(overlay.animOut, overlay.outerGlowOver, 1, 0.2, 0, 1)
+	CreateAlphaAnim(overlay.animOut, overlay.ants,          1, 0.2, 1, 0)
+	CreateAlphaAnim(overlay.animOut, overlay.outerGlowOver, 2, 0.2, 1, 0)
+	CreateAlphaAnim(overlay.animOut, overlay.outerGlow,     2, 0.2, 1, 0)
 	overlay.animOut:SetScript("OnFinished", OverlayGlowAnimOutFinished)
 
 	-- scripts

@@ -10,6 +10,12 @@ db.PLUGINS["Blizzard_BindingUI"] = function(self)
 		ConsolePortConfig:OpenCategory(2)
 	end
 
+	local function OnAlt()
+		kbF:Hide()
+		ToggleFrame(GameMenuFrame)
+		ConsolePort:CalibrateController(true)
+	end
+
 	local function OnCancel()
 		ConsolePort:ClearPopup()
 		okayButton:SetButtonState("NORMAL")
@@ -17,8 +23,9 @@ db.PLUGINS["Blizzard_BindingUI"] = function(self)
 
 	StaticPopupDialogs["CONSOLEPORT_WARNINGBINDINGUI"] = {
 		text = db.TUTORIAL.SLASH.WARNINGBINDINGUI,
-		button1 = db.TUTORIAL.SLASH.ACCEPT,
-		button2 = db.TUTORIAL.SLASH.CANCEL,
+		button1 = db.TUTORIAL.SLASH.EDITBINDS,
+		button2 = CONTINUE,
+		button3 = db.TUTORIAL.SLASH.CALIBRATE,
 		showAlert = true,
 		timeout = 0,
 		whileDead = true,
@@ -26,6 +33,7 @@ db.PLUGINS["Blizzard_BindingUI"] = function(self)
 		preferredIndex = 3,
 		enterClicksFirstButton = true,
 		exclusive = true,
+		OnAlt = OnAlt,
 		OnAccept = OnAccept,
 		OnCancel = OnCancel,
 	}

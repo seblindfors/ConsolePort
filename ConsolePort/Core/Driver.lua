@@ -48,7 +48,7 @@ local functions = {
 	]],
 	GetActionSpellSlot = [[
 		local type, spellID, subType = self:RunAttribute("GetActionInfo", ...)
-		if type == "spell" and subType == "spell" then
+		if type == "spell" and spellID and subType == "spell" then
 			return FindSpellBookSlotBySpellID(spellID)
 		end
 	]],

@@ -14,6 +14,22 @@ local keyHeldDown = false
 local Left = StackSplitLeftButton
 local Right = StackSplitRightButton
 
+local oldNode
+
+StackSplitFrame:HookScript("OnShow", function(self)
+	ConsolePort:SetFrameStack({[self] = true})
+	oldNode = ConsolePort:GetCurrentNode()
+	ConsolePort:SetCurrentNode(StackSplitCancelButton)
+end)
+
+StackSplitFrame:HookScript("OnHide", function(self)
+	ConsolePort:SetFrameStack()
+	if oldNode then
+		ConsolePort:SetCurrentNode(oldNode)
+		oldNode = nil
+	end
+end)
+
 StackSplitFrame:HookScript("OnUpdate", function(self,elapsed)
 	keyDown = Left:GetButtonState() == "PUSHED" and Left or Right:GetButtonState() == "PUSHED" and Right
 	hold = keyDown and hold + elapsed or 0

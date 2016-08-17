@@ -6,11 +6,59 @@ local addOn, ab = ...
 local class = select(2, UnitClass("player"))
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
+local UIasset = "Interface\\AddOns\\ConsolePort\\Textures\\UIAsset"
 
 
-local Bar = CreateFrame("Frame", addOn, UIParent, "SecureHandlerStateTemplate, SecureHandlerEnterLeaveTemplate")
+local Bar = CreateFrame("Frame", addOn, UIParent, "SecureHandlerStateTemplate")
+local Eye = CreateFrame("Button", "$parentShowHideButtons", Bar, "SecureActionButtonTemplate")
+local Menu = CreateFrame("Button", "$parentShowHideMenu", Bar, "SecureActionButtonTemplate")
 local Lib = ab.libs.button
 local state, now = ConsolePort:GetActionPageDriver()
+
+---------------------------------------------------------------
+---------------------------------------------------------------
+---------------------------------------------------------------
+-- Override the original consoleport action button lookup.
+-- We don't want to display additional hotkey textures on our own bars, 
+-- since we'll be using our own icons.
+
+local valid_action_buttons = {
+	Button = true,
+	CheckButton = true,
+}
+
+-- Wrap this function since it's recursive.
+local function GetActionButtons(buttons, this)
+	buttons = buttons or {}
+	this = this or UIParent
+	if this:IsForbidden() or this == Bar then
+		return buttons
+	end
+	local objType = this:GetObjectType()
+	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute("action")
+	if action and tonumber(action) then
+		buttons[this] = action
+	end
+	for _, object in pairs({this:GetChildren()}) do
+		GetActionButtons(buttons, object)
+	end
+	return buttons
+end
+
+---------------------------------------------------------------
+-- Get all buttons that look like action buttons
+---------------------------------------------------------------
+function ConsolePort:GetActionButtons(getTable, parent)
+	if getTable then
+		return GetActionButtons(parent)
+	else
+		return pairs(GetActionButtons(parent))
+	end
+end
+---------------------------------------------------------------
+---------------------------------------------------------------
+
+
 ---------------------------------------------------------------
 ab.bar = Bar
 ---------------------------------------------------------------
@@ -25,7 +73,7 @@ Bar:SetMovable(true)
 Bar:SetPoint("BOTTOM", UIParent, 0, 0)
 RegisterStateDriver(Bar, "page", state)
 RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ")
-RegisterStateDriver(Bar, "visibility", "[petbattle][vehicleui] hide; show")
+RegisterStateDriver(Bar, "visibility", "[petbattle][vehicleui][overridebar] hide; show")
 
 Bar:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 Bar:SetFrameRef("OverrideBar", OverrideActionBar)
@@ -33,14 +81,6 @@ Bar:SetFrameRef("OverrideBar", OverrideActionBar)
 Bar:SetAttribute("_onstate-modifier", [[
 	self:SetAttribute("state", newstate)
 	control:ChildUpdate("state", newstate)
-]])
-Bar:SetAttribute("_onenter", [[
-	control:ChildUpdate("hover", true)
-]])
-Bar:SetAttribute("_onleave", [[
-	if not self:IsUnderMouse(true) then
-		control:ChildUpdate("hover", false)
-	end
 ]])
 Bar:SetAttribute("_onstate-page", [[
 	if HasVehicleActionBar() then
@@ -54,8 +94,8 @@ Bar:SetAttribute("_onstate-page", [[
 	else
 		newstate = GetActionBarPage()
 	end
-	self:SetAttribute("actionpage", page)
-	control:ChildUpdate("actionpage", page)
+	self:SetAttribute("actionpage", newstate)
+	control:ChildUpdate("actionpage", newstate)
 ]])
 
 function ConsolePort:GetBindingIcon(binding)
@@ -65,14 +105,18 @@ function ConsolePort:GetBindingIcon(binding)
 		["TOGGLEGAMEMENU"] = [[Interface\Icons\Achievement_ChallengeMode_Auchindoun_Hourglass]],
 		["TOGGLEWORLDMAP"] = [[Interface\Icons\INV_Misc_Map02]],
 		["TARGETNEARESTENEMY"] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		["TARGETSCANENEMY"] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
 		["CLICK ConsolePortWorldCursor:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
 	}
 	return icons[binding]
 end
 
 local layout = {
-	["CP_T1"] = {"CENTER", -50, 10},
-	["CP_T2"] = {"CENTER", 50, 10},
+	["CP_T1"] = {"CENTER", -50, 70},
+	["CP_T2"] = {"CENTER", 50, 70},
+	---
+	["CP_L_GRIP"] = {"LEFT", 160, 10},
+	["CP_R_GRIP"] = {"RIGHT", -160, 10},
 	---
 	["CP_L_LEFT"] 	= {"LEFT", 240, 50},
 	["CP_L_RIGHT"] 	= {"LEFT", 400, 50},
@@ -87,6 +131,7 @@ local layout = {
 
 for binding in ConsolePort:GetBindings() do
 	local button = Lib:Create(Bar, binding)
+
 --	Lib:SetState(button, db.Bindings[binding])
 
 	local position = layout[binding]
@@ -105,11 +150,11 @@ Bar:SetAttribute("page", 1)
 
 
 -- this was stolen from Bartender4
-function Bar:HideBlizzard()
+do
 	-- Hidden parent frame
 	local UIHider = CreateFrame("Frame")
 	UIHider:Hide()
-	self.UIHider = UIHider
+	Bar.UIHider = UIHider
 
 	MultiBarBottomLeft:SetParent(UIHider)
 	MultiBarBottomRight:SetParent(UIHider)
@@ -162,7 +207,6 @@ function Bar:HideBlizzard()
 		end
 	end)
 
-
 	MainMenuXPBarTextureMid:SetTexCoord(0, 1, 1, 0)
 	MainMenuXPBarTextureLeftCap:SetTexCoord(0.18750000, 0.43750000, 0.26562500, 0.01562500)
 	MainMenuXPBarTextureRightCap:SetTexCoord(0.18750000, 0.43750000, 0.54687500, 0.29687500)
@@ -170,42 +214,6 @@ function Bar:HideBlizzard()
 	MainMenuXPBarTextureMid:SetGradientAlpha("VERTICAL", 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.75)
 	MainMenuXPBarTextureLeftCap:SetGradientAlpha("VERTICAL", 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.75)
 	MainMenuXPBarTextureRightCap:SetGradientAlpha("VERTICAL", 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.75)
-
-	MainMenuMicroButton:SetParent(self)
-	MainMenuMicroButton:ClearAllPoints()
-	MainMenuMicroButton:SetPoint("TOP", 0, -16)
-	MainMenuMicroButton:SetHitRectInsets(0, 0, 0, 0)
-	MainMenuMicroButton:SetSize(80, 42)
-	MainMenuMicroButton:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal")
-	MainMenuMicroButton:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal")
-	MainMenuMicroButton:SetPushedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuPushed")
-
-	MainMenuMicroButton:GetNormalTexture():SetVertexColor(red, green, blue, 0.25)
-
-	hooksecurefunc(MainMenuMicroButton, "SetNormalTexture", function(self, texture)
-		if texture ~= "Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal" then
-			self:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal")
-		end
- 	end)
-	hooksecurefunc(MainMenuMicroButton, "SetHighlightTexture", function(self, texture)
-		if texture ~= "Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal" then
-			self:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuNormal")
-		end
- 	end)
-	hooksecurefunc(MainMenuMicroButton, "SetPushedTexture", function(self, texture)
-		if texture ~= "Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuPushed" then
-			self:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\MenuPushed")
-		end
- 	end)
-
-	hooksecurefunc(MainMenuMicroButton, "SetPoint", function(self, anchor, xoff, yoff)
-		if not InCombatLockdown() then
-			if anchor ~= "TOP" or xoff ~= 0 or yoff ~= -16 then
-				self:ClearAllPoints()
-				self:SetPoint("TOP", 0, -16)
-			end
-		end
- 	end)
 
 	MainMenuBarPerformanceBar:SetParent(UIHider)
 	MainMenuBarPerformanceBar:ClearAllPoints()
@@ -223,6 +231,29 @@ function Bar:HideBlizzard()
 
 	ReputationWatchBar:Hide()
 	ReputationWatchBar:SetParent(UIHider)
+
+	for i=0, 3 do
+		HonorWatchBar.StatusBar["WatchBarTexture"..i]:SetAlpha(0.5)
+		HonorWatchBar.StatusBar["XPBarTexture"..i]:SetAlpha(0.5)
+	end
+
+	HonorWatchBar:SetParent(Bar)
+	HonorWatchBar:ClearAllPoints()
+	HonorWatchBar:SetPoint("BOTTOM", 0, 3)
+
+	HonorWatchBar:HookScript("OnShow", function(self) MainMenuExpBar:Hide() end)
+	HonorWatchBar:HookScript("OnHide", function(self) MainMenuExpBar:SetShown(UnitLevel("player") < MAX_PLAYER_LEVEL and not IsXPUserDisabled()) end)
+
+	hooksecurefunc(HonorWatchBar, "SetPoint", function(self, anchor, xoffset, yoffset)
+		if anchor ~= "BOTTOM" or xoffset ~= 0 or yoffset ~= 3 then
+			self:ClearAllPoints()
+			self:SetPoint("BOTTOM", 0, 3)
+		end
+	end)
+
+	ArtifactWatchBar:ClearAllPoints()
+	ArtifactWatchBar:SetParent(Bar)
+	ArtifactWatchBar:SetPoint("BOTTOM", 0, 16)
 
 	StanceBarFrame:UnregisterAllEvents()
 	StanceBarFrame:Hide()
@@ -243,16 +274,31 @@ function Bar:HideBlizzard()
 		hooksecurefunc("TalentFrame_LoadUI", function() PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED") end)
 	end
 
+	-- raid cursor fix to add the hidden action bars to the interface scan process
+	ConsolePortRaidCursor:SetFrameRef("hiddenBars", UIHider)
+	ConsolePortRaidCursor:Execute([[
+		UpdateFrameStack = [=[
+			local frames = newtable(self:GetParent():GetChildren())
+			frames[#frames + 1] = self:GetFrameRef("hiddenBars")
+			for i, frame in pairs(frames) do
+				if frame:IsProtected() and not Cache[frame] then
+					CurrentNode = frame
+					self:Run(GetNodes)
+				end
+			end
+			self:Run(RefreshActions)
+			if IsEnabled then
+				self:Run(SelectNode, 0)
+			end
+		]=]
+	]])
+
 end
-
-Bar:HideBlizzard()
-
 
 ConsolePort:LoadHotKeyTextures()
 
-
 local backdrop = {
-	edgeFile 	= "Interface\\AddOns\\ConsolePortBar\\Textures\\BarEdge",
+	edgeFile 	= "Interface\\AddOns\\"..addOn.."\\Textures\\BarEdge",
 	edgeSize 	= 32,
 	insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
 }
@@ -285,6 +331,10 @@ function Bar:OnEvent(event, ...)
 	end
 end
 
+function Bar:OnMouseWheel(delta)
+	self:SetScale(self:GetScale() + ( delta * 0.1 ) )
+end
+
 hooksecurefunc(ConsolePort, "LoadBindingSet", function(self, ...)
 	if not InCombatLockdown() then
 		Lib:UpdateAllBindings(...)
@@ -293,11 +343,106 @@ end)
 
 
 Bar:SetScript("OnEvent", Bar.OnEvent)
+Bar:SetScript("OnMouseWheel", Bar.OnMouseWheel)
 Bar:RegisterEvent("PLAYER_LOGIN")
 Bar:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 Bar:RegisterEvent("PLAYER_TALENT_UPDATE")
 
 Bar:Execute(format([[
-	control:ChildUpdate("state", "action")
+	control:ChildUpdate("state", "")
 	self:RunAttribute("_onstate-page", "%s")
 ]], now or 1))
+
+
+Eye:SetAttribute("showbuttons", false)
+Eye:SetPoint("BOTTOM", -40, 26)
+Eye:SetSize(83.2, 47.2)
+Eye:SetNormalTexture(UIasset)
+Eye:SetHighlightTexture(UIasset)
+Eye.Texture = Eye:CreateTexture(nil, "OVERLAY")
+Eye.Texture:SetPoint("CENTER", 0, 2)
+Eye.Texture:SetSize(64 * 0.9, 32 * 0.9)
+Eye.Texture:SetTexture("Interface\\AddOns\\"..addOn.."\\Textures\\Hide")
+
+
+local normal, highlight = Eye:GetNormalTexture(), Eye:GetHighlightTexture()
+
+normal:SetTexCoord(0.1064, 0.2080, 0.3886, 0.4462)
+normal:ClearAllPoints()
+normal:SetAllPoints()
+
+highlight:SetTexCoord(0.0009, 0.0937, 0.3896, 0.4365)
+highlight:ClearAllPoints()
+highlight:SetPoint("LEFT", 3.2, 3.2)
+highlight:SetSize(76, 38.4)
+highlight:SetAlpha(1)
+highlight:SetVertexColor(red, green, blue)
+
+function Eye:OnAttributeChanged(attribute, value)
+	if attribute == "showbuttons" then
+		if value == true then
+			self.Texture:SetTexture("Interface\\AddOns\\"..addOn.."\\Textures\\Show")
+		else
+			self.Texture:SetTexture("Interface\\AddOns\\"..addOn.."\\Textures\\Hide")
+		end
+	end
+end
+
+Eye:SetScript("OnAttributeChanged", Eye.OnAttributeChanged)
+
+Bar:WrapScript(Eye, "OnClick", [[
+	local showhide = not self:GetAttribute("showbuttons")
+	self:SetAttribute("showbuttons", showhide)
+	control:ChildUpdate("hover", showhide)
+]])
+
+
+function Menu:OnClick()
+	ToggleFrame(GameMenuFrame)
+end
+
+Menu:HookScript("OnClick", Menu.OnClick)
+
+Menu:SetPoint("BOTTOM", 40, 26)
+Menu:SetSize(83.2, 47.2)
+Menu:SetNormalTexture(UIasset)
+Menu:SetHighlightTexture(UIasset)
+
+local normal, highlight = Menu:GetNormalTexture(), Menu:GetHighlightTexture()
+
+normal:SetTexCoord(0.2080, 0.1064, 0.3886, 0.4462)
+highlight:SetTexCoord(0.0937, 0.0009, 0.3896, 0.4365)
+highlight:SetSize(76, 38.4)
+highlight:ClearAllPoints()
+highlight:SetAlpha(1)
+highlight:SetPoint("RIGHT", -3.2, 3.2)
+highlight:SetVertexColor(red, green, blue)
+
+local grid = Menu:CreateTexture(nil, "OVERLAY")
+grid:SetPoint("CENTER", 0, 2)
+grid:SetTexCoord(0.0517, 0.0761, 0.4453, 0.4628)
+grid:SetSize(20, 14.4)
+grid:SetTexture(UIasset)
+grid:SetVertexColor(0.6, 0.6, 0.6)
+
+Menu.hover = nil
+Menu.updateInterval = 0
+Menu.tooltipText = MicroButtonTooltipText(MAINMENU_BUTTON, "TOGGLEGAMEMENU")
+Menu.newbieText = NEWBIE_TOOLTIP_MAINMENU
+
+Menu:SetScript("OnEnter", function(self)
+	self.hover = 1
+	self.updateInterval = 0
+end)
+Menu:SetScript("OnLeave", function(self)
+	self.hover = nil
+	GameTooltip:Hide()
+end)
+
+Menu:SetScript("OnUpdate", function(self, elapsed)
+	if self.updateInterval > 0 then
+		self.updateInterval = self.updateInterval - elapsed
+	elseif self.hover then
+		MainMenuBarPerformanceBarFrame_OnEnter(self)
+	end
+end)

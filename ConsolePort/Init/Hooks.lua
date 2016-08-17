@@ -21,14 +21,23 @@ function ConsolePort:LoadHookScripts()
 					if GetMerchantItemMaxStack(owner:GetID()) > 1 then 
 						self:AddLine(db.CLICK.STACK_BUY, 1,1,1)
 					end
+			-- This is a loot item.
 			elseif	ownerParent == LootFrame then
 					self:AddLine(db.CLICK_LOOT, 1,1,1)
-			elseif 	MerchantFrame:IsVisible() and not IsEquippedItem(item) then 
-				CLICK_STRING = db.CLICK.SELL
-			elseif 	IsEquippableItem(item) and not IsEquippedItem(item) then 
-				CLICK_STRING = db.CLICK.EQUIP
-			elseif 	GetItemSpell(item) then 
-				CLICK_STRING = db.CLICK.USE
+			-- This item is in a bag.
+			elseif owner and owner.JunkIcon then
+				-- This is an item in the bag while talking to a merchant.
+				if 	MerchantFrame:IsVisible() and not IsEquippedItem(item) then 
+					CLICK_STRING = db.CLICK.SELL
+				-- This item is equippable.
+				elseif 	IsEquippableItem(item) then -- and not IsEquippedItem(item) then
+					self:AddLine(db.CLICK.COMPARE, 1,1,1)
+					CLICK_STRING = db.CLICK.EQUIP
+				-- This item is usable.
+				elseif 	GetItemSpell(item) then 
+					CLICK_STRING = db.CLICK.USE
+				end
+				self:AddLine(db.CLICK.PICKUP_ITEM, 1,1,1)
 			end
 			if 	GetItemCount(item, false) ~= 0 or
 				MerchantFrame:IsVisible() then

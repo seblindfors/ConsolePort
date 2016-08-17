@@ -405,8 +405,8 @@ function WindowMixin:OnShow()
 	self:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 	self:SetPropagateKeyboardInput(true)
-	self.Category.NextIcon:SetTexture(db.ICONS.CP_M2)
-	self.Category.PrevIcon:SetTexture(db.ICONS.CP_M1)
+	self.Category.NextIcon:SetTexture(db.ICONS.CP_T2)
+	self.Category.PrevIcon:SetTexture(db.ICONS.CP_T1)
 
 	SetSaveShortCut(self)
 end
@@ -424,23 +424,21 @@ function WindowMixin:OnEvent(event)
 	end
 end
 
----------------------------------------------------------------
-local M1, M2 = "CP_M1", "CP_M2"
-local modRoute = {
-	LSHIFT = M1, 	RSHIFT = M1, 	SHIFT = M1,
-	LCTRL = M2,		RCTRL = M2,		CTRL = M2,
-}
----------------------------------------------------------------
+function WindowMixin:OnKeyUp(key) 
+	self:SetPropagateKeyboardInput(true)
+end
 
 function WindowMixin:OnKeyDown(key)
-	local modifier = modRoute[key]
-	if modifier then
+	local t1 = GetBindingKey("CP_T1")
+	local t2 = GetBindingKey("CP_T2")
+	if key == t1 or key == t2 then
+		self:SetPropagateKeyboardInput(false)
 		local containerID, numCategories = self.Container.id, #self.Category.Buttons
 		if containerID then
-			if modifier == M1 and containerID - 1 > 0 then
+			if key == t1 and containerID - 1 > 0 then
 				self:OpenCategory(containerID - 1)
 				ConsolePort:SetCurrentNode(Category.Buttons[containerID - 1])
-			elseif modifier == M2 and containerID + 1 <= numCategories then
+			elseif key == t2 and containerID + 1 <= numCategories then
 				self:OpenCategory(containerID + 1)
 				ConsolePort:SetCurrentNode(Category.Buttons[containerID + 1])
 			end

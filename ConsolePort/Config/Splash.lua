@@ -11,16 +11,17 @@ local SETUP = db.TUTORIAL.SETUP
 function ConsolePort:CheckCalibration(forceCustom)
 	local ctrlType = db.Settings.type
 
+	-- if this is not a forced custom calibration, load bindings from disk.
 	if not forceCustom then
 		local calibration = db.Settings.calibration
 		if calibration then
 			for binding, key in pairs(calibration) do
 				SetBinding(key, binding)
 			end
-			return
 		end
 	end
 
+	-- no calibration data found, go to custom calibration.
 	local unassigned
 	for button in self:GetBindings() do
 		-- temporary Steam guide button fix, remove this.
@@ -90,7 +91,7 @@ function ConsolePort:CalibrateController(reset)
 				helpFrame.MapperTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
 				helpFrame.MapperTexture:SetTexCoord(0, 576/1024, 921/1024, 1)
 				helpFrame.MapperTexture:SetSize(576, 103)
-				helpFrame.MapperTexture:SetPoint("CENTER", 70, 0)
+				helpFrame.MapperTexture:SetPoint("CENTER", 70, -20)
 
 				helpFrame.Controller = helpFrame:CreateTexture(nil, "ARTWORK")
 				helpFrame.Controller:SetSize(165, 165)
@@ -98,20 +99,59 @@ function ConsolePort:CalibrateController(reset)
 				helpFrame.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
 
 				helpFrame.Continue = db.Atlas.GetFutureButton("$parentContinue", helpFrame)
-				helpFrame.Continue:SetPoint("BOTTOM", 0, 24)
 				helpFrame.Continue:SetText(SETUP.CONTINUECLICK)
 				helpFrame.Continue:SetScript("OnClick", function(self)
 					helpFrame:Hide()
 					ConsolePort:CalibrateController()
 				end)
 
+				-- WoWmapper post-init launch and no exported calibration was found.
+				-- Add a button to omit the calibration thus far and reload
+				-- to get the new calibration data from the WoWmapper client.
+				if IsWindowsClient() and db.Controllers[ctrlType].WoWmapper then
+					helpFrame.Continue:SetPoint("BOTTOMRIGHT", helpFrame, "BOTTOM", -10, 24)
+					helpFrame.Reload = db.Atlas.GetFutureButton("$parentReload", helpFrame)
+					helpFrame.Reload:SetText(SETUP.LOADWOWMAPPER)
+					helpFrame.Reload:SetPoint("BOTTOMLEFT", helpFrame, "BOTTOM", 10, 24)
+					helpFrame.Reload:SetScript("OnClick", function(self)
+						db.Settings.calibration = nil
+						ReloadUI()
+					end)
+				else
+					helpFrame.Continue:SetPoint("BOTTOM", 0, 24)
+				end
+
+				helpFrame.LinkBox = CreateFrame("EditBox", "$parentLinkBox", helpFrame, "InputBoxTemplate")
+				helpFrame.LinkBox:SetPoint("CENTER", 0, 54)
+				helpFrame.LinkBox:SetSize(200, 12)
+				helpFrame.LinkBox:Hide()
+
+				helpFrame.LinkBox:SetScript("OnShow", function(self) self:SetText(self.link or "") end)
+				helpFrame.LinkBox:SetScript("OnEditFocusGained", function(self) self:SetText(self.link or "") end)
+
 				helpFrame.Description = helpFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-				helpFrame.Description:SetText(format(SETUP.AHATEXT, db.Controllers[ctrlType].Hint))
 				helpFrame.Description:SetPoint("TOP", 0, -46)
+
+				-- Add instructions and links to the helper frame, if available.
+				local instructions, link
+				if IsWindowsClient() then
+					instructions = db.Controllers[ctrlType].Win
+					link = db.Controllers[ctrlType].LinkWin
+				elseif IsMacClient() then
+					instructions = db.Controllers[ctrlType].Mac
+					link = db.Controllers[ctrlType].LinkMac
+				end
+
+				helpFrame.Description:SetText(format(SETUP.AHATEXT, instructions or SETUP.NOINSTRUCTIONS))
+
+				if link then
+					helpFrame.LinkBox.link = link
+					helpFrame.LinkBox:Show()
+				end
 
 				helpFrame.Disclaimer = helpFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 				helpFrame.Disclaimer:SetText("|cFF888888"..SETUP.DISCLAIMER.."|r")
-				helpFrame.Disclaimer:SetPoint("BOTTOM", helpFrame.Continue, "TOP", 0, 20)
+				helpFrame.Disclaimer:SetPoint("BOTTOM", 0, 80)
 
 				cbF.helpFrame = helpFrame
 			end
@@ -210,10 +250,21 @@ function ConsolePort:CalibrateController(reset)
 		cbF.Controller:SetTexCoord(0.345703125, 0.0625, 0.0703125, 0.53515625, 1, 0.4453125, 0.73046875, 0.91796875)
 		cbF.Controller:SetAlpha(0.075)
 
+		local forbidden = {
+			W = BINDING_NAME_MOVEFORWARD,	UP = BINDING_NAME_MOVEFORWARD,
+			A = BINDING_NAME_STRAFELEFT,	LEFT = BINDING_NAME_STRAFELEFT,
+			S = BINDING_NAME_MOVEBACKWARD,	DOWN = BINDING_NAME_MOVEBACKWARD,
+			D = BINDING_NAME_STRAFERIGHT,	RIGHT = BINDING_NAME_STRAFERIGHT,
+		}
+
 		-- Scripts
 		cbF:SetScript("OnKeyDown", function(self, key)
 			if key == "ESCAPE" then
 				self:Hide()
+				return
+			elseif forbidden[key] then
+				self.Status:SetText(format(SETUP.RESERVED, key, forbidden[key]))
+				self.Status:SetAlpha(1)
 				return
 			end
 			self.ButtonPress:Show()
@@ -221,7 +272,7 @@ function ConsolePort:CalibrateController(reset)
 		end)
 
 		cbF:SetScript("OnKeyUp", function(self, key)
-			if key == "ESCAPE" then return end
+			if key == "ESCAPE" or forbidden[key] then return end
 			self.ButtonTex:SetPoint("CENTER", self.Wrapper, -142, 0)
 			self.ButtonPress:Hide()
 			self.Reload:Hide()
@@ -346,11 +397,6 @@ function ConsolePort:SelectController()
 	if not ConsolePortSplashFrame then
 		local Splash = db.Atlas.GetFutureWindow("ConsolePortSplashFrame")
 		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE, TEX_ROTATION = 200, 390, 710, 0.523598776
-		local Controllers = {
-			Playstation = {id = "PS4", pos = 1},
-			Xbox 		= {id = "XBOX", pos = 2},
-			Steam 		= {id = "STEAM", pos = 3},
-		}
 
 		local function OnEnter(self)
 			db.UIFrameFadeIn(self.Highlight, 0.1, 0, 1)
@@ -394,36 +440,38 @@ function ConsolePort:SelectController()
 		local red, green, blue = db.Atlas.GetCC()
 		local pos = 0
 		for name, template in pairs(db.Controllers) do
-			pos = pos + 1
+			if not template.Hide then
+				pos = pos + 1
 
-			Splash.Center:SetWidth(Splash.Center:GetWidth() + BTN_WIDTH)
+				Splash.Center:SetWidth(Splash.Center:GetWidth() + BTN_WIDTH)
 
-			local Controller = CreateFrame("Button", nil, Splash)
-			Splash[name] = Controller
+				local Controller = CreateFrame("Button", nil, Splash)
+				Splash[name] = Controller
 
-			Controller.Strata = pos
+				Controller.Strata = pos
 
-			Controller:SetSize(BTN_WIDTH, BTN_HEIGHT)
-			Controller:SetPoint("LEFT", Splash.Center, "LEFT", BTN_WIDTH*(pos-1), 0)
-			Controller.ID = name
+				Controller:SetSize(BTN_WIDTH, BTN_HEIGHT)
+				Controller:SetPoint("LEFT", Splash.Center, "LEFT", BTN_WIDTH*(pos-1), 0)
+				Controller.ID = name
 
-			Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, pos)
-			Controller.Normal:SetSize(TEX_SIZE, TEX_SIZE)
-			Controller.Normal:SetPoint("CENTER", 0, 0)
-			Controller.Normal:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\Front")
-			Controller.Normal:SetRotation(TEX_ROTATION)
+				Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, pos)
+				Controller.Normal:SetSize(TEX_SIZE, TEX_SIZE)
+				Controller.Normal:SetPoint("CENTER", 0, 0)
+				Controller.Normal:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\Front")
+				Controller.Normal:SetRotation(TEX_ROTATION)
 
-			Controller.Highlight = Controller:CreateTexture(nil, "ARTWORK", nil, pos+3)
-			Controller.Highlight:SetSize(TEX_SIZE, TEX_SIZE)
-			Controller.Highlight:SetPoint("CENTER", 0, 0)
-			Controller.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\FrontHighlight")
-			Controller.Highlight:SetRotation(TEX_ROTATION)
-			Controller.Highlight:SetAlpha(0)
-			Controller.Highlight:SetVertexColor(red, green, blue)
+				Controller.Highlight = Controller:CreateTexture(nil, "ARTWORK", nil, pos+3)
+				Controller.Highlight:SetSize(TEX_SIZE, TEX_SIZE)
+				Controller.Highlight:SetPoint("CENTER", 0, 0)
+				Controller.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\FrontHighlight")
+				Controller.Highlight:SetRotation(TEX_ROTATION)
+				Controller.Highlight:SetAlpha(0)
+				Controller.Highlight:SetVertexColor(red, green, blue)
 
-			Controller:SetScript("OnEnter", OnEnter)
-			Controller:SetScript("OnLeave", OnLeave)
-			Controller:SetScript("OnClick", OnClick)
+				Controller:SetScript("OnEnter", OnEnter)
+				Controller:SetScript("OnLeave", OnLeave)
+				Controller:SetScript("OnClick", OnClick)
+			end
 		end
 
 		Splash:SetFrameStrata("DIALOG")

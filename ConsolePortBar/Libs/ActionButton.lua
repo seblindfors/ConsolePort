@@ -129,7 +129,7 @@ local InitializeEventHandler, OnEvent, ForAllButtons, OnUpdate
 local DefaultConfig = {
 	outOfRangeColoring = "button",
 	tooltip = "enabled",
-	showGrid = false,
+	showGrid = true,
 	colors = {
 		range = { 0.8, 0.1, 0.1 },
 		mana = { 0.5, 0.5, 1.0 }
@@ -214,7 +214,7 @@ function lib:CreateButton(id, name, header, config, template)
 end
 
 function SetupSecureSnippets(button)
-	button:Execute([[States = newtable("ctrlsh", "ctrl", "shift", "action")]])
+	button:Execute([[States = newtable("CTRL-SHIFT-", "CTRL-", "SHIFT-", "")]])
 	button:SetAttribute("_custom", Custom.RunCustom)
 	-- secure UpdateState(self, state)
 	-- update the type and action of the button based on the state
@@ -279,7 +279,6 @@ function SetupSecureSnippets(button)
 	]])
 
 	button:SetAttribute("_onenter", [[
-		print(self:GetName())
 		self:CallMethod("Hover", true)
 	]])
 
@@ -591,7 +590,7 @@ function Generic:OnEnter()
 end
 
 function Generic:OnLeave()
-	if not self.isGlowing and not self.isMainButton then
+	if not self.isGlowing and not self.isMainButton and not self.isOnCooldown and not self.forceShow then
 		FadeOut(self)
 	end
 	GameTooltip:Hide()
@@ -690,7 +689,6 @@ function Generic:UpdateConfig(config)
 
 	self:SetAttribute("flyoutDirection", self.config.flyoutDirection)
 
-	UpdateGrid(self)
 	Update(self)
 	self:RegisterForClicks(self.config.clickOnDown and "AnyDown" or "AnyUp")
 end
@@ -942,27 +940,18 @@ function OnUpdate(_, elapsed)
 	end
 end
 
-local gridCounter = 0
 function ShowGrid()
-	gridCounter = gridCounter + 1
-	if gridCounter >= 1 then
-		for button in next, ButtonRegistry do
-			if button:IsShown() then
-				button:SetAlpha(1.0)
-			end
+	for button in next, ButtonRegistry do
+		if button:IsShown() then
+			button:SetAlpha(1.0)
 		end
 	end
 end
 
 function HideGrid()
-	if gridCounter > 0 then
-		gridCounter = gridCounter - 1
-	end
-	if gridCounter == 0 then
-		for button in next, ButtonRegistry do
-			if button:IsShown() and not button:HasAction() and not button.config.showGrid then
-				button:SetAlpha(0.0)
-			end
+	for button in next, ButtonRegistry do
+		if button:IsShown() and not button.isMainButton and not button.isOnCooldown and not button.isGlowing and not button.forceShow then
+			button:SetAlpha(0.0)
 		end
 	end
 end
@@ -1044,9 +1033,10 @@ end
 --- button management
 
 function Generic:Hover(show)
+	self.forceShow = show
 	if show and not self.isMainButton then
 		FadeIn(self)
-	elseif  not self.isMainButton then
+	elseif  not self.isMainButton and not self.isOnCooldown and not self.isGlowing then
 		FadeOut(self)
 	end
 end
@@ -1240,8 +1230,9 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration)
 			cooldown:SetHideCountdownNumbers(true)
 			cooldown:SetEdgeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Edge")
 			cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+			cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Swipe")
 			cooldown:SetDrawEdge(true)
-			cooldown:SetDrawSwipe(false)
+			cooldown:SetDrawSwipe(true)
 		end
 		cooldown:SetParent(parent)
 		cooldown:SetAllPoints(parent)
@@ -1258,6 +1249,7 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration)
 end
 
 local function OnCooldownDone(self)
+	self.isOnCooldown = nil
 	self:SetScript("OnCooldownDone", nil)
 	UpdateCooldown(self:GetParent())
 end
@@ -1290,7 +1282,7 @@ function UpdateCooldown(self)
 			self.cooldown:SetHideCountdownNumbers(true)
 			self.cooldown.currentCooldownType = COOLDOWN_TYPE_LOSS_OF_CONTROL
 		end
-	--	CooldownFrame_SetTimer(self.cooldown, locStart, locDuration, 1, true)
+		CooldownFrame_Set(self.cooldown, locStart, locDuration, true, true)
 	else
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_NORMAL then
 		--	self.cooldown:SetEdgeTexture("Interface\\Cooldown\\edge")
@@ -1307,8 +1299,7 @@ function UpdateCooldown(self)
 		elseif self.chargeCooldown then
 			EndChargeCooldown(self.chargeCooldown)
 		end
-
-	--	CooldownFrame_SetTimer(self.cooldown, start, duration, enable)
+		CooldownFrame_Set(self.cooldown, start, duration, enable)
 	end
 end
 

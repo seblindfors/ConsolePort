@@ -198,7 +198,7 @@ function Pet:UpdateCooldowns()
 		local button = Pet.Buttons[i]
 		local cooldown = button.cooldown
 		local start, duration, enable = GetPetActionCooldown(i)
-		CooldownFrame_SetTimer(cooldown, start, duration, enable)
+		CooldownFrame_Set(cooldown, start, duration, enable)
 		
 		-- Update tooltip
 		if ( GameTooltip:GetOwner() == button ) then

@@ -63,12 +63,18 @@ Auto.Backdrop:SetAlpha(0)
 Auto.Backdrop:SetPoint("CENTER", Auto, 0, 0)
 Auto.Backdrop:SetSize(300, 24)
 
+Auto.Icon = Auto:CreateTexture(nil, "ARTWORK")
+Auto.Icon:SetPoint("RIGHT", Auto.Text, "LEFT", 0, 0)
+Auto.Icon:SetSize(32, 32)
+Auto.Icon:SetTexture(ConsolePort:GetData().ICONS.CP_T2)
+
 Keyboard.Complete = Auto
 Keyboard.CompleteIndex = 1
 
 function Auto:OnTextSet()
 	local text = self:GetText()
 	Fade(self.Backdrop, 0.2, self.Backdrop:GetAlpha(), text:trim() == "" and 0 or 0.25)
+	self.Icon:SetAlpha(text:trim() == "" and 0 or 1)
 	for pattern, replacement in pairs(Language.Markers) do
 		text = text:gsub(pattern:gsub("%%", "%%%%"), replacement)
 	end

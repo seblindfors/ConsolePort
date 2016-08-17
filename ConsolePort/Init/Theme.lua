@@ -29,6 +29,7 @@ local function LoadTooltipLines()
 	local SpecialClick		= format(ICON, db.TEXTURE[Special], db.COLOR[gsub(Special, "CP_%w_", "")], "%s")
 	db.CLICK = {
 		COMPARE 			= format(ShiftHold, 	db.TOOLTIP.CLICK.COMPARE),
+		PICKUP_ITEM 		= format(LeftClick, 	db.TOOLTIP.CLICK.PICKUP_ITEM),
 		QUEST_TRACKER 		= format(LeftClick, 	db.TOOLTIP.CLICK.QUEST_TRACKER),
 		USE_NOCOMBAT 		= format(LeftClick, 	db.TOOLTIP.CLICK.USE_NOCOMBAT),
 		BUY 				= format(RightClick, 	db.TOOLTIP.CLICK.BUY),
