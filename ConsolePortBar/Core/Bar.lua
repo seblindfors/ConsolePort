@@ -15,50 +15,7 @@ local Menu = CreateFrame("Button", "$parentShowHideMenu", Bar, "SecureActionButt
 local Lib = ab.libs.button
 local state, now = ConsolePort:GetActionPageDriver()
 
----------------------------------------------------------------
----------------------------------------------------------------
----------------------------------------------------------------
--- Override the original consoleport action button lookup.
--- We don't want to display additional hotkey textures on our own bars, 
--- since we'll be using our own icons.
-
-local valid_action_buttons = {
-	Button = true,
-	CheckButton = true,
-}
-
--- Wrap this function since it's recursive.
-local function GetActionButtons(buttons, this)
-	buttons = buttons or {}
-	this = this or UIParent
-	if this:IsForbidden() or this == Bar then
-		return buttons
-	end
-	local objType = this:GetObjectType()
-	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute("action")
-	if action and tonumber(action) then
-		buttons[this] = action
-	end
-	for _, object in pairs({this:GetChildren()}) do
-		GetActionButtons(buttons, object)
-	end
-	return buttons
-end
-
----------------------------------------------------------------
--- Get all buttons that look like action buttons
----------------------------------------------------------------
-function ConsolePort:GetActionButtons(getTable, parent)
-	if getTable then
-		return GetActionButtons(parent)
-	else
-		return pairs(GetActionButtons(parent))
-	end
-end
----------------------------------------------------------------
----------------------------------------------------------------
-
-
+-- Set up action bar
 ---------------------------------------------------------------
 ab.bar = Bar
 ---------------------------------------------------------------
@@ -98,18 +55,6 @@ Bar:SetAttribute("_onstate-page", [[
 	control:ChildUpdate("actionpage", newstate)
 ]])
 
-function ConsolePort:GetBindingIcon(binding)
-	local icons = {
-		["JUMP"] = [[Interface\Icons\Ability_Karoz_Leap]],
-		["OPENALLBAGS"] = [[Interface\Icons\INV_Misc_Bag_29]],
-		["TOGGLEGAMEMENU"] = [[Interface\Icons\Achievement_ChallengeMode_Auchindoun_Hourglass]],
-		["TOGGLEWORLDMAP"] = [[Interface\Icons\INV_Misc_Map02]],
-		["TARGETNEARESTENEMY"] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-		["TARGETSCANENEMY"] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-		["CLICK ConsolePortWorldCursor:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
-	}
-	return icons[binding]
-end
 
 local layout = {
 	["CP_T1"] = {"CENTER", -50, 70},
@@ -421,9 +366,17 @@ highlight:SetVertexColor(red, green, blue)
 local grid = Menu:CreateTexture(nil, "OVERLAY")
 grid:SetPoint("CENTER", 0, 2)
 grid:SetTexCoord(0.0517, 0.0761, 0.4453, 0.4628)
-grid:SetSize(20, 14.4)
+grid:SetSize(20 * 1.15, 14.4 * 1.15)
 grid:SetTexture(UIasset)
-grid:SetVertexColor(0.6, 0.6, 0.6)
+grid:SetVertexColor(0.45, 0.45, 0.45)
+
+local gridShadow = Menu:CreateTexture(nil, "ARTWORK")
+gridShadow:SetPoint("CENTER", 0, 1)
+gridShadow:SetTexCoord(0.0517, 0.0761, 0.4453, 0.4628)
+gridShadow:SetSize(20 * 1.15, 14.4 * 1.15)
+gridShadow:SetTexture(UIasset)
+gridShadow:SetVertexColor(0, 0, 0, 0.5)
+
 
 Menu.hover = nil
 Menu.updateInterval = 0

@@ -1,7 +1,7 @@
 ## Interface: 70000
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar extension for Console Port
-## Version: 0.0.4
+## Version: 0.0.5
 ## SavedVariablesPerCharacter: ConsolePortBarSetup
 ## RequiredDeps: ConsolePort
 ## LoadOnDemand: 1
@@ -11,6 +11,7 @@ Libs\ButtonGlow.lua
 Libs\ActionButton.lua
 Libs\Button.lua
 
+Core\Lookup.lua
 Core\Wrapper.lua
 Core\Bar.lua
 Core\Config.lua

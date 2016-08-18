@@ -28,7 +28,9 @@ for Popup, previous in pairs(popups) do
 					oldNode = current
 				end
 				ConsolePort:SetCurrentNode(self.button1)
-				ConsolePort:UIControl()
+				if not ConsolePortSettings or not ConsolePortSettings.disableUI then
+					ConsolePort:UIControl()
+				end
 			end
 		end
 	end)

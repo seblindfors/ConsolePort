@@ -11,6 +11,7 @@ local GameTooltip = GameTooltip
 local FadeIn = db.UIFrameFadeIn
 
 Flyout.ignoreNode = true
+Flyout:SetAlpha(0.35)
 
 local Selector = CreateFrame("Button", "ConsolePortSpellFlyout", UIParent, "SecureHandlerBaseTemplate, SecureActionButtonTemplate")
 

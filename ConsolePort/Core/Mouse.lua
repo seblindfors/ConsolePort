@@ -24,10 +24,8 @@ local 	HighlightStart, HighlightStop =
 local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition = 
 		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition
 ---------------------------------------------------------------
-local Camera = CreateFrame("Frame", "ConsolePortCamera", UIParent)
-Camera.numTap = 0
-Camera.timer = 0
-Camera.highlightTimer = 0
+local 	Camera, numTap, modTap, timer, interactTimer, highlightTimer =
+		CreateFrame("Frame", "ConsolePortCamera", UIParent), 0, 0, 0, 0, 0
 Camera.Start = MouselookStart
 Camera.Stop = MouselookStop
 ---------------------------------------------------------------
@@ -67,6 +65,8 @@ function Camera:OnUpdate(elapsed)
 	hasWorldFocus = GetMouseFocus() == WorldFrame
 	---------------
 	self.BlockUI:SetShown(cameraMode)
+	---------------
+	interactTimer = interactTimer > 0 and interactTimer - elapsed or 0
 end
 
 function Camera:CheckCursor()
@@ -85,15 +85,15 @@ function Camera:CheckCenter()
 end
 
 function Camera:CheckDoubleTap(elapsed)
-	self.timer = self.timer + elapsed
-	if self.numTap > 1 then
+	timer = timer + elapsed
+	if numTap > 1 then
 		self:Toggle()
-		self.numTap = 0
-		self.modTap = 0
+		modTap = 0
+		numTap = 0
 	end
-	if self.timer > 0.25 then
-		self.numTap = self.numTap > 0 and self.numTap - 1 or 0
-		self.timer = self.timer - 0.25
+	if timer > 0.25 then
+		numTap = numTap > 0 and numTap - 1 or 0
+		timer = timer - 0.25
 	end
 end
 
@@ -107,20 +107,20 @@ function Camera:CheckEdge()
 end
 
 function Camera:HighlightNoTarget(elapsed)
-	self.highlightTimer = self.highlightTimer + elapsed
-	if self.highlightTimer > 3 then
+	highlightTimer = highlightTimer + elapsed
+	if highlightTimer > 3 then
 		if not UnitExists("target") then
 			HighlightStart()
 		end
-		self.highlightTimer = self.highlightTimer - 3
+		highlightTimer = highlightTimer - 3
 	end
 end
 
 function Camera:HighlightAlways(elapsed)
-	self.highlightTimer = self.highlightTimer + elapsed
-	if self.highlightTimer > 3 then
+	highlightTimer = highlightTimer + elapsed
+	if highlightTimer > 3 then
 		HighlightStart()
-		self.highlightTimer = self.highlightTimer - 3
+		highlightTimer = highlightTimer - 3
 	end
 end
 
@@ -128,12 +128,14 @@ function Camera:OnEvent(event, ...)
 	local modifier, down = ...
 	if down == 1 then
 		if modifier then
-			self.timer = 0
-			self.numTap = self.modTap == modifier and self.numTap + 1 or 1
-			self.modTap = modifier
+			timer = 0
+			numTap = modTap == modifier and numTap + 1 or 1
+			modTap = modifier
 		end
 	end
 end
+
+function Camera:OnAction() interactTimer = 0.5 end
 
 function Camera:OnInteract()
 	local guid, hasLoot = UnitGUID("target")
@@ -155,7 +157,13 @@ function Camera:OnStop()
 	end
 end
 
-function Camera:OnRightClick() blockCursor = nil end
+function Camera:OnRightClick()
+	if interactTimer > 0 then
+		Camera:Start()
+	else
+		blockCursor = nil
+	end
+end
 
 -- Get rid of mouselook when trying to interact with mouse
 hooksecurefunc("MouselookStop", Camera.OnStop)
@@ -167,6 +175,8 @@ hooksecurefunc("TurnOrActionStop", Camera.OnRightClick)
 hooksecurefunc("JumpOrAscendStart", Camera.OnJump)
 -- Get rid of mouselook when moving the pet
 hooksecurefunc("PetMoveTo", Camera.Stop)
+-- Hook action usage to manipulate mouselook
+hooksecurefunc("UseAction", Camera.OnAction)
 
 ---------------------------------------------------------------
 -- Mouse function wrappers in case of extended functionality
@@ -184,6 +194,8 @@ function Core:UpdateCameraDriver()
 	Camera:SetScript("OnEvent", nil)
 	Camera:SetScript("OnUpdate", Camera.OnUpdate)
 	Camera:UnregisterEvent("MODIFIER_STATE_CHANGED")
+
+	numTap, modTap, timer, interactTimer, highlightTimer = 0, 0, 0, 0, 0
 
 	if not Settings.disableSmartMouse then
 		Camera:HookScript("OnUpdate", Camera.CheckCursor)

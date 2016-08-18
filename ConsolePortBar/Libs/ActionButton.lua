@@ -590,9 +590,7 @@ function Generic:OnEnter()
 end
 
 function Generic:OnLeave()
-	if not self.isGlowing and not self.isMainButton and not self.isOnCooldown and not self.forceShow then
-		FadeOut(self)
-	end
+	FadeOut(self)
 	GameTooltip:Hide()
 end
 
@@ -864,7 +862,7 @@ function OnEvent(frame, event, arg1, ...)
 				HideOverlayGlow(button)
 				if not button.isMainButton then
 					button.isGlowing = false
-					UIFrameFadeOut(button, 0.2, button:GetAlpha(), 0)
+					FadeOut(button)
 					UpdateCooldown(button)
 				end
 			else
@@ -1036,7 +1034,7 @@ function Generic:Hover(show)
 	self.forceShow = show
 	if show and not self.isMainButton then
 		FadeIn(self)
-	elseif  not self.isMainButton and not self.isOnCooldown and not self.isGlowing then
+	else
 		FadeOut(self)
 	end
 end
@@ -1204,9 +1202,7 @@ function UpdateCount(self)
 			FadeIn(self)
 			self.Count:SetText(charges)
 		else
-			if not self.isGlowing and not self.isMainButton and not self.isOnCooldown then
-				FadeOut(self)
-			end
+			FadeOut(self)
 			self.Count:SetText("")
 		end
 	end
@@ -1249,15 +1245,18 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration)
 end
 
 local function OnCooldownDone(self)
-	self.isOnCooldown = nil
+	local button = self:GetParent()
+	button.isOnCooldown = nil
+	FadeOut(button)
 	self:SetScript("OnCooldownDone", nil)
-	UpdateCooldown(self:GetParent())
+	UpdateCooldown(button)
 end
 
 local function OnModifierCooldownDone(self)
-	self.isOnCooldown = nil
+	local button = self:GetParent()
+	button.isOnCooldown = nil
+	FadeOut(button)
 	self:SetScript("OnCooldownDone", nil)
-	FadeOut(self:GetParent())
 end
 
 function UpdateCooldown(self)
@@ -1357,12 +1356,14 @@ function UpdateOverlayGlow(self)
 	end
 end
 
-function FadeIn(self, newAlpha)
-	UIFrameFadeIn(self, 0.2, self:GetAlpha(), newAlpha or 1)
+function FadeIn(self, newAlpha, speed)
+	UIFrameFadeIn(self, speed or 0.2, self:GetAlpha(), newAlpha or 1)
 end
 
-function FadeOut(self, newAlpha)
-	UIFrameFadeOut(self, 0.2, self:GetAlpha(), newAlpha or 0)
+function FadeOut(self, newAlpha, speed)
+	if not self.isMainButton and not self.isGlowing and not self.isOnCooldown and not self.forceShow then
+		UIFrameFadeOut(self, speed or 0.2, self:GetAlpha(), newAlpha or 0)
+	end
 end
 
 hooksecurefunc("MarkNewActionHighlight", function(action, flag)

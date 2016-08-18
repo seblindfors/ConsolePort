@@ -187,7 +187,7 @@ function Wrapper:SetState(wrapper, bindings)
 					stateType = "custom"
 					stateID = {
 						tooltip = _G["BINDING_NAME_"..binding] or binding,
-						texture = ConsolePort:GetBindingIcon(binding) or "Interface\\MacroFrame\\MacroFrame-Icon",
+						texture = ab:GetBindingIcon(binding) or "Interface\\MacroFrame\\MacroFrame-Icon",
 						func = function() end,
 					}
 				else
