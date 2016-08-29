@@ -523,7 +523,6 @@ local function SetMovementBindings(self, handler)
 end
 
 function ConsolePort:LoadBindingSet()
-	--	print(GetTime(), "LoadBindingSet")
 	local calibration = db.Settings.calibration
 	if calibration then
 		for binding, key in pairs(calibration) do

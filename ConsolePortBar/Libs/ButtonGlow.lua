@@ -98,7 +98,7 @@ local function AnimIn_OnPlay(group)
 	frame.outerGlow:SetSize(frameWidth * 2, frameHeight * 2)
 	frame.outerGlow:SetAlpha(1.0)
 	frame.outerGlowOver:SetAlpha(1.0)
-	frame.ants:SetSize(frameWidth, frameHeight)
+	frame.ants:SetSize(frameWidth * 1.05, frameHeight * 1.05)
 	frame.ants:SetAlpha(0)
 	frame:Show()
 end
@@ -224,14 +224,6 @@ function lib.ShowOverlayGlow(frame)
 		overlay:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", frameWidth * 0.2, -frameHeight * 0.2)
 		overlay.animIn:Play()
 		frame.__LBGoverlay = overlay
-
-		if Masque and Masque.UpdateSpellAlert and (not frame.overlay or not issecurevariable(frame, "overlay")) then
-			local old_overlay = frame.overlay
-			frame.overlay = overlay
-			Masque:UpdateSpellAlert(frame)
-
-			frame.overlay = old_overlay
-		end
 	end
 end
 

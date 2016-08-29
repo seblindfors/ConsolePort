@@ -251,7 +251,7 @@ end
 ---------------------------------------------------------------
 -- Get the clean bindings for various uses
 ---------------------------------------------------------------
-function ConsolePort:GetBindings(tbl) return tbl and Controller.Bindings or spairs(Controller.Bindings) end
+function ConsolePort:GetBindings(tbl) return tbl and db.table.copy(Controller.Bindings) or spairs(Controller.Bindings) end
 
 ---------------------------------------------------------------
 -- Default faux binding settings

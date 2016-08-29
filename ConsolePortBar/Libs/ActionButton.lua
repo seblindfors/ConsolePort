@@ -167,10 +167,10 @@ function lib:CreateButton(id, name, header, config, template)
 	button:RegisterForClicks("AnyUp")
 
 	-- Frame Scripts
-	button:SetScript("OnEnter", Generic.OnEnter)
-	button:SetScript("OnLeave", Generic.OnLeave)
-	button:SetScript("PreClick", Generic.PreClick)
-	button:SetScript("PostClick", Generic.PostClick)
+	button:HookScript("OnEnter", Generic.OnEnter)
+	button:HookScript("OnLeave", Generic.OnLeave)
+	button:HookScript("PreClick", Generic.PreClick)
+	button:HookScript("PostClick", Generic.PostClick)
 
 	button.id = id
 	button.header = header
@@ -220,6 +220,7 @@ function SetupSecureSnippets(button)
 	-- update the type and action of the button based on the state
 	button:SetAttribute("UpdateState", [[
 		local state = ...
+
 		self:SetAttribute("state", state)
 		local type, action = (self:GetAttribute(format("labtype-%s", state)) or "empty"), self:GetAttribute(format("labaction-%s", state))
 
@@ -279,12 +280,11 @@ function SetupSecureSnippets(button)
 	]])
 
 	button:SetAttribute("_onenter", [[
-		self:CallMethod("Hover", true)
+		self:CallMethod("SetClicks", true)
 	]])
 
 	button:SetAttribute("_onleave", [[
-		self:CallMethod("Hover", false)
-		self:CallMethod("UpdateCooldown")
+		self:CallMethod("SetClicks", false)
 	]])
 
 	-- secure PickupButton(self, kind, value, ...)
@@ -530,22 +530,6 @@ function Generic:DisableDragNDrop(flag)
 	end
 end
 
-function Generic:AddToButtonFacade(group)
-	if type(group) ~= "table" or type(group.AddButton) ~= "function" then
-		error("LibActionButton-1.0:AddToButtonFacade: You need to supply a proper group to use!", 2)
-	end
-	group:AddButton(self)
-	self.LBFSkinned = true
-end
-
-function Generic:AddToMasque(group)
-	if type(group) ~= "table" or type(group.AddButton) ~= "function" then
-		error("LibActionButton-1.0:AddToMasque: You need to supply a proper group to use!", 2)
-	end
-	group:AddButton(self)
-	self.MasqueSkinned = true
-end
-
 function Generic:UpdateAlpha()
 	UpdateCooldown(self)
 end
@@ -622,7 +606,7 @@ local function formatHelper(input)
 	end
 end
 
-function Generic:PostClick()
+function Generic:PostClick(button)
 	UpdateButtonState(self)
 	if self._receiving_drag and not InCombatLockdown() then
 		if self._old_type then
@@ -1030,6 +1014,14 @@ end
 -----------------------------------------------------------
 --- button management
 
+function Generic:SetClicks(mouseover)
+	if mouseover then
+		self:RegisterForClicks("AnyUp")
+	else
+		self:RegisterForClicks("AnyDown")
+	end
+end
+
 function Generic:Hover(show)
 	self.forceShow = show
 	if show and not self.isMainButton then
@@ -1073,6 +1065,10 @@ function Update(self)
 		NonActionButtons[self] = nil
 		self.cooldown:Hide()
 		self:SetChecked(false)
+
+		self.isGlowing = nil
+		self.isOnCooldown = nil
+		FadeOut(self)
 
 		if self.chargeCooldown then
 			EndChargeCooldown(self.chargeCooldown)
@@ -1122,7 +1118,8 @@ function Update(self)
 		self.rangeTimer = - 1
 	elseif not texture then
 		self.cachedTexture = nil
-		self.icon:Hide()
+		self.icon:SetTexture("Interface\\ICONS\\INV_Stone_WeightStone_08")
+		self.icon:Show()
 		self.cooldown:Hide()
 		self.rangeTimer = nil
 	end
@@ -1221,18 +1218,17 @@ local function StartChargeCooldown(parent, chargeStart, chargeDuration)
 		local cooldown = tremove(lib.ChargeCooldowns)
 		if not cooldown then
 			lib.NumChargeCooldowns = lib.NumChargeCooldowns + 1
-			cooldown = CreateFrame("Cooldown", "$parentChargeCooldown", parent, "CooldownFrameTemplate");
+			cooldown = CreateFrame("Cooldown", "$parentChargeCooldown", parent, "CooldownFrameTemplate")
 			cooldown:SetScript("OnCooldownDone", EndChargeCooldown)
 			cooldown:SetHideCountdownNumbers(true)
-			cooldown:SetEdgeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Edge")
+			cooldown:SetEdgeTexture("Interface\\AddOns\\ConsolePortBar\\Textures\\Cooldown\\Edge")
 			cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
-			cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Swipe")
+			cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePortBar\\Textures\\Cooldown\\Charge")
 			cooldown:SetDrawEdge(true)
 			cooldown:SetDrawSwipe(true)
 		end
 		cooldown:SetParent(parent)
 		cooldown:SetAllPoints(parent)
-		cooldown:SetFrameStrata("TOOLTIP")
 		cooldown:Show()
 		parent.chargeCooldown = cooldown
 		cooldown.parent = parent
@@ -1394,7 +1390,6 @@ hooksecurefunc("ActionButton_UpdateFlyout", function(self, ...)
 end)
 
 function UpdateFlyout(self)
-	-- disabled FlyoutBorder/BorderShadow, those are not handled by LBF and look terrible
 	self.FlyoutBorder:Hide()
 	self.FlyoutBorderShadow:Hide()
 	if self._state_type == "action" then
@@ -1423,7 +1418,7 @@ function UpdateFlyout(self)
 				self.FlyoutArrow:SetPoint("BOTTOM", self, "BOTTOM", 0, -arrowDistance)
 				SetClampedTextureRotation(self.FlyoutArrow, 180)
 			else
-				self.FlyoutArrow:SetPoint("TOP", self, "TOP", 0, arrowDistance)
+				self.FlyoutArrow:SetPoint("TOP", self, "TOP", -20, arrowDistance)
 				SetClampedTextureRotation(self.FlyoutArrow, 0)
 			end
 

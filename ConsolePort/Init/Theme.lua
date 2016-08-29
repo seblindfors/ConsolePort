@@ -69,6 +69,9 @@ local function LoadTriggerTextures(ctrlType, settings)
 	-- Change global binding names
 	BINDING_NAME_CP_T1 = format(TEXTURE_ESC, db.TEXTURE.CP_T1)
 	BINDING_NAME_CP_T2 = format(TEXTURE_ESC, db.TEXTURE.CP_T2)
+
+	BINDING_NAME_CP_M1 = format(TEXTURE_ESC, db.TEXTURE.CP_M1)
+	BINDING_NAME_CP_M2 = format(TEXTURE_ESC, db.TEXTURE.CP_M2)
 end
 
 function ConsolePort:LoadControllerTheme()

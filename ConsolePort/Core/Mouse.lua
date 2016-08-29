@@ -472,6 +472,7 @@ end
 
 hooksecurefunc("UseAction", Trail.OnAction)
 hooksecurefunc("PickupContainerItem", Trail.OnItemAdd)
+hooksecurefunc("PickupSpell", Trail.OnItemAdd)
 hooksecurefunc(GameTooltip, "SetOwner", Trail.OnTooltipAdd)
 GameTooltip:HookScript("OnTooltipCleared", Trail.OnTooltipClear)
 

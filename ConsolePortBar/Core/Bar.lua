@@ -3,30 +3,33 @@ local db = ConsolePort:GetData()
 ---------------------------------------------------------------
 local addOn, ab = ...
 ---------------------------------------------------------------
+local cfg
+---------------------------------------------------------------
 local class = select(2, UnitClass("player"))
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
 local UIasset = "Interface\\AddOns\\ConsolePort\\Textures\\UIAsset"
 
 
-local Bar = CreateFrame("Frame", addOn, UIParent, "SecureHandlerStateTemplate")
+local Bar = CreateFrame("Frame", addOn, UIParent, "SecureHandlerStateTemplate, SecureHandlerShowHideTemplate")
 local Eye = CreateFrame("Button", "$parentShowHideButtons", Bar, "SecureActionButtonTemplate")
 local Menu = CreateFrame("Button", "$parentShowHideMenu", Bar, "SecureActionButtonTemplate")
-local Lib = ab.libs.button
+local Wrapper = ab.libs.wrapper
 local state, now = ConsolePort:GetActionPageDriver()
 
 -- Set up action bar
 ---------------------------------------------------------------
 ab.bar = Bar
+ab.data = db
 ---------------------------------------------------------------
 Bar:SetAttribute("actionpage", now)
 Bar.ignoreNode = true
 Bar.Buttons = {}
 Bar.isForbidden = true
 Bar:SetClampedToScreen(true)
-Bar:SetScript("OnMouseDown", Bar.StartMoving)
-Bar:SetScript("OnMouseUp", Bar.StopMovingOrSizing)
-Bar:SetMovable(true)
+--Bar:SetScript("OnMouseDown", Bar.StartMoving)
+--Bar:SetScript("OnMouseUp", Bar.StopMovingOrSizing)
+Bar:SetMovable(false)
 Bar:SetPoint("BOTTOM", UIParent, 0, 0)
 RegisterStateDriver(Bar, "page", state)
 RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ")
@@ -34,6 +37,37 @@ RegisterStateDriver(Bar, "visibility", "[petbattle][vehicleui][overridebar] hide
 
 Bar:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 Bar:SetFrameRef("OverrideBar", OverrideActionBar)
+Bar:Execute([[
+	bindings = newtable()
+]])
+
+Bar:SetAttribute("_onhide", [[
+	self:ClearBindings()
+]])
+
+Bar:SetAttribute("_onshow", [[
+	for key, button in pairs(bindings) do
+		self:SetBindingClick(true, key, button)
+	end
+	self:CallMethod("FadeIn")
+]])
+
+function Bar:FadeIn()
+	db.UIFrameFadeIn(self, 1, 0, 1)
+end
+
+function Bar:UnregisterOverrides()
+	self:Execute([[
+		bindings = wipe(bindings)
+		self:ClearBindings()
+	]])
+end
+
+function Bar:RegisterOverride(key, button)
+	self:Execute(format([[
+		bindings["%s"] = "%s"
+	]], key, button))
+end
 
 Bar:SetAttribute("_onstate-modifier", [[
 	self:SetAttribute("state", newstate)
@@ -55,192 +89,6 @@ Bar:SetAttribute("_onstate-page", [[
 	control:ChildUpdate("actionpage", newstate)
 ]])
 
-
-local layout = {
-	["CP_T1"] = {"CENTER", -50, 70},
-	["CP_T2"] = {"CENTER", 50, 70},
-	---
-	["CP_L_GRIP"] = {"LEFT", 160, 10},
-	["CP_R_GRIP"] = {"RIGHT", -160, 10},
-	---
-	["CP_L_LEFT"] 	= {"LEFT", 240, 50},
-	["CP_L_RIGHT"] 	= {"LEFT", 400, 50},
-	["CP_L_UP"] 	= {"LEFT", 320, 95},
-	["CP_L_DOWN"] 	= {"LEFT", 320, 10},
-	---
-	["CP_R_LEFT"] 	= {"RIGHT", -400, 50},
-	["CP_R_RIGHT"] 	= {"RIGHT", -240, 50},
-	["CP_R_UP"] 	= {"RIGHT", -320, 95},
-	["CP_R_DOWN"] 	= {"RIGHT", -320, 10},
-}
-
-for binding in ConsolePort:GetBindings() do
-	local button = Lib:Create(Bar, binding)
-
---	Lib:SetState(button, db.Bindings[binding])
-
-	local position = layout[binding]
-
-	if position then
-		button:SetPoint(unpack(position))
-	end
-	Bar.Buttons[#Bar.Buttons + 1] = button
-end
-
-Lib:UpdateAllBindings()
-
-Bar:SetWidth(#Bar.Buttons > 10 and (10 * 110) + 55 or (#Bar.Buttons * 110) + 55)
-
-Bar:SetAttribute("page", 1)
-
-
--- this was stolen from Bartender4
-do
-	-- Hidden parent frame
-	local UIHider = CreateFrame("Frame")
-	UIHider:Hide()
-	Bar.UIHider = UIHider
-
-	MultiBarBottomLeft:SetParent(UIHider)
-	MultiBarBottomRight:SetParent(UIHider)
-	MultiBarLeft:SetParent(UIHider)
-	MultiBarRight:SetParent(UIHider)
-
-	-- Hide MultiBar Buttons, but keep the bars alive
-	for i=1,12 do
-		_G["ActionButton" .. i]:Hide()
-		_G["ActionButton" .. i]:UnregisterAllEvents()
-		_G["ActionButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBarBottomLeftButton" .. i]:Hide()
-		_G["MultiBarBottomLeftButton" .. i]:UnregisterAllEvents()
-		_G["MultiBarBottomLeftButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBarBottomRightButton" .. i]:Hide()
-		_G["MultiBarBottomRightButton" .. i]:UnregisterAllEvents()
-		_G["MultiBarBottomRightButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBarRightButton" .. i]:Hide()
-		_G["MultiBarRightButton" .. i]:UnregisterAllEvents()
-		_G["MultiBarRightButton" .. i]:SetAttribute("statehidden", true)
-
-		_G["MultiBarLeftButton" .. i]:Hide()
-		_G["MultiBarLeftButton" .. i]:UnregisterAllEvents()
-		_G["MultiBarLeftButton" .. i]:SetAttribute("statehidden", true)
-	end
-
-	UIPARENT_MANAGED_FRAME_POSITIONS["MainMenuBar"] = nil
-	UIPARENT_MANAGED_FRAME_POSITIONS["StanceBarFrame"] = nil
-	UIPARENT_MANAGED_FRAME_POSITIONS["PossessBarFrame"] = nil
-	UIPARENT_MANAGED_FRAME_POSITIONS["PETACTIONBAR_YPOS"] = nil
-
-	MainMenuBar:EnableMouse(false)
-
-	local animations = {MainMenuBar.slideOut:GetAnimations()}
-	animations[1]:SetOffset(0,0)
-
-	MainMenuBarArtFrame:Hide()
-	MainMenuBarArtFrame:SetParent(UIHider)
-
-	MainMenuExpBar:SetParent(Bar)
-	MainMenuExpBar:ClearAllPoints()
-	MainMenuExpBar:SetPoint("BOTTOM", 0, 3)
-
-	hooksecurefunc(MainMenuExpBar, "SetStatusBarColor", function(self, r, g, b, a)
-		if r ~= red or g ~= green or b ~= blue then
-			self:SetStatusBarColor(red, green, blue)
-		end
-	end)
-
-	MainMenuXPBarTextureMid:SetTexCoord(0, 1, 1, 0)
-	MainMenuXPBarTextureLeftCap:SetTexCoord(0.18750000, 0.43750000, 0.26562500, 0.01562500)
-	MainMenuXPBarTextureRightCap:SetTexCoord(0.18750000, 0.43750000, 0.54687500, 0.29687500)
-
-	MainMenuXPBarTextureMid:SetGradientAlpha("VERTICAL", 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.75)
-	MainMenuXPBarTextureLeftCap:SetGradientAlpha("VERTICAL", 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.75)
-	MainMenuXPBarTextureRightCap:SetGradientAlpha("VERTICAL", 1, 1, 1, 1, 0.5, 0.5, 0.5, 0.75)
-
-	MainMenuBarPerformanceBar:SetParent(UIHider)
-	MainMenuBarPerformanceBar:ClearAllPoints()
-
-	MainMenuXPBarTextureMid:SetAlpha(0.5)
-	MainMenuXPBarTextureLeftCap:SetAlpha(0.5)
-	MainMenuXPBarTextureRightCap:SetAlpha(0.5)
-
-	for i=1, 19 do
-		_G["MainMenuXPBarDiv"..i]:SetAlpha(0.5)
-	end
-
-	MainMenuBarMaxLevelBar:Hide()
-	MainMenuBarMaxLevelBar:SetParent(UIHider)
-
-	ReputationWatchBar:Hide()
-	ReputationWatchBar:SetParent(UIHider)
-
-	for i=0, 3 do
-		HonorWatchBar.StatusBar["WatchBarTexture"..i]:SetAlpha(0.5)
-		HonorWatchBar.StatusBar["XPBarTexture"..i]:SetAlpha(0.5)
-	end
-
-	HonorWatchBar:SetParent(Bar)
-	HonorWatchBar:ClearAllPoints()
-	HonorWatchBar:SetPoint("BOTTOM", 0, 3)
-
-	HonorWatchBar:HookScript("OnShow", function(self) MainMenuExpBar:Hide() end)
-	HonorWatchBar:HookScript("OnHide", function(self) MainMenuExpBar:SetShown(UnitLevel("player") < MAX_PLAYER_LEVEL and not IsXPUserDisabled()) end)
-
-	hooksecurefunc(HonorWatchBar, "SetPoint", function(self, anchor, xoffset, yoffset)
-		if anchor ~= "BOTTOM" or xoffset ~= 0 or yoffset ~= 3 then
-			self:ClearAllPoints()
-			self:SetPoint("BOTTOM", 0, 3)
-		end
-	end)
-
-	ArtifactWatchBar:ClearAllPoints()
-	ArtifactWatchBar:SetParent(Bar)
-	ArtifactWatchBar:SetPoint("BOTTOM", 0, 16)
-
-	StanceBarFrame:UnregisterAllEvents()
-	StanceBarFrame:Hide()
-	StanceBarFrame:SetParent(UIHider)
-
-	PossessBarFrame:Hide()
-	PossessBarFrame:SetParent(UIHider)
-
-	PetActionBarFrame:UnregisterAllEvents()
-	PetActionBarFrame:Hide()
-	PetActionBarFrame:SetParent(UIHider)
-
-	ObjectiveTrackerFrame:SetPoint("TOPRIGHT", MinimapCluster, "BOTTOMRIGHT", -100, -132)
-
-	if PlayerTalentFrame then
-		PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-	else
-		hooksecurefunc("TalentFrame_LoadUI", function() PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED") end)
-	end
-
-	-- raid cursor fix to add the hidden action bars to the interface scan process
-	ConsolePortRaidCursor:SetFrameRef("hiddenBars", UIHider)
-	ConsolePortRaidCursor:Execute([[
-		UpdateFrameStack = [=[
-			local frames = newtable(self:GetParent():GetChildren())
-			frames[#frames + 1] = self:GetFrameRef("hiddenBars")
-			for i, frame in pairs(frames) do
-				if frame:IsProtected() and not Cache[frame] then
-					CurrentNode = frame
-					self:Run(GetNodes)
-				end
-			end
-			self:Run(RefreshActions)
-			if IsEnabled then
-				self:Run(SelectNode, 0)
-			end
-		]=]
-	]])
-
-end
-
-ConsolePort:LoadHotKeyTextures()
 
 local backdrop = {
 	edgeFile 	= "Interface\\AddOns\\"..addOn.."\\Textures\\BarEdge",
@@ -264,11 +112,28 @@ Bar.BottomLine:SetPoint("BOTTOMLEFT", 0, 16)
 Bar.BottomLine:SetPoint("BOTTOMRIGHT", 0, 16)
 Bar.BottomLine:SetVertexColor(red, green, blue, 1)
 
+local art, coords = ab:GetCover()
+if art and coords then
+	Bar.CoverArt = Bar:CreateTexture(nil, "BACKGROUND")
+	Bar.CoverArt:SetPoint("BOTTOM", 0, 16)
+	Bar.CoverArt:SetSize(1024, 256)
+	Bar.CoverArt:SetTexture(art)
+	Bar.CoverArt:SetTexCoord(unpack(coords))
+end
 
-Bar.BG:SetVertexColor(red, green, blue, 0.25)
-Bar.BG:SetGradientAlpha("VERTICAL", red, green, blue, 0.25, red, green, blue, 0)
+local gBase = 0.15
+local gMulti = 1.2
+local startAlpha = 0.25
+local endAlpha = 0
+local classGradient = {
+	"VERTICAL",
+	(red + gBase) * gMulti, (green + gBase) * gMulti, (blue + gBase) * gMulti, startAlpha,
+	1 - (red + gBase) * gMulti, 1 - (green + gBase) * gMulti, 1 - (blue + gBase) * gMulti, endAlpha,
+}
 
-Bar:SetHeight(120)
+Bar.BG:SetGradientAlpha(unpack(classGradient))
+
+Bar:SetHeight(140)
 
 function Bar:OnEvent(event, ...)
 	if self[event] then
@@ -276,22 +141,84 @@ function Bar:OnEvent(event, ...)
 	end
 end
 
-function Bar:OnMouseWheel(delta)
-	self:SetScale(self:GetScale() + ( delta * 0.1 ) )
+function Bar:ADDON_LOADED(...)
+	local name = ...
+	if name == addOn then
+		if not ConsolePortBarSetup then
+			ConsolePortBarSetup = {
+				scale = 1,
+				artMode = 1,
+			}
+		end
+		cfg = ConsolePortBarSetup
+
+		self:SetScale(cfg.scale or 1)
+
+		if cfg.artMode == 1 then
+			self.CoverArt:SetSize(1024, 256)
+		elseif cfg.artMode == 2 then
+			self.CoverArt:SetSize(768, 192)
+		else
+			self.CoverArt:Hide()
+		end
+
+		self:UnregisterEvent("ADDON_LOADED")
+	end
 end
 
-hooksecurefunc(ConsolePort, "LoadBindingSet", function(self, ...)
-	if not InCombatLockdown() then
-		Lib:UpdateAllBindings(...)
-	end
-end)
-
+function Bar:OnMouseWheel(delta)
+	cfg.scale = self:GetScale() + ( delta * 0.1 )
+	self:SetScale(cfg.scale)
+end
 
 Bar:SetScript("OnEvent", Bar.OnEvent)
 Bar:SetScript("OnMouseWheel", Bar.OnMouseWheel)
 Bar:RegisterEvent("PLAYER_LOGIN")
+Bar:RegisterEvent("ADDON_LOADED")
 Bar:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
 Bar:RegisterEvent("PLAYER_TALENT_UPDATE")
+
+local layout = {
+	["CP_T1"] = {point = {"CENTER", -110, 64}, dir = "right"},
+	["CP_T2"] = {point = {"CENTER", 110, 64}, dir = "left"},
+	---
+	["CP_L_GRIP"] = {point = {"CENTER", -160, 120}, dir = "up"},
+	["CP_R_GRIP"] = {point = {"CENTER", 160, 120}, dir = "up"},
+	---
+	["CP_L_LEFT"] 	= {point = {"LEFT", 255 - 80, 50 + 14}, dir = "left"},
+	["CP_L_RIGHT"] 	= {point = {"LEFT", 385 - 80, 50 + 14}, dir = "right"},
+	["CP_L_UP"] 	= {point = {"LEFT", 320 - 80, 95 + 14}, dir = "up"},
+	["CP_L_DOWN"] 	= {point = {"LEFT", 320 - 80, 10 + 14}, dir = "down"},
+	---
+	["CP_R_LEFT"] 	= {point = {"RIGHT", -385 + 80, 50 + 14}, dir = "left"},
+	["CP_R_RIGHT"] 	= {point = {"RIGHT", -255 + 80, 50 + 14}, dir = "right"},
+	["CP_R_UP"] 	= {point = {"RIGHT", -320 + 80, 95 + 14}, dir = "up"},
+	["CP_R_DOWN"] 	= {point = {"RIGHT", -320 + 80, 10 + 14}, dir = "down"},
+}
+
+for binding in ConsolePort:GetBindings() do
+	local position = layout[binding]
+	local button = Wrapper:Create(Bar, binding, position and position.dir or "down")
+
+	if position then
+		button:SetPoint(unpack(position.point))
+	end
+	Bar.Buttons[#Bar.Buttons + 1] = button
+end
+
+Wrapper:UpdateAllBindings()
+Bar:Hide()
+Bar:Show()
+
+hooksecurefunc(ConsolePort, "LoadBindingSet", function(self, ...)
+	if not InCombatLockdown() then
+		Wrapper:UpdateAllBindings(...)
+		Bar:Hide()
+		Bar:Show()
+	end
+end)
+
+Bar:SetAttribute("page", 1)
 
 Bar:Execute(format([[
 	control:ChildUpdate("state", "")
@@ -299,15 +226,24 @@ Bar:Execute(format([[
 ]], now or 1))
 
 
+Bar:SetWidth(#Bar.Buttons > 10 and (10 * 110) + 55 or (#Bar.Buttons * 110) + 55)
+
+
+-- Set up buttons on the bar.
+---------------------------------------------------------------
+
+-- Toggler for buttons and art
+
+Eye:RegisterForClicks("AnyUp")
 Eye:SetAttribute("showbuttons", false)
-Eye:SetPoint("BOTTOM", -40, 26)
+Eye:SetPoint("RIGHT", Menu, "LEFT", 0, 0)
 Eye:SetSize(83.2, 47.2)
 Eye:SetNormalTexture(UIasset)
 Eye:SetHighlightTexture(UIasset)
 Eye.Texture = Eye:CreateTexture(nil, "OVERLAY")
 Eye.Texture:SetPoint("CENTER", 0, 2)
 Eye.Texture:SetSize(64 * 0.9, 32 * 0.9)
-Eye.Texture:SetTexture("Interface\\AddOns\\"..addOn.."\\Textures\\Hide")
+Eye.Texture:SetTexture("Interface\\AddOns\\"..addOn.."\\Textures\\Hide") 
 
 
 local normal, highlight = Eye:GetNormalTexture(), Eye:GetHighlightTexture()
@@ -325,6 +261,7 @@ highlight:SetVertexColor(red, green, blue)
 
 function Eye:OnAttributeChanged(attribute, value)
 	if attribute == "showbuttons" then
+		cfg.showbuttons = value
 		if value == true then
 			self.Texture:SetTexture("Interface\\AddOns\\"..addOn.."\\Textures\\Show")
 		else
@@ -333,14 +270,57 @@ function Eye:OnAttributeChanged(attribute, value)
 	end
 end
 
+function Eye:OnClick(button, down)
+	if button == "RightButton" then
+		if not cfg.artMode then
+			cfg.artMode = 1
+		elseif cfg.artMode ~= 2 then
+			cfg.artMode = 2
+		else
+			cfg.artMode = nil
+		end
+
+		if cfg.artMode == 1 then
+			Bar.CoverArt:SetSize(1024, 256)
+		elseif cfg.artMode == 2 then
+			Bar.CoverArt:SetSize(768, 192)
+		end
+
+		Bar.CoverArt:SetShown(cfg.artMode)
+	end
+end
+
+function Eye:OnEnter()
+	if not self.tooltipText then
+		local texture_esc = "|T%s:24:24:0:0|t"
+		self.tooltipText = 	format(db.ACTIONBAR.EYE_LEFTCLICK, format(texture_esc, db.ICONS.CP_T_L3)) .. "\n" ..
+							format(db.ACTIONBAR.EYE_RIGHTCLICK, format(texture_esc, db.ICONS.CP_T_R3)) .. "\n" ..
+							db.ACTIONBAR.EYE_SCROLL
+	end
+	GameTooltip:Hide()
+	GameTooltip:SetOwner(self, "ANCHOR_TOP")
+	GameTooltip:SetText(self.tooltipText)
+	GameTooltip:Show()
+end
+
+function Eye:OnLeave()
+	GameTooltip:Hide()
+end
+
+Eye:SetScript("OnClick", Eye.OnClick)
+Eye:SetScript("OnEnter", Eye.OnEnter)
+Eye:SetScript("OnLeave", Eye.OnLeave)
 Eye:SetScript("OnAttributeChanged", Eye.OnAttributeChanged)
 
 Bar:WrapScript(Eye, "OnClick", [[
-	local showhide = not self:GetAttribute("showbuttons")
-	self:SetAttribute("showbuttons", showhide)
-	control:ChildUpdate("hover", showhide)
+	if button == "LeftButton" then
+		local showhide = not self:GetAttribute("showbuttons")
+		self:SetAttribute("showbuttons", showhide)
+		control:ChildUpdate("hover", showhide)
+	end
 ]])
 
+-- Menu button
 
 function Menu:OnClick()
 	ToggleFrame(GameMenuFrame)
@@ -348,7 +328,7 @@ end
 
 Menu:HookScript("OnClick", Menu.OnClick)
 
-Menu:SetPoint("BOTTOM", 40, 26)
+Menu:SetPoint("BOTTOMRIGHT", 0, 30)
 Menu:SetSize(83.2, 47.2)
 Menu:SetNormalTexture(UIasset)
 Menu:SetHighlightTexture(UIasset)
@@ -378,24 +358,38 @@ gridShadow:SetTexture(UIasset)
 gridShadow:SetVertexColor(0, 0, 0, 0.5)
 
 
-Menu.hover = nil
-Menu.updateInterval = 0
+Menu.timer = 0
+Menu.updateInterval = 1
 Menu.tooltipText = MicroButtonTooltipText(MAINMENU_BUTTON, "TOGGLEGAMEMENU")
 Menu.newbieText = NEWBIE_TOOLTIP_MAINMENU
 
+function Menu:ShowPerformance(elapsed)
+	self.timer = self.timer + elapsed
+	if self.timer > self.updateInterval then
+		MainMenuBarPerformanceBarFrame_OnEnter(self)
+		self.timer = 0
+	end
+end
+
 Menu:SetScript("OnEnter", function(self)
-	self.hover = 1
-	self.updateInterval = 0
-end)
-Menu:SetScript("OnLeave", function(self)
-	self.hover = nil
-	GameTooltip:Hide()
+	local key, mod = ConsolePort:GetCurrentBindingOwner("TOGGLEGAMEMENU")
+	if key and mod then
+		local mods = {
+			[""] = "",
+			["SHIFT-"] = BINDING_NAME_CP_M1,
+			["CTRL-"] = BINDING_NAME_CP_M2,
+			["CTRL-SHIFT-"] = BINDING_NAME_CP_M1..BINDING_NAME_CP_M2,
+		}
+		self.tooltipText = mods[mod].._G["BINDING_NAME_"..key].."  |c"..RAID_CLASS_COLORS[class].colorStr..MAINMENU_BUTTON
+	else
+		self.tooltipText = MicroButtonTooltipText(MAINMENU_BUTTON, "TOGGLEGAMEMENU")
+	end
+	MainMenuBarPerformanceBarFrame_OnEnter(self)
+	self.timer = 0
+	self:SetScript("OnUpdate", self.ShowPerformance)
 end)
 
-Menu:SetScript("OnUpdate", function(self, elapsed)
-	if self.updateInterval > 0 then
-		self.updateInterval = self.updateInterval - elapsed
-	elseif self.hover then
-		MainMenuBarPerformanceBarFrame_OnEnter(self)
-	end
+Menu:SetScript("OnLeave", function(self)
+	self:SetScript("OnUpdate", nil)
+	GameTooltip:Hide()
 end)

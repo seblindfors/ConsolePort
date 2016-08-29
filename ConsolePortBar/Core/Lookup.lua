@@ -13,6 +13,33 @@ function ab:GetBindingIcon(binding)
 	return icons[binding]
 end
 
+function ab:GetCover(class)
+	local classArt = {
+		["WARRIOR"] = {1, 1},
+		["PALADIN"] = {1, 2},
+		["DRUID"] 	= {1, 3},
+		["DEATHKNIGHT"] = {1, 4},
+		----------------------------
+		["MAGE"] 	= {2, 1},
+		["HUNTER"] 	= {2, 2},
+		["ROGUE"] 	= {2, 3},
+		["WARLOCK"] = {2, 4},
+		----------------------------
+		["SHAMAN"] 	= {3, 1},
+		["PRIEST"] 	= {3, 2},
+		["DEMONHUNTER"] = {3, 3},
+		["MONK"] 	= {3, 4},
+	}
+	local art = class and classArt[class]
+	if not class and not art then
+		art = classArt[select(2, UnitClass("player"))]
+	end
+	if art then
+		local index, px = unpack(art)
+		return [[Interface\AddOns\]]..addOn..[[\Textures\Covers\]]..index, {0, 1, (( px - 1 ) * 256 ) / 1024, ( px * 256 ) / 1024 }
+	end
+end
+
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 ---------------------------------------------------------------

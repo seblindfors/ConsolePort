@@ -1,10 +1,9 @@
 ## Interface: 70000
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar extension for Console Port
-## Version: 0.0.5
+## Version: 0.1.0
 ## SavedVariablesPerCharacter: ConsolePortBarSetup
 ## RequiredDeps: ConsolePort
-## LoadOnDemand: 1
 
 Libs\CallbackHandler.lua
 Libs\ButtonGlow.lua
@@ -15,6 +14,8 @@ Core\Lookup.lua
 Core\Wrapper.lua
 Core\Bar.lua
 Core\Config.lua
+
+Extras\Blizzard.lua
 
 Options\Pet.lua
 Options\Stance.lua

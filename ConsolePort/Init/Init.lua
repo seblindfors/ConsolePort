@@ -196,28 +196,6 @@ function ConsolePort:LoadSettings()
 		["resetall"] = {desc = SLASH.RESET, func = ResetAll},
 	}
 
-	-------------------------------------------------------
-	-- Action bar testing
-	if IsAddOnLoadOnDemand("ConsolePortBar") then
-		local function ShowActionBar(...)
-			if not InCombatLockdown() then
-				local state = ...
-				state = state and strlower(state)
-				if state == "on" then
-					db.Settings.actionBarTest = true
-					LoadAddOn("ConsolePortBar")
-				elseif state == "off" then
-					db.Settings.actionBarTest = nil
-					ReloadUI()
-				end
-			else
-				print("|cffffe00aConsolePort|r:", "Action bar cannot be loaded in combat.")
-			end
-		end
-		instructions.actionbar = {desc = "|cffffe00a(on / off)|r Use experimental action bar", func = ShowActionBar}
-	end
-	-------------------------------------------------------
-
 	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
 	SlashCmdList["CONSOLEPORT"] = function(msg, editBox)
 		local inputs = {}

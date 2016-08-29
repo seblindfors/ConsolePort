@@ -25,18 +25,27 @@ Pet.Buttons = {}
 Pet.showgrid = 0
 Pet.locked = 0
 Pet.mode = "show"
-Pet:SetMovable(true)
+--Pet:SetMovable(true)
 Pet:SetClampedToScreen(true)
-Pet:SetScript("OnMouseDown", Pet.StartMoving)
-Pet:SetScript("OnMouseUp", Pet.StopMovingOrSizing)
-Pet:SetPoint("BOTTOMRIGHT", Bar, "TOPRIGHT", 0, 0)
+--Pet:SetScript("OnMouseDown", Pet.StartMoving)
+--Pet:SetScript("OnMouseUp", Pet.StopMovingOrSizing)
+Pet:SetPoint("BOTTOM", Bar, "BOTTOM", 0, 20)
 Pet:SetSize((BUTTON_SIZE * NUM_PET_ACTION_SLOTS) + ((NUM_PET_ACTION_SLOTS) * 4), 64)
 Pet:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
 Pet:RegisterEvent("PET_BAR_UPDATE")
+Pet:RegisterEvent("PLAYER_CONTROL_LOST")
+Pet:RegisterEvent("PLAYER_CONTROL_GAINED")
+Pet:RegisterEvent("PLAYER_FARSIGHT_FOCUS_CHANGED")
+Pet:RegisterEvent("UNIT_PET")
+Pet:RegisterEvent("UNIT_FLAGS")
+Pet:RegisterEvent("UNIT_AURA")
+Pet:RegisterEvent("PET_BAR_UPDATE")
+Pet:RegisterEvent("PET_BAR_UPDATE_COOLDOWN")
+Pet:RegisterEvent("PET_SPECIALIZATION_CHANGED")
+
 RegisterStateDriver(Pet, "visibility", "[pet] show; hide")
 
 for i=1, NUM_PET_ACTION_SLOTS do
---	local button = Lib:CreateButton(Pet, addOn.."Pet"..i, addOn.."PetButton"..i, 32, 32 * (74/64)) --CreateButton(parent, id, name, size, texSize, config)
 	local name = addOn.."Pet"..i
 	local button = CreateFrame("CheckButton", name, Pet, "SecureActionButtonTemplate, PetActionButtonTemplate")
 	button:SetAttribute("type", "pet")
@@ -50,9 +59,6 @@ for i=1, NUM_PET_ACTION_SLOTS do
 	button.Shine = _G[name.."Shine"]
 	button.cooldown = _G[name.."Cooldown"];
 	button.NormalTexture = _G[name.."NormalTexture2"]
---	button.NormalTexture2 = _G[name.."NormalTexture2"]
-
---	button.NormalTexture2 
 
 	button.Flash:SetMask("Interface\\Minimap\\UI-Minimap-Background")
 	button.Flash:SetAlpha(0.25)
@@ -91,10 +97,13 @@ Pet:HookScript("OnHide", function(self)
 end)
 
 Pet:SetScript("OnEvent", function(self, event, ...)
-	if event == "PET_BAR_UPDATE_COOLDOWN" then
-		self:UpdateCooldowns()
-	else
+	if event == "PET_BAR_UPDATE" or event == "PET_SPECIALIZATION_CHANGED" or
+		(event == "UNIT_PET" and arg1 == "player") or
+		((event == "UNIT_FLAGS" or event == "UNIT_AURA") and arg1 == "pet") or
+		event == "PLAYER_CONTROL_LOST" or event == "PLAYER_CONTROL_GAINED" or event == "PLAYER_FARSIGHT_FOCUS_CHANGED" then
 		self:Update()
+	elseif event == "PET_BAR_UPDATE_COOLDOWN" then
+		self:UpdateCooldowns()
 	end
 end)
 
@@ -206,4 +215,3 @@ function Pet:UpdateCooldowns()
 		end
 	end
 end
-

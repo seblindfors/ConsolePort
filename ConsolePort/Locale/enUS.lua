@@ -219,6 +219,11 @@ CUSTOMBINDS = {
 	CAMERAORSELECTORMOVE 	= 	"Left Mouse Button",
 	TURNORACTION 			= 	"Right Mouse Button",
 },
+ACTIONBAR = {
+	EYE_LEFTCLICK 			= "Left click or %s to show/hide modified actions.",
+	EYE_RIGHTCLICK 			= "Right click or %s to toggle cover art display.",
+	EYE_SCROLL 				= "Scroll with your mouse wheel anywhere on the bar to change scale.",
+},
 HEADERS = {
 	CP_LEFT 				= 	"Directional Pad",
 	CP_RIGHT				= 	"Action Buttons",
