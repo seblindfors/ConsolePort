@@ -875,6 +875,9 @@ function OnEvent(frame, event, arg1, ...)
 					local texture = GetActionTexture(button._state_action)
 					if texture then
 						button.icon:SetTexture(texture)
+						if button.mainIcon then
+							button.mainIcon:SetTexture(texture)
+						end
 					end
 				end
 			end
@@ -1111,17 +1114,35 @@ function Update(self)
 
 	-- Cache textures instead of updating on every change,
 	-- since masked textures are a lot more expensive to swap
-	if texture and texture ~= self.cachedTexture then
-		self.cachedTexture = texture
-		self.icon:SetTexture(texture)
-		self.icon:Show()
-		self.rangeTimer = - 1
-	elseif not texture then
-		self.cachedTexture = nil
-		self.icon:SetTexture("Interface\\ICONS\\INV_Stone_WeightStone_08")
-		self.icon:Show()
-		self.cooldown:Hide()
-		self.rangeTimer = nil
+	if self.isMainButton and self:GetAttribute("state") ~= "" then
+		for _, icon in pairs(self.icons) do
+			icon:SetAlpha(0)
+		end
+		self.icon:SetAlpha(0)
+		self.icons[self:GetAttribute("state")]:SetAlpha(1)
+	else
+		if self.isMainButton then
+			for _, icon in pairs(self.icons) do
+				icon:SetAlpha(0)
+			end
+			self.icon:SetAlpha(1)
+		end
+		if texture and texture ~= self.cachedTexture then
+			self.cachedTexture = texture
+			self.icon:SetTexture(texture)
+			self.rangeTimer = - 1
+			if self.mainIcon then
+				self.mainIcon:SetTexture(texture)
+			end
+		elseif not texture then
+			self.cachedTexture = nil
+			self.icon:SetTexture("Interface\\ICONS\\INV_Stone_WeightStone_08")
+			self.cooldown:Hide()
+			self.rangeTimer = nil
+			if self.mainIcon then
+				self.mainIcon:SetTexture("Interface\\ICONS\\INV_Stone_WeightStone_08")
+			end
+		end
 	end
 
 	UpdateCount(self)
@@ -1168,12 +1189,21 @@ function UpdateUsable(self)
 		local isUsable, notEnoughMana = self:IsUsable()
 		if isUsable then
 			self.icon:SetVertexColor(1.0, 1.0, 1.0)
+			if self.mainIcon then
+				self.mainIcon:SetVertexColor(1.0, 1.0, 1.0)
+			end
 			--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
 		elseif notEnoughMana then
 			self.icon:SetVertexColor(unpack(self.config.colors.mana))
+			if self.mainIcon then
+				self.mainIcon:SetVertexColor(unpack(self.config.colors.mana))
+			end
 			--self.NormalTexture:SetVertexColor(0.5, 0.5, 1.0)
 		else
 			self.icon:SetVertexColor(0.4, 0.4, 0.4)
+			if self.mainIcon then
+				self.mainIcon:SetVertexColor(0.4, 0.4, 0.4)
+			end
 			--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
 		end
 	end

@@ -191,6 +191,10 @@ function Wrapper:Create(parent, id, orientation)
 		end
 	end
 
+	local main = wrapper[""]
+	main.isMainButton = true
+	main.icons = {}
+
 	for mod, button in pairs(wrapper) do
 		local point = mods[mod][orientation]
 		if point then
@@ -198,10 +202,17 @@ function Wrapper:Create(parent, id, orientation)
 			button:SetPoint(point, wrapper[""], relativePoint, xoffset, yoffset)
 			button:SetAttribute("_childupdate-state", nil)
 		end
+		-- Add extra icons to reduce redunant icon updates when holding modifiers
+		if not button.isMainButton then
+			local modIcon = main:CreateTexture("$parentIcon"..mod, "BACKGROUND", nil, 2)
+			modIcon:SetAllPoints()
+			modIcon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+			modIcon:SetAlpha(0)
+			button.mainIcon = modIcon
+			main.icons[mod] = modIcon
+		end
 	end
 
-	local main = wrapper[""]
-	main.isMainButton = true
 
 	main:SetFrameLevel(4)
 	main:SetAlpha(1)

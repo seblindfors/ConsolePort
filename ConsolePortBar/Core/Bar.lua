@@ -63,6 +63,14 @@ function Bar:UnregisterOverrides()
 	]])
 end
 
+function Bar:UpdateOverrides()
+	self:Execute([[
+		for key, button in pairs(bindings) do
+			self:SetBindingClick(true, key, button)
+		end
+	]])
+end
+
 function Bar:RegisterOverride(key, button)
 	self:Execute(format([[
 		bindings["%s"] = "%s"
@@ -212,9 +220,9 @@ Bar:Show()
 
 hooksecurefunc(ConsolePort, "LoadBindingSet", function(self, ...)
 	if not InCombatLockdown() then
+		Bar:UnregisterOverrides()
 		Wrapper:UpdateAllBindings(...)
-		Bar:Hide()
-		Bar:Show()
+		Bar:UpdateOverrides()
 	end
 end)
 
