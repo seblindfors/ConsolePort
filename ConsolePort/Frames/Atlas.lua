@@ -727,7 +727,6 @@ Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, no
 		button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
 
 		button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-		button.NormalTexture:SetAlpha(0.75)
 		button.NormalTexture:ClearAllPoints()
 		button.NormalTexture:SetPoint("CENTER", 0, 0)
 
@@ -744,11 +743,16 @@ Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, no
 		button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
 
 		local size = size or 64
-		local texSize = size * (74 / 64)
 
 		button:SetSize(size, size)
-		button.NormalTexture:SetSize(texSize, texSize)
-		button.PushedTexture:SetSize(texSize, texSize)
+		button.NormalTexture:SetSize(size, size)
+		button.PushedTexture:SetSize(size, size)
+
+		button.ShadowTexture = button:CreateTexture(nil, "BACKGROUND")
+		button.ShadowTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\NormalShadow")
+		button.ShadowTexture:SetSize(size * (82 / 64), size * (82 / 64))
+		button.ShadowTexture:SetPoint("CENTER", 0, -6)
+		button.ShadowTexture:SetAlpha(0.75)
 
 		return button
 	end

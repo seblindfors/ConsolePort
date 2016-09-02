@@ -88,6 +88,6 @@ db.PLUGINS["Blizzard_FlightMap"] = function(self)
 	end)
 
 	FP.ScrollContainer.ignoreScroll = true
-
+	
 	self:AddFrame(FP)
 end

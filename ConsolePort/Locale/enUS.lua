@@ -88,11 +88,14 @@ TUTORIAL = {
 		INTERACTDESC 		= "Used to interact when you don't have a valid target.\nChanges behaviour depending on original action.",
 		MOUSEOVERMODE 		= "Always interact with mouseover",
 		-----------------------------------------------------------
+		TRIGGERHELP 		= "These settings will change which graphics are displayed for your triggers and modifiers.\nIf you want to change your modifiers, you will also have to change them in your controller mapper.",
+		-----------------------------------------------------------
 		MOUSEHANDLE 		= "Character handling",
 		MOUSEDRIFTING 		= "Prevent mouse cursor from drifting off screen",
 		ACTIONCAM 			= "Focus camera on target",
 		TURNMOVE 			= "Turn instead of strafe when the cursor is visible",
 		DOUBLEMODTAP 		= "Double tap |T%s:32:32:0:0|t or |T%s:32:32:0:0|t to toggle mouse cursor",
+		LOOKAROUND 			= "Hold |T%s:32:32:0:0|t to look around",
 		DISABLEMOUSE 		= "Disable automatic mouse behaviour",
 		CONVENIENCE 		= "Convenience features",
 		AUTOEXTRA 			= "Add quest items and extra spells to utility ring",
@@ -119,7 +122,13 @@ TUTORIAL = {
 		DEFAULTTHIS			= "Reset these settings",
 		DEFAULTALL			= "Reset all settings",
 		-----------------------------------------------------------
-		KEYBOARDLANG 		= "Language templates:",
+	},
+	HINTS = {
+		DISABLE 				= "Disable on-screen hints",
+		UTILITY_RING_BIND 		= "Hold %s to open the utility ring.",
+		UTILITY_RING_DOUBLE 	= "Press %s twice to toggle the utility ring.",
+		UTILITY_RING_REMOVE 	= "Press %s when an item is selected to remove it.",
+		UTILITY_RING_NEWBIND	= "%s was bound to your Utility Ring%s",
 	},
 	SETUP = {
 		LAYOUT  			= "Setup: Select controller layout",
@@ -164,7 +173,8 @@ TUTORIAL = {
 		NEWCHARACTER 		= "|cffffe00a[ConsolePort]|r\nWould you like to load the default bindings for your controller?",
 		NOBINDINGS 			= "|cffffe00a[ConsolePort]|r\nYou don't have any bindings configured. Would you like to load the default bindings for your controller?",
 		CALIBRATIONUPDATE	= "|cffffe00a[ConsolePort]|r\nYour current calibration doesn't match your WoWmapper settings. Would you like to update your calibration?",
-	}
+		WMUPDATE 			= "|cffffe00a[ConsolePort]|r\nYou have recently made changes to your WoWmapper settings. For these changes to take effect, the interface has to be reloaded.\nReload now?",
+	},
 },
 TOOLTIP = {
 	CLICK = {
@@ -182,7 +192,7 @@ TOOLTIP = {
 		STACK_BUY 			= 	"Buy a different amount",
 		STACK_SPLIT 		= 	"Split stack",
 		ADD_TO_EXTRA		= 	"Quick bind",
-		FLYOUT 				= 	"Press %s or %s to cast.",
+		FLYOUT 				= 	"%s Cast spell %s Cancel",
 	}
 },
 CUSTOMBINDS = {

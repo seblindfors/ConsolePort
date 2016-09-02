@@ -10,7 +10,7 @@ local Lib = ab.libs.button
 ---------------------------------------------------------------
 local Pet = CreateFrame("Frame", "$parentPetBar", Bar, "SecureHandlerStateTemplate")
 
-local BUTTON_SIZE = 32
+local BUTTON_SIZE = 36
 
 local GetPetActionCooldown = GetPetActionCooldown
 local CooldownFrame_SetTimer = CooldownFrame_SetTimer
@@ -51,7 +51,7 @@ for i=1, NUM_PET_ACTION_SLOTS do
 	button:SetAttribute("type", "pet")
 	button:SetAttribute("action", i)
 	button:SetID(i)
-	button:SetPoint("LEFT", Pet, (i-1) * 36, 0)
+	button:SetPoint("LEFT", Pet, (i-1) * 42, 0)
 	button.HotKey:SetAlpha(0)
 	button:SetSize(BUTTON_SIZE, BUTTON_SIZE)
 
@@ -64,25 +64,32 @@ for i=1, NUM_PET_ACTION_SLOTS do
 	button.Flash:SetAlpha(0.25)
 	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
 
-	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-	button.NormalTexture:SetAlpha(0.75)
+	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePortBar\\Textures\\Button\\PetNormal")
 	button.NormalTexture:ClearAllPoints()
 	button.NormalTexture:SetPoint("CENTER", 0, 0)
-	button.NormalTexture:SetSize(BUTTON_SIZE * (74 / 64), BUTTON_SIZE * (74 / 64))
+	button.NormalTexture:SetSize(60, 60)
 
 	button.PushedTexture = button:GetPushedTexture()
-	button.PushedTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
+	button.HighlightTexture = button:GetHighlightTexture()
+	button.CheckedTexture = button:GetCheckedTexture()
 
-	button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
-	button:GetCheckedTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+	button.PushedTexture:SetTexture("Interface\\AddOns\\ConsolePortBar\\Textures\\Button\\PetPushed")
+	button.PushedTexture:ClearAllPoints()
+	button.PushedTexture:SetPoint("CENTER", 0, 0)
+	button.PushedTexture:SetSize(60, 60)
+
+	button.HighlightTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+	button.HighlightTexture:ClearAllPoints()
+	button.HighlightTexture:SetPoint("CENTER", 0, 0)
+	button.HighlightTexture:SetSize(40, 40)
+
+	button.CheckedTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
+	button.CheckedTexture:ClearAllPoints()
+	button.CheckedTexture:SetPoint("CENTER", 0, 0)
+	button.CheckedTexture:SetSize(40, 40)
 
 	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
-
-	-- button:SetSize(size, size)
-	-- button.NormalTexture:SetSize(texSize, texSize)
-	-- button.PushedTexture:SetSize(texSize, texSize)
-
 
 	Pet.Buttons[i] = button
 end
@@ -193,10 +200,10 @@ function Pet:Update()
 				petActionIcon:SetVertexColor(0.4, 0.4, 0.4)
 			end
 			petActionIcon:Show();
-			petActionButton:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+			petActionButton:SetNormalTexture("Interface\\AddOns\\ConsolePortBar\\Textures\\Button\\PetNormal")
 		else
 			petActionIcon:Hide()
-			petActionButton:SetNormalTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
+			petActionButton:SetNormalTexture("Interface\\AddOns\\ConsolePortBar\\Textures\\Button\\PetPushed")
 		end
 	end
 	self:UpdateCooldowns()

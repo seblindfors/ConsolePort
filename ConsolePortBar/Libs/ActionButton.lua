@@ -1426,33 +1426,13 @@ function UpdateFlyout(self)
 		-- based on ActionButton_UpdateFlyout in ActionButton.lua
 		local actionType = GetActionInfo(self._state_action)
 		if actionType == "flyout" then
-			-- Update border and determine arrow position
-			local arrowDistance
-			if (SpellFlyout and SpellFlyout:IsShown() and SpellFlyout:GetParent() == self) or GetMouseFocus() == self then
-				arrowDistance = 5
-			else
-				arrowDistance = 2
-			end
 
-			-- Update arrow
 			self.FlyoutArrow:Show()
 			self.FlyoutArrow:ClearAllPoints()
-			local direction = self:GetAttribute("flyoutDirection");
-			if direction == "LEFT" then
-				self.FlyoutArrow:SetPoint("LEFT", self, "LEFT", -arrowDistance, 0)
-				SetClampedTextureRotation(self.FlyoutArrow, 270)
-			elseif direction == "RIGHT" then
-				self.FlyoutArrow:SetPoint("RIGHT", self, "RIGHT", arrowDistance, 0)
-				SetClampedTextureRotation(self.FlyoutArrow, 90)
-			elseif direction == "DOWN" then
-				self.FlyoutArrow:SetPoint("BOTTOM", self, "BOTTOM", 0, -arrowDistance)
-				SetClampedTextureRotation(self.FlyoutArrow, 180)
-			else
-				self.FlyoutArrow:SetPoint("TOP", self, "TOP", -20, arrowDistance)
-				SetClampedTextureRotation(self.FlyoutArrow, 0)
-			end
+			
 
-			-- return here, otherwise flyout is hidden
+			self.FlyoutArrow:SetPoint("CENTER", 0, self.isMainButton and -20 or -10)
+			SetClampedTextureRotation(self.FlyoutArrow, 180)
 			return
 		end
 	end

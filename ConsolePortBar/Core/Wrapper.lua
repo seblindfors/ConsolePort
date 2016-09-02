@@ -228,7 +228,7 @@ function Wrapper:Create(parent, id, orientation)
 
 	main.hotkey:SetFrameLevel(20)
 
-	main.shadow = CreateFrame("Frame", "$parent_SHADOW", ab.bar)
+	main.shadow = CreateFrame("Frame", main:GetName().."_SHADOW", ab.bar)
 	main.shadow:SetPoint("CENTER", main, "CENTER", 0, -6)
 	main.shadow:SetSize(82, 82)
 	main.shadow.texture = main.shadow:CreateTexture("$parent_shadow", "OVERLAY", nil, 7)

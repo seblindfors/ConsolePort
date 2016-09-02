@@ -144,6 +144,8 @@ end
 function Cursor:Move(anchor)
 	if current then
 		self.Pointer:ClearAllPoints()
+		self.Highlight:ClearAllPoints()
+		self.Highlight:SetParent(self)
 		self.Pointer:SetParent(current.node)
 		self.Pointer:SetPoint(unpack(self.anchor))
 		local newX, newY = self.Pointer:GetCenter()

@@ -3,6 +3,7 @@
 	<Script file="Blizzard_BindingUI.lua"/>
 	<Script file="Blizzard_FlightMap.lua"/>
 	<Script file="Storyline.lua"/>
+	<Script file="ElvUI.lua"/>
 </Ui>
 
 <!-- 

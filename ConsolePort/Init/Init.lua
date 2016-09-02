@@ -17,6 +17,7 @@ local CRITICALUPDATE, NOBINDINGS, NEWCALIBRATION
 ---------------------------------------------------------------
 local v1, v2, v3 = strsplit("%d+.", GetAddOnMetadata(addOn, "Version"))
 local VERSION = v1*10000+v2*100+v3
+local WM_UPDATE = "ALT-CTRL-SHIFT-F12"
 ---------------------------------------------------------------
 -- Initialize addon tables
 ---------------------------------------------------------------
@@ -81,7 +82,8 @@ function ConsolePort:LoadSettings()
 	-- Load exported WoWmapper settings
 	-----------------------------------------------------------
 	if WoWmapper then
-		if not db.Settings.calibration then
+		if db.Settings.wmupdate or ( not db.Settings.calibration ) then
+			db.Settings.wmupdate = nil
 			LoadWoWmapper()
 		else
 			local cs, ws = db.Settings, WoWmapper.Settings
@@ -101,6 +103,10 @@ function ConsolePort:LoadSettings()
 		end
 		selectController = false
 	end
+
+	-- Set a binding for WoWmapper to let ConsolePort know something changed
+	local WMupdater = CreateFrame("Frame")
+	SetOverrideBinding(WMupdater, true, WM_UPDATE, "WM_UPDATE")
 
 	-----------------------------------------------------------
 	-- Set/load binding table
@@ -216,10 +222,25 @@ function ConsolePort:LoadSettings()
 	self.LoadSettings = nil
 end
 
-function ConsolePort:LoadActionBar()
-	if db.Settings.actionBarTest and IsAddOnLoadOnDemand("ConsolePortBar") then
-		LoadAddOn("ConsolePortBar")
-	end
+function ConsolePort:WMupdate()
+	StaticPopupDialogs["CONSOLEPORT_WMUPDATE"] = {
+		text = db.TUTORIAL.SLASH.WMUPDATE,
+		button1 = db.TUTORIAL.SLASH.ACCEPT,
+		button2 = db.TUTORIAL.SLASH.CANCEL,
+		showAlert = true,
+		timeout = 0,
+		whileDead = true,
+		hideOnEscape = true,
+		preferredIndex = 3,
+		enterClicksFirstButton = true,
+		exclusive = true,
+		OnAccept = function()
+			db.Settings.wmupdate = true
+			ReloadUI()
+		end,
+		OnCancel = CancelPopup,
+	}
+	self:ShowPopup("CONSOLEPORT_WMUPDATE")
 end
 
 function ConsolePort:CheckLoadedSettings()

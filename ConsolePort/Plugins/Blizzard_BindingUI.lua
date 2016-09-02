@@ -1,3 +1,7 @@
+--- Warning popup and modification of the keybinding UI.
+-- This code simply adds an extra layer of protection when messing with keyboard bindings while CP is running.
+-- CP is using unsaved bindings to get the correct bindings keys in secure scopes since overrides might be present.
+
 local _, db = ...
 
 db.PLUGINS["Blizzard_BindingUI"] = function(self)

@@ -482,7 +482,6 @@ end
 local function SetFakeBinding(self, modifier, original, override)
 	if original and override then
 		local key1, key2 = GetBindingKey(original) or config.mouseBindings[original]
-	--	print(GetTime(), original, key1, key2)
 		if key1 then SetOverrideBinding(self, false, modifier..key1, override) end
 		if key2 then SetOverrideBinding(self, false, modifier..key2, override) end
 	end
@@ -542,6 +541,8 @@ function ConsolePort:LoadBindingSet()
 	self:RemoveUpdateSnippet(self.LoadBindingSet)
 	return keys
 end
+
+function ConsolePort:OnNewBindings(bindings) return db.Bindings end
 
 function ConsolePort:LoadInterfaceBinding(button, UIbutton)
 	local action = _G[UIbutton]
@@ -839,6 +840,8 @@ function WindowMixin:Save()
 		self:Reload()
 		self:Export()
 	end
+	-- callback for retrieving new bindings
+	ConsolePort:OnNewBindings(db.Bindings)
 end
 
 function WindowMixin:Cancel()

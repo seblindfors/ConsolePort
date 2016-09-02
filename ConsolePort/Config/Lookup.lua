@@ -274,6 +274,24 @@ function ConsolePort:GetCurrentBindingOwner(bindingID, set)
 	end
 end
 
+function ConsolePort:GetFormattedBindingOwner(bindingID, set, size, useLargeIcons)
+	local key, mod = self:GetCurrentBindingOwner(bindingID, set)
+	if key and mod then
+		local texture_esc = "|T%s:"..format("%d:%d:0:0|t", size or 24, size or 24)
+		local texTable = useLargeIcons and db.TEXTURE or db.ICONS
+		local icon = texTable[key]
+		if icon then
+			local formattedKeys = {
+				[""] = format(texture_esc, icon),
+				["SHIFT-"] = format(texture_esc, texTable.CP_M1) .. format(texture_esc, icon),
+				["CTRL-"] = format(texture_esc, texTable.CP_M2) .. format(texture_esc, icon),
+				["CTRL-SHIFT-"] = format(texture_esc, texTable.CP_M1) .. format(texture_esc, texTable.CP_M2) .. format(texture_esc, icon),
+			}
+			return formattedKeys[mod]
+		end
+	end
+end
+
 ---------------------------------------------------------------
 -- Get the integer key used to perform UI operations
 ---------------------------------------------------------------

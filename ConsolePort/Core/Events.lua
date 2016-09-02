@@ -180,7 +180,6 @@ function Events:ADDON_LOADED(...)
 		self:CreateActionButtons()
 		self:ToggleUICore()
 		self:SetupCursor()
-		self:LoadActionBar()
 		self:CheckLoadedAddons()
 		if not self.calibrationFrame then
 			self:CheckLoadedSettings()

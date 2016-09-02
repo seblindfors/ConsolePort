@@ -25,6 +25,9 @@
 	<Binding name="CP_T2" header="CP_TRIG" category="ConsolePort "/>
 
 	<!-- Custom bindings -->
+	<Binding name="WM_UPDATE" hidden="true">
+		ConsolePort:WMupdate()
+	</Binding>
 	<Binding name="CP_TOGGLEMOUSE" hidden="true">
 		ConsolePortCamera:Toggle()
 	</Binding>

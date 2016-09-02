@@ -41,6 +41,11 @@ local function GetAddonSettings()
 			desc = format(TUTORIAL.CONFIG.DOUBLEMODTAP, ICONS.CP_M1, ICONS.CP_M2),
 			toggle = Settings.doubleModTap,
 		},
+		{
+			cvar = "lookAround",
+			desc = format(TUTORIAL.CONFIG.LOOKAROUND, ICONS.CP_T_L3),
+			toggle = Settings.disableSmartMouse
+		},
 		{	cvar = "disableSmartMouse",
 			desc = TUTORIAL.CONFIG.DISABLEMOUSE,
 			toggle = Settings.disableSmartMouse,
@@ -72,6 +77,11 @@ local function GetAddonSettings()
 			desc = TUTORIAL.CONFIG.CPMENU,
 			toggle = Settings.disableMenu,
 			needReload = true,
+		},
+		{
+			cvar = "disableHints",
+			desc = TUTORIAL.HINTS.DISABLE,
+			toggle = Settings.disableHints,
 		},
 		-- Mouse "events" to the user, but cvars internally
 		{
@@ -469,6 +479,21 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 	Controls.TriggerModule.Header = Controls.TriggerModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Controls.TriggerModule.Header:SetText(TUTORIAL.CONFIG.TRIGGERHEADER)
 	Controls.TriggerModule.Header:SetPoint("TOPLEFT", 24, -24)
+
+	Controls.TriggerModule.HelpButton = CreateFrame("Button", "$parentHelpButton", Controls.TriggerModule)
+	Controls.TriggerModule.HelpButton:SetSize(64, 64)
+	Controls.TriggerModule.HelpButton:SetNormalTexture("Interface\\Common\\help-i")
+	Controls.TriggerModule.HelpButton:SetHighlightTexture("Interface\\Common\\help-i")
+	Controls.TriggerModule.HelpButton:SetPoint("TOPRIGHT", -4, -4)
+	Controls.TriggerModule.HelpButton:SetScript("OnEnter", function(self)
+		GameTooltip:Hide()
+		GameTooltip:SetOwner(self, "ANCHOR_TOP")
+		GameTooltip:SetText(TUTORIAL.CONFIG.TRIGGERHELP)
+		GameTooltip:Show()
+	end)
+	Controls.TriggerModule.HelpButton:SetScript("OnLeave", function(self)
+		GameTooltip:Hide()
+	end)
 
 	Controls.Triggers = {}
 

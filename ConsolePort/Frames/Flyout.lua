@@ -11,7 +11,6 @@ local GameTooltip = GameTooltip
 local FadeIn = db.UIFrameFadeIn
 
 Flyout.ignoreNode = true
-Flyout:SetAlpha(0.35)
 
 local Selector = CreateFrame("Button", "ConsolePortSpellFlyout", UIParent, "SecureHandlerBaseTemplate, SecureActionButtonTemplate")
 
@@ -54,8 +53,13 @@ Selector:Execute([[
 
 Selector:SetAttribute("SelectSpell", [[
 	local key = ...
-	if key == "Up" or key == "Down" then
+	if key == "Up" then
 		self:SetAttribute("macrotext", "/click "..Spells[Index]:GetName())
+	elseif key == "Down" then
+		local owner = Flyout:GetParent()
+		owner:Hide()
+		owner:Show()
+		return
 	elseif key == "Left" then
 		Index = Index > 1 and Index - 1 or Index
 	elseif key == "Right" then
@@ -74,6 +78,7 @@ Selector:SetAttribute("ShowSpells", [[
 	self:SetWidth(Visible * 74)
 	if not Spells[Index]:IsVisible() then
 		Index = 1
+		self:SetAttribute("index", Index)
 	end
 ]])
 
@@ -144,7 +149,6 @@ function Selector:SetSelection(index)
 	for i, button in pairs(self.Buttons) do
 		button:UnlockHighlight()
 		FadeIn(button, 0.2, button:GetAlpha(), 1 - (abs(i - index) / #self.Buttons))
-	--	button:SetAlpha(1 - (abs(i - index) / #self.Buttons))
 	end
 	local selected = self.Buttons[index]
 	if selected then
@@ -154,7 +158,7 @@ function Selector:SetSelection(index)
 end
 
 function Selector:OnShow()
-	ActionStatus_DisplayMessage(format(db.TOOLTIP.CLICK.FLYOUT, BINDING_NAME_CP_L_UP, BINDING_NAME_CP_L_DOWN), true)
+	db.Hint:DisplayMessage(format(db.TOOLTIP.CLICK.FLYOUT, BINDING_NAME_CP_L_UP, BINDING_NAME_CP_L_DOWN), 4, -200)
 	for i, spell in pairs({Flyout:GetChildren()}) do
 		local button = self.Buttons[i]
 		if spell:IsVisible() then
@@ -185,9 +189,9 @@ function Selector:OnAttributeChanged(attribute, detail)
 	end
 end
 
-Selector:SetScript("OnShow", Selector.OnShow)
-Selector:SetScript("OnHide", Selector.OnHide)
-Selector:SetScript("OnAttributeChanged", Selector.OnAttributeChanged)
+Selector:HookScript("OnShow", Selector.OnShow)
+Selector:HookScript("OnHide", Selector.OnHide)
+Selector:HookScript("OnAttributeChanged", Selector.OnAttributeChanged)
 
 Selector:SetBackdrop({
 	edgeFile 	= "Interface\\AddOns\\ConsolePort\\Textures\\Window\\EdgeFileNosides",

@@ -170,13 +170,22 @@ function Bar:ADDON_LOADED(...)
 			self.CoverArt:Hide()
 		end
 
+		if cfg.showbuttons then
+			Eye:SetAttribute("showbuttons", true)
+			Bar:Execute([[
+				control:ChildUpdate("hover", true)
+			]])
+		end
+
 		self:UnregisterEvent("ADDON_LOADED")
 	end
 end
 
 function Bar:OnMouseWheel(delta)
-	cfg.scale = self:GetScale() + ( delta * 0.1 )
-	self:SetScale(cfg.scale)
+	if not InCombatLockdown() then
+		cfg.scale = self:GetScale() + ( delta * 0.1 )
+		self:SetScale(cfg.scale)
+	end
 end
 
 Bar:SetScript("OnEvent", Bar.OnEvent)
@@ -218,7 +227,7 @@ Wrapper:UpdateAllBindings()
 Bar:Hide()
 Bar:Show()
 
-hooksecurefunc(ConsolePort, "LoadBindingSet", function(self, ...)
+hooksecurefunc(ConsolePort, "OnNewBindings", function(self, ...)
 	if not InCombatLockdown() then
 		Bar:UnregisterOverrides()
 		Wrapper:UpdateAllBindings(...)
@@ -241,16 +250,17 @@ Bar:SetWidth(#Bar.Buttons > 10 and (10 * 110) + 55 or (#Bar.Buttons * 110) + 55)
 ---------------------------------------------------------------
 
 -- Toggler for buttons and art
+local sz = .8
 
 Eye:RegisterForClicks("AnyUp")
 Eye:SetAttribute("showbuttons", false)
-Eye:SetPoint("RIGHT", Menu, "LEFT", 0, 0)
-Eye:SetSize(83.2, 47.2)
+Eye:SetPoint("BOTTOMLEFT", 70, 30)
+Eye:SetSize(83.2 * sz, 47.2 * sz)
 Eye:SetNormalTexture(UIasset)
 Eye:SetHighlightTexture(UIasset)
 Eye.Texture = Eye:CreateTexture(nil, "OVERLAY")
 Eye.Texture:SetPoint("CENTER", 0, 2)
-Eye.Texture:SetSize(64 * 0.9, 32 * 0.9)
+Eye.Texture:SetSize((64 * 0.9) * sz, (32 * 0.9) * sz)
 Eye.Texture:SetTexture("Interface\\AddOns\\"..addOn.."\\Textures\\Hide") 
 
 
@@ -263,7 +273,7 @@ normal:SetAllPoints()
 highlight:SetTexCoord(0.0009, 0.0937, 0.3896, 0.4365)
 highlight:ClearAllPoints()
 highlight:SetPoint("LEFT", 3.2, 3.2)
-highlight:SetSize(76, 38.4)
+highlight:SetSize(76 * sz, 38.4 * sz)
 highlight:SetAlpha(1)
 highlight:SetVertexColor(red, green, blue)
 
@@ -336,8 +346,8 @@ end
 
 Menu:HookScript("OnClick", Menu.OnClick)
 
-Menu:SetPoint("BOTTOMRIGHT", 0, 30)
-Menu:SetSize(83.2, 47.2)
+Menu:SetPoint("LEFT", Eye, "RIGHT", 0, 0)
+Menu:SetSize(83.2 * sz, 47.2 * sz)
 Menu:SetNormalTexture(UIasset)
 Menu:SetHighlightTexture(UIasset)
 
@@ -345,7 +355,7 @@ local normal, highlight = Menu:GetNormalTexture(), Menu:GetHighlightTexture()
 
 normal:SetTexCoord(0.2080, 0.1064, 0.3886, 0.4462)
 highlight:SetTexCoord(0.0937, 0.0009, 0.3896, 0.4365)
-highlight:SetSize(76, 38.4)
+highlight:SetSize(76 * sz, 38.4 * sz)
 highlight:ClearAllPoints()
 highlight:SetAlpha(1)
 highlight:SetPoint("RIGHT", -3.2, 3.2)
@@ -354,14 +364,14 @@ highlight:SetVertexColor(red, green, blue)
 local grid = Menu:CreateTexture(nil, "OVERLAY")
 grid:SetPoint("CENTER", 0, 2)
 grid:SetTexCoord(0.0517, 0.0761, 0.4453, 0.4628)
-grid:SetSize(20 * 1.15, 14.4 * 1.15)
+grid:SetSize((20 * 1.15) * sz, (14.4 * 1.15) * sz) 
 grid:SetTexture(UIasset)
 grid:SetVertexColor(0.45, 0.45, 0.45)
 
 local gridShadow = Menu:CreateTexture(nil, "ARTWORK")
 gridShadow:SetPoint("CENTER", 0, 1)
 gridShadow:SetTexCoord(0.0517, 0.0761, 0.4453, 0.4628)
-gridShadow:SetSize(20 * 1.15, 14.4 * 1.15)
+gridShadow:SetSize((20 * 1.15) * sz, (14.4 * 1.15) * sz)
 gridShadow:SetTexture(UIasset)
 gridShadow:SetVertexColor(0, 0, 0, 0.5)
 
@@ -401,3 +411,4 @@ Menu:SetScript("OnLeave", function(self)
 	self:SetScript("OnUpdate", nil)
 	GameTooltip:Hide()
 end)
+

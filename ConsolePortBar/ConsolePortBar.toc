@@ -19,3 +19,4 @@ Extras\Blizzard.lua
 
 Options\Pet.lua
 Options\Stance.lua
+Options\MenuBar.lua

@@ -96,8 +96,18 @@ do
 	HonorWatchBar:ClearAllPoints()
 	HonorWatchBar:SetPoint("BOTTOM", 0, 3)
 
-	HonorWatchBar:HookScript("OnShow", function(self) MainMenuExpBar:Hide() end)
-	HonorWatchBar:HookScript("OnHide", function(self) MainMenuExpBar:SetShown(UnitLevel("player") < MAX_PLAYER_LEVEL and not IsXPUserDisabled()) end)
+	HonorWatchBar:HookScript("OnShow", function(self)
+		MainMenuExpBar:Hide()
+		if ArtifactWatchBar:IsVisible() then
+			ArtifactWatchBar:SetPoint("BOTTOM", 0, 16)
+		end
+	end)
+	HonorWatchBar:HookScript("OnHide", function(self) 
+		MainMenuExpBar:SetShown(UnitLevel("player") < MAX_PLAYER_LEVEL and not IsXPUserDisabled())
+		if ArtifactWatchBar:IsVisible() then
+			ArtifactWatchBar:SetPoint("BOTTOM", 0, 3)
+		end
+	end)
 
 	hooksecurefunc(HonorWatchBar, "SetPoint", function(self, anchor, xoffset, yoffset)
 		if anchor ~= "BOTTOM" or xoffset ~= 0 or yoffset ~= 3 then
@@ -118,7 +128,12 @@ do
 	end
 
 	hooksecurefunc(ArtifactWatchBar, "SetPoint", function(self, anchor, xoffset, yoffset)
-		if anchor ~= "BOTTOM" or xoffset ~= 0 or yoffset ~= 16 then
+		if not MainMenuExpBar:IsVisible() and not HonorWatchBar:IsVisible() and
+			(anchor ~= "BOTTOM" or xoffset ~= 0 or yoffset ~= 3) then
+			self:ClearAllPoints()
+			self:SetPoint("BOTTOM", 0, 3)
+		elseif ( MainMenuExpBar:IsVisible() or HonorWatchBar:IsVisible() ) and
+			(anchor ~= "BOTTOM" or xoffset ~= 0 or yoffset ~= 16) then
 			self:ClearAllPoints()
 			self:SetPoint("BOTTOM", 0, 16)
 		end
@@ -143,6 +158,34 @@ do
 		hooksecurefunc("TalentFrame_LoadUI", function() PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED") end)
 	end
 
+	do
+		local db = ConsolePort:GetData()
+		local bags = {
+			MainMenuBarBackpackButton,
+			CharacterBag0Slot,
+			CharacterBag1Slot,
+			CharacterBag2Slot,
+			CharacterBag3Slot,
+		}
+
+		for i, bag in pairs(bags) do
+			bag:SetParent(Bar)
+			bag:ClearAllPoints()
+			bag:SetAlpha(0.5)
+			bag:SetPoint("BOTTOMRIGHT", -20 + (- 32 * (i)), 30)
+			bag:HookScript("OnEnter", function(self)
+				db.UIFrameFadeIn(self, 0.2, self:GetAlpha(), 1)
+			end)
+			bag:HookScript("OnLeave", function(self)
+				db.UIFrameFadeOut(self, 0.2, self:GetAlpha(), 0.5)
+			end)
+		end
+	end
+	--		table_insert(self.buttons, CharacterBag3Slot)
+	---	table_insert(self.buttons, CharacterBag2Slot)
+		--table_insert(self.buttons, CharacterBag1Slot)
+	--	table_insert(self.buttons, CharacterBag0Slot)
+
 	-- raid cursor fix to add the hidden action bars to the interface scan process
 	ConsolePortRaidCursor:SetFrameRef("hiddenBars", UIHider)
 	ConsolePortRaidCursor:Execute([[
@@ -162,4 +205,46 @@ do
 		]=]
 	]])
 
+end
+
+-- This is a workaround for the problem with the current internal implementation of texture masking.
+-- At random times, a masked texture entity that updates to a new texture in combat will trigger the "script ran too long" error,
+-- which pops up and covers the screen for no good reason except to interrupt the game. While this particular error might warrant
+-- some cause for concern in certain cases, this handler will omit all such errors until texture masking is de facto fixed internally by Blizzard.
+if geterrorhandler() == _ERRORMESSAGE then
+	-- Replace the lua error handler if it isn't already custom
+	local function errorGrabber(message)
+		debuginfo() -- Debugging information for internal use.
+
+		-- Omit the error and return without action
+		if message:match("script ran too long") then return end
+		
+		-- ..otherwise proceed as normal 
+		LoadAddOn("Blizzard_DebugTools");
+		local loaded = IsAddOnLoaded("Blizzard_DebugTools");
+		
+		if ( GetCVarBool("scriptErrors") ) then
+			if ( not loaded or DEBUG_DEBUGTOOLS ) then
+				BasicScriptErrorsText:SetText(message);
+				BasicScriptErrors:Show();
+				if ( DEBUG_DEBUGTOOLS ) then
+					ScriptErrorsFrame_OnError(message);
+				end
+			else
+				ScriptErrorsFrame_OnError(message);
+			end
+		elseif ( loaded ) then
+			local HIDE_ERROR_FRAME = true;
+			ScriptErrorsFrame_OnError(message, false, HIDE_ERROR_FRAME);
+		end
+		
+		-- Show a warning if there are too many errors
+		_ERROR_COUNT = _ERROR_COUNT + 1;
+		if ( _ERROR_COUNT == _ERROR_LIMIT ) then
+			StaticPopup_Show("TOO_MANY_LUA_ERRORS");
+		end
+
+		return message;
+	end
+	seterrorhandler(errorGrabber)
 end

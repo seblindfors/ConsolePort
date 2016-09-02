@@ -44,12 +44,12 @@ local functions = {
 	]],
 	GetActionInfo = [[
 		local id = self:RunAttribute("GetActionID", ...)
-		return GetActionInfo(id)
+		return id and GetActionInfo(id)
 	]],
 	GetActionSpellSlot = [[
 		local type, spellID, subType = self:RunAttribute("GetActionInfo", ...)
 		if type == "spell" and spellID and subType == "spell" then
-			return FindSpellBookSlotBySpellID(spellID)
+			return spellID and FindSpellBookSlotBySpellID(spellID)
 		end
 	]],
 	IsHarmfulAction = [[
@@ -60,7 +60,7 @@ local functions = {
 				return IsHarmfulSpell(slot, "spell")
 			end
 		elseif type == "item" then
-			return IsHarmfulItem(id)
+			return id and IsHarmfulItem(id)
 		end
 	]],
 	IsHelpfulAction = [[
@@ -71,7 +71,7 @@ local functions = {
 				return IsHelpfulSpell(slot, "spell")
 			end
 		elseif type == "item" then
-			return IsHelpfulItem(id)
+			return id and IsHelpfulItem(id)
 		end
 	]],
 	IsNeutralAction = [[
@@ -96,6 +96,8 @@ function ConsolePort:RegisterSpellHeader(header)
 		Pager:Execute([[ headers[self:GetFrameRef("header")] = true ]])
 	end
 end
+
+function ConsolePort:GetPager() return Pager end
 
 function ConsolePort:UnregisterSpellHeader(header)
 	if not InCombatLockdown() then

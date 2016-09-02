@@ -115,6 +115,9 @@ local function hideHook(self)
 	end
 end
 
+hookStack[getmetatable(UIParent).__index.Show] = true
+hookStack[getmetatable(UIParent).__index.Hide] = true 
+
 -- When adding a new frame:
 -- Store metatable functions for hooking show/hide scripts.
 -- Most frames will use the same standard Show/Hide, but addons 
@@ -122,16 +125,23 @@ end
 function Core:AddFrame(frame)
 	local widget = (type(frame) == "string" and _G[frame]) or (type(frame) == "table" and frame)
 	if widget then
-		local mt = getmetatable(widget).__index
+		-- assert the frame isn't hooked twice
+		if not frameStack[widget] then
+			local mt = getmetatable(widget).__index
 
-		if not hookStack[mt.Show] then
-			SetHook(mt, "Show", showHook)
-			hookStack[mt.Show] = true
-		end
+			if not hookStack[mt.Show] then
+				SetHook(mt, "Show", showHook)
+				hookStack[mt.Show] = true
+			else
+				widget:HookScript("OnShow", showHook)
+			end
 
-		if not hookStack[mt.Hide] then
-			SetHook(mt, "Hide", hideHook)
-			hookStack[mt.Hide] = true
+			if not hookStack[mt.Hide] then
+				SetHook(mt, "Hide", hideHook)
+				hookStack[mt.Hide] = true
+			else
+				widget:HookScript("OnHide", hideHook)
+			end
 		end
 
 		frameStack[widget] = true

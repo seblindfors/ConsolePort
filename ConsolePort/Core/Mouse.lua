@@ -50,7 +50,7 @@ Camera.BlockUI:SetFrameStrata("FULLSCREEN_DIALOG")
 Camera.BlockUI:EnableMouse(true)
 Camera.BlockUI:Hide()
 ---------------------------------------------------------------
-local blockCursor, cameraMode, isMouseDown, isCentered, isOutside, isTargeting, hasItem, hasWorldFocus
+local blockCursor, cameraMode, isMouseDown, isCentered, isOutside, isTargeting, hasItem, hasWorldFocus, wasMouseLooking
 
 function Camera:Toggle() if cameraMode then self:Stop() else self:Start() end end
 function Camera:IsCentered() return self.Locker:IsMouseOver() and not self.Deadzone:IsMouseOver() end
@@ -138,11 +138,11 @@ end
 function Camera:OnAction() interactTimer = 0.5 end
 
 function Camera:OnInteract()
-	local guid, hasLoot = UnitGUID("target")
+	local guid, canInteract = UnitGUID("target")
 	if guid then
-		hasLoot = CanLootUnit(guid)
+		canInteract = CanLootUnit(guid) or GetCVar("autoInteract") == "1"--CheckInteractDistance("target", 5)
 	end
-	if hasLoot then
+	if canInteract then
 		blockCursor = true
 		Camera:Start()
 	else
@@ -165,12 +165,32 @@ function Camera:OnRightClick()
 	end
 end
 
+function Camera:OnLeftClickDown()
+	if db.Settings.lookAround then
+		wasMouseLooking = IsMouselooking()
+		if wasMouseLooking then
+			Camera:Stop()
+		end
+	end
+end
+
+function Camera:OnLeftClickUp()
+	if wasMouseLooking and db.Settings.lookAround and not isTargeting then
+		Camera:Start()
+	end
+	wasMouseLooking = nil
+end
+
 -- Get rid of mouselook when trying to interact with mouse
 hooksecurefunc("MouselookStop", Camera.OnStop)
 -- InteractUnit removes mouse look, restart if target has loot
 hooksecurefunc("InteractUnit", Camera.OnInteract)
 -- Releasing 'right click' should remove the cursor block
 hooksecurefunc("TurnOrActionStop", Camera.OnRightClick)
+-- Pressing left click should remove mouse look if configured
+hooksecurefunc("CameraOrSelectOrMoveStart", Camera.OnLeftClickDown)
+-- Releasing left click should restart the camera if configured
+hooksecurefunc("CameraOrSelectOrMoveStop", Camera.OnLeftClickUp)
 -- Hook jump to use it as a camera trigger
 hooksecurefunc("JumpOrAscendStart", Camera.OnJump)
 -- Get rid of mouselook when moving the pet
@@ -234,19 +254,24 @@ Mouse:Execute([[
 	id = 0
 	---------------------------------------------------------------
 	isEnabled = true
+	inVehicle = false
 	target = false
 	---------------------------------------------------------------
 
 	UpdateTarget = [=[
 		target = ...
-
-		if not isEnabled then
+		if inVehicle or not isEnabled then
 			return
 		end
 
-		local interact, loot = false, false
+		local interact, loot, npc = false, false, false
 
-		if target ~= "hover" and ( target == "enemy" or target == "friend" ) then
+		if ( target == "hover" ) then
+			interact = true
+		elseif ( target == "friend" and not PlayerCanAssist("target") ) then
+			target = "npc"
+			npc = true
+		elseif ( target == "enemy" or target == "friend" ) then
 			local helpful = self:RunAttribute("IsHelpfulAction", id)
 			local harmful = self:RunAttribute("IsHarmfulAction", id)
 
@@ -261,10 +286,10 @@ Mouse:Execute([[
 			interact = true
 		end
 
-		if ( interact or loot ) and USE then
+		if ( interact or loot or npc ) and USE then
 			local key = GetBindingKey(USE)
 			if key then
-				if loot then
+				if loot or npc then
 					self:SetBinding(true, key, "INTERACTTARGET")
 				else
 					self:SetBinding(true, key, "TURNORACTION")
@@ -288,6 +313,13 @@ Mouse:Execute([[
 		end
 	]=]
 ]])
+RegisterStateDriver(Mouse, "vehicle", "[petbattle][vehicleui][overridebar] true; nil")
+Mouse:SetAttribute("_onstate-vehicle", [[
+	inVehicle = newstate
+	if inVehicle then
+		self:ClearBindings()
+	end
+]])
 ---------------------------------------------------------------
 local Focus = CreateFrame("Button", "$parentFocus", Mouse, "SecureActionButtonTemplate")
 Focus:SetAttribute("type", "focus")
@@ -307,12 +339,22 @@ Mouse.Line:SetPoint("BOTTOM")
 Mouse.Line:SetSize(300, 100)
 Mouse.Line:SetVertexColor(1, 0.75, 0.75)
 
-Mouse.Button = Mouse:CreateTexture("$parentButton", "ARTWORK")
-Mouse.Button:SetPoint("LEFT", 50, 16)
-Mouse.Button:SetSize(32, 32)
-
 Mouse.Text = Mouse:CreateFontString("$parentText", "OVERLAY", "MovieSubtitleFont")
 Mouse.Text:SetPoint("CENTER", 0, 16)
+
+Mouse.Button = Mouse:CreateTexture("$parentButton", "ARTWORK")
+Mouse.Button:SetPoint("RIGHT", Mouse.Text, "LEFT", -15, 0)
+Mouse.Button:SetSize(32, 32)
+
+Mouse.Portrait = Mouse:CreateTexture("$parentPortrait", "ARTWORK")
+Mouse.Portrait:SetPoint("LEFT", Mouse.Text, "RIGHT", 15, 0)
+Mouse.Portrait:SetSize(32, 32)
+
+Mouse.PortraitMask = Mouse:CreateTexture("$parentPortraitMask", "OVERLAY")
+Mouse.PortraitMask:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\IconMask")
+Mouse.PortraitMask:SetSize(32, 32)
+Mouse.PortraitMask:SetPoint("CENTER", Mouse.Portrait, "CENTER", 0, 0)
+
 
 Mouse.FadeIn = db.UIFrameFadeIn
 Mouse.FadeOut = db.UIFrameFadeOut
@@ -324,7 +366,30 @@ function Mouse:CheckLoot(elapsed)
 		hasLoot, canLoot = CanLootUnit(guid)
 	end
 	if hasLoot and canLoot then
+		SetCVar("autoInteract", 1)
 		self.Text:SetText(LOOT)
+		if self.fade ~= "in" then
+			self:FadeIn(0.1, alpha, 1)
+			self.fade = "in"
+		end
+	else
+		if self.fade ~= "out" then
+			self:FadeOut(0.2, alpha, 0)
+			self.fade = "out"
+		end
+	end
+end
+
+function Mouse:CheckNPC(elapsed)
+	local alpha = self:GetAlpha()
+	local canMoveTo, canInteract = CheckInteractDistance("target", 4), CheckInteractDistance("target", 5)
+
+	if canInteract or canMoveTo then
+		if canInteract then
+			self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
+		else
+			self.Text:SetText(CLICK_TO_MOVE)
+		end
 		if self.fade ~= "in" then
 			self:FadeIn(0.1, alpha, 1)
 			self.fade = "in"
@@ -359,11 +424,26 @@ end
 
 function Mouse:TrackUnit(unitType)
 	local hasScript = self:GetScript("OnUpdate")
-	if not hasScript and unitType == "loot" then
+	self.Portrait:SetAlpha(1)
+	self.PortraitMask:SetAlpha(1)
+	SetCVar("autoInteract", 0)
+	if ( unitType == "loot" ) then
 		self:SetScript("OnUpdate", self.CheckLoot)
-	elseif not hasScript and unitType == "hover" then
+		SetPortraitTexture(self.Portrait, "target")
+	elseif ( unitType == "npc" ) then
+		SetCVar("autoInteract", 1)
+		self:SetScript("OnUpdate", self.CheckNPC)
+		SetPortraitTexture(self.Portrait, "target")
+	elseif unitType == "hover" then
 		self:SetScript("OnUpdate", self.CheckHover)
+		SetPortraitTexture(self.Portrait, "mouseover")
+		if not UnitCanAssist("player", "mouseover") and not UnitCanAttack("player", "mouseover") then
+			self.Portrait:SetAlpha(0)
+			self.PortraitMask:SetAlpha(0)
+		end 
 	else
+		self.Portrait:SetAlpha(0)
+		self.PortraitMask:SetAlpha(0)
 		self:SetScript("OnUpdate", nil)
 		if self.fade ~= "out" then
 			self:FadeOut(0.5, self:GetAlpha(), 0)
@@ -481,12 +561,13 @@ GameTooltip:HookScript("OnTooltipCleared", Trail.OnTooltipClear)
 ---------------------------------------------------------------
 function Core:UpdateMouseDriver()
 	if not InCombatLockdown() then
+		SetCVar("autoInteract", 0)
 		if db.Settings.interactWith then
 			local button = db.Settings.interactWith
 			local original = db.Bindings and db.Bindings[button] and db.Bindings[button][""]
 			local id = original and self:GetActionID(original)
 
-			local targetstate = "[@playertarget,exists,harm,dead] loot; [@playertarget,exists,harm,nodead] enemy; [@playertarget,exists,noharm,nodead] friend; nil"
+			local targetstate = "[@target,exists,harm,dead] loot; [@target,exists,harm,nodead] enemy; [@target,exists,noharm,nodead] friend; nil"
 
 			if db.Settings.mouseOverMode then
 				targetstate = "[@mouseover,exists] hover; "..targetstate
