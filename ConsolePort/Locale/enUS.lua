@@ -83,10 +83,12 @@ TUTORIAL = {
 		CAMERAHEADER 		= "Camera settings",
 		TARGETHEADER		= "Highlight next target",
 		INTERACTCATCHER 	= "Click here to assign.",
-		INTERACTASSIGNED 	= "Assigned to\n|T%s:64:64:0:-8|t",
+		INTERACTASSIGNED 	= "|T%s:50:50:0:0|t",
 		INTERACTCHECK 		= "Enable",
 		INTERACTDESC 		= "Used to interact when you don't have a valid target.\nChanges behaviour depending on original action.",
 		MOUSEOVERMODE 		= "Always interact with mouseover",
+		INTERACTNPC 		= "Interact with NPCs",
+		INTERACTAUTO		= "Automatically move to target",
 		-----------------------------------------------------------
 		TRIGGERHELP 		= "These settings will change which graphics are displayed for your triggers and modifiers.\nIf you want to change your modifiers, you will also have to change them in your controller mapper.",
 		-----------------------------------------------------------

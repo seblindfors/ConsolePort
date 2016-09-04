@@ -249,9 +249,13 @@ function WindowMixin:Save()
 	if self.InteractModule.Enable:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
 		Settings.interactWith = self.InteractModule.BindCatcher.CurrentButton
 		Settings.mouseOverMode = self.InteractModule.MouseOver:GetChecked()
+		Settings.interactNPC = self.InteractModule.NPC:GetChecked()
+		Settings.interactAuto = self.InteractModule.Auto:GetChecked()
 	else
 		Settings.interactWith = false
 		Settings.mouseOverMode = false
+		Settings.interactNPC = false
+		Settings.interactAuto = false
 	end
 
 	ConsolePortSettings = db.Settings
@@ -336,9 +340,13 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 			FadeOut(self.Hand, 0.5, 1, 0.1)
 			FadeOut(self.Dude, 0.5, 1, 0.1)
 			self.MouseOver:Show()
+			self.Auto:Show()
+			self.NPC:Show()
 			self.BindWrapper:Show()
 		else
 			self.MouseOver:Hide()
+			self.Auto:Hide()
+			self.NPC:Hide()
 			self.BindWrapper:Hide()
 			FadeIn(self.Hand, 0.5, 0.1, 1)
 			FadeIn(self.Dude, 0.5, 0.1, 1)
@@ -368,38 +376,66 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 
 	Controls.InteractModule.BindWrapper = db.Atlas.GetGlassWindow("$parentBindWrapper", Controls.InteractModule, nil, true)
 	Controls.InteractModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-	Controls.InteractModule.BindWrapper:SetPoint("CENTER", 0, 8)
-	Controls.InteractModule.BindWrapper:SetSize(256, 140)
+	Controls.InteractModule.BindWrapper:SetPoint("BOTTOM", 0, 54)
+	Controls.InteractModule.BindWrapper:SetSize(256, 90)
 	Controls.InteractModule.BindWrapper.Close:Hide()
 	Controls.InteractModule.BindWrapper:Hide()
 
 	Controls.InteractModule.BindCatcher = db.Atlas.GetFutureButton("$parentBindCatcher", Controls.InteractModule.BindWrapper, nil, nil, 200)
 	Controls.InteractModule.BindCatcher.HighlightTexture:ClearAllPoints()
 	Controls.InteractModule.BindCatcher.HighlightTexture:SetAllPoints(Controls.InteractModule.BindCatcher)
-	Controls.InteractModule.BindCatcher:SetHeight(108)
+	Controls.InteractModule.BindCatcher:SetHeight(60)
 	Controls.InteractModule.BindCatcher:SetPoint("CENTER", 0, 0)
 	Controls.InteractModule.BindCatcher.Cover:Hide()
 
 	Mixin(Controls.InteractModule.BindCatcher, Catcher)
 	Controls.InteractModule.BindCatcher:OnShow()
 
-	Controls.InteractModule.Enable = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
-	Controls.InteractModule.Enable:SetPoint("TOPLEFT", 24, -48)
-	Controls.InteractModule.Enable:SetChecked(Settings.interactWith)
-	Controls.InteractModule.Enable:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
+	local function InteractCheckButton(name, point, label, setting)
+		local button = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
+		local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+		button.Text = text
 
-	Controls.InteractModule.Enable.Text = Controls.InteractModule.Enable:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	Controls.InteractModule.Enable.Text:SetText(TUTORIAL.CONFIG.INTERACTCHECK)
-	Controls.InteractModule.Enable.Text:SetPoint("LEFT", 30, 0)
+		text:SetPoint("LEFT", 30, 0)
+		text:SetText(label)
 
-	Controls.InteractModule.MouseOver = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
-	Controls.InteractModule.MouseOver:SetPoint("BOTTOMLEFT", 24, 64)
-	Controls.InteractModule.MouseOver:SetChecked(Settings.mouseOverMode)
-	Controls.InteractModule.MouseOver:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
+		button:SetPoint(unpack(point))
+		button:SetChecked(setting)
+		button:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
 
-	Controls.InteractModule.MouseOver.Text = Controls.InteractModule.MouseOver:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	Controls.InteractModule.MouseOver.Text:SetText(TUTORIAL.CONFIG.MOUSEOVERMODE)
-	Controls.InteractModule.MouseOver.Text:SetPoint("LEFT", 30, 0)
+		Controls.InteractModule[name] = button
+	end
+
+	local interactButtons = {
+		{name = "Enable", point = {"TOPLEFT", 24, -48}, label = TUTORIAL.CONFIG.INTERACTCHECK, setting = Settings.interactWith},
+		{name = "MouseOver", point = {"TOPLEFT", 24, -78}, label = TUTORIAL.CONFIG.MOUSEOVERMODE, setting = Settings.mouseOverMode},
+		{name = "NPC", point = {"TOPLEFT", 24, -108}, label = TUTORIAL.CONFIG.INTERACTNPC, setting = Settings.interactNPC},
+		{name = "Auto", point = {"TOPLEFT", 24, -138}, label = TUTORIAL.CONFIG.INTERACTAUTO, setting = Settings.interactAuto},
+	}
+
+	for _, setup in pairs(interactButtons) do
+		InteractCheckButton(setup.name, setup.point, setup.label, setup.setting)
+	end
+
+	-- Controls.InteractModule.Enable = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
+	-- Controls.InteractModule.Enable:SetPoint("TOPLEFT", 24, -48)
+	-- Controls.InteractModule.Enable:SetChecked(Settings.interactWith)
+	-- Controls.InteractModule.Enable:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
+
+	-- Controls.InteractModule.Enable.Text = Controls.InteractModule.Enable:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	-- Controls.InteractModule.Enable.Text:SetText(TUTORIAL.CONFIG.INTERACTCHECK)
+	-- Controls.InteractModule.Enable.Text:SetPoint("LEFT", 30, 0)
+
+	-- Controls.InteractModule.MouseOver = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
+	-- Controls.InteractModule.MouseOver:SetPoint("TOP", Controls.InteractModule.Enable, "BOTTOM", 0, 0)
+	-- Controls.InteractModule.MouseOver:SetChecked(Settings.mouseOverMode)
+	-- Controls.InteractModule.MouseOver:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
+
+	-- Controls.InteractModule.MouseOver.Text = Controls.InteractModule.MouseOver:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	-- Controls.InteractModule.MouseOver.Text:SetText(TUTORIAL.CONFIG.MOUSEOVERMODE)
+	-- Controls.InteractModule.MouseOver.Text:SetPoint("LEFT", 30, 0)
+
+
 
 	------------------------------------------------------------------------------------------------------------------------------
 	Controls.MouseModule.Header = Controls.MouseModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")

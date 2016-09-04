@@ -21,8 +21,8 @@ local 	HighlightStart, HighlightStop =
 		TargetPriorityHighlightStart, TargetPriorityHighlightEnd
 ---------------------------------------------------------------
 -- Mouse functions
-local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition = 
-		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition
+local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition, SetPortrait, SetCVar = 
+		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition, SetPortraitTexture, SetCVar
 ---------------------------------------------------------------
 local 	Camera, numTap, modTap, timer, interactTimer, highlightTimer =
 		CreateFrame("Frame", "ConsolePortCamera", UIParent), 0, 0, 0, 0, 0
@@ -249,76 +249,66 @@ end
 -- is bound to a healing spell or harmful spell.
 ---------------------------------------------------------------
 local Mouse = CreateFrame("Frame", "ConsolePortMouseHandle", UIParent, "SecureHandlerStateTemplate, SecureHandlerAttributeTemplate")
-Mouse:Execute([[
-	---------------------------------------------------------------
-	id = 0
-	---------------------------------------------------------------
-	isEnabled = true
-	inVehicle = false
-	target = false
-	---------------------------------------------------------------
-
-	UpdateTarget = [=[
-		target = ...
-		if inVehicle or not isEnabled then
-			return
-		end
-
-		local interact, loot, npc = false, false, false
-
-		if ( target == "hover" ) then
-			interact = true
-		elseif ( target == "friend" and not PlayerCanAssist("target") ) then
-			target = "npc"
-			npc = true
-		elseif ( target == "enemy" or target == "friend" ) then
-			local helpful = self:RunAttribute("IsHelpfulAction", id)
-			local harmful = self:RunAttribute("IsHarmfulAction", id)
-
-			if 	( not helpful and not harmful ) or
-				( target == "friend" and helpful ) or
-				( target == "enemy" and harmful ) then
-				self:ClearBindings()
-			end
-		elseif target == "loot" then
-			loot = true
+Mouse:Execute([[ id, isEnabled = 0, true ]])
+Mouse:SetAttribute("_onattributechanged", [[
+	if name == "state-targetstate" then
+		self:RunAttribute("UpdateTarget", value)
+	elseif name == "override" then
+		isEnabled = value
+		if not isEnabled then
+			self:ClearBindings()
 		else
-			interact = true
+			self:RunAttribute("UpdateTarget", target)
 		end
-
-		if ( interact or loot or npc ) and USE then
-			local key = GetBindingKey(USE)
-			if key then
-				if loot or npc then
-					self:SetBinding(true, key, "INTERACTTARGET")
-				else
-					self:SetBinding(true, key, "TURNORACTION")
-				end
-			end
-		end
-		self:CallMethod("TrackUnit", target)
-	]=]
-
-	UpdateAttribute = [=[
-		local attribute, value = ...
-		if attribute == "state-targetstate" then
-			self:Run(UpdateTarget, value)
-		elseif attribute == "override" then
-			isEnabled = value
-			if not isEnabled then
-				self:ClearBindings()
-			else
-				self:Run(UpdateTarget, Target)
-			end
-		end
-	]=]
+	end
 ]])
-RegisterStateDriver(Mouse, "vehicle", "[petbattle][vehicleui][overridebar] true; nil")
 Mouse:SetAttribute("_onstate-vehicle", [[
 	inVehicle = newstate
 	if inVehicle then
 		self:ClearBindings()
+	else
+		self:RunAttribute("UpdateTarget", target)
 	end
+]])
+Mouse:SetAttribute("UpdateTarget", [[
+	target = ...
+	self:SetAttribute("current", target)
+
+	if inVehicle or not isEnabled then return end
+
+	local interact, loot, npc
+
+	if ( target == "hover" ) then
+		interact = true
+	elseif checkNPC and ( target == "friend" and not PlayerCanAssist("target") ) then
+		target = "npc"
+		npc = true
+	elseif ( target == "enemy" or target == "friend" ) then
+		local helpful = self:RunAttribute("IsHelpfulAction", id)
+		local harmful = self:RunAttribute("IsHarmfulAction", id)
+
+		if 	( not helpful and not harmful ) or
+			( target == "friend" and helpful ) or
+			( target == "enemy" and harmful ) then
+			self:ClearBindings()
+		end
+	elseif target == "loot" then
+		loot = true
+	else
+		interact = true
+	end
+
+	if ( interact or loot or npc ) and USE then
+		local key = GetBindingKey(USE)
+		if key then
+			if loot or npc then
+				self:SetBinding(true, key, "INTERACTTARGET")
+			else
+				self:SetBinding(true, key, "TURNORACTION")
+			end
+		end
+	end
+	self:CallMethod("TrackUnit", target)
 ]])
 ---------------------------------------------------------------
 local Focus = CreateFrame("Button", "$parentFocus", Mouse, "SecureActionButtonTemplate")
@@ -327,8 +317,6 @@ Focus:SetAttribute("unit", "mouseover")
 Mouse:SetFrameRef("Focus", Focus)
 Mouse:Execute([[ Focus = self:GetFrameRef("Focus") ]])
 ---------------------------------------------------------------
-Mouse:SetAttribute("_onattributechanged", "self:Run(UpdateAttribute, name, value)")
-
 Mouse:SetPoint("CENTER", 0, -300)
 Mouse:SetSize(300, 64)
 Mouse:SetAlpha(0)
@@ -359,6 +347,18 @@ Mouse.PortraitMask:SetPoint("CENTER", Mouse.Portrait, "CENTER", 0, 0)
 Mouse.FadeIn = db.UIFrameFadeIn
 Mouse.FadeOut = db.UIFrameFadeOut
 
+function Mouse:SetAutoWalk(enabled)
+	if self.autoInteract and enabled then
+		SetCVar("autoInteract", 1)
+	else
+		SetCVar("autoInteract", 0)
+	end
+end
+
+function Mouse:SetPortrait(unit)
+	SetPortrait(self.Portrait, unit)
+end
+
 function Mouse:CheckLoot(elapsed)
 	local alpha = self:GetAlpha()
 	local guid, hasLoot, canLoot = UnitGUID("target")
@@ -366,7 +366,7 @@ function Mouse:CheckLoot(elapsed)
 		hasLoot, canLoot = CanLootUnit(guid)
 	end
 	if hasLoot and canLoot then
-		SetCVar("autoInteract", 1)
+		self:SetAutoWalk(true)
 		self.Text:SetText(LOOT)
 		if self.fade ~= "in" then
 			self:FadeIn(0.1, alpha, 1)
@@ -383,6 +383,7 @@ end
 function Mouse:CheckNPC(elapsed)
 	local alpha = self:GetAlpha()
 	local canMoveTo, canInteract = CheckInteractDistance("target", 4), CheckInteractDistance("target", 5)
+	canMoveTo = canMoveTo and self.autoInteract
 
 	if canInteract or canMoveTo then
 		if canInteract then
@@ -423,20 +424,20 @@ function Mouse:CheckHover(elapsed)
 end
 
 function Mouse:TrackUnit(unitType)
-	local hasScript = self:GetScript("OnUpdate")
+	self:SetScript("OnUpdate", nil)
 	self.Portrait:SetAlpha(1)
 	self.PortraitMask:SetAlpha(1)
-	SetCVar("autoInteract", 0)
+	self:SetAutoWalk(false)
 	if ( unitType == "loot" ) then
 		self:SetScript("OnUpdate", self.CheckLoot)
-		SetPortraitTexture(self.Portrait, "target")
+		self:SetPortrait("target")
 	elseif ( unitType == "npc" ) then
-		SetCVar("autoInteract", 1)
+		self:SetAutoWalk(true)
 		self:SetScript("OnUpdate", self.CheckNPC)
-		SetPortraitTexture(self.Portrait, "target")
+		self:SetPortrait("target")
 	elseif unitType == "hover" then
 		self:SetScript("OnUpdate", self.CheckHover)
-		SetPortraitTexture(self.Portrait, "mouseover")
+		self:SetPortrait("mouseover")
 		if not UnitCanAssist("player", "mouseover") and not UnitCanAttack("player", "mouseover") then
 			self.Portrait:SetAlpha(0)
 			self.PortraitMask:SetAlpha(0)
@@ -573,8 +574,6 @@ function Core:UpdateMouseDriver()
 				targetstate = "[@mouseover,exists] hover; "..targetstate
 			end
 
-			local currentTarget = SecureCmdOptionParse(targetstate)
-
 			Trail.Default = ICONS[button]
 			Trail.Targeting = ICONS.CP_T_L3
 			Trail.Texture:SetTexture(Trail.Default)
@@ -583,26 +582,33 @@ function Core:UpdateMouseDriver()
 
 			Mouse.Button:SetTexture(ICONS[db.Settings.interactWith])
 
+			RegisterStateDriver(Mouse, "vehicle", "[petbattle][vehicleui][overridebar] true; nil")
 			RegisterStateDriver(Mouse, "targetstate", targetstate)
-			Mouse:SetAttribute("target", currentTarget)
+
+			Mouse:SetAttribute("checkNPC", db.Settings.interactNPC)
+			Mouse.autoInteract = db.Settings.interactAuto
 
 			self:RegisterSpellHeader(Mouse)
 
 			Mouse:Execute(format([[
 				USE = "%s"
 				id = %d
-				self:Run(UpdateTarget, self:GetAttribute("target"))
-				self:SetAttribute("target", nil)
+				checkNPC = self:GetAttribute("checkNPC")
+				self:RunAttribute("UpdateTarget", self:GetAttribute("current"))
 			]], button, id or -1))
 		else
 			Trail.Default = ICONS.CP_T_R3
 			Trail.Targeting = ICONS.CP_T_L3
 
+			Mouse.autoInteract = nil
+
 			Mouse:Execute([[
+				checkNPC = nil
 				self:ClearBindings()
 			]])
 
 			UnregisterStateDriver(Mouse, "targetstate")
+			UnregisterStateDriver(Mouse, "vehicle")
 			self:UnregisterSpellHeader(Mouse)
 
 		end

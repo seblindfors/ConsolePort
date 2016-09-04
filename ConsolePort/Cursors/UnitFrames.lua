@@ -294,8 +294,8 @@ Cursor:Execute([[
 	]=]
 ]])
 Cursor:SetAttribute("pageupdate", [[
-	self:Run(RefreshActions)
 	if IsEnabled then
+		self:Run(RefreshActions)
 		self:Run(SelectNode, 0)
 	end
 ]])
@@ -450,6 +450,7 @@ function Cursor:Event(event, ...)
 						self.CastBar:SetVertexColor(color.r, color.g, color.b)
 					end
 					self.SpellPortrait:Show()
+					self.Castbar:Show()
 					self.CastBar:SetRotation(0)
 					self.isCasting = false
 					self.isChanneling = true
@@ -480,6 +481,7 @@ function Cursor:Event(event, ...)
 						self.CastBar:SetVertexColor(color.r, color.g, color.b)
 					end
 					self.SpellPortrait:Show()
+					self.CastBar:Show()
 					self.CastBar:SetRotation(0)
 					self.isCasting = true
 					self.isChanneling = false

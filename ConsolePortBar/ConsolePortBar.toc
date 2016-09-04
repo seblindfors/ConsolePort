@@ -15,7 +15,8 @@ Core\Wrapper.lua
 Core\Bar.lua
 Core\Config.lua
 
-Extras\Blizzard.lua
+Custom\Blizzard.lua
+Custom\ConsolePort.lua
 
 Options\Pet.lua
 Options\Stance.lua

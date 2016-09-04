@@ -27,9 +27,9 @@ Bar.ignoreNode = true
 Bar.Buttons = {}
 Bar.isForbidden = true
 Bar:SetClampedToScreen(true)
---Bar:SetScript("OnMouseDown", Bar.StartMoving)
---Bar:SetScript("OnMouseUp", Bar.StopMovingOrSizing)
-Bar:SetMovable(false)
+Bar:SetScript("OnMouseDown", Bar.StartMoving)
+Bar:SetScript("OnMouseUp", Bar.StopMovingOrSizing)
+Bar:SetMovable(true)
 Bar:SetPoint("BOTTOM", UIParent, 0, 0)
 RegisterStateDriver(Bar, "page", state)
 RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ")
@@ -37,8 +37,12 @@ RegisterStateDriver(Bar, "visibility", "[petbattle][vehicleui][overridebar] hide
 
 Bar:SetFrameRef("ActionBar", MainMenuBarArtFrame)
 Bar:SetFrameRef("OverrideBar", OverrideActionBar)
+Bar:SetFrameRef("Cursor", ConsolePortRaidCursor)
+Bar:SetFrameRef("Mouse", ConsolePortMouseHandle)
 Bar:Execute([[
 	bindings = newtable()
+	cursor = self:GetFrameRef("Cursor")
+	mouse = self:GetFrameRef("Mouse")
 ]])
 
 Bar:SetAttribute("_onhide", [[
@@ -49,6 +53,7 @@ Bar:SetAttribute("_onshow", [[
 	for key, button in pairs(bindings) do
 		self:SetBindingClick(true, key, button)
 	end
+	mouse:RunAttribute("UpdateTarget", mouse:GetAttribute("current"))
 	self:CallMethod("FadeIn")
 ]])
 
@@ -80,6 +85,7 @@ end
 Bar:SetAttribute("_onstate-modifier", [[
 	self:SetAttribute("state", newstate)
 	control:ChildUpdate("state", newstate)
+	cursor:RunAttribute("pageupdate")
 ]])
 Bar:SetAttribute("_onstate-page", [[
 	if HasVehicleActionBar() then

@@ -44,12 +44,14 @@ local functions = {
 	]],
 	GetActionInfo = [[
 		local id = self:RunAttribute("GetActionID", ...)
-		return id and GetActionInfo(id)
+		if id then
+			return GetActionInfo(id)
+		end
 	]],
 	GetActionSpellSlot = [[
 		local type, spellID, subType = self:RunAttribute("GetActionInfo", ...)
 		if type == "spell" and spellID and subType == "spell" then
-			return spellID and FindSpellBookSlotBySpellID(spellID)
+			return FindSpellBookSlotBySpellID(spellID)
 		end
 	]],
 	IsHarmfulAction = [[
@@ -59,8 +61,8 @@ local functions = {
 			if slot then
 				return IsHarmfulSpell(slot, "spell")
 			end
-		elseif type == "item" then
-			return id and IsHarmfulItem(id)
+		elseif type == "item" and id then
+			return IsHarmfulItem(id)
 		end
 	]],
 	IsHelpfulAction = [[
@@ -70,8 +72,8 @@ local functions = {
 			if slot then
 				return IsHelpfulSpell(slot, "spell")
 			end
-		elseif type == "item" then
-			return id and IsHelpfulItem(id)
+		elseif type == "item" and id then
+			return IsHelpfulItem(id)
 		end
 	]],
 	IsNeutralAction = [[
