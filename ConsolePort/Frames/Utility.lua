@@ -15,8 +15,7 @@ local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
 local GetItemCooldown = GetItemCooldown
 local InCombatLockdown = InCombatLockdown
 ---------------------------------------------------------------
-local pairs = pairs
-local select = select
+local pairs, select = pairs, select
 ---------------------------------------------------------------
 local 	Utility, Tooltip, Animation, AniCircle = 
 		CreateFrame("Frame", "ConsolePortUtilityFrame", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate"),
@@ -24,19 +23,19 @@ local 	Utility, Tooltip, Animation, AniCircle =
 		CreateFrame("Frame", "ConsolePortUtilityAnimation", UIParent),
 		CreateFrame("Frame", "ConsolePortUtilityAnimationCircle", UIParent)
 ---------------------------------------------------------------
-local ActionButtons, Watches, OldIndex = {}, {}, 0
+local ActionButtons, ButtonMixin, Watches, OldIndex = {}, {}, {}, 0
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local QUEST =  "Quest" -- temp fix --select(10, GetAuctionItemClasses())
 ---------------------------------------------------------------
 
-local function AnimateNewAction(self, actionButton, autoAssigned)
+function Animation:ShowNewAction(actionButton, autoAssigned)
 	-- if an item was auto-assigned, postpone its animation until the current animation has finished
 	if  autoAssigned and self.Group:IsPlaying() then
 		local progress = self.Group:GetDuration() * self.Group:GetProgress()
 		local delay = self.Group:GetDuration() - progress
-		C_Timer.After(delay, function() AnimateNewAction(self, actionButton, true) end)
+		C_Timer.After(delay, function() self:ShowNewAction(actionButton, true) end)
 		return
 	end
 	if actionButton.isQuest then
@@ -58,7 +57,7 @@ local function AnimateNewAction(self, actionButton, autoAssigned)
 		local binding = ConsolePort:GetFormattedBindingOwner("CLICK ConsolePortUtilityToggle:LeftButton", nil, nil, true)
 		if value then
 			local string = binding and " "..binding or "."
-			db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_NEWBIND, value or "", string), 4, 180)
+			db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_NEWBIND, value or "", string), 3, 180)
 		end
 	end
 
@@ -123,7 +122,6 @@ Animation.Spell:SetCamDistanceScale(2)
 Animation.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 Animation.Spell:SetFrameLevel(1)
 ---------------------------------------------------------------
-Animation.ShowNewAction = AnimateNewAction
 Animation.Group:SetScript("OnFinished", AnimateOnFinished)
 ---------------------------------------------------------------
 AniCircle:SetPoint("CENTER", 0, 0)
@@ -165,7 +163,6 @@ local function AddAction(actionType, ID, autoAssigned)
 				ActionButton:SetAttribute("autoAssigned", autoAssigned)
 				ActionButton:SetAttribute("type", actionType)
 				ActionButton:SetAttribute(actionType, ID)
-				ActionButton:Show()
 				Animation:ShowNewAction(ActionButton, autoAssigned)
 				break
 			end 
@@ -263,7 +260,7 @@ function Utility:OnEvent(event, ...)
 		ConsolePort:AddUpdateSnippet(CheckQuestWatches)
 	elseif event == "BAG_UPDATE" then
 		for i, ActionButton in pairs(ActionButtons) do
-			ActionButton:Update(0.3)
+			ActionButton:OnUpdate(0.3)
 		end
 	end
 end
@@ -274,10 +271,10 @@ function Utility:OnAttributeChanged(attribute, detail)
 		end
 		local actionButton = ActionButtons[detail]
 		if ActionButtons[OldIndex] then
-			ActionButtons[OldIndex]:Leave()
+			ActionButtons[OldIndex]:OnLeave()
 		end
 		if 	actionButton then
-			actionButton:Enter()
+			actionButton:OnEnter()
 		end
 		if actionButton and actionButton:IsVisible() then
 
@@ -338,7 +335,7 @@ function Utility:OnShow()
 end
 function Utility:OnHide()
 	for i, ActionButton in pairs(ActionButtons) do
-		ActionButton:Leave()
+		ActionButton:OnLeave()
 	end
 	self.Gradient:SetAlpha(0)
 	self.Gradient:ClearAllPoints()
@@ -412,7 +409,6 @@ Utility:Execute([[
 			self:Show()
 			for _, button in pairs(BUTTONS) do
 				if button:IsProtected() and not button:GetAttribute("type") then
-					button:Show()
 					button:SetAlpha(0.5)
 				end
 			end
@@ -510,7 +506,7 @@ for direction, keys in pairs(buttons) do
 end
 ---------------------------------------------------------------
 
-local function ActionButtonPreClick(self, button)
+function ButtonMixin:PreClick(button)
 	if not InCombatLockdown() then
 		if button == "RightButton" then
 			self:SetAttribute("type", nil)
@@ -524,7 +520,7 @@ local function ActionButtonPreClick(self, button)
 	end
 end
 
-local function ActionButtonPostClick(self, button)
+function ButtonMixin:PostClick(button)
 	if dropTypes[GetCursorInfo()] then
 		local cursorType, id,  mountID, spellID = GetCursorInfo()
 		ClearCursor()
@@ -557,7 +553,7 @@ local function ActionButtonPostClick(self, button)
 	end
 end
 
-local function ActionButtonGetTexture(self, actionType, actionValue)
+function ButtonMixin:GetTexture(actionType, actionValue)
 	local texture, isQuest
 	if actionValue then
 		if actionType == "item" then
@@ -590,7 +586,7 @@ local function ActionButtonGetTexture(self, actionType, actionValue)
 	end
 end
 
-local function ActionButtonOnAttributeChanged(self, attribute, detail)
+function ButtonMixin:OnAttributeChanged(attribute, detail)
 	if attribute == "autoassigned" or attribute == "statehidden" then
 		return
 	end
@@ -610,7 +606,7 @@ local function ActionButtonOnAttributeChanged(self, attribute, detail)
 		end
 		ClearCursor()
 	end
-	ActionButtonGetTexture(self, attribute, detail)
+	self:GetTexture(attribute, detail)
 	
 	local actionType = self:GetAttribute("type")
 	if actionType then
@@ -626,7 +622,7 @@ local function ActionButtonOnAttributeChanged(self, attribute, detail)
 	end
 end
 
-local function ActionButtonOnEnter(self)
+function ButtonMixin:OnEnter()
 	self.HasFocus = true
 	FadeIn(self.Pushed, 0.2, self.Pushed:GetAlpha(), 1)
 	FadeIn(self.Highlight, 0.2, self.Highlight:GetAlpha(), 0.5)
@@ -634,7 +630,7 @@ local function ActionButtonOnEnter(self)
 	FadeOut(self.Quest, 0.2, self.Quest:GetAlpha(), 0)
 end
 
-local function ActionButtonOnLeave(self)
+function ButtonMixin:OnLeave()
 	self.HasFocus = nil
 	if Tooltip:GetOwner() == self then
 		Tooltip:Hide()
@@ -645,12 +641,12 @@ local function ActionButtonOnLeave(self)
 	FadeIn(self.Quest, 0.2, self.Quest:GetAlpha(), 1)
 end
 
-local function ActionButtonOnUpdate(self, elapsed)
+function ButtonMixin:OnUpdate(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.25 do
 		local actionType = self:GetAttribute("type")
 		if actionType and not self.icon.texture then
-			ActionButtonGetTexture(self, actionType, self:GetAttribute(actionType))
+			self:GetTexture(actionType, self:GetAttribute(actionType))
 		end
 		if actionType == "item" then
 			local item = self:GetAttribute("item")
@@ -659,7 +655,6 @@ local function ActionButtonOnUpdate(self, elapsed)
 			if  self:GetAttribute("autoAssigned") and count < 1 and not InCombatLockdown() then
 				self:SetAttribute("type", nil)
 				self:SetAttribute("item", nil)
-				self:Hide()
 			else
 				local time, cooldown = GetItemCooldown(self:GetAttribute("cursorID"))
 				if time and cooldown then
@@ -800,17 +795,15 @@ for i=1, NUM_BUTTONS do
 	button.Quest:SetSize(64, 64)
 	button.Quest:Hide()
 
-	button:SetScript("PreClick", ActionButtonPreClick)
-	button:SetScript("PostClick", ActionButtonPostClick)
-	button:SetScript("OnAttributeChanged", ActionButtonOnAttributeChanged)
+	Mixin(button, ButtonMixin)
 
-	button.Leave = ActionButtonOnLeave
-	button.Enter = ActionButtonOnEnter
-	button.Update = ActionButtonOnUpdate
+	button:SetScript("PreClick", button.PreClick)
+	button:SetScript("PostClick", button.PostClick)
+	button:SetScript("OnAttributeChanged", button.OnAttributeChanged)
 
-	button:HookScript("OnEnter", ActionButtonOnEnter)
-	button:HookScript("OnLeave", ActionButtonOnLeave)
-	button:HookScript("OnUpdate", ActionButtonOnUpdate)
+	button:HookScript("OnEnter", button.OnEnter)
+	button:HookScript("OnLeave", button.OnLeave)
+	button:HookScript("OnUpdate", button.OnUpdate)
 
 	Utility:SetFrameRef(tostring(i), button)
 	Utility:Execute(format([[ BUTTONS[%d] = self:GetFrameRef("%d")]], i, i))
@@ -869,7 +862,6 @@ Utility:WrapScript(ExtraActionButton1, "OnShow", [[
 	end
 	for _, button in pairs(BUTTONS) do
 		if 	not button:GetAttribute("type") then
-			button:Show()
 			button:SetAlpha(1)
 			button:SetAttribute("type", "action")
 			button:SetAttribute("action", extraID)
@@ -883,7 +875,7 @@ Utility:WrapScript(ExtraActionButton1, "OnHide", [[
 	local extraID = self:GetAttribute("action")
 	for _, button in pairs(BUTTONS) do
 		if 	button:GetAttribute("type") == "action" and button:GetAttribute("action") == extraID then
-			button:Hide()
+			button:SetAlpha(0.5)
 			button:SetAttribute("type", nil)
 			button:SetAttribute("action", nil)
 		end

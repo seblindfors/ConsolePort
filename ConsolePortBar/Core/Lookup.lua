@@ -40,6 +40,14 @@ function ab:GetCover(class)
 	end
 end
 
+function ab:GetBackdrop()
+	return {
+		edgeFile 	= "Interface\\AddOns\\"..addOn.."\\Textures\\BarEdge",
+		edgeSize 	= 32,
+		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
+	}
+end
+
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 ---------------------------------------------------------------

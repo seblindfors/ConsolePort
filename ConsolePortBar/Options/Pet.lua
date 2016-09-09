@@ -20,7 +20,7 @@ local AutoCastShine_AutoCastStart = AutoCastShine_AutoCastStart
 local AutoCastShine_AutoCastStop = AutoCastShine_AutoCastStop
 
 Pet:Hide()
-Pet:SetBackdrop(Bar:GetBackdrop())
+Pet:SetBackdrop(ab:GetBackdrop())
 Pet.Buttons = {}
 Pet.showgrid = 0
 Pet.locked = 0

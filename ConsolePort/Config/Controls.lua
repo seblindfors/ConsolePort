@@ -417,26 +417,6 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 		InteractCheckButton(setup.name, setup.point, setup.label, setup.setting)
 	end
 
-	-- Controls.InteractModule.Enable = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
-	-- Controls.InteractModule.Enable:SetPoint("TOPLEFT", 24, -48)
-	-- Controls.InteractModule.Enable:SetChecked(Settings.interactWith)
-	-- Controls.InteractModule.Enable:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
-
-	-- Controls.InteractModule.Enable.Text = Controls.InteractModule.Enable:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	-- Controls.InteractModule.Enable.Text:SetText(TUTORIAL.CONFIG.INTERACTCHECK)
-	-- Controls.InteractModule.Enable.Text:SetPoint("LEFT", 30, 0)
-
-	-- Controls.InteractModule.MouseOver = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
-	-- Controls.InteractModule.MouseOver:SetPoint("TOP", Controls.InteractModule.Enable, "BOTTOM", 0, 0)
-	-- Controls.InteractModule.MouseOver:SetChecked(Settings.mouseOverMode)
-	-- Controls.InteractModule.MouseOver:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
-
-	-- Controls.InteractModule.MouseOver.Text = Controls.InteractModule.MouseOver:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	-- Controls.InteractModule.MouseOver.Text:SetText(TUTORIAL.CONFIG.MOUSEOVERMODE)
-	-- Controls.InteractModule.MouseOver.Text:SetPoint("LEFT", 30, 0)
-
-
-
 	------------------------------------------------------------------------------------------------------------------------------
 	Controls.MouseModule.Header = Controls.MouseModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	Controls.MouseModule.Header:SetText(TUTORIAL.CONFIG.MOUSEHEADER)

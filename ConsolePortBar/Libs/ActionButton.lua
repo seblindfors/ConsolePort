@@ -928,6 +928,7 @@ end
 function ShowGrid()
 	for button in next, ButtonRegistry do
 		if button:IsShown() then
+			button.showGrid = true
 			button:SetAlpha(1.0)
 		end
 	end
@@ -935,6 +936,7 @@ end
 
 function HideGrid()
 	for button in next, ButtonRegistry do
+		button.showGrid = false
 		if button:IsShown() and not button.isMainButton and not button.isOnCooldown and not button.isGlowing and not button.forceShow then
 			button:SetAlpha(0.0)
 		end
@@ -1387,7 +1389,7 @@ function FadeIn(self, newAlpha, speed)
 end
 
 function FadeOut(self, newAlpha, speed)
-	if not self.isMainButton and not self.isGlowing and not self.isOnCooldown and not self.forceShow then
+	if not self.isMainButton and not self.isGlowing and not self.isOnCooldown and not self.forceShow and not self.showGrid then
 		UIFrameFadeOut(self, speed or 0.2, self:GetAlpha(), newAlpha or 0)
 	end
 end

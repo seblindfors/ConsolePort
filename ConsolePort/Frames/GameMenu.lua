@@ -148,7 +148,11 @@ function ConsolePort:SetCustomMenu()
 	GameMenuButtonController:SetText(db.TUTORIAL.BIND.MENUHEADER)
 	GameMenuButtonController:SetScript("PreClick", PreClick)
 	GameMenuButtonController:SetScript("OnClick", function(self)
-		ConsolePortConfig:Show()
+		if InCombatLockdown() then
+			ConsolePortConfig:OnShow()
+		else
+			ConsolePortConfig:Show()
+		end
 	end)
 
 	local LFDTeleport =  db.Atlas.GetFutureButton("$parentLFDTeleport", GameMenuFrame, nil, nil, 160, 32, true)

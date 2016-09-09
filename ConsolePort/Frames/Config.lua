@@ -338,7 +338,13 @@ function Config:OpenCategory(index)
 	if Container.Frames[index] then
 		Scroll:ScrollTo(index)
 		Container:ShowFrame(index)
-		self:Show()
+		if not InCombatLockdown() then
+			self:Show()
+		else
+			self:RegisterEvent("PLAYER_REGEN_ENABLED")
+			self.combatHide = true
+			print(db.TUTORIAL.SLASH.CONFIG_COMBAT)
+		end
 	end
 end
 
@@ -401,14 +407,21 @@ local function SetSaveShortCut(self)
 end
 
 function WindowMixin:OnShow()
-	self:RegisterEvent("PLAYER_REGEN_DISABLED")
-	self:RegisterEvent("PLAYER_REGEN_ENABLED")
+	if not InCombatLockdown() then
+		self:RegisterEvent("PLAYER_REGEN_DISABLED")
+		self:RegisterEvent("PLAYER_REGEN_ENABLED")
 
-	self:SetPropagateKeyboardInput(true)
-	self.Category.NextIcon:SetTexture(db.ICONS.CP_T2)
-	self.Category.PrevIcon:SetTexture(db.ICONS.CP_T1)
+		self:SetPropagateKeyboardInput(true)
+		self.Category.NextIcon:SetTexture(db.ICONS.CP_T2)
+		self.Category.PrevIcon:SetTexture(db.ICONS.CP_T1)
 
-	SetSaveShortCut(self)
+		SetSaveShortCut(self)
+	else
+		self:Hide()
+		self:RegisterEvent("PLAYER_REGEN_ENABLED")
+		self.combatHide = true
+		print(db.TUTORIAL.SLASH.CONFIG_COMBAT)
+	end
 end
 
 function WindowMixin:OnEvent(event)

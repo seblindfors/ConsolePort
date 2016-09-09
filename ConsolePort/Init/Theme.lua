@@ -42,6 +42,8 @@ local function LoadTooltipLines()
 		STACK_BUY 			= format(SpecialClick, 	db.TOOLTIP.CLICK.STACK_BUY),
 		STACK_SPLIT 		= format(SpecialClick, 	db.TOOLTIP.CLICK.STACK_SPLIT),
 		ADD_TO_EXTRA		= format(SpecialClick, 	db.TOOLTIP.CLICK.ADD_TO_EXTRA),
+		MAP_CANVAS_ZOOM_IN	= format(SpecialClick, 	db.TOOLTIP.CLICK.MAP_CANVAS_ZOOM_IN),
+		MAP_CANVAS_ZOOM_OUT	= format(SpecialClick, 	db.TOOLTIP.CLICK.MAP_CANVAS_ZOOM_OUT),
 	}
 end
 

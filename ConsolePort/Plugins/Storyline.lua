@@ -12,6 +12,13 @@ db.PLUGINS["Storyline"] = function(self)
 	-----------------------------------------
 	local region
 
+	for k, v in pairs({Frame:GetRegions()}) do 
+		if v:IsObjectType("Texture") then
+			v:Hide()
+			v:SetTexture(nil)
+		end
+	end
+
 	-----------------------------------------------
 	-- Corners
 	-----------------------------------------------
@@ -22,6 +29,7 @@ db.PLUGINS["Storyline"] = function(self)
 		region:SetSize(66, 68)
 		region:ClearAllPoints()
 		region:SetPoint("TOPLEFT", 8, -10)
+		region:Show()
 	region = Frame.BorderTopRight
 		region:SetDrawLayer("OVERLAY", 7)
 		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
@@ -29,6 +37,7 @@ db.PLUGINS["Storyline"] = function(self)
 		region:SetSize(66, 68)
 		region:ClearAllPoints()
 		region:SetPoint("TOPRIGHT", -9, -10)
+		region:Show()
 	region = Frame.BorderBottomLeft
 		region:SetDrawLayer("OVERLAY", 7)
 		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
@@ -36,6 +45,7 @@ db.PLUGINS["Storyline"] = function(self)
 		region:SetSize(66, 68)
 		region:ClearAllPoints()
 		region:SetPoint("BOTTOMLEFT", 8, 10)
+		region:Show()
 	region = Frame.BorderBottomRight
 		region:SetDrawLayer("OVERLAY", 7)
 		region:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
@@ -43,6 +53,7 @@ db.PLUGINS["Storyline"] = function(self)
 		region:SetSize(66, 68)
 		region:ClearAllPoints()
 		region:SetPoint("BOTTOMRIGHT", -9, 10)
+		region:Show()
 
 	-----------------------------------------------
 	-- Borders
@@ -95,12 +106,14 @@ db.PLUGINS["Storyline"] = function(self)
 		region:SetPoint("BOTTOMRIGHT", -16, 16)
 		region:SetBlendMode("ADD")
 		region:SetAlpha(0.35)
+		region:Show()
 
 	region = Storyline_NPCFrameBanner
 		region:SetTexture("Interface\\LevelUp\\MinorTalents.blp")
 		region:SetTexCoord(0.001953125, 0.818359375, 0.6660, 0.794921875)
 		region:SetPoint("TOP", 0, -64)
 		region:SetHeight(46)
+		region:Show()
 
 	region = Storyline_NPCFrameTitle
 		region:SetPoint("CENTER", Storyline_NPCFrameBanner, 0, 0)
@@ -200,15 +213,6 @@ db.PLUGINS["Storyline"] = function(self)
 	end
 
 	-- remove obscuring graphics that are unreferenced
-	-- for k, v in pairs({Frame:GetRegions()}) do 
-	-- 	if v:IsObjectType("Texture") then
-	-- 		local texture = v:GetTexture()
-	-- 		if texture and (texture:match("question%-background") or texture:match("DressUpBackground%-NightElf1")) then
-	-- 			v:Hide()
-	-- 			v:SetTexture(nil)
-	-- 		end
-	-- 	end
-	-- end
 
 	hooksecurefunc(Frame, "SetSize", function(self, width, height)
 		-- draw the main frame on even pixels to ensure crisp graphics

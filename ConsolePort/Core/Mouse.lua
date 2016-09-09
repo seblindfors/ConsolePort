@@ -13,8 +13,8 @@ local 	WorldFrame, UIParent, GameTooltip, Core =
 		WorldFrame, UIParent, GameTooltip, ConsolePort
 ---------------------------------------------------------------
 -- Camera functions
-local 	GetMouseFocus, HasCursorItem, SpellIsTargeting, IsMouseButtonDown, IsMouselooking = 
-		GetMouseFocus, GetCursorInfo, SpellIsTargeting, IsMouseButtonDown, IsMouselooking
+local 	GetMouseFocus, HasCursorItem, SpellIsTargeting, IsMouseButtonDown, IsMouselooking, FlipCameraYaw = 
+		GetMouseFocus, GetCursorInfo, SpellIsTargeting, IsMouseButtonDown, IsMouselooking, FlipCameraYaw
 ---------------------------------------------------------------
 -- Highlight functions
 local 	HighlightStart, HighlightStop = 
@@ -24,7 +24,7 @@ local 	HighlightStart, HighlightStop =
 local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition, SetPortrait, SetCVar = 
 		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition, SetPortraitTexture, SetCVar
 ---------------------------------------------------------------
-local 	Camera, numTap, modTap, timer, interactTimer, highlightTimer =
+local 	Camera, numTap, modTap, timer, interactPushback, highlightTimer =
 		CreateFrame("Frame", "ConsolePortCamera", UIParent), 0, 0, 0, 0, 0
 Camera.Start = MouselookStart
 Camera.Stop = MouselookStop
@@ -65,8 +65,36 @@ function Camera:OnUpdate(elapsed)
 	hasWorldFocus = GetMouseFocus() == WorldFrame
 	---------------
 	self.BlockUI:SetShown(cameraMode)
+--	self:CalculateYaw(elapsed)
 	---------------
-	interactTimer = interactTimer > 0 and interactTimer - elapsed or 0
+	interactPushback = interactPushback > 0 and interactPushback - elapsed or 0
+end
+
+local yawFlipped = 0
+local deadzone = 0.85
+local smooth = 0.075
+local reset = 0.5
+function Camera:CalculateYaw()
+	if isTargeting then
+		local viewPortCenter = ( UIParent:GetWidth() / 2 )
+		local x, y = GetCursorPosition()
+		local offset = - ( ( x - viewPortCenter ) / 360 )
+		if abs(offset) > deadzone then
+			local newAngle = yawFlipped + offset
+			if newAngle < 90 and newAngle > -90 then
+				yawFlipped = newAngle
+				FlipCameraYaw(offset)
+			end
+		end
+	elseif yawFlipped ~= 0 then
+		local offset = -yawFlipped * smooth
+		yawFlipped = yawFlipped + offset
+		FlipCameraYaw(offset)
+		if abs(yawFlipped) < reset then
+			FlipCameraYaw(-yawFlipped)
+			yawFlipped = 0
+		end
+	end
 end
 
 function Camera:CheckCursor()
@@ -135,7 +163,7 @@ function Camera:OnEvent(event, ...)
 	end
 end
 
-function Camera:OnAction() interactTimer = 0.5 end
+function Camera:OnAction() interactPushback = 0.75 end
 
 function Camera:OnInteract()
 	local guid, canInteract = UnitGUID("target")
@@ -158,7 +186,7 @@ function Camera:OnStop()
 end
 
 function Camera:OnRightClick()
-	if interactTimer > 0 then
+	if interactPushback > 0 then
 		Camera:Start()
 	else
 		blockCursor = nil
@@ -215,7 +243,7 @@ function Core:UpdateCameraDriver()
 	Camera:SetScript("OnUpdate", Camera.OnUpdate)
 	Camera:UnregisterEvent("MODIFIER_STATE_CHANGED")
 
-	numTap, modTap, timer, interactTimer, highlightTimer = 0, 0, 0, 0, 0
+	numTap, modTap, timer, interactPushback, highlightTimer = 0, 0, 0, 0, 0
 
 	if not Settings.disableSmartMouse then
 		Camera:HookScript("OnUpdate", Camera.CheckCursor)
@@ -273,6 +301,7 @@ Mouse:SetAttribute("_onstate-vehicle", [[
 Mouse:SetAttribute("UpdateTarget", [[
 	target = ...
 	self:SetAttribute("current", target)
+	self:SetAttribute("npc", nil)
 
 	if inVehicle or not isEnabled then return end
 
@@ -280,6 +309,9 @@ Mouse:SetAttribute("UpdateTarget", [[
 
 	if ( target == "hover" ) then
 		interact = true
+		if checkNPC and ( not PlayerCanAttack("mouseover") and not PlayerCanAssist("mouseover") ) then
+			self:SetAttribute("npc", true)
+		end
 	elseif checkNPC and ( target == "friend" and not PlayerCanAssist("target") ) then
 		target = "npc"
 		npc = true
@@ -330,11 +362,11 @@ Mouse.Line:SetVertexColor(1, 0.75, 0.75)
 Mouse.Text = Mouse:CreateFontString("$parentText", "OVERLAY", "MovieSubtitleFont")
 Mouse.Text:SetPoint("CENTER", 0, 16)
 
-Mouse.Button = Mouse:CreateTexture("$parentButton", "ARTWORK")
+Mouse.Button = Mouse:CreateTexture("$parentButton", "OVERLAY")
 Mouse.Button:SetPoint("RIGHT", Mouse.Text, "LEFT", -15, 0)
 Mouse.Button:SetSize(32, 32)
 
-Mouse.Portrait = Mouse:CreateTexture("$parentPortrait", "ARTWORK")
+Mouse.Portrait = Mouse:CreateTexture("$parentPortrait", "ARTWORK", nil, 2)
 Mouse.Portrait:SetPoint("LEFT", Mouse.Text, "RIGHT", 15, 0)
 Mouse.Portrait:SetSize(32, 32)
 
@@ -436,6 +468,7 @@ function Mouse:TrackUnit(unitType)
 		self:SetScript("OnUpdate", self.CheckNPC)
 		self:SetPortrait("target")
 	elseif unitType == "hover" then
+		self:SetAutoWalk(self:GetAttribute("npc"))
 		self:SetScript("OnUpdate", self.CheckHover)
 		self:SetPortrait("mouseover")
 		if not UnitCanAssist("player", "mouseover") and not UnitCanAttack("player", "mouseover") then

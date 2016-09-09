@@ -21,7 +21,7 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 		-- Fade wrappers
 		FadeIn, FadeOut,
 		-- Table functions
-		select, ipairs, pairs, wipe, abs, tinsert,
+		select, ipairs, pairs, wipe, abs, tinsert, pcall,
 		-- Misc
 		ConsolePort, Override, current, old =
 		--------------------------------------------
@@ -29,7 +29,7 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 		SetOverrideBindingClick, ClearOverrideBindings,
 		InCombatLockdown, PlaySound, C_Timer.After,
 		db.UIFrameFadeIn, db.UIFrameFadeOut,
-		select, ipairs, pairs, wipe, abs, tinsert,
+		select, ipairs, pairs, wipe, abs, tinsert, pcall,
 		ConsolePort, {}
 ---------------------------------------------------------------
 		-- Cursor frame and scroll helpers
@@ -150,7 +150,7 @@ function Cursor:Move(anchor)
 		self.Pointer:SetPoint(unpack(self.anchor))
 		local newX, newY = self.Pointer:GetCenter()
 		local oldX, oldY = self:GetCenter()
-		if oldX and oldY and newX and newY and self:IsVisible() then
+		if ( not current.node.noAnimation ) and oldX and oldY and newX and newY and self:IsVisible() then
 			self.Translate:SetOffset(newX - oldX, newY - oldY)
 			self.Enlarge:SetStartDelay(0.05)
 			self.Moving:Play()
@@ -258,6 +258,17 @@ function Node:Refresh(node, scrollFrame)
 	end
 end
 
+function Node:RefreshAll()
+	if not InCombat() then
+		self:Clear()
+		ClearOverride(Cursor)
+		for frame in pairs(ConsolePort:GetFrameStack()) do
+			self:Refresh(frame)
+		end
+		self:SetCurrent()
+	end
+end
+
 function Node:FindClosest(key)
 	if current then
 		local compareDistance = self[key]
@@ -284,7 +295,7 @@ function Node:Clear()
 		local node = current.node
 		local leave = node:GetScript("OnLeave")
 		if leave then
-			leave(node)
+			pcall(leave, node)
 		end
 		old = current
 	end
@@ -325,7 +336,7 @@ function Node:Select(node, object, scrollFrame, state)
 		override = true
 		local enter = not node.HotKey and node:GetScript("OnEnter")
 		if enter and state == KEY.STATE_UP then
-			enter(node)
+			pcall(enter, node)
 		end
 	end
 	for click, button in pairs(Cursor.Override) do
@@ -432,6 +443,10 @@ end
 local function SpecialAction(self)
 	if current then
 		local node = current.node
+		if node.SpecialClick then
+			pcall(node.SpecialClick, node)
+			return
+		end
 		-- MerchantButton
 		if 	node.price then
 			local maxStack = GetMerchantItemMaxStack(node:GetID())
@@ -561,17 +576,6 @@ end
 function ConsolePort:IsCurrentNode(node) return current and current.node == node end
 function ConsolePort:GetCurrentNode() return current and current.node end
 
-function ConsolePort:RefreshNodes()
-	if not InCombat() then
-		Node:Clear()
-		ClearOverride(Cursor)
-		for frame in pairs(self:GetFrameStack()) do
-			Node:Refresh(frame)
-		end
-		Node:SetCurrent()
-	end
-end
-
 function ConsolePort:SetCurrentNode(node, force)
 	if not db.Settings.disableUI and not InCombat() then
 		if node then
@@ -616,7 +620,7 @@ end
 -- UIControl: Command parser / main func
 ---------------------------------------------------------------
 function ConsolePort:UIControl(key, state)
-	self:RefreshNodes()
+	Node:RefreshAll()
 	if 	state == KEY.STATE_DOWN then
 		Node:FindClosest(key)
 	elseif key == Cursor.SpecialAction then

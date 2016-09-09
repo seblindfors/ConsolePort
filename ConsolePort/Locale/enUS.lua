@@ -167,6 +167,7 @@ TUTORIAL = {
 		RESET 				= "Full addon reset (irreversible)",
 		BINDS 				= "Open binding menu",
 		EDITBINDS 			= "Edit bindings",
+		CONFIG_COMBAT 		= "Your controller configuration will be shown when you leave combat.",
 		-----------------------------------------------------------
 		WARNINGBINDINGUI 	= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You can only customize your keyboard bindings from this panel.\n\nModifying keyboard bindings while using your controller is not recommended.\n\nWould you like to edit your controller bindings, recalibrate your controller or continue anyway?",
 		WARNINGCOMBATLOGIN 	= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You reloaded your interface in combat.\nLeave combat to complete initialization.",
@@ -195,6 +196,8 @@ TOOLTIP = {
 		STACK_SPLIT 		= 	"Split stack",
 		ADD_TO_EXTRA		= 	"Quick bind",
 		FLYOUT 				= 	"%s Cast spell %s Cancel",
+		MAP_CANVAS_ZOOM_IN 	= 	"Zoom in",
+		MAP_CANVAS_ZOOM_OUT = 	"Zoom out",
 	}
 },
 CUSTOMBINDS = {
@@ -232,9 +235,15 @@ CUSTOMBINDS = {
 	TURNORACTION 			= 	"Right Mouse Button",
 },
 ACTIONBAR = {
-	EYE_LEFTCLICK 			= "Left click or %s to show/hide modified actions.",
-	EYE_RIGHTCLICK 			= "Right click or %s to toggle cover art display.",
-	EYE_SCROLL 				= "Scroll with your mouse wheel anywhere on the bar to change scale.",
+	EYE_HEADER 				= "|cff1eff00ConsolePort Action Bar|r: %s",
+	EYE_LOCKED				= "|c75757575Locked|r",
+	EYE_UNLOCKED			= "|cffffe00aUnlocked|r",
+	EYE_LEFTCLICK 			= "%s or left click to show/hide modified actions.",
+	EYE_RIGHTCLICK 			= "%s or right click to toggle cover art display.",
+	EYE_LEFTCLICK_SHIFT 	= "%s%s or shift + left click to lock/unlock the bar.",
+	EYE_LEFTCLICK_CTRL 		= "%s%s or ctrl + left click to reset position.",
+	EYE_SCROLL 				= "Mouse wheel: Change scale.",
+	EYE_SCROLL_SHIFT 		= "Shift + Mouse wheel: Change width.",
 },
 HEADERS = {
 	CP_LEFT 				= 	"Directional Pad",
