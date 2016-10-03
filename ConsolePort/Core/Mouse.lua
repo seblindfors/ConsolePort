@@ -209,22 +209,25 @@ function Camera:OnLeftClickUp()
 	wasMouseLooking = nil
 end
 
--- Get rid of mouselook when trying to interact with mouse
-hooksecurefunc("MouselookStop", Camera.OnStop)
--- InteractUnit removes mouse look, restart if target has loot
-hooksecurefunc("InteractUnit", Camera.OnInteract)
--- Releasing 'right click' should remove the cursor block
-hooksecurefunc("TurnOrActionStop", Camera.OnRightClick)
--- Pressing left click should remove mouse look if configured
-hooksecurefunc("CameraOrSelectOrMoveStart", Camera.OnLeftClickDown)
--- Releasing left click should restart the camera if configured
-hooksecurefunc("CameraOrSelectOrMoveStop", Camera.OnLeftClickUp)
--- Hook jump to use it as a camera trigger
-hooksecurefunc("JumpOrAscendStart", Camera.OnJump)
--- Get rid of mouselook when moving the pet
-hooksecurefunc("PetMoveTo", Camera.Stop)
--- Hook action usage to manipulate mouselook
-hooksecurefunc("UseAction", Camera.OnAction)
+-- Function hooks to address event-less would-be mouse events
+for func, hook in pairs({
+	-- Get rid of mouselook when trying to interact with mouse
+	MouselookStop = Camera.OnStop,
+	-- InteractUnit removes mouse look, restart if target has loot
+	InteractUnit = Camera.OnInteract,
+	-- Releasing 'right click' should remove the cursor block
+	TurnOrActionStop = Camera.OnRightClick,
+	-- Pressing left click should remove mouse look if configured
+	CameraOrSelectOrMoveStart = Camera.OnLeftClickDown,
+	-- Releasing left click should restart the camera if configured
+	CameraOrSelectOrMoveStop = Camera.OnLeftClickUp,
+	-- Hook jump to use it as a camera trigger
+	JumpOrAscendStart = Camera.OnJump,
+	-- Get rid of mouselook when moving the pet
+	PetMoveTo = Camera.Stop,
+	-- Hook action usage to manipulate mouselook
+	UseAction = Camera.OnAction, 
+}) do hooksecurefunc(func, hook) end
 
 ---------------------------------------------------------------
 -- Mouse function wrappers in case of extended functionality
@@ -281,6 +284,8 @@ Mouse:Execute([[ id, isEnabled = 0, true ]])
 Mouse:SetAttribute("_onattributechanged", [[
 	if name == "state-targetstate" then
 		self:RunAttribute("UpdateTarget", value)
+	elseif name == "state-vehicle" then
+		self:RunAttribute("_onstate-vehicle", value)
 	elseif name == "override" then
 		isEnabled = value
 		if not isEnabled then

@@ -197,15 +197,7 @@ Cursor:Execute([[
 			end
 		end
 	]=]
-	SelectNode = [=[
-		key = ...
-		if current then
-			old = current
-		end
-
-		self:Run(SetCurrent)
-		self:Run(FindClosestNode)
-
+	UpdateRouting = [=[
 		for action, unit in pairs(Actions) do
 			action:SetAttribute("unit", unit)
 		end
@@ -218,24 +210,22 @@ Cursor:Execute([[
 			Focus:SetAttribute("unit", unit)
 			Target:SetAttribute("unit", unit)
 
-			RegisterStateDriver(self, "unitexists", "[@"..unit..",exists,nodead] true; nil")
+			RegisterStateDriver(self, "unitexists", "[@"..unit..",exists] true; nil")
 
 			self:ClearAllPoints()
 			self:SetPoint("TOPLEFT", current, "CENTER", 0, 0)
 			self:SetAttribute("node", current)
 			self:SetAttribute("unit", unit)
 			
-			if not UnitIsDead(unit) then
-				if PlayerCanAttack(unit) then
-					self:SetAttribute("relation", "harm")
-					for action in pairs(Harmful) do
-						action:SetAttribute("unit", unit)
-					end
-				elseif PlayerCanAssist(unit) then
-					self:SetAttribute("relation", "help")
-					for action in pairs(Helpful) do
-						action:SetAttribute("unit", unit)
-					end
+			if PlayerCanAttack(unit) then
+				self:SetAttribute("relation", "harm")
+				for action in pairs(Harmful) do
+					action:SetAttribute("unit", unit)
+				end
+			elseif PlayerCanAssist(unit) then
+				self:SetAttribute("relation", "help")
+				for action in pairs(Helpful) do
+					action:SetAttribute("unit", unit)
 				end
 			end
 		else
@@ -246,6 +236,16 @@ Cursor:Execute([[
 
 			self:Hide()
 		end
+	]=]
+	SelectNode = [=[
+		key = ...
+		if current then
+			old = current
+		end
+
+		self:Run(SetCurrent)
+		self:Run(FindClosestNode)
+		self:Run(UpdateRouting)
 	]=]
 	UpdateFrameStack = [=[
 		local frames = newtable(self:GetParent():GetChildren())
@@ -317,6 +317,7 @@ Cursor:WrapScript(ToggleCursor, "OnClick", [[
 	local MouseHandle =	Cursor:GetFrameRef("Mouse")
 
 	IsEnabled = not IsEnabled
+	Cursor:SetAttribute("enabled", IsEnabled)
 
 	Cursor:Run(ToggleCursor)
 	MouseHandle:SetAttribute("override", not IsEnabled)

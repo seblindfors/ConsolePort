@@ -1,7 +1,7 @@
 ## Interface: 70000
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 1.2.5
+## Version: 1.3.1
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortMouse, ConsolePortUtility
 
@@ -26,8 +26,12 @@ Config\UICtrl.lua
 Config\Hotkey.lua
 Config\Secure.lua
 
-Core\Update.lua
-Core\Driver.lua
+
+Core\Callback.lua
+
+Drivers\Pager.lua
+Drivers\EasyMotion.lua
+
 Core\Camera.lua
 Core\Mouse.lua
 Core\Cvar.lua

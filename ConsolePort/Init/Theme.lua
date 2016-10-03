@@ -9,14 +9,6 @@ local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons%s\\
 local TEXTURE_ESC = "|T%s:24:24:0:0|t"
 local x32, x64 = "32", "64"
 
-setglobal("BINDING_NAME_CLICK ConsolePortUtilityToggle:LeftButton", db.CUSTOMBINDS.CP_UTILITYBELT)
-setglobal("BINDING_NAME_CLICK ConsolePortWorldCursor:LeftButton", db.CUSTOMBINDS.CP_WORLDCURSOR)
-setglobal("BINDING_NAME_CLICK ConsolePortNameplateCycle:LeftButton", db.CUSTOMBINDS.CP_CYCLEPLATES)
-setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorToggle:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR)
-setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorFocus:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR_F)
-setglobal("BINDING_NAME_CLICK ConsolePortRaidCursorTarget:LeftButton", db.CUSTOMBINDS.CP_RAIDCURSOR_T)
-setglobal("BINDING_NAME_CLICK ConsolePortSpellWheel:LeftButton", db.CUSTOMBINDS.CP_SPELLWHEEL)
-
 local function LoadTooltipLines()
 	local Left = db.Mouse and db.Mouse.Cursor.Left or "CP_R_RIGHT"
 	local Right = db.Mouse and db.Mouse.Cursor.Right or "CP_R_LEFT"
@@ -100,6 +92,13 @@ function ConsolePort:LoadControllerTheme()
 			db.TEXTURE[name] = format(TEXTURE_PATH, ctrlType, x64, name)
 			db.ICONS[name] = format(TEXTURE_PATH, ctrlType, x32, name)
 			_G["BINDING_NAME_"..name] = format(TEXTURE_ESC, db.TEXTURE[name])
+		end
+
+		-- Set globals for click bindings
+		for _, info in pairs(self:GetAddonBindings()) do
+			if info.binding and info.binding:match("CLICK") then
+				_G["BINDING_NAME_"..info.binding] = info.name
+			end
 		end
 	end
 

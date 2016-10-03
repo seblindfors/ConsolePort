@@ -339,10 +339,16 @@ function ConsolePort:CalibrateController(reset)
 					self.Confirm:SetText(format(SETUP.CONFIRM, self.ButtonTex:GetTexture()))
 				end
 			else
-				if self.BTN and GetBindingAction(key) ~= "" then
-					self.Confirm:SetText(format(SETUP.OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)] or SETUP.NOEXISTFIX, self.ButtonTex:GetTexture()))
-				elseif self.BTN then
-					self.Confirm:SetText(format(SETUP.CONTINUE, self.ButtonTex:GetTexture()))
+				if self.BTN then
+					local action = GetBindingAction(key)
+					if db.Settings.calibration and db.Settings.calibration[action] then
+						self.Confirm:SetText(format(SETUP.OVERRIDE_C, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)] or SETUP.NOEXISTFIX, self.ButtonTex:GetTexture()))
+					elseif action ~= "" then
+						self.Confirm:SetText(format(SETUP.OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)] or SETUP.NOEXISTFIX, self.ButtonTex:GetTexture()))
+					else
+
+						self.Confirm:SetText(format(SETUP.CONTINUE, self.ButtonTex:GetTexture()))
+					end
 				end
 				self.SET = false
 			end

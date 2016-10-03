@@ -30,7 +30,7 @@ Pager:SetAttribute("_onstate-actionpage", [[
 	IsNeutralAction: Returns whether the action slot has no particular target implication
 ]]
 
-local functions = {
+local PAGER_SECURE_FUNCTIONS = {
 	GetActionID = [[
 		local id = ...
 		if id then
@@ -90,7 +90,7 @@ function ConsolePort:RegisterSpellHeader(header)
 		header:SetFrameRef("actionBar", MainMenuBarArtFrame)
 		header:SetFrameRef("overrideBar", OverrideActionBar)
 
-		for name, func in pairs(functions) do
+		for name, func in pairs(PAGER_SECURE_FUNCTIONS) do
 			header:SetAttribute(name, func)
 		end
 

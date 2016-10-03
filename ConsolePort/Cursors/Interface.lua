@@ -664,7 +664,7 @@ function ConsolePort:SetButtonOverride(enabled)
 	end
 end
 
-function ConsolePort:ClearCursor() ClearOverride(self) end
+function ConsolePort:ClearCursor() Cursor:SetParent(UIParent) ClearOverride(self) end
 
 ---------------------------------------------------------------
 -- UIControl: Initialize Cursor

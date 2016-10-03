@@ -27,8 +27,6 @@ local ActionButtons, ButtonMixin, Watches, OldIndex = {}, {}, {}, 0
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
-local QUEST =  "Quest" -- temp fix --select(10, GetAuctionItemClasses())
----------------------------------------------------------------
 
 function Animation:ShowNewAction(actionButton, autoAssigned)
 	-- if an item was auto-assigned, postpone its animation until the current animation has finished
@@ -450,7 +448,37 @@ Utility:Execute([[
 Utility:SetAttribute("_onstate-cursor", [[
 	self:Run(CursorUpdate, newstate)
 ]])
+Utility:SetAttribute("_onstate-extrabar", [[
+	local extraID = 169
+	if newstate then
+		for _, button in pairs(BUTTONS) do
+			if 	button:GetAttribute("type") == "action" and button:GetAttribute("action") == extraID then
+				Utility:CallMethod("AnimateNew", button:GetName())
+				return
+			end
+		end
+		for _, button in pairs(BUTTONS) do
+			if 	not button:GetAttribute("type") then
+				button:SetAlpha(1)
+				button:SetAttribute("type", "action")
+				button:SetAttribute("action", extraID)
+				Utility:CallMethod("AnimateNew", button:GetName())
+				return
+			end
+		end
+	else
+		for _, button in pairs(BUTTONS) do
+			if 	button:GetAttribute("type") == "action" and button:GetAttribute("action") == extraID then
+				button:SetAlpha(0.5)
+				button:SetAttribute("type", nil)
+				button:SetAttribute("action", nil)
+			end
+		end
+	end
+]])
+
 RegisterStateDriver(Utility, "cursor", "[cursor] true; nil")
+RegisterStateDriver(Utility, "extrabar", "[extrabar] true; nil")
 
 ------------------------------------------------------------------------------------------------------------------------------
 local UseUtility = CreateFrame("Button", "ConsolePortUtilityToggle", nil, "SecureActionButtonTemplate, SecureHandlerBaseTemplate")
@@ -522,7 +550,7 @@ end
 
 function ButtonMixin:PostClick(button)
 	if dropTypes[GetCursorInfo()] then
-		local cursorType, id,  mountID, spellID = GetCursorInfo()
+		local cursorType, id,  _, spellID = GetCursorInfo()
 		ClearCursor()
 
 		if InCombatLockdown() then
@@ -537,13 +565,11 @@ function ButtonMixin:PostClick(button)
 		-- Convert spellID to name
 		elseif cursorType == "spell" then
 			newValue = GetSpellInfo(id, "spell")
-		-- Summon favorite mount, not yet supported
+		-- Summon favorite mount, ignore this
 		elseif cursorType == "mount" and id == 268435455 then
 			return
-		-- Use mountID instead of id when assigning mount
 		elseif cursorType == "mount" then
-			newValue = MountJournal_GetMountInfo(mountID)
-		--	newValue = mountID
+			newValue = C_MountJournal.GetMountInfoByID(id)
 			cursorType = "spell"
 		end
 
@@ -553,12 +579,12 @@ function ButtonMixin:PostClick(button)
 	end
 end
 
-function ButtonMixin:GetTexture(actionType, actionValue)
+function ButtonMixin:SetTexture(actionType, actionValue)
 	local texture, isQuest
 	if actionValue then
 		if actionType == "item" then
 			texture = select(10, GetItemInfo(actionValue))
-			isQuest = select(6, GetItemInfo(actionValue)) == QUEST
+			isQuest = select(12, GetItemInfo(actionValue)) == 12
 		elseif actionType == "spell" then
 			texture = select(3, GetSpellInfo(actionValue))
 		elseif actionType == "macro" then
@@ -598,7 +624,7 @@ function ButtonMixin:OnAttributeChanged(attribute, detail)
 			self:SetAttribute("item", name)
 			return
 		elseif attribute == "mount" then
-			local spellID = MountJournal_GetMountInfo(detail)
+			local spellID = select(2, C_MountJournal.GetMountInfoByID(detail))
 			self:SetAttribute("mountID", spellID)
 			self:SetAttribute("type", "spell")
 			self:SetAttribute("spell", spellID)
@@ -606,7 +632,7 @@ function ButtonMixin:OnAttributeChanged(attribute, detail)
 		end
 		ClearCursor()
 	end
-	self:GetTexture(attribute, detail)
+	self:SetTexture(attribute, detail)
 	
 	local actionType = self:GetAttribute("type")
 	if actionType then
@@ -617,7 +643,7 @@ function ButtonMixin:OnAttributeChanged(attribute, detail)
 			autoAssigned = self:GetAttribute("autoAssigned"),
 		}
 	else
-		self:SetAttribute("autoAssigned", nil)
+		self.clearAutoAssign = true
 		ConsolePortUtility[self.ID] = nil
 	end
 end
@@ -646,7 +672,7 @@ function ButtonMixin:OnUpdate(elapsed)
 	while self.Timer > 0.25 do
 		local actionType = self:GetAttribute("type")
 		if actionType and not self.icon.texture then
-			self:GetTexture(actionType, self:GetAttribute(actionType))
+			self:SetTexture(actionType, self:GetAttribute(actionType))
 		end
 		if actionType == "item" then
 			local item = self:GetAttribute("item")
@@ -720,6 +746,10 @@ function ButtonMixin:OnUpdate(elapsed)
 			end
 		else
 			self.Idle = 0
+		end
+		if self.clearAutoAssign and not InCombatLockdown() then
+			self.clearAutoAssign = nil
+			self:SetAttribute("autoAssigned", nil)
 		end
 
 		self.Timer = self.Timer - 0.25
@@ -850,34 +880,3 @@ function ConsolePort:SetupUtilityBelt()
 		self:RemoveUpdateSnippet(self.SetupUtilityBelt)
 	end
 end
-
--- Extra action button
-Utility:WrapScript(ExtraActionButton1, "OnShow", [[
-	local extraID = self:GetAttribute("action")
-	for _, button in pairs(BUTTONS) do
-		if 	button:GetAttribute("type") == "action" and button:GetAttribute("action") == extraID then
-			Utility:CallMethod("AnimateNew", button:GetName())
-			return
-		end
-	end
-	for _, button in pairs(BUTTONS) do
-		if 	not button:GetAttribute("type") then
-			button:SetAlpha(1)
-			button:SetAttribute("type", "action")
-			button:SetAttribute("action", extraID)
-			Utility:CallMethod("AnimateNew", button:GetName())
-			return
-		end
-	end
-]])
-
-Utility:WrapScript(ExtraActionButton1, "OnHide", [[
-	local extraID = self:GetAttribute("action")
-	for _, button in pairs(BUTTONS) do
-		if 	button:GetAttribute("type") == "action" and button:GetAttribute("action") == extraID then
-			button:SetAlpha(0.5)
-			button:SetAttribute("type", nil)
-			button:SetAttribute("action", nil)
-		end
-	end
-]])
