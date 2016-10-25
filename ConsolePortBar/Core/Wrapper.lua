@@ -70,7 +70,6 @@ local buttonTextures = {
 
 ---------------------------------------------------------------
 local config = {
-	outOfRangeColoring = "button",
 	tooltip = "enabled",
 	showGrid = true,
 	colors = {
@@ -79,7 +78,6 @@ local config = {
 	},
 	hideElements = {
 		macro = false,
-		hotkey = true,
 		equipped = false,
 	},
 	keyBoundTarget = false,

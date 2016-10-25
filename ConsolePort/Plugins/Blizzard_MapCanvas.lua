@@ -11,6 +11,7 @@ db.PLUGINS["Blizzard_MapCanvas"] = function(self)
 		self.pin:OnMouseEnter()
 		if ( GameTooltip:GetOwner() == self.pin ) and
 			db.Mouse.Cursor.Special and
+			GetMouseFocus() ~= self and
 			map:ShouldZoomInOnClick() then
 			if map:IsZoomedIn() or map:IsZoomingIn() then
 				map:PanTo(self.pin.normalizedX, self.pin.normalizedY)

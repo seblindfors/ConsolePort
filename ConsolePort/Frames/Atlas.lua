@@ -423,12 +423,19 @@ Atlas.GetScrollFrame = function(name, parent, config)
 	local thumb = bar:GetThumbTexture()
 
 	if not noBackdrop then
-		local backdrop = CreateFrame("Frame", "$parentBackdrop", self)
+		local backdrop = CreateFrame("Frame", self:GetName().."Backdrop", parent)
 		backdrop:SetBackdrop(customBackdrop or Atlas.Backdrops.Border)
-		backdrop:SetPoint("TOPLEFT", -16, 16)
-		backdrop:SetPoint("BOTTOMRIGHT", 38, -16)
+		backdrop:SetPoint("TOPLEFT", self, 'TOPLEFT', -16, 16)
+		backdrop:SetPoint("BOTTOMRIGHT", self, 'BOTTOMRIGHT', 38, -16)
 		backdrop:SetFrameLevel(self:GetFrameLevel() - 1)
+		backdrop:SetShown(self:IsVisible())
 		self.Backdrop = backdrop
+		self:HookScript("OnShow", function(self)
+			self.Backdrop:Show()
+		end)
+		self:HookScript("OnHide", function(self)
+			self.Backdrop:Hide()
+		end)
 	end
 
 	if parentKey then parent[parentKey] = self end
@@ -436,6 +443,7 @@ Atlas.GetScrollFrame = function(name, parent, config)
 
 	self.Child = child
 	self:SetScrollChild(child)
+	self:SetClipsChildren(child)
 
 	child:SetWidth(childWidth or 0)
 

@@ -9,34 +9,35 @@ local SETUP = db.TUTORIAL.SETUP
 
 -- Determine if the base (unmodified) bindings are assigned.
 function ConsolePort:CheckCalibration(forceCustom)
-	local ctrlType = db.Settings.type
+	if not db.Settings.skipCalibration then
+		local ctrlType = db.Settings.type
 
-	-- if this is not a forced custom calibration, load bindings from disk.
-	if not forceCustom then
-		local calibration = db.Settings.calibration
-		if calibration then
-			for binding, key in pairs(calibration) do
-				SetBinding(key, binding)
-			end
-		end
-	end
-
-	-- no calibration data found, go to custom calibration.
-	local unassigned
-	for button in self:GetBindings() do
-		-- temporary Steam guide button fix, remove this.
-		if 	not (db.Settings.skipGuideBtn and button == "CP_X_CENTER") and not button:match("CP_T_.3") then
-			local key1, key2 = GetBindingKey(button)
-			if not key1 and not key2 then
-				if not unassigned then
-					unassigned = { button }
-				else
-					unassigned[#unassigned + 1] = button
+		-- if this is not a forced custom calibration, load bindings from disk.
+		if not forceCustom then
+			local calibration = db.Settings.calibration
+			if calibration then
+				for binding, key in pairs(calibration) do
+					SetBinding(key, binding)
 				end
 			end
 		end
+
+		-- no calibration data found, go to custom calibration.
+		local unassigned
+		for button in self:GetBindings() do
+			if 	not (db.Settings.skipGuideBtn and button == "CP_X_CENTER") and not button:match("CP_T_.3") then
+				local key1, key2 = GetBindingKey(button)
+				if not key1 and not key2 then
+					if not unassigned then
+						unassigned = { button }
+					else
+						unassigned[#unassigned + 1] = button
+					end
+				end
+			end
+		end
+		return unassigned
 	end
-	return unassigned
 end
 
 function ConsolePort:CalibrateController(reset)
@@ -142,7 +143,7 @@ function ConsolePort:CalibrateController(reset)
 					link = db.Controllers[ctrlType].LinkMac
 				end
 
-				helpFrame.Description:SetText(format(SETUP.AHATEXT, instructions or SETUP.NOINSTRUCTIONS))
+				helpFrame.Description:SetFormattedText(SETUP.AHATEXT, instructions or SETUP.NOINSTRUCTIONS)
 
 				if link then
 					helpFrame.LinkBox.link = link
@@ -263,7 +264,7 @@ function ConsolePort:CalibrateController(reset)
 				self:Hide()
 				return
 			elseif forbidden[key] then
-				self.Status:SetText(format(SETUP.RESERVED, key, forbidden[key]))
+				self.Status:SetFormattedText(SETUP.RESERVED, key, forbidden[key])
 				self.Status:SetAlpha(1)
 				return
 			end
@@ -323,7 +324,7 @@ function ConsolePort:CalibrateController(reset)
 							db.Settings.calibration = {}
 						end
 						db.Settings.calibration[self.BTN] = key
-						self.Status:SetText(format(SETUP.SUCCESS, self.ButtonTex:GetTexture(), key))
+						self.Status:SetFormattedText(SETUP.SUCCESS, self.ButtonTex:GetTexture(), key)
 						db.UIFrameFadeIn(self.Status, 3, 1, 0)
 						self.Binding:SetText(SETUP.EMPTY)
 						self.Confirm:SetText("")
@@ -336,18 +337,18 @@ function ConsolePort:CalibrateController(reset)
 			elseif self.VAL and self.VAL == key then
 				self.SET = true
 				if self.BTN then
-					self.Confirm:SetText(format(SETUP.CONFIRM, self.ButtonTex:GetTexture()))
+					self.Confirm:SetFormattedText(SETUP.CONFIRM, self.ButtonTex:GetTexture())
 				end
 			else
 				if self.BTN then
 					local action = GetBindingAction(key)
 					if db.Settings.calibration and db.Settings.calibration[action] then
-						self.Confirm:SetText(format(SETUP.OVERRIDE_C, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)] or SETUP.NOEXISTFIX, self.ButtonTex:GetTexture()))
+						self.Confirm:SetFormattedText(SETUP.OVERRIDE_C, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)] or SETUP.NOEXISTFIX, self.ButtonTex:GetTexture())
 					elseif action ~= "" then
-						self.Confirm:SetText(format(SETUP.OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)] or SETUP.NOEXISTFIX, self.ButtonTex:GetTexture()))
+						self.Confirm:SetFormattedText(SETUP.OVERRIDE, GetBindingText(key), _G["BINDING_NAME_"..GetBindingAction(key)] or SETUP.NOEXISTFIX, self.ButtonTex:GetTexture())
 					else
 
-						self.Confirm:SetText(format(SETUP.CONTINUE, self.ButtonTex:GetTexture()))
+						self.Confirm:SetFormattedText(SETUP.CONTINUE, self.ButtonTex:GetTexture())
 					end
 				end
 				self.SET = false

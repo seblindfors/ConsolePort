@@ -105,12 +105,14 @@ end
 -- Use callback to circumvent node jumping when closing multiple frames,
 -- which leads to the cursor ending up in an unexpected place on re-show.
 -- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
-local function hideHook(self)
+local function hideHook(self, explicit)
 	if isEnabled and frameStack[self] then
 		Callback(0.02, function()
-			hasUIFocus = nil
-			visibleStack[self] = nil
-			Core:UpdateFrames()
+			if explicit or not self:IsVisible() then
+				hasUIFocus = nil
+				visibleStack[self] = nil
+				Core:UpdateFrames()
+			end
 		end)
 	end
 end
@@ -198,7 +200,7 @@ function Core:UpdateFrames()
 				if not self:UIControl() then
 					-- there are visible frames, but no eligible nodes -> flag frames as hidden.
 					for frame in pairs(visibleStack) do
-						hideHook(frame)
+						hideHook(frame, true)
 					end
 				end
 			end

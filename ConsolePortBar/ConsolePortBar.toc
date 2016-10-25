@@ -1,4 +1,4 @@
-## Interface: 70000
+## Interface: 70100
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar extension for Console Port
 ## SavedVariablesPerCharacter: ConsolePortBarSetup

@@ -51,6 +51,12 @@ local function GetAddonSettings()
 			toggle = Settings.disableSmartMouse,
 		},
 		{
+			cvar = "raidCursorDirect",
+			desc = TUTORIAL.CONFIG.RAIDCURSORDIRECT,
+			toggle = Settings.raidCursorDirect,
+			needReload = true,
+		},
+		{
 			desc = TUTORIAL.CONFIG.CONVENIENCE,
 		},
 		{	cvar = "autoExtra",
@@ -58,9 +64,9 @@ local function GetAddonSettings()
 			toggle = Settings.autoExtra,
 		},
 		{
-			cvar = "cameraDistanceMoveSpeed",
+			cvar = "cameraZoomSpeed",
 			desc = TUTORIAL.CONFIG.FASTCAM,
-			toggle = Settings.cameraDistanceMoveSpeed,
+			toggle = Settings.cameraZoomSpeed,
 		},
 		{
 			cvar = "autoLootDefault",
@@ -172,7 +178,7 @@ function Catcher:OnCatch(key)
 	if action and action:match("CP_*") then
 		self.CurrentButton = action
 		if self.CurrentButton then
-			self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[action]))
+			self:SetFormattedText(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[action])
 		end
 	elseif key then
 		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
@@ -194,7 +200,7 @@ end
 function Catcher:OnShow()
 	self.CurrentButton = Settings.interactWith
 	if self.CurrentButton then
-		self:SetText(format(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton]))
+		self:SetFormattedText(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton])
 	else
 		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
 	end
@@ -263,6 +269,7 @@ function WindowMixin:Save()
 
 	ConsolePort:LoadEvents()
 	ConsolePort:LoadControllerTheme()
+	ConsolePort:LoadCameraSettings()
 	ConsolePort:UpdateMouseDriver()
 	ConsolePort:SetupUtilityBelt()
 	return needReload
@@ -303,350 +310,330 @@ db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, fun
 
 	------------------------------------------------------------------------------------------------------------------------------
 
-	Controls.InteractModule = CreateFrame("Frame", nil, Controls)
-	Controls.InteractModule:SetBackdrop(db.Atlas.Backdrops.Border)
-	Controls.InteractModule:SetPoint("TOPRIGHT", -302, -8)
-	Controls.InteractModule:SetSize(308, 308)
+	-- Create all the separate config modules
 
-	Controls.MouseModule = CreateFrame("Frame", nil, Controls)
-	Controls.MouseModule:SetBackdrop(db.Atlas.Backdrops.Border)
-	Controls.MouseModule:SetPoint("TOPRIGHT", -8, -8)
-	Controls.MouseModule:SetSize(316, 308)
+	for _, setup in pairs({
+		{"Interact", {308, 308}, {"TOPRIGHT", -302, -8}, TUTORIAL.CONFIG.INTERACTHEADER},
+		{"Mouse", 	{316, 308}, {"TOPRIGHT", -8, -8}, 	TUTORIAL.CONFIG.MOUSEHEADER},
+		{"General", {388, 480}, {"TOPLEFT", 8, -8}, 	TUTORIAL.CONFIG.GENERALHEADER},
+		{"Assist", 	{214, 192}, {"TOPLEFT", 0, 0}, 		TUTORIAL.CONFIG.TARGETHEADER},
+		{"Trigger", {580, 190}, {"BOTTOMLEFT", 8, 8}, 	TUTORIAL.CONFIG.TRIGGERHEADER},
+		{"Camera", {410, 362}, {"BOTTOMRIGHT", -8, 8}, 	TUTORIAL.CONFIG.CAMERAHEADER},
+	}) do
+		local name, size, point, header = unpack(setup)
+		local subFrame = CreateFrame("Frame", nil, Controls)
+		subFrame:SetSize(unpack(size))
+		subFrame:SetPoint(unpack(point))
+		subFrame:SetBackdrop(db.Atlas.Backdrops.Border)
+		subFrame.Header = subFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+		subFrame.Header:SetText(header)
+		subFrame.Header:SetPoint("TOPLEFT", 24, -24)
+		Controls[name.."Module"] = subFrame
+	end
 
-	Controls.GeneralModule = CreateFrame("Frame", nil, Controls)
-	Controls.GeneralModule:SetBackdrop(db.Atlas.Backdrops.Border)
-	Controls.GeneralModule:SetPoint("TOPLEFT", 8, -8)
-	Controls.GeneralModule:SetSize(388, 480)
-
-	Controls.AssistModule = CreateFrame("Frame", nil, Controls)
-	Controls.AssistModule:SetBackdrop(db.Atlas.Backdrops.Border)
-	Controls.AssistModule:SetPoint("TOPLEFT", Controls.InteractModule, "BOTTOMLEFT", 0, 20)
-	Controls.AssistModule:SetSize(214, 192)
-
-	Controls.CameraModule = CreateFrame("Frame", nil, Controls)
-	Controls.CameraModule:SetBackdrop(db.Atlas.Backdrops.Border)
-	Controls.CameraModule:SetPoint("BOTTOMRIGHT", -8, 8)
-	Controls.CameraModule:SetSize(410, 362)
-
-	Controls.TriggerModule = db.Atlas.GetGlassWindow("$parentTriggerModule", Controls, nil, true)
-	Controls.TriggerModule.Close:Hide()
-	Controls.TriggerModule.BG:SetAlpha(0.1)
-	Controls.TriggerModule:SetPoint("BOTTOMLEFT", 8, 8)
-	Controls.TriggerModule:SetSize(580, 190)
+	local function GetHelpButton(parent, text)
+		parent.HelpButton = CreateFrame("Button", "$parentHelpButton", parent)
+		parent.HelpButton:SetSize(64, 64)
+		parent.HelpButton.Text = text
+		parent.HelpButton:SetNormalTexture("Interface\\Common\\help-i")
+		parent.HelpButton:SetHighlightTexture("Interface\\Common\\help-i")
+		parent.HelpButton:SetPoint("TOPRIGHT", -4, -4)
+		parent.HelpButton:SetScript("OnEnter", function(self)
+			GameTooltip:Hide()
+			GameTooltip:SetOwner(self, "ANCHOR_TOP")
+			GameTooltip:SetText(self.Text)
+			GameTooltip:Show()
+		end)
+		parent.HelpButton:SetScript("OnLeave", function(self)
+			GameTooltip:Hide()
+		end)
+		return parent.HelpButton
+	end
 
 	------------------------------------------------------------------------------------------------------------------------------
-	function Controls.InteractModule:OnShow()
-		if self.Enable:GetChecked() then
-			FadeOut(self.Hand, 0.5, 1, 0.1)
-			FadeOut(self.Dude, 0.5, 1, 0.1)
-			self.MouseOver:Show()
-			self.Auto:Show()
-			self.NPC:Show()
-			self.BindWrapper:Show()
-		else
-			self.MouseOver:Hide()
-			self.Auto:Hide()
-			self.NPC:Hide()
-			self.BindWrapper:Hide()
-			FadeIn(self.Hand, 0.5, 0.1, 1)
-			FadeIn(self.Dude, 0.5, 0.1, 1)
+	do local InteractModule = Controls.InteractModule
+
+		function InteractModule:OnShow()
+			if self.Enable:GetChecked() then
+				FadeOut(self.Hand, 0.5, 1, 0.1)
+				FadeOut(self.Dude, 0.5, 1, 0.1)
+				self.MouseOver:Show()
+				self.Auto:Show()
+				self.NPC:Show()
+				self.BindWrapper:Show()
+			else
+				self.MouseOver:Hide()
+				self.Auto:Hide()
+				self.NPC:Hide()
+				self.BindWrapper:Hide()
+				FadeIn(self.Hand, 0.5, 0.1, 1)
+				FadeIn(self.Dude, 0.5, 0.1, 1)
+			end
+		end
+
+		Mixin(InteractModule, InteractModule)
+
+		InteractModule.Dude = InteractModule:CreateTexture(nil, "BACKGROUND", nil, 1)
+		InteractModule.Dude:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-QuestGiver")
+		InteractModule.Dude:SetPoint("CENTER", 0, 0)
+		InteractModule.Dude:SetSize(128, 128)
+
+		InteractModule.Hand = InteractModule:CreateTexture(nil, "BACKGROUND", nil, 2)
+		InteractModule.Hand:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-GloveCursor")
+		InteractModule.Hand:SetPoint("CENTER", 16, -40)
+		InteractModule.Hand:SetSize(64, 64)
+
+		InteractModule.Description = InteractModule:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+		InteractModule.Description:SetPoint("BOTTOM", 0, 32)
+		InteractModule.Description:SetText(TUTORIAL.CONFIG.INTERACTDESC)
+		InteractModule.Description:SetJustifyH("CENTER")
+
+		InteractModule.BindWrapper = db.Atlas.GetGlassWindow("$parentBindWrapper", InteractModule, nil, true)
+		InteractModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
+		InteractModule.BindWrapper:SetPoint("BOTTOM", 0, 54)
+		InteractModule.BindWrapper:SetSize(256, 90)
+		InteractModule.BindWrapper.Close:Hide()
+		InteractModule.BindWrapper:Hide()
+
+		InteractModule.BindCatcher = db.Atlas.GetFutureButton("$parentBindCatcher", InteractModule.BindWrapper, nil, nil, 200)
+		InteractModule.BindCatcher.HighlightTexture:ClearAllPoints()
+		InteractModule.BindCatcher.HighlightTexture:SetAllPoints(InteractModule.BindCatcher)
+		InteractModule.BindCatcher:SetHeight(60)
+		InteractModule.BindCatcher:SetPoint("CENTER", 0, 0)
+		InteractModule.BindCatcher.Cover:Hide()
+
+		GetHelpButton(InteractModule, TUTORIAL.CONFIG.INTERACTHELP)
+
+		Mixin(InteractModule.BindCatcher, Catcher)
+		InteractModule.BindCatcher:OnShow()
+
+		local function InteractCheckButton(name, point, label, setting)
+			local button = CreateFrame("CheckButton", nil, InteractModule, "ChatConfigCheckButtonTemplate")
+			local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+			button.Text = text
+
+			text:SetPoint("LEFT", 30, 0)
+			text:SetText(label)
+
+			button:SetPoint(unpack(point))
+			button:SetChecked(setting)
+			button:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
+
+			InteractModule[name] = button
+		end
+
+		local interactButtons = {
+			{name = "Enable", point = {"TOPLEFT", 24, -48}, label = TUTORIAL.CONFIG.INTERACTCHECK, setting = Settings.interactWith},
+			{name = "MouseOver", point = {"TOPLEFT", 24, -78}, label = TUTORIAL.CONFIG.MOUSEOVERMODE, setting = Settings.mouseOverMode},
+			{name = "NPC", point = {"TOPLEFT", 24, -108}, label = TUTORIAL.CONFIG.INTERACTNPC, setting = Settings.interactNPC},
+			{name = "Auto", point = {"TOPLEFT", 24, -138}, label = TUTORIAL.CONFIG.INTERACTAUTO, setting = Settings.interactAuto},
+		}
+
+		for _, setup in pairs(interactButtons) do
+			InteractCheckButton(setup.name, setup.point, setup.label, setup.setting)
 		end
 	end
 
-	Mixin(Controls.InteractModule, Controls.InteractModule)
-
-	Controls.InteractModule.Header = Controls.InteractModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Controls.InteractModule.Header:SetText(TUTORIAL.CONFIG.INTERACTHEADER)
-	Controls.InteractModule.Header:SetPoint("TOPLEFT", 24, -24)
-
-	Controls.InteractModule.Dude = Controls.InteractModule:CreateTexture(nil, "BACKGROUND", nil, 1)
-	Controls.InteractModule.Dude:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-QuestGiver")
-	Controls.InteractModule.Dude:SetPoint("CENTER", 0, 0)
-	Controls.InteractModule.Dude:SetSize(128, 128)
-
-	Controls.InteractModule.Hand = Controls.InteractModule:CreateTexture(nil, "BACKGROUND", nil, 2)
-	Controls.InteractModule.Hand:SetTexture("Interface\\TutorialFrame\\UI-TutorialFrame-GloveCursor")
-	Controls.InteractModule.Hand:SetPoint("CENTER", 16, -40)
-	Controls.InteractModule.Hand:SetSize(64, 64)
-
-	Controls.InteractModule.Description = Controls.InteractModule:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-	Controls.InteractModule.Description:SetPoint("BOTTOM", 0, 32)
-	Controls.InteractModule.Description:SetText(TUTORIAL.CONFIG.INTERACTDESC)
-	Controls.InteractModule.Description:SetJustifyH("CENTER")
-
-	Controls.InteractModule.BindWrapper = db.Atlas.GetGlassWindow("$parentBindWrapper", Controls.InteractModule, nil, true)
-	Controls.InteractModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-	Controls.InteractModule.BindWrapper:SetPoint("BOTTOM", 0, 54)
-	Controls.InteractModule.BindWrapper:SetSize(256, 90)
-	Controls.InteractModule.BindWrapper.Close:Hide()
-	Controls.InteractModule.BindWrapper:Hide()
-
-	Controls.InteractModule.BindCatcher = db.Atlas.GetFutureButton("$parentBindCatcher", Controls.InteractModule.BindWrapper, nil, nil, 200)
-	Controls.InteractModule.BindCatcher.HighlightTexture:ClearAllPoints()
-	Controls.InteractModule.BindCatcher.HighlightTexture:SetAllPoints(Controls.InteractModule.BindCatcher)
-	Controls.InteractModule.BindCatcher:SetHeight(60)
-	Controls.InteractModule.BindCatcher:SetPoint("CENTER", 0, 0)
-	Controls.InteractModule.BindCatcher.Cover:Hide()
-
-	Mixin(Controls.InteractModule.BindCatcher, Catcher)
-	Controls.InteractModule.BindCatcher:OnShow()
-
-	local function InteractCheckButton(name, point, label, setting)
-		local button = CreateFrame("CheckButton", nil, Controls.InteractModule, "ChatConfigCheckButtonTemplate")
-		local text = button:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		button.Text = text
-
-		text:SetPoint("LEFT", 30, 0)
-		text:SetText(label)
-
-		button:SetPoint(unpack(point))
-		button:SetChecked(setting)
-		button:SetScript("OnClick", function(self) self:GetParent():OnShow() end)
-
-		Controls.InteractModule[name] = button
-	end
-
-	local interactButtons = {
-		{name = "Enable", point = {"TOPLEFT", 24, -48}, label = TUTORIAL.CONFIG.INTERACTCHECK, setting = Settings.interactWith},
-		{name = "MouseOver", point = {"TOPLEFT", 24, -78}, label = TUTORIAL.CONFIG.MOUSEOVERMODE, setting = Settings.mouseOverMode},
-		{name = "NPC", point = {"TOPLEFT", 24, -108}, label = TUTORIAL.CONFIG.INTERACTNPC, setting = Settings.interactNPC},
-		{name = "Auto", point = {"TOPLEFT", 24, -138}, label = TUTORIAL.CONFIG.INTERACTAUTO, setting = Settings.interactAuto},
-	}
-
-	for _, setup in pairs(interactButtons) do
-		InteractCheckButton(setup.name, setup.point, setup.label, setup.setting)
-	end
-
 	------------------------------------------------------------------------------------------------------------------------------
-	Controls.MouseModule.Header = Controls.MouseModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Controls.MouseModule.Header:SetText(TUTORIAL.CONFIG.MOUSEHEADER)
-	Controls.MouseModule.Header:SetPoint("TOPLEFT", 24, -24)
-
-	Controls.Events = {}
-	for i, setting in pairs(GetMouseSettings()) do
-		local check = CreateFrame("CheckButton", "$parentMouseEvent"..i, Controls.MouseModule, "ChatConfigCheckButtonTemplate")
-		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		text:SetText(setting.desc)
-		check:SetChecked(setting.toggle)
-		check.Events = setting.event
-		check.Description = text
-		check:SetPoint("TOPLEFT", 24, -30*i-18)
-		text:SetPoint("LEFT", check, 30, 0)
-		check:Show()
-		text:Show()
-		tinsert(Controls.Events, check)
-	end
-
-	------------------------------------------------------------------------------------------------------------------------------
-	Controls.GeneralModule.Header = Controls.GeneralModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Controls.GeneralModule.Header:SetText(TUTORIAL.CONFIG.GENERALHEADER)
-	Controls.GeneralModule.Header:SetPoint("TOPLEFT", 24, -24)
-
-	local mouseCvarOffset = #Controls.Events
-	Controls.General = {}
-	for i, setting in pairs(GetAddonSettings()) do
-		if setting.cvar then
-			local check = CreateFrame("CheckButton", "$parentGeneralSetting"..i, Controls.GeneralModule, "ChatConfigCheckButtonTemplate")
+	do local MouseModule = Controls.MouseModule
+		Controls.Events = {}
+		for i, setting in pairs(GetMouseSettings()) do
+			local check = CreateFrame("CheckButton", "$parentMouseEvent"..i, MouseModule, "ChatConfigCheckButtonTemplate")
 			local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 			text:SetText(setting.desc)
 			check:SetChecked(setting.toggle)
+			check.Events = setting.event
 			check.Description = text
-			check.Cvar = setting.cvar
-			check.Reload = setting.needReload
+			check:SetPoint("TOPLEFT", 24, -30*i-18)
 			text:SetPoint("LEFT", check, 30, 0)
-			if setting.mouse then
-				mouseCvarOffset = mouseCvarOffset + 1
-				check:SetPoint("TOPLEFT", Controls.MouseModule, "TOPLEFT", 24, -30*mouseCvarOffset-18)
-			else
-				check:SetPoint("TOPLEFT", 24, -30*i-18)
-			end
-			tinsert(Controls.General, check)
-		else
-			local text = Controls.GeneralModule:CreateFontString("$parentGeneralSetting"..i, "OVERLAY", "GameFontNormalLeftOrange")
-			text:SetText(setting.desc)
-			text:SetPoint("TOPLEFT", 24, -30*i-24)
+			check:Show()
+			text:Show()
+			tinsert(Controls.Events, check)
 		end
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------
-	local function TriggerClick(self)
-		local parent = self.parent
-		local oldVal = parent.Index
-		local allSets = parent.AllSets
-		parent.Index = self.num
-		parent.Value = self.name
-		if allSets then
-			for x, trigger in pairs(allSets) do
-				if trigger ~= parent then
-					for i, button in pairs(trigger.Set) do
-						if i == self.num and button:GetChecked() then
-							button:SetChecked(false)
-							local swapTo = trigger.Set[oldVal]
-							swapTo:SetChecked(true)
-							trigger.Value = swapTo.name
-							trigger.Index = swapTo.num
+	do local GeneralModule = Controls.GeneralModule
+
+		local mouseCvarOffset = #Controls.Events
+		Controls.General = {}
+		for i, setting in pairs(GetAddonSettings()) do
+			if setting.cvar then
+				local check = CreateFrame("CheckButton", "$parentGeneralSetting"..i, GeneralModule, "ChatConfigCheckButtonTemplate")
+				local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+				text:SetText(setting.desc)
+				check:SetChecked(setting.toggle)
+				check.Description = text
+				check.Cvar = setting.cvar
+				check.Reload = setting.needReload
+				text:SetPoint("LEFT", check, 30, 0)
+				if setting.mouse then
+					mouseCvarOffset = mouseCvarOffset + 1
+					check:SetPoint("TOPLEFT", Controls.MouseModule, "TOPLEFT", 24, -30*mouseCvarOffset-18)
+				else
+					check:SetPoint("TOPLEFT", 24, -30*i-18)
+				end
+				tinsert(Controls.General, check)
+			else
+				local text = GeneralModule:CreateFontString("$parentGeneralSetting"..i, "OVERLAY", "GameFontNormalLeftOrange")
+				text:SetText(setting.desc)
+				text:SetPoint("TOPLEFT", 24, -30*i-24)
+			end
+		end
+	end
+
+	------------------------------------------------------------------------------------------------------------------------------
+	do local TriggerModule = Controls.TriggerModule
+
+		local function TriggerClick(self)
+			local parent = self.parent
+			local oldVal = parent.Index
+			local allSets = parent.AllSets
+			parent.Index = self.num
+			parent.Value = self.name
+			if allSets then
+				for x, trigger in pairs(allSets) do
+					if trigger ~= parent then
+						for i, button in pairs(trigger.Set) do
+							if i == self.num and button:GetChecked() then
+								button:SetChecked(false)
+								local swapTo = trigger.Set[oldVal]
+								swapTo:SetChecked(true)
+								trigger.Value = swapTo.name
+								trigger.Index = swapTo.num
+							end
 						end
 					end
 				end
 			end
 		end
-	end
-	------------------------------------------------------------------------------------------------------------------------------
-	Controls.TriggerModule.Header = Controls.TriggerModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Controls.TriggerModule.Header:SetText(TUTORIAL.CONFIG.TRIGGERHEADER)
-	Controls.TriggerModule.Header:SetPoint("TOPLEFT", 24, -24)
 
-	Controls.TriggerModule.HelpButton = CreateFrame("Button", "$parentHelpButton", Controls.TriggerModule)
-	Controls.TriggerModule.HelpButton:SetSize(64, 64)
-	Controls.TriggerModule.HelpButton:SetNormalTexture("Interface\\Common\\help-i")
-	Controls.TriggerModule.HelpButton:SetHighlightTexture("Interface\\Common\\help-i")
-	Controls.TriggerModule.HelpButton:SetPoint("TOPRIGHT", -4, -4)
-	Controls.TriggerModule.HelpButton:SetScript("OnEnter", function(self)
-		GameTooltip:Hide()
-		GameTooltip:SetOwner(self, "ANCHOR_TOP")
-		GameTooltip:SetText(TUTORIAL.CONFIG.TRIGGERHELP)
-		GameTooltip:Show()
-	end)
-	Controls.TriggerModule.HelpButton:SetScript("OnLeave", function(self)
-		GameTooltip:Hide()
-	end)
+		GetHelpButton(TriggerModule, TUTORIAL.CONFIG.TRIGGERHELP)
 
-	Controls.Triggers = {}
+		Controls.Triggers = {}
 
-	local triggerGraphics = {
-		[TUTORIAL.BIND.SHIFT] 	= {offset = 0, cvar = "CP_M1"},
-		[TUTORIAL.BIND.CTRL] 	= {offset = 1, cvar = "CP_M2"},
-		[TUTORIAL.BIND.T1] 		= {offset = 2, cvar = "CP_T1"},
-		[TUTORIAL.BIND.T2] 		= {offset = 3, cvar = "CP_T2"},
-	}
+		local triggerGraphics = {
+			[TUTORIAL.BIND.SHIFT] 	= {offset = 0, cvar = "CP_M1"},
+			[TUTORIAL.BIND.CTRL] 	= {offset = 1, cvar = "CP_M2"},
+			[TUTORIAL.BIND.T1] 		= {offset = 2, cvar = "CP_T1"},
+			[TUTORIAL.BIND.T2] 		= {offset = 3, cvar = "CP_T2"},
+		}
 
-	for name, info in pairs(triggerGraphics) do
-		local trigger = Controls:CreateTexture("$parent"..info.cvar, "ARTWORK")
-		trigger:SetSize(76, 50)
-		trigger:SetPoint("TOPLEFT", Controls.TriggerModule.Header, "TOPLEFT", info.offset * 120 + 60, -24)
-		trigger.AllSets = Controls.Triggers
-		trigger.Value = Settings[info.cvar]
-		trigger.Cvar = info.cvar
+		for name, info in pairs(triggerGraphics) do
+			local trigger = Controls:CreateTexture("$parent"..info.cvar, "ARTWORK")
+			trigger:SetSize(76, 50)
+			trigger:SetPoint("TOPLEFT", TriggerModule.Header, "TOPLEFT", info.offset * 120 + 60, -24)
+			trigger.AllSets = Controls.Triggers
+			trigger.Value = Settings[info.cvar]
+			trigger.Cvar = info.cvar
 
-		local triggerText = Controls:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-		triggerText:SetText(name)
-		triggerText:SetPoint("CENTER", trigger, 0, 20)
-		triggerText:SetTextColor(0.5, 0.5, 0.5)
+			local triggerText = TriggerModule:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+			triggerText:SetText(name)
+			triggerText:SetPoint("CENTER", trigger, 0, 20)
+			triggerText:SetTextColor(0.5, 0.5, 0.5)
 
-		tinsert(Controls.Triggers, trigger)
+			tinsert(Controls.Triggers, trigger)
 
-		Controls[name] = trigger
-	end
+			Controls[name] = trigger
+		end
 
-	local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons32\\%s"
-	local triggers = {
-		CP_TL1 = format(TEXTURE_PATH, Settings.type, "CP_TL1"),
-		CP_TL2 = format(TEXTURE_PATH, Settings.type, "CP_TL2"),
-		CP_TR1 = format(TEXTURE_PATH, Settings.type, "CP_TR1"),
-		CP_TR2 = format(TEXTURE_PATH, Settings.type, "CP_TR2"),
-	}
+		local TEXTURE_PATH = "Interface\\AddOns\\ConsolePort\\Controllers\\%s\\Icons32\\%s"
+		local triggers = {
+			CP_TL1 = format(TEXTURE_PATH, Settings.type, "CP_TL1"),
+			CP_TL2 = format(TEXTURE_PATH, Settings.type, "CP_TL2"),
+			CP_TR1 = format(TEXTURE_PATH, Settings.type, "CP_TR1"),
+			CP_TR2 = format(TEXTURE_PATH, Settings.type, "CP_TR2"),
+		}
 
-	local radioButtons = {
-		{parent = Controls[TUTORIAL.BIND.SHIFT],	default = Settings.CP_M1},
-		{parent = Controls[TUTORIAL.BIND.CTRL], 	default = Settings.CP_M2},
-		{parent = Controls[TUTORIAL.BIND.T1], 	default = Settings.CP_T1},
-		{parent = Controls[TUTORIAL.BIND.T2], 	default = Settings.CP_T2},
-	}
+		local radioButtons = {
+			{parent = Controls[TUTORIAL.BIND.SHIFT],	default = Settings.CP_M1},
+			{parent = Controls[TUTORIAL.BIND.CTRL], 	default = Settings.CP_M2},
+			{parent = Controls[TUTORIAL.BIND.T1], 		default = Settings.CP_T1},
+			{parent = Controls[TUTORIAL.BIND.T2], 		default = Settings.CP_T2},
+		}
 
-	for i, radio in pairs(radioButtons) do
-		local num = 1
-		radio.parent.Set = {}
-		for name, texture in spairs(triggers) do
-			local button = CreateFrame("CheckButton", "$parentTrigger"..i..name, Controls)
+		for i, radio in pairs(radioButtons) do
+			local num = 1
+			radio.parent.Set = {}
+			for name, texture in spairs(triggers) do
+				local button = CreateFrame("CheckButton", "$parentTrigger"..i..name, TriggerModule)
 
-			button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
+				button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
 
-			button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
-			button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
+				button:SetHighlightTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
+				button:SetCheckedTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Checked")
 
-			button.Checked = button:GetCheckedTexture()
-			button.Highlight = button:GetHighlightTexture()
+				button.Checked = button:GetCheckedTexture()
+				button.Highlight = button:GetHighlightTexture()
 
-			button.Checked:SetTexCoord(0, 1, 1, 0)
-			button.Highlight:SetTexCoord(0, 1, 1, 0)
+				button.Checked:SetTexCoord(0, 1, 1, 0)
+				button.Highlight:SetTexCoord(0, 1, 1, 0)
 
-			button.Checked:ClearAllPoints()
-			button.Checked:SetPoint("CENTER", 0, 0)
-			button.Checked:SetSize(104, 16)
-			button.Checked:SetVertexColor(red, green, blue)
+				button.Checked:ClearAllPoints()
+				button.Checked:SetPoint("CENTER", 0, 0)
+				button.Checked:SetSize(104, 16)
+				button.Checked:SetVertexColor(red, green, blue)
 
-			button.Highlight:ClearAllPoints()
-			button.Highlight:SetPoint("CENTER", 0, 0)
-			button.Highlight:SetSize(104, 16)
+				button.Highlight:ClearAllPoints()
+				button.Highlight:SetPoint("CENTER", 0, 0)
+				button.Highlight:SetSize(104, 16)
 
-			button:SetSize(120, 32)
+				button:SetSize(120, 32)
 
-			button.num = num
-			button.set = radio.parent.Set
-			button.name = name
-			button.parent = radio.parent
-			if i == 1 then
-				button.text = button:CreateTexture(nil, "OVERLAY")
-				button.text:SetTexture(texture)
-				button.text:SetPoint("RIGHT", button, "LEFT", 0, 0)
-				button.text:SetSize(32, 32)
+				button.num = num
+				button.set = radio.parent.Set
+				button.name = name
+				button.parent = radio.parent
+				if i == 1 then
+					button.text = button:CreateTexture(nil, "OVERLAY")
+					button.text:SetTexture(texture)
+					button.text:SetPoint("RIGHT", button, "LEFT", 0, 0)
+					button.text:SetSize(32, 32)
+				end
+				button:SetPoint("TOP", radio.parent, "TOP", 0, -24*(num-1)-12)
+				if name == radio.default then
+					radio.parent.Index = num
+					radio.parent.Value = name
+					button:SetChecked(true)
+				else
+					button:SetChecked(false)
+				end
+				tinsert(radio.parent.Set, button)
+				button:SetScript("OnClick", TriggerClick)
+				Mixin(button, CheckButton)
+				num = num + 1
 			end
-			button:SetPoint("TOP", radio.parent, "TOP", 0, -24*(num-1)-12)
-			if name == radio.default then
-				radio.parent.Index = num
-				radio.parent.Value = name
-				button:SetChecked(true)
-			else
-				button:SetChecked(false)
-			end
-			tinsert(radio.parent.Set, button)
-			button:SetScript("OnClick", TriggerClick)
-			Mixin(button, CheckButton)
-			num = num + 1
 		end
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------
-	Controls.AssistModule.Header = Controls.AssistModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Controls.AssistModule.Header:SetText(TUTORIAL.CONFIG.TARGETHEADER)
-	Controls.AssistModule.Header:SetPoint("TOPLEFT", 24, -24)
+	do local AssistModule = Controls.AssistModule
+		-- Correct the anchor point 
+		AssistModule:SetPoint("TOPLEFT", Controls.InteractModule, "BOTTOMLEFT", 0, 20)
+		local radioButtons = {
+			{name = TUTORIAL.CONFIG.TARGETSCAN},
+			{name = TUTORIAL.CONFIG.TARGETNONE, value = 1},
+			{name = TUTORIAL.CONFIG.TARGETALWAYS, value = 2},
+		}
 
-	radioButtons = {
-		{name = TUTORIAL.CONFIG.TARGETSCAN},
-		{name = TUTORIAL.CONFIG.TARGETNONE, value = 1},
-		{name = TUTORIAL.CONFIG.TARGETALWAYS, value = 2},
-	}
+		AssistModule.Set = {}
 
-	Controls.AssistModule.Set = {}
+		local function AssistClick(self)
+			self:GetParent().Mode = self.Value
+		end
 
-	local function AssistClick(self)
-		self:GetParent().Mode = self.Value
+		for i, radio in pairs(radioButtons) do
+			local check = CreateFrame("CheckButton", "$parentRadio"..i, AssistModule, "UIRadioButtonTemplate")			
+			local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+			text:SetText(radio.name)
+			check:SetChecked(Settings.alwaysHighlight == radio.value)
+			check.Value = radio.value
+			text:SetPoint("LEFT", check, 20, 0)
+			check:SetPoint("TOPLEFT", 20, -30*i-30)
+			check.set = Controls.AssistModule.Set
+			tinsert(check.set, check)
+			check:SetScript("OnClick", AssistClick)
+			Mixin(check, CheckButton)
+		end
 	end
-
-	for i, radio in pairs(radioButtons) do
-		local check = CreateFrame("CheckButton", "$parentRadio"..i, Controls.AssistModule, "UIRadioButtonTemplate")			
-		local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-		text:SetText(radio.name)
-		check:SetChecked(Settings.alwaysHighlight == radio.value)
-		check.Value = radio.value
-		text:SetPoint("LEFT", check, 20, 0)
-		check:SetPoint("TOPLEFT", 20, -30*i-30)
-		check.set = Controls.AssistModule.Set
-		tinsert(check.set, check)
-		check:SetScript("OnClick", AssistClick)
-		Mixin(check, CheckButton)
-	end
-
-	------------------------------------------------------------------------------------------------------------------------------
-	Controls.CameraModule.Header = Controls.CameraModule:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Controls.CameraModule.Header:SetText(TUTORIAL.CONFIG.CAMERAHEADER)
-	Controls.CameraModule.Header:SetPoint("TOPLEFT", 24, -24)
-
-	---- Under construction 
-	Controls.UnderConstruction = Controls.CameraModule:CreateTexture("ARTWORK")
-	Controls.UnderConstruction:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset.blp")
-	Controls.UnderConstruction:SetTexCoord(0.875, 1, 0.875, 1)
-	Controls.UnderConstruction:SetSize(128, 128)
-	Controls.UnderConstruction:SetPoint("CENTER")
-	----
 end}

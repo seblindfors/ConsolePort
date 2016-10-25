@@ -30,6 +30,11 @@ ConsolePort.configFrame = Config
 Config.Category = Category
 Config.Container = Container
 ---------------------------------------------------------------
+Config.Obstructor = CreateFrame("Frame", nil, Config)
+Config.Obstructor:SetAllPoints()
+Config.Obstructor:EnableMouse(true)
+Config.Obstructor:SetFrameLevel(100)
+---------------------------------------------------------------
 Config.Close:Hide()
 Config:SetFrameStrata("DIALOG")
 Config:SetSize(1000, 800)
@@ -249,7 +254,7 @@ function Popup:WrapClick(wrapper, button)
 	end
 end
 
-function Popup:SetPopup(header, frame, button1, button2, height)
+function Popup:SetPopup(header, frame, button1, button2, height, width)
 	if self.frame then
 		self.frame:Hide()
 	end
@@ -262,6 +267,7 @@ function Popup:SetPopup(header, frame, button1, button2, height)
 	self:WrapClick(self.Button1, button1)
 	self:WrapClick(self.Button2, button2)
 	self:Show()
+	self:SetWidth(width or 400)
 	self:SetHeight(height or 500)
 	self.frame = frame
 	ConsolePort:SetCurrentNode(self.Close)
@@ -271,11 +277,13 @@ function Popup:SetSelection(value) self.selected = value end
 function Popup:GetSelection() return self.selected end
 
 function Popup:OnShow()
+	Config.Obstructor:Show()
 	Config.ignoreNode = true
 	FadeOut(Config, 0.2, 1, 0.5)
 end
 
 function Popup:OnHide()
+	Config.Obstructor:Hide()
 	Config.ignoreNode = nil
 	FadeIn(Config, 0.2, Config:GetAlpha(), 1)
 end

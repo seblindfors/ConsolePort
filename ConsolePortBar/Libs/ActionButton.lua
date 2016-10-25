@@ -127,7 +127,6 @@ local EndChargeCooldown
 local InitializeEventHandler, OnEvent, ForAllButtons, OnUpdate
 
 local DefaultConfig = {
-	outOfRangeColoring = "button",
 	tooltip = "enabled",
 	showGrid = true,
 	colors = {
@@ -136,7 +135,6 @@ local DefaultConfig = {
 	},
 	hideElements = {
 		macro = false,
-		hotkey = false,
 		equipped = false,
 	},
 	keyBoundTarget = false,
@@ -186,10 +184,6 @@ function lib:CreateButton(id, name, header, config, template)
 
 	SetupSecureSnippets(button)
 	WrapOnClick(button)
-
-	-- adjust hotkey style for better readability
-	button.HotKey:SetFont(button.HotKey:GetFont(), 13, "OUTLINE")
-	button.HotKey:SetVertexColor(0.75, 0.75, 0.75)
 
 	-- adjust count/stack size
 	button.Count:SetFont(button.Count:GetFont(), 16, "OUTLINE")
@@ -654,14 +648,7 @@ function Generic:UpdateConfig(config)
 	-- merge the two configs
 	merge(self.config, config, DefaultConfig)
 
-	if self.config.outOfRangeColoring == "button" or (oldconfig and oldconfig.outOfRangeColoring == "button") then
-		UpdateUsable(self)
-	end
-	if self.config.outOfRangeColoring == "hotkey" then
-		self.outOfRange = nil
-	elseif oldconfig and oldconfig.outOfRangeColoring == "hotkey" then
-		self.HotKey:SetVertexColor(0.75, 0.75, 0.75)
-	end
+	UpdateUsable(self)
 
 	if self.config.hideElements.macro then
 		self.Name:Hide()
@@ -908,9 +895,7 @@ function OnUpdate(_, elapsed)
 				local oldRange = button.outOfRange
 				button.outOfRange = (inRange == false)
 				if oldRange ~= button.outOfRange then
-					if button.config.outOfRangeColoring == "button" then
-						UpdateUsable(button)
-					end
+					UpdateUsable(button)
 				end
 			end
 		end
@@ -1185,7 +1170,7 @@ end
 function UpdateUsable(self)
 	-- TODO: make the colors configurable
 	-- TODO: allow disabling of the whole recoloring
-	if self.config.outOfRangeColoring == "button" and self.outOfRange then
+	if self.outOfRange then
 		self.icon:SetVertexColor(unpack(self.config.colors.range))
 	else
 		local isUsable, notEnoughMana = self:IsUsable()
@@ -1408,6 +1393,7 @@ function UpdateNewAction(self)
 	if self.NewActionTexture then
 		if self._state_type == "action" and lib.ACTION_HIGHLIGHT_MARKS[self._state_action] then
 			self.NewActionTexture:Show()
+			UIFrameFadeOut(self.NewActionTexture, 10, 1, 0)
 		else
 			self.NewActionTexture:Hide()
 		end
@@ -1432,7 +1418,6 @@ function UpdateFlyout(self)
 			self.FlyoutArrow:Show()
 			self.FlyoutArrow:ClearAllPoints()
 			
-
 			self.FlyoutArrow:SetPoint("CENTER", 0, self.isMainButton and -20 or -10)
 			SetClampedTextureRotation(self.FlyoutArrow, 180)
 			return
@@ -1581,23 +1566,4 @@ Custom.GetSpellId              = function(self) return nil end
 Custom.RunCustom               = function(self, unit, button) return self._state_action.func(self, unit, button) end
 
 -----------------------------------------------------------
---- Update old Buttons
-if oldversion and next(lib.buttonRegistry) then
-	InitializeEventHandler()
-	for button in next, lib.buttonRegistry do
-		-- this refreshes the metatable on the button
-		Generic.UpdateAction(button, true)
-		SetupSecureSnippets(button)
-		if oldversion < 12 then
-			WrapOnClick(button)
-		end
-		if oldversion < 23 then
-			if button.overlay then
-				button.overlay:Hide()
-				ActionButton_HideOverlayGlow(button)
-				button.overlay = nil
-				UpdateOverlayGlow(button)
-			end
-		end
-	end
-end
+

@@ -11,6 +11,7 @@ local state, now = ConsolePort:GetActionPageDriver()
 
 local BAR_MIN_WIDTH = 1085
 local BAR_MAX_SCALE = 1.6
+local BAR_FIXED_HEIGHT = 140
 
 -- Set up action bar
 ---------------------------------------------------------------
@@ -100,8 +101,6 @@ Bar:SetAttribute("_onstate-page", [[
 	control:ChildUpdate("actionpage", newstate)
 ]])
 
-Bar:SetHeight(140)
-
 function Bar:OnEvent(event, ...)
 	if self[event] then
 		self[event](self, ...)
@@ -114,7 +113,7 @@ function Bar:ADDON_LOADED(...)
 		if not ConsolePortBarSetup then
 			ConsolePortBarSetup = {
 				scale = 1,
-				artMode = 1,
+				artMode = 2,
 			}
 		end
 		cfg = ConsolePortBarSetup
@@ -222,3 +221,4 @@ Bar:Execute(format([[
 ]], now or 1))
 
 Bar:SetWidth(#Bar.Buttons > 10 and (10 * 110) + 55 or (#Bar.Buttons * 110) + 55)
+Bar:SetHeight(BAR_FIXED_HEIGHT)

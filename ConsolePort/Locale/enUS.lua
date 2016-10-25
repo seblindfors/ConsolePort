@@ -91,14 +91,15 @@ TUTORIAL = {
 		INTERACTAUTO		= "Automatically move to target",
 		-----------------------------------------------------------
 		TRIGGERHELP 		= "These settings will change which graphics are displayed for your triggers and modifiers.\nIf you want to change your modifiers, you will also have to change them in your controller mapper.",
+		INTERACTHELP 		= "This allows one of your buttons to be used to interact with objects and creatures.\nIn the case where you lack a target that befits the configured button's original action,\nyou will instead be able to interact with the world.\n\nExamples:\nA harmful spell will be cast upon a hostile target, but interact in all other cases.\nA healing spell will be cast upon a friendly target, but interact in all other cases.\nAn arbitrary binding or macro simply requires a target to be used while this is active.",
 		-----------------------------------------------------------
 		MOUSEHANDLE 		= "Character handling",
 		MOUSEDRIFTING 		= "Prevent mouse cursor from drifting off screen",
-		ACTIONCAM 			= "Focus camera on target",
 		TURNMOVE 			= "Turn instead of strafe when the cursor is visible",
 		DOUBLEMODTAP 		= "Double tap |T%s:32:32:0:0|t or |T%s:32:32:0:0|t to toggle mouse cursor",
 		LOOKAROUND 			= "Hold |T%s:32:32:0:0|t to look around",
 		DISABLEMOUSE 		= "Disable automatic mouse behaviour",
+		RAIDCURSORDIRECT 	= "Target directly with raid cursor",
 		CONVENIENCE 		= "Convenience features",
 		AUTOEXTRA 			= "Add quest items and extra spells to utility ring",
 		FASTCAM 			= "Fast camera zooming",
@@ -161,6 +162,11 @@ TUTORIAL = {
 		CANCEL 				= "Cancel",
 		-----------------------------------------------------------
 		COMBAT 				= "Error! Cannot reset addon in combat!",
+		CVAR_APPLIED		= "New value applied to: |cffffe00a%s|r > %s\nChanges will take effect after you |cffffe00a/reload|r.",
+		CVAR_MISMATCH		= "Error! Type mismatch in variable |cffffe00a%s|r.\nType should be: |cffffe00a%s|r",
+		CVAR_NOEXISTS 		= "Error! Variable |cffffe00a%s|r isn't registered.\nType |cffffe00a/cp cvar|r for complete list.",
+		CVAR_PRINTING 		= "Printing cvars...",
+		CVAR_WARNING 		= "|cFFFF1111WARNING:|r Editing variables may cause errors. Proceed with caution!",
 		TYPE				= "|cffffe00a(ID)|r Change controller type",
 		CONFIG 				= "Open the configuration panel",
 		RECALIBRATE 		= "Recalibrate controller",
@@ -168,6 +174,7 @@ TUTORIAL = {
 		RESET 				= "Full addon reset (irreversible)",
 		BINDS 				= "Open binding menu",
 		EDITBINDS 			= "Edit bindings",
+		CVARLIST 			= "(Advanced) List of console variables",
 		CONFIG_COMBAT 		= "Your controller configuration will be shown when you leave combat.",
 		-----------------------------------------------------------
 		WARNINGBINDINGUI 	= "|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You can only customize your keyboard bindings from this panel.\n\nModifying keyboard bindings while using your controller is not recommended.\n\nWould you like to edit your controller bindings, recalibrate your controller or continue anyway?",

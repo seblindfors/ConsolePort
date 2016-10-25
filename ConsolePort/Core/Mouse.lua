@@ -31,7 +31,6 @@ Camera.Stop = MouselookStop
 ---------------------------------------------------------------
 Camera.Locker = CreateFrame("Frame", "$parentLocker", Camera)
 Camera.Locker:SetPoint("CENTER", UIParent, 0, 0)
-Camera.Locker:SetSize(70, 180)
 Camera.Locker:Hide()
 ---------------------------------------------------------------
 Camera.Edge = CreateFrame("Frame", "$parentEdge", Camera)
@@ -41,7 +40,6 @@ Camera.Edge:Hide()
 ---------------------------------------------------------------
 Camera.Deadzone = CreateFrame("Frame", "$parentDeadzone", Camera)
 Camera.Deadzone:SetPoint("CENTER", UIParent, 0, 0)
-Camera.Deadzone:SetSize(4, 4)
 Camera.Deadzone:Hide()
 ---------------------------------------------------------------
 Camera.BlockUI = CreateFrame("Frame", "ConsolePortUIBlocker", UIParent)
@@ -65,7 +63,6 @@ function Camera:OnUpdate(elapsed)
 	hasWorldFocus = GetMouseFocus() == WorldFrame
 	---------------
 	self.BlockUI:SetShown(cameraMode)
---	self:CalculateYaw(elapsed)
 	---------------
 	interactPushback = interactPushback > 0 and interactPushback - elapsed or 0
 end
@@ -119,9 +116,9 @@ function Camera:CheckDoubleTap(elapsed)
 		modTap = 0
 		numTap = 0
 	end
-	if timer > 0.25 then
+	if timer > self.modTapWindow then
 		numTap = numTap > 0 and numTap - 1 or 0
-		timer = timer - 0.25
+		timer = timer - self.modTapWindow
 	end
 end
 
@@ -152,7 +149,7 @@ function Camera:HighlightAlways(elapsed)
 	end
 end
 
-function Camera:OnEvent(event, ...)
+function Camera:OnEvent(_, ...)
 	local modifier, down = ...
 	if down == 1 then
 		if modifier then
@@ -163,7 +160,7 @@ function Camera:OnEvent(event, ...)
 	end
 end
 
-function Camera:OnAction() interactPushback = 0.75 end
+function Camera:OnAction() interactPushback = Settings.interactPushback or 1 end
 
 function Camera:OnInteract()
 	local guid, canInteract = UnitGUID("target")
@@ -246,6 +243,9 @@ function Core:UpdateCameraDriver()
 	Camera:SetScript("OnUpdate", Camera.OnUpdate)
 	Camera:UnregisterEvent("MODIFIER_STATE_CHANGED")
 
+	Camera.Locker:SetSize(Settings.centerLockRangeX or 70, Settings.centerLockRangeY or 180)
+	Camera.Deadzone:SetSize(Settings.centerLockDeadzoneX or 4, Settings.centerLockDeadzoneY or 4)
+
 	numTap, modTap, timer, interactPushback, highlightTimer = 0, 0, 0, 0, 0
 
 	if not Settings.disableSmartMouse then
@@ -258,9 +258,13 @@ function Core:UpdateCameraDriver()
 			Camera:HookScript("OnUpdate", Camera.CheckEdge)
 		end
 		if Settings.doubleModTap then
+			Camera.modTapWindow = db.Settings.doubleModTapWindow or 0.25
 			Camera:SetScript("OnEvent", Camera.OnEvent)
 			Camera:RegisterEvent("MODIFIER_STATE_CHANGED")
 			Camera:HookScript("OnUpdate", Camera.CheckDoubleTap)
+		end
+		if Settings.calculateYaw then
+			Camera:HookScript("OnUpdate", Camera.CalculateYaw)
 		end
 	end
 
@@ -269,7 +273,6 @@ function Core:UpdateCameraDriver()
 	elseif Settings.alwaysHighlight == 2 then
 		Camera:HookScript("OnUpdate", Camera.HighlightAlways)
 	end
-
 	Camera.lockOnLoot = db.Mouse.Events.LOOT_OPENED
 end
 

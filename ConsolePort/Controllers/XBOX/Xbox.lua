@@ -43,8 +43,8 @@ db.Controllers.XBOX = {
 		-------------------------------
 		['skipGuideBtn'] = false,
 		-------------------------------
-		['interactWith'] = 'CP_T1',
-		['mouseOverMode'] = true,
+	--	['interactWith'] = 'CP_T1',
+	--	['mouseOverMode'] = true,
 		-------------------------------
 	},
 	Layout = {
@@ -79,7 +79,7 @@ db.Controllers.XBOX = {
 		},
 		['CP_R_DOWN'] = {
 			['']		 	= 'JUMP',
-			['SHIFT-'] 		= 'TARGETNEARESTENEMY',
+			['SHIFT-'] 		= 'ACTIONBUTTON9',
 			['CTRL-']  		= 'INTERACTMOUSEOVER',
 			['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
@@ -98,7 +98,7 @@ db.Controllers.XBOX = {
 		-- Trigger buttons
 		['CP_T1'] =	{
 			['']		 	= 'ACTIONBUTTON4',
-			['SHIFT-'] 		= 'ACTIONBUTTON9',
+			['SHIFT-'] 		= 'TARGETNEARESTENEMY',
 			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON4',
 			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON9',
 		},

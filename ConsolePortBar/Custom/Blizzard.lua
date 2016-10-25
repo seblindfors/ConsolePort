@@ -158,6 +158,13 @@ do
 		hooksecurefunc("TalentFrame_LoadUI", function() PlayerTalentFrame:UnregisterEvent("ACTIVE_TALENT_GROUP_CHANGED") end)
 	end
 
+	CastingBarFrame:ClearAllPoints()
+	hooksecurefunc(CastingBarFrame, "SetPoint", function(self, anchor, relative, relRegion)
+		if anchor ~= "BOTTOM" or relative ~= Bar or relRegion ~= "TOP" then
+			self:SetPoint("BOTTOM", Bar, "TOP", 0, 50)
+		end
+	end)
+
 	do
 		local db = ConsolePort:GetData()
 		local bags = {

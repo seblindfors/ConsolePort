@@ -33,8 +33,9 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 		ConsolePort, {}
 ---------------------------------------------------------------
 		-- Cursor frame and scroll helpers
-local 	Cursor, StepL, StepR, Scroll =
+local 	Cursor, ClickWrapper, StepL, StepR, Scroll =
 		CreateFrame("Frame", "ConsolePortCursor", UIParent),
+		CreateFrame("Button", "ConsolePortCursorClickWrapper"),
 		CreateFrame("Button", "ConsolePortCursorStepL"),
 		CreateFrame("Button", "ConsolePortCursorStepR"),
 		CreateFrame("Frame")
@@ -43,6 +44,10 @@ ConsolePort.Cursor = Cursor
 
 -- Store hybrid onload to check whether a scrollframe can be scrolled automatically
 local hybridScroll = HybridScrollFrame_OnLoad
+
+local function IsSafe()
+	return ( not InCombat() ) or Cursor.InsecureMode
+end
 
 ---------------------------------------------------------------
 -- Wrappers for overriding click bindings
@@ -194,6 +199,31 @@ function Cursor:SetHighlight(node)
 end
 
 ---------------------------------------------------------------
+-- Click wrapper for insecure clicks
+---------------------------------------------------------------
+
+function ClickWrapper:SetObject(object)
+	if 	object and object.IsObjectType and
+		object:IsObjectType("Button") or object:IsObjectType("CheckButton") then
+		self.object = object
+	end
+end
+
+function ClickWrapper:RunClick() self:RunLeftClick() end
+
+function ClickWrapper:RunLeftClick()
+	if 	self.object then
+		self.object:Click("LeftButton")
+	end
+end
+
+function ClickWrapper:RunRightClick()
+	if 	self.object then
+		self.object:Click("RightButton")
+	end
+end
+
+---------------------------------------------------------------
 -- Node management functions
 ---------------------------------------------------------------
 local IsUsable = {
@@ -259,7 +289,7 @@ function Node:Refresh(node, scrollFrame)
 end
 
 function Node:RefreshAll()
-	if not InCombat() then
+	if IsSafe() then
 		self:Clear()
 		ClearOverride(Cursor)
 		for frame in pairs(ConsolePort:GetFrameStack()) do
@@ -319,17 +349,6 @@ function Node:GetScrollButtons(node)
 end
 
 function Node:Select(node, object, scrollFrame, state)
-	local scrollUp, scrollDown = self:GetScrollButtons(node)
-	if scrollUp and scrollDown then
-		Override:Scroll(Cursor, scrollUp, scrollDown)
-	elseif object == "Slider" then
-		Override:HorizontalScroll(Cursor, node)
-	end
-
-	if scrollFrame and not scrollFrame.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
-		Scroll:To(node, scrollFrame)
-	end
-
 	local name = node.direction and node:GetName()
 	local override
 	if IsClickable[object] and node:IsEnabled() then
@@ -339,15 +358,31 @@ function Node:Select(node, object, scrollFrame, state)
 			pcall(enter, node)
 		end
 	end
-	for click, button in pairs(Cursor.Override) do
-		for modifier in ConsolePort:GetModifiers() do
-			Override:Click(Cursor, button, name or button..modifier, click, modifier)
-			if override then
-				Override:Button(_G[button..modifier], node)
-			else
-				Override:Button(_G[button..modifier], nil)
+
+	if scrollFrame and not scrollFrame.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
+		Scroll:To(node, scrollFrame)
+	end
+
+	if not Cursor.InsecureMode then
+		local scrollUp, scrollDown = self:GetScrollButtons(node)
+		if scrollUp and scrollDown then
+			Override:Scroll(Cursor, scrollUp, scrollDown)
+		elseif object == "Slider" then
+			Override:HorizontalScroll(Cursor, node)
+		end
+
+		for click, button in pairs(Cursor.Override) do
+			for modifier in ConsolePort:GetModifiers() do
+				Override:Click(Cursor, button, name or button..modifier, click, modifier)
+				if override then
+					Override:Button(_G[button..modifier], node)
+				else
+					Override:Button(_G[button..modifier], nil)
+				end
 			end
 		end
+	else
+		ClickWrapper:SetObject(node)
 	end
 end
 
@@ -393,27 +428,31 @@ end
 -- Scroll management
 ---------------------------------------------------------------
 function Scroll:Offset(elapsed)
-	local currHorz, currVert = self.scrollFrame:GetHorizontalScroll(), self.scrollFrame:GetVerticalScroll()
-	local maxHorz, maxVert = self.scrollFrame:GetHorizontalScrollRange(), self.scrollFrame:GetVerticalScrollRange()
-	-- close enough, stop scrolling and set to target
-	if ( abs(currHorz - self.targetHorz) < 2 ) and ( abs(currVert - self.targetVert) < 2 ) then
-		self.scrollFrame:SetVerticalScroll(self.targetVert)
-		self.scrollFrame:SetHorizontalScroll(self.targetHorz)
-		self:SetScript("OnUpdate", nil)
-		return
+	for scrollFrame, target in pairs(self.Active) do
+		local currHorz, currVert = scrollFrame:GetHorizontalScroll(), scrollFrame:GetVerticalScroll()
+		local maxHorz, maxVert = scrollFrame:GetHorizontalScrollRange(), scrollFrame:GetVerticalScrollRange()
+		-- close enough, stop scrolling and set to target
+		if ( abs(currHorz - target.horz) < 2 ) and ( abs(currVert - target.vert) < 2 ) then
+			scrollFrame:SetVerticalScroll(target.vert)
+			scrollFrame:SetHorizontalScroll(target.horz)
+			self.Active[scrollFrame] = nil
+			return
+		end
+		local deltaX, deltaY = ( currHorz > target.horz and -1 or 1 ), ( currVert > target.vert and -1 or 1 )
+		local newX = ( currHorz + (deltaX * abs(currHorz - target.horz) / 16 * 4) )
+		local newY = ( currVert + (deltaY * abs(currVert - target.vert) / 16 * 4) )
+
+	--	print(currHorz, target.horz, newX)
+
+		scrollFrame:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
+		scrollFrame:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
 	end
-	local deltaX, deltaY = ( currHorz > self.targetHorz and -1 or 1 ), ( currVert > self.targetVert and -1 or 1 )
-	local newX = ( currHorz + (deltaX * abs(currHorz - self.targetHorz) / 16 * 4) )
-	local newY = ( currVert + (deltaY * abs(currVert - self.targetVert) / 16 * 4) )
-
---	print(currHorz, self.targetHorz, newX)
-
-	self.scrollFrame:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
-	self.scrollFrame:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
+	if not next(self.Active) then
+		self:SetScript("OnUpdate", nil)
+	end
 end
 
 function Scroll:To(node, scrollFrame)
-	self.scrollFrame = scrollFrame
 	local nodeX, nodeY = node:GetCenter()
 	local scrollX, scrollY = scrollFrame:GetCenter()
 	if nodeY and scrollY then
@@ -430,8 +469,14 @@ function Scroll:To(node, scrollFrame)
 		--	local newHorz = currHorz + (scrollX - nodeX)
 		--	print(floor(currHorz), floor(scrollX), floor(nodeX), floor(newHorz))
 
-			self.targetVert = newVert < 0 and 0 or newVert > maxVert and maxVert or newVert
-			self.targetHorz = newHorz < 0 and 0 or newHorz > maxHorz and maxHorz or newHorz
+			if not self.Active then
+				self.Active = {}
+			end
+
+			self.Active[scrollFrame] = {
+				vert = newVert < 0 and 0 or newVert > maxVert and maxVert or newVert,
+				horz = newHorz < 0 and 0 or newHorz > maxHorz and maxHorz or newHorz,
+			}
 
 			self:SetScript("OnUpdate", self.Offset)
 		end
@@ -515,7 +560,7 @@ function Cursor:OnUpdate(elapsed)
 		if not current or (current and not current.node:IsVisible()) or (current and not Node:IsDrawn(current.node)) then
 			self:Hide()
 			current = nil
-			if 	not InCombat() and
+			if 	IsSafe() and
 				ConsolePort:HasUIFocus()  then
 				ConsolePort:UIControl()
 			end
@@ -528,7 +573,7 @@ function Cursor:OnHide()
 	self.Flash = true
 	Node:Clear()
 	self:SetHighlight()
-	if not InCombat() then
+	if IsSafe() then
 		ClearOverride(self)
 	end
 end
@@ -546,7 +591,7 @@ end
 function Cursor:PLAYER_REGEN_ENABLED()
 	self.Flash = true
 	Callback(0.5, function()
-		if not InCombat() then
+		if IsSafe() then
 			FadeIn(self, 0.2, self:GetAlpha(), 1)
 		end
 	end)
@@ -558,7 +603,7 @@ function Cursor:PLAYER_ENTERING_WORLD()
 end
 
 function Cursor:MODIFIER_STATE_CHANGED()
-	if not InCombat() then
+	if IsSafe() then
 		if 	current and
 			(self.Scroll == M1 and IsShiftKeyDown()) or
 			(self.Scroll == M2 and IsControlKeyDown()) then
@@ -577,7 +622,7 @@ function ConsolePort:IsCurrentNode(node) return current and current.node == node
 function ConsolePort:GetCurrentNode() return current and current.node end
 
 function ConsolePort:SetCurrentNode(node, force)
-	if not db.Settings.disableUI and not InCombat() then
+	if not db.Settings.disableUI and IsSafe() then
 		if node then
 			local object = node:GetObjectType()
 			if 	Node:IsInteractive(node, object) and Node:IsDrawn(node) then

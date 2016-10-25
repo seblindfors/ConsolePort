@@ -135,10 +135,10 @@ local function RefreshFrameList(self)
 	self.parent.NewMouseover.Addon = self:GetText()
 
 	if self.parent.NewMouseover.MouseOver then
-		self.parent.NewMouseover:SetText(format(TUTORIAL.MOUSEOVERVALID, self.parent.NewMouseover.MouseOver, self.parent.NewMouseover.Addon))
+		self.parent.NewMouseover:SetFormattedText(TUTORIAL.MOUSEOVERVALID, self.parent.NewMouseover.MouseOver, self.parent.NewMouseover.Addon)
 	end
 
-	self.parent.FrameListText:SetText(format(TUTORIAL.FRAMELISTFORMAT, self:GetText()))
+	self.parent.FrameListText:SetFormattedText(TUTORIAL.FRAMELISTFORMAT, self:GetText())
 
 	for i, button in pairs(addonButtons) do
 		button:UnlockHighlight()
@@ -171,9 +171,10 @@ local function RefreshFrameList(self)
 
 	if not self.parent.FrameStack then
 
-		self.parent.FrameStack = CreateFrame("GameTooltip", "$parentFrameStack", self.parent.FrameScroll, "GameTooltipTemplate")
+		self.parent.FrameStack = CreateFrame("GameTooltip", "$parentFrameStack", self.parent, "GameTooltipTemplate")
 		self.parent.FrameStack:SetOwner(self.parent.FrameScroll, "ANCHOR_BOTTOMRIGHT")
 		self.parent.FrameStack:SetPoint("TOP", 0, 0)
+		self.parent.FrameStack:SetFrameStrata('TOOLTIP')
 
 		local FRAMESTACK_UPDATE_TIME = .1
 		local _timeSinceLast = 0
@@ -366,7 +367,7 @@ local function NewMouseoverUpdate(self, elapsed)
 			local name = outerParent:GetName()
 			if not name:match("ConsolePort") then 
 				self.MouseOver = outerParent:GetName()
-				self:SetText(format(TUTORIAL.MOUSEOVERVALID, self.MouseOver, self.Addon))
+				self:SetFormattedText(TUTORIAL.MOUSEOVERVALID, self.MouseOver, self.Addon)
 			else
 				self:SetText(TUTORIAL.MOUSEOVERINVALID)
 				self.MouseOver = nil

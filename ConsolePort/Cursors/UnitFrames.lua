@@ -84,7 +84,7 @@ Cursor:Execute([[
 	GetNodes = [=[
 		local node = CurrentNode
 		local isProtected = node:IsProtected()
-		local children = isProtected and node:GetChildList(newtable())  --newtable(node:GetChildren())
+		local children = isProtected and newtable(node:GetChildren())
 		local unit = isProtected and node:GetAttribute("unit")
 		local action = isProtected and node:GetAttribute("action")
 		local childUnit
@@ -198,8 +198,12 @@ Cursor:Execute([[
 		end
 	]=]
 	UpdateRouting = [=[
-		for action, unit in pairs(Actions) do
-			action:SetAttribute("unit", unit)
+		local reroute = not self:GetAttribute("noRouting")
+
+		if reroute then
+			for action, unit in pairs(Actions) do
+				action:SetAttribute("unit", unit)
+			end
 		end
 
 		if current then
@@ -216,16 +220,18 @@ Cursor:Execute([[
 			self:SetPoint("TOPLEFT", current, "CENTER", 0, 0)
 			self:SetAttribute("node", current)
 			self:SetAttribute("unit", unit)
-			
-			if PlayerCanAttack(unit) then
-				self:SetAttribute("relation", "harm")
-				for action in pairs(Harmful) do
-					action:SetAttribute("unit", unit)
-				end
-			elseif PlayerCanAssist(unit) then
-				self:SetAttribute("relation", "help")
-				for action in pairs(Helpful) do
-					action:SetAttribute("unit", unit)
+
+			if reroute then
+				if PlayerCanAttack(unit) then
+					self:SetAttribute("relation", "harm")
+					for action in pairs(Harmful) do
+						action:SetAttribute("unit", unit)
+					end
+				elseif PlayerCanAssist(unit) then
+					self:SetAttribute("relation", "help")
+					for action in pairs(Helpful) do
+						action:SetAttribute("unit", unit)
+					end
 				end
 			end
 		else
@@ -279,8 +285,10 @@ Cursor:Execute([[
 			self:SetAttribute("node", nil)
 			self:ClearBindings()
 
-			for action, unit in pairs(Actions) do
-				action:SetAttribute("unit", unit)
+			if not self:GetAttribute("noRouting") then
+				for action, unit in pairs(Actions) do
+					action:SetAttribute("unit", unit)
+				end
 			end
 
 			self:Hide()
@@ -334,10 +342,15 @@ for name, button in pairs(buttons) do
 	local btn = CreateFrame("Button", "$parentButton"..name, Cursor, "SecureActionButtonTemplate")
 	btn:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
 	btn:SetAttribute("type", "target")
-	Cursor:WrapScript(btn, "OnClick", format([[
+	Cursor:WrapScript(btn, "PreClick", format([[
 		local Cursor = self:GetParent()
 		if down then
 			Cursor:Run(SelectNode, %s)
+			if Cursor:GetAttribute("noRouting") then
+				self:SetAttribute("unit", Cursor:GetAttribute("unit"))
+			else
+				self:SetAttribute("unit", nil)
+			end
 		end
 	]], button.key))
 	Cursor:Execute(format([[
@@ -358,6 +371,10 @@ function ConsolePort:SetupRaidCursor()
 	buttons = nil
 	Key = nil
 
+end
+
+function ConsolePort:LoadRaidCursor()
+	Cursor:SetAttribute("noRouting", db.Settings.raidCursorDirect)
 end
 
 ---------------------------------------------------------------

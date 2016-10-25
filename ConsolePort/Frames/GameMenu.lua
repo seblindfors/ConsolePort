@@ -104,7 +104,7 @@ function ConsolePort:SetCustomMenu()
 						numSlots = numSlots + GetContainerNumSlots(i)
 					end
 				end
-				self.Count:SetText(format("%s\n|cFFAAAAAA%s|r", totalFree, numSlots))
+				self.Count:SetFormattedText("%s\n|cFFAAAAAA%s|r", totalFree, numSlots)
 			end)
 			button:SetScript("OnClick", function(self)
 				ToggleAllBags()

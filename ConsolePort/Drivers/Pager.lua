@@ -1,25 +1,5 @@
 local Pager = CreateFrame("Frame", nil, nil, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
-RegisterStateDriver(Pager, "actionpage", ConsolePort:GetActionPageDriver())
 Pager:Execute("headers = newtable()")
-Pager:SetAttribute("_onstate-actionpage", [[
-	if HasVehicleActionBar() then
-		newstate = GetVehicleBarIndex()
-	elseif HasOverrideActionBar() then
-		newstate = GetOverrideBarIndex()
-	elseif HasTempShapeshiftActionBar() then
-		newstate = GetTempShapeshiftBarIndex()
-	elseif GetBonusBarOffset() > 0 then
-		newstate = GetBonusBarOffset()+6
-	else
-		newstate = GetActionBarPage()
-	end
-	for header in pairs(headers) do
-		header:SetAttribute("actionpage", newstate)
-		if header:GetAttribute("pageupdate") then
-			header:RunAttribute("pageupdate", newstate)
-		end
-	end
-]])
 
 --[[ Functions:
 	GetActionID: Returns the correct ID for an action slot
@@ -50,7 +30,7 @@ local PAGER_SECURE_FUNCTIONS = {
 	]],
 	GetActionSpellSlot = [[
 		local type, spellID, subType = self:RunAttribute("GetActionInfo", ...)
-		if type == "spell" and spellID and subType == "spell" then
+		if type == "spell" and spellID and spellID ~= 0 and subType == "spell" then
 			return FindSpellBookSlotBySpellID(spellID)
 		end
 	]],
@@ -81,25 +61,64 @@ local PAGER_SECURE_FUNCTIONS = {
 	]],
 }
 
-function ConsolePort:RegisterSpellHeader(header)
+function ConsolePort:RegisterSpellHeader(header, omitFromStack)
 	if not InCombatLockdown() then
 		local _, current = self:GetActionPageDriver()
-		
-		header:SetAttribute("actionpage", current)
-
-		header:SetFrameRef("actionBar", MainMenuBarArtFrame)
-		header:SetFrameRef("overrideBar", OverrideActionBar)
 
 		for name, func in pairs(PAGER_SECURE_FUNCTIONS) do
 			header:SetAttribute(name, func)
 		end
 
-		Pager:SetFrameRef("header", header)
-		Pager:Execute([[ headers[self:GetFrameRef("header")] = true ]])
+		if not omitFromStack then
+			header:SetAttribute("actionpage", current)
+
+			header:SetFrameRef("actionBar", MainMenuBarArtFrame)
+			header:SetFrameRef("overrideBar", OverrideActionBar)
+
+			Pager:SetFrameRef("header", header)
+			Pager:Execute([[ headers[self:GetFrameRef("header")] = true ]])
+		end
 	end
 end
 
 function ConsolePort:GetPager() return Pager end
+function ConsolePort:LoadActionPager(pagedriver, pageresponse)
+	if not pagedriver then
+		pagedriver = self:GetActionPageDriver()
+	end
+	if not pageresponse then
+		pageresponse = 	[[
+			if HasVehicleActionBar() then
+				newstate = GetVehicleBarIndex()
+			elseif HasOverrideActionBar() then
+				newstate = GetOverrideBarIndex()
+			elseif HasTempShapeshiftActionBar() then
+				newstate = GetTempShapeshiftBarIndex()
+			elseif GetBonusBarOffset() > 0 then
+				newstate = GetBonusBarOffset()+6
+			else
+				newstate = GetActionBarPage()
+			end
+			for header in pairs(headers) do
+				header:SetAttribute("actionpage", newstate)
+				if header:GetAttribute("pageupdate") then
+					header:RunAttribute("pageupdate", newstate)
+				end
+			end
+		]]
+	else
+		pageresponse = pageresponse .. [[
+			for header in pairs(headers) do
+				header:SetAttribute("actionpage", newstate)
+				if header:GetAttribute("pageupdate") then
+					header:RunAttribute("pageupdate", newstate)
+				end
+			end
+		]]
+	end
+	RegisterStateDriver(Pager, "actionpage", pagedriver)
+	Pager:SetAttribute("_onstate-actionpage", pageresponse)
+end
 
 function ConsolePort:UnregisterSpellHeader(header)
 	if not InCombatLockdown() then

@@ -35,7 +35,7 @@ Bar.BottomLine:SetVertexColor(red, green, blue, 1)
 local art, coords = ab:GetCover()
 if art and coords then
 	Bar.CoverArt = Bar:CreateTexture(nil, "BACKGROUND")
-	Bar.CoverArt:SetPoint("BOTTOM", 0, 16)
+	Bar.CoverArt:SetPoint("CENTER", 0, 74)
 	Bar.CoverArt:SetSize(1024, 256)
 	Bar.CoverArt:SetTexture(art)
 	Bar.CoverArt:SetTexCoord(unpack(coords))

@@ -17,6 +17,7 @@ local CRITICALUPDATE, NOBINDINGS, NEWCALIBRATION
 ---------------------------------------------------------------
 local v1, v2, v3 = strsplit("%d+.", GetAddOnMetadata(addOn, "Version"))
 local VERSION = v1*10000+v2*100+v3
+-- WoWmapper hotkey to let CP know an update is due
 local WM_UPDATE = "ALT-CTRL-SHIFT-F12"
 ---------------------------------------------------------------
 -- Initialize addon tables
@@ -190,6 +191,38 @@ function ConsolePort:LoadSettings()
 			ConsolePort:SelectController()
 		end
 	end
+	local function PrintHeader(msg)
+		print( "|T" .. ( db.TEXTURE.CP_X_CENTER or "" ) .. ":24:24:0:0|t |cffffe00aConsolePort|r: " .. ( msg or "" ) )
+	end
+	local function SetControllerCVar(...)
+		local cvar, value = ...
+		local original = ConsolePort:GetCompleteCVarList()[cvar]
+		if original ~= nil then
+			if value == "true" then value = true
+			elseif value == "false" then value = false
+			elseif tonumber(value) then value = tonumber(value)
+			end
+			if type(original) ~= type(value) then
+				PrintHeader()
+				print(format(SLASH.CVAR_MISMATCH, cvar, type(original)))
+			else
+				db.Settings[cvar] = value
+				PrintHeader()
+				print(format(SLASH.CVAR_APPLIED, cvar, tostring(value)))
+			end
+		else
+			PrintHeader()
+			print(format(SLASH.CVAR_NOEXISTS, cvar or "<empty>"))
+		end
+	end
+	local function PrintCVars(...)
+		local cvars = ConsolePort:GetCompleteCVarList()
+		PrintHeader(SLASH.CVAR_PRINTING)
+		for k, v in db.table.spairs(cvars) do
+			print(format("|cff69ccf0/cp %s|r: %s", k, tostring(v)))
+		end
+		print(SLASH.CVAR_WARNING)
+	end
 	local function ShowBinds() ConsolePortConfig:OpenCategory(2) end
 	local function ShowConfig() ConsolePortConfig:Show() end
 	local function ShowCalibration() if ConsolePortConfig:IsVisible() then ConsolePortConfig:Hide() end ConsolePort:CalibrateController(true) end
@@ -197,6 +230,7 @@ function ConsolePort:LoadSettings()
 	local instructions = {
 		["type"] = {desc = SLASH.TYPE, func = ShowSplash},
 		["config"] = {desc = SLASH.CONFIG, func = ShowConfig},
+		["cvar"] = {desc = SLASH.CVARLIST, func = PrintCVars},
 		["binds"] = {desc = SLASH.BINDS, func = ShowBinds},
 		["recalibrate"] = {desc = SLASH.RECALIBRATE, func = ShowCalibration},
 		["resetall"] = {desc = SLASH.RESET, func = ResetAll},
@@ -205,15 +239,20 @@ function ConsolePort:LoadSettings()
 	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
 	SlashCmdList["CONSOLEPORT"] = function(msg, editBox)
 		local inputs = {}
-		for word in msg:gmatch("%w+") do
-			inputs[#inputs + 1] = word
+		local cvars = ConsolePort:GetCompleteCVarList()
+		if type(msg) == "string" then
+			for word in msg:gmatch("%S+") do
+				inputs[#inputs + 1] = word
+			end
 		end
 		local funcName = inputs[1]
 		if funcName and instructions[funcName] then
 			tremove(inputs, 1)
 			instructions[funcName].func(unpack(inputs))
+		elseif funcName and cvars[funcName] ~= nil then
+			SetControllerCVar(unpack(inputs))
 		else
-			print( "|T" .. ( db.TEXTURE.CP_X_CENTER or "" ) .. ":32:32:0:0|t |cffffe00aConsolePort|r:")
+			PrintHeader()
 			for k, v in pairs(instructions) do
 				print(format("|cff69ccf0/cp %s|r: %s", k, v.desc))
 			end

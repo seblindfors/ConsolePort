@@ -43,8 +43,8 @@ db.Controllers.PS4 = {
 		-------------------------------
 		['skipGuideBtn'] = false,
 		-------------------------------
-		['interactWith'] = 'CP_T1',
-		['mouseOverMode'] = true,
+	--	['interactWith'] = 'CP_T1',
+	--	['mouseOverMode'] = true,
 		-------------------------------
 	},
 	Layout = {
@@ -97,7 +97,7 @@ db.Controllers.PS4 = {
 		-- Trigger buttons
 		['CP_T1'] =	{
 			[''] 			= 'ACTIONBUTTON4',
-			['SHIFT-'] 		= 'TARGETSCANENEMY',
+			['SHIFT-'] 		= 'TARGETNEARESTENEMY',
 			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON4',
 			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON9',
 		},

@@ -49,6 +49,17 @@ local function AnimateModifierChange(self)
 	end
 end
 
+local function SetModTextures(modType, mod1, mod2)
+	if modType == "SHIFT-" then
+		mod1:SetTexture(ICONS.CP_M1)
+	elseif modType == "CTRL-" then
+		mod1:SetTexture(ICONS.CP_M2)
+	elseif modType == "CTRL-SHIFT-" then
+		mod1:SetTexture(ICONS.CP_M2)
+		mod2:SetTexture(ICONS.CP_M1)
+	end
+end
+
 ---------------------------------------------------------------
 
 function ConsolePort:CreateHotKey(forceStyle)
@@ -97,19 +108,13 @@ function ConsolePort:CreateHotKey(forceStyle)
 		end
 
 		if self.mod ~= "" then
-			mod1:SetPoint("RIGHT", main, "LEFT", 14, -2)
 			mod1:SetSize(24, 24)
-			if self.mod == "SHIFT-" then
-				mod1:SetTexture(ICONS.CP_M1)
-			elseif self.mod == "CTRL-" then
-				mod1:SetTexture(ICONS.CP_M2)
-			elseif self.mod == "CTRL-SHIFT-" then
-				mod1:SetTexture(ICONS.CP_M2)
+			if self.mod == "CTRL-SHIFT-" then
 				mod1:SetPoint("RIGHT", main, "LEFT", 15, -2)
-
 				mod2:SetPoint("RIGHT", mod1, "LEFT", 14, 0)
 				mod2:SetSize(24, 24)
-				mod2:SetTexture(ICONS.CP_M1)
+			else
+				mod1:SetPoint("RIGHT", main, "LEFT", 14, -2)
 			end
 		end
 		if mod1 then
@@ -130,21 +135,15 @@ function ConsolePort:CreateHotKey(forceStyle)
 		if self.mod ~= "" then
 			mod1:SetPoint("RIGHT", main, "LEFT", 14, 0)
 			mod1:SetSize(24, 24)
-
-			if self.mod == "SHIFT-" then
-				mod1:SetTexture(ICONS.CP_M1)
-			elseif self.mod == "CTRL-" then
-				mod1:SetTexture(ICONS.CP_M2)
-			elseif self.mod == "CTRL-SHIFT-" then
+			if self.mod == "CTRL-SHIFT-" then
 				mod1:SetTexture(ICONS.CP_M2)
 
 				mod2:SetPoint("RIGHT", mod1, "LEFT", 14, 0)
 				mod2:SetSize(24, 24)
-				mod2:SetTexture(ICONS.CP_M1)
 			end
 		end
 	end
-
+	SetModTextures(self.mod, mod1, mod2)
 	return hotKey
 end
 

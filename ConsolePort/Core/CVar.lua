@@ -10,7 +10,7 @@ local _, db = ...
 local CVars = {
 	autoLootDefault 		= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
 	autoInteract 			= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
-	cameraDistanceMoveSpeed =	{value = 50, 	isCombatCVar = false, 	default = 8.33},
+	cameraZoomSpeed 		 =	{value = 50, 	isCombatCVar = false, 	default = 20},
 }
 
 function ConsolePort:LoadDefaultCVars()

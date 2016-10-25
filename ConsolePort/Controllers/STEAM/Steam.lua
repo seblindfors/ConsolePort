@@ -41,9 +41,10 @@ db.Controllers.STEAM = {
 		['CP_T2'] 		= 'CP_TR1',
 		-------------------------------
 		['skipGuideBtn'] = true,
+		['UIdisableHoldRepeat'] = true,
 		-------------------------------
-		['interactWith'] = 'CP_R_GRIP',
-		['mouseOverMode'] = true,
+	--	['interactWith'] = 'CP_R_GRIP',
+	--	['mouseOverMode'] = true,
 		-------------------------------
 	},
 	Layout = {
@@ -78,7 +79,7 @@ db.Controllers.STEAM = {
 		},
 		['CP_R_DOWN'] = {
 			[''] 			= 'JUMP',
-			['SHIFT-']	 	= 'TARGETSCANENEMY',
+			['SHIFT-']	 	= 'TARGETNEARESTENEMY',
 			['CTRL-']  		= 'INTERACTMOUSEOVER',
 			['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},

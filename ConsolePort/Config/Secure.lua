@@ -47,7 +47,7 @@ end
 
 local function CheckHeldDown(self, elapsed)
 	self.timer = self.timer + elapsed
-	if self.timer >= 0.125 and self.state == KEY.STATE_DOWN then
+	if self.timer >= self.tickNext and self.state == KEY.STATE_DOWN then
 		local func = self:GetAttribute("type")
 		if func and func ~= "action" and self[func] then self[func](self) end
 		self.timer = 0
@@ -159,7 +159,8 @@ function ConsolePort:CreateSecureButton(name, modifier, command)
 	local keyClick, keyUpdate = keyClick[command], keyUpdate[command]
 	if keyClick then
 		btn:SetScript(unpack(keyClick))
-	elseif keyUpdate and db.Settings.type ~= "STEAM" then
+	elseif keyUpdate and not db.Settings.UIdisableHoldRepeat then
+		btn.tickNext = db.Settings.UIholdRepeatDelay or 0.125
 		btn:SetScript(unpack(keyUpdate))
 	end
     db.SECURE[btn] = true

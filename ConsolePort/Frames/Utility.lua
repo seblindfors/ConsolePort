@@ -19,7 +19,7 @@ local pairs, select = pairs, select
 ---------------------------------------------------------------
 local 	Utility, Tooltip, Animation, AniCircle = 
 		CreateFrame("Frame", "ConsolePortUtilityFrame", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate"),
-		CreateFrame("GameTooltip", "$parentTooltip", Utility, "GameTooltipTemplate"),
+		CreateFrame("GameTooltip", "ConsolePortUtilityTooltip", ConsolePortUtilityFrame, "GameTooltipTemplate"),
 		CreateFrame("Frame", "ConsolePortUtilityAnimation", UIParent),
 		CreateFrame("Frame", "ConsolePortUtilityAnimationCircle", UIParent)
 ---------------------------------------------------------------

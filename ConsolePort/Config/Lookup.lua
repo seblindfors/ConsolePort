@@ -156,8 +156,9 @@ local classReserved = {
 
 ---------------------------------------------------------------
 local customRange = classReserved[class]
-local normalRange = 72
-local stanceRange = 120
+local ACTION_ID_RANGE = 72
+local ACTION_ID_STANCE_RANGE = 120
+local ACTION_ID_MAX_THRESHOLD = 169
 ---------------------------------------------------------------
 local DefaultBar = MainMenuBarArtFrame
 
@@ -167,7 +168,9 @@ local DefaultBar = MainMenuBarArtFrame
 function ConsolePort:GetActionPageDriver()
 	local driver = "[vehicleui] 1; [possessbar] 2; [overridebar] 3; [shapeshift] 4; [bar:2] 5; [bar:3] 6; [bar:4] 7; [bar:5] 8; [bar:6] 9; [bonusbar:1] 10; [bonusbar:2] 11; [bonusbar:3] 12; [bonusbar:4] 13; 14"
 	local newstate
-	if HasVehicleActionBar() then
+	if db.Settings and db.Settings.pagedriver then
+		newstate = SecureCmdOptionParse(db.Settings.pagedriver)
+	elseif HasVehicleActionBar() then
 		newstate = GetVehicleBarIndex()
 	elseif HasOverrideActionBar() then
 		newstate = GetOverrideBarIndex()
@@ -186,11 +189,11 @@ function ConsolePort:GetActionBinding(id)
 	if idType == "number" then
 		-- reserve bars for classes with stances
 		if customRange then
-			if (id <= customRange or id > stanceRange) then
+			if (id <= customRange or id > ACTION_ID_STANCE_RANGE) then
 				return actionIDs[id]
 			end
 		-- let other classes use bars 7-10 
-		elseif (id <= normalRange or id > stanceRange) then
+		elseif (id <= ACTION_ID_RANGE or id > ACTION_ID_STANCE_RANGE) then
 			return actionIDs[id]
 		end
 	elseif idType == "string" then
@@ -199,7 +202,8 @@ function ConsolePort:GetActionBinding(id)
 end
 
 function ConsolePort:GetActionID(bindName)
-	for ID, binding in ipairs(actionIDs) do
+	for ID=1, ACTION_ID_MAX_THRESHOLD do
+		local binding = actionIDs[ID]
 		if binding == bindName then
 			return tonumber(ID)
 		end
@@ -315,6 +319,26 @@ function ConsolePort:GetUIControlKey(key)
 	return keys[key]
 end
 
+function ConsolePort:GetUIControlKeyOwner(key)
+	local keys = {
+		-- Right side
+		[KEY.TRIANGLE] 	= 'CP_R_UP',
+		[KEY.CROSS] 	= 'CP_R_DOWN',
+		[KEY.SQUARE] 	= 'CP_R_LEFT',
+		[KEY.CIRCLE] 	= 'CP_R_RIGHT', 
+		-- Left side
+		[KEY.UP] 		= 'CP_L_UP',
+		[KEY.DOWN] 		= 'CP_L_DOWN',
+		[KEY.LEFT] 		= 'CP_L_LEFT',
+		[KEY.RIGHT] 	= 'CP_L_RIGHT', 
+		-- Option buttons
+		[KEY.SHARE] 	= 'CP_X_LEFT',
+		[KEY.CENTER] 	= 'CP_X_CENTER',
+		[KEY.OPTIONS] 	= 'CP_X_RIGHT',
+	}
+	return keys[key]
+end
+
 ---------------------------------------------------------------
 -- Get the modifiers currently used by ConsolePort
 ---------------------------------------------------------------
@@ -363,8 +387,8 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["CP_T1"] = "CP_TR1",
 		["CP_T2"] = "CP_TR2",
 		-------------------------------
-		["interactWith"] = "CP_T1",
-		["mouseOverMode"] = true,
+	--	["interactWith"] = "CP_T1",
+	--	["mouseOverMode"] = true,
 		-------------------------------
 		["actionBarStyle"] = 1,
 		-------------------------------
@@ -372,7 +396,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["autoSellJunk"] = true,
 		["autoInteract"] = false,
 		["autoLootDefault"] = true,
-		["cameraDistanceMoveSpeed"] = true,
+		["cameraZoomSpeed"] = true,
 		["disableSmartMouse"] = false,
 		["doubleModTap"] = true,
 		["preventMouseDrift"] = false,
@@ -443,8 +467,8 @@ function ConsolePort:GetAddonBindings()
 		-- Targeting
 		{name = L.CP_TARGETING},
 		{name = L.CP_EM_FRAMES, binding = "CLICK ConsolePortEasyMotionButton:LeftButton"},
-		{name = L.CP_EM_PLATES, binding = "CLICK ConsolePortEasyMotionButton:RightButton"},
-		{name = L.CP_EM_NEAREST, binding = "CLICK ConsolePortEasyMotionButton:MiddleButton"},
+	--	{name = L.CP_EM_PLATES, binding = "CLICK ConsolePortEasyMotionButton:RightButton"},
+	--	{name = L.CP_EM_NEAREST, binding = "CLICK ConsolePortEasyMotionButton:MiddleButton"},
 		{name = L.CP_RAIDCURSOR, binding = "CLICK ConsolePortRaidCursorToggle:LeftButton"},
 		{name = L.CP_RAIDCURSOR_F, binding = "CLICK ConsolePortRaidCursorFocus:LeftButton"},
 		{name = L.CP_RAIDCURSOR_T, binding = "CLICK ConsolePortRaidCursorTarget:LeftButton"},
@@ -478,6 +502,8 @@ function ConsolePort:GetDefaultUIFrames()
 			"BarberShopFrame" },
 		Blizzard_Calendar			= {
 			"CalendarFrame" },
+		Blizzard_ChallengesUI 		= {
+			"ChallengesKeystoneFrame" },
 		Blizzard_Collections		= {
 			"CollectionsJournal",
 			"WardrobeFrame", },
@@ -505,6 +531,8 @@ function ConsolePort:GetDefaultUIFrames()
 			"LookingForGuildFrame" },
 		Blizzard_MacroUI 			= {
 			"MacroFrame" },
+		Blizzard_ObliterumUI 		= {
+			"ObliterumForgeFrame" },
 		Blizzard_QuestChoice 		= {
 			"QuestChoiceFrame" },
 		Blizzard_TalentUI 			= {
@@ -570,6 +598,7 @@ function ConsolePort:GetDefaultUIFrames()
 			"StaticPopup4",
 			"TaxiFrame",
 			"TimeManagerFrame",
+			"TradeFrame",
 			"TutorialFrame",
 			"VideoOptionsFrame",
 			"WorldMapFrame",
@@ -580,3 +609,55 @@ function ConsolePort:GetDefaultUIFrames()
 		},
 	}
 end
+
+---------------------------------------------------------------
+-- Cvar list and getter function
+---------------------------------------------------------------
+local cvars = { -- value = default
+	alwaysHighlight 	= false,
+	autoExtra 			= true,
+	autoLootDefault		= true,
+	autoSellJunk 		= true,
+	calculateYaw 		= false,
+	cameraZoomSpeed 	= true,
+	centerLockRangeX 	= 70,
+	centerLockRangeY 	= 180,
+	centerLockDeadzoneX = 4,
+	centerLockDeadzoneY = 4,
+	disableHints 		= false,
+	disableMenu 		= false,
+	disableSmartMouse 	= false,
+	doubleModTap 		= true,
+	doubleModTapWindow 	= 0.25,
+	interactAuto 		= false,
+	interactNPC 		= false,
+	interactPushback 	= 1,
+	interactWith 		= false,
+	lookAround 			= false,
+	mouseOnCenter 		= true,	
+	mouseOnJump 		= false,
+	mouseOverMode 		= false,
+	turnCharacter 		= false,
+	preventMouseDrift 	= false,
+	raidCursorDirect 	= false,
+	skipCalibration 	= false,
+	skipGuideBtn 		= false,
+	UIleaveCombatDelay	= 0.5,
+	UIholdRepeatDelay 	= 0.125,
+	UIdisableHoldRepeat = false,
+	unitHotkeySize 		= 32,
+	unitHotkeyOffsetX 	= 0,
+	unitHotkeyOffsetY 	= -8,
+}
+
+function ConsolePort:GetCompleteCVarList()
+	local cvars = db.table.copy(cvars)
+	for cvar, value in pairs(db.Settings) do
+		if type(value) ~= "table" then
+			cvars[cvar] = value
+		end
+	end
+	return cvars
+end
+
+

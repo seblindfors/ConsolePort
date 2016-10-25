@@ -242,7 +242,7 @@ function SwapperMixin:SetOwner(owner)
 		self.Icon:SetTexture()
 		self.Mask:Hide()
 		self:SetText(owner:GetText())
-		self.hotKey:SetText(format(BindingMixin[owner.modifier], ICONS[owner.name]))
+		self.hotKey:SetFormattedText(BindingMixin[owner.modifier], ICONS[owner.name])
 	end
 	self:SetEnabled(true)
 end
@@ -637,7 +637,7 @@ local function ImportOnClick(self)
 	local settings = window.Import.Profiles.ProfileData[character]
 	if settings then
 		newBindingSet = copy(settings.BindingSet)
-		window.Tutorial:SetText(format(TUTORIAL.IMPORT, character))
+		window.Tutorial:SetFormattedText(TUTORIAL.IMPORT, character)
 		window:Reload()
 	end
 end
@@ -858,6 +858,10 @@ function WindowMixin:OnShow(override)
 	self.Display:OnShow()
 	if view == 1 then
 		self.Rebind:Hide()
+		self.Rebind.Swapper:Hide()
+		self.Rebind.ValueScroll:Hide()
+		self.Rebind.HeaderScroll:Hide()
+		self.Rebind.ShortcutScroll:Hide()
 		self.Controller:Show()
 		if not db.Settings.disableUI then
 			ConsolePort:SetCurrentNode(self.BindCatcher)
@@ -871,11 +875,15 @@ function WindowMixin:OnShow(override)
 	else
 		self.Controller:Hide()
 		self.Rebind:Show()
+		self.Rebind.Swapper:Show()
+		self.Rebind.ValueScroll:Show()
+		self.Rebind.HeaderScroll:Show()
+		self.Rebind.ShortcutScroll:Show()
 		self.Tutorial:ClearAllPoints()
 		self.Tutorial:SetPoint("BOTTOMLEFT", 32, 20)
 		self.Tutorial:SetJustifyH("LEFT")
 		self.Tutorial:SetTextColor(0.75, 0.75, 0.75)
-		self.Tutorial:SetText(format(TUTORIAL.COMBO, ICONS[db.Mouse.Cursor.Left], ICONS[db.Mouse.Cursor.Right]))
+		self.Tutorial:SetFormattedText(TUTORIAL.COMBO, ICONS[db.Mouse.Cursor.Left], ICONS[db.Mouse.Cursor.Right])
 	end
 end
 
@@ -1090,39 +1098,39 @@ db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, functio
 
 	Mixin(rebindFrame, RebindMixin)
 
-	rebindFrame.HeaderScroll = db.Atlas.GetScrollFrame("$parentHeaderScrollFrame", rebindFrame, {
+	rebindFrame.HeaderScroll = db.Atlas.GetScrollFrame("$parentHeaderScrollFrame", Binds, {
 		childKey = "Headers",
 		childWidth = 232,
 		stepSize = 50,
 	})
 
-	rebindFrame.ValueScroll = db.Atlas.GetScrollFrame("$parentValueScrollFrame", rebindFrame, {
+	rebindFrame.ValueScroll = db.Atlas.GetScrollFrame("$parentValueScrollFrame", Binds, {
 		childKey = "Values",
 		childWidth = 232,
 		stepSize = 50,
 	})
 
-	rebindFrame.ShortcutScroll = db.Atlas.GetScrollFrame("$parentShortcuts", rebindFrame, {
+	rebindFrame.ShortcutScroll = db.Atlas.GetScrollFrame("$parentShortcuts", Binds, {
 		childWidth = 40,
 		stepSize = 50,
 	})
 
-	rebindFrame.Swapper = SwapperMixin:CreateButton("$parentSwapper", rebindFrame, config.listButton)
+	rebindFrame.Swapper = SwapperMixin:CreateButton("$parentSwapper", Binds, config.listButton)
 	rebindFrame.Swapper:SetPoint("BOTTOMRIGHT", Binds, -60, 20)
 	rebindFrame.Swapper.name = TUTORIAL.SWAPPER
 
 	rebindFrame.ShortcutScroll:SetPoint("TOPRIGHT", rebindFrame, "TOPLEFT", -16, 0)
-	rebindFrame.ShortcutScroll:SetPoint("BOTTOMLEFT", -54, 0)
+	rebindFrame.ShortcutScroll:SetPoint("BOTTOMLEFT", rebindFrame, "BOTTOMLEFT", -54, 0)
 	rebindFrame.ShortcutScroll.ScrollBar:ClearAllPoints()
 	rebindFrame.ShortcutScroll.ScrollBar:Hide()
-	rebindFrame.ShortcutScroll.Backdrop:SetPoint("BOTTOMRIGHT", 24, -16)
+	rebindFrame.ShortcutScroll.Backdrop:SetPoint("BOTTOMRIGHT", rebindFrame, "BOTTOMRIGHT", 24, -16)
 
 	rebindFrame.HeaderScroll:HookScript("OnMouseWheel", RebindMixin.OnMouseWheel)
 	rebindFrame.HeaderScroll:SetPoint("TOPLEFT", rebindFrame, "TOPRIGHT", 32, 0)
-	rebindFrame.HeaderScroll:SetPoint("BOTTOMRIGHT", 276, 0)
+	rebindFrame.HeaderScroll:SetPoint("BOTTOMRIGHT", rebindFrame, "BOTTOMRIGHT", 276, 0)
 
 	rebindFrame.Headers = rebindFrame.HeaderScroll.Child
-	rebindFrame.Headers:SetScript("OnShow", RefreshHeaderList)
+	rebindFrame.Headers:HookScript("OnShow", RefreshHeaderList)
 
 	rebindFrame.Values = rebindFrame.ValueScroll.Child
 	rebindFrame.Headers.Values = rebindFrame.Values

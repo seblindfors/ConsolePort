@@ -307,21 +307,21 @@ function EM:OnNewBindings(...)
 	end
 end
 
-ConsolePort:RegisterCallback("OnNewBindings", EM.OnNewBindings, EM)
+ConsolePort:RegisterCallback('OnNewBindings', EM.OnNewBindings, EM)
 
 EM.FramePool = {}
 EM.ActiveFrames = 0
 EM.UnitFrames = {}
 
 EM.InputCodes = {
-	"CP_R_RIGHT",	-- 1
-	"CP_R_LEFT",	-- 2
-	"CP_R_UP",		-- 3
-	"CP_L_UP",		-- 4
-	"CP_L_DOWN",	-- 5
-	"CP_L_LEFT",	-- 6
-	"CP_L_RIGHT",	-- 7
-	"CP_R_DOWN", 	-- 8
+	'CP_R_RIGHT',	-- 1
+	'CP_R_LEFT',	-- 2
+	'CP_R_UP',		-- 3
+	'CP_L_UP',		-- 4
+	'CP_L_DOWN',	-- 5
+	'CP_L_LEFT',	-- 6
+	'CP_L_RIGHT',	-- 7
+	'CP_R_DOWN', 	-- 8
 }
 
 function EM:SetFramePool(unitType, side)
@@ -382,18 +382,19 @@ function EM:DisplayBinding(binding, unit)
 	local icon, shown = frame.Keys, 0
 	for id in binding:gmatch('%S+') do
 		id = tonumber(id)
+		local size = frame.size
 		if icon[id] then
 			icon = icon[id]
 		else
 			icon[id] = frame:CreateTexture(nil, 'OVERLAY')
 			icon = icon[id]
 			icon:SetTexture(db.ICONS[self.InputCodes[id]])
-			icon:SetSize(32, 32)
+			icon:SetSize(size, size)
 		end
 		shown = shown + 1
 		frame.ShownKeys[shown] = icon
 		icon.shownID = shown
-		icon:SetPoint('LEFT', ( shown - 1) * 24, 0)
+		icon:SetPoint('LEFT', ( shown - 1) * ( size * 0.75 ), 0)
 		icon:Show()
 	end
 
@@ -424,6 +425,9 @@ function EM:GetFrame(binding)
 	if self.ActiveFrames > #self.FramePool then
 		frame = CreateFrame('Frame', 'ConsolePortEasyMotionDisplay'..self.ActiveFrames, self)
 		frame:SetFrameStrata("TOOLTIP")
+		frame.size = db.Settings.unitHotkeySize or 32
+		frame.offsetX = db.Settings.unitHotkeyOffsetX or 0
+		frame.offsetY = db.Settings.unitHotkeyOffsetY or -8
 		frame:SetSize(1, 1)
 		frame:Hide()
 		frame.Keys = {}
@@ -461,7 +465,7 @@ end
 
 function HotkeyMixin:Adjust(depth)
 	local offset = depth and #self.ShownKeys + depth or #self.ShownKeys
-	self:SetWidth( ( offset * 24 ) )
+	self:SetWidth( offset * ( self.size * 0.75 ) )
 end
 
 function HotkeyMixin:Animate()
@@ -495,7 +499,7 @@ function HotkeyMixin:SetNamePlate(unit)
 	local plate = self.GetNamePlateForUnit(unit)
 	if plate and plate.UnitFrame then
 		self:SetParent(WorldFrame)
-		self:SetPoint('CENTER', plate.UnitFrame, 0, -8)
+		self:SetPoint('CENTER', plate.UnitFrame, frame.offsetX, frame.offsetY)
 		self:Show()
 		self:SetScale(UIParent:GetScale())
 		self:SetFrameLevel(plate.UnitFrame:GetFrameLevel() + 1)
@@ -506,7 +510,7 @@ function HotkeyMixin:SetUnitFrame(unit)
 	local frame = EM.UnitFrames[unit]
 	if frame then
 		self:SetParent(UIParent)
-		self:SetPoint('CENTER', frame, 0, -8)
+		self:SetPoint('CENTER', frame, frame.offsetX, frame.offsetY)
 		self:Show()
 		self:SetScale(1)
 		self:SetFrameLevel(frame:GetFrameLevel() + 1)

@@ -131,7 +131,7 @@ end
 
 function Events:PLAYER_REGEN_ENABLED(...)
 	self:UpdateCVars(false)
-	Callback(0.5, function()
+	Callback(Settings.UIleaveCombatDelay or 0.5, function()
 		if not InCombatLockdown() then
 			self:UpdateFrames()
 		end
@@ -172,10 +172,13 @@ function Events:ADDON_LOADED(...)
 	local name = ...
 	if name == "ConsolePort" then
 		self:LoadSettings()
+		self:LoadActionPager(db.Settings.pagedriver, db.Settings.pageresponse)
 		self:LoadControllerTheme()
 		self:LoadEvents()
 		self:LoadHookScripts()
 		self:LoadBindingSet()
+		self:LoadRaidCursor()
+		self:LoadCameraSettings()
 		self:OnNewBindings()
 		self:CreateConfigPanel()
 		self:CreateActionButtons()
