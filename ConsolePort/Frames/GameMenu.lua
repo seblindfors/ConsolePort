@@ -46,8 +46,8 @@ function ConsolePort:SetCustomMenu()
 		{name = "Mounts", 		icon = [[Interface\ICONS\MountJournalPortrait]], microButton = CollectionsMicroButton, title = COLLECTIONS},
 		{name = "LFG", 			icon = [[Interface\LFGFRAME\UI-LFG-PORTRAIT]], microButton = LFDMicroButton, title = DUNGEONS_BUTTON},
 		{name = "EJ", 			icon = [[Interface\ENCOUNTERJOURNAL\UI-EJ-PortraitIcon]], microButton = EJMicroButton, title = ADVENTURE_JOURNAL},
-		{name = "World",		icon = [[Interface\FriendsFrame\Battlenet-Portrait]], microButton = FriendsMicroButton, title = SOCIAL_BUTTON},
-		{name = "Socials", 		icon = [[Interface\ICONS\Achievement_GuildPerk_EverybodysFriend]], microButton = GuildMicroButton, title = GUILD},
+		{name = "Social",		icon = [[Interface\FriendsFrame\Battlenet-Portrait]], microButton = QuickJoinToastButton, title = SOCIAL_BUTTON},
+		{name = "Guild", 		icon = [[Interface\ICONS\Achievement_GuildPerk_EverybodysFriend]], microButton = GuildMicroButton, title = GUILD},
 		{name = "Raid",			icon = [[Interface\LFGFRAME\UI-LFR-PORTRAIT]], title = RAID},
 	}
 

@@ -276,7 +276,7 @@ function Node:Refresh(node, scrollFrame)
 	local object = node:GetObjectType()
 	if 	not node.ignoreChildren then
 		for i, child in pairs({node:GetChildren()}) do
-			self:Refresh(child, object == "ScrollFrame" and node or scrollFrame)
+			self:Refresh(child, node.GetVerticalScroll and node or scrollFrame)
 		end
 	end
 	if 	self:IsInteractive(node, object) and self:IsDrawn(node, scrollFrame) then
@@ -334,7 +334,7 @@ end
 
 function Node:GetScrollButtons(node)
 	if node then
-		if node:IsObjectType("ScrollFrame") then
+		if node:IsMouseWheelEnabled() then
 			for _, frame in pairs({node:GetChildren()}) do
 				if frame:IsObjectType("Slider") then
 					return frame:GetChildren()
@@ -459,7 +459,6 @@ function Scroll:To(node, scrollFrame)
 
 		-- make sure this isn't a hybrid scroll frame
 		if scrollFrame:GetScript("OnLoad") ~= hybridScroll then
-
 			local currHorz, currVert = scrollFrame:GetHorizontalScroll(), scrollFrame:GetVerticalScroll()
 			local maxHorz, maxVert = scrollFrame:GetHorizontalScrollRange(), scrollFrame:GetVerticalScrollRange()
 
