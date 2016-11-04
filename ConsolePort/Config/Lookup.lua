@@ -381,6 +381,8 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 	local settings = {
 		["version"] = VERSION,
 		["type"] = "PS4",
+		["targetScanFix"] = true,
+		["UIdropDownFix"] = true,
 		-------------------------------
 		["CP_M1"] = "CP_TL1",
 		["CP_M2"] = "CP_TL2",
@@ -397,6 +399,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		["autoInteract"] = false,
 		["autoLootDefault"] = true,
 		["cameraZoomSpeed"] = true,
+		["disableKeyboard"] = true,
 		["disableSmartMouse"] = false,
 		["doubleModTap"] = true,
 		["preventMouseDrift"] = false,
@@ -424,7 +427,6 @@ function ConsolePort:GetDefaultMouseEvents()
 	return {
 		["PLAYER_STARTED_MOVING"] = false,
 		["PLAYER_TARGET_CHANGED"] = true,
-		["CURRENT_SPELL_CAST_CHANGED"] = true,
 		["GOSSIP_SHOW"] = true,
 		["GOSSIP_CLOSED"] = true,
 		["MERCHANT_SHOW"] = true,
@@ -627,6 +629,7 @@ local cvars = { -- value = default
 	disableHints 		= false,
 	disableMenu 		= false,
 	disableSmartMouse 	= false,
+	disableStickMouse	= false,
 	doubleModTap 		= true,
 	doubleModTapWindow 	= 0.25,
 	interactAuto 		= false,
@@ -642,12 +645,15 @@ local cvars = { -- value = default
 	raidCursorDirect 	= false,
 	skipCalibration 	= false,
 	skipGuideBtn 		= false,
+	targetScanFix 		= false,
 	UIleaveCombatDelay	= 0.5,
 	UIholdRepeatDelay 	= 0.125,
 	UIdisableHoldRepeat = false,
+	UIdropDownFix		= false,
 	unitHotkeySize 		= 32,
 	unitHotkeyOffsetX 	= 0,
 	unitHotkeyOffsetY 	= -8,
+	unitHotkeyPool = "",
 }
 
 function ConsolePort:GetCompleteCVarList()

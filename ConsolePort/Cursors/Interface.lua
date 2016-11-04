@@ -17,7 +17,7 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 		-- Override wrappers
 	 	SetOverride, ClearOverride,
 		-- General functions
-		InCombat, PlaySound, Callback,
+		InCombat, PlaySound, After,
 		-- Fade wrappers
 		FadeIn, FadeOut,
 		-- Table functions
@@ -89,6 +89,11 @@ end
 function Override:Button(button, clickbutton)
 	button:SetAttribute("type", "click")
 	button:SetAttribute("clickbutton", clickbutton)
+end
+
+function Override:Macro(button, macrotext)
+	button:SetAttribute("type", "macro")
+	button:SetAttribute("macrotext", macrotext)
 end
 
 ---------------------------------------------------------------
@@ -238,6 +243,12 @@ local IsClickable = {
 	CheckButton = true,
 }
 
+local DropDownMacros = {
+	SET_FOCUS = "/focus %s",
+	CLEAR_FOCUS = "/clearfocus",
+	PET_DISMISS = "/petdismiss",
+}
+
 local Node = {
 	[KEY.UP] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY > thisY) end,
 	[KEY.DOWN] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY < thisY) end,
@@ -252,6 +263,7 @@ end
 
 function Node:IsDrawn(node, scrollFrame)
 	local x, y = node:GetCenter()
+	local top = node:GetTop()
 	if 	x and x <= MAX_WIDTH and x >= 0 and
 		y and y <= MAX_HEIGHT and y >= 0 then
 		-- if the node is a scroll child and it's anchored inside the scroll frame
@@ -359,6 +371,9 @@ function Node:Select(node, object, scrollFrame, state)
 		end
 	end
 
+	-- If this node has a forbidden dropdown value, override macro instead.
+	local macro = DropDownMacros[node.value]
+
 	if scrollFrame and not scrollFrame.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
 		Scroll:To(node, scrollFrame)
 	end
@@ -374,7 +389,10 @@ function Node:Select(node, object, scrollFrame, state)
 		for click, button in pairs(Cursor.Override) do
 			for modifier in ConsolePort:GetModifiers() do
 				Override:Click(Cursor, button, name or button..modifier, click, modifier)
-				if override then
+				if macro then
+					local unit = UIDROPDOWNMENU_INIT_MENU.unit
+					Override:Macro(_G[button..modifier], macro:format(unit))
+				elseif override then
 					Override:Button(_G[button..modifier], node)
 				else
 					Override:Button(_G[button..modifier], nil)
@@ -512,7 +530,7 @@ local function SpecialAction(self)
 		-- Item button
 		elseif node.JunkIcon then
 			local link = GetContainerItemLink(node:GetParent():GetID(), node:GetID())
-			local _, itemID = strsplit(":", strmatch(link or "", "item[%-?%d:]+"))
+			local _, itemID = strsplit(":", (strmatch(link or "", "item[%-?%d:]+")) or "")
 			if GetItemSpell(link) then
 				self:AddUtilityAction("item", itemID)
 			else
@@ -589,7 +607,7 @@ end
 
 function Cursor:PLAYER_REGEN_ENABLED()
 	self.Flash = true
-	Callback(0.5, function()
+	After(db.Settings.UIleaveCombatDelay or 0.5, function()
 		if IsSafe() then
 			FadeIn(self, 0.2, self:GetAlpha(), 1)
 		end
@@ -621,6 +639,7 @@ function ConsolePort:IsCurrentNode(node) return current and current.node == node
 function ConsolePort:GetCurrentNode() return current and current.node end
 
 function ConsolePort:SetCurrentNode(node, force)
+	-- assert cursor is enabled and safe before proceeding
 	if not db.Settings.disableUI and IsSafe() then
 		if node then
 			local object = node:GetObjectType()
@@ -633,15 +652,21 @@ function ConsolePort:SetCurrentNode(node, force)
 				Cursor:SetPosition(current.node)
 			end
 		end
-		self:UIControl()
+		-- new node is set for next refresh.
+		-- don't refresh immediately if UI core is locked.
+		if not self:IsUICoreLocked() then
+			self:UIControl()
+		end
 	end
 end
 
-function ConsolePort:ClearCurrentNode()
+function ConsolePort:ClearCurrentNode(dontRefresh)
 	current = nil
 	old = nil
 	Cursor.Highlight:Hide()
-	self:UIControl()
+	if not dontRefresh then
+		self:UIControl()
+	end
 end
 
 function ConsolePort:ScrollToNode(node, scrollFrame, dontFocus)

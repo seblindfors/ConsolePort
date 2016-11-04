@@ -2,10 +2,8 @@ local addOn, Language = ...
 
 local Keyboard = ConsolePortKeyboard
 
-local class = select(2, UnitClass("player"))
-local cc = RAID_CLASS_COLORS[class]
-
 local db = ConsolePort:GetData()
+local cR, cG, cB = db.Atlas.GetNormalizedCC()
 
 local colors = {
 	db.COLOR.UP,
@@ -102,8 +100,8 @@ function Keyboard:CreateCharset(i)
 	Charset.RingInsetBrighten:SetPoint("CENTER", Charset, 0, 0)
 	Charset.RingInsetBrighten:SetSize(r/2, r/2)
 	-- test
-	Charset.RingHiLite:SetVertexColor(cc.r, cc.g, cc.b, 1)
-	Charset.RingBrighten:SetVertexColor(cc.r, cc.g, cc.b, 1)
+	Charset.RingHiLite:SetVertexColor(cR, cG, cB, 1)
+	Charset.RingBrighten:SetVertexColor(cR, cG, cB, 1)
 
 	Charset.RingBrighten:SetAlpha(0)
 	Charset.RingHiLite:SetAlpha(0)
@@ -128,7 +126,7 @@ function Keyboard:CreateCharset(i)
 		Char.RingHiLite:SetSize(31, 31)
 		Char.RingHiLite:SetPoint("CENTER", Char, 0, 0)
 
-		Char.RingHiLite:SetVertexColor(cc.r, cc.g, cc.b, 1)
+		Char.RingHiLite:SetVertexColor(cR, cG, cB, 1)
 		Char.RingHiLite:SetAlpha(0)
 
 		Char.RingBrighten = Char:CreateTexture(nil, "BACKGROUND", nil, 3)
@@ -137,7 +135,7 @@ function Keyboard:CreateCharset(i)
 		Char.RingBrighten:SetSize(31, 31)
 		Char.RingBrighten:SetPoint("CENTER", Char, 0, 0)
 
-		Char.RingBrighten:SetVertexColor(cc.r, cc.g, cc.b, 1)
+		Char.RingBrighten:SetVertexColor(cR, cG, cB, 1)
 		Char.RingBrighten:SetAlpha(0)
 
 		local red, green, blue = Hex2RGB(colors[char])

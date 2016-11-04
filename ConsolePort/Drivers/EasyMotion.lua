@@ -204,8 +204,11 @@ local EM_SECURE_FUNCTIONS = {
 
 	-- Sort the units by name, to retain some coherence when setting up bindings
 	SortUnits = [[
+		local specific = self:GetAttribute('unitpool')
 		for unit in pairs(units) do
-			sorted[#sorted + 1] = unit
+			if ( not specific ) or ( unit:match(specific) ) then
+				sorted[#sorted + 1] = unit
+			end
 		end
 		table.sort(sorted)
 	]],
@@ -298,6 +301,9 @@ function EM:OnNewBindings(...)
 		frame = {ConsolePort:GetCurrentBindingOwner('CLICK ConsolePortEasyMotionButton:LeftButton')},
 		tab = {ConsolePort:GetCurrentBindingOwner('CLICK ConsolePortEasyMotionButton:MiddleButton')},
 	}
+	if db.Settings.unitHotkeyPool then
+		self:SetAttribute('unitpool', db.Settings.unitHotkeyPool)
+	end
 	for unitType, info in pairs(keys) do
 		local key, mod = unpack(info)
 		if key and mod then

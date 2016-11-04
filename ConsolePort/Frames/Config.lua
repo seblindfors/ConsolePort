@@ -118,13 +118,21 @@ Cancel.Cover:SetGradientAlpha("HORIZONTAL", 1, 1, 1, 1, 1, 1, 1, 0.5)
 ---------------------------------------------------------------
 local Save = db.Atlas.GetFutureButton("$parentSave", Config)
 function Save:OnClick()
-	local reload
+	local data, reload
 	if not InCombatLockdown() then
 		for i, frame in pairs(Container.Frames) do
-			if frame.Save then
-				reload = frame:Save() or reload
+			if frame.Save and not frame.onFirstShow then
+				local needReload, exportID, exportData = frame:Save()
+				reload = needReload or reload
+				if exportID and exportData then
+					if not data then
+						data = {}
+					end
+					data[exportID] = exportData
+				end
 			end
 		end
+		Config:Export(data)
 		if reload then
 			ReloadUI()
 		else
@@ -255,7 +263,7 @@ function Popup:WrapClick(wrapper, button)
 end
 
 function Popup:SetPopup(header, frame, button1, button2, height, width)
-	if self.frame then
+	if self.frame and self.frame:GetParent() == self then
 		self.frame:Hide()
 	end
 	frame:Show()
@@ -287,14 +295,25 @@ function Popup:OnHide()
 	Config.ignoreNode = nil
 	FadeIn(Config, 0.2, Config:GetAlpha(), 1)
 end
+
+function Popup:OnEvent()
+	self:Hide()
+end
 ---------------------------------------------------------------
 Popup:SetSize(400, 500)
 Popup:SetPoint("CENTER", 0, 0)
 Popup:EnableMouse(true)
 Popup:HookScript("OnShow", Popup.OnShow)
 Popup:SetScript("OnHide", Popup.OnHide)
+Popup:SetScript("OnEvent", Popup.OnEvent)
 Popup:SetFrameStrata("FULLSCREEN_DIALOG")
+Popup:RegisterEvent("PLAYER_REGEN_DISABLED")
 Popup:Hide()
+Popup:SetMovable(true)
+Popup:SetClampedToScreen(true)
+Popup:RegisterForDrag("LeftButton")
+Popup:HookScript("OnDragStart", Popup.StartMoving)
+Popup:HookScript("OnDragStop", Popup.StopMovingOrSizing)
 ---------------------------------------------------------------
 
 function Container:HideAll()
@@ -305,13 +324,32 @@ function Container:HideAll()
 	end
 end
 
+function Container:GetFrameByName(id)
+	for index, frame in pairs(self.Frames) do
+		if frame.IDtag == id then
+			return frame, index
+		end
+	end
+end
+
+function Container:GetFrameByID(id)
+	local frame = self.Frames[id]
+	if frame then
+		return frame, id
+	else 
+		return self:GetFrameByName(id)
+	end
+end
+
 function Container:ShowFrame(id)
-	self.Current = self.Frames[id]
+	local frame, index = self:GetFrameByID(id)
+	self.Current = frame
 	self:HideAll()
 	self.Current:Show()
-	self.id = id
-	Category.Buttons[id].hasPriority = true
-	Category.Buttons[id].SelectedTexture:Show()
+	self.id = index
+	Category.Buttons[self.id].hasPriority = true
+	Category.Buttons[self.id].SelectedTexture:Show()
+	return self.Current, self.id
 end
 
 ---------------------------------------------------------------
@@ -327,7 +365,7 @@ end
 
 function Category:AddNew(header, bannerAtlas)
 	local id = #self.Buttons+1
-	local banner = db.Atlas.GetFutureButton("$parentHeader"..id, self, nil, bannerAtlas, nil, nil, true)
+	local banner = db.Atlas.GetFutureButton("$parentHeader"..id, self, nil, bannerAtlas, 150, nil, true)
 	banner.id = id
 	banner:SetText(header)
 	banner:SetScript("OnClick", CategoryOnClick)
@@ -341,13 +379,21 @@ function Category:AddNew(header, bannerAtlas)
 end
 
 ---------------------------------------------------------------
+function Config:GetCategoryID()
+	return Container.id
+end
 
-function Config:OpenCategory(index)
-	if Container.Frames[index] then
+function Config:GetCategory()
+	return Container.Frames[Container.id]
+end
+
+function Config:OpenCategory(id)
+	local frame, index = Container:ShowFrame(id)
+	if frame then
 		Scroll:ScrollTo(index)
-		Container:ShowFrame(index)
 		if not InCombatLockdown() then
 			self:Show()
+			return frame
 		else
 			self:RegisterEvent("PLAYER_REGEN_ENABLED")
 			self.combatHide = true
@@ -358,19 +404,37 @@ end
 
 ---------------------------------------------------------------
 
-function WindowMixin:AddPanel(name, header, bannerAtlas, mixin, configure)
-	local frame = CreateFrame("FRAME", "$parent"..name, Container)
+function WindowMixin:AddPanel(info)
+	local 	name, header, bannerAtlas, mixin, onLoad, onFirstShow = 
+			info.name, info.header, info.bannerAtlas,
+			info.mixin, info.onLoad, info.onFirstShow
+	local frame = CreateFrame("Frame", "$parent"..name, Container)
 	frame:SetBackdrop(db.Atlas.Backdrops.Border)
 	local id = Category:AddNew(header, bannerAtlas)
 	Container.Frames[id] = frame
 
 	Mixin(frame, mixin)
 
+	frame.IDtag = name
+	frame:SetID(id)
 	frame:SetParent(self)
 	frame:SetAllPoints(Container)
 	frame:Hide()
-	configure(ConsolePort, frame)
+	if onLoad then
+		onLoad(frame, ConsolePort)
+	end
+	if onFirstShow then
+		frame:SetScript("OnShow", function(self)
+			self:onFirstShow(ConsolePort)
+			self.onFirstShow = nil
+			self:Hide()
+			self:SetScript("OnShow", self.OnShow)
+			self:Show()
+		end)
+		frame.onFirstShow = onFirstShow
+	end
 	db[name] = frame
+	return frame
 end
 
 function WindowMixin:OnHide()
@@ -467,6 +531,25 @@ function WindowMixin:OnKeyDown(key)
 	end
 end
 
+function WindowMixin:Export(exportData)
+	if exportData then
+		local player = GetUnitName("player").."-"..GetRealmName()
+		local settings = ConsolePortCharacterSettings or {}
+		ConsolePortCharacterSettings = settings
+
+		if not settings[player] then
+			settings[player] = {
+				Type = db.Settings.type,
+				Class = select(2, UnitClass("player")),
+			}
+		end
+
+		for ID, data in pairs(exportData) do
+			settings[player][ID] = data
+		end
+	end
+end
+
 Mixin(Config, WindowMixin)
 
 ---------------------------------------------------------------
@@ -474,13 +557,13 @@ Mixin(Config, WindowMixin)
 ---------------------------------------------------------------
 function ConsolePort:CreateConfigPanel()
 	for i, panel in pairs(db.PANELS) do
-		Config:AddPanel(unpack(panel))
+		Config:AddPanel(panel)
 	end
 	db.PANELS = nil
 	self.CreateConfigPanel = nil
 	self:AddFrame(Config:GetName())
 	self:AddFrame(Popup:GetName())
-	Container:ShowFrame(2)
+	Container:ShowFrame("Binds")
 	tinsert(UISpecialFrames, Config:GetName())
 	tinsert(UISpecialFrames, Popup:GetName())
 end

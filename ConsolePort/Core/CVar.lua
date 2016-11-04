@@ -10,7 +10,7 @@ local _, db = ...
 local CVars = {
 	autoLootDefault 		= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
 	autoInteract 			= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
-	cameraZoomSpeed 		 =	{value = 50, 	isCombatCVar = false, 	default = 20},
+	cameraZoomSpeed 		=	{value = 50, 	isCombatCVar = false, 	default = 20},
 }
 
 function ConsolePort:LoadDefaultCVars()
@@ -20,6 +20,10 @@ function ConsolePort:LoadDefaultCVars()
 		else
 			info.default = GetCVar(cvar)
 		end
+	end
+	-- Temporary target scan fix
+	if db.Settings.targetScanFix then
+		SetCVar('TargetNearestUseOld', 0)
 	end
 	self.LoadDefaultCVars = nil
 end

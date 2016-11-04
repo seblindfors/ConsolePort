@@ -299,7 +299,7 @@ function SetupSecureSnippets(button)
 	]])
 
 	button:SetAttribute("OnDragStart", [[
-		if (self:GetAttribute("buttonlock") and not IsModifiedClick("PICKUPACTION")) or self:GetAttribute("LABdisableDragNDrop") then return false end
+		if (self:GetAttribute("buttonlock") and not IsModifiedClick("PICKUPACTION")) or self:GetAttribute("disableDragNDrop") then return false end
 		local state = self:GetAttribute("state")
 		local type = self:GetAttribute("type")
 		-- if the button is empty, we can't drag anything off it
@@ -324,7 +324,7 @@ function SetupSecureSnippets(button)
 	]])
 
 	button:SetAttribute("OnReceiveDrag", [[
-		if self:GetAttribute("LABdisableDragNDrop") then return false end
+		if self:GetAttribute("disableDragNDrop") then return false end
 		local kind, value, subtype, extra = ...
 		if not kind or not value then return false end
 		local state = self:GetAttribute("state")
@@ -518,9 +518,9 @@ function Generic:DisableDragNDrop(flag)
 		error("LibActionButton-1.0: You can only toggle DragNDrop out of combat!", 2)
 	end
 	if flag then
-		self:SetAttribute("LABdisableDragNDrop", true)
+		self:SetAttribute("disableDragNDrop", true)
 	else
-		self:SetAttribute("LABdisableDragNDrop", nil)
+		self:SetAttribute("disableDragNDrop", nil)
 	end
 end
 
@@ -576,7 +576,7 @@ end
 -- to place it on the button. Like action buttons work.
 function Generic:PreClick()
 	if self._state_type == "action" or self._state_type == "pet"
-	   or InCombatLockdown() or self:GetAttribute("LABdisableDragNDrop")
+	   or InCombatLockdown() or self:GetAttribute("disableDragNDrop")
 	then
 		return
 	end
@@ -1059,6 +1059,7 @@ function Update(self)
 		self.isGlowing = nil
 		self.isOnCooldown = nil
 		FadeOut(self)
+		UpdateUsable(self)
 
 		if self.chargeCooldown then
 			EndChargeCooldown(self.chargeCooldown)
@@ -1117,17 +1118,21 @@ function Update(self)
 		if texture and texture ~= self.cachedTexture then
 			self.cachedTexture = texture
 			self.icon:SetTexture(texture)
+			self.icon:SetDesaturated(false)
 			self.rangeTimer = - 1
 			if self.mainIcon then
 				self.mainIcon:SetTexture(texture)
+				self.mainIcon:SetDesaturated(false)
 			end
 		elseif not texture then
 			self.cachedTexture = nil
-			self.icon:SetTexture("Interface\\ICONS\\INV_Stone_WeightStone_08")
+			self.icon:SetTexture("Interface\\ICONS\\Ability_BossFelOrcs_Necromancer_Red")
+			self.icon:SetDesaturated(true)
 			self.cooldown:Hide()
 			self.rangeTimer = nil
 			if self.mainIcon then
-				self.mainIcon:SetTexture("Interface\\ICONS\\INV_Stone_WeightStone_08")
+				self.mainIcon:SetTexture("Interface\\ICONS\\Ability_BossFelOrcs_Necromancer_Red")
+				self.mainIcon:SetDesaturated(true)
 			end
 		end
 	end
@@ -1283,22 +1288,19 @@ function UpdateCooldown(self)
 		if (duration > 2) then
 			FadeIn(self)
 			self.isOnCooldown = true
+			self.cooldown:SetSwipeColor(0.17, 0, 0)
 			self.cooldown:SetScript("OnCooldownDone", OnModifierCooldownDone)
 		end
 	end
 
 	if (locStart + locDuration) > (start + duration) then
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_LOSS_OF_CONTROL then
-		--	self.cooldown:SetEdgeTexture("Interface\\Cooldown\\edge-LoC")
-			self.cooldown:SetSwipeColor(0.17, 0, 0)
 			self.cooldown:SetHideCountdownNumbers(true)
 			self.cooldown.currentCooldownType = COOLDOWN_TYPE_LOSS_OF_CONTROL
 		end
 		CooldownFrame_Set(self.cooldown, locStart, locDuration, true, true)
 	else
 		if self.cooldown.currentCooldownType ~= COOLDOWN_TYPE_NORMAL then
-		--	self.cooldown:SetEdgeTexture("Interface\\Cooldown\\edge")
-			self.cooldown:SetSwipeColor(0, 0, 0)
 			self.cooldown:SetHideCountdownNumbers(false)
 			self.cooldown.currentCooldownType = COOLDOWN_TYPE_NORMAL
 		end

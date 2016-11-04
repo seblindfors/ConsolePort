@@ -80,7 +80,7 @@ local function RefreshLanguageList(self)
 	self:SetHeight(num*24)
 end
 ---------------------------------------------------------------
-local function ConfigureConfig(self, Config)
+local function ConfigureConfig(Config, self)
 	Config:SetScript("OnShow", function(self)
 		Keyboard:SetEnabled(false)
 	end)
@@ -195,5 +195,10 @@ local function ConfigureConfig(self, Config)
 end
 ---------------------------------------------------------------
 function Keyboard:CreateConfig()
-	ConsolePortConfig:AddPanel("Keyboard", "Keyboard", nil, WindowMixin, ConfigureConfig)
+	ConsolePortConfig:AddPanel({
+		name = "Keyboard", 
+		header = "Keyboard", 
+		mixin = WindowMixin, 
+		onLoad = ConfigureConfig
+	})
 end

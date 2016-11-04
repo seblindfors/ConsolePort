@@ -166,3 +166,7 @@ function ConsolePort:CreateSecureButton(name, modifier, command)
     db.SECURE[btn] = true
     return btn
 end
+
+function ConsolePort:GetSecureButton(name, modifier)
+	return _G[name .. modifier]
+end

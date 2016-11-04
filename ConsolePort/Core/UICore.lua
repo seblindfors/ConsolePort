@@ -9,21 +9,23 @@ local _, db = ...
 		-- Upvalue menu and main frame due to frequent calls
 local 	GameMenu, Core, 
 		-- General functions
-		InCombat, Callback, SetHook, IsLoaded,
+		After, SetHook, IsLoaded,
 		-- Table functions
 		pairs, next,
 		-- Stacks: all frames, visible frames, show/hide hooks
 		frameStack, visibleStack, hookStack, customStack,
 		-- Boolean checks (default nil)
-		hasUIFocus, isEnabled, updateQueued =
+		hasUIFocus, isLocked, isEnabled, updateQueued =
 		-------------------------------------
 		GameMenuFrame, ConsolePort,
-		InCombatLockdown, C_Timer.After, hooksecurefunc, IsAddOnLoaded,
+		C_Timer.After, hooksecurefunc, IsAddOnLoaded,
 		pairs, next, {}, {}, {}
 ---------------------------------------------------------------
 
 function Core:HasUIFocus() return hasUIFocus end
-function Core:SetUIFocus(focus) hasUIFocus = focus end
+function Core:SetUIFocus(...) hasUIFocus = ... end
+function Core:LockUICore(...) isLocked = ... end
+function Core:IsUICoreLocked() return isLocked end
 
 ---------------------------------------------------------------
 -- Node modification to prevent unwanted and wonky UI behaviour.
@@ -87,12 +89,12 @@ for flag, nodes in pairs({
 ---------------------------------------------------------------
 
 -- Update the cursor state on visibility change.
--- Use callback to circumvent omitting frames that set their points on show.
+-- Use After to circumvent omitting frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
 local function showHook(self)
 	if isEnabled and frameStack[self] then
 		updateQueued = true
-		Callback(0.02, function()
+		After(0.02, function()
 			visibleStack[self] = self:GetPoint() and self:IsVisible() and true or nil
 			if updateQueued then
 				updateQueued = false
@@ -102,12 +104,12 @@ local function showHook(self)
 	end
 end
 
--- Use callback to circumvent node jumping when closing multiple frames,
+-- Use After to circumvent node jumping when closing multiple frames,
 -- which leads to the cursor ending up in an unexpected place on re-show.
 -- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
 local function hideHook(self, explicit)
 	if isEnabled and frameStack[self] then
-		Callback(0.02, function()
+		After(0.02, function()
 			if explicit or not self:IsVisible() then
 				hasUIFocus = nil
 				visibleStack[self] = nil
@@ -191,7 +193,7 @@ function Core:ToggleUICore()
 end
 
 function Core:UpdateFrames()
-	if not InCombat() then
+	if not isLocked then
 		self:UpdateFrameTracker()
 		if next(visibleStack) then
 			if not hasUIFocus then

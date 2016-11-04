@@ -8,7 +8,10 @@ function ab:GetBindingIcon(binding)
 		["TOGGLEWORLDMAP"] = [[Interface\Icons\INV_Misc_Map02]],
 		["TARGETNEARESTENEMY"] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
 		["TARGETSCANENEMY"] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-		["CLICK ConsolePortWorldCursor:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		["CLICK ConsolePortEasyMotionButton:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		["CLICK ConsolePortRaidCursorToggle:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		["CLICK ConsolePortRaidCursorFocus:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		["CLICK ConsolePortRaidCursorTarget:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
 	}
 	return icons[binding]
 end
@@ -48,12 +51,93 @@ function ab:GetBackdrop()
 	}
 end
 
+function ab:GetDefaultButtonLayout(button)
+	local layout = {
+		['CP_T1'] = {point = {'LEFT', 440, 64}, dir = 'right', size = 64},
+		['CP_T2'] = {point = {'RIGHT', -440, 64}, dir = 'left', size = 64},
+		---
+		['CP_L_GRIP'] = {point = {'LEFT', 390, 110}, dir = 'up', size = 64},
+		['CP_R_GRIP'] = {point = {'RIGHT', -390, 110}, dir = 'up', size = 64},
+		---
+		['CP_L_LEFT'] 	= {point = {'LEFT', 255 - 80, 50 + 14}, dir = 'left', size = 64},
+		['CP_L_RIGHT'] 	= {point = {'LEFT', 385 - 80, 50 + 14}, dir = 'right', size = 64},
+		['CP_L_UP'] 	= {point = {'LEFT', 320 - 80, 95 + 14}, dir = 'up', size = 64},
+		['CP_L_DOWN'] 	= {point = {'LEFT', 320 - 80, 10 + 14}, dir = 'down', size = 64},
+		---
+		['CP_R_LEFT'] 	= {point = {'RIGHT', -385 + 80, 50 + 14}, dir = 'left', size = 64},
+		['CP_R_RIGHT'] 	= {point = {'RIGHT', -255 + 80, 50 + 14}, dir = 'right', size = 64},
+		['CP_R_UP'] 	= {point = {'RIGHT', -320 + 80, 95 + 14}, dir = 'up', size = 64},
+		['CP_R_DOWN'] 	= {point = {'RIGHT', -320 + 80, 10 + 14}, dir = 'down', size = 64},
+	}
+	if button ~= nil then
+		return layout[button]
+	else
+		return layout
+	end
+end
+
+function ab:GetDefaultSettings()
+	return 	{
+		scale = 0.9,
+		width = BAR_MIN_WIDTH,
+		watchbars = true,
+		showline = true,
+		lock = true,
+		layout = ab:GetDefaultButtonLayout()
+	}
+end
+
+function ab:GetSimpleSettings()
+	local cfg = ab.cfg
+	return {
+		{
+			desc = 'Lock action bar',
+			cvar = 'lock',
+			toggle = cfg and cfg.lock,
+		},
+		{
+			desc = 'Lock pet ring',
+			cvar = 'lockpet',
+			toggle = cfg and cfg.lockpet,
+		},
+		{
+			desc = 'Always show all buttons',
+			cvar = 'showbuttons',
+			toggle = cfg and cfg.showbuttons,
+		},
+		{
+			desc = 'Always show experience bars',
+			cvar = 'watchbars',
+			toggle = cfg and cfg.watchbars,
+		},
+		{
+			desc = 'Show quick menu',
+			cvar = 'quickMenu',
+			toggle = cfg and cfg.quickMenu,
+		},
+		{
+			desc = 'Width/scale on mouse wheel',
+			cvar = 'mousewheel',
+			toggle = cfg and cfg.mousewheel,
+		},
+		{
+			desc = 'Show class art underlay',
+			cvar = 'showart',
+			toggle = cfg and cfg.showart,
+		},
+		{
+			desc = 'Show class tint',
+			cvar = 'showline',
+			toggle = cfg and cfg.showline,
+		},
+	}
+end
+
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 ---------------------------------------------------------------
--- Override the original consoleport action button lookup.
--- We don't want to display additional hotkey textures on our own bars, 
--- since we'll be using our own icons.
+-- Override the original consoleport action button lookup, to
+-- stop it from adding hotkey textures to the controller bars.
 
 local valid_action_buttons = {
 	Button = true,

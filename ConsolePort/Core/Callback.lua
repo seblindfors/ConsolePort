@@ -19,16 +19,19 @@ local function OnUpdate (self, elapsed)
 	end
 end
 
-ConsolePort:SetScript("OnUpdate", OnUpdate)
-
 function ConsolePort:AddUpdateSnippet(snippet, ID)
 	if type(snippet) == "function" then
 		scripts[snippet] = ID or true
+		self:SetScript("OnUpdate", OnUpdate)
 	end
 end
 
 function ConsolePort:RemoveUpdateSnippet(snippet)
 	scripts[snippet] = nil
+	if not next(scripts) then
+		time = 0
+		self:SetScript("OnUpdate", nil)
+	end
 end
 
 function ConsolePort:GetUpdateSnippets()

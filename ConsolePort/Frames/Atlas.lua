@@ -107,6 +107,20 @@ Atlas.Hex2RGB = function(hex, inPercent)
 		end
 	end
 end
+Atlas.GetNormalizedCC = function()
+	local col = {cc.r, cc.g, cc.b}
+	local high = 0
+	for _, c in pairs(col) do
+		if c > high then
+			high = c
+		end
+	end
+	local diff = ( 1 - high )
+	for i=1, 3 do
+		col[i] = col[i] + diff
+	end
+	return unpack(col)
+end
 ---------------------------------------------------------------
 Atlas.SetGlassStyle = function(self, classColored, alpha)
 	self:SetBackdrop(Atlas.Backdrops.Border)
@@ -733,13 +747,15 @@ Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, no
 		local button = CreateFrame(isCheck and "CheckButton" or "Button", name, parent, template)
 
 		button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+		button.PushedTexture = button:GetPushedTexture()
+
 
 		button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+		button.PushedTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
+
 		button.NormalTexture:ClearAllPoints()
 		button.NormalTexture:SetPoint("CENTER", 0, 0)
 
-		button.PushedTexture = button:GetPushedTexture()
-		button.PushedTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Pushed")
 
 		button:GetHighlightTexture():SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
 
@@ -751,6 +767,13 @@ Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, no
 		button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
 
 		local size = size or 64
+
+		button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+		button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
+		button.cooldown:ClearAllPoints()
+		button.cooldown:SetPoint("CENTER")
+		button.cooldown:SetSize(size, size)
+		button.cooldown:SetDrawEdge(false)
 
 		button:SetSize(size, size)
 		button.NormalTexture:SetSize(size, size)

@@ -26,7 +26,12 @@ local 	Utility, Tooltip, Animation, AniCircle =
 local ActionButtons, ButtonMixin, Watches, OldIndex = {}, {}, {}, 0
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
+local colMul = 1 + ( 1 - (( red + green + blue ) / 3) )
 ---------------------------------------------------------------
+local NUM_BUTTONS = 8
+local RADIAN_FRACTION = rad( 360 / NUM_BUTTONS )
+local ANI_SPEED = 2
+local ANI_SMOOTH = 1.35
 
 function Animation:ShowNewAction(actionButton, autoAssigned)
 	-- if an item was auto-assigned, postpone its animation until the current animation has finished
@@ -49,19 +54,25 @@ function Animation:ShowNewAction(actionButton, autoAssigned)
 	self:Show()
 	self.Group:Stop()
 	self.Group:Play()
-	FadeOut(self.Spell, 3, 1, 0)
+	FadeOut(self.Spell, 3, 0.15, 0)
 	if ConsolePortUtility[actionButton.ID] then
 		local value = ConsolePortUtility[actionButton.ID].value
 		local binding = ConsolePort:GetFormattedBindingOwner("CLICK ConsolePortUtilityToggle:LeftButton", nil, nil, true)
 		if value then
 			local string = binding and " "..binding or "."
-			db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_NEWBIND, value or "", string), 3, 180)
+			if value and not tonumber(value) then
+				db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_NEWBIND, value, string), 3, -190)
+			elseif binding then
+				db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_BIND, binding), 3, -190)
+			end
 		end
 	end
 
+	local angle = -actionButton.angle
 	AniCircle:Show()
-	AniCircle.Glow:SetRotation(-actionButton.angle)
-	AniCircle.Line:SetRotation(-actionButton.angle)
+	AniCircle.Ring:SetRotation(angle)
+	AniCircle.Arrow:SetRotation(angle)
+	AniCircle.Runes:SetRotation(angle)
 	FadeOut(AniCircle, 3, 1, 0)
 end
 
@@ -69,74 +80,6 @@ local function AnimateOnFinished(self)
 	AniCircle:Hide()
 	self:GetParent():Hide()
 end
-
----------------------------------------------------------------
-Animation:SetSize(76, 76)
-Animation:SetFrameStrata("TOOLTIP")
-Animation.Group = Animation:CreateAnimationGroup()
----------------------------------------------------------------
-Animation.Icon = Animation:CreateTexture(nil, "ARTWORK")
-Animation.Quest = Animation:CreateTexture(nil, "OVERLAY")
-Animation.Border = Animation:CreateTexture(nil, "OVERLAY")
-Animation.Scale = Animation.Group:CreateAnimation("Scale")
-Animation.Fade = Animation.Group:CreateAnimation("Alpha")
----------------------------------------------------------------
-Animation.Scale:SetToScale(1, 1)
-Animation.Scale:SetFromScale(2, 2)
-Animation.Scale:SetDuration(0.5)
-Animation.Scale:SetSmoothing("IN")
-Animation.Fade:SetFromAlpha(1)
-Animation.Fade:SetToAlpha(0)
-Animation.Fade:SetSmoothing("OUT")
-Animation.Fade:SetStartDelay(3)
-Animation.Fade:SetDuration(0.2)
----------------------------------------------------------------
-Animation.Border:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-Animation.Border:SetAlpha(1)
-Animation.Border:SetAllPoints(Animation)
----------------------------------------------------------------
-Animation.Icon:SetSize(64, 64)
-Animation.Icon:SetPoint("CENTER", 0, 0)
-Animation.Icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
----------------------------------------------------------------
-Animation.Quest:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\QuestButton")
-Animation.Quest:SetPoint("CENTER", 0, 0)
-Animation.Quest:SetSize(64, 64)
----------------------------------------------------------------
-Animation.Gradient = Animation:CreateTexture(nil, "BACKGROUND")
-Animation.Gradient:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Circle")
-Animation.Gradient:SetBlendMode("ADD")
-Animation.Gradient:SetVertexColor(red, green, blue, 1)
-Animation.Gradient:SetPoint("CENTER", 0, 0)
-Animation.Gradient:SetSize(512, 512)
----------------------------------------------------------------
-Animation.Spell = CreateFrame("PlayerModel", nil, Animation)
-Animation.Spell:SetFrameStrata("TOOLTIP")
-Animation.Spell:SetPoint("CENTER", Animation.Icon, "CENTER", -4, 0)
-Animation.Spell:SetSize(176, 176)
-Animation.Spell:SetAlpha(0)
-Animation.Spell:SetDisplayInfo(66673) --(42486)
-Animation.Spell:SetCamDistanceScale(2)
-Animation.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
-Animation.Spell:SetFrameLevel(1)
----------------------------------------------------------------
-Animation.Group:SetScript("OnFinished", AnimateOnFinished)
----------------------------------------------------------------
-AniCircle:SetPoint("CENTER", 0, 0)
-AniCircle:SetSize(512, 512)
-AniCircle:Hide()
-AniCircle.Glow = AniCircle:CreateTexture(nil, "OVERLAY")
-AniCircle.Line = AniCircle:CreateTexture(nil, "OVERLAY", 2)
----------------------------------------------------------------
-AniCircle.Glow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityGlowBind")
-AniCircle.Glow:SetVertexColor(red, green, blue)
-AniCircle.Glow:SetPoint("CENTER", 0, 0)
-AniCircle.Glow:SetSize(720, 720)
----------------------------------------------------------------
-AniCircle.Line:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityCircleBind")
-AniCircle.Line:SetPoint("CENTER", 0, 0)
-AniCircle.Line:SetSize(720, 720)
----------------------------------------------------------------
 
 function Utility:AnimateNew(button) Animation:ShowNewAction(_G[button], true) end
 
@@ -192,114 +135,108 @@ local function CheckQuestWatches(self)
 	end
 end
 
----------------------------------------------------------------
-Utility:SetPoint("CENTER", 0, 0)
-Utility:Hide()
----------------------------------------------------------------
-Utility.Full = Utility:CreateTexture(nil, "OVERLAY")
-Utility.Full:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityGlow")
-Utility.Full:SetVertexColor(red, green, blue)
-Utility.Full:SetPoint("CENTER", 0, 0)
-Utility.Full:SetSize(512, 512)
-Utility.Full:SetAlpha(0.5)
----------------------------------------------------------------
-Utility.Gradient = Utility:CreateTexture(nil, "BACKGROUND")
-Utility.Gradient:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Circle")
-Utility.Gradient:SetBlendMode("ADD")
-Utility.Gradient:SetVertexColor(red, green, blue, 1)
-Utility.Gradient:SetPoint("CENTER", 0, 0)
-Utility.Gradient:SetSize(256, 256)
----------------------------------------------------------------
-Utility.Glow = Utility:CreateTexture(nil, "OVERLAY")
-Utility.Glow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityGlowBind")
-Utility.Glow:SetVertexColor(red, green, blue)
-Utility.Glow:SetPoint("CENTER", 0, 0)
-Utility.Glow:SetSize(720, 720)
-Utility.Glow:SetAlpha(0)
----------------------------------------------------------------
-Utility.Line = Utility:CreateTexture(nil, "OVERLAY", 2)
-Utility.Line:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityCircleBind")
-Utility.Line:SetPoint("CENTER", 0, 0)
-Utility.Line:SetSize(720, 720)
-Utility.Line:SetAlpha(0)
----------------------------------------------------------------
-Utility.Spell = CreateFrame("PlayerModel", nil, Utility)
-Utility.Spell:SetPoint("CENTER", -4, 0)
-Utility.Spell:SetSize(176, 176)
-Utility.Spell:SetAlpha(0)
-Utility.Spell:SetDisplayInfo(66673) --(42486)
-Utility.Spell:SetCamDistanceScale(2)
-Utility.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
-Utility.Spell:Hide()
-Utility.Spell:SetFrameLevel(1)
----------------------------------------------------------------
-Utility.Tooltip = Tooltip
+function Tooltip:Refresh()
+	if self.castButton then
+		self:AddLine(self.castInfo:format(db.TEXTURE[self.castButton]))
+	end
+	self:AddLine(self.removeInfo:format(db.TEXTURE.CP_T_L3))
+end
 
 function Tooltip:OnShow()
 	-- edge file fractioned pixel fix, pretty unncessary
 	local width, height = self:GetSize()
 	width, height = floor(width + 0.5) + 4, floor(height + 0.5) + 4
 	local point, anchor, relative, x, y = self:GetPoint()
+	self.castButton = ConsolePort:GetCurrentBindingOwner("CLICK ConsolePortUtilityToggle:LeftButton")
 	self:ClearAllPoints()
 	self:SetPoint(point, anchor, relative, floor(x + 0.5), floor(y + 0.5))
 	self:SetSize(width - (width % 2), height - (height % 2))
 	-- set CC backdrop
 	self:SetBackdropColor(red*0.15, green*0.15, blue*0.15,  0.75)
+	self:Refresh()
 	FadeIn(self, 0.2, 0, 1)
 end
 
-Tooltip:SetBackdrop(db.Atlas.Backdrops.Tooltip)
-Tooltip:SetScript("OnShow", Tooltip.OnShow)
-Tooltip:SetPoint("CENTER", 0, 0)
-Tooltip:SetOwner(Utility)
----------------------------------------------------------------
 function Utility:OnEvent(event, ...)
-	if event == "QUEST_WATCH_LIST_CHANGED" then
+	if event == "QUEST_WATCH_LIST_CHANGED" and self.autoExtra then
 		ConsolePort:AddUpdateSnippet(CheckQuestWatches)
-	elseif event == "BAG_UPDATE" then
-		for i, ActionButton in pairs(ActionButtons) do
-			ActionButton:OnUpdate(0.3)
-		end
+	end
+	for i, ActionButton in pairs(ActionButtons) do
+		ActionButton:UpdateState()
 	end
 end
+
+function Utility:SetNewRotationValue(newAngle)
+	self.newAngle = newAngle
+	if self.currAngle then
+		local radChange = abs(self.newAngle) - abs(self.currAngle)
+		-- offset is too large, lap reset 
+		if abs(radChange) > 1 then
+			local delta = radChange > 0 and 1 or -1
+			self.currAngle = self.newAngle - (delta * RADIAN_FRACTION)
+		end
+		return true
+	else
+		self.currAngle = newAngle
+		return false
+	end
+end
+
+function Utility:SetRotation(value)
+	self.Ring:SetRotation(value)
+	self.Arrow:SetRotation(value)
+	self.Runes:SetRotation(value)
+end
+
+
 function Utility:OnAttributeChanged(attribute, detail)
 	if attribute == "index" then
-		if detail ~= 0 then
-			self:SetScript("OnUpdate", nil)
-		end
 		local actionButton = ActionButtons[detail]
-		if ActionButtons[OldIndex] then
-			ActionButtons[OldIndex]:OnLeave()
+		local oldButton = ActionButtons[OldIndex]
+		if oldButton then
+			oldButton:OnLeave()
 		end
 		if 	actionButton then
 			actionButton:OnEnter()
 		end
 		if actionButton and actionButton:IsVisible() then
+			if self:SetNewRotationValue(-actionButton.angle) then
+				FadeOut(self.Spell, 1, self.Spell:GetAlpha(), 0)
+			else
+				self:SetRotation(self.newAngle)
+				FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.15)	
+			end
 
-			self.Glow:SetRotation(-actionButton.angle)
-			self.Line:SetRotation(-actionButton.angle)
-			self.Glow:SetAlpha(1)
-			self.Line:SetAlpha(1)
+			FadeIn(self.Arrow, 0.2, self.Arrow:GetAlpha(), 1)
+
+			if actionButton:GetAttribute("type") then
+				FadeIn(self.Runes, 3, self.Runes:GetAlpha(), 1)
+				FadeIn(self.Ring, 0.2, self.Ring:GetAlpha(), 1)
+			else
+				FadeOut(self.Ring, 0.5, self.Ring:GetAlpha(), 0)
+				FadeOut(self.Runes, 0.5, self.Runes:GetAlpha(), 0)
+			end
 
 			self.Gradient:Show()
 			self.Gradient:ClearAllPoints()
-			self.Gradient:SetPoint("CENTER", ActionButtons[detail], "CENTER", 0, 0)
+			self.Gradient:SetPoint("CENTER", actionButton, "CENTER", 0, 0)
 			FadeIn(self.Gradient, 0.2, self.Gradient:GetAlpha(), 1)
 
 			self.Spell:Show()
 			self.Spell:ClearAllPoints()
-			self.Spell:SetPoint("CENTER", ActionButtons[detail], -4, 0)
-			FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.5)
-		else			
-			self.Glow:SetAlpha(0)
-			self.Line:SetAlpha(0)
+			self.Spell:SetPoint("CENTER", actionButton, 0, 0)
+		else
+			FadeOut(self.Runes, 0.2, self.Runes:GetAlpha(), 0)
+			FadeOut(self.Arrow, 0.2, self.Arrow:GetAlpha(), 0)
+			FadeOut(self.Ring, 0.1, self.Ring:GetAlpha(), 0)
+
+			self.newAngle = nil
+			self.currAngle = nil
 
 			self.Gradient:SetAlpha(0)
 			self.Gradient:ClearAllPoints()
 			self.Gradient:Hide()
 
-
-			self.Spell:SetAlpha(0)
 			self.Spell:ClearAllPoints()
 			self.Spell:Hide()
 		end
@@ -307,44 +244,64 @@ function Utility:OnAttributeChanged(attribute, detail)
 	end
 end
 
-function Utility:OnUpdate(elapsed)
-	self.timer = self.timer + elapsed
-	if self.timer > 2 then
+function Utility:DisplayHints(elapsed)
+	self.hintTimer = self.hintTimer + elapsed
+	if self.hintTimer > 5 then
 		local binding = ConsolePort:GetFormattedBindingOwner("CLICK ConsolePortUtilityToggle:LeftButton", nil, nil, true)
 		if binding then
 			if self:GetAttribute("toggled") then
-				db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_REMOVE, BINDING_NAME_CP_T_L3), 4, 180)
-				db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_DOUBLE, binding), 4, 180)
+				db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_DOUBLE, binding), 4, -190)
 			else
-				db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_BIND, binding), 4, 180)
+				db.Hint:DisplayMessage(format(db.TUTORIAL.HINTS.UTILITY_RING_BIND, binding), 4, -190)
 			end
 		else
 			db.Hint:DisplayMessage(db.CUSTOMBINDS.CP_UTILITYBELT)
 		end
-		self:SetScript("OnUpdate", nil)
+		self.hasHints = nil
 	end
 end
+
+function Utility:OnUpdate(elapsed)
+	if self.hasHints then
+		self:DisplayHints(elapsed)
+	end
+	if self.newAngle ~= self.currAngle then
+	--	local diff = self.newAngle - self.currAngle
+		local dist = (self.newAngle - self.currAngle)
+		local smoothVal = abs(dist / ANI_SPEED) ^ ANI_SMOOTH
+		local diff = dist < 0 and -smoothVal or smoothVal
+		self.currAngle = self.currAngle + diff
+		if abs( abs(self.currAngle) - abs(self.newAngle) ) < 0.02 then
+			self.currAngle = self.newAngle
+			FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.15)
+		end
+		self:SetRotation(self.currAngle)
+	end
+end
+
 function Utility:OnShow()
-	self.Spell:SetSize(175, 175)
 	Animation:Hide()
 	AniCircle:Hide()
-	self.timer = 0
-	self:SetScript("OnUpdate", self.OnUpdate)
+	self.Spell:SetSize(175, 175)
+	FadeOut(self.Ring, 0, 0, 0)
+	FadeOut(self.Arrow, 0, 0, 0)
+	FadeOut(self.Runes, 0, 0, 0)
+	self.hintTimer = 0
+	self.hasHints = true
+	self.newAngle = nil
 end
 function Utility:OnHide()
 	for i, ActionButton in pairs(ActionButtons) do
 		ActionButton:OnLeave()
 	end
+	self.currAngle = nil
+	self.newAngle = nil
 	self.Gradient:SetAlpha(0)
 	self.Gradient:ClearAllPoints()
 	self.Gradient:Hide()
 	self.Spell:Hide()
-	self:SetScript("OnUpdate", nil)
 end
-Utility:HookScript("OnHide", Utility.OnHide)
-Utility:HookScript("OnShow", Utility.OnShow)
-Utility:HookScript("OnEvent", Utility.OnEvent)
-Utility:HookScript("OnAttributeChanged", Utility.OnAttributeChanged)
+
 Utility:Execute([[
 	Utility = self
 	---------------------------------------------------------------
@@ -354,15 +311,10 @@ Utility:Execute([[
 	---------------------------------------------------------------
 	INDEX = 0
 	---------------------------------------------------------------
-	KEYS.UP 	= false
-	KEYS.LEFT 	= false
-	KEYS.DOWN 	= false
-	KEYS.RIGHT 	= false
-	---------------------------------------------------------------
-	KEYS.W 		= false
-	KEYS.A 		= false
-	KEYS.S 		= false
-	KEYS.D 		= false
+	KEYS.UP 	= false		KEYS.W 		= false
+	KEYS.LEFT 	= false		KEYS.A 		= false
+	KEYS.DOWN 	= false		KEYS.S 		= false
+	KEYS.RIGHT 	= false		KEYS.D 		= false
 	---------------------------------------------------------------
 	OnKey = [=[
 		local key, down = ...
@@ -538,7 +490,6 @@ function ButtonMixin:PreClick(button)
 	if not InCombatLockdown() then
 		if button == "RightButton" then
 			self:SetAttribute("type", nil)
-		--	Utility:Execute([[ self:Run(CursorUpdate, nil)  ]])
 			self.cooldown:SetCooldown(0, 0)
 			self.Count:SetText()
 			ClearCursor()
@@ -576,6 +527,28 @@ function ButtonMixin:PostClick(button)
 		self:SetAttribute("type", cursorType)
 		self:SetAttribute("cursorID", id)
 		self:SetAttribute(cursorType, newValue or id)
+	end
+end
+
+function ButtonMixin:SetCooldown(time, cooldown, enable)
+	if time and cooldown then
+		self.onCooldown = true
+		self.cooldown:SetCooldown(time, cooldown, enable)
+	else
+		self.onCooldown = false
+		self.cooldown:SetCooldown(0, 0)
+	end
+end
+
+function ButtonMixin:SetCharges(charges)
+	self.Count:SetText(charges)
+end
+
+function ButtonMixin:SetUsable(isUsable)
+	if isUsable then
+		self.icon:SetVertexColor(1, 1, 1)
+	else
+		self.icon:SetVertexColor(0.5, 0.5, 0.5)
 	end
 end
 
@@ -650,10 +623,10 @@ end
 
 function ButtonMixin:OnEnter()
 	self.HasFocus = true
-	FadeIn(self.Pushed, 0.2, self.Pushed:GetAlpha(), 1)
-	FadeIn(self.Highlight, 0.2, self.Highlight:GetAlpha(), 0.5)
-	FadeOut(self.NormalTexture, 0.2, self.NormalTexture:GetAlpha(), 1)
-	FadeOut(self.Quest, 0.2, self.Quest:GetAlpha(), 0)
+	FadeIn(self.Pushed, 0.1, self.Pushed:GetAlpha(), 1)
+	FadeIn(self.Highlight, 0.1, self.Highlight:GetAlpha(), 1)
+	FadeOut(self.NormalTexture, 0.1, self.NormalTexture:GetAlpha(), 1)
+	FadeOut(self.Quest, 0.1, self.Quest:GetAlpha(), 0)
 end
 
 function ButtonMixin:OnLeave()
@@ -667,75 +640,50 @@ function ButtonMixin:OnLeave()
 	FadeIn(self.Quest, 0.2, self.Quest:GetAlpha(), 1)
 end
 
+function ButtonMixin:UpdateState()
+	local action = self:GetAttribute("type")
+	if action and not self.icon.texture then
+		self:SetTexture(action, self:GetAttribute(action))
+	end
+	if action == "item" then
+		local item = self:GetAttribute("item")
+		local count = GetItemCount(item)
+		local _, _, maxStack = select(6, GetItemInfo(item))
+		if  self:GetAttribute("autoAssigned") and count < 1 and not InCombatLockdown() then
+			self:SetAttribute("type", nil)
+			self:SetAttribute("item", nil)
+		else
+			self:SetCooldown(GetItemCooldown(self:GetAttribute("cursorID")))
+			self:SetUsable(IsUsableItem(item))
+			self:SetCharges(maxStack and maxStack > 1 and count)
+		end
+	elseif action == "spell" then
+		local spellID = self:GetAttribute("spell")
+		self:SetCharges(GetSpellCharges(spellID))
+		if spellID then
+			self:SetUsable(IsUsableSpell(spellID))
+			self:SetCooldown(GetSpellCooldown(spellID))
+		end
+	elseif action == "action" then
+		local actionID = self:GetAttribute("action")
+		if actionID then
+			self:SetUsable(IsUsableAction(actionID))
+			self:SetCooldown(GetActionCooldown(actionID))
+		end
+	end
+end
+
 function ButtonMixin:OnUpdate(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.25 do
-		local actionType = self:GetAttribute("type")
-		if actionType and not self.icon.texture then
-			self:SetTexture(actionType, self:GetAttribute(actionType))
-		end
-		if actionType == "item" then
-			local item = self:GetAttribute("item")
-			local count = GetItemCount(item)
-			local _, _, maxStack = select(6, GetItemInfo(item))
-			if  self:GetAttribute("autoAssigned") and count < 1 and not InCombatLockdown() then
-				self:SetAttribute("type", nil)
-				self:SetAttribute("item", nil)
-			else
-				local time, cooldown = GetItemCooldown(self:GetAttribute("cursorID"))
-				if time and cooldown then
-					self.cooldown:SetCooldown(time, cooldown)
-					self.cooldown:SetSwipeColor(0.17, 0, 0)
-				else
-					self.cooldown:SetCooldown(0, 0)
-				end
-				if maxStack and maxStack > 1 then
-					self.Count:SetText(count)
-				else
-					self.Count:SetText()
-				end
-				if count and count == 0 then
-					self.icon:SetVertexColor(0.5, 0.5, 0.5, 1)
-				elseif count and count > 0 then
-					self.icon:SetVertexColor(1, 1, 1) 
-				end
-			end
-		elseif actionType == "spell" then
-			local spellID = self:GetAttribute("spell")
-			local count = GetSpellCharges(spellID)
-			if spellID then
-				local time, cooldown = GetSpellCooldown(spellID)
-				if time and cooldown then
-					self.cooldown:SetCooldown(time, cooldown)
-					self.cooldown:SetSwipeColor(0.17, 0, 0)
-				else
-					self.cooldown:SetCooldown(0, 0)
-				end
-			end
-			if count then
-				self.Count:SetText(count)
-			else
-				self.Count:SetText()
-			end
-		elseif actionType == "action" then
-			local actionID = self:GetAttribute("action")
-			if actionID then
-				local time, cooldown = GetActionCooldown(actionID)
-				if time and cooldown then
-					self.cooldown:SetCooldown(time, cooldown)
-					self.cooldown:SetSwipeColor(0.17, 0, 0)
-				else
-					self.cooldown:SetCooldown(0, 0)
-				end
-			end
-		end
 		if self.HasFocus then
 			self.Idle = self.Idle + self.Timer
 			if self.Idle > 1 then
-				if actionType == "item" then
+				local action = self:GetAttribute("type")
+				if action == "item" then
 					Tooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -16)
 					Tooltip:SetItemByID(self:GetAttribute("cursorID"))
-				elseif actionType == "spell" then
+				elseif action == "spell" then
 					local id = select(7, GetSpellInfo(self:GetAttribute("spell")))
 					if id then
 						Tooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -16)
@@ -757,41 +705,96 @@ function ButtonMixin:OnUpdate(elapsed)
 end
 
 ---------------------------------------------------------------
-local NUM_BUTTONS = 8
+function ConsolePort:AddUtilityAction(actionType, value)
+	if actionType and value then
+		AddAction(actionType, value)
+	end
+end
+
+function ConsolePort:SetupUtilityBelt()
+	if not InCombatLockdown() then
+		Utility:UnregisterAllEvents()
+		for index, info in pairs(ConsolePortUtility) do
+			local actionButton = ActionButtons[index]
+			if info.action then
+				actionButton:SetAttribute("autoAssigned", info.autoAssigned)
+				actionButton:SetAttribute("type", info.action)
+				actionButton:SetAttribute("cursorID", info.cursorID)
+				actionButton:SetAttribute(info.action, info.value)
+				actionButton:Show()
+			end
+		end
+
+		if GameMenuButtonController and not GameMenuButtonController.loaded then
+			GameMenuButtonController.loaded = true
+			GameMenuButtonController:SetFrameRef("Utility", Utility)
+			Utility:WrapScript(GameMenuButtonController, "OnClick", [[
+				Utility:Run(UseUtility, nil)
+			]])
+		end
+
+		Utility.autoExtra = db.Settings.autoExtra
+
+		if Utility.autoExtra then
+			self:AddUpdateSnippet(CheckQuestWatches)
+		end
+
+		for _, event in pairs({
+			"ACTIONBAR_UPDATE_COOLDOWN",
+			"ACTIONBAR_UPDATE_STATE",
+			"ACTIONBAR_UPDATE_USABLE",
+			"BAG_UPDATE",
+			"BAG_UPDATE_COOLDOWN",
+			"QUEST_WATCH_LIST_CHANGED",
+			"SPELL_UPDATE_COOLDOWN",
+			"SPELL_UPDATE_CHARGES",
+			"SPELL_UPDATE_USABLE",
+		}) do Utility:RegisterEvent(event) end
+
+		self:RemoveUpdateSnippet(self.SetupUtilityBelt)
+	end
+end
+
+---------------------------------------------------------------
 for i=1, NUM_BUTTONS do
 	local x, y, r = 0, 0, 180 -- xOffset, yOffset, radius
-	local angle = (i+1) * (360 / NUM_BUTTONS) * math.pi / 180
+	local angle = (i+1) * RADIAN_FRACTION
 	local ptx, pty = x + r * math.cos( angle ), y + r * math.sin( angle )
 	local button = CreateFrame("Button", "ConsolePortUtilityActionButton"..i, Utility, "ActionButtonTemplate, SecureActionButtonTemplate")
 	button:SetPoint("CENTER", -ptx, pty)
-	button.angle = (i-1) * (360 / NUM_BUTTONS) * math.pi / 180
+	button.angle = (i-1) * RADIAN_FRACTION
 
 	button.Timer = 0
 	button.Idle = 0
 	button.ID = i
 	button:SetAlpha(0.5)
 	button:SetID(i)
-	button:SetSize(46, 46)
+	button:SetSize(66, 66)
 	button:SetPoint("CENTER", -ptx, pty)
 	button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
 	button.Border = CreateFrame("Frame", "$parentBorder", button)
 	button.Border:SetAllPoints(button)
 
+	button.Border.Shadow = button.Border:CreateTexture(nil, "BACKGROUND")
+	button.Border.Shadow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\NormalShadow")
+	button.Border.Shadow:SetSize(82, 82)
+	button.Border.Shadow:SetPoint("CENTER", 0, -6)
+	button.Border.Shadow:SetAlpha(0.75)
+
 	button.NormalTexture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
 	button.NormalTexture:ClearAllPoints()
 	button.NormalTexture:SetParent(button.Border)
 	button.NormalTexture:SetPoint("CENTER", 0, 0)
-	button.NormalTexture:SetAlpha(1)
-	button.NormalTexture:SetSize(76, 76)
+	button.NormalTexture:SetSize(66, 66)
 	button.NormalTexture:SetDrawLayer("OVERLAY", 4)
 
-	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
-	button.cooldown:ClearAllPoints()
-	button.cooldown:SetPoint("CENTER")
-	button.cooldown:SetSize(76, 76)
+	button.cooldown:SetSwipeColor(db.Atlas.GetNormalizedCC())
+	button.cooldown:SetSwipeTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Swipe")
+	button.cooldown:SetAllPoints()
 	button.cooldown:SetBlingTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling")
 	button.cooldown:SetDrawEdge(false)
+	button.cooldown:SetFrameLevel(10)
 
 	button.Count:ClearAllPoints()
 	button.Count:SetPoint("BOTTOM", 0, 2)
@@ -813,9 +816,8 @@ for i=1, NUM_BUTTONS do
 	button:GetHighlightTexture():SetTexture(nil)
 
 	button.Highlight = button.Border:CreateTexture(nil, "OVERLAY", nil, 6)
-	button.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+	button.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite")
 	button.Highlight:SetAllPoints(button.NormalTexture)
-	button.Highlight:SetVertexColor(red, green, blue, 1)
 	button.Highlight:SetBlendMode("ADD")
 	button.Highlight:SetAlpha(0)
 
@@ -841,42 +843,162 @@ for i=1, NUM_BUTTONS do
 end
 
 ---------------------------------------------------------------
+
+
 ---------------------------------------------------------------
-function ConsolePort:AddUtilityAction(actionType, value)
-	if actionType and value then
-		AddAction(actionType, value)
-	end
-end
+Utility:SetPoint("CENTER", 0, 0)
+Utility.Tooltip = Tooltip
+Utility:Hide()
+---------------------------------------------------------------
+Utility.Full = Utility:CreateTexture(nil, "OVERLAY")
+Utility.Full:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityGlow")
+Utility.Full:SetVertexColor(red * 1.5, green * 1.5, blue * 1.5)
+Utility.Full:SetPoint("CENTER", 0, 0)
+Utility.Full:SetSize(512, 512)
+Utility.Full:SetAlpha(0.5)
+---------------------------------------------------------------
+Utility.Gradient = Utility:CreateTexture(nil, "BACKGROUND")
+Utility.Gradient:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Circle")
+Utility.Gradient:SetBlendMode("ADD")
+Utility.Gradient:SetVertexColor(red * colMul, green * colMul, blue * colMul)
+Utility.Gradient:SetPoint("CENTER", 0, 0)
+Utility.Gradient:SetSize(256, 256)
+---------------------------------------------------------------
+Utility.Ring = Utility:CreateTexture(nil, "OVERLAY", nil, 2)
+Utility.Ring:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityCircle")
+Utility.Ring:SetVertexColor(red * colMul, green * colMul, blue * colMul)
+Utility.Ring:SetPoint("CENTER", 0, 0)
+Utility.Ring:SetSize(700, 700)
+Utility.Ring:SetAlpha(0)
+Utility.Ring:SetRotation(0)
+Utility.Ring:SetBlendMode("ADD")
+---------------------------------------------------------------
+Utility.Arrow = Utility:CreateTexture(nil, "OVERLAY")
+Utility.Arrow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityArrow")
+Utility.Arrow:SetVertexColor(red * 1.25, green * 1.25, blue * 1.25)
+Utility.Arrow:SetPoint("CENTER", 0, 0)
+Utility.Arrow:SetSize(722, 722)
+Utility.Arrow:SetAlpha(0)
+Utility.Arrow:SetRotation(0)
+---------------------------------------------------------------
+Utility.Runes = Utility:CreateTexture(nil, "OVERLAY")
+Utility.Runes:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityRunes")
+Utility.Runes:SetPoint("CENTER", 0, 0)
+Utility.Runes:SetSize(722, 722)
+Utility.Runes:SetAlpha(0)
+Utility.Runes:SetRotation(0)
+---------------------------------------------------------------
+Utility.Spell = CreateFrame("PlayerModel", nil, Utility)
+Utility.Spell:SetPoint("CENTER", -4, 0)
+Utility.Spell:SetSize(176, 176)
+Utility.Spell:SetAlpha(0)
+Utility.Spell:SetDisplayInfo(66673) --(42486)
+Utility.Spell:SetCamDistanceScale(2)
+--Utility.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+Utility.Spell:Hide()
+Utility.Spell:SetFrameLevel(1)
+---------------------------------------------------------------
+Utility:HookScript("OnHide", Utility.OnHide)
+Utility:HookScript("OnShow", Utility.OnShow)
+Utility:HookScript("OnEvent", Utility.OnEvent)
+Utility:HookScript("OnUpdate", Utility.OnUpdate)
+Utility:HookScript("OnAttributeChanged", Utility.OnAttributeChanged)
+---------------------------------------------------------------
 
-function ConsolePort:SetupUtilityBelt()
-	if not InCombatLockdown() then
-		for index, info in pairs(ConsolePortUtility) do
-			local actionButton = ActionButtons[index]
-			if info.action then
-				actionButton:SetAttribute("autoAssigned", info.autoAssigned)
-				actionButton:SetAttribute("type", info.action)
-				actionButton:SetAttribute("cursorID", info.cursorID)
-				actionButton:SetAttribute(info.action, info.value)
-				actionButton:Show()
-			end
-		end
 
-		if GameMenuButtonController and not GameMenuButtonController.loaded then
-			GameMenuButtonController.loaded = true
-			GameMenuButtonController:SetFrameRef("Utility", Utility)
-			Utility:WrapScript(GameMenuButtonController, "OnClick", [[
-				Utility:Run(UseUtility, nil)
-			]])
-		end
+---------------------------------------------------------------
+Animation:SetSize(64, 64)
+Animation:SetFrameStrata("TOOLTIP")
+Animation.Group = Animation:CreateAnimationGroup()
+---------------------------------------------------------------
+Animation.Icon = Animation:CreateTexture(nil, "ARTWORK")
+Animation.Quest = Animation:CreateTexture(nil, "OVERLAY")
+Animation.Border = Animation:CreateTexture(nil, "OVERLAY")
+Animation.Scale = Animation.Group:CreateAnimation("Scale")
+Animation.Fade = Animation.Group:CreateAnimation("Alpha")
+---------------------------------------------------------------
+Animation.Scale:SetToScale(1, 1)
+Animation.Scale:SetFromScale(2, 2)
+Animation.Scale:SetDuration(0.5)
+Animation.Scale:SetSmoothing("IN")
+Animation.Fade:SetFromAlpha(1)
+Animation.Fade:SetToAlpha(0)
+Animation.Fade:SetSmoothing("OUT")
+Animation.Fade:SetStartDelay(3)
+Animation.Fade:SetDuration(0.2)
+---------------------------------------------------------------
+Animation.Border:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
+Animation.Border:SetAlpha(1)
+Animation.Border:SetAllPoints(Animation)
+---------------------------------------------------------------
+Animation.Icon:SetSize(64, 64)
+Animation.Icon:SetPoint("CENTER", 0, 0)
+Animation.Icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+---------------------------------------------------------------
+Animation.Quest:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\QuestButton")
+Animation.Quest:SetPoint("CENTER", 0, 0)
+Animation.Quest:SetSize(64, 64)
+---------------------------------------------------------------
+Animation.Gradient = Animation:CreateTexture(nil, "BACKGROUND")
+Animation.Gradient:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Window\\Circle")
+Animation.Gradient:SetBlendMode("ADD")
+Animation.Gradient:SetVertexColor(red, green, blue, 1)
+Animation.Gradient:SetPoint("CENTER", 0, 0)
+Animation.Gradient:SetSize(512, 512)	
+---------------------------------------------------------------
+Animation.Shadow = Animation:CreateTexture(nil, "BACKGROUND")
+Animation.Shadow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\NormalShadow")
+Animation.Shadow:SetSize(82, 82)
+Animation.Shadow:SetPoint("CENTER", 0, -6)
+Animation.Shadow:SetAlpha(0.75)
+---------------------------------------------------------------
+Animation.Spell = CreateFrame("PlayerModel", nil, Animation)
+Animation.Spell:SetFrameStrata("TOOLTIP")
+Animation.Spell:SetPoint("CENTER", Animation.Icon, "CENTER", -4, 0)
+Animation.Spell:SetSize(176, 176)
+Animation.Spell:SetAlpha(0)
+Animation.Spell:SetDisplayInfo(66673) --(42486)
+Animation.Spell:SetCamDistanceScale(2)
+Animation.Spell:SetFrameLevel(1)
+---------------------------------------------------------------
+Animation.Group:SetScript("OnFinished", AnimateOnFinished)
+---------------------------------------------------------------
+AniCircle:SetPoint("CENTER", 0, 0)
+AniCircle:SetSize(512, 512)
+AniCircle:Hide()
+---------------------------------------------------------------
 
-		if db.Settings.autoExtra then
-			self:AddUpdateSnippet(CheckQuestWatches)
-			Utility:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
-		else
-			Utility:UnregisterEvent("QUEST_WATCH_LIST_CHANGED")
-		end
+---------------------------------------------------------------
+AniCircle.Ring = AniCircle:CreateTexture(nil, "OVERLAY", nil, 2)
+AniCircle.Ring:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityCircle")
+AniCircle.Ring:SetVertexColor(red * colMul, green * colMul, blue * colMul)
+AniCircle.Ring:SetPoint("CENTER", 0, 0)
+AniCircle.Ring:SetSize(700, 700)
+--AniCircle.Ring:SetAlpha(0)
+AniCircle.Ring:SetRotation(0)
+AniCircle.Ring:SetBlendMode("ADD")
+---------------------------------------------------------------
+AniCircle.Arrow = AniCircle:CreateTexture(nil, "OVERLAY")
+AniCircle.Arrow:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityArrow")
+AniCircle.Arrow:SetVertexColor(red * 1.25, green * 1.25, blue * 1.25)
+AniCircle.Arrow:SetPoint("CENTER", 0, 0)
+AniCircle.Arrow:SetSize(722, 722)
+--AniCircle.Arrow:SetAlpha(0)
+AniCircle.Arrow:SetRotation(0)
+---------------------------------------------------------------
+AniCircle.Runes = AniCircle:CreateTexture(nil, "OVERLAY")
+AniCircle.Runes:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityRunes")
+AniCircle.Runes:SetPoint("CENTER", 0, 0)
+AniCircle.Runes:SetSize(722, 722)
+--AniCircle.Runes:SetAlpha(0)
+AniCircle.Runes:SetRotation(0)
+---------------------------------------------------------------
 
-		Utility:RegisterEvent("BAG_UPDATE")
-		self:RemoveUpdateSnippet(self.SetupUtilityBelt)
-	end
-end
+---------------------------------------------------------------
+Tooltip:SetBackdrop(db.Atlas.Backdrops.Tooltip)
+Tooltip:SetScript("OnShow", Tooltip.OnShow)
+Tooltip:SetPoint("CENTER", 0, 0)
+Tooltip:SetOwner(Utility)
+Tooltip.castInfo = db.TOOLTIP.UTILITY_RELEASE
+Tooltip.removeInfo = db.TOOLTIP.UTILITY_REMOVE
+---------------------------------------------------------------

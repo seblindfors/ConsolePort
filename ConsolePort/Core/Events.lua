@@ -6,7 +6,7 @@
 ---------------------------------------------------------------
 local _, db = ...
 ---------------------------------------------------------------
-local 	Callback, WorldFrame, MouseEvents, Settings =
+local 	After, WorldFrame, MouseEvents, Settings =
 		C_Timer.After, WorldFrame
 ---------------------------------------------------------------
 
@@ -60,7 +60,7 @@ local Loaded = false
 
 function Events:PLAYER_TARGET_CHANGED(...)
 	if UnitExists("target") then
-		Callback(0.02, function()
+		After(0.02, function()
 			if IsMouselookEvent("PLAYER_TARGET_CHANGED") and
 				GetMouseFocus() == WorldFrame and
 				not SpellIsTargeting() and
@@ -131,8 +131,9 @@ end
 
 function Events:PLAYER_REGEN_ENABLED(...)
 	self:UpdateCVars(false)
-	Callback(Settings.UIleaveCombatDelay or 0.5, function()
+	After(Settings.UIleaveCombatDelay or 0.5, function()
 		if not InCombatLockdown() then
+			self:LockUICore(false)
 			self:UpdateFrames()
 		end
 	end)
@@ -141,6 +142,7 @@ end
 function Events:PLAYER_REGEN_DISABLED(...)
 	self:ClearCursor()
 	self:SetUIFocus(false)
+	self:LockUICore(true)
 	self:UpdateCVars(true)
 end
 
@@ -190,7 +192,7 @@ function Events:ADDON_LOADED(...)
 		end
 		self:UpdateCVars()
 		-- Delay hotkeys and cvars.
-		Callback(2, function()
+		After(2, function()
 			Loaded = true
 			self:LoadDefaultCVars()
 			self:LoadHotKeyTextures()

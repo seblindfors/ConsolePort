@@ -20,22 +20,22 @@ local function LoadTooltipLines()
 	local RightClick 		= format(ICON, db.TEXTURE[Right], db.COLOR[gsub(Right, "CP_%w_", "")], "%s")
 	local SpecialClick		= format(ICON, db.TEXTURE[Special], db.COLOR[gsub(Special, "CP_%w_", "")], "%s")
 	db.CLICK = {
-		COMPARE 			= format(ShiftHold, 	db.TOOLTIP.CLICK.COMPARE),
-		PICKUP_ITEM 		= format(LeftClick, 	db.TOOLTIP.CLICK.PICKUP_ITEM),
-		QUEST_TRACKER 		= format(LeftClick, 	db.TOOLTIP.CLICK.QUEST_TRACKER),
-		USE_NOCOMBAT 		= format(LeftClick, 	db.TOOLTIP.CLICK.USE_NOCOMBAT),
-		BUY 				= format(RightClick, 	db.TOOLTIP.CLICK.BUY),
-		USE 				= format(RightClick, 	db.TOOLTIP.CLICK.USE),
-		EQUIP				= format(RightClick, 	db.TOOLTIP.CLICK.EQUIP),
-		SELL 				= format(RightClick, 	db.TOOLTIP.CLICK.SELL),
-		QUEST_DETAILS 		= format(RightClick, 	db.TOOLTIP.CLICK.QUEST_DETAILS),
-		PICKUP 				= format(SpecialClick, 	db.TOOLTIP.CLICK.PICKUP),
-		CANCEL 				= format(SpecialClick, 	db.TOOLTIP.CLICK.CANCEL),
-		STACK_BUY 			= format(SpecialClick, 	db.TOOLTIP.CLICK.STACK_BUY),
-		STACK_SPLIT 		= format(SpecialClick, 	db.TOOLTIP.CLICK.STACK_SPLIT),
-		ADD_TO_EXTRA		= format(SpecialClick, 	db.TOOLTIP.CLICK.ADD_TO_EXTRA),
-		MAP_CANVAS_ZOOM_IN	= format(SpecialClick, 	db.TOOLTIP.CLICK.MAP_CANVAS_ZOOM_IN),
-		MAP_CANVAS_ZOOM_OUT	= format(SpecialClick, 	db.TOOLTIP.CLICK.MAP_CANVAS_ZOOM_OUT),
+		COMPARE 			= format(ShiftHold, 	db.TOOLTIP.COMPARE),
+		PICKUP_ITEM 		= format(LeftClick, 	db.TOOLTIP.PICKUP_ITEM),
+		QUEST_TRACKER 		= format(LeftClick, 	db.TOOLTIP.QUEST_TRACKER),
+		USE_NOCOMBAT 		= format(LeftClick, 	db.TOOLTIP.USE_NOCOMBAT),
+		BUY 				= format(RightClick, 	db.TOOLTIP.BUY),
+		USE 				= format(RightClick, 	db.TOOLTIP.USE),
+		EQUIP				= format(RightClick, 	db.TOOLTIP.EQUIP),
+		SELL 				= format(RightClick, 	db.TOOLTIP.SELL),
+		QUEST_DETAILS 		= format(RightClick, 	db.TOOLTIP.QUEST_DETAILS),
+		PICKUP 				= format(SpecialClick, 	db.TOOLTIP.PICKUP),
+		CANCEL 				= format(SpecialClick, 	db.TOOLTIP.CANCEL),
+		STACK_BUY 			= format(SpecialClick, 	db.TOOLTIP.STACK_BUY),
+		STACK_SPLIT 		= format(SpecialClick, 	db.TOOLTIP.STACK_SPLIT),
+		ADD_TO_EXTRA		= format(SpecialClick, 	db.TOOLTIP.ADD_TO_EXTRA),
+		MAP_CANVAS_ZOOM_IN	= format(SpecialClick, 	db.TOOLTIP.MAP_CANVAS_ZOOM_IN),
+		MAP_CANVAS_ZOOM_OUT	= format(SpecialClick, 	db.TOOLTIP.MAP_CANVAS_ZOOM_OUT),
 	}
 end
 

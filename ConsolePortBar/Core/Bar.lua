@@ -5,54 +5,33 @@ local addOn, ab = ...
 ---------------------------------------------------------------
 local cfg
 
-local Bar = CreateFrame("Frame", addOn, UIParent, "SecureHandlerStateTemplate, SecureHandlerShowHideTemplate")
-local Wrapper = ab.libs.wrapper
+local Bar = CreateFrame('Frame', addOn, UIParent, 'SecureHandlerStateTemplate, SecureHandlerShowHideTemplate')
+local WrapperLib = ab.libs.wrapper
 local state, now = ConsolePort:GetActionPageDriver()
 
-local BAR_MIN_WIDTH = 1085
+local BAR_MIN_WIDTH = 1105
 local BAR_MAX_SCALE = 1.6
 local BAR_FIXED_HEIGHT = 140
+local BUTTON_LAYOUT
 
 -- Set up action bar
 ---------------------------------------------------------------
 ab.bar = Bar
 ab.data = db
 ---------------------------------------------------------------
-Bar:SetAttribute("actionpage", now)
-Bar.ignoreNode = true
-Bar.Buttons = {}
-Bar.isForbidden = true
-Bar:SetClampedToScreen(true)
-Bar:SetScript("OnMouseDown", Bar.StartMoving)
-Bar:SetScript("OnMouseUp", Bar.StopMovingOrSizing)
-Bar:SetMovable(true)
-Bar:SetPoint("BOTTOM", UIParent, 0, 0)
-RegisterStateDriver(Bar, "page", state)
-RegisterStateDriver(Bar, "modifier", "[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ")
-RegisterStateDriver(Bar, "visibility", "[petbattle][vehicleui][overridebar] hide; show")
 
-Bar:SetFrameRef("ActionBar", MainMenuBarArtFrame)
-Bar:SetFrameRef("OverrideBar", OverrideActionBar)
-Bar:SetFrameRef("Cursor", ConsolePortRaidCursor)
-Bar:SetFrameRef("Mouse", ConsolePortMouseHandle)
+Bar:SetAttribute('actionpage', now)
+Bar:SetFrameRef('ActionBar', MainMenuBarArtFrame)
+Bar:SetFrameRef('OverrideBar', OverrideActionBar)
+Bar:SetFrameRef('Cursor', ConsolePortRaidCursor)
+Bar:SetFrameRef('Mouse', ConsolePortMouseHandle)
+
 Bar:Execute([[
 	bindings = newtable()
 	bar = self
-	cursor = self:GetFrameRef("Cursor")
-	mouse = self:GetFrameRef("Mouse")
-	self:SetAttribute("state", "")
-]])
-
-Bar:SetAttribute("_onhide", [[
-	self:ClearBindings()
-]])
-
-Bar:SetAttribute("_onshow", [[
-	for key, button in pairs(bindings) do
-		self:SetBindingClick(true, key, button)
-	end
-	mouse:RunAttribute("UpdateTarget", mouse:GetAttribute("current"))
-	self:CallMethod("FadeIn")
+	cursor = self:GetFrameRef('Cursor')
+	mouse = self:GetFrameRef('Mouse')
+	self:SetAttribute('state', '')
 ]])
 
 function Bar:FadeIn()
@@ -76,30 +55,19 @@ end
 
 function Bar:RegisterOverride(key, button)
 	self:Execute(format([[
-		bindings["%s"] = "%s"
+		bindings['%s'] = '%s'
 	]], key, button))
 end
 
-Bar:SetAttribute("_onstate-modifier", [[
-	self:SetAttribute("state", newstate)
-	control:ChildUpdate("state", newstate)
-	cursor:RunAttribute("pageupdate")
-]])
-Bar:SetAttribute("_onstate-page", [[
-	if HasVehicleActionBar() then
-		newstate = GetVehicleBarIndex()
-	elseif HasOverrideActionBar() then
-		newstate = GetOverrideBarIndex()
-	elseif HasTempShapeshiftActionBar() then
-		newstate = GetTempShapeshiftBarIndex()
-	elseif GetBonusBarOffset() > 0 then
-		newstate = GetBonusBarOffset()+6
-	else
-		newstate = GetActionBarPage()
+function Bar:OnNewBindings(...)
+	if not InCombatLockdown() then
+		self:UnregisterOverrides()
+		WrapperLib:UpdateAllBindings(...)
+		self:UpdateOverrides()
 	end
-	self:SetAttribute("actionpage", newstate)
-	control:ChildUpdate("actionpage", newstate)
-]])
+end
+
+ConsolePort:RegisterCallback('OnNewBindings', Bar.OnNewBindings, Bar)
 
 function Bar:OnEvent(event, ...)
 	if self[event] then
@@ -112,46 +80,21 @@ function Bar:ADDON_LOADED(...)
 	if name == addOn then
 		if not ConsolePortBarSetup then
 			ConsolePortBarSetup = {
-				scale = 1,
-				artMode = 2,
+				scale = 0.9,
+				width = BAR_MIN_WIDTH,
+				watchbars = true,
+				showline = true,
+				lock = true,
 			}
 		end
-		cfg = ConsolePortBarSetup
-		ab.cfg = cfg
-
-		self:SetScale(cfg.scale or 1)
-
-		if cfg.artMode == 1 then
-			self.CoverArt:SetSize(1024, 256)
-		elseif cfg.artMode == 2 then
-			self.CoverArt:SetSize(768, 192)
-		else
-			self.CoverArt:Hide()
-		end
-
-		if cfg.showbuttons then
-			self.Eye:SetAttribute("showbuttons", true)
-			Bar:Execute([[
-				control:ChildUpdate("hover", true)
-			]])
-		end
-
-		if cfg.lock then
-			Bar:SetMovable(false)
-			Bar:SetScript("OnMouseDown", nil)
-			Bar:SetScript("OnMouseUp", nil)
-		end
-
-		if cfg.width then
-			self:SetWidth(cfg.width)
-		end
-
-		self:UnregisterEvent("ADDON_LOADED")
+		self:OnLoad(ConsolePortBarSetup)
+		self:UnregisterEvent('ADDON_LOADED')
 	end
 end
 
 function Bar:OnMouseWheel(delta)
 	if not InCombatLockdown() then
+		local cfg = ab.cfg
 		if IsShiftKeyDown() then
 			local newWidth = self:GetWidth() + ( delta * 10 )
 			cfg.width = newWidth > BAR_MIN_WIDTH and newWidth or BAR_MIN_WIDTH
@@ -166,59 +109,157 @@ function Bar:OnMouseWheel(delta)
 	end
 end
 
-Bar:SetScript("OnEvent", Bar.OnEvent)
-Bar:SetScript("OnMouseWheel", Bar.OnMouseWheel)
-Bar:RegisterEvent("PLAYER_LOGIN")
-Bar:RegisterEvent("ADDON_LOADED")
-Bar:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-Bar:RegisterEvent("PLAYER_TALENT_UPDATE")
+function Bar:OnLoad(cfg, benign)
+	ab.cfg = cfg
+	ConsolePortBarSetup = cfg
+	self:SetScale(cfg.scale or 1)
 
-local layout = {
-	["CP_T1"] = {point = {"LEFT", 440, 64}, dir = "right"},
-	["CP_T2"] = {point = {"RIGHT", -440, 64}, dir = "left"},
-	---
-	["CP_L_GRIP"] = {point = {"LEFT", 390, 110}, dir = "up"},
-	["CP_R_GRIP"] = {point = {"RIGHT", -390, 110}, dir = "up"},
-	---
-	["CP_L_LEFT"] 	= {point = {"LEFT", 255 - 80, 50 + 14}, dir = "left"},
-	["CP_L_RIGHT"] 	= {point = {"LEFT", 385 - 80, 50 + 14}, dir = "right"},
-	["CP_L_UP"] 	= {point = {"LEFT", 320 - 80, 95 + 14}, dir = "up"},
-	["CP_L_DOWN"] 	= {point = {"LEFT", 320 - 80, 10 + 14}, dir = "down"},
-	---
-	["CP_R_LEFT"] 	= {point = {"RIGHT", -385 + 80, 50 + 14}, dir = "left"},
-	["CP_R_RIGHT"] 	= {point = {"RIGHT", -255 + 80, 50 + 14}, dir = "right"},
-	["CP_R_UP"] 	= {point = {"RIGHT", -320 + 80, 95 + 14}, dir = "up"},
-	["CP_R_DOWN"] 	= {point = {"RIGHT", -320 + 80, 10 + 14}, dir = "down"},
-}
-
-for binding in ConsolePort:GetBindings() do
-	local position = layout[binding]
-	local wrapper = Wrapper:Create(Bar, binding, position and position.dir or "down")
-
-	if position then
-		wrapper:SetPoint(unpack(position.point))
+	-- Set action bar art
+	if cfg.showart then
+		local art, coords = ab:GetCover()
+		if art and coords then
+			self.CoverArt:SetTexture(art)
+			self.CoverArt:SetTexCoord(unpack(coords))
+			self.CoverArt:Show()
+		end
+	else
+		self.CoverArt:Hide()
 	end
-	Bar.Buttons[#Bar.Buttons + 1] = wrapper
+
+	-- Show class tint line
+	if cfg.showline then
+		self.BG:Show()
+		self.BottomLine:Show()
+	else
+		self.BG:Hide()
+		self.BottomLine:Hide()
+	end
+
+	-- Always show modifiers
+	if cfg.showbuttons then
+		self.Eye:SetAttribute('showbuttons', true)
+		self:Execute([[
+			control:ChildUpdate('hover', true)
+		]])
+	else
+		self.Eye:SetAttribute('showbuttons', false)
+		self:Execute([[
+			control:ChildUpdate('hover', false)
+		]])
+	end
+
+	-- Show quick menu buttons
+	self.Menu:SetShown(cfg.quickMenu)
+
+	if cfg.lockpet then
+		self.Pet:RegisterForDrag()
+	else
+		self.Pet:RegisterForDrag('LeftButton')
+	end
+
+	if cfg.lock then
+		self:RegisterForDrag()
+		self:EnableMouse(false)
+	else
+		self:EnableMouse(true)
+		self:RegisterForDrag('LeftButton')
+	end
+
+	self:EnableMouseWheel(cfg.mousewheel)
+
+	cfg.layout = cfg.layout or ab:GetDefaultButtonLayout()
+
+	local layout = cfg.layout
+	for binding in ConsolePort:GetBindings() do
+		local position = layout[binding]
+		local wrapper = WrapperLib:Get(binding) or WrapperLib:Create(self, binding, position and position.dir)
+
+		if position then
+			wrapper:SetPoint(unpack(position.point))
+			if position.size then
+				wrapper:SetSize(position.size)
+			end
+		else
+			wrapper:Hide()
+		end
+		self.Buttons[#self.Buttons + 1] = wrapper
+	end
+
+	-- Don't run this when updating simple cvars
+	if not benign then
+		WrapperLib:UpdateAllBindings()
+		self:Hide()
+		self:Show()
+
+		self:SetAttribute('page', 1)
+		self:Execute(format([[
+			control:ChildUpdate('state', '')
+			self:RunAttribute('_onstate-page', '%s')
+		]], now or 1))
+	end
+
+	self.WatchBarContainer:Hide()
+	self.WatchBarContainer:Show()
+
+	local width = cfg.width or ( #self.Buttons > 10 and (10 * 110) + 55 or (#self.Buttons * 110) + 55 )
+	self:SetSize(width, BAR_FIXED_HEIGHT)
 end
 
-Wrapper:UpdateAllBindings()
-Bar:Hide()
-Bar:Show()
+--------------------------
+---- Secure functions ----
+--------------------------
 
-hooksecurefunc(ConsolePort, "OnNewBindings", function(self, ...)
-	if not InCombatLockdown() then
-		Bar:UnregisterOverrides()
-		Wrapper:UpdateAllBindings(...)
-		Bar:UpdateOverrides()
-	end
-end)
+for name, script in pairs({
+	['_onhide'] = [[
+		self:ClearBindings()
+	]],
+	['_onshow'] = [[
+		for key, button in pairs(bindings) do
+			self:SetBindingClick(true, key, button)
+		end
+		mouse:RunAttribute('UpdateTarget', mouse:GetAttribute('current'))
+		self:CallMethod('FadeIn')
+	]],
+	['_onstate-modifier'] = [[
+		self:SetAttribute('state', newstate)
+		control:ChildUpdate('state', newstate)
+		cursor:RunAttribute('pageupdate')
+	]],
+	['_onstate-page'] = [[
+		if HasVehicleActionBar() then
+			newstate = GetVehicleBarIndex()
+		elseif HasOverrideActionBar() then
+			newstate = GetOverrideBarIndex()
+		elseif HasTempShapeshiftActionBar() then
+			newstate = GetTempShapeshiftBarIndex()
+		elseif GetBonusBarOffset() > 0 then
+			newstate = GetBonusBarOffset()+6
+		else
+			newstate = GetActionBarPage()
+		end
+		self:SetAttribute('actionpage', newstate)
+		control:ChildUpdate('actionpage', newstate)
+	]]
+}) do Bar:SetAttribute(name, script) end
 
-Bar:SetAttribute("page", 1)
+--------------------------
 
-Bar:Execute(format([[
-	control:ChildUpdate("state", "")
-	self:RunAttribute("_onstate-page", "%s")
-]], now or 1))
+Bar:SetScript('OnEvent', Bar.OnEvent)
+Bar:SetScript('OnMouseWheel', Bar.OnMouseWheel)
+Bar:RegisterEvent('PLAYER_LOGIN')
+Bar:RegisterEvent('ADDON_LOADED')
+Bar:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+Bar:RegisterEvent('PLAYER_TALENT_UPDATE')
 
-Bar:SetWidth(#Bar.Buttons > 10 and (10 * 110) + 55 or (#Bar.Buttons * 110) + 55)
-Bar:SetHeight(BAR_FIXED_HEIGHT)
+Bar.ignoreNode = true
+Bar.Buttons = {}
+Bar.Elements = {}
+Bar.isForbidden = true
+Bar:SetClampedToScreen(true)
+Bar:SetMovable(true)
+Bar:SetScript('OnDragStart', Bar.StartMoving)
+Bar:SetScript('OnDragStop', Bar.StopMovingOrSizing)
+Bar:SetPoint('BOTTOM', UIParent, 0, 0)
+RegisterStateDriver(Bar, 'page', state)
+RegisterStateDriver(Bar, 'modifier', '[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ')
+RegisterStateDriver(Bar, 'visibility', '[petbattle][vehicleui][overridebar] hide; show')

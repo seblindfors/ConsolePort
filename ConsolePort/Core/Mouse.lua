@@ -399,6 +399,10 @@ function Mouse:SetPortrait(unit)
 	SetPortrait(self.Portrait, unit)
 end
 
+function Mouse:UpdateMouseover()
+	SetPortrait(self.Portrait, "mouseover")
+end
+
 function Mouse:CheckLoot(elapsed)
 	local alpha = self:GetAlpha()
 	local guid, hasLoot, canLoot = UnitGUID("target")
@@ -465,6 +469,8 @@ end
 
 function Mouse:TrackUnit(unitType)
 	self:SetScript("OnUpdate", nil)
+	self:SetScript("OnEvent", nil)
+	self:UnregisterEvent("UPDATE_MOUSEOVER_UNIT")
 	self.Portrait:SetAlpha(1)
 	self.PortraitMask:SetAlpha(1)
 	self:SetAutoWalk(false)
@@ -476,6 +482,8 @@ function Mouse:TrackUnit(unitType)
 		self:SetScript("OnUpdate", self.CheckNPC)
 		self:SetPortrait("target")
 	elseif unitType == "hover" then
+		self:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+		self:SetScript("OnEvent", self.UpdateMouseover)
 		self:SetAutoWalk(self:GetAttribute("npc"))
 		self:SetScript("OnUpdate", self.CheckHover)
 		self:SetPortrait("mouseover")

@@ -32,7 +32,7 @@ db.PLUGINS 	= {}
 -- Popup functions 
 ---------------------------------------------------------------
 local function LoadDefaultBindings()
-	ConsolePortConfig:Show()
+	ConsolePortConfig:OpenCategory("Binds")
 	ConsolePortConfigContainerBinds:Default()
 	ConsolePort:CheckLoadedSettings()
 end	
@@ -52,6 +52,8 @@ local function ResetAll()
 		ConsolePortSettings = nil
 		ConsolePortUtility = nil
 		ConsolePortMouse = nil
+		ConsolePortUIConfig = nil
+		ConsolePortBarSetup = nil
 		ReloadUI()
 	else
 		print("|cffffe00aConsolePort|r:", SLASH.COMBAT)
@@ -223,11 +225,19 @@ function ConsolePort:LoadSettings()
 		end
 		print(SLASH.CVAR_WARNING)
 	end
+	local function ActionBarShow(...)
+		if ConsolePortBar and not InCombatLockdown() then
+			ConsolePortBar:ShowLayoutPopup()
+		else
+			print(SLASH.ACTIONBAR_NOEXISTS)
+		end
+	end
 	local function ShowBinds() ConsolePortConfig:OpenCategory(2) end
 	local function ShowConfig() ConsolePortConfig:Show() end
 	local function ShowCalibration() if ConsolePortConfig:IsVisible() then ConsolePortConfig:Hide() end ConsolePort:CalibrateController(true) end
 
 	local instructions = {
+		["actionbar"] = {desc = SLASH.ACTIONBAR_SHOW, func = ActionBarShow},
 		["type"] = {desc = SLASH.TYPE, func = ShowSplash},
 		["config"] = {desc = SLASH.CONFIG, func = ShowConfig},
 		["cvar"] = {desc = SLASH.CVARLIST, func = PrintCVars},
@@ -353,10 +363,7 @@ function ConsolePort:CreateActionButtons()
 	for name in self:GetBindings() do
 		for modifier in self:GetModifiers() do
 			local secure = self:CreateSecureButton(name, modifier, self:GetUIControlKey(name))
-			self:CreateConfigButton(name, modifier, secure)
 		end
 	end
-	db.Binds.Rebind:Refresh()
-	db.Binds.Rebind.ShortcutScroll:Refresh()
 	self.CreateActionButtons = nil
 end

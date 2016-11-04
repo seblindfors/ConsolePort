@@ -409,73 +409,6 @@ function ShortcutMixin:OnClick()
 	ConsolePort:ScrollToNode(self.Button, rebindFrame, true)
 end
 
-function ConsolePort:CreateConfigButton(name, mod, secure)
-	local buttonConfig = config.configButton
-	buttonConfig.buttonTexture = db.TEXTURE[name]
-	buttonConfig.default = config.customDescription[name]
-	local button = db.Atlas.GetBindingMetaButton(name..mod.."_CONF", rebindFrame, buttonConfig)
-
-	rebindFrame:AddButton(button, 10, -4)
-
-	button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-
-	button.Line = button:CreateTexture(nil, "BACKGROUND", nil, 3)
-	button.Line:SetPoint("BOTTOMLEFT", 0, 0)
-	button.Line:SetSize(280, 52)
-
-	button.Line:SetAtlas("bonusobjectives-title-bg")
-	button.Line:SetTexture("Interface\\LevelUp\\MinorTalents.blp")
-	button.Line:SetTexCoord(0, 0.8164, 0.6660, 0.7968)
-	button.Line:SetAlpha(0.35)
-
-	button.SelectedTexture = button.SelectedTexture or button:CreateTexture("$parentSelectedTexture", "OVERLAY")
-	button.SelectedTexture:Hide()
-	button.SelectedTexture:SetTexture("Interface\\PVPFrame\\PvPMegaQueue")
-	button.SelectedTexture:SetPoint("TOPLEFT", 0, 0)
-	button.SelectedTexture:SetPoint("BOTTOMRIGHT", 230, 0)
-	button.SelectedTexture:SetTexCoord(0.00195313, 0.63867188, 0.76953125, 0.83007813)
-	button.SelectedTexture:SetBlendMode("ADD")
-
-	button.HighlightTexture = button.HighlightTexture or button:CreateTexture("$parentHighlightTexture", "HIGHLIGHT")
-	button.HighlightTexture:SetTexture("Interface\\PVPFrame\\PvPMegaQueue")
-	button.HighlightTexture:SetPoint("TOPLEFT", 0, 2)
-	button.HighlightTexture:SetPoint("BOTTOMRIGHT", 230, 0)
-	button.HighlightTexture:SetTexCoord(0.00195313, 0.63867188, 0.70703125, 0.76757813)
-
-	button:SetHighlightTexture(button.HighlightTexture)
-
-	button.modifier = mod
-	button.name = name
-
-	local extras = config.configButtonModifier[mod]
-	if extras then
-		extras(button)
-	end
-
-	if mod == "SHIFT-" then
-		local shortcut = CreateFrame("Button", name..mod.."_CONF_SHORTCUT", rebindFrame.ShortcutScroll)
-		shortcut:SetSize(32, 32)
-		shortcut:SetAlpha(0.35)
-		shortcut:SetBackdrop({bgFile = TEXTURE[name]})
-		shortcut.Button = button
-		shortcut.name = name
-
-		Mixin(shortcut, ShortcutMixin)
-
-		rebindFrame.ShortcutScroll:AddButton(shortcut, 7)
-	end
-
-	button.secure = _G[name..mod]
-	button.secure.conf = button
-
-	Mixin(button, ButtonMixin)
-
-	if not window.Buttons[name] then
-		window.Buttons[name] = {}
-	end
-	tinsert(window.Buttons[name], button)
-end
-
 ---------------------------------------------------------------
 -- Binds: Create addon dummy bindings
 ---------------------------------------------------------------
@@ -532,7 +465,9 @@ function ConsolePort:LoadBindingSet()
 	local handler = ConsolePortButtonHandler
 	ClearOverrideBindings(handler)
 	SetMovementBindings(self, handler)
-	SetMouseBindings(self, handler, keys)
+	if not db.Settings.disableStickMouse then
+		SetMouseBindings(self, handler, keys)
+	end
 	for name, key in pairs(keys) do
 		for modifier in self:GetModifiers() do
 			SetFakeBinding(handler, modifier, name, key[modifier])
@@ -583,6 +518,12 @@ local function RefreshProfileList(self)
 
 	local profiles = copy(ConsolePortCharacterSettings)
 	self.ProfileData = profiles
+
+	for character, settings in spairs(profiles) do
+		if not settings.BindingSet then
+			profiles[character] = nil
+		end
+	end
 
 	for name, data in pairs(db.Controllers) do
 		profiles["|cFFFFFFFF"..name.."|r"..TUTORIAL.PROFILEPRESET] = {
@@ -787,24 +728,6 @@ end
 ---------------------------------------------------------------
 -- WindowMixin: window wide functions
 ---------------------------------------------------------------
-function WindowMixin:Export()
-	local this = GetUnitName("player").."-"..GetRealmName()
-	local class = select(2, UnitClass("player"))
-	if 	not compare(db.Bindings, ConsolePort:GetDefaultBindingSet()) then
-		if not ConsolePortCharacterSettings then
-			ConsolePortCharacterSettings = {}
-		end
-		ConsolePortCharacterSettings[this] = {
-			BindingSet = db.Bindings,
-			MouseEvent = db.Mouse.Events,
-			Type = db.Settings.type,
-			Class = class,
-		}
-	elseif ConsolePortCharacterSettings then
-		ConsolePortCharacterSettings[this] = nil
-	end
-end
-
 function WindowMixin:Reload()
 	ConsolePort:LoadBindingSet()
 	ConsolePort:LoadHotKeyTextures(newBindingSet)
@@ -838,10 +761,11 @@ function WindowMixin:Save()
 
 		ConsolePortBindingSet = db.Bindings
 		self:Reload()
-		self:Export()
 	end
 	-- callback for retrieving new bindings
 	ConsolePort:OnNewBindings(db.Bindings)
+
+	return nil, "BindingSet", ( not compare(db.Bindings, ConsolePort:GetDefaultBindingSet()) and db.Bindings )
 end
 
 function WindowMixin:Cancel()
@@ -888,75 +812,75 @@ function WindowMixin:OnShow(override)
 end
 
 ---------------------------------------------------------------
-db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, function(self, Binds)
+db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = WindowMixin, onFirstShow = function(self, core)
 	local settings = db.Settings
 	local player = GetUnitName("player").."-"..GetRealmName()
 	local cc = RAID_CLASS_COLORS[select(2, UnitClass("player"))]
 
-	Binds.Controller = CreateFrame("Frame", "$parentController", Binds)
-	Binds.Controller:SetPoint("CENTER", 0, 0)
-	Binds.Controller:SetSize(512, 512)
+	self.Controller = CreateFrame("Frame", "$parentController", self)
+	self.Controller:SetPoint("CENTER", 0, 0)
+	self.Controller:SetSize(512, 512)
 
-	Binds.Controller.Texture = Binds.Controller:CreateTexture("$parentTexture", "ARTWORK")
-	Binds.Controller.Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Front")
-	Binds.Controller.Texture:SetAllPoints(Binds.Controller)
+	self.Controller.Texture = self.Controller:CreateTexture("$parentTexture", "ARTWORK")
+	self.Controller.Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Front")
+	self.Controller.Texture:SetAllPoints(self.Controller)
 
-	Binds.Controller.FlashGlow = Binds.Controller:CreateTexture("$parentGlow", "OVERLAY")
-	Binds.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\FrontHighlight")
-	Binds.Controller.FlashGlow:SetAllPoints(Binds.Controller)
-	Binds.Controller.FlashGlow:SetAlpha(0)
-	Binds.Controller.FlashGlow:SetVertexColor(cc.r, cc.g, cc.b)
+	self.Controller.FlashGlow = self.Controller:CreateTexture("$parentGlow", "OVERLAY")
+	self.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\FrontHighlight")
+	self.Controller.FlashGlow:SetAllPoints(self.Controller)
+	self.Controller.FlashGlow:SetAlpha(0)
+	self.Controller.FlashGlow:SetVertexColor(cc.r, cc.g, cc.b)
 
-	Binds.Overlay = CreateFrame("Frame", "$parentOverlay", Binds.Controller)
-	Binds.Overlay:SetPoint("CENTER", 0, 0)
-	Binds.Overlay:SetSize(1024, 512)
-	Binds.Overlay.Lines = Binds.Overlay:CreateTexture("$parentLines", "OVERLAY", nil, 7)
-	Binds.Overlay.Lines:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Overlay")
-	Binds.Overlay.Lines:SetAllPoints(Binds.Overlay)
-	Binds.Overlay.Lines:SetVertexColor(cc.r * 1.25, cc.g * 1.25, cc.b * 1.25, 0.75)
+	self.Overlay = CreateFrame("Frame", "$parentOverlay", self.Controller)
+	self.Overlay:SetPoint("CENTER", 0, 0)
+	self.Overlay:SetSize(1024, 512)
+	self.Overlay.Lines = self.Overlay:CreateTexture("$parentLines", "OVERLAY", nil, 7)
+	self.Overlay.Lines:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Overlay")
+	self.Overlay.Lines:SetAllPoints(self.Overlay)
+	self.Overlay.Lines:SetVertexColor(cc.r * 1.25, cc.g * 1.25, cc.b * 1.25, 0.75)
 
-	Binds.Overlay.Buttons = {}
+	self.Overlay.Buttons = {}
 
-	Binds.Tutorial = Binds:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-	Binds.Tutorial.SetNewText = Binds.Tutorial.SetText
+	self.Tutorial = self:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+	self.Tutorial.SetNewText = self.Tutorial.SetText
 
-	function Binds.Tutorial:SetText(...)
+	function self.Tutorial:SetText(...)
 		self:SetNewText(...)
 		FadeIn(self, 1, 0, 1)
 	end
 
 ---------------------------------------------------------------
 
-	Binds.BindCatcher = db.Atlas.GetFutureButton("$parentBindCatcher", Binds.Controller, nil, nil, 350)
-	Binds.BindCatcher.HighlightTexture:ClearAllPoints()
-	Binds.BindCatcher.HighlightTexture:SetPoint("TOP", Binds.BindCatcher, "TOP")
-	Binds.BindCatcher:SetHeight(64)
-	Binds.BindCatcher:SetPoint("TOP", 0, -30)
-	Binds.BindCatcher.Cover:Hide()
-	Binds.BindCatcher.hasPriority = true
+	self.BindCatcher = db.Atlas.GetFutureButton("$parentBindCatcher", self.Controller, nil, nil, 350)
+	self.BindCatcher.HighlightTexture:ClearAllPoints()
+	self.BindCatcher.HighlightTexture:SetPoint("TOP", self.BindCatcher, "TOP")
+	self.BindCatcher:SetHeight(64)
+	self.BindCatcher:SetPoint("TOP", 0, -30)
+	self.BindCatcher.Cover:Hide()
+	self.BindCatcher.hasPriority = true
 
-	Mixin(Binds.BindCatcher, CatcherMixin)
+	Mixin(self.BindCatcher, CatcherMixin)
 
 ---------------------------------------------------------------
 
-	Binds.Import = db.Atlas.GetFutureButton("$parentImport", Binds)
-	Binds.Import.Popup = ConsolePortPopup
-	Binds.Import:SetPoint("LEFT", ConsolePortConfigDefault, "RIGHT", 0, 0)
-	Binds.Import:SetText(TUTORIAL.IMPORTBUTTON)
-	Binds.Import:SetScript("OnClick", function(self)
+	self.Import = db.Atlas.GetFutureButton("$parentImport", self)
+	self.Import.Popup = ConsolePortPopup
+	self.Import:SetPoint("LEFT", ConsolePortConfigDefault, "RIGHT", 0, 0)
+	self.Import:SetText(TUTORIAL.IMPORTBUTTON)
+	self.Import:SetScript("OnClick", function(self)
 		self.Popup:SetPopup(self:GetText(), self.ProfileScroll, self.Import, self.Remove)
 	end)
 
-	Binds.Import.Import = CreateFrame("Button", Binds.Import)
-	Binds.Import.Import:SetText(TUTORIAL.IMPORTBUTTON)
-	Binds.Import.Import:SetScript("OnClick", ImportOnClick)
+	self.Import.Import = CreateFrame("Button", self.Import)
+	self.Import.Import:SetText(TUTORIAL.IMPORTBUTTON)
+	self.Import.Import:SetScript("OnClick", ImportOnClick)
 
-	Binds.Import.Remove = CreateFrame("Button", Binds.Import)
-	Binds.Import.Remove:SetText(TUTORIAL.REMOVEBUTTON)
-	Binds.Import.Remove:SetScript("OnClick", RemoveOnClick)
-	Binds.Import.Remove.dontHide = true
+	self.Import.Remove = CreateFrame("Button", self.Import)
+	self.Import.Remove:SetText(TUTORIAL.REMOVEBUTTON)
+	self.Import.Remove:SetScript("OnClick", RemoveOnClick)
+	self.Import.Remove.dontHide = true
 
-	Binds.Import.ProfileScroll = db.Atlas.GetScrollFrame("$parentProfileScrollFrame", Binds.Import, {
+	self.Import.ProfileScroll = db.Atlas.GetScrollFrame("$parentProfileScrollFrame", self.Import, {
 		childKey = "Profiles",
 		childWidth = 350,
 		stepSize = 50,
@@ -964,22 +888,22 @@ db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, functio
 	})
 
 	-- offset the scrollbar as to not clip the edge of the popup frame
-	Binds.Import.ProfileScroll.ScrollBar:ClearAllPoints()
-	Binds.Import.ProfileScroll.ScrollBar:SetPoint("TOPLEFT", Binds.Import.ProfileScroll, "TOPRIGHT", -28, 0)
-	Binds.Import.ProfileScroll.ScrollBar:SetPoint("BOTTOMLEFT", Binds.Import.ProfileScroll, "BOTTOMRIGHT", -28, 0)
+	self.Import.ProfileScroll.ScrollBar:ClearAllPoints()
+	self.Import.ProfileScroll.ScrollBar:SetPoint("TOPLEFT", self.Import.ProfileScroll, "TOPRIGHT", -28, 0)
+	self.Import.ProfileScroll.ScrollBar:SetPoint("BOTTOMLEFT", self.Import.ProfileScroll, "BOTTOMRIGHT", -28, 0)
 
-	Binds.Import.Profiles = Binds.Import.ProfileScroll.Child
-	Binds.Import.Profiles:SetScript("OnShow", RefreshProfileList)
-	Binds.Import.ProfileScroll:Hide()
+	self.Import.Profiles = self.Import.ProfileScroll.Child
+	self.Import.Profiles:SetScript("OnShow", RefreshProfileList)
+	self.Import.ProfileScroll:Hide()
 
 ---------------------------------------------------------------
 
-	Binds.Display = CreateFrame("CheckButton", "$parentDisplayButton", Binds)
-	Binds.Display:SetID(settings.bindView or 1)
+	self.Display = CreateFrame("CheckButton", "$parentDisplayButton", self)
+	self.Display:SetID(settings.bindView or 1)
 
 	for name, config in pairs(config.displayButton) do
-		local texture = Binds.Display:CreateTexture(nil, "ARTWORK", nil, config[1])
-		Binds.Display[name] = texture
+		local texture = self.Display:CreateTexture(nil, "ARTWORK", nil, config[1])
+		self.Display[name] = texture
 
 		texture:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
 		texture:SetTexCoord(unpack(config[2]))
@@ -993,36 +917,36 @@ db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, functio
 
 	config.displayButton = nil
 
-	function Binds.Display:OnShow()
+	function self.Display:OnShow()
 		local view = self:GetID()
 		self.LeftEnabled:SetShown(view == 2)
 		self.RightEnabled:SetShown(view == 1)
 	end
 
-	function Binds.Display:OnClick()
+	function self.Display:OnClick()
 		local view = self:GetID() == 1 and 2 or 1
 		settings.bindView = view
 		self:SetID(view)
 		self:GetParent():OnShow()
 	end
 
-	Mixin(Binds.Display, Binds.Display)
+	Mixin(self.Display, self.Display)
 
-	Binds.Display:SetPoint("BOTTOM", 0, 20)
-	Binds.Display:SetSize(161.6, 47.2)
+	self.Display:SetPoint("BOTTOM", 0, 20)
+	self.Display:SetSize(161.6, 47.2)
 
-	Binds.Display.LeftEnabled:SetAlpha(0.25)
-	Binds.Display.LeftEnabled:SetBlendMode("ADD")
+	self.Display.LeftEnabled:SetAlpha(0.25)
+	self.Display.LeftEnabled:SetBlendMode("ADD")
 
-	Binds.Display.RightEnabled:SetAlpha(0.25)
-	Binds.Display.RightEnabled:SetBlendMode("ADD")
+	self.Display.RightEnabled:SetAlpha(0.25)
+	self.Display.RightEnabled:SetBlendMode("ADD")
 
-	Binds.Display.Controller:SetPoint("CENTER", Binds.Display.LeftNormal, "CENTER", 1.2, 3.2)
-	Binds.Display.Grid:SetPoint("CENTER", Binds.Display.RightNormal, "CENTER", -1.2, 3.2)
+	self.Display.Controller:SetPoint("CENTER", self.Display.LeftNormal, "CENTER", 1.2, 3.2)
+	self.Display.Grid:SetPoint("CENTER", self.Display.RightNormal, "CENTER", -1.2, 3.2)
 
 ---------------------------------------------------------------
 
-	Binds.Buttons = {}
+	self.Buttons = {}
 
 	local customDescription = config.customDescription
 	customDescription[settings.CP_M2] = TUTORIAL.CTRL
@@ -1049,7 +973,7 @@ db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, functio
 				local custom = customDescription[buttonName]
 				local name = triggers[buttonName] or buttonName
 
-				local button = db.Atlas.GetBindingMetaButton(name.."_BINDING", Binds.Overlay, {
+				local button = db.Atlas.GetBindingMetaButton(name.."_BINDING", self.Overlay, {
 					width = 30,
 					height = 30,
 					justifyH = info.anchor,
@@ -1071,7 +995,7 @@ db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, functio
 				if not custom or config.mouseBindings[buttonName] then
 					button.name = triggers[buttonName] or buttonName
 					Mixin(button, LayoutMixin)
-					Binds.Overlay.Buttons[#Binds.Overlay.Buttons + 1] = button
+					self.Overlay.Buttons[#self.Overlay.Buttons + 1] = button
 				end
 			end
 		end
@@ -1079,44 +1003,44 @@ db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, functio
 	else
 		-- If the controller has no layout settings, use grid. NYI
 		settings.bindView = 2
-		Binds.Display:SetID(2)
-		Binds.Display:SetButtonState("DISABLED")
+		self.Display:SetID(2)
+		self.Display:SetButtonState("DISABLED")
 	end
 
 ---------------------------------------------------------------
 
-	Binds.Rebind = db.Atlas.GetScrollFrame("ConsolePortRebindFrame", Binds, {
+	self.Rebind = db.Atlas.GetScrollFrame("ConsolePortRebindFrame", self, {
 		childKey = "List",
 		childWidth = 250,
 		stepSize = 50,
 	})
 
-	rebindFrame = Binds.Rebind
+	rebindFrame = self.Rebind
 
 	rebindFrame:SetPoint("TOPLEFT", 86, -32)
-	rebindFrame:SetPoint("BOTTOMRIGHT", Binds, "BOTTOM", -116, 84)
+	rebindFrame:SetPoint("BOTTOMRIGHT", self, "BOTTOM", -116, 84)
 
 	Mixin(rebindFrame, RebindMixin)
 
-	rebindFrame.HeaderScroll = db.Atlas.GetScrollFrame("$parentHeaderScrollFrame", Binds, {
+	rebindFrame.HeaderScroll = db.Atlas.GetScrollFrame("$parentHeaderScrollFrame", self, {
 		childKey = "Headers",
 		childWidth = 232,
 		stepSize = 50,
 	})
 
-	rebindFrame.ValueScroll = db.Atlas.GetScrollFrame("$parentValueScrollFrame", Binds, {
+	rebindFrame.ValueScroll = db.Atlas.GetScrollFrame("$parentValueScrollFrame", self, {
 		childKey = "Values",
 		childWidth = 232,
 		stepSize = 50,
 	})
 
-	rebindFrame.ShortcutScroll = db.Atlas.GetScrollFrame("$parentShortcuts", Binds, {
+	rebindFrame.ShortcutScroll = db.Atlas.GetScrollFrame("$parentShortcuts", self, {
 		childWidth = 40,
 		stepSize = 50,
 	})
 
-	rebindFrame.Swapper = SwapperMixin:CreateButton("$parentSwapper", Binds, config.listButton)
-	rebindFrame.Swapper:SetPoint("BOTTOMRIGHT", Binds, -60, 20)
+	rebindFrame.Swapper = SwapperMixin:CreateButton("$parentSwapper", self, config.listButton)
+	rebindFrame.Swapper:SetPoint("BOTTOMRIGHT", self, -60, 20)
 	rebindFrame.Swapper.name = TUTORIAL.SWAPPER
 
 	rebindFrame.ShortcutScroll:SetPoint("TOPRIGHT", rebindFrame, "TOPLEFT", -16, 0)
@@ -1137,7 +1061,87 @@ db.PANELS[#db.PANELS + 1] = {"Binds", TUTORIAL.HEADER, nil, WindowMixin, functio
 
 	rebindFrame.ValueScroll:HookScript("OnMouseWheel", RebindMixin.OnMouseWheel)
 	rebindFrame.ValueScroll:SetPoint("TOPLEFT", rebindFrame.HeaderScroll, "TOPRIGHT", 32, 0)
-	rebindFrame.ValueScroll:SetPoint("BOTTOMRIGHT", Binds, "BOTTOMRIGHT", -56, 84)
+	rebindFrame.ValueScroll:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -56, 84)
 
-	window = Binds
+	window = self
+
+	local function CreateRebindButton(name, mod, secure)
+		local buttonConfig = config.configButton
+		buttonConfig.buttonTexture = db.TEXTURE[name]
+		buttonConfig.default = config.customDescription[name]
+		local button = db.Atlas.GetBindingMetaButton(name..mod.."_CONF", rebindFrame, buttonConfig)
+
+		rebindFrame:AddButton(button, 10, -4)
+
+		button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+
+		button.Line = button:CreateTexture(nil, "BACKGROUND", nil, 3)
+		button.Line:SetPoint("BOTTOMLEFT", 0, 0)
+		button.Line:SetSize(280, 52)
+
+		button.Line:SetAtlas("bonusobjectives-title-bg")
+		button.Line:SetTexture("Interface\\LevelUp\\MinorTalents.blp")
+		button.Line:SetTexCoord(0, 0.8164, 0.6660, 0.7968)
+		button.Line:SetAlpha(0.35)
+
+		button.SelectedTexture = button.SelectedTexture or button:CreateTexture("$parentSelectedTexture", "OVERLAY")
+		button.SelectedTexture:Hide()
+		button.SelectedTexture:SetTexture("Interface\\PVPFrame\\PvPMegaQueue")
+		button.SelectedTexture:SetPoint("TOPLEFT", 0, 0)
+		button.SelectedTexture:SetPoint("BOTTOMRIGHT", 230, 0)
+		button.SelectedTexture:SetTexCoord(0.00195313, 0.63867188, 0.76953125, 0.83007813)
+		button.SelectedTexture:SetBlendMode("ADD")
+
+		button.HighlightTexture = button.HighlightTexture or button:CreateTexture("$parentHighlightTexture", "HIGHLIGHT")
+		button.HighlightTexture:SetTexture("Interface\\PVPFrame\\PvPMegaQueue")
+		button.HighlightTexture:SetPoint("TOPLEFT", 0, 2)
+		button.HighlightTexture:SetPoint("BOTTOMRIGHT", 230, 0)
+		button.HighlightTexture:SetTexCoord(0.00195313, 0.63867188, 0.70703125, 0.76757813)
+
+		button:SetHighlightTexture(button.HighlightTexture)
+
+		button.modifier = mod
+		button.name = name
+
+		local extras = config.configButtonModifier[mod]
+		if extras then
+			extras(button)
+		end
+
+		if mod == "SHIFT-" then
+			local shortcut = CreateFrame("Button", name..mod.."_CONF_SHORTCUT", rebindFrame.ShortcutScroll)
+			shortcut:SetSize(32, 32)
+			shortcut:SetAlpha(0.35)
+			shortcut:SetBackdrop({bgFile = TEXTURE[name]})
+			shortcut.Button = button
+			shortcut.name = name
+
+			Mixin(shortcut, ShortcutMixin)
+
+			rebindFrame.ShortcutScroll:AddButton(shortcut, 7)
+		end
+
+		button.secure = _G[name..mod]
+		button.secure.conf = button
+
+		Mixin(button, ButtonMixin)
+
+		if not window.Buttons[name] then
+			window.Buttons[name] = {}
+		end
+		tinsert(window.Buttons[name], button)
+		return button
+	end
+
+	for name in core:GetBindings() do
+		for modifier in core:GetModifiers() do
+			local secure = core:GetSecureButton(name, modifier)
+			CreateRebindButton(name, modifier, secure)
+		end
+	end
+
+	rebindFrame.HeaderScroll:Hide()
+
+	rebindFrame:Refresh()
+	rebindFrame.ShortcutScroll:Refresh()
 end}

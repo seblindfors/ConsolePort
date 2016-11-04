@@ -272,13 +272,14 @@ function WindowMixin:Save()
 	ConsolePort:LoadCameraSettings()
 	ConsolePort:UpdateMouseDriver()
 	ConsolePort:SetupUtilityBelt()
-	return needReload
+	return needReload, "MouseEvent", (not db.table.compare(db.Mouse.Events, ConsolePort:GetDefaultMouseEvents()) and db.Mouse.Events)
 end
 
 ---------------------------------------------------------------
 -- Controls: Create panel and children 
 ---------------------------------------------------------------
-db.PANELS[#db.PANELS + 1] = {"Controls", CONTROLS_LABEL, false, WindowMixin, function(self, Controls)
+
+db.PANELS[#db.PANELS + 1] = {name = "Controls", header = CONTROLS_LABEL, mixin = WindowMixin, onLoad = function(Controls, self)
 	local red, green, blue = db.Atlas.GetCC()
 
 	Settings = db.Settings

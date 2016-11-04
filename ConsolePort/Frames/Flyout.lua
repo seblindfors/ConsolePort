@@ -158,7 +158,7 @@ function Selector:SetSelection(index)
 end
 
 function Selector:OnShow()
-	db.Hint:DisplayMessage(format(db.TOOLTIP.CLICK.FLYOUT, BINDING_NAME_CP_L_UP, BINDING_NAME_CP_L_DOWN), 4, -200)
+	db.Hint:DisplayMessage(format(db.TOOLTIP.FLYOUT, BINDING_NAME_CP_L_UP, BINDING_NAME_CP_L_DOWN), 4, -200)
 	for i, spell in pairs({Flyout:GetChildren()}) do
 		local button = self.Buttons[i]
 		if spell:IsVisible() then
@@ -172,6 +172,10 @@ function Selector:OnShow()
 			button.spellID = spell.spellID
 			button:SetPoint("LEFT", (i-1) * 74, 0)
 			button:Show()
+			local time, cooldown = GetSpellCooldown(spell.spellName)
+			if time and cooldown then
+				button.cooldown:SetCooldown(time, cooldown)
+			end
 		elseif button and button:IsVisible() then
 			button:Hide()
 		end

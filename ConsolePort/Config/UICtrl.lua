@@ -407,8 +407,7 @@ function WindowMixin:Save()
 
 	return needReload
 end
-
-db.PANELS[#db.PANELS + 1] = {"UICtrl", UIOPTIONS_MENU, false, WindowMixin, function(self, UICtrl)
+db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = WindowMixin, onFirstShow = function(UICtrl, self)
 ---------------------------------------------------------------
 
 	UICtrl.TutorialFrame = db.Atlas.GetGlassWindow("$parentTutorialFrame", UICtrl, nil, true)
