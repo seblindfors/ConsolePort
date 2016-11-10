@@ -23,84 +23,65 @@ local 	Settings, TUTORIAL, TEXTURE, ICONS,
 ---------------------------------------------------------------
 local function GetAddonSettings()
 	return {
-		{
-			desc = TUTORIAL.CONFIG.MOUSEHANDLE,
-		},
+		{	desc = TUTORIAL.CONFIG.MOUSEHANDLE },
 		{	cvar = "turnCharacter",
 			desc = TUTORIAL.CONFIG.TURNMOVE,
-			toggle = Settings.turnCharacter,
+			state = Settings.turnCharacter,
 			needReload = true, 
 		},
-		{
-			cvar = "preventMouseDrift",
+		{	cvar = "preventMouseDrift",
 			desc = TUTORIAL.CONFIG.MOUSEDRIFTING,
-			toggle = Settings.preventMouseDrift,
+			state = Settings.preventMouseDrift,
 		},
-		{
-			cvar = "doubleModTap",
+		{	cvar = "doubleModTap",
 			desc = format(TUTORIAL.CONFIG.DOUBLEMODTAP, ICONS.CP_M1, ICONS.CP_M2),
-			toggle = Settings.doubleModTap,
+			state = Settings.doubleModTap,
 		},
-		{
-			cvar = "lookAround",
+		{	cvar = "lookAround",
 			desc = format(TUTORIAL.CONFIG.LOOKAROUND, ICONS.CP_T_L3),
-			toggle = Settings.disableSmartMouse
+			state = Settings.disableSmartMouse
 		},
 		{	cvar = "disableSmartMouse",
 			desc = TUTORIAL.CONFIG.DISABLEMOUSE,
-			toggle = Settings.disableSmartMouse,
+			state = Settings.disableSmartMouse,
 		},
-		{
-			cvar = "raidCursorDirect",
+		{	cvar = "raidCursorDirect",
 			desc = TUTORIAL.CONFIG.RAIDCURSORDIRECT,
-			toggle = Settings.raidCursorDirect,
+			state = Settings.raidCursorDirect,
 			needReload = true,
 		},
-		{
-			desc = TUTORIAL.CONFIG.CONVENIENCE,
-		},
+		{	desc = TUTORIAL.CONFIG.CONVENIENCE },
 		{	cvar = "autoExtra",
 			desc = TUTORIAL.CONFIG.AUTOEXTRA,
-			toggle = Settings.autoExtra,
+			state = Settings.autoExtra,
 		},
-		{
-			cvar = "cameraZoomSpeed",
-			desc = TUTORIAL.CONFIG.FASTCAM,
-			toggle = Settings.cameraZoomSpeed,
-		},
-		{
-			cvar = "autoLootDefault",
+		{	cvar = "autoLootDefault",
 			desc = TUTORIAL.CONFIG.AUTOLOOT,
-			toggle = Settings.autoLootDefault,
+			state = Settings.autoLootDefault,
 		},
-		{
-			cvar = "autoSellJunk",
+		{	cvar = "autoSellJunk",
 			desc = TUTORIAL.CONFIG.AUTOSELL,
-			toggle = Settings.autoSellJunk,
+			state = Settings.autoSellJunk,
 		},
-		{
-			cvar = "disableMenu",
+		{	cvar = "disableMenu",
 			desc = TUTORIAL.CONFIG.CPMENU,
-			toggle = Settings.disableMenu,
+			state = Settings.disableMenu,
 			needReload = true,
 		},
-		{
-			cvar = "disableHints",
+		{	cvar = "disableHints",
 			desc = TUTORIAL.HINTS.DISABLE,
-			toggle = Settings.disableHints,
+			state = Settings.disableHints,
 		},
 		-- Mouse "events" to the user, but cvars internally
-		{
-			mouse = true,
+		{	mouse = true,
 			cvar = "mouseOnJump",
 			desc = TUTORIAL.MOUSE.JUMPING,
-			toggle = Settings.mouseOnJump,
+			state = Settings.mouseOnJump,
 		},
-		{
-			mouse = true,
+		{	mouse = true,
 			cvar = "mouseOnCenter",
 			desc = TUTORIAL.MOUSE.CENTERCURSOR,
-			toggle = Settings.mouseOnCenter,
+			state = Settings.mouseOnCenter,
 		},
 	}
 end
@@ -111,15 +92,15 @@ local function GetMouseSettings()
 	return {
 		{ 	event 	= {"PLAYER_STARTED_MOVING"},
 			desc 	= TUTORIAL.MOUSE.STARTED_MOVING,
-			toggle 	= db.Mouse.Events["PLAYER_STARTED_MOVING"]
+			state 	= db.Mouse.Events["PLAYER_STARTED_MOVING"]
 		},
 		{ 	event	= {"PLAYER_TARGET_CHANGED"},
 			desc 	= TUTORIAL.MOUSE.TARGET_CHANGED,
-			toggle 	= db.Mouse.Events["PLAYER_TARGET_CHANGED"]
+			state 	= db.Mouse.Events["PLAYER_TARGET_CHANGED"]
 		},
 		{	event 	= {"UNIT_SPELLCAST_SENT", "UNIT_SPELLCAST_FAILED"},
 			desc 	= TUTORIAL.MOUSE.DIRECT_SPELL_CAST,
-			toggle 	= db.Mouse.Events["UNIT_SPELLCAST_SENT"]
+			state 	= db.Mouse.Events["UNIT_SPELLCAST_SENT"]
 		},
 		{	event 	= {	"GOSSIP_SHOW", "GOSSIP_CLOSED",
 						"MERCHANT_SHOW", "MERCHANT_CLOSED",
@@ -128,16 +109,51 @@ local function GetMouseSettings()
 						"QUEST_PROGRESS", "QUEST_COMPLETE", "QUEST_FINISHED",
 						"SHIPMENT_CRAFTER_OPENED", "SHIPMENT_CRAFTER_CLOSED"},
 			desc 	= TUTORIAL.MOUSE.NPC_INTERACTION,
-			toggle 	= db.Mouse.Events["GOSSIP_SHOW"]
+			state 	= db.Mouse.Events["GOSSIP_SHOW"]
 		},
 		{ 	event	= {"QUEST_AUTOCOMPLETE"},
 			desc 	= TUTORIAL.MOUSE.QUEST_AUTOCOMPLETE,
-			toggle 	= db.Mouse.Events["QUEST_AUTOCOMPLETE"]
+			state 	= db.Mouse.Events["QUEST_AUTOCOMPLETE"]
 		},
 		{	event	= {"LOOT_OPENED", "LOOT_CLOSED"},
 			desc 	= TUTORIAL.MOUSE.LOOTING,
-			toggle 	= db.Mouse.Events["LOOT_OPENED"]
+			state 	= db.Mouse.Events["LOOT_OPENED"]
 		}
+	}
+end
+
+local function GetCameraSettings()
+	local Camset = db.Mouse.Camera
+	local L = TUTORIAL.CONFIG
+	return {
+		{	cvar 	= "cameraZoomSpeed",
+			desc 	= L.FASTCAM,
+			value 	= 50,
+			default = 20,
+		},
+		{	cvar 	= 'test_cameraDynamicPitch',
+			desc 	= L.DYNPITCH,
+			value 	= 1,
+			default = 0,
+		},
+		{	cvar 	= 'test_cameraLockedTargetFocusing',
+			desc 	= L.TARGETFOCUS,
+			value 	= 1,
+			default = 0,
+		},
+		{	cvar 	= "calculateYaw",
+			desc 	= L.TARGETYAW,
+			value 	= true,
+			default = false,
+		},
+		{	cvar 	= 'test_cameraOverShoulder',
+			desc 	= L.OVERSHOULDER,
+			value 	= {-1, 1},
+			default = 0,
+			[1] 	= L.LEFT,
+			[2]		= L.RIGHT,
+			[3]		= OFF,
+		},
 	}
 end
 
@@ -240,6 +256,24 @@ function WindowMixin:Save()
 
 	-- target highlight
 	Settings.alwaysHighlight = self.AssistModule.Mode
+
+
+	-- camera settings
+	if not db.Mouse.Camera then
+		db.Mouse.Camera = {}
+	end
+	for i, Check in pairs(self.Camera) do
+		if Check.GetChecked then
+			db.Mouse.Camera[Check.Cvar] = Check:GetChecked() and Check.Value or Check.Default
+		else
+			for i, Sub in pairs(Check) do
+				if Sub:GetChecked() then
+					db.Mouse.Camera[Sub.Cvar] = Sub.Value
+					break
+				end
+			end
+		end
+	end
 
 	ConsolePort:UpdateCVars()
 	ConsolePort:UpdateCameraDriver()
@@ -442,7 +476,7 @@ db.PANELS[#db.PANELS + 1] = {name = "Controls", header = CONTROLS_LABEL, mixin =
 			local check = CreateFrame("CheckButton", "$parentMouseEvent"..i, MouseModule, "ChatConfigCheckButtonTemplate")
 			local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 			text:SetText(setting.desc)
-			check:SetChecked(setting.toggle)
+			check:SetChecked(setting.state)
 			check.Events = setting.event
 			check.Description = text
 			check:SetPoint("TOPLEFT", 24, -30*i-18)
@@ -463,7 +497,7 @@ db.PANELS[#db.PANELS + 1] = {name = "Controls", header = CONTROLS_LABEL, mixin =
 				local check = CreateFrame("CheckButton", "$parentGeneralSetting"..i, GeneralModule, "ChatConfigCheckButtonTemplate")
 				local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 				text:SetText(setting.desc)
-				check:SetChecked(setting.toggle)
+				check:SetChecked(setting.state)
 				check.Description = text
 				check.Cvar = setting.cvar
 				check.Reload = setting.needReload
@@ -635,6 +669,67 @@ db.PANELS[#db.PANELS + 1] = {name = "Controls", header = CONTROLS_LABEL, mixin =
 			tinsert(check.set, check)
 			check:SetScript("OnClick", AssistClick)
 			Mixin(check, CheckButton)
+		end
+	end
+
+
+	do local CameraModule = Controls.CameraModule
+		local function CreateCheckButton(i, cvar, desc, state, value, default)
+			local check = CreateFrame("CheckButton", "$parentSetting"..i, CameraModule, "ChatConfigCheckButtonTemplate")
+			local text = check:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+			text:SetText(desc)
+			check:SetChecked(state)
+			check.Description = text
+			check.Cvar = cvar
+			check.Value = value
+			check.Default = default
+			text:SetPoint("LEFT", check, 30, 0)
+			return check
+		end
+
+		local function CheckOnClick(self)
+			for _, button in pairs(self.checks) do
+				button:SetChecked(false)
+			end
+			self:SetChecked(true)
+		end
+
+
+		Controls.Camera = {}
+		local offsetY = 0
+		for i, setting in pairs(GetCameraSettings()) do
+			if type(setting.value) ~= "table" then
+				offsetY = offsetY + 1
+				local state = tostring(setting.value) == tostring(GetCVar(setting.cvar) or '')
+				local check = CreateCheckButton(i, setting.cvar, setting.desc, state, setting.value, setting.default)
+				check:SetPoint("TOPLEFT", 24, -30 * offsetY - 18)
+				tinsert(Controls.Camera, check)
+			else
+				offsetY = offsetY + 2
+				local text = CameraModule:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+				text:SetText(setting.desc)
+				text:SetPoint("TOPLEFT", 24, -30 * ( offsetY - 1 ) - 24)
+				local checks = {}
+				local state = GetCVar(setting.cvar)
+				for j, val in pairs(setting.value) do
+					local check = CreateCheckButton(i..j, setting.cvar, setting[j], state == tostring(val), val)
+					if checks[j - 1] then
+						check:SetPoint('LEFT', checks[j-1].Description, 'RIGHT', 8, 0)
+					else
+						check:SetPoint('TOPLEFT', 24, -30 * offsetY - 18)
+					end
+					tinsert(checks, check)
+				end
+				local check = CreateCheckButton(i.. #setting.value + 1, setting.cvar, setting[#setting.value+1], state == tostring(setting.default), setting.default)
+				check:SetPoint('LEFT', checks[#checks].Description, 'RIGHT', 8, 0)
+				tinsert(checks, check)
+				for _, check in pairs(checks) do
+					check.checks = checks
+					check:SetHitRectInsets(0, 0, 0, 0)
+					check:SetScript('OnClick', CheckOnClick)
+				end
+				tinsert(Controls.Camera, checks)
+			end
 		end
 	end
 end}

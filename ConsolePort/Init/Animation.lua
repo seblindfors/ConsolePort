@@ -103,8 +103,8 @@ local function FadeFrame(frame, fadeInfo)
 end
 
 -- Convenience function for simple fade in
-db.UIFrameFadeIn = function (frame, timeToFade, startAlpha, endAlpha)
-	local fadeInfo = {}
+db.UIFrameFadeIn = function (frame, timeToFade, startAlpha, endAlpha, info)
+	local fadeInfo = info or {}
 	fadeInfo.mode = "IN"
 	fadeInfo.timeToFade = timeToFade
 	fadeInfo.startAlpha = startAlpha
@@ -113,8 +113,8 @@ db.UIFrameFadeIn = function (frame, timeToFade, startAlpha, endAlpha)
 end
 
 -- Convenience function for simple fade out
-db.UIFrameFadeOut = function (frame, timeToFade, startAlpha, endAlpha)
-	local fadeInfo = {}
+db.UIFrameFadeOut = function (frame, timeToFade, startAlpha, endAlpha, info)
+	local fadeInfo = info or {}
 	fadeInfo.mode = "OUT"
 	fadeInfo.timeToFade = timeToFade
 	fadeInfo.startAlpha = startAlpha

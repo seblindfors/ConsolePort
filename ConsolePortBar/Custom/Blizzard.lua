@@ -8,8 +8,7 @@ local red, green, blue = ab.data.Atlas.GetCC()
 do
 	-- Hidden parent frame
 	local UIHider = CreateFrame('Frame')
-	local db = ConsolePort:GetData()
-	local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
+	local FadeIn, FadeOut = ab.data.UIFrameFadeIn, ab.data.UIFrameFadeOut
 
 	-------------------------------------------
 	---		UI hider -> dispose of blizzbars

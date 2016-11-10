@@ -2,40 +2,41 @@ local addOn, ab = ...
 
 function ab:GetBindingIcon(binding)
 	local icons = {
-		["JUMP"] = [[Interface\Icons\Ability_Karoz_Leap]],
-		["OPENALLBAGS"] = [[Interface\Icons\INV_Misc_Bag_29]],
-		["TOGGLEGAMEMENU"] = [[Interface\Icons\Achievement_ChallengeMode_Auchindoun_Hourglass]],
-		["TOGGLEWORLDMAP"] = [[Interface\Icons\INV_Misc_Map02]],
-		["TARGETNEARESTENEMY"] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-		["TARGETSCANENEMY"] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-		["CLICK ConsolePortEasyMotionButton:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
-		["CLICK ConsolePortRaidCursorToggle:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
-		["CLICK ConsolePortRaidCursorFocus:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
-		["CLICK ConsolePortRaidCursorTarget:LeftButton"] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		['JUMP'] = [[Interface\Icons\Ability_Karoz_Leap]],
+		['OPENALLBAGS'] = [[Interface\Icons\INV_Misc_Bag_29]],
+		['TOGGLEGAMEMENU'] = [[Interface\Icons\Achievement_ChallengeMode_Auchindoun_Hourglass]],
+		['TOGGLEWORLDMAP'] = [[Interface\Icons\INV_Misc_Map02]],
+		['TARGETNEARESTENEMY'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['TARGETSCANENEMY'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['CLICK ConsolePortEasyMotionButton:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		['CLICK ConsolePortRaidCursorToggle:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		['CLICK ConsolePortRaidCursorFocus:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		['CLICK ConsolePortRaidCursorTarget:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
+		['CLICK ConsolePortUtilityToggle:LeftButton'] = [[Interface\Icons\Ability_Monk_CounteractMagic]],
 	}
 	return icons[binding]
 end
 
 function ab:GetCover(class)
 	local classArt = {
-		["WARRIOR"] = {1, 1},
-		["PALADIN"] = {1, 2},
-		["DRUID"] 	= {1, 3},
-		["DEATHKNIGHT"] = {1, 4},
+		['WARRIOR'] = {1, 1},
+		['PALADIN'] = {1, 2},
+		['DRUID'] 	= {1, 3},
+		['DEATHKNIGHT'] = {1, 4},
 		----------------------------
-		["MAGE"] 	= {2, 1},
-		["HUNTER"] 	= {2, 2},
-		["ROGUE"] 	= {2, 3},
-		["WARLOCK"] = {2, 4},
+		['MAGE'] 	= {2, 1},
+		['HUNTER'] 	= {2, 2},
+		['ROGUE'] 	= {2, 3},
+		['WARLOCK'] = {2, 4},
 		----------------------------
-		["SHAMAN"] 	= {3, 1},
-		["PRIEST"] 	= {3, 2},
-		["DEMONHUNTER"] = {3, 3},
-		["MONK"] 	= {3, 4},
+		['SHAMAN'] 	= {3, 1},
+		['PRIEST'] 	= {3, 2},
+		['DEMONHUNTER'] = {3, 3},
+		['MONK'] 	= {3, 4},
 	}
 	local art = class and classArt[class]
 	if not class and not art then
-		art = classArt[select(2, UnitClass("player"))]
+		art = classArt[select(2, UnitClass('player'))]
 	end
 	if art then
 		local index, px = unpack(art)
@@ -45,7 +46,7 @@ end
 
 function ab:GetBackdrop()
 	return {
-		edgeFile 	= "Interface\\AddOns\\"..addOn.."\\Textures\\BarEdge",
+		edgeFile 	= 'Interface\\AddOns\\'..addOn..'\\Textures\\BarEdge',
 		edgeSize 	= 32,
 		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
 	}
@@ -89,44 +90,65 @@ end
 
 function ab:GetSimpleSettings()
 	local cfg = ab.cfg
+	local L = ab.data.ACTIONBAR
 	return {
 		{
-			desc = 'Lock action bar',
+			desc = L.CFG_LOCK,
 			cvar = 'lock',
 			toggle = cfg and cfg.lock,
 		},
 		{
-			desc = 'Lock pet ring',
+			desc = L.CFG_LOCKPET,
 			cvar = 'lockpet',
 			toggle = cfg and cfg.lockpet,
 		},
 		{
-			desc = 'Always show all buttons',
+			desc = L.CFG_HIDEINCOMBAT,
+			cvar = 'combathide',
+			toggle = cfg and cfg.combathide,
+		},
+		{
+			desc = L.CFG_HIDEPETINCOMBAT,
+			cvar = 'combatpethide',
+			toggle = cfg and cfg.combatpethide,
+		},
+		{
+			desc = L.CFG_HIDEOUTOFCOMBAT,
+			cvar = 'hidebar',
+			toggle = cfg and cfg.hidebar,
+		},
+		{
+			desc = L.CFG_SHOWALLBUTTONS,
 			cvar = 'showbuttons',
 			toggle = cfg and cfg.showbuttons,
 		},
 		{
-			desc = 'Always show experience bars',
+			desc = L.CFG_WATCHBAR_OFF,
+			cvar = 'hidewatchbars',
+			toggle = cfg and cfg.hidewatchbars,
+		},
+		{
+			desc = L.CFG_WATCHBAR_ALPHA,
 			cvar = 'watchbars',
 			toggle = cfg and cfg.watchbars,
 		},
 		{
-			desc = 'Show quick menu',
+			desc = L.CFG_QUICKMENU,
 			cvar = 'quickMenu',
 			toggle = cfg and cfg.quickMenu,
 		},
 		{
-			desc = 'Width/scale on mouse wheel',
+			desc = L.CFG_MOUSE_ENABLE,
 			cvar = 'mousewheel',
 			toggle = cfg and cfg.mousewheel,
 		},
 		{
-			desc = 'Show class art underlay',
+			desc = L.CFG_ART_UNDERLAY,
 			cvar = 'showart',
 			toggle = cfg and cfg.showart,
 		},
 		{
-			desc = 'Show class tint',
+			desc = L.CFG_ART_TINT,
 			cvar = 'showline',
 			toggle = cfg and cfg.showline,
 		},
@@ -152,7 +174,7 @@ local function GetActionButtons(buttons, this)
 		return buttons
 	end
 	local objType = this:GetObjectType()
-	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute("action")
+	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute('action')
 	if action and tonumber(action) then
 		buttons[this] = action
 	end

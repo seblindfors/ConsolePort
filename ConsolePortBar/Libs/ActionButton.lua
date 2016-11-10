@@ -556,6 +556,7 @@ local function PickupAny(kind, target, detail, ...)
 end
 
 function Generic:OnEnter()
+	self.header:FadeIn(self.header:GetAlpha())
 	FadeIn(self)
 	if self.config.tooltip ~= "disabled" and (self.config.tooltip ~= "nocombat" or not InCombatLockdown()) then
 		UpdateTooltip(self)
@@ -568,6 +569,9 @@ function Generic:OnEnter()
 end
 
 function Generic:OnLeave()
+	if self.header:GetAttribute('hidesafe') and not InCombatLockdown() then
+		self.header:FadeOut(self.header:GetAlpha())
+	end
 	FadeOut(self)
 	GameTooltip:Hide()
 end
@@ -1212,16 +1216,16 @@ function UpdateCount(self)
 		if count > (self.maxDisplayCount or 9999) then
 			self.Count:SetText("*")
 		else
-			FadeIn(self)
+--			FadeIn(self)
 			self.Count:SetText(count)
 		end
 	else
 		local charges, maxCharges, chargeStart, chargeDuration = self:GetCharges()
 		if charges and maxCharges and maxCharges > 0 then
-			FadeIn(self)
+--			FadeIn(self)
 			self.Count:SetText(charges)
 		else
-			FadeOut(self)
+--			FadeOut(self)
 			self.Count:SetText("")
 		end
 	end

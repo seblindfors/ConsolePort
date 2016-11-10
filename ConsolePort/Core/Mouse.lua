@@ -160,7 +160,7 @@ function Camera:OnEvent(_, ...)
 	end
 end
 
-function Camera:OnAction() interactPushback = Settings.interactPushback or 1 end
+function Camera:OnAction() interactPushback = ( Settings.interactWith and Settings.interactPushback or 1 ) or 0 end
 
 function Camera:OnInteract()
 	local guid, canInteract = UnitGUID("target")
@@ -263,7 +263,7 @@ function Core:UpdateCameraDriver()
 			Camera:RegisterEvent("MODIFIER_STATE_CHANGED")
 			Camera:HookScript("OnUpdate", Camera.CheckDoubleTap)
 		end
-		if Settings.calculateYaw then
+		if db.Mouse.Camera and db.Mouse.Camera.calculateYaw then
 			Camera:HookScript("OnUpdate", Camera.CalculateYaw)
 		end
 	end

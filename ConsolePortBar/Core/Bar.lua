@@ -34,8 +34,12 @@ Bar:Execute([[
 	self:SetAttribute('state', '')
 ]])
 
-function Bar:FadeIn()
-	db.UIFrameFadeIn(self, 1, 0, 1)
+function Bar:FadeIn(alpha)
+	db.UIFrameFadeIn(self, 1, alpha or 0, 1)
+end
+
+function Bar:FadeOut(alpha)
+	db.UIFrameFadeOut(self, 1, alpha or 1, 0)
 end
 
 function Bar:UnregisterOverrides()
@@ -73,6 +77,14 @@ function Bar:OnEvent(event, ...)
 	if self[event] then
 		self[event](self, ...)
 	end
+end
+
+function Bar:PLAYER_REGEN_ENABLED()
+	self:FadeOut(self:GetAlpha())
+end
+
+function Bar:PLAYER_REGEN_DISABLED()
+	self:FadeIn(self:GetAlpha())
 end
 
 function Bar:ADDON_LOADED(...)
@@ -114,6 +126,31 @@ function Bar:OnLoad(cfg, benign)
 	ConsolePortBarSetup = cfg
 	self:SetScale(cfg.scale or 1)
 
+	self:SetAttribute('hidesafe', cfg.hidebar)
+	if cfg.hidebar then
+		self:RegisterEvent('PLAYER_REGEN_ENABLED')
+		self:RegisterEvent('PLAYER_REGEN_DISABLED')
+		self:FadeOut(self:GetAlpha())
+	else
+		self:UnregisterEvent('PLAYER_REGEN_ENABLED')
+		self:UnregisterEvent('PLAYER_REGEN_DISABLED')
+		self:FadeIn(self:GetAlpha())
+	end
+
+	local visDriver = '[petbattle][vehicleui][overridebar] hide; show'
+
+	if cfg.combathide then
+		visDriver = '[combat]' .. visDriver
+	end
+
+	if cfg.combatpethide then
+		RegisterStateDriver(Bar.Pet, 'visibility', '[pet,nocombat] show; hide')
+	else
+		RegisterStateDriver(Bar.Pet, 'visibility', '[pet] show; hide')
+	end
+	
+	RegisterStateDriver(Bar, 'visibility', visDriver)
+
 	-- Set action bar art
 	if cfg.showart then
 		local art, coords = ab:GetCover()
@@ -133,19 +170,6 @@ function Bar:OnLoad(cfg, benign)
 	else
 		self.BG:Hide()
 		self.BottomLine:Hide()
-	end
-
-	-- Always show modifiers
-	if cfg.showbuttons then
-		self.Eye:SetAttribute('showbuttons', true)
-		self:Execute([[
-			control:ChildUpdate('hover', true)
-		]])
-	else
-		self.Eye:SetAttribute('showbuttons', false)
-		self:Execute([[
-			control:ChildUpdate('hover', false)
-		]])
 	end
 
 	-- Show quick menu buttons
@@ -185,11 +209,14 @@ function Bar:OnLoad(cfg, benign)
 		self.Buttons[#self.Buttons + 1] = wrapper
 	end
 
+	self.WatchBarContainer:Hide()
+	self.WatchBarContainer:SetShown(not cfg.hidewatchbars)
+
 	-- Don't run this when updating simple cvars
 	if not benign then
 		WrapperLib:UpdateAllBindings()
 		self:Hide()
-		self:Show()
+		self:SetShown(not cfg.hidebar)
 
 		self:SetAttribute('page', 1)
 		self:Execute(format([[
@@ -198,8 +225,18 @@ function Bar:OnLoad(cfg, benign)
 		]], now or 1))
 	end
 
-	self.WatchBarContainer:Hide()
-	self.WatchBarContainer:Show()
+	-- Always show modifiers
+	if cfg.showbuttons then
+		self.Eye:SetAttribute('showbuttons', true)
+		self:Execute([[
+			control:ChildUpdate('hover', true)
+		]])
+	else
+		self.Eye:SetAttribute('showbuttons', false)
+		self:Execute([[
+			control:ChildUpdate('hover', false)
+		]])
+	end
 
 	local width = cfg.width or ( #self.Buttons > 10 and (10 * 110) + 55 or (#self.Buttons * 110) + 55 )
 	self:SetSize(width, BAR_FIXED_HEIGHT)
@@ -218,7 +255,9 @@ for name, script in pairs({
 			self:SetBindingClick(true, key, button)
 		end
 		mouse:RunAttribute('UpdateTarget', mouse:GetAttribute('current'))
-		self:CallMethod('FadeIn')
+		if PlayerInCombat() or ( not self:GetAttribute('hidesafe') ) then
+			self:CallMethod('FadeIn')
+		end
 	]],
 	['_onstate-modifier'] = [[
 		self:SetAttribute('state', newstate)
@@ -262,4 +301,3 @@ Bar:SetScript('OnDragStop', Bar.StopMovingOrSizing)
 Bar:SetPoint('BOTTOM', UIParent, 0, 0)
 RegisterStateDriver(Bar, 'page', state)
 RegisterStateDriver(Bar, 'modifier', '[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ')
-RegisterStateDriver(Bar, 'visibility', '[petbattle][vehicleui][overridebar] hide; show')

@@ -131,6 +131,7 @@ end
 
 Pet:HookScript('OnShow', function(self)
 	self:Update()
+	SetPortraitTexture(self.Portrait, 'pet')
 	FadeIn(self, 0.2, 0, 1)
 end)
 
