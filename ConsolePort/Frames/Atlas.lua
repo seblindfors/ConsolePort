@@ -211,7 +211,7 @@ Atlas.GetArtOverlay = function(self)
 	self.Overlay:SetPoint("TOPLEFT", self, "TOPLEFT", 16, -16)
 	self.Overlay:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -16, 16)
 	self.Overlay:SetBlendMode("BLEND")
-	self.Overlay:SetAlpha(0.25)
+	self.Overlay:SetAlpha(0.1)
 	self.Overlay:SetAtlas(Atlas.GetOverlay())
 
 	local function FixAspectRatio(self)
@@ -329,13 +329,13 @@ Atlas.GetFutureWindow = function(name, parent, templates, buttonTemplate, artCor
 	   1, 1, 1, 0,
 	}
 
-	local gBase = 0.15
-	local gMulti = 1.2
+	local gBase = 0.3
+	local gMulti = 1.1
 
 	local classGradient = {
 		"HORIZONTAL",
 		(cc.r + gBase) * gMulti, (cc.g + gBase) * gMulti, (cc.b + gBase) * gMulti, 1,
-		1 - (cc.r + gBase) * gMulti, 1 - (cc.g + gBase) * gMulti, 1 - (cc.b + gBase) * gMulti, 1,
+		1 - (cc.r - gBase) * gMulti, 1 - (cc.g - gBase) * gMulti, 1 - (cc.b - gBase) * gMulti, 1,
 	}
 
 	if artCorners then

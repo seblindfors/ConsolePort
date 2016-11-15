@@ -92,63 +92,51 @@ function ab:GetSimpleSettings()
 	local cfg = ab.cfg
 	local L = ab.data.ACTIONBAR
 	return {
-		{
-			desc = L.CFG_LOCK,
+		{	desc = L.CFG_LOCK,
 			cvar = 'lock',
 			toggle = cfg and cfg.lock,
 		},
-		{
-			desc = L.CFG_LOCKPET,
+		{	desc = L.CFG_LOCKPET,
 			cvar = 'lockpet',
 			toggle = cfg and cfg.lockpet,
 		},
-		{
-			desc = L.CFG_HIDEINCOMBAT,
+		{	desc = L.CFG_HIDEINCOMBAT,
 			cvar = 'combathide',
 			toggle = cfg and cfg.combathide,
 		},
-		{
-			desc = L.CFG_HIDEPETINCOMBAT,
+		{	desc = L.CFG_HIDEPETINCOMBAT,
 			cvar = 'combatpethide',
 			toggle = cfg and cfg.combatpethide,
 		},
-		{
-			desc = L.CFG_HIDEOUTOFCOMBAT,
+		{	desc = L.CFG_HIDEOUTOFCOMBAT,
 			cvar = 'hidebar',
 			toggle = cfg and cfg.hidebar,
 		},
-		{
-			desc = L.CFG_SHOWALLBUTTONS,
+		{	desc = L.CFG_SHOWALLBUTTONS,
 			cvar = 'showbuttons',
 			toggle = cfg and cfg.showbuttons,
 		},
-		{
-			desc = L.CFG_WATCHBAR_OFF,
+		{	desc = L.CFG_WATCHBAR_OFF,
 			cvar = 'hidewatchbars',
 			toggle = cfg and cfg.hidewatchbars,
 		},
-		{
-			desc = L.CFG_WATCHBAR_ALPHA,
+		{	desc = L.CFG_WATCHBAR_ALPHA,
 			cvar = 'watchbars',
 			toggle = cfg and cfg.watchbars,
 		},
-		{
-			desc = L.CFG_QUICKMENU,
+		{	desc = L.CFG_QUICKMENU,
 			cvar = 'quickMenu',
 			toggle = cfg and cfg.quickMenu,
 		},
-		{
-			desc = L.CFG_MOUSE_ENABLE,
+		{	desc = L.CFG_MOUSE_ENABLE,
 			cvar = 'mousewheel',
 			toggle = cfg and cfg.mousewheel,
 		},
-		{
-			desc = L.CFG_ART_UNDERLAY,
+		{	desc = L.CFG_ART_UNDERLAY,
 			cvar = 'showart',
 			toggle = cfg and cfg.showart,
 		},
-		{
-			desc = L.CFG_ART_TINT,
+		{	desc = L.CFG_ART_TINT,
 			cvar = 'showline',
 			toggle = cfg and cfg.showline,
 		},

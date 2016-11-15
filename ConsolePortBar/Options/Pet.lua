@@ -40,6 +40,7 @@ Pet:RegisterEvent('PLAYER_FARSIGHT_FOCUS_CHANGED')
 Pet:RegisterEvent('UNIT_PET')
 Pet:RegisterEvent('UNIT_FLAGS')
 Pet:RegisterEvent('UNIT_AURA')
+Pet:RegisterEvent('UNIT_PORTRAIT_UPDATE')
 Pet:RegisterEvent('PET_BAR_UPDATE')
 Pet:RegisterEvent('PET_BAR_UPDATE_COOLDOWN')
 Pet:RegisterEvent('PET_SPECIALIZATION_CHANGED')
@@ -149,7 +150,8 @@ Pet:SetScript('OnEvent', function(self, event, ...)
 	elseif event == 'PET_BAR_UPDATE_COOLDOWN' then
 		self:UpdateCooldowns()
 	end
-	if event == 'UNIT_PET' and arg1 == 'player' then
+	if 	( event == 'UNIT_PORTRAIT_UPDATE' and arg1 == 'pet' ) or
+		( event == 'UNIT_PET' and arg1 == 'player' ) then
 		SetPortraitTexture(self.Portrait, 'pet')
 	end
 end)

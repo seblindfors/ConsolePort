@@ -625,7 +625,6 @@ local cvars = { -- value = default
 	centerLockDeadzoneX = 4,
 	centerLockDeadzoneY = 4,
 	disableHints 		= false,
-	disableMenu 		= false,
 	disableSmartMouse 	= false,
 	disableStickMouse	= false,
 	doubleModTap 		= true,

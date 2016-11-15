@@ -154,10 +154,6 @@ function ConsolePort:LoadSettings()
 		ConsolePortUtility = {}
 	end
 
-	if not db.Settings.disableMenu then
-		self:SetCustomMenu()
-	end
-
 	----------------------------------------------------------
 
 	db.Bindings = ConsolePortBindingSet
