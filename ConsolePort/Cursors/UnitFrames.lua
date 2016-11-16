@@ -16,350 +16,348 @@ local 	UnitClass, UnitExists, UnitHealth, UnitHealthMax, SetPortraitTexture, Set
 ---------------------------------------------------------------
 local 	pi, abs, GetTime = math.pi, abs, GetTime
 ---------------------------------------------------------------
-local Key = {
-	Up 		= ConsolePort:GetUIControlKey("CP_L_UP"),
-	Down 	= ConsolePort:GetUIControlKey("CP_L_DOWN"),
-	Left 	= ConsolePort:GetUIControlKey("CP_L_LEFT"),
-	Right 	= ConsolePort:GetUIControlKey("CP_L_RIGHT"),
-}
----------------------------------------------------------------
-local SetFocus = CreateFrame("Button", "$parentFocus", Cursor, "SecureActionButtonTemplate")
-SetFocus:SetAttribute("type", "focus")
-Cursor:SetFrameRef("SetFocus", SetFocus)
----------------------------------------------------------------
-local SetTarget = CreateFrame("Button", "$parentTarget", Cursor, "SecureActionButtonTemplate")
-SetTarget:SetAttribute("type", "target")
-Cursor:SetFrameRef("SetTarget", SetTarget)
----------------------------------------------------------------
-ConsolePort:RegisterSpellHeader(Cursor)
-Cursor:Execute(format([[
-	ALL = newtable()
-	DPAD = newtable()
+do 
+	local Key = {
+		Up 		= ConsolePort:GetUIControlKey("CP_L_UP"),
+		Down 	= ConsolePort:GetUIControlKey("CP_L_DOWN"),
+		Left 	= ConsolePort:GetUIControlKey("CP_L_LEFT"),
+		Right 	= ConsolePort:GetUIControlKey("CP_L_RIGHT"),
+	}
+	---------------------------------------------------------------
+	local SetFocus = CreateFrame("Button", "$parentFocus", Cursor, "SecureActionButtonTemplate")
+	SetFocus:SetAttribute("type", "focus")
+	Cursor:SetFrameRef("SetFocus", SetFocus)
+	---------------------------------------------------------------
+	local SetTarget = CreateFrame("Button", "$parentTarget", Cursor, "SecureActionButtonTemplate")
+	SetTarget:SetAttribute("type", "target")
+	Cursor:SetFrameRef("SetTarget", SetTarget)
+	---------------------------------------------------------------
+	Cursor:SetFrameRef("actionBar", MainMenuBarArtFrame)
+	Cursor:SetFrameRef("overrideBar", OverrideActionBar)
+	---------------------------------------------------------------
+	ConsolePort:RegisterSpellHeader(Cursor)
+	Cursor:Execute(format([[
+		ALL = newtable()
+		DPAD = newtable()
 
-	Key = newtable()
-	Key.Up = %s
-	Key.Down = %s
-	Key.Left = %s
-	Key.Right = %s
+		Key = newtable()
+		Key.Up = %s
+		Key.Down = %s
+		Key.Left = %s
+		Key.Right = %s
 
-	ID = 0
+		ID = 0
 
-	Units = newtable()
-	Actions = newtable()
+		Units = newtable()
+		Actions = newtable()
 
-	MainBar = self:GetFrameRef("actionBar")
-	OverrideBar = self:GetFrameRef("overrideBar")
+		Focus = self:GetFrameRef("SetFocus")
+		Target = self:GetFrameRef("SetTarget")
 
-	Focus = self:GetFrameRef("SetFocus")
-	Target = self:GetFrameRef("SetTarget")
+		Cache = newtable()
 
-	Cache = newtable()
+		Cache[self] = true
 
-	Cache[self] = true
-	Cache[MainBar] = true
-	Cache[OverrideBar] = true
+		Helpful = newtable()
+		Harmful = newtable()
+	]], Key.Up, Key.Down, Key.Left, Key.Right))
 
-	Helpful = newtable()
-	Harmful = newtable()
-]], Key.Up, Key.Down, Key.Left, Key.Right))
-
--- Raid cursor run snippets
----------------------------------------------------------------
-Cursor:Execute([[
-	RefreshActions = [=[
-		Helpful = wipe(Helpful)
-		Harmful = wipe(Harmful)
-		for actionButton in pairs(Actions) do
-			local action = actionButton:GetAttribute("action")
-			if self:RunAttribute("IsHelpfulAction", action) then
-				Helpful[actionButton] = true
-			elseif self:RunAttribute("IsHarmfulAction", action) then
-				Harmful[actionButton] = true
-			else
-				Helpful[actionButton] = true
-				Harmful[actionButton] = true
+	-- Raid cursor run snippets
+	---------------------------------------------------------------
+	Cursor:Execute([[
+		RefreshActions = [=[
+			Helpful = wipe(Helpful)
+			Harmful = wipe(Harmful)
+			for actionButton in pairs(Actions) do
+				local action = actionButton:GetAttribute("action")
+				if self:RunAttribute("IsHelpfulAction", action) then
+					Helpful[actionButton] = true
+				elseif self:RunAttribute("IsHarmfulAction", action) then
+					Harmful[actionButton] = true
+				else
+					Helpful[actionButton] = true
+					Harmful[actionButton] = true
+				end
 			end
-		end
-	]=]
-	GetNodes = [=[
-		local node = CurrentNode
-		local isProtected = node:IsProtected()
-		local children = isProtected and newtable(node:GetChildren())
-		local unit = isProtected and node:GetAttribute("unit")
-		local action = isProtected and node:GetAttribute("action")
-		local childUnit
-		if children then
-			for i, child in pairs(children) do
-				if child:IsProtected() then
-					childUnit = child:GetAttribute("unit")
-					if childUnit == nil or childUnit ~= unit then
-						CurrentNode = child
-						self:Run(GetNodes)
+		]=]
+		GetNodes = [=[
+			local node = CurrentNode
+			local isProtected = node:IsProtected()
+			local children = isProtected and newtable(node:GetChildren())
+			local unit = isProtected and node:GetAttribute("unit")
+			local action = isProtected and node:GetAttribute("action")
+			local childUnit
+			if children then
+				for i, child in pairs(children) do
+					if child:IsProtected() then
+						childUnit = child:GetAttribute("unit")
+						if childUnit == nil or childUnit ~= unit then
+							CurrentNode = child
+							self:Run(GetNodes)
+						end
 					end
 				end
 			end
-		end
-		if isProtected then
-			if Cache[node] then
-				return
-			else
-				if unit and not action then
-					local left, bottom, width, height = node:GetRect()
-					if left and bottom then
-						Units[node] = true
+			if isProtected then
+				if Cache[node] then
+					return
+				else
+					if unit and not action then
+						local left, bottom, width, height = node:GetRect()
+						if left and bottom then
+							Units[node] = true
+							Cache[node] = true
+						end
+					elseif action and tonumber(action) then
+						Actions[node] = unit or false
 						Cache[node] = true
 					end
-				elseif action and tonumber(action) then
-					Actions[node] = unit or false
-					Cache[node] = true
 				end
 			end
-		end
-	]=]
-	SetCurrent = [=[
-		if old and old:IsVisible() and UnitExists(old:GetAttribute("unit")) then
-			current = old
-		elseif (not current and next(Units)) or (current and next(Units) and not current:IsVisible()) then
-			local thisX, thisY = self:GetRect()
+		]=]
+		SetCurrent = [=[
+			if old and old:IsVisible() and UnitExists(old:GetAttribute("unit")) then
+				current = old
+			elseif (not current and next(Units)) or (current and next(Units) and not current:IsVisible()) then
+				local thisX, thisY = self:GetRect()
 
-			if thisX and thisY then
-				local node, dist
+				if thisX and thisY then
+					local node, dist
 
-				for Node in pairs(Units) do
-					if Node ~= old and Node:IsVisible() then
-						local left, bottom, width, height = Node:GetRect()
-						local destDistance = abs(thisX - (left + width / 2)) + abs(thisY - (bottom + height / 2))
+					for Node in pairs(Units) do
+						if Node ~= old and Node:IsVisible() then
+							local left, bottom, width, height = Node:GetRect()
+							local destDistance = abs(thisX - (left + width / 2)) + abs(thisY - (bottom + height / 2))
 
-						if not dist or destDistance < dist then
-							node = Node
-							dist = destDistance
-						end
-					end
-				end
-				if node then
-					current = node
-				end
-			else
-				for Node in pairs(Units) do
-					if Node:IsVisible() then
-						current = Node
-						break
-					end
-				end
-			end
-		end
-	]=]
-	FindClosestNode = [=[
-		if current and key ~= 0 then
-			local left, bottom, width, height = current:GetRect()
-			local thisY = bottom+height/2
-			local thisX = left+width/2
-			local nodeY, nodeX = 10000, 10000
-			local destY, destX, diffY, diffX, total, swap
-			for destination in pairs(Units) do
-				if destination:IsVisible() then
-					left, bottom, width, height = destination:GetRect()
-					destY = bottom+height/2
-					destX = left+width/2
-					diffY = abs(thisY-destY)
-					diffX = abs(thisX-destX)
-					total = diffX + diffY
-					if total < nodeX + nodeY then
-						if 	key == Key.Up then
-							if 	diffY > diffX and 	-- up/down
-								destY > thisY then 	-- up
-								swap = true
-							end
-						elseif key == Key.Down then
-							if 	diffY > diffX and 	-- up/down
-								destY < thisY then 	-- down
-								swap = true
-							end
-						elseif key == Key.Left then
-							if 	diffY < diffX and 	-- left/right
-								destX < thisX then 	-- left
-								swap = true
-							end
-						elseif key == Key.Right then
-							if 	diffY < diffX and 	-- left/right
-								destX > thisX then 	-- right
-								swap = true
+							if not dist or destDistance < dist then
+								node = Node
+								dist = destDistance
 							end
 						end
 					end
-					if swap then
-						nodeX = diffX
-						nodeY = diffY
-						current = destination
-						swap = false
+					if node then
+						current = node
+					end
+				else
+					for Node in pairs(Units) do
+						if Node:IsVisible() then
+							current = Node
+							break
+						end
 					end
 				end
 			end
-		end
-	]=]
-	UpdateRouting = [=[
-		local reroute = not self:GetAttribute("noRouting")
-
-		if reroute then
-			for action, unit in pairs(Actions) do
-				action:SetAttribute("unit", unit)
+		]=]
+		FindClosestNode = [=[
+			if current and key ~= 0 then
+				local left, bottom, width, height = current:GetRect()
+				local thisY = bottom+height/2
+				local thisX = left+width/2
+				local nodeY, nodeX = 10000, 10000
+				local destY, destX, diffY, diffX, total, swap
+				for destination in pairs(Units) do
+					if destination:IsVisible() then
+						left, bottom, width, height = destination:GetRect()
+						destY = bottom+height/2
+						destX = left+width/2
+						diffY = abs(thisY-destY)
+						diffX = abs(thisX-destX)
+						total = diffX + diffY
+						if total < nodeX + nodeY then
+							if 	key == Key.Up then
+								if 	diffY > diffX and 	-- up/down
+									destY > thisY then 	-- up
+									swap = true
+								end
+							elseif key == Key.Down then
+								if 	diffY > diffX and 	-- up/down
+									destY < thisY then 	-- down
+									swap = true
+								end
+							elseif key == Key.Left then
+								if 	diffY < diffX and 	-- left/right
+									destX < thisX then 	-- left
+									swap = true
+								end
+							elseif key == Key.Right then
+								if 	diffY < diffX and 	-- left/right
+									destX > thisX then 	-- right
+									swap = true
+								end
+							end
+						end
+						if swap then
+							nodeX = diffX
+							nodeY = diffY
+							current = destination
+							swap = false
+						end
+					end
+				end
 			end
-		end
-
-		if current then
-			self:Show()
-
-			local unit = current:GetAttribute("unit")
-
-			Focus:SetAttribute("unit", unit)
-			Target:SetAttribute("unit", unit)
-
-			RegisterStateDriver(self, "unitexists", "[@"..unit..",exists] true; nil")
-
-			self:ClearAllPoints()
-			self:SetPoint("TOPLEFT", current, "CENTER", 0, 0)
-			self:SetAttribute("node", current)
-			self:SetAttribute("unit", unit)
+		]=]
+		UpdateRouting = [=[
+			local reroute = not self:GetAttribute("noRouting")
 
 			if reroute then
-				if PlayerCanAttack(unit) then
-					self:SetAttribute("relation", "harm")
-					for action in pairs(Harmful) do
-						action:SetAttribute("unit", unit)
-					end
-				elseif PlayerCanAssist(unit) then
-					self:SetAttribute("relation", "help")
-					for action in pairs(Helpful) do
-						action:SetAttribute("unit", unit)
-					end
-				end
-			end
-		else
-			UnregisterStateDriver(self, "unitexists")
-
-			Focus:SetAttribute("unit", nil)
-			Target:SetAttribute("unit", nil)
-
-			self:Hide()
-		end
-	]=]
-	SelectNode = [=[
-		key = ...
-		if current then
-			old = current
-		end
-
-		self:Run(SetCurrent)
-		self:Run(FindClosestNode)
-		self:Run(UpdateRouting)
-	]=]
-	UpdateFrameStack = [=[
-		local frames = newtable(self:GetParent():GetChildren())
-		for i, frame in pairs(frames) do
-			if frame:IsProtected() and not Cache[frame] then
-				CurrentNode = frame
-				self:Run(GetNodes)
-			end
-		end
-		self:Run(RefreshActions)
-		if IsEnabled then
-			self:Run(SelectNode, 0)
-		end
-	]=]
-	ToggleCursor = [=[
-		if IsEnabled then
-			for binding, name in pairs(DPAD) do
-				local key = GetBindingKey(binding)
-				if key then
-					self:SetBindingClick(true, key, "ConsolePortRaidCursorButton"..name)
-				end
-			end
-			self:Run(UpdateFrameStack)
-			self:Show()
-		else
-			UnregisterStateDriver(self, "unitexists")
-
-			Focus:SetAttribute("unit", nil)
-			Target:SetAttribute("unit", nil)
-
-			self:SetAttribute("node", nil)
-			self:ClearBindings()
-
-			if not self:GetAttribute("noRouting") then
 				for action, unit in pairs(Actions) do
 					action:SetAttribute("unit", unit)
 				end
 			end
 
-			self:Hide()
-		end
-	]=]
-	UpdateUnitExists = [=[
-		local exists = ...
-		if not exists then
+			if current then
+				self:Show()
+
+				local unit = current:GetAttribute("unit")
+
+				Focus:SetAttribute("unit", unit)
+				Target:SetAttribute("unit", unit)
+
+				RegisterStateDriver(self, "unitexists", "[@"..unit..",exists] true; nil")
+
+				self:ClearAllPoints()
+				self:SetPoint("TOPLEFT", current, "CENTER", 0, 0)
+				self:SetAttribute("node", current)
+				self:SetAttribute("unit", unit)
+
+				if reroute then
+					if PlayerCanAttack(unit) then
+						self:SetAttribute("relation", "harm")
+						for action in pairs(Harmful) do
+							action:SetAttribute("unit", unit)
+						end
+					elseif PlayerCanAssist(unit) then
+						self:SetAttribute("relation", "help")
+						for action in pairs(Helpful) do
+							action:SetAttribute("unit", unit)
+						end
+					end
+				end
+			else
+				UnregisterStateDriver(self, "unitexists")
+
+				Focus:SetAttribute("unit", nil)
+				Target:SetAttribute("unit", nil)
+
+				self:Hide()
+			end
+		]=]
+		SelectNode = [=[
+			key = ...
+			if current then
+				old = current
+			end
+
+			self:Run(SetCurrent)
+			self:Run(FindClosestNode)
+			self:Run(UpdateRouting)
+		]=]
+		UpdateFrameStack = [=[
+			local frames = newtable(self:GetParent():GetChildren())
+			for i, frame in pairs(frames) do
+				if frame:IsProtected() and not Cache[frame] then
+					CurrentNode = frame
+					self:Run(GetNodes)
+				end
+			end
+			self:Run(RefreshActions)
+			if IsEnabled then
+				self:Run(SelectNode, 0)
+			end
+		]=]
+		ToggleCursor = [=[
+			if IsEnabled then
+				local modifier = self:GetAttribute("modifier")
+				for binding, name in pairs(DPAD) do
+					local key = GetBindingKey(binding)
+					if key then
+						self:SetBindingClick(true, modifier..key, "ConsolePortRaidCursorButton"..name)
+					end
+				end
+				self:Run(UpdateFrameStack)
+				self:Show()
+			else
+				UnregisterStateDriver(self, "unitexists")
+
+				Focus:SetAttribute("unit", nil)
+				Target:SetAttribute("unit", nil)
+
+				self:SetAttribute("node", nil)
+				self:ClearBindings()
+
+				if not self:GetAttribute("noRouting") then
+					for action, unit in pairs(Actions) do
+						action:SetAttribute("unit", unit)
+					end
+				end
+
+				self:Hide()
+			end
+		]=]
+		UpdateUnitExists = [=[
+			local exists = ...
+			if not exists then
+				self:Run(SelectNode, 0)
+			end
+		]=]
+
+		-- Cache default bars right away
+		CurrentNode = self:GetFrameRef("actionBar")
+		self:Run(GetNodes)
+		CurrentNode = self:GetFrameRef("overrideBar")
+		self:Run(GetNodes)
+	]])
+	Cursor:SetAttribute("pageupdate", [[
+		if IsEnabled then
+			self:Run(RefreshActions)
 			self:Run(SelectNode, 0)
 		end
-	]=]
-]])
-Cursor:SetAttribute("pageupdate", [[
-	if IsEnabled then
-		self:Run(RefreshActions)
-		self:Run(SelectNode, 0)
-	end
-]])
-Cursor:SetAttribute("spellupdate", [[
-	CurrentNode = MainBar
-	self:Run(GetNodes)
-
-	CurrentNode = OverrideBar
-	self:Run(GetNodes)
-
-	self:Run(UpdateFrameStack)
-]])
-------------------------------------------------------------------------------------------------------------------------------
-local ToggleCursor = CreateFrame("Button", "$parentToggle", Cursor, "SecureActionButtonTemplate")
-ToggleCursor:RegisterForClicks("LeftButtonDown")
-Cursor:SetFrameRef("Mouse", ConsolePortMouseHandle)
-Cursor:WrapScript(ToggleCursor, "OnClick", [[
-	local Cursor = self:GetParent()
-	local MouseHandle =	Cursor:GetFrameRef("Mouse")
-
-	IsEnabled = not IsEnabled
-	Cursor:SetAttribute("enabled", IsEnabled)
-
-	Cursor:Run(ToggleCursor)
-	MouseHandle:SetAttribute("override", not IsEnabled)
-]])
-------------------------------------------------------------------------------------------------------------------------------
-local buttons = {
-	Up 		= {binding = "CP_L_UP", 	key = Key.Up},
-	Down 	= {binding = "CP_L_DOWN", 	key = Key.Down},
-	Left 	= {binding = "CP_L_LEFT", 	key = Key.Left},
-	Right 	= {binding = "CP_L_RIGHT",	key = Key.Right},
-}
-
-for name, button in pairs(buttons) do
-	local btn = CreateFrame("Button", "$parentButton"..name, Cursor, "SecureActionButtonTemplate")
-	btn:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
-	btn:SetAttribute("type", "target")
-	Cursor:WrapScript(btn, "PreClick", format([[
+	]])
+	------------------------------------------------------------------------------------------------------------------------------
+	local ToggleCursor = CreateFrame("Button", "$parentToggle", Cursor, "SecureActionButtonTemplate")
+	ToggleCursor:RegisterForClicks("LeftButtonDown")
+	Cursor:SetFrameRef("Mouse", ConsolePortMouseHandle)
+	Cursor:WrapScript(ToggleCursor, "OnClick", [[
 		local Cursor = self:GetParent()
-		if down then
-			Cursor:Run(SelectNode, %s)
-			if Cursor:GetAttribute("noRouting") then
-				self:SetAttribute("unit", Cursor:GetAttribute("unit"))
-			else
-				self:SetAttribute("unit", nil)
+		local MouseHandle =	Cursor:GetFrameRef("Mouse")
+
+		IsEnabled = not IsEnabled
+		Cursor:SetAttribute("enabled", IsEnabled)
+
+		Cursor:Run(ToggleCursor)
+		MouseHandle:SetAttribute("override", not IsEnabled)
+	]])
+	------------------------------------------------------------------------------------------------------------------------------
+	local buttons = {
+		Up 		= {binding = "CP_L_UP", 	key = Key.Up},
+		Down 	= {binding = "CP_L_DOWN", 	key = Key.Down},
+		Left 	= {binding = "CP_L_LEFT", 	key = Key.Left},
+		Right 	= {binding = "CP_L_RIGHT",	key = Key.Right},
+	}
+
+	for name, button in pairs(buttons) do
+		local btn = CreateFrame("Button", "$parentButton"..name, Cursor, "SecureActionButtonTemplate")
+		btn:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
+		btn:SetAttribute("type", "target")
+		Cursor:WrapScript(btn, "PreClick", format([[
+			local Cursor = self:GetParent()
+			if down then
+				Cursor:Run(SelectNode, %s)
+				if Cursor:GetAttribute("noRouting") then
+					self:SetAttribute("unit", Cursor:GetAttribute("unit"))
+				else
+					self:SetAttribute("unit", nil)
+				end
 			end
-		end
-	]], button.key))
-	Cursor:Execute(format([[
-		DPAD.%s = "%s"
-	]], button.binding, name))
+		]], button.key))
+		Cursor:Execute(format([[
+			DPAD.%s = "%s"
+		]], button.binding, name))
+	end
+	---------------------------------------------------------------
+	Cursor:SetAttribute("_onstate-unitexists", "self:Run(UpdateUnitExists, newstate)")
+	---------------------------------------------------------------
 end
----------------------------------------------------------------
-Cursor:SetAttribute("_onstate-unitexists", "self:Run(UpdateUnitExists, newstate)")
----------------------------------------------------------------
 
 function ConsolePort:SetupRaidCursor()
 	Cursor.onShow = true
@@ -375,6 +373,7 @@ end
 
 function ConsolePort:LoadRaidCursor()
 	Cursor:SetAttribute("noRouting", db.Settings.raidCursorDirect)
+	Cursor:SetAttribute("modifier", db.Settings.raidCursorModifier or "")
 end
 
 ---------------------------------------------------------------
@@ -388,11 +387,11 @@ Cursor.BG:SetTexture("Interface\\Cursor\\Item")
 Cursor.BG:SetAllPoints(Cursor)
 ---------------------------------------------------------------
 Cursor.UnitPortrait = Cursor:CreateTexture(nil, "ARTWORK", nil, 6)
-Cursor.UnitPortrait:SetSize(42, 42)
+Cursor.UnitPortrait:SetSize(38, 38)
 Cursor.UnitPortrait:SetPoint("TOPLEFT", Cursor, "CENTER", 0, 0)
 ---------------------------------------------------------------
 Cursor.SpellPortrait = Cursor:CreateTexture(nil, "ARTWORK", nil, 7)
-Cursor.SpellPortrait:SetSize(42, 42)
+Cursor.SpellPortrait:SetSize(38, 38)
 Cursor.SpellPortrait:SetPoint("TOPLEFT", Cursor, "CENTER", 0, 0)
 ---------------------------------------------------------------
 Cursor.Border = Cursor:CreateTexture(nil, "OVERLAY", nil, 6)

@@ -1,7 +1,7 @@
 local addOn, ab = ...
 local db = ab.data
 local Bar = ab.bar
-local WindowMixin, Layout, Button, Position, Bool = {}, {}, {}, {}, {}
+local WindowMixin, Layout, Button, Position, Color, Bool = {}, {}, {}, {}, {}, {}
 
 local VALID_POINTS = {
 	TOP = true, 
@@ -195,6 +195,41 @@ function Bool:OnShow()
 	self:SetChecked(ab.cfg[self.cvar])
 end
 
+function Color:OnClick(button)
+	if button == 'LeftButton' then
+		local r, g, b, a = ab:GetRGBColorFor(self.element)
+		ColorPickerFrame:SetColorRGB(r, g, b, a)
+		ColorPickerFrame.hasOpacity = true
+		ColorPickerFrame.opacity = 1 - a
+		ColorPickerFrame.previousValues = {r, g, b, a}
+		ColorPickerFrame.func, ColorPickerFrame.opacityFunc, ColorPickerFrame.cancelFunc = 
+		self.Callback, self.Callback, self.Callback
+		ColorPickerFrame:Hide()
+		ColorPickerFrame:Show()
+		ColorPickerFrame:GetScript('OnColorSelect')(ColorPickerFrame, r, g, b)
+	else
+		local r, g, b, a = ab:GetRGBColorFor(self.element, true)
+		ab.cfg[self.id] = {r, g, b, a}
+		Bar:OnLoad(ab.cfg, true)
+		self:OnShow()
+	end
+end
+
+function Color:OnEnter()
+	local r, g, b, a = ab:GetRGBColorFor(self.element)
+	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+	GameTooltip:SetText(format(db.ACTIONBAR.CFG_COLOR_TOOLTIP, floor(r * 255), floor(g * 255), floor(b * 255), floor(a * 100)))
+end
+
+function Color:OnLeave()
+	GameTooltip:Hide()
+end
+
+function Color:OnShow()
+	local r, g, b, a = ab:GetRGBColorFor(self.element)
+	self.Display:SetColorTexture(r, g, b, a)
+end
+
 function Layout:OnShow()
 	self.cfg = ab.cfg.layout
 	for i, button in pairs(self.Buttons) do
@@ -217,7 +252,7 @@ function Layout:CreateHeader(...)
 	for i, info in pairs({...}) do
 		local object = frame['Create' .. info.type](frame, unpack(info.setup))
 		local anchor = frame.Objects[i-1]
-		object['Set' .. info.data](object, info.val)
+		object['Set' .. info.data](object, type(info.val) == 'table' and unpack(info.val) or info.val)
 		object:SetPoint('LEFT', anchor or frame, anchor and 'RIGHT' or 'LEFT', info.x or 0, info.y or 0)
 		frame.Objects[#frame.Objects + 1] = object
 	end
@@ -322,6 +357,39 @@ function WindowMixin:CreateLayoutModule()
 		layout:AddButton(frame)
 	end
 
+	-- Color header
+	local colors = layout:CreateHeader(
+		{val = 'Colors:', x = 0, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
+		{val = 'Border', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
+		{val = 'Cooldown', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
+		{val = 'Tint', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
+		{val = 'Bars', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}}
+	)
+
+	for i, id in pairs({'borderRGB', 'swipeRGB', 'tintRGB', 'expRGB'}) do
+		local color = CreateFrame('Button', nil, colors)
+		color:SetSize(24, 24)
+		color:SetPoint('RIGHT', colors.Objects[i+1], 'LEFT', -8, 0)
+		color.Display = color:CreateTexture(nil, 'ARTWORK')
+		color.Display:SetAllPoints()
+		color:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+		color.id = id
+		color.element = id:gsub('RGB', '')
+		color.Callback = function(revertRGB)
+			if revertRGB then
+				ab.cfg[id] = revertRGB
+			else
+				local r, g, b = ColorPickerFrame:GetColorRGB()
+				local a = OpacitySliderFrame:GetValue()
+				ab.cfg[id] = {r, g, b, 1 - a}
+			end
+			color.Display:SetColorTexture(unpack(ab.cfg[id]))
+			Bar:OnLoad(ab.cfg, true)
+		end,
+		db.table.mixin(color, Color)
+	end
+
+	-- Button header
 	layout:CreateHeader(
 		{val = 'Size', x = 78, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
 		{val = 'Anchor', x = 67, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
@@ -329,6 +397,7 @@ function WindowMixin:CreateLayoutModule()
 		{val = 'Y', x = 58, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
 		{val = 'Facing', x = 52, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}}
 	)
+
 	local prev
 	for binding in ConsolePort:GetBindings() do
 		local button = layout:CreateButton(binding)
@@ -339,6 +408,7 @@ function WindowMixin:CreateLayoutModule()
 		prev = button
 		layout:AddButton(button, 12, 0)
 	end
+
 	local popout = CreateFrame('Button', '$parentPopout', self)
 	popout:SetSize(16, 16)
 	popout:SetFrameLevel(10)
@@ -377,6 +447,9 @@ ab.configuration = ConsolePortConfig:AddPanel({
 		if not self.Layout then
 			self:CreateLayoutModule()
 		end
+		self.Color = CreateFrame('ColorSelect')
+		self.Color:SetPoint('TOPRIGHT')
+		self.Color:SetSize(100, 100)
 	end
 })
 

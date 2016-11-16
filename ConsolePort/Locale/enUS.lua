@@ -172,6 +172,7 @@ TUTORIAL = {
 		CVAR_NOEXISTS 		= 'Error! Variable |cffffe00a%s|r isn\'t registered.\nType |cffffe00a/cp cvar|r for complete list.',
 		CVAR_PRINTING 		= 'Printing cvars...',
 		CVAR_WARNING 		= '|cFFFF1111WARNING:|r Editing variables may cause errors. Proceed with caution!',
+		CVAR_WARNING_NULL 	= '|cFFFF1111WARNING:|r A setting variable has been nullified.\nIf you receive errors, please revert this change and |cffffe00a/reload|r.',
 		ACTIONBAR_SHOW 		= 'Modify controller action bar',
 		ACTIONBAR_NOEXISTS 	= 'This command requires ConsolePortBar to be enabled.',
 		TYPE				= '|cffffe00a(ID)|r Change controller type',
@@ -271,7 +272,8 @@ ACTIONBAR = {
 	CFG_QUICKMENU 		= 'Show quick menu',
 	CFG_MOUSE_ENABLE 	= 'Width/scale on mouse wheel',
 	CFG_ART_UNDERLAY 	= 'Show class art underlay',
-	CFG_ART_TINT		= 'Show class tint',
+	CFG_ART_TINT		= 'Show color tint',
+	CFG_COLOR_TOOLTIP 	= '|cFFFF0000%s|r |cFF00FF00%s|r |cFF0000FF%s|r |cFFFFFFFF%s|r\nLeft click: change color.\nRight click: reset color.',
 	-----------------------------------------------------------
 },
 HEADERS = {

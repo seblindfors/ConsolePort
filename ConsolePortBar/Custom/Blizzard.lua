@@ -101,7 +101,11 @@ do
 				bar.OverlayFrame.Text:SetPoint('CENTER', bar.OverlayFrame, 'CENTER', 0, 1)
 			end
 			if #visible == 1 then
-				statusBar:SetStatusBarColor(red, green, blue)
+				if ab.cfg and ab.cfg.expRGB then
+					statusBar:SetStatusBarColor(unpack(ab.cfg.expRGB))
+				else
+					statusBar:SetStatusBarColor(red, green, blue)
+				end
 			else
 				statusBar:SetStatusBarColor(bar.red, bar.green, bar.blue, bar.alpha)
 			end

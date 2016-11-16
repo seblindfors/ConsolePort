@@ -1,4 +1,5 @@
 local addOn, ab = ...
+local r, g, b = ConsolePort:GetData().Atlas.GetNormalizedCC()
 
 function ab:GetBindingIcon(binding)
 	local icons = {
@@ -77,6 +78,30 @@ function ab:GetDefaultButtonLayout(button)
 	end
 end
 
+function ab:GetRGBColorFor(element, default)
+	local cfg = ab.cfg
+	local defaultColors = {
+		tint 	= {r, g, b, 1},
+		border 	=  {1, 1, 1, 1},
+		swipe 	= {r, g, b, 1},
+		exp 	= {r, g, b, 1},
+	}
+	if default then
+		if defaultColors[element] then
+			return unpack(defaultColors[element])
+		end
+	end
+	local current = {
+		tint 	= cfg.tintRGB or defaultColors.tint,
+		border 	= cfg.borderRGB or defaultColors.border,
+		swipe 	= cfg.swipeRGB or defaultColors.swipe,
+		exp 	= cfg.expRGB or defaultColors.exp,
+	}
+	if current[element] then
+		return unpack(current[element])
+	end
+end
+
 function ab:GetDefaultSettings()
 	return 	{
 		scale = 0.9,
@@ -86,6 +111,19 @@ function ab:GetDefaultSettings()
 		lock = true,
 		layout = ab:GetDefaultButtonLayout()
 	}
+end
+
+function ab:GetColorGradient(red, green, blue)
+	local gBase = 0.15
+	local gMulti = 1.2
+	local startAlpha = 0.25
+	local endAlpha = 0
+	local gradient = {
+		'VERTICAL',
+		(red + gBase) * gMulti, (green + gBase) * gMulti, (blue + gBase) * gMulti, startAlpha,
+		1 - (red + gBase) * gMulti, 1 - (green + gBase) * gMulti, 1 - (blue + gBase) * gMulti, endAlpha,
+	}
+	return unpack(gradient)
 end
 
 function ab:GetSimpleSettings()

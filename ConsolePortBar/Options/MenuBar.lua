@@ -42,23 +42,11 @@ Bar.BottomLine:SetTexCoord(0.00195313, 0.81835938, 0.00195313, 0.01562500)
 Bar.BottomLine:SetHeight(7)
 Bar.BottomLine:SetPoint('BOTTOMLEFT', 0, 16)
 Bar.BottomLine:SetPoint('BOTTOMRIGHT', 0, 16)
-Bar.BottomLine:SetVertexColor(red, green, blue, 1)
 
 Bar.CoverArt = Bar:CreateTexture(nil, 'BACKGROUND')
 Bar.CoverArt:SetPoint('CENTER', 0, 74)
 Bar.CoverArt:SetSize(768, 192)
 
-local gBase = 0.15
-local gMulti = 1.2
-local startAlpha = 0.25
-local endAlpha = 0
-local classGradient = {
-	'VERTICAL',
-	(red + gBase) * gMulti, (green + gBase) * gMulti, (blue + gBase) * gMulti, startAlpha,
-	1 - (red + gBase) * gMulti, 1 - (green + gBase) * gMulti, 1 - (blue + gBase) * gMulti, endAlpha,
-}
-
-Bar.BG:SetGradientAlpha(unpack(classGradient))
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 

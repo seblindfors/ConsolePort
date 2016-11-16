@@ -200,7 +200,12 @@ function ConsolePort:LoadSettings()
 			elseif value == "false" then value = false
 			elseif tonumber(value) then value = tonumber(value)
 			end
-			if type(original) ~= type(value) then
+			if value == "nil" then
+				db.Settings[cvar] = nil
+				PrintHeader()
+				print(format(SLASH.CVAR_APPLIED, cvar, 'nullified'))
+				print(SLASH.CVAR_WARNING_NULL)
+			elseif type(original) ~= type(value) then
 				PrintHeader()
 				print(format(SLASH.CVAR_MISMATCH, cvar, type(original)))
 			else

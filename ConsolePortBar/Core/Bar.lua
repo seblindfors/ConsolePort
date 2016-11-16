@@ -122,6 +122,7 @@ function Bar:OnMouseWheel(delta)
 end
 
 function Bar:OnLoad(cfg, benign)
+	local r, g, b = db.Atlas.GetNormalizedCC()
 	ab.cfg = cfg
 	ConsolePortBarSetup = cfg
 	self:SetScale(cfg.scale or 1)
@@ -172,6 +173,14 @@ function Bar:OnLoad(cfg, benign)
 		self.BottomLine:Hide()
 	end
 
+	if cfg.tintRGB then
+		self.BG:SetGradientAlpha(ab:GetColorGradient(unpack(cfg.tintRGB)))
+		self.BottomLine:SetVertexColor(unpack(cfg.tintRGB))
+	else
+		self.BG:SetGradientAlpha(ab:GetColorGradient(r, g, b))
+		self.BottomLine:SetVertexColor(r, g, b, 1)
+	end
+
 	-- Show quick menu buttons
 	self.Menu:SetShown(cfg.quickMenu)
 
@@ -194,6 +203,8 @@ function Bar:OnLoad(cfg, benign)
 	cfg.layout = cfg.layout or ab:GetDefaultButtonLayout()
 
 	local layout = cfg.layout
+	local swipeRGB = cfg.swipeRGB
+	local borderRGB = cfg.borderRGB
 	for binding in ConsolePort:GetBindings() do
 		local position = layout[binding]
 		local wrapper = WrapperLib:Get(binding) or WrapperLib:Create(self, binding, position and position.dir)
@@ -206,6 +217,13 @@ function Bar:OnLoad(cfg, benign)
 		else
 			wrapper:Hide()
 		end
+
+		if swipeRGB then wrapper:SetSwipeColor(unpack(swipeRGB))
+		else wrapper:SetSwipeColor(r, g, b, 1) end
+
+		if borderRGB then wrapper:SetBorderColor(unpack(borderRGB))
+		else wrapper:SetBorderColor(1, 1, 1, 1) end
+
 		self.Buttons[#self.Buttons + 1] = wrapper
 	end
 

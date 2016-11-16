@@ -7,6 +7,36 @@
 
 local _, db = ...
 
+do 
+	-- Give default UI action buttons their correct action IDs.
+	-- This is to make it easier to distinguish action buttons,
+	-- since action bar addons use this attribute to perform actions.
+	-- Blizzard's own system does not use the attribute by default,
+	-- instead resorting to table keys to determine correct action.
+	-- Assigning the attribute manually unifies default UI with addons.
+	local bars = {
+		["ActionButton"] = 1,
+		["MultiBarRightButton"] = 3,
+		["MultiBarLeftButton"] = 4,
+		["MultiBarBottomRightButton"] = 5,
+		["MultiBarBottomLeftButton"] = 6,
+	}
+
+	for bar, page in pairs(bars) do
+		for btn=1, 12 do
+			local button = _G[bar..btn]
+			button:SetAttribute("action", (12 * (page - 1)) + btn)
+		end
+	end
+
+	ExtraActionButton1:SetAttribute("action", 169)
+
+	for i=1, 6 do
+		_G["OverrideActionBarButton"..i]:SetAttribute("action", 132 + i)
+	end
+end
+
+
 function ConsolePort:LoadHookScripts()
 	-- Click instruction hooks. Pending removal for cleaner solution
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
@@ -77,33 +107,6 @@ function ConsolePort:LoadHookScripts()
 	StackSplitFrame:EnableKeyboard(false)
 	-- Remove the need to type "DELETE" when removing rare or better quality items
 	StaticPopupDialogs.DELETE_GOOD_ITEM = StaticPopupDialogs.DELETE_ITEM
-
-	-- Give default UI action buttons their correct action IDs.
-	-- This is to make it easier to distinguish action buttons,
-	-- since action bar addons use this attribute to perform actions.
-	-- Blizzard's own system does not use the attribute by default,
-	-- instead resorting to table keys to determine correct action.
-	-- Assigning the attribute manually unifies default UI with addons.
-	local bars = {
-		["ActionButton"] = 1,
-		["MultiBarRightButton"] = 3,
-		["MultiBarLeftButton"] = 4,
-		["MultiBarBottomRightButton"] = 5,
-		["MultiBarBottomLeftButton"] = 6,
-	}
-
-	for bar, page in pairs(bars) do
-		for btn=1, 12 do
-			local button = _G[bar..btn]
-			button:SetAttribute("action", (12 * (page - 1)) + btn)
-		end
-	end
-
-	ExtraActionButton1:SetAttribute("action", 169)
-
-	for i=1, 6 do
-		_G["OverrideActionBarButton"..i]:SetAttribute("action", 132 + i)
-	end
 
 	-- This hook might cause issues, but refines the interaction
 	-- with dropdowns. This causes separators and arrow buttons to

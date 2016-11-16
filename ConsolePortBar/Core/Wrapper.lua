@@ -119,7 +119,7 @@ local config = {
 	flyoutDirection = "UP",
 }
 ---------------------------------------------------------------
-local function CreateHotkeyLib(self, num)
+local function CreateHotkeyFrame(self, num)
 	local hotkey = CreateFrame("Frame", "$parent_HOTKEY"..( num or "" ), self)
 	hotkey.texture = hotkey:CreateTexture("$parent_TEXTURE", "OVERLAY", nil, 7)
 	hotkey.texture:SetTexture(db.ICONS[id])
@@ -139,7 +139,6 @@ function Lib:CreateButton(parent, id, name, modifier, size, texSize, config, tem
 	-- Big button
 	if modifier == "" then
 		button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
-		button.cooldown:SetSwipeColor(db.Atlas.GetNormalizedCC())
 	else -- Small button
 		button.icon:SetMask("Interface\\RAIDFRAME\\UI-RaidFrame-Threat")
 	end
@@ -197,8 +196,6 @@ function Wrapper:SetPoint(...)
 	end
 end
 
---local size, smallSize, tSize, ofs, ofsB = 64, 50, 90, 25, 4
-
 function Wrapper:SetSize(new)
 	-- NYI
 	local main = self[""]
@@ -255,6 +252,32 @@ function Wrapper:UpdateOrientation(orientation)
 	self:SetSize(self[""]:GetSize())
 end
 
+function Wrapper:SetSwipeColor(r, g, b, a)
+	self.SwipeColor = {r, g, b, a}
+	local main = self[""]
+	main.cooldown:SetSwipeColor(r, g, b, a)
+end
+
+function Wrapper:GetSwipeColor()
+	if self.SwipeColor then
+		return unpack(self.SwipeColor)
+	end
+end
+
+function Wrapper:SetBorderColor(r, g, b, a)
+	self.BorderColor = {r, g, b, a}
+	for mod, button in pairs(self.Buttons) do
+		button.NormalTexture:SetVertexColor(r, g, b, a)
+	end
+end
+
+function Wrapper:GetBorderColor()
+	if self.BorderColor then
+		return unpack(self.BorderColor)
+	end
+end
+
+
 function Wrapper:SetRebindButton()
 	-- Messy code to focus this button in the rebinder
 	if not InCombatLockdown() then
@@ -292,7 +315,7 @@ function Lib:Create(parent, id, orientation)
 		wrapper.Buttons[mod] = button
 		if hotkeyConfig[mod] then
 			for i, modHotkey in pairs(hotkeyConfig[mod]) do
-				local hotkey = CreateHotkeyLib(button, i)
+				local hotkey = CreateHotkeyFrame(button, i)
 				hotkey:SetPoint(unpack(modHotkey[1]))
 				hotkey:SetSize(unpack(modHotkey[2]))
 				hotkey.texture:SetTexture(db.ICONS[modHotkey[3]])
