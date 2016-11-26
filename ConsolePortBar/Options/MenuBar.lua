@@ -2,9 +2,6 @@ local addOn, ab = ...
 local db = ConsolePort:GetData()
 local Bar = ab.bar
 ---------------------------------------------------------------
-local class = select(2, UnitClass('player'))
----------------------------------------------------------------
-local red, green, blue = db.Atlas.GetNormalizedCC()
 -- Set up buttons on the bar.
 ---------------------------------------------------------------
 local Eye = CreateFrame('Button', '$parentShowHideButtons', Bar, 'SecureActionButtonTemplate')
@@ -108,11 +105,11 @@ end
 
 function Eye:OnEnter()
 	local texture_esc = '|T%s:24:24:0:0|t'
-	self.tooltipText = 	format(db.ACTIONBAR.EYE_HEADER, ab.cfg.lock and db.ACTIONBAR.EYE_LOCKED or db.ACTIONBAR.EYE_UNLOCKED) .. '\n' ..
-						format(db.ACTIONBAR.EYE_LEFTCLICK, format(texture_esc, db.ICONS.CP_T_L3)) .. '\n' ..
-						format(db.ACTIONBAR.EYE_RIGHTCLICK, format(texture_esc, db.ICONS.CP_T_R3)) .. '\n' ..
-						format(db.ACTIONBAR.EYE_LEFTCLICK_SHIFT, format(texture_esc, db.ICONS.CP_M1), format(texture_esc, db.ICONS.CP_T_L3)) .. '\n' ..
-						format(db.ACTIONBAR.EYE_LEFTCLICK_CTRL, format(texture_esc, db.ICONS.CP_M2), format(texture_esc, db.ICONS.CP_T_L3)) .. '\n' ..
+	self.tooltipText = 	db.ACTIONBAR.EYE_HEADER:format(ab.cfg.lock and db.ACTIONBAR.EYE_LOCKED or db.ACTIONBAR.EYE_UNLOCKED) .. '\n' ..
+						db.ACTIONBAR.EYE_LEFTCLICK:format(texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
+						db.ACTIONBAR.EYE_RIGHTCLICK:format(texture_esc:format(db.ICONS.CP_T_R3)) .. '\n' ..
+						db.ACTIONBAR.EYE_LEFTCLICK_SHIFT:format(texture_esc:format(db.ICONS.CP_M1), texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
+						db.ACTIONBAR.EYE_LEFTCLICK_CTRL:format(texture_esc:format(db.ICONS.CP_M2), texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
 						db.ACTIONBAR.EYE_SCROLL .. '\n' ..
 						db.ACTIONBAR.EYE_SCROLL_SHIFT
 	GameTooltip:Hide()
@@ -193,7 +190,10 @@ Menu:SetScript('OnEnter', function(self)
 			['CTRL-'] = BINDING_NAME_CP_M2,
 			['CTRL-SHIFT-'] = BINDING_NAME_CP_M1..BINDING_NAME_CP_M2,
 		}
-		self.tooltipText = mods[mod].._G['BINDING_NAME_'..key]..'  |c'..RAID_CLASS_COLORS[class].colorStr..MAINMENU_BUTTON
+		self.tooltipText = 
+				mods[mod] .. _G['BINDING_NAME_' .. key] 
+				.. '  |c' .. RAID_CLASS_COLORS[select(2, UnitClass('player'))].colorStr
+				.. MAINMENU_BUTTON
 	else
 		self.tooltipText = MicroButtonTooltipText(MAINMENU_BUTTON, 'TOGGLEGAMEMENU')
 	end
@@ -229,7 +229,7 @@ for i, bag in pairs(Bar.Elements.Bags) do
 end
 
 Bag:SetScript('OnClick', function(self)
-	if IsModifiedClick("OPENALLBAGS") then
+	if IsModifiedClick('OPENALLBAGS') then
 		ToggleAllBags()
 	else
 		for _, bag in pairs(Bar.Elements.Bags) do

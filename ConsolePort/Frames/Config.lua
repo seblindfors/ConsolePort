@@ -15,17 +15,6 @@ local Scroll = CreateFrame("ScrollFrame", "$parentBannerScroll", Config)
 local Category = CreateFrame("Frame", "$parentCategories", Scroll)
 local Container = CreateFrame("Frame", "$parentContainer", Config)
 ---------------------------------------------------------------
--- beta
-Config.BetaCorner = CreateFrame("Frame", nil, Config)
-Config.BetaCorner:SetFrameLevel(3)
-Config.BetaCorner:SetPoint("TOPRIGHT", -16, -16)
-Config.BetaCorner:SetSize(70, 70)
-Config.Beta = Config.BetaCorner:CreateTexture(nil, "ARTWORK")
-Config.Beta:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UIAsset")
-Config.Beta:SetTexCoord(0.9121, 1, 0, 0.0878)
-Config.Beta:SetSize(70, 70)
-Config.Beta:SetPoint("TOPRIGHT")
----------------------------------------------------------------
 ConsolePort.configFrame = Config
 Config.Category = Category
 Config.Container = Container

@@ -6,20 +6,20 @@
 ---------------------------------------------------------------
 local _, db = ...
 ---------------------------------------------------------------
-		-- Upvalue menu and main frame due to frequent calls
-local 	GameMenu, Core, 
+		-- Upvalue main frame due to frequent calls
+local 	Core, 
 		-- General functions
 		After, SetHook, IsLoaded,
 		-- Table functions
 		pairs, next,
 		-- Stacks: all frames, visible frames, show/hide hooks
-		frameStack, visibleStack, hookStack, customStack,
+		frames, visible, hooks, forbidden, custom,
 		-- Boolean checks (default nil)
 		hasUIFocus, isLocked, isEnabled, updateQueued =
 		-------------------------------------
-		GameMenuFrame, ConsolePort,
+		ConsolePort,
 		C_Timer.After, hooksecurefunc, IsAddOnLoaded,
-		pairs, next, {}, {}, {}
+		pairs, next, {}, {}, {}, {}
 ---------------------------------------------------------------
 
 function Core:HasUIFocus() return hasUIFocus end
@@ -92,10 +92,10 @@ for flag, nodes in pairs({
 -- Use After to circumvent omitting frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
 local function showHook(self)
-	if isEnabled and frameStack[self] then
+	if isEnabled and frames[self] then
 		updateQueued = true
 		After(0.02, function()
-			visibleStack[self] = self:GetPoint() and self:IsVisible() and true or nil
+			visible[self] = self:GetPoint() and self:IsVisible() and true or nil
 			if updateQueued then
 				updateQueued = false
 				Core:UpdateFrames()
@@ -108,19 +108,21 @@ end
 -- which leads to the cursor ending up in an unexpected place on re-show.
 -- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
 local function hideHook(self, explicit)
-	if isEnabled and frameStack[self] then
+	if isEnabled and frames[self] then
 		After(0.02, function()
 			if explicit or not self:IsVisible() then
 				hasUIFocus = nil
-				visibleStack[self] = nil
+				visible[self] = nil
 				Core:UpdateFrames()
 			end
 		end)
 	end
 end
 
-hookStack[getmetatable(UIParent).__index.Show] = true
-hookStack[getmetatable(UIParent).__index.Hide] = true 
+-- Cache default methods so that frames with unaltered
+-- metatables use hook scripts instead of a secure hook.
+hooks[getmetatable(UIParent).__index.Show] = true
+hooks[getmetatable(UIParent).__index.Hide] = true 
 
 -- When adding a new frame:
 -- Store metatable functions for hooking show/hide scripts.
@@ -130,27 +132,27 @@ function Core:AddFrame(frame)
 	local widget = (type(frame) == "string" and _G[frame]) or (type(frame) == "table" and frame)
 	if widget then
 		-- assert the frame isn't hooked twice
-		if not frameStack[widget] then
+		if ( not frames[widget] ) and ( not forbidden[widget] ) then
 			local mt = getmetatable(widget).__index
 
-			if not hookStack[mt.Show] then
+			if not hooks[mt.Show] then
 				SetHook(mt, "Show", showHook)
-				hookStack[mt.Show] = true
+				hooks[mt.Show] = true
 			else
 				widget:HookScript("OnShow", showHook)
 			end
 
-			if not hookStack[mt.Hide] then
+			if not hooks[mt.Hide] then
 				SetHook(mt, "Hide", hideHook)
-				hookStack[mt.Hide] = true
+				hooks[mt.Hide] = true
 			else
 				widget:HookScript("OnHide", hideHook)
 			end
 		end
 
-		frameStack[widget] = true
+		frames[widget] = true
 		if widget:IsVisible() and widget:GetPoint() then
-			visibleStack[widget] = true
+			visible[widget] = true
 		end
 		return true
 	else
@@ -160,8 +162,22 @@ end
 
 function Core:RemoveFrame(frame)
 	if frame then
-		visibleStack[frame] = nil
-		frameStack[frame] = nil
+		visible[frame] = nil
+		frames[frame] = nil
+	end
+end
+
+function Core:ForbidFrame(frame)
+	if frames[frame] then
+		forbidden[frame] = true
+		self:RemoveFrame(frame)
+	end
+end
+
+function Core:UnforbidFrame(frame)
+	if forbidden[frame] then
+		self:AddFrame(frame)
+		forbidden[frame] = nil
 	end
 end
 
@@ -195,13 +211,13 @@ end
 function Core:UpdateFrames()
 	if not isLocked then
 		self:UpdateFrameTracker()
-		if next(visibleStack) then
+		if next(visible) then
 			if not hasUIFocus then
 				hasUIFocus = true
 				self:SetButtonOverride(true)
 				if not self:UIControl() then
 					-- there are visible frames, but no eligible nodes -> flag frames as hidden.
-					for frame in pairs(visibleStack) do
+					for frame in pairs(visible) do
 						hideHook(frame, true)
 					end
 				end
@@ -214,28 +230,16 @@ end
 
 -- Returns a stack of visible frames.
 function Core:GetFrameStack()
-	if customStack then
-		return customStack
-	elseif GameMenu:IsVisible() then
-		local fullStack = {}
-		for _, frame in pairs({UIParent:GetChildren()}) do
-			if not frame:IsForbidden() and frame:IsVisible() then
-				fullStack[frame] = true
-			end
-		end
-		return fullStack
-	else
-		return visibleStack
-	end
+	return custom or visible
 end
 
 function Core:SetFrameStack(stack)
-	customStack = stack
+	custom = stack
 end
 
 function Core:IsFrameVisible(...)
 	for i, frame in pairs({...}) do
-		if visibleStack[frame] then
+		if visible[frame] then
 			return true
 		end
 	end

@@ -191,7 +191,7 @@ function Camera:OnRightClick()
 end
 
 function Camera:OnLeftClickDown()
-	if db.Settings.lookAround then
+	if Camera.lookAround then
 		wasMouseLooking = IsMouselooking()
 		if wasMouseLooking then
 			Camera:Stop()
@@ -200,7 +200,7 @@ function Camera:OnLeftClickDown()
 end
 
 function Camera:OnLeftClickUp()
-	if wasMouseLooking and db.Settings.lookAround and not isTargeting then
+	if wasMouseLooking and Camera.lookAround and not isTargeting then
 		Camera:Start()
 	end
 	wasMouseLooking = nil
@@ -247,6 +247,7 @@ function Core:UpdateCameraDriver()
 	Camera.Deadzone:SetSize(Settings.centerLockDeadzoneX or 4, Settings.centerLockDeadzoneY or 4)
 
 	numTap, modTap, timer, interactPushback, highlightTimer = 0, 0, 0, 0, 0
+	Camera.lookAround = nil
 
 	if not Settings.disableSmartMouse then
 		Camera:HookScript("OnUpdate", Camera.CheckCursor)
@@ -263,8 +264,11 @@ function Core:UpdateCameraDriver()
 			Camera:RegisterEvent("MODIFIER_STATE_CHANGED")
 			Camera:HookScript("OnUpdate", Camera.CheckDoubleTap)
 		end
-		if db.Mouse.Camera and db.Mouse.Camera.calculateYaw then
-			Camera:HookScript("OnUpdate", Camera.CalculateYaw)
+		if db.Mouse.Camera then
+			if db.Mouse.Camera.calculateYaw then
+				Camera:HookScript("OnUpdate", Camera.CalculateYaw)
+			end
+			Camera.lookAround = db.Mouse.Camera.lookAround
 		end
 	end
 

@@ -79,7 +79,7 @@ db.Controllers.STEAM = {
 		},
 		['CP_R_DOWN'] = {
 			[''] 			= 'JUMP',
-			['SHIFT-']	 	= 'TARGETNEARESTENEMY',
+			['SHIFT-']	 	= 'TARGETSCANENEMY',
 			['CTRL-']  		= 'INTERACTMOUSEOVER',
 			['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
@@ -95,16 +95,12 @@ db.Controllers.STEAM = {
 			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON3',
 			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON8',
 		},
-		-- Trigger buttons
+		-- Trigger buttons (crappy on SC)
 		['CP_T1'] = {
-			[''] 			= 'PREVIOUSACTIONPAGE',
-			['SHIFT-']	 	= 'STOPATTACK',
-			['CTRL-'] 		= 'TARGETSELF',
+			[''] 			= 'TARGETSELF',
 		},
 		['CP_T2'] = {
-			[''] 			= 'NEXTACTIONPAGE',
-			['SHIFT-']	 	= 'FOLLOWTARGET',
-			['CTRL-'] 		= 'TOGGLERUN',
+			[''] 			= 'TOGGLERUN',
 		},
 		-- Left touch pad
 		['CP_L_UP'] = {

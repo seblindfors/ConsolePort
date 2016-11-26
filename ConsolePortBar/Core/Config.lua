@@ -447,9 +447,6 @@ ab.configuration = ConsolePortConfig:AddPanel({
 		if not self.Layout then
 			self:CreateLayoutModule()
 		end
-		self.Color = CreateFrame('ColorSelect')
-		self.Color:SetPoint('TOPRIGHT')
-		self.Color:SetSize(100, 100)
 	end
 })
 

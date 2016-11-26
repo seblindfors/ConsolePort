@@ -8,6 +8,7 @@
 local _, db = ...
 
 local CVars = {
+	TargetNearestUseOld 	= 	{value = 0},
 	autoLootDefault 		= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
 	autoInteract 			= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
 }
@@ -19,10 +20,6 @@ function ConsolePort:LoadDefaultCVars()
 		else
 			info.default = GetCVar(cvar)
 		end
-	end
-	-- Temporary target scan fix
-	if db.Settings.targetScanFix then
-		SetCVar('TargetNearestUseOld', 0)
 	end
 	self.LoadDefaultCVars = nil
 end

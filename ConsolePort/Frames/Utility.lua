@@ -15,15 +15,13 @@ local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
 local GetItemCooldown = GetItemCooldown
 local InCombatLockdown = InCombatLockdown
 ---------------------------------------------------------------
-local pairs, select = pairs, select
----------------------------------------------------------------
 local 	Utility, Tooltip, Animation, AniCircle = 
 		CreateFrame("Frame", "ConsolePortUtilityFrame", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate"),
 		CreateFrame("GameTooltip", "ConsolePortUtilityTooltip", ConsolePortUtilityFrame, "GameTooltipTemplate"),
 		CreateFrame("Frame", "ConsolePortUtilityAnimation", UIParent),
 		CreateFrame("Frame", "ConsolePortUtilityAnimationCircle", UIParent)
 ---------------------------------------------------------------
-local ActionButtons, ButtonMixin, Watches, OldIndex = {}, {}, {}, 0
+local ActionButtons, ButtonMixin = {}, {}
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
 local colMul = 1 + ( 1 - (( red + green + blue ) / 3) )
@@ -55,6 +53,7 @@ function Animation:ShowNewAction(actionButton, autoAssigned)
 	self.Group:Stop()
 	self.Group:Play()
 	FadeOut(self.Spell, 3, 0.15, 0)
+
 	if ConsolePortUtility[actionButton.ID] then
 		local value = ConsolePortUtility[actionButton.ID].value
 		local binding = ConsolePort:GetFormattedBindingOwner("CLICK ConsolePortUtilityToggle:LeftButton", nil, nil, true)
@@ -113,14 +112,14 @@ end
 
 local function CheckQuestWatches(self)
 	if not InCombatLockdown() then
-		wipe(Watches)
+		local questWatches = {}
 		for i=1, GetNumQuestWatches() do
 			local watchIndex = GetQuestIndexForWatch(i)
 			if watchIndex then
-				Watches[watchIndex] = true
+				questWatches[watchIndex] = true
 			end
 		end
-		for questID in pairs(Watches) do
+		for questID in pairs(questWatches) do
 			if GetQuestLogSpecialItemInfo(questID) then
 				local name, link, _, _, _, class, sub, _, _, texture = GetItemInfo(GetQuestLogSpecialItemInfo(questID))
 				if link then
@@ -143,14 +142,7 @@ function Tooltip:Refresh()
 end
 
 function Tooltip:OnShow()
-	-- edge file fractioned pixel fix, pretty unncessary
-	local width, height = self:GetSize()
-	width, height = floor(width + 0.5) + 4, floor(height + 0.5) + 4
-	local point, anchor, relative, x, y = self:GetPoint()
 	self.castButton = ConsolePort:GetCurrentBindingOwner("CLICK ConsolePortUtilityToggle:LeftButton")
-	self:ClearAllPoints()
-	self:SetPoint(point, anchor, relative, floor(x + 0.5), floor(y + 0.5))
-	self:SetSize(width - (width % 2), height - (height % 2))
 	-- set CC backdrop
 	self:SetBackdropColor(red*0.15, green*0.15, blue*0.15,  0.75)
 	self:Refresh()
@@ -192,7 +184,7 @@ end
 function Utility:OnAttributeChanged(attribute, detail)
 	if attribute == "index" then
 		local actionButton = ActionButtons[detail]
-		local oldButton = ActionButtons[OldIndex]
+		local oldButton = ActionButtons[self.oldID]
 		if oldButton then
 			oldButton:OnLeave()
 		end
@@ -240,7 +232,7 @@ function Utility:OnAttributeChanged(attribute, detail)
 			self.Spell:ClearAllPoints()
 			self.Spell:Hide()
 		end
-		OldIndex = detail
+		self.oldID = detail
 	end
 end
 
@@ -266,7 +258,6 @@ function Utility:OnUpdate(elapsed)
 		self:DisplayHints(elapsed)
 	end
 	if self.newAngle ~= self.currAngle then
-	--	local diff = self.newAngle - self.currAngle
 		local dist = (self.newAngle - self.currAngle)
 		local smoothVal = abs(dist / ANI_SPEED) ^ ANI_SMOOTH
 		local diff = dist < 0 and -smoothVal or smoothVal

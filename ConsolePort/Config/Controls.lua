@@ -22,45 +22,48 @@ local 	Settings, TUTORIAL, TEXTURE, ICONS,
 -- Controls: Account-wide addon CVars.
 ---------------------------------------------------------------
 local function GetAddonSettings()
+	local L = TUTORIAL.CONFIG
 	return {
-		{	desc = TUTORIAL.CONFIG.MOUSEHANDLE },
+		{	desc = L.MOUSEHANDLE },
 		{	cvar = "turnCharacter",
-			desc = TUTORIAL.CONFIG.TURNMOVE,
+			desc = L.TURNMOVE,
 			state = Settings.turnCharacter,
 			needReload = true, 
 		},
 		{	cvar = "preventMouseDrift",
-			desc = TUTORIAL.CONFIG.MOUSEDRIFTING,
+			desc = L.MOUSEDRIFTING,
 			state = Settings.preventMouseDrift,
 		},
 		{	cvar = "doubleModTap",
-			desc = format(TUTORIAL.CONFIG.DOUBLEMODTAP, ICONS.CP_M1, ICONS.CP_M2),
+			desc = L.DOUBLEMODTAP:format(ICONS.CP_M1, ICONS.CP_M2),
 			state = Settings.doubleModTap,
 		},
-		{	cvar = "lookAround",
-			desc = format(TUTORIAL.CONFIG.LOOKAROUND, ICONS.CP_T_L3),
-			state = Settings.disableSmartMouse
-		},
 		{	cvar = "disableSmartMouse",
-			desc = TUTORIAL.CONFIG.DISABLEMOUSE,
+			desc = L.DISABLEMOUSE,
 			state = Settings.disableSmartMouse,
 		},
+		{	desc = L.TARGETING },
 		{	cvar = "raidCursorDirect",
-			desc = TUTORIAL.CONFIG.RAIDCURSORDIRECT,
+			desc = L.RAIDCURSORDIRECT,
 			state = Settings.raidCursorDirect,
 			needReload = true,
 		},
-		{	desc = TUTORIAL.CONFIG.CONVENIENCE },
+		{
+			cvar = "TargetNearestUseOld",
+			desc = L.TARGETALGORITHM,
+			state = Settings.TargetNearestUseOld,
+		},
+		{	desc = L.CONVENIENCE },
 		{	cvar = "autoExtra",
-			desc = TUTORIAL.CONFIG.AUTOEXTRA,
+			desc = L.AUTOEXTRA,
 			state = Settings.autoExtra,
 		},
 		{	cvar = "autoLootDefault",
-			desc = TUTORIAL.CONFIG.AUTOLOOT,
+			desc = L.AUTOLOOT,
 			state = Settings.autoLootDefault,
 		},
 		{	cvar = "autoSellJunk",
-			desc = TUTORIAL.CONFIG.AUTOSELL,
+			desc = L.AUTOSELL,
 			state = Settings.autoSellJunk,
 		},
 		{	cvar = "disableHints",
@@ -138,6 +141,11 @@ local function GetCameraSettings()
 		},
 		{	cvar 	= "calculateYaw",
 			desc 	= L.TARGETYAW,
+			value 	= true,
+			default = false,
+		},
+		{	cvar 	= "lookAround",
+			desc 	= L.LOOKAROUND:format(ICONS.CP_T_L3),
 			value 	= true,
 			default = false,
 		},
@@ -692,10 +700,11 @@ db.PANELS[#db.PANELS + 1] = {name = "Controls", header = CONTROLS_LABEL, mixin =
 
 		Controls.Camera = {}
 		local offsetY = 0
+		local camvals = db.Mouse and db.Mouse.Camera
 		for i, setting in pairs(GetCameraSettings()) do
 			if type(setting.value) ~= "table" then
 				offsetY = offsetY + 1
-				local state = tostring(setting.value) == tostring(GetCVar(setting.cvar) or '')
+				local state = tostring(setting.value) == tostring(camvals and camvals[setting.cvar] or '')
 				local check = CreateCheckButton(i, setting.cvar, setting.desc, state, setting.value, setting.default)
 				check:SetPoint("TOPLEFT", 24, -30 * offsetY - 18)
 				tinsert(Controls.Camera, check)
@@ -705,7 +714,7 @@ db.PANELS[#db.PANELS + 1] = {name = "Controls", header = CONTROLS_LABEL, mixin =
 				text:SetText(setting.desc)
 				text:SetPoint("TOPLEFT", 24, -30 * ( offsetY - 1 ) - 24)
 				local checks = {}
-				local state = GetCVar(setting.cvar)
+				local state = camvals and tostring(camvals[setting.cvar] or '')
 				for j, val in pairs(setting.value) do
 					local check = CreateCheckButton(i..j, setting.cvar, setting[j], state == tostring(val), val)
 					if checks[j - 1] then

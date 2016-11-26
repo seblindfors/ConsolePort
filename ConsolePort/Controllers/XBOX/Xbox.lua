@@ -98,7 +98,7 @@ db.Controllers.XBOX = {
 		-- Trigger buttons
 		['CP_T1'] =	{
 			['']		 	= 'ACTIONBUTTON4',
-			['SHIFT-'] 		= 'TARGETNEARESTENEMY',
+			['SHIFT-'] 		= 'TARGETSCANENEMY',
 			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON4',
 			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON9',
 		},
@@ -144,7 +144,6 @@ db.Controllers.XBOX = {
 			['']		 	= 'TOGGLECHARACTER0',
 			['SHIFT-'] 		= 'TOGGLESPELLBOOK',
 			['CTRL-'] 		= 'TOGGLETALENTS',
-			['CTRL-SHIFT-'] = 'CLICK ConsolePortNameplateCycle:LeftButton',
 		},
 		['CP_X_RIGHT'] = {
 			['']		 	= 'TOGGLEGAMEMENU',

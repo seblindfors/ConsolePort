@@ -1,4 +1,5 @@
 <Bindings>
+	<!-- Calibration -->
 	<Binding name="CP_L_UP" header="CP_LEFT" category="ConsolePort "/>
 	<Binding name="CP_L_DOWN" header="CP_LEFT" category="ConsolePort "/>
 	<Binding name="CP_L_LEFT" header="CP_LEFT" category="ConsolePort "/>

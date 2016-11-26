@@ -97,7 +97,7 @@ db.Controllers.PS4 = {
 		-- Trigger buttons
 		['CP_T1'] =	{
 			[''] 			= 'ACTIONBUTTON4',
-			['SHIFT-'] 		= 'TARGETNEARESTENEMY',
+			['SHIFT-'] 		= 'TARGETSCANENEMY',
 			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON4',
 			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON9',
 		},
@@ -149,7 +149,6 @@ db.Controllers.PS4 = {
 			[''] 			= 'TOGGLEWORLDMAP',
 			['SHIFT-'] 		= 'CP_CAMZOOMOUT',
 			['CTRL-'] 		= 'CP_CAMZOOMIN',
-			['CTRL-SHIFT-'] = 'CLICK ConsolePortNameplateCycle:LeftButton',
 		},
 		-- Stick buttons
 		['CP_T_R3'] = {},
