@@ -15,19 +15,19 @@ function ConsolePort:LoadEvents()
 	MouseEvents = db.Mouse.Events
 	-- Default events
 	local Events = {
-		["ADDON_LOADED"] 			= false,
-		["CURRENT_SPELL_CAST_CHANGED"] = false,
-		["CVAR_UPDATE"]				= false,
-		["PLAYER_LOGOUT"] 			= false,
-		["PLAYER_STARTED_MOVING"] 	= false,
-		["PLAYER_REGEN_DISABLED"] 	= false,
-		["PLAYER_REGEN_ENABLED"] 	= false,
-		["SPELLS_CHANGED"] 			= false,
-		["UPDATE_BINDINGS"] 		= false,
-		["VARIABLES_LOADED"] 		= false,
-		["QUEST_AUTOCOMPLETE"] 		= false,
-		["WORLD_MAP_UPDATE"] 		= false,
-		["UNIT_ENTERING_VEHICLE"] 	= false,
+		['ADDON_LOADED'] 			= false,
+		['CURRENT_SPELL_CAST_CHANGED'] = false,
+		['CVAR_UPDATE']				= false,
+		['PLAYER_LOGOUT'] 			= false,
+		['PLAYER_STARTED_MOVING'] 	= false,
+		['PLAYER_REGEN_DISABLED'] 	= false,
+		['PLAYER_REGEN_ENABLED'] 	= false,
+		['SPELLS_CHANGED'] 			= false,
+		['UPDATE_BINDINGS'] 		= false,
+		['VARIABLES_LOADED'] 		= false,
+		['QUEST_AUTOCOMPLETE'] 		= false,
+		['WORLD_MAP_UPDATE'] 		= false,
+		['UNIT_ENTERING_VEHICLE'] 	= false,
 	}
 	-- Union of general events and mouse look events
 	for event, val in pairs(MouseEvents) do
@@ -59,13 +59,13 @@ local Events = {}
 local Loaded = false
 
 function Events:PLAYER_TARGET_CHANGED(...)
-	if UnitExists("target") then
+	if UnitExists('target') then
 		After(0.02, function()
-			if IsMouselookEvent("PLAYER_TARGET_CHANGED") and
+			if IsMouselookEvent('PLAYER_TARGET_CHANGED') and
 				GetMouseFocus() == WorldFrame and
 				not SpellIsTargeting() and
 				not IsMouseButtonDown(1) then
-				self:StartCamera("PLAYER_TARGET_CHANGED")
+				self:StartCamera('PLAYER_TARGET_CHANGED')
 			end
 		end)
 	end
@@ -100,8 +100,8 @@ end
 
 function Events:UNIT_SPELLCAST_SENT(...)
 	if 	GetMouseFocus() == WorldFrame and
-		IsMouselookEvent("UNIT_SPELLCAST_SENT") then
-		self:StartCamera("UNIT_SPELLCAST_SENT")
+		IsMouselookEvent('UNIT_SPELLCAST_SENT') then
+		self:StartCamera('UNIT_SPELLCAST_SENT')
 	end
 end
 
@@ -113,17 +113,17 @@ end
 
 function Events:UNIT_SPELLCAST_FAILED(...)
 	if 	GetMouseFocus() == WorldFrame and
-		IsMouselookEvent("UNIT_SPELLCAST_FAILED") then
-		self:StartCamera("UNIT_SPELLCAST_FAILED")
+		IsMouselookEvent('UNIT_SPELLCAST_FAILED') then
+		self:StartCamera('UNIT_SPELLCAST_FAILED')
 	end
 end
 
 function Events:UNIT_ENTERING_VEHICLE(...)
 	local unit = ...
-	if unit == "player" then
+	if unit == 'player' then
 		for i=1, NUM_OVERRIDE_BUTTONS do
-			if 	_G["OverrideActionBarButton"..i].HotKey then
-				_G["OverrideActionBarButton"..i].HotKey:Hide()
+			if 	_G['OverrideActionBarButton'..i].HotKey then
+				_G['OverrideActionBarButton'..i].HotKey:Hide()
 			end
 		end
 	end
@@ -166,13 +166,13 @@ function Events:SPELLS_CHANGED(...)
 	if InCombatLockdown() then
 		print(db.TUTORIAL.SLASH.WARNINGCOMBATLOGIN)
 	end
-	self:UnregisterEvent("SPELLS_CHANGED")
+	self:UnregisterEvent('SPELLS_CHANGED')
 	Events.SPELLS_CHANGED = nil
 end
 
 function Events:ADDON_LOADED(...)
 	local name = ...
-	if name == "ConsolePort" then
+	if name == 'ConsolePort' then
 		self:LoadSettings()
 		self:LoadActionPager(db.Settings.pagedriver, db.Settings.pageresponse)
 		self:LoadControllerTheme()
@@ -184,8 +184,8 @@ function Events:ADDON_LOADED(...)
 		self:OnNewBindings()
 		self:CreateConfigPanel()
 		self:CreateActionButtons()
-		self:ToggleUICore()
 		self:SetupCursor()
+		self:ToggleUICore()
 		self:CheckLoadedAddons()
 		if not self.calibrationFrame then
 			self:CheckLoadedSettings()
@@ -221,5 +221,5 @@ local function OnEvent (self, event, ...)
 	self:CheckMouselookEvent(event)
 end
 
-ConsolePort:RegisterEvent("ADDON_LOADED")
-ConsolePort:SetScript("OnEvent", OnEvent)
+ConsolePort:RegisterEvent('ADDON_LOADED')
+ConsolePort:SetScript('OnEvent', OnEvent)

@@ -1,7 +1,7 @@
 local addOn, ab = ...
 local db = ab.data
 local Bar = ab.bar
-local WindowMixin, Layout, Button, Position, Color, Bool = {}, {}, {}, {}, {}, {}
+local WindowMixin, Layout, Button, Position, Color, Bool, Profiler, Preset = {}, {}, {}, {}, {}, {}, {}, {}
 
 local VALID_POINTS = {
 	TOP = true, 
@@ -65,7 +65,7 @@ end
 function Button:UpdateButton(id, setting, value)
 	local entry = self.Layout.cfg[self.Binding]
 	local settings = entry and entry[setting]
-	if type(settings) == "table" then
+	if type(settings) == 'table' then
 		settings[id] = value
 	else
 		entry[setting] = value
@@ -246,7 +246,7 @@ function Layout:OnHide()
 end
 
 function Layout:CreateHeader(...)
-	local frame = CreateFrame('Frame', nil, self)
+	local frame = CreateFrame('Frame', nil, self.Child)
 	frame:SetSize(1, 42)
 	frame.Objects = {}
 	for i, info in pairs({...}) do
@@ -261,7 +261,7 @@ function Layout:CreateHeader(...)
 end
 
 function Layout:CreateButton(binding, icon)
-	local button = CreateFrame('CheckButton', '$parent'..binding, self, "ChatConfigCheckButtonTemplate")
+	local button = CreateFrame('CheckButton', '$parent'..binding, self.Child, 'ChatConfigCheckButtonTemplate')
 	button.Layout = self
 	button.Binding = binding
 	button.Wrapper = ab.libs.registry[binding]
@@ -305,7 +305,7 @@ function Layout:CreateButton(binding, icon)
 end
 
 function Layout:CreateBooleanSwitch(cvar, desc)
-	local button = CreateFrame('CheckButton', '$parent'..cvar, self, 'ChatConfigCheckButtonTemplate')
+	local button = CreateFrame('CheckButton', '$parent'..cvar, self.Child, 'ChatConfigCheckButtonTemplate')
 	button.text = button:CreateFontString(nil, 'OVERLAY', 'FocusFontSmall')
 	button.text:SetPoint('LEFT', 30, 0)
 	button.text:SetText(desc)
@@ -315,9 +315,141 @@ function Layout:CreateBooleanSwitch(cvar, desc)
 	return button
 end
 
+function Preset:SetData(name, cfg, class)
+	local viewer = self.Viewer
+	self.cfg = db.table.copy(cfg)
+	self:SetText((class and '|c'..RAID_CLASS_COLORS[class].colorStr..name) or name)
+
+	if self.cfg then
+		for binding, data in pairs(self.cfg.layout) do
+			viewer.Pins[binding] = viewer.Pins[binding] or viewer:CreateTexture(nil, 'ARTWORK')
+			
+			local pin = viewer.Pins[binding]
+			pin:SetTexture(db.ICONS[binding])
+
+			local p, xOff, yOff = unpack(data.point)
+			local s = data.size or 64
+
+			xOff = xOff * 0.25
+			yOff = yOff * 0.25
+			s = s * 0.25
+
+			pin:SetPoint(p, xOff, yOff)
+			pin:SetSize(s, s)
+
+		end
+		viewer:SetWidth((self.cfg.width or 1105) * 0.25)
+		if self.cfg.showart then		
+			local art, coords = ab:GetCover()
+			if art and coords then
+				viewer.Art:SetTexture(art)
+				viewer.Art:SetTexCoord(unpack(coords))
+				viewer.Art:Show()
+			else
+				viewer.Art:Hide()
+			end
+		end
+		self:Show()
+	end
+end
+
+function Preset:OnClick()
+	Bar:OnLoad(db.table.copy(self.cfg))
+	self.Layout:Hide()
+	self.Layout:Show()
+end
+
+function Preset:OnEnter()
+	local settings = ab:GetSimpleSettings(self.cfg)
+	local ttLine = '|T%s:24:24:0:0|t %s'
+	local yes, no = 'Interface\\RAIDFRAME\\ReadyCheck-Ready', 'Interface\\RAIDFRAME\\ReadyCheck-NotReady'
+	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+	GameTooltip:AddLine(self.Label:GetText())
+	for _, data in pairs(settings) do
+		GameTooltip:AddLine(ttLine:format(data.toggle and yes or no, data.desc))
+	end
+	GameTooltip:Show()
+end
+
+function Preset:OnLeave()
+	GameTooltip:Hide()
+end
+
+function Profiler:CreatePreset()
+	local id = self.numActive
+	local preset = db.Atlas.GetFutureButton('$parentPreset'..id, self.Child, nil, nil, 300, 46, true)
+	local viewer = CreateFrame('Frame', '$parentViewer', preset)
+
+	viewer:SetClipsChildren(true)
+	viewer:SetPoint('TOP', preset, 'BOTTOM', 0, 0)
+	viewer:SetSize(250, 84)
+	viewer.Pins = {}
+
+
+	viewer.Line = viewer:CreateTexture(nil, 'BACKGROUND', nil, 3)
+	viewer.Line:SetPoint('TOP', 0, 0)
+	viewer.Line:SetSize(280, 54)
+
+	viewer.Art = viewer:CreateTexture(nil, 'BACKGROUND', nil, 3)
+	viewer.Art:SetPoint('TOP', 0, 0)
+	viewer.Art:SetSize(280, 54)
+	viewer.Art:SetAlpha(0.5)
+
+	viewer.Line:SetTexture('Interface\\LevelUp\\MinorTalents.blp')
+	viewer.Line:SetTexCoord(0, 0.8164, 0.6660, 0.7968)
+	viewer.Line:SetAlpha(0.35)
+
+	db.table.mixin(preset, Preset)
+
+	preset.Layout = self.Layout
+	preset.Viewer = viewer
+	preset:Show()
+	self:AddButton(preset, 24, 0)
+	self.Buttons[id] = preset
+	return preset
+end
+
+function Profiler:GetPresetFromPool()
+	self.numActive = self.numActive + 1
+	return self.Buttons[self.numActive] or self:CreatePreset()
+end
+
+function Profiler:AddPreset(name, cfg, class)
+	local profile = self:GetPresetFromPool()
+	profile:SetData(name, cfg, class)
+end
+
+function Profiler:OnShow()
+	self.numActive = 0
+	for _, profile in pairs(self.Buttons) do
+		profile:Hide()
+	end
+	local default = ab:GetDefaultSettings()
+	local current = ab.cfg
+	local compare = db.table.compare
+
+	self:AddPreset(REFORGE_CURRENT, current)
+
+	for name, settings in db.table.spairs(ab:GetPresets()) do
+		self:AddPreset(name, settings)
+	end
+
+	if ConsolePortCharacterSettings then
+		for character, settings in db.table.spairs(ConsolePortCharacterSettings) do
+			if settings.Bar then
+				local setup = settings.Bar
+				if not compare(setup, default) and not compare(setup, current) then 
+					self:AddPreset(character, setup, settings.Class)
+				end
+			end
+		end
+	end
+	self:Refresh(self.numActive)
+end
+
 function WindowMixin:Default()
 	Bar:OnLoad(ab:GetDefaultSettings())
-	if self.Layout:IsVisible() then
+	if self.Layout and self.Layout:IsVisible() then
 		self.Layout:Hide()
 		self.Layout:Show()
 	end
@@ -325,7 +457,7 @@ end
 
 function WindowMixin:Save()
 	Bar:OnLoad(ab.cfg)
-	return nil, "Bar", ab.cfg
+	return nil, 'Bar', ( not db.table.compare(ab.cfg, ab:GetDefaultSettings()) and ab.cfg)
 end
 
 function WindowMixin:Cancel()
@@ -412,7 +544,7 @@ function WindowMixin:CreateLayoutModule()
 	local popout = CreateFrame('Button', '$parentPopout', self)
 	popout:SetSize(16, 16)
 	popout:SetFrameLevel(10)
-	popout:SetPoint('TOPRIGHT', layout, 'TOPRIGHT', 16, 0)
+	popout:SetPoint('TOPLEFT', layout, 'TOPLEFT', -4, 4)
 	popout:SetNormalTexture('Interface\\AddOns\\ConsolePortBar\\Textures\\Popout')
 	popout:SetScript('OnClick', function()
 		ConsolePortPopup:SetPopup(BINDING_HEADER_ACTIONBAR, layout, nil, nil, 600, 580)
@@ -423,11 +555,28 @@ function WindowMixin:CreateLayoutModule()
 	layout.Panel = self
 	self.Layout = layout
 	self.Layout:OnShow()
+	self.CreateLayoutModule = nil
 	return layout
 end
 
 function WindowMixin:GetLayoutModule()
 	return self.Layout or self:CreateLayoutModule()
+end
+
+function WindowMixin:CreateProfiler()
+	local profiler = db.Atlas.GetScrollFrame('$parentProfiler', self, {
+		childKey = 'List',
+		childWidth = 330,
+		stepSize = 100,
+	})
+	profiler:SetPoint('TOPRIGHT', -52, -32)
+	profiler:SetSize(330, 600)
+	profiler.numActive = 0
+	-- layout will exist at this point.
+	profiler.Layout = self.Layout
+	db.table.mixin(profiler, Profiler)
+	self.CreateProfiler = nil
+	return profiler
 end
 
 function WindowMixin:OnShow()
@@ -447,6 +596,7 @@ ab.configuration = ConsolePortConfig:AddPanel({
 		if not self.Layout then
 			self:CreateLayoutModule()
 		end
+		self.Presets = self:CreateProfiler()
 	end
 })
 

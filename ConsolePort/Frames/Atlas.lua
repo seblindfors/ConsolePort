@@ -457,7 +457,7 @@ Atlas.GetScrollFrame = function(name, parent, config)
 
 	self.Child = child
 	self:SetScrollChild(child)
-	self:SetClipsChildren(child)
+	self:SetToplevel(true)
 
 	child:SetWidth(childWidth or 0)
 

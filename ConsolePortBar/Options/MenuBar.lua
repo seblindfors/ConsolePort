@@ -1,5 +1,6 @@
 local addOn, ab = ...
 local db = ConsolePort:GetData()
+local L = db.ACTIONBAR
 local Bar = ab.bar
 ---------------------------------------------------------------
 -- Set up buttons on the bar.
@@ -105,13 +106,13 @@ end
 
 function Eye:OnEnter()
 	local texture_esc = '|T%s:24:24:0:0|t'
-	self.tooltipText = 	db.ACTIONBAR.EYE_HEADER:format(ab.cfg.lock and db.ACTIONBAR.EYE_LOCKED or db.ACTIONBAR.EYE_UNLOCKED) .. '\n' ..
-						db.ACTIONBAR.EYE_LEFTCLICK:format(texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
-						db.ACTIONBAR.EYE_RIGHTCLICK:format(texture_esc:format(db.ICONS.CP_T_R3)) .. '\n' ..
-						db.ACTIONBAR.EYE_LEFTCLICK_SHIFT:format(texture_esc:format(db.ICONS.CP_M1), texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
-						db.ACTIONBAR.EYE_LEFTCLICK_CTRL:format(texture_esc:format(db.ICONS.CP_M2), texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
-						db.ACTIONBAR.EYE_SCROLL .. '\n' ..
-						db.ACTIONBAR.EYE_SCROLL_SHIFT
+	self.tooltipText = 	L.EYE_HEADER:format(ab.cfg.lock and L.EYE_LOCKED or L.EYE_UNLOCKED) .. '\n' ..
+						L.EYE_LEFTCLICK:format(texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
+						L.EYE_RIGHTCLICK:format(texture_esc:format(db.ICONS.CP_T_R3)) .. '\n' ..
+						L.EYE_LEFTCLICK_SHIFT:format(texture_esc:format(db.ICONS.CP_M1), texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
+						L.EYE_LEFTCLICK_CTRL:format(texture_esc:format(db.ICONS.CP_M2), texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
+						L.EYE_SCROLL .. '\n' ..
+						L.EYE_SCROLL_SHIFT
 	GameTooltip:Hide()
 	GameTooltip:SetOwner(self, 'ANCHOR_TOP')
 	GameTooltip:SetText(self.tooltipText)

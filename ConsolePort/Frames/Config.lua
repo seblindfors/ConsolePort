@@ -26,7 +26,7 @@ Config.Obstructor:SetFrameLevel(100)
 ---------------------------------------------------------------
 Config.Close:Hide()
 Config:SetFrameStrata("DIALOG")
-Config:SetSize(1000, 800)
+Config:SetSize(1000, 768)
 Config:SetPoint("CENTER", 0, 0)
 Config:EnableMouse(true)
 Config:EnableKeyboard(true)
@@ -47,14 +47,14 @@ Category.PrevIcon:SetPoint("RIGHT", Category, "LEFT", 0, 0)
 Scroll.StepSize = 100
 Scroll:SetScrollChild(Category)
 Scroll:SetWidth(1000)
-Scroll:SetPoint("TOPLEFT", Config, 16, -34)
-Scroll:SetPoint("BOTTOMRIGHT", Config, "TOPRIGHT", -16, -80)
+Scroll:SetPoint("TOPLEFT", Config, 16, -16)
+Scroll:SetPoint("BOTTOMRIGHT", Config, "TOPRIGHT", -16, -68)
 ---------------------------------------------------------------
 Category.Buttons = {}
-Category:SetHeight(46)
+Category:SetHeight(32)
 Category:SetPoint("CENTER", 0, 0)
 ---------------------------------------------------------------
-Container:SetPoint("TOPLEFT", Config, "TOPLEFT", 8, -80)
+Container:SetPoint("TOPLEFT", Config, "TOPLEFT", 8, -48)
 Container:SetPoint("BOTTOMRIGHT", Config, "BOTTOMRIGHT", -8, 54)
 ---------------------------------------------------------------
 Container.Frames = {}
@@ -338,6 +338,7 @@ function Container:ShowFrame(id)
 	self.id = index
 	Category.Buttons[self.id].hasPriority = true
 	Category.Buttons[self.id].SelectedTexture:Show()
+	Default:SetShown(not self.Current.noDefault)
 	return self.Current, self.id
 end
 
@@ -354,7 +355,7 @@ end
 
 function Category:AddNew(header, bannerAtlas)
 	local id = #self.Buttons+1
-	local banner = db.Atlas.GetFutureButton("$parentHeader"..id, self, nil, bannerAtlas, 150, nil, true)
+	local banner = db.Atlas.GetFutureButton("$parentHeader"..id, self, nil, bannerAtlas, 125, 32, true)
 	banner.id = id
 	banner:SetText(header)
 	banner:SetScript("OnClick", CategoryOnClick)
@@ -405,6 +406,7 @@ function WindowMixin:AddPanel(info)
 	Mixin(frame, mixin)
 
 	frame.IDtag = name
+	frame.noDefault = info.noDefault
 	frame:SetID(id)
 	frame:SetParent(self)
 	frame:SetAllPoints(Container)

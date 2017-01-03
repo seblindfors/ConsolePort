@@ -12,7 +12,6 @@ local state, now = ConsolePort:GetActionPageDriver()
 local BAR_MIN_WIDTH = 1105
 local BAR_MAX_SCALE = 1.6
 local BAR_FIXED_HEIGHT = 140
-local BUTTON_LAYOUT
 
 -- Set up action bar
 ---------------------------------------------------------------
@@ -138,19 +137,24 @@ function Bar:OnLoad(cfg, benign)
 		self:FadeIn(self:GetAlpha())
 	end
 
+	-- Bar vis driver
 	local visDriver = '[petbattle][vehicleui][overridebar] hide; show'
-
 	if cfg.combathide then
 		visDriver = '[combat]' .. visDriver
 	end
 
-	if cfg.combatpethide then
+	RegisterStateDriver(Bar, 'visibility', visDriver)
+
+	-- Pet driver
+	if cfg.hidepet then
+		UnregisterStateDriver(Bar.Pet, 'visibility')
+		Bar.Pet:Hide()
+	elseif cfg.combatpethide then
 		RegisterStateDriver(Bar.Pet, 'visibility', '[pet,nocombat] show; hide')
 	else
 		RegisterStateDriver(Bar.Pet, 'visibility', '[pet] show; hide')
 	end
 	
-	RegisterStateDriver(Bar, 'visibility', visDriver)
 
 	-- Set action bar art
 	if cfg.showart then

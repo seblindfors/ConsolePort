@@ -781,43 +781,45 @@ function ConsolePort:SetupCursor()
 	Cursor:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
 ---------------------------------------------------------------
-Cursor.Tip = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
-Cursor.Tip:SetTexture("Interface\\CURSOR\\Item")
-Cursor.Tip:SetAllPoints(Cursor)
+do
+	Cursor.Tip = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
+	Cursor.Tip:SetTexture("Interface\\CURSOR\\Item")
+	Cursor.Tip:SetAllPoints(Cursor)
 
-Cursor.Button = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
-Cursor.Button:SetPoint("CENTER", 4, -4)
-Cursor.Button:SetSize(32, 32)
+	Cursor.Button = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
+	Cursor.Button:SetPoint("CENTER", 4, -4)
+	Cursor.Button:SetSize(32, 32)
 
-Cursor.Highlight = Cursor:CreateTexture(nil, "OVERLAY")
+	Cursor.Highlight = Cursor:CreateTexture(nil, "OVERLAY")
 
-Cursor:SetFrameStrata("TOOLTIP")
-Cursor:SetSize(32,32)
-Cursor.Timer = 0
+	Cursor:SetFrameStrata("TOOLTIP")
+	Cursor:SetSize(32,32)
+	Cursor.Timer = 0
 
-Cursor.Scaling = Cursor:CreateAnimationGroup()
-Cursor.Scaling:SetScript("OnFinished", Cursor.ScaleOnFinished)
+	Cursor.Scaling = Cursor:CreateAnimationGroup()
+	Cursor.Scaling:SetScript("OnFinished", Cursor.ScaleOnFinished)
 
-Cursor.Moving = Cursor:CreateAnimationGroup()
-Cursor.Moving:SetScript("OnFinished", Cursor.MoveOnFinished)
+	Cursor.Moving = Cursor:CreateAnimationGroup()
+	Cursor.Moving:SetScript("OnFinished", Cursor.MoveOnFinished)
 
-Cursor.Translate = Cursor.Moving:CreateAnimation("Translation")
-Cursor.Translate:SetSmoothing("OUT")
-Cursor.Translate:SetDuration(0.05)
+	Cursor.Translate = Cursor.Moving:CreateAnimation("Translation")
+	Cursor.Translate:SetSmoothing("OUT")
+	Cursor.Translate:SetDuration(0.05)
 
-Cursor.Pointer = CreateFrame("Frame")
-Cursor.Pointer:SetSize(32, 32)
+	Cursor.Pointer = CreateFrame("Frame")
+	Cursor.Pointer:SetSize(32, 32)
 
-Cursor.Enlarge = Cursor.Scaling:CreateAnimation("Scale")
-Cursor.Enlarge:SetDuration(0.1)
-Cursor.Enlarge:SetOrder(1)
-Cursor.Enlarge:SetSmoothing("OUT")
-Cursor.Enlarge:SetOrigin("CENTER", 0, 0)
+	Cursor.Enlarge = Cursor.Scaling:CreateAnimation("Scale")
+	Cursor.Enlarge:SetDuration(0.1)
+	Cursor.Enlarge:SetOrder(1)
+	Cursor.Enlarge:SetSmoothing("OUT")
+	Cursor.Enlarge:SetOrigin("CENTER", 0, 0)
 
-Cursor.Shrink = Cursor.Scaling:CreateAnimation("Scale")
-Cursor.Shrink:SetSmoothing("IN")
-Cursor.Shrink:SetOrigin("CENTER", 0, 0)
-Cursor.Shrink:SetOrder(2)
+	Cursor.Shrink = Cursor.Scaling:CreateAnimation("Scale")
+	Cursor.Shrink:SetSmoothing("IN")
+	Cursor.Shrink:SetOrigin("CENTER", 0, 0)
+	Cursor.Shrink:SetOrder(2)
+end
 ---------------------------------------------------------------
 
 -- Horizontal scroll wrappers

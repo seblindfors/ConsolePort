@@ -11,48 +11,48 @@ local LibRegistry = {}
 ab.libs.registry = LibRegistry
 ---------------------------------------------------------------
 local TEX_PATH = [[Interface\AddOns\]]..an..[[\Textures\%s]]
-local NOT_BOUND_TOOLTIP = NOT_BOUND .. "\n" .. db.TUTORIAL.BIND.TOOLTIPCLICK
+local NOT_BOUND_TOOLTIP = NOT_BOUND .. '\n' .. db.TUTORIAL.BIND.TOOLTIPCLICK
 ---------------------------------------------------------------
 local size, smallSize, tSize, ofs, ofsB = 64, 50, 90, 25, 4
 local mods = {
-	[""] = {size = {size, size}},
-	["SHIFT-"] 	= {size = {smallSize, tSize}, 
-		down 	= {rad(-180), {"TOPRIGHT", "BOTTOMLEFT", ofs, ofs}},
-		up 		= {rad(90), {"BOTTOMRIGHT", "TOPLEFT", ofs, -ofs}},
-		left 	= {rad(90), {"BOTTOMRIGHT", "TOPLEFT", ofs, -ofs}},
-		right 	= {0, {"BOTTOMLEFT", "TOPRIGHT", -ofs, -ofs}},
+	[''] = {size = {size, size}},
+	['SHIFT-'] 	= {size = {smallSize, tSize}, 
+		down 	= {rad(-180), {'TOPRIGHT', 'BOTTOMLEFT', ofs, ofs}},
+		up 		= {rad(90), {'BOTTOMRIGHT', 'TOPLEFT', ofs, -ofs}},
+		left 	= {rad(90), {'BOTTOMRIGHT', 'TOPLEFT', ofs, -ofs}},
+		right 	= {0, {'BOTTOMLEFT', 'TOPRIGHT', -ofs, -ofs}},
 	},
-	["CTRL-"] 	= {size = {smallSize, tSize}, 
-		down 	= {0, {"TOPLEFT", "BOTTOMRIGHT", -ofs, ofs}},
-		up 		= {rad(90), {"BOTTOMLEFT", "TOPRIGHT", -ofs, -ofs}},
-		left 	= {rad(-90), {"TOPRIGHT", "BOTTOMLEFT", ofs, ofs}},
-		right 	= {0, {"TOPLEFT", "BOTTOMRIGHT", -ofs, ofs}},
+	['CTRL-'] 	= {size = {smallSize, tSize}, 
+		down 	= {0, {'TOPLEFT', 'BOTTOMRIGHT', -ofs, ofs}},
+		up 		= {rad(90), {'BOTTOMLEFT', 'TOPRIGHT', -ofs, -ofs}},
+		left 	= {rad(-90), {'TOPRIGHT', 'BOTTOMLEFT', ofs, ofs}},
+		right 	= {0, {'TOPLEFT', 'BOTTOMRIGHT', -ofs, ofs}},
 	},
-	["CTRL-SHIFT-"] = {size = {smallSize, tSize},
-		down 	= {rad(-90), {"TOP", "BOTTOM", 0, ofsB}},
-		up 		= {rad(90), {"BOTTOM", "TOP", 0, -ofsB}},
-		left 	= {rad(180), {"RIGHT", "LEFT", ofsB, 0}},
-		right 	= {0, {"LEFT", "RIGHT", -ofsB, 0}},
+	['CTRL-SHIFT-'] = {size = {smallSize, tSize},
+		down 	= {rad(-90), {'TOP', 'BOTTOM', 0, ofsB}},
+		up 		= {rad(90), {'BOTTOM', 'TOP', 0, -ofsB}},
+		left 	= {rad(180), {'RIGHT', 'LEFT', ofsB, 0}},
+		right 	= {0, {'LEFT', 'RIGHT', -ofsB, 0}},
 	},
 }
 local adjustTextures = {
-	"Border",
-	"NormalTexture",
-	"HighlightTexture",
-	"PushedTexture",
-	"CheckedTexture",
-	"NewActionTexture",
+	'Border',
+	'NormalTexture',
+	'HighlightTexture',
+	'PushedTexture',
+	'CheckedTexture',
+	'NewActionTexture',
 }
 ---------------------------------------------------------------
 local hotkeyConfig = {
-	["SHIFT-"] = {{{"CENTER", 0, 0}, {24, 24}, "CP_M1"}},
-	["CTRL-"] = {{{"CENTER", 0, 0}, {24, 24}, "CP_M2"}},
-	["CTRL-SHIFT-"] = {{{"CENTER", -6, 0}, {24, 24}, "CP_M1"}, {{"CENTER", 6, 0}, {24, 24}, "CP_M2"}},
+	['SHIFT-'] = {{{'CENTER', 0, 0}, {24, 24}, 'CP_M1'}},
+	['CTRL-'] = {{{'CENTER', 0, 0}, {24, 24}, 'CP_M2'}},
+	['CTRL-SHIFT-'] = {{{'CENTER', -6, 0}, {24, 24}, 'CP_M1'}, {{'CENTER', 6, 0}, {24, 24}, 'CP_M2'}},
 }
 
 ---------------------------------------------------------------
 local buttonTextures = {
-	[""] = {
+	[''] = {
 		normal = format(TEX_PATH, [[Button\BigNormal]]),
 		pushed = format(TEX_PATH, [[Button\BigPushed]]),
 		hilite = format(TEX_PATH, [[Button\BigHilite]]),
@@ -64,7 +64,7 @@ local buttonTextures = {
 		cool_charge = format(TEX_PATH, [[Cooldown\Charge]]),
 		cool_bling 	= format(TEX_PATH, [[Cooldown\Bling]]),
 	},
-	["SHIFT-"] = {
+	['SHIFT-'] = {
 		normal = format(TEX_PATH, [[Button\M1]]),
 		pushed = format(TEX_PATH, [[Button\M1]]),
 		border = format(TEX_PATH, [[Button\M1]]),
@@ -76,7 +76,7 @@ local buttonTextures = {
 		cool_charge = format(TEX_PATH, [[Cooldown\SwipeSmall]]),
 		cool_bling 	= format(TEX_PATH, [[Cooldown\Bling]]),
 	},
-	["CTRL-"] = {
+	['CTRL-'] = {
 		normal = format(TEX_PATH, [[Button\M2]]),
 		pushed = format(TEX_PATH, [[Button\M2]]),
 		border = format(TEX_PATH, [[Button\M2]]),
@@ -88,7 +88,7 @@ local buttonTextures = {
 		cool_charge = format(TEX_PATH, [[Cooldown\SwipeSmall]]),
 		cool_bling 	= format(TEX_PATH, [[Cooldown\Bling]]),
 	},
-	["CTRL-SHIFT-"] = {
+	['CTRL-SHIFT-'] = {
 		normal = format(TEX_PATH, [[Button\M3]]),
 		pushed = format(TEX_PATH, [[Button\M3]]),
 		border = format(TEX_PATH, [[Button\M3]]),
@@ -104,7 +104,7 @@ local buttonTextures = {
 
 ---------------------------------------------------------------
 local config = {
-	tooltip = "enabled",
+	tooltip = 'enabled',
 	showGrid = true,
 	colors = {
 		range = { 0.8, 0.1, 0.1 },
@@ -116,12 +116,12 @@ local config = {
 	},
 	keyBoundTarget = false,
 	clickOnDown = true,
-	flyoutDirection = "UP",
+	flyoutDirection = 'UP',
 }
 ---------------------------------------------------------------
 local function CreateHotkeyFrame(self, num)
-	local hotkey = CreateFrame("Frame", "$parent_HOTKEY"..( num or "" ), self)
-	hotkey.texture = hotkey:CreateTexture("$parent_TEXTURE", "OVERLAY", nil, 7)
+	local hotkey = CreateFrame('Frame', '$parent_HOTKEY'..( num or '' ), self)
+	hotkey.texture = hotkey:CreateTexture('$parent_TEXTURE', 'OVERLAY', nil, 7)
 	hotkey.texture:SetTexture(db.ICONS[id])
 	hotkey.texture:SetAllPoints()
 	return hotkey
@@ -137,10 +137,10 @@ function Lib:CreateButton(parent, id, name, modifier, size, texSize, config, tem
 	local textures = buttonTextures[modifier]
 
 	-- Big button
-	if modifier == "" then
-		button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+	if modifier == '' then
+		button.icon:SetMask('Interface\\Minimap\\UI-Minimap-Background')
 	else -- Small button
-		button.icon:SetMask("Interface\\RAIDFRAME\\UI-RaidFrame-Threat")
+		button.icon:SetMask('Interface\\RAIDFRAME\\UI-RaidFrame-Threat')
 	end
 
 	button.NewActionTexture:SetTexture(textures.new_action)
@@ -163,7 +163,7 @@ function Lib:CreateButton(parent, id, name, modifier, size, texSize, config, tem
 	for _, name in pairs(adjustTextures) do
 		local texture = button[name]
 		texture:ClearAllPoints()
-		texture:SetPoint("CENTER", 0, 0)
+		texture:SetPoint('CENTER', 0, 0)
 		texture:SetSize(texSize, texSize)
 	end
 
@@ -177,18 +177,18 @@ function Wrapper:Show()
 	for _, button in pairs(self.Buttons) do
 		button:Show()
 	end
-	self[""].shadow:Show()
+	self[''].shadow:Show()
 end
 
 function Wrapper:Hide()
 	for _, button in pairs(self.Buttons) do
 		button:Hide()
 	end
-	self[""].shadow:Hide()
+	self[''].shadow:Hide()
 end
 
 function Wrapper:SetPoint(...)
-	local main = self[""]
+	local main = self['']
 	local p, x, y = ...
 	main:ClearAllPoints()
 	if p and x and y then
@@ -198,10 +198,10 @@ end
 
 function Wrapper:SetSize(new)
 	-- NYI
-	local main = self[""]
+	local main = self['']
 	for mod, button in pairs(self.Buttons) do
 		local b, t, o
-		if mod == "" then
+		if mod == '' then
 			b = new -- 64
 			t = new
 			o = new * ( 82 / size )
@@ -222,7 +222,7 @@ function Wrapper:SetSize(new)
 		for _, name in pairs(adjustTextures) do
 			local texture = button[name]
 			texture:ClearAllPoints()
-			texture:SetPoint("CENTER", 0, 0)
+			texture:SetPoint('CENTER', 0, 0)
 			texture:SetSize(t, t)
 		end
 		button:SetSize(b, b)
@@ -230,7 +230,7 @@ function Wrapper:SetSize(new)
 end
 
 function Wrapper:UpdateOrientation(orientation)
-	local main = self[""]
+	local main = self['']
 	for mod, button in pairs(self.Buttons) do
 		if not button.isMainButton then
 			button:ClearAllPoints()
@@ -249,12 +249,12 @@ function Wrapper:UpdateOrientation(orientation)
 			end
 		end
 	end
-	self:SetSize(self[""]:GetSize())
+	self:SetSize(self['']:GetSize())
 end
 
 function Wrapper:SetSwipeColor(r, g, b, a)
 	self.SwipeColor = {r, g, b, a}
-	local main = self[""]
+	local main = self['']
 	main.cooldown:SetSwipeColor(r, g, b, a)
 end
 
@@ -281,16 +281,13 @@ end
 function Wrapper:SetRebindButton()
 	-- Messy code to focus this button in the rebinder
 	if not InCombatLockdown() then
-		local bindingBtn = self.confRef
-		ConsolePortConfig:Show()
+		ConsolePortConfig:OpenCategory('Binds')
 		if ConsolePortConfigContainerBinds.Display:GetID() ~= 2 then
 			db.Settings.bindView = 2
 			ConsolePortConfigContainerBinds.Display:SetID(2)
 			ConsolePortConfigContainerBinds:OnShow()
 		end
-		if ConsolePortConfig:GetCategoryID() ~= 2 then
-			ConsolePortConfig:OpenCategory(2)
-		end
+		local bindingBtn = _G[self.confRef]
 		C_Timer.After(0.1, function()
 			if not InCombatLockdown() then
 				ConsolePort:ScrollToNode(bindingBtn, ConsolePortRebindFrame)
@@ -309,7 +306,7 @@ function Lib:Create(parent, id, orientation)
 
 	for mod, info in pairs(mods) do
 		local bSize, tSize = unpack(info.size)
-		local button = Lib:CreateButton(parent, id..mod, "CPB_"..id..mod, mod, bSize, tSize, mod == "" and config)
+		local button = Lib:CreateButton(parent, id..mod, 'CPB_'..id..mod, mod, bSize, tSize, mod == '' and config)
 		button.plainID = id
 		wrapper[mod] = button
 		wrapper.Buttons[mod] = button
@@ -320,23 +317,23 @@ function Lib:Create(parent, id, orientation)
 				hotkey:SetSize(unpack(modHotkey[2]))
 				hotkey.texture:SetTexture(db.ICONS[modHotkey[3]])
 				hotkey:SetAlpha(0.75)
-				button["hotkey"..i] = hotkey
+				button['hotkey'..i] = hotkey
 			end
 		end
 	end
 
-	local main = wrapper[""]
+	local main = wrapper['']
 	main.isMainButton = true
 	main.icons = {}
 
 	for mod, button in pairs(wrapper.Buttons) do
 		if not button.isMainButton then
 			-- Set this button to not update on modifier state
-			button:SetAttribute("_childupdate-state", nil)
+			button:SetAttribute('_childupdate-state', nil)
 			-- Add extra icons to reduce redunant icon updates when holding modifiers
-			local modIcon = main:CreateTexture("$parentIcon"..mod, "BACKGROUND", nil, 2)
+			local modIcon = main:CreateTexture('$parentIcon'..mod, 'BACKGROUND', nil, 2)
 			modIcon:SetAllPoints()
-			modIcon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+			modIcon:SetMask('Interface\\Minimap\\UI-Minimap-Background')
 			modIcon:SetAlpha(0)
 			button.mainIcon = modIcon
 			main.icons[mod] = modIcon
@@ -348,21 +345,21 @@ function Lib:Create(parent, id, orientation)
 
 	db.UIFrameFadeIn(main, 1, 0, 1)
 
-	main.hotkey = CreateFrame("Frame", "$parent_HOTKEY", main)
-	main.hotkey:SetPoint("TOP", 0, 12)
+	main.hotkey = CreateFrame('Frame', '$parent_HOTKEY', main)
+	main.hotkey:SetPoint('TOP', 0, 12)
 	main.hotkey:SetSize(32, 32)
-	main.hotkey.texture = main.hotkey:CreateTexture("$parent_HOTKEY", "OVERLAY", nil, 7)
+	main.hotkey.texture = main.hotkey:CreateTexture('$parent_HOTKEY', 'OVERLAY', nil, 7)
 	main.hotkey.texture:SetTexture(db.ICONS[id])
 	main.hotkey.texture:SetAllPoints()
 
 	main.hotkey:SetFrameLevel(20)
 
 	-- create this as a separate frame so that drop shadow doesn't overlay modifiers
-	main.shadow = CreateFrame("Frame", main:GetName().."_SHADOW", ab.bar)
-	main.shadow:SetPoint("CENTER", main, "CENTER", 0, -6)
+	main.shadow = CreateFrame('Frame', main:GetName()..'_SHADOW', ab.bar)
+	main.shadow:SetPoint('CENTER', main, 'CENTER', 0, -6)
 	main.shadow:SetSize(82, 82)
-	main.shadow.texture = main.shadow:CreateTexture("$parent_shadow", "OVERLAY", nil, 7)
-	main.shadow.texture:SetTexture(format(TEX_PATH, "Button\\BigShadow"))
+	main.shadow.texture = main.shadow:CreateTexture('$parent_shadow', 'OVERLAY', nil, 7)
+	main.shadow.texture:SetTexture(format(TEX_PATH, 'Button\\BigShadow'))
 	main.shadow.texture:SetAllPoints()
 	main.shadow:SetFrameLevel(1)
 	main.shadow:SetAlpha(0.75)
@@ -379,26 +376,26 @@ end
 --- Temporary stuff
 local swapTypes = {
 	swapmain = function(wrapper, id, button, stateType, stateID)
-		if id ~= "" then
-			button:SetState("", stateType, stateID)
-			button:SetState("SHIFT-", stateType, stateID)
-			button:SetState("CTRL-", stateType, stateID)
-			button:SetState("CTRL-SHIFT-", stateType, stateID)
+		if id ~= '' then
+			button:SetState('', stateType, stateID)
+			button:SetState('SHIFT-', stateType, stateID)
+			button:SetState('CTRL-', stateType, stateID)
+			button:SetState('CTRL-SHIFT-', stateType, stateID)
 		end
-		wrapper[""]:SetState(id, stateType, stateID)
+		wrapper['']:SetState(id, stateType, stateID)
 	end,
 	noswap = function(wrapper, id, button, stateType, stateID)
-		button:SetState("", stateType, stateID)
-		button:SetState("SHIFT-", stateType, stateID)
-		button:SetState("CTRL-", stateType, stateID)
-		button:SetState("CTRL-SHIFT-", stateType, stateID)
+		button:SetState('', stateType, stateID)
+		button:SetState('SHIFT-', stateType, stateID)
+		button:SetState('CTRL-', stateType, stateID)
+		button:SetState('CTRL-SHIFT-', stateType, stateID)
 	end,
 }
 
 function Lib:UpdateAllBindings(newBindings)
 	local bindings = newBindings or db.Bindings
 	ClearOverrideBindings(ab.bar)
-	if type(bindings) == "table" then
+	if type(bindings) == 'table' then
 		for binding, wrapper in pairs(LibRegistry) do
 			self:SetState(wrapper, bindings[binding])
 		end
@@ -406,20 +403,20 @@ function Lib:UpdateAllBindings(newBindings)
 end
 
 function Lib:SetEligbleForRebind(button, id)
-	button.confRef = _G[button.plainID..id.."_CONF"]
-	button:SetAttribute("disableDragNDrop", true)
-	button:SetState(id, "custom", {
+	button.confRef = button.plainID..id..'_CONF'
+	button:SetAttribute('disableDragNDrop', true)
+	button:SetState(id, 'custom', {
 		tooltip = NOT_BOUND_TOOLTIP,
-		texture = "Interface\\Icons\\Pet_Type_Mechanical",
+		texture = 'Interface\\Icons\\Pet_Type_Mechanical',
 		func = Wrapper.SetRebindButton,
 	})
 end
 
 function Lib:SetArbitraryBinding(button, binding)
-	button:SetAttribute("disableDragNDrop", true)
-	return "custom", {
-		tooltip = _G["BINDING_NAME_"..binding] or binding,
-		texture = ab:GetBindingIcon(binding) or "Interface\\MacroFrame\\MacroFrame-Icon",
+	button:SetAttribute('disableDragNDrop', true)
+	return 'custom', {
+		tooltip = _G['BINDING_NAME_'..binding] or binding,
+		texture = ab:GetBindingIcon(binding) or 'Interface\\MacroFrame\\MacroFrame-Icon',
 		func = function() end,
 	}
 end
@@ -429,12 +426,12 @@ function Lib:SetActionBinding(button, main, id, actionID)
 	if key then
 		ab.bar:RegisterOverride(id..key, main:GetName())
 	end
-	button:SetAttribute("disableDragNDrop", false)
-	return "action", actionID
+	button:SetAttribute('disableDragNDrop', (ab.cfg and ab.cfg.disablednd and true) or false)
+	return 'action', actionID
 end
 
 function Lib:SetState(wrapper, bindings)
-	local main = wrapper[""]
+	local main = wrapper['']
 
 	if bindings then
 		for id, button in pairs(wrapper.Buttons) do
@@ -448,10 +445,10 @@ function Lib:SetState(wrapper, bindings)
 			else
 				self:SetEligbleForRebind(button, id)
 			end
-			swapTypes["swapmain"](wrapper, id, button, stateType, stateID)
+			swapTypes['swapmain'](wrapper, id, button, stateType, stateID)
 			button:Execute(format([[
-				self:RunAttribute("UpdateState", "%s")
-				self:CallMethod("UpdateAction")
+				self:RunAttribute('UpdateState', '%s')
+				self:CallMethod('UpdateAction')
 			]], id))
 		end
 	else

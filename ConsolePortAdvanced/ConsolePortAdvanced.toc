@@ -1,0 +1,11 @@
+## Interface: 70100
+## Title: Console Port |cff69ccf0Advanced|r
+## Notes: Advanced configuration for Console Port
+## RequiredDeps: ConsolePort
+
+Lib\LibStub.lua
+Lib\LibCompress.lua
+Lib\AceSerializer-3.0.lua
+
+Serializer.lua
+Browser.lua

@@ -182,7 +182,7 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 			end
 		elseif binding then
 			local button = _G[(gsub(gsub(binding, "CLICK ", ""), ":.+", ""))]
-			if button then
+			if type(button) == 'table' and button.IsObjectType then
 				secureBtn:ShowInterfaceHotKey(button)
 			end
 		end

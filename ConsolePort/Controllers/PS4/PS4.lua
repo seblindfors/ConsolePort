@@ -79,7 +79,7 @@ db.Controllers.PS4 = {
 		['CP_R_DOWN'] = {
 			[''] 			= 'JUMP',
 			['SHIFT-'] 		= 'ACTIONBUTTON9',
-			['CTRL-']  		= 'INTERACTMOUSEOVER',
+			['CTRL-']  		= 'EXTRAACTIONBUTTON1',
 			['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton',
 		},
 		['CP_R_LEFT'] = {

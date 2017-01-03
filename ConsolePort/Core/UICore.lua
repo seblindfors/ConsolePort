@@ -91,11 +91,15 @@ for flag, nodes in pairs({
 -- Update the cursor state on visibility change.
 -- Use After to circumvent omitting frames that set their points on show.
 -- Check for point because frames can be visible but not drawn.
+local function updateVisible(self)
+	visible[self] = self:GetPoint() and self:IsVisible() and true or nil
+end
+
 local function showHook(self)
 	if isEnabled and frames[self] then
 		updateQueued = true
 		After(0.02, function()
-			visible[self] = self:GetPoint() and self:IsVisible() and true or nil
+			updateVisible(self)
 			if updateQueued then
 				updateQueued = false
 				Core:UpdateFrames()
@@ -110,9 +114,9 @@ end
 local function hideHook(self, explicit)
 	if isEnabled and frames[self] then
 		After(0.02, function()
-			if explicit or not self:IsVisible() then
+			if explicit or visible[self] then
 				hasUIFocus = nil
-				visible[self] = nil
+				updateVisible(self)
 				Core:UpdateFrames()
 			end
 		end)
@@ -131,28 +135,30 @@ hooks[getmetatable(UIParent).__index.Hide] = true
 function Core:AddFrame(frame)
 	local widget = (type(frame) == "string" and _G[frame]) or (type(frame) == "table" and frame)
 	if widget then
-		-- assert the frame isn't hooked twice
-		if ( not frames[widget] ) and ( not forbidden[widget] ) then
-			local mt = getmetatable(widget).__index
+		if ( not forbidden[widget] ) then
+			-- assert the frame isn't hooked twice
+			if ( not frames[widget] ) then
+				local mt = getmetatable(widget).__index
 
-			if not hooks[mt.Show] then
-				SetHook(mt, "Show", showHook)
-				hooks[mt.Show] = true
-			else
-				widget:HookScript("OnShow", showHook)
+				if not hooks[mt.Show] then
+					SetHook(mt, "Show", showHook)
+					hooks[mt.Show] = true
+				else
+					widget:HookScript("OnShow", showHook)
+				end
+
+				if not hooks[mt.Hide] then
+					SetHook(mt, "Hide", hideHook)
+					hooks[mt.Hide] = true
+				else
+					widget:HookScript("OnHide", hideHook)
+				end
 			end
 
-			if not hooks[mt.Hide] then
-				SetHook(mt, "Hide", hideHook)
-				hooks[mt.Hide] = true
-			else
-				widget:HookScript("OnHide", hideHook)
+			frames[widget] = true
+			if widget:IsVisible() and widget:GetPoint() then
+				visible[widget] = true
 			end
-		end
-
-		frames[widget] = true
-		if widget:IsVisible() and widget:GetPoint() then
-			visible[widget] = true
 		end
 		return true
 	else

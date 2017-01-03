@@ -383,22 +383,30 @@ end
 function WindowMixin:Default()
 	db.UIStack = ConsolePort:GetDefaultUIFrames()
 	ConsolePortUIFrames = db.UIStack
-	RefreshAddonList(self.AddonList)
+	if self.AddonList then
+		RefreshAddonList(self.AddonList)
+	end
 end
 
 function WindowMixin:Save()
 	local needReload
 
-	db.Mouse.Cursor.Left = self.LeftClick.Value
-	db.Mouse.Cursor.Right = self.RightClick.Value
-	db.Mouse.Cursor.Scroll = self.ScrollClick.Value
+	if self.LeftClick then
+		db.Mouse.Cursor.Left = self.LeftClick.Value
+		db.Mouse.Cursor.Right = self.RightClick.Value
+		db.Mouse.Cursor.Scroll = self.ScrollClick.Value
+	end
 
-	db.Settings.disableUI = not self.ToggleCursor:GetChecked()
+	if self.ToggleCursor then
+		db.Settings.disableUI = not self.ToggleCursor:GetChecked()
+	end
 
-	local actionBarStyle = self.HotKeyModule:GetID()
-	if not db.Settings.actionBarStyle or db.Settings.actionBarStyle ~= actionBarStyle then
-		db.Settings.actionBarStyle = actionBarStyle
-		needReload = true
+	if self.HotKeyModule then
+		local actionBarStyle = self.HotKeyModule:GetID()
+		if not db.Settings.actionBarStyle or db.Settings.actionBarStyle ~= actionBarStyle then
+			db.Settings.actionBarStyle = actionBarStyle
+			needReload = true
+		end
 	end
 
 	ConsolePort:ToggleUICore()

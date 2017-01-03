@@ -11,7 +11,7 @@ db.PLUGINS["Blizzard_BindingUI"] = function(self)
 	local function OnAccept()
 		kbF:Hide()
 		ToggleFrame(GameMenuFrame)
-		ConsolePortConfig:OpenCategory(2)
+		ConsolePortConfig:OpenCategory("Binds")
 	end
 
 	local function OnAlt()

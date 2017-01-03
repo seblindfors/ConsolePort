@@ -78,6 +78,42 @@ function ab:GetDefaultButtonLayout(button)
 	end
 end
 
+function ab:GetPresets()
+	return {
+		Default = ab:GetDefaultSettings(),
+		Orthodox = {
+			scale = 0.9,
+			width = 1105,
+			watchbars = true,
+			showline = true,
+			lock = true,
+			layout = {
+				CP_L_RIGHT = {dir = 'right', point = {'LEFT', 330, 9}, size = 64},
+				CP_R_LEFT = {dir = 'left', point = {'RIGHT', -330, 9}, size = 64},
+				CP_L_DOWN = {dir = 'down', point = {'LEFT', 165, 9}, size = 64},
+				CP_L_LEFT = {dir = 'left', point = {'LEFT', 80, 9}, size = 64},
+				CP_L_UP = {dir = 'up', point = {'LEFT', 250, 9}, size = 64},
+				CP_L_GRIP = {dir = 'up', point = {'LEFT', 405, 75}, size = 64},
+				CP_T1 = {dir = 'right', point = {'LEFT', 440, 9}, size = 64},
+				CP_R_RIGHT = {dir = 'right', point = {'RIGHT', -80, 9}, size = 64},
+				CP_R_GRIP = {dir = 'up', point = {'RIGHT', -405, 75}, size = 64},
+				CP_T2 = {dir = 'left', point = {'RIGHT', -440, 9}, size = 64},
+				CP_R_UP = {dir = 'up', point = {'RIGHT', -165, 9}, size = 64},
+				CP_R_DOWN = {dir = 'down', point = {'RIGHT', -250, 9}, size = 64},
+			},
+		},
+		Roleplay = {
+			scale = 0.9,
+			width = 1105,
+			watchbars = true,
+			showline = true,
+			showart = true,
+			lock = true,
+			layout = ab:GetDefaultButtonLayout(),
+		},
+	}
+end
+
 function ab:GetRGBColorFor(element, default)
 	local cfg = ab.cfg
 	local defaultColors = {
@@ -105,7 +141,7 @@ end
 function ab:GetDefaultSettings()
 	return 	{
 		scale = 0.9,
-		width = BAR_MIN_WIDTH,
+		width = 1105,
 		watchbars = true,
 		showline = true,
 		lock = true,
@@ -126,8 +162,8 @@ function ab:GetColorGradient(red, green, blue)
 	return unpack(gradient)
 end
 
-function ab:GetSimpleSettings()
-	local cfg = ab.cfg
+function ab:GetSimpleSettings(otherCFG)
+	local cfg = otherCFG or ab.cfg
 	local L = ab.data.ACTIONBAR
 	return {
 		{	desc = L.CFG_LOCK,
@@ -150,9 +186,19 @@ function ab:GetSimpleSettings()
 			cvar = 'hidebar',
 			toggle = cfg and cfg.hidebar,
 		},
+		{
+			desc = L.CFG_DISABLEPET,
+			cvar = 'hidepet',
+			toggle = cfg and cfg.hidepet,
+		},
 		{	desc = L.CFG_SHOWALLBUTTONS,
 			cvar = 'showbuttons',
 			toggle = cfg and cfg.showbuttons,
+		},
+		{
+			desc = L.CFG_DISABLEDND,
+			cvar = 'disablednd',
+			toggle = cfg and cfg.disablednd,
 		},
 		{	desc = L.CFG_WATCHBAR_OFF,
 			cvar = 'hidewatchbars',

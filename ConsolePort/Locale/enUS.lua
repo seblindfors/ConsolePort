@@ -190,11 +190,15 @@ TUTORIAL = {
 		WARNINGBINDINGUI 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You can only customize your keyboard bindings from this panel.\n\nModifying keyboard bindings while using your controller is not recommended.\n\nWould you like to edit your controller bindings, recalibrate your controller or continue anyway?',
 		WARNINGCOMBATLOGIN 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You reloaded your interface in combat.\nLeave combat to complete initialization.',
 		CRITICALUPDATE		= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?',
+		ADVANCED_DATA		= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You are about to apply changes to the following settings:\n\n%s\nThis will cause your interface to reload. Any changes you made in the other configuration tabs will be discarded.',
+		ADVANCED_EXPORT 	= '|cffffe00a[ConsolePort]|r\nThis is your serialized export data:\n\n%s\nCtrl+A to select and Ctrl+C to copy.',
+		ADVANCED_IMPORT_A 	= '|cffffe00a[ConsolePort]|r\nPaste your profile data:',
+		ADVANCED_IMPORT_B 	= '|cffffe00a[ConsolePort]|r\nYou are about to load settings for:\n\n%s\nYou will be able to browse these settings before applying them.',
 		NEWCONTROLLER 		= '|cffffe00a[ConsolePort]|r\nYou have loaded a new controller profile. Would you like to load the default bindings for this controller?',
 		NEWCHARACTER 		= '|cffffe00a[ConsolePort]|r\nWould you like to load the default bindings for your controller?',
 		NOBINDINGS 			= '|cffffe00a[ConsolePort]|r\nYou don\'t have any bindings configured. Would you like to load the default bindings for your controller?',
 		CALIBRATIONUPDATE	= '|cffffe00a[ConsolePort]|r\nYour current calibration doesn\'t match your WoWmapper settings. Would you like to update your calibration?',
-		WMUPDATE 			= '|cffffe00a[ConsolePort]|r\nYou have recently made changes to your WoWmapper settings. For these changes to take effect, the interface has to be reloaded.\nReload now?',
+		WMUPDATE 			= '|cffffe00a[ConsolePort]|r\nYou have recently changed your WoWmapper settings. For these changes to take effect, the interface has to be reloaded.\nReload now?',
 	},
 },
 TOOLTIP = {
@@ -265,6 +269,8 @@ ACTIONBAR = {
 	-----------------------------------------------------------
 	CFG_LOCK 			= 'Lock action bar',
 	CFG_LOCKPET 		= 'Lock pet ring',
+	CFG_DISABLEPET 		= 'Disable pet ring',
+	CFG_DISABLEDND		= 'Disable drag and drop',
 	CFG_HIDEINCOMBAT 	= 'Hide in combat',
 	CFG_HIDEPETINCOMBAT = 'Hide pet ring in combat',
 	CFG_HIDEOUTOFCOMBAT = 'Fade out of combat',
@@ -289,24 +295,26 @@ HEADERS = {
 
 -- Compare a database table against a default table
 -- Fill in non-existing values in the database tables
-local function CheckLocale(dbTable, defaultTable)
-	for key, value in pairs(defaultTable) do
-		if type(value) == 'table' then
-			if not dbTable[key] then
-				dbTable[key] = {}
+do
+	local function CheckLocale(dbTable, defaultTable)
+		for key, value in pairs(defaultTable) do
+			if type(value) == 'table' then
+				if not dbTable[key] then
+					dbTable[key] = {}
+				end
+				CheckLocale(dbTable[key], value)
+			elseif type(value) == 'string' and not dbTable[key] then
+				dbTable[key] = value
 			end
-			CheckLocale(dbTable[key], value)
-		elseif type(value) == 'string' and not dbTable[key] then
-			dbTable[key] = value
 		end
 	end
-end
 
-for val, tbl in pairs(DEFAULT) do
-	if not db[val] then
-		db[val] = tbl
+	for val, tbl in pairs(DEFAULT) do
+		if not db[val] then
+			db[val] = tbl
+		end
+		CheckLocale(db[val], tbl)
 	end
-	CheckLocale(db[val], tbl)
 end
 
 DEFAULT = nil

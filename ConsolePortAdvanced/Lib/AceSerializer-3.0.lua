@@ -1,5 +1,20 @@
--- Author: nevcairiel
--- Independent embed of AceSerializer-3.0
+--- **AceSerializer-3.0** can serialize any variable (except functions or userdata) into a string format,
+-- that can be send over the addon comm channel. AceSerializer was designed to keep all data intact, especially 
+-- very large numbers or floating point numbers, and table structures. The only caveat currently is, that multiple
+-- references to the same table will be send individually.
+--
+-- **AceSerializer-3.0** can be embeded into your addon, either explicitly by calling AceSerializer:Embed(MyAddon) or by 
+-- specifying it as an embeded library in your AceAddon. All functions will be available on your addon object
+-- and can be accessed directly, without having to explicitly call AceSerializer itself.\\
+-- It is recommended to embed AceSerializer, otherwise you'll have to specify a custom `self` on all calls you
+-- make into AceSerializer.
+-- @class file
+-- @name AceSerializer-3.0
+-- @release $Id: AceSerializer-3.0.lua 1135 2015-09-19 20:39:16Z nevcairiel $
+local MAJOR,MINOR = "AceSerializer-3.0", 5
+local AceSerializer, oldminor = LibStub:NewLibrary(MAJOR, MINOR)
+
+if not AceSerializer then return end
 
 -- Lua APIs
 local strbyte, strchar, gsub, gmatch, format = string.byte, string.char, string.gsub, string.gmatch, string.format
@@ -11,7 +26,7 @@ local tconcat = table.concat
 -- quick copies of string representations of wonky numbers
 local inf = math.huge
 
-local serNaN
+local serNaN  -- can't do this in 4.3, see ace3 ticket 268
 local serInf, serInfMac = "1.#INF", "inf"
 local serNegInf, serNegInfMac = "-1.#INF", "-inf"
 
@@ -104,7 +119,7 @@ local serializeTbl = { "^1" }	-- "^1" = Hi, I'm data serialized by AceSerializer
 -- May throw errors on invalid data types.
 -- @param ... List of values to serialize
 -- @return The data in its serialized form (string)
-function ConsolePort:Serialize(...)
+function AceSerializer:Serialize(...)
 	local nres = 1
 	
 	for i=1,select("#", ...) do
@@ -161,7 +176,7 @@ local function DeserializeValue(iter,single,ctl,data)
 	end
 
 	if not ctl then 
-		error("Supplied data misses terminator ('^^')")
+		error("Supplied data misses AceSerializer terminator ('^^')")
 	end	
 
 	if ctl=="^^" then
@@ -204,17 +219,17 @@ local function DeserializeValue(iter,single,ctl,data)
 			if ctl=="^t" then break end	-- ignore ^t's data
 			k = DeserializeValue(iter,true,ctl,data)
 			if k==nil then 
-				error("Invalid table format (no table end marker)")
+				error("Invalid AceSerializer table format (no table end marker)")
 			end
 			ctl,data = iter()
 			v = DeserializeValue(iter,true,ctl,data)
 			if v==nil then
-				error("Invalid table format (no table end marker)")
+				error("Invalid AceSerializer table format (no table end marker)")
 			end
 			res[k]=v
 		end
 	else
-		error("Invalid control code '"..ctl.."'")
+		error("Invalid AceSerializer control code '"..ctl.."'")
 	end
 	
 	if not single then
@@ -228,15 +243,45 @@ end
 -- Accepts serialized data, ignoring all control characters and whitespace.
 -- @param str The serialized data (from :Serialize)
 -- @return true followed by a list of values, OR false followed by an error message
-function ConsolePort:Deserialize(str)
+function AceSerializer:Deserialize(str)
 	str = gsub(str, "[%c ]", "")	-- ignore all control characters; nice for embedding in email and stuff
 
 	local iter = gmatch(str, "(^.)([^^]*)")	-- Any ^x followed by string of non-^
 	local ctl,data = iter()
 	if not ctl or ctl~="^1" then
 		-- we purposefully ignore the data portion of the start code, it can be used as an extension mechanism
-		return false, "Supplied data is not data"
+		return false, "Supplied data is not AceSerializer data (rev 1)"
 	end
 
 	return pcall(DeserializeValue, iter)
+end
+
+
+----------------------------------------
+-- Base library stuff
+----------------------------------------
+
+AceSerializer.internals = {	-- for test scripts
+	SerializeValue = SerializeValue,
+	SerializeStringHelper = SerializeStringHelper,
+}
+
+local mixins = {
+	"Serialize",
+	"Deserialize",
+}
+
+AceSerializer.embeds = AceSerializer.embeds or {}
+
+function AceSerializer:Embed(target)
+	for k, v in pairs(mixins) do
+		target[v] = self[v]
+	end
+	self.embeds[target] = true
+	return target
+end
+
+-- Update embeds
+for target, v in pairs(AceSerializer.embeds) do
+	AceSerializer:Embed(target)
 end
