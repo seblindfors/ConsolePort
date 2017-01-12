@@ -1,7 +1,6 @@
 # ConsolePort
 <h2>Game Controller Addon for World of Warcraft</h2>
-<h6>DualShock 4, DualShock 3, Xbox 360, Xbox One, Logitech Rumblepad, Razer Sabertooth</h6>
-<a href="http://imgur.com/a/MdfK3" target="_blank">Screenshots of iteration and development process</a><br>
+<h6>DualShock 4, Xbox 360, Xbox One, Steam Controller</h6>
 <a href="https://www.youtube.com/playlist?list=PLdymHo01mBgXTNFOCCrf85803XqwlCpdt4" target="_blank">YouTube playlist: demos and instructional videos</a>
 
 <h2>DISCLAIMER</h2>
