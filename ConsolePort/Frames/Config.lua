@@ -469,6 +469,19 @@ local function SetSaveShortCut(self)
 	end
 end
 
+function WindowMixin:ToggleShortcuts(enable)
+	local alpha = Save.Icon:GetAlpha()
+	if enable then
+		FadeIn(Save.Icon, 0.2, alpha, 1)
+		FadeIn(self.Category.NextIcon, 0.2, alpha, 1)
+		FadeIn(self.Category.PrevIcon, 0.2, alpha, 1)
+	else
+		FadeOut(Save.Icon, 0.2, alpha, 0)
+		FadeOut(self.Category.NextIcon, 0.2, alpha, 0)
+		FadeOut(self.Category.PrevIcon, 0.2, alpha, 0)
+	end
+end
+
 function WindowMixin:OnShow()
 	if not InCombatLockdown() then
 		self:RegisterEvent("PLAYER_REGEN_DISABLED")

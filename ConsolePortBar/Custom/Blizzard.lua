@@ -216,6 +216,7 @@ do
 		hooksecurefunc('TalentFrame_LoadUI', function() PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED') end)
 	end
 
+	-- Keep casting bar from obscuring action bar.
 	CastingBarFrame:ClearAllPoints()
 	hooksecurefunc(CastingBarFrame, 'SetPoint', function(self, anchor, relative, relRegion)
 		if anchor ~= 'BOTTOM' or relative ~= Bar or relRegion ~= 'TOP' then
@@ -223,6 +224,33 @@ do
 		end
 	end)
 
+	-- Replace spell push animations. 
+	IconIntroTracker:HookScript('OnEvent', function(self, event, ...)
+		local anim = ConsolePortSpellHelperFrame
+		if anim and event == 'SPELL_PUSHED_TO_ACTIONBAR' then
+			for _, icon in pairs(self.iconList) do
+				icon:ClearAllPoints()
+				icon:SetAlpha(0)
+			end
+
+			local spellID, slotIndex, slotPos = ...
+			local page = math.floor((slotIndex - 1) / NUM_ACTIONBAR_BUTTONS) + 1
+			local currentPage = GetActionBarPage()
+			local bonusBarIndex = GetBonusBarIndex()
+			if (HasBonusActionBar() and bonusBarIndex ~= 0) then
+				currentPage = bonusBarIndex
+			end
+
+			if (page ~= currentPage and page ~= MULTIBOTTOMLEFTINDEX) then
+				return
+			end
+			
+			local _, _, icon = GetSpellInfo(spellID)
+			local actionID = ((page - 1) * NUM_ACTIONBAR_BUTTONS) + slotPos
+
+			anim:OnActionPlaced(actionID, icon)
+		end
+	end)
 end
 
 -- This is a workaround for the problem with the current internal implementation of texture masking.

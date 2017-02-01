@@ -32,12 +32,15 @@ TUTORIAL = {
 		CRITTER 			= 'Battle Pet',
 		MACRO 				= '|cFF575757 (Macro)',
 		EQSET 				= '|cFF575757 (Equipment Set)|r',
+		BATTLEPET 			= '|cFF575757 (Battle Pet)|r',
 		LEFTCLICK 			= '|cFF757575Left Click / Movement|r',
 		RIGHTCLICK 			= '|cFF757575Right Click / Mouse|r',
 		SHIFT 				= '|cFF757575Modifier 1 / Shift|r',
 		CTRL 				= '|cFF757575Modifier 2 / Ctrl|r',
 		T1 					= 'Trigger 1',
 		T2 					= 'Trigger 2',
+		T3 					= 'Trigger 3',
+		T4 					= 'Trigger 4',
 	},
 	MOUSE = {
 		STARTED_MOVING 		= 'Starting to move',
@@ -81,19 +84,31 @@ TUTORIAL = {
 		TRIGGERHEADER		= 'Trigger settings',
 		CAMERAHEADER 		= 'Camera settings',
 		TARGETHEADER		= 'Highlight next target',
+		LOOTHEADER 			= 'Loot button',
+		-----------------------------------------------------------
+		INTERACT_HELPFUL 	= '|cff75ff75allies|r',
+		INTERACT_HARMFUL 	= '|cffff7575enemies|r',
+		INTERACT_NOTARGET 	= '|cffffffffno target|r',
+		INTERACT_TARGET 	= '|cffffffffany target|r',
+		INTERACT_ORIGINAL 	= 'Original action: |cffffffff%s|r\n%s',
+		INTERACT_CURRENT_A 	= 'Calculated behaviour:\n  Interact with: %s\n  Normal action on: %s',
+		INTERACT_CURRENT_B 	= 'Calculated behaviour:\n  Interact with: %s or %s\n  Normal action on: %s',
+		-----------------------------------------------------------
 		INTERACTCATCHER 	= 'Click here to assign.',
 		INTERACTASSIGNED 	= '|T%s:50:50:0:0|t',
 		INTERACTCHECK 		= 'Enable',
-		INTERACTDESC 		= 'Used to interact when you don\'t have a valid target.\nChanges behaviour depending on original action.',
+		INTERACTDESC 		= 'Allows one of your buttons to\ninteract with the world and creatures,\nwhen the original button action\ndoesn\'t have any effect.',
 		MOUSEOVERMODE 		= 'Always interact with mouseover',
 		INTERACTNPC 		= 'Interact with NPCs',
 		INTERACTAUTO		= 'Automatically move to target',
 		-----------------------------------------------------------
 		TRIGGERHELP 		= 'These settings will change which graphics are displayed for your triggers and modifiers.\nIf you want to change your modifiers, you will also have to change them in your controller mapper.',
-		INTERACTHELP 		= 'This allows one of your buttons to be used to interact with objects and creatures.\nIn the case where you lack a target that befits the configured button\'s original action,\nyou will instead be able to interact with the world.\n\nExamples:\nA |cffff7575harmful|r spell will be cast upon a hostile target, but interact in all other cases.\nA |cff75ff75healing|r spell will be cast upon a friendly target, but interact in all other cases.\nA macro or a binding requires a target to be used, but interact in all other cases.',
+		INTERACTHELP 		= 'Use one of your buttons to interact with objects and creatures.\nIn the case where you lack a target that befits the configured button\'s original action,\nyou will instead be able to interact with the world.\n\nExamples:\nA |cffff7575harmful|r spell will be cast upon a hostile target, but interact in all other cases.\nA |cff75ff75healing|r spell will be cast upon a friendly target, but interact in all other cases.\nA macro or a binding requires a target to be used, but interact in all other cases.',
+		LOOTHELP 			= 'Note: This is an experimental feature.\n\nUse one of your buttons to loot your last target when you\'re in range.\nThe button you assign here will only be used for looting when...\n  a) you\'re out of combat or targeting the creature,\n  b) the creature is or was your last target,\n  c) the creature is dead and it has loot for you.',
+		HIGHLIGHTHELP 		= 'Preview your next target before you switch to it.\nIf you\'re struggling with reliable tab-targeting, set this to |cff75ff75Always on|r.',
 		-----------------------------------------------------------
 		MOUSEHANDLE 		= 'Character handling',
-		MOUSEDRIFTING 		= 'Prevent mouse cursor from drifting off screen',
+		MOUSEDRIFTING 		= 'Cursor is near the edge of the screen',
 		TURNMOVE 			= 'Turn instead of strafe when the cursor is visible',
 		DOUBLEMODTAP 		= 'Double tap |T%s:32:32:0:0|t or |T%s:32:32:0:0|t to toggle mouse cursor',
 		LOOKAROUND 			= 'Hold |T%s:32:32:0:0|t to pan the camera around',
@@ -105,7 +120,10 @@ TUTORIAL = {
 		AUTOEXTRA 			= 'Add quest items and extra spells to utility ring',
 		AUTOLOOT 			= 'Force auto loot in combat',
 		AUTOSELL 			= 'Automatically sell junk',
-		CPMENU 				= 'Use default game menu',
+		DISABLEBINDHELP 	= 'Disable action bar assistance',
+		FIXES 				= 'Fixes',
+		DISABLEHOLDREPEAT 	= 'One-to-one interface cursor',
+		SKIPCALIBRATION		= 'Disable calibration check on login',
 		-----------------------------------------------------------
 		CONTROLLER 			= 'Change controller',
 		BINDRESET 			= 'Calibrate controller',
@@ -127,11 +145,16 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		FASTCAM 			= 'Fast camera zooming',
 		DYNPITCH 			= 'Use dynamic pitch',
-		TARGETFOCUS 		= 'Focus camera on target instead of yourself',
-		TARGETYAW 			= 'Rotate camera when targeting with a ground spell',
+		TARGETFOCUS 		= 'Focus camera on target',
+		TARGETYAW 			= 'Rotate camera on targeted spell',
 		OVERSHOULDER 		= 'Over shoulder mode',
 		LEFT 				= 'Left',
 		RIGHT 				= 'Right',
+		-----------------------------------------------------------
+		LINK_WM 			= 'WoWmapper on GitHub',
+		LINK_CP 			= 'ConsolePort website',
+		LINK_DISCORD 		= 'Discord channel',
+		LINK_PATREON		= 'Patreon page',
 	},
 	HINTS = {
 		DISABLE 				= 'Disable on-screen hints',
@@ -139,6 +162,10 @@ TUTORIAL = {
 		UTILITY_RING_DOUBLE 	= 'Press %s twice to toggle the utility ring.',
 		UTILITY_RING_REMOVE 	= 'Press %s when an item is selected to remove it.',
 		UTILITY_RING_NEWBIND	= '%s was bound to your Utility Ring%s',
+		HELPER_ACTIONBAR 		= 'Press a button combination on your\ncontroller to place this on your action bar.',
+		HELPER_INVALID_OCCUA 	= '%s is occupied by %s.\nYou need to bind this combination to your action bar first.',
+		HELPER_INVALID_OCCUB 	= '%s is occupied.\nYou need to bind this combination to your action bar first.',
+		HELPER_INVALID_FREE 	= '%s isn\'t bound to anything.\nYou need to bind this combination to your action bar first.',
 	},
 	SETUP = {
 		LAYOUT  			= 'Setup: Select controller layout',
@@ -199,6 +226,7 @@ TUTORIAL = {
 		NOBINDINGS 			= '|cffffe00a[ConsolePort]|r\nYou don\'t have any bindings configured. Would you like to load the default bindings for your controller?',
 		CALIBRATIONUPDATE	= '|cffffe00a[ConsolePort]|r\nYour current calibration doesn\'t match your WoWmapper settings. Would you like to update your calibration?',
 		WMUPDATE 			= '|cffffe00a[ConsolePort]|r\nYou have recently changed your WoWmapper settings. For these changes to take effect, the interface has to be reloaded.\nReload now?',
+		EXTERNALLINK 		= '|cffffe00a[ConsolePort]|r\nLink to %s.\nCtrl+A to select and Ctrl+C to copy.',
 	},
 },
 TOOLTIP = {
@@ -245,12 +273,10 @@ CUSTOMBINDS = {
 	-- Strings in case controller has no texture for the binding XML
 	-----------------------------------------------------------
 	CP_X_CENTER			= 	'|c75757575Guide |caaee5555(disabled)|r',
-	CP_L_GRIP 			= 	'|c75757575Left Grip 1 |caaee5555(disabled)|r',
-	CP_R_GRIP 			= 	'|c75757575Right Grip 1 |caaee5555(disabled)|r',
-	CP_L_GRIP2 			= 	'|c75757575Left Grip 2 |caaee5555(disabled)|r',
-	CP_R_GRIP2 			= 	'|c75757575Right Grip 2 |caaee5555(disabled)|r',
-	CP_L_PULL 			= 	'|c75757575Left Hard Pull |caaee5555(disabled)|r',
-	CP_R_PULL 			= 	'|c75757575Right Hard Pull |caaee5555(disabled)|r',
+	CP_T5 				= 	'|c75757575Extra 1 |caaee5555(disabled)|r',
+	CP_T6 				= 	'|c75757575Extra 2 |caaee5555(disabled)|r',
+	CP_T7 				= 	'|c75757575Extra 3 |caaee5555(disabled)|r',
+	CP_T8 				= 	'|c75757575Extra 4 |caaee5555(disabled)|r',
 	-- Headers
 	-----------------------------------------------------------
 	CAMERAORSELECTORMOVE 	= 	'Left Mouse Button',
@@ -288,8 +314,8 @@ HEADERS = {
 	CP_LEFT 			= 	'Directional Pad',
 	CP_RIGHT			= 	'Action Buttons',
 	CP_CENTER			= 	'Center Buttons',
-	CP_GRIP 			= 	'Grip Buttons',
 	CP_TRIG				=	'Triggers',
+	CP_EXTRA 			= 	'Extra',
 }}
 
 

@@ -97,6 +97,15 @@ function Bar:ADDON_LOADED(...)
 				showline = true,
 				lock = true,
 			}
+		-------------------------------
+		-- compat: binding ID fix for grip buttons , remove later on
+		else local layout = ConsolePortBarSetup.layout
+			if layout then
+				layout.CP_T3 = layout.CP_T3 or layout.CP_L_GRIP -- translate Lgrip to t3
+				layout.CP_T4 = layout.CP_T4 or layout.CP_R_GRIP -- translate Rgrip to t4
+				layout.CP_L_GRIP = nil layout.CP_R_GRIP = nil
+			end
+		-------------------------------
 		end
 		self:OnLoad(ConsolePortBarSetup)
 		self:UnregisterEvent('ADDON_LOADED')
@@ -155,7 +164,6 @@ function Bar:OnLoad(cfg, benign)
 		RegisterStateDriver(Bar.Pet, 'visibility', '[pet] show; hide')
 	end
 	
-
 	-- Set action bar art
 	if cfg.showart then
 		local art, coords = ab:GetCover()
@@ -163,6 +171,7 @@ function Bar:OnLoad(cfg, benign)
 			self.CoverArt:SetTexture(art)
 			self.CoverArt:SetTexCoord(unpack(coords))
 			self.CoverArt:Show()
+			self.CoverArt:SetVertexColor(unpack(cfg.artRGB or {1,1,1}))
 		end
 	else
 		self.CoverArt:Hide()
@@ -177,6 +186,10 @@ function Bar:OnLoad(cfg, benign)
 		self.BottomLine:Hide()
 	end
 
+	-- The easter bunny likes bright colors :)
+	ab:SetRainbowScript(cfg.rainbow)
+
+	-- Tint RGB for background textures	
 	if cfg.tintRGB then
 		self.BG:SetGradientAlpha(ab:GetColorGradient(unpack(cfg.tintRGB)))
 		self.BottomLine:SetVertexColor(unpack(cfg.tintRGB))

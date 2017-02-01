@@ -58,8 +58,8 @@ function ab:GetDefaultButtonLayout(button)
 		['CP_T1'] = {point = {'LEFT', 440, 64}, dir = 'right', size = 64},
 		['CP_T2'] = {point = {'RIGHT', -440, 64}, dir = 'left', size = 64},
 		---
-		['CP_L_GRIP'] = {point = {'LEFT', 390, 110}, dir = 'up', size = 64},
-		['CP_R_GRIP'] = {point = {'RIGHT', -390, 110}, dir = 'up', size = 64},
+		['CP_T3'] = {point = {'LEFT', 390, 110}, dir = 'up', size = 64},
+		['CP_T4'] = {point = {'RIGHT', -390, 110}, dir = 'up', size = 64},
 		---
 		['CP_L_LEFT'] 	= {point = {'LEFT', 255 - 80, 50 + 14}, dir = 'left', size = 64},
 		['CP_L_RIGHT'] 	= {point = {'LEFT', 385 - 80, 50 + 14}, dir = 'right', size = 64},
@@ -93,10 +93,10 @@ function ab:GetPresets()
 				CP_L_DOWN = {dir = 'down', point = {'LEFT', 165, 9}, size = 64},
 				CP_L_LEFT = {dir = 'left', point = {'LEFT', 80, 9}, size = 64},
 				CP_L_UP = {dir = 'up', point = {'LEFT', 250, 9}, size = 64},
-				CP_L_GRIP = {dir = 'up', point = {'LEFT', 405, 75}, size = 64},
+				CP_T3 = {dir = 'up', point = {'LEFT', 405, 75}, size = 64},
 				CP_T1 = {dir = 'right', point = {'LEFT', 440, 9}, size = 64},
 				CP_R_RIGHT = {dir = 'right', point = {'RIGHT', -80, 9}, size = 64},
-				CP_R_GRIP = {dir = 'up', point = {'RIGHT', -405, 75}, size = 64},
+				CP_T4 = {dir = 'up', point = {'RIGHT', -405, 75}, size = 64},
 				CP_T2 = {dir = 'left', point = {'RIGHT', -440, 9}, size = 64},
 				CP_R_UP = {dir = 'up', point = {'RIGHT', -165, 9}, size = 64},
 				CP_R_DOWN = {dir = 'down', point = {'RIGHT', -250, 9}, size = 64},
@@ -227,11 +227,46 @@ function ab:GetSimpleSettings(otherCFG)
 	}
 end
 
+function ab:SetRainbowScript(on)
+	local f = ab.bar
+	local wr = ab.libs.wrapper
+	local cp = ConsolePort
+	if on then
+		local t, i, p, c, w, m = 0, 0, 0, 128, 127, 180
+		local hz = (math.pi*2) / m
+
+		f:SetScript('OnUpdate', function(self, e)
+			t = t + e
+			if t > 0.1 then
+				i = i + 1
+				local r = (math.sin((hz * i) + 2 + p) * w + c) / 255
+				local g = (math.sin((hz * i) + 0 + p) * w + c) / 255
+				local b = (math.sin((hz * i) + 4 + p) * w + c) / 255
+				if i > m then
+					i = i - m
+				end
+				f.BG:SetGradientAlpha(ab:GetColorGradient(r, g, b))
+				f.BottomLine:SetVertexColor(r, g, b)
+				for bn in cp:GetBindings() do
+					local rap = wr:Get(bn)
+					if rap then
+						rap:SetSwipeColor(r, g, b, 1)
+					end
+				end
+				t = 0
+			end
+		end)
+	else
+		f:SetScript('OnUpdate', nil)
+	end
+end
+
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 -- Override the original consoleport action button lookup, to
 -- stop it from adding hotkey textures to the controller bars.
+-- This should still add hotkey textures to override/vehicles.
 
 local valid_action_buttons = {
 	Button = true,
@@ -247,7 +282,7 @@ local function GetActionButtons(buttons, this)
 	end
 	local objType = this:GetObjectType()
 	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute('action')
-	if action and tonumber(action) then
+	if action and tonumber(action) and this:GetAttribute('type') == 'action' then
 		buttons[this] = action
 	end
 	for _, object in pairs({this:GetChildren()}) do

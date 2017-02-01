@@ -39,6 +39,8 @@ db.Controllers.STEAM = {
 		['CP_M2'] 		= 'CP_TR2',
 		['CP_T1'] 		= 'CP_TL1',
 		['CP_T2'] 		= 'CP_TR1',
+		['CP_T3'] 		= 'CP_L_GRIP',
+		['CP_T4'] 		= 'CP_R_GRIP',
 		-------------------------------
 		['skipGuideBtn'] = true,
 		['UIdisableHoldRepeat'] = true,
@@ -141,13 +143,13 @@ db.Controllers.STEAM = {
 			['CTRL-SHIFT-'] = 'CLICK ConsolePortRaidCursorToggle:LeftButton',
 		},
 		-- Grip buttons
-		['CP_L_GRIP'] = {
+		['CP_T3'] = {
 			[''] 			= 'ACTIONBUTTON4',
 			['SHIFT-']	 	= 'ACTIONBUTTON9',
 			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON4',
 			['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON9',
 		},
-		['CP_R_GRIP'] = {
+		['CP_T4'] = {
 			[''] 			= 'ACTIONBUTTON5',
 			['SHIFT-']	 	= 'ACTIONBUTTON10',
 			['CTRL-'] 		= 'MULTIACTIONBAR1BUTTON5',
@@ -156,5 +158,13 @@ db.Controllers.STEAM = {
 		-- Stick buttons
 		['CP_T_R3'] = {},
 		['CP_T_L3'] = {},
+	},
+	Shared = {
+		['CP_L_DOWN'] 	= true,
+		['CP_L_LEFT'] 	= true,
+		['CP_L_RIGHT'] 	= true,
+		['CP_L_UP'] 	= true,
+		['CP_L_GRIP'] 	= true,
+		['CP_R_GRIP'] 	= true,
 	},
 }

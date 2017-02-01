@@ -17,13 +17,11 @@ local Right = StackSplitRightButton
 local oldNode
 
 StackSplitFrame:HookScript("OnShow", function(self)
-	ConsolePort:SetFrameStack({[self] = true})
 	oldNode = ConsolePort:GetCurrentNode()
 	ConsolePort:SetCurrentNode(StackSplitCancelButton)
 end)
 
 StackSplitFrame:HookScript("OnHide", function(self)
-	ConsolePort:SetFrameStack()
 	if oldNode then
 		ConsolePort:SetCurrentNode(oldNode)
 		oldNode = nil

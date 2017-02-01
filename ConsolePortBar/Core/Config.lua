@@ -354,7 +354,7 @@ function Preset:SetData(name, cfg, class)
 end
 
 function Preset:OnClick()
-	Bar:OnLoad(db.table.copy(self.cfg))
+	Bar:OnLoad(db.table.copy(self.cfg), true)
 	self.Layout:Hide()
 	self.Layout:Show()
 end

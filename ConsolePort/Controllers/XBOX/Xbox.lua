@@ -40,6 +40,8 @@ db.Controllers.XBOX = {
 		['CP_M2'] 		= 'CP_TR2',
 		['CP_T1'] 		= 'CP_TL1',
 		['CP_T2'] 		= 'CP_TR1',
+		['CP_T3'] 		= 'CP_L_GRIP',
+		['CP_T4'] 		= 'CP_R_GRIP',
 		-------------------------------
 		['skipGuideBtn'] = false,
 		-------------------------------
@@ -154,5 +156,13 @@ db.Controllers.XBOX = {
 		-- Stick buttons
 		['CP_T_R3'] = {},
 		['CP_T_L3'] = {},
+	},
+	Shared = {
+		['CP_L_DOWN'] 	= true,
+		['CP_L_LEFT'] 	= true,
+		['CP_L_RIGHT'] 	= true,
+		['CP_L_UP'] 	= true,
+		['CP_L_GRIP'] 	= true,
+		['CP_R_GRIP'] 	= true,
 	},
 }

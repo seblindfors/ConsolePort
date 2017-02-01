@@ -1,3 +1,10 @@
+---------------------------------------------------------------
+-- Advanced data browser for ConsolePort
+---------------------------------------------------------------
+-- This browser is an overengineered way of dealing with the ton
+-- of functionality that CP has to offer, some of which shouldn't
+-- necessarily be visible or part of a regular configuration window.
+
 local db = ConsolePort:GetData() 
 local mixin, spairs = db.table.mixin, db.table.spairs
 local FramePool, Field, Active = {}, {}, 0
@@ -33,6 +40,7 @@ local tables = {
 	['Mouse & camera'] =  'ConsolePortMouse',
 	['Shared data'] =  'ConsolePortCharacterSettings',
 	['UI Frames'] =  'ConsolePortUIFrames',
+	['User interface'] =  'ConsolePortUIConfig',
 }
 
 function GetAffectedTablesString(data)
@@ -361,7 +369,6 @@ function Field:OnClick(button)
 	elseif button == 'RightButton' and not self.SavedVariable then
 		self.Key:Show()
 		self.Key:SetFocus()
-	--	print("Rename", self.key)
 	end
 end
 
@@ -527,9 +534,15 @@ ConsolePortConfig:AddPanel({
 
 		local bW, bH = 187, 36
 
+		local function OnEnter(self) GameTooltip:SetOwner(self, 'ANCHOR_TOPLEFT') GameTooltip:SetText(self.tooltipText) end
+		local function OnLeave(self) GameTooltip:Hide() end
+
 		self.Load = db.Atlas.GetFutureButton('$parentLoad', self, nil, nil, bW, bH)
 		self.Load:SetPoint('BOTTOMLEFT', 24, 24)
 		self.Load:SetText('Load my data')
+		self.Load.tooltipText = 'Warning: This might cause your client to freeze momentarily while your data is loading.'
+		self.Load:SetScript('OnEnter', OnEnter)
+		self.Load:SetScript('OnLeave', OnLeave)
 		self.Load:SetScript('OnClick', function(self) 
 			ClearFields()
 			LoadCurrentData()
@@ -538,6 +551,9 @@ ConsolePortConfig:AddPanel({
 		self.Compile = db.Atlas.GetFutureButton('$parentCompile', self, nil, nil, bW, bH)
 		self.Compile:SetPoint('LEFT', self.Load, 'RIGHT', 0, 0)
 		self.Compile:SetText('Recompile')
+		self.Compile.tooltipText = 'Reorganizes your loaded data.'
+		self.Compile:SetScript('OnEnter', OnEnter)
+		self.Compile:SetScript('OnLeave', OnLeave)
 		self.Compile:SetScript('OnClick', function(self)
 			local _, data = Browser:Compile()
 			if data then
@@ -549,6 +565,9 @@ ConsolePortConfig:AddPanel({
 		self.Apply = db.Atlas.GetFutureButton('$parentApply', self, nil, nil, bW, bH)
 		self.Apply:SetPoint('LEFT', self.Compile, 'RIGHT', 0, 0)
 		self.Apply:SetText('Apply changes')
+		self.Apply.tooltipText = 'Apply your loaded data. Use Merge if you only want to change specific values.'
+		self.Apply:SetScript('OnEnter', OnEnter)
+		self.Apply:SetScript('OnLeave', OnLeave)
 		self.Apply:SetScript('OnClick', function()
 			local _, data = Browser:Compile()
 			if data then
@@ -564,7 +583,7 @@ ConsolePortConfig:AddPanel({
 					preferredIndex = 3,
 					enterClicksFirstButton = true,
 					exclusive = true,
-					OnAlt = function()
+					OnAlt = function(_, data)
 						for id, tbl in pairs(data) do
 							local gID = tables[id]
 							if gID then
@@ -576,7 +595,7 @@ ConsolePortConfig:AddPanel({
 						end
 						ReloadUI()
 					end,
-					OnAccept = function()
+					OnAccept = function(_, data)
 						for id, tbl in pairs(data) do
 							local gID = tables[id]
 							if gID then
@@ -587,14 +606,16 @@ ConsolePortConfig:AddPanel({
 					end,
 					OnCancel = core.ClearPopup,
 				}
-				core:ShowPopup('CONSOLEPORT_ADVANCED')
+				core:ShowPopup('CONSOLEPORT_ADVANCED', nil, nil, data)
 			end
 		end)
 
 		self.Import = db.Atlas.GetFutureButton('$parentImport', self, nil, nil, bW, bH)
 		self.Import:SetPoint('LEFT', self.Apply, 'RIGHT', 0, 0)
 		self.Import:SetText('Import')
-		self.Import:SetScript('OnClick', function() end)
+		self.Import.tooltipText = 'Import serialized data from an external source.'
+		self.Import:SetScript('OnEnter', OnEnter)
+		self.Import:SetScript('OnLeave', OnLeave)
 		self.Import:SetScript('OnClick', function()
 			StaticPopupDialogs['CONSOLEPORT_IMPORTADV'] = {
 				text = db.TUTORIAL.SLASH.ADVANCED_IMPORT_A,
@@ -639,6 +660,9 @@ ConsolePortConfig:AddPanel({
 		self.Export = db.Atlas.GetFutureButton('$parentExport', self, nil, nil, bW, bH)
 		self.Export:SetPoint('LEFT', self.Import, 'RIGHT', 0, 0)
 		self.Export:SetText('Export selected')
+		self.Export.tooltipText = 'Export serialized data so that it can be imported on another client.'
+		self.Export:SetScript('OnEnter', OnEnter)
+		self.Export:SetScript('OnLeave', OnLeave)
 		self.Export:SetScript('OnClick', function()
 			local _, data = Browser:Compile()
 			if data then

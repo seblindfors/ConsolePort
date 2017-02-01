@@ -13,7 +13,7 @@ local 	Core,
 		-- Table functions
 		pairs, next,
 		-- Stacks: all frames, visible frames, show/hide hooks
-		frames, visible, hooks, forbidden, custom,
+		frames, visible, hooks, forbidden,
 		-- Boolean checks (default nil)
 		hasUIFocus, isLocked, isEnabled, updateQueued =
 		-------------------------------------
@@ -126,7 +126,7 @@ end
 -- Cache default methods so that frames with unaltered
 -- metatables use hook scripts instead of a secure hook.
 hooks[getmetatable(UIParent).__index.Show] = true
-hooks[getmetatable(UIParent).__index.Hide] = true 
+hooks[getmetatable(UIParent).__index.Hide] = true
 
 -- When adding a new frame:
 -- Store metatable functions for hooking show/hide scripts.
@@ -236,14 +236,10 @@ end
 
 -- Returns a stack of visible frames.
 function Core:GetFrameStack()
-	return custom or visible
+	return pairs(visible)
 end
 
-function Core:SetFrameStack(stack)
-	custom = stack
-end
-
-function Core:IsFrameVisible(...)
+function Core:IsFrameVisibleToCursor(...)
 	for i, frame in pairs({...}) do
 		if visible[frame] then
 			return true

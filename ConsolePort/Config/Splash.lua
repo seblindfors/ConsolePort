@@ -243,8 +243,6 @@ function ConsolePort:CalibrateController(reset)
 		cbF.Wrapper:SetBlendMode("ADD")
 		cbF.Wrapper:SetGradientAlpha("HORIZONTAL", red, green, blue, 1, 1, 1, 1, 1)
 
-		cbF.Controller:SetSize(512, 512)
-		cbF.Controller:SetPoint("CENTER", 0, 0)
 		cbF.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..ctrlType.."\\Front")
 		cbF.Controller:SetPoint("TOPLEFT", 16, -16)
 		cbF.Controller:SetPoint("BOTTOMRIGHT", -16, 16)
@@ -292,23 +290,36 @@ function ConsolePort:CalibrateController(reset)
 							local otherModifierKey = changeModifier == "CP_M1" and "CP_M2" or "CP_M1"
 							local otherModifier = settings[otherModifierKey]
 							
-							local triggers = {
+							local shoulder = {
 								["CP_TL1"] = true,
 								["CP_TL2"] = true,
 								["CP_TR1"] = true,
 								["CP_TR2"] = true,
+								["CP_L_GRIP"] = true,
+								["CP_R_GRIP"] = true,
  							}
 
- 							local newModifier = self.ButtonTex:GetTexture():match("CP_T%a%d")
+ 							local ordered = {
+ 								"CP_TL1",
+ 								"CP_TL2",
+ 								"CP_TR1",
+ 								"CP_TR2",
+ 								"CP_L_GRIP",
+ 								"CP_R_GRIP",
+ 							}
 
- 							triggers[newModifier] = nil
- 							triggers[otherModifier] = nil
+ 							local newModifier = self.ButtonTex:GetTexture():match("CP_.+")
+
+ 							shoulder[newModifier] = nil
+ 							shoulder[otherModifier] = nil
  							settings[changeModifier] = newModifier
 
  							local i = 0
- 							for trigger in db.table.spairs(triggers) do
- 								i = i + 1
- 								settings["CP_T"..i] = trigger
+ 							for k, button in pairs(ordered) do
+ 								if shoulder[button] then
+	 								i = i + 1
+	 								settings["CP_T"..i] = button
+	 							end
  							end
 
 							self.Reload:Show()
@@ -322,6 +333,12 @@ function ConsolePort:CalibrateController(reset)
 					else
 						if not db.Settings.calibration then
 							db.Settings.calibration = {}
+						else
+							for btn, cKey in pairs(db.Settings.calibration) do
+								if key == cKey then
+									db.Settings.calibration[btn] = nil
+								end
+							end
 						end
 						db.Settings.calibration[self.BTN] = key
 						self.Status:SetFormattedText(SETUP.SUCCESS, self.ButtonTex:GetTexture(), key)
@@ -353,7 +370,7 @@ function ConsolePort:CalibrateController(reset)
 				end
 				self.SET = false
 			end
-			self.Binding:SetText(key)
+			self.Binding:SetText(GetBindingText(key))
 			self.VAL = key
 		end)
 		cbF:SetScript("OnUpdate", function(self, elapsed)

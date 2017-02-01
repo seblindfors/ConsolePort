@@ -72,7 +72,13 @@ Atlas.Backdrops = {
 		edgeFile 	= path.."Window\\EdgefileInset.blp",
 		edgeSize 	= 8,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
-	}
+	},
+	Talkbox = {
+		bgFile 		= path.."Window\\TalkboxBG.blp",
+		edgeFile 	= path.."Window\\EdgefileTalkbox.blp",
+		edgeSize 	= 32,
+		insets 		= { left = 32, right = 32, top = 32, bottom = 32 }
+	},
 }
 ---------------------------------------------------------------
 Atlas.Overlays = {
@@ -252,9 +258,8 @@ Atlas.GetFutureButton = function(name, parent, secure, buttonAtlas, width, heigh
 	button.HighlightTexture:SetSize(width or 240, height and height*0.7828 or 46*0.7828)
 	button.Icon:SetSize(width or 240, height or 46)
 	if buttonAtlas then
-		local texture, left, right, top, bottom = unpack(buttonAtlas)
-		button.Icon:SetTexture(texture)
-		button.Icon:SetTexCoord(left, right, top, bottom)
+		button.Icon:SetTexture(buttonAtlas[1])
+		button.Icon:SetTexCoord(unpack(buttonAtlas, 2))
 		button.Icon:SetAlpha(0.25)
 	else
 		button.Icon:SetTexture(nil)

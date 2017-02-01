@@ -3,9 +3,9 @@
 ## Notes: Advanced configuration for Console Port
 ## RequiredDeps: ConsolePort
 
-Lib\LibStub.lua
-Lib\LibCompress.lua
-Lib\AceSerializer-3.0.lua
+Libs\LibStub.lua
+Libs\LibCompress.lua
+Libs\AceSerializer-3.0.lua
 
 Serializer.lua
 Browser.lua

@@ -282,7 +282,7 @@ function Node:IsDrawn(node, scrollFrame)
 end
 
 function Node:Refresh(node, scrollFrame)
-	if node.ignoreNode then
+	if node.ignoreNode or node:IsForbidden() then
 		return
 	end
 	local object = node:GetObjectType()
@@ -304,7 +304,7 @@ function Node:RefreshAll()
 	if IsSafe() then
 		self:Clear()
 		ClearOverride(Cursor)
-		for frame in pairs(ConsolePort:GetFrameStack()) do
+		for frame in ConsolePort:GetFrameStack() do
 			self:Refresh(frame)
 		end
 		self:SetCurrent()

@@ -202,10 +202,12 @@ function ConsolePort:GetActionBinding(id)
 end
 
 function ConsolePort:GetActionID(bindName)
-	for ID=1, ACTION_ID_MAX_THRESHOLD do
-		local binding = actionIDs[ID]
-		if binding == bindName then
-			return tonumber(ID)
+	if bindName ~= nil then
+		for ID=1, ACTION_ID_MAX_THRESHOLD do
+			local binding = actionIDs[ID]
+			if binding == bindName then
+				return tonumber(ID)
+			end
 		end
 	end
 end
@@ -232,7 +234,7 @@ local function GetActionButtons(buttons, this)
 	end
 	local objType = this:GetObjectType()
 	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute('action')
-	if action and tonumber(action) then
+	if action and tonumber(action) and this:GetAttribute('type') == 'action' then
 		buttons[this] = action
 	end
 	for _, object in pairs({this:GetChildren()}) do
@@ -278,8 +280,7 @@ function ConsolePort:GetCurrentBindingOwner(bindingID, set)
 	end
 end
 
-function ConsolePort:GetFormattedBindingOwner(bindingID, set, size, useLargeIcons)
-	local key, mod = self:GetCurrentBindingOwner(bindingID, set)
+function ConsolePort:GetFormattedButtonCombination(key, mod, size, useLargeIcons)
 	if key and mod then
 		local texture_esc = '|T%s:'..format('%d:%d:0:0|t', size or 24, size or 24)
 		local texTable = useLargeIcons and db.TEXTURE or db.ICONS
@@ -293,6 +294,13 @@ function ConsolePort:GetFormattedBindingOwner(bindingID, set, size, useLargeIcon
 			}
 			return formattedKeys[mod]
 		end
+	end
+end
+
+function ConsolePort:GetFormattedBindingOwner(bindingID, set, size, useLargeIcons)
+	local key, mod = self:GetCurrentBindingOwner(bindingID, set)
+	if key and mod then
+		return self:GetFormattedButtonCombination(key, mod, size, useLargeIcons)
 	end
 end
 
@@ -399,11 +407,11 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		['autoLootDefault'] = true,
 		['disableKeyboard'] = true,
 		['disableSmartMouse'] = false,
-		['doubleModTap'] = true,
+	--	['doubleModTap'] = true,
 		['preventMouseDrift'] = false,
 		['turnCharacter'] = false,
 		-------------------------------
-		['mouseOnCenter'] = true,
+	--	['mouseOnCenter'] = true,
 		['mouseOnJump'] = false,
 	}
 	if Controller then
@@ -423,7 +431,7 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultMouseEvents()
 	return {
-		['PLAYER_STARTED_MOVING'] = false,
+		['PLAYER_STARTED_MOVING'] = true,
 		['PLAYER_TARGET_CHANGED'] = true,
 		['GOSSIP_SHOW'] = true,
 		['GOSSIP_CLOSED'] = true,
@@ -446,8 +454,8 @@ end
 
 function ConsolePort:GetDefaultMouseCursor()
 	return {
-		Left 	= 'CP_R_RIGHT',
-		Right 	= 'CP_R_LEFT',
+		Left 	= 'CP_R_DOWN',
+		Right 	= 'CP_R_RIGHT',
 		Special = 'CP_R_UP',
 		Scroll 	= 'CP_M1',
 	}
@@ -614,7 +622,7 @@ end
 -- Cvar list and getter function
 ---------------------------------------------------------------
 local cvars = { -- value = default
-	alwaysHighlight 	= false,
+	alwaysHighlight 	= 0,
 	autoExtra 			= true,
 	autoLootDefault		= true,
 	autoSellJunk 		= true,
@@ -623,6 +631,7 @@ local cvars = { -- value = default
 	centerLockDeadzoneX = 4,
 	centerLockDeadzoneY = 4,
 	disableHints 		= false,
+	disableSmartBind 	= false,
 	disableSmartMouse 	= false,
 	disableStickMouse	= false,
 	doubleModTap 		= true,
@@ -649,6 +658,7 @@ local cvars = { -- value = default
 	unitHotkeyOffsetX 	= 0,
 	unitHotkeyOffsetY 	= -8,
 	unitHotkeyPool = '',
+	unitHotkeySet = '',
 }
 
 function ConsolePort:GetCompleteCVarList()

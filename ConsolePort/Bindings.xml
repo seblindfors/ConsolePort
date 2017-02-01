@@ -1,29 +1,34 @@
 <Bindings>
-	<!-- Calibration -->
+	<!-- Calibration D-pad -->
 	<Binding name="CP_L_UP" header="CP_LEFT" category="ConsolePort "/>
 	<Binding name="CP_L_DOWN" header="CP_LEFT" category="ConsolePort "/>
 	<Binding name="CP_L_LEFT" header="CP_LEFT" category="ConsolePort "/>
 	<Binding name="CP_L_RIGHT" header="CP_LEFT" category="ConsolePort "/>
 	
+	<!-- Calibration XYAB -->
 	<Binding name="CP_R_UP" header="CP_RIGHT" category="ConsolePort "/>
 	<Binding name="CP_R_DOWN" header="CP_RIGHT" category="ConsolePort "/>
 	<Binding name="CP_R_LEFT" header="CP_RIGHT" category="ConsolePort "/>
 	<Binding name="CP_R_RIGHT" header="CP_RIGHT" category="ConsolePort "/>
 
+	<!-- Calibration center -->
 	<Binding name="CP_X_RIGHT" header="CP_CENTER" category="ConsolePort "/>
 	<Binding name="CP_X_CENTER" header="CP_CENTER" category="ConsolePort "/>
 	<Binding name="CP_X_LEFT" header="CP_CENTER" category="ConsolePort "/>
 
-	<Binding name="CP_L_GRIP" header="CP_GRIP" category="ConsolePort "/>
-	<Binding name="CP_R_GRIP" header="CP_GRIP" category="ConsolePort "/>
-	<Binding name="CP_L_GRIP2" header="CP_GRIP" category="ConsolePort "/>
-	<Binding name="CP_R_GRIP2" header="CP_GRIP" category="ConsolePort "/>
-
-	<Binding name="CP_L_PULL" header="CP_TRIG" category="ConsolePort "/>
-	<Binding name="CP_R_PULL" header="CP_TRIG" category="ConsolePort "/>
-
+	<!-- Calibration triggers -->
 	<Binding name="CP_T1" header="CP_TRIG" category="ConsolePort "/>
 	<Binding name="CP_T2" header="CP_TRIG" category="ConsolePort "/>
+
+	<Binding name="CP_T3" header="CP_TRIG" category="ConsolePort "/>
+	<Binding name="CP_T4" header="CP_TRIG" category="ConsolePort "/>
+
+	<!-- Calibration arbitrary -->
+	<Binding name="CP_T5" header="CP_EXTRA" category="ConsolePort "/>
+	<Binding name="CP_T6" header="CP_EXTRA" category="ConsolePort "/>
+
+	<Binding name="CP_T7" header="CP_EXTRA" category="ConsolePort "/>
+	<Binding name="CP_T8" header="CP_EXTRA" category="ConsolePort "/>
 
 	<!-- Custom bindings -->
 	<Binding name="WM_UPDATE" hidden="true">

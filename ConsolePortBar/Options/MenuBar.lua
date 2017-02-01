@@ -36,8 +36,8 @@ Bar.BG:SetBlendMode('ADD')
 
 Bar.BottomLine = Bar:CreateTexture(nil, 'BORDER')
 Bar.BottomLine:SetTexture('Interface\\LevelUp\\LevelUpTex')
-Bar.BottomLine:SetTexCoord(0.00195313, 0.81835938, 0.00195313, 0.01562500)
-Bar.BottomLine:SetHeight(7)
+Bar.BottomLine:SetTexCoord(0.00195313, 0.81835938, 0.013671875, 0.017578125)
+Bar.BottomLine:SetHeight(1)
 Bar.BottomLine:SetPoint('BOTTOMLEFT', 0, 16)
 Bar.BottomLine:SetPoint('BOTTOMRIGHT', 0, 16)
 

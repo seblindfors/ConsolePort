@@ -118,6 +118,12 @@ function ConsolePort:LoadSettings()
 	if not ConsolePortBindingSet or not next(ConsolePortBindingSet) then
 		NOBINDINGS = true
 		ConsolePortBindingSet = {}
+	-----------------------------------------------------------
+	else local set = ConsolePortBindingSet -- compat: new binding ID fix, remove later on.
+		set.CP_T3 = set.CP_T3 or set.CP_L_GRIP -- translate Lgrip to t3
+		set.CP_T4 = set.CP_T4 or set.CP_R_GRIP -- translate Rgrip to t4
+		set.CP_L_GRIP = nil set.CP_R_GRIP = nil -- nullify
+	-----------------------------------------------------------
 	end
 
 	-----------------------------------------------------------

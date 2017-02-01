@@ -669,6 +669,7 @@ end
 function CatcherMixin:Catch(key)
 	local button = key and GetBindingAction(key) and _G[GetBindingAction(key).."_BINDING"]
 	FadeIn(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 1)
+	ConsolePortConfig:ToggleShortcuts(true)
 	self:SetScript("OnKeyUp", nil)
 	self:EnableKeyboard(false)
 	if button then
@@ -684,6 +685,7 @@ function CatcherMixin:OnClick()
 	self:EnableKeyboard(true)
 	self:SetScript("OnKeyUp", self.Catch)
 	FadeOut(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 0)
+	ConsolePortConfig:ToggleShortcuts(false)
 	window.Tutorial:SetText(TUTORIAL.CATCHER)
 end
 
@@ -955,53 +957,57 @@ db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = W
 	local triggers = {
 		[settings.CP_T1] = "CP_T1",
 		[settings.CP_T2] = "CP_T2",
+		[settings.CP_T3] = "CP_T3",
+		[settings.CP_T4] = "CP_T4",
 	}
 
 	local iconPath = "Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Icons64\\"
-	local distanceFromEdge = 420
+	local sharedPath = "Interface\\AddOns\\ConsolePort\\Controllers\\Shared\\Icons64\\"
+	local shared = db.Controller and db.Controller.Shared
 	if db.Layout then
 		local layout = config.layOut
+		if settings.skipGuideBtn then
+			db.Layout.CP_X_CENTER = nil
+		end
 		for buttonName, info in pairs(db.Layout) do
-			if not (settings.skipGuideBtn and buttonName == "CP_X_CENTER") then
-				local texture = iconPath..buttonName
-				local settings = layout[info.anchor]
-				local 	position, iconPoint, textPoint, buttonPoint, hitRects = 
-						settings.position, settings.iconPoint, settings.textPoint, settings.buttonPoint, settings.hitRects
+			local texture = ( shared and shared[buttonName] and sharedPath..buttonName ) or ( iconPath..buttonName )
+			local settings = layout[info.anchor]
+			local 	position, iconPoint, textPoint, buttonPoint, hitRects = 
+					settings.position, settings.iconPoint, settings.textPoint, settings.buttonPoint, settings.hitRects
 
-				position[3] = (info.index - 1) * -48 - 80
+			position[3] = (info.index - 1) * -48 - 80
 
-				local custom = customDescription[buttonName]
-				local name = triggers[buttonName] or buttonName
+			local custom = customDescription[buttonName]
+			local name = triggers[buttonName] or buttonName
 
-				local button = db.Atlas.GetBindingMetaButton(name.."_BINDING", self.Overlay, {
-					width = 30,
-					height = 30,
-					justifyH = info.anchor,
-					textWidth = 200,
-					iconPoint = iconPoint,
-					textPoint = textPoint,
-					buttonPoint = buttonPoint,
-					buttonTexture = texture,
-					useButton = true,
-					hitRects = hitRects,
-					default = custom,
-				})
+			local button = db.Atlas.GetBindingMetaButton(name.."_BINDING", self.Overlay, {
+				width = 30,
+				height = 30,
+				justifyH = info.anchor,
+				textWidth = 200,
+				iconPoint = iconPoint,
+				textPoint = textPoint,
+				buttonPoint = buttonPoint,
+				buttonTexture = texture,
+				useButton = true,
+				hitRects = hitRects,
+				default = custom,
+			})
 
-				button.anchor = info.anchor
-				button.icon = "|T%s:32:32:0:0|t"
-				button.texture = format(button.icon, texture)
-				button:SetPoint(unpack(position))
+			button.anchor = info.anchor
+			button.icon = "|T%s:32:32:0:0|t"
+			button.texture = format(button.icon, texture)
+			button:SetPoint(unpack(position))
 
-				if not custom or config.mouseBindings[buttonName] then
-					button.name = triggers[buttonName] or buttonName
-					Mixin(button, LayoutMixin)
-					self.Overlay.Buttons[#self.Overlay.Buttons + 1] = button
-				end
+			if not custom or config.mouseBindings[buttonName] then
+				button.name = triggers[buttonName] or buttonName
+				Mixin(button, LayoutMixin)
+				self.Overlay.Buttons[#self.Overlay.Buttons + 1] = button
 			end
 		end
 		config.layOut = nil
 	else
-		-- If the controller has no layout settings, use grid. NYI
+		-- If the controller has no layout settings, use grid.
 		settings.bindView = 2
 		self.Display:SetID(2)
 		self.Display:SetButtonState("DISABLED")

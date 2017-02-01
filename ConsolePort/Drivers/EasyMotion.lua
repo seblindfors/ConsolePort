@@ -8,7 +8,6 @@
 local addOn, db = ...
 ---------------------------------------------------------------
 -- Stuff
-local NAMEPLATES_MAX_VISIBLE = 30
 local COMBOS_MULTIPLIER = 3
 local COMBOS_MAX = 4 ^ COMBOS_MULTIPLIER
 local Key = {
@@ -70,12 +69,13 @@ for side, set in pairs(Key) do
 	end
 end
 
--- Set up nameplate registration
+-- Set up nameplate registration.. or not. Thanks for the nerf Blizzard. :/
 ---------------------------------------------------------------
-for i=1, NAMEPLATES_MAX_VISIBLE do
-	RegisterStateDriver(EM, 'nameplate'..i, '[@nameplate'..i..',exists] true; nil')
-	EM:SetAttribute('_onstate-nameplate'..i, [[plates['nameplate]]..i..[['] = newstate]])
-end
+-- local NAMEPLATES_MAX_VISIBLE = 30
+-- for i=1, NAMEPLATES_MAX_VISIBLE do
+-- 	RegisterStateDriver(EM, 'nameplate'..i, '[@nameplate'..i..',exists] true; nil')
+-- 	EM:SetAttribute('_onstate-nameplate'..i, [[plates['nameplate]]..i..[['] = newstate]])
+-- end
 ---------------------------------------------------------------
 
 -- Run snippets
@@ -304,10 +304,15 @@ function EM:OnNewBindings(...)
 	if db.Settings.unitHotkeyPool then
 		self:SetAttribute('unitpool', db.Settings.unitHotkeyPool)
 	end
+	local hSet = db.Settings.unitHotkeySet
+	if hSet then
+		hSet = hSet:lower()
+		hSet = hSet:match('left') and 'L' or hSet:match('right') and 'R'
+	end
 	for unitType, info in pairs(keys) do
 		local key, mod = unpack(info)
 		if key and mod then
-			local set = key:match('CP_R_') and 'L' or 'R'
+			local set = hSet or ( key:match('CP_R_') and 'L' or 'R' )
 			self:Execute(format([[ %sSet = '%s' %sMod = '%s' ]], unitType, set, unitType, mod))
 		end
 	end
