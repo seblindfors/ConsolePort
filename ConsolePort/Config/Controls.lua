@@ -883,7 +883,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 	-- Add link buttons
 	do 	local count = 0
 		local BASE_ALPHA = 0.25
-		local BASE_INSET = -24
+		local BASE_INSET = 12
 		local L = TUTORIAL.CONFIG
 		local function OnEnter(self)
 			GameTooltip:SetOwner(self, 'ANCHOR_TOP')
@@ -925,7 +925,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 			{'CP', L.LINK_CP, 'http://www.consoleport.net'},
 			{'WM', L.LINK_WM, 'https://github.com/topher-au/WoWmapper/releases/latest'},
 			{'Discord', L.LINK_DISCORD, 'https://discord.gg/AWeHd48'},
-		--	{'Patreon', L.LINK_PATREON, ''},
+			{'Patreon', L.LINK_PATREON, 'https://www.patreon.com/seblindfors'},
 		})
 		do
 			local id, tooltip, link = unpack(info)

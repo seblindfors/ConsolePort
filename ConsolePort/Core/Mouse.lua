@@ -160,7 +160,7 @@ function Camera:OnEvent(_, ...)
 	end
 end
 
-function Camera:OnAction() interactPushback = ( Settings.interactWith and Settings.interactPushback or 1 ) or 0 end
+function Camera:OnAction() interactPushback = ( Settings.interactWith and (Settings.interactPushback or 1) ) or 0 end
 
 function Camera:OnInteract()
 	local guid, canInteract = UnitGUID('target')
@@ -399,9 +399,24 @@ do 	-- Mouse handle setup
 	Mouse.PortraitMask:SetSize(32, 32)
 	Mouse.PortraitMask:SetPoint('CENTER', Mouse.Portrait, 'CENTER', 0, 0)
 
+	Mouse.FadeInRef = db.UIFrameFadeIn
+	Mouse.FadeOutRef = db.UIFrameFadeOut
 
-	Mouse.FadeIn = db.UIFrameFadeIn
-	Mouse.FadeOut = db.UIFrameFadeOut
+	Mouse.InsecureOverrides = {}
+end
+
+function Mouse:FadeIn(speed)
+	if self.fade ~= 'in' then
+		self:FadeInRef(speed or 0.1, self:GetAlpha(), 1)
+		self.fade = 'in'
+	end
+end
+
+function Mouse:FadeOut(speed)
+	if self.fade ~= 'out' then
+		self:FadeOutRef(speed or 0.2, self:GetAlpha(), 0)
+		self.fade = 'out'
+	end
 end
 
 function Mouse:SetAutoWalk(enabled)
@@ -433,32 +448,26 @@ function Mouse:CheckLoot(elapsed)
 	end
 	if hasLoot and canLoot then
 		self:SetAutoWalk(true)
-		self:SetOverride('INTERACTTARGET')
+		self:SetOverride('INTERACTTARGET', self.override)
 		self.Text:SetText(LOOT)
-		if self.fade ~= 'in' then
-			self:FadeIn(0.1, alpha, 1)
-			self.fade = 'in'
-		end
+		self:FadeIn()
 	else
 		if self.override then
-			self:SetOverride()
+			self:SetOverride(nil, self.override)
 		end
-		if self.fade ~= 'out' then
-			self:FadeOut(0.2, alpha, 0)
-			self.fade = 'out'
-		end
+		self:FadeOut()
 	end
 end
 
-function Mouse:SetOverride(binding)
+function Mouse:SetOverride(binding, bindingID)
 	if not InCombatLockdown() then
-		local key = self.override and GetBindingKey(self.override)
+		local key = bindingID and GetBindingKey(bindingID)
 		if key then
 			SetOverrideBinding(self, true, key, binding)
 			if binding then
 				self:RegisterEvent('PLAYER_REGEN_DISABLED')
 				self:SetScript('OnEvent', self.ClearOverride)
-				self:SetIcon(self.override)
+				self:SetIcon(bindingID)
 			else
 				self:UnregisterEvent('PLAYER_REGEN_DISABLED')
 				self:SetScript('OnEvent', nil)
@@ -481,22 +490,16 @@ function Mouse:CheckLootOverride(elapsed)
 	local alpha = self:GetAlpha()
 	local hasLoot, canLoot = CanLootUnit(self.cachedUnit)
 	if not inCombat and hasLoot and canLoot then
-		self:SetOverride('TARGETLASTTARGET')
+		self:SetOverride('TARGETLASTTARGET', self.override)
 		self.Text:SetText(LOOT)
-		if self.fade ~= 'in' then
-			self:FadeIn(0.1, alpha, 1)
-			self.fade = 'in'
-		end
+		self:FadeIn()
 	else
 		if not inCombat then
-			if self.override then
-				self:SetOverride('TURNORACTION')
+			if self.override == self.interactWith then
+				self:SetOverride('TURNORACTION', self.override)
 			end
 		end
-		if self.fade ~= 'out' then
-			self:FadeOut(0.2, alpha, 0)
-			self.fade = 'out'
-		end
+		self:FadeOut()
 		if not hasLoot then
 			self:SetScript('OnUpdate', nil)
 		end
@@ -507,22 +510,15 @@ function Mouse:CheckNPC(elapsed)
 	local alpha = self:GetAlpha()
 	local canMoveTo, canInteract = CheckInteractDistance('target', 4), CheckInteractDistance('target', 5)
 	canMoveTo = canMoveTo and self.autoInteract
-
-	if canInteract or canMoveTo then
+	if ( canInteract or canMoveTo ) and not ( UnitExists('npc') or UnitExists('questnpc') ) then
 		if canInteract then
 			self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
 		else
 			self.Text:SetText(PET_ACTION_MOVE_TO)
 		end
-		if self.fade ~= 'in' then
-			self:FadeIn(0.1, alpha, 1)
-			self.fade = 'in'
-		end
+		self:FadeIn()
 	else
-		if self.fade ~= 'out' then
-			self:FadeOut(0.2, alpha, 0)
-			self.fade = 'out'
-		end
+		self:FadeOut()
 	end
 end
 
@@ -540,10 +536,7 @@ function Mouse:CheckHover(elapsed)
 	elseif exists and ( isDead or not isEnemy ) then
 		self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
 	end
-	if self.fade ~= 'in' then
-		self:FadeIn(0.1, self:GetAlpha(), 1)
-		self.fade = 'in'
-	end
+	self:FadeIn()
 end
 
 function Mouse:CacheUnit(unit)
@@ -586,10 +579,7 @@ function Mouse:TrackUnit(unitType, key)
 	else
 		self.Portrait:SetAlpha(0)
 		self.PortraitMask:SetAlpha(0)
-		if self.fade ~= 'out' then
-			self:FadeOut(0.5, self:GetAlpha(), 0)
-			self.fade = 'out'
-		end
+		self:FadeOut()
 	end
 end
 
@@ -763,9 +753,9 @@ function Core:UpdateMouseDriver()
 				RegisterStateDriver(Mouse, 'vehicle', '[petbattle][vehicleui][overridebar] true; nil')
 
 				Mouse:Execute(format([[
-					LOOTKEY = %s
+					LOOTKEY = '%s'
 					self:RunAttribute('UpdateTarget', self:GetAttribute('current'))
-				]], (''%s''):format(loot)))
+				]], loot))
 			else
 				Mouse.override = nil
 				UnregisterStateDriver(Mouse, 'targetstate')

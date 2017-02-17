@@ -41,13 +41,13 @@ local Atlas = db.Atlas
 ---------------------------------------------------------------
 Atlas.Backdrops = {
 	Full = {
-		bgFile 		= path.."Window\\Gradient.blp",
+		bgFile 		= path.."Window\\Gradient",
 		edgeFile 	= path.."Window\\EdgefileBig.blp",
 		edgeSize 	= 32,
 		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
 	},
 	FullSmall = {
-		bgFile 		= path.."Window\\Gradient.blp",
+		bgFile 		= path.."Window\\Gradient",
 		edgeFile 	= path.."Window\\EdgefileBig.blp",
 		edgeSize 	= 16,
 		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}

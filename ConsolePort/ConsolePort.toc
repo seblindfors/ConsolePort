@@ -1,7 +1,7 @@
 ## Interface: 70100
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 1.4.1
+## Version: 1.4.2
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortMouse, ConsolePortUtility
 
@@ -21,7 +21,6 @@ Config\Lookup.lua
 Config\Splash.lua
 Config\Binds.lua
 Config\Controls.lua
--- Config\Controller.lua
 Config\UICtrl.lua
 Config\Hotkey.lua
 Config\Secure.lua

@@ -214,6 +214,7 @@ function SetupSecureSnippets(button)
 	-- update the type and action of the button based on the state
 	button:SetAttribute("UpdateState", [[
 		local state = ...
+		local _type = type
 
 		self:SetAttribute("state", state)
 		local type, action = (self:GetAttribute(format("labtype-%s", state)) or "empty"), self:GetAttribute(format("labaction-%s", state))
@@ -224,6 +225,10 @@ function SetupSecureSnippets(button)
 			self:SetAttribute(action_field, action)
 			self:SetAttribute("action_field", action_field)
 		end
+		self:SetID((type == "action" and _type(action) == "number" and action <= 12 and action) or 0)
+		if self:GetID() > 0 then
+			self:CallMethod("ButtonContentsChanged", state, type, action + ((self:GetAttribute('actionpage') - 1) * 12))
+		end
 		local onStateChanged = self:GetAttribute("OnStateChanged")
 		if onStateChanged then
 			self:Run(onStateChanged, state, type, action)
@@ -231,33 +236,6 @@ function SetupSecureSnippets(button)
 	]])
 
 	button:SetAttribute("actionpage", 1)
-	button:SetAttribute("UpdatePage", [[
-		local newpage = ...
-		if newpage then
-			local oldpage = self:GetAttribute("actionpage")
-
-			local startIdx = (oldpage - 1) * 12
-			local endIdx = startIdx + 12
-
-			self:SetAttribute("actionpage", newpage)
-
-			for i, state in pairs(States) do
-				local type, action = (self:GetAttribute(format("labtype-%s", state)) or "empty"), self:GetAttribute(format("labaction-%s", state))
-				if type == "action" and action > startIdx and action <= endIdx then
-
-					local newID = (action - startIdx) + (newpage - 1) * 12
-
-					self:SetAttribute(format("labtype-%s", state), "action")
-					self:SetAttribute(format("labaction-%s", state), newID)
-					self:CallMethod("ButtonContentsChanged", state, "action", newID)
-					if self:GetAttribute("state") == state then
-						self:RunAttribute("UpdateState", state)
-						self:CallMethod("UpdateAction", true)
-					end
-				end
-			end
-		end
-	]])
 
 	-- this function is invoked by the header when the state changes
 	button:SetAttribute("_childupdate-state", [[
@@ -266,7 +244,12 @@ function SetupSecureSnippets(button)
 	]])
 
 	button:SetAttribute("_childupdate-actionpage", [[
-		self:RunAttribute("UpdatePage", message)
+		self:SetAttribute('actionpage', message)
+		if self:GetID() > 0 then
+			local state = self:GetAttribute("state")
+			local kind, value = (self:GetAttribute(format("labtype-%s", state)) or "empty"), self:GetAttribute(format("labaction-%s", state))
+			self:CallMethod("ButtonContentsChanged", state, kind, value + ((message - 1) * 12))
+		end
 	]])
 
 	button:SetAttribute("_childupdate-hover", [[
@@ -318,6 +301,9 @@ function SetupSecureSnippets(button)
 			self:RunAttribute("UpdateState", state)
 			-- send a notification to the insecure code
 			self:CallMethod("ButtonContentsChanged", state, "empty", nil)
+		end			
+		if self:GetID() > 0 then
+			action = action + ((self:GetAttribute('actionpage') - 1) * 12)
 		end
 		-- return the button contents for pickup
 		return self:RunAttribute("PickupButton", type, action)
@@ -362,6 +348,9 @@ function SetupSecureSnippets(button)
 		else
 			-- get the action for (pet-)action buttons
 			buttonAction = self:GetAttribute("action")
+			if self:GetID() > 0 then
+				buttonAction = buttonAction + ((self:GetAttribute('actionpage') - 1) * 12)
+			end
 		end
 		return self:RunAttribute("PickupButton", buttonType, buttonAction)
 	]])

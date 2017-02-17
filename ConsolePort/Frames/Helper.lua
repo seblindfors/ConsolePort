@@ -102,6 +102,8 @@ end
 function Helper:OnEvent(event, ...)
 	if self[event] then
 		self[event](self, ...)
+	elseif self:IsVisible() then
+		self:Hide()
 	end
 end
 
@@ -143,29 +145,17 @@ function Helper:OnKeyDown(key)
 	self:UpdateWidth()
 end
 
+function Helper:PLAYER_REGEN_ENABLED(...)
+	self:UnregisterEvent('PLAYER_REGEN_ENABLED')
+	self:Show()
+end
+
 function Helper:PLAYER_REGEN_DISABLED(...) 
 	if self:IsVisible() then 
 		self:RegisterEvent('PLAYER_REGEN_ENABLED')
 		self:Hide() 
 	end
 end
-
-function Helper:DELETE_ITEM_CONFIRM(...)
-	if self:IsVisible() then
-		self:Hide()
-	end
-end
-
-function Helper:EQUIP_BIND_CONFIRM(...)
-	if self:IsVisible() then
-		self:Hide()
-	end
-end
-
-function Helper:PLAYER_REGEN_ENABLED(...)
-	self:UnregisterEvent('PLAYER_REGEN_ENABLED')
-	self:Show()
-end 
 
 function Helper:ACTIONBAR_HIDEGRID(...)
 	self:UnregisterEvent('PLAYER_REGEN_ENABLED')
@@ -182,11 +172,20 @@ function Helper:ACTIONBAR_SHOWGRID(...)
 end
 
 for _, event in pairs({
+	-------------------------
+	-- Handled events
+	-------------------------
 	'ACTIONBAR_SHOWGRID',
 	'ACTIONBAR_HIDEGRID',
 	'PLAYER_REGEN_DISABLED',
+	-------------------------
+	-- Disable on ...
+	-------------------------
 	'DELETE_ITEM_CONFIRM',
 	'EQUIP_BIND_CONFIRM',
+	'EQUIP_BIND_TRADEABLE_CONFIRM',
+	'MERCHANT_CONFIRM_TRADE_TIMER_REMOVAL',
+	-------------------------
 }) do Helper:RegisterEvent(event) end
 
 Helper:SetPropagateKeyboardInput(true)

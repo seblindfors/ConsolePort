@@ -1,0 +1,8 @@
+## Interface: 70100
+## Title: Console Port |cff69ccf0UI|r Menu
+## Notes: Replaces game menu.
+## RequiredDeps: ConsolePortUI
+
+Menu_Button.lua
+Menu_Frame.lua
+Menu_Logic.lua

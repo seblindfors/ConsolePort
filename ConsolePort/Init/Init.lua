@@ -77,6 +77,11 @@ function ConsolePort:LoadSettings()
 	if not ConsolePortSettings then
 		fullReset, selectController = true, true
 		ConsolePortSettings = self:GetDefaultAddonSettings()
+	-----------------------------------------------------------
+	else local set = ConsolePortSettings -- compat: new binding ID fix, remove later on.
+		set.CP_T3 = set.CP_T3 or 'CP_L_GRIP'
+		set.CP_T4 = set.CP_T4 or 'CP_R_GRIP'
+	-----------------------------------------------------------
 	end
 
 	db.Settings = ConsolePortSettings

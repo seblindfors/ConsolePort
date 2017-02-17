@@ -20,9 +20,9 @@ local function OnUpdate (self, elapsed)
 end
 
 function ConsolePort:AddUpdateSnippet(snippet, ID)
-	if type(snippet) == "function" then
+	if type(snippet) == 'function' then
 		scripts[snippet] = ID or true
-		self:SetScript("OnUpdate", OnUpdate)
+		self:SetScript('OnUpdate', OnUpdate)
 	end
 end
 
@@ -30,7 +30,7 @@ function ConsolePort:RemoveUpdateSnippet(snippet)
 	scripts[snippet] = nil
 	if not next(scripts) then
 		time = 0
-		self:SetScript("OnUpdate", nil)
+		self:SetScript('OnUpdate', nil)
 	end
 end
 
@@ -47,9 +47,9 @@ end
 local callBacks, owners = {}, {}
 
 function ConsolePort:RegisterCallback(functionName, func, owner, orderIndex)
-	assert(type(functionName) == "string", "First argument is not a valid string. Arguments (RegisterCallback): \"functionName\", function")
-	assert(type(func) == "function", "Second argument is not a function. Arguments (RegisterCallback): \"functionName\", function")
-	assert(self[functionName], "Named function does not exist. Arguments (RegisterCallback): \"functionName\", function")
+	assert(type(functionName) == 'string', 'First argument is not a valid string. Arguments (RegisterCallback): \'functionName\', function')
+	assert(type(func) == 'function', 'Second argument is not a function. Arguments (RegisterCallback): \'functionName\', function')
+	assert(self[functionName], 'Named function does not exist. Arguments (RegisterCallback): \'functionName\', function')
 
 	-- Store the owner
 	if owner then
@@ -80,7 +80,7 @@ function ConsolePort:RegisterCallback(functionName, func, owner, orderIndex)
 end
 
 function ConsolePort:UnregisterCallback(functionName, func)
-	assert(callBacks[functionName], "No callbacks are registered for this function.")
+	assert(callBacks[functionName], 'No callbacks are registered for this function.')
 	local index, poppedFunc
 	for i, storedFunc in pairs(callBacks[functionName]) do
 		if func == storedFunc then

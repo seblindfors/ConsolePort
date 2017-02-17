@@ -1,5 +1,8 @@
-local Pager = CreateFrame("Frame", nil, nil, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
-Pager:Execute("headers = newtable()")
+local Pager = CreateFrame('Button', 'ConsolePortPager', nil, 'SecureHandlerBaseTemplate, SecureHandlerStateTemplate, SecureActionButtonTemplate')
+Pager:WrapScript(Pager, 'PreClick', [[ if down then self:SetAttribute('action', tonumber(button) or 1) else self:SetAttribute('action', 1) end ]])
+Pager:SetAttribute('type', 'actionbar')
+Pager:RegisterForClicks('AnyUp', 'AnyDown')
+Pager:Execute('headers = newtable()')
 
 --[[ Functions:
 	GetActionID: Returns the correct ID for an action slot
@@ -14,7 +17,7 @@ local PAGER_SECURE_FUNCTIONS = {
 	GetActionID = [[
 		local id = ...
 		if id then
-			local page = self:GetAttribute("actionpage")
+			local page = self:GetAttribute('actionpage')
 			if id >= 1 and id <= 12 then
 				return ( ( page - 1 ) * 12 ) + id
 			else
@@ -23,41 +26,41 @@ local PAGER_SECURE_FUNCTIONS = {
 		end
 	]],
 	GetActionInfo = [[
-		local id = self:RunAttribute("GetActionID", ...)
+		local id = self:RunAttribute('GetActionID', ...)
 		if id then
 			return GetActionInfo(id)
 		end
 	]],
 	GetActionSpellSlot = [[
-		local type, spellID, subType = self:RunAttribute("GetActionInfo", ...)
-		if type == "spell" and spellID and spellID ~= 0 and subType == "spell" then
+		local type, spellID, subType = self:RunAttribute('GetActionInfo', ...)
+		if type == 'spell' and spellID and spellID ~= 0 and subType == 'spell' then
 			return FindSpellBookSlotBySpellID(spellID)
 		end
 	]],
 	IsHarmfulAction = [[
-		local type, id = self:RunAttribute("GetActionInfo", ...)
-		if type == "spell" then
-			local slot = self:RunAttribute("GetActionSpellSlot", ...)
+		local type, id = self:RunAttribute('GetActionInfo', ...)
+		if type == 'spell' then
+			local slot = self:RunAttribute('GetActionSpellSlot', ...)
 			if slot then
-				return IsHarmfulSpell(slot, "spell")
+				return IsHarmfulSpell(slot, 'spell')
 			end
-		elseif type == "item" and id then
+		elseif type == 'item' and id then
 			return IsHarmfulItem(id)
 		end
 	]],
 	IsHelpfulAction = [[
-		local type, id = self:RunAttribute("GetActionInfo", ...)
-		if type == "spell" then
-			local slot = self:RunAttribute("GetActionSpellSlot", ...)
+		local type, id = self:RunAttribute('GetActionInfo', ...)
+		if type == 'spell' then
+			local slot = self:RunAttribute('GetActionSpellSlot', ...)
 			if slot then
-				return IsHelpfulSpell(slot, "spell")
+				return IsHelpfulSpell(slot, 'spell')
 			end
-		elseif type == "item" and id then
+		elseif type == 'item' and id then
 			return IsHelpfulItem(id)
 		end
 	]],
 	IsNeutralAction = [[
-		return self:RunAttribute("IsHelpfulAction", ...) == self:RunAttribute("IsHarmfulAction", ...)
+		return self:RunAttribute('IsHelpfulAction', ...) == self:RunAttribute('IsHarmfulAction', ...)
 	]],
 }
 
@@ -70,13 +73,13 @@ function ConsolePort:RegisterSpellHeader(header, omitFromStack)
 		end
 
 		if not omitFromStack then
-			header:SetAttribute("actionpage", current)
+			header:SetAttribute('actionpage', current)
 
-			header:SetFrameRef("actionBar", MainMenuBarArtFrame)
-			header:SetFrameRef("overrideBar", OverrideActionBar)
+			header:SetFrameRef('actionBar', MainMenuBarArtFrame)
+			header:SetFrameRef('overrideBar', OverrideActionBar)
 
-			Pager:SetFrameRef("header", header)
-			Pager:Execute([[ headers[self:GetFrameRef("header")] = true ]])
+			Pager:SetFrameRef('header', header)
+			Pager:Execute([[ headers[self:GetFrameRef('header')] = true ]])
 		end
 	end
 end
@@ -100,42 +103,42 @@ function ConsolePort:LoadActionPager(pagedriver, pageresponse)
 				newstate = GetActionBarPage()
 			end
 			for header in pairs(headers) do
-				header:SetAttribute("actionpage", newstate)
-				if header:GetAttribute("pageupdate") then
-					header:RunAttribute("pageupdate", newstate)
+				header:SetAttribute('actionpage', newstate)
+				if header:GetAttribute('pageupdate') then
+					header:RunAttribute('pageupdate', newstate)
 				end
 			end
 		]]
 	else
 		pageresponse = pageresponse .. [[
 			for header in pairs(headers) do
-				header:SetAttribute("actionpage", newstate)
-				if header:GetAttribute("pageupdate") then
-					header:RunAttribute("pageupdate", newstate)
+				header:SetAttribute('actionpage', newstate)
+				if header:GetAttribute('pageupdate') then
+					header:RunAttribute('pageupdate', newstate)
 				end
 			end
 		]]
 	end
-	RegisterStateDriver(Pager, "actionpage", pagedriver)
-	Pager:SetAttribute("_onstate-actionpage", pageresponse)
+	RegisterStateDriver(Pager, 'actionpage', pagedriver)
+	Pager:SetAttribute('_onstate-actionpage', pageresponse)
 end
 
 function ConsolePort:UnregisterSpellHeader(header)
 	if not InCombatLockdown() then
 
 	-- NYI
-	--	Pager:SetFrameRef("header", header)
-	--	Pager:Execute([[ headers[self:GetFrameRef("header")] = nil ]])
+	--	Pager:SetFrameRef('header', header)
+	--	Pager:Execute([[ headers[self:GetFrameRef('header')] = nil ]])
 
-	--	header:SetFrameRef("actionBar", nil)
-	--	header:SetFrameRef("overrideBar", nil)
+	--	header:SetFrameRef('actionBar', nil)
+	--	header:SetFrameRef('overrideBar', nil)
 
-	--	header:SetAttribute("actionpage", nil)
-	--	header:SetAttribute("GetActionInfo", nil)
-	--	header:SetAttribute("GetActionSpellSlot", nil)
-	--	header:SetAttribute("IsHarmfulAction", nil)
-	--	header:SetAttribute("IsHelpfulAction", nil)
-	--	header:SetAttribute("IsNeutralAction", nil)
+	--	header:SetAttribute('actionpage', nil)
+	--	header:SetAttribute('GetActionInfo', nil)
+	--	header:SetAttribute('GetActionSpellSlot', nil)
+	--	header:SetAttribute('IsHarmfulAction', nil)
+	--	header:SetAttribute('IsHelpfulAction', nil)
+	--	header:SetAttribute('IsNeutralAction', nil)
 	end
 end
 

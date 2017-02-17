@@ -1,0 +1,25 @@
+## Interface: 70100
+## Title: Console Port |cff69ccf0UI|r Quest & Gossip
+## Notes: Replaces quest & gossip frames.
+## RequiredDeps: ConsolePortUI
+
+# XML templates
+Templates.xml
+
+# Config stuff, somewhat NYI
+Config.lua
+
+# Mixins
+Mixins\Scaler.lua
+Mixins\Titles.lua
+Mixins\Text.lua
+Mixins\Model.lua
+Mixins\Button.lua
+Mixins\Elements.lua
+
+# Display layer
+Frame.lua
+Init.lua
+
+# Logic layer
+Logic.lua

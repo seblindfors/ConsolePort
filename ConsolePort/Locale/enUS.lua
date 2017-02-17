@@ -104,7 +104,7 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		TRIGGERHELP 		= 'These settings will change which graphics are displayed for your triggers and modifiers.\nIf you want to change your modifiers, you will also have to change them in your controller mapper.',
 		INTERACTHELP 		= 'Use one of your buttons to interact with objects and creatures.\nIn the case where you lack a target that befits the configured button\'s original action,\nyou will instead be able to interact with the world.\n\nExamples:\nA |cffff7575harmful|r spell will be cast upon a hostile target, but interact in all other cases.\nA |cff75ff75healing|r spell will be cast upon a friendly target, but interact in all other cases.\nA macro or a binding requires a target to be used, but interact in all other cases.',
-		LOOTHELP 			= 'Note: This is an experimental feature.\n\nUse one of your buttons to loot your last target when you\'re in range.\nThe button you assign here will only be used for looting when...\n  a) you\'re out of combat or targeting the creature,\n  b) the creature is or was your last target,\n  c) the creature is dead and it has loot for you.',
+		LOOTHELP 			= 'Note: This is an experimental feature.\n\nUse one of your buttons to loot your last target when you\'re in range.\nThe button you assign here will only be used for looting when...\n  • you\'re out of combat or targeting the creature,\n  • the creature is or was your last target,\n  • the creature is dead and it has loot for you.\n\nThe interact button includes this functionality.',
 		HIGHLIGHTHELP 		= 'Preview your next target before you switch to it.\nIf you\'re struggling with reliable tab-targeting, set this to |cff75ff75Always on|r.',
 		-----------------------------------------------------------
 		MOUSEHANDLE 		= 'Character handling',
@@ -257,9 +257,11 @@ CUSTOMBINDS = {
 	CP_UTILITY 			= 	'Utility',
 	CP_CAMERA 			= 	'Camera',
 	CP_TARGETING 		= 	'Targeting',
+	CP_PAGER 			= 	'Action Set (Hold)',
 	-- Bindings
 	-----------------------------------------------------------
 	CP_UTILITYBELT		= 	'Utility Ring',
+	CP_PETRING 			= 	'Pet Ring',
 	CP_RAIDCURSOR		= 	'Toggle Raid Cursor',
 	CP_RAIDCURSOR_F 	= 	'Focus Raid Cursor',
 	CP_RAIDCURSOR_T 	= 	'Target Raid Cursor',
@@ -267,6 +269,11 @@ CUSTOMBINDS = {
 	CP_EM_PLATES		=	'Target Nameplates (Hold)',
 	CP_EM_NEAREST		= 	'Target Nearest or Nameplates (Hold)',
 	CP_TOGGLEMOUSE		= 	'Toggle Mouse Look',
+	CP_PAGE2 			= 	BINDING_NAME_ACTIONPAGE2 .. ' (Hold)',
+	CP_PAGE3 			= 	BINDING_NAME_ACTIONPAGE3 .. ' (Hold)',
+	CP_PAGE4 			= 	BINDING_NAME_ACTIONPAGE4 .. ' (Hold)',
+	CP_PAGE5 			= 	BINDING_NAME_ACTIONPAGE5 .. ' (Hold)',
+	CP_PAGE6 			= 	BINDING_NAME_ACTIONPAGE6 .. ' (Hold)',
 	CP_CAMZOOMIN		= 	'Zoom In (x5)',
 	CP_CAMZOOMOUT		= 	'Zoom Out (x5)',
 	CP_CAMLOOKBEHIND	= 	'Look Behind',

@@ -1,0 +1,22 @@
+## Interface: 70100
+## Title: Console Port |cff69ccf0UI|r
+## Notes: User interface core
+## SavedVariables: ConsolePortUIConfig
+## RequiredDeps: ConsolePort
+
+Locale\Locale.xml
+
+Libs\Utils.lua
+Libs\Animation.lua
+Libs\Button.lua
+Libs\Media.lua
+Libs\Probe.lua
+Libs\Templates.lua
+Libs\Tooltip.lua
+
+XML\GlyphUI.xml
+XML\MenuUI.xml
+
+Core.lua
+Control.lua
+

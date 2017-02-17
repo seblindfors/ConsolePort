@@ -483,6 +483,14 @@ function ConsolePort:GetAddonBindings()
 		-- Utility
 		{name = L.CP_UTILITY},
 		{name = L.CP_UTILITYBELT, binding = 'CLICK ConsolePortUtilityToggle:LeftButton'},
+		{name = L.CP_PETRING, binding = 'CLICK ConsolePortBarPet:MiddleButton'},
+		-- Pager
+		{name = L.CP_PAGER},
+		{name = L.CP_PAGE2, binding = 'CLICK ConsolePortPager:2'},
+		{name = L.CP_PAGE3, binding = 'CLICK ConsolePortPager:3'},
+		{name = L.CP_PAGE4, binding = 'CLICK ConsolePortPager:4'},
+		{name = L.CP_PAGE5, binding = 'CLICK ConsolePortPager:5'},
+		{name = L.CP_PAGE6, binding = 'CLICK ConsolePortPager:6'},
 		-- Camera
 		{name = L.CP_CAMERA},
 		{name = L.CP_TOGGLEMOUSE, binding = 'CP_TOGGLEMOUSE'},

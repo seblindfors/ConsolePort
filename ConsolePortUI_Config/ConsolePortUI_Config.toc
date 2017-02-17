@@ -1,0 +1,35 @@
+## Interface: 70100
+## Title: Console Port |cff69ccf0UI|r Configuration
+## Notes: Controller configuration interface
+## RequiredDeps: ConsolePortUI
+## OptionalDeps: ConsolePortBar, ConsolePortKeyboard, ConsolePortAdvanced
+
+
+--- Main frame
+Frame.lua
+Logic.lua
+
+--- Mixins
+-- Canvas
+Mixins\Panorama.lua
+Mixins\Canvas\Canvas.lua
+Mixins\Canvas\Provider.lua
+
+-- Types
+Mixins\Bool.lua
+Mixins\Catcher.lua
+Mixins\Radio.lua
+Mixins\Input.lua
+Mixins\Header.lua
+Mixins\Help.lua
+
+-- Meta
+Mixins\Binding.lua
+
+--- Tabs
+Tabs\Bindings.lua
+Tabs\Settings.lua
+Tabs\Interface.lua
+Tabs\ActionBar.lua
+Tabs\Keyboard.lua
+
