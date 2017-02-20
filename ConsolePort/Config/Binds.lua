@@ -821,17 +821,11 @@ db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = W
 
 	self.Controller = CreateFrame("Frame", "$parentController", self)
 	self.Controller:SetPoint("CENTER", 0, 0)
-	self.Controller:SetSize(512, 512)
+	self.Controller:SetSize(450, 450)
 
 	self.Controller.Texture = self.Controller:CreateTexture("$parentTexture", "ARTWORK")
 	self.Controller.Texture:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\Front")
 	self.Controller.Texture:SetAllPoints(self.Controller)
-
-	self.Controller.FlashGlow = self.Controller:CreateTexture("$parentGlow", "OVERLAY")
-	self.Controller.FlashGlow:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.type.."\\FrontHighlight")
-	self.Controller.FlashGlow:SetAllPoints(self.Controller)
-	self.Controller.FlashGlow:SetAlpha(0)
-	self.Controller.FlashGlow:SetVertexColor(cc.r, cc.g, cc.b)
 
 	self.Overlay = CreateFrame("Frame", "$parentOverlay", self.Controller)
 	self.Overlay:SetPoint("CENTER", 0, 0)
@@ -857,7 +851,7 @@ db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = W
 	self.BindCatcher.HighlightTexture:ClearAllPoints()
 	self.BindCatcher.HighlightTexture:SetPoint("TOP", self.BindCatcher, "TOP")
 	self.BindCatcher:SetHeight(64)
-	self.BindCatcher:SetPoint("TOP", 0, -30)
+	self.BindCatcher:SetPoint("TOP", 0, 0)
 	self.BindCatcher.Cover:Hide()
 	self.BindCatcher.hasPriority = true
 

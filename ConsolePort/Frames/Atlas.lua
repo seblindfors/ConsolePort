@@ -503,7 +503,7 @@ Atlas.BindingMeta = {
 
 local bindPrefix = "BINDING_NAME_" -- this prefix is used for actual bindings
 local sortPrefix = "BINDING_" -- this prefix is used for headers inside categories
-local bindFormat = "%s\n|cFF575757%s|r"
+local bindFormat = "%s\n|cFF757575%s|r"
 local bindingCounter = 0
 
 function Atlas.BindingMeta:GetBindingInfo()

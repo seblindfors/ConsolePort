@@ -420,18 +420,20 @@ end
 function ConsolePort:SelectController()
 	if not ConsolePortSplashFrame then
 		local Splash = db.Atlas.GetFutureWindow("ConsolePortSplashFrame")
-		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE, TEX_ROTATION = 200, 390, 710, 0.523598776
+		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE, TEX_ROTATION = 200, 390, 600, 0.523598776
+		Splash.Controllers = {}
 
 		local function OnEnter(self)
-			db.UIFrameFadeIn(self.Highlight, 0.1, 0, 1)
-			self.Normal:SetDrawLayer("ARTWORK", 6)
-			self.Highlight:SetDrawLayer("ARTWORK", 7)
+			for _, controller in pairs(Splash.Controllers) do
+				db.UIFrameFadeOut(controller, 0.1, controller:GetAlpha(), 0.25)
+			end
+			db.UIFrameFadeIn(self, 0.1, self:GetAlpha(), 1)
 		end
 
 		local function OnLeave(self)
-			db.UIFrameFadeIn(self.Highlight, 0.1, 1, 0)
-			self.Normal:SetDrawLayer("ARTWORK", self.Strata)
-			self.Highlight:SetDrawLayer("ARTWORK", self.Strata + 1)
+			for _, controller in pairs(Splash.Controllers) do
+				db.UIFrameFadeIn(controller, 0.1, controller:GetAlpha(), 1)
+			end
 		end
 
 		local function OnClick(self)
@@ -461,7 +463,6 @@ function ConsolePort:SelectController()
 		Splash.Center:SetPoint("CENTER", -24, 0)
 		Splash.Center:SetHeight(BTN_HEIGHT)
 
-		local red, green, blue = db.Atlas.GetCC()
 		local pos = 0
 		for name, template in pairs(db.Controllers) do
 			if not template.Hide then
@@ -478,23 +479,17 @@ function ConsolePort:SelectController()
 				Controller:SetPoint("LEFT", Splash.Center, "LEFT", BTN_WIDTH*(pos-1), 0)
 				Controller.ID = name
 
-				Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, pos)
+				Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, pos*2)
 				Controller.Normal:SetSize(TEX_SIZE, TEX_SIZE)
 				Controller.Normal:SetPoint("CENTER", 0, 0)
 				Controller.Normal:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\Front")
 				Controller.Normal:SetRotation(TEX_ROTATION)
 
-				Controller.Highlight = Controller:CreateTexture(nil, "ARTWORK", nil, pos+3)
-				Controller.Highlight:SetSize(TEX_SIZE, TEX_SIZE)
-				Controller.Highlight:SetPoint("CENTER", 0, 0)
-				Controller.Highlight:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\FrontHighlight")
-				Controller.Highlight:SetRotation(TEX_ROTATION)
-				Controller.Highlight:SetAlpha(0)
-				Controller.Highlight:SetVertexColor(red, green, blue)
-
 				Controller:SetScript("OnEnter", OnEnter)
 				Controller:SetScript("OnLeave", OnLeave)
 				Controller:SetScript("OnClick", OnClick)
+
+				Splash.Controllers[#Splash.Controllers + 1] = Controller
 			end
 		end
 

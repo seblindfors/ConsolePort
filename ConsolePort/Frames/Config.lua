@@ -10,7 +10,7 @@ local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local ConsolePort, WindowMixin = ConsolePort, {}
 local Popup = db.Atlas.GetFutureWindow("ConsolePortPopup")
-local Config = db.Atlas.GetFutureWindow("ConsolePortConfig")
+local Config = db.Atlas.GetFutureWindow("ConsolePortConfig", nil, nil, nil, nil, true)
 local Scroll = CreateFrame("ScrollFrame", "$parentBannerScroll", Config)
 local Category = CreateFrame("Frame", "$parentCategories", Scroll)
 local Container = CreateFrame("Frame", "$parentContainer", Config)
@@ -36,6 +36,14 @@ Config:SetMovable(true)
 Config:RegisterForDrag("LeftButton")
 Config:HookScript("OnDragStart", Config.StartMoving)
 Config:HookScript("OnDragStop", Config.StopMovingOrSizing)
+---------------------------------------------------------------
+Config.Model = CreateFrame('PlayerModel', '$parentSmoke', Config)
+Config.Model:SetPoint('TOPLEFT', 16, -16)
+Config.Model:SetPoint('BOTTOMRIGHT', -16, 16)
+Config.Model:SetAlpha(0.15)
+Config.Model:SetDisplayInfo(43022)
+Config.Model:SetCamDistanceScale(8)
+Config.Model:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
 ---------------------------------------------------------------
 Category.NextIcon = Category:CreateTexture(nil, "ARTWORK")
 Category.NextIcon:SetSize(24, 24)

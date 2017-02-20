@@ -55,7 +55,7 @@
 	</Button>
 
 	<Button name="CPUINPCItemButtonTemplate" virtual="true">
-		<Size x="250" y="48" />
+		<Size x="250" y="54" />
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture name="$parentIconTexture" parentKey="Icon">
@@ -307,12 +307,12 @@
 										<Anchor point="TOPLEFT"/>
 									</Anchors>
 								</Texture>
-								<Texture file="Interface\QuestFrame\UI-QuestItemHighlight" alphaMode="ADD" parentKey="NameTag" alpha="0.5">
-									<Size x="182" y="48"/>
+								<Texture file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD" parentKey="NameTag">
+									<Size x="182" y="46"/>
 									<Anchors>
 										<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="4" y="0"/>
 									</Anchors>
-									<TexCoords left="0.19140625" right="0.59375" top="0.109375" bottom="0.703125"/>
+									<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
 								</Texture>
 							</Layer>
 						</Layers>

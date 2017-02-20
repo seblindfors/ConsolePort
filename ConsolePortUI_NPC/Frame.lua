@@ -155,6 +155,7 @@ local frame = UI:CreateFrame('Frame', 'ConsolePortUI_NPC', UIParent, 'SecureHand
 		Type = 'Frame',
 		Size = {300, 0},
 		Point = {'RIGHT', UIParent, 'CENTER', -350, 0},
+		Mixin = L.TitlesMixin,
 		Threshold = NUMGOSSIPBUTTONS,
 		HintText = ACCEPT,
 		{
@@ -173,6 +174,7 @@ local frame = UI:CreateFrame('Frame', 'ConsolePortUI_NPC', UIParent, 'SecureHand
 				Type = 'Frame',
 				Backdrop = UI.Media:GetBackdrop('TALKBOX'),
 				Point = {'TOP', '$parent', 'BOTTOM',  0, 8},
+				Mixin = L.ElementsMixin,
 				Size = {570, 0},
 				{
 					Active = {},

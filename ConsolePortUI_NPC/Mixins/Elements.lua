@@ -40,10 +40,9 @@ local function UpdateItemInfo(self, queryNum)
 			SetItemButtonNameFrameVertexColor(self, 0.9, 0, 0)
 		end
 		-- Fix when item isn't getting populated properly because it isn't cached yet.
-		if ( not name or name:trim():len() == 0 ) and (not queryNum or queryNum < 3)  then
-			print(format("Failed to retrieve quest item data. Retrying... (%d)", (queryNum or 0) + 1))
-			C_Timer.After(0.3, function()
-				-- Recurse 3 times before giving up
+		if ( not name or name:trim():len() == 0 ) and (not queryNum or queryNum < 5)  then
+			C_Timer.After(0.1, function()
+				-- Recurse 5 times before giving up
 				UpdateItemInfo(self, (queryNum and queryNum + 1) or 1)
 			end)
 			return self:Hide()
@@ -377,6 +376,7 @@ function Elements:ShowRewards()
 			end
 			totalHeight = totalHeight + self.ItemChooseText:GetHeight() + REWARDS_OFFSET
 		else
+			elements.chooseItems = nil
 			self.ItemChooseText:Hide()
 		end
 	end

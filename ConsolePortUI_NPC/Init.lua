@@ -93,16 +93,6 @@ UI:HideFrame(QuestFrame)
 -- talkbox.Hilite:SetBackdrop(L.Backdrops.GOSSIP_HILITE)
 
 ----------------------------------
--- Initiate titlebuttons
-----------------------------------
-L.Mixin(titles, L.TitlesMixin)
-
-----------------------------------
--- Initiate elements
-----------------------------------
-L.Mixin(talkbox.Elements, L.ElementsMixin)
-
-----------------------------------
 -- Model script, light
 ----------------------------------
 local model = talkbox.MainFrame.Model
