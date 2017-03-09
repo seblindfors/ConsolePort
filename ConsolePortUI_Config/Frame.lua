@@ -31,7 +31,7 @@ do
 						1 - (cc.r - gBase) * gMulti, 1 - (cc.g - gBase) * gMulti, 1 - (cc.b - gBase) * gMulti, 1,
 					},
 				},
-				Line = { Type = 'Texture', Setup = {'ARTWORK'}, SetColorTexture = {1, 1, 1},
+				TopLine = { Type = 'Texture', Setup = {'ARTWORK'}, SetColorTexture = {1, 1, 1},
 					Points = {
 						{'TOPLEFT', 16, -16},
 						{'BOTTOMRIGHT', '$parent', 'TOPRIGHT', -16, -20},
@@ -42,6 +42,20 @@ do
 						1, 1, 1, 0,
 					},
 				},
+				BottomLine = { Type = 'Texture', Setup = {'ARTWORK'}, SetColorTexture = {0.15, 0.15, 0.15},
+					Points = {
+						{'BOTTOMLEFT', 0, 16},
+						{'BOTTOMRIGHT', 0, 16},
+					},
+					Height = 1,
+				},
+				ScrollFrame = {
+					Type = 'Frame',
+					Mixin = 'AdjustToChildren',
+					Point = {'CENTER', 0, 0},
+					Size = {1, 1},
+				},
+				Headers = {},
 			},
 		},
 		Container = {

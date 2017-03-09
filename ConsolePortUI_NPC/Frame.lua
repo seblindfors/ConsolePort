@@ -11,7 +11,9 @@ local frame = UI:CreateFrame('Frame', 'ConsolePortUI_NPC', UIParent, 'SecureHand
 		Hide = true,
 		Point = {'CENTER', UIParent, 'CENTER', 0, 0},
 		Size = {1, 1},
+		Scale = 1.1,
 		HintText = CHOOSE,
+		ignoreRegions = true,
 		Mixin = 'AdjustToChildren',
 		Multiple = {
 			SetScript = {
@@ -113,7 +115,6 @@ local frame = UI:CreateFrame('Frame', 'ConsolePortUI_NPC', UIParent, 'SecureHand
 				Type = 'Frame',
 				Point = {'TOP', 0, 0},
 				Size = {1, 200},
-				Scale = 1.25,
 				Mixin = 'AdjustToChildren',
 				{
 					Tooltips = {},
@@ -132,7 +133,6 @@ local frame = UI:CreateFrame('Frame', 'ConsolePortUI_NPC', UIParent, 'SecureHand
 				Type = 'Frame',
 				Point = {'TOP', '$parent.Choices', 'BOTTOM', 0, -52},
 				Size = {1, 200},
-				Scale = 1.25,
 				Mixin = 'AdjustToChildren',
 				{
 					Tooltips = {},
@@ -174,80 +174,27 @@ local frame = UI:CreateFrame('Frame', 'ConsolePortUI_NPC', UIParent, 'SecureHand
 				Type = 'Frame',
 				Backdrop = UI.Media:GetBackdrop('TALKBOX'),
 				Point = {'TOP', '$parent', 'BOTTOM',  0, 8},
-				Mixin = L.ElementsMixin,
+				Mixin = {L.ElementsMixin, 'AdjustToChildren'},
 				Size = {570, 0},
 				{
 					Active = {},
 					Content = {
 						Type = 'Frame',
 						Setup = {'CPUINPCContentFrame'},
-						Fill = true,
+						Mixin = 'AdjustToChildren',
+						Size = {570, 403},
+						Point = {'TOPLEFT', 32, -32},
+						OnLoad = function(self)
+							UI:ApplyMixin(self.RewardsFrame, nil, 'AdjustToChildren')
+						end,
 					},
 					Progress = {
 						Type = 'Frame',
-						Size = {300, 403},
+						Setup = {'CPUINPCProgress'},
+						Mixin = 'AdjustToChildren',
+						Size = {570, 403},
 						Point = {'TOPLEFT', 32, -32},
 						Hide = true,
-						Items = {
-							QuestProgressItem1,
-							QuestProgressItem2,
-							QuestProgressItem3,
-							QuestProgressItem4,
-							QuestProgressItem5,
-							QuestProgressItem6,
-						},
-						{
-							TitleText = {
-								Type = 'Existing',
-								Setup = QuestProgressTitleText,
-								Clear = true,
-								Hide = true,
-							},
-							ProgressText = {
-								Type = 'Existing',
-								Setup = QuestProgressText,
-								Clear = true,
-								Hide = true,
-							},							
-							ReqText = {
-								Type = 'Existing',
-								Setup = QuestProgressRequiredItemsText,
-								Clear = true,
-								Point = {'TOPLEFT', '$parent', 'TOPLEFT', 0, 0},
-							},
-							MoneyText = {
-								Type = 'Existing',
-								Setup = QuestProgressRequiredMoneyText,
-							},
-							MoneyFrame = {
-								Type = 'Existing',
-								Setup = QuestProgressRequiredMoneyFrame,
-							},
-							Item1 = {
-								Type = 'Existing',
-								Setup = QuestProgressItem1,
-							},
-							Item2 = {
-								Type = 'Existing',
-								Setup = QuestProgressItem2,
-							},
-							Item3 = {
-								Type = 'Existing',
-								Setup = QuestProgressItem3,
-							},
-							Item4 = {
-								Type = 'Existing',
-								Setup = QuestProgressItem4,
-							},
-							Item5 = {
-								Type = 'Existing',
-								Setup = QuestProgressItem5,
-							},
-							Item6 = {
-								Type = 'Existing',
-								Setup = QuestProgressItem6,
-							},
-						},
 					},
 				},
 			},

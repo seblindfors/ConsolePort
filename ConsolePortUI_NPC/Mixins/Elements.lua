@@ -22,7 +22,18 @@ local function AddSpellToBucket(spellBuckets, type, rewardSpellIndex)
 	spellBucket[#spellBucket + 1] = rewardSpellIndex
 end
 
-local function UpdateItemInfo(self, queryNum)
+local function GetItemButton(parentFrame, index, buttonType)
+	local rewardButtons = parentFrame.Buttons
+	if ( not rewardButtons[index] ) then
+		local button = CreateFrame('BUTTON', _..(buttonType or 'QuestInfoItem')..index, parentFrame, parentFrame.buttonTemplate)
+		rewardButtons[index] = button
+		button.container = parentFrame:GetParent():GetParent()
+		button.highlight = parentFrame.ItemHighlight
+	end
+	return rewardButtons[index]
+end
+
+local function UpdateItemInfo(self)
 	assert(self.type)
 	assert(self:GetID())
 	if self.objectType == 'item' then
@@ -39,23 +50,13 @@ local function UpdateItemInfo(self, queryNum)
 			SetItemButtonTextureVertexColor(self, 0.9, 0, 0)
 			SetItemButtonNameFrameVertexColor(self, 0.9, 0, 0)
 		end
-		-- Fix when item isn't getting populated properly because it isn't cached yet.
-		if ( not name or name:trim():len() == 0 ) and (not queryNum or queryNum < 5)  then
-			C_Timer.After(0.1, function()
-				-- Recurse 5 times before giving up
-				UpdateItemInfo(self, (queryNum and queryNum + 1) or 1)
-			end)
-			return self:Hide()
-		else
-			self:Show()
-			return true
-		end
+		self:Show()
+		return true
 	elseif self.objectType == 'currency' then
 		local name, texture, numItems = GetQuestCurrencyInfo(self.type, self:GetID())
 		if (name and texture and numItems) then
 			-- For the tooltip
 			self.Name:SetText(name)
-			self.itemTexture = texture
 			SetItemButtonCount(self, numItems, true)
 			SetItemButtonTexture(self, texture)
 			SetItemButtonTextureVertexColor(self, 1.0, 1.0, 1.0)
@@ -65,18 +66,6 @@ local function UpdateItemInfo(self, queryNum)
 			return self:Hide()
 		end
 	end
-end
-
-local function GetRewardButton(rewardsFrame, index)
-	local rewardButtons = rewardsFrame.RewardButtons
-	if ( not rewardButtons[index] ) then
-		local button = CreateFrame('BUTTON', _..'QuestInfoItem'..index, rewardsFrame, rewardsFrame.buttonTemplate)
-		rewardButtons[index] = button
-		button.container = rewardsFrame:GetParent():GetParent()
-		button.highlight = rewardsFrame.ItemHighlight
-		button:Hide()
-	end
-	return rewardButtons[index]
 end
 
 local function ToggleRewardElement(frame, value, anchor)
@@ -90,10 +79,15 @@ local function ToggleRewardElement(frame, value, anchor)
 	end
 end
 
+function Elements:UpdateBoundaries()
+	self:AdjustToChildren()
+	return self:AdjustToChildren()
+end
+
 ----------------------------------
 -- Quest elements display
 ----------------------------------
-function Elements:Display(template, acceptButton, material)
+function Elements:Display(template, material)
 	local template = TEMPLATE[template]
 	if not template then
 		return 0
@@ -102,9 +96,9 @@ function Elements:Display(template, acceptButton, material)
 	ACTIVE_TEMPLATE = template
 
 	self.chooseItems = template.chooseItems
-	self.acceptButton = acceptButton
 
 	self:SetMaterial(material)
+	self.Progress:Hide()
 
 	local content = self.Content
 	local elementsTable = template.elements
@@ -117,7 +111,7 @@ function Elements:Display(template, acceptButton, material)
 			if ( lastFrame ) then
 				shownFrame:SetPoint('TOPLEFT', lastFrame, 'BOTTOMLEFT', elementsTable[i+1], elementsTable[i+2])
 			else
-				shownFrame:SetPoint('TOPLEFT', content, 'TOPLEFT', elementsTable[i+1] + 32, elementsTable[i+2] - 16)
+				shownFrame:SetPoint('TOPLEFT', content, 'TOPLEFT', elementsTable[i+1] , elementsTable[i+2] + 10)
 			end
 			shownFrame:Show()
 			self.Active[#self.Active + 1] = shownFrame
@@ -128,6 +122,7 @@ function Elements:Display(template, acceptButton, material)
 end
 
 function Elements:SetMaterial(material)
+	local progress = self.Progress
 	local content = self.Content
 	local rewards = content.RewardsFrame
 	-- nil check this
@@ -141,12 +136,15 @@ function Elements:SetMaterial(material)
 		-- Headers
 		r, g, b = unpack(titleTextColor)
 		content.ObjectivesHeader:SetTextColor(r, g, b)
+		progress.ReqText:SetTextColor(r, g, b)
 		rewards.Header:SetTextColor(r, g, b)
 		-- Other text
 		r, g, b = unpack(textColor)
 		content.ObjectivesText:SetTextColor(r, g, b)
 		content.GroupSize:SetTextColor(r, g, b)
 		content.RewardText:SetTextColor(r, g, b)
+		-- Progress text
+		progress.MoneyText:SetTextColor(r, g, b)
 		-- Reward frame text
 		rewards.ItemChooseText:SetTextColor(r, g, b)
 		rewards.ItemReceiveText:SetTextColor(r, g, b)
@@ -249,7 +247,7 @@ end
 function Elements:ShowRewards()
 	local elements = self
 	local self = self.Content.RewardsFrame
-	local rewardButtons = self.RewardButtons
+	local rewardButtons = self.Buttons
 	local 	numQuestRewards, numQuestChoices, numQuestCurrencies,
 			money,
 			skillName, skillPoints, skillIcon,
@@ -302,7 +300,6 @@ function Elements:ShowRewards()
 
 	do -- Hide unused rewards
 		for i = totalRewards + 1, #rewardButtons do
-			rewardButtons[i].itemTexture = nil
 			rewardButtons[i]:ClearAllPoints()
 			rewardButtons[i]:Hide()
 		end
@@ -314,7 +311,7 @@ function Elements:ShowRewards()
 	local lastFrame = self.Header
 
 	local totalHeight = self.Header:GetHeight()
-	local buttonHeight = self.RewardButtons[1]:GetHeight()
+	local buttonHeight = self.Buttons[1]:GetHeight()
 
 	do -- Artifact experience
 		self.ArtifactXPFrame:ClearAllPoints()
@@ -342,7 +339,7 @@ function Elements:ShowRewards()
 			local baseIndex = rewardsCount
 			for i = 1, numQuestChoices do
 				index = i + baseIndex
-				questItem = GetRewardButton(self, index)
+				questItem = GetItemButton(self, index)
 				questItem.type = 'choice'
 				questItem.objectType = 'item'
 				numItems = 1
@@ -532,7 +529,7 @@ function Elements:ShowRewards()
 				for i = 1, numQuestRewards, 1 do
 					buttonIndex = buttonIndex + 1
 					index = i + baseIndex
-					questItem = GetRewardButton(self, index)
+					questItem = GetItemButton(self, index)
 					questItem.type = 'reward'
 					questItem.objectType = 'item'
 					questItem:SetID(i)
@@ -556,7 +553,6 @@ function Elements:ShowRewards()
 					rewardsCount = rewardsCount + 1
 				end
 			end
-
 			
 			do -- Currency
 				baseIndex = rewardsCount
@@ -564,7 +560,7 @@ function Elements:ShowRewards()
 				buttonIndex = buttonIndex + 1
 				for i = 1, GetMaxRewardCurrencies(), 1 do
 					index = i + baseIndex
-					questItem = GetRewardButton(self, index)
+					questItem = GetItemButton(self, index)
 					questItem.type = 'reward'
 					questItem.objectType = 'currency'
 					questItem:SetID(i)
@@ -634,7 +630,6 @@ function Elements:ShowRewards()
 	return self, lastFrame
 end
 
-
 function Elements:CompleteQuest()
 	local numQuestChoices = GetNumQuestChoices()
 	self.itemChoice = (numQuestChoices == 1 and 1) or self.itemChoice
@@ -642,37 +637,136 @@ function Elements:CompleteQuest()
 	if ( self.itemChoice == 0 and numQuestChoices > 0 ) then
 		QuestChooseRewardError()
 	else
-		local money = GetQuestMoneyToGet()
-		if ( money and money > 0 ) then
-			self.dialog = StaticPopup_Show('CONFIRM_COMPLETE_EXPENSIVE_QUEST')
-			if ( self.dialog ) then
-				MoneyFrame_Update(self.dialog:GetName()..'MoneyFrame', money)
-			end
+		GetQuestReward(self.itemChoice)
+	end
+end
+
+function Elements:AcceptQuest()
+	if ( QuestFlagsPVP() ) then
+		StaticPopup_Show("CONFIRM_ACCEPT_PVP_QUEST")
+	else
+		if ( QuestGetAutoAccept() ) then
+			AcknowledgeAutoAcceptQuest()
 		else
-			GetQuestReward(self.itemChoice)
+			AcceptQuest()
 		end
 	end
+	PlaySound("igQuestListOpen")
+end
+
+function Elements:ShowProgress(material)
+	self:Show()
+	self.Content:Hide()
+	self:SetMaterial(material)
+	local self = self.Progress
+	local numRequiredItems = GetNumQuestItems()
+	local numRequiredMoney = GetQuestMoneyToGet()
+	local numRequiredCurrencies = GetNumQuestCurrencies()
+	local buttonIndex, buttons = 1, self.Buttons
+	if ( numRequiredItems > 0 or numRequiredMoney > 0 or numRequiredCurrencies > 0) then
+		self:Show()
+		self.ReqText:Show()
+
+		-- If there's money required then anchor and display it
+		if ( numRequiredMoney > 0 ) then
+			MoneyFrame_Update(self.MoneyFrame, numRequiredMoney)
+			
+			local moneyColor, moneyVertex
+			if ( numRequiredMoney > GetMoney() ) then
+				moneyColor, moneyVertex = 'red', 0.2
+			else
+				moneyColor, moneyVertex = 'white', 0.75
+			end
+
+			self.MoneyText:SetTextColor(moneyVertex, moneyVertex, moneyVertex)
+			SetMoneyFrameColor(self.MoneyFrame, moneyColor)
+
+			self.MoneyText:Show()
+			self.MoneyFrame:Show()
+
+			-- Reanchor required item
+			buttons[1]:SetPoint('TOPLEFT', self.MoneyText, 'BOTTOMLEFT', 0, -10)
+		else
+			self.MoneyText:Hide()
+			self.MoneyFrame:Hide()
+			-- Reanchor required item
+			buttons[1]:SetPoint('TOPLEFT', self.ReqText, 'BOTTOMLEFT', -3, -5)
+		end
+
+		for i=1, numRequiredItems do	
+			local hidden = IsQuestItemHidden(i)
+			if ( hidden == 0 ) then
+				local requiredItem = GetItemButton(self, buttonIndex, 'ProgressItem')
+				requiredItem.type = "required"
+				requiredItem.objectType = "item"
+				requiredItem:SetID(i)
+				requiredItem:Show()
+
+				UpdateItemInfo(requiredItem)
+
+				if ( buttonIndex > 1 ) then
+					if ( mod(buttonIndex, ITEMS_PER_ROW) == 1 ) then
+						requiredItem:SetPoint('TOPLEFT', buttons[buttonIndex - 2], 'BOTTOMLEFT', 0, -2)
+					else
+						requiredItem:SetPoint('TOPLEFT', buttons[buttonIndex - 1], 'TOPRIGHT', 1, 0)
+					end
+				end
+
+				buttonIndex = buttonIndex + 1
+			end
+		end
+		
+		for i=1, numRequiredCurrencies do	
+			local requiredItem = GetItemButton(self, buttonIndex, 'ProgressItem')
+			requiredItem.type = "required"
+			requiredItem.objectType = "currency"
+			requiredItem:SetID(i)
+			requiredItem:Show()
+
+			UpdateItemInfo(requiredItem)
+
+			if ( buttonIndex > 1 ) then
+				if ( mod(buttonIndex, ITEMS_PER_ROW) == 1 ) then
+					requiredItem:SetPoint('TOPLEFT', buttons[buttonIndex - 2], 'BOTTOMLEFT', 0, -2)
+				else
+					requiredItem:SetPoint('TOPLEFT', buttons[buttonIndex - 1], 'TOPRIGHT', 1, 0)
+				end
+			end
+
+			buttonIndex = buttonIndex + 1
+		end
+	else
+		self:Hide()
+		self.MoneyText:Hide()
+		self.MoneyFrame:Hide()
+		self.ReqText:Hide()
+	end
+
+	for i=buttonIndex, #buttons do
+		buttons[i]:Hide()
+	end
+	return self:IsShown()
 end
 ----------------------------------
 -- Quest templates
 ----------------------------------
-TEMPLATE.QUEST_DETAIL = { chooseItems = nil, contentWidth = 450,
+TEMPLATE.QUEST_DETAIL = { chooseItems = nil, contentWidth = 507,
 	canHaveSealMaterial = true, sealXOffset = 400, sealYOffset = -6,
 	elements = {
-		Elements.ShowObjectivesHeader, 0, -15,	-- fixed
-		Elements.ShowObjectivesText, 0, -5, -- fixed
-		Elements.ShowSpecialObjectives, 0, -10, --
-		Elements.ShowGroupSize, 0, -10, -- fixed
-		Elements.ShowRewards, 0, -15, --
+		Elements.ShowObjectivesHeader, 0, -15,
+		Elements.ShowObjectivesText, 0, -5,
+		Elements.ShowSpecialObjectives, 0, -10,
+		Elements.ShowGroupSize, 0, -10,
+		Elements.ShowRewards, 0, -15,
 		Elements.ShowSeal, 0, 0,
-		Elements.ShowSpacer, 0, -15, --
+		Elements.ShowSpacer, 0, 0,
 	}
 }
 
-TEMPLATE.QUEST_REWARD = { chooseItems = true, contentWidth = 450,
+TEMPLATE.QUEST_REWARD = { chooseItems = true, contentWidth = 507,
 	canHaveSealMaterial = nil, sealXOffset = 300, sealYOffset = -6,
 	elements = {
 		Elements.ShowRewards, 0, -10,
-		Elements.ShowSpacer, 0, -10
+		Elements.ShowSpacer, 0, 0,
 	}
 }

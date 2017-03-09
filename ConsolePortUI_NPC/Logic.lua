@@ -14,7 +14,7 @@ end
 function NPC:OnEvent(event, ...)
 	self:ResetElements()
 	if self[event] then
-		self[event](self, ...)
+		event = self[event](self, ...) or event
 	end
 	self.TalkBox.lastEvent = event
 	self.lastEvent = event
@@ -52,24 +52,15 @@ function NPC:QUEST_PROGRESS(...) -- special case, doesn't use QuestInfo
 		npcType = 'IncompleteQuest'
 	end
 	self:PlayIntro('QUEST_PROGRESS')
-	self:UpdateTalkingHead(GetTitleText(), GetProgressText(), IsQuestCompletable() and 'ActiveQuest' or 'IncompleteQuest')
+	self:UpdateTalkingHead(GetTitleText(), GetProgressText(), npcType)
 	local elements = self.TalkBox.Elements
-	local textColor, titleTextColor = GetMaterialTextColors('Stone')
-	elements.Progress.ReqText:SetTextColor(unpack(titleTextColor))
-	elements.Progress.MoneyText:SetTextColor(unpack(textColor))
-	elements:Show()
-	elements:SetHeight(1)
-	elements.Progress:Show()
-	elements:AdjustToChildren()
-	for _, child in pairs({elements.Progress:GetChildren()}) do
-		if child:IsVisible() then
-			-- add some padding to get the backdrop to wrap the frame properly.
-			local height = elements.Progress:GetHeight() + 90
-			elements:SetSize(364, height)
-			elements.Progress:SetHeight(height)
-			self.TalkBox:SetExtraOffset(height - 16)
-			return -- something was visible, break out.
-		end
+	local hasItems = elements:ShowProgress('Stone')
+	elements:UpdateBoundaries()
+	if hasItems then
+		local width, height = elements.Progress:GetSize()
+		-- Extra: 32 padding + 8 offset from talkbox + 8 px bottom offset
+		self.TalkBox:SetExtraOffset(height + 48) 
+		return
 	end
 	self:ResetElements()
 end
@@ -89,20 +80,30 @@ end
 function NPC:QUEST_DETAIL(...)
 	local questStartItemID = ...
 	if ( QuestIsFromAdventureMap() ) or
-		( QuestGetAutoAccept() and QuestIsFromAreaTrigger()) or
+		( QuestIsFromAreaTrigger() ) or --and QuestGetAutoAccept() ) or
 		(questStartItemID ~= nil and questStartItemID ~= 0) then
 		self:ForceClose()
 		return
 	end
 	self:PlayIntro('QUEST_DETAIL')
 	self:UpdateTalkingHead(GetTitleText(), GetQuestText(), 'AvailableQuest')
-	self:AddQuestInfo('QUEST_DETAIL', QuestFrameAcceptButton)
+	self:AddQuestInfo('QUEST_DETAIL')
 	self.Inspector.HintText = nil
 	Control:AddHint(KEY.CROSS, ACCEPT)
 	if CanIgnoreQuest() then
 		Control:AddHint(KEY.CIRCLE, IGNORE)
 	elseif IsQuestIgnored() then
 		Control:AddHint(KEY.CIRCLE, UNIGNORE_QUEST)
+	end
+end
+
+function NPC:QUEST_ITEM_UPDATE()
+	local questEvent = (self.lastEvent ~= 'QUEST_ITEM_UPDATE') and self.lastEvent or self.questEvent
+	self.questEvent = questEvent
+
+	if questEvent and self[questEvent] then
+		self[questEvent](self)
+		return questEvent
 	end
 end
 
@@ -142,7 +143,6 @@ function NPC:GetItemColumn(owner, id)
 end
 
 function NPC:ShowItems()
-	local maxColumns = 3
 	local inspector = self.Inspector
 	local elements = self.TalkBox.Elements
 	local rewardsFrame = elements.Content.RewardsFrame
@@ -154,12 +154,12 @@ function NPC:ShowItems()
 	extras:SetSize(1, 1)
 	choices:SetSize(1, 1)
 	inspector:Show()
-	for _, item in pairs(items) do
+	for id, item in pairs(items) do
 		local tooltip = UI:GetTooltip()
 		local owner = item.type == 'choice' and choices or extras
 		local tooltips = owner.Tooltips
-		local id = #tooltips + 1
-		local columnID = ( id % maxColumns == 0 ) and maxColumns or ( id % maxColumns )
+	--	local id = #tooltips + 1
+		local columnID = ( id % 3 == 0 ) and 3 or ( id % 3 )
 		local column = self:GetItemColumn(owner, columnID)
 
 		tooltip:SetParent(column)
@@ -169,19 +169,21 @@ function NPC:ShowItems()
 		self:SetItemTooltip(tooltip, item)
 
 		tooltips[id] = tooltip
+		active[id] = tooltip.Button
 
 		-- if item is choice, add to active pool
 		if item.objectType == 'item' then
 			hasChoice = true
-			active[id] = tooltip.Button
 			tooltip.Button:SetID(id)
-			tooltip:SetCheckable(elements.chooseItems)
-			if elements.itemChoice == item:GetID() then
-				tooltip:SetChecked(true)
+			if item.type == 'choice' then
+				tooltip:SetCheckable(elements.chooseItems)
+				if elements.itemChoice == item:GetID() then
+					tooltip:SetChecked(true)
+				end
 			end
 		end
 		local width, height = tooltip:GetSize()
-		tooltip:SetWidth(width + 30)
+		tooltip:SetSize(width + 30, height + 8)
 
 		if column.lastItem then
 			tooltip:SetPoint('TOP', column.lastItem, 'BOTTOM', 0, 0)
@@ -222,12 +224,12 @@ end
 function NPC:GetItems()
 	local items = self.Inspector.Items
 	wipe(items)
-	for _, item in pairs(self.TalkBox.Elements.Content.RewardsFrame.RewardButtons) do
+	for _, item in pairs(self.TalkBox.Elements.Content.RewardsFrame.Buttons) do
 		if item:IsVisible() then
 			items[#items + 1] = item
 		end
 	end
-	for _, item in pairs(self.TalkBox.Elements.Progress.Items) do
+	for _, item in pairs(self.TalkBox.Elements.Progress.Buttons) do
 		if item:IsVisible() then
 			items[#items + 1] = item
 		end
@@ -238,21 +240,22 @@ end
 ----------------------------------
 -- Content handlers (quest info)
 ----------------------------------
-function NPC:AddQuestInfo(template, acceptButton)
+function NPC:AddQuestInfo(template)
 	local elements = self.TalkBox.Elements
 	local content = elements.Content
-	local height = elements:Display(template, acceptButton, 'Stone')
+	local height = elements:Display(template, 'Stone')
 
 	-- hacky fix to stop a content frame that only contains a spacer from showing. 
 	if height > 20 then
-		elements:SetSize(570, height + 32)
 		elements:Show()
 		content:Show()
+		elements:UpdateBoundaries()
 	else
 		elements:Hide()
 		content:Hide()
 	end
-	self.TalkBox:SetExtraOffset(height)
+	-- Extra: 32 px padding 
+	self.TalkBox:SetExtraOffset(height + 32)
 	self.TalkBox.NameFrame.FadeIn:Play()
 end
 
@@ -289,7 +292,7 @@ function NPC:UpdateTalkingHead(title, text, npcType)
 	elseif ( UnitExists('npc') and not UnitIsUnit('npc', 'player') and not UnitIsDead('npc') ) then
 		unit = 'npc'
 	else
-		unit = 'player'
+		unit = npcType
 	end
 	local talkBox = self.TalkBox
 	talkBox:SetExtraOffset(0)
@@ -386,7 +389,7 @@ local inputs = {
 				end
 			-- Accept quest
 			elseif self.lastEvent == 'QUEST_DETAIL' then
-				QuestFrameAcceptButton:Click()
+				self.TalkBox.Elements:AcceptQuest()
 			-- Progress quest (why are these functions named like this?)
 			elseif IsQuestCompletable() then
 				CompleteQuest()
@@ -518,7 +521,11 @@ function TalkBox:SetOffset(x, y)
 	local evaluator = self[ 'Get' .. point ]
 	local parent = UIParent
 	local comp = isVert and y or x
-	local func = self[point]
+
+	if not evaluator then
+		self:SetPoint(point, parent, x, y)
+		return
+	end
 
 	self:SetScript('OnUpdate', function(self)
 		local offset = (evaluator(self) or 0) - (evaluator(parent) or 0)

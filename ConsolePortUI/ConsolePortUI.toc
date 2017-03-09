@@ -4,11 +4,11 @@
 ## SavedVariables: ConsolePortUIConfig
 ## RequiredDeps: ConsolePort
 
-Locale\Locale.xml
+# Locale\Locale.xml
 
 Libs\Utils.lua
-Libs\Animation.lua
-Libs\Button.lua
+# Libs\Animation.lua
+# Libs\Button.lua
 Libs\Media.lua
 Libs\Probe.lua
 Libs\Templates.lua

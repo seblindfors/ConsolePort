@@ -1,5 +1,6 @@
 local CP_UI, UI = ...
 local data = ConsolePort:GetData()
+local Registry = UI.FrameRegistry
 ----------------------------------
 local Control = UI:CreateFrame('Button', CP_UI..'Handle', nil, 'SecureHandlerBaseTemplate, SecureHandlerStateTemplate, SecureHandlerAttributeTemplate, SecureActionButtonTemplate', {
 	StoredHints = {},
@@ -31,13 +32,13 @@ Bar:SetFrameStrata('FULLSCREEN_DIALOG')
 ----------------------------------
 function UI:GetControlHandle() return Control end
 ----------------------------------
-function UI:RegisterFrame(frame, ID, useCursor, hideBars) 
+function UI:RegisterFrame(frame, ID, useCursor, hideUI) 
 	assert(frame, 'Frame handle does not exist.')
 	assert(frame:IsProtected(), 'Frame handle is not protected.')
 	assert(frame.Execute, 'Frame handle does not have a base template.')
 	assert(not InCombatLockdown(), 'Frame handle cannot be registered in combat.')
 	assert(ID, 'Frame handle does not have an ID.') 
-	Control:RegisterFrame(frame, ID, useCursor, hideBars)
+	Control:RegisterFrame(frame, ID, useCursor, hideUI)
 end
 ----------------------------------
 Control:SetAttribute('type', 'macro')
@@ -66,10 +67,10 @@ for readable, identifier in pairs(data.KEY) do
 end
 Control:Execute(button_identifiers)
 
-function Control:RegisterFrame(frame, ID, useCursor, hideBars)
+function Control:RegisterFrame(frame, ID, useCursor, hideUI)
 	frame:Execute(button_identifiers)
 	frame:SetAttribute('useCursor', useCursor)
-	frame:SetAttribute('hideBars', hideBars)
+	frame:SetAttribute('hideUI', hideUI)
 	frame:SetFrameRef('control', self)
 	self:SetFrameRef(ID, frame)
 	self:WrapScript(frame, 'OnShow', ([[
@@ -89,6 +90,9 @@ function Control:RegisterFrame(frame, ID, useCursor, hideBars)
 	]]):format(ID))
 end
 
+----------------------------------
+-- Control input handling
+----------------------------------
 local secure_functions = {
 	OverrideKeys = [[
 		if #stack > 0 then
@@ -101,13 +105,13 @@ local secure_functions = {
 			self:SetAttribute('focus', stack[1])
 			self:CallMethod('SetHintFocus')
 			self:CallMethod('RestoreHints')
-			if stack[1]:GetAttribute('hideBars') then
-				self:CallMethod('HideActionBar')
+			if stack[1]:GetAttribute('hideUI') then
+				self:CallMethod('HideUI', stack[1]:GetName())
 			end
 		else
 			self:SetAttribute('focus', nil)
 			self:CallMethod('SetHintFocus')
-			self:CallMethod('ShowActionBar')
+			self:CallMethod('ShowUI')
 			self:CallMethod('HideHintBar')
 			self:ClearBindings()
 		end
@@ -132,16 +136,82 @@ local secure_wrappers = {
 for name, script in pairs(secure_functions) do Control:SetAttribute(name, script) end
 for name, script in pairs(secure_wrappers) do Control:WrapScript(Control, name, script) end
 
-function Control:HideActionBar()
-	if ConsolePortBar then
-		data.UIFrameFadeOut(ConsolePortBar, 0.2, ConsolePortBar:GetAlpha(), 0)
+----------------------------------
+-- Animation things
+----------------------------------
+local FadeIn, FadeOut = data.UIFrameFadeIn, data.UIFrameFadeOut
+local updateThrottle = 0
+local ignoreFrames = {
+	[Control] = true,
+	[GameTooltip] = true,
+	[StaticPopup1] = true,
+	[StaticPopup2] = true,
+	[StaticPopup3] = true,
+	[StaticPopup4] = true,
+	[ShoppingTooltip1] = true,
+	[ShoppingTooltip2] = true,
+	[ConsolePortCursor] = true,
+	[ConsolePortMouseHandle] = true,
+}
+
+local function GetUIFrames()
+	local frames = {}
+	for i, child in pairs({UIParent:GetChildren()}) do
+		if not child:IsForbidden() and not Registry[child] and not ignoreFrames[child] then
+			frames[child] = child.fadeInfo and child.fadeInfo.endAlpha or child:GetAlpha()
+		end
+	end
+	return frames
+end
+
+function Control:TrackMouseOver(elapsed)
+	updateThrottle = updateThrottle + elapsed
+	if updateThrottle > 0.5 then
+		if self.fadeFrames then
+			for frame, origAlpha in pairs(self.fadeFrames) do
+				if frame:IsMouseOver() and frame:IsMouseEnabled() then
+					FadeIn(frame, 0.2, frame:GetAlpha(), origAlpha)
+				elseif frame:GetAlpha() > 0.1 then
+					FadeOut(frame, 0.2, frame:GetAlpha(), 0) 
+				end
+			end
+		else
+			self:SetScript('OnUpdate', nil)
+		end
+		updateThrottle = 0
 	end
 end
 
-function Control:ShowActionBar()
-	if ConsolePortBar and ( InCombatLockdown() or not ConsolePortBar:GetAttribute('hidesafe') ) then
-		data.UIFrameFadeIn(ConsolePortBar, 0.2, ConsolePortBar:GetAlpha(), 1)
+function Control:HideUI(ignoreFrame)
+	-- Action bar fade fix
+	if ConsolePortBar then
+		ignoreFrames[ConsolePortBar] = nil
 	end
+
+	if ignoreFrame then
+		ignoreFrames[_G[ignoreFrame]] = true
+	end
+
+	local frames = GetUIFrames()
+	for frame in pairs(frames) do
+		FadeOut(frame, fadeTime or 0.2, frame:GetAlpha(), 0)
+	end
+	self.fadeFrames = frames
+
+	updateThrottle = 0
+	self:SetScript('OnUpdate', self.TrackMouseOver)
+end
+
+function Control:ShowUI()
+	if self.fadeFrames then
+		for frame, origAlpha in pairs(self.fadeFrames) do
+			FadeIn(frame, fadeTime or 0.5, frame:GetAlpha(), origAlpha)
+		end
+		self.fadeFrames = nil
+	end
+--	if ConsolePortBar and ( InCombatLockdown() or not ConsolePortBar:GetAttribute('hidesafe') ) then
+--		data.UIFrameFadeIn(ConsolePortBar, 0.2, ConsolePortBar:GetAlpha(), 1)
+--	end
 end
 
 function Bar:Enable()
@@ -343,5 +413,3 @@ function Hint:SetData(icon, text)
 	self:SetWidth(self.text:GetStringWidth() + 64)
 	self:UpdateParentWidth()
 end
-
-

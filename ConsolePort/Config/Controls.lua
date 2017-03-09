@@ -925,7 +925,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 			{'CP', L.LINK_CP, 'http://www.consoleport.net'},
 			{'WM', L.LINK_WM, 'https://github.com/topher-au/WoWmapper/releases/latest'},
 			{'Discord', L.LINK_DISCORD, 'https://discord.gg/AWeHd48'},
-			{'Patreon', L.LINK_PATREON, 'https://www.patreon.com/seblindfors'},
+			{'Patreon', L.LINK_PATREON, 'https://www.patreon.com/consoleport'},
 		})
 		do
 			local id, tooltip, link = unpack(info)

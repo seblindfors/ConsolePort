@@ -26,6 +26,7 @@ for _, event in pairs({
 	'QUEST_GREETING',	-- Multiple quests to choose from, but no gossip options
 	'QUEST_IGNORED',	-- Ignore the currently shown quest
 	'QUEST_PROGRESS',	-- Fires when you click on a quest you're currently on
+	'QUEST_ITEM_UPDATE', -- Item update while in convo, refresh frames.
 }) do frame:RegisterEvent(event) end
 
 ----------------------------------
@@ -40,8 +41,10 @@ for _, event in pairs({
 	'QUEST_GREETING',	-- Show quest options, why is this a thing again?
 	'QUEST_IGNORED',	-- Hide when using ignore binding?
 	'QUEST_PROGRESS',	-- Hide when going from gossip -> active quest
-	'QUEST_LOG_UPDATE',	-- If quest changes while interacting
+--	'QUEST_LOG_UPDATE',	-- If quest changes while interacting
 }) do titles:RegisterEvent(event) end
+
+titles:RegisterUnitEvent('UNIT_QUEST_LOG_CHANGED', 'player')
 
 ----------------------------------
 -- Load SavedVaribles
@@ -145,6 +148,9 @@ hooksecurefunc(text, 'SetNext', function(self, ...)
 		else
 			Control:RemoveHint(KEY.SQUARE)
 		end
+		if L.Get('disableprogression') then
+			self:StopProgression()
+		end
 	end
 end)
 
@@ -154,9 +160,6 @@ end)
 talkbox:SetParent(UIParent)
 talkbox:Hide()
 talkbox.TextFrame.SpeechProgress:SetFont('Fonts\\MORPHEUS.ttf', 16, '')
-UI:ApplyMixin(talkbox.Elements, nil, 'AdjustToChildren')
-UI:ApplyMixin(talkbox.Elements.Content, nil, 'AdjustToChildren')
-UI:ApplyMixin(talkbox.Elements.Progress, nil, 'AdjustToChildren')
 
 ----------------------------------
 -- Animation things

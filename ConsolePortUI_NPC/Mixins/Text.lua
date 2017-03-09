@@ -6,7 +6,7 @@ local LINE_FEED_CODE = string.char(10)
 local CARRIAGE_RETURN_CODE = string.char(13)
 local WEIRD_LINE_BREAK = LINE_FEED_CODE .. CARRIAGE_RETURN_CODE .. LINE_FEED_CODE
 
-local DELAY_DIVISOR = 15
+local DELAY_DIVISOR
 local MAX_UNTIL_SPLIT = 200
 
 Timer.Texts = {}
@@ -15,6 +15,7 @@ L.TextMixin = {}
 local Text = L.TextMixin
 
 function Text:SetText(text)
+	DELAY_DIVISOR = L.Get('delaydivisor')
 	self:StopTexts()
 	self.storedText = text
 	if text then
@@ -48,7 +49,7 @@ function Text:AddString(str, strings, delays)
 		end
 	end
 	if ( length ~= 0 or force ) then
-		delay = (length / DELAY_DIVISOR ) + 2
+		delay = (length / ( DELAY_DIVISOR or 15) ) + 2
 		delays[ #strings + 1] = delay
 		strings[ #strings + 1 ] = str
 	end
@@ -98,7 +99,12 @@ end
 
 function Text:GetNumTexts() return self.numTexts or 0 end
 
-function Text:OnFinished() end
+function Text:OnFinished()
+	self.strings = nil
+	self.delays = nil
+	self.timeToFinish = nil
+	self.timeStarted = nil
+end
 
 function Text:ForceNext()
 	if self.delays and self.strings then
@@ -107,7 +113,7 @@ function Text:ForceNext()
 		if self.strings[1] then
 			self:SetNext(self.strings[1])
 		else
-			Timer:RemoveText(self)
+			self:StopProgression()
 			self:RepeatTexts()
 		end
 		if not self.strings[2] then
@@ -116,13 +122,14 @@ function Text:ForceNext()
 	end
 end
 
-function Text:StopTexts()
+function Text:StopProgression()
 	Timer:RemoveText(self)
-	self.strings = nil
-	self.delays = nil
+end
+
+function Text:StopTexts()
 	self.numTexts = nil
-	self.timeToFinish = nil
-	self.timeStarted = nil
+	self:StopProgression()
+	self:OnFinished()
 	self:SetNext()
 end
 
@@ -190,7 +197,8 @@ end
 
 function Timer:OnUpdate(elapsed)
 	for text in self:GetTexts() do
-		if next(text.strings) and next(text.delays) then
+		if 	( text.strings and text.delays ) and
+		 	( next(text.strings) and next(text.delays) ) then
 			if not text:GetText() then
 				text:SetNext(text.strings[1])
 			end

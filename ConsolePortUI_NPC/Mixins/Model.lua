@@ -1,4 +1,4 @@
-local Model, GetTime, _, L, ani, zoom = {}, GetTime, ...
+local Model, GetTime, _, L, ani, m2 = {}, GetTime, ...
 L.ModelMixin = Model
 
 ----------------------------------
@@ -22,13 +22,26 @@ end
 -- Unit stuff
 ----------------------------------
 function Model:IsPlayer() return self.unit == 'player' end
-function Model:IsNPC() return ( self.unit == 'npc' or self.unit == 'questnpc' ) end 
+function Model:IsNPC() return ( self.unit == 'npc' or self.unit == 'questnpc' ) end
+function Model:IsEther() return (self.unit == 'ether') end
 function Model:GetUnit() return self.unit end
 
 function Model:SetUnit(unit)
-	getmetatable(self).__index.SetUnit(self, unit)
-	self:SetPortraitZoom(zoom[unit] or .85)
-	self.unit = unit
+	if m2[unit] then
+		self:SetCamDistanceScale(.4)
+		self:SetPortraitZoom(0)
+		self:SetPosition(0, 0, .25)
+		self:ClearModel()
+		self:SetModel(m2[unit])
+		self.unit = 'ether'
+	else
+		self:SetCamDistanceScale(1)
+		self:SetPortraitZoom(.85)
+		self:SetPosition(0, 0, 0)
+		self:ClearModel()
+		getmetatable(self).__index.SetUnit(self, unit)
+		self.unit = unit
+	end
 end
 
 ----------------------------------
@@ -106,10 +119,11 @@ ani = {
 	talking = 60,
 }
 
-zoom = {
-	player = .82,
-	questnpc = .85,
-	npc = .85,
+m2 = {
+	AvailableQuest	= 'interface\\buttons\\talktome.m2',
+	ActiveQuest		= 'interface\\buttons\\talktomequestionmark.m2',
+	IncompleteQuest = 'interface\\buttons\\talktomequestion_grey.m2',
+	GossipGossip	= 'interface\\buttons\\talktome_chat.m2',
 }
 
 Model.LightValues = {

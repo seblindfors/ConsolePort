@@ -347,7 +347,13 @@ MIXINS = {
 	},
 	AdjustToChildren = {
 		IterateChildren = function(self)
-			return pairs({self:GetChildren()})
+			local regions = {self:GetChildren()}
+			if not self.ignoreRegions then
+				for _, v in pairs({self:GetRegions()}) do
+					regions[#regions + 1] = v
+				end
+			end
+			return pairs(regions)
 		end,
 		GetAdjustableChildren = function(self)
 			local adjustable = {}
@@ -359,38 +365,36 @@ MIXINS = {
 			return pairs(adjustable)
 		end,
 		AdjustToChildren = function(self)
+			self:SetSize(1, 1)
 			for _, child in self:GetAdjustableChildren() do
 				child:AdjustToChildren()
 			end
 			local top, bottom, left, right
 			for _, child in self:IterateChildren() do
-				if child:IsVisible() then
+				if child:IsShown() then
 					local childTop, childBottom = child:GetTop(), child:GetBottom()
 					local childLeft, childRight = child:GetLeft(), child:GetRight()
-					if not top or childTop > top then
+					if (childTop) and (not top or childTop > top) then
 						top = childTop
 					end
-					if not bottom or childBottom < bottom then
+					if (childBottom) and (not bottom or childBottom < bottom) then
 						bottom = childBottom
 					end
-					if not left or childLeft < left then
+					if (childLeft) and (not left or childLeft < left) then
 						left = childLeft
 					end
-					if not right or childRight > right then
+					if (childRight) and (not right or childRight > right) then
 						right = childRight
 					end
 				end
 			end
 			if top and bottom then
 				self:SetHeight(abs( top - bottom ))
-			else
-				self:SetHeight(1)
 			end
 			if left and right then
 				self:SetWidth(abs( right - left ))
-			else
-				self:SetWidth(1)
 			end
+			return self:GetSize()
 		end,
 	},
 }

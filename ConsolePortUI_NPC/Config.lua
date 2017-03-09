@@ -52,4 +52,7 @@ L.defaults = {
 	boxoffsetX = 0,
 	boxoffsetY = 150,
 	boxpoint = 'Bottom',
+
+	disableprogression = false,
+	delaydivisor = 15,
 }---------------------------------

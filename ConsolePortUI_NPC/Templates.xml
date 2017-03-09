@@ -37,7 +37,7 @@
 				if ( IsModifiedClick() and self.objectType == "item") then
 					HandleModifiedItemClick(GetQuestItemLink(self.type, self:GetID()));
 				else
-					if ( self.container.chooseItems ) then
+					if ( self.container.chooseItems and self.type == "choice" ) then
 						self.container.itemChoice = self:GetID();
 						self.highlight:SetPoint('TOPLEFT', self, 0, 0);
 						self.highlight:Show();
@@ -57,27 +57,27 @@
 	<Button name="CPUINPCItemButtonTemplate" virtual="true">
 		<Size x="250" y="54" />
 		<Layers>
-			<Layer level="BACKGROUND">
+			<Layer level="BORDER">
 				<Texture name="$parentIconTexture" parentKey="Icon">
 					<Size x="52" y="52" />
 					<Anchors>
 						<Anchor point="TOPLEFT" />
 					</Anchors>
 				</Texture>
-				<Texture name="$parentNameFrame" file="Interface\QuestFrame\UI-QuestItemNameFrame" parentKey="NameFrame">
-					<Size x="220" y="70" />
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="-14" y="0" />
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="BORDER">
 				<FontString name="$parentName" inherits="GameFontHighlight" justifyH="LEFT" parentKey="Name">
 					<Size x="170" y="36" />
 					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.NameFrame" x="24" y="0" />
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="8" y="0" />
 					</Anchors>
 				</FontString>
+			</Layer>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentNameFrame" file="Interface\QuestFrame\UI-QuestItemNameFrame" parentKey="NameFrame">
+					<Size x="254" y="70" />
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="CENTER" x="-20" y="0" />
+					</Anchors>
+				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString name="$parentCount" inherits="NumberFontNormal" justifyH="RIGHT" parentKey="Count">
@@ -164,7 +164,7 @@
 				</Layers>
 				<Frames>
 					<Button parentKey="HonorFrame" inherits="CPUINPCItemButtonTemplate" hidden="true"/>
-					<Button parentArray="RewardButtons" name="ConsolePortUI_NPCQuestInfoItem1" inherits="CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate" hidden="true"/>
+					<Button parentArray="Buttons" name="ConsolePortUI_NPCQuestInfoItem1" inherits="CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate" hidden="true"/>
 					<Frame parentKey="MoneyFrame" name="$parentMoneyFrame" inherits="MoneyFrameTemplate">
 						<Anchors>
 							<Anchor point="LEFT" relativeKey="$parent.ItemReceiveText" relativePoint="RIGHT" x="15" y="0"/>
@@ -308,9 +308,9 @@
 									</Anchors>
 								</Texture>
 								<Texture file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD" parentKey="NameTag">
-									<Size x="182" y="46"/>
+									<Size x="182" y="44"/>
 									<Anchors>
-										<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="4" y="0"/>
+										<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="-8" y="0"/>
 									</Anchors>
 									<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
 								</Texture>
@@ -328,8 +328,8 @@
 						self.followerRewardPool = CreateFramePool("BUTTON", self, "LargeQuestInfoRewardFollowerTemplate");
 						self.spellHeaderPool = CreateFontStringPool(self, "BACKGROUND", 0, "QuestInfoSpellHeaderTemplate");
 
-						self.RewardButtons[1].container = self:GetParent():GetParent()
-						self.RewardButtons[1].highlight = self.ItemHighlight
+						self.Buttons[1].container = self:GetParent():GetParent()
+						self.Buttons[1].highlight = self.ItemHighlight
 					</OnLoad>
 				</Scripts>
 			</Frame>
@@ -352,7 +352,47 @@
 		</Layers>
 	</Frame>
 
-
+	<!-- Quest progress panel -->
+	<Frame name="CPUINPCProgress" virtual="true">
+		<Size x="570" y="403"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" x="32" y="-32"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<FontString parentKey="ReqText" inherits="QuestTitleFont" text="TURN_IN_ITEMS" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="MoneyText" inherits="QuestFontNormalSmall" text="REQUIRED_MONEY" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ReqText" relativePoint="BOTTOMLEFT" x="0" y="-10"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="MoneyFrame" name="$parentMoneyFrame" inherits="MoneyFrameTemplate">
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.MoneyText" relativePoint="RIGHT" x="10" y="0"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SmallMoneyFrame_OnLoad(self);
+						MoneyFrame_SetType(self, "STATIC");
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Button parentArray="Buttons" name="ConsolePortUI_NPCProgressItem1" inherits="CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate" hidden="true"/>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self.buttonTemplate = "CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate";
+				self.Buttons[1].container = self:GetParent():GetParent();
+			</OnLoad>
+		</Scripts>
+	</Frame>
 
 	<!-- Friendship status bar -->
 	<StatusBar name="CPUINPCStatusBar" hidden="true" virtual="true">

@@ -146,8 +146,8 @@ do
 			do
 				local resizeFactor = 1.15
 				Overlay.Controller = Overlay:CreateTexture(nil, 'ARTWORK')
-				Overlay.Controller:SetTexture('Interface\\AddOns\\ConsolePortUI_Config\\Textures\\'..settings.type)
-				Overlay.Controller:SetPoint('CENTER')
+				Overlay.Controller:SetTexture('Interface\\AddOns\\ConsolePort\\Controllers\\'..settings.type..'\\Front')
+				Overlay.Controller:SetPoint('CENTER', 0, 20)
 				Overlay.Controller:SetSize(512, 512)
 
 				Overlay.Lines = Overlay:CreateTexture('$parentLines', 'OVERLAY', nil, 7)

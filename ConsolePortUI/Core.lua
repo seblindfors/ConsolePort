@@ -24,6 +24,7 @@ function UI:CreateFrame(object, name, parent, templates, blueprint, recursive)
 	end
 	----------------------------------
 	local frame = CreateFrame(object, name, parent, templates)
+	self:OnFrameCreated(frame)
 	----------------------------------
 	if blueprint then
 		self:BuildFrame(frame, blueprint, true)
@@ -335,4 +336,9 @@ UI.Region = REGION
 -- Shortcut for mixin with scripts, since it's expected to be used frequently.
 UI.Mixin = SETUP.Mixin
 
-
+----------------------------------
+UI.FrameRegistry = {}
+function UI:OnFrameCreated(frame)
+	assert(frame)
+	self.FrameRegistry[frame] = true
+end

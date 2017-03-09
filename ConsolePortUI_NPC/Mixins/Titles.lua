@@ -159,7 +159,7 @@ function Titles:UpdateGossipOptions(...)
 	end
 end
 
-function Titles:QUEST_LOG_UPDATE()
+function Titles:UNIT_QUEST_LOG_CHANGED()
 	if self:IsVisible() then
 		if ( self.type == 'Gossip' and self.hasActiveQuests ) then
 			self:Hide()

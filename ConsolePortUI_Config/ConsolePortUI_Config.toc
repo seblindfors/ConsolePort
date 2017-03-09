@@ -5,28 +5,28 @@
 ## OptionalDeps: ConsolePortBar, ConsolePortKeyboard, ConsolePortAdvanced
 
 
---- Main frame
+# Main frame
 Frame.lua
 Logic.lua
 
---- Mixins
--- Canvas
+# Mixins
+# Canvas
 Mixins\Panorama.lua
 Mixins\Canvas\Canvas.lua
 Mixins\Canvas\Provider.lua
 
--- Types
-Mixins\Bool.lua
-Mixins\Catcher.lua
-Mixins\Radio.lua
-Mixins\Input.lua
-Mixins\Header.lua
-Mixins\Help.lua
+# Types
+Mixins\Types\Bool.lua
+Mixins\Types\Catcher.lua
+Mixins\Types\Radio.lua
+Mixins\Types\Input.lua
+Mixins\Types\Header.lua
+Mixins\Types\Help.lua
 
--- Meta
+# Meta
 Mixins\Binding.lua
 
---- Tabs
+# Tabs
 Tabs\Bindings.lua
 Tabs\Settings.lua
 Tabs\Interface.lua
