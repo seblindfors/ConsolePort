@@ -31,6 +31,7 @@ EM:SetAttribute('type', 'macro')
 EM:SetAttribute('MAX', COMBOS_MAX)
 EM:RegisterForClicks('AnyUp', 'AnyDown')
 EM.HighlightTarget = TargetPriorityHighlightStart
+EM.GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 EM:Hide()
 
 -- Input handler
@@ -53,9 +54,7 @@ EM:Execute([[
 	-- Binding tables
 	btns, bindings, lookup = newtable(), newtable(), newtable()
 
-	-- Ignore self and current target
-	ignore.player = true
-	ignore.target = true
+	-- Ignore mouseover
 	ignore.mouseover = true
 
 	bindRef = 'ConsolePortEasyMotionInput'
@@ -260,6 +259,11 @@ local EM_SECURE_FUNCTIONS = {
 		input = nil
 		set = nil
 	]],
+
+	OnNewSettings = [[
+		ignore.player = self:GetAttribute('ignorePlayer')
+		ignore.target = self:GetAttribute('ignoreTarget')
+	]],
 }
 
 local EM_SECURE_WRAPPERS = {
@@ -304,6 +308,9 @@ function EM:OnNewBindings(...)
 	if db.Settings.unitHotkeyPool then
 		self:SetAttribute('unitpool', db.Settings.unitHotkeyPool)
 	end
+	self:SetAttribute('ignorePlayer', db.Settings.unitHotkeyIgnorePlayer)
+	self:SetAttribute('ignoreTarget', db.Settings.unitHotkeyIgnoreTarget)
+	self:Execute([[self:RunAttribute('OnNewSettings')]])
 	local hSet = db.Settings.unitHotkeySet
 	if hSet then
 		hSet = hSet:lower()
@@ -340,27 +347,35 @@ function EM:SetFramePool(unitType, side)
 	self.set = Key[side]
 	if unitType == 'frames' then
 		wipe(self.UnitFrames)
-		self.current = nil
 		self:RefreshUnitFrames()
 	end
 end
 
-function EM:RefreshUnitFrames()
-	local current, stack = self.current
+function EM:AddFrameForUnit(frame, unit)
+	local frames = self.UnitFrames
+	frames[unit] = frames[unit] or {}
+	frames[unit][frame] = true
+end
+
+function EM:GetUnitFramesForUnit(unit)
+	return pairs(self.UnitFrames[unit] or {})
+end
+
+function EM:RefreshUnitFrames(current)
+	local stack
 	if not current then
 		stack = {self:GetParent():GetChildren()}
 	elseif current:IsVisible() then
 		local unit = current:GetAttribute('unit')
 		if unit then
-			self.UnitFrames[unit] = current
+			self:AddFrameForUnit(current, unit)
 		end
 		stack = {current:GetChildren()}
 	end
 	if stack then
 		for i, frame in pairs(stack) do
 			if not frame:IsForbidden() and frame:IsProtected() then
-				self.current = frame
-				self:RefreshUnitFrames()
+				self:RefreshUnitFrames(frame)
 			end
 		end
 	end
@@ -389,33 +404,37 @@ function EM:Filter(input)
 end
 
 function EM:DisplayBinding(binding, unit)
-	local frame = self:GetFrame(binding)
-	local icon, shown = frame.Keys, 0
-	for id in binding:gmatch('%S+') do
-		id = tonumber(id)
-		local size = frame.size
-		if icon[id] then
-			icon = icon[id]
-		else
-			icon[id] = frame:CreateTexture(nil, 'OVERLAY')
-			icon = icon[id]
-			icon:SetTexture(db.ICONS[self.InputCodes[id]])
-			icon:SetSize(size, size)
-		end
-		shown = shown + 1
-		frame.ShownKeys[shown] = icon
-		icon.shownID = shown
-		icon:SetPoint('LEFT', ( shown - 1) * ( size * 0.75 ), 0)
-		icon:Show()
+	local plate = self.GetNamePlateForUnit(unit)
+	if plate and plate.UnitFrame then
+		self:AddFrameForUnit(plate.UnitFrame, unit)
 	end
+	for frame in self:GetUnitFramesForUnit(unit) do
+		local hotkey = self:GetHotkey(binding)
+		local icon, shown = hotkey.Keys, 0
+		for id in binding:gmatch('%S+') do
+			id = tonumber(id)
+			local size = hotkey.size
+			if icon[id] then
+				icon = icon[id]
+			else
+				icon[id] = hotkey:CreateTexture(nil, 'OVERLAY')
+				icon = icon[id]
+				icon:SetTexture(db.ICONS[self.InputCodes[id]])
+				icon:SetSize(size, size)
+			end
+			shown = shown + 1
+			hotkey.ShownKeys[shown] = icon
+			icon.shownID = shown
+			icon:SetPoint('LEFT', ( shown - 1) * ( size * 0.75 ), 0)
+			icon:Show()
+		end
 
-	frame:Adjust()
-	frame.unit = unit
+		hotkey:Adjust()
+		hotkey.unit = unit
 
-	if self.unitType == 'plates' or self.unitType == 'tab' then
-		frame:SetNamePlate(unit)
-	elseif self.unitType == 'frames' then
-		frame:SetUnitFrame(unit)
+		if self.unitType == 'frames' then
+			hotkey:SetUnitFrame(frame)
+		end
 	end
 end
 
@@ -430,7 +449,7 @@ function EM:HideBindings(unit)
 	end
 end
 
-function EM:GetFrame(binding)
+function EM:GetHotkey(binding)
 	local frame
 	self.ActiveFrames = self.ActiveFrames + 1
 	if self.ActiveFrames > #self.FramePool then
@@ -506,19 +525,17 @@ function HotkeyMixin:Animate()
 	self.Group:Play()
 end
 
-function HotkeyMixin:SetNamePlate(unit)
-	local plate = self.GetNamePlateForUnit(unit)
+function HotkeyMixin:SetNamePlate(plate)
 	if plate and plate.UnitFrame then
 		self:SetParent(WorldFrame)
-		self:SetPoint('CENTER', plate.UnitFrame, frame.offsetX, frame.offsetY)
+		self:SetPoint('CENTER', plate.UnitFrame, 0, 0)
 		self:Show()
 		self:SetScale(UIParent:GetScale())
 		self:SetFrameLevel(plate.UnitFrame:GetFrameLevel() + 1)
 	end
 end
 
-function HotkeyMixin:SetUnitFrame(unit)
-	local frame = EM.UnitFrames[unit]
+function HotkeyMixin:SetUnitFrame(frame)
 	if frame then
 		self:SetParent(UIParent)
 		self:SetPoint('CENTER', frame, frame.offsetX, frame.offsetY)

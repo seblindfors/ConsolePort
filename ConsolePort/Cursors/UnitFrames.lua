@@ -205,10 +205,10 @@ do
 				end
 			end
 
-			if current then
-				self:Show()
+			local unit = current and current:GetAttribute("unit")
 
-				local unit = current:GetAttribute("unit")
+			if unit then
+				self:Show()
 
 				Focus:SetAttribute("unit", unit)
 				Target:SetAttribute("unit", unit)
