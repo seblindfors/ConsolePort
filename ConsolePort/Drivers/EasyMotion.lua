@@ -205,8 +205,16 @@ local EM_SECURE_FUNCTIONS = {
 	SortUnits = [[
 		local specific = self:GetAttribute('unitpool')
 		for unit in pairs(units) do
-			if ( not specific ) or ( unit:match(specific) ) then
+			if ( not specific ) then
 				sorted[#sorted + 1] = unit
+			else
+				specific = specific:gsub(';', '\n')
+				for token in specific:gmatch('[%a%p]+') do
+					if unit:match(token) then
+						sorted[#sorted + 1] = unit
+						break 
+					end
+				end
 			end
 		end
 		table.sort(sorted)

@@ -41,6 +41,7 @@ local tables = {
 	['Shared data'] =  'ConsolePortCharacterSettings',
 	['UI Frames'] =  'ConsolePortUIFrames',
 	['User interface'] =  'ConsolePortUIConfig',
+	['Binding set'] = false,
 }
 
 function GetAffectedTablesString(data)
@@ -62,7 +63,7 @@ function ImportData(serialized)
 	local data = ConsolePort:Deserialize(serialized or '')
 	if type(data) == 'table' then
 		for k, v in pairs(data) do
-			if not tables[k] then
+			if tables[k] == nil then
 				return
 			end
 		end
@@ -617,44 +618,12 @@ ConsolePortConfig:AddPanel({
 		self.Import:SetScript('OnEnter', OnEnter)
 		self.Import:SetScript('OnLeave', OnLeave)
 		self.Import:SetScript('OnClick', function()
-			StaticPopupDialogs['CONSOLEPORT_IMPORTADV'] = {
-				text = db.TUTORIAL.SLASH.ADVANCED_IMPORT_A,
-				button1 = ACCEPT,
-				button2 = CANCEL,
-				showAlert = true,
-				timeout = 0,
-				whileDead = true,
-				hideOnEscape = true,
-				preferredIndex = 3,
-				hasEditBox = 1,
-				enterClicksFirstButton = true,
-				exclusive = true,
-				OnShow = function(self)
-					self.button1:Disable()
-				end,
-				OnAccept = function(self)
-					ClearFields()
-					local data = ImportData(self.editBox:GetText())
-					if data then
-						LoadDataFromTable(data)
-					end
-				end,
-				OnCancel = core.ClearPopup,	
-				EditBoxOnTextChanged = function (self)
-					local data = ImportData(self:GetText())
-					local parent = self:GetParent()
-					if data then
-						parent.button1:Enable()
-						parent.text:SetText(db.TUTORIAL.SLASH.ADVANCED_IMPORT_B:format(GetAffectedTablesString(data)))
-						StaticPopup_Resize(parent, 'CONSOLEPORT_IMPORTADV')
-						return
-					end
-					parent.button1:Disable()
-					parent.text:SetText(db.TUTORIAL.SLASH.ADVANCED_IMPORT_A)
-					StaticPopup_Resize(parent, 'CONSOLEPORT_IMPORTADV')
-				end,
-			}
-			core:ShowPopup('CONSOLEPORT_IMPORTADV')
+			core:Import(function(data)
+				ClearFields()
+				if data then
+					LoadDataFromTable(data)
+				end
+			end)
 		end)
 
 		self.Export = db.Atlas.GetFutureButton('$parentExport', self, nil, nil, bW, bH)
@@ -666,28 +635,72 @@ ConsolePortConfig:AddPanel({
 		self.Export:SetScript('OnClick', function()
 			local _, data = Browser:Compile()
 			if data then
-				local serialized = core:Serialize(data)
-				if serialized then
-					StaticPopupDialogs['CONSOLEPORT_EXPORTADV'] = {
-						text = db.TUTORIAL.SLASH.ADVANCED_EXPORT:format(GetAffectedTablesString(data)),
-						button1 = CLOSE,
-						showAlert = true,
-						timeout = 0,
-						whileDead = true,
-						hideOnEscape = true,
-						preferredIndex = 3,
-						hasEditBox = 1,
-						enterClicksFirstButton = true,
-						exclusive = true,
-						OnAccept = core.ClearPopup,
-						OnCancel = core.ClearPopup,
-						OnShow = function(self, data)
-							self.editBox:SetText(serialized)
-						end,
-					}
-					core:ShowPopup('CONSOLEPORT_EXPORTADV')
-				end
+				core:Export(data)
 			end
 		end)
 	end
-})	
+})
+
+function ConsolePort:Export(data)
+	local serialized = self:Serialize(data)
+	if serialized then
+		StaticPopupDialogs['CONSOLEPORT_EXPORTADV'] = {
+			text = db.TUTORIAL.SLASH.ADVANCED_EXPORT,
+			button1 = CLOSE,
+			showAlert = true,
+			timeout = 0,
+			whileDead = true,
+			hideOnEscape = true,
+			preferredIndex = 3,
+			hasEditBox = 1,
+			enterClicksFirstButton = true,
+			exclusive = true,
+			OnAccept = self.ClearPopup,
+			OnCancel = self.ClearPopup,
+			OnShow = function(self)
+				self.editBox:SetText(serialized)
+			end,
+		}
+		self:ShowPopup('CONSOLEPORT_EXPORTADV', GetAffectedTablesString(data))
+	end
+end
+
+function ConsolePort:Import(acceptCallback, onChangeCallback)
+	StaticPopupDialogs['CONSOLEPORT_IMPORTADV'] = {
+		text = db.TUTORIAL.SLASH.ADVANCED_IMPORT_A,
+		button1 = ACCEPT,
+		button2 = CANCEL,
+		showAlert = true,
+		timeout = 0,
+		whileDead = true,
+		hideOnEscape = true,
+		preferredIndex = 3,
+		hasEditBox = 1,
+		enterClicksFirstButton = true,
+		exclusive = true,
+		OnShow = function(self)
+			self.button1:Disable()
+		end,
+		OnAccept = function(self)
+			local data = ImportData(self.editBox:GetText())
+			if data and acceptCallback then
+				acceptCallback(data)
+			end
+		end,
+		OnCancel = self.ClearPopup,	
+		EditBoxOnTextChanged = onChangeCallback or function(self)
+			local data = ImportData(self:GetText())
+			local parent = self:GetParent()
+			if data then
+				parent.button1:Enable()
+				parent.text:SetText(db.TUTORIAL.SLASH.ADVANCED_IMPORT_B:format(GetAffectedTablesString(data)))
+				StaticPopup_Resize(parent, 'CONSOLEPORT_IMPORTADV')
+				return
+			end
+			parent.button1:Disable()
+			parent.text:SetText(db.TUTORIAL.SLASH.ADVANCED_IMPORT_A)
+			StaticPopup_Resize(parent, 'CONSOLEPORT_IMPORTADV')
+		end,
+	}
+	self:ShowPopup('CONSOLEPORT_IMPORTADV')
+end

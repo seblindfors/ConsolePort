@@ -515,7 +515,6 @@ do
 	Menu:Execute(format('numheaders = %s', NUM_HEADERS))
 
 	Menu.probe = UI:CreateProbe(Menu, GameMenuFrame, 'showhide')
-	Menu:SetPoint('TOP', 0, -100)
 	Menu:SetSize(1024, 128)
 	Menu:Hide()
 	Menu:SetFrameStrata('FULLSCREEN')
@@ -524,6 +523,20 @@ do
 
 	UI:RegisterFrame(Menu, 'Menu', false, true)
 	UI:HideFrame(GameMenuFrame)
+
+	ConsolePortUIConfig = ConsolePortUIConfig or {}
+	ConsolePortUIConfig.Menu = ConsolePortUIConfig.Menu or {}
+
+	local cfg = ConsolePortUIConfig.Menu
+	cfg.scale = cfg.scale or 1
+	cfg.anchor = cfg.anchor or {
+		point = 'TOP',
+		offsetX = 0,
+		offsetY = -100,
+	}
+
+	Menu:SetScale(cfg.scale)
+	Menu:SetPoint(cfg.anchor.point, cfg.anchor.offsetX, cfg.anchor.offsetY)
 
 	L.Menu = Menu
 end

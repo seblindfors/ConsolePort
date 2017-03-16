@@ -268,7 +268,7 @@ function ConsolePort:GetDefaultBinding(key) return copy(Controller.Bindings[key]
 -- Get the button that's currently bound to a defined ID
 ---------------------------------------------------------------
 function ConsolePort:GetCurrentBindingOwner(bindingID, set)
-	local set = set or ConsolePortBindingSet
+	local set = set or db.Bindings
 	if set then
 		for key, subSet in pairs(set) do
 			for mod, value in pairs(subSet) do
@@ -373,8 +373,8 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultBindingSet()
 	local bindingSet = {}
-	for Button in self:GetBindings() do
-		bindingSet[Button] = self:GetDefaultBinding(Button)
+	for button in self:GetBindings() do
+		bindingSet[button] = self:GetDefaultBinding(button)
 	end
 	return bindingSet
 end
@@ -413,6 +413,9 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		-------------------------------
 	--	['mouseOnCenter'] = true,
 		['mouseOnJump'] = false,
+		-------------------------------
+		['unitHotkeyPool'] = 'player;party%d;raid%d+',
+		-------------------------------
 	}
 	if Controller then
 		for key, value in pairs(Controller.Settings) do
@@ -665,7 +668,7 @@ local cvars = { -- value = default
 	unitHotkeySize 		= 32,
 	unitHotkeyOffsetX 	= 0,
 	unitHotkeyOffsetY 	= -8,
-	unitHotkeyPool = '',
+	unitHotkeyPool = 'player;party%d;raid%d+',
 	unitHotkeySet = '',
 }
 

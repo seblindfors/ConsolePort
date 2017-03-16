@@ -25,7 +25,7 @@ Config.Obstructor:EnableMouse(true)
 Config.Obstructor:SetFrameLevel(100)
 ---------------------------------------------------------------
 Config.Close:Hide()
-Config:SetFrameStrata("DIALOG")
+Config:SetFrameStrata("HIGH")
 Config:SetSize(1000, 768)
 Config:SetPoint("CENTER", 0, 0)
 Config:EnableMouse(true)
@@ -303,7 +303,7 @@ Popup:EnableMouse(true)
 Popup:HookScript("OnShow", Popup.OnShow)
 Popup:SetScript("OnHide", Popup.OnHide)
 Popup:SetScript("OnEvent", Popup.OnEvent)
-Popup:SetFrameStrata("FULLSCREEN_DIALOG")
+Popup:SetFrameStrata("DIALOG")
 Popup:RegisterEvent("PLAYER_REGEN_DISABLED")
 Popup:Hide()
 Popup:SetMovable(true)
@@ -545,19 +545,22 @@ end
 
 function WindowMixin:Export(exportData)
 	if exportData then
-		local player = GetUnitName("player").."-"..GetRealmName()
+		local _, classToken, classID = UnitClass('player')
+		local specID, specName = GetSpecializationInfo(GetSpecialization())
+		local uid = GetUnitName('player')..' ('..specName..') '..GetRealmName()
 		local settings = ConsolePortCharacterSettings or {}
 		ConsolePortCharacterSettings = settings
 
-		if not settings[player] then
-			settings[player] = {
+		if not settings[uid] then
+			settings[uid] = {
 				Type = db.Settings.type,
-				Class = select(2, UnitClass("player")),
+				Class = classToken,
+				Spec = specID,
 			}
 		end
 
 		for ID, data in pairs(exportData) do
-			settings[player][ID] = data
+			settings[uid][ID] = data
 		end
 	end
 end

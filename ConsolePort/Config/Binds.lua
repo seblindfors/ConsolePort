@@ -454,7 +454,7 @@ local function SetMovementBindings(self, handler)
 	end
 end
 
-function ConsolePort:LoadBindingSet()
+function ConsolePort:LoadBindingSet(newBindingSet)
 	local calibration = db.Settings.calibration
 	if calibration then
 		for binding, key in pairs(calibration) do
@@ -499,11 +499,17 @@ end
 ---------------------------------------------------------------
 local function ProfileOnSelect(self)
 	local buttons = self:GetParent().Buttons
+	local isSelected = self.SelectedTexture:IsShown()
 	for _, button in pairs(buttons) do
 		button.SelectedTexture:Hide()
 	end
-	self.SelectedTexture:Show()
-	self.Popup:SetSelection(self.name)
+	self.SelectedTexture:SetShown(not isSelected)
+
+	if not isSelected then
+		self.Popup:SetSelection(self.name)
+	else
+		self.Popup:SetSelection(nil)
+	end
 end
 
 local function RefreshProfileList(self)
@@ -542,21 +548,29 @@ local function RefreshProfileList(self)
 		pCount = pCount + 1
 		local button = buttons[pCount]
 		if not button then
-			button = db.Atlas.GetFutureButton("$parentButton"..pCount, self)
+			--(name, parent, secure, buttonAtlas, width, height, classColored)
+			button = db.Atlas.GetFutureButton("$parentButton"..pCount, self, nil, nil, 350)
+			button.Label:SetJustifyH('LEFT')
+			button.Label:ClearAllPoints()
+			button.Label:SetPoint('LEFT', 24, 0)
+			button.Label:SetTextColor(1, 1, 1)
+			button.Label:SetWidth(260)
 			button:SetScript("OnClick", ProfileOnSelect)
 			self:AddButton(button, 56)
 		end
-		button:SetText(character)
+		button:SetText(character:gsub('%(', '|cFFFFD200('):gsub('%) ', ')|r\n|cFF757575'))
+		button.SelectedTexture:Hide()
 		button:Show()
 		button.preset = settings.Preset
 		if settings.Class then
 			local cc = RAID_CLASS_COLORS[settings.Class]
-			button.Cover:SetVertexColor(cc.r, cc.g, cc.b, 1)
+			button.Label:SetVertexColor(cc.r, cc.g, cc.b, 1)
 		elseif settings.Preset then
-			button.Cover:SetAlpha(0.25)
+			button.Label:SetVertexColor(1, 0.8, 0, 1)
 		else
-			button.Cover:SetVertexColor(1, 1, 1, 1)
+			button.Label:SetVertexColor(1, 1, 1, 1)
 		end
+		button.Cover:SetVertexColor(1, 1, 1, settings.Preset and 0.25 or 1)
 		if settings.Type and db.Controllers[settings.Type] then
 			button.Controller = button.Controller or button:CreateTexture(nil, "OVERLAY")
 			button.Controller:SetSize(32, 32)
@@ -564,6 +578,17 @@ local function RefreshProfileList(self)
 			button.Controller:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..settings.Type.."\\Icons64\\CP_X_CENTER")
 		elseif button.Controller then
 			button.Controller:SetTexture()
+		end
+		if settings.Spec then
+			button.Icon:SetTexture(select(4, GetSpecializationInfoByID(settings.Spec)))
+			button.Icon:ClearAllPoints()
+			button.Icon:SetSize(32, 32)
+			button.Icon:SetPoint('RIGHT', -8, 0)
+			button.Icon:SetAlpha(1)
+			button.Icon:SetDrawLayer('OVERLAY')
+			button.Icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+		else
+			button.Icon:SetAlpha(0)
 		end
 		button.Popup = popup
 		button.name = character
@@ -730,9 +755,9 @@ end
 ---------------------------------------------------------------
 -- WindowMixin: window wide functions
 ---------------------------------------------------------------
-function WindowMixin:Reload()
-	ConsolePort:LoadBindingSet()
-	ConsolePort:LoadHotKeyTextures(newBindingSet)
+function WindowMixin:Reload(newBindings)
+	ConsolePort:LoadBindingSet(newBindings)
+	ConsolePort:LoadHotKeyTextures(newBindings)
 
 	for _, button in pairs(self.Overlay.Buttons) do
 		button:OnShow()
@@ -751,8 +776,7 @@ end
 
 function WindowMixin:Default()
 	self.Tutorial:SetText(TUTORIAL.RESET)
-	GetNewBindingSet(true)
-	self:Reload()
+	self:Reload(GetNewBindingSet(true))
 end
 
 function WindowMixin:Save()
@@ -761,7 +785,8 @@ function WindowMixin:Save()
 
 		newBindingSet = nil
 
-		ConsolePortBindingSet = db.Bindings
+		ConsolePortBindingSet = ConsolePortBindingSet or {}
+		ConsolePortBindingSet[GetSpecialization()] = db.Bindings
 		self:Reload()
 	end
 	-- callback for retrieving new bindings
@@ -864,7 +889,7 @@ db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = W
 	self.Import:SetPoint("LEFT", ConsolePortConfigDefault, "RIGHT", 0, 0)
 	self.Import:SetText(TUTORIAL.IMPORTBUTTON)
 	self.Import:SetScript("OnClick", function(self)
-		self.Popup:SetPopup(self:GetText(), self.ProfileScroll, self.Import, self.Remove)
+		self.Popup:SetPopup(self:GetText(), self.ProfileScroll, self.Import, self.Remove, 600, 500)
 	end)
 
 	self.Import.Import = CreateFrame("Button", self.Import)
@@ -891,6 +916,80 @@ db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = W
 	self.Import.Profiles = self.Import.ProfileScroll.Child
 	self.Import.Profiles:SetScript("OnShow", RefreshProfileList)
 	self.Import.ProfileScroll:Hide()
+
+	---------------------------------------------------------------
+	
+	-- Modify the frame when the advanced tool is loaded to allow import/export of serialized data.
+	if IsAddOnLoaded('ConsolePortAdvanced') then
+		self.Import:SetText(TUTORIAL.IMPORTEXPORT)
+		local scrollFrame = self.Import.ProfileScroll
+		
+		-- Import button:
+		local Import = CreateFrame('Button', nil, scrollFrame)
+		Import:SetPoint('TOP', scrollFrame, 'BOTTOM', -16, -8)
+		Import:SetNormalTexture('Interface\\AddOns\\ConsolePort\\Textures\\Window\\Popin')
+		Import:SetSize(20, 20)
+
+		Import:SetScript('OnClick', function(self)
+			core:Import(function(data)
+				local importedSet = data and data['Binding set']
+				if importedSet then
+					ConsolePortPopup:Hide()
+					newBindingSet = importedSet
+					window.Tutorial:SetText(TUTORIAL.IMPORTADVEXT)
+					window:Reload(importedSet)
+				else
+					print( "|T" .. ( db.TEXTURE.CP_X_CENTER or "" ) .. ":24:24:0:0|t |cffffe00aConsolePort|r:")
+					print(TUTORIAL.IMPORTINVALID)
+				end
+			end)
+		end)
+
+		Import:SetScript('OnEnter', function(self)
+			GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+			GameTooltip:SetText(TUTORIAL.IMPORTADV)
+			GameTooltip:Show()
+		end)
+
+		Import:SetScript('OnLeave', function(self)
+			GameTooltip:Hide()
+		end)
+		
+		-- Export button:
+		local Export = CreateFrame('Button', nil, scrollFrame)
+		Export:SetPoint('TOP', scrollFrame, 'BOTTOM', 16, -8)
+		Export:SetNormalTexture('Interface\\AddOns\\ConsolePort\\Textures\\Window\\Popout')
+		Export:SetSize(20, 20)
+
+		Export:SetScript('OnClick', function(self)
+			local set 
+			local character = ConsolePortPopup:GetSelection()
+			local settings = window.Import.Profiles.ProfileData[character]
+			if settings then
+				set = copy(settings.BindingSet)
+			else
+				set = db.Bindings
+			end
+			if set then
+				core:Export({['Binding set'] = set})
+			end
+		end)
+
+		Export:SetScript('OnEnter', function(self)
+			GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+			local character = ConsolePortPopup:GetSelection()
+			if character then
+				GameTooltip:SetText(TUTORIAL.EXPORTADV:format(character))
+			else
+				GameTooltip:SetText(TUTORIAL.EXPORTADVCURRENT)
+			end
+			GameTooltip:Show()
+		end)
+		
+		Export:SetScript('OnLeave', function(self)
+			GameTooltip:Hide()
+		end)
+	end
 
 ---------------------------------------------------------------
 

@@ -11,14 +11,12 @@ local addOn, db = ...
 ---------------------------------------------------------------
 local ConsolePort = CreateFrame("FRAME", "ConsolePort")
 ---------------------------------------------------------------
-local CRITICALUPDATE, NOBINDINGS, NEWCALIBRATION
+local CRITICALUPDATE, NEWCALIBRATION, BINDINGSLOADED
 ---------------------------------------------------------------
 -- VERSION: generate a comparable integer from addon metadata 
 ---------------------------------------------------------------
 local v1, v2, v3 = strsplit("%d+.", GetAddOnMetadata(addOn, "Version"))
 local VERSION = v1*10000+v2*100+v3
--- WoWmapper hotkey to let CP know an update is due
-local WM_UPDATE = "ALT-CTRL-SHIFT-F12"
 ---------------------------------------------------------------
 -- Initialize addon tables
 ---------------------------------------------------------------
@@ -112,31 +110,15 @@ function ConsolePort:LoadSettings()
 		selectController = false
 	end
 
-	-- Set a binding for WoWmapper to let ConsolePort know something changed
-	local WMupdater = CreateFrame("Frame")
-	SetOverrideBinding(WMupdater, true, WM_UPDATE, "WM_UPDATE")
-
-	-----------------------------------------------------------
-	-- Set/load binding table
-	-----------------------------------------------------------
-
-	if not ConsolePortBindingSet or not next(ConsolePortBindingSet) then
-		NOBINDINGS = true
-		ConsolePortBindingSet = {}
-	-----------------------------------------------------------
-	else local set = ConsolePortBindingSet -- compat: new binding ID fix, remove later on.
-		set.CP_T3 = set.CP_T3 or set.CP_L_GRIP -- translate Lgrip to t3
-		set.CP_T4 = set.CP_T4 or set.CP_R_GRIP -- translate Rgrip to t4
-		set.CP_L_GRIP = nil set.CP_R_GRIP = nil -- nullify
-	-----------------------------------------------------------
-	end
+	-- Set a binding for WoWmapper to let ConsolePort know something changed.
+	-- Use an unreferenced frame to make sure this binding doesn't get cleared.
+	SetOverrideBinding(CreateFrame("Frame"), true, "ALT-CTRL-SHIFT-F12", "WM_UPDATE")
 
 	-----------------------------------------------------------
 	-- Load controller splash if no preference exists
 	-----------------------------------------------------------
 
 	if selectController then
-		NOBINDINGS = false
 		self:SelectController()
 	end
 
@@ -151,6 +133,30 @@ function ConsolePort:LoadSettings()
 			Cursor = self:GetDefaultMouseCursor(),
 		}
 	end
+	
+	-----------------------------------------------------------
+	-- Add empty bindings popup for later use
+	-----------------------------------------------------------
+
+	StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"] = {
+		button1 = db.TUTORIAL.SLASH.ACCEPT,
+		button2 = db.TUTORIAL.SLASH.CANCEL,
+		showAlert = true,
+		timeout = 0,
+		whileDead = true,
+		hideOnEscape = true,
+		preferredIndex = 3,
+		enterClicksFirstButton = true,
+		exclusive = true,
+		OnAccept = LoadDefaultBindings,
+		OnCancel = CancelPopup,
+		OnShow = function(self) 
+			if 	( ConsolePortSplashFrame and ConsolePortSplashFrame:IsVisible() ) or
+				( ConsolePortCalibrationFrame and ConsolePortCalibrationFrame:IsVisible() ) then
+				self:Hide()
+			end
+		end,
+	}
 
 	-----------------------------------------------------------
 	-- Extra features
@@ -167,7 +173,6 @@ function ConsolePort:LoadSettings()
 
 	----------------------------------------------------------
 
-	db.Bindings = ConsolePortBindingSet
 	db.UIStack = ConsolePortUIFrames
 	db.Mouse = ConsolePortMouse
 
@@ -187,10 +192,11 @@ function ConsolePort:LoadSettings()
 		if db.Controllers[controller] then
 			db.Settings.type = controller
 
-			for key, value in pairs(db.Controllers[controller].Settings) do
-				db.Settings[key] = value
+			for k, v in pairs(db.Controllers[controller].Settings) do
+				db.Settings[k] = v
 			end
 
+			-- Store this flag to run settings check after reload
 			db.Settings.newController = true
 			db.Settings.forceController = controller
 
@@ -304,6 +310,34 @@ function ConsolePort:WMupdate()
 	self:ShowPopup("CONSOLEPORT_WMUPDATE")
 end
 
+function ConsolePort:GetBindingSet(specID)
+	-----------------------------------------------------------
+	-- Set/load binding table
+	-----------------------------------------------------------
+	local specID = specID or GetSpecialization()
+
+	-- Flag spells loaded so the settings checkup doesn't run this part.
+	BINDINGSLOADED = true
+
+	-- Assert the SV binding set container exists before proceeding
+	ConsolePortBindingSet = ConsolePortBindingSet or {}
+
+	-- BC: Convert old binding set paradigm to spec-specific
+	-- Check if set contains a string key, in which case it's using the
+	-- outdated binding format. 
+	if type(next(ConsolePortBindingSet)) == 'string' then
+		ConsolePortBindingSet = {[specID] = ConsolePortBindingSet}
+	end
+
+	-- Assert the current specID is included in the set and that bindings exist,
+	-- else create the subset and flag no bindings for the popup.
+	local set = ConsolePortBindingSet
+	set[specID] = set[specID] or db.table.copy(db.Bindings) or {}
+
+	-- return the current binding set and the specID
+	return set[specID], specID
+end
+
 function ConsolePort:CheckLoadedSettings()
 	local settings = ConsolePortSettings
     if 	(settings and not settings.version) or 
@@ -324,28 +358,11 @@ function ConsolePort:CheckLoadedSettings()
 		}
 		self:ShowPopup("CONSOLEPORT_CRITICALUPDATE")
 	elseif settings then
-		local bindingPopup = {
-			button1 = db.TUTORIAL.SLASH.ACCEPT,
-			button2 = db.TUTORIAL.SLASH.CANCEL,
-			showAlert = true,
-			timeout = 0,
-			whileDead = true,
-			hideOnEscape = true,
-			preferredIndex = 3,
-			enterClicksFirstButton = true,
-			exclusive = true,
-			OnAccept = LoadDefaultBindings,
-			OnCancel = CancelPopup,
-		}
-		StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"] = bindingPopup
 		if settings.newController then
-			bindingPopup.text = db.TUTORIAL.SLASH.NEWCONTROLLER
+			local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]
+			popupData.text = db.TUTORIAL.SLASH.NEWCONTROLLER
 			self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
 			settings.newController = nil
-		elseif NOBINDINGS then
-			NOBINDINGS = nil
-			bindingPopup.text = db.TUTORIAL.SLASH.NOBINDINGS
-			self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
 		elseif NEWCALIBRATION and ( not settings.id or settings.id ~= WoWmapper.Settings.id ) then
 			NEWCALIBRATION = nil
 			settings.id = WoWmapper.Settings.id
@@ -367,6 +384,10 @@ function ConsolePort:CheckLoadedSettings()
 				OnCancel = CancelPopup,
 			}
 			self:ShowPopup("CONSOLEPORT_CALIBRATIONUPDATE")
+		elseif BINDINGSLOADED and ( not db.Bindings or not next(db.Bindings) ) then
+			local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]
+			popupData.text = db.TUTORIAL.SLASH.NOBINDINGS
+			self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
 		end
 	end
 end

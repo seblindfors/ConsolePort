@@ -15,9 +15,11 @@ function ConsolePort:LoadEvents()
 	MouseEvents = db.Mouse.Events
 	-- Default events
 	local Events = {
+		['ACTIVE_TALENT_GROUP_CHANGED'] = false,
 		['ADDON_LOADED'] 			= false,
 		['CURRENT_SPELL_CAST_CHANGED'] = false,
 		['CVAR_UPDATE']				= false,
+		['PLAYER_LOGIN'] 			= false,
 		['PLAYER_LOGOUT'] 			= false,
 		['PLAYER_STARTED_MOVING'] 	= false,
 		['PLAYER_REGEN_DISABLED'] 	= false,
@@ -44,10 +46,10 @@ local function IsMouselookEvent(event)
 end
 
 function ConsolePort:CheckMouselookEvent(event, ...)
-	if 	IsMouselookEvent(event) and
-		GetMouseFocus() == WorldFrame and
-		not SpellIsTargeting() and
-		not IsMouseButtonDown(1) then
+	if 	( IsMouselookEvent(event) ) and
+		( GetMouseFocus() == WorldFrame ) and
+		( not SpellIsTargeting() ) and
+		( not IsMouseButtonDown(1) ) then
 		self:StartCamera(event)
 	end
 end
@@ -155,7 +157,7 @@ function Events:CVAR_UPDATE(...)
 end
 
 function Events:UPDATE_BINDINGS(...)
-	self:AddUpdateSnippet(self.LoadBindingSet)
+	self:AddUpdateSnippet(self.LoadBindingSet, db.Bindings)
 end
 
 function Events:SPELLS_CHANGED(...)
@@ -170,15 +172,36 @@ function Events:SPELLS_CHANGED(...)
 	Events.SPELLS_CHANGED = nil
 end
 
+function Events:ACTIVE_TALENT_GROUP_CHANGED(...)
+	local bindingSet = self:GetBindingSet()
+	-- Set new bindings
+	db.Bindings = bindingSet
+	-- Dispatch updated bindings
+	self:LoadBindingSet(bindingSet)
+	self:OnNewBindings(bindingSet)
+	-- Check whether bindings are empty
+	if not next(bindingSet) then
+		local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]
+		popupData.text = db.TUTORIAL.SLASH.NOBINDINGS
+		self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
+	end
+end
+
+function Events:PLAYER_LOGIN()
+	-- Reuse spec change event to set bindings on login.
+	Events.ACTIVE_TALENT_GROUP_CHANGED(self)
+	Events.PLAYER_LOGIN = nil
+	self:UnregisterEvent('PLAYER_LOGIN')
+end
+
 function Events:ADDON_LOADED(...)
 	local name = ...
-	if name == 'ConsolePort' then
+	if name == _ then
 		self:LoadSettings()
 		self:LoadActionPager(db.Settings.pagedriver, db.Settings.pageresponse)
 		self:LoadControllerTheme()
 		self:LoadEvents()
 		self:LoadHookScripts()
-		self:LoadBindingSet()
 		self:LoadRaidCursor()
 		self:LoadCameraSettings()
 		self:OnNewBindings()
@@ -198,15 +221,18 @@ function Events:ADDON_LOADED(...)
 			self:LoadHotKeyTextures()
 		end)
 	end
+	-- Register cursor frames
 	if ConsolePortUIFrames and ConsolePortUIFrames[name] then
 		for i, frame in pairs(ConsolePortUIFrames[name]) do
 			self:AddFrame(frame)
 		end
 	end
+	-- Load plugin
 	if db.PLUGINS[name] then
 		db.PLUGINS[name](self)
 		db.PLUGINS[name] = nil
 	end
+	-- Dispatch a frame update
 	self:UpdateFrames()
 	if Loaded then
 		self:LoadHotKeyTextures()
@@ -222,4 +248,5 @@ local function OnEvent (self, event, ...)
 end
 
 ConsolePort:RegisterEvent('ADDON_LOADED')
+ConsolePort:RegisterEvent('PLAYER_LOGIN')
 ConsolePort:SetScript('OnEvent', OnEvent)

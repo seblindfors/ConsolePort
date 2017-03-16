@@ -450,7 +450,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 			local text, name
 			if self.Enable:GetChecked() then
 				local button = self.BindCatcher.CurrentButton or Settings[self.BindCatcher.cvar]
-				local bindings = ConsolePortBindingSet
+				local bindings = db.Bindings
 				local binding = bindings and bindings[button] and bindings[button]['']
 				local INFOA, INFOB  = L.INTERACT_CURRENT_A, L.INTERACT_CURRENT_B
 				local harmful, helpful = false, false

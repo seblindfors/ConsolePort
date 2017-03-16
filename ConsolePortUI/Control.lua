@@ -60,9 +60,9 @@ end
 local button_identifiers = ''
 for readable, identifier in pairs(data.KEY) do
 	if type(identifier) == 'string' then
-		button_identifiers = button_identifiers..format('%s = \'%s\'\n', readable, identifier)
+		button_identifiers = button_identifiers..format('%s = "%s" ', readable, identifier)
 	elseif type(identifier) == 'number' then
-		button_identifiers = button_identifiers..format('%s = %s\n', readable, identifier)
+		button_identifiers = button_identifiers..format('%s = %s ', readable, identifier)
 	end
 end
 Control:Execute(button_identifiers)
@@ -143,13 +143,17 @@ local FadeIn, FadeOut = data.UIFrameFadeIn, data.UIFrameFadeOut
 local updateThrottle = 0
 local ignoreFrames = {
 	[Control] = true,
+	[Minimap] = true,
 	[GameTooltip] = true,
 	[StaticPopup1] = true,
 	[StaticPopup2] = true,
 	[StaticPopup3] = true,
 	[StaticPopup4] = true,
+	[SubZoneTextFrame] = true,
 	[ShoppingTooltip1] = true,
 	[ShoppingTooltip2] = true,
+	[ObjectiveTrackerFrame] = true,
+	------------------------------
 	[ConsolePortCursor] = true,
 	[ConsolePortMouseHandle] = true,
 }
@@ -209,9 +213,6 @@ function Control:ShowUI()
 		end
 		self.fadeFrames = nil
 	end
---	if ConsolePortBar and ( InCombatLockdown() or not ConsolePortBar:GetAttribute('hidesafe') ) then
---		data.UIFrameFadeIn(ConsolePortBar, 0.2, ConsolePortBar:GetAlpha(), 1)
---	end
 end
 
 function Bar:Enable()
