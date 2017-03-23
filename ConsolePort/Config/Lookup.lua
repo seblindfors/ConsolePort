@@ -668,6 +668,7 @@ local cvars = { -- value = default
 	unitHotkeySize 		= 32,
 	unitHotkeyOffsetX 	= 0,
 	unitHotkeyOffsetY 	= -8,
+	unitHotkeyIgnorePlayer = false,
 	unitHotkeyPool = 'player;party%d;raid%d+',
 	unitHotkeySet = '',
 }

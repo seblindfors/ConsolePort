@@ -1,0 +1,7 @@
+## Interface: 70100
+## Title: Console Port |cff69ccf0UI|r Bags
+## Notes: Replaces bag frames.
+## RequiredDeps: ConsolePortUI
+
+Logic.lua
+Frame.lua

@@ -90,11 +90,6 @@ function NPC:QUEST_DETAIL(...)
 	self:AddQuestInfo('QUEST_DETAIL')
 	self.Inspector.HintText = nil
 	Control:AddHint(KEY.CROSS, ACCEPT)
-	if CanIgnoreQuest() then
-		Control:AddHint(KEY.CIRCLE, IGNORE)
-	elseif IsQuestIgnored() then
-		Control:AddHint(KEY.CIRCLE, UNIGNORE_QUEST)
-	end
 end
 
 function NPC:QUEST_ITEM_UPDATE()
@@ -363,10 +358,6 @@ local inputs = {
 				self.Inspector:Hide()
 			elseif self.hasItems then
 				self:ShowItems()
-			elseif CanIgnoreQuest() then
-				IgnoreQuest()
-			elseif IsQuestIgnored() then
-				UnignoreQuest()
 			end
 		end
 	end,

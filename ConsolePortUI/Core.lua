@@ -55,8 +55,8 @@ function UI:BuildFrame(frame, blueprint, recursive)
 					assert(config.Type, err(key, name, ERROR_CODES.REGION))
 				end
 				----------------------------------
-				-- Region type has special constructor.
 				if config.Type then
+					-- Region type has special constructor.
 					if REGION[config.Type] then
 						region = REGION[config.Type](frame, key, config.Setup or config.Values)
 					-- Region already exists.

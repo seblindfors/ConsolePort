@@ -6,13 +6,13 @@
 
 # Locale\Locale.xml
 
-Libs\Utils.lua
-# Libs\Animation.lua
-# Libs\Button.lua
-Libs\Media.lua
-Libs\Probe.lua
-Libs\Templates.lua
-Libs\Tooltip.lua
+Modules\Utils.lua
+# Modules\Animation.lua
+# Modules\Button.lua
+Modules\Media.lua
+Modules\Probe.lua
+Modules\Templates.lua
+Modules\Tooltip.lua
 
 XML\GlyphUI.xml
 XML\MenuUI.xml

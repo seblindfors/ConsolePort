@@ -152,6 +152,7 @@ local ignoreFrames = {
 	[SubZoneTextFrame] = true,
 	[ShoppingTooltip1] = true,
 	[ShoppingTooltip2] = true,
+	[OverrideActionBar] = true,
 	[ObjectiveTrackerFrame] = true,
 	------------------------------
 	[ConsolePortCursor] = true,

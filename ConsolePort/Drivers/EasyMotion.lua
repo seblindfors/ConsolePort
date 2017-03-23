@@ -54,8 +54,9 @@ EM:Execute([[
 	-- Binding tables
 	btns, bindings, lookup = newtable(), newtable(), newtable()
 
-	-- Ignore mouseover
+	-- Ignore mouseover/target
 	ignore.mouseover = true
+	ignore.target = true
 
 	bindRef = 'ConsolePortEasyMotionInput'
 	MAX = self:GetAttribute('MAX')
@@ -270,7 +271,6 @@ local EM_SECURE_FUNCTIONS = {
 
 	OnNewSettings = [[
 		ignore.player = self:GetAttribute('ignorePlayer')
-		ignore.target = self:GetAttribute('ignoreTarget')
 	]],
 }
 
@@ -317,7 +317,6 @@ function EM:OnNewBindings(...)
 		self:SetAttribute('unitpool', db.Settings.unitHotkeyPool)
 	end
 	self:SetAttribute('ignorePlayer', db.Settings.unitHotkeyIgnorePlayer)
-	self:SetAttribute('ignoreTarget', db.Settings.unitHotkeyIgnoreTarget)
 	self:Execute([[self:RunAttribute('OnNewSettings')]])
 	local hSet = db.Settings.unitHotkeySet
 	if hSet then
