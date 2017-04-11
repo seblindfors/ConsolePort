@@ -7,16 +7,23 @@ local frame = UI:CreateFrame('Frame', _, UIParent, 'SecureHandlerBaseTemplate, S
 })
 
 frame:Execute([[
+	-------------------------
 	activeItems = newtable()
+	-------------------------
+	bID = 1
+	gridSize = 0
+	numActive = 0
+	-------------------------
 ]])
 
 for name, script in pairs({
 
 	_onshow = [[
-		local numActive = self:RunAttribute('UpdateActive')
-	 	local gridSize = self:RunAttribute('CalculateGrid', numActive)
+		numActive = self:RunAttribute('UpdateActive')
+	 	gridSize = self:RunAttribute('CalculateGrid', numActive)
 
 		self:RunAttribute('AdjustBags', gridSize)
+		self:RunAttribute('SetCurrent', bID)
 		self:CallMethod('Update')
 	]],
 
@@ -24,11 +31,52 @@ for name, script in pairs({
 		print('Hiding away...')
 	]],
 
+	OnInput = [[
+		local key, down = ...
+		local currentID = bID
+
+		-- Click on a button
+		if key == CROSS and current then
+			current:CallMethod('SetButtonState', down and 'PUSHED' or 'NORMAL')
+			if not down then
+				self:GetFrameRef('control'):SetAttribute('macrotext', '/click ' .. current:GetName())
+			end
+		elseif ( key == CENTER or key == OPTIONS or key == SHARE ) and down then
+			self:CallMethod('Close')
+
+		-- Up/down
+		elseif key == UP and down and ( bID - gridSize ) >= 1 then
+			bID = bID - gridSize
+		elseif key == DOWN and down and ( bID + gridSize ) <= numActive then
+			bID = bID + gridSize
+
+
+		-- Left/right
+		elseif key == LEFT and down and bID > 1 then
+			bID = bID - 1
+		elseif key == RIGHT and down and bID < numActive then
+			bID = bID + 1
+		end
+
+		if bID > numActive then
+			bID = numActive
+		end
+
+		if bID ~= currentID then
+			self:RunAttribute('SetCurrent', bID)
+		end
+
+		-- Play a notification sound when inputting
+		if down then
+			self:CallMethod('OnButtonPressed')
+		end
+	]],
+
 	AdjustBags = [[
 		local gridSize = ...
 		local sz = 42
 
-		for bagID=1, 13 do
+		for bagID=0, 12 do
 			local original = self:GetFrameRef('container'..bagID)
 			original:SetWidth(0)
 			original:SetHeight(0)
@@ -47,6 +95,16 @@ for name, script in pairs({
 
 		self:SetWidth(gridSize * sz)
 		self:SetHeight(ceil(#activeItems/gridSize) * sz)
+	]],
+
+	SetCurrent = [[
+		local id = ...
+		if id then
+			current = activeItems[id]
+			if current then
+				self:CallMethod('OnButtonFocused', current:GetName())
+			end
+		end
 	]],
 
 	UpdateActive = [[
@@ -81,19 +139,20 @@ do
 	frame:SetPoint('CENTER')
 	frame:SetFrameStrata('HIGH')
 	frame:SetSize(1, 1)
+	UI:RegisterFrame(frame, 'Inv', nil, true)
 
 	Mixin(frame, L.InventoryMixin)
 
-	for bag = 1, 13 do
-		local container = _G['ContainerFrame' .. bag]
+	for bag = 0, 12 do
+		local container = _G['ContainerFrame' .. (bag + 1)]
 		UI:CreateProbe(frame, container, 'showhide')
 		UI:HideFrame(container)
 
 		frame:SetFrameRef('container' .. bag, container)
 
 		for slot = 1, 36 do
-			local id = ((bag-1)*36) + slot
-			local button = _G['ContainerFrame' .. bag .. 'Item' .. slot]
+			local id = ((bag)*36) + slot
+			local button = _G['ContainerFrame' .. (bag+1) .. 'Item' .. slot]
 			local secureButton = CreateFrame('Button', _..'Item'..id, frame, 'ItemButtonTemplate, SecureActionButtonTemplate')
 
 			secureButton:SetAttribute('type', 'item')

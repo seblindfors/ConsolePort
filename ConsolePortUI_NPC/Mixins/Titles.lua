@@ -4,7 +4,6 @@ L.TitlesMixin = Titles
 
 local NORMAL_QUEST_DISPLAY = NORMAL_QUEST_DISPLAY:gsub(0, 'f')
 local TRIVIAL_QUEST_DISPLAY = TRIVIAL_QUEST_DISPLAY:gsub(0, 'f')
-local IGNORED_QUEST_DISPLAY = IGNORED_QUEST_DISPLAY:gsub(0, 'f')
 
 ----------------------------------
 -- Display
@@ -95,10 +94,9 @@ function Titles:UpdateAvailableQuests(...)
 	for i = 1, select('#', ...), 7 do
 		local button = self:GetButton(self.idx)
 		local 	titleText, level, isTrivial, frequency, 
-				isRepeatable, isLegendary, isIgnored = select(i, ...)
+				isRepeatable, isLegendary = select(i, ...)
 		----------------------------------
-		local qType = ( isIgnored and IGNORED_QUEST_DISPLAY) or
-					( isTrivial and TRIVIAL_QUEST_DISPLAY )
+		local qType = ( isTrivial and TRIVIAL_QUEST_DISPLAY )
 		button:SetFormattedText(qType or NORMAL_QUEST_DISPLAY, titleText)
 		----------------------------------
 		local icon = ( isLegendary and 'AvailableLegendaryQuestIcon' ) or
@@ -123,10 +121,9 @@ function Titles:UpdateActiveQuests(...)
 	for i = 1, numActiveQuestData, 6 do
 		local button = self:GetButton(self.idx)
 		local 	titleText, level, isTrivial, 
-				isComplete, isLegendary, isIgnored = select(i, ...)
+				isComplete, isLegendary = select(i, ...)
 		----------------------------------
-		local qType = ( isIgnored and IGNORED_QUEST_DISPLAY) or
-					( isTrivial and TRIVIAL_QUEST_DISPLAY )
+		local qType = ( isTrivial and TRIVIAL_QUEST_DISPLAY )
 		button:SetFormattedText(qType or NORMAL_QUEST_DISPLAY, titleText)
 		----------------------------------
 		local icon = ( isComplete and isLegendary and 'ActiveLegendaryQuestIcon') or
@@ -192,8 +189,7 @@ function Titles:UpdateActiveGreetingQuests(numActiveQuests)
 		local button = self:GetButton(self.idx)
 		local title, isComplete = GetActiveTitle(i)
 		----------------------------------
-		local qType = ( IsActiveQuestIgnored(i) and IGNORED_QUEST_DISPLAY ) or
-					( IsActiveQuestTrivial(i) and TRIVIAL_QUEST_DISPLAY )
+		local qType = ( IsActiveQuestTrivial(i) and TRIVIAL_QUEST_DISPLAY )
 		button:SetFormattedText(qType or NORMAL_QUEST_DISPLAY, title)
 		----------------------------------
 		local icon = ( isComplete and IsActiveQuestLegendary(i) and 'ActiveLegendaryQuestIcon' ) or
@@ -212,10 +208,9 @@ function Titles:UpdateAvailableGreetingQuests(numAvailableQuests)
 	for i=1, numAvailableQuests do
 		local button = self:GetButton(self.idx)
 		local title = GetAvailableTitle(i)
-		local isTrivial, frequency, isRepeatable, isLegendary, isIgnored = GetAvailableQuestInfo(i)
+		local isTrivial, frequency, isRepeatable, isLegendary = GetAvailableQuestInfo(i)
 		----------------------------------
-		local qType = ( isIgnored and IGNORED_QUEST_DISPLAY) or
-					( isTrivial and TRIVIAL_QUEST_DISPLAY )
+		local qType = ( isTrivial and TRIVIAL_QUEST_DISPLAY )
 		button:SetFormattedText(qType or NORMAL_QUEST_DISPLAY, title)
 		----------------------------------
 		local icon = ( isLegendary and 'AvailableLegendaryQuestIcon' ) or

@@ -133,6 +133,10 @@ end
 
 function Events:PLAYER_REGEN_ENABLED(...)
 	self:UpdateCVars(false)
+	if self.newBindingsQueued then
+		self.newBindingsQueued = nil
+		Events.ACTIVE_TALENT_GROUP_CHANGED(self)
+	end
 	After(Settings.UIleaveCombatDelay or 0.5, function()
 		if not InCombatLockdown() then
 			self:LockUICore(false)
@@ -173,17 +177,21 @@ function Events:SPELLS_CHANGED(...)
 end
 
 function Events:ACTIVE_TALENT_GROUP_CHANGED(...)
-	local bindingSet = self:GetBindingSet()
-	-- Set new bindings
-	db.Bindings = bindingSet
-	-- Dispatch updated bindings
-	self:LoadBindingSet(bindingSet)
-	self:OnNewBindings(bindingSet)
-	-- Check whether bindings are empty
-	if not next(bindingSet) then
-		local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]
-		popupData.text = db.TUTORIAL.SLASH.NOBINDINGS
-		self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
+	if not InCombatLockdown() then
+		local bindingSet = self:GetBindingSet()
+		-- Set new bindings
+		db.Bindings = bindingSet
+		-- Dispatch updated bindings
+		self:LoadBindingSet(bindingSet)
+		self:OnNewBindings(bindingSet)
+		-- Check whether bindings are empty
+		if not next(bindingSet) then
+			local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]
+			popupData.text = db.TUTORIAL.SLASH.NOBINDINGS
+			self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
+		end
+	else
+		self.newBindingsQueued = true
 	end
 end
 

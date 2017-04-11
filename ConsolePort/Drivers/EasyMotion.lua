@@ -40,7 +40,7 @@ Input:Hide()
 Input:RegisterForClicks('AnyUp', 'AnyDown')
 
 -- Mixin functions for the hotkey display
-local HotkeyMixin = {}
+local HotkeyMixin, GroupMixin = {}, {}
 
 -- Initialize secure namespace
 ---------------------------------------------------------------
@@ -97,10 +97,18 @@ local EM_SECURE_FUNCTIONS = {
 			self:SetAttribute('macrotext', '/targetenemy')
 		end
 
-		pool = nil
 		self:ClearBindings()
-		self:RunAttribute('Wipe')
-		self:CallMethod('HideBindings', unit)
+
+		if self:GetAttribute('ghostMode') then
+			self:CallMethod('HideBindings', unit, true)
+			self:RunAttribute('DisplayBindings', true)
+			self:RunAttribute('Wipe')
+		else
+			self:RunAttribute('Wipe')
+			self:CallMethod('HideBindings', unit)
+		end
+
+		pool = nil
 	]],
 
 	-- Create key combinations
@@ -159,7 +167,7 @@ local EM_SECURE_FUNCTIONS = {
 		self:RunAttribute('UpdateUnits', pool)
 		self:RunAttribute('SortUnits')
 		self:RunAttribute('AssignUnits', pool)
-		self:RunAttribute('DisplayBindings', pool)
+		self:RunAttribute('DisplayBindings')
 	]],
 
 	-- Feed existing nameplate units into the unit table
@@ -250,10 +258,11 @@ local EM_SECURE_FUNCTIONS = {
 
 	-- Display the bindings on frames/plates
 	DisplayBindings = [[
+		local ghostMode = ...
 		self:CallMethod('SetFramePool', pool, side)
-		self:CallMethod('HideBindings')
+		self:CallMethod('HideBindings', ghostMode)
 		for binding, unit in pairs(lookup) do
-			self:CallMethod('DisplayBinding', binding, unit)
+			self:CallMethod('DisplayBinding', binding, unit, ghostMode)
 		end
 	]],
 
@@ -317,6 +326,7 @@ function EM:OnNewBindings(...)
 		self:SetAttribute('unitpool', db.Settings.unitHotkeyPool)
 	end
 	self:SetAttribute('ignorePlayer', db.Settings.unitHotkeyIgnorePlayer)
+	self:SetAttribute('ghostMode', db.Settings.unitHotkeyGhostMode)
 	self:Execute([[self:RunAttribute('OnNewSettings')]])
 	local hSet = db.Settings.unitHotkeySet
 	if hSet then
@@ -410,33 +420,16 @@ function EM:Filter(input)
 	end
 end
 
-function EM:DisplayBinding(binding, unit)
-	local plate = self.GetNamePlateForUnit(unit)
+function EM:DisplayBinding(binding, unit, ghostMode)
+	local plate = not ghostMode and self.GetNamePlateForUnit(unit)
 	if plate and plate.UnitFrame then
 		self:AddFrameForUnit(plate.UnitFrame, unit)
 	end
 	for frame in self:GetUnitFramesForUnit(unit) do
 		local hotkey = self:GetHotkey(binding)
-		local icon, shown = hotkey.Keys, 0
-		for id in binding:gmatch('%S+') do
-			id = tonumber(id)
-			local size = hotkey.size
-			if icon[id] then
-				icon = icon[id]
-			else
-				icon[id] = hotkey:CreateTexture(nil, 'OVERLAY')
-				icon = icon[id]
-				icon:SetTexture(db.ICONS[self.InputCodes[id]])
-				icon:SetSize(size, size)
-			end
-			shown = shown + 1
-			hotkey.ShownKeys[shown] = icon
-			icon.shownID = shown
-			icon:SetPoint('LEFT', ( shown - 1) * ( size * 0.75 ), 0)
-			icon:Show()
-		end
-
-		hotkey:Adjust()
+		
+		hotkey:DrawIconsForBinding(binding)
+		hotkey:SetAlpha(ghostMode and 0.5 or 1)
 		hotkey.unit = unit
 
 		if self.unitType == 'frames' then
@@ -445,11 +438,11 @@ function EM:DisplayBinding(binding, unit)
 	end
 end
 
-function EM:HideBindings(unit)
+function EM:HideBindings(unit, ghostMode)
 	self.ActiveFrames = 0
 	for _, frame in self:GetFrames() do
 		if unit and frame.unit == unit then
-			frame:Animate()
+			frame:Animate(ghostMode)
 		else
 			frame:Clear()
 		end
@@ -465,6 +458,7 @@ function EM:GetHotkey(binding)
 		frame.size = db.Settings.unitHotkeySize or 32
 		frame.offsetX = db.Settings.unitHotkeyOffsetX or 0
 		frame.offsetY = db.Settings.unitHotkeyOffsetY or -8
+		frame.anchor = db.Settings.unitHotkeyAnchor or 'CENTER'
 		frame:SetSize(1, 1)
 		frame:Hide()
 		frame.Keys = {}
@@ -505,7 +499,30 @@ function HotkeyMixin:Adjust(depth)
 	self:SetWidth( offset * ( self.size * 0.75 ) )
 end
 
-function HotkeyMixin:Animate()
+function HotkeyMixin:DrawIconsForBinding(binding)
+	binding = binding or self.binding
+	local icon, shown = self.Keys, 0
+	for id in binding:gmatch('%S+') do
+		id = tonumber(id)
+		local size = self.size
+		if icon[id] then
+			icon = icon[id]
+		else
+			icon[id] = self:CreateTexture(nil, 'OVERLAY')
+			icon = icon[id]
+			icon:SetTexture(db.ICONS[EM.InputCodes[id]])
+			icon:SetSize(size, size)
+		end
+		shown = shown + 1
+		self.ShownKeys[shown] = icon
+		icon.shownID = shown
+		icon:SetPoint('LEFT', ( shown - 1) * ( size * 0.75 ), 0)
+		icon:Show()
+	end
+	self:Adjust()
+end
+
+function HotkeyMixin:Animate(ghostMode)
 	if not self.Group then
 		self.Group = self:CreateAnimationGroup()
 		self.Enlarge = self.Group:CreateAnimation('SCALE')
@@ -527,8 +544,11 @@ function HotkeyMixin:Animate()
 		self.Alpha:SetFromAlpha(1)
 		self.Alpha:SetToAlpha(0)
 		self.Alpha:SetDuration(0.2)
-		self.Group:SetScript('OnFinished', function() self:Clear() end)
+		---
+		Mixin(self.Group, GroupMixin)
 	end
+	self.Group:Finish()
+	self.Group:SetScript('OnFinished', ghostMode and self.Group.RedrawOnFinish or self.Group.ClearOnFinish)
 	self.Group:Play()
 end
 
@@ -545,9 +565,19 @@ end
 function HotkeyMixin:SetUnitFrame(frame)
 	if frame then
 		self:SetParent(UIParent)
-		self:SetPoint('CENTER', frame, frame.offsetX, frame.offsetY)
+		self:SetPoint(self.anchor, frame, self.offsetX, self.offsetY)
 		self:Show()
 		self:SetScale(1)
 		self:SetFrameLevel(frame:GetFrameLevel() + 1)
 	end
+end
+
+function GroupMixin:ClearOnFinish()
+	self:GetParent():Clear()
+end
+
+function GroupMixin:RedrawOnFinish()
+	local parent = self:GetParent()
+	parent:DrawIconsForBinding(parent.binding)
+	parent:SetAlpha(0.5)
 end

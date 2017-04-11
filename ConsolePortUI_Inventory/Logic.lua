@@ -1,8 +1,13 @@
 local _, L = ...
 local Inventory = {}
 local UI = ConsolePortUI
+local KEY = ConsolePort:GetData().KEY
 local Control = UI:GetControlHandle()
 L.InventoryMixin = Inventory
+
+function Inventory:OnShow()
+	Control:AddHint(KEY.CROSS, USE)
+end
 
 function Inventory:OnHide()
 	wipe(self.Active)
@@ -19,8 +24,20 @@ function Inventory:OnButtonShow(name)
 	self.Active[#self.Active + 1] = button
 end
 
-function Inventory:Update()
+local focusButton
 
+function Inventory:OnButtonFocused(name)
+	local button = _G[name]
+	if focusButton then
+		focusButton:UnlockHighlight()
+	end
+	focusButton = button
+	if button then
+		button:LockHighlight()
+	end
+end
+
+function Inventory:Update()
 	for idx, button in pairs(self.Active) do
 		local bag, slot = button:GetAttribute('bag'), button:GetAttribute('slot')
 		local	texture, itemCount, locked,
@@ -33,4 +50,13 @@ function Inventory:Update()
 		SetItemButtonCount(button, itemCount)
 		SetItemButtonDesaturated(button, locked)
 	end
+
+end
+
+function Inventory:Close()
+	CloseAllBags()
+end
+
+function Inventory:OnButtonPressed()
+	PlaySound('igMainMenuOptionCheckBoxOn')
 end

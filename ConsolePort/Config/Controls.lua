@@ -45,9 +45,9 @@ local function GetAddonSettings()
 			needReload = true,
 		},
 		{
-			cvar = 'TargetNearestUseOld',
+			cvar = 'TargetNearestUseNew',
 			desc = L.TARGETALGORITHM,
-			state = Settings.TargetNearestUseOld,
+			state = Settings.TargetNearestUseNew,
 		},
 		{	desc = L.CONVENIENCE },
 		{	cvar = 'autoExtra',

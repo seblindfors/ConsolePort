@@ -8,7 +8,7 @@
 local _, db = ...
 
 local CVars = {
-	TargetNearestUseOld 	= 	{value = 0},
+	TargetNearestUseNew 	= 	{value = 0},
 	autoLootDefault 		= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
 	autoInteract 			= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
 }

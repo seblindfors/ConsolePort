@@ -32,13 +32,13 @@ Bar:SetFrameStrata('FULLSCREEN_DIALOG')
 ----------------------------------
 function UI:GetControlHandle() return Control end
 ----------------------------------
-function UI:RegisterFrame(frame, ID, useCursor, hideUI) 
+function UI:RegisterFrame(frame, ID, useCursor, hideUI, hideActionBar) 
 	assert(frame, 'Frame handle does not exist.')
 	assert(frame:IsProtected(), 'Frame handle is not protected.')
 	assert(frame.Execute, 'Frame handle does not have a base template.')
 	assert(not InCombatLockdown(), 'Frame handle cannot be registered in combat.')
 	assert(ID, 'Frame handle does not have an ID.') 
-	Control:RegisterFrame(frame, ID, useCursor, hideUI)
+	Control:RegisterFrame(frame, ID, useCursor, hideUI, hideActionBar)
 end
 ----------------------------------
 Control:SetAttribute('type', 'macro')
@@ -67,10 +67,11 @@ for readable, identifier in pairs(data.KEY) do
 end
 Control:Execute(button_identifiers)
 
-function Control:RegisterFrame(frame, ID, useCursor, hideUI)
+function Control:RegisterFrame(frame, ID, useCursor, hideUI, hideActionBar)
 	frame:Execute(button_identifiers)
 	frame:SetAttribute('useCursor', useCursor)
 	frame:SetAttribute('hideUI', hideUI)
+	frame:SetAttribute('hideActionBar', hideActionBar)
 	frame:SetFrameRef('control', self)
 	self:SetFrameRef(ID, frame)
 	self:WrapScript(frame, 'OnShow', ([[
@@ -106,7 +107,7 @@ local secure_functions = {
 			self:CallMethod('SetHintFocus')
 			self:CallMethod('RestoreHints')
 			if stack[1]:GetAttribute('hideUI') then
-				self:CallMethod('HideUI', stack[1]:GetName())
+				self:CallMethod('HideUI', stack[1]:GetName(), stack[1]:GetAttribute('hideActionBar'))
 			end
 		else
 			self:SetAttribute('focus', nil)
@@ -144,6 +145,7 @@ local updateThrottle = 0
 local ignoreFrames = {
 	[Control] = true,
 	[Minimap] = true,
+	[MinimapCluster] = true,
 	[GameTooltip] = true,
 	[StaticPopup1] = true,
 	[StaticPopup2] = true,
@@ -154,16 +156,27 @@ local ignoreFrames = {
 	[ShoppingTooltip2] = true,
 	[OverrideActionBar] = true,
 	[ObjectiveTrackerFrame] = true,
-	------------------------------
-	[ConsolePortCursor] = true,
-	[ConsolePortMouseHandle] = true,
+}
+local forceFrames = {
+	['ConsolePortBar'] = true,
+	['MainMenuBar']  = true,
 }
 
-local function GetUIFrames()
+local function GetUIFrames(onlyActionBars)
 	local frames = {}
-	for i, child in pairs({UIParent:GetChildren()}) do
-		if not child:IsForbidden() and not Registry[child] and not ignoreFrames[child] then
-			frames[child] = child.fadeInfo and child.fadeInfo.endAlpha or child:GetAlpha()
+	local iterator, startIdx
+	if onlyActionBars then
+		iterator, startIdx = ConsolePort:GetActionBars()
+	else
+		iterator, startIdx = pairs({UIParent:GetChildren()})
+	end
+	for i, child in iterator, startIdx do
+		if not child:IsForbidden() then
+			local name = child:GetName()
+			local isConsolePortFrame = name and name:match('ConsolePort')
+			if forceFrames[name] or (not isConsolePortFrame and not Registry[child] and not ignoreFrames[child]) then
+				frames[child] = child.fadeInfo and child.fadeInfo.endAlpha or child:GetAlpha()
+			end
 		end
 	end
 	return frames
@@ -187,7 +200,7 @@ function Control:TrackMouseOver(elapsed)
 	end
 end
 
-function Control:HideUI(ignoreFrame)
+function Control:HideUI(ignoreFrame, onlyActionBars)
 	-- Action bar fade fix
 	if ConsolePortBar then
 		ignoreFrames[ConsolePortBar] = nil
@@ -197,7 +210,7 @@ function Control:HideUI(ignoreFrame)
 		ignoreFrames[_G[ignoreFrame]] = true
 	end
 
-	local frames = GetUIFrames()
+	local frames = GetUIFrames(onlyActionBars)
 	for frame in pairs(frames) do
 		FadeOut(frame, fadeTime or 0.2, frame:GetAlpha(), 0)
 	end

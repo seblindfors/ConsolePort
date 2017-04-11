@@ -243,6 +243,34 @@ local function GetActionButtons(buttons, this)
 	return buttons
 end
 
+local function GetOuterParent(this)
+	local parent = this:GetParent()
+	if not parent or parent == UIParent then
+		return this
+	else
+		return GetOuterParent(parent)
+	end
+end
+
+local function GetActionBars(bars, this)
+	bars = bars or {}
+	this = this or UIParent
+	if this:IsForbidden() then
+		return bars
+	end
+	local objType = this:GetObjectType()
+	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute('action')
+	if action and tonumber(action) and this:GetAttribute('type') == 'action' then
+		local outerParent = GetOuterParent(this)
+		bars[outerParent] = outerParent:GetName() or math.random()
+		return bars
+	end
+	for _, object in pairs({this:GetChildren()}) do
+		GetActionBars(bars, object)
+	end
+	return bars
+end
+
 ---------------------------------------------------------------
 -- Get all buttons that look like action buttons
 ---------------------------------------------------------------
@@ -251,6 +279,17 @@ function ConsolePort:GetActionButtons(getTable, parent)
 		return GetActionButtons(parent)
 	else
 		return pairs(GetActionButtons(parent))
+	end
+end
+
+---------------------------------------------------------------
+-- Get all container frames that look like action bars
+---------------------------------------------------------------
+function ConsolePort:GetActionBars(getTable, parent)
+	if getTable then
+		return db.table.flip(GetActionBars(parent))
+	else
+		return pairs(db.table.flip(GetActionBars(parent)))
 	end
 end
 
@@ -667,7 +706,9 @@ local cvars = { -- value = default
 	UIdropDownFix		= false,
 	unitHotkeySize 		= 32,
 	unitHotkeyOffsetX 	= 0,
-	unitHotkeyOffsetY 	= -8,
+	unitHotkeyOffsetY 	= 0,
+	unitHotkeyAnchor	= 'CENTER',
+	unitHotkeyGhostMode = false,
 	unitHotkeyIgnorePlayer = false,
 	unitHotkeyPool = 'player;party%d;raid%d+',
 	unitHotkeySet = '',
