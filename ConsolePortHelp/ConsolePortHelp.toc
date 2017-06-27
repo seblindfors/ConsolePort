@@ -1,0 +1,8 @@
+## Interface: 70200
+## Title: Console Port |cff69ccf0Help|r
+## Notes: Tutorials and tips for ConsolePort. Loaded on demand.
+## RequiredDeps: ConsolePort
+## LoadOnDemand: 1
+
+Loader.lua
+Pages.xml

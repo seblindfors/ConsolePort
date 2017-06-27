@@ -1,17 +1,27 @@
-local UI, _, L = ConsolePortUI, ...
-local db = ConsolePort:GetData()
-local Button, Header  = {}, {}
+local _, L = ...
+local UI, Control, db = ConsolePortUI:GetEssentials()
+local KEY = db.KEY
+local Button  = {}
 L.Button = Button
-L.Header = Header
 
 function Button:OnEnter()
 	self:LockHighlight()
+	Control:AddHint(KEY.CROSS, ACCEPT)
+	if self.Hilite.flashTimer then
+		db.UIFrameFlashStop(self.Hilite, self.Hilite:GetAlpha())
+	end
 	db.UIFrameFadeIn(self.Hilite, 0.15, self.Hilite:GetAlpha(), 1)
+	if self.EnterScript then
+		self.EnterScript(self)
+	end
 end
 
 function Button:OnLeave()
 	self:UnlockHighlight()
 	db.UIFrameFadeOut(self.Hilite, 0.2, self.Hilite:GetAlpha(), 0)
+	if self.LeaveScript then
+		self.LeaveScript(self)
+	end
 end
 
 function Button:OnHide()
@@ -24,13 +34,20 @@ function Button:OnShow()
 	self:Animate()
 end
 
+function Button:SetPulse(enabled)
+	if enabled then
+		db.UIFrameFlash(self.Hilite, 0.5, 0.5, -1, true, 0.2, 0.1)
+	else
+		db.UIFrameFlashStop(self.Hilite, 0)
+	end
+end
+
 function Button:Animate()
 	local id = self:GetID() or 1
 	C_Timer.After(id * 0.01, function()
 		db.UIFrameFadeIn(self, 0.2, self:GetAlpha(), 1)
 	end)
 end
-
 
 function Button:OnLoad()
 	self.Overlay = CreateFrame('Frame', '$parentOverlay', self)
@@ -47,7 +64,7 @@ function Button:OnLoad()
 	self.Icon:SetSize(36, 36)
 	self.Icon:SetPoint('LEFT', 12, 0)
 	if not self.NoMask then
-		self.Icon:SetMask('Interface\\Minimap\\UI-Minimap-Background')
+		self.Icon:SetMask('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Mask')
 	end
 	self.Icon:SetTexture(self.Img)
 	self.Mask:SetTexture()
@@ -65,4 +82,9 @@ function Button:OnLoad()
 	UI.Media:SetBackdrop(self.Hilite, 'GOSSIP_HILITE')
 	UI.Media:SetBackdrop(self, 'GOSSIP_BG')
 	self:SetText(self.Desc)
+
+	if self.LoadScript then
+		self.LoadScript(self)
+		self.LoadScript = nil
+	end
 end

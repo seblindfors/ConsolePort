@@ -38,6 +38,10 @@ local function GetAddonSettings()
 			desc = L.DISABLEMOUSE,
 			state = Settings.disableSmartMouse,
 		},
+		{	cvar = 'mouseInvertPitch',
+			desc = L.INVERTPITCH,
+			state = Settings.mouseInvertPitch,
+		},
 		{	desc = L.TARGETING },
 		{	cvar = 'raidCursorDirect',
 			desc = L.RAIDCURSORDIRECT,
@@ -102,17 +106,18 @@ end
 -- Mouse: Returns events for mouselook
 ---------------------------------------------------------------
 local function GetMouseSettings()
+	local L = TUTORIAL.MOUSE
 	return {
 		{ 	event 	= {'PLAYER_STARTED_MOVING'},
-			desc 	= TUTORIAL.MOUSE.STARTED_MOVING,
+			desc 	= L.STARTED_MOVING,
 			state 	= db.Mouse.Events['PLAYER_STARTED_MOVING']
 		},
 		{ 	event	= {'PLAYER_TARGET_CHANGED'},
-			desc 	= TUTORIAL.MOUSE.TARGET_CHANGED,
+			desc 	= L.TARGET_CHANGED,
 			state 	= db.Mouse.Events['PLAYER_TARGET_CHANGED']
 		},
 		{	event 	= {'UNIT_SPELLCAST_SENT', 'UNIT_SPELLCAST_FAILED'},
-			desc 	= TUTORIAL.MOUSE.DIRECT_SPELL_CAST,
+			desc 	= L.DIRECT_SPELL_CAST,
 			state 	= db.Mouse.Events['UNIT_SPELLCAST_SENT']
 		},
 		{	event 	= {	'GOSSIP_SHOW', 'GOSSIP_CLOSED',
@@ -121,15 +126,15 @@ local function GetMouseSettings()
 						'QUEST_GREETING', 'QUEST_DETAIL',
 						'QUEST_PROGRESS', 'QUEST_COMPLETE', 'QUEST_FINISHED',
 						'SHIPMENT_CRAFTER_OPENED', 'SHIPMENT_CRAFTER_CLOSED'},
-			desc 	= TUTORIAL.MOUSE.NPC_INTERACTION,
+			desc 	= L.NPC_INTERACTION,
 			state 	= db.Mouse.Events['GOSSIP_SHOW']
 		},
 		{ 	event	= {'QUEST_AUTOCOMPLETE'},
-			desc 	= TUTORIAL.MOUSE.QUEST_AUTOCOMPLETE,
+			desc 	= L.QUEST_AUTOCOMPLETE,
 			state 	= db.Mouse.Events['QUEST_AUTOCOMPLETE']
 		},
 		{	event	= {'LOOT_OPENED', 'LOOT_CLOSED'},
-			desc 	= TUTORIAL.MOUSE.LOOTING,
+			desc 	= L.LOOTING,
 			state 	= db.Mouse.Events['LOOT_OPENED']
 		}
 	}
@@ -149,8 +154,13 @@ local function GetCameraSettings()
 			value 	= 1,
 			default = 0,
 		},
-		{	cvar 	= 'test_cameraLockedTargetFocusing',
+		{	cvar 	= 'test_cameraTargetFocusEnemyEnable',
 			desc 	= L.TARGETFOCUS,
+			value 	= 1,
+			default = 0,
+		},
+		{	cvar 	= 'test_cameraTargetFocusInteractEnable',
+			desc 	= L.TARGETFOCUSNPC,
 			value 	= 1,
 			default = 0,
 		},
@@ -336,7 +346,7 @@ function WindowMixin:Save()
 	ConsolePort:LoadControllerTheme()
 	ConsolePort:LoadCameraSettings()
 	ConsolePort:UpdateMouseDriver()
-	ConsolePort:SetupUtilityBelt()
+	ConsolePort:SetupUtilityRing()
 	return needReload, 'MouseEvent', (not db.table.compare(db.Mouse.Events, ConsolePort:GetDefaultMouseEvents()) and db.Mouse.Events)
 end
 

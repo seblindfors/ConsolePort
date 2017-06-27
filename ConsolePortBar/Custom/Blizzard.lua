@@ -209,6 +209,7 @@ do
 	-------------------------------------------
 
 	ObjectiveTrackerFrame:SetPoint('TOPRIGHT', MinimapCluster, 'BOTTOMRIGHT', -100, -132)
+	AlertFrame:SetPoint('BOTTOM', UIParent, 'BOTTOM', 0, 200)
 
 	if PlayerTalentFrame then
 		PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')

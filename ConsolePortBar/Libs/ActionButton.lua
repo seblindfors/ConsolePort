@@ -119,9 +119,8 @@ local ButtonRegistry, ActiveButtons, ActionButtons, NonActionButtons = lib.butto
 
 local Update, UpdateButtonState, UpdateUsable, UpdateCount, UpdateCooldown, UpdateTooltip, UpdateNewAction
 local StartFlash, StopFlash, UpdateFlash, UpdateRangeTimer, UpdateOverlayGlow
-local UpdateFlyout, ShowGrid, HideGrid, UpdateGrid, SetupSecureSnippets, WrapOnClick
+local UpdateFlyout, ShowGrid, HideGrid, SetupSecureSnippets, WrapOnClick
 local ShowOverlayGlow, HideOverlayGlow
-local FadeIn, FadeOut
 local EndChargeCooldown
 
 local InitializeEventHandler, OnEvent, ForAllButtons, OnUpdate
@@ -146,21 +145,10 @@ local DefaultConfig = {
 -- @param id Internal id of the button (not used by LibActionButton-1.0, only for tracking inside the calling addon)
 -- @param name Name of the button frame to be created (not used by LibActionButton-1.0 aside from naming the frame)
 -- @param header Header that drives these action buttons (if any)
-function lib:CreateButton(id, name, header, config, template)
-	if type(name) ~= "string" then
-		error("Usage: CreateButton(id, name. header): Buttons must have a valid name!", 2)
-	end
-	if not header then
-		error("Usage: CreateButton(id, name, header): Buttons without a secure header are not yet supported!", 2)
-	end
-
-	local templates = "SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, ActionButtonTemplate"
-
-	if template then
-		templates = templates..", "..template
-	end
-
+function lib:CreateButton(id, name, header, config)
+	local templates = "SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate"
 	local button = setmetatable(CreateFrame("CheckButton", name, header, templates), Generic_MT)
+
 	button:RegisterForDrag("LeftButton", "RightButton")
 	button:RegisterForClicks("AnyUp")
 
@@ -546,7 +534,7 @@ end
 
 function Generic:OnEnter()
 	self.header:FadeIn(self.header:GetAlpha())
-	FadeIn(self)
+	self:FadeIn()
 	if self.config.tooltip ~= "disabled" and (self.config.tooltip ~= "nocombat" or not InCombatLockdown()) then
 		UpdateTooltip(self)
 	end
@@ -561,7 +549,7 @@ function Generic:OnLeave()
 	if self.header:GetAttribute('hidesafe') and not InCombatLockdown() then
 		self.header:FadeOut(self.header:GetAlpha())
 	end
-	FadeOut(self)
+	self:FadeOut()
 	GameTooltip:Hide()
 end
 
@@ -726,8 +714,6 @@ function OnEvent(frame, event, arg1, ...)
 		end
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "UPDATE_SHAPESHIFT_FORM" or event == "UPDATE_VEHICLE_ACTIONBAR" then
 		ForAllButtons(Update)
-	elseif event == "ACTIONBAR_PAGE_CHANGED" or event == "UPDATE_BONUS_ACTIONBAR" then
-		-- TODO: Are these even needed?
 	elseif event == "ACTIONBAR_SHOWGRID" then
 		ShowGrid()
 	elseif event == "ACTIONBAR_HIDEGRID" then
@@ -804,17 +790,15 @@ function OnEvent(frame, event, arg1, ...)
 			local spellId = button:GetSpellId()
 			if spellId and spellId == arg1 then
 				if not button.isMainButton then
-					button:SetAlpha(1)
-					button.isGlowing = true
+					button:SetGlowing(true, true)
 				end
 				ShowOverlayGlow(button)
 			else
 				if button._state_type == "action" then
 					local actionType, id = GetActionInfo(button._state_action)
 					if actionType == "flyout" and FlyoutHasSpell(id, arg1) then
-						button.isGlowing = true
+						button:SetGlowing(true, true)
 						ShowOverlayGlow(button)
-						FadeIn(button)
 					end
 				end
 			end
@@ -825,15 +809,14 @@ function OnEvent(frame, event, arg1, ...)
 			if spellId and spellId == arg1 then
 				HideOverlayGlow(button)
 				if not button.isMainButton then
-					button.isGlowing = false
-					FadeOut(button)
+					button:SetGlowing(false)
 					UpdateCooldown(button)
 				end
 			else
 				if button._state_type == "action" then
 					local actionType, id = GetActionInfo(button._state_action)
 					if actionType == "flyout" and FlyoutHasSpell(id, arg1) then
-						button.isGlowing = false
+						button:SetGlowing(false)
 						HideOverlayGlow(button)
 					end
 				end
@@ -906,26 +889,14 @@ end
 function ShowGrid()
 	for button in next, ButtonRegistry do
 		if button:IsShown() then
-			button.showGrid = true
-			button:SetAlpha(1.0)
+			button:SetShowGrid(true)
 		end
 	end
 end
 
 function HideGrid()
 	for button in next, ButtonRegistry do
-		button.showGrid = false
-		if button:IsShown() and not button.isMainButton and not button.isOnCooldown and not button.isGlowing and not button.forceShow then
-			button:SetAlpha(0.0)
-		end
-	end
-end
-
-function UpdateGrid(self)
-	if self.config.showGrid then
-		self:SetAlpha(1.0)
-	elseif gridCounter == 0 and self:IsShown() and not self:HasAction() then
-		self:SetAlpha(0.0)
+		button:SetShowGrid(false)
 	end
 end
 
@@ -1005,12 +976,53 @@ function Generic:SetClicks(mouseover)
 	end
 end
 
-function Generic:Hover(show)
-	self.forceShow = show
-	if show and not self.isMainButton then
-		FadeIn(self)
+function Generic:Hover(isEnabled)
+	self.forceShow = isEnabled
+	if self.isMainButton then return end
+	if isEnabled then
+		self:FadeIn(1)
 	else
-		FadeOut(self)
+		self:FadeOut(0)
+	end
+end
+
+function Generic:SetShowGrid(isEnabled)
+	if self.isMainButton then return end
+	self.showGrid = isEnabled
+	if isEnabled then
+		self:FadeIn(1, 0)
+	else
+		self:FadeOut(0, 0)
+	end
+end
+
+function Generic:SetGlowing(isEnabled, instantAlpha)
+	self.isGlowing = isEnabled
+	if self.isMainButton then return end
+	if isEnabled then
+		self:FadeIn(1, instantAlpha and 0 or 0.2)
+	else
+		self:FadeOut(0, instantAlpha and 0 or 0.2) 
+	end
+end
+
+function Generic:SetOnCooldown(isEnabled, instantAlpha)
+	self.isOnCooldown = isEnabled
+	if self.isMainButton then return end
+	if isEnabled then
+		self:FadeIn(1, instantAlpha and 0 or 0.2)
+	else
+		self:FadeOut(0, instantAlpha and 0 or 0.2) 
+	end
+end
+
+function Generic:FadeIn(newAlpha, speed)
+	UIFrameFadeIn(self, speed or 0.2, self:GetAlpha(), newAlpha or 1)
+end
+
+function Generic:FadeOut(newAlpha, speed)
+	if not self.isMainButton and not self.isGlowing and not self.isOnCooldown and not self.forceShow and not self.showGrid then
+		UIFrameFadeOut(self, speed or 0.2, self:GetAlpha(), newAlpha or 0)
 	end
 end
 
@@ -1049,9 +1061,9 @@ function Update(self)
 		self.cooldown:Hide()
 		self:SetChecked(false)
 
-		self.isGlowing = nil
-		self.isOnCooldown = nil
-		FadeOut(self)
+		self.isGlowing = false
+		self.isOnCooldown = false
+		self:FadeOut()
 		UpdateUsable(self)
 
 		if self.chargeCooldown then
@@ -1079,7 +1091,6 @@ function Update(self)
 
 	-- Draenor zone button handling
 	self.draenorZoneDisabled = false
---	self.icon:SetDesaturated(false)
 	if self._state_type == "action" then
 		local action_type, id = GetActionInfo(self._state_action)
 		if ((action_type == "spell" or action_type == "companion") and DraenorZoneAbilityFrame and DraenorZoneAbilityFrame.baseName and not HasDraenorZoneAbility()) then
@@ -1088,47 +1099,18 @@ function Update(self)
 			if name == abilityName then
 				texture = GetLastDraenorSpellTexture()
 				self.draenorZoneDisabled = true
-			--	self.icon:SetDesaturated(true)
 			end
 		end
 	end
 
-	-- Cache textures instead of updating on every change,
-	-- since masked textures are a lot more expensive to swap
-	if self.isMainButton and self:GetAttribute("state") ~= "" then
-		for _, icon in pairs(self.icons) do
-			icon:SetAlpha(0)
-		end
-		self.icon:SetAlpha(0)
-		self.icons[self:GetAttribute("state")]:SetAlpha(1)
+	if texture then
+		self.rangeTimer = - 1
 	else
-		if self.isMainButton then
-			for _, icon in pairs(self.icons) do
-				icon:SetAlpha(0)
-			end
-			self.icon:SetAlpha(1)
-		end
-		if texture and texture ~= self.cachedTexture then
-			self.cachedTexture = texture
-			self.icon:SetTexture(texture)
-			self.icon:SetDesaturated(false)
-			self.rangeTimer = - 1
-			if self.mainIcon then
-				self.mainIcon:SetTexture(texture)
-				self.mainIcon:SetDesaturated(false)
-			end
-		elseif not texture then
-			self.cachedTexture = nil
-			self.icon:SetTexture("Interface\\ICONS\\Ability_BossFelOrcs_Necromancer_Red")
-			self.icon:SetDesaturated(true)
-			self.cooldown:Hide()
-			self.rangeTimer = nil
-			if self.mainIcon then
-				self.mainIcon:SetTexture("Interface\\ICONS\\Ability_BossFelOrcs_Necromancer_Red")
-				self.mainIcon:SetDesaturated(true)
-			end
-		end
+		self.cooldown:Hide()
+		self.rangeTimer = nil
 	end
+
+	self:SetIcon(texture)
 
 	UpdateCount(self)
 
@@ -1169,26 +1151,17 @@ function UpdateUsable(self)
 	-- TODO: make the colors configurable
 	-- TODO: allow disabling of the whole recoloring
 	if self.outOfRange then
-		self.icon:SetVertexColor(unpack(self.config.colors.range))
+		self:SetVertexColor(unpack(self.config.colors.range))
 	else
 		local isUsable, notEnoughMana = self:IsUsable()
 		if isUsable then
-			self.icon:SetVertexColor(1.0, 1.0, 1.0)
-			if self.mainIcon then
-				self.mainIcon:SetVertexColor(1.0, 1.0, 1.0)
-			end
+			self:ClearVertexColor()
 			--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
 		elseif notEnoughMana then
-			self.icon:SetVertexColor(unpack(self.config.colors.mana))
-			if self.mainIcon then
-				self.mainIcon:SetVertexColor(unpack(self.config.colors.mana))
-			end
+			self:SetVertexColor(unpack(self.config.colors.mana))
 			--self.NormalTexture:SetVertexColor(0.5, 0.5, 1.0)
 		else
-			self.icon:SetVertexColor(0.4, 0.4, 0.4)
-			if self.mainIcon then
-				self.mainIcon:SetVertexColor(0.4, 0.4, 0.4)
-			end
+			self:SetVertexColor(0.4, 0.4, 0.4)
 			--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
 		end
 	end
@@ -1205,16 +1178,13 @@ function UpdateCount(self)
 		if count > (self.maxDisplayCount or 9999) then
 			self.Count:SetText("*")
 		else
---			FadeIn(self)
 			self.Count:SetText(count)
 		end
 	else
 		local charges, maxCharges, chargeStart, chargeDuration = self:GetCharges()
 		if charges and maxCharges and maxCharges > 0 then
---			FadeIn(self)
 			self.Count:SetText(charges)
 		else
---			FadeOut(self)
 			self.Count:SetText("")
 		end
 	end
@@ -1257,16 +1227,14 @@ end
 
 local function OnCooldownDone(self)
 	local button = self:GetParent()
-	button.isOnCooldown = nil
-	FadeOut(button)
+	button:SetOnCooldown(false)
 	self:SetScript("OnCooldownDone", nil)
 	UpdateCooldown(button)
 end
 
 local function OnModifierCooldownDone(self)
 	local button = self:GetParent()
-	button.isOnCooldown = nil
-	FadeOut(button)
+	button:SetOnCooldown(false)
 	self:SetScript("OnCooldownDone", nil)
 end
 
@@ -1279,8 +1247,7 @@ function UpdateCooldown(self)
 
 	if not self.isMainButton and not self.isGlowing then
 		if (duration > 2) then
-			FadeIn(self)
-			self.isOnCooldown = true
+			self:SetOnCooldown(true)
 			self.cooldown:SetSwipeColor(0.17, 0, 0)
 			self.cooldown:SetScript("OnCooldownDone", OnModifierCooldownDone)
 		end
@@ -1361,16 +1328,6 @@ function UpdateOverlayGlow(self)
 		ShowOverlayGlow(self)
 	else
 		HideOverlayGlow(self)
-	end
-end
-
-function FadeIn(self, newAlpha, speed)
-	UIFrameFadeIn(self, speed or 0.2, self:GetAlpha(), newAlpha or 1)
-end
-
-function FadeOut(self, newAlpha, speed)
-	if not self.isMainButton and not self.isGlowing and not self.isOnCooldown and not self.forceShow and not self.showGrid then
-		UIFrameFadeOut(self, speed or 0.2, self:GetAlpha(), newAlpha or 0)
 	end
 end
 

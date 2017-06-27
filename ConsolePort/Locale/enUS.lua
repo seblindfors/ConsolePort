@@ -56,8 +56,8 @@ TUTORIAL = {
 		CENTERCURSOR 		= 'Cursor is centered',
 	},
 	UICTRL = {
-		VIRTUALCURSOR 		= 'Interface cursor',
-		ACTIONBARHEADER		= 'Hotkey style',
+		VIRTUALCURSOR 		= 'Interface cursor |cFF757575- assign mouse commands to buttons|r',
+		ACTIONBARHEADER		= 'Hotkey style |cFF757575- only for regular action bars|r',
 		HEADER 				= 'Interface',
 		SIDEBAR 			= 'Interface',
 		ADDONLISTHEADER 	= 'AddOns:',
@@ -116,6 +116,7 @@ TUTORIAL = {
 		DOUBLEMODTAP 		= 'Double tap |T%s:32:32:0:0|t or |T%s:32:32:0:0|t to toggle mouse cursor',
 		LOOKAROUND 			= 'Hold |T%s:32:32:0:0|t to pan the camera around',
 		DISABLEMOUSE 		= 'Disable automatic mouse behaviour',
+		INVERTPITCH			= 'Invert camera pitch',
 		TARGETING 			= 'Targeting',
 		RAIDCURSORDIRECT 	= 'Target directly with raid cursor',
 		TARGETALGORITHM 	= 'Use new tab-targeting algorithm',
@@ -123,7 +124,7 @@ TUTORIAL = {
 		AUTOEXTRA 			= 'Add quest items and extra spells to utility ring',
 		AUTOLOOT 			= 'Force auto loot in combat',
 		AUTOSELL 			= 'Automatically sell junk',
-		DISABLEBINDHELP 	= 'Disable action bar assistance',
+		DISABLEBINDHELP 	= 'Disable action placement assistance',
 		FIXES 				= 'Fixes',
 		DISABLEHOLDREPEAT 	= 'One-to-one interface cursor',
 		SKIPCALIBRATION		= 'Disable calibration check on login',
@@ -148,7 +149,8 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		FASTCAM 			= 'Fast camera zooming',
 		DYNPITCH 			= 'Use dynamic pitch',
-		TARGETFOCUS 		= 'Focus camera on target',
+		TARGETFOCUS 		= 'Focus camera on enemy target',
+		TARGETFOCUSNPC 		= 'Focus camera on interactive target',
 		TARGETYAW 			= 'Rotate camera on targeted spell',
 		OVERSHOULDER 		= 'Over shoulder mode',
 		LEFT 				= 'Left',
@@ -166,6 +168,7 @@ TUTORIAL = {
 		UTILITY_RING_REMOVE 	= 'Press %s when an item is selected to remove it.',
 		UTILITY_RING_NEWBIND	= '%s was bound to your Utility Ring%s',
 		HELPER_ACTIONBAR 		= 'Press a button combination on your\ncontroller to place this on your action bar.',
+		HELPER_EQUIP_BAG 		= 'Click on a slot below to equip this bag.',
 		HELPER_INVALID_OCCUA 	= '%s is occupied by %s.\nYou need to bind this combination to your action bar first.',
 		HELPER_INVALID_OCCUB 	= '%s is occupied.\nYou need to bind this combination to your action bar first.',
 		HELPER_INVALID_FREE 	= '%s isn\'t bound to anything.\nYou need to bind this combination to your action bar first.',
@@ -200,6 +203,7 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		COMBAT 				= 'Error! Cannot reset addon in combat!',
 		CVAR_APPLIED		= 'New value applied to: |cffffe00a%s|r > %s\nChanges will take effect after you |cffffe00a/reload|r.',
+		CVAR_PRINTOUT		= 'Current value for |cffffe00a%s|r is:\n%s',
 		CVAR_MISMATCH		= 'Error! Type mismatch in variable |cffffe00a%s|r.\nType should be: |cffffe00a%s|r',
 		CVAR_NOEXISTS 		= 'Error! Variable |cffffe00a%s|r isn\'t registered.\nType |cffffe00a/cp cvar|r for complete list.',
 		CVAR_PRINTING 		= 'Printing cvars...',
@@ -217,7 +221,7 @@ TUTORIAL = {
 		CVARLIST 			= '(Advanced) List of console variables',
 		CONFIG_COMBAT 		= 'Your controller configuration will be shown when you leave combat.',
 		-----------------------------------------------------------
-		WARNINGBINDINGUI 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You can only customize your keyboard bindings from this panel.\n\nModifying keyboard bindings while using your controller is not recommended.\n\nWould you like to edit your controller bindings, recalibrate your controller or continue anyway?',
+		WARNINGBINDINGUI 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You can only customize your keyboard bindings from this panel.\n\nModifying keyboard bindings while using your controller is not recommended.\n\nAny changes you commit here will also save and upload your controller calibration, which may overwrite your keyboard bindings.\n\nWould you like to edit your controller bindings, recalibrate your controller or continue anyway?',
 		WARNINGCOMBATLOGIN 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You reloaded your interface in combat.\nLeave combat to complete initialization.',
 		CRITICALUPDATE		= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?',
 		ADVANCED_DATA		= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You are about to apply changes to the following settings:\n\n%s\nThis will cause your interface to reload. Any changes you made in the other configuration tabs will be discarded.',
@@ -277,8 +281,10 @@ CUSTOMBINDS = {
 	CP_PAGE4 			= 	BINDING_NAME_ACTIONPAGE4 .. ' (Hold)',
 	CP_PAGE5 			= 	BINDING_NAME_ACTIONPAGE5 .. ' (Hold)',
 	CP_PAGE6 			= 	BINDING_NAME_ACTIONPAGE6 .. ' (Hold)',
-	CP_CAMZOOMIN		= 	'Zoom In (x5)',
-	CP_CAMZOOMOUT		= 	'Zoom Out (x5)',
+	CP_CAMZOOMIN		= 	BINDING_NAME_CAMERAZOOMIN .. ' (x5)',
+	CP_CAMZOOMOUT		= 	BINDING_NAME_CAMERAZOOMOUT .. ' (x5)',
+	CP_ZOOMIN_HOLD 		= 	BINDING_NAME_CAMERAZOOMIN .. ' (Hold)',
+	CP_ZOOMOUT_HOLD 	= 	BINDING_NAME_CAMERAZOOMOUT .. ' (Hold)',
 	CP_CAMLOOKBEHIND	= 	'Look Behind',
 	-- Strings in case controller has no texture for the binding XML
 	-----------------------------------------------------------
@@ -329,8 +335,7 @@ HEADERS = {
 }}
 
 
--- Compare a database table against a default table
--- Fill in non-existing values in the database tables
+-- Fill in non-existing values in the locale tables
 do
 	local function CheckLocale(dbTable, defaultTable)
 		for key, value in pairs(defaultTable) do

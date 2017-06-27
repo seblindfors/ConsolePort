@@ -7,6 +7,7 @@ function Tooltip:OnShow()
 	self:SetFrameLevel(6)
 	self:SetScale(self.normalScale or 1)
 	self.isActive = true
+	self.Button:Show()
 	self:SetCheckable(false)
 end
 
@@ -142,6 +143,7 @@ function UI:GetTooltip()
 		tooltip.Button.OnEnter = tooltip.Button:GetScript('OnEnter')
 		tooltip.Button.OnLeave = tooltip.Button:GetScript('OnLeave')
 		UI:ApplyMixin(tooltip, nil, Tooltip, 'ScaleOnFocus')
+		UI:RemoveRegisteredFrame(tooltip)
 		framePool[id] = tooltip
 	end
 	return tooltip

@@ -222,6 +222,9 @@ function ConsolePort:LoadSettings()
 				PrintHeader()
 				print(format(SLASH.CVAR_APPLIED, cvar, 'nullified'))
 				print(SLASH.CVAR_WARNING_NULL)
+			elseif value == nil then
+				PrintHeader()
+				print(format(SLASH.CVAR_PRINTOUT, cvar, db.Settings[cvar]))
 			elseif type(original) ~= type(value) then
 				PrintHeader()
 				print(format(SLASH.CVAR_MISMATCH, cvar, type(original)))
@@ -250,11 +253,13 @@ function ConsolePort:LoadSettings()
 			print(SLASH.ACTIONBAR_NOEXISTS)
 		end
 	end
+	local function ShowHelp() ConsolePortConfig:OpenCategory(HELP_LABEL) end
 	local function ShowBinds() ConsolePortConfig:OpenCategory(2) end
 	local function ShowConfig() ConsolePortConfig:Show() end
 	local function ShowCalibration() if ConsolePortConfig:IsVisible() then ConsolePortConfig:Hide() end ConsolePort:CalibrateController(true) end
 
 	local instructions = {
+		["help"] = {desc = HELP_LABEL .. ' & ' .. SHOW_TUTORIALS, func = ShowHelp},
 		["actionbar"] = {desc = SLASH.ACTIONBAR_SHOW, func = ActionBarShow},
 		["type"] = {desc = SLASH.TYPE, func = ShowSplash},
 		["config"] = {desc = SLASH.CONFIG, func = ShowConfig},
@@ -281,7 +286,7 @@ function ConsolePort:LoadSettings()
 			SetControllerCVar(unpack(inputs))
 		else
 			PrintHeader()
-			for k, v in pairs(instructions) do
+			for k, v in db.table.spairs(instructions) do
 				print(format("|cff69ccf0/cp %s|r: %s", k, v.desc))
 			end
 		end

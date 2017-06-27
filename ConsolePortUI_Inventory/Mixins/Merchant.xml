@@ -1,0 +1,170 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Script file="Merchant.lua"/>
+	<Script file="MerchantItemButton.lua"/>
+	<Script file="MerchantFilterButton.lua"/>
+	<Script file="MerchantBuybackButton.lua"/>
+
+
+	<Button name="CPUIMerchantItemTemplate" virtual="true">
+		<Size x="400" y="54"/>
+		<Frames>
+			<Frame name="$parentMoneyFrame" inherits="SmallMoneyFrameTemplate" parentKey="money">
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="5" y="7"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SmallMoneyFrame_OnLoad(self);
+						MoneyFrame_SetType(self, "STATIC");
+					</OnLoad>
+				</Scripts>
+			</Frame>
+		</Frames>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture name="$parentIcon" parentKey="icon">
+					<Size x="50" y="50"/>
+					<Anchors>
+						<Anchor point="LEFT" x="6" y="0"/>
+					</Anchors>
+				</Texture>
+				<FontString name="$parentName" inherits="Game13Font" justifyH="LEFT" parentKey="name">
+					<Size x="0" y="12"/>
+					<Anchors>
+						<Anchor point="LEFT"  relativeTo="$parentIcon" relativePoint="RIGHT" x="6" y="-1"/>
+						<Anchor point="RIGHT" relativeTo="$parentMoneyFrame" relativePoint="LEFT" x="-2" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentSubText" inherits="SystemFont_Shadow_Small" justifyH="LEFT" justifyV="MIDDLE" parentKey="subText">
+					<Size x="240" y="30"/>
+					<Anchors>
+						<Anchor point="LEFT"  relativeTo="$parentName" relativePoint="LEFT" x="0" y="-19"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="selectedTex" file="Interface\ClassTrainerFrame\TrainerTextures" hidden="true" alphaMode="ADD">
+					<TexCoords left="0.00195313" right="0.57421875" top="0.84960938" bottom="0.94140625"/>
+				</Texture>
+				<Texture parentKey="lock" file="Interface\GuildFrame\GuildFrame" hidden="true">
+					<Size x="17" y="21"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativeTo="$parentIcon" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+					</Anchors>
+					<TexCoords left="0.51660156" right="0.53320313" top="0.92578125" bottom="0.96679688"/>
+				</Texture>
+			</Layer>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="disabledBG" hidden="true" alphaMode="MOD">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="2" y="-2"/>
+						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+					</Anchors>
+					<Color r="0.55" g="0.55" b="0.55" a="1"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		<NormalTexture file="Interface\ClassTrainerFrame\TrainerTextures">
+			<TexCoords left="0.00195313" right="0.57421875" top="0.65820313" bottom="0.75000000"/>
+		</NormalTexture>
+		<HighlightTexture name="$parentHighlight" file="Interface\ClassTrainerFrame\TrainerTextures" alphaMode="ADD">
+			<TexCoords left="0.00195313" right="0.57421875" top="0.75390625" bottom="0.84570313"/>
+		</HighlightTexture>
+	</Button>
+<!-- 	<Frame name="CPUIMerchantItemTemplate" virtual="true">	
+		<Size x="350" y="64"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentSlotTexture" file="Interface\Buttons\UI-EmptySlot">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-13" y="13"/>
+					</Anchors>
+				</Texture>
+				<Texture name="$parentNameFrame" parentKey="NameFrame" file="Interface\MerchantFrame\UI-Merchant-LabelSlots">
+					<Size x="300" y="64"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentSlotTexture" relativePoint="RIGHT" x="-9" y="-18"/>
+					</Anchors>
+				</Texture>
+				<FontString name="$parentName" parentKey="Name" inherits="GameFontNormalSmall" text="Item Name" justifyH="LEFT">
+					<Size x="100" y="30"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentSlotTexture" relativePoint="RIGHT" x="-5" y="7"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self.UpdateMoney = function(self, price)
+					MoneyFrame_Update(self.MoneyFrame, price)
+				end
+			</OnLoad>
+		</Scripts>
+		<Frames>
+			<Button name="$parentItemButton" parentKey="ItemButton" inherits="ItemButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="$parent"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						if ( IsModifiedClick() ) then
+							MerchantItemButton_OnModifiedClick(self, button);
+						else
+							MerchantItemButton_OnClick(self, button);
+						end
+					</OnClick>
+					<OnLoad>
+						MerchantItemButton_OnLoad(self);
+					</OnLoad>
+					<OnDragStart>
+						MerchantItemButton_OnClick(self, "LeftButton");
+					</OnDragStart>
+					<OnEnter>
+						MerchantItemButton_OnEnter(self, motion);
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide();
+						ResetCursor();
+						MerchantFrame.itemHover = nil;
+					</OnLeave>
+					<OnHide>
+						if ( self.hasStackSplit == 1 ) then
+							StackSplitFrame:Hide();
+						end
+					</OnHide>
+				</Scripts>
+			</Button>
+			<Frame name="$parentMoneyFrame" parentKey="MoneyFrame" inherits="SmallMoneyFrameTemplate">
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeTo="$parentNameFrame" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="2" y="31"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SmallMoneyFrame_OnLoad(self);
+						MoneyFrame_SetType(self, "STATIC");
+						MoneyFrame_SetMaxDisplayWidth(self, 100);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Frame name="$parentAltCurrencyFrame" parentKey="AltCurrency" inherits="SmallAlternateCurrencyFrameTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" relativeTo="$parentNameFrame" relativePoint="BOTTOMLEFT">
+						<Offset>
+							<AbsDimension x="2" y="31"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame> -->
+
+
+</Ui>

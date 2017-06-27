@@ -133,9 +133,9 @@ local FlashTimers = {}
 local FlashTimerRefCount = {}
 
 -- Function to stop flashing
-local function FlashStop(frame)
+local function FlashStop(frame, alpha)
 	tDeleteItem(FLASHFRAMES, frame)
-	frame:SetAlpha(1.0)
+	frame:SetAlpha(alpha or 1.0)
 	frame.flashTimer = nil
 	if frame.syncId then
 		FlashTimerRefCount[frame.syncId] = FlashTimerRefCount[frame.syncId]-1
@@ -198,6 +198,10 @@ local function FlashOnUpdate(self, elapsed)
 	if #FLASHFRAMES == 0 then
 		self:SetScript("OnUpdate", nil)
 	end
+end
+
+db.UIFrameFlashStop = function(frame, alpha)
+	FlashStop(frame, alpha)
 end
 
 -- Function to start a frame flashing

@@ -1,4 +1,5 @@
 local CP_UI, UI = ...
+local UIParent, assert, pairs = UIParent, assert, pairs
 local data = ConsolePort:GetData()
 local Registry = UI.FrameRegistry
 ----------------------------------
@@ -30,6 +31,161 @@ local Control = UI:CreateFrame('Button', CP_UI..'Handle', nil, 'SecureHandlerBas
 local Bar, Hint = Control.HintBar, {}
 Bar:SetFrameStrata('FULLSCREEN_DIALOG')
 ----------------------------------
+
+----------------------------------
+-- Control input handling
+----------------------------------
+local secure_functions = {
+	SetFocusFrame = [[
+		if #stack > 0 then
+			focusFrame = stack[1]
+			self:SetAttribute('focus', focusFrame)
+			self:ClearBindings()
+			for binding, identifier in pairs(keys) do
+				local key = GetBindingKey(binding)
+				if key then
+					self:SetBindingClick(true, key, self:GetFrameRef(binding), identifier)
+				end
+			end
+			return true
+		else
+			focusFrame = nil
+			self:SetAttribute('focus', nil)
+			self:ClearBindings()
+			return false
+		end
+	]],
+
+	AddFrame = [[
+		local added = self:GetAttribute('add')
+
+		local oldStack = stack
+		stack = newtable()
+
+		stack[1] = added
+
+		for _, frame in pairs(oldStack) do
+			if frame ~= added then
+				stack[#stack + 1] = frame
+			end
+		end
+	]],
+
+	RemoveFrame = [[
+		local removed = self:GetAttribute('remove')
+
+		local oldStack = stack
+		stack = newtable()
+
+		for _, frame in pairs(oldStack) do
+			if frame ~= removed then
+				stack[#stack + 1] = frame
+			end
+		end
+	]],
+
+	RefreshFocus = [[
+		if self:RunAttribute('SetFocusFrame') then
+			self:CallMethod('SetHintFocus')
+			self:CallMethod('RestoreHints')
+			for i=2, #stack do
+				self:CallMethod('SetIgnoreFadeFrame', stack[i]:GetName(), false)
+			end
+			if focusFrame:GetAttribute('hideUI') then
+				self:CallMethod('ShowUI')
+				self:CallMethod('HideUI',
+					focusFrame:GetName(), 
+					focusFrame:GetAttribute('hideActionBar'))
+			end
+		else
+			self:CallMethod('SetHintFocus')
+			self:CallMethod('ShowUI')
+			self:CallMethod('HideHintBar')
+		end
+	]],
+
+	RefreshStack = [[
+		if self:GetAttribute('add') then
+			self:RunAttribute('AddFrame')
+		end
+
+		if self:GetAttribute('remove') then
+			self:RunAttribute('RemoveFrame')
+		end
+
+		self:SetAttribute('add', nil)
+		self:SetAttribute('remove', nil)
+	]],
+}
+
+local secure_wrappers = {
+	PreClick = [[
+		self:SetAttribute('type', nil)
+		self:SetAttribute('macrotext', nil)
+		self:SetAttribute('clickbutton', nil)
+		local frame = stack[1]
+		if frame:GetAttribute('useCursor') then
+			-- NYI
+		elseif frame:GetAttribute('OnInput') then
+			local clickType, clickHandler, clickValue = 
+				frame:RunAttribute('OnInput', tonumber(button), down)
+			if clickType and clickHandler and clickValue then
+				self:SetAttribute('type', clickType)
+				self:SetAttribute(clickHandler, clickValue)
+			end
+		else
+			frame:CallMethod('OnInput', button, down)
+		end
+	]],
+}
+
+for name, script in pairs(secure_functions) do Control:SetAttribute(name, script) end
+
+--------------------------------------------------------------------
+-- Readable variables mixed into each secure environment for comparison with inputs.
+-- E.g. button == 8 -> button == CROSS 
+local button_identifiers = ''
+for readable, identifier in pairs(data.KEY) do
+	if type(identifier) == 'string' then
+		button_identifiers = button_identifiers..format('%s = "%s" ', readable, identifier)
+	elseif type(identifier) == 'number' then
+		button_identifiers = button_identifiers..format('%s = %s ', readable, identifier)
+	end
+end
+
+-- (1) Register the generated variable string.
+-- (2) Instantiate a frame stack and a key table for input handling.
+-- (3) Forward binding identifiers into the control handle.
+-- (4) Create individual input handlers to provide multi-button control.
+----------------------------------
+Control:Execute(button_identifiers)
+Control:Execute([[
+	stack, keys = newtable(), newtable()
+	Control = self
+]])
+----------------------------------
+for binding in ConsolePort:GetBindings() do
+	local UIkey = ConsolePort:GetUIControlKey(binding)
+	if UIkey then
+		-- keys [string binding] = [integer key]
+		Control:Execute(([[ keys.%s = '%s' ]]):format(binding, UIkey))
+		local inputHandler = CreateFrame('Button', '$parent_'..binding, Control, 'SecureActionButtonTemplate')
+		-- Register for any input, since these will simulate integer keys.
+		inputHandler:RegisterForClicks('AnyUp', 'AnyDown')
+		-- Assume macro initially; input handler may change between macro/click.
+		inputHandler:SetAttribute('type', 'macro')
+		-- Reference the handler so it can be bound securely.
+		Control:SetFrameRef(binding, inputHandler)
+		-- Set up click wrappers for the input handlers.
+		for name, script in pairs(secure_wrappers) do
+			Control:WrapScript(inputHandler, name, script)
+		end
+	end
+end
+
+----------------------------------
+-- Control API
+----------------------------------
 function UI:GetControlHandle() return Control end
 ----------------------------------
 function UI:RegisterFrame(frame, ID, useCursor, hideUI, hideActionBar) 
@@ -43,29 +199,6 @@ end
 ----------------------------------
 Control:SetAttribute('type', 'macro')
 Control:RegisterForClicks('AnyUp', 'AnyDown')
-Control:Execute([[
-	stack, keys = newtable(), newtable()
-	Control = self
-]])
-
--- Forward binding identifiers into the control handle
-for binding in ConsolePort:GetBindings() do
-	local UIkey = ConsolePort:GetUIControlKey(binding)
-	if UIkey then
-		Control:Execute(([[ keys.%s = '%s' ]]):format(binding, UIkey))
-	end
-end
-
--- Readable variables mixed into each secure environment for comparison with inputs
-local button_identifiers = ''
-for readable, identifier in pairs(data.KEY) do
-	if type(identifier) == 'string' then
-		button_identifiers = button_identifiers..format('%s = "%s" ', readable, identifier)
-	elseif type(identifier) == 'number' then
-		button_identifiers = button_identifiers..format('%s = %s ', readable, identifier)
-	end
-end
-Control:Execute(button_identifiers)
 
 function Control:RegisterFrame(frame, ID, useCursor, hideUI, hideActionBar)
 	frame:Execute(button_identifiers)
@@ -75,75 +208,28 @@ function Control:RegisterFrame(frame, ID, useCursor, hideUI, hideActionBar)
 	frame:SetFrameRef('control', self)
 	self:SetFrameRef(ID, frame)
 	self:WrapScript(frame, 'OnShow', ([[
-		tinsert(stack, 1, self)
-		Control:RunAttribute('OverrideKeys')
+		Control:SetAttribute('add', self)
+		Control:RunAttribute('RefreshStack')
+		Control:RunAttribute('RefreshFocus')
 	]]):format(ID))
 	self:WrapScript(frame, 'OnHide', ([[
-		for i, frame in pairs(stack) do
-			if frame == self then
-				tremove(stack, i)
-			end
-		end
 		Control:SetAttribute('remove', self)
 		Control:CallMethod('ClearHintsForFrame')
-		Control:SetAttribute('remove', nil)
-		Control:RunAttribute('OverrideKeys')
+		Control:RunAttribute('RefreshStack')
+		Control:RunAttribute('RefreshFocus')
 	]]):format(ID))
 end
 
 ----------------------------------
--- Control input handling
-----------------------------------
-local secure_functions = {
-	OverrideKeys = [[
-		if #stack > 0 then
-			for binding, identifier in pairs(keys) do
-				local key = GetBindingKey(binding)
-				if key then
-					self:SetBindingClick(true, key, self, identifier)
-				end
-			end
-			self:SetAttribute('focus', stack[1])
-			self:CallMethod('SetHintFocus')
-			self:CallMethod('RestoreHints')
-			if stack[1]:GetAttribute('hideUI') then
-				self:CallMethod('HideUI', stack[1]:GetName(), stack[1]:GetAttribute('hideActionBar'))
-			end
-		else
-			self:SetAttribute('focus', nil)
-			self:CallMethod('SetHintFocus')
-			self:CallMethod('ShowUI')
-			self:CallMethod('HideHintBar')
-			self:ClearBindings()
-		end
-	]],
-}
-
-local secure_wrappers = {
-	PreClick = [[
-		self:SetAttribute('macrotext', nil)
-		self:SetAttribute('clickbutton', nil)
-		local frame = stack[1]
-		if frame:GetAttribute('useCursor') then
-			-- NYI
-		elseif frame:GetAttribute('OnInput') then
-			frame:RunAttribute('OnInput', tonumber(button), down)
-		else
-			frame:CallMethod('OnInput', button, down)
-		end
-	]],
-}
-
-for name, script in pairs(secure_functions) do Control:SetAttribute(name, script) end
-for name, script in pairs(secure_wrappers) do Control:WrapScript(Control, name, script) end
-
-----------------------------------
--- Animation things
+-- UI Fader
 ----------------------------------
 local FadeIn, FadeOut = data.UIFrameFadeIn, data.UIFrameFadeOut
 local updateThrottle = 0
 local ignoreFrames = {
 	[Control] = true,
+	[Control.HintBar] = true,
+	[ChatFrame1] = true,
+	[CastingBarFrame] = true,
 	[Minimap] = true,
 	[MinimapCluster] = true,
 	[GameTooltip] = true,
@@ -156,30 +242,53 @@ local ignoreFrames = {
 	[ShoppingTooltip2] = true,
 	[OverrideActionBar] = true,
 	[ObjectiveTrackerFrame] = true,
+	[UIErrorsFrame] = true,
 }
 local forceFrames = {
 	['ConsolePortBar'] = true,
 	['MainMenuBar']  = true,
 }
 
-local function GetUIFrames(onlyActionBars)
-	local frames = {}
-	local iterator, startIdx
+local function GetFadeFrames(onlyActionBars)
+	local fadeFrames, frameStack = {}
 	if onlyActionBars then
-		iterator, startIdx = ConsolePort:GetActionBars()
+		frameStack = {}
+		for registeredFrame in pairs(Registry) do
+			frameStack[#frameStack + 1] = registeredFrame
+		end
+		for _, actionBar in ConsolePort:GetActionBars() do
+			frameStack[#frameStack + 1] = actionBar
+		end
 	else
-		iterator, startIdx = pairs({UIParent:GetChildren()})
+		frameStack = {UIParent:GetChildren()}
 	end
-	for i, child in iterator, startIdx do
-		if not child:IsForbidden() then
-			local name = child:GetName()
-			local isConsolePortFrame = name and name:match('ConsolePort')
-			if forceFrames[name] or (not isConsolePortFrame and not Registry[child] and not ignoreFrames[child]) then
-				frames[child] = child.fadeInfo and child.fadeInfo.endAlpha or child:GetAlpha()
+	----------------------------------
+	local valid, name, forceChild, ignoreChild, isConsolePortFrame
+	----------------------------------
+	for i, child in pairs(frameStack) do
+		if not child:IsForbidden() then -- assert this frame isn't forbidden
+			----------------------------------
+			valid = false
+			name = child:GetName()
+			forceChild = name and forceFrames[name]
+			ignoreChild = ignoreFrames[child]
+			isConsolePortFrame = name and name:match('ConsolePort')
+			----------------------------------
+			if 	( Registry[child] and not ignoreChild ) or
+				-- if the frame is in the UI registry and not set to be ignored,
+				-- valid when multiple frames are shown simultaneously to fade out unfocused frames.
+				( isConsolePortFrame and forceChild ) or
+				-- if the frame belongs to the ConsolePort suite and should be faded regardless
+				( ( forceChild ) or ( not isConsolePortFrame and not ignoreChild ) ) then
+				-- if the frame is forced (action bars), or if the frame is not explicitly ignored
+				valid = true
+			end
+			if valid then
+				fadeFrames[child] = child.fadeInfo and child.fadeInfo.endAlpha or child:GetAlpha()
 			end
 		end
 	end
-	return frames
+	return fadeFrames
 end
 
 function Control:TrackMouseOver(elapsed)
@@ -200,17 +309,25 @@ function Control:TrackMouseOver(elapsed)
 	end
 end
 
-function Control:HideUI(ignoreFrame, onlyActionBars)
-	-- Action bar fade fix
-	if ConsolePortBar then
-		ignoreFrames[ConsolePortBar] = nil
+function Control:SetIgnoreFadeFrame(frameName, toggleIgnore, fadeInOnFinish)
+	local frame = _G[frameName]
+	ignoreFrames[frame] = toggleIgnore
+	if toggleIgnore then
+		if self.fadeFrames then
+			self.fadeFrames[frame] = nil
+		end
+		if fadeInOnFinish then
+			FadeIn(frame, 0.2, frame:GetAlpha(), 1)
+		end
+	end
+end
+
+function Control:HideUI(focusFrame, onlyActionBars)
+	if focusFrame then
+		self:SetIgnoreFadeFrame(focusFrame, true, true)
 	end
 
-	if ignoreFrame then
-		ignoreFrames[_G[ignoreFrame]] = true
-	end
-
-	local frames = GetUIFrames(onlyActionBars)
+	local frames = GetFadeFrames(onlyActionBars)
 	for frame in pairs(frames) do
 		FadeOut(frame, fadeTime or 0.2, frame:GetAlpha(), 0)
 	end
@@ -228,6 +345,17 @@ function Control:ShowUI()
 		self.fadeFrames = nil
 	end
 end
+
+----------------------------------
+-- Hint bar
+----------------------------------
+-- This bar appears at the bottom of the screen and displays
+-- button function hints local to the focused frame.
+-- Hints are controlled from the UI modules.
+-- Although hints are cached for each frame in the stack,
+-- the hint control will set a new hint to the current focus
+-- frame, regardless of where the function call comes from.
+-- Explicitly hiding a stack frame clears its hint cache.
 
 function Bar:Enable()
 	local cc = UI.Media.CC
@@ -302,6 +430,9 @@ function Bar:GetHintFromPool(key)
 	end
 end
 
+----------------------------------
+-- Hint control
+----------------------------------
 function Control:SetHintFocus()
 	self.HintBar.focus = self:GetAttribute('focus')
 	self.focus = self.HintBar.focus
@@ -394,6 +525,9 @@ function Control:SetHintEnabled(key)
 	end
 end
 
+----------------------------------
+-- Hint mixin
+----------------------------------
 function Hint:UpdateParentWidth()
 	self.bar:Update()
 end

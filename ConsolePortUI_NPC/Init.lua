@@ -87,6 +87,8 @@ UI:CreateProbe(frame, QuestFrame, 'showhide')
 UI:RegisterFrame(frame, 'NPC', nil, true)
 UI:HideFrame(GossipFrame)
 UI:HideFrame(QuestFrame)
+DisableAddOn('Immersion')
+DisableAddOn('Storyline')
 ----------------------------------
 
 -- ----------------------------------
@@ -138,11 +140,11 @@ hooksecurefunc(text, 'SetNext', function(self, ...)
 	if self:IsVisible() and ( not frame.isInspecting ) then
 		counter:Hide()
 		if self:IsSequence() then
-			if self:IsFinished() then
+			counter:Show()
+			counter:SetText(self:GetProgress())
+			if self:GetNumRemaining() <= 1 then
 				Control:AddHint(KEY.SQUARE, RESET)
 			else
-				counter:Show()
-				counter:SetText(self:GetProgress())
 				Control:AddHint(KEY.SQUARE, NEXT)
 			end
 		else
@@ -160,6 +162,20 @@ end)
 talkbox:SetParent(UIParent)
 talkbox:Hide()
 talkbox.TextFrame.SpeechProgress:SetFont('Fonts\\MORPHEUS.ttf', 16, '')
+Control:SetIgnoreFadeFrame(talkbox:GetName(), true)
+
+do -- talkbox overlap fix
+	local function CheckGossipAndQuest()
+		if not GossipFrame:IsVisible() and not QuestFrame:IsVisible() then
+			frame:FadeOut()
+		end
+	end
+	local function OnHideHook()
+		C_Timer.After(0.5, CheckGossipAndQuest)
+	end
+	GossipFrame:HookScript('OnHide', OnHideHook)
+	QuestFrame:HookScript('OnHide', OnHideHook)
+end
 
 ----------------------------------
 -- Animation things

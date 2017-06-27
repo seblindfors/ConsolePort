@@ -168,7 +168,7 @@ function Events:SPELLS_CHANGED(...)
 	self:SetupRaidCursor()
 	self:UpdateCameraDriver()
 	self:AddUpdateSnippet(self.UpdateMouseDriver)
-	self:AddUpdateSnippet(self.SetupUtilityBelt)
+	self:AddUpdateSnippet(self.SetupUtilityRing)
 	if InCombatLockdown() then
 		print(db.TUTORIAL.SLASH.WARNINGCOMBATLOGIN)
 	end

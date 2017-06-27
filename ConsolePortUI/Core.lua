@@ -24,13 +24,13 @@ function UI:CreateFrame(object, name, parent, templates, blueprint, recursive)
 	end
 	----------------------------------
 	local frame = CreateFrame(object, name, parent, templates)
-	self:OnFrameCreated(frame)
 	----------------------------------
 	if blueprint then
 		self:BuildFrame(frame, blueprint, true)
 	end
 	----------------------------------
 	if not recursive then
+		self:OnFrameCreated(frame)
 		anchor()
 		load()
 	end
@@ -226,12 +226,13 @@ REGION = {
 	Texture = function(parent, key, setup) return parent:CreateTexture('$parent'..key, setup and unpack(setup)) end,
 	---
 	ScrollFrame = function(parent, key, setup)
-		local frame = CreateFrame('ScrollFrame', '$parent'..key, parent)
+		local frame = CreateFrame('ScrollFrame', '$parent'..key, parent, 'CPUIPanelScrollFrameTemplate')
 		local child = setup or CreateFrame('Frame', '$parentChild', frame)
 		frame.Child = child
 		child:SetParent(frame)
 		child:SetAllPoints()
 		frame:SetScrollChild(child)
+		frame:SetToplevel(true)
 		return frame
 	end,
 	---
@@ -305,7 +306,7 @@ SETUP = {
 	--- Multiple runs
 	Multiple 	= function(region, multiTable)
 		for k, v in pairs(multiTable) do
-			assert(region[k], err(k, region:GetName(), ERROR_CODES.MULTI_FUNC))
+			assert(region[k] or SETUP[k], err(k, region:GetName(), ERROR_CODES.MULTI_FUNC))
 			assert(type(v) == 'table', err(k, region:GetName(), ERROR_CODES.MULTI_TABLE))
 			for _, args in pairs(v) do
 				callMethod(region, k, args)
@@ -341,4 +342,9 @@ UI.FrameRegistry = {}
 function UI:OnFrameCreated(frame)
 	assert(frame)
 	self.FrameRegistry[frame] = true
+end
+
+function UI:RemoveRegisteredFrame(frame)
+	assert(frame and self.FrameRegistry[frame], 'The supplied frame is not registered.')
+	self.FrameRegistry[frame] = nil
 end

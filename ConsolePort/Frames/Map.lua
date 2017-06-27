@@ -4,11 +4,10 @@
 
 ---- World map nodes:
 -- Since the map is one big button with an update script,
--- the map is scanned pixel by pixel for zone information which
+-- the map is scanned as a grid for zone information which
 -- is then used to generate nodes that can be targeted by the
 -- UI cursor. These nodes provide the same functionality as
 -- clicking the zones on the map with an actual mouse.
--- Nodes are recycled and never exceed visible zones.
 
 local zones = {}
 local mapNodes = {}
@@ -97,8 +96,8 @@ end
 
 function ConsolePort:GetMapNodes()
 	wipe(zones)
-	for x=0, 1, 0.05 do
-		for y=0, 1, 0.05 do
+	for x=0, 1, 0.02 do
+		for y=0, 1, 0.02 do
 			local zoneName, fileName,
 				texPctX, texPctY,
 				texX, texY,

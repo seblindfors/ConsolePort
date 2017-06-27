@@ -1,0 +1,123 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Button name="CPUISimpleLootButtonTemplate" inherits="CPUIActionButtonTemplate" virtual="true">
+		<Size x="52" y="52"/>
+		<HitRectInsets>
+			<AbsInset left="0" right="-250" top="0" bottom="0"/>
+		</HitRectInsets>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture name="$parentIconQuestTexture" parentKey="QuestTexture" file="Interface\AddOns\ConsolePort\Textures\QuestButton">
+					<Size x="50" y="50"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-16" y="16"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture name="$parentNameFrame" file="Interface\LevelUp\MinorTalents.blp">
+					<Size x="300" y="50"/>
+					<Anchors>
+						<Anchor point="LEFT" x="20" y="0"/>
+					</Anchors>
+					<TexCoords left="0.001953125" right="0.818359375" bottom="0.6660" top="0.794921875"/>
+				</Texture>
+				<FontString name="$parentText" parentKey="Text" inherits="GameFontNormal" justifyH="LEFT">
+					<Size x="200" y="38"/>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" x="8" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="HIGHLIGHT">
+				<Texture parentKey="BannerHighlight" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
+					<Size x="250" y="46"/>
+					<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
+					<Anchors>
+						<Anchor point="LEFT" x="40" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self:RegisterForClicks("LeftButtonUp", "RightButtonUp");
+				self:RegisterForDrag("LeftButton");
+			</OnLoad>
+			<OnUpdate>
+				if ( GameTooltip:IsOwned(self) ) then
+					self:OnEnter();
+				end
+				CursorOnUpdate(self);
+			</OnUpdate>
+		</Scripts>
+	</Button>
+
+	<Frame name="CPUILootHeaderTemplate" virtual="true">
+		<Size x="235" y="25"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Background" hidden="false" alpha="1" atlas="Objective-Header" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-29" y="14"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Text" inherits="GameFontNormalMed2" justifyH="LEFT">
+					<Size x="170" y="16"/>
+					<Anchors>
+						<Anchor point="LEFT" x="4" y="-1"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="LineGlow" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_LineGlow" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Background" x="-50" y="18"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="SoftGlow" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_Glow" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Background" relativePoint="LEFT" x="20" y="20"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="StarBurst" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_StarBurst" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.SoftGlow"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="LineSheen" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_LineBurst">
+					<Size x="60" y="15"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.SoftGlow" x="0" y="-13"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Animations>
+			<AnimationGroup parentKey="HeaderOpenAnim" setToFinalAlpha="true">
+				<Alpha childKey="Background" startDelay="0" duration="0" order="1" fromAlpha="0" toAlpha="0"/>
+				<Alpha childKey="Background" startDelay="0.25" duration="0.5" order="1" fromAlpha="0" toAlpha="1"/>
+				<Alpha childKey="LineGlow" duration="0.15" order="1" fromAlpha="0" toAlpha="1"/>
+				<Alpha childKey="LineGlow" startDelay="0.25" duration="0.65" order="1" fromAlpha="1" toAlpha="0"/>
+				<Scale childKey="LineGlow" duration="0.15" order="1" fromScaleX="0.1" fromScaleY="1.5" toScaleX="2" toScaleY="1.5">
+					<Origin point="CENTER">
+						<Offset x="-50" y="0"/>
+					</Origin>
+				</Scale>
+				<Translation childKey="LineGlow" duration="0.75" order="1" offsetX="50" offsetY="0"/>
+				<Alpha childKey="SoftGlow" duration="0.25" order="1" fromAlpha="0" toAlpha="1"/>
+				<Alpha childKey="SoftGlow" startDelay="0.25" duration="0.5" order="1" fromAlpha="1" toAlpha="0"/>
+				<Scale childKey="SoftGlow" duration="0.25" order="1" fromScaleX="0.5" fromScaleY="0.5" toScaleX="0.8" toScaleY="0.8"/>
+				<Alpha childKey="StarBurst" duration="0.25" order="1" fromAlpha="0" toAlpha="1"/>
+				<Alpha childKey="StarBurst" startDelay="0.25" duration="0.5" order="1" fromAlpha="1" toAlpha="0"/>
+				<Scale childKey="StarBurst" duration="0.25" order="1" fromScaleX="0.5" fromScaleY="0.5" toScaleX="1" toScaleY="1"/>
+				<Alpha childKey="LineSheen" startDelay="0.15" duration="0.5" order="1" fromAlpha="0" toAlpha="0.75"/>
+				<Alpha childKey="LineSheen" startDelay="0.75" duration="0.5" order="1" fromAlpha="0.75" toAlpha="0"/>
+				<Translation childKey="LineSheen" startDelay="0.15" duration="1.5" order="1" offsetX="250" offsetY="0"/>
+			</AnimationGroup>
+		</Animations>
+	</Frame>
+
+	<Script file="LootButton.lua"/>
+	<Script file="Logic.lua"/>
+	<Script file="Frame.lua"/>
+</Ui>

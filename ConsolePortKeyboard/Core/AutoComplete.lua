@@ -128,6 +128,7 @@ function Keyboard:GetSuggestions()
 	local word = self:GetCurrentWord()
 	wipe(suggestions)
 	if word then
+		local isCapitalLetter = word:sub(0, 1):upper() == word:sub(0, 1)
 		word = strlower(word)
 		local length = word:len()
 		local dictionary = self.Dictionary
@@ -156,7 +157,7 @@ function Keyboard:GetSuggestions()
 				priority = 1
 
 				this = {
-					word = thisWord,
+					word = (isCapitalLetter and thisWord:sub(0, 1):upper() .. thisWord:sub(2) ) or thisWord,
 					weight = thisWeight,
 					match = strfind( thisWord, word ),
 					length = abs( length - thisWord:len() )
@@ -203,7 +204,7 @@ function Keyboard:SetSuggestions(newIndex)
 
 	Prev:SetText( suggestions[self.CompleteIndex-1] and suggestions[self.CompleteIndex-1].word  or "" )
 	Next:SetText( suggestions[self.CompleteIndex+1] and suggestions[self.CompleteIndex+1].word  or "" )
-	
+
 	Current:SetText( guessWord  or "" )
 	self.GuessWord = guessWord
 end
@@ -211,11 +212,15 @@ end
 function Keyboard:AUTOCOMPLETE()
 	local current, startPos, endPos = self:GetCurrentWord()
 	if current and self.Complete:GetText():trim() ~= "" then
+		local isCapitalLetter = current:sub(0, 1) == current:sub(0, 1):upper()
 		local replacement = self.GuessWord
 		local length = current:len()
 		local text = self.Focus and self.Focus:GetText()
 
 		if text and startPos and endPos and replacement then
+			if isCapitalLetter then
+				replacement = replacement:sub(0, 1):upper() .. replacement:sub(2)
+			end
 			local first, second = text:sub(0, startPos-1), text:sub(endPos+1)
 			self.Focus:SetText(first..replacement..second)
 			self.Focus:SetCursorPosition(startPos+replacement:len())

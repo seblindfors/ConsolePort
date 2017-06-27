@@ -14,6 +14,7 @@ Modules\Probe.lua
 Modules\Templates.lua
 Modules\Tooltip.lua
 
+XML\FrameTemplateUI.xml
 XML\GlyphUI.xml
 XML\MenuUI.xml
 

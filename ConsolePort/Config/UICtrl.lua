@@ -508,6 +508,12 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 			tinsert(UICtrl.ClickButtons, click)
 		end
 
+		if info.name == "SpecialClick" then
+			local gear = UICtrl.MultiChoiceModule:CreateTexture(nil, 'OVERLAY')
+			gear:SetTexture([[Interface\Cursor\Interact]])
+			gear:SetPoint('CENTER', click, 'CENTER', 0, -8)
+		end
+
 		click:SetPoint("TOPLEFT", UICtrl.MultiChoiceModule.CursorHeader, "TOPLEFT", (i-1) * 110 + 40, -16)
 
 		UICtrl[info.name] = click

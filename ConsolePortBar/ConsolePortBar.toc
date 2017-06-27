@@ -4,6 +4,8 @@
 ## SavedVariablesPerCharacter: ConsolePortBarSetup
 ## RequiredDeps: ConsolePort
 
+ButtonTemplate.xml
+
 Libs\CallbackHandler.lua
 Libs\ButtonGlow.lua
 Libs\ActionButton.lua

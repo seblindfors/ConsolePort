@@ -11,8 +11,10 @@ local SCRIPT, TEMPLATES
 -- @param 	owner 	: Owner of the probe. The owner will be shown/hidden in response to the probe.
 -- @param 	object 	: Object to probe. Use only on secure addon objects or official Blizzard objects.
 -- @param 	state 	: State to which the probe should respond.
+-- @param 	name 	: Name of the probe. Can safely be omitted.
+-- @param 	script 	: Script to fire when using probescript template. Requires a secure environment.
 -- @return 	probe 	: Returns the created probe. Generally not useful, unless the probe will be re-cycled.
-function UI:CreateProbe(owner, object, state, name)
+function UI:CreateProbe(owner, object, state, name, script)
 	assert(object ~= nil and owner ~= nil and state ~= nil, 'Usage: UI:CreateProbe(object, owner, state)')
 	assert(not InCombatLockdown(), 'Probe cannot be created in combat.')
 	if type(object) == 'string' then object = _G[object] end
@@ -21,6 +23,7 @@ function UI:CreateProbe(owner, object, state, name)
 	probe:SetType(state)
 	probe:SetOwner(owner)
 	probe:SetObject(object)
+	probe:SetResponseScript(script)
 	return probe
 end
 
@@ -68,10 +71,29 @@ function Probe:SetObject(new)
 	self:SetParent(new)
 end
 
+function Probe:SetResponseScript(script)
+	if type(script) == 'string' and loadstring(script) then
+		self:Execute( ("_pc=[[%s]]"):format(script) )
+	end
+end
+
+function Probe:DebugConnection()
+	assert(not InCombatLockdown(), 'Cannot debug probe connection in combat.')
+	self:Execute([[
+		local probedObject = self:GetParent()
+		print('Probe name:', self:GetName() or '<unnamed>')
+		print('Probed state:', owner:GetAttribute('pc') or 0)
+		print('Probed object:', (not probedObject and '<missing>') or (probedObject:GetName() or '<unnamed>'))
+		print('Owner of probe:', owner:GetName() or '<unnamed>')
+		print('Owner probe script:', owner:GetAttribute('_onprobecount'))]])
+end
+
 ----------------------------
 SCRIPT = {
 	show = [[_=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) owner:Hide() owner:Show()]],
 	hide = [[_=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _ < 1 then owner:Hide() end]],
+	pcsh = [[_=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) if _pc then owner:Run(_pc,_) end]],
+	pchi = [[_=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _pc then owner:Run(_pc,_) end]],
 	omit = [[return nil]],
 }
 ----------------------------
@@ -89,6 +111,10 @@ TEMPLATES = {
 	showhide = {
 		_onshow  = SCRIPT.show,
 		_onhide  = SCRIPT.hide,
+	},
+	probescript = {
+		_onshow  = SCRIPT.pcsh,
+		_onhide  = SCRIPT.pchi,
 	},
 	------------------------
 	invertall = {

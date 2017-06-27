@@ -44,11 +44,12 @@ function Animation:ShowNewAction(actionButton, autoAssigned)
 	else
 		self.Quest:Hide()
 	end
-	local x, y = actionButton:GetCenter()
+	local scale = Utility.frameScale or 1
 	self.Icon:SetTexture(actionButton.icon.texture)
 	self.Spell:SetSize(175, 175)
 	self:ClearAllPoints()
-	self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x, y)
+	self:SetPoint("CENTER", actionButton)
+	self:SetScale(scale)
 	self:Show()
 	self.Group:Stop()
 	self.Group:Play()
@@ -69,6 +70,7 @@ function Animation:ShowNewAction(actionButton, autoAssigned)
 
 	local angle = -actionButton.angle
 	AniCircle:Show()
+	AniCircle:SetScale(scale)
 	AniCircle.Ring:SetRotation(angle)
 	AniCircle.Arrow:SetRotation(angle)
 	AniCircle.Runes:SetRotation(angle)
@@ -702,7 +704,7 @@ function ConsolePort:AddUtilityAction(actionType, value)
 	end
 end
 
-function ConsolePort:SetupUtilityBelt()
+function ConsolePort:SetupUtilityRing()
 	if not InCombatLockdown() then
 		Utility:UnregisterAllEvents()
 		for index, info in pairs(ConsolePortUtility) do
@@ -725,6 +727,8 @@ function ConsolePort:SetupUtilityBelt()
 		end
 
 		Utility.autoExtra = db.Settings.autoExtra
+		Utility.frameScale = db.Settings.utilityRingScale or 1
+		Utility:SetScale(Utility.frameScale)
 
 		if Utility.autoExtra then
 			self:AddUpdateSnippet(CheckQuestWatches)
@@ -742,7 +746,7 @@ function ConsolePort:SetupUtilityBelt()
 			"SPELL_UPDATE_USABLE",
 		}) do Utility:RegisterEvent(event) end
 
-		self:RemoveUpdateSnippet(self.SetupUtilityBelt)
+		self:RemoveUpdateSnippet(self.SetupUtilityRing)
 	end
 end
 
@@ -793,7 +797,7 @@ for i=1, NUM_BUTTONS do
 	button.icon:ClearAllPoints()
 	button.icon:SetPoint("CENTER", 0, 0)
 	button.icon:SetSize(64, 64)
-	button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+	button.icon:SetMask("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Mask")
 
 	button.Pushed = button:GetPushedTexture()
 	button.Pushed:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal")
@@ -924,7 +928,7 @@ Animation.Border:SetAllPoints(Animation)
 ---------------------------------------------------------------
 Animation.Icon:SetSize(64, 64)
 Animation.Icon:SetPoint("CENTER", 0, 0)
-Animation.Icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+Animation.Icon:SetMask("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Mask")
 ---------------------------------------------------------------
 Animation.Quest:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\QuestButton")
 Animation.Quest:SetPoint("CENTER", 0, 0)

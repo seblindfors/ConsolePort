@@ -75,6 +75,12 @@ MEDIA = {
 			edgeSize = 32,
 			insets = { left = 32, right = 32, top = 32, bottom = 32 }
 		},
+		SCROLLBG = {
+			bgFile = PT..[[Textures\Button\Backdrop_Talkbox.blp]],
+			edgeFile = PT..[[Textures\Button\Edge_Talkbox_BG.blp]],
+			edgeSize = 16,
+			insets = { left = 16, right = 16, top = 16, bottom = 16 }
+		},
 		TOOLTIP_BG = {
 			bgFile = PT..[[Textures\Button\Backdrop_Talkbox.blp]],
 			edgeFile = PT..[[Textures\Button\Edge_Talkbox_BG.blp]],

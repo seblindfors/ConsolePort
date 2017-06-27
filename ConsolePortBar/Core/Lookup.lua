@@ -3,17 +3,42 @@ local r, g, b = ConsolePort:GetData().Atlas.GetNormalizedCC()
 
 function ab:GetBindingIcon(binding)
 	local icons = {
+		----------------------------
 		['JUMP'] = [[Interface\Icons\Ability_Karoz_Leap]],
+		['TOGGLERUN'] = [[Interface\Icons\ABILITY_HUNTER_POSTHASTE]],
 		['OPENALLBAGS'] = [[Interface\Icons\INV_Misc_Bag_29]],
 		['TOGGLEGAMEMENU'] = [[Interface\Icons\Achievement_ChallengeMode_Auchindoun_Hourglass]],
 		['TOGGLEWORLDMAP'] = [[Interface\Icons\INV_Misc_Map02]],
+		----------------------------
 		['TARGETNEARESTENEMY'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['TARGETPREVIOUSENEMY'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
 		['TARGETSCANENEMY'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['TARGETNEARESTFRIEND'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['TARGETPREVIOUSFRIEND'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['TARGETNEARESTENEMYPLAYER'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['TARGETPREVIOUSENEMYPLAYER'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['TARGETNEARESTFRIENDPLAYER'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		['TARGETPREVIOUSFRIENDPLAYER'] = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+		----------------------------
 		['CLICK ConsolePortEasyMotionButton:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
 		['CLICK ConsolePortRaidCursorToggle:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
 		['CLICK ConsolePortRaidCursorFocus:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
 		['CLICK ConsolePortRaidCursorTarget:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
 		['CLICK ConsolePortUtilityToggle:LeftButton'] = [[Interface\Icons\Ability_Monk_CounteractMagic]],
+		----------------------------
+		['TARGETPARTYMEMBER1'] = [[Interface\Icons\Achievement_PVP_A_01]],
+		['TARGETPARTYMEMBER2'] = [[Interface\Icons\Achievement_PVP_A_02]],
+		['TARGETPARTYMEMBER3'] = [[Interface\Icons\Achievement_PVP_A_03]],
+		['TARGETPARTYMEMBER4'] = [[Interface\Icons\Achievement_PVP_A_04]],
+		['TARGETSELF'] = [[Interface\Icons\Achievement_PVP_A_05]],
+		['TARGETPET'] = [[Interface\Icons\Spell_Hunter_AspectOfTheHawk]],
+		----------------------------
+		['ATTACKTARGET'] = [[Interface\Icons\Ability_SteelMelee]],
+		['STARTATTACK'] = [[Interface\Icons\Ability_SteelMelee]],
+		['PETATTACK'] = [[Interface\Icons\ABILITY_HUNTER_INVIGERATION]],
+		['TARGETPET'] = [[Interface\Icons\Ability_SteelMelee]],
+		['FOCUSTARGET'] = [[Interface\Icons\Ability_Hunter_MasterMarksman]],
+		----------------------------
 	}
 	return icons[binding]
 end
@@ -41,7 +66,8 @@ function ab:GetCover(class)
 	end
 	if art then
 		local index, px = unpack(art)
-		return [[Interface\AddOns\]]..addOn..[[\Textures\Covers\]]..index, {0, 1, (( px - 1 ) * 256 ) / 1024, ( px * 256 ) / 1024 }
+		return [[Interface\AddOns\]]..addOn..[[\Textures\Covers\]]..index, 
+				{0, 1, (( px - 1 ) * 256 ) / 1024, ( px * 256 ) / 1024 }
 	end
 end
 
@@ -227,21 +253,20 @@ function ab:GetSimpleSettings(otherCFG)
 	}
 end
 
-function ab:SetRainbowScript(on)
+function ab:SetRainbowScript(on) 
 	local f = ab.bar
-	local wr = ab.libs.wrapper
-	local cp = ConsolePort
 	if on then
+		local wr, cp = ab.libs.wrapper, ConsolePort
 		local t, i, p, c, w, m = 0, 0, 0, 128, 127, 180
 		local hz = (math.pi*2) / m
-
+		local r, g, b 
 		f:SetScript('OnUpdate', function(self, e)
 			t = t + e
 			if t > 0.1 then
 				i = i + 1
-				local r = (math.sin((hz * i) + 2 + p) * w + c) / 255
-				local g = (math.sin((hz * i) + 0 + p) * w + c) / 255
-				local b = (math.sin((hz * i) + 4 + p) * w + c) / 255
+				r = (math.sin((hz * i) + 2 + p) * w + c) / 255
+				g = (math.sin((hz * i) + 0 + p) * w + c) / 255
+				b = (math.sin((hz * i) + 4 + p) * w + c) / 255
 				if i > m then
 					i = i - m
 				end

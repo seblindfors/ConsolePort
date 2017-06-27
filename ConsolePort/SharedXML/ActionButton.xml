@@ -1,0 +1,179 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+	<Script file="ActionButton.lua"/>
+
+	<CheckButton name="CPUIActionButtonTemplate" virtual="true" mixin="ConsolePortActionButtonMixin">
+		<Size>
+			<AbsDimension x="64" y="64"/>
+		</Size>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentIcon" parentKey="icon" file="Interface\ICONS\Ability_BossFelOrcs_Necromancer_Red" desaturated="true"/>
+				<Texture name="$parentShadow" parentKey="Shadow" file="Interface\AddOns\ConsolePortUI\Media\Textures\ActionButton\Shadow">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-5" y="0"/>
+						<Anchor point="BOTTOMRIGHT" x="5" y="-10"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture name="$parentFlash" parentKey="Flash" file="Interface\Buttons\UI-QuickslotRed" hidden="true"/>
+				<Texture name="$parentFlyoutBorder" inherits="ActionBarFlyoutButton-IconFrame" parentKey="FlyoutBorder" hidden="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture name="$parentFlyoutBorderShadow" inherits="ActionBarFlyoutButton-IconShadow" parentKey="FlyoutBorderShadow" hidden="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture name="$parentFlyoutArrow" inherits="ActionBarFlyoutButton-ArrowUp" parentKey="FlyoutArrow" hidden="true"/>
+				<FontString name="$parentHotKey" inherits="NumberFontNormalSmallGray" parentKey="HotKey" justifyH="RIGHT">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="1" y="-3"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentCount" inherits="NumberFontNormal" parentKey="Count" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString name="$parentName" parentKey="Name" inherits="GameFontHighlightSmallOutline">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
+					</Anchors>
+				</FontString>
+				<Texture name="$parentBorder" file="Interface\Buttons\UI-ActionButton-Border" parentKey="Border" hidden="true" alphaMode="ADD">
+					<Size x="62" y="62"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="NewActionTexture" atlas="bags-newitem" useAtlasSize="false" alphaMode="ADD" hidden="true">
+					<Size x="44" y="44"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+						<Anchor point="BOTTOMRIGHT"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Cooldown name="$parentCooldown" inherits="CooldownFrameTemplate" parentKey="cooldown">
+				<Size x="36" y="36"/>
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="-1"/>
+				</Anchors>
+				<SwipeTexture>
+					<Color r="1" g="1" b="1" a="0.8"/>
+				</SwipeTexture>
+			</Cooldown>
+		</Frames>
+		<NormalTexture name="$parentNormalTexture" parentKey="NormalTexture" file="Interface\AddOns\ConsolePortUI\Media\Textures\ActionButton\Normal"/>
+		<PushedTexture parentKey="PushedTexture" file="Interface\AddOns\ConsolePortUI\Media\Textures\ActionButton\Pushed" />
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePortUI\Media\Textures\ActionButton\Hilite"/>
+		<CheckedTexture parentKey="CheckedTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePortUI\Media\Textures\ActionButton\Hilite"/>
+	</CheckButton>
+
+
+	<CheckButton name="CPUIPetActionButtonTemplate" inherits="SecureFrameTemplate, CPUIActionButtonTemplate" frameStrata="MEDIUM" virtual="true">
+		<Size>
+			<AbsDimension x="30" y="30"/>
+		</Size>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture name="$parentAutoCastable" file="Interface\Buttons\UI-AutoCastableOverlay" hidden="true">
+					<Size>
+						<AbsDimension x="58" y="58"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>		
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame name="$parentShine" inherits="AutoCastShineTemplate">
+				<Anchors>
+					<Anchor point="CENTER">
+						<Offset>
+							<AbsDimension x="0" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="28" y="28"/>
+				</Size>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				PetActionButton_OnLoad(self);
+				self.cooldown:SetSwipeColor(0, 0, 0);
+			</OnLoad>
+			<OnEvent>
+				PetActionButton_OnEvent(self, event, ...);
+			</OnEvent>
+			<PreClick>
+				self:SetChecked(false);
+			</PreClick>
+			<OnClick>
+				if ( IsModifiedClick() ) then
+					PetActionButton_OnModifiedClick(self, button);
+				else
+					PetActionButton_OnClick(self, button);
+				end
+			</OnClick>
+			<OnDragStart>
+				PetActionButton_OnDragStart(self, button);
+			</OnDragStart>
+			<OnReceiveDrag>
+				PetActionButton_OnReceiveDrag(self);
+			</OnReceiveDrag>
+			<OnEnter>
+				PetActionButton_OnEnter(self, motion);
+			</OnEnter>
+			<OnLeave>
+				PetActionButton_OnLeave(self, motion);
+			</OnLeave>
+			<OnUpdate>
+				PetActionButton_OnUpdate(self, elapsed);
+			</OnUpdate>
+		</Scripts>
+		<NormalTexture name="$parentNormalTexture2" file="Interface\Buttons\UI-Quickslot2">
+			<Size>
+				<AbsDimension x="54" y="54"/>
+			</Size>
+			<Anchors>
+				<Anchor point="CENTER">
+					<Offset>
+						<AbsDimension x="0" y="-1"/>
+					</Offset>
+				</Anchor>
+			</Anchors>
+		</NormalTexture>
+	</CheckButton>
+
+</Ui>

@@ -1,7 +1,9 @@
 ## Interface: 70100
-## Title: Console Port |cff69ccf0UI|r Bags
+## Title: Console Port |cff69ccf0UI|r Inventory
 ## Notes: Replaces bag frames.
 ## RequiredDeps: ConsolePortUI
 
-Logic.lua
-Frame.lua
+Mixins\Inventory.xml
+Mixins\Merchant.xml
+
+Frame.xml

@@ -27,6 +27,8 @@ db.KEY = {
 	SHARE 		= 9,
 	OPTIONS 	= 10,
 	CENTER 		= 11,
+	T1 			= 12,
+	T2 			= 13,
 	STATE_UP 	= 'up',
 	STATE_DOWN	= 'down',
 }
@@ -362,6 +364,9 @@ function ConsolePort:GetUIControlKey(key)
 		CP_X_LEFT = KEY.SHARE,
 		CP_X_CENTER = KEY.CENTER,
 		CP_X_RIGHT = KEY.OPTIONS,
+		-- Triggers
+		CP_T1 = KEY.T1,
+		CP_T2 = KEY.T2,
 	}
 	return keys[key]
 end
@@ -382,6 +387,9 @@ function ConsolePort:GetUIControlKeyOwner(key)
 		[KEY.SHARE] 	= 'CP_X_LEFT',
 		[KEY.CENTER] 	= 'CP_X_CENTER',
 		[KEY.OPTIONS] 	= 'CP_X_RIGHT',
+		-- Triggers 
+		[KEY.T1] 		= 'CP_T1',
+		[KEY.T2] 		= 'CP_T2',
 	}
 	return keys[key]
 end
@@ -453,7 +461,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 	--	['mouseOnCenter'] = true,
 		['mouseOnJump'] = false,
 		-------------------------------
-		['unitHotkeyPool'] = 'player;party%d;raid%d+',
+		['unitHotkeyPool'] = 'player$;party%d$;raid%d+$',
 		-------------------------------
 	}
 	if Controller then
@@ -535,9 +543,11 @@ function ConsolePort:GetAddonBindings()
 		{name = L.CP_PAGE6, binding = 'CLICK ConsolePortPager:6'},
 		-- Camera
 		{name = L.CP_CAMERA},
-		{name = L.CP_TOGGLEMOUSE, binding = 'CP_TOGGLEMOUSE'},
 		{name = L.CP_CAMZOOMIN, binding = 'CP_CAMZOOMIN'},
+		{name = L.CP_ZOOMIN_HOLD, binding = 'CP_ZOOMIN_HOLD'},
 		{name = L.CP_CAMZOOMOUT, binding = 'CP_CAMZOOMOUT'},
+		{name = L.CP_ZOOMOUT_HOLD, binding = 'CP_ZOOMOUT_HOLD'},
+		{name = L.CP_TOGGLEMOUSE, binding = 'CP_TOGGLEMOUSE'},
 		{name = L.CP_CAMLOOKBEHIND, binding = 'CP_CAMLOOKBEHIND'},
 	}
 end
@@ -704,13 +714,14 @@ local cvars = { -- value = default
 	UIholdRepeatDelay 	= 0.125,
 	UIdisableHoldRepeat = false,
 	UIdropDownFix		= false,
+	utilityRingScale 	= 1,
 	unitHotkeySize 		= 32,
 	unitHotkeyOffsetX 	= 0,
 	unitHotkeyOffsetY 	= 0,
 	unitHotkeyAnchor	= 'CENTER',
 	unitHotkeyGhostMode = false,
 	unitHotkeyIgnorePlayer = false,
-	unitHotkeyPool = 'player;party%d;raid%d+',
+	unitHotkeyPool = 'player;party%d$;raid%d+$',
 	unitHotkeySet = '',
 }
 
@@ -723,5 +734,3 @@ function ConsolePort:GetCompleteCVarList()
 	end
 	return cvars
 end
-
-

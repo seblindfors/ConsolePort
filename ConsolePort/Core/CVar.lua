@@ -11,6 +11,7 @@ local CVars = {
 	TargetNearestUseNew 	= 	{value = 0},
 	autoLootDefault 		= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
 	autoInteract 			= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
+	mouseInvertPitch 		= 	{value = true, 	isCombatCVar = false, 	event = "INVERT_MOUSE"},
 }
 
 function ConsolePort:LoadDefaultCVars()

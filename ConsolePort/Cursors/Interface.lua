@@ -119,7 +119,7 @@ end
 
 function Cursor:SetPosition(node)
 	self:SetTexture()
-	self.anchor = node.customAnchor or {"TOPLEFT", node, "CENTER", 0, 0}
+	self.anchor = node.customCursorAnchor or {"TOPLEFT", node, "CENTER", 0, 0}
 	self:Move()
 	if not self:IsVisible() then
 		self:Show()
@@ -211,6 +211,7 @@ function ClickWrapper:SetObject(object)
 	if 	object and object.IsObjectType and
 		object:IsObjectType("Button") or object:IsObjectType("CheckButton") then
 		self.object = object
+		return true
 	end
 end
 
@@ -257,6 +258,8 @@ local Node = {
 	cache = {}
 }
 
+local UIDoFramesIntersect = UIDoFramesIntersect 
+
 function Node:IsInteractive(node, object)
 	return not node.includeChildren and node:IsMouseEnabled() and node:IsVisible() and IsUsable[object]
 end
@@ -300,6 +303,11 @@ function Node:Refresh(node, scrollFrame)
 	end
 end
 
+function Node:DoNodesIntersect(node1, node2)
+	return node1:GetFrameLevel() ~= node2:GetFrameLevel() and 
+			UIDoFramesIntersect(node1, node2)
+end
+
 function Node:RefreshAll()
 	if IsSafe() then
 		self:Clear()
@@ -315,14 +323,17 @@ function Node:FindClosest(key)
 	if current then
 		local compareDistance = self[key]
 		if compareDistance then
-			local destX, destY, vert, horz
+			local currNode = current.node
+			local destNode, destX, destY, vert, horz
 			local thisX, thisY = current.node:GetCenter()
 			local compH, compV = 20000, 20000 
 			for i, destination in ipairs(self.cache) do
-				destX, destY = destination.node:GetCenter()
+				destNode = destination.node
+				destX, destY = destNode:GetCenter()
 				horz, vert = abs(thisX-destX), abs(thisY-destY)
 				if 	horz + vert < compH + compV and
-					compareDistance(destY, destX, vert, horz, thisX, thisY) then
+					compareDistance(destY, destX, vert, horz, thisX, thisY) and
+					not self:DoNodesIntersect(currNode, destNode) then
 					compH = horz
 					compV = vert
 					current = destination
@@ -501,7 +512,7 @@ function Scroll:To(node, scrollFrame)
 end
 ----------
 
--- Perform non secure special actions
+-- Perform non secure special actions, ruler of all hacky implementations
 local function SpecialAction(self)
 	if current then
 		local node = current.node
@@ -637,6 +648,7 @@ end
 
 function ConsolePort:IsCurrentNode(node) return current and current.node == node end
 function ConsolePort:GetCurrentNode() return current and current.node end
+function ConsolePort:SetInsecureCursorMode(enabled) Cursor.InsecureMode = enabled and true or false end
 
 function ConsolePort:SetCurrentNode(node, force)
 	-- assert cursor is enabled and safe before proceeding

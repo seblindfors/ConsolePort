@@ -13,6 +13,29 @@ local WindowMixin, Browser, Adder = {}
 local DisplayValue, GetField, ClearFields, RefreshBrowser, GetAffectedTablesString, merge
 local LoadCurrentData, LoadDataFromTable, ImportData
 
+-- Coroutine thread (expecting large data sets, handle in chunks)
+local ThreadManager = CreateFrame('Frame')
+local thread
+local threadTimer = 0
+local threadThrottle = 0.05
+
+ThreadManager:Hide()
+ThreadManager:SetScript('OnUpdate', function(self, elapsed)
+	if not thread then
+		threadTimer = 0
+		self:Hide()
+	end
+	threadTimer = threadTimer + elapsed
+	if threadTimer >= threadThrottle then
+		threadTimer = threadTimer - threadThrottle
+		if coroutine.status(thread) ~= 'dead' then
+			coroutine.resume(thread)
+		else
+			thread = nil
+		end
+	end
+end)
+
 -- Global height, Base width
 local _H, _W = 42, 550
 
@@ -84,6 +107,7 @@ function merge(t1, t2)
 end
 
 function ClearFields(refresh)
+	if thread then return end
 	Active = 0
 	wipe(Browser.Buttons)
 	for _, frame in pairs(FramePool) do
@@ -269,38 +293,47 @@ function DisplayValue(parent, key, val)
 end
 
 function LoadCurrentData()
-	local first
-	for key, ref in spairs(tables) do
-		local val = _G[ref]
-		if val then
-			local global = DisplayValue(nil, key, db.table.copy(val))
-			global.SavedVariable = ref
-			global.StaticWidth = 870
-			global:SetWidth(870)
-			if not first then first = global end
+	if thread then return end
+	thread = coroutine.create(function()
+		local first
+		for key, ref in spairs(tables) do
+			local val = _G[ref]
+			if val then
+				local global = DisplayValue(nil, key, db.table.copy(val))
+				global.SavedVariable = ref
+				global.StaticWidth = 870
+				global:SetWidth(870)
+				if not first then first = global
+					first:ClearAllPoints()
+					first:SetPoint('TOPLEFT', 16, -16)
+				end
+			end
+			coroutine.yield()
 		end
-	end
-	if first then
-		first:ClearAllPoints()
-		first:SetPoint('TOPLEFT', 16, -16)
-	end
+	end)
+	ThreadManager:Show()
 end
 
 function LoadDataFromTable(tbl)
-	local first
-	for key, sub in spairs(tbl) do
-		if type(sub) == 'table' then
-			local global = DisplayValue(nil, key, sub)
-			global.SavedVariable = tables[key]
-			global.StaticWidth = 870
-			global:SetWidth(870)
-			if not first then first = global end
+	if thread then return end
+	thread = coroutine.create(function()
+		local first
+		for key, sub in spairs(tbl) do
+			if type(sub) == 'table' then
+				local global = DisplayValue(nil, key, sub)
+				global.SavedVariable = tables[key]
+				global.StaticWidth = 870
+				global:SetWidth(870)
+				if not first then first = global 
+					first:ClearAllPoints()
+					first:SetPoint('TOPLEFT', 16, -16)
+					
+				end
+			end
+			coroutine.yield()
 		end
-	end
-	if first then
-		first:ClearAllPoints()
-		first:SetPoint('TOPLEFT', 16, -16)
-	end
+	end)
+	ThreadManager:Show()
 end
 
 function Field:Toggle(enable)

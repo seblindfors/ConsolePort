@@ -127,8 +127,8 @@ local function CreateHotkeyFrame(self, num)
 	return hotkey
 end
 
-function Lib:CreateButton(parent, id, name, modifier, size, texSize, config, template)
-	local button = acb:CreateButton(id, name, parent, config, template)
+function Lib:CreateButton(parent, id, name, modifier, size, texSize, config)
+	local button = acb:CreateButton(id, name, parent, config, modifier)
 
 	button.PushedTexture = button:GetPushedTexture()
 	button.HighlightTexture = button:GetHighlightTexture()
@@ -137,10 +137,9 @@ function Lib:CreateButton(parent, id, name, modifier, size, texSize, config, tem
 	local textures = buttonTextures[modifier]
 
 	-- Big button
-	if modifier == '' then
-		button.icon:SetMask('Interface\\Minimap\\UI-Minimap-Background')
-	else -- Small button
-		button.icon:SetMask('Interface\\RAIDFRAME\\UI-RaidFrame-Threat')
+	if modifier ~= '' then
+		button:ToggleShadow(false)
+		button.Mask:SetTexture('Interface\\RAIDFRAME\\UI-RaidFrame-Threat')
 	end
 
 	button.NewActionTexture:SetTexture(textures.new_action)
@@ -197,16 +196,15 @@ function Wrapper:SetPoint(...)
 end
 
 function Wrapper:SetSize(new)
-	-- NYI
 	local main = self['']
 	for mod, button in pairs(self.Buttons) do
-		local b, t, o
-		if mod == '' then
+		local b, t, o -- button size, texture size, offset value
+		if mod == '' then -- if nomod, handle separately
 			b = new -- 64
 			t = new
 			o = new * ( 82 / size )
 			button.shadow:SetSize(o, o)
-		else
+		else -- calculate size for modifier buttons to maintain correct ratio
 			b = new * ( smallSize / size )
 			t = new * ( tSize / size )
 			o = new * ( ( (mod == 'CTRL-SHIFT-') and ofsB or ofs ) / size )
@@ -324,19 +322,11 @@ function Lib:Create(parent, id, orientation)
 
 	local main = wrapper['']
 	main.isMainButton = true
-	main.icons = {}
 
 	for mod, button in pairs(wrapper.Buttons) do
 		if not button.isMainButton then
 			-- Set this button to not update on modifier state
 			button:SetAttribute('_childupdate-state', nil)
-			-- Add extra icons to reduce redunant icon updates when holding modifiers
-			local modIcon = main:CreateTexture('$parentIcon'..mod, 'BACKGROUND', nil, 2)
-			modIcon:SetAllPoints()
-			modIcon:SetMask('Interface\\Minimap\\UI-Minimap-Background')
-			modIcon:SetAlpha(0)
-			button.mainIcon = modIcon
-			main.icons[mod] = modIcon
 		end
 	end
 

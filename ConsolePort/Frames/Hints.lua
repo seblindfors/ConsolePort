@@ -33,7 +33,7 @@ function Hint:ShowHint(elapsed)
 	elapsed = GetTime() - self.startTime
 	local time = self.fadeTime
 	if ( elapsed < time ) then
-		local alpha = 1.0 - (elapsed / time)
+		local alpha = 1.0 - (elapsed / time)^2
 		self:SetAlpha(alpha)
 		return
 	end

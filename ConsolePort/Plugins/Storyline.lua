@@ -413,7 +413,7 @@ db.PLUGINS["Storyline"] = function(self)
 
 	-- offset the anchor on the ChatNext button to stop it from obscuring text
 	region = Storyline_NPCFrameChatNext
-		region.customAnchor = {"TOPLEFT", Storyline_NPCFrameChatNext, "BOTTOM", 0, 8}
+		region.customCursorAnchor = {"TOPLEFT", Storyline_NPCFrameChatNext, "BOTTOM", 0, 8}
 		region:HookScript("OnShow", function(self)
 			ConsolePort:SetCurrentNode(self)
 		end)

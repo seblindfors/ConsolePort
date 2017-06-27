@@ -1,8 +1,14 @@
+do
 local UI, an, L = ConsolePortUI, ...
 local db = ConsolePort:GetData()
 local cc = UI.Media.CC
 local ICON = 'Interface\\Icons\\%s'
 local Button = L.Button
+
+-- Loot header specifics
+local LootButton = L.LootButton
+local lootButtonProbeScript = L.lootButtonProbeScript
+local lootHeaderOnSetScript = L.lootHeaderOnSetScript
 
 local function HideMenu(self)
 	if IsOptionFrameOpen() then
@@ -96,7 +102,7 @@ local Menu =  UI:CreateFrame('Frame', an, UIParent, 'SecureHandlerBaseTemplate, 
 							numSlots = numSlots + GetContainerNumSlots(i)
 						end
 					end
-					self.Count:SetFormattedText("%s\n|cFFAAAAAA%s|r", totalFree, numSlots)
+					self.Count:SetFormattedText('%s\n|cFFAAAAAA%s|r', totalFree, numSlots)
 				end,
 				{
 					Count = {
@@ -115,9 +121,83 @@ local Menu =  UI:CreateFrame('Frame', an, UIParent, 'SecureHandlerBaseTemplate, 
 				ID 		= 3,
 				Point 	= {'TOP', 'parent.Inventory', 'BOTTOM', 0, 0},
 				Desc	= TALENTS_BUTTON,
-				Img 	= [[Interface\ICONS\ClassIcon_]]..select(2, UnitClass("player")),
+				Img 	= [[Interface\ICONS\ClassIcon_]]..select(2, UnitClass('player')),
 				Click 	= TalentMicroButton,
 				PreClick = HideMenu,
+				EvaluateAlertVisibility = function(self)
+					-- If we just unspecced, and we have unspent talent points, it's probably spec-specific talents that were just wiped.  Show the tutorial box.
+					if not AreTalentsLocked() and GetNumUnspentTalents() > 0 and (not PlayerTalentFrame or not PlayerTalentFrame:IsShown()) then
+						self.tooltipText = TALENT_MICRO_BUTTON_UNSPENT_TALENTS
+						self:SetPulse(true)
+						return
+					end
+					if GetNumUnspentPvpTalents() > 0 and (not PlayerTalentFrame or not PlayerTalentFrame:IsShown()) then
+						self.tooltipText = TALENT_MICRO_BUTTON_UNSPENT_HONOR_TALENTS
+						self:SetPulse(true)
+						return
+					end
+				end,
+				EnterScript = function(self)
+					if self.tooltipText then
+						GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+						GameTooltip:SetText(self.tooltipText)
+						self.tooltipText = nil
+						self.hideTooltipOnLeave = true
+					end
+				end,
+				LeaveScript = function(self)
+					if self.hideTooltipOnLeave then
+						GameTooltip:Hide()
+						self.hideTooltipOnLeave = nil
+					end
+				end,
+				LoadScript = function(self)
+					self:RegisterEvent('PLAYER_LEVEL_UP')
+					self:RegisterEvent('UPDATE_BINDINGS')
+					self:RegisterEvent('PLAYER_TALENT_UPDATE')
+					self:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED')
+					self:RegisterEvent('HONOR_LEVEL_UPDATE')
+					self:RegisterEvent('HONOR_PRESTIGE_UPDATE')
+					self:RegisterEvent('PLAYER_PVP_TALENT_UPDATE')
+					self:RegisterEvent('PLAYER_CHARACTER_UPGRADE_TALENT_COUNT_CHANGED')
+				end,
+				OnEvent = function(self, event, ...)
+					self.tooltipText = nil
+					if ( event == 'PLAYER_LEVEL_UP' ) then
+						local level = ...
+						if (level == SHOW_SPEC_LEVEL) then
+							self.tooltipText = TALENT_MICRO_BUTTON_SPEC_TUTORIAL
+							self:SetPulse(true)
+						elseif (level == SHOW_TALENT_LEVEL) then
+							self.tooltipText = TALENT_MICRO_BUTTON_TALENT_TUTORIAL
+							self:SetPulse(true)
+						end
+					elseif ( event == 'PLAYER_SPECIALIZATION_CHANGED' ) then
+						self:EvaluateAlertVisibility()
+					elseif ( event == 'PLAYER_TALENT_UPDATE' or event == 'NEUTRAL_FACTION_SELECT_RESULT' or
+						event == 'HONOR_LEVEL_UPDATE' or event == 'HONOR_PRESTIGE_UPDATE' or event == 'PLAYER_PVP_TALENT_UPDATE' ) then
+						self:EvaluateAlertVisibility()
+
+						-- On the first update from the server, flash the button if there are unspent points
+						-- Small hack: GetNumSpecializations should return 0 if talents haven't been initialized yet
+						if (not self.receivedUpdate and GetNumSpecializations(false) > 0) then
+							self.receivedUpdate = true;
+							local shouldPulseForTalents = GetNumUnspentTalents() > 0 or GetNumUnspentPvpTalents() > 0 and not AreTalentsLocked()
+							if (UnitLevel('player') >= SHOW_SPEC_LEVEL and (not GetSpecialization() or shouldPulseForTalents)) then
+								self:SetPulse(true)
+							end
+						end
+					elseif ( event == 'PLAYER_CHARACTER_UPGRADE_TALENT_COUNT_CHANGED' ) then
+						local prev, current = ...
+						if ( prev == 0 and current > 0 ) then
+							self.tooltipText = TALENT_MICRO_BUTTON_TALENT_TUTORIAL
+							self:SetPulse(true)
+						elseif ( prev ~= current ) then
+							self.tooltipText = TALENT_MICRO_BUTTON_UNSPENT_TALENTS
+							self:SetPulse(true)
+						end
+					end
+				end,
 			},
 			Spellbook  = {
 				Type 	= 'Button',
@@ -492,7 +572,162 @@ local Menu =  UI:CreateFrame('Frame', an, UIParent, 'SecureHandlerBaseTemplate, 
 	},
 })
 
-do
+local lootWireFrame = {
+	Loot = {
+		Type 	= 'CheckButton',
+		Setup 	= {
+			'SecureHandlerBaseTemplate',
+			'SecureHandlerShowHideTemplate',
+			'SecureHandlerClickTemplate',
+			'CPUIListCategoryTemplate',
+		},
+		Point 	= {'CENTER', 490, 0},
+		Text	= [[|TInterface\Buttons\UI-GroupLoot-Dice-Up:24:24:0:-2|t]],
+		Width 	= 50,
+		ID = 5,
+		OnLoad = function(self)
+			self:SetShown(
+				GroupLootFrame1:IsVisible() or
+				GroupLootFrame2:IsVisible() or
+				GroupLootFrame3:IsVisible() or
+				GroupLootFrame4:IsVisible() or
+				BonusRollFrame:IsVisible())
+		end,
+		Multiple = {
+			Probe = {
+				{GroupLootFrame1, 'showhide'},
+				{GroupLootFrame2, 'showhide'},
+				{GroupLootFrame3, 'showhide'},
+				{GroupLootFrame4, 'showhide'},
+			--	{BonusRollFrame, 'showhide'},
+			},
+			SetAttribute = {
+				{'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
+				{'onheaderset', lootHeaderOnSetScript},
+			},
+		},
+		{
+			Loot1  = {
+				Type 	= 'Button',
+				Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+				Mixin 	= LootButton,
+				ID 		= 1,
+				NoMask 	= true,
+				Img 	= ICON:format('INV_Misc_QuestionMark'),
+				Obj 	= GroupLootFrame1,
+				Probe 	= {GroupLootFrame1, 'probescript', nil, lootButtonProbeScript},
+				RegisterForClicks = {'AnyUp', 'AnyDown'},
+				Multiple = {
+					SetAttribute = {
+						{'circleclick', 'self:CallMethod("OnCircleClicked")'},
+						{'squareclick', 'self:CallMethod("OnSquareClicked")'},
+						{'triangleclick', 'self:CallMethod("OnTriangleClicked")'},
+						{'pc', 0},
+						{'condition', 'return false'},
+					},
+				},
+			},
+			Loot2  = {
+				Type 	= 'Button',
+				Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+				Mixin 	= LootButton,
+				ID 		= 2,
+				NoMask 	= true,
+				Obj 	= GroupLootFrame2,
+				Img 	= ICON:format('INV_Misc_QuestionMark'),
+				Probe 	= {GroupLootFrame2, 'probescript', nil, lootButtonProbeScript},
+				RegisterForClicks = {'AnyUp', 'AnyDown'},
+				Multiple = {
+					SetAttribute = {
+						{'circleclick', 'self:CallMethod("OnCircleClicked")'},
+						{'squareclick', 'self:CallMethod("OnSquareClicked")'},
+						{'triangleclick', 'self:CallMethod("OnTriangleClicked")'},
+						{'pc', 0},
+						{'condition', 'return false'},
+					},
+				},
+			},
+			Loot3  = {
+				Type 	= 'Button',
+				Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+				Mixin 	= LootButton,
+				ID 		= 3,
+				NoMask 	= true,
+				Obj 	= GroupLootFrame3,
+				Img 	= ICON:format('INV_Misc_QuestionMark'),
+				Probe 	= {GroupLootFrame3, 'probescript', nil, lootButtonProbeScript},
+				RegisterForClicks = {'AnyUp', 'AnyDown'},
+				Multiple = {
+					SetAttribute = {
+						{'circleclick', 'self:CallMethod("OnCircleClicked")'},
+						{'squareclick', 'self:CallMethod("OnSquareClicked")'},
+						{'triangleclick', 'self:CallMethod("OnTriangleClicked")'},
+						{'pc', 0},
+						{'condition', 'return false'},
+					},
+				},
+			},
+			Loot4  = {
+				Type 	= 'Button',
+				Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+				Mixin 	= LootButton,
+				ID 		= 4,
+				NoMask 	= true,
+				Obj 	= GroupLootFrame4,
+				Img 	= ICON:format('INV_Misc_QuestionMark'),
+				Probe 	= {GroupLootFrame4, 'probescript', nil, lootButtonProbeScript},
+				RegisterForClicks = {'AnyUp', 'AnyDown'},
+				Multiple = {
+					SetAttribute = {
+						{'circleclick', 'self:CallMethod("OnCircleClicked")'},
+						{'squareclick', 'self:CallMethod("OnSquareClicked")'},
+						{'triangleclick', 'self:CallMethod("OnTriangleClicked")'},
+						{'pc', 0},
+						{'condition', 'return false'},
+					},
+				},
+			},
+			-- Bonus  = {
+			-- 	Type 	= 'Button',
+			-- 	Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+			-- 	Mixin 	= LootButton,
+			-- 	ID 		= 5,
+			-- 	NoMask 	= true,
+			-- 	Obj 	= BonusRollFrame,
+			-- 	Img 	= ICON:format('INV_Misc_QuestionMark'),
+			-- 	Probe 	= {BonusRollFrame, 'probescript', nil, lootButtonProbeScript},
+			-- 	RegisterForClicks = {'AnyUp', 'AnyDown'},
+			-- 	Multiple = {
+			-- 		SetAttribute = {
+			-- 			{'pc', 0},
+			-- 			{'condition', 'return false'},
+			-- 		},
+			-- 	},
+			-- },
+		},
+	},
+}
+
+do	
+	ConsolePortUIConfig = ConsolePortUIConfig or {}
+	ConsolePortUIConfig.Menu = ConsolePortUIConfig.Menu or {}
+
+	local cfg = ConsolePortUIConfig.Menu
+	if cfg.lootprobe == nil then cfg.lootprobe = false end
+	cfg.scale = cfg.scale or 1
+	cfg.anchor = cfg.anchor or {
+		point = 'TOP',
+		offsetX = 0,
+		offsetY = -100,
+	}
+
+	if cfg.lootprobe then
+		UI:BuildFrame(Menu, lootWireFrame)
+	end
+
+	lootWireFrame = nil
+
+
 	Menu:Execute([[
 		headers = newtable()
 		hID, bID = 4, 1
@@ -512,6 +747,15 @@ do
 		end
 	end
 
+	Menu.GlowLeft = CreateFrame('Frame', nil, Menu, 'CPUILineSheenTemplate')
+	Menu.GlowRight = CreateFrame('Frame', nil, Menu, 'CPUILineSheenTemplate')
+
+	Menu.GlowLeft:SetPoint('TOP', Menu, 'BOTTOM', 0, 40)
+	Menu.GlowLeft:SetDirection('LEFT', 2.5)
+
+	Menu.GlowRight:SetPoint('TOP', Menu, 'BOTTOM', 0, 40)
+	Menu.GlowRight:SetDirection('RIGHT', 2.5)
+
 	Menu:Execute(format('numheaders = %s', NUM_HEADERS))
 
 	Menu.probe = UI:CreateProbe(Menu, GameMenuFrame, 'showhide')
@@ -524,21 +768,12 @@ do
 	UI:RegisterFrame(Menu, 'Menu', false, true)
 	UI:HideFrame(GameMenuFrame)
 
-	ConsolePortUIConfig = ConsolePortUIConfig or {}
-	ConsolePortUIConfig.Menu = ConsolePortUIConfig.Menu or {}
-
-	local cfg = ConsolePortUIConfig.Menu
-	cfg.scale = cfg.scale or 1
-	cfg.anchor = cfg.anchor or {
-		point = 'TOP',
-		offsetX = 0,
-		offsetY = -100,
-	}
-
 	Menu:SetScale(cfg.scale)
 	Menu:SetPoint(cfg.anchor.point, cfg.anchor.offsetX, cfg.anchor.offsetY)
 
 	L.Menu = Menu
+end
+
 end
 
 --[[

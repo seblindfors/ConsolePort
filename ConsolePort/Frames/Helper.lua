@@ -20,7 +20,7 @@ Helper.Border:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Norm
 Helper.Icon = Helper:CreateTexture(nil, 'ARTWORK')
 Helper.Icon:SetPoint('CENTER', Helper.Border, 0, 0)
 Helper.Icon:SetSize(64, 64)
-Helper.Icon:SetMask('Interface\\Minimap\\UI-Minimap-Background')
+Helper.Icon:SetMask('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Mask')
 
 Helper.Name = Helper:CreateFontString(nil, 'ARTWORK')
 Helper.Name:SetFont('Fonts\\MORPHEUS.ttf', 22, '')
@@ -55,48 +55,88 @@ function Helper:OnShow()
 		self:UnregisterAllEvents()
 		self:Hide()
 	else
+		self.blockInput = false
 		self.cache = db.table.copy(db.Bindings)
 		local loc = db.TUTORIAL.BIND
 		local _type, data, subType, subData = GetCursorInfo()
-		local name, texture, _
+		local name, texture, customDesc, pcallOK, _
 		if _type == 'item' then
-			_, name, _, _, _, _, _, _, _, _, texture = pcall(GetItemInfo, data)
+			pcallOK, name, link, _, _, _, _, _, _, itemType, texture = pcall(GetItemInfo, data)
 			name = name or loc.ITEM
+			if itemType == 'INVTYPE_BAG' then
+				self:ShowBags()
+				self.blockInput = true
+				customDesc = db.TUTORIAL.HINTS.HELPER_EQUIP_BAG
+			elseif link and not (IsUsableItem(link) and not IsEquippableItem(link)) then
+				self:Hide()
+				return
+			end
 		elseif _type == 'macro' then
-			_, name, texture = pcall(GetMacroInfo, data)
+			pcallOK, name, texture = pcall(GetMacroInfo, data)
 			name = (name or '') .. loc.MACRO
 		elseif _type == 'spell' and subType == 'spell' then
 			if (data ~= 0 and data ~= nil) then
-				_, name, _, texture = pcall(GetSpellInfo, data, 'spell') -- or loc.SPELL
+				pcallOK, name, _, texture = pcall(GetSpellInfo, data, 'spell') -- or loc.SPELL
 			elseif subData then
-				_, name, _, texture = pcall(GetSpellInfo, subData)
+				pcallOK, name, _, texture = pcall(GetSpellInfo, subData)
 			end
 			name = name or loc.SPELL
 			texture = texture or 'Interface\\Spellbook\\Spellbook-Icon'
 		elseif _type == 'equipmentset' then
 			name = (data or '') .. loc.EQSET
-			_, texture = pcall(GetEquipmentSetInfoByName, data)
+			pcallOK, texture = pcall(GetEquipmentSetInfoByName, data)
 		elseif _type == 'mount' then
-			_, name, _, texture = pcall(C_MountJournal.GetMountInfoByID, data)
+			pcallOK, name, _, texture = pcall(C_MountJournal.GetMountInfoByID, data)
 		elseif _type == 'battlepet' then
 			local _, _, customName, _, _, _, _, _, petName, petIcon = pcall(C_PetJournal.GetPetInfoByPetID, data) 
 			name = customName or petName
 			name = (name or '') .. loc.BATTLEPET
 			texture = petIcon
 		elseif _type == 'flyout' then
-			_, name = pcall(GetFlyoutInfo, data)
+			pcallOK, name = pcall(GetFlyoutInfo, data)
 			texture = subType
+		end
+		-- handle game client bug:
+		-- function can be triggered when there's actually nothing on the cursor.
+		if not pcallOK or not texture or not name then
+			self:Hide()
+			return
 		end
 		self.Icon:SetTexture(texture)
 		self.Name:SetText(name)
-		self.Desc:SetText(db.TUTORIAL.HINTS.HELPER_ACTIONBAR)
+		self.Desc:SetText(customDesc or db.TUTORIAL.HINTS.HELPER_ACTIONBAR)
 		self:UpdateWidth()
 		db.UIFrameFadeIn(self, 0.2, 0, 1)
 	end
 end
 
+function Helper:OnHide()
+	self.blockInput = nil
+	if self.BagFrame then
+		self.BagFrame:Hide()
+	end
+end
+
 function Helper:UpdateWidth()
 	self:SetWidth(self.Desc:GetStringWidth() + 155)
+end
+
+function Helper:ShowBags()
+	if not self.BagFrame then
+		local size = 46
+		self.BagFrame = CreateFrame('Frame', nil, self)
+		self.BagFrame:SetBackdrop(db.Atlas.Backdrops.Talkbox)
+		self.BagFrame:SetSize(64 + (4*size), 32 + size)
+		self.BagFrame:SetPoint('BOTTOM', 0, -30)
+		for i=1, (NUM_BAG_SLOTS) do
+			local button = CreateFrame('CheckButton', 'CP_DropInBag' .. (i-1) .. 'Slot', self.BagFrame, 'BagSlotButtonTemplate')
+			button:SetPoint('LEFT', ((i-1) * 46) + 32, 16)
+			button:SetSize(size * (42/46), size * (42/46))
+			button.IconBorder:SetSize(46, 46)
+			button:GetNormalTexture():Hide()
+		end
+	end
+	self.BagFrame:Show()
 end
 
 function Helper:OnEvent(event, ...)
@@ -110,7 +150,7 @@ end
 function Helper:OnKeyDown(key)
 	local bAction = GetBindingAction(key)
 	local set = bAction and self.cache and self.cache[bAction]
-	if set then
+	if not self.blockInput and set then
 		local modifier = ConsolePort:GetCurrentModifier()
 		local binding = set[modifier]
 		local actionID = ConsolePort:GetActionID(binding)
@@ -190,6 +230,7 @@ for _, event in pairs({
 
 Helper:SetPropagateKeyboardInput(true)
 Helper:SetScript('OnShow', Helper.OnShow)
+Helper:SetScript('OnHide', Helper.OnHide)
 Helper:SetScript('OnEvent', Helper.OnEvent)
 Helper:SetScript('OnKeyDown', Helper.OnKeyDown)
 Helper.GetActionButtons = ConsolePort.GetActionButtons

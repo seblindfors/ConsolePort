@@ -410,9 +410,9 @@ function ShortcutMixin:OnClick()
 end
 
 ---------------------------------------------------------------
--- Binds: Create addon dummy bindings
+-- Binds: Create addon bindings
 ---------------------------------------------------------------
-local function SetFakeBinding(self, modifier, original, override)
+local function SetTempBinding(self, modifier, original, override)
 	if original and override then
 		local key1, key2 = GetBindingKey(original) or config.mouseBindings[original]
 		if key1 then SetOverrideBinding(self, false, modifier..key1, override) end
@@ -420,9 +420,9 @@ local function SetFakeBinding(self, modifier, original, override)
 	end
 end
 
-local function SetMouseBindings(self, handler, keys)
+local function SetMouseBindings(self, handler, bindingSet)
 	for stick, button in pairs(config.mouseBindings) do
-		if keys[stick] and keys[stick][""] then
+		if bindingSet[stick] and bindingSet[stick][""] then
 			for modifier in ConsolePort:GetModifiers() do
 				if modifier ~= "" then
 					SetOverrideBinding(handler, false, modifier..button, config.mouseDefault[button])
@@ -461,20 +461,22 @@ function ConsolePort:LoadBindingSet(newBindingSet)
 			SetBinding(key, binding)
 		end
 	end
-	local keys = newBindingSet or db.Bindings
+	local bindingSet = newBindingSet or db.Bindings
 	local handler = ConsolePortButtonHandler
 	ClearOverrideBindings(handler)
 	SetMovementBindings(self, handler)
 	if not db.Settings.disableStickMouse then
-		SetMouseBindings(self, handler, keys)
+		SetMouseBindings(self, handler, bindingSet)
 	end
-	for name, key in pairs(keys) do
+	for name, key in pairs(bindingSet) do
+		local baseBinding = key['']
 		for modifier in self:GetModifiers() do
-			SetFakeBinding(handler, modifier, name, key[modifier])
+			local modBinding = key[modifier]
+			SetTempBinding(handler, modifier, name, modBinding or baseBinding)
 		end
 	end
 	self:RemoveUpdateSnippet(self.LoadBindingSet)
-	return keys
+	return bindingSet
 end
 
 function ConsolePort:OnNewBindings(bindings) return db.Bindings end
@@ -548,7 +550,6 @@ local function RefreshProfileList(self)
 		pCount = pCount + 1
 		local button = buttons[pCount]
 		if not button then
-			--(name, parent, secure, buttonAtlas, width, height, classColored)
 			button = db.Atlas.GetFutureButton("$parentButton"..pCount, self, nil, nil, 350)
 			button.Label:SetJustifyH('LEFT')
 			button.Label:ClearAllPoints()
@@ -586,7 +587,7 @@ local function RefreshProfileList(self)
 			button.Icon:SetPoint('RIGHT', -8, 0)
 			button.Icon:SetAlpha(1)
 			button.Icon:SetDrawLayer('OVERLAY')
-			button.Icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+			button.Icon:SetMask("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Mask")
 		else
 			button.Icon:SetAlpha(0)
 		end

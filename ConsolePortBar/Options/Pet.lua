@@ -132,6 +132,8 @@ do
 		button:SetScript('OnEnter', nil)
 		button.HotKey:SetAlpha(0)
 
+		Mixin(button, ConsolePortActionButtonMixin)
+
 		button.AutoCastable = _G[name..'AutoCastable']
 		button.Shine = _G[name..'Shine']
 		button.cooldown = _G[name..'Cooldown'];
@@ -219,10 +221,10 @@ function Pet:Update()
 		petAutoCastShine = petActionButton.Shine
 		local name, subtext, texture, isToken, isActive, autoCastAllowed, autoCastEnabled = GetPetActionInfo(i)
 		if ( not isToken ) then
-			petActionIcon:SetTexture(texture)
+			petActionButton:SetIcon(texture)
 			petActionButton.tooltipName = name
 		else
-			petActionIcon:SetTexture(_G[texture])
+			petActionButton:SetIcon(_G[texture])
 			petActionButton.tooltipName = _G[name]
 		end
 		petActionButton.isToken = isToken
@@ -257,9 +259,6 @@ function Pet:Update()
 			else
 				petActionIcon:SetVertexColor(0.4, 0.4, 0.4)
 			end
-			petActionIcon:Show();
-		else
-			petActionIcon:Hide()
 		end
 	end
 	self:UpdateCooldowns()

@@ -61,3 +61,43 @@ function UI.Utils.spairs(t, order)
 		end
 	end
 end
+
+---------------------------------------------------------------
+-- Wrappers
+---------------------------------------------------------------
+function UI:GetDataSafeMode()
+	return UI.Utils.Copy(self.Data)
+end
+
+function UI:GetEssentials()
+	return self, self:GetControlHandle(), self.Data
+end
+
+---------------------------------------------------------------
+-- Frame pools
+---------------------------------------------------------------
+local function FramePoolFactory(self)
+	self.poolCount = self.poolCount + 1
+	local frame = CreateFrame(
+		self.frameType, 
+		'$parentItem'..self.poolCount, 
+		self.parent, 
+		self.frameTemplate)
+	if self.mixin then
+		UI.Utils.Mixin(frame, self.mixin)
+	end
+	self.registry[self.poolCount] = frame
+	return frame
+end
+
+function UI:CreateFramePool(frameType, parent, template, mixin)
+	assert(type(frameType) == 'string', 'CreateFramePool: Frametype is invalid.')
+	assert(type(parent) == 'table', 'CreateFramePool: Parent is invalid.')
+	assert(type(template) == 'string', 'CreateFramePool: Template is invalid.')
+	local pool = CreateFramePool(frameType, parent, template)
+	pool.registry = {}
+	pool.poolCount = 0
+	pool.mixin = mixin
+	pool.creationFunc = FramePoolFactory
+	return pool
+end

@@ -314,6 +314,9 @@ MIXINS = {
 				self:SetScale( current + delta )
 			end
 		end,
+		DisableScaling = function(self, disable)
+			self.disableScaling = disable
+		end,
 		ScaleTo = function(self, scale)
 			local oldScript = self:GetScript('OnUpdate')
 			self.targetScale = scale
@@ -326,20 +329,25 @@ MIXINS = {
 			end
 		end,
 		OnEnter = function(self)
-			self:ScaleTo(self.enterScale or 1.1)
-			if self.Hilite then
-				db.UIFrameFadeIn(self.Hilite, 0.35, self.Hilite:GetAlpha(), 1)
+			if not self.disableScaling then
+				self:ScaleTo(self.enterScale or 1.1)
+				if self.Hilite then
+					db.UIFrameFadeIn(self.Hilite, 0.35, self.Hilite:GetAlpha(), 1)
+				end
 			end
 		end,
 		OnLeave = function(self)
-			self:ScaleTo(self.normalScale or 1)
-			if self.Hilite then
-				db.UIFrameFadeOut(self.Hilite, 0.2, self.Hilite:GetAlpha(), 0)
+			if not self.disableScaling then
+				self:ScaleTo(self.normalScale or 1)
+				if self.Hilite then
+					db.UIFrameFadeOut(self.Hilite, 0.2, self.Hilite:GetAlpha(), 0)
+				end
 			end
 		end,
 		OnHide = function(self)
 			self:SetScript('OnUpdate', nil)
 			self:SetScale(self.normalScale or 1)
+			self:DisableScaling(false)
 			if self.Hilite then
 				self.Hilite:SetAlpha(0)
 			end

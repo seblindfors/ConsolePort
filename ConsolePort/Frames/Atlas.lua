@@ -424,20 +424,20 @@ Atlas.GetScrollFrame = function(name, parent, config)
 	local self = CreateFrame("ScrollFrame", name, parent, "UIPanelScrollFrameTemplate")
 	assert(config, "Atlas.GetScrollFrame: No config provided.")
 	---------------------------------
-	local 	parentKey, size, points, 
-			childKey, childWidth,
+	local 	parentKey, size, points, noMeta, 
+			childKey, childWidth, existingChild,
 			stepSize, scrollStep,
 			customBackdrop, noBackdrop,
 			anchor, anchorOffset = 
 			--------------------------------
-			config.parentKey, config.size, config.points,
-			config.childKey, config.childWidth, 
+			config.parentKey, config.size, config.points, config.noMeta,
+			config.childKey, config.childWidth, config.existingChild,
 			config.stepSize, config.scrollStep, 
 			config.backdrop, config.noBackdrop,
 			config.anchor, config.anchorOffset
 			---------------------------------
 
-	local child = CreateFrame("Frame", "$parent"..(childKey or "ScrollChild"), self)
+	local child = existingChild or CreateFrame("Frame", "$parent"..(childKey or "ScrollChild"), self)
 	local bar = self.ScrollBar
 	local thumb = bar:GetThumbTexture()
 
@@ -461,6 +461,7 @@ Atlas.GetScrollFrame = function(name, parent, config)
 	if childKey then self[childKey] = child end
 
 	self.Child = child
+	self.Child:SetParent(self)
 	self:SetScrollChild(child)
 	self:SetToplevel(true)
 
@@ -484,14 +485,16 @@ Atlas.GetScrollFrame = function(name, parent, config)
 	bar.ScrollDownButton:SetAlpha(0)
 	bar.ScrollDownButton:ClearAllPoints()
 
-	self.Buttons = {}
-	child.Buttons = self.Buttons
+	if not noMeta then
+		self.Buttons = {}
+		child.Buttons = self.Buttons
 
-	self.AddButton = Atlas.ScrollMeta.AddButton
-	child.AddButton = self.AddButton
+		self.AddButton = Atlas.ScrollMeta.AddButton
+		child.AddButton = self.AddButton
 
-	self.Refresh = Atlas.ScrollMeta.Refresh
-	child.Refresh = self.Refresh
+		self.Refresh = Atlas.ScrollMeta.Refresh
+		child.Refresh = self.Refresh
+	end
 
 	return self
 end
@@ -712,7 +715,7 @@ Atlas.GetBindingMetaButton = function(name, parent, config)
 	end
 	if anchor then
 		local point, relativePoint, xOffset, yOffset = unpack(anchor)
-		self.customAnchor = {point, self, relativePoint, xOffset, yOffset}
+		self.customCursorAnchor = {point, self, relativePoint, xOffset, yOffset}
 	end
 
 	mask:SetPoint("CENTER", icon, "CENTER", 0, 0)
@@ -751,7 +754,7 @@ Atlas.GetRoundActionButton = function(name, isCheck, parent, size, templates, no
 
 		local button = CreateFrame(isCheck and "CheckButton" or "Button", name, parent, template)
 
-		button.icon:SetMask("Interface\\Minimap\\UI-Minimap-Background")
+		button.icon:SetMask("Interface\\AddOns\\ConsolePort\\Textures\\Button\\Mask")
 		button.PushedTexture = button:GetPushedTexture()
 
 
