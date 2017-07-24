@@ -57,6 +57,7 @@ function Helper:OnShow()
 	else
 		self.blockInput = false
 		self.cache = db.table.copy(db.Bindings)
+		self.manifest = ConsolePort:GetBindings(true)
 		local loc = db.TUTORIAL.BIND
 		local _type, data, subType, subData = GetCursorInfo()
 		local name, texture, customDesc, pcallOK, _
@@ -112,6 +113,10 @@ end
 
 function Helper:OnHide()
 	self.blockInput = nil
+	self.pendingBinding = nil
+	self.pendingActionID = nil
+	self.pendingButton = nil
+	self.pendingModifier = nil
 	if self.BagFrame then
 		self.BagFrame:Hide()
 	end
@@ -147,13 +152,63 @@ function Helper:OnEvent(event, ...)
 	end
 end
 
+function Helper:GetBindingSuggestion()
+	local ignoredIndex = {}
+	for key, subSet in pairs(self.cache) do
+		for mod, binding in pairs(subSet) do
+			local actionID = ConsolePort:GetActionID(binding)
+			if actionID then
+				ignoredIndex[actionID] = true
+			end
+		end
+	end
+	for i=1, 12 do
+		if not GetActionInfo(i) and not ignoredIndex[i] then
+			return i, ConsolePort:GetActionBinding(i)
+		end
+	end
+	for i=25, 72 do
+		if not GetActionInfo(i) and not ignoredIndex[i] then
+			return i, ConsolePort:GetActionBinding(i)
+		end
+	end
+end
+
 function Helper:OnKeyDown(key)
 	local bAction = GetBindingAction(key)
 	local set = bAction and self.cache and self.cache[bAction]
-	if not self.blockInput and set then
+	local isControllerButton = bAction and self.manifest and self.manifest[bAction]
+	if not self.blockInput and isControllerButton then
 		local modifier = ConsolePort:GetCurrentModifier()
-		local binding = set[modifier]
+		local isPendingActionApproved
+
+		-- a pending binding prompt is approved
+		if ( self.pendingButton == bAction and self.pendingModifier == modifier ) then
+			local newBindingSet = ConsolePort:GetBindingSet()
+			if not newBindingSet[bAction] then
+				newBindingSet[bAction] = {}
+			end
+			-- update the binding set
+			newBindingSet[bAction][modifier] = self.pendingBinding
+			ConsolePort:LoadBindingSet(newBindingSet)
+			ConsolePort:OnNewBindings(newBindingSet)
+			-- place the action
+			PlaceAction(self.pendingActionID)
+			self:OnActionPlaced(self.pendingActionID, self.Icon:GetTexture())
+			return
+		end
+
+		self.pendingBinding, self.pendingActionID = nil, nil
+		self.pendingButton, self.pendingModifier = nil, nil
+
+		if isPendingActionApproved then
+
+		end
+
+		local binding = set and set[modifier]
 		local actionID = ConsolePort:GetActionID(binding)
+		
+		-- if the pressed binding has a corresp. action ID, place the item there and pop any existing item
 		if actionID then
 			PlaceAction(actionID)
 			if 	( not GetCursorInfo() ) and
@@ -162,8 +217,12 @@ function Helper:OnKeyDown(key)
 				ConsolePortCamera:Start()
 			end
 			self:OnActionPlaced(actionID)
+
+		-- clear the helper frame if the binding that was pressed is eqv. to Esc
 		elseif binding == 'TOGGLEGAMEMENU' then
 			ClearCursor()
+
+		-- if the binding is occupied by something unrelated to action bars
 		elseif binding then
 			local formatted = ConsolePort:GetFormattedBindingOwner(binding, nil, nil, true)
 			local bindName =  _G['BINDING_NAME_' .. binding]
@@ -172,10 +231,19 @@ function Helper:OnKeyDown(key)
 			elseif formatted then
 				self.Desc:SetText(format(db.TUTORIAL.HINTS.HELPER_INVALID_OCCUB, formatted))
 			end
+
+		-- the binding is free, check for suggestions
 		else
 			local formatted = ConsolePort:GetFormattedButtonCombination(bAction, modifier, nil, true)
 			if formatted then
-				self.Desc:SetText(format(db.TUTORIAL.HINTS.HELPER_INVALID_FREE, formatted))
+				local freeActionID, freeBindingID = self:GetBindingSuggestion()
+				if freeActionID and freeBindingID then
+					self.Desc:SetText(format(db.TUTORIAL.HINTS.HELPER_INVALID_FREE, formatted, _G['BINDING_NAME_' ..freeBindingID], formatted))
+					self.pendingBinding, self.pendingActionID = freeBindingID, freeActionID
+					self.pendingButton, self.pendingModifier = bAction, modifier
+				else
+					self.Desc:SetText(format(db.TUTORIAL.HINTS.HELPER_INVALID_ERROR, formatted))
+				end
 			end
 		end
 		self:SetPropagateKeyboardInput(false)
@@ -200,6 +268,7 @@ end
 function Helper:ACTIONBAR_HIDEGRID(...)
 	self:UnregisterEvent('PLAYER_REGEN_ENABLED')
 	self.cache = nil
+	self.manifest = nil
 	self:Hide()
 end
 

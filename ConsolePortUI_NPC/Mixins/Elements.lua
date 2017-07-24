@@ -651,7 +651,7 @@ function Elements:AcceptQuest()
 			AcceptQuest()
 		end
 	end
-	PlaySound("igQuestListOpen")
+	PlaySound(PlaySoundKitID and "igQuestListOpen" or SOUNDKIT.IG_QUEST_LIST_OPEN)
 end
 
 function Elements:ShowProgress(material)

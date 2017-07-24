@@ -12,28 +12,18 @@ local WindowMixin, Browser, Adder = {}
 
 local DisplayValue, GetField, ClearFields, RefreshBrowser, GetAffectedTablesString, merge
 local LoadCurrentData, LoadDataFromTable, ImportData
+local loadstring, pcall = loadstring, pcall
 
 -- Coroutine thread (expecting large data sets, handle in chunks)
 local ThreadManager = CreateFrame('Frame')
+local threadYieldCount = 8 -- lower: frame drops, higher: longer load time
 local thread
-local threadTimer = 0
-local threadThrottle = 0.05
 
 ThreadManager:Hide()
-ThreadManager:SetScript('OnUpdate', function(self, elapsed)
-	if not thread then
-		threadTimer = 0
-		self:Hide()
-	end
-	threadTimer = threadTimer + elapsed
-	if threadTimer >= threadThrottle then
-		threadTimer = threadTimer - threadThrottle
-		if coroutine.status(thread) ~= 'dead' then
-			coroutine.resume(thread)
-		else
-			thread = nil
-		end
-	end
+ThreadManager:SetScript('OnUpdate', function(self)
+	if not thread then self:Hide() end
+	if thread and coroutine.status(thread) ~= 'dead' then coroutine.resume(thread)
+	else thread = nil end
 end)
 
 -- Global height, Base width
@@ -280,8 +270,13 @@ function DisplayValue(parent, key, val)
 	local field = GetField(parent, key, val)
 	if type(val) == 'table' then
 		field.ExpOrColl:Show()
+		local counter, yieldAt = 0, (threadYieldCount - 1)
 		for k, v in spairs(val) do
 			DisplayValue(field, k, v)
+			counter = (counter + 1) % threadYieldCount
+			if yieldAt == counter then
+				coroutine.yield() -- yield in recursive settings
+			end
 		end
 		field.Value:Hide()
 		field:Collapse()
@@ -308,7 +303,6 @@ function LoadCurrentData()
 					first:SetPoint('TOPLEFT', 16, -16)
 				end
 			end
-			coroutine.yield()
 		end
 	end)
 	ThreadManager:Show()
@@ -330,7 +324,6 @@ function LoadDataFromTable(tbl)
 					
 				end
 			end
-			coroutine.yield()
 		end
 	end)
 	ThreadManager:Show()
@@ -409,11 +402,17 @@ end
 function Field:CompileValue()
 	local compiled, errorMsg = loadstring(compilers[self.type]:format(self.Value:GetText() or ''))
 	if compiled then
-		return compiled()
-	else
-		print('Error compiling:', self.key, self.val)
-		print(errorMsg)
+		local pcallOK, returnVal = pcall(compiled)
+		if pcallOK then
+			return returnVal
+		else
+			print('Error in execution:', self.key, self.val)
+			print(returnVal)
+			return
+		end
 	end
+	print('Error compiling:', self.key, self.val)
+	print(errorMsg or returnVal)
 end
 
 function Field:Compile()
@@ -573,8 +572,8 @@ ConsolePortConfig:AddPanel({
 
 		self.Load = db.Atlas.GetFutureButton('$parentLoad', self, nil, nil, bW, bH)
 		self.Load:SetPoint('BOTTOMLEFT', 24, 24)
-		self.Load:SetText('Load my data')
-		self.Load.tooltipText = 'Warning: This might cause your client to freeze momentarily while your data is loading.'
+		self.Load:SetText('Load profile data')
+		self.Load.tooltipText = 'Load your complete profile data into the browser.'
 		self.Load:SetScript('OnEnter', OnEnter)
 		self.Load:SetScript('OnLeave', OnLeave)
 		self.Load:SetScript('OnClick', function(self) 
@@ -585,7 +584,7 @@ ConsolePortConfig:AddPanel({
 		self.Compile = db.Atlas.GetFutureButton('$parentCompile', self, nil, nil, bW, bH)
 		self.Compile:SetPoint('LEFT', self.Load, 'RIGHT', 0, 0)
 		self.Compile:SetText('Recompile')
-		self.Compile.tooltipText = 'Reorganizes your loaded data.'
+		self.Compile.tooltipText = 'Reorganizes your loaded data; excluded values are removed and remaining values are sorted.'
 		self.Compile:SetScript('OnEnter', OnEnter)
 		self.Compile:SetScript('OnLeave', OnLeave)
 		self.Compile:SetScript('OnClick', function(self)

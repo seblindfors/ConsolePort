@@ -469,7 +469,7 @@ function ConsolePort:LoadBindingSet(newBindingSet)
 		SetMouseBindings(self, handler, bindingSet)
 	end
 	for name, key in pairs(bindingSet) do
-		local baseBinding = key['']
+		local baseBinding = (not name:match('CP_T_.3')) and key['']
 		for modifier in self:GetModifiers() do
 			local modBinding = key[modifier]
 			SetTempBinding(handler, modifier, name, modBinding or baseBinding)

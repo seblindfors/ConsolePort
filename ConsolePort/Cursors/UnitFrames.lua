@@ -577,7 +577,7 @@ function Cursor:UpdateNode(node)
 				self.Scale2:SetScale(1/1.5, 1/1.5)
 				self.Scale2:SetDuration(0.5)
 				FadeOut(self.Spell, 1, 1, 0.1)
-				PlaySound("AchievementMenuOpen")
+				PlaySound(PlaySoundKitID and "AchievementMenuOpen" or SOUNDKIT.ACHIEVEMENT_MENU_OPEN)
 			else
 				self.Scale1:SetScale(1.15, 1.15)
 				self.Scale2:SetScale(1/1.15, 1/1.15)

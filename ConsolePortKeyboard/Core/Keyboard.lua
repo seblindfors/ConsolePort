@@ -146,7 +146,7 @@ function Keyboard:SelectSet()
 	if self.Sets[DIR] then
 		self.CenterSet:Update()
 		self.Sets[DIR]:Enter()
-		PlaySound("igMainMenuOptionCheckBoxOn")
+		PlaySound(PlaySoundKitID and "igMainMenuOptionCheckBoxOn" or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 		Current = self.Sets[DIR]
 	else
 		Current = nil
@@ -269,7 +269,7 @@ function Keyboard:SetFocus(newFocus)
 	self.Focus = newFocus
 	self.Focus:EnableKeyboard(false)
 	self:Show()
-	PlaySound("igMainMenuOptionCheckBoxOn")
+	PlaySound(PlaySoundKitID and "igMainMenuOptionCheckBoxOn" or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 end
 
 

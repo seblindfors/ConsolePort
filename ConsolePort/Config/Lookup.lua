@@ -168,7 +168,22 @@ local DefaultBar = MainMenuBarArtFrame
 -- Functions for grabbing action button data
 ---------------------------------------------------------------
 function ConsolePort:GetActionPageDriver()
-	local driver = '[vehicleui] 1; [possessbar] 2; [overridebar] 3; [shapeshift] 4; [bar:2] 5; [bar:3] 6; [bar:4] 7; [bar:5] 8; [bar:6] 9; [bonusbar:1] 10; [bonusbar:2] 11; [bonusbar:3] 12; [bonusbar:4] 13; 14'
+	-- generate a macro condition with generic values to ensure any change pushes an update.
+	-- the actual bar ID check is done in the pager (Drivers\Pager) instead.
+	-- this method seems to work regardless of API changes that cause
+	-- some of these macro conditions to shift around on certain specs.
+	-- add any new / extra macro conditions to the list below. (as if there aren't enough already)
+	local conditionFormat = '[%s] %d; '
+	local count, driver = 0, ''
+	for i, macroCondition in pairs({
+		----------------------------------
+		'vehicleui', 'possessbar', 'overridebar', 'shapeshift',
+		'bar:2', 'bar:3', 'bar:4', 'bar:5', 'bar:6',
+		'bonusbar:1', 'bonusbar:2', 'bonusbar:3', 'bonusbar:4'
+		----------------------------------
+	}) do  driver = driver .. conditionFormat:format(macroCondition, i) count = i end
+	driver = driver .. (count + 1) -- append the list for the default bar (1) when none of the conditions apply.
+	----------------------------------
 	local newstate
 	if db.Settings and db.Settings.pagedriver then
 		newstate = SecureCmdOptionParse(db.Settings.pagedriver)
@@ -304,6 +319,11 @@ function ConsolePort:GetBindings(tbl) return tbl and db.table.copy(Controller.Bi
 -- Default faux binding settings
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultBinding(key) return copy(Controller.Bindings[key]) end
+
+---------------------------------------------------------------
+-- Get the currently deployed binding set (can be manipulated)
+---------------------------------------------------------------
+function ConsolePort:GetCurrentBindings() return db.table.copy(self:GetBindingSet()) end
 
 ---------------------------------------------------------------
 -- Get the button that's currently bound to a defined ID
@@ -690,6 +710,7 @@ local cvars = { -- value = default
 	centerLockRangeY 	= 180,
 	centerLockDeadzoneX = 4,
 	centerLockDeadzoneY = 4,
+	disableCursorTrail 	= false,
 	disableHints 		= false,
 	disableSmartBind 	= false,
 	disableSmartMouse 	= false,

@@ -18,7 +18,7 @@ local function CreateAtlasFrame(name, parent, templates, buttonTemplate)
 		frame = CreateFrame("Frame", name, parent or UIParent)
 		frame.Close = CreateFrame("Button", nil, frame, buttonTemplate)
 		frame.Close:SetScript("OnClick",  function() frame:Hide() end)
-		frame.Close:HookScript("OnClick", function() PlaySound("SPELLBOOKCLOSE") end)
+		frame.Close:HookScript("OnClick", function() PlaySound(PlaySoundKitID and "SPELLBOOKCLOSE" or SOUNDKIT.IG_SPELLBOOK_CLOSE) end)
 	end
 	return frame
 end
@@ -217,7 +217,7 @@ Atlas.GetArtOverlay = function(self)
 	self.Overlay:SetPoint("TOPLEFT", self, "TOPLEFT", 16, -16)
 	self.Overlay:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -16, 16)
 	self.Overlay:SetBlendMode("BLEND")
-	self.Overlay:SetAlpha(0.1)
+	self.Overlay:SetAlpha(.25)
 	self.Overlay:SetAtlas(Atlas.GetOverlay())
 
 	local function FixAspectRatio(self)
@@ -309,7 +309,7 @@ Atlas.GetGlassWindow  = function(name, parent, templates, classColored, buttonTe
 	return self
 end
 ---------------------------------------------------------------
-Atlas.GetFutureWindow = function(name, parent, templates, buttonTemplate, artCorners, noOverlay)
+Atlas.CreateFrame = function(name, parent, templates, buttonTemplate, artCorners, noOverlay)
 	local self = CreateAtlasFrame(name, parent, templates, buttonTemplate)
 	local assets = path.."Window\\Assets"
 

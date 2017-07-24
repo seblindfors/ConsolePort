@@ -1,19 +1,5 @@
 local _, L = ...
 
-function L.GetListString(...)
-	local ret = ''
-	local strings = {...}
-	local num = #strings
-	for i, str in pairs(strings) do
-		ret = ret .. '• ' .. str .. (i == num and '' or '\n')
-	end
-	return ret
-end
-
-function L.ValidateKey(key)
-	return ( key and ( not key:lower():match('button') ) ) and key
-end
-
 function L.GetDefaultConfig()
 	local t = {}
 	for k, v in pairs(L.defaults) do

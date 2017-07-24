@@ -52,7 +52,7 @@ function ConsolePort:CalibrateController(reset)
 		end
 	end
 	if not self.calibrationFrame then
-		local cbF = db.Atlas.GetFutureWindow("ConsolePortCalibrationFrame", nil, nil, nil, nil, true)
+		local cbF = db.Atlas.CreateFrame("ConsolePortCalibrationFrame", nil, nil, nil, nil, true)
 		local ctrlType = db.Settings.type
 		local red, green, blue = db.Atlas.GetCC()
 
@@ -83,7 +83,7 @@ function ConsolePort:CalibrateController(reset)
 		cbF.HelpButton:SetScript("OnClick", function(self)
 			if not cbF.helpFrame then
 				local ctrlType = db.Settings.type
-				local helpFrame = db.Atlas.GetFutureWindow("ConsolePortCalibrationHelpFrame", nil, nil, nil, nil, true)
+				local helpFrame = db.Atlas.CreateFrame("ConsolePortCalibrationHelpFrame", nil, nil, nil, nil, true)
 				helpFrame:SetPoint("CENTER", 0,0)
 				helpFrame:SetFrameStrata("DIALOG")
 				helpFrame:SetSize(760, 350)
@@ -413,13 +413,13 @@ function ConsolePort:CalibrateController(reset)
 		end)
 	elseif self:CheckCalibration(true) then
 		ConsolePortCalibrationFrame:Show()
-		PlaySound("SPELLBOOKOPEN")
+		PlaySound(PlaySoundKitID and "SPELLBOOKOPEN" or SOUNDKIT.IG_SPELLBOOK_OPEN)
 	end
 end
 
 function ConsolePort:SelectController()
 	if not ConsolePortSplashFrame then
-		local Splash = db.Atlas.GetFutureWindow("ConsolePortSplashFrame")
+		local Splash = db.Atlas.CreateFrame("ConsolePortSplashFrame")
 		local BTN_WIDTH, BTN_HEIGHT, TEX_SIZE, TEX_ROTATION = 200, 390, 600, 0.523598776
 		Splash.Controllers = {}
 
@@ -446,7 +446,7 @@ function ConsolePort:SelectController()
 			db.Settings.newController = true
 			db.Settings.forceController = self.ID
 
-			PlaySound("GLUEENTERWORLDBUTTON")
+			PlaySound(PlaySoundKitID and "GLUEENTERWORLDBUTTON" or SOUNDKIT.GS_CHARACTER_SELECTION_ENTER_WORLD)
 			ReloadUI()
 		end
 
@@ -502,5 +502,5 @@ function ConsolePort:SelectController()
 		Splash:Show()
 	end
 	ConsolePortSplashFrame:Show()
-	PlaySound("SPELLBOOKOPEN")
+	PlaySound(PlaySoundKitID and "SPELLBOOKOPEN" or SOUNDKIT.IG_SPELLBOOK_OPEN)
 end

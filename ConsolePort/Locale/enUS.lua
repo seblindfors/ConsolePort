@@ -171,7 +171,8 @@ TUTORIAL = {
 		HELPER_EQUIP_BAG 		= 'Click on a slot below to equip this bag.',
 		HELPER_INVALID_OCCUA 	= '%s is occupied by %s.\nYou need to bind this combination to your action bar first.',
 		HELPER_INVALID_OCCUB 	= '%s is occupied.\nYou need to bind this combination to your action bar first.',
-		HELPER_INVALID_FREE 	= '%s isn\'t bound to anything.\nYou need to bind this combination to your action bar first.',
+		HELPER_INVALID_FREE 	= '%s is currently unbound. Suggested free slot: |cFFFF6600%s|r.\nPress the combination again to confirm this binding.',
+		HELPER_INVALID_ERROR 	= '%s isn\'t bound to anything.\nYou need to bind this combination to your action bar first.',
 	},
 	SETUP = {
 		LAYOUT  			= 'Setup: Select controller layout',

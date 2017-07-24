@@ -12,7 +12,7 @@ function Button:OnClick(button, down)
 				( SelectGossipOption )
 	----------------------------------
 	call(self:GetGossipID())
-	PlaySound('igQuestListSelect')
+	PlaySound(PlaySoundKitID and 'igQuestListSelect' or SOUNDKIT.IG_QUEST_LIST_SELECT)
 end
 
 function Button:OnShow()

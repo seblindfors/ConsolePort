@@ -194,7 +194,7 @@ function Camera:OnLeftClickUp()
 	wasMouseLooking = nil
 end
 
--- Function hooks to address event-less would-be mouse events
+-- Function hooks to create custom mouselook triggers without any event
 for func, hook in pairs({
 	-- Get rid of mouselook when trying to interact with mouse
 	MouselookStop = Camera.OnStop,
@@ -702,16 +702,14 @@ function Core:UpdateMouseDriver()
 			local original = db.Bindings and db.Bindings[button] and db.Bindings[button]['']
 			local id = original and self:GetActionID(original)
 
-			local targetstate = '[@target,exists,harm,dead] loot; [@target,exists,harm,nodead] enemy; [@target,exists,noharm,nodead] friend; nil'
-
-			if db.Settings.mouseOverMode then
-				targetstate = '[@mouseover,exists] hover; '..targetstate
-			end
+			local targetstate = 
+				'[@mouseover,exists] hover; ' ..
+				'[@target,exists,harm,dead] loot; ' .. 
+				'[@target,exists,harm,nodead] enemy; ' ..
+				'[@target,exists,noharm,nodead] friend; nil'
 
 			Trail.Default = ICONS[button]
 			Trail.Texture:SetTexture(Trail.Default)
-			Trail:SetScript('OnUpdate', Trail.OnUpdate)
-			Trail:Show()
 
 			Mouse.Button:SetTexture(ICONS[button])
 
@@ -765,7 +763,7 @@ function Core:UpdateMouseDriver()
 
 		end
 		Trail:SetScript('OnUpdate', Trail.OnUpdate)
-		Trail:Show()
+		Trail:SetShown(not (db.Settings and db.Settings.disableCursorTrail))
 		self:RemoveUpdateSnippet(self.UpdateMouseDriver)
 	end
 end

@@ -143,7 +143,7 @@
 						local parent = self:GetParent();
 						local scrollStep = self:GetParent().scrollStep or (parent:GetHeight() / 2);
 						parent:SetValue(parent:GetValue() - scrollStep);
-						PlaySound("UChatScrollButton");
+						PlaySound(PlaySoundKitID and "UChatScrollButton" or SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 					</OnClick>
 				</Scripts>
 			</Button>
@@ -156,7 +156,7 @@
 						local parent = self:GetParent();
 						local scrollStep = self:GetParent().scrollStep or (parent:GetHeight() / 2);
 						parent:SetValue(parent:GetValue() + scrollStep);
-						PlaySound("UChatScrollButton");
+						PlaySound(PlaySoundKitID and "UChatScrollButton" or SOUNDKIT.U_CHAT_SCROLL_BUTTON);
 					</OnClick>
 				</Scripts>
 			</Button>

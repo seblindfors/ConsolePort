@@ -55,6 +55,7 @@ function HTMLHandler:page(message)
 		--	end
 		--	button.SelectedTexture:Show()
 		--	selectedIndex = button
+		-- this block can crash the game for some reason
 			return
 		end
 	end
