@@ -552,15 +552,28 @@ function WindowMixin:Export(exportData)
 		ConsolePortCharacterSettings = settings
 
 		if not settings[uid] then
-			settings[uid] = {
-				Type = db.Settings.type,
-				Class = classToken,
-				Spec = specID,
-			}
+			settings[uid] = {}
 		end
 
+		local characterProfile = settings[uid]
+		local isIdentical = db.table.compare
+
 		for ID, data in pairs(exportData) do
-			settings[uid][ID] = data
+			local allowExport = true
+			for _, exportedData in pairs(settings) do
+				if isIdentical(data, exportedData[ID]) then
+					allowExport = false
+				end
+			end
+			characterProfile[ID] = allowExport and data or nil
+		end
+
+		if next(characterProfile) then
+			characterProfile.Type = db.Settings.type
+			characterProfile.Class = classToken
+			characterProfile.Spec = specID
+		else
+			settings[uid] = nil
 		end
 	end
 end

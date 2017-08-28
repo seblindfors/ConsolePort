@@ -62,14 +62,14 @@ do
 	Bar.WatchBarContainer = CreateFrame('Frame', '$parentWatchBars', Bar)
 	Bar.WatchBarContainer:SetPoint('BOTTOM', 0, 0)
 	Bar.WatchBarContainer:SetSize(1024, 16)
-	Bar.WatchBarContainer.BGLeft = Bar.WatchBarContainer:CreateTexture('BACKGROUND')
-	Bar.WatchBarContainer.BGRight = Bar.WatchBarContainer:CreateTexture('BACKGROUND')
 
+	Bar.WatchBarContainer.BGLeft = Bar.WatchBarContainer:CreateTexture('BACKGROUND')
 	Bar.WatchBarContainer.BGLeft:SetPoint('TOPLEFT')
 	Bar.WatchBarContainer.BGLeft:SetPoint('BOTTOMRIGHT', Bar.WatchBarContainer, 'BOTTOM', 0, 0)
 	Bar.WatchBarContainer.BGLeft:SetColorTexture(0, 0, 0, 1)
 	Bar.WatchBarContainer.BGLeft:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 0, 0, 0, 0, 1)
 
+	Bar.WatchBarContainer.BGRight = Bar.WatchBarContainer:CreateTexture('BACKGROUND')
 	Bar.WatchBarContainer.BGRight:SetColorTexture(0, 0, 0, 1)
 	Bar.WatchBarContainer.BGRight:SetPoint('TOPRIGHT')
 	Bar.WatchBarContainer.BGRight:SetPoint('BOTTOMLEFT', Bar.WatchBarContainer, 'BOTTOM', 0, 0)

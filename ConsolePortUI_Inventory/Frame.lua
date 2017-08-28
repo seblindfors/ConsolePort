@@ -3,106 +3,110 @@ local UI = ConsolePortUI
 local Mixin = UI.Utils.Mixin
 
 local frame = UI:CreateFrame('Frame', _, UIParent, 'CPUIFrameTemplate, SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate', {
-	MoneyFrame = {
-		Type = 'Frame',
-		Setup = {'SmallMoneyFrameTemplate'},
-		Show = true,
-		Clear = true,
-		Point = {'TOPRIGHT', -24, -24},
-	},
-	Bags = {
-		Type = 'Frame',
-		Fill = true,
-		Setup = {'SecureHandlerBaseTemplate'},
-		Mixin =  L.InventoryMixin,
-		{
-			Active = {},
+--	Hide = true,
+--	Size = {1, 1},
+--	{
+		MoneyFrame = {
+			Type = 'Frame',
+			Setup = {'SmallMoneyFrameTemplate'},
+			Show = true,
+			Clear = true,
+			Point = {'TOPRIGHT', -24, -24},
 		},
-	},
-	Merchant = {
-		Type = 'Frame',
-		Fill = true,
-		Hide = true,
-		Setup = {'SecureHandlerBaseTemplate'},
-		Mixin = L.MerchantMixin,
-		Probe = {MerchantFrame, 'showhide'},
-		{
-			Tabs = {},
-			Items = {
-				Type = 'ScrollFrame',
-				Size = {500, 460},
-				Point = {'BOTTOMRIGHT', -32, 32},
-				{
-					Buttons = {},
-					BGFrame = {
-						Type = 'Frame',
-						Background = 'SCROLLBG',
-						Level = 2,
-						Points = {
-							{'TOPLEFT', -16, 16},
-							{'BOTTOMRIGHT', 16, -16},
+		Bags = {
+			Type = 'Frame',
+			Fill = true,
+			Setup = {'SecureHandlerBaseTemplate'},
+			Mixin =  L.InventoryMixin,
+			{
+				Active = {},
+			},
+		},
+		Merchant = {
+			Type = 'Frame',
+			Fill = true,
+			Hide = true,
+			Setup = {'SecureHandlerBaseTemplate'},
+			Mixin = L.MerchantMixin,
+			Probe = {MerchantFrame, 'showhide'},
+			{
+				Tabs = {},
+				Items = {
+					Type = 'ScrollFrame',
+					Size = {500, 460},
+					Point = {'BOTTOMRIGHT', -32, 32},
+					{
+						Buttons = {},
+						BGFrame = {
+							Type = 'Frame',
+							Background = 'SCROLLBG',
+							Level = 2,
+							Points = {
+								{'TOPLEFT', -16, 16},
+								{'BOTTOMRIGHT', 16, -16},
+							},
+						},
+					},
+				},
+				ItemTab = {
+					Type = 'Button',
+					Setup = {'CharacterFrameTabButtonTemplate'},
+					Point = {'TOPRIGHT', -400, -50},
+					Text = MERCHANT,
+					ID = 1,
+				},
+				FilterTab = {
+					Type = 'Button',
+					Setup = {'CharacterFrameTabButtonTemplate'},
+					Point = {'TOPRIGHT', -270, -50},
+					Text = FILTER,
+					ID = 2,
+				},
+				BuybackTab = {
+					Type = 'Button',
+					Setup = {'CharacterFrameTabButtonTemplate'},
+					Point = {'TOPRIGHT', -140, -50},
+					Text = BUYBACK,
+					ID = 3,
+				},
+				RepairAll = {
+					Type = 'Button',
+					Size = {50, 50},
+					Point = {'TOPLEFT', 30, -100},
+					Events = {'UPDATE_INVENTORY_DURABILITY'},
+					OnEvent = function(self)
+						local _, canRepair = GetRepairAllCost();
+						if ( not canRepair ) then
+							self.Icon:SetDesaturated(true)
+							SetDesaturation(MerchantGuildBankRepairButtonIcon, true)
+							self:Disable()
+						else
+							self.Icon:SetDesaturated(false)
+							SetDesaturation(MerchantGuildBankRepairButtonIcon, false)
+							self:Enable()
+						end
+					end,
+					OnClick = function(self)
+						RepairAllItems()
+						PlaySound('ITEM_REPAIR')
+						GameTooltip:Hide()
+					end,
+					OnLoad = function(self)
+						self:RegisterEvent('UPDATE_INVENTORY_DURABILITY')
+					end,
+					{
+						Icon = {
+							Type = 'Texture',
+							Setup = {'BORDER'},
+							Fill = true,
+							Texture = [[Interface\MerchantFrame\UI-Merchant-RepairIcons]],
+							Coords = {0.28125, 0.5625, 0, 0.5625},
 						},
 					},
 				},
 			},
-			ItemTab = {
-				Type = 'Button',
-				Setup = {'CharacterFrameTabButtonTemplate'},
-				Point = {'TOPRIGHT', -400, -50},
-				Text = MERCHANT,
-				ID = 1,
-			},
-			FilterTab = {
-				Type = 'Button',
-				Setup = {'CharacterFrameTabButtonTemplate'},
-				Point = {'TOPRIGHT', -270, -50},
-				Text = FILTER,
-				ID = 2,
-			},
-			BuybackTab = {
-				Type = 'Button',
-				Setup = {'CharacterFrameTabButtonTemplate'},
-				Point = {'TOPRIGHT', -140, -50},
-				Text = BUYBACK,
-				ID = 3,
-			},
-			RepairAll = {
-				Type = 'Button',
-				Size = {50, 50},
-				Point = {'TOPLEFT', 30, -100},
-				Events = {'UPDATE_INVENTORY_DURABILITY'},
-				OnEvent = function(self)
-					local _, canRepair = GetRepairAllCost();
-					if ( not canRepair ) then
-						self.Icon:SetDesaturated(true)
-						SetDesaturation(MerchantGuildBankRepairButtonIcon, true)
-						self:Disable()
-					else
-						self.Icon:SetDesaturated(false)
-						SetDesaturation(MerchantGuildBankRepairButtonIcon, false)
-						self:Enable()
-					end
-				end,
-				OnClick = function(self)
-					RepairAllItems()
-					PlaySound('ITEM_REPAIR')
-					GameTooltip:Hide()
-				end,
-				OnLoad = function(self)
-					self:RegisterEvent('UPDATE_INVENTORY_DURABILITY')
-				end,
-				{
-					Icon = {
-						Type = 'Texture',
-						Setup = {'BORDER'},
-						Fill = true,
-						Texture = [[Interface\MerchantFrame\UI-Merchant-RepairIcons]],
-						Coords = {0.28125, 0.5625, 0, 0.5625},
-					},
-				},
-			},
 		},
-	},
+--	}
 })
 
 frame:SetFrameRef('merchant', frame.Merchant)
@@ -377,8 +381,8 @@ for name, script in pairs({
 
 do  -- Bag setup 
 	-------------------------
-	frame:Hide()
-	frame:SetPoint('BOTTOM', 0, 100)
+--	frame:Hide()
+--	frame:SetPoint('BOTTOM', 0, 100)
 	frame:SetFrameStrata('HIGH')
 	frame:SetSize(1, 1)
 

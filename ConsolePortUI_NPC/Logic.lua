@@ -312,9 +312,6 @@ function NPC:PlayIntro(event)
 		local point = L.Get('boxpoint')
 		local x, y = L.Get('boxoffsetX'), L.Get('boxoffsetY')
 		box:ClearAllPoints()
-		if not isShown then
-			box:SetPoint(point, UIParent, point, -x, -y)
-		end
 		box:SetOffset(box.offsetX or x, box.offsetY or y)
 	end
 end
@@ -343,7 +340,20 @@ local inputs = {
 			self.TitleButtons:SetNext() 
 		end
 	end,
-	[KEY.TRIANGLE] = function(self, down) if down then CloseGossip() CloseQuest() end end,
+	[KEY.LEFT] = function(self, down)
+		if down then
+			if self.isInspecting then
+				self.Inspector:SetPrevious()
+			end
+		end
+	end,
+	[KEY.RIGHT] = function(self, down)
+		if down then
+			if self.isInspecting then
+				self.Inspector:SetNext()
+			end
+		end
+	end,
 	[KEY.SQUARE] = function(self, down)
 		if down then
 			local text = self.TalkBox.TextFrame.Text
@@ -387,20 +397,10 @@ local inputs = {
 			end
 		end
 	end,
-	[KEY.LEFT] = function(self, down)
-		if down then
-			if self.isInspecting then
-				self.Inspector:SetPrevious()
-			end
-		end
-	end,
-	[KEY.RIGHT] = function(self, down)
-		if down then
-			if self.isInspecting then
-				self.Inspector:SetNext()
-			end
-		end
-	end,
+	[KEY.TRIANGLE] = function(self, down) if down then CloseGossip() CloseQuest() end end,
+	[KEY.OPTIONS] = function(self, down) if down then CloseGossip() CloseQuest() end end,
+	[KEY.CENTER] = function(self, down) if down then CloseGossip() CloseQuest() end end,
+	[KEY.SHARE] = function(self, down) if down then CloseGossip() CloseQuest() end end,
 }
 
 

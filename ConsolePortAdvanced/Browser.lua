@@ -39,15 +39,16 @@ local colors = {
 
 -- Data type compilers
 local compilers = {
-	string = [[return '%s']],
+	string 	= [[return [=[%s]=] ]],
 	boolean = [[return %s]],
-	number = [[return tonumber(%s)]],
-	table = [[return {%s}]],
-	manual = [[return %s]],
+	number 	= [[return tonumber(%s)]],
+	table 	= [[return {%s}]],
+	manual 	= [[return %s]],
 }
 
 local tables = {
 	['Action Bar'] =  'ConsolePortBarSetup',
+	['Action Bar Manifest'] =  'ConsolePortBarManifest',
 	['Bindings'] =  'ConsolePortBindingSet',
 	['General settings'] =  'ConsolePortSettings',
 	['Mouse & camera'] =  'ConsolePortMouse',

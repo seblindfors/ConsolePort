@@ -73,7 +73,7 @@ end
 
 function Probe:SetResponseScript(script)
 	if type(script) == 'string' and loadstring(script) then
-		self:Execute( ("_pc=[[%s]]"):format(script) )
+		self:Execute( ("_cb=[[%s]]"):format(script) )
 	end
 end
 
@@ -92,8 +92,8 @@ end
 SCRIPT = {
 	show = [[_=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) owner:Hide() owner:Show()]],
 	hide = [[_=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _ < 1 then owner:Hide() end]],
-	pcsh = [[_=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) if _pc then owner:Run(_pc,_) end]],
-	pchi = [[_=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _pc then owner:Run(_pc,_) end]],
+	pcsh = [[_=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) if _cb then owner:Run(_cb,_) end]],
+	pchi = [[_=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _cb then owner:Run(_cb,_) end]],
 	omit = [[return nil]],
 }
 ----------------------------

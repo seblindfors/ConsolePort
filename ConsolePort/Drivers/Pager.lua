@@ -17,7 +17,7 @@ local PAGER_SECURE_FUNCTIONS = {
 	GetActionID = [[
 		local id = ...
 		if id then
-			local page = self:GetAttribute('actionpage')
+			local page = self:GetAttribute('actionpage') or 1
 			if id >= 1 and id <= 12 then
 				return ( ( page - 1 ) * 12 ) + id
 			else
@@ -29,6 +29,12 @@ local PAGER_SECURE_FUNCTIONS = {
 		local id = self:RunAttribute('GetActionID', ...)
 		if id then
 			return GetActionInfo(id)
+		end
+	]],
+	GetSpellID = [[
+		local actionType, spellID, subType = self:RunAttribute('GetActionInfo', ...)
+		if actionType == 'spell' and subType == 'spell' then
+			return spellID
 		end
 	]],
 	GetActionSpellSlot = [[
@@ -60,19 +66,28 @@ local PAGER_SECURE_FUNCTIONS = {
 		end
 	]],
 	IsNeutralAction = [[
-		return self:RunAttribute('IsHelpfulAction', ...) == self:RunAttribute('IsHarmfulAction', ...)
+		return (self:RunAttribute('IsHelpfulAction', ...) == self:RunAttribute('IsHarmfulAction', ...))
 	]],
+	IsReticleSpell = [[
+		local actionType, spellID = self:RunAttribute('GetActionInfo', ...)
+		local spellSlot = self:RunAttribute('GetActionSpellSlot', ...)
+		local isHelpful = self:RunAttribute('IsHelpfulAction', ...)
+		local isHarmful = self:RunAttribute('IsHarmfulAction', ...)
+		if ((actionType == 'spell') and (isHelpful == false and isHarmful == false)) then
+			return spellID, spellSlot
+		end 
+	]], 
 }
 
 function ConsolePort:RegisterSpellHeader(header, omitFromStack)
 	if not InCombatLockdown() then
-		local _, current = self:GetActionPageDriver()
 
 		for name, func in pairs(PAGER_SECURE_FUNCTIONS) do
 			header:SetAttribute(name, func)
 		end
 
 		if not omitFromStack then
+			local _, current = self:GetActionPageDriver()
 			header:SetAttribute('actionpage', current)
 
 			header:SetFrameRef('actionBar', MainMenuBarArtFrame)

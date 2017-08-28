@@ -57,13 +57,12 @@ function ConsolePort:RegisterCallback(functionName, func, owner, orderIndex)
 
 	-- Add hook if it doesn't exist
 	if not callBacks[functionName] then
-		local functions = {}
-		local subOwners = owners[functionName]
-		callBacks[functionName] = functions
+		local functionsToRun = {}
+		local callBackOwners = owners[functionName]
+		callBacks[functionName] = functionsToRun
 		hooksecurefunc(self, functionName, function(self, ...)
-			for i, func in pairs(functions) do
-				local owner = subOwners and subOwners[func]
-				func(owner or self, ...)
+			for i, callback in pairs(functionsToRun) do
+				callback(callBackOwners and callBackOwners[callback] or self, ...)
 			end
 		end)
 	end

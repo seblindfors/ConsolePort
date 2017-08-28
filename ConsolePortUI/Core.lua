@@ -2,31 +2,38 @@ local CP_UI, UI = ...
 ----------------------------------
 _G[CP_UI] = UI
 ----------------------------------------------------------------
-local 	assert, format, pairs, ipairs, next, select, type, unpack, wipe, tconcat = 
-		assert, format, pairs, ipairs, next, select, type, unpack, wipe, table.concat
-local 	anchor, load, getRelative, callMethod, callMethodSafe, addSubTable, err
+local 	assert, pairs, ipairs, type, unpack, wipe, tconcat = 
+		assert, pairs, ipairs, type, unpack, wipe, table.concat
 ----------------------------------------------------------------
-local ARGS, ERROR, ERROR_CODES, REGION, SETUP, IGNORE_SETUP, IGNORE_VALUE
-local ANCHORS, CONSTRUCTORS = {}, {}
+local 	CreateFrame = CreateFrame
+----------------------------------------------------------------
+local 	anchor, load, call, callMethodsOnRegion, -- func calls
+		pop, popMulti, addSubTable, -- table operations
+		err, extractBuildInfo, getRelative -- misc
+----------------------------------------------------------------
+local 	ARGS, ERROR, ERROR_CODES, REGION, SETUP, BUILDINFO
+local 	ANCHORS, CONSTRUCTORS = {}, {}
 ----------------------------------------------------------------
 
 --- Create a new frame.
 -- @param 	object 	: Type of object to be created. Frame or inherited therefrom. 
 -- @param 	name 	: Name of the object to be created.
 -- @param 	parent 	: Parent of the object.
--- @param 	templates : Inherited templates.
+-- @param 	xml 	: Inherited xml.
 -- @param 	blueprint : Table consisting of additional regions to be created.
 -- @return 	frame 	: Returns the created object.
-function UI:CreateFrame(object, name, parent, templates, blueprint, recursive)
+function UI:CreateFrame(object, name, parent, xml, blueprint, recursive)
 	----------------------------------
-	if templates and templates:match('Secure') then
-		assert(not InCombatLockdown(), 'Cannot create secure frame in combat!')
-	end
-	----------------------------------
-	local frame = CreateFrame(object, name, parent, templates)
+	local frame = CreateFrame(object, name, parent, xml)
 	----------------------------------
 	if blueprint then
-		self:BuildFrame(frame, blueprint, true)
+		if recursive then
+			self:BuildFrame(frame, blueprint, true)
+		else
+			local children = pop(blueprint, 1)
+			callMethodsOnRegion(frame, blueprint)
+			self:BuildFrame(frame, children, true)
+		end
 	end
 	----------------------------------
 	if not recursive then
@@ -45,33 +52,34 @@ end
 function UI:BuildFrame(frame, blueprint, recursive)
 	assert(type(blueprint) == 'table', err('Blueprint', frame:GetName(), ERROR_CODES.BLUEPRINT))
 	for key, config in pairs(blueprint) do
-		local isLoop = config.Repeat
+		assert(type(config) == 'table', err(key, frame:GetName(), ERROR_CODES.CONFIGTABLE))
+		----------------------------------
+		local object, objectType, buildInfo, isLoop = extractBuildInfo(config)
+		----------------------------------
 		for i = 1, ( isLoop or 1 ) do
 			local key = ( isLoop and key..i ) or key
 			local region = frame[key]
 			if not region then
 				----------------------------------
-				if config.Setup then -- Assert type exists if setup table exists.
-					assert(config.Type, err(key, name, ERROR_CODES.REGION))
+				if buildInfo then -- Assert type exists if setup table exists.
+					assert(object, err(key, name, ERROR_CODES.REGION))
 				end
 				----------------------------------
-				if config.Type then
+				if object then
 					-- Region type has special constructor.
-					if REGION[config.Type] then
-						region = REGION[config.Type](frame, key, config.Setup or config.Values)
+					if REGION[object] then
+						region = REGION[object](frame, key, buildInfo)
 					-- Region already exists.
-					elseif type(config.Type) == 'table' then
-						region = REGION.Existing(frame, key, config.Type)
+					elseif objectType == 'table' then
+						region = REGION.Existing(frame, key, object)
 					-- Region should be a type of frame.
-					elseif type(config.Type) == 'string' then
-						region = self:CreateFrame(config.Type, '$parent'..key, frame, config.Setup and tconcat(config.Setup, ', '), config[1], true)
-						-- Children have already been added recursively, remove the blueprint.
-						config[1] = nil
+					elseif objectType == 'string' then
+						region = self:CreateFrame(object, '$parent'..key, frame, buildInfo and tconcat(buildInfo, ', '), pop(config, 1), true)
 					end
 				else -- Assume this is a data table.
 					region = config
 				end
-
+				----------------------------------
 				frame[key] = region
 			end
 
@@ -79,31 +87,10 @@ function UI:BuildFrame(frame, blueprint, recursive)
 				region:SetID(i)
 			end
 
-			-- apply preset (if present) before everything else
-			if config.Preset then
-				callMethodSafe(region, 'Preset', config.Preset)
-			end
-
-			-- mixin before running the rest of the region func stack,
-			-- since mixed in functions may be called from the blueprint
-			if config.Mixin then
-				callMethodSafe(region, 'Mixin', config.Mixin)
-				-- if the mixin has an onload script, add it to the constructor stack.
-				-- remove the onload function from the object itself.
-				if region.OnLoad and not config.OnLoad then
-					-- use :GetScript in case more than one load script was hooked.
-					config.OnLoad = region:GetScript('OnLoad')
-					region:SetScript('OnLoad', nil)
-					region.OnLoad = nil
-				end
-			end
-
-			for sType, sData in pairs(config) do
-				callMethod(region, sType, sData)
-			end
+			callMethodsOnRegion(region, config)
 		end
 	end
-	-- parse if function is explicitly called
+	-- parse if explicitly called without wrapping (building on top of existing frame)
 	if not recursive then
 		anchor()
 		load()
@@ -111,52 +98,67 @@ function UI:BuildFrame(frame, blueprint, recursive)
 	return frame
 end
 
-function callMethodSafe(region, sType, sData)
-	if sData == 'nil' then
-		sData = nil
+----------------------------------
+function call(region, method, data)
+	if data == 'nil' then
+		data = nil
 	end
-	local func = SETUP[sType] or region[sType]
+	local func = SETUP[method] or region[method]
 	if type(func) == 'function' then
-		-- if non-associative table, just unpack it.
-		if ( type(sData) == 'table' and #sData ~= 0 and sType ~= 1) then
-			return func(region, unpack(sData))
+		-- if sequential array, just unpack it.
+		if ( type(data) == 'table' and #data ~= 0 ) then
+			return func(region, unpack(data))
 		else
-			return func(region, sData)
+			return func(region, data)
 		end
-	elseif type(sData) == 'function' and region.HasScript and region:HasScript(sType) then
-		if region:GetScript(sType) then
-			region:HookScript(sType, sData)
+	elseif type(data) == 'function' and region.HasScript and region:HasScript(method) then
+		if region:GetScript(method) then
+			region:HookScript(method, data)
 		else
-			region:SetScript(sType, sData)
+			region:SetScript(method, data)
 		end 
-	elseif not IGNORE_VALUE[sType] then
-		region[sType] = sData
+	else
+		region[method] = data
 	end
 end
 
-function callMethod(region, sType, sData)
-	if not IGNORE_SETUP[sType] then
-		callMethodSafe(region, sType, sData)
+function callMethodsOnRegion(region, methods)
+	-- mixin before running the rest of the region method stack,
+	-- since mixed in functions may be called from the blueprint
+	local mixin = pop(methods, 'Mixin')
+	if mixin then
+		call(region, 'Mixin', mixin)
+		-- if the mixin has an onload script, add it to the constructor stack.
+		-- remove the onload function from the object itself.
+		if region.OnLoad and not methods.OnLoad then
+			-- use :GetScript in case more than one load script was hooked.
+			methods.OnLoad = region:GetScript('OnLoad')
+			region:SetScript('OnLoad', nil)
+			region.OnLoad = nil
+		end
+	end
+
+	for method, data in pairs(methods) do
+		call(region, method, data)
 	end
 end
-
 
 ----------------------------------
-function getRelative(region, regionString)
-	if type(regionString) == 'table' then 
-		return regionString
-	elseif type(regionString) == 'string' then 
-		local relativeRegion
-		for key in regionString:gmatch('%a+') do
+function getRelative(region, relative)
+	if type(relative) == 'table' then 
+		return relative
+	elseif type(relative) == 'string' then 
+		local searchResult
+		for key in relative:gmatch('%a+') do
 			if key == 'parent' then
-				relativeRegion = relativeRegion and relativeRegion:GetParent() or region:GetParent()
-			elseif relativeRegion then
-				relativeRegion = relativeRegion[key]
+				searchResult = searchResult and searchResult:GetParent() or region:GetParent()
+			elseif searchResult then
+				searchResult = searchResult[key]
 			else
-				relativeRegion = region[key]
+				searchResult = region[key]
 			end
 		end
-		return relativeRegion
+		return searchResult
 	else
 		err('Relative region', region:GetName(), ERROR.CODES.RELATIVEREGION)
 	end
@@ -188,9 +190,36 @@ function load()
 	wipe(CONSTRUCTORS)
 end
 
+function extractBuildInfo(bp)
+	local 	fType, buildInfo, isLoop = popMulti(bp, unpack(BUILDINFO))
+	return 	fType, type(fType), buildInfo, isLoop
+end
+
 ----------------------------------
+function popMulti(tbl, ...)
+	local popped = {...}
+	for i, key in pairs(popped) do
+		popped[i] = tbl[key] or false
+		tbl[key] = nil
+	end
+	return unpack(popped)
+end
+
+function pop(tbl, key)
+	local val = tbl[key]
+	tbl[key] = nil
+	return val
+end
 
 function addSubTable(tbl, ...) tbl[#tbl + 1] = {...} end
+
+----------------------------------
+BUILDINFO = {
+----------------------------------
+	'Type',		-- type of object to be created.
+	'Setup',	-- denotes the optional args to be passed to constructor.
+	'Repeat', 	-- denotes whether multiple regions should be created.
+}
 
 ----------------------------------
 ARGS = {
@@ -212,6 +241,7 @@ ERROR_CODES = {
 	RELATIVEREGION = 'is invalid. Type should be a parsable string or existing frame. Arguments: '..ARGS.RELATIVEREGION,
 	CONSTRUCTOR = 'is invalid. Constructor must be a function.',
 	BLUEPRINT = 'is invalid. Blueprint should be a nested table. Arguments: '..ARGS.BLUEPRINT,
+	CONFIGTABLE = 'is not a valid config table or existing region.',
 }---------------------------------
 
 function err(key, name, code) return ERROR:format(key, name or 'unnamed region', code) end
@@ -235,8 +265,6 @@ REGION = {
 		frame:SetToplevel(true)
 		return frame
 	end,
-	---
-	Table = function(parent, key, setup) parent[key] = setup or {} return parent[key] end,
 	---
 	Existing = function(parent, key, region)
 		_G[parent:GetName()..key] = region
@@ -271,7 +299,7 @@ SETUP = {
 	Attrib 	= function(frame, attributes) for k, v in pairs(attributes) do frame:SetAttribute(k, v) end end,
 	Backdrop = function(frame, backdrop) frame:SetBackdrop(backdrop) end,
 	Background = function(frame, backdrop) UI.Media:SetBackdrop(frame, backdrop) end,
-	Events 	= function(frame, ...) for _, v in pairs({...}) do frame:RegisterEvent(v) end end,
+	Events 	= function(frame, ...) for _, v in ipairs({...}) do frame:RegisterEvent(v) end end,
 	Hooks 	= function(frame, scripts) for k, v in pairs(scripts) do frame:HookScript(k, v) end end,
 	Level 	= function(frame, ...) frame:SetFrameLevel(...) end,
 	Strata 	= function(frame, ...) frame:SetFrameStrata(...) end,
@@ -282,7 +310,6 @@ SETUP = {
 	Fill 	= function(region, target) region:SetAllPoints(target ~= true and getRelative(region, target)) end,
 	Height 	= function(region, ...) region:SetHeight(...) end,
 	Hide 	= function(region, ...) region:Hide() end,
-	Preset 	= function(region, ...) UI:ApplyTemplate(region, ...) end,
 	Probe 	= function(region, ...) region.probe = UI:CreateProbe(region, ...) end,
 	Show 	= function(region, ...) region:Show() end,
 	Size 	= function(region, ...) region:SetSize(...) end,
@@ -299,7 +326,7 @@ SETUP = {
 	OnLoad 	= function(region, ...) addSubTable(CONSTRUCTORS, region, ...) end,
 	--- Points
 	Point 	= function(region, ...) addSubTable(ANCHORS, region, ...) end,
-	Points  = function(region, ...) for _, point in pairs({...}) do addSubTable(ANCHORS, region, unpack(point)) end end,
+	Points  = function(region, ...) for _, point in ipairs({...}) do addSubTable(ANCHORS, region, unpack(point)) end end,
 	-- Mixin 
 	Mixin 	= function(region, ...) UI:ApplyMixin(region, nil, ...) end,
 	MixinNormal = function(region, ...) UI:ApplyMixin(region, UI.Utils.MixinNormal, ...) end,
@@ -309,26 +336,10 @@ SETUP = {
 			assert(region[k] or SETUP[k], err(k, region:GetName(), ERROR_CODES.MULTI_FUNC))
 			assert(type(v) == 'table', err(k, region:GetName(), ERROR_CODES.MULTI_TABLE))
 			for _, args in pairs(v) do
-				callMethod(region, k, args)
+				call(region, k, args)
 			end
 		end
 	end,
-}---------------------------------
-
-----------------------------------
-IGNORE_SETUP = {
-----------------------------------
-	Preset = true,
-	Repeat = true,
-	Mixin = true,
-}---------------------------------
-
-----------------------------------
-IGNORE_VALUE = {
-----------------------------------
-	Type = true,
-	Setup = true,
-	Values = true,
 }---------------------------------
 
 -- Allow other entities to access these objects directly

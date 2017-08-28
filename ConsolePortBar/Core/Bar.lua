@@ -1,11 +1,11 @@
 ---------------------------------------------------------------
 local db = ConsolePort:GetData()
 ---------------------------------------------------------------
-local addOn, ab = ...
+local _, ab = ...
 ---------------------------------------------------------------
 local cfg
 
-local Bar = CreateFrame('Frame', addOn, UIParent, 'SecureHandlerStateTemplate, SecureHandlerShowHideTemplate')
+local Bar = CreateFrame('Frame', _, UIParent, 'SecureHandlerStateTemplate, SecureHandlerShowHideTemplate')
 local WrapperLib = ab.libs.wrapper
 local state, now = ConsolePort:GetActionPageDriver()
 
@@ -27,6 +27,8 @@ Bar:SetFrameRef('Mouse', ConsolePortMouseHandle)
 
 Bar:Execute([[
 	bindings = newtable()
+	reticleSpellManifest = newtable()
+	reticleMacroString = '/stopspelltarget\n/cast [@cursor] %s'
 	bar = self
 	cursor = self:GetFrameRef('Cursor')
 	mouse = self:GetFrameRef('Mouse')
@@ -51,7 +53,7 @@ end
 function Bar:UpdateOverrides()
 	self:Execute([[
 		for key, button in pairs(bindings) do
-			self:SetBindingClick(true, key, button)
+			self:SetBindingClick(true, key, button, 'ControllerInput')
 		end
 	]])
 end
@@ -71,6 +73,7 @@ function Bar:OnNewBindings(...)
 end
 
 ConsolePort:RegisterCallback('OnNewBindings', Bar.OnNewBindings, Bar)
+ConsolePort:RegisterSpellHeader(Bar, true)
 
 function Bar:OnEvent(event, ...)
 	if self[event] then
@@ -86,17 +89,24 @@ function Bar:PLAYER_REGEN_DISABLED()
 	self:FadeIn(self:GetAlpha())
 end
 
-function Bar:ADDON_LOADED(...)
-	local name = ...
-	if name == addOn then
+function Bar:LoadReticleSpells()
+	Bar:Execute('wipe(reticleSpellManifest)')
+	local reticleSpells = ab.manifest and ab.manifest.ReticleSpells
+	if type(reticleSpells) == 'table' then
+		local classSpecific = reticleSpells[select(2, UnitClass('player'))]
+		if type(classSpecific) == 'table' then
+			for spellID, name in pairs(classSpecific) do
+				Bar:Execute(format('reticleSpellManifest[%d] = "%s"', spellID, name))
+			end
+		end
+	end
+	self.LoadReticleSpells = nil
+end
+
+function Bar:ADDON_LOADED(name)
+	if name == _ then
 		if not ConsolePortBarSetup then
-			ConsolePortBarSetup = {
-				scale = 0.9,
-				width = BAR_MIN_WIDTH,
-				watchbars = true,
-				showline = true,
-				lock = true,
-			}
+			ConsolePortBarSetup = ab:GetDefaultSettings()
 		-------------------------------
 		-- compat: binding ID fix for grip buttons , remove later on
 		else local layout = ConsolePortBarSetup.layout
@@ -107,8 +117,11 @@ function Bar:ADDON_LOADED(...)
 			end
 		-------------------------------
 		end
+		ab:CreateManifest()
+		self:LoadReticleSpells()
 		self:OnLoad(ConsolePortBarSetup)
 		self:UnregisterEvent('ADDON_LOADED')
+		self.ADDON_LOADED = nil
 	end
 end
 
@@ -244,7 +257,7 @@ function Bar:OnLoad(cfg, benign)
 		self.Buttons[#self.Buttons + 1] = wrapper
 	end
 
-	self.WatchBarContainer:Hide()
+	self.WatchBarContainer:Hide() -- hide so it updates OnShow, if set.
 	self.WatchBarContainer:SetShown(not cfg.hidewatchbars)
 
 	-- Don't run this when updating simple cvars
@@ -253,8 +266,10 @@ function Bar:OnLoad(cfg, benign)
 		self:Hide()
 		self:SetShown(not cfg.hidebar)
 
+		self:SetAttribute('disableCastOnRelease', cfg.disablecastonrelease)
 		self:SetAttribute('page', 1)
 		self:Execute(format([[
+			disableCastOnRelease = self:GetAttribute('disableCastOnRelease')
 			control:ChildUpdate('state', '')
 			self:RunAttribute('_onstate-page', '%s')
 		]], now or 1))
@@ -287,7 +302,7 @@ for name, script in pairs({
 	]],
 	['_onshow'] = [[
 		for key, button in pairs(bindings) do
-			self:SetBindingClick(true, key, button)
+			self:SetBindingClick(true, key, button, 'ControllerInput')
 		end
 		mouse:RunAttribute('UpdateTarget', mouse:GetAttribute('current'))
 		if PlayerInCombat() or ( not self:GetAttribute('hidesafe') ) then
@@ -313,6 +328,18 @@ for name, script in pairs({
 		end
 		self:SetAttribute('actionpage', newstate)
 		control:ChildUpdate('actionpage', newstate)
+	]],
+	['GetReticleMacro'] = [[
+		if disableCastOnRelease then return end
+		local id = ...
+		local spellID = self:RunAttribute('GetSpellID', id)
+		if spellID and lastActionUsed == id then
+			local spellName = reticleSpellManifest[spellID]
+			if spellName then
+				return reticleMacroString:format(spellName), spellName
+			end
+		end
+		lastActionUsed = id
 	]]
 }) do Bar:SetAttribute(name, script) end
 
@@ -320,9 +347,9 @@ for name, script in pairs({
 
 Bar:SetScript('OnEvent', Bar.OnEvent)
 Bar:SetScript('OnMouseWheel', Bar.OnMouseWheel)
+Bar:RegisterEvent('SPELLS_CHANGED')
 Bar:RegisterEvent('PLAYER_LOGIN')
 Bar:RegisterEvent('ADDON_LOADED')
-Bar:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
 Bar:RegisterEvent('PLAYER_TALENT_UPDATE')
 
 Bar.ignoreNode = true

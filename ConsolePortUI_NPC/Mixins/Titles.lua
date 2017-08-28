@@ -16,7 +16,7 @@ function Titles:AdjustHeight(newHeight)
 			self:SetHeight(newHeight)
 			self:SetScript('OnUpdate', nil)
 		else
-			self:SetHeight(height + ( diff / 10 ) )
+			self:SetHeight(height + ( diff / 5 ) )
 		end
 	end)
 end

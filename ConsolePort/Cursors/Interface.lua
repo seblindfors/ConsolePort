@@ -172,7 +172,7 @@ function Cursor:Move(anchor)
 end
 
 function Cursor:MoveOnFinished()
-	PlaySound(PlaySoundKitID and "igMainMenuOptionCheckBoxOn" or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 	local self = self:GetParent()
 	self:ClearAllPoints()
 	self:SetHighlight(current and current.node)

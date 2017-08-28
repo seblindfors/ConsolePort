@@ -8,7 +8,7 @@ function Menu:OnShow()
 end
 
 function Menu:OnButtonPressed()
-	PlaySound(PlaySoundKitID and 'igMainMenuOptionCheckBoxOn' or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 end
 
 for name, script in pairs({

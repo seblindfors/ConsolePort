@@ -16,10 +16,10 @@
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
-				<Texture name="$parentNameFrame" file="Interface\LevelUp\MinorTalents.blp">
+				<Texture name="$parentNameFrame" parentKey="NameFrame" file="Interface\LevelUp\MinorTalents.blp">
 					<Size x="300" y="50"/>
 					<Anchors>
-						<Anchor point="LEFT" x="20" y="0"/>
+						<Anchor point="TOPLEFT" x="10" y="-1"/>
 					</Anchors>
 					<TexCoords left="0.001953125" right="0.818359375" bottom="0.6660" top="0.794921875"/>
 				</Texture>
@@ -32,10 +32,10 @@
 			</Layer>
 			<Layer level="HIGHLIGHT">
 				<Texture parentKey="BannerHighlight" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
-					<Size x="250" y="46"/>
 					<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
 					<Anchors>
-						<Anchor point="LEFT" x="40" y="0"/>
+						<Anchor point="TOPLEFT" relativeKey="$parent.NameFrame" relativePoint="TOPLEFT" x="25" y="-2"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.NameFrame" relativePoint="BOTTOMRIGHT" x="-25" y="2"/>
 					</Anchors>
 				</Texture>
 			</Layer>

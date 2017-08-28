@@ -60,6 +60,51 @@ local cfg = {
 
 local KEY, CMD, CLICK, DIRKEY, MODKEY = cfg.KEY, cfg.CMD, cfg.CLICK, cfg.DIRKEY, cfg.MODKEY
 
+local function chsize(char)
+	if not char then
+		return 0
+	elseif char > 240 then
+		return 4
+	elseif char > 225 then
+		return 3
+	elseif char > 192 then
+		return 2
+	else
+		return 1
+	end
+end
+ 
+ 
+local function utf8sub(str, startChar, numChars)
+	local startIndex = 1
+	while startChar > 1 do
+		local char = string.byte(str, startIndex)
+		startIndex = startIndex + chsize(char)
+		startChar = startChar - 1
+	end
+ 
+	local currentIndex = startIndex
+ 
+	while numChars > 0 and currentIndex <= #str do
+		local char = string.byte(str, currentIndex)
+		currentIndex = currentIndex + chsize(char)
+		numChars = numChars -1
+	end
+	return str:sub(startIndex, currentIndex - 1)
+end
+
+local function SetUTF8CursorPosition(str, position)
+	local text = str:GetText()
+	local startIndex = 1
+	local curIndex = 0
+	while curIndex < position do
+		local char = string.byte(text, startIndex)
+		startIndex = startIndex + chsize(char)
+		curIndex = curIndex + 1
+	end
+	str:SetCursorPosition(startIndex-1)
+end
+
 function Keyboard:OMIT()
 end
 
@@ -75,14 +120,16 @@ function Keyboard:LEFT()
 	local text = self.Focus:GetText()
 	local pos = self.Focus:GetUTF8CursorPosition()
 	local marker = text:sub(pos-4, pos):find("{rt%d}")
-	self.Focus:SetCursorPosition(marker and pos-5 or pos-1)
+	--self.Focus:SetCursorPosition(marker and pos-5 or pos-1)
+	SetUTF8CursorPosition(self.Focus, marker and pos-5 or pos-1)
 end
 
 function Keyboard:RIGHT()
 	local text = self.Focus:GetText()
 	local pos = self.Focus:GetUTF8CursorPosition()
 	local marker = text:sub(pos, pos+5):find("{rt%d}")
-	self.Focus:SetCursorPosition(marker and pos+5 or pos+1)
+	--self.Focus:SetCursorPosition(marker and pos+5 or pos+1)
+	SetUTF8CursorPosition(self.Focus, marker and pos+5 or pos+1)
 end
 
 function Keyboard:INPUT(input)
@@ -93,12 +140,14 @@ function Keyboard:INPUT(input)
 	end
 end
 
+
+
 function Keyboard:ERASE()
 	local pos = self.Focus:GetUTF8CursorPosition()
 	if pos ~= 0 then 
 		local text = self.Focus:GetText()
 		local offset
-
+		
 		for marker in pairs(Language.Markers) do
 			offset = 	text:sub(pos-marker:len()-1, pos):find(marker) and marker:len() or
 						text:sub(pos-marker:trim():len()-1, pos):find(marker:trim()) and marker:trim():len()
@@ -107,9 +156,10 @@ function Keyboard:ERASE()
 			end
 		end
 
-		local first, second = text:sub(0, offset and pos-offset or pos-1), text:sub(pos+1)
+		local first, second = utf8sub(text, 0, offset and pos-offset or pos-1), utf8sub(text, pos+1, strlenutf8(text)-pos)
+
 		self.Focus:SetText(first..second)
-		self.Focus:SetCursorPosition(offset and pos-offset or pos-1)
+		SetUTF8CursorPosition(self.Focus, offset and pos-offset or pos-1)
 	end
 end
 
@@ -146,7 +196,7 @@ function Keyboard:SelectSet()
 	if self.Sets[DIR] then
 		self.CenterSet:Update()
 		self.Sets[DIR]:Enter()
-		PlaySound(PlaySoundKitID and "igMainMenuOptionCheckBoxOn" or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+		PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 		Current = self.Sets[DIR]
 	else
 		Current = nil
@@ -269,7 +319,7 @@ function Keyboard:SetFocus(newFocus)
 	self.Focus = newFocus
 	self.Focus:EnableKeyboard(false)
 	self:Show()
-	PlaySound(PlaySoundKitID and "igMainMenuOptionCheckBoxOn" or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 end
 
 

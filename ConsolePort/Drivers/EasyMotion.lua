@@ -80,7 +80,7 @@ end
 
 -- Run snippets
 ---------------------------------------------------------------
-local EM_SECURE_FUNCTIONS = {
+for name, script in pairs({
 	-- Parse the input
 	Input = [[
 		key = ...
@@ -281,9 +281,10 @@ local EM_SECURE_FUNCTIONS = {
 	OnNewSettings = [[
 		ignore.player = self:GetAttribute('ignorePlayer')
 	]],
-}
+}) do EM:SetAttribute(name, script) end
 
-local EM_SECURE_WRAPPERS = {
+-- EM secure input wrappers
+for name, script in pairs({
 	PreClick = [[
 		-- Unit frames
 		if button == 'LeftButton' then
@@ -302,19 +303,16 @@ local EM_SECURE_WRAPPERS = {
 			end
 		end
 	]],
-}
+}) do EM:WrapScript(EM, name, script) end
 
-local INPUT_SECURE_WRAPPERS = {
+-- Secure input wrappers
+for name, script in pairs({
 	OnClick = [[
 		if down then
 			owner:RunAttribute('Input', button)
 		end
 	]],
-}
-
-for name, script in pairs(EM_SECURE_FUNCTIONS) do EM:SetAttribute(name, script) end
-for name, script in pairs(EM_SECURE_WRAPPERS) do EM:WrapScript(EM, name, script) end
-for name, script in pairs(INPUT_SECURE_WRAPPERS) do EM:WrapScript(Input, name, script) end
+}) do EM:WrapScript(Input, name, script) end
 
 function EM:OnNewBindings(...)
 	local keys = {

@@ -32,19 +32,6 @@ MEDIA = {
 		CB_MONK 		= {a = "Artifacts-Monk-ClassBadge"},
 		CB_DEMONHUNTER	= {a = "Artifacts-DemonHunter-ClassBadge"},
 	----------------------------------
-		CB2_MAGE 		= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIMageArcane]]},
-		CB2_PALADIN 	= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIPaladin]]},
-		CB2_WARRIOR 	= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIWarrior]]},
-		CB2_DRUID 		= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIDruid]]},
-		CB2_DEATHKNIGHT = {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIDeathKnightFrost]]},
-		CB2_HUNTER 		= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIHunter]]},
-		CB2_PRIEST 		= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIPriest]]},
-		CB2_ROGUE 		= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIRogue]]},
-		CB2_SHAMAN 		= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIShaman]]},
-		CB2_WARLOCK 	= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIWarlock]]},
-		CB2_MONK 		= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIMonk]]},
-		CB2_DEMONHUNTER	= {c = {0.705, 0.83, 0, 0.125}, t = PT..[[Textures\Blizzard\ArtifactUIDemonHunter]]},
-	----------------------------------
 		Menu_BG = {
 			t = PT..[[Textures\Window\Menu-BG.blp]]},
 		Gradient = {

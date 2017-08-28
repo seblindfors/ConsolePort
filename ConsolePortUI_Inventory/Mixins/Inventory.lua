@@ -58,7 +58,7 @@ function Inventory:MoveItem(fromSlot, toSlot)
 end
 
 function Inventory:OnButtonPressed()
-	PlaySound('igMainMenuOptionCheckBoxOn')
+--	PlaySound('igMainMenuOptionCheckBoxOn')
 end
 		
 -------------------------

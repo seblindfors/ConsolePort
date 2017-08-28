@@ -9,9 +9,7 @@
 -- UI cursor. These nodes provide the same functionality as
 -- clicking the zones on the map with an actual mouse.
 
-local zones = {}
-local mapNodes = {}
-local node
+local zones, mapNodes, node = {}, {}
 
 local function UpdateMap(self)
 	if node then

@@ -45,7 +45,6 @@ local UIFrameFadeIn = db.UIFrameFadeIn
 local UIFrameFadeOut = db.UIFrameFadeOut
 
 -- Lua functions
-local _G = _G
 local type, error, tostring, tonumber, assert, select = type, error, tostring, tonumber, assert, select
 local setmetatable, wipe, unpack, pairs, next = setmetatable, wipe, unpack, pairs, next
 local str_match, format, tinsert, tremove = string.match, format, tinsert, tremove
@@ -117,7 +116,7 @@ local type_meta_map = {
 
 local ButtonRegistry, ActiveButtons, ActionButtons, NonActionButtons = lib.buttonRegistry, lib.activeButtons, lib.actionButtons, lib.nonActionButtons
 
-local Update, UpdateButtonState, UpdateUsable, UpdateCount, UpdateCooldown, UpdateTooltip, UpdateNewAction
+local Update, UpdateButtonState, UpdateUsable, UpdateCount, UpdateCooldown, UpdateTooltip, UpdateNewAction, UpdatePage
 local StartFlash, StopFlash, UpdateFlash, UpdateRangeTimer, UpdateOverlayGlow
 local UpdateFlyout, ShowGrid, HideGrid, SetupSecureSnippets, WrapOnClick
 local ShowOverlayGlow, HideOverlayGlow
@@ -150,7 +149,7 @@ function lib:CreateButton(id, name, header, config)
 	local button = setmetatable(CreateFrame("CheckButton", name, header, templates), Generic_MT)
 
 	button:RegisterForDrag("LeftButton", "RightButton")
-	button:RegisterForClicks("AnyUp")
+	button:RegisterForClicks("AnyUp", "AnyDown")
 
 	-- Frame Scripts
 	button:HookScript("OnEnter", Generic.OnEnter)
@@ -371,17 +370,35 @@ function SetupSecureSnippets(button)
 end
 
 function WrapOnClick(button)
+	button.header:WrapScript(button, "PreClick", [[
+		local reticleMacro = owner:RunAttribute("GetReticleMacro", self:GetAttribute("action"))
+		if button == 'ControllerInput' and not down then
+			if reticleMacro then
+				self:SetAttribute("type", "macro")
+				self:SetAttribute("macrotext", reticleMacro)
+			else
+				self:SetAttribute("type", "omit")
+			end
+		end
+	]])
 	-- Wrap OnClick, to catch changes to actions that are applied with a click on the button.
 	button.header:WrapScript(button, "OnClick", [[
-		if self:GetAttribute("type") == "action" then
-			local type, action = GetActionInfo(self:GetAttribute("action"))
-			return nil, format("%s|%s", tostring(type), tostring(action))
+		if down then
+			if self:GetAttribute("type") == "action" then
+				local type, action = GetActionInfo(self:GetAttribute("action"))
+				return nil, format("%s|%s", tostring(type), tostring(action))
+			end
 		end
 	]], [[
-		local type, action = GetActionInfo(self:GetAttribute("action"))
-		if message ~= format("%s|%s", tostring(type), tostring(action)) then
-			self:RunAttribute("UpdateState", self:GetAttribute("state"))
+		if down then
+			local type, action = GetActionInfo(self:GetAttribute("action"))
+			if message ~= format("%s|%s", tostring(type), tostring(action)) then
+				self:RunAttribute("UpdateState", self:GetAttribute("state"))
+			end
 		end
+	]])
+	button.header:WrapScript(button, "PostClick", [[
+		self:SetAttribute("type", self:GetAttribute("action_field"))
 	]])
 end
 
@@ -640,7 +657,6 @@ function Generic:UpdateConfig(config)
 	self:SetAttribute("flyoutDirection", self.config.flyoutDirection)
 
 	Update(self)
-	self:RegisterForClicks(self.config.clickOnDown and "AnyDown" or "AnyUp")
 end
 
 -----------------------------------------------------------
@@ -972,7 +988,7 @@ function Generic:SetClicks(mouseover)
 	if mouseover then
 		self:RegisterForClicks("AnyUp")
 	else
-		self:RegisterForClicks("AnyDown")
+		self:RegisterForClicks("AnyUp", "AnyDown")
 	end
 end
 
@@ -1054,6 +1070,7 @@ function Update(self)
 		UpdateUsable(self)
 		UpdateCooldown(self)
 		UpdateFlash(self)
+		UpdatePage(self)
 	else
 		ActiveButtons[self] = nil
 		ActionButtons[self] = nil
@@ -1065,6 +1082,7 @@ function Update(self)
 		self.isOnCooldown = false
 		self:FadeOut()
 		UpdateUsable(self)
+		UpdatePage(self)
 
 		if self.chargeCooldown then
 			EndChargeCooldown(self.chargeCooldown)
@@ -1190,6 +1208,21 @@ function UpdateCount(self)
 	end
 end
 
+function UpdatePage(self)
+	if self:GetAction() == 'action' then
+		local page = self:GetAttribute('actionpage')
+		local action = self:GetAttribute('action')
+		if (page and action) and (page > 1) and (page < 7) then
+			if action <= NUM_ACTIONBAR_BUTTONS then
+				self.Page:Show()
+				self.Page:SetText(page)
+				return
+			end
+		end
+	end
+	self.Page:Hide()
+end
+
 function EndChargeCooldown(self)
 	self:Hide()
 	self:SetParent(UIParent)
@@ -1307,6 +1340,14 @@ function UpdateTooltip(self)
 		self.UpdateTooltip = UpdateTooltip
 	else
 		self.UpdateTooltip = nil
+	end
+	local currentModifier = self.isMainButton and ConsolePort:GetCurrentModifier() or self.mod
+	local bindingString = ConsolePort:GetFormattedButtonCombination(self.plainID, currentModifier, 20, true)
+	if bindingString and GameTooltip:IsVisible() then
+		local title = GameTooltipTextRight1
+		title:SetText(bindingString)
+		title:Show()
+		GameTooltip:Show()
 	end
 end
 

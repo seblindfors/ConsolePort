@@ -32,6 +32,7 @@ db.KEY = {
 	STATE_UP 	= 'up',
 	STATE_DOWN	= 'down',
 }
+setmetatable(db.KEY, {__newindex = function() end})
 local KEY = db.KEY
 
 ---------------------------------------------------------------
@@ -313,7 +314,7 @@ end
 ---------------------------------------------------------------
 -- Get the clean bindings for various uses
 ---------------------------------------------------------------
-function ConsolePort:GetBindings(tbl) return tbl and db.table.copy(Controller.Bindings) or spairs(Controller.Bindings) end
+function ConsolePort:GetBindings(tbl) return tbl and copy(Controller.Bindings) or spairs(Controller.Bindings) end
 
 ---------------------------------------------------------------
 -- Default faux binding settings
@@ -323,7 +324,7 @@ function ConsolePort:GetDefaultBinding(key) return copy(Controller.Bindings[key]
 ---------------------------------------------------------------
 -- Get the currently deployed binding set (can be manipulated)
 ---------------------------------------------------------------
-function ConsolePort:GetCurrentBindings() return db.table.copy(self:GetBindingSet()) end
+function ConsolePort:GetCurrentBindings() return copy(self:GetBindingSet()) end
 
 ---------------------------------------------------------------
 -- Get the button that's currently bound to a defined ID
@@ -392,7 +393,7 @@ function ConsolePort:GetUIControlKey(key)
 end
 
 function ConsolePort:GetUIControlKeyOwner(key)
-	local keys = {
+	local keyToBinding = {
 		-- Right side
 		[KEY.TRIANGLE] 	= 'CP_R_UP',
 		[KEY.CROSS] 	= 'CP_R_DOWN',
@@ -411,7 +412,7 @@ function ConsolePort:GetUIControlKeyOwner(key)
 		[KEY.T1] 		= 'CP_T1',
 		[KEY.T2] 		= 'CP_T2',
 	}
-	return keys[key]
+	return keyToBinding[key]
 end
 
 ---------------------------------------------------------------
@@ -471,7 +472,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		['autoExtra'] = true,
 		['autoSellJunk'] = true,
 		['autoInteract'] = false,
-		['autoLootDefault'] = true,
+	--	['autoLootDefault'] = true,
 		['disableKeyboard'] = true,
 		['disableSmartMouse'] = false,
 	--	['doubleModTap'] = true,
@@ -519,6 +520,8 @@ function ConsolePort:GetDefaultMouseEvents()
 		['SHIPMENT_CRAFTER_CLOSED'] = true,
 		['LOOT_OPENED'] = true,
 		['LOOT_CLOSED'] = true,
+		['UNIT_SPELLCAST_SENT'] = true,
+		['UNIT_SPELLCAST_FAILED'] = true,
 	}
 end
 
@@ -583,7 +586,8 @@ function ConsolePort:GetDefaultUIFrames()
 		Blizzard_ArchaeologyUI 		= {
 			'ArchaeologyFrame' },
 		Blizzard_ArtifactUI 		= {
-			'ArtifactFrame' },
+			'ArtifactFrame',
+			'ArtifactRelicForgeFrame'},
 		Blizzard_AuctionUI 			= {
 			'AuctionFrame' },
 		Blizzard_BarbershopUI		= {
@@ -706,6 +710,10 @@ local cvars = { -- value = default
 	autoExtra 			= true,
 	autoLootDefault		= true,
 	autoSellJunk 		= true,
+	cameraYawDeadzone 	= .8,
+	cameraYawSmoothOut 	= .085,
+	cameraYawSmoothIn 	= .155,
+	cameraYawMaxAngle 	= 30,
 	centerLockRangeX 	= 70,
 	centerLockRangeY 	= 180,
 	centerLockDeadzoneX = 4,
@@ -716,7 +724,7 @@ local cvars = { -- value = default
 	disableSmartMouse 	= false,
 	disableStickMouse	= false,
 	doubleModTap 		= true,
-	doubleModTapWindow 	= 0.25,
+	doubleModTapWindow 	= .25,
 	interactAuto 		= false,
 	interactNPC 		= false,
 	interactPushback 	= 1,
@@ -731,8 +739,8 @@ local cvars = { -- value = default
 	raidCursorModifier 	= '',
 	skipCalibration 	= false,
 	skipGuideBtn 		= false,
-	UIleaveCombatDelay	= 0.5,
-	UIholdRepeatDelay 	= 0.125,
+	UIleaveCombatDelay	= .5,
+	UIholdRepeatDelay 	= .125,
 	UIdisableHoldRepeat = false,
 	UIdropDownFix		= false,
 	utilityRingScale 	= 1,
@@ -747,7 +755,7 @@ local cvars = { -- value = default
 }
 
 function ConsolePort:GetCompleteCVarList()
-	local cvars = db.table.copy(cvars)
+	local cvars = copy(cvars)
 	for cvar, value in pairs(db.Settings) do
 		if type(value) ~= 'table' then
 			cvars[cvar] = value

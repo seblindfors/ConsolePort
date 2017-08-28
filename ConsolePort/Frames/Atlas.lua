@@ -18,7 +18,7 @@ local function CreateAtlasFrame(name, parent, templates, buttonTemplate)
 		frame = CreateFrame("Frame", name, parent or UIParent)
 		frame.Close = CreateFrame("Button", nil, frame, buttonTemplate)
 		frame.Close:SetScript("OnClick",  function() frame:Hide() end)
-		frame.Close:HookScript("OnClick", function() PlaySound(PlaySoundKitID and "SPELLBOOKCLOSE" or SOUNDKIT.IG_SPELLBOOK_CLOSE) end)
+		frame.Close:HookScript("OnClick", function() PlaySound(SOUNDKIT.IG_SPELLBOOK_CLOSE) end)
 	end
 	return frame
 end

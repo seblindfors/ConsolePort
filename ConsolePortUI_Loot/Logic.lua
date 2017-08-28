@@ -24,9 +24,9 @@ function LootFrame:OnShow()
 	Control:AddHint(KEY.CIRCLE, ALL)
 	Control:AddHint(KEY.TRIANGLE, CLOSE)
 
-	if ( GetCVar('lootUnderMouse') == '1' ) then
-		self:MoveToMouse()
-	end
+--	if ( GetCVar('lootUnderMouse') == '1' ) then
+--		self:MoveToMouse()
+--	end
 	self.Container.Header.HeaderOpenAnim:Play()
 end
 
@@ -80,7 +80,7 @@ function LootFrame:UpdateItems(fadeOnShow)
 			self.active[#self.active + 1] = button
 
 			if prevButton then
-				button:SetPoint('TOP', prevButton, 'BOTTOM', 0, -4)
+				button:SetPoint('TOPRIGHT', prevButton.NameFrame, 'BOTTOMLEFT', 42, -6)
 			else
 				button:SetPoint('TOPLEFT')
 			end
@@ -88,7 +88,6 @@ function LootFrame:UpdateItems(fadeOnShow)
 		end
 	end
 	self.Container:AdjustHeight(self.itemPool.numActiveObjects * 52)
---	self.Container:SetSize(200, self.itemPool.numActiveObjects * 32)
 	self:UpdateFocus(self.idx)
 end
 
@@ -154,4 +153,5 @@ function LootFrame:OnLoad()
 	self.idx = 1
 	self.itemPool = UI:CreateFramePool('Button', self.Container, 'CPUISimpleLootButtonTemplate', L.LootButtonMixin)
 	self.active = {}
+	self:Hide()
 end

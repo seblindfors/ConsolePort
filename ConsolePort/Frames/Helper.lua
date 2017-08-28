@@ -162,12 +162,12 @@ function Helper:GetBindingSuggestion()
 			end
 		end
 	end
-	for i=1, 12 do
+	for i=1, NUM_ACTIONBAR_BUTTONS do
 		if not GetActionInfo(i) and not ignoredIndex[i] then
 			return i, ConsolePort:GetActionBinding(i)
 		end
 	end
-	for i=25, 72 do
+	for i=((NUM_ACTIONBAR_BUTTONS * 2) + 1), (NUM_ACTIONBAR_BUTTONS * 6) do
 		if not GetActionInfo(i) and not ignoredIndex[i] then
 			return i, ConsolePort:GetActionBinding(i)
 		end
@@ -209,7 +209,7 @@ function Helper:OnKeyDown(key)
 		local actionID = ConsolePort:GetActionID(binding)
 		
 		-- if the pressed binding has a corresp. action ID, place the item there and pop any existing item
-		if actionID then
+		if actionID and actionID ~= 169 then -- ignore actionID 169, because it's the extra action button.
 			PlaceAction(actionID)
 			if 	( not GetCursorInfo() ) and
 				( db.Settings and not db.Settings.disableSmartMouse ) and

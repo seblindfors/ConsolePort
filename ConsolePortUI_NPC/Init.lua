@@ -162,7 +162,7 @@ end)
 talkbox:SetParent(UIParent)
 talkbox:Hide()
 talkbox.TextFrame.SpeechProgress:SetFont('Fonts\\MORPHEUS.ttf', 16, '')
-Control:SetIgnoreFadeFrame(talkbox:GetName(), true)
+Control:SetIgnoreFadeFrame(talkbox, true)
 
 do -- talkbox overlap fix
 	local function CheckGossipAndQuest()

@@ -47,7 +47,7 @@ end
 local function compare(t1, t2)
 	if t1 == t2 then
 		return true
-	elseif t1 and not t2 or t2 and not t1 then
+	elseif (t1 and not t2) or (t2 and not t1) then
 		return false
 	end
 	if type(t1) ~= "table" then

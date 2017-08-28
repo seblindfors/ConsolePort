@@ -200,7 +200,7 @@ function ConsolePort:LoadSettings()
 			db.Settings.newController = true
 			db.Settings.forceController = controller
 
-			PlaySound(PlaySoundKitID and "GLUEENTERWORLDBUTTON" or SOUNDKIT.GS_CHARACTER_SELECTION_ENTER_WORLD)
+			PlaySound(SOUNDKIT.GS_CHARACTER_SELECTION_ENTER_WORLD)
 			ReloadUI()
 		else
 			ConsolePort:SelectController()

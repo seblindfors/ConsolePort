@@ -5,6 +5,8 @@ local Control = UI:GetControlHandle()
 local LootButton = {}
 L.LootButtonMixin = LootButton
 
+local tooltipBackdrop
+local tipR, tipG, tipB
 
 function LootButton:OnDragStart()
 	self:GetParent():StartMoving()
@@ -22,22 +24,47 @@ function LootButton:OnEnter()
 	local slot = self:GetID()
 	local slotType = GetLootSlotType(slot)
 	if ( slotType == LOOT_SLOT_ITEM ) then
-		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 52)
 		GameTooltip:SetLootItem(slot)
 		CursorUpdate(self)
 	end
 	if ( slotType == LOOT_SLOT_CURRENCY ) then
-		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 52)
 		GameTooltip:SetLootCurrency(slot)
 		CursorUpdate(self)
+	end
+	if GameTooltip:IsOwned(self) then
+		local backdrop = GameTooltip:GetBackdrop()
+		if backdrop then
+			tipR, tipG, tipB = GameTooltip:GetBackdropColor()
+			tooltipBackdrop = backdrop
+		end
+		GameTooltip:SetBackdrop(nil)
+		local width, height = (GameTooltip:GetWidth() or 300) + 50, (GameTooltip:GetHeight() or 50)
+		self.NameFrame:SetSize(width < 300 and 300 or width, height < 50 and 50 or height)
+		self.Text:SetAlpha(0)
+		self.hasTooltipFocus = true
 	end
 	self:LockHighlight()
 	self.QuestTexture:SetDrawLayer('HIGHLIGHT', 7)
 end
 
+function LootButton:OnUpdate()
+	if self.hasTooltipFocus and not GameTooltip:IsOwned(self) then
+		self:OnLeave()
+	end
+end
+
 function LootButton:OnLeave()
 	GameTooltip:Hide()
+	if tooltipBackdrop then
+		GameTooltip:SetBackdrop(tooltipBackdrop)
+		GameTooltip:SetBackdropColor(tipR, tipG, tipB)
+	end
 	ResetCursor()
+	self.hasTooltipFocus = false
+	self.NameFrame:SetSize(300, 50)
+	self.Text:SetAlpha(1)
 	self:UnlockHighlight()
 	self.QuestTexture:SetDrawLayer('OVERLAY')
 end

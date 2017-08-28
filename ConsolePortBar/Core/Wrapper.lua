@@ -13,28 +13,96 @@ ab.libs.registry = LibRegistry
 local TEX_PATH = [[Interface\AddOns\]]..an..[[\Textures\%s]]
 local NOT_BOUND_TOOLTIP = NOT_BOUND .. '\n' .. db.TUTORIAL.BIND.TOOLTIPCLICK
 ---------------------------------------------------------------
-local size, smallSize, tSize, ofs, ofsB = 64, 50, 90, 25, 4
+local size, smallSize, tSize = 64, 44, 58
+local ofs, ofsB, fixA = 38, 21, 4
+---------------------------------------------------------------
 local mods = {
 	[''] = {size = {size, size}},
 	['SHIFT-'] 	= {size = {smallSize, tSize}, 
-		down 	= {rad(-180), {'TOPRIGHT', 'BOTTOMLEFT', ofs, ofs}},
-		up 		= {rad(90), {'BOTTOMRIGHT', 'TOPLEFT', ofs, -ofs}},
-		left 	= {rad(90), {'BOTTOMRIGHT', 'TOPLEFT', ofs, -ofs}},
-		right 	= {0, {'BOTTOMLEFT', 'TOPRIGHT', -ofs, -ofs}},
+		down 	= {'TOPRIGHT', 'BOTTOMLEFT', ofs - fixA	, ofs + fixA},
+		up 		= {'BOTTOMRIGHT', 'TOPLEFT', ofs - fixA	, -ofs - fixA},
+		left 	= {'BOTTOMRIGHT', 'TOPLEFT', ofs + fixA	, -ofs + fixA},
+		right 	= {'BOTTOMLEFT', 'TOPRIGHT', -ofs - fixA, -ofs + fixA},
 	},
 	['CTRL-'] 	= {size = {smallSize, tSize}, 
-		down 	= {0, {'TOPLEFT', 'BOTTOMRIGHT', -ofs, ofs}},
-		up 		= {rad(90), {'BOTTOMLEFT', 'TOPRIGHT', -ofs, -ofs}},
-		left 	= {rad(-90), {'TOPRIGHT', 'BOTTOMLEFT', ofs, ofs}},
-		right 	= {0, {'TOPLEFT', 'BOTTOMRIGHT', -ofs, ofs}},
+		down 	= {'TOPLEFT', 'BOTTOMRIGHT', -ofs + fixA, ofs + fixA},
+		up 		= {'BOTTOMLEFT', 'TOPRIGHT', -ofs + fixA, -ofs - fixA},
+		left 	= {'TOPRIGHT', 'BOTTOMLEFT', ofs + fixA, ofs - fixA},
+		right 	= {'TOPLEFT', 'BOTTOMRIGHT', -ofs - fixA, ofs - fixA},
 	},
 	['CTRL-SHIFT-'] = {size = {smallSize, tSize},
-		down 	= {rad(-90), {'TOP', 'BOTTOM', 0, ofsB}},
-		up 		= {rad(90), {'BOTTOM', 'TOP', 0, -ofsB}},
-		left 	= {rad(180), {'RIGHT', 'LEFT', ofsB, 0}},
-		right 	= {0, {'LEFT', 'RIGHT', -ofsB, 0}},
+		down 	= {'TOP', 'BOTTOM', 0, ofsB},
+		up 		= {'BOTTOM', 'TOP', 0, -ofsB},
+		left 	= {'RIGHT', 'LEFT', ofsB, 0},
+		right 	= {'LEFT', 'RIGHT', -ofsB, 0},
 	},
 }
+
+local modcoords = { -- ULx, ULy, LLx, LLy, URx, URy, LRx, LRy
+	['SHIFT-'] = {
+		down 	= {0, 0, 	1, 0, 	0, 1, 	1, 1},
+		up 		= {1, 0,	0, 0,	1, 1,	0, 1},
+		left 	= {1, 0,	1, 1,	0, 0,	0, 1},
+		right 	= {0, 0, 	0, 1, 	1, 0,	1, 1},
+	},
+	['CTRL-'] = {
+		down 	= {0, 1,	1, 1,	0, 0,	1, 0},
+		up 		= {1, 1,	0, 1,	1, 0,	0, 0},
+		left 	= {1, 1, 	1, 0,	0, 1,	0, 0},
+		right 	= {0, 1,	0, 0,	1, 1,	1, 0},
+	},
+	['CTRL-SHIFT-'] = {
+		down 	= {0, 1,	1, 1,	0, 0,	1, 0},
+		up 		= {1, 0,	0, 0, 	1, 1,	0, 1},
+		left 	= {1, 0,	1, 1,	0, 0,	0, 1},
+		right 	= {0, 0,	0, 1, 	1, 0,	1, 1},
+	},
+}
+
+local masks = { -- SHIFT-: M1, CTRL-: M2, CTRL-SHIFT-: M3
+	['SHIFT-'] = {
+		down 	= TEX_PATH:format([[Masks\M1_up]]),
+		up 		= TEX_PATH:format([[Masks\M1_down]]),
+		left 	= TEX_PATH:format([[Masks\M2_left]]),
+		right 	= TEX_PATH:format([[Masks\M2_right]]),
+	},
+	['CTRL-'] = {
+		down 	= TEX_PATH:format([[Masks\M2_up]]),
+		up 		= TEX_PATH:format([[Masks\M2_down]]),
+		left 	= TEX_PATH:format([[Masks\M1_left]]),
+		right 	= TEX_PATH:format([[Masks\M1_right]]),
+	},
+	['CTRL-SHIFT-'] = {
+		down 	= TEX_PATH:format([[Masks\M3_up]]),
+		up 		= TEX_PATH:format([[Masks\M3_down]]),
+		left 	= TEX_PATH:format([[Masks\M3_left]]),
+		right 	= TEX_PATH:format([[Masks\M3_right]]),
+	},
+}
+
+local swipes = { -- SHIFT-: M1, CTRL-: M2, CTRL-SHIFT-: M3
+	['SHIFT-'] = {
+		down 	= TEX_PATH:format([[Swipes\M1_down]]),
+		up 		= TEX_PATH:format([[Swipes\M1_up]]),
+		left 	= TEX_PATH:format([[Swipes\M1_left]]),
+		right 	= TEX_PATH:format([[Swipes\M1_right]]),
+	},
+	['CTRL-'] = {
+		down 	= TEX_PATH:format([[Swipes\M2_down]]),
+		up 		= TEX_PATH:format([[Swipes\M2_up]]),
+		left 	= TEX_PATH:format([[Swipes\M2_left]]),
+		right 	= TEX_PATH:format([[Swipes\M2_right]]),
+	},
+	['CTRL-SHIFT-'] = {
+		down 	= TEX_PATH:format([[Swipes\M3_down]]),
+		up 		= TEX_PATH:format([[Swipes\M3_up]]),
+		left 	= TEX_PATH:format([[Swipes\M3_left]]),
+		right 	= TEX_PATH:format([[Swipes\M3_right]]),
+	},
+}
+---------------------------------------------------------------
+
+
 local adjustTextures = {
 	'Border',
 	'NormalTexture',
@@ -45,60 +113,57 @@ local adjustTextures = {
 }
 ---------------------------------------------------------------
 local hotkeyConfig = {
-	['SHIFT-'] = {{{'CENTER', 0, 0}, {24, 24}, 'CP_M1'}},
-	['CTRL-'] = {{{'CENTER', 0, 0}, {24, 24}, 'CP_M2'}},
-	['CTRL-SHIFT-'] = {{{'CENTER', -6, 0}, {24, 24}, 'CP_M1'}, {{'CENTER', 6, 0}, {24, 24}, 'CP_M2'}},
+	['SHIFT-'] = {{{'CENTER', 0, 0}, {20, 20}, 'CP_M1'}},
+	['CTRL-'] = {{{'CENTER', 0, 0}, {20, 20}, 'CP_M2'}},
+	['CTRL-SHIFT-'] = {{{'CENTER', -4, 0}, {20, 20}, 'CP_M1'}, {{'CENTER', 4, 0}, {20, 20}, 'CP_M2'}},
 }
 
 ---------------------------------------------------------------
 local buttonTextures = {
 	[''] = {
-		normal = format(TEX_PATH, [[Button\BigNormal]]),
-		pushed = format(TEX_PATH, [[Button\BigPushed]]),
-		hilite = format(TEX_PATH, [[Button\BigHilite]]),
-		checkd = format(TEX_PATH, [[Button\BigHilite]]),
-		border = format(TEX_PATH, [[Button\BigHilite]]),
-		new_action 	= format(TEX_PATH, [[Button\BigHilite]]),
-		cool_swipe 	= format(TEX_PATH, [[Cooldown\Swipe]]),
-		cool_edge 	= format(TEX_PATH, [[Cooldown\Edge]]),
-		cool_charge = format(TEX_PATH, [[Cooldown\Charge]]),
-		cool_bling 	= format(TEX_PATH, [[Cooldown\Bling]]),
+		normal = TEX_PATH:format([[Button\BigNormal]]),
+		pushed = TEX_PATH:format([[Button\BigHilite]]),
+		hilite = TEX_PATH:format([[Button\BigHilite]]),
+		checkd = TEX_PATH:format([[Button\BigHilite]]),
+		border = TEX_PATH:format([[Button\BigHilite]]),
+		new_action 	= TEX_PATH:format([[Button\BigHilite]]),
+		cool_swipe 	= TEX_PATH:format([[Cooldown\Swipe]]),
+		cool_edge 	= TEX_PATH:format([[Cooldown\Edge]]),
+		cool_bling 	= TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['SHIFT-'] = {
-		normal = format(TEX_PATH, [[Button\M1]]),
-		pushed = format(TEX_PATH, [[Button\M1]]),
-		border = format(TEX_PATH, [[Button\M1]]),
-		hilite = format(TEX_PATH, [[Button\M1Hilite]]),
-		checkd = format(TEX_PATH, [[Button\M1Hilite]]),
-		new_action 	= format(TEX_PATH, [[Button\M1Hilite]]),
-		cool_swipe 	= format(TEX_PATH, [[Cooldown\SwipeSmall]]),
-	--	cool_edge 	= format(TEX_PATH, [[Cooldown\Edge]]),
-		cool_charge = format(TEX_PATH, [[Cooldown\SwipeSmall]]),
-		cool_bling 	= format(TEX_PATH, [[Cooldown\Bling]]),
+		normal = TEX_PATH:format([[Button\M1]]),
+		pushed = TEX_PATH:format([[Button\M1]]),
+		border = TEX_PATH:format([[Button\M1]]),
+		hilite = TEX_PATH:format([[Button\M1Hilite]]),
+		checkd = TEX_PATH:format([[Button\M1Hilite]]),
+		new_action 	= TEX_PATH:format([[Button\M1Hilite]]),
+		cool_swipe 	= TEX_PATH:format([[Cooldown\SwipeSmall]]),
+	--	cool_edge 	= TEX_PATH:format([[Cooldown\Edge]]),
+		cool_charge = TEX_PATH:format([[Cooldown\SwipeSmall]]),
+		cool_bling 	= TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['CTRL-'] = {
-		normal = format(TEX_PATH, [[Button\M2]]),
-		pushed = format(TEX_PATH, [[Button\M2]]),
-		border = format(TEX_PATH, [[Button\M2]]),
-		hilite = format(TEX_PATH, [[Button\M2Hilite]]),
-		checkd = format(TEX_PATH, [[Button\M2Hilite]]),
-		new_action 	= format(TEX_PATH, [[Button\M2Hilite]]),
-		cool_swipe 	= format(TEX_PATH, [[Cooldown\SwipeSmall]]),
-	--	cool_edge 	= format(TEX_PATH, [[Cooldown\Edge]]),
-		cool_charge = format(TEX_PATH, [[Cooldown\SwipeSmall]]),
-		cool_bling 	= format(TEX_PATH, [[Cooldown\Bling]]),
+		normal = TEX_PATH:format([[Button\M1]]),
+		pushed = TEX_PATH:format([[Button\M1]]),
+		border = TEX_PATH:format([[Button\M1]]),
+		hilite = TEX_PATH:format([[Button\M1Hilite]]),
+		checkd = TEX_PATH:format([[Button\M1Hilite]]),
+		new_action 	= TEX_PATH:format([[Button\M1Hilite]]),
+		cool_swipe 	= TEX_PATH:format([[Cooldown\SwipeSmall]]),
+	--	cool_edge 	= TEX_PATH:format([[Cooldown\Edge]]),
+		cool_bling 	= TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['CTRL-SHIFT-'] = {
-		normal = format(TEX_PATH, [[Button\M3]]),
-		pushed = format(TEX_PATH, [[Button\M3]]),
-		border = format(TEX_PATH, [[Button\M3]]),
-		hilite = format(TEX_PATH, [[Button\M3Hilite]]),
-		checkd = format(TEX_PATH, [[Button\M3Hilite]]),
-		new_action 	= format(TEX_PATH, [[Button\M3Hilite]]),
-		cool_swipe 	= format(TEX_PATH, [[Cooldown\SwipeSmall]]),
-	--	cool_edge 	= format(TEX_PATH, [[Cooldown\Edge]]),
-		cool_charge = format(TEX_PATH, [[Cooldown\SwipeSmall]]),
-		cool_bling 	= format(TEX_PATH, [[Cooldown\Bling]]),
+		normal = TEX_PATH:format([[Button\M3]]),
+		pushed = TEX_PATH:format([[Button\M3]]),
+		border = TEX_PATH:format([[Button\M3]]),
+		hilite = TEX_PATH:format([[Button\M3Hilite]]),
+		checkd = TEX_PATH:format([[Button\M3Hilite]]),
+		new_action 	= TEX_PATH:format([[Button\M3Hilite]]),
+		cool_swipe 	= TEX_PATH:format([[Cooldown\SwipeSmall]]),
+	--	cool_edge 	= TEX_PATH:format([[Cooldown\Edge]]),
+		cool_bling 	= TEX_PATH:format([[Cooldown\Bling]]),
 	},
 }
 
@@ -136,12 +201,6 @@ function Lib:CreateButton(parent, id, name, modifier, size, texSize, config)
 
 	local textures = buttonTextures[modifier]
 
-	-- Big button
-	if modifier ~= '' then
-		button:ToggleShadow(false)
-		button.Mask:SetTexture('Interface\\RAIDFRAME\\UI-RaidFrame-Threat')
-	end
-
 	button.NewActionTexture:SetTexture(textures.new_action)
 	button.NormalTexture:SetTexture(textures.normal)
 	button.PushedTexture:SetTexture(textures.pushed)
@@ -151,6 +210,14 @@ function Lib:CreateButton(parent, id, name, modifier, size, texSize, config)
 
 	button.cooldown:SetSwipeTexture(textures.cool_swipe)
 	button.cooldown:SetBlingTexture(textures.cool_bling)
+	button.cooldown.text = button.cooldown:GetRegions()
+
+	-- Small buttons should not have drop shadow and smaller CD font
+	if modifier ~= '' then
+		local file, height, flags = button.cooldown.text:GetFont()
+		button.cooldown.text:SetFont(file, height * 0.75, flags)
+		button:ToggleShadow(false)
+	end
 
 	if textures.cool_edge then
 		button.cooldown:SetEdgeTexture(textures.cool_edge)
@@ -206,13 +273,13 @@ function Wrapper:SetSize(new)
 			button.shadow:SetSize(o, o)
 		else -- calculate size for modifier buttons to maintain correct ratio
 			b = new * ( smallSize / size )
-			t = new * ( tSize / size )
-			o = new * ( ( (mod == 'CTRL-SHIFT-') and ofsB or ofs ) / size )
+			t = new * ( tSize / size ) * (mod == 'CTRL-SHIFT-' and .9 or 1)
+			o = ( ( (mod == 'CTRL-SHIFT-') and ofsB or ofs ) / size )
 			local pT = mods[mod][button.orientation]
 			if pT then
-				local p, rel, x, y = unpack(pT[2])
-				local nX = x < 0 and -o or x == 0 and 0 or o
-				local nY = y < 0 and -o or y == 0 and 0 or o
+				local p, rel, x, y = unpack(pT)
+				local nX = x * o--x < 0 and -o or x == 0 and 0 or o
+				local nY = y * o--y < 0 and -o or y == 0 and 0 or o
 				button:SetPoint(p, main, rel, nX, nY)
 				button:Show()
 			end
@@ -235,15 +302,16 @@ function Wrapper:UpdateOrientation(orientation)
 			button:Hide()
 			button.orientation = orientation
 			local point, rotation
-			local setup = mods[mod][orientation]
-			if setup then
-				rotation = setup[1]
-			end
-			if rotation then
+			local coords = modcoords[mod][orientation]
+			local mask = masks[mod][orientation]
+			local swipe = swipes[mod][orientation]
+			if coords and mask then
 				for _, name in pairs(adjustTextures) do
 					local texture = button[name]
-					texture:SetRotation(rotation)
+					texture:SetTexCoord(unpack(coords))
 				end
+				button.Mask:SetTexture(mask)
+				button.cooldown:SetSwipeTexture(swipe)
 			end
 		end
 	end
@@ -251,30 +319,14 @@ function Wrapper:UpdateOrientation(orientation)
 end
 
 function Wrapper:SetSwipeColor(r, g, b, a)
-	self.SwipeColor = {r, g, b, a}
-	local main = self['']
-	main.cooldown:SetSwipeColor(r, g, b, a)
-end
-
-function Wrapper:GetSwipeColor()
-	if self.SwipeColor then
-		return unpack(self.SwipeColor)
-	end
+	self[''].cooldown:SetSwipeColor(r, g, b, a)
 end
 
 function Wrapper:SetBorderColor(r, g, b, a)
-	self.BorderColor = {r, g, b, a}
 	for mod, button in pairs(self.Buttons) do
 		button.NormalTexture:SetVertexColor(r, g, b, a)
 	end
 end
-
-function Wrapper:GetBorderColor()
-	if self.BorderColor then
-		return unpack(self.BorderColor)
-	end
-end
-
 
 function Wrapper:SetRebindButton()
 	-- Messy code to focus this button in the rebinder
@@ -306,6 +358,11 @@ function Lib:Create(parent, id, orientation)
 		local bSize, tSize = unpack(info.size)
 		local button = Lib:CreateButton(parent, id..mod, 'CPB_'..id..mod, mod, bSize, tSize, mod == '' and config)
 		button.plainID = id
+		button.mod = mod
+		-- dispatch to header
+		button:SetAttribute('plainID', id)
+		button:SetAttribute('modifier', mod)
+		-- store button in the wrapper
 		wrapper[mod] = button
 		wrapper.Buttons[mod] = button
 		if hotkeyConfig[mod] then
@@ -349,10 +406,10 @@ function Lib:Create(parent, id, orientation)
 	main.shadow:SetPoint('CENTER', main, 'CENTER', 0, -6)
 	main.shadow:SetSize(82, 82)
 	main.shadow.texture = main.shadow:CreateTexture('$parent_shadow', 'OVERLAY', nil, 7)
-	main.shadow.texture:SetTexture(format(TEX_PATH, 'Button\\BigShadow'))
+	main.shadow.texture:SetTexture(TEX_PATH:format('Button\\BigShadow'))
 	main.shadow.texture:SetAllPoints()
 	main.shadow:SetFrameLevel(1)
-	main.shadow:SetAlpha(0.75)
+	main.shadow:SetAlpha(0.6)
 
 	Mixin(wrapper, Wrapper)
 

@@ -54,6 +54,56 @@
 		</Scripts>
 	</Button>
 
+	<Button name="CPUINPCQuestSpellTemplate" hidden="true" virtual="true">
+		<Size x="250" y="56"/>
+		<HitRectInsets left="0" right="0" top="0" bottom="14"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Icon" name="$parentIconTexture">
+					<Size x="39" y="39"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-2"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="NameFrame" name="$parentNameFrame" file="Interface\QuestFrame\UI-QuestItemNameFrame">
+					<Size x="230" y="64"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="-16" y="0"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Name" name="$parentName" inherits="GameFontHighlight" justifyH="LEFT" >
+					<Size  x="180" y="36"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.NameFrame"  x="24" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture name="$parentSpellBorder" inherits="Spellbook-SlotFrame">
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Icon" x="2" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnEnter>
+				if (self.spellID) then
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+					GameTooltip:SetSpellByID(self.spellID);
+				end
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide();
+			</OnLeave>
+			<OnClick>
+				if ( IsModifiedClick("CHATLINK") and self.spellID) then
+					ChatEdit_InsertLink(GetSpellLink(self.spellID));
+				end
+			</OnClick>
+		</Scripts>
+	</Button>
+
 	<Button name="CPUINPCItemButtonTemplate" virtual="true">
 		<Size x="250" y="54" />
 		<Layers>
@@ -324,7 +374,7 @@
 				<Scripts>
 					<OnLoad>
 						self.buttonTemplate = "CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate";
-						self.spellRewardPool = CreateFramePool("BUTTON", self, "QuestSpellTemplate, CPUINPCRewardSpellCodeTemplate");
+						self.spellRewardPool = CreateFramePool("BUTTON", self, "CPUINPCQuestSpellTemplate, CPUINPCRewardSpellCodeTemplate");
 						self.followerRewardPool = CreateFramePool("BUTTON", self, "LargeQuestInfoRewardFollowerTemplate");
 						self.spellHeaderPool = CreateFontStringPool(self, "BACKGROUND", 0, "QuestInfoSpellHeaderTemplate");
 

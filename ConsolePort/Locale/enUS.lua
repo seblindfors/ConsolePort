@@ -149,9 +149,9 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		FASTCAM 			= 'Fast camera zooming',
 		DYNPITCH 			= 'Use dynamic pitch',
+		TARGETYAW 			= 'Use dynamic yaw',
 		TARGETFOCUS 		= 'Focus camera on enemy target',
 		TARGETFOCUSNPC 		= 'Focus camera on interactive target',
-		TARGETYAW 			= 'Rotate camera on targeted spell',
 		OVERSHOULDER 		= 'Over shoulder mode',
 		LEFT 				= 'Left',
 		RIGHT 				= 'Right',
@@ -314,6 +314,7 @@ ACTIONBAR = {
 	CFG_LOCKPET 		= 'Lock pet ring',
 	CFG_DISABLEPET 		= 'Disable pet ring',
 	CFG_DISABLEDND		= 'Disable drag and drop',
+	CFG_DISABLERETICLE	= 'Disable reticle cast on release',
 	CFG_HIDEINCOMBAT 	= 'Hide in combat',
 	CFG_HIDEPETINCOMBAT = 'Hide pet ring in combat',
 	CFG_HIDEOUTOFCOMBAT = 'Fade out of combat',
@@ -324,6 +325,8 @@ ACTIONBAR = {
 	CFG_MOUSE_ENABLE 	= 'Width/scale on mouse wheel',
 	CFG_ART_UNDERLAY 	= 'Show class art underlay',
 	CFG_ART_TINT		= 'Show color tint',
+	CFG_COLOR_RAINBOW 	= 'I like rainbows',
+	CFG_VALID_ENTRIES 	= "Valid:\n%s",
 	CFG_COLOR_TOOLTIP 	= '|cFFFF0000%s|r |cFF00FF00%s|r |cFF0000FF%s|r |cFFFFFFFF%s|r\nLeft click: change color.\nRight click: reset color.',
 	-----------------------------------------------------------
 },

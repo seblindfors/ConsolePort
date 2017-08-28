@@ -13,8 +13,10 @@ function UI.Utils.MixinNormal(object, ...)
 	return object
 end
 
+local gMixin = UI.Utils.MixinNormal
+
 function UI.Utils.Mixin(t, ...)
-	t = UI.Utils.MixinNormal(t, ...)
+	t = gMixin(t, ...)
 	if t.HasScript then
 		for k, v in pairs(t) do
 			if t:HasScript(k) then

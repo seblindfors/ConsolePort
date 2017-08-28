@@ -413,7 +413,7 @@ function ConsolePort:CalibrateController(reset)
 		end)
 	elseif self:CheckCalibration(true) then
 		ConsolePortCalibrationFrame:Show()
-		PlaySound(PlaySoundKitID and "SPELLBOOKOPEN" or SOUNDKIT.IG_SPELLBOOK_OPEN)
+		PlaySound(SOUNDKIT.IG_SPELLBOOK_OPEN)
 	end
 end
 
@@ -446,7 +446,7 @@ function ConsolePort:SelectController()
 			db.Settings.newController = true
 			db.Settings.forceController = self.ID
 
-			PlaySound(PlaySoundKitID and "GLUEENTERWORLDBUTTON" or SOUNDKIT.GS_CHARACTER_SELECTION_ENTER_WORLD)
+			PlaySound(SOUNDKIT.GS_CHARACTER_SELECTION_ENTER_WORLD)
 			ReloadUI()
 		end
 
@@ -502,5 +502,5 @@ function ConsolePort:SelectController()
 		Splash:Show()
 	end
 	ConsolePortSplashFrame:Show()
-	PlaySound(PlaySoundKitID and "SPELLBOOKOPEN" or SOUNDKIT.IG_SPELLBOOK_OPEN)
+	PlaySound(SOUNDKIT.IG_SPELLBOOK_OPEN)
 end

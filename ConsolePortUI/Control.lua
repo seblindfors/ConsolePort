@@ -4,119 +4,124 @@ local data = ConsolePort:GetData()
 local Registry = UI.FrameRegistry
 ----------------------------------
 local Control = UI:CreateFrame('Button', CP_UI..'Handle', nil, 'SecureHandlerBaseTemplate, SecureHandlerStateTemplate, SecureHandlerAttributeTemplate, SecureActionButtonTemplate', {
-	StoredHints = {},
-	HintBar = {
-		Type = 'Frame',
-		Strata = 'DIALOG',
-		SetParent = UIParent,
-		Hide = true,
-		Height = 72,
-		Point = {'BOTTOM', 0, 0},
-		{
-			Gradient = {
-				Type = 'Texture',
-				Setup = {'BACKGROUND'},
-				SetColorTexture = {1, 1, 1},
-				Height = 72,
-				Points = {
-					{'BOTTOMLEFT', UIParent, 'BOTTOMLEFT', 0, 0},
-					{'BOTTOMRIGHT', UIParent, 'BOTTOMRIGHT', 0, 0},
+	----------------------------------
+	-- Control input handling
+	----------------------------------
+	Attrib = {
+		SetFocusFrame = [[
+			if #stack > 0 then
+				focusFrame = stack[1]
+				MouseHandle:SetAttribute('blockhandle', true)
+				self:SetAttribute('focus', focusFrame)
+				self:ClearBindings()
+				for binding, identifier in pairs(keys) do
+					local key = GetBindingKey(binding)
+					if key then
+						self:SetBindingClick(true, key, self:GetFrameRef(binding), identifier)
+					end
+				end
+				return true
+			else
+				focusFrame = nil
+				MouseHandle:SetAttribute('blockhandle', false)
+				self:SetAttribute('focus', nil)
+				self:ClearBindings()
+				return false
+			end
+		]],
+
+		AddFrame = [[
+			local added = self:GetAttribute('add')
+
+			local oldStack = stack
+			stack = newtable()
+
+			stack[1] = added
+
+			for _, frame in pairs(oldStack) do
+				if frame ~= added then
+					stack[#stack + 1] = frame
+				end
+			end
+		]],
+
+		RemoveFrame = [[
+			local removed = self:GetAttribute('remove')
+
+			local oldStack = stack
+			stack = newtable()
+
+			for _, frame in pairs(oldStack) do
+				if frame ~= removed then
+					stack[#stack + 1] = frame
+				end
+			end
+		]],
+
+		RefreshFocus = [[
+			if self:RunAttribute('SetFocusFrame') then
+				self:CallMethod('SetHintFocus')
+				self:CallMethod('RestoreHints')
+				for i=2, #stack do
+					self:CallMethod('SetIgnoreFadeFrame', stack[i]:GetName(), false)
+				end
+				if focusFrame:GetAttribute('hideUI') then
+					self:CallMethod('ShowUI')
+					self:CallMethod('HideUI',
+						focusFrame:GetName(), 
+						focusFrame:GetAttribute('hideActionBar'))
+				end
+			else
+				self:CallMethod('SetHintFocus')
+				self:CallMethod('ShowUI')
+				self:CallMethod('HideHintBar')
+			end
+		]],
+
+		RefreshStack = [[
+			if self:GetAttribute('add') then
+				self:RunAttribute('AddFrame')
+			end
+
+			if self:GetAttribute('remove') then
+				self:RunAttribute('RemoveFrame')
+			end
+
+			self:SetAttribute('add', nil)
+			self:SetAttribute('remove', nil)
+		]],
+	--------------------------------------------
+	},
+	{
+		StoredHints = {},
+		HintBar = {
+			Type = 'Frame',
+			Strata = 'FULLSCREEN_DIALOG',
+			SetParent = UIParent,
+			Hide = true,
+			Height = 72,
+			Point = {'BOTTOM', 0, 0},
+			{
+				Gradient = {
+					Type = 'Texture',
+					Setup = {'BACKGROUND'},
+					SetColorTexture = {1, 1, 1},
+					Height = 72,
+					Points = {
+						{'BOTTOMLEFT', UIParent, 'BOTTOMLEFT', 0, 0},
+						{'BOTTOMRIGHT', UIParent, 'BOTTOMRIGHT', 0, 0},
+					},
 				},
+				Active = {},
+				Frames = {},
 			},
-			Active = {},
-			Frames = {},
 		},
 	},
 })
 local Bar, Hint = Control.HintBar, {}
-Bar:SetFrameStrata('FULLSCREEN_DIALOG')
 ----------------------------------
 
-----------------------------------
--- Control input handling
-----------------------------------
-local secure_functions = {
-	SetFocusFrame = [[
-		if #stack > 0 then
-			focusFrame = stack[1]
-			self:SetAttribute('focus', focusFrame)
-			self:ClearBindings()
-			for binding, identifier in pairs(keys) do
-				local key = GetBindingKey(binding)
-				if key then
-					self:SetBindingClick(true, key, self:GetFrameRef(binding), identifier)
-				end
-			end
-			return true
-		else
-			focusFrame = nil
-			self:SetAttribute('focus', nil)
-			self:ClearBindings()
-			return false
-		end
-	]],
-
-	AddFrame = [[
-		local added = self:GetAttribute('add')
-
-		local oldStack = stack
-		stack = newtable()
-
-		stack[1] = added
-
-		for _, frame in pairs(oldStack) do
-			if frame ~= added then
-				stack[#stack + 1] = frame
-			end
-		end
-	]],
-
-	RemoveFrame = [[
-		local removed = self:GetAttribute('remove')
-
-		local oldStack = stack
-		stack = newtable()
-
-		for _, frame in pairs(oldStack) do
-			if frame ~= removed then
-				stack[#stack + 1] = frame
-			end
-		end
-	]],
-
-	RefreshFocus = [[
-		if self:RunAttribute('SetFocusFrame') then
-			self:CallMethod('SetHintFocus')
-			self:CallMethod('RestoreHints')
-			for i=2, #stack do
-				self:CallMethod('SetIgnoreFadeFrame', stack[i]:GetName(), false)
-			end
-			if focusFrame:GetAttribute('hideUI') then
-				self:CallMethod('ShowUI')
-				self:CallMethod('HideUI',
-					focusFrame:GetName(), 
-					focusFrame:GetAttribute('hideActionBar'))
-			end
-		else
-			self:CallMethod('SetHintFocus')
-			self:CallMethod('ShowUI')
-			self:CallMethod('HideHintBar')
-		end
-	]],
-
-	RefreshStack = [[
-		if self:GetAttribute('add') then
-			self:RunAttribute('AddFrame')
-		end
-
-		if self:GetAttribute('remove') then
-			self:RunAttribute('RemoveFrame')
-		end
-
-		self:SetAttribute('add', nil)
-		self:SetAttribute('remove', nil)
-	]],
-}
+--------------------------------------------
 
 local secure_wrappers = {
 	PreClick = [[
@@ -139,8 +144,6 @@ local secure_wrappers = {
 	]],
 }
 
-for name, script in pairs(secure_functions) do Control:SetAttribute(name, script) end
-
 --------------------------------------------------------------------
 -- Readable variables mixed into each secure environment for comparison with inputs.
 -- E.g. button == 8 -> button == CROSS 
@@ -153,18 +156,21 @@ for readable, identifier in pairs(data.KEY) do
 	end
 end
 
--- (1) Register the generated variable string.
--- (2) Instantiate a frame stack and a key table for input handling.
--- (3) Forward binding identifiers into the control handle.
--- (4) Create individual input handlers to provide multi-button control.
+-- (1) Register the generated variable string on the main control frame.
+-- (2) Reference the mouse handle to block interaction overrides.
+-- (3) Instantiate a frame stack and a key table for input handling.
+-- (4) Forward binding identifiers into the control handle.
+-- (5) Create individual input handlers to provide multi-button control.
 ----------------------------------
-Control:Execute(button_identifiers)
+Control:Execute(button_identifiers) -- (1)
+Control:SetFrameRef('mouseHandle', ConsolePortMouseHandle)
 Control:Execute([[
-	stack, keys = newtable(), newtable()
+	MouseHandle = self:GetFrameRef('mouseHandle')
 	Control = self
-]])
+	stack, keys = newtable(), newtable()
+]]) -- (2) (3)
 ----------------------------------
-for binding in ConsolePort:GetBindings() do
+for binding in ConsolePort:GetBindings() do -- (3) (4)
 	local UIkey = ConsolePort:GetUIControlKey(binding)
 	if UIkey then
 		-- keys [string binding] = [integer key]
@@ -207,17 +213,17 @@ function Control:RegisterFrame(frame, ID, useCursor, hideUI, hideActionBar)
 	frame:SetAttribute('hideActionBar', hideActionBar)
 	frame:SetFrameRef('control', self)
 	self:SetFrameRef(ID, frame)
-	self:WrapScript(frame, 'OnShow', ([[
+	self:WrapScript(frame, 'OnShow', [[
 		Control:SetAttribute('add', self)
 		Control:RunAttribute('RefreshStack')
 		Control:RunAttribute('RefreshFocus')
-	]]):format(ID))
-	self:WrapScript(frame, 'OnHide', ([[
+	]])
+	self:WrapScript(frame, 'OnHide', [[
 		Control:SetAttribute('remove', self)
 		Control:CallMethod('ClearHintsForFrame')
 		Control:RunAttribute('RefreshStack')
 		Control:RunAttribute('RefreshFocus')
-	]]):format(ID))
+	]])
 end
 
 ----------------------------------
@@ -228,11 +234,14 @@ local updateThrottle = 0
 local ignoreFrames = {
 	[Control] = true,
 	[Control.HintBar] = true,
+	[AlertFrame] = true,
+	[ArtifactLevelUpToast] = true,
 	[ChatFrame1] = true,
 	[CastingBarFrame] = true,
 	[Minimap] = true,
 	[MinimapCluster] = true,
 	[GameTooltip] = true,
+	[QuickJoinToastButton] = true,
 	[StaticPopup1] = true,
 	[StaticPopup2] = true,
 	[StaticPopup3] = true,
@@ -243,6 +252,8 @@ local ignoreFrames = {
 	[OverrideActionBar] = true,
 	[ObjectiveTrackerFrame] = true,
 	[UIErrorsFrame] = true,
+	----------------------------------
+	['TalkingHeadFrame'] = true,
 }
 local forceFrames = {
 	['ConsolePortBar'] = true,
@@ -271,7 +282,7 @@ local function GetFadeFrames(onlyActionBars)
 			valid = false
 			name = child:GetName()
 			forceChild = name and forceFrames[name]
-			ignoreChild = ignoreFrames[child]
+			ignoreChild = ignoreFrames[child] or ignoreFrames[name]
 			isConsolePortFrame = name and name:match('ConsolePort')
 			----------------------------------
 			if 	( Registry[child] and not ignoreChild ) or
@@ -309,8 +320,8 @@ function Control:TrackMouseOver(elapsed)
 	end
 end
 
-function Control:SetIgnoreFadeFrame(frameName, toggleIgnore, fadeInOnFinish)
-	local frame = _G[frameName]
+function Control:SetIgnoreFadeFrame(frame, toggleIgnore, fadeInOnFinish)
+	local frame = type(frame) == 'string' and _G[frame] or frame
 	ignoreFrames[frame] = toggleIgnore
 	if toggleIgnore then
 		if self.fadeFrames then

@@ -163,6 +163,24 @@ function Position:OnEditFocusLost()
 	self.clickToConfirm = nil
 end
 
+
+function Position:OnEnter()
+	if self.valids then
+		local newLine, concat = '|cFFFFFFFF%s|r\n', ''
+		for valid in db.table.spairs(self.valids) do
+			concat = concat .. newLine:format(valid)
+		end
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+		GameTooltip:SetText(db.ACTIONBAR.CFG_VALID_ENTRIES:format(concat))
+	end
+end
+
+function Position:OnLeave()
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
 function Position:OnTextChanged(userInput)
 	if userInput then
 		if self.isNumeric then
@@ -193,6 +211,19 @@ end
 
 function Bool:OnShow()
 	self:SetChecked(ab.cfg[self.cvar])
+end
+
+function Bool:OnEnter()
+	if self.tooltipText then
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+		GameTooltip:SetText(self.tooltipText)
+	end
+end
+
+function Bool:OnLeave()
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
 end
 
 function Color:OnClick(button)
@@ -360,7 +391,7 @@ function Preset:OnClick()
 end
 
 function Preset:OnEnter()
-	local settings = ab:GetSimpleSettings(self.cfg)
+	local settings = ab:GetBooleanSettings(self.cfg)
 	local ttLine = '|T%s:24:24:0:0|t %s'
 	local yes, no = 'Interface\\RAIDFRAME\\ReadyCheck-Ready', 'Interface\\RAIDFRAME\\ReadyCheck-NotReady'
 	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
@@ -457,7 +488,25 @@ end
 
 function WindowMixin:Save()
 	Bar:OnLoad(ab.cfg)
-	return nil, 'Bar', ( not db.table.compare(ab.cfg, ab:GetDefaultSettings()) and ab.cfg)
+
+	local isIdentical, allowExport = db.table.compare, true
+	for _, preset in pairs(ab:GetPresets()) do
+		if isIdentical(ab.cfg, preset) then
+			allowExport = false
+			break
+		end
+	end
+
+	if ConsolePortCharacterSettings then
+		for _, settings in pairs(ConsolePortCharacterSettings) do
+			if isIdentical(ab.cfg, settings.Bar) then
+				allowExport = false
+				break
+			end
+		end
+	end
+
+	return nil, 'Bar', ( allowExport and ab.cfg)
 end
 
 function WindowMixin:Cancel()
@@ -478,14 +527,19 @@ function WindowMixin:CreateLayoutModule()
 	layout.cfg = ab.cfg.layout
 	db.table.mixin(layout, Layout)
 
-	local info = ab:GetSimpleSettings()
+	local info = ab:GetBooleanSettings()
 	for i=1, #info, 2 do
 		local frame = CreateFrame('Frame')
 		frame:SetSize(530, 42)
-		local b1 = layout:CreateBooleanSwitch(info[i].cvar, info[i].desc)
-		local b2 = layout:CreateBooleanSwitch(info[i+1].cvar, info[i+1].desc)
-		b1:SetPoint('LEFT', frame, 'LEFT', 24, 0)
-		b2:SetPoint('CENTER', frame, 'CENTER', 0, 0)
+		local info1, info2 = info[i], info[i+1]
+		if info1 then
+			local b1 = layout:CreateBooleanSwitch(info1.cvar, info1.desc)
+			b1:SetPoint('LEFT', frame, 'LEFT', 16, 0)
+		end
+		if info2 then
+			local b2 = layout:CreateBooleanSwitch(info2.cvar, info2.desc)
+			b2:SetPoint('CENTER', frame, 'CENTER', 16, 0)
+		end
 		layout:AddButton(frame)
 	end
 

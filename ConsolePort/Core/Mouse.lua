@@ -21,8 +21,8 @@ local 	HighlightStart, HighlightStop =
 		TargetPriorityHighlightStart, TargetPriorityHighlightEnd
 ---------------------------------------------------------------
 -- Mouse functions
-local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition, SetPortrait, SetCVar = 
-		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition, SetPortraitTexture, SetCVar
+local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition, GetScreenWidth, SetPortrait, SetCVar = 
+		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition, GetScreenWidth, SetPortraitTexture, SetCVar
 ---------------------------------------------------------------
 local 	Camera, numTap, modTap, timer, interactPushback, highlightTimer =
 		CreateFrame('Frame', 'ConsolePortCamera', UIParent), 0, 0, 0, 0, 0
@@ -67,29 +67,30 @@ function Camera:OnUpdate(elapsed)
 	interactPushback = interactPushback > 0 and interactPushback - elapsed or 0
 end
 
-local yawFlipped = 0
-local deadzone = 0.85
-local smooth = 0.075
-local reset = 0.5
-function Camera:CalculateYaw()
-	if isTargeting then
-		local viewPortCenter = ( UIParent:GetWidth() / 2 )
-		local x, y = GetCursorPosition()
-		local offset = - ( ( x - viewPortCenter ) / 360 )
-		if abs(offset) > deadzone then
-			local newAngle = yawFlipped + offset
-			if newAngle < 90 and newAngle > -90 then
-				yawFlipped = newAngle
-				FlipCameraYaw(offset)
+local yawFlipped, yawDeadZone, yawSmoothOut, yawSmoothIn, yawMaxAngle = .0
+do
+	local viewPortCenter, mousePos, offset, newAngle
+
+	function Camera:CalculateYaw()
+		if not cameraMode and hasWorldFocus then
+			viewPortCenter = ( GetScreenWidth() / 2 )
+			mousePos = GetCursorPosition()
+			offset = - ( ( mousePos - viewPortCenter ) / 360 )
+			if abs(offset) > yawDeadZone then
+				newAngle = yawFlipped + (offset * yawSmoothIn)
+				if newAngle < yawMaxAngle and newAngle > -yawMaxAngle then
+					yawFlipped = newAngle
+					FlipCameraYaw(offset * yawSmoothIn)
+				end
 			end
-		end
-	elseif yawFlipped ~= 0 then
-		local offset = -yawFlipped * smooth
-		yawFlipped = yawFlipped + offset
-		FlipCameraYaw(offset)
-		if abs(yawFlipped) < reset then
-			FlipCameraYaw(-yawFlipped)
-			yawFlipped = 0
+		elseif yawFlipped ~= 0 then
+			offset = -yawFlipped * yawSmoothOut
+			yawFlipped = yawFlipped + offset
+			FlipCameraYaw(offset)
+			if abs(yawFlipped) < .5 then
+				FlipCameraYaw(-yawFlipped)
+				yawFlipped = 0
+			end
 		end
 	end
 end
@@ -245,8 +246,18 @@ function Core:UpdateCameraDriver()
 			Camera:SetScript('OnEvent', Camera.OnEvent)
 			Camera:RegisterEvent('MODIFIER_STATE_CHANGED')
 		end
+
+		local dynamicYaw
 		if db.Mouse.Camera then
 			Camera.lookAround = db.Mouse.Camera.lookAround
+			dynamicYaw = db.Mouse.Camera.calculateYaw
+		end
+
+		if dynamicYaw then
+			yawDeadZone  = Settings.cameraYawDeadzone 	or .8
+			yawSmoothOut = Settings.cameraYawSmoothOut 	or .085
+			yawSmoothIn  = Settings.cameraYawSmoothIn 	or .155
+			yawMaxAngle  = Settings.cameraYawMaxAngle 	or 30
 		end
 
 		for _, script in pairs({
@@ -256,8 +267,8 @@ function Core:UpdateCameraDriver()
 			Settings.preventMouseDrift and Camera.CheckEdge,
 			-- trigger when double tapping a modifier
 			Settings.doubleModTap and Camera.CheckDoubleTap,
-			-- rotate yaw when targeting with reticle
-			(db.Mouse.Camera and db.Mouse.Camera.calculateYaw) and Camera.CalculateYaw,
+			-- rotate yaw dynamically when cursor is out
+			(dynamicYaw) and Camera.CalculateYaw,
 		}) do
 			if script then
 				Camera:HookScript('OnUpdate', script)
@@ -288,10 +299,11 @@ for name, script in pairs({
 			self:RunAttribute('UpdateTarget', value)
 		elseif name == 'state-vehicle' then
 			self:RunAttribute('UpdateVehicle', value)
-		elseif name == 'override' then
-			isEnabled = value
+		elseif name == 'blockhandle' then
+			isEnabled = not value
 			if not isEnabled then
 				self:ClearBindings()
+				self:CallMethod('TrackUnit', nil, true)
 			else
 				self:RunAttribute('UpdateTarget', target)
 			end
@@ -363,13 +375,6 @@ for name, script in pairs({
 		self:CallMethod('TrackUnit', target)
 	]],
 }) do Mouse:SetAttribute(name, script) end
-
----------------------------------------------------------------
-local Focus = CreateFrame('Button', '$parentFocus', Mouse, 'SecureActionButtonTemplate')
-Focus:SetAttribute('type', 'focus')
-Focus:SetAttribute('unit', 'mouseover')
-Mouse:SetFrameRef('Focus', Focus)
-Mouse:Execute([[ Focus = self:GetFrameRef('Focus') ]])
 ---------------------------------------------------------------
 do 	-- Mouse handle setup
 	Mouse:SetPoint('CENTER', 0, -300)
@@ -547,24 +552,24 @@ function Mouse:CacheUnit(unit)
 	end
 end
 
-function Mouse:TrackUnit(unitType, key)
+function Mouse:TrackUnit(fauxUnit, blocked)
 	self:CacheUnit('target')
 	self:SetScript('OnUpdate', nil)
 	self:SetScript('OnEvent', nil)
-	self:UnregisterEvent('UPDATE_MOUSEKEYOVER_UNIT')
+	self:UnregisterEvent('UPDATE_MOUSEOVER_UNIT')
 	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
 	self.Portrait:SetAlpha(1)
 	self.PortraitMask:SetAlpha(1)
 	self:SetAutoWalk(false)
 	self:SetIcon(self.interactWith)
-	if ( unitType == 'loot' ) then
+	if ( fauxUnit == 'loot' ) then
 		self:SetIcon(self.override or self.interactWith)
 		self:SetScript('OnUpdate', self.CheckLoot)
-	elseif ( unitType == 'npc' ) then
+	elseif ( fauxUnit == 'npc' ) then
 		self:SetAutoWalk(true)
 		self:SetScript('OnUpdate', self.CheckNPC)
-	elseif ( unitType == 'hover' ) then
-		self:RegisterEvent('UPDATE_MOUSEKEYOVER_UNIT')
+	elseif ( fauxUnit == 'hover' ) then
+		self:RegisterEvent('UPDATE_MOUSEOVER_UNIT')
 		self:SetScript('OnEvent', self.UpdateMouseover)
 		self:SetAutoWalk(self:GetAttribute('npc'))
 		self:SetScript('OnUpdate', self.CheckHover)
@@ -573,7 +578,7 @@ function Mouse:TrackUnit(unitType, key)
 			self.Portrait:SetAlpha(0)
 			self.PortraitMask:SetAlpha(0)
 		end
-	elseif ( self.cachedUnit and CanLootUnit(self.cachedUnit) ) then
+	elseif ( not blocked and self.cachedUnit and CanLootUnit(self.cachedUnit) ) then
 		self:SetIcon(self.override or self.interactWith)
 		self:SetScript('OnUpdate', self.CheckLootOverride)
 	else

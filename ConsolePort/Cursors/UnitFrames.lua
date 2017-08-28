@@ -4,12 +4,12 @@
 -- Creates a secure cursor that is used to iterate over unit frames
 -- and select units based on where the frame is drawn on screen.
 -- Gathers all nodes by recursively scanning UIParent for
--- secure frames with the "unit" attribute assigned.
+-- secure frames with the 'unit' attribute assigned.
 
 local 	addOn, db = ...
 local 	Flash, FadeIn, FadeOut = db.UIFrameFlash, db.UIFrameFadeIn, db.UIFrameFadeOut
 ---------------------------------------------------------------
-local 	Cursor = CreateFrame("Frame", "ConsolePortRaidCursor", UIParent, "SecureHandlerBaseTemplate, SecureHandlerStateTemplate")
+local 	Cursor = CreateFrame('Button', 'ConsolePortRaidCursor', UIParent, 'SecureHandlerBaseTemplate, SecureHandlerStateTemplate, SecureActionButtonTemplate')
 ---------------------------------------------------------------
 local 	UnitClass, UnitExists, UnitHealth, UnitHealthMax, SetPortraitTexture, SetPortraitToTexture, RAID_CLASS_COLORS = 
 		UnitClass, UnitExists, UnitHealth, UnitHealthMax, SetPortraitTexture, SetPortraitToTexture, RAID_CLASS_COLORS
@@ -18,26 +18,25 @@ local 	pi, abs, GetTime = math.pi, abs, GetTime
 ---------------------------------------------------------------
 do 
 	local Key = {
-		Up 		= ConsolePort:GetUIControlKey("CP_L_UP"),
-		Down 	= ConsolePort:GetUIControlKey("CP_L_DOWN"),
-		Left 	= ConsolePort:GetUIControlKey("CP_L_LEFT"),
-		Right 	= ConsolePort:GetUIControlKey("CP_L_RIGHT"),
+		Up 		= ConsolePort:GetUIControlKey('CP_L_UP'),
+		Down 	= ConsolePort:GetUIControlKey('CP_L_DOWN'),
+		Left 	= ConsolePort:GetUIControlKey('CP_L_LEFT'),
+		Right 	= ConsolePort:GetUIControlKey('CP_L_RIGHT'),
 	}
 	---------------------------------------------------------------
-	local SetFocus = CreateFrame("Button", "$parentFocus", Cursor, "SecureActionButtonTemplate")
-	SetFocus:SetAttribute("type", "focus")
-	Cursor:SetFrameRef("SetFocus", SetFocus)
+	local SetFocus = CreateFrame('Button', '$parentFocus', Cursor, 'SecureActionButtonTemplate')
+	SetFocus:SetAttribute('type', 'focus')
+	Cursor:SetFrameRef('SetFocus', SetFocus)
 	---------------------------------------------------------------
-	local SetTarget = CreateFrame("Button", "$parentTarget", Cursor, "SecureActionButtonTemplate")
-	SetTarget:SetAttribute("type", "target")
-	Cursor:SetFrameRef("SetTarget", SetTarget)
+	local SetTarget = CreateFrame('Button', '$parentTarget', Cursor, 'SecureActionButtonTemplate')
+	SetTarget:SetAttribute('type', 'target')
+	Cursor:SetFrameRef('SetTarget', SetTarget)
 	---------------------------------------------------------------
-	Cursor:SetFrameRef("actionBar", MainMenuBarArtFrame)
-	Cursor:SetFrameRef("overrideBar", OverrideActionBar)
+	Cursor:SetFrameRef('actionBar', MainMenuBarArtFrame)
+	Cursor:SetFrameRef('overrideBar', OverrideActionBar)
 	---------------------------------------------------------------
 	ConsolePort:RegisterSpellHeader(Cursor)
 	Cursor:Execute(format([[
-		ALL = newtable()
 		DPAD = newtable()
 
 		Key = newtable()
@@ -51,8 +50,8 @@ do
 		Units = newtable()
 		Actions = newtable()
 
-		Focus = self:GetFrameRef("SetFocus")
-		Target = self:GetFrameRef("SetTarget")
+		Focus = self:GetFrameRef('SetFocus')
+		Target = self:GetFrameRef('SetTarget')
 
 		Cache = newtable()
 
@@ -69,10 +68,10 @@ do
 			Helpful = wipe(Helpful)
 			Harmful = wipe(Harmful)
 			for actionButton in pairs(Actions) do
-				local action = actionButton:GetAttribute("action")
-				if self:RunAttribute("IsHelpfulAction", action) then
+				local action = actionButton:GetAttribute('action')
+				if self:RunAttribute('IsHelpfulAction', action) then
 					Helpful[actionButton] = true
-				elseif self:RunAttribute("IsHarmfulAction", action) then
+				elseif self:RunAttribute('IsHarmfulAction', action) then
 					Harmful[actionButton] = true
 				else
 					Helpful[actionButton] = true
@@ -84,13 +83,13 @@ do
 			local node = CurrentNode
 			local isProtected = node:IsProtected()
 			local children = isProtected and newtable(node:GetChildren())
-			local unit = isProtected and node:GetAttribute("unit")
-			local action = isProtected and node:GetAttribute("action")
+			local unit = isProtected and node:GetAttribute('unit')
+			local action = isProtected and node:GetAttribute('action')
 			local childUnit
 			if children then
 				for i, child in pairs(children) do
 					if child:IsProtected() then
-						childUnit = child:GetAttribute("unit")
+						childUnit = child:GetAttribute('unit')
 						if childUnit == nil or childUnit ~= unit then
 							CurrentNode = child
 							self:Run(GetNodes)
@@ -116,7 +115,7 @@ do
 			end
 		]=]
 		SetCurrent = [=[
-			if old and old:IsVisible() and UnitExists(old:GetAttribute("unit")) then
+			if old and old:IsVisible() and UnitExists(old:GetAttribute('unit')) then
 				current = old
 			elseif (not current and next(Units)) or (current and next(Units) and not current:IsVisible()) then
 				local thisX, thisY = self:GetRect()
@@ -196,52 +195,6 @@ do
 				end
 			end
 		]=]
-		UpdateRouting = [=[
-			local reroute = not self:GetAttribute("noRouting")
-
-			if reroute then
-				for action, unit in pairs(Actions) do
-					action:SetAttribute("unit", unit)
-				end
-			end
-
-			local unit = current and current:GetAttribute("unit")
-
-			if unit then
-				self:Show()
-
-				Focus:SetAttribute("unit", unit)
-				Target:SetAttribute("unit", unit)
-
-				RegisterStateDriver(self, "unitexists", "[@"..unit..",exists] true; nil")
-
-				self:ClearAllPoints()
-				self:SetPoint("TOPLEFT", current, "CENTER", 0, 0)
-				self:SetAttribute("node", current)
-				self:SetAttribute("unit", unit)
-
-				if reroute then
-					if PlayerCanAttack(unit) then
-						self:SetAttribute("relation", "harm")
-						for action in pairs(Harmful) do
-							action:SetAttribute("unit", unit)
-						end
-					elseif PlayerCanAssist(unit) then
-						self:SetAttribute("relation", "help")
-						for action in pairs(Helpful) do
-							action:SetAttribute("unit", unit)
-						end
-					end
-				end
-			else
-				UnregisterStateDriver(self, "unitexists")
-
-				Focus:SetAttribute("unit", nil)
-				Target:SetAttribute("unit", nil)
-
-				self:Hide()
-			end
-		]=]
 		SelectNode = [=[
 			key = ...
 			if current then
@@ -265,29 +218,75 @@ do
 				self:Run(SelectNode, 0)
 			end
 		]=]
+		UpdateRouting = [=[
+			local reroute = not self:GetAttribute('noRouting')
+
+			if reroute then
+				for action, unit in pairs(Actions) do
+					action:SetAttribute('unit', unit)
+				end
+			end
+
+			local unit = current and current:GetAttribute('unit')
+
+			if unit then
+				self:Show()
+
+				Focus:SetAttribute('unit', unit)
+				Target:SetAttribute('unit', unit)
+
+				RegisterStateDriver(self, 'unitexists', '[@'..unit..',exists] true; nil')
+
+				self:ClearAllPoints()
+				self:SetPoint('TOPLEFT', current, 'CENTER', 0, 0)
+				self:SetAttribute('node', current)
+				self:SetAttribute('cursorunit', unit)
+
+				if reroute then
+					if PlayerCanAttack(unit) then
+						self:SetAttribute('relation', 'harm')
+						for action in pairs(Harmful) do
+							action:SetAttribute('unit', unit)
+						end
+					elseif PlayerCanAssist(unit) then
+						self:SetAttribute('relation', 'help')
+						for action in pairs(Helpful) do
+							action:SetAttribute('unit', unit)
+						end
+					end
+				end
+			else
+				UnregisterStateDriver(self, 'unitexists')
+
+				Focus:SetAttribute('unit', nil)
+				Target:SetAttribute('unit', nil)
+
+				self:Hide()
+			end
+		]=]
 		ToggleCursor = [=[
 			if IsEnabled then
-				local modifier = self:GetAttribute("modifier")
-				for binding, name in pairs(DPAD) do
-					local key = GetBindingKey(binding)
-					if key then
-						self:SetBindingClick(true, modifier..key, "ConsolePortRaidCursorButton"..name)
+				local modifier, bindingKey = self:GetAttribute('modifier')
+				for binding, inputKey in pairs(DPAD) do
+					bindingKey = GetBindingKey(binding)
+					if bindingKey then
+						self:SetBindingClick(true, modifier..bindingKey, self, inputKey)
 					end
 				end
 				self:Run(UpdateFrameStack)
 				self:Show()
 			else
-				UnregisterStateDriver(self, "unitexists")
+				UnregisterStateDriver(self, 'unitexists')
 
-				Focus:SetAttribute("unit", nil)
-				Target:SetAttribute("unit", nil)
+				Focus:SetAttribute('unit', nil)
+				Target:SetAttribute('unit', nil)
 
-				self:SetAttribute("node", nil)
+				self:SetAttribute('node', nil)
 				self:ClearBindings()
 
-				if not self:GetAttribute("noRouting") then
+				if not self:GetAttribute('noRouting') then
 					for action, unit in pairs(Actions) do
-						action:SetAttribute("unit", unit)
+						action:SetAttribute('unit', unit)
 					end
 				end
 
@@ -302,68 +301,65 @@ do
 		]=]
 
 		-- Cache default bars right away
-		CurrentNode = self:GetFrameRef("actionBar")
+		CurrentNode = self:GetFrameRef('actionBar')
 		self:Run(GetNodes)
-		CurrentNode = self:GetFrameRef("overrideBar")
+		CurrentNode = self:GetFrameRef('overrideBar')
 		self:Run(GetNodes)
 	]])
-	Cursor:SetAttribute("pageupdate", [[
+	Cursor:SetAttribute('pageupdate', [[
 		if IsEnabled then
 			self:Run(RefreshActions)
 			self:Run(SelectNode, 0)
 		end
 	]])
 	------------------------------------------------------------------------------------------------------------------------------
-	local ToggleCursor = CreateFrame("Button", "$parentToggle", Cursor, "SecureActionButtonTemplate")
-	ToggleCursor:RegisterForClicks("LeftButtonDown")
-	Cursor:SetFrameRef("Mouse", ConsolePortMouseHandle)
-	Cursor:WrapScript(ToggleCursor, "OnClick", [[
+	local ToggleCursor = CreateFrame('Button', '$parentToggle', Cursor, 'SecureActionButtonTemplate')
+	ToggleCursor:RegisterForClicks('LeftButtonDown')
+	Cursor:SetFrameRef('Mouse', ConsolePortMouseHandle)
+	Cursor:WrapScript(ToggleCursor, 'OnClick', [[
 		local Cursor = self:GetParent()
-		local MouseHandle =	Cursor:GetFrameRef("Mouse")
+		local MouseHandle =	Cursor:GetFrameRef('Mouse')
 
 		IsEnabled = not IsEnabled
-		Cursor:SetAttribute("enabled", IsEnabled)
+		Cursor:SetAttribute('enabled', IsEnabled)
 
 		Cursor:Run(ToggleCursor)
-		MouseHandle:SetAttribute("override", not IsEnabled)
+		MouseHandle:SetAttribute('blockhandle', IsEnabled)
 	]])
 	------------------------------------------------------------------------------------------------------------------------------
 	local buttons = {
-		Up 		= {binding = "CP_L_UP", 	key = Key.Up},
-		Down 	= {binding = "CP_L_DOWN", 	key = Key.Down},
-		Left 	= {binding = "CP_L_LEFT", 	key = Key.Left},
-		Right 	= {binding = "CP_L_RIGHT",	key = Key.Right},
+		[Key.Up] 	= 'CP_L_UP',
+		[Key.Down] 	= 'CP_L_DOWN',
+		[Key.Left] 	= 'CP_L_LEFT',
+		[Key.Right] = 'CP_L_RIGHT',
 	}
 
-	for name, button in pairs(buttons) do
-		local btn = CreateFrame("Button", "$parentButton"..name, Cursor, "SecureActionButtonTemplate")
-		btn:RegisterForClicks("LeftButtonDown", "LeftButtonUp")
-		btn:SetAttribute("type", "target")
-		Cursor:WrapScript(btn, "PreClick", format([[
-			local Cursor = self:GetParent()
-			if down then
-				Cursor:Run(SelectNode, %s)
-				if Cursor:GetAttribute("noRouting") then
-					self:SetAttribute("unit", Cursor:GetAttribute("unit"))
-				else
-					self:SetAttribute("unit", nil)
-				end
-			end
-		]], button.key))
+	for key, binding in pairs(buttons) do
 		Cursor:Execute(format([[
-			DPAD.%s = "%s"
-		]], button.binding, name))
+			DPAD.%s = '%s'
+		]], binding, key))
 	end
+
+	Cursor:SetAttribute('type', 'target')
+	Cursor:RegisterForClicks('AnyDown')
+	Cursor:WrapScript(Cursor, 'PreClick', [[
+		self:Run(SelectNode, tonumber(button))
+		if self:GetAttribute('noRouting') then
+			self:SetAttribute('unit', self:GetAttribute('cursorunit'))
+		else
+			self:SetAttribute('unit', nil)
+		end
+	]])
 	---------------------------------------------------------------
-	Cursor:SetAttribute("_onstate-unitexists", "self:Run(UpdateUnitExists, newstate)")
+	Cursor:SetAttribute('_onstate-unitexists', 'self:Run(UpdateUnitExists, newstate)')
 	---------------------------------------------------------------
 end
 
 function ConsolePort:SetupRaidCursor()
 	Cursor.onShow = true
 	Cursor.Timer = 0
-	Cursor:SetScript("OnUpdate", Cursor.Update)
-	Cursor:SetScript("OnEvent", Cursor.Event)
+	Cursor:SetScript('OnUpdate', Cursor.Update)
+	Cursor:SetScript('OnEvent', Cursor.Event)
 
 	currentPage = nil
 	buttons = nil
@@ -372,94 +368,94 @@ function ConsolePort:SetupRaidCursor()
 end
 
 function ConsolePort:LoadRaidCursor()
-	Cursor:SetAttribute("noRouting", db.Settings.raidCursorDirect)
-	Cursor:SetAttribute("modifier", db.Settings.raidCursorModifier or "")
+	Cursor:SetAttribute('noRouting', db.Settings.raidCursorDirect)
+	Cursor:SetAttribute('modifier', db.Settings.raidCursorModifier or '')
 end
 
 ---------------------------------------------------------------
 Cursor:SetSize(32,32)
-Cursor:SetFrameStrata("TOOLTIP")
-Cursor:SetPoint("CENTER", 0, 0)
+Cursor:SetFrameStrata('TOOLTIP')
+Cursor:SetPoint('CENTER', 0, 0)
 Cursor:Hide()
 ---------------------------------------------------------------
-Cursor.BG = Cursor:CreateTexture(nil, "BACKGROUND")
-Cursor.BG:SetTexture("Interface\\Cursor\\Item")
+Cursor.BG = Cursor:CreateTexture(nil, 'BACKGROUND')
+Cursor.BG:SetTexture('Interface\\Cursor\\Item')
 Cursor.BG:SetAllPoints(Cursor)
 ---------------------------------------------------------------
-Cursor.UnitPortrait = Cursor:CreateTexture(nil, "ARTWORK", nil, 6)
+Cursor.UnitPortrait = Cursor:CreateTexture(nil, 'ARTWORK', nil, 6)
 Cursor.UnitPortrait:SetSize(38, 38)
-Cursor.UnitPortrait:SetPoint("TOPLEFT", Cursor, "CENTER", 0, 0)
+Cursor.UnitPortrait:SetPoint('TOPLEFT', Cursor, 'CENTER', 0, 0)
 ---------------------------------------------------------------
-Cursor.SpellPortrait = Cursor:CreateTexture(nil, "ARTWORK", nil, 7)
+Cursor.SpellPortrait = Cursor:CreateTexture(nil, 'ARTWORK', nil, 7)
 Cursor.SpellPortrait:SetSize(38, 38)
-Cursor.SpellPortrait:SetPoint("TOPLEFT", Cursor, "CENTER", 0, 0)
+Cursor.SpellPortrait:SetPoint('TOPLEFT', Cursor, 'CENTER', 0, 0)
 ---------------------------------------------------------------
-Cursor.Border = Cursor:CreateTexture(nil, "OVERLAY", nil, 6)
+Cursor.Border = Cursor:CreateTexture(nil, 'OVERLAY', nil, 6)
 Cursor.Border:SetSize(54, 54)
-Cursor.Border:SetPoint("CENTER", Cursor.UnitPortrait, 0, 0)
-Cursor.Border:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorder")
+Cursor.Border:SetPoint('CENTER', Cursor.UnitPortrait, 0, 0)
+Cursor.Border:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorder')
 ---------------------------------------------------------------
-Cursor.Health = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
+Cursor.Health = Cursor:CreateTexture(nil, 'OVERLAY', nil, 7)
 Cursor.Health:SetSize(54, 54)
-Cursor.Health:SetPoint("BOTTOM", Cursor.Border, 0, 0)
-Cursor.Health:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorderHighlight")
+Cursor.Health:SetPoint('BOTTOM', Cursor.Border, 0, 0)
+Cursor.Health:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\UtilityBorderHighlight')
 ---------------------------------------------------------------
-Cursor.Spell = CreateFrame("PlayerModel", nil, Cursor)
+Cursor.Spell = CreateFrame('PlayerModel', nil, Cursor)
 Cursor.Spell:SetAlpha(1)
 Cursor.Spell:SetDisplayInfo(42486)
 ---------------------------------------------------------------
 Cursor.Group = Cursor:CreateAnimationGroup()
 ---------------------------------------------------------------
-Cursor.Scale1 = Cursor.Group:CreateAnimation("Scale")
+Cursor.Scale1 = Cursor.Group:CreateAnimation('Scale')
 Cursor.Scale1:SetDuration(0.1)
-Cursor.Scale1:SetSmoothing("IN")
+Cursor.Scale1:SetSmoothing('IN')
 Cursor.Scale1:SetOrder(1)
-Cursor.Scale1:SetOrigin("CENTER", 0, 0)
+Cursor.Scale1:SetOrigin('CENTER', 0, 0)
 ---------------------------------------------------------------
-Cursor.Scale2 = Cursor.Group:CreateAnimation("Scale")
-Cursor.Scale2:SetSmoothing("OUT")
+Cursor.Scale2 = Cursor.Group:CreateAnimation('Scale')
+Cursor.Scale2:SetSmoothing('OUT')
 Cursor.Scale2:SetOrder(2)
-Cursor.Scale2:SetOrigin("CENTER", 0, 0)
+Cursor.Scale2:SetOrigin('CENTER', 0, 0)
 ---------------------------------------------------------------
-Cursor.CastBar = Cursor:CreateTexture(nil, "OVERLAY")
+Cursor.CastBar = Cursor:CreateTexture(nil, 'OVERLAY')
 Cursor.CastBar:SetSize(54, 54)
-Cursor.CastBar:SetPoint("CENTER", Cursor.UnitPortrait, 0, 0)
-Cursor.CastBar:SetTexture("Interface\\AddOns\\ConsolePort\\Textures\\Castbar\\CastBarShadow")
+Cursor.CastBar:SetPoint('CENTER', Cursor.UnitPortrait, 0, 0)
+Cursor.CastBar:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Castbar\\CastBarShadow')
 ---------------------------------------------------------------
 -- Player specific
-Cursor:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
-Cursor:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-Cursor:RegisterEvent("UNIT_SPELLCAST_START")
-Cursor:RegisterEvent("UNIT_SPELLCAST_STOP")
-Cursor:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+Cursor:RegisterEvent('UNIT_SPELLCAST_CHANNEL_START')
+Cursor:RegisterEvent('UNIT_SPELLCAST_CHANNEL_STOP')
+Cursor:RegisterEvent('UNIT_SPELLCAST_START')
+Cursor:RegisterEvent('UNIT_SPELLCAST_STOP')
+Cursor:RegisterEvent('UNIT_SPELLCAST_SUCCEEDED')
 ---------------------------------------------------------------
-Cursor:RegisterEvent("UNIT_HEALTH")
-Cursor:RegisterEvent("PLAYER_TARGET_CHANGED")
+Cursor:RegisterEvent('UNIT_HEALTH')
+Cursor:RegisterEvent('PLAYER_TARGET_CHANGED')
 ---------------------------------------------------------------
 function Cursor:Event(event, ...)
 	local unit, spell, _, _, spellID = ...
 
 	if self:IsVisible() then
 
-		if event == "UNIT_HEALTH" and unit == self.unit then
+		if event == 'UNIT_HEALTH' and unit == self.unit then
 			local hp = UnitHealth(unit)
 			local max = UnitHealthMax(unit)
 			self.Health:SetTexCoord(0, 1, abs(1 - hp / max), 1)
 			self.Health:SetHeight(54 * hp / max)
-		elseif event == "PLAYER_TARGET_CHANGED" and self.unit then
+		elseif event == 'PLAYER_TARGET_CHANGED' and self.unit then
 			self:UpdateUnit(self.unit)
-		elseif event == "PLAYER_REGEN_DISABLED" then
+		elseif event == 'PLAYER_REGEN_DISABLED' then
 			self:SetAlpha(1)
-		elseif event == "PLAYER_REGEN_ENABLED" and ConsolePortCursor:IsVisible() then
+		elseif event == 'PLAYER_REGEN_ENABLED' and ConsolePortCursor:IsVisible() then
 			self:SetAlpha(0.25)
 		end
 
-		if unit == "player" then
-			if event == "UNIT_SPELLCAST_CHANNEL_START" then
-				local name, _, _, texture, startTime, endTime, _, _, _ = UnitChannelInfo("player")
+		if unit == 'player' then
+			if event == 'UNIT_SPELLCAST_CHANNEL_START' then
+				local name, _, _, texture, startTime, endTime, _, _, _ = UnitChannelInfo('player')
 
-				local targetRelation = self:GetAttribute("relation")
-				local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
+				local targetRelation = self:GetAttribute('relation')
+				local spellRelation = IsHarmfulSpell(name) and 'harm' or IsHelpfulSpell(name) and 'help'
 
 				if targetRelation == spellRelation then
 					local color = self.color
@@ -483,14 +479,14 @@ function Cursor:Event(event, ...)
 					self.SpellPortrait:Hide()
 				end
 
-			elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then self.isChanneling = false
+			elseif event == 'UNIT_SPELLCAST_CHANNEL_STOP' then self.isChanneling = false
 				FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
 
-			elseif event == "UNIT_SPELLCAST_START" then
-				local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo("player")
+			elseif event == 'UNIT_SPELLCAST_START' then
+				local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo('player')
 
-				local targetRelation = self:GetAttribute("relation")
-				local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
+				local targetRelation = self:GetAttribute('relation')
+				local spellRelation = IsHarmfulSpell(name) and 'harm' or IsHelpfulSpell(name) and 'help'
 
 				if targetRelation == spellRelation then
 					local color = self.color
@@ -514,16 +510,16 @@ function Cursor:Event(event, ...)
 					self.SpellPortrait:Hide()
 				end
 
-			elseif event == "UNIT_SPELLCAST_STOP" then self.isCasting = false
+			elseif event == 'UNIT_SPELLCAST_STOP' then self.isCasting = false
 				FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
 				FadeOut(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
 
-			elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+			elseif event == 'UNIT_SPELLCAST_SUCCEEDED' then
 				local name, _, icon = GetSpellInfo(spell)
 
 				if name and icon then
-					local targetRelation = self:GetAttribute("relation")
-					local spellRelation = IsHarmfulSpell(name) and "harm" or IsHelpfulSpell(name) and "help"
+					local targetRelation = self:GetAttribute('relation')
+					local spellRelation = IsHarmfulSpell(name) and 'harm' or IsHelpfulSpell(name) and 'help'
 
 					if targetRelation == spellRelation then
 						SetPortraitToTexture(self.SpellPortrait, icon)
@@ -565,7 +561,7 @@ function Cursor:UpdateNode(node)
 	if node then
 		local name = node:GetName()
 		if name ~= self.node then
-			local unit = node:GetAttribute("unit")
+			local unit = node:GetAttribute('cursorunit')
 
 			self.unit = unit
 			self.node = name
@@ -577,7 +573,7 @@ function Cursor:UpdateNode(node)
 				self.Scale2:SetScale(1/1.5, 1/1.5)
 				self.Scale2:SetDuration(0.5)
 				FadeOut(self.Spell, 1, 1, 0.1)
-				PlaySound(PlaySoundKitID and "AchievementMenuOpen" or SOUNDKIT.ACHIEVEMENT_MENU_OPEN)
+				PlaySound(SOUNDKIT.ACHIEVEMENT_MENU_OPEN)
 			else
 				self.Scale1:SetScale(1.15, 1.15)
 				self.Scale2:SetScale(1/1.15, 1/1.15)
@@ -595,9 +591,9 @@ function Cursor:UpdateNode(node)
 end
 
 function Cursor:AttributeChanged(attribute, value)
-	if attribute == "unit" and value then
+	if attribute == 'cursorunit' and value then
 		self:UpdateUnit(value)
-	elseif attribute == "node" then
+	elseif attribute == 'node' then
 		self:UpdateNode(value)
 	end
 end
@@ -629,16 +625,16 @@ end
 
 Cursor:HookScript("OnAttributeChanged", Cursor.AttributeChanged)
 
-ConsolePortCursor:HookScript("OnShow", function(self)
-	Cursor:RegisterEvent("PLAYER_REGEN_ENABLED")
-	Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
+ConsolePortCursor:HookScript('OnShow', function(self)
+	Cursor:RegisterEvent('PLAYER_REGEN_ENABLED')
+	Cursor:RegisterEvent('PLAYER_REGEN_DISABLED')
 	if not InCombatLockdown() then
 		Cursor:SetAlpha(0.25)
 	end
 end)
 
-ConsolePortCursor:HookScript("OnHide", function(self)
-	Cursor:UnregisterEvent("PLAYER_REGEN_ENABLED")
-	Cursor:UnregisterEvent("PLAYER_REGEN_DISABLED")
+ConsolePortCursor:HookScript('OnHide', function(self)
+	Cursor:UnregisterEvent('PLAYER_REGEN_ENABLED')
+	Cursor:UnregisterEvent('PLAYER_REGEN_DISABLED')
 	Cursor:SetAlpha(1)
 end)
