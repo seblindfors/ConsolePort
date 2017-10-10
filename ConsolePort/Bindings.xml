@@ -32,7 +32,11 @@
 
 	<!-- Custom bindings -->
 	<Binding name="WM_UPDATE" hidden="true">
-		ConsolePort:WMupdate()
+		if ConsolePort and ConsolePort.WMupdate then
+			ConsolePort:WMupdate()
+		else
+			print("WoWmapper attempted to update your settings prematurely.\nUse /reload to apply new settings.")
+		end
 	</Binding>
 	<Binding name="CP_TOGGLEMOUSE" hidden="true">
 		ConsolePortCamera:Toggle()
@@ -64,4 +68,5 @@
 			FlipCameraYaw(180);
 		end
 	</Binding>
+	
 </Bindings>

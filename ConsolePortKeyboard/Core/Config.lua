@@ -199,6 +199,6 @@ function Keyboard:CreateConfig()
 		name = "Keyboard", 
 		header = "Keyboard", 
 		mixin = WindowMixin, 
-		onLoad = ConfigureConfig
+		onCreate = ConfigureConfig
 	})
 end

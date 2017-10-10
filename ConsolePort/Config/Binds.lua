@@ -840,7 +840,7 @@ function WindowMixin:OnShow(override)
 end
 
 ---------------------------------------------------------------
-db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = WindowMixin, onFirstShow = function(self, core)
+db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = WindowMixin, onLoad = function(self, core)
 	local settings = db.Settings
 	local player = GetUnitName("player").."-"..GetRealmName()
 	local cc = RAID_CLASS_COLORS[select(2, UnitClass("player"))]
@@ -1165,7 +1165,7 @@ db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = W
 
 	window = self
 
-	local function CreateRebindButton(name, mod, secure)
+	local function CreateRebindButton(name, mod)
 		local buttonConfig = config.configButton
 		buttonConfig.buttonTexture = db.TEXTURE[name]
 		buttonConfig.default = config.customDescription[name]

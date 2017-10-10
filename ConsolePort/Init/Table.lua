@@ -82,19 +82,29 @@ local function spairs(t, order)
 	else
 		table.sort(keys)
 	end
-	local i = 0
+	local i, k = 0
 	return function()
 		i = i + 1
-		if keys[i] then
-			return keys[i], t[keys[i]]
+		k = keys[i]
+		if k then
+			return k, t[k]
 		end
 	end
 end
 ---------------------------------------------------------------
-local function global_mixin(object, ...)
-	for i = 1, select("#", ...) do
+local function mixin(object, ...)
+	local scriptSupport = (type(object.HasScript) == 'function')
+	for i = 1, select('#', ...) do
 		local mixin = select(i, ...)
+
 		for k, v in pairs(mixin) do
+			if scriptSupport and object:HasScript(k) then
+				if object:GetScript(k) then
+					object:HookScript(k, v)
+				else
+					object:SetScript(k, v)
+				end
+			end
 			object[k] = v
 		end
 	end
@@ -102,19 +112,5 @@ local function global_mixin(object, ...)
 	return object
 end
 
-local function mixin(t, ...)
-	t = global_mixin(t, ...)
-	if t.HasScript then
-		for k, v in pairs(t) do
-			if t:HasScript(k) then
-				if t:GetScript(k) then
-					t:HookScript(k, v)
-				else
-					t:SetScript(k, v)
-				end
-			end
-		end
-	end
-end
 ---------------------------------------------------------------
 tbl.copy, tbl.flip, tbl.compare, tbl.spairs, tbl.mixin = copy, flip, compare, spairs, mixin

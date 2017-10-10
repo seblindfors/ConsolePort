@@ -99,7 +99,7 @@ Scroll:SetScript("OnMouseWheel", Scroll.OnMouseWheel)
 local Cancel = db.Atlas.GetFutureButton("$parentCancel", Config)
 function Cancel:OnClick()
 	if not InCombatLockdown() then
-		for i, frame in pairs(Container.Frames) do
+		for _, frame in ipairs(Container.Frames) do
 			if frame.Cancel then
 				frame:Cancel()
 			end
@@ -117,8 +117,8 @@ local Save = db.Atlas.GetFutureButton("$parentSave", Config)
 function Save:OnClick()
 	local data, reload
 	if not InCombatLockdown() then
-		for i, frame in pairs(Container.Frames) do
-			if frame.Save and not frame.onFirstShow then
+		for _, frame in ipairs(Container.Frames) do
+			if frame.Save and not frame.onLoad then
 				local needReload, exportID, exportData = frame:Save()
 				reload = needReload or reload
 				if exportID and exportData then
@@ -166,7 +166,7 @@ Default.PopupFrame.Cancel:SetText(TUTORIAL.CANCEL)
 
 function Default:ResetAll()
 	if not InCombatLockdown() then
-		for i, frame in pairs(Container.Frames) do
+		for _, frame in ipairs(Container.Frames) do
 			if frame.Default then
 				frame:Default()
 			end
@@ -403,9 +403,9 @@ end
 ---------------------------------------------------------------
 
 function WindowMixin:AddPanel(info)
-	local 	name, header, bannerAtlas, mixin, onLoad, onFirstShow = 
+	local 	name, header, bannerAtlas, mixin, onCreate, onLoad = 
 			info.name, info.header, info.bannerAtlas,
-			info.mixin, info.onLoad, info.onFirstShow
+			info.mixin, info.onCreate, info.onLoad
 	local frame = CreateFrame("Frame", "$parent"..name, Container)
 	frame:SetBackdrop(db.Atlas.Backdrops.Border)
 	local id = Category:AddNew(header, bannerAtlas)
@@ -419,18 +419,18 @@ function WindowMixin:AddPanel(info)
 	frame:SetParent(self)
 	frame:SetAllPoints(Container)
 	frame:Hide()
-	if onLoad then
-		onLoad(frame, ConsolePort)
+	if onCreate then
+		onCreate(frame, ConsolePort)
 	end
-	if onFirstShow then
+	if onLoad then
 		frame:SetScript("OnShow", function(self)
-			self:onFirstShow(ConsolePort)
-			self.onFirstShow = nil
+			self:onLoad(ConsolePort)
+			self.onLoad = nil
 			self:Hide()
 			self:SetScript("OnShow", self.OnShow)
 			self:Show()
 		end)
-		frame.onFirstShow = onFirstShow
+		frame.onLoad = onLoad
 	end
 	db[name] = frame
 	return frame
@@ -584,7 +584,7 @@ Mixin(Config, WindowMixin)
 -- Creates all config panels in panel table on load.
 ---------------------------------------------------------------
 function ConsolePort:CreateConfigPanel()
-	for i, panel in pairs(db.PANELS) do
+	for _, panel in ipairs(db.PANELS) do
 		Config:AddPanel(panel)
 	end
 	db.PANELS = nil

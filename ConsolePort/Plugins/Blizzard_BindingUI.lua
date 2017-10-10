@@ -1,6 +1,7 @@
 --- Warning popup and modification of the keybinding UI.
 -- This code simply adds an extra layer of protection when messing with keyboard bindings while CP is running.
 -- CP is using unsaved bindings to get the correct bindings keys in secure scopes since overrides might be present.
+-- Saving bindings while these temp bindings are configured will overwrite regular keyboard bindings.
 
 local _, db = ...
 

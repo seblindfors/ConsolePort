@@ -1,7 +1,7 @@
 -- This was mostly stolen from Bartender4.
 -- This code snippet hides and modifies the default action bars.
 
-local addOn, ab = ...
+local _, ab = ...
 local Bar = ab.bar
 local red, green, blue = ab.data.Atlas.GetCC()
 
@@ -59,43 +59,73 @@ do
 
 	local XP, Rep, Honor, Artifact = MainMenuExpBar, ReputationWatchBar, HonorWatchBar, ArtifactWatchBar
 
-	Bar.WatchBarContainer = CreateFrame('Frame', '$parentWatchBars', Bar)
-	Bar.WatchBarContainer:SetPoint('BOTTOM', 0, 0)
-	Bar.WatchBarContainer:SetSize(1024, 16)
+	local WatchBarContainer = CreateFrame('Frame', '$parentWatchBars', Bar)
+	WatchBarContainer:SetPoint('BOTTOM', 0, 0)
+	WatchBarContainer:SetSize(1024, 16)
 
-	Bar.WatchBarContainer.BGLeft = Bar.WatchBarContainer:CreateTexture('BACKGROUND')
-	Bar.WatchBarContainer.BGLeft:SetPoint('TOPLEFT')
-	Bar.WatchBarContainer.BGLeft:SetPoint('BOTTOMRIGHT', Bar.WatchBarContainer, 'BOTTOM', 0, 0)
-	Bar.WatchBarContainer.BGLeft:SetColorTexture(0, 0, 0, 1)
-	Bar.WatchBarContainer.BGLeft:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 0, 0, 0, 0, 1)
+	WatchBarContainer.BGLeft = WatchBarContainer:CreateTexture('BACKGROUND')
+	WatchBarContainer.BGLeft:SetPoint('TOPLEFT')
+	WatchBarContainer.BGLeft:SetPoint('BOTTOMRIGHT', WatchBarContainer, 'BOTTOM', 0, 0)
+	WatchBarContainer.BGLeft:SetColorTexture(0, 0, 0, 1)
+	WatchBarContainer.BGLeft:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 0, 0, 0, 0, 1)
 
-	Bar.WatchBarContainer.BGRight = Bar.WatchBarContainer:CreateTexture('BACKGROUND')
-	Bar.WatchBarContainer.BGRight:SetColorTexture(0, 0, 0, 1)
-	Bar.WatchBarContainer.BGRight:SetPoint('TOPRIGHT')
-	Bar.WatchBarContainer.BGRight:SetPoint('BOTTOMLEFT', Bar.WatchBarContainer, 'BOTTOM', 0, 0)
-	Bar.WatchBarContainer.BGRight:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 1, 0, 0, 0, 0)
+	WatchBarContainer.BGRight = WatchBarContainer:CreateTexture('BACKGROUND')
+	WatchBarContainer.BGRight:SetColorTexture(0, 0, 0, 1)
+	WatchBarContainer.BGRight:SetPoint('TOPRIGHT')
+	WatchBarContainer.BGRight:SetPoint('BOTTOMLEFT', WatchBarContainer, 'BOTTOM', 0, 0)
+	WatchBarContainer.BGRight:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 1, 0, 0, 0, 0)
 
-	Bar.WatchBarContainer:HookScript('OnShow', function(self)
+	Bar.WatchBarContainer = WatchBarContainer
+
+	-- Check if user actually wants this fully opaque OnShow
+	WatchBarContainer:SetScript('OnShow', function(self)
 		if ab.cfg and ab.cfg.watchbars then
 			FadeIn(self, 0.2, self:GetAlpha(), 1)
 		else
 			self:SetAlpha(0)
 		end
 	end)
-	Bar.WatchBarContainer.Update = function(self)
-		local visible = {}
+
+	-- Mutual exclusion to keep bars from polling the container to update,
+	-- resulting in stack overflow by recursive function calls when aligning bars. 
+	local function FlagMutex(self, enabled)
+		self.mutexUpdate = enabled
+		if self.StatusBar then
+			self.StatusBar.mutexUpdate = enabled
+		end
+	end
+
+	-- Poll the container to reset drawing points and align bars across the container.
+	function WatchBarContainer:Update()
+		local visible, cfg = {}, ab.cfg
+		-- Count visible bars
 		for _, bar in pairs(self.WatchBars) do
 			if bar:IsVisible() then
-				visible[#visible + 1] = bar
+				if cfg and cfg['disable' .. bar:GetName()] then
+					--------------------------------
+					FlagMutex(bar, true)
+					--------------------------------
+					bar:SetSize(0, 0)
+					bar:SetAlpha(0)
+					bar:ClearAllPoints()
+					--------------------------------
+					FlagMutex(bar, false)
+					--------------------------------
+				else
+					bar:SetAlpha(1)
+					visible[#visible + 1] = bar
+				end
 			end
 		end
 		for i, bar in pairs(visible) do
 			local statusBar = bar.StatusBar or bar
-			bar.forcedUpdate = true
-			statusBar.forcedUpdate = true
-			bar:SetSize(self:GetWidth() / #visible, self:GetHeight())
+			--------------------------------
+			FlagMutex(bar, true)
+			--------------------------------
+			bar:SetSize( self:GetWidth() / #visible, self:GetHeight() )
 			bar:ClearAllPoints()
 			bar:SetPoint('LEFT', visible[i-1] or self, visible[i-1] and 'RIGHT' or 'LEFT', 0, 0)
+			--------------------------------
 			if bar.StatusBar then
 				statusBar:SetAllPoints()
 				bar.OverlayFrame.Text:SetPoint('CENTER', bar.OverlayFrame, 'CENTER', 0, 1)
@@ -109,29 +139,35 @@ do
 			else
 				statusBar:SetStatusBarColor(bar.red, bar.green, bar.blue, bar.alpha)
 			end
-			bar.forcedUpdate = nil
-			statusBar.forcedUpdate = nil
+			--------------------------------
+			FlagMutex(bar, false)
+			--------------------------------
 		end
 	end
 
+	-- Run in response to any drawing change on the bar, so it doesn't come out all wonky
+	-- due to how the default UI manipulates these objects.
 	local function UpdateWatchBar(self)
-		if not self.forcedUpdate then
-			Bar.WatchBarContainer:Update()
+		if not self.mutexUpdate then
+			WatchBarContainer:Update()
 		end
 	end
 
+	--------------------------------
+	-- Give the bar direct access to these for color manipulation.
 	Bar.Elements.WatchBars = {XP, Rep, Honor, Artifact}
-	Bar.WatchBarContainer.WatchBars = Bar.Elements.WatchBars
+	WatchBarContainer.WatchBars = Bar.Elements.WatchBars
+	--------------------------------
 	for _, bar in pairs(Bar.Elements.WatchBars) do
 		local r, g, b, a
-		bar:SetParent(Bar.WatchBarContainer)
+		bar:SetParent(WatchBarContainer)
 		bar:SetFrameStrata('HIGH')
-		bar.Container = Bar.WatchBarContainer
+		bar.Container = WatchBarContainer
 		bar:HookScript('OnShow', function(self)
 			self.Container:Update()
 		end)
 		bar:HookScript('OnHide', function(self)
-			self.forcedUpdate = nil
+			self.mutexUpdate = nil
 			self.Container:Update()
 		end)	
 		bar:HookScript('OnEnter', function(self) 
@@ -142,6 +178,8 @@ do
 				FadeOut(self.Container, 0.2, self.Container:GetAlpha(), 0)
 			end
 		end)
+
+		-- Hook bar functions so we can overwrite their results.
 		hooksecurefunc(bar, 'SetPoint', UpdateWatchBar)
 		hooksecurefunc(bar, 'SetSize', UpdateWatchBar)
 		hooksecurefunc(bar, 'SetWidth', UpdateWatchBar)
@@ -175,7 +213,7 @@ do
 		bar.alpha = a
 	end
 
-	Bar.WatchBarContainer:Update()
+	WatchBarContainer:Update()
 
 	-------------------------------------------
 	---		XP / rep bars
@@ -252,46 +290,4 @@ do
 			anim:OnActionPlaced(actionID, icon)
 		end
 	end)
-end
-
--- This is a workaround for the problem with the current internal implementation of texture masking.
--- At random times, a masked texture entity that updates to a new texture in combat will trigger the 'script ran too long' error,
--- which pops up and covers the screen for no good reason except to interrupt the game. While this particular error might warrant
--- some cause for concern in certain cases, this handler will omit all such errors until texture masking is fixed internally by Blizzard.
-if geterrorhandler() == _ERRORMESSAGE then
-	-- Replace the lua error handler if it isn't already custom
-	local function errorGrabber(message)
-		debuginfo() -- Debugging information for internal use.
-
-		-- Omit the error and return without action
-		if message:match('script ran too long') then return end
-		
-		-- ..otherwise proceed as normal 
-		LoadAddOn('Blizzard_DebugTools')
-		local loaded = IsAddOnLoaded('Blizzard_DebugTools')
-		
-		if ( GetCVarBool('scriptErrors') ) then
-			if ( not loaded or DEBUG_DEBUGTOOLS ) then
-				BasicScriptErrorsText:SetText(message)
-				BasicScriptErrors:Show()
-				if ( DEBUG_DEBUGTOOLS ) then
-					ScriptErrorsFrame_OnError(message)
-				end
-			else
-				ScriptErrorsFrame_OnError(message)
-			end
-		elseif ( loaded ) then
-			local HIDE_ERROR_FRAME = true
-			ScriptErrorsFrame_OnError(message, false, HIDE_ERROR_FRAME)
-		end
-		
-		-- Show a warning if there are too many errors
-		_ERROR_COUNT = _ERROR_COUNT + 1
-		if ( _ERROR_COUNT == _ERROR_LIMIT ) then
-			StaticPopup_Show('TOO_MANY_LUA_ERRORS')
-		end
-
-		return message
-	end
-	seterrorhandler(errorGrabber)
 end

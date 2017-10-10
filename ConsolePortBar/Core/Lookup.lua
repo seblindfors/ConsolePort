@@ -29,7 +29,6 @@ local defaultIcons = {
 	ATTACKTARGET = [[Interface\Icons\Ability_SteelMelee]],
 	STARTATTACK = [[Interface\Icons\Ability_SteelMelee]],
 	PETATTACK = [[Interface\Icons\ABILITY_HUNTER_INVIGERATION]],
-	TARGETPET = [[Interface\Icons\Ability_SteelMelee]],
 	FOCUSTARGET = [[Interface\Icons\Ability_Hunter_MasterMarksman]],
 	----------------------------
 	['CLICK ConsolePortEasyMotionButton:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
@@ -79,9 +78,14 @@ local defaultReticleSpellIDs = {
 	HUNTER = {
 		1543, -- Flare
 		6197, -- Eagle Eye
+		13813, -- Explosive Trap
 		109248, -- Binding Shot
 		162488, -- Steel Trap
+		187650, -- Freezing Trap
+		187698, -- Tar Trap
+		194277, -- Caltrops
 		206817, -- Sentinel
+		236776, -- Hi-Explosive Trap
 	},
 	MAGE = {
 		2120, -- Flamestrike
@@ -121,7 +125,7 @@ local defaultReticleSpellIDs = {
 		192077, -- Wind Rush Totem (Shaman talent)
 		204332, -- Windfury Totem (Shaman pvp talent)
 		207399, -- Ancestral Protection Totem (Resto Shaman Talent)
-    207778, -- Gift of the Queen (Resto Artifact)
+		207778, -- Gift of the Queen (Resto Artifact)
 		215864, -- Rainfall
 	},
 	WARLOCK = {
@@ -178,21 +182,21 @@ end
 
 function ab:GetDefaultButtonLayout(button)
 	local layout = {
-		CP_T1 = {point = {'LEFT', 440, 64}, dir = 'right', size = 64},
-		CP_T2 = {point = {'RIGHT', -440, 64}, dir = 'left', size = 64},
+		CP_T1 = {point = {'LEFT', 456, 56}, dir = 'right', size = 64},
+		CP_T2 = {point = {'RIGHT', -456, 56}, dir = 'left', size = 64},
 		---
-		CP_T3 = {point = {'LEFT', 390, 110}, dir = 'up', size = 64},
-		CP_T4 = {point = {'RIGHT', -390, 110}, dir = 'up', size = 64},
+		CP_T3 = {point = {'LEFT', 396, 16}, dir = 'down', size = 64},
+		CP_T4 = {point = {'RIGHT', -396, 16}, dir = 'down', size = 64},
 		---
-		CP_L_LEFT 	= {point = {'LEFT', 255 - 80, 50 + 14}, dir = 'left', size = 64},
-		CP_L_RIGHT 	= {point = {'LEFT', 385 - 80, 50 + 14}, dir = 'right', size = 64},
-		CP_L_UP 	= {point = {'LEFT', 320 - 80, 95 + 14}, dir = 'up', size = 64},
-		CP_L_DOWN 	= {point = {'LEFT', 320 - 80, 10 + 14}, dir = 'down', size = 64},
+		CP_L_LEFT 	= {point = {'LEFT', 176, 56}, dir = 'left', size = 64},
+		CP_L_RIGHT 	= {point = {'LEFT', 306, 56}, dir = 'right', size = 64},
+		CP_L_UP 	= {point = {'LEFT', 240, 100}, dir = 'up', size = 64},
+		CP_L_DOWN 	= {point = {'LEFT', 240, 16}, dir = 'down', size = 64},
 		---
-		CP_R_LEFT 	= {point = {'RIGHT', -385 + 80, 50 + 14}, dir = 'left', size = 64},
-		CP_R_RIGHT 	= {point = {'RIGHT', -255 + 80, 50 + 14}, dir = 'right', size = 64},
-		CP_R_UP 	= {point = {'RIGHT', -320 + 80, 95 + 14}, dir = 'up', size = 64},
-		CP_R_DOWN 	= {point = {'RIGHT', -320 + 80, 10 + 14}, dir = 'down', size = 64},
+		CP_R_LEFT 	= {point = {'RIGHT', -306, 56}, dir = 'left', size = 64},
+		CP_R_RIGHT 	= {point = {'RIGHT', -176, 56}, dir = 'right', size = 64},
+		CP_R_UP 	= {point = {'RIGHT', -240, 100}, dir = 'up', size = 64},
+		CP_R_DOWN 	= {point = {'RIGHT', -240, 16}, dir = 'down', size = 64},
 	}
 	if button ~= nil then
 		return layout[button]
@@ -221,7 +225,7 @@ function ab:GetPresets()
 		Default = ab:GetDefaultSettings(),
 		Orthodox = {
 			scale = 0.9,
-			width = 1105,
+			width = 1100,
 			watchbars = true,
 			showline = true,
 			lock = true,
@@ -242,7 +246,7 @@ function ab:GetPresets()
 		},
 		Roleplay = {
 			scale = 0.9,
-			width = 1105,
+			width = 1100,
 			watchbars = true,
 			showline = true,
 			showart = true,
@@ -279,7 +283,7 @@ end
 function ab:GetDefaultSettings()
 	return 	{
 		scale = 0.9,
-		width = 1105,
+		width = 1100,
 		watchbars = true,
 		showline = true,
 		lock = true,
@@ -302,7 +306,7 @@ end
 
 function ab:GetBooleanSettings(otherCFG)
 	local cfg = otherCFG or ab.cfg or {}
-	local L = ab.data.ACTIONBAR  --disablecastonrelease
+	local L = ab.data.ACTIONBAR
 	return {
 		{	desc = L.CFG_LOCK,
 			cvar = 'lock',
@@ -352,6 +356,14 @@ function ab:GetBooleanSettings(otherCFG)
 			cvar = 'watchbars',
 			toggle = cfg.watchbars,
 		},
+		{	desc = L.CFG_WATCHBAR_AP,
+			cvar = 'disableArtifactWatchBar',
+			toggle = cfg.disableArtifactWatchBar,
+		},
+		{	desc = L.CFG_WATCHBAR_EXP,
+			cvar = 'disableMainMenuExpBar',
+			toggle = cfg.disableMainMenuExpBar,
+		},
 		{	desc = L.CFG_MOUSE_ENABLE,
 			cvar = 'mousewheel',
 			toggle = cfg.mousewheel,
@@ -400,45 +412,3 @@ function ab:SetRainbowScript(on)
 		f:SetScript('OnUpdate', nil)
 	end
 end
-
----------------------------------------------------------------
----------------------------------------------------------------
--- Override the original consoleport action button lookup, to
--- stop it from adding hotkey textures to the controller bars.
--- This should still add hotkey textures to override/vehicles.
-
-local valid_action_buttons = {
-	Button = true,
-	CheckButton = true,
-}
-
--- Wrap this function since it's recursive.
-local function GetActionButtons(buttons, this)
-	buttons = buttons or {}
-	this = this or UIParent
-	if this:IsForbidden() or this == ab.bar then
-		return buttons
-	end
-	local objType = this:GetObjectType()
-	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute('action')
-	if action and tonumber(action) and this:GetAttribute('type') == 'action' then
-		buttons[this] = action
-	end
-	for _, object in pairs({this:GetChildren()}) do
-		GetActionButtons(buttons, object)
-	end
-	return buttons
-end
-
----------------------------------------------------------------
--- Get all buttons that look like action buttons
----------------------------------------------------------------
-function ConsolePort:GetActionButtons(getTable, parent)
-	if getTable then
-		return GetActionButtons(parent)
-	else
-		return pairs(GetActionButtons(parent))
-	end
-end
----------------------------------------------------------------
----------------------------------------------------------------

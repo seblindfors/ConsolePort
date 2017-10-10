@@ -1,0 +1,183 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+	<Button name="CPUIListCategoryTemplate" virtual="true">
+		<Size x="230" y="46"/>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture parentKey="SelectedTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD" hidden="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" y="-5"/>
+						<Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
+					</Anchors>
+					<TexCoords left="0.00195313" right="0.63867188" top="0.76953125" bottom="0.83007813"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
+			<Anchors>
+					<Anchor point="TOPLEFT" x="5" y="-5"/>
+					<Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
+			</Anchors>
+			<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
+		</HighlightTexture>
+		<NormalTexture parentKey="NormalTexture" file="Interface\PVPFrame\PvPMegaQueue" setAllPoints="true">
+			<TexCoords left="0" right="0.5898" top="0.8730" bottom="0.9296"/>
+		</NormalTexture>
+		<PushedTexture parentKey="PushedTexture" file="Interface\PVPFrame\PvPMegaQueue" setAllPoints="true">
+			<Size x="230" y="46	"/>
+			<TexCoords left="0" right="0.5898" top="0.9296" bottom="0.9873"/>
+		</PushedTexture>
+		<ButtonText parentKey="Label" inherits="AchievementPointsFont" justifyH="CENTER">
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</ButtonText>
+	</Button>
+
+	<Button name="CPUIListDropDownTemplate" virtual="true">
+		<Size x="230" y="46"/>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture parentKey="SelectedTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD" hidden="true">
+					<Size x="220" y="36"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<TexCoords left="0.00195313" right="0.63867188" top="0.76953125" bottom="0.83007813"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
+			<Size x="220" y="36"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+			<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
+		</HighlightTexture>
+		<NormalTexture parentKey="NormalTexture" file="Interface\AddOns\ConsolePortUI\Media\Textures\Button\MenuButton">
+			<Size x="230" y="46"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+			<TexCoords left="0" right="0.5898" top="0" bottom="0.453125"/>
+		</NormalTexture>
+		<PushedTexture parentKey="PushedTexture" file="Interface\AddOns\ConsolePortUI\Media\Textures\Button\MenuButton">
+			<Size x="230" y="46	"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+			<TexCoords left="0" right="0.5898" top="0.4609375" bottom="0.9140625"/>
+		</PushedTexture>
+		<ButtonText parentKey="Label" inherits="GameFontHighlightLeft" justifyH="LEFT">
+			<Anchors>
+				<Anchor point="LEFT" x="50" y="0"/>
+			</Anchors>
+		</ButtonText>
+	</Button>
+
+	<Frame name="CPUILineSheenTemplate" virtual="true">
+		<Size x="235" y="25"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="LineSheen" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_LineBurst">
+					<Size x="60" y="20"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self.SetDirection = function(self, direction, multiplier)
+					assert(type(direction) == 'string', 'LineGlow:SetDirection("LEFT" or "RIGHT", multiplier)');
+					assert(type(multiplier) == 'number', 'LineGlow:SetDirection("LEFT" or "RIGHT", multiplier)');
+					if direction == 'LEFT' then
+						self.OnShowAnim.LineSheenTranslation:SetOffset(-230 * multiplier, 0)
+					elseif direction == 'RIGHT' then
+						self.OnShowAnim.LineSheenTranslation:SetOffset(230 * multiplier, 0)
+					end
+				end
+			</OnLoad>
+			<OnShow>
+				self.OnShowAnim:Play();
+			</OnShow>
+			<OnHide>
+				self.OnShowAnim:Stop();
+			</OnHide>
+		</Scripts>
+		<Animations>
+			<AnimationGroup parentKey="OnShowAnim" setToFinalAlpha="true">
+				<Alpha childKey="LineSheen" startDelay="0" duration="0.5" order="1" fromAlpha="0" toAlpha="0.75"/>
+				<Alpha childKey="LineSheen" startDelay="0.5" duration="0.5" order="1" fromAlpha="0.75" toAlpha="0"/>
+				<Translation parentKey="LineSheenTranslation" childKey="LineSheen" startDelay="0.15" duration="1" order="1" offsetX="230" offsetY="0"/>
+			</AnimationGroup>
+		</Animations>
+	</Frame>
+
+	<Frame name="CPUILootHeaderTemplate" virtual="true">
+		<Size x="235" y="25"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Background" hidden="false" alpha="1" atlas="Objective-Header" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-29" y="14"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Text" inherits="GameFontNormalMed2" justifyH="LEFT">
+					<Size x="170" y="16"/>
+					<Anchors>
+						<Anchor point="LEFT" x="4" y="-1"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="LineGlow" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_LineGlow" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Background" x="-50" y="18"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="SoftGlow" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_Glow" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Background" relativePoint="LEFT" x="20" y="20"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="StarBurst" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_StarBurst" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.SoftGlow"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="LineSheen" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_LineBurst">
+					<Size x="60" y="15"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.SoftGlow" x="0" y="-13"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Animations>
+			<AnimationGroup parentKey="HeaderOpenAnim" setToFinalAlpha="true">
+				<Alpha childKey="Background" startDelay="0" duration="0" order="1" fromAlpha="0" toAlpha="0"/>
+				<Alpha childKey="Background" startDelay="0.25" duration="0.5" order="1" fromAlpha="0" toAlpha="1"/>
+				<Alpha childKey="LineGlow" duration="0.15" order="1" fromAlpha="0" toAlpha="1"/>
+				<Alpha childKey="LineGlow" startDelay="0.25" duration="0.65" order="1" fromAlpha="1" toAlpha="0"/>
+				<Scale childKey="LineGlow" duration="0.15" order="1" fromScaleX="0.1" fromScaleY="1.5" toScaleX="2" toScaleY="1.5">
+					<Origin point="CENTER">
+						<Offset x="-50" y="0"/>
+					</Origin>
+				</Scale>
+				<Translation childKey="LineGlow" duration="0.75" order="1" offsetX="50" offsetY="0"/>
+				<Alpha childKey="SoftGlow" duration="0.25" order="1" fromAlpha="0" toAlpha="1"/>
+				<Alpha childKey="SoftGlow" startDelay="0.25" duration="0.5" order="1" fromAlpha="1" toAlpha="0"/>
+				<Scale childKey="SoftGlow" duration="0.25" order="1" fromScaleX="0.5" fromScaleY="0.5" toScaleX="0.8" toScaleY="0.8"/>
+				<Alpha childKey="StarBurst" duration="0.25" order="1" fromAlpha="0" toAlpha="1"/>
+				<Alpha childKey="StarBurst" startDelay="0.25" duration="0.5" order="1" fromAlpha="1" toAlpha="0"/>
+				<Scale childKey="StarBurst" duration="0.25" order="1" fromScaleX="0.5" fromScaleY="0.5" toScaleX="1" toScaleY="1"/>
+				<Alpha childKey="LineSheen" startDelay="0.15" duration="0.5" order="1" fromAlpha="0" toAlpha="0.75"/>
+				<Alpha childKey="LineSheen" startDelay="0.75" duration="0.5" order="1" fromAlpha="0.75" toAlpha="0"/>
+				<Translation childKey="LineSheen" startDelay="0.15" duration="1.5" order="1" offsetX="250" offsetY="0"/>
+			</AnimationGroup>
+		</Animations>
+	</Frame>
+
+</Ui>
+

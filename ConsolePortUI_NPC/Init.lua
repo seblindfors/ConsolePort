@@ -5,13 +5,11 @@ local _, L = ...
 local frame = ConsolePortUI_NPC
 local talkbox = frame.TalkBox
 local titles = frame.TitleButtons
-local db = ConsolePort:GetData()
+local UI, Control, db = ConsolePortUI:GetEssentials()
 local KEY = db.KEY
-local UI = ConsolePortUI
-local Control = UI:GetControlHandle()
 L.frame = frame
 L.db = db
-L.Mixin = UI.Utils.Mixin
+L.Mixin = db.table.mixin
 
 ----------------------------------
 -- Register events for main frame
@@ -115,6 +113,7 @@ text:SetFontObjectsToTry(SystemFont_Shadow_Large, SystemFont_Shadow_Med2, System
 hooksecurefunc(text, 'SetNext', function(self, ...)
 	local text = ...
 	local counter = talkbox.TextFrame.SpeechProgress
+	talkbox.TextFrame.FadeIn:Stop()
 	talkbox.TextFrame.FadeIn:Play()
 	if text then
 		model:PrepareAnimation(model:GetUnit(), text)

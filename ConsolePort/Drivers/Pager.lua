@@ -1,4 +1,10 @@
-local Pager = CreateFrame('Button', 'ConsolePortPager', nil, 'SecureHandlerBaseTemplate, SecureHandlerStateTemplate, SecureActionButtonTemplate')
+---------------------------------------------------------------
+-- Pager.lua: Action pager and extended secure API
+---------------------------------------------------------------
+-- Unifies action page changing on all secure headers and
+-- extends the secure API to get arbitrary action data.
+---------------------------------------------------------------
+local Pager = CreateFrame('Button', 'ConsolePortPager', nil, 'SecureHandlerStateTemplate, SecureActionButtonTemplate')
 Pager:WrapScript(Pager, 'PreClick', [[ if down then self:SetAttribute('action', tonumber(button) or 1) else self:SetAttribute('action', 1) end ]])
 Pager:SetAttribute('type', 'actionbar')
 Pager:RegisterForClicks('AnyUp', 'AnyDown')
@@ -10,7 +16,6 @@ Pager:Execute('headers = newtable()')
 	GetActionSpellSlot: Returns spell information about an action slot
 	IsHarmfulAction: Returns whether the action slot is harmful or not
 	IsHelpfulAction: Returns whether the action slot is helpful or not
-	IsNeutralAction: Returns whether the action slot has no particular target implication
 ]]
 
 local PAGER_SECURE_FUNCTIONS = {
@@ -65,18 +70,6 @@ local PAGER_SECURE_FUNCTIONS = {
 			return IsHelpfulItem(id)
 		end
 	]],
-	IsNeutralAction = [[
-		return (self:RunAttribute('IsHelpfulAction', ...) == self:RunAttribute('IsHarmfulAction', ...))
-	]],
-	IsReticleSpell = [[
-		local actionType, spellID = self:RunAttribute('GetActionInfo', ...)
-		local spellSlot = self:RunAttribute('GetActionSpellSlot', ...)
-		local isHelpful = self:RunAttribute('IsHelpfulAction', ...)
-		local isHarmful = self:RunAttribute('IsHarmfulAction', ...)
-		if ((actionType == 'spell') and (isHelpful == false and isHarmful == false)) then
-			return spellID, spellSlot
-		end 
-	]], 
 }
 
 function ConsolePort:RegisterSpellHeader(header, omitFromStack)
@@ -137,23 +130,3 @@ function ConsolePort:LoadActionPager(pagedriver, pageresponse)
 	RegisterStateDriver(Pager, 'actionpage', pagedriver)
 	Pager:SetAttribute('_onstate-actionpage', pageresponse)
 end
-
-function ConsolePort:UnregisterSpellHeader(header)
-	if not InCombatLockdown() then
-
-	-- NYI
-	--	Pager:SetFrameRef('header', header)
-	--	Pager:Execute([[ headers[self:GetFrameRef('header')] = nil ]])
-
-	--	header:SetFrameRef('actionBar', nil)
-	--	header:SetFrameRef('overrideBar', nil)
-
-	--	header:SetAttribute('actionpage', nil)
-	--	header:SetAttribute('GetActionInfo', nil)
-	--	header:SetAttribute('GetActionSpellSlot', nil)
-	--	header:SetAttribute('IsHarmfulAction', nil)
-	--	header:SetAttribute('IsHelpfulAction', nil)
-	--	header:SetAttribute('IsNeutralAction', nil)
-	end
-end
-

@@ -1,15 +1,7 @@
 local addOn, db = ...
+db.Hint = ConsolePortHintFrame
 
-local Hint = CreateFrame("Frame", addOn.."HintFrame", WorldFrame)
-Hint:Hide()
-Hint:SetFrameStrata("TOOLTIP")
-Hint:SetAllPoints()
-
-db.Hint = Hint
-
-Hint.Text = Hint:CreateFontString("$parentText", "ARTWORK", "GameFontNormalLarge")
-Hint.Text:SetPoint("CENTER", 0, 0)
-
+local Hint = ConsolePortHintFrame
 local STATUS_FADETIME = 3.0
 local queue = {}
 
@@ -29,6 +21,12 @@ function Hint:DisplayMessage(text, time, yOffset)
 	end
 end
 
+function Hint:Disable()
+	self:Hide()
+	self:SetScript('OnUpdate', nil)
+	self.fadeTime = nil
+end
+
 function Hint:ShowHint(elapsed)
 	elapsed = GetTime() - self.startTime
 	local time = self.fadeTime
@@ -45,7 +43,5 @@ function Hint:ShowHint(elapsed)
 		self:DisplayMessage(text, time, yOffset)
 		return
 	end
-	self:Hide()
-	self:SetScript("OnUpdate", nil)
-	self.fadeTime = nil
+	self:Disable()
 end

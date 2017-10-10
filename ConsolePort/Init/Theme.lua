@@ -4,7 +4,6 @@
 -- Provides controller specific textures and tooltip lines.
 
 local _, db = ...
-local init = true
 local TEXTURE_PATH = [[Interface\AddOns\ConsolePort\Controllers\%s\Icons%d\%s]]
 local TEXTURE_ESC = '|T%s:24:24:0:0|t'
 
@@ -70,8 +69,8 @@ local function LoadTriggerTextures(ctrlType, cfg, shared)
 		for id, bTex in pairs(m) do -- Modifiers
 			tbl['CP_M' .. id] = format(TEXTURE_PATH, shared[bTex] and 'Shared' or ctrlType, size, bTex)
 		end
-		tbl.CP_T_R3 = format(TEXTURE_PATH, ctrlType, size, 'CP_T_R3')
-		tbl.CP_T_L3 = format(TEXTURE_PATH, ctrlType, size, 'CP_T_L3')
+		tbl.CP_T_R3 = format(TEXTURE_PATH, ctrlType, size, 'CP_T_R3') -- right stick
+		tbl.CP_T_L3 = format(TEXTURE_PATH, ctrlType, size, 'CP_T_L3') -- left stick
 	end
 	-- Change global binding names
 	for id in pairs(t) do
@@ -82,43 +81,56 @@ local function LoadTriggerTextures(ctrlType, cfg, shared)
 	end
 end
 
+local function PostInitLoadTheme()
+	local settings = db.Settings
+	local ctrlType = settings and strupper(settings.type) or 'PS4'
+	LoadTriggerTextures(ctrlType, settings or {}, db.Controller and db.Controller.Shared or {})
+	LoadTooltipLines()
+end
+
 function ConsolePort:LoadControllerTheme()
 	local settings = db.Settings
 	local ctrlType = settings and strupper(settings.type) or 'PS4'
-	if init then
-		init = nil -- Don't repeat this section
-		-- Controller specific
+	----------------------------------
+	-- OnLoad chunk, only runs once
+	----------------------------------
+	-- Controller specific
+	----------------------------------
+	db.Controller = db.Controllers[ctrlType]
+	db.Layout = db.Controller.Layout
+	db.COLOR = db.Controller.Color
+	----------------------------------
 
-		db.Controller = db.Controllers[ctrlType]
-		db.Layout = db.Controller.Layout
-		db.COLOR = db.Controller.Color
+	-- Global binding headers
+	for name, description in pairs(db.HEADERS) do
+		_G['BINDING_HEADER_'..name] = description
+	end
+	-- Invisible bindings
+	for name, description in pairs(db.CUSTOMBINDS) do
+		_G['BINDING_NAME_'..name] = description
+	end
+	-- Button textures
+	local shared = db.Controller.Shared or {}
+	for name in self:GetBindings() do
+		db.TEXTURE[name] = format(TEXTURE_PATH, shared[name] and 'Shared' or ctrlType, 64, name)
+		db.ICONS[name] = format(TEXTURE_PATH, shared[name] and 'Shared' or ctrlType, 32, name)
+		_G['BINDING_NAME_'..name] = format(TEXTURE_ESC, db.TEXTURE[name])
+	end
 
-		-- Global binding headers
-		for name, description in pairs(db.HEADERS) do
-			_G['BINDING_HEADER_'..name] = description
-		end
-		-- Invisible bindings
-		for name, description in pairs(db.CUSTOMBINDS) do
-			_G['BINDING_NAME_'..name] = description
-		end
-		-- Button textures
-		local shared = db.Controller.Shared or {}
-		for name in self:GetBindings() do
-			db.TEXTURE[name] = format(TEXTURE_PATH, shared[name] and 'Shared' or ctrlType, 64, name)
-			db.ICONS[name] = format(TEXTURE_PATH, shared[name] and 'Shared' or ctrlType, 32, name)
-			_G['BINDING_NAME_'..name] = format(TEXTURE_ESC, db.TEXTURE[name])
-		end
+	-- Center icon fix for presets without guide button
+	db.TEXTURE.CP_X_CENTER = format(TEXTURE_PATH, ctrlType, 64, 'CP_X_CENTER')
 
-		-- Center icon fix for presets without guide button
-		db.TEXTURE.CP_X_CENTER = format(TEXTURE_PATH, ctrlType, 64, 'CP_X_CENTER')
-
-		-- Set globals for click bindings
-		for _, info in pairs(self:GetAddonBindings()) do
-			if info.binding and info.binding:match('CLICK') then
-				_G['BINDING_NAME_'..info.binding] = info.name
-			end
+	----------------------------------
+	-- Set globals for click bindings
+	----------------------------------
+	for _, info in pairs(self:GetAddonBindings()) do
+		if info.binding and info.binding:match('CLICK') then
+			_G['BINDING_NAME_'..info.binding] = info.name
 		end
 	end
+	----------------------------------
+	self.LoadControllerTheme = PostInitLoadTheme
+	----------------------------------
 
 	LoadTriggerTextures(ctrlType, settings or {}, db.Controller and db.Controller.Shared or {})
 	LoadTooltipLines()

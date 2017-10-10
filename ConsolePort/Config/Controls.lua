@@ -46,7 +46,6 @@ local function GetAddonSettings()
 		{	cvar = 'raidCursorDirect',
 			desc = L.RAIDCURSORDIRECT,
 			state = Settings.raidCursorDirect,
-			needReload = true,
 		},
 		{
 			cvar = 'TargetNearestUseNew',
@@ -258,7 +257,7 @@ end
 -- Checkbutton wrapper
 ---------------------------------------------------------------
 function CheckButton:OnClick()
-	for i, button in pairs(self.set) do
+	for _, button in ipairs(self.set) do
 		button:SetChecked(false)
 	end
 	self:SetChecked(true)
@@ -270,7 +269,7 @@ end
 function WindowMixin:Save()
 	local needReload
 	-- general settings
-	for i, Check in pairs(self.General) do
+	for _, Check in ipairs(self.General) do
 		local old = Settings[Check.Cvar]
 		Settings[Check.Cvar] = Check:GetChecked()
 		if Check.Reload and Check:GetChecked() ~= old then
@@ -278,7 +277,7 @@ function WindowMixin:Save()
 		end
 	end
 	-- trigger textures
-	for i, Check in pairs(self.Triggers) do
+	for _, Check in ipairs(self.Triggers) do
 		if Check.Value and Check.Value ~= Settings[Check.Cvar] then
 			Settings[Check.Cvar] = Check.Value
 			needReload = true
@@ -293,11 +292,11 @@ function WindowMixin:Save()
 	if not db.Mouse.Camera then
 		db.Mouse.Camera = {}
 	end
-	for i, Check in pairs(self.Camera) do
+	for _, Check in ipairs(self.Camera) do
 		if Check.GetChecked then
 			db.Mouse.Camera[Check.Cvar] = Check:GetChecked() and Check.Value or Check.Default
 		else
-			for i, Sub in pairs(Check) do
+			for _, Sub in ipairs(Check) do
 				if Sub:GetChecked() then
 					db.Mouse.Camera[Sub.Cvar] = Sub.Value
 					break
@@ -310,8 +309,8 @@ function WindowMixin:Save()
 	ConsolePort:UpdateCameraDriver()
 
 	-- mouse events
-	for i, Check in pairs(self.Events) do
-		for i, Event in pairs(Check.Events) do
+	for _, Check in ipairs(self.Events) do
+		for _, Event in ipairs(Check.Events) do
 			db.Mouse.Events[Event] = Check:GetChecked()
 		end
 	end
@@ -319,12 +318,12 @@ function WindowMixin:Save()
 	-- interact button
 	if self.InteractModule.Enable:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
 		Settings.interactWith = self.InteractModule.BindCatcher.CurrentButton
-	--	Settings.mouseOverMode = self.InteractModule.MouseOver:GetChecked()
+		Settings.interactCache = self.InteractModule.TargetAI:GetChecked()
 		Settings.interactNPC = self.InteractModule.NPC:GetChecked()
 		Settings.interactAuto = self.InteractModule.Auto:GetChecked()
 	else
 		Settings.interactWith = false
-		Settings.mouseOverMode = false
+		Settings.interactCache = false
 		Settings.interactNPC = false
 		Settings.interactAuto = false
 	end
@@ -345,6 +344,7 @@ function WindowMixin:Save()
 	ConsolePort:LoadEvents()
 	ConsolePort:LoadControllerTheme()
 	ConsolePort:LoadCameraSettings()
+	ConsolePort:LoadRaidCursor()
 	ConsolePort:UpdateMouseDriver()
 	ConsolePort:SetupUtilityRing()
 	return needReload, 'MouseEvent', (not db.table.compare(db.Mouse.Events, ConsolePort:GetDefaultMouseEvents()) and db.Mouse.Events)
@@ -354,7 +354,7 @@ end
 -- Controls: Create panel and children 
 ---------------------------------------------------------------
 
-db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = WindowMixin, onLoad = function(Controls, self)
+db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = WindowMixin, onCreate = function(Controls, self)
 	local red, green, blue = db.Atlas.GetCC()
 
 	Settings = db.Settings
@@ -396,7 +396,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 
 	-- Create all the separate config modules
 
-	for _, setup in pairs({
+	for _, setup in ipairs({
 		{'Interact', {308, 340}, {'TOPRIGHT', -302, -8}, TUTORIAL.CONFIG.INTERACTHEADER},
 		{'Loot', 	{308, 176}, {'CENTER', 36, -82}, 	TUTORIAL.CONFIG.LOOTHEADER},
 		{'Mouse', 	{316, 340}, {'TOPRIGHT', -8, -8}, 	TUTORIAL.CONFIG.MOUSEHEADER},
@@ -442,12 +442,12 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 			if self.Enable:GetChecked() then
 				FadeOut(self.Hand, 0.5, 1, 0.1)
 				FadeOut(self.Dude, 0.5, 1, 0.1)
-			--	self.MouseOver:Show()
+				self.TargetAI:Show()
 				self.Auto:Show()
 				self.NPC:Show()
 				self.BindWrapper:Show()
 			else
-			--	self.MouseOver:Hide()
+				self.TargetAI:Hide()
 				self.Auto:Hide()
 				self.NPC:Hide()
 				self.BindWrapper:Hide()
@@ -519,8 +519,8 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 
 		InteractModule.BindWrapper = db.Atlas.GetGlassWindow('$parentBindWrapper', InteractModule, nil, true)
 		InteractModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-		InteractModule.BindWrapper:SetPoint('BOTTOM', 0, 90)
-		InteractModule.BindWrapper:SetSize(256, 120)
+		InteractModule.BindWrapper:SetPoint('BOTTOM', 0, 80)
+		InteractModule.BindWrapper:SetSize(256, 100)
 		InteractModule.BindWrapper.Close:Hide()
 		InteractModule.BindWrapper:Hide()
 
@@ -556,9 +556,9 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 
 		local interactButtons = {
 			{name = 'Enable', point = {'TOPLEFT', 24, -48}, label = TUTORIAL.CONFIG.INTERACTCHECK, setting = Settings.interactWith},
-		--	{name = 'MouseOver', point = {'TOPLEFT', 24, -78}, label = TUTORIAL.CONFIG.MOUSEOVERMODE, setting = Settings.mouseOverMode},
-			{name = 'NPC', point = {'TOPLEFT', 24, -78}, label = TUTORIAL.CONFIG.INTERACTNPC, setting = Settings.interactNPC},
-			{name = 'Auto', point = {'TOPLEFT', 24, -108}, label = TUTORIAL.CONFIG.INTERACTAUTO, setting = Settings.interactAuto},
+			{name = 'TargetAI', point = {'TOPLEFT', 24, -78}, label = TUTORIAL.CONFIG.INTERACTCACHE, setting = Settings.interactCache},
+			{name = 'NPC', point = {'TOPLEFT', 24, -108}, label = TUTORIAL.CONFIG.INTERACTNPC, setting = Settings.interactNPC},
+			{name = 'Auto', point = {'TOPLEFT', 24, -138}, label = TUTORIAL.CONFIG.INTERACTAUTO, setting = Settings.interactAuto},
 		}
 
 		for _, setup in pairs(interactButtons) do

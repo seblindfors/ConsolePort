@@ -45,7 +45,7 @@ local function IsMouselookEvent(event)
 	return MouseEvents[event]
 end
 
-function ConsolePort:CheckMouselookEvent(event, ...)
+function ConsolePort:CheckMouselookEvent(event)
 	if 	( IsMouselookEvent(event) ) and
 		( GetMouseFocus() == WorldFrame ) and
 		( not SpellIsTargeting() ) and
@@ -58,9 +58,8 @@ end
 -- Event specific functions
 ---------------------------------------------------------------
 local Events = {}
-local Loaded = false
 
-function Events:PLAYER_TARGET_CHANGED(...)
+function Events:PLAYER_TARGET_CHANGED()
 	if UnitExists('target') then
 		After(0.02, function()
 			if IsMouselookEvent('PLAYER_TARGET_CHANGED') and
@@ -73,7 +72,7 @@ function Events:PLAYER_TARGET_CHANGED(...)
 	end
 end
 
-function Events:MERCHANT_SHOW(...)
+function Events:MERCHANT_SHOW()
 	-- Automatically sell junk
 	if Settings.autoSellJunk then
 		local quality
@@ -90,48 +89,47 @@ function Events:MERCHANT_SHOW(...)
 	end
 end
 
-function Events:WORLD_MAP_UPDATE(...)
+function Events:WORLD_MAP_UPDATE()
 	-- Add clickable nodes to the world map
 	self:GetMapNodes()
 end
 
 function Events:QUEST_AUTOCOMPLETE(...)
-	local id = ...
-	ShowQuestComplete(GetQuestLogIndexByID(id))
+	ShowQuestComplete(GetQuestLogIndexByID(...))
 end
 
-function Events:UNIT_SPELLCAST_SENT(...)
+function Events:UNIT_SPELLCAST_SENT()
 	if 	GetMouseFocus() == WorldFrame and
 		IsMouselookEvent('UNIT_SPELLCAST_SENT') then
 		self:StartCamera('UNIT_SPELLCAST_SENT')
 	end
 end
 
-function Events:CURRENT_SPELL_CAST_CHANGED(...)
+function Events:CURRENT_SPELL_CAST_CHANGED()
 	if SpellIsTargeting() then
 		self:StopCamera()
 	end
 end
 
-function Events:UNIT_SPELLCAST_FAILED(...)
+function Events:UNIT_SPELLCAST_FAILED()
 	if 	GetMouseFocus() == WorldFrame and
 		IsMouselookEvent('UNIT_SPELLCAST_FAILED') then
 		self:StartCamera('UNIT_SPELLCAST_FAILED')
 	end
 end
 
-function Events:UNIT_ENTERING_VEHICLE(...)
-	local unit = ...
+function Events:UNIT_ENTERING_VEHICLE(unit)
 	if unit == 'player' then
 		for i=1, NUM_OVERRIDE_BUTTONS do
-			if 	_G['OverrideActionBarButton'..i].HotKey then
-				_G['OverrideActionBarButton'..i].HotKey:Hide()
+			local button = _G['OverrideActionBarButton'..i]
+			if 	button and button.HotKey then
+				button.HotKey:Hide()
 			end
 		end
 	end
 end
 
-function Events:PLAYER_REGEN_ENABLED(...)
+function Events:PLAYER_REGEN_ENABLED()
 	self:UpdateCVars(false)
 	if self.newBindingsQueued then
 		self.newBindingsQueued = nil
@@ -145,14 +143,14 @@ function Events:PLAYER_REGEN_ENABLED(...)
 	end)
 end
 
-function Events:PLAYER_REGEN_DISABLED(...)
+function Events:PLAYER_REGEN_DISABLED()
 	self:ClearCursor()
 	self:SetUIFocus(false)
 	self:LockUICore(true)
 	self:UpdateCVars(true)
 end
 
-function Events:PLAYER_LOGOUT(...)
+function Events:PLAYER_LOGOUT()
 	self:ResetCVars()
 end
 
@@ -160,23 +158,23 @@ function Events:CVAR_UPDATE(...)
 	self:UpdateCVars(nil, ...)
 end
 
-function Events:UPDATE_BINDINGS(...)
+function Events:UPDATE_BINDINGS()
 	self:AddUpdateSnippet(self.LoadBindingSet, db.Bindings)
 end
 
-function Events:SPELLS_CHANGED(...)
+function Events:SPELLS_CHANGED()
 	self:SetupRaidCursor()
 	self:UpdateCameraDriver()
 	self:AddUpdateSnippet(self.UpdateMouseDriver)
 	self:AddUpdateSnippet(self.SetupUtilityRing)
+	self:UnregisterEvent('SPELLS_CHANGED')
+	Events.SPELLS_CHANGED = nil
 	if InCombatLockdown() then
 		print(db.TUTORIAL.SLASH.WARNINGCOMBATLOGIN)
 	end
-	self:UnregisterEvent('SPELLS_CHANGED')
-	Events.SPELLS_CHANGED = nil
 end
 
-function Events:ACTIVE_TALENT_GROUP_CHANGED(...)
+function Events:ACTIVE_TALENT_GROUP_CHANGED()
 	if not InCombatLockdown() then
 		local bindingSet = self:GetBindingSet()
 		-- Set new bindings
@@ -184,6 +182,7 @@ function Events:ACTIVE_TALENT_GROUP_CHANGED(...)
 		-- Dispatch updated bindings
 		self:LoadBindingSet(bindingSet)
 		self:OnNewBindings(bindingSet)
+		self:LoadHotKeyTextures()
 		-- Check whether bindings are empty
 		if not next(bindingSet) then
 			local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]
@@ -200,10 +199,23 @@ function Events:PLAYER_LOGIN()
 	Events.ACTIVE_TALENT_GROUP_CHANGED(self)
 	Events.PLAYER_LOGIN = nil
 	self:UnregisterEvent('PLAYER_LOGIN')
+	-- Load CVars here (should be available at this point)
+	self:LoadDefaultCVars()
+	-- Replace ADDON_LOADED function since CP is loaded at this point.
+	-- Move over to only catch plugin/frame hooks for on demand addons (and update hotkeys).
+	Events.OnConsolePortLoaded = nil
+	Events.ADDON_LOADED = function(self, name)
+		Events.OnAddonLoaded(self, name)
+		self:LoadHotKeyTextures()
+	end
 end
 
-function Events:ADDON_LOADED(...)
-	local name = ...
+function Events:ADDON_LOADED(name)
+	Events.OnConsolePortLoaded(self, name)
+	Events.OnAddonLoaded(self, name)
+end
+
+function Events:OnConsolePortLoaded(name)
 	if name == _ then
 		self:LoadSettings()
 		self:LoadActionPager(db.Settings.pagedriver, db.Settings.pageresponse)
@@ -217,18 +229,16 @@ function Events:ADDON_LOADED(...)
 		self:CreateActionButtons()
 		self:SetupCursor()
 		self:ToggleUICore()
+		self:LoadUIControl()
 		self:CheckLoadedAddons()
 		if not self.calibrationFrame then
 			self:CheckLoadedSettings()
 		end
 		self:UpdateCVars()
-		-- Delay hotkeys and cvars.
-		After(2, function()
-			Loaded = true
-			self:LoadDefaultCVars()
-			self:LoadHotKeyTextures()
-		end)
 	end
+end
+
+function Events:OnAddonLoaded(name)
 	-- Register cursor frames
 	if ConsolePortUIFrames and ConsolePortUIFrames[name] then
 		for i, frame in pairs(ConsolePortUIFrames[name]) do
@@ -242,9 +252,6 @@ function Events:ADDON_LOADED(...)
 	end
 	-- Dispatch a frame update
 	self:UpdateFrames()
-	if Loaded then
-		self:LoadHotKeyTextures()
-	end
 end
 
 local function OnEvent (self, event, ...)

@@ -128,43 +128,6 @@ Atlas.GetNormalizedCC = function()
 	return unpack(col)
 end
 ---------------------------------------------------------------
-Atlas.SetGlassStyle = function(self, classColored, alpha)
-	self:SetBackdrop(Atlas.Backdrops.Border)
-	self.BG = self.BG or self:CreateTexture(nil, "BACKGROUND")
-	self.BG:SetPoint("TOPLEFT", self, "TOPLEFT", 8, -8)
-	self.BG:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -8, 8)
-	self.BG:SetTexture("Interface\\QuestFrame\\UI-QuestLogTitleHighlight")
-	self.BG:SetBlendMode("ADD")
-
-	self.Tint = self:CreateTexture(nil, "BACKGROUND", nil, 2)
-	self.Tint:SetTexture(path.."Window\\BoxTint")
-	self.Tint:SetPoint("TOPLEFT", 16, -16)
-	self.Tint:SetPoint("BOTTOMRIGHT", self, "RIGHT", -16, 0)
-	self.Tint:SetBlendMode("ADD")
-	self.Tint:SetAlpha(0.75)
-
-	if classColored then
-		self.BG:SetVertexColor(cc.r, cc.g, cc.b, alpha or 0.25)
-	else
-		self.BG:SetVertexColor(1, 1, 1, alpha or 0.25)
-	end
-end
----------------------------------------------------------------
-Atlas.SetGlassInsetStyle = function(self, classColored, alpha)
-	self:SetBackdrop(Atlas.Backdrops.Border)
-	self.BG = self.BG or self:CreateTexture(nil, "BACKGROUND")
-	self.BG:SetPoint("TOPLEFT", self, "TOPLEFT", 8, -8)
-	self.BG:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -8, 8)
-	self.BG:SetTexture(path.."Window\\Inset")
-	self.BG:SetBlendMode("ADD")
-
-	if classColored then
-		self.BG:SetVertexColor(cc.r, cc.g, cc.b, alpha or 0.25)
-	else
-		self.BG:SetVertexColor(1, 1, 1, alpha or 0.25)
-	end
-end
----------------------------------------------------------------
 Atlas.SetFutureButtonStyle = function(button, width, height, classColored)
 	assert(type(button) == "table" and (button:IsObjectType("Button") or button:IsObjectType("CheckButton")))
 
@@ -424,17 +387,15 @@ Atlas.GetScrollFrame = function(name, parent, config)
 	local self = CreateFrame("ScrollFrame", name, parent, "UIPanelScrollFrameTemplate")
 	assert(config, "Atlas.GetScrollFrame: No config provided.")
 	---------------------------------
-	local 	parentKey, size, points, noMeta, 
+	local 	parentKey, size, noMeta, 
 			childKey, childWidth, existingChild,
 			stepSize, scrollStep,
-			customBackdrop, noBackdrop,
-			anchor, anchorOffset = 
+			customBackdrop, noBackdrop =
 			--------------------------------
-			config.parentKey, config.size, config.points, config.noMeta,
+			config.parentKey, config.size, config.noMeta,
 			config.childKey, config.childWidth, config.existingChild,
 			config.stepSize, config.scrollStep, 
-			config.backdrop, config.noBackdrop,
-			config.anchor, config.anchorOffset
+			config.backdrop, config.noBackdrop
 			---------------------------------
 
 	local child = existingChild or CreateFrame("Frame", "$parent"..(childKey or "ScrollChild"), self)
@@ -528,7 +489,7 @@ function Atlas.BindingMeta:GetBindingInfo()
 
 				local texture = GetActionTexture(id)
 
-				local actionType, actionID, subType, spellID = GetActionInfo(id)
+				local actionType, actionID, subType = GetActionInfo(id)
 				
 				if actionType == "spell" and actionID then
 					name = GetSpellInfo(actionID) or loc.SPELL

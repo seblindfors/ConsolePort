@@ -6,32 +6,8 @@
 -- Also provides a simple animation framework for that purpose.
 
 local addOn, db = ...
-local Helper = CreateFrame('Frame', addOn..'SpellHelperFrame', UIParent)
+local Helper = ConsolePortSpellHelperFrame
 Helper:SetBackdrop(db.Atlas.Backdrops.Talkbox)
-Helper:SetSize(500, 130)
-Helper:SetPoint('TOP', 0, -32)
-Helper:Hide()
-
-Helper.Border = Helper:CreateTexture(nil, 'OVERLAY')
-Helper.Border:SetPoint('TOPLEFT', 32, -32)
-Helper.Border:SetSize(64, 64)
-Helper.Border:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal')
-
-Helper.Icon = Helper:CreateTexture(nil, 'ARTWORK')
-Helper.Icon:SetPoint('CENTER', Helper.Border, 0, 0)
-Helper.Icon:SetSize(64, 64)
-Helper.Icon:SetMask('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Mask')
-
-Helper.Name = Helper:CreateFontString(nil, 'ARTWORK')
-Helper.Name:SetFont('Fonts\\MORPHEUS.ttf', 22, '')
-Helper.Name:SetTextColor(1, 0.82, 0)
-Helper.Name:SetPoint('TOPLEFT', Helper.Border, 'TOPRIGHT', 16, 0)
-Helper.Name:SetSize(300, 22)
-Helper.Name:SetJustifyH('LEFT')
-
-Helper.Desc = Helper:CreateFontString(nil, 'ARTWORK', 'DialogButtonHighlightText')
-Helper.Desc:SetPoint('TOPLEFT', Helper.Name, 'BOTTOMLEFT', 0, 0)
-Helper.Desc:SetJustifyH('LEFT')
 
 ---------------------------------------------------------------
 -- Binding lookups and helper input focus
@@ -60,7 +36,7 @@ function Helper:OnShow()
 		self.manifest = ConsolePort:GetBindings(true)
 		local loc = db.TUTORIAL.BIND
 		local _type, data, subType, subData = GetCursorInfo()
-		local name, texture, customDesc, pcallOK, _
+		local name, texture, customDesc, pcallOK, link, itemType, _
 		if _type == 'item' then
 			pcallOK, name, link, _, _, _, _, _, _, itemType, texture = pcall(GetItemInfo, data)
 			name = name or loc.ITEM
@@ -180,7 +156,6 @@ function Helper:OnKeyDown(key)
 	local isControllerButton = bAction and self.manifest and self.manifest[bAction]
 	if not self.blockInput and isControllerButton then
 		local modifier = ConsolePort:GetCurrentModifier()
-		local isPendingActionApproved
 
 		-- a pending binding prompt is approved
 		if ( self.pendingButton == bAction and self.pendingModifier == modifier ) then
@@ -200,10 +175,6 @@ function Helper:OnKeyDown(key)
 
 		self.pendingBinding, self.pendingActionID = nil, nil
 		self.pendingButton, self.pendingModifier = nil, nil
-
-		if isPendingActionApproved then
-
-		end
 
 		local binding = set and set[modifier]
 		local actionID = ConsolePort:GetActionID(binding)

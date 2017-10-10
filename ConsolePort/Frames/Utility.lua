@@ -718,14 +718,6 @@ function ConsolePort:SetupUtilityRing()
 			end
 		end
 
-		if GameMenuButtonController and not GameMenuButtonController.loaded then
-			GameMenuButtonController.loaded = true
-			GameMenuButtonController:SetFrameRef("Utility", Utility)
-			Utility:WrapScript(GameMenuButtonController, "OnClick", [[
-				Utility:Run(UseUtility, nil)
-			]])
-		end
-
 		Utility.autoExtra = db.Settings.autoExtra
 		Utility.frameScale = db.Settings.utilityRingScale or 1
 		Utility:SetScale(Utility.frameScale)

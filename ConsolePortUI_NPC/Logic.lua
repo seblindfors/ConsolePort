@@ -78,11 +78,8 @@ function NPC:QUEST_FINISHED(...)
 end
 
 function NPC:QUEST_DETAIL(...)
-	local questStartItemID = ...
-	if ( QuestIsFromAdventureMap() ) or
-		( QuestIsFromAreaTrigger() ) or --and QuestGetAutoAccept() ) or
-		(questStartItemID ~= nil and questStartItemID ~= 0) then
-		self:ForceClose()
+	if self:IsQuestAutoAccept(...) then
+		self:PlayOutro()
 		return
 	end
 	self:PlayIntro('QUEST_DETAIL')
@@ -153,7 +150,6 @@ function NPC:ShowItems()
 		local tooltip = UI:GetTooltip()
 		local owner = item.type == 'choice' and choices or extras
 		local tooltips = owner.Tooltips
-	--	local id = #tooltips + 1
 		local columnID = ( id % 3 == 0 ) and 3 or ( id % 3 )
 		local column = self:GetItemColumn(owner, columnID)
 
@@ -180,6 +176,7 @@ function NPC:ShowItems()
 		local width, height = tooltip:GetSize()
 		tooltip:SetSize(width + 30, height + 8)
 
+
 		if column.lastItem then
 			tooltip:SetPoint('TOP', column.lastItem, 'BOTTOM', 0, 0)
 		else
@@ -188,6 +185,7 @@ function NPC:ShowItems()
 
 		column.lastItem = tooltip
 	end
+	------------------------------
 	if self.TalkBox.Elements.Progress.ReqText:IsVisible() then
 		extras.Text:SetText(self.TalkBox.Elements.Progress.ReqText:GetText())
 	end
@@ -200,6 +198,7 @@ function NPC:ShowItems()
 			extras.Text:SetText(rewardsFrame.ItemReceiveText:GetText())
 		end
 	end
+	------------------------------
 	inspector.Threshold = #active
 	inspector:AdjustToChildren()
 	inspector:SetFocus(1)
@@ -266,6 +265,12 @@ function NPC:IsGossipAvailable()
 		end
 	end
 	return true
+end
+
+function NPC:IsQuestAutoAccept(questStartItemID)
+	return ( QuestIsFromAdventureMap() ) or
+		( QuestGetAutoAccept() and QuestIsFromAreaTrigger() ) or
+		( questStartItemID ~= nil and questStartItemID ~= 0 )
 end
 
 function NPC:ResetElements()

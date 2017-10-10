@@ -78,11 +78,11 @@ local function DrawMapNodes()
 	for i, node in pairs(mapNodes) do
 		node:Hide()
 	end
+	local width, height = WorldMapScrollFrame:GetSize()
 	for name, info in pairs(zones) do
 		count = count + 1
 
 		local node = mapNodes[count] or CreateMapNode()
-		local width, height = WorldMapScrollFrame:GetSize()
 		node.name = name
 		node.info = info
 		node:SetPoint("TOPLEFT", WorldMapScrollFrame, info.X*width, -info.Y*height)

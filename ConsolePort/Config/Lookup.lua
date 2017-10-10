@@ -250,12 +250,11 @@ local function GetActionButtons(buttons, this)
 	if this:IsForbidden() then
 		return buttons
 	end
-	local objType = this:GetObjectType()
-	local action = this:IsProtected() and valid_action_buttons[objType] and this:GetAttribute('action')
+	local action = this:IsProtected() and valid_action_buttons[this:GetObjectType()] and this:GetAttribute('action')
 	if action and tonumber(action) and this:GetAttribute('type') == 'action' then
 		buttons[this] = action
 	end
-	for _, object in pairs({this:GetChildren()}) do
+	for _, object in ipairs({this:GetChildren()}) do
 		GetActionButtons(buttons, object)
 	end
 	return buttons

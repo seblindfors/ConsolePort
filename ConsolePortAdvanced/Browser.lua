@@ -513,7 +513,7 @@ ConsolePortConfig:AddPanel({
 	header = ADVANCED_LABEL, 
 	mixin = WindowMixin,
 	noDefault = true,
-	onFirstShow = function(self, core)
+	onLoad = function(self, core)
 		self.Browser = db.Atlas.GetScrollFrame('$parentBrowser', self, {
 			childKey = 'List',
 			childWidth = 900,

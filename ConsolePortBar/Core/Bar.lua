@@ -295,7 +295,6 @@ end
 --------------------------
 ---- Secure functions ----
 --------------------------
-
 for name, script in pairs({
 	['_onhide'] = [[
 		self:ClearBindings()
@@ -331,18 +330,27 @@ for name, script in pairs({
 	]],
 	['GetReticleMacro'] = [[
 		if disableCastOnRelease then return end
-		local id = ...
-		local spellID = self:RunAttribute('GetSpellID', id)
-		if spellID and lastActionUsed == id then
-			local spellName = reticleSpellManifest[spellID]
-			if spellName then
-				return reticleMacroString:format(spellName), spellName
-			end
-		end
-		lastActionUsed = id
-	]]
-}) do Bar:SetAttribute(name, script) end
+		local actionID, buttonID, down, macro = ...
 
+		if down then
+			if not storedSpellID then
+				storedSpellID = self:RunAttribute('GetSpellID', actionID)
+				storedButtonID = buttonID
+			end
+		else
+			if storedSpellID and (storedButtonID == buttonID) then
+				local spellName = reticleSpellManifest[storedSpellID]
+				if spellName then
+					macro = reticleMacroString:format(spellName)
+				end
+			end
+			storedSpellID, storedButtonID = nil, nil
+		end
+
+		return macro
+	]]
+--------------------------
+}) do Bar:SetAttribute(name, script) end
 --------------------------
 
 Bar:SetScript('OnEvent', Bar.OnEvent)

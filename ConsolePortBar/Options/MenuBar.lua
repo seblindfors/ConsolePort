@@ -13,8 +13,6 @@ Bar.Eye = Eye
 Bar.Menu = Menu
 Bar.Bag = Bag
 
-Bar:SetBackdrop(backdrop)
-
 for _, btn in pairs({Eye, Menu, Bag}) do
 	btn:SetSize(40, 40)
 	btn:SetHighlightTexture('Interface\\AddOns\\ConsolePortBar\\Textures\\Button\\BigHilite')
@@ -42,7 +40,7 @@ Bar.BottomLine:SetPoint('BOTTOMLEFT', 0, 16)
 Bar.BottomLine:SetPoint('BOTTOMRIGHT', 0, 16)
 
 Bar.CoverArt = Bar:CreateTexture(nil, 'BACKGROUND')
-Bar.CoverArt:SetPoint('CENTER', 0, 74)
+Bar.CoverArt:SetPoint('CENTER', 0, 50)
 Bar.CoverArt:SetSize(768, 192)
 
 ---------------------------------------------------------------
@@ -73,7 +71,7 @@ function Eye:OnAttributeChanged(attribute, value)
 	end
 end
 
-function Eye:OnClick(button, down)
+function Eye:OnClick(button)
 	if button == 'RightButton' then
 		ab.cfg.showart = not ab.cfg.showart
 		if ab.cfg.showart then

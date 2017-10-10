@@ -110,6 +110,13 @@ function ConsolePort:LoadHookScripts()
 			end
 		end
 	end)
+
+	-- hooksecurefunc(GameTooltip, 'SetOwner', function(tooltip, owner, anchor)
+	-- 	if self:IsCurrentNode(owner) and anchor ~= 'ANCHOR_TOPLEFT' then
+	-- 		tooltip:SetOwner(owner, 'ANCHOR_TOPLEFT')
+	-- 	end
+	-- end)
+	
 	-- Disable keyboard input when splitting stacks (will obstruct controller input)
 	StackSplitFrame:EnableKeyboard(false)
 	-- Remove the need to type "DELETE" when removing rare or better quality items
@@ -125,10 +132,9 @@ function ConsolePort:LoadHookScripts()
 			DropDownList2,
 		}
 
-		for i, DD in pairs(dropDowns) do
+		for _, DD in pairs(dropDowns) do
 			DD:HookScript("OnShow", function(self)
-				local children = {self:GetChildren()}
-				for j, child in pairs(children) do
+				for _, child in ipairs({self:GetChildren()}) do
 					if (child.IsVisible and not child:IsVisible()) or (child.IsEnabled and not child:IsEnabled()) then
 						child.ignoreNode = true
 					else

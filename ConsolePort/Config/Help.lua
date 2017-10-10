@@ -55,7 +55,6 @@ function HTMLHandler:page(message)
 		--	end
 		--	button.SelectedTexture:Show()
 		--	selectedIndex = button
-		-- this block can crash the game for some reason
 			return
 		end
 	end
@@ -180,7 +179,7 @@ db.PANELS[#db.PANELS + 1] = {
 	header  = HELP_LABEL, 
 	mixin = WindowMixin,
 	noDefault = true,
-	onFirstShow = function(self, core)
+	onLoad = function(self, core)
 		local HTML = CreateFrame('SimpleHTML', '$parentHTML', self)
 		self.HTML = HTML
 

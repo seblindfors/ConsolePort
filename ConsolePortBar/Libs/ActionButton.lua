@@ -89,8 +89,8 @@ local Generic_MT = {__index = Generic}
 local Action = setmetatable({}, {__index = Generic})
 local Action_MT = {__index = Action}
 
-local PetAction = setmetatable({}, {__index = Generic})
-local PetAction_MT = {__index = PetAction}
+--local PetAction = setmetatable({}, {__index = Generic})
+--local PetAction_MT = {__index = PetAction}
 
 local Spell = setmetatable({}, {__index = Generic})
 local Spell_MT = {__index = Spell}
@@ -162,12 +162,6 @@ function lib:CreateButton(id, name, header, config)
 	-- Mapping of state -> action
 	button.state_types = {}
 	button.state_actions = {}
-
-	-- Store the LAB Version that created this button for debugging
-	button.__LAB_Version = MINOR_VERSION
-
-	-- just in case we're not run by a header, default to state 0
-	button:SetAttribute("state", 0)
 
 	SetupSecureSnippets(button)
 	WrapOnClick(button)
@@ -370,8 +364,9 @@ function SetupSecureSnippets(button)
 end
 
 function WrapOnClick(button)
+	-- Wrap PreClick to get a temporary reticle macro to use on release if the header provides it.
 	button.header:WrapScript(button, "PreClick", [[
-		local reticleMacro = owner:RunAttribute("GetReticleMacro", self:GetAttribute("action"))
+		local reticleMacro = owner:RunAttribute("GetReticleMacro", self:GetAttribute("action"), self:GetAttribute("plainID"), down)
 		if button == 'ControllerInput' and not down then
 			if reticleMacro then
 				self:SetAttribute("type", "macro")
@@ -397,6 +392,7 @@ function WrapOnClick(button)
 			end
 		end
 	]])
+	-- Wrap PostClick to reset the type and state of the button.
 	button.header:WrapScript(button, "PostClick", [[
 		self:SetAttribute("type", self:GetAttribute("action_field"))
 	]])
@@ -579,7 +575,7 @@ function Generic:PreClick()
 		return
 	end
 	-- check if there is actually something on the cursor
-	local kind, value, subtype = GetCursorInfo()
+	local kind, value = GetCursorInfo()
 	if not (kind and value) then return end
 	self._old_type = self._state_type
 	if self._state_type and self._state_type ~= "empty" then
@@ -641,7 +637,6 @@ function Generic:UpdateConfig(config)
 	if config and type(config) ~= "table" then
 		error("LibActionButton-1.0: UpdateConfig requires a valid configuration!", 2)
 	end
-	local oldconfig = self.config
 	if not self.config then self.config = {} end
 	-- merge the two configs
 	merge(self.config, config, DefaultConfig)
@@ -670,53 +665,60 @@ function ForAllButtons(method, onlyWithAction)
 end
 
 function InitializeEventHandler()
-	lib.eventFrame:SetScript("OnEvent", OnEvent)
-	lib.eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-	lib.eventFrame:RegisterEvent("ACTIONBAR_SHOWGRID")
-	lib.eventFrame:RegisterEvent("ACTIONBAR_HIDEGRID")
-	--lib.eventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
-	--lib.eventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
-	lib.eventFrame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
-	lib.eventFrame:RegisterEvent("UPDATE_BINDINGS")
---	lib.eventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
-	lib.eventFrame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
+	local eventFrame = lib.eventFrame
+	eventFrame:SetScript("OnEvent", OnEvent)
+	--------------------------------
+	for _, event in ipairs({
+		----------------------------
+		"PLAYER_ENTERING_WORLD",
+		"ACTIONBAR_SHOWGRID",
+		"ACTIONBAR_HIDEGRID",
+	--	"ACTIONBAR_PAGE_CHANGED",
+	--	"UPDATE_BONUS_ACTIONBAR",
+		"ACTIONBAR_SLOT_CHANGED",
+		"UPDATE_BINDINGS",
+	--	"UPDATE_SHAPESHIFT_FORM",
+		"UPDATE_VEHICLE_ACTIONBAR",
 
-	lib.eventFrame:RegisterEvent("ACTIONBAR_UPDATE_STATE")
-	lib.eventFrame:RegisterEvent("ACTIONBAR_UPDATE_USABLE")
-	lib.eventFrame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
-	lib.eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
-	lib.eventFrame:RegisterEvent("TRADE_SKILL_SHOW")
-	lib.eventFrame:RegisterEvent("TRADE_SKILL_CLOSE")
-	lib.eventFrame:RegisterEvent("ARCHAEOLOGY_CLOSED")
-	lib.eventFrame:RegisterEvent("PLAYER_ENTER_COMBAT")
-	lib.eventFrame:RegisterEvent("PLAYER_LEAVE_COMBAT")
-	lib.eventFrame:RegisterEvent("START_AUTOREPEAT_SPELL")
-	lib.eventFrame:RegisterEvent("STOP_AUTOREPEAT_SPELL")
-	lib.eventFrame:RegisterEvent("UNIT_ENTERED_VEHICLE")
-	lib.eventFrame:RegisterEvent("UNIT_EXITED_VEHICLE")
-	lib.eventFrame:RegisterEvent("COMPANION_UPDATE")
-	lib.eventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
-	lib.eventFrame:RegisterEvent("LEARNED_SPELL_IN_TAB")
-	lib.eventFrame:RegisterEvent("PET_STABLE_UPDATE")
-	lib.eventFrame:RegisterEvent("PET_STABLE_SHOW")
-	lib.eventFrame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
-	lib.eventFrame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
-	lib.eventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")
-	lib.eventFrame:RegisterEvent("UPDATE_SUMMONPETS_ACTION")
+		"ACTIONBAR_UPDATE_STATE",
+		"ACTIONBAR_UPDATE_USABLE",
+		"ACTIONBAR_UPDATE_COOLDOWN",
+		"PLAYER_TARGET_CHANGED",
+		"TRADE_SKILL_SHOW",
+		"TRADE_SKILL_CLOSE",
+		"ARCHAEOLOGY_CLOSED",
+		"PLAYER_ENTER_COMBAT",
+		"PLAYER_LEAVE_COMBAT",
+		"START_AUTOREPEAT_SPELL",
+		"STOP_AUTOREPEAT_SPELL",
+		"UNIT_ENTERED_VEHICLE",
+		"UNIT_EXITED_VEHICLE",
+		"COMPANION_UPDATE",
+		"UNIT_INVENTORY_CHANGED",
+		"LEARNED_SPELL_IN_TAB",
+		"PET_STABLE_UPDATE",
+		"PET_STABLE_SHOW",
+		"SPELL_ACTIVATION_OVERLAY_GLOW_SHOW",
+		"SPELL_ACTIVATION_OVERLAY_GLOW_HIDE",
+		"SPELL_UPDATE_CHARGES",
+		"UPDATE_SUMMONPETS_ACTION",
 
-	-- With those two, do we still need the ACTIONBAR equivalents of them?
-	lib.eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
-	lib.eventFrame:RegisterEvent("SPELL_UPDATE_USABLE")
-	lib.eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+		-- With those two, do we still need the ACTIONBAR equivalents of them?
+		"SPELL_UPDATE_COOLDOWN",
+		"SPELL_UPDATE_USABLE",
+		"PLAYER_EQUIPMENT_CHANGED",
 
-	lib.eventFrame:RegisterEvent("LOSS_OF_CONTROL_ADDED")
-	lib.eventFrame:RegisterEvent("LOSS_OF_CONTROL_UPDATE")
+		"LOSS_OF_CONTROL_ADDED",
+		"LOSS_OF_CONTROL_UPDATE",
+		----------------------------
+	}) do eventFrame:RegisterEvent(event) end
+	--------------------------------
 
-	lib.eventFrame:Show()
-	lib.eventFrame:SetScript("OnUpdate", OnUpdate)
+	eventFrame:Show()
+	eventFrame:SetScript("OnUpdate", OnUpdate)
 end
 
-function OnEvent(frame, event, arg1, ...)
+function OnEvent(_, event, arg1, ...)
 	if (event == "UNIT_INVENTORY_CHANGED" and arg1 == "player") or event == "LEARNED_SPELL_IN_TAB" then
 		local tooltipOwner = GameTooltip:GetOwner()
 		if ButtonRegistry[tooltipOwner] then

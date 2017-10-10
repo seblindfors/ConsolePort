@@ -101,8 +101,6 @@ local swipes = { -- SHIFT-: M1, CTRL-: M2, CTRL-SHIFT-: M3
 	},
 }
 ---------------------------------------------------------------
-
-
 local adjustTextures = {
 	'Border',
 	'NormalTexture',
@@ -112,7 +110,7 @@ local adjustTextures = {
 	'NewActionTexture',
 }
 ---------------------------------------------------------------
-local hotkeyConfig = {
+local hotkeyConfig = { -- {anchor point}, modifier ID
 	['SHIFT-'] = {{{'CENTER', 0, 0}, {20, 20}, 'CP_M1'}},
 	['CTRL-'] = {{{'CENTER', 0, 0}, {20, 20}, 'CP_M2'}},
 	['CTRL-SHIFT-'] = {{{'CENTER', -4, 0}, {20, 20}, 'CP_M1'}, {{'CENTER', 4, 0}, {20, 20}, 'CP_M2'}},
@@ -187,7 +185,6 @@ local config = {
 local function CreateHotkeyFrame(self, num)
 	local hotkey = CreateFrame('Frame', '$parent_HOTKEY'..( num or '' ), self)
 	hotkey.texture = hotkey:CreateTexture('$parent_TEXTURE', 'OVERLAY', nil, 7)
-	hotkey.texture:SetTexture(db.ICONS[id])
 	hotkey.texture:SetAllPoints()
 	return hotkey
 end
@@ -295,13 +292,11 @@ function Wrapper:SetSize(new)
 end
 
 function Wrapper:UpdateOrientation(orientation)
-	local main = self['']
 	for mod, button in pairs(self.Buttons) do
 		if not button.isMainButton then
 			button:ClearAllPoints()
 			button:Hide()
 			button.orientation = orientation
-			local point, rotation
 			local coords = modcoords[mod][orientation]
 			local mask = masks[mod][orientation]
 			local swipe = swipes[mod][orientation]

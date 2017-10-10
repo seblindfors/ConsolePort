@@ -7,9 +7,7 @@
 
 local addOn, db = ...
 ---------------------------------------------------------------
--- Stuff
-local COMBOS_MULTIPLIER = 3
-local COMBOS_MAX = 4 ^ COMBOS_MULTIPLIER
+-- Key sets and their integer identifiers for input processing
 local Key = {
 	L = {
 		UP 		= ConsolePort:GetUIControlKey('CP_L_UP'),
@@ -25,19 +23,11 @@ local Key = {
 	},
 }
 ---------------------------------------------------------------
--- Create handler frame, EasyMotion -> EM for brevity
-local EM = CreateFrame('Button', 'ConsolePortEasyMotionButton', UIParent, 'SecureHandlerBaseTemplate, SecureActionButtonTemplate, SecureHandlerStateTemplate')
-EM:SetAttribute('type', 'macro')
-EM:SetAttribute('MAX', COMBOS_MAX)
-EM:RegisterForClicks('AnyUp', 'AnyDown')
+-- Get action/input handlers, EasyMotion -> EM for brevity
+local EM, Input = ConsolePortEasyMotionButton, ConsolePortEasyMotionInput
+-- Link functions for world targeting
 EM.HighlightTarget = TargetPriorityHighlightStart
 EM.GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
-EM:Hide()
-
--- Input handler
-local Input = CreateFrame('Button', 'ConsolePortEasyMotionInput', EM, 'SecureHandlerBaseTemplate')
-Input:Hide()
-Input:RegisterForClicks('AnyUp', 'AnyDown')
 
 -- Mixin functions for the hotkey display
 local HotkeyMixin, GroupMixin = {}, {}
@@ -59,7 +49,7 @@ EM:Execute([[
 	ignore.target = true
 
 	bindRef = 'ConsolePortEasyMotionInput'
-	MAX = self:GetAttribute('MAX')
+	MAX = self:GetAttribute('maxcombos')
 ]])
 
 for side, set in pairs(Key) do
@@ -84,8 +74,8 @@ for name, script in pairs({
 	-- Parse the input
 	Input = [[
 		key = ...
-		input = input and ( input .. ' ' .. key ) or key
-		self:CallMethod('Filter', input)
+		input = input and tonumber( input .. key ) or tonumber(key)
+		self:CallMethod('Filter', tostring(input))
 	]],
 	
 	-- Set the new target
@@ -111,36 +101,28 @@ for name, script in pairs({
 		pool = nil
 	]],
 
-	-- Create key combinations
+	-- Create key combinations e.g. -> (1, 2, 3, ..., 12, 13, 14, ..., 122, 123, 124)
 	CreateBindings = [[
 		-- instantiate a keySet with a fixed format
 		local keySet = newtable(set.UP, set.LEFT, set.DOWN, set.RIGHT)
 		local current = 1
 
-		for _, key in pairs(keySet) do
-			bindings[current] = key
+		for _, k1 in ipairs(keySet) do
+			bindings[current] = tonumber(k1)
 			current = current + 1
-		end
 
-		for _, key1 in pairs(keySet) do
-			for _, key2 in pairs(keySet) do
-				bindings[current] = key2 .. ' ' .. key1
+			for _, k2 in ipairs(keySet) do
+				bindings[current] = tonumber(k2 .. k1)
 				current = current + 1
-			end
-		end
 
-		for _, key1 in pairs(keySet) do
-			for _, key2 in pairs(keySet) do
-				for _, key3 in pairs(keySet) do
-					bindings[current] = key3 .. ' ' .. key2 .. ' ' .. key1
+				for _, k3 in ipairs(keySet) do
+					bindings[current] = tonumber(k3 .. k2 .. k1)
 					current = current + 1
-
-					if (current > MAX) then
-						return
-					end
 				end
 			end
 		end
+
+		table.sort(bindings)
 	]],
 
 	-- Assign units to key combinations
@@ -262,7 +244,7 @@ for name, script in pairs({
 		self:CallMethod('SetFramePool', pool, side)
 		self:CallMethod('HideBindings', ghostMode)
 		for binding, unit in pairs(lookup) do
-			self:CallMethod('DisplayBinding', binding, unit, ghostMode)
+			self:CallMethod('DisplayBinding', tostring(binding), unit, ghostMode)
 		end
 	]],
 
@@ -401,7 +383,7 @@ function EM:Filter(input)
 	for idx, frame in self:GetFrames() do
 		if frame.isActive and frame.binding:match(filter) then
 			local icon, level, previous = frame.Keys, 0
-			for id in input:gmatch('%S+') do
+			for id in input:gmatch('%d') do
 				id = tonumber(id)
 				if previous then
 					previous:Hide()
@@ -500,7 +482,7 @@ end
 function HotkeyMixin:DrawIconsForBinding(binding)
 	binding = binding or self.binding
 	local icon, shown = self.Keys, 0
-	for id in binding:gmatch('%S+') do
+	for id in binding:gmatch('%d') do
 		id = tonumber(id)
 		local size = self.size
 		if icon[id] then

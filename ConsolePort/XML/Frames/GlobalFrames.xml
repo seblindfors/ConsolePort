@@ -1,0 +1,423 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<!-- Method frame (invisible), frame object necessary for OnUpdate and override bindings -->
+	<Frame name="ConsolePort"/>
+	<Script>
+		-- Unreferenced frame to handle WoWmapper calibration updates pushed to the client.
+		-- Binding agreed upon: ALT-CTRL-SHIFT-F12
+		SetOverrideBinding(CreateFrame("Frame"), true, "ALT-CTRL-SHIFT-F12", "WM_UPDATE");
+	</Script>
+
+	<!-- Camera handler (invisible) -->
+	<Frame name="ConsolePortCamera" parent="UIParent">
+		<Frames>
+			<Frame parentKey="Locker" hidden="true">
+				<Anchors>
+					<Anchor point="CENTER" relativeTo="UIParent"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="Deadzone" hidden="true">
+				<Anhcors>
+					<Anchor point="CENTER" relativeTo="UIParent"/>
+				</Anhcors>
+			</Frame>
+			<Frame parentKey="Edge" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeTo="UIParent" x="50" y="-50"/>
+					<Anchor point="BOTTOMRIGHT" relativeTo="UIParent" x="-50" y="50"/>
+				</Anchors>
+			</Frame>
+			<!-- Block UI input when in mouselook, since cursor position still registers on UI objects when the cursor is hidden. -->
+			<Frame parentKey="BlockUI" name="ConsolePortUIBlocker" hidden="true" enableMouse="true"/>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self.Start = MouselookStart;
+				self.Stop = MouselookStop;
+
+				self.BlockUI:SetParent(UIParent);
+				self.BlockUI:SetFrameStrata('FULLSCREEN_DIALOG');
+				self.BlockUI:SetAllPoints();
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+	<!-- Places cursor pickups on action buttons by reading input and comparing it to controller bindings. -->
+	<Frame name="ConsolePortSpellHelperFrame" parent="UIParent" hidden="true">
+		<Size x="500" y="130"/>
+		<Anchors>
+			<Anchor point="TOP" x="0" y="-32"/>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Textures\Button\Normal">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="32" y="-32"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Border"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
+					<Size x="300" y="22"/>
+					<Color r="1" g="0.82" b="0" a="1"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Border" relativePoint="TOPRIGHT" x="16" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self.Icon:SetMask([[Interface\AddOns\ConsolePort\Textures\Button\Mask]]);
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+	<!-- Displays cursor hints for interaction, spell placement and item pickups -->
+	<Frame name="ConsolePortCursorTrail" parent="UIParent" frameStrata="TOOLTIP" hidden="true">
+		<Size x="32" y="32"/>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Primary" setAllPoints="true"/>
+				<Texture parentKey="Secondary">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="10"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Use">
+					<Size x="24" y="24"/>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" x="-6" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Cancel">
+					<Size x="24" y="24"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Secondary" relativePoint="RIGHT" x="-6" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<!-- Displays arbitrary hints for unintuitive actions -->
+	<Frame name="ConsolePortHintFrame" parent="WorldFrame" frameStrata="TOOLTIP" hidden="true" setAllPoints="true">
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontNormalLarge">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+
+	<!-- Secure handlers:
+		These frames contribute in one way or another to alleviating casting/interacting/targeting.
+		Generally speaking, these should be named and globally accessible to allow for access
+		via faux macros and override bindings by name.
+
+		ConsolePortMouseHandle: Mouse handle (shows interaction hints, handles interaction overrides).
+		ConsolePortUIHandle: 	User interface handle, parses environment commands and performs secure actions.
+		ConsolePortSpellFlyout: D-pad selection in spell flyouts.
+		ConsolePortRaidCursor:	Target selection in raids and parties.
+		ConsolePortTargetAI:	Remembers interactive NPCs and lets user interact with them.
+		ConsolePortEasyMotionButton :  Easy Motion (combo shortcuts for targeting).
+	-->
+
+
+	<!-- Core\Mouse.lua -->
+	<Frame name="ConsolePortMouseHandle" parent="UIParent" inherits="SecureHandlerAttributeTemplate" alpha="0">
+		<Size x="300" y="64"/>
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="-300"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Line" file="1243535">
+					<Size x="300" y="50"/>
+					<TexCoords left="0.001953125" right="0.9140625" top="0.08203125" bottom="0.208984375"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="16"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="MovieSubtitleFont">
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="16"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="Portrait">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Text" relativePoint="RIGHT" x="15" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Button">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent.Text" relativePoint="LEFT" x="-15" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="PortraitMask" file="Interface\AddOns\ConsolePort\Textures\IconMask">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Portrait"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+
+	<!-- Drivers\UIControl.lua -->
+	<Button name="ConsolePortUIHandle" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate">
+		<Frames>
+			<!-- Displays button hints at the bottom of the screen -->
+			<Frame name="$parentHintBar" parentKey="HintBar" hidden="true">
+				<Size x="0" y="72"/>
+				<Anchors>
+					<Anchor point="BOTTOM" relativeTo="UIParent" x="0" y="0"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Gradient">
+							<Size x="0" y="72"/>
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativeTo="UIParent"/>
+								<Anchor point="BOTTOMRIGHT" relativeTo="UIParent"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						self.Active = {};
+						self.Frames = {};
+						ConsolePortUIHandle.StoredHints = {};
+
+						self:SetParent(UIParent);
+						self:SetFrameStrata('FULLSCREEN_DIALOG');
+
+						local cc = RAID_CLASS_COLORS[select(2, UnitClass('player'))];
+						self.Gradient:SetColorTexture(1, 1, 1);
+						self.Gradient:SetGradientAlpha('VERTICAL', 0, 0, 0, 1, cc.r / 5, cc.g / 5, cc.b / 5, 0);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+		</Frames>
+	</Button>
+
+
+	<!-- Frames\Flyout.lua -->
+	<Button name="ConsolePortSpellFlyout" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate" parent="UIParent" registerForClicks="AnyDown" hidden="true">
+		<Size x="0" y="100"/>
+		<Backdrop edgeFile="Interface\AddOns\ConsolePort\Textures\Window\EdgeFileNosides" tile="false">
+			<EdgeSize>
+				<AbsValue val="32"/>
+			</EdgeSize>
+			<BackgroundInsets>
+				<AbsInset left="16" right="16" top="16" bottom="16"/>
+			</BackgroundInsets>
+		</Backdrop>	
+		<Attributes>
+			<Attribute name="type" type="string" value="macro"/>
+		</Attributes>
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="-200"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="BG" alphaMode="ADD" file="Interface\QuestFrame\UI-QuestLogTitleHighlight">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="16" y="-16"/>
+						<Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="BORDER">
+				<Texture parentKey="TopLine" file="Interface\LevelUp\LevelUpTex">
+					<Size x="0" y="7"/>
+					<TexCoords left="0.00195313" right="0.81835938" top="0.00195313" bottom="0.01562500"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="-9"/>
+						<Anchor point="TOPRIGHT" x="0" y="-9"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
+					<Size x="0" y="7"/>
+					<TexCoords left="0.00195313" right="0.81835938" top="0.00195313" bottom="0.01562500"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="0" y="16"/>
+						<Anchor point="BOTTOMRIGHT" x="0" y="16"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Button>
+
+
+	<!-- Cursors\UnitFrames.lua -->
+	<Button name="ConsolePortRaidCursor" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" registerForClicks="AnyDown" frameStrata="TOOLTIP" hidden="true">
+		<Size x="32" y="32"/>
+		<Attributes>
+			<Attribute name="type" type="string" value="target"/>
+			<Attribute name="_onstate-unitexists" type="string" value="self:Run(UpdateUnitExists, newstate)"/>
+		</Attributes>
+		<Frames>
+			<Button name="$parentFocus" parentKey="SetFocus" inherits="SecureActionButtonTemplate">
+				<Attributes>
+					<Attribute name="type" type="string" value="focus"/>
+				</Attributes>
+			</Button>
+			<Button name="$parentTarget" parentKey="SetTarget" inherits="SecureActionButtonTemplate">
+				<Attributes>
+					<Attribute name="type" type="string" value="target"/>
+				</Attributes>
+			</Button>
+			<Button name="$parentToggle" parentKey="ToggleButton" inherits="SecureActionButtonTemplate" registerForClicks="LeftButtonDown"/>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="BG" file="Interface\Cursor\Item" setAllPoints="true"/>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="UnitPortrait" textureSubLevel="1">
+					<Size x="38" y="38"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativePoint="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="SpellPortrait">
+					<Size x="38" y="38"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativePoint="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="CastBar" file="Interface\AddOns\ConsolePort\Textures\Castbar\CastBarShadow">
+					<Size x="54" y="54"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="2">
+				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Textures\UtilityBorder">
+					<Size x="54" y="54"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="3">
+				<Texture parentKey="Health" file="Interface\AddOns\ConsolePort\Textures\UtilityBorderHighlight">
+					<Size x="54" y="54"/>
+					<Anchors>
+						<Anchor point="BOTTOM" relativeKey="$parent.Border"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Animations>
+			<AnimationGroup parentKey="Group">
+				<Scale parentKey="ScaleUp" smoothing="OUT" duration=".1" order="1">
+					<Origin point="CENTER"/>
+				</Scale>
+				<Scale parentKey="ScaleDown" smoothing="OUT" duration=".1" order="2">
+					<Origin point="CENTER"/>
+				</Scale>
+			</AnimationGroup>
+		</Animations>
+	</Button>
+
+	<!-- Drivers\TargetAI.lua -->
+	<Button name="ConsolePortTargetAI" parent="UIParent" inherits="InsecureActionButtonTemplate" hidden="true" registerForClicks="AnyDown, AnyUp">
+		<Attributes>
+			<Attribute name="type" type="string" value="macro"/>
+		</Attributes>
+		<Frames>
+			<Frame name="$parentSelector" parentKey="Selector" enableKeyboard="true" hidden="true">
+				<Size x="53" y="0"/>
+				<Anchors>
+					<Anchor point="TOP" relativeTo="ConsolePortMouseHandle" x="0" y="26"/>
+					<Anchor point="BOTTOM" relativeTo="ConsolePortMouseHandle" x="0" y="6"/>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture parentKey="TopArrow" inherits="HelpPlateArrowUP">
+							<Size x="53" y="17"/>
+							<Anchors>
+								<Anchor point="TOP"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="BottomArrow" inherits="HelpPlateArrowDOWN">
+							<Size x="53" y="17"/>
+							<Anchors>
+								<Anchor point="BOTTOM"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Animations>
+					<AnimationGroup parentKey="Group">
+						<Alpha childKey="TopArrow" fromAlpha="0" toAlpha="1" duration=".7" order="1"/>
+						<Alpha childKey="BottomArrow" fromAlpha="0" toAlpha="1" duration=".7" order="1"/>
+						<Scale childKey="TopArrow" smoothing="OUT" duration=".5" order="1" fromScaleX="1" fromScaleY="0" toScaleX="1" toScaleY="1"/>
+						<Scale childKey="BottomArrow" smoothing="OUT" duration=".5" order="1" fromScaleX="1" fromScaleY="0" toScaleX="1" toScaleY="1"/>
+					</AnimationGroup>
+				</Animations>
+				<Scripts>
+					<OnLoad>
+						self:SetParent(ConsolePortMouseHandle);
+					</OnLoad>
+					<OnShow>
+						self.Group:Play();
+					</OnShow>
+				</Scripts>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self.MapData = {};
+				self.InRange = {};
+			</OnLoad>
+		</Scripts>
+	</Button>
+
+	<!-- Drivers\EasyMotion.lua -->
+	<Button name="ConsolePortEasyMotionButton" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown">
+		<Attributes>
+			<Attribute name="type" type="string" value="macro"/>
+		</Attributes>
+		<Frames> <!-- Need a separate input feeder so the targeting button (parent) doesn't process a release event prematurely -->
+			<Button name="ConsolePortEasyMotionInput" inherits="SecureHandlerBaseTemplate" hidden="true" registerForClicks="AnyUp, AnyDown"/>
+		</Frames>
+	</Button>
+
+	<!-- End of secure handlers -->
+
+</Ui>

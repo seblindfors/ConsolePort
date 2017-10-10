@@ -1,14 +1,8 @@
---[[ $Id: CallbackHandler-1.0.lua 18 2014-10-16 02:52:20Z mikk $ ]]
---local MAJOR, MINOR = "CallbackHandler-1.0", 6
---local CallbackHandler = LibStub:NewLibrary(MAJOR, MINOR)
-
 local _, ab = ...
 local CallbackHandler = {}
 
 ab.libs = ab.libs or {}
 ab.libs.cbh = CallbackHandler
-
-if not CallbackHandler then return end -- No upgrade needed
 
 local meta = {__index = function(tbl, key) tbl[key] = {} return tbl[key] end}
 
@@ -215,7 +209,7 @@ function CallbackHandler:New(target, RegisterName, UnregisterName, UnregisterAll
 			for i=1,select("#",...) do
 				local self = select(i,...)
 				if registry.insertQueue then
-					for eventname, callbacks in pairs(registry.insertQueue) do
+					for _, callbacks in pairs(registry.insertQueue) do
 						if callbacks[self] then
 							callbacks[self] = nil
 						end

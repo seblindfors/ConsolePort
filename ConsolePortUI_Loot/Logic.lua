@@ -27,6 +27,7 @@ function LootFrame:OnShow()
 --	if ( GetCVar('lootUnderMouse') == '1' ) then
 --		self:MoveToMouse()
 --	end
+	self.Container.Header.HeaderOpenAnim:Stop()
 	self.Container.Header.HeaderOpenAnim:Play()
 end
 

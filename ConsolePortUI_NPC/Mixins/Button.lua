@@ -17,7 +17,7 @@ end
 
 function Button:OnShow()
  	local id = self.idx or 1
-	C_Timer.After(id * 0.025, function()
+	C_Timer.After(id * 0.015, function()
 		data.UIFrameFadeIn(self, 0.2, self:GetAlpha(), 1)
 	end)
 end

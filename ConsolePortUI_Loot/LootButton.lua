@@ -1,7 +1,6 @@
 local _, L = ...
-local UI = ConsolePortUI
-local KEY = UI.Data.KEY
-local Control = UI:GetControlHandle()
+local UI, Control, Data = ConsolePortUI:GetEssentials()
+local KEY = Data.KEY
 local LootButton = {}
 L.LootButtonMixin = LootButton
 

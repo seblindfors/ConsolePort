@@ -158,7 +158,7 @@ db.PLUGINS["Storyline"] = function(self)
 	local rateMid = 0.3
 	local rateFore = 0.8
 
-	function StageUpdate(self, elapsed)
+	Frame:HookScript("OnUpdate", function(self, elapsed)
 		local changeBack = rateBack/100 * elapsed
 		local changeMid = rateMid/100 * elapsed
 		local changeFore = rateFore/100 * elapsed
@@ -190,9 +190,7 @@ db.PLUGINS["Storyline"] = function(self)
 		self.LocBack:SetTexCoord(backL, backR, 0, 1)
 		self.LocMid:SetTexCoord (midL, midR, 0, 1)
 		self.LocFore:SetTexCoord(foreL, foreR, 0, 1)
-	end
-
-	Frame:HookScript("OnUpdate", StageUpdate)
+	end)
 
 	-----------------------------------------------
 	-- Re-anchoring and re-styling existing
@@ -204,9 +202,8 @@ db.PLUGINS["Storyline"] = function(self)
 		-- stylize
 		font:SetShadowOffset(2, -2)
 		-- re-anchor the ChatOptionX buttons to fit within the BG stage
-		hooksecurefunc(chatOption, "SetPoint", function(self, ...)
-			local anchor, arg2, arg3, arg4, arg5 = ...
-			if anchor == "TOP" and arg3 == -175 then
+		hooksecurefunc(chatOption, "SetPoint", function(self, anchor, _, yOffset)
+			if anchor == "TOP" and yOffset == -175 then
 				self:SetPoint("TOP", Frame.LocBack, 0, -10)
 			end
 		end)

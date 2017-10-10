@@ -151,7 +151,7 @@ function Cursor:ScaleOnFinished()
 	end
 end
 
-function Cursor:Move(anchor)
+function Cursor:Move()
 	if current then
 		self.Pointer:ClearAllPoints()
 		self.Highlight:ClearAllPoints()
@@ -230,7 +230,7 @@ function ClickWrapper:RunRightClick()
 end
 
 ---------------------------------------------------------------
--- Node management functions
+-- Node management resources
 ---------------------------------------------------------------
 local IsUsable = {
 	Button 		= true,
@@ -249,6 +249,45 @@ local DropDownMacros = {
 	CLEAR_FOCUS = "/clearfocus",
 	PET_DISMISS = "/petdismiss",
 }
+
+---------------------------------------------------------------
+-- SafeOnEnter, SafeOnLeave:
+-- Replace problematic OnEnter/OnLeave scripts.
+-- Original functions become taint-bearing when called insecurely
+-- because they modify properties of protected objects.
+---------------------------------------------------------------
+local SafeOnEnter, SafeOnLeave = {}, {}
+---------------------------------------------------------------
+-------[[  OnEnter  ]]-------
+SafeOnEnter[ActionButton1:GetScript('OnEnter')] = function(self)
+	ActionButton_SetTooltip(self)
+end
+SafeOnEnter[SpellButton1:GetScript('OnEnter')] = function(self)
+	local slot = SpellBook_GetSpellBookSlot(self)
+	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+	if ( GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType) ) then
+		self.UpdateTooltip = SafeOnEnter[SpellButton1:GetScript('OnEnter')]
+	else
+		self.UpdateTooltip = nil
+	end
+	
+	if ( self.SpellHighlightTexture and self.SpellHighlightTexture:IsShown() ) then
+		GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
+	end
+	GameTooltip:Show()
+end
+-------[[  OnLeave  ]]-------
+SafeOnLeave[SpellButton_OnLeave] = function(self)
+	GameTooltip:Hide()
+end
+---------------------------------------------------------------
+-- Allow access to these tables for plugins and addons on demand.
+function Cursor:ReplaceOnEnter(original, replacement) SafeOnEnter[original] = replacement end
+function Cursor:ReplaceOnLeave(original, replacement) SafeOnLeave[original] = replacement end
+
+---------------------------------------------------------------
+-- Node management functions
+---------------------------------------------------------------
 
 local Node = {
 	[KEY.UP] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY > thisY) end,
@@ -346,7 +385,7 @@ end
 function Node:Clear()
 	if current then
 		local node = current.node
-		local leave = node:GetScript("OnLeave")
+		local leave = SafeOnLeave[node:GetScript('OnLeave')] or node:GetScript('OnLeave')
 		if leave then
 			pcall(leave, node)
 		end
@@ -374,9 +413,9 @@ end
 function Node:Select(node, object, scrollFrame, state)
 	local name = node.direction and node:GetName()
 	local override
-	if IsClickable[object] and node:IsEnabled() then
+	if IsClickable[object] then
 		override = true
-		local enter = not node.HotKey and node:GetScript("OnEnter")
+		local enter = SafeOnEnter[node:GetScript('OnEnter')] or node:GetScript('OnEnter')
 		if enter and state == KEY.STATE_UP then
 			pcall(enter, node)
 		end

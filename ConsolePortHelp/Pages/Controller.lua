@@ -98,8 +98,6 @@ Help:AddPage('WoWmapper', 'Controller', [[<HTML><BODY>
 <p align="left">WoWmapper is an input mapper for ConsolePort, aimed at bringing true controller functionality to World of Warcraft.
 Its primary purpose is to handle DualShock 4 or Xbox/Xinput controller input and convert it into button presses and mouse movements which are then sent to WoW and processed by ConsolePort.</p>
 <br/>
-<p align="left">WoWmapper also includes force feedback and input assistance utilites such as vibration, automatic cursor centering and pseudo-analog-sensitive movement as well as many more features designed to make efficient controller gameplay a reality in the World of Warcraft.</p>
-<br/>
 <H1 align="center">What do I need?</H1>
 <br/>
 <p align="left">|cff69ccf0•|r A system running Windows 7, 8, 10 or higher<br/>
@@ -133,33 +131,4 @@ Help:AddPage('Supported devices', 'WoWmapper', [[<HTML><BODY>
 |cff69ccf0•|r Generic DirectInput USB Controllers<br/>
 |cff69ccf0•|r Aftermarket Xbox controllers (Afterglow, Razer Wildcat, etc.)</p><br/><br/>
 <H2 align="center"><a href="website:http://consoleport.net/home/wowmapper-with-x360ce/">Click here to get a link to the support article on how to setup X360CE with WoWmapper.</a></H2> 
-</BODY></HTML>]])
-
-Help:AddPage('Input assistance', 'WoWmapper', [[<HTML><BODY>
-<IMG src="Interface\AddOns\ConsolePort\Textures\Logos\WM" align="center" width="128" height="128"/>
-<br/><br/><br/><br/><br/>
-<H1 align="center">Input assistance</H1><br/>
-<p align="left">WoWmapper offers a small selection of input assistance options. In order to provide these features, WoWmapper needs real-time information directly from the game client.
-This is possible through passive memory reading. These features are entirely optional and you'll have to enable them yourself.
-You can read more about the subject of memory reading <a href="website:https://github.com/topher-au/WoWmapper/wiki/Advanced-Features">|cff69ccf0here|r</a>.
-</p><br/>
-<IMG src="Interface\AddOns\ConsolePortHelp\Textures\WMInput" align="right" width="256" height="256"/>
-<H2 align="left">Features explained:</H2>
-<p align="left">|cff69ccf0•|r |cff69cc00Auto-center mouse cursor after mouselook|r<br/>
-Ideally, the mouse cursor is always centered for <br/>easy interaction and reticle spell placement.<br/>
-The timeout slider keeps your cursor from <br/>resetting sporadically. Adjust it to your own taste.<br/><br/>
-|cff69ccf0•|r |cff69cc00Auto-toggle run/walk at a specific axis threshold|r<br/>
-This feature provides pseudo-analog-sensitive <br/>
-movement to make your character walk or run <br/>
-depending on how much you tilt your left stick.<br/><br/>
-|cff69ccf0•|r |cff69cc00Invert left/right turn while mouselooking|r<br/>
-This option inverts your camera yaw when you're<br/>
-in camera mode. The game natively supports <br/>
-pitch inversion, which can be set 
-<a href="run:ConsolePortConfig:OpenCategory('Controls') ConsolePort:SetCurrentNode(ConsolePortConfigContainerControlsGeneralSetting5)">|cff69ccf0here|r</a>.<br/><br/>
-|cff69ccf0•|r |cff69cc00Override buttons when casting reticle spells|r<br/>
-One of the struggles with reticle spell placement is that it normally only works by using your primary mouse buttons.
-WoWmapper can recognize when you're about to place a spell on the ground and temporarily change a button of your choice to cast the spell, instead of using your thumb sticks.
-As with any interaction binding, it's recommended to choose a button on the shoulder of your controller, so that you can aim and cast simultaneously.
-</p>
 </BODY></HTML>]])

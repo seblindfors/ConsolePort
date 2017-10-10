@@ -1,0 +1,7 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Include file="Frames\GlobalFrames.xml"/>
+	<Include file="Templates\ActionButton.xml"/>
+	<Include file="Templates\FrameTemplateUI.xml"/>
+	<Include file="Templates\MenuUI.xml"/>
+</Ui>

@@ -1,4 +1,4 @@
-local addOn, ab = ...
+local _, ab = ...
 local db = ab.data
 local Bar = ab.bar
 local WindowMixin, Layout, Button, Position, Color, Bool, Profiler, Preset = {}, {}, {}, {}, {}, {}, {}, {}
@@ -168,7 +168,7 @@ function Position:OnEnter()
 	if self.valids then
 		local newLine, concat = '|cFFFFFFFF%s|r\n', ''
 		for valid in db.table.spairs(self.valids) do
-			concat = concat .. newLine:format(valid)
+			concat = concat .. newLine:format(valid == '' and '|cFF757575<none>|r' or valid)
 		end
 		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
 		GameTooltip:SetText(db.ACTIONBAR.CFG_VALID_ENTRIES:format(concat))
@@ -263,7 +263,7 @@ end
 
 function Layout:OnShow()
 	self.cfg = ab.cfg.layout
-	for i, button in pairs(self.Buttons) do
+	for _, button in ipairs(self.Buttons) do
 		button:Show()
 	end
 	self.Popout:Show()
@@ -271,7 +271,7 @@ function Layout:OnShow()
 end
 
 function Layout:OnHide()
-	for i, button in pairs(self.Buttons) do
+	for _, button in ipairs(self.Buttons) do
 		button:Hide()
 	end
 end
@@ -646,7 +646,7 @@ ab.configuration = ConsolePortConfig:AddPanel({
 	name = 'ActionBarTab',
 	header = BINDING_HEADER_ACTIONBAR, 
 	mixin = WindowMixin,
-	onFirstShow = function(self, core)
+	onLoad = function(self, core)
 		if not self.Layout then
 			self:CreateLayoutModule()
 		end

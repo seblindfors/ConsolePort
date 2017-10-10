@@ -19,96 +19,92 @@ L.frame = UI:CreateFrame('Frame', 'ConsolePortUI_NPC', UIParent, 'SecureHandlerB
 			HintText = CHOOSE,
 			ignoreRegions = true,
 			Mixin = 'AdjustToChildren',
-			Multiple = {
-				SetScript = {
-					{'OnEvent', function(self)
-						local button = self:GetFocus()
-						if button then
-							local tooltip = button:GetParent()
-							if IsShiftKeyDown() then
-								GameTooltip_ShowCompareItem(tooltip)
-								tooltip.shoppingTooltips[1]:SetScale(1.25)
-								tooltip.shoppingTooltips[2]:SetScale(1.25)
-								for _, other in self:GetActive() do
-									if other ~= button then
-										local otherTtip = other:GetParent()
-										db.UIFrameFadeOut(otherTtip, 0.2, otherTtip:GetAlpha(), 0.25)
-									end
-								end
-							else
-								tooltip.shoppingTooltips[1]:SetScale(1)
-								tooltip.shoppingTooltips[1]:Hide()
-								tooltip.shoppingTooltips[2]:SetScale(1)
-								tooltip.shoppingTooltips[2]:Hide()
-								for _, other in self:GetActive() do
-									local otherTtip = other:GetParent()
-									db.UIFrameFadeIn(otherTtip, 0.2, otherTtip:GetAlpha(), 1)
-								end
+			OnEvent = function(self)
+				local button = self:GetFocus()
+				if button then
+					local tooltip = button:GetParent()
+					if IsShiftKeyDown() then
+						GameTooltip_ShowCompareItem(tooltip)
+						tooltip.shoppingTooltips[1]:SetScale(1.25)
+						tooltip.shoppingTooltips[2]:SetScale(1.25)
+						for _, other in self:GetActive() do
+							if other ~= button then
+								local otherTtip = other:GetParent()
+								db.UIFrameFadeOut(otherTtip, 0.2, otherTtip:GetAlpha(), 0.25)
 							end
 						end
-					end},
-					{'OnShow', function(self)
-						local cc = ConsolePortUI.Media.CC
-						local parent = self:GetParent()
-						local _, cross = Control:GetHintForKey(KEY.CROSS)
-						local _, circle = Control:GetHintForKey(KEY.CIRCLE)
-						local _, square = Control:GetHintForKey(KEY.SQUARE)
-						self.CROSS = cross
-						self.CIRCLE = circle
-						self.SQUARE = square
-						self:RegisterEvent('MODIFIER_STATE_CHANGED')
-						self.Background:SetGradientAlpha('VERTICAL', 0, 0, 0, 0.75, cc.r / 5, cc.g / 5, cc.b / 5, 0.75)
-						db.UIFrameFadeOut(parent.TalkBox, 0.2, parent.TalkBox:GetAlpha(), 0.10)
-						parent.isInspecting = true
-						Control:RemoveHint(KEY.SQUARE)
-						Control:AddHint(KEY.CIRCLE, DONE)
-					end},
-					{'OnHide', function(self)
-						local parent = self:GetParent()
-						self:UnregisterEvent('MODIFIER_STATE_CHANGED')
-						db.UIFrameFadeIn(parent.TalkBox, 0.2, parent.TalkBox:GetAlpha(), 1)
-						parent.isInspecting = false
-						-- Recycle tooltips to core
-						for _, tooltip in pairs(self.Choices.Tooltips) do
-							tooltip:Hide()
+					else
+						tooltip.shoppingTooltips[1]:SetScale(1)
+						tooltip.shoppingTooltips[1]:Hide()
+						tooltip.shoppingTooltips[2]:SetScale(1)
+						tooltip.shoppingTooltips[2]:Hide()
+						for _, other in self:GetActive() do
+							local otherTtip = other:GetParent()
+							db.UIFrameFadeIn(otherTtip, 0.2, otherTtip:GetAlpha(), 1)
 						end
-						for _, tooltip in pairs(self.Extras.Tooltips) do
-							tooltip:Hide()
-						end
-						-- Reset columns
-						for _, column in pairs(self.Choices.Columns) do
-							column.lastItem = nil
-							column:SetSize(1, 1)
-							column:Hide()
-						end
-						for _, column in pairs(self.Extras.Columns) do
-							column.lastItem = nil
-							column:SetSize(1, 1)
-							column:Hide()
-						end
-						-- Wipe tooltips and active selection
-						wipe(self.Choices.Tooltips)
-						wipe(self.Extras.Tooltips)
-						wipe(self.Active)
-						-- Reset text
-						self.Choices.Text:SetText()
-						self.Extras.Text:SetText()
-						-- Reset hints to previous state
-						if self.CROSS then
-							Control:AddHint(KEY.CROSS, self.CROSS)
-							self.CROSS = nil
-						end
-						if self.SQUARE then
-							Control:AddHint(KEY.SQUARE, self.SQUARE)
-							self.SQUARE = nil
-						end
-						if self.CIRCLE then
-							Control:AddHint(KEY.CIRCLE, self.CIRCLE)
-							self.CIRCLE = nil
-						end
-					end},
-				},
-			},
+					end
+				end
+			end,
+			OnShow = function(self)
+				local cc = ConsolePortUI.Media.CC
+				local parent = self:GetParent()
+				local _, cross = Control:GetHintForKey(KEY.CROSS)
+				local _, circle = Control:GetHintForKey(KEY.CIRCLE)
+				local _, square = Control:GetHintForKey(KEY.SQUARE)
+				self.CROSS = cross
+				self.CIRCLE = circle
+				self.SQUARE = square
+				self:RegisterEvent('MODIFIER_STATE_CHANGED')
+				self.Background:SetGradientAlpha('VERTICAL', 0, 0, 0, 0.75, cc.r / 5, cc.g / 5, cc.b / 5, 0.75)
+				db.UIFrameFadeOut(parent.TalkBox, 0.2, parent.TalkBox:GetAlpha(), 0.10)
+				parent.isInspecting = true
+				Control:RemoveHint(KEY.SQUARE)
+				Control:AddHint(KEY.CIRCLE, DONE)
+			end,
+			OnHide = function(self)
+				local parent = self:GetParent()
+				self:UnregisterEvent('MODIFIER_STATE_CHANGED')
+				db.UIFrameFadeIn(parent.TalkBox, 0.2, parent.TalkBox:GetAlpha(), 1)
+				parent.isInspecting = false
+				-- Recycle tooltips to core
+				for _, tooltip in pairs(self.Choices.Tooltips) do
+					tooltip:Hide()
+				end
+				for _, tooltip in pairs(self.Extras.Tooltips) do
+					tooltip:Hide()
+				end
+				-- Reset columns
+				for _, column in pairs(self.Choices.Columns) do
+					column.lastItem = nil
+					column:SetSize(1, 1)
+					column:Hide()
+				end
+				for _, column in pairs(self.Extras.Columns) do
+					column.lastItem = nil
+					column:SetSize(1, 1)
+					column:Hide()
+				end
+				-- Wipe tooltips and active selection
+				wipe(self.Choices.Tooltips)
+				wipe(self.Extras.Tooltips)
+				wipe(self.Active)
+				-- Reset text
+				self.Choices.Text:SetText()
+				self.Extras.Text:SetText()
+				-- Reset hints to previous state
+				if self.CROSS then
+					Control:AddHint(KEY.CROSS, self.CROSS)
+					self.CROSS = nil
+				end
+				if self.SQUARE then
+					Control:AddHint(KEY.SQUARE, self.SQUARE)
+					self.SQUARE = nil
+				end
+				if self.CIRCLE then
+					Control:AddHint(KEY.CIRCLE, self.CIRCLE)
+					self.CIRCLE = nil
+				end
+			end,
 			{
 				Background = {
 					Type = 'Texture',
@@ -260,14 +256,27 @@ L.frame = UI:CreateFrame('Frame', 'ConsolePortUI_NPC', UIParent, 'SecureHandlerB
 						FadeIn = {
 							Type = 'AnimationGroup',
 							{
-								Text = {
+								TextAlpha = {
 									Type = 'Animation',
 									Setup = 'Alpha',
-									SetChildKey = 'Text',
 									SetStartDelay = 0,
 									SetDuration = 0.25,
 									SetFromAlpha = 0,
 									SetToAlpha = 1,
+									OnLoad = function(self)
+										self:SetChildKey('Text')
+									end,
+								},
+								ProgressAlpha = {
+									Type = 'Animation',
+									Setup = 'Alpha',
+									SetStartDelay = 0,
+									SetDuration = 0.25,
+									SetFromAlpha = 0,
+									SetToAlpha = 1,
+									OnLoad = function(self)
+										self:SetChildKey('SpeechProgress')
+									end,
 								},
 							},
 						},

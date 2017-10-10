@@ -7,10 +7,6 @@
 
 local addOn, db = ...
 ---------------------------------------------------------------
--- Create main frame (not visible to user)
----------------------------------------------------------------
-local ConsolePort = CreateFrame("FRAME", "ConsolePort")
----------------------------------------------------------------
 local CRITICALUPDATE, NEWCALIBRATION, BINDINGSLOADED
 ---------------------------------------------------------------
 -- VERSION: generate a comparable integer from addon metadata 
@@ -67,13 +63,13 @@ end
 
 function ConsolePort:LoadSettings()
 
-	local fullReset, selectController
+	local selectController
 
 	-----------------------------------------------------------
 	-- Set/load addon settings
 	-----------------------------------------------------------
 	if not ConsolePortSettings then
-		fullReset, selectController = true, true
+		selectController = true, true
 		ConsolePortSettings = self:GetDefaultAddonSettings()
 	-----------------------------------------------------------
 	else local set = ConsolePortSettings -- compat: new binding ID fix, remove later on.
@@ -109,10 +105,6 @@ function ConsolePort:LoadSettings()
 		end
 		selectController = false
 	end
-
-	-- Set a binding for WoWmapper to let ConsolePort know something changed.
-	-- Use an unreferenced frame to make sure this binding doesn't get cleared.
-	SetOverrideBinding(CreateFrame("Frame"), true, "ALT-CTRL-SHIFT-F12", "WM_UPDATE")
 
 	-----------------------------------------------------------
 	-- Load controller splash if no preference exists
@@ -206,9 +198,11 @@ function ConsolePort:LoadSettings()
 			ConsolePort:SelectController()
 		end
 	end
+
 	local function PrintHeader(msg)
 		print( "|T" .. ( db.TEXTURE.CP_X_CENTER or "" ) .. ":24:24:0:0|t |cffffe00aConsolePort|r: " .. ( msg or "" ) )
 	end
+
 	local function SetControllerCVar(...)
 		local cvar, value = ...
 		local original = ConsolePort:GetCompleteCVarList()[cvar]
@@ -238,7 +232,7 @@ function ConsolePort:LoadSettings()
 			print(format(SLASH.CVAR_NOEXISTS, cvar or "<empty>"))
 		end
 	end
-	local function PrintCVars(...)
+	local function PrintCVars()
 		local cvars = ConsolePort:GetCompleteCVarList()
 		PrintHeader(SLASH.CVAR_PRINTING)
 		for k, v in db.table.spairs(cvars) do
@@ -246,6 +240,7 @@ function ConsolePort:LoadSettings()
 		end
 		print(SLASH.CVAR_WARNING)
 	end
+
 	local function ActionBarShow(...)
 		if ConsolePortBar and not InCombatLockdown() then
 			ConsolePortBar:ShowLayoutPopup()
@@ -253,6 +248,7 @@ function ConsolePort:LoadSettings()
 			print(SLASH.ACTIONBAR_NOEXISTS)
 		end
 	end
+
 	local function ShowHelp() ConsolePortConfig:OpenCategory(HELP_LABEL) end
 	local function ShowBinds() ConsolePortConfig:OpenCategory(2) end
 	local function ShowConfig() ConsolePortConfig:Show() end
@@ -270,7 +266,7 @@ function ConsolePort:LoadSettings()
 	}
 
 	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
-	SlashCmdList["CONSOLEPORT"] = function(msg, editBox)
+	SlashCmdList["CONSOLEPORT"] = function(msg)
 		local inputs = {}
 		local cvars = ConsolePort:GetCompleteCVarList()
 		if type(msg) == "string" then
@@ -335,7 +331,7 @@ function ConsolePort:GetBindingSet(specID)
 	end
 
 	-- Assert the current specID is included in the set and that bindings exist,
-	-- else create the subset and flag no bindings for the popup.
+	-- else create the subset (and flag no bindings for the popup).
 	local set = ConsolePortBindingSet
 	set[specID] = set[specID] or db.table.copy(db.Bindings) or {}
 
@@ -400,7 +396,7 @@ end
 function ConsolePort:CreateActionButtons()
 	for name in self:GetBindings() do
 		for modifier in self:GetModifiers() do
-			local secure = self:CreateSecureButton(name, modifier, self:GetUIControlKey(name))
+			self:CreateSecureButton(name, modifier, self:GetUIControlKey(name))
 		end
 	end
 	self.CreateActionButtons = nil

@@ -24,31 +24,33 @@ local 	HighlightStart, HighlightStop =
 local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition, GetScreenWidth, SetPortrait, SetCVar = 
 		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition, GetScreenWidth, SetPortraitTexture, SetCVar
 ---------------------------------------------------------------
-local 	Camera, numTap, modTap, timer, interactPushback, highlightTimer =
-		CreateFrame('Frame', 'ConsolePortCamera', UIParent), 0, 0, 0, 0, 0
-Camera.Start = MouselookStart
-Camera.Stop = MouselookStop
----------------------------------------------------------------
-Camera.Locker = CreateFrame('Frame', '$parentLocker', Camera)
-Camera.Locker:SetPoint('CENTER', UIParent, 0, 0)
-Camera.Locker:Hide()
----------------------------------------------------------------
-Camera.Edge = CreateFrame('Frame', '$parentEdge', Camera)
-Camera.Edge:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', 50, -50)
-Camera.Edge:SetPoint('BOTTOMRIGHT', UIParent, 'BOTTOMRIGHT', -50, 50)
-Camera.Edge:Hide()
----------------------------------------------------------------
-Camera.Deadzone = CreateFrame('Frame', '$parentDeadzone', Camera)
-Camera.Deadzone:SetPoint('CENTER', UIParent, 0, 0)
-Camera.Deadzone:Hide()
----------------------------------------------------------------
-Camera.BlockUI = CreateFrame('Frame', 'ConsolePortUIBlocker', UIParent)
-Camera.BlockUI:SetAllPoints()
-Camera.BlockUI:SetFrameStrata('FULLSCREEN_DIALOG')
-Camera.BlockUI:EnableMouse(true)
-Camera.BlockUI:Hide()
+local 	Camera, numTap, modTap, timer, interactPushback, highlightTimer = ConsolePortCamera, 0, 0, 0, 0, 0
 ---------------------------------------------------------------
 local blockCursor, cameraMode, isMouseDown, isCentered, isOutside, isTargeting, hasItem, hasWorldFocus, wasMouseLooking
+---------------------------------------------------------------
+-- Extended API:
+---------------------------------------------------------------
+local function CanMoveTo(unit)
+	if unit then return CheckInteractDistance(unit, 1) end -- 28 yards
+end
+
+local function CanInteractGUID(guid)
+	if guid then return select(2, CanLootUnit(guid)) end -- returns true if in range
+end
+
+local function CanInteract(unit)
+	if unit then return CanInteractGUID(UnitGUID(unit)) end
+end
+
+local function CanInteractOrLoot(guid)
+	if guid then local int, loot = CanLootUnit(guid) return int or loot end
+end
+
+local function UnitIsGUID(unit, queryGUID)
+	local guid = unit and UnitGUID(unit)
+	return (guid == queryGUID)
+end
+---------------------------------------------------------------
 
 function Camera:Toggle() if cameraMode then self:Stop() else self:Start() end end
 function Camera:IsCentered() return self.Locker:IsMouseOver() and not self.Deadzone:IsMouseOver() end
@@ -150,8 +152,7 @@ function Camera:HighlightAlways(elapsed)
 	end
 end
 
-function Camera:OnEvent(_, ...)
-	local modifier, down = ...
+function Camera:OnModifierChanged(_, modifier, down)
 	if down == 1 then
 		if modifier then
 			timer = 0
@@ -166,7 +167,7 @@ function Camera:OnAction() interactPushback = ( Settings.interactWith and (Setti
 function Camera:OnInteract()
 	local guid, canInteract = UnitGUID('target')
 	if guid then
-		canInteract = CanLootUnit(guid) or GetCVar('autoInteract') == '1'--CheckInteractDistance('target', 5)
+		canInteract = CanInteractOrLoot(guid) or GetCVar('autoInteract') == '1'
 	end
 	if canInteract then
 		blockCursor = true
@@ -243,7 +244,7 @@ function Core:UpdateCameraDriver()
 
 		if Settings.doubleModTap then
 			Camera.modTapWindow = db.Settings.doubleModTapWindow or 0.25
-			Camera:SetScript('OnEvent', Camera.OnEvent)
+			Camera:SetScript('OnEvent', Camera.OnModifierChanged)
 			Camera:RegisterEvent('MODIFIER_STATE_CHANGED')
 		end
 
@@ -290,8 +291,12 @@ end
 -- The behaviour alters itself depending on whether the button
 -- is bound to a healing spell, harmful spell or binding.
 ---------------------------------------------------------------
-local Mouse = CreateFrame('Frame', 'ConsolePortMouseHandle', UIParent, 'SecureHandlerStateTemplate, SecureHandlerAttributeTemplate')
+local Mouse = ConsolePortMouseHandle
 Mouse:Execute([[ id, isEnabled = 0, true ]])
+Mouse.FadeInRef = db.UIFrameFadeIn
+Mouse.FadeOutRef = db.UIFrameFadeOut
+Mouse.Line:SetTexture(1243535)
+Mouse.Line:SetVertexColor(1, .75, .75)
 
 for name, script in pairs({
 	_onattributechanged = [[
@@ -375,40 +380,8 @@ for name, script in pairs({
 		self:CallMethod('TrackUnit', target)
 	]],
 }) do Mouse:SetAttribute(name, script) end
+
 ---------------------------------------------------------------
-do 	-- Mouse handle setup
-	Mouse:SetPoint('CENTER', 0, -300)
-	Mouse:SetSize(300, 64)
-	Mouse:SetAlpha(0)
-
-	Mouse.Line = Mouse:CreateTexture('$parentLine', 'ARTWORK')
-	Mouse.Line:SetTexture(1243535)
-	Mouse.Line:SetPoint('CENTER', 0, 16)
-	Mouse.Line:SetSize(300, 50)
-	Mouse.Line:SetVertexColor(1, 0.75, 0.75)
-	Mouse.Line:SetTexCoord(0.001953125, 0.9140625, 42/512, 107/512)
-
-	Mouse.Text = Mouse:CreateFontString('$parentText', 'OVERLAY', 'MovieSubtitleFont')
-	Mouse.Text:SetPoint('CENTER', 0, 16)
-
-	Mouse.Button = Mouse:CreateTexture('$parentButton', 'OVERLAY')
-	Mouse.Button:SetPoint('RIGHT', Mouse.Text, 'LEFT', -15, 0)
-	Mouse.Button:SetSize(32, 32)
-
-	Mouse.Portrait = Mouse:CreateTexture('$parentPortrait', 'ARTWORK', nil, 2)
-	Mouse.Portrait:SetPoint('LEFT', Mouse.Text, 'RIGHT', 15, 0)
-	Mouse.Portrait:SetSize(32, 32)
-
-	Mouse.PortraitMask = Mouse:CreateTexture('$parentPortraitMask', 'OVERLAY')
-	Mouse.PortraitMask:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\IconMask')
-	Mouse.PortraitMask:SetSize(32, 32)
-	Mouse.PortraitMask:SetPoint('CENTER', Mouse.Portrait, 'CENTER', 0, 0)
-
-	Mouse.FadeInRef = db.UIFrameFadeIn
-	Mouse.FadeOutRef = db.UIFrameFadeOut
-
-	Mouse.InsecureOverrides = {}
-end
 
 function Mouse:FadeIn(speed)
 	if self.fade ~= 'in' then
@@ -436,6 +409,11 @@ function Mouse:SetPortrait(unit)
 	SetPortrait(self.Portrait, unit)
 end
 
+function Mouse:TogglePortrait(enabled)
+	self.Portrait:SetAlpha(enabled and 1 or 0)
+	self.PortraitMask:SetAlpha(enabled and 1 or 0)
+end
+
 function Mouse:UpdateMouseover()
 	SetPortrait(self.Portrait, 'mouseover')
 end
@@ -446,7 +424,6 @@ end
 
 
 function Mouse:CheckLoot(elapsed)
-	local alpha = self:GetAlpha()
 	local guid, hasLoot, canLoot = UnitGUID('target')
 	if guid then
 		hasLoot, canLoot = CanLootUnit(guid)
@@ -491,18 +468,14 @@ function Mouse:ClearOverride()
 end
 
 function Mouse:CheckLootOverride(elapsed)
-	local inCombat = InCombatLockdown()
-	local alpha = self:GetAlpha()
 	local hasLoot, canLoot = CanLootUnit(self.cachedUnit)
-	if not inCombat and hasLoot and canLoot then
-		self:SetOverride('TARGETLASTTARGET', self.override)
+	if hasLoot and canLoot then
+		self:SetOverride('TARGETLASTHOSTILE', self.override)
 		self.Text:SetText(LOOT)
 		self:FadeIn()
 	else
-		if not inCombat then
-			if self.override == self.interactWith then
-				self:SetOverride('TURNORACTION', self.override)
-			end
+		if self.override == self.interactWith then
+			self:SetOverride('TURNORACTION', self.override)
 		end
 		self:FadeOut()
 		if not hasLoot then
@@ -512,8 +485,7 @@ function Mouse:CheckLootOverride(elapsed)
 end
 
 function Mouse:CheckNPC(elapsed)
-	local alpha = self:GetAlpha()
-	local canMoveTo, canInteract = CheckInteractDistance('target', 4), CheckInteractDistance('target', 5)
+	local canMoveTo, canInteract = CanMoveTo('target'), CanInteract('target')
 	canMoveTo = canMoveTo and self.autoInteract
 	if ( canInteract or canMoveTo ) and not ( UnitExists('npc') or UnitExists('questnpc') ) then
 		if canInteract then
@@ -544,6 +516,35 @@ function Mouse:CheckHover(elapsed)
 	self:FadeIn()
 end
 
+function Mouse:CheckArtificial(elapsed)
+	local canInteract = CanInteractGUID(self.artificial)
+	if canInteract then
+		local guidMatch = UnitIsGUID('target', self.artificial)
+		if guidMatch then
+			self:SetOverride('INTERACTTARGET', self.override)
+			self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
+		elseif not CanInteract('target') then
+			self:SetOverride('CLICK ConsolePortTargetAI:LeftButton', self.override)
+			self.Text:SetText(self.artificialName)
+		end
+		self:FadeIn()
+	else
+		if self.override == self.interactWith then
+			self:SetOverride('TURNORACTION', self.override)
+		end
+		self:FadeOut()
+		self:SetScript('OnUpdate', nil)
+	end
+end
+
+function Mouse:SetArtificialUnit(guid, name)
+	self.artificial = guid
+	self.artificialName = name
+	if guid and name and not UnitExists('target') then
+		self:TrackUnit(nil, self:GetAttribute('blockhandle'))
+	end
+end
+
 function Mouse:CacheUnit(unit)
 	local newGUID = UnitGUID(unit)
 	if newGUID then
@@ -552,22 +553,28 @@ function Mouse:CacheUnit(unit)
 	end
 end
 
-function Mouse:TrackUnit(fauxUnit, blocked)
-	self:CacheUnit('target')
+function Mouse:PrepareTracking()
 	self:SetScript('OnUpdate', nil)
 	self:SetScript('OnEvent', nil)
 	self:UnregisterEvent('UPDATE_MOUSEOVER_UNIT')
 	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
-	self.Portrait:SetAlpha(1)
-	self.PortraitMask:SetAlpha(1)
+	self:TogglePortrait(true)
 	self:SetAutoWalk(false)
 	self:SetIcon(self.interactWith)
+end
+
+function Mouse:TrackUnit(fauxUnit, blocked, forceCache)
+	self:CacheUnit(forceCache or 'target')
+	self:PrepareTracking()
+	-- loot: existing dead target, assigned securely.
 	if ( fauxUnit == 'loot' ) then
 		self:SetIcon(self.override or self.interactWith)
 		self:SetScript('OnUpdate', self.CheckLoot)
+	-- npc: existing friendly npc, assigned securely.
 	elseif ( fauxUnit == 'npc' ) then
 		self:SetAutoWalk(true)
 		self:SetScript('OnUpdate', self.CheckNPC)
+	-- hover: mouseover priority, assigned securely.
 	elseif ( fauxUnit == 'hover' ) then
 		self:RegisterEvent('UPDATE_MOUSEOVER_UNIT')
 		self:SetScript('OnEvent', self.UpdateMouseover)
@@ -575,15 +582,19 @@ function Mouse:TrackUnit(fauxUnit, blocked)
 		self:SetScript('OnUpdate', self.CheckHover)
 		self:SetPortrait('mouseover')
 		if not UnitCanAssist('player', 'mouseover') and not UnitCanAttack('player', 'mouseover') then
-			self.Portrait:SetAlpha(0)
-			self.PortraitMask:SetAlpha(0)
+			self:TogglePortrait(false)
 		end
+	-- cached last target has loot, check proximity (insecure).
 	elseif ( not blocked and self.cachedUnit and CanLootUnit(self.cachedUnit) ) then
 		self:SetIcon(self.override or self.interactWith)
 		self:SetScript('OnUpdate', self.CheckLootOverride)
+	-- in proximity of tracked GUID, check proximity (insecure).
+	elseif ( not blocked and self.artificial ) then
+		self:SetIcon(self.override or self.interactWith)
+		self:SetScript('OnUpdate', self.CheckArtificial)
+		self:TogglePortrait(false)
 	else
-		self.Portrait:SetAlpha(0)
-		self.PortraitMask:SetAlpha(0)
+		self:TogglePortrait(false)
 		self:FadeOut()
 	end
 end
@@ -591,47 +602,46 @@ end
 ---------------------------------------------------------------
 -- Cursor trail for interact button
 ---------------------------------------------------------------
-local Trail = CreateFrame('Frame', 'ConsolePortCursorTrail', UIParent)
+local Trail = ConsolePortCursorTrail
 
 function Trail:ResetStates()
-	self.Icon:SetTexture()
-	self.Icon2:SetTexture()
-	self.Texture:SetTexture()
-	self.Texture2:SetTexture()
+	self.Use:SetTexture()
+	self.Cancel:SetTexture()
+	self.Primary:SetTexture()
+	self.Secondary:SetTexture()
 	self.isMouseOver = nil
 	self.isTargeting = nil
 	self.hasItem = nil
 	self.default = true
 end
 
-function Trail.OnAction(...)
-	local action = ...
+function Trail.OnAction(action)
 	local self = Trail
-	if SpellIsTargeting() then
+	if SpellIsTargeting() and not self.isTargeting then
 		self:ResetStates()
 		self.isTargeting = true
 		self.default = nil
-		self.Icon:SetTexture(GetActionTexture(action) or 'Interface\\RAIDFRAME\\ReadyCheck-Ready')
-		self.Texture:SetTexture(db.ICONS.CP_T_L3)
+		self.Use:SetTexture(GetActionTexture(action) or 'Interface\\RAIDFRAME\\ReadyCheck-Ready')
+		self.Primary:SetTexture(db.ICONS.CP_T_L3)
 		if GetBindingAction('BUTTON2', true) == 'TURNORACTION' then
-			self.Texture2:SetTexture(db.ICONS.CP_T_R3)
-			self.Icon2:SetTexture('Interface\\RAIDFRAME\\ReadyCheck-NotReady')
+			self.Secondary:SetTexture(db.ICONS.CP_T_R3)
+			self.Cancel:SetTexture('Interface\\RAIDFRAME\\ReadyCheck-NotReady')
 		else
-			self.Texture2:SetTexture()
-			self.Icon2:SetTexture()
+			self.Secondary:SetTexture()
+			self.Cancel:SetTexture()
 		end
 	else
 		self.isTargeting = nil
 	end
 end
 
-function Trail.OnItemAdd(...)
+function Trail.OnItemAdd()
 	local self = Trail
 	self:ResetStates()
 	self.hasItem = true
 	if GetBindingAction('BUTTON1', true) == 'CAMERAORSELECTORMOVE' then
-		self.Texture:SetTexture(db.ICONS.CP_T_L3)
-		self.Icon:SetTexture('Interface\\RAIDFRAME\\ReadyCheck-NotReady')
+		self.Primary:SetTexture(db.ICONS.CP_T_L3)
+		self.Use:SetTexture('Interface\\RAIDFRAME\\ReadyCheck-NotReady')
 	end
 end
 
@@ -641,7 +651,7 @@ function Trail.OnTooltipAdd(_, owner)
 		if owner == UIParent then
 			self:ResetStates()
 			self.isMouseOver = true
-			self.Texture:SetTexture(self.Default)
+			self.Primary:SetTexture(self.Default)
 		else
 			self.isMouseOver = nil
 		end
@@ -660,10 +670,10 @@ function Trail:OnUpdate()
 	elseif ( self.hasItem and hasItem ) then
 		if hasWorldFocus and not self.hasWorldFocus then
 			self.hasWorldFocus = true
-			self.Icon:SetTexture('Interface\\RAIDFRAME\\ReadyCheck-NotReady')
+			self.Use:SetTexture('Interface\\RAIDFRAME\\ReadyCheck-NotReady')
 		elseif not hasWorldFocus and self.hasWorldFocus then
 			self.hasWorldFocus = nil
-			self.Icon:SetTexture('Interface\\RAIDFRAME\\ReadyCheck-Ready')
+			self.Use:SetTexture('Interface\\RAIDFRAME\\ReadyCheck-Ready')
 		end
 		self:SetAlpha(1)
 	elseif self.isMouseOver and not cameraMode then
@@ -673,27 +683,12 @@ function Trail:OnUpdate()
 	end
 end
 
-do -- Set up the trail frame
-	Trail:SetFrameStrata('TOOLTIP')
-	Trail:SetSize(32,32)
-	Trail.Texture = Trail:CreateTexture(nil, 'OVERLAY', nil, 7)
-	Trail.Texture:SetAllPoints(Trail)
-	Trail.Icon = Trail:CreateTexture(nil, 'OVERLAY')
-	Trail.Icon:SetPoint('LEFT', Trail, 'RIGHT', -6, 0)
-	Trail.Icon:SetSize(24, 24)
-	Trail.Texture2 = Trail:CreateTexture(nil, 'OVERLAY', nil, 7)
-	Trail.Texture2:SetSize(32, 32)
-	Trail.Texture2:SetPoint('TOP', Trail, 'BOTTOM', 0, 10)
-	Trail.Icon2 = Trail:CreateTexture(nil, 'OVERLAY')
-	Trail.Icon2:SetPoint('LEFT', Trail.Texture2, 'RIGHT', -6, 0)
-	Trail.Icon2:SetSize(24, 24)
-	-- Hooks
-	hooksecurefunc('UseAction', Trail.OnAction)
-	hooksecurefunc('PickupContainerItem', Trail.OnItemAdd)
-	hooksecurefunc('PickupSpell', Trail.OnItemAdd)
-	hooksecurefunc(GameTooltip, 'SetOwner', Trail.OnTooltipAdd)
-	GameTooltip:HookScript('OnTooltipCleared', Trail.OnTooltipClear)
-end
+-- Hooks
+hooksecurefunc('UseAction', Trail.OnAction)
+hooksecurefunc('PickupContainerItem', Trail.OnItemAdd)
+hooksecurefunc('PickupSpell', Trail.OnItemAdd)
+hooksecurefunc(GameTooltip, 'SetOwner', Trail.OnTooltipAdd)
+GameTooltip:HookScript('OnTooltipCleared', Trail.OnTooltipClear)
 
 ---------------------------------------------------------------
 -- Toggle interactive mouse driver on/off
@@ -714,7 +709,7 @@ function Core:UpdateMouseDriver()
 				'[@target,exists,noharm,nodead] friend; nil'
 
 			Trail.Default = ICONS[button]
-			Trail.Texture:SetTexture(Trail.Default)
+			Trail.Primary:SetTexture(Trail.Default)
 
 			Mouse.Button:SetTexture(ICONS[button])
 
@@ -736,6 +731,9 @@ function Core:UpdateMouseDriver()
 				checkNPC = self:GetAttribute('checkNPC')
 				self:RunAttribute('UpdateTarget', self:GetAttribute('current'))
 			]], ('"%s"'):format(button), ( loot and ('"%s"'):format(loot)) or 'nil', id or -1))
+
+
+			ConsolePortTargetAI:SetShown(db.Settings and db.Settings.interactCache)
 		else
 			Trail.Default = ICONS.CP_T_R3
 
@@ -763,9 +761,8 @@ function Core:UpdateMouseDriver()
 				Mouse.override = nil
 				UnregisterStateDriver(Mouse, 'targetstate')
 				UnregisterStateDriver(Mouse, 'vehicle')
-				self:UnregisterSpellHeader(Mouse)
 			end
-
+			ConsolePortTargetAI:Hide()
 		end
 		Trail:SetScript('OnUpdate', Trail.OnUpdate)
 		Trail:SetShown(not (db.Settings and db.Settings.disableCursorTrail))

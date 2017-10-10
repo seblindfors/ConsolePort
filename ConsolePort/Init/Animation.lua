@@ -68,7 +68,6 @@ local function FadeFrame(frame, fadeInfo)
 	if not fadeInfo.mode then
 		fadeInfo.mode = "IN"
 	end
-	local alpha
 	if fadeInfo.mode == "IN" then
 		if not fadeInfo.startAlpha then
 			fadeInfo.startAlpha = 0
@@ -76,7 +75,6 @@ local function FadeFrame(frame, fadeInfo)
 		if not fadeInfo.endAlpha then
 			fadeInfo.endAlpha = 1.0
 		end
-		alpha = 0
 	elseif fadeInfo.mode == "OUT" then
 		if not fadeInfo.startAlpha then
 			fadeInfo.startAlpha = 1.0
@@ -84,7 +82,6 @@ local function FadeFrame(frame, fadeInfo)
 		if not fadeInfo.endAlpha then
 			fadeInfo.endAlpha = 0
 		end
-		alpha = 1.0
 	end
 	frame:SetAlpha(fadeInfo.startAlpha)
 

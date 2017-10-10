@@ -40,7 +40,7 @@ function ConsolePort:UpdateCVars(inCombat, ...)
 				SetCVar(cvar, info.value)
 			-- If the cvar is not toggled but has a stored default value, then set default
 			elseif not isToggled[cvar] and info.default then
-				SetCVar(cvar, info.default, info.console)
+				SetCVar(cvar, info.default)
 				if not info.protected then
 					info.default = nil
 				end

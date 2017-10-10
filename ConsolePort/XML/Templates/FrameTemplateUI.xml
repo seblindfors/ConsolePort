@@ -1,0 +1,187 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+	<Script file="FrameTemplateUI.lua"/>
+
+	<Frame name="CPUIFrameTemplate" virtual="true" mixin="ConsolePortFrameTemplateMixin">
+		<Frames>
+			<Button parentKey="PortraitButton">
+				<Size x="64" y="64"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="0"/>
+				</Anchors>
+
+				<Layers>
+					<Layer level="ARTWORK" textureSubLevel="2">
+
+						<!-- Portrait texture -->
+						<Texture parentKey="PortraitTexture" file="Interface\AddOns\ConsolePort\Textures\Window\Edges\Topleft">
+							<Size x="128" y="128"/>
+							<Anchors>
+								<Anchor point="TOPLEFT" x="-46" y="46"/>
+							</Anchors>
+						</Texture>
+
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						local parent = self:GetParent();
+						parent.TopLeftCorner = self.PortraitTexture;
+					</OnLoad>
+					<OnClick>
+						local parent = self:GetParent();
+						if parent.Portrait:IsShown() then
+							parent:HidePortrait();
+						else
+							parent:ShowPortrait();
+						end
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+
+		<Layers>
+
+			<Layer level="BACKGROUND">
+				<Texture setAllPoints="true" parentKey="BG" file="Interface\AddOns\ConsolePort\Textures\Window\Gradient">
+				</Texture>
+			</Layer>
+
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Banner" file="Interface\LevelUp\MinorTalents.blp">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="20" y="-10"/>
+						<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" x="0" y="-50"/>
+					</Anchors>
+					<TexCoords left="0.001953125" right="0.818359375" bottom="0.6660" top="0.794921875"/>
+				</Texture>
+			</Layer>
+
+			<Layer level="ARTWORK" textureSubLevel="2">
+
+				<!-- Portrait texture -->
+				<Texture parentKey="Portrait">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+
+				<FontString parentKey="Title" inherits="Fancy22Font" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="70" y="-18"/>
+					</Anchors>
+					<Color r="1" g=".82" b="0"/>
+				</FontString>
+			</Layer>
+
+			<Layer level="OVERLAY">
+
+				<!-- Corners -->
+				<Texture parentKey="TopRightCorner" file="Interface\AddOns\ConsolePort\Textures\Window\Edges\Topright">
+					<Size x="128" y="128"/>
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="46" y="46"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="BottomLeftCorner" file="Interface\AddOns\ConsolePort\Textures\Window\Edges\Bottomleft">
+					<Size x="128" y="128"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="-46" y="-46"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="BottomRightCorner" file="Interface\AddOns\ConsolePort\Textures\Window\Edges\Bottomright">
+					<Size x="128" y="128"/>
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="46" y="-46"/>
+					</Anchors>
+				</Texture>
+
+				<!-- Stretched -->
+				<Texture parentKey="TopLine" file="Interface\AddOns\ConsolePort\Textures\Window\Edges\Top">
+					<Size x="4" y="64"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="82" y="46"/>
+						<Anchor point="TOPRIGHT" x="-82" y="46"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="BottomLine" file="Interface\AddOns\ConsolePort\Textures\Window\Edges\Bottom">
+					<Size x="4" y="64"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="82" y="-46"/>
+						<Anchor point="BOTTOMRIGHT" x="-82" y="-46"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="LeftLine" file="Interface\AddOns\ConsolePort\Textures\Window\Edges\Left">
+					<Size x="64" y="4"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-46" y="-82"/>
+						<Anchor point="BOTTOMLEFT" x="-46" y="82"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="RightLine" file="Interface\AddOns\ConsolePort\Textures\Window\Edges\Right">
+					<Size x="64" y="4"/>
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="46" y="-82"/>
+						<Anchor point="BOTTOMRIGHT" x="46" y="82"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Slider name="CPUIPanelScrollBarTemplate" virtual="true">
+		<Size x="16" y="0"/>
+		<Frames>
+			<Button name="$parentScrollUpButton" parentKey="ScrollUpButton">
+				<Anchors>
+					<Anchor point="BOTTOM" relativePoint="TOP"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						local parent = self:GetParent();
+						local scrollStep = self:GetParent().scrollStep or (parent:GetHeight() / 2);
+						parent:SetValue(parent:GetValue() - scrollStep);
+						PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button name="$parentScrollDownButton" parentKey="ScrollDownButton">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						local parent = self:GetParent();
+						local scrollStep = self:GetParent().scrollStep or (parent:GetHeight() / 2);
+						parent:SetValue(parent:GetValue() + scrollStep);
+						PlaySound(SOUNDKIT.U_CHAT_SCROLL_BUTTON);
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnValueChanged>
+				self:GetParent():SetVerticalScroll(value);
+			</OnValueChanged>
+		</Scripts>
+		<ThumbTexture name="$parentThumbTexture" parentKey="ThumbTexture" inherits="UIPanelScrollBarButton" file="Interface\AddOns\ConsolePort\Textures\Window\Thumb">
+			<Size x="18" y="34"/>
+			<TexCoords left="0" right="1" top="0" bottom="1"/>
+		</ThumbTexture>
+	</Slider>
+
+	<ScrollFrame name="CPUIPanelScrollFrameTemplate" virtual="true" inherits="UIPanelScrollFrameCodeTemplate">
+		<Frames>
+			<Slider name="$parentScrollBar" inherits="CPUIPanelScrollBarTemplate" parentKey="ScrollBar">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="6" y="0"/>
+					<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="6" y="0"/>
+				</Anchors>
+			</Slider>
+		</Frames>
+	</ScrollFrame>
+
+</Ui>
+

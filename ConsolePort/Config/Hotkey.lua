@@ -13,16 +13,12 @@ local IsShiftKeyDown = IsShiftKeyDown
 local function AnimateModifierChange(self)
 	local ctrl, shift = IsControlKeyDown(), IsShiftKeyDown()
 	if self.mod == "" then
-		if shift or ctrl then
-			self:Hide()
-		else
-			self:Show()
-		end
+		self:SetShown(not (shift or ctrl))
 	else
 		self:Show()
-		if 	self.mod == "CTRL-SHIFT-" and (ctrl and shift) or
-			self.mod == "CTRL-" and (ctrl and not shift) or
-			self.mod == "SHIFT-" and (shift and not ctrl) then
+		if 	(self.mod == "CTRL-SHIFT-" and (ctrl and shift)) or
+			(self.mod == "CTRL-" and (ctrl and not shift)) or
+			(self.mod == "SHIFT-" and (shift and not ctrl)) then
 			self.mod1:Hide()
 			if self.mod2 then
 				self.mod2:Hide()
@@ -151,9 +147,9 @@ end
 
 function ConsolePort:LoadHotKeyTextures(newSet)
 	local set = newSet or db.Bindings
-	local index, subSet, modifier, binding, ID
 	local actionButtons = self:GetActionButtons(true)
 
+	local index, subSet, modifier, binding, ID
 	for secureBtn in pairs(db.SECURE) do
 		for i, HotKey in pairs(secureBtn.HotKeys) do
 			HotKey:ClearAllPoints()
