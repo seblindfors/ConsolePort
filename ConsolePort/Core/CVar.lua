@@ -8,11 +8,14 @@
 local _, db = ...
 
 local CVars = {
-	TargetNearestUseNew 	= 	{value = 0},
-	autoLootDefault 		= 	{value = true,	isCombatCVar = true, 	event = "AUTO_LOOT_DEFAULT_TEXT"},
-	autoInteract 			= 	{value = true, 	isCombatCVar = false,	event = "CLICK_TO_MOVE"},
-	mouseInvertPitch 		= 	{value = true, 	isCombatCVar = false, 	event = "INVERT_MOUSE"},
+	TargetNearestUseNew 		= 	{value = 0,		event = nil},
+	autoLootDefault 			= 	{value = true,	event = "AUTO_LOOT_DEFAULT_TEXT", isCombatCVar = true },
+	mouseInvertPitch 			= 	{value = true, 	event = "INVERT_MOUSE"},
+	nameplateShowAll			= 	{value = 1,		event = 'UNIT_NAMEPLATES_AUTOMODE'},
+	nameplateShowFriends		= 	{value = 1,		event = 'UNIT_NAMEPLATES_SHOW_FRIENDS'},
+	nameplateShowFriendlyNPCs 	= 	{value = 1,		event = nil},
 }
+
 
 function ConsolePort:LoadDefaultCVars()
 	for cvar, info in pairs(CVars) do

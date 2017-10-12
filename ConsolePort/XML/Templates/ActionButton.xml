@@ -2,19 +2,13 @@
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 
 	<Script file="ActionButton.lua"/>
-	<CheckButton name="CPUIActionButtonTemplate" virtual="true" mixin="ConsolePortActionButtonMixin">
+	<CheckButton name="CPUIActionButtonBaseTemplate" virtual="true" mixin="ConsolePortActionButtonMixin">
 		<Size>
 			<AbsDimension x="64" y="64"/>
 		</Size>
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture name="$parentIcon" parentKey="icon" file="Interface\ICONS\Ability_BossFelOrcs_Necromancer_Red" desaturated="true"/>
-				<Texture name="$parentShadow" parentKey="Shadow" file="Interface\AddOns\ConsolePort\Textures\Button\Shadow">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="-5" y="0"/>
-						<Anchor point="BOTTOMRIGHT" x="5" y="-10"/>
-					</Anchors>
-				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="1">
 				<Texture name="$parentFlash" parentKey="Flash" file="Interface\Buttons\UI-QuickslotRed" hidden="true"/>
@@ -69,15 +63,6 @@
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
-				<MaskTexture name="$parentIconMask" parentKey="Mask" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
-					<Anchors>
-						<Anchor point="TOPLEFT"/>
-						<Anchor point="BOTTOMRIGHT"/>
-					</Anchors>
-					<MaskedTextures>
-						<MaskedTexture childKey="icon"/>
-					</MaskedTextures>
-				</MaskTexture>
 			</Layer>
 		</Layers>
 		<Frames>
@@ -91,12 +76,57 @@
 				</SwipeTexture>
 			</Cooldown>
 		</Frames>
+	</CheckButton>
+
+	<CheckButton name="CPUIActionButtonTemplate" virtual="true" inherits="CPUIActionButtonBaseTemplate">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentShadow" parentKey="Shadow" file="Interface\AddOns\ConsolePort\Textures\Button\Shadow">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-5" y="0"/>
+						<Anchor point="BOTTOMRIGHT" x="5" y="-10"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<MaskTexture name="$parentIconMask" parentKey="Mask" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+						<Anchor point="BOTTOMRIGHT"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
 		<NormalTexture name="$parentNormalTexture" parentKey="NormalTexture" file="Interface\AddOns\ConsolePort\Textures\Button\Normal"/>
 		<PushedTexture parentKey="PushedTexture" file="Interface\AddOns\ConsolePort\Textures\Button\Pushed" />
 		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Button\Hilite"/>
 		<CheckedTexture parentKey="CheckedTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Button\Hilite"/>
 	</CheckButton>
 
+	<CheckButton name="CPUISquareActionButtonTemplate" virtual="true" inherits="CPUIActionButtonBaseTemplate">
+		<NormalTexture name="$parentNormalTexture" parentKey="NormalTexture" file="Interface\AddOns\ConsolePort\Textures\Button\Square_Normal">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-2" y="2"/>
+				<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
+			</Anchors>
+		</NormalTexture>
+		<PushedTexture parentKey="PushedTexture" file="Interface\AddOns\ConsolePort\Textures\Button\Square_Pushed">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-2" y="2"/>
+				<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
+			</Anchors>
+		</PushedTexture>
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Button\Square_Hilite">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-1" y="1"/>
+				<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+			</Anchors>
+		</HighlightTexture>
+		<CheckedTexture parentKey="CheckedTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Button\Square_Hilite"/>
+	</CheckButton>
 
 	<CheckButton name="CPUIPetActionButtonTemplate" inherits="SecureFrameTemplate, CPUIActionButtonTemplate" frameStrata="MEDIUM" virtual="true">
 		<Size>

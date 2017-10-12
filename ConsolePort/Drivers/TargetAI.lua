@@ -4,25 +4,47 @@ local AI, SEL, HANDLE = ConsolePortTargetAI, ConsolePortTargetAISelector, Consol
 ---------------------------------------
 local inRange, mapData = AI.InRange, AI.MapData
 ---------------------------------------
-local spairs, copy = db.table.spairs, db.table.copy
+local spairs, copy, strsplit = db.table.spairs, db.table.copy, strsplit
 local getmetatable, rawset, next = getmetatable, rawset, next
+---------------------------------------
+-- Upvalued API:
+local GetGUID, GetName, IsDead, Exists = UnitGUID, UnitName, UnitIsDead, UnitExists
+local IsPlayer, IsFriend, IsBattlePet, IsMercenary = UnitIsPlayer, UnitIsFriend, UnitIsBattlePet, UnitIsMercenary
+local CanLoot = CanLootUnit
+
+---------------------------------------
+local BLACKLIST = {
+	['89713'] = true; 	-- Koak Hoburn, heirloom mount chauffeur
+	['89715'] = true;	-- Franklin Martin, heirloom mount chauffeur 
+}
 ---------------------------------------
 -- Extended API:
 local function CanInteract(guid)
 	-- guid hack: looting in range, returns true even with no loot.
-	return select(2, CanLootUnit(guid))
+	return select(2, CanLoot(guid))
 end
 
-local function UnitIsNPC(unit)
-	return 	not UnitIsBattlePet(unit) and
-			not UnitIsPlayer(unit) and
-			UnitIsFriend('player', unit) and 
-			((UnitGUID(unit) or ''):sub(1,8) == 'Creature')
+local function IsNPC(unit)
+	local guid = GetGUID(unit)
+	if not guid then return end
+	local unitType, _, _, _, _, ID, _ = strsplit('-',guid)
+	return 	not IsBattlePet(unit) and		-- unit should not be battlepet
+			not IsPlayer(unit) and			-- unit should not be player
+			not IsMercenary(unit) and		-- unit should not be mercenary
+			IsFriend('player', unit) and 	-- unit should be friendly
+			(unitType == 'Creature') and	-- GUID should start with Creature
+			(not BLACKLIST[ID])				-- check with blacklist
 end
 
-local function UnitIsInteractive(unit)
-	return not UnitIsDead(unit) and CanInteract(UnitGUID(unit))
+local function IsInteractive(unit)
+	return not IsDead(unit) and CanInteract(GetGUID(unit))
 end
+
+---------------------------------------
+local MAX_ZONES = 3
+local MAX_NAMEPLATES = 30
+local MAX_MARKER_GUIDS = 10
+
 ---------------------------------------
 -- Metatables
 ---------------------------------------
@@ -65,8 +87,8 @@ setmetatable(inRange, {
 		end;
 		Prune = function(t)
 			local mt = getmetatable(t)
-			local guid, name = next(t, mt.__pruneIdx)
-			mt.__pruneIdx = guid
+			local guid, name = next(t, mt.__cleaner)
+			mt.__cleaner = guid
 			if guid and not CanInteract(guid) then
 				inRange:Remove(guid)
 			end
@@ -75,7 +97,7 @@ setmetatable(inRange, {
 			local mt = getmetatable(t)
 			mt.__active = delta and mt.__active + delta or 0
 			mt.__idx = nil
-			mt.__pruneIdx = nil
+			mt.__cleaner = nil
 		end;
 		Wipe = function(t)
 			if next(t) then
@@ -87,11 +109,13 @@ setmetatable(inRange, {
 	};
 	__active = 0;
 })
----------------------------------------
-local MAX_ZONES = 3
-local MAX_NAMEPLATES = 30
-local MAX_MARKER_GUIDS = 10
----------------------------------------
+------------------------------------------------------------------------------
+-- markerMT: Associative array with sequential FIFO stack in metatable.
+-- Over a play session, the user is likely to interact with a lot of creatures,
+-- especially while questing. To cope with the growing data set, each marker
+-- is given this self-managing metatable, which automatically prunes entries
+-- on a FIFO basis. This keeps the dataset in a manageable size over time.
+------------------------------------------------------------------------------
 local markerMT = {
 	__index = {};
 	__limit = MAX_MARKER_GUIDS;
@@ -194,7 +218,7 @@ function AI:OnUpdate(elapsed)
 	end
 	if self.plateUpdate then
 		local unit = ('nameplate' .. self.plateIdx)
-		if UnitExists(unit) then
+		if Exists(unit) then
 			self:NAME_PLATE_UNIT_ADDED(unit)
 		end
 		self.plateIdx = self.plateIdx + 1
@@ -273,14 +297,14 @@ function AI:GetPositionMarker()
 	return (x ..':'.. y)
 end
 
-function AI:CreateTrackerFromMarker(marker, maxGUIDs)
+function AI:CreateTrackerFromMarker(marker, maxGetGUIDs)
 	local mapData = self:GetCurrentMapData()
 	if not mapData then
 		mapData = self:SetToCurrentMapMarker()
 	end
 	if not mapData[marker] then
 		local mt = copy(markerMT)
-		mt.__limit = maxGUIDs or MAX_MARKER_GUIDS
+		mt.__limit = maxGetGUIDs or MAX_MARKER_GUIDS
 		mapData[marker] = setmetatable({}, mt)
 	end
 	return mapData[marker]
@@ -317,14 +341,14 @@ function AI:GetNPCs()
 	end
 end
 
-function AI:Track(unit, marker, maxGUIDs, forceMarker)
-	local guid, name, interactive = UnitGUID(unit), UnitName(unit), UnitIsInteractive(unit)
+function AI:Track(unit, marker, maxGetGUIDs, forceMarker)
+	local guid, name, interactive = GetGUID(unit), GetName(unit), IsInteractive(unit)
 	if interactive and not forceMarker then
 		marker = self:GetPositionMarker()
 		self:ClearNPCDirty(guid, 'dirty')
 	end
 	if guid and name and marker then
-		self:CreateTrackerFromMarker(marker, maxGUIDs)[guid] = name
+		self:CreateTrackerFromMarker(marker, maxGetGUIDs)[guid] = name
 	end
 end
 
@@ -333,15 +357,32 @@ function AI:ForceUpdatePlates()
 	self.plateIdx = 1
 end
 
----------------------------------------
+--------------------------------------------------------
+-- Calls to AI:Track should only occur below this line.
+--------------------------------------------------------
 
-function AI:GOSSIP_SHOW() 	self:Track('npc') end
-function AI:MERCHANT_SHOW() self:Track('npc') end
-function AI:QUEST_DETAIL() 	self:Track(UnitExists('questnpc') and 'questnpc' or 'npc') end
-function AI:QUEST_GREETING() self:Track(UnitExists('questnpc') and 'questnpc' or 'npc') end
 function AI:WORLD_MAP_UPDATE() self:SetToCurrentMapMarker() end
+function AI:GOSSIP_SHOW() if Exists('npc') then self:Track('npc') end end
+function AI:MERCHANT_SHOW() if Exists('npc') then self:Track('npc') end end
+
+function AI:QUEST_DETAIL()
+	if IsNPC('questnpc') then
+		self:Track('questnpc')
+	elseif IsNPC('npc') then
+		self:Track('npc')
+	end
+end
+
+function AI:QUEST_GREETING()
+	if IsNPC('questnpc') then
+		self:Track('questnpc')
+	elseif IsNPC('npc') then
+		self:Track('npc')
+	end
+end
+
 function AI:PLAYER_TARGET_CHANGED()
-	if UnitExists('target') then
+	if Exists('target') then
 		SEL:Hide()
 	else
 		self:UpdateSelection(inRange)
@@ -349,9 +390,9 @@ function AI:PLAYER_TARGET_CHANGED()
 end
 
 function AI:UPDATE_MOUSEOVER_UNIT()
-	if UnitExists('mouseover') then
+	if Exists('mouseover') then
 		SEL:Hide()
-		if UnitIsNPC('mouseover') then
+		if IsNPC('mouseover') then
 			self:Track('mouseover', 'dirty')
 		end
 	else
@@ -360,13 +401,13 @@ function AI:UPDATE_MOUSEOVER_UNIT()
 end
 
 function AI:NAME_PLATE_UNIT_ADDED(unit)
-	if UnitIsNPC(unit) then
+	if IsNPC(unit) then
 		self:Track(unit, 'plate', MAX_NAMEPLATES, true)
 	end
 end
 
 function AI:NAME_PLATE_UNIT_REMOVED(unit)
-	self:ClearNPCDirty(UnitGUID(unit), 'plate')
+	self:ClearNPCDirty(GetGUID(unit), 'plate')
 end
 
 ---------------------------------------

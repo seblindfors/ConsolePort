@@ -305,9 +305,6 @@ function WindowMixin:Save()
 		end
 	end
 
-	ConsolePort:UpdateCVars()
-	ConsolePort:UpdateCameraDriver()
-
 	-- mouse events
 	for _, Check in ipairs(self.Events) do
 		for _, Event in ipairs(Check.Events) do
@@ -315,32 +312,43 @@ function WindowMixin:Save()
 		end
 	end
 
-	-- interact button
-	if self.InteractModule.Enable:GetChecked() and self.InteractModule.BindCatcher.CurrentButton then
-		Settings.interactWith = self.InteractModule.BindCatcher.CurrentButton
-		Settings.interactCache = self.InteractModule.TargetAI:GetChecked()
-		Settings.interactNPC = self.InteractModule.NPC:GetChecked()
-		Settings.interactAuto = self.InteractModule.Auto:GetChecked()
+	-- interact button full
+	if self.IBFullModule.Enable:GetChecked() and self.IBFullModule.BindCatcher.CurrentButton then
+		Settings.interactWith 	= self.IBFullModule.BindCatcher.CurrentButton
+		Settings.interactNPC 	= self.IBFullModule.NPC:GetChecked()
+		Settings.interactCache 	= self.SmartInteract.Enable:GetChecked()
+		Settings.interactScrape = self.SmartInteract.Scrape:GetChecked()
 	else
 		Settings.interactWith = false
-		Settings.interactCache = false
 		Settings.interactNPC = false
-		Settings.interactAuto = false
+		Settings.interactCache = false
+		Settings.interactScrape = false
 	end
 
-	-- loot button
-	if 	( self.LootModule.Enable:GetChecked() ) and 
-		( self.LootModule.BindCatcher.CurrentButton ) and
-		( self.LootModule.BindCatcher.CurrentButton ~= self.InteractModule.BindCatcher.CurrentButton ) then
-		Settings.lootWith = self.LootModule.BindCatcher.CurrentButton
+	-- interact button lite
+	if 	( not self.IBFullModule.Enable:GetChecked() ) and
+		( self.IBLiteModule.Enable:GetChecked() ) and 
+		( self.IBLiteModule.BindCatcher.CurrentButton ) and
+		( self.IBLiteModule.BindCatcher.CurrentButton ~= self.IBFullModule.BindCatcher.CurrentButton ) then
+		Settings.lootWith = self.IBLiteModule.BindCatcher.CurrentButton
+		Settings.interactCache 	= self.SmartInteract.Enable:GetChecked()
+		Settings.interactScrape = self.SmartInteract.Scrape:GetChecked()
 	else
-		self.LootModule.Enable:SetChecked(false)
+		self.IBLiteModule.Enable:SetChecked(false)
 		Settings.lootWith = false
 	end
+
+	-- toggle nameplates for guid scraping
+	Settings.nameplateShowAll 	= Settings.interactScrape or nil
+	Settings.nameplateShowFriends = Settings.interactScrape or nil
+	Settings.nameplateShowFriendlyNPCs = Settings.interactScrape or nil
 
 	ConsolePortSettings = db.Settings
 	ConsolePortMouse = db.Mouse
 
+	-- dispatch full update of everything related to this tab
+	ConsolePort:UpdateCVars()
+	ConsolePort:UpdateCameraDriver()
 	ConsolePort:LoadEvents()
 	ConsolePort:LoadControllerTheme()
 	ConsolePort:LoadCameraSettings()
@@ -358,8 +366,12 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 	local red, green, blue = db.Atlas.GetCC()
 
 	Settings = db.Settings
---("$parentHeader"..id, self, nil, bannerAtlas, 125, 32, true
+	-- Controller settings popup
 	Controls.Controller = db.Atlas.GetFutureButton('$parentController', Controls)
+
+	-- SmartInteract free floating frame
+	local SmartInteract = CreateFrame('Frame', nil, Controls)
+	Controls.SmartInteract = SmartInteract
 
 	do local ExtraButton = Controls.Controller
 		local function CreateButton(name, text, OnClick, point, dontHide)
@@ -397,11 +409,11 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 	-- Create all the separate config modules
 
 	for _, setup in ipairs({
-		{'Interact', {308, 340}, {'TOPRIGHT', -302, -8}, TUTORIAL.CONFIG.INTERACTHEADER},
-		{'Loot', 	{308, 176}, {'CENTER', 36, -82}, 	TUTORIAL.CONFIG.LOOTHEADER},
+		{'IBFull', {308, 270}, {'TOPRIGHT', -302, -8}, TUTORIAL.CONFIG.IBFULLHEADER},
+		{'IBLite', 	{308, 256}, {'TOPRIGHT', -302, -256}, TUTORIAL.CONFIG.IBLITEHEADER},
 		{'Mouse', 	{316, 340}, {'TOPRIGHT', -8, -8}, 	TUTORIAL.CONFIG.MOUSEHEADER},
 		{'General', {388, 570}, {'TOPLEFT', 8, -8}, 	TUTORIAL.CONFIG.GENERALHEADER},
-		{'Assist', 	{308, 176}, {'BOTTOM', 36, 8}, 		TUTORIAL.CONFIG.TARGETHEADER},
+		{'Assist', 	{308, 166}, {'BOTTOM', 36, 8}, 		TUTORIAL.CONFIG.TARGETHEADER},
 		{'Camera', {316, 332}, {'BOTTOMRIGHT', -8, 8}, 	TUTORIAL.CONFIG.CAMERAHEADER},
 		{'Trigger', {820, 230}, {'BOTTOM', Controls.Controller.Container, 'BOTTOM', 0, 0},TUTORIAL.CONFIG.TRIGGERHEADER},
 	}) do
@@ -435,24 +447,76 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		return parent.HelpButton
 	end
 
-	------------------------------------------------------------------------------------------------------------------------------
-	do local InteractModule = Controls.InteractModule
+	local function GetCheckButton(parent, name, point, label, setting, func)
+		local button = CreateFrame('CheckButton', nil, parent, 'ChatConfigCheckButtonTemplate')
+		local text = select(6, button:GetRegions())
+		button.Text = text
 
-		function InteractModule:OnShow()
+		text:SetPoint('LEFT', 30, 0)
+		text:SetText(label)
+
+		GetHelpButton(SmartInteract, TUTORIAL.CONFIG.TARGETAIHELP):SetSize(52, 52)
+
+		button:SetPoint(unpack(point))
+		button:SetChecked(setting)
+		button.func = func or function(self) if parent.OnShow then parent:OnShow() end end
+
+		parent[name] = button
+		return button
+	end
+	------------------------------------------------------------------------------------------------------------------------------
+	do 	local function SmartEnableToggle(self)
+			local scrape = self:GetParent().Scrape
+			if self:GetChecked() then
+				scrape:SetButtonState('NORMAL')
+				scrape:SetAlpha(1)
+			else
+				scrape:SetChecked(false)
+				scrape:SetButtonState('DISABLED')
+				scrape:SetAlpha(.5)
+			end
+		end
+
+		local SmartEnable = GetCheckButton(SmartInteract, 'Enable', {'TOPLEFT', 24, -38}, TUTORIAL.CONFIG.INTERACTCACHE, Settings.interactCache, SmartEnableToggle)
+		local SmartScrape = GetCheckButton(SmartInteract, 'Scrape', {'TOPLEFT', 24, -68}, TUTORIAL.CONFIG.INTERACTSCRAPE, Settings.interactScrape)
+		SmartInteract:SetSize(292, 116)
+		SmartInteract:SetBackdrop(db.Atlas.Backdrops.Border)
+		SmartInteract:Hide()
+		SmartEnableToggle(SmartEnable)
+
+		local text = SmartInteract:CreateFontString(nil, 'OVERLAY', 'GameFontNormalLeftOrange')
+		text:SetText(TUTORIAL.CONFIG.TARGETAIHEADER)
+		text:SetPoint('TOPLEFT', 24, -24)
+
+		function SmartInteract:SetAnchor(parent, offset)
+			self:ClearAllPoints()
+			self:SetPoint('TOPLEFT', parent, 8, offset)
+			self:Show()
+		end
+	end
+
+	------------------------------------------------------------------------------------------------------------------------------
+	do local IBFullModule = Controls.IBFullModule
+
+		function IBFullModule:OnShow()
 			if self.Enable:GetChecked() then
-				FadeOut(self.Hand, 0.5, 1, 0.1)
-				FadeOut(self.Dude, 0.5, 1, 0.1)
-				self.TargetAI:Show()
-				self.Auto:Show()
+				FadeOut(self.Hand, .3, self.Hand:GetAlpha(), 0)
+				FadeOut(self.Dude, .3, self.Dude:GetAlpha(), 0)
 				self.NPC:Show()
 				self.BindWrapper:Show()
+				self:SetHeight(270 + 234)
+				self.Recommend:Show()
+				SmartInteract:SetAnchor(self, -100)
+				Controls.IBLiteModule:Hide()
 			else
-				self.TargetAI:Hide()
-				self.Auto:Hide()
 				self.NPC:Hide()
 				self.BindWrapper:Hide()
-				FadeIn(self.Hand, 0.5, 0.1, 1)
-				FadeIn(self.Dude, 0.5, 0.1, 1)
+				self:SetHeight(270)
+				self.Recommend:Hide()
+				FadeIn(self.Hand, .3, self.Hand:GetAlpha(), 1)
+				FadeIn(self.Dude, .3, self.Dude:GetAlpha(), 1)
+				SmartInteract:Hide()
+				Controls.IBLiteModule:Show()
 			end
 
 			-- approximate the behaviour of the interact button here.
@@ -498,72 +562,118 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 				self.Description:SetText(L.INTERACT_ORIGINAL:format(name or 'N/A', text))
 			else
 				self.Description:SetJustifyH('CENTER')
-				self.Description:SetText(L.INTERACTDESC)
+				self.Description:SetText(L.IBFULLDESC)
 			end
 		end
 
-		Mixin(InteractModule, InteractModule)
+		Mixin(IBFullModule, IBFullModule)
 
-		InteractModule.Dude = InteractModule:CreateTexture(nil, 'BACKGROUND', nil, 1)
-		InteractModule.Dude:SetTexture('Interface\\TutorialFrame\\UI-TutorialFrame-QuestGiver')
-		InteractModule.Dude:SetPoint('CENTER', 0, 0)
-		InteractModule.Dude:SetSize(128, 128)
+		IBFullModule.Dude = IBFullModule:CreateTexture(nil, 'BACKGROUND', nil, 1)
+		IBFullModule.Dude:SetTexture('Interface\\TutorialFrame\\UI-TutorialFrame-QuestGiver')
+		IBFullModule.Dude:SetPoint('TOP', 0, -60)
+		IBFullModule.Dude:SetSize(128, 128)
 
-		InteractModule.Hand = InteractModule:CreateTexture(nil, 'BACKGROUND', nil, 2)
-		InteractModule.Hand:SetTexture('Interface\\TutorialFrame\\UI-TutorialFrame-GloveCursor')
-		InteractModule.Hand:SetPoint('CENTER', 16, -40)
-		InteractModule.Hand:SetSize(64, 64)
+		IBFullModule.Hand = IBFullModule:CreateTexture(nil, 'BACKGROUND', nil, 2)
+		IBFullModule.Hand:SetTexture('Interface\\TutorialFrame\\UI-TutorialFrame-GloveCursor')
+		IBFullModule.Hand:SetPoint('TOP', 16, -120)
+		IBFullModule.Hand:SetSize(64, 64)
 
-		InteractModule.Description = InteractModule:CreateFontString(nil, 'ARTWORK', 'GameFontNormal')
-		InteractModule.Description:SetPoint('BOTTOM', 0, 32)
+		IBFullModule.Description = IBFullModule:CreateFontString(nil, 'ARTWORK', 'GameFontNormal')
+		IBFullModule.Description:SetPoint('BOTTOM', 0, 32)
 
-		InteractModule.BindWrapper = db.Atlas.GetGlassWindow('$parentBindWrapper', InteractModule, nil, true)
-		InteractModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-		InteractModule.BindWrapper:SetPoint('BOTTOM', 0, 80)
-		InteractModule.BindWrapper:SetSize(256, 100)
-		InteractModule.BindWrapper.Close:Hide()
-		InteractModule.BindWrapper:Hide()
+		IBFullModule.BindWrapper = db.Atlas.GetGlassWindow('$parentBindWrapper', IBFullModule, nil, true)
+		IBFullModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
+		IBFullModule.BindWrapper:SetPoint('BOTTOM', 0, 80)
+		IBFullModule.BindWrapper:SetSize(292, 100)
+		IBFullModule.BindWrapper.Close:Hide()
+		IBFullModule.BindWrapper:Hide()
 
-		InteractModule.BindCatcher = db.Atlas.GetFutureButton('$parentBindCatcher', InteractModule.BindWrapper, nil, nil, 200)
-		InteractModule.BindCatcher.HighlightTexture:ClearAllPoints()
-		InteractModule.BindCatcher.HighlightTexture:SetAllPoints(InteractModule.BindCatcher)
-		InteractModule.BindCatcher:SetHeight(60)
-		InteractModule.BindCatcher:SetPoint('CENTER', 0, 0)
-		InteractModule.BindCatcher.Cover:Hide()
+		IBFullModule.BindCatcher = db.Atlas.GetFutureButton('$parentBindCatcher', IBFullModule.BindWrapper, nil, nil, 260)
+		IBFullModule.BindCatcher.HighlightTexture:ClearAllPoints()
+		IBFullModule.BindCatcher.HighlightTexture:SetAllPoints(IBFullModule.BindCatcher)
+		IBFullModule.BindCatcher:SetHeight(70)
+		IBFullModule.BindCatcher:SetPoint('CENTER', 0, 0)
+		IBFullModule.BindCatcher.Cover:Hide()
 
-		InteractModule.BindCatcher.cvar = 'interactWith'
+		IBFullModule.BindCatcher.cvar = 'interactWith'
 
-		Mixin(InteractModule.BindCatcher, Catcher)
-		InteractModule.BindCatcher:OnShow()
+		IBFullModule.Recommend = IBFullModule:CreateFontString(nil, 'ARTWORK', 'GameFontNormal')
+		IBFullModule.Recommend:SetPoint('BOTTOMLEFT', IBFullModule.BindWrapper, 'TOPLEFT', 24, 10)
+		IBFullModule.Recommend:SetJustifyH('LEFT')
+		IBFullModule.Recommend:SetText(TUTORIAL.CONFIG.IBFULLREC)
 
-		GetHelpButton(InteractModule, TUTORIAL.CONFIG.INTERACTHELP)
+		Mixin(IBFullModule.BindCatcher, Catcher)
+		IBFullModule.BindCatcher:OnShow()
 
+		GetHelpButton(IBFullModule, TUTORIAL.CONFIG.IBFULLHELP)
 
-		local function InteractCheckButton(name, point, label, setting)
-			local button = CreateFrame('CheckButton', nil, InteractModule, 'ChatConfigCheckButtonTemplate')
-			local text = button:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
-			button.Text = text
-
-			text:SetPoint('LEFT', 30, 0)
-			text:SetText(label)
-
-			button:SetPoint(unpack(point))
-			button:SetChecked(setting)
-			button:SetScript('OnClick', function(self) self:GetParent():OnShow() end)
-
-			InteractModule[name] = button
-		end
 
 		local interactButtons = {
 			{name = 'Enable', point = {'TOPLEFT', 24, -48}, label = TUTORIAL.CONFIG.INTERACTCHECK, setting = Settings.interactWith},
-			{name = 'TargetAI', point = {'TOPLEFT', 24, -78}, label = TUTORIAL.CONFIG.INTERACTCACHE, setting = Settings.interactCache},
-			{name = 'NPC', point = {'TOPLEFT', 24, -108}, label = TUTORIAL.CONFIG.INTERACTNPC, setting = Settings.interactNPC},
-			{name = 'Auto', point = {'TOPLEFT', 24, -138}, label = TUTORIAL.CONFIG.INTERACTAUTO, setting = Settings.interactAuto},
+			{name = 'NPC', point = {'TOPLEFT', 24, -78}, label = TUTORIAL.CONFIG.INTERACTNPC, setting = Settings.interactNPC},
 		}
 
 		for _, setup in pairs(interactButtons) do
-			InteractCheckButton(setup.name, setup.point, setup.label, setup.setting)
+			GetCheckButton(IBFullModule, setup.name, setup.point, setup.label, setup.setting)
 		end
+	end
+
+	------------------------------------------------------------------------------------------------------------------------------
+	do local IBLiteModule = Controls.IBLiteModule
+
+		IBLiteModule.BindWrapper = db.Atlas.GetGlassWindow('$parentBindWrapper', IBLiteModule, nil, true)
+		IBLiteModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
+		IBLiteModule.BindWrapper:SetPoint('BOTTOM', 0, 12)
+		IBLiteModule.BindWrapper:SetSize(292, 90)
+		IBLiteModule.BindWrapper.Close:Hide()
+
+		IBLiteModule.Description = IBLiteModule:CreateFontString(nil, 'ARTWORK', 'GameFontNormal')
+		IBLiteModule.Description:SetPoint('BOTTOM', 0, 40)
+		IBLiteModule.Description:SetText(TUTORIAL.CONFIG.IBLITEDESC)
+
+		IBLiteModule.BindCatcher = db.Atlas.GetFutureButton('$parentBindCatcher', IBLiteModule.BindWrapper, nil, nil, 260)
+		IBLiteModule.BindCatcher.HighlightTexture:ClearAllPoints()
+		IBLiteModule.BindCatcher.HighlightTexture:SetAllPoints(IBLiteModule.BindCatcher)
+		IBLiteModule.BindCatcher:SetHeight(60)
+		IBLiteModule.BindCatcher:SetPoint('CENTER', 0, 0)
+		IBLiteModule.BindCatcher.Cover:Hide()
+
+		IBLiteModule.Enable = CreateFrame('CheckButton', nil, IBLiteModule, 'ChatConfigCheckButtonTemplate')
+		IBLiteModule.Enable.Text = IBLiteModule.Enable:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
+		IBLiteModule.Enable.Text:SetPoint('LEFT', 30, 0)
+		IBLiteModule.Enable.Text:SetText(TUTORIAL.CONFIG.INTERACTCHECK)
+		IBLiteModule.Enable:SetChecked(Settings.lootWith)
+		IBLiteModule.Enable:SetPoint('TOPLEFT', 24, -48)
+		IBLiteModule.Enable:SetScript('OnClick', function(self) self:GetParent():OnShow() end)
+
+		function IBLiteModule:OnShow()
+			if self.Enable:GetChecked() then
+				FadeOut(self.Dude, 0.5, self.Dude:GetAlpha(), 0.1)
+				self.Description:Hide()
+				self.BindWrapper:Show()
+				SmartInteract:SetAnchor(self, -60)
+			else
+				FadeIn(self.Dude, 0.5, self.Dude:GetAlpha(), .35)
+				self.Description:Show()
+				self.BindWrapper:Hide()
+				SmartInteract:Hide()
+			end
+		end
+
+		Mixin(IBLiteModule, IBLiteModule)
+
+		IBLiteModule.Dude = IBLiteModule:CreateTexture(nil, 'BACKGROUND', nil, 1)
+		IBLiteModule.Dude:SetTexture('Interface\\TutorialFrame\\UI-TutorialFrame-LootCorpse')
+		IBLiteModule.Dude:SetPoint('CENTER', 0, -16)
+		IBLiteModule.Dude:SetSize(200, 200)
+		IBLiteModule.Dude:SetAlpha(0.25)
+
+		IBLiteModule.BindCatcher.cvar = 'lootWith'
+
+		Mixin(IBLiteModule.BindCatcher, Catcher)
+		IBLiteModule.BindCatcher:OnShow()
+
+		GetHelpButton(IBLiteModule, TUTORIAL.CONFIG.IBLITEHELP)
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------
@@ -749,7 +859,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 	------------------------------------------------------------------------------------------------------------------------------
 	do local AssistModule = Controls.AssistModule
 		-- Correct the anchor point 
-	--	AssistModule:SetPoint('TOPLEFT', Controls.InteractModule, 'BOTTOMLEFT', 0, 20)
+	--	AssistModule:SetPoint('TOPLEFT', Controls.IBFullModule, 'BOTTOMLEFT', 0, 20)
 		local radioButtons = {
 			{name = TUTORIAL.CONFIG.TARGETSCAN},
 			{name = TUTORIAL.CONFIG.TARGETNONE, value = 1},
@@ -777,54 +887,6 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 			check:SetScript('OnClick', AssistClick)
 			Mixin(check, CheckButton)
 		end
-	end
-
-	------------------------------------------------------------------------------------------------------------------------------
-	do local LootModule = Controls.LootModule
-
-		LootModule.BindWrapper = db.Atlas.GetGlassWindow('$parentBindWrapper', LootModule, nil, true)
-		LootModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-		LootModule.BindWrapper:SetPoint('BOTTOM', 0, 16)
-		LootModule.BindWrapper:SetSize(256, 90)
-		LootModule.BindWrapper.Close:Hide()
-
-		LootModule.BindCatcher = db.Atlas.GetFutureButton('$parentBindCatcher', LootModule.BindWrapper, nil, nil, 200)
-		LootModule.BindCatcher.HighlightTexture:ClearAllPoints()
-		LootModule.BindCatcher.HighlightTexture:SetAllPoints(LootModule.BindCatcher)
-		LootModule.BindCatcher:SetHeight(60)
-		LootModule.BindCatcher:SetPoint('CENTER', 0, 0)
-		LootModule.BindCatcher.Cover:Hide()
-
-		LootModule.Enable = CreateFrame('CheckButton', nil, LootModule, 'ChatConfigCheckButtonTemplate')
-		LootModule.Enable.Text = LootModule.Enable:CreateFontString(nil, 'OVERLAY', 'GameFontHighlight')
-		LootModule.Enable.Text:SetPoint('LEFT', 30, 0)
-		LootModule.Enable.Text:SetText(TUTORIAL.CONFIG.INTERACTCHECK)
-		LootModule.Enable:SetChecked(Settings.lootWith)
-		LootModule.Enable:SetPoint('TOPLEFT', 24, -48)
-		LootModule.Enable:SetScript('OnClick', function(self) self:GetParent():OnShow() end)
-
-		function LootModule:OnShow()
-			if self.Enable:GetChecked() then
-				self.BindWrapper:Show()
-			else
-				self.BindWrapper:Hide()
-			end
-		end
-
-		Mixin(LootModule, LootModule)
-
-		LootModule.Dude = LootModule:CreateTexture(nil, 'BACKGROUND', nil, 1)
-		LootModule.Dude:SetTexture('Interface\\TutorialFrame\\UI-TutorialFrame-LootCorpse')
-		LootModule.Dude:SetPoint('CENTER', 0, -16)
-		LootModule.Dude:SetSize(200, 200)
-		LootModule.Dude:SetAlpha(0.1)
-
-		LootModule.BindCatcher.cvar = 'lootWith'
-
-		Mixin(LootModule.BindCatcher, Catcher)
-		LootModule.BindCatcher:OnShow()
-
-		GetHelpButton(LootModule, TUTORIAL.CONFIG.LOOTHELP)
 	end
 
 	------------------------------------------------------------------------------------------------------------------------------

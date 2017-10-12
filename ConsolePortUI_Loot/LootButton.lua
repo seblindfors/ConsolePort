@@ -23,12 +23,12 @@ function LootButton:OnEnter()
 	local slot = self:GetID()
 	local slotType = GetLootSlotType(slot)
 	if ( slotType == LOOT_SLOT_ITEM ) then
-		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 52)
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 		GameTooltip:SetLootItem(slot)
 		CursorUpdate(self)
 	end
 	if ( slotType == LOOT_SLOT_CURRENCY ) then
-		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 52)
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 		GameTooltip:SetLootCurrency(slot)
 		CursorUpdate(self)
 	end
@@ -39,8 +39,8 @@ function LootButton:OnEnter()
 			tooltipBackdrop = backdrop
 		end
 		GameTooltip:SetBackdrop(nil)
-		local width, height = (GameTooltip:GetWidth() or 300) + 50, (GameTooltip:GetHeight() or 50)
-		self.NameFrame:SetSize(width < 300 and 300 or width, height < 50 and 50 or height)
+		local width, height = (GameTooltip:GetWidth() or 330) + 50, (GameTooltip:GetHeight() or 50)
+		self.NameFrame:SetSize(width < 330 and 330 or width, height < 50 and 50 or height)
 		self.Text:SetAlpha(0)
 		self.hasTooltipFocus = true
 	end

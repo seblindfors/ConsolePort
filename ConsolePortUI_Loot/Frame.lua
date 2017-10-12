@@ -6,6 +6,7 @@ local frame = UI:CreateFrame('Frame', _, UIParent, 'SecureHandlerBaseTemplate, S
 	Size = {1, 1},
 	Strata = 'HIGH',
 	Point = {'CENTER', 100, 0},
+	Probe = {LootFrame, 'showhide'},
 	Mixin = L.LootFrameLogicMixin,
 	{
 		Container = {
@@ -32,6 +33,7 @@ local frame = UI:CreateFrame('Frame', _, UIParent, 'SecureHandlerBaseTemplate, S
 					Point = {'BOTTOM', '$parent', 'TOP', 64, -4},
 					OnLoad = function(self)
 						self.Text:SetText(LOOT)
+						self:SetDurationMultiplier(.5)
 					end,
 				},
 			},
@@ -40,6 +42,5 @@ local frame = UI:CreateFrame('Frame', _, UIParent, 'SecureHandlerBaseTemplate, S
 })
 
 UI:RegisterFrame(frame, 'Loot', nil, true, true)
-UI:CreateProbe(frame, LootFrame, 'showhide')
 UI:HideFrame(LootFrame)
 end

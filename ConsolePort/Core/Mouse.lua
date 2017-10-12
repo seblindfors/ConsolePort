@@ -30,10 +30,6 @@ local blockCursor, cameraMode, isMouseDown, isCentered, isOutside, isTargeting, 
 ---------------------------------------------------------------
 -- Extended API:
 ---------------------------------------------------------------
-local function CanMoveTo(unit)
-	if unit then return CheckInteractDistance(unit, 1) end -- 28 yards
-end
-
 local function CanInteractGUID(guid)
 	if guid then return select(2, CanLootUnit(guid)) end -- returns true if in range
 end
@@ -282,7 +278,7 @@ function Core:UpdateCameraDriver()
 	elseif Settings.alwaysHighlight == 2 then
 		Camera:HookScript('OnUpdate', Camera.HighlightAlways)
 	end
-	Camera.lockOnLoot = db.Mouse.Events.LOOTKEY_OPENED
+	Camera.lockOnLoot = db.Mouse.Events.LOOT_OPENED
 end
 
 ---------------------------------------------------------------
@@ -397,14 +393,6 @@ function Mouse:FadeOut(speed)
 	end
 end
 
-function Mouse:SetAutoWalk(enabled)
-	if self.autoInteract and enabled then
-		SetCVar('autoInteract', 1)
-	else
-		SetCVar('autoInteract', 0)
-	end
-end
-
 function Mouse:SetPortrait(unit)
 	SetPortrait(self.Portrait, unit)
 end
@@ -429,7 +417,6 @@ function Mouse:CheckLoot(elapsed)
 		hasLoot, canLoot = CanLootUnit(guid)
 	end
 	if hasLoot and canLoot then
-		self:SetAutoWalk(true)
 		self:SetOverride('INTERACTTARGET', self.override)
 		self.Text:SetText(LOOT)
 		self:FadeIn()
@@ -485,13 +472,10 @@ function Mouse:CheckLootOverride(elapsed)
 end
 
 function Mouse:CheckNPC(elapsed)
-	local canMoveTo, canInteract = CanMoveTo('target'), CanInteract('target')
-	canMoveTo = canMoveTo and self.autoInteract
-	if ( canInteract or canMoveTo ) and not ( UnitExists('npc') or UnitExists('questnpc') ) then
+	local canInteract = CanInteract('target')
+	if ( canInteract ) and not ( UnitExists('npc') or UnitExists('questnpc') ) then
 		if canInteract then
 			self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
-		else
-			self.Text:SetText(PET_ACTION_MOVE_TO)
 		end
 		self:FadeIn()
 	else
@@ -541,16 +525,17 @@ function Mouse:SetArtificialUnit(guid, name)
 	self.artificial = guid
 	self.artificialName = name
 	if guid and name and not UnitExists('target') then
-		self:TrackUnit(nil, self:GetAttribute('blockhandle'))
+		self:TrackUnit(self.fauxUnit, self:GetAttribute('blockhandle'))
 	end
 end
 
-function Mouse:CacheUnit(unit)
+function Mouse:CacheUnit(unit, fauxUnit)
 	local newGUID = UnitGUID(unit)
 	if newGUID then
 		self.cachedUnit = newGUID
 		self:SetPortrait(unit)
 	end
+	self.fauxUnit = fauxUnit
 end
 
 function Mouse:PrepareTracking()
@@ -559,12 +544,31 @@ function Mouse:PrepareTracking()
 	self:UnregisterEvent('UPDATE_MOUSEOVER_UNIT')
 	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
 	self:TogglePortrait(true)
-	self:SetAutoWalk(false)
 	self:SetIcon(self.interactWith)
 end
 
+function Mouse:DispatchLootCheck(delay, numCalls, firstCall)
+	self.lootCheckSpool = (firstCall and numCalls) or (numCalls - 1)
+	if self.lootCheckSpool < 1 then return end
+	--------------------------------------------------
+	C_Timer.After(delay, function()
+		if 	self.cachedUnit
+			and not InCombatLockdown() 
+			and not self:GetAttribute('blockhandle')
+			and not UnitExists('target')
+			and CanLootUnit(self.cachedUnit) then
+			--------------------------------------------------
+			self:SetIcon(self.override or self.interactWith)
+			self:SetScript('OnUpdate', self.CheckLootOverride)
+			--------------------------------------------------
+		else
+			self:DispatchLootCheck(delay, self.lootCheckSpool, false)
+		end
+	end)
+end
+
 function Mouse:TrackUnit(fauxUnit, blocked, forceCache)
-	self:CacheUnit(forceCache or 'target')
+	self:CacheUnit(forceCache or 'target', fauxUnit)
 	self:PrepareTracking()
 	-- loot: existing dead target, assigned securely.
 	if ( fauxUnit == 'loot' ) then
@@ -572,28 +576,26 @@ function Mouse:TrackUnit(fauxUnit, blocked, forceCache)
 		self:SetScript('OnUpdate', self.CheckLoot)
 	-- npc: existing friendly npc, assigned securely.
 	elseif ( fauxUnit == 'npc' ) then
-		self:SetAutoWalk(true)
 		self:SetScript('OnUpdate', self.CheckNPC)
 	-- hover: mouseover priority, assigned securely.
 	elseif ( fauxUnit == 'hover' ) then
 		self:RegisterEvent('UPDATE_MOUSEOVER_UNIT')
 		self:SetScript('OnEvent', self.UpdateMouseover)
-		self:SetAutoWalk(self:GetAttribute('npc'))
 		self:SetScript('OnUpdate', self.CheckHover)
 		self:SetPortrait('mouseover')
 		if not UnitCanAssist('player', 'mouseover') and not UnitCanAttack('player', 'mouseover') then
 			self:TogglePortrait(false)
 		end
-	-- cached last target has loot, check proximity (insecure).
-	elseif ( not blocked and self.cachedUnit and CanLootUnit(self.cachedUnit) ) then
-		self:SetIcon(self.override or self.interactWith)
-		self:SetScript('OnUpdate', self.CheckLootOverride)
 	-- in proximity of tracked GUID, check proximity (insecure).
 	elseif ( not blocked and self.artificial ) then
 		self:SetIcon(self.override or self.interactWith)
 		self:SetScript('OnUpdate', self.CheckArtificial)
 		self:TogglePortrait(false)
-	else
+	
+	else -- cached last target might have loot, check proximity (insecure).
+		if ( not blocked and self.cachedUnit ) then
+			self:DispatchLootCheck(.35, 8, true)
+		end
 		self:TogglePortrait(false)
 		self:FadeOut()
 	end
@@ -695,7 +697,6 @@ GameTooltip:HookScript('OnTooltipCleared', Trail.OnTooltipClear)
 ---------------------------------------------------------------
 function Core:UpdateMouseDriver()
 	if not InCombatLockdown() then
-		SetCVar('autoInteract', 0)
 		local loot = db.Settings.lootWith
 		local button = db.Settings.interactWith
 		if button then
@@ -718,7 +719,6 @@ function Core:UpdateMouseDriver()
 
 			Mouse:SetAttribute('checkNPC', db.Settings.interactNPC)
 
-			Mouse.autoInteract = db.Settings.interactAuto
 			Mouse.override = loot or button
 			Mouse.interactWith = button
 
@@ -733,11 +733,9 @@ function Core:UpdateMouseDriver()
 			]], ('"%s"'):format(button), ( loot and ('"%s"'):format(loot)) or 'nil', id or -1))
 
 
-			ConsolePortTargetAI:SetShown(db.Settings and db.Settings.interactCache)
 		else
 			Trail.Default = ICONS.CP_T_R3
 
-			Mouse.autoInteract = nil
 			Mouse.interactWith = nil
 
 			Mouse:Execute([[
@@ -762,8 +760,8 @@ function Core:UpdateMouseDriver()
 				UnregisterStateDriver(Mouse, 'targetstate')
 				UnregisterStateDriver(Mouse, 'vehicle')
 			end
-			ConsolePortTargetAI:Hide()
 		end
+		ConsolePortTargetAI:SetShown(loot or button and db.Settings.interactCache)
 		Trail:SetScript('OnUpdate', Trail.OnUpdate)
 		Trail:SetShown(not (db.Settings and db.Settings.disableCursorTrail))
 		self:RemoveUpdateSnippet(self.UpdateMouseDriver)

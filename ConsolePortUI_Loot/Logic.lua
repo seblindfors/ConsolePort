@@ -24,9 +24,6 @@ function LootFrame:OnShow()
 	Control:AddHint(KEY.CIRCLE, ALL)
 	Control:AddHint(KEY.TRIANGLE, CLOSE)
 
---	if ( GetCVar('lootUnderMouse') == '1' ) then
---		self:MoveToMouse()
---	end
 	self.Container.Header.HeaderOpenAnim:Stop()
 	self.Container.Header.HeaderOpenAnim:Play()
 end
@@ -43,23 +40,6 @@ function LootFrame:OnEvent(event, ...)
 	if self[event] then
 		self[event](self, ...)
 	end
-end
-
-function LootFrame:MoveToMouse()
-	-- position loot window under mouse cursor
-	local x, y = GetCursorPosition()
-	x = x / self.Container:GetEffectiveScale()
-	y = y / self.Container:GetEffectiveScale()
-
-	local posX = x - 175
-	local posY = y + 25
-
-	if( posY < 350 ) then
-		posY = 350
-	end
-
-	self.Container:ClearAllPoints()
-	self.Container:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', posX, posY)
 end
 
 function LootFrame:UpdateItems(fadeOnShow)
@@ -81,9 +61,9 @@ function LootFrame:UpdateItems(fadeOnShow)
 			self.active[#self.active + 1] = button
 
 			if prevButton then
-				button:SetPoint('TOPRIGHT', prevButton.NameFrame, 'BOTTOMLEFT', 42, -6)
+				button:SetPoint('TOPRIGHT', prevButton.NameFrame, 'BOTTOMLEFT', 36, -4)
 			else
-				button:SetPoint('TOPLEFT')
+				button:SetPoint('TOPLEFT', 0, -8)
 			end
 			prevButton = button
 		end

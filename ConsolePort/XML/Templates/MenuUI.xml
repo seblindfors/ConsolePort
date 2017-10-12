@@ -154,6 +154,15 @@
 				</Texture>
 			</Layer>
 		</Layers>
+		<Scripts>
+			<OnLoad>
+				self.SetDurationMultiplier = function(self, multiplier)
+					for _, animation in ipairs({self.HeaderOpenAnim:GetAnimations()}) do
+						animation:SetDuration(animation:GetDuration() * multiplier)
+					end
+				end
+			</OnLoad>
+		</Scripts>
 		<Animations>
 			<AnimationGroup parentKey="HeaderOpenAnim" setToFinalAlpha="true">
 				<Alpha childKey="Background" startDelay="0" duration="0" order="1" fromAlpha="0" toAlpha="0"/>
