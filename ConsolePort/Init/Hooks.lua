@@ -150,5 +150,28 @@ function ConsolePort:LoadHookScripts()
 		end
 	end
 
+	-- Need to handle SaveBindings, so that calibration data isn't stored permanently
+	-- against user's will. The keybinding UI should circumvent this because it exits to the
+	-- game menu frame and cancels the popup, but calls from interface options will be intercepted.
+	local RealSaveBindings = SaveBindings
+	function SaveBindings(set)
+		local blockSave
+		StaticPopupDialogs['CONSOLEPORT_WARNINGSAVEBINDINGS'] = {
+			text = db.TUTORIAL.SLASH.WARNINGSAVEBINDINGS,
+			button1 = ACCEPT,
+			button2 = CANCEL,
+			showAlert = true,
+			timeout = 0,
+			whileDead = true,
+			hideOnEscape = true,
+			preferredIndex = 3,
+			enterClicksFirstButton = true,
+			exclusive = true,
+			OnCancel = function() self.ClearPopup() blockSave = true end,
+			OnHide = function() if not blockSave then RealSaveBindings(set) end end,
+		}
+		self:ShowPopup('CONSOLEPORT_WARNINGSAVEBINDINGS')
+	end
+
 	self.LoadHookScripts = nil
 end

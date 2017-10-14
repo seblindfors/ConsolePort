@@ -1,18 +1,13 @@
 ---------------------------------------------------------------
 -- Init.lua: Main frame creation, version checking, slash cmd
 ---------------------------------------------------------------
--- Create the main frame and check all loaded settings.
--- Validate compatibility with older versions.
--- Create the slash handler function.
+-- 1. Create the main frame and check all loaded settings.
+-- 2. Validate compatibility with older versions.
+-- 3. Create the slash handler function.
 
 local addOn, db = ...
 ---------------------------------------------------------------
-local CRITICALUPDATE, NEWCALIBRATION, BINDINGSLOADED
----------------------------------------------------------------
--- VERSION: generate a comparable integer from addon metadata 
----------------------------------------------------------------
-local v1, v2, v3 = strsplit("%d+.", GetAddOnMetadata(addOn, "Version"))
-local VERSION = v1*10000+v2*100+v3
+local NEWCALIBRATION, BINDINGSLOADED
 ---------------------------------------------------------------
 -- Initialize addon tables
 ---------------------------------------------------------------
@@ -63,18 +58,19 @@ end
 
 function ConsolePort:LoadSettings()
 
-	local selectController
+	local selectController --, newUser
 
 	-----------------------------------------------------------
 	-- Set/load addon settings
 	-----------------------------------------------------------
 	if not ConsolePortSettings then
-		selectController = true, true
+		selectController = true
 		ConsolePortSettings = self:GetDefaultAddonSettings()
 	-----------------------------------------------------------
 	else local set = ConsolePortSettings -- compat: new binding ID fix, remove later on.
 		set.CP_T3 = set.CP_T3 or 'CP_L_GRIP'
 		set.CP_T4 = set.CP_T4 or 'CP_R_GRIP'
+	--	newUser = ConsolePortSettings.newUser
 	-----------------------------------------------------------
 	end
 
@@ -175,6 +171,7 @@ function ConsolePort:LoadSettings()
 		self:CalibrateController()
 	end
 
+	----------------------------------------------------------
 	-- Slash handler and stuff related to that
 	local SLASH = db.TUTORIAL.SLASH
 
@@ -255,22 +252,22 @@ function ConsolePort:LoadSettings()
 	local function ShowCalibration() if ConsolePortConfig:IsVisible() then ConsolePortConfig:Hide() end ConsolePort:CalibrateController(true) end
 
 	local instructions = {
-		["help"] = {desc = HELP_LABEL .. ' & ' .. SHOW_TUTORIALS, func = ShowHelp},
-		["actionbar"] = {desc = SLASH.ACTIONBAR_SHOW, func = ActionBarShow},
-		["type"] = {desc = SLASH.TYPE, func = ShowSplash},
-		["config"] = {desc = SLASH.CONFIG, func = ShowConfig},
-		["cvar"] = {desc = SLASH.CVARLIST, func = PrintCVars},
-		["binds"] = {desc = SLASH.BINDS, func = ShowBinds},
-		["recalibrate"] = {desc = SLASH.RECALIBRATE, func = ShowCalibration},
-		["resetall"] = {desc = SLASH.RESET, func = ResetAll},
+		['help'] = {desc = HELP_LABEL .. ' & ' .. SHOW_TUTORIALS, func = ShowHelp},
+		['actionbar'] = {desc = SLASH.ACTIONBAR_SHOW, func = ActionBarShow},
+		['type'] = {desc = SLASH.TYPE, func = ShowSplash},
+		['config'] = {desc = SLASH.CONFIG, func = ShowConfig},
+		['cvar'] = {desc = SLASH.CVARLIST, func = PrintCVars},
+		['binds'] = {desc = SLASH.BINDS, func = ShowBinds},
+		['recalibrate'] = {desc = SLASH.RECALIBRATE, func = ShowCalibration},
+		['resetall'] = {desc = SLASH.RESET, func = ResetAll},
 	}
 
-	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = "/cp", "/consoleport"
-	SlashCmdList["CONSOLEPORT"] = function(msg)
+	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = '/cp', '/consoleport'
+	SlashCmdList['CONSOLEPORT'] = function(msg)
 		local inputs = {}
 		local cvars = ConsolePort:GetCompleteCVarList()
-		if type(msg) == "string" then
-			for word in msg:gmatch("%S+") do
+		if type(msg) == 'string' then
+			for word in msg:gmatch('%S+') do
 				inputs[#inputs + 1] = word
 			end
 		end
@@ -283,7 +280,7 @@ function ConsolePort:LoadSettings()
 		else
 			PrintHeader()
 			for k, v in db.table.spairs(instructions) do
-				print(format("|cff69ccf0/cp %s|r: %s", k, v.desc))
+				print(format('|cff69ccf0/cp %s|r: %s', k, v.desc))
 			end
 		end
 	end
@@ -291,7 +288,7 @@ function ConsolePort:LoadSettings()
 end
 
 function ConsolePort:WMupdate()
-	StaticPopupDialogs["CONSOLEPORT_WMUPDATE"] = {
+	StaticPopupDialogs['CONSOLEPORT_WMUPDATE'] = {
 		text = db.TUTORIAL.SLASH.WMUPDATE,
 		button1 = db.TUTORIAL.SLASH.ACCEPT,
 		button2 = db.TUTORIAL.SLASH.CANCEL,
@@ -308,7 +305,7 @@ function ConsolePort:WMupdate()
 		end,
 		OnCancel = CancelPopup,
 	}
-	self:ShowPopup("CONSOLEPORT_WMUPDATE")
+	self:ShowPopup('CONSOLEPORT_WMUPDATE')
 end
 
 function ConsolePort:GetBindingSet(specID)
@@ -341,33 +338,16 @@ end
 
 function ConsolePort:CheckLoadedSettings()
 	local settings = ConsolePortSettings
-    if 	(settings and not settings.version) or 
-		(settings.version < VERSION and CRITICALUPDATE) then
-		StaticPopupDialogs["CONSOLEPORT_CRITICALUPDATE"] = {
-			text = format(db.TUTORIAL.SLASH.CRITICALUPDATE, GetAddOnMetadata(addOn, "Version")),
-			button1 = db.TUTORIAL.SLASH.ACCEPT,
-			button2 = db.TUTORIAL.SLASH.CANCEL,
-			showAlert = true,
-			timeout = 0,
-			whileDead = true,
-			hideOnEscape = true,
-			preferredIndex = 3,
-			enterClicksFirstButton = true,
-			exclusive = true,
-			OnAccept = ResetAll,
-			OnCancel = CancelPopup,
-		}
-		self:ShowPopup("CONSOLEPORT_CRITICALUPDATE")
-	elseif settings then
+	if settings then
 		if settings.newController then
-			local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]
+			local popupData = StaticPopupDialogs['CONSOLEPORT_IMPORTBINDINGS']
 			popupData.text = db.TUTORIAL.SLASH.NEWCONTROLLER
-			self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
+			self:ShowPopup('CONSOLEPORT_IMPORTBINDINGS')
 			settings.newController = nil
 		elseif NEWCALIBRATION and ( not settings.id or settings.id ~= WoWmapper.Settings.id ) then
 			NEWCALIBRATION = nil
 			settings.id = WoWmapper.Settings.id
-			StaticPopupDialogs["CONSOLEPORT_CALIBRATIONUPDATE"] = {
+			StaticPopupDialogs['CONSOLEPORT_CALIBRATIONUPDATE'] = {
 				text = db.TUTORIAL.SLASH.CALIBRATIONUPDATE,
 				button1 = db.TUTORIAL.SLASH.ACCEPT,
 				button2 = db.TUTORIAL.SLASH.CANCEL,
@@ -384,11 +364,11 @@ function ConsolePort:CheckLoadedSettings()
 				end,
 				OnCancel = CancelPopup,
 			}
-			self:ShowPopup("CONSOLEPORT_CALIBRATIONUPDATE")
+			self:ShowPopup('CONSOLEPORT_CALIBRATIONUPDATE')
 		elseif BINDINGSLOADED and ( not db.Bindings or not next(db.Bindings) ) then
-			local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]
+			local popupData = StaticPopupDialogs['CONSOLEPORT_IMPORTBINDINGS']
 			popupData.text = db.TUTORIAL.SLASH.NOBINDINGS
-			self:ShowPopup("CONSOLEPORT_IMPORTBINDINGS")
+			self:ShowPopup('CONSOLEPORT_IMPORTBINDINGS')
 		end
 	end
 end

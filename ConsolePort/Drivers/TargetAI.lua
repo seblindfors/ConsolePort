@@ -5,7 +5,7 @@ local AI, SEL, HANDLE = ConsolePortTargetAI, ConsolePortTargetAISelector, Consol
 local inRange, mapData = AI.InRange, AI.MapData
 ---------------------------------------
 local spairs, copy, strsplit = db.table.spairs, db.table.copy, strsplit
-local getmetatable, rawset, next = getmetatable, rawset, next
+local getmetatable, setmetatable, rawset, next = getmetatable, setmetatable, rawset, next
 ---------------------------------------
 -- Upvalued API:
 local GetGUID, GetName, IsDead, Exists = UnitGUID, UnitName, UnitIsDead, UnitExists
@@ -67,48 +67,54 @@ setmetatable(SEL, {
 	__newindex = getmetatable(AI).__newindex;
 })
 ---------------------------------------
-setmetatable(inRange, {
-	__index = {
-		HasMultiple = function(t) return getmetatable(t).__active > 1 end;
-		HasTarget = function(t) return getmetatable(t).__active > 0 end;
-		Add = function(t, k, v)
-			if k and v and not t[k] then
-				rawset(t, k, v)
-				t:Update(1)
-				AI:UpdateSelection()
-			end
-		end;
-		Remove = function(t, k)
-			if k and t[k] then
-				rawset(t, k, nil)
-				t:Update(-1)
-				AI:UpdateSelection()
-			end
-		end;
-		Prune = function(t)
-			local mt = getmetatable(t)
-			local guid, name = next(t, mt.__cleaner)
-			mt.__cleaner = guid
-			if guid and not CanInteract(guid) then
-				inRange:Remove(guid)
-			end
-		end;
-		Update = function(t, delta)
-			local mt = getmetatable(t)
-			mt.__active = delta and mt.__active + delta or 0
-			mt.__idx = nil
-			mt.__cleaner = nil
-		end;
-		Wipe = function(t)
-			if next(t) then
-				t:Update()
-				wipe(t)
-				AI:UpdateSelection()
-			end
-		end;
-	};
-	__active = 0;
-})
+-- inRange: Stack of NPCs in range
+---------------------------------------
+do 	local inRangeMT = {
+		__index = {
+			HasMultiple = function(t) return t.__mt.__active > 1 end;
+			HasTarget = function(t) return t.__mt.__active > 0 end;
+			Add = function(t, k, v)
+				if k and v and not t[k] then
+					rawset(t, k, v)
+					t:Update(1)
+					AI:UpdateSelection()
+				end
+			end;
+			Remove = function(t, k)
+				if k and t[k] then
+					rawset(t, k, nil)
+					t:Update(-1)
+					AI:UpdateSelection()
+				end
+			end;
+			Prune = function(t)
+				local mt = t.__mt
+				local guid, name = next(t, mt.__cleaner)
+				mt.__cleaner = guid
+				if guid and not CanInteract(guid) then
+					t:Remove(guid)
+				end
+			end;
+			Update = function(t, delta)
+				local mt = t.__mt
+				mt.__active = delta and mt.__active + delta or 0
+				mt.__idx = nil
+				mt.__cleaner = nil
+			end;
+			Wipe = function(t)
+				if next(t) then
+					t:Update()
+					wipe(t)
+					AI:UpdateSelection()
+				end
+			end;
+		};
+		__newindex = function() end; -- no uncontrolled access.
+		__active = 0;
+	}
+	inRangeMT.__index.__mt = inRangeMT
+	setmetatable(inRange, inRangeMT)
+end
 ------------------------------------------------------------------------------
 -- markerMT: Associative array with sequential FIFO stack in metatable.
 -- Over a play session, the user is likely to interact with a lot of creatures,
@@ -297,14 +303,14 @@ function AI:GetPositionMarker()
 	return (x ..':'.. y)
 end
 
-function AI:CreateTrackerFromMarker(marker, maxGetGUIDs)
+function AI:CreateTrackerFromMarker(marker, maxGUIDs)
 	local mapData = self:GetCurrentMapData()
 	if not mapData then
 		mapData = self:SetToCurrentMapMarker()
 	end
 	if not mapData[marker] then
 		local mt = copy(markerMT)
-		mt.__limit = maxGetGUIDs or MAX_MARKER_GUIDS
+		mt.__limit = maxGUIDs or MAX_MARKER_GUIDS
 		mapData[marker] = setmetatable({}, mt)
 	end
 	return mapData[marker]

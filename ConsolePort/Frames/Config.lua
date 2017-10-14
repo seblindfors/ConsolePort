@@ -217,7 +217,7 @@ Config.Tooltip = Tooltip
 
 function Tooltip:OnShow()
 	-- set CC backdrop
-	self:SetBackdrop(db.Atlas.Backdrops.FullSmall)
+	self:SetBackdrop(db.Atlas.Backdrops.TooltipBorder)
 	self:SetBackdropColor(red, green, blue,  0.9)
 	FadeIn(self, 0.2, 0, 1)
 end

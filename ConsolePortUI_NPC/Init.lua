@@ -74,6 +74,10 @@ frame.ADDON_LOADED = function(self, name)
 
 		talkbox:SetPoint(L.Get('boxpoint'), UIParent, L.Get('boxoffsetX'), L.Get('boxoffsetY'))
 		titles:SetPoint('CENTER', UIParent, 'CENTER', L.Get('titleoffset'), 0)
+		
+		L.cfg.limitedfade = L.cfg.limitedfade or false
+		local limitedfade = L.cfg.limitedfade
+		UI:RegisterFrame(frame, 'NPC', nil, true, limitedfade)
 	end
 end
 
@@ -82,7 +86,6 @@ end
 ----------------------------------
 UI:CreateProbe(frame, GossipFrame, 'showhide')
 UI:CreateProbe(frame, QuestFrame, 'showhide')
-UI:RegisterFrame(frame, 'NPC', nil, true)
 UI:HideFrame(GossipFrame)
 UI:HideFrame(QuestFrame)
 DisableAddOn('Immersion')

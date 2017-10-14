@@ -21,8 +21,8 @@ local 	HighlightStart, HighlightStop =
 		TargetPriorityHighlightStart, TargetPriorityHighlightEnd
 ---------------------------------------------------------------
 -- Mouse functions
-local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetCursorPosition, GetScreenWidth, SetPortrait, SetCVar = 
-		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, CanLootUnit, GetScaledCursorPosition, GetScreenWidth, SetPortraitTexture, SetCVar
+local 	UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, UnitIsUnit, CanLootUnit, GetCursorPosition, GetScreenWidth, SetPortrait, SetCVar = 
+		UnitGUID, UnitIsDead, UnitCanAttack, UnitExists, UnitIsUnit, CanLootUnit, GetScaledCursorPosition, GetScreenWidth, SetPortraitTexture, SetCVar
 ---------------------------------------------------------------
 local 	Camera, numTap, modTap, timer, interactPushback, highlightTimer = ConsolePortCamera, 0, 0, 0, 0, 0
 ---------------------------------------------------------------
@@ -192,7 +192,9 @@ function Camera:OnLeftClickUp()
 	wasMouseLooking = nil
 end
 
+-----------------------------------------------------------------------
 -- Function hooks to create custom mouselook triggers without any event
+-----------------------------------------------------------------------
 for func, hook in pairs({
 	-- Get rid of mouselook when trying to interact with mouse
 	MouselookStop = Camera.OnStop,
@@ -378,6 +380,8 @@ for name, script in pairs({
 }) do Mouse:SetAttribute(name, script) end
 
 ---------------------------------------------------------------
+-- Display functions
+---------------------------------------------------------------
 
 function Mouse:FadeIn(speed)
 	if self.fade ~= 'in' then
@@ -410,23 +414,9 @@ function Mouse:SetIcon(icon)
 	self.Button:SetTexture(ICONS[icon])
 end
 
-
-function Mouse:CheckLoot(elapsed)
-	local guid, hasLoot, canLoot = UnitGUID('target')
-	if guid then
-		hasLoot, canLoot = CanLootUnit(guid)
-	end
-	if hasLoot and canLoot then
-		self:SetOverride('INTERACTTARGET', self.override)
-		self.Text:SetText(LOOT)
-		self:FadeIn()
-	else
-		if self.override then
-			self:SetOverride(nil, self.override)
-		end
-		self:FadeOut()
-	end
-end
+---------------------------------------------------------------
+-- Insecure override wrappers
+---------------------------------------------------------------
 
 function Mouse:SetOverride(binding, bindingID)
 	if not InCombatLockdown() then
@@ -454,15 +444,36 @@ function Mouse:ClearOverride()
 	end
 end
 
-function Mouse:CheckLootOverride(elapsed)
-	local hasLoot, canLoot = CanLootUnit(self.cachedUnit)
+function Mouse:ClearScriptOverride()
+	if self.override == self.interactWith then
+		-- if the full interact button is enabled, any OnUpdate script
+		-- should revert to TURNORACTION, else just clear.
+		self:SetOverride('TURNORACTION', self.override)
+	else
+		self:ClearOverride()
+	end
+end
+
+---------------------------------------------------------------
+-- OnUpdate scripts:
+-- 	CheckLoot: visual in range indicator (secure)
+--	CheckNPC: visual in range indicator (secure)
+--	CheckHover: visual in range indicator (secure)
+--	CheckLootOverride: last hostile loot override (insecure)
+--	CheckArtificial: smart interaction override (insecure)
+---------------------------------------------------------------
+function Mouse:CheckLoot(elapsed)
+	local guid, hasLoot, canLoot = UnitGUID('target')
+	if guid then
+		hasLoot, canLoot = CanLootUnit(guid)
+	end
 	if hasLoot and canLoot then
-		self:SetOverride('TARGETLASTHOSTILE', self.override)
+		self:SetOverride('INTERACTTARGET', self.override)
 		self.Text:SetText(LOOT)
 		self:FadeIn()
 	else
-		if self.override == self.interactWith then
-			self:SetOverride('TURNORACTION', self.override)
+		if self.override then
+			self:SetOverride(nil, self.override)
 		end
 		self:FadeOut()
 		if not hasLoot then
@@ -500,11 +511,31 @@ function Mouse:CheckHover(elapsed)
 	self:FadeIn()
 end
 
+function Mouse:CheckLootOverride(elapsed)
+	local hasLoot, canLoot = CanLootUnit(self.cachedUnit)
+	if hasLoot and canLoot then
+		self:SetOverride('TARGETLASTHOSTILE', self.override)
+		self.Text:SetText(LOOT)
+		self:FadeIn()
+	else
+		self:ClearScriptOverride()
+		self:FadeOut()
+		if not hasLoot then
+			self:SetScript('OnUpdate', nil)
+		end
+	end
+end
+
 function Mouse:CheckArtificial(elapsed)
 	local canInteract = CanInteractGUID(self.artificial)
 	if canInteract then
 		local guidMatch = UnitIsGUID('target', self.artificial)
-		if guidMatch then
+		local isCurrentNPC = UnitIsUnit('target', 'npc') or UnitIsUnit('target', 'questnpc')
+		if isCurrentNPC then
+			self:ClearOverride()
+			self:FadeOut()
+			return
+		elseif guidMatch then
 			self:SetOverride('INTERACTTARGET', self.override)
 			self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
 		elseif not CanInteract('target') then
@@ -513,13 +544,15 @@ function Mouse:CheckArtificial(elapsed)
 		end
 		self:FadeIn()
 	else
-		if self.override == self.interactWith then
-			self:SetOverride('TURNORACTION', self.override)
-		end
+		self:ClearScriptOverride()
 		self:FadeOut()
 		self:SetScript('OnUpdate', nil)
 	end
 end
+
+---------------------------------------------------------------
+-- Tracking helpers
+---------------------------------------------------------------
 
 function Mouse:SetArtificialUnit(guid, name)
 	self.artificial = guid
@@ -547,6 +580,9 @@ function Mouse:PrepareTracking()
 	self:SetIcon(self.interactWith)
 end
 
+-- Workaround: loot is not always available right away.
+-- Since there's no event indicating when a GUID has loot,
+-- this function needs to query the game multiple times with some delay.
 function Mouse:DispatchLootCheck(delay, numCalls, firstCall)
 	self.lootCheckSpool = (firstCall and numCalls) or (numCalls - 1)
 	if self.lootCheckSpool < 1 then return end
@@ -594,7 +630,7 @@ function Mouse:TrackUnit(fauxUnit, blocked, forceCache)
 	
 	else -- cached last target might have loot, check proximity (insecure).
 		if ( not blocked and self.cachedUnit ) then
-			self:DispatchLootCheck(.35, 8, true)
+			self:DispatchLootCheck(.35, 10, true)
 		end
 		self:TogglePortrait(false)
 		self:FadeOut()

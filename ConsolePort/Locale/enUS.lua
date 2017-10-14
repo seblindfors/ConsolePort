@@ -110,10 +110,10 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		TRIGGERHELP 		= 'These settings will change which graphics are displayed for your triggers and modifiers.\nIf you want to change your modifiers, you will also have to change them in your controller mapper.',
 		IBFULLHELP 			= 'Use one of your buttons to interact with objects and creatures.\nIn the case where you lack a target that befits the configured button\'s original action,\nyou will instead be able to interact with the world.\n\nExamples:\nA |cffff7575harmful|r spell will be cast upon a hostile target, but interact in all other cases.\nA |cff75ff75healing|r spell will be cast upon a friendly target, but interact in all other cases.\nA macro or a binding requires a target to be used, but interact in all other cases.',
-		IBLITEHELP 			= 'Use one of your buttons to loot your last target when you\'re in range.\nThe button you assign here will only be used for looting when...\n  • you\'re out of combat or targeting the creature,\n  • the creature is or was your last target,\n  • the creature is dead and it has loot for you.\n\nThe full interact button includes this functionality.',
+		IBLITEHELP 			= 'Use one of your buttons to loot your last target when you\'re in range.\nThe button you assign here will only be used for looting when...\n  • you\'re out of combat or already targeting the creature,\n  • the creature was your last target,\n  • the creature has loot for you.\n\nThe full interact button includes this functionality.',
 		TARGETAIHELP		= 'Smart interaction only:\nRemembers the NPCs you come in contact with and lets you interact with them.\n\nWith NPC nameplates:\nAllows you to interact with any NPC at all times.',
 		HIGHLIGHTHELP 		= 'Preview your next target before you switch to it.\nIf you\'re struggling with reliable tab-targeting, set this to |cff75ff75Always on|r.',
-		IBFULLREC			= '|TInterface\\Buttons\\AdventureGuideMicrobuttonAlert:32:32:-4:0|t|cFFFFFFFFRecommended settings:|r\n  For best overall behaviour,\n  choose a button on which the\n  underlying action is a damaging spell\n  that requires an enemy target.',
+		IBFULLREC			= '|TInterface\\Buttons\\AdventureGuideMicrobuttonAlert:32:32:-4:0|t|cFFFFFFFFRecommended setting:|r\n  For best overall behaviour,\n  choose a button on which the\n  underlying action is a damaging spell\n  that requires an enemy target to cast.',
 		-----------------------------------------------------------
 		MOUSEHANDLE 		= 'Character handling',
 		MOUSEDRIFTING 		= 'Cursor is near the edge of the screen',
@@ -228,8 +228,8 @@ TUTORIAL = {
 		CONFIG_COMBAT 		= 'Your controller configuration will be shown when you leave combat.',
 		-----------------------------------------------------------
 		WARNINGBINDINGUI 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You can only customize your keyboard bindings from this panel.\n\nModifying keyboard bindings while using your controller is not recommended.\n\nAny changes you commit here will also save and upload your controller calibration, which may overwrite your keyboard bindings.\n\nWould you like to edit your controller bindings, recalibrate your controller or continue anyway?',
+		WARNINGSAVEBINDINGS = '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r An attempt was made to save and upload your keyboard bindings.\n\nYour controller calibration will overwrite any conflicting bindings. These bindings will not be restored when ConsolePort is disabled.',
 		WARNINGCOMBATLOGIN 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You reloaded your interface in combat.\nLeave combat to complete initialization.',
-		CRITICALUPDATE		= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Your settings are incompatible with this version (%s).\nWould you like to reset your settings?',
 		ADVANCED_DATA		= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You are about to apply changes to the following settings:\n\n%s\nThis will cause your interface to reload. Any changes you made in the other configuration tabs will be discarded.',
 		ADVANCED_EXPORT 	= '|cffffe00a[ConsolePort]|r\nThis is your serialized export data:\n\n%s\nCtrl+A to select and Ctrl+C to copy.',
 		ADVANCED_IMPORT_A 	= '|cffffe00a[ConsolePort]|r\nPaste your profile data:',
@@ -273,6 +273,7 @@ CUSTOMBINDS = {
 	CP_PAGER 			= 	'Action Set (Hold)',
 	-- Bindings
 	-----------------------------------------------------------
+	CP_TOGGLEADDON		= 	'Toggle ConsolePort On/Off',
 	CP_UTILITYBELT		= 	'Utility Ring',
 	CP_PETRING 			= 	'Pet Ring',
 	CP_RAIDCURSOR		= 	'Toggle Raid Cursor',

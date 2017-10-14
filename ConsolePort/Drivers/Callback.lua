@@ -60,7 +60,7 @@ function ConsolePort:RegisterCallback(functionName, func, owner, orderIndex)
 		local callBackOwners = owners[functionName]
 		callBacks[functionName] = functionsToRun
 		hooksecurefunc(self, functionName, function(self, ...)
-			for i, callback in pairs(functionsToRun) do
+			for _, callback in ipairs(functionsToRun) do
 				callback(callBackOwners and callBackOwners[callback] or self, ...)
 			end
 		end)
@@ -76,7 +76,7 @@ end
 function ConsolePort:UnregisterCallback(functionName, func)
 	assert(callBacks[functionName], 'No callbacks are registered for this function.')
 	local index, poppedFunc
-	for i, storedFunc in pairs(callBacks[functionName]) do
+	for i, storedFunc in ipairs(callBacks[functionName]) do
 		if func == storedFunc then
 			index = i
 			poppedFunc = storedFunc

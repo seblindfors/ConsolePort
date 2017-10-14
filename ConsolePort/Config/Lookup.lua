@@ -282,7 +282,7 @@ local function GetActionBars(bars, this)
 		bars[outerParent] = outerParent:GetName() or math.random()
 		return bars
 	end
-	for _, object in pairs({this:GetChildren()}) do
+	for _, object in ipairs({this:GetChildren()}) do
 		GetActionBars(bars, object)
 	end
 	return bars
@@ -457,6 +457,7 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		['version'] = VERSION,
 		['type'] = 'PS4',
 		['UIdropDownFix'] = true,
+		['newUser'] = true,
 		-------------------------------
 		['CP_M1'] = 'CP_TL1',
 		['CP_M2'] = 'CP_TL2',
@@ -556,6 +557,7 @@ function ConsolePort:GetAddonBindings()
 		{name = L.CP_UTILITY},
 		{name = L.CP_UTILITYBELT, binding = 'CLICK ConsolePortUtilityToggle:LeftButton'},
 		{name = L.CP_PETRING, binding = 'CLICK ConsolePortBarPet:MiddleButton'},
+		{name = L.CP_TOGGLEADDON, binding = 'CLICK ConsolePortLoader:LeftButton'},
 		-- Pager
 		{name = L.CP_PAGER},
 		{name = L.CP_PAGE2, binding = 'CLICK ConsolePortPager:2'},

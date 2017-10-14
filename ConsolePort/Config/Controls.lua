@@ -287,7 +287,6 @@ function WindowMixin:Save()
 	-- target highlight
 	Settings.alwaysHighlight = self.AssistModule.Mode
 
-
 	-- camera settings
 	if not db.Mouse.Camera then
 		db.Mouse.Camera = {}
@@ -316,26 +315,28 @@ function WindowMixin:Save()
 	if self.IBFullModule.Enable:GetChecked() and self.IBFullModule.BindCatcher.CurrentButton then
 		Settings.interactWith 	= self.IBFullModule.BindCatcher.CurrentButton
 		Settings.interactNPC 	= self.IBFullModule.NPC:GetChecked()
-		Settings.interactCache 	= self.SmartInteract.Enable:GetChecked()
-		Settings.interactScrape = self.SmartInteract.Scrape:GetChecked()
 	else
 		Settings.interactWith = false
 		Settings.interactNPC = false
-		Settings.interactCache = false
-		Settings.interactScrape = false
 	end
 
 	-- interact button lite
 	if 	( not self.IBFullModule.Enable:GetChecked() ) and
 		( self.IBLiteModule.Enable:GetChecked() ) and 
-		( self.IBLiteModule.BindCatcher.CurrentButton ) and
-		( self.IBLiteModule.BindCatcher.CurrentButton ~= self.IBFullModule.BindCatcher.CurrentButton ) then
+		( self.IBLiteModule.BindCatcher.CurrentButton ) then
 		Settings.lootWith = self.IBLiteModule.BindCatcher.CurrentButton
-		Settings.interactCache 	= self.SmartInteract.Enable:GetChecked()
-		Settings.interactScrape = self.SmartInteract.Scrape:GetChecked()
 	else
 		self.IBLiteModule.Enable:SetChecked(false)
 		Settings.lootWith = false
+	end
+
+	-- smart interaction
+	if Settings.interactWith or Settings.lootWith then
+		Settings.interactCache 	= self.SmartInteract.Enable:GetChecked()
+		Settings.interactScrape = self.SmartInteract.Scrape:GetChecked()
+	else
+		Settings.interactCache = false
+		Settings.interactScrape = false
 	end
 
 	-- toggle nameplates for guid scraping
@@ -436,12 +437,23 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		parent.HelpButton:SetHighlightTexture('Interface\\Common\\help-i')
 		parent.HelpButton:SetPoint('TOPRIGHT', -4, -4)
 		parent.HelpButton:SetScript('OnEnter', function(self)
+			self.defaultBackdrop = GameTooltip:GetBackdrop()
 			GameTooltip:Hide()
+			GameTooltip:SetBackdrop(db.Atlas.Backdrops.TooltipBorder)
 			GameTooltip:SetOwner(self, 'ANCHOR_TOP')
 			GameTooltip:SetText(self.Text)
 			GameTooltip:Show()
 		end)
 		parent.HelpButton:SetScript('OnLeave', function(self)
+			if self.defaultBackdrop then
+				GameTooltip:SetBackdrop(self.defaultBackdrop)
+			end
+			GameTooltip:Hide()
+		end)
+		parent.HelpButton:SetScript('OnHide', function(self)
+			if self.defaultBackdrop then
+				GameTooltip:SetBackdrop(self.defaultBackdrop)
+			end
 			GameTooltip:Hide()
 		end)
 		return parent.HelpButton
@@ -464,6 +476,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		parent[name] = button
 		return button
 	end
+
 	------------------------------------------------------------------------------------------------------------------------------
 	do 	local function SmartEnableToggle(self)
 			local scrape = self:GetParent().Scrape
