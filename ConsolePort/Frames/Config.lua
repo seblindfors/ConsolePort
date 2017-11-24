@@ -545,7 +545,7 @@ end
 
 function WindowMixin:Export(exportData)
 	if exportData then
-		local _, classToken, classID = UnitClass('player')
+		local _, classToken = UnitClass('player')
 		local specID, specName = GetSpecializationInfo(GetSpecialization())
 		local uid = GetUnitName('player')..' ('..specName..') '..GetRealmName()
 		local settings = ConsolePortCharacterSettings or {}
@@ -568,10 +568,20 @@ function WindowMixin:Export(exportData)
 			characterProfile[ID] = allowExport and data or nil
 		end
 
+		local exportType 	= db.Settings.type
+		local exportClass 	= classToken
+		local exportSpec 	= specID
+
+		-- remove metadata to check for empty export table.
+		characterProfile.Type 	= nil
+		characterProfile.Class 	= nil
+		characterProfile.Spec 	= nil
+
 		if next(characterProfile) then
-			characterProfile.Type = db.Settings.type
-			characterProfile.Class = classToken
-			characterProfile.Spec = specID
+			-- add/reinsert metadata
+			characterProfile.Type  = exportType
+			characterProfile.Class = exportClass
+			characterProfile.Spec  = exportSpec
 		else
 			settings[uid] = nil
 		end

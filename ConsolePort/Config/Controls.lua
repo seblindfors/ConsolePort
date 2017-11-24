@@ -222,7 +222,7 @@ function Catcher:Catch(key)
 	if action and action:match('CP_*') then
 		self.CurrentButton = action
 		if self.CurrentButton then
-			self:SetFormattedText(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[action])
+			self:SetFormattedText(self.formatLine, db.TEXTURE[action])
 			self:GetParent():GetParent():OnShow()
 		end
 	elseif key then
@@ -246,7 +246,7 @@ end
 function Catcher:OnShow()
 	self.CurrentButton = Settings[self.cvar]
 	if self.CurrentButton then
-		self:SetFormattedText(TUTORIAL.CONFIG.INTERACTASSIGNED, db.TEXTURE[self.CurrentButton])
+		self:SetFormattedText(self.formatLine, db.TEXTURE[self.CurrentButton])
 	else
 		self:SetText(TUTORIAL.CONFIG.INTERACTCATCHER)
 	end
@@ -334,9 +334,11 @@ function WindowMixin:Save()
 	if Settings.interactWith or Settings.lootWith then
 		Settings.interactCache 	= self.SmartInteract.Enable:GetChecked()
 		Settings.interactScrape = self.SmartInteract.Scrape:GetChecked()
+		Settings.nameplateNameOnly = self.SmartInteract.Plates:GetChecked()
 	else
 		Settings.interactCache = false
 		Settings.interactScrape = false
+		Settings.nameplateNameOnly = false
 	end
 
 	-- toggle nameplates for guid scraping
@@ -488,11 +490,26 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 				scrape:SetButtonState('DISABLED')
 				scrape:SetAlpha(.5)
 			end
+			scrape.func(scrape)
+		end
+
+		local function SmartScrapeToggle(self)
+			local plates = self:GetParent().Plates
+			if self:GetChecked() then
+				plates:SetButtonState('NORMAL')
+				plates:SetAlpha(1)
+			else
+				plates:SetChecked(false)
+				plates:SetButtonState('DISABLED')
+				plates:SetAlpha(.5)
+			end
 		end
 
 		local SmartEnable = GetCheckButton(SmartInteract, 'Enable', {'TOPLEFT', 24, -38}, TUTORIAL.CONFIG.INTERACTCACHE, Settings.interactCache, SmartEnableToggle)
-		local SmartScrape = GetCheckButton(SmartInteract, 'Scrape', {'TOPLEFT', 24, -68}, TUTORIAL.CONFIG.INTERACTSCRAPE, Settings.interactScrape)
-		SmartInteract:SetSize(292, 116)
+		--[[NPC nameplate]] GetCheckButton(SmartInteract, 'Scrape', {'TOPLEFT', 24, -68}, TUTORIAL.CONFIG.INTERACTSCRAPE, Settings.interactScrape, SmartScrapeToggle)
+		--[[Nameonly mode]] GetCheckButton(SmartInteract, 'Plates', {'TOPLEFT', 24, -98}, TUTORIAL.CONFIG.INTERACTNAMEONLY, Settings.nameplateNameOnly)
+
+		SmartInteract:SetSize(292, 142)
 		SmartInteract:SetBackdrop(db.Atlas.Backdrops.Border)
 		SmartInteract:Hide()
 		SmartEnableToggle(SmartEnable)
@@ -609,6 +626,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		IBFullModule.BindCatcher.Cover:Hide()
 
 		IBFullModule.BindCatcher.cvar = 'interactWith'
+		IBFullModule.BindCatcher.formatLine = TUTORIAL.CONFIG.INTERACTASSIGNED
 
 		IBFullModule.Recommend = IBFullModule:CreateFontString(nil, 'ARTWORK', 'GameFontNormal')
 		IBFullModule.Recommend:SetPoint('BOTTOMLEFT', IBFullModule.BindWrapper, 'TOPLEFT', 24, 10)
@@ -636,8 +654,8 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 
 		IBLiteModule.BindWrapper = db.Atlas.GetGlassWindow('$parentBindWrapper', IBLiteModule, nil, true)
 		IBLiteModule.BindWrapper:SetBackdrop(db.Atlas.Backdrops.Border)
-		IBLiteModule.BindWrapper:SetPoint('BOTTOM', 0, 12)
-		IBLiteModule.BindWrapper:SetSize(292, 90)
+		IBLiteModule.BindWrapper:SetPoint('BOTTOM', 0, 6)
+		IBLiteModule.BindWrapper:SetSize(292, 76)
 		IBLiteModule.BindWrapper.Close:Hide()
 
 		IBLiteModule.Description = IBLiteModule:CreateFontString(nil, 'ARTWORK', 'GameFontNormal')
@@ -647,7 +665,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		IBLiteModule.BindCatcher = db.Atlas.GetFutureButton('$parentBindCatcher', IBLiteModule.BindWrapper, nil, nil, 260)
 		IBLiteModule.BindCatcher.HighlightTexture:ClearAllPoints()
 		IBLiteModule.BindCatcher.HighlightTexture:SetAllPoints(IBLiteModule.BindCatcher)
-		IBLiteModule.BindCatcher:SetHeight(60)
+		IBLiteModule.BindCatcher:SetHeight(46)
 		IBLiteModule.BindCatcher:SetPoint('CENTER', 0, 0)
 		IBLiteModule.BindCatcher.Cover:Hide()
 
@@ -682,6 +700,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		IBLiteModule.Dude:SetAlpha(0.25)
 
 		IBLiteModule.BindCatcher.cvar = 'lootWith'
+		IBLiteModule.BindCatcher.formatLine = TUTORIAL.CONFIG.INTERACTASSIGNED_B
 
 		Mixin(IBLiteModule.BindCatcher, Catcher)
 		IBLiteModule.BindCatcher:OnShow()

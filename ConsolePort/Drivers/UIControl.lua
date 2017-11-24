@@ -254,7 +254,7 @@ local function GetFadeFrames(onlyActionBars)
 	----------------------------------
 	local valid, name, forceChild, ignoreChild, isConsolePortFrame
 	----------------------------------
-	for i, child in pairs(frameStack) do
+	for i, child in ipairs(frameStack) do
 		if not child:IsForbidden() then -- assert this frame isn't forbidden
 			----------------------------------
 			valid = false

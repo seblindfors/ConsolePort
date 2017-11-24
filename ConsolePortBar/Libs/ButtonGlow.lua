@@ -45,6 +45,7 @@ lib.unusedOverlays = lib.unusedOverlays or {}
 lib.numOverlays = lib.numOverlays or 0
 
 local tinsert, tremove, tostring = table.insert, table.remove, tostring
+local AnimateTexCoords = AnimateTexCoords
 
 local function OverlayGlowAnimOutFinished(animGroup)
 	local overlay = animGroup:GetParent()
@@ -52,6 +53,18 @@ local function OverlayGlowAnimOutFinished(animGroup)
 	overlay:Hide()
 	tinsert(lib.unusedOverlays, overlay)
 	frame.__LBGoverlay = nil
+end
+
+local function OverlayGlow_OnUpdate(self, elapsed)
+	AnimateTexCoords(self.ants, 512, 512, 96, 96, 25, elapsed, 0.01)
+	local cooldown = self:GetParent().cooldown
+	-- we need some threshold to avoid dimming the glow during the gdc
+	-- (using 1500 exactly seems risky, what if casting speed is slowed or something?)
+	if(cooldown and cooldown:IsShown() and cooldown:GetCooldownDuration() > 3000) then
+		self:SetAlpha(0.5)
+	else
+		self:SetAlpha(1.0)
+	end
 end
 
 local function OverlayGlow_OnHide(self)
@@ -94,7 +107,6 @@ local function AnimIn_OnPlay(group)
 	frame.spark:SetAlpha(0.3)
 	frame.innerGlow:SetSize(frameWidth / 2, frameHeight / 2)
 	frame.innerGlow:SetAlpha(1.0)
-	frame.innerGlowOver:SetAlpha(1.0)
 	frame.outerGlow:SetSize(frameWidth * 2, frameHeight * 2)
 	frame.outerGlow:SetAlpha(1.0)
 	frame.outerGlowOver:SetAlpha(1.0)
@@ -109,7 +121,6 @@ local function AnimIn_OnFinished(group)
 	frame.spark:SetAlpha(0)
 	frame.innerGlow:SetAlpha(0)
 	frame.innerGlow:SetSize(frameWidth, frameHeight)
-	frame.innerGlowOver:SetAlpha(0.0)
 	frame.outerGlow:SetSize(frameWidth, frameHeight)
 	frame.outerGlowOver:SetAlpha(0.0)
 	frame.outerGlowOver:SetSize(frameWidth, frameHeight)
@@ -137,20 +148,10 @@ local function CreateOverlayGlow()
 	overlay.innerGlow:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\IconAlert]])
 	overlay.innerGlow:SetTexCoord(0.00781250, 0.50781250, 0.27734375, 0.52734375)
 
-	-- inner glow over
-	overlay.innerGlowOver = overlay:CreateTexture(name .. "InnerGlowOver", "ARTWORK")
-	overlay.innerGlowOver:SetPoint("TOPLEFT", overlay.innerGlow, "TOPLEFT")
-	overlay.innerGlowOver:SetPoint("BOTTOMRIGHT", overlay.innerGlow, "BOTTOMRIGHT")
-	overlay.innerGlowOver:SetAlpha(0)
---	overlay.innerGlowOver:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\IconAlert]])
-	overlay.innerGlowOver:SetTexCoord(0.00781250, 0.50781250, 0.53515625, 0.78515625)
-
 	-- outer glow
 	overlay.outerGlow = overlay:CreateTexture(name .. "OuterGlow", "ARTWORK")
 	overlay.outerGlow:SetPoint("CENTER")
 	overlay.outerGlow:SetAlpha(0)
---	overlay.outerGlow:SetTexture([[Interface\AddOns\]]..addOn..[[\Textures\IconAlert]])
-	overlay.outerGlow:SetTexCoord(0.00781250, 0.50781250, 0.27734375, 0.52734375)
 
 	-- outer glow over
 	overlay.outerGlowOver = overlay:CreateTexture(name .. "OuterGlowOver", "ARTWORK")
@@ -171,8 +172,6 @@ local function CreateOverlayGlow()
 	CreateScaleAnim(overlay.animIn, overlay.spark,          1, 0.2, 1.5, 1.5)
 	CreateAlphaAnim(overlay.animIn, overlay.spark,          1, 0.2, 0, 1)
 	CreateScaleAnim(overlay.animIn, overlay.innerGlow,      1, 0.3, 2, 2)
-	CreateScaleAnim(overlay.animIn, overlay.innerGlowOver,  1, 0.3, 2, 2)
-	CreateAlphaAnim(overlay.animIn, overlay.innerGlowOver,  1, 0.3, 1, 0)
 	CreateScaleAnim(overlay.animIn, overlay.outerGlow,      1, 0.3, 0.5, 0.5)
 	CreateScaleAnim(overlay.animIn, overlay.outerGlowOver,  1, 0.3, 0.5, 0.5)
 	CreateAlphaAnim(overlay.animIn, overlay.outerGlowOver,  1, 0.3, 1, 0)
@@ -191,7 +190,7 @@ local function CreateOverlayGlow()
 	overlay.animOut:SetScript("OnFinished", OverlayGlowAnimOutFinished)
 
 	-- scripts
-	overlay:SetScript("OnUpdate", ActionButton_OverlayGlowOnUpdate)
+	overlay:SetScript("OnUpdate", OverlayGlow_OnUpdate)
 	overlay:SetScript("OnHide", OverlayGlow_OnHide)
 
 	return overlay

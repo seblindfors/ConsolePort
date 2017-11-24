@@ -11,8 +11,8 @@ local _, db = ...
 ---------------------------------------------------------------
 		-- Resources
 local 	TUTORIAL, BIND, TEXTURE, ICONS,
-		-- Fade wrappers
-		FadeIn, FadeOut,
+		-- Utils
+		FadeIn, FadeOut, Hex2RGB,
 		-- Table functions
 		Mixin, spairs, compare, copy,
 		-- Mixins
@@ -23,7 +23,7 @@ local 	TUTORIAL, BIND, TEXTURE, ICONS,
 		window, rebindFrame, newBindingSet = 
 		-------------------------------------
 		db.TUTORIAL.BIND, "BINDING_NAME_", db.TEXTURE, db.ICONS,
-		db.UIFrameFadeIn, db.UIFrameFadeOut,
+		db.UIFrameFadeIn, db.UIFrameFadeOut, db.Hex2RGB,
 		db.table.mixin, db.table.spairs, db.table.compare, db.table.copy,
 		{}, {}, {}, {}, {}, {}, {}, {}, {}
 ---------------------------------------------------------------
@@ -123,6 +123,18 @@ local config = {
 		RightEnabled = 	{2, {0.0937, 0.0009, 0.3896, 0.4365},	{76, 38.4},  {"RIGHT", -3.2, 3.2}},
 		Controller = 	{3, {0, 0.0498, 0.4423, 0.4707},		{40.8, 23.2}},
 		Grid = 			{3, {0.0517, 0.0761, 0.4453, 0.4628}, 	{20, 14.4}},
+	},
+	headerColors = {
+		[BINDING_HEADER_ACTIONBAR] 		= 'ffffff';
+		[BINDING_HEADER_MULTIACTIONBAR] = 'ffffff';
+		[BINDING_HEADER_MOVEMENT] 		= '00ffbb';
+		[BINDING_HEADER_TARGETING]		= '21ff00';
+		[BINDING_HEADER_RAID_TARGET]	= '21ff00';
+		[BINDING_HEADER_INTERFACE]		= 'ffcc00';
+		[BINDING_HEADER_CHAT]			= 'aaaaaa';
+		[BINDING_HEADER_MISC]			= 'aaaaaa';
+		[BINDING_HEADER_CAMERA] 		= 'aaaaaa';
+		[BINDING_HEADER_VEHICLE] 		= 'aaaaaa';
 	},
 }
 ---------------------------------------------------------------
@@ -312,6 +324,7 @@ local function RefreshHeaderList(self)
 	local buttons = self.Buttons
 	local bindings = db.Atlas.BindingMeta:RefreshBindings()
 	local hCount = 0
+	local colors = config.headerColors
 	local config = config.listButton
 	config.omitHeader = false
 	for category, bindings in spairs(bindings) do
@@ -324,6 +337,11 @@ local function RefreshHeaderList(self)
 
 			Mixin(button, HeaderMixin)
 			self:AddButton(button)
+		end
+		if colors[category] then
+			button.Label:SetTextColor(Hex2RGB(colors[category], true))
+		else
+			button.Label:SetTextColor(1, .82, 0)
 		end
 		button:SetText(category)
 		button:Show()
@@ -434,7 +452,7 @@ end
 
 local function SetMovementBindings(self, handler)
 	local movement = config.movement
-	if db.Settings.turnCharacter then
+	if db('turnCharacter') then
 		movement.TURNLEFT = movement.STRAFELEFT
 		movement.TURNRIGHT = movement.STRAFERIGHT
 		movement.STRAFELEFT = nil
@@ -454,8 +472,8 @@ local function SetMovementBindings(self, handler)
 	end
 end
 
-function ConsolePort:LoadBindingSet(newBindingSet)
-	local calibration = db.Settings.calibration
+function ConsolePort:LoadBindingSet(newBindingSet, fireCallback)
+	local calibration = db('calibration')
 	if calibration then
 		for binding, key in pairs(calibration) do
 			SetBinding(key, binding)
@@ -465,7 +483,7 @@ function ConsolePort:LoadBindingSet(newBindingSet)
 	local handler = ConsolePortButtonHandler
 	ClearOverrideBindings(handler)
 	SetMovementBindings(self, handler)
-	if not db.Settings.disableStickMouse then
+	if not db('disableStickMouse') then
 		SetMouseBindings(self, handler, bindingSet)
 	end
 	for name, key in pairs(bindingSet) do
@@ -474,6 +492,9 @@ function ConsolePort:LoadBindingSet(newBindingSet)
 			local modBinding = key[modifier]
 			SetTempBinding(handler, modifier, name, modBinding or baseBinding)
 		end
+	end
+	if fireCallback then
+		self:OnNewBindings(bindingSet)
 	end
 	self:RemoveUpdateSnippet(self.LoadBindingSet)
 	return bindingSet

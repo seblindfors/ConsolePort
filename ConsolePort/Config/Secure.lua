@@ -121,7 +121,7 @@ function ConsolePort:CreateSecureButton(name, modifier, command)
 	btn.mod = modifier
 	-----------------------------------------------------------
 	btn.HotKeys = {}
-	btn.CreateHotKey = ConsolePort.CreateHotKey
+	btn.CreateHotKey = db.CreateHotKey
 	-----------------------------------------------------------
 	btn:SetAttribute('_childupdate-combat', [[
 		if message then

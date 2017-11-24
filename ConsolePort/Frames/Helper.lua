@@ -6,7 +6,7 @@
 -- Also provides a simple animation framework for that purpose.
 
 local addOn, db = ...
-local Helper = ConsolePortSpellHelperFrame
+local Core, Helper = ConsolePort, ConsolePortSpellHelperFrame
 Helper:SetBackdrop(db.Atlas.Backdrops.Talkbox)
 
 ---------------------------------------------------------------
@@ -27,13 +27,14 @@ Helper:SetBackdrop(db.Atlas.Backdrops.Talkbox)
 ]]-- 
 
 function Helper:OnShow()
-	if db.Settings and db.Settings.disableSmartBind then
+	Core:SetCursorObstructor(self, true)
+	if db('disableSmartBind') then
 		self:UnregisterAllEvents()
 		self:Hide()
 	else
 		self.blockInput = false
 		self.cache = db.table.copy(db.Bindings)
-		self.manifest = ConsolePort:GetBindings(true)
+		self.manifest = Core:GetBindings(true)
 		local loc = db.TUTORIAL.BIND
 		local _type, data, subType, subData = GetCursorInfo()
 		local name, texture, customDesc, pcallOK, link, itemType, _
@@ -93,6 +94,7 @@ function Helper:OnHide()
 	self.pendingActionID = nil
 	self.pendingButton = nil
 	self.pendingModifier = nil
+	Core:SetCursorObstructor(self, false)
 	if self.BagFrame then
 		self.BagFrame:Hide()
 	end
@@ -132,7 +134,7 @@ function Helper:GetBindingSuggestion()
 	local ignoredIndex = {}
 	for key, subSet in pairs(self.cache) do
 		for mod, binding in pairs(subSet) do
-			local actionID = ConsolePort:GetActionID(binding)
+			local actionID = Core:GetActionID(binding)
 			if actionID then
 				ignoredIndex[actionID] = true
 			end
@@ -140,12 +142,12 @@ function Helper:GetBindingSuggestion()
 	end
 	for i=1, NUM_ACTIONBAR_BUTTONS do
 		if not GetActionInfo(i) and not ignoredIndex[i] then
-			return i, ConsolePort:GetActionBinding(i)
+			return i, Core:GetActionBinding(i)
 		end
 	end
 	for i=((NUM_ACTIONBAR_BUTTONS * 2) + 1), (NUM_ACTIONBAR_BUTTONS * 6) do
 		if not GetActionInfo(i) and not ignoredIndex[i] then
-			return i, ConsolePort:GetActionBinding(i)
+			return i, Core:GetActionBinding(i)
 		end
 	end
 end
@@ -155,20 +157,20 @@ function Helper:OnKeyDown(key)
 	local set = bAction and self.cache and self.cache[bAction]
 	local isControllerButton = bAction and self.manifest and self.manifest[bAction]
 	if not self.blockInput and isControllerButton then
-		local modifier = ConsolePort:GetCurrentModifier()
+		local modifier = Core:GetCurrentModifier()
 
 		-- a pending binding prompt is approved
 		if ( self.pendingButton == bAction and self.pendingModifier == modifier ) then
-			local newBindingSet = ConsolePort:GetBindingSet()
+			local newBindingSet = Core:GetBindingSet()
 			if not newBindingSet[bAction] then
 				newBindingSet[bAction] = {}
 			end
 			-- update the binding set
 			newBindingSet[bAction][modifier] = self.pendingBinding
-			ConsolePort:LoadBindingSet(newBindingSet)
-			ConsolePort:OnNewBindings(newBindingSet)
+			Core:LoadBindingSet(newBindingSet)
+			Core:OnNewBindings(newBindingSet)
 			-- place the action
-			PlaceAction(self.pendingActionID)
+			PlaceAction(Core:GetOffsetActionID(self.pendingActionID))
 			self:OnActionPlaced(self.pendingActionID, self.Icon:GetTexture())
 			return
 		end
@@ -177,17 +179,18 @@ function Helper:OnKeyDown(key)
 		self.pendingButton, self.pendingModifier = nil, nil
 
 		local binding = set and set[modifier]
-		local actionID = ConsolePort:GetActionID(binding)
+		local actionID = Core:GetActionID(binding)
 		
 		-- if the pressed binding has a corresp. action ID, place the item there and pop any existing item
 		if actionID and actionID ~= 169 then -- ignore actionID 169, because it's the extra action button.
-			PlaceAction(actionID)
+			local realActionID = Core:GetOffsetActionID(actionID) 
+			PlaceAction(realActionID)
 			if 	( not GetCursorInfo() ) and
-				( db.Settings and not db.Settings.disableSmartMouse ) and
+				( not db('disableSmartMouse') ) and
 				( GetMouseFocus() == WorldFrame ) then
 				ConsolePortCamera:Start()
 			end
-			self:OnActionPlaced(actionID)
+			self:OnActionPlaced(actionID, GetActionTexture(realActionID))
 
 		-- clear the helper frame if the binding that was pressed is eqv. to Esc
 		elseif binding == 'TOGGLEGAMEMENU' then
@@ -195,7 +198,7 @@ function Helper:OnKeyDown(key)
 
 		-- if the binding is occupied by something unrelated to action bars
 		elseif binding then
-			local formatted = ConsolePort:GetFormattedBindingOwner(binding, nil, nil, true)
+			local formatted = Core:GetFormattedBindingOwner(binding, nil, nil, true)
 			local bindName =  _G['BINDING_NAME_' .. binding]
 			if formatted and bindName then
 				self.Desc:SetText(format(db.TUTORIAL.HINTS.HELPER_INVALID_OCCUA, formatted, bindName))
@@ -205,7 +208,7 @@ function Helper:OnKeyDown(key)
 
 		-- the binding is free, check for suggestions
 		else
-			local formatted = ConsolePort:GetFormattedButtonCombination(bAction, modifier, nil, true)
+			local formatted = Core:GetFormattedButtonCombination(bAction, modifier, nil, true)
 			if formatted then
 				local freeActionID, freeBindingID = self:GetBindingSuggestion()
 				if freeActionID and freeBindingID then
@@ -273,7 +276,7 @@ Helper:SetScript('OnShow', Helper.OnShow)
 Helper:SetScript('OnHide', Helper.OnHide)
 Helper:SetScript('OnEvent', Helper.OnEvent)
 Helper:SetScript('OnKeyDown', Helper.OnKeyDown)
-Helper.GetActionButtons = ConsolePort.GetActionButtons
+Helper.GetActionButtons = Core.GetActionButtons
 
 ---------------------------------------------------------------
 -- Animations
@@ -301,13 +304,29 @@ local function PathCalculateOffset(self, x, y)
 	self:SetDuration(ANIMSPEED)
 end
 
+local function IconIntroOnLoad(self)
+	self.glow = _G[self:GetName() .. 'IconGlow']
+	self.paths = {}
+	for _, f in pairs({self:GetChildren()}) do
+		f.flyin:SetScript('OnFinished', FlyinOnFinished)
+		f.flyin.wait:SetDuration(f.flyin.wait:GetDuration() * TRAILSPEED)
+		for _, a in pairs({f.flyin:GetAnimations()}) do
+			if a:IsObjectType('Path') then
+				self.paths[a] = true
+			else
+				a:SetStartDelay(0)
+			end
+		end
+	end
+end
+
 function Helper:OnActionPlaced(actionID, pushTexture)
 	local currentModifier = ConsolePort:GetCurrentModifier()
 	local buttons = {}
 	for button, ID in self:GetActionButtons() do
 		-- filter out cp ab main buttons when animating a modified action binding, 
 		-- since they will have the same action ID at this point as the modified buttons.
-		-- ignore this restriction if the action was pushed automatically (low level auto-assign)
+		-- ignore this restriction if the action was pushed automatically (level up auto-assign)
 		if ( ID == actionID ) and ( pushTexture or ( not ( button.isMainButton and currentModifier ~= "" ) ) ) then
 			buttons[button] = true
 		end
@@ -319,7 +338,7 @@ function Helper:OnActionPlaced(actionID, pushTexture)
 	for button in pairs(buttons) do
 		local freeIcon
 
-		for _, v in pairs(self.iconList) do
+		for _, v in ipairs(self.iconList) do
 			if v.isFree then
 				freeIcon = v
 				break
@@ -328,19 +347,7 @@ function Helper:OnActionPlaced(actionID, pushTexture)
 
 		if not freeIcon then
 			freeIcon = CreateFrame('FRAME', self:GetName()..'Icon'..(#self.iconList+1), UIParent, 'IconIntroTemplate')
-			freeIcon.glow = _G[freeIcon:GetName() .. 'IconGlow']
-			freeIcon.paths = {}
-			for _, f in pairs({freeIcon:GetChildren()}) do
-				f.flyin:SetScript('OnFinished', FlyinOnFinished)
-				f.flyin.wait:SetDuration(f.flyin.wait:GetDuration() * TRAILSPEED)
-				for _, a in pairs({f.flyin:GetAnimations()}) do
-					if a:IsObjectType('Path') then
-						freeIcon.paths[a] = true
-					else
-						a:SetStartDelay(0)
-					end
-				end
-			end
+			IconIntroOnLoad(freeIcon)
 			self.iconList[#self.iconList+1] = freeIcon
 		end
 

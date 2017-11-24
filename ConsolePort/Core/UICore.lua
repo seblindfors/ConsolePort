@@ -336,6 +336,53 @@ function UI:RemoveRegisteredFrame(frame)
 end
 
 ----------------------------------
+--- Creates a frame that automatically sets scripts and dispatches events.
+-- @param 	type 	: Type of frame
+-- @param	name 	: Global frame name
+-- @param	parent 	: Parent of frame
+-- @param	inherit : Templates to inherit from
+-- @return 	frame 	: Returns the created frame.
+function UI:CreateScriptFrame(...)
+	local frame = CreateFrame(...)
+	local index = getmetatable(frame).__index
+
+	function index:Hook(name, func)
+		hooksecurefunc(name, function(...)
+			func(self, ...)
+		end)
+	end
+
+	function index:HookObject(object, name, func)
+		hooksecurefunc(object, name, function(...)
+			func(self, ...)
+		end)
+	end
+
+	setmetatable(frame, {
+		__index = index;
+		__newindex = function(t, k, v)
+			if t:HasScript(k) then
+				if t:GetScript(k) then
+					t:HookScript(k, v)
+				else
+					t:SetScript(k, v)
+				end
+			else
+				t:RegisterEvent(k)
+				rawset(t, k, v)
+			end
+		end;
+	})
+
+	function frame:OnEvent(event, ...)
+		if self[event] then
+			self[event](self, ...)
+		end
+	end
+	return frame
+end
+
+----------------------------------
 -- Just in case someone keeps the outdated UI module, force it to remain disabled.
 DisableAddOn('ConsolePortUI')
 ----------------------------------

@@ -394,6 +394,7 @@ function EM:Filter(input)
 				level = level + 1
 			end
 			frame:Adjust(level > 1 and level)
+			frame:IndicateFilterMatch()
 		else
 			frame:Clear()
 		end
@@ -479,6 +480,21 @@ function HotkeyMixin:Adjust(depth)
 	self:SetWidth( offset * ( self.size * 0.75 ) )
 end
 
+function HotkeyMixin:IndicateFilterMatch()
+	if not self.Indicate then
+		self.Indicate = self:CreateAnimationGroup()
+		self.Indicate.Enlarge = self.Indicate:CreateAnimation('SCALE')
+		---
+		self.Indicate.Enlarge:SetOrigin('CENTER', 0, 0)
+		self.Indicate.Enlarge:SetScale(1.35, 1.35)
+		self.Indicate.Enlarge:SetDuration(0.1)
+		self.Indicate.Enlarge:SetSmoothing('OUT')
+		---
+	end
+	self.Indicate:Finish()
+	self.Indicate:Play()
+end
+
 function HotkeyMixin:DrawIconsForBinding(binding)
 	binding = binding or self.binding
 	local icon, shown = self.Keys, 0
@@ -503,33 +519,33 @@ function HotkeyMixin:DrawIconsForBinding(binding)
 end
 
 function HotkeyMixin:Animate(ghostMode)
-	if not self.Group then
-		self.Group = self:CreateAnimationGroup()
-		self.Enlarge = self.Group:CreateAnimation('SCALE')
-		self.Shrink = self.Group:CreateAnimation('SCALE')
-		self.Alpha = self.Group:CreateAnimation('ALPHA')
+	if not self.Match then
+		self.Match = self:CreateAnimationGroup()
+		self.Match.Enlarge = self.Match:CreateAnimation('SCALE')
+		self.Match.Shrink = self.Match:CreateAnimation('SCALE')
+		self.Match.Alpha = self.Match:CreateAnimation('ALPHA')
 		---
-		self.Enlarge:SetOrigin('CENTER', 0, 0)
-		self.Enlarge:SetScale(2, 2)
-		self.Enlarge:SetDuration(0.1)
-		self.Enlarge:SetSmoothing('OUT')
+		self.Match.Enlarge:SetOrigin('CENTER', 0, 0)
+		self.Match.Enlarge:SetScale(2, 2)
+		self.Match.Enlarge:SetDuration(0.1)
+		self.Match.Enlarge:SetSmoothing('OUT')
 		---
-		self.Shrink:SetOrigin('CENTER', 0, 0)
-		self.Shrink:SetScale(0.25, 0.25)
-		self.Shrink:SetDuration(0.2)
-		self.Shrink:SetStartDelay(0.1)
-		self.Shrink:SetSmoothing('OUT')
+		self.Match.Shrink:SetOrigin('CENTER', 0, 0)
+		self.Match.Shrink:SetScale(0.25, 0.25)
+		self.Match.Shrink:SetDuration(0.2)
+		self.Match.Shrink:SetStartDelay(0.1)
+		self.Match.Shrink:SetSmoothing('OUT')
 		---
-		self.Alpha:SetStartDelay(0.1)
-		self.Alpha:SetFromAlpha(1)
-		self.Alpha:SetToAlpha(0)
-		self.Alpha:SetDuration(0.2)
+		self.Match.Alpha:SetStartDelay(0.1)
+		self.Match.Alpha:SetFromAlpha(1)
+		self.Match.Alpha:SetToAlpha(0)
+		self.Match.Alpha:SetDuration(0.2)
 		---
-		Mixin(self.Group, GroupMixin)
+		Mixin(self.Match, GroupMixin)
 	end
-	self.Group:Finish()
-	self.Group:SetScript('OnFinished', ghostMode and self.Group.RedrawOnFinish or self.Group.ClearOnFinish)
-	self.Group:Play()
+	self.Match:Finish()
+	self.Match:SetScript('OnFinished', ghostMode and self.Match.RedrawOnFinish or self.Match.ClearOnFinish)
+	self.Match:Play()
 end
 
 function HotkeyMixin:SetNamePlate(plate)

@@ -16,20 +16,21 @@ function ConsolePort:LoadEvents()
 	-- Default events
 	local Events = {
 		['ACTIVE_TALENT_GROUP_CHANGED'] = false,
-		['ADDON_LOADED'] 			= false,
-		['CURRENT_SPELL_CAST_CHANGED'] = false,
-		['CVAR_UPDATE']				= false,
-		['PLAYER_LOGIN'] 			= false,
-		['PLAYER_LOGOUT'] 			= false,
-		['PLAYER_STARTED_MOVING'] 	= false,
-		['PLAYER_REGEN_DISABLED'] 	= false,
-		['PLAYER_REGEN_ENABLED'] 	= false,
-		['SPELLS_CHANGED'] 			= false,
-		['UPDATE_BINDINGS'] 		= false,
-		['VARIABLES_LOADED'] 		= false,
-		['QUEST_AUTOCOMPLETE'] 		= false,
-		['WORLD_MAP_UPDATE'] 		= false,
-		['UNIT_ENTERING_VEHICLE'] 	= false,
+		['ADDON_ACTION_FORBIDDEN']		= false,
+		['ADDON_LOADED'] 				= false,
+		['CURRENT_SPELL_CAST_CHANGED'] 	= false,
+		['CVAR_UPDATE']					= false,
+		['PLAYER_LOGIN'] 				= false,
+		['PLAYER_LOGOUT'] 				= false,
+		['PLAYER_STARTED_MOVING'] 		= false,
+		['PLAYER_REGEN_DISABLED'] 		= false,
+		['PLAYER_REGEN_ENABLED'] 		= false,
+		['SPELLS_CHANGED'] 				= false,
+		['UPDATE_BINDINGS'] 			= false,
+		['VARIABLES_LOADED'] 			= false,
+		['QUEST_AUTOCOMPLETE'] 			= false,
+		['WORLD_MAP_UPDATE'] 			= false,
+		['UNIT_ENTERING_VEHICLE'] 		= false,
 	}
 	-- Union of general events and mouse look events
 	for event, val in pairs(MouseEvents) do
@@ -159,7 +160,7 @@ function Events:CVAR_UPDATE(...)
 end
 
 function Events:UPDATE_BINDINGS()
-	self:AddUpdateSnippet(self.LoadBindingSet, db.Bindings)
+	self:AddUpdateSnippet(self.LoadBindingSet, db.Bindings, true)
 end
 
 function Events:SPELLS_CHANGED()
@@ -207,6 +208,14 @@ function Events:PLAYER_LOGIN()
 	Events.ADDON_LOADED = function(self, name)
 		Events.OnAddonLoaded(self, name)
 		self:LoadHotKeyTextures()
+	end
+end
+
+function Events:ADDON_ACTION_FORBIDDEN(culprit, action)
+	if culprit == _ then
+		if action == 'FocusUnit()' then
+			print(db.TUTORIAL.ERRORS.FOCUSUNIT)
+		end
 	end
 end
 

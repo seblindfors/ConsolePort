@@ -1,7 +1,7 @@
 ## Interface: 70300
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 1.7.2
+## Version: 1.7.3
 
 ## Author: Sebastian Lindfors
 ## X-Website: http://www.consoleport.net
@@ -57,6 +57,7 @@ Frames\Stacksplit.lua
 Frames\Utility.lua
 Frames\Flyout.lua
 Frames\Helper.lua
+Frames\OverrideBarExit.lua
 
 UI\Utils.lua
 UI\Media.lua

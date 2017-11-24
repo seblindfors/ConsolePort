@@ -135,3 +135,14 @@ function ConsolePort:LoadControllerTheme()
 	LoadTriggerTextures(ctrlType, settings or {}, db.Controller and db.Controller.Shared or {})
 	LoadTooltipLines()
 end
+
+db.Hex2RGB = function(hex, inFractal)
+    hex = hex:gsub("#","")
+    return 	tonumber("0x"..hex:sub(1,2)) / (inFractal and 255 or 1),
+    		tonumber("0x"..hex:sub(3,4)) / (inFractal and 255 or 1),
+    		tonumber("0x"..hex:sub(5,6)) / (inFractal and 255 or 1);
+end
+
+function ConsolePort:GetControllerTexture() 
+	return ([[Interface\AddOns\ConsolePort\Controllers\%s\Front]]):format(db('type') or 'PS4')
+end

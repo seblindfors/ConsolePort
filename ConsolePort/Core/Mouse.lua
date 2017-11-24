@@ -750,7 +750,7 @@ function Core:UpdateMouseDriver()
 
 			Mouse.Button:SetTexture(ICONS[button])
 
-			RegisterStateDriver(Mouse, 'vehicle', '[petbattle][vehicleui][overridebar] true; nil')
+			RegisterStateDriver(Mouse, 'vehicle', '[petbattle][vehicleui][overridebar][possessbar] true; nil')
 			RegisterStateDriver(Mouse, 'targetstate', targetstate)
 
 			Mouse:SetAttribute('checkNPC', db.Settings.interactNPC)
@@ -797,9 +797,10 @@ function Core:UpdateMouseDriver()
 				UnregisterStateDriver(Mouse, 'vehicle')
 			end
 		end
-		ConsolePortTargetAI:SetShown(loot or button and db.Settings.interactCache)
+		ConsolePortTargetAI:SetShown(loot or button and db('interactCache'))
 		Trail:SetScript('OnUpdate', Trail.OnUpdate)
-		Trail:SetShown(not (db.Settings and db.Settings.disableCursorTrail))
+		Trail:SetShown(not db('disableCursorTrail'))
+		Mouse:SetPoint('CENTER', 0, db('interactHintOffset'))
 		self:RemoveUpdateSnippet(self.UpdateMouseDriver)
 	end
 end

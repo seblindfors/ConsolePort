@@ -759,7 +759,6 @@ TEMPLATE.QUEST_DETAIL = { chooseItems = nil, contentWidth = 507,
 		Elements.ShowGroupSize, 0, -10,
 		Elements.ShowRewards, 0, -15,
 		Elements.ShowSeal, 0, 0,
-		Elements.ShowSpacer, 0, 0,
 	}
 }
 
@@ -767,6 +766,5 @@ TEMPLATE.QUEST_REWARD = { chooseItems = true, contentWidth = 507,
 	canHaveSealMaterial = nil, sealXOffset = 300, sealYOffset = -6,
 	elements = {
 		Elements.ShowRewards, 0, -10,
-		Elements.ShowSpacer, 0, 0,
 	}
 }

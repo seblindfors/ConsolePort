@@ -100,6 +100,7 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		INTERACTCATCHER 	= 'Click here to assign.',
 		INTERACTASSIGNED 	= '|T%s:50:50:0:0|t',
+		INTERACTASSIGNED_B	= '|T%s:40:40:0:0|t',
 		INTERACTCHECK 		= 'Enable',
 		IBFULLDESC 			= 'Allows one of your buttons to interact\n with all world objects and creatures,\nwhen the original button action\ndoesn\'t have any effect.\n\nCursor required for world objects.',
 		IBLITEDESC			= 'Allows one of your buttons to interact\n with lootable corpses and friendly NPCs\nout of combat.\n\nNo cursor required.',
@@ -107,11 +108,12 @@ TUTORIAL = {
 		INTERACTNPC 		= 'Interact with targeted NPCs',
 		INTERACTCACHE 		= 'Enable smart interaction',
 		INTERACTSCRAPE		= 'Enable NPC nameplates',
+		INTERACTNAMEONLY	= 'Enable name-only mode',
 		-----------------------------------------------------------
 		TRIGGERHELP 		= 'These settings will change which graphics are displayed for your triggers and modifiers.\nIf you want to change your modifiers, you will also have to change them in your controller mapper.',
 		IBFULLHELP 			= 'Use one of your buttons to interact with objects and creatures.\nIn the case where you lack a target that befits the configured button\'s original action,\nyou will instead be able to interact with the world.\n\nExamples:\nA |cffff7575harmful|r spell will be cast upon a hostile target, but interact in all other cases.\nA |cff75ff75healing|r spell will be cast upon a friendly target, but interact in all other cases.\nA macro or a binding requires a target to be used, but interact in all other cases.',
 		IBLITEHELP 			= 'Use one of your buttons to loot your last target when you\'re in range.\nThe button you assign here will only be used for looting when...\n  • you\'re out of combat or already targeting the creature,\n  • the creature was your last target,\n  • the creature has loot for you.\n\nThe full interact button includes this functionality.',
-		TARGETAIHELP		= 'Smart interaction only:\nRemembers the NPCs you come in contact with and lets you interact with them.\n\nWith NPC nameplates:\nAllows you to interact with any NPC at all times.',
+		TARGETAIHELP		= 'Smart interaction only:\nRemembers the NPCs you come in contact with and lets you interact with them.\n\nWith NPC nameplates:\nAllows you to interact with any NPC at all times.\n\nName-only mode:\nHide nameplate healthbars on friendly units, but show on enemies in combat.',
 		HIGHLIGHTHELP 		= 'Preview your next target before you switch to it.\nIf you\'re struggling with reliable tab-targeting, set this to |cff75ff75Always on|r.',
 		IBFULLREC			= '|TInterface\\Buttons\\AdventureGuideMicrobuttonAlert:32:32:-4:0|t|cFFFFFFFFRecommended setting:|r\n  For best overall behaviour,\n  choose a button on which the\n  underlying action is a damaging spell\n  that requires an enemy target to cast.',
 		-----------------------------------------------------------
@@ -205,6 +207,7 @@ TUTORIAL = {
 	},
 	SLASH = {
 		ACCEPT 				= 'Yes (recommended)',
+		ALLOW 				= 'Always allow',
 		CANCEL 				= 'Cancel',
 		-----------------------------------------------------------
 		COMBAT 				= 'Error! Cannot reset addon in combat!',
@@ -228,7 +231,7 @@ TUTORIAL = {
 		CONFIG_COMBAT 		= 'Your controller configuration will be shown when you leave combat.',
 		-----------------------------------------------------------
 		WARNINGBINDINGUI 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You can only customize your keyboard bindings from this panel.\n\nModifying keyboard bindings while using your controller is not recommended.\n\nAny changes you commit here will also save and upload your controller calibration, which may overwrite your keyboard bindings.\n\nWould you like to edit your controller bindings, recalibrate your controller or continue anyway?',
-		WARNINGSAVEBINDINGS = '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r An attempt was made to save and upload your keyboard bindings.\n\nYour controller calibration will overwrite any conflicting bindings. These bindings will not be restored when ConsolePort is disabled.',
+		WARNINGSAVEBINDINGS = '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r An attempt was made to save and upload your keyboard bindings. Called from:\n\n%s\nin interface module %s.\n\nYour controller calibration will overwrite any conflicting bindings. These bindings will not be restored when ConsolePort is disabled.',
 		WARNINGCOMBATLOGIN 	= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You reloaded your interface in combat.\nLeave combat to complete initialization.',
 		ADVANCED_DATA		= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r You are about to apply changes to the following settings:\n\n%s\nThis will cause your interface to reload. Any changes you made in the other configuration tabs will be discarded.',
 		ADVANCED_EXPORT 	= '|cffffe00a[ConsolePort]|r\nThis is your serialized export data:\n\n%s\nCtrl+A to select and Ctrl+C to copy.',
@@ -240,6 +243,9 @@ TUTORIAL = {
 		CALIBRATIONUPDATE	= '|cffffe00a[ConsolePort]|r\nYour current calibration doesn\'t match your WoWmapper settings. Would you like to update your calibration?',
 		WMUPDATE 			= '|cffffe00a[ConsolePort]|r\nYou have recently changed your WoWmapper settings. For these changes to take effect, the interface has to be reloaded.\nReload now?',
 		EXTERNALLINK 		= '|cffffe00a[ConsolePort]|r\nLink to %s.\nCtrl+A to select and Ctrl+C to copy.',
+	},
+	ERRORS = {
+		FOCUSUNIT			= '|cFFFF1111NOTE:|r While the interface cursor is enabled, you cannot use |cFFAAAAFF'..SET_FOCUS..'|r from dropdown menus with your regular mouse. Use the interface cursor or a dedicated binding instead.',
 	},
 },
 TOOLTIP = {
@@ -339,11 +345,11 @@ ACTIONBAR = {
 	-----------------------------------------------------------
 },
 HEADERS = {
-	CP_LEFT 			= 	'Directional Pad',
-	CP_RIGHT			= 	'Action Buttons',
-	CP_CENTER			= 	'Center Buttons',
-	CP_TRIG				=	'Triggers',
-	CP_EXTRA 			= 	'Extra',
+	CP_LEFT 			= 'Directional Pad',
+	CP_RIGHT			= 'Action Buttons',
+	CP_CENTER			= 'Center Buttons',
+	CP_TRIG				= 'Triggers',
+	CP_EXTRA 			= 'Extra',
 }}
 
 

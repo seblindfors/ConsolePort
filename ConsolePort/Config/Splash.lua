@@ -373,6 +373,7 @@ function ConsolePort:CalibrateController(reset)
 			self.Binding:SetText(GetBindingText(key))
 			self.VAL = key
 		end)
+
 		cbF:SetScript("OnUpdate", function(self, elapsed)
 			if 	(ConsolePortSplashFrame and ConsolePortSplashFrame:IsVisible()) or
 				(HelpFrame and HelpFrame:IsVisible()) then
@@ -403,6 +404,7 @@ function ConsolePort:CalibrateController(reset)
 				end
 			end
 		end)
+		
 		cbF:SetScript("OnHide", function(self)
 			if self.helpFrame and self.helpFrame:IsVisible() then
 				return
@@ -479,7 +481,7 @@ function ConsolePort:SelectController()
 				Controller:SetPoint("LEFT", Splash.Center, "LEFT", BTN_WIDTH*(pos-1), 0)
 				Controller.ID = name
 
-				Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, pos*2)
+				Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, -8 + pos*2)
 				Controller.Normal:SetSize(TEX_SIZE, TEX_SIZE)
 				Controller.Normal:SetPoint("CENTER", 0, 0)
 				Controller.Normal:SetTexture("Interface\\AddOns\\ConsolePort\\Controllers\\"..name.."\\Front")

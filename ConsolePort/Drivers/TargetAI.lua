@@ -2,20 +2,22 @@ local _, db = ...
 ---------------------------------------
 local AI, SEL, HANDLE = ConsolePortTargetAI, ConsolePortTargetAISelector, ConsolePortMouseHandle
 ---------------------------------------
-local inRange, mapData = AI.InRange, AI.MapData
+local inRange, mapData, nameOnlyMode = AI.InRange, AI.MapData
 ---------------------------------------
 local spairs, copy, strsplit = db.table.spairs, db.table.copy, strsplit
-local getmetatable, setmetatable, rawset, next = getmetatable, setmetatable, rawset, next
+local getmetatable, setmetatable, rawset, next, select = getmetatable, setmetatable, rawset, next, select
 ---------------------------------------
 -- Upvalued API:
-local GetGUID, GetName, IsDead, Exists = UnitGUID, UnitName, UnitIsDead, UnitExists
-local IsPlayer, IsFriend, IsBattlePet, IsMercenary = UnitIsPlayer, UnitIsFriend, UnitIsBattlePet, UnitIsMercenary
+local GetGUID, GetName, IsDead, Exists, IsCombat = UnitGUID, UnitName, UnitIsDead, UnitExists
+local IsUnit, IsOpponent = UnitIsUnit, UnitThreatSituation
+local IsPlayer, IsFriend, IsEnemy, IsBattlePet, IsControlled = UnitIsPlayer, UnitIsFriend, UnitIsEnemy, UnitIsBattlePet, UnitPlayerControlled
+local GetNamePlate = C_NamePlate.GetNamePlateForUnit
 local CanLoot = CanLootUnit
 
 ---------------------------------------
 local BLACKLIST = {
-	['89713'] = true; 	-- Koak Hoburn, heirloom mount chauffeur
-	['89715'] = true;	-- Franklin Martin, heirloom mount chauffeur 
+	['89713'] = true; 	-- Koak Hoburn, heirloom mount driver
+	['89715'] = true;	-- Franklin Martin, heirloom mount driver 
 }
 ---------------------------------------
 -- Extended API:
@@ -24,20 +26,39 @@ local function CanInteract(guid)
 	return select(2, CanLoot(guid))
 end
 
-local function IsNPC(unit)
+local function GetUnitProperties(unit)
 	local guid = GetGUID(unit)
 	if not guid then return end
-	local unitType, _, _, _, _, ID, _ = strsplit('-',guid)
+	local unitType, _, _, _, _, ID = strsplit('-',guid)
+	return unitType, ID
+end
+
+local function IsNPC(unit)
+	local unitType, ID = GetUnitProperties(unit)
 	return 	not IsBattlePet(unit) and		-- unit should not be battlepet
 			not IsPlayer(unit) and			-- unit should not be player
-			not IsMercenary(unit) and		-- unit should not be mercenary
-			IsFriend('player', unit) and 	-- unit should be friendly
+			not IsControlled(unit) and 		-- unit should not be bodyguard
+			not IsEnemy('player', unit) and -- unit should not be enemy
 			(unitType == 'Creature') and	-- GUID should start with Creature
 			(not BLACKLIST[ID])				-- check with blacklist
 end
 
 local function IsInteractive(unit)
 	return not IsDead(unit) and CanInteract(GetGUID(unit))
+end
+
+local function ToggleHealthBarForUnit(unit)
+	if nameOnlyMode and not IsUnit('player', unit) then
+		local nameplate = GetNamePlate(unit)
+		local unitFrame = nameplate and nameplate.UnitFrame
+		local healthBar = unitFrame and unitFrame.healthBar
+		if healthBar then
+			local isFriend = IsFriend('player', unit)
+			local isTarget = IsUnit('target', unit)
+			local isCombat = IsOpponent('player', unit)
+			healthBar:SetShown(isCombat or not (isFriend or not isTarget))
+		end
+	end
 end
 
 ---------------------------------------
@@ -198,10 +219,14 @@ function AI:OnHide()
 end
 
 function AI:OnShow()
+	nameOnlyMode = db('nameplateNameOnly')
 	self:SetToCurrentMapMarker()
 	self:ForceUpdatePlates()
 	for index in pairs(self) do
 		self:RegisterEvent(index)
+	end
+	if not nameOnlyMode then
+		self:UnregisterEvent('UNIT_THREAT_LIST_UPDATE')
 	end
 end
 
@@ -390,6 +415,7 @@ end
 function AI:PLAYER_TARGET_CHANGED()
 	if Exists('target') then
 		SEL:Hide()
+		ToggleHealthBarForUnit('target')
 	else
 		self:UpdateSelection(inRange)
 	end
@@ -410,10 +436,17 @@ function AI:NAME_PLATE_UNIT_ADDED(unit)
 	if IsNPC(unit) then
 		self:Track(unit, 'plate', MAX_NAMEPLATES, true)
 	end
+	ToggleHealthBarForUnit(unit)
 end
 
 function AI:NAME_PLATE_UNIT_REMOVED(unit)
 	self:ClearNPCDirty(GetGUID(unit), 'plate')
+end
+
+function AI:UNIT_THREAT_LIST_UPDATE(unit)
+	if unit:match('nameplate') then
+		ToggleHealthBarForUnit(unit)
+	end
 end
 
 ---------------------------------------

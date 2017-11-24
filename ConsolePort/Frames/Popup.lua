@@ -48,10 +48,12 @@ local popup, defaultBackdrop
 function ConsolePort:ShowPopup(...)
 	StaticPopup_Hide(...)
 	popup = StaticPopup_Show(...)
-	defaultBackdrop = popup:GetBackdrop()
-	popup:EnableKeyboard(false)
-	popup:SetBackdrop(db.Atlas.Backdrops.FullSmall)
-	return popup
+	if popup then
+		defaultBackdrop = popup:GetBackdrop()
+		popup:EnableKeyboard(false)
+		popup:SetBackdrop(db.Atlas.Backdrops.FullSmall)
+		return popup
+	end
 end
 
 function ConsolePort:ClearPopup()

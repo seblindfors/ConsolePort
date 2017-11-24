@@ -72,6 +72,20 @@ local PAGER_SECURE_FUNCTIONS = {
 	]],
 }
 
+local function ScanLockdownCulprits(header, this, culprits)
+	this = this or UIParent
+	local __mt = getmetatable(this)
+	local __index = __mt and __mt.__index
+	if not __index or __index.GetChildren ~= this.GetChildren then
+		culprits = culprits or {}
+		culprits[this] = true
+	end
+	for _, frame in ipairs({this:GetChildren()}) do
+		ScanLockdownCulprits(header, frame, culprits)
+	end
+	return culprits
+end
+
 function ConsolePort:RegisterSpellHeader(header, omitFromStack)
 	if not InCombatLockdown() then
 

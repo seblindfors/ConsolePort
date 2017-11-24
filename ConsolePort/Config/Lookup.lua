@@ -186,8 +186,8 @@ function ConsolePort:GetActionPageDriver()
 	driver = driver .. (count + 1) -- append the list for the default bar (1) when none of the conditions apply.
 	----------------------------------
 	local newstate
-	if db.Settings and db.Settings.pagedriver then
-		newstate = SecureCmdOptionParse(db.Settings.pagedriver)
+	if db('pagedriver') then
+		newstate = SecureCmdOptionParse(db('pagedriver'))
 	elseif HasVehicleActionBar() then
 		newstate = GetVehicleBarIndex()
 	elseif HasOverrideActionBar() then
@@ -200,6 +200,15 @@ function ConsolePort:GetActionPageDriver()
 		newstate = GetActionBarPage()
 	end
 	return driver, newstate
+end
+
+function ConsolePort:GetOffsetActionID(actionID)
+	if actionID <= NUM_ACTIONBAR_BUTTONS then
+		local page = select(2, self:GetActionPageDriver())
+		return ((page-1) * NUM_ACTIONBAR_BUTTONS) + actionID
+	else
+		return actionID
+	end
 end
 
 function ConsolePort:GetActionBinding(id)
@@ -449,15 +458,11 @@ end
 ---------------------------------------------------------------
 -- Default addon settings (client wide)
 ---------------------------------------------------------------
-local v1, v2, v3 = strsplit('%d+.', GetAddOnMetadata(addOn, 'Version'))
-local VERSION = v1*10000+v2*100+v3
-
 function ConsolePort:GetDefaultAddonSettings(setting)
 	local settings = {
-		['version'] = VERSION,
 		['type'] = 'PS4',
 		['UIdropDownFix'] = true,
-		['newUser'] = true,
+	--	['newUser'] = true,
 		-------------------------------
 		['CP_M1'] = 'CP_TL1',
 		['CP_M2'] = 'CP_TL2',
@@ -707,6 +712,7 @@ end
 -- Cvar list and getter function
 ---------------------------------------------------------------
 local cvars = { -- value = default
+	allowSaveBindings 	= false,
 	alwaysHighlight 	= 0,
 	autoExtra 			= true,
 	autoLootDefault		= true,
@@ -724,16 +730,20 @@ local cvars = { -- value = default
 	disableSmartBind 	= false,
 	disableSmartMouse 	= false,
 	disableStickMouse	= false,
+	disableUI 			= false,
 	doubleModTap 		= true,
 	doubleModTapWindow 	= .25,
 	interactAuto 		= false,
 	interactNPC 		= false,
 	interactPushback 	= 1,
 	interactWith 		= false,
+	interactHintOffset 	= -300,
 	lookAround 			= false,
+	mouseInvertPitch	= false,
 	mouseOnCenter 		= true,	
 	mouseOnJump 		= false,
 	mouseOverMode 		= false,
+	nameplateNameOnly	= false,
 	turnCharacter 		= false,
 	preventMouseDrift 	= false,
 	raidCursorDirect 	= false,
@@ -754,6 +764,33 @@ local cvars = { -- value = default
 	unitHotkeyPool = 'player;party%d$;raid%d+$',
 	unitHotkeySet = '',
 }
+
+setmetatable(db, {
+	__call = function(self, cvar, newValue, ...)
+		if (newValue ~= nil) and (cvar ~= nil) then
+			local branches = select('#', ...)
+			if branches > 0 then
+				local dest = self
+				for i=1, branches do
+					dest = dest[select(i, ...)]
+					if (dest == nil) then return false end
+				end
+				dest[cvar] = newValue
+				return true
+			elseif self.Settings then
+				self.Settings[cvar] = newValue
+				return true
+			end
+			return false
+		end
+		local value = self.Settings and self.Settings[cvar]
+		if (value == nil) then
+			return cvars[cvar]
+		else
+			return value
+		end
+	end;
+})
 
 function ConsolePort:GetCompleteCVarList()
 	local cvars = copy(cvars)

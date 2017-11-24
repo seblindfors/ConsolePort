@@ -78,7 +78,7 @@ function NPC:QUEST_FINISHED(...)
 end
 
 function NPC:QUEST_DETAIL(...)
-	if self:IsQuestAutoAccept(...) then
+	if self:IsQuestAutoAccepted(...) then
 		self:PlayOutro()
 		return
 	end
@@ -267,10 +267,33 @@ function NPC:IsGossipAvailable()
 	return true
 end
 
-function NPC:IsQuestAutoAccept(questStartItemID)
-	return ( QuestIsFromAdventureMap() ) or
-		( QuestGetAutoAccept() and QuestIsFromAreaTrigger() ) or
-		( questStartItemID ~= nil and questStartItemID ~= 0 )
+
+function NPC:IsQuestAutoAccepted(questStartItemID)
+	-- Annoying concept to handle, but auto-accepted quests need to be treated differently 
+	-- from other quests, and different from eachother depending on the source of the quest. 
+	-- Handling here is prone to cause bugs/weird behaviour, update with caution.
+
+	-- the quest came from an adventure map, so user has already seen and accepted it.
+	if QuestIsFromAdventureMap() then
+		return true
+	end
+
+	-- an item pickup by loot caused this quest to show up, don't intrude on the user.
+	if (questStartItemID ~= nil and questStartItemID ~= 0) then
+		return true
+	end
+
+	-- triggered from entering an area, but also from forced campaign quests.
+	-- let's not intrude on the user; let the regular quest frame add a tracker popup.
+	if QuestIsFromAreaTrigger() then
+		return true
+	end
+
+	-- for whatever reason, there's no actual data to display, so treat as if it's auto-accepted.
+	if ( GetQuestID() == 0 or GetTitleText() == '' or GetQuestText() == '' ) then
+		return true
+	end
+
 end
 
 function NPC:ResetElements()

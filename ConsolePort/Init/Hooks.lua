@@ -42,32 +42,32 @@ function ConsolePort:LoadHookScripts()
 	local core = self
 	GameTooltip:HookScript("OnTooltipSetItem", function(self)
 		if 	not InCombatLockdown() then
-			local CLICK_STRING
+			local clickString
 			local owner = self:GetOwner()
 			local item = self:GetItem()
-			if core:IsCurrentNode(owner) then
+			if core:IsCurrentNode(owner) and not core:IsCursorObstructed() then
 				local ownerParent = owner and owner:GetParent()
 				local parentName = ownerParent and ownerParent:GetName()
 				if		parentName and parentName:match("MerchantItem") then
-						CLICK_STRING = db.CLICK.BUY
+						clickString = db.CLICK.BUY
 						if GetMerchantItemMaxStack(owner:GetID()) > 1 then 
 							self:AddLine(db.CLICK.STACK_BUY, 1,1,1)
 						end
-				-- This is a loot item.
+				-- This is a loot item?
 				elseif	ownerParent == LootFrame then
 						self:AddLine(db.CLICK_LOOT, 1,1,1)
-				-- This item is in a bag.
+				-- This item is in a bag?
 				elseif owner and owner.JunkIcon then
-					-- This is an item in the bag while talking to a merchant.
+					-- This is an item in the bag while talking to a merchant?
 					if 	MerchantFrame:IsVisible() and not IsEquippedItem(item) then 
-						CLICK_STRING = db.CLICK.SELL
-					-- This item is equippable.
+						clickString = db.CLICK.SELL
+					-- This item is equippable?
 					elseif 	IsEquippableItem(item) then -- and not IsEquippedItem(item) then
 						self:AddLine(db.CLICK.COMPARE, 1,1,1)
-						CLICK_STRING = db.CLICK.EQUIP
-					-- This item is usable.
+						clickString = db.CLICK.EQUIP
+					-- This item is usable?
 					elseif 	GetItemSpell(item) then 
-						CLICK_STRING = db.CLICK.USE
+						clickString = db.CLICK.USE
 					end
 					self:AddLine(db.CLICK.PICKUP_ITEM, 1,1,1)
 				end
@@ -76,12 +76,12 @@ function ConsolePort:LoadHookScripts()
 					if 	EquipmentFlyoutFrame:IsVisible() then
 						self:AddLine(db.CLICK_CANCEL, 1,1,1)
 					end
-					self:AddLine(CLICK_STRING, 1,1,1)
+					self:AddLine(clickString, 1,1,1)
 
 					local hasStack = select(8, GetItemInfo(item))
 					hasStack = hasStack and hasStack > 1
 					
-					if CLICK_STRING == db.CLICK.USE then
+					if clickString == db.CLICK.USE then
 						self:AddLine(db.CLICK.ADD_TO_EXTRA, 1,1,1)
 					elseif hasStack then
 						self:AddLine(db.CLICK.STACK_SPLIT)
@@ -99,7 +99,7 @@ function ConsolePort:LoadHookScripts()
 	GameTooltip:HookScript("OnTooltipSetSpell", function(self)
 		if not InCombatLockdown() then
 			local owner = self:GetOwner()
-			if core:IsCurrentNode(owner) then
+			if core:IsCurrentNode(owner) and not core:IsCursorObstructed() then
 				if 	owner and owner:GetParent() == SpellBookSpellIconsFrame and not owner.isPassive then
 					if not owner.UnlearnedFrame:IsVisible() then
 						self:AddLine(db.CLICK.USE_NOCOMBAT, 1,1,1)
@@ -126,7 +126,7 @@ function ConsolePort:LoadHookScripts()
 	-- with dropdowns. This causes separators and arrow buttons to
 	-- be ignored. 
 
-	if db.Settings.UIdropDownFix then
+	if db('UIdropDownFix') then
 		local dropDowns = {
 			DropDownList1,
 			DropDownList2,
@@ -155,11 +155,19 @@ function ConsolePort:LoadHookScripts()
 	-- game menu frame and cancels the popup, but calls from interface options will be intercepted.
 	local RealSaveBindings = SaveBindings
 	function SaveBindings(set)
+		if db('allowSaveBindings') then
+			RealSaveBindings(set)
+			return
+		end
+		local info = debugstack(2) -- get debug info
+		local addon = info and info:match('\\%a+\\'):gsub('\\', '')
+		local file = info and info:match('%a+%.lua:%d+')
 		local blockSave
 		StaticPopupDialogs['CONSOLEPORT_WARNINGSAVEBINDINGS'] = {
-			text = db.TUTORIAL.SLASH.WARNINGSAVEBINDINGS,
+			text = db.TUTORIAL.SLASH.WARNINGSAVEBINDINGS:format(file or '<unidentified file>', addon or '<unidentified addon>'),
 			button1 = ACCEPT,
 			button2 = CANCEL,
+			button3 = db.TUTORIAL.SLASH.ALLOW,
 			showAlert = true,
 			timeout = 0,
 			whileDead = true,
@@ -167,8 +175,19 @@ function ConsolePort:LoadHookScripts()
 			preferredIndex = 3,
 			enterClicksFirstButton = true,
 			exclusive = true,
-			OnCancel = function() self.ClearPopup() blockSave = true end,
-			OnHide = function() if not blockSave then RealSaveBindings(set) end end,
+			OnAlt = function() 
+				self.ClearPopup()
+				db('allowSaveBindings', true, 'Settings')
+			end,
+			OnCancel = function() 
+				self.ClearPopup()
+				blockSave = true
+			end,
+			OnHide = function()
+				if not blockSave then
+					RealSaveBindings(set)
+				end
+			end,
 		}
 		self:ShowPopup('CONSOLEPORT_WARNINGSAVEBINDINGS')
 	end

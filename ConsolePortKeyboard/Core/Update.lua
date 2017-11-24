@@ -2,22 +2,25 @@
 -- Update handler to grab the current keyboard focus
 ---------------------------------------------------------------
 local Keyboard = ConsolePortKeyboard
+local GetFocus = GetCurrentKeyBoardFocus
 local isEnabled = true
 local focus
 
 local function UpdateKeyboardFocus(self, elapsed)
 	if isEnabled then
-		focus = GetCurrentKeyBoardFocus()
+		focus = GetFocus()
 		if focus and focus:IsObjectType("EditBox") and Keyboard.Focus ~= focus then
 			Keyboard:SetFocus(focus)
+			ConsolePort:SetCursorObstructor(Keyboard, true)
 		elseif not focus and Keyboard.Focus then
 			Keyboard:CLOSE()
+			ConsolePort:SetCursorObstructor(Keyboard, false)
 		end
 	end
 end
 
-function Keyboard:SetEnabled(newstate)
-	isEnabled = newstate
+function Keyboard:SetEnabled(state)
+	isEnabled = state
 	if isEnabled then
 		ConsolePort:AddUpdateSnippet(UpdateKeyboardFocus)
 	else

@@ -1,38 +1,11 @@
 --[[
-Copyright (c) 2010-2015, Hendrik "nevcairiel" Leppkes <h.leppkes@gmail.com>
+This library is a rewrite of LibActionButton-1.0, originally by
+Hendrik "nevcairiel" Leppkes (h.leppkes@gmail.com), used in Bartender4. 
+https://www.curseforge.com/wow/addons/libactionbutton-1-0
 
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, 
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, 
-      this list of conditions and the following disclaimer in the documentation 
-      and/or other materials provided with the distribution.
-    * Neither the name of the developer nor the names of its contributors 
-      may be used to endorse or promote products derived from this software without 
-      specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-]]
-
---[[
-This version is modified for ConsolePort and removes the use of LibStub to make sure
-ConsolePort is using a separate button registry in case other action bar addons are
-simultaneously loaded. Do not copy this library for other uses.
+This version is heavily modified for ConsolePort and removes the use of LibStub/CallbackHandler
+to make sure ConsolePort is using a separate button registry in case other action bar addons are
+simultaneously loaded. Do not copy or use this library for anything else.
 ]]
 
 local _, ab = ...
@@ -49,23 +22,7 @@ local type, error, tostring, tonumber, assert, select = type, error, tostring, t
 local setmetatable, wipe, unpack, pairs, next = setmetatable, wipe, unpack, pairs, next
 local str_match, format, tinsert, tremove = string.match, format, tinsert, tremove
 
--- Global vars/functions that we don't upvalue since they might get hooked, or upgraded
--- List them here for Mikk's FindGlobals script
--- Note: No WoW API function get upvalued to allow proper interaction with any addons that try to hook them.
--- GLOBALS: LibStub, CreateFrame, InCombatLockdown, ClearCursor, GetCursorInfo, GameTooltip, GameTooltip_SetDefaultAnchor
--- GLOBALS: GetBindingKey, GetBindingText, SetBinding, SetBindingClick, GetCVar, GetMacroInfo
--- GLOBALS: PickupAction, PickupItem, PickupMacro, PickupPetAction, PickupSpell, PickupCompanion, PickupEquipmentSet
--- GLOBALS: CooldownFrame_SetTimer, UIParent, IsSpellOverlayed, SpellFlyout, GetMouseFocus, SetClampedTextureRotation
--- GLOBALS: GetActionInfo, GetActionTexture, HasAction, GetActionText, GetActionCount, GetActionCooldown, IsAttackAction
--- GLOBALS: IsAutoRepeatAction, IsEquippedAction, IsCurrentAction, IsConsumableAction, IsUsableAction, IsStackableAction, IsActionInRange
--- GLOBALS: GetSpellLink, GetMacroSpell, GetSpellTexture, GetSpellCount, GetSpellCooldown, IsAttackSpell, IsCurrentSpell
--- GLOBALS: FindSpellBookSlotBySpellID, IsUsableSpell, IsConsumableSpell, IsSpellInRange, IsAutoRepeatSpell
--- GLOBALS: GetItemIcon, GetItemCount, GetItemCooldown, IsEquippedItem, IsCurrentItem, IsUsableItem, IsConsumableItem, IsItemInRange
--- GLOBALS: GetActionCharges, IsItemAction, GetSpellCharges
--- GLOBALS: RANGE_INDICATOR, ATTACK_BUTTON_FLASH_TIME, TOOLTIP_UPDATE_TIME
--- GLOBALS: DraenorZoneAbilityFrame, HasDraenorZoneAbility, GetLastDraenorSpellTexture
-
-local CBH = ab.libs.cbh
+-- Libs
 local LBG = ab.libs.glow
 
 lib.eventFrame = lib.eventFrame or CreateFrame("Frame")
@@ -81,33 +38,24 @@ lib.NumChargeCooldowns = lib.NumChargeCooldowns or 0
 
 lib.ACTION_HIGHLIGHT_MARKS = lib.ACTION_HIGHLIGHT_MARKS or setmetatable({}, { __index = ACTION_HIGHLIGHT_MARKS })
 
-lib.callbacks = lib.callbacks or CBH:New(lib)
+-- Meta function map
+local Generic 	= CreateFrame("CheckButton")
+local Action 	= setmetatable({}, {__index = Generic})
+local Spell 	= setmetatable({}, {__index = Generic})
+local Item 		= setmetatable({}, {__index = Generic})
+local Macro 	= setmetatable({}, {__index = Generic})
+local Custom 	= setmetatable({}, {__index = Generic})
 
-local Generic = CreateFrame("CheckButton")
 local Generic_MT = {__index = Generic}
-
-local Action = setmetatable({}, {__index = Generic})
 local Action_MT = {__index = Action}
-
---local PetAction = setmetatable({}, {__index = Generic})
---local PetAction_MT = {__index = PetAction}
-
-local Spell = setmetatable({}, {__index = Generic})
-local Spell_MT = {__index = Spell}
-
-local Item = setmetatable({}, {__index = Generic})
-local Item_MT = {__index = Item}
-
-local Macro = setmetatable({}, {__index = Generic})
-local Macro_MT = {__index = Macro}
-
-local Custom = setmetatable({}, {__index = Generic})
+local Spell_MT 	= {__index = Spell}
+local Item_MT 	= {__index = Item}
+local Macro_MT 	= {__index = Macro}
 local Custom_MT = {__index = Custom}
 
 local type_meta_map = {
 	empty  = Generic_MT,
 	action = Action_MT,
-	--pet    = PetAction_MT,
 	spell  = Spell_MT,
 	item   = Item_MT,
 	macro  = Macro_MT,
@@ -116,6 +64,7 @@ local type_meta_map = {
 
 local ButtonRegistry, ActiveButtons, ActionButtons, NonActionButtons = lib.buttonRegistry, lib.activeButtons, lib.actionButtons, lib.nonActionButtons
 
+-- Local functions
 local Update, UpdateButtonState, UpdateUsable, UpdateCount, UpdateCooldown, UpdateTooltip, UpdateNewAction, UpdatePage
 local StartFlash, StopFlash, UpdateFlash, UpdateRangeTimer, UpdateOverlayGlow
 local UpdateFlyout, ShowGrid, HideGrid, SetupSecureSnippets, WrapOnClick
@@ -141,8 +90,8 @@ local DefaultConfig = {
 }
 
 --- Create a new action button.
--- @param id Internal id of the button (not used by LibActionButton-1.0, only for tracking inside the calling addon)
--- @param name Name of the button frame to be created (not used by LibActionButton-1.0 aside from naming the frame)
+-- @param id Internal id of the button
+-- @param name Name of the button frame to be created
 -- @param header Header that drives these action buttons (if any)
 function lib:CreateButton(id, name, header, config)
 	local templates = "SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate"
@@ -182,8 +131,6 @@ function lib:CreateButton(id, name, header, config)
 
 	-- somewhat of a hack for the Flyout buttons to not error.
 	button.action = 0
-
-	lib.callbacks:Fire("OnButtonCreated", button)
 
 	return button
 end
@@ -499,13 +446,12 @@ function Generic:ButtonContentsChanged(state, kind, value)
 	state = tostring(state)
 	self.state_types[state] = kind or "empty"
 	self.state_actions[state] = value
-	lib.callbacks:Fire("OnButtonContentsChanged", self, state, self.state_types[state], self.state_actions[state])
 	self:UpdateAction(self)
 end
 
 function Generic:DisableDragNDrop(flag)
 	if InCombatLockdown() then
-		error("LibActionButton-1.0: You can only toggle DragNDrop out of combat!", 2)
+		error("LibActionButton-CP: You can only toggle DragNDrop out of combat!", 2)
 	end
 	if flag then
 		self:SetAttribute("disableDragNDrop", true)
@@ -635,7 +581,7 @@ end
 
 function Generic:UpdateConfig(config)
 	if config and type(config) ~= "table" then
-		error("LibActionButton-1.0: UpdateConfig requires a valid configuration!", 2)
+		error("LibActionButton-CP: UpdateConfig requires a valid configuration!", 2)
 	end
 	if not self.config then self.config = {} end
 	-- merge the two configs
@@ -919,71 +865,6 @@ function HideGrid()
 end
 
 -----------------------------------------------------------
---- KeyBound integration
-
-function Generic:GetBindingAction()
-	return self.config.keyBoundTarget or "CLICK "..self:GetName()..":LeftButton"
-end
-
-function Generic:GetHotkey()
-	local name = "CLICK "..self:GetName()..":LeftButton"
-	local key = GetBindingKey(self.config.keyBoundTarget or name)
-	if not key and self.config.keyBoundTarget then
-		key = GetBindingKey(name)
-	end
-	if key then
-		return key
-	end
-end
-
-local function getKeys(binding, keys)
-	keys = keys or ""
-	for i = 1, select("#", GetBindingKey(binding)) do
-		local hotKey = select(i, GetBindingKey(binding))
-		if keys ~= "" then
-			keys = keys .. ", "
-		end
-		keys = keys .. GetBindingText(hotKey, "KEY_")
-	end
-	return keys
-end
-
-function Generic:GetBindings()
-	local keys, binding
-
-	if self.config.keyBoundTarget then
-		keys = getKeys(self.config.keyBoundTarget)
-	end
-
-	keys = getKeys("CLICK "..self:GetName()..":LeftButton")
-
-	return keys
-end
-
-function Generic:SetKey(key)
-	if self.config.keyBoundTarget then
-		SetBinding(key, self.config.keyBoundTarget)
-	else
-		SetBindingClick(key, self:GetName(), "LeftButton")
-	end
-	lib.callbacks:Fire("OnKeybindingChanged", self, key)
-end
-
-local function clearBindings(binding)
-	while GetBindingKey(binding) do
-		SetBinding(GetBindingKey(binding), nil)
-	end
-end
-
-function Generic:ClearBindings()
-	if self.config.keyBoundTarget then
-		clearBindings(self.config.keyBoundTarget)
-	end
-	clearBindings("CLICK "..self:GetName()..":LeftButton")
-	lib.callbacks:Fire("OnKeybindingChanged", self, nil)
-end
-
------------------------------------------------------------
 --- button management
 
 function Generic:SetClicks(mouseover)
@@ -1100,7 +981,7 @@ function Update(self)
 	end
 
 	-- Update Action Text
-	if not self:IsConsumableOrStackable() then
+	if self.isMainButton and not self:IsConsumableOrStackable() then
 		self.Name:SetText(self:GetActionText())
 	else
 		self.Name:SetText("")
@@ -1155,7 +1036,6 @@ function Update(self)
 			]]):format(formatHelper(self:GetAttribute("state")), formatHelper(self._state_type), formatHelper(self._state_action)))
 		end
 	end
-	lib.callbacks:Fire("OnButtonUpdate", self)
 end
 
 function UpdateButtonState(self)
@@ -1164,7 +1044,6 @@ function UpdateButtonState(self)
 	else
 		self:SetChecked(false)
 	end
-	lib.callbacks:Fire("OnButtonState", self)
 end
 
 function UpdateUsable(self)
@@ -1185,7 +1064,6 @@ function UpdateUsable(self)
 			--self.NormalTexture:SetVertexColor(1.0, 1.0, 1.0)
 		end
 	end
-	lib.callbacks:Fire("OnButtonUsable", self)
 end
 
 function UpdateCount(self)
@@ -1561,4 +1439,3 @@ Custom.GetSpellId              = function(self) return nil end
 Custom.RunCustom               = function(self, unit, button) return self._state_action.func(self, unit, button) end
 
 -----------------------------------------------------------
-

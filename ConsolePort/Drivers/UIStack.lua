@@ -13,19 +13,20 @@ local 	Core,
 		-- Table functions
 		pairs, next,
 		-- Stacks: all frames, visible frames, show/hide hooks
-		frames, visible, hooks, forbidden,
+		frames, visible, hooks, forbidden, obstructors,
 		-- Boolean checks (default nil)
-		hasUIFocus, isLocked, isEnabled, updateQueued =
+		hasUIFocus, isLocked, isEnabled, updateQueued, isObstructed =
 		-------------------------------------
 		ConsolePort,
 		C_Timer.After, hooksecurefunc, IsAddOnLoaded,
-		pairs, next, {}, {}, {}, {}
+		pairs, next, {}, {}, {}, {}, {}
 ---------------------------------------------------------------
 
 function Core:HasUIFocus() return hasUIFocus end
 function Core:SetUIFocus(...) hasUIFocus = ... end
 function Core:LockUICore(...) isLocked = ... end
 function Core:IsUICoreLocked() return isLocked end
+function Core:IsCursorObstructed() return isObstructed end
 
 ---------------------------------------------------------------
 -- Node modification to prevent unwanted and wonky UI behaviour.
@@ -206,6 +207,14 @@ function Core:CheckLoadedAddons()
 	end
 	for name in pairs(loaded) do
 		db.PLUGINS[name] = nil
+	end
+end
+
+function Core:SetCursorObstructor(idx, state)
+	if idx then
+		if not state then state = nil end
+		obstructors[idx] = state
+		isObstructed = ((next(obstructors) and true) or false)
 	end
 end
 

@@ -353,9 +353,11 @@ end
 
 function Field:SetValue(key, val)
 	local vt = type(val)
+	local kt = type(key)
 	self.key = key
 	self.val = val
 	self.type = vt
+	self.ktype = kt
 
 	if key then
 		local icon = db.ICONS[key]
@@ -368,7 +370,7 @@ function Field:SetValue(key, val)
 
 	self.Label:SetTextColor(unpack(colors[vt]))
 
-	if val ~= nil and ( type(val) ~= 'table' ) then
+	if val ~= nil and ( vt ~= 'table' ) then
 		self.Value:SetText(tostring(val))
 	else
 		self.Value:SetText('')
@@ -380,8 +382,22 @@ function Field:OnEnter()
 	local color = colors[self.type] or {1, 1, 1}
 	GameTooltip:SetOwner(self, 'ANCHOR_NONE')
 	GameTooltip:AddLine(key, unpack(color))
-	GameTooltip:AddLine('Type: ' .. self.type)
-	GameTooltip:AddLine('Value: ' .. tostring(self.val))
+	GameTooltip:AddLine('|cffffffffValue type:|r ' .. self.type)
+	if self.type == 'table' then
+		if not self.SavedVariable then
+			GameTooltip:AddLine('|cffffffffKey type:|r ' .. self.ktype)
+		else
+			GameTooltip:AddLine('|cffffffffValue:|r ' .. self.SavedVariable)
+		end
+		GameTooltip:AddLine('<Left click to expand/collapse>', .5, .5, .5)
+	else
+		GameTooltip:AddLine('|cffffffffValue:|r ' .. tostring(self.val))
+		GameTooltip:AddLine('|cffffffffKey type:|r ' .. self.ktype)
+		GameTooltip:AddLine('<Left click to modify value>', .5, .5, .5)
+	end
+	if not self.SavedVariable then
+		GameTooltip:AddLine('<Right click to modify key>', .5, .5, .5)
+	end
 	GameTooltip:Show()
 	GameTooltip:ClearAllPoints()
 	GameTooltip:SetPoint('BOTTOMRIGHT', Browser:GetParent(), 'BOTTOMRIGHT', 16, 0)
@@ -392,8 +408,14 @@ function Field:OnLeave()
 end
 
 function Field:OnClick(button)
-	if button == 'LeftButton' and self.type == 'table' then
-		self:CollapseOrExpand()
+	if button == 'LeftButton' then
+		if self.type == 'table' then 
+			self:CollapseOrExpand()
+		elseif self.Value:HasFocus() then
+			self.Value:ClearFocus()
+		else
+			self.Value:SetFocus()
+		end
 	elseif button == 'RightButton' and not self.SavedVariable then
 		self.Key:Show()
 		self.Key:SetFocus()
@@ -506,6 +528,10 @@ function Field:GetButtons() return pairs(self.Buttons or {}) end
 
 function WindowMixin:OnHide()
 	ClearFields()
+end
+
+function WindowMixin:OnShow()
+	LoadCurrentData()
 end
 
 ConsolePortConfig:AddPanel({

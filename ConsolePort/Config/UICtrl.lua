@@ -232,7 +232,7 @@ local function RefreshAddonList(self)
 
 		for i=1, GetNumAddOns() do
 			local name = GetAddOnInfo(i)
-			if 	( name ~= "ConsolePort") then
+			if 	( not name:match("ConsolePort") ) then
 				if not list[name] then
 					list[name] = {}
 				end
@@ -714,12 +714,28 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 	local classIcon = "Interface\\Icons\\ClassIcon_"..class
 
 	local actionBarStyles = {
-		[1] = {name = "CP_R_UP"},
-		[2] = {name = "CP_R_DOWN"},
-		[3] = {name = "CP_R_LEFT"},
+		[1] = {name = "CP_R_UP", 	animated = true},
+		[2] = {name = "CP_R_RIGHT", animated = true},
+		[3] = {name = "CP_R_LEFT", 	animated = false},
+		[4] = {name = "CP_R_DOWN", 	animated = false},
+		[5] = {name = "CP_R_DOWN", 	animated = true},
 	}
 
 	local styles = UICtrl.HotKeyModule.Styles
+
+	-- since user might not press any modifiers while browsing this module,
+	-- simulate a faux modifier change to notify the user that this style is animated.
+
+	local function SimulateModifier(self, elapsed)
+		self.time = (self.time or 0) + elapsed
+		if self.time > 1.5 then
+			self.fauxShift = not self.fauxShift
+			self.fauxCtrl = not self.fauxCtrl
+			self.GetStates = function() return self.fauxCtrl, self.fauxShift end
+			self:GetScript('OnEvent')(self)
+			self.time = 0
+		end
+	end
 
 	for index, info in pairs(actionBarStyles) do
 		local button = CreateFrame("CheckButton", "$parentStyle"..#UICtrl.HotKeyModule.Styles+1, UICtrl.HotKeyModule)
@@ -741,9 +757,14 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 		button.name = info.name
 		button.mod = "CTRL-SHIFT-"
 
-		button.HotKey = ConsolePort.CreateHotKey(button, index)
+		button.HotKey = db.CreateHotKey(button, index)
 		button.HotKey:Show()
 		button.HotKey:SetPoint("TOPRIGHT", 0, 0)
+
+		if info.animated then
+			button.HotKey:UnregisterAllEvents()
+			button.HotKey:SetScript('OnUpdate', SimulateModifier)
+		end
 
 		button:SetPoint("TOPLEFT", UICtrl.HotKeyModule, "LEFT", 32 + 52 * (index - 1), 8)
 		if ( index == db.Settings.actionBarStyle ) or ( index == 1 and not db.Settings.actionBarStyle ) then

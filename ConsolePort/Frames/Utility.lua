@@ -31,9 +31,9 @@ local RADIAN_FRACTION = rad( 360 / NUM_BUTTONS )
 local ANI_SPEED = 2
 local ANI_SMOOTH = 1.35
 
-function Animation:ShowNewAction(actionButton, autoAssigned)
+function Animation:ShowNewAction(actionButton, autoassigned)
 	-- if an item was auto-assigned, postpone its animation until the current animation has finished
-	if  autoAssigned and self.Group:IsPlaying() then
+	if  autoassigned and self.Group:IsPlaying() then
 		local progress = self.Group:GetDuration() * self.Group:GetProgress()
 		local delay = self.Group:GetDuration() - progress
 		C_Timer.After(delay, function() self:ShowNewAction(actionButton, true) end)
@@ -82,9 +82,14 @@ local function AnimateOnFinished(self)
 	self:GetParent():Hide()
 end
 
+-- called from secure scope (e.g. extra action button 1 appears)
 function Utility:AnimateNew(button) Animation:ShowNewAction(_G[button], true) end
 
-local function AddAction(actionType, ID, autoAssigned)
+
+---------------------------------------------------------------
+-- Add action to free actionbutton
+---------------------------------------------------------------
+local function AddAction(actionType, ID, autoassigned)
 	ID = tonumber(ID) or ID
 	local alreadyBound
 	for id, ActionButton in pairs(ActionButtons) do
@@ -94,48 +99,86 @@ local function AddAction(actionType, ID, autoAssigned)
 			break
 		end
 	end
-	if alreadyBound and not autoAssigned then
+	if alreadyBound and not autoassigned then
 		Animation:ShowNewAction(ActionButtons[alreadyBound])
 	elseif not alreadyBound then
-		for i, ActionButton in pairs(ActionButtons) do
+		for _, ActionButton in ipairs(ActionButtons) do
 			if not ActionButton:GetAttribute("type") then
 				if actionType == "item" then
 					ActionButton:SetAttribute("cursorID", ID)
 				end
-				ActionButton:SetAttribute("autoAssigned", autoAssigned)
+				ActionButton:SetAttribute("autoassigned", autoassigned)
 				ActionButton:SetAttribute("type", actionType)
 				ActionButton:SetAttribute(actionType, ID)
-				Animation:ShowNewAction(ActionButton, autoAssigned)
+				Animation:ShowNewAction(ActionButton, autoassigned)
 				break
 			end 
 		end
 	end
 end
 
-local function CheckQuestWatches(self)
-	if not InCombatLockdown() then
-		local questWatches = {}
-		for i=1, GetNumQuestWatches() do
-			local watchIndex = GetQuestIndexForWatch(i)
-			if watchIndex then
-				questWatches[watchIndex] = true
-			end
-		end
-		for questID in pairs(questWatches) do
-			if GetQuestLogSpecialItemInfo(questID) then
-				local name, link, _, _, _, class, sub, _, _, texture = GetItemInfo(GetQuestLogSpecialItemInfo(questID))
-				if link then
-					local _, itemID = strsplit(":", strmatch(link, "item[%-?%d:]+"))
-					if itemID then
-						AddAction("item", itemID, true)
-					end
+
+---------------------------------------------------------------
+-- Manage auto-assigned items (quest items)
+---------------------------------------------------------------
+local function GetQuestWatchItems()
+	local items = {}
+	for i=1, GetNumQuestWatches() do
+		local questID = GetQuestIndexForWatch(i)
+		if questID then
+			local link = GetQuestLogSpecialItemInfo(questID)
+			local name = link and GetItemInfo(link)
+			if name then
+				local _, itemID = strsplit(':', strmatch(link, 'item[%-?%d:]+'))
+				if itemID then
+					items[name] = itemID
 				end
 			end
 		end
-		self:RemoveUpdateSnippet(CheckQuestWatches)
+	end
+	return items
+end
+
+local function GetAutoAssignedItems()
+	local items = {}
+	for _, button in ipairs(ActionButtons) do
+		local itemID = button:GetAutoAssigned()
+		if itemID then
+			items[itemID] = button
+		end
+	end
+	return items
+end
+
+local function UpdateQuestItems(self)
+	if not InCombatLockdown() then
+
+		local oldItems = GetAutoAssignedItems()
+		local newItems = GetQuestWatchItems()
+
+		-- prune items that are not in the new set.
+		for currItem, button in pairs(oldItems) do
+			if not newItems[currItem] then
+				button:SetAttribute('type', nil)
+				button:SetAttribute('item', nil)
+			end
+		end
+
+		-- add new items that are not already autoassigned.
+		for newItemName, newItemID in pairs(newItems) do
+			if not oldItems[newItemName] then
+				AddAction('item', newItemID, true)
+			end
+		end
+
+		self:RemoveUpdateSnippet(UpdateQuestItems)
 	end
 end
 
+
+---------------------------------------------------------------
+-- Tooltip 
+---------------------------------------------------------------
 function Tooltip:Refresh()
 	if self.castButton then
 		self:AddLine(self.castInfo:format(db.TEXTURE[self.castButton]))
@@ -151,11 +194,14 @@ function Tooltip:OnShow()
 	FadeIn(self, 0.2, 0, 1)
 end
 
+---------------------------------------------------------------
+-- Ring maangement 
+---------------------------------------------------------------
 function Utility:OnEvent(event, ...)
-	if event == "QUEST_WATCH_LIST_CHANGED" and self.autoExtra then
-		ConsolePort:AddUpdateSnippet(CheckQuestWatches)
+	if (event == "QUEST_WATCH_LIST_CHANGED" or event == "QUEST_ACCEPTED") and self.autoExtra then
+		ConsolePort:AddUpdateSnippet(UpdateQuestItems)
 	end
-	for i, ActionButton in pairs(ActionButtons) do
+	for _, ActionButton in ipairs(ActionButtons) do
 		ActionButton:UpdateState()
 	end
 end
@@ -366,11 +412,11 @@ Utility:Execute([[
 	]=]
 
 	UseUtility = [=[
-		local enabled = ...
-		if enabled then
-			TOGGLED = true
+		TOGGLED = ...
+		self:SetAttribute('toggled', TOGGLED)
+
+		if TOGGLED then
 			INDEX = 0
-			self:SetAttribute("toggled", true)
 			self:Show()
 			for key in pairs(KEYS) do
 				self:SetBindingClick(true, key, "ConsolePortUtilityButton"..key)
@@ -379,8 +425,6 @@ Utility:Execute([[
 				self:SetBindingClick(true, "CTRL-SHIFT-"..key, "ConsolePortUtilityButton"..key)
 			end
 		else
-			TOGGLED = false
-			self:SetAttribute("toggled", false)
 			for key in pairs(KEYS) do
 				KEYS[key] = false
 			end
@@ -434,7 +478,7 @@ Utility:WrapScript(UseUtility, "OnClick", [[
 	Utility:Run(UseUtility, down)
 	if down then
 		self:SetAttribute("type", nil)
-		self:ClearBinding("MOUSE1")
+		self:ClearBinding("BUTTON1")
 	else
 		local button = BUTTONS[INDEX]
 		if button then
@@ -479,6 +523,9 @@ for direction, keys in pairs(buttons) do
 end
 ---------------------------------------------------------------
 
+---------------------------------------------------------------
+-- ButtonMixin for all actionbuttons
+---------------------------------------------------------------
 function ButtonMixin:PreClick(button)
 	if not InCombatLockdown() then
 		if button == "RightButton" then
@@ -579,11 +626,10 @@ function ButtonMixin:SetTexture(actionType, actionValue)
 end
 
 function ButtonMixin:OnAttributeChanged(attribute, detail)
-	if attribute == "autoassigned" or attribute == "statehidden" then
-		return
-	end
+	-- omit on autoassigned and statehidden
+	if (attribute == "autoassigned" or attribute == "statehidden") then return end
 
-	local texture, isQuest
+	-- omit on item/mount added, because they need translation first.
 	if detail then
 		if attribute == "item" and tonumber(detail) then
 			local name = GetItemInfo(detail)
@@ -598,18 +644,21 @@ function ButtonMixin:OnAttributeChanged(attribute, detail)
 		end
 		ClearCursor()
 	end
-	self:SetTexture(attribute, detail)
+
+	-- update the icon texture
+	self:UpdateTexture()
 	
+	-- store the new info in SV
 	local actionType = self:GetAttribute("type")
 	if actionType then
 		ConsolePortUtility[self.ID] = {
 			action = actionType,
 			value = self:GetAttribute(actionType),
 			cursorID = self:GetAttribute("cursorID"),
-			autoAssigned = self:GetAttribute("autoAssigned"),
+			autoassigned = self:GetAttribute("autoassigned"),
 		}
 	else
-		self.clearAutoAssign = true
+		self:SetAttribute("autoassigned", nil)
 		ConsolePortUtility[self.ID] = nil
 	end
 end
@@ -633,16 +682,25 @@ function ButtonMixin:OnLeave()
 	FadeIn(self.Quest, 0.2, self.Quest:GetAlpha(), 1)
 end
 
+function ButtonMixin:GetAutoAssigned()
+	return self:GetAttribute('autoassigned') and self:GetAttribute('item')
+end
+
+function ButtonMixin:UpdateTexture(action, val)
+	action = action or self:GetAttribute('type')
+	val = val or (action and self:GetAttribute(action))
+	self:SetTexture(action, val)
+end
+
 function ButtonMixin:UpdateState()
 	local action = self:GetAttribute("type")
-	if action and not self.icon.texture then
-		self:SetTexture(action, self:GetAttribute(action))
-	end
+	self:UpdateTexture(action)
+
 	if action == "item" then
 		local item = self:GetAttribute("item")
 		local count = GetItemCount(item)
 		local _, _, maxStack = select(6, GetItemInfo(item))
-		if  self:GetAttribute("autoAssigned") and count < 1 and not InCombatLockdown() then
+		if  self:GetAttribute("autoassigned") and count < 1 and not InCombatLockdown() then
 			self:SetAttribute("type", nil)
 			self:SetAttribute("item", nil)
 		else
@@ -688,11 +746,6 @@ function ButtonMixin:OnUpdate(elapsed)
 		else
 			self.Idle = 0
 		end
-		if self.clearAutoAssign and not InCombatLockdown() then
-			self.clearAutoAssign = nil
-			self:SetAttribute("autoAssigned", nil)
-		end
-
 		self.Timer = self.Timer - 0.25
 	end
 end
@@ -710,7 +763,7 @@ function ConsolePort:SetupUtilityRing()
 		for index, info in pairs(ConsolePortUtility) do
 			local actionButton = ActionButtons[index]
 			if info.action then
-				actionButton:SetAttribute("autoAssigned", info.autoAssigned)
+				actionButton:SetAttribute("autoassigned", info.autoassigned)
 				actionButton:SetAttribute("type", info.action)
 				actionButton:SetAttribute("cursorID", info.cursorID)
 				actionButton:SetAttribute(info.action, info.value)
@@ -723,7 +776,7 @@ function ConsolePort:SetupUtilityRing()
 		Utility:SetScale(Utility.frameScale)
 
 		if Utility.autoExtra then
-			self:AddUpdateSnippet(CheckQuestWatches)
+			self:AddUpdateSnippet(UpdateQuestItems)
 		end
 
 		for _, event in pairs({
@@ -732,6 +785,7 @@ function ConsolePort:SetupUtilityRing()
 			"ACTIONBAR_UPDATE_USABLE",
 			"BAG_UPDATE",
 			"BAG_UPDATE_COOLDOWN",
+			"QUEST_ACCEPTED",
 			"QUEST_WATCH_LIST_CHANGED",
 			"SPELL_UPDATE_COOLDOWN",
 			"SPELL_UPDATE_CHARGES",

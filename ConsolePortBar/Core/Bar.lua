@@ -160,7 +160,7 @@ function Bar:OnLoad(cfg, benign)
 	end
 
 	-- Bar vis driver
-	local visDriver = '[petbattle][vehicleui][overridebar] hide; show'
+	local visDriver = '[petbattle][vehicleui][overridebar][possessbar] hide; show'
 	if cfg.combathide then
 		visDriver = '[combat]' .. visDriver
 	end

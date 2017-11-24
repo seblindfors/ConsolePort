@@ -21,10 +21,10 @@ db.PLUGINS 	= {}
 -- Popup functions 
 ---------------------------------------------------------------
 local function LoadDefaultBindings()
-	ConsolePortConfig:OpenCategory("Binds")
+	ConsolePortConfig:OpenCategory('Binds')
 	ConsolePortConfigContainerBinds:Default()
 	ConsolePort:CheckLoadedSettings()
-end	
+end
 
 local function LoadWoWmapper()
 	db.Settings.calibration = db.table.copy(WoWmapper.Keys)
@@ -45,13 +45,12 @@ local function ResetAll()
 		ConsolePortBarSetup = nil
 		ReloadUI()
 	else
-		print("|cffffe00aConsolePort|r:", SLASH.COMBAT)
+		print('|cffffe00aConsolePort|r:', SLASH.COMBAT)
 	end
 end
 
 local function CancelPopup()
 	ConsolePort:ClearPopup()
-	ConsolePort:CheckLoadedSettings()
 end
 
 ---------------------------------------------------------------
@@ -80,6 +79,8 @@ function ConsolePort:LoadSettings()
 	-- Load exported WoWmapper settings
 	-----------------------------------------------------------
 	if WoWmapper then
+		assert(WoWmapper.Keys, 'Calibration table missing in WoWmapper export data.')
+		assert(WoWmapper.Settings, 'Settings table missing in WoWmapper export data.')
 		if db.Settings.wmupdate or ( not db.Settings.calibration ) then
 			db.Settings.wmupdate = nil
 			LoadWoWmapper()
@@ -93,7 +94,7 @@ function ConsolePort:LoadSettings()
 				end
 			end
 			for k, v in pairs(ws) do
-				if k ~= "type" and cs[k] ~= v then
+				if k ~= 'type' and cs[k] ~= v then
 					NEWCALIBRATION = true
 					break
 				end
@@ -126,7 +127,7 @@ function ConsolePort:LoadSettings()
 	-- Add empty bindings popup for later use
 	-----------------------------------------------------------
 
-	StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"] = {
+	StaticPopupDialogs['CONSOLEPORT_IMPORTBINDINGS'] = {
 		button1 = db.TUTORIAL.SLASH.ACCEPT,
 		button2 = db.TUTORIAL.SLASH.CANCEL,
 		showAlert = true,
@@ -138,7 +139,8 @@ function ConsolePort:LoadSettings()
 		exclusive = true,
 		OnAccept = LoadDefaultBindings,
 		OnCancel = CancelPopup,
-		OnShow = function(self) 
+		OnShow = function(self)
+			-- don't show the popup when selecting controller layout or calibrating.
 			if 	( ConsolePortSplashFrame and ConsolePortSplashFrame:IsVisible() ) or
 				( ConsolePortCalibrationFrame and ConsolePortCalibrationFrame:IsVisible() ) then
 				self:Hide()
@@ -175,8 +177,7 @@ function ConsolePort:LoadSettings()
 	-- Slash handler and stuff related to that
 	local SLASH = db.TUTORIAL.SLASH
 
-	local function ShowSplash(...)
-		local controller = ...
+	local function ShowSplash(controller)
 		controller = controller and strupper(controller)
 		if db.Controllers[controller] then
 			db.Settings.type = controller
@@ -197,25 +198,24 @@ function ConsolePort:LoadSettings()
 	end
 
 	local function PrintHeader(msg)
-		print( "|T" .. ( db.TEXTURE.CP_X_CENTER or "" ) .. ":24:24:0:0|t |cffffe00aConsolePort|r: " .. ( msg or "" ) )
+		print( '|T' .. ( db.TEXTURE.CP_X_CENTER or '' ) .. ':24:24:0:0|t |cffffe00aConsolePort|r: ' .. ( msg or '' ) )
 	end
 
-	local function SetControllerCVar(...)
-		local cvar, value = ...
+	local function SetControllerCVar(cvar, value)
 		local original = ConsolePort:GetCompleteCVarList()[cvar]
 		if original ~= nil then
-			if value == "true" then value = true
-			elseif value == "false" then value = false
+			if value == 'true' then value = true
+			elseif value == 'false' then value = false
 			elseif tonumber(value) then value = tonumber(value)
 			end
-			if value == "nil" then
+			if value == 'nil' then
 				db.Settings[cvar] = nil
 				PrintHeader()
 				print(format(SLASH.CVAR_APPLIED, cvar, 'nullified'))
 				print(SLASH.CVAR_WARNING_NULL)
 			elseif value == nil then
 				PrintHeader()
-				print(format(SLASH.CVAR_PRINTOUT, cvar, db.Settings[cvar]))
+				print(format(SLASH.CVAR_PRINTOUT, cvar, tostring(original) or 'undefined'))
 			elseif type(original) ~= type(value) then
 				PrintHeader()
 				print(format(SLASH.CVAR_MISMATCH, cvar, type(original)))
@@ -226,19 +226,19 @@ function ConsolePort:LoadSettings()
 			end
 		else
 			PrintHeader()
-			print(format(SLASH.CVAR_NOEXISTS, cvar or "<empty>"))
+			print(format(SLASH.CVAR_NOEXISTS, cvar or '<empty>'))
 		end
 	end
 	local function PrintCVars()
 		local cvars = ConsolePort:GetCompleteCVarList()
 		PrintHeader(SLASH.CVAR_PRINTING)
 		for k, v in db.table.spairs(cvars) do
-			print(format("|cff69ccf0/cp %s|r: %s", k, tostring(v)))
+			print(format('|cff69ccf0/cp %s|r: %s', k, tostring(v)))
 		end
 		print(SLASH.CVAR_WARNING)
 	end
 
-	local function ActionBarShow(...)
+	local function ActionBarShow()
 		if ConsolePortBar and not InCombatLockdown() then
 			ConsolePortBar:ShowLayoutPopup()
 		else
@@ -252,14 +252,14 @@ function ConsolePort:LoadSettings()
 	local function ShowCalibration() if ConsolePortConfig:IsVisible() then ConsolePortConfig:Hide() end ConsolePort:CalibrateController(true) end
 
 	local instructions = {
-		['help'] = {desc = HELP_LABEL .. ' & ' .. SHOW_TUTORIALS, func = ShowHelp},
 		['actionbar'] = {desc = SLASH.ACTIONBAR_SHOW, func = ActionBarShow},
-		['type'] = {desc = SLASH.TYPE, func = ShowSplash},
+		['binds'] = {desc = SLASH.BINDS, func = ShowBinds},
 		['config'] = {desc = SLASH.CONFIG, func = ShowConfig},
 		['cvar'] = {desc = SLASH.CVARLIST, func = PrintCVars},
-		['binds'] = {desc = SLASH.BINDS, func = ShowBinds},
+		['help'] = {desc = HELP_LABEL .. ' & ' .. SHOW_TUTORIALS, func = ShowHelp},
 		['recalibrate'] = {desc = SLASH.RECALIBRATE, func = ShowCalibration},
 		['resetall'] = {desc = SLASH.RESET, func = ResetAll},
+		['type'] = {desc = SLASH.TYPE, func = ShowSplash},
 	}
 
 	SLASH_CONSOLEPORT1, SLASH_CONSOLEPORT2 = '/cp', '/consoleport'
@@ -344,7 +344,7 @@ function ConsolePort:CheckLoadedSettings()
 			popupData.text = db.TUTORIAL.SLASH.NEWCONTROLLER
 			self:ShowPopup('CONSOLEPORT_IMPORTBINDINGS')
 			settings.newController = nil
-		elseif NEWCALIBRATION and ( not settings.id or settings.id ~= WoWmapper.Settings.id ) then
+		elseif NEWCALIBRATION and ( not settings.id or (WoWmapper and WoWmapper.Settings and (settings.id ~= WoWmapper.Settings.id)) ) then
 			NEWCALIBRATION = nil
 			settings.id = WoWmapper.Settings.id
 			StaticPopupDialogs['CONSOLEPORT_CALIBRATIONUPDATE'] = {
