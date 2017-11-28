@@ -31,6 +31,7 @@ local defaultIcons = {
 	PETATTACK = [[Interface\Icons\ABILITY_HUNTER_INVIGERATION]],
 	FOCUSTARGET = [[Interface\Icons\Ability_Hunter_MasterMarksman]],
 	----------------------------
+	['CLICK ConsolePortFocusButton:LeftButton'] = [[Interface\Icons\Spell_Nature_FocusedMind]],
 	['CLICK ConsolePortEasyMotionButton:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
 	['CLICK ConsolePortRaidCursorToggle:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
 	['CLICK ConsolePortRaidCursorFocus:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],

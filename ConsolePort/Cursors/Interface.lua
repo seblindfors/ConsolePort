@@ -18,8 +18,8 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 	 	SetOverride, ClearOverride,
 		-- General functions
 		InCombat, PlaySound, After,
-		-- Fade wrappers
-		FadeIn, FadeOut,
+		-- Utils
+		FadeIn, FadeOut, Hex2RGB,
 		-- Table functions
 		select, ipairs, pairs, wipe, abs, tinsert, pcall,
 		-- Misc
@@ -28,7 +28,7 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 		db.KEY, db.SECURE, db.TEXTURE, "CP_M1", "CP_M2",
 		SetOverrideBindingClick, ClearOverrideBindings,
 		InCombatLockdown, PlaySound, C_Timer.After,
-		db.UIFrameFadeIn, db.UIFrameFadeOut,
+		db.UIFrameFadeIn, db.UIFrameFadeOut, db.Hex2RGB,
 		select, ipairs, pairs, wipe, abs, tinsert, pcall,
 		ConsolePort, {}
 ---------------------------------------------------------------
@@ -188,7 +188,13 @@ function Cursor:SetHighlight(node)
 		if highlight:GetAtlas() then
 			mime:SetAtlas(highlight:GetAtlas())
 		else
-			mime:SetTexture(highlight:GetTexture())
+			local texture = highlight:GetTexture()
+			if texture and texture:find('^[Cc]olor-') then
+				local r, g, b = Hex2RGB(texture:sub(7))
+				mime:SetColoredTexture(r, g, b)
+			else
+				mime:SetTexture(texture)
+			end
 			mime:SetBlendMode(highlight:GetBlendMode())
 			mime:SetVertexColor(highlight:GetVertexColor())
 		end
@@ -233,21 +239,22 @@ end
 -- Node management resources
 ---------------------------------------------------------------
 local IsUsable = {
-	Button 		= true,
-	CheckButton = true,
-	EditBox 	= true,
-	Slider 		= true,
+	Button 		= true;
+	CheckButton = true;
+	EditBox 	= true;
+	Slider 		= true;
 }
 
 local IsClickable = {
-	Button 		= true,
-	CheckButton = true,
+	Button 		= true;
+	CheckButton = true;
+	EditBox 	= true;
 }
 
 local DropDownMacros = {
-	SET_FOCUS = "/focus %s",
-	CLEAR_FOCUS = "/clearfocus",
-	PET_DISMISS = "/petdismiss",
+	SET_FOCUS = "/focus %s";
+	CLEAR_FOCUS = "/clearfocus";
+	PET_DISMISS = "/petdismiss";
 }
 
 ---------------------------------------------------------------
@@ -414,7 +421,7 @@ function Node:Select(node, object, scrollFrame, state)
 	local name = node.direction and node:GetName()
 	local override
 	if IsClickable[object] then
-		override = true
+		override = (object ~= 'EditBox')
 		local enter = SafeOnEnter[node:GetScript('OnEnter')] or node:GetScript('OnEnter')
 		if enter and state == KEY.STATE_UP then
 			pcall(enter, node)
@@ -809,7 +816,7 @@ function ConsolePort:SetupCursor()
 	Cursor.IndicatorR 	= TEXTURE[db.Mouse.Cursor.Right]
 	Cursor.IndicatorS 	= TEXTURE[db.Mouse.Cursor.Special]
 
-	local red, green, blue = db.Atlas.Hex2RGB(db.COLOR[gsub(db.Mouse.Cursor.Left, "CP_._", "")], true)
+	local red, green, blue = Hex2RGB(db.COLOR[gsub(db.Mouse.Cursor.Left, "CP_._", "")], true)
 
 	Cursor.Scroll 		= db.Mouse.Cursor.Scroll
 	Cursor.ScrollGuide 	= Cursor.Scroll == M1 and TEXTURE.CP_M1 or TEXTURE.CP_M2
@@ -817,7 +824,9 @@ function ConsolePort:SetupCursor()
 	Cursor.Spell = Cursor.Spell or CreateFrame("PlayerModel", nil, Cursor)
 	Cursor.Spell:SetAlpha(0.1)
 	Cursor.Spell:SetDisplayInfo(42486)
-	Cursor.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+	if red and green and blue then
+		Cursor.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+	end
 	Cursor.Spell:SetScript("OnShow", function(self)
 		self:SetSize(70, 70)
 		self:SetPoint("CENTER", Cursor, "BOTTOMLEFT", 20, 13)

@@ -1,7 +1,7 @@
 ## Interface: 70300
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 1.7.3
+## Version: 1.7.4
 
 ## Author: Sebastian Lindfors
 ## X-Website: http://www.consoleport.net
@@ -37,11 +37,14 @@ Core\Mouse.lua
 Core\Cvar.lua
 Core\Events.lua
 Core\UICore.lua
+Core\Callback.lua
 
-Drivers\Callback.lua
 Drivers\Pager.lua
 Drivers\EasyMotion.lua
+Drivers\FocusHold.lua
 Drivers\TargetAI.lua
+Drivers\OverrideBarExit.lua
+
 Drivers\UIStack.lua
 Drivers\UITracker.lua
 Drivers\UIProbe.lua
@@ -57,7 +60,6 @@ Frames\Stacksplit.lua
 Frames\Utility.lua
 Frames\Flyout.lua
 Frames\Helper.lua
-Frames\OverrideBarExit.lua
 
 UI\Utils.lua
 UI\Media.lua

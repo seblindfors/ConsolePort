@@ -1,7 +1,7 @@
 local _, ab = ...
 local db = ab.data
 local Bar = ab.bar
-local WindowMixin, Layout, Button, Position, Color, Bool, Profiler, Preset = {}, {}, {}, {}, {}, {}, {}, {}
+local WindowMixin, Generic, Layout, Button, Position, Color, Bool, Profiler, Preset = {}, {}, {}, {}, {}, {}, {}, {}, {}
 
 local VALID_POINTS = {
 	TOP = true, 
@@ -17,6 +17,18 @@ local VALID_DIRS = {
 	right = true,
 	[''] = true,
 }
+
+function Generic:OnLeave()
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
+function Generic:OnHide()
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
 
 function Button:OnShow()
 	local entry = self.Layout.cfg[self.Binding]
@@ -175,12 +187,6 @@ function Position:OnEnter()
 	end
 end
 
-function Position:OnLeave()
-	if GameTooltip:IsOwned(self) then
-		GameTooltip:Hide()
-	end
-end
-
 function Position:OnTextChanged(userInput)
 	if userInput then
 		if self.isNumeric then
@@ -220,12 +226,6 @@ function Bool:OnEnter()
 	end
 end
 
-function Bool:OnLeave()
-	if GameTooltip:IsOwned(self) then
-		GameTooltip:Hide()
-	end
-end
-
 function Color:OnClick(button)
 	if button == 'LeftButton' then
 		local r, g, b, a = ab:GetRGBColorFor(self.element)
@@ -250,10 +250,6 @@ function Color:OnEnter()
 	local r, g, b, a = ab:GetRGBColorFor(self.element)
 	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
 	GameTooltip:SetText(format(db.ACTIONBAR.CFG_COLOR_TOOLTIP, floor(r * 255), floor(g * 255), floor(b * 255), floor(a * 100)))
-end
-
-function Color:OnLeave()
-	GameTooltip:Hide()
 end
 
 function Color:OnShow()
@@ -311,11 +307,11 @@ function Layout:CreateButton(binding, icon)
 	button.yOffset:SetPoint('LEFT', button.xOffset, 'RIGHT', -4, 0)
 	button.direction:SetPoint('LEFT', button.yOffset, 'RIGHT', -4, 0)
 
-	db.table.mixin(button.size, Position)
-	db.table.mixin(button.point, Position)
-	db.table.mixin(button.xOffset, Position)
-	db.table.mixin(button.yOffset, Position)
-	db.table.mixin(button.direction, Position)
+	db.table.mixin(button.size, Generic, Position)
+	db.table.mixin(button.point, Generic, Position)
+	db.table.mixin(button.xOffset, Generic, Position)
+	db.table.mixin(button.yOffset, Generic, Position)
+	db.table.mixin(button.direction, Generic, Position)
 
 	button.size:OnLoad(1, 'size', 75, nil, nil, nil, button.point)
 
@@ -342,7 +338,7 @@ function Layout:CreateBooleanSwitch(cvar, desc)
 	button.text:SetText(desc)
 	button:SetChecked(ab.cfg and ab.cfg[cvar])
 	button.cvar = cvar
-	db.table.mixin(button, Bool)
+	db.table.mixin(button, Generic, Bool)
 	return button
 end
 
@@ -402,10 +398,6 @@ function Preset:OnEnter()
 	GameTooltip:Show()
 end
 
-function Preset:OnLeave()
-	GameTooltip:Hide()
-end
-
 function Profiler:CreatePreset()
 	local id = self.numActive
 	local preset = db.Atlas.GetFutureButton('$parentPreset'..id, self.Child, nil, nil, 300, 46, true)
@@ -430,7 +422,7 @@ function Profiler:CreatePreset()
 	viewer.Line:SetTexCoord(0, 0.8164, 0.6660, 0.7968)
 	viewer.Line:SetAlpha(0.35)
 
-	db.table.mixin(preset, Preset)
+	db.table.mixin(preset, Generic, Preset)
 
 	preset.Layout = self.Layout
 	preset.Viewer = viewer
@@ -572,7 +564,7 @@ function WindowMixin:CreateLayoutModule()
 			color.Display:SetColorTexture(unpack(ab.cfg[id]))
 			Bar:OnLoad(ab.cfg, true)
 		end,
-		db.table.mixin(color, Color)
+		db.table.mixin(color, Generic, Color)
 	end
 
 	-- Button header

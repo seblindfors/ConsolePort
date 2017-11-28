@@ -20,8 +20,6 @@ ab.data = db
 ---------------------------------------------------------------
 
 Bar:SetAttribute('actionpage', now)
-Bar:SetFrameRef('ActionBar', MainMenuBarArtFrame)
-Bar:SetFrameRef('OverrideBar', OverrideActionBar)
 Bar:SetFrameRef('Cursor', ConsolePortRaidCursor)
 Bar:SetFrameRef('Mouse', ConsolePortMouseHandle)
 

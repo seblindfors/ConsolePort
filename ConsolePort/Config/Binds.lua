@@ -294,18 +294,15 @@ end
 function HeaderMixin:SetValues()
 	local bindings = self.Bindings
 	local buttons = self.ValueList.Buttons
-	local set = newBindingSet or ConsolePortBindingSet
-	local vCount = 0
 	local config = config.listButton
 	config.omitHeader = true
-	for i, binding in pairs(bindings) do
-		vCount = vCount + 1
-		local button = buttons[i] or BindingMixin:CreateButton("$parentButton"..vCount, self.ValueList, true, config)
+	for i, binding in ipairs(bindings) do
+		local button = buttons[i] or BindingMixin:CreateButton("$parentButton"..i, self.ValueList, true, config)
 		button:SetBinding(binding.binding)
 		button.name = binding.name
 		button:OnShow()
 	end
-	self.ValueList:Refresh(vCount)
+	self.ValueList:Refresh(#bindings)
 end
 
 function HeaderMixin:OnClick()

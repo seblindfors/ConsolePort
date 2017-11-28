@@ -123,7 +123,7 @@ function ConsolePort:LoadControllerTheme()
 	----------------------------------
 	-- Set globals for click bindings
 	----------------------------------
-	for _, info in pairs(self:GetAddonBindings()) do
+	for _, info in pairs(self:GetCustomBindings()) do
 		if info.binding and info.binding:match('CLICK') then
 			_G['BINDING_NAME_'..info.binding] = info.name
 		end
@@ -136,11 +136,12 @@ function ConsolePort:LoadControllerTheme()
 	LoadTooltipLines()
 end
 
-db.Hex2RGB = function(hex, inFractal)
-    hex = hex:gsub("#","")
-    return 	tonumber("0x"..hex:sub(1,2)) / (inFractal and 255 or 1),
-    		tonumber("0x"..hex:sub(3,4)) / (inFractal and 255 or 1),
-    		tonumber("0x"..hex:sub(5,6)) / (inFractal and 255 or 1);
+db.Hex2RGB = function(hex, fractal)
+    hex = hex:gsub('#','')
+    local divisor = fractal and 255 or 1
+    return 	( (tonumber(hex:sub(1,2), 16) or 1) / divisor ),
+    		( (tonumber(hex:sub(3,4), 16) or 1) / divisor ),
+    		( (tonumber(hex:sub(5,6), 16) or 1) / divisor );
 end
 
 function ConsolePort:GetControllerTexture() 

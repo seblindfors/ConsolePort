@@ -627,7 +627,7 @@ end
 
 function ButtonMixin:OnAttributeChanged(attribute, detail)
 	-- omit on autoassigned and statehidden
-	if (attribute == "autoassigned" or attribute == "statehidden") then return end
+	if (attribute == "autoassigned" or attribute == "statehidden" or attribute == "unit") then return end
 
 	-- omit on item/mount added, because they need translation first.
 	if detail then

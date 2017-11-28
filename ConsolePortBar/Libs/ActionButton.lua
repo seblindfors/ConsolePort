@@ -164,6 +164,7 @@ function SetupSecureSnippets(button)
 	]])
 
 	button:SetAttribute("actionpage", 1)
+	button:SetAttribute("useparent-unit", true)
 
 	-- this function is invoked by the header when the state changes
 	button:SetAttribute("_childupdate-state", [[
@@ -1232,15 +1233,11 @@ function UpdateTooltip(self)
 end
 
 function ShowOverlayGlow(self)
-	if LBG then
-		LBG.ShowOverlayGlow(self)
-	end
+	LBG.ShowOverlayGlow(self)
 end
 
 function HideOverlayGlow(self)
-	if LBG then
-		LBG.HideOverlayGlow(self)
-	end
+	LBG.HideOverlayGlow(self)
 end
 
 function UpdateOverlayGlow(self)

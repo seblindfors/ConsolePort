@@ -1,8 +1,8 @@
 ---------------------------------------------------------------
 -- Lookup.lua: Lookup tables for all intents and purposes
 ---------------------------------------------------------------
--- Tables/functions in this file are used to get static data
--- used when generating settings. Essentially, it's a database.
+-- Tables/functions in this file are used to get information
+-- used when generating settings and game state data.
 
 local addOn, db = ...
 ---------------------------------------------------------------
@@ -163,7 +163,6 @@ local ACTION_ID_RANGE = 72
 local ACTION_ID_STANCE_RANGE = 120
 local ACTION_ID_MAX_THRESHOLD = 169
 ---------------------------------------------------------------
-local DefaultBar = MainMenuBarArtFrame
 
 ---------------------------------------------------------------
 -- Functions for grabbing action button data
@@ -185,6 +184,10 @@ function ConsolePort:GetActionPageDriver()
 	}) do  driver = driver .. conditionFormat:format(macroCondition, i) count = i end
 	driver = driver .. (count + 1) -- append the list for the default bar (1) when none of the conditions apply.
 	----------------------------------
+	return driver, self:GetActionPage()
+end
+
+function ConsolePort:GetActionPage()
 	local newstate
 	if db('pagedriver') then
 		newstate = SecureCmdOptionParse(db('pagedriver'))
@@ -199,12 +202,12 @@ function ConsolePort:GetActionPageDriver()
 	else
 		newstate = GetActionBarPage()
 	end
-	return driver, newstate
+	return newstate
 end
 
 function ConsolePort:GetOffsetActionID(actionID)
 	if actionID <= NUM_ACTIONBAR_BUTTONS then
-		local page = select(2, self:GetActionPageDriver())
+		local page = self:GetActionPage()
 		return ((page-1) * NUM_ACTIONBAR_BUTTONS) + actionID
 	else
 		return actionID
@@ -231,8 +234,7 @@ end
 function ConsolePort:GetActionID(bindName)
 	if bindName ~= nil then
 		for ID=1, ACTION_ID_MAX_THRESHOLD do
-			local binding = actionIDs[ID]
-			if binding == bindName then
+			if actionIDs[ID] == bindName then
 				return tonumber(ID)
 			end
 		end
@@ -242,7 +244,7 @@ end
 function ConsolePort:GetActionTexture(bindName)
 	local ID = self:GetActionID(bindName)
 	if ID then
-		local actionpage = DefaultBar:GetAttribute('actionpage')
+		local actionpage = self:GetActionPage()
 		return ID < 73 and GetActionTexture(ID + (actionpage - 1) * 12) or GetActionTexture(ID)
 	end
 end
@@ -543,7 +545,7 @@ end
 ---------------------------------------------------------------
 -- Get all hidden customly created convenience bindings 
 ---------------------------------------------------------------
-function ConsolePort:GetAddonBindings()
+function ConsolePort:GetCustomBindings()
 	local L = db.CUSTOMBINDS
 	return {
 		-- Mouse bindings
@@ -552,6 +554,7 @@ function ConsolePort:GetAddonBindings()
 		{name = L.TURNORACTION, binding = 'TURNORACTION'},
 		-- Targeting
 		{name = L.CP_TARGETING},
+		{name = L.CP_FOCUSCAST, binding = 'CLICK ConsolePortFocusButton:LeftButton'},
 		{name = L.CP_EM_FRAMES, binding = 'CLICK ConsolePortEasyMotionButton:LeftButton'},
 	--	{name = L.CP_EM_PLATES, binding = 'CLICK ConsolePortEasyMotionButton:RightButton'},
 	--	{name = L.CP_EM_NEAREST, binding = 'CLICK ConsolePortEasyMotionButton:MiddleButton'},
@@ -708,63 +711,69 @@ function ConsolePort:GetDefaultUIFrames()
 	}
 end
 
----------------------------------------------------------------
--- Cvar list and getter function
----------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
+-- Cvar list and getter/setter functions
+------------------------------------------------------------------------------------------------------------
 local cvars = { -- value = default
-	allowSaveBindings 	= false,
-	alwaysHighlight 	= 0,
-	autoExtra 			= true,
-	autoLootDefault		= true,
-	autoSellJunk 		= true,
-	cameraYawDeadzone 	= .8,
-	cameraYawSmoothOut 	= .085,
-	cameraYawSmoothIn 	= .155,
-	cameraYawMaxAngle 	= 30,
-	centerLockRangeX 	= 70,
-	centerLockRangeY 	= 180,
-	centerLockDeadzoneX = 4,
-	centerLockDeadzoneY = 4,
-	disableCursorTrail 	= false,
-	disableHints 		= false,
-	disableSmartBind 	= false,
-	disableSmartMouse 	= false,
-	disableStickMouse	= false,
-	disableUI 			= false,
-	doubleModTap 		= true,
-	doubleModTapWindow 	= .25,
-	interactAuto 		= false,
-	interactNPC 		= false,
-	interactPushback 	= 1,
-	interactWith 		= false,
-	interactHintOffset 	= -300,
-	lookAround 			= false,
-	mouseInvertPitch	= false,
-	mouseOnCenter 		= true,	
-	mouseOnJump 		= false,
-	mouseOverMode 		= false,
-	nameplateNameOnly	= false,
-	turnCharacter 		= false,
-	preventMouseDrift 	= false,
-	raidCursorDirect 	= false,
-	raidCursorModifier 	= '',
-	skipCalibration 	= false,
-	skipGuideBtn 		= false,
-	UIleaveCombatDelay	= .5,
-	UIholdRepeatDelay 	= .125,
-	UIdisableHoldRepeat = false,
-	UIdropDownFix		= false,
-	utilityRingScale 	= 1,
-	unitHotkeySize 		= 32,
-	unitHotkeyOffsetX 	= 0,
-	unitHotkeyOffsetY 	= 0,
-	unitHotkeyAnchor	= 'CENTER',
-	unitHotkeyGhostMode = false,
-	unitHotkeyIgnorePlayer = false,
-	unitHotkeyPool = 'player;party%d$;raid%d+$',
-	unitHotkeySet = '',
-}
+------------------------------------------------------------------------------------------------------------
+	allowSaveBindings 	= false					;-- Allow binding data uploads (overwrites kb/m bindings)
+	alwaysHighlight 	= 0						;-- Always highlight tab target
+	autoExtra 			= true					;-- Automatically bind Qitems to utility ring
+	autoLootDefault		= true					;-- Force auto-loot in combat
+	autoSellJunk 		= true					;-- Automatically sell junk
+	cameraYawDeadzone 	= .8					;-- Yaw script deadzone (fraction of half of screen width)
+	cameraYawSmoothOut 	= .085					;-- Yaw script smooth pan out
+	cameraYawSmoothIn 	= .155					;-- Yaw script smooth pan in
+	cameraYawMaxAngle 	= 30					;-- Max angle to pan before stopping
+	centerLockRangeX 	= 70					;-- Center mouse lock width
+	centerLockRangeY 	= 180					;-- Center mouse lock height
+	centerLockDeadzoneX = 4						;-- Center mouse lock deadzone width
+	centerLockDeadzoneY = 4						;-- Center mouse lock deadzone height
+	disableCursorTrail 	= false					;-- Rclick/interact icon trailing cursor
+	disableHints 		= false					;-- Hints on how certain things work
+	disableSmartBind 	= false					;-- Unbound combos default to nomod binding
+	disableSmartMouse 	= false					;-- Smart cursor show/hide
+	disableStickMouse	= false					;-- Override bindings for stick buttons
+	disableUI 			= false					;-- Interface cursor
+	doubleModTap 		= true					;-- Toggle mouselook by double tapping a modifier
+	doubleModTapWindow 	= .25					;-- How fast a modifier has to be tapped
+	exitVehicleBinding	= 'ACTIONBUTTON7'		;-- Override vehicle exit binding from set
+	interactAuto 		= false					;-- ?
+	interactNPC 		= false					;-- Interact with targeted NPCs
+	interactPushback 	= 1						;-- Pushback after cast to avoid cursor toggle
+	interactWith 		= false					;-- Interact button ID
+	interactHintOffset 	= -300					;-- Interact frame Y-offset from UIParent center
+	lookAround 			= false					;-- Look around on L3 while in mouselook
+	mouseInvertPitch	= false					;-- Invert mouse pitch
+	mouseOnCenter 		= true					;-- Camera mode when mouseover center of UI
+	mouseOnJump 		= false					;-- Camera mode on jump
+	mouseOverMode 		= false					;-- Interact button mouseover priority
+	nameplateNameOnly	= false					;-- Show only names when nameplate interaction is on
+	turnCharacter 		= false					;-- Turn instead of strafe out of mouselook
+	preventMouseDrift 	= false					;-- Lock mouse when drifting to screen edge
+	raidCursorDirect 	= false					;-- Target directly with raid cursor
+	raidCursorModifier 	= ''					;-- Modifier to combine with D-pad for cursor control
+	skipCalibration 	= false					;-- Don't check calibration on login
+	skipGuideBtn 		= false					;-- Don't check calibration for the center button
+	UIleaveCombatDelay	= .5					;-- Delay before re-activating UI core after combat
+	UIholdRepeatDelay 	= .125					;-- Delay until a D-pad input is repeated (interface)
+	UIdisableHoldRepeat = false					;-- Disable D-pad input repeater
+	UIdisableTooltipFix = false					;-- Disable mouse cursor anchor workaround
+	UIdropDownFix		= false					;-- Fix interface cursor on dropdowns
+	utilityRingScale 	= 1						;-- Scale of the utility ring
+	unitHotkeySize 		= 32					;-- Size of unit hotkeys
+	unitHotkeyOffsetX 	= 0						;-- Offset X-placement on unit frames
+	unitHotkeyOffsetY 	= 0						;-- Offset Y-placement on unit frames
+	unitHotkeyAnchor	= 'CENTER'				;-- Anchor on unit frames
+	unitHotkeyGhostMode = false					;-- Restore calculated combinations after targeting
+	unitHotkeyIgnorePlayer = false				;-- Always ignore player (regardless of pool)
+	unitHotkeyPool = 'player;party%d$;raid%d+$'	;-- String match criteria for unit hotkey pool
+	unitHotkeySet = ''							;-- Force button set for unit hotkey filtering
+------------------------------------------------------------------------------------------------------------
+}	--------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
 
+-- Usage: db('cvar', [newValue], ... [branch in database])
 setmetatable(db, {
 	__call = function(self, cvar, newValue, ...)
 		if (newValue ~= nil) and (cvar ~= nil) then

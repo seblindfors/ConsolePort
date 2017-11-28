@@ -230,6 +230,7 @@ local ignoreFrames = {
 	[OverrideActionBar] = true,
 	[ObjectiveTrackerFrame] = true,
 	[UIErrorsFrame] = true,
+	[ZoneTextFrame] = true,
 	----------------------------------
 	['TalkingHeadFrame'] = true,
 }

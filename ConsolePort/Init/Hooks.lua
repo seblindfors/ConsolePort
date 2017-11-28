@@ -15,24 +15,24 @@ do
 	-- instead resorting to table keys to determine correct action.
 	-- Assigning the attribute manually unifies default UI with addons.
 	local bars = {
-		["ActionButton"] = 1,
-		["MultiBarRightButton"] = 3,
-		["MultiBarLeftButton"] = 4,
-		["MultiBarBottomRightButton"] = 5,
-		["MultiBarBottomLeftButton"] = 6,
+		['ActionButton'] = 1,
+		['MultiBarRightButton'] = 3,
+		['MultiBarLeftButton'] = 4,
+		['MultiBarBottomRightButton'] = 5,
+		['MultiBarBottomLeftButton'] = 6,
 	}
 
 	for bar, page in pairs(bars) do
 		for btn=1, 12 do
 			local button = _G[bar..btn]
-			button:SetAttribute("action", (12 * (page - 1)) + btn)
+			button:SetAttribute('action', (12 * (page - 1)) + btn)
 		end
 	end
 
-	ExtraActionButton1:SetAttribute("action", 169)
+	ExtraActionButton1:SetAttribute('action', 169)
 
 	for i=1, 6 do
-		_G["OverrideActionBarButton"..i]:SetAttribute("action", 132 + i)
+		_G['OverrideActionBarButton'..i]:SetAttribute('action', 132 + i)
 	end
 end
 
@@ -40,7 +40,7 @@ end
 function ConsolePort:LoadHookScripts()
 	-- Click instruction hooks. Pending removal for cleaner solution
 	local core = self
-	GameTooltip:HookScript("OnTooltipSetItem", function(self)
+	GameTooltip:HookScript('OnTooltipSetItem', function(self)
 		if 	not InCombatLockdown() then
 			local clickString
 			local owner = self:GetOwner()
@@ -48,7 +48,7 @@ function ConsolePort:LoadHookScripts()
 			if core:IsCurrentNode(owner) and not core:IsCursorObstructed() then
 				local ownerParent = owner and owner:GetParent()
 				local parentName = ownerParent and ownerParent:GetName()
-				if		parentName and parentName:match("MerchantItem") then
+				if		parentName and parentName:match('MerchantItem') then
 						clickString = db.CLICK.BUY
 						if GetMerchantItemMaxStack(owner:GetID()) > 1 then 
 							self:AddLine(db.CLICK.STACK_BUY, 1,1,1)
@@ -96,7 +96,7 @@ function ConsolePort:LoadHookScripts()
 			end
 		end
 	end)
-	GameTooltip:HookScript("OnTooltipSetSpell", function(self)
+	GameTooltip:HookScript('OnTooltipSetSpell', function(self)
 		if not InCombatLockdown() then
 			local owner = self:GetOwner()
 			if core:IsCurrentNode(owner) and not core:IsCursorObstructed() then
@@ -111,15 +111,26 @@ function ConsolePort:LoadHookScripts()
 		end
 	end)
 
-	-- hooksecurefunc(GameTooltip, 'SetOwner', function(tooltip, owner, anchor)
-	-- 	if self:IsCurrentNode(owner) and anchor ~= 'ANCHOR_TOPLEFT' then
-	-- 		tooltip:SetOwner(owner, 'ANCHOR_TOPLEFT')
-	-- 	end
-	-- end)
+	-- Re-adjust tooltips anchored to mouse cursor when owned by the interface cursor.
+	if not db('UIdisableTooltipFix') then
+		local function TooltipAdjustOnShow(self)
+			local node = core:GetCurrentNode()
+			if node and self:IsOwned(node) then
+				local anchor = self:GetAnchorType()
+				if anchor and anchor:match('^ANCHOR_CURSOR') then
+					anchor = anchor:gsub('ANCHOR_CURSOR', 'ANCHOR')
+					self:SetAnchorType(anchor, 0, 0)
+				end
+			end
+		end
+
+		GameTooltip:HookScript('OnShow', TooltipAdjustOnShow)
+		WorldMapTooltip:HookScript('OnShow', TooltipAdjustOnShow)
+	end
 	
 	-- Disable keyboard input when splitting stacks (will obstruct controller input)
 	StackSplitFrame:EnableKeyboard(false)
-	-- Remove the need to type "DELETE" when removing rare or better quality items
+	-- Remove the need to type 'DELETE' when removing rare or better quality items
 	StaticPopupDialogs.DELETE_GOOD_ITEM = StaticPopupDialogs.DELETE_ITEM
 
 	-- This hook might cause issues, but refines the interaction
@@ -133,7 +144,7 @@ function ConsolePort:LoadHookScripts()
 		}
 
 		for _, DD in pairs(dropDowns) do
-			DD:HookScript("OnShow", function(self)
+			DD:HookScript('OnShow', function(self)
 				for _, child in ipairs({self:GetChildren()}) do
 					if (child.IsVisible and not child:IsVisible()) or (child.IsEnabled and not child:IsEnabled()) then
 						child.ignoreNode = true

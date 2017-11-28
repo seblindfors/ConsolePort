@@ -3,10 +3,8 @@
 ---------------------------------------------------------------
 local ExitButton = OverrideActionBarLeaveFrameLeaveButton
 ---------------------------------------------------------------
-if not ExitButton then return end
-
 local _, db = ...
-local OBExit = CreateFrame('Frame', nil, nil, 'SecureHandlerStateTemplate')
+local OBExit = ConsolePortOBExit
 local EXIT_VEHICLE_BINDING = ('ACTIONBUTTON' .. ((NUM_OVERRIDE_BUTTONS or 6) + 1))
 
 function OBExit:SetExitBinding(name, mod)
@@ -32,13 +30,15 @@ end
 
 function OBExit:SetHotkey(name, mod)
 	if ( name and mod ) then
-		if not self.HotKey then
+		if not self.HotKey and ExitButton then
 			-- hack: use ctrl+shift here to spawn two mod icons
 			self.HotKey = db.CreateHotKey(ExitButton, nil, 'CTRL-SHIFT-', name)
 			self.HotKey:SetPoint('TOPRIGHT', ExitButton, 0, 0)
 		end
-		self.HotKey:Show()
-		self.HotKey:SetBindingCombination(name, mod)
+		if 	self.HotKey then
+			self.HotKey:Show()
+			self.HotKey:SetBindingCombination(name, mod)
+		end
 	elseif self.HotKey then
 		self.HotKey:Hide()
 	end

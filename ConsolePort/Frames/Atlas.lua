@@ -105,20 +105,6 @@ Atlas.Overlays = {
 Atlas.GetCC = function() return cc.r, cc.g, cc.b end
 Atlas.GetOverlay = function(otherClass) return Atlas.Overlays[otherClass or class] end
 ---------------------------------------------------------------
-Atlas.Hex2RGB = function(hex, inPercent)
-	if hex then
-	    hex = hex:gsub("#","")
-	    if inPercent then
-	    	return 	tonumber("0x"..hex:sub(1,2)) / 255,
-					tonumber("0x"..hex:sub(3,4)) / 255,
-					tonumber("0x"..hex:sub(5,6)) / 255
-		else
-			return 	tonumber("0x"..hex:sub(1,2)),
-					tonumber("0x"..hex:sub(3,4)),
-					tonumber("0x"..hex:sub(5,6))
-		end
-	end
-end
 Atlas.GetNormalizedCC = function()
 	local col = {cc.r, cc.g, cc.b}
 	local high = 0
@@ -609,7 +595,7 @@ function Atlas.BindingMeta:RefreshBindings()
 		-- scrub base controller bindings, since they're not relevant.
 		bindings["ConsolePort "] = nil
 		-- include hidden bindings
-		bindings[db.TUTORIAL.BIND.MAINCATEGORY] = ConsolePort:GetAddonBindings()
+		bindings[db.TUTORIAL.BIND.MAINCATEGORY] = ConsolePort:GetCustomBindings()
 		-- update/add the counter
 		bindingCounter = numBindings
 	end

@@ -3,7 +3,7 @@
 ---------------------------------------------------------------
 -- Creates a set of combinations for different pools of units,
 -- in order to alleviate targeting. A healer's delight. 
--- Thanks to Yoki for original concept and code! :) 
+-- Thanks to Yoki for original concept! :) 
 
 local addOn, db = ...
 ---------------------------------------------------------------

@@ -289,6 +289,7 @@ CUSTOMBINDS = {
 	CP_EM_PLATES		=	'Target Nameplates (Hold)',
 	CP_EM_NEAREST		= 	'Target Nearest or Nameplates (Hold)',
 	CP_TOGGLEMOUSE		= 	'Toggle Mouse Look',
+	CP_FOCUSCAST		= 	FOCUS_CAST_KEY_TEXT .. ' (Hold)',
 	CP_PAGE2 			= 	BINDING_NAME_ACTIONPAGE2 .. ' (Hold)',
 	CP_PAGE3 			= 	BINDING_NAME_ACTIONPAGE3 .. ' (Hold)',
 	CP_PAGE4 			= 	BINDING_NAME_ACTIONPAGE4 .. ' (Hold)',

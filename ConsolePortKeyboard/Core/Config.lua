@@ -1,8 +1,7 @@
 local addOn, Language = ...
 ---------------------------------------------------------------
 local db = ConsolePort:GetData()
-local Copy = db.table.copy
-local pairsByKeys = db.table.spairs
+local Copy, pairsByKeys, Hex2RGB = db.table.copy, db.table.spairs, db.Hex2RGB
 ---------------------------------------------------------------
 local Keyboard = ConsolePortKeyboard
 local NewLayout
@@ -13,11 +12,6 @@ local colors = {
 	db.COLOR.DOWN,
 	db.COLOR.RIGHT,
 }
----------------------------------------------------------------
-local function Hex2RGB(hex)
-    hex = hex:gsub("#","")
-    return tonumber("0x"..hex:sub(1,2)), tonumber("0x"..hex:sub(3,4)), tonumber("0x"..hex:sub(5,6))
-end
 ---------------------------------------------------------------
 local WindowMixin = {}
 
@@ -116,7 +110,7 @@ local function ConfigureConfig(Config, self)
 		for btnIndex, button in ipairs(buttonSet) do
 			for index, string in pairs(button) do
 				local Field = CreateFrame("EditBox", "$parentField"..setIndex..btnIndex..index, Config)
-				local red, green, blue = Hex2RGB(colors[btnIndex])
+				local red, green, blue = Hex2RGB(colors[btnIndex], true)
 				local point, anchor, relativePoint, xOffset, yOffset = Keyboard.Sets[setIndex]:GetPoint()
 				-- offset the points in a circular fashion
 				Field:SetPoint(point, Config, relativePoint,
@@ -130,7 +124,7 @@ local function ConfigureConfig(Config, self)
 				Field.Update = UpdateField
 				Field:SetAutoFocus(false)
 				Field:SetFont("Interface\\AddOns\\ConsolePortKeyboard\\Fonts\\arial.TTF", 14)
-				Field:SetTextColor(red/255, green/255, blue/255, 1)
+				Field:SetTextColor(red, green, blue, 1)
 				Field:SetText(string)
 				Field:SetCursorPosition(0)
 				Field:SetScript("OnTextChanged", TextChanged)

@@ -139,6 +139,8 @@
 		ConsolePortSpellFlyout: D-pad selection in spell flyouts.
 		ConsolePortRaidCursor:	Target selection in raids and parties.
 		ConsolePortTargetAI:	Remembers interactive NPCs and lets user interact with them.
+		ConsolePortOBExit:		Exit vehicle/override/possess bar with a dynamic binding.
+		ConsolePortFocusButton: Hold to re-route spells to focus target. (FOCUSCAST override)
 		ConsolePortEasyMotionButton :  Easy Motion (combo shortcuts for targeting).
 	-->
 
@@ -407,6 +409,12 @@
 			</OnLoad>
 		</Scripts>
 	</Button>
+
+	<!-- Drivers\OverrideBarExit.lua -->
+	<Frame name="ConsolePortOBExit" inherits="SecureHandlerStateTemplate" hidden="true"/>
+
+	<!-- Drivers\FocusHold.lua -->
+	<Button name="ConsolePortFocusButton" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown"/>
 
 	<!-- Drivers\EasyMotion.lua -->
 	<Button name="ConsolePortEasyMotionButton" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown">
