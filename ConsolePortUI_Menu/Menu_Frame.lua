@@ -16,7 +16,7 @@ local function HideMenu(self)
 	end
 end
 
-local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate', {
+local Menu =  UI:CreateFrame('Frame', an, UIParent, 'SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate', {
 	{
 		BG = {
 			Type 	= 'Texture',
@@ -711,6 +711,7 @@ local lootWireFrame = {
 }
 
 do	
+	ConsolePortUIConfig = ConsolePortUIConfig or {}
 	ConsolePortUIConfig.Menu = ConsolePortUIConfig.Menu or {}
 
 	local cfg = ConsolePortUIConfig.Menu
@@ -759,16 +760,18 @@ do
 
 	Menu:Execute(format('numheaders = %s', NUM_HEADERS))
 
+	Menu.probe = UI:CreateProbe(Menu, GameMenuFrame, 'showhide')
 	Menu:SetSize(1024, 128)
+	Menu:Hide()
 	Menu:SetFrameStrata('FULLSCREEN')
 
 	Menu.HideMenu = HideMenu
 
 	UI:RegisterFrame(Menu, 'Menu', false, true)
-	UI:HideFrame(GameMenuFrame, true)
+	UI:HideFrame(GameMenuFrame)
 
 	Menu:SetScale(cfg.scale)
-	Menu:SetPoint(cfg.anchor.point, UIParent, cfg.anchor.point, cfg.anchor.offsetX, cfg.anchor.offsetY)
+	Menu:SetPoint(cfg.anchor.point, cfg.anchor.offsetX, cfg.anchor.offsetY)
 
 	L.Menu = Menu
 end
@@ -790,13 +793,13 @@ Gameplay
 	Achievements
 	What's New
 	Shop
-+ 	Teleport
+- 	Teleport
 Social
 	Friends List
 	Guild (guild finder)
 	Raid
 	Events (Calendar)
-+	Leave Group
+-	Leave Group
 System
 	Return to game
 	Logout

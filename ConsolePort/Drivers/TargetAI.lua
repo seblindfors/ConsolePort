@@ -9,7 +9,7 @@ local getmetatable, setmetatable, rawset, next, select = getmetatable, setmetata
 ---------------------------------------
 -- Upvalued API:
 local GetGUID, GetName, IsDead, Exists, IsCombat = UnitGUID, UnitName, UnitIsDead, UnitExists
-local IsUnit, IsOpponent, IsAttackable = UnitIsUnit, UnitThreatSituation, UnitCanAttack
+local IsUnit, IsOpponent = UnitIsUnit, UnitThreatSituation
 local IsPlayer, IsFriend, IsEnemy, IsBattlePet, IsControlled = UnitIsPlayer, UnitIsFriend, UnitIsEnemy, UnitIsBattlePet, UnitPlayerControlled
 local GetNamePlate = C_NamePlate.GetNamePlateForUnit
 local CanLoot = CanLootUnit
@@ -39,7 +39,6 @@ local function IsNPC(unit)
 			not IsPlayer(unit) and			-- unit should not be player
 			not IsControlled(unit) and 		-- unit should not be bodyguard
 			not IsEnemy('player', unit) and -- unit should not be enemy
-			not IsAttackable('player', unit) and 
 			(unitType == 'Creature') and	-- GUID should start with Creature
 			(not BLACKLIST[ID])				-- check with blacklist
 end
@@ -223,8 +222,8 @@ function AI:OnShow()
 	nameOnlyMode = db('nameplateNameOnly')
 	self:SetToCurrentMapMarker()
 	self:ForceUpdatePlates()
-	for event in pairs(self) do
-		self:RegisterEvent(event)
+	for index in pairs(self) do
+		self:RegisterEvent(index)
 	end
 	if not nameOnlyMode then
 		self:UnregisterEvent('UNIT_THREAT_LIST_UPDATE')
@@ -254,7 +253,7 @@ function AI:OnUpdate(elapsed)
 			self:NAME_PLATE_UNIT_ADDED(unit)
 		end
 		self.plateIdx = self.plateIdx + 1
-		if self.plateIdx > MAX_NAMEPLATES then
+		if self.plateIdx >= MAX_NAMEPLATES then
 			self.plateUpdate = nil
 		end
 	end
@@ -445,7 +444,7 @@ function AI:NAME_PLATE_UNIT_REMOVED(unit)
 end
 
 function AI:UNIT_THREAT_LIST_UPDATE(unit)
-	if unit and unit:match('nameplate') then
+	if unit:match('nameplate') then
 		ToggleHealthBarForUnit(unit)
 	end
 end

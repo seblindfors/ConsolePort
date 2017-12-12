@@ -212,7 +212,7 @@ TUTORIAL = {
 		-----------------------------------------------------------
 		COMBAT 				= 'Error! Cannot reset addon in combat!',
 		CVAR_APPLIED		= 'New value applied to: |cffffe00a%s|r > %s\nChanges will take effect after you |cffffe00a/reload|r.',
-		CVAR_PRINTOUT		= '|cffffe00a%s|r:\nDescription: %s\nCurrent value: |cff69ccf0%s|r',
+		CVAR_PRINTOUT		= 'Current value for |cffffe00a%s|r is:\n%s',
 		CVAR_MISMATCH		= 'Error! Type mismatch in variable |cffffe00a%s|r.\nType should be: |cffffe00a%s|r',
 		CVAR_NOEXISTS 		= 'Error! Variable |cffffe00a%s|r isn\'t registered.\nType |cffffe00a/cp cvar|r for complete list.',
 		CVAR_PRINTING 		= 'Printing cvars...',
@@ -246,7 +246,6 @@ TUTORIAL = {
 	},
 	ERRORS = {
 		FOCUSUNIT			= '|cFFFF1111NOTE:|r While the interface cursor is enabled, you cannot use |cFFAAAAFF'..SET_FOCUS..'|r from dropdown menus with your regular mouse. Use the interface cursor or a dedicated binding instead.',
-		NPCMODULE			= '|cFFFF1111NOTE:|r ConsolePort: Quest & Gossip has been replaced by the standalone |cff69ccf0Immersion|r. Please download |cff69ccf0Immersion|r instead.\nhttps://www.curseforge.com/wow/addons/immersion',
 	},
 },
 TOOLTIP = {

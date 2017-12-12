@@ -99,12 +99,6 @@
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
-				<Texture parentKey="Ghost">
-					<Size x="32" y="32"/>
-					<Anchors>
-						<Anchor point="BOTTOMRIGHT" relativePoint="CENTER" x="-8" y="-2"/>
-					</Anchors>
-				</Texture>
 				<Texture parentKey="Use">
 					<Size x="24" y="24"/>
 					<Anchors>
@@ -420,7 +414,7 @@
 	<Frame name="ConsolePortOBExit" inherits="SecureHandlerStateTemplate" hidden="true"/>
 
 	<!-- Drivers\FocusHold.lua -->
-	<Button name="ConsolePortFocusButton" inherits="SecureHandlerClickTemplate" hidden="true" registerForClicks="AnyUp, AnyDown"/>
+	<Button name="ConsolePortFocusButton" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown"/>
 
 	<!-- Drivers\EasyMotion.lua -->
 	<Button name="ConsolePortEasyMotionButton" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown">

@@ -13,8 +13,8 @@ local 	WorldFrame, UIParent, GameTooltip, Core =
 		WorldFrame, UIParent, GameTooltip, ConsolePort
 ---------------------------------------------------------------
 -- Camera functions
-local 	GetMouseFocus, HasCursorItem, SpellIsTargeting, IsMouseButtonDown, IsMouselooking = 
-		GetMouseFocus, GetCursorInfo, SpellIsTargeting, IsMouseButtonDown, IsMouselooking
+local 	GetMouseFocus, HasCursorItem, SpellIsTargeting, IsMouseButtonDown, IsMouselooking, FlipCameraYaw = 
+		GetMouseFocus, GetCursorInfo, SpellIsTargeting, IsMouseButtonDown, IsMouselooking, FlipCameraYaw
 ---------------------------------------------------------------
 -- Highlight functions
 local 	HighlightStart, HighlightStop = 
@@ -65,15 +65,9 @@ function Camera:OnUpdate(elapsed)
 	interactPushback = interactPushback > 0 and interactPushback - elapsed or 0
 end
 
-local yawDeadZone, yawSmoothOut, yawSmoothIn, yawMaxAngle
+local yawFlipped, yawDeadZone, yawSmoothOut, yawSmoothIn, yawMaxAngle = .0
 do
 	local viewPortCenter, mousePos, offset, newAngle
-	local FlipCameraYaw, yawFlipped = FlipCameraYaw, .0
-
-	local function AdjustCameraYaw(yawOffset, actionCamOffset)
-		FlipCameraYaw(yawOffset)
-		SetCVar('test_cameraOverShoulder', -actionCamOffset * (actionCamOffset > 0 and .25 or .15))
-	end
 
 	function Camera:CalculateYaw()
 		if not cameraMode and hasWorldFocus then
@@ -84,15 +78,15 @@ do
 				newAngle = yawFlipped + (offset * yawSmoothIn)
 				if newAngle < yawMaxAngle and newAngle > -yawMaxAngle then
 					yawFlipped = newAngle
-					AdjustCameraYaw(offset * yawSmoothIn, yawFlipped)
+					FlipCameraYaw(offset * yawSmoothIn)
 				end
 			end
 		elseif yawFlipped ~= 0 then
 			offset = -yawFlipped * yawSmoothOut
 			yawFlipped = yawFlipped + offset
-			AdjustCameraYaw(offset, yawFlipped)
+			FlipCameraYaw(offset)
 			if abs(yawFlipped) < .5 then
-				AdjustCameraYaw(-yawFlipped, 0)
+				FlipCameraYaw(-yawFlipped)
 				yawFlipped = 0
 			end
 		end
@@ -587,20 +581,6 @@ function Mouse:PrepareTracking()
 end
 
 -- Workaround: loot is not always available right away.
-function Mouse:FindLootFromCache(delay, dispatcherCallback)
-	if 	self.cachedUnit
-		and not InCombatLockdown() 
-		and not self:GetAttribute('blockhandle')
-		and not UnitExists('target')
-		and CanLootUnit(self.cachedUnit) then
-		--------------------------------------------------
-		return CanLootUnit(self.cachedUnit)
-		--------------------------------------------------
-	elseif dispatcherCallback then
-		self:DispatchLootCheck(delay, self.lootCheckSpool, false)
-	end
-end
-
 -- Since there's no event indicating when a GUID has loot,
 -- this function needs to query the game multiple times with some delay.
 function Mouse:DispatchLootCheck(delay, numCalls, firstCall)
@@ -608,11 +588,17 @@ function Mouse:DispatchLootCheck(delay, numCalls, firstCall)
 	if self.lootCheckSpool < 1 then return end
 	--------------------------------------------------
 	C_Timer.After(delay, function()
-		if self:FindLootFromCache(delay, true) then
+		if 	self.cachedUnit
+			and not InCombatLockdown() 
+			and not self:GetAttribute('blockhandle')
+			and not UnitExists('target')
+			and CanLootUnit(self.cachedUnit) then
 			--------------------------------------------------
 			self:SetIcon(self.override or self.interactWith)
 			self:SetScript('OnUpdate', self.CheckLootOverride)
 			--------------------------------------------------
+		else
+			self:DispatchLootCheck(delay, self.lootCheckSpool, false)
 		end
 	end)
 end
@@ -638,16 +624,10 @@ function Mouse:TrackUnit(fauxUnit, blocked, forceCache)
 		end
 	-- in proximity of tracked GUID, check proximity (insecure).
 	elseif ( not blocked and self.artificial ) then
-		-- artificial unit might stand next to lootable mob
-		local hasLoot, canLoot = self:FindLootFromCache()
-		if ( hasLoot and canLoot ) then
-			self:SetIcon(self.override or self.interactWith)
-			self:SetScript('OnUpdate', self.CheckLootOverride)
-		else -- proceed with artificial unit
-			self:SetIcon(self.override or self.interactWith)
-			self:SetScript('OnUpdate', self.CheckArtificial)
-		end
+		self:SetIcon(self.override or self.interactWith)
+		self:SetScript('OnUpdate', self.CheckArtificial)
 		self:TogglePortrait(false)
+	
 	else -- cached last target might have loot, check proximity (insecure).
 		if ( not blocked and self.cachedUnit ) then
 			self:DispatchLootCheck(.35, 10, true)
@@ -720,18 +700,9 @@ function Trail.OnTooltipClear()
 	Trail.isMouseOver = nil
 end
 
-function Trail:ShowPrimaryTextures(toggled)
-	self.Ghost:SetShown(not toggled)
-	self.Use:SetShown(toggled)
-	self.Cancel:SetShown(toggled)
-	self.Primary:SetShown(toggled)
-	self.Secondary:SetShown(toggled)
-end
-
 function Trail:OnUpdate()
 	local posX, posY = GetCursorPosition()
 	self:SetPoint('BOTTOMLEFT', posX+24, posY-46)
-	self:ShowPrimaryTextures(true)
 	if ( self.isTargeting and isTargeting ) then
 		self:SetAlpha(1)
 	elseif ( self.hasItem and hasItem ) then
@@ -745,9 +716,6 @@ function Trail:OnUpdate()
 		self:SetAlpha(1)
 	elseif self.isMouseOver and not cameraMode then
 		self:SetAlpha(GameTooltip:GetAlpha())
-	elseif self.ghostMode and cameraMode then
-		self:ShowPrimaryTextures(false)
-		self:SetAlpha(self.ghostAlpha or .25)
 	else
 		self:SetAlpha(0)
 	end
@@ -830,17 +798,9 @@ function Core:UpdateMouseDriver()
 			end
 		end
 		ConsolePortTargetAI:SetShown(loot or button and db('interactCache'))
-		------------------------------------------------
-		Trail.ghostMode = db('cursorTrailGhost')
-		Trail.ghostAlpha = db('cursorTrailGhostVis')
-		Trail.Ghost:SetTexture(db('cursorTrailGhostTex'))
-		Trail.Ghost:SetShown(db('cursorTrailGhost'))
 		Trail:SetScript('OnUpdate', Trail.OnUpdate)
 		Trail:SetShown(not db('disableCursorTrail'))
-		------------------------------------------------
 		Mouse:SetPoint('CENTER', 0, db('interactHintOffset'))
-		Mouse.Line:SetShown(not db('interactHintNoLine'))
-		Mouse.Line:SetAlpha(db('interactHintLineVis'))
 		self:RemoveUpdateSnippet(self.UpdateMouseDriver)
 	end
 end

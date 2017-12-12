@@ -6,9 +6,10 @@
 -- secure scope. A probed object needs to be signed or secure.
 -- Probed objects will become inherently secure after probing.
 
-local Probe, _probeID = {}, 1
+local Probe = CreateFrame('Frame')
+local Probe_MT = {__index = Probe}
 
-local assert, mixin = assert, Mixin
+local setmetatable, assert = setmetatable, assert
 local CreateFrame, InCombatLockdown = CreateFrame, InCombatLockdown
 local SCRIPT, TEMPLATES 
 
@@ -24,13 +25,11 @@ function ConsolePortUI:CreateProbe(owner, object, state, name, script)
 	assert(not InCombatLockdown(), 'Probe cannot be created in combat.')
 	if type(object) == 'string' then object = _G[object] end
 	assert(type(object) == 'table', 'Probed object is not a valid frame.')
-	local probe = CreateFrame('Frame', name or ('ConsolePortProbe%s'):format(_probeID), object, 'SecureHandlerShowHideTemplate, SecureHandlerEnterLeaveTemplate')
-	Mixin(probe, Probe)
+	local probe = setmetatable(CreateFrame('Frame', name, object, 'SecureHandlerShowHideTemplate, SecureHandlerEnterLeaveTemplate'), Probe_MT)
 	probe:SetType(state)
 	probe:SetOwner(owner)
 	probe:SetObject(object)
 	probe:SetResponseScript(script)
-	_probeID = _probeID + 1
 	return probe
 end
 
@@ -46,12 +45,12 @@ function ConsolePortUI:InsecureHookShowHide(owner, object)
 	owner:SetShown(object:IsShown())
 end
 
-function ConsolePortUI:HideFrame(frame, ignoreAlpha)
+function ConsolePortUI:HideFrame(frame)
 	assert(frame, 'Usage: UI:HideFrame(frame)')
 	frame:SetSize(0, 0)
 	frame:EnableMouse(false)
 	frame:EnableKeyboard(false)
-	frame:SetAlpha(ignoreAlpha and frame:GetAlpha() or 0)
+	frame:SetAlpha(0)
 	frame:ClearAllPoints()
 	ConsolePort:ForbidFrame(frame)
 end
@@ -97,10 +96,10 @@ end
 
 ----------------------------
 SCRIPT = {
-	show = [[local _=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) owner:Hide() owner:Show()]],
-	hide = [[local _=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _ < 1 then owner:Hide() end]],
-	pcsh = [[local _=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) if _cb then owner:Run(_cb,_) end]],
-	pchi = [[local _=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _cb then owner:Run(_cb,_) end]],
+	show = [[_=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) owner:Hide() owner:Show()]],
+	hide = [[_=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _ < 1 then owner:Hide() end]],
+	pcsh = [[_=(owner:GetAttribute('pc') or 0)+1 owner:SetAttribute('pc',_) if _cb then owner:Run(_cb,_) end]],
+	pchi = [[_=(owner:GetAttribute('pc') or 1)-1 owner:SetAttribute('pc',_) if _cb then owner:Run(_cb,_) end]],
 	omit = [[return nil]],
 }
 ----------------------------

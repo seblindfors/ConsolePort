@@ -206,10 +206,8 @@ end
 ----------------------------------
 -- UI Fader
 ----------------------------------
-local IsFrameWidget = C_Widget.IsFrameWidget
 local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
 local updateThrottle = 0
-----------------------------------
 local ignoreFrames = {
 	[Control] = true,
 	[Control.HintBar] = true,
@@ -240,9 +238,8 @@ local forceFrames = {
 	['ConsolePortBar'] = true,
 	['MainMenuBar']  = true,
 }
-----------------------------------
 
-local function GetFadeFrames(onlyActionBars, focusFrame)
+local function GetFadeFrames(onlyActionBars)
 	local fadeFrames, frameStack = {}
 	if onlyActionBars then
 		frameStack = {}
@@ -256,29 +253,27 @@ local function GetFadeFrames(onlyActionBars, focusFrame)
 		frameStack = {UIParent:GetChildren()}
 	end
 	----------------------------------
-	local focusFrame = IsFrameWidget(focusFrame) and focusFrame or _G[focusFrame]
-	local containingFrame = focusFrame and focusFrame:GetParent()
-	----------------------------------
-	local name, forceChild, ignoreChild, isConsolePortFrame
+	local valid, name, forceChild, ignoreChild, isConsolePortFrame
 	----------------------------------
 	for i, child in ipairs(frameStack) do
 		if not child:IsForbidden() then -- assert this frame isn't forbidden
 			----------------------------------
+			valid = false
 			name = child:GetName()
 			forceChild = name and forceFrames[name]
 			ignoreChild = ignoreFrames[child] or ignoreFrames[name]
 			isConsolePortFrame = name and name:match('ConsolePort')
 			----------------------------------
-				-- assert that the containing frame is ignored, so that it doesn't also fade the focused frame.
-			if 	( containingFrame ~= child ) and (
+			if 	( Registry[child] and not ignoreChild ) or
 				-- if the frame is in the UI registry and not set to be ignored,
 				-- valid when multiple frames are shown simultaneously to fade out unfocused frames.
-				( Registry[child] and not ignoreChild ) or
-				-- if the frame belongs to the ConsolePort suite and should be faded regardless
 				( isConsolePortFrame and forceChild ) or
+				-- if the frame belongs to the ConsolePort suite and should be faded regardless
+				( ( forceChild ) or ( not isConsolePortFrame and not ignoreChild ) ) then
 				-- if the frame is forced (action bars), or if the frame is not explicitly ignored
-				( ( forceChild ) or ( not isConsolePortFrame and not ignoreChild ) ) ) then
-				-- prerequisite match, feed frame to fader
+				valid = true
+			end
+			if valid then
 				fadeFrames[child] = child.fadeInfo and child.fadeInfo.endAlpha or child:GetAlpha()
 			end
 		end
@@ -322,7 +317,7 @@ function Control:HideUI(focusFrame, onlyActionBars)
 		self:SetIgnoreFadeFrame(focusFrame, true, true)
 	end
 
-	local frames = GetFadeFrames(onlyActionBars, focusFrame)
+	local frames = GetFadeFrames(onlyActionBars)
 	for frame in pairs(frames) do
 		FadeOut(frame, fadeTime or 0.2, frame:GetAlpha(), 0)
 	end
@@ -421,17 +416,13 @@ end
 ----------------------------------
 -- Hint control
 ----------------------------------
-function Control:SetHintFocus(forceFrame)
-	self.HintBar.focus = forceFrame or self:GetAttribute('focus')
+function Control:SetHintFocus()
+	self.HintBar.focus = self:GetAttribute('focus')
 	self.focus = self.HintBar.focus
 end
 
-function Control:IsHintFocus(frame)
-	return (self.focus == frame)
-end
-
-function Control:ClearHintsForFrame(forceFrame)
-	self.StoredHints[forceFrame or self:GetAttribute('remove')] = nil
+function Control:ClearHintsForFrame()
+	self.StoredHints[self:GetAttribute('remove')] = nil
 end
 
 function Control:RestoreHints()

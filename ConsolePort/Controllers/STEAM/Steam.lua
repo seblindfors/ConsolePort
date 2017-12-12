@@ -46,6 +46,7 @@ db.Controllers.STEAM = {
 		['UIdisableHoldRepeat'] = true,
 		-------------------------------
 	--	['interactWith'] = 'CP_R_GRIP',
+	--	['mouseOverMode'] = true,
 		-------------------------------
 	},
 	Layout = {

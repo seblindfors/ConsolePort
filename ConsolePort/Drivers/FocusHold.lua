@@ -48,7 +48,7 @@ FOCUS:SetAttribute('UpdateFrameCache', [[
 	end
 ]])
 
-FOCUS:SetAttribute('_onclick', [[
+FOCUS:WrapScript(FOCUS, 'OnClick', [[
 	if down then
 		self:RunAttribute('UpdateFrameCache')
 		for node in pairs(CACHE) do

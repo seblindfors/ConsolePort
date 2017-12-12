@@ -531,7 +531,6 @@ function WindowMixin:OnHide()
 end
 
 function WindowMixin:OnShow()
-	ClearFields()
 	LoadCurrentData()
 end
 

@@ -212,7 +212,7 @@ local function RefreshAddonList(self)
 		button:Hide()
 	end
 
-	if db('showAllAddons') then
+	if db.Settings.showAllAddons then
 		for addon, frames in spairs(UIFrames) do
 			list[addon] = frames
 		end
@@ -251,7 +251,11 @@ local function RefreshAddonList(self)
 		else
 			button = self.Buttons[num]
 		end
-		button.Loaded:SetTexture("Interface\\FriendsFrame\\StatusIcon-" .. (IsAddOnLoaded(addon) and "Online" or "Offline"))
+		if IsAddOnLoaded(addon) then
+			button.Loaded:SetTexture("Interface\\FriendsFrame\\StatusIcon-Online")
+		else
+			button.Loaded:SetTexture("Interface\\FriendsFrame\\StatusIcon-Offline")
+		end
 		if UIFrames[addon] then
 			button:SetScript("OnClick", RefreshFrameList)
 			button.Alter:SetScript("OnClick", RemoveAddonOnClick)

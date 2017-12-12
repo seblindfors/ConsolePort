@@ -1,0 +1,542 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+
+	<!-- Button templates -->
+	<Button name="CPUINPCRewardSpellCodeTemplate" virtual="true">
+		<Scripts>
+			<OnEnter>
+				GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+				GameTooltip:SetQuestRewardSpell(self.rewardSpellIndex);
+			</OnEnter>
+			<OnClick>
+				if ( IsModifiedClick("CHATLINK") ) then
+					ChatEdit_InsertLink(GetQuestSpellLink(self.rewardSpellIndex));
+				end
+			</OnClick>
+			<OnLeave>
+				GameTooltip:Hide();
+				ResetCursor();
+			</OnLeave>
+		</Scripts>
+	</Button>
+
+	<Button name="CPUINPCRewardItemCodeTemplate" virtual="true">
+		<Scripts>
+			<OnEnter>
+				GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+				if (self.objectType == "item") then
+					GameTooltip:SetQuestItem(self.type, self:GetID());
+					GameTooltip_ShowCompareItem(GameTooltip);
+				elseif (self.objectType == "currency") then
+					GameTooltip:SetQuestCurrency(self.type, self:GetID());
+				end
+				CursorUpdate(self);
+			</OnEnter>
+			<OnClick>
+				if ( IsModifiedClick() and self.objectType == "item") then
+					HandleModifiedItemClick(GetQuestItemLink(self.type, self:GetID()));
+				else
+					if ( self.container.chooseItems and self.type == "choice" ) then
+						self.container.itemChoice = self:GetID();
+						self.highlight:SetPoint('TOPLEFT', self, 0, 0);
+						self.highlight:Show();
+					end
+				end
+			</OnClick>
+			<OnLeave>
+				GameTooltip:Hide();
+				ResetCursor();
+			</OnLeave>
+			<OnUpdate>
+				CursorOnUpdate(self, elapsed);
+			</OnUpdate>
+		</Scripts>
+	</Button>
+
+	<Button name="CPUINPCQuestSpellTemplate" hidden="true" virtual="true">
+		<Size x="250" y="56"/>
+		<HitRectInsets left="0" right="0" top="0" bottom="14"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Icon" name="$parentIconTexture">
+					<Size x="39" y="39"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-2"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="NameFrame" name="$parentNameFrame" file="Interface\QuestFrame\UI-QuestItemNameFrame">
+					<Size x="230" y="64"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="-16" y="0"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Name" name="$parentName" inherits="GameFontHighlight" justifyH="LEFT" >
+					<Size  x="180" y="36"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.NameFrame"  x="24" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture name="$parentSpellBorder" inherits="Spellbook-SlotFrame">
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Icon" x="2" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnEnter>
+				if (self.spellID) then
+					GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+					GameTooltip:SetSpellByID(self.spellID);
+				end
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide();
+			</OnLeave>
+			<OnClick>
+				if ( IsModifiedClick("CHATLINK") and self.spellID) then
+					ChatEdit_InsertLink(GetSpellLink(self.spellID));
+				end
+			</OnClick>
+		</Scripts>
+	</Button>
+
+	<Button name="CPUINPCItemButtonTemplate" virtual="true">
+		<Size x="250" y="54" />
+		<Layers>
+			<Layer level="BORDER">
+				<Texture name="$parentIconTexture" parentKey="Icon">
+					<Size x="52" y="52" />
+					<Anchors>
+						<Anchor point="TOPLEFT" />
+					</Anchors>
+				</Texture>
+				<FontString name="$parentName" inherits="GameFontHighlight" justifyH="LEFT" parentKey="Name">
+					<Size x="170" y="36" />
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="8" y="0" />
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentNameFrame" file="Interface\QuestFrame\UI-QuestItemNameFrame" parentKey="NameFrame">
+					<Size x="254" y="70" />
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="CENTER" x="-20" y="0" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString name="$parentCount" inherits="NumberFontNormal" justifyH="RIGHT" parentKey="Count">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="-1" y="1" />
+					</Anchors>
+				</FontString>
+				<Texture name="$parentBorderexture" parentKey="Border" file="Interface\AddOns\ConsolePort\Textures\Button\Normal">
+					<Size x="52" y="52" />
+					<Anchors>
+						<Anchor point="TOPLEFT" />
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self.Icon:SetMask("Interface\\Minimap\\UI-Minimap-Background");
+			</OnLoad>
+		</Scripts>
+	</Button>
+
+
+	<!-- Content frame -->
+	<Frame name="CPUINPCContentFrame" virtual="true">
+		<Frames>
+
+			<Frame parentKey="SpacerFrame">
+				<Size x="5" y="5"/>
+			</Frame>
+
+			<Frame parentKey="SealFrame">
+				<Size x="257" y="78"/>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Text" inherits="QuestFont_Huge" justifyH="LEFT">
+							<Anchors>
+								<Anchor point="LEFT" x="5" y="-12"/>
+							</Anchors>
+						</FontString>
+						<Texture parentKey="Texture">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="160" y="-6"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+
+			<Frame parentKey="SpecialObjectivesFrame" hidden="true">
+				<Size x="285" y="10"/>
+				<Anchors>
+					<Anchor point="CENTER" />
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString parentKey="SpellObjectiveLearnLabel" inherits="QuestFontNormalSmall" justifyH="LEFT" text="LEARN_SPELL_OBJECTIVE"/>
+					</Layer>
+				</Layers>
+				<Frames>
+					<Button parentKey="SpellObjectiveFrame" inherits="QuestSpellTemplate" hidden="true"/>
+				</Frames>
+			</Frame>
+
+			<Frame parentKey="RewardsFrame" hidden="true">
+				<Size x="285" y="10" />
+				<Anchors>
+					<Anchor point="CENTER" />
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<FontString parentKey="Header" inherits="QuestTitleFont" text="QUEST_REWARDS" justifyH="LEFT">
+							<Size x="285" y="0"/>
+							<Anchors>
+								<Anchor point="TOPLEFT"/>
+							</Anchors>
+						</FontString>
+						<FontString parentKey="ItemChooseText" inherits="SystemFont_Shadow_Med2" text="REWARD_CHOICES" hidden="true" justifyH="LEFT">
+							<Size x="285" y="0"/>
+						</FontString>
+						<FontString parentKey="ItemReceiveText" inherits="SystemFont_Shadow_Med2" hidden="true" justifyH="LEFT" />
+						<FontString parentKey="PlayerTitleText" inherits="SystemFont_Shadow_Med2" text="REWARD_TITLE" hidden="true" justifyH="LEFT" />
+					</Layer>
+				</Layers>
+				<Frames>
+					<Button parentKey="HonorFrame" inherits="CPUINPCItemButtonTemplate" hidden="true"/>
+					<Button parentArray="Buttons" name="ConsolePortUI_NPCQuestInfoItem1" inherits="CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate" hidden="true"/>
+					<Frame parentKey="MoneyFrame" name="$parentMoneyFrame" inherits="MoneyFrameTemplate">
+						<Anchors>
+							<Anchor point="LEFT" relativeKey="$parent.ItemReceiveText" relativePoint="RIGHT" x="15" y="0"/>
+						</Anchors>
+						<Scripts>
+							<OnLoad>
+								MoneyFrame_OnLoad(self);
+								MoneyFrame_SetType(self, "STATIC");
+							</OnLoad>
+						</Scripts>
+					</Frame>
+					<Button parentKey="SkillPointFrame" inherits="CPUINPCItemButtonTemplate">
+						<Layers>
+							<Layer level="OVERLAY">
+								<Texture parentKey="CircleBackground" file="Interface\QuestFrame\SkillUp-BG">
+									<Size x="32" y="32"/>
+									<Anchors>
+										<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="12" y="-6"/>
+									</Anchors>
+								</Texture>
+								<Texture parentKey="CircleBackgroundGlow" file="Interface\QuestFrame\SkillUp-Glow" alphaMode="ADD" alpha="0.3">
+									<Size x="64" y="64"/>
+									<Anchors>
+										<Anchor point="CENTER" relativeKey="$parent.CircleBackground"/>
+									</Anchors>
+								</Texture>
+								<FontString parentKey="ValueText" inherits="GameFontNormalLarge" justifyH="LEFT">
+									<Anchors>
+										<Anchor point="CENTER" relativeKey="$parent.CircleBackground" relativePoint="CENTER" x="3"/>
+									</Anchors>
+								</FontString>
+							</Layer>
+						</Layers>
+						<Scripts>
+							<OnLoad>
+								-- Hacks to get this to display a little more nicely
+								self.Name:SetPoint("LEFT", self.NameFrame, 24, 0);
+								self.Name:SetWidth(81);
+							</OnLoad>
+							<OnEnter>
+								if (self.tooltip) then
+									GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+									GameTooltip:SetText(self.tooltip, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+								end
+							</OnEnter>
+							<OnLeave>
+								GameTooltip:Hide();
+							</OnLeave>
+						</Scripts>
+					</Button>
+					<Frame parentKey="XPFrame">
+						<Size x="280" y="20"/>
+						<Layers>
+							<Layer level="BACKGROUND">
+								<FontString parentKey="ReceiveText" inherits="QuestFont" text="EXPERIENCE_COLON">
+									<Anchors>
+										<Anchor point="LEFT" x="0" y="0"/>
+									</Anchors>
+								</FontString>
+								<FontString parentKey="ValueText" inherits="NumberFontNormalLarge" justifyH="LEFT">
+									<Anchors>
+										<Anchor point="LEFT" relativeKey="$parent.ReceiveText" relativePoint="RIGHT" x="15" y="0"/>
+									</Anchors>
+								</FontString>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Button parentKey="ArtifactXPFrame" inherits="CPUINPCItemButtonTemplate" hidden="true">
+						<Layers>
+							<Layer level="BORDER">
+								<Texture parentKey="Overlay" file="Interface\Artifacts\ArtifactPower-QuestBorder">
+									<Size x="64" y="64" />
+									<Anchors>
+										<Anchor point="CENTER" relativeKey="$parent.Icon" />
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+						<Scripts>
+							<OnEnter>
+								GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
+								GameTooltip:SetText(ARTIFACT_XP_REWARD, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, nil, true);
+							</OnEnter>
+
+							<OnLeave function="GameTooltip_Hide" />
+						</Scripts>
+					</Button>
+					<Frame parentKey="TitleFrame">
+						<Size x="500" y="39"/>
+						<Layers>
+							<Layer level="BACKGROUND">
+								<Texture parentKey="Icon" file="Interface\Icons\INV_Misc_Note_02">
+									<Size x="39" y="39"/>
+									<Anchors>
+										<Anchor point="TOPLEFT" x="0" y="0"/>
+									</Anchors>
+								</Texture>
+								<Texture parentKey="FrameLeft" file="Interface\QuestFrame\UI-QuestItemNameFrame">
+									<Size x="4" y="40"/>
+									<Anchors>
+										<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="2" y="0"/>
+									</Anchors>
+									<TexCoords left="0.078125" right="0.1171875" top="0.15625" bottom="0.828125"/>
+								</Texture>
+								<Texture parentKey="FrameCenter" file="Interface\QuestFrame\UI-QuestItemNameFrame">
+									<Size x="200" y="40"/>
+									<Anchors>
+										<Anchor point="LEFT" relativeKey="$parent.FrameLeft" relativePoint="RIGHT" x="0" y="0"/>
+									</Anchors>
+									<TexCoords left="0.1171875" right="0.828125" top="0.15625" bottom="0.828125"/>
+								</Texture>
+								<Texture parentKey="FrameRight" file="Interface\QuestFrame\UI-QuestItemNameFrame">
+									<Size x="11" y="40"/>
+									<Anchors>
+										<Anchor point="LEFT" relativeKey="$parent.FrameCenter" relativePoint="RIGHT" x="0" y="0"/>
+									</Anchors>
+									<TexCoords left="0.828125" right="0.9140625" top="0.15625" bottom="0.828125"/>
+								</Texture>
+							</Layer>
+							<Layer level="OVERLAY">
+								<FontString parentKey="Name" inherits="GameFontHighlight" justifyH="LEFT">
+									<Size x="200" y="0"/>
+									<Anchors>
+										<Anchor point="LEFT" relativeKey="$parent.FrameLeft" x="8" y="-2"/>
+									</Anchors>
+								</FontString>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="ItemHighlight" hidden="true">
+						<Size x="202" y="48"/>
+						<Anchors>
+							<Anchor point="TOPLEFT"/>
+						</Anchors>
+						<Layers>
+							<Layer level="BACKGROUND">
+								<Texture file="Interface\AddOns\ConsolePort\Textures\Button\Hilite" alphaMode="ADD" parentKey="Icon">
+									<Size x="52" y="52"/>
+									<Anchors>
+										<Anchor point="TOPLEFT"/>
+									</Anchors>
+								</Texture>
+								<Texture file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD" parentKey="NameTag">
+									<Size x="182" y="44"/>
+									<Anchors>
+										<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="-8" y="0"/>
+									</Anchors>
+									<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
+								</Texture>
+							</Layer>
+						</Layers>
+						<Scripts>
+							<OnLoad function="RaiseFrameLevel"/>
+						</Scripts>
+					</Frame>
+				</Frames>
+				<Scripts>
+					<OnLoad>
+						self.buttonTemplate = "CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate";
+						self.spellRewardPool = CreateFramePool("BUTTON", self, "CPUINPCQuestSpellTemplate, CPUINPCRewardSpellCodeTemplate");
+						self.followerRewardPool = CreateFramePool("BUTTON", self, "LargeQuestInfoRewardFollowerTemplate");
+						self.spellHeaderPool = CreateFontStringPool(self, "BACKGROUND", 0, "QuestInfoSpellHeaderTemplate");
+
+						self.Buttons[1].container = self:GetParent():GetParent()
+						self.Buttons[1].highlight = self.ItemHighlight
+					</OnLoad>
+				</Scripts>
+			</Frame>
+
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<FontString parentKey="ObjectivesHeader" inherits="QuestTitleFont" text="QUEST_OBJECTIVES"  justifyH="LEFT" hidden="true">
+					<Size x="285" y="0"/>
+				</FontString>				
+				<FontString parentKey="ObjectivesText" inherits="SystemFont_Shadow_Med2" justifyH="LEFT" hidden="true">
+					<Size x="285" y="0"/>
+				</FontString>
+				<FontString parentKey="GroupSize" inherits="SystemFont_Shadow_Med2" hidden="true"/>
+
+				<FontString parentKey="RewardText" inherits="SystemFont_Shadow_Med2" justifyH="LEFT" hidden="true">
+					<Size x="285" y="0"/>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<!-- Quest progress panel -->
+	<Frame name="CPUINPCProgress" virtual="true">
+		<Size x="570" y="403"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" x="32" y="-32"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<FontString parentKey="ReqText" inherits="QuestTitleFont" text="TURN_IN_ITEMS" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="MoneyText" inherits="QuestFontNormalSmall" text="REQUIRED_MONEY" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ReqText" relativePoint="BOTTOMLEFT" x="0" y="-10"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="MoneyFrame" name="$parentMoneyFrame" inherits="MoneyFrameTemplate">
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.MoneyText" relativePoint="RIGHT" x="10" y="0"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						SmallMoneyFrame_OnLoad(self);
+						MoneyFrame_SetType(self, "STATIC");
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Button parentArray="Buttons" name="ConsolePortUI_NPCProgressItem1" inherits="CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate" hidden="true"/>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				self.buttonTemplate = "CPUINPCItemButtonTemplate, CPUINPCRewardItemCodeTemplate";
+				self.Buttons[1].container = self:GetParent():GetParent();
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+	<!-- Friendship status bar -->
+	<StatusBar name="CPUINPCStatusBar" hidden="true" virtual="true">
+		<Size x="230" y="14"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" x="32" y="0"/>
+		</Anchors>
+		<HitRectInsets>
+			<AbsInset left="-25" right="0" top="-15" bottom="0"/>
+		</HitRectInsets>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture file="Interface\Common\friendship-parts">  <!-- the bar itself -->
+					<Size x="267" y="38"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-31" y="18"/>
+					</Anchors>
+					<TexCoords left="0.01367188" right="0.53515625" top="0.01562500" bottom="0.60937500"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture file="Interface\Common\friendship-heart" parentKey="icon">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-27" y="12"/>
+					</Anchors>
+				</Texture>
+				<Texture name="$parentNotch1" file="Interface\Common\friendship-parts">
+					<Size x="4" y="17"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="43" y="1"/>
+					</Anchors>
+					<TexCoords left="0.00195313" right="0.00976563" top="0.01562500" bottom="0.28125000"/>
+				</Texture>
+				<Texture name="$parentNotch2" file="Interface\Common\friendship-parts">
+					<Size x="4" y="17"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentNotch1" x="47" y="0"/>
+					</Anchors>
+					<TexCoords left="0.00195313" right="0.00976563" top="0.01562500" bottom="0.28125000"/>
+				</Texture>
+				<Texture name="$parentNotch3" file="Interface\Common\friendship-parts">
+					<Size x="4" y="17"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentNotch2" x="47" y="0"/>
+					</Anchors>
+					<TexCoords left="0.00195313" right="0.00976563" top="0.01562500" bottom="0.28125000"/>
+				</Texture>
+				<Texture name="$parentNotch4" file="Interface\Common\friendship-parts">
+					<Size x="4" y="17"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeTo="$parentNotch3" x="47" y="0"/>
+					</Anchors>
+					<TexCoords left="0.00195313" right="0.00976563" top="0.01562500" bottom="0.28125000"/>
+				</Texture>
+			</Layer>
+			<Layer level="BACKGROUND">
+				<Texture setAllPoints="true">  <!-- bar fill background -->
+					<Color r="0" g="0" b="0" a="0.5"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				self:SetStatusBarTexture(1, 1, 1, "BORDER", -1);
+				self:GetStatusBarTexture():SetGradient("VERTICAL", 8/255, 93/255, 72/255, 11/255, 136/255, 105/255);
+				self:SetStatusBarColor(0.5, 0.7, 1);
+			</OnLoad>
+			<OnEnter>
+				ShowFriendshipReputationTooltip(nil, self, "ANCHOR_BOTTOMRIGHT");
+			</OnEnter>
+			<OnLeave>
+				GameTooltip:Hide();
+			</OnLeave>
+			<OnShow>
+				local id, rep, maxRep, name, text, texture, reaction, threshold, nextThreshold = GetFriendshipReputation();
+				if ( id and id > 0 ) then
+					-- if max rank, make it look like a full bar
+					if ( not nextThreshold ) then
+						threshold, nextThreshold, rep = 0, 1, 1;
+					end
+					if ( texture ) then
+						self.icon:SetTexture(texture);
+					else
+						self.icon:SetTexture("Interface\\Common\\friendship-heart");
+					end
+					self:SetMinMaxValues(threshold, nextThreshold);
+					self:SetValue(rep);
+					self:Show();
+				else
+					self:Hide();
+				end
+			</OnShow>
+		</Scripts>
+	</StatusBar>
+
+</Ui>

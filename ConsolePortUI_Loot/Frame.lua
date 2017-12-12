@@ -2,10 +2,11 @@ do
 local _, L = ...
 local UI = ConsolePortUI
 
-local frame = UI:CreateFrame('Frame', _, LootFrame, 'SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate', {
+local frame = UI:CreateFrame('Frame', _, UIParent, 'SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate', {
 	Size = {1, 1},
 	Strata = 'HIGH',
-	Point = {'CENTER', UIParent, 'CENTER', 100, 0},
+	Point = {'CENTER', 100, 0},
+	Probe = {LootFrame, 'showhide'},
 	Mixin = L.LootFrameLogicMixin,
 	{
 		Container = {
@@ -41,5 +42,5 @@ local frame = UI:CreateFrame('Frame', _, LootFrame, 'SecureHandlerBaseTemplate, 
 })
 
 UI:RegisterFrame(frame, 'Loot', nil, true, true)
-UI:HideFrame(LootFrame, true)
+UI:HideFrame(LootFrame)
 end

@@ -161,19 +161,6 @@ function ConsolePort:LoadSettings()
 		ConsolePortUtility = {}
 	end
 
-	-- Use this table to store UI module settings
-	if not ConsolePortUIConfig then
-		ConsolePortUIConfig = {}
-	-- BC: handle transition to standalone quest module 
-	elseif ConsolePortUIConfig.NPC then
-		ConsolePortUIConfig.NPC = nil
-		if not select(4, GetAddOnInfo('Immersion')) then
-			print(db.TUTORIAL.ERRORS.NPCMODULE)
-		else
-			EnableAddOn('Immersion')
-		end
-	end
-
 	----------------------------------------------------------
 
 	db.UIStack = ConsolePortUIFrames
@@ -215,8 +202,7 @@ function ConsolePort:LoadSettings()
 	end
 
 	local function SetControllerCVar(cvar, value)
-		local entry = ConsolePort:GetCompleteCVarList()[cvar]
-		local original = entry and entry[1]
+		local original = ConsolePort:GetCompleteCVarList()[cvar]
 		if original ~= nil then
 			if value == 'true' then value = true
 			elseif value == 'false' then value = false
@@ -229,10 +215,7 @@ function ConsolePort:LoadSettings()
 				print(SLASH.CVAR_WARNING_NULL)
 			elseif value == nil then
 				PrintHeader()
-				local description = entry[2] or '|cFF757575<none>|r'
-				local valToString = tostring(original) or '|cFF757575undefined|r'
-				local outputString = (valToString:len() == 0 and '|cFF757575<empty string>|r') or valToString
-				print(format(SLASH.CVAR_PRINTOUT, cvar, description, outputString))
+				print(format(SLASH.CVAR_PRINTOUT, cvar, tostring(original) or 'undefined'))
 			elseif type(original) ~= type(value) then
 				PrintHeader()
 				print(format(SLASH.CVAR_MISMATCH, cvar, type(original)))
@@ -250,9 +233,7 @@ function ConsolePort:LoadSettings()
 		local cvars = ConsolePort:GetCompleteCVarList()
 		PrintHeader(SLASH.CVAR_PRINTING)
 		for k, v in db.table.spairs(cvars) do
-			local outputString = tostring(v[1])
-			local isEmpty = (outputString:len() == 0)
-			print(format('|cff69ccf0/cp %s|r: %s', k, (isEmpty and '|cFF757575<empty string>') or outputString))
+			print(format('|cff69ccf0/cp %s|r: %s', k, tostring(v)))
 		end
 		print(SLASH.CVAR_WARNING)
 	end
