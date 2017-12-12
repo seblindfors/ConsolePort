@@ -181,17 +181,16 @@ function Cursor:MoveOnFinished()
 end
 
 function Cursor:SetHighlight(node)
-	local self = self or Cursor
 	local mime = self.Highlight
 	local highlight = node and node.GetHighlightTexture and node:GetHighlightTexture()
 	if highlight and node:IsEnabled() then
 		if highlight:GetAtlas() then
 			mime:SetAtlas(highlight:GetAtlas())
 		else
-			local texture = highlight:GetTexture()
+			local texture = highlight.GetTexture and highlight:GetTexture()
 			if texture and texture:find('^[Cc]olor-') then
 				local r, g, b = Hex2RGB(texture:sub(7))
-				mime:SetColoredTexture(r, g, b)
+				mime:SetColorTexture(r, g, b)
 			else
 				mime:SetTexture(texture)
 			end
@@ -297,11 +296,11 @@ function Cursor:ReplaceOnLeave(original, replacement) SafeOnLeave[original] = re
 ---------------------------------------------------------------
 
 local Node = {
-	[KEY.UP] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY > thisY) end,
-	[KEY.DOWN] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY < thisY) end,
-	[KEY.LEFT] 	= function(_, destX, vert, horz, thisX, _) return (vert < horz and destX < thisX) end,
-	[KEY.RIGHT] = function(_, destX, vert, horz, thisX, _) return (vert < horz and destX > thisX) end,
-	cache = {}
+	[KEY.UP] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY > thisY) end;
+	[KEY.DOWN] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY < thisY) end;
+	[KEY.LEFT] 	= function(_, destX, vert, horz, thisX, _) return (vert < horz and destX < thisX) end;
+	[KEY.RIGHT] = function(_, destX, vert, horz, thisX, _) return (vert < horz and destX > thisX) end;
+	cache = {};
 }
 
 local UIDoFramesIntersect = UIDoFramesIntersect 
@@ -372,7 +371,7 @@ function Node:FindClosest(key)
 			local currNode = current.node
 			local destNode, destX, destY, vert, horz
 			local thisX, thisY = current.node:GetCenter()
-			local compH, compV = 20000, 20000 
+			local compH, compV = 20000, 20000 -- hack, fix when 32K displays are on the market
 			for i, destination in ipairs(self.cache) do
 				destNode = destination.node
 				destX, destY = destNode:GetCenter()

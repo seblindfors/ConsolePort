@@ -124,28 +124,6 @@ local actionIDs = {
 	[138] 	= 'ACTIONBUTTON6',
 
 	[169] 	= 'EXTRAACTIONBUTTON1',
-
-	['StanceButton1']	 	= 'SHAPESHIFTBUTTON1',
-	['StanceButton2']	 	= 'SHAPESHIFTBUTTON2',
-	['StanceButton3']	 	= 'SHAPESHIFTBUTTON3',
-	['StanceButton4']	 	= 'SHAPESHIFTBUTTON4',
-	['StanceButton5']	 	= 'SHAPESHIFTBUTTON5',
-	['StanceButton6']	 	= 'SHAPESHIFTBUTTON6',
-	['StanceButton7']	 	= 'SHAPESHIFTBUTTON7',
-	['StanceButton8']	 	= 'SHAPESHIFTBUTTON8',
-	['StanceButton9']	 	= 'SHAPESHIFTBUTTON9',
-	['StanceButton10']	 	= 'SHAPESHIFTBUTTON10',
-	['PetActionButton1']	= 'BONUSACTIONBUTTON1',
-	['PetActionButton2']	= 'BONUSACTIONBUTTON2',
-	['PetActionButton3']	= 'BONUSACTIONBUTTON3',
-	['PetActionButton4']	= 'BONUSACTIONBUTTON4',
-	['PetActionButton5']	= 'BONUSACTIONBUTTON5',
-	['PetActionButton6']	= 'BONUSACTIONBUTTON6',
-	['PetActionButton7']	= 'BONUSACTIONBUTTON7',
-	['PetActionButton8']	= 'BONUSACTIONBUTTON8',
-	['PetActionButton9']	= 'BONUSACTIONBUTTON9',
-	['PetActionButton10']	= 'BONUSACTIONBUTTON10',
-
 }
 
 -- action ID thresholds
@@ -421,6 +399,9 @@ function ConsolePort:GetUIControlKeyOwner(key)
 		-- Triggers 
 		[KEY.T1] 		= 'CP_T1',
 		[KEY.T2] 		= 'CP_T2',
+		-- Modifiers
+		['M1'] 			= 'CP_M1',
+		['M2'] 			= 'CP_M2',
 	}
 	return keyToBinding[key]
 end
@@ -471,10 +452,12 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		['CP_T1'] = 'CP_TR1',
 		['CP_T2'] = 'CP_TR2',
 		-------------------------------
-	--	['interactWith'] = 'CP_T1',
-	--	['mouseOverMode'] = true,
+		['lootWith'] = 'CP_R_DOWN',
+		['interactCache'] = true,
+		['interactScrape'] = true,
+		['nameplateNameOnly'] = true,
 		-------------------------------
-		['actionBarStyle'] = 1,
+		['actionBarStyle'] = 4,
 		-------------------------------
 		['autoExtra'] = true,
 		['autoSellJunk'] = true,
@@ -715,63 +698,78 @@ end
 -- Cvar list and getter/setter functions
 ------------------------------------------------------------------------------------------------------------
 local cvars = { -- value = default
-------------------------------------------------------------------------------------------------------------
-	allowSaveBindings 	= false					;-- Allow binding data uploads (overwrites kb/m bindings)
-	alwaysHighlight 	= 0						;-- Always highlight tab target
-	autoExtra 			= true					;-- Automatically bind Qitems to utility ring
-	autoLootDefault		= true					;-- Force auto-loot in combat
-	autoSellJunk 		= true					;-- Automatically sell junk
-	cameraYawDeadzone 	= .8					;-- Yaw script deadzone (fraction of half of screen width)
-	cameraYawSmoothOut 	= .085					;-- Yaw script smooth pan out
-	cameraYawSmoothIn 	= .155					;-- Yaw script smooth pan in
-	cameraYawMaxAngle 	= 30					;-- Max angle to pan before stopping
-	centerLockRangeX 	= 70					;-- Center mouse lock width
-	centerLockRangeY 	= 180					;-- Center mouse lock height
-	centerLockDeadzoneX = 4						;-- Center mouse lock deadzone width
-	centerLockDeadzoneY = 4						;-- Center mouse lock deadzone height
-	disableCursorTrail 	= false					;-- Rclick/interact icon trailing cursor
-	disableHints 		= false					;-- Hints on how certain things work
-	disableSmartBind 	= false					;-- Unbound combos default to nomod binding
-	disableSmartMouse 	= false					;-- Smart cursor show/hide
-	disableStickMouse	= false					;-- Override bindings for stick buttons
-	disableUI 			= false					;-- Interface cursor
-	doubleModTap 		= true					;-- Toggle mouselook by double tapping a modifier
-	doubleModTapWindow 	= .25					;-- How fast a modifier has to be tapped
-	exitVehicleBinding	= 'ACTIONBUTTON7'		;-- Override vehicle exit binding from set
-	interactAuto 		= false					;-- ?
-	interactNPC 		= false					;-- Interact with targeted NPCs
-	interactPushback 	= 1						;-- Pushback after cast to avoid cursor toggle
-	interactWith 		= false					;-- Interact button ID
-	interactHintOffset 	= -300					;-- Interact frame Y-offset from UIParent center
-	lookAround 			= false					;-- Look around on L3 while in mouselook
-	mouseInvertPitch	= false					;-- Invert mouse pitch
-	mouseOnCenter 		= true					;-- Camera mode when mouseover center of UI
-	mouseOnJump 		= false					;-- Camera mode on jump
-	mouseOverMode 		= false					;-- Interact button mouseover priority
-	nameplateNameOnly	= false					;-- Show only names when nameplate interaction is on
-	turnCharacter 		= false					;-- Turn instead of strafe out of mouselook
-	preventMouseDrift 	= false					;-- Lock mouse when drifting to screen edge
-	raidCursorDirect 	= false					;-- Target directly with raid cursor
-	raidCursorModifier 	= ''					;-- Modifier to combine with D-pad for cursor control
-	skipCalibration 	= false					;-- Don't check calibration on login
-	skipGuideBtn 		= false					;-- Don't check calibration for the center button
-	UIleaveCombatDelay	= .5					;-- Delay before re-activating UI core after combat
-	UIholdRepeatDelay 	= .125					;-- Delay until a D-pad input is repeated (interface)
-	UIdisableHoldRepeat = false					;-- Disable D-pad input repeater
-	UIdisableTooltipFix = false					;-- Disable mouse cursor anchor workaround
-	UIdropDownFix		= false					;-- Fix interface cursor on dropdowns
-	utilityRingScale 	= 1						;-- Scale of the utility ring
-	unitHotkeySize 		= 32					;-- Size of unit hotkeys
-	unitHotkeyOffsetX 	= 0						;-- Offset X-placement on unit frames
-	unitHotkeyOffsetY 	= 0						;-- Offset Y-placement on unit frames
-	unitHotkeyAnchor	= 'CENTER'				;-- Anchor on unit frames
-	unitHotkeyGhostMode = false					;-- Restore calculated combinations after targeting
-	unitHotkeyIgnorePlayer = false				;-- Always ignore player (regardless of pool)
-	unitHotkeyPool = 'player;party%d$;raid%d+$'	;-- String match criteria for unit hotkey pool
-	unitHotkeySet = ''							;-- Force button set for unit hotkey filtering
-------------------------------------------------------------------------------------------------------------
+	--------------------------------------------------------------------------------------------------------
+	allowSaveBindings 		= {false		; 'Allow binding data uploads (overwrites kb/m bindings)'};
+	alwaysHighlight 		= {0			; 'Always highlight tab target (0, 1, 2)'};
+	autoExtra 				= {true			; 'Automatically bind Qitems to utility ring'};
+	autoLootDefault			= {true			; 'Force auto-loot in combat'};
+	autoSellJunk 			= {true			; 'Automatically sell junk'};
+	cursorTrailGhost 		= {false		; 'Show cursor trail ghost'};
+	cursorTrailGhostVis 	= {.25			; 'Cursor trail ghost alpha (0-1)'};
+	disableCursorTrail 		= {false		; 'Rclick/interact icon trailing cursor'};
+	disableHints 			= {false		; 'Hints on how certain things work'};
+	disableSmartBind 		= {false		; 'Unbound combos default to nomod binding'};
+	disableSmartMouse 		= {false		; 'Smart cursor show/hide'};
+	disableStickMouse		= {false		; 'Override bindings for stick buttons'};
+	doubleModTap 			= {true			; 'Toggle mouselook by double tapping a modifier'};
+	doubleModTapWindow 		= {.25			; 'How fast a modifier has to be tapped (seconds)'};
+	lookAround 				= {false		; 'Look around on L3 while in mouselook'};
+	mouseInvertPitch		= {false		; 'Invert mouse pitch'};
+	mouseOnJump 			= {false		; 'Camera mode on jump'};
+	nameplateNameOnly		= {false		; 'Show only names when nameplate interaction is on'};
+	turnCharacter 			= {false		; 'Turn instead of strafe out of mouselook'};
+	preventMouseDrift 		= {false		; 'Lock mouse when drifting to screen edge'};
+	raidCursorDirect 		= {false		; 'Target directly with raid cursor'};
+	skipCalibration 		= {false		; 'Disable calibration check on login'};
+	skipGuideBtn 			= {false		; 'Disable calibration check for the center button'};
+	utilityRingScale 		= {1			; 'Scale of the utility ring'};
+	--------------------------------------------------------------------------------------------------------
+	-- Interact button:
+	interactNPC 			= {false		; 'Interact with already targeted NPCs'};
+	interactPushback 		= {1			; 'Pushback after cast to avoid cursor toggle (seconds)'};
+	interactHintOffset 		= {-300			; 'Interact frame Y-offset from UIParent center (px)'};
+	interactHintLineVis 	= {1			; 'Interact frame line texture alpha (0-1)'};
+	interactHintNoLine 		= {false		; 'Disable interact frame line texture'};
+	interactWith 			= {false		; 'Full interact button ID'};
+	lootWith 				= {false		; 'Lite interact button ID'};
+	--------------------------------------------------------------------------------------------------------
+	-- Camera yaw script specs:
+	cameraYawDeadzone 		= {.8			; 'Yaw script deadzone (fraction of half of screen width)'};
+	cameraYawSmoothOut 		= {.085			; 'Yaw script smooth pan out'};
+	cameraYawSmoothIn 		= {.155			; 'Yaw script smooth pan in'};
+	cameraYawMaxAngle 		= {30			; 'Max angle to pan before stopping'};
+	--------------------------------------------------------------------------------------------------------
+	-- Interface cursor:
+	disableUI 				= {false		; 'Interface cursor'};
+	UIleaveCombatDelay		= {.5			; 'Delay before re-activating UI core after combat'};
+	UIholdRepeatDelay 		= {.125			; 'Delay until a D-pad input is repeated (interface)'};
+	UIdisableHoldRepeat 	= {false		; 'Disable D-pad input repeater'};
+	UIdisableTooltipFix 	= {false		; 'Disable mouse cursor anchor workaround'};
+	UIdropDownFix			= {false		; 'Fix interface cursor on dropdowns'};
+	--------------------------------------------------------------------------------------------------------
+	-- Mouse on center lock:
+	centerLockRangeX 		= {70			; 'Center mouse lock width (px)'};
+	centerLockRangeY 		= {180			; 'Center mouse lock height (px)'};
+	centerLockDeadzoneX 	= {4			; 'Center mouse lock deadzone width (px)'};
+	centerLockDeadzoneY 	= {4			; 'Center mouse lock deadzone height (px)'};
+	mouseOnCenter 			= {true			; 'Camera mode when mouseover center of UI'};
+	--------------------------------------------------------------------------------------------------------
+	-- Unit hotkey specific:
+	unitHotkeySize 			= {32			; 'Size of unit hotkeys (px)'};
+	unitHotkeyOffsetX 		= {0			; 'Offset X-placement on unit frames (px)'};
+	unitHotkeyOffsetY 		= {0			; 'Offset Y-placement on unit frames (px)'};
+	unitHotkeyGhostMode 	= {false		; 'Restore calculated combinations after targeting'};
+	unitHotkeyIgnorePlayer 	= {false		; 'Always ignore player regardless of pool'};
+	--------------------------------------------------------------------------------------------------------
+	-- String entries (CAUTION):
+	cursorTrailGhostTex 	= {[[Interface\CURSOR\Item]]	; 'Cursor trail ghost texture'};
+	exitVehicleBinding		= {'ACTIONBUTTON7'				; 'Override vehicle exit binding from set'};
+	explicitProfile			= {''							; 'Explicit profile ID to use for data export'};
+	raidCursorModifier 		= {''							; 'Modifier to combine with D-pad for cursor control'};
+	unitHotkeyAnchor		= {'CENTER'						; 'Anchor point on unit frames'};
+	unitHotkeyPool 			= {'player;party%d$;raid%d+$'	; 'Match criteria for unit hotkey pool, separated by semicolon'};
+	unitHotkeySet 			= {''							; 'Force button set for unit hotkey filtering. Valid: left, right'};
 }	--------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------
 
 -- Usage: db('cvar', [newValue], ... [branch in database])
 setmetatable(db, {
@@ -794,7 +792,8 @@ setmetatable(db, {
 		end
 		local value = self.Settings and self.Settings[cvar]
 		if (value == nil) then
-			return cvars[cvar]
+			local cvarDefault = cvars[cvar]
+			return cvarDefault and cvarDefault[1]
 		else
 			return value
 		end
@@ -805,7 +804,11 @@ function ConsolePort:GetCompleteCVarList()
 	local cvars = copy(cvars)
 	for cvar, value in pairs(db.Settings) do
 		if type(value) ~= 'table' then
-			cvars[cvar] = value
+			if cvars[cvar] then
+				cvars[cvar][1] = value
+			else
+				cvars[cvar] = {value}
+			end
 		end
 	end
 	return cvars

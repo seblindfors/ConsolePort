@@ -129,7 +129,7 @@ function Save:OnClick()
 				end
 			end
 		end
-		Config:Export(data)
+		Config:Export(data, db('explicitProfile'))
 		if reload then
 			ReloadUI()
 		else
@@ -363,7 +363,7 @@ end
 
 function Category:AddNew(header, bannerAtlas)
 	local id = #self.Buttons+1
-	local banner = db.Atlas.GetFutureButton("$parentHeader"..id, self, nil, bannerAtlas, 125, 32, true)
+	local banner = db.Atlas.GetFutureButton("$parentHeader"..id, self, nil, bannerAtlas, 110, 30, true)
 	banner.id = id
 	banner:SetText(header)
 	banner:SetScript("OnClick", CategoryOnClick)
@@ -543,32 +543,36 @@ function WindowMixin:OnKeyDown(key)
 	end
 end
 
-function WindowMixin:Export(exportData)
-	if exportData then
+function WindowMixin:Export(characterExportData, exportAs)
+	if characterExportData then
 		local _, classToken = UnitClass('player')
 		local specID, specName = GetSpecializationInfo(GetSpecialization())
-		local uid = GetUnitName('player')..' ('..specName..') '..GetRealmName()
-		local settings = ConsolePortCharacterSettings or {}
-		ConsolePortCharacterSettings = settings
+		local sharedData = ConsolePortCharacterSettings or {}
+		ConsolePortCharacterSettings = sharedData
 
-		if not settings[uid] then
-			settings[uid] = {}
+		local uid = (exportAs ~= nil and exportAs ~= '' and exportAs) or
+					('%s (%s) %s'):format(GetUnitName('player'), specName, GetRealmName())
+
+		if not sharedData[uid] then
+			sharedData[uid] = {}
 		end
 
-		local characterProfile = settings[uid]
+		local characterProfile = sharedData[uid]
 		local isIdentical = db.table.compare
 
-		for ID, data in pairs(exportData) do
+		-- sanity check for identical data sets, so db isn't incremented needlessly
+		for dataID, data in pairs(characterExportData) do
 			local allowExport = true
-			for _, exportedData in pairs(settings) do
-				if isIdentical(data, exportedData[ID]) then
+			for exportID, exportData in pairs(sharedData) do
+				if isIdentical(data, exportData[dataID]) then
 					allowExport = false
 				end
 			end
-			characterProfile[ID] = allowExport and data or nil
+			-- add unique data, scrub existing data
+			characterProfile[dataID] = allowExport and data or nil
 		end
 
-		local exportType 	= db.Settings.type
+		local exportType 	= db('type')
 		local exportClass 	= classToken
 		local exportSpec 	= specID
 
@@ -583,7 +587,7 @@ function WindowMixin:Export(exportData)
 			characterProfile.Class = exportClass
 			characterProfile.Spec  = exportSpec
 		else
-			settings[uid] = nil
+			sharedData[uid] = nil
 		end
 	end
 end

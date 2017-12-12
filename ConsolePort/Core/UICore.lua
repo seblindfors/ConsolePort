@@ -383,6 +383,7 @@ function UI:CreateScriptFrame(...)
 end
 
 ----------------------------------
--- Just in case someone keeps the outdated UI module, force it to remain disabled.
+-- Force disable outdated modules (for now)
 DisableAddOn('ConsolePortUI')
+DisableAddOn('ConsolePortUI_NPC')
 ----------------------------------
