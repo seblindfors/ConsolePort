@@ -46,7 +46,6 @@ db.Controllers.PS4 = {
 		['skipGuideBtn'] = false,
 		-------------------------------
 	--	['interactWith'] = 'CP_T1',
-	--	['mouseOverMode'] = true,
 		-------------------------------
 	},
 	Layout = {

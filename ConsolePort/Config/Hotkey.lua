@@ -257,6 +257,7 @@ end
 function ConsolePort:LoadHotKeyTextures(newSet)
 	local set = newSet or db.Bindings
 	local actionButtons = self:GetActionButtons(true)
+	local IsFrameWidget = C_Widget.IsFrameWidget
 
 	local index, subSet, modifier, binding, ID
 	for secureBtn in pairs(db.SECURE) do
@@ -285,9 +286,9 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 					end
 				end
 			end
-		elseif binding then
+		elseif binding and not binding:match('ConsolePort') then
 			local button = _G[(gsub(gsub(binding, "CLICK ", ""), ":.+", ""))]
-			if type(button) == 'table' and button.IsObjectType then
+			if IsFrameWidget(button) then
 				secureBtn:ShowInterfaceHotKey(button)
 			end
 		end

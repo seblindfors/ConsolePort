@@ -46,7 +46,6 @@ db.Controllers.XBOX = {
 		['skipGuideBtn'] = false,
 		-------------------------------
 	--	['interactWith'] = 'CP_T1',
-	--	['mouseOverMode'] = true,
 		-------------------------------
 	},
 	Layout = {

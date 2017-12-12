@@ -134,5 +134,4 @@ function LootFrame:OnLoad()
 	self.idx = 1
 	self.itemPool = UI:CreateFramePool('Button', self.Container, 'CPUISimpleLootButtonTemplate', L.LootButtonMixin)
 	self.active = {}
-	self:Hide()
 end
