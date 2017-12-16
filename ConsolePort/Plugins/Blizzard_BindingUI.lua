@@ -5,14 +5,14 @@
 
 local _, db = ...
 
-db.PLUGINS["Blizzard_BindingUI"] = function(self)
+db.PLUGINS['Blizzard_BindingUI'] = function(self)
 	local 	kbF, okayButton, popup = 
 			KeyBindingFrame, KeyBindingFrame.okayButton
 
 	local function OnAccept()
 		kbF:Hide()
 		ToggleFrame(GameMenuFrame)
-		ConsolePortConfig:OpenCategory("Binds")
+		ConsolePortConfig:OpenCategory('Binds')
 	end
 
 	local function OnAlt()
@@ -23,10 +23,10 @@ db.PLUGINS["Blizzard_BindingUI"] = function(self)
 
 	local function OnCancel()
 		ConsolePort:ClearPopup()
-		okayButton:SetButtonState("NORMAL")
+		okayButton:SetButtonState('NORMAL')
 	end
 
-	StaticPopupDialogs["CONSOLEPORT_WARNINGBINDINGUI"] = {
+	StaticPopupDialogs['CONSOLEPORT_WARNINGBINDINGUI'] = {
 		text = db.TUTORIAL.SLASH.WARNINGBINDINGUI,
 		button1 = db.TUTORIAL.SLASH.EDITBINDS,
 		button2 = CONTINUE,
@@ -43,12 +43,12 @@ db.PLUGINS["Blizzard_BindingUI"] = function(self)
 		OnCancel = OnCancel,
 	}
 
-	kbF:HookScript("OnShow", function()
-		okayButton:SetButtonState("DISABLED")
-		popup = self:ShowPopup("CONSOLEPORT_WARNINGBINDINGUI")
+	kbF:HookScript('OnShow', function()
+		okayButton:SetButtonState('DISABLED')
+		popup = self:ShowPopup('CONSOLEPORT_WARNINGBINDINGUI')
 	end)
 
-	kbF:HookScript("OnHide", function()
+	kbF:HookScript('OnHide', function()
 		if popup then
 			ConsolePort:ClearPopup()
 			popup:Hide()

@@ -2,6 +2,7 @@
 ..\FrameXML\UI.xsd">
 	<Script file="Blizzard_BindingUI.lua"/>
 	<Script file="Blizzard_MapCanvas.lua"/>
+	<Script file="Blizzard_Collections.lua"/>
 	<Script file="Storyline.lua"/>
 	<Script file="ElvUI.lua"/>
 </Ui>

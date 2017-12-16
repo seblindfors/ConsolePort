@@ -15,6 +15,7 @@ Locale\Locale.xml
 Controllers\Controllers.xml
 
 Init\Init.lua
+Init\Slash.lua
 Init\Table.lua
 Init\Animation.lua
 Init\Theme.lua

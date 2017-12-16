@@ -46,6 +46,7 @@ local compilers = {
 	manual 	= [[return %s]],
 }
 
+-- Tables to show in the browser; label = global
 local tables = {
 	['Action Bar'] =  'ConsolePortBarSetup',
 	['Action Bar Manifest'] =  'ConsolePortBarManifest',
@@ -56,6 +57,14 @@ local tables = {
 	['UI Frames'] =  'ConsolePortUIFrames',
 	['User interface'] =  'ConsolePortUIConfig',
 	['Binding set'] = false,
+}
+
+-- Icon format (prefix to keys to clarify what a button ID translates to)
+local iconFormat = ('|T%s:24:24:0:0|t ')
+local modifierToIdentifier = {
+	['CTRL-'] = iconFormat:format(db.ICONS.CP_M2 or '');
+	['SHIFT-'] = iconFormat:format(db.ICONS.CP_M1 or '');
+	['CTRL-SHIFT-'] = (iconFormat:trim() .. iconFormat):format(db.ICONS.CP_M1 or '', db.ICONS.CP_M2 or '');
 }
 
 function GetAffectedTablesString(data)
@@ -360,11 +369,14 @@ function Field:SetValue(key, val)
 	self.ktype = kt
 
 	if key then
+		local modifierIcon = modifierToIdentifier[key]
 		local icon = db.ICONS[key]
-		if icon then
-			self:SetText('|T'..icon..':24:24:0:0|t '..key)
+		if modifierIcon then
+			self:SetText(modifierIcon..key)
+		elseif icon then
+			self:SetText(iconFormat:format(icon)..key)
 		else
-			self:SetText(key)
+			self:SetText(key == '' and '|cff757575<nomod>|r' or key)
 		end
 	end
 

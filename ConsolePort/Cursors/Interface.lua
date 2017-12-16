@@ -447,7 +447,7 @@ function Node:Select(node, object, scrollFrame, state)
 				Override:Click(Cursor, button, name or button..modifier, click, modifier)
 				if macro then
 					local unit = UIDROPDOWNMENU_INIT_MENU.unit
-					Override:Macro(_G[button..modifier], macro:format(unit))
+					Override:Macro(_G[button..modifier], macro:format(unit or ''))
 				elseif override then
 					Override:Button(_G[button..modifier], node)
 				else

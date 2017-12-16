@@ -1,11 +1,15 @@
+-- Workaround for the map canvas pins, which behave as buttons
+-- using OnMouseDown, making the interface cursor dismiss the objects as
+-- regular unclickable frames. 
+
 local _, db = ...
 
-db.PLUGINS["Blizzard_MapCanvas"] = function(self)
+db.PLUGINS['Blizzard_MapCanvas'] = function(self)
 	local NodeMixin, pins, maps, nodes = {}, {}, {}, {}
 	local Mixin = db.table.mixin
 
 	function NodeMixin:OnLeave() self.pin:OnMouseLeave() end
-	function NodeMixin:OnClick() self.pin:OnClick("LeftButton") end
+	function NodeMixin:OnClick() self.pin:OnClick('LeftButton') end
 	function NodeMixin:OnEnter()
 		local map = self.pin.owningMap
 		self.pin:OnMouseEnter()
@@ -39,17 +43,17 @@ db.PLUGINS["Blizzard_MapCanvas"] = function(self)
 	local function CreateNode(self)
 		if pins[self] then return end
 
-		local node = CreateFrame("Button", "CanvasNode"..#nodes+1, self)
+		local node = CreateFrame('Button', 'CanvasNode'..#nodes+1, self)
 		node.pin = self
 		node:SetSize(4, 4)
-		node:SetPoint("CENTER")
+		node:SetPoint('CENTER')
 		node.noAnimation = true
 		Mixin(node, NodeMixin)
 		nodes[#nodes + 1] = node
 		pins[self] = true
 	end
 
-	hooksecurefunc(MapCanvasMixin, "AcquirePin", function(self, pinTemplate, ...)
+	hooksecurefunc(MapCanvasMixin, 'AcquirePin', function(self, pinTemplate, ...)
 		for pin in self:EnumeratePinsByTemplate(pinTemplate) do
 			CreateNode(pin, self, pinTemplate)
 		end

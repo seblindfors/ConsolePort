@@ -95,7 +95,7 @@ to use this binding in group content.<br/><br/><br/></p>
 <H2 align="left">Targeting friendly players</H2>
 <p align="left">For friendly targeting and healing in groups or raids, ConsolePort offers two separate systems: the |cFFFF6600raid cursor|r and |cFFFF6600unit hotkeys|r.
 These can be used to easily switch between group members without using any mouse cursor.</p><br/>
-<H2 align="left">Targeting friendly NPCs and dead enemies</H2>
+<H2 align="left">Targeting friendly NPCs, dead enemies and world objects</H2>
 <p align="left">Targeting any friendly NPC or dead enemy (looting) falls under <a href="page:Interacting with the world">|cff69ccf0interaction|r</a>. 
 There is no specific binding for this purpose, and will require your mouse cursor in most situations.</p>
 </BODY></HTML>]])
@@ -254,6 +254,29 @@ You can print the complete list of available variables and their current values 
 • unitHotkeyPool   |cffffff78(string match criteria)|r |cff757575 Units to match for, separated by a semi-colon. |r<br/>
 • unitHotkeySet   |cffffff78left|r/|cffffff78right|r/|cffffff78nil|r |cff757575 Forces the button set to use for unit hotkey input.|r<br/>
 </p>
+</BODY></HTML>]])
+
+Help:AddPage('Tutorial', 'Gameplay', [[<HTML><BODY>
+<H1 align="center">Interactive tutorial</H1><br/>
+<H2 align="left">New player experience</H2>
+<IMG src="Interface\TUTORIALFRAME\UI-TutorialFrame-QuestComplete" align="right" width="200" height="200"/>
+<p align="left">If you are below level 10, you can enable the |cFFFF6600new player experience|r,<br/>
+which is an interactive tutorial that guides you through the basics<br/>
+of controller gameplay as you're questing through your starting area.<br/><br/>
+This tutorial walks you through interaction with questgivers,<br/>
+how to loot your dead enemies, and basic controls that you simply<br/>
+need to know to play the game properly.<br/><br/><br/></p>
+<H2 align="left">Show, don't tell</H2>
+<p align="left">You can find most of the information available in the tutorial<br/>
+in these help pages, but it's much easier to just follow this guide,<br/>
+rooted in what you're currently doing on your current quest.<br/><br/><br/></p>
+<H2 align="left">Learn controller gameplay on a fresh character</H2>
+<p align="left">If you're using ConsolePort for the first time, you should start out on a completely new or existing low level character.
+Playing the game with a controller is essentially like playing a completely new game, both in how it feels and how it handles.<br/><br/>
+Apart from the time it takes for your muscle memory to form, fully understanding the system along with all its quirks and benefits, will help you excel down the road.<br/><br/>
+The most efficient way to learn is incrementally. Starting out a new character makes sure that your spell loadout is slim,
+your adversaries are easy and you can take your time to get acquainted with the system.<br/><br/></p>
+<H2 align="center"><a href="run:InterfaceOptionsDisplayPanelResetTutorials:Click() ConsolePortConfig:Hide()">Click here to enable the tutorial.</a></H2>
 </BODY></HTML>]])
 
 Help:AddPage('Vital bindings', 'Gameplay', [[<HTML><BODY>

@@ -185,19 +185,21 @@ function NPE:Initialize()
 	end)
 
 	ConsolePort:AddFrame(KBM)
-
-	if ConsolePortUI_NPC then	
-		-- mitigate the tutorial logic's attempt to do arithmetic on draw points
-		-- from title buttons, causing lua errors when CPUI_NPC is running.
-		pcall(GossipFrame.SetSize, GossipFrame, 1, 1)
-		pcall(QuestFrame.SetSize, QuestFrame, 1, 1)
-	end
 end
 
 function NPE:ADDON_LOADED()
 	if IsAddOnLoaded('Blizzard_Tutorial') then
-		self.ADDON_LOADED = nil
-		self:UnregisterEvent('ADDON_LOADED')
+		if NPE_TutorialMainFrame then
+			self.ADDON_LOADED = nil
+			self.pollIsTutorialAvailable = nil
+			self:SetScript('OnUpdate', nil)
+			self:UnregisterEvent('ADDON_LOADED')
+		elseif not self.pollIsTutorialAvailable then
+			self.pollIsTutorialAvailable = true
+			self:SetScript('OnUpdate', function(self)
+				self:ADDON_LOADED()
+			end)
+		end
 	end
 	if not self.ADDON_LOADED and not self.SPELLS_CHANGED and self.Initialize then
 		self:Initialize()

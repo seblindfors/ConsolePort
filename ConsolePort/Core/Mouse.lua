@@ -424,11 +424,25 @@ end
 -- Insecure override wrappers
 ---------------------------------------------------------------
 
+function Mouse:HasInsecureOverride()
+	return self.insecureOverrideActive
+end
+
+function Mouse:ToggleInsecureOverride(enabled, key, binding)
+	if enabled and not Core:HasUIFocus() then
+		self.insecureOverrideActive = true
+		SetOverrideBinding(self, true, key, binding)
+	else
+		self.insecureOverrideActive = false
+		ClearOverrideBindings(self)
+	end
+end
+
 function Mouse:SetOverride(binding, bindingID)
 	if not InCombatLockdown() then
 		local key = bindingID and GetBindingKey(bindingID)
 		if key then
-			SetOverrideBinding(self, true, key, binding)
+			self:ToggleInsecureOverride(true, key, binding)
 			if binding then
 				self:RegisterEvent('PLAYER_REGEN_DISABLED')
 				self:SetScript('OnEvent', self.ClearOverride)
@@ -443,7 +457,7 @@ end
 
 function Mouse:ClearOverride()
 	if not InCombatLockdown() then
-		ClearOverrideBindings(self)
+		self:ToggleInsecureOverride(false)
 		self:SetIcon(self.interactWith)
 		self:UnregisterEvent('PLAYER_REGEN_DISABLED')
 		self:SetScript('OnEvent', nil)
@@ -451,7 +465,7 @@ function Mouse:ClearOverride()
 end
 
 function Mouse:ClearScriptOverride()
-	if self.override == self.interactWith then
+	if ( self.override == self.interactWith ) then
 		-- if the full interact button is enabled, any OnUpdate script
 		-- should revert to TURNORACTION, else just clear.
 		self:SetOverride('TURNORACTION', self.override)

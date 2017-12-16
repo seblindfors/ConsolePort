@@ -12,7 +12,7 @@ do
 	-- This is to make it easier to distinguish action buttons,
 	-- since action bar addons use this attribute to perform actions.
 	-- Blizzard's own system does not use the attribute by default,
-	-- instead resorting to table keys to determine correct action.
+	-- instead resorting to table keys/:GetID() to determine correct action.
 	-- Assigning the attribute manually unifies default UI with addons.
 	local bars = {
 		['ActionButton'] = 1,
