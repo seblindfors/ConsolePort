@@ -6,30 +6,26 @@
 -- the button to adjust the value. Longer hold time increases
 -- the value amount ticked per operation.
 
-local time = 0
-local hold = 0
-local keyDown = false
-local keyHeldDown = false
-
-local Left = StackSplitLeftButton
-local Right = StackSplitRightButton
+local time, hold = 0, 0
+local keyDown, keyHeldDown = false, false
+local Left, Right = StackSplitLeftButton, StackSplitRightButton
 
 local oldNode
 
-StackSplitFrame:HookScript("OnShow", function(self)
+StackSplitFrame:HookScript('OnShow', function(self)
 	oldNode = ConsolePort:GetCurrentNode()
 	ConsolePort:SetCurrentNode(StackSplitCancelButton)
 end)
 
-StackSplitFrame:HookScript("OnHide", function(self)
+StackSplitFrame:HookScript('OnHide', function(self)
 	if oldNode then
 		ConsolePort:SetCurrentNode(oldNode)
 		oldNode = nil
 	end
 end)
 
-StackSplitFrame:HookScript("OnUpdate", function(self,elapsed)
-	keyDown = Left:GetButtonState() == "PUSHED" and Left or Right:GetButtonState() == "PUSHED" and Right
+StackSplitFrame:HookScript('OnUpdate', function(self,elapsed)
+	keyDown = Left:GetButtonState() == 'PUSHED' and Left or Right:GetButtonState() == 'PUSHED' and Right
 	hold = keyDown and hold + elapsed or 0
 	keyHeldDown = keyDown and hold >= 0.3
 	local exponent = math.exp(math.floor(hold))
