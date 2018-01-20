@@ -151,9 +151,8 @@ for name, script in pairs({
 				end
 			end
 
-
 		elseif ( key == CENTER or key == OPTIONS or key == SHARE ) and down then
-			self:CallMethod('HideMenu')
+			returnHandler, returnValue = 'macrotext', '/click GameMenuButtonContinue'
 
 		-- Select button
 		elseif key == UP and down and bID > 1 then

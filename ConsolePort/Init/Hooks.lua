@@ -130,13 +130,13 @@ function ConsolePort:LoadHookScripts()
 	
 	-- Disable keyboard input when splitting stacks (will obstruct controller input)
 	StackSplitFrame:EnableKeyboard(false)
+
 	-- Remove the need to type 'DELETE' when removing rare or better quality items
 	StaticPopupDialogs.DELETE_GOOD_ITEM = StaticPopupDialogs.DELETE_ITEM
 
 	-- This hook might cause issues, but refines the interaction
 	-- with dropdowns. This causes separators and arrow buttons to
 	-- be ignored. 
-
 	if db('UIdropDownFix') then
 		local dropDowns = {
 			DropDownList1,
@@ -146,19 +146,24 @@ function ConsolePort:LoadHookScripts()
 		for _, DD in pairs(dropDowns) do
 			DD:HookScript('OnShow', function(self)
 				for _, child in ipairs({self:GetChildren()}) do
-					if (child.IsVisible and not child:IsVisible()) or (child.IsEnabled and not child:IsEnabled()) then
-						child.ignoreNode = true
-					else
-						child.ignoreNode = nil
-					end
-					if child.hasArrow then
-						child.ignoreChildren = true
-					else
-						child.ignoreChildren = false
-					end
+					child.ignoreNode = (child.IsVisible and not child:IsVisible()) or (child.IsEnabled and not child:IsEnabled())
+					child.ignoreChildren = child.hasArrow
 				end
 			end)
 		end
+	end
+
+	-- Allow cinematics to be cancelled by pressing CROSS/A button.
+	for frame, closeButton in pairs({
+		-----------------------------
+		[CinematicFrame] = CinematicFrameCloseDialogConfirmButton;
+		[MovieFrame] = MovieFrame.CloseDialog and MovieFrame.CloseDialog.ConfirmButton;
+		-----------------------------
+	}) do frame:HookScript('OnKeyUp', function(self, key)
+			if core:GetUIControlKeyFromInput(key) == db.KEY.CROSS then
+				closeButton:Click()
+			end
+		end)
 	end
 
 	-- Need to handle SaveBindings, so that calibration data isn't stored permanently

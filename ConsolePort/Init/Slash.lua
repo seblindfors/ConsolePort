@@ -225,15 +225,33 @@ function ConsolePort:CreateSlashHandler()
 
 
 	local instructions = {
-		['actionbar'] = {desc = SLASH.ACTIONBAR_SHOW, func = ShowActionBarPopup},
-		['debug'] = {desc = SLASH.DEBUG_OUTPUT, func = Debug},
-		['binds'] = {desc = SLASH.BINDS, func = ShowBinds},
-		['config'] = {desc = SLASH.CONFIG, func = ShowConfig},
-		['cvar'] = {desc = SLASH.CVARLIST, func = PrintCVars},
-		['help'] = {desc = HELP_LABEL .. ' & ' .. SHOW_TUTORIALS, func = ShowHelp},
-		['recalibrate'] = {desc = SLASH.RECALIBRATE, func = ShowCalibration},
-		['resetall'] = {desc = SLASH.RESET, func = ResetAll},
-		['type'] = {desc = SLASH.TYPE, func = ShowSplash},
+		['actionbar'] = {	
+			desc = SLASH.ACTIONBAR_SHOW;
+			func = ShowActionBarPopup };
+		['debug'] = {
+			desc = SLASH.DEBUG_OUTPUT; 
+			func = Debug };
+		['binds'] = {
+			desc = SLASH.BINDS;
+			func = ShowBinds };
+		['config'] = {
+			desc = SLASH.CONFIG;
+			func = ShowConfig };
+		['cvar'] = {
+			desc = SLASH.CVARLIST;
+			func = PrintCVars };
+		['help'] = {
+			desc = HELP_LABEL .. ' & ' .. SHOW_TUTORIALS;
+			func = ShowHelp };
+		['recalibrate'] = {
+			desc = SLASH.RECALIBRATE; 
+			func = ShowCalibration };
+		['resetall'] = {
+			desc = SLASH.RESET; 
+			func = ResetAll };
+		['type'] = {
+			desc = SLASH.TYPE;
+			func = ShowSplash };
 	}
 
 

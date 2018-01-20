@@ -230,9 +230,15 @@ function Bar:OnLoad(cfg, benign)
 
 	cfg.layout = cfg.layout or ab:GetDefaultButtonLayout()
 
+	-- Configure individual buttons
 	local layout = cfg.layout
+
 	local swipeRGB = cfg.swipeRGB
 	local borderRGB = cfg.borderRGB
+
+	local hideIcons = cfg.hideIcons
+	local hideModifiers = cfg.hideModifiers
+
 	for binding in ConsolePort:GetBindings() do
 		local position = layout[binding]
 		local wrapper = WrapperLib:Get(binding) or WrapperLib:Create(self, binding, position and position.dir)
@@ -245,6 +251,9 @@ function Bar:OnLoad(cfg, benign)
 		else
 			wrapper:Hide()
 		end
+
+		wrapper:ToggleIcon(not hideIcons)
+		wrapper:ToggleModifiers(not hideModifiers)
 
 		if swipeRGB then wrapper:SetSwipeColor(unpack(swipeRGB))
 		else wrapper:SetSwipeColor(r, g, b, 1) end

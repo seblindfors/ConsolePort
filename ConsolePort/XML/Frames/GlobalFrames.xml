@@ -225,6 +225,7 @@
 						ConsolePortUIHandle.StoredHints = {};
 
 						self:SetParent(UIParent);
+						self:SetIgnoreParentAlpha(true);
 						self:SetFrameStrata('FULLSCREEN_DIALOG');
 
 						local cc = RAID_CLASS_COLORS[select(2, UnitClass('player'))];

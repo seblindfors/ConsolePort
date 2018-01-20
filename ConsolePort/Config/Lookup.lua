@@ -406,6 +406,11 @@ function ConsolePort:GetUIControlKeyOwner(key)
 	return keyToBinding[key]
 end
 
+function ConsolePort:GetUIControlKeyFromInput(binding)
+	local action = GetBindingAction(binding or '')
+	return self:GetUIControlKey(action)
+end
+
 ---------------------------------------------------------------
 -- Get the modifiers currently used by ConsolePort
 ---------------------------------------------------------------
@@ -627,6 +632,8 @@ function ConsolePort:GetDefaultUIFrames()
 			'ClassTrainerFrame' },
 		Blizzard_VoidStorageUI		= {
 			'VoidStorageFrame' },
+		Blizzard_WarboardUI = {
+			'WarboardQuestChoiceFrame' },
 		ConsolePort					= {
 			'AddonList',
 			'BagHelpBox',
@@ -699,6 +706,7 @@ end
 ------------------------------------------------------------------------------------------------------------
 local cvars = { -- value = default
 	--------------------------------------------------------------------------------------------------------
+	actionBarStyle 			= {4			; 'Action button hotkey style for regular action bars (1-5)'};
 	allowSaveBindings 		= {false		; 'Allow binding data uploads (overwrites kb/m bindings)'};
 	alwaysHighlight 		= {0			; 'Always highlight tab target (0, 1, 2)'};
 	autoExtra 				= {true			; 'Automatically bind Qitems to utility ring'};
@@ -706,11 +714,11 @@ local cvars = { -- value = default
 	autoSellJunk 			= {true			; 'Automatically sell junk'};
 	cursorTrailGhost 		= {false		; 'Show cursor trail ghost'};
 	cursorTrailGhostVis 	= {.25			; 'Cursor trail ghost alpha (0-1)'};
-	disableCursorTrail 		= {false		; 'Rclick/interact icon trailing cursor'};
-	disableHints 			= {false		; 'Hints on how certain things work'};
-	disableSmartBind 		= {false		; 'Unbound combos default to nomod binding'};
-	disableSmartMouse 		= {false		; 'Smart cursor show/hide'};
-	disableStickMouse		= {false		; 'Override bindings for stick buttons'};
+	disableCursorTrail 		= {false		; 'Disable Rclick/interact icon trailing cursor'};
+	disableHints 			= {false		; 'Disable hint display on how certain things work'};
+	disableSmartBind 		= {false		; 'Disable action/bag placement helper'};
+	disableSmartMouse 		= {false		; 'Disable smart cursor show/hide'};
+	disableStickMouse		= {false		; 'Disable override bindings for stick buttons'};
 	doubleModTap 			= {true			; 'Toggle mouselook by double tapping a modifier'};
 	doubleModTapWindow 		= {.25			; 'How fast a modifier has to be tapped (seconds)'};
 	lookAround 				= {false		; 'Look around on L3 while in mouselook'};
@@ -740,7 +748,7 @@ local cvars = { -- value = default
 	cameraYawMaxAngle 		= {30			; 'Max angle to pan before stopping'};
 	--------------------------------------------------------------------------------------------------------
 	-- Interface cursor:
-	disableUI 				= {false		; 'Interface cursor'};
+	disableUI 				= {false		; 'Disable interface cursor'};
 	UIleaveCombatDelay		= {.5			; 'Delay before re-activating UI core after combat'};
 	UIholdRepeatDelay 		= {.125			; 'Delay until a D-pad input is repeated (interface)'};
 	UIdisableHoldRepeat 	= {false		; 'Disable D-pad input repeater'};
@@ -773,12 +781,13 @@ local cvars = { -- value = default
 
 -- Usage: db('cvar', [newValue], ... [branch in database])
 setmetatable(db, {
-	__call = function(self, cvar, newValue, ...)
-		if (newValue ~= nil) and (cvar ~= nil) then
-			local branches = select('#', ...)
-			if branches > 0 then
+	__call = function(self, cvar, ...)
+		local numArgs = select('#', ...)
+		if (numArgs > 0) and (cvar ~= nil) then
+			local newValue = ...
+			if numArgs > 1 then
 				local dest = self
-				for i=1, branches do
+				for i=2, numArgs do
 					dest = dest[select(i, ...)]
 					if (dest == nil) then return false end
 				end

@@ -306,7 +306,11 @@ local Node = {
 local UIDoFramesIntersect = UIDoFramesIntersect 
 
 function Node:IsInteractive(node, object)
-	return not node.includeChildren and node:IsMouseEnabled() and node:IsVisible() and IsUsable[object]
+	return not node.includeChildren and node:IsMouseEnabled() and IsUsable[object]
+end
+
+function Node:IsRelevant(node)
+	return not node.ignoreNode and not node:IsForbidden() and node:IsVisible()
 end
 
 function Node:IsDrawn(node, scrollFrame)
@@ -330,20 +334,19 @@ function Node:IsDrawn(node, scrollFrame)
 end
 
 function Node:Refresh(node, scrollFrame)
-	if node.ignoreNode or node:IsForbidden() then
-		return
-	end
-	local object = node:GetObjectType()
-	if 	not node.ignoreChildren then
-		for i, child in pairs({node:GetChildren()}) do
-			self:Refresh(child, node.GetVerticalScroll and node or scrollFrame)
+	if self:IsRelevant(node) then
+		local object = node:GetObjectType()
+		if 	self:IsInteractive(node, object) and self:IsDrawn(node, scrollFrame) then
+			if node.hasPriority then
+				tinsert(self.cache, 1, {node = node, object = object, scrollFrame = scrollFrame})
+			else
+				self.cache[#self.cache + 1] = {node = node, object = object, scrollFrame = scrollFrame}
+			end
 		end
-	end
-	if 	self:IsInteractive(node, object) and self:IsDrawn(node, scrollFrame) then
-		if node.hasPriority then
-			tinsert(self.cache, 1, {node = node, object = object, scrollFrame = scrollFrame})
-		else
-			self.cache[#self.cache + 1] = {node = node, object = object, scrollFrame = scrollFrame}
+		if 	not node.ignoreChildren then
+			for i, child in pairs({node:GetChildren()}) do
+				self:Refresh(child, node.GetVerticalScroll and node or scrollFrame)
+			end
 		end
 	end
 end
@@ -630,7 +633,7 @@ end
 function Cursor:OnUpdate(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
-		if not current or (current and not current.node:IsVisible()) or (current and not Node:IsDrawn(current.node)) then
+		if not current or ( not current.node:IsVisible() or not Node:IsDrawn(current.node) ) then
 			self:Hide()
 			current = nil
 			if 	IsSafe() and
@@ -717,11 +720,11 @@ function ConsolePort:SetCurrentNode(node, force)
 	end
 end
 
-function ConsolePort:ClearCurrentNode(dontRefresh)
+function ConsolePort:ClearCurrentNode(skipRefresh)
 	current = nil
 	old = nil
 	Cursor.Highlight:Hide()
-	if not dontRefresh then
+	if not skipRefresh then
 		self:UIControl()
 	end
 end

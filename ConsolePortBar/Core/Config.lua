@@ -520,7 +520,17 @@ function WindowMixin:CreateLayoutModule()
 	db.table.mixin(layout, Layout)
 
 	local info = ab:GetBooleanSettings()
+	local subHeaders = {
+		[1] = 'Functionality:';
+		[11] = 'Experience/watch bars:';
+		[15] = 'Display:';
+	}
+
 	for i=1, #info, 2 do
+		local header = subHeaders[i]
+		if header then
+			layout:CreateHeader({val = header, x = 0, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FriendsFont_Large'}})
+		end
 		local frame = CreateFrame('Frame')
 		frame:SetSize(530, 42)
 		local info1, info2 = info[i], info[i+1]
@@ -536,8 +546,9 @@ function WindowMixin:CreateLayoutModule()
 	end
 
 	-- Color header
+	layout:CreateHeader({val = 'Colors:', x = 0, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FriendsFont_Large'}})
+
 	local colors = layout:CreateHeader(
-		{val = 'Colors:', x = 0, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
 		{val = 'Border', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
 		{val = 'Cooldown', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
 		{val = 'Tint', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
@@ -547,7 +558,7 @@ function WindowMixin:CreateLayoutModule()
 	for i, id in pairs({'borderRGB', 'swipeRGB', 'tintRGB', 'expRGB'}) do
 		local color = CreateFrame('Button', nil, colors)
 		color:SetSize(24, 24)
-		color:SetPoint('RIGHT', colors.Objects[i+1], 'LEFT', -8, 0)
+		color:SetPoint('RIGHT', colors.Objects[i], 'LEFT', -8, 0)
 		color.Display = color:CreateTexture(nil, 'ARTWORK')
 		color.Display:SetAllPoints()
 		color:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
@@ -568,6 +579,8 @@ function WindowMixin:CreateLayoutModule()
 	end
 
 	-- Button header
+	layout:CreateHeader({val = 'Button positioning:', x = 0, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FriendsFont_Large'}})
+
 	layout:CreateHeader(
 		{val = 'Size', x = 78, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
 		{val = 'Anchor', x = 67, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},

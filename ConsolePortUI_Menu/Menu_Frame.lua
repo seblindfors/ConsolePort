@@ -10,12 +10,6 @@ local LootButton = L.LootButton
 local lootButtonProbeScript = L.lootButtonProbeScript
 local lootHeaderOnSetScript = L.lootHeaderOnSetScript
 
-local function HideMenu(self)
-	if IsOptionFrameOpen() then
-		ToggleFrame(GameMenuFrame)
-	end
-end
-
 local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate', {
 	{
 		BG = {
@@ -43,7 +37,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 1,
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
 					Desc	= CHARACTER_BUTTON,
-					PreClick = HideMenu,
+					Attrib 	= {hidemenu = true},
 					UpdateLevel = function(self, newLevel)
 						local level = newLevel or UnitLevel('player')
 						if level and level < 110 then
@@ -92,7 +86,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Desc	= INVENTORY_TOOLTIP,
 					Img 	= ICON:format('INV_Misc_Bag_29'),
 					Events 	= {'BAG_UPDATE'},
-					PreClick = HideMenu,
+					Attrib 	= {hidemenu = true},
 					OnClick = ToggleAllBags,
 					OnEvent = function(self, event, ...)
 						local totalFree, numSlots, freeSlots, bagFamily = 0, 0
@@ -123,8 +117,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Inventory', 'BOTTOM', 0, 0},
 					Desc	= TALENTS_BUTTON,
 					Img 	= [[Interface\ICONS\ClassIcon_]]..select(2, UnitClass('player')),
-					Click 	= TalentMicroButton,
-					PreClick = HideMenu,
+					RefTo 	= TalentMicroButton,
+					Attrib 	= {hidemenu = true},
 					EvaluateAlertVisibility = function(self)
 						-- If we just unspecced, and we have unspent talent points, it's probably spec-specific talents that were just wiped.  Show the tutorial box.
 						if not AreTalentsLocked() and GetNumUnspentTalents() > 0 and (not PlayerTalentFrame or not PlayerTalentFrame:IsShown()) then
@@ -208,8 +202,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Spec', 'BOTTOM', 0, 0},
 					Desc	= SPELLBOOK_BUTTON,
 					Img 	= [[Interface\Spellbook\Spellbook-Icon]],
-					Click 	= SpellbookMicroButton,
-					PreClick = HideMenu,
+					RefTo 	= SpellbookMicroButton,
+					Attrib 	= {hidemenu = true},
 				},
 				Collections  = {
 					Type 	= 'Button',
@@ -219,8 +213,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Spellbook', 'BOTTOM', 0, 0},
 					Desc	= COLLECTIONS,
 					Img 	= ICON:format('MountJournalPortrait'),
-					Click 	= CollectionsMicroButton,
-					PreClick = HideMenu,
+					RefTo 	= CollectionsMicroButton,
+					Attrib 	= {hidemenu = true},
 				},
 			},
 		},
@@ -244,8 +238,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
 					Desc	= WORLD_MAP .. ' / ' .. QUEST_LOG,
 					Img 	= ICON:format('INV_Misc_Map02'),
-					Click 	= QuestLogMicroButton,
-					PreClick = HideMenu,
+					RefTo 	= QuestLogMicroButton,
+					Attrib 	= {hidemenu = true},
 				},
 				Guide  = {
 					Type 	= 'Button',
@@ -255,8 +249,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.WorldMap', 'BOTTOM', 0, 0},
 					Desc	= ADVENTURE_JOURNAL,
 					Img 	= [[Interface\ENCOUNTERJOURNAL\UI-EJ-PortraitIcon]],
-					Click 	= EJMicroButton,
-					PreClick = HideMenu,
+					RefTo 	= EJMicroButton,
+					Attrib 	= {hidemenu = true},
 					{
 						Notice = {
 							Type = 'Frame',
@@ -292,8 +286,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Guide', 'BOTTOM', 0, 0},
 					Desc	= DUNGEONS_BUTTON,
 					Img 	= [[Interface\LFGFRAME\UI-LFG-PORTRAIT]],
-					Click 	= LFDMicroButton,
-					PreClick = HideMenu,
+					RefTo 	= LFDMicroButton,
+					Attrib 	= {hidemenu = true},
 				},
 				Achievements  = {
 					Type 	= 'Button',
@@ -303,8 +297,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Finder', 'BOTTOM', 0, -16},
 					Desc	= ACHIEVEMENTS,
 					Img 	= ICON:format('ACHIEVEMENT_WIN_WINTERGRASP'),
-					Click 	= AchievementMicroButton,
-					PreClick = HideMenu,
+					RefTo 	= AchievementMicroButton,
+					Attrib 	= {hidemenu = true},
 				},
 				WhatsNew  = {
 					Type 	= 'Button',
@@ -313,7 +307,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 5,
 					Point 	= {'TOP', 'parent.Achievements', 'BOTTOM', 0, 0},
 					Desc	= GAMEMENU_NEW_BUTTON,
-					Click 	= GameMenuButtonWhatsNew,
+					RefTo 	= GameMenuButtonWhatsNew,
 					Img 	= ICON:format('WoW_Token01')
 				},
 				Shop  = {
@@ -323,7 +317,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 6,
 					Point 	= {'TOP', 'parent.WhatsNew', 'BOTTOM', 0, 0},
 					Desc	= BLIZZARD_STORE,
-					Click 	= GameMenuButtonStore,
+					RefTo 	= GameMenuButtonStore,
 					Img 	= ICON:format('WoW_Store'),
 				},
 				Teleport  = {
@@ -366,8 +360,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
 					Desc 	= FRIENDS_LIST,
 					Img 	= [[Interface\FriendsFrame\Battlenet-Portrait]],
-					Click 	= QuickJoinToastButton,
-					PreClick = HideMenu,
+					RefTo 	= QuickJoinToastButton,
+					Attrib 	= {hidemenu = true},
 					OnEvent = function(self)
 						local _, numBNetOnline = BNGetNumFriends()
 						local _, numWoWOnline = GetNumFriends()
@@ -396,8 +390,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Friends', 'BOTTOM', 0, 0},
 					Desc 	= GUILD,
 					Img 	= ICON:format('Achievement_GuildPerk_EverybodysFriend'),
-					Click 	= GuildMicroButton,
-					PreClick = HideMenu,
+					RefTo 	= GuildMicroButton,
+					Attrib 	= {hidemenu = true},
 				},
 				Calendar  = {
 					Type 	= 'Button',
@@ -407,8 +401,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Guild', 'BOTTOM', 0, 0},
 					Desc 	= EVENTS_LABEL,
 					Img 	= [[Interface\Calendar\MeetingIcon]],
-					PreClick = HideMenu,
-					Click 	= GameTimeFrame,
+					Attrib 	= {hidemenu = true},
+					RefTo 	= GameTimeFrame,
 				},
 				Raid  = {
 					Type 	= 'Button',
@@ -418,8 +412,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Calendar', 'BOTTOM', 0, 0},
 					Desc 	= RAID,
 					Img 	= [[Interface\LFGFRAME\UI-LFR-PORTRAIT]],
+					Attrib 	= {hidemenu = true},
 					Scripts = {
-						PreClick = HideMenu,
 						OnClick = ToggleRaidFrame,
 					},
 				},
@@ -430,14 +424,16 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 5,
 					Point 	= {'TOP', 'parent.Raid', 'BOTTOM', 0, -16},
 					Img 	= [[Interface\LFGFRAME\UI-LFG-PORTRAIT]],
-					SetAttribute = {'condition', 'return PlayerInGroup()'},
+					Attrib 	= {
+						condition = 'return PlayerInGroup()',
+						hidemenu = true,
+					},
 					Hooks 	= {
 						OnShow = function(self)
 							self:SetText(IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
 						end,
 					},
 					Scripts = {
-						PreClick = HideMenu,
 						OnClick = function(self)
 							if IsPartyLFG() or IsInLFGDungeon() then
 								ConfirmOrLeaveLFGParty()
@@ -468,7 +464,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 1,
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
 					Desc	= RETURN_TO_GAME,
-					Click 	= GameMenuButtonContinue,
+					RefTo 	= GameMenuButtonContinue,
 					Img 	= ICON:format('misc_arrowright'),
 				},
 				Logout  = {
@@ -478,7 +474,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 2,
 					Point 	= {'TOP', 'parent.Return', 'BOTTOM', 0, 0},
 					Desc	= LOGOUT,
-					Click 	= GameMenuButtonLogout,
+					RefTo 	= GameMenuButtonLogout,
 					Img 	= ICON:format('RaceChange'),
 				},
 				Exit  = {
@@ -488,7 +484,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 3,
 					Point 	= {'TOP', 'parent.Logout', 'BOTTOM', 0, 0},
 					Desc	= EXIT_GAME,
-					Click 	= GameMenuButtonQuit,
+					RefTo 	= GameMenuButtonQuit,
 					Img 	= [[Interface\RAIDFRAME\ReadyCheck-NotReady]],
 				},
 				Controller  = {
@@ -500,7 +496,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Desc	= CONTROLS_LABEL,
 					NoMask 	= true,
 					Img 	= db.TEXTURE.CP_X_CENTER,
-					PreClick = HideMenu,
+					Attrib 	= {hidemenu = true},
 					OnClick = function() 
 						if InCombatLockdown() then
 							ConsolePortConfig:OnShow()
@@ -516,7 +512,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 5,
 					Point 	= {'TOP', 'parent.Controller', 'BOTTOM', 0, 0},
 					Desc	= SYSTEMOPTIONS_MENU,
-					Click 	= GameMenuButtonOptions,
+					RefTo 	= GameMenuButtonOptions,
 					Img 	= ICON:format('Pet_Type_Mechanical'),
 				},
 				Interface  = {
@@ -526,7 +522,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 6,
 					Point 	= {'TOP', 'parent.System', 'BOTTOM', 0, 0},
 					Desc	= UIOPTIONS_MENU,
-					Click 	= GameMenuButtonUIOptions,
+					RefTo 	= GameMenuButtonUIOptions,
 					Img 	= [[Interface\TUTORIALFRAME\UI-TutorialFrame-GloveCursor]],
 				},
 				AddOns  = {
@@ -536,7 +532,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 7,
 					Point 	= {'TOP', 'parent.Interface', 'BOTTOM', 0, 0},
 					Desc	= ADDONS,
-					Click 	= GameMenuButtonAddons,
+					RefTo 	= GameMenuButtonAddons,
 					Img 	= [[Interface\PaperDollInfoFrame\Character-Plus]],
 				},
 				Macros  = {
@@ -546,7 +542,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 8,
 					Point 	= {'TOP', 'parent.AddOns', 'BOTTOM', 0, -16},
 					Desc	= MACROS,
-					Click 	= GameMenuButtonMacros,
+					RefTo 	= GameMenuButtonMacros,
 					Img 	= ICON:format('Pet_Type_Magical'),
 				},
 				KeyBindings  = {
@@ -556,7 +552,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 9,
 					Point 	= {'TOP', 'parent.Macros', 'BOTTOM', 0, 0},
 					Desc	= KEY_BINDINGS,
-					Click 	= GameMenuButtonKeybindings,
+					RefTo 	= GameMenuButtonKeybindings,
 					Img 	= [[Interface\MacroFrame\MacroFrame-Icon]],
 				},
 				Help  = {
@@ -566,7 +562,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 10,
 					Point 	= {'TOP', 'parent.KeyBindings', 'BOTTOM', 0, 0},
 					Desc	= GAMEMENU_HELP,
-					Click 	= GameMenuButtonHelp,
+					RefTo 	= GameMenuButtonHelp,
 					Img 	= ICON:format('INV_Misc_QuestionMark'),
 				},
 			},
@@ -742,7 +738,17 @@ do
 			local newheader = self:GetFrameRef('newheader')
 			headers[newheader:GetID()] = newheader
 		]])
-		for _, button in pairs({header:GetChildren()}) do
+		for i, button in ipairs({header:GetChildren()}) do
+			if button:GetAttribute('hidemenu') then
+				button:SetAttribute('type', 'macro')
+				button:SetAttribute('macrotext', '/click GameMenuButtonContinue')
+			end
+			if button.RefTo then
+				local macrotext = button:GetAttribute('macrotext')
+				local prefix = (macrotext and macrotext .. '\n') or ''
+				button:SetAttribute('macrotext', prefix .. '/click ' .. button.RefTo:GetName())
+				button:SetAttribute('type', 'macro')
+			end
 			button:Hide()
 			header:SetFrameRef(tostring(button:GetID()), button)
 		end
@@ -761,8 +767,6 @@ do
 
 	Menu:SetSize(1024, 128)
 	Menu:SetFrameStrata('FULLSCREEN')
-
-	Menu.HideMenu = HideMenu
 
 	UI:RegisterFrame(Menu, 'Menu', false, true)
 	UI:HideFrame(GameMenuFrame, true)

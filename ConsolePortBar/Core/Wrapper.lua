@@ -13,7 +13,7 @@ ab.libs.registry = LibRegistry
 local TEX_PATH = [[Interface\AddOns\]]..an..[[\Textures\%s]]
 local NOT_BOUND_TOOLTIP = NOT_BOUND .. '\n' .. db.TUTORIAL.BIND.TOOLTIPCLICK
 ---------------------------------------------------------------
-local size, smallSize, tSize = 64, 44, 58
+local size, smallSize, tSize = 64, 46, 58
 local ofs, ofsB, fixA = 38, 21, 4
 ---------------------------------------------------------------
 local mods = {
@@ -61,20 +61,20 @@ local modcoords = { -- ULx, ULy, LLx, LLy, URx, URy, LRx, LRy
 
 local masks = { -- SHIFT-: M1, CTRL-: M2, CTRL-SHIFT-: M3
 	['SHIFT-'] = {
-		down 	= TEX_PATH:format([[Masks\M1_up]]),
-		up 		= TEX_PATH:format([[Masks\M1_down]]),
-		left 	= TEX_PATH:format([[Masks\M2_left]]),
-		right 	= TEX_PATH:format([[Masks\M2_right]]),
-	},
-	['CTRL-'] = {
-		down 	= TEX_PATH:format([[Masks\M2_up]]),
-		up 		= TEX_PATH:format([[Masks\M2_down]]),
+		down 	= TEX_PATH:format([[Masks\M1_down]]),
+		up 		= TEX_PATH:format([[Masks\M1_up]]),
 		left 	= TEX_PATH:format([[Masks\M1_left]]),
 		right 	= TEX_PATH:format([[Masks\M1_right]]),
 	},
+	['CTRL-'] = {
+		down 	= TEX_PATH:format([[Masks\M2_down]]),
+		up 		= TEX_PATH:format([[Masks\M2_up]]),
+		left 	= TEX_PATH:format([[Masks\M2_left]]),
+		right 	= TEX_PATH:format([[Masks\M2_right]]),
+	},
 	['CTRL-SHIFT-'] = {
-		down 	= TEX_PATH:format([[Masks\M3_up]]),
-		up 		= TEX_PATH:format([[Masks\M3_down]]),
+		down 	= TEX_PATH:format([[Masks\M3_down]]),
+		up 		= TEX_PATH:format([[Masks\M3_up]]),
 		left 	= TEX_PATH:format([[Masks\M3_left]]),
 		right 	= TEX_PATH:format([[Masks\M3_right]]),
 	},
@@ -315,6 +315,18 @@ end
 
 function Wrapper:SetSwipeColor(r, g, b, a)
 	self[''].cooldown:SetSwipeColor(r, g, b, a)
+end
+
+function Wrapper:ToggleIcon(enabled)
+	self[''].hotkey:SetShown(enabled)
+end
+
+function Wrapper:ToggleModifiers(enabled)
+	for mod, button in pairs(self.Buttons) do
+		local hotkey1, hotkey2 = button['hotkey1'], button['hotkey2']
+		if hotkey1 then hotkey1:SetShown(enabled) end
+		if hotkey2 then hotkey2:SetShown(enabled) end
+	end
 end
 
 function Wrapper:SetBorderColor(r, g, b, a)

@@ -64,20 +64,32 @@ function ConsolePort:CalibrateController(reset)
 		cbF.Container:SetPoint("TOPLEFT", 8, -64)
 		cbF.Container:SetPoint("BOTTOMRIGHT", -8, 8)
 
+		local function HelpOnEnter(self)
+			if self.promptText then
+				GameTooltip:SetOwner(self, "ANCHOR_TOP")
+				GameTooltip:SetText(self.promptText)
+				GameTooltip:Show()
+			end
+		end
+
+		local function HelpOnLeave(self)
+			if GameTooltip:IsOwned(self) then
+				GameTooltip:Hide()
+			end
+		end
+
+		cbF.Close.promptText = SETUP.CALIB_SKIP_WARNING
+		cbF.Close:SetScript("OnEnter", HelpOnEnter)
+		cbF.Close:SetScript("OnLeave", HelpOnLeave)
+
 		cbF.HelpButton = CreateFrame("Button", "$parentHelpButton", cbF)
+		cbF.HelpButton.promptText = SETUP.WTFTEXT
 		cbF.HelpButton:SetSize(64, 64)
 		cbF.HelpButton:SetNormalTexture("Interface\\Common\\help-i")
 		cbF.HelpButton:SetHighlightTexture("Interface\\Common\\help-i")
 		cbF.HelpButton:SetPoint("BOTTOMRIGHT", -16, 16)
-		cbF.HelpButton:SetScript("OnEnter", function(self)
-			GameTooltip:Hide()
-			GameTooltip:SetOwner(self, "ANCHOR_TOP")
-			GameTooltip:SetText(SETUP.WTFTEXT)
-			GameTooltip:Show()
-		end)
-		cbF.HelpButton:SetScript("OnLeave", function(self)
-			GameTooltip:Hide()
-		end)
+		cbF.HelpButton:SetScript("OnEnter", HelpOnEnter)
+		cbF.HelpButton:SetScript("OnLeave", HelpOnLeave)
 
 		-- Show the clarifying helper frame if the user is confused about mapping their controller.
 		cbF.HelpButton:SetScript("OnClick", function(self)

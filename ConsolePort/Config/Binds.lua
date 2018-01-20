@@ -425,7 +425,7 @@ function ShortcutMixin:OnClick()
 end
 
 ---------------------------------------------------------------
--- Binds: Create addon bindings
+-- Binds: Create and handle addon bindings
 ---------------------------------------------------------------
 local function SetTempBinding(self, modifier, original, override)
 	if original and override then
@@ -461,7 +461,7 @@ local function SetMovementBindings(self, handler)
 		movement.TURNRIGHT = nil
 	end
 	for direction, keys in spairs(movement) do
-		for _, key in pairs(keys) do
+		for _, key in ipairs(keys) do
 			for modifier in self:GetModifiers() do
 				SetOverrideBinding(handler, false, modifier..key, direction)
 			end
@@ -476,7 +476,7 @@ function ConsolePort:LoadBindingSet(newBindingSet, fireCallback)
 			SetBinding(key, binding)
 		end
 	end
-	local bindingSet = newBindingSet or db.Bindings
+	local bindingSet = newBindingSet or db.Bindings or {}
 	local handler = ConsolePortButtonHandler
 	ClearOverrideBindings(handler)
 	SetMovementBindings(self, handler)
@@ -520,16 +520,11 @@ end
 local function ProfileOnSelect(self)
 	local buttons = self:GetParent().Buttons
 	local isSelected = self.SelectedTexture:IsShown()
-	for _, button in pairs(buttons) do
+	for _, button in ipairs(buttons) do
 		button.SelectedTexture:Hide()
 	end
 	self.SelectedTexture:SetShown(not isSelected)
-
-	if not isSelected then
-		self.Popup:SetSelection(self.name)
-	else
-		self.Popup:SetSelection(nil)
-	end
+	self.Popup:SetSelection(not isSelected and self.name)
 end
 
 local function RefreshProfileList(self)
@@ -544,22 +539,22 @@ local function RefreshProfileList(self)
 
 	local profiles = copy(ConsolePortCharacterSettings)
 	self.ProfileData = profiles
-
+	-- add shared data profiles
 	for character, settings in spairs(profiles) do
 		if not settings.BindingSet then
 			profiles[character] = nil
 		end
 	end
-
-	for name, data in pairs(db.Controllers) do
-		profiles["|cFFFFFFFF"..name.."|r"..TUTORIAL.PROFILEPRESET] = {
-			Type = name,
+	-- add controller template presets
+	for controller, data in pairs(db.Controllers) do
+		profiles["|cFFFFFFFF"..controller.."|r"..TUTORIAL.PROFILEPRESET] = {
+			Type = controller,
 			BindingSet = data.Bindings,
 			Preset = true,
 		}
 	end
-
-	profiles["|cFFFFFFFF"..TUTORIAL.PROFILEEMPTY.."|r"..TUTORIAL.PROFILEPRESET] = {
+	-- add empty preset
+	profiles["|cFFFFFFFF"..EMPTY.."|r"..TUTORIAL.PROFILEPRESET] = {
 		BindingSet = {},
 		Preset = true,
 	}
