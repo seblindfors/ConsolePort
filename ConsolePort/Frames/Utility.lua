@@ -121,20 +121,26 @@ end
 ---------------------------------------------------------------
 -- Manage auto-assigned items (quest items)
 ---------------------------------------------------------------
+local function AddItemForQuestLogIndex(itemTbl, questLogIndex)
+	if questLogIndex then
+		local link = GetQuestLogSpecialItemInfo(questLogIndex)
+		local name = link and GetItemInfo(link)
+		if name then
+			local _, itemID = strsplit(':', strmatch(link, 'item[%-?%d:]+'))
+			if itemID then
+				itemTbl[name] = itemID
+			end
+		end
+	end
+end
+
 local function GetQuestWatchItems()
 	local items = {}
 	for i=1, GetNumQuestWatches() do
-		local questID = GetQuestIndexForWatch(i)
-		if questID then
-			local link = GetQuestLogSpecialItemInfo(questID)
-			local name = link and GetItemInfo(link)
-			if name then
-				local _, itemID = strsplit(':', strmatch(link, 'item[%-?%d:]+'))
-				if itemID then
-					items[name] = itemID
-				end
-			end
-		end
+		AddItemForQuestLogIndex(items, GetQuestIndexForWatch(i))
+	end
+	for i=1, GetNumWorldQuestWatches() do
+		AddItemForQuestLogIndex(items, GetQuestLogIndexByID(GetWorldQuestWatchInfo(i)))
 	end
 	return items
 end
@@ -198,7 +204,9 @@ end
 -- Ring maangement 
 ---------------------------------------------------------------
 function Utility:OnEvent(event, ...)
-	if (event == 'QUEST_WATCH_LIST_CHANGED' or event == 'QUEST_ACCEPTED') and self.autoExtra then
+	if (event == 'QUEST_ACCEPTED' or 
+		event == 'QUEST_POI_UPDATE' or 
+		event == 'QUEST_WATCH_LIST_CHANGED') and self.autoExtra then
 		ConsolePort:AddUpdateSnippet(UpdateQuestItems)
 	end
 	for _, ActionButton in ipairs(ActionButtons) do
@@ -777,6 +785,7 @@ function ConsolePort:SetupUtilityRing()
 			'BAG_UPDATE',
 			'BAG_UPDATE_COOLDOWN',
 			'QUEST_ACCEPTED',
+			'QUEST_POI_UPDATE',
 			'QUEST_WATCH_LIST_CHANGED',
 			'SPELL_UPDATE_COOLDOWN',
 			'SPELL_UPDATE_CHARGES',

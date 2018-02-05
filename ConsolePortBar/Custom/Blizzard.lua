@@ -240,7 +240,68 @@ do
 		bar:UnregisterAllEvents()
 		bar:SetParent(UIHider)
 		bar:Hide()
-	end 
+	end
+
+	-------------------------------------------
+	--- 	Casting bar modified
+	-------------------------------------------
+
+	local castBar, overrideCastBarPos = CastingBarFrame
+	local castBarAnchor = {'BOTTOM', Bar,  'BOTTOM', 0, 0}
+
+	hooksecurefunc(castBar, 'SetPoint', function(self, point, region, relPoint, x, y)
+		if overrideCastBarPos and region ~= castBarAnchor[2] then
+			self:SetPoint(unpack(castBarAnchor))
+		end
+	end)
+
+	local function ModifyCastingBarFrame(self, isOverrideBar)
+		CastingBarFrame_SetLook(self, isOverrideBar and 'CLASSIC' or 'UNITFRAME')
+		self.Border:SetShown(isOverrideBar)
+		if isOverrideBar then
+			return
+		end
+		-- Text anchor
+		self.Text:SetPoint('TOPLEFT', 0, 0)
+		self.Text:SetPoint('TOPRIGHT', 0, 0)
+		-- Flash at the end of a cast
+		self.Flash:SetTexture('Interface\\QUESTFRAME\\UI-QuestLogTitleHighlight')
+		self.Flash:SetAllPoints()
+		-- Border shield for uninterruptible casts
+		self.BorderShield:ClearAllPoints()
+		self.BorderShield:SetTexture('Interface\\CastingBar\\UI-CastingBar-Arena-Shield')
+		self.BorderShield:SetPoint('CENTER', self.Icon, 'CENTER', 10, 0)
+		self.BorderShield:SetSize(49, 49)
+
+		local r, g, b = ab:GetRGBColorFor('exp')
+		CastingBarFrame_SetStartCastColor(self, r or 1.0, g or 0.7, b or 0.0)
+	end
+
+	local function MoveCastingBarFrame()
+		local cfg = ab.cfg
+		if cfg and cfg.disableCastBarHook then
+			overrideCastBarPos = false
+		elseif OverrideActionBar:IsShown() or (cfg and cfg.defaultCastBar) then
+			ModifyCastingBarFrame(castBar, true)
+			overrideCastBarPos = false
+		else
+			castBarAnchor[4] = ( cfg and cfg.castbarxoffset or 0 )
+			castBarAnchor[5] = ( cfg and cfg.castbaryoffset or 0 )
+			ModifyCastingBarFrame(castBar, false)
+			castBar:ClearAllPoints()
+			castBar:SetPoint(unpack(castBarAnchor))
+			castBar:SetSize(
+				(cfg and cfg.castbarwidth) or (Bar:GetWidth() - 180),
+				(cfg and cfg.castbarheight) or 14)
+			overrideCastBarPos = true
+		end
+	end
+
+	Bar:HookScript('OnSizeChanged', MoveCastingBarFrame)
+	Bar:HookScript('OnShow', MoveCastingBarFrame)
+	Bar:HookScript('OnHide', MoveCastingBarFrame)
+	OverrideActionBar:HookScript('OnShow', MoveCastingBarFrame)
+	OverrideActionBar:HookScript('OnHide', MoveCastingBarFrame) 
 
 	-------------------------------------------
 	--- 	Misc changes
@@ -254,14 +315,6 @@ do
 	else
 		hooksecurefunc('TalentFrame_LoadUI', function() PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED') end)
 	end
-
-	-- Keep casting bar from obscuring action bar.
-	CastingBarFrame:ClearAllPoints()
-	hooksecurefunc(CastingBarFrame, 'SetPoint', function(self, anchor, relative, relRegion)
-		if anchor ~= 'BOTTOM' or relative ~= Bar or relRegion ~= 'TOP' then
-			self:SetPoint('BOTTOM', Bar, 'TOP', 0, 50)
-		end
-	end)
 
 	-- Replace spell push animations. 
 	IconIntroTracker:HookScript('OnEvent', function(self, event, ...)

@@ -196,7 +196,7 @@ function PopupMixin:OnClick()
 	end
 end
 
-local function ResetBindingsOnClick(self)
+local function ResetCalibrationOnClick(self)
 	if not InCombatLockdown() then
 		self:GetParent():GetParent():Hide()
 		ConsolePort:CalibrateController(true)
@@ -397,7 +397,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		ExtraButton.Container = CreateFrame('Frame', '$parentPopup', ExtraButton)
 
 		Controls.ResetController = CreateButton('ResetController', TUTORIAL.CONFIG.CONTROLLER, ConsolePort.SelectController, {'TOPLEFT', 40, -16})
-		Controls.ResetBindings = CreateButton('ResetBindings', TUTORIAL.CONFIG.BINDRESET, ResetBindingsOnClick, {'LEFT', Controls.ResetController, 'RIGHT', 2, 0})
+		Controls.ResetCalibration = CreateButton('ResetCalibration', TUTORIAL.CONFIG.BINDRESET, ResetCalibrationOnClick, {'LEFT', Controls.ResetController, 'RIGHT', 2, 0})
 		Controls.ResetAll = CreateButton('ResetAll', TUTORIAL.CONFIG.FULLRESET, ResetAllOnClick, {'TOPRIGHT', -40, -16}, true)
 		Controls.ShowSlash = CreateButton('ShowSlash', TUTORIAL.CONFIG.SHOWSLASH, SlashCmdList['CONSOLEPORT'], {'RIGHT', Controls.ResetAll, 'LEFT', -2, 0}, true)
 

@@ -344,6 +344,10 @@ ACTIONBAR = {
 	CFG_ART_UNDERLAY 	= 'Show class art underlay',
 	CFG_ART_TINT		= 'Show color tint',
 	CFG_COLOR_RAINBOW 	= 'I like rainbows',
+	CFG_DISABLE_ICONS	= 'Hide main button icons',
+	CFG_DISABLE_MINIS	= 'Hide modifier icons',
+	CFG_CAST_DEFAULT	= 'Show default cast bar',
+	CFG_CAST_NOHOOK		= 'Disable cast bar modification',
 	CFG_VALID_ENTRIES 	= "Valid:\n%s",
 	CFG_COLOR_TOOLTIP 	= '|cFFFF0000%s|r |cFF00FF00%s|r |cFF0000FF%s|r |cFFFFFFFF%s|r\nLeft click: change color.\nRight click: reset color.',
 	-----------------------------------------------------------

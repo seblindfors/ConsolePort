@@ -153,7 +153,7 @@ function ConsolePort:GetActionPageDriver()
 	-- add any new / extra macro conditions to the list below. (as if there aren't enough already)
 	local conditionFormat = '[%s] %d; '
 	local count, driver = 0, ''
-	for i, macroCondition in pairs({
+	for i, macroCondition in ipairs({
 		----------------------------------
 		'vehicleui', 'possessbar', 'overridebar', 'shapeshift',
 		'bar:2', 'bar:3', 'bar:4', 'bar:5', 'bar:6',

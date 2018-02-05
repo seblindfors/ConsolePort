@@ -25,15 +25,14 @@ function ConsolePort:CheckCalibration(forceCustom)
 		-- no calibration data found, go to custom calibration.
 		local unassigned
 		for button in self:GetBindings() do
-			if 	not (db.Settings.skipGuideBtn and button == "CP_X_CENTER") and not button:match("CP_T_.3") then
-				local key1, key2 = GetBindingKey(button)
-				if not key1 and not key2 then
-					if not unassigned then
-						unassigned = { button }
-					else
-						unassigned[#unassigned + 1] = button
-					end
-				end
+			local isConfigurableButton = not ( button == "CP_X_CENTER" and db.Settings.skipGuideBtn )
+			local isDynamicKeyAllowed = not ( button:match("CP_T_.3") )
+			-----------------------------------------------------------------------------------
+			if 	isConfigurableButton and isDynamicKeyAllowed and not GetBindingKey(button) then
+				------------------------------------
+				unassigned = unassigned or {}
+				unassigned[#unassigned + 1] = button
+				------------------------------------
 			end
 		end
 		return unassigned

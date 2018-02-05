@@ -85,6 +85,70 @@
 		</Scripts>
 	</Frame>
 
+	<!-- The interface cursor, snaps between and clicks on UI elements out of combat. Cursors\Interface.lua -->
+	<Frame name="ConsolePortCursor" parent="UIParent" frameStrata="TOOLTIP">
+		<Size x="32" y="32"/>
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="7">
+				<Texture parentKey="Tip" file="Interface\CURSOR\Item" setAllPoints="true"/>
+				<Texture parentKey="Button">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" x="4" y="-4"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Highlight"/>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Pointer">
+				<Size x="32" y="32"/>
+			</Frame>
+			<PlayerModel parentKey="Spell" alpha="0.1">
+				<Scripts>
+					<OnLoad>
+						self.parent = self:GetParent();
+						self:SetDisplayInfo(42486);
+					</OnLoad>
+					<OnShow>
+						self:SetSize(70, 70);
+						self:SetPoint("CENTER", self.parent, "BOTTOMLEFT", 20, 13);
+					</OnShow>
+				</Scripts>
+			</PlayerModel>
+		</Frames>
+		<Animations>
+			<AnimationGroup parentKey="Scaling">
+				<Scale parentKey="Enlarge" smoothing="OUT" duration=".1" order="1">
+					<Origin point="CENTER"/>
+				</Scale>
+				<Scale parentKey="Shrink" smoothing="IN" duration=".2" order="2">
+					<Origin point="CENTER"/>
+				</Scale>
+			</AnimationGroup>
+			<AnimationGroup parentKey="Moving">
+				<Translation parentKey="Translate" smoothing="OUT" duration=".05"/>
+			</AnimationGroup>
+		</Animations>
+		<Scripts>
+			<OnEvent>
+				if self[event] then
+					self[event](self);
+				end
+			</OnEvent>
+			<OnLoad>
+				self:RegisterEvent("MODIFIER_STATE_CHANGED");
+				self:RegisterEvent("PLAYER_REGEN_DISABLED");
+				self:RegisterEvent("PLAYER_REGEN_ENABLED");
+				self:RegisterEvent("PLAYER_ENTERING_WORLD");
+				self.Timer = 0;
+				ConsolePort.Cursor = self;
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
 	<!-- Displays cursor hints for interaction, spell placement and item pickups -->
 	<Frame name="ConsolePortCursorTrail" parent="UIParent" frameStrata="TOOLTIP" hidden="true">
 		<Size x="32" y="32"/>

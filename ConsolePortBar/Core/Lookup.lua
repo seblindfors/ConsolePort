@@ -365,13 +365,21 @@ function ab:GetBooleanSettings(otherCFG)
 			cvar = 'disableMainMenuExpBar',
 			toggle = cfg.disableMainMenuExpBar,
 		},
-		{	desc = 'Hide main button icons',
+		{	desc = L.CFG_DISABLE_ICONS,
 			cvar = 'hideIcons',
 			toggle = cfg.hideIcons,
 		},
-		{	desc = 'Hide modifier icons',
+		{	desc = L.CFG_DISABLE_MINIS,
 			cvar = 'hideModifiers',
 			toggle = cfg.hideModifiers,
+		},
+		{	desc = L.CFG_CAST_DEFAULT,
+			cvar = 'defaultCastBar',
+			toggle = cfg.defaultCastBar,
+		},
+		{	desc = L.CFG_CAST_NOHOOK,
+			cvar = 'disableCastBarHook',
+			toggle = cfg.disableCastBarHook,
 		},
 		{	desc = L.CFG_MOUSE_ENABLE,
 			cvar = 'mousewheel',
@@ -396,9 +404,10 @@ function ab:SetRainbowScript(on)
 	local f = ab.bar
 	if on then
 		local reg, pairs = ab.libs.registry, pairs
+		local __cb, __bg, __bl = CastingBarFrame, f.BG, f.BottomLine
 		local t, i, p, c, w, m = 0, 0, 0, 128, 127, 180
 		local hz = (math.pi*2) / m
-		local r, g, b 
+		local r, g, b
 		f:SetScript('OnUpdate', function(self, e)
 			t = t + e
 			if t > 0.1 then
@@ -409,8 +418,9 @@ function ab:SetRainbowScript(on)
 				if i > m then
 					i = i - m
 				end
-				f.BG:SetGradientAlpha(ab:GetColorGradient(r, g, b))
-				f.BottomLine:SetVertexColor(r, g, b)
+				__cb:SetStatusBarColor(r, g, b)
+				__bg:SetGradientAlpha(ab:GetColorGradient(r, g, b))
+				__bl:SetVertexColor(r, g, b)
 				for _, rap in pairs(reg) do
 					rap:SetSwipeColor(r, g, b, 1)
 				end

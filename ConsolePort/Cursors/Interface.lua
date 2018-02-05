@@ -34,13 +34,11 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 ---------------------------------------------------------------
 		-- Cursor frame and scroll helpers
 local 	Cursor, ClickWrapper, StepL, StepR, Scroll =
-		CreateFrame("Frame", "ConsolePortCursor", UIParent),
+		ConsolePortCursor,
 		CreateFrame("Button", "ConsolePortCursorClickWrapper"),
 		CreateFrame("Button", "ConsolePortCursorStepL"),
 		CreateFrame("Button", "ConsolePortCursorStepR"),
 		CreateFrame("Frame")
-
-ConsolePort.Cursor = Cursor
 
 -- Store hybrid onload to check whether a scrollframe can be scrolled automatically
 local hybridScroll = HybridScrollFrame_OnLoad
@@ -145,9 +143,9 @@ function Cursor:Scale()
 	end
 end
 
-function Cursor:ScaleOnFinished()
+function Cursor.Scaling:OnFinished()
 	if current then
-		self:GetParent().Highlight:SetParent(current.node)
+		Cursor.Highlight:SetParent(current.node)
 	end
 end
 
@@ -166,18 +164,17 @@ function Cursor:Move()
 			self.Moving:Play()
 		else
 			self.Enlarge:SetStartDelay(0)
-			self.MoveOnFinished(self.Moving)
+			self.Moving:OnFinished()
 		end
 	end
 end
 
-function Cursor:MoveOnFinished()
+function Cursor.Moving:OnFinished()
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-	local self = self:GetParent()
-	self:ClearAllPoints()
-	self:SetHighlight(current and current.node)
-	self:SetPoint(unpack(self.anchor))
-	self:Scale()
+	Cursor:ClearAllPoints()
+	Cursor:SetHighlight(current and current.node)
+	Cursor:SetPoint(unpack(Cursor.anchor))
+	Cursor:Scale()
 end
 
 function Cursor:SetHighlight(node)
@@ -188,8 +185,8 @@ function Cursor:SetHighlight(node)
 			mime:SetAtlas(highlight:GetAtlas())
 		else
 			local texture = highlight.GetTexture and highlight:GetTexture()
-			if texture and texture:find('^[Cc]olor-') then
-				local r, g, b = Hex2RGB(texture:sub(7))
+			if (type(texture) == 'string') and texture:find('^[Cc]olor-') then
+				local r, g, b = Hex2RGB(texture:sub(7), true)
 				mime:SetColorTexture(r, g, b)
 			else
 				mime:SetTexture(texture)
@@ -292,6 +289,22 @@ function Cursor:ReplaceOnEnter(original, replacement) SafeOnEnter[original] = re
 function Cursor:ReplaceOnLeave(original, replacement) SafeOnLeave[original] = replacement end
 
 ---------------------------------------------------------------
+-- OnEnter/OnLeave script triggers
+local function HasOnEnterScript(node)
+	return node and node.GetScript and node:GetScript('OnEnter') and true
+end
+
+local function TriggerScript(node, scriptType, replacement)
+	local script = replacement[node:GetScript(scriptType)] or node:GetScript(scriptType)
+	if script then
+		pcall(script, node)
+	end
+end
+
+local function TriggerOnEnter(node) TriggerScript(node, 'OnEnter', SafeOnEnter) end
+local function TriggerOnLeave(node) TriggerScript(node, 'OnLeave', SafeOnLeave) end
+
+---------------------------------------------------------------
 -- Node management functions
 ---------------------------------------------------------------
 
@@ -306,7 +319,7 @@ local Node = {
 local UIDoFramesIntersect = UIDoFramesIntersect 
 
 function Node:IsInteractive(node, object)
-	return not node.includeChildren and node:IsMouseEnabled() and IsUsable[object]
+	return not node.includeChildren and node:IsMouseEnabled() and ( IsUsable[object] or HasOnEnterScript(node) )
 end
 
 function Node:IsRelevant(node)
@@ -374,7 +387,7 @@ function Node:FindClosest(key)
 			local currNode = current.node
 			local destNode, destX, destY, vert, horz
 			local thisX, thisY = current.node:GetCenter()
-			local compH, compV = 20000, 20000 -- hack, fix when 32K displays are on the market
+			local compH, compV = math.huge, math.huge
 			for i, destination in ipairs(self.cache) do
 				destNode = destination.node
 				destX, destY = destNode:GetCenter()
@@ -393,11 +406,7 @@ end
 
 function Node:Clear()
 	if current then
-		local node = current.node
-		local leave = SafeOnLeave[node:GetScript('OnLeave')] or node:GetScript('OnLeave')
-		if leave then
-			pcall(leave, node)
-		end
+		TriggerOnLeave(current.node)
 		old = current
 	end
 	wipe(self.cache)
@@ -424,10 +433,11 @@ function Node:Select(node, object, scrollFrame, state)
 	local override
 	if IsClickable[object] then
 		override = (object ~= 'EditBox')
-		local enter = SafeOnEnter[node:GetScript('OnEnter')] or node:GetScript('OnEnter')
-		if enter and state == KEY.STATE_UP then
-			pcall(enter, node)
-		end
+	end
+
+	-- Trigger OnEnter script
+	if state == KEY.STATE_UP then
+		TriggerOnEnter(node, state)
 	end
 
 	-- If this node has a forbidden dropdown value, override macro instead.
@@ -654,10 +664,6 @@ function Cursor:OnHide()
 	end
 end
 
-function Cursor:OnEvent(event)
-	self[event](self)
-end
-
 function Cursor:PLAYER_REGEN_DISABLED()
 	self.Flash = true
 	ClearOverride(self)
@@ -781,7 +787,7 @@ end
 function ConsolePort:SetButtonOverride(enabled)
 	if enabled then
 		local buttons = GetInterfaceButtons()
-		for i, button in pairs(buttons) do
+		for i, button in ipairs(buttons) do
 			Override:Click(self, button.name, button:GetName(), "LeftButton")
 			button:SetAttribute("type", "UIControl")
 		end
@@ -818,69 +824,28 @@ function ConsolePort:SetupCursor()
 	Cursor.IndicatorR 	= TEXTURE[db.Mouse.Cursor.Right]
 	Cursor.IndicatorS 	= TEXTURE[db.Mouse.Cursor.Special]
 
-	local red, green, blue = Hex2RGB(db.COLOR[gsub(db.Mouse.Cursor.Left, "CP_._", "")], true)
 
 	Cursor.Scroll 		= db.Mouse.Cursor.Scroll
 	Cursor.ScrollGuide 	= Cursor.Scroll == M1 and TEXTURE.CP_M1 or TEXTURE.CP_M2
 
-	Cursor.Spell = Cursor.Spell or CreateFrame("PlayerModel", nil, Cursor)
-	Cursor.Spell:SetAlpha(0.1)
-	Cursor.Spell:SetDisplayInfo(42486)
-	if red and green and blue then
-		Cursor.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
+	local r, g, b = Hex2RGB(db.COLOR[gsub(db.Mouse.Cursor.Left, "CP_._", "")], true)
+	if r and g and b then
+		Cursor.Spell:SetLight(true, false, 0, 0, 120, 1, r, g, b, 100, r, g, b)
 	end
-	Cursor.Spell:SetScript("OnShow", function(self)
-		self:SetSize(70, 70)
-		self:SetPoint("CENTER", Cursor, "BOTTOMLEFT", 20, 13)
-	end)
 
-	Cursor:SetScript("OnEvent", Cursor.OnEvent)
 	Cursor:SetScript("OnHide", Cursor.OnHide)
 	Cursor:SetScript("OnUpdate", Cursor.OnUpdate)
-	Cursor:RegisterEvent("MODIFIER_STATE_CHANGED")
-	Cursor:RegisterEvent("PLAYER_REGEN_DISABLED")
-	Cursor:RegisterEvent("PLAYER_REGEN_ENABLED")
-	Cursor:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
 ---------------------------------------------------------------
 do
-	Cursor.Tip = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
-	Cursor.Tip:SetTexture("Interface\\CURSOR\\Item")
-	Cursor.Tip:SetAllPoints(Cursor)
+	-- AnimationGroup OnFinished scripts
+	Cursor.Scaling:SetScript("OnFinished", Cursor.Scaling.OnFinished)
+	Cursor.Moving:SetScript("OnFinished", Cursor.Moving.OnFinished)
 
-	Cursor.Button = Cursor:CreateTexture(nil, "OVERLAY", nil, 7)
-	Cursor.Button:SetPoint("CENTER", 4, -4)
-	Cursor.Button:SetSize(32, 32)
-
-	Cursor.Highlight = Cursor:CreateTexture(nil, "OVERLAY")
-
-	Cursor:SetFrameStrata("TOOLTIP")
-	Cursor:SetSize(32,32)
-	Cursor.Timer = 0
-
-	Cursor.Scaling = Cursor:CreateAnimationGroup()
-	Cursor.Scaling:SetScript("OnFinished", Cursor.ScaleOnFinished)
-
-	Cursor.Moving = Cursor:CreateAnimationGroup()
-	Cursor.Moving:SetScript("OnFinished", Cursor.MoveOnFinished)
-
-	Cursor.Translate = Cursor.Moving:CreateAnimation("Translation")
-	Cursor.Translate:SetSmoothing("OUT")
-	Cursor.Translate:SetDuration(0.05)
-
-	Cursor.Pointer = CreateFrame("Frame")
-	Cursor.Pointer:SetSize(32, 32)
-
-	Cursor.Enlarge = Cursor.Scaling:CreateAnimation("Scale")
-	Cursor.Enlarge:SetDuration(0.1)
-	Cursor.Enlarge:SetOrder(1)
-	Cursor.Enlarge:SetSmoothing("OUT")
-	Cursor.Enlarge:SetOrigin("CENTER", 0, 0)
-
-	Cursor.Shrink = Cursor.Scaling:CreateAnimation("Scale")
-	Cursor.Shrink:SetSmoothing("IN")
-	Cursor.Shrink:SetOrigin("CENTER", 0, 0)
-	Cursor.Shrink:SetOrder(2)
+	-- Convenience references to animations
+	Cursor.Translate 	= Cursor.Moving.Translate
+	Cursor.Enlarge 		= Cursor.Scaling.Enlarge
+	Cursor.Shrink 		= Cursor.Scaling.Shrink
 end
 ---------------------------------------------------------------
 

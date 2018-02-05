@@ -197,7 +197,7 @@ function Bar:OnLoad(cfg, benign)
 		self.BottomLine:Hide()
 	end
 
-	-- The easter bunny likes bright colors :)
+	-- Rainbow sine wave color script, cuz shiny
 	ab:SetRainbowScript(cfg.rainbow)
 
 	-- Tint RGB for background textures	

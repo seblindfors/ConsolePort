@@ -59,6 +59,7 @@ function ConsolePort:LoadSettings()
 	end
 
 	db.Settings = ConsolePortSettings
+	db.Settings.calibration = db.Settings.calibration or {}
 
 	-----------------------------------------------------------
 	-- Load exported WoWmapper settings

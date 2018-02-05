@@ -457,7 +457,7 @@ function SEL:Next()
 end
 
 function SEL:OnShow()
-	local interactWith = db.Settings.interactWith
+	local interactWith = db('interactWith')
 	if (interactWith == 'CP_L_UP' or interactWith == 'CP_L_DOWN') then
 		self.CP_L_UP = nil 			; self.CP_L_DOWN = nil
 		self.CP_L_LEFT = self.Next 	; self.CP_L_RIGHT = self.Next

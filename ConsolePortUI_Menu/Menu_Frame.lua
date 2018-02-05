@@ -327,16 +327,19 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 7,
 					Point 	= {'TOP', 'parent.Shop', 'BOTTOM', 0, 0},
 					Img 	= ICON:format('Spell_Shadow_Teleport'),
-					SetAttribute = {'condition', 'return PlayerInGroup()'},
+					Attrib 	= {
+						hidemenu 	= true,
+						condition 	= 'return PlayerInGroup()',
+					},
 					Hooks = {
 						OnShow = function(self)
 							local isLFG, inDungeon = IsPartyLFG(), IsInLFGDungeon()
 							self:SetText(inDungeon and TELEPORT_OUT_OF_DUNGEON or isLFG and TELEPORT_TO_DUNGEON or '|cFF757575'..TELEPORT_TO_DUNGEON)
 						end,
+						OnClick = function(self)
+							LFGTeleport(IsInLFGDungeon())
+						end,
 					},
-					OnClick = function(self)
-						LFGTeleport(IsInLFGDungeon())
-					end,
 				},
 			},
 		},
@@ -432,8 +435,6 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 						OnShow = function(self)
 							self:SetText(IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
 						end,
-					},
-					Scripts = {
 						OnClick = function(self)
 							if IsPartyLFG() or IsInLFGDungeon() then
 								ConfirmOrLeaveLFGParty()

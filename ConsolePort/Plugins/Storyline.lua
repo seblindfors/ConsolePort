@@ -198,15 +198,17 @@ db.PLUGINS["Storyline"] = function(self)
 
 	for i=1, 3 do
 		local chatOption = _G["Storyline_NPCFrameChatOption"..i]
-		local font = chatOption:GetFontString()
-		-- stylize
-		font:SetShadowOffset(2, -2)
-		-- re-anchor the ChatOptionX buttons to fit within the BG stage
-		hooksecurefunc(chatOption, "SetPoint", function(self, anchor, _, yOffset)
-			if anchor == "TOP" and yOffset == -175 then
-				self:SetPoint("TOP", Frame.LocBack, 0, -10)
-			end
-		end)
+		if chatOption then
+			local font = chatOption:GetFontString()
+			-- stylize
+			font:SetShadowOffset(2, -2)
+			-- re-anchor the ChatOptionX buttons to fit within the BG stage
+			hooksecurefunc(chatOption, "SetPoint", function(self, anchor, _, yOffset)
+				if anchor == "TOP" and yOffset == -175 then
+					self:SetPoint("TOP", Frame.LocBack, 0, -10)
+				end
+			end)
+		end
 	end
 
 	-- remove obscuring graphics that are unreferenced
