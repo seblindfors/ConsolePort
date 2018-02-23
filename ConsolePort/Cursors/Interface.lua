@@ -266,6 +266,8 @@ SafeOnEnter[ActionButton1:GetScript('OnEnter')] = function(self)
 	ActionButton_SetTooltip(self)
 end
 SafeOnEnter[SpellButton1:GetScript('OnEnter')] = function(self)
+	-- spellbook buttons push updates to the action bar controller in order to draw highlights
+	-- on actionbuttons that holds the spell in question. this taints the action bar controller.
 	local slot = SpellBook_GetSpellBookSlot(self)
 	GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
 	if ( GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType) ) then
@@ -278,6 +280,20 @@ SafeOnEnter[SpellButton1:GetScript('OnEnter')] = function(self)
 		GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
 	end
 	GameTooltip:Show()
+end
+SafeOnEnter[QuestMapLogTitleButton_OnEnter] = function(self)
+	-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
+	-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
+	if self.questLogIndex then
+		local _, level, _, isHeader, _, _, _, _, _, _, _, _, _, _, _, _, isScaling = GetQuestLogTitle(self.questLogIndex)
+		local _, difficultyHighlightColor = GetQuestDifficultyColor(level, isScaling)
+		if ( isHeader ) then
+			_, difficultyHighlightColor = QuestDifficultyColors["header"]
+		end
+		if difficultyHighlightColor then
+			QuestMapLogTitleButton_OnEnter(self)
+		end
+	end
 end
 -------[[  OnLeave  ]]-------
 SafeOnLeave[SpellButton_OnLeave] = function(self)

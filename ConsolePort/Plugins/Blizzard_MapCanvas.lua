@@ -40,17 +40,18 @@ db.PLUGINS['Blizzard_MapCanvas'] = function(self)
 		end
 	end
 
-	local function CreateNode(self)
-		if pins[self] then return end
+	local function CreateNode(pin)
+		if pins[pin] then return end
 
-		local node = CreateFrame('Button', 'CanvasNode'..#nodes+1, self)
-		node.pin = self
+		local node = CreateFrame('Button', 'CanvasNode'..#nodes+1, pin)
+		node.pin = pin
 		node:SetSize(4, 4)
 		node:SetPoint('CENTER')
 		node.noAnimation = true
 		Mixin(node, NodeMixin)
 		nodes[#nodes + 1] = node
-		pins[self] = true
+		pins[pin] = true
+		pin.includeChildren = true
 	end
 
 	hooksecurefunc(MapCanvasMixin, 'AcquirePin', function(self, pinTemplate, ...)

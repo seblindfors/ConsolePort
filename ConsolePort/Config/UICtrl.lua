@@ -394,13 +394,13 @@ function WindowMixin:Save()
 	end
 
 	if self.ToggleCursor then
-		db.Settings.disableUI = not self.ToggleCursor:GetChecked()
+		db('disableUI', not self.ToggleCursor:GetChecked())
 	end
 
 	if self.HotKeyModule then
 		local actionBarStyle = self.HotKeyModule:GetID()
-		if not db.Settings.actionBarStyle or db.Settings.actionBarStyle ~= actionBarStyle then
-			db.Settings.actionBarStyle = actionBarStyle
+		if db('actionBarStyle') ~= actionBarStyle then
+			db('actionBarStyle', actionBarStyle)
 			needReload = true
 		end
 	end
@@ -640,7 +640,7 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 	UICtrl.ToggleCursor:SetPoint("BOTTOM", UICtrl.AddonShowAll, "TOP", 0, 8)
 	UICtrl.ToggleCursor:SetChecked(not db.Settings.disableUI)
 	UICtrl.ToggleCursor:SetScript("OnShow", function(self)
-		self:SetChecked(not db.Settings.disableUI)
+		self:SetChecked(not db('disableUI'))
 	end)
 
 	UICtrl.FrameScroll = db.Atlas.GetScrollFrame("$parentFrameScrollFrame", UICtrl, {

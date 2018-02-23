@@ -216,7 +216,7 @@
 
 
 	<!-- Core\Mouse.lua -->
-	<Frame name="ConsolePortMouseHandle" parent="UIParent" inherits="SecureHandlerAttributeTemplate" alpha="0">
+	<Frame name="ConsolePortMouseHandle" parent="UIParent" inherits="SecureHandlerAttributeTemplate" alpha="0" frameStrata="LOW">
 		<Size x="300" y="64"/>
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="-300"/>

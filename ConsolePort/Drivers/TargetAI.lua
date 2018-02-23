@@ -451,6 +451,7 @@ function AI:UNIT_THREAT_LIST_UPDATE(unit)
 end
 
 ---------------------------------------
+local InCombatLockdown, IsShiftKeyDown, IsControlKeyDown = InCombatLockdown, IsShiftKeyDown, IsControlKeyDown
 
 function SEL:Next()
 	AI:SetFocus(__loop(inRange))
@@ -468,11 +469,18 @@ function SEL:OnShow()
 end
 
 function SEL:OnKeyDown(key)
+	if 	( InCombatLockdown() ) or 
+		( IsShiftKeyDown() or IsControlKeyDown() ) or 
+		( Exists('npc') or Exists('questnpc') ) then
+		self:SetPropagateKeyboardInput(true)
+		return
+	end
+
 	local action = GetBindingAction(key)
 	local override = GetBindingAction(key, true)
-	local safe = (ConsolePort:GetCurrentBindingOwner(override) == action) or (override:match('ControllerInput'))
+	local isSafe = (ConsolePort:GetCurrentBindingOwner(override) == action) or (override:match('ControllerInput'))
 	local func = self[action]
-	if func and safe then
+	if func and isSafe then
 		func(self)
 		self:SetPropagateKeyboardInput(false)
 	else

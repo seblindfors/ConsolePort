@@ -580,6 +580,8 @@ function ConsolePort:GetDefaultUIFrames()
 	return {	
 		Blizzard_AchievementUI 		= {
 			'AchievementFrame' },
+		Blizzard_AlliedRacesUI		= {
+			'AlliedRacesFrame' },
 		Blizzard_ArchaeologyUI 		= {
 			'ArchaeologyFrame' },
 		Blizzard_ArtifactUI 		= {

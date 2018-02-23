@@ -41,6 +41,10 @@ function Bar:FadeOut(alpha)
 	db.UIFrameFadeOut(self, 1, alpha or 1, 0)
 end
 
+function Bar:StopCamera()
+	ConsolePortCamera:Stop()
+end
+
 function Bar:UnregisterOverrides()
 	self:Execute([[
 		bindings = wipe(bindings)
@@ -158,7 +162,7 @@ function Bar:OnLoad(cfg, benign)
 	end
 
 	-- Bar vis driver
-	local visDriver = '[petbattle][vehicleui][overridebar][possessbar] hide; show'
+	local visDriver = '[petbattle][vehicleui][overridebar] hide; show'
 	if cfg.combathide then
 		visDriver = '[combat]' .. visDriver
 	end
@@ -343,6 +347,9 @@ for name, script in pairs({
 			if not storedSpellID then
 				storedSpellID = self:RunAttribute('GetSpellID', actionID)
 				storedButtonID = buttonID
+				if reticleSpellManifest[storedSpellID] then
+					self:CallMethod('StopCamera')
+				end
 			end
 		else
 			if storedSpellID and (storedButtonID == buttonID) then

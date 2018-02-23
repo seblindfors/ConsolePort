@@ -189,7 +189,7 @@ function db.CreateHotKey(self, forceStyle, forceName, forceMod)
 	hotKey:SetBindingCombination(forceName or self.name, forceMod or self.mod)
 
 	local main, mod1, mod2 = hotKey:GetTextureObjects()
-	local style = forceStyle or ConsolePortSettings.actionBarStyle or 1
+	local style = forceStyle or db('actionBarStyle')
 
 	-- Animated (flyin) revamp, animated (slidein) revamp, static revamp
 	---------------------------------------------------------------

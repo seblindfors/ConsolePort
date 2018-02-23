@@ -27,6 +27,7 @@ db.PLUGINS['Blizzard_Collections'] = function(self)
 		node:SetScript('OnLeave', TransmogNodeOnLeave)
 		node:SetSize(4, 4)
 		node:SetPoint('BOTTOM', 0, 10)
+		model.includeChildren = true
 	end
 
 end
