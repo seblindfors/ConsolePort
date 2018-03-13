@@ -152,7 +152,9 @@ function Events:PLAYER_REGEN_DISABLED()
 end
 
 function Events:PLAYER_LOGOUT()
-	self:ResetCVars()
+	if not db('disableCvarReset') then
+		self:ResetCVars()
+	end
 end
 
 function Events:CVAR_UPDATE(...)

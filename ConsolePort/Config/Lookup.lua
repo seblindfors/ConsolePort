@@ -717,6 +717,7 @@ local cvars = { -- value = default
 	cursorTrailGhost 		= {false		; 'Show cursor trail ghost'};
 	cursorTrailGhostVis 	= {.25			; 'Cursor trail ghost alpha (0-1)'};
 	disableCursorTrail 		= {false		; 'Disable Rclick/interact icon trailing cursor'};
+	disableCvarReset		= {false		; 'Disable console variable reset on exit/logout'};
 	disableHints 			= {false		; 'Disable hint display on how certain things work'};
 	disableSmartBind 		= {false		; 'Disable action/bag placement helper'};
 	disableSmartMouse 		= {false		; 'Disable smart cursor show/hide'};

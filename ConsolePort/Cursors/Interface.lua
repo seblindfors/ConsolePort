@@ -186,8 +186,8 @@ function Cursor:SetHighlight(node)
 		else
 			local texture = highlight.GetTexture and highlight:GetTexture()
 			if (type(texture) == 'string') and texture:find('^[Cc]olor-') then
-				local r, g, b = Hex2RGB(texture:sub(7), true)
-				mime:SetColorTexture(r, g, b)
+				local r, g, b, a = Hex2RGB(texture:sub(7), true)
+				mime:SetColorTexture(r, g, b, a)
 			else
 				mime:SetTexture(texture)
 			end
@@ -196,6 +196,7 @@ function Cursor:SetHighlight(node)
 		end
 		mime:SetSize(highlight:GetSize())
 		mime:SetTexCoord(highlight:GetTexCoord())
+		mime:SetAlpha(highlight:GetAlpha())
 		mime:ClearAllPoints()
 		mime:SetPoint(highlight:GetPoint())
 		mime:Show()
@@ -656,14 +657,18 @@ end
 ---------------------------------------------------------------
 -- UIControl: Cursor scripts and events
 ---------------------------------------------------------------
+local IsObstructed 	= ConsolePort.IsCursorObstructed
+local HasUIFocus 	= ConsolePort.HasUIFocus
+
 function Cursor:OnUpdate(elapsed)
 	self.Timer = self.Timer + elapsed
 	while self.Timer > 0.1 do
-		if not current or ( not current.node:IsVisible() or not Node:IsDrawn(current.node) ) then
+		if IsObstructed() then
+			self:Hide()
+		elseif not current or ( not current.node:IsVisible() or not Node:IsDrawn(current.node) ) then
 			self:Hide()
 			current = nil
-			if 	IsSafe() and
-				ConsolePort:HasUIFocus()  then
+			if 	IsSafe() and HasUIFocus() then
 				ConsolePort:UIControl()
 			end
 		end

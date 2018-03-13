@@ -215,6 +215,11 @@ function Core:SetCursorObstructor(idx, state)
 		if not state then state = nil end
 		obstructors[idx] = state
 		isObstructed = ((next(obstructors) and true) or false)
+		if isObstructed then
+			hasUIFocus = false
+		else
+			self:UpdateFrames()
+		end
 	end
 end
 

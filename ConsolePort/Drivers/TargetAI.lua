@@ -187,6 +187,7 @@ local function f10(val)
 	return math.floor((val or 0) * 10) / 10
 end
 
+-- metatable iterators
 local function __iterate(t)
 	local mt = getmetatable(t)
 	local idx, val = next(t, mt.__idx)
@@ -393,9 +394,21 @@ end
 -- Calls to AI:Track should only occur below this line.
 --------------------------------------------------------
 
-function AI:WORLD_MAP_UPDATE() self:SetToCurrentMapMarker() end
-function AI:GOSSIP_SHOW() if Exists('npc') then self:Track('npc') end end
-function AI:MERCHANT_SHOW() if Exists('npc') then self:Track('npc') end end
+function AI:WORLD_MAP_UPDATE() 
+	self:SetToCurrentMapMarker()
+end
+
+function AI:GOSSIP_SHOW() 
+	if Exists('npc') and IsNPC('npc') then
+		self:Track('npc')
+	end
+end
+
+function AI:MERCHANT_SHOW()
+	if Exists('npc') and IsNPC('npc') then
+		self:Track('npc')
+	end
+end
 
 function AI:QUEST_DETAIL()
 	if IsNPC('questnpc') then

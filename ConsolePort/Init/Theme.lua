@@ -138,10 +138,11 @@ end
 
 db.Hex2RGB = function(hex, fractal)
     hex = hex:gsub('#','')
-    local divisor = fractal and 255 or 1
-    return 	( (tonumber(hex:sub(1,2), 16) or 1) / divisor ),
-    		( (tonumber(hex:sub(3,4), 16) or 1) / divisor ),
-    		( (tonumber(hex:sub(5,6), 16) or 1) / divisor );
+    local div = fractal and 255 or 1
+    return 	( (tonumber(hex:sub(1,2), 16) or div) / div ), -- R
+    		( (tonumber(hex:sub(3,4), 16) or div) / div ), -- G
+    		( (tonumber(hex:sub(5,6), 16) or div) / div ), -- B
+    		( (tonumber(hex:sub(7,8), 16) or div) / div ); -- A
 end
 
 function ConsolePort:GetControllerTexture() 
