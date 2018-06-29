@@ -368,7 +368,7 @@ function UI:CreateScriptFrame(...)
 					t:SetScript(k, v)
 				end
 			else
-				t:RegisterEvent(k)
+				pcall(t.RegisterEvent, t, k)
 				rawset(t, k, v)
 			end
 		end;

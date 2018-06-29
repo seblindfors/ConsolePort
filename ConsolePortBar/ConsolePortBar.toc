@@ -1,4 +1,4 @@
-## Interface: 70300
+## Interface: 80000
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar extension for Console Port
 ## SavedVariables: ConsolePortBarManifest
@@ -19,3 +19,4 @@ Custom\ConsolePort.lua
 Options\Pet.lua
 Options\Stance.lua
 Options\MenuBar.lua
+Options\ActionbarPlacer.lua

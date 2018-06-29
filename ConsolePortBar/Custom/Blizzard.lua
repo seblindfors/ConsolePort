@@ -19,8 +19,8 @@ do
 
 	for _, bar in pairs({
 		MainMenuBarArtFrame,
-		MultiBarLeft,
-		MultiBarRight,
+	--	MultiBarLeft,
+	--	MultiBarRight,
 		MultiBarBottomLeft,
 		MultiBarBottomRight }) do
 		bar:SetParent(UIHider)
@@ -31,8 +31,8 @@ do
 	-- Hide MultiBar Buttons, but keep the bars alive
 	for _, n in pairs({
 		'ActionButton',	
-		'MultiBarLeftButton',
-		'MultiBarRightButton',
+	--	'MultiBarLeftButton',
+	--	'MultiBarRightButton',
 		'MultiBarBottomLeftButton',
 		'MultiBarBottomRightButton'	}) do
 		for i=1, 12 do
@@ -49,185 +49,125 @@ do
 	UIPARENT_MANAGED_FRAME_POSITIONS['PETACTIONBAR_YPOS'] = nil
 
 	MainMenuBar:EnableMouse(false)
+	MicroButtonAndBagsBar:Hide()
+	StatusTrackingBarManager:Hide()
 
 	local animations = {MainMenuBar.slideOut:GetAnimations()}
 	animations[1]:SetOffset(0,0)
 
 	-------------------------------------------
-	---		Watch bars
+	---		Watch bar container
 	-------------------------------------------
+	function Bar:OnStatusBarsUpdated()
+	end
 
-	local XP, Rep, Honor, Artifact = MainMenuExpBar, ReputationWatchBar, HonorWatchBar, ArtifactWatchBar
 
-	local WatchBarContainer = CreateFrame('Frame', '$parentWatchBars', Bar)
-	WatchBarContainer:SetPoint('BOTTOM', 0, 0)
-	WatchBarContainer:SetSize(1024, 16)
+	local WBC = CreateFrame('Frame', '$parentWatchBars', Bar, 'StatusTrackingBarManagerTemplate')
+	WBC:SetPoint('BOTTOMLEFT', 90, 0) 
+	WBC:SetPoint('BOTTOMRIGHT',-90, 0)
+	WBC:SetHeight(16)
+	WBC:SetFrameStrata('LOW')
 
-	WatchBarContainer.BGLeft = WatchBarContainer:CreateTexture('BACKGROUND')
-	WatchBarContainer.BGLeft:SetPoint('TOPLEFT')
-	WatchBarContainer.BGLeft:SetPoint('BOTTOMRIGHT', WatchBarContainer, 'BOTTOM', 0, 0)
-	WatchBarContainer.BGLeft:SetColorTexture(0, 0, 0, 1)
-	WatchBarContainer.BGLeft:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 0, 0, 0, 0, 1)
+	for i, region in pairs({WBC:GetRegions()}) do
+		region:SetTexture(nil)
+	end
 
-	WatchBarContainer.BGRight = WatchBarContainer:CreateTexture('BACKGROUND')
-	WatchBarContainer.BGRight:SetColorTexture(0, 0, 0, 1)
-	WatchBarContainer.BGRight:SetPoint('TOPRIGHT')
-	WatchBarContainer.BGRight:SetPoint('BOTTOMLEFT', WatchBarContainer, 'BOTTOM', 0, 0)
-	WatchBarContainer.BGRight:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 1, 0, 0, 0, 0)
+	WBC.BGLeft = WBC:CreateTexture(nil, 'BACKGROUND')
+	WBC.BGLeft:SetPoint('TOPLEFT')
+	WBC.BGLeft:SetPoint('BOTTOMRIGHT', WBC, 'BOTTOM', 0, 0)
+	WBC.BGLeft:SetColorTexture(0, 0, 0, 1)
+	WBC.BGLeft:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 0, 0, 0, 0, 1)
 
-	Bar.WatchBarContainer = WatchBarContainer
+	WBC.BGRight = WBC:CreateTexture(nil, 'BACKGROUND')
+	WBC.BGRight:SetColorTexture(0, 0, 0, 1)
+	WBC.BGRight:SetPoint('TOPRIGHT')
+	WBC.BGRight:SetPoint('BOTTOMLEFT', WBC, 'BOTTOM', 0, 0)
+	WBC.BGRight:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 1, 0, 0, 0, 0)
 
-	-- Check if user actually wants this fully opaque OnShow
-	WatchBarContainer:SetScript('OnShow', function(self)
+	Bar.WatchBarContainer = WBC
+
+	function WBC:AddBarFromTemplate(frameType, template)
+		local bar = CreateFrame(frameType, nil, self, template)
+		table.insert(self.bars, bar)
+		bar.StatusBar.Background:Hide()
+		bar.StatusBar.BarTexture:SetTexture([[Interface\AddOns\ConsolePortBar\Textures\XPBar]])
+		bar:HookScript('OnEnter', function()
+			FadeIn(self, 0.2, self:GetAlpha(), 1)
+		end)
+
+		bar:HookScript('OnLeave', function()
+			if (ab.cfg and not ab.cfg.watchbars) or not ab.cfg then
+				FadeOut(self, 0.2, self:GetAlpha(), 0)
+			end
+		end)
+
+		self:UpdateBarsShown()
+		return bar
+	end
+
+	function WBC:LayoutBar(bar, barWidth, isTopBar, isDouble)
+		bar:Update()
+		bar:Show()
+		bar:ClearAllPoints()
+		
+		if ( isDouble ) then
+			if ( isTopBar ) then
+				bar:SetPoint("BOTTOM", self:GetParent(), 0, 14)
+			else
+				bar:SetPoint("BOTTOM", self:GetParent(), 0, 2)
+			end
+			self:SetDoubleBarSize(bar, barWidth)
+		else 
+			bar:SetPoint("BOTTOM", self:GetParent(), 0, 0)
+			self:SetSingleBarSize(bar, barWidth)
+		end
+	end
+
+	function WBC:LayoutBars(visBars)
+		local width = self:GetWidth()
+		self:HideStatusBars()
+
+		local TOP_BAR, IS_DOUBLE = true, true
+		if ( #visBars > 1 ) then
+			self:LayoutBar(visBars[1], width, not TOP_BAR, IS_DOUBLE)
+			self:LayoutBar(visBars[2], width, TOP_BAR, IS_DOUBLE)
+		elseif( #visBars == 1 ) then 
+			self:LayoutBar(visBars[1], width, TOP_BAR, not IS_DOUBLE)
+		end
+		self:GetParent():OnStatusBarsUpdated()
+		self:UpdateBarTicks()
+	end
+
+	WBC:AddBarFromTemplate('FRAME', 'ReputationStatusBarTemplate')
+	WBC:AddBarFromTemplate('FRAME', 'HonorStatusBarTemplate')
+	WBC:AddBarFromTemplate('FRAME', 'ArtifactStatusBarTemplate')
+	WBC:AddBarFromTemplate('FRAME', 'AzeriteBarTemplate')
+
+	local xpBar = WBC:AddBarFromTemplate('FRAME', 'ExpStatusBarTemplate')
+	xpBar.ExhaustionLevelFillBar:SetTexture([[Interface\AddOns\ConsolePortBar\Textures\XPBar]])
+
+	local setBarColor = xpBar.SetBarColor
+	xpBar.SetBarColorRaw = setBarColor
+	hooksecurefunc(xpBar, 'SetBarColor', function(self)
+		if ab.cfg and ab.cfg.expRGB then
+			setBarColor(self, unpack(ab.cfg.expRGB))
+		end
+	end)
+
+	xpBar:HookScript('OnShow', function(self)
+		if ab.cfg and ab.cfg.expRGB then
+			setBarColor(self, unpack(ab.cfg.expRGB))
+		end
+	end)
+
+	WBC.ExperienceBar = xpBar
+	WBC:SetScript('OnShow', function(self)
 		if ab.cfg and ab.cfg.watchbars then
 			FadeIn(self, 0.2, self:GetAlpha(), 1)
 		else
 			self:SetAlpha(0)
 		end
 	end)
-
-	-- Mutual exclusion to keep bars from polling the container to update,
-	-- resulting in stack overflow by recursive function calls when aligning bars. 
-	local function FlagMutex(self, enabled)
-		self.mutexUpdate = enabled
-		if self.StatusBar then
-			self.StatusBar.mutexUpdate = enabled
-		end
-	end
-
-	-- Poll the container to reset drawing points and align bars across the container.
-	function WatchBarContainer:Update()
-		local visible, cfg = {}, ab.cfg
-		-- Count visible bars
-		for _, bar in pairs(self.WatchBars) do
-			if bar:IsVisible() then
-				if cfg and cfg['disable' .. bar:GetName()] then
-					--------------------------------
-					FlagMutex(bar, true)
-					--------------------------------
-					bar:SetSize(0, 0)
-					bar:SetAlpha(0)
-					bar:ClearAllPoints()
-					--------------------------------
-					FlagMutex(bar, false)
-					--------------------------------
-				else
-					bar:SetAlpha(1)
-					visible[#visible + 1] = bar
-				end
-			end
-		end
-		for i, bar in pairs(visible) do
-			local statusBar = bar.StatusBar or bar
-			--------------------------------
-			FlagMutex(bar, true)
-			--------------------------------
-			bar:SetSize( self:GetWidth() / #visible, self:GetHeight() )
-			bar:ClearAllPoints()
-			bar:SetPoint('LEFT', visible[i-1] or self, visible[i-1] and 'RIGHT' or 'LEFT', 0, 0)
-			--------------------------------
-			if bar.StatusBar then
-				statusBar:SetAllPoints()
-				bar.OverlayFrame.Text:SetPoint('CENTER', bar.OverlayFrame, 'CENTER', 0, 1)
-			end
-			if #visible == 1 then
-				if ab.cfg and ab.cfg.expRGB then
-					statusBar:SetStatusBarColor(unpack(ab.cfg.expRGB))
-				else
-					statusBar:SetStatusBarColor(red, green, blue)
-				end
-			else
-				statusBar:SetStatusBarColor(bar.red, bar.green, bar.blue, bar.alpha)
-			end
-			--------------------------------
-			FlagMutex(bar, false)
-			--------------------------------
-		end
-	end
-
-	-- Run in response to any drawing change on the bar, so it doesn't come out all wonky
-	-- due to how the default UI manipulates these objects.
-	local function UpdateWatchBar(self)
-		if not self.mutexUpdate then
-			WatchBarContainer:Update()
-		end
-	end
-
-	--------------------------------
-	-- Give the bar direct access to these for color manipulation.
-	Bar.Elements.WatchBars = {XP, Rep, Honor, Artifact}
-	WatchBarContainer.WatchBars = Bar.Elements.WatchBars
-	--------------------------------
-	for _, bar in pairs(Bar.Elements.WatchBars) do
-		local r, g, b, a
-		bar:SetParent(WatchBarContainer)
-		bar:SetFrameStrata('HIGH')
-		bar.Container = WatchBarContainer
-		bar:HookScript('OnShow', function(self)
-			self.Container:Update()
-		end)
-		bar:HookScript('OnHide', function(self)
-			self.mutexUpdate = nil
-			self.Container:Update()
-		end)	
-		bar:HookScript('OnEnter', function(self) 
-			FadeIn(self.Container, 0.2, self.Container:GetAlpha(), 1)
-		end)
-		bar:HookScript('OnLeave', function(self)
-			if (ab.cfg and not ab.cfg.watchbars) or not ab.cfg then
-				FadeOut(self.Container, 0.2, self.Container:GetAlpha(), 0)
-			end
-		end)
-
-		-- Hook bar functions so we can overwrite their results.
-		hooksecurefunc(bar, 'SetPoint', UpdateWatchBar)
-		hooksecurefunc(bar, 'SetSize', UpdateWatchBar)
-		hooksecurefunc(bar, 'SetWidth', UpdateWatchBar)
-		hooksecurefunc(bar, 'SetHeight', UpdateWatchBar)
-
-		for _, region in pairs({bar:GetRegions()}) do
-			if region:IsObjectType('Texture') then
-				region:ClearAllPoints()
-				region:Hide()
-			end
-		end
-
-		if bar.StatusBar then
-			r, g, b, a = bar.StatusBar:GetStatusBarColor()
-			for i=0, 3 do
-				bar.StatusBar['WatchBarTexture'..i]:Hide()
-				bar.StatusBar['WatchBarTexture'..i]:ClearAllPoints()
-				bar.StatusBar['XPBarTexture'..i]:Hide()
-				bar.StatusBar['XPBarTexture'..i]:ClearAllPoints()
-			end
-			bar.StatusBar.Background:Hide()
-			bar.StatusBar.Background:ClearAllPoints()
-			hooksecurefunc(bar.StatusBar, 'SetStatusBarColor', UpdateWatchBar)
-		else
-			r, g, b, a = bar:GetStatusBarColor()
-			hooksecurefunc(bar, 'SetStatusBarColor', UpdateWatchBar)
-		end
-		bar.red = r
-		bar.green = g
-		bar.blue = b
-		bar.alpha = a
-	end
-
-	WatchBarContainer:Update()
-
-	-------------------------------------------
-	---		XP / rep bars
-	-------------------------------------------
-
-	MainMenuBarPerformanceBar:SetParent(UIHider)
-	MainMenuBarPerformanceBar:ClearAllPoints()
-
-	for i=1, 19 do
-		_G['MainMenuXPBarDiv'..i]:SetAlpha(0.5)
-	end
-
-	MainMenuBarMaxLevelBar:Hide()
-	MainMenuBarMaxLevelBar:SetParent(UIHider)
 
 	-------------------------------------------
 	--- 	Special action bars
@@ -291,7 +231,7 @@ do
 			castBar:ClearAllPoints()
 			castBar:SetPoint(unpack(castBarAnchor))
 			castBar:SetSize(
-				(cfg and cfg.castbarwidth) or (Bar:GetWidth() - 180),
+				(cfg and cfg.castbarwidth) or (Bar:GetWidth() - 280),
 				(cfg and cfg.castbarheight) or 14)
 			overrideCastBarPos = true
 		end

@@ -225,7 +225,7 @@ function AI:OnShow()
 	self:SetToCurrentMapMarker()
 	self:ForceUpdatePlates()
 	for event in pairs(self) do
-		self:RegisterEvent(event)
+		pcall(self.RegisterEvent, self, event)
 	end
 	if not nameOnlyMode then
 		self:UnregisterEvent('UNIT_THREAT_LIST_UPDATE')
@@ -290,7 +290,7 @@ end
 local zone
 
 function AI:GetMapMarker()
-	return table.concat({GetCurrentMapZone()})
+	return C_Map.GetBestMapForUnit('player') or 0
 end
 
 function AI:SetToCurrentMapMarker()
@@ -319,7 +319,8 @@ function AI:GetMapDataForID(zoneID)
 end
 
 function AI:GetGridPosition()
-	local posX, posY = GetPlayerMapPosition('player')
+	local position = C_Map.GetPlayerMapPosition(zone or 0, 'player')
+	local posX, posY = (position and position:GetXY())
 	posX = f10(posX)
 	posY = f10(posY)
 	return posX, posY

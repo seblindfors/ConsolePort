@@ -577,7 +577,7 @@ end
 -- UI cursor frames to be handled with D-pad
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultUIFrames()
-	return {	
+	return {
 		Blizzard_AchievementUI 		= {
 			'AchievementFrame' },
 		Blizzard_AlliedRacesUI		= {
@@ -589,6 +589,8 @@ function ConsolePort:GetDefaultUIFrames()
 			'ArtifactRelicForgeFrame'},
 		Blizzard_AuctionUI 			= {
 			'AuctionFrame' },
+		Blizzard_AzerateUI 			= {
+			'AzeriteEmpoweredItemUI' },
 		Blizzard_BarbershopUI		= {
 			'BarberShopFrame' },
 		Blizzard_Calendar			= {
@@ -598,6 +600,8 @@ function ConsolePort:GetDefaultUIFrames()
 		Blizzard_Collections		= {
 			'CollectionsJournal',
 			'WardrobeFrame', },
+		Blizzard_Communities 		= {
+			'CommunitiesFrame', },
 		Blizzard_DeathRecap			= {
 			'DeathRecapFrame' },
 		Blizzard_EncounterJournal 	= {
@@ -724,6 +728,7 @@ local cvars = { -- value = default
 	disableStickMouse		= {false		; 'Disable override bindings for stick buttons'};
 	doubleModTap 			= {true			; 'Toggle mouselook by double tapping a modifier'};
 	doubleModTapWindow 		= {.25			; 'How fast a modifier has to be tapped (seconds)'};
+	enableCenterPanels		= {false		; 'Put large panels in the center of the screen'};
 	lookAround 				= {false		; 'Look around on L3 while in mouselook'};
 	mouseInvertPitch		= {false		; 'Invert mouse pitch'};
 	mouseOnJump 			= {false		; 'Camera mode on jump'};
@@ -739,7 +744,7 @@ local cvars = { -- value = default
 	interactNPC 			= {false		; 'Interact with already targeted NPCs'};
 	interactPushback 		= {1			; 'Pushback after cast to avoid cursor toggle (seconds)'};
 	interactHintOffset 		= {-300			; 'Interact frame Y-offset from UIParent center (px)'};
-	interactHintLineVis 	= {1			; 'Interact frame line texture alpha (0-1)'};
+	interactHintLineVis 	= {.5			; 'Interact frame line texture alpha (0-1)'};
 	interactHintNoLine 		= {false		; 'Disable interact frame line texture'};
 	interactWith 			= {false		; 'Full interact button ID'};
 	lootWith 				= {false		; 'Lite interact button ID'};

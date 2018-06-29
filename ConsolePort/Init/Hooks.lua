@@ -166,6 +166,21 @@ function ConsolePort:LoadHookScripts()
 		end)
 	end
 
+	--
+	if db('enableCenterPanels') then
+		for frame, anchorData in pairs({
+		--	['WorldMapFrame'] = {xoffset = 0, yoffset = -100, pushable = 1, area = 'center'};
+		--	['PlayerTalentFrame'] = {xoffset = 0, yoffset = -100, pushable = 1, area = 'center'};
+		--	['WardrobeFrame'] = {area = 'center'};
+		}) do
+			if UIPanelWindows[frame] then
+				for k, v in pairs(anchorData) do
+					UIPanelWindows[frame][k] = v
+				end
+			end
+		end
+	end
+
 	-- Need to handle SaveBindings, so that calibration data isn't stored permanently
 	-- against user's will. The keybinding UI should circumvent this because it exits to the
 	-- game menu frame and cancels the popup, but calls from interface options will be intercepted.

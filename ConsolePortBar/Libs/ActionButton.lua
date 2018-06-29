@@ -93,8 +93,8 @@ local DefaultConfig = {
 -- @param id Internal id of the button
 -- @param name Name of the button frame to be created
 -- @param header Header that drives these action buttons (if any)
-function lib:CreateButton(id, name, header, config)
-	local templates = "SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate"
+function lib:CreateButton(id, name, header, config, xml)
+	local templates = xml or "SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate"
 	local button = setmetatable(CreateFrame("CheckButton", name, header, templates), Generic_MT)
 
 	button:RegisterForDrag("LeftButton", "RightButton")

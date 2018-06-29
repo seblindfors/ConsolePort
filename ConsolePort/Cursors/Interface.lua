@@ -21,7 +21,7 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 		-- Utils
 		FadeIn, FadeOut, Hex2RGB,
 		-- Table functions
-		select, ipairs, pairs, wipe, abs, tinsert, pcall,
+		select, ipairs, pairs, wipe, tinsert, pcall,
 		-- Misc
 		ConsolePort, Override, current, old =
 		--------------------------------------------
@@ -29,7 +29,7 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 		SetOverrideBindingClick, ClearOverrideBindings,
 		InCombatLockdown, PlaySound, C_Timer.After,
 		db.UIFrameFadeIn, db.UIFrameFadeOut, db.Hex2RGB,
-		select, ipairs, pairs, wipe, abs, tinsert, pcall,
+		select, ipairs, pairs, wipe, tinsert, pcall,
 		ConsolePort, {}
 ---------------------------------------------------------------
 		-- Cursor frame and scroll helpers
@@ -52,12 +52,9 @@ end
 ---------------------------------------------------------------
 
 function Override:Click(owner, old, button, mouseClick, mod)
-	local key1, key2 = GetBindingKey(old)
-	if key1 then 
-		SetOverride(owner, true, mod and mod..key1 or key1, button, mouseClick)
-	end
-	if key2 then
-		SetOverride(owner, true, mod and mod..key2 or key2, button, mouseClick)
+	for i=1, select('#', GetBindingKey(old)) do
+		local key = select(i, GetBindingKey(old))
+		SetOverride(owner, true, mod and mod..key or key, button, mouseClick)
 	end
 end
 
@@ -80,8 +77,8 @@ end
 function Override:Scroll(owner, up, down)
 	local wrapperFunc = owner.Scroll == M1 and self.Shift or self.Ctrl
 	local modifier = owner.Scroll == M1 and "SHIFT-" or "CTRL-"
-	self:Shift(owner, "CP_L_UP", up:GetName() or "CP_L_UP"..modifier, "LeftButton")
-	self:Shift(owner, "CP_L_DOWN", down:GetName() or "CP_L_DOWN"..modifier, "LeftButton")
+	self:Shift(owner, "CP_L_UP", up and up:GetName() or "CP_L_UP"..modifier, "LeftButton")
+	self:Shift(owner, "CP_L_DOWN", down and down:GetName() or "CP_L_DOWN"..modifier, "LeftButton")
 end
 
 function Override:Button(button, clickbutton)
@@ -99,16 +96,7 @@ end
 ---------------------------------------------------------------
 function Cursor:SetTexture(texture)
 	local object = current and current.object
-	local newType
-	if object == "EditBox" then
-		newType = self.IndicatorS
-	elseif object == "Slider" then
-		newType = self.ScrollGuide
-	elseif texture then
-		newType = texture
-	else
-		newType = self.Indicator
-	end
+	local newType = object == ('EditBox' and self.IndicatorS) or (object == 'Slider' and self.ScrollGuide) or texture or self.Indicator
 	if newType ~= self.type then
 		self.Button:SetTexture(newType)
 	end
@@ -116,65 +104,92 @@ function Cursor:SetTexture(texture)
 end
 
 function Cursor:SetPosition(node)
+	local oldAnchor = self.anchor
 	self:SetTexture()
 	self.anchor = node.customCursorAnchor or {"TOPLEFT", node, "CENTER", 0, 0}
-	self:Move()
-	if not self:IsVisible() then
-		self:Show()
+	self:Show()
+	self:Move(oldAnchor)
+end
+
+function Cursor:SetPointer(node)
+	self.Pointer:ClearAllPoints()
+	self.Pointer:SetParent(node)
+	self.Pointer:SetPoint(unpack(self.anchor))
+	return self.Pointer:GetCenter()
+end
+
+function Cursor:Move(oldAnchor)
+	if current then
+		self:ClearHighlight()
+		local newX, newY = self:SetPointer(current.node)
+		if self.MoveAndScale:IsPlaying() then
+			self.MoveAndScale:Stop()
+			self.MoveAndScale:OnFinished(oldAnchor)
+		end
+		local oldX, oldY = self:GetCenter()
+		if ( not current.node.noAnimation ) and oldX and oldY and newX and newY and self:IsVisible() then
+			self.Translate:SetOffset(newX - oldX, newY - oldY)
+			self.Enlarge:SetStartDelay(0.05)
+			self.MoveAndScale:ConfigureScale()
+			self.MoveAndScale:Play()
+		else
+			self.Enlarge:SetStartDelay(0)
+			self.MoveAndScale:OnFinished()
+		end
 	end
 end
 
-function Cursor:Scale()
-	if old == current and not self.Flash then return end
-	if current then
-		local scaleAmount, scaleDuration = 1.15, 0.2
+-- Animation scripts
+---------------------------------------------------------------
+function Cursor.MoveAndScale:ConfigureScale()
+	if old == current and not self.Flash then
+		self.Shrink:SetDuration(0)
+		self.Enlarge:SetDuration(0)	
+	elseif current then
+		local scaleAmount, shrinkDuration = 1.15, 0.2
 		if self.Flash then
 			scaleAmount = 1.75
-			scaleDuration = 0.5
+			shrinkDuration = 0.5
 			FadeOut(self.Spell, 1, 1, 0.1)
 		end
 		self.Flash = nil
 		self.Enlarge:SetScale(scaleAmount, scaleAmount)
 		self.Shrink:SetScale(1/scaleAmount, 1/scaleAmount)
-		self.Shrink:SetDuration(scaleDuration)
-		self.Highlight:SetParent(self)
-		self.Scaling:Stop()
-		self.Scaling:Play()
+		self.Shrink:SetDuration(shrinkDuration)
+		self.Enlarge:SetDuration(.1)
 	end
 end
 
-function Cursor.Scaling:OnFinished()
-	if current then
-		Cursor.Highlight:SetParent(current.node)
-	end
+function Cursor.Highlight.Scale:OnPlay()
+	self.Enlarge:SetScale(Cursor.MoveAndScale.Enlarge:GetScale())
+	self.Shrink:SetScale(Cursor.MoveAndScale.Shrink:GetScale())
+
+	self.Enlarge:SetDuration(Cursor.MoveAndScale.Enlarge:GetDuration())
+	self.Shrink:SetDuration(Cursor.MoveAndScale.Shrink:GetDuration())
+
+	self.Enlarge:SetStartDelay(Cursor.MoveAndScale.Enlarge:GetStartDelay())
+	self.Shrink:SetStartDelay(Cursor.MoveAndScale.Shrink:GetStartDelay())
 end
 
-function Cursor:Move()
-	if current then
-		self.Pointer:ClearAllPoints()
-		self.Highlight:ClearAllPoints()
-		self.Highlight:SetParent(self)
-		self.Pointer:SetParent(current.node)
-		self.Pointer:SetPoint(unpack(self.anchor))
-		local newX, newY = self.Pointer:GetCenter()
-		local oldX, oldY = self:GetCenter()
-		if ( not current.node.noAnimation ) and oldX and oldY and newX and newY and self:IsVisible() then
-			self.Translate:SetOffset(newX - oldX, newY - oldY)
-			self.Enlarge:SetStartDelay(0.05)
-			self.Moving:Play()
-		else
-			self.Enlarge:SetStartDelay(0)
-			self.Moving:OnFinished()
-		end
-	end
-end
-
-function Cursor.Moving:OnFinished()
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-	Cursor:ClearAllPoints()
+function Cursor.MoveAndScale.Translate:OnFinished()
 	Cursor:SetHighlight(current and current.node)
-	Cursor:SetPoint(unpack(Cursor.anchor))
-	Cursor:Scale()
+end
+
+function Cursor.MoveAndScale:OnPlay()
+	Cursor.Highlight:SetParent(current and current.node or Cursor)
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
+end
+
+function Cursor.MoveAndScale:OnFinished(oldAnchor)
+	Cursor:ClearAllPoints()
+	Cursor:SetPoint(unpack(oldAnchor or Cursor.anchor))
+end
+---------------------------------------------------------------
+
+function Cursor:ClearHighlight()
+	self.Highlight:ClearAllPoints()
+	self.Highlight:SetParent(self)
+	self.Highlight:SetTexture(nil)
 end
 
 function Cursor:SetHighlight(node)
@@ -200,6 +215,8 @@ function Cursor:SetHighlight(node)
 		mime:ClearAllPoints()
 		mime:SetPoint(highlight:GetPoint())
 		mime:Show()
+		mime.Scale:Stop()
+		mime.Scale:Play()
 	else
 		mime:ClearAllPoints()
 		mime:Hide()
@@ -308,7 +325,7 @@ function Cursor:ReplaceOnLeave(original, replacement) SafeOnLeave[original] = re
 ---------------------------------------------------------------
 -- OnEnter/OnLeave script triggers
 local function HasOnEnterScript(node)
-	return node and node.GetScript and node:GetScript('OnEnter') and true
+	return node.GetScript and node:GetScript('OnEnter') and true
 end
 
 local function TriggerScript(node, scriptType, replacement)
@@ -326,14 +343,37 @@ local function TriggerOnLeave(node) TriggerScript(node, 'OnLeave', SafeOnLeave) 
 ---------------------------------------------------------------
 
 local Node = {
-	[KEY.UP] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY > thisY) end;
-	[KEY.DOWN] 	= function(destY, _, vert, horz, _, thisY) return (vert > horz and destY < thisY) end;
-	[KEY.LEFT] 	= function(_, destX, vert, horz, thisX, _) return (vert < horz and destX < thisX) end;
-	[KEY.RIGHT] = function(_, destX, vert, horz, thisX, _) return (vert < horz and destX > thisX) end;
-	cache = {};
+	-- Compares distance between nodes for eligibility when filtering cached nodes
+	distance = {
+		[KEY.UP] 	= function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
+		[KEY.DOWN] 	= function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
+		[KEY.LEFT] 	= function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
+		[KEY.RIGHT] = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX > thisX) end;
+	};
+	-- Compares more generally to catch any nodes located in a given direction
+	direction = {
+		[KEY.UP] 	= function(_, destY, _, _, _, thisY) return (destY > thisY) end;
+		[KEY.DOWN] 	= function(_, destY, _, _, _, thisY) return (destY < thisY) end;
+		[KEY.LEFT] 	= function(destX, _, _, _, thisX, _) return (destX < thisX) end;
+		[KEY.RIGHT]	= function(destX, _, _, _, thisX, _) return (destX > thisX) end;
+	};
+	cache = {};	-- Temporary node cache when calculating cursor movement
+	scalar = 3; -- Plane scalar to improve intuitive node selection (offset manhattan in secondary plane)
 }
 
-local UIDoFramesIntersect = UIDoFramesIntersect 
+local rectIntersect, vec2Dlen, abs, huge = UIDoFramesIntersect, Vector2D_GetLength, math.abs, math.huge
+
+function Node:GetDistance(x1, y1, x2, y2)
+	return abs(x1 - x2), abs(y1 - y2)
+end
+
+function Node:IsCloser(hz1, vt1, hz2, vt2)
+	return vec2Dlen(hz1, vt1) < vec2Dlen(hz2, vt2)
+end
+
+function Node:DoNodesIntersect(node1, node2)
+	return node1:GetFrameLevel() ~= node2:GetFrameLevel() and rectIntersect(node1, node2)
+end
 
 function Node:IsInteractive(node, object)
 	return not node.includeChildren and node:IsMouseEnabled() and ( IsUsable[object] or HasOnEnterScript(node) )
@@ -345,18 +385,10 @@ end
 
 function Node:IsDrawn(node, scrollFrame)
 	local x, y = node:GetCenter()
-	local top = node:GetTop()
 	if 	x and x <= MAX_WIDTH and x >= 0 and
 		y and y <= MAX_HEIGHT and y >= 0 then
-		-- if the node is a scroll child and it's anchored inside the scroll frame
-		if scrollFrame and select(2, node:GetPoint()) == scrollFrame then
-			local left, bottom, width, height = scrollFrame:GetRect()
-			if left and bottom and width and height then
-				if 	x > left and x < ( left + width + 20 ) and -- +20 padding to include sliders
-					y > bottom and y < ( bottom + height ) then
-					return true
-				end
-			end
+		if scrollFrame and scrollFrame:GetScrollChild() and not node:IsObjectType('Slider') then
+			return rectIntersect(node, scrollFrame) --or rectIntersect(node, scrollChild)
 		else
 			return true
 		end
@@ -375,15 +407,10 @@ function Node:Refresh(node, scrollFrame)
 		end
 		if 	not node.ignoreChildren then
 			for i, child in pairs({node:GetChildren()}) do
-				self:Refresh(child, node.GetVerticalScroll and node or scrollFrame)
+				self:Refresh(child, node.GetScrollChild and node or scrollFrame)
 			end
 		end
 	end
-end
-
-function Node:DoNodesIntersect(node1, node2)
-	return node1:GetFrameLevel() ~= node2:GetFrameLevel() and 
-			UIDoFramesIntersect(node1, node2)
 end
 
 function Node:RefreshAll()
@@ -397,27 +424,57 @@ function Node:RefreshAll()
 	end
 end
 
-function Node:FindClosest(key)
-	if current then
-		local compareDistance = self[key]
-		if compareDistance then
-			local currNode = current.node
-			local destNode, destX, destY, vert, horz
-			local thisX, thisY = current.node:GetCenter()
-			local compH, compV = math.huge, math.huge
-			for i, destination in ipairs(self.cache) do
-				destNode = destination.node
-				destX, destY = destNode:GetCenter()
-				horz, vert = abs(thisX-destX), abs(thisY-destY)
-				if 	horz + vert < compH + compV and
-					compareDistance(destY, destX, vert, horz, thisX, thisY) and
-					not self:DoNodesIntersect(currNode, destNode) then
-					compH = horz
-					compV = vert
-					current = destination
-				end
+function Node:GetCandidateVectorForCurrent()
+	local x, y = current.node:GetCenter()
+	return {x = x; y = y; h = huge; v = huge}
+end
+
+function Node:GetCandidatesForVector(vector, comparator, candidates)
+	local thisX, thisY = vector.x, vector.y
+	for i, destination in ipairs(self.cache) do
+		local candidate = destination.node
+		local destX, destY = candidate:GetCenter()
+		local distX, distY = self:GetDistance(thisX, thisY, destX, destY)
+
+		if 	comparator(destX, destY, distX, distY, thisX, thisY) and
+			not self:DoNodesIntersect(current.node, candidate) then
+			candidates[destination] = { 
+				x = destX; y = destY; h = distX; v = distY;
+			}
+		end
+	end
+	return candidates
+end
+
+function Node:SetToClosestCandidate(key, currentNodeChanged)
+	if current and self.direction[key] then
+		local this = self:GetCandidateVectorForCurrent()
+		local candidates = self:GetCandidatesForVector(this, self.direction[key], {})
+
+		for candidate, vector in pairs(candidates) do
+			if self:IsCloser(vector.h, vector.v, this.h, this.v) then
+				this = vector; current = candidate
 			end
 		end
+	end
+end
+
+function Node:SetToBestCandidate(key, currentNodeChanged)
+	if current and self.distance[key] then
+		local this = self:GetCandidateVectorForCurrent()
+		local candidates = self:GetCandidatesForVector(this, self.distance[key], {})
+
+		local hMult = (key == KEY.UP or key == KEY.DOWN) and self.scalar or 1
+		local vMult = (key == KEY.LEFT or key == KEY.RIGHT) and self.scalar or 1
+
+		for candidate, vector in pairs(candidates) do
+			if self:IsCloser(vector.h * hMult, vector.v * vMult, this.h, this.v) then
+				this = vector; this.h = (this.h * hMult); this.v = (this.v * vMult);
+				current = candidate
+				currentNodeChanged = true
+			end
+		end
+		return currentNodeChanged
 	end
 end
 
@@ -466,9 +523,8 @@ function Node:Select(node, object, scrollFrame, state)
 
 	if not Cursor.InsecureMode then
 		local scrollUp, scrollDown = self:GetScrollButtons(node)
-		if scrollUp and scrollDown then
-			Override:Scroll(Cursor, scrollUp, scrollDown)
-		elseif object == "Slider" then
+		Override:Scroll(Cursor, scrollUp, scrollDown)
+		if object == "Slider" then
 			Override:HorizontalScroll(Cursor, node)
 		end
 
@@ -677,7 +733,7 @@ function Cursor:OnUpdate(elapsed)
 end
 
 function Cursor:OnHide()
-	self.Flash = true
+	self.MoveAndScale.Flash = true
 	Node:Clear()
 	self:SetHighlight()
 	if IsSafe() then
@@ -686,13 +742,13 @@ function Cursor:OnHide()
 end
 
 function Cursor:PLAYER_REGEN_DISABLED()
-	self.Flash = true
+	self.MoveAndScale.Flash = true
 	ClearOverride(self)
 	FadeOut(self, 0.2, self:GetAlpha(), 0)
 end
 
 function Cursor:PLAYER_REGEN_ENABLED()
-	self.Flash = true
+	self.MoveAndScale.Flash = true
 	After(db.Settings.UIleaveCombatDelay or 0.5, function()
 		if IsSafe() then
 			FadeIn(self, 0.2, self:GetAlpha(), 1)
@@ -778,7 +834,9 @@ end
 function ConsolePort:UIControl(key, state)
 	Node:RefreshAll()
 	if 	state == KEY.STATE_DOWN then
-		Node:FindClosest(key)
+		if not Node:SetToBestCandidate(key) then
+			Node:SetToClosestCandidate(key)
+		end
 	elseif key == Cursor.SpecialAction then
 		SpecialAction(self)
 	end
@@ -859,14 +917,26 @@ function ConsolePort:SetupCursor()
 end
 ---------------------------------------------------------------
 do
-	-- AnimationGroup OnFinished scripts
-	Cursor.Scaling:SetScript("OnFinished", Cursor.Scaling.OnFinished)
-	Cursor.Moving:SetScript("OnFinished", Cursor.Moving.OnFinished)
+	-- Set up animation scripts
+	local animationGroups = {Cursor.MoveAndScale, Cursor.Highlight.Scale}
+
+	local function setupScripts(w) 
+		for k, v in pairs(w) do 
+			if w:HasScript(k) then w:SetScript(k, v) end
+		end
+	end
+
+	for _, group in pairs(animationGroups) do
+		setupScripts(group)
+		for _, animation in pairs({group:GetAnimations()}) do
+			setupScripts(animation)
+		end
+	end
 
 	-- Convenience references to animations
-	Cursor.Translate 	= Cursor.Moving.Translate
-	Cursor.Enlarge 		= Cursor.Scaling.Enlarge
-	Cursor.Shrink 		= Cursor.Scaling.Shrink
+	Cursor.Translate 	= Cursor.MoveAndScale.Translate
+	Cursor.Enlarge 		= Cursor.MoveAndScale.Enlarge
+	Cursor.Shrink 		= Cursor.MoveAndScale.Shrink
 end
 ---------------------------------------------------------------
 

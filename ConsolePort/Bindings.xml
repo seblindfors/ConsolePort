@@ -1,34 +1,34 @@
 <Bindings>
 	<!-- Calibration D-pad -->
-	<Binding name="CP_L_UP" header="CP_LEFT" category="ConsolePort "/>
-	<Binding name="CP_L_DOWN" header="CP_LEFT" category="ConsolePort "/>
-	<Binding name="CP_L_LEFT" header="CP_LEFT" category="ConsolePort "/>
-	<Binding name="CP_L_RIGHT" header="CP_LEFT" category="ConsolePort "/>
+	<Binding name="CP_L_UP" category="ConsolePort " header="CP_LEFT"/>
+	<Binding name="CP_L_DOWN" category="ConsolePort "/>
+	<Binding name="CP_L_LEFT" category="ConsolePort "/>
+	<Binding name="CP_L_RIGHT" category="ConsolePort "/>
 	
 	<!-- Calibration XYAB -->
-	<Binding name="CP_R_UP" header="CP_RIGHT" category="ConsolePort "/>
-	<Binding name="CP_R_DOWN" header="CP_RIGHT" category="ConsolePort "/>
-	<Binding name="CP_R_LEFT" header="CP_RIGHT" category="ConsolePort "/>
-	<Binding name="CP_R_RIGHT" header="CP_RIGHT" category="ConsolePort "/>
+	<Binding name="CP_R_UP" category="ConsolePort " header="CP_RIGHT"/>
+	<Binding name="CP_R_DOWN" category="ConsolePort "/>
+	<Binding name="CP_R_LEFT" category="ConsolePort "/>
+	<Binding name="CP_R_RIGHT" category="ConsolePort "/>
 
 	<!-- Calibration center -->
-	<Binding name="CP_X_RIGHT" header="CP_CENTER" category="ConsolePort "/>
-	<Binding name="CP_X_CENTER" header="CP_CENTER" category="ConsolePort "/>
-	<Binding name="CP_X_LEFT" header="CP_CENTER" category="ConsolePort "/>
+	<Binding name="CP_X_RIGHT" category="ConsolePort " header="CP_CENTER"/>
+	<Binding name="CP_X_CENTER" category="ConsolePort "/>
+	<Binding name="CP_X_LEFT" category="ConsolePort "/>
 
 	<!-- Calibration triggers -->
-	<Binding name="CP_T1" header="CP_TRIG" category="ConsolePort "/>
-	<Binding name="CP_T2" header="CP_TRIG" category="ConsolePort "/>
+	<Binding name="CP_T1" category="ConsolePort " header="CP_TRIG"/>
+	<Binding name="CP_T2" category="ConsolePort "/>
 
-	<Binding name="CP_T3" header="CP_TRIG" category="ConsolePort "/>
-	<Binding name="CP_T4" header="CP_TRIG" category="ConsolePort "/>
+	<Binding name="CP_T3" category="ConsolePort "/>
+	<Binding name="CP_T4" category="ConsolePort "/>
 
 	<!-- Calibration arbitrary -->
-	<Binding name="CP_T5" header="CP_EXTRA" category="ConsolePort "/>
-	<Binding name="CP_T6" header="CP_EXTRA" category="ConsolePort "/>
+	<Binding name="CP_T5" category="ConsolePort " header="CP_EXTRA"/>
+	<Binding name="CP_T6" category="ConsolePort "/>
 
-	<Binding name="CP_T7" header="CP_EXTRA" category="ConsolePort "/>
-	<Binding name="CP_T8" header="CP_EXTRA" category="ConsolePort "/>
+	<Binding name="CP_T7" category="ConsolePort "/>
+	<Binding name="CP_T8" category="ConsolePort "/>
 
 	<!-- Custom bindings -->
 	<Binding name="WM_UPDATE" hidden="true">

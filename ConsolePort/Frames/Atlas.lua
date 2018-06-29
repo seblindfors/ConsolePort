@@ -172,7 +172,7 @@ Atlas.GetArtOverlay = function(self)
 	self.Overlay:SetPoint("TOPLEFT", self, "TOPLEFT", 16, -16)
 	self.Overlay:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -16, 16)
 	self.Overlay:SetBlendMode("BLEND")
-	self.Overlay:SetAlpha(.25)
+	self.Overlay:SetAlpha(.1)
 	self.Overlay:SetAtlas(Atlas.GetOverlay())
 
 	local function FixAspectRatio(self)

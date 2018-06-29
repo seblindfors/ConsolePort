@@ -190,7 +190,7 @@ local function CreateHotkeyFrame(self, num)
 end
 
 function Lib:CreateButton(parent, id, name, modifier, size, texSize, config)
-	local button = acb:CreateButton(id, name, parent, config, modifier)
+	local button = acb:CreateButton(id, name, parent, config)
 
 	button.PushedTexture = button:GetPushedTexture()
 	button.HighlightTexture = button:GetHighlightTexture()

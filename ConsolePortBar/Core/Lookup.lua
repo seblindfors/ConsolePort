@@ -258,7 +258,7 @@ function ab:GetPresets()
 end
 
 function ab:GetRGBColorFor(element, default)
-	local cfg = ab.cfg
+	local cfg = ab.cfg or {}
 	local defaultColors = {
 		tint 	= {r, g, b, 1},
 		border 	= {1, 1, 1, 1},
@@ -404,7 +404,7 @@ function ab:SetRainbowScript(on)
 	local f = ab.bar
 	if on then
 		local reg, pairs = ab.libs.registry, pairs
-		local __cb, __bg, __bl = CastingBarFrame, f.BG, f.BottomLine
+		local __cb, __bg, __bl, __xp = CastingBarFrame, f.BG, f.BottomLine, f.WatchBarContainer.ExperienceBar
 		local t, i, p, c, w, m = 0, 0, 0, 128, 127, 180
 		local hz = (math.pi*2) / m
 		local r, g, b
@@ -419,6 +419,7 @@ function ab:SetRainbowScript(on)
 					i = i - m
 				end
 				__cb:SetStatusBarColor(r, g, b)
+				__xp:SetBarColorRaw(r, g, b)
 				__bg:SetGradientAlpha(ab:GetColorGradient(r, g, b))
 				__bl:SetVertexColor(r, g, b)
 				for _, rap in pairs(reg) do

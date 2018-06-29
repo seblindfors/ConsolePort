@@ -10,10 +10,12 @@ function ConsolePort:LoadCameraSettings()
 		cfg = db.Mouse
 		if cfg and cfg.Camera then
 			for cvar, val in pairs(cfg.Camera) do
-				local success = pcall(ConsoleExec, (cvar .. ' ' .. tostring(val)))
-				if not success then
-					print('Attempted to modify missing cvar:', cvar)
-				end	
+				if GetCVar(cvar) ~= nil then
+					local success = pcall(ConsoleExec, (cvar .. ' ' .. tostring(val)))
+					if not success then
+						print('Attempted to modify missing cvar:', cvar)
+					end
+				end
 			end
 		end
 	end

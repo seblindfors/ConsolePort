@@ -194,6 +194,9 @@ function lib.ShowOverlayGlow(frame)
 		overlay.animIn:Play()
 		frame.__LBGoverlay = overlay
 	end
+	if ConsolePortBar.CoverArt then
+		ConsolePortBar.CoverArt:Flash()
+	end
 end
 
 function lib.HideOverlayGlow(frame)

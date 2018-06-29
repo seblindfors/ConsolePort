@@ -180,17 +180,25 @@ function Bar:OnLoad(cfg, benign)
 	end
 	
 	-- Set action bar art
-	if cfg.showart then
+	if cfg.showart or cfg.flashart then
 		local art, coords = ab:GetCover()
 		if art and coords then
 			self.CoverArt:SetTexture(art)
 			self.CoverArt:SetTexCoord(unpack(coords))
-			self.CoverArt:Show()
 			self.CoverArt:SetVertexColor(unpack(cfg.artRGB or {1,1,1}))
+			if cfg.showart then
+				self.CoverArt:Show()
+				self.CoverArt:SetBlendMode('BLEND')
+			else
+				self.CoverArt:Hide()
+				self.CoverArt:SetBlendMode('ADD')
+			end
 		end
 	else
+		self.CoverArt:SetTexture(nil)
 		self.CoverArt:Hide()
 	end
+	self.CoverArt.flashOnProc = cfg.flashart
 
 	-- Show class tint line
 	if cfg.showline then

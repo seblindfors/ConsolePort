@@ -29,7 +29,6 @@ function ConsolePort:LoadEvents()
 		['UPDATE_BINDINGS'] 			= false,
 		['VARIABLES_LOADED'] 			= false,
 		['QUEST_AUTOCOMPLETE'] 			= false,
-		['WORLD_MAP_UPDATE'] 			= false,
 		['UNIT_ENTERING_VEHICLE'] 		= false,
 	}
 	-- Union of general events and mouse look events
@@ -92,7 +91,7 @@ end
 
 function Events:WORLD_MAP_UPDATE()
 	-- Add clickable nodes to the world map
-	self:GetMapNodes()
+--	self:GetMapNodes()
 end
 
 function Events:QUEST_AUTOCOMPLETE(...)

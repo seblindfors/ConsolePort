@@ -152,9 +152,9 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 						self:RegisterEvent('PLAYER_TALENT_UPDATE')
 						self:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED')
 						self:RegisterEvent('HONOR_LEVEL_UPDATE')
-						self:RegisterEvent('HONOR_PRESTIGE_UPDATE')
+				--		self:RegisterEvent('HONOR_PRESTIGE_UPDATE')
 						self:RegisterEvent('PLAYER_PVP_TALENT_UPDATE')
-						self:RegisterEvent('PLAYER_CHARACTER_UPGRADE_TALENT_COUNT_CHANGED')
+				--		self:RegisterEvent('PLAYER_CHARACTER_UPGRADE_TALENT_COUNT_CHANGED')
 					end,
 					OnEvent = function(self, event, ...)
 						self.tooltipText = nil

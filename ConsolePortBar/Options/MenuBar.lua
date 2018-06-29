@@ -43,6 +43,23 @@ Bar.CoverArt = Bar:CreateTexture(nil, 'BACKGROUND')
 Bar.CoverArt:SetPoint('CENTER', 0, 50)
 Bar.CoverArt:SetSize(768, 192)
 
+Bar.CoverArt.Flash = function(self)
+	if self.flashOnProc and not self:IsShown() then
+		self:Show()
+
+		db.UIFrameFadeIn(self, 0.2, 0, 1, {
+			finishedFunc = function()
+				db.UIFrameFadeOut(self, 1.5, 1, 0, {
+					finishedFunc = function()
+						self:SetAlpha(1)
+						self:Hide()
+					end
+				})
+			end
+		})
+	end
+end
+
 ---------------------------------------------------------------
 ---------------------------------------------------------------
 

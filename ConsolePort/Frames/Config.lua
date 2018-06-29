@@ -10,7 +10,7 @@ local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local ConsolePort, WindowMixin = ConsolePort, {}
 local Popup = db.Atlas.CreateFrame("ConsolePortPopup")
-local Config = db.Atlas.CreateFrame("ConsolePortConfig", nil, nil, nil, nil, nil)
+local Config = db.Atlas.CreateFrame("ConsolePortConfig")
 local Scroll = CreateFrame("ScrollFrame", "$parentBannerScroll", Config)
 local Category = CreateFrame("Frame", "$parentCategories", Scroll)
 local Container = CreateFrame("Frame", "$parentContainer", Config)
