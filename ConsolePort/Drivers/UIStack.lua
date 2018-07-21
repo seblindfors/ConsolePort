@@ -72,7 +72,6 @@ for flag, nodes in pairs({
 		LootFrameCloseButton,
 		SpellFlyout,
 		WorldMapTitleButton,
-		WorldMapButton,
 	},
 	ignoreMenu = {
 		ObjectiveTrackerFrame.HeaderMenu.MinimizeButton,
@@ -80,7 +79,7 @@ for flag, nodes in pairs({
 		MinimapZoomOut,
 	},
 	ignoreScroll = {
-		WorldMapScrollFrame,
+		-- nothing here
 	},
 	includeChildren = {
 		DropDownList1,

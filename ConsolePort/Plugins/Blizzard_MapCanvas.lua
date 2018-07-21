@@ -54,16 +54,26 @@ db.PLUGINS['Blizzard_MapCanvas'] = function(self)
 		pin.includeChildren = true
 	end
 
-	hooksecurefunc(MapCanvasMixin, 'AcquirePin', function(self, pinTemplate, ...)
+	local function AddToMixinTracker(self)
+		if not maps[self] then
+			ConsolePort:AddFrame(self)
+			ConsolePort:UpdateFrames()
+			maps[self] = true
+			self.ScrollContainer.ignoreScroll = true
+		end
+	end
+
+	local function AcquirePin(self, pinTemplate, ...)
 		for pin in self:EnumeratePinsByTemplate(pinTemplate) do
 			CreateNode(pin, self, pinTemplate)
 		end
-		
-		if maps[self] then return end
-		ConsolePort:AddFrame(self)
-		ConsolePort:UpdateFrames()
-		maps[self] = true
-		self.ScrollContainer.ignoreScroll = true
-	end)
+		AddToMixinTracker(self)
+	end
 
+	hooksecurefunc(MapCanvasMixin, 'AcquirePin', AcquirePin)
+
+	if ( WorldMapFrame and WorldMapFrame.AcquirePin ) then
+		hooksecurefunc(WorldMapFrame, 'AcquirePin', AcquirePin)
+		AddToMixinTracker(WorldMapFrame)
+	end
 end

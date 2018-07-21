@@ -210,37 +210,26 @@ local IsFrameWidget = C_Widget.IsFrameWidget
 local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
 local updateThrottle = 0
 ----------------------------------
-local ignoreFrames = {
-	[Control] = true,
-	[Control.HintBar] = true,
-	[AlertFrame] = true,
-	[ArtifactLevelUpToast] = true,
-	[ChatFrame1] = true,
---	[ChatFrame1EditBox] = true,
-	[CastingBarFrame] = true,
-	[Minimap] = true,
-	[MinimapCluster] = true,
-	[GameTooltip] = true,
-	[QuickJoinToastButton] = true,
-	[StaticPopup1] = true,
-	[StaticPopup2] = true,
-	[StaticPopup3] = true,
-	[StaticPopup4] = true,
-	[SubZoneTextFrame] = true,
-	[ShoppingTooltip1] = true,
-	[ShoppingTooltip2] = true,
-	[OverrideActionBar] = true,
-	[ObjectiveTrackerFrame] = true,
-	[UIErrorsFrame] = true,
-	[ZoneTextFrame] = true,
-	----------------------------------
-	['TalkingHeadFrame'] = true,
-}
-local forceFrames = {
-	['ConsolePortBar'] = true,
-	['MainMenuBar']  = true,
-}
+local ignoreFrames, forceFrames, toggleFrames = {}, {}, {}
 ----------------------------------
+function Control:LoadFadeFrames()
+	local defaults = ConsolePort:GetDefaultFadeFrames()
+	local loaded = db.UIConfig.FadeFrames
+	if not loaded or (not loaded.ignore or not loaded.force or not loaded.toggle) then
+		db.UIConfig.FadeFrames = defaults
+		loaded = defaults
+	end
+
+	for _, frame in pairs(loaded.ignore) do ignoreFrames[frame] = true end
+	for _, frame in pairs(loaded.force) do forceFrames[frame] = true end
+--	for _, frame in pairs(loaded.toggle) do toggleFrames[frame] = true end
+
+	-- Make sure we're ignoring the actual control handle
+	ignoreFrames[self:GetName()] = true
+	ignoreFrames[self.HintBar:GetName()] = true
+end
+----------------------------------
+
 
 local function GetFadeFrames(onlyActionBars, focusFrame)
 	local fadeFrames, frameStack = {}
@@ -265,7 +254,7 @@ local function GetFadeFrames(onlyActionBars, focusFrame)
 		if not child:IsForbidden() then -- assert this frame isn't forbidden
 			----------------------------------
 			name = child:GetName()
-			forceChild = name and forceFrames[name]
+			forceChild = forceFrames[name]
 			ignoreChild = ignoreFrames[child] or ignoreFrames[name]
 			isConsolePortFrame = name and name:match('ConsolePort')
 			----------------------------------

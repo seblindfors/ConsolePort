@@ -5,6 +5,7 @@
 	<!-- Controller presets -->
 	<Script file="STEAM/Steam.lua"/>
 	<Script file="XBOX/Xbox.lua"/>
+	<Script file="XBOXELITE/XboxElite.lua"/>
 	<Script file="PS4/PS4.lua"/>
 	<Script file="WII/WII.lua"/>
 </Ui>

@@ -248,7 +248,6 @@ TUTORIAL = {
 	},
 	ERRORS = {
 		FOCUSUNIT			= '|cFFFF1111NOTE:|r While the interface cursor is enabled, you cannot use |cFFAAAAFF'..SET_FOCUS..'|r from dropdown menus with your regular mouse. Use the interface cursor or a dedicated binding instead.',
-		NPCMODULE			= '|cFFFF1111NOTE:|r ConsolePort: Quest & Gossip has been replaced by the standalone |cff69ccf0Immersion|r. Please download |cff69ccf0Immersion|r instead.\nhttps://www.curseforge.com/wow/addons/immersion',
 	},
 },
 TOOLTIP = {

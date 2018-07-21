@@ -86,11 +86,19 @@ do
 
 	Bar.WatchBarContainer = WBC
 
+	local function BarColorOverride(self)
+		if (ab.cfg and ab.cfg.expRGB) and (WBC.mainBar == self) then
+			self:SetBarColorRaw(unpack(ab.cfg.expRGB))
+		end
+	end
+
 	function WBC:AddBarFromTemplate(frameType, template)
 		local bar = CreateFrame(frameType, nil, self, template)
 		table.insert(self.bars, bar)
 		bar.StatusBar.Background:Hide()
 		bar.StatusBar.BarTexture:SetTexture([[Interface\AddOns\ConsolePortBar\Textures\XPBar]])
+		bar.SetBarColorRaw = bar.SetBarColor
+
 		bar:HookScript('OnEnter', function()
 			FadeIn(self, 0.2, self:GetAlpha(), 1)
 		end)
@@ -100,6 +108,9 @@ do
 				FadeOut(self, 0.2, self:GetAlpha(), 0)
 			end
 		end)
+
+		bar:HookScript('OnShow', BarColorOverride)
+		hooksecurefunc(bar, 'SetBarColor', BarColorOverride)
 
 		self:UpdateBarsShown()
 		return bar
@@ -123,6 +134,12 @@ do
 		end
 	end
 
+	function WBC:SetMainBarColor(r, g, b)
+		if self.mainBar then
+			self.mainBar:SetBarColorRaw(r, g, b)
+		end
+	end
+
 	function WBC:LayoutBars(visBars)
 		local width = self:GetWidth()
 		self:HideStatusBars()
@@ -134,6 +151,7 @@ do
 		elseif( #visBars == 1 ) then 
 			self:LayoutBar(visBars[1], width, TOP_BAR, not IS_DOUBLE)
 		end
+		self.mainBar = visBars and visBars[1]
 		self:GetParent():OnStatusBarsUpdated()
 		self:UpdateBarTicks()
 	end
@@ -146,21 +164,6 @@ do
 	local xpBar = WBC:AddBarFromTemplate('FRAME', 'ExpStatusBarTemplate')
 	xpBar.ExhaustionLevelFillBar:SetTexture([[Interface\AddOns\ConsolePortBar\Textures\XPBar]])
 
-	local setBarColor = xpBar.SetBarColor
-	xpBar.SetBarColorRaw = setBarColor
-	hooksecurefunc(xpBar, 'SetBarColor', function(self)
-		if ab.cfg and ab.cfg.expRGB then
-			setBarColor(self, unpack(ab.cfg.expRGB))
-		end
-	end)
-
-	xpBar:HookScript('OnShow', function(self)
-		if ab.cfg and ab.cfg.expRGB then
-			setBarColor(self, unpack(ab.cfg.expRGB))
-		end
-	end)
-
-	WBC.ExperienceBar = xpBar
 	WBC:SetScript('OnShow', function(self)
 		if ab.cfg and ab.cfg.watchbars then
 			FadeIn(self, 0.2, self:GetAlpha(), 1)

@@ -150,7 +150,6 @@ function Cursor.MoveAndScale:ConfigureScale()
 		if self.Flash then
 			scaleAmount = 1.75
 			shrinkDuration = 0.5
-			FadeOut(self.Spell, 1, 1, 0.1)
 		end
 		self.Flash = nil
 		self.Enlarge:SetScale(scaleAmount, scaleAmount)
@@ -363,7 +362,7 @@ local Node = {
 
 local rectIntersect, vec2Dlen, abs, huge = UIDoFramesIntersect, Vector2D_GetLength, math.abs, math.huge
 
-function Node:GetDistance(x1, y1, x2, y2)
+function Node:GetAbsoluteDistance(x1, y1, x2, y2)
 	return abs(x1 - x2), abs(y1 - y2)
 end
 
@@ -372,7 +371,12 @@ function Node:IsCloser(hz1, vt1, hz2, vt2)
 end
 
 function Node:DoNodesIntersect(node1, node2)
-	return node1:GetFrameLevel() ~= node2:GetFrameLevel() and rectIntersect(node1, node2)
+	-- (1) frame level mismatch indicates node1 may overlap node2 or vice versa
+	-- (2) if nodes are relative to eachother, they should be treated as non-intersecting
+	-- (3) check the frame boundaries for intersection if the nodes are independent
+	return 	(node1:GetFrameLevel() ~= node2:GetFrameLevel()) and 
+		 	(node1:GetParent() ~= node2 and node2:GetParent() ~= node1) and 
+		 	rectIntersect(node1, node2)
 end
 
 function Node:IsInteractive(node, object)
@@ -406,7 +410,7 @@ function Node:Refresh(node, scrollFrame)
 			end
 		end
 		if 	not node.ignoreChildren then
-			for i, child in pairs({node:GetChildren()}) do
+			for i, child in ipairs({node:GetChildren()}) do
 				self:Refresh(child, node.GetScrollChild and node or scrollFrame)
 			end
 		end
@@ -434,7 +438,7 @@ function Node:GetCandidatesForVector(vector, comparator, candidates)
 	for i, destination in ipairs(self.cache) do
 		local candidate = destination.node
 		local destX, destY = candidate:GetCenter()
-		local distX, distY = self:GetDistance(thisX, thisY, destX, destY)
+		local distX, distY = self:GetAbsoluteDistance(thisX, thisY, destX, destY)
 
 		if 	comparator(destX, destY, distX, distY, thisX, thisY) and
 			not self:DoNodesIntersect(current.node, candidate) then
@@ -555,7 +559,7 @@ function Node:SetCurrent()
 			targetNode = self.cache[1]
 		else
 			local targetDistance, targetParent, newDistance, newParent, swap, thisX, thisY
-			for i, this in pairs(self.cache) do swap = false
+			for i, this in ipairs(self.cache) do swap = false
 
 				thisX, thisY = this.node:GetCenter()
 				newDistance = abs( x - thisX ) + abs( y - thisY )
@@ -903,14 +907,8 @@ function ConsolePort:SetupCursor()
 	Cursor.IndicatorR 	= TEXTURE[db.Mouse.Cursor.Right]
 	Cursor.IndicatorS 	= TEXTURE[db.Mouse.Cursor.Special]
 
-
 	Cursor.Scroll 		= db.Mouse.Cursor.Scroll
 	Cursor.ScrollGuide 	= Cursor.Scroll == M1 and TEXTURE.CP_M1 or TEXTURE.CP_M2
-
-	local r, g, b = Hex2RGB(db.COLOR[gsub(db.Mouse.Cursor.Left, "CP_._", "")], true)
-	if r and g and b then
-		Cursor.Spell:SetLight(true, false, 0, 0, 120, 1, r, g, b, 100, r, g, b)
-	end
 
 	Cursor:SetScript("OnHide", Cursor.OnHide)
 	Cursor:SetScript("OnUpdate", Cursor.OnUpdate)

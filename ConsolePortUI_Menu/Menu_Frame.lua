@@ -1,7 +1,5 @@
-do
 local UI, an, L = ConsolePortUI, ...
 local db = ConsolePort:GetData()
-local cc = UI.Media.CC
 local ICON = 'Interface\\Icons\\%s'
 local Button = L.Button
 
@@ -11,13 +9,13 @@ local lootButtonProbeScript = L.lootButtonProbeScript
 local lootHeaderOnSetScript = L.lootHeaderOnSetScript
 
 local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate', {
+	Height = 54,
+	Strata = 'FULLSCREEN',
+	Points = {
+		{'TOPLEFT', UIParent, 'TOPLEFT', 0, 0},
+		{'TOPRIGHT', UIParent, 'TOPRIGHT', 0, 0},
+	},
 	{
-		BG = {
-			Type 	= 'Texture',
-			Setup  	= {'BACKGROUND'},
-			Texture = UI.Media:GetTexture('Menu_BG'),
-			Fill = true,
-		},
 		Character = {
 			Type 	= 'CheckButton',
 			Setup 	= {
@@ -26,7 +24,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				'CPUIListCategoryTemplate',
 			},
 			Point 	= {'CENTER', -345, 0},
-			Text	= CHARACTER,
+			Text	= '|TInterface\\Store\\category-icon-armor:18:18:-4:0:64:64:14:50:14:50|t' .. CHARACTER,
 			ID = 1,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{
@@ -40,7 +38,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Attrib 	= {hidemenu = true},
 					UpdateLevel = function(self, newLevel)
 						local level = newLevel or UnitLevel('player')
-						if level and level < 110 then
+						if level and level < MAX_PLAYER_LEVEL then
 							self.Level:SetTextColor(1, 0.8, 0)
 							self.Level:SetText(level)
 						else
@@ -51,10 +49,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					OnClick = function(self) ToggleCharacter('PaperDollFrame') end,
 					OnEvent = function(self, event, ...)
 						if event == 'UNIT_PORTRAIT_UPDATE' then
-							local unit = ...
-							if unit == 'player' then
-								SetPortraitTexture(self.Icon, 'player')
-							end
+							SetPortraitTexture(self.Icon, 'player')
 						elseif event == 'PLAYER_LEVEL_UP' then
 							self:UpdateLevel(...)
 						else
@@ -62,8 +57,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 							self:UpdateLevel()
 						end
 					end,
+					RegisterUnitEvent = {'UNIT_PORTRAIT_UPDATE', 'player'},
 					Events = {
-						'UNIT_PORTRAIT_UPDATE',
 						'PLAYER_ENTERING_WORLD',
 						'PLAYER_LEVEL_UP',
 					},
@@ -226,7 +221,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				'CPUIListCategoryTemplate',
 			},
 			Point 	= {'CENTER', -115, 0},
-			Text	= GAME,
+			Text	= '|TInterface\\Store\\category-icon-weapons:18:18:-4:0:64:64:14:50:14:50|t' .. GAME,
 			ID 	= 2,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{
@@ -351,7 +346,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				'CPUIListCategoryTemplate',
 			},
 			Point 	= {'CENTER', 115, 0},
-			Text	= SOCIAL_BUTTON,
+			Text	= '|TInterface\\Store\\category-icon-featured:18:18:-4:0:64:64:14:50:14:50|t' .. SOCIAL_BUTTON,
 			ID = 3,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{	
@@ -454,7 +449,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				'CPUIListCategoryTemplate',
 			},
 			Point 	= {'CENTER', 345, 0},
-			Text	= SYSTEMOPTIONS_MENU,
+			Text	= '|TInterface\\Store\\category-icon-wow:18:18:-4:0:64:64:14:50:14:50|t' .. SYSTEMOPTIONS_MENU,
 			ID = 4,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{
@@ -711,13 +706,9 @@ do
 	ConsolePortUIConfig.Menu = ConsolePortUIConfig.Menu or {}
 
 	local cfg = ConsolePortUIConfig.Menu
-	if cfg.lootprobe == nil then cfg.lootprobe = false end
+
+	cfg.lootprobe = cfg.lootprobe and true or false 
 	cfg.scale = cfg.scale or 1
-	cfg.anchor = cfg.anchor or {
-		point = 'TOP',
-		offsetX = 0,
-		offsetY = -100,
-	}
 
 	if cfg.lootprobe then
 		UI:BuildFrame(Menu, lootWireFrame)
@@ -732,8 +723,11 @@ do
 	]])
 
 	local NUM_HEADERS = 0
-	for _, header in pairs({Menu:GetChildren()}) do
+	for i, header in pairs({Menu:GetChildren()}) do
+		header.HighlightTexture:SetVertexColor(0.47, 0.86, 1)
+
 		NUM_HEADERS = NUM_HEADERS + 1
+
 		Menu:SetFrameRef('newheader', header)
 		Menu:Execute([[
 			local newheader = self:GetFrameRef('newheader')
@@ -755,29 +749,14 @@ do
 		end
 	end
 
-	Menu.GlowLeft = CreateFrame('Frame', nil, Menu, 'CPUILineSheenTemplate')
-	Menu.GlowRight = CreateFrame('Frame', nil, Menu, 'CPUILineSheenTemplate')
-
-	Menu.GlowLeft:SetPoint('TOP', Menu, 'BOTTOM', 0, 40)
-	Menu.GlowLeft:SetDirection('LEFT', 2.5)
-
-	Menu.GlowRight:SetPoint('TOP', Menu, 'BOTTOM', 0, 40)
-	Menu.GlowRight:SetDirection('RIGHT', 2.5)
-
 	Menu:Execute(format('numheaders = %s', NUM_HEADERS))
-
-	Menu:SetSize(1024, 128)
-	Menu:SetFrameStrata('FULLSCREEN')
 
 	UI:RegisterFrame(Menu, 'Menu', false, true)
 	UI:HideFrame(GameMenuFrame, true)
 
 	Menu:SetScale(cfg.scale)
-	Menu:SetPoint(cfg.anchor.point, UIParent, cfg.anchor.point, cfg.anchor.offsetX, cfg.anchor.offsetY)
 
 	L.Menu = Menu
-end
-
 end
 
 --[[

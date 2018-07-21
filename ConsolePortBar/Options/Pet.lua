@@ -11,12 +11,7 @@ local Lib = ab.libs.button
 local Pet = CreateFrame('Button', '$parentPet', Bar, 'SecureActionButtonTemplate, SecureHandlerBaseTemplate, SecureHandlerStateTemplate')
 local Button = {}
 
-local BUTTON_SIZE = 40
-
 local GetPetActionCooldown = GetPetActionCooldown
-local CooldownFrame_SetTimer = CooldownFrame_SetTimer
-local GameTooltip = GameTooltip
-
 local AutoCastShine_AutoCastStart = AutoCastShine_AutoCastStart
 local AutoCastShine_AutoCastStop = AutoCastShine_AutoCastStop
 
@@ -82,9 +77,6 @@ function Button:OnEnter()
 		else
 			GameTooltip:SetText(self.tooltipName, 1.0, 1.0, 1.0)
 		end
-		if ( self.tooltipSubtext ) then
-			GameTooltip:AddLine(self.tooltipSubtext, 0.5, 0.5, 0.5, true)
-		end
 		GameTooltip:Show()
 		self.UpdateTooltip = nil
 	else
@@ -117,6 +109,7 @@ end
 do 
 	local RADIAN_FRACTION = rad( 360 / (NUM_PET_ACTION_SLOTS - 2) )
 	local Mixin = db.table.mixin
+	local BUTTON_SIZE = 40
 
 	for i=1, NUM_PET_ACTION_SLOTS do
 		local x, y, r = 0, 0, 60 -- xOffset, yOffset, radius
@@ -193,10 +186,6 @@ Pet:HookScript('OnShow', function(self)
 	FadeIn(self, 0.2, 0, 1)
 end)
 
-Pet:HookScript('OnHide', function(self)
-	--
-end)
-
 Pet:SetScript('OnEvent', function(self, event, ...)
 	local arg1 = ...
 	if event == 'PET_BAR_UPDATE' or event == 'PET_SPECIALIZATION_CHANGED' or
@@ -215,11 +204,11 @@ end)
 
 function Pet:Update()
 	local petActionButton, petActionIcon, petAutoCastableTexture, petAutoCastShine
-	for i, petActionButton in pairs(self.Buttons) do
+	for i, petActionButton in ipairs(self.Buttons) do
 		petActionIcon = petActionButton.icon
 		petAutoCastableTexture = petActionButton.AutoCastable
 		petAutoCastShine = petActionButton.Shine
-		local name, subtext, texture, isToken, isActive, autoCastAllowed, autoCastEnabled = GetPetActionInfo(i)
+		local name, texture, isToken, isActive, autoCastAllowed, autoCastEnabled = GetPetActionInfo(i)
 		if ( not isToken ) then
 			petActionButton:SetIcon(texture)
 			petActionButton.tooltipName = name
@@ -228,7 +217,6 @@ function Pet:Update()
 			petActionButton.tooltipName = _G[name]
 		end
 		petActionButton.isToken = isToken
-		petActionButton.tooltipSubtext = subtext
 		if ( isActive ) then
 			if ( IsPetAttackAction(i) ) then
 				petActionButton:StartFlash()

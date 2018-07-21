@@ -357,14 +357,14 @@ function ab:GetBooleanSettings(otherCFG)
 			cvar = 'watchbars',
 			toggle = cfg.watchbars,
 		},
-		{	desc = L.CFG_WATCHBAR_AP,
+--[[	{	desc = L.CFG_WATCHBAR_AP,
 			cvar = 'disableArtifactWatchBar',
 			toggle = cfg.disableArtifactWatchBar,
 		},
 		{	desc = L.CFG_WATCHBAR_EXP,
 			cvar = 'disableMainMenuExpBar',
 			toggle = cfg.disableMainMenuExpBar,
-		},
+		}, ]]
 		{	desc = L.CFG_DISABLE_ICONS,
 			cvar = 'hideIcons',
 			toggle = cfg.hideIcons,
@@ -404,7 +404,7 @@ function ab:SetRainbowScript(on)
 	local f = ab.bar
 	if on then
 		local reg, pairs = ab.libs.registry, pairs
-		local __cb, __bg, __bl, __xp = CastingBarFrame, f.BG, f.BottomLine, f.WatchBarContainer.ExperienceBar
+		local __cb, __bg, __bl, __wb = CastingBarFrame, f.BG, f.BottomLine, f.WatchBarContainer
 		local t, i, p, c, w, m = 0, 0, 0, 128, 127, 180
 		local hz = (math.pi*2) / m
 		local r, g, b
@@ -419,7 +419,7 @@ function ab:SetRainbowScript(on)
 					i = i - m
 				end
 				__cb:SetStatusBarColor(r, g, b)
-				__xp:SetBarColorRaw(r, g, b)
+				__wb:SetMainBarColor(r, g, b)
 				__bg:SetGradientAlpha(ab:GetColorGradient(r, g, b))
 				__bl:SetVertexColor(r, g, b)
 				for _, rap in pairs(reg) do

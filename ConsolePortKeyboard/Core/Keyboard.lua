@@ -114,6 +114,9 @@ function Keyboard:CLOSE()
 	self.Focus = nil
 	self:UpdateDictionary()
 	self:Hide()
+	if ConsolePort.SetCursorObstructor then
+		ConsolePort:SetCursorObstructor(self, false)
+	end
 end
 
 function Keyboard:LEFT()
@@ -315,6 +318,9 @@ end
 function Keyboard:SetFocus(newFocus)
 	if self.Focus then
 		self.Focus:EnableKeyboard(true)
+	end
+	if ConsolePort.SetCursorObstructor then
+		ConsolePort:SetCursorObstructor(self, true)
 	end
 	self.Focus = newFocus
 	self.Focus:EnableKeyboard(false)

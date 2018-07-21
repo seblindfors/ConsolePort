@@ -50,12 +50,6 @@ function ConsolePort:LoadSettings()
 	if not ConsolePortSettings then
 		selectController = true
 		ConsolePortSettings = self:GetDefaultAddonSettings()
-	-----------------------------------------------------------
-	else local set = ConsolePortSettings -- BC: new binding ID fix, remove later on.
-		set.CP_T3 = set.CP_T3 or 'CP_L_GRIP'
-		set.CP_T4 = set.CP_T4 or 'CP_R_GRIP'
-	--	newUser = ConsolePortSettings.newUser
-	-----------------------------------------------------------
 	end
 
 	db.Settings = ConsolePortSettings
@@ -103,12 +97,10 @@ function ConsolePort:LoadSettings()
 	-----------------------------------------------------------
 	-- Set/load mouse settings
 	-----------------------------------------------------------
-	if not ConsolePortMouse then
-		ConsolePortMouse = {
-			Events = self:GetDefaultMouseEvents(),
-			Cursor = self:GetDefaultMouseCursor(),
-		}
-	end
+	ConsolePortMouse = ConsolePortMouse or {
+		Events = self:GetDefaultMouseEvents();
+		Cursor = self:GetDefaultMouseCursor();
+	}
 	
 	-----------------------------------------------------------
 	-- Add empty bindings popup for later use
@@ -138,33 +130,19 @@ function ConsolePort:LoadSettings()
 	-----------------------------------------------------------
 	-- Extra features
 	-----------------------------------------------------------
+
 	-- Use these frames in the virtual cursor stack
-	if not ConsolePortUIFrames then
-		ConsolePortUIFrames = self:GetDefaultUIFrames()
-	end
-
+	ConsolePortUIFrames = ConsolePortUIFrames or self:GetDefaultUIFrames()
 	-- Use this table to populate radial action bar
-	if not ConsolePortUtility then
-		ConsolePortUtility = {}
-	end
-
+	ConsolePortUtility = ConsolePortUtility or {}
 	-- Use this table to store UI module settings
-	if not ConsolePortUIConfig then
-		ConsolePortUIConfig = {}
-	-- BC: handle transition to standalone quest module 
-	elseif ConsolePortUIConfig.NPC then
-		ConsolePortUIConfig.NPC = nil
-		if not select(4, GetAddOnInfo('Immersion')) then
-			print(db.TUTORIAL.ERRORS.NPCMODULE)
-		else
-			EnableAddOn('Immersion')
-		end
-	end
+	ConsolePortUIConfig = ConsolePortUIConfig or {}
 
 	----------------------------------------------------------
 
-	db.UIStack = ConsolePortUIFrames
-	db.Mouse = ConsolePortMouse
+	db.UIStack 	= ConsolePortUIFrames
+	db.UIConfig = ConsolePortUIConfig
+	db.Mouse 	= ConsolePortMouse
 
 	----------------------------------------------------------
 	-- Load the calibration wizard if a button does not have a registered mock binding
@@ -172,6 +150,11 @@ function ConsolePort:LoadSettings()
 	if 	self:CheckCalibration() then
 		self:CalibrateController()
 	end
+
+	----------------------------------------------------------
+	-- Load UI handle fade frames
+	----------------------------------------------------------
+	ConsolePortUIHandle:LoadFadeFrames()
 
 	----------------------------------------------------------
 	-- Create slash handler

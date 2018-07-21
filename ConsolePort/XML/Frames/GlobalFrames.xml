@@ -117,27 +117,15 @@
 			<Frame parentKey="Pointer">
 				<Size x="32" y="32"/>
 			</Frame>
-			<PlayerModel parentKey="Spell" alpha="0.1">
-				<Scripts>
-					<OnLoad>
-						self.parent = self:GetParent();
-						self:SetDisplayInfo(42486);
-					</OnLoad>
-					<OnShow>
-						self:SetSize(70, 70);
-						self:SetPoint("CENTER", self.parent, "BOTTOMLEFT", 20, 13);
-					</OnShow>
-				</Scripts>
-			</PlayerModel>
 		</Frames>
 		<Animations>
 			<AnimationGroup parentKey="MoveAndScale">
 				<Translation parentKey="Translate" smoothing="OUT" duration=".05" order="1"/>
 				<Scale parentKey="Enlarge" smoothing="OUT" duration=".1" order="1">
-					<Origin point="CENTER"/>
+					<Origin point="TOPLEFT"/>
 				</Scale>
 				<Scale parentKey="Shrink" smoothing="IN" duration=".2" order="2">
-					<Origin point="CENTER"/>
+					<Origin point="TOPLEFT"/>
 				</Scale>
 			</AnimationGroup>
 		</Animations>
@@ -282,12 +270,13 @@
 				</Anchors>
 				<Layers>
 					<Layer level="BACKGROUND">
-						<Texture parentKey="Gradient">
-							<Size x="0" y="72"/>
+						<Texture parentKey="Gradient" file="Interface\AddOns\ConsolePort\Textures\Window\Menu-TopBG" alpha="0.6">
+							<Size x="0" y="100"/>
 							<Anchors>
 								<Anchor point="BOTTOMLEFT" relativeTo="UIParent"/>
 								<Anchor point="BOTTOMRIGHT" relativeTo="UIParent"/>
 							</Anchors>
+							<TexCoords left="0" right="1" top="1" bottom="0"/>
 						</Texture>
 					</Layer>
 				</Layers>
@@ -300,10 +289,6 @@
 						self:SetParent(UIParent);
 						self:SetIgnoreParentAlpha(true);
 						self:SetFrameStrata('FULLSCREEN_DIALOG');
-
-						local cc = RAID_CLASS_COLORS[select(2, UnitClass('player'))];
-						self.Gradient:SetColorTexture(1, 1, 1);
-						self.Gradient:SetGradientAlpha('VERTICAL', 0, 0, 0, 1, cc.r / 5, cc.g / 5, cc.b / 5, 0);
 					</OnLoad>
 				</Scripts>
 			</Frame>

@@ -2,37 +2,24 @@
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 
 	<Button name="CPUIListCategoryTemplate" virtual="true">
-		<Size x="230" y="46"/>
-		<Layers>
-			<Layer level="OVERLAY">
-				<Texture parentKey="SelectedTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD" hidden="true">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="5" y="-5"/>
-						<Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
-					</Anchors>
-					<TexCoords left="0.00195313" right="0.63867188" top="0.76953125" bottom="0.83007813"/>
-				</Texture>
-			</Layer>
-		</Layers>
-		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
+		<Size x="230" y="50"/>
+		<HighlightTexture parentKey="HighlightTexture" file="Interface\AddOns\ConsolePort\Textures\Button\UI\Menu_Button_Hilite" alphaMode="ADD">
 			<Anchors>
-					<Anchor point="TOPLEFT" x="5" y="-5"/>
-					<Anchor point="BOTTOMRIGHT" x="-5" y="5"/>
+					<Anchor point="TOPLEFT" x="0" y="0"/>
+					<Anchor point="BOTTOMRIGHT" x="-0" y="0"/>
 			</Anchors>
-			<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
 		</HighlightTexture>
-		<NormalTexture parentKey="NormalTexture" file="Interface\PVPFrame\PvPMegaQueue" setAllPoints="true">
-			<TexCoords left="0" right="0.5898" top="0.8730" bottom="0.9296"/>
-		</NormalTexture>
-		<PushedTexture parentKey="PushedTexture" file="Interface\PVPFrame\PvPMegaQueue" setAllPoints="true">
-			<Size x="230" y="46	"/>
-			<TexCoords left="0" right="0.5898" top="0.9296" bottom="0.9873"/>
-		</PushedTexture>
-		<ButtonText parentKey="Label" inherits="AchievementPointsFont" justifyH="CENTER">
+		<ButtonText parentKey="Label" inherits="Fancy22Font" justifyH="CENTER">
 			<Anchors>
 				<Anchor point="CENTER"/>
 			</Anchors>
 		</ButtonText>
+		<Animations>
+			<AnimationGroup parentKey="OnFocusAnim">
+				<Scale childKey="HighlightTexture" duration="0.1" order="1" fromScaleX="0.1" fromScaleY="1" toScaleX="1.05" toScaleY="1"/>
+				<Scale childKey="HighlightTexture" duration="0.1" order="2" fromScaleX="1.05" fromScaleY="1" toScaleX="1" toScaleY="1"/>
+			</AnimationGroup>
+		</Animations>
 	</Button>
 
 	<Button name="CPUIListDropDownTemplate" virtual="true">
@@ -55,20 +42,6 @@
 			</Anchors>
 			<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
 		</HighlightTexture>
-		<NormalTexture parentKey="NormalTexture" file="Interface\AddOns\ConsolePortUI\Media\Textures\Button\MenuButton">
-			<Size x="230" y="46"/>
-			<Anchors>
-				<Anchor point="CENTER"/>
-			</Anchors>
-			<TexCoords left="0" right="0.5898" top="0" bottom="0.453125"/>
-		</NormalTexture>
-		<PushedTexture parentKey="PushedTexture" file="Interface\AddOns\ConsolePortUI\Media\Textures\Button\MenuButton">
-			<Size x="230" y="46	"/>
-			<Anchors>
-				<Anchor point="CENTER"/>
-			</Anchors>
-			<TexCoords left="0" right="0.5898" top="0.4609375" bottom="0.9140625"/>
-		</PushedTexture>
 		<ButtonText parentKey="Label" inherits="GameFontHighlightLeft" justifyH="LEFT">
 			<Anchors>
 				<Anchor point="LEFT" x="50" y="0"/>

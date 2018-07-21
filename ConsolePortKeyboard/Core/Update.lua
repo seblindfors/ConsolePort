@@ -11,10 +11,8 @@ local function UpdateKeyboardFocus(self, elapsed)
 		focus = GetFocus()
 		if focus and focus:IsObjectType("EditBox") and Keyboard.Focus ~= focus then
 			Keyboard:SetFocus(focus)
-			ConsolePort:SetCursorObstructor(Keyboard, true)
 		elseif not focus and Keyboard.Focus then
 			Keyboard:CLOSE()
-			ConsolePort:SetCursorObstructor(Keyboard, false)
 		end
 	end
 end

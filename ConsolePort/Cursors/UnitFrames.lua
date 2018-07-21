@@ -408,7 +408,7 @@ function Cursor:OnEvent(event, ...)
 		FadeOut(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
 
 	elseif event == 'UNIT_SPELLCAST_START' then
-		local name, _, _, texture, startTime, endTime, _, _, _ = UnitCastingInfo('player')
+		local name, _, texture, startTime, endTime = UnitCastingInfo('player')
 
 		local targetRelation = self:GetAttribute('relation')
 		local spellRelation = IsHarmfulSpell(name) and 'harm' or IsHelpfulSpell(name) and 'help'

@@ -32,11 +32,13 @@ MEDIA = {
 		CB_MONK 		= {a = "Artifacts-Monk-ClassBadge"},
 		CB_DEMONHUNTER	= {a = "Artifacts-DemonHunter-ClassBadge"},
 	----------------------------------
-		Menu_BG = {
-			t = PT..[[Window\Menu-BG.blp]]},
+		Menu_BG = PT..[[Window\Menu-BG.blp]];
+		Menu_TopBG = PT..[[Window\Menu-TopBG.blp]];
+		Menu_TopLine = PT..[[Window\Menu-TopLine.blp]];
+		Menu_TopEmblem = PT..[[Window\Menu-TopLine-Emblem.blp]];
 		Gradient = {
 			c = {0, 1, 0, 1},
-			t = PT..[[Window\Gradient]]},
+			t = PT..[[Window\Gradient]]};
 	},
 ----------------------------------
 	BACKDROPS = {
@@ -84,7 +86,7 @@ UI.Media = {
 	GetBackdrop = function(_, ID) return MEDIA.BACKDROPS[ID] end,
 	GetTextureStruct = function(_, ID) return MEDIA.TEXTURES[ID] end,
 	GetTexCoord = function(_, ID) return MEDIA.TEXTURES[ID] and MEDIA.TEXTURES[ID].c end,
-	GetTexture = function(_, ID) return MEDIA.TEXTURES[ID] and MEDIA.TEXTURES[ID].t end,
+	GetTexture = function(_, ID) return MEDIA.TEXTURES[ID] and MEDIA.TEXTURES[ID].t or MEDIA.TEXTURES[ID] end,
 	SetBackdrop = function(_, region, ID) region:SetBackdrop(MEDIA.BACKDROPS[ID]) end,
 	SetTexture = function(_, region, ID)
 		local m = MEDIA.TEXTURES[ID]

@@ -7,3 +7,4 @@ Menu_Button.lua
 Menu_LootButton.lua
 Menu_Frame.lua
 Menu_Logic.lua
+Menu_Art.lua

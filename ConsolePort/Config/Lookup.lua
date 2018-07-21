@@ -707,6 +707,36 @@ function ConsolePort:GetDefaultUIFrames()
 	}
 end
 
+function ConsolePort:GetDefaultFadeFrames()
+	return { 
+		ignore = {
+			'AlertFrame';
+			'ArtifactLevelUpToast';
+			'ChatFrame1';
+			'CastingBarFrame';
+			'GameTooltip';
+			'QuickJoinToastButton';
+			'StaticPopup1';
+			'StaticPopup2';
+			'StaticPopup3';
+			'StaticPopup4';
+			'SubZoneTextFrame';
+			'ShoppingTooltip1';
+			'ShoppingTooltip2';
+			'OverrideActionBar';
+			'UIErrorsFrame';
+			'ZoneTextFrame';
+			'TalkingHeadFrame';
+		};
+		force = {
+			'ConsolePortBar';
+			'MainMenuBar';
+			'Minimap';
+			'MinimapCluster';
+		};
+	}
+end
+
 ------------------------------------------------------------------------------------------------------------
 -- Cvar list and getter/setter functions
 ------------------------------------------------------------------------------------------------------------

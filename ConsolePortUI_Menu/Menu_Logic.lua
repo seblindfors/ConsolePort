@@ -1,15 +1,27 @@
 local _, L = ...
-local KEY = ConsolePort:GetData().KEY
 local Menu = L.Menu
 local Control = ConsolePortUI:GetControlHandle()
 
 function Menu:OnShow()
---	Control:AddHint(KEY.CROSS, ACCEPT)
+	if UIDoFramesIntersect(self, Minimap) and Minimap:IsShown() then
+		self.minimapHidden = true
+		Minimap:Hide()
+		MinimapCluster:Hide()
+	end
+end
+
+function Menu:OnHide()
+	if self.minimapHidden then
+		Minimap:Show()
+		MinimapCluster:Show()
+		self.minimapHidden = false
+	end
 end
 
 function Menu:OnButtonPressed()
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
 end
+
 
 for name, script in pairs({
 	_onshow = [[
@@ -78,6 +90,7 @@ for name, script in pairs({
 		header:CallMethod('SetButtonState', 'PUSHED')
 		header:CallMethod('LockHighlight')
 		header:SetAttribute('focused', true)
+		self:CallMethod('OnHeaderSet', header:GetName())
 
 		local buttons = newtable(header:GetChildren())
 		local highIndex = 0
@@ -189,3 +202,4 @@ for name, script in pairs({
 }) do Menu:SetAttribute(name, script) end
 
 Menu:HookScript('OnShow', Menu.OnShow)
+Menu:HookScript('OnHide', Menu.OnHide)

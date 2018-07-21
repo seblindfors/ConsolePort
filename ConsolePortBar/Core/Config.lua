@@ -523,7 +523,7 @@ function WindowMixin:CreateLayoutModule()
 	local subHeaders = {
 		[1] = 'Functionality:';
 		[11] = 'Experience/watch bars:';
-		[15] = 'Display:';
+		[13] = 'Display:';
 	}
 
 	for i=1, #info, 2 do

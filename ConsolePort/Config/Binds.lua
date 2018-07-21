@@ -202,7 +202,7 @@ function BindingMixin:OnShow()
 	if notHeader then
 		key, mod = ConsolePort:GetCurrentBindingOwner(binding, newBindingSet)
 		if key and mod then
-			local texture = format(self[mod], ICONS[key])
+			local texture = self[mod] and format(self[mod], ICONS[key])
 			self.hotKey:SetText(texture)
 			owner = _G[key..mod.."_CONF"]
 		end
