@@ -60,49 +60,85 @@ local cfg = {
 
 local KEY, CMD, CLICK, DIRKEY, MODKEY = cfg.KEY, cfg.CMD, cfg.CLICK, cfg.DIRKEY, cfg.MODKEY
 
-local function chsize(char)
-	if not char then
-		return 0
-	elseif char > 240 then
-		return 4
-	elseif char > 225 then
-		return 3
-	elseif char > 192 then
-		return 2
-	else
+--- functions for utf8 works
+
+local function utf8charbytes(str, index)
+	index = index or 1
+
+	local c = string.byte(str, index)
+
+	if c > 0 and c <= 127 then
 		return 1
+	elseif c >= 194 and c <= 223 then
+		return 2
+	elseif c >= 224 and c <= 239 then
+		return 3
+	elseif c >= 240 and c <= 244 then
+		return 4
 	end
-end
- 
- 
-local function utf8sub(str, startChar, numChars)
-	local startIndex = 1
-	while startChar > 1 do
-		local char = string.byte(str, startIndex)
-		startIndex = startIndex + chsize(char)
-		startChar = startChar - 1
-	end
- 
-	local currentIndex = startIndex
- 
-	while numChars > 0 and currentIndex <= #str do
-		local char = string.byte(str, currentIndex)
-		currentIndex = currentIndex + chsize(char)
-		numChars = numChars -1
-	end
-	return str:sub(startIndex, currentIndex - 1)
 end
 
-local function SetUTF8CursorPosition(str, position)
-	local text = str:GetText()
-	local startIndex = 1
-	local curIndex = 0
-	while curIndex < position do
-		local char = string.byte(text, startIndex)
-		startIndex = startIndex + chsize(char)
-		curIndex = curIndex + 1
+function utf8len(str)
+
+	local pos = 1
+	local bytes = strlen(str)
+	local len = 0
+
+	while pos <= bytes do
+		len = len + 1
+		pos = pos + utf8charbytes(str, pos)
 	end
-	str:SetCursorPosition(startIndex-1)
+
+	return len
+end
+
+function utf8sub(str, i, j)
+	j = j or -1
+
+	local pos = 1
+	local bytes = strlen(str)
+	local len = 0
+
+	local l = (i >= 0 and j >= 0) or utf8len(str)
+	local startChar = (i >= 0) and i or l + i + 1
+	local endChar   = (j >= 0) and j or l + j + 1
+
+	if startChar > endChar then
+		return ""
+	end
+
+	local startByte, endByte = 1, bytes
+
+	while pos <= bytes do
+		len = len + 1
+
+		if len == startChar then
+			startByte = pos
+		end
+
+		pos = pos + utf8charbytes(str, pos)
+
+		if len == endChar then
+			endByte = pos - 1
+			break
+		end
+	end
+
+	return string.sub(str, startByte, endByte)
+end
+
+function SetUTF8CursorPosition(str, pos)
+	local text = str:GetText()
+	local index = 1
+	local cur = 0
+	if pos > strlenutf8(text) then
+		pos = strlenutf8(text)
+	end
+	while cur < pos do
+		index = index + utf8charbytes(text, index)
+		cur = cur + 1
+	end
+	str:SetCursorPosition(index - 1)
 end
 
 function Keyboard:OMIT()
@@ -114,15 +150,12 @@ function Keyboard:CLOSE()
 	self.Focus = nil
 	self:UpdateDictionary()
 	self:Hide()
-	if ConsolePort.SetCursorObstructor then
-		ConsolePort:SetCursorObstructor(self, false)
-	end
 end
 
 function Keyboard:LEFT()
 	local text = self.Focus:GetText()
 	local pos = self.Focus:GetUTF8CursorPosition()
-	local marker = text:sub(pos-4, pos):find("{rt%d}")
+	local marker = utf8sub(text, pos-4, pos):find("{rt%d}")
 	--self.Focus:SetCursorPosition(marker and pos-5 or pos-1)
 	SetUTF8CursorPosition(self.Focus, marker and pos-5 or pos-1)
 end
@@ -130,7 +163,7 @@ end
 function Keyboard:RIGHT()
 	local text = self.Focus:GetText()
 	local pos = self.Focus:GetUTF8CursorPosition()
-	local marker = text:sub(pos, pos+5):find("{rt%d}")
+	local marker = utf8sub(text, pos, pos+5):find("{rt%d}")
 	--self.Focus:SetCursorPosition(marker and pos+5 or pos+1)
 	SetUTF8CursorPosition(self.Focus, marker and pos+5 or pos+1)
 end
@@ -143,26 +176,28 @@ function Keyboard:INPUT(input)
 	end
 end
 
-
-
 function Keyboard:ERASE()
 	local pos = self.Focus:GetUTF8CursorPosition()
 	if pos ~= 0 then 
 		local text = self.Focus:GetText()
 		local offset
-		
+
 		for marker in pairs(Language.Markers) do
-			offset = 	text:sub(pos-marker:len()-1, pos):find(marker) and marker:len() or
-						text:sub(pos-marker:trim():len()-1, pos):find(marker:trim()) and marker:trim():len()
+			offset = 	utf8sub(text, pos - strlenutf8(marker) + 1, pos):find(marker) and strlenutf8(marker) or
+						utf8sub(text, pos - strlenutf8(marker:trim()) + 1, pos):find(marker:trim()) and strlenutf8(marker:trim())
+--			offset = 	text:sub(pos-marker:len()-1, pos):find(marker) and marker:len() or
+--						text:sub(pos-marker:trim():len()-1, pos):find(marker:trim()) and marker:trim():len()
 			if offset then
 				break
 			end
 		end
 
-		local first, second = utf8sub(text, 0, offset and pos-offset or pos-1), utf8sub(text, pos+1, strlenutf8(text)-pos)
+		local first, second = utf8sub(text, 1, offset and pos-offset or pos-1), utf8sub(text, pos+1)
+--		local first, second = text:sub(0, offset and pos-offset or pos-1), text:sub(pos+1)
 
 		self.Focus:SetText(first..second)
 		SetUTF8CursorPosition(self.Focus, offset and pos-offset or pos-1)
+--		self.Focus:SetCursorPosition(offset and pos-offset or pos-1)
 	end
 end
 
@@ -318,9 +353,6 @@ end
 function Keyboard:SetFocus(newFocus)
 	if self.Focus then
 		self.Focus:EnableKeyboard(true)
-	end
-	if ConsolePort.SetCursorObstructor then
-		ConsolePort:SetCursorObstructor(self, true)
 	end
 	self.Focus = newFocus
 	self.Focus:EnableKeyboard(false)
