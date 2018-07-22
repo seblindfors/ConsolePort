@@ -92,15 +92,18 @@ Auto:SetScript("OnHide", Auto.Hide)
 ---------------------------------------------------------------
 -- EditBox Auto complete operations
 ---------------------------------------------------------------
+
 function Keyboard:GetCurrentWord()
 	local text = self.Focus and self.Focus:GetText()
 	if text then
 		local position = self.Focus:GetUTF8CursorPosition()
-		local length = text:len()+1
+		local length = strlenutf8(text)+1
+--		local length = text:len()+1
 
 		local startPos, endPos
 		for i=position, 1, -1 do
-			if not text:sub(i, i):match("[%a']") then
+			if not utf8sub(text, i, i):match("[%a\194-\244'][\128-\191]*") then
+--			if not text:sub(i, i):match("[%a']") then
 				startPos = i + 1
 				break
 			elseif i == 1 then
@@ -108,7 +111,8 @@ function Keyboard:GetCurrentWord()
 			end
 		end
 		for i=position, length do
-			if not text:sub(i, i):match("[%a']") then
+			if not utf8sub(text, i, i):match("[%a\194-\244'][\128-\191]*") then
+--			if not text:sub(i, i):match("[%a']") then
 				endPos = i-1
 				break
 			elseif i == length then
@@ -116,7 +120,8 @@ function Keyboard:GetCurrentWord()
 			end
 		end
 		if startPos and endPos then
-			local word = text:sub(startPos, endPos):trim()
+			local word = utf8sub(text, startPos, endPos):trim()
+--			local word = text:sub(startPos, endPos):trim()
 			if not tonumber(word) and word ~= "" then
 				return word, startPos, endPos
 			end
@@ -128,9 +133,11 @@ function Keyboard:GetSuggestions()
 	local word = self:GetCurrentWord()
 	wipe(suggestions)
 	if word then
-		local isCapitalLetter = word:sub(0, 1):upper() == word:sub(0, 1)
+		local isCapitalLetter = utf8sub(word, 0, 1):upper() == utf8sub(word, 0, 1)
+--		local isCapitalLetter = word:sub(0, 1):upper() == word:sub(0, 1)
 		word = strlower(word)
-		local length = word:len()
+		local length = strlenutf8(word)
+--		local length = word:len()
 		local dictionary = self.Dictionary
 		local chars, numChars = Union(word)
 
@@ -141,7 +148,8 @@ function Keyboard:GetSuggestions()
 			valid = true
 
 			-- skip exact matches and matches that are vastly longer than the union of input characters
-			if thisWord == word or numChars * 4 < thisWord:len() then
+			if thisWord == word or numChars * 4 < strlenutf8(thisWord) then
+--			if thisWord == word or numChars * 4 < thisWord:len() then
 				valid = false
 			end
 
@@ -157,10 +165,12 @@ function Keyboard:GetSuggestions()
 				priority = 1
 
 				this = {
-					word = (isCapitalLetter and thisWord:sub(0, 1):upper() .. thisWord:sub(2) ) or thisWord,
+					word = (isCapitalLetter and utf8sub(thisWord, 0, 1):upper() .. utf8sub(thisWord, 2) ) or thisWord,
+--					word = (isCapitalLetter and thisWord:sub(0, 1):upper() .. thisWord:sub(2) ) or thisWord,
 					weight = thisWeight,
 					match = strfind( thisWord, word ),
-					length = abs( length - thisWord:len() )
+					length = abs( length - strlenutf8(thisWord) )
+--					length = abs( length - thisWord:len() )
 				}
 
 				-- calculate priority in relevance to already suggested words
@@ -212,18 +222,23 @@ end
 function Keyboard:AUTOCOMPLETE()
 	local current, startPos, endPos = self:GetCurrentWord()
 	if current and self.Complete:GetText():trim() ~= "" then
-		local isCapitalLetter = current:sub(0, 1) == current:sub(0, 1):upper()
+		local isCapitalLetter = utf8sub(current, 0, 1) == utf8sub(current, 0, 1):upper()
+--		local isCapitalLetter = current:sub(0, 1) == current:sub(0, 1):upper()
 		local replacement = self.GuessWord
-		local length = current:len()
+		local length = strlenutf8(current)
+--		local length = current:len()
 		local text = self.Focus and self.Focus:GetText()
 
 		if text and startPos and endPos and replacement then
 			if isCapitalLetter then
-				replacement = replacement:sub(0, 1):upper() .. replacement:sub(2)
+				replacement = utf8sub(replacement, 0, 1):upper() .. utf8sub(replacement, 2)
+--				replacement = replacement:sub(0, 1):upper() .. replacement:sub(2)
 			end
-			local first, second = text:sub(0, startPos-1), text:sub(endPos+1)
+			local first, second = utf8sub(text, 1, startPos-1), utf8sub(text, endPos+1)
+--			local first, second = text:sub(0, startPos-1), text:sub(endPos+1)
 			self.Focus:SetText(first..replacement..second)
-			self.Focus:SetCursorPosition(startPos+replacement:len())
+			SetUTF8CursorPosition(self.Focus, startPos+strlenutf8(replacement))
+--			self.Focus:SetCursorPosition(startPos+replacement:len())
 		end
 	end
 
