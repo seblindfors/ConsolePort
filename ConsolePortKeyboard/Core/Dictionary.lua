@@ -11,7 +11,7 @@ local escapes = {
    "|H.-|h",
    "|n",
    "|r",
-   "/[%w]+",
+   "/[%w\122-\244]+",
    "{Atlas|.-}",
 }
 
@@ -37,7 +37,7 @@ function Keyboard:GenerateDictionary()
          -- remove escape sequences
          object = Unescape(object)
          -- scan each string for individual words
-         for word in object:gmatch("[%a][%w']*[%w]+") do
+         for word in object:gmatch("[%a\122-\244][%w\122-\244']*[%w\122-\244]+") do
             word = strlower(word)
             if not dictionary[word] then
                dictionary[word] = 1
@@ -53,7 +53,7 @@ end
 function Keyboard:UpdateDictionary()
    -- store new words from the current input and update frequency of others
    local dictionary = self.Dictionary
-   for word in self.Mime:GetText():gmatch("[%a][%w']*[%w]+") do
+   for word in self.Mime:GetText():gmatch("[%a\122-\244][%w\122-\244']*[%w\122-\244]+") do
       word = strlower(word)
       if not dictionary[word] then
          dictionary[word] = 1
