@@ -53,11 +53,13 @@ local function ToggleHealthBarForUnit(unit)
 		local nameplate = GetNamePlate(unit)
 		local unitFrame = nameplate and nameplate.UnitFrame
 		local healthBar = unitFrame and unitFrame.healthBar
+		local classificationIndicator = unitFrame and unitFrame.ClassificationFrame.classificationIndicator
 		if healthBar then
 			local isFriend = IsFriend('player', unit)
 			local isTarget = IsUnit('target', unit)
 			local isCombat = IsOpponent('player', unit)
 			healthBar:SetShown(isCombat or not (isFriend or not isTarget))
+			classificationIndicator:SetShown(isCombat or not (isFriend or not isTarget))
 		end
 	end
 end
