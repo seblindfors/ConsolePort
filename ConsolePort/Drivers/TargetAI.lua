@@ -61,7 +61,7 @@ local function ToggleHealthBarForUnit(unit)
 			local classification = UnitClassification(unit)
 			local isBoss = ( false or ( classification == "elite" or classification == "worldboss" or classification == "rareelite" ) )
 			healthBar:SetShown(isCombat or not (isFriend or not isTarget))
-			classificationIndicator:SetShown(isCombat or not (not isBoss or not isTarget))
+			classificationIndicator:SetShown(isCombat or not (isFriend or not isBoss or not isTarget))
 		end
 	end
 end
