@@ -377,7 +377,7 @@ function Cursor:OnEvent(event, ...)
 	end
 
 	if event == 'UNIT_SPELLCAST_CHANNEL_START' then
-		local name, _, _, texture, startTime, endTime, _, _, _ = UnitChannelInfo('player')
+		local name, _, texture, startTime, endTime = UnitChannelInfo('player')
 
 		local targetRelation = self:GetAttribute('relation')
 		local spellRelation = IsHarmfulSpell(name) and 'harm' or IsHelpfulSpell(name) and 'help'
@@ -388,7 +388,7 @@ function Cursor:OnEvent(event, ...)
 				self.CastBar:SetVertexColor(color.r, color.g, color.b)
 			end
 			self.SpellPortrait:Show()
-			self.Castbar:Show()
+			self.CastBar:Show()
 			self.CastBar:SetRotation(0)
 			self.isCasting = false
 			self.isChanneling = true
