@@ -76,7 +76,7 @@ do
 	end
 
 	function Camera:CalculateYaw()
-		if not cameraMode and hasWorldFocus then
+		if not cameraMode then
 			viewPortCenter = ( GetScreenWidth() / 2 )
 			mousePos = GetCursorPosition()
 			offset = - ( ( mousePos - viewPortCenter ) / 360 )

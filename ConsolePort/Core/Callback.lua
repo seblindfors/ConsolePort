@@ -8,7 +8,7 @@
 
 local interval, time, scripts = 0.1, 0, {}
 
-local function OnUpdate (self, elapsed)
+local function OnUpdate(self, elapsed)
 	time = time + elapsed
 	while time > interval do
 		for snippet, snippetData in pairs(scripts) do

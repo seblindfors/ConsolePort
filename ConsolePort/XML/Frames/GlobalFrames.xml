@@ -17,9 +17,9 @@
 				</Anchors>
 			</Frame>
 			<Frame parentKey="Deadzone" hidden="true">
-				<Anhcors>
+				<Anchors>
 					<Anchor point="CENTER" relativeTo="UIParent"/>
-				</Anhcors>
+				</Anchors>
 			</Frame>
 			<Frame parentKey="Edge" hidden="true">
 				<Anchors>
@@ -368,8 +368,8 @@
 			<Layer level="BACKGROUND">
 				<Texture parentKey="BG" file="Interface\Cursor\Item" setAllPoints="true"/>
 			</Layer>
-			<Layer level="ARTWORK">
-				<Texture parentKey="UnitPortrait" textureSubLevel="1">
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="UnitPortrait" >
 					<Size x="38" y="38"/>
 					<Anchors>
 						<Anchor point="TOPLEFT" relativePoint="CENTER"/>

@@ -86,10 +86,10 @@ function LootButton:SetQuestItem(isQuestItem)
 end
 
 function LootButton:Update()
-	local texture, item, quantity, quality, locked, isQuestItem, questId, isActive = GetLootSlotInfo(self:GetID())
+	local texture, name, quantity, currencyID, quality, locked, isQuestItem, questId, isActive = GetLootSlotInfo(self:GetID())
 	self:SetIcon(texture)
 	self:SetCount(quantity)
 	self:SetQuality(quality)
-	self:SetText(item)
+	self:SetText(name)
 	self:SetQuestItem(isQuestItem)
 end

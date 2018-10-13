@@ -3,45 +3,6 @@ local db = ConsolePort:GetData()
 local L = db.ACTIONBAR
 local Bar = ab.bar
 ---------------------------------------------------------------
--- Set up buttons on the bar.
----------------------------------------------------------------
-local Eye = CreateFrame('Button', '$parentShowHideButtons', Bar, 'SecureActionButtonTemplate')
-local Menu = CreateFrame('Button', '$parentShowHideMenu', Bar, 'SecureActionButtonTemplate')
-local Bag = CreateFrame('Button', '$parentShowHideBags', Bar, 'SecureActionButtonTemplate')
-
-Bar.Eye = Eye
-Bar.Menu = Menu
-Bar.Bag = Bag
-
-for _, btn in pairs({Eye, Menu, Bag}) do
-	btn:SetSize(40, 40)
-	btn:SetHighlightTexture('Interface\\AddOns\\ConsolePortBar\\Textures\\Button\\BigHilite')
-
-	btn.Shadow = btn:CreateTexture('$parentShadow', 'OVERLAY', nil, 7)
-	btn.Shadow:SetPoint('CENTER', 0, -5)
-	btn.Shadow:SetSize((82/64) * 40, (82/64) * 40)
-	btn.Shadow:SetTexture('Interface\\AddOns\\ConsolePortBar\\Textures\\Button\\BigShadow')
-	btn.Shadow:SetAlpha(0.5)
-end
-
----------------------------------------------------------------
----------------------------------------------------------------
-Bar.BG = Bar:CreateTexture(nil, 'BACKGROUND')
-Bar.BG:SetPoint('TOPLEFT', Bar, 'TOPLEFT', 16, -16)
-Bar.BG:SetPoint('BOTTOMRIGHT', Bar, 'BOTTOMRIGHT', -16, 16)
-Bar.BG:SetTexture('Interface\\QuestFrame\\UI-QuestLogTitleHighlight')
-Bar.BG:SetBlendMode('ADD')
-
-Bar.BottomLine = Bar:CreateTexture(nil, 'BORDER')
-Bar.BottomLine:SetTexture('Interface\\LevelUp\\LevelUpTex')
-Bar.BottomLine:SetTexCoord(0.00195313, 0.81835938, 0.013671875, 0.017578125)
-Bar.BottomLine:SetHeight(1)
-Bar.BottomLine:SetPoint('BOTTOMLEFT', 0, 16)
-Bar.BottomLine:SetPoint('BOTTOMRIGHT', 0, 16)
-
-Bar.CoverArt = Bar:CreateTexture(nil, 'BACKGROUND')
-Bar.CoverArt:SetPoint('CENTER', 0, 50)
-Bar.CoverArt:SetSize(768, 192)
 
 Bar.CoverArt.Flash = function(self)
 	if self.flashOnProc and not self:IsShown() then
@@ -61,20 +22,17 @@ Bar.CoverArt.Flash = function(self)
 end
 
 ---------------------------------------------------------------
+-- Set up buttons on the bar.
 ---------------------------------------------------------------
-
----------------------------------------------------------------
--- Toggler for buttons and art
+local Eye, Menu, Bag = Bar.Eye, Bar.Menu, Bar.Bag
 ---------------------------------------------------------------
 
 Eye:RegisterForClicks('AnyUp')
 Eye:SetAttribute('showbuttons', false)
-Eye:SetPoint('RIGHT', Menu, 'LEFT', -4, 0)
 Eye.Texture = Eye:CreateTexture(nil, 'OVERLAY')
 Eye.Texture:SetPoint('CENTER', 0, 0)
 Eye.Texture:SetSize((46 * 0.9), (24 * 0.9))
-Eye.Texture:SetTexture('Interface\\AddOns\\'..addOn..'\\Textures\\Hide') 
-Eye:SetNormalTexture('Interface\\AddOns\\ConsolePortBar\\Textures\\Blank64')
+Eye.Texture:SetTexture('Interface\\AddOns\\'..addOn..'\\Textures\\Hide')
 
 
 function Eye:OnAttributeChanged(attribute, value)
@@ -172,9 +130,6 @@ Menu:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 Menu:HookScript('OnClick', Menu.OnClick)
 Menu:HookScript('OnShow', Menu.OnShow)
 Menu:HookScript('OnHide', Menu.OnHide)
-Menu:SetPoint('CENTER', 0, -20)
-Menu:SetMovable(true)
-Menu:SetClampedToScreen(true)
 Menu:RegisterForDrag('LeftButton')
 Menu:SetScript('OnDragStart', function(self)
 	if not InCombatLockdown() and not ab.cfg.lock then
@@ -236,7 +191,7 @@ Bar.Elements.Bags = {
 	CharacterBag3Slot,
 }
 
-for i, bag in pairs(Bar.Elements.Bags) do
+for i, bag in ipairs(Bar.Elements.Bags) do
 	bag:SetParent(Bag)
 	bag:Hide()
 	bag:SetSize(32,32)
@@ -257,7 +212,3 @@ end)
 MainMenuBarBackpackButtonCount:SetParent(Bag)
 MainMenuBarBackpackButtonCount:ClearAllPoints()
 MainMenuBarBackpackButtonCount:SetPoint('BOTTOMRIGHT')
-
-Bag:SetPoint('LEFT', Menu, 'RIGHT', 4, 0)
-Bag:SetSize(40, 40)
-Bag:SetNormalTexture('Interface\\AddOns\\ConsolePortBar\\Textures\\Bag64')

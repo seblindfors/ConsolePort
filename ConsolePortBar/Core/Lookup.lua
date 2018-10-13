@@ -260,6 +260,7 @@ end
 function ab:GetRGBColorFor(element, default)
 	local cfg = ab.cfg or {}
 	local defaultColors = {
+		art 	= {1, 1, 1, 1},
 		tint 	= {r, g, b, 1},
 		border 	= {1, 1, 1, 1},
 		swipe 	= {r, g, b, 1},
@@ -271,6 +272,7 @@ function ab:GetRGBColorFor(element, default)
 		end
 	end
 	local current = {
+		art 	= cfg.artRGB or defaultColors.art,
 		tint 	= cfg.tintRGB or defaultColors.tint,
 		border 	= cfg.borderRGB or defaultColors.border,
 		swipe 	= cfg.swipeRGB or defaultColors.swipe,
@@ -357,14 +359,6 @@ function ab:GetBooleanSettings(otherCFG)
 			cvar = 'watchbars',
 			toggle = cfg.watchbars,
 		},
---[[	{	desc = L.CFG_WATCHBAR_AP,
-			cvar = 'disableArtifactWatchBar',
-			toggle = cfg.disableArtifactWatchBar,
-		},
-		{	desc = L.CFG_WATCHBAR_EXP,
-			cvar = 'disableMainMenuExpBar',
-			toggle = cfg.disableMainMenuExpBar,
-		}, ]]
 		{	desc = L.CFG_DISABLE_ICONS,
 			cvar = 'hideIcons',
 			toggle = cfg.hideIcons,
@@ -372,6 +366,14 @@ function ab:GetBooleanSettings(otherCFG)
 		{	desc = L.CFG_DISABLE_MINIS,
 			cvar = 'hideModifiers',
 			toggle = cfg.hideModifiers,
+		},
+		{	desc = L.CFG_OLD_BORDERS,
+			cvar = 'classicBorders',
+			toggle = cfg.classicBorders,
+		},
+		{	desc = L.CFG_MOUSE_ENABLE,
+			cvar = 'mousewheel',
+			toggle = cfg.mousewheel,
 		},
 		{	desc = L.CFG_CAST_DEFAULT,
 			cvar = 'defaultCastBar',
@@ -381,13 +383,21 @@ function ab:GetBooleanSettings(otherCFG)
 			cvar = 'disableCastBarHook',
 			toggle = cfg.disableCastBarHook,
 		},
-		{	desc = L.CFG_MOUSE_ENABLE,
-			cvar = 'mousewheel',
-			toggle = cfg.mousewheel,
-		},
 		{	desc = L.CFG_ART_UNDERLAY,
 			cvar = 'showart',
 			toggle = cfg.showart,
+		},
+		{	desc = L.CFG_ART_BLEND,
+			cvar = 'blendart',
+			toggle = cfg.blendart,
+		},
+		{	desc = L.CFG_ART_FLASH,
+			cvar = 'flashart',
+			toggle = cfg.flashart,
+		},
+		{	desc = L.CFG_ART_SMALL,
+			cvar = 'smallart',
+			toggle = cfg.smallart,
 		},
 		{	desc = L.CFG_ART_TINT,
 			cvar = 'showline',
@@ -412,8 +422,8 @@ function ab:SetRainbowScript(on)
 			t = t + e
 			if t > 0.1 then
 				i = i + 1
-				r = (math.sin((hz * i) + 2 + p) * w + c) / 255
-				g = (math.sin((hz * i) + 0 + p) * w + c) / 255
+				r = (math.sin((hz * i) + 0 + p) * w + c) / 255
+				g = (math.sin((hz * i) + 2 + p) * w + c) / 255
 				b = (math.sin((hz * i) + 4 + p) * w + c) / 255
 				if i > m then
 					i = i - m

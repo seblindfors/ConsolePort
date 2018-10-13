@@ -274,7 +274,7 @@ end
 
 function Layout:CreateHeader(...)
 	local frame = CreateFrame('Frame', nil, self.Child)
-	frame:SetSize(1, 42)
+	frame:SetSize(1, 32)
 	frame.Objects = {}
 	for i, info in pairs({...}) do
 		local object = frame['Create' .. info.type](frame, unpack(info.setup))
@@ -512,7 +512,7 @@ function WindowMixin:CreateLayoutModule()
 	local layout = db.Atlas.GetScrollFrame('$parentLayout', self, {
 		childKey = 'List',
 		childWidth = 530,
-		stepSize = 42,
+		stepSize = 36,
 	})
 	layout:SetPoint('TOPLEFT', 32, -32)
 	layout:SetSize(530, 600)
@@ -521,9 +521,10 @@ function WindowMixin:CreateLayoutModule()
 
 	local info = ab:GetBooleanSettings()
 	local subHeaders = {
-		[1] = 'Functionality:';
-		[11] = 'Experience/watch bars:';
-		[13] = 'Display:';
+		[1] = 'Functionality';
+		[11] = 'Experience/watch bars';
+		[13] = 'Display';
+		[19] = 'Art';
 	}
 
 	for i=1, #info, 2 do
@@ -532,7 +533,7 @@ function WindowMixin:CreateLayoutModule()
 			layout:CreateHeader({val = header, x = 0, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FriendsFont_Large'}})
 		end
 		local frame = CreateFrame('Frame')
-		frame:SetSize(530, 42)
+		frame:SetSize(530, 16)
 		local info1, info2 = info[i], info[i+1]
 		if info1 then
 			local b1 = layout:CreateBooleanSwitch(info1.cvar, info1.desc)
@@ -549,13 +550,14 @@ function WindowMixin:CreateLayoutModule()
 	layout:CreateHeader({val = 'Colors:', x = 0, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FriendsFont_Large'}})
 
 	local colors = layout:CreateHeader(
-		{val = 'Border', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
+		{val = 'Border', x = 48, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
 		{val = 'Cooldown', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
 		{val = 'Tint', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
-		{val = 'Bars', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}}
+		{val = 'Bars', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}},
+		{val = 'Art', x = 64, data = 'Text', type = 'FontString', setup = {nil, 'ARTWORK', 'FocusFontSmall'}}
 	)
 
-	for i, id in pairs({'borderRGB', 'swipeRGB', 'tintRGB', 'expRGB'}) do
+	for i, id in pairs({'borderRGB', 'swipeRGB', 'tintRGB', 'expRGB', 'artRGB'}) do
 		local color = CreateFrame('Button', nil, colors)
 		color:SetSize(24, 24)
 		color:SetPoint('RIGHT', colors.Objects[i], 'LEFT', -8, 0)

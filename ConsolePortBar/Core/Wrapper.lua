@@ -329,6 +329,13 @@ function Wrapper:ToggleModifiers(enabled)
 	end
 end
 
+function Wrapper:SetClassicBorders(enabled)
+	local normal = enabled and [[Interface\AddOns\ConsolePort\Textures\Button\Normal]]
+	local pushed = enabled and [[Interface\AddOns\ConsolePort\Textures\Button\Pushed]]
+	self[''].NormalTexture:SetTexture(normal or buttonTextures[''].normal)
+	self[''].PushedTexture:SetTexture(pushed or buttonTextures[''].pushed)
+end
+
 function Wrapper:SetBorderColor(r, g, b, a)
 	for mod, button in pairs(self.Buttons) do
 		button.NormalTexture:SetVertexColor(r, g, b, a)

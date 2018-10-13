@@ -59,15 +59,6 @@ for side, set in pairs(Key) do
 	end
 end
 
--- Set up nameplate registration.. or not. Thanks for the nerf Blizzard. :/
----------------------------------------------------------------
--- local NAMEPLATES_MAX_VISIBLE = 30
--- for i=1, NAMEPLATES_MAX_VISIBLE do
--- 	RegisterStateDriver(EM, 'nameplate'..i, '[@nameplate'..i..',exists] true; nil')
--- 	EM:SetAttribute('_onstate-nameplate'..i, [[plates['nameplate]]..i..[['] = newstate]])
--- end
----------------------------------------------------------------
-
 -- Run snippets
 ---------------------------------------------------------------
 for name, script in pairs({

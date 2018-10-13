@@ -1,7 +1,7 @@
 ## Interface: 80000
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 1.9.1
+## Version: 1.9.3
 
 ## Author: Sebastian Lindfors
 ## X-Website: http://www.consoleport.net

@@ -193,9 +193,9 @@ function BindingMixin:OnShow()
 
 	self.hotKey:SetText()
 	self.ignoreNode = not notHeader
-	self.Label:SetTextColor(notHeader and 1, 1, 1, 1 or 1, 0.82, 0, 1)
 	self:SetEnabled(notHeader and true or false)
 	self.Cover:SetShown(notHeader and true or false)
+	self.Label:SetTextColor(1, notHeader and 1 or 0.82, notHeader and 1 or 0, 1)
 
 	self:Refresh()
 

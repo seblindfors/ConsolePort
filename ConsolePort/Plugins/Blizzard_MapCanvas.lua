@@ -42,24 +42,27 @@ db.PLUGINS['Blizzard_MapCanvas'] = function(self)
 
 	local function CreateNode(pin)
 		if pins[pin] then return end
-
-		local node = CreateFrame('Button', 'CanvasNode'..#nodes+1, pin)
+		local index = #nodes + 1
+		local node = CreateFrame('Button', 'CanvasNode'..index, pin)
 		node.pin = pin
 		node:SetSize(4, 4)
 		node:SetPoint('CENTER')
-		node.noAnimation = true
+		node.noAnimation = false
 		Mixin(node, NodeMixin)
-		nodes[#nodes + 1] = node
+		nodes[index] = node
 		pins[pin] = true
 		pin.includeChildren = true
 	end
 
 	local function AddToMixinTracker(self)
 		if not maps[self] then
-			ConsolePort:AddFrame(self)
-			ConsolePort:UpdateFrames()
+			-- handle this edge case so the cursor doesn't bind to it
+			if ( self:GetName() ~= 'BattlefieldMapFrame' ) then
+				ConsolePort:AddFrame(self)
+				ConsolePort:UpdateFrames()
+				self.ScrollContainer.ignoreScroll = true
+			end
 			maps[self] = true
-			self.ScrollContainer.ignoreScroll = true
 		end
 	end
 

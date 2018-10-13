@@ -1,7 +1,8 @@
 ## Interface: 80000
 ## Title: Console Port |cff69ccf0Advanced|r
-## Notes: Advanced configuration for Console Port
+## Notes: Advanced configuration for Console Port.
 ## RequiredDeps: ConsolePort
+## DefaultState: disabled
 
 Libs\LibStub.lua
 Libs\LibCompress.lua

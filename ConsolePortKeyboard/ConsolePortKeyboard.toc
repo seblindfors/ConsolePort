@@ -1,6 +1,6 @@
 ## Interface: 80000
 ## Title: Console Port |cff69ccf0Keyboard|r
-## Notes: Keyboard extension for Console Port
+## Notes: Keyboard extension for Console Port.
 ## SavedVariables: ConsolePortKeyboardLayout, ConsolePortKeyboardDictionary
 ## RequiredDeps: ConsolePort
 ## DefaultState: disabled

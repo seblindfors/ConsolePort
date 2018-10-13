@@ -5,7 +5,7 @@ local _, ab = ...
 ---------------------------------------------------------------
 local cfg
 
-local Bar = CreateFrame('Frame', _, UIParent, 'SecureHandlerStateTemplate, SecureHandlerShowHideTemplate')
+local Bar = ConsolePortBar
 local WrapperLib = ab.libs.wrapper
 local state, now = ConsolePort:GetActionPageDriver()
 
@@ -34,7 +34,7 @@ Bar:Execute([[
 ]])
 
 function Bar:FadeIn(alpha)
-	db.UIFrameFadeIn(self, 1, alpha or 0, 1)
+	db.UIFrameFadeIn(self, .25, alpha or 0, 1)
 end
 
 function Bar:FadeOut(alpha)
@@ -183,15 +183,16 @@ function Bar:OnLoad(cfg, benign)
 	if cfg.showart or cfg.flashart then
 		local art, coords = ab:GetCover()
 		if art and coords then
+			local artScale = cfg.smallart and .75 or 1
 			self.CoverArt:SetTexture(art)
 			self.CoverArt:SetTexCoord(unpack(coords))
 			self.CoverArt:SetVertexColor(unpack(cfg.artRGB or {1,1,1}))
+			self.CoverArt:SetBlendMode(cfg.blendart and 'ADD' or 'BLEND')
+			self.CoverArt:SetSize(768 * artScale, 192 * artScale)
 			if cfg.showart then
 				self.CoverArt:Show()
-				self.CoverArt:SetBlendMode('BLEND')
 			else
 				self.CoverArt:Hide()
-				self.CoverArt:SetBlendMode('ADD')
 			end
 		end
 	else
@@ -249,7 +250,8 @@ function Bar:OnLoad(cfg, benign)
 	local borderRGB = cfg.borderRGB
 
 	local hideIcons = cfg.hideIcons
-	local hideModifiers = cfg.hideModifiers
+	local hideBorders = cfg.hideBorders
+	local classicBorders = cfg.classicBorders
 
 	for binding in ConsolePort:GetBindings() do
 		local position = layout[binding]
@@ -266,6 +268,7 @@ function Bar:OnLoad(cfg, benign)
 
 		wrapper:ToggleIcon(not hideIcons)
 		wrapper:ToggleModifiers(not hideModifiers)
+		wrapper:SetClassicBorders(classicBorders)
 
 		if swipeRGB then wrapper:SetSwipeColor(unpack(swipeRGB))
 		else wrapper:SetSwipeColor(r, g, b, 1) end
@@ -380,16 +383,11 @@ Bar:SetScript('OnMouseWheel', Bar.OnMouseWheel)
 Bar:RegisterEvent('SPELLS_CHANGED')
 Bar:RegisterEvent('PLAYER_LOGIN')
 Bar:RegisterEvent('ADDON_LOADED')
-Bar:RegisterEvent('PLAYER_TALENT_UPDATE')
+Bar:RegisterEvent('PLAYER_TALENT_UPDATE') 
 
 Bar.ignoreNode = true
 Bar.Buttons = {}
 Bar.Elements = {}
 Bar.isForbidden = true
-Bar:SetClampedToScreen(true)
-Bar:SetMovable(true)
-Bar:SetScript('OnDragStart', Bar.StartMoving)
-Bar:SetScript('OnDragStop', Bar.StopMovingOrSizing)
-Bar:SetPoint('BOTTOM', UIParent, 0, 0)
 RegisterStateDriver(Bar, 'page', state)
 RegisterStateDriver(Bar, 'modifier', '[mod:ctrl,mod:shift] CTRL-SHIFT-; [mod:ctrl] CTRL-; [mod:shift] SHIFT-; ')

@@ -42,6 +42,10 @@ local function GetAddonSettings()
 			desc = L.INVERTPITCH,
 			state = Settings.mouseInvertPitch,
 		},
+		{	cvar = 'mouseInvertYaw',
+			desc = L.INVERTYAW,
+			state = Settings.mouseInvertYaw,
+		},
 		{	desc = L.TARGETING },
 		{	cvar = 'raidCursorDirect',
 			desc = L.RAIDCURSORDIRECT,
@@ -730,6 +734,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 	do local GeneralModule = Controls.GeneralModule
 
 		local mouseCvarOffset = #Controls.Events
+		local padding = 28
 		Controls.General = {}
 		for i, setting in pairs(GetAddonSettings()) do
 			if setting.cvar then
@@ -745,13 +750,13 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 					mouseCvarOffset = mouseCvarOffset + 1
 					check:SetPoint('TOPLEFT', Controls.MouseModule, 'TOPLEFT', 24, -30*mouseCvarOffset-18)
 				else
-					check:SetPoint('TOPLEFT', 24, -30*i-12)
+					check:SetPoint('TOPLEFT', 24, -padding*i-12)
 				end
 				tinsert(Controls.General, check)
 			else
 				local text = GeneralModule:CreateFontString('$parentGeneralSetting'..i, 'OVERLAY', 'GameFontNormalLeftOrange')
 				text:SetText(setting.desc)
-				text:SetPoint('TOPLEFT', 24, -30*i-24)
+				text:SetPoint('TOPLEFT', 24, -padding*i-24)
 			end
 		end
 	end

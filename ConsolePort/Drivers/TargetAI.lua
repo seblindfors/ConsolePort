@@ -233,7 +233,7 @@ function AI:OnShow()
 end
 
 ---------------------------------------
-local throttle, interval = 0, .25
+local throttle, interval = 0, .5
 function AI:OnUpdate(elapsed)
 	throttle = throttle + elapsed
 	if throttle > interval then
@@ -244,7 +244,7 @@ function AI:OnUpdate(elapsed)
 			self:IterateTracker(grid, false)
 			interval = .05
 		else
-			interval = .25
+			interval = .5
 		end
 		inRange:Prune()
 		throttle = 0

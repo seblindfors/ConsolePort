@@ -26,7 +26,7 @@ ConsolePortRaidCursor:Execute([[
 -- Override the original consoleport action button lookup, to
 -- stop it from adding hotkey textures to the controller bars.
 -- It will still add hotkey textures to override/vehicle bars,
--- and any other action bars present that matches the criteria.
+-- and any other action bars present that match the criteria.
 
 local valid_action_buttons = {
 	Button = true,

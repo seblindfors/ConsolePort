@@ -17,17 +17,17 @@ local	KEY, SECURE, TEXTURE, M1, M2,
 		-- Override wrappers
 	 	SetOverride, ClearOverride,
 		-- General functions
-		InCombat, PlaySound, After,
+		InCombat, After,
 		-- Utils
 		FadeIn, FadeOut, Hex2RGB,
-		-- Table functions
+		-- Std functions
 		select, ipairs, pairs, wipe, tinsert, pcall,
 		-- Misc
 		ConsolePort, Override, current, old =
 		--------------------------------------------
 		db.KEY, db.SECURE, db.TEXTURE, "CP_M1", "CP_M2",
 		SetOverrideBindingClick, ClearOverrideBindings,
-		InCombatLockdown, PlaySound, C_Timer.After,
+		InCombatLockdown, C_Timer.After,
 		db.UIFrameFadeIn, db.UIFrameFadeOut, db.Hex2RGB,
 		select, ipairs, pairs, wipe, tinsert, pcall,
 		ConsolePort, {}
@@ -96,7 +96,7 @@ end
 ---------------------------------------------------------------
 function Cursor:SetTexture(texture)
 	local object = current and current.object
-	local newType = object == ('EditBox' and self.IndicatorS) or (object == 'Slider' and self.ScrollGuide) or texture or self.Indicator
+	local newType = (object == 'EditBox' and self.IndicatorS) or (object == 'Slider' and self.ScrollGuide) or texture or self.Indicator
 	if newType ~= self.type then
 		self.Button:SetTexture(newType)
 	end
@@ -128,7 +128,9 @@ function Cursor:Move(oldAnchor)
 		end
 		local oldX, oldY = self:GetCenter()
 		if ( not current.node.noAnimation ) and oldX and oldY and newX and newY and self:IsVisible() then
-			self.Translate:SetOffset(newX - oldX, newY - oldY)
+			local oldScale, newScale = self:GetEffectiveScale(), self.Pointer:GetEffectiveScale()
+			local sDiff, sMult = oldScale / newScale, newScale / oldScale
+			self.Translate:SetOffset((newX - oldX * sDiff) * sMult, (newY - oldY * sDiff) * sMult)
 			self.Enlarge:SetStartDelay(0.05)
 			self.MoveAndScale:ConfigureScale()
 			self.MoveAndScale:Play()
@@ -431,7 +433,7 @@ end
 function Node:GetCandidateVectorForCurrent()
 	local x, y = current.node:GetCenter()
 	return {x = x; y = y; h = huge; v = huge}
-end
+end 
 
 function Node:GetCandidatesForVector(vector, comparator, candidates)
 	local thisX, thisY = vector.x, vector.y
@@ -446,7 +448,7 @@ function Node:GetCandidatesForVector(vector, comparator, candidates)
 				x = destX; y = destY; h = distX; v = distY;
 			}
 		end
-	end
+	end 
 	return candidates
 end
 

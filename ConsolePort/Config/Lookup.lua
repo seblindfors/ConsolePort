@@ -450,7 +450,6 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 	local settings = {
 		['type'] = 'PS4',
 		['UIdropDownFix'] = true,
-	--	['newUser'] = true,
 		-------------------------------
 		['CP_M1'] = 'CP_TL1',
 		['CP_M2'] = 'CP_TL2',
@@ -467,14 +466,10 @@ function ConsolePort:GetDefaultAddonSettings(setting)
 		['autoExtra'] = true,
 		['autoSellJunk'] = true,
 		['autoInteract'] = false,
-	--	['autoLootDefault'] = true,
-		['disableKeyboard'] = true,
 		['disableSmartMouse'] = false,
-	--	['doubleModTap'] = true,
 		['preventMouseDrift'] = false,
 		['turnCharacter'] = false,
 		-------------------------------
-	--	['mouseOnCenter'] = true,
 		['mouseOnJump'] = false,
 		-------------------------------
 		['unitHotkeyPool'] = 'player$;party%d$;raid%d+$',
@@ -544,8 +539,6 @@ function ConsolePort:GetCustomBindings()
 		{name = L.CP_TARGETING},
 		{name = L.CP_FOCUSCAST, binding = 'CLICK ConsolePortFocusButton:LeftButton'},
 		{name = L.CP_EM_FRAMES, binding = 'CLICK ConsolePortEasyMotionButton:LeftButton'},
-	--	{name = L.CP_EM_PLATES, binding = 'CLICK ConsolePortEasyMotionButton:RightButton'},
-	--	{name = L.CP_EM_NEAREST, binding = 'CLICK ConsolePortEasyMotionButton:MiddleButton'},
 		{name = L.CP_RAIDCURSOR, binding = 'CLICK ConsolePortRaidCursorToggle:LeftButton'},
 		{name = L.CP_RAIDCURSOR_F, binding = 'CLICK ConsolePortRaidCursorFocus:LeftButton'},
 		{name = L.CP_RAIDCURSOR_T, binding = 'CLICK ConsolePortRaidCursorTarget:LeftButton'},
@@ -589,7 +582,7 @@ function ConsolePort:GetDefaultUIFrames()
 			'ArtifactRelicForgeFrame'},
 		Blizzard_AuctionUI 			= {
 			'AuctionFrame' },
-		Blizzard_AzerateUI 			= {
+		Blizzard_AzeriteUI 			= {
 			'AzeriteEmpoweredItemUI' },
 		Blizzard_BarbershopUI		= {
 			'BarberShopFrame' },
