@@ -555,7 +555,7 @@ end
 function Node:SetCurrent()	
 	if old and old.node:IsVisible() and Node:IsDrawn(old.node) then
 		current = old
-	elseif ( not current and #self.cache > 0 ) or ( current and #self.cache > 0 and not current.node:IsVisible() ) then
+	elseif ( #self.cache > 0 ) and ( not current or not current.node:IsVisible() ) then
 		local x, y, targetNode = Cursor:GetCenter()
 		if not x or not y then
 			targetNode = self.cache[1]
