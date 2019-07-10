@@ -1,7 +1,11 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<!-- Method frame (invisible), frame object necessary for OnUpdate and override bindings -->
-	<Frame name="ConsolePort"/>
+	<Frame name="ConsolePort">
+		<Frames>
+			<Frame name="ConsolePortButtonHandler" inherits="SecureHandlerStateTemplate"/>
+		</Frames>
+	</Frame>
 	<Script>
 		-- Unreferenced frame to handle WoWmapper calibration updates pushed to the client.
 		-- Binding agreed upon: ALT-CTRL-SHIFT-F12

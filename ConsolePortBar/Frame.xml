@@ -14,6 +14,47 @@
 			</OnDragStop>
 		</Scripts>
 		<Frames>
+			<Frame name="$parentWatchBars" parentKey="WatchBarContainer" frameStrata="LOW">
+				<Size x="804" y="16"/>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" x="90"/>
+					<Anchor point="BOTTOMRIGHT" x="-90"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="endCapWidth" value="4" type="number"/>
+					<KeyValue key="smallBarSeparatorWidth" value="24" type="number"/>
+					<KeyValue key="largeBarSeparatorWidth" value="30" type="number"/>
+				</KeyValues>
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="SingleBarLarge" hidden="true">
+							<Size x="804" y="14"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="SingleBarLargeUpper" hidden="true">
+							<Size x="804" y="14"/>
+							<Anchors>
+								<Anchor point="TOP" relativeKey="$parent.SingleBarLarge" y="9"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="SingleBarSmall" hidden="true">
+							<Size x="550" y="14"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture> 
+						<Texture parentKey="SingleBarSmallUpper" hidden="true">
+							<Size x="550" y="14"/>
+							<Anchors>
+								<Anchor point="TOP" relativeKey="$parent.SingleBarSmall" y="9"/>
+							</Anchors>
+						</Texture> 
+					</Layer>
+				</Layers>
+			</Frame> 
+
 			<Button name="$parentShowHideMenu" parentKey="Menu" movable="true" clampedToScreen="true" inherits="SecureActionButtonTemplate">
 				<Size x="40" y="40"/>
 				<Anchors>

@@ -664,7 +664,7 @@ function Mouse:TrackUnit(fauxUnit, blocked, forceCache)
 		self:TogglePortrait(false)
 	else -- cached last target might have loot, check proximity (insecure).
 		if ( not blocked and self.cachedUnit ) then
-			self:DispatchLootCheck(.35, 10, true)
+			self:DispatchLootCheck(.35, 20, true)
 		end
 		self:TogglePortrait(false)
 		self:FadeOut()

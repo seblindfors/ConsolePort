@@ -594,7 +594,7 @@ local function RefreshProfileList(self)
 			button.Controller:SetTexture()
 		end
 		if settings.Spec then
-			button.Icon:SetTexture(select(4, GetSpecializationInfoByID(settings.Spec)))
+			button.Icon:SetTexture(CPAPI:GetSpecTextureByID(settings.Spec))
 			button.Icon:ClearAllPoints()
 			button.Icon:SetSize(32, 32)
 			button.Icon:SetPoint('RIGHT', -8, 0)
@@ -634,7 +634,7 @@ end
 -- LayoutMixin: Layout buttons and tooltip
 ---------------------------------------------------------------
 function LayoutMixin:OnClick()
-	ConsolePortConfig.Tooltip:Hide()
+	ConsolePortOldConfig.Tooltip:Hide()
 	ConsolePortCursor:Hide()
 	window.BindCatcher:SetAlpha(0)
 	window.Tutorial:SetAlpha(0)
@@ -645,7 +645,7 @@ function LayoutMixin:OnClick()
 end
 
 function LayoutMixin:OnEnter()
-	local tooltip = ConsolePortConfig.Tooltip
+	local tooltip = ConsolePortOldConfig.Tooltip
 	tooltip:Hide()
 	if self.anchor == "CENTER" then
 		tooltip:SetOwner(self, "ANCHOR_BOTTOM")
@@ -684,7 +684,7 @@ function LayoutMixin:OnHide()
 end
 
 function LayoutMixin:OnLeave()
-	local tooltip = ConsolePortConfig.Tooltip
+	local tooltip = ConsolePortOldConfig.Tooltip
 	if tooltip:GetOwner() == self then
 		tooltip:Hide()
 	end
@@ -708,7 +708,7 @@ end
 function CatcherMixin:Catch(key)
 	local button = key and GetBindingAction(key) and _G[GetBindingAction(key).."_BINDING"]
 	FadeIn(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 1)
-	ConsolePortConfig:ToggleShortcuts(true)
+	ConsolePortOldConfig:ToggleShortcuts(true)
 	self:SetScript("OnKeyUp", nil)
 	self:EnableKeyboard(false)
 	if button then
@@ -724,7 +724,7 @@ function CatcherMixin:OnClick()
 	self:EnableKeyboard(true)
 	self:SetScript("OnKeyUp", self.Catch)
 	FadeOut(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 0)
-	ConsolePortConfig:ToggleShortcuts(false)
+	ConsolePortOldConfig:ToggleShortcuts(false)
 	window.Tutorial:SetText(TUTORIAL.CATCHER)
 end
 
@@ -800,7 +800,7 @@ function WindowMixin:Save()
 		newBindingSet = nil
 
 		ConsolePortBindingSet = ConsolePortBindingSet or {}
-		ConsolePortBindingSet[GetSpecialization()] = db.Bindings
+		ConsolePortBindingSet[CPAPI:GetSpecialization()] = db.Bindings
 		self:Reload()
 	end
 	-- callback for retrieving new bindings
@@ -900,7 +900,7 @@ db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = W
 
 	self.Import = db.Atlas.GetFutureButton("$parentImport", self)
 	self.Import.Popup = ConsolePortPopup
-	self.Import:SetPoint("LEFT", ConsolePortConfigDefault, "RIGHT", 0, 0)
+	self.Import:SetPoint("LEFT", ConsolePortOldConfigDefault, "RIGHT", 0, 0)
 	self.Import:SetText(TUTORIAL.IMPORTBUTTON)
 	self.Import:SetScript("OnClick", function(self)
 		self.Popup:SetPopup(self:GetText(), self.ProfileScroll, self.Import, self.Remove, 600, 500)

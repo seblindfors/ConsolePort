@@ -1,0 +1,10 @@
+## Interface: 80100
+## Title: Console Port |cff69ccf0UI|r Inventory
+## Notes: Replaces bag frames.
+## RequiredDeps: ConsolePort
+
+Mixins\ItemButton.lua
+
+Logic.lua
+
+Frame.xml

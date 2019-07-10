@@ -658,7 +658,7 @@ function InitializeEventHandler()
 		"LOSS_OF_CONTROL_ADDED",
 		"LOSS_OF_CONTROL_UPDATE",
 		----------------------------
-	}) do eventFrame:RegisterEvent(event) end
+	}) do pcall(eventFrame.RegisterEvent, eventFrame, event) end
 	--------------------------------
 
 	eventFrame:Show()
@@ -1242,7 +1242,7 @@ end
 
 function UpdateOverlayGlow(self)
 	local spellId = self:GetSpellId()
-	if spellId and IsSpellOverlayed(spellId) then
+	if spellId and CPAPI:IsSpellOverlayed(spellId) then
 		ShowOverlayGlow(self)
 	else
 		HideOverlayGlow(self)

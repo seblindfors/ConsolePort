@@ -193,7 +193,7 @@ end
 ---------------------------------------------------------------
 
 function PopupMixin:OnClick()
-	local popup, config = ConsolePortPopup, ConsolePortConfig
+	local popup, config = ConsolePortPopup, ConsolePortOldConfig
 	if not self.dontHide then
 		popup:Hide()
 		config:Hide()
@@ -219,7 +219,7 @@ end
 ---------------------------------------------------------------
 function Catcher:Catch(key)
 	FadeIn(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 1)
-	ConsolePortConfig:ToggleShortcuts(true)
+	ConsolePortOldConfig:ToggleShortcuts(true)
 	self:SetScript('OnKeyUp', nil)
 	self:EnableKeyboard(false)
 	local action = key and GetBindingAction(key)
@@ -238,7 +238,7 @@ function Catcher:OnClick()
 	self:EnableKeyboard(true)
 	self:SetScript('OnKeyUp', self.Catch)
 	FadeOut(ConsolePortCursor, 0.2, ConsolePortCursor:GetAlpha(), 0)
-	ConsolePortConfig:ToggleShortcuts(false)
+	ConsolePortOldConfig:ToggleShortcuts(false)
 	self:SetText(TUTORIAL.BIND.CATCHER)
 end
 
@@ -392,7 +392,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		end
 
 		ExtraButton.Popup = ConsolePortPopup
-		ExtraButton:SetPoint('LEFT', ConsolePortConfigDefault, 'RIGHT', 0, 0)
+		ExtraButton:SetPoint('LEFT', ConsolePortOldConfigDefault, 'RIGHT', 0, 0)
 		ExtraButton:SetText(TUTORIAL.CONFIG.CONTROLLERBUTTON)
 		ExtraButton:SetScript('OnClick', function(self)
 			self.Popup:SetPopup(self:GetText(), self.Container, nil, nil, 400, 850)

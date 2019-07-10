@@ -1,44 +1,49 @@
 local addOn, ab = ...
 local r, g, b = ConsolePort:GetData().Atlas.GetNormalizedCC()
 --------------------------------------------------------
-local defaultIcons = {
+local defaultIcons
+do  local custom = [[Interface\AddOns\ConsolePortBar\Textures\Icons\%s]]
+	local client = [[Interface\Icons\%s]]
+	local isRetail = CPAPI:IsRetailVersion()
+	defaultIcons = {
 	----------------------------
-	JUMP = [[Interface\Icons\Ability_Karoz_Leap]],
-	TOGGLERUN = [[Interface\Icons\ABILITY_HUNTER_POSTHASTE]],
-	OPENALLBAGS = [[Interface\Icons\INV_Misc_Bag_29]],
-	TOGGLEGAMEMENU = [[Interface\Icons\Achievement_ChallengeMode_Auchindoun_Hourglass]],
-	TOGGLEWORLDMAP = [[Interface\Icons\INV_Misc_Map02]],
+	JUMP = custom:format('Jump'),
+	TOGGLERUN = custom:format('Run'),
+	OPENALLBAGS = custom:format('Bags'),
+	TOGGLEGAMEMENU = custom:format('Menu'),
+	TOGGLEWORLDMAP = custom:format('Map'),
 	----------------------------
-	TARGETNEARESTENEMY = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-	TARGETPREVIOUSENEMY = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-	TARGETSCANENEMY = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-	TARGETNEARESTFRIEND = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-	TARGETPREVIOUSFRIEND = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-	TARGETNEARESTENEMYPLAYER = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-	TARGETPREVIOUSENEMYPLAYER = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-	TARGETNEARESTFRIENDPLAYER = [[Interface\Icons\Spell_Hunter_FocusingShot]],
-	TARGETPREVIOUSFRIENDPLAYER = [[Interface\Icons\Spell_Hunter_FocusingShot]],
+	TARGETNEARESTENEMY = custom:format('Target'),
+	TARGETPREVIOUSENEMY = custom:format('Target'),
+	TARGETSCANENEMY = custom:format('Target'),
+	TARGETNEARESTFRIEND = custom:format('Target'),
+	TARGETPREVIOUSFRIEND = custom:format('Target'),
+	TARGETNEARESTENEMYPLAYER = custom:format('Target'),
+	TARGETPREVIOUSENEMYPLAYER = custom:format('Target'),
+	TARGETNEARESTFRIENDPLAYER = custom:format('Target'),
+	TARGETPREVIOUSFRIENDPLAYER = custom:format('Target'),
 	----------------------------
-	TARGETPARTYMEMBER1 = [[Interface\Icons\Achievement_PVP_A_01]],
-	TARGETPARTYMEMBER2 = [[Interface\Icons\Achievement_PVP_A_02]],
-	TARGETPARTYMEMBER3 = [[Interface\Icons\Achievement_PVP_A_03]],
-	TARGETPARTYMEMBER4 = [[Interface\Icons\Achievement_PVP_A_04]],
-	TARGETSELF = [[Interface\Icons\Achievement_PVP_A_05]],
-	TARGETPET = [[Interface\Icons\Spell_Hunter_AspectOfTheHawk]],
+	TARGETPARTYMEMBER1 = isRetail and client:format('Achievement_PVP_A_01'),
+	TARGETPARTYMEMBER2 = isRetail and client:format('Achievement_PVP_A_02'),
+	TARGETPARTYMEMBER3 = isRetail and client:format('Achievement_PVP_A_03'),
+	TARGETPARTYMEMBER4 = isRetail and client:format('Achievement_PVP_A_04'),
+	TARGETSELF = isRetail and client:format('Achievement_PVP_A_05'),
+	TARGETPET = client:format('Spell_Hunter_AspectOfTheHawk'),
 	----------------------------
-	ATTACKTARGET = [[Interface\Icons\Ability_SteelMelee]],
-	STARTATTACK = [[Interface\Icons\Ability_SteelMelee]],
-	PETATTACK = [[Interface\Icons\ABILITY_HUNTER_INVIGERATION]],
-	FOCUSTARGET = [[Interface\Icons\Ability_Hunter_MasterMarksman]],
+	ATTACKTARGET = client:format('Ability_SteelMelee'),
+	STARTATTACK  = client:format('Ability_SteelMelee'),
+	PETATTACK    = client:format('ABILITY_HUNTER_INVIGERATION'),
+	FOCUSTARGET  = client:format('Ability_Hunter_MasterMarksman'),
 	----------------------------
-	['CLICK ConsolePortFocusButton:LeftButton'] = [[Interface\Icons\VAS_RaceChange]],
-	['CLICK ConsolePortEasyMotionButton:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
-	['CLICK ConsolePortRaidCursorToggle:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
-	['CLICK ConsolePortRaidCursorFocus:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
-	['CLICK ConsolePortRaidCursorTarget:LeftButton'] = [[Interface\Icons\Achievement_GuildPerk_EverybodysFriend]],
-	['CLICK ConsolePortUtilityToggle:LeftButton'] = [[Interface\Icons\Ability_Monk_CounteractMagic]],
+	['CLICK ConsolePortFocusButton:LeftButton']      = client:format('VAS_RaceChange'),
+	['CLICK ConsolePortEasyMotionButton:LeftButton'] = custom:format('Group'),
+	['CLICK ConsolePortRaidCursorToggle:LeftButton'] = custom:format('Group'),
+	['CLICK ConsolePortRaidCursorFocus:LeftButton']  = custom:format('Group'),
+	['CLICK ConsolePortRaidCursorTarget:LeftButton'] = custom:format('Group'),
+	['CLICK ConsolePortUtilityToggle:LeftButton']    = custom:format('Ring'),
 	----------------------------
-}
+	}
+end
 --------------------------------------------------------
 local classArt = {
 	WARRIOR 	= {1, 1},
@@ -290,6 +295,7 @@ function ab:GetDefaultSettings()
 		watchbars = true,
 		showline = true,
 		lock = true,
+		flashart = true,
 		layout = ab:GetDefaultButtonLayout()
 	}
 end
@@ -441,4 +447,29 @@ function ab:SetRainbowScript(on)
 	else
 		f:SetScript('OnUpdate', nil)
 	end
+end
+
+function ab:SetArtUnderlay(enabled, flashOnProc)
+	local bar = ab.bar
+	local cfg = ab.cfg
+	if enabled then
+		local art, coords = self:GetCover()
+		if art and coords then
+			local artScale = cfg.smallart and .75 or 1
+			bar.CoverArt:SetTexture(art)
+			bar.CoverArt:SetTexCoord(unpack(coords))
+			bar.CoverArt:SetVertexColor(unpack(cfg.artRGB or {1,1,1}))
+			bar.CoverArt:SetBlendMode(cfg.blendart and 'ADD' or 'BLEND')
+			bar.CoverArt:SetSize(768 * artScale, 192 * artScale)
+			if cfg.showart then
+				bar.CoverArt:Show()
+			else
+				bar.CoverArt:Hide()
+			end
+		end
+	else
+		bar.CoverArt:SetTexture(nil)
+		bar.CoverArt:Hide()
+	end
+	bar.CoverArt.flashOnProc = flashOnProc
 end

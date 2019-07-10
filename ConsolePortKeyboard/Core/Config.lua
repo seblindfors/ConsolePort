@@ -189,7 +189,7 @@ local function ConfigureConfig(Config, self)
 end
 ---------------------------------------------------------------
 function Keyboard:CreateConfig()
-	ConsolePortConfig:AddPanel({
+	ConsolePortOldConfig:AddPanel({
 		name = "Keyboard", 
 		header = "Keyboard", 
 		mixin = WindowMixin, 

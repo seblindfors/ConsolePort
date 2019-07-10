@@ -68,7 +68,7 @@ Help:AddPage('Changing modifiers', 'Controller', [[<HTML><BODY>
 		If you're only using ConsolePort for casual endeavours, this might be a better choice for you.
 	</p><br/>
 	<H2 align="center">
-		<a href="run:ConsolePortConfig:OpenCategory('Controls') ConsolePortConfigContainerControlsController:Click()">Click here to change your in-game modifiers.</a>
+		<a href="run:ConsolePortOldConfig:OpenCategory('Controls') ConsolePortOldConfigContainerControlsController:Click()">Click here to change your in-game modifiers.</a>
 	</H2>
 </BODY></HTML>]])
 

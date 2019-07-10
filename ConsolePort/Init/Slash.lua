@@ -60,8 +60,8 @@ function ConsolePort:CreateSlashHandler()
 
 
 	local function ShowCalibration() 
-		if ConsolePortConfig:IsVisible() then
-			ConsolePortConfig:Hide()
+		if ConsolePortOldConfig:IsVisible() then
+			ConsolePortOldConfig:Hide()
 		end
 		ConsolePort:CalibrateController(true)
 	end
@@ -219,9 +219,9 @@ function ConsolePort:CreateSlashHandler()
 	end
 
 
-	local function ShowHelp() ConsolePortConfig:OpenCategory(HELP_LABEL) end
-	local function ShowBinds() ConsolePortConfig:OpenCategory(2) end
-	local function ShowConfig() ConsolePortConfig:Show() end
+	local function ShowHelp() ConsolePortOldConfig:OpenCategory(HELP_LABEL) end
+	local function ShowBinds() ConsolePortOldConfig:OpenCategory(2) end
+	local function ShowConfig() ConsolePortOldConfig:Show() end
 
 
 	local instructions = {

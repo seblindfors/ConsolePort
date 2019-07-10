@@ -1,0 +1,76 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Button name="ConsolePortUtilityActionButton" virtual="true" inherits="ActionButtonTemplate, SecureActionButtonTemplate">
+	</Button>
+
+	<Button name="ConsolePortUtilityToggle" parent="UIParent" hidden="true" inherits="SecureHandlerBaseTemplate, SecureHandlerStateTemplate, SecureActionButtonTemplate">
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Gradient" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Window\Circle">
+					<Size x="256" y="256"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="Full" file="Interface\AddOns\ConsolePort\Textures\Utility\UtilityGlow" alpha="0.5">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Arrow" file="Interface\AddOns\ConsolePort\Textures\Utility\UtilityArrow" alpha="0.0" rotation="0">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Runes" file="Interface\AddOns\ConsolePort\Textures\Utility\UtilityRunes" alpha="0.0" rotation="0">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="2">
+				<Texture parentKey="Ring" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Utility\UtilityCircle" alpha="0.0" rotation="0">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<GameTooltip parentKey="Tooltip" inherits="GameTooltipTemplate">
+				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background.blp" edgeFile="Interface\AddOns\ConsolePort\Textures\Window\EdgefileBig.blp" tile="false">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<BackgroundInsets>
+						<AbsInset left="8" right="8" top="8" bottom="8"/>
+					</BackgroundInsets>
+				</Backdrop>
+			</GameTooltip>
+			<PlayerModel parentKey="Spell" alpha="0.0" hidden="true">
+				<Size x="176" y="176"/>
+				<Anchors>
+					<Anchor point="CENTER" x="-4" y="0"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self:SetDisplayInfo(66673); -- 42486 (old)
+						self:SetCamDistanceScale(2);
+						self:SetFrameLevel(1);
+					</OnLoad>
+				</Scripts>
+			</PlayerModel>
+		</Frames>
+	</Button>
+
+</Ui>

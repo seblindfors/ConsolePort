@@ -547,7 +547,7 @@ function WindowMixin:OnShow()
 	LoadCurrentData()
 end
 
-ConsolePortConfig:AddPanel({
+ConsolePortOldConfig:AddPanel({
 	name = 'Advanced',
 	header = ADVANCED_LABEL, 
 	mixin = WindowMixin,

@@ -165,13 +165,35 @@ function ConsolePort:GetActionPageDriver()
 	return driver, self:GetActionPage()
 end
 
+function ConsolePort:GetActionPageResponse()
+	return [[
+		if HasVehicleActionBar and HasVehicleActionBar() then
+			newstate = GetVehicleBarIndex()
+		elseif HasOverrideActionBar and HasOverrideActionBar() then
+			newstate = GetOverrideBarIndex()
+		elseif HasTempShapeshiftActionBar() then
+			newstate = GetTempShapeshiftBarIndex()
+		elseif GetBonusBarOffset() > 0 then
+			newstate = GetBonusBarOffset()+6
+		else
+			newstate = GetActionBarPage()
+		end
+		for header in pairs(headers) do
+			header:SetAttribute('actionpage', newstate)
+			if header:GetAttribute('pageupdate') then
+				header:RunAttribute('pageupdate', newstate)
+			end
+		end
+	]]
+end
+
 function ConsolePort:GetActionPage()
 	local newstate
 	if db('pagedriver') then
 		newstate = SecureCmdOptionParse(db('pagedriver'))
-	elseif HasVehicleActionBar() then
+	elseif HasVehicleActionBar and HasVehicleActionBar() then
 		newstate = GetVehicleBarIndex()
-	elseif HasOverrideActionBar() then
+	elseif HasOverrideActionBar and HasOverrideActionBar() then
 		newstate = GetOverrideBarIndex()
 	elseif HasTempShapeshiftActionBar() then
 		newstate = GetTempShapeshiftBarIndex()
@@ -570,6 +592,7 @@ end
 -- UI cursor frames to be handled with D-pad
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultUIFrames()
+	local IsClassic, IsRetail = CPAPI:IsClassicVersion(), CPAPI:IsRetailVersion()
 	return {
 		Blizzard_AchievementUI 		= {
 			'AchievementFrame' },
@@ -624,7 +647,8 @@ function ConsolePort:GetDefaultUIFrames()
 		Blizzard_QuestChoice 		= {
 			'QuestChoiceFrame' },
 		Blizzard_TalentUI 			= {
-			'PlayerTalentFrame' },
+			IsRetail and 'PlayerTalentFrame',
+			IsClassic and 'TalentFrame'},
 		Blizzard_TradeSkillUI		= {
 			'TradeSkillFrame' },
 		Blizzard_TrainerUI 			= {
@@ -676,7 +700,8 @@ function ConsolePort:GetDefaultUIFrames()
 			'PetitionFrame',
 			'PVEFrame',
 			'PVPReadyDialog',
-			'QuestFrame','QuestLogPopupDetailFrame',
+			'QuestFrame',
+			'QuestLogPopupDetailFrame',
 			'RecruitAFriendFrame',
 			'ReadyCheckFrame',
 			'SpellBookFrame',

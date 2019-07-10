@@ -201,7 +201,7 @@ Atlas.GetArtOverlay = function(self)
 end
 ---------------------------------------------------------------
 Atlas.GetFutureButton = function(name, parent, secure, buttonAtlas, width, height, classColored)
-	local button = CreateAtlasButton(name, parent, secure, "LFGListCategoryTemplate")
+	local button = CreateAtlasButton(name, parent, secure, "CPUIListButtonTemplate") -- "LFGListCategoryTemplate"
 	button.Label:ClearAllPoints()
 	button.Label:SetJustifyH("CENTER")
 	button.Label:SetPoint("CENTER", 0, 0)

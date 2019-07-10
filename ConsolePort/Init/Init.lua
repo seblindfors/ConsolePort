@@ -21,8 +21,8 @@ db.PLUGINS 	= {}
 -- Popup functions 
 ---------------------------------------------------------------
 local function LoadDefaultBindings()
-	ConsolePortConfig:OpenCategory('Binds')
-	ConsolePortConfigContainerBinds:Default()
+	ConsolePortOldConfig:OpenCategory('Binds')
+	ConsolePortOldConfigContainerBinds:Default()
 	ConsolePort:CheckLoadedSettings()
 end
 
@@ -190,7 +190,7 @@ function ConsolePort:GetBindingSet(specID)
 	-----------------------------------------------------------
 	-- Set/load binding table
 	-----------------------------------------------------------
-	local specID = specID or GetSpecialization()
+	local specID = specID or CPAPI:GetSpecialization()
 
 	-- Flag bindings loaded so the settings checkup doesn't run this part.
 	BINDINGSLOADED = true

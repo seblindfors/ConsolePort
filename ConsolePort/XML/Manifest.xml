@@ -3,5 +3,6 @@
 	<Include file="Frames\GlobalFrames.xml"/>
 	<Include file="Templates\ActionButton.xml"/>
 	<Include file="Templates\FrameTemplateUI.xml"/>
+	<Include file="Templates\IconIntroTemplate.xml"/>
 	<Include file="Templates\MenuUI.xml"/>
 </Ui>

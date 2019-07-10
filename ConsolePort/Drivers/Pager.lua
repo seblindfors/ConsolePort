@@ -13,7 +13,7 @@ Pager:Execute('headers = newtable()')
 --[[ Functions:
 	GetActionID: Returns the correct ID for an action slot
 	GetActionInfo: Returns information about an action slot
-	GetActionSpellSlot: Returns spell information about an action slot
+	GetActionSpellInfo: Returns spell information about an action slot
 	IsHarmfulAction: Returns whether the action slot is harmful or not
 	IsHelpfulAction: Returns whether the action slot is helpful or not
 ]]
@@ -42,7 +42,7 @@ local PAGER_SECURE_FUNCTIONS = {
 			return spellID
 		end
 	]],
-	GetActionSpellSlot = [[
+	GetActionSpellInfo = [[
 		local type, spellID, subType = self:RunAttribute('GetActionInfo', ...)
 		if type == 'spell' and spellID and spellID ~= 0 and subType == 'spell' then
 			return FindSpellBookSlotBySpellID(spellID)
@@ -51,7 +51,7 @@ local PAGER_SECURE_FUNCTIONS = {
 	IsHarmfulAction = [[
 		local type, id = self:RunAttribute('GetActionInfo', ...)
 		if type == 'spell' then
-			local slot = self:RunAttribute('GetActionSpellSlot', ...)
+			local slot = self:RunAttribute('GetActionSpellInfo', ...)
 			if slot then
 				return IsHarmfulSpell(slot, 'spell')
 			end
@@ -62,7 +62,7 @@ local PAGER_SECURE_FUNCTIONS = {
 	IsHelpfulAction = [[
 		local type, id = self:RunAttribute('GetActionInfo', ...)
 		if type == 'spell' then
-			local slot = self:RunAttribute('GetActionSpellSlot', ...)
+			local slot = self:RunAttribute('GetActionSpellInfo', ...)
 			if slot then
 				return IsHelpfulSpell(slot, 'spell')
 			end
@@ -83,8 +83,8 @@ function ConsolePort:RegisterSpellHeader(header, omitFromStack)
 			local _, current = self:GetActionPageDriver()
 			header:SetAttribute('actionpage', current)
 
-			header:SetFrameRef('actionBar', MainMenuBarArtFrame)
-			header:SetFrameRef('overrideBar', OverrideActionBar)
+			if MainMenuBarArtFrame then header:SetFrameRef('actionBar', MainMenuBarArtFrame) end
+			if OverrideActionBar   then header:SetFrameRef('overrideBar', OverrideActionBar) end
 
 			Pager:SetFrameRef('header', header)
 			Pager:Execute([[ headers[self:GetFrameRef('header')] = true ]])
@@ -92,31 +92,14 @@ function ConsolePort:RegisterSpellHeader(header, omitFromStack)
 	end
 end
 
+
 function ConsolePort:GetPager() return Pager end
 function ConsolePort:LoadActionPager(pagedriver, pageresponse)
 	if not pagedriver then
 		pagedriver = self:GetActionPageDriver()
 	end
 	if not pageresponse then
-		pageresponse = 	[[
-			if HasVehicleActionBar() then
-				newstate = GetVehicleBarIndex()
-			elseif HasOverrideActionBar() then
-				newstate = GetOverrideBarIndex()
-			elseif HasTempShapeshiftActionBar() then
-				newstate = GetTempShapeshiftBarIndex()
-			elseif GetBonusBarOffset() > 0 then
-				newstate = GetBonusBarOffset()+6
-			else
-				newstate = GetActionBarPage()
-			end
-			for header in pairs(headers) do
-				header:SetAttribute('actionpage', newstate)
-				if header:GetAttribute('pageupdate') then
-					header:RunAttribute('pageupdate', newstate)
-				end
-			end
-		]]
+		pageresponse = self:GetActionPageResponse()
 	else
 		pageresponse = pageresponse .. [[
 			for header in pairs(headers) do

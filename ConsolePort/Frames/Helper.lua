@@ -3,7 +3,6 @@
 ---------------------------------------------------------------
 -- This frame places cursor pickups on action buttons by
 -- reading input and comparing it to controller bindings.
--- Also provides a simple animation framework for that purpose.
 
 local addOn, db = ...
 local Core, Helper = ConsolePort, ConsolePortSpellHelperFrame
@@ -24,7 +23,7 @@ Helper:SetBackdrop(db.Atlas.Backdrops.Talkbox)
 			elseif subData then
 				_, name, _, texture = pcall(GetSpellInfo, subData)
 			end
-]]-- 
+]]--
 
 function Helper:OnShow()
 	Core:SetCursorObstructor(self, true)
@@ -38,7 +37,7 @@ function Helper:OnShow()
 		local loc = db.TUTORIAL.BIND
 		local _type, data, subType, subData = GetCursorInfo()
 		local name, texture, customDesc, pcallOK, link, itemType, _
-		if _type == 'item' then
+		if ( _type == 'item' ) then
 			pcallOK, name, link, _, _, _, _, _, _, itemType, texture = pcall(GetItemInfo, data)
 			name = name or loc.ITEM
 			if itemType == 'INVTYPE_BAG' then
@@ -49,10 +48,10 @@ function Helper:OnShow()
 				self:Hide()
 				return
 			end
-		elseif _type == 'macro' then
+		elseif ( _type == 'macro' ) then
 			pcallOK, name, texture = pcall(GetMacroInfo, data)
 			name = (name or '') .. loc.MACRO
-		elseif _type == 'spell' and subType == 'spell' then
+		elseif ( _type == 'spell' and subType == 'spell' ) then
 			if (data ~= 0 and data ~= nil) then
 				pcallOK, name, _, texture = pcall(GetSpellInfo, data, 'spell') -- or loc.SPELL
 			elseif subData then
@@ -60,17 +59,17 @@ function Helper:OnShow()
 			end
 			name = name or loc.SPELL
 			texture = texture or 'Interface\\Spellbook\\Spellbook-Icon'
-		elseif _type == 'equipmentset' then
+		elseif ( _type == 'equipmentset' ) then
 			name = (data or '') .. loc.EQSET
 			pcallOK, texture = pcall(GetEquipmentSetInfoByName, data)
-		elseif _type == 'mount' then
+		elseif ( _type == 'mount' ) then
 			pcallOK, name, _, texture = pcall(C_MountJournal.GetMountInfoByID, data)
-		elseif _type == 'battlepet' then
+		elseif ( _type == 'battlepet' ) then
 			local _, _, customName, _, _, _, _, _, petName, petIcon = pcall(C_PetJournal.GetPetInfoByPetID, data) 
 			name = customName or petName
 			name = (name or '') .. loc.BATTLEPET
 			texture = petIcon
-		elseif _type == 'flyout' then
+		elseif ( _type == 'flyout' ) then
 			pcallOK, name = pcall(GetFlyoutInfo, data)
 			texture = subType
 		end
@@ -283,43 +282,6 @@ Helper.GetActionButtons = Core.GetActionButtons
 ---------------------------------------------------------------
 Helper.iconList = {}
 
-local ANIMSPEED = 1
-local TRAILSPEED = 0.6
-local MODX, MODY = 4, 2
-
-local function FlyinOnFinished(self)
-	local iconFrame = self:GetParent()
-	if iconFrame.isBase then
-		iconFrame.glow:Play()
-		iconFrame.isFree = true
-	else 
-		iconFrame:SetFrameLevel(1)
-	end
-end
-
-local function PathCalculateOffset(self, x, y)
-	local first, second = self:GetControlPoints()
-	first:SetOffset(x / MODX, y / MODY)
-	second:SetOffset(x, y)
-	self:SetDuration(ANIMSPEED)
-end
-
-local function IconIntroOnLoad(self)
-	self.glow = _G[self:GetName() .. 'IconGlow']
-	self.paths = {}
-	for _, f in pairs({self:GetChildren()}) do
-		f.flyin:SetScript('OnFinished', FlyinOnFinished)
-		f.flyin.wait:SetDuration(f.flyin.wait:GetDuration() * TRAILSPEED)
-		for _, a in pairs({f.flyin:GetAnimations()}) do
-			if a:IsObjectType('Path') then
-				self.paths[a] = true
-			else
-				a:SetStartDelay(0)
-			end
-		end
-	end
-end
-
 function Helper:OnActionPlaced(actionID, pushTexture)
 	local currentModifier = ConsolePort:GetCurrentModifier()
 	local buttons = {}
@@ -344,42 +306,12 @@ function Helper:OnActionPlaced(actionID, pushTexture)
 				break
 			end
 		end
-
+		
 		if not freeIcon then
-			freeIcon = CreateFrame('FRAME', self:GetName()..'Icon'..(#self.iconList+1), UIParent, 'IconIntroTemplate')
-			IconIntroOnLoad(freeIcon)
+			freeIcon = CreateFrame('FRAME', self:GetName()..'Icon'..(#self.iconList+1), UIParent, 'CPIconIntroTemplate')
 			self.iconList[#self.iconList+1] = freeIcon
 		end
 
-		local icon = freeIcon.icon
-		local glow = freeIcon.glow
-
-		local bGlow = button:GetHighlightTexture()
-		if bGlow then
-			glow:ClearAllPoints()
-			glow:SetPoint('CENTER', 0, 0)
-			glow:SetSize(bGlow:GetSize())
-			glow:SetTexture(bGlow:GetTexture())
-			glow:SetTexCoord(bGlow:GetTexCoord())
-			glow:SetBlendMode(bGlow:GetBlendMode())
-		end
-
-		icon.icon:SetTexture(texture)
-		icon.action = actionID
-
-		freeIcon:ClearAllPoints()
-		freeIcon:SetPoint('CENTER', button, 0, 0)
-		freeIcon:SetFrameLevel(button:GetFrameLevel() + 1)
-
-		local tX, tY = button:GetCenter()
-		local w = button:GetWidth() or 0
-		local oX, oY = (x - ( tX or 0) ) + w, (y - ( tY or 0))
-
-		for path in pairs(freeIcon.paths) do
-			PathCalculateOffset(path, oX, oY)
-		end
-
-		icon.flyin:Play(1)
-		freeIcon.isFree = false
+		freeIcon:AnimateNewActionFromCoords(button, x, y, actionID, texture)
 	end
 end

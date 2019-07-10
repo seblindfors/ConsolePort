@@ -389,7 +389,7 @@ function ConsolePort:CalibrateController(reset)
 			if 	(ConsolePortSplashFrame and ConsolePortSplashFrame:IsVisible()) or
 				(HelpFrame and HelpFrame:IsVisible()) then
 				self:Hide()
-			elseif ConsolePortConfig and ConsolePortConfig:IsVisible() then
+			elseif ConsolePortOldConfig and ConsolePortOldConfig:IsVisible() then
 				self.Close:Hide()
 				self:SetAlpha(0)
 				self:EnableKeyboard(false)

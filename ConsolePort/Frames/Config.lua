@@ -10,7 +10,7 @@ local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local ConsolePort, WindowMixin = ConsolePort, {}
 local Popup = db.Atlas.CreateFrame("ConsolePortPopup")
-local Config = db.Atlas.CreateFrame("ConsolePortConfig")
+local Config = db.Atlas.CreateFrame("ConsolePortOldConfig")
 local Scroll = CreateFrame("ScrollFrame", "$parentBannerScroll", Config)
 local Category = CreateFrame("Frame", "$parentCategories", Scroll)
 local Container = CreateFrame("Frame", "$parentContainer", Config)
@@ -546,7 +546,7 @@ end
 function WindowMixin:Export(characterExportData, exportAs)
 	if characterExportData then
 		local _, classToken = UnitClass('player')
-		local specID, specName = GetSpecializationInfo(GetSpecialization())
+		local specID, specName = CPAPI:GetCharacterMetadata()
 		local sharedData = ConsolePortCharacterSettings or {}
 		ConsolePortCharacterSettings = sharedData
 

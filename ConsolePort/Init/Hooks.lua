@@ -29,10 +29,15 @@ do
 		end
 	end
 
-	ExtraActionButton1:SetAttribute('action', 169)
+	if ExtraActionButton1 then
+		ExtraActionButton1:SetAttribute('action', 169)
+	end
 
 	for i=1, 6 do
-		_G['OverrideActionBarButton'..i]:SetAttribute('action', 132 + i)
+		local button = _G['OverrideActionBarButton'..i]
+		if button then
+			button:SetAttribute('action', 132 + i)
+		end
 	end
 end
 
@@ -73,7 +78,7 @@ function ConsolePort:LoadHookScripts()
 				end
 				if 	GetItemCount(item, false) ~= 0 or
 					MerchantFrame:IsVisible() then
-					if 	EquipmentFlyoutFrame:IsVisible() then
+					if 	EquipmentFlyoutFrame and EquipmentFlyoutFrame:IsVisible() then
 						self:AddLine(db.CLICK_CANCEL, 1,1,1)
 					end
 					self:AddLine(clickString, 1,1,1)
@@ -101,7 +106,7 @@ function ConsolePort:LoadHookScripts()
 			local owner = self:GetOwner()
 			if core:IsCurrentNode(owner) and not core:IsCursorObstructed() then
 				if 	owner and owner:GetParent() == SpellBookSpellIconsFrame and not owner.isPassive then
-					if not owner.UnlearnedFrame:IsVisible() then
+					if owner.UnlearnedFrame and not owner.UnlearnedFrame:IsVisible() then
 						self:AddLine(db.CLICK.USE_NOCOMBAT, 1,1,1)
 						self:AddLine(db.CLICK.PICKUP, 1,1,1)
 					end

@@ -37,7 +37,7 @@ function ConsolePort:LoadEvents()
 	end
 	self:UnregisterAllEvents()
 	for event in pairs(Events) do
-		self:RegisterEvent(event)
+		pcall(self.RegisterEvent, self, event)
 	end
 end
 
@@ -182,9 +182,11 @@ function Events:ACTIVE_TALENT_GROUP_CHANGED()
 		-- Set new bindings
 		db.Bindings = bindingSet
 		-- Dispatch updated bindings
+		self:SetUIFocus(false)
 		self:LoadBindingSet(bindingSet)
 		self:OnNewBindings(bindingSet)
 		self:LoadHotKeyTextures()
+		self:UpdateFrames()
 		-- Check whether bindings are empty
 		if not next(bindingSet) then
 			local popupData = StaticPopupDialogs["CONSOLEPORT_IMPORTBINDINGS"]

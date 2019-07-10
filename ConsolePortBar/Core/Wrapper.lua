@@ -1,14 +1,14 @@
 ---------------------------------------------------------------
 local db = ConsolePort:GetData()
-local Lib, Wrapper = {}, {}
+local HANDLE, WrapperMixin = {}, {}
 ---------------------------------------------------------------
 local an, ab = ...
 local acb = ab.libs.acb
 ---------------------------------------------------------------
-ab.libs.wrapper = Lib
+ab.libs.wrapper = HANDLE
 ---------------------------------------------------------------
-local LibRegistry = {}
-ab.libs.registry = LibRegistry
+local Wrappers = {}
+ab.libs.registry = Wrappers
 ---------------------------------------------------------------
 local TEX_PATH = [[Interface\AddOns\]]..an..[[\Textures\%s]]
 local NOT_BOUND_TOOLTIP = NOT_BOUND .. '\n' .. db.TUTORIAL.BIND.TOOLTIPCLICK
@@ -19,16 +19,16 @@ local ofs, ofsB, fixA = 38, 21, 4
 local mods = {
 	[''] = {size = {size, size}},
 	['SHIFT-'] 	= {size = {smallSize, tSize}, 
-		down 	= {'TOPRIGHT', 'BOTTOMLEFT', ofs - fixA	, ofs + fixA},
-		up 		= {'BOTTOMRIGHT', 'TOPLEFT', ofs - fixA	, -ofs - fixA},
-		left 	= {'BOTTOMRIGHT', 'TOPLEFT', ofs + fixA	, -ofs + fixA},
+		down 	= {'TOPRIGHT', 'BOTTOMLEFT',  ofs - fixA,  ofs + fixA},
+		up 		= {'BOTTOMRIGHT', 'TOPLEFT',  ofs - fixA, -ofs - fixA},
+		left 	= {'BOTTOMRIGHT', 'TOPLEFT',  ofs + fixA, -ofs + fixA},
 		right 	= {'BOTTOMLEFT', 'TOPRIGHT', -ofs - fixA, -ofs + fixA},
 	},
 	['CTRL-'] 	= {size = {smallSize, tSize}, 
-		down 	= {'TOPLEFT', 'BOTTOMRIGHT', -ofs + fixA, ofs + fixA},
+		down 	= {'TOPLEFT', 'BOTTOMRIGHT', -ofs + fixA,  ofs + fixA},
 		up 		= {'BOTTOMLEFT', 'TOPRIGHT', -ofs + fixA, -ofs - fixA},
-		left 	= {'TOPRIGHT', 'BOTTOMLEFT', ofs + fixA, ofs - fixA},
-		right 	= {'TOPLEFT', 'BOTTOMRIGHT', -ofs - fixA, ofs - fixA},
+		left 	= {'TOPRIGHT', 'BOTTOMLEFT',  ofs + fixA,  ofs - fixA},
+		right 	= {'TOPLEFT', 'BOTTOMRIGHT', -ofs - fixA,  ofs - fixA},
 	},
 	['CTRL-SHIFT-'] = {size = {smallSize, tSize},
 		down 	= {'TOP', 'BOTTOM', 0, ofsB},
@@ -182,14 +182,144 @@ local config = {
 	flyoutDirection = 'UP',
 }
 ---------------------------------------------------------------
-local function CreateHotkeyFrame(self, num)
-	local hotkey = CreateFrame('Frame', '$parent_HOTKEY'..( num or '' ), self)
-	hotkey.texture = hotkey:CreateTexture('$parent_TEXTURE', 'OVERLAY', nil, 7)
-	hotkey.texture:SetAllPoints()
-	return hotkey
+function WrapperMixin:Show()
+	for _, button in pairs(self.Buttons) do
+		button:Show()
+	end
+	self[''].shadow:Show()
 end
 
-function Lib:CreateButton(parent, id, name, modifier, size, texSize, config)
+function WrapperMixin:Hide()
+	for _, button in pairs(self.Buttons) do
+		button:Hide()
+	end
+	self[''].shadow:Hide()
+end
+
+function WrapperMixin:SetPoint(...)
+	local main = self['']
+	local p, x, y = ...
+	main:ClearAllPoints()
+	if p and x and y then
+		return main:SetPoint(...)
+	end
+end
+
+function WrapperMixin:SetSize(new)
+	local main = self['']
+	for mod, button in pairs(self.Buttons) do
+		local b, t, o -- button size, texture size, offset value
+		if mod == '' then -- if nomod, handle separately
+			b = new -- 64
+			t = new
+			o = new * ( 82 / size )
+			button.shadow:SetSize(o, o)
+		else -- calculate size for modifier buttons to maintain correct ratio
+			b = new * ( smallSize / size )
+			t = new * ( tSize / size ) * (mod == 'CTRL-SHIFT-' and .9 or 1)
+			o = ( ( (mod == 'CTRL-SHIFT-') and ofsB or ofs ) / size )
+			local pT = mods[mod][button.orientation]
+			if pT then
+				local p, rel, x, y = unpack(pT)
+				local nX = x * o--x < 0 and -o or x == 0 and 0 or o
+				local nY = y * o--y < 0 and -o or y == 0 and 0 or o
+				button:SetPoint(p, main, rel, nX, nY)
+				button:Show()
+			end
+		end
+		for _, parentKey in pairs(adjustTextures) do
+			local texture = button[parentKey]
+			texture:ClearAllPoints()
+			texture:SetPoint('CENTER', 0, 0)
+			texture:SetSize(t, t)
+		end
+		button:SetSize(b, b)
+	end
+end
+
+function WrapperMixin:UpdateOrientation(orientation)
+	for mod, button in pairs(self.Buttons) do
+		if not button.isMainButton then
+			button:ClearAllPoints()
+			button:Hide()
+			button.orientation = orientation
+			local coords = modcoords[mod][orientation]
+			local mask   = masks[mod][orientation]
+			local swipe  = swipes[mod][orientation]
+			if coords and mask then
+				for _, parentKey in pairs(adjustTextures) do
+					button[parentKey]:SetTexCoord(unpack(coords))
+				end
+				button.Mask:SetTexture(mask)
+				button.Flash:SetTexture(mask)
+				button.cooldown:SetSwipeTexture(swipe)
+			end
+		end
+	end
+	self:SetSize(self['']:GetSize())
+end
+
+function WrapperMixin:SetSwipeColor(r, g, b, a)
+	self[''].cooldown:SetSwipeColor(r, g, b, a)
+end
+
+function WrapperMixin:ToggleIcon(enabled)
+	self[''].hotkey:SetShown(enabled)
+end
+
+function WrapperMixin:ToggleModifiers(enabled)
+	for mod, button in pairs(self.Buttons) do
+		local hotkey1, hotkey2 = button.hotkey1, button.hotkey2
+		if hotkey1 then hotkey1:SetShown(enabled) end
+		if hotkey2 then hotkey2:SetShown(enabled) end
+	end
+end
+
+function WrapperMixin:SetClassicBorders(enabled)
+	local normal = enabled and [[Interface\AddOns\ConsolePort\Textures\Button\Normal]]
+	local pushed = enabled and [[Interface\AddOns\ConsolePort\Textures\Button\Pushed]]
+	self[''].NormalTexture:SetTexture(normal or buttonTextures[''].normal)
+	self[''].PushedTexture:SetTexture(pushed or buttonTextures[''].pushed)
+end
+
+function WrapperMixin:SetBorderColor(r, g, b, a)
+	for mod, button in pairs(self.Buttons) do
+		button.NormalTexture:SetVertexColor(r, g, b, a)
+	end
+end
+
+function WrapperMixin:ConfigureSwapStates(modifier, button, stateType, stateID)
+	-- modifier buttons should stay the same regardless of state
+	if modifier ~= '' then
+		button:SetState('', stateType, stateID)
+		button:SetState('SHIFT-', stateType, stateID)
+		button:SetState('CTRL-', stateType, stateID)
+		button:SetState('CTRL-SHIFT-', stateType, stateID)
+	end
+	-- set up main button to swap to current state
+	self['']:SetState(modifier, stateType, stateID)
+end
+
+function WrapperMixin:SetRebindButton()
+	-- Messy code to focus this button in the rebinder
+	-- TODO: Update for new config
+	if not InCombatLockdown() then
+		ConsolePortOldConfig:OpenCategory('Binds')
+		if ConsolePortOldConfigContainerBinds.Display:GetID() ~= 2 then
+			db.Settings.bindView = 2
+			ConsolePortOldConfigContainerBinds.Display:SetID(2)
+			ConsolePortOldConfigContainerBinds:OnShow()
+		end
+		local bindingBtn = _G[self.confRef]
+		C_Timer.After(0.1, function()
+			if not InCombatLockdown() then
+				ConsolePort:ScrollToNode(bindingBtn, ConsolePortRebindFrame)
+			end
+		end)
+	end
+end
+---------------------------------------------------------------
+local function CreateButton(parent, id, name, modifier, size, texSize, config)
 	local button = acb:CreateButton(id, name, parent, config)
 
 	button.PushedTexture = button:GetPushedTexture()
@@ -223,8 +353,8 @@ function Lib:CreateButton(parent, id, name, modifier, size, texSize, config)
 		button.cooldown:SetDrawEdge(false)
 	end
 
-	for _, name in pairs(adjustTextures) do
-		local texture = button[name]
+	for _, parentKey in pairs(adjustTextures) do
+		local texture = button[parentKey]
 		texture:ClearAllPoints()
 		texture:SetPoint('CENTER', 0, 0)
 		texture:SetSize(texSize, texSize)
@@ -236,141 +366,37 @@ function Lib:CreateButton(parent, id, name, modifier, size, texSize, config)
 	return button
 end
 
-function Wrapper:Show()
-	for _, button in pairs(self.Buttons) do
-		button:Show()
-	end
-	self[''].shadow:Show()
+local function CreateModifierHotkeyFrame(self, num)
+	return CreateFrame('Frame', '$parent_HOTKEY'..( num or '' ), self, 'CPUIActionButtonTextureOverlayTemplate')
 end
 
-function Wrapper:Hide()
-	for _, button in pairs(self.Buttons) do
-		button:Hide()
-	end
-	self[''].shadow:Hide()
+local function CreateMainHotkeyFrame(self, id)
+	local hotkey = CreateFrame('Frame', '$parent_HOTKEY', self, 'CPUIActionButtonMainHotkeyTemplate')
+	hotkey.texture:SetTexture(db.ICONS[id])
+	return hotkey
 end
 
-function Wrapper:SetPoint(...)
-	local main = self['']
-	local p, x, y = ...
-	main:ClearAllPoints()
-	if p and x and y then
-		return main:SetPoint(...)
-	end
+local function CreateMainShadowFrame(self)
+	-- create this as a separate frame so that drop shadow doesn't overlay modifiers
+	-- note: shadow is child of bar, not of button
+	local shadow = CreateFrame('Frame', self:GetName()..'_SHADOW', ab.bar, 'CPUIActionButtonMainShadowTemplate')
+	shadow:SetPoint('CENTER', self, 'CENTER', 0, -6)
+	return shadow
+end
+---------------------------------------------------------------
+
+function HANDLE:Get(id)
+	return Wrappers[id]
 end
 
-function Wrapper:SetSize(new)
-	local main = self['']
-	for mod, button in pairs(self.Buttons) do
-		local b, t, o -- button size, texture size, offset value
-		if mod == '' then -- if nomod, handle separately
-			b = new -- 64
-			t = new
-			o = new * ( 82 / size )
-			button.shadow:SetSize(o, o)
-		else -- calculate size for modifier buttons to maintain correct ratio
-			b = new * ( smallSize / size )
-			t = new * ( tSize / size ) * (mod == 'CTRL-SHIFT-' and .9 or 1)
-			o = ( ( (mod == 'CTRL-SHIFT-') and ofsB or ofs ) / size )
-			local pT = mods[mod][button.orientation]
-			if pT then
-				local p, rel, x, y = unpack(pT)
-				local nX = x * o--x < 0 and -o or x == 0 and 0 or o
-				local nY = y * o--y < 0 and -o or y == 0 and 0 or o
-				button:SetPoint(p, main, rel, nX, nY)
-				button:Show()
-			end
-		end
-		for _, name in pairs(adjustTextures) do
-			local texture = button[name]
-			texture:ClearAllPoints()
-			texture:SetPoint('CENTER', 0, 0)
-			texture:SetSize(t, t)
-		end
-		button:SetSize(b, b)
-	end
-end
-
-function Wrapper:UpdateOrientation(orientation)
-	for mod, button in pairs(self.Buttons) do
-		if not button.isMainButton then
-			button:ClearAllPoints()
-			button:Hide()
-			button.orientation = orientation
-			local coords = modcoords[mod][orientation]
-			local mask = masks[mod][orientation]
-			local swipe = swipes[mod][orientation]
-			if coords and mask then
-				for _, name in pairs(adjustTextures) do
-					local texture = button[name]
-					texture:SetTexCoord(unpack(coords))
-				end
-				button.Mask:SetTexture(mask)
-				button.cooldown:SetSwipeTexture(swipe)
-			end
-		end
-	end
-	self:SetSize(self['']:GetSize())
-end
-
-function Wrapper:SetSwipeColor(r, g, b, a)
-	self[''].cooldown:SetSwipeColor(r, g, b, a)
-end
-
-function Wrapper:ToggleIcon(enabled)
-	self[''].hotkey:SetShown(enabled)
-end
-
-function Wrapper:ToggleModifiers(enabled)
-	for mod, button in pairs(self.Buttons) do
-		local hotkey1, hotkey2 = button['hotkey1'], button['hotkey2']
-		if hotkey1 then hotkey1:SetShown(enabled) end
-		if hotkey2 then hotkey2:SetShown(enabled) end
-	end
-end
-
-function Wrapper:SetClassicBorders(enabled)
-	local normal = enabled and [[Interface\AddOns\ConsolePort\Textures\Button\Normal]]
-	local pushed = enabled and [[Interface\AddOns\ConsolePort\Textures\Button\Pushed]]
-	self[''].NormalTexture:SetTexture(normal or buttonTextures[''].normal)
-	self[''].PushedTexture:SetTexture(pushed or buttonTextures[''].pushed)
-end
-
-function Wrapper:SetBorderColor(r, g, b, a)
-	for mod, button in pairs(self.Buttons) do
-		button.NormalTexture:SetVertexColor(r, g, b, a)
-	end
-end
-
-function Wrapper:SetRebindButton()
-	-- Messy code to focus this button in the rebinder
-	if not InCombatLockdown() then
-		ConsolePortConfig:OpenCategory('Binds')
-		if ConsolePortConfigContainerBinds.Display:GetID() ~= 2 then
-			db.Settings.bindView = 2
-			ConsolePortConfigContainerBinds.Display:SetID(2)
-			ConsolePortConfigContainerBinds:OnShow()
-		end
-		local bindingBtn = _G[self.confRef]
-		C_Timer.After(0.1, function()
-			if not InCombatLockdown() then
-				ConsolePort:ScrollToNode(bindingBtn, ConsolePortRebindFrame)
-			end
-		end)
-	end
-end
-
-function Lib:Get(id)
-	return LibRegistry[id]
-end
-
-function Lib:Create(parent, id, orientation)
+function HANDLE:Create(parent, id, orientation)
 	local wrapper = {}
 	wrapper.Buttons = {}
 
 	for mod, info in pairs(mods) do
+		local name = 'CPB_' .. (id:sub(4, #id)) .. (mod == '' and mod or ('_' .. (mod:sub(1, #mod -1))))
 		local bSize, tSize = unpack(info.size)
-		local button = Lib:CreateButton(parent, id..mod, 'CPB_'..id..mod, mod, bSize, tSize, mod == '' and config)
+		local button = CreateButton(parent, id..mod, name, mod, bSize, tSize, mod == '' and config)
 		button.plainID = id
 		button.mod = mod
 		-- dispatch to header
@@ -381,7 +407,7 @@ function Lib:Create(parent, id, orientation)
 		wrapper.Buttons[mod] = button
 		if hotkeyConfig[mod] then
 			for i, modHotkey in pairs(hotkeyConfig[mod]) do
-				local hotkey = CreateHotkeyFrame(button, i)
+				local hotkey = CreateModifierHotkeyFrame(button, i)
 				hotkey:SetPoint(unpack(modHotkey[1]))
 				hotkey:SetSize(unpack(modHotkey[2]))
 				hotkey.texture:SetTexture(db.ICONS[modHotkey[3]])
@@ -403,86 +429,49 @@ function Lib:Create(parent, id, orientation)
 
 	main:SetFrameLevel(4)
 	main:SetAlpha(1)
-
+	main.hotkey = CreateMainHotkeyFrame(main, id)
+	main.shadow = CreateMainShadowFrame(main)
 	db.UIFrameFadeIn(main, 1, 0, 1)
 
-	main.hotkey = CreateFrame('Frame', '$parent_HOTKEY', main)
-	main.hotkey:SetPoint('TOP', 0, 12)
-	main.hotkey:SetSize(32, 32)
-	main.hotkey.texture = main.hotkey:CreateTexture('$parent_HOTKEY', 'OVERLAY', nil, 7)
-	main.hotkey.texture:SetTexture(db.ICONS[id])
-	main.hotkey.texture:SetAllPoints()
-
-	main.hotkey:SetFrameLevel(20)
-
-	-- create this as a separate frame so that drop shadow doesn't overlay modifiers
-	main.shadow = CreateFrame('Frame', main:GetName()..'_SHADOW', ab.bar)
-	main.shadow:SetPoint('CENTER', main, 'CENTER', 0, -6)
-	main.shadow:SetSize(82, 82)
-	main.shadow.texture = main.shadow:CreateTexture('$parent_shadow', 'OVERLAY', nil, 7)
-	main.shadow.texture:SetTexture(TEX_PATH:format('Button\\BigShadow'))
-	main.shadow.texture:SetAllPoints()
-	main.shadow:SetFrameLevel(1)
-	main.shadow:SetAlpha(0.6)
-
-	Mixin(wrapper, Wrapper)
+	Mixin(wrapper, WrapperMixin)
 
 	wrapper:UpdateOrientation(orientation)
 
-	LibRegistry[id] = wrapper
+	Wrappers[id] = wrapper
 
 	return wrapper
 end
 
---- Temporary stuff
-local swapTypes = {
-	swapmain = function(wrapper, id, button, stateType, stateID)
-		if id ~= '' then
-			button:SetState('', stateType, stateID)
-			button:SetState('SHIFT-', stateType, stateID)
-			button:SetState('CTRL-', stateType, stateID)
-			button:SetState('CTRL-SHIFT-', stateType, stateID)
-		end
-		wrapper['']:SetState(id, stateType, stateID)
-	end,
-	noswap = function(wrapper, id, button, stateType, stateID)
-		button:SetState('', stateType, stateID)
-		button:SetState('SHIFT-', stateType, stateID)
-		button:SetState('CTRL-', stateType, stateID)
-		button:SetState('CTRL-SHIFT-', stateType, stateID)
-	end,
-}
-
-function Lib:UpdateAllBindings(newBindings)
+function HANDLE:UpdateAllBindings(newBindings)
 	local bindings = newBindings or db.Bindings
 	ClearOverrideBindings(ab.bar)
 	if type(bindings) == 'table' then
-		for binding, wrapper in pairs(LibRegistry) do
-			self:SetState(wrapper, bindings[binding])
+		for binding, wrapper in pairs(Wrappers) do
+			self:UpdateWrapperBindings(wrapper, bindings[binding])
 		end
 	end
 end
 
-function Lib:SetEligbleForRebind(button, id)
+function HANDLE:SetEligbleForRebind(button, id)
 	button.confRef = button.plainID..id..'_CONF'
 	button:SetAttribute('disableDragNDrop', true)
 	button:SetState(id, 'custom', {
 		tooltip = NOT_BOUND_TOOLTIP,
-		texture = 'Interface\\Icons\\Pet_Type_Mechanical',
-		func = Wrapper.SetRebindButton,
+		texture = [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
+		func = WrapperMixin.SetRebindButton,
 	})
 end
 
-function Lib:SetArbitraryBinding(button, binding)
+function HANDLE:SetArbitraryBinding(button, binding)
 	button:SetAttribute('disableDragNDrop', true)
 	return 'custom', {
 		tooltip = _G['BINDING_NAME_'..binding] or binding,
-		texture = ab:GetBindingIcon(binding) or 'Interface\\MacroFrame\\MacroFrame-Icon',
+		texture = ab:GetBindingIcon(binding) or [[Interface\MacroFrame\MacroFrame-Icon]],
 		func = function() end,
 	}
 end
 
-function Lib:SetActionBinding(button, main, id, actionID)
+function HANDLE:SetActionBinding(button, main, id, actionID)
 	local key = GetBindingKey(button.plainID)
 	if key then
 		ab.bar:RegisterOverride(id..key, main:GetName())
@@ -491,30 +480,32 @@ function Lib:SetActionBinding(button, main, id, actionID)
 	return 'action', actionID
 end
 
-function Lib:SetState(wrapper, bindings)
+function HANDLE:UpdateWrapperBindings(wrapper, bindings)
 	local main = wrapper['']
 
 	if bindings then
-		for id, button in pairs(wrapper.Buttons) do
-			local binding = bindings[id]
+		for modifier, button in pairs(wrapper.Buttons) do
+			local binding = bindings[modifier]
 			local actionID = binding and ConsolePort:GetActionID(binding)
 			local stateType, stateID
 			if actionID then
-				stateType, stateID = self:SetActionBinding(button, main, id, actionID)
+				stateType, stateID = self:SetActionBinding(button, main, modifier, actionID)
 			elseif binding then
 				stateType, stateID = self:SetArbitraryBinding(button, binding)
 			else
-				self:SetEligbleForRebind(button, id)
+				self:SetEligbleForRebind(button, modifier)
 			end
-			swapTypes['swapmain'](wrapper, id, button, stateType, stateID)
+
+			wrapper:ConfigureSwapStates(modifier, button, stateType, stateID)
+			-- call an update on the button to reflect new binding
 			button:Execute(format([[
 				self:RunAttribute('UpdateState', '%s')
 				self:CallMethod('UpdateAction')
-			]], id))
+			]], modifier))
 		end
 	else
-		for id, button in pairs(wrapper.Buttons) do
-			self:SetEligbleForRebind(button, id)
+		for modifier, button in pairs(wrapper.Buttons) do
+			self:SetEligbleForRebind(button, modifier)
 		end
 	end
 end

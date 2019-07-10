@@ -45,6 +45,12 @@ function Bar:StopCamera()
 	ConsolePortCamera:Stop()
 end
 
+function Bar:ToggleMovable(enableMouseDrag, enableMouseWheel)
+	self:RegisterForDrag(enableMouseDrag and 'LeftButton')
+	self:EnableMouse(enableMouseDrag)
+	self:EnableMouseWheel(enableMouseWheel)
+end
+
 function Bar:UnregisterOverrides()
 	self:Execute([[
 		bindings = wipe(bindings)
@@ -92,7 +98,7 @@ function Bar:PLAYER_REGEN_DISABLED()
 end
 
 function Bar:LoadReticleSpells()
-	Bar:Execute('wipe(reticleSpellManifest)')
+	self:Execute('wipe(reticleSpellManifest)')
 	local reticleSpells = ab.manifest and ab.manifest.ReticleSpells
 	if type(reticleSpells) == 'table' then
 		local classSpecific = reticleSpells[select(2, UnitClass('player'))]
@@ -178,28 +184,6 @@ function Bar:OnLoad(cfg, benign)
 	else
 		RegisterStateDriver(Bar.Pet, 'visibility', '[pet] show; hide')
 	end
-	
-	-- Set action bar art
-	if cfg.showart or cfg.flashart then
-		local art, coords = ab:GetCover()
-		if art and coords then
-			local artScale = cfg.smallart and .75 or 1
-			self.CoverArt:SetTexture(art)
-			self.CoverArt:SetTexCoord(unpack(coords))
-			self.CoverArt:SetVertexColor(unpack(cfg.artRGB or {1,1,1}))
-			self.CoverArt:SetBlendMode(cfg.blendart and 'ADD' or 'BLEND')
-			self.CoverArt:SetSize(768 * artScale, 192 * artScale)
-			if cfg.showart then
-				self.CoverArt:Show()
-			else
-				self.CoverArt:Hide()
-			end
-		end
-	else
-		self.CoverArt:SetTexture(nil)
-		self.CoverArt:Hide()
-	end
-	self.CoverArt.flashOnProc = cfg.flashart
 
 	-- Show class tint line
 	if cfg.showline then
@@ -209,6 +193,9 @@ function Bar:OnLoad(cfg, benign)
 		self.BG:Hide()
 		self.BottomLine:Hide()
 	end
+
+	-- Set action bar art
+	ab:SetArtUnderlay(cfg.showart or cfg.flashart, cfg.flashart)
 
 	-- Rainbow sine wave color script, cuz shiny
 	ab:SetRainbowScript(cfg.rainbow)
@@ -225,21 +212,11 @@ function Bar:OnLoad(cfg, benign)
 	-- Show quick menu buttons
 	self.Menu:SetShown(cfg.quickMenu)
 
-	if cfg.lockpet then
-		self.Pet:RegisterForDrag()
-	else
-		self.Pet:RegisterForDrag('LeftButton')
-	end
+	-- Lock/unlock pet ring
+	self.Pet:RegisterForDrag(not cfg.lockpet and 'LeftButton')
 
-	if cfg.lock then
-		self:RegisterForDrag()
-		self:EnableMouse(false)
-	else
-		self:EnableMouse(true)
-		self:RegisterForDrag('LeftButton')
-	end
-
-	self:EnableMouseWheel(cfg.mousewheel)
+	-- Lock/unlock bar
+	self:ToggleMovable(not cfg.lock, cfg.mousewheel)
 
 	cfg.layout = cfg.layout or ab:GetDefaultButtonLayout()
 
@@ -250,7 +227,7 @@ function Bar:OnLoad(cfg, benign)
 	local borderRGB = cfg.borderRGB
 
 	local hideIcons = cfg.hideIcons
-	local hideBorders = cfg.hideBorders
+	local hideModifiers = cfg.hideModifiers
 	local classicBorders = cfg.classicBorders
 
 	for binding in ConsolePort:GetBindings() do
@@ -335,7 +312,17 @@ for name, script in pairs({
 		control:ChildUpdate('state', newstate)
 		cursor:RunAttribute('pageupdate')
 	]],
-	['_onstate-page'] = [[
+	['_onstate-page'] = CPAPI:IsClassicVersion() and [[
+		if HasTempShapeshiftActionBar() then
+			newstate = GetTempShapeshiftBarIndex()
+		elseif GetBonusBarOffset() > 0 then
+			newstate = GetBonusBarOffset()+6
+		else
+			newstate = GetActionBarPage()
+		end
+		self:SetAttribute('actionpage', newstate)
+		control:ChildUpdate('actionpage', newstate)
+	]] or [[
 		if HasVehicleActionBar() then
 			newstate = GetVehicleBarIndex()
 		elseif HasOverrideActionBar() then
@@ -380,10 +367,12 @@ for name, script in pairs({
 
 Bar:SetScript('OnEvent', Bar.OnEvent)
 Bar:SetScript('OnMouseWheel', Bar.OnMouseWheel)
-Bar:RegisterEvent('SPELLS_CHANGED')
-Bar:RegisterEvent('PLAYER_LOGIN')
-Bar:RegisterEvent('ADDON_LOADED')
-Bar:RegisterEvent('PLAYER_TALENT_UPDATE') 
+for _, event in ipairs({
+	'SPELLS_CHANGED',
+	'PLAYER_LOGIN',
+	'ADDON_LOADED',
+	'PLAYER_TALENT_UPDATE',
+}) do pcall(Bar.RegisterEvent, Bar, event) end
 
 Bar.ignoreNode = true
 Bar.Buttons = {}

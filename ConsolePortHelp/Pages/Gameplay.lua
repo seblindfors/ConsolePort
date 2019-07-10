@@ -111,7 +111,7 @@ Help:AddPage('Cursor & camera', 'Gameplay', [[<HTML><BODY>
 		Camera mode
 	</H2>
 	<p align="left">
-		Entering "camera mode" (holding down right click on a regular mouse) can be <a href="run:ConsolePortConfig:OpenCategory('Controls') ConsolePort:SetCurrentNode(ConsolePortConfigContainerControlsMouseEvent1)">|cff69ccf0toggled by various events that you can set yourself in the general settings|r</a>.
+		Entering "camera mode" (holding down right click on a regular mouse) can be <a href="run:ConsolePortOldConfig:OpenCategory('Controls') ConsolePort:SetCurrentNode(ConsolePortOldConfigContainerControlsMouseEvent1)">|cff69ccf0toggled by various events that you can set yourself in the general settings|r</a>.
 		You can also set a controller specific binding to toggle in and out of camera mode. While unrecommended, you may also disable all these features to simply hold your right stick down to pan the camera.
 		<br/><br/>
 		You can easily escape the locked camera by pressing down on your right stick, using the double tapped modifier setting, using the "Toggle Mouse Look" binding or using the interact button functionality.
@@ -121,7 +121,7 @@ Help:AddPage('Cursor & camera', 'Gameplay', [[<HTML><BODY>
 	</H2>
 	<p align="left">
 		The cursor will automatically show up when you're using the interact button functionality, clicking your right stick or when you're placing a reticle spell.
-		Note that in the case of reticle spells, you will have to enable the setting to <a href="run:ConsolePortConfig:OpenCategory('Controls') ConsolePort:SetCurrentNode(ConsolePortConfigContainerControlsMouseEvent3)">|cff69ccf0hide the cursor when casting a spell|r</a> in order for the cursor to disappear again after you've placed your spell.
+		Note that in the case of reticle spells, you will have to enable the setting to <a href="run:ConsolePortOldConfig:OpenCategory('Controls') ConsolePort:SetCurrentNode(ConsolePortOldConfigContainerControlsMouseEvent3)">|cff69ccf0hide the cursor when casting a spell|r</a> in order for the cursor to disappear again after you've placed your spell.
 	</p><br/>
 </BODY></HTML>]])
 
@@ -340,7 +340,7 @@ Help:AddPage('Interact button', 'Interacting with the world', [[<HTML><BODY>
 	</H1><br/>
 	<IMG src="Interface\AddOns\ConsolePortHelp\Textures\InteractExample" align="right" width="256" height="256"/>
 	<p align="left">
-		The <a href="run:ConsolePortConfig:OpenCategory('Controls') ConsolePort:SetCurrentNode(ConsolePortConfigContainerControls.InteractModule.Enable)">|cff69ccf0interact button|r</a> allows you to use one of your <br/>primary bindings to interact in certain cases where <br/>the original action of that binding isn't useful.
+		The <a href="run:ConsolePortOldConfig:OpenCategory('Controls') ConsolePort:SetCurrentNode(ConsolePortOldConfigContainerControls.InteractModule.Enable)">|cff69ccf0interact button|r</a> allows you to use one of your <br/>primary bindings to interact in certain cases where <br/>the original action of that binding isn't useful.
 		<br/><br/>
 		Instead of having to press a right click binding <br/>
 		to target a nearby quest giver, loot your last enemy <br/>
@@ -500,7 +500,7 @@ Help:AddPage('Tutorial', 'Gameplay', [[<HTML><BODY>
 		<br/><br/>
 	</p>
 	<H2 align="center">
-		<a href="run:InterfaceOptionsDisplayPanelResetTutorials:Click() ConsolePortConfig:Hide()">Click here to enable the tutorial.</a>
+		<a href="run:InterfaceOptionsDisplayPanelResetTutorials:Click() ConsolePortOldConfig:Hide()">Click here to enable the tutorial.</a>
 	</H2>
 </BODY></HTML>]])
 

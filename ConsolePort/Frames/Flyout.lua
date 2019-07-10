@@ -6,6 +6,7 @@
 
 local _, db = ...
 
+if not SpellFlyout then return end
 local Flyout, Selector, GameTooltip = SpellFlyout, ConsolePortSpellFlyout, GameTooltip
 local FadeIn = db.UIFrameFadeIn
 
@@ -86,12 +87,14 @@ Selector:WrapScript(Flyout, 'OnShow', [[
 		Flyout:SetAlpha(0)
 	end
 ]])
+
 Selector:WrapScript(Flyout, 'OnHide', [[
 	Selector:ClearBindings()
 	Selector:Hide()
 	Flyout:SetScale(1)
 	Flyout:SetAlpha(1)
 ]])
+
 Selector:WrapScript(Selector, 'PreClick', [[
 	self:SetAttribute('macrotext', nil)
 	if (button == 'LeftButton' or button == 'RightButton') then

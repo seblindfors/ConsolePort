@@ -3,7 +3,7 @@ local Button = ConsolePortActionButtonMixin
 
 function Button:SetIcon(file)
 	self.icon:SetDesaturated(not file and true or false)
-	self.icon:SetTexture(file or [[Interface\ICONS\Ability_BossFelOrcs_Necromancer_Red]])
+	self.icon:SetTexture(file or [[Interface\AddOns\ConsolePort\Textures\Button\EmptyIcon]])
 end
 
 function Button:SetVertexColor(...)

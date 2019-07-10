@@ -21,6 +21,7 @@ Pet.Buttons = {}
 Pet.showgrid = 0
 Pet.locked = 0
 Pet.mode = 'show'
+Pet.unit = 'pet'
 Pet:SetMovable(true)
 Pet:SetClampedToScreen(true)
 Pet:RegisterForDrag('LeftButton')
@@ -42,7 +43,7 @@ for _, event in pairs({
 	'PET_BAR_UPDATE',
 	'PET_BAR_UPDATE_COOLDOWN',
 	'PET_SPECIALIZATION_CHANGED',
-}) do Pet:RegisterEvent(event) end
+}) do pcall(Pet.RegisterEvent, Pet, event) end
 
 Pet:RegisterForClicks('AnyUp', 'AnyDown')
 Pet:SetAttribute('unit', 'pet')
@@ -184,6 +185,15 @@ Pet:HookScript('OnShow', function(self)
 	self:Update()
 	SetPortraitTexture(self.Portrait, 'pet')
 	FadeIn(self, 0.2, 0, 1)
+end)
+
+Pet:HookScript('OnEnter', function(self)
+	UnitFrame_UpdateTooltip(self)
+end)
+
+Pet:HookScript('OnLeave', function(self)
+	self.UpdateTooltip = nil
+	GameTooltip:Hide()
 end)
 
 Pet:SetScript('OnEvent', function(self, event, ...)

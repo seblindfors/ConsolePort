@@ -1,0 +1,5 @@
+## Interface: 80200
+## Title: Console Port |cff69ccf0Config|r
+## Notes: Configuration extension for Console Port.
+## RequiredDeps: ConsolePort
+## LoadOnDemand: 1

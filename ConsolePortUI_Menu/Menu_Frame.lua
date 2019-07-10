@@ -2,6 +2,7 @@ local UI, an, L = ConsolePortUI, ...
 local db = ConsolePort:GetData()
 local ICON = 'Interface\\Icons\\%s'
 local Button = L.Button
+local IsClassic, IsRetail = CPAPI:IsClassicVersion(), CPAPI:IsRetailVersion()
 
 -- Loot header specifics
 local LootButton = L.LootButton
@@ -79,7 +80,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 2,
 					Point 	= {'TOP', 'parent.Info', 'BOTTOM', 0, 0},
 					Desc	= INVENTORY_TOOLTIP,
-					Img 	= ICON:format('INV_Misc_Bag_29'),
+					Img 	= ICON:format(IsClassic and 'INV_Misc_Bag_08' or 'INV_Misc_Bag_29'),
 					Events 	= {'BAG_UPDATE'},
 					Attrib 	= {hidemenu = true},
 					OnClick = ToggleAllBags,
@@ -111,7 +112,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					ID 		= 3,
 					Point 	= {'TOP', 'parent.Inventory', 'BOTTOM', 0, 0},
 					Desc	= TALENTS_BUTTON,
-					Img 	= [[Interface\ICONS\ClassIcon_]]..select(2, UnitClass('player')),
+					NoMask 	= true,
 					RefTo 	= TalentMicroButton,
 					Attrib 	= {hidemenu = true},
 					EvaluateAlertVisibility = function(self)
@@ -142,14 +143,20 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 						end
 					end,
 					LoadScript = function(self)
-						self:RegisterEvent('PLAYER_LEVEL_UP')
-						self:RegisterEvent('UPDATE_BINDINGS')
-						self:RegisterEvent('PLAYER_TALENT_UPDATE')
-						self:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED')
-						self:RegisterEvent('HONOR_LEVEL_UPDATE')
-				--		self:RegisterEvent('HONOR_PRESTIGE_UPDATE')
-						self:RegisterEvent('PLAYER_PVP_TALENT_UPDATE')
-				--		self:RegisterEvent('PLAYER_CHARACTER_UPGRADE_TALENT_COUNT_CHANGED')
+						local iconFile, iconTCoords = CPAPI:GetClassIcon()
+						self.Icon:SetTexture(iconFile)
+						self.Icon:SetTexCoord(unpack(iconTCoords))
+						self.Icon:SetMask([[Interface\AddOns\ConsolePort\Textures\Button\Mask]])
+						for _, event in ipairs({
+							'PLAYER_LEVEL_UP',
+							'UPDATE_BINDINGS',
+							'PLAYER_TALENT_UPDATE',
+							'PLAYER_SPECIALIZATION_CHANGED',
+							'HONOR_LEVEL_UPDATE',
+						--	'HONOR_PRESTIGE_UPDATE',
+							'PLAYER_PVP_TALENT_UPDATE',
+						--	'PLAYER_CHARACTER_UPGRADE_TALENT_COUNT_CHANGED',
+						}) do pcall(self.RegisterEvent, self, event) end
 					end,
 					OnEvent = function(self, event, ...)
 						self.tooltipText = nil
@@ -200,7 +207,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					RefTo 	= SpellbookMicroButton,
 					Attrib 	= {hidemenu = true},
 				},
-				Collections  = {
+				Collections  = IsRetail and {
 					Type 	= 'Button',
 					Setup 	= {'SecureActionButtonTemplate'},
 					Mixin 	= Button,
@@ -225,23 +232,34 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 			ID 	= 2,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{
-				WorldMap  = {
+				QuestLog  = {
 					Type 	= 'Button',
 					Setup 	= {'SecureActionButtonTemplate'},
 					Mixin 	= Button,
 					ID 		= 1,
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
-					Desc	= WORLD_MAP .. ' / ' .. QUEST_LOG,
-					Img 	= ICON:format('INV_Misc_Map02'),
+					Desc	= IsRetail and (WORLD_MAP .. ' / ' .. QUEST_LOG) or QUEST_LOG,
+					Img 	= IsRetail and ICON:format('INV_Misc_Map02') or [[Interface\QUESTFRAME\UI-QuestLog-BookIcon]],
 					RefTo 	= QuestLogMicroButton,
 					Attrib 	= {hidemenu = true},
 				},
-				Guide  = {
+				WorldMap  = IsClassic and {
 					Type 	= 'Button',
 					Setup 	= {'SecureActionButtonTemplate'},
 					Mixin 	= Button,
 					ID 		= 2,
-					Point 	= {'TOP', 'parent.WorldMap', 'BOTTOM', 0, 0},
+					Point 	= {'TOP', 'parent.QuestLog', 'BOTTOM', 0, 0},
+					Desc	= WORLD_MAP,
+					Img 	= [[Interface\WorldMap\WorldMap-Icon]],
+					RefTo 	= WorldMapMicroButton,
+					Attrib 	= {hidemenu = true},
+				},
+				Guide  = IsRetail and {
+					Type 	= 'Button',
+					Setup 	= {'SecureActionButtonTemplate'},
+					Mixin 	= Button,
+					ID 		= 2,
+					Point 	= {'TOP', 'parent.QuestLog', 'BOTTOM', 0, 0},
 					Desc	= ADVENTURE_JOURNAL,
 					Img 	= [[Interface\ENCOUNTERJOURNAL\UI-EJ-PortraitIcon]],
 					RefTo 	= EJMicroButton,
@@ -273,7 +291,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 						},
 					},
 				},
-				Finder  = {
+				Finder  = IsRetail and {
 					Type 	= 'Button',
 					Setup 	= {'SecureActionButtonTemplate'},
 					Mixin 	= Button,
@@ -284,7 +302,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					RefTo 	= LFDMicroButton,
 					Attrib 	= {hidemenu = true},
 				},
-				Achievements  = {
+				Achievements  = IsRetail and {
 					Type 	= 'Button',
 					Setup 	= {'SecureActionButtonTemplate'},
 					Mixin 	= Button,
@@ -295,7 +313,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					RefTo 	= AchievementMicroButton,
 					Attrib 	= {hidemenu = true},
 				},
-				WhatsNew  = {
+				WhatsNew  = IsRetail and {
 					Type 	= 'Button',
 					Setup 	= {'SecureActionButtonTemplate'},
 					Mixin 	= Button,
@@ -305,7 +323,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					RefTo 	= GameMenuButtonWhatsNew,
 					Img 	= ICON:format('WoW_Token01')
 				},
-				Shop  = {
+				Shop  = IsRetail and {
 					Type 	= 'Button',
 					Setup 	= {'SecureActionButtonTemplate'},
 					Mixin 	= Button,
@@ -315,12 +333,12 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					RefTo 	= GameMenuButtonStore,
 					Img 	= ICON:format('WoW_Store'),
 				},
-				Teleport  = {
+				Teleport  = IsRetail and {
 					Type 	= 'Button',
 					Setup 	= {'SecureActionButtonTemplate'},
 					Mixin 	= Button,
 					ID 		= 7,
-					Point 	= {'TOP', 'parent.Shop', 'BOTTOM', 0, 0},
+					Point 	= {'TOP', IsRetail and 'parent.Shop' or 'parent.WorldMap', 'BOTTOM', 0, 0},
 					Img 	= ICON:format('Spell_Shadow_Teleport'),
 					Attrib 	= {
 						hidemenu 	= true,
@@ -358,11 +376,11 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
 					Desc 	= FRIENDS_LIST,
 					Img 	= [[Interface\FriendsFrame\Battlenet-Portrait]],
-					RefTo 	= QuickJoinToastButton,
+					RefTo 	= IsRetail and QuickJoinToastButton or SocialsMicroButton,
 					Attrib 	= {hidemenu = true},
 					OnEvent = function(self)
 						local _, numBNetOnline = BNGetNumFriends()
-						local _, numWoWOnline = GetNumFriends()
+						local numWoWOnline = C_FriendList.GetNumFriends()
 						self.Count:SetText(numBNetOnline + numWoWOnline)
 					end,
 					Events = {
@@ -461,7 +479,13 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
 					Desc	= RETURN_TO_GAME,
 					RefTo 	= GameMenuButtonContinue,
-					Img 	= ICON:format('misc_arrowright'),
+					NoMask  = true,
+					LoadScript = function(self)
+						local iconFile, iconTCoords = CPAPI:GetClassIcon()
+						self.Icon:SetTexture(iconFile)
+						self.Icon:SetTexCoord(unpack(iconTCoords))
+						self.Icon:SetMask([[Interface\AddOns\ConsolePort\Textures\Button\Mask]])
+					end,
 				},
 				Logout  = {
 					Type 	= 'Button',
@@ -471,7 +495,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Return', 'BOTTOM', 0, 0},
 					Desc	= LOGOUT,
 					RefTo 	= GameMenuButtonLogout,
-					Img 	= ICON:format('RaceChange'),
+					Img 	= ICON:format(IsRetail and 'RaceChange' or 'Spell_Nature_TimeStop'),
 				},
 				Exit  = {
 					Type 	= 'Button',
@@ -495,9 +519,9 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Attrib 	= {hidemenu = true},
 					OnClick = function() 
 						if InCombatLockdown() then
-							ConsolePortConfig:OnShow()
+							ConsolePortOldConfig:OnShow()
 						else
-							ConsolePortConfig:Show()
+							ConsolePortOldConfig:Show()
 						end
 					end,
 				},
@@ -509,7 +533,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.Controller', 'BOTTOM', 0, 0},
 					Desc	= SYSTEMOPTIONS_MENU,
 					RefTo 	= GameMenuButtonOptions,
-					Img 	= ICON:format('Pet_Type_Mechanical'),
+					Img 	= ICON:format(IsRetail and 'Pet_Type_Mechanical' or 'Trade_Engineering'),
 				},
 				Interface  = {
 					Type 	= 'Button',
@@ -539,7 +563,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 					Point 	= {'TOP', 'parent.AddOns', 'BOTTOM', 0, -16},
 					Desc	= MACROS,
 					RefTo 	= GameMenuButtonMacros,
-					Img 	= ICON:format('Pet_Type_Magical'),
+					Img 	= ICON:format(IsRetail and 'Pet_Type_Magical' or 'Trade_Alchemy'),
 				},
 				KeyBindings  = {
 					Type 	= 'Button',

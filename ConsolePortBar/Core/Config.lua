@@ -609,7 +609,7 @@ function WindowMixin:CreateLayoutModule()
 	popout:SetNormalTexture('Interface\\AddOns\\ConsolePort\\Textures\\Window\\Popout')
 	popout:SetScript('OnClick', function()
 		ConsolePortPopup:SetPopup(BINDING_HEADER_ACTIONBAR, layout, nil, nil, 600, 580)
-		ConsolePortConfig:Hide()
+		ConsolePortOldConfig:Hide()
 		popout:Hide()
 	end)
 	layout.Popout = popout
@@ -649,7 +649,7 @@ function WindowMixin:OnShow()
 	self.Backup = db.table.copy(ab.cfg)
 end
 
-ab.configuration = ConsolePortConfig:AddPanel({
+ab.configuration = ConsolePortOldConfig:AddPanel({
 	name = 'ActionBarTab',
 	header = BINDING_HEADER_ACTIONBAR, 
 	mixin = WindowMixin,

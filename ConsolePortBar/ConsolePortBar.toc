@@ -1,4 +1,4 @@
-## Interface: 80000
+## Interface: 80100
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar extension for Console Port.
 ## SavedVariables: ConsolePortBarManifest
@@ -18,8 +18,8 @@ Core\Config.lua
 Custom\Blizzard.lua
 Custom\ConsolePort.lua
 
-Options\Pet.lua
-Options\Stance.lua
-Options\MenuBar.lua
-Options\WatchBars.lua
-Options\ActionbarPlacer.lua
+Components\Pet.lua
+Components\Stance.lua
+Components\MenuBar.lua
+Components\WatchBars.xml
+Components\ActionbarPlacer.lua

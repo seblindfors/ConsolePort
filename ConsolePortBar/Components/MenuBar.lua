@@ -47,28 +47,14 @@ function Eye:OnAttributeChanged(attribute, value)
 end
 
 function Eye:OnClick(button)
+	local cfg = ab.cfg
 	if button == 'RightButton' then
-		ab.cfg.showart = not ab.cfg.showart
-		if ab.cfg.showart then
-			local art, coords = ab:GetCover()
-			if art and coords then
-				Bar.CoverArt:SetTexture(art)
-				Bar.CoverArt:SetTexCoord(unpack(coords))
-			end
-		end
-		Bar.CoverArt:SetShown(ab.cfg.showart)
+		cfg.showart = not cfg.showart
+		ab:SetArtUnderlay(cfg.showart or cfg.flashart, cfg.flashart)
 	elseif button == 'LeftButton' then
-		if IsShiftKeyDown() then
-			ab.cfg.lock = not ab.cfg.lock
-			if ab.cfg.lock then
-				Bar:SetMovable(false)
-				Bar:SetScript('OnMouseDown', nil)
-				Bar:SetScript('OnMouseUp', nil)
-			else
-				Bar:SetMovable(true)
-				Bar:SetScript('OnMouseDown', Bar.StartMoving)
-				Bar:SetScript('OnMouseUp', Bar.StopMovingOrSizing)
-			end
+		if IsShiftKeyDown() and not InCombatLockdown() then
+			cfg.lock = not cfg.lock
+			Bar:ToggleMovable(not cfg.lock, cfg.mousewheel)
 			self:OnEnter()
 		elseif IsControlKeyDown() and not InCombatLockdown() then
 			Bar:ClearAllPoints()
@@ -83,9 +69,10 @@ function Eye:OnEnter()
 						L.EYE_LEFTCLICK:format(texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
 						L.EYE_RIGHTCLICK:format(texture_esc:format(db.ICONS.CP_T_R3)) .. '\n' ..
 						L.EYE_LEFTCLICK_SHIFT:format(texture_esc:format(db.ICONS.CP_M1), texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
-						L.EYE_LEFTCLICK_CTRL:format(texture_esc:format(db.ICONS.CP_M2), texture_esc:format(db.ICONS.CP_T_L3)) .. '\n' ..
-						L.EYE_SCROLL .. '\n' ..
-						L.EYE_SCROLL_SHIFT
+						L.EYE_LEFTCLICK_CTRL:format(texture_esc:format(db.ICONS.CP_M2), texture_esc:format(db.ICONS.CP_T_L3))
+	if ab.cfg.mousewheel then
+		self.tooltipText = self.tooltipText .. '\n' .. L.EYE_SCROLL .. '\n' .. L.EYE_SCROLL_SHIFT
+	end
 	GameTooltip:Hide()
 	GameTooltip:SetOwner(self, 'ANCHOR_TOP')
 	GameTooltip:SetText(self.tooltipText)
@@ -194,9 +181,9 @@ Bar.Elements.Bags = {
 for i, bag in ipairs(Bar.Elements.Bags) do
 	bag:SetParent(Bag)
 	bag:Hide()
-	bag:SetSize(32,32)
+	bag:SetSize(36,36)
 	bag:ClearAllPoints()
-	bag:SetPoint('RIGHT', 4 + ( 32 * (i)), 0)
+	bag:SetPoint('RIGHT', 40 * (i), 0)
 end
 
 Bag:SetScript('OnClick', function(self)

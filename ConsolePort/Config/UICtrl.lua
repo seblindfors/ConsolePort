@@ -359,7 +359,7 @@ local function NewMouseoverUpdate(self, elapsed)
 	if timer > 0.1 then
 		mouseFocus = GetMouseFocus()
 		outerParent = mouseFocus ~= WorldFrame and GetOuterParent(mouseFocus)
-		if outerParent and outerParent ~= ConsolePortConfig and outerParent:IsMouseEnabled() and outerParent:GetName() then
+		if outerParent and outerParent ~= ConsolePortOldConfig and outerParent:IsMouseEnabled() and outerParent:GetName() then
 			local name = outerParent:GetName()
 			if not name:match("ConsolePort") then 
 				self.MouseOver = outerParent:GetName()
@@ -706,9 +706,6 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 	UICtrl.HotKeyModule.Header:SetText(TUTORIAL.ACTIONBARHEADER)
 	UICtrl.HotKeyModule.Header:SetPoint("TOPLEFT", 24, -24)
 
-	local class = select(2, UnitClass("player"))
-	local classIcon = "Interface\\Icons\\ClassIcon_"..class
-
 	local actionBarStyles = {
 		[1] = {name = "CP_R_UP", 	animated = true},
 		[2] = {name = "CP_R_RIGHT", animated = true},
@@ -733,6 +730,8 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 		end
 	end
 
+	local iconFile, iconTCoords = CPAPI:GetClassIcon()
+
 	for index, info in pairs(actionBarStyles) do
 		local button = CreateFrame("CheckButton", "$parentStyle"..#UICtrl.HotKeyModule.Styles+1, UICtrl.HotKeyModule)
 		button:SetSize(39, 39)
@@ -748,7 +747,8 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 		button.Icon:SetPoint("CENTER")
 		button.Icon:SetSize(39, 39)
 
-		button.Icon:SetTexture(classIcon)
+		button.Icon:SetTexture(iconFile)
+		button.Icon:SetTexCoord(unpack(iconTCoords))
 
 		button.name = info.name
 		button.mod = "CTRL-SHIFT-"

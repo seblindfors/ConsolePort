@@ -10,7 +10,7 @@ local _, db = ...
 local KEY = db.KEY
 ---------------------------------------------------------------
 local 	ConsolePort, Button, Handler = 
-		ConsolePort, {}, CreateFrame('Frame', 'ConsolePortButtonHandler', ConsolePort, 'SecureHandlerStateTemplate')
+		ConsolePort, {}, ConsolePortButtonHandler
 ---------------------------------------------------------------
 RegisterStateDriver(Handler, 'combat', '[combat] true; nil')
 Handler:SetAttribute('_onstate-combat', [[

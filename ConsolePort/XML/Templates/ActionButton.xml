@@ -8,48 +8,48 @@
 		</Size>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture name="$parentIcon" parentKey="icon" file="Interface\ICONS\Ability_BossFelOrcs_Necromancer_Red" desaturated="true"/>
+				<Texture parentKey="icon" file="Interface\AddOns\ConsolePort\Textures\Button\EmptyIcon" desaturated="true"/>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="1">
-				<Texture name="$parentFlash" parentKey="Flash" file="Interface\Buttons\UI-QuickslotRed" hidden="true"/>
-				<Texture name="$parentFlyoutBorder" inherits="ActionBarFlyoutButton-IconFrame" parentKey="FlyoutBorder" hidden="true">
+				<Texture parentKey="Flash" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" alpha="0.5" hidden="true"/>
+				<Texture parentKey="FlyoutBorder" inherits="ActionBarFlyoutButton-IconFrame" hidden="true">
 					<Anchors>
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
-				<Texture name="$parentFlyoutBorderShadow" inherits="ActionBarFlyoutButton-IconShadow" parentKey="FlyoutBorderShadow" hidden="true">
+				<Texture parentKey="FlyoutBorderShadow" inherits="ActionBarFlyoutButton-IconShadow" hidden="true">
 					<Anchors>
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="2">
-				<Texture name="$parentFlyoutArrow" inherits="ActionBarFlyoutButton-ArrowUp" parentKey="FlyoutArrow" hidden="true"/>
-				<FontString name="$parentHotKey" inherits="NumberFontNormalSmallGray" parentKey="HotKey" justifyH="RIGHT">
+				<Texture parentKey="FlyoutArrow" inherits="ActionBarFlyoutButton-ArrowUp" hidden="true"/>
+				<FontString parentKey="HotKey" inherits="NumberFontNormalSmallGray" justifyH="RIGHT">
 					<Size x="36" y="10"/>
 					<Anchors>
 						<Anchor point="TOPLEFT" x="1" y="-3"/>
 					</Anchors>
 				</FontString>
-				<FontString name="$parentCount" inherits="NumberFontNormal" parentKey="Count" justifyH="RIGHT">
+				<FontString parentKey="Count" inherits="NumberFontNormal" justifyH="RIGHT">
 					<Anchors>
 						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
 					</Anchors>
 				</FontString>
-				<FontString name="$parentPage" inherits="NumberFontNormalYellow" parentKey="Page" justifyH="RIGHT" hidden="true">
+				<FontString parentKey="Page" inherits="NumberFontNormalYellow" justifyH="RIGHT" hidden="true">
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" x="2" y="2"/>
 					</Anchors>
 				</FontString>
 			</Layer>
 			<Layer level="OVERLAY">
-				<FontString name="$parentName" parentKey="Name" inherits="GameFontHighlightSmallOutline">
+				<FontString parentKey="Name" inherits="GameFontHighlightSmallOutline">
 					<Size x="36" y="10"/>
 					<Anchors>
 						<Anchor point="BOTTOM" x="0" y="2"/>
 					</Anchors>
 				</FontString>
-				<Texture name="$parentBorder" file="Interface\Buttons\UI-ActionButton-Border" parentKey="Border" hidden="true" alphaMode="ADD">
+				<Texture parentKey="Border" file="Interface\Buttons\UI-ActionButton-Border" hidden="true" alphaMode="ADD">
 					<Size x="62" y="62"/>
 					<Anchors>
 						<Anchor point="CENTER"/>
@@ -66,7 +66,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Cooldown name="$parentCooldown" inherits="CooldownFrameTemplate" parentKey="cooldown">
+			<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate">
 				<Size x="36" y="36"/>
 				<Anchors>
 					<Anchor point="CENTER" x="0" y="-1"/>
@@ -81,7 +81,7 @@
 	<CheckButton name="CPUIActionButtonTemplate" virtual="true" inherits="CPUIActionButtonBaseTemplate">
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture name="$parentShadow" parentKey="Shadow" file="Interface\AddOns\ConsolePort\Textures\Button\Shadow">
+				<Texture parentKey="Shadow" file="Interface\AddOns\ConsolePort\Textures\Button\Shadow">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-5" y="0"/>
 						<Anchor point="BOTTOMRIGHT" x="5" y="-10"/>
@@ -89,7 +89,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="OVERLAY" textureSubLevel="1">
-				<MaskTexture name="$parentIconMask" parentKey="Mask" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
 					<Anchors>
 						<Anchor point="TOPLEFT"/>
 						<Anchor point="BOTTOMRIGHT"/>
@@ -100,7 +100,7 @@
 				</MaskTexture>
 			</Layer>
 		</Layers>
-		<NormalTexture name="$parentNormalTexture" parentKey="NormalTexture" file="Interface\AddOns\ConsolePort\Textures\Button\Normal"/>
+		<NormalTexture parentKey="NormalTexture" file="Interface\AddOns\ConsolePort\Textures\Button\Normal"/>
 		<PushedTexture parentKey="PushedTexture" file="Interface\AddOns\ConsolePort\Textures\Button\Pushed" />
 		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Button\Hilite"/>
 		<CheckedTexture parentKey="CheckedTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Button\Hilite"/>
@@ -127,6 +127,31 @@
 		</HighlightTexture>
 		<CheckedTexture parentKey="CheckedTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Button\Square_Hilite"/>
 	</CheckButton>
+
+
+	<Frame name="CPUIActionButtonTextureOverlayTemplate" virtual="true">
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="7">
+				<Texture name="$parent_TEXTURE" parentKey="texture" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPUIActionButtonMainHotkeyTemplate" virtual="true" frameLevel="20" inherits="CPUIActionButtonTextureOverlayTemplate">
+		<Size x="32" y="32"/>
+		<Anchors>
+			<Anchor point="TOP" x="0" y="12"/>
+		</Anchors>
+	</Frame>
+
+	<Frame name="CPUIActionButtonMainShadowTemplate" virtual="true" frameLevel="1" alpha="0.3" inherits="CPUIActionButtonTextureOverlayTemplate">
+		<Size x="82" y="82"/>
+		<Scripts>
+			<OnLoad>
+				self.texture:SetTexture([[Interface\AddOns\ConsolePort\Textures\Button\NormalShadow]]);
+			</OnLoad>
+		</Scripts>
+	</Frame>
 
 	<CheckButton name="CPUIPetActionButtonTemplate" inherits="SecureFrameTemplate, CPUIActionButtonTemplate" frameStrata="MEDIUM" virtual="true">
 		<Size>

@@ -41,25 +41,23 @@ end
 
 local callBacks, owners = {}, {}
 
-function ConsolePort:RegisterCallback(functionName, func, owner, orderIndex)
-	assert(type(functionName) == 'string', 'First argument is not a valid string. Arguments (RegisterCallback): \'functionName\', function')
-	assert(type(func) == 'function', 'Second argument is not a function. Arguments (RegisterCallback): \'functionName\', function')
-	assert(self[functionName], 'Named function does not exist. Arguments (RegisterCallback): \'functionName\', function')
+function ConsolePort:RegisterCallback(name, func, owner, orderIndex)
+	assert(type(name) == 'string', 'First argument is not a valid string. Arguments (RegisterCallback): \'name\', function')
+	assert(type(func) == 'function', 'Second argument is not a function. Arguments (RegisterCallback): \'name\', function')
+	assert(type(self[name]) == 'function', 'Named function does not exist. Arguments (RegisterCallback): \'name\', function')
 
 	-- Store the owner
 	if owner then
-		if not owners[functionName] then
-			owners[functionName] = {}
-		end
-		owners[functionName][func] = owner
+		owners[name] = owners[name] or {}
+		owners[name][func] = owner
 	end
 
 	-- Add hook if it doesn't exist
-	if not callBacks[functionName] then
+	if not callBacks[name] then
 		local functionsToRun = {}
-		local callBackOwners = owners[functionName]
-		callBacks[functionName] = functionsToRun
-		hooksecurefunc(self, functionName, function(self, ...)
+		local callBackOwners = owners[name]
+		callBacks[name] = functionsToRun
+		hooksecurefunc(self, name, function(self, ...)
 			for _, callback in ipairs(functionsToRun) do
 				callback(callBackOwners and callBackOwners[callback] or self, ...)
 			end
@@ -67,27 +65,27 @@ function ConsolePort:RegisterCallback(functionName, func, owner, orderIndex)
 	end
 
 	if orderIndex then
-		tinsert(callBacks[functionName], func, orderIndex)
+		tinsert(callBacks[name], func, orderIndex)
 	else
-		tinsert(callBacks[functionName], func)
+		tinsert(callBacks[name], func)
 	end
 end
 
-function ConsolePort:UnregisterCallback(functionName, func)
-	assert(callBacks[functionName], 'No callbacks are registered for this function.')
+function ConsolePort:UnregisterCallback(name, func)
+	assert(callBacks[name], 'No callbacks are registered for this function.')
 	local index, poppedFunc
-	for i, storedFunc in ipairs(callBacks[functionName]) do
+	for i, storedFunc in ipairs(callBacks[name]) do
 		if func == storedFunc then
 			index = i
 			poppedFunc = storedFunc
 			break
 		end
 	end
-	if poppedFunc and owners[functionName] then
-		owners[functionName][poppedFunc] = nil
+	if poppedFunc and owners[name] then
+		owners[name][poppedFunc] = nil
 	end
 	if index then
-		tremove(callBacks[functionName], index)
+		tremove(callBacks[name], index)
 		return true
 	end
 end

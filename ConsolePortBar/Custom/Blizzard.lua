@@ -48,8 +48,11 @@ do
 	UIPARENT_MANAGED_FRAME_POSITIONS['PETACTIONBAR_YPOS'] = nil
 
 	MainMenuBar:EnableMouse(false)
-	MicroButtonAndBagsBar:Hide()
-	StatusTrackingBarManager:Hide()
+	if MicroButtonAndBagsBar then MicroButtonAndBagsBar:Hide() end
+	if StatusTrackingBarManager then StatusTrackingBarManager:Hide() end
+	if MainMenuExpBar then MainMenuExpBar:SetParent(UIHider) end
+	if MainMenuBarPerformanceBar then MainMenuBarPerformanceBar:SetParent(UIHider) end
+	if ReputationWatchBar then ReputationWatchBar:SetParent(UIHider) end
 
 	local animations = {MainMenuBar.slideOut:GetAnimations()}
 	animations[1]:SetOffset(0,0)
@@ -106,7 +109,7 @@ do
 		local cfg = ab.cfg
 		if cfg and cfg.disableCastBarHook then
 			overrideCastBarPos = false
-		elseif OverrideActionBar:IsShown() or (cfg and cfg.defaultCastBar) then
+		elseif OverrideActionBar and OverrideActionBar:IsShown() or (cfg and cfg.defaultCastBar) then
 			ModifyCastingBarFrame(castBar, true)
 			overrideCastBarPos = false
 		else
@@ -125,47 +128,58 @@ do
 	Bar:HookScript('OnSizeChanged', MoveCastingBarFrame)
 	Bar:HookScript('OnShow', MoveCastingBarFrame)
 	Bar:HookScript('OnHide', MoveCastingBarFrame)
-	OverrideActionBar:HookScript('OnShow', MoveCastingBarFrame)
-	OverrideActionBar:HookScript('OnHide', MoveCastingBarFrame) 
+
+	if OverrideActionBar then
+		OverrideActionBar:HookScript('OnShow', MoveCastingBarFrame)
+		OverrideActionBar:HookScript('OnHide', MoveCastingBarFrame)
+	end 
 
 	-------------------------------------------
 	--- 	Misc changes
 	-------------------------------------------
 
-	ObjectiveTrackerFrame:SetPoint('TOPRIGHT', MinimapCluster, 'BOTTOMRIGHT', -100, -132)
+	if ObjectiveTrackerFrame then
+		ObjectiveTrackerFrame:SetPoint('TOPRIGHT', MinimapCluster, 'BOTTOMRIGHT', -100, -132)
+	end
 	AlertFrame:SetPoint('BOTTOM', UIParent, 'BOTTOM', 0, 200)
 
 	if PlayerTalentFrame then
 		PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
 	else
-		hooksecurefunc('TalentFrame_LoadUI', function() PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED') end)
+		hooksecurefunc('TalentFrame_LoadUI', function()
+			if PlayerTalentFrame then
+				PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+			end 
+		end)
 	end
 
 	-- Replace spell push animations. 
-	IconIntroTracker:HookScript('OnEvent', function(self, event, ...)
-		local anim = ConsolePortSpellHelperFrame
-		if anim and event == 'SPELL_PUSHED_TO_ACTIONBAR' then
-			for _, icon in pairs(self.iconList) do
-				icon:ClearAllPoints()
-				icon:SetAlpha(0)
-			end
+	if IconIntroTracker then
+		IconIntroTracker:HookScript('OnEvent', function(self, event, ...)
+			local anim = ConsolePortSpellHelperFrame
+			if anim and event == 'SPELL_PUSHED_TO_ACTIONBAR' then
+				for _, icon in pairs(self.iconList) do
+					icon:ClearAllPoints()
+					icon:SetAlpha(0)
+				end
 
-			local spellID, slotIndex, slotPos = ...
-			local page = math.floor((slotIndex - 1) / NUM_ACTIONBAR_BUTTONS) + 1
-			local currentPage = GetActionBarPage()
-			local bonusBarIndex = GetBonusBarIndex()
-			if (HasBonusActionBar() and bonusBarIndex ~= 0) then
-				currentPage = bonusBarIndex
-			end
+				local spellID, slotIndex, slotPos = ...
+				local page = math.floor((slotIndex - 1) / NUM_ACTIONBAR_BUTTONS) + 1
+				local currentPage = GetActionBarPage()
+				local bonusBarIndex = GetBonusBarIndex()
+				if (HasBonusActionBar() and bonusBarIndex ~= 0) then
+					currentPage = bonusBarIndex
+				end
 
-			if (page ~= currentPage and page ~= MULTIBOTTOMLEFTINDEX) then
-				return
-			end
-			
-			local _, _, icon = GetSpellInfo(spellID)
-			local actionID = ((page - 1) * NUM_ACTIONBAR_BUTTONS) + slotPos
+				if (page ~= currentPage and page ~= MULTIBOTTOMLEFTINDEX) then
+					return
+				end
+				
+				local _, _, icon = GetSpellInfo(spellID)
+				local actionID = ((page - 1) * NUM_ACTIONBAR_BUTTONS) + slotPos
 
-			anim:OnActionPlaced(actionID, icon)
-		end
-	end)
+				anim:OnActionPlaced(actionID, icon)
+			end
+		end)
+	end
 end

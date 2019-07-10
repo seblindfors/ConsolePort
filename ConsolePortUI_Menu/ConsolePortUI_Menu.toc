@@ -1,4 +1,4 @@
-## Interface: 80000
+## Interface: 80100
 ## Title: Console Port |cff69ccf0UI|r Menu
 ## Notes: Replaces game menu.
 ## RequiredDeps: ConsolePort

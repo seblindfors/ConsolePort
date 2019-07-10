@@ -123,7 +123,7 @@ end
 ---------------------------------------------------------------
 local function AddItemForQuestLogIndex(itemTbl, questLogIndex)
 	if questLogIndex then
-		local link = GetQuestLogSpecialItemInfo(questLogIndex)
+		local link = CPAPI:GetQuestLogSpecialItemInfo(questLogIndex)
 		local name = link and GetItemInfo(link)
 		if name then
 			local _, itemID = strsplit(':', strmatch(link, 'item[%-?%d:]+'))
@@ -136,10 +136,10 @@ end
 
 local function GetQuestWatchItems()
 	local items = {}
-	for i=1, GetNumQuestWatches() do
+	for i=1, CPAPI:GetNumQuestWatches() do
 		AddItemForQuestLogIndex(items, GetQuestIndexForWatch(i))
 	end
-	for i=1, GetNumWorldQuestWatches() do
+	for i=1, CPAPI:GetNumWorldQuestWatches() do
 		AddItemForQuestLogIndex(items, GetQuestLogIndexByID(GetWorldQuestWatchInfo(i)))
 	end
 	return items
@@ -790,7 +790,7 @@ function ConsolePort:SetupUtilityRing()
 			'SPELL_UPDATE_COOLDOWN',
 			'SPELL_UPDATE_CHARGES',
 			'SPELL_UPDATE_USABLE',
-		}) do Utility:RegisterEvent(event) end
+		}) do pcall(Utility.RegisterEvent, Utility, event) end
 
 		self:RemoveUpdateSnippet(self.SetupUtilityRing)
 	end

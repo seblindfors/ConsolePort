@@ -9,8 +9,8 @@ local getmetatable, setmetatable, rawset, next, select = getmetatable, setmetata
 ---------------------------------------
 -- Upvalued API:
 local GetGUID, GetName, IsDead, Exists, IsCombat = UnitGUID, UnitName, UnitIsDead, UnitExists
-local IsUnit, IsOpponent, IsAttackable = UnitIsUnit, UnitThreatSituation, UnitCanAttack
-local IsPlayer, IsFriend, IsEnemy, IsBattlePet, IsControlled = UnitIsPlayer, UnitIsFriend, UnitIsEnemy, UnitIsBattlePet, UnitPlayerControlled
+local IsUnit, IsAttackable, IsOpponent = UnitIsUnit, UnitCanAttack, CPAPI.UnitThreatSituation
+local IsPlayer, IsFriend, IsEnemy, IsControlled, IsBattlePet = UnitIsPlayer, UnitIsFriend, UnitIsEnemy, UnitPlayerControlled, CPAPI.UnitIsBattlePet
 local GetNamePlate = C_NamePlate.GetNamePlateForUnit
 local CanLoot = CanLootUnit
 

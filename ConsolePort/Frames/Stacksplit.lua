@@ -8,7 +8,7 @@
 
 local time, hold = 0, 0
 local keyDown, keyHeldDown = false, false
-local Left, Right = StackSplitLeftButton, StackSplitRightButton
+local Left, Right = StackSplitFrame.LeftButton, StackSplitFrame.RightButton
 
 local oldNode
 

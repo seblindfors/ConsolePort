@@ -300,17 +300,19 @@ SafeOnEnter[SpellButton1:GetScript('OnEnter')] = function(self)
 	end
 	GameTooltip:Show()
 end
-SafeOnEnter[QuestMapLogTitleButton_OnEnter] = function(self)
-	-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
-	-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
-	if self.questLogIndex then
-		local _, level, _, isHeader, _, _, _, _, _, _, _, _, _, _, _, _, isScaling = GetQuestLogTitle(self.questLogIndex)
-		local _, difficultyHighlightColor = GetQuestDifficultyColor(level, isScaling)
-		if ( isHeader ) then
-			_, difficultyHighlightColor = QuestDifficultyColors["header"]
-		end
-		if difficultyHighlightColor then
-			QuestMapLogTitleButton_OnEnter(self)
+if QuestMapLogTitleButton_OnEnter then
+	SafeOnEnter[QuestMapLogTitleButton_OnEnter] = function(self)
+		-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
+		-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
+		if self.questLogIndex then
+			local _, level, _, isHeader, _, _, _, _, _, _, _, _, _, _, _, _, isScaling = GetQuestLogTitle(self.questLogIndex)
+			local _, difficultyHighlightColor = GetQuestDifficultyColor(level, isScaling)
+			if ( isHeader ) then
+				_, difficultyHighlightColor = QuestDifficultyColors["header"]
+			end
+			if difficultyHighlightColor then
+				QuestMapLogTitleButton_OnEnter(self)
+			end
 		end
 	end
 end
@@ -673,7 +675,7 @@ local function SpecialAction(self)
 			end
 			if	maxStack > 1 then
 				local maxPurchasable = min(maxStack, canAfford)
-				OpenStackSplitFrame(maxPurchasable, node, "TOPLEFT", "BOTTOMLEFT")
+				StackSplitFrame:OpenStackSplitFrame(maxPurchasable, node, "TOPLEFT", "BOTTOMLEFT")
 			end
 		-- Item button
 		elseif node.JunkIcon then
@@ -687,7 +689,7 @@ local function SpecialAction(self)
 					node.SplitStack = function(button, split)
 						SplitContainerItem(button:GetParent():GetID(), button:GetID(), split)
 					end
-					OpenStackSplitFrame(itemCount, node, "BOTTOMRIGHT", "TOPRIGHT")
+					StackSplitFrame:OpenStackSplitFrame(itemCount, node, "BOTTOMRIGHT", "TOPRIGHT")
 				end
 			end
 		-- Spell button
