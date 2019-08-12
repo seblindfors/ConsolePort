@@ -11,7 +11,7 @@ local addOn, db = ...
 ---------------------------------------------------------------
 local ConsolePort = ConsolePort
 ---------------------------------------------------------------
-local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
+local FadeIn, FadeOut = db.GetFaders()
 local GetItemCooldown = GetItemCooldown
 local InCombatLockdown = InCombatLockdown
 ---------------------------------------------------------------

@@ -7,7 +7,7 @@
 ## X-Website: http://www.consoleport.net
 ## X-Feedback: https://discord.gg/AWeHd48
 
-## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames, ConsolePortUIConfig
+## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames, ConsolePortUIConfig, ConsolePortRadial
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortMouse, ConsolePortUtility
 
 XML\Manifest.xml

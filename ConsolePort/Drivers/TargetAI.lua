@@ -35,7 +35,7 @@ end
 
 local function IsNPC(unit)
 	local unitType, ID = GetUnitProperties(unit)
-	return 	not IsBattlePet(unit) and		-- unit should not be battlepet
+	return 	not IsBattlePet(nil, unit) and	-- unit should not be battlepet
 			not IsPlayer(unit) and			-- unit should not be player
 			not IsControlled(unit) and 		-- unit should not be bodyguard
 			not IsEnemy('player', unit) and -- unit should not be enemy

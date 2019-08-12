@@ -18,20 +18,12 @@ function Menu:OnHide()
 	end
 end
 
-function Menu:OnButtonPressed()
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
-end
-
-
 for name, script in pairs({
 	_onshow = [[
-		self:RunAttribute('SetHeader', hID)
-		self:RunAttribute('ShowHeader', hID)
 		self:RunAttribute('SetCurrent', 0, 1)
 		RegisterStateDriver(self, 'modifier', '[mod:shift,mod:ctrl] true; nil')
 	]],
 	_onhide = [[
-		self:RunAttribute('Reset')
 		UnregisterStateDriver(self, 'modifier')
 	]],
 	['_onstate-modifier'] = [[
@@ -42,16 +34,9 @@ for name, script in pairs({
 		else
 			for i = 1, numheaders do
 				if i ~= hID then
-					self:RunAttribute('HideHeader', i)
+					self:RunAttribute('ClearHeader', i)
 				end
 			end
-		end
-	]],
-	Reset = [[
-		for i, header in pairs(headers) do
-			header:CallMethod('SetButtonState', 'NORMAL')
-			header:CallMethod('UnlockHighlight')
-			self:RunAttribute('HideHeader', i)
 		end
 	]],
 	SetHeaderID = [[
@@ -60,8 +45,7 @@ for name, script in pairs({
 	ShowHeader = [[
 		local hID = ...
 		local header = headers[hID]
-		local buttons = newtable(header:GetChildren())
-		for _, button in pairs(buttons) do
+		for _, button in ipairs(newtable(header:GetChildren())) do
 			local condition = button:GetAttribute('condition')
 			if condition then
 				local show = self:Run(condition)
@@ -75,23 +59,12 @@ for name, script in pairs({
 			end
 		end
 	]],
-	HideHeader = [[
-		local hID = ...
-		local header = headers[hID]
-		local buttons = newtable(header:GetChildren())
-		header:SetAttribute('focused', false)
-		for _, button in pairs(buttons) do
+	ClearHeader = [[
+		for _, button in ipairs(newtable(header:GetChildren())) do
 			button:Hide()
 		end
 	]],
 	SetHeader = [[
-		local hID = ...
-		header = headers[hID]
-		header:CallMethod('SetButtonState', 'PUSHED')
-		header:CallMethod('LockHighlight')
-		header:SetAttribute('focused', true)
-		self:CallMethod('OnHeaderSet', header:GetName())
-
 		local buttons = newtable(header:GetChildren())
 		local highIndex = 0
 		if header:GetAttribute('onheaderset') then
@@ -121,9 +94,10 @@ for name, script in pairs({
 		if current then
 			current:CallMethod('OnLeave')
 		end
+		local header = headers[hID]
 		if header then
 			current = header:GetFrameRef(tostring(bID))
-			if current and current:IsVisible() then
+			if current and current:IsShown() then
 				current:CallMethod('OnEnter')
 			elseif bID > 1 and bID < highestIndex then
 				self:RunAttribute('SetCurrent', bID, delta)
@@ -131,9 +105,6 @@ for name, script in pairs({
 		end
 	]],
 	OnInput = [[
-		local key, down = ...
-		local returnHandler, returnValue
-
 		-- Click on a button
 		if key == CROSS and current then
 			current:CallMethod('SetButtonState', down and 'PUSHED' or 'NORMAL')
@@ -175,31 +146,14 @@ for name, script in pairs({
 
 		-- Select header
 		elseif key == LEFT and down and hID > 1 then
-			local newHeader = headers[hID - 1]
-			if newHeader and newHeader:IsShown() then
-				hID = hID - 1
-				bID = 1
-				self:RunAttribute('_onhide')
-				self:RunAttribute('_onshow')
-			end
+			self:RunAttribute('ChangeHeader', -1)
 		elseif key == RIGHT and down and hID < numheaders then
-			local newHeader = headers[hID + 1]
-			if newHeader and newHeader:IsShown() then
-				hID = hID + 1
-				bID = 1
-				self:RunAttribute('_onhide')
-				self:RunAttribute('_onshow')
-			end
-		end
-
-		-- Play a notification sound when inputting
-		if down then
-			self:CallMethod('OnButtonPressed')
+			self:RunAttribute('ChangeHeader', 1)
 		end
 
 		return 'macro', returnHandler, returnValue
 	]],
-}) do Menu:SetAttribute(name, script) end
+}) do Menu:AppendSecureScript(name, script) end
 
 Menu:HookScript('OnShow', Menu.OnShow)
 Menu:HookScript('OnHide', Menu.OnHide)

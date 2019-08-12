@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
-	<Button name="CPUIInventoryItemButtonTemplate" inherits="ItemButtonTemplate" hidden="true" virtual="true">
+	<ItemButton name="CPUIInventoryItemButtonTemplate" hidden="true" virtual="true">
 		<Anchors>
 			<Anchor point="BOTTOMRIGHT">
 				<Offset>
@@ -51,12 +51,12 @@
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
-				<Texture parentKey="NewItemTexture" alpha="0" alphaMode="ADD" atlas="bags-glow-green" useAtlasSize="true">
+				<Texture parentKey="NewItemTexture" alpha="0" alphaMode="ADD" atlas="bags-glow-green" useAtlasSize="true" hidden="true">
 					<Anchors>
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
-				<Texture parentKey="BattlepayItemTexture" file="Interface\Store\store-item-highlight">
+				<Texture parentKey="BattlepayItemTexture" file="Interface\Store\store-item-highlight" hidden="true">
 					<Anchors>
 						<Anchor point="CENTER"/>
 					</Anchors>
@@ -66,7 +66,7 @@
 		<Frames>
 			<Cooldown parentKey="Cooldown" name="$parentCooldown" inherits="CooldownFrameTemplate"/>
 		</Frames>
-	</Button>
+	</ItemButton>
 
 	<Script file="Frame.lua"/>
 </Ui>

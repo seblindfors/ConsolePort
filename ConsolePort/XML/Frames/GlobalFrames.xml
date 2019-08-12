@@ -288,7 +288,7 @@
 					<OnLoad>
 						self.Active = {};
 						self.Frames = {};
-						ConsolePortUIHandle.StoredHints = {};
+						self:GetParent().StoredHints = {};
 
 						self:SetParent(UIParent);
 						self:SetIgnoreParentAlpha(true);
@@ -298,7 +298,6 @@
 			</Frame>
 		</Frames>
 	</Button>
-
 
 	<!-- Frames\Flyout.lua -->
 	<Button name="ConsolePortSpellFlyout" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate" parent="UIParent" registerForClicks="AnyDown" hidden="true">

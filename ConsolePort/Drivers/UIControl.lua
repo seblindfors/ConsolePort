@@ -94,7 +94,7 @@ for name, script in pairs({
 --------------------------------------------
 }) do Control:SetAttribute(name, script) end
 --------------------------------------------
-local Bar, Hint = Control.HintBar, {}
+local Bar = Control.HintBar
 --------------------------------------------
 
 local secure_wrappers = {
@@ -207,7 +207,7 @@ end
 -- UI Fader
 ----------------------------------
 local IsFrameWidget = C_Widget.IsFrameWidget
-local FadeIn, FadeOut = db.UIFrameFadeIn, db.UIFrameFadeOut
+local FadeIn, FadeOut = db.GetFaders()
 local updateThrottle = 0
 ----------------------------------
 local ignoreFrames, forceFrames, toggleFrames = {}, {}, {}
@@ -358,7 +358,7 @@ function Bar:Update()
 	local width, previousHint = 0
 	for _, hint in pairs(self.Frames) do
 		if previousHint then
-			hint:SetPoint('LEFT', previousHint.text, 'RIGHT', 16, 0)
+			hint:SetPoint('LEFT', previousHint.Text, 'RIGHT', 16, 0)
 		else
 			hint:SetPoint('LEFT', self, 'LEFT', 0, 0)
 		end
@@ -384,20 +384,10 @@ function Bar:GetHintFromPool(key)
 		end
 		if not hint then
 			local id = #self.Frames + 1
-			hint = CreateFrame('Frame', '$parentHint'..id, self)
-			hint.icon = hint:CreateTexture('$parentIcon', 'ARTWORK')
-			hint.icon:SetSize(40, 40)
-			hint.icon:SetPoint('LEFT')
-			hint.text = hint:CreateFontString('$parentText', 'ARTWORK', 'Game20Font')
-			hint.text:SetPoint('LEFT', hint.icon, 'RIGHT', 8, 0)
-			hint.text:SetShadowOffset(2, -2)
-			hint:SetHeight(64)
+			hint = CreateFrame('Frame', '$parentHint'..id, self, 'CPUIHintTemplate')
 			hint:SetID(id)
-			hint:Hide()
 			hint.bar = self
-			hint.pool = self.Frames
 			self.Frames[ #self.Frames + 1] = hint
-			db.table.mixin(hint, Hint)
 		end
 		hint:Show()
 		hints[key] = hint
@@ -462,12 +452,12 @@ function Control:UnregisterHintForFrame(frame, key)
 end
 
 function Control:AddHint(key, text)
-	local binding = ConsolePort:GetUIControlKeyOwner(key)
+	local binding = ConsolePort:GetUIControlBinding(key)
 	if binding then
 		local hint = self.HintBar:GetHintFromPool(key)
 		if hint then
 			hint:SetData(binding, text)
-			hint:SetEnabled()
+			hint:Enable()
 			self:RegisterHintForFrame(self.focus, key, text, true)
 			return hint
 		end
@@ -493,7 +483,7 @@ end
 function Control:SetHintDisabled(key)
 	local hint = self:GetHintForKey(key)
 	if hint then
-		hint:SetDisabled()
+		hint:Disable()
 		self:RegisterHintForFrame(self.focus, key, hint:GetText(), false)
 	end
 end
@@ -501,45 +491,7 @@ end
 function Control:SetHintEnabled(key)
 	local hint = self:GetHintForKey(key)
 	if hint then
-		hint:SetEnabled()
+		hint:Enable()
 		self:RegisterHintForFrame(self.focus, key, hint:GetText(), true)
 	end
-end
-
-----------------------------------
--- Hint mixin
-----------------------------------
-function Hint:UpdateParentWidth()
-	self.bar:Update()
-end
-
-function Hint:SetEnabled()
-	self.icon:SetVertexColor(1, 1, 1)
-	self.text:SetVertexColor(1, 1, 1)
-end
-
-function Hint:SetDisabled()
-	self.icon:SetVertexColor(0.5, 0.5, 0.5)
-	self.text:SetVertexColor(0.5, 0.5, 0.5)
-end
-
-function Hint:OnShow()
-	self.isActive = true
-	db.UIFrameFadeIn(self, 0.2, 0, 1)
-end
-
-function Hint:OnHide()
-	self.isActive = false
-	self:SetData(nil, nil)
-end
-
-function Hint:GetText()
-	return self.text:GetText()
-end
-
-function Hint:SetData(icon, text)
-	self.icon:SetTexture(db.TEXTURE[icon])
-	self.text:SetText(text)
-	self:SetWidth(self.text:GetStringWidth() + 64)
-	self:UpdateParentWidth()
 end

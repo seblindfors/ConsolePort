@@ -297,8 +297,7 @@ end
 ---------------------------------------------------------------
 local Mouse = ConsolePortMouseHandle
 Mouse:Execute([[ id, isEnabled = 0, true ]])
-Mouse.FadeInRef = db.UIFrameFadeIn
-Mouse.FadeOutRef = db.UIFrameFadeOut
+Mouse.FadeInRef, Mouse.FadeOutRef = db.GetFaders()
 Mouse.Line:SetTexture(1243535)
 Mouse.Line:SetVertexColor(1, .75, .75)
 

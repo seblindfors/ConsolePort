@@ -2,8 +2,7 @@
 -- Animation.lua: Taint-free animation framework
 ---------------------------------------------------------------
 -- Provides a framework for managing alpha animations without
--- risk of spreading taint, which might happen when the "real"
--- functions are called from secure code.
+-- risk of spreading taint.
 
 local _, db = ...
 
@@ -62,29 +61,7 @@ end
 
 -- Generic fade function
 local function FadeFrame(frame, fadeInfo)
-	if not frame then
-		return
-	end
-	if not fadeInfo.mode then
-		fadeInfo.mode = "IN"
-	end
-	if fadeInfo.mode == "IN" then
-		if not fadeInfo.startAlpha then
-			fadeInfo.startAlpha = 0
-		end
-		if not fadeInfo.endAlpha then
-			fadeInfo.endAlpha = 1.0
-		end
-	elseif fadeInfo.mode == "OUT" then
-		if not fadeInfo.startAlpha then
-			fadeInfo.startAlpha = 1.0
-		end
-		if not fadeInfo.endAlpha then
-			fadeInfo.endAlpha = 0
-		end
-	end
 	frame:SetAlpha(fadeInfo.startAlpha)
-
 	frame.fadeInfo = fadeInfo
 
 	local index = 1
@@ -101,22 +78,29 @@ end
 
 -- Convenience function for simple fade in
 db.UIFrameFadeIn = function (frame, timeToFade, startAlpha, endAlpha, info)
+	if not frame then return end
 	local fadeInfo = info or {}
 	fadeInfo.mode = "IN"
 	fadeInfo.timeToFade = timeToFade
-	fadeInfo.startAlpha = startAlpha
-	fadeInfo.endAlpha = endAlpha
+	fadeInfo.startAlpha = startAlpha or 0.0
+	fadeInfo.endAlpha = endAlpha or 1.0
 	FadeFrame(frame, fadeInfo)
 end
 
 -- Convenience function for simple fade out
 db.UIFrameFadeOut = function (frame, timeToFade, startAlpha, endAlpha, info)
+	if not frame then return end
 	local fadeInfo = info or {}
 	fadeInfo.mode = "OUT"
 	fadeInfo.timeToFade = timeToFade
-	fadeInfo.startAlpha = startAlpha
-	fadeInfo.endAlpha = endAlpha
+	fadeInfo.startAlpha = startAlpha or 1.0
+	fadeInfo.endAlpha = endAlpha or 0.0
 	FadeFrame(frame, fadeInfo)
+end
+
+-- Convenience function for localizing both faders
+db.GetFaders = function()
+	return db.UIFrameFadeIn, db.UIFrameFadeOut
 end
 
 

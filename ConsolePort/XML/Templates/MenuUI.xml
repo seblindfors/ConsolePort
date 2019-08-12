@@ -1,13 +1,18 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 
+	<Script file="MenuUI.lua"/>
+	<Script file="MenuHint.lua"/>
+	<Script file="MenuButton.lua"/>
+
 	<Button name="CPUIListCategoryTemplate" virtual="true">
 		<Size x="230" y="50"/>
 		<HighlightTexture parentKey="HighlightTexture" file="Interface\AddOns\ConsolePort\Textures\Button\UI\Menu_Button_Hilite" alphaMode="ADD">
 			<Anchors>
 					<Anchor point="TOPLEFT" x="0" y="0"/>
-					<Anchor point="BOTTOMRIGHT" x="-0" y="0"/>
+					<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
 			</Anchors>
+			<Color r="0.47" g="0.86" b="1" a="1"/>
 		</HighlightTexture>
 		<ButtonText parentKey="Label" inherits="Fancy22Font" justifyH="CENTER">
 			<Anchors>
@@ -22,34 +27,77 @@
 		</Animations>
 	</Button>
 
-	<Button name="CPUIListDropDownTemplate" virtual="true">
-		<Size x="230" y="46"/>
+	<Button name="CPUIMenuButtonBaseTemplate" virtual="true" mixin="ConsolePortMenuButtonMixin">
+		<Size x="230" y="60"/>
+		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
+			<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" y="-4"/>
+				<Anchor point="BOTTOMRIGHT" y="4"/>
+			</Anchors>
+		</HighlightTexture>
+		<ButtonText parentKey="Label" inherits="Game12Font" justifyH="LEFT">
+			<Size x="150"/>
+			<Anchors>
+				<Anchor point="LEFT" x="60" y="0"/>
+			</Anchors>
+		</ButtonText>
 		<Layers>
-			<Layer level="OVERLAY">
-				<Texture parentKey="SelectedTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD" hidden="true">
-					<Size x="220" y="36"/>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="40" y="40"/>
 					<Anchors>
-						<Anchor point="CENTER"/>
+						<Anchor point="LEFT" x="12"/>
 					</Anchors>
-					<TexCoords left="0.00195313" right="0.63867188" top="0.76953125" bottom="0.83007813"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Mask" file="Interface\AddOns\ConsolePort\Textures\Button\UI\Icon_Mask32">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
 				</Texture>
 			</Layer>
 		</Layers>
-		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
-			<Size x="220" y="36"/>
-			<Anchors>
-				<Anchor point="CENTER"/>
-			</Anchors>
-			<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
-		</HighlightTexture>
-		<ButtonText parentKey="Label" inherits="GameFontHighlightLeft" justifyH="LEFT">
-			<Anchors>
-				<Anchor point="LEFT" x="50" y="0"/>
-			</Anchors>
-		</ButtonText>
+		<Frames>
+			<Frame parentKey="Overlay" setAllPoints="true">
+				<Scripts>
+					<OnLoad>
+						local media = ConsolePortUI.Media;
+						self:SetFrameLevel(self:GetFrameLevel() + 1);
+						media:SetBackdrop(self, "GOSSIP_NORMAL");
+						media:SetBackdrop(self:GetParent(), "GOSSIP_BG");
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Frame parentKey="Hilite" setAllPoints="true" alpha="0">
+				<Scripts>
+					<OnLoad>
+						ConsolePortUI.Media:SetBackdrop(self, "GOSSIP_HILITE");
+					</OnLoad>
+				</Scripts>
+			</Frame>
+		</Frames>
 	</Button>
 
-	<Frame name="CPUILineSheenTemplate" virtual="true">
+	<Button name="CPUIMenuButtonMaskTemplate" virtual="true" inherits="CPUIMenuButtonBaseTemplate">
+		<Layers>
+			<Layer level="OVERLAY">
+				<MaskTexture parentKey="IconMask" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</Button>
+
+	<Frame name="CPUILineSheenTemplate" virtual="true" mixin="ConsolePortLineSheenMixin">
 		<Size x="235" y="25"/>
 		<Layers>
 			<Layer level="ARTWORK">
@@ -62,23 +110,8 @@
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnLoad>
-				self.SetDirection = function(self, direction, multiplier)
-					assert(type(direction) == 'string', 'LineGlow:SetDirection("LEFT" or "RIGHT", multiplier)');
-					assert(type(multiplier) == 'number', 'LineGlow:SetDirection("LEFT" or "RIGHT", multiplier)');
-					if direction == 'LEFT' then
-						self.OnShowAnim.LineSheenTranslation:SetOffset(-230 * multiplier, 0)
-					elseif direction == 'RIGHT' then
-						self.OnShowAnim.LineSheenTranslation:SetOffset(230 * multiplier, 0)
-					end
-				end
-			</OnLoad>
-			<OnShow>
-				self.OnShowAnim:Play();
-			</OnShow>
-			<OnHide>
-				self.OnShowAnim:Stop();
-			</OnHide>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
 		</Scripts>
 		<Animations>
 			<AnimationGroup parentKey="OnShowAnim" setToFinalAlpha="true">
@@ -161,5 +194,119 @@
 		</Animations>
 	</Frame>
 
+	<Frame name="CPUIHintTemplate" virtual="true" hidden="true" mixin="ConsolePortHintMixin">
+		<Size y="64"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon" name="$parentIcon">
+					<Size x="40" y="40"/>
+					<Anchors>
+						<Anchor point="LEFT"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Text" name="$parentText" inherits="Game20Font">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="8"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPUIHintBarTemplate" frameStrata="FULLSCREEN_DIALOG" virtual="true" hidden="true" mixin="ConsolePortHintBarMixin">
+		<Size x="0" y="72"/>
+		<Anchors>
+			<Anchor point="BOTTOM" relativeTo="UIParent" x="0" y="0"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Gradient" file="Interface\AddOns\ConsolePort\Textures\Window\Menu-TopBG" alpha="0.6">
+					<Size x="0" y="100"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeTo="UIParent"/>
+						<Anchor point="BOTTOMRIGHT" relativeTo="UIParent"/>
+					</Anchors>
+					<TexCoords left="0" right="1" top="1" bottom="0"/>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<!-- Call Frame:LoadArt() to initiate art handler -->
+	<!-- Call Frame:DrawIndex(headerFunc) to draw headers -->
+	<!-- Call Frame:StartEnvironment() to initiate secure environment -->
+	<Frame name="CPUIMenuTemplate" frameStrata="FULLSCREEN" virtual="true" inherits="SecureHandlerShowHideTemplate" mixin="ConsolePortMenuSecureMixin, ConsolePortMenuArtMixin">
+		<Size x="0" y="54"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="UIParent"/>
+			<Anchor point="TOPRIGHT" relativeTo="UIParent"/>
+		</Anchors>
+		<Frames>
+			<PlayerModel parentKey="Flair" name="$parentFlair" hidden="true" alpha="0.25">
+				<Size x="230" y="52"/>
+				<Scripts>
+					<OnLoad>
+						self:SetDisplayInfo(54419);
+						self:SetCamDistanceScale(3);
+						self:SetPosition(0, 0, -1.5);
+					</OnLoad>
+				</Scripts>
+			</PlayerModel>
+			<Frame parentKey="GlowLeft" name="$parentGlowLeft" inherits="CPUILineSheenTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="12"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self:SetDirection('LEFT', 1.5);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Frame parentKey="GlowRight" name="$parentGlowRight" inherits="CPUILineSheenTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="12"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self:SetDirection('RIGHT', 1.5);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Frame parentKey="Decor" name="$parentDecor" setAllPoints="true">
+				<Layers>
+					<Layer level="ARTWORK" textureSubLevel="1">
+						<Texture parentKey="TopLine" file="Interface\AddOns\ConsolePort\Textures\Window\Menu-TopLine.blp">
+							<Size y="8"/>
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" y="-4"/>
+								<Anchor point="BOTTOMRIGHT" y="-4"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="ARTWORK" textureSubLevel="2">
+						<Texture parentKey="Emblem" file="Interface\AddOns\ConsolePort\Textures\Window\Menu-TopLine-Emblem.blp">
+							<Size x="1024" y="16"/>
+							<Anchors>
+								<Anchor point="BOTTOM" y="-16"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="1">
+				<Texture parentKey="BG" name="$parentBG" setAllPoints="true" hidden="true" file="Interface\AddOns\ConsolePort\Textures\Window\Gradient"/>
+			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="2">
+				<Texture parentKey="Art" name="$parentArt" setAllPoints="true" hidden="true" desaturated="true" file="Interface\GLUES\LOADINGSCREENS\LoadingScreen_8xp_ForlornVictory_wide"/>
+			</Layer>
+		</Layers>
+	</Frame>
 </Ui>
 

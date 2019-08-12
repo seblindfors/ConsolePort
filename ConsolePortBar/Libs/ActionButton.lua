@@ -14,8 +14,7 @@ local lib = {}
 ab.libs = ab.libs or {}
 ab.libs.acb = lib
 
-local UIFrameFadeIn = db.UIFrameFadeIn
-local UIFrameFadeOut = db.UIFrameFadeOut
+local UIFrameFadeIn, UIFrameFadeOut = db.GetFaders()
 
 -- Lua functions
 local type, error, tostring, tonumber, assert, select = type, error, tostring, tonumber, assert, select

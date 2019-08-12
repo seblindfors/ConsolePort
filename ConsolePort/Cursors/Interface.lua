@@ -1,3 +1,4 @@
+
 ---------------------------------------------------------------
 -- Cursors\Interface.lua: Interface cursor and node management.
 ---------------------------------------------------------------
@@ -361,7 +362,7 @@ local Node = {
 		[KEY.RIGHT]	= function(destX, _, _, _, thisX, _) return (destX > thisX) end;
 	};
 	cache = {};	-- Temporary node cache when calculating cursor movement
-	scalar = 3; -- Plane scalar to improve intuitive node selection (offset manhattan in secondary plane)
+	scalar = 3; -- Manhattan distance: scale primary plane to improve intuitive node selection
 }
 
 local rectIntersect, vec2Dlen, abs, huge = UIDoFramesIntersect, Vector2D_GetLength, math.abs, math.huge
@@ -388,36 +389,49 @@ function Node:IsInteractive(node, object)
 end
 
 function Node:IsRelevant(node)
-	return not node.ignoreNode and not node:IsForbidden() and node:IsVisible()
+	return node and not node.ignoreNode and not node:IsForbidden() and node:IsVisible()
 end
 
-function Node:IsDrawn(node, scrollFrame)
+function Node:IsTree(node)
+	return not node.ignoreChildren
+end
+
+function Node:GetSuperNode(super, node)
+	return node:IsObjectType('ScrollFrame') and node or super
+end
+
+function Node:IsDrawn(node, super)
 	local x, y = node:GetCenter()
 	if 	x and x <= MAX_WIDTH and x >= 0 and
 		y and y <= MAX_HEIGHT and y >= 0 then
-		if scrollFrame and scrollFrame:GetScrollChild() and not node:IsObjectType('Slider') then
-			return rectIntersect(node, scrollFrame) --or rectIntersect(node, scrollChild)
+		if super and super:GetScrollChild() and not node:IsObjectType('Slider') then
+			return rectIntersect(node, super) --or rectIntersect(node, scrollChild)
 		else
 			return true
 		end
 	end
 end
 
-function Node:Refresh(node, scrollFrame)
+function Node:CacheItem(node, object, super)
+	tinsert(self.cache, node.hasPriority and 1 or #self.cache + 1, {
+		node   = node;
+		object = object;
+		super  = super;
+	});
+end
+
+function Node:Refresh(super, node, sibling, ...)
 	if self:IsRelevant(node) then
 		local object = node:GetObjectType()
-		if 	self:IsInteractive(node, object) and self:IsDrawn(node, scrollFrame) then
-			if node.hasPriority then
-				tinsert(self.cache, 1, {node = node, object = object, scrollFrame = scrollFrame})
-			else
-				self.cache[#self.cache + 1] = {node = node, object = object, scrollFrame = scrollFrame}
-			end
+		if self:IsInteractive(node, object) and self:IsDrawn(node, super) then
+			self:CacheItem(node, object, super)
 		end
-		if 	not node.ignoreChildren then
-			for i, child in ipairs({node:GetChildren()}) do
-				self:Refresh(child, node.GetScrollChild and node or scrollFrame)
-			end
+		if self:IsTree(node) then
+			self:Refresh(self:GetSuperNode(super, node), node:GetChildren())
 		end
+	end
+	if sibling then
+		self:Refresh(super, sibling, ...)
 	end
 end
 
@@ -426,7 +440,7 @@ function Node:RefreshAll()
 		self:Clear()
 		ClearOverride(Cursor)
 		for frame in ConsolePort:GetFrameStack() do
-			self:Refresh(frame)
+			self:Refresh(nil, frame)
 		end
 		self:SetCurrent()
 	end
@@ -510,7 +524,7 @@ function Node:GetScrollButtons(node)
 	end
 end
 
-function Node:Select(node, object, scrollFrame, state)
+function Node:Select(node, object, super, state)
 	local name = node.direction and node:GetName()
 	local override
 	if IsClickable[object] then
@@ -525,8 +539,8 @@ function Node:Select(node, object, scrollFrame, state)
 	-- If this node has a forbidden dropdown value, override macro instead.
 	local macro = DropDownMacros[node.value]
 
-	if scrollFrame and not scrollFrame.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
-		Scroll:To(node, scrollFrame)
+	if super and not super.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
+		Scroll:To(node, super)
 	end
 
 	if not Cursor.InsecureMode then
@@ -557,7 +571,7 @@ end
 function Node:SetCurrent()	
 	if old and old.node:IsVisible() and Node:IsDrawn(old.node) then
 		current = old
-	elseif ( #self.cache > 0 ) and ( not current or not current.node:IsVisible() ) then
+	elseif ( not current and #self.cache > 0 ) or ( current and #self.cache > 0 and not current.node:IsVisible() ) then
 		local x, y, targetNode = Cursor:GetCenter()
 		if not x or not y then
 			targetNode = self.cache[1]
@@ -588,7 +602,7 @@ function Node:SetCurrent()
 		current = targetNode
 	end
 	if current and current ~= old then
-		self:Select(current.node, current.object, current.scrollFrame, KEY.STATE_UP)
+		self:Select(current.node, current.object, current.super, KEY.STATE_UP)
 	end
 end
 
@@ -596,14 +610,14 @@ end
 -- Scroll management
 ---------------------------------------------------------------
 function Scroll:Offset(elapsed)
-	for scrollFrame, target in pairs(self.Active) do
-		local currHorz, currVert = scrollFrame:GetHorizontalScroll(), scrollFrame:GetVerticalScroll()
-		local maxHorz, maxVert = scrollFrame:GetHorizontalScrollRange(), scrollFrame:GetVerticalScrollRange()
+	for super, target in pairs(self.Active) do
+		local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
+		local maxHorz, maxVert = super:GetHorizontalScrollRange(), super:GetVerticalScrollRange()
 		-- close enough, stop scrolling and set to target
 		if ( abs(currHorz - target.horz) < 2 ) and ( abs(currVert - target.vert) < 2 ) then
-			scrollFrame:SetVerticalScroll(target.vert)
-			scrollFrame:SetHorizontalScroll(target.horz)
-			self.Active[scrollFrame] = nil
+			super:SetVerticalScroll(target.vert)
+			super:SetHorizontalScroll(target.horz)
+			self.Active[super] = nil
 			return
 		end
 		local deltaX, deltaY = ( currHorz > target.horz and -1 or 1 ), ( currVert > target.vert and -1 or 1 )
@@ -612,23 +626,23 @@ function Scroll:Offset(elapsed)
 
 	--	print(currHorz, target.horz, newX)
 
-		scrollFrame:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
-		scrollFrame:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
+		super:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
+		super:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
 	end
 	if not next(self.Active) then
 		self:SetScript("OnUpdate", nil)
 	end
 end
 
-function Scroll:To(node, scrollFrame)
+function Scroll:To(node, super)
 	local nodeX, nodeY = node:GetCenter()
-	local scrollX, scrollY = scrollFrame:GetCenter()
+	local scrollX, scrollY = super:GetCenter()
 	if nodeY and scrollY then
 
 		-- make sure this isn't a hybrid scroll frame
-		if scrollFrame:GetScript("OnLoad") ~= hybridScroll then
-			local currHorz, currVert = scrollFrame:GetHorizontalScroll(), scrollFrame:GetVerticalScroll()
-			local maxHorz, maxVert = scrollFrame:GetHorizontalScrollRange(), scrollFrame:GetVerticalScrollRange()
+		if super:GetScript("OnLoad") ~= hybridScroll then
+			local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
+			local maxHorz, maxVert = super:GetHorizontalScrollRange(), super:GetVerticalScrollRange()
 
 			local newVert = currVert + (scrollY - nodeY)
 			local newHorz = 0
@@ -640,7 +654,7 @@ function Scroll:To(node, scrollFrame)
 				self.Active = {}
 			end
 
-			self.Active[scrollFrame] = {
+			self.Active[super] = {
 				vert = newVert < 0 and 0 or newVert > maxVert and maxVert or newVert,
 				horz = newHorz < 0 and 0 or newHorz > maxHorz and maxHorz or newHorz,
 			}
@@ -850,7 +864,7 @@ function ConsolePort:UIControl(key, state)
 	end
 	local node = current and current.node
 	if node then
-		Node:Select(node, current.object, current.scrollFrame, state)
+		Node:Select(node, current.object, current.super, state)
 		if state == KEY.STATE_DOWN or state == nil then
 			Cursor:SetPosition(node)
 		end

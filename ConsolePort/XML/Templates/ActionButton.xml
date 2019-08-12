@@ -88,7 +88,7 @@
 					</Anchors>
 				</Texture>
 			</Layer>
-			<Layer level="OVERLAY" textureSubLevel="1">
+			<Layer level="OVERLAY">
 				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
 					<Anchors>
 						<Anchor point="TOPLEFT"/>

@@ -9,13 +9,11 @@ local LootButton = L.LootButton
 local lootButtonProbeScript = L.lootButtonProbeScript
 local lootHeaderOnSetScript = L.lootHeaderOnSetScript
 
-local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTemplate, SecureHandlerShowHideTemplate, SecureHandlerStateTemplate', {
-	Height = 54,
-	Strata = 'FULLSCREEN',
-	Points = {
-		{'TOPLEFT', UIParent, 'TOPLEFT', 0, 0},
-		{'TOPRIGHT', UIParent, 'TOPRIGHT', 0, 0},
-	},
+-- Dropdown button templates 
+local maskTemplates = {'CPUIMenuButtonBaseTemplate', 'SecureActionButtonTemplate'}
+local baseTemplates = {'CPUIMenuButtonMaskTemplate', 'SecureActionButtonTemplate'}
+
+local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerStateTemplate, CPUIMenuTemplate', {
 	{
 		Character = {
 			Type 	= 'CheckButton',
@@ -24,14 +22,13 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				'SecureHandlerClickTemplate',
 				'CPUIListCategoryTemplate',
 			},
-			Point 	= {'CENTER', -345, 0},
 			Text	= '|TInterface\\Store\\category-icon-armor:18:18:-4:0:64:64:14:50:14:50|t' .. CHARACTER,
 			ID = 1,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{
 				Info  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 1,
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
@@ -75,7 +72,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Inventory  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 2,
 					Point 	= {'TOP', 'parent.Info', 'BOTTOM', 0, 0},
@@ -107,12 +104,11 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Spec  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= maskTemplates,
 					Mixin 	= Button,
 					ID 		= 3,
 					Point 	= {'TOP', 'parent.Inventory', 'BOTTOM', 0, 0},
 					Desc	= TALENTS_BUTTON,
-					NoMask 	= true,
 					RefTo 	= TalentMicroButton,
 					Attrib 	= {hidemenu = true},
 					EvaluateAlertVisibility = function(self)
@@ -128,7 +124,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 							return
 						end
 					end,
-					EnterScript = function(self)
+					OnEnterScript = function(self)
 						if self.tooltipText then
 							GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
 							GameTooltip:SetText(self.tooltipText)
@@ -136,13 +132,13 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 							self.hideTooltipOnLeave = true
 						end
 					end,
-					LeaveScript = function(self)
+					OnLeaveHook = function(self)
 						if self.hideTooltipOnLeave then
 							GameTooltip:Hide()
 							self.hideTooltipOnLeave = nil
 						end
 					end,
-					LoadScript = function(self)
+					OnLoadHook = function(self)
 						local iconFile, iconTCoords = CPAPI:GetClassIcon()
 						self.Icon:SetTexture(iconFile)
 						self.Icon:SetTexCoord(unpack(iconTCoords))
@@ -198,7 +194,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Spellbook  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 4,
 					Point 	= {'TOP', 'parent.Spec', 'BOTTOM', 0, 0},
@@ -209,7 +205,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Collections  = IsRetail and {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 5,
 					Point 	= {'TOP', 'parent.Spellbook', 'BOTTOM', 0, 0},
@@ -227,14 +223,13 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				'SecureHandlerClickTemplate',
 				'CPUIListCategoryTemplate',
 			},
-			Point 	= {'CENTER', -115, 0},
 			Text	= '|TInterface\\Store\\category-icon-weapons:18:18:-4:0:64:64:14:50:14:50|t' .. GAME,
 			ID 	= 2,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{
 				QuestLog  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 1,
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
@@ -245,7 +240,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				WorldMap  = IsClassic and {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 2,
 					Point 	= {'TOP', 'parent.QuestLog', 'BOTTOM', 0, 0},
@@ -256,7 +251,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Guide  = IsRetail and {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 2,
 					Point 	= {'TOP', 'parent.QuestLog', 'BOTTOM', 0, 0},
@@ -293,7 +288,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Finder  = IsRetail and {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 3,
 					Point 	= {'TOP', 'parent.Guide', 'BOTTOM', 0, 0},
@@ -304,7 +299,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Achievements  = IsRetail and {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 4,
 					Point 	= {'TOP', 'parent.Finder', 'BOTTOM', 0, -16},
@@ -315,7 +310,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				WhatsNew  = IsRetail and {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 5,
 					Point 	= {'TOP', 'parent.Achievements', 'BOTTOM', 0, 0},
@@ -325,7 +320,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Shop  = IsRetail and {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 6,
 					Point 	= {'TOP', 'parent.WhatsNew', 'BOTTOM', 0, 0},
@@ -335,7 +330,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Teleport  = IsRetail and {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 7,
 					Point 	= {'TOP', IsRetail and 'parent.Shop' or 'parent.WorldMap', 'BOTTOM', 0, 0},
@@ -363,14 +358,13 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				'SecureHandlerClickTemplate',
 				'CPUIListCategoryTemplate',
 			},
-			Point 	= {'CENTER', 115, 0},
 			Text	= '|TInterface\\Store\\category-icon-featured:18:18:-4:0:64:64:14:50:14:50|t' .. SOCIAL_BUTTON,
 			ID = 3,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{	
 				Friends  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 1,
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
@@ -400,7 +394,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Guild  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 2,
 					Point 	= {'TOP', 'parent.Friends', 'BOTTOM', 0, 0},
@@ -411,7 +405,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Calendar  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 3,
 					Point 	= {'TOP', 'parent.Guild', 'BOTTOM', 0, 0},
@@ -422,7 +416,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Raid  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 4,
 					Point 	= {'TOP', 'parent.Calendar', 'BOTTOM', 0, 0},
@@ -435,7 +429,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Party  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 5,
 					Point 	= {'TOP', 'parent.Raid', 'BOTTOM', 0, -16},
@@ -466,21 +460,19 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				'SecureHandlerClickTemplate',
 				'CPUIListCategoryTemplate',
 			},
-			Point 	= {'CENTER', 345, 0},
 			Text	= '|TInterface\\Store\\category-icon-wow:18:18:-4:0:64:64:14:50:14:50|t' .. SYSTEMOPTIONS_MENU,
 			ID = 4,
 			SetAttribute = {'_onclick', 'self:GetParent():RunAttribute("ShowHeader", self:GetID())'},
 			{
 				Return  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= maskTemplates,
 					Mixin 	= Button,
 					ID 		= 1,
 					Point 	= {'TOP', 'parent', 'BOTTOM', 0, -16},
 					Desc	= RETURN_TO_GAME,
 					RefTo 	= GameMenuButtonContinue,
-					NoMask  = true,
-					LoadScript = function(self)
+					OnLoadHook = function(self)
 						local iconFile, iconTCoords = CPAPI:GetClassIcon()
 						self.Icon:SetTexture(iconFile)
 						self.Icon:SetTexCoord(unpack(iconTCoords))
@@ -489,7 +481,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Logout  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 2,
 					Point 	= {'TOP', 'parent.Return', 'BOTTOM', 0, 0},
@@ -499,7 +491,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Exit  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 3,
 					Point 	= {'TOP', 'parent.Logout', 'BOTTOM', 0, 0},
@@ -509,12 +501,11 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Controller  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= maskTemplates,
 					Mixin 	= Button,
 					ID 		= 4,
 					Point 	= {'TOP', 'parent.Exit', 'BOTTOM', 0, -16},
 					Desc	= CONTROLS_LABEL,
-					NoMask 	= true,
 					Img 	= db.TEXTURE.CP_X_CENTER,
 					Attrib 	= {hidemenu = true},
 					OnClick = function() 
@@ -527,7 +518,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				System  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 5,
 					Point 	= {'TOP', 'parent.Controller', 'BOTTOM', 0, 0},
@@ -537,7 +528,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Interface  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 6,
 					Point 	= {'TOP', 'parent.System', 'BOTTOM', 0, 0},
@@ -547,7 +538,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				AddOns  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 7,
 					Point 	= {'TOP', 'parent.Interface', 'BOTTOM', 0, 0},
@@ -557,7 +548,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Macros  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 8,
 					Point 	= {'TOP', 'parent.AddOns', 'BOTTOM', 0, -16},
@@ -567,7 +558,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				KeyBindings  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 9,
 					Point 	= {'TOP', 'parent.Macros', 'BOTTOM', 0, 0},
@@ -577,7 +568,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 				},
 				Help  = {
 					Type 	= 'Button',
-					Setup 	= {'SecureActionButtonTemplate'},
+					Setup 	= baseTemplates,
 					Mixin 	= Button,
 					ID 		= 10,
 					Point 	= {'TOP', 'parent.KeyBindings', 'BOTTOM', 0, 0},
@@ -590,6 +581,8 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerBaseTempl
 	},
 })
 
+-- In case we're adding the loot dropdown
+tinsert(maskTemplates, 'SecureHandlerBaseTemplate')
 local lootWireFrame = {
 	Loot = {
 		Type 	= 'CheckButton',
@@ -627,10 +620,9 @@ local lootWireFrame = {
 		{
 			Loot1  = {
 				Type 	= 'Button',
-				Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+				Setup 	= maskTemplates,
 				Mixin 	= LootButton,
 				ID 		= 1,
-				NoMask 	= true,
 				Img 	= ICON:format('INV_Misc_QuestionMark'),
 				Obj 	= GroupLootFrame1,
 				Probe 	= {GroupLootFrame1, 'probescript', nil, lootButtonProbeScript},
@@ -647,10 +639,9 @@ local lootWireFrame = {
 			},
 			Loot2  = {
 				Type 	= 'Button',
-				Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+				Setup 	= maskTemplates,
 				Mixin 	= LootButton,
 				ID 		= 2,
-				NoMask 	= true,
 				Obj 	= GroupLootFrame2,
 				Img 	= ICON:format('INV_Misc_QuestionMark'),
 				Probe 	= {GroupLootFrame2, 'probescript', nil, lootButtonProbeScript},
@@ -667,10 +658,9 @@ local lootWireFrame = {
 			},
 			Loot3  = {
 				Type 	= 'Button',
-				Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+				Setup 	= maskTemplates,
 				Mixin 	= LootButton,
 				ID 		= 3,
-				NoMask 	= true,
 				Obj 	= GroupLootFrame3,
 				Img 	= ICON:format('INV_Misc_QuestionMark'),
 				Probe 	= {GroupLootFrame3, 'probescript', nil, lootButtonProbeScript},
@@ -687,10 +677,9 @@ local lootWireFrame = {
 			},
 			Loot4  = {
 				Type 	= 'Button',
-				Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+				Setup 	= maskTemplates,
 				Mixin 	= LootButton,
 				ID 		= 4,
-				NoMask 	= true,
 				Obj 	= GroupLootFrame4,
 				Img 	= ICON:format('INV_Misc_QuestionMark'),
 				Probe 	= {GroupLootFrame4, 'probescript', nil, lootButtonProbeScript},
@@ -707,7 +696,7 @@ local lootWireFrame = {
 			},
 			-- Bonus  = {
 			-- 	Type 	= 'Button',
-			-- 	Setup 	= {'SecureHandlerBaseTemplate', 'SecureActionButtonTemplate'},
+			-- 	Setup 	= maskTemplates,
 			-- 	Mixin 	= LootButton,
 			-- 	ID 		= 5,
 			-- 	NoMask 	= true,
@@ -739,24 +728,12 @@ do
 	end
 
 	lootWireFrame = nil
+	maskTemplates = nil
+	baseTemplates = nil
 
-
-	Menu:Execute([[
-		headers = newtable()
-		hID, bID = 4, 1
-	]])
-
-	local NUM_HEADERS = 0
-	for i, header in pairs({Menu:GetChildren()}) do
-		header.HighlightTexture:SetVertexColor(0.47, 0.86, 1)
-
-		NUM_HEADERS = NUM_HEADERS + 1
-
-		Menu:SetFrameRef('newheader', header)
-		Menu:Execute([[
-			local newheader = self:GetFrameRef('newheader')
-			headers[newheader:GetID()] = newheader
-		]])
+	Menu:StartEnvironment()
+	Menu:Execute('hID, bID = 4, 1')
+	Menu:DrawIndex(function(header)
 		for i, button in ipairs({header:GetChildren()}) do
 			if button:GetAttribute('hidemenu') then
 				button:SetAttribute('type', 'macro')
@@ -771,14 +748,13 @@ do
 			button:Hide()
 			header:SetFrameRef(tostring(button:GetID()), button)
 		end
-	end
-
-	Menu:Execute(format('numheaders = %s', NUM_HEADERS))
+	end)
 
 	UI:RegisterFrame(Menu, 'Menu', false, true)
 	UI:HideFrame(GameMenuFrame, true)
 
 	Menu:SetScale(cfg.scale)
+	Menu:LoadArt()
 
 	L.Menu = Menu
 end

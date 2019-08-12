@@ -7,7 +7,7 @@
 -- secure frames with the 'unit' attribute assigned.
 
 local 	addOn, db = ...
-local 	Flash, FadeIn, FadeOut = db.UIFrameFlash, db.UIFrameFadeIn, db.UIFrameFadeOut
+local 	Flash, FadeIn, FadeOut = db.UIFrameFlash, db.GetFaders()
 ---------------------------------------------------------------
 local 	Cursor = ConsolePortRaidCursor
 ---------------------------------------------------------------

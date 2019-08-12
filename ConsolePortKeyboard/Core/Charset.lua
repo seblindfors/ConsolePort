@@ -67,8 +67,7 @@ function Keyboard:CreateCharset(i)
 	Charset:SetPoint("CENTER", self, "CENTER", -ptx, pty)
 	Charset:SetScript("OnShow", CharSetShow)
 
-	Charset.FadeIn = db.UIFrameFadeIn
-	Charset.FadeOut = db.UIFrameFadeOut
+	Charset.FadeIn, Charset.FadeOut = db.GetFaders()
 	Charset.Enter = CharSetEnter
 	Charset.Leave = CharSetLeave
 

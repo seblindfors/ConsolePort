@@ -6,35 +6,10 @@
 
 local addOn, db = ...
 ---------------------------------------------------------------
-local Controller
----------------------------------------------------------------
 local tonumber, ipairs, pairs = tonumber, ipairs, pairs
 local spairs, copy = db.table.spairs, db.table.copy
 ---------------------------------------------------------------
-local class = select(2, UnitClass('player'))
----------------------------------------------------------------
--- Integer keys for interface manipulation
----------------------------------------------------------------
-db.KEY = {
-	CIRCLE  	= 1,
-	SQUARE 		= 2,
-	TRIANGLE 	= 3,
-	UP			= 4,
-	DOWN		= 5,
-	LEFT		= 6,
-	RIGHT		= 7,
-	CROSS 		= 8,
-	SHARE 		= 9,
-	OPTIONS 	= 10,
-	CENTER 		= 11,
-	T1 			= 12,
-	T2 			= 13,
-	STATE_UP 	= 'up',
-	STATE_DOWN	= 'down',
-}
-setmetatable(db.KEY, {__newindex = function() end})
-local KEY = db.KEY
-
+local Controller
 ---------------------------------------------------------------
 function ConsolePort:LoadLookup()
 	Controller = db.Controllers[db.Settings.type]
@@ -44,6 +19,77 @@ end
 -- Plug-in access to addon table
 ---------------------------------------------------------------
 function ConsolePort:GetData() return db end
+
+---------------------------------------------------------------
+-- Integer keys for UI operations
+---------------------------------------------------------------
+local KEY, KEY_INV, KEY_TO_BIND, BIND_TO_KEY
+---------------------------------------------------------------
+db.KEY = {
+	CROSS 	 = 1,
+	TRIANGLE = 2,
+	CIRCLE   = 3,
+	SQUARE 	 = 4,
+	UP       = 5,
+	DOWN     = 6,
+	LEFT     = 7,
+	RIGHT    = 8,
+	SHARE    = 9,
+	OPTIONS  = 10,
+	CENTER   = 11,
+	T1       = 12,
+	T2       = 13,
+	M1       = 14,
+	M2       = 15,
+	STATE_UP 	= 'up',
+	STATE_DOWN	= 'down',
+}
+setmetatable(db.KEY, {__newindex = function() end})
+---------------------------------------------------------------
+KEY, KEY_INV = db.KEY, db.table.flip(db.KEY)
+---------------------------------------------------------------
+BIND_TO_KEY = {
+	-- Right side
+	CP_R_UP     = KEY.TRIANGLE,
+	CP_R_DOWN   = KEY.CROSS,
+	CP_R_LEFT   = KEY.SQUARE,
+	CP_R_RIGHT  = KEY.CIRCLE,
+	-- Left side
+	CP_L_UP     = KEY.UP,
+	CP_L_DOWN   = KEY.DOWN,
+	CP_L_LEFT   = KEY.LEFT,
+	CP_L_RIGHT  = KEY.RIGHT,
+	-- Option buttons
+	CP_X_LEFT   = KEY.SHARE,
+	CP_X_CENTER = KEY.CENTER,
+	CP_X_RIGHT  = KEY.OPTIONS,
+	-- Triggers
+	CP_T1       = KEY.T1,
+	CP_T2       = KEY.T2,
+	-- Modifiers
+	CP_M1       = KEY.M1,
+	CP_M2       = KEY.M2,
+}
+KEY_TO_BIND = db.table.flip(BIND_TO_KEY)
+---------------------------------------------------------------
+-- Get the binding/integer key used to perform UI operations
+---------------------------------------------------------------
+function ConsolePort:IterateUIControlKeys()
+	return ipairs(KEY_INV)
+end
+
+function ConsolePort:GetUIControlKey(binding)
+	return BIND_TO_KEY[binding]
+end
+
+function ConsolePort:GetUIControlBinding(key)
+	return KEY_TO_BIND[key]
+end
+
+function ConsolePort:GetUIControlKeyFromInput(binding)
+	local action = GetBindingAction(binding or '')
+	return self:GetUIControlKey(action)
+end
 
 ---------------------------------------------------------------
 -- Action IDs and their corresponding binding
@@ -126,6 +172,8 @@ local actionIDs = {
 	[169] 	= 'EXTRAACTIONBUTTON1',
 }
 
+---------------------------------------------------------------
+local class = select(2, UnitClass('player'))
 -- action ID thresholds
 local classReserved = {
 	['WARRIOR'] = 96,
@@ -377,63 +425,6 @@ function ConsolePort:GetFormattedBindingOwner(bindingID, set, size, useLargeIcon
 end
 
 ---------------------------------------------------------------
--- Get the integer key used to perform UI operations
----------------------------------------------------------------
-function ConsolePort:GetUIControlKey(key)
-	local keys = {
-		-- Right side
-		CP_R_UP 	= KEY.TRIANGLE,
-		CP_R_DOWN 	= KEY.CROSS,
-		CP_R_LEFT 	= KEY.SQUARE,
-		CP_R_RIGHT 	= KEY.CIRCLE,
-		-- Left side
-		CP_L_UP 	= KEY.UP,
-		CP_L_DOWN 	= KEY.DOWN,
-		CP_L_LEFT 	= KEY.LEFT,
-		CP_L_RIGHT 	= KEY.RIGHT,
-		-- Option buttons
-		CP_X_LEFT = KEY.SHARE,
-		CP_X_CENTER = KEY.CENTER,
-		CP_X_RIGHT = KEY.OPTIONS,
-		-- Triggers
-		CP_T1 = KEY.T1,
-		CP_T2 = KEY.T2,
-	}
-	return keys[key]
-end
-
-function ConsolePort:GetUIControlKeyOwner(key)
-	local keyToBinding = {
-		-- Right side
-		[KEY.TRIANGLE] 	= 'CP_R_UP',
-		[KEY.CROSS] 	= 'CP_R_DOWN',
-		[KEY.SQUARE] 	= 'CP_R_LEFT',
-		[KEY.CIRCLE] 	= 'CP_R_RIGHT', 
-		-- Left side
-		[KEY.UP] 		= 'CP_L_UP',
-		[KEY.DOWN] 		= 'CP_L_DOWN',
-		[KEY.LEFT] 		= 'CP_L_LEFT',
-		[KEY.RIGHT] 	= 'CP_L_RIGHT', 
-		-- Option buttons
-		[KEY.SHARE] 	= 'CP_X_LEFT',
-		[KEY.CENTER] 	= 'CP_X_CENTER',
-		[KEY.OPTIONS] 	= 'CP_X_RIGHT',
-		-- Triggers 
-		[KEY.T1] 		= 'CP_T1',
-		[KEY.T2] 		= 'CP_T2',
-		-- Modifiers
-		['M1'] 			= 'CP_M1',
-		['M2'] 			= 'CP_M2',
-	}
-	return keyToBinding[key]
-end
-
-function ConsolePort:GetUIControlKeyFromInput(binding)
-	local action = GetBindingAction(binding or '')
-	return self:GetUIControlKey(action)
-end
-
----------------------------------------------------------------
 -- Get the modifiers currently used by ConsolePort
 ---------------------------------------------------------------
 local IsShiftKeyDown, IsControlKeyDown = IsShiftKeyDown, IsControlKeyDown
@@ -545,7 +536,6 @@ function ConsolePort:GetDefaultMouseCursor()
 		Scroll 	= 'CP_M1',
 	}
 end
-
 
 ---------------------------------------------------------------
 -- Get all hidden customly created convenience bindings 

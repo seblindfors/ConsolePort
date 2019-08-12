@@ -5,7 +5,7 @@
 
 local _, db = ...
 local TUTORIAL = db.TUTORIAL.CONFIG
-local FadeIn, FadeOut, Mixin = db.UIFrameFadeOut, db.UIFrameFadeIn, db.table.mixin
+local Mixin, FadeIn, FadeOut = db.table.mixin, db.GetFaders()
 local red, green, blue = db.Atlas.GetCC()
 ---------------------------------------------------------------
 local ConsolePort, WindowMixin = ConsolePort, {}

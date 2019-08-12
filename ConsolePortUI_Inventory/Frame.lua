@@ -261,7 +261,7 @@ do  -- Bag setup
 		for slot = 1, 36 do
 			local id = ((bag)*36) + slot
 			local button = _G['ContainerFrame' .. (bag+1) .. 'Item' .. slot]
-			local secureButton = CreateFrame('Button', _..'Item'..id, frame, 'CPUIInventoryItemButtonTemplate, SecureActionButtonTemplate')
+			local secureButton = CreateFrame('ItemButton', _..'Item'..id, frame, 'CPUIInventoryItemButtonTemplate, SecureActionButtonTemplate')
 
 			secureButton:SetAttribute('type', 'item')
 			secureButton:SetAttribute('bag', bag)
