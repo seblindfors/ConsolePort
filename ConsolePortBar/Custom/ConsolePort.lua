@@ -23,41 +23,7 @@ ConsolePortRaidCursor:Execute([[
 
 
 ---------------------------------------------------------------
--- Override the original consoleport action button lookup, to
--- stop it from adding hotkey textures to the controller bars.
--- It will still add hotkey textures to override/vehicle bars,
--- and any other action bars present that match the criteria.
+-- Stop action button lookup from adding hotkeys to the bars,
+-- since this is handled internally by the wrapper.
 
-local valid_action_buttons = {
-	Button = true,
-	CheckButton = true,
-}
-
--- Wrap this function since it's recursive.
-local function GetActionButtons(buttons, this)
-	buttons = buttons or {}
-	this = this or UIParent
-	if this:IsForbidden() or this == bar then
-		return buttons
-	end
-	local action = this:IsProtected() and valid_action_buttons[this:GetObjectType()] and this:GetAttribute('action')
-	if action and tonumber(action) and this:GetAttribute('type') == 'action' then
-		buttons[this] = action
-	end
-	for _, object in ipairs({this:GetChildren()}) do
-		GetActionButtons(buttons, object)
-	end
-	return buttons
-end
-
----------------------------------------------------------------
--- Get all buttons that look like action buttons
----------------------------------------------------------------
-function ConsolePort:GetActionButtons(getTable, parent)
-	if getTable then
-		return GetActionButtons(parent)
-	else
-		return pairs(GetActionButtons(parent))
-	end
-end
----------------------------------------------------------------
+ConsolePort:SetIgnoreFrameForActionLookup(bar, true)

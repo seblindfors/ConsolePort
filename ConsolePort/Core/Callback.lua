@@ -33,31 +33,39 @@ function ConsolePort:RemoveUpdateSnippet(snippet)
 	end
 end
 
+function ConsolePort:RunOOC(snippet, ...)
+	if InCombatLockdown() then
+		self:AddUpdateSnippet(snippet, ...)
+	else
+		snippet(self, ...)
+	end
+end
+
 ---------------------------------------------------------------
 -- Callback management
 ---------------------------------------------------------------
 -- If information needs to be updated when a native function
 -- is called, this snippet will run stored functions in response. 
 
-local callBacks, owners = {}, {}
+local callbacks, cvarCallbacks, owners = {}, {}, {}
 
-function ConsolePort:RegisterCallback(name, func, owner, orderIndex)
-	assert(type(name) == 'string', 'First argument is not a valid string. Arguments (RegisterCallback): \'name\', function')
-	assert(type(func) == 'function', 'Second argument is not a function. Arguments (RegisterCallback): \'name\', function')
-	assert(type(self[name]) == 'function', 'Named function does not exist. Arguments (RegisterCallback): \'name\', function')
+function ConsolePort:RegisterCallback(method, func, owner, orderIndex)
+	assert(type(method) == 'string', 'First argument is not a valid string. Arguments (RegisterCallback): \'method\', callback')
+	assert(type(func) == 'function', 'Second argument is not a function. Arguments (RegisterCallback): \'method\', callback')
+	assert(type(self[method]) == 'function', 'Named method does not exist. Arguments (RegisterCallback): \'method\', callback')
 
 	-- Store the owner
 	if owner then
-		owners[name] = owners[name] or {}
-		owners[name][func] = owner
+		owners[method] = owners[method] or {}
+		owners[method][func] = owner
 	end
 
 	-- Add hook if it doesn't exist
-	if not callBacks[name] then
+	if not callbacks[method] then
 		local functionsToRun = {}
-		local callBackOwners = owners[name]
-		callBacks[name] = functionsToRun
-		hooksecurefunc(self, name, function(self, ...)
+		local callBackOwners = owners[method]
+		callbacks[method] = functionsToRun
+		hooksecurefunc(self, method, function(self, ...)
 			for _, callback in ipairs(functionsToRun) do
 				callback(callBackOwners and callBackOwners[callback] or self, ...)
 			end
@@ -65,27 +73,60 @@ function ConsolePort:RegisterCallback(name, func, owner, orderIndex)
 	end
 
 	if orderIndex then
-		tinsert(callBacks[name], func, orderIndex)
+		tinsert(callbacks[method], func, orderIndex)
 	else
-		tinsert(callBacks[name], func)
+		tinsert(callbacks[method], func)
 	end
 end
 
-function ConsolePort:UnregisterCallback(name, func)
-	assert(callBacks[name], 'No callbacks are registered for this function.')
+function ConsolePort:UnregisterCallback(method, func)
+	assert(callbacks[method], ('No callbacks are registered for %s.'):format(method))
 	local index, poppedFunc
-	for i, storedFunc in ipairs(callBacks[name]) do
+	for i, storedFunc in ipairs(callbacks[method]) do
 		if func == storedFunc then
 			index = i
 			poppedFunc = storedFunc
 			break
 		end
 	end
-	if poppedFunc and owners[name] then
-		owners[name][poppedFunc] = nil
+	if poppedFunc and owners[method] then
+		owners[method][poppedFunc] = nil
 	end
 	if index then
-		tremove(callBacks[name], index)
+		tremove(callbacks[method], index)
 		return true
+	end
+end
+
+function ConsolePort:RegisterVarCallback(cvar, func, owner, ...)
+	cvarCallbacks[cvar] = cvarCallbacks[cvar] or {}
+	for i, data in ipairs(cvarCallbacks[cvar]) do
+		if data[1] == func then
+			cvarCallbacks[cvar][i] = {func, owner, ...}
+			return
+		end
+	end
+	tinsert(cvarCallbacks[cvar], {func, owner, ...})
+end
+
+
+function ConsolePort:FireVarCallback(cvar, newvalue)
+	local cvarCallbacks = cvarCallbacks[cvar]
+	if cvarCallbacks then
+		for i, data in ipairs(cvarCallbacks) do
+			local callback, owner = data[1], data[2]
+			-- create lambda wrapper to fire OOC
+			local function cb(caller, lambda, callback, ...)
+				if not InCombatLockdown() then
+					caller:RemoveUpdateSnippet(lambda)
+					callback(...)
+				end
+			end
+			if C_Widget.IsFrameWidget(owner) then
+				self:RunOOC(cb, cb, callback, owner, newvalue, unpack(data, 3))
+			else
+				self:RunOOC(cb, cb, callback, newvalue, owner, unpack(data, 3))
+			end
+		end
 	end
 end

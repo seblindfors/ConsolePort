@@ -11,7 +11,7 @@ local 	Core,
 		-- General functions
 		After, SetHook, IsLoaded,
 		-- Table functions
-		pairs, next,
+		pairs, next, unravel,
 		-- Stacks: all frames, visible frames, show/hide hooks
 		frames, visible, hooks, forbidden, obstructors,
 		-- Boolean checks (default nil)
@@ -19,7 +19,7 @@ local 	Core,
 		-------------------------------------
 		ConsolePort,
 		C_Timer.After, hooksecurefunc, IsAddOnLoaded,
-		pairs, next, {}, {}, {}, {}, {}
+		pairs, next, db.table.unravel, {}, {}, {}, {}, {}
 ---------------------------------------------------------------
 -- Externals:
 ---------------------------------------------------------------
@@ -252,8 +252,12 @@ function Core:UpdateFrames()
 end
 
 -- Returns a stack of visible frames.
-function Core:GetFrameStack()
+function Core:IterateVisibleCursorFrames()
 	return pairs(visible)
+end
+
+function Core:GetVisibleCursorFrames()
+	return unravel(visible)
 end
 
 function Core:IsFrameVisibleToCursor(...)

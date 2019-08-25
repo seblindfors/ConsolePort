@@ -53,11 +53,18 @@ local function ToggleHealthBarForUnit(unit)
 		local nameplate = GetNamePlate(unit)
 		local unitFrame = nameplate and nameplate.UnitFrame
 		local healthBar = unitFrame and unitFrame.healthBar
-		if healthBar then
+		local levelInfo = unitFrame and unitFrame.LevelFrame
+		if healthBar or levelInfo then
 			local isFriend = IsFriend('player', unit)
 			local isTarget = IsUnit('target', unit)
 			local isCombat = IsOpponent('player', unit)
-			healthBar:SetShown(isCombat or not (isFriend or not isTarget))
+			local show = isCombat or not (isFriend or not isTarget)
+			if healthBar then
+				healthBar:SetShown(show)
+			end
+			if levelInfo then
+				levelInfo:SetShown(show)
+			end
 		end
 	end
 end
@@ -228,7 +235,7 @@ function AI:OnShow()
 		pcall(self.RegisterEvent, self, event)
 	end
 	if not nameOnlyMode then
-		self:UnregisterEvent('UNIT_THREAT_LIST_UPDATE')
+		pcall(self.UnregisterEvent, self, 'UNIT_THREAT_LIST_UPDATE')
 	end
 end
 

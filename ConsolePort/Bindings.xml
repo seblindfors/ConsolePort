@@ -30,6 +30,10 @@
 	<Binding name="CP_T7" category="ConsolePort "/>
 	<Binding name="CP_T8" category="ConsolePort "/>
 
+	<!-- Radial -->
+	<Binding name="CP_RADIAL_VERT" hidden="true"/>
+	<Binding name="CP_RADIAL_HORZ" hidden="true"/>
+
 	<!-- Custom bindings -->
 	<Binding name="WM_UPDATE" hidden="true">
 		if ConsolePort and ConsolePort.WMupdate then

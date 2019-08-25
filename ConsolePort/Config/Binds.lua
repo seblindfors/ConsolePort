@@ -108,13 +108,6 @@ local config = {
 		["BUTTON1"] = "CAMERAORSELECTORMOVE",
 		["BUTTON2"] = "TURNORACTION",
 	},
-	-- Hard-coded movement bindings
-	movement = {
-		MOVEFORWARD 	= {"W", "UP"},
-		MOVEBACKWARD 	= {"S", "DOWN"},
-		STRAFELEFT 		= {"A", "LEFT"},
-		STRAFERIGHT 	= {"D", "RIGHT"},
-	},
 	-- Display button texture setup
 	displayButton = {
 		LeftNormal = 	{1, {0.1064, 0.2080, 0.3886, 0.4462}, 	{83.2, 47.2}, {"LEFT", 0, 0}},
@@ -447,28 +440,6 @@ local function SetMouseBindings(self, handler, bindingSet)
 	end
 end
 
-local function SetMovementBindings(self, handler)
-	local movement = config.movement
-	if db('turnCharacter') then
-		movement.TURNLEFT = movement.STRAFELEFT
-		movement.TURNRIGHT = movement.STRAFERIGHT
-		movement.STRAFELEFT = nil
-		movement.STRAFERIGHT = nil
-	elseif not movement.STRAFELEFT or not movement.STRAFERIGHT then
-		movement.STRAFELEFT = movement.TURNLEFT
-		movement.STRAFERIGHT = movement.TURNRIGHT
-		movement.TURNLEFT = nil
-		movement.TURNRIGHT = nil
-	end
-	for direction, keys in spairs(movement) do
-		for _, key in ipairs(keys) do
-			for modifier in self:GetModifiers() do
-				SetOverrideBinding(handler, false, modifier..key, direction)
-			end
-		end
-	end
-end
-
 function ConsolePort:LoadBindingSet(newBindingSet, fireCallback)
 	local calibration = db('calibration')
 	if calibration then
@@ -479,7 +450,6 @@ function ConsolePort:LoadBindingSet(newBindingSet, fireCallback)
 	local bindingSet = newBindingSet or db.Bindings or {}
 	local handler = ConsolePortButtonHandler
 	ClearOverrideBindings(handler)
-	SetMovementBindings(self, handler)
 	if not db('disableStickMouse') then
 		SetMouseBindings(self, handler, bindingSet)
 	end
@@ -508,7 +478,7 @@ function ConsolePort:LoadInterfaceBinding(button, UIbutton)
 		if button.action.HotKey then
 			button.action.HotKey:SetAlpha(0)
 		end
-		button:ShowInterfaceHotKey()
+		button:ShowInterfaceHotkey()
 	else
 		self:AddWidgetTracker(button, UIbutton)
 	end

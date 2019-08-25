@@ -3,7 +3,13 @@
 	<!-- Method frame (invisible), frame object necessary for OnUpdate and override bindings -->
 	<Frame name="ConsolePort">
 		<Frames>
-			<Frame name="ConsolePortButtonHandler" inherits="SecureHandlerStateTemplate"/>
+			<Button name="$parentPager" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
+			<Frame name="$parentButtonHandler" inherits="SecureHandlerStateTemplate"/>
+			<Frame name="$parentRadialHandler" inherits="SecureHandlerBaseTemplate">
+				<Attributes>
+					<Attribute name="locked" type="boolean" value="true"/>
+				</Attributes>
+			</Frame>
 		</Frames>
 	</Frame>
 	<Script>
@@ -205,16 +211,16 @@
 		Generally speaking, these should be named and globally accessible to allow for access
 		via faux macros and override bindings by name.
 
-		ConsolePortMouseHandle: Mouse handle (shows interaction hints, handles interaction overrides).
-		ConsolePortUIHandle: 	User interface handle, parses environment commands and performs secure actions.
-		ConsolePortSpellFlyout: D-pad selection in spell flyouts.
-		ConsolePortRaidCursor:	Target selection in raids and parties.
-		ConsolePortTargetAI:	Remembers interactive NPCs and lets user interact with them.
-		ConsolePortOBExit:		Exit vehicle/override/possess bar with a dynamic binding.
-		ConsolePortFocusButton: Hold to re-route spells to focus target. (FOCUSCAST override)
+		ConsolePortMouseHandle:   Mouse handle (shows interaction hints, handles interaction overrides).
+		ConsolePortUIHandle: 	  User interface handle, parses environment commands and performs secure actions.
+		ConsolePortUtilityToggle: Main radial action bar, controlled with left stick/touchpad.
+		ConsolePortSpellFlyout:   D-pad selection in spell flyouts.
+		ConsolePortRaidCursor:	  Target selection in raids and parties.
+		ConsolePortTargetAI:	  Remembers interactive NPCs and lets user interact with them.
+		ConsolePortOBExit:		  Exit vehicle/override/possess bar with a dynamic binding.
+		ConsolePortFocusButton:   Hold to re-route spells to focus target. (FOCUSCAST override)
 		ConsolePortEasyMotionButton :  Easy Motion (combo shortcuts for targeting).
 	-->
-
 
 	<!-- Core\Mouse.lua -->
 	<Frame name="ConsolePortMouseHandle" parent="UIParent" inherits="SecureHandlerAttributeTemplate" alpha="0" frameStrata="LOW">
@@ -262,13 +268,11 @@
 		</Layers>
 	</Frame>
 
-
 	<!-- Drivers\UIControl.lua -->
 	<Button name="ConsolePortUIHandle" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate">
 		<Frames>
 			<!-- Displays button hints at the bottom of the screen -->
-			<Frame name="$parentHintBar" parentKey="HintBar" hidden="true">
-				<Size x="0" y="72"/>
+			<Frame name="$parentHintBar" parentKey="HintBar" hidden="true" inherits="CPUIHintBarTemplate">
 				<Anchors>
 					<Anchor point="BOTTOM" relativeTo="UIParent" x="0" y="0"/>
 				</Anchors>
@@ -284,18 +288,67 @@
 						</Texture>
 					</Layer>
 				</Layers>
+			</Frame>
+		</Frames>
+	</Button>
+
+	<!-- Frames\Utility.lua -->
+	<Button name="ConsolePortUtilityToggle" parent="UIParent" hidden="true" inherits="ConsolePortRingTemplate">
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Gradient" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Window\Circle">
+					<Size x="256" y="256"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="Full" file="Interface\AddOns\ConsolePort\Textures\Utility\UtilityGlow8" alpha="0.5">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Arrow" file="Interface\AddOns\ConsolePort\Textures\Utility\UtilityArrow" alpha="0.0" rotation="0">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Runes" file="Interface\AddOns\ConsolePort\Textures\Utility\UtilityRunes" alpha="0.0" rotation="0">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="2">
+				<Texture parentKey="Ring" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Textures\Utility\UtilityCircle" alpha="0.0" rotation="0">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<PlayerModel parentKey="Spell" alpha="0.0" hidden="true">
+				<Size x="176" y="176"/>
+				<Anchors>
+					<Anchor point="CENTER" x="-4" y="0"/>
+				</Anchors>
 				<Scripts>
 					<OnLoad>
-						self.Active = {};
-						self.Frames = {};
-						self:GetParent().StoredHints = {};
-
-						self:SetParent(UIParent);
-						self:SetIgnoreParentAlpha(true);
-						self:SetFrameStrata('FULLSCREEN_DIALOG');
+						self:SetDisplayInfo(66673); -- 42486 (old)
+						self:SetCamDistanceScale(2);
+						self:SetFrameLevel(1);
 					</OnLoad>
 				</Scripts>
-			</Frame>
+			</PlayerModel>
 		</Frames>
 	</Button>
 
@@ -345,7 +398,6 @@
 			</Layer>
 		</Layers>
 	</Button>
-
 
 	<!-- Cursors\UnitFrames.lua -->
 	<Button name="ConsolePortRaidCursor" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" registerForClicks="AnyDown" frameStrata="TOOLTIP" hidden="true">

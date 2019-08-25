@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- Secure.lua: Secure action button management 
+-- Button.lua: Secure action button management 
 ---------------------------------------------------------------
 -- Creates all secure action buttons used by the addon.
 -- These buttons are also used to bind UI widgets, since
@@ -9,11 +9,10 @@
 local _, db = ...
 local KEY = db.KEY
 ---------------------------------------------------------------
-local 	ConsolePort, Button, Handler = 
-		ConsolePort, {}, ConsolePortButtonHandler
+local Button = {}
 ---------------------------------------------------------------
-RegisterStateDriver(Handler, 'combat', '[combat] true; nil')
-Handler:SetAttribute('_onstate-combat', [[
+RegisterStateDriver(ConsolePortButtonHandler, 'combat', '[combat] true; nil')
+ConsolePortButtonHandler:SetAttribute('_onstate-combat', [[
 	control:ChildUpdate('combat', newstate)
 ]])
 ---------------------------------------------------------------
@@ -55,7 +54,7 @@ end
 ---------------------------------------------------------------
 function Button:UIControl()
 	self:Show()
-	ConsolePort:UIControl(self.command, self.state)
+	self.Core:UIControl(self.command, self.state)
 end
 
 -- Clear button override
@@ -71,20 +70,20 @@ end
 
 -- HotKey textures and indicators
 ---------------------------------------------------------------
-function Button:ShowHotKey(index, actionButton)
-	local HotKey = self.HotKeys[index]
-	HotKey:SetParent(actionButton)
-	HotKey:ClearAllPoints()
-	HotKey:SetPoint('TOPRIGHT', actionButton, 0, 0)
-	HotKey:Show()
+function Button:ShowHotkey(index, actionButton)
+	local hotkey = self.HotKeys[index]
+	hotkey:SetParent(actionButton)
+	hotkey:ClearAllPoints()
+	hotkey:SetPoint('TOPRIGHT', actionButton, 0, 0)
+	hotkey:Show()
 end
 
-function Button:ShowInterfaceHotKey(custom, forceStyle)
-	for i, HotKey in pairs(self.HotKeys) do
-		HotKey:Hide()
+function Button:ShowInterfaceHotkey(custom, forceStyle)
+	for i, hotkey in pairs(self.HotKeys) do
+		hotkey:Hide()
 	end
-	self.HotKeys[1] = self.HotKeys[1] or self:CreateHotKey(forceStyle)
-	self:ShowHotKey(1, custom or self.action)
+	self.HotKeys[1] = self.HotKeys[1] or self:CreateHotkey(forceStyle)
+	self:ShowHotkey(1, custom or self.action)
 end
 
 ---------------------------------------------------------------
@@ -92,6 +91,7 @@ end
 -- Variables to be mixed in on init
 Button.timer = 0
 Button.state = KEY.STATE_UP
+Button.Core  = ConsolePort
 
 -- Optional repeater
 local function CheckHeldDown(self, elapsed)
@@ -111,17 +111,17 @@ local keyUpdate = {
 }
 
 ---------------------------------------------------------------
--- SecureBtn: Button init
+-- SecureBtn: Set/get
 ---------------------------------------------------------------
-function ConsolePort:CreateSecureButton(name, modifier, command)
-	local btn 	= CreateFrame('Button', name..modifier, Handler, 'SecureActionButtonTemplate, SecureHandlerBaseTemplate')
+function ConsolePort:SetSecureButton(name, modifier, command)
+	local btn = CreateFrame('Button', name..modifier, ConsolePortButtonHandler, 'SecureActionButtonTemplate, SecureHandlerBaseTemplate')
 	btn:Hide()
 	btn.command = command
 	btn.name = name
 	btn.mod = modifier
 	-----------------------------------------------------------
 	btn.HotKeys = {}
-	btn.CreateHotKey = db.CreateHotKey
+	btn.CreateHotkey = db.CreateHotkey
 	-----------------------------------------------------------
 	btn:SetAttribute('_childupdate-combat', [[
 		if message then

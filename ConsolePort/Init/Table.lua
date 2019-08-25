@@ -42,6 +42,22 @@ local function flip(src)
 	return t or src
 end
 ---------------------------------------------------------------
+-- Unravel: Unpacks associative keys/values for a given table
+---------------------------------------------------------------
+local function unravel(t, i)
+	local k = next(t, i)
+	if k ~= nil then
+		return k, unravel(t, k)
+	end
+end
+
+local function unravelv(t, i)
+	local k, v = next(t, i)
+	if k ~= nil then
+		return v, unravelv(t, k)
+	end
+end
+---------------------------------------------------------------
 -- Compare: Recursive table comparator, checks if identical
 ---------------------------------------------------------------
 local function compare(t1, t2)
@@ -75,8 +91,7 @@ end
 -- spairs: Sort by non-numeric key, handy for string keys
 ---------------------------------------------------------------
 local function spairs(t, order)
-	local keys = {}
-	for k in pairs(t) do keys[#keys+1] = k end
+	local keys = {unravel(t)}
 	if order then
 		table.sort(keys, function(a,b) return order(t, a, b) end)
 	else
@@ -113,4 +128,6 @@ local function mixin(object, ...)
 end
 
 ---------------------------------------------------------------
-tbl.copy, tbl.flip, tbl.compare, tbl.spairs, tbl.mixin = copy, flip, compare, spairs, mixin
+tbl.copy, tbl.flip, tbl.compare = copy, flip, compare
+tbl.unravel, tbl.unravelv = unravel, unravelv
+tbl.spairs, tbl.mixin = spairs, mixin

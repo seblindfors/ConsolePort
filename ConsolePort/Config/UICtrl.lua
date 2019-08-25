@@ -753,7 +753,7 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 		button.name = info.name
 		button.mod = "CTRL-SHIFT-"
 
-		button.HotKey = db.CreateHotKey(button, index)
+		button.HotKey = db.CreateHotkey(button, index)
 		button.HotKey:Show()
 		button.HotKey:SetPoint("TOPRIGHT", 0, 0)
 

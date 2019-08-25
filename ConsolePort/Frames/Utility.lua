@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
--- Utility.lua: Radial 8 button action bar  
+-- Utility.lua: Main radial action bar  
 ---------------------------------------------------------------
--- Creates an 8 button action bar that can be populated with
+-- Creates an action bar that can be populated with
 -- items, spells, mounts, macros, etc. The user may manually
 -- assign items from container buttons inside bag frames.
 -- Action buttons can grab info from cursor.
@@ -16,20 +16,14 @@ local GetItemCooldown = GetItemCooldown
 local InCombatLockdown = InCombatLockdown
 ---------------------------------------------------------------
 local 	Utility, Tooltip, Animation, AniCircle = 
-		CreateFrame('Button', 'ConsolePortUtilityToggle', UIParent, 'SecureHandlerBaseTemplate, SecureHandlerStateTemplate, SecureActionButtonTemplate'),
-		CreateFrame('GameTooltip', 'ConsolePortUtilityTooltip', ConsolePortUtilityToggle, 'GameTooltipTemplate'),
+		ConsolePortUtilityToggle,
+		ConsolePortUtilityToggle.Tooltip,
 		CreateFrame('Frame', 'ConsolePortUtilityAnimation', UIParent),
 		CreateFrame('Frame', 'ConsolePortUtilityAnimationCircle', UIParent)
----------------------------------------------------------------
-local ActionButtons, ButtonMixin = {}, {}
 ---------------------------------------------------------------
 local red, green, blue = db.Atlas.GetCC()
 local colMul = 1 + ( 1 - (( red + green + blue ) / 3) )
 ---------------------------------------------------------------
-local NUM_BUTTONS = 8
-local RADIAN_FRACTION = rad( 360 / NUM_BUTTONS )
-local ANI_SPEED = 2
-local ANI_SMOOTH = 1.35
 
 function Animation:ShowNewAction(actionButton, autoassigned)
 	-- if an item was auto-assigned, postpone its animation until the current animation has finished
@@ -45,18 +39,18 @@ function Animation:ShowNewAction(actionButton, autoassigned)
 		self.Quest:Hide()
 	end
 	local scale = Utility.frameScale or 1
-	self.Icon:SetTexture(actionButton.icon.texture)
---	self.Spell:SetSize(175, 175)
+	self.Icon:SetTexture(actionButton.Icon.texture)
+	--self.Spell:SetSize(175, 175)
 	self:ClearAllPoints()
 	self:SetPoint('CENTER', actionButton)
 	self:SetScale(scale)
 	self:Show()
 	self.Group:Stop()
 	self.Group:Play()
---	FadeOut(self.Spell, 3, 0.15, 0)
+	--FadeOut(self.Spell, 3, 0.15, 0)
 
-	if ConsolePortUtility[actionButton.ID] then
-		local value = ConsolePortUtility[actionButton.ID].value
+	if ConsolePortUtility[actionButton:GetID()] then
+		local value = ConsolePortUtility[actionButton:GetID()].value
 		local binding = ConsolePort:GetFormattedBindingOwner('CLICK ConsolePortUtilityToggle:LeftButton', nil, nil, true)
 		if value then
 			local string = binding and ' '..binding or '.'
@@ -68,7 +62,7 @@ function Animation:ShowNewAction(actionButton, autoassigned)
 		end
 	end
 
-	local angle = -actionButton.angle
+	local angle = actionButton:GetAttribute('rotation')
 	AniCircle:Show()
 	AniCircle:SetScale(scale)
 	AniCircle.Ring:SetRotation(angle)
@@ -92,7 +86,7 @@ function Utility:AnimateNew(button) Animation:ShowNewAction(_G[button], true) en
 local function AddAction(actionType, ID, autoassigned)
 	ID = tonumber(ID) or ID
 	local alreadyBound
-	for id, ActionButton in pairs(ActionButtons) do
+	for id, ActionButton in pairs(Utility.Buttons) do
 		alreadyBound = 	( ActionButton:GetAttribute('type') == actionType and
 						( ActionButton:GetAttribute('cursorID') == ID or ActionButton:GetAttribute(actionType) == ID) ) and id
 		if alreadyBound then
@@ -100,9 +94,9 @@ local function AddAction(actionType, ID, autoassigned)
 		end
 	end
 	if alreadyBound and not autoassigned then
-		Animation:ShowNewAction(ActionButtons[alreadyBound])
+		Animation:ShowNewAction(Utility.Buttons[alreadyBound])
 	elseif not alreadyBound then
-		for _, ActionButton in ipairs(ActionButtons) do
+		for _, ActionButton in ipairs(Utility.Buttons) do
 			if not ActionButton:GetAttribute('type') then
 				if actionType == 'item' then
 					ActionButton:SetAttribute('cursorID', ID)
@@ -147,7 +141,7 @@ end
 
 local function GetAutoAssignedItems()
 	local items = {}
-	for _, button in ipairs(ActionButtons) do
+	for _, button in ipairs(Utility.Buttons) do
 		local itemID = button:GetAutoAssigned()
 		if itemID then
 			items[itemID] = button
@@ -207,89 +201,62 @@ function Utility:OnEvent(event, ...)
 	if (event == 'QUEST_ACCEPTED' or 
 		event == 'QUEST_POI_UPDATE' or 
 		event == 'QUEST_WATCH_LIST_CHANGED') and self.autoExtra then
-		ConsolePort:AddUpdateSnippet(UpdateQuestItems)
+		ConsolePort:RunOOC(UpdateQuestItems)
 	end
-	for _, ActionButton in ipairs(ActionButtons) do
+	for _, ActionButton in ipairs(self.Buttons) do
 		ActionButton:UpdateState()
 	end
 end
 
-function Utility:SetNewRotationValue(newAngle)
-	self.newAngle = newAngle
-	if self.currAngle then
-		local radChange = abs(self.newAngle) - abs(self.currAngle)
-		-- offset is too large, lap reset 
-		if abs(radChange) > 1 then
-			local delta = radChange > 0 and 1 or -1
-			self.currAngle = self.newAngle - (delta * RADIAN_FRACTION)
-		end
-		return true
-	else
-		self.currAngle = newAngle
-		return false
+
+function Utility:OnButtonFocused(index)
+	local button = self:GetAttribute(index)
+	local focused = self.oldID and self:GetAttribute(self.oldID)
+	if  focused then
+		focused:OnLeave()
 	end
-end
+	if 	button and button:IsVisible() then
+		button:OnEnter()
 
-function Utility:SetRotation(value)
-	self.Ring:SetRotation(value)
-	self.Arrow:SetRotation(value)
-	self.Runes:SetRotation(value)
-end
-
-
-function Utility:OnAttributeChanged(attribute, detail)
-	if attribute == 'index' then
-		local actionButton = ActionButtons[detail]
-		local oldButton = ActionButtons[self.oldID]
-		if oldButton then
-			oldButton:OnLeave()
-		end
-		if 	actionButton then
-			actionButton:OnEnter()
-		end
-		if actionButton and actionButton:IsVisible() then
-			if self:SetNewRotationValue(-actionButton.angle) then
-				FadeOut(self.Spell, 1, self.Spell:GetAlpha(), 0)
-			else
-				self:SetRotation(self.newAngle)
-				FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.15)	
-			end
-
-			FadeIn(self.Arrow, 0.2, self.Arrow:GetAlpha(), 1)
-
-			if actionButton:GetAttribute('type') then
-				FadeIn(self.Runes, 3, self.Runes:GetAlpha(), 1)
-				FadeIn(self.Ring, 0.2, self.Ring:GetAlpha(), 1)
-			else
-				FadeOut(self.Ring, 0.5, self.Ring:GetAlpha(), 0)
-				FadeOut(self.Runes, 0.5, self.Runes:GetAlpha(), 0)
-			end
-
-			self.Gradient:Show()
-			self.Gradient:ClearAllPoints()
-			self.Gradient:SetPoint('CENTER', actionButton, 'CENTER', 0, 0)
-			FadeIn(self.Gradient, 0.2, self.Gradient:GetAlpha(), 1)
-
-			self.Spell:Show()
-			self.Spell:ClearAllPoints()
-			self.Spell:SetPoint('CENTER', actionButton, 0, 0)
+		if self:SetNewRotationValue(button:GetAttribute('rotation')) then
+			FadeOut(self.Spell, 1, self.Spell:GetAlpha(), 0)
 		else
-			FadeOut(self.Runes, 0.2, self.Runes:GetAlpha(), 0)
-			FadeOut(self.Arrow, 0.2, self.Arrow:GetAlpha(), 0)
-			FadeOut(self.Ring, 0.1, self.Ring:GetAlpha(), 0)
-
-			self.newAngle = nil
-			self.currAngle = nil
-
-			self.Gradient:SetAlpha(0)
-			self.Gradient:ClearAllPoints()
-			self.Gradient:Hide()
-
-			self.Spell:ClearAllPoints()
-			self.Spell:Hide()
+			FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.15)
 		end
-		self.oldID = detail
+
+		if button:GetAttribute('type') then
+			FadeIn(self.Runes, 3, self.Runes:GetAlpha(), 1)
+			FadeIn(self.Ring, 0.2, self.Ring:GetAlpha(), 1)
+		else
+			FadeOut(self.Ring, 0.5, self.Ring:GetAlpha(), 0)
+			FadeOut(self.Runes, 0.5, self.Runes:GetAlpha(), 0)
+		end
+
+		self.Gradient:Show()
+		self.Gradient:ClearAllPoints()
+		self.Gradient:SetPoint('CENTER', button, 'CENTER', 0, 0)
+		FadeIn(self.Gradient, 0.2, self.Gradient:GetAlpha(), 1)
+		FadeIn(self.Arrow, 0.2, self.Arrow:GetAlpha(), 1)
+
+		self.Spell:Show()
+		self.Spell:ClearAllPoints()
+		self.Spell:SetPoint('CENTER', button, 0, 0)
+	else
+		FadeOut(self.Runes, 0.2, self.Runes:GetAlpha(), 0)
+		FadeOut(self.Arrow, 0.2, self.Arrow:GetAlpha(), 0)
+		FadeOut(self.Ring, 0.1, self.Ring:GetAlpha(), 0)
+
+		self.anglenew = nil
+		self.anglecur = nil
+
+		self.Gradient:SetAlpha(0)
+		self.Gradient:ClearAllPoints()
+		self.Gradient:Hide()
+
+		self.Spell:ClearAllPoints()
+		self.Spell:Hide()
 	end
+	self.oldID = index
 end
 
 function Utility:DisplayHints(elapsed)
@@ -309,150 +276,42 @@ function Utility:DisplayHints(elapsed)
 	end
 end
 
-function Utility:OnUpdate(elapsed)
+function Utility:OnUpdateDisplay(elapsed)
 	if self.hasHints then
 		self:DisplayHints(elapsed)
-	end
-	if self.newAngle ~= self.currAngle then
-		local dist = (self.newAngle - self.currAngle)
-		local smoothVal = abs(dist / ANI_SPEED) ^ ANI_SMOOTH
-		local diff = dist < 0 and -smoothVal or smoothVal
-		self.currAngle = self.currAngle + diff
-		if abs( abs(self.currAngle) - abs(self.newAngle) ) < 0.02 then
-			self.currAngle = self.newAngle
-		--	FadeIn(self.Spell, 0.2, self.Spell:GetAlpha(), 0.15)
-		end
-		self:SetRotation(self.currAngle)
 	end
 end
 
 function Utility:OnShow()
 	Animation:Hide()
 	AniCircle:Hide()
---	self.Spell:SetSize(175, 175)
+	--self.Spell:SetSize(175, 175)
 	FadeOut(self.Ring, 0, 0, 0)
 	FadeOut(self.Arrow, 0, 0, 0)
 	FadeOut(self.Runes, 0, 0, 0)
 	self.hintTimer = 0
 	self.hasHints = true
-	self.newAngle = nil
 end
 
 function Utility:OnHide()
-	for i, ActionButton in pairs(ActionButtons) do
-		ActionButton:OnLeave()
-	end
-	self.currAngle = nil
-	self.newAngle = nil
 	self.Gradient:SetAlpha(0)
 	self.Gradient:ClearAllPoints()
 	self.Gradient:Hide()
 --	self.Spell:Hide()
 end
 
-Utility:Execute([[
-	---------------------------------------------------------------
-	KEYS = newtable()
-	---------------------------------------------------------------
-	KEYS.UP 	= false		KEYS.W 		= false
-	KEYS.LEFT 	= false		KEYS.A 		= false
-	KEYS.DOWN 	= false		KEYS.S 		= false
-	KEYS.RIGHT 	= false		KEYS.D 		= false
-	---------------------------------------------------------------
-]])
-Utility:Execute([[
-	CursorUpdate = [=[
-		local hasItem = ...
-		if hasItem then
-			self:Show()
-			for i=1, 8 do
-				local button = self:GetFrameRef(tostring(i))
-				if not button:GetAttribute('type') then
-					button:SetAlpha(0.5)
-				end
-			end
-		elseif not hasItem and not self:GetAttribute('toggled') then
-			self:Hide()
-			for i=1, 8 do
-				local button = self:GetFrameRef(tostring(i))
-				if not button:GetAttribute('type') then
-					button:SetAlpha(0.5)
-				end
-			end
-		end
-	]=]
-
-	UseUtility = [=[
-		self:SetAttribute('toggled', ...)
-
-		if self:GetAttribute('toggled') then
-			self:SetAttribute('index', 0)
-			self:Show()
-			for key in pairs(KEYS) do
-				self:SetBindingClick(true, key, 'ConsolePortUtilityButton'..key)
-				self:SetBindingClick(true, 'CTRL-'..key, 'ConsolePortUtilityButton'..key)
-				self:SetBindingClick(true, 'SHIFT-'..key, 'ConsolePortUtilityButton'..key)
-				self:SetBindingClick(true, 'CTRL-SHIFT-'..key, 'ConsolePortUtilityButton'..key)
-			end
-		else
-			for key in pairs(KEYS) do
-				KEYS[key] = false
-			end
-			self:ClearBindings()
-			self:Hide()
-			self:Run(CursorUpdate, nil)
-		end
-	]=]
-]])
-Utility:SetAttribute('_onkey', [[
-	local key, down = ...
-	if down then
-		if key == 'UP' then
-			KEYS.DOWN = false
-			KEYS.UP = true
-		elseif key == 'DOWN' then
-			KEYS.UP = false
-			KEYS.DOWN = true
-		elseif key == 'LEFT' then
-			KEYS.RIGHT = false
-			KEYS.LEFT = true
-		elseif key == 'RIGHT' then
-			KEYS.LEFT = false
-			KEYS.RIGHT = true
-		end
-	else
-		KEYS[key] = false
-	end
-	self:SetAttribute('index', 
-		( KEYS.UP and KEYS.RIGHT 	) and 2 or
-		( KEYS.DOWN and KEYS.RIGHT 	) and 4 or
-		( KEYS.DOWN and KEYS.LEFT 	) and 6 or
-		( KEYS.UP and KEYS.LEFT 	) and 8 or
-		( KEYS.UP 					) and 1 or
-		( KEYS.RIGHT 				) and 3 or
-		( KEYS.DOWN 				) and 5 or
-		( KEYS.LEFT 				) and 7 or 0)
-	local button = self:GetFrameRef(tostring(self:GetAttribute('index')))
-	if button then
-		self:SetBindingClick(true, 'BUTTON1', button, 'RightButton')
-	else
-		self:ClearBinding('BUTTON1')
-	end
-]])
-Utility:SetAttribute('_onstate-cursor', [[
-	self:Run(CursorUpdate, newstate)
-]])
-Utility:SetAttribute('_onstate-extrabar', [[
+Utility:SetAttribute('_onextrabar', [[
 	local extraID = 169
+	local size = self:RunAttribute('_getsize')
 	if newstate then
-		for i=1, 8 do
+		for i=1, size do
 			local button = self:GetFrameRef(tostring(i))
 			if 	button:GetAttribute('type') == 'action' and button:GetAttribute('action') == extraID then
 				self:CallMethod('AnimateNew', button:GetName())
 				return
 			end
 		end
-		for i=1, 8 do
+		for i=1, size do
 			local button = self:GetFrameRef(tostring(i))
 			if 	not button:GetAttribute('type') then
 				button:SetAlpha(1)
@@ -463,7 +322,7 @@ Utility:SetAttribute('_onstate-extrabar', [[
 			end
 		end
 	else
-		for i=1, 8 do
+		for i=1, size do
 			local button = self:GetFrameRef(tostring(i))
 			if 	button:GetAttribute('type') == 'action' and button:GetAttribute('action') == extraID then
 				button:SetAlpha(0.5)
@@ -474,280 +333,79 @@ Utility:SetAttribute('_onstate-extrabar', [[
 	end
 ]])
 
-RegisterStateDriver(Utility, 'cursor', '[cursor] true; nil')
-RegisterStateDriver(Utility, 'extrabar', '[extrabar] true; nil')
 ---------------------------------------------------------------
-Utility:RegisterForClicks('LeftButtonDown', 'LeftButtonUp')
-Utility:WrapScript(Utility, 'PreClick', [[
-	self:Run(UseUtility, down)
-	if down then
-		self:SetAttribute('type', nil)
-		self:ClearBinding('BUTTON1')
-	else
-		local button = self:GetFrameRef(tostring(self:GetAttribute('index')))
-		if button then
-			local actionType = button:GetAttribute('type')
-			local actionID = actionType and button:GetAttribute(actionType)
-			if actionID then
-				self:SetAttribute('type', actionType)
-				self:SetAttribute(actionType, actionID)
-			end
-		else
-			self:SetAttribute('type', nil)
+-- Callbacks
+---------------------------------------------------------------
+local function OnButtonContentChanged(self, actionType)
+	ConsolePortUtility[self:GetID()] = {
+		action = actionType;
+		value = self:GetAttribute(actionType);
+		cursorID = self:GetAttribute('cursorID');
+		autoassigned = self:GetAttribute('autoassigned');
+	}
+end
+
+local function OnButtonContentRemoved(self)
+	ConsolePortUtility[self:GetID()] = nil
+end
+
+
+function Utility:OnNewButton(button, index, angle, rotation)
+	button.Cooldown:SetSwipeColor(db.Atlas.GetNormalizedCC())
+	button.Pushed:SetVertexColor(red, green, blue, 1)
+
+	button.OnContentChanged = OnButtonContentChanged
+	button.OnContentRemoved = OnButtonContentRemoved
+	self:SetAttribute(tostring(angle), button)
+end
+
+function Utility:OnNewRotation(value)
+	self.Ring:SetRotation(value)
+	self.Arrow:SetRotation(value)
+	self.Runes:SetRotation(value)
+end
+
+function Utility:OnRefresh(size)
+	for index, info in pairs(ConsolePortUtility) do
+		local actionButton = self.Buttons[index]
+		if actionButton and info.action then
+			actionButton:SetAttribute('autoassigned', info.autoassigned)
+			actionButton:SetAttribute('type', info.action)
+			actionButton:SetAttribute('cursorID', info.cursorID)
+			actionButton:SetAttribute(info.action, info.value)
+			actionButton:Show()
 		end
 	end
-]])
-Utility:WrapScript(Utility, 'OnDoubleClick', [[
-	self:Run(UseUtility, true)
-	self:Run(CursorUpdate, true)
-]])
----------------------------------------------------------------
-local buttons = {
-	['UP'] 		= {'W', 'UP'},
-	['LEFT'] 	= {'A', 'LEFT'},
-	['DOWN'] 	= {'S', 'DOWN'},
-	['RIGHT'] 	= {'D', 'RIGHT'},
-}
----------------------------------------------------------------
-for direction, keys in pairs(buttons) do
-	for _, key in pairs(keys) do
-		local button = CreateFrame('Button', 'ConsolePortUtilityButton'..key, Utility, 'SecureHandlerClickTemplate')
-		button:RegisterForClicks('LeftButtonDown', 'LeftButtonUp')
-		button:SetAttribute('_onclick', ([[ self:GetParent():RunAttribute('_onkey', '%s', down) ]]):format(direction))
-	end
-end
----------------------------------------------------------------
 
----------------------------------------------------------------
--- ButtonMixin for all actionbuttons
----------------------------------------------------------------
-local dropTypes = {
-	item = true,
-	spell = true,
-	macro = true,
-	mount = true,
-}
+	self.autoExtra = db.Settings.autoExtra
+	self.frameScale = db.Settings.utilityRingScale or 1
+	self:SetScale(self.frameScale)
 
-function ButtonMixin:PreClick(button)
-	if not InCombatLockdown() then
-		if button == 'RightButton' then
-			self:SetAttribute('type', nil)
-			self.cooldown:SetCooldown(0, 0)
-			self.Count:SetText()
-			ClearCursor()
-		elseif dropTypes[GetCursorInfo()] then
-			self:SetAttribute('type', nil)
-		end
-	end
-end
+	self.Runes:SetSize(448 + (8 * size), 448 + (8 * size))
+	self.Full:SetTexture([[Interface\AddOns\ConsolePort\Textures\Utility\UtilityGlow]]..size)
 
-function ButtonMixin:PostClick(button)
-	if dropTypes[GetCursorInfo()] then
-		local cursorType, id,  _, spellID = GetCursorInfo()
-		ClearCursor()
-
-		if InCombatLockdown() then
-			return
-		end
-
-		local newValue
-
-		-- Garrison ability
-		if cursorType == 'spell' and spellID == 161691 then
-			newValue = spellID
-		-- Convert spellID to name
-		elseif cursorType == 'spell' then
-			newValue = GetSpellInfo(id, 'spell')
-		-- Summon favorite mount, ignore this
-		elseif cursorType == 'mount' and id == 268435455 then
-			return
-		elseif cursorType == 'mount' then
-			newValue = C_MountJournal.GetMountInfoByID(id)
-			cursorType = 'spell'
-		end
-
-		self:SetAttribute('type', cursorType)
-		self:SetAttribute('cursorID', id)
-		self:SetAttribute(cursorType, newValue or id)
-	end
-end
-
-function ButtonMixin:SetCooldown(time, cooldown, enable)
-	if time and cooldown then
-		self.onCooldown = true
-		self.cooldown:SetCooldown(time, cooldown, enable)
-	else
-		self.onCooldown = false
-		self.cooldown:SetCooldown(0, 0)
-	end
-end
-
-function ButtonMixin:SetCharges(charges)
-	self.Count:SetText(charges)
-end
-
-function ButtonMixin:SetUsable(isUsable)
-	if isUsable then
-		self.icon:SetVertexColor(1, 1, 1)
-	else
-		self.icon:SetVertexColor(0.5, 0.5, 0.5)
-	end
-end
-
-function ButtonMixin:SetTexture(actionType, actionValue)
-	local texture, isQuest
-	if actionValue then
-		if actionType == 'item' then
-			texture = select(10, GetItemInfo(actionValue))
-			isQuest = select(12, GetItemInfo(actionValue)) == 12
-		elseif actionType == 'spell' then
-			texture = select(3, GetSpellInfo(actionValue))
-		elseif actionType == 'macro' then
-			texture = select(2, GetMacroInfo(actionValue))
-		elseif actionType == 'action' then
-			texture = GetActionTexture(actionValue)
-		end
-	end
-	if texture then
-		self.icon.texture = texture
-		self.icon:SetTexture(texture)
-		self:SetAlpha(1)
-		self.icon:SetVertexColor(1, 1, 1)
-	else
-		self.icon.texture = nil
-		self.icon:SetTexture(nil)
-		self:SetAlpha(0.5)
-	end
-	if isQuest then
-		self.isQuest = true
-		self.Quest:Show()
-	else
-		self.isQuest = nil
-		self.Quest:Hide()
-	end
-end
-
-function ButtonMixin:OnAttributeChanged(attribute, detail)
-	-- omit on autoassigned and statehidden
-	if (attribute == 'autoassigned' or attribute == 'statehidden' or attribute == 'unit') then return end
-
-	-- omit on item/mount added, because they need translation first.
-	if detail then
-		if attribute == 'item' and tonumber(detail) then
-			local name = GetItemInfo(detail)
-			self:SetAttribute('item', name)
-			return
-		elseif attribute == 'mount' then
-			local spellID = select(2, C_MountJournal.GetMountInfoByID(detail))
-			self:SetAttribute('mountID', spellID)
-			self:SetAttribute('type', 'spell')
-			self:SetAttribute('spell', spellID)
-			return
-		end
-		ClearCursor()
+	if self.autoExtra then
+		ConsolePort:RunOOC(UpdateQuestItems)
 	end
 
-	-- update the icon texture
-	self:UpdateTexture()
+	self:SetCursorDrop(true)
+	self:SetExtraButtonDrop(self.autoExtra)
 	
-	-- store the new info in SV
-	local actionType = self:GetAttribute('type')
-	if actionType then
-		ConsolePortUtility[self.ID] = {
-			action = actionType,
-			value = self:GetAttribute(actionType),
-			cursorID = self:GetAttribute('cursorID'),
-			autoassigned = self:GetAttribute('autoassigned'),
-		}
-	else
-		self:SetAttribute('autoassigned', nil)
-		ConsolePortUtility[self.ID] = nil
-	end
+	for _, event in pairs({
+		'ACTIONBAR_UPDATE_COOLDOWN',
+		'ACTIONBAR_UPDATE_STATE',
+		'ACTIONBAR_UPDATE_USABLE',
+		'BAG_UPDATE',
+		'BAG_UPDATE_COOLDOWN',
+		'QUEST_ACCEPTED',
+		'QUEST_POI_UPDATE',
+		'QUEST_WATCH_LIST_CHANGED',
+		'SPELL_UPDATE_COOLDOWN',
+		'SPELL_UPDATE_CHARGES',
+		'SPELL_UPDATE_USABLE',
+	}) do pcall(self.RegisterEvent, self, event) end
 end
 
-function ButtonMixin:OnEnter()
-	self.HasFocus = true
-	FadeIn(self.Pushed, 0.1, self.Pushed:GetAlpha(), 1)
-	FadeIn(self.Highlight, 0.1, self.Highlight:GetAlpha(), 1)
-	FadeOut(self.NormalTexture, 0.1, self.NormalTexture:GetAlpha(), 1)
-	FadeOut(self.Quest, 0.1, self.Quest:GetAlpha(), 0)
-end
-
-function ButtonMixin:OnLeave()
-	self.HasFocus = nil
-	if Tooltip:GetOwner() == self then
-		Tooltip:Hide()
-	end
-	FadeOut(self.Pushed, 0.2, self.Pushed:GetAlpha(), 0)
-	FadeOut(self.Highlight, 0.2, self.Highlight:GetAlpha(), 0)
-	FadeIn(self.NormalTexture, 0.2, self.NormalTexture:GetAlpha(), 0.75)
-	FadeIn(self.Quest, 0.2, self.Quest:GetAlpha(), 1)
-end
-
-function ButtonMixin:GetAutoAssigned()
-	return self:GetAttribute('autoassigned') and self:GetAttribute('item')
-end
-
-function ButtonMixin:UpdateTexture(action, val)
-	action = action or self:GetAttribute('type')
-	val = val or (action and self:GetAttribute(action))
-	self:SetTexture(action, val)
-end
-
-function ButtonMixin:UpdateState()
-	local action = self:GetAttribute('type')
-	self:UpdateTexture(action)
-
-	if action == 'item' then
-		local item = self:GetAttribute('item')
-		if item then
-			local count = GetItemCount(item)
-			local _, _, maxStack = select(6, GetItemInfo(item))
-			self:SetCooldown(GetItemCooldown(self:GetAttribute('cursorID')))
-			self:SetUsable(IsUsableItem(item))
-			self:SetCharges(maxStack and maxStack > 1 and (count or 0))
-		end
-	elseif action == 'spell' then
-		local spellID = self:GetAttribute('spell')
-		self:SetCharges(GetSpellCharges(spellID))
-		if spellID then
-			self:SetUsable(IsUsableSpell(spellID))
-			self:SetCooldown(GetSpellCooldown(spellID))
-		end
-	elseif action == 'action' then
-		local actionID = self:GetAttribute('action')
-		if actionID then
-			self:SetUsable(IsUsableAction(actionID))
-			self:SetCooldown(GetActionCooldown(actionID))
-		end
-	end
-end
-
-function ButtonMixin:OnUpdate(elapsed)
-	self.Timer = self.Timer + elapsed
-	while self.Timer > 0.25 do
-		if self.HasFocus then
-			self.Idle = self.Idle + self.Timer
-			if self.Idle > 1 then
-				local action = self:GetAttribute('type')
-				if action == 'item' then
-					Tooltip:SetOwner(self, 'ANCHOR_BOTTOM', 0, -16)
-					Tooltip:SetItemByID(self:GetAttribute('cursorID'))
-				elseif action == 'spell' then
-					local id = select(7, GetSpellInfo(self:GetAttribute('spell')))
-					if id then
-						Tooltip:SetOwner(self, 'ANCHOR_BOTTOM', 0, -16)
-						Tooltip:SetSpellByID(id)
-					end
-				end
-				self.HasFocus = nil
-			end
-		else
-			self.Idle = 0
-		end
-		self.Timer = self.Timer - 0.25
-	end
-end
 
 ---------------------------------------------------------------
 function ConsolePort:AddUtilityAction(actionType, value)
@@ -759,190 +417,24 @@ end
 function ConsolePort:SetupUtilityRing()
 	if not InCombatLockdown() then
 		Utility:UnregisterAllEvents()
-		for index, info in pairs(ConsolePortUtility) do
-			local actionButton = ActionButtons[index]
-			if info.action then
-				actionButton:SetAttribute('autoassigned', info.autoassigned)
-				actionButton:SetAttribute('type', info.action)
-				actionButton:SetAttribute('cursorID', info.cursorID)
-				actionButton:SetAttribute(info.action, info.value)
-				actionButton:Show()
-			end
-		end
-
-		Utility.autoExtra = db.Settings.autoExtra
-		Utility.frameScale = db.Settings.utilityRingScale or 1
-		Utility:SetScale(Utility.frameScale)
-
-		if Utility.autoExtra then
-			self:AddUpdateSnippet(UpdateQuestItems)
-		end
-
-		for _, event in pairs({
-			'ACTIONBAR_UPDATE_COOLDOWN',
-			'ACTIONBAR_UPDATE_STATE',
-			'ACTIONBAR_UPDATE_USABLE',
-			'BAG_UPDATE',
-			'BAG_UPDATE_COOLDOWN',
-			'QUEST_ACCEPTED',
-			'QUEST_POI_UPDATE',
-			'QUEST_WATCH_LIST_CHANGED',
-			'SPELL_UPDATE_COOLDOWN',
-			'SPELL_UPDATE_CHARGES',
-			'SPELL_UPDATE_USABLE',
-		}) do pcall(Utility.RegisterEvent, Utility, event) end
-
+		Utility:Initialize()
 		self:RemoveUpdateSnippet(self.SetupUtilityRing)
 	end
 end
 
----------------------------------------------------------------
-for i=1, NUM_BUTTONS do
-	local x, y, r = 0, 0, 180 -- xOffset, yOffset, radius
-	local angle = (i+1) * RADIAN_FRACTION
-	local ptx, pty = x + r * math.cos( angle ), y + r * math.sin( angle )
-	local button = CreateFrame('Button', 'ConsolePortUtilityActionButton'..i, Utility, 'ActionButtonTemplate, SecureActionButtonTemplate')
-	button:SetPoint('CENTER', -ptx, pty)
-	button.angle = (i-1) * RADIAN_FRACTION
-
-	button.Timer = 0
-	button.Idle = 0
-	button.ID = i
-	button:SetAlpha(0.5)
-	button:SetID(i)
-	button:SetSize(66, 66)
-	button:SetPoint('CENTER', -ptx, pty)
-	button:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
-
-	button.Border = CreateFrame('Frame', '$parentBorder', button)
-	button.Border:SetAllPoints(button)
-
-	button.Border.Shadow = button.Border:CreateTexture(nil, 'BACKGROUND')
-	button.Border.Shadow:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Button\\NormalShadow')
-	button.Border.Shadow:SetSize(82, 82)
-	button.Border.Shadow:SetPoint('CENTER', 0, -6)
-	button.Border.Shadow:SetAlpha(0.75)
-
-	button.NormalTexture:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal')
-	button.NormalTexture:ClearAllPoints()
-	button.NormalTexture:SetParent(button.Border)
-	button.NormalTexture:SetPoint('CENTER', 0, 0)
-	button.NormalTexture:SetSize(66, 66)
-	button.NormalTexture:SetDrawLayer('OVERLAY', 4)
-
-	button.cooldown:SetSwipeColor(db.Atlas.GetNormalizedCC())
-	button.cooldown:SetSwipeTexture('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Swipe')
-	button.cooldown:SetAllPoints()
-	button.cooldown:SetBlingTexture('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Bling')
-	button.cooldown:SetDrawEdge(false)
-	button.cooldown:SetFrameLevel(10)
-
-	button.Count:ClearAllPoints()
-	button.Count:SetPoint('BOTTOM', 0, 2)
-
-	button.icon:ClearAllPoints()
-	button.icon:SetPoint('CENTER', 0, 0)
-	button.icon:SetSize(64, 64)
-	button.icon:SetMask('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Mask')
-
-	button.Pushed = button:GetPushedTexture()
-	button.Pushed:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Normal')
-	button.Pushed:SetParent(button.Border)
-	button.Pushed:SetAllPoints(button.NormalTexture)
-	button.Pushed:SetVertexColor(red, green, blue, 1)
-	button.Pushed:SetDrawLayer('OVERLAY', 5)
-	button.Pushed:SetBlendMode('ADD')
-	button.Pushed:SetAlpha(0)
-
-	button:GetHighlightTexture():SetTexture(nil)
-
-	button.Highlight = button.Border:CreateTexture(nil, 'OVERLAY', nil, 6)
-	button.Highlight:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Button\\Hilite')
-	button.Highlight:SetAllPoints(button.NormalTexture)
-	button.Highlight:SetBlendMode('ADD')
-	button.Highlight:SetAlpha(0)
-
-	button.Quest = button.Border:CreateTexture(nil, 'OVERLAY', nil, 7)
-	button.Quest:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\QuestButton')
-	button.Quest:SetPoint('CENTER', 0, 0)
-	button.Quest:SetSize(64, 64)
-	button.Quest:Hide()
-
-	Mixin(button, ButtonMixin)
-
-	button:SetScript('PreClick', button.PreClick)
-	button:SetScript('PostClick', button.PostClick)
-	button:SetScript('OnAttributeChanged', button.OnAttributeChanged)
-
-	button:HookScript('OnEnter', button.OnEnter)
-	button:HookScript('OnLeave', button.OnLeave)
-	button:HookScript('OnUpdate', button.OnUpdate)
-
-	Utility:SetFrameRef(tostring(i), button)
-	tinsert(ActionButtons, button)
-end
-
----------------------------------------------------------------
 
 
 ---------------------------------------------------------------
-Utility:SetPoint('CENTER', 0, 0)
-Utility.Tooltip = Tooltip
-Utility:Hide()
----------------------------------------------------------------
-Utility.Full = Utility:CreateTexture(nil, 'OVERLAY')
-Utility.Full:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityGlow')
-Utility.Full:SetVertexColor(red * 1.5, green * 1.5, blue * 1.5)
-Utility.Full:SetPoint('CENTER', 0, 0)
-Utility.Full:SetSize(512, 512)
-Utility.Full:SetAlpha(0.5)
----------------------------------------------------------------
-Utility.Gradient = Utility:CreateTexture(nil, 'BACKGROUND')
-Utility.Gradient:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Window\\Circle')
-Utility.Gradient:SetBlendMode('ADD')
+
 Utility.Gradient:SetVertexColor(red * colMul, green * colMul, blue * colMul)
-Utility.Gradient:SetPoint('CENTER', 0, 0)
-Utility.Gradient:SetSize(256, 256)
----------------------------------------------------------------
-Utility.Ring = Utility:CreateTexture(nil, 'OVERLAY', nil, 2)
-Utility.Ring:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityCircle')
+Utility.Full:SetVertexColor(red * 1.5, green * 1.5, blue * 1.5)
 Utility.Ring:SetVertexColor(red * colMul, green * colMul, blue * colMul)
-Utility.Ring:SetPoint('CENTER', 0, 0)
-Utility.Ring:SetSize(512, 512)
-Utility.Ring:SetAlpha(0)
-Utility.Ring:SetRotation(0)
-Utility.Ring:SetBlendMode('ADD')
----------------------------------------------------------------
-Utility.Arrow = Utility:CreateTexture(nil, 'OVERLAY')
-Utility.Arrow:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityArrow')
 Utility.Arrow:SetVertexColor(red * 1.25, green * 1.25, blue * 1.25)
-Utility.Arrow:SetPoint('CENTER', 0, 0)
-Utility.Arrow:SetSize(512, 512)
-Utility.Arrow:SetAlpha(0)
-Utility.Arrow:SetRotation(0)
----------------------------------------------------------------
-Utility.Runes = Utility:CreateTexture(nil, 'OVERLAY')
-Utility.Runes:SetTexture('Interface\\AddOns\\ConsolePort\\Textures\\Utility\\UtilityRunes')
-Utility.Runes:SetPoint('CENTER', 0, 0)
-Utility.Runes:SetSize(512, 512)
-Utility.Runes:SetAlpha(0)
-Utility.Runes:SetRotation(0)
----------------------------------------------------------------
-Utility.Spell = CreateFrame('PlayerModel', '$parentSpellEffect', Utility)
-Utility.Spell:SetPoint('CENTER', -4, 0)
-Utility.Spell:SetSize(176, 176)
-Utility.Spell:SetAlpha(0)
-Utility.Spell:SetDisplayInfo(66673) --(42486)
-Utility.Spell:SetCamDistanceScale(2)
---Utility.Spell:SetLight(true, false, 0, 0, 120, 1, red, green, blue, 100, red, green, blue)
-Utility.Spell:Hide()
-Utility.Spell:SetFrameLevel(1)
 ---------------------------------------------------------------
 Utility:HookScript('OnHide', Utility.OnHide)
 Utility:HookScript('OnShow', Utility.OnShow)
 Utility:HookScript('OnEvent', Utility.OnEvent)
-Utility:HookScript('OnUpdate', Utility.OnUpdate)
-Utility:HookScript('OnAttributeChanged', Utility.OnAttributeChanged)
+Utility:HookScript('OnUpdate', Utility.OnUpdateDisplay)
 ---------------------------------------------------------------
 
 
@@ -1035,10 +527,7 @@ AniCircle.Runes:SetRotation(0)
 ---------------------------------------------------------------
 
 ---------------------------------------------------------------
-Tooltip:SetBackdrop(db.Atlas.Backdrops.Tooltip)
 Tooltip:SetScript('OnShow', Tooltip.OnShow)
-Tooltip:SetPoint('CENTER', 0, 0)
-Tooltip:SetOwner(Utility)
 Tooltip.castInfo = db.TOOLTIP.UTILITY_RELEASE
 Tooltip.removeInfo = db.TOOLTIP.UTILITY_REMOVE
 ---------------------------------------------------------------

@@ -1,3 +1,4 @@
+if CPAPI:IsClassicVersion() then return end
 ---------------------------------------------------------------
 -- FocusHold.lua: Reroute spells to focus target
 ---------------------------------------------------------------

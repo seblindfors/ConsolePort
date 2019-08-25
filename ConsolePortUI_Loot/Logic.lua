@@ -5,7 +5,11 @@ local LootFrame, focusButton = {}
 L.LootFrameLogicMixin = LootFrame
 
 function LootFrame:LOOT_READY(...)
-	self:UpdateItems(true)
+	if GetNumLootItems() < 1 then
+		CloseLoot()
+	else
+		self:UpdateItems(true)
+	end
 end
 
 function LootFrame:LOOT_SLOT_CLEARED(...)
@@ -47,6 +51,8 @@ function LootFrame:UpdateItems(fadeOnShow)
 	wipe(self.active)
 
 	local prevButton
+	local numLootItems = GetNumLootItems()
+
 	for i = 1, GetNumLootItems() do
 		if GetLootSlotInfo(i) then
 			local button = self.itemPool:Acquire()

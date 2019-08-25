@@ -94,8 +94,6 @@ for name, script in pairs({
 --------------------------------------------
 }) do Control:SetAttribute(name, script) end
 --------------------------------------------
-local Bar = Control.HintBar
---------------------------------------------
 
 local secure_wrappers = {
 	PreClick = [[
@@ -206,6 +204,7 @@ end
 ----------------------------------
 -- UI Fader
 ----------------------------------
+local UI_FADE_TIME = 0.2
 local IsFrameWidget = C_Widget.IsFrameWidget
 local FadeIn, FadeOut = db.GetFaders()
 local updateThrottle = 0
@@ -238,7 +237,7 @@ local function GetFadeFrames(onlyActionBars, focusFrame)
 		for registeredFrame in pairs(Registry) do
 			frameStack[#frameStack + 1] = registeredFrame
 		end
-		for _, actionBar in ConsolePort:GetActionBars() do
+		for actionBar in ConsolePort:GetActionBars() do
 			frameStack[#frameStack + 1] = actionBar
 		end
 	else
@@ -281,9 +280,9 @@ function Control:TrackMouseOver(elapsed)
 		if self.fadeFrames then
 			for frame, origAlpha in pairs(self.fadeFrames) do
 				if frame:IsMouseOver() and frame:IsMouseEnabled() then
-					FadeIn(frame, 0.2, frame:GetAlpha(), origAlpha)
+					FadeIn(frame, UI_FADE_TIME, frame:GetAlpha(), origAlpha)
 				elseif frame:GetAlpha() > 0.1 then
-					FadeOut(frame, 0.2, frame:GetAlpha(), 0) 
+					FadeOut(frame, UI_FADE_TIME, frame:GetAlpha(), 0) 
 				end
 			end
 		else
@@ -301,7 +300,7 @@ function Control:SetIgnoreFadeFrame(frame, toggleIgnore, fadeInOnFinish)
 			self.fadeFrames[frame] = nil
 		end
 		if fadeInOnFinish then
-			FadeIn(frame, 0.2, frame:GetAlpha(), 1)
+			FadeIn(frame, UI_FADE_TIME, frame:GetAlpha(), 1)
 		end
 	end
 end
@@ -313,7 +312,7 @@ function Control:HideUI(focusFrame, onlyActionBars)
 
 	local frames = GetFadeFrames(onlyActionBars, focusFrame)
 	for frame in pairs(frames) do
-		FadeOut(frame, fadeTime or 0.2, frame:GetAlpha(), 0)
+		FadeOut(frame, fadeTime or UI_FADE_TIME, frame:GetAlpha(), 0)
 	end
 	self.fadeFrames = frames
 
@@ -324,7 +323,7 @@ end
 function Control:ShowUI()
 	if self.fadeFrames then
 		for frame, origAlpha in pairs(self.fadeFrames) do
-			FadeIn(frame, fadeTime or 0.5, frame:GetAlpha(), origAlpha)
+			FadeIn(frame, fadeTime or UI_FADE_TIME, frame:GetAlpha(), origAlpha)
 		end
 		self.fadeFrames = nil
 	end
@@ -333,7 +332,7 @@ end
 ----------------------------------
 -- Hint bar
 ----------------------------------
--- This bar appears at the bottom of the screen and displays
+-- The bar appears at the bottom of the screen and displays
 -- button function hints local to the focused frame.
 -- Hints are controlled from the UI modules.
 -- Although hints are cached for each frame in the stack,
@@ -341,65 +340,11 @@ end
 -- frame, regardless of where the function call comes from.
 -- Explicitly hiding a stack frame clears its hint cache.
 
-function Bar:AdjustWidth(newWidth)
-	self:SetScript('OnUpdate', function(self)
-		local width = self:GetWidth()
-		local diff = newWidth - width
-		if abs(newWidth - width) < 1 then
-			self:SetWidth(newWidth)
-			self:SetScript('OnUpdate', nil)
-		else
-			self:SetWidth(width + ( diff / 4 ) )
-		end
-	end)
-end
-
-function Bar:Update()
-	local width, previousHint = 0
-	for _, hint in pairs(self.Frames) do
-		if previousHint then
-			hint:SetPoint('LEFT', previousHint.Text, 'RIGHT', 16, 0)
-		else
-			hint:SetPoint('LEFT', self, 'LEFT', 0, 0)
-		end
-		if hint:IsVisible() then
-			width = width + hint:GetWidth()
-			previousHint = hint
-		end
-	end
-	self:AdjustWidth(width)
-end
-
-function Bar:GetHintFromPool(key)
-	if self.focus then
-		local hints = self.Active
-		local hint = hints[key]
-		if not hint then
-			for _, poolHint in pairs(self.Frames) do
-				if not poolHint.isActive then
-					hint = poolHint
-					break
-				end
-			end
-		end
-		if not hint then
-			local id = #self.Frames + 1
-			hint = CreateFrame('Frame', '$parentHint'..id, self, 'CPUIHintTemplate')
-			hint:SetID(id)
-			hint.bar = self
-			self.Frames[ #self.Frames + 1] = hint
-		end
-		hint:Show()
-		hints[key] = hint
-
-		self:Show()
-		return hint
-	end
-end
-
 ----------------------------------
 -- Hint control
 ----------------------------------
+Control.StoredHints = {}
+
 function Control:SetHintFocus(forceFrame)
 	self.HintBar.focus = forceFrame or self:GetAttribute('focus')
 	self.focus = self.HintBar.focus
@@ -434,10 +379,7 @@ function Control:HideHintBar()
 end
 
 function Control:ResetHintBar()
-	for _, hint in pairs(self.HintBar.Frames) do
-		hint:Hide()
-	end
-	wipe(self.HintBar.Active)
+	self.HintBar:Reset()
 end
 
 function Control:RegisterHintForFrame(frame, key, text, enabled)
@@ -454,7 +396,7 @@ end
 function Control:AddHint(key, text)
 	local binding = ConsolePort:GetUIControlBinding(key)
 	if binding then
-		local hint = self.HintBar:GetHintFromPool(key)
+		local hint = self.HintBar.focus and self.HintBar:GetHintFromPool(key, true)
 		if hint then
 			hint:SetData(binding, text)
 			hint:Enable()
@@ -467,14 +409,13 @@ end
 function Control:RemoveHint(key)
 	local hint = self:GetHintForKey(key)
 	if hint then
-		self.HintBar.Active[key] = nil
 		self:UnregisterHintForFrame(self.focus, key)
 		hint:Hide()
 	end
 end
 
 function Control:GetHintForKey(key)
-	local hint = self.HintBar.Active[key]
+	local hint = self.HintBar:GetActiveHintForKey()
 	if hint then
 		return hint, hint:GetText()
 	end

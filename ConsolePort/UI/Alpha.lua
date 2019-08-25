@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- Animation.lua: Taint-free animation framework
+-- Alpha.lua: Taint-free alpha animation framework
 ---------------------------------------------------------------
 -- Provides a framework for managing alpha animations without
 -- risk of spreading taint.

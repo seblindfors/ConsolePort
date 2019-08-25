@@ -349,19 +349,19 @@ local function TriggerOnLeave(node) TriggerScript(node, 'OnLeave', SafeOnLeave) 
 local Node = {
 	-- Compares distance between nodes for eligibility when filtering cached nodes
 	distance = {
-		[KEY.UP] 	= function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
-		[KEY.DOWN] 	= function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
-		[KEY.LEFT] 	= function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
+		[KEY.UP]    = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
+		[KEY.DOWN]  = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
+		[KEY.LEFT]  = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
 		[KEY.RIGHT] = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX > thisX) end;
 	};
 	-- Compares more generally to catch any nodes located in a given direction
 	direction = {
-		[KEY.UP] 	= function(_, destY, _, _, _, thisY) return (destY > thisY) end;
-		[KEY.DOWN] 	= function(_, destY, _, _, _, thisY) return (destY < thisY) end;
-		[KEY.LEFT] 	= function(destX, _, _, _, thisX, _) return (destX < thisX) end;
-		[KEY.RIGHT]	= function(destX, _, _, _, thisX, _) return (destX > thisX) end;
+		[KEY.UP]    = function(_, destY, _, _, _, thisY) return (destY > thisY) end;
+		[KEY.DOWN]  = function(_, destY, _, _, _, thisY) return (destY < thisY) end;
+		[KEY.LEFT]  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
+		[KEY.RIGHT] = function(destX, _, _, _, thisX, _) return (destX > thisX) end;
 	};
-	cache = {};	-- Temporary node cache when calculating cursor movement
+	cache = {}; -- Temporary node cache when calculating cursor movement
 	scalar = 3; -- Manhattan distance: scale primary plane to improve intuitive node selection
 }
 
@@ -420,18 +420,18 @@ function Node:CacheItem(node, object, super)
 	});
 end
 
-function Node:Refresh(super, node, sibling, ...)
+function Node:Scan(super, node, sibling, ...)
 	if self:IsRelevant(node) then
 		local object = node:GetObjectType()
 		if self:IsInteractive(node, object) and self:IsDrawn(node, super) then
 			self:CacheItem(node, object, super)
 		end
 		if self:IsTree(node) then
-			self:Refresh(self:GetSuperNode(super, node), node:GetChildren())
+			self:Scan(self:GetSuperNode(super, node), node:GetChildren())
 		end
 	end
 	if sibling then
-		self:Refresh(super, sibling, ...)
+		self:Scan(super, sibling, ...)
 	end
 end
 
@@ -439,9 +439,7 @@ function Node:RefreshAll()
 	if IsSafe() then
 		self:Clear()
 		ClearOverride(Cursor)
-		for frame in ConsolePort:GetFrameStack() do
-			self:Refresh(nil, frame)
-		end
+		self:Scan(nil, ConsolePort:GetVisibleCursorFrames())
 		self:SetCurrent()
 	end
 end
@@ -571,35 +569,28 @@ end
 function Node:SetCurrent()	
 	if old and old.node:IsVisible() and Node:IsDrawn(old.node) then
 		current = old
-	elseif ( not current and #self.cache > 0 ) or ( current and #self.cache > 0 and not current.node:IsVisible() ) then
-		local x, y, targetNode = Cursor:GetCenter()
+	elseif #self.cache > 0 and (not current or not current.node:IsVisible()) then
+		local x, y, targNode = Cursor:GetCenter()
 		if not x or not y then
-			targetNode = self.cache[1]
+			targNode = self.cache[1]
 		else
-			local targetDistance, targetParent, newDistance, newParent, swap, thisX, thisY
-			for i, this in ipairs(self.cache) do swap = false
+			local targDist, targPrio
+			for _, this in ipairs(self.cache) do
+				local thisX, thisY = this.node:GetCenter()
+				local thisDist = abs(x - thisX) + abs(y - thisY)
+				local thisPrio = this.node.hasPriority
 
-				thisX, thisY = this.node:GetCenter()
-				newDistance = abs( x - thisX ) + abs( y - thisY )
-				newParent = this.node:GetParent()
-				-- if no target node exists yet, just assign it
-				if not targetNode then
-					swap = true
-				elseif this.node.hasPriority and not targetNode.node.hasPriority then
-					targetNode = this
+				if thisPrio and not targPrio then
+					targNode = this
 					break
-				elseif not targetNode.node.hasPriority and newDistance < targetDistance then
-					swap = true
+				elseif not targNode or ( not targPrio and thisDist < targDist ) then
+					targNode = this
+					targDist = thisDist
+					targPrio = thisPrio
 				end
-				if swap then
-					targetNode = this
-					targetDistance = newDistance
-					targetParent = newParent
-				end
-
 			end
 		end
-		current = targetNode
+		current = targNode
 	end
 	if current and current ~= old then
 		self:Select(current.node, current.object, current.super, KEY.STATE_UP)

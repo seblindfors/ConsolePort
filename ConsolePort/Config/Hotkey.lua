@@ -179,7 +179,7 @@ end
 
 ---------------------------------------------------------------
 
-function db.CreateHotKey(self, forceStyle, forceName, forceMod)
+function db.CreateHotkey(self, forceStyle, forceName, forceMod)
 	-- self is the secure button in this case
 	local count = self.HotKeys and #self.HotKeys+1 or 1
 	local hotKey = CreateFrame("Frame", "$parentHOTKEY"..count, self)
@@ -261,10 +261,10 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 
 	local index, subSet, modifier, binding, ID
 	for secureBtn in pairs(db.SECURE) do
-		for i, HotKey in pairs(secureBtn.HotKeys) do
-			HotKey:ClearAllPoints()
-			HotKey:SetParent(secureBtn)
-			HotKey:Hide()
+		for i, hotkey in pairs(secureBtn.HotKeys) do
+			hotkey:ClearAllPoints()
+			hotkey:SetParent(secureBtn)
+			hotkey:Hide()
 		end
 		index = 0
 		modifier = secureBtn.mod
@@ -277,9 +277,9 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 				if 	ID == actionID or 
 					self:GetActionBinding(ID) == self:GetActionBinding(actionID) then
 					index = index + 1
-					secureBtn.HotKeys[index] = 	secureBtn.HotKeys[index] or secureBtn:CreateHotKey()
+					secureBtn.HotKeys[index] = 	secureBtn.HotKeys[index] or secureBtn:CreateHotkey()
 
-					secureBtn:ShowHotKey(index, actionButton)
+					secureBtn:ShowHotkey(index, actionButton)
 
 					if actionButton.HotKey then
 						actionButton.HotKey:SetAlpha(0)
@@ -289,7 +289,7 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 		elseif binding and not binding:match('ConsolePort') then
 			local button = _G[(gsub(gsub(binding, "CLICK ", ""), ":.+", ""))]
 			if IsFrameWidget(button) then
-				secureBtn:ShowInterfaceHotKey(button)
+				secureBtn:ShowInterfaceHotkey(button)
 			end
 		end
 	end

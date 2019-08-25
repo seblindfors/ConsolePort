@@ -220,21 +220,9 @@
 
 	<Frame name="CPUIHintBarTemplate" frameStrata="FULLSCREEN_DIALOG" virtual="true" hidden="true" mixin="ConsolePortHintBarMixin">
 		<Size x="0" y="72"/>
-		<Anchors>
-			<Anchor point="BOTTOM" relativeTo="UIParent" x="0" y="0"/>
-		</Anchors>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="Gradient" file="Interface\AddOns\ConsolePort\Textures\Window\Menu-TopBG" alpha="0.6">
-					<Size x="0" y="100"/>
-					<Anchors>
-						<Anchor point="BOTTOMLEFT" relativeTo="UIParent"/>
-						<Anchor point="BOTTOMRIGHT" relativeTo="UIParent"/>
-					</Anchors>
-					<TexCoords left="0" right="1" top="1" bottom="0"/>
-				</Texture>
-			</Layer>
-		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
 	</Frame>
 
 	<!-- Call Frame:LoadArt() to initiate art handler -->

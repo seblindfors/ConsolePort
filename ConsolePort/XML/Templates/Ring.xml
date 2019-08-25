@@ -1,0 +1,116 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+	<Script file="Ring.lua"/>
+
+	<Button name="ConsolePortRingButtonTemplate" virtual="true" alpha="0.5" registerForClicks="LeftButtonUp, RightButtonUp"
+		mixin="ConsolePortRingButtonMixin" inherits="SecureActionButtonTemplate">
+		<Size x="66" y="66"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Icon">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<FontString name="$parentCount" inherits="NumberFontNormal" parentKey="Count" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+			</Layer>
+		</Layers>
+		<NormalTexture parentKey="NormalTexture" file="Interface\AddOns\ConsolePort\Textures\Button\Normal" setAllPoints="true"/>
+		<PushedTexture parentKey="Pushed" alpha="0" file="Interface\AddOns\ConsolePort\Textures\Button\Normal" setAllPoints="true" alphaMode="ADD"/>
+		<Frames>
+			<Cooldown name="$parentCooldown" inherits="CooldownFrameTemplate" parentKey="Cooldown">
+				<Size x="36" y="36"/>
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="-1"/>
+				</Anchors>
+				<SwipeTexture file="Interface\AddOns\ConsolePort\Textures\Button\Swipe">
+					<Color r="1" g="1" b="1" a="0.8"/>
+				</SwipeTexture>
+				<BlingTexture file="Interface\AddOns\ConsolePort\Textures\Button\Bling">
+					<Color r="1" g="1" b="1" a="0.8"/>
+				</BlingTexture>
+				<Scripts>
+					<OnLoad>
+						self:SetDrawEdge(false);
+						self:SetFrameLevel(10);
+					</OnLoad>
+				</Scripts>
+			</Cooldown>
+			<Frame parentKey="Border" setAllPoints="true">
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Shadow" alpha="0.75" file="Interface\AddOns\ConsolePort\Textures\Button\NormalShadow">
+							<Size x="82" y="82"/>
+							<Anchors>
+								<Anchor point="CENTER" y="-6"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY" textureSubLevel="6">
+						<Texture parentKey="Highlight" file="Interface\AddOns\ConsolePort\Textures\Button\Hilite" setAllPoints="true" alpha="0" alphaMode="ADD"/>
+					</Layer>
+					<Layer level="OVERLAY" textureSubLevel="7">
+						<Texture parentKey="Quest" hidden="true" file="Interface\AddOns\ConsolePort\Textures\QuestButton">
+							<Size x="64" y="64"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<PreClick method="PreClick"/>
+			<PostClick method="PostClick"/>
+			<OnAttributeChanged method="OnAttributeChanged"/>
+		</Scripts>
+	</Button>
+
+	<Button name="ConsolePortRingTemplate" virtual="true" registerForClicks="LeftButtonDown,LeftButtonUp"
+		mixin="ConsolePortRingMixin" inherits="SecureHandlerStateTemplate, SecureHandlerShowHideTemplate, SecureActionButtonTemplate">
+		<Frames>
+			<GameTooltip name="$parentTooltip" parentKey="Tooltip" inherits="GameTooltipTemplate">
+				<Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background.blp" edgeFile="Interface\AddOns\ConsolePort\Textures\Window\EdgefileBig.blp" tile="false">
+					<EdgeSize>
+						<AbsValue val="16"/>
+					</EdgeSize>
+					<BackgroundInsets>
+						<AbsInset left="8" right="8" top="8" bottom="8"/>
+					</BackgroundInsets>
+				</Backdrop>
+			</GameTooltip>
+		</Frames>
+		<Scripts>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnUpdate method="OnUpdate"/>
+		</Scripts>
+	</Button>
+</Ui>

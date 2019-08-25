@@ -5,6 +5,7 @@ local _, db = ...
 ConsolePortHintMixin = {}
 
 function ConsolePortHintMixin:OnLoad()
+	self.bar = self:GetParent()
 	self.Text:SetShadowOffset(2, -2)
 end
 
@@ -51,12 +52,8 @@ end
 ConsolePortHintBarMixin = {}
 
 function ConsolePortHintBarMixin:OnLoad()
-	self.Active = {}
-	self.Frames = {}
-
-	self:GetParent().StoredHints = {}
+	self.Hints = {}
 	self:SetParent(UIParent)
-
 	self:SetIgnoreParentAlpha(true)
 end
 
@@ -75,7 +72,7 @@ end
 
 function ConsolePortHintBarMixin:Update()
 	local width, previousHint = 0
-	for _, hint in pairs(self.Frames) do
+	for _, hint in pairs(self.Hints) do
 		if previousHint then
 			hint:SetPoint('LEFT', previousHint.Text, 'RIGHT', 16, 0)
 		else
@@ -90,46 +87,41 @@ function ConsolePortHintBarMixin:Update()
 end
 
 function ConsolePortHintBarMixin:Reset()
-	local hints = self.Frames
-	for i=1, #hints do hints[i]:Hide() end
-	wipe(self.Active)
+	local hints = self.Hints
+	for key in ConsolePort:IterateUIControlKeys() do
+		local hint = hints[key]
+		if hint then
+			hint:Hide()
+		end
+	end
 end
 
-function ConsolePortHintBarMixin:GetHintFromPool(key)
-	if self.focus then
-		local hints = self.Active
-		local hint = hints[key]
-		if not hint then
-			for _, poolHint in pairs(self.Frames) do
-				if not poolHint.isActive then
-					hint = poolHint
-					break
-				end
-			end
-		end
-		if not hint then
-			local id = #self.Frames + 1
-			hint = CreateFrame('Frame', '$parentHint'..id, self, 'CPUIHintTemplate')
-			hint:SetID(id)
-			hint.bar = self
-			self.Frames[ #self.Frames + 1] = hint
-		end
-		hint:Show()
-		hints[key] = hint
-
-		self:Show()
-		return hint
+function ConsolePortHintBarMixin:GetHintFromPool(key, showBar)
+	local hints = self.Hints
+	local hint = hints[key]
+	if not hint then
+		hint = CreateFrame('Frame', '$parentHint'..key, self, 'CPUIHintTemplate')
+		hint:SetID(key)
+		self.Hints[key] = hint
 	end
+	hint:Show()
+	if showBar then
+		self:Show()
+	end
+	return hint
+end
+
+function ConsolePortHintBarMixin:GetActiveHintForKey(key)
+	local hint = self.Hints[key]
+	return hint and hint.isActive and hint
 end
 
 function ConsolePortHintBarMixin:AddHint(key, text)
 	local binding = ConsolePort:GetUIControlBinding(key)
 	if binding then
 		local hint = self:GetHintFromPool(key)
-		if hint then
-			hint:SetData(binding, text)
-			hint:Enable()
-			return hint
-		end
+		hint:SetData(binding, text)
+		hint:Enable()
+		return hint
 	end
 end

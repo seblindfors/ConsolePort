@@ -162,6 +162,11 @@ function ConsolePort:LoadSettings()
 	self:CreateSlashHandler()
 
 	----------------------------------------------------------
+	-- Dispatch a cvar refresh for reguistered callbacks
+	----------------------------------------------------------
+	self:RefreshCVars()
+
+	----------------------------------------------------------
 	self.LoadSettings = nil
 end
 
@@ -251,11 +256,11 @@ function ConsolePort:CheckLoadedSettings()
 	end
 end
 
-function ConsolePort:CreateActionButtons()
+function ConsolePort:CreateSecureButtons()
 	for name in self:GetBindings() do
 		for modifier in self:GetModifiers() do
-			self:CreateSecureButton(name, modifier, self:GetUIControlKey(name))
+			self:SetSecureButton(name, modifier, self:GetUIControlKey(name))
 		end
 	end
-	self.CreateActionButtons = nil
+	self.CreateSecureButtons = nil
 end

@@ -1,3 +1,4 @@
+if CPAPI:IsClassicVersion() then return end
 ---------------------------------------------------------------
 -- OverrideBarExit.lua: Exit vehicle/override/possess bar.
 ---------------------------------------------------------------
@@ -32,7 +33,7 @@ function OBExit:SetHotkey(name, mod)
 	if ( name and mod ) then
 		if not self.HotKey and ExitButton then
 			-- hack: use ctrl+shift here to spawn two mod icons
-			self.HotKey = db.CreateHotKey(ExitButton, nil, 'CTRL-SHIFT-', name)
+			self.HotKey = db.CreateHotkey(ExitButton, nil, 'CTRL-SHIFT-', name)
 			self.HotKey:SetPoint('TOPRIGHT', ExitButton, 0, 0)
 		end
 		if 	self.HotKey then

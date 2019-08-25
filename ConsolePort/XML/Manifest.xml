@@ -4,6 +4,7 @@
 	<Include file="Templates\FrameTemplateUI.xml"/>
 	<Include file="Templates\IconIntroTemplate.xml"/>
 	<Include file="Templates\MenuUI.xml"/>
+	<Include file="Templates\Ring.xml"/>
 	
 	<Include file="Frames\GlobalFrames.xml"/>
 </Ui>

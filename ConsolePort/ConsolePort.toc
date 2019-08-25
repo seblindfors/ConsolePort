@@ -1,13 +1,13 @@
 ## Interface: 80100
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 2.0.0
+## Version: 1.9.9
 
 ## Author: Sebastian Lindfors
 ## X-Website: http://www.consoleport.net
 ## X-Feedback: https://discord.gg/AWeHd48
 
-## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames, ConsolePortUIConfig, ConsolePortRadial
+## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames, ConsolePortUIConfig
 ## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortMouse, ConsolePortUtility
 
 XML\Manifest.xml
@@ -18,9 +18,9 @@ Init\Wrapper.lua
 Init\Init.lua
 Init\Slash.lua
 Init\Table.lua
-Init\Animation.lua
 Init\Theme.lua
-Init\Hooks.lua
+
+UI\Alpha.lua
 
 Frames\Atlas.lua
 Frames\Config.lua
@@ -32,7 +32,6 @@ Config\Controls.lua
 Config\Help.lua
 Config\UICtrl.lua
 Config\Hotkey.lua
-Config\Secure.lua
 
 Core\Camera.lua
 Core\Mouse.lua
@@ -41,6 +40,7 @@ Core\Events.lua
 Core\UICore.lua
 Core\Callback.lua
 
+Drivers\Button.lua
 Drivers\Pager.lua
 Drivers\Radial.lua
 Drivers\FocusHold.lua
@@ -56,6 +56,7 @@ Drivers\UIControl.lua
 Cursors\Interface.lua
 Cursors\UnitFrames.lua
 
+Frames\Hooks.lua
 Frames\Hints.lua
 Frames\Popup.lua
 Frames\Stacksplit.lua
