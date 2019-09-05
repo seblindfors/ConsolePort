@@ -1,7 +1,6 @@
 # ConsolePort
 <h2>Game Controller Addon for World of Warcraft</h2>
 <h6>DualShock 4, Xbox 360, Xbox One, Steam Controller</h6>
-<a href="https://www.youtube.com/playlist?list=PLdymHo01mBgXTNFOCCrf85803XqwlCpdt4" target="_blank">YouTube playlist: demos and instructional videos</a>
 
 <h2>DISCLAIMER</h2>
 Please refer to Wowinterface or Curse for stable versions.
