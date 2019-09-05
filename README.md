@@ -6,7 +6,7 @@
 Please refer to Wowinterface or Curse for stable versions.
 
 <h2>What is ConsolePort?</h2>
-ConsolePort is a lightweight interface add-on for World of Warcraft that will give you a handful of nifty features
+ConsolePort is an interface add-on for World of Warcraft that will give you a handful of nifty features
 in order to let you play the game on a controller - without inconvenience. There are a lot of tutorials and videos on
 how to set up your controller for World of Warcraft, but the most game-breaking part about all of them is how they in no way contribute to an easy game experience. They are mostly just Xpadder tutorials with a bunch of in-game macros thrown into the mix. Using a setup like that, it's a hassle just to sell a few items or turn in a quest. <br>This addon will remove most of the inconvenience for you.
 
