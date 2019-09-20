@@ -25,7 +25,7 @@ StackSplitFrame:HookScript('OnHide', function(self)
 end)
 
 StackSplitFrame:HookScript('OnUpdate', function(self,elapsed)
-	keyDown = Left:GetButtonState() == 'PUSHED' and Left or Right:GetButtonState() == 'PUSHED' and Right
+	keyDown = (Left and Left:GetButtonState() == 'PUSHED') or (Right and Right:GetButtonState() == 'PUSHED')
 	hold = keyDown and hold + elapsed or 0
 	keyHeldDown = keyDown and hold >= 0.3
 	local exponent = math.exp(math.floor(hold))
