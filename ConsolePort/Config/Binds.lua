@@ -719,7 +719,7 @@ function RebindMixin:OnShow()
 end
 
 function RebindMixin:OnMouseWheel()
-	if not db.Settings.disableUI and not ConsolePort:IsCurrentNode(window.Display) then
+	if not db('disableUI') and not ConsolePort:IsCurrentNode(window.Display) then
 		ConsolePort:SetCurrentNode(window.Display)
 	end
 end
@@ -798,7 +798,7 @@ function WindowMixin:OnShow(override)
 		self.Rebind.HeaderScroll:Hide()
 		self.Rebind.ShortcutScroll:Hide()
 		self.Controller:Show()
-		if not db.Settings.disableUI then
+		if not db('disableUI') then
 			ConsolePort:SetCurrentNode(self.BindCatcher)
 		end
 		FadeIn(self.Overlay, 1, 0, 1)

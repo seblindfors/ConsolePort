@@ -27,81 +27,81 @@ local function GetAddonSettings()
 		{	desc = L.MOUSEHANDLE },
 		{	cvar = 'turnCharacter',
 			desc = L.TURNMOVE,
-			state = Settings.turnCharacter,
+			state = db('turnCharacter'),
 			needReload = true, 
 		},
 		{	cvar = 'doubleModTap',
 			desc = L.DOUBLEMODTAP:format(ICONS.CP_M1, ICONS.CP_M2),
-			state = Settings.doubleModTap,
+			state = db('doubleModTap'),
 		},
 		{	cvar = 'disableSmartMouse',
 			desc = L.DISABLEMOUSE,
-			state = Settings.disableSmartMouse,
+			state = db('disableSmartMouse'),
 		},
 		{	cvar = 'mouseInvertPitch',
 			desc = L.INVERTPITCH,
-			state = Settings.mouseInvertPitch,
+			state = db('mouseInvertPitch'),
 		},
 		{	cvar = 'mouseInvertYaw',
 			desc = L.INVERTYAW,
-			state = Settings.mouseInvertYaw,
+			state = db('mouseInvertYaw'),
 		},
 		{	desc = L.TARGETING },
 		{	cvar = 'raidCursorDirect',
 			desc = L.RAIDCURSORDIRECT,
-			state = Settings.raidCursorDirect,
+			state = db('raidCursorDirect'),
 		},
 		{
 			cvar = 'TargetNearestUseNew',
 			desc = L.TARGETALGORITHM,
-			state = Settings.TargetNearestUseNew,
+			state = db('TargetNearestUseNew'),
 		},
 		{	desc = L.CONVENIENCE },
 		{	cvar = 'autoExtra',
 			desc = L.AUTOEXTRA,
-			state = Settings.autoExtra,
+			state = db('autoExtra'),
 		},
 		{	cvar = 'autoLootDefault',
 			desc = L.AUTOLOOT,
-			state = Settings.autoLootDefault,
+			state = db('autoLootDefault'),
 		},
 		{	cvar = 'autoSellJunk',
 			desc = L.AUTOSELL,
-			state = Settings.autoSellJunk,
+			state = db('autoSellJunk'),
 		},
 		{	cvar = 'disableHints',
 			desc = TUTORIAL.HINTS.DISABLE,
-			state = Settings.disableHints,
+			state = db('disableHints'),
 		},
 		{	cvar = 'disableSmartBind',
 			desc = L.DISABLEBINDHELP,
-			state = Settings.disableSmartBind,
+			state = db('disableSmartBind'),
 		},
 		{	desc = L.FIXES },
 		{	cvar = 'UIdisableHoldRepeat',
 			desc = L.DISABLEHOLDREPEAT,
-			state = Settings.UIdisableHoldRepeat,
+			state = db('UIdisableHoldRepeat'),
 			needReload = true,
 		},
 		{	cvar = 'skipCalibration',
 			desc = L.SKIPCALIBRATION,
-			state = Settings.skipCalibration,
+			state = db('skipCalibration'),
 		},
 		-- Mouse 'events' to the user, but cvars internally
 		{	mouse = true,
 			cvar = 'mouseOnJump',
 			desc = TUTORIAL.MOUSE.JUMPING,
-			state = Settings.mouseOnJump,
+			state = db('mouseOnJump'),
 		},
 		{	mouse = true,
 			cvar = 'mouseOnCenter',
 			desc = TUTORIAL.MOUSE.CENTERCURSOR,
-			state = Settings.mouseOnCenter,
+			state = db('mouseOnCenter'),
 		},
 		{	mouse = true,
 			cvar = 'preventMouseDrift',
 			desc = L.MOUSEDRIFTING,
-			state = Settings.preventMouseDrift,
+			state = db('preventMouseDrift'),
 		},
 	}
 end
@@ -113,15 +113,15 @@ local function GetMouseSettings()
 	return {
 		{ 	event 	= {'PLAYER_STARTED_MOVING'},
 			desc 	= L.STARTED_MOVING,
-			state 	= db.Mouse.Events['PLAYER_STARTED_MOVING']
+			state 	= db('Mouse/Events/PLAYER_STARTED_MOVING'),
 		},
 		{ 	event	= {'PLAYER_TARGET_CHANGED'},
 			desc 	= L.TARGET_CHANGED,
-			state 	= db.Mouse.Events['PLAYER_TARGET_CHANGED']
+			state 	= db('Mouse/Events/PLAYER_TARGET_CHANGED'),
 		},
 		{	event 	= {'UNIT_SPELLCAST_SENT', 'UNIT_SPELLCAST_FAILED'},
 			desc 	= L.DIRECT_SPELL_CAST,
-			state 	= db.Mouse.Events['UNIT_SPELLCAST_SENT']
+			state 	= db('Mouse/Events/UNIT_SPELLCAST_SENT')
 		},
 		{	event 	= {	'GOSSIP_SHOW', 'GOSSIP_CLOSED',
 						'MERCHANT_SHOW', 'MERCHANT_CLOSED',
@@ -130,15 +130,15 @@ local function GetMouseSettings()
 						'QUEST_PROGRESS', 'QUEST_COMPLETE', 'QUEST_FINISHED',
 						'SHIPMENT_CRAFTER_OPENED', 'SHIPMENT_CRAFTER_CLOSED'},
 			desc 	= L.NPC_INTERACTION,
-			state 	= db.Mouse.Events['GOSSIP_SHOW']
+			state 	= db('Mouse/Events/GOSSIP_SHOW'),
 		},
 		{ 	event	= {'QUEST_AUTOCOMPLETE'},
 			desc 	= L.QUEST_AUTOCOMPLETE,
-			state 	= db.Mouse.Events['QUEST_AUTOCOMPLETE']
+			state 	= db('Mouse/Events/QUEST_AUTOCOMPLETE'),
 		},
 		{	event	= {'LOOT_OPENED', 'LOOT_CLOSED'},
 			desc 	= L.LOOTING,
-			state 	= db.Mouse.Events['LOOT_OPENED']
+			state 	= db('Mouse/Events/LOOT_OPENED'),
 		}
 	}
 end
@@ -274,34 +274,34 @@ function WindowMixin:Save()
 	local needReload
 	-- general settings
 	for _, Check in ipairs(self.General) do
-		local old = Settings[Check.Cvar]
-		Settings[Check.Cvar] = Check:GetChecked()
+		local old = db(Check.Cvar)
+		db(Check.Cvar, Check:GetChecked())
 		if Check.Reload and Check:GetChecked() ~= old then
 			needReload = true
 		end
 	end
 	-- trigger textures
 	for _, Check in ipairs(self.Triggers) do
-		if Check.Value and Check.Value ~= Settings[Check.Cvar] then
-			Settings[Check.Cvar] = Check.Value
+		if Check.Value and Check.Value ~= db(Check.Cvar) then
+			db(Check.Cvar, Check.Value)
 			needReload = true
 		end
 	end
 
 	-- target highlight
-	Settings.alwaysHighlight = self.AssistModule.Mode
+	db('alwaysHighlight', self.AssistModule.Mode)
 
 	-- camera settings
-	if not db.Mouse.Camera then
-		db.Mouse.Camera = {}
-	end
+	db('Mouse/Camera', db('Mouse/Camera') or {})
+
+	local camera = db('Mouse/Camera')
 	for _, Check in ipairs(self.Camera) do
 		if Check.GetChecked then
-			db.Mouse.Camera[Check.Cvar] = Check:GetChecked() and Check.Value or Check.Default
+			camera[Check.Cvar] = Check:GetChecked() and Check.Value or Check.Default
 		else
 			for _, Sub in ipairs(Check) do
 				if Sub:GetChecked() then
-					db.Mouse.Camera[Sub.Cvar] = Sub.Value
+					camera[Sub.Cvar] = Sub.Value
 					break
 				end
 			end
@@ -309,46 +309,47 @@ function WindowMixin:Save()
 	end
 
 	-- mouse events
-	for _, Check in ipairs(self.Events) do
-		for _, Event in ipairs(Check.Events) do
-			db.Mouse.Events[Event] = Check:GetChecked()
+	for _, check in ipairs(self.Events) do
+		for _, event in ipairs(check.Events) do
+			db('Mouse/Events/'..event, check:GetChecked())
 		end
 	end
 
 	-- interact button full
 	if self.IBFullModule.Enable:GetChecked() and self.IBFullModule.BindCatcher.CurrentButton then
-		Settings.interactWith 	= self.IBFullModule.BindCatcher.CurrentButton
-		Settings.interactNPC 	= self.IBFullModule.NPC:GetChecked()
+		db('interactWith', self.IBFullModule.BindCatcher.CurrentButton)
+		db('interactNPC',  self.IBFullModule.NPC:GetChecked())
 	else
-		Settings.interactWith = false
-		Settings.interactNPC = false
+		db('interactWith', false)
+		db('interactNPC', false)
 	end
 
 	-- interact button lite
 	if 	( not self.IBFullModule.Enable:GetChecked() ) and
 		( self.IBLiteModule.Enable:GetChecked() ) and 
 		( self.IBLiteModule.BindCatcher.CurrentButton ) then
-		Settings.lootWith = self.IBLiteModule.BindCatcher.CurrentButton
+		db('lootWith', self.IBLiteModule.BindCatcher.CurrentButton)
 	else
 		self.IBLiteModule.Enable:SetChecked(false)
-		Settings.lootWith = false
+		db('lootWith', false)
 	end
 
 	-- smart interaction
-	if Settings.interactWith or Settings.lootWith then
-		Settings.interactCache 	= self.SmartInteract.Enable:GetChecked()
-		Settings.interactScrape = self.SmartInteract.Scrape:GetChecked()
-		Settings.nameplateNameOnly = self.SmartInteract.Plates:GetChecked()
+	if db('interactWith') or db('lootWith') then
+		db('interactCache',     self.SmartInteract.Enable:GetChecked())
+		db('interactScrape',    self.SmartInteract.Scrape:GetChecked())
+		db('nameplateNameOnly', self.SmartInteract.Plates:GetChecked())
 	else
-		Settings.interactCache = false
-		Settings.interactScrape = false
-		Settings.nameplateNameOnly = false
+		db('interactCache', false)
+		db('interactScrape', false)
+		db('nameplateNameOnly', false)
 	end
 
 	-- toggle nameplates for guid scraping
-	Settings.nameplateShowAll 	= Settings.interactScrape or nil
-	Settings.nameplateShowFriends = Settings.interactScrape or nil
-	Settings.nameplateShowFriendlyNPCs = Settings.interactScrape or nil
+	local scrape  = db('interactScrape')
+	db('nameplateShowAll', scrape or nil)
+	db('nameplateShowFriends', scrape or nil)
+	db('nameplateShowFriendlyNPCs', scrape or nil)
 
 	ConsolePortSettings = db.Settings
 	ConsolePortMouse = db.Mouse
@@ -405,7 +406,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		Controls.ResetAll = CreateButton('ResetAll', TUTORIAL.CONFIG.FULLRESET, ResetAllOnClick, {'TOPRIGHT', -40, -16}, true)
 		Controls.ShowSlash = CreateButton('ShowSlash', TUTORIAL.CONFIG.SHOWSLASH, SlashCmdList['CONSOLEPORT'], {'RIGHT', Controls.ResetAll, 'LEFT', -2, 0}, true)
 
-		ExtraButton.Icon:SetTexture('Interface\\AddOns\\ConsolePort\\Controllers\\'..Settings.type..'\\Front')
+		ExtraButton.Icon:SetTexture('Interface\\AddOns\\ConsolePort\\Controllers\\'..db('type')..'\\Front')
 		ExtraButton.Icon:SetTexCoord(32/512, 256/512, 52/512, 328/512, 460/512, 136/512, 480/512, 210/512)
 		ExtraButton.Icon:SetAlpha(0.25)
 		ExtraButton.Icon:SetSize(232, 40)

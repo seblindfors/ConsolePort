@@ -228,5 +228,21 @@ function ConsolePort:LoadHookScripts()
 		self:ShowPopup('CONSOLEPORT_WARNINGSAVEBINDINGS')
 	end
 
+	-- Hack to fix the varying tab levels causing cursor to skip nodes
+	if CPAPI:IsClassicVersion() then
+		local level
+		for i=1, 5 do
+			local tab = _G['FriendsFrameTab' .. i]
+			if tab then
+				if not level then
+					level = tab:GetFrameLevel()
+				else
+					tab:SetFrameLevel(level)
+				end
+			end
+		end
+	end
+
+
 	self.LoadHookScripts = nil
 end

@@ -851,7 +851,7 @@ function Core:UpdateMouseDriver()
 		Trail:SetScript('OnUpdate', Trail.OnUpdate)
 		Trail:SetShown(not db('disableCursorTrail'))
 		------------------------------------------------
-		Mouse:SetPoint('CENTER', 0, db('interactHintOffset'))
+		Mouse:SetPoint('BOTTOM', 0, db('interactHintPosition'))
 		Mouse.Line:SetShown(not db('interactHintNoLine'))
 		Mouse.Line:SetAlpha(db('interactHintLineVis'))
 		self:RemoveUpdateSnippet(self.UpdateMouseDriver)

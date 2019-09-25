@@ -254,23 +254,21 @@ end
 
 ---------------------------------------------------------------
 
-function ConsolePort:LoadHotKeyTextures(newSet)
-	local set = newSet or db.Bindings
+function ConsolePort:LoadHotKeyTextures(set) set = set or db.Bindings
+	if not set then return end
+	
 	local actionButtons = self:GetActionButtons(true)
-	local IsFrameWidget = C_Widget.IsFrameWidget
-
-	local index, subSet, modifier, binding, ID
 	for secureBtn in pairs(db.SECURE) do
 		for i, hotkey in pairs(secureBtn.HotKeys) do
 			hotkey:ClearAllPoints()
 			hotkey:SetParent(secureBtn)
 			hotkey:Hide()
 		end
-		index = 0
-		modifier = secureBtn.mod
-		subSet = set[secureBtn.name]
-		binding = subSet and subSet[modifier]
-		ID = binding and self:GetActionID(binding)
+		local index = 0
+		local modifier = secureBtn.mod
+		local subSet = set[secureBtn.name]
+		local binding = subSet and subSet[modifier]
+		local ID = binding and self:GetActionID(binding)
 
 		if ID then
 			for actionButton, actionID in pairs(actionButtons) do
@@ -287,8 +285,8 @@ function ConsolePort:LoadHotKeyTextures(newSet)
 				end
 			end
 		elseif binding and not binding:match('ConsolePort') then
-			local button = _G[(gsub(gsub(binding, "CLICK ", ""), ":.+", ""))]
-			if IsFrameWidget(button) then
+			local button = _G[(gsub(gsub(binding, 'CLICK ', ''), ':.+', ''))]
+			if C_Widget.IsFrameWidget(button) then
 				secureBtn:ShowInterfaceHotkey(button)
 			end
 		end

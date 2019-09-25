@@ -49,6 +49,7 @@ function ConsolePort:CalibrateController(reset)
 		db('stickRadialLocal', false)
 		db('stickRadialType', 0)
 		db('calibration', nil)
+		db('skipGuideBtn', false)
 		for button in self:GetBindings() do
 			if not button:match("CP_T_.3") then -- ignore mouse buttons
 				local key1, key2 = GetBindingKey(button)
@@ -59,7 +60,7 @@ function ConsolePort:CalibrateController(reset)
 	end
 	if not self.calibrationFrame then
 		local cbF = db.Atlas.CreateFrame("ConsolePortCalibrationFrame", nil, nil, nil, nil, true)
-		local ctrlType = db.Settings.type
+		local ctrlType = db('type')
 		local red, green, blue = db.Atlas.GetCC()
 
 		self.calibrationFrame = cbF
@@ -104,7 +105,7 @@ function ConsolePort:CalibrateController(reset)
 		----------------------------------------------------------------------
 		cbF.HelpButton:SetScript("OnClick", function(self)
 			if not cbF.helpFrame then
-				local ctrlType = db.Settings.type
+				local ctrlType = db('type')
 				local helpFrame = db.Atlas.CreateFrame("ConsolePortCalibrationHelpFrame", nil, nil, nil, nil, true)
 				helpFrame:SetPoint("CENTER", 0,0)
 				helpFrame:SetFrameStrata("DIALOG")
@@ -141,7 +142,7 @@ function ConsolePort:CalibrateController(reset)
 					helpFrame.Reload:SetText(SETUP.LOADWOWMAPPER)
 					helpFrame.Reload:SetPoint("BOTTOMLEFT", helpFrame, "BOTTOM", 10, 24)
 					helpFrame.Reload:SetScript("OnClick", function(self)
-						db.Settings.calibration = nil
+						db('calibration', nil)
 						ReloadUI()
 					end)
 				else
@@ -196,7 +197,7 @@ function ConsolePort:CalibrateController(reset)
 			cbF.Skip:SetText(SETUP.SKIPGUIDE)
 			cbF.Skip:Hide()
 			cbF.Skip:SetScript("OnClick", function()
-				db.Settings.skipGuideBtn = true
+				db('skipGuideBtn', true)
 				self:CheckCalibration(true)
 			end)
 		end
@@ -294,7 +295,7 @@ function ConsolePort:CalibrateController(reset)
 			cbF.StickInput:SetPoint("BOTTOMRIGHT", -8, 8)
 			cbF.StickInput:Hide()
 
-			local append = ctrlType == 'STEAM' and 'Slide your left touchpad in a circle.' or 'Roll your left stick around in a circle.'
+			local append = 'Roll your left stick around in a circle.'
 			cbF.StickInput.Desc = cbF.StickInput:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 			cbF.StickInput.DefaultText = 'Your controller calibration is incomplete.\nDo NOT use your keyboard during calibration.\n\n' .. append
 			cbF.StickInput.TryAgainText = "\n\nIf using custom map: select an option below.\nIf using default map: roll your stick to try again.\nDo NOT use your keyboard during this process.\n\n"
@@ -603,14 +604,14 @@ function ConsolePort:SelectController()
 		end
 
 		local function OnClick(self)
-			db.Settings.type = self.ID
+			db('type', self.ID)
 
 			for key, value in pairs(db.Controllers[self.ID].Settings) do
-				db.Settings[key] = value
+				db(key, value)
 			end
 
-			db.Settings.newController = true
-			db.Settings.forceController = self.ID
+			db('newController', true)
+			db('forceController', self.ID)
 
 			PlaySound(SOUNDKIT.GS_CHARACTER_SELECTION_ENTER_WORLD)
 			ReloadUI()

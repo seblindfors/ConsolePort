@@ -400,10 +400,13 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerStateTemp
 					Point 	= {'TOP', 'parent.Friends', 'BOTTOM', 0, 0},
 					Desc 	= GUILD,
 					Img 	= ICON:format('Achievement_GuildPerk_EverybodysFriend'),
-					RefTo 	= GuildMicroButton,
-					Attrib 	= {hidemenu = true},
+					RefTo 	= IsRetail and GuildMicroButton,
+					Attrib 	= IsRetail and {hidemenu = true} or {
+						type = 'macro';
+						macrotext = '/click GameMenuButtonContinue\n/click SocialsMicroButton\n/click FriendsFrameTab3';
+					},
 				},
-				Calendar  = {
+				Calendar  = IsRetail and {
 					Type 	= 'Button',
 					Setup 	= baseTemplates,
 					Mixin 	= Button,
@@ -418,12 +421,15 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerStateTemp
 					Type 	= 'Button',
 					Setup 	= baseTemplates,
 					Mixin 	= Button,
-					ID 		= 4,
-					Point 	= {'TOP', 'parent.Calendar', 'BOTTOM', 0, 0},
+					ID 		= IsClassic and 3 or 4,
+					Point 	= {'TOP', IsClassic and 'parent.Guild' or 'parent.Calendar', 'BOTTOM', 0, 0},
 					Desc 	= RAID,
 					Img 	= [[Interface\LFGFRAME\UI-LFR-PORTRAIT]],
-					Attrib 	= {hidemenu = true},
-					Scripts = {
+					Attrib 	= IsRetail and {hidemenu = true} or {
+						type = 'macro';
+						macrotext = '/click GameMenuButtonContinue\n/click SocialsMicroButton\n/click FriendsFrameTab4';
+					},
+					Scripts = IsRetail and {
 						OnClick = ToggleRaidFrame,
 					},
 				},
@@ -431,19 +437,19 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerStateTemp
 					Type 	= 'Button',
 					Setup 	= baseTemplates,
 					Mixin 	= Button,
-					ID 		= 5,
+					ID 		= IsClassic and 4 or 5,
 					Point 	= {'TOP', 'parent.Raid', 'BOTTOM', 0, -16},
 					Img 	= [[Interface\LFGFRAME\UI-LFG-PORTRAIT]],
 					Attrib 	= {
 						condition = 'return PlayerInGroup()',
 						hidemenu = true,
 					},
-					Hooks 	= {
+					Hooks = {
 						OnShow = function(self)
-							self:SetText(IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
+							self:SetText(CPAPI:IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
 						end,
 						OnClick = function(self)
-							if IsPartyLFG() or IsInLFGDungeon() then
+							if CPAPI:IsPartyLFG() or CPAPI:IsInLFGDungeon() then
 								ConfirmOrLeaveLFGParty()
 							else
 								LeaveParty()

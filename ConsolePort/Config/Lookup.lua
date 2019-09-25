@@ -12,7 +12,7 @@ local spairs, copy = db.table.spairs, db.table.copy
 local Controller
 ---------------------------------------------------------------
 function ConsolePort:LoadLookup()
-    Controller = db.Controllers[db.Settings.type]
+    Controller = db.Controllers[db('type')]
     self.LoadLookup = nil
 end
 ---------------------------------------------------------------
@@ -624,6 +624,7 @@ function ConsolePort:GetDefaultUIFrames()
             'PVEFrame',
             'PVPReadyDialog',
             'QuestFrame',
+            IsClassic and 'QuestLogFrame',
             'QuestLogPopupDetailFrame',
             'RecruitAFriendFrame',
             'ReadyCheckFrame',
@@ -687,6 +688,7 @@ local cvars = { -- value = default
     allowSaveBindings       = {false    ; 'Allow binding data uploads (overwrites kb/m bindings)'};
     alwaysHighlight         = {0        ; 'Always highlight tab target (0, 1, 2)'};
     autoExtra               = {true     ; 'Automatically bind Qitems to utility ring'};
+    autoInteract            = {false    ; 'Automatically moves to and interacts with NPCs (deprecated)'};
     autoLootDefault         = {true     ; 'Force auto-loot in combat'};
     autoSellJunk            = {true     ; 'Automatically sell junk'};
     cursorTrailGhost        = {false    ; 'Show cursor trail ghost'};
@@ -703,7 +705,6 @@ local cvars = { -- value = default
     lookAround              = {false    ; 'Look around on L3 while in mouselook'};
     mouseInvertPitch        = {false    ; 'Invert mouse pitch'};
     mouseOnJump             = {false    ; 'Camera mode on jump'};
-    nameplateNameOnly       = {false    ; 'Show only names when nameplate interaction is on'};
     turnCharacter           = {false    ; 'Turn instead of strafe out of mouselook'};
     preventMouseDrift       = {false    ; 'Lock mouse when drifting to screen edge'};
     raidCursorDirect        = {false    ; 'Target directly with raid cursor'};
@@ -720,11 +721,20 @@ local cvars = { -- value = default
     -- Interact button:
     interactNPC             = {false    ; 'Interact with already targeted NPCs'};
     interactPushback        = {1        ; 'Pushback after cast to avoid cursor toggle (seconds)'};
-    interactHintOffset      = {-300     ; 'Interact frame Y-offset from UIParent center (px)'};
+    interactHintPosition    = {200      ; 'Interact frame Y-offset from UIParent bottom (px)'};
     interactHintLineVis     = {.5       ; 'Interact frame line texture alpha (0-1)'};
     interactHintNoLine      = {false    ; 'Disable interact frame line texture'};
     interactWith            = {false    ; 'Full interact button ID'};
-    lootWith                = {false    ; 'Lite interact button ID'};
+    lootWith                = {'CP_R_DOWN'; 'Lite interact button ID'};
+    --------------------------------------------------------------------------------------------------------
+    -- Nameplate scraping properties
+    nameplateCC             = {true     ; 'Show class colors on name-only nameplates'};
+    nameplateFadeIn         = {0.5      ; 'Fade in timer when using name-only nameplates'};
+    nameplateNameOnly       = {false    ; 'Show only names when nameplate interaction is on'};
+    nameplateTextScale      = {1        ; 'Fade in timer when using name-only nameplates'};
+    nameplateExperimental   = {false    ; 'Scrape plates periodically (causes name flicker)'};
+    nameplateExperimentalT  = {2        ; 'Periodic scrape timer (lower increases flickering)'};
+    nameplateShowAllEnemies = {false    ; 'Show nameplates for all enemies (OFF: combat only)'};
     --------------------------------------------------------------------------------------------------------
     -- Camera yaw script specs:
     cameraYawDeadzone       = {.8       ; 'Yaw script deadzone (fraction of half of screen width)'};
@@ -738,7 +748,7 @@ local cvars = { -- value = default
     UIholdRepeatDelay       = {.125     ; 'Delay until a D-pad input is repeated (interface)'};
     UIdisableHoldRepeat     = {false    ; 'Disable D-pad input repeater'};
     UIdisableTooltipFix     = {false    ; 'Disable mouse cursor anchor workaround'};
-    UIdropDownFix           = {false    ; 'Fix interface cursor on dropdowns'};
+    UIdropDownFix           = {true     ; 'Fix interface cursor on dropdowns'};
     --------------------------------------------------------------------------------------------------------
     -- Mouse on center lock:
     centerLockRangeX        = {70       ; 'Center mouse lock width (px)'};
@@ -754,6 +764,12 @@ local cvars = { -- value = default
     unitHotkeyGhostMode     = {false    ; 'Restore calculated combinations after targeting'};
     unitHotkeyIgnorePlayer  = {false    ; 'Always ignore player regardless of pool'};
     --------------------------------------------------------------------------------------------------------
+    -- Texture remaps for back buttons:
+    CP_M1                   = {'CP_TL1' ; 'Texture ID for modifier 1 (SHIFT)'};
+    CP_M2                   = {'CP_TL2' ; 'Texture ID for modifier 2 (CTRL)'};
+    CP_T1                   = {'CP_TR1' ; 'Texture ID for trigger 1'};
+    CP_T2                   = {'CP_TR2' ; 'Texture ID for trigger 2'};
+    --------------------------------------------------------------------------------------------------------
     -- String entries (CAUTION):
     cursorTrailGhostTex     = {[[Interface\CURSOR\Item]]    ; 'Cursor trail ghost texture'};
     exitVehicleBinding      = {'ACTIONBUTTON7'              ; 'Override vehicle exit binding from set'};
@@ -764,42 +780,65 @@ local cvars = { -- value = default
     unitHotkeySet           = {''                           ; 'Force button set for unit hotkey filtering. Valid: left, right'};
 }   --------------------------------------------------------------------------------------------------------
 
--- Usage: db('cvar', [newvalue], ... [branch in database])
+---------------------------------------
+-- DB Usage:
+--	@set db('[pathto/]cvar', value)
+--	@get db('[pathto/]cvar')
+---------------------------------------
 setmetatable(db, {
-    __call = function(self, cvar, ...)
-        local numArgs = select('#', ...)
+    __call = function(self, cvar, value)
         -- set:
-        if (numArgs > 0) and (cvar ~= nil) then
-            local newvalue = ...
-            if numArgs > 1 then
-                local dest = self
-                for i=2, numArgs do
-                    dest = dest[select(i, ...)]
-                    if (dest == nil) then return false end
-                end
-                dest[cvar] = newvalue
-                return true
-            elseif self.Settings then
-                self.Settings[cvar] = newvalue
-                ConsolePort:FireVarCallback(cvar, newvalue)
-                return true
-            end
-            return false
+        if (value ~= nil) and (cvar ~= nil) then
+            return self:Set(cvar, value)
         end
         -- get:
-        local value = self.Settings and self.Settings[cvar]
-        if (value == nil) then
-            local cvarDefault = cvars[cvar]
-            return cvarDefault and cvarDefault[1]
-        else
-            return value
-        end
+        return self:Get(cvar)
     end;
 })
 
+local function __cd(root, default, raw)
+	local path = {strsplit('/', raw)}
+	local depth = #path
+	if (depth == 1) then
+		return default, raw
+	else
+		local dest = root
+		for i=1, (depth - 1) do
+			dest = dest[path[i]]
+			if (dest == nil) then
+				return
+			end
+		end
+		return dest, path[depth]
+	end
+end
+
+function db:Set(raw, value)
+	local repo, cvar = __cd(self, self.Settings, raw)
+	if repo and cvar then
+		repo[cvar] = value
+		ConsolePort:FireVarCallback(cvar, value)
+		return true 
+	end
+end
+
+function db:Get(raw)
+	local repo, cvar = __cd(self, self.Settings, raw)
+	if repo and cvar then
+		local value = repo[cvar]
+		if (value == nil) then
+			local cvarDefault = cvars[cvar]
+			return cvarDefault and cvarDefault[1]
+		end
+		return value
+	end
+end
+
+---------------------------------------
+
 function ConsolePort:RefreshCVars()
-    for cvar, value in pairs(db.Settings) do
-        self:FireVarCallback(cvar, value)
+    for cvar in pairs(cvars) do
+        self:FireVarCallback(cvar, db:Get(cvar))
     end
 end
 

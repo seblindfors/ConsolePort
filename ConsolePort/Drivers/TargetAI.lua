@@ -1,6 +1,6 @@
 local _, db = ...
 ---------------------------------------
-local AI, SEL, HANDLE = ConsolePortTargetAI, ConsolePortTargetAISelector, ConsolePortMouseHandle
+local AI, SEL, HANDLE, CORE = ConsolePortTargetAI, ConsolePortTargetAISelector, ConsolePortMouseHandle, ConsolePort
 ---------------------------------------
 local inRange, mapData, nameOnlyMode = AI.InRange, AI.MapData
 ---------------------------------------
@@ -8,10 +8,9 @@ local spairs, copy, strsplit = db.table.spairs, db.table.copy, strsplit
 local getmetatable, setmetatable, rawset, next, select = getmetatable, setmetatable, rawset, next, select
 ---------------------------------------
 -- Upvalued API:
-local GetGUID, GetName, IsDead, Exists, IsCombat = UnitGUID, UnitName, UnitIsDead, UnitExists
-local IsUnit, IsAttackable, IsOpponent = UnitIsUnit, UnitCanAttack, CPAPI.UnitThreatSituation
-local IsPlayer, IsFriend, IsEnemy, IsControlled, IsBattlePet = UnitIsPlayer, UnitIsFriend, UnitIsEnemy, UnitPlayerControlled, CPAPI.UnitIsBattlePet
-local GetNamePlate = C_NamePlate.GetNamePlateForUnit
+local GetGUID, GetName, IsDead, Exists = UnitGUID, UnitName, UnitIsDead, UnitExists
+local IsPlayer, IsEnemy, IsAttackable = UnitIsPlayer, UnitIsEnemy, UnitCanAttack
+local IsControlled, IsBattlePet = UnitPlayerControlled, CPAPI.UnitIsBattlePet
 local CanLoot = CanLootUnit
 
 ---------------------------------------
@@ -46,27 +45,6 @@ end
 
 local function IsInteractive(unit)
 	return not IsDead(unit) and CanInteract(GetGUID(unit))
-end
-
-local function ToggleHealthBarForUnit(unit)
-	if nameOnlyMode and not IsUnit('player', unit) then
-		local nameplate = GetNamePlate(unit)
-		local unitFrame = nameplate and nameplate.UnitFrame
-		local healthBar = unitFrame and unitFrame.healthBar
-		local levelInfo = unitFrame and unitFrame.LevelFrame
-		if healthBar or levelInfo then
-			local isFriend = IsFriend('player', unit)
-			local isTarget = IsUnit('target', unit)
-			local isCombat = IsOpponent('player', unit)
-			local show = isCombat or not (isFriend or not isTarget)
-			if healthBar then
-				healthBar:SetShown(show)
-			end
-			if levelInfo then
-				levelInfo:SetShown(show)
-			end
-		end
-	end
 end
 
 ---------------------------------------
@@ -437,7 +415,7 @@ end
 function AI:PLAYER_TARGET_CHANGED()
 	if Exists('target') then
 		SEL:Hide()
-		ToggleHealthBarForUnit('target')
+		CORE:SetNameOnlyForUnit('target')
 	else
 		self:UpdateSelection(inRange)
 	end
@@ -458,7 +436,7 @@ function AI:NAME_PLATE_UNIT_ADDED(unit)
 	if IsNPC(unit) then
 		self:Track(unit, 'plate', MAX_NAMEPLATES, true)
 	end
-	ToggleHealthBarForUnit(unit)
+	CORE:SetNameOnlyForUnit(unit)
 end
 
 function AI:NAME_PLATE_UNIT_REMOVED(unit)
@@ -467,10 +445,9 @@ end
 
 function AI:UNIT_THREAT_LIST_UPDATE(unit)
 	if unit and unit:match('nameplate') then
-		ToggleHealthBarForUnit(unit)
+		CORE:SetNameOnlyForUnit(unit)
 	end
 end
-
 ---------------------------------------
 local InCombatLockdown, IsShiftKeyDown, IsControlKeyDown = InCombatLockdown, IsShiftKeyDown, IsControlKeyDown
 
@@ -508,3 +485,50 @@ function SEL:OnKeyDown(key)
 		self:SetPropagateKeyboardInput(true)
 	end
 end
+
+---------------------------------------
+-- Experimental nameplate option
+local throttleplate, nameplateExperimental, nameplateExperimentalT
+AI:HookScript('OnShow', function(self)
+	if nameplateExperimental then
+		self:UnregisterEvent('NAME_PLATE_UNIT_REMOVED')
+	else
+		self:RegisterEvent('NAME_PLATE_UNIT_REMOVED')
+	end
+end)
+
+local after, reset = C_Timer.After, function()
+	SetCVar('nameplateShowFriends', false)
+	SetCVar('nameplateShowFriendlyNPCs', false)
+end
+
+ConsolePort:RegisterVarCallback('nameplateExperimental', function(v)
+	nameplateExperimental = v
+	if nameplateExperimental then
+		throttleplate, nameplateExperimentalT =  0, db('nameplateExperimentalT')
+		AI:UnregisterEvent('NAME_PLATE_UNIT_REMOVED')
+		if not AI.hooked then
+			AI.hooked = true
+			AI:HookScript('OnUpdate', function(self, elapsed)
+				--------------------------------------------------
+				if nameplateExperimental then
+					throttleplate = throttleplate + elapsed
+					if throttleplate > nameplateExperimentalT then
+						SetCVar('nameplateShowFriends', true)
+						SetCVar('nameplateShowFriendlyNPCs', true)
+						throttleplate = 0
+						after(0, reset)
+					end
+				--------------------------------------------------
+				end
+			end)
+		end
+	else
+		AI:RegisterEvent('NAME_PLATE_UNIT_REMOVED')
+		if AI.hooked then
+			AI.hooked = false
+			AI:SetScript('OnUpdate', AI.OnUpdate)
+		end
+	end
+end)
+ConsolePort:RegisterVarCallback('nameplateExperimentalT', function(v) nameplateExperimentalT = v end)

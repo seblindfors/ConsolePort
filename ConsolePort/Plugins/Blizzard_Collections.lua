@@ -3,7 +3,7 @@
 -- regular unclickable frames. 
 local _, db = ...
 
-db.PLUGINS['Blizzard_Collections'] = function(self)
+ConsolePort:AddPlugin('Blizzard_Collections', function(self)
 	if UIPanelWindows.WardrobeFrame then
 		UIPanelWindows.WardrobeFrame.area = 'center'
 	end
@@ -29,5 +29,4 @@ db.PLUGINS['Blizzard_Collections'] = function(self)
 		node:SetPoint('BOTTOM', 0, 10)
 		model.includeChildren = true
 	end
-
-end
+end)

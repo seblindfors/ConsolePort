@@ -186,7 +186,7 @@ db.PANELS[#db.PANELS + 1] = {
 		mixin(HTML, HTMLHandler)
 
 		-- Fonts used
-		HTML:SetFontObject(Game13Font)
+		HTML:SetFontObject(Game12Font)
 		HTML:SetFont('p', [[Fonts\FRIZQT__.ttf]], 14, '')
 		HTML:SetFont('h2', Game13Font:GetFont())
 		HTML:SetFont('h1', Fancy22Font:GetFont())

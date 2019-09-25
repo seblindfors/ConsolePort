@@ -16,17 +16,28 @@ ConsolePortRingMixin = {}
 
 
 function ConsolePortRingMixin:Initialize(ctype, ctemplate, cmixin)
+	if self:GetAttribute('initialized') then return end
 	----------------------------------
 	self.cmixin = cmixin;
 	self.ctype  = ctype or 'Button';
 	self.ctemplate = ctemplate or 'ConsolePortRingButtonTemplate';
 	----------------------------------
 	self.HANDLE = ConsolePortRadialHandler
-	self.HANDLE:RegisterRadialFrame(self)
+	self.HANDLE:RegisterFrame(self)
 	----------------------------------
 	self:WrapScript(self, 'PreClick', self:GetAttribute('_preclick'))
 	self:WrapScript(self, 'OnDoubleClick', self:GetAttribute('_ondoubleclick'))
 	----------------------------------
+	self:SetAttribute('initialized', true)
+end
+
+function ConsolePortRingMixin:Disable()
+	if not self:GetAttribute('initialized') then return end
+	----------------------------------
+	self:UnwrapScript(self, 'PreClick')
+	self:UnwrapScript(self, 'OnDoubleClick')
+	----------------------------------
+	self:SetAttribute('initialized', false)
 end
 
 function ConsolePortRingMixin:Refresh()

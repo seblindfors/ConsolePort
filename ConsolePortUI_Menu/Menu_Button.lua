@@ -5,7 +5,7 @@ L.Button = Button
 
 function Button:OnHide()
 	self:OnLeave()
-	db.UIFrameFadeOut(self, 0.1, self.Hilite:GetAlpha(), 0)
+	db.UIFrameFadeOut(self, 0.1, self:GetAlpha(), 0)
 end
 
 function Button:OnShow()

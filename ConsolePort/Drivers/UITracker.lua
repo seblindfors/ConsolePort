@@ -99,8 +99,8 @@ end
 
 -- Scanner:
 local function FindActionButtons(callback, cache, this, sibling, ...)
-	if not this or this:IsForbidden() or IGNORE_FRAMES[this] then return cache end
 	if sibling then FindActionButtons(callback, cache, sibling, ...) end
+	if not IsFrameWidget(this) or this:IsForbidden() or IGNORE_FRAMES[this] then return cache end
 	-------------------------------------
 	local action = ValidateActionID(this)
 	if IsActionButton(this, action) and callback(cache, this, action) then

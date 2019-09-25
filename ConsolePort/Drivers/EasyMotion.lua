@@ -22,6 +22,14 @@ local Key = {
 		RIGHT 	= ConsolePort:GetUIControlKey('CP_R_RIGHT'),
 	},
 }
+
+local Index = {}
+for side, set in pairs(Key) do
+	for name, id in pairs(set) do
+		Index[id] = ('CP_%s_%s'):format(side, name)
+	end
+end
+
 ---------------------------------------------------------------
 -- Get action/input handlers, EasyMotion -> EM for brevity
 local EM, Input = ConsolePortEasyMotionButton, ConsolePortEasyMotionInput
@@ -315,20 +323,10 @@ end
 
 ConsolePort:RegisterCallback('OnNewBindings', EM.OnNewBindings, EM)
 
+
 EM.FramePool = {}
 EM.ActiveFrames = 0
 EM.UnitFrames = {}
-
-EM.InputCodes = {
-	'CP_R_RIGHT',	-- 1
-	'CP_R_LEFT',	-- 2
-	'CP_R_UP',		-- 3
-	'CP_L_UP',		-- 4
-	'CP_L_DOWN',	-- 5
-	'CP_L_LEFT',	-- 6
-	'CP_L_RIGHT',	-- 7
-	'CP_R_DOWN', 	-- 8
-}
 
 function EM:SetFramePool(unitType, side)
 	self.unitType = unitType
@@ -497,7 +495,7 @@ function HotkeyMixin:DrawIconsForBinding(binding)
 		else
 			icon[id] = self:CreateTexture(nil, 'OVERLAY')
 			icon = icon[id]
-			icon:SetTexture(db.ICONS[EM.InputCodes[id]])
+			icon:SetTexture(db.ICONS[Index[id]])
 			icon:SetSize(size, size)
 		end
 		shown = shown + 1

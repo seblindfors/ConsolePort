@@ -1,4 +1,4 @@
-## Interface: 80100
+## Interface: 11302
 ## Title: Console Port
 ## Notes: Game controller addon
 ## Version: 1.9.9
@@ -63,6 +63,7 @@ Frames\Stacksplit.lua
 Frames\Utility.lua
 Frames\Flyout.lua
 Frames\Helper.lua
+Frames\Nameplate.lua
 
 UI\Utils.lua
 UI\Media.lua

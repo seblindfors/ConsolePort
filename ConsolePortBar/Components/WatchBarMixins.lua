@@ -1,3 +1,4 @@
+local _, ab = ...
 ---------------------------------------------------------------
 CPStatusTrackingBarMixin = { } 
 
@@ -288,7 +289,7 @@ function CPExhaustionTickMixin:UpdateExhaustionColor()
 		self:GetParent().ExhaustionLevelFillBar:SetVertexColor(0.0, 0.39, 0.88, 0.25)
 		self.Highlight:SetVertexColor(0.0, 0.39, 0.88)
 	elseif ( exhaustionStateID == 2 ) then
-		self:GetParent():SetBarColor(0.58, 0.0, 0.55, 1.0)
+		self:GetParent():SetBarColor(ab:GetRGBColorFor('exp'))
 		self:GetParent().ExhaustionLevelFillBar:SetVertexColor(0.58, 0.0, 0.55, 0.25)
 		self.Highlight:SetVertexColor(0.58, 0.0, 0.55)
 	end
@@ -298,7 +299,7 @@ function CPExhaustionTickMixin:OnEvent(event, ...)
 	if (IsRestrictedAccount()) then
 		local rlevel = GetRestrictedAccountData()
 		if (UnitLevel("player") >= rlevel) then
-			self:GetParent():SetBarColor(0.0, 0.39, 0.88, 1.0)
+			self:GetParent():SetBarColor(ab:GetRGBColorFor('exp'))
 			self:Hide()
 			self:GetParent().ExhaustionLevelFillBar:Hide()
 			self:UnregisterAllEvents()	

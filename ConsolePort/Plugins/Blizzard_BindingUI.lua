@@ -5,7 +5,7 @@
 
 local _, db = ...
 
-db.PLUGINS['Blizzard_BindingUI'] = function(self)
+ConsolePort:AddPlugin('Blizzard_BindingUI', function(self)
 	local 	kbF, okayButton, popup = 
 			KeyBindingFrame, KeyBindingFrame.okayButton
 
@@ -55,4 +55,4 @@ db.PLUGINS['Blizzard_BindingUI'] = function(self)
 			popup = nil
 		end
 	end)
-end
+end)

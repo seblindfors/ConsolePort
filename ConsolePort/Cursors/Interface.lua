@@ -1,4 +1,3 @@
-
 ---------------------------------------------------------------
 -- Cursors\Interface.lua: Interface cursor and node management.
 ---------------------------------------------------------------
@@ -97,7 +96,7 @@ end
 ---------------------------------------------------------------
 function Cursor:SetTexture(texture)
 	local object = current and current.object
-	local newType = (object == 'EditBox' and self.IndicatorS) or (object == 'Slider' and self.ScrollGuide) or texture or self.Indicator
+	local newType = (object == 'EditBox' and self.IndicatorS) or (object == 'Slider' and self.Modifier) or texture or self.Indicator
 	if newType ~= self.type then
 		self.Button:SetTexture(newType)
 	end
@@ -779,7 +778,7 @@ function Cursor:MODIFIER_STATE_CHANGED()
 		if 	current and
 			(self.Scroll == M1 and IsShiftKeyDown()) or
 			(self.Scroll == M2 and IsControlKeyDown()) then
-			self:SetTexture(self.ScrollGuide)
+			self:SetTexture(self.Modifier)
 		else
 			self:SetTexture()
 		end
@@ -867,21 +866,20 @@ end
 -- UIControl: Rebinding functions for cursor
 ---------------------------------------------------------------
 local function GetInterfaceButtons()
-	return {
+	return ipairs({
 		CP_L_UP,
 		CP_L_DOWN,
 		CP_L_RIGHT,
 		CP_L_LEFT,
-		_G[db.Mouse.Cursor.Special],
-	}
+		_G[db('Mouse/Cursor/Special')],
+	})
 end
 
 function ConsolePort:SetButtonOverride(enabled)
 	if enabled then
-		local buttons = GetInterfaceButtons()
-		for i, button in ipairs(buttons) do
-			Override:Click(self, button.name, button:GetName(), "LeftButton")
-			button:SetAttribute("type", "UIControl")
+		for _, button in GetInterfaceButtons() do
+			Override:Click(self, button.name, button:GetName(), 'LeftButton')
+			button:SetAttribute('type', 'UIControl')
 		end
 	else
 		self:ClearCursor()
@@ -903,24 +901,25 @@ function ConsolePort:SetupCursor()
 		return
 	end
 
-	Cursor.Special 		= db.Mouse.Cursor.Special
+	local cS = db('Mouse/Cursor/Special')
+	local cL = db('Mouse/Cursor/Left')
+	local cR = db('Mouse/Cursor/Right')
+
+	Cursor.Special 		= cS
 	Cursor.SpecialClick = _G[Cursor.Special]
-	Cursor.SpecialAction = Cursor.SpecialClick.command
+	Cursor.SpecialAction = Cursor.SpecialClick and Cursor.SpecialClick.command
 
-	Cursor.Override = {
-		LeftButton 	= db.Mouse.Cursor.Left,
-		RightButton = db.Mouse.Cursor.Right,
-	}
+	Cursor.Override = {LeftButton = cL, RightButton = cR}
 
-	Cursor.Indicator 	= TEXTURE[db.Mouse.Cursor.Left]
-	Cursor.IndicatorR 	= TEXTURE[db.Mouse.Cursor.Right]
-	Cursor.IndicatorS 	= TEXTURE[db.Mouse.Cursor.Special]
+	Cursor.Indicator  = TEXTURE[cL]
+	Cursor.IndicatorR = TEXTURE[cR]
+	Cursor.IndicatorS = TEXTURE[cS]
 
-	Cursor.Scroll 		= db.Mouse.Cursor.Scroll
-	Cursor.ScrollGuide 	= Cursor.Scroll == M1 and TEXTURE.CP_M1 or TEXTURE.CP_M2
+	Cursor.Scroll     = db('Mouse/Cursor/Scroll')
+	Cursor.Modifier   = Cursor.Scroll == M1 and TEXTURE.CP_M1 or TEXTURE.CP_M2
 
-	Cursor:SetScript("OnHide", Cursor.OnHide)
-	Cursor:SetScript("OnUpdate", Cursor.OnUpdate)
+	Cursor:SetScript('OnHide', Cursor.OnHide)
+	Cursor:SetScript('OnUpdate', Cursor.OnUpdate)
 end
 ---------------------------------------------------------------
 do
@@ -941,9 +940,9 @@ do
 	end
 
 	-- Convenience references to animations
-	Cursor.Translate 	= Cursor.MoveAndScale.Translate
-	Cursor.Enlarge 		= Cursor.MoveAndScale.Enlarge
-	Cursor.Shrink 		= Cursor.MoveAndScale.Shrink
+	Cursor.Translate = Cursor.MoveAndScale.Translate
+	Cursor.Enlarge   = Cursor.MoveAndScale.Enlarge
+	Cursor.Shrink    = Cursor.MoveAndScale.Shrink
 end
 ---------------------------------------------------------------
 
@@ -963,5 +962,5 @@ end
 StepL.delta = -1
 StepR.delta = 1
 
-StepL:SetScript("OnClick", StepOnClick)
-StepR:SetScript("OnClick", StepOnClick)
+StepL:SetScript('OnClick', StepOnClick)
+StepR:SetScript('OnClick', StepOnClick)

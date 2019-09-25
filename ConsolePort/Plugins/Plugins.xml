@@ -1,11 +1,28 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
+	<Script>
+		function ConsolePort:LoadPlugin(name, loader)
+			local path = ('PLUGINS/%s'):format(name)
+			local loader = loader or self:GetData(path)
+			if loader then
+				pcall(loader, self)
+				self:GetData(path, nil)
+			end
+		end
+
+		function ConsolePort:AddPlugin(name, loader)
+			local loadable, reason = select(4, GetAddOnInfo(name))
+			if loadable or (reason ~= 'MISSING') then
+				self:GetData(('PLUGINS/%s'):format(name), loader)
+			end
+		end
+	</Script>
+
 	<Script file="Blizzard_BindingUI.lua"/>
 	<Script file="Blizzard_MapCanvas.lua"/>
 	<Script file="Blizzard_Collections.lua"/>
-	<Script file="ClassicQuestLog.lua"/>
 	<Script file="Storyline.lua"/>
-	<Script file="ElvUI.lua"/>
+	<Script file="Misc.lua"/>
 </Ui>
 
 <!-- 
@@ -19,7 +36,7 @@
 		local _, db = ... 
 
 		2) Insert a table entry for your addon with the title as key:
-		db.PLUGINS["MyAddOn"] = function(ConsolePort)
+		db('PLUGINS/MyAddOn', function(ConsolePort)
 
 			 3) Do what you have to do. 
 
@@ -49,5 +66,5 @@
 
 			5) (Optional) Add hard-coded frame hook:
 			ConsolePort:AddFrame(MyAddOnFrame)
-		end
+		end)
  -->

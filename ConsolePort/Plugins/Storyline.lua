@@ -4,7 +4,7 @@
 -- fit the art style of ConsolePort, instead of Storyline. 
 
 local _, db = ...
-db.PLUGINS["Storyline"] = function(self)
+ConsolePort:AddPlugin('Storyline', function(self)
 	-----------------------------------------
 	local Frame = Storyline_NPCFrame
 	-----------------------------------------
@@ -434,4 +434,4 @@ db.PLUGINS["Storyline"] = function(self)
 
 	-- add the frame to ConsolePort's frame stack.
 	self:AddFrame(Frame:GetName())
-end
+end)

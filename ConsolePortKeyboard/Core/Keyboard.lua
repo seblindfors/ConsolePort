@@ -35,16 +35,6 @@ local cfg = {
 		CP_R_DOWN = 3,
 		CP_R_RIGHT = 4,
 	},
-	DIRKEY = {
-		UP = true,
-		DOWN = true,
-		LEFT = true,
-		RIGHT = true,
-		W = true,
-		A = true,
-		S = true,
-		D = true,
-	},
 	MODKEY = {
 		SHIFT = true,
 		LSHIFT = true,
@@ -58,20 +48,13 @@ local cfg = {
 	},
 }
 
-local KEY, CMD, CLICK, DIRKEY, MODKEY = cfg.KEY, cfg.CMD, cfg.CLICK, cfg.DIRKEY, cfg.MODKEY
+local KEY, CMD, CLICK, MODKEY = cfg.KEY, cfg.CMD, cfg.CLICK, cfg.MODKEY
 
 local function chsize(char)
-	if not char then
-		return 0
-	elseif char > 240 then
-		return 4
-	elseif char > 225 then
-		return 3
-	elseif char > 192 then
-		return 2
-	else
-		return 1
-	end
+	return not char and 0 or 
+		char > 240 and 4 or
+		char > 225 and 3 or
+		char > 192 and 2 or 1
 end
  
  
@@ -220,8 +203,8 @@ function Keyboard:SetLayout()
 	end
 end
 
-function Keyboard:RunCommand(input)
-	if not DIRKEY[input] and not MODKEY[input] then
+function Keyboard:RunCommand(input, direction)
+	if not direction and not MODKEY[input] then
 		local action = GetBindingAction(input)
 		if action and CMD[action] and self[CMD[action]] then
 			self[CMD[action]](self, action)
@@ -232,27 +215,22 @@ function Keyboard:RunCommand(input)
 end
 
 function Keyboard:OnKeyDown(input)
+	local direction = ConsolePortRadialHandler:GetDirectionForKey(input)
 	if not self:GetPropagateKeyboardInput() then
-		KEY.UP = input == "UP" or input == "W" or KEY.UP
-		KEY.DOWN = input == "DOWN" or input == "S" or KEY.DOWN
-		KEY.LEFT = input == "LEFT" or input == "A" or KEY.LEFT
-		KEY.RIGHT = input == "RIGHT" or input == "D" or KEY.RIGHT
+		if direction then
+			KEY[direction] = true
+		end
 		self:SelectSet()
 		self:CheckModifier()
 	end
-	self:RunCommand(input)
+	self:RunCommand(input, direction)
 end
 
 function Keyboard:OnKeyUp(input)
 	if not self:GetPropagateKeyboardInput() then
-		if input == "UP" or input == "W" then
-			KEY.UP = false
-		elseif input == "DOWN" or input == "S" then
-			KEY.DOWN = false
-		elseif input == "LEFT" or input == "A" then
-			KEY.LEFT = false
-		elseif input == "RIGHT" or input == "D" then
-			KEY.RIGHT = false
+		local direction = ConsolePortRadialHandler:GetDirectionForKey(input)
+		if direction then
+			KEY[direction] = false
 		end
 		self:SelectSet()
 		self:CheckModifier()
@@ -348,6 +326,7 @@ function Keyboard:ADDON_LOADED(...)
 		self:LoadSettings()
 		self:LoadFrame()
 		self:CreateConfig()
+		self:UnregisterEvent('ADDON_LOADED')
 	end
 end
 

@@ -8,8 +8,6 @@ local DEFAULT_BINDINGS, LOCAL_BINDINGS = {
 	DOWN  = {'S', 'DOWN'};
 	LEFT  = {'A', 'LEFT'};
 	RIGHT = {'D', 'RIGHT'};
-	HORZ  = {'H'};
-	VERT  = {'V'};
 }
 
 local MOVEMENT = {
@@ -41,16 +39,15 @@ local BIT = {
 	HORZ  = 0x00000010; [0x00000010] = 'HORZ';
 	VERT  = 0x00000020; [0x00000020] = 'VERT';
 }
-
-
+---------------------------------------------------------------
+local RADIAL_TYPE_LARGE, RADIAL_TYPE_SMALL = 0x1, 0x2
 ---------------------------------------------------------------
 -- Handling movement bindings setup
 ---------------------------------------------------------------
 function HANDLE:SetMovementBindings()
 	assert(not InCombatLockdown(), 'Tried to set movement bindings in combat.')
 	self:ClearOverrideBindings()
-	local set, locals = self:GetLocalMovementBindings()
-	local keys = locals or DEFAULT_BINDINGS
+	local set, keys = self:GetLocalMovementBindings()
 	local GetModifiers = ConsolePort.GetModifiers
 
 	for direction, binding in pairs(set) do
@@ -68,11 +65,17 @@ function HANDLE:SetMovementBindings()
 	self:Dispatch()
 end
 
+function HANDLE:GetDefaultMovementBindings()
+	local large = db('stickRadialType') == RADIAL_TYPE_LARGE
+	DEFAULT_BINDINGS.HORZ = large and {db('stickRadialBindHorz')} or nil
+	DEFAULT_BINDINGS.VERT = large and {db('stickRadialBindVert')} or nil
+	return DEFAULT_BINDINGS
+end
+
 function HANDLE:GetLocalMovementBindings()
 	local bindings = self:GetMovementBindings()
 	if not db('stickRadialLocal') then
-		LOCAL_BINDINGS = nil
-		return bindings
+		return bindings, self:GetDefaultMovementBindings()
 	end
 
 	local inherited = self:CacheMovementBindings({})
@@ -100,7 +103,6 @@ function HANDLE:CacheMovementBindings(tbl)
 	return tbl
 end
 
-function HANDLE:GetDefaultMovementBindings() return DEFAULT_BINDINGS end
 function HANDLE:GetCurrentMovementBindings() return LOCAL_BINDINGS or DEFAULT_BINDINGS end
 function HANDLE:GetMovementBindings() return db('turnCharacter') and MOVEMENT.TWIRL or MOVEMENT.DEFAULT end
 
@@ -112,8 +114,8 @@ ConsolePort:RegisterCallback('OnNewBindings', HANDLE.SetMovementBindings, HANDLE
 ---------------------------------------------------------------
 -- Radial detection
 ---------------------------------------------------------------
-local RADIAL_TYPE_SMALL = bit.bor(BIT.UP, BIT.DOWN, BIT.LEFT, BIT.RIGHT)
-local RADIAL_TYPE_LARGE = bit.bor(RADIAL_TYPE_SMALL, BIT.HORZ, BIT.VERT)
+local RADIAL_DETC_SMALL = bit.bor(BIT.UP, BIT.DOWN, BIT.LEFT, BIT.RIGHT)
+local RADIAL_DETC_LARGE = bit.bor(RADIAL_DETC_SMALL, BIT.HORZ, BIT.VERT)
 ---------------------------------------------------------------
 local RADIAL_DETC = {
 	W = BIT.UP;    UP    = BIT.UP;
@@ -140,8 +142,8 @@ function HANDLE:CacheBindsForRadialDetect()
 end
 
 function HANDLE:GetTypeFromBits(bits)
-	return  bits == RADIAL_TYPE_LARGE and 0x00000001 or
-			bits == RADIAL_TYPE_SMALL and 0x00000002
+	return  bits == RADIAL_DETC_LARGE and RADIAL_TYPE_LARGE or
+			bits == RADIAL_DETC_SMALL and RADIAL_TYPE_SMALL
 end
 
 function HANDLE:GetIndexSize()
@@ -157,7 +159,7 @@ function HANDLE:SetTypeMultiplier(multiplier)
 	self.step = 22.5 * multiplier
 	self.size = 360 / self.step
 	self:SetAttribute('locked', false)
-	self:Dispatch()
+	self:SetMovementBindings()
 end
 
 ConsolePort:RegisterVarCallback('stickRadialType', HANDLE.SetTypeMultiplier, HANDLE)
@@ -205,6 +207,16 @@ function HANDLE:GetIndexForAngle(angle)
 	return (index < 0 and index + size) or (index > 0 and index) or (size)
 end
 
+function HANDLE:GetDirectionForKey(key)
+	for direction, set in pairs(self:GetCurrentMovementBindings()) do
+		for _, setkey in ipairs(set) do
+			if (setkey == key) then
+				return direction
+			end
+		end
+	end
+end
+
 ---------------------------------------------------------------
 local ENV_RADIAL = {
 	---------------------------------------------------------------
@@ -213,11 +225,10 @@ local ENV_RADIAL = {
 		local key, down = ...
 		BIT[key] = down and true or nil
 
-		local index = self:RunAttribute('_bits')
-		self:SetAttribute('index', index)
-		self:CallMethod('OnButtonFocused', tostring(index))
+		local index = self:RunAttribute('_setindex', self:RunAttribute('_bits'))
+		self:CallMethod('OnButtonFocused', index)
 
-		local button = self:GetFrameRef(tostring(index))
+		local button = self:GetFrameRef(index)
 		if button then
 			self:SetBindingClick(true, 'BUTTON1', button, 'RightButton')
 		else
@@ -230,7 +241,15 @@ local ENV_RADIAL = {
 	]];
 	---------------------------------------------------------------
 	['_getindex'] = [[
-		return tostring(self:GetAttribute('index'))
+		local index = self:GetAttribute('index')
+		return tostring(index)
+	]];
+	---------------------------------------------------------------
+	['_setindex'] = [[
+		local index = ...
+		local newindex = tostring(index)
+		self:SetAttribute('index', newindex)
+		return newindex
 	]];
 	---------------------------------------------------------------
 	['_onstate-cursor'] = [[
@@ -256,7 +275,7 @@ local ENV_RADIAL = {
 					self:SetAttribute(actionType, actionID)
 				end
 			end
-			self:SetAttribute('index', nil)
+			self:RunAttribute('_setindex', nil)
 		end
 	]];
 	---------------------------------------------------------------
@@ -273,6 +292,7 @@ local ENV_RADIAL = {
 			wipe(BIT)
 		end
 	]];
+	---------------------------------------------------------------
 	['_oncursor'] = [[
 		local hasItem = ...
 		local hide = not hasItem and not self:GetAttribute('toggled')
@@ -334,7 +354,7 @@ function HANDLE:Dispatch()
 	end
 end
 
-function HANDLE:RegisterRadialFrame(frame, id)
+function HANDLE:RegisterFrame(frame, id)
 	assert(C_Widget.IsFrameWidget(frame), 'Invalid frame registered on radial handler.')
 	self:SetFrameRef(id or frame:GetName(), frame)
 	frame:SetFrameRef('HANDLE', self)

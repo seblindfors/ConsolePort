@@ -81,8 +81,16 @@ function CPAPI:GetFriendshipReputation(...)
 	return GetFriendshipReputation and GetFriendshipReputation(...)
 end
 
+function CPAPI:IsPartyLFG(...)
+	return IsPartyLFG and IsPartyLFG(...)
+end
 
--- Project identifiers, should return true or nil
+function CPAPI:IsInLFGDungeon(...)
+	return IsInLFGDungeon and IsInLFGDungeon(...)
+end
+
+
+-- Project identifiers, should return true or nil (nil for dynamic table insertions)
 function CPAPI:IsClassicVersion(...)
 	if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return true end
 end

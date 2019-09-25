@@ -4,7 +4,7 @@
 
 local _, db = ...
 
-db.PLUGINS['Blizzard_MapCanvas'] = function(self)
+ConsolePort:AddPlugin('Blizzard_MapCanvas', function(self)
 	local NodeMixin, pins, maps, nodes = {}, {}, {}, {}
 	local Mixin = db.table.mixin
 
@@ -79,4 +79,4 @@ db.PLUGINS['Blizzard_MapCanvas'] = function(self)
 		hooksecurefunc(WorldMapFrame, 'AcquirePin', AcquirePin)
 		AddToMixinTracker(WorldMapFrame)
 	end
-end
+end)
