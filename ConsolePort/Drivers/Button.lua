@@ -146,10 +146,10 @@ function ConsolePort:GetSecureButton(name, modifier)
 end
 
 ---------------------------------------------------------------
--- SecureButton: secure navigation
+-- SecureButton: secure navigation (NYI)
 ---------------------------------------------------------------
 
---------------------------------------------------
+--[[
 -- raid cursor filters:
 local function _filternode()
 	local node = node
@@ -177,7 +177,7 @@ end
 local function _filterold()
 	return UnitExists(oldnode:GetAttribute('unit'))
 end
-
+]]
 ---------------------------------------------------------------
 local ENV_DPAD = {
 	-----------------------------------------------------------

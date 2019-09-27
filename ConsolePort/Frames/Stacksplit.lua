@@ -8,7 +8,8 @@
 
 local time, hold = 0, 0
 local keyDown, keyHeldDown = false, false
-local Left, Right = StackSplitFrame.LeftButton, StackSplitFrame.RightButton
+local Left  = StackSplitFrame.LeftButton or StackSplitLeftButton
+local Right = StackSplitFrame.RightButton or StackSplitRightButton
 
 local oldNode
 
@@ -24,18 +25,20 @@ StackSplitFrame:HookScript('OnHide', function(self)
 	end
 end)
 
-StackSplitFrame:HookScript('OnUpdate', function(self,elapsed)
-	keyDown = Left:GetButtonState() == 'PUSHED' and Left or Right:GetButtonState() == 'PUSHED' and Right
-	hold = keyDown and hold + elapsed or 0
-	keyHeldDown = keyDown and hold >= 0.3
-	local exponent = math.exp(math.floor(hold))
-	if keyHeldDown then
-		time = time + elapsed
-		while time > 0.1 do
-			for i=1, exponent do
-				keyDown:Click()
+if Left and Right then
+	StackSplitFrame:HookScript('OnUpdate', function(self,elapsed)
+		keyDown = Left:GetButtonState() == 'PUSHED' and Left or Right:GetButtonState() == 'PUSHED' and Right
+		hold = keyDown and hold + elapsed or 0
+		keyHeldDown = keyDown and hold >= 0.3
+		local exponent = math.exp(math.floor(hold))
+		if keyHeldDown then
+			time = time + elapsed
+			while time > 0.1 do
+				for i=1, exponent do
+					keyDown:Click()
+				end
+				time = time - 0.1
 			end
-			time = time - 0.1
 		end
-	end
-end)
+	end)
+end
