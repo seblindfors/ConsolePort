@@ -1,0 +1,7 @@
+## Interface: 80200
+## Title: Console Port |cff69ccf0RINGZ|r
+## Notes: Buncha rings
+## SavedVariablesPerCharacter: ConsolePortRINGZ
+## RequiredDeps: ConsolePort
+
+RINGZ.lua
