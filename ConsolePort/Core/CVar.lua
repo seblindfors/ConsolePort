@@ -30,7 +30,6 @@ function ConsolePort:LoadDefaultCVars()
 end
 
 function ConsolePort:UpdateCVars(inCombat, ...)
-	local isToggled = db.Settings
 	local newCvar, newValue = ...
 	for cvar, info in pairs(CVars) do
 		if inCombat == nil then
@@ -39,18 +38,18 @@ function ConsolePort:UpdateCVars(inCombat, ...)
 				info.default = newValue
 			end
 			-- If the cvar is not combat related, toggle it on until logout/disable
-			if not info.isCombatCVar and isToggled[cvar] then
+			if not info.isCombatCVar and db(cvar) then
 				info.default = info.default or GetCVar(cvar)
 				SetCVar(cvar, info.value)
 			-- If the cvar is not toggled but has a stored default value, then set default
-			elseif not isToggled[cvar] and info.default then
+			elseif not db(cvar) and info.default then
 				SetCVar(cvar, info.default)
 				if not info.protected then
 					info.default = nil
 				end
 			end
 			-- If the cvar is combat related and toggled on
-		elseif info.isCombatCVar and isToggled[cvar] then
+		elseif info.isCombatCVar and db(cvar) then
 			if inCombat then
 				SetCVar(cvar, info.value)
 			else

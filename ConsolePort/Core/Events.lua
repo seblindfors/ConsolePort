@@ -211,13 +211,8 @@ function Events:ADDON_LOADED(name)
 	self:UpdateCVars()
 	-----------------------------------------
 	Events.ADDON_LOADED = function(self, name)
-		-- Register cursor frames
-		if ConsolePortUIFrames and ConsolePortUIFrames[name] then
-			for i, frame in ipairs(ConsolePortUIFrames[name]) do
-				self:AddFrame(frame)
-			end
-		end
-		-- Load plugin
+		-- Load plugin and register cursor frames
+		self:LoadAddonFrames(name)
 		self:LoadPlugin(name)
 		-- Dispatch a frame update
 		self:UpdateFrames()

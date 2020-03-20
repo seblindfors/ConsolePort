@@ -1,7 +1,7 @@
-## Interface: 11302
+## Interface: 80300
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 1.9.10
+## Version: 1.9.11
 
 ## Author: Sebastian Lindfors
 ## X-Website: http://www.consoleport.net

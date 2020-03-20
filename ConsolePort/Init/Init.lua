@@ -133,7 +133,7 @@ function ConsolePort:LoadSettings()
 
 	-- Use these frames in the virtual cursor stack
 	ConsolePortUIFrames = ConsolePortUIFrames or self:GetDefaultUIFrames()
-	-- Use this table to populate radial action bar
+	-- Use this table to populate main radial action bar
 	ConsolePortUtility = ConsolePortUtility or {}
 	-- Use this table to store UI module settings
 	ConsolePortUIConfig = ConsolePortUIConfig or {}
@@ -253,6 +253,26 @@ function ConsolePort:CheckLoadedSettings()
 			popupData.text = db.TUTORIAL.SLASH.NOBINDINGS
 			self:ShowPopup('CONSOLEPORT_IMPORTBINDINGS')
 		end
+	end
+end
+
+function ConsolePort:CheckLoadedAddons()
+	local loaded = {}
+	for name, frames in pairs(db.UIStack) do
+		if IsAddOnLoaded(name) then
+			for i, frame in pairs(frames) do
+				self:AddFrame(frame)
+			end
+		end
+	end
+	for name, loadPlugin in pairs(db.PLUGINS) do
+		if IsAddOnLoaded(name) then
+			loadPlugin(self)
+			loaded[name] = true
+		end
+	end
+	for name in pairs(loaded) do
+		db.PLUGINS[name] = nil
 	end
 end
 

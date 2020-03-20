@@ -81,6 +81,7 @@ end
 local object = {}
 local nameOnly, showAllEnemies, experimental 
 local textScale, fadeInTime, useCC = 1
+local isRetail, isClassic = CPAPI:IsRetailVersion(), CPAPI:IsClassicVersion()
 -------------------------------------------------
 
 function object:name(ignore, unit, _, _, isPlayer, isUnitCC)
@@ -113,10 +114,12 @@ end)
 
 -------------------------------------------------
 
-function object:statusText(ignore, unit, _, _, _, isUnitCC)
+function object:statusText(ignore, unit, _, _, isPlayer, isUnitCC)
 	if not ignore and not isUnitCC then
-		store(self, 'point', {self:GetPoint()})
+		if isClassic then store(self, 'point', {self:GetPoint()}) end
+		store(self, 'alpha', self:GetAlpha())
 		store(self, 'scale', self:GetScale())
+		self:SetAlpha(isPlayer and 0.5 or 1)
 		self:SetScale(0.75 * textScale)
 		self:ClearAllPoints()
 		self:SetPoint('CENTER', 0, -4 * textScale)
@@ -125,6 +128,8 @@ function object:statusText(ignore, unit, _, _, _, isUnitCC)
 	else
 		local scale = extract(self, 'cache')
 		local point = extract(self, 'point')
+		local alpha = extract(self, 'alpha')
+		if alpha then self:SetAlpha(alpha) end
 		if scale then self:SetScale(scale) end
 		if point then
 			self:ClearAllPoints()
@@ -151,12 +156,16 @@ function object:UnitFrame(unit)
 	local isFriend = UnitIsFriend('player', unit)
 	local isTarget = UnitIsUnit('target', unit)
 	local isPlayer = UnitIsPlayer(unit)
-	local isUnitCC = UnitPlayerControlled(unit)
+	local isUnitCC = UnitPlayerControlled(unit) and not isPlayer
 	local inCombat = showAllEnemies and UnitCanAttack('player', unit) or CPAPI:UnitThreatSituation('player', unit)
 	local ignore   = inCombat or not (isFriend or not isTarget)
 	
 	if not (isTarget or inCombat) then
 		FadeIn(self, fadeInTime or 0, 0, 1)
+	end
+
+	if isRetail and not self.statusText then
+		self.statusText = self:CreateFontString(nil, 'ARTWORK', 'GameFontDisable')
 	end
 
 	for idx, modify in pairs(object) do

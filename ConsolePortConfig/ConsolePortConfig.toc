@@ -1,0 +1,13 @@
+## Interface: 80300
+## Title: Console Port |cff69ccf0Config|r
+## Notes: Configuration extension for Console Port.
+## RequiredDeps: ConsolePort
+
+Libs\LibStub.lua
+Libs\LibCompress.lua
+Libs\AceSerializer-3.0.lua
+Libs\Serializer.lua
+
+Frame.xml
+Config.lua
+Container.lua

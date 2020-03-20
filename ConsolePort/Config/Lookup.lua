@@ -582,7 +582,7 @@ function ConsolePort:GetDefaultUIFrames()
             'WarboardQuestChoiceFrame' },
         ConsolePort                 = {
             'AddonList',
-            'BagHelpBox',
+            IsRetail and 'BagHelpBox',
             'BankFrame',
             'BasicScriptErrors',
             'CharacterFrame',
@@ -732,8 +732,6 @@ local cvars = { -- value = default
     nameplateFadeIn         = {0.5      ; 'Fade in timer when using name-only nameplates'};
     nameplateNameOnly       = {false    ; 'Show only names when nameplate interaction is on'};
     nameplateTextScale      = {1        ; 'Fade in timer when using name-only nameplates'};
-    nameplateExperimental   = {false    ; 'Scrape plates periodically (causes name flicker)'};
-    nameplateExperimentalT  = {2        ; 'Periodic scrape timer (lower increases flickering)'};
     nameplateShowAllEnemies = {false    ; 'Show nameplates for all enemies (OFF: combat only)'};
     --------------------------------------------------------------------------------------------------------
     -- Camera yaw script specs:
@@ -755,7 +753,7 @@ local cvars = { -- value = default
     centerLockRangeY        = {180      ; 'Center mouse lock height (px)'};
     centerLockDeadzoneX     = {4        ; 'Center mouse lock deadzone width (px)'};
     centerLockDeadzoneY     = {4        ; 'Center mouse lock deadzone height (px)'};
-    mouseOnCenter           = {true     ; 'Camera mode when mouseover center of UI'};
+    mouseOnCenter           = {false    ; 'Camera mode when mouseover center of UI'};
     --------------------------------------------------------------------------------------------------------
     -- Unit hotkey specific:
     unitHotkeySize          = {32       ; 'Size of unit hotkeys (px)'};
@@ -786,13 +784,9 @@ local cvars = { -- value = default
 --	@get db('[pathto/]cvar')
 ---------------------------------------
 setmetatable(db, {
-    __call = function(self, cvar, value)
-        -- set:
-        if (value ~= nil) and (cvar ~= nil) then
-            return self:Set(cvar, value)
-        end
-        -- get:
-        return self:Get(cvar)
+    __call = function(self, ...)
+        local func = select('#', ...) > 1 and self.Set or self.Get
+        return func(self, ...)
     end;
 })
 

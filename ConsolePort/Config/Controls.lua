@@ -347,9 +347,10 @@ function WindowMixin:Save()
 
 	-- toggle nameplates for guid scraping
 	local scrape  = db('interactScrape')
-	db('nameplateShowAll', scrape or nil)
-	db('nameplateShowFriends', scrape or nil)
-	db('nameplateShowFriendlyNPCs', scrape or nil)
+
+	db('nameplateShowAll', scrape)
+	db('nameplateShowFriends', scrape)
+	db('nameplateShowFriendlyNPCs', scrape)
 
 	ConsolePortSettings = db.Settings
 	ConsolePortMouse = db.Mouse

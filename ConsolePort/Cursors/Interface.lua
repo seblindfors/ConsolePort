@@ -419,6 +419,15 @@ function Node:CacheItem(node, object, super)
 	});
 end
 
+function Node:GetFirstEligibleCacheItem()
+	for _, item in ipairs(self.cache) do
+		local node = item.node
+		if node:IsVisible() and self:IsDrawn(node, item.super) then
+			return item
+		end
+	end
+end
+
 function Node:Scan(super, node, sibling, ...)
 	if self:IsRelevant(node) then
 		local object = node:GetObjectType()
@@ -565,13 +574,13 @@ function Node:Select(node, object, super, state)
 	end
 end
 
-function Node:SetCurrent()	
+function Node:SetCurrent()
 	if old and old.node:IsVisible() and Node:IsDrawn(old.node) then
 		current = old
 	elseif #self.cache > 0 and (not current or not current.node:IsVisible()) then
 		local x, y, targNode = Cursor:GetCenter()
 		if not x or not y then
-			targNode = self.cache[1]
+			targNode = self:GetFirstEligibleCacheItem()
 		else
 			local targDist, targPrio
 			for _, this in ipairs(self.cache) do
@@ -614,8 +623,6 @@ function Scroll:Offset(elapsed)
 		local newX = ( currHorz + (deltaX * abs(currHorz - target.horz) / 16 * 4) )
 		local newY = ( currVert + (deltaY * abs(currVert - target.vert) / 16 * 4) )
 
-	--	print(currHorz, target.horz, newX)
-
 		super:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
 		super:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
 	end
@@ -638,7 +645,6 @@ function Scroll:To(node, super)
 			local newHorz = 0
 		-- 	NYI
 		--	local newHorz = currHorz + (scrollX - nodeX)
-		--	print(floor(currHorz), floor(scrollX), floor(nodeX), floor(newHorz))
 
 			if not self.Active then
 				self.Active = {}
@@ -795,7 +801,7 @@ function ConsolePort:SetInsecureCursorMode(enabled) Cursor.InsecureMode = enable
 
 function ConsolePort:SetCurrentNode(node, force)
 	-- assert cursor is enabled and safe before proceeding
-	if not db.Settings.disableUI and IsSafe() then
+	if not db('disableUI') and IsSafe() then
 		if node then
 			local object = node:GetObjectType()
 			if 	Node:IsInteractive(node, object) and Node:IsDrawn(node) then
@@ -875,7 +881,7 @@ local function GetInterfaceButtons()
 	})
 end
 
-function ConsolePort:SetButtonOverride(enabled)
+function ConsolePort:UIOverrideButtons(enabled)
 	if enabled then
 		for _, button in GetInterfaceButtons() do
 			Override:Click(self, button.name, button:GetName(), 'LeftButton')
@@ -887,6 +893,7 @@ function ConsolePort:SetButtonOverride(enabled)
 			button:Clear(true)
 		end
 	end
+	return enabled and true
 end
 
 function ConsolePort:ClearCursor() Cursor:SetParent(UIParent) ClearOverride(self) end

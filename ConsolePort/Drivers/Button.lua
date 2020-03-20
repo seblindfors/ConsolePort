@@ -183,6 +183,7 @@ local ENV_DPAD = {
 	-----------------------------------------------------------
 	-- Default filters
 	-----------------------------------------------------------
+	-- @param node : current node in iteration
 	_filternode = [[
 		if self:RunAttribute('_isdrawn', node:GetRect()) then
 			CACHE[node] = true
@@ -190,10 +191,12 @@ local ENV_DPAD = {
 		end
 	]];
 	-----------------------------------------------------------
+	-- @param child : current child in iteration
 	_filterchild = [[
 		return child and not child:GetAttribute('ignoreNode')
 	]];
 	-----------------------------------------------------------
+	-- @param old : last focused node
 	_filterold = [[
 		return true
 	]];
@@ -332,3 +335,19 @@ local ENV_DPAD = {
 	]];
 }
 --------------------------------------------------
+
+
+function HANDLE:RegisterFrame(frame, id)
+	assert(C_Widget.IsFrameWidget(frame), 'Invalid frame registered on button handler.')
+	self:SetFrameRef(id or frame:GetName(), frame)
+	frame:SetFrameRef('HANDLE', self)
+	frame:Execute([[
+		HANDLE = self:GetFrameRef('HANDLE');
+		NODES = newtable();
+		CACHE = newtable();
+	]])
+
+	for script, body in pairs(ENV_DPAD) do
+		frame:SetAttribute(script, body)
+	end
+end

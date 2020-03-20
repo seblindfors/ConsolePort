@@ -77,14 +77,17 @@ do
 			local isProtected = node:IsProtected()
 			local unit = isProtected and node:GetAttribute('unit')
 			local action = isProtected and node:GetAttribute('action')
+			local children = isProtected and newtable(node:GetChildren())
 			local childUnit
 
-			for i, child in pairs(newtable(isProtected and node:GetChildren())) do
-				if child:IsProtected() then
-					childUnit = child:GetAttribute('unit')
-					if childUnit == nil or childUnit ~= unit then
-						CurrentNode = child
-						self:Run(GetNodes)
+			if children then
+				for i, child in pairs(children) do
+					if child:IsProtected() then
+						childUnit = child:GetAttribute('unit')
+						if childUnit == nil or childUnit ~= unit then
+							CurrentNode = child
+							self:Run(GetNodes)
+						end
 					end
 				end
 			end

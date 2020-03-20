@@ -220,7 +220,7 @@ function Control:LoadFadeFrames()
 	end
 
 	for _, frame in pairs(loaded.ignore) do ignoreFrames[frame] = true end
-	for _, frame in pairs(loaded.force) do forceFrames[frame] = true end
+	for _, frame in pairs(loaded.force)  do forceFrames[frame]  = true end
 --	for _, frame in pairs(loaded.toggle) do toggleFrames[frame] = true end
 
 	-- Make sure we're ignoring the actual control handle

@@ -225,6 +225,10 @@
 		</Scripts>
 	</Frame>
 
+	<Texture name="CPUIMenuBackgroundStripTemplate" virtual="true" file="Interface\AddOns\ConsolePort\Textures\Window\Gradient">
+		<TexCoords left="0" right="1" top="0.25" bottom="0"/>
+	</Texture>
+
 	<!-- Call Frame:LoadArt() to initiate art handler -->
 	<!-- Call Frame:DrawIndex(headerFunc) to draw headers -->
 	<!-- Call Frame:StartEnvironment() to initiate secure environment -->
@@ -280,7 +284,7 @@
 						<Texture parentKey="Emblem" file="Interface\AddOns\ConsolePort\Textures\Window\Menu-TopLine-Emblem.blp">
 							<Size x="1024" y="16"/>
 							<Anchors>
-								<Anchor point="BOTTOM" y="-16"/>
+								<Anchor point="BOTTOM" y="-15"/>
 							</Anchors>
 						</Texture>
 					</Layer>
@@ -289,12 +293,13 @@
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="1">
-				<Texture parentKey="BG" name="$parentBG" setAllPoints="true" hidden="true" file="Interface\AddOns\ConsolePort\Textures\Window\Gradient"/>
+				<Texture parentKey="BG" name="$parentBG" setAllPoints="true" hidden="true" inherits="CPUIMenuBackgroundStripTemplate"/>
 			</Layer>
 			<Layer level="BACKGROUND" textureSubLevel="2">
 				<Texture parentKey="Art" name="$parentArt" setAllPoints="true" hidden="true" desaturated="true" file="Interface\GLUES\LOADINGSCREENS\LoadingScreen_8xp_ForlornVictory_wide"/>
 			</Layer>
 		</Layers>
 	</Frame>
+
 </Ui>
 

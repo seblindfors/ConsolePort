@@ -78,6 +78,42 @@ function ConsolePortMenuSecureMixin:StartEnvironment()
 end
 
 ---------------------------------------------------------------
+-- @param config : table {
+-- 	@param name : parentKey 
+--	@param id   : (optional) numeric order ID
+-- 	@param text : (optional) displayed on item
+-- 	@param click : (optional) secure on click script
+-- 	@param wireFrame : (optional) child wire frame
+--
+-- 	@param type : (optional) frame type
+--	@param templates : (optional) frame templates
+--	@param redraw : (optional) redraw the menu
+-- 	@param init   : (optional) init function
+-- }
+-- @return header : frame object
+function ConsolePortMenuSecureMixin:AddHeader(config)
+	local object = ConsolePortUI:BuildFrame(self, {
+		[config.name] = {
+			ID = config.id or self:GetNumHeaders() + 1;
+			Type  = config.type or 'CheckButton';
+			Text  = config.text;
+			Setup = config.templates or {
+				'SecureHandlerBaseTemplate';
+				'SecureHandlerClickTemplate';
+				'CPUIListCategoryTemplate';
+			};
+			SetAttribute = {'_onclick', config.click};
+			[1] = config.wireFrame;
+		};
+	})
+	if (type(config.init) == 'function') then
+		config.init(object, self)
+	end
+	if config.redraw then
+		self:DrawIndex()
+	end
+	return object
+end
 
 function ConsolePortMenuSecureMixin:UpdateHeaderIndex(forceCount)
 	self.headers = forceCount and {} or self.headers or {}
