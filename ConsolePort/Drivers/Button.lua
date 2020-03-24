@@ -303,10 +303,10 @@ local ENV_DPAD = {
 		end
 	]];
 	-----------------------------------------------------------
-	_keyUP    = [[ local tX, tY, nX, nY, dX, dY = ... return dY > dX and nY > tY ]];
-	_keyDOWN  = [[ local tX, tY, nX, nY, dX, dY = ... return dY > dX and nY < tY ]];
-	_keyLEFT  = [[ local tX, tY, nX, nY, dX, dY = ... return dY < dX and nX < tX ]];
-	_keyRIGHT = [[ local tX, tY, nX, nY, dX, dY = ... return dY < dX and nX > tX ]];
+	[db('KEY/UP')]    = [[ local tX, tY, nX, nY, dX, dY = ... return dY > dX and nY > tY ]];
+	[db('KEY/DOWN')]  = [[ local tX, tY, nX, nY, dX, dY = ... return dY > dX and nY < tY ]];
+	[db('KEY/LEFT')]  = [[ local tX, tY, nX, nY, dX, dY = ... return dY < dX and nX < tX ]];
+	[db('KEY/RIGHT')] = [[ local tX, tY, nX, nY, dX, dY = ... return dY < dX and nX > tX ]];
 	-----------------------------------------------------------
 	_setnodebykey = [[
 		local key = ...
@@ -319,7 +319,7 @@ local ENV_DPAD = {
 				local dX, dY, dist = self:RunAttribute('_absxy', tX, nX, tY, nY)
 
 				if ( dist < cX + cY ) then
-					if self:RunAttribute('_key' .. key, tX, tY, nX, nY, dX, dY) then
+					if self:RunAttribute(tonumber(key), tX, tY, nX, nY, dX, dY) then
 						curnode, cX, cY = node, dX, dY;
 					end
 				end

@@ -131,6 +131,20 @@ local function hideHook(self, force)
 	end
 end
 
+local function addHook(widget, script, hook, name)
+	local mt = getmetatable(widget)
+	local ix = mt and mt.__index
+	local fn = ix and ix[script]
+	if ( type(fn) == 'function' and not hooks[fn] ) then
+		SetHook(ix, script, hook)
+		hooks[fn] = true
+	elseif ( widget.HookScript ) then
+		widget:HookScript(('On%s'):format(script), hook)
+	else
+		print(db('TUTORIAL/ERRORS/CORRUPTFRAME'):format(name))
+	end
+end
+
 -- Cache default methods so that frames with unaltered
 -- metatables use hook scripts instead of a secure hook.
 hooks[getmetatable(UIParent).__index.Show] = true
@@ -143,25 +157,12 @@ hooks[getmetatable(UIParent).__index.Hide] = true
 function Core:AddFrame(frame)
 	local widget = (type(frame) == "string" and _G[frame]) or (type(frame) == "table" and frame)
 	local name = (type(frame) == "string" and frame or type(frame) == "table" and frame:GetName())
-	if widget then
+	if C_Widget.IsFrameWidget(widget) then
 		if ( not forbidden[widget] ) then
 			-- assert the frame isn't hooked twice
 			if ( not frames[widget] ) then
-				local mt = getmetatable(widget).__index
-
-				if ( not hooks[mt.Show] and type(mt.Show) == 'function' ) then
-					SetHook(mt, "Show", showHook)
-					hooks[mt.Show] = true
-				else
-					widget:HookScript("OnShow", showHook)
-				end
-
-				if ( not hooks[mt.Hide] and type(mt.Hide) == 'function' ) then
-					SetHook(mt, "Hide", hideHook)
-					hooks[mt.Hide] = true
-				else
-					widget:HookScript("OnHide", hideHook)
-				end
+				addHook(widget, 'Show', showHook, name)
+				addHook(widget, 'Hide', hideHook, name)
 			end
 
 			frames[widget] = true
