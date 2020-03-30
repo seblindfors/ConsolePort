@@ -58,6 +58,27 @@
 		<Anchors>
 			<Anchor point="TOP" x="0" y="-32"/>
 		</Anchors>
+		<Frames>
+			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonNoScripts" alphaMode="BLEND">
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-16" y="-16"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						self:GetParent():Hide()
+					</OnClick>
+				</Scripts>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString parentKey="Binding" inherits="GameFontNormal">
+							<Anchors>
+								<Anchor point="RIGHT" x="4" relativePoint="LEFT"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Button>
+		</Frames>
 		<Layers>
 			<Layer level="OVERLAY">
 				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Textures\Button\Normal">

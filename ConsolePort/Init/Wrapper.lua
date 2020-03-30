@@ -40,6 +40,10 @@ function CPAPI:GetClassIcon(class)
 	return [[Interface\TargetingFrame\UI-Classes-Circles]], CLASS_ICON_TCOORDS[class or GetClassFile()]
 end
 
+function CPAPI:GetClassColor(class)
+	return GetClassColor(class or GetClassFile())
+end
+
 function CPAPI:GetCharacterMetadata()
 	-- returns specID, specName on retail
 	if GetSpecializationInfo and GetSpecialization then
@@ -47,6 +51,20 @@ function CPAPI:GetCharacterMetadata()
 	end
 	-- returns classID, localized class token on classic
 	return GetClassID(), GetClassInfo()
+end
+
+function CPAPI:GetItemLevelColor(...)
+	if GetItemLevelColor then
+		return GetItemLevelColor(...)
+	end
+	return self:GetClassColor()
+end
+
+function CPAPI:GetAverageItemLevel(...)
+	if GetAverageItemLevel then
+		return floor(select(2, GetAverageItemLevel(...)))
+	end
+	return MAX_PLAYER_LEVEL
 end
 
 function CPAPI:GetNumQuestWatches(...)
@@ -89,6 +107,12 @@ function CPAPI:IsInLFGDungeon(...)
 	return IsInLFGDungeon and IsInLFGDungeon(...)
 end
 
+function CPAPI:OpenStackSplitFrame(...)
+	if OpenStackSplitFrame then
+		return OpenStackSplitFrame(...)
+	end
+	return StackSplitFrame:OpenStackSplitFrame(...)
+end
 
 -- Project identifiers, should return true or nil (nil for dynamic table insertions)
 function CPAPI:IsClassicVersion(...)

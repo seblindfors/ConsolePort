@@ -84,6 +84,8 @@ function Helper:OnShow()
 		self.Desc:SetText(customDesc or db.TUTORIAL.HINTS.HELPER_ACTIONBAR)
 		self:UpdateWidth()
 		db.UIFrameFadeIn(self, 0.2, 0, 1)
+
+		self.CloseButton.Binding:SetText(Core:GetFormattedBindingOwner('TOGGLEGAMEMENU') or '')
 	end
 end
 
@@ -193,7 +195,7 @@ function Helper:OnKeyDown(key)
 
 		-- clear the helper frame if the binding that was pressed is eqv. to Esc
 		elseif binding == 'TOGGLEGAMEMENU' then
-			ClearCursor()
+			self:Hide()
 
 		-- if the binding is occupied by something unrelated to action bars
 		elseif binding then

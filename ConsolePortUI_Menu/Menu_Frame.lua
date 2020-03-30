@@ -36,12 +36,12 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerStateTemp
 					Attrib 	= {hidemenu = true},
 					UpdateLevel = function(self, newLevel)
 						local level = newLevel or UnitLevel('player')
-						if level and level < MAX_PLAYER_LEVEL then
+						if ( level and level < MAX_PLAYER_LEVEL ) then
 							self.Level:SetTextColor(1, 0.8, 0)
 							self.Level:SetText(level)
 						else
-							self.Level:SetTextColor(GetItemLevelColor())
-							self.Level:SetText(floor(select(2, GetAverageItemLevel())))
+							self.Level:SetTextColor(CPAPI:GetItemLevelColor())
+							self.Level:SetText(CPAPI:GetAverageItemLevel())
 						end
 					end,
 					OnClick = function(self) ToggleCharacter('PaperDollFrame') end,

@@ -1,7 +1,7 @@
 local _, L = ...
 local UI, Control, Data = ConsolePortUI:GetEssentials()
 local KEY = Data.KEY
-local LootFrame, focusButton = {}
+local LootFrame = CreateFromMixins(ConsolePortMenuSelectMixin)
 L.LootFrameLogicMixin = LootFrame
 
 function LootFrame:LOOT_READY(...)
@@ -32,12 +32,8 @@ function LootFrame:OnShow()
 	self.Container.Header.HeaderOpenAnim:Play()
 end
 
-function LootFrame:OnHide()
+function LootFrame:OnHideHook()
 	self.Container.Header.HeaderOpenAnim:Finish()
-	self.idx = 1
-	if focusButton then
-		focusButton:OnLeave()
-	end
 end
 
 function LootFrame:OnEvent(event, ...)
@@ -48,7 +44,6 @@ end
 
 function LootFrame:UpdateItems(fadeOnShow)
 	self.itemPool:ReleaseAll()
-	wipe(self.active)
 
 	local prevButton
 	local numLootItems = GetNumLootItems()
@@ -64,8 +59,6 @@ function LootFrame:UpdateItems(fadeOnShow)
 				Data.UIFrameFadeIn(button, 0.3, 0, 1)
 			end
 
-			self.active[#self.active + 1] = button
-
 			if prevButton then
 				button:SetPoint('TOPRIGHT', prevButton.NameFrame, 'BOTTOMLEFT', 36, -4)
 			else
@@ -74,29 +67,9 @@ function LootFrame:UpdateItems(fadeOnShow)
 			prevButton = button
 		end
 	end
+	
 	self.Container:AdjustHeight(self.itemPool.numActiveObjects * 52)
 	self:UpdateFocus(self.idx)
-end
-
-function LootFrame:UpdateFocus(index, delta)
-	if delta then
-		index = index + delta
-	end
-	local numActiveObjects = self.itemPool.numActiveObjects
-	self.idx = index > numActiveObjects and numActiveObjects or index < 1 and 1 or index
-	self:SetFocus(self.idx)
-end
-
-function LootFrame:SetFocus(index)
-	if focusButton then
-		focusButton:OnLeave()
-		focusButton = nil
-	end
-	local button = self.active[index]
-	if button then
-		focusButton = button
-		button:OnEnter()
-	end
 end
 
 function LootFrame:LootAllItems()
@@ -105,27 +78,18 @@ function LootFrame:LootAllItems()
 	end
 end
 
-function LootFrame:OnInput(key, down)
-	key = tonumber(key)
-	if down then
-		if key == KEY.UP then
-			self:UpdateFocus(self.idx, -1)
-		elseif key == KEY.DOWN then
-			self:UpdateFocus(self.idx, 1)
-		elseif key == KEY.CROSS and focusButton then
-			focusButton:Click()
-		elseif key == KEY.CIRCLE then
-			self:LootAllItems()
-		elseif 	key == KEY.TRIANGLE or 
-				key == KEY.CENTER or 
-				key == KEY.OPTIONS or 
-				key == KEY.SHARE then
-			CloseLoot() 
-		end
+function LootFrame:OnInputPropagate(key)
+	if key == KEY.CIRCLE then
+		self:LootAllItems()
+	elseif 	key == KEY.TRIANGLE or 
+			key == KEY.CENTER or 
+			key == KEY.OPTIONS or 
+			key == KEY.SHARE then
+		CloseLoot()
 	end
 end
 
-function LootFrame:OnLoad()
+function LootFrame:OnLoadHook()
 	for _, event in pairs({
 		'LOOT_READY',
 		'LOOT_OPENED',
@@ -137,7 +101,5 @@ function LootFrame:OnLoad()
 		'UPDATE_MASTER_LOOT_LIST',
 		'MODIFIER_STATE_CHANGED',
 	}) do self:RegisterEvent(event) end
-	self.idx = 1
-	self.itemPool = UI:CreateFramePool('Button', self.Container, 'CPUISimpleLootButtonTemplate', L.LootButtonMixin)
-	self.active = {}
+	self:SetItemPool(self.Container, 'CPUISimpleLootButtonTemplate', L.LootButtonMixin)
 end

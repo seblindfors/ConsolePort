@@ -685,7 +685,7 @@ local function SpecialAction(self)
 			end
 			if	maxStack > 1 then
 				local maxPurchasable = min(maxStack, canAfford)
-				StackSplitFrame:OpenStackSplitFrame(maxPurchasable, node, "TOPLEFT", "BOTTOMLEFT")
+				CPAPI:OpenStackSplitFrame(maxPurchasable, node, "TOPLEFT", "BOTTOMLEFT")
 			end
 		-- Item button
 		elseif node.JunkIcon then
@@ -699,7 +699,7 @@ local function SpecialAction(self)
 					node.SplitStack = function(button, split)
 						SplitContainerItem(button:GetParent():GetID(), button:GetID(), split)
 					end
-					StackSplitFrame:OpenStackSplitFrame(itemCount, node, "BOTTOMRIGHT", "TOPRIGHT")
+					CPAPI:OpenStackSplitFrame(itemCount, node, "BOTTOMRIGHT", "TOPRIGHT")
 				end
 			end
 		-- Spell button

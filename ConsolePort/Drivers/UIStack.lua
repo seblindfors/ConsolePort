@@ -230,10 +230,8 @@ function Core:UpdateFrames()
 	if not isLocked then
 		self:UpdateFrameTracker()
 		if next(visible) then
-			if not hasUIFocus then
-				hasUIFocus = self:UIOverrideButtons(self:UIControl())
-				return
-			end
+			hasUIFocus = hasUIFocus or self:UIOverrideButtons(self:UIControl())
+			return
 		end
 		hasUIFocus = self:UIOverrideButtons(false)
 	end

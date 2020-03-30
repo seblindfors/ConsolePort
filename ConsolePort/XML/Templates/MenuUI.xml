@@ -4,6 +4,7 @@
 	<Script file="MenuUI.lua"/>
 	<Script file="MenuHint.lua"/>
 	<Script file="MenuButton.lua"/>
+	<Script file="MenuEasySelect.lua"/>
 
 	<Button name="CPUIListCategoryTemplate" virtual="true">
 		<Size x="230" y="50"/>
