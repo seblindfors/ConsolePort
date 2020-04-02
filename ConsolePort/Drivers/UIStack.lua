@@ -226,7 +226,7 @@ function Core:ToggleUICore()
 	end
 end
 
-function Core:UpdateFrames()
+function Core:UpdateFrames(updateCursor)
 	if not isLocked then
 		self:UpdateFrameTracker()
 		if next(visible) then

@@ -75,6 +75,7 @@ function ConsolePort:LoadHookScripts()
 						clickString = db.CLICK.USE
 					end
 					self:AddLine(db.CLICK.PICKUP_ITEM, 1,1,1)
+					self:AddLine(db.CLICK.ITEM_MENU, 1,1,1)
 				end
 				if 	GetItemCount(item, false) ~= 0 or
 					MerchantFrame:IsVisible() then
@@ -82,15 +83,6 @@ function ConsolePort:LoadHookScripts()
 						self:AddLine(db.CLICK_CANCEL, 1,1,1)
 					end
 					self:AddLine(clickString, 1,1,1)
-
-					local hasStack = select(8, GetItemInfo(item))
-					hasStack = hasStack and hasStack > 1
-					
-					if clickString == db.CLICK.USE then
-						self:AddLine(db.CLICK.ADD_TO_EXTRA, 1,1,1)
-					elseif hasStack then
-						self:AddLine(db.CLICK.STACK_SPLIT)
-					end
 					if not ownerParent == LootFrame then
 						self:AddLine(db.CLICK.PICKUP, 1,1,1)
 					end

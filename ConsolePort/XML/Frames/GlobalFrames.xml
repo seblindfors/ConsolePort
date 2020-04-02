@@ -53,66 +53,48 @@
 	</Frame>
 
 	<!-- Places cursor pickups on action buttons by reading input and comparing it to controller bindings. -->
-	<Frame name="ConsolePortSpellHelperFrame" parent="UIParent" hidden="true">
-		<Size x="500" y="130"/>
+	<Frame name="ConsolePortSpellHelperFrame" inherits="ConsolePortPopupFrameTemplate" parent="UIParent" hidden="true">
 		<Anchors>
 			<Anchor point="TOP" x="0" y="-32"/>
 		</Anchors>
+	</Frame>
+
+	<!-- Container item menu -->
+	<Frame name="ConsolePortItemMenu" clampedToScreen="true" movable="true" enableMouse="true" inherits="ConsolePortPopupFrameTemplate" mixin="ItemLocationMixin, ItemMixin" hidden="true" parent="UIParent">
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
 		<Frames>
-			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonNoScripts" alphaMode="BLEND">
+			<GameTooltip frameStrata="MEDIUM" name="$parentTooltip" parentKey="Tooltip" inherits="GameTooltipTemplate">
 				<Anchors>
-					<Anchor point="TOPRIGHT" x="-16" y="-16"/>
+					<Anchor point="TOPLEFT" x="112" y="64"/>
 				</Anchors>
-				<Scripts>
-					<OnClick>
-						self:GetParent():Hide()
-					</OnClick>
-				</Scripts>
 				<Layers>
-					<Layer level="ARTWORK">
-						<FontString parentKey="Binding" inherits="GameFontNormal">
+					<Layer level="BORDER">
+						<Texture parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
+							<TexCoords left="0.00195313" right="0.81835938" top="0.013671875" bottom="0.017578125"/>
+							<Size x="0" y="1"/>
 							<Anchors>
-								<Anchor point="RIGHT" x="4" relativePoint="LEFT"/>
+								<Anchor point="BOTTOMLEFT" y="-12"/>
+								<Anchor point="BOTTOMRIGHT" y="-12"/>
 							</Anchors>
-						</FontString>
+						</Texture>
 					</Layer>
 				</Layers>
-			</Button>
+			</GameTooltip>
 		</Frames>
 		<Layers>
 			<Layer level="OVERLAY">
-				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Textures\Button\Normal">
-					<Size x="64" y="64"/>
+				<FontString parentKey="Count" inherits="GameFontHighlightOutline">
 					<Anchors>
-						<Anchor point="TOPLEFT" x="32" y="-32"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="ARTWORK">
-				<Texture parentKey="Icon">
-					<Size x="64" y="64"/>
-					<Anchors>
-						<Anchor point="CENTER" relativeKey="$parent.Border"/>
-					</Anchors>
-				</Texture>
-				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
-					<Size x="300" y="22"/>
-					<Color r="1" g="0.82" b="0" a="1"/>
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Border" relativePoint="TOPRIGHT" x="16" y="0"/>
-					</Anchors>
-				</FontString>
-				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="4" y="4"/>
 					</Anchors>
 				</FontString>
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnLoad>
-				self.Icon:SetMask([[Interface\AddOns\ConsolePort\Textures\Button\Mask]]);
-			</OnLoad>
+			<OnMouseDown method="StartMoving"/>
+			<OnMouseUp method="StopMovingOrSizing"/>
 		</Scripts>
 	</Frame>
 

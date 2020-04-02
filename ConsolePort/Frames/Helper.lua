@@ -6,7 +6,6 @@
 
 local addOn, db = ...
 local Core, Helper = ConsolePort, ConsolePortSpellHelperFrame
-Helper:SetBackdrop(db.Atlas.Backdrops.Talkbox)
 
 ---------------------------------------------------------------
 -- Binding lookups and helper input focus

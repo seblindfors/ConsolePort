@@ -689,18 +689,10 @@ local function SpecialAction(self)
 			end
 		-- Item button
 		elseif node.JunkIcon then
-			local link = GetContainerItemLink(node:GetParent():GetID(), node:GetID())
-			local _, itemID = strsplit(":", (strmatch(link or "", "item[%-?%d:]+")) or "")
-			if GetItemSpell(link) then
-				self:AddUtilityAction("item", itemID)
-			else
-				local _, itemCount, locked = GetContainerItemInfo(node:GetParent():GetID(), node:GetID())
-				if ( not locked and itemCount and itemCount > 1) then
-					node.SplitStack = function(button, split)
-						SplitContainerItem(button:GetParent():GetID(), button:GetID(), split)
-					end
-					CPAPI:OpenStackSplitFrame(itemCount, node, "BOTTOMRIGHT", "TOPRIGHT")
-				end
+			local bagID, slotID = node:GetParent():GetID(), node:GetID()
+			local _, _, locked = GetContainerItemInfo(bagID, slotID)
+			if not locked then
+				ConsolePortItemMenu:SetItem(bagID, slotID)
 			end
 		-- Spell button
 		elseif node.SpellName then

@@ -31,6 +31,7 @@ local function LoadTooltipLines()
 		QUEST_DETAILS 		= format(RightClick, 	tooltipLoc.QUEST_DETAILS),
 		PICKUP 				= format(SpecialClick, 	tooltipLoc.PICKUP),
 		CANCEL 				= format(SpecialClick, 	tooltipLoc.CANCEL),
+		ITEM_MENU			= format(SpecialClick,  tooltipLoc.ITEM_MENU),
 		STACK_BUY 			= format(SpecialClick, 	tooltipLoc.STACK_BUY),
 		STACK_SPLIT 		= format(SpecialClick, 	tooltipLoc.STACK_SPLIT),
 		ADD_TO_EXTRA		= format(SpecialClick, 	tooltipLoc.ADD_TO_EXTRA),

@@ -56,6 +56,12 @@ Drivers\UIControl.lua
 Cursors\Interface.lua
 Cursors\UnitFrames.lua
 
+UI\Utils.lua
+UI\Media.lua
+UI\Mixins.lua
+UI\Tooltip.lua
+
+Frames\Item.lua
 Frames\Hooks.lua
 Frames\Hints.lua
 Frames\Popup.lua
@@ -64,10 +70,5 @@ Frames\Utility.lua
 Frames\Flyout.lua
 Frames\Helper.lua
 Frames\Nameplate.lua
-
-UI\Utils.lua
-UI\Media.lua
-UI\Mixins.lua
-UI\Tooltip.lua
 
 Plugins\Plugins.xml

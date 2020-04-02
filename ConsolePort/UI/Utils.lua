@@ -44,11 +44,11 @@ function FramePoolMixin:ReleaseAll(...)
 	return self:_ReleaseAll(...)
 end
 
-function UI:CreateFramePool(frameType, parent, template, mixin)
+function UI:CreateFramePool(frameType, parent, template, mixin, resetterFunc)
 	assert(type(frameType) == 'string', 'CreateFramePool: Frametype is invalid.')
 	assert(type(parent) == 'table', 'CreateFramePool: Parent is invalid.')
 	assert(type(template) == 'string', 'CreateFramePool: Template is invalid.')
-	local pool = CreateFramePool(frameType, parent, template)
+	local pool = CreateFramePool(frameType, parent, template, resetterFunc)
 
 	for name, func in pairs(FramePoolMixin) do
 		if pool[name] then
