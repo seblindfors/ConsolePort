@@ -61,14 +61,12 @@
 
 	<!-- Container item menu -->
 	<Frame name="ConsolePortItemMenu" clampedToScreen="true" movable="true" enableMouse="true" inherits="ConsolePortPopupFrameTemplate" mixin="ItemLocationMixin, ItemMixin" hidden="true" parent="UIParent">
+		<Size x="440" y="130"/>
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>
 		<Frames>
 			<GameTooltip frameStrata="MEDIUM" name="$parentTooltip" parentKey="Tooltip" inherits="GameTooltipTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" x="112" y="64"/>
-				</Anchors>
 				<Layers>
 					<Layer level="BORDER">
 						<Texture parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
@@ -226,18 +224,24 @@
 	-->
 
 	<!-- Core\Mouse.lua -->
-	<Frame name="ConsolePortMouseHandle" parent="UIParent" inherits="SecureHandlerAttributeTemplate" alpha="0" frameStrata="LOW">
+	<Frame name="ConsolePortMouseHandle" parent="UIParent" inherits="SecureHandlerAttributeTemplate" alpha="0" frameStrata="BACKGROUND">
 		<Size x="300" y="64"/>
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="-300"/>
 		</Anchors>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Line" file="1243535">
-					<Size x="300" y="50"/>
-					<TexCoords left="0.001953125" right="0.9140625" top="0.08203125" bottom="0.208984375"/>
+				<Texture parentKey="Line" atlas="bonusobjectives-title-bg">
+					<Size x="300" y="56"/>
 					<Anchors>
-						<Anchor point="CENTER" x="0" y="16"/>
+						<Anchor point="CENTER" x="0" y="12"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="BottomLine" file="Interface\QuestFrame\BonusObjectives.blp">
+					<Size x="300" y="12"/>
+					<TexCoords left="0.001953125" right="0.818359375" top="0.486328125" bottom="0.5078125"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="12"/>
 					</Anchors>
 				</Texture>
 			</Layer>
@@ -486,21 +490,21 @@
 		</Attributes>
 		<Frames>
 			<Frame name="$parentSelector" parentKey="Selector" enableKeyboard="true" hidden="true">
-				<Size x="53" y="0"/>
+				<Size x="42" y="0"/>
 				<Anchors>
-					<Anchor point="TOP" relativeTo="ConsolePortMouseHandle" x="0" y="26"/>
-					<Anchor point="BOTTOM" relativeTo="ConsolePortMouseHandle" x="0" y="6"/>
+					<Anchor point="TOP" relativeTo="ConsolePortMouseHandle" x="0" y="22"/>
+					<Anchor point="BOTTOM" relativeTo="ConsolePortMouseHandle" x="0" y="9"/>
 				</Anchors>
 				<Layers>
 					<Layer level="ARTWORK">
 						<Texture parentKey="TopArrow" inherits="HelpPlateArrowUP">
-							<Size x="53" y="17"/>
+							<Size x="42" y="14"/>
 							<Anchors>
 								<Anchor point="TOP"/>
 							</Anchors>
 						</Texture>
 						<Texture parentKey="BottomArrow" inherits="HelpPlateArrowDOWN">
-							<Size x="53" y="17"/>
+							<Size x="42" y="14"/>
 							<Anchors>
 								<Anchor point="BOTTOM"/>
 							</Anchors>

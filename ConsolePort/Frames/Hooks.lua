@@ -157,7 +157,7 @@ function ConsolePort:LoadHookScripts()
 		[MovieFrame] = MovieFrame.CloseDialog and MovieFrame.CloseDialog.ConfirmButton;
 		-----------------------------
 	}) do frame:HookScript('OnKeyUp', function(self, key)
-			if core:GetUIControlKeyFromInput(key) == db.KEY.CROSS then
+			if core:GetUIControlKeyFromInput(key) == db('KEY/CROSS') then
 				closeButton:Click()
 			end
 		end)
@@ -192,10 +192,10 @@ function ConsolePort:LoadHookScripts()
 		local file = info and info:match('%a+%.lua:%d+')
 		local blockSave
 		StaticPopupDialogs['CONSOLEPORT_WARNINGSAVEBINDINGS'] = {
-			text = db.TUTORIAL.SLASH.WARNINGSAVEBINDINGS:format(file or '<unidentified file>', addon or '<unidentified addon>'),
+			text = db('TUTORIAL/SLASH/WARNINGSAVEBINDINGS'):format(file or '<unidentified file>', addon or '<unidentified addon>'),
 			button1 = ACCEPT,
 			button2 = CANCEL,
-			button3 = db.TUTORIAL.SLASH.ALLOW,
+			button3 = db('TUTORIAL/SLASH/ALLOW'),
 			showAlert = true,
 			timeout = 0,
 			whileDead = true,

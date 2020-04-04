@@ -3,7 +3,7 @@
 
 	<!-- Generic semi-opaque popup with close button -->
 	<Frame name="ConsolePortPopupFrameTemplate" virtual="true">
-		<Size x="500" y="130"/>
+		<Size x="500" y="96"/>
 		<Backdrop 
 			bgFile="Interface\AddOns\ConsolePort\Textures\Window\TalkboxBG.blp"
 			edgeFile="Interface\AddOns\ConsolePort\Textures\Window\EdgefileTalkbox.blp" tile="false">
@@ -17,7 +17,7 @@
 		<Frames>
 			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonNoScripts" alphaMode="BLEND">
 				<Anchors>
-					<Anchor point="TOPRIGHT" x="-16" y="-16"/>
+					<Anchor point="TOPRIGHT" x="-8" y="-8"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -40,7 +40,7 @@
 				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Textures\Button\Normal">
 					<Size x="64" y="64"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" x="32" y="-32"/>
+						<Anchor point="TOPLEFT" x="16" y="-16"/>
 					</Anchors>
 				</Texture>
 			</Layer>
@@ -55,7 +55,7 @@
 					<Size x="300" y="22"/>
 					<Color r="1" g="0.82" b="0" a="1"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Border" relativePoint="TOPRIGHT" x="16" y="0"/>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Border" relativePoint="TOPRIGHT" x="8" y="-4"/>
 					</Anchors>
 				</FontString>
 				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">

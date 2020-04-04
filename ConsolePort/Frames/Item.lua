@@ -52,15 +52,18 @@ function ItemMenu:SetItem(bagID, slotID)
 
 	self:SetTooltip()
 	self:SetCommands()
-	self:FixHeight()
+	self:FixSize()
 	self:Show()
 	self:RedirectCursor()
 end
 
-function ItemMenu:FixHeight()
+function ItemMenu:FixSize()
 	local lastItem = self.itemPool:GetObjectByIndex(self.itemPool:GetNumActive())
 	if lastItem then
-		self:SetHeight(self:GetHeight() + (self:GetBottom() - lastItem:GetBottom()) + 32)
+		local height = self:GetHeight() or 0
+		local bottom = self:GetBottom() or 0
+		local anchor = lastItem:GetBottom() or 0
+		self:SetHeight(height + bottom - anchor + 16)
 	end
 end
 
@@ -129,7 +132,7 @@ function ItemMenu:AddCommand(text, command, data)
 	local anchor = self.itemPool:GetObjectByIndex(self.itemPool:GetNumActive()-1)
 	
 	option:SetCommand(text, command, data)
-	option:SetPoint('TOPLEFT', anchor or self.Tooltip, 'BOTTOMLEFT', 0, anchor and 0 or -16)
+	option:SetPoint('TOPLEFT', anchor or self.Tooltip, 'BOTTOMLEFT', anchor and 0 or 8, anchor and 0 or -16)
 	option:Show()
 end
 
@@ -154,7 +157,7 @@ function ItemMenu.Tooltip:Readjust()
 		i = i + 1
 		left, right = self:GetTooltipStrings(i)
 	end
-	self:GetParent():FixHeight()
+	self:GetParent():FixSize()
 end
 
 function ItemMenu.Tooltip:OnUpdate(elapsed)
@@ -171,7 +174,7 @@ function ItemMenu:SetTooltip()
 	tooltip:SetBagItem(self:GetBagAndSlot())
 	tooltip:Show()
 	tooltip:ClearAllPoints()
-	tooltip:SetPoint('TOPLEFT', 104, -32)
+	tooltip:SetPoint('TOPLEFT', 80, -16)
 end
 
 function ItemMenu:ClearTooltip()

@@ -298,8 +298,6 @@ end
 local Mouse = ConsolePortMouseHandle
 Mouse:Execute([[ id, isEnabled = 0, true ]])
 Mouse.FadeInRef, Mouse.FadeOutRef = db.GetFaders()
-Mouse.Line:SetTexture(1243535)
-Mouse.Line:SetVertexColor(1, .75, .75)
 
 for name, script in pairs({
 	_onattributechanged = [[
@@ -378,7 +376,6 @@ for name, script in pairs({
 			end
 
 			self:RunAttribute('Set', USEKEY, ( (loot or npc) and 'INTERACTTARGET' or 'TURNORACTION' ) )
-
 		end
 		self:CallMethod('TrackUnit', target)
 	]],
@@ -397,7 +394,10 @@ end
 
 function Mouse:FadeOut(speed)
 	if self.fade ~= 'out' then
-		self:FadeOutRef(speed or 0.2, self:GetAlpha(), 0)
+		self:FadeOutRef(speed or 0.2, self:GetAlpha(), 0, {
+			finishedFunc = self.SetHintAnchors;
+			finishedArg1 = self;
+		})
 		self.fade = 'out'
 	end
 end
@@ -417,6 +417,46 @@ end
 
 function Mouse:SetIcon(icon)
 	self.Button:SetTexture(ICONS[icon])
+end
+
+function test(plate, self)
+	return plate or self
+end
+
+function Mouse:SetHintAnchors(plate)
+	if ( plate and self.anchorPlate == plate ) then
+		return
+	end
+	local lineAlpha = db('interactHintLineVis')
+	self.Text:SetShown(not plate and true)
+	self.Line:SetParent(test(plate, self))
+	self.Line:SetGradientAlpha('VERTICAL',
+		1, 1, 1, not plate and lineAlpha or 1,
+		1, 1, 1, not plate and lineAlpha or 0)
+	self.Line:SetScale(plate and self:GetEffectiveScale() or 1)
+	self.Line:SetShown(plate and true or not (db'interactHintNoLine'))
+	self.anchorPlate = plate
+	---------------------
+	self:ClearAllPoints()
+	self.Button:ClearAllPoints()
+	if plate then
+		self:SetPoint('CENTER', plate, 0, -8)
+		self.Button:SetPoint('BOTTOM', plate.UnitFrame, 'TOP', 0, 0)
+	else
+		self:SetPoint('BOTTOM', 0, db('interactHintPosition'))
+		self.Button:SetPoint('RIGHT', self.Text, 'LEFT', -15, 0)
+	end
+end
+
+function Mouse:SetNameplateAnchor(targetGUID)
+	if not db('interactHintNoSticky') then
+		for i, nameplate in ipairs(C_NamePlate.GetNamePlates()) do
+			local guid = UnitGUID(nameplate.UnitFrame:GetAttribute('unit'))
+			if (targetGUID == guid) then
+				return self:SetHintAnchors(nameplate)
+			end
+		end
+	end
 end
 
 ---------------------------------------------------------------
@@ -561,10 +601,11 @@ function Mouse:CheckArtificial(elapsed)
 			self:SetOverride('CLICK ConsolePortTargetAI:LeftButton', self.override)
 			self.Text:SetText(self.artificialName)
 		end
+		self:SetNameplateAnchor(self.artificial)
 		self:FadeIn()
 	else
-		self:ClearScriptOverride()
 		self:FadeOut()
+		self:ClearScriptOverride()
 		self:SetScript('OnUpdate', nil)
 	end
 end
@@ -597,6 +638,7 @@ function Mouse:PrepareTracking()
 	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
 	self:TogglePortrait(true)
 	self:SetIcon(self.interactWith)
+	self:SetHintAnchors(nil)
 end
 
 -- Workaround: loot is not always available right away.
@@ -851,9 +893,7 @@ function Core:UpdateMouseDriver()
 		Trail:SetScript('OnUpdate', Trail.OnUpdate)
 		Trail:SetShown(not db('disableCursorTrail'))
 		------------------------------------------------
-		Mouse:SetPoint('BOTTOM', 0, db('interactHintPosition'))
-		Mouse.Line:SetShown(not db('interactHintNoLine'))
-		Mouse.Line:SetAlpha(db('interactHintLineVis'))
+		Mouse:SetHintAnchors(nil)
 		self:RemoveUpdateSnippet(self.UpdateMouseDriver)
 	end
 end

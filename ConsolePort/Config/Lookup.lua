@@ -724,6 +724,7 @@ local cvars = { -- value = default
     interactHintPosition    = {200      ; 'Interact frame Y-offset from UIParent bottom (px)'};
     interactHintLineVis     = {.5       ; 'Interact frame line texture alpha (0-1)'};
     interactHintNoLine      = {false    ; 'Disable interact frame line texture'};
+    interactHintNoSticky    = {false    ; 'Disable nameplate anchoring'};
     interactWith            = {false    ; 'Full interact button ID'};
     lootWith                = {'CP_R_DOWN'; 'Lite interact button ID'};
     --------------------------------------------------------------------------------------------------------
