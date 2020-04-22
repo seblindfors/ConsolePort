@@ -8,13 +8,17 @@
 local _, db = ...
 
 local CVars = {
-	TargetNearestUseNew 		= 	{value = 0,		event = nil},
-	autoLootDefault 			= 	{value = true,	event = 'AUTO_LOOT_DEFAULT_TEXT', isCombatCVar = true },
-	mouseInvertPitch 			= 	{value = true, 	event = 'INVERT_MOUSE'},
-	mouseInvertYaw				= 	{value = true, 	event = nil},
-	nameplateShowAll			= 	{value = 1,		event = 'UNIT_NAMEPLATES_AUTOMODE'},
-	nameplateShowFriends		= 	{value = 1,		event = 'UNIT_NAMEPLATES_SHOW_FRIENDS'},
-	nameplateShowFriendlyNPCs 	= 	{value = 1,		event = nil},
+	TargetNearestUseNew        = {value = 0,     event = nil},
+	autoLootDefault            = {value = true,  event = 'AUTO_LOOT_DEFAULT_TEXT', isCombatCVar = true },
+	mouseInvertPitch           = {value = true,  event = 'INVERT_MOUSE'},
+	mouseInvertYaw             = {value = true,  event = nil},
+	nameplateShowAll           = {value = 1,     event = 'UNIT_NAMEPLATES_AUTOMODE'},
+	nameplateShowFriends       = {value = 1,     event = 'UNIT_NAMEPLATES_SHOW_FRIENDS'},
+	nameplateShowFriendlyNPCs  = {value = 1,     event = nil},
+	nameplateMinAlphaDistance  = {value = 15,    event = nil},
+	nameplateMaxAlphaDistance  = {value = 30,    event = nil},
+	nameplateOccludedAlphamult = {value = 0,   event = nil},
+	nameplateMinAlpha          = {value = 0,     event = nil},
 }
 
 

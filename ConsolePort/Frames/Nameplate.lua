@@ -63,6 +63,7 @@ end
 local function store(object, id, data)
 	local idx = stringify(object, id)
 	if not cache[idx] then cache[idx] = data end
+	return data
 end
 
 local function retrieve(object, id)
@@ -160,6 +161,31 @@ end
 
 -------------------------------------------------
 
+function object:CustomProcedures(...)
+	if isRetail then
+		local statusText = retrieve(self, 'statusText')
+		if not statusText then
+			statusText = store(self, 'statusText', self:CreateFontString(nil, 'ARTWORK', 'GameFontDisable'))
+		end
+		statusText:Hide()
+		object.statusText(statusText, ...)
+	end
+end
+
+function object:RunModifications(...)
+	object.CustomProcedures(self, ...)
+
+	-- modify base objects
+	for idx, modify in pairs(object) do
+		local frame = self[idx]
+		if frame then
+			modify(frame, ...)
+		end
+	end
+end
+
+-------------------------------------------------
+
 function object:UnitFrame(unit)
 	local isFriend = UnitIsFriend('player', unit)
 	local isTarget = UnitIsUnit('target', unit)
@@ -173,16 +199,7 @@ function object:UnitFrame(unit)
 		FadeIn(self, fadeInTime or 0, 0, 1)
 	end
 
-	if isRetail and not self.statusText then
-		self.statusText = self:CreateFontString(nil, 'ARTWORK', 'GameFontDisable')
-	end
-
-	for idx, modify in pairs(object) do
-		local frame = self[idx]
-		if frame then
-			modify(frame, ignore, unit, isFriend, isTarget, isPlayer, isUnitCC, inCombat, isActive)
-		end
-	end
+	object.RunModifications(self, ignore, unit, isFriend, isTarget, isPlayer, isUnitCC, inCombat, isActive)
 end
 
 -------------------------------------------------

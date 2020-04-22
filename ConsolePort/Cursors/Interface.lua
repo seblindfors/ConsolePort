@@ -542,7 +542,7 @@ end
 
 function Cursor:OnHide()
 	self.MoveAndScale.Flash = true
-	Node:ClearCache()
+	self:Clear()
 	self:SetHighlight()
 	if IsSafe() then
 		ClearOverride(self)
