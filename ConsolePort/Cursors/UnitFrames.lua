@@ -77,7 +77,7 @@ do
 			local isProtected = node:IsProtected()
 			local unit = isProtected and node:GetAttribute('unit')
 			local action = isProtected and node:GetAttribute('action')
-			local children = isProtected and newtable(node:GetChildren())
+			local children = isProtected and newtable(self.GetChildren(node))
 			local childUnit
 
 			if children then
@@ -201,7 +201,7 @@ do
 			self:Run(UpdateRouting)
 		]=]
 		UpdateFrameStack = [=[
-			local frames = newtable(self:GetParent():GetChildren())
+			local frames = newtable(self.GetChildren(self:GetParent()))
 			for i, frame in pairs(frames) do
 				if frame:IsProtected() and not Cache[frame] then
 					CurrentNode = frame

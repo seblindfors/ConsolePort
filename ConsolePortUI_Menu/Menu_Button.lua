@@ -9,7 +9,6 @@ function Button:OnHide()
 end
 
 function Button:OnShow()
-	self:OnLeave()
 	self:Animate()
 end
 

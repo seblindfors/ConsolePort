@@ -471,7 +471,7 @@ function ConsolePort:CalibrateController(reset)
  							settings[changeModifier] = newModifier
 
  							local i = 0
- 							for k, button in pairs(ordered) do
+ 							for _, button in pairs(ordered) do
  								if shoulder[button] then
 	 								i = i + 1
 	 								settings["CP_T"..i] = button

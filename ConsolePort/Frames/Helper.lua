@@ -110,9 +110,14 @@ function Helper:ShowBags()
 		self.BagFrame = CreateFrame('Frame', nil, self)
 		self.BagFrame:SetBackdrop(db.Atlas.Backdrops.Talkbox)
 		self.BagFrame:SetSize(64 + (4*size), 32 + size)
-		self.BagFrame:SetPoint('BOTTOM', 0, -30)
+		self.BagFrame:SetPoint('BOTTOM', 0, -50)
+		local buttonType = CPAPI:IsRetailVersion() and 'ItemButton' or 'CheckButton'
 		for i=1, (NUM_BAG_SLOTS) do
-			local button = CreateFrame('CheckButton', 'CP_DropInBag' .. (i-1) .. 'Slot', self.BagFrame, 'BagSlotButtonTemplate')
+			local button = CreateFrame(buttonType,
+				'CP_DropInBag' .. (i-1) .. 'Slot',
+				self.BagFrame,
+				'BagSlotButtonTemplate'
+			)
 			button:SetPoint('LEFT', ((i-1) * 46) + 32, 16)
 			button:SetSize(size * (42/46), size * (42/46))
 			button.IconBorder:SetSize(46, 46)

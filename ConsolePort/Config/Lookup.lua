@@ -517,35 +517,25 @@ end
 function ConsolePort:GetDefaultUIFrames()
     local IsClassic, IsRetail = CPAPI:IsClassicVersion(), CPAPI:IsRetailVersion()
     return {
-        Blizzard_AchievementUI      = {
-            'AchievementFrame' },
-        Blizzard_AlliedRacesUI      = {
-            'AlliedRacesFrame' },
-        Blizzard_ArchaeologyUI      = {
-            'ArchaeologyFrame' },
+        Blizzard_AchievementUI      = {'AchievementFrame'},
+        Blizzard_AlliedRacesUI      = {'AlliedRacesFrame'},
+        Blizzard_ArchaeologyUI      = {'ArchaeologyFrame'},
         Blizzard_ArtifactUI         = {
             'ArtifactFrame',
             'ArtifactRelicForgeFrame'},
-        Blizzard_AuctionUI          = {
-            'AuctionFrame' },
-        Blizzard_AzeriteUI          = {
-            'AzeriteEmpoweredItemUI' },
-        Blizzard_BarbershopUI       = {
-            'BarberShopFrame' },
-        Blizzard_Calendar           = {
-            'CalendarFrame' },
-        Blizzard_ChallengesUI       = {
-            'ChallengesKeystoneFrame' },
+        Blizzard_AuctionUI          = {'AuctionFrame' },
+        Blizzard_AzeriteUI          = {'AzeriteEmpoweredItemUI'},
+        Blizzard_BarbershopUI       = {'BarberShopFrame'},
+        Blizzard_Calendar           = {'CalendarFrame' },
+        Blizzard_ChallengesUI       = {'ChallengesKeystoneFrame'},
         Blizzard_Collections        = {
             'CollectionsJournal',
             'WardrobeFrame', },
-        Blizzard_Communities        = {
-            'CommunitiesFrame', },
-        Blizzard_DeathRecap         = {
-            'DeathRecapFrame' },
-        Blizzard_EncounterJournal   = {
-            'EncounterJournal' },
+        Blizzard_Communities        = {'CommunitiesFrame'},
+        Blizzard_DeathRecap         = {'DeathRecapFrame'},
+        Blizzard_EncounterJournal   = {'EncounterJournal'},
         Blizzard_GarrisonUI         = {
+            'BFAMissionFrame',
             'GarrisonBuildingFrame',
             'GarrisonCapacitiveDisplayFrame',
             'GarrisonLandingPage',
@@ -555,32 +545,23 @@ function ConsolePort:GetDefaultUIFrames()
             'GarrisonShipyardFrame',
             'OrderHallMissionFrame',
             'OrderHallTalentFrame', },
-        Blizzard_GuildUI            = {
-            'GuildFrame' },
-        Blizzard_InspectUI          = {
-            'InspectFrame' },
-        Blizzard_ItemAlterationUI   = {
-            'TransmogrifyFrame' },
-        Blizzard_LookingForGuildUI  = {
-            'LookingForGuildFrame' },
-        Blizzard_MacroUI            = {
-            'MacroFrame' },
-        Blizzard_ObliterumUI        = {
-            'ObliterumForgeFrame' },
-        Blizzard_QuestChoice        = {
-            'QuestChoiceFrame' },
+        Blizzard_GuildUI            = {'GuildFrame'},
+        Blizzard_InspectUI          = {'InspectFrame'},
+        Blizzard_ItemAlterationUI   = {'TransmogrifyFrame'},
+        Blizzard_LookingForGuildUI  = {'LookingForGuildFrame'},
+        Blizzard_MacroUI            = {'MacroFrame'},
+        Blizzard_ObliterumUI        = {'ObliterumForgeFrame'},
+        Blizzard_QuestChoice        = {'QuestChoiceFrame'},
         Blizzard_TalentUI           = {
             IsRetail and 'PlayerTalentFrame',
             IsClassic and 'TalentFrame'},
-        Blizzard_TradeSkillUI       = {
-            'TradeSkillFrame' },
-        Blizzard_TrainerUI          = {
-            'ClassTrainerFrame' },
-        Blizzard_VoidStorageUI      = {
-            'VoidStorageFrame' },
-        Blizzard_WarboardUI = {
-            'WarboardQuestChoiceFrame' },
-        ConsolePort                 = {
+        Blizzard_TradeSkillUI       = {'TradeSkillFrame'},
+        Blizzard_TrainerUI          = {'ClassTrainerFrame'},
+        Blizzard_VoidStorageUI      = {'VoidStorageFrame'},
+        Blizzard_WarboardUI         = {'WarboardQuestChoiceFrame'},
+        -----------------------------
+        ConsolePort = { -- (FrameXML)
+        -----------------------------
             'AddonList',
             IsRetail and 'BagHelpBox',
             'BankFrame',
@@ -657,6 +638,7 @@ function ConsolePort:GetDefaultFadeFrames()
             'ChatFrame1';
             'CastingBarFrame';
             'GameTooltip';
+            'NamePlateTooltip';
             'QuickJoinToastButton';
             'StaticPopup1';
             'StaticPopup2';
@@ -732,7 +714,7 @@ local cvars = { -- value = default
     nameplateCC             = {true     ; 'Show class colors on name-only nameplates'};
     nameplateFadeIn         = {0.5      ; 'Fade in timer when using name-only nameplates'};
     nameplateNameOnly       = {false    ; 'Show only names when nameplate interaction is on'};
-    nameplateTextScale      = {1        ; 'Fade in timer when using name-only nameplates'};
+    nameplateTextScale      = {1        ; 'Scale on other players and minion names'};
     nameplateShowAllEnemies = {false    ; 'Show nameplates for all enemies (OFF: combat only)'};
     --------------------------------------------------------------------------------------------------------
     -- Camera yaw script specs:

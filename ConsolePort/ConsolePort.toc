@@ -1,10 +1,10 @@
 ## Interface: 80300
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 1.9.12
+## Version: 1.9.13
 
 ## Author: Sebastian Lindfors
-## X-Website: http://www.consoleport.net
+## X-Website: https://github.com/seblindfors/ConsolePort
 ## X-Feedback: https://discord.gg/AWeHd48
 
 ## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames, ConsolePortUIConfig
@@ -48,6 +48,7 @@ Drivers\EasyMotion.lua
 Drivers\TargetAI.lua
 Drivers\OverrideBarExit.lua
 
+Drivers\UINode.lua
 Drivers\UIStack.lua
 Drivers\UITracker.lua
 Drivers\UIProbe.lua

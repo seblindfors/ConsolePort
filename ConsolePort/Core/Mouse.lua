@@ -419,29 +419,31 @@ function Mouse:SetIcon(icon)
 	self.Button:SetTexture(ICONS[icon])
 end
 
-function test(plate, self)
-	return plate or self
+function Mouse:IsOnPlateDisplayPossible(plate)
+	return plate and plate.UnitFrame and plate.UnitFrame.name and plate.UnitFrame.name:IsVisible()
 end
 
 function Mouse:SetHintAnchors(plate)
-	if ( plate and self.anchorPlate == plate ) then
+	if InCombatLockdown() or ( plate and self.anchorPlate == plate ) then
 		return
 	end
+	local displayOnPlate = self:IsOnPlateDisplayPossible(plate)
 	local lineAlpha = db('interactHintLineVis')
-	self.Text:SetShown(not plate and true)
-	self.Line:SetParent(test(plate, self))
+	self.Text:SetShown(not displayOnPlate and true)
+	self.Line:SetParent(displayOnPlate and plate or self)
 	self.Line:SetGradientAlpha('VERTICAL',
-		1, 1, 1, not plate and lineAlpha or 1,
-		1, 1, 1, not plate and lineAlpha or 0)
-	self.Line:SetScale(plate and self:GetEffectiveScale() or 1)
-	self.Line:SetShown(plate and true or not (db'interactHintNoLine'))
+		1, 1, 1, not displayOnPlate and lineAlpha or 1,
+		1, 1, 1, not displayOnPlate and lineAlpha or 0)
+	self.Line:SetScale(displayOnPlate and self:GetEffectiveScale() or 1)
+	self.Line:SetShown(displayOnPlate and true or not (db'interactHintNoLine'))
 	self.anchorPlate = plate
 	---------------------
 	self:ClearAllPoints()
 	self.Button:ClearAllPoints()
-	if plate then
+	ConsolePortTargetAISelector.TopArrow:SetShown(not displayOnPlate)
+	if displayOnPlate then
 		self:SetPoint('CENTER', plate, 0, -8)
-		self.Button:SetPoint('BOTTOM', plate.UnitFrame, 'TOP', 0, 0)
+		self.Button:SetPoint('BOTTOM', plate.UnitFrame.name, 'TOP', 0, 0)
 	else
 		self:SetPoint('BOTTOM', 0, db('interactHintPosition'))
 		self.Button:SetPoint('RIGHT', self.Text, 'LEFT', -15, 0)
@@ -496,6 +498,7 @@ end
 
 function Mouse:ClearOverride()
 	if not InCombatLockdown() then
+		self:SetHintAnchors(nil)
 		self:ToggleInsecureOverride(false)
 		self:SetIcon(self.interactWith)
 		self:UnregisterEvent('PLAYER_REGEN_DISABLED')

@@ -150,7 +150,6 @@
 				self:RegisterEvent("MODIFIER_STATE_CHANGED");
 				self:RegisterEvent("PLAYER_REGEN_DISABLED");
 				self:RegisterEvent("PLAYER_REGEN_ENABLED");
-				self:RegisterEvent("PLAYER_ENTERING_WORLD");
 				self.Timer = 0;
 				ConsolePort.Cursor = self;
 			</OnLoad>

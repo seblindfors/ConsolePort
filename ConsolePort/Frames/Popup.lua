@@ -43,12 +43,17 @@ end
 -- Popup restyling: temporarily re-style popups 
 ---------------------------------------------------------------
 local _, db = ...
-local popup, defaultBackdrop
+local popup, defaultBackdrop, defaultAlert
 
 function ConsolePort:ShowPopup(...)
 	StaticPopup_Hide(...)
 	popup = StaticPopup_Show(...)
 	if popup then
+		local alertIcon = _G[popup:GetName() .. 'AlertIcon']
+		if alertIcon then
+			defaultAlert = alertIcon:GetTexture()
+			alertIcon:SetTexture([[Interface\AddOns\ConsolePort\Textures\Logos\CP]])
+		end
 		defaultBackdrop = popup:GetBackdrop()
 		popup:EnableKeyboard(false)
 		popup:SetBackdrop(db.Atlas.Backdrops.FullSmall)
@@ -58,6 +63,10 @@ end
 
 function ConsolePort:ClearPopup()
 	if popup then
+		if defaultAlert then
+			_G[popup:GetName() .. 'AlertIcon']:SetTexture(defaultAlert)
+			defaultAlert = nil
+		end
 		popup:SetBackdrop(defaultBackdrop)
 		popup = nil
 	end

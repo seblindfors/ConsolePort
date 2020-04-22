@@ -250,6 +250,7 @@ TUTORIAL = {
 	ERRORS = {
 		FOCUSUNIT			= '|cFFFF1111NOTE:|r While the interface cursor is enabled, you cannot use |cFFAAAAFF'..SET_FOCUS..'|r from dropdown menus with your regular mouse. Use the interface cursor or a dedicated binding instead.',
 		CORRUPTFRAME 		= '|cffffe00a[ConsolePort]|r\n|cFFFF1111WARNING:|r Attempted to add a corrupt frame to interface cursor: %s',
+		CORRUPTFRAME_CHILD  = '%s: GetChildren has been replaced by an addon. Unit hotkeys and raid cursor will cause restricted environment lockdown.';
 	},
 },
 TOOLTIP = {

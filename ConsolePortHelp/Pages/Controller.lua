@@ -221,6 +221,6 @@ Help:AddPage('Supported devices', 'WoWmapper', [[<HTML><BODY>
 		|cff69ccf0•|r Aftermarket Xbox controllers (Afterglow, Razer Wildcat, etc.)
 	</p><br/><br/>
 	<H2 align="center">
-		<a href="website:http://consoleport.net/home/wowmapper-with-x360ce/">Click here to get a link to the support article on how to setup X360CE with WoWmapper.</a>
+		<a href="website:https://github.com/seblindfors/ConsolePort/wiki">Click here to get a link to the support article on how to setup X360CE with WoWmapper.</a>
 	</H2> 
 </BODY></HTML>]])

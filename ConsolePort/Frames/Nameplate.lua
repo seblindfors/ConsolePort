@@ -20,7 +20,7 @@ SCRAPE[2] = _G[SCRAPE:GetName()..'TextLeft3'];
 
 function SCRAPE:ScrapeUnitTitle(unit)
 	if UnitIsPlayer(unit) then
-		return self:GetPlayerTitle(unit)
+		return GetCVarBool('UnitNameFriendlyPlayerName') and self:GetPlayerTitle(unit)
 	else
 		return self:GetNPCTitle(unit)
 	end
@@ -79,7 +79,7 @@ end
 -- Name plate modifiers
 -------------------------------------------------
 local object = {}
-local nameOnly, showAllEnemies, experimental 
+local nameOnly, showAllEnemies
 local textScale, fadeInTime, useCC = 1
 local isRetail, isClassic = CPAPI:IsRetailVersion(), CPAPI:IsClassicVersion()
 -------------------------------------------------
@@ -114,8 +114,8 @@ end)
 
 -------------------------------------------------
 
-function object:statusText(ignore, unit, _, _, isPlayer, isUnitCC)
-	if not ignore and not isUnitCC then
+function object:statusText(ignore, unit, _, _, isPlayer, isUnitCC, _, isActive)
+	if isActive and not ignore and not isUnitCC then
 		if isClassic then store(self, 'point', {self:GetPoint()}) end
 		store(self, 'alpha', self:GetAlpha())
 		store(self, 'scale', self:GetScale())
@@ -152,11 +152,20 @@ end
 
 -------------------------------------------------
 
+function object:ClassificationFrame(_, _, _, _, _, _, _, isActive)
+	if not isActive then
+		self:Hide()
+	end
+end
+
+-------------------------------------------------
+
 function object:UnitFrame(unit)
 	local isFriend = UnitIsFriend('player', unit)
 	local isTarget = UnitIsUnit('target', unit)
 	local isPlayer = UnitIsPlayer(unit)
 	local isUnitCC = UnitPlayerControlled(unit) and not isPlayer
+	local isActive = self.name and self.name:IsShown()
 	local inCombat = showAllEnemies and UnitCanAttack('player', unit) or CPAPI:UnitThreatSituation('player', unit)
 	local ignore   = inCombat or not (isFriend or not isTarget)
 	
@@ -171,7 +180,7 @@ function object:UnitFrame(unit)
 	for idx, modify in pairs(object) do
 		local frame = self[idx]
 		if frame then
-			modify(frame, ignore, unit, isFriend, isTarget, isPlayer, isUnitCC, inCombat)
+			modify(frame, ignore, unit, isFriend, isTarget, isPlayer, isUnitCC, inCombat, isActive)
 		end
 	end
 end
@@ -179,7 +188,7 @@ end
 -------------------------------------------------
 
 function ConsolePort:SetNameOnlyForUnit(unit)
-	if nameOnly and not experimental and not UnitIsUnit('player', unit) then
+	if nameOnly and not UnitIsUnit('player', unit) then
 		local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
 		local unitFrame = nameplate and nameplate.UnitFrame
 		if unitFrame then
@@ -194,5 +203,4 @@ ConsolePort:RegisterVarCallback('nameplateCC', function(value) useCC = value end
 ConsolePort:RegisterVarCallback('nameplateFadeIn', function(value) fadeInTime = value end)
 ConsolePort:RegisterVarCallback('nameplateNameOnly', function(value) nameOnly = value end)
 ConsolePort:RegisterVarCallback('nameplateTextScale', function(value) textScale = value end)
-ConsolePort:RegisterVarCallback('nameplateExperimental', function(value) experimental = value end)
 ConsolePort:RegisterVarCallback('nameplateShowAllEnemies', function(value) showAllEnemies = value end)

@@ -20,7 +20,7 @@ end
 
 for name, script in pairs({
 	_onshow = [[
-		self:RunAttribute('SetCurrent', 0, 1)
+		self:RunAttribute('SetDropdownButton', 0, 1)
 		RegisterStateDriver(self, 'modifier', '[mod:shift,mod:ctrl] true; nil')
 	]],
 	_onhide = [[
@@ -88,7 +88,7 @@ for name, script in pairs({
 			highestIndex = highIndex
 		end
 	]],
-	SetCurrent = [[
+	SetDropdownButton = [[
 		local newIndex, delta = ...
 		bID = newIndex + delta
 		if current then
@@ -100,7 +100,7 @@ for name, script in pairs({
 			if current and current:IsShown() then
 				current:CallMethod('OnEnter')
 			elseif bID > 1 and bID < highestIndex then
-				self:RunAttribute('SetCurrent', bID, delta)
+				self:RunAttribute('SetDropdownButton', bID, delta)
 			end
 		end
 	]],
@@ -140,9 +140,9 @@ for name, script in pairs({
 
 		-- Select button
 		elseif key == UP and down and bID > 1 then
-			self:RunAttribute('SetCurrent', bID, -1)
+			self:RunAttribute('SetDropdownButton', bID, -1)
 		elseif key == DOWN and down and bID < highestIndex then
-			self:RunAttribute('SetCurrent', bID, 1)
+			self:RunAttribute('SetDropdownButton', bID, 1)
 
 		-- Select header
 		elseif key == LEFT and down and hID > 1 then

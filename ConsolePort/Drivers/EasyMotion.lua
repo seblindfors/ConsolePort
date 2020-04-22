@@ -162,13 +162,13 @@ for name, script in pairs({
 	UpdateFrames = [[
 		local stack
 		if not current then
-			stack = newtable(self:GetParent():GetChildren())
+			stack = newtable(self.GetChildren(self:GetParent()))
 		elseif current:IsVisible() then
 			local unit = current:GetAttribute('unit')
 			if unit and not ignore[unit] and not headers[current] then
 				units[unit] = true
 			end
-			stack = newtable(current:GetChildren())
+			stack = newtable(self.GetChildren(current))
 		end
 		if stack then
 			for i, frame in pairs(stack) do

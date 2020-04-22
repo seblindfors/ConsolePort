@@ -8,10 +8,6 @@
 
 local addOn, db = ...
 ---------------------------------------------------------------
-local MAX_WIDTH, MAX_HEIGHT = UIParent:GetSize()
----------------------------------------------------------------
-UIParent:HookScript("OnSizeChanged", function(self, width, height) MAX_WIDTH, MAX_HEIGHT = width, height end)
----------------------------------------------------------------
 		-- Resources
 local	KEY, SECURE, TEXTURE, M1, M2,
 		-- Override wrappers
@@ -253,12 +249,7 @@ end
 ---------------------------------------------------------------
 -- Node management resources
 ---------------------------------------------------------------
-local IsUsable = {
-	Button 		= true;
-	CheckButton = true;
-	EditBox 	= true;
-	Slider 		= true;
-}
+local Node = ConsolePortUI:GetNodeDriver()
 
 local IsClickable = {
 	Button 		= true;
@@ -342,195 +333,26 @@ local function TriggerOnEnter(node) TriggerScript(node, 'OnEnter', SafeOnEnter) 
 local function TriggerOnLeave(node) TriggerScript(node, 'OnLeave', SafeOnLeave) end
 
 ---------------------------------------------------------------
--- Node management functions
+-- Node selection
 ---------------------------------------------------------------
-
-local Node = {
-	-- Compares distance between nodes for eligibility when filtering cached nodes
-	distance = {
-		[KEY.UP]    = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
-		[KEY.DOWN]  = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
-		[KEY.LEFT]  = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
-		[KEY.RIGHT] = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX > thisX) end;
-	};
-	-- Compares more generally to catch any nodes located in a given direction
-	direction = {
-		[KEY.UP]    = function(_, destY, _, _, _, thisY) return (destY > thisY) end;
-		[KEY.DOWN]  = function(_, destY, _, _, _, thisY) return (destY < thisY) end;
-		[KEY.LEFT]  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
-		[KEY.RIGHT] = function(destX, _, _, _, thisX, _) return (destX > thisX) end;
-	};
-	cache = {}; -- Temporary node cache when calculating cursor movement
-	scalar = 3; -- Manhattan distance: scale primary plane to improve intuitive node selection
-}
-
-local rectIntersect, vec2Dlen, abs, huge = UIDoFramesIntersect, Vector2D_GetLength, math.abs, math.huge
-
-function Node:GetAbsoluteDistance(x1, y1, x2, y2)
-	return abs(x1 - x2), abs(y1 - y2)
-end
-
-function Node:IsCloser(hz1, vt1, hz2, vt2)
-	return vec2Dlen(hz1, vt1) < vec2Dlen(hz2, vt2)
-end
-
-function Node:DoNodesIntersect(node1, node2)
-	-- (1) frame level mismatch indicates node1 may overlap node2 or vice versa
-	-- (2) if nodes are relative to eachother, they should be treated as non-intersecting
-	-- (3) check the frame boundaries for intersection if the nodes are independent
-	return 	(node1:GetFrameLevel() ~= node2:GetFrameLevel()) and 
-		 	(node1:GetParent() ~= node2 and node2:GetParent() ~= node1) and 
-		 	rectIntersect(node1, node2)
-end
-
-function Node:IsInteractive(node, object)
-	return not node.includeChildren and node:IsMouseEnabled() and ( IsUsable[object] or HasOnEnterScript(node) )
-end
-
-function Node:IsRelevant(node)
-	return node and not node.ignoreNode and not node:IsForbidden() and node:IsVisible()
-end
-
-function Node:IsTree(node)
-	return not node.ignoreChildren
-end
-
-function Node:GetSuperNode(super, node)
-	return node:IsObjectType('ScrollFrame') and node or super
-end
-
-function Node:IsDrawn(node, super)
-	local x, y = node:GetCenter()
-	if 	x and x <= MAX_WIDTH and x >= 0 and
-		y and y <= MAX_HEIGHT and y >= 0 then
-		if super and super:GetScrollChild() and not node:IsObjectType('Slider') then
-			return rectIntersect(node, super) --or rectIntersect(node, scrollChild)
-		else
-			return true
-		end
-	end
-end
-
-function Node:CacheItem(node, object, super)
-	tinsert(self.cache, node.hasPriority and 1 or #self.cache + 1, {
-		node   = node;
-		object = object;
-		super  = super;
-	});
-end
-
-function Node:GetFirstEligibleCacheItem()
-	for _, item in ipairs(self.cache) do
-		local node = item.node
-		if node:IsVisible() and self:IsDrawn(node, item.super) then
-			return item
-		end
-	end
-end
-
-function Node:Scan(super, node, sibling, ...)
-	if self:IsRelevant(node) then
-		local object = node:GetObjectType()
-		if self:IsInteractive(node, object) and self:IsDrawn(node, super) then
-			self:CacheItem(node, object, super)
-		end
-		if self:IsTree(node) then
-			self:Scan(self:GetSuperNode(super, node), node:GetChildren())
-		end
-	end
-	if sibling then
-		self:Scan(super, sibling, ...)
-	end
-end
-
-function Node:RefreshAll()
+function Cursor:Refresh()
 	if IsSafe() then
 		self:Clear()
 		ClearOverride(Cursor)
-		self:Scan(nil, ConsolePort:GetVisibleCursorFrames())
+		Node:RunScan(ConsolePort:GetVisibleCursorFrames())
 		self:SetCurrent()
 	end
 end
 
-function Node:GetCandidateVectorForCurrent()
-	local x, y = current.node:GetCenter()
-	return {x = x; y = y; h = huge; v = huge}
-end 
-
-function Node:GetCandidatesForVector(vector, comparator, candidates)
-	local thisX, thisY = vector.x, vector.y
-	for i, destination in ipairs(self.cache) do
-		local candidate = destination.node
-		local destX, destY = candidate:GetCenter()
-		local distX, distY = self:GetAbsoluteDistance(thisX, thisY, destX, destY)
-
-		if 	comparator(destX, destY, distX, distY, thisX, thisY) and
-			not self:DoNodesIntersect(current.node, candidate) then
-			candidates[destination] = { 
-				x = destX; y = destY; h = distX; v = distY;
-			}
-		end
-	end 
-	return candidates
-end
-
-function Node:SetToClosestCandidate(key, currentNodeChanged)
-	if current and self.direction[key] then
-		local this = self:GetCandidateVectorForCurrent()
-		local candidates = self:GetCandidatesForVector(this, self.direction[key], {})
-
-		for candidate, vector in pairs(candidates) do
-			if self:IsCloser(vector.h, vector.v, this.h, this.v) then
-				this = vector; current = candidate
-			end
-		end
-	end
-end
-
-function Node:SetToBestCandidate(key, currentNodeChanged)
-	if current and self.distance[key] then
-		local this = self:GetCandidateVectorForCurrent()
-		local candidates = self:GetCandidatesForVector(this, self.distance[key], {})
-
-		local hMult = (key == KEY.UP or key == KEY.DOWN) and self.scalar or 1
-		local vMult = (key == KEY.LEFT or key == KEY.RIGHT) and self.scalar or 1
-
-		for candidate, vector in pairs(candidates) do
-			if self:IsCloser(vector.h * hMult, vector.v * vMult, this.h, this.v) then
-				this = vector; this.h = (this.h * hMult); this.v = (this.v * vMult);
-				current = candidate
-				currentNodeChanged = true
-			end
-		end
-		return currentNodeChanged
-	end
-end
-
-function Node:Clear()
+function Cursor:Clear()
 	if current then
 		TriggerOnLeave(current.node)
 		old = current
 	end
-	wipe(self.cache)
+	Node:ClearCache()
 end
 
-function Node:GetScrollButtons(node)
-	if node then
-		if node:IsMouseWheelEnabled() then
-			for _, frame in pairs({node:GetChildren()}) do
-				if frame:IsObjectType("Slider") then
-					return frame:GetChildren()
-				end
-			end
-		elseif node:IsObjectType("Slider") then
-			return node:GetChildren()
-		else
-			return self:GetScrollButtons(node:GetParent())
-		end
-	end
-end
-
-function Node:Select(node, object, super, state)
+function Cursor:Select(node, object, super, state)
 	local name = node.direction and node:GetName()
 	local override
 	if IsClickable[object] then
@@ -549,16 +371,16 @@ function Node:Select(node, object, super, state)
 		Scroll:To(node, super)
 	end
 
-	if not Cursor.InsecureMode then
-		local scrollUp, scrollDown = self:GetScrollButtons(node)
+	if not self.InsecureMode then
+		local scrollUp, scrollDown = Node:GetScrollButtons(node)
 		Override:Scroll(Cursor, scrollUp, scrollDown)
 		if object == "Slider" then
 			Override:HorizontalScroll(Cursor, node)
 		end
 
-		for click, button in pairs(Cursor.Override) do
+		for click, button in pairs(self.Override) do
 			for modifier in ConsolePort:GetModifiers() do
-				Override:Click(Cursor, button, name or button..modifier, click, modifier)
+				Override:Click(self, button, name or button..modifier, click, modifier)
 				if macro then
 					local unit = UIDROPDOWNMENU_INIT_MENU.unit
 					Override:Macro(_G[button..modifier], macro:format(unit or ''))
@@ -574,32 +396,8 @@ function Node:Select(node, object, super, state)
 	end
 end
 
-function Node:SetCurrent()
-	if old and old.node:IsVisible() and Node:IsDrawn(old.node) then
-		current = old
-	elseif #self.cache > 0 and (not current or not current.node:IsVisible()) then
-		local x, y, targNode = Cursor:GetCenter()
-		if not x or not y then
-			targNode = self:GetFirstEligibleCacheItem()
-		else
-			local targDist, targPrio
-			for _, this in ipairs(self.cache) do
-				local thisX, thisY = this.node:GetCenter()
-				local thisDist = abs(x - thisX) + abs(y - thisY)
-				local thisPrio = this.node.hasPriority
-
-				if thisPrio and not targPrio then
-					targNode = this
-					break
-				elseif not targNode or ( not targPrio and thisDist < targDist ) then
-					targNode = this
-					targDist = thisDist
-					targPrio = thisPrio
-				end
-			end
-		end
-		current = targNode
-	end
+function Cursor:SetCurrent()
+	current = Node:GetArbitraryCandidate(current, old, self:GetCenter())
 	if current and current ~= old then
 		self:Select(current.node, current.object, current.super, KEY.STATE_UP)
 	end
@@ -744,7 +542,7 @@ end
 
 function Cursor:OnHide()
 	self.MoveAndScale.Flash = true
-	Node:Clear()
+	Node:ClearCache()
 	self:SetHighlight()
 	if IsSafe() then
 		ClearOverride(self)
@@ -764,11 +562,6 @@ function Cursor:PLAYER_REGEN_ENABLED()
 			FadeIn(self, 0.2, self:GetAlpha(), 1)
 		end
 	end)
-end
-
-function Cursor:PLAYER_ENTERING_WORLD()
-	MAX_WIDTH, MAX_HEIGHT = UIParent:GetSize()
-	self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 end
 
 function Cursor:MODIFIER_STATE_CHANGED()
@@ -842,17 +635,19 @@ end
 -- UIControl: Command parser / main func
 ---------------------------------------------------------------
 function ConsolePort:UIControl(key, state)
-	Node:RefreshAll()
-	if 	state == KEY.STATE_DOWN then
-		if not Node:SetToBestCandidate(key) then
-			Node:SetToClosestCandidate(key)
+	Cursor:Refresh()
+	if state == KEY.STATE_DOWN then
+		local curNodeChanged
+		current, curNodeChanged = Node:GetBestCandidate(current, key)
+		if not curNodeChanged then
+			current = Node:GetClosestCandidate(key)
 		end
 	elseif key == Cursor.SpecialAction then
 		SpecialAction(self)
 	end
 	local node = current and current.node
 	if node then
-		Node:Select(node, current.object, current.super, state)
+		Cursor:Select(node, current.object, current.super, state)
 		if state == KEY.STATE_DOWN or state == nil then
 			Cursor:SetPosition(node)
 		end

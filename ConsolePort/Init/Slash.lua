@@ -161,6 +161,24 @@ function ConsolePort:CreateSlashHandler()
 			end
 		end
 
+
+		local function TraceUIStackRecursive(frame, stack)
+			if frame:IsForbidden() then return stack end
+			local mt = getmetatable(frame)
+			local ix = mt and mt.__index
+			local fn = ix and ix.GetChildren
+			if ( frame.GetChildren ~= fn ) then
+				stack[#stack + 1] = db('TUTORIAL/ERRORS/CORRUPTFRAME_CHILD'):format(frame:GetName() or tostring(frame));
+			end
+			if fn then	
+				for _, child in ipairs({fn(frame)}) do
+					TraceUIStackRecursive(child, stack)
+				end
+			end
+			return stack
+		end
+
+		local UIErrors = TraceUIStackRecursive(UIParent, {})
 		local settings = copy(db.Settings)
 		local mouse = copy(db.Mouse)
 		for header, data in db.table.spairs({
@@ -188,6 +206,7 @@ function ConsolePort:CreateSlashHandler()
 				['CP_T4']	= __tpop(settings, 'CP_T4');
 			};
 			['Settings'] 	= settings;
+			['UI Errors'] 	= UIErrors;
 		}) do
 			editBox:AddMessage(('\n|cffffe00a%s:|r'):format(header))
 			DevTools_Dump(data)
