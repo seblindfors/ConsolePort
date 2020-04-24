@@ -9,10 +9,9 @@
 -- cache all nodes in the hierarchy for later use.
 -- See Cursors\Interface.lua.
 ---------------------------------------------------------------
-local _, db = ...
-local KEY = db.KEY
-local rectIntersect, vec2Dlen, abs, huge, tinsert, tsort = 
-	UIDoFramesIntersect, Vector2D_GetLength, math.abs, math.huge, tinsert, table.sort 
+local KEY = select(2, ...).KEY
+local vec2Dlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
+local tinsert, tremove, ipairs, next = tinsert, tremove, ipairs, next
 ---------------------------------------------------------------
 local MAX_X, MAX_Y = UIParent:GetSize()
 ---------------------------------------------------------------
@@ -37,14 +36,14 @@ local Node = {
 	};
 	-- Frame level quantifiers (each strata has 10k levels)
 	level = {
-		BACKGROUND        = function(level) return level + 0x00000; end;
-		LOW               = function(level) return level + 0x02710; end;
-		MEDIUM            = function(level) return level + 0x04E20; end;
-		HIGH              = function(level) return level + 0x07530; end;
-		DIALOG            = function(level) return level + 0x09C40; end;
-		FULLSCREEN        = function(level) return level + 0x0C350; end;
-		FULLSCREEN_DIALOG = function(level) return level + 0x0EA60; end;
-		TOOLTIP           = function(level) return level + 0x11170; end;
+		BACKGROUND        = 0x00000;
+		LOW               = 0x02710;
+		MEDIUM            = 0x04E20;
+		HIGH              = 0x07530;
+		DIALOG            = 0x09C40;
+		FULLSCREEN        = 0x0C350;
+		FULLSCREEN_DIALOG = 0x0EA60;
+		TOOLTIP           = 0x11170;
 	};
 	-- What to consider as interactive nodes by default
 	usable = {
@@ -55,7 +54,7 @@ local Node = {
 	};
 	cache = {}; -- Temporary node cache when calculating cursor movement
 	rects = {}; -- Temporary rect cache to calculate intersection between conflicting nodes
-	scalar = 3; -- Manhattan distance: scale primary plane to improve intuitive node selection
+	scalar = 3; -- Manhattan distance: scale 2ndary plane to improve intuitive node selection
 }
 ---------------------------------------------------------------
 
@@ -65,10 +64,6 @@ end
 
 function Node:IsUsable(object)
 	return self.usable[object]
-end
-
-function Node:IsMouseBlocking(node, super)
-	return node:IsMouseEnabled()
 end
 
 function Node:IsInteractive(node, object)
@@ -88,8 +83,9 @@ end
 function Node:IsDrawn(node, super)
 	local x, y = node:GetCenter()
 	if self:PointInRange(x, 0, MAX_X) and self:PointInRange(y, 0, MAX_Y) then
+		-- assert node isn't clipped inside a scroll child
 		if super and super:GetScrollChild() and not node:IsObjectType('Slider') then
-			return rectIntersect(node, super) --or rectIntersect(node, scrollChild)
+			return UIDoFramesIntersect(node, super) --or UIDoFramesIntersect(node, scrollChild)
 		else
 			return true
 		end
@@ -175,16 +171,16 @@ function Node:CacheItem(node, object, super, level)
 	});
 end
 
-function Node:RemoveCacheItem(cacheIndex)
-	tremove(self.cache, cacheIndex)
-	return cacheIndex-1
-end
-
 function Node:CacheRect(node, level)
 	tinsert(self.rects, self:GetRectLevelIndex(level), {
 		node  = node;
 		level = level;
 	});
+end
+
+function Node:RemoveCacheItem(cacheIndex)
+	tremove(self.cache, cacheIndex)
+	return cacheIndex - 1
 end
 
 function Node:ClearCache()
@@ -200,16 +196,17 @@ function Node:GetNextCacheItem(i)
 	return next(self.cache, i and i > 0 and i or nil)
 end
 
-function Node:IterateCache()
-	return ipairs(self.cache)
-end
-
-function Node:IterateRects()
-	return ipairs(self.rects)
+function Node:GetFirstEligibleCacheItem()
+	for _, item in self:IterateCache() do
+		local node = item.node
+		if node:IsVisible() and self:IsDrawn(node, item.super) then
+			return item
+		end
+	end
 end
 
 function Node:GetRectLevelIndex(level)
-	for index, item in ipairs(self.rects) do
+	for index, item in self:IterateRects() do
 		if (item.level < level) then
 			return index
 		end 		
@@ -217,13 +214,12 @@ function Node:GetRectLevelIndex(level)
 	return #self.rects+1
 end
 
-function Node:GetFirstEligibleCacheItem()
-	for _, item in ipairs(self.cache) do
-		local node = item.node
-		if node:IsVisible() and self:IsDrawn(node, item.super) then
-			return item
-		end
-	end
+function Node:IterateCache()
+	return ipairs(self.cache)
+end
+
+function Node:IterateRects()
+	return ipairs(self.rects)
 end
 
 ---------------------------------------------------------------
@@ -238,6 +234,10 @@ function Node:GetDistanceSum(...)
 	return x + y
 end
 
+function Node:GetFrameLevel(node)
+	return self.level[node:GetFrameStrata()] + node:GetFrameLevel()
+end
+
 function Node:IsCloser(hz1, vt1, hz2, vt2)
 	return vec2Dlen(hz1, vt1) < vec2Dlen(hz2, vt2)
 end
@@ -248,10 +248,6 @@ end
 
 function Node:CanLevelsIntersect(level1, level2)
 	return level1 < level2
-end
-
-function Node:GetFrameLevel(node)
-	return self.level[node:GetFrameStrata()](node:GetFrameLevel())
 end
 
 function Node:DoNodeAndRectIntersect(node, rect)
@@ -265,14 +261,14 @@ function Node:GetCandidateVectorForCurrent(cur)
 	return {x = x; y = y; h = huge; v = huge}
 end 
 
-function Node:GetCandidatesForVector(cur, vector, comparator, candidates)
+function Node:GetCandidatesForVector(vector, comparator, candidates)
 	local thisX, thisY = vector.x, vector.y
 	for i, destination in self:IterateCache() do
 		local candidate = destination.node
 		local destX, destY = candidate:GetCenter()
 		local distX, distY = self:GetDistance(thisX, thisY, destX, destY)
 
-		if 	comparator(destX, destY, distX, distY, thisX, thisY) then
+		if comparator(destX, destY, distX, distY, thisX, thisY) then
 			candidates[destination] = { 
 				x = destX; y = destY; h = distX; v = distY;
 			}
@@ -288,11 +284,12 @@ end
 -- from an origin node to new candidate nodes, using direction.
 -- The distance is artificially inflated in the secondary plane
 -- to the travel direction (X for up/down, Y for left/right),
--- prioritizing candidates more linearly aligned to the origin. 
+-- prioritizing candidates more linearly aligned to the origin.
+
 function Node:GetBestCandidate(cur, key, curNodeChanged)
 	if cur and self.distance[key] then
 		local this = self:GetCandidateVectorForCurrent(cur)
-		local candidates = self:GetCandidatesForVector(cur, this, self.distance[key], {})
+		local candidates = self:GetCandidatesForVector(this, self.distance[key], {})
 
 		local hMult = (key == KEY.UP or key == KEY.DOWN) and self.scalar or 1
 		local vMult = (key == KEY.LEFT or key == KEY.RIGHT) and self.scalar or 1
@@ -314,10 +311,11 @@ end
 -- Used as a fallback method when a proper candidate can't be
 -- located using both direction and distance-based vectors,
 -- instead using only shortest path as the metric for movement.
+
 function Node:GetClosestCandidate(cur, key, curNodeChanged)
 	if cur and self.direction[key] then
 		local this = self:GetCandidateVectorForCurrent(cur)
-		local candidates = self:GetCandidatesForVector(cur, this, self.direction[key], {})
+		local candidates = self:GetCandidatesForVector(this, self.direction[key], {})
 
 		for candidate, vector in pairs(candidates) do
 			if self:IsCloser(vector.h, vector.v, this.h, this.v) then
