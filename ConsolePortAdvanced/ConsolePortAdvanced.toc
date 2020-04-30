@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 11304
 ## Title: Console Port |cff69ccf0Advanced|r
 ## Notes: Advanced configuration for Console Port.
 ## RequiredDeps: ConsolePort

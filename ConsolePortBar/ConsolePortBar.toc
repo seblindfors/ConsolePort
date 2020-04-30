@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 11304
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar extension for Console Port.
 ## SavedVariables: ConsolePortBarManifest

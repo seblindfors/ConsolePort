@@ -515,7 +515,7 @@ end
 -- UI cursor frames to be handled with D-pad
 ---------------------------------------------------------------
 function ConsolePort:GetDefaultUIFrames()
-    local IsClassic, IsRetail = CPAPI:IsClassicVersion(), CPAPI:IsRetailVersion()
+    local isClassic, isRetail = CPAPI:IsClassicVersion(), CPAPI:IsRetailVersion()
     return {
         Blizzard_AchievementUI      = {'AchievementFrame'},
         Blizzard_AlliedRacesUI      = {'AlliedRacesFrame'},
@@ -524,6 +524,7 @@ function ConsolePort:GetDefaultUIFrames()
             'ArtifactFrame',
             'ArtifactRelicForgeFrame'},
         Blizzard_AuctionUI          = {'AuctionFrame' },
+        Blizzard_AzeriteEssenceUI   = {'AzeriteEssenceUI'},
         Blizzard_AzeriteUI          = {'AzeriteEmpoweredItemUI'},
         Blizzard_BarbershopUI       = {'BarberShopFrame'},
         Blizzard_Calendar           = {'CalendarFrame' },
@@ -553,8 +554,8 @@ function ConsolePort:GetDefaultUIFrames()
         Blizzard_ObliterumUI        = {'ObliterumForgeFrame'},
         Blizzard_QuestChoice        = {'QuestChoiceFrame'},
         Blizzard_TalentUI           = {
-            IsRetail and 'PlayerTalentFrame',
-            IsClassic and 'TalentFrame'},
+            isRetail  and 'PlayerTalentFrame',
+            isClassic and 'TalentFrame'},
         Blizzard_TradeSkillUI       = {'TradeSkillFrame'},
         Blizzard_TrainerUI          = {'ClassTrainerFrame'},
         Blizzard_VoidStorageUI      = {'VoidStorageFrame'},
@@ -563,7 +564,6 @@ function ConsolePort:GetDefaultUIFrames()
         ConsolePort = { -- (FrameXML)
         -----------------------------
             'AddonList',
-            IsRetail and 'BagHelpBox',
             'BankFrame',
             'BasicScriptErrors',
             'CharacterFrame',
@@ -605,7 +605,6 @@ function ConsolePort:GetDefaultUIFrames()
             'PVEFrame',
             'PVPReadyDialog',
             'QuestFrame',
-            IsClassic and 'QuestLogFrame',
             'QuestLogPopupDetailFrame',
             'RecruitAFriendFrame',
             'ReadyCheckFrame',
@@ -625,7 +624,9 @@ function ConsolePort:GetDefaultUIFrames()
             'GroupLootFrame1',
             'GroupLootFrame2',
             'GroupLootFrame3',
-            'GroupLootFrame4'
+            'GroupLootFrame4',
+            isRetail  and 'BagHelpBox',
+            isClassic and 'QuestLogFrame',
         },
     }
 end
@@ -706,7 +707,7 @@ local cvars = { -- value = default
     interactHintPosition    = {200      ; 'Interact frame Y-offset from UIParent bottom (px)'};
     interactHintLineVis     = {.5       ; 'Interact frame line texture alpha (0-1)'};
     interactHintNoLine      = {false    ; 'Disable interact frame line texture'};
-    interactHintNoSticky    = {false    ; 'Disable nameplate anchoring'};
+    interactHintNoSticky    = {true     ; 'Disable nameplate anchoring'};
     interactWith            = {false    ; 'Full interact button ID'};
     lootWith                = {'CP_R_DOWN'; 'Lite interact button ID'};
     --------------------------------------------------------------------------------------------------------
@@ -752,13 +753,13 @@ local cvars = { -- value = default
     CP_T2                   = {'CP_TR2' ; 'Texture ID for trigger 2'};
     --------------------------------------------------------------------------------------------------------
     -- String entries (CAUTION):
-    cursorTrailGhostTex     = {[[Interface\CURSOR\Item]]    ; 'Cursor trail ghost texture'};
-    exitVehicleBinding      = {'ACTIONBUTTON7'              ; 'Override vehicle exit binding from set'};
-    explicitProfile         = {''                           ; 'Explicit profile ID to use for data export'};
-    raidCursorModifier      = {''                           ; 'Modifier to combine with D-pad for cursor control'};
-    unitHotkeyAnchor        = {'CENTER'                     ; 'Anchor point on unit frames'};
-    unitHotkeyPool          = {'player;party%d$;raid%d+$'   ; 'Match criteria for unit hotkey pool, separated by semicolon'};
-    unitHotkeySet           = {''                           ; 'Force button set for unit hotkey filtering. Valid: left, right'};
+    cursorTrailGhostTex     = {[[Interface\CURSOR\Item]]         ; 'Cursor trail ghost texture'};
+    exitVehicleBinding      = {'ACTIONBUTTON7'                   ; 'Override vehicle exit binding from set'};
+    explicitProfile         = {''                                ; 'Explicit profile ID to use for data export'};
+    raidCursorModifier      = {''                                ; 'Modifier to combine with D-pad for cursor control'};
+    unitHotkeyAnchor        = {'CENTER'                          ; 'Anchor point on unit frames'};
+    unitHotkeyPool          = {'party%d$;player;raid%d+$;boss%d$'; 'Match criteria for unit hotkey pool, separated by semicolon'};
+    unitHotkeySet           = {''                                ; 'Force button set for unit hotkey filtering. Valid: left, right'};
 }   --------------------------------------------------------------------------------------------------------
 
 ---------------------------------------

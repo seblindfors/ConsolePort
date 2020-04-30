@@ -531,9 +531,17 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		text:SetPoint('TOPLEFT', 24, -24)
 
 		function SmartInteract:SetAnchor(parent, offset)
+			self.parent = parent
 			self:ClearAllPoints()
 			self:SetPoint('TOPLEFT', parent, 8, offset)
 			self:Show()
+		end
+
+		function SmartInteract:Clear(parent)
+			if self.parent == parent then
+				self.parent = nil
+				self:Hide()
+			end
 		end
 	end
 
@@ -557,7 +565,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 				self.Recommend:Hide()
 				FadeIn(self.Hand, .3, self.Hand:GetAlpha(), 1)
 				FadeIn(self.Dude, .3, self.Dude:GetAlpha(), 1)
-				SmartInteract:Hide()
+				SmartInteract:Clear(self)
 				Controls.IBLiteModule:Show()
 			end
 
@@ -699,7 +707,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 				FadeIn(self.Dude, 0.5, self.Dude:GetAlpha(), .35)
 				self.Description:Show()
 				self.BindWrapper:Hide()
-				SmartInteract:Hide()
+				SmartInteract:Clear(self)
 			end
 		end
 

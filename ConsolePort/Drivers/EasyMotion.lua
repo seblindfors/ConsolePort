@@ -193,21 +193,28 @@ for name, script in pairs({
 
 	-- Sort the units by name, to retain some coherence when setting up bindings
 	SortUnits = [[
-		local specific = self:GetAttribute('unitpool')
-		for unit in pairs(units) do
-			if ( not specific ) then
-				sorted[#sorted + 1] = unit
-			else
-				specific = specific:gsub(';', '\n')
-				for token in specific:gmatch('[%a%p]+') do
+		if tokens then
+			for i, token in ipairs(tokens) do
+				local sort = newtable()
+
+				for unit in pairs(units) do
 					if unit:match(token) then
-						sorted[#sorted + 1] = unit
-						break 
+						sort[#sort + 1] = unit
 					end
 				end
+
+				table.sort(sort)
+				local base = #sorted
+				for i, unit in ipairs(sort) do
+					sorted[base + i] = unit
+				end
 			end
+		else
+			for unit in pairs(units) do
+				sorted[#sorted + 1] = unit
+			end
+			table.sort(sorted)
 		end
-		table.sort(sorted)
 	]],
 
 	-- Set the bindings that control the input
@@ -250,7 +257,7 @@ for name, script in pairs({
 	-- Wipe tables and settings
 	Wipe = [[
 		lookup = wipe(lookup)
-		units = wipe(units)
+		units  = wipe(units)
 		sorted = wipe(sorted)
 		bindings = wipe(bindings)
 		defaultToTab = nil
@@ -261,6 +268,13 @@ for name, script in pairs({
 
 	OnNewSettings = [[
 		ignore.player = self:GetAttribute('ignorePlayer')
+
+		local pool = self:GetAttribute('unitpool')
+		tokens = pool and newtable(strsplit(';', pool))
+
+		if not next(tokens) then
+			tokens = nil	
+		end
 	]],
 }) do EM:SetAttribute(name, script) end
 
@@ -301,13 +315,11 @@ function EM:OnNewBindings(...)
 		frame = {ConsolePort:GetCurrentBindingOwner('CLICK ConsolePortEasyMotionButton:LeftButton')},
 		tab = {ConsolePort:GetCurrentBindingOwner('CLICK ConsolePortEasyMotionButton:MiddleButton')},
 	}
-	if db.Settings.unitHotkeyPool then
-		self:SetAttribute('unitpool', db.Settings.unitHotkeyPool)
-	end
-	self:SetAttribute('ignorePlayer', db.Settings.unitHotkeyIgnorePlayer)
-	self:SetAttribute('ghostMode', db.Settings.unitHotkeyGhostMode)
+	self:SetAttribute('unitpool', db('unitHotkeyPool'))
+	self:SetAttribute('ignorePlayer', db('unitHotkeyIgnorePlayer'))
+	self:SetAttribute('ghostMode', db('unitHotkeyGhostMode'))
 	self:Execute([[self:RunAttribute('OnNewSettings')]])
-	local hSet = db.Settings.unitHotkeySet
+	local hSet = db('unitHotkeySet')
 	if hSet then
 		hSet = hSet:lower()
 		hSet = hSet:match('left') and 'L' or hSet:match('right') and 'R'

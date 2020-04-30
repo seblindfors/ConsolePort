@@ -1,4 +1,4 @@
-## Interface: 80300
+## Interface: 11304
 ## Title: Console Port |cff69ccf0Loader|r
 ## Notes: Toggle ConsolePort on/off with your controller. Configured within ConsolePort.
 ## OptionalDeps: ConsolePort

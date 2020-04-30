@@ -6,6 +6,7 @@
 -- cvar updates when entering/leaving combat.
 
 local _, db = ...
+local isRetail = CPAPI:IsRetailVersion()
 
 local CVars = {
 	TargetNearestUseNew        = {value = 0,     event = nil},
@@ -15,11 +16,13 @@ local CVars = {
 	nameplateShowAll           = {value = 1,     event = 'UNIT_NAMEPLATES_AUTOMODE'},
 	nameplateShowFriends       = {value = 1,     event = 'UNIT_NAMEPLATES_SHOW_FRIENDS'},
 	nameplateShowFriendlyNPCs  = {value = 1,     event = nil},
-	nameplateMinAlphaDistance  = {value = 15,    event = nil},
-	nameplateMaxAlphaDistance  = {value = 30,    event = nil},
-	nameplateOccludedAlphamult = {value = 0,   event = nil},
-	nameplateMinAlpha          = {value = 0,     event = nil},
 }
+if isRetail then
+	CVars.nameplateMinAlphaDistance  = {value = 15,    event = nil}
+	CVars.nameplateMaxAlphaDistance  = {value = 30,    event = nil}
+	CVars.nameplateOccludedAlphamult = {value = 0,     event = nil}
+	CVars.nameplateMinAlpha          = {value = 0,     event = nil}
+end
 
 
 function ConsolePort:LoadDefaultCVars()
