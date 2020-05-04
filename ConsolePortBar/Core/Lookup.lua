@@ -167,15 +167,23 @@ function ab:CreateManifest()
 end
 
 function ab:GetCover(class)
-	local art = class and classArt[class]
-	if not class and not art then
-		art = classArt[select(2, UnitClass('player'))]
-	end
-	if art then
-		local index, px = unpack(art)
-		return [[Interface\AddOns\]]..addOn..[[\Textures\Covers\]]..index, 
-				{0, 1, (( px - 1 ) * 256 ) / 1024, ( px * 256 ) / 1024 }
-	end
+	local choosedClass
+	if     ab.cfg.activeclass == 1 then choosedClass="WARRIOR"
+	elseif ab.cfg.activeclass == 2 then choosedClass="PALADIN"
+	elseif ab.cfg.activeclass == 3 then choosedClass="HUNTER"
+	elseif ab.cfg.activeclass == 4 then choosedClass="ROGUE"
+	elseif ab.cfg.activeclass == 5 then choosedClass="PRIEST"
+	elseif ab.cfg.activeclass == 6 then choosedClass="DEATHKNIGHT"
+	elseif ab.cfg.activeclass == 7 then choosedClass="SHAMAN"
+	elseif ab.cfg.activeclass == 8 then choosedClass="MAGE"
+	elseif ab.cfg.activeclass == 9 then choosedClass="WARLOCK"
+	elseif ab.cfg.activeclass == 10 then choosedClass="MONK"
+	elseif ab.cfg.activeclass == 11 then choosedClass="DRUID"
+	elseif ab.cfg.activeclass == 12 then choosedClass="DEMONHUNTER"
+	else choosedClass=select(2, UnitClass('player')) end
+	
+	local index, px = unpack(classArt[choosedClass])
+	return [[Interface\AddOns\]]..addOn..[[\Textures\Covers\]]..index,{0, 1, (( px - 1 ) * 256 ) / 1024, ( px * 256 ) / 1024 }
 end
 
 function ab:GetBackdrop()
