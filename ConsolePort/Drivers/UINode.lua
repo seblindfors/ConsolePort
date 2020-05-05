@@ -54,7 +54,7 @@ local Node = {
 	};
 	cache = {}; -- Temporary node cache when calculating cursor movement
 	rects = {}; -- Temporary rect cache to calculate intersection between conflicting nodes
-	scalar = 3; -- Manhattan distance: scale 2ndary plane to improve intuitive node selection
+	scalar = 3; -- Manhattan distance: scale 2ndary axis to improve intuitive node selection
 }
 ---------------------------------------------------------------
 
@@ -286,7 +286,7 @@ end
 ---------------------------------------------------------------
 -- This method uses vectors over manhattan distance, stretching 
 -- from an origin node to new candidate nodes, using direction.
--- The vectors are artificially inflated in the secondary plane
+-- The vectors are artificially inflated in the secondary axis
 -- to the travel direction (X for up/down, Y for left/right),
 -- prioritizing candidates more linearly aligned to the origin.
 -- Comparing Euclidean distance on vectors yields the best node.
