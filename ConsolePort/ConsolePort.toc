@@ -1,75 +1,17 @@
 ## Interface: 90000
-## Title: Console Port |cFFFF6600Legacy|r
+## Title: Console Port
 ## Notes: Game controller addon
-## Version: 1.9.16
+## Version: 2.0.0
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
 ## X-Feedback: https://discord.gg/AWeHd48
 
-## SavedVariables: ConsolePortSettings, ConsolePortCharacterSettings, ConsolePortUIFrames, ConsolePortUIConfig
-## SavedVariablesPerCharacter: ConsolePortBindingSet, ConsolePortMouse, ConsolePortUtility
+## SavedVariables: ConsolePortDevices
 
 XML\Manifest.xml
-Locale\Locale.xml
-Controllers\Controllers.xml
+Utils\Utils.xml
 
-Init\Wrapper.lua
-Init\Init.lua
-Init\Slash.lua
-Init\Table.lua
-Init\Theme.lua
+Model\Gamepad\Gamepad.xml
 
-UI\Alpha.lua
-
-Frames\Atlas.lua
-Frames\Config.lua
-
-Config\Lookup.lua
-Config\Splash.lua
-Config\Binds.lua
-Config\Controls.lua
-Config\Help.lua
-Config\UICtrl.lua
-Config\Hotkey.lua
-
-Core\Camera.lua
-Core\Mouse.lua
-Core\Cvar.lua
-Core\Events.lua
-Core\UICore.lua
-Core\Callback.lua
-
-Drivers\Button.lua
-Drivers\Pager.lua
-Drivers\Radial.lua
-Drivers\FocusHold.lua
-Drivers\EasyMotion.lua
-Drivers\TargetAI.lua
-Drivers\OverrideBarExit.lua
-
-Drivers\UINode.lua
-Drivers\UIStack.lua
-Drivers\UITracker.lua
-Drivers\UIProbe.lua
-Drivers\UIControl.lua
-
-Cursors\Interface.lua
-Cursors\UnitFrames.lua
-
-UI\Utils.lua
-UI\Media.lua
-UI\Mixins.lua
-UI\Tooltip.lua
-
-Frames\Item.lua
-Frames\Hooks.lua
-Frames\Hints.lua
-Frames\Popup.lua
-Frames\Stacksplit.lua
-Frames\Utility.lua
-Frames\Flyout.lua
-Frames\Helper.lua
-Frames\Nameplate.lua
-
-Plugins\Plugins.xml
+View\Hotkey.lua

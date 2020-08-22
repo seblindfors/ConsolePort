@@ -1,0 +1,16 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<!-- Method frame (invisible) -->
+	<Frame name="ConsolePort">
+		<Frames>
+			<Button name="$parentPager" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
+			<Frame name="$parentButtonHandler" inherits="SecureHandlerStateTemplate"/>
+			<Frame name="$parentRadialHandler" inherits="SecureHandlerBaseTemplate">
+				<Attributes>
+					<Attribute name="locked" type="boolean" value="true"/>
+				</Attributes>
+			</Frame>
+		</Frames>
+	</Frame>
+
+</Ui>

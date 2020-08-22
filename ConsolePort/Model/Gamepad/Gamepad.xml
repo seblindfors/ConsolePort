@@ -1,0 +1,16 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<!-- Interface -->
+	<Script file="Gamepad.lua"/>
+	<!-- Assets -->
+	<Script file="Default.lua"/>
+	<Script file="Atlas.lua"/>
+	<!-- Controller presets -->
+	<Script file="PS4/PS4.lua"/>
+	<!--
+	<Script file="STEAM/Steam.lua"/>
+	<Script file="XBOX/Xbox.lua"/>
+	<Script file="XBOXELITE/XboxElite.lua"/>
+	<Script file="WII/WII.lua"/>
+	-->
+</Ui>
