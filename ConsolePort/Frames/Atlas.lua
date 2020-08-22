@@ -9,13 +9,12 @@ local path = "Interface\\AddOns\\ConsolePort\\Textures\\"
 local class = select(2, UnitClass("player"))
 local cc = RAID_CLASS_COLORS[class]
 ---------------------------------------------------------------
-
 local function CreateAtlasFrame(name, parent, templates, buttonTemplate)
 	local frame
 	if templates then
-		frame = CreateFrame("Frame", name, parent or UIParent, templates)
+		frame = CPAPI.CreateFrame("Frame", name, parent or UIParent, templates)
 	else
-		frame = CreateFrame("Frame", name, parent or UIParent)
+		frame = CPAPI.CreateFrame("Frame", name, parent or UIParent)
 		frame.Close = CreateFrame("Button", nil, frame, buttonTemplate)
 		frame.Close:SetScript("OnClick",  function() frame:Hide() end)
 		frame.Close:HookScript("OnClick", function() PlaySound(SOUNDKIT.IG_SPELLBOOK_CLOSE) end)
@@ -35,6 +34,7 @@ local function CreateAtlasButton(name, parent, secure, template)
 	end
 	return CreateFrame("Button", name, parent, templates)
 end
+
 ---------------------------------------------------------------
 db.Atlas = {}
 local Atlas = db.Atlas
@@ -395,7 +395,7 @@ Atlas.GetScrollFrame = function(name, parent, config)
 	local thumb = bar:GetThumbTexture()
 
 	if not noBackdrop then
-		local backdrop = CreateFrame("Frame", self:GetName().."Backdrop", parent)
+		local backdrop = CPAPI.CreateFrame("Frame", self:GetName().."Backdrop", parent)
 		backdrop:SetBackdrop(customBackdrop or Atlas.Backdrops.Border)
 		backdrop:SetPoint("TOPLEFT", self, 'TOPLEFT', -16, 16)
 		backdrop:SetPoint("BOTTOMRIGHT", self, 'BOTTOMRIGHT', 38, -16)

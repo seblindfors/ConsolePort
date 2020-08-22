@@ -2,7 +2,7 @@ local _, Help = ...
 
 Help:SetWelcomePage([[<HTML><BODY>
 	<IMG src="Interface\AddOns\ConsolePort\Textures\Logos\CP" align="center" width="128" height="128"/>
-	<br/><br/><br/><br/><br/>
+	<br/><br/><br/><br/><br/><br/><br/><br/><br/>
 	<H1 align="center">
 		ConsolePort - Help &amp; Tutorials
 	</H1><br/>

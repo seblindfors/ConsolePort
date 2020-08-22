@@ -406,7 +406,7 @@ function WindowMixin:AddPanel(info)
 	local 	name, header, bannerAtlas, mixin, onCreate, onLoad = 
 			info.name, info.header, info.bannerAtlas,
 			info.mixin, info.onCreate, info.onLoad
-	local frame = CreateFrame("Frame", "$parent"..name, Container)
+	local frame = CPAPI.CreateFrame("Frame", "$parent"..name, Container)
 	frame:SetBackdrop(db.Atlas.Backdrops.Border)
 	local id = Category:AddNew(header, bannerAtlas)
 	Container.Frames[id] = frame

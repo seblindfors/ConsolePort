@@ -1,5 +1,5 @@
-## Interface: 80300
-## Title: Console Port |cff69ccf0Action Bar|r
+## Interface: 90000
+## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0Action Bar|r
 ## Notes: Action bar extension for Console Port.
 ## SavedVariables: ConsolePortBarManifest
 ## SavedVariablesPerCharacter: ConsolePortBarSetup

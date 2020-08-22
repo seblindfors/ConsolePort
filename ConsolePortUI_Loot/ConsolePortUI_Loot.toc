@@ -1,5 +1,5 @@
-## Interface: 80300
-## Title: Console Port |cff69ccf0UI|r Loot
+## Interface: 90000
+## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0UI|r Loot
 ## Notes: Replaces loot frame.
 ## RequiredDeps: ConsolePort
 

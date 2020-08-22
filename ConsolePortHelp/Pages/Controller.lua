@@ -99,7 +99,7 @@ Help:AddPage('Steam controller', 'Controller', [[<HTML><BODY>
 		Steam controller setup
 	</H1><br/>
 	<p align="left">
-		1. <a href="website:https://www.steamcontrollerdb.com/config/download/5852">|cff69ccf0Download the Steam controller profile for ConsolePort.|r</a>
+		1. <a href="website:https://cdn.discordapp.com/attachments/221698189567197184/379927518603378709/ConsolePort_Official.vdf">|cff69ccf0Download the Steam controller profile for ConsolePort.|r</a>
 	</p>
 	<p align="left">
 		2. Place the downloaded file in |cffffccf0[steam folder]/controller_base/template|r.<br/>
@@ -160,7 +160,7 @@ end
 -- WoWmapper description page
 Help:AddPage('WoWmapper', 'Controller', [[<HTML><BODY>
 	<IMG src="Interface\AddOns\ConsolePort\Textures\Logos\WM" align="center" width="128" height="128"/>
-	<br/><br/><br/><br/><br/>
+	<br/><br/><br/><br/><br/><br/><br/><br/><br/>
 	<H1 align="center">
 		What is WoWmapper?
 	</H1><br/>
@@ -192,7 +192,7 @@ Help:AddPage('WoWmapper', 'Controller', [[<HTML><BODY>
 
 Help:AddPage('Supported devices', 'WoWmapper', [[<HTML><BODY>
 	<IMG src="Interface\AddOns\ConsolePort\Textures\Logos\WM" align="center" width="128" height="128"/>
-	<br/><br/><br/><br/><br/>
+	<br/><br/><br/><br/><br/><br/><br/><br/><br/>
 	<H1 align="center">
 		Supported devices
 	</H1><br/>

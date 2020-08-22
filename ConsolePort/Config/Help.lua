@@ -104,7 +104,7 @@ function HTMLHandler:ShowPage(content, references)
 		if region:IsObjectType('FontString') then
 			local key = region:GetText()
 			for refText, refScript in pairs(references) do
-				if key:match(refText) then
+				if key and key:match(refText) then
 					local pointButton = self:GetCursorPoint()
 					pointButton:SetPoint('TOP', region, 'BOTTOM', 0, 0)
 					pointButton.script = refScript
@@ -219,7 +219,7 @@ db.PANELS[#db.PANELS + 1] = {
 		HTML.cursorPoints = {}
 		HTML.activeCursorPoints = 0
 
-		HTML.Backdrop = CreateFrame('Frame', '$parentBackdrop', HTML)
+		HTML.Backdrop = CPAPI.CreateFrame('Frame', '$parentBackdrop', HTML)
 		HTML.Backdrop:SetBackdrop(Atlas.Backdrops.Border)
 		HTML.Backdrop:SetPoint('TOPLEFT', -32, 32)
 		HTML.Backdrop:SetPoint('BOTTOMRIGHT', 32, -32)

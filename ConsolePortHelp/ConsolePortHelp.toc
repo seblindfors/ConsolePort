@@ -1,5 +1,5 @@
-## Interface: 80300
-## Title: Console Port |cff69ccf0Help|r
+## Interface: 90000
+## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0Help|r
 ## Notes: Tutorials and help pages for ConsolePort. Loaded on demand.
 ## RequiredDeps: ConsolePort
 ## LoadOnDemand: 1

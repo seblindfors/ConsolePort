@@ -171,7 +171,7 @@ local function RefreshFrameList(self)
 
 	if not self.parent.FrameStack then
 
-		self.parent.FrameStack = CreateFrame("GameTooltip", "$parentFrameStack", self.parent, "GameTooltipTemplate")
+		self.parent.FrameStack = CPAPI.CreateFrame("GameTooltip", "$parentFrameStack", self.parent, "GameTooltipTemplate")
 		self.parent.FrameStack:SetOwner(self.parent.FrameScroll, "ANCHOR_BOTTOMRIGHT")
 		self.parent.FrameStack:SetPoint("TOP", 0, 0)
 		self.parent.FrameStack:SetFrameStrata('TOOLTIP')
@@ -538,7 +538,7 @@ db.PANELS[#db.PANELS + 1] = {name = "UICtrl", header = UIOPTIONS_MENU, mixin = W
 		local num = 1
 		radio.parent.Set = {}
 		for name, texture in pairs(radio.selection) do
-			local button = CreateFrame("CheckButton", "ConsolePortVirtualClick"..i..num, UICtrl.MultiChoiceModule)
+			local button = CPAPI.CreateFrame("CheckButton", "ConsolePortVirtualClick"..i..num, UICtrl.MultiChoiceModule)
 
 			button.num = num
 			button.set = radio.parent.Set

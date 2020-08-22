@@ -385,8 +385,9 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 	Controls.Controller = db.Atlas.GetFutureButton('$parentController', Controls)
 
 	-- SmartInteract free floating frame
-	local SmartInteract = CreateFrame('Frame', nil, Controls)
+	local SmartInteract = CPAPI.CreateFrame('Frame', nil, Controls)
 	Controls.SmartInteract = SmartInteract
+	SI = SmartInteract
 
 	do local ExtraButton = Controls.Controller
 		local function CreateButton(name, text, OnClick, point, dontHide)
@@ -433,7 +434,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 		{'Trigger', {820, 230}, {'BOTTOM', Controls.Controller.Container, 'BOTTOM', 0, 0},TUTORIAL.CONFIG.TRIGGERHEADER},
 	}) do
 		local name, size, point, header = unpack(setup)
-		local subFrame = CreateFrame('Frame', nil, Controls)
+		local subFrame = CPAPI.CreateFrame('Frame', nil, Controls)
 		subFrame:SetSize(unpack(size))
 		subFrame:SetPoint(unpack(point))
 		subFrame:SetBackdrop(db.Atlas.Backdrops.Border)
@@ -858,7 +859,7 @@ db.PANELS[#db.PANELS + 1] = {name = 'Controls', header = SETTINGS, mixin = Windo
 			local num = 1
 			radio.parent.Set = {}
 			for name, texture in spairs(triggers) do
-				local button = CreateFrame('CheckButton', '$parentTrigger'..i..name, TriggerModule)
+				local button = CPAPI.CreateFrame('CheckButton', '$parentTrigger'..i..name, TriggerModule)
 
 				button:SetBackdrop(db.Atlas.Backdrops.BorderSmall)
 

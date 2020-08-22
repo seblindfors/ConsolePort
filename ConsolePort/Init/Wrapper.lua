@@ -122,3 +122,22 @@ end
 function CPAPI:IsRetailVersion(...)
 	if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return true end
 end
+
+-- Frame wrapper, provide backwards compat in widgets
+CPAPI.FrameMixin = {
+	SetBackdrop = function(self, ...)
+		if BackdropTemplateMixin then
+			if not self.OnBackdropLoaded then 
+				Mixin(self, BackdropTemplateMixin)
+				self:HookScript('OnSizeChanged', self.OnBackdropSizeChanged)
+			end
+			BackdropTemplateMixin.SetBackdrop(self, ...)
+		else
+			getmetatable(self).__index.SetBackdrop(self, ...)
+		end
+	end;
+};
+
+function CPAPI.CreateFrame(...)
+	return Mixin(CreateFrame(...), CPAPI.FrameMixin)
+end

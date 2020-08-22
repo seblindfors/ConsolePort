@@ -176,7 +176,7 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerStateTemp
 							if (not self.receivedUpdate and GetNumSpecializations(false) > 0) then
 								self.receivedUpdate = true;
 								local shouldPulseForTalents = GetNumUnspentTalents() > 0 or GetNumUnspentPvpTalents() > 0 and not AreTalentsLocked()
-								if (UnitLevel('player') >= SHOW_SPEC_LEVEL and (not GetSpecialization() or shouldPulseForTalents)) then
+								if (not GetSpecialization() or shouldPulseForTalents) then
 									self:SetPulse(true)
 								end
 							end

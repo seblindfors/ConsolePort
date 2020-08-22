@@ -366,6 +366,9 @@ for name, script in pairs({
 			end
 		elseif target == 'loot' then
 			loot = true
+			if (not PlayerCanAttack('target')) then
+				target = 'npc'
+			end
 		else
 			interact = true
 		end
@@ -518,13 +521,43 @@ end
 
 ---------------------------------------------------------------
 -- OnUpdate scripts:
--- 	CheckLoot: visual in range indicator (secure)
---	CheckNPC: visual in range indicator (secure)
---	CheckHover: visual in range indicator (secure)
---	CheckLootOverride: last hostile loot override (insecure)
---	CheckArtificial: smart interaction override (insecure)
+--	TrackSecureNPC: visual in range indicator
+--	TrackSecureHover: visual in range indicator
+--  TrackInsecureLootTarget: interact hostile override
+--  TrackInsecureNPC: interact friendly override
+--	TrackInsecureLootVicinity: last hostile loot override
+--	TrackArtificialUnit: smart interaction override (insecure)
 ---------------------------------------------------------------
-function Mouse:CheckLoot(elapsed)
+function Mouse:TrackSecureNPC(elapsed)
+	local canInteract = CanInteract('target')
+	if ( canInteract ) and not ( UnitExists('npc') or UnitExists('questnpc') ) then
+		if canInteract then
+			self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
+		end
+		self:FadeIn()
+	else
+		self:FadeOut()
+	end
+end
+
+function Mouse:TrackSecureHover(elapsed)
+	local guid, hasLoot, canLoot = UnitGUID('mouseover')
+	local exists = UnitExists('mouseover')
+	local isDead, isEnemy = UnitIsDead('mouseover'), UnitCanAttack('player', 'mouseover')
+	if guid then
+		hasLoot, canLoot = CanLootUnit(guid)
+	end
+	if hasLoot and canLoot then
+		self.Text:SetText(LOOT)
+	elseif isEnemy and not isDead then
+		self.Text:SetText(ATTACK)
+	elseif exists and ( isDead or not isEnemy ) then
+		self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
+	end
+	self:FadeIn()
+end
+
+function Mouse:TrackInsecureLootTarget(elapsed)
 	local guid, hasLoot, canLoot = UnitGUID('target')
 	if guid then
 		hasLoot, canLoot = CanLootUnit(guid)
@@ -544,36 +577,27 @@ function Mouse:CheckLoot(elapsed)
 	end
 end
 
-function Mouse:CheckNPC(elapsed)
-	local canInteract = CanInteract('target')
-	if ( canInteract ) and not ( UnitExists('npc') or UnitExists('questnpc') ) then
-		if canInteract then
-			self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
-		end
+function Mouse:TrackInsecureNPC(elapsed)
+	local guid, _, canInteract = UnitGUID('target')
+	if guid then
+		_, canInteract = CanLootUnit(guid)
+	end
+	if canInteract then
+		self:SetOverride('INTERACTTARGET', self.override)
+		self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
 		self:FadeIn()
 	else
+		if self.override then
+			self:SetOverride(nil, self.override)
+		end
 		self:FadeOut()
+		if not hasLoot then
+			self:SetScript('OnUpdate', nil)
+		end
 	end
 end
 
-function Mouse:CheckHover(elapsed)
-	local guid, hasLoot, canLoot = UnitGUID('mouseover')
-	local exists = UnitExists('mouseover')
-	local isDead, isEnemy = UnitIsDead('mouseover'), UnitCanAttack('player', 'mouseover')
-	if guid then
-		hasLoot, canLoot = CanLootUnit(guid)
-	end
-	if hasLoot and canLoot then
-		self.Text:SetText(LOOT)
-	elseif isEnemy and not isDead then
-		self.Text:SetText(ATTACK)
-	elseif exists and ( isDead or not isEnemy ) then
-		self.Text:SetText(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
-	end
-	self:FadeIn()
-end
-
-function Mouse:CheckLootOverride(elapsed)
+function Mouse:TrackInsecureLootVicinity(elapsed)
 	local hasLoot, canLoot = CanLootUnit(self.cachedUnit)
 	if hasLoot and canLoot then
 		self:SetOverride('TARGETLASTHOSTILE', self.override)
@@ -588,7 +612,7 @@ function Mouse:CheckLootOverride(elapsed)
 	end
 end
 
-function Mouse:CheckArtificial(elapsed)
+function Mouse:TrackArtificialUnit(elapsed)
 	local canInteract = CanInteractGUID(self.artificial)
 	if canInteract then
 		local guidMatch = UnitIsGUID('target', self.artificial)
@@ -669,7 +693,7 @@ function Mouse:DispatchLootCheck(delay, numCalls, firstCall)
 		if self:FindLootFromCache(delay, true) then
 			--------------------------------------------------
 			self:SetIcon(self.override or self.interactWith)
-			self:SetScript('OnUpdate', self.CheckLootOverride)
+			self:SetScript('OnUpdate', self.TrackInsecureLootVicinity)
 			--------------------------------------------------
 		end
 	end)
@@ -681,15 +705,20 @@ function Mouse:TrackUnit(fauxUnit, blocked, forceCache)
 	-- loot: existing dead target, assigned securely.
 	if ( fauxUnit == 'loot' ) then
 		self:SetIcon(self.override or self.interactWith)
-		self:SetScript('OnUpdate', self.CheckLoot)
+		self:SetScript('OnUpdate', self.TrackInsecureLootTarget)
+	-- interact: target acquired, but scan range
+	elseif ( fauxUnit == 'interact') then
+		self:SetIcon(self.override or self.interactWith)
+		self:SetScript('OnUpdate', self.TrackInsecureNPC)
 	-- npc: existing friendly npc, assigned securely.
 	elseif ( fauxUnit == 'npc' ) then
-		self:SetScript('OnUpdate', self.CheckNPC)
+		self:SetIcon(self.override or self.interactWith)
+		self:SetScript('OnUpdate', self.TrackSecureNPC)
 	-- hover: mouseover priority, assigned securely.
 	elseif ( fauxUnit == 'hover' ) then
 		self:RegisterEvent('UPDATE_MOUSEOVER_UNIT')
 		self:SetScript('OnEvent', self.UpdateMouseover)
-		self:SetScript('OnUpdate', self.CheckHover)
+		self:SetScript('OnUpdate', self.TrackSecureHover)
 		self:SetPortrait('mouseover')
 		if not UnitCanAssist('player', 'mouseover') and not UnitCanAttack('player', 'mouseover') then
 			self:TogglePortrait(false)
@@ -700,10 +729,10 @@ function Mouse:TrackUnit(fauxUnit, blocked, forceCache)
 		local hasLoot, canLoot = self:FindLootFromCache()
 		if ( hasLoot and canLoot ) then
 			self:SetIcon(self.override or self.interactWith)
-			self:SetScript('OnUpdate', self.CheckLootOverride)
+			self:SetScript('OnUpdate', self.TrackInsecureLootVicinity)
 		else -- proceed with artificial unit
 			self:SetIcon(self.override or self.interactWith)
-			self:SetScript('OnUpdate', self.CheckArtificial)
+			self:SetScript('OnUpdate', self.TrackArtificialUnit)
 		end
 		self:TogglePortrait(false)
 	else -- cached last target might have loot, check proximity (insecure).
@@ -874,7 +903,7 @@ function Core:UpdateMouseDriver()
 			if loot then
 				Mouse.override = loot
 				-- use 'omit' here just to trigger an update without flagging interaction.
-				RegisterStateDriver(Mouse, 'targetstate', '[@target,exists,harm,dead] loot; [@target,exists,harm] omit; nil')
+				RegisterStateDriver(Mouse, 'targetstate', '[@target,exists,harm,dead][@target,exists,noharm] loot; [@target,exists,harm] omit; nil')
 				RegisterStateDriver(Mouse, 'vehicle', '[petbattle][vehicleui][overridebar] true; nil')
 
 				Mouse:Execute(format([[

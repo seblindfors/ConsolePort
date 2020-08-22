@@ -131,7 +131,7 @@ function GetField(parent, key, val)
 
 	local field = FramePool[Active]
 	if not field then
-		FramePool[Active] = CreateFrame('Button', nil, parent)
+		FramePool[Active] = CPAPI.CreateFrame('Button', nil, parent)
 		field = FramePool[Active]
 		field:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 
@@ -571,7 +571,7 @@ ConsolePortOldConfig:AddPanel({
 		Browser.UpdateHeight = Field.UpdateHeight
 		Browser.IsCollapsed = Field.IsCollapsed
 
-		Adder = CreateFrame('Frame', nil, Browser)
+		Adder = CPAPI.CreateFrame('Frame', nil, Browser)
 		Adder:SetSize(350, _H)
 		Adder:SetBackdrop(db.Atlas.Backdrops.FullSmall)
 

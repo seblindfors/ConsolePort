@@ -54,16 +54,12 @@ local Node = {
 	};
 	cache = {}; -- Temporary node cache when calculating cursor movement
 	rects = {}; -- Temporary rect cache to calculate intersection between conflicting nodes
-	scalar = 3; -- Manhattan distance: scale 2ndary axis to improve intuitive node selection
+	scalar = 3; -- Manhattan distance: scale 2ndary plane to improve intuitive node selection
 }
 ---------------------------------------------------------------
 
 function Node:IsMouseEvent(node)
 	return node.GetScript and ( node:GetScript('OnEnter') or node:GetScript('OnMouseDown') ) and true
-end
-
-function Node:IsMouseBlocking(node, super)
-	return node:IsMouseEnabled() and self:IsDrawn(node, super)
 end
 
 function Node:IsUsable(object)
@@ -72,6 +68,7 @@ end
 
 function Node:IsInteractive(node, object)
 	return 	not node.includeChildren
+			and node:IsMouseEnabled()
 			and ( self:IsUsable(object) or self:IsMouseEvent(node) )
 end
 
@@ -123,12 +120,13 @@ end
 ---------------------------------------------------------------
 function Node:Scan(super, node, sibling, ...)
 	if self:IsRelevant(node) then
-		if self:IsMouseBlocking(node, super) then
-			local object, level = node:GetObjectType(), self:GetFrameLevel(node)
+		local object, level = node:GetObjectType(), self:GetFrameLevel(node)
+		if self:IsDrawn(node, super) then
 			if self:IsInteractive(node, object) then
 				self:CacheItem(node, object, super, level)
+			elseif node:IsMouseEnabled() then
+				self:CacheRect(node, level)
 			end
-			self:CacheRect(node, level)
 		end
 		if self:IsTree(node) then
 			self:Scan(self:GetSuperNode(super, node), node:GetChildren())
@@ -167,6 +165,7 @@ end
 -- Cache control
 ---------------------------------------------------------------
 function Node:CacheItem(node, object, super, level)
+	self:CacheRect(node, level)
 	tinsert(self.cache, node.hasPriority and 1 or #self.cache + 1, {
 		node   = node;
 		object = object;
@@ -286,7 +285,7 @@ end
 ---------------------------------------------------------------
 -- This method uses vectors over manhattan distance, stretching 
 -- from an origin node to new candidate nodes, using direction.
--- The vectors are artificially inflated in the secondary axis
+-- The vectors are artificially inflated in the secondary plane
 -- to the travel direction (X for up/down, Y for left/right),
 -- prioritizing candidates more linearly aligned to the origin.
 -- Comparing Euclidean distance on vectors yields the best node.

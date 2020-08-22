@@ -67,7 +67,7 @@ function ConsolePort:CalibrateController(reset)
 
 		cbF:Hide()
 		cbF.Reload = db.Atlas.GetFutureButton("$parentReload", cbF)
-		cbF.Container = CreateFrame("Frame", "$parentContainer", cbF)
+		cbF.Container = CPAPI.CreateFrame("Frame", "$parentContainer", cbF)
 		cbF.Container:SetBackdrop(db.Atlas.Backdrops.Border)
 		cbF.Container:SetPoint("TOPLEFT", 8, -64)
 		cbF.Container:SetPoint("BOTTOMRIGHT", -8, 8)
@@ -289,7 +289,7 @@ function ConsolePort:CalibrateController(reset)
 		-- STICK INPUT HANDLER
 		-----------------------------------
 		do
-			cbF.StickInput = CreateFrame("Frame", "$parentStickInput", cbF)
+			cbF.StickInput = CPAPI.CreateFrame("Frame", "$parentStickInput", cbF)
 			cbF.StickInput:SetBackdrop(db.Atlas.Backdrops.Border)
 			cbF.StickInput:SetPoint("TOPLEFT", 8, -64)
 			cbF.StickInput:SetPoint("BOTTOMRIGHT", -8, 8)
@@ -621,21 +621,21 @@ function ConsolePort:SelectController()
 		Splash.Header:SetPoint("TOP", 0, -40)
 		Splash.Header:SetText(SETUP.LAYOUT)
 
-		Splash.Container = CreateFrame("Frame", "$parentContainer", Splash)
+		Splash.Container = CPAPI.CreateFrame("Frame", "$parentContainer", Splash)
 		Splash.Container:SetBackdrop(db.Atlas.Backdrops.Border)
 		Splash.Container:SetPoint("TOPLEFT", 8, -64)
 		Splash.Container:SetPoint("BOTTOMRIGHT", -8, 8)
 
-		Splash.Center = CreateFrame("Frame", "$parentCenter", Splash)
-		Splash.Center:SetPoint("CENTER", -24, 0)
-		Splash.Center:SetHeight(BTN_HEIGHT)
+		Splash.Span = CreateFrame("Frame", "$parentSpan", Splash)
+		Splash.Span:SetPoint("CENTER", -24, 0)
+		Splash.Span:SetHeight(BTN_HEIGHT)
 
 		local pos = 0
 		for name, template in pairs(db.Controllers) do
 			if not template.Hide then
 				pos = pos + 1
 
-				Splash.Center:SetWidth(Splash.Center:GetWidth() + BTN_WIDTH)
+				Splash.Span:SetWidth(Splash.Span:GetWidth() + BTN_WIDTH)
 
 				local Controller = CreateFrame("Button", nil, Splash)
 				Splash[name] = Controller
@@ -643,7 +643,7 @@ function ConsolePort:SelectController()
 				Controller.Strata = pos
 
 				Controller:SetSize(BTN_WIDTH, BTN_HEIGHT)
-				Controller:SetPoint("LEFT", Splash.Center, "LEFT", BTN_WIDTH*(pos-1), 0)
+				Controller:SetPoint("LEFT", Splash.Span, "LEFT", BTN_WIDTH*(pos-1), 0)
 				Controller.ID = name
 
 				Controller.Normal = Controller:CreateTexture(nil, "ARTWORK", nil, -8 + pos*2)

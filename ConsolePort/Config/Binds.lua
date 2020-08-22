@@ -1192,7 +1192,7 @@ db.PANELS[#db.PANELS + 1] = {name = "Binds", header = TUTORIAL.HEADER, mixin = W
 		end
 
 		if mod == "SHIFT-" then
-			local shortcut = CreateFrame("Button", name..mod.."_CONF_SHORTCUT", rebindFrame.ShortcutScroll)
+			local shortcut = CPAPI.CreateFrame("Button", name..mod.."_CONF_SHORTCUT", rebindFrame.ShortcutScroll)
 			shortcut:SetSize(32, 32)
 			shortcut:SetAlpha(0.35)
 			shortcut:SetBackdrop({bgFile = TEXTURE[name]})

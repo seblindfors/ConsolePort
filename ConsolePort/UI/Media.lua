@@ -87,7 +87,7 @@ UI.Media = {
 	GetTextureStruct = function(_, ID) return MEDIA.TEXTURES[ID] end,
 	GetTexCoord = function(_, ID) return MEDIA.TEXTURES[ID] and MEDIA.TEXTURES[ID].c end,
 	GetTexture = function(_, ID) return MEDIA.TEXTURES[ID] and MEDIA.TEXTURES[ID].t or MEDIA.TEXTURES[ID] end,
-	SetBackdrop = function(_, region, ID) region:SetBackdrop(MEDIA.BACKDROPS[ID]) end,
+	SetBackdrop = function(_, region, ID) CPAPI.FrameMixin.SetBackdrop(region, MEDIA.BACKDROPS[ID]) end,
 	SetTexture = function(_, region, ID)
 		local m = MEDIA.TEXTURES[ID]
 		if m then
