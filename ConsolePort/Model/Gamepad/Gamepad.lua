@@ -5,7 +5,7 @@ local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', 'Console
 	'GAME_PAD_DISCONNECTED';
 });
 ---------------------------------------------------------------
-GamepadAPI.Devices = {}; GamepadAPI.Index = {Buttons = {}};
+GamepadAPI.Devices = {}; GamepadAPI.Index = {Button = {}, Modifier = {}};
 ---------------------------------------------------------------
 db:Register('Gamepad', GamepadAPI)
 db:Save('Gamepad/Devices', 'ConsolePortDevices')
@@ -75,13 +75,17 @@ function GamepadAPI:SetActiveDevice(name)
 	db('Gamepad/Active', name)
 end
 
+function GamepadAPI:GetActiveDevice()
+	return self.Devices[self.Active]
+end
+
 ---------------------------------------------------------------
 -- Data
 ---------------------------------------------------------------
 function GamepadAPI:ReindexMappedState()
 	local state = C_GamePad.GetDeviceMappedState(C_GamePad.GetActiveDeviceID())
-	local map = wipe(self.Index.Buttons)
-
+	-- buttons
+	local map = wipe(self.Index.Button)
 	map.ID = {}; map.Config = {}; map.Binding = {};
 
 	for i in ipairs(state.buttons) do
@@ -92,6 +96,69 @@ function GamepadAPI:ReindexMappedState()
 		map.Config[conf]  = {ID = i-1; Binding = bind}
 		map.Binding[bind] = {ID = i-1; Config = conf}
 	end
+	-- modifiers
+	map = wipe(self.Index.Modifier)
+	map.Key = {}; map.Prefix = {};
+	for _, mod in ipairs({'Shift', 'Ctrl', 'Alt'}) do
+		local btn = GetCVar('GamePadEmulate'..mod)
+		if (btn and btn:match('PAD')) then
+			self.Index.Modifier.Key[mod] = btn
+			self.Index.Modifier.Prefix[mod..'-'] = btn
+		end
+	end
+	map.Active = self:GetActiveModifiers()
+end
+
+function GamepadAPI:GetActiveModifiers()
+	local mods = db('table/copy')(self.Index.Modifier.Prefix)
+	local spairs = db('table/spairs') -- need to scan in-order
+
+	local function assertUniqueOrder(...)
+		local uniques = {}
+		for i=1, select('#', ...) do
+			local v1 = select(i, ...)
+			if uniques[v1] then return end
+			uniques[v1] = true
+			for v2 in pairs(uniques) do
+				if v2 > v1 then return end
+			end
+		end
+		return true
+	end
+
+	for M1 in spairs(mods) do
+		for M2 in spairs(mods) do
+			for M3 in spairs(mods) do
+				if (assertUniqueOrder(M1, M2, M3)) then
+					mods[M1..M2..M3] = true
+				end
+			end
+			if (assertUniqueOrder(M1, M2)) then
+				mods[M1..M2] = true
+			end
+		end
+	end
+	mods[''] = true
+	return mods
+end
+
+function GamepadAPI:GetActiveBindings()
+	local btns = self.Index.Button.Binding
+	local mods = self.Index.Modifier.Active
+	assert(btns, 'Active bindings have not been indexed.')
+	assert(mods, 'Active modifiers have not been indexed.')
+
+	local bindings = {}
+	for btn in pairs(btns) do
+		for mod in pairs(mods) do
+			local binding = GetBindingAction(mod..btn)
+			if binding:len() > 0 then
+				bindings[btn] = bindings[btn] or {}
+				bindings[btn][mod] = binding
+			end
+		end
+	end
+	return bindings
 end
 
 function GamepadAPI:GetIconPath(path, style)
@@ -120,21 +187,21 @@ end
 
 function GamepadMixin:GetIconIDForBinding(binding)
 	assert(binding, 'Binding is not defined.')
-	return db(('Gamepad/Devices/%s/Theme/Icons/%s'):format(self.Name, binding))
+	return self.Theme.Icons[binding]
 end
 
 function GamepadMixin:GetIconForName(name, style)
-	return self:GetIconForBinding(db(('Gamepad/Index/Buttons/Config/%s/Binding'):format(name)))
+	return self:GetIconForBinding(db(('Gamepad/Index/Button/Config/%s/Binding'):format(name)))
 end
 
 function GamepadMixin:GetIconIDForName(name)
-	return self:GetIconIDForBinding(db(('Gamepad/Index/Buttons/Config/%s/Binding'):format(name)))
+	return self:GetIconIDForBinding(db(('Gamepad/Index/Button/Config/%s/Binding'):format(name)))
 end
 
 function GamepadMixin:GetIconForIndex(i, style)
-	return self:GetIconForBinding(db(('Gamepad/Index/Buttons/ID/%d/Binding'):format(i)))
+	return self:GetIconForBinding(db(('Gamepad/Index/Button/ID/%d/Binding'):format(i)))
 end
 
 function GamepadMixin:GetIconIDForIndex(i)
-	return self:GetIconIDForBinding(db(('Gamepad/Index/Buttons/ID/%d/Binding'):format(i)))
+	return self:GetIconIDForBinding(db(('Gamepad/Index/Button/ID/%d/Binding'):format(i)))
 end

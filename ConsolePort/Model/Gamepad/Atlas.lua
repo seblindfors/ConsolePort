@@ -1,5 +1,5 @@
 select(2, ...)('Gamepad/Index/Icons', {
-	Path = [[Interface\AddOns\ConsolePort\Assets\Icons\%d\%s]];
+	Path = [[Interface\AddOns\ConsolePort\Assets\Icons\%d\%s.blp]];
 	All = {
 		LG       = 'ALL_G_LEFT';
 		RG       = 'ALL_G_RIGHT';

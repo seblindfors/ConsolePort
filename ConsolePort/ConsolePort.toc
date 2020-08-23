@@ -10,8 +10,8 @@
 ## SavedVariables: ConsolePortDevices
 
 XML\Manifest.xml
-Utils\Utils.xml
 
-Model\Gamepad\Gamepad.xml
+Utils\!Utils.xml
+Model\!Model.xml
 
 View\Hotkey.lua

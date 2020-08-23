@@ -9,11 +9,11 @@ local strsplit, select, _, db = strsplit, select, ...
 -----------------------------------------------------------
 local vars = {} -- TODO: replace
 
-local function __cd(root, default, raw)
-	local path = {strsplit('/', raw)}
+local function __cd(root, default, rawPath)
+	local path = {strsplit('/', rawPath)}
 	local depth = #path
 	if (depth == 1) then
-		return default, raw
+		return default, rawPath
 	else
 		local dest = root
 		for i=1, (depth - 1) do
@@ -26,17 +26,17 @@ local function __cd(root, default, raw)
 	end
 end
 
-function db:Set(raw, value)
-	local repo, var = __cd(self, self.Settings, raw)
+function db:Set(path, value)
+	local repo, var = __cd(self, self.Settings, path)
 	if repo and var then
 		repo[var] = value
-		ConsolePort:FireVarCallback(raw, value)
+		ConsolePort:FireVarCallback(path, value)
 		return true 
 	end
 end
 
-function db:Get(raw)
-	local repo, var = __cd(self, self.Settings, raw)
+function db:Get(path)
+	local repo, var = __cd(self, self.Settings, path)
 	if repo and var then
 		local value = repo[var]
 		if (value == nil) then
@@ -47,8 +47,8 @@ function db:Get(raw)
 	end
 end
 
-function db:Save(path, as, raw)
-	_G[as] = raw and rawget(self, path) or self:Get(path)
+function db:Save(path, ref, raw)
+	_G[ref] = raw and rawget(self, path) or self:Get(path)
 end
 
 function db:Load(path, src, raw)
@@ -63,6 +63,13 @@ function db:Register(name, obj, raw)
 		assert(not rawget(self, name), 'Object already exists.')
 	end
 	return rawset(self, name, obj)
+end
+
+function db:Call(path, ...)
+	local repo, func = __cd(self, _G[_], path)
+	if repo and func then
+		return func(repo, ...)
+	end
 end
 
 setmetatable(db, {
@@ -82,4 +89,5 @@ function ConsolePort:DB(...)
 	if select('#', ...) > 0 then
 		return db(...)
 	end
+	return db
 end

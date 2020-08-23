@@ -51,6 +51,7 @@ function CPAPI.CreateEventHandler(args, events)
 			handler:RegisterEvent(event)
 		end
 	end
+	handler:RegisterEvent('ADDON_LOADED')
 	return handler 
 end
 
