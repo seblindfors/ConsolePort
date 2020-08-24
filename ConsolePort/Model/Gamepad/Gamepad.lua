@@ -17,7 +17,7 @@ db:Save('Gamepad/Devices', 'ConsolePortDevices')
 function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
 	print('GAME_PAD_CONFIGS_CHANGED')
 	for device in pairs(self.Devices) do
-	--	device:UpdateConfig()
+	--	TODO: handle this somehow, device:UpdateConfig()
 	end
 end
 

@@ -13,5 +13,6 @@ XML\Manifest.xml
 
 Utils\!Utils.xml
 Model\!Model.xml
+Controller\!Controller.xml
 
 View\Hotkey.lua
