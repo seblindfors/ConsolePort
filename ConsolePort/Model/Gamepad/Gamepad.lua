@@ -31,7 +31,13 @@ end
 
 function GamepadAPI:OnDataLoaded()
 	self:ReindexMappedState()
+	local old = self.Devices
 	db:Load('Gamepad/Devices', 'ConsolePortDevices')
+	for id, device in pairs(old) do
+		if not self.Devices[id] then
+			self.Devices[id] = device
+		end
+	end
 	for id, device in pairs(self.Devices) do
 		Mixin(device, GamepadMixin):OnLoad()
 		if device.Active then
@@ -175,6 +181,25 @@ end
 
 function GamepadMixin:UpdateConfig()
 
+end
+
+function GamepadMixin:ApplyPresetVars()
+	assert(self.Preset.Variables, ('Console variables missing from %s template.'):format(self.Name))
+	for var, val in pairs(self.Preset.Variables) do
+		SetCVar('Gamepad'..var, val)
+	end
+end
+
+function GamepadMixin:ApplyPresetBindings(setID)
+	assert(self.Preset.Bindings, ('Preset bindings missing from %s template.'):format(self.Name))
+	for btn, set in pairs(self.Preset.Bindings) do
+		for mod, binding in pairs(set) do
+			SetBinding(mod..btn, binding)
+		end
+	end
+	if setID then
+		SaveBindings(setID)
+	end
 end
 
 ---------------------------------------------------------------

@@ -31,8 +31,6 @@ select(2, ...)('Gamepad/Index/Icons', {
 		Options  = 'PS_C_OPTIONS';
 	};
 	Steam = {
-		Left     = 'STEAM_C_LEFT';
-		Right    = 'STEAM_C_RIGHT';
 		System   = 'STEAM_C_SYSTEM';
 	};
 	Xbox = {
@@ -46,8 +44,10 @@ select(2, ...)('Gamepad/Index/Icons', {
 		RT       = 'XBOX_S_RT';
 		LSB      = 'XBOX_S_LSB';
 		RSB      = 'XBOX_S_RSB';
+		Back     = 'XBOX_C_BACK';
 		Share    = 'XBOX_C_SHARE';
 		System   = 'XBOX_C_SYSTEM';
 		Options  = 'XBOX_C_OPTIONS';
+		Forward  = 'XBOX_C_FORWARD';
 	};
 })

@@ -27,7 +27,7 @@ local function __cd(root, default, rawPath)
 end
 
 function db:Set(path, value)
-	local repo, var = __cd(self, self.Settings, path)
+	local repo, var = __cd(self, self, path)
 	if repo and var then
 		repo[var] = value
 		ConsolePort:FireVarCallback(path, value)
@@ -36,7 +36,7 @@ function db:Set(path, value)
 end
 
 function db:Get(path)
-	local repo, var = __cd(self, self.Settings, path)
+	local repo, var = __cd(self, self, path)
 	if repo and var then
 		local value = repo[var]
 		if (value == nil) then

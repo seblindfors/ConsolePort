@@ -44,9 +44,10 @@ select(2, ...).Gamepad:AddGamepad({
 		};
 	};
 	Preset = {
-		Gamepad = {
+		Variables = {
 			EmulateShift     = 'PADLSHOULDER';
 			EmulateCtrl      = 'PADLTRIGGER';
+			EmulateAlt       = 'none';
 			EmulateEsc       = 'PADBACK';
 			CursorLeftClick  = 'PADLSTICK';
 			CursorRightClick = 'PADRSTICK';
@@ -131,6 +132,13 @@ select(2, ...).Gamepad:AddGamepad({
 				['']            = 'TOGGLEWORLDMAP';
 				['SHIFT-']      = 'CP_CAMZOOMOUT';
 				['CTRL-']       = 'CP_CAMZOOMIN';
+			};
+			-- Sticks
+			PADLSTICK = {
+				[''] = 'CAMERAORSELECTORMOVE';
+			};
+			PADRSTICK = {
+				[''] = 'TURNORACTION';
 			};
 		};
 	};

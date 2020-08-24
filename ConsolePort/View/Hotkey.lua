@@ -10,23 +10,44 @@ HotkeyHandler.Widgets = CreateFramePool('Frame', HotkeyHandler)
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
+function HotkeyHandler:ADDON_LOADED(...)
+	-- need to run this on every addon loading
+	self:OnInterfaceUpdated()
+end
+
 function HotkeyHandler:CVAR_UPDATE(...)
 	-- not even sure this fires for gamepad stuff
 end
 
 function HotkeyHandler:UPDATE_BINDINGS(...)
-	self:UpdateHotkeys()
+	self:OnInterfaceUpdated()
 end
 
 function HotkeyHandler:MODIFIER_STATE_CHANGED(...)
-	for self.Widgets:EnumerateActive() do
-		-- dispatch modifier
+	for widget in self.Widgets:EnumerateActive() do
+		-- TODO: dispatch modifier
 	end
 end
 
-function HotkeyHandler:OnDataLoaded()
-
+function HotkeyHandler:OnInterfaceUpdated()
+	-- hotkey rendering is expensive, make sure it doesn't run unnecessarily
+	if not self.timeLock then
+		self.timeLock = true
+		C_Timer.After(0.5, function()
+			self:OnActiveDeviceChanged()
+			self.timeLock = nil
+		end)
+	end
 end
+
+function HotkeyHandler:OnActiveDeviceChanged()
+	local device = db.Gamepad:GetActiveDevice()
+	if device then
+		self:UpdateHotkeys(device)
+	end
+end
+
+ConsolePort:RegisterVarCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
 
 ---------------------------------------------------------------
 -- API
@@ -50,10 +71,10 @@ function HotkeyHandler:AcquireAnchor(host)
 	return frame
 end
 
-function HotkeyHandler:UpdateHotkeys()
+function HotkeyHandler:UpdateHotkeys(device)
+	assert(device, 'No device specified when attempting to update hotkeys.')
 	self.Widgets:ReleaseAll()
 
-	local device = db.Gamepad:GetActiveDevice()
 	local bindings = db.Gamepad:GetActiveBindings()
 	local bindingToActionID = {}
 
@@ -77,9 +98,6 @@ function HotkeyHandler:UpdateHotkeys()
 		end
 	end
 end
-
-ConsolePort:RegisterVarCallback('Gamepad/Active', HotkeyHandler.UpdateHotkeys, HotkeyHandler)
-
 
 ---------------------------------------------------------------
 -- Hotkey mixin

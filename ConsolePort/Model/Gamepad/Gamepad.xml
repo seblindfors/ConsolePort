@@ -6,7 +6,8 @@
 	<Script file="Gamepad/Default.lua"/>
 	<Script file="Gamepad/Atlas.lua"/>
 	<!-- Controller presets -->
-	<Script file="Gamepad/PS4/PS4.lua"/>
+	<Script file="Gamepad/Xbox/Xbox.lua"/>
+	<Script file="Gamepad/PlayStation/PlayStation.lua"/>
 	<!--
 	<Script file="STEAM/Steam.lua"/>
 	<Script file="XBOX/Xbox.lua"/>
