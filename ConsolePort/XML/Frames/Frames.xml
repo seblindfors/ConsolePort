@@ -13,4 +13,63 @@
 		</Frames>
 	</Frame>
 
+	<!-- The interface cursor, snaps between and clicks on UI elements out of combat. Cursors\Interface.lua -->
+	<Frame name="ConsolePortCursor" parent="UIParent" frameStrata="TOOLTIP">
+		<Size x="32" y="32"/>
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="7">
+				<Texture parentKey="Tip" file="Interface\CURSOR\Item" setAllPoints="true"/>
+				<Texture parentKey="Button">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" x="4" y="-4"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Highlight">
+					<Animations>
+						<AnimationGroup parentKey="Scale">
+							<Scale parentKey="Enlarge" childKey="Highlight" smoothing="OUT" duration=".1" order="1">
+								<Origin point="CENTER"/>
+							</Scale>
+							<Scale parentKey="Shrink" childKey="Highlight" smoothing="IN" duration=".2" order="2">
+								<Origin point="CENTER"/>
+							</Scale>
+						</AnimationGroup>
+					</Animations>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Pointer">
+				<Size x="32" y="32"/>
+			</Frame>
+		</Frames>
+		<Animations>
+			<AnimationGroup parentKey="MoveAndScale">
+				<Translation parentKey="Translate" smoothing="OUT" duration=".05" order="1"/>
+				<Scale parentKey="Enlarge" smoothing="OUT" duration=".1" order="1">
+					<Origin point="TOPLEFT"/>
+				</Scale>
+				<Scale parentKey="Shrink" smoothing="IN" duration=".2" order="2">
+					<Origin point="TOPLEFT"/>
+				</Scale>
+			</AnimationGroup>
+		</Animations>
+		<Scripts>
+			<OnEvent>
+				if self[event] then
+					self[event](self);
+				end
+			</OnEvent>
+			<OnLoad>
+				self:RegisterEvent('MODIFIER_STATE_CHANGED');
+				self:RegisterEvent('PLAYER_REGEN_DISABLED');
+				self:RegisterEvent('PLAYER_REGEN_ENABLED');
+				self.Timer = 0;
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
 </Ui>

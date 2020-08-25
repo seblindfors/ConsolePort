@@ -33,7 +33,6 @@ local _, db = ...; local ActionBarAPI = {
 		};
 	};
 	Lookup = {
-		Bars = {};
 		Buttons = {};
 		Ignore = {};
 		Types = {	
@@ -96,8 +95,8 @@ end
 -- sources, to extend their hotkey functionality or cache them
 -- on handlers for later manipulation.
 do
-	local IGNORE_FRAMES = ActionBarAPI.Lookup.Ignore;
 	local VALID_BUTTON_TYPE = ActionBarAPI.Lookup.Types;
+	local IGNORE_FRAMES = ActionBarAPI.Lookup.Ignore;
 	local IsFrameWidget = C_Widget.IsFrameWidget;
 
 	-- Helpers:
@@ -168,7 +167,7 @@ do
 		__index = function(self, id)
 			local matches = {}
 			for button, action in ActionBarAPI:GetActionButtons() do
-				if (action == id) then
+				if (action == id) then -- TODO: handle paging
 					matches[#matches+1] = button
 				end
 			end

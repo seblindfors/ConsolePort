@@ -1,3 +1,9 @@
+---------------------------------------------------------------
+-- Hotkey management
+---------------------------------------------------------------
+-- This handler automatically renders icons instead of hotkey
+-- strings on action buttons in the interface. 
+
 local _, db = ...;
 local HotkeyMixin, HotkeyHandler = {}, CPAPI.CreateEventHandler({'Frame', 'ConsolePortHotkeyHandler'}, {
 	'CVAR_UPDATE';
@@ -5,7 +11,15 @@ local HotkeyMixin, HotkeyHandler = {}, CPAPI.CreateEventHandler({'Frame', 'Conso
 	'MODIFIER_STATE_CHANGED';
 })
 db:Register('Hotkeys', HotkeyHandler)
-HotkeyHandler.Widgets = CreateFramePool('Frame', HotkeyHandler)
+HotkeyHandler.Textures = CreateTexturePool(HotkeyHandler, 'ARTWORK')
+HotkeyHandler.Widgets = CreateFramePool('Frame', HotkeyHandler, nil, function(pool, self)
+	self:Hide()
+	self:ClearAllPoints()
+	if self.Release then
+		self:Release()
+		self:ClearOwner()
+	end
+end)
 
 ---------------------------------------------------------------
 -- Events
@@ -50,7 +64,7 @@ end
 ConsolePort:RegisterVarCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
 
 ---------------------------------------------------------------
--- API
+-- Bindings logic
 ---------------------------------------------------------------
 function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	for i, modifier in ipairs(modifiers) do
@@ -60,20 +74,18 @@ function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	return modifiers
 end
 
-function HotkeyHandler:AcquireAnchor(host)
+function HotkeyHandler:AcquireAnchor()
 	local frame, newObj = self.Widgets:Acquire()
 	if newObj then
 		Mixin(frame, HotkeyMixin)
-		frame.textures = CreateTexturePool(frame, 'ARTWORK')
+		frame.Textures = self.Textures
 	end
-	frame:SetParent(host)
-	frame:Show()
 	return frame
 end
 
 function HotkeyHandler:UpdateHotkeys(device)
-	assert(device, 'No device specified when attempting to update hotkeys.')
 	self.Widgets:ReleaseAll()
+	assert(device, 'No device specified when attempting to update hotkeys.')
 
 	local bindings = db.Gamepad:GetActiveBindings()
 	local bindingToActionID = {}
@@ -90,11 +102,10 @@ function HotkeyHandler:UpdateHotkeys(device)
 		end
 	end
 
-	for host, action in db.Actionbar:GetActionButtons() do
+	for owner, action in db.Actionbar:GetActionButtons() do
 		local data = bindingToActionID[action]
 		if data then
-			data.host = host
-			self:AcquireAnchor(host):SetData(data)
+			self:AcquireAnchor():SetData(data, owner)
 		end
 	end
 end
@@ -104,39 +115,71 @@ end
 ---------------------------------------------------------------
 HotkeyMixin.template = 'Default'; -- TODO: remove hardcoded
 
-function HotkeyMixin:SetData(data)
+function HotkeyMixin:SetData(data, owner)
 	self.data = data
 	self:SetSize(1, 1)
-	self.textures:ReleaseAll()
-	if data.host.HotKey then
-		data.host.HotKey:SetAlpha(0)
-	end
+
+	self:Release()
+	self:SetOwner(owner)
+
 	-- TODO: allow more templates
-	local signature = 'return function(self, pool, button, modifier, host)' 
+	local signature = 'return function(self, button, modifier, owner)' 
 	local render, msg = loadstring(signature..self.Templates[self.template])
 	if render then
-		return render()(self, self.textures, data.button, data.modifier, data.host)
+		return render()(self, data.button, data.modifier, owner)
 	end
 	error('Hotkey template failed to compile:\n' .. msg)
 end
 
 
+function HotkeyMixin:Acquire()
+	local texture = self.Textures:Acquire()
+	texture:SetParent(self)
+	return texture
+end
+
+function HotkeyMixin:Release()
+	for obj in self.Textures:EnumerateActive() do
+		if ( obj:GetParent() == self ) then
+			self.Textures:Release(obj)
+		end
+	end
+end
+
+function HotkeyMixin:SetOwner(owner)
+	self:SetParent(owner)
+	if owner.HotKey then
+		self.preAlpha = owner.HotKey:GetAlpha()
+		owner.HotKey:SetAlpha(0)
+	end
+	self:Show()
+end
+
+function HotkeyMixin:ClearOwner()
+	local owner = self:GetParent()
+	if owner and owner.HotKey and self.preAlpha then
+		owner.HotKey:SetAlpha(self.preAlpha)
+	end
+	self.preAlpha = nil
+	self:SetParent(HotkeyHandler)
+end
+
 ---------------------------------------------------------------
--- Hotkey mixin
+-- Hotkey templates
 ---------------------------------------------------------------
 -- TODO: write more templates, allow some kind of savedvar for this
 HotkeyMixin.Templates = {
 	Default = [[
-		self:SetPoint('TOPRIGHT', host, 0, 0)
-		local cur = pool:Acquire()
+		self:SetPoint('TOPRIGHT', owner, 0, 0)
+		local cur = self:Acquire()
 
 		cur:SetSize(24, 24)
 		cur:SetPoint('TOPRIGHT', 4, 4)
 		cur:SetTexture(button)
 		cur:Show()
 
-		for i = #modifier, 1, -1 do
-			local mod = pool:Acquire()
+		for i = 1, #modifier do
+			local mod = self:Acquire()
 			mod:SetSize(24, 24)
 			mod:SetPoint('RIGHT', cur, 'LEFT', 14, 0)
 			mod:SetTexture(modifier[i])
