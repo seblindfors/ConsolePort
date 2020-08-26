@@ -3,5 +3,6 @@
 	<!-- Models -->
 	<Include file="Gamepad/Gamepad.xml"/>
 	<!-- Single file models -->
+	<Script file="Data.lua"/>
 	<Script file="Actionbar.lua"/>
 </Ui>

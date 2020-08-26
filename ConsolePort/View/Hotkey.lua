@@ -5,7 +5,7 @@
 -- strings on action buttons in the interface. 
 
 local _, db = ...;
-local HotkeyMixin, HotkeyHandler = {}, CPAPI.CreateEventHandler({'Frame', 'ConsolePortHotkeyHandler'}, {
+local HotkeyMixin, HotkeyHandler = {}, CPAPI.CreateEventHandler({'Frame', '$parentHotkeyHandler', ConsolePort}, {
 	'CVAR_UPDATE';
 	'UPDATE_BINDINGS';
 	'MODIFIER_STATE_CHANGED';
@@ -64,7 +64,7 @@ end
 ConsolePort:RegisterVarCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
 
 ---------------------------------------------------------------
--- Bindings logic
+-- API
 ---------------------------------------------------------------
 function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	for i, modifier in ipairs(modifiers) do
@@ -74,7 +74,14 @@ function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	return modifiers
 end
 
-function HotkeyHandler:AcquireAnchor()
+function HotkeyHandler:GetHotkeyData(device, btnID, modID, style)
+	return {
+		button = device:GetIconForBinding(btnID, style);
+		modifier = self:GetIconsForModifier({strsplit('-', modID)}, device, style);
+	}
+end
+
+function HotkeyHandler:GetWidget()
 	local frame, newObj = self.Widgets:Acquire()
 	if newObj then
 		Mixin(frame, HotkeyMixin)
@@ -83,6 +90,21 @@ function HotkeyHandler:AcquireAnchor()
 	return frame
 end
 
+function HotkeyHandler:Disable()
+	self:UnregisterAllEvents()
+	self.Widgets:ReleaseAll()
+end
+
+function HotkeyHandler:Enable()
+	for _, event in ipairs(self.Events) do
+		self:RegisterEvent(event)
+	end
+	self:OnActiveDeviceChanged()
+end
+
+---------------------------------------------------------------
+-- Binding logic
+---------------------------------------------------------------
 function HotkeyHandler:UpdateHotkeys(device)
 	self.Widgets:ReleaseAll()
 	assert(device, 'No device specified when attempting to update hotkeys.')
@@ -94,18 +116,21 @@ function HotkeyHandler:UpdateHotkeys(device)
 		for modID, binding in pairs(set) do
 			local actionBarID = db('Actionbar/Binding/'..binding)
 			if actionBarID then
-				bindingToActionID[actionBarID] = {
-					modifier = self:GetIconsForModifier({strsplit('-', modID)}, device, 32);
-					button = device:GetIconForBinding(btnID, 32);
-				};
+				bindingToActionID[actionBarID] = self:GetHotkeyData(device, btnID, modID, 32)
+			else
+				local widget = _G[(gsub(gsub(binding, 'CLICK ', ''), ':.+', ''))]
+				if C_Widget.IsFrameWidget(widget) then
+					self:GetWidget():SetData(self:GetHotkeyData(device, btnID, modID, 32), widget)
+				end
 			end
 		end
 	end
 
+	-- draw on action buttons
 	for owner, action in db.Actionbar:GetActionButtons() do
 		local data = bindingToActionID[action]
 		if data then
-			self:AcquireAnchor():SetData(data, owner)
+			self:GetWidget():SetData(data, owner)
 		end
 	end
 end

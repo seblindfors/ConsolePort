@@ -7,12 +7,12 @@
 ## X-Website: https://github.com/seblindfors/ConsolePort
 ## X-Feedback: https://discord.gg/AWeHd48
 
-## SavedVariables: ConsolePortDevices
+## SavedVariables: ConsolePortSettings, ConsolePortDevices
 
 XML\Manifest.xml
 
-Utils\!Utils.xml
-Model\!Model.xml
-Controller\!Controller.xml
+Utils\__manifest.xml
+Model\__manifest.xml
+Controller\__manifest.xml
 
 View\Hotkey.lua

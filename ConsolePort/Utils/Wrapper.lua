@@ -44,15 +44,22 @@ function CPAPI.CreateFrame(...)
 	return Mixin(CreateFrame(...), CPAPI.DisplayMixin)
 end
 
-function CPAPI.CreateEventHandler(args, events)
-	local handler = db('table/mixin')(CreateFrame(unpack(args)), CPAPI.EventMixin)
+function CPAPI.CreateEventHandler(args, events, ...)
+	local handler = db('table/mixin')(CreateFrame(unpack(args)), CPAPI.EventMixin, ...)
 	if events then
 		for _, event in ipairs(events) do
 			handler:RegisterEvent(event)
 		end
+		handler.Events = events
 	end
 	handler:RegisterEvent('ADDON_LOADED')
 	return handler 
+end
+
+function CPAPI.Proxy(owner, proxy)
+	local mt = getmetatable(owner) or {}
+	mt.__index = proxy;
+	return setmetatable(owner, mt)
 end
 
 ---------------------------------------------------------------

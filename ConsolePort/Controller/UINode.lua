@@ -14,11 +14,11 @@ local tinsert, tremove, ipairs, next = tinsert, tremove, ipairs, next
 ---------------------------------------------------------------
 -- Node management functions
 ---------------------------------------------------------------
-local Node = setmetatable(Mixin(CPAPI.CreateEventHandler({'Frame', 'ConsolePortNode'}, {
+local Node = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', ConsolePort}, {
 	-- Events to handle
 	'UI_SCALE_CHANGED';
 	'DISPLAY_SIZE_CHANGED';
-}), {
+}, {
 	-- Compares distance between nodes for eligibility when filtering cached nodes
 	distance = {
 		PADDUP    = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
@@ -51,14 +51,15 @@ local Node = setmetatable(Mixin(CPAPI.CreateEventHandler({'Frame', 'ConsolePortN
 		EditBox     = true;
 		Slider      = true;
 	};
-	cache  = {}; -- Temporary node cache when calculating cursor movement
-	rects  = {}; -- Temporary rect cache to calculate intersection between conflicting nodes
+	cache  = setmetatable({}, {__mode = 'v'}); -- Temporary node cache when calculating cursor movement
+	rects  = setmetatable({}, {__mode = 'v'}); -- Temporary rect cache to calculate intersection between conflicting nodes
+	limit  = CreateVector2D(GetScreenWidth(), GetScreenHeight()); -- Limit to screen
 	scalar = 3;  -- Manhattan distance: scale 2ndary plane to improve intuitive node selection
-	limit  = CreateVector2D(GetScreenWidth(), GetScreenHeight());
 }), {
 	-- @param  varargs : list of frames to scan recursively
 	-- @return cache   : table of nodes on screen
 	__call = function(self, ...)
+		self:ClearCache()
 		self:Scan(nil, ...)
 		self:ScrubCache(self:GetNextCacheItem(nil))
 		return self.cache
@@ -176,19 +177,26 @@ end
 ---------------------------------------------------------------
 function Node:CacheItem(node, object, super, level)
 	self:CacheRect(node, level)
-	tinsert(self.cache, node:GetAttribute('nodepriority') or #self.cache + 1, {
+	self:Insert(self.cache, node:GetAttribute('nodepriority'), {
 		node   = node;
 		object = object;
 		super  = super;
-		level  = level;
-	});
+		level  = level;		
+	})
 end
 
 function Node:CacheRect(node, level)
-	tinsert(self.rects, self:GetRectLevelIndex(level), {
+	self:Insert(self.rects, self:GetRectLevelIndex(level), {
 		node  = node;
 		level = level;
-	});
+	})
+end
+
+function Node:Insert(t, k, v)
+	if k then
+		return tinsert(t, k, v)
+	end
+	t[#t+1] = v
 end
 
 function Node:RemoveCacheItem(cacheIndex)

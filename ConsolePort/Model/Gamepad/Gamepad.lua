@@ -1,15 +1,18 @@
 local _, db = ...;
-local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', 'ConsolePortGamePadHandler'}, {
+local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parentGamePadHandler', ConsolePort}, {
 	'GAME_PAD_CONFIGS_CHANGED';
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
+}, {
+	Devices = {};
+	Index = {
+		Button = {};
+		Modifier = {};
+	};
 });
----------------------------------------------------------------
-GamepadAPI.Devices = {}; GamepadAPI.Index = {Button = {}, Modifier = {}};
 ---------------------------------------------------------------
 db:Register('Gamepad', GamepadAPI)
 db:Save('Gamepad/Devices', 'ConsolePortDevices')
----------------------------------------------------------------
 
 ---------------------------------------------------------------
 -- Events
@@ -39,7 +42,7 @@ function GamepadAPI:OnDataLoaded()
 		end
 	end
 	for id, device in pairs(self.Devices) do
-		Mixin(device, GamepadMixin):OnLoad()
+		CPAPI.Proxy(device, GamepadMixin):OnLoad()
 		if device.Active then
 			self:SetActiveDevice(id)
 		end
@@ -52,7 +55,7 @@ end
 function GamepadAPI:AddGamepad(data, skipDefault)
 	local defaultData = db('table/copy')(self.Devices.Default)
 	local gamepadData = skipDefault and data or db('table/merge')(defaultData, data)
-	self.Devices[data.Name] = CreateFromMixins(GamepadMixin, gamepadData):OnLoad()
+	self.Devices[data.Name] = CPAPI.Proxy(gamepadData, GamepadMixin):OnLoad()
 end
 
 function GamepadAPI:CreateGamepadFromPreset(name, preset)

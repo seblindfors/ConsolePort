@@ -5,29 +5,23 @@ local strsplit, select, _, db = strsplit, select, ...
 --  @get      db('[pathto/]var')
 -- Registry:
 --  @save     db:Save('[pathto/]var', 'asGlobalName', raw)
+--  @load     db:Load('[pathto/]var', 'globalName', raw)
+--  @default  db:Default(tbl)
 --  @register db:Register('name', obj)
 -----------------------------------------------------------
-local vars = {} -- TODO: replace
+db.default = db -- fallback
 
-local function __cd(root, default, rawPath)
-	local path = {strsplit('/', rawPath)}
-	local depth = #path
-	if (depth == 1) then
-		return default, rawPath
-	else
-		local dest = root
-		for i=1, (depth - 1) do
-			dest = dest[tonumber(path[i]) or path[i]]
-			if (dest == nil) then
-				return
-			end
-		end
-		return dest, tonumber(path[depth]) or path[depth]
+local function __cd(dir, idx, nxt, ...)
+	if not nxt then
+		return dir, tonumber(idx) or idx
 	end
+	local dir = dir[tonumber(idx) or idx]
+	if (dir == nil) then return end
+	return __cd(dir, nxt, ...)
 end
 
 function db:Set(path, value)
-	local repo, var = __cd(self, self, path)
+	local repo, var = __cd(self, strsplit('/', path))
 	if repo and var then
 		repo[var] = value
 		ConsolePort:FireVarCallback(path, value)
@@ -36,12 +30,12 @@ function db:Set(path, value)
 end
 
 function db:Get(path)
-	local repo, var = __cd(self, self, path)
+	local repo, var = __cd(self, strsplit('/', path))
 	if repo and var then
 		local value = repo[var]
 		if (value == nil) then
-			local varDefault = vars[var]
-			return varDefault and varDefault[1]
+			local varDefault = self.default[var]
+			return varDefault
 		end
 		return value
 	end
@@ -63,6 +57,11 @@ function db:Register(name, obj, raw)
 		assert(not rawget(self, name), 'Object already exists.')
 	end
 	return rawset(self, name, obj)
+end
+
+function db:Default(tbl)
+	rawset(self, 'default', tbl) -- add vars
+	return tbl
 end
 
 function db:Call(path, ...)
