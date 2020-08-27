@@ -247,7 +247,7 @@ end
 ---------------------------------------------------------------
 -- Vector calculations
 ---------------------------------------------------------------
-local vec2Dlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
+local vlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
 ---------------------------------------------------------------
 
 function Node:GetDistance(x1, y1, x2, y2)
@@ -264,7 +264,7 @@ function Node:GetFrameLevel(node)
 end
 
 function Node:IsCloser(hz1, vt1, hz2, vt2)
-	return vec2Dlen(hz1, vt1) < vec2Dlen(hz2, vt2)
+	return vlen(hz1, vt1) < vlen(hz2, vt2)
 end
 
 function Node:PointInRange(pt, min, max)
