@@ -165,7 +165,7 @@ function InputMixin:ClearOverride(owner)
 			self[i] = nil
 			ClearOverrideBindings(self)
 			local other = self[i % 2 + 1]
-			if other then
+			if other then -- reinstate other
 				return self:SetOverride(other)
 			end
 		end
