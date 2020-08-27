@@ -24,7 +24,10 @@ function InputAPI:GetWidget(id, owner)
 	assert(not InCombatLockdown(), 'Attempted to get input widget in combat.')
 	local widget = self.Widgets[id]
 	if not widget then
-		widget = CreateFrame('Button', ('CPInput-%s'):format(tostring(id)), self, 'SecureActionButtonTemplate, SecureHandlerBaseTemplate')
+		widget = CreateFrame(
+			'Button', ('CP-Input-%s'):format(tostring(id)), self,
+			'SecureActionButtonTemplate, SecureHandlerBaseTemplate'
+		);
 		widget:Hide()
 		db('table/mixin')(widget, InputMixin)
 		widget:OnLoad(id)
@@ -36,8 +39,8 @@ end
 
 function InputAPI:Release(owner)
 	for id, widget in pairs(self.Widgets) do
-		if ( widget:GetAttribute('owner') == owner ) then
-			widget:ClearOverride()
+		if ( widget:HasOwner(owner) ) then
+			widget:ClearOverride(owner)
 		end
 	end
 end
@@ -71,22 +74,39 @@ end
 -- Common args:
 --  @isPriority : whether this binding should be prioritized
 --  @click      : (optional) emulated mouse button
---  @attribute  : attribute value for the configured action
+--  @value      : value for the configured action
 
-function InputMixin:Button(isPriority, click, attribute)
-	self:SetAttribute('type', 'click')
-	self:SetAttribute('clickbutton', attribute)
-	return self:SetOverride(isPriority, click)
+function InputMixin:Button(isPriority, click, value)
+	return self:SetOverride({
+		owner = self:GetAttribute('owner');
+		button = click;
+		isPriority = isPriority;
+		attributes = {
+			type = 'click';
+			clickbutton = value;
+		}
+	})
 end
 
-function InputMixin:Macro(isPriority, click, attribute)
-	self:SetAttribute('type', 'macro')
-	self:SetAttribute('macrotext', attribute)
-	return self:SetOverride(isPriority, click)
+function InputMixin:Macro(isPriority, click, value)
+	return self:SetOverride({
+		owner = self:GetAttribute('owner');
+		button = click;
+		isPriority = isPriority;
+		attributes = {
+			type = 'macro';
+			macrotext = value;
+		}
+	})
 end
 
-function InputMixin:Global(isPriority, click, attribute)
-	return self:SetOverride(isPriority, click, attribute)
+function InputMixin:Global(isPriority, click, value)
+	return self:SetOverride({
+		owner = self:GetAttribute('owner');
+		button = click;
+		isPriority = isPriority;
+		target = value;
+	})
 end
 
 -- Creates a new command:
@@ -96,11 +116,62 @@ end
 --  @args : (optional) properties for initialization
 function InputMixin:Command(isPriority, click, name, func, init, ...)
 	self[name] = func
-	self:SetAttribute('type', name)
 	if init then
 		init(self, ...)
 	end
-	self:SetOverride(isPriority, click)
+	return self:SetOverride({
+		owner = self:GetAttribute('owner');
+		button = click;
+		isPriority = isPriority;
+		attributes = {
+			type = name;
+		}
+	})
+end
+
+
+---------------------------------------------------------------
+-- InputMixin override handler, supports 2 layers of overrides
+---------------------------------------------------------------
+function InputMixin:SetOverride(data)
+	self[data.isPriority and 1 or 2] = data
+	if data.attributes then
+		for attribute, value in pairs(data.attributes) do
+			self:SetAttribute(attribute, value)
+		end
+	end
+	SetOverrideBindingClick(self,
+		data.isPriority,
+		self:GetAttribute('id'),
+		data.target or self:GetName(),
+		data.button or 'LeftButton'
+	);
+	return self
+end
+
+function InputMixin:HasOwner(owner)
+	for i=1, 2 do
+		local data = self[i]
+		if ( data and data.owner == owner ) then
+			return i, data
+		end
+	end
+end
+
+function InputMixin:ClearOverride(owner)
+	if owner then
+		local i = self:HasOwner(owner)
+		if i then
+			self[i] = nil
+			local other = self[i % 2 + 1]
+			if other then
+				return self:SetOverride(other)
+			end
+		end
+		return -- do nothing if owner is faulty
+	end
+	self[1] = nil; self[2] = nil;
+	ClearOverrideBindings(self)
 end
 
 ---------------------------------------------------------------
@@ -115,21 +186,6 @@ function InputMixin:OnLoad(id)
 			self:CallMethod('Clear')
 		end
 	]])
-end
-
-function InputMixin:SetOverride(isPriority, click, target)
-	SetOverrideBindingClick(self,
-		isPriority,
-		self:GetAttribute('id'),
-		target or self:GetName(),
-		click or 'LeftButton'
-	);
-	return self
-end
-
-function InputMixin:ClearOverride()
-	self:SetAttribute('type', nil)
-	ClearOverrideBindings(self)
 end
 
 function InputMixin:OnMouseDown()
