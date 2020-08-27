@@ -4,7 +4,7 @@
 local DEFAULT_DATA = {
     --------------------------------------------------------------------------------------------------------
     -- Interface cursor:
-    disableUI               = {false    ; 'Disable interface cursor'};
+    UIdisableCursor         = {false    ; 'Disable interface cursor'};
     UIleaveCombatDelay      = {.5       ; 'Delay before re-activating UI core after combat'};
     UIholdRepeatDelay       = {.125     ; 'Delay until a D-pad input is repeated (interface)'};
     UIholdRepeatDisable     = {false    ; 'Disable D-pad input repeater'};
@@ -14,6 +14,12 @@ local DEFAULT_DATA = {
     unitHotkeyOffsetY       = {0        ; 'Offset Y-placement on unit frames (px)'};
     unitHotkeyGhostMode     = {false    ; 'Restore calculated combinations after targeting'};
     unitHotkeyIgnorePlayer  = {false    ; 'Always ignore player regardless of pool'};
+    -- Structures:
+    UICursor = {{
+        LeftClick  = 'PAD1'; -- cross
+        RightClick = 'PAD2'; -- circle
+        Special    = 'PAD4'; -- triangle
+    }; 'Cursor actions'};
 }   --------------------------------------------------------------------------------------------------------
 
 local DataAPI, _, db = CPAPI.CreateEventHandler({'Frame', '$parentDataHandler', ConsolePort}), ...

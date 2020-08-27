@@ -45,7 +45,12 @@ function CPAPI.CreateFrame(...)
 end
 
 function CPAPI.CreateEventHandler(args, events, ...)
-	local handler = db('table/mixin')(CreateFrame(unpack(args)), CPAPI.EventMixin, ...)
+	local handler = db('table/mixin')(CreateFrame(unpack(args)), ...)
+	return CPAPI.EventHandler(handler, events)
+end
+
+function CPAPI.EventHandler(handler, events)
+	db('table/mixin')(handler, CPAPI.EventMixin)
 	if events then
 		for _, event in ipairs(events) do
 			handler:RegisterEvent(event)
@@ -53,13 +58,26 @@ function CPAPI.CreateEventHandler(args, events, ...)
 		handler.Events = events
 	end
 	handler:RegisterEvent('ADDON_LOADED')
-	return handler 
+	return handler
 end
 
 function CPAPI.Proxy(owner, proxy)
+	assert(not C_Widget.IsFrameWidget(owner), 'Attempted to proxy frame widget.')
 	local mt = getmetatable(owner) or {}
-	mt.__index = proxy;
+	mt.__index = proxy
 	return setmetatable(owner, mt)
+end
+
+function CPAPI.Start(handler)
+	for k, v in pairs(handler) do
+		if handler:HasScript(k) then
+			if handler:GetScript(k) then
+				handler:HookScript(k, v)
+			else
+				handler:SetScript(k, v)
+			end
+		end
+	end
 end
 
 ---------------------------------------------------------------

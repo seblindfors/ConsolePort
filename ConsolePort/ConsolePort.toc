@@ -14,5 +14,4 @@ XML\Manifest.xml
 Utils\__manifest.xml
 Model\__manifest.xml
 Controller\__manifest.xml
-
-View\Hotkey.lua
+View\__manifest.xml

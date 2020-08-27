@@ -15,7 +15,7 @@ local function __cd(dir, idx, nxt, ...)
 	if not nxt then
 		return dir, tonumber(idx) or idx
 	end
-	local dir = dir[tonumber(idx) or idx]
+	dir = dir[tonumber(idx) or idx]
 	if (dir == nil) then return end
 	return __cd(dir, nxt, ...)
 end

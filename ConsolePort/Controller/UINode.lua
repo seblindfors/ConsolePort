@@ -7,13 +7,8 @@
 -- interactive, either by clicking or mousing over it.
 -- Calling Node(...) with a list of frames will
 -- cache all nodes in the hierarchy for later use.
--- See Cursors\Interface.lua.
----------------------------------------------------------------
-local vec2Dlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
-local tinsert, tremove, ipairs, next = tinsert, tremove, ipairs, next
----------------------------------------------------------------
--- Node management functions
----------------------------------------------------------------
+
+
 local Node = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', ConsolePort}, {
 	-- Events to handle
 	'UI_SCALE_CHANGED';
@@ -51,10 +46,10 @@ local Node = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', Cons
 		EditBox     = true;
 		Slider      = true;
 	};
+	scalar = 3; -- Manhattan distance: scale 2ndary plane to improve intuitive node selection
 	cache  = setmetatable({}, {__mode = 'v'}); -- Temporary node cache when calculating cursor movement
 	rects  = setmetatable({}, {__mode = 'v'}); -- Temporary rect cache to calculate intersection between conflicting nodes
 	limit  = CreateVector2D(GetScreenWidth(), GetScreenHeight()); -- Limit to screen
-	scalar = 3;  -- Manhattan distance: scale 2ndary plane to improve intuitive node selection
 }), {
 	-- @param  varargs : list of frames to scan recursively
 	-- @return cache   : table of nodes on screen
@@ -66,7 +61,9 @@ local Node = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', Cons
 	end;
 	__index = getmetatable(UIParent).__index;
 })
+
 ---------------------------------------------------------------
+
 function Node:UI_SCALE_CHANGED()
 	self.limit:SetXY(GetScreenWidth(), GetScreenHeight())
 end
@@ -74,6 +71,7 @@ end
 function Node:DISPLAY_SIZE_CHANGED()
 	self.limit:SetXY(GetScreenWidth(), GetScreenHeight())
 end
+
 ---------------------------------------------------------------
 
 function Node:IsMouseEvent(node)
@@ -175,6 +173,9 @@ end
 ---------------------------------------------------------------
 -- Cache control
 ---------------------------------------------------------------
+local tinsert, tremove, ipairs, next = tinsert, tremove, ipairs, next
+---------------------------------------------------------------
+
 function Node:CacheItem(node, object, super, level)
 	self:CacheRect(node, level)
 	self:Insert(self.cache, node:GetAttribute('nodepriority'), {
@@ -246,6 +247,9 @@ end
 ---------------------------------------------------------------
 -- Vector calculations
 ---------------------------------------------------------------
+local vec2Dlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
+---------------------------------------------------------------
+
 function Node:GetDistance(x1, y1, x2, y2)
 	return abs(x1 - x2), abs(y1 - y2)
 end

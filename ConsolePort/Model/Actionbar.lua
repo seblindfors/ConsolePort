@@ -61,17 +61,13 @@ function ActionBarAPI:GetMappedValue(id, map)
 	return rawget(map, 'Abnormal')[id] or rawget(map, 'Default'):format(btnID)
 end
 
-setmetatable(ActionBarAPI.Action, {
-	__index = function(self, id)
-		return ActionBarAPI:GetMappedValue(id, self)
-	end;
-})
+CPAPI.Proxy(ActionBarAPI.Action, function(self, id)
+	return ActionBarAPI:GetMappedValue(id, self)
+end)
 
-setmetatable(ActionBarAPI.Widget, {
-	__index = function(self, id)
-		return _G[ActionBarAPI:GetMappedValue(id, self)]
-	end;
-})
+CPAPI.Proxy(ActionBarAPI.Widget, function(self, id)
+	return _G[ActionBarAPI:GetMappedValue(id, self)]
+end)
 
 -- Give default UI action buttons their correct action IDs.
 -- This is to make it easier to distinguish action buttons,
@@ -163,15 +159,13 @@ do
 	---------------------------------------------------------------
 	-- Database proxy
 	---------------------------------------------------------------
-	setmetatable(ActionBarAPI.Lookup.Buttons, {
-		__index = function(self, id)
-			local matches = {}
-			for button, action in ActionBarAPI:GetActionButtons() do
-				if (action == id) then -- TODO: handle paging
-					matches[#matches+1] = button
-				end
+	CPAPI.Proxy(ActionBarAPI.Lookup.Buttons, function(self, id)
+		local matches = {}
+		for button, action in ActionBarAPI:GetActionButtons() do
+			if (action == id) then -- TODO: handle paging
+				matches[#matches+1] = button
 			end
-			return matches
-		end;
-	})
+		end
+		return matches
+	end)
 end
