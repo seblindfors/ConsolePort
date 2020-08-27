@@ -168,7 +168,6 @@ function InputMixin:ClearOverride(owner)
 				return self:SetOverride(other)
 			end
 		end
-		return -- do nothing if owner is faulty
 	end
 	self[1] = nil; self[2] = nil;
 	ClearOverrideBindings(self)
