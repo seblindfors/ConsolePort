@@ -163,11 +163,13 @@ function InputMixin:ClearOverride(owner)
 		local i = self:HasOwner(owner)
 		if i then
 			self[i] = nil
+			ClearOverrideBindings(self)
 			local other = self[i % 2 + 1]
 			if other then
 				return self:SetOverride(other)
 			end
 		end
+		return -- do nothing if owner is faulty
 	end
 	self[1] = nil; self[2] = nil;
 	ClearOverrideBindings(self)
