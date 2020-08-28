@@ -81,11 +81,11 @@ function GamepadAPI:SetActiveDevice(name)
 		data.Active = nil
 	end
 	db(('Gamepad/Devices/%s/Active'):format(name), true)
-	db('Gamepad/Active', name)
+	db('Gamepad/Active', self.Devices[name])
 end
 
 function GamepadAPI:GetActiveDevice()
-	return self.Devices[self.Active]
+	return self.Active
 end
 
 ---------------------------------------------------------------
@@ -178,6 +178,11 @@ end
 -- Gamepad Mixin
 ---------------------------------------------------------------
 function GamepadMixin:OnLoad(data)
+	self.Icons = CPAPI.Proxy({}, function(_, id)
+		local id, style = strsplit('-', id)
+		return style and self:GetIconForBinding(id, style) or self:GetIconIDForBinding(id)
+	end)
+
 	self:UpdateConfig()
 	return self
 end

@@ -72,11 +72,11 @@ end
 
 ---------------------------------------------------------------
 -- Common args:
+--  @value      : value for the configured action
 --  @isPriority : whether this binding should be prioritized
 --  @click      : (optional) emulated mouse button
---  @value      : value for the configured action
 
-function InputMixin:Button(isPriority, click, value)
+function InputMixin:Button(value, isPriority, click)
 	return self:SetOverride({
 		owner = self:GetAttribute('owner');
 		button = click;
@@ -88,7 +88,7 @@ function InputMixin:Button(isPriority, click, value)
 	})
 end
 
-function InputMixin:Macro(isPriority, click, value)
+function InputMixin:Macro(value, isPriority, click)
 	return self:SetOverride({
 		owner = self:GetAttribute('owner');
 		button = click;
@@ -100,7 +100,7 @@ function InputMixin:Macro(isPriority, click, value)
 	})
 end
 
-function InputMixin:Global(isPriority, click, value)
+function InputMixin:Global(value, isPriority, click)
 	return self:SetOverride({
 		owner = self:GetAttribute('owner');
 		button = click;
@@ -113,14 +113,16 @@ end
 --  @name : name of the function to add
 --  @func : lambda function to call
 --  @init : (optional) function to set up properties
+--  @clear: (optional) function to run when clearing
 --  @args : (optional) properties for initialization
-function InputMixin:Command(isPriority, click, name, func, init, ...)
+function InputMixin:Command(isPriority, click, name, func, init, clear, ...)
 	self[name] = func
 	if init then
 		init(self, ...)
 	end
 	return self:SetOverride({
 		owner = self:GetAttribute('owner');
+		clear = clear;
 		button = click;
 		isPriority = isPriority;
 		attributes = {
@@ -162,8 +164,7 @@ function InputMixin:ClearOverride(owner)
 	if owner then
 		local i = self:HasOwner(owner)
 		if i then
-			self[i] = nil
-			ClearOverrideBindings(self)
+			self:ClearDataAndBinding(i)
 			local other = self[i % 2 + 1]
 			if other then -- reinstate other
 				return self:SetOverride(other)
@@ -171,13 +172,26 @@ function InputMixin:ClearOverride(owner)
 		end
 		return -- do nothing if owner is faulty
 	end
-	self[1] = nil; self[2] = nil;
+	self:ClearDataAndBinding(1, 2)
+end
+
+function InputMixin:ClearDataAndBinding(...)
+	for i=1, select('#', ...) do
+		local idx = select(i, ...)
+		local data = self[idx]
+		if data and data.clear then
+			data.clear(self)
+		end
+		self[idx] = nil;
+	end
 	ClearOverrideBindings(self)
 end
 
 ---------------------------------------------------------------
 -- InputMixin
 ---------------------------------------------------------------
+InputMixin.timer = 0
+
 function InputMixin:OnLoad(id)
 	self:SetAttribute('id', id)
 	self:SetAttribute('_childupdate-combat', [[
@@ -200,7 +214,7 @@ function InputMixin:OnMouseDown()
 	end
 	-- insecure function call
 	if self[func] then
-		self[func](self, self.state, self:GetAttribute('id'))
+		self[func](self, self:GetAttribute('id'), self.state)
 	end
 end
 
@@ -213,10 +227,22 @@ function InputMixin:OnMouseUp()
 	end
 end
 
+function InputMixin:PreClick()
+	if InCombatLockdown() then return end
+	if ( self:GetAttribute('type') == 'click' ) then
+		local click = self:GetAttribute('clickbutton')
+		if click and not click:IsEnabled() then
+			self:SetAttribute('type', nil)
+			self:SetAttribute('postclick', 'click')
+		end
+	end
+end
+
 function InputMixin:PostClick()
-	local click = self:GetAttribute('clickbutton')
-	if click and not click:IsEnabled() then
-		self:ClearClickButton()
+	if InCombatLockdown() then return end
+	local post = self:GetAttribute('postclick')
+	if post then
+		self:SetAttribute('type', post)
 	end
 end
 

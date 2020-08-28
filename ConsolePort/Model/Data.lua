@@ -8,6 +8,7 @@ local DEFAULT_DATA = {
     UIleaveCombatDelay      = {.5       ; 'Delay before re-activating UI core after combat'};
     UIholdRepeatDelay       = {.125     ; 'Delay until a D-pad input is repeated (interface)'};
     UIholdRepeatDisable     = {false    ; 'Disable D-pad input repeater'};
+    UImodifierCommands      = {'Shift'  ; 'Which modifier to use for modified commands'};
     -- Unit hotkey specific:
     unitHotkeySize          = {32       ; 'Size of unit hotkeys (px)'};
     unitHotkeyOffsetX       = {0        ; 'Offset X-placement on unit frames (px)'};
@@ -21,6 +22,13 @@ local DEFAULT_DATA = {
         Special    = 'PAD4'; -- triangle
     }; 'Cursor actions'};
 }   --------------------------------------------------------------------------------------------------------
+
+CPAPI.Lock(DEFAULT_DATA)
+for var, data in pairs(DEFAULT_DATA) do
+    if (type(data[1]) == 'table') then
+        CPAPI.Lock(data[1])
+    end
+end
 
 local DataAPI, _, db = CPAPI.CreateEventHandler({'Frame', '$parentDataHandler', ConsolePort}), ...
 

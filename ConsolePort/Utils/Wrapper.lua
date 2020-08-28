@@ -68,6 +68,12 @@ function CPAPI.Proxy(owner, proxy)
 	return setmetatable(owner, mt)
 end
 
+function CPAPI.Lock(object)
+	local mt = getmetatable(object) or {}
+	mt.__newindex = nop;
+	return setmetatable(object, mt)
+end
+
 function CPAPI.Start(handler)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then
@@ -195,4 +201,16 @@ function CPAPI:OpenStackSplitFrame(...)
 		return OpenStackSplitFrame(...)
 	end
 	return StackSplitFrame:OpenStackSplitFrame(...)
+end
+
+---------------------------------------------------------------
+-- Misc utils
+---------------------------------------------------------------
+function CPAPI.Hex2RGB(hex, fractal)
+    hex = hex:gsub('#','')
+    local div = fractal and 255 or 1
+    return 	( (tonumber(hex:sub(1,2), 16) or div) / div ), -- R
+    		( (tonumber(hex:sub(3,4), 16) or div) / div ), -- G
+    		( (tonumber(hex:sub(5,6), 16) or div) / div ), -- B
+    		( (tonumber(hex:sub(7,8), 16) or div) / div ); -- A
 end

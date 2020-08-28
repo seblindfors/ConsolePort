@@ -47,8 +47,8 @@ local Node = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', Cons
 		Slider      = true;
 	};
 	scalar = 3; -- Manhattan distance: scale 2ndary plane to improve intuitive node selection
-	cache  = setmetatable({}, {__mode = 'v'}); -- Temporary node cache when calculating cursor movement
-	rects  = setmetatable({}, {__mode = 'v'}); -- Temporary rect cache to calculate intersection between conflicting nodes
+	cache  = {}; -- Temporary node cache when calculating cursor movement
+	rects  = {}; -- Temporary rect cache to calculate intersection between conflicting nodes
 	limit  = CreateVector2D(GetScreenWidth(), GetScreenHeight()); -- Limit to screen
 }), {
 	-- @param  varargs : list of frames to scan recursively
@@ -312,7 +312,7 @@ end
 -- prioritizing candidates more linearly aligned to the origin.
 -- Comparing Euclidean distance on vectors yields the best node.
 
-function Node:GetBestCandidate(cur, key, curNodeChanged)
+function Node:NavigateToBestCandidate(cur, key, curNodeChanged)
 	if cur and self.distance[key] then
 		local this = self:GetCandidateVectorForCurrent(cur)
 		local candidates = self:GetCandidatesForVector(this, self.distance[key], {})
@@ -338,7 +338,7 @@ end
 -- located using both direction and distance-based vectors,
 -- instead using only shortest path as the metric for movement.
 
-function Node:GetClosestCandidate(cur, key, curNodeChanged)
+function Node:NavigateToClosestCandidate(cur, key, curNodeChanged)
 	if cur and self.direction[key] then
 		local this = self:GetCandidateVectorForCurrent(cur)
 		local candidates = self:GetCandidatesForVector(this, self.direction[key], {})
@@ -355,7 +355,7 @@ end
 ---------------------------------------------------------------
 -- Get an arbitrary candidate based on priority mapping
 ---------------------------------------------------------------
-function Node:GetArbitraryCandidate(cur, old, x, y)
+function Node:NavigateToArbitraryCandidate(cur, old, x, y)
 	-- (1) attempt to return the last node before the cache was wiped
 	-- (2) attempt to return the current node if it's still drawn
 	-- (3) return the first item in the cache if there are no origin coordinates
