@@ -56,19 +56,6 @@
 				</Scale>
 			</AnimationGroup>
 		</Animations>
-		<Scripts>
-			<OnEvent>
-				if self[event] then
-					self[event](self);
-				end
-			</OnEvent>
-			<OnLoad>
-				self:RegisterEvent('MODIFIER_STATE_CHANGED');
-				self:RegisterEvent('PLAYER_REGEN_DISABLED');
-				self:RegisterEvent('PLAYER_REGEN_ENABLED');
-				self.Timer = 0;
-			</OnLoad>
-		</Scripts>
 	</Frame>
 
 </Ui>

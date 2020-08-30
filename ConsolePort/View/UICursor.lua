@@ -23,7 +23,7 @@ Cursor.InCombat = InCombatLockdown;
 function Cursor:OnDataLoaded()
 	self:RegisterEvent('PLAYER_REGEN_ENABLED')
 	self:RegisterEvent('PLAYER_REGEN_DISABLED')
-	-- do something when it's loaded
+	self:RegisterEvent('CURSOR_CHANGED')
 end
 
 function Cursor:PLAYER_REGEN_DISABLED()
@@ -52,6 +52,16 @@ function Cursor:PLAYER_REGEN_ENABLED()
 	elseif self:IsShown() and not self.showAfterCombat then
 		self:Hide()
 	end
+end
+
+function Cursor:CURSOR_CHANGED(isDefault)
+	if not isDefault then
+		SetGamePadCursorControl(true)
+	end
+end
+
+function Cursor:MODIFIER_STATE_CHANGED()
+	-- TODO: implement this? maybe?
 end
 
 ---------------------------------------------------------------
@@ -412,28 +422,34 @@ function Cursor:Select(node, object, super, triggerOnEnter)
 		Scroll:To(node, super)
 	end
 
-	local scrollUp, scrollDown = Node.GetScrollButtons(node)
-	if scrollUp and scrollDown then
-		local modifier = db('UImodifierCommands')
-		Input:SetButton(format('%s-%s', modifier, 'PADDUP'), self, scrollUp)
-		Input:SetButton(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown)
-	end
+	self:SetScrollButtonsForNode(node)
 
 	if object == 'Slider' then
 		-- TODO: Override:HorizontalScroll(Cursor, node)
 	end
 
-	local buttons = {
+	self:SetClickButtonsForNode(node, override, macro)
+end
+
+function Cursor:SetScrollButtonsForNode(node)
+	local scrollUp, scrollDown = Node.GetScrollButtons(node)
+	if scrollUp and scrollDown then
+		local modifier = db('UImodifierCommands')
+		Input:SetButton(format('%s-%s', modifier, 'PADDUP'), self, scrollUp)
+		Input:SetButton(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown)
+		return scrollUp, scrollDown
+	end
+end
+
+function Cursor:SetClickButtonsForNode(node, isClickable, macroReplacement)
+	for click, button in pairs({
 		LeftButton  = db('Settings/UICursor/LeftClick');
 		RightButton = db('Settings/UICursor/RightClick');
-	}
-
-	for click, button in pairs(buttons) do
-		for modifier in pairs(db('Gamepad/Index/Modifier/Active')) do
-			if macro then
+	}) do for modifier in pairs(db('Gamepad/Index/Modifier/Active')) do
+			if macroReplacement then
 				local unit = UIDROPDOWNMENU_INIT_MENU.unit
-				Input:Macro(button .. modifier, self, macro:format(unit or ''))
-			elseif override then
+				Input:Macro(button .. modifier, self, macroReplacement:format(unit or ''))
+			elseif isClickable then
 				Input:SetButton(button .. modifier, self, node, false, click)
 			else
 				Input:SetButton(button .. modifier, self, false, false, click)

@@ -2,5 +2,6 @@
 ..\FrameXML\UI.xsd">
 	<!-- Single file controller -->
 	<Script file="Input.lua"/>
+	<Script file="Pager.lua"/>
 	<Script file="UINode.lua"/>
 </Ui>

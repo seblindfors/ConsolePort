@@ -5,11 +5,10 @@
 -- calculate distances and travel path between nodes, where a
 -- node is any object in the hierarchy that is considered to be
 -- interactive, either by clicking or mousing over it.
--- Calling Node(...) with a list of frames will
+-- Calling NODE(...) with a list of frames will
 -- cache all nodes in the hierarchy for later use.
-
 ---------------------------------------------------------------
--- Interface:
+-- API
 ---------------------------------------------------------------
 --  NODE(frame1, frame2, ..., frameN)
 --  NODE.ClearCache()
@@ -19,6 +18,12 @@
 --  NODE.NavigateToBestCandidate(cur, key)
 --  NODE.NavigateToClosestCandidate(cur, key)
 --  NODE.NavigateToArbitraryCandidate([cur, old, origX, origY])
+---------------------------------------------------------------
+-- Node attributes
+---------------------------------------------------------------
+--  nodeignore    : (boolean) ignore this node
+--  nodepriority  : (number)  priority in arbitrary selection
+--  nodesingleton : (boolean) skip recursive scan on this node
 ---------------------------------------------------------------
 
 -- Eligibility
@@ -63,37 +68,7 @@ local NavigateToClosestCandidate
 local NavigateToArbitraryCandidate
 
 ---------------------------------------------------------------
-local NODE = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', ConsolePort}, {
-	-- Events to handle
-	'UI_SCALE_CHANGED';
-	'DISPLAY_SIZE_CHANGED';
-}, {
-	-- Compares distance between nodes for eligibility when filtering cached nodes
-	distance = {
-		PADDUP    = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
-		PADDDOWN  = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
-		PADDLEFT  = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
-		PADDRIGHT = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX > thisX) end;
-	};
-	-- Compares more generally to catch any nodes located in a given direction
-	direction = {
-		PADDUP    = function(_, destY, _, _, _, thisY) return (destY > thisY) end;
-		PADDDOWN  = function(_, destY, _, _, _, thisY) return (destY < thisY) end;
-		PADDLEFT  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
-		PADDRIGHT = function(destX, _, _, _, thisX, _) return (destX > thisX) end;
-	};
-}), {
-	-- @param  varargs : list of frames to scan recursively
-	-- @return cache   : table of nodes on screen
-	__call = function(self, ...)
-		ClearCache()
-		Scan(nil, ...)
-		ScrubCache(GetNextCacheItem(nil))
-		return self.cache
-	end;
-	__index = getmetatable(UIParent).__index;
-})
-
+-- Data handling
 ---------------------------------------------------------------
 -- RECTS  : cache of all interactive rectangles drawn on screen
 -- CACHE  : cache of all eligible nodes in order of priority
@@ -120,8 +95,45 @@ local LEVELS = {
 	FULLSCREEN        = 50000;
 	FULLSCREEN_DIALOG = 60000;
 	TOOLTIP           = 70000;
-};-------------------------------------------------------------
+};
 
+---------------------------------------------------------------
+-- Main object
+---------------------------------------------------------------
+local NODE = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', ConsolePort}, {
+	-- Events to handle
+	'UI_SCALE_CHANGED';
+	'DISPLAY_SIZE_CHANGED';
+}, {
+	-- Compares distance between nodes for eligibility when filtering cached nodes
+	distance = {
+		PADDUP    = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
+		PADDDOWN  = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
+		PADDLEFT  = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
+		PADDRIGHT = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX > thisX) end;
+	};
+	-- Compares more generally to catch any nodes located in a given direction
+	direction = {
+		PADDUP    = function(_, destY, _, _, _, thisY) return (destY > thisY) end;
+		PADDDOWN  = function(_, destY, _, _, _, thisY) return (destY < thisY) end;
+		PADDLEFT  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
+		PADDRIGHT = function(destX, _, _, _, thisX, _) return (destX > thisX) end;
+	};
+}), {
+	-- @param  varargs : list of frames to scan recursively
+	-- @return cache   : table of nodes on screen
+	__call = function(self, ...)
+		ClearCache()
+		Scan(nil, ...)
+		ScrubCache(GetNextCacheItem(nil))
+		return CACHE
+	end;
+	__index = getmetatable(UIParent).__index;
+})
+
+---------------------------------------------------------------
+-- Events (update boundaries)
+---------------------------------------------------------------
 function NODE.UI_SCALE_CHANGED()
 	LIMIT:SetXY(GetScreenWidth(), GetScreenHeight())
 end
@@ -447,7 +459,7 @@ function GetPriorityCandidate(x, y)
 end
 
 ---------------------------------------------------------------
--- Interface access:
+-- Interface access
 ---------------------------------------------------------------
 NODE.IsDrawn = IsDrawn;
 NODE.IsRelevant = IsRelevant;

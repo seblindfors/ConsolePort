@@ -3,6 +3,9 @@
 ------------------------------------------------------------------------------------------------------------
 local DEFAULT_DATA = {
     --------------------------------------------------------------------------------------------------------
+    -- Action page handling:
+    actionPageCondition     = {''       ; 'Macro condition to evaluate action bar page'};
+    actionPageResponse      = {''       ; 'Response to condition for custom processing'};
     -- Interface cursor:
     UIdisableCursor         = {false    ; 'Disable interface cursor'};
     UIleaveCombatDelay      = {.5       ; 'Delay before re-activating UI core after combat'};
