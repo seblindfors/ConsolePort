@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- UINode.lua: Interface node calculations and management
+-- Interface node calculations and management
 ---------------------------------------------------------------
 -- Accessory driver to scan a given interface hierarchy and
 -- calculate distances and travel path between nodes, where a

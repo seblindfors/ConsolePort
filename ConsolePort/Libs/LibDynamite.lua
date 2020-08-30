@@ -1,0 +1,443 @@
+----------------------------------------------------------------
+-- LibDynamite
+----------------------------------------------------------------
+-- 
+-- Author:  Sebastian Lindfors (Munk / MunkDev)
+-- Website: https://github.com/seblindfors
+-- Licence: GPL version 2 (General Public License)
+--
+-- Description:
+--  LibDynamite is a dynamic markup language processor, that provides a simple syntax to create frames.
+--  Lua and XML are bridged by allowing dynamic inserts, such as local variables, and merging several
+--  templates into one to create inheritance. WoW XML is too rigid to handle dynamic frame creation,
+--  and implementing frames in pure Lua is messy, without clear hierarchy. This dynamic markup language
+--  works well in any code editor, to expand/collapse items of interest during development.
+--  Recursive blueprints automatically set name tags on items, and adds keys to the parent.
+--  See example at the bottom.
+--
+-- Usage:
+--  Lib:CreateFrame(type, name, parent, inheritXML, blueprint) -> creates a frame from scratch.
+--  Lib:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
+--  Lib:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
+
+local Lib = LibStub:NewLibrary('LibDynamite', 1)
+if not Lib then return end
+----------------------------------------------------------------
+local   assert, pairs, ipairs, type, unpack, wipe, tconcat = 
+        assert, pairs, ipairs, type, unpack, wipe, table.concat
+----------------------------------------------------------------
+local   Create, IsWidget = CreateFrame, C_Widget.IsFrameWidget
+----------------------------------------------------------------
+local   anchor, onload, call, callMethodsOnWidget, -- func calls
+        packtbl, err, getbuildinfo, getrelative -- misc
+----------------------------------------------------------------
+local   ARGS, ERROR, ERROR_CODES, SPECIAL, API, RESERVED
+local   ANCHOR, ONLOAD = {}, {}
+
+
+--------------------------------------------------------------------------
+API = { -- Syntax: ['<CallID>'] = value or {value1, ..., valueN};
+--------------------------------------------------------------------------
+--  [1]        = function(obj, bp)      Lib:BuildFrame(obj, bp, true) end;
+    ID         = function(widget, ...)  widget:SetID(...)             end;
+    --- Texture ----------------------------------------------------------
+    Atlas      = function(texture, ...) texture:SetAtlas(...)         end;
+    Blend      = function(texture, ...) texture:SetBlendMode(...)     end;
+    Coords     = function(texture, ...) texture:SetTexCoord(...)      end;
+    Gradient   = function(texture, ...) texture:SetGradientAlpha(...) end;
+    Texture    = function(texture, ...) texture:SetTexture(...)       end;
+    --- FontString -------------------------------------------------------
+    AlignH     = function(fontstr, ...) fontstr:SetJustifyH(...)      end;
+    AlignV     = function(fontstr, ...) fontstr:SetJustifyV(...)      end;
+    Color      = function(fontstr, ...) fontstr:SetTextColor(...)     end;
+    Font       = function(fontstr, ...) fontstr:SetFont(...)          end;
+    FontH      = function(fontstr, ...) fontstr:SetHeight(...)        end;
+    Text       = function(fontstr, ...) fontstr:SetText(...)          end;
+    --- LayeredRegion ----------------------------------------------------
+    Layer      = function(widget, ...)  widget:SetDrawLayer(...)      end;
+    Vertex     = function(widget, ...)  widget:SetVertexColor(...)    end;
+    --- Frame packages ---------------------------------------------------
+    Attributes = function(frame, attr)  for k, v in pairs(attr)   do frame:SetAttribute(k, v) end end;
+    Events     = function(frame, ...)   for _, v in ipairs({...}) do frame:RegisterEvent(v)   end end;
+    Hooks      = function(frame, src)   for k, v in pairs(src)    do frame:HookScript(k, v)   end end;
+    Scripts    = function(frame, src)   for k, v in pairs(src)    do frame:SetScript(k, v)    end end;
+    --- Frame ------------------------------------------------------------
+    Backdrop   = function(frame, info)  frame:SetBackdrop(info)       end;
+    Level      = function(frame, ...)   frame:SetFrameLevel(...)      end;
+    Strata     = function(frame, ...)   frame:SetFrameStrata(...)     end;
+    --- Region -----------------------------------------------------------
+    Alpha      = function(widget, ...)  widget:SetAlpha(...)          end;
+    Clear      = function(widget)       widget:ClearAllPoints()       end;
+    Fill       = function(widget, tar)  widget:SetAllPoints(tar ~= true and getrelative(widget, tar)) end;
+    Height     = function(widget, ...)  widget:SetHeight(...)         end;
+    Hide       = function(widget, ...)  widget:Hide()                 end;
+    Show       = function(widget, ...)  widget:Show()                 end;
+    Size       = function(widget, ...)  widget:SetSize(...)           end;
+    Scale      = function(widget, ...)  widget:SetScale(...)          end;
+    Width      = function(widget, ...)  widget:SetWidth(...)          end;
+    --- Button -----------------------------------------------------------
+    Click      = function(button, ...)  button:SetAttribute('type', 'click')  button:SetAttribute('clickbutton', ...) end;
+    Macro      = function(button, ...)  button:SetAttribute('type', 'macro')  button:SetAttribute('macrotext', ...) end;
+    Action     = function(button, ...)  button:SetAttribute('type', 'action') button:SetAttribute('action', ...) end;
+    Spell      = function(button, ...)  button:SetAttribute('type', 'spell')  button:SetAttribute('spell', ...) end;
+    Unit       = function(button, ...)  button:SetAttribute('type', 'target') button:SetAttribute('unit', ...) end;
+    Item       = function(button, ...)  button:SetAttribute('type', 'item')   button:SetAttribute('item', ...) end;
+    --- Constructor ------------------------------------------------------
+    OnLoad     = function(widget, ...)  packtbl(ONLOAD, widget, ...)  end;
+    --- Points -----------------------------------------------------------
+    Point      = function(widget, ...)  packtbl(ANCHOR, widget, ...)  end;
+    Points     = function(widget, ...)  for _, point in ipairs({...}) do packtbl(ANCHOR, widget, unpack(point)) end end;
+    -- Custom handlers ---------------------------------------------------
+    Mixin      = function(widget, ...)  Lib:Mixin(widget, ...)        end;
+    --- Multiple runs ----------------------------------------------------
+    Multiple = function(widget, multiTable)
+        for k, v in pairs(multiTable) do
+            assert(widget[k] or API[k], err(k, widget:GetName(), ERROR_CODES.MULTI_FUNC))
+            assert(type(v) == 'table', err(k, widget:GetName(), ERROR_CODES.MULTI_TABLE))
+            for _, args in pairs(v) do
+                call(widget, k, args)
+            end
+        end
+    end;
+};
+
+--------------------------------------------------------------------------
+SPECIAL = { -- Special constructors
+--------------------------------------------------------------------------
+    AnimationGroup = function(parent, key, setup) return parent:CreateAnimationGroup('$parent'..key, setup and unpack(setup)) end;
+    Animation      = function(parent, key, setup) return parent:CreateAnimation(setup, '$parent'..key) end;
+    FontString     = function(parent, key, setup) return parent:CreateFontString('$parent'..key, setup and unpack(setup)) end;
+    Texture        = function(parent, key, setup) return parent:CreateTexture('$parent'..key, setup and unpack(setup)) end;
+    ---
+    ScrollFrame    = function(parent, key, setup)
+        local frame = Create('ScrollFrame', '$parent'..key, parent, setup and not IsWidget(setup) and unpack(setup))
+        local child = IsWidget(setup) and setup or Create('Frame', '$parentChild', frame)
+        frame.Child = child
+        child:SetParent(frame)
+        child:SetAllPoints()
+        frame:SetScrollChild(child)
+        frame:SetToplevel(true)
+        return frame
+    end;
+    ---
+    Existing = function(parent, key, region)
+        _G[parent:GetName()..key] = region
+        region:SetParent(parent)
+        return region
+    end;
+};
+
+----------------------------------------------------------------
+-- Create a new frame.
+----------------------------------------------------------------
+-- @param   object    : Type of object to be created.
+-- @param   name      : Name of the object to be created.
+-- @param   parent    : Parent of the object.
+-- @param   xml       : Inherited xml.
+-- @param   blueprint : Table consisting of additional regions to be created.
+-- @return  frame     : Returns the created object.
+function Lib:CreateFrame(object, name, parent, xml, blueprint, recursive)
+    ----------------------------------
+    local frame = Create(object, name, parent, xml)
+    ----------------------------------
+    if blueprint then
+        if recursive then
+            self:BuildFrame(frame, blueprint, true)
+        else
+            local children = blueprint[1]
+            callMethodsOnWidget(frame, blueprint)
+            self:BuildFrame(frame, children, true)
+        end
+    end
+    ----------------------------------
+    if not recursive then
+        anchor()
+        onload()
+    end
+    return frame
+end
+
+----------------------------------------------------------------
+-- Build frame from blueprint.
+----------------------------------------------------------------
+-- @param   frame     : Parent of the blueprint.
+-- @param   blueprint : Blueprint to be constructed.
+-- @param   recursive : Whether this is a recursive call.
+-- @return  frame     : Returns the altered frame.  
+function Lib:BuildFrame(frame, blueprint, recursive)
+    assert(type(blueprint) == 'table', err('Blueprint', frame:GetName(), ERROR_CODES.BLUEPRINT))
+    for key, config in pairs(blueprint) do
+        assert(type(config) == 'table', err(key, frame:GetName(), ERROR_CODES.CONFIGTABLE))
+        ----------------------------------
+        local object, objectType, buildInfo, isLoop = getbuildinfo(config)
+        ----------------------------------
+        for i = 1, ( isLoop or 1 ) do
+            local key = ( isLoop and key..i ) or key
+            local widget = frame[key]
+            if not widget then
+                ----------------------------------
+                -- Assert object type exists if setup table exists.
+                assert((buildInfo and object) or (not buildInfo), err(key, name, ERROR_CODES.REGION))
+                ----------------------------------
+                if object then
+                    -- Region type has special constructor.
+                    if SPECIAL[object] then
+                        widget = SPECIAL[object](frame, key, buildInfo)
+                    -- Region already exists.
+                    elseif (objectType == 'table') and IsWidget(object) then
+                        widget = SPECIAL.Existing(frame, key, object)
+                    -- Region should be a type of frame.
+                    elseif (objectType == 'string') then
+                        widget = self:CreateFrame(object, '$parent'..key, frame, buildInfo and tconcat(buildInfo, ', '), config[1], true)
+                    end
+                else -- Assume this is a data table.
+                    widget = config
+                end
+                ----------------------------------
+                frame[key] = widget
+            end
+
+            if isLoop and widget.SetID then widget:SetID(i) end
+
+            callMethodsOnWidget(widget, config)
+        end
+    end
+    -- parse if explicitly called without wrapping (building on top of existing frame)
+    if not recursive then
+        anchor()
+        onload()
+    end
+    return frame
+end
+
+--------------------------------------------------------------------------
+RESERVED = {
+--------------------------------------------------------------------------
+    [1]          = true, -- don't run blueprints in function stack
+    ['<Type>']   = true, -- used to determine frame type
+    ['<Mixin>']  = true, -- specially handled before function calls
+    ['<Setup>']  = true, -- used to determine inheritance, should not be mixed in.
+    ['<Repeat>'] = true, -- ignore since it denotes a loop
+};
+
+--------------------------------------------------------------------------
+ARGS = {
+--------------------------------------------------------------------------
+    MULTI_RUN = 'function name on object as key, table of values to be unpacked into key function. Nesting allowed.',
+    REGION = 'Region key should be of type string and refer to a valid widget type.',
+    BLUEPRINT = '(frame, blueprint); blueprint = { child1 = {}, child2 = {}, ..., childN = {} }',
+    RELATIVEREGION = '(frame or string). Example of string: $parent.Sibling',
+};
+
+--------------------------------------------------------------------------
+ERROR = '%s in %s %s.'
+--------------------------------------------------------------------------
+ERROR_CODES = {
+--------------------------------------------------------------------------
+    MULTI_FUNC  = 'does not exist. Loop table should contain: '..ARGS.MULTI_RUN,
+    MULTI_TABLE = 'has an invalid loop table. Loop table should contain: '..ARGS.MULTI_RUN,
+    REGION  = 'missing region type. '..ARGS.REGION,
+    RELATIVEREGION = 'is invalid. Type should be a parsable string or existing frame. Arguments: '..ARGS.RELATIVEREGION,
+    CONSTRUCTOR = 'is invalid. Constructor must be a function.',
+    BLUEPRINT = 'is invalid. Blueprint should be a nested table. Arguments: '..ARGS.BLUEPRINT,
+    CONFIGTABLE = 'is not a valid config table or existing region.',
+};
+
+----------------------------------------------------------------
+-- Extend API
+----------------------------------------------------------------
+-- @param   name    : Name of the API function to add.
+-- @param   func    : Function to add.
+-- @param   force   : Forcefully replace existing function.
+-- @return  success : Returns true when successful.
+function Lib:ExtendAPI(name, func, force)
+    assert(type(name) == 'string',   format("bad argument #1 to 'ExtendAPI' (string expected, got %s)", type(name)))
+    assert(type(func) == 'function', format("bad argument #2 to 'ExtendAPI' (function expected, got %s)", type(func)))
+    assert(not API[name] or force,   format('%s is already registered in the API.', tostring(name)))
+    API[name] = func
+    return true
+end
+
+function Lib:Mixin(obj, ...)
+    local scriptObject = (type(obj.HasScript) == 'function')
+    for i = 1, select('#', ...) do
+        local mixin = select(i, ...)
+        for k, v in pairs(mixin) do
+            if scriptObject and obj:HasScript(k) then
+                if obj:GetScript(k) then
+                    obj:HookScript(k, v)
+                else
+                    obj:SetScript(k, v)
+                end
+            end
+            obj[k] = v
+        end
+    end
+    return obj
+end
+
+--------------------------------------------------------------------------
+-- Internal circuit
+--------------------------------------------------------------------------
+function call(widget, method, data)
+    if data == 'nil' then data = nil end
+    local func = API[method] or widget[method]
+    if type(func) == 'function' then
+        -- if sequential array, just unpack it.
+        if ( type(data) == 'table' and #data ~= 0 ) then
+            return func(widget, unpack(data))
+        else
+            return func(widget, data)
+        end
+    elseif type(data) == 'function' and widget.HasScript and widget:HasScript(method) then
+        if widget:GetScript(method) then
+            widget:HookScript(method, data)
+        else
+            widget:SetScript(method, data)
+        end 
+    else
+        widget[method] = data
+    end
+end
+
+function callMethodsOnWidget(widget, methods)
+    -- mixin before running the rest of the widget method stack,
+    -- since mixed in functions may be called from the blueprint
+    local mixin = methods['<Mixin>']
+    if mixin then
+        call(widget, 'Mixin', mixin)
+        -- if the mixin has an onload script, add it to the constructor stack.
+        -- remove the onload function from the object itself.
+        if widget.OnLoad and not methods['<OnLoad>'] then
+            -- use :GetScript in case more than one load script was hooked.
+            methods['<OnLoad>'] = widget:GetScript('OnLoad')
+            widget:SetScript('OnLoad', nil)
+            widget.OnLoad = nil
+        end
+    end
+
+    for method, data in pairs(methods) do
+        if not RESERVED[method] then
+            local index = strmatch(method, '<(%w+)>')
+            if index then
+                call(widget, index, data)
+            else
+                widget[method] = data
+            end
+        end
+    end
+end
+
+function getrelative(region, relative)
+    if IsWidget(relative) then 
+        return relative
+    elseif type(relative) == 'string' then 
+        local searchResult
+        for key in relative:gmatch('%a+') do
+            if key == 'parent' then
+                searchResult = searchResult and searchResult:GetParent() or region:GetParent()
+            elseif searchResult then
+                searchResult = searchResult[key]
+            else
+                searchResult = region[key]
+            end
+        end
+        return searchResult
+    else
+        err('Relative region', region:GetName(), ERROR.CODES.RELATIVEREGION)
+    end
+end
+
+function anchor()
+    for _, setup in ipairs(ANCHOR) do
+        local numArgs = #setup
+        if numArgs == 2 then
+            local region, point = unpack(setup)
+            region:SetPoint(point)
+        elseif numArgs == 4 then
+            local region, point, xOffset, yOffset = unpack(setup)
+            region:SetPoint(point, xOffset, yOffset)
+        elseif numArgs == 6 then
+            local region, point, relativeRegion, relativePoint, xOffset, yOffset = unpack(setup)
+            region:SetPoint(point, getrelative(region, relativeRegion), relativePoint, xOffset, yOffset)
+        elseif numArgs == 8 then
+            local region, point, relativeRegion, relativePoint, xOffset, yOffset, xIncr, yIncr = unpack(setup)
+            region:SetPoint(point, getrelative(region, relativeRegion),relativePoint,
+                xOffset + (xIncr * (region:GetID() - 1)),
+                yOffset + (yIncr * (region:GetID() - 1))
+            );
+        end
+    end
+    wipe(ANCHOR)
+end
+
+function onload()
+    for _, setup in ipairs(ONLOAD) do
+        local region, constructor = unpack(setup)
+        assert(type(constructor) == 'function', err('Constructor', region:GetName(), ERROR_CODES.CONSTRUCTOR))
+        constructor(region)
+    end
+    wipe(ONLOAD)
+end
+
+function getbuildinfo(bp) return bp['<Type>'], type(bp['<Type>']), bp['<Setup>'], bp['<Repeat>'] end;
+function packtbl(tbl, ...) tbl[#tbl + 1] = {...} end;
+function err(key, name, code) return ERROR:format(key, name or 'unnamed region', code) end;
+
+--------------------------------------------------------------------------
+-- Example:
+--------------------------------------------------------------------------
+-- This implements an action bar with simple page swapping:
+--[[
+
+local bar = Lib:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandlerStateTemplate', {
+    ['<Size>']   = {NUM_ACTIONBAR_BUTTONS * 36, 36};
+    ['<Point>']  = {'CENTER', 0, 0};
+    ['<OnLoad>'] = function(self)
+        local macro = '1';
+        for i=1, NUM_ACTIONBAR_PAGES do
+            macro = format('[bar:%d] %d;', i, i) .. macro; 
+        end
+        for i=1, 4 do
+            macro = format('[bonusbar:%d] %d;', i, i + NUM_ACTIONBAR_PAGES) .. macro;
+        end
+        RegisterStateDriver(self, 'actionpage', macro);
+    end;
+    ['<Attributes>'] = {
+        ['type'] = 'actionbar';
+        ['actionpage'] = 1;
+        ['_onstate-actionpage'] = [=[
+            self:SetAttribute('actionpage', newstate);
+            control:ChildUpdate('actionpage', newstate);
+        ]=];
+    };
+
+    {   -- A keyless table is the start of children
+        ActionButton = {
+            ['<Repeat>'] = NUM_ACTIONBAR_BUTTONS;
+            ['<Type>']   = 'CheckButton';
+            ['<Point>']  = {'LEFT', '$parent', 'LEFT', 0, 0, 40, 0};
+            ['<Setup>']  = {'ActionButtonTemplate', 'SecureActionButtonTemplate'};
+            ['<Attributes>'] = {
+                ['type'] = 'action';
+                ['_childupdate-actionpage'] = 'self:SetAttribute("actionpage", newstate)';
+            };
+            -- adding a custom method
+            ['<UpdateTexture>'] = function(self)
+                local page = self:GetParent():GetAttribute('actionpage');
+                local actionID = (page - 1) * NUM_ACTIONBAR_BUTTONS + self:GetID();
+                self.icon:SetTexture(GetActionTexture(actionID));
+            end;
+            -- calling custom method on load
+            ['<OnLoad>'] = function(self)
+                self:UpdateTexture();
+            end;
+            -- setting a script handler
+            ['<OnAttributeChanged>'] = function(self)
+                self:UpdateTexture();
+            end;
+        }
+    }
+})
+
+]]--

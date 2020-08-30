@@ -98,7 +98,7 @@ function Pager:GetPageResponse()
 end
 
 function Pager:GetCurrentPage()
-	return loadstring(format('local newstate; %s return newstate;', self:GetPageResponse()))()
+	return loadstring(format('local newstate; %s; return newstate;', self:GetPageResponse()))()
 end
 
 function Pager:OnDataLoaded()

@@ -9,6 +9,8 @@
 
 ## SavedVariables: ConsolePortSettings, ConsolePortDevices
 
+
+Libs\__manifest.xml
 XML\Manifest.xml
 
 Utils\__manifest.xml
