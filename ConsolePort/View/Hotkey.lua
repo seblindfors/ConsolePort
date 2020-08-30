@@ -109,7 +109,7 @@ function HotkeyHandler:UpdateHotkeys(device)
 	self.Widgets:ReleaseAll()
 	assert(device, 'No device specified when attempting to update hotkeys.')
 
-	local bindings = db.Gamepad:GetActiveBindings()
+	local bindings = db.Gamepad:GetBindings()
 	local bindingToActionID = {}
 
 	for btnID, set in pairs(bindings) do

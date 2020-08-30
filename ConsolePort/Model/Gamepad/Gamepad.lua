@@ -151,7 +151,7 @@ function GamepadAPI:GetActiveModifiers()
 	return mods
 end
 
-function GamepadAPI:GetActiveBindings()
+function GamepadAPI:GetBindings()
 	local btns = self.Index.Button.Binding
 	local mods = self.Index.Modifier.Active
 	assert(btns, 'Active bindings have not been indexed.')
@@ -168,6 +168,12 @@ function GamepadAPI:GetActiveBindings()
 		end
 	end
 	return bindings
+end
+
+function GamepadAPI:GetBindingKey(binding)
+	return unpack(tFilter({GetBindingKey(binding)}, function(x)
+		return x:match 'PAD' and not x:match 'NUM'
+	end, true))
 end
 
 function GamepadAPI:GetIconPath(path, style)

@@ -54,19 +54,19 @@ end
 ---------------------------------------------------------------
 -- Supported functions 
 ---------------------------------------------------------------
-function InputAPI:Button(id, owner, ...)
+function InputAPI:SetButton(id, owner, ...)
 	return self:GetWidget(id, owner):Button(...)
 end
 
-function InputAPI:Macro(id, owner, ...)
+function InputAPI:SetMacro(id, owner, ...)
 	return self:GetWidget(id, owner):Macro(...)
 end
 
-function InputAPI:Global(id, owner, ...)
+function InputAPI:SetGlobal(id, owner, ...)
 	return self:GetWidget(id, owner):Global(...)
 end
 
-function InputAPI:Command(id, owner, ...)
+function InputAPI:SetCommand(id, owner, ...)
 	return self:GetWidget(id, owner):Command(...)
 end
 
@@ -214,7 +214,7 @@ function InputMixin:OnMouseDown()
 	end
 	-- insecure function call
 	if self[func] then
-		self[func](self, self:GetAttribute('id'), self.state)
+		self[func](self, self.state, self:GetAttribute('id'))
 	end
 end
 
@@ -241,7 +241,7 @@ end
 function InputMixin:PostClick()
 	if InCombatLockdown() then return end
 	local post = self:GetAttribute('postclick')
-	if post then
+	if post then -- TODO: fix scroll frame bug
 		self:SetAttribute('type', post)
 	end
 end

@@ -65,22 +65,6 @@ local function merge(t1, t2)
 end
 db('table/merge', merge)
 
-local function flip(src)
-	local srcType, t = type(src)
-	if srcType == "table" then
-		t = {}
-		for key, value in pairs(src) do
-			if not t[value] then
-				t[value] = key
-			else
-				return src
-			end
-		end
-	end
-	return t or src
-end
-db('table/flip', copy)
-
 local function unravel(t, i)
 	local k = next(t, i)
 	if k ~= nil then

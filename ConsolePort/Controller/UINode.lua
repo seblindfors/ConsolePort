@@ -8,8 +8,62 @@
 -- Calling Node(...) with a list of frames will
 -- cache all nodes in the hierarchy for later use.
 
+---------------------------------------------------------------
+-- Interface:
+---------------------------------------------------------------
+--  NODE(frame1, frame2, ..., frameN)
+--  NODE.ClearCache()
+--  NODE.IsDrawn(node, super)
+--  NODE.IsRelevant(node)
+--  NODE.GetScrollButtons(node)
+--  NODE.NavigateToBestCandidate(cur, key)
+--  NODE.NavigateToClosestCandidate(cur, key)
+--  NODE.NavigateToArbitraryCandidate([cur, old, origX, origY])
+---------------------------------------------------------------
 
-local Node = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', ConsolePort}, {
+-- Eligibility
+local IsMouseResponsive
+local IsUsable
+local IsInteractive
+local IsRelevant
+local IsTree
+local IsDrawn
+-- Attachments
+local GetSuperNode
+local GetScrollButtons
+-- Recursive scanner
+local Scan
+local ScrubCache
+-- Cache control
+local CacheItem
+local CacheRect
+local Insert
+local RemoveCacheItem
+local ClearCache
+local HasItems
+local GetNextCacheItem
+local GetFirstEligibleCacheItem
+local GetRectLevelIndex
+local IterateCache
+local IterateRects
+-- Vector calculations
+local GetDistance
+local GetDistanceSum
+local GetFrameLevel
+local IsCloser
+local PointInRange
+local CanLevelsIntersect
+local DoNodeAndRectIntersect
+local GetCandidateVectorForCurrent
+local GetCandidatesForVector
+local GetPriorityCandidate
+-- Navigation
+local NavigateToBestCandidate
+local NavigateToClosestCandidate
+local NavigateToArbitraryCandidate
+
+---------------------------------------------------------------
+local NODE = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', ConsolePort}, {
 	-- Events to handle
 	'UI_SCALE_CHANGED';
 	'DISPLAY_SIZE_CHANGED';
@@ -28,78 +82,86 @@ local Node = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', Cons
 		PADDLEFT  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
 		PADDRIGHT = function(destX, _, _, _, thisX, _) return (destX > thisX) end;
 	};
-	-- Frame level quantifiers (each strata has 10k levels)
-	level = {
-		BACKGROUND        = 00000;
-		LOW               = 10000;
-		MEDIUM            = 20000;
-		HIGH              = 30000;
-		DIALOG            = 40000;
-		FULLSCREEN        = 50000;
-		FULLSCREEN_DIALOG = 60000;
-		TOOLTIP           = 70000;
-	};
-	-- What to consider as interactive nodes by default
-	usable = {
-		Button      = true;
-		CheckButton = true;
-		EditBox     = true;
-		Slider      = true;
-	};
-	scalar = 3; -- Manhattan distance: scale 2ndary plane to improve intuitive node selection
-	cache  = {}; -- Temporary node cache when calculating cursor movement
-	rects  = {}; -- Temporary rect cache to calculate intersection between conflicting nodes
-	limit  = CreateVector2D(GetScreenWidth(), GetScreenHeight()); -- Limit to screen
 }), {
 	-- @param  varargs : list of frames to scan recursively
 	-- @return cache   : table of nodes on screen
 	__call = function(self, ...)
-		self:ClearCache()
-		self:Scan(nil, ...)
-		self:ScrubCache(self:GetNextCacheItem(nil))
+		ClearCache()
+		Scan(nil, ...)
+		ScrubCache(GetNextCacheItem(nil))
 		return self.cache
 	end;
 	__index = getmetatable(UIParent).__index;
 })
 
 ---------------------------------------------------------------
+-- RECTS  : cache of all interactive rectangles drawn on screen
+-- CACHE  : cache of all eligible nodes in order of priority
+-- LIMIT  : limit the boundaries of scans/selection to screen
+-- SCALAR : scale 2ndary plane to improve intuitive node selection
+-- USABLE : what to consider as interactive nodes by default
+-- LEVELS : frame level quantifiers (each strata has 10k levels)
+---------------------------------------------------------------
+local CACHE, RECTS = {}, {};
+local LIMIT  = CreateVector2D(GetScreenWidth(), GetScreenHeight());
+local SCALAR = 3;
+local USABLE = {
+	Button      = true;
+	CheckButton = true;
+	EditBox     = true;
+	Slider      = true;
+};
+local LEVELS = {
+	BACKGROUND        = 00000;
+	LOW               = 10000;
+	MEDIUM            = 20000;
+	HIGH              = 30000;
+	DIALOG            = 40000;
+	FULLSCREEN        = 50000;
+	FULLSCREEN_DIALOG = 60000;
+	TOOLTIP           = 70000;
+};-------------------------------------------------------------
 
-function Node:UI_SCALE_CHANGED()
-	self.limit:SetXY(GetScreenWidth(), GetScreenHeight())
+function NODE.UI_SCALE_CHANGED()
+	LIMIT:SetXY(GetScreenWidth(), GetScreenHeight())
 end
 
-function Node:DISPLAY_SIZE_CHANGED()
-	self.limit:SetXY(GetScreenWidth(), GetScreenHeight())
+function NODE.DISPLAY_SIZE_CHANGED()
+	LIMIT:SetXY(GetScreenWidth(), GetScreenHeight())
 end
 
 ---------------------------------------------------------------
+-- Eligibility
+---------------------------------------------------------------
+local UIDoFramesIntersect = UIDoFramesIntersect
+---------------------------------------------------------------
 
-function Node:IsMouseEvent(node)
+function IsMouseResponsive(node)
 	return node.GetScript and ( node:GetScript('OnEnter') or node:GetScript('OnMouseDown') ) and true
 end
 
-function Node:IsUsable(object)
-	return self.usable[object]
+function IsUsable(object)
+	return USABLE[object]
 end
 
-function Node:IsInteractive(node, object)
+function IsInteractive(node, object)
 	return 	not node.includeChildren
 			and node:IsMouseEnabled()
-			and ( self:IsUsable(object) or self:IsMouseEvent(node) )
+			and ( IsUsable(object) or IsMouseResponsive(node) )
 end
 
-function Node:IsRelevant(node)
+function IsRelevant(node)
 	return node and not node:IsForbidden() and not node:GetAttribute('nodeignore') and node:IsVisible()
 end
 
-function Node:IsTree(node)
+function IsTree(node)
 	return not node:GetAttribute('nodesingleton')
 end
 
-function Node:IsDrawn(node, super)
+function IsDrawn(node, super)
 	local nX, nY = node:GetCenter()
-	local mX, mY = self.limit:GetXY()
-	if self:PointInRange(nX, 0, mX) and self:PointInRange(nY, 0, mY) then
+	local mX, mY = LIMIT:GetXY()
+	if ( PointInRange(nX, 0, mX) and PointInRange(nY, 0, mY) ) then
 		-- assert node isn't clipped inside a scroll child
 		if super and super:GetScrollChild() and not node:IsObjectType('Slider') then
 			return UIDoFramesIntersect(node, super) --or UIDoFramesIntersect(node, scrollChild)
@@ -112,11 +174,11 @@ end
 ---------------------------------------------------------------
 -- Attachments
 ---------------------------------------------------------------
-function Node:GetSuperNode(super, node)
+function GetSuperNode(super, node)
 	return node:IsObjectType('ScrollFrame') and node or super
 end
 
-function Node:GetScrollButtons(node)
+function GetScrollButtons(node)
 	if node then
 		if node:IsMouseWheelEnabled() then
 			for _, frame in pairs({node:GetChildren()}) do
@@ -127,7 +189,7 @@ function Node:GetScrollButtons(node)
 		elseif node:IsObjectType('Slider') then
 			return node:GetChildren()
 		else
-			return self:GetScrollButtons(node:GetParent())
+			return GetScrollButtons(node:GetParent())
 		end
 	end
 end
@@ -135,38 +197,38 @@ end
 ---------------------------------------------------------------
 -- Recursive scanner
 ---------------------------------------------------------------
-function Node:Scan(super, node, sibling, ...)
-	if self:IsRelevant(node) then
-		local object, level = node:GetObjectType(), self:GetFrameLevel(node)
-		if self:IsDrawn(node, super) then
-			if self:IsInteractive(node, object) then
-				self:CacheItem(node, object, super, level)
+function Scan(super, node, sibling, ...)
+	if IsRelevant(node) then
+		local object, level = node:GetObjectType(), GetFrameLevel(node)
+		if IsDrawn(node, super) then
+			if IsInteractive(node, object) then
+				CacheItem(node, object, super, level)
 			elseif node:IsMouseEnabled() then
-				self:CacheRect(node, level)
+				CacheRect(node, level)
 			end
 		end
-		if self:IsTree(node) then
-			self:Scan(self:GetSuperNode(super, node), node:GetChildren())
+		if IsTree(node) then
+			Scan(GetSuperNode(super, node), node:GetChildren())
 		end
 	end
 	if sibling then
-		self:Scan(super, sibling, ...)
+		Scan(super, sibling, ...)
 	end
 end
 
-function Node:ScrubCache(i, item)
+function ScrubCache(i, item)
 	while item do
 		local node, level = item.node, item.level
-		for l, rect in self:IterateRects() do
-			if not self:CanLevelsIntersect(level, rect.level) then
+		for l, rect in IterateRects() do
+			if not CanLevelsIntersect(level, rect.level) then
 				break
 			end
-			if self:DoNodeAndRectIntersect(node, rect.node) then
-				i = self:RemoveCacheItem(i)
+			if DoNodeAndRectIntersect(node, rect.node) then
+				i = RemoveCacheItem(i)
 				break
 			end
 		end
-		i, item = self:GetNextCacheItem(i)
+		i, item = GetNextCacheItem(i)
 	end
 end
 
@@ -176,72 +238,72 @@ end
 local tinsert, tremove, ipairs, next = tinsert, tremove, ipairs, next
 ---------------------------------------------------------------
 
-function Node:CacheItem(node, object, super, level)
-	self:CacheRect(node, level)
-	self:Insert(self.cache, node:GetAttribute('nodepriority'), {
+function CacheItem(node, object, super, level)
+	CacheRect(node, level)
+	Insert(CACHE, node:GetAttribute('nodepriority'), {
 		node   = node;
 		object = object;
 		super  = super;
-		level  = level;		
+		level  = level;
 	})
 end
 
-function Node:CacheRect(node, level)
-	self:Insert(self.rects, self:GetRectLevelIndex(level), {
+function CacheRect(node, level)
+	Insert(RECTS, GetRectLevelIndex(level), {
 		node  = node;
 		level = level;
 	})
 end
 
-function Node:Insert(t, k, v)
+function Insert(t, k, v)
 	if k then
 		return tinsert(t, k, v)
 	end
 	t[#t+1] = v
 end
 
-function Node:RemoveCacheItem(cacheIndex)
-	tremove(self.cache, cacheIndex)
+function RemoveCacheItem(cacheIndex)
+	tremove(CACHE, cacheIndex)
 	return cacheIndex - 1
 end
 
-function Node:ClearCache()
-	wipe(self.cache)
-	wipe(self.rects)
+function ClearCache()
+	wipe(CACHE)
+	wipe(RECTS)
 end
 
-function Node:HasItems()
-	return #self.cache > 0
+function HasItems()
+	return #CACHE > 0
 end
 
-function Node:GetNextCacheItem(i)
-	return next(self.cache, i and i > 0 and i or nil)
+function GetNextCacheItem(i)
+	return next(CACHE, i and i > 0 and i or nil)
 end
 
-function Node:GetFirstEligibleCacheItem()
-	for _, item in self:IterateCache() do
+function GetFirstEligibleCacheItem()
+	for _, item in IterateCache() do
 		local node = item.node
-		if node:IsVisible() and self:IsDrawn(node, item.super) then
+		if node:IsVisible() and IsDrawn(node, item.super) then
 			return item
 		end
 	end
 end
 
-function Node:GetRectLevelIndex(level)
-	for index, item in self:IterateRects() do
+function GetRectLevelIndex(level)
+	for index, item in IterateRects() do
 		if (item.level < level) then
 			return index
 		end 		
 	end
-	return #self.rects+1
+	return #RECTS+1
 end
 
-function Node:IterateCache()
-	return ipairs(self.cache)
+function IterateCache()
+	return ipairs(CACHE)
 end
 
-function Node:IterateRects()
-	return ipairs(self.rects)
+function IterateRects()
+	return ipairs(RECTS)
 end
 
 ---------------------------------------------------------------
@@ -250,48 +312,48 @@ end
 local vlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
 ---------------------------------------------------------------
 
-function Node:GetDistance(x1, y1, x2, y2)
+function GetDistance(x1, y1, x2, y2)
 	return abs(x1 - x2), abs(y1 - y2)
 end
 
-function Node:GetDistanceSum(...)
-	local x, y = self:GetDistance(...)
+function GetDistanceSum(...)
+	local x, y = GetDistance(...)
 	return x + y
 end
 
-function Node:GetFrameLevel(node)
-	return self.level[node:GetFrameStrata()] + node:GetFrameLevel()
+function GetFrameLevel(node)
+	return LEVELS[node:GetFrameStrata()] + node:GetFrameLevel()
 end
 
-function Node:IsCloser(hz1, vt1, hz2, vt2)
+function IsCloser(hz1, vt1, hz2, vt2)
 	return vlen(hz1, vt1) < vlen(hz2, vt2)
 end
 
-function Node:PointInRange(pt, min, max)
+function PointInRange(pt, min, max)
 	return pt and pt >= min and pt <= max
 end
 
-function Node:CanLevelsIntersect(level1, level2)
+function CanLevelsIntersect(level1, level2)
 	return level1 < level2
 end
 
-function Node:DoNodeAndRectIntersect(node, rect)
+function DoNodeAndRectIntersect(node, rect)
 	local x, y = node:GetCenter()
-	return self:PointInRange(x, rect:GetLeft(), rect:GetRight()) and
-		   self:PointInRange(y, rect:GetBottom(), rect:GetTop())
+	return PointInRange(x, rect:GetLeft(), rect:GetRight()) and
+		   PointInRange(y, rect:GetBottom(), rect:GetTop())
 end
 
-function Node:GetCandidateVectorForCurrent(cur)
+function GetCandidateVectorForCurrent(cur)
 	local x, y = cur.node:GetCenter()
 	return {x = x; y = y; h = huge; v = huge}
 end 
 
-function Node:GetCandidatesForVector(vector, comparator, candidates)
+function GetCandidatesForVector(vector, comparator, candidates)
 	local thisX, thisY = vector.x, vector.y
-	for i, destination in self:IterateCache() do
+	for i, destination in IterateCache() do
 		local candidate = destination.node
 		local destX, destY = candidate:GetCenter()
-		local distX, distY = self:GetDistance(thisX, thisY, destX, destY)
+		local distX, distY = GetDistance(thisX, thisY, destX, destY)
 
 		if comparator(destX, destY, distX, distY, thisX, thisY) then
 			candidates[destination] = { 
@@ -312,16 +374,16 @@ end
 -- prioritizing candidates more linearly aligned to the origin.
 -- Comparing Euclidean distance on vectors yields the best node.
 
-function Node:NavigateToBestCandidate(cur, key, curNodeChanged)
-	if cur and self.distance[key] then
-		local this = self:GetCandidateVectorForCurrent(cur)
-		local candidates = self:GetCandidatesForVector(this, self.distance[key], {})
+function NavigateToBestCandidate(cur, key, curNodeChanged)
+	if cur and NODE.distance[key] then
+		local this = GetCandidateVectorForCurrent(cur)
+		local candidates = GetCandidatesForVector(this, NODE.distance[key], {})
 
-		local hMult = (key == 'PADDUP' or key == 'PADDDOWN') and self.scalar or 1
-		local vMult = (key == 'PADDLEFT' or key == 'PADDRIGHT') and self.scalar or 1
+		local hMult = (key == 'PADDUP' or key == 'PADDDOWN') and SCALAR or 1
+		local vMult = (key == 'PADDLEFT' or key == 'PADDRIGHT') and SCALAR or 1
 
 		for candidate, vector in pairs(candidates) do
-			if self:IsCloser(vector.h * hMult, vector.v * vMult, this.h, this.v) then
+			if IsCloser(vector.h * hMult, vector.v * vMult, this.h, this.v) then
 				this = vector; this.h = (this.h * hMult); this.v = (this.v * vMult);
 				cur = candidate
 				curNodeChanged = true
@@ -338,13 +400,13 @@ end
 -- located using both direction and distance-based vectors,
 -- instead using only shortest path as the metric for movement.
 
-function Node:NavigateToClosestCandidate(cur, key, curNodeChanged)
-	if cur and self.direction[key] then
-		local this = self:GetCandidateVectorForCurrent(cur)
-		local candidates = self:GetCandidatesForVector(this, self.direction[key], {})
+function NavigateToClosestCandidate(cur, key, curNodeChanged)
+	if cur and NODE.direction[key] then
+		local this = GetCandidateVectorForCurrent(cur)
+		local candidates = GetCandidatesForVector(this, NODE.direction[key], {})
 
 		for candidate, vector in pairs(candidates) do
-			if self:IsCloser(vector.h, vector.v, this.h, this.v) then
+			if IsCloser(vector.h, vector.v, this.h, this.v) then
 				this = vector; cur = candidate
 			end
 		end
@@ -355,21 +417,21 @@ end
 ---------------------------------------------------------------
 -- Get an arbitrary candidate based on priority mapping
 ---------------------------------------------------------------
-function Node:NavigateToArbitraryCandidate(cur, old, x, y)
+function NavigateToArbitraryCandidate(cur, old, x, y)
 	-- (1) attempt to return the last node before the cache was wiped
 	-- (2) attempt to return the current node if it's still drawn
 	-- (3) return the first item in the cache if there are no origin coordinates
 	-- (4) return any node that's close to the origin coordinates or has priority
-	return 	( old and self:IsRelevant(old.node) and self:IsDrawn(old.node) ) and old or
-			( cur and self:IsRelevant(cur.node) and self:IsDrawn(cur.node) ) and cur or
-			( not x or not y ) and self:GetFirstEligibleCacheItem() or
-			( self:HasItems() ) and self:GetPriorityCandidate(x, y)
+	return 	( cur and IsRelevant(cur.node) and IsDrawn(cur.node) ) and cur or
+			( old and IsRelevant(old.node) and IsDrawn(old.node) ) and old or
+			( not x or not y ) and GetFirstEligibleCacheItem() or
+			( HasItems() ) and GetPriorityCandidate(x, y)
 end
 
-function Node:GetPriorityCandidate(x, y)
+function GetPriorityCandidate(x, y)
 	local targNode, targDist, targPrio
-	for _, this in self:IterateCache() do
-		local thisDist = self:GetDistanceSum(x, y, this.node:GetCenter())
+	for _, this in IterateCache() do
+		local thisDist = GetDistanceSum(x, y, this.node:GetCenter())
 		local thisPrio = this.node:GetAttribute('nodepriority')
 
 		if thisPrio and not targPrio then
@@ -383,3 +445,14 @@ function Node:GetPriorityCandidate(x, y)
 	end
 	return targNode
 end
+
+---------------------------------------------------------------
+-- Interface access:
+---------------------------------------------------------------
+NODE.IsDrawn = IsDrawn;
+NODE.IsRelevant = IsRelevant;
+NODE.ClearCache = ClearCache;
+NODE.GetScrollButtons = GetScrollButtons;
+NODE.NavigateToBestCandidate = NavigateToBestCandidate;
+NODE.NavigateToClosestCandidate = NavigateToClosestCandidate;
+NODE.NavigateToArbitraryCandidate = NavigateToArbitraryCandidate;

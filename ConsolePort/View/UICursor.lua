@@ -1,164 +1,297 @@
+---------------------------------------------------------------
+-- Interface cursor
+---------------------------------------------------------------
+-- Creates a cursor used to manage the interface with D-pad.
+-- Operates recursively on frames and calculates appropriate
+-- actions based on node priority and position on screen.
+-- Leverages Controller\UINode.lua for interface scans.
+
 local _, db = ...;
-local Cursor, Node, Input, Scroll = CPAPI.EventHandler(ConsolePortCursor), ConsolePortNode, ConsolePortInputHandler, CreateFrame('Frame')
-local STATE_UP, STATE_DOWN = false, true
-local CURSOR_ACTIVE, CUR, OLD
+local Cursor, Node, Input, Scroll, Fader = 
+	CPAPI.EventHandler(ConsolePortCursor),
+	ConsolePortNode,
+	ConsolePortInputHandler,
+	CreateFrame('Frame'),
+	db('Alpha/Fader');
 
 db:Register('Cursor', Cursor)
+Cursor.InCombat = InCombatLockdown;
 
+---------------------------------------------------------------
+-- Events
+---------------------------------------------------------------
 function Cursor:OnDataLoaded()
 	self:RegisterEvent('PLAYER_REGEN_ENABLED')
 	self:RegisterEvent('PLAYER_REGEN_DISABLED')
 	-- do something when it's loaded
 end
 
-function Cursor:OnShow()
+function Cursor:PLAYER_REGEN_DISABLED()
+	if self:IsShown() then
+		Fader.Out(self, 0.2, self:GetAlpha(), 0)
+		self:ShowAfterCombat(true)
+		self:SetFlashNextNode()
+		self:Release()
+	end
+end
 
+function Cursor:PLAYER_REGEN_ENABLED()
+	-- time lock this in case it fires more than once
+	if not self.timeLock and self.showAfterCombat then
+		self.timeLock = true
+		C_Timer.After(db('UIleaveCombatDelay'), function()
+			Fader.In(self, 0.2, self:GetAlpha(), 1)
+			if not self:InCombat() and self:IsShown() then
+				self:SetBasicControls()
+				self:Refresh()
+			end
+			self.timeLock = nil
+			self.showAfterCombat = nil
+		end)
+	-- in case the cursor is showing and waiting to hide OOC
+	elseif self:IsShown() and not self.showAfterCombat then
+		self:Hide()
+	end
+end
+
+---------------------------------------------------------------
+-- Cursor state
+---------------------------------------------------------------
+function Cursor:SetEnabled(enable)
+	if enable then
+		return self:Enable()
+	end
+	return self:Disable()
+end
+
+function Cursor:Enable()
+	local inCombat, disabled = self:IsObstructed()
+	if disabled then
+		return
+	elseif inCombat then
+		return self:ShowAfterCombat(true)
+	end
+	if not self:IsShown() then
+		self:Show()
+		self:SetBasicControls()
+		return self:Refresh()
+	end
+end
+
+function Cursor:Disable()
+	local inCombat, disabled = self:IsObstructed()
+	if inCombat or disabled then
+		self:ShowAfterCombat(false)
+	end
+	if self:IsShown() and not inCombat then
+		self:Hide()
+	end
+end
+
+function Cursor:OnHide()
+	self.timer = 0
+	self:SetAlpha(1)
+	self:SetFlashNextNode()
+	self:Release()
 end
 
 function Cursor:Release()
-	self:ClearFocus()
+	Node.ClearCache()
+	self:OnLeaveNode(self:GetCurrentNode())
+	self:SetHighlight()
 	Input:Release(self)
 end
 
+function Cursor:IsObstructed()
+	return self:InCombat(), db('UIdisableCursor')
+end
+
+function Cursor:ShowAfterCombat(enabled)
+	self.showAfterCombat = enabled
+end
+
+function Cursor:ScanUI()
+	Node(UIParent, DropDownList1, DropDownList2) -- TODO: remove hardcoding
+end
+
+function Cursor:Refresh()
+	self:OnLeaveNode(self:GetCurrentNode())
+	self:ScanUI()
+	return self:AttemptSelectNode()
+end
 
 
-
---[[
-TODO:
-
-IsGamePadCursorControlEnabled
-CanGamePadControlCursor
-IsGamePadFreelookEnabled
-SetGamePadFreeLook
-CanAutoSetGamePadCursorControl
-IsBindingForGamePad
-SetGamePadCursorControl
-]]
-
-
--- trigger for activating/deactivating cursor?
-hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
-	CURSOR_ACTIVE = state
-	print('CanAutoSetGamePadCursorControl', CURSOR_ACTIVE)
-	if state then
-		Cursor:Enable(true)
+function Cursor:OnUpdate(elapsed)
+	if self:InCombat() then return end
+	self.timer = self.timer and self.timer + elapsed or 0
+	if self.timer > 0.1 then
+		if not self:IsCurrentNodeDrawn() then
+			self:SetFlashNextNode()
+			if not self:Refresh() then
+				self:Hide()
+			end
+		end
+		self.timer = 0
 	end
-end)
---hooksecurefunc('SetGamePadCursorControl', function(...) print('SetGamePadCursorControl', ...) end)
+end
 
+---------------------------------------------------------------
+-- Navigation and input
+---------------------------------------------------------------
 do  -- Create input proxy for basic controls
-	local UIControl_InputProxy = function(self, ...)
-		print(...)
+	local InputProxy = function(self, ...)
 		self:Show()
-		Cursor:Input(self, self:GetAttribute('id'), self.state)
+		Cursor:Input(self, ...)
 	end
 
-	local UIControl_DpadRepeater = function(self, elapsed)
+	local DpadRepeater = function(self, elapsed)
 		self.timer = self.timer + elapsed
-		if self.timer >= self.UIControlTickNext and self.state == STATE_DOWN then
+		if self.timer >= self.UIControlTickNext and self.state then
 			local func = self:GetAttribute('type')
 			if ( func == 'UIControl' ) then
-				self[func](self)
+				self[func](self, self.state, self:GetAttribute('id'))
 			end
 			self.timer = 0
 		end
 	end
 
-	local UIControl_DpadInit = function(self, dpadRepeater)
-		if not db('UIdisableHoldRepeat') then
+	local DpadInit = function(self, dpadRepeater)
+		if not db('UIholdRepeatDisable') then
 			self.UIControlTickNext = db('UIholdRepeatDelay')
 			self:SetScript('OnUpdate', dpadRepeater)
 		end
 	end
 
-	local UIControl_DpadClear = function(self)
+	local DpadClear = function(self)
 		self:SetScript('OnUpdate', nil)
 		self:Hide()
+	end
+
+	local Disable = function(self)
+		self:Hide()
+		Cursor:Hide()
+		SetGamePadCursorControl(true)
 	end
 
 	function Cursor:GetBasicControls()
 		--  @init : (optional) function to set up properties
 		--  @clear: (optional) function to run when clearing
 		--  @args : (optional) properties for initialization
-		self.BaseControlButtons = {
-			PADDUP    = {UIControl_DpadInit, UIControl_DpadClear, UIControl_DpadRepeater};
-			PADDDOWN  = {UIControl_DpadInit, UIControl_DpadClear, UIControl_DpadRepeater};
-			PADDLEFT  = {UIControl_DpadInit, UIControl_DpadClear, UIControl_DpadRepeater}; 
-			PADDRIGHT = {UIControl_DpadInit, UIControl_DpadClear, UIControl_DpadRepeater};
-			[db('Settings/UICursor/Special')] = {};
+		self.BasicControls = {
+			PADDUP    = {InputProxy, DpadInit, DpadClear, DpadRepeater};
+			PADDDOWN  = {InputProxy, DpadInit, DpadClear, DpadRepeater};
+			PADDLEFT  = {InputProxy, DpadInit, DpadClear, DpadRepeater}; 
+			PADDRIGHT = {InputProxy, DpadInit, DpadClear, DpadRepeater};
+			[db('Settings/UICursor/Special')] = {InputProxy};
 		};
-		return self.BaseControlButtons
+		local clickL, clickR = GetCVar('GamePadCursorLeftClick'), GetCVar('GamePadCursorRightClick')
+		if clickL then self.BasicControls[clickL] = {Disable}; end
+		if clickR then self.BasicControls[clickR] = {Disable}; end
+		return self.BasicControls
 	end
 
 	function Cursor:SetBasicControls()
 		local controls = self:GetBasicControls()
 		for button, settings in pairs(controls) do
-			Input:Command(button, self, false, 'LeftButton',
-				'UIControl',
-				UIControl_InputProxy,
-				unpack(settings)
-			);
+			Input:SetCommand(button, self, false, button, 'UIControl', unpack(settings));
 		end
 	end
 end
 
-function Cursor:Enable(wasDisabled)
-	if InCombatLockdown() then return false end
-	if wasDisabled then
-		self:SetBasicControls()
+function Cursor:ReverseScanUI(node, key, target, changed)
+	if node then
+		local parent = node:GetParent()
+		Node(parent)
+		target, changed = Node.NavigateToBestCandidate(self.Cur, key)
+		if changed then
+			return target, changed
+		end
+		return self:ReverseScanUI(parent, key)
 	end
-	self:ClearFocus()
-	Node(UIParent)
-	self:SetCurrent()
+	return self.Cur, false
 end
 
-function Cursor:Input(caller, key, isDown)
-	self:Enable()
-	if isDown then
-		local curNodeChanged
-		CUR, curNodeChanged = Node:NavigateToBestCandidate(CUR, key)
-		if not curNodeChanged then
-			CUR = Node:NavigateToClosestCandidate(key)
+function Cursor:Navigate(key)
+	local target, changed = self:SetCurrent(self:ReverseScanUI(self:GetCurrentNode(), key))
+	if not changed then
+		target, changed = self:SetCurrent(Node.NavigateToClosestCandidate(target, key))
+	end
+	return target, changed
+end
+
+function Cursor:AttemptSelectNode()
+	local newObj = Node.NavigateToArbitraryCandidate(self.Cur, self.Old, self:GetCenter())
+	local target, changed = self:SetCurrent(newObj)
+	if target then
+		if changed then
+			self:SetFlashNextNode()
 		end
+		return self:SelectAndPosition(self:GetSelectParams(target, true))
+	end
+end
+
+function Cursor:Input(caller, isDown, key)
+	local target, changed
+	if isDown and key then
+		target, changed = self:Navigate(key)
 	elseif ( key == db('Settings/UICursor/Special') ) then
 		-- TODO: implement special action
 	end
-	local node = CUR and CUR.node
-	if node then
-		self:Select(node, CUR.object, CUR.super, isDown)
-		if isDown or isDown == nil then
-			self:SetPosition(node)
-		end
+	if ( target ) then
+		return self:SelectAndPosition(self:GetSelectParams(target, isDown))
 	end
-	return node
-end
-
-function Cursor.GetCurrentNode()
-	return CUR and CUR.node
 end
 
 ---------------------------------------------------------------
--- UIControl: Command parser / main func
+-- Queries for the current node
 ---------------------------------------------------------------
-function ConsolePort:UIControl(key, state)
-	Cursor:Refresh()
-	if state == KEY.STATE_DOWN then
-		local curNodeChanged
-		CUR, curNodeChanged = Node:GetBestCandidate(CUR, key)
-		if not curNodeChanged then
-			CUR = Node:GetClosestCandidate(key)
-		end
-	elseif key == Cursor.SpecialAction then
-		SpecialAction(self)
+function Cursor:SetCurrent(newObj)
+	local oldObj = self:GetCurrent()
+	if ( oldObj and newObj == oldObj ) then
+		return oldObj, false
 	end
-	local node = CUR and CUR.node
-	if node then
-		Cursor:Select(node, CUR.object, CUR.super, state)
-		if state == KEY.STATE_DOWN or state == nil then
-			Cursor:SetPosition(node)
-		end
-	end
-	return node
+	self.Old = oldObj;
+	self.Cur = newObj;
+	return newObj, true
+end
+
+function Cursor:GetCurrent()
+	return self.Cur;
+end
+
+function Cursor:GetCurrentNode()
+	local obj = self:GetCurrent()
+	return obj and obj.node;
+end
+
+function Cursor:GetCurrentObjectType()
+	local obj = self:GetCurrent()
+	return obj and obj.object;
+end
+
+
+function Cursor:IsCurrentNodeDrawn()
+	local node = self:GetCurrentNode()
+	return node and ( node:IsVisible() and Node.IsDrawn(node) )
+end
+
+function Cursor:GetSelectParams(obj, triggerOnEnter)
+	return obj.node, obj.object, obj.super, triggerOnEnter
+end
+
+function Cursor:GetOld()
+	return self.Old;
+end
+
+function Cursor:GetOldNode()
+	local obj = self:GetOld()
+	return obj and obj.node
+end
+
+function Cursor:StoreCurrent()
+	local current = self:GetCurrent()
+	self.Old = current
+	self:SetCurrent(nil)
 end
 
 ---------------------------------------------------------------
@@ -242,35 +375,35 @@ local function TriggerScript(node, scriptType, replacement)
 	end
 end
 
-local function TriggerOnEnter(node) TriggerScript(node, 'OnEnter', SafeOnEnter) end
-local function TriggerOnLeave(node) TriggerScript(node, 'OnLeave', SafeOnLeave) end
-
-
 ---------------------------------------------------------------
 -- Node selection
 ---------------------------------------------------------------
-function Cursor:ClearFocus()
-	if CUR then
-		TriggerOnLeave(CUR.node)
-		OLD = CUR
+function Cursor:OnLeaveNode(node)
+	if node then
+		TriggerScript(node, 'OnLeave', SafeOnLeave)
 	end
 end
 
-function Cursor:SetCurrent()
-	CUR = Node:NavigateToArbitraryCandidate(CUR, OLD, self:GetCenter())
-	if ( CUR and CUR ~= OLD ) then
-		self:Select(CUR.node, CUR.object, CUR.super, STATE_UP)
+function Cursor:OnEnterNode(node)
+	if node then
+		TriggerScript(node, 'OnEnter', SafeOnEnter)
 	end
 end
 
-function Cursor:Select(node, object, super, state)
-	local name = node.direction and node:GetName()
+function Cursor:SelectAndPosition(node, object, super, newMove)
+	if newMove then
+		self:OnLeaveNode(self:GetOldNode())
+		self:SetPosition(node)
+	end
+	self:Select(node, object, super, newMove)
+	return node
+end
+
+function Cursor:Select(node, object, super, triggerOnEnter)
+	local name = node.direction and node:GetName() -- TODO: fix this hack 
 	local override = (IsClickable[object] and object ~= 'EditBox')
 
-	-- Trigger OnEnter script
-	if state == STATE_UP then
-		TriggerOnEnter(node, state)
-	end
+	self:OnEnterNode(triggerOnEnter and node)
 
 	-- If this node has a forbidden dropdown value, override macro instead.
 	local macro = DropDownMacros[node.value]
@@ -279,11 +412,11 @@ function Cursor:Select(node, object, super, state)
 		Scroll:To(node, super)
 	end
 
-	local scrollUp, scrollDown = Node:GetScrollButtons(node)
+	local scrollUp, scrollDown = Node.GetScrollButtons(node)
 	if scrollUp and scrollDown then
 		local modifier = db('UImodifierCommands')
-		Input:Button(format('%s-%s', modifier, 'PADDUP'), self, scrollUp)
-		Input:Button(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown)
+		Input:SetButton(format('%s-%s', modifier, 'PADDUP'), self, scrollUp)
+		Input:SetButton(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown)
 	end
 
 	if object == 'Slider' then
@@ -301,9 +434,9 @@ function Cursor:Select(node, object, super, state)
 				local unit = UIDROPDOWNMENU_INIT_MENU.unit
 				Input:Macro(button .. modifier, self, macro:format(unit or ''))
 			elseif override then
-				Input:Button(button .. modifier, self, node, false, click)
+				Input:SetButton(button .. modifier, self, node, false, click)
 			else
-				Input:Button(button .. modifier, self, false, false, click)
+				Input:SetButton(button .. modifier, self, false, false, click)
 			end
 		end
 	end
@@ -331,7 +464,7 @@ do  -- lambdas to handle texture swapping without caching icons
 end
 
 function Cursor:SetTexture(texture)
-	local object = texture or CUR and CUR.object
+	local object = texture or self:GetCurrentObjectType()
 	local lambda = self.Textures[object]
 	if ( lambda ~= self.textureLambda ) then
 		self.Button:SetTexture(lambda())
@@ -355,15 +488,16 @@ function Cursor:SetPointer(node)
 end
 
 function Cursor:Move(oldAnchor)
-	if CUR then
+	local node = self:GetCurrentNode()
+	if node then
 		self:ClearHighlight()
-		local newX, newY = self:SetPointer(CUR.node)
+		local newX, newY = self:SetPointer(node)
 		if self.MoveAndScale:IsPlaying() then
 			self.MoveAndScale:Stop()
 			self.MoveAndScale:OnFinished(oldAnchor)
 		end
 		local oldX, oldY = self:GetCenter()
-		if ( not CUR.node.noAnimation ) and oldX and oldY and newX and newY and self:IsVisible() then
+		if ( not node.noAnimation ) and oldX and oldY and newX and newY and self:IsVisible() then
 			local oldScale, newScale = self:GetEffectiveScale(), self.Pointer:GetEffectiveScale()
 			local sDiff, sMult = oldScale / newScale, newScale / oldScale
 			self.Translate:SetOffset((newX - oldX * sDiff) * sMult, (newY - oldY * sDiff) * sMult)
@@ -418,11 +552,16 @@ end
 
 -- Animation scripts
 ---------------------------------------------------------------
+function Cursor:SetFlashNextNode()
+	self.MoveAndScale.Flash = true;
+end
+
 function Cursor.MoveAndScale:ConfigureScale()
-	if OLD == CUR and not self.Flash then
+	local cur, old = Cursor:GetCurrent(), Cursor:GetOld()
+	if (cur == old) and not self.Flash then
 		self.Shrink:SetDuration(0)
 		self.Enlarge:SetDuration(0)	
-	elseif CUR then
+	elseif cur then
 		local scaleAmount, shrinkDuration = 1.15, 0.2
 		if self.Flash then
 			scaleAmount = 1.75
@@ -448,11 +587,11 @@ function Cursor.Highlight.Scale:OnPlay()
 end
 
 function Cursor.MoveAndScale.Translate:OnFinished()
-	Cursor:SetHighlight(CUR and CUR.node)
+	Cursor:SetHighlight(Cursor:GetCurrentNode())
 end
 
 function Cursor.MoveAndScale:OnPlay()
-	Cursor.Highlight:SetParent(CUR and CUR.node or Cursor)
+	Cursor.Highlight:SetParent(Cursor:GetCurrentNode() or Cursor)
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
 end
 
@@ -487,9 +626,6 @@ end
 -- Scroll management
 ---------------------------------------------------------------
 do 
-	-- Store hybrid onload to check whether a scrollframe can be scrolled automatically
-	local hybridScroll = HybridScrollFrame_OnLoad
-
 	function Scroll:OnUpdate(elapsed)
 		for super, target in pairs(self.Active) do
 			local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
@@ -518,8 +654,8 @@ do
 		local scrollX, scrollY = super:GetCenter()
 		if nodeY and scrollY then
 
-			-- make sure this isn't a hybrid scroll frame
-			if super:GetScript('OnLoad') ~= hybridScroll then
+			-- HACK: make sure this isn't a hybrid scroll frame
+			if super:GetScript('OnLoad') ~= HybridScrollFrame_OnLoad then
 				local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
 				local maxHorz, maxVert = super:GetHorizontalScrollRange(), super:GetVerticalScrollRange()
 
@@ -542,3 +678,11 @@ do
 		end
 	end
 end
+
+---------------------------------------------------------------
+-- Initialize the cursor
+---------------------------------------------------------------
+CPAPI.Start(Cursor)
+hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
+	Cursor:SetEnabled(state)
+end)
