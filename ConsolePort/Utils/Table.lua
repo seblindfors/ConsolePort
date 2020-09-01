@@ -99,21 +99,21 @@ db('table/spairs', function(t, order)
 	end
 end)
 
-db('table/mixin', function(object, ...)
-	local scriptSupport = (type(object.HasScript) == 'function')
+db('table/mixin', function(obj, ...)
+	local scriptHandler = (type(obj.HasScript) == 'function')
 	for i = 1, select('#', ...) do
 		local mixin = select(i, ...)
 
 		for k, v in pairs(mixin) do
-			if scriptSupport and object:HasScript(k) then
-				if object:GetScript(k) then
-					object:HookScript(k, v)
+			if scriptHandler and obj:HasScript(k) then
+				if obj:GetScript(k) then
+					obj:HookScript(k, v)
 				else
-					object:SetScript(k, v)
+					obj:SetScript(k, v)
 				end
 			end
-			object[k] = v
+			obj[k] = v
 		end
 	end
-	return object
+	return obj
 end)

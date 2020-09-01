@@ -61,7 +61,7 @@ function HotkeyHandler:OnActiveDeviceChanged()
 	end
 end
 
-ConsolePort:RegisterVarCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
+db:RegisterVarCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
 
 ---------------------------------------------------------------
 -- API

@@ -47,7 +47,7 @@ end
 -- If information needs to be updated when a native function
 -- is called, this snippet will run stored functions in response. 
 
-local callbacks, cvarCallbacks, owners = {}, {}, {}
+local callbacks, owners = {}, {}
 
 function ConsolePort:RegisterCallback(method, func, owner, orderIndex)
 	assert(type(method) == 'string', 'First argument is not a valid string. Arguments (RegisterCallback): \'method\', callback')
@@ -102,35 +102,38 @@ end
 -- Variable callbacks
 ---------------------------------------------------------------
 -- If information needs to be updated when a variable changes,
--- this snippet will run stored functions in response. 
+-- this snippet will run stored functions in response.
 
-function ConsolePort:RegisterVarCallback(cvar, func, owner, ...)
-	cvarCallbacks[cvar] = cvarCallbacks[cvar] or {}
-	for i, data in ipairs(cvarCallbacks[cvar]) do
-		if data[1] == func then
-			cvarCallbacks[cvar][i] = {func, owner, ...}
-			return
-		end
-	end
-	tinsert(cvarCallbacks[cvar], {func, owner, ...})
-end
+do local cvarCallbacks, _, db = {}, ...
 
-function ConsolePort:FireVarCallback(cvar, newvalue)
-	local cvarCallbacks = cvarCallbacks[cvar]
-	if cvarCallbacks then
-		for i, data in ipairs(cvarCallbacks) do
-			local callback, owner = data[1], data[2]
-			-- create lambda wrapper to fire OOC
-			local function cb(caller, lambda, callback, ...)
-				if not InCombatLockdown() then
-					caller:RemoveUpdateSnippet(lambda)
-					callback(...)
-				end
+	function db:RegisterVarCallback(cvar, func, owner, ...)
+		cvarCallbacks[cvar] = cvarCallbacks[cvar] or {}
+		for i, data in ipairs(cvarCallbacks[cvar]) do
+			if data[1] == func then
+				cvarCallbacks[cvar][i] = {func, owner, ...}
+				return
 			end
-			if C_Widget.IsFrameWidget(owner) then
-				self:RunOOC(cb, cb, callback, owner, newvalue, unpack(data, 3))
-			else
-				self:RunOOC(cb, cb, callback, newvalue, owner, unpack(data, 3))
+		end
+		tinsert(cvarCallbacks[cvar], {func, owner, ...})
+	end
+
+	function db:FireVarCallback(cvar, newvalue)
+		local cvarCallbacks = cvarCallbacks[cvar]
+		if cvarCallbacks then
+			for i, data in ipairs(cvarCallbacks) do
+				local callback, owner = data[1], data[2]
+				-- create lambda wrapper to fire OOC
+				local function cb(caller, lambda, callback, ...)
+					if not InCombatLockdown() then
+						caller:RemoveUpdateSnippet(lambda)
+						callback(...)
+					end
+				end
+				if C_Widget.IsFrameWidget(owner) then
+					ConsolePort:RunOOC(cb, cb, callback, owner, newvalue, unpack(data, 3))
+				else
+					ConsolePort:RunOOC(cb, cb, callback, newvalue, owner, unpack(data, 3))
+				end
 			end
 		end
 	end

@@ -6,6 +6,7 @@ local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parent
 }, {
 	Devices = {};
 	Index = {
+		Stick  = {};
 		Button = {};
 		Modifier = {};
 	};
@@ -116,6 +117,14 @@ function GamepadAPI:ReindexMappedState()
 		end
 	end
 	map.Active = self:GetActiveModifiers()
+	-- sticks
+	map = wipe(self.Index.Stick)
+	map.ID = {}; map.Config = {};
+	for i in ipairs(state.sticks) do
+		local name = C_GamePad.StickIndexToConfigName(i-1)
+		map.ID[i] = name
+		map.Config[name] = i
+	end
 end
 
 function GamepadAPI:GetActiveModifiers()

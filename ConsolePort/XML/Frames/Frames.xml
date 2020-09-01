@@ -4,15 +4,11 @@
 	<Frame name="ConsolePort">
 		<Frames>
 			<Button name="$parentPager" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
-			<Frame name="$parentRadialHandler" inherits="SecureHandlerBaseTemplate">
-				<Attributes>
-					<Attribute name="locked" type="boolean" value="true"/>
-				</Attributes>
-			</Frame>
+			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
 		</Frames>
 	</Frame>
 
-	<!-- The interface cursor, snaps between and clicks on UI elements out of combat. Cursors\Interface.lua -->
+	<!-- The interface cursor, snaps between and clicks on UI elements out of combat. View\UICursor.lua -->
 	<Frame name="ConsolePortCursor" parent="UIParent" frameStrata="TOOLTIP" hidden="true">
 		<Size x="32" y="32"/>
 		<Layers>

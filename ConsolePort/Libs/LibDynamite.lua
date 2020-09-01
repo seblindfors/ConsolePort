@@ -12,7 +12,7 @@
 --  templates into one to create inheritance. WoW XML is too rigid to handle dynamic frame creation,
 --  and implementing frames in pure Lua is messy, without clear hierarchy. This dynamic markup language
 --  works well in any code editor, to expand/collapse items of interest during development.
---  Recursive blueprints automatically set name tags on items, and adds keys to the parent.
+--  Recursive "blueprints" automatically set name tags on items, and adds keys to the parent.
 --  See example at the bottom.
 --
 -- Usage:
@@ -20,17 +20,17 @@
 --  Lib:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
 --  Lib:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
 
-local Lib = LibStub:NewLibrary('LibDynamite', 1)
+local Lib = LibStub:NewLibrary('LibDynamite', 2)
 if not Lib then return end
-----------------------------------------------------------------
-local   assert, pairs, ipairs, type, unpack, wipe, tconcat = 
-        assert, pairs, ipairs, type, unpack, wipe, table.concat
-----------------------------------------------------------------
+--------------------------------------------------------------------------
+local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
+        assert, pairs, ipairs, type, unpack, wipe, table.concat, strmatch
+--------------------------------------------------------------------------
 local   Create, IsWidget = CreateFrame, C_Widget.IsFrameWidget
-----------------------------------------------------------------
-local   anchor, onload, call, callMethodsOnWidget, -- func calls
-        packtbl, err, getbuildinfo, getrelative -- misc
-----------------------------------------------------------------
+--------------------------------------------------------------------------
+local   anchor, onload, constructor, call, callMethodsOnWidget, -- build
+        packtbl, err, getbuildinfo, getrelative, strip -- misc
+--------------------------------------------------------------------------
 local   ARGS, ERROR, ERROR_CODES, SPECIAL, API, RESERVED
 local   ANCHOR, ONLOAD = {}, {}
 
@@ -89,9 +89,10 @@ API = { -- Syntax: ['<CallID>'] = value or {value1, ..., valueN};
     Points     = function(widget, ...)  for _, point in ipairs({...}) do packtbl(ANCHOR, widget, unpack(point)) end end;
     -- Custom handlers ---------------------------------------------------
     Mixin      = function(widget, ...)  Lib:Mixin(widget, ...)        end;
-    --- Multiple runs ----------------------------------------------------
-    Multiple = function(widget, multiTable)
-        for k, v in pairs(multiTable) do
+    MixinDry   = function(widget, ...)  Mixin(widget, ...)            end;
+    --- Multiple runs of single function ---------------------------------
+    ForEach    = function(widget, multiTable)
+        for k, v in pairs(multiTable) do k = strip(k) 
             assert(widget[k] or API[k], err(k, widget:GetName(), ERROR_CODES.MULTI_FUNC))
             assert(type(v) == 'table', err(k, widget:GetName(), ERROR_CODES.MULTI_TABLE))
             for _, args in pairs(v) do
@@ -127,6 +128,18 @@ SPECIAL = { -- Special constructors
     end;
 };
 
+--------------------------------------------------------------------------
+RESERVED = { -- Reserved keywords in blueprints
+--------------------------------------------------------------------------
+    [1]             = true, -- don't run blueprints in function stack
+    ['<Type>']      = true, -- used to determine frame type
+    ['<Mixin>']     = true, -- specially handled before function calls
+    ['<Setup>']     = true, -- used to determine inheritance
+    ['<Repeat>']    = true, -- ignore since it denotes a loop
+    ['<Anonymous>'] = true, -- denotes anonymous parent/children
+};
+
+
 ----------------------------------------------------------------
 -- Create a new frame.
 ----------------------------------------------------------------
@@ -136,13 +149,14 @@ SPECIAL = { -- Special constructors
 -- @param   xml       : Inherited xml.
 -- @param   blueprint : Table consisting of additional regions to be created.
 -- @return  frame     : Returns the created object.
-function Lib:CreateFrame(object, name, parent, xml, blueprint, recursive)
+----------------------------------------------------------------
+function Lib:CreateFrame(object, name, parent, xml, blueprint, recursive, anonymous)
     ----------------------------------
     local frame = Create(object, name, parent, xml)
     ----------------------------------
     if blueprint then
         if recursive then
-            self:BuildFrame(frame, blueprint, true)
+            self:BuildFrame(frame, blueprint, true, anonymous)
         else
             local children = blueprint[1]
             callMethodsOnWidget(frame, blueprint)
@@ -164,20 +178,23 @@ end
 -- @param   blueprint : Blueprint to be constructed.
 -- @param   recursive : Whether this is a recursive call.
 -- @return  frame     : Returns the altered frame.  
-function Lib:BuildFrame(frame, blueprint, recursive)
+----------------------------------------------------------------
+function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
     assert(type(blueprint) == 'table', err('Blueprint', frame:GetName(), ERROR_CODES.BLUEPRINT))
     for key, config in pairs(blueprint) do
         assert(type(config) == 'table', err(key, frame:GetName(), ERROR_CODES.CONFIGTABLE))
         ----------------------------------
-        local object, objectType, buildInfo, isLoop = getbuildinfo(config)
+        local object, objectType, buildInfo, isLoop, anonobj = getbuildinfo(config)
         ----------------------------------
         for i = 1, ( isLoop or 1 ) do
-            local key = ( isLoop and key..i ) or key
+            local key    = isLoop and key..i or key
+            local anon   = anonframe or anonobj
+            local name   = not anon and '$parent'..key
             local widget = frame[key]
             if not widget then
                 ----------------------------------
                 -- Assert object type exists if setup table exists.
-                assert((buildInfo and object) or (not buildInfo), err(key, name, ERROR_CODES.REGION))
+                assert((buildInfo and object) or (not buildInfo), err(key, frame:GetName(), ERROR_CODES.REGION))
                 ----------------------------------
                 if object then
                     -- Region type has special constructor.
@@ -188,7 +205,9 @@ function Lib:BuildFrame(frame, blueprint, recursive)
                         widget = SPECIAL.Existing(frame, key, object)
                     -- Region should be a type of frame.
                     elseif (objectType == 'string') then
-                        widget = self:CreateFrame(object, '$parent'..key, frame, buildInfo and tconcat(buildInfo, ', '), config[1], true)
+                        local xml = buildInfo and tconcat(buildInfo, ', ')
+                        local bp  = config[1]
+                        widget = self:CreateFrame(object, name, frame, xml, bp, true, anon);
                     end
                 else -- Assume this is a data table.
                     widget = config
@@ -210,39 +229,6 @@ function Lib:BuildFrame(frame, blueprint, recursive)
     return frame
 end
 
---------------------------------------------------------------------------
-RESERVED = {
---------------------------------------------------------------------------
-    [1]          = true, -- don't run blueprints in function stack
-    ['<Type>']   = true, -- used to determine frame type
-    ['<Mixin>']  = true, -- specially handled before function calls
-    ['<Setup>']  = true, -- used to determine inheritance, should not be mixed in.
-    ['<Repeat>'] = true, -- ignore since it denotes a loop
-};
-
---------------------------------------------------------------------------
-ARGS = {
---------------------------------------------------------------------------
-    MULTI_RUN = 'function name on object as key, table of values to be unpacked into key function. Nesting allowed.',
-    REGION = 'Region key should be of type string and refer to a valid widget type.',
-    BLUEPRINT = '(frame, blueprint); blueprint = { child1 = {}, child2 = {}, ..., childN = {} }',
-    RELATIVEREGION = '(frame or string). Example of string: $parent.Sibling',
-};
-
---------------------------------------------------------------------------
-ERROR = '%s in %s %s.'
---------------------------------------------------------------------------
-ERROR_CODES = {
---------------------------------------------------------------------------
-    MULTI_FUNC  = 'does not exist. Loop table should contain: '..ARGS.MULTI_RUN,
-    MULTI_TABLE = 'has an invalid loop table. Loop table should contain: '..ARGS.MULTI_RUN,
-    REGION  = 'missing region type. '..ARGS.REGION,
-    RELATIVEREGION = 'is invalid. Type should be a parsable string or existing frame. Arguments: '..ARGS.RELATIVEREGION,
-    CONSTRUCTOR = 'is invalid. Constructor must be a function.',
-    BLUEPRINT = 'is invalid. Blueprint should be a nested table. Arguments: '..ARGS.BLUEPRINT,
-    CONFIGTABLE = 'is not a valid config table or existing region.',
-};
-
 ----------------------------------------------------------------
 -- Extend API
 ----------------------------------------------------------------
@@ -250,6 +236,7 @@ ERROR_CODES = {
 -- @param   func    : Function to add.
 -- @param   force   : Forcefully replace existing function.
 -- @return  success : Returns true when successful.
+----------------------------------------------------------------
 function Lib:ExtendAPI(name, func, force)
     assert(type(name) == 'string',   format("bad argument #1 to 'ExtendAPI' (string expected, got %s)", type(name)))
     assert(type(func) == 'function', format("bad argument #2 to 'ExtendAPI' (function expected, got %s)", type(func)))
@@ -275,6 +262,29 @@ function Lib:Mixin(obj, ...)
     end
     return obj
 end
+
+--------------------------------------------------------------------------
+ARGS = {
+--------------------------------------------------------------------------
+    MULTI_RUN = 'function name on object as key, table of values to be unpacked into key function. Nesting allowed.',
+    REGION = 'Region key should be of type string and refer to a valid widget type.',
+    BLUEPRINT = '(frame, blueprint); blueprint = { child1 = {}, child2 = {}, ..., childN = {} }',
+    RELATIVEREGION = '(frame or string). Example of string: $parent.Sibling',
+};
+
+--------------------------------------------------------------------------
+ERROR = '%s in %s %s.'
+--------------------------------------------------------------------------
+ERROR_CODES = {
+--------------------------------------------------------------------------
+    MULTI_FUNC  = 'does not exist. Loop table should contain: '..ARGS.MULTI_RUN,
+    MULTI_TABLE = 'has an invalid loop table. Loop table should contain: '..ARGS.MULTI_RUN,
+    REGION  = 'missing region type. '..ARGS.REGION,
+    RELATIVEREGION = 'is invalid. Type should be a parsable string or existing frame. Arguments: '..ARGS.RELATIVEREGION,
+    CONSTRUCTOR = 'is invalid. Constructor must be a function.',
+    BLUEPRINT = 'is invalid. Blueprint should be a nested table. Arguments: '..ARGS.BLUEPRINT,
+    CONFIGTABLE = 'is not a valid config table or existing region.',
+};
 
 --------------------------------------------------------------------------
 -- Internal circuit
@@ -318,7 +328,7 @@ function callMethodsOnWidget(widget, methods)
 
     for method, data in pairs(methods) do
         if not RESERVED[method] then
-            local index = strmatch(method, '<(%w+)>')
+            local index = strip(method)
             if index then
                 call(widget, index, data)
             else
@@ -362,26 +372,44 @@ function anchor()
             region:SetPoint(point, getrelative(region, relativeRegion), relativePoint, xOffset, yOffset)
         elseif numArgs == 8 then
             local region, point, relativeRegion, relativePoint, xOffset, yOffset, xIncr, yIncr = unpack(setup)
-            region:SetPoint(point, getrelative(region, relativeRegion),relativePoint,
-                xOffset + (xIncr * (region:GetID() - 1)),
-                yOffset + (yIncr * (region:GetID() - 1))
+            region:SetPoint(point, getrelative(region, relativeRegion), relativePoint,
+                xOffset + (xIncr * ((region:GetID() or 1) - 1)),
+                yOffset + (yIncr * ((region:GetID() or 1) - 1))
             );
         end
     end
     wipe(ANCHOR)
 end
 
+function constructor(region, load, ...)
+    if not load then return end
+    assert(type(load) == 'function', err('Constructor', region:GetName(), ERROR_CODES.CONSTRUCTOR))
+    load(region)
+    return constructor(region, ...)
+end
+
 function onload()
     for _, setup in ipairs(ONLOAD) do
-        local region, constructor = unpack(setup)
-        assert(type(constructor) == 'function', err('Constructor', region:GetName(), ERROR_CODES.CONSTRUCTOR))
-        constructor(region)
+        local region, load = unpack(setup)
+        if ( type(load) == 'table' ) then
+            constructor(region, unpack(load))
+        else
+            constructor(region, load)
+        end
     end
     wipe(ONLOAD)
 end
 
-function getbuildinfo(bp) return bp['<Type>'], type(bp['<Type>']), bp['<Setup>'], bp['<Repeat>'] end;
+function getbuildinfo(bp) return 
+    bp['<Type>'],
+    type(bp['<Type>']),
+    bp['<Setup>'],
+    bp['<Repeat>'],
+    bp['<Anonymous>']
+end
+
 function packtbl(tbl, ...) tbl[#tbl + 1] = {...} end;
+function strip(key) return strmatch(key, '<(%w+)>') end;
 function err(key, name, code) return ERROR:format(key, name or 'unnamed region', code) end;
 
 --------------------------------------------------------------------------
@@ -391,7 +419,7 @@ function err(key, name, code) return ERROR:format(key, name or 'unnamed region',
 --[[
 
 local bar = Lib:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandlerStateTemplate', {
-    ['<Size>']   = {NUM_ACTIONBAR_BUTTONS * 36, 36};
+    ['<Size>']   = {NUM_ACTIONBAR_BUTTONS * 40, 36};
     ['<Point>']  = {'CENTER', 0, 0};
     ['<OnLoad>'] = function(self)
         local macro = '1';
@@ -412,10 +440,10 @@ local bar = Lib:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandle
         ]=];
     };
 
-    {   -- A keyless table is the start of children
+    {   -- A keyless table contains the children
         ActionButton = {
             ['<Repeat>'] = NUM_ACTIONBAR_BUTTONS;
-            ['<Type>']   = 'CheckButton';
+            ['<Type>']   = 'Button';
             ['<Point>']  = {'LEFT', '$parent', 'LEFT', 0, 0, 40, 0};
             ['<Setup>']  = {'ActionButtonTemplate', 'SecureActionButtonTemplate'};
             ['<Attributes>'] = {
@@ -440,4 +468,4 @@ local bar = Lib:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandle
     }
 })
 
-]]--
+]]

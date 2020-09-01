@@ -417,7 +417,7 @@ function Cursor:Select(node, object, super, triggerOnEnter)
 
 	-- If this node has a forbidden dropdown value, override macro instead.
 	local macro = DropDownMacros[node.value]
-
+	-- TODO: ignoreScroll should not be a table key
 	if super and not super.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
 		Scroll:To(node, super)
 	end
@@ -445,7 +445,7 @@ function Cursor:SetClickButtonsForNode(node, isClickable, macroReplacement)
 	for click, button in pairs({
 		LeftButton  = db('Settings/UICursor/LeftClick');
 		RightButton = db('Settings/UICursor/RightClick');
-	}) do for modifier in pairs(db('Gamepad/Index/Modifier/Active')) do
+	}) do for modifier in db:For('Gamepad/Index/Modifier/Active') do
 			if macroReplacement then
 				local unit = UIDROPDOWNMENU_INIT_MENU.unit
 				Input:Macro(button .. modifier, self, macroReplacement:format(unit or ''))
@@ -641,56 +641,54 @@ end
 ---------------------------------------------------------------
 -- Scroll management
 ---------------------------------------------------------------
-do 
-	function Scroll:OnUpdate(elapsed)
-		for super, target in pairs(self.Active) do
+function Scroll:OnUpdate(elapsed)
+	for super, target in pairs(self.Active) do
+		local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
+		local maxHorz, maxVert = super:GetHorizontalScrollRange(), super:GetVerticalScrollRange()
+		-- close enough, stop scrolling and set to target
+		if ( abs(currHorz - target.horz) < 2 ) and ( abs(currVert - target.vert) < 2 ) then
+			super:SetVerticalScroll(target.vert)
+			super:SetHorizontalScroll(target.horz)
+			self.Active[super] = nil
+			return
+		end
+		local deltaX, deltaY = ( currHorz > target.horz and -1 or 1 ), ( currVert > target.vert and -1 or 1 )
+		local newX = ( currHorz + (deltaX * abs(currHorz - target.horz) / 16 * 4) )
+		local newY = ( currVert + (deltaY * abs(currVert - target.vert) / 16 * 4) )
+
+		super:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
+		super:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
+	end
+	if not next(self.Active) then
+		self:SetScript('OnUpdate', nil)
+	end
+end
+
+function Scroll:To(node, super)
+	local nodeX, nodeY = node:GetCenter()
+	local scrollX, scrollY = super:GetCenter()
+	if nodeY and scrollY then
+
+		-- HACK: make sure this isn't a hybrid scroll frame
+		if super:GetScript('OnLoad') ~= HybridScrollFrame_OnLoad then
 			local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
 			local maxHorz, maxVert = super:GetHorizontalScrollRange(), super:GetVerticalScrollRange()
-			-- close enough, stop scrolling and set to target
-			if ( abs(currHorz - target.horz) < 2 ) and ( abs(currVert - target.vert) < 2 ) then
-				super:SetVerticalScroll(target.vert)
-				super:SetHorizontalScroll(target.horz)
-				self.Active[super] = nil
-				return
+
+			local newVert = currVert + (scrollY - nodeY)
+			local newHorz = 0
+		-- 	TODO: horizontal scrollers
+		--	local newHorz = currHorz + (scrollX - nodeX)
+
+			if not self.Active then
+				self.Active = {}
 			end
-			local deltaX, deltaY = ( currHorz > target.horz and -1 or 1 ), ( currVert > target.vert and -1 or 1 )
-			local newX = ( currHorz + (deltaX * abs(currHorz - target.horz) / 16 * 4) )
-			local newY = ( currVert + (deltaY * abs(currVert - target.vert) / 16 * 4) )
 
-			super:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
-			super:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
-		end
-		if not next(self.Active) then
-			self:SetScript('OnUpdate', nil)
-		end
-	end
+			self.Active[super] = {
+				vert = newVert < 0 and 0 or newVert > maxVert and maxVert or newVert,
+				horz = newHorz < 0 and 0 or newHorz > maxHorz and maxHorz or newHorz,
+			}
 
-	function Scroll:To(node, super)
-		local nodeX, nodeY = node:GetCenter()
-		local scrollX, scrollY = super:GetCenter()
-		if nodeY and scrollY then
-
-			-- HACK: make sure this isn't a hybrid scroll frame
-			if super:GetScript('OnLoad') ~= HybridScrollFrame_OnLoad then
-				local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
-				local maxHorz, maxVert = super:GetHorizontalScrollRange(), super:GetVerticalScrollRange()
-
-				local newVert = currVert + (scrollY - nodeY)
-				local newHorz = 0
-			-- 	NYI
-			--	local newHorz = currHorz + (scrollX - nodeX)
-
-				if not self.Active then
-					self.Active = {}
-				end
-
-				self.Active[super] = {
-					vert = newVert < 0 and 0 or newVert > maxVert and maxVert or newVert,
-					horz = newHorz < 0 and 0 or newHorz > maxHorz and maxHorz or newHorz,
-				}
-
-				self:SetScript('OnUpdate', self.OnUpdate)
-			end
+			self:SetScript('OnUpdate', self.OnUpdate)
 		end
 	end
 end
@@ -700,5 +698,6 @@ end
 ---------------------------------------------------------------
 CPAPI.Start(Cursor)
 hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
+	-- TODO: work on this, it's not good yet
 	Cursor:SetEnabled(state)
 end)

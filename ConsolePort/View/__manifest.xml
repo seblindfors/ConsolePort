@@ -3,4 +3,5 @@
 	<!-- Single file views -->
 	<Script file="Hotkey.lua"/>
 	<Script file="UICursor.lua"/>
+	<Script file="Flyout.lua"/>
 </Ui>

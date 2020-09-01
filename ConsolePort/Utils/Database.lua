@@ -24,7 +24,7 @@ function db:Set(path, value)
 	local repo, var = __cd(self, strsplit('/', path))
 	if repo and var then
 		repo[var] = value
-		ConsolePort:FireVarCallback(path, value)
+		self:FireVarCallback(path, value)
 		return true 
 	end
 end
@@ -56,7 +56,8 @@ function db:Register(name, obj, raw)
 	if not raw then
 		assert(not rawget(self, name), 'Object already exists.')
 	end
-	return rawset(self, name, obj)
+	rawset(self, name, obj)
+	return obj
 end
 
 function db:Default(tbl)
@@ -69,6 +70,17 @@ function db:Call(path, ...)
 	if repo and func then
 		return func(repo, ...)
 	end
+end
+
+function db:For(path, alphabetical)
+	local repo = self:Get(path)
+	assert(type(repo) == 'table', 'Path to database entry is invalid: ' .. tostring(path))
+	if #repo then
+		return ipairs(repo)
+	elseif alphabetical then
+		return self.table.spairs(repo)
+	end
+	return pairs(repo)
 end
 
 setmetatable(db, {
