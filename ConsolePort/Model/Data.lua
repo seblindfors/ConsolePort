@@ -1,11 +1,15 @@
 ------------------------------------------------------------------------------------------------------------
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
-local DEFAULT_DATA = {
+local DATA, DESC = 1, 2; local DEFAULT_DATA = {
     --------------------------------------------------------------------------------------------------------
     -- Action page handling:
     actionPageCondition     = {''       ; 'Macro condition to evaluate action bar page'};
     actionPageResponse      = {''       ; 'Response to condition for custom processing'};
+    -- Radial:
+    radialActionDeadzone    = {0.5      ; 'Deadzone for simple pie menus'};
+    radialCosineDelta       = {-1       ; 'Direction of item order in a pie menu (default clockwise)'};
+    radialStartIndexAt      = {90       ; 'Starting angle of the first item in a pie menu'};
     -- Interface cursor:
     UIdisableCursor         = {false    ; 'Disable interface cursor'};
     UIleaveCombatDelay      = {.5       ; 'Delay before re-activating UI core after combat'};
@@ -19,11 +23,28 @@ local DEFAULT_DATA = {
     unitHotkeyGhostMode     = {false    ; 'Restore calculated combinations after targeting'};
     unitHotkeyIgnorePlayer  = {false    ; 'Always ignore player regardless of pool'};
     -- Structures:
-    UICursor = {{
-        LeftClick  = 'PAD1'; -- cross
-        RightClick = 'PAD2'; -- circle
-        Special    = 'PAD4'; -- triangle
-    }; 'Cursor actions'};
+    UICursor = {
+        [DESC] = 'Cursor actions: which buttons to use to click on items in the interface';
+        [DATA] = {
+            LeftClick  = 'PAD1'; -- cross
+            RightClick = 'PAD2'; -- circle
+            Special    = 'PAD4'; -- triangle
+        };
+    };
+    radialPrimaryStick = {
+        [DESC] = 'Primary radial stick: which stick to intercept for main radial actions';
+        [DATA] = {
+            'Left';
+            'Movement';
+        };
+    };
+    radialSecondaryStick = {
+        [DESC] = 'Secondary radial stick: which stick to intercept for extra radial actions';
+        [DATA] = {
+            'Right';
+            'Cursor';
+        };
+    };
 }   --------------------------------------------------------------------------------------------------------
 
 CPAPI.Lock(DEFAULT_DATA)

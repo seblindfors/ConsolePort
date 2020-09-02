@@ -1,27 +1,62 @@
-local Radial, _, db = ConsolePortRadial, ...;
-local ANGLE_IDX_ONE, VALID_VEC_LEN = 90, 0.5;
-db:Register('Radial', Radial)
-Radial:Execute(([[
-	STICKS = newtable()
-	ANGLE_IDX_ONE = %d
-	VALID_VEC_LEN = %d
+---------------------------------------------------------------
+-- Radial handler for pie menus
+---------------------------------------------------------------
+-- This handler configures headers as pie menus, providing API
+-- to convert an angle in deg. to a menu index and vice versa.
+-- Keystrokes and specific stick inputs are interrupted by the
+-- handler and dispatched to the display layer on the header.
 
-]]):format(ANGLE_IDX_ONE, VALID_VEC_LEN))
+local Radial, RadialMixin, _, db = CPAPI.EventHandler(ConsolePortRadial), {}, ...;
+db:Register('Radial', Radial):Execute([[
+	----------------------------------------------------------
+	HEADERS = newtable()  -- maintain references to headers
+	STICKS  = newtable()  -- track config name to stick ID
+	ANGLE_IDX_ONE, VALID_VEC_LEN, COS_DELTA = 90, .5, -1;    
+	----------------------------------------------------------
+]])
 
-function Radial:OnActiveDeviceChanged()
-	self:Execute('wipe(STICKS)')
-	for id, name in db:For('Gamepad/Index/Stick/ID') do
-		self:Execute(('STICKS["%s"] = %d'):format(name, id))
-	end
+---------------------------------------------------------------
+-- RadialMixin, for headers registered as radials
+---------------------------------------------------------------
+RadialMixin.Env = {
+	GetIndex = [[
+		return radial:RunAttribute('GetIndexForStickPosition', self:GetAttribute('stick'), self:GetAttribute('size'))
+	]];
+	SpaceEvenly = [[
+		local children = newtable(self:GetChildren())
+		local radius = math.sqrt(self:GetWidth() * self:GetHeight()) / 2
+		local count = #children
+		self:SetAttribute('size', count)
+		for i, child in ipairs(children) do
+			child:ClearAllPoints()
+			child:SetPoint('CENTER', radial:RunAttribute('GetPointForIndex', i, count, radius))
+		end
+	]];
+}
+
+function RadialMixin:OnGamePadStick(...)
+	print(...)
 end
 
-db:RegisterVarCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
+function RadialMixin:OnLoad(data)
+	-- TODO: implement data (specific stick inputs etc)
+	-- may need to extend this to cover multiple needs
+	self:CreateEnvironment()
+	self:EnableGamePadStick(false)
 
+	self:WrapScript(self, 'OnShow', [[
+		self:EnableGamePadStick(true)
+	]])
+	self:WrapScript(self, 'OnHide', [[
+		self:EnableGamePadStick(false)
+	]])
+	return self
+end
 
+---------------------------------------------------------------
+-- Restricted pie slicer
+---------------------------------------------------------------
 Radial.Env = {
-	---------------------------------------------------------------
-	-- Simple pie slicer
-	---------------------------------------------------------------
 	-- @param  index : number [1,n], the index 
 	-- @param  size  : number [n>0], how many indices
 	-- @return angle : number [0-360], angle
@@ -48,7 +83,7 @@ Radial.Env = {
 	GetPointForIndex = [[
 		local index, size, radius = ...
 		local angle = self:Run(GetAngleForIndex, index, size)
-		return -(radius * math.cos(angle)), (radius * math.sin(angle))
+		return COS_DELTA * (radius * math.cos(angle)), (radius * math.sin(angle))
 	]];
 	-- @param  id  : numberID or name
 	-- @return x   : number [-1,1], X-position
@@ -80,10 +115,57 @@ Radial.Env = {
 			end
 		end
 		return index
-	]];
+	]];	
 }
 
-for func, body in pairs(Radial.Env) do
-	Radial:SetAttribute(func, body)
-	Radial:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
+---------------------------------------------------------------
+-- Radial handler API
+---------------------------------------------------------------
+function Radial:Register(header, name, ...)
+	header:SetFrameRef('radial', self)
+	header:Execute('radial = self:GetFrameRef("radial")')
+	self:SetFrameRef(name, header)
+	self:Execute(('HEADERS["%s"] = self:GetFrameRef("%s")'):format(name, name))
+	db('table/mixin')(header, RadialMixin)
+	return header:OnLoad(...)
 end
+
+function Radial:OnDataLoaded()
+	self:Execute(([[
+		ANGLE_IDX_ONE = %d %% 360; -- angle at which index should start
+		VALID_VEC_LEN = 1 - %d;    -- vector length for valid action
+		COS_DELTA     = %d;        -- delta for the cosine value    
+	]]):format(
+		db('Settings/radialStartIndexAt'),
+		db('Settings/radialActionDeadzone'),
+		db('Settings/radialCosineDelta')
+	));
+	return self
+end
+
+function Radial:OnActiveDeviceChanged()
+	self:Execute('wipe(STICKS)')
+	for id, name in db:For('Gamepad/Index/Stick/ID') do
+		self:Execute(('STICKS["%s"] = %d'):format(name, id))
+	end
+	return self
+end
+
+function Radial:CreateEnvironment()
+	for func, body in pairs(self.Env) do
+		self:SetAttribute(func, body)
+		self:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
+	end
+	return self
+end
+
+---------------------------------------------------------------
+-- Set environment on handler and feed stick data
+---------------------------------------------------------------
+Radial:OnDataLoaded():CreateEnvironment()
+RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
+---------------------------------------------------------------
+db:RegisterVarCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
+db:RegisterVarCallback('Settings/radialStartIndexAt', Radial.OnDataLoaded, Radial)
+db:RegisterVarCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
+db:RegisterVarCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)

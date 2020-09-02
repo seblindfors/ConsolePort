@@ -75,7 +75,7 @@ end
 function db:For(path, alphabetical)
 	local repo = self:Get(path)
 	assert(type(repo) == 'table', 'Path to database entry is invalid: ' .. tostring(path))
-	if #repo then
+	if #repo > 0 then
 		return ipairs(repo)
 	elseif alphabetical then
 		return self.table.spairs(repo)
