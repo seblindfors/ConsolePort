@@ -16,11 +16,12 @@
 --  See example at the bottom.
 --
 -- Usage:
---  Lib:CreateFrame(type, name, parent, inheritXML, blueprint) -> creates a frame from scratch.
---  Lib:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
---  Lib:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
+--  LibDynamite(type, name, parent, inheritXML, blueprint) -> return LibDynamite:CreateFrame(...)
+--  LibDynamite:CreateFrame(type, name, parent, inheritXML, blueprint) -> creates a frame from scratch.
+--  LibDynamite:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
+--  LibDynamite:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
 
-local Lib = LibStub:NewLibrary('LibDynamite', 2)
+local Lib = LibStub:NewLibrary('LibDynamite', 3)
 if not Lib then return end
 --------------------------------------------------------------------------
 local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
@@ -62,7 +63,7 @@ API = { -- Syntax: ['<CallID>'] = value or {value1, ..., valueN};
     Hooks      = function(frame, src)   for k, v in pairs(src)    do frame:HookScript(k, v)   end end;
     Scripts    = function(frame, src)   for k, v in pairs(src)    do frame:SetScript(k, v)    end end;
     --- Frame ------------------------------------------------------------
-    Backdrop   = function(frame, info)  frame:SetBackdrop(info)       end;
+    Backdrop   = function(frame, info)  Lib:SetBackdrop(frame, info)  end;
     Level      = function(frame, ...)   frame:SetFrameLevel(...)      end;
     Strata     = function(frame, ...)   frame:SetFrameStrata(...)     end;
     --- Region -----------------------------------------------------------
@@ -263,6 +264,23 @@ function Lib:Mixin(obj, ...)
     return obj
 end
 
+function Lib:SetBackdrop(frame, ...)
+    if BackdropTemplateMixin then
+        if not frame.OnBackdropLoaded then 
+            Mixin(frame, BackdropTemplateMixin)
+            frame:HookScript('OnSizeChanged', frame.OnBackdropSizeChanged)
+        end
+        BackdropTemplateMixin.SetBackdrop(frame, ...)
+    else
+        getmetatable(frame).__index.SetBackdrop(frame, ...)
+    end
+end
+
+setmetatable(Lib, {
+    __index = API;
+    __call = Lib.CreateFrame;
+})
+
 --------------------------------------------------------------------------
 ARGS = {
 --------------------------------------------------------------------------
@@ -338,21 +356,21 @@ function callMethodsOnWidget(widget, methods)
     end
 end
 
-function getrelative(region, relative)
-    if IsWidget(relative) then 
-        return relative
-    elseif type(relative) == 'string' then 
-        local searchResult
-        for key in relative:gmatch('%a+') do
-            if key == 'parent' then
-                searchResult = searchResult and searchResult:GetParent() or region:GetParent()
-            elseif searchResult then
-                searchResult = searchResult[key]
+function getrelative(region, query)
+    if IsWidget(query) then 
+        return query
+    elseif type(query) == 'string' then 
+        local relative
+        for key in query:gmatch('%w+') do
+            if ( key == 'parent' ) then
+                relative = relative and relative:GetParent() or region:GetParent()
+            elseif relative then
+                relative = relative[key]
             else
-                searchResult = region[key]
+                relative = region[key]
             end
         end
-        return searchResult
+        return relative
     else
         err('Relative region', region:GetName(), ERROR.CODES.RELATIVEREGION)
     end

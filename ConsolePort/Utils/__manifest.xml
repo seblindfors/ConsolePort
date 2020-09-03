@@ -3,6 +3,7 @@
 	<!-- Utils -->
 	<!-- TODO: document utils -->
 	<Script file="Wrapper.lua"/>
+	<Script file="Utils.lua"/>
 	<Script file="Callback.lua"/>
 	<Script file="Database.lua"/>
 	<Script file="Table.lua"/>

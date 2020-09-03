@@ -7,7 +7,7 @@
 -- Leverages Controller\UINode.lua for interface scans.
 
 local _, db = ...;
-local Cursor, Node, Input, Scroll, Fader = 
+local Cursor, Node, Input, Scroll, Fade = 
 	CPAPI.EventHandler(ConsolePortCursor),
 	ConsolePortNode,
 	ConsolePortInputHandler,
@@ -28,7 +28,7 @@ end
 
 function Cursor:PLAYER_REGEN_DISABLED()
 	if self:IsShown() then
-		Fader.Out(self, 0.2, self:GetAlpha(), 0)
+		Fade.Out(self, 0.2, self:GetAlpha(), 0)
 		self:ShowAfterCombat(true)
 		self:SetFlashNextNode()
 		self:Release()
@@ -40,7 +40,7 @@ function Cursor:PLAYER_REGEN_ENABLED()
 	if not self.timeLock and self.showAfterCombat then
 		self.timeLock = true
 		C_Timer.After(db('UIleaveCombatDelay'), function()
-			Fader.In(self, 0.2, self:GetAlpha(), 1)
+			Fade.In(self, 0.2, self:GetAlpha(), 1)
 			if not self:InCombat() and self:IsShown() then
 				self:SetBasicControls()
 				self:Refresh()
@@ -56,6 +56,7 @@ end
 
 function Cursor:CURSOR_CHANGED(isDefault)
 	if not isDefault then
+		-- TODO: QA
 		SetGamePadCursorControl(true)
 	end
 end

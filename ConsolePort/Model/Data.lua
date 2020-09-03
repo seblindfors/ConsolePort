@@ -47,23 +47,17 @@ local DATA, DESC = 1, 2; local DEFAULT_DATA = {
     };
 }   --------------------------------------------------------------------------------------------------------
 
-CPAPI.Lock(DEFAULT_DATA)
-for var, data in pairs(DEFAULT_DATA) do
-    if (type(data[1]) == 'table') then
-        CPAPI.Lock(data[1])
-    end
-end
-
 local DataAPI, _, db = CPAPI.CreateEventHandler({'Frame', '$parentDataHandler', ConsolePort}), ...
+local copy = db.table.copy;
 
 function DataAPI:OnDataLoaded()
 	local settings = setmetatable(ConsolePortSettings or {}, {
 		__index = function(self, key)
 			local var = DEFAULT_DATA[key]
-			return var and var[1]
+			return var and copy(var[DATA])
 		end;
 	})
 	db:Register('Settings', settings, true)
 	db:Default(settings)
-	db:Save('Settings', 'ConsolePortSettings') 
+	db:Save('Settings', 'ConsolePortSettings')
 end

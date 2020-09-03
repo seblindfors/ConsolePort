@@ -1,24 +1,23 @@
 -- TODO: everything
-
+local _, db = ...;
 --Button name="ConsolePortSpellFlyout" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate" parent="UIParent" registerForClicks="AnyDown" hidden="true"
-local Flyout, Selector = SpellFlyout, CreateFrame('Button', 'ConsolePortSpellFlyout', UIParent, 'SecureHandlerBaseTemplate, SecureActionButtonTemplate')
-Selector:Execute('this = self')
-Selector:WrapScript(Flyout, 'OnShow', [[
-	print(self:GetName())
-	print(this:GetName())
+local Flyout, Selector = SpellFlyout, CreateFrame('Frame', 'ConsolePortSpellFlyout', UIParent, 'SecureHandlerBaseTemplate')
 
-	this:EnableGamePadStick(true)
-	print(GetMouseButtonClicked())
+Selector:Execute('this = self')
+Selector:Hide()
+Selector:WrapScript(Flyout, 'OnShow', [[
+	this:Show()
 ]])
 
 Selector:WrapScript(Flyout, 'OnHide', [[
-	this:EnableGamePadStick(false)
+	this:Hide()
 ]])
 
+db('Radial'):Register(Selector, 'SpellFlyout', {
+	sticks = {'Left', 'Movement'};
+	target = {'Left'};
+})
 
-function Selector:OnGamePadStick(...)
-
+function Selector:OnInput(...)
+	print(...)
 end
-
-CPAPI.Start(Selector)
-Selector:EnableGamePadStick(false)
