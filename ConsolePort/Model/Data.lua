@@ -10,6 +10,7 @@ local DATA, DESC = 1, 2; local DEFAULT_DATA = {
     radialActionDeadzone    = {0.5      ; 'Deadzone for simple pie menus'};
     radialCosineDelta       = {-1       ; 'Direction of item order in a pie menu (default clockwise)'};
     radialStartIndexAt      = {90       ; 'Starting angle of the first item in a pie menu'};
+    radialClearFocusTime    = {0.5      ; 'Time to clear focus after intercepting stick input'};
     -- Interface cursor:
     UIdisableCursor         = {false    ; 'Disable interface cursor'};
     UIleaveCombatDelay      = {.5       ; 'Delay before re-activating UI core after combat'};

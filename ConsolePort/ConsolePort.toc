@@ -11,7 +11,7 @@
 
 
 Libs\__manifest.xml
-XML\Manifest.xml
+XML\__manifest.xml
 
 Utils\__manifest.xml
 Model\__manifest.xml

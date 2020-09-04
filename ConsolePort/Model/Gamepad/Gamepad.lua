@@ -144,15 +144,15 @@ function GamepadAPI:GetActiveModifiers()
 		return true
 	end
 
-	for M1 in spairs(mods) do
-		for M2 in spairs(mods) do
-			for M3 in spairs(mods) do
+	for M1, K1 in spairs(mods) do
+		for M2, K2 in spairs(mods) do
+			for M3, K3 in spairs(mods) do
 				if (assertUniqueOrder(M1, M2, M3)) then
-					mods[M1..M2..M3] = true
+					mods[M1..M2..M3] = ('%s-%s-%s'):format(K1, K2, K3)
 				end
 			end
 			if (assertUniqueOrder(M1, M2)) then
-				mods[M1..M2] = true
+				mods[M1..M2] = ('%s-%s'):format(K1, K2)
 			end
 		end
 	end

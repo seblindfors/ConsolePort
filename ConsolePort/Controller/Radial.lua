@@ -9,8 +9,10 @@
 local Radial, Dispatcher, RadialMixin, _, db = CPAPI.EventHandler(ConsolePortRadial), CreateFrame('Frame'), {}, ...;
 db:Register('Radial', Radial):Execute([[
 	----------------------------------------------------------
-	HEADERS = newtable()  -- maintain references to headers
-	STICKS  = newtable()  -- track config name to stick ID
+	HEADERS = newtable() -- maintain references to headers
+	STICKS  = newtable() -- track config name to stick ID
+	BTNS    = newtable() -- track config ID to bind name
+	MODS    = newtable() -- track modifiers
 	ANGLE_IDX_ONE, VALID_VEC_LEN, COS_DELTA = 90, .5, -1;    
 	----------------------------------------------------------
 ]])
@@ -25,7 +27,7 @@ db:Register('Radial', Radial):Execute([[
 function Dispatcher:OnGamePadStick(stick, x, y, len)
 	local this = self.focusFrame
 	if this and this.interrupt[stick] then
-		if this.intercept[stick] then
+		if this.intercept[stick] and not self.disabled then
 			this:OnInput(x, y, len, stick)
 		end
 		return self:SetPropagateKeyboardInput(false)
@@ -40,8 +42,23 @@ end
 
 function Dispatcher:ClearFocus(frame)
 	if self.focusFrame ~= frame then return end;
-	self.focusFrame = nil;
-	self:EnableGamePadStick(false)
+	self.disabled = true
+	C_Timer.After(db('radialClearFocusTime'), self.Disable)
+end
+
+function Dispatcher:ClearFocusInstantly(frame)
+	if self.focusFrame ~= frame then return end;
+	self.Disable()
+end
+
+function Dispatcher:IsDisabling()
+	return self.disabled
+end
+
+function Dispatcher.Disable() -- lambda
+	Dispatcher.disabled = nil;
+	Dispatcher.focusFrame = nil;
+	Dispatcher:EnableGamePadStick(false);
 end
 
 CPAPI.Start(Dispatcher)
@@ -60,6 +77,12 @@ RadialMixin.Env = {
 			stickID or self:GetAttribute('stick'),
 			size or self:GetAttribute('size')
 		);
+	]];
+	GetButtonsHeld = [[
+		return radial:RunAttribute('GetButtonsHeld')
+	]];
+	GetModifiersHeld = [[
+		return radial:RunAttribute('GetModifiersHeld')
 	]];
 	SpaceEvenly = [[
 		local children = newtable(self:GetChildren())
@@ -85,12 +108,16 @@ function RadialMixin:SetIntercept(sticks)
 	self:SetAttribute('stick', sticks and sticks[1])
 end
 
-function RadialMixin:GetPointForIndex(index)
-	return 'CENTER', Radial:GetPointForIndex(index, self:GetAttribute('size'), self:GetWidth())
+function RadialMixin:GetPointForIndex(index, size, radius)
+	return 'CENTER', Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
 end
 
 function RadialMixin:GetIndexForPos(x, y, len)
 	return Radial:GetIndexForStickPosition(x, y, len, self:GetAttribute('size'))
+end
+
+function RadialMixin:GetRotation(x, y)
+	return -math.atan2(x, y)
 end
 
 function RadialMixin:OnLoad(data)
@@ -98,13 +125,9 @@ function RadialMixin:OnLoad(data)
 	self:SetInterrupt(data.sticks)
 	self:SetIntercept(data.target)
 	self:SetAttribute('size', data.size)
-
-	self:WrapScript(self, 'OnShow', [[
-		-- crickets
-	]])
-	self:WrapScript(self, 'OnHide', [[
-		-- crickets
-	]])
+	if data.clicks then
+		self:RegisterForClicks(data.clicks)
+	end
 	return self
 end
 
@@ -112,8 +135,14 @@ function RadialMixin:OnShow()
 	Dispatcher:SetFocus(self)
 end
 
+function RadialMixin:ClearInstantly()
+	Dispatcher:ClearFocusInstantly(self)
+end
+
 function RadialMixin:OnHide()
-	Dispatcher:ClearFocus(self)
+	if not Dispatcher:IsDisabling() then
+		Dispatcher:ClearFocus(self)
+	end
 end
 
 function RadialMixin:OnInput(x, y, len, stick)
@@ -175,6 +204,7 @@ Radial.Env = {
 		if not len or len < VALID_VEC_LEN then return end
 
 		local angle = math.deg(math.atan2(x, y)) + ANGLE_IDX_ONE
+		angle = angle < 0 and angle + 360 or angle
 		local offset, index = math.huge
 		for i=1, size do
 			local distance = math.abs(angle - self:Run(GetAngleForIndex, i, size))
@@ -183,6 +213,32 @@ Radial.Env = {
 			end
 		end
 		return index
+	]];
+	-- @return buttons : list of buttons held
+	GetButtonsHeld = [[
+		local gstate = GetGamePadState()
+		local buttons = gstate and gstate.buttons
+		if not buttons then return end
+		local result = newtable()
+		for id, held in ipairs(buttons) do
+			if held and BTNS[id] and not MODS[ BTNS[id] ] then
+				result[#result+1] = BTNS[id]
+			end
+		end
+		return unpack(result)
+	]];
+
+	GetModifiersHeld = [[
+		local gstate = GetGamePadState()
+		local buttons = gstate and gstate.buttons
+		if not buttons then return end
+		local result = newtable()
+		for id, held in ipairs(buttons) do
+			if held and BTNS[id] then
+				result[#result+1] = MODS[ BTNS[id] ]
+			end
+		end
+		return unpack(result)
 	]];
 }
 
@@ -205,7 +261,7 @@ function Radial:OnDataLoaded()
 		VALID_VEC_LEN = 1 - db('Settings/radialActionDeadzone'); -- vector length for valid action
 		COS_DELTA     = db('Settings/radialCosineDelta');        -- delta for the cosine value
 	}) do
-		self:Execute(('%s = %d;'):format(attr, val))
+		self:Execute(('%s = %f;'):format(attr, val))
 		self[attr] = val
 	end
 	return self
@@ -215,6 +271,23 @@ function Radial:OnActiveDeviceChanged()
 	self:Execute('wipe(STICKS)')
 	for id, name in db:For('Gamepad/Index/Stick/ID') do
 		self:Execute(('STICKS["%s"] = %d'):format(name, id))
+	end
+	local modifiers = db('Gamepad/Index/Modifier/Active')
+	local modkeys = tInvert(modifiers)
+	self:Execute('wipe(BTNS)')
+	for id, set in db:For('Gamepad/Index/Button/Binding') do
+		if not id:match('STICK') then
+			self:Execute(([[
+				BTNS[%d] = "%s";
+				BTNS["%s"] = %d;
+			]]):format(set.ID+1, id, id, set.ID+1))
+		end
+	end
+	self:Execute('wipe(MODS)')
+	for modifier, key in pairs(modifiers) do
+		if key ~= true then
+			self:Execute(('MODS["%s"] = "%s"'):format(key, modifier));
+		end
 	end
 	return self
 end
@@ -238,12 +311,13 @@ end
 
 function Radial:GetPointForIndex(index, size, radius)
 	local angle = self:GetAngleForIndex(index, size)
-	return self.COS_DELTA * (radius * math.cos(angle)), (radius * math.sin(angle))
+	return self.COS_DELTA * (radius * cos(angle)), (radius * sin(angle))
 end
 
 function Radial:GetIndexForStickPosition(x, y, len, size)
 	if not len or len < self.VALID_VEC_LEN then return end
 	local angle = math.deg(math.atan2(x, y)) + self.ANGLE_IDX_ONE
+	angle = angle < 0 and angle + 360 or angle
 	local offset, index = math.huge
 	for i=1, size do
 		local distance = math.abs(angle - self:GetAngleForIndex(i, size))
