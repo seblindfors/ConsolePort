@@ -45,8 +45,8 @@
 		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" alpha="0.5"/>
 		<PushedTexture parentKey="PushedTexture">
 			<Anchors>
-				<Anchor point="TOPLEFT" x="1" y="-1"/>
-				<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+				<Anchor point="TOPLEFT" y="-1"/>
+				<Anchor point="BOTTOMRIGHT" y="-1"/>
 			</Anchors>
 		</PushedTexture>
 		<CheckedTexture parentKey="CheckedTexture" atlas="charactercreate-ring-select" texelSnappingBias="0.0" snapToPixelGrid="false">
@@ -125,10 +125,10 @@
 
 		<Layers>
 			<Layer level="OVERLAY" textureSubLevel="2">
-				<FontString parentKey="ClassName" inherits="GameFontNormalMed3" justifyH="CENTER" justifyV="MIDDLE">
+				<FontString parentKey="Description" inherits="GameFontNormalMed3" justifyH="CENTER" justifyV="MIDDLE">
 					<Size x="85" y="50"/>
 					<Anchors>
-						<Anchor point="TOP" relativePoint="BOTTOM" x="2" y="3"/>
+						<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="3"/>
 					</Anchors>
 				</FontString>
 			</Layer>

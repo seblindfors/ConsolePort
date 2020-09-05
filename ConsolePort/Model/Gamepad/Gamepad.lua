@@ -179,7 +179,7 @@ function GamepadAPI:GetBindings()
 	return bindings
 end
 
-function GamepadAPI:GetBindingKey(binding)
+function GamepadAPI:GetBindingKey(binding, astable)
 	return unpack(tFilter({GetBindingKey(binding)}, function(x)
 		return x:match 'PAD' and not x:match 'NUM'
 	end, true))

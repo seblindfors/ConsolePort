@@ -201,9 +201,13 @@ function CPButtonMixin:OnClick()
 	PlaySound(SOUNDKIT.GS_CHARACTER_CREATION_CLASS)
 end
 
+function CPButtonMixin:SetDescription(text)
+	self.Description:SetText(text)
+end
+
 function CPButtonMixin:SetEnabledState(enabled)
 	CPMaskedButtonMixin.SetEnabledState(self, enabled)
-	self.ClassName:SetFontObject(enabled and 'GameFontNormalMed3' or 'GameFontDisableMed3')
+	self.Description:SetFontObject(enabled and 'GameFontNormalMed3' or 'GameFontDisableMed3')
 end
 
 function CPButtonMixin:OnEnter()
@@ -213,4 +217,3 @@ end
 function CPButtonMixin:OnLeave()
 	CPFrameWithTooltipMixin.OnLeave(self)
 end
-

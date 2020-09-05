@@ -57,7 +57,7 @@ end
 function Cursor:CURSOR_CHANGED(isDefault)
 	if not isDefault then
 		-- TODO: QA
-		SetGamePadCursorControl(true)
+	--	SetGamePadCursorControl(true)
 	end
 end
 
@@ -700,5 +700,5 @@ end
 CPAPI.Start(Cursor)
 hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
 	-- TODO: work on this, it's not good yet
-	Cursor:SetEnabled(state)
+--	Cursor:SetEnabled(state)
 end)

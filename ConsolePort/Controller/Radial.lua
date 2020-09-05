@@ -10,7 +10,7 @@ local Radial, Dispatcher, RadialMixin, _, db = CPAPI.EventHandler(ConsolePortRad
 db:Register('Radial', Radial):Execute([[
 	----------------------------------------------------------
 	HEADERS = newtable() -- maintain references to headers
-	STICKS  = newtable() -- track config name to stick ID
+	STIX    = newtable() -- track config name to stick ID
 	BTNS    = newtable() -- track config ID to bind name
 	MODS    = newtable() -- track modifiers
 	ANGLE_IDX_ONE, VALID_VEC_LEN, COS_DELTA = 90, .5, -1;    
@@ -75,7 +75,8 @@ RadialMixin.Env = {
 		return radial:RunAttribute(
 			'GetIndexForStickPosition',
 			stickID or self:GetAttribute('stick'),
-			size or self:GetAttribute('size')
+			size or UpdateSize and self:Run(UpdateSize) or
+			self:GetAttribute('size')
 		);
 	]];
 	GetButtonsHeld = [[
@@ -94,6 +95,20 @@ RadialMixin.Env = {
 			child:SetPoint('CENTER', radial:RunAttribute('GetPointForIndex', i, count, radius))
 		end
 	]];
+	SetBindingsForTriggers = [[
+		local mods = newtable(self:Run(GetModifiersHeld))
+		local btns = newtable(self:Run(GetButtonsHeld))
+		table.sort(mods)
+		mods[#mods+1] = table.concat(mods)
+
+		for _, btn in ipairs(btns) do
+			self:SetBindingClick(true, btn, self, btn)
+			for _, mod in ipairs(mods) do
+				self:SetBindingClick(true, (mod..btn):upper(), self, btn)
+			end
+		end
+		return #btns > 0;
+	]];
 }
 
 function RadialMixin:SetInterrupt(sticks)
@@ -108,6 +123,14 @@ function RadialMixin:SetIntercept(sticks)
 	self:SetAttribute('stick', sticks and sticks[1])
 end
 
+function RadialMixin:SetDynamicSizeFunction(body)
+	self:SetAttribute('UpdateSize', body .. [[
+		self:SetAttribute('size', size)
+		return size;
+	]])
+	self:Execute('UpdateSize = self:GetAttribute("UpdateSize")')
+end
+
 function RadialMixin:GetPointForIndex(index, size, radius)
 	return 'CENTER', Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
 end
@@ -116,17 +139,20 @@ function RadialMixin:GetIndexForPos(x, y, len)
 	return Radial:GetIndexForStickPosition(x, y, len, self:GetAttribute('size'))
 end
 
-function RadialMixin:GetRotation(x, y)
-	return -math.atan2(x, y)
+function RadialMixin:GetValidThreshold()
+	return Radial.VALID_VEC_LEN or .5;
 end
 
 function RadialMixin:OnLoad(data)
 	self:CreateEnvironment()
 	self:SetInterrupt(data.sticks)
 	self:SetIntercept(data.target)
-	self:SetAttribute('size', data.size)
+	self:SetDynamicSizeFunction(data.sizer)
 	if data.clicks then
 		self:RegisterForClicks(data.clicks)
+	end
+	if data.input then
+		self.OnInput = data.input
 	end
 	return self
 end
@@ -154,6 +180,13 @@ end
 -- Restricted pie slicer
 ---------------------------------------------------------------
 Radial.Env = {
+	-- @param  a1    : number [0-360], first angle
+	-- @param  a2    : number [0-360], second angle
+	-- @return diff  : number, difference between angles
+	GetAngleDistance = [[
+		local a1, a2 = ...
+		return (180 - math.abs(math.abs(a1 - a2) - 180));
+	]];
 	-- @param  index : number [1,n], the index 
 	-- @param  size  : number [n>0], how many indices
 	-- @return angle : number [0-360], angle
@@ -180,6 +213,14 @@ Radial.Env = {
 	GetPointForIndex = [[
 		local index, size, radius = ...
 		local angle = self:Run(GetAngleForIndex, index, size)
+		return self:Run(GetPointForAngle, angle, radius)
+	]];
+	-- @param  angle  : number[0, 360], the angle
+	-- @param  radius : number, multiplier for size
+	-- @return x      : number, the X-position from origin
+	-- @return y      : number, the Y-position from origin
+	GetPointForAngle = [[
+		local angle, radius = ...
 		return COS_DELTA * (radius * math.cos(angle)), (radius * math.sin(angle))
 	]];
 	-- @param  id  : numberID or name
@@ -191,7 +232,7 @@ Radial.Env = {
 		local gstate = GetGamePadState()
 		local sticks = gstate and gstate.sticks
 		if not sticks then return end
-		local pos = sticks[ tonumber(id) or STICKS[id] ]
+		local pos = sticks[ tonumber(id) or STIX[id] ]
 		if not pos then return end
 		return pos.x, pos.y, pos.len
 	]];
@@ -204,10 +245,12 @@ Radial.Env = {
 		if not len or len < VALID_VEC_LEN then return end
 
 		local angle = math.deg(math.atan2(x, y)) + ANGLE_IDX_ONE
-		angle = angle < 0 and angle + 360 or angle
+		angle = ((angle % 360) + 360) % 360;
+
 		local offset, index = math.huge
 		for i=1, size do
-			local distance = math.abs(angle - self:Run(GetAngleForIndex, i, size))
+			local comp = self:Run(GetAngleForIndex, i, size)
+			local distance = self:Run(GetAngleDistance, angle, comp)
 			if distance < offset then
 				offset, index = distance, i
 			end
@@ -268,9 +311,9 @@ function Radial:OnDataLoaded()
 end
 
 function Radial:OnActiveDeviceChanged()
-	self:Execute('wipe(STICKS)')
+	self:Execute('wipe(STIX)')
 	for id, name in db:For('Gamepad/Index/Stick/ID') do
-		self:Execute(('STICKS["%s"] = %d'):format(name, id))
+		self:Execute(('STIX["%s"] = %d'):format(name, id))
 	end
 	local modifiers = db('Gamepad/Index/Modifier/Active')
 	local modkeys = tInvert(modifiers)
@@ -304,6 +347,10 @@ end
 ---------------------------------------------------------------
 -- Unrestricted data access
 ---------------------------------------------------------------
+function Radial:GetAngleDistance(a1, a2)
+	return (180 - math.abs(math.abs(a1 - a2) - 180));
+end
+
 function Radial:GetAngleForIndex(index, size)
 	local step = 360 / size
 	return ((self.ANGLE_IDX_ONE + ((index - 1) * step)) % 360)
@@ -317,10 +364,11 @@ end
 function Radial:GetIndexForStickPosition(x, y, len, size)
 	if not len or len < self.VALID_VEC_LEN then return end
 	local angle = math.deg(math.atan2(x, y)) + self.ANGLE_IDX_ONE
-	angle = angle < 0 and angle + 360 or angle
+	angle = ((angle % 360) + 360) % 360;
+
 	local offset, index = math.huge
 	for i=1, size do
-		local distance = math.abs(angle - self:GetAngleForIndex(i, size))
+		local distance = self:GetAngleDistance(angle, self:GetAngleForIndex(i, size))
 		if distance < offset then
 			offset, index = distance, i
 		end

@@ -7,4 +7,5 @@
 	<Script file="Input.lua"/>
 	<Script file="Pager.lua"/>
 	<Script file="Radial.lua"/>
+	<Script file="Mouse.lua"/>
 </Ui>

@@ -120,3 +120,17 @@ function CPAPI.Hex2RGB(hex, fractal)
     		( (tonumber(hex:sub(5,6), 16) or div) / div ), -- B
     		( (tonumber(hex:sub(7,8), 16) or div) / div ); -- A
 end
+
+function CPAPI.GetMixColorGradient(dir, r, g, b, a, base, multi)
+	local add = base or 0.3
+	local mul = multi or 1.1
+	local alp = a or 1
+
+	return dir,
+		0 + (r + add) * mul, 0 + (g + add) * mul, 0 + (b + add) * mul, alp, 
+		1 - (r - add) * mul, 1 - (g - add) * mul, 1 - (b - add) * mul, alp;
+end
+
+function CPAPI.InvertColor(r, g, b)
+	return 1-r, 1-g, 1-b;
+end
