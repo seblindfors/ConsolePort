@@ -69,7 +69,7 @@ function Mouse:ClearTimer(callback)
 end
 
 ---------------------------------------------------------------
--- Predicate evaluators (should always return boolean)
+-- Predicates (should always return boolean)
 ---------------------------------------------------------------
 local CameraControl  = IsGamePadFreelookEnabled;
 local CursorControl  = IsGamePadCursorControlEnabled;
