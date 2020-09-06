@@ -127,8 +127,18 @@ function CPAPI.GetMixColorGradient(dir, r, g, b, a, base, multi)
 	local alp = a or 1
 
 	return dir,
-		0 + (r + add) * mul, 0 + (g + add) * mul, 0 + (b + add) * mul, alp, 
+		0 + (r + add) * mul, 0 + (g + add) * mul, 0 + (b + add) * mul, alp,
 		1 - (r - add) * mul, 1 - (g - add) * mul, 1 - (b - add) * mul, alp;
+end
+
+function CPAPI.GetReverseMixColorGradient(dir, r, g, b, a, base, multi)
+	local add = base or 0.3
+	local mul = multi or 1.1
+	local alp = a or 1
+
+	return dir,
+		1 - (r - add) * mul, 1 - (g - add) * mul, 1 - (b - add) * mul, alp,
+		0 + (r + add) * mul, 0 + (g + add) * mul, 0 + (b + add) * mul, alp;
 end
 
 function CPAPI.InvertColor(r, g, b)

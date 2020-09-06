@@ -28,10 +28,10 @@ function CPPieMenuMixin:SetFocusByIndex(index)
 end
 
 function CPPieMenuMixin:ReflectStickPosition(x, y, len, isValid)
-	local color = isValid and self.VertexValid or self.VertexColor;
+	local color = isValid and self.VertexColor or self.VertexValid;
 	self.Arrow:SetVertexColor(color:GetRGBA())
 
-	local r, g, b = CPAPI.InvertColor(self.VertexColor:GetRGBA())
+	local r, g, b = self.VertexColor:GetRGBA()
 	self.BG:SetGradientAlpha(self:GetMixGradient(r * len, g * len, b * len, len))
 	self.Arrow:SetAlpha(len + len/1.5)
 
@@ -41,7 +41,7 @@ function CPPieMenuMixin:ReflectStickPosition(x, y, len, isValid)
 end
 
 function CPPieMenuMixin:GetMixGradient(...)
-	return CPAPI.GetMixColorGradient('VERTICAL', ...)
+	return CPAPI.GetReverseMixColorGradient('VERTICAL', ...)
 end
 
 function CPPieMenuMixin:GetFadeGradient(...)

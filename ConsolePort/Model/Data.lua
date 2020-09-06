@@ -8,6 +8,8 @@ local DATA, DESC = 1, 2; local DEFAULT_DATA = {
     actionPageResponse      = {''       ; 'Response to condition for custom processing'};
     -- Mouse:
     mouseHandlingEnabled    = {true     ; 'Enable custom mouse handling'};
+    mouseAutoClearCenter    = {2.0      ; 'Time in seconds to automatically hide centered cursor'};
+    mouseAlwaysCentered     = {false    ; 'Always keep cursor centered when controlling camera'};
     -- Radial:
     radialActionDeadzone    = {0.5      ; 'Deadzone for simple pie menus'};
     radialCosineDelta       = {-1       ; 'Direction of item order in a pie menu (default clockwise)'};
