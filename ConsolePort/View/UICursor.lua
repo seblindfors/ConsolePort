@@ -131,6 +131,17 @@ function Cursor:Refresh()
 	return self:AttemptSelectNode()
 end
 
+function Cursor:RefreshToFrame(frame)
+	if not self:IsShown() then
+		self:Show()
+		self:SetBasicControls()
+		self:OnLeaveNode(self:GetCurrentNode())
+		self:SetFlashNextNode()
+		Node(frame)
+		return self:AttemptSelectNode()
+	end
+end
+
 
 function Cursor:OnUpdate(elapsed)
 	if self:InCombat() then return end
@@ -700,5 +711,13 @@ end
 CPAPI.Start(Cursor)
 hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
 	-- TODO: work on this, it's not good yet
---	Cursor:SetEnabled(state)
+	if not state then
+	--	Cursor:SetEnabled(state)
+	end
+end)
+
+hooksecurefunc('ShowUIPanel', function(frame)
+	if not Cursor:InCombat() then
+	--	Cursor:RefreshToFrame(frame)
+	end
 end)

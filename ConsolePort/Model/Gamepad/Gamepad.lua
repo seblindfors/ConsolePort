@@ -195,7 +195,7 @@ end
 function GamepadMixin:OnLoad(data)
 	self.Icons = CPAPI.Proxy({}, function(_, id)
 		local id, style = strsplit('-', id)
-		return style and self:GetIconForBinding(id, style) or self:GetIconIDForBinding(id)
+		return style and self:GetIconForButton(id, style) or self:GetIconIDForButton(id)
 	end)
 
 	self:UpdateConfig()
@@ -228,28 +228,33 @@ end
 ---------------------------------------------------------------
 -- Icon queries
 ---------------------------------------------------------------
-function GamepadMixin:GetIconForBinding(binding, style)
-	assert(binding, 'Binding is not defined.')
-	return GamepadAPI:GetIconPath(db(('Gamepad/Index/Icons/%s'):format(self:GetIconIDForBinding(binding))), style)
+function GamepadMixin:GetTooltipButtonPrompt(button, prompt, style)
+	local color = self.Theme.Colors[button] or 'FFFFFF';
+	return ('|T%s:24:24:0:0|t |cFF%s%s|r'):format(self:GetIconForButton(button, style), color, prompt)
 end
 
-function GamepadMixin:GetIconIDForBinding(binding)
-	assert(binding, 'Binding is not defined.')
-	return self.Theme.Icons[binding]
+function GamepadMixin:GetIconForButton(button, style)
+	assert(button, 'Button is not defined.')
+	return GamepadAPI:GetIconPath(db(('Gamepad/Index/Icons/%s'):format(self:GetIconIDForButton(button))), style)
+end
+
+function GamepadMixin:GetIconIDForButton(button)
+	assert(button, 'Button is not defined.')
+	return self.Theme.Icons[button]
 end
 
 function GamepadMixin:GetIconForName(name, style)
-	return self:GetIconForBinding(db(('Gamepad/Index/Button/Config/%s/Binding'):format(name)))
+	return self:GetIconForButton(db(('Gamepad/Index/Button/Config/%s/Binding'):format(name)))
 end
 
 function GamepadMixin:GetIconIDForName(name)
-	return self:GetIconIDForBinding(db(('Gamepad/Index/Button/Config/%s/Binding'):format(name)))
+	return self:GetIconIDForButton(db(('Gamepad/Index/Button/Config/%s/Binding'):format(name)))
 end
 
 function GamepadMixin:GetIconForIndex(i, style)
-	return self:GetIconForBinding(db(('Gamepad/Index/Button/ID/%d/Binding'):format(i)))
+	return self:GetIconForButton(db(('Gamepad/Index/Button/ID/%d/Binding'):format(i)))
 end
 
 function GamepadMixin:GetIconIDForIndex(i)
-	return self:GetIconIDForBinding(db(('Gamepad/Index/Button/ID/%d/Binding'):format(i)))
+	return self:GetIconIDForButton(db(('Gamepad/Index/Button/ID/%d/Binding'):format(i)))
 end

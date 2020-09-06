@@ -95,6 +95,11 @@ RadialMixin.Env = {
 			child:SetPoint('CENTER', radial:RunAttribute('GetPointForIndex', i, count, radius))
 		end
 	]];
+	SetBinding = [[
+		local btn, mod = ...
+		self:SetBindingClick(true, ((mod or '')..btn):upper(), self, btn)
+		self:CallMethod('OnBindingSet', btn, mod)
+	]];
 	SetBindingsForTriggers = [[
 		local mods = newtable(self:Run(GetModifiersHeld))
 		local btns = newtable(self:Run(GetButtonsHeld))
@@ -102,9 +107,9 @@ RadialMixin.Env = {
 		mods[#mods+1] = table.concat(mods)
 
 		for _, btn in ipairs(btns) do
-			self:SetBindingClick(true, btn, self, btn)
+			self:Run(SetBinding, btn)
 			for _, mod in ipairs(mods) do
-				self:SetBindingClick(true, (mod..btn):upper(), self, btn)
+				self:Run(SetBinding, btn, mod)
 			end
 		end
 		return #btns > 0;
@@ -135,8 +140,8 @@ function RadialMixin:GetPointForIndex(index, size, radius)
 	return 'CENTER', Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
 end
 
-function RadialMixin:GetIndexForPos(x, y, len)
-	return Radial:GetIndexForStickPosition(x, y, len, self:GetAttribute('size'))
+function RadialMixin:GetIndexForPos(x, y, len, size)
+	return Radial:GetIndexForStickPosition(x, y, len, size or self:GetAttribute('size'))
 end
 
 function RadialMixin:GetValidThreshold()
@@ -150,9 +155,6 @@ function RadialMixin:OnLoad(data)
 	self:SetDynamicSizeFunction(data.sizer)
 	if data.clicks then
 		self:RegisterForClicks(data.clicks)
-	end
-	if data.input then
-		self.OnInput = data.input
 	end
 	return self
 end
@@ -172,6 +174,10 @@ function RadialMixin:OnHide()
 end
 
 function RadialMixin:OnInput(x, y, len, stick)
+	-- replace with callback
+end
+
+function RadialMixin:OnBindingSet(btn, mod)
 	-- replace with callback
 end
 
@@ -294,7 +300,11 @@ function Radial:Register(header, name, ...)
 	header:Execute('radial = self:GetFrameRef("radial")')
 	self:SetFrameRef(name, header)
 	self:Execute(('HEADERS["%s"] = self:GetFrameRef("%s")'):format(name, name))
+	local OnInput = header.OnInput
+	local OnBindingSet = header.OnBindingSet
 	db('table/mixin')(header, RadialMixin)
+	if OnInput then header.OnInput = OnInput; end
+	if OnBindingSet then header.OnBindingSet = OnBindingSet; end;
 	return header:OnLoad(...)
 end
 

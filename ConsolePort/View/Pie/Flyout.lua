@@ -4,15 +4,14 @@ local Selector, Fade, FlyoutButtonMixin = CPAPI.EventHandler(ConsolePortSpellFly
 
 Selector:SetFrameRef('flyout', SpellFlyout)
 Selector:Execute('this = self; that = self:GetFrameRef("flyout"); BUTTONS = newtable()')
+Selector:SetAttribute('ClearAndHide', [[
+	self:CallMethod('ClearInstantly')
+	self:SetAttribute('type', nil)
+	local owner = that:GetParent()
+	owner:Hide()
+	owner:Show()
+]])
 Selector:WrapScript(SpellFlyout, 'OnShow', [[
-	local children = newtable(self:GetChildren())
-	for i, child in ipairs(children) do
-		if child:IsVisible() then
-			BUTTONS[#BUTTONS+1] = child
-		end
-	end
-	this:SetAttribute('size', #BUTTONS)
-
 	if this:RunAttribute('SetBindingsForTriggers') then
 		this:Show()
 		self:SetAlpha(0)
@@ -31,18 +30,13 @@ Selector:WrapScript(SpellFlyout, 'OnHide', [[
 ]])
 
 Selector:WrapScript(Selector, 'PreClick', [[
---	print(button, down)
 	local index = self:RunAttribute('GetIndex')
 	local button = index and BUTTONS[index]
 	if button then
 		self:SetAttribute('type', 'macro')
 		self:SetAttribute('macrotext', '/click '..button:GetName())
 	else
-		self:CallMethod('ClearInstantly')
-		self:SetAttribute('type', nil)
-		local owner = that:GetParent()
-		owner:Hide()
-		owner:Show()
+		self:RunAttribute('ClearAndHide')
 	end
 ]])
 
@@ -60,7 +54,6 @@ function Selector:OnDataLoaded(...)
 	end)
 	local sticks = db('radialPrimaryStick')
 	db('Radial'):Register(self, 'SpellFlyout', {
-		input  = self.OnInput;
 		sticks = sticks;
 		target = {sticks[1]};
 		sizer  = [[
@@ -76,12 +69,20 @@ function Selector:OnDataLoaded(...)
 end
 
 function Selector:OnInput(x, y, len, stick)
-	self:SetFocusByIndex(self:GetIndexForPos(x, y, len))
+	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
 	self:ReflectStickPosition(x, y, len, len > self:GetValidThreshold())
+end
+
+function Selector:OnBindingSet(btn, mod)
+	if ( not mod ) then
+		self.buttonTrigger = btn;
+	end
 end
 
 function Selector:AddButton(i, size)
 	local button = self:Acquire(i)
+	button:RegisterForDrag('LeftButton')
+	button:SetScript('OnDragStart', FlyoutButtonMixin.OnDragStart)
 	button:SetPoint(self:GetPointForIndex(i, size))
 	button:Show()
 	return button
@@ -90,9 +91,17 @@ end
 function FlyoutButtonMixin:OnFocus(newFocus)
 	self:SetChecked(true)
 	if newFocus then
+		local button = self:GetParent().buttonTrigger;
+		if button then
+			local device = db('Gamepad/Active')
+			button = device and device:GetTooltipButtonPrompt(button, USE, 64)
+		end
 		self:StartFlash()
 		GameTooltip_SetDefaultAnchor(GameTooltip, self)
 		GameTooltip:SetSpellByID(self.spellID)
+		if button then
+			GameTooltip:AddLine(button)
+		end
 		GameTooltip:Show()
 	end
 end
@@ -120,6 +129,12 @@ function FlyoutButtonMixin:Update(offSpec, spellID, spellName, overrideSpellID)
 	self.spellID = spellID;
 	self.spellName = spellName;
 	self:SetIcon(GetSpellTexture(overrideSpellID))
+end
+
+function FlyoutButtonMixin:OnDragStart()
+	if (self.spellID) and not InCombatLockdown() then
+		PickupSpell(self.spellID);
+	end
 end
 
 -- signature: (self, flyoutID, parent, direction, distance, isActionBar, specID, showFullTooltip, reason)
@@ -166,3 +181,7 @@ hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActi
 		button:SetDescription(data.spellName)
 	end
 end)
+
+
+
+local Mouse = Selector.MouseTrap

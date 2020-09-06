@@ -117,7 +117,7 @@ do local cvarCallbacks, _, db = {}, ...
 		tinsert(cvarCallbacks[cvar], {func, owner, ...})
 	end
 
-	function db:FireVarCallback(cvar, newvalue)
+	function db:FireVarCallback(cvar, ...)
 		local cvarCallbacks = cvarCallbacks[cvar]
 		if cvarCallbacks then
 			for i, data in ipairs(cvarCallbacks) do
@@ -130,11 +130,13 @@ do local cvarCallbacks, _, db = {}, ...
 					end
 				end
 				if C_Widget.IsFrameWidget(owner) then
-					ConsolePort:RunOOC(cb, cb, callback, owner, newvalue, unpack(data, 3))
+					ConsolePort:RunOOC(cb, cb, callback, owner, ...)
 				else
-					ConsolePort:RunOOC(cb, cb, callback, newvalue, owner, unpack(data, 3))
+					ConsolePort:RunOOC(cb, cb, callback, ...)
 				end
 			end
 		end
 	end
+
+	hooksecurefunc(EventRegistry, 'TriggerEvent', db.FireVarCallback)
 end

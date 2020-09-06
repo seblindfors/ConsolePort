@@ -3,10 +3,10 @@ select(2, ...).Gamepad:AddGamepad({
 	Version = 1;
 	Theme = {
 		Colors = {
-			PADDUP    = '62BBB2';
-			PADDLEFT  = 'D35280';
-			PADDRIGHT = 'D84E58';
-			PADDDOWN  = '6882A1';
+			PAD1 = '6882A1';
+			PAD2 = 'D84E58';
+			PAD3 = 'D35280';
+			PAD4 = '62BBB2';
 		};
 		Icons = {
 			PADDUP       = 'All/Up';

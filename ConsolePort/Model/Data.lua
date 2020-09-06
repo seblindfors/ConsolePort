@@ -6,6 +6,8 @@ local DATA, DESC = 1, 2; local DEFAULT_DATA = {
     -- Action page handling:
     actionPageCondition     = {''       ; 'Macro condition to evaluate action bar page'};
     actionPageResponse      = {''       ; 'Response to condition for custom processing'};
+    -- Mouse:
+    mouseHandlingEnabled    = {true     ; 'Enable custom mouse handling'};
     -- Radial:
     radialActionDeadzone    = {0.5      ; 'Deadzone for simple pie menus'};
     radialCosineDelta       = {-1       ; 'Direction of item order in a pie menu (default clockwise)'};

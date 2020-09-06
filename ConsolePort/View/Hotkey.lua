@@ -69,14 +69,14 @@ db:RegisterVarCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, Ho
 function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	for i, modifier in ipairs(modifiers) do
 		local button = db('Gamepad/Index/Modifier/Key/'..modifier)
-		modifiers[i] = button and device:GetIconForBinding(button, style) or nil
+		modifiers[i] = button and device:GetIconForButton(button, style) or nil
 	end
 	return modifiers
 end
 
 function HotkeyHandler:GetHotkeyData(device, btnID, modID, style)
 	return {
-		button = device:GetIconForBinding(btnID, style);
+		button = device:GetIconForButton(btnID, style);
 		modifier = self:GetIconsForModifier({strsplit('-', modID)}, device, style);
 	}
 end

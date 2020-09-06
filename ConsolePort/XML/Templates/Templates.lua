@@ -129,9 +129,10 @@ function CPMaskedButtonMixin:SetIconAtlas(atlas)
 end
 
 function CPMaskedButtonMixin:SetIcon(texture)
-	self:SetNormalTexture(texture)
-	self:SetPushedTexture(texture)
-	self.Flash.Portrait:SetTexture(texture)
+	local default = not texture and [[Interface\AddOns\ConsolePort\Textures\Button\EmptyIcon]]
+	self:SetNormalTexture(texture or default)
+	self:SetPushedTexture(texture or default)
+	self.Flash.Portrait:SetTexture(texture or default)
 end
 
 function CPMaskedButtonMixin:StartFlash()

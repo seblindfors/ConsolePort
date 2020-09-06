@@ -6,7 +6,6 @@
 	<Include file="Templates\MenuUI.xml"/>
 	<Include file="Templates\Ring.xml"/>
 	<Include file="Templates\Popup.xml"/>-->
-	<Include file="Templates/Intrinsic/Intrinsic.xml"/>
 	
 	<Include file="Frames/Frames.xml"/>
 	<Include file="Templates/Templates.xml"/>
