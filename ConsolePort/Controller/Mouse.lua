@@ -84,7 +84,7 @@ local WorldInteract  = function() return TooltipShowing() and GetMouseFocus() ==
 local MouseOver      = function() return UnitExists('mouseover') or WorldInteract() end;
 
 ---------------------------------------------------------------
--- Compounded queries:
+-- Compounded queries
 ---------------------------------------------------------------
 function Mouse:ShouldSetCenteredCursor(_)
 	return is(_, RightClick, CameraControl) and isnt(_, CursorCentered)
@@ -107,7 +107,7 @@ function Mouse:ShouldSetFreeCursor(_)
 end
 
 ---------------------------------------------------------------
--- Base control functions: (there seems to be bugs with these API functions)
+-- Base control functions (there seems to be bugs with these API functions)
 ---------------------------------------------------------------
 function Mouse:SetCentered(enabled)
 	SetCVar('GamePadCursorCentering', enabled)
@@ -130,7 +130,7 @@ function Mouse:SetPropagation(enabled)
 end
 
 ---------------------------------------------------------------
--- Compounded control functions:
+-- Compounded control functions
 ---------------------------------------------------------------
 function Mouse:SetFreeCursor()
 	return self
@@ -140,7 +140,7 @@ function Mouse:SetFreeCursor()
 end
 
 function Mouse:SetCenteredCursor()
-	self:SetTimer(self.ClearCenteredCursor, db('mouseAutoClearCenter'))
+	self:SetTimer(self.AttemptClearCenteredCursor, db('mouseAutoClearCenter'))
 	return self
 		:SetCentered(true)
 		:SetFreeLook(false)
@@ -148,12 +148,20 @@ function Mouse:SetCenteredCursor()
 end
 
 function Mouse:ClearCenteredCursor()
-	self:ClearTimer(self.ClearCenteredCursor)
-	if db('mouseAlwaysCentered') then return self end
+	self:ClearTimer(self.AttemptClearCenteredCursor)
 	return self
 		:SetCentered(false)
 		:SetFreeLook(false)
 		:SetCursorControl(false)
+end
+
+function Mouse:AttemptClearCenteredCursor(_)
+	if db('mouseAlwaysCentered') then return self end
+	-- TODO: timeout should happen after mouseover ends
+	if is(_, MouseOver) then
+		return self:SetTimer(self.AttemptClearCenteredCursor, db('mouseAutoClearCenter'))
+	end
+	return self:ClearCenteredCursor()
 end
 
 ---------------------------------------------------------------
@@ -169,7 +177,13 @@ function Mouse:OnGamePadButtonDown(button)
 	end
 	if self:ShouldClearCenteredCursor(button) then
 		return self:ClearCenteredCursor()
-	end--[[
+	end
+	if button == 'PADLSTICKDOWN' and not GetCVarBool('GamePadFaceMovement') then
+		SetCVar('GamePadFaceMovement', 1)
+	elseif button == 'PADLSTICKUP' and GetCVarBool('GamePadFaceMovement') then
+		SetCVar('GamePadFaceMovement', 0)
+	end
+	--[[
 	if self:ShouldFreeCenteredCursor(button) then
 		return self:SetCentered(false):SetCursorControl(true)
 	end
@@ -198,7 +212,7 @@ function Mouse:OnDataLoaded()
 	self:SetEnabled(db('mouseHandlingEnabled'))
 end
 
-db:RegisterVarCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
+db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
 CPAPI.Start(Mouse)
 Mouse:EnableGamePadButton(false)
 Mouse:SetPropagation(true)

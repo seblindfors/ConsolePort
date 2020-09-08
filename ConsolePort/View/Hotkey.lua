@@ -2,7 +2,7 @@
 -- Hotkey management
 ---------------------------------------------------------------
 -- This handler automatically renders icons instead of hotkey
--- strings on action buttons in the interface. 
+-- strings on action buttons in the interface.
 
 local _, db = ...;
 local HotkeyMixin, HotkeyHandler = {}, CPAPI.CreateEventHandler({'Frame', '$parentHotkeyHandler', ConsolePort}, {
@@ -61,7 +61,7 @@ function HotkeyHandler:OnActiveDeviceChanged()
 	end
 end
 
-db:RegisterVarCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
+db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, HotkeyHandler)
 
 ---------------------------------------------------------------
 -- API
@@ -214,3 +214,12 @@ HotkeyMixin.Templates = {
 	end]];
 };
 db('Hotkeys/Template', HotkeyMixin.Templates)
+
+---------------------------------------------------------------
+-- Replace font on Blizzard hotkey template
+---------------------------------------------------------------
+-- The original font draws an outline around each character,
+-- pushing the text width over 36 px for double modifier
+-- combinations. Removing the outline places 3 icons at exactly
+-- 36 px without reducing the icon fidelity.
+NumberFontNormalSmallGray:SetFont('FONTS\\ARIALN.TTF', 12)

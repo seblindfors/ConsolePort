@@ -55,7 +55,7 @@ function Dispatcher:IsDisabling()
 	return self.disabled
 end
 
-function Dispatcher.Disable() -- lambda
+function Dispatcher.Disable() -- callback
 	Dispatcher.disabled = nil;
 	Dispatcher.focusFrame = nil;
 	Dispatcher:EnableGamePadStick(false);
@@ -276,7 +276,7 @@ Radial.Env = {
 		end
 		return unpack(result)
 	]];
-
+	-- @return modifiers : list of modifiers held (with suffix)
 	GetModifiersHeld = [[
 		local gstate = GetGamePadState()
 		local buttons = gstate and gstate.buttons
@@ -393,7 +393,7 @@ end
 Radial:CreateEnvironment()
 RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 ---------------------------------------------------------------
-db:RegisterVarCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
-db:RegisterVarCallback('Settings/radialStartIndexAt', Radial.OnDataLoaded, Radial)
-db:RegisterVarCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
-db:RegisterVarCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)
+db:RegisterCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
+db:RegisterCallback('Settings/radialStartIndexAt', Radial.OnDataLoaded, Radial)
+db:RegisterCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
+db:RegisterCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)

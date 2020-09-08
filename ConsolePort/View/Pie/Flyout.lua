@@ -41,7 +41,7 @@ Selector:WrapScript(Selector, 'PreClick', [[
 ]])
 
 function Selector:SPELL_FLYOUT_UPDATE(...)
-	print(GetTime(), ...)
+--	print(GetTime(), ...)
 end
 
 function Selector:OnDataLoaded(...)

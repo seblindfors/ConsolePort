@@ -2,6 +2,7 @@ select(2, ...).Gamepad:AddGamepad({
 	Name = 'PlayStation';
 	Version = 1;
 	Theme = {
+		Label = 'SHP';
 		Colors = {
 			PAD1 = '6882A1';
 			PAD2 = 'D84E58';

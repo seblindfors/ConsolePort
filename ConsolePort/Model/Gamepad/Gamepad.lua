@@ -81,6 +81,7 @@ function GamepadAPI:SetActiveDevice(name)
 	for device, data in pairs(self.Devices) do
 		data.Active = nil
 	end
+	self.Devices[name]:ApplyHotkeyStrings()
 	db(('Gamepad/Devices/%s/Active'):format(name), true)
 	db('Gamepad/Active', self.Devices[name])
 end
@@ -225,12 +226,25 @@ function GamepadMixin:ApplyPresetBindings(setID)
 	end
 end
 
+function GamepadMixin:ApplyHotkeyStrings()
+	local label, hotkey = self.Theme.Label;
+	for button in pairs(self.Theme.Icons) do
+		hotkey = self:GetHotkeyButtonPrompt(button)
+		_G[('KEY_ABBR_%s'):format(button)] = hotkey;
+		_G[('KEY_ABBR_%s_%s'):format(button, label)] = hotkey;
+	end
+end
+
 ---------------------------------------------------------------
 -- Icon queries
 ---------------------------------------------------------------
 function GamepadMixin:GetTooltipButtonPrompt(button, prompt, style)
 	local color = self.Theme.Colors[button] or 'FFFFFF';
 	return ('|T%s:24:24:0:0|t |cFF%s%s|r'):format(self:GetIconForButton(button, style), color, prompt)
+end
+
+function GamepadMixin:GetHotkeyButtonPrompt(button)
+	return ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(self:GetIconForButton(button, 32))
 end
 
 function GamepadMixin:GetIconForButton(button, style)

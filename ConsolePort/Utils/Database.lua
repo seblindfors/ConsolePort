@@ -24,7 +24,7 @@ function db:Set(path, value)
 	local repo, var = __cd(self, strsplit('/', path))
 	if repo and var then
 		repo[var] = value
-		self:FireVarCallback(path, value)
+		self:TriggerEvent(path, value)
 		return true 
 	end
 end
