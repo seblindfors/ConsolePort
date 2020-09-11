@@ -1,18 +1,22 @@
-CPIndexButtonMixin = {
+CPIndexButtonMixin = CreateFromMixins(BackdropTemplateMixin, {
 	IndexColors = {
-		Normal  = CreateColor(0, 0, 0, .5);
+		Nofill  = CreateColor(0, 0, 0, 0);
+		Normal  = CreateColor(0, 0, 0, .25);
 		Checked = CreateColor(1, 0.7451, 0, 1);
 		Hilite  = CreateColor(0, 0.68235, 1, 1);
 		Border  = CreateColor(0.15, 0.15, 0.15, 1);
-		CheckBG = CreateColor(0.20784,0.12549,0.06666,0.8);
+		CheckBG = CPAPI.GetWebColor(CPAPI.GetClassFile(), 'ee');
 	};
-};
+	ThumbPosition = {
+		TOP    = {'TOPLEFT', 'TOPRIGHT', 0, -2};
+		LEFT   = {'TOPLEFT', 'BOTTOMLEFT', 2, 0};
+		RIGHT  = {'TOPRIGHT', 'BOTTOMRIGHT', -2, 0};
+		BOTTOM = {'BOTTOMLEFT', 'BOTTOMRIGHT', 0, 2};
+	};
+});
 
 function CPIndexButtonMixin:OnIndexButtonLoad()
-	self.CheckedThumb:SetStartPoint('TOPLEFT', 2, 0)
-	self.CheckedThumb:SetEndPoint('BOTTOMLEFT', 2, 0)
-	self.HiliteThumb:SetStartPoint('TOPLEFT', 2, 0)
-	self.HiliteThumb:SetEndPoint('BOTTOMLEFT', 2, 0)
+	self:SetThumbPosition('LEFT')
 end
 
 function CPIndexButtonMixin:OnIndexButtonClick(...)
@@ -23,7 +27,8 @@ end
 function CPIndexButtonMixin:OnChecked(checked)
 	self:ToggleOutline(checked)
 	self.CheckedThumb:SetShown(checked)
-	self.Background:SetColorTexture(self:GetBackgroundColor():GetRGBA())
+	self.HiliteThumb:SetShown(not checked)
+	self.Background:SetVertexColor(self:GetBackgroundColor():GetRGBA())
 	if checked then
 		self:UncheckSiblings()
 	end
@@ -38,6 +43,7 @@ function CPIndexButtonMixin:UncheckSiblings()
 		for sibling in pairs(self.Siblings) do
 			if ( sibling ~= self ) then
 				sibling:SetChecked(false)
+				sibling:OnChecked(false)
 			end
 		end
 	end
@@ -48,40 +54,28 @@ function CPIndexButtonMixin:GetBackgroundColor()
 end
 
 function CPIndexButtonMixin:GetOutlineColor()
-	return self.IndexColors[self:GetChecked() and 'Checked' or 'Border'];
+	return self.IndexColors[self:GetChecked() and 'Checked' or self.highlightOnly and 'Nofill' or 'Border'];
 end
 
-function CPIndexButtonMixin:SetDrawOutline(enabled)
+function CPIndexButtonMixin:SetDrawOutline(enabled, highlightOnly)
 	self.drawOutline = enabled;
-	if enabled and not self.OutlineTextures then
-		self.OutlineTextures = {
-			['TopLeft-TopRight'] = self:CreateLine(nil, 'ARTWORK', 'CPLineTemplateBorder');
-			['TopLeft-BottomLeft'] = self:CreateLine(nil, 'ARTWORK', 'CPLineTemplateBorder');
-			['TopRight-BottomRight'] = self:CreateLine(nil, 'ARTWORK', 'CPLineTemplateBorder');
-			['BottomLeft-BottomRight'] = self:CreateLine(nil, 'ARTWORK', 'CPLineTemplateBorder');
-		};
-		local color = self:GetOutlineColor()
-		for points, line in pairs(self.OutlineTextures) do
-			local start, stop = ('-'):split(points)
-			line:SetStartPoint(start:upper(), 0, 0)
-			line:SetEndPoint(stop:upper(), 0, 0)
-			line:SetColorTexture(color:GetRGBA())
-		end
-		self.Hilite:SetPoint('TOPLEFT', -1, 1)
-		self.Hilite:SetPoint('BOTTOMRIGHT', 1, -1)
-	elseif self.OutlineTextures then
-		self.Hilite:SetAllPoints()
-		for _, line in pairs(self.OutlineTextures) do
-			line:Hide()
-		end
-	end
+	self.highlightOnly = highlightOnly;
+	self:SetBackdrop(enabled and CPAPI.Backdrops.Simple or nil)
+	self:SetBackdropBorderColor(self:GetOutlineColor():GetRGBA())
 end
 
 function CPIndexButtonMixin:ToggleOutline(enabled)
-	if self.drawOutline and self.OutlineTextures then
-		local color = self:GetOutlineColor()
-		for _, line in pairs(self.OutlineTextures) do
-			line:SetColorTexture(color:GetRGBA())
-		end
+	if self.drawOutline then
+		self:SetBackdropBorderColor(self:GetOutlineColor():GetRGBA())
+		self:SetBackdropColor(self:GetBackgroundColor():GetRGBA())
 	end
+end
+
+function CPIndexButtonMixin:SetThumbPosition(dir)
+	assert(self.ThumbPosition[dir], 'Position must be one of: TOP, LEFT, RIGHT, BOTTOM')
+	local start, stop, xOff, yOff = unpack(self.ThumbPosition[dir])
+	self.CheckedThumb:SetStartPoint(start, xOff, yOff)
+	self.CheckedThumb:SetEndPoint(stop, xOff, yOff)
+	self.HiliteThumb:SetStartPoint(start, xOff, yOff)
+	self.HiliteThumb:SetEndPoint(stop, xOff, yOff)
 end

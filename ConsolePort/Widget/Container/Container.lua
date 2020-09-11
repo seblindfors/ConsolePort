@@ -7,31 +7,20 @@ function CPContainerMixin:OnContainerLoad()
 	CPAmbienceMixin.OnLoad(self)
 	CPBackgroundMixin.OnLoad(self)
 	self:SetBackgroundInsets(true)
-	self:SetBackdrop({
-		bgFile      = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]),
-		edgeFile 	= CPAPI.GetAsset([[Textures\Edgefile\Edgefile]]),
-		edgeSize 	= 8,
-		tile = true,
-		insets 		= {left = inset, right = inset,	top = inset, bottom = inset}
-	})
+	self:SetBackdrop(CPAPI.Backdrops.Frame)
 	self:SetBackdropColor(r, g, b)
 
 	-- Create container frames
 	LibStub:GetLibrary('LibDynamite'):BuildFrame(self, {
 		Header = {
 			['<Type>']   = 'Frame';
-			['<Setup>']  = {'BackdropTemplate'};
+			['<Setup>']  = 'BackdropTemplate';
 			['<Height>'] = 80;
 			['<Points>'] = {
 				{'TOPLEFT', inset-1, -inset+1};
 				{'TOPRIGHT', -inset+1, -inset+1};
 			};
-			['<SetBackdrop>'] = {{
-				bgFile   = CPAPI.GetAsset([[Textures\Frame\Gradient_Alpha_Horizontal]]);
-				edgeFile = CPAPI.GetAsset([[Textures\Edgefile\EdgeFile_Simple_White_4x32]]);
-				edgeSize = 4;
-				insets   = {left = 1, right = 1, top = 1, bottom = 1};
-			}};
+			['<Backdrop>'] = CPAPI.Backdrops.Header;
 			['<OnLoad>'] = function(self)
 				local nR, nG, nB = CPAPI.NormalizeColor(r, g, b)
 				CPBackgroundMixin.OnBackdropLoaded(self)

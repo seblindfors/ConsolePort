@@ -127,12 +127,12 @@ CPAPI.WebColors = {
 	DEATHKNIGHT =  '05131c';
 };
 
-function CPAPI.GetWebColor(classFile)
-	return CreateColor(CPAPI.Hex2RGB(CPAPI.WebColors[classFile], true))
+function CPAPI.GetWebColor(classFile, addAlpha)
+	return CreateColor(CPAPI.Hex2RGB(CPAPI.WebColors[classFile]..(addAlpha or ''), true))
 end
 
-function CPAPI.GetClassColor(class)
-	return GetClassColor(class or CPAPI.GetClassFile())
+function CPAPI.GetClassColor(classFile)
+	return GetClassColor(classFile or CPAPI.GetClassFile())
 end
 
 function CPAPI.Hex2RGB(hex, fractal)
@@ -184,3 +184,24 @@ end
 ---------------------------------------------------------------
 -- Backdrops
 ---------------------------------------------------------------
+CPAPI.Backdrops = {
+	Header = {
+		bgFile   = CPAPI.GetAsset([[Textures\Frame\Gradient_Alpha_Horizontal]]);
+		edgeFile = CPAPI.GetAsset([[Textures\Edgefile\EdgeFile_Simple_White_4x32]]);
+		edgeSize = 4;
+		insets   = {left = 1, right = 1, top = 1, bottom = 1};
+	};
+	Frame = {
+		bgFile      = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]),
+		edgeFile 	= CPAPI.GetAsset([[Textures\Edgefile\Edgefile]]),
+		edgeSize 	= 8,
+		tile = true,
+		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
+	};
+	Simple = {
+	--	bgFile   = CPAPI.GetAsset([[Textures\Frame\Gradient_Alpha_Horizontal]]);
+		edgeFile = CPAPI.GetAsset([[Textures\Edgefile\EdgeFile_Simple_White_4x32]]);
+		edgeSize = 4;
+		insets   = {left = 1, right = 1, top = 1, bottom = 1};
+	};
+}

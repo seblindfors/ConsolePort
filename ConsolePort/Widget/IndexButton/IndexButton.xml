@@ -19,11 +19,12 @@
 		<Scripts>
 			<OnLoad method="OnIndexButtonLoad" instrincOrder="postcall"/>
 			<OnClick method="OnIndexButtonClick" instrincOrder="precall"/>
+			<OnSizeChanged method="OnBackdropSizeChanged" instrincOrder="postcall"/>
 		</Scripts>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-1">
 				<Texture parentKey="Background" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Backdrop_Vertex_Noise" setAllPoints="true">
-					<Color r="0" g="0" b="0" a=".5"/>
+					<Color r="0" g="0" b="0" a="0.25"/>
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
