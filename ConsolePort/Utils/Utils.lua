@@ -110,8 +110,31 @@ function CPAPI.Start(handler)
 end
 
 ---------------------------------------------------------------
--- Misc
+-- Colors
 ---------------------------------------------------------------
+CPAPI.WebColors = {
+	WARRIOR     =  '221411';
+	HUNTER      =  '061510';
+	MAGE        =  '140e1a';
+	ROGUE       =  '0d0c12';
+	PRIEST      =  '171b27';
+	WARLOCK     =  '1c0905';
+	PALADIN     =  '140613';
+	DRUID       =  '0f1a16';
+	SHAMAN      =  '01000e';
+	MONK        =  '0e1003';
+	DEMONHUNTER =  '141c0d';
+	DEATHKNIGHT =  '05131c';
+};
+
+function CPAPI.GetWebColor(classFile)
+	return CreateColor(CPAPI.Hex2RGB(CPAPI.WebColors[classFile], true))
+end
+
+function CPAPI.GetClassColor(class)
+	return GetClassColor(class or CPAPI.GetClassFile())
+end
+
 function CPAPI.Hex2RGB(hex, fractal)
     hex = hex:gsub('#','')
     local div = fractal and 255 or 1
@@ -144,3 +167,20 @@ end
 function CPAPI.InvertColor(r, g, b)
 	return 1-r, 1-g, 1-b;
 end
+
+function CPAPI.NormalizeColor(...)
+	local high, c = 0
+	for i=1, 3 do
+		c = select(i, ...)
+		if c > high then
+			high = c
+		end
+	end
+	local diff = (1 - high)
+	local r, g, b, a = ...
+	return r + diff, g + diff, b + diff, a;
+end
+
+---------------------------------------------------------------
+-- Backdrops
+---------------------------------------------------------------

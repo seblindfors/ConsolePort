@@ -21,7 +21,7 @@
 --  LibDynamite:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
 --  LibDynamite:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
 
-local Lib = LibStub:NewLibrary('LibDynamite', 3)
+local Lib = LibStub:NewLibrary('LibDynamite', 4)
 if not Lib then return end
 --------------------------------------------------------------------------
 local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
@@ -106,14 +106,14 @@ API = { -- Syntax: ['<CallID>'] = value or {value1, ..., valueN};
 --------------------------------------------------------------------------
 SPECIAL = { -- Special constructors
 --------------------------------------------------------------------------
-    AnimationGroup = function(parent, key, setup) return parent:CreateAnimationGroup('$parent'..key, setup and unpack(setup)) end;
-    Animation      = function(parent, key, setup) return parent:CreateAnimation(setup, '$parent'..key) end;
-    FontString     = function(parent, key, setup) return parent:CreateFontString('$parent'..key, setup and unpack(setup)) end;
-    Texture        = function(parent, key, setup) return parent:CreateTexture('$parent'..key, setup and unpack(setup)) end;
+    AnimationGroup = function(parent, key, setup, anon) return parent:CreateAnimationGroup(not anon and '$parent'..key or nil, setup and unpack(setup)) end;
+    Animation      = function(parent, key, setup, anon) return parent:CreateAnimation(setup, not anon and '$parent'..key or nil) end;
+    FontString     = function(parent, key, setup, anon) return parent:CreateFontString(not anon and '$parent'..key or nil, setup and unpack(setup)) end;
+    Texture        = function(parent, key, setup, anon) return parent:CreateTexture(not anon and '$parent'..key or nil, setup and unpack(setup)) end;
     ---
-    ScrollFrame    = function(parent, key, setup)
-        local frame = Create('ScrollFrame', '$parent'..key, parent, setup and not IsWidget(setup) and unpack(setup))
-        local child = IsWidget(setup) and setup or Create('Frame', '$parentChild', frame)
+    ScrollFrame    = function(parent, key, setup, anon)
+        local frame = Create('ScrollFrame', not anon and '$parent'..key or nil, parent, setup and not IsWidget(setup) and unpack(setup))
+        local child = IsWidget(setup) and setup or Create('Frame', not anon and '$parentChild' or nil, frame)
         frame.Child = child
         child:SetParent(frame)
         child:SetAllPoints()
@@ -178,7 +178,8 @@ end
 -- @param   frame     : Parent of the blueprint.
 -- @param   blueprint : Blueprint to be constructed.
 -- @param   recursive : Whether this is a recursive call.
--- @return  frame     : Returns the altered frame.  
+-- @param   anonframe : Whether tree is anonymous.
+-- @return  frame     : Returns the altered frame.
 ----------------------------------------------------------------
 function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
     assert(type(blueprint) == 'table', err('Blueprint', frame:GetName(), ERROR_CODES.BLUEPRINT))
@@ -200,13 +201,13 @@ function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
                 if object then
                     -- Region type has special constructor.
                     if SPECIAL[object] then
-                        widget = SPECIAL[object](frame, key, buildInfo)
+                        widget = SPECIAL[object](frame, key, buildInfo, anon)
                     -- Region already exists.
                     elseif (objectType == 'table') and IsWidget(object) then
                         widget = SPECIAL.Existing(frame, key, object)
                     -- Region should be a type of frame.
                     elseif (objectType == 'string') then
-                        local xml = buildInfo and tconcat(buildInfo, ', ')
+                        local xml = type(buildInfo) == 'table' and tconcat(buildInfo, ', ') or buildInfo
                         local bp  = config[1]
                         widget = self:CreateFrame(object, name, frame, xml, bp, true, anon);
                     end
@@ -383,16 +384,16 @@ function anchor()
             local region, point = unpack(setup)
             region:SetPoint(point)
         elseif numArgs == 4 then
-            local region, point, xOffset, yOffset = unpack(setup)
-            region:SetPoint(point, xOffset, yOffset)
+            local region, point, x, y = unpack(setup)
+            region:SetPoint(point, x, y)
         elseif numArgs == 6 then
-            local region, point, relativeRegion, relativePoint, xOffset, yOffset = unpack(setup)
-            region:SetPoint(point, getrelative(region, relativeRegion), relativePoint, xOffset, yOffset)
+            local region, point, relativeRegion, relativePoint, x, y = unpack(setup)
+            region:SetPoint(point, getrelative(region, relativeRegion), relativePoint, x, y)
         elseif numArgs == 8 then
-            local region, point, relativeRegion, relativePoint, xOffset, yOffset, xIncr, yIncr = unpack(setup)
+            local region, point, relativeRegion, relativePoint, x, y, xIncr, yIncr = unpack(setup)
             region:SetPoint(point, getrelative(region, relativeRegion), relativePoint,
-                xOffset + (xIncr * ((region:GetID() or 1) - 1)),
-                yOffset + (yIncr * ((region:GetID() or 1) - 1))
+                x + (xIncr * ((region:GetID() or 1) - 1)),
+                y + (yIncr * ((region:GetID() or 1) - 1))
             );
         end
     end

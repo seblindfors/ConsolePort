@@ -7,7 +7,7 @@
 		<Size x="500" y="500"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Arrow" file="Interface\AddOns\ConsolePort\Assets\Textures\PieArrow.blp" alpha="0">
+				<Texture parentKey="Arrow" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Arrow.blp" alpha="0">
 					<Size x="50" y="400"/>
 					<Anchors>
 						<Anchor point="CENTER"/>
@@ -15,7 +15,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
-				<Texture parentKey="BG" file="Interface\AddOns\ConsolePort\Assets\Textures\PieBG.blp" alpha="0">
+				<Texture parentKey="BG" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_BG.blp" alpha="0">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="78" y="-78"/>
 						<Anchor point="BOTTOMRIGHT" x="-78" y="78"/>

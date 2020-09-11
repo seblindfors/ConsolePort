@@ -1,0 +1,18 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="Container/Container.lua"/>
+
+	<Frame name="CPContainerFrameTemplate" virtual="true" mixin="CPContainerMixin">
+		<Scripts>
+			<OnLoad method="OnContainerLoad" inherit="prepend"/>
+		</Scripts>
+		<!--
+		<KeyValues>
+			<KeyValue key="containerFrameType" value="Frame" type="string"/>
+			<KeyValue key="containerFrameTemplate" value="Template1, Template2" type="string"/>
+			<KeyValue key="containerFrameMixin" value"GlobalMixin" type="global"/>
+		</KeyValues>
+		-->
+	</Frame>
+
+</Ui>

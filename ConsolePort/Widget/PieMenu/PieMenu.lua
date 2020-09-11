@@ -1,9 +1,8 @@
-CPPieMenuMixin = CreateFromMixins(CPFocusPoolMixin);
+CPPieMenuMixin = CreateFromMixins(CPFocusPoolMixin, CPGradientMixin);
 
 function CPPieMenuMixin:OnPreLoad()
-	CPFocusPoolMixin.OnPreLoad(self)
-	self.VertexColor = C_ClassColor.GetClassColor(select(2, UnitClass('player')))
-	self.VertexValid = CreateColor(1, .81, 0, 1)
+	CPFocusPoolMixin.OnLoad(self)
+	CPGradientMixin.OnLoad(self)
 end
 
 function CPPieMenuMixin:CreateFramePool(template, mixin, resetterFunc)
@@ -38,14 +37,6 @@ function CPPieMenuMixin:ReflectStickPosition(x, y, len, isValid)
 	local rotation = self:GetRotation(x, y)
 	self.BG:SetRotation(rotation)
 	self.Arrow:SetRotation(rotation)
-end
-
-function CPPieMenuMixin:GetMixGradient(...)
-	return CPAPI.GetReverseMixColorGradient('VERTICAL', ...)
-end
-
-function CPPieMenuMixin:GetFadeGradient(...)
-	return 'VERTICAL', 1, 1, 1, 0, ...;
 end
 
 function CPPieMenuMixin:GetRotation(x, y)

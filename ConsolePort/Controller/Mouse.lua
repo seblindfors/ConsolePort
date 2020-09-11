@@ -86,6 +86,10 @@ local MouseOver      = function() return UnitExists('mouseover') or WorldInterac
 ---------------------------------------------------------------
 -- Compounded queries
 ---------------------------------------------------------------
+function Mouse:ShouldSetFreeCursor(_)
+	return is(_, LeftClick) and isnt(_, SpellTargeting) and either(_, CameraControl, CursorCentered)
+end
+
 function Mouse:ShouldSetCenteredCursor(_)
 	return is(_, RightClick, CameraControl) and isnt(_, CursorCentered)
 end
@@ -100,10 +104,6 @@ end
 
 function Mouse:ShouldSetCursorWhenMenuIsOpen(_)
 	return is(_, MenuBinding, MenuFrameOpen) and isnt(_, CursorControl)
-end
-
-function Mouse:ShouldSetFreeCursor(_)
-	return is(_, LeftClick) and isnt(_, SpellTargeting) and either(_, CameraControl, CursorCentered)
 end
 
 ---------------------------------------------------------------
@@ -135,15 +135,14 @@ end
 function Mouse:SetFreeCursor()
 	return self
 		:SetCentered(false)
-		:SetFreeLook(false)
 		:SetCursorControl(true)
+		:SetPropagation(false)
 end
 
 function Mouse:SetCenteredCursor()
 	self:SetTimer(self.AttemptClearCenteredCursor, db('mouseAutoClearCenter'))
 	return self
 		:SetCentered(true)
-		:SetFreeLook(false)
 		:SetCursorControl(false)
 end
 
@@ -151,7 +150,6 @@ function Mouse:ClearCenteredCursor()
 	self:ClearTimer(self.AttemptClearCenteredCursor)
 	return self
 		:SetCentered(false)
-		:SetFreeLook(false)
 		:SetCursorControl(false)
 end
 
@@ -182,8 +180,7 @@ function Mouse:OnGamePadButtonDown(button)
 		SetCVar('GamePadFaceMovement', 1)
 	elseif button == 'PADLSTICKUP' and GetCVarBool('GamePadFaceMovement') then
 		SetCVar('GamePadFaceMovement', 0)
-	end
-	--[[
+	end--[[
 	if self:ShouldFreeCenteredCursor(button) then
 		return self:SetCentered(false):SetCursorControl(true)
 	end

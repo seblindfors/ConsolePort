@@ -15,10 +15,27 @@ end
 -- API Wrappers
 ---------------------------------------------------------------
 local function GetClassInfo()	return UnitClass('player') end
-local function GetClassFile()   return select(2, UnitClass('player')) end
 local function GetClassID() 	return select(3, UnitClass('player')) end
 
-function CPAPI:GetPlayerCastingInfo()
+
+function CPAPI.GetClassFile()
+	return select(2, UnitClass('player'))
+end
+
+function CPAPI.GetAsset(path)
+	return ([[Interface\AddOns\ConsolePort\Assets\%s]]):format(path)
+end
+
+function CPAPI.GetClassIcon(class)
+	-- returns concatenated icons file with slicing coords
+	return [[Interface\TargetingFrame\UI-Classes-Circles]], CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
+end
+
+function CPAPI.GetWebClassIcon(class)
+	return CPAPI.GetAsset([[Art\Class\Web_Class_Icons_Grid]]), CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
+end
+
+function CPAPI.GetPlayerCastingInfo()
 	-- use UnitCastingInfo on retail
 	if UnitCastingInfo then
 		return UnitCastingInfo('player')
@@ -27,7 +44,7 @@ function CPAPI:GetPlayerCastingInfo()
 	return CastingInfo()
 end
 
-function CPAPI:GetSpecialization()
+function CPAPI.GetSpecialization()
 	-- returns specializationID on retail
 	if GetSpecialization then
 		return GetSpecialization()
@@ -36,7 +53,7 @@ function CPAPI:GetSpecialization()
 	return GetClassID()
 end
 
-function CPAPI:GetSpecTextureByID(ID)
+function CPAPI.GetSpecTextureByID(ID)
 	-- returns specTexture on retail
 	if GetSpecializationInfoByID then
 		return select(4, GetSpecializationInfoByID(ID))
@@ -49,16 +66,7 @@ function CPAPI:GetSpecTextureByID(ID)
 	end
 end
 
-function CPAPI:GetClassIcon(class)
-	-- returns concatenated icons file with slicing coords
-	return [[Interface\TargetingFrame\UI-Classes-Circles]], CLASS_ICON_TCOORDS[class or GetClassFile()]
-end
-
-function CPAPI:GetClassColor(class)
-	return GetClassColor(class or GetClassFile())
-end
-
-function CPAPI:GetCharacterMetadata()
+function CPAPI.GetCharacterMetadata()
 	-- returns specID, specName on retail
 	if GetSpecializationInfo and GetSpecialization then
 		return GetSpecializationInfo(GetSpecialization())
@@ -67,61 +75,61 @@ function CPAPI:GetCharacterMetadata()
 	return GetClassID(), GetClassInfo()
 end
 
-function CPAPI:GetItemLevelColor(...)
+function CPAPI.GetItemLevelColor(...)
 	if GetItemLevelColor then
 		return GetItemLevelColor(...)
 	end
-	return self:GetClassColor()
+	return CPAPI.GetClassColor()
 end
 
-function CPAPI:GetAverageItemLevel(...)
+function CPAPI.GetAverageItemLevel(...)
 	if GetAverageItemLevel then
 		return floor(select(2, GetAverageItemLevel(...)))
 	end
 	return MAX_PLAYER_LEVEL
 end
 
-function CPAPI:GetNumQuestWatches(...)
+function CPAPI.GetNumQuestWatches(...)
 	return GetNumQuestWatches and GetNumQuestWatches(...) or 0
 end
 
-function CPAPI:GetNumWorldQuestWatches(...)
+function CPAPI.GetNumWorldQuestWatches(...)
 	return GetNumWorldQuestWatches and GetNumWorldQuestWatches(...) or 0
 end
 
-function CPAPI:GetQuestLogSpecialItemInfo(...)
+function CPAPI.GetQuestLogSpecialItemInfo(...)
 	return GetQuestLogSpecialItemInfo and GetQuestLogSpecialItemInfo(...)
 end
 
-function CPAPI:UnitIsBattlePet(...)
+function CPAPI.UnitIsBattlePet(...)
 	return UnitIsBattlePet and UnitIsBattlePet(...)
 end
 
-function CPAPI:UnitThreatSituation(...)
+function CPAPI.UnitThreatSituation(...)
 	return UnitThreatSituation and UnitThreatSituation(...)
 end
 
-function CPAPI:IsXPUserDisabled(...)
+function CPAPI.IsXPUserDisabled(...)
 	return IsXPUserDisabled and IsXPUserDisabled(...)
 end
 
-function CPAPI:IsSpellOverlayed(...)
+function CPAPI.IsSpellOverlayed(...)
 	return IsSpellOverlayed and IsSpellOverlayed(...)
 end
 
-function CPAPI:GetFriendshipReputation(...)
+function CPAPI.GetFriendshipReputation(...)
 	return GetFriendshipReputation and GetFriendshipReputation(...)
 end
 
-function CPAPI:IsPartyLFG(...)
+function CPAPI.IsPartyLFG(...)
 	return IsPartyLFG and IsPartyLFG(...)
 end
 
-function CPAPI:IsInLFGDungeon(...)
+function CPAPI.IsInLFGDungeon(...)
 	return IsInLFGDungeon and IsInLFGDungeon(...)
 end
 
-function CPAPI:OpenStackSplitFrame(...)
+function CPAPI.OpenStackSplitFrame(...)
 	if OpenStackSplitFrame then
 		return OpenStackSplitFrame(...)
 	end

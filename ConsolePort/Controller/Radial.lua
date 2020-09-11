@@ -393,7 +393,7 @@ end
 Radial:CreateEnvironment()
 RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 ---------------------------------------------------------------
-db:RegisterCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
-db:RegisterCallback('Settings/radialStartIndexAt', Radial.OnDataLoaded, Radial)
-db:RegisterCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
-db:RegisterCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)
+db:RegisterSafeCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
+db:RegisterSafeCallback('Settings/radialStartIndexAt', Radial.OnDataLoaded, Radial)
+db:RegisterSafeCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
+db:RegisterSafeCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)
