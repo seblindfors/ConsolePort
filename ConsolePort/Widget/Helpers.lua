@@ -281,25 +281,34 @@ function CPSmoothScrollMixin:SmoothScroll(elapsed)
 	if abs(current - self.targetPos) < 2 then
 		self:SetScroll(self.targetPos)
 		self:SetScript('OnUpdate', nil)
-		return
+		return self.OnScrollFinished and self:OnScrollFinished()
 	end
 	local delta = current > self.targetPos and -1 or 1
 	self:SetScroll(current + (delta * abs(current - self.targetPos) / self.stepSize * 4 ) )
 end
 
 function CPSmoothScrollMixin:OnScrollMouseWheel(delta)
-	local maxScroll = self:GetRange()
+	local range = self:GetRange()
 	local current = self:GetScroll()
 	local new = current - delta * self.MouseWheelDelta;
-	self:SetScroll(new < 0 and 0 or new > maxScroll and maxScroll or new)
+	self:SetScroll(new < 0 and 0 or new > range and range or new)
 end
 
-function CPSmoothScrollMixin:ScrollTo(id, numSteps)
-	local maxScroll = self:GetRange()
-	local stepSize = maxScroll / numSteps
-	local new = id <= 1 and 0 or id >= (numSteps - 1) and maxScroll or stepSize * (id - 1)
-	self.stepSize = stepSize
-	self.targetPos = new < 0 and 0 or new > maxScroll and maxScroll or new
+function CPSmoothScrollMixin:ScrollTo(frac, steps)
+	local range = self:GetRange()
+	local size = range / steps
+	local new = frac <= 0 and 0 or frac >= steps and range or size * (frac - 1)
+	self.stepSize = size
+	self.targetPos = new < 0 and 0 or new > range and range or new
+	self:SetScript('OnUpdate', self.SmoothScroll)
+	if range > 0 then
+		return self.targetPos / range;
+	end
+end
+
+function CPSmoothScrollMixin:ScrollToOffset(offset)
+	self.stepSize = self.MouseWheelDelta;
+	self.targetPos = offset * self:GetRange();
 	self:SetScript('OnUpdate', self.SmoothScroll)
 end
 

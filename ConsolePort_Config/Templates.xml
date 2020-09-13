@@ -6,9 +6,23 @@
 			<Layer level="ARTWORK" textureSubLevel="2">
 				<FontString parentKey="Modifier" inherits="Game15Font">
 					<Anchors>
-						<Anchor point="TOPLEFT" x="5" y="-1"/>
+						<Anchor point="TOPLEFT" x="6" y="-2"/>
 					</Anchors>
 				</FontString>
+				<Texture parentKey="ActionIcon" alpha="0">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="RIGHT" x="-8"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="3">
+				<Texture parentKey="Mask" alpha="0" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\IconMask">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="RIGHT" x="-8"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
 	</IndexButton>

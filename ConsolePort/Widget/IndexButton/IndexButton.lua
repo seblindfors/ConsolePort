@@ -7,7 +7,7 @@ CPIndexButtonMixin = CreateFromMixins(BackdropTemplateMixin, {
 		Normal  = CreateColor(0, 0, 0, .25);
 		Checked = CreateColor(1, 0.7451, 0, 1);
 		Hilite  = CreateColor(0, 0.68235, 1, 1);
-		Border  = CreateColor(0.15, 0.15, 0.15, 1);
+		Border  = CreateColor(0.15, 0.15, 0.15, 0.5);
 		CheckBG = CPAPI.GetWebColor(CPAPI.GetClassFile(), 'ee');
 	};
 	ThumbPosition = {

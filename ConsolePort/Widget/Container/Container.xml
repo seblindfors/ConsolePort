@@ -141,9 +141,9 @@
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="1">
 				<Texture parentKey="Icon">
-					<Size x="42" y="42"/>
+					<Size x="38" y="38"/>
 					<Anchors>
-						<Anchor point="LEFT" x="8"/>
+						<Anchor point="LEFT" x="10"/>
 					</Anchors>
 				</Texture>
 			</Layer>
@@ -151,10 +151,10 @@
 	</IndexButton>
 
 	<IndexButton name="CPIndexButtonIconTextTemplate" virtual="true" inherits="CPIndexButtonIconTemplate" mixin="CPIndexButtonIconTextMixin">
-		<Size x="250" y="60"/>
-		<ButtonText parentKey="Label" inherits="GameFontNormal" wordwrap="false" justifyH="LEFT">
+		<Size x="300" y="60"/>
+		<ButtonText parentKey="Label" inherits="GameFontNormal" justifyH="LEFT" height="14" spacing="2">
 			<Anchors>
-				<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="4"/>
+				<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="6"/>
 				<Anchor point="RIGHT"/>
 			</Anchors>
 		</ButtonText>
