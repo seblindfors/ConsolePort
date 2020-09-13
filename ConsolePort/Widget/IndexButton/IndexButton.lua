@@ -1,3 +1,6 @@
+---------------------------------------------------------------
+-- Intrinsic mixin
+---------------------------------------------------------------
 CPIndexButtonMixin = CreateFromMixins(BackdropTemplateMixin, {
 	IndexColors = {
 		Nofill  = CreateColor(0, 0, 0, 0);
@@ -21,6 +24,9 @@ end
 
 function CPIndexButtonMixin:OnIndexButtonClick(...)
 	-- do something with the click
+	if self.forceCheck and not self:GetChecked() then
+		self:SetChecked(true)
+	end 
 	self:OnChecked(self:GetChecked())
 end
 
@@ -38,23 +44,47 @@ function CPIndexButtonMixin:SetSiblings(siblings)
 	self.Siblings = siblings;
 end
 
+function CPIndexButtonMixin:SetForceChecked(enabled)
+	self.forceCheck = enabled;
+end
+
+function CPIndexButtonMixin:GetForceChecked()
+	return self.forceCheck and true or false;
+end
+
 function CPIndexButtonMixin:UncheckSiblings()
 	if self.Siblings then
-		for sibling in pairs(self.Siblings) do
-			if ( sibling ~= self ) then
-				sibling:SetChecked(false)
-				sibling:OnChecked(false)
+		if (#self.Siblings > 0) then
+			for i, sibling in ipairs(self.Siblings) do
+				if ( sibling ~= self) then
+					sibling:SetChecked(false)
+					sibling:OnChecked(false)
+				end
+			end
+		else -- need to handle both as key and val
+			local IsFrame = C_Widget.IsFrameWidget;
+			for sibKey, sibVal in pairs(self.Siblings) do
+				local sibling = IsFrame(sibKey) and sibKey or IsFrame(sibVal) and sibVal;
+				if ( sibling ~= self ) then
+					sibling:SetChecked(false)
+					sibling:OnChecked(false)
+				end
 			end
 		end
 	end
 end
 
 function CPIndexButtonMixin:GetBackgroundColor()
-	return self.IndexColors[self:GetChecked() and 'CheckBG' or 'Normal'];
+	return self.IndexColors[self:GetChecked() and 'CheckBG' or self.transparent and 'Nofill' or 'Normal'];
 end
 
 function CPIndexButtonMixin:GetOutlineColor()
 	return self.IndexColors[self:GetChecked() and 'Checked' or self.highlightOnly and 'Nofill' or 'Border'];
+end
+
+function CPIndexButtonMixin:SetTransparent(enabled)
+	self.transparent = enabled;
+	self.Background:SetVertexColor(self:GetBackgroundColor():GetRGBA())
 end
 
 function CPIndexButtonMixin:SetDrawOutline(enabled, highlightOnly)
@@ -71,11 +101,30 @@ function CPIndexButtonMixin:ToggleOutline(enabled)
 	end
 end
 
-function CPIndexButtonMixin:SetThumbPosition(dir)
+function CPIndexButtonMixin:SetThumbPosition(dir, size) size = size or 1;
 	assert(self.ThumbPosition[dir], 'Position must be one of: TOP, LEFT, RIGHT, BOTTOM')
 	local start, stop, xOff, yOff = unpack(self.ThumbPosition[dir])
-	self.CheckedThumb:SetStartPoint(start, xOff, yOff)
-	self.CheckedThumb:SetEndPoint(stop, xOff, yOff)
-	self.HiliteThumb:SetStartPoint(start, xOff, yOff)
-	self.HiliteThumb:SetEndPoint(stop, xOff, yOff)
+	self.CheckedThumb:SetThickness(size * 4)
+	self.HiliteThumb:SetThickness(size * 4)
+	self.CheckedThumb:SetStartPoint(start, xOff * size, yOff * size)
+	self.CheckedThumb:SetEndPoint(stop, xOff * size, yOff * size)
+	self.HiliteThumb:SetStartPoint(start, xOff * size, yOff * size)
+	self.HiliteThumb:SetEndPoint(stop, xOff * size, yOff * size)
+end
+
+
+---------------------------------------------------------------
+-- Extensions
+---------------------------------------------------------------
+CPIndexButtonIconMixin = CreateFromMixins(CPIndexButtonMixin)
+
+function CPIndexButtonMixin:SetIcon(texture)
+	self.Icon:SetTexture(texture)
+end
+
+CPIndexButtonIconTextMixin = CreateFromMixins(CPIndexButtonIconMixin)
+
+function CPIndexButtonIconTextMixin:SetIconAndText(texture, text)
+	self:SetIcon(texture)
+	self:SetText(text)
 end

@@ -1,7 +1,9 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<Script file="Helpers.lua"/>
-	<Include file="Container/Container.xml"/>
+	<!-- Intrinsics -->
 	<Include file="IndexButton/IndexButton.xml"/>
 	<Include file="PieMenu/PieMenu.xml"/>
+	<!-- Widget templates -->
+	<Include file="Container/Container.xml"/>
 </Ui>

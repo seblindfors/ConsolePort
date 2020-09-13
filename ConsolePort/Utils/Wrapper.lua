@@ -22,19 +22,6 @@ function CPAPI.GetClassFile()
 	return select(2, UnitClass('player'))
 end
 
-function CPAPI.GetAsset(path)
-	return ([[Interface\AddOns\ConsolePort\Assets\%s]]):format(path)
-end
-
-function CPAPI.GetClassIcon(class)
-	-- returns concatenated icons file with slicing coords
-	return [[Interface\TargetingFrame\UI-Classes-Circles]], CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
-end
-
-function CPAPI.GetWebClassIcon(class)
-	return CPAPI.GetAsset([[Art\Class\Web_Class_Icons_Grid]]), CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
-end
-
 function CPAPI.GetPlayerCastingInfo()
 	-- use UnitCastingInfo on retail
 	if UnitCastingInfo then

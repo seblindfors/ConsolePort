@@ -1,0 +1,18 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<IndexButton name="CPIndexButtonBindingComboTemplate" virtual="true" inherits="CPIndexButtonIconTextTemplate">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<FontString parentKey="Modifier" inherits="Game15Font">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="5" y="-1"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</IndexButton>
+
+</Ui>
+
+

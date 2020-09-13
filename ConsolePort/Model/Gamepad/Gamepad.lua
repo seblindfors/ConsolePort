@@ -181,9 +181,7 @@ function GamepadAPI:GetBindings()
 end
 
 function GamepadAPI:GetBindingKey(binding, astable)
-	return unpack(tFilter({GetBindingKey(binding)}, function(x)
-		return x:match 'PAD' and not x:match 'NUM'
-	end, true))
+	return unpack(tFilter({GetBindingKey(binding)}, IsBindingForGamePad))
 end
 
 function GamepadAPI:GetIconPath(path, style)

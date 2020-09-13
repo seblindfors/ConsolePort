@@ -74,10 +74,10 @@ function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	return modifiers
 end
 
-function HotkeyHandler:GetHotkeyData(device, btnID, modID, style)
+function HotkeyHandler:GetHotkeyData(device, btnID, modID, styleMain, styleMod)
 	return {
-		button = device:GetIconForButton(btnID, style);
-		modifier = self:GetIconsForModifier({strsplit('-', modID)}, device, style);
+		button = device:GetIconForButton(btnID, styleMain);
+		modifier = self:GetIconsForModifier({strsplit('-', modID)}, device, styleMod);
 	}
 end
 
@@ -116,11 +116,11 @@ function HotkeyHandler:UpdateHotkeys(device)
 		for modID, binding in pairs(set) do
 			local actionBarID = db('Actionbar/Binding/'..binding)
 			if actionBarID then
-				bindingToActionID[actionBarID] = self:GetHotkeyData(device, btnID, modID, 32)
+				bindingToActionID[actionBarID] = self:GetHotkeyData(device, btnID, modID, 32, 32)
 			else
 				local widget = _G[(gsub(gsub(binding, 'CLICK ', ''), ':.+', ''))]
 				if C_Widget.IsFrameWidget(widget) then
-					self:GetWidget():SetData(self:GetHotkeyData(device, btnID, modID, 32), widget)
+					self:GetWidget():SetData(self:GetHotkeyData(device, btnID, modID, 32, 32), widget)
 				end
 			end
 		end

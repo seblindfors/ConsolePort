@@ -11,9 +11,9 @@ function CPFocusPoolMixin:OnPostHide()
 	self.focusIndex = nil;
 end
 
-function CPFocusPoolMixin:CreateFramePool(type, template, mixin, resetterFunc)
+function CPFocusPoolMixin:CreateFramePool(type, template, mixin, resetterFunc, parent)
 	assert(not self.FramePool, 'Frame pool already exists.')
-	self.FramePool = CreateFramePool(type, self, template, resetterFunc)
+	self.FramePool = CreateFramePool(type, parent or self, template, resetterFunc)
 	self.FramePoolMixin = mixin;
 	return self.FramePool;
 end
@@ -29,6 +29,14 @@ end
 
 function CPFocusPoolMixin:GetNumActive()
 	return self.FramePool:GetNumActive()
+end
+
+function CPFocusPoolMixin:GetFocusIndex()
+	return self.focusIndex
+end
+
+function CPFocusPoolMixin:GetFocusWidget()
+	return self.focusIndex and self.Registry[self.focusIndex]
 end
 
 function CPFocusPoolMixin:ReleaseAll()
@@ -186,6 +194,9 @@ CPAmbienceMixin = {
 		Sound_EnableMusic = false;
 		Sound_EnableDialog = false;
 		Sound_EnableAmbience = false;
+		-----------------------------
+		Sound_MasterVolume = false;
+		Sound_AmbienceVolume = false;
 	};
 	soundKits = {
 		WARRIOR     = SOUNDKIT.AMB_GLUESCREEN_BATTLE_FOR_AZEROTH;
@@ -211,14 +222,16 @@ end
 function CPAmbienceMixin:PlayAmbience()
 	PlaySound(self.soundKitOnShow, 'Master', true)
 	local playFileID = self.soundKits[CPAPI.GetClassFile()]
-	if playFileID then
+	if playFileID and GetCVarBool('Sound_EnableAmbience') then
 		local willPlay, handle = PlaySound(playFileID, 'Master', true)
 		if willPlay then
+			local volume = GetCVar('Sound_AmbienceVolume')
 			self.isPlayingAmbience = handle;
 			for var in pairs(self.soundVars) do
-				self.soundVars[var] = GetCVarBool(var)
+				self.soundVars[var] = GetCVar(var)
 				SetCVar(var, 0)
 			end
+			SetCVar('Sound_MasterVolume', volume)
 		end
 	end
 end
@@ -230,5 +243,69 @@ function CPAmbienceMixin:StopAmbience()
 		for var, val in pairs(self.soundVars) do
 			SetCVar(var, val)
 		end
+	end
+end
+
+
+---------------------------------------------------------------
+-- Smooth scroll
+---------------------------------------------------------------
+CPSmoothScrollMixin = {
+	MouseWheelDelta = 100;
+	Horizontal = {
+		GetRange  = 'GetHorizontalScrollRange';
+		GetScroll = 'GetHorizontalScroll';
+		SetScroll = 'SetHorizontalScroll';
+	};
+	Vertical = {
+		GetRange  = 'GetVerticalScrollRange';
+		GetScroll = 'GetVerticalScroll';
+		SetScroll = 'SetVerticalScroll';
+	};
+}
+
+function CPSmoothScrollMixin:SetScrollOrientation(orient)
+	assert(self[orient], 'Orientation must be either Horizontal or Vertical.')
+	self.ScrollOrientationSet = true;
+	for alias, metaname in pairs(self[orient]) do
+		self[alias] = self[metaname]
+	end
+end
+
+function CPSmoothScrollMixin:SetDelta(delta)
+	self.MouseWheelDelta = delta;
+end
+
+function CPSmoothScrollMixin:SmoothScroll(elapsed)
+	local current = self:GetScroll()
+	if abs(current - self.targetPos) < 2 then
+		self:SetScroll(self.targetPos)
+		self:SetScript('OnUpdate', nil)
+		return
+	end
+	local delta = current > self.targetPos and -1 or 1
+	self:SetScroll(current + (delta * abs(current - self.targetPos) / self.stepSize * 4 ) )
+end
+
+function CPSmoothScrollMixin:OnScrollMouseWheel(delta)
+	local maxScroll = self:GetRange()
+	local current = self:GetScroll()
+	local new = current - delta * self.MouseWheelDelta;
+	self:SetScroll(new < 0 and 0 or new > maxScroll and maxScroll or new)
+end
+
+function CPSmoothScrollMixin:ScrollTo(id, numSteps)
+	local maxScroll = self:GetRange()
+	local stepSize = maxScroll / numSteps
+	local new = id <= 1 and 0 or id >= (numSteps - 1) and maxScroll or stepSize * (id - 1)
+	self.stepSize = stepSize
+	self.targetPos = new < 0 and 0 or new > maxScroll and maxScroll or new
+	self:SetScript('OnUpdate', self.SmoothScroll)
+end
+
+function CPSmoothScrollMixin:OnScrollSizeChanged(...)
+	if not self.ScrollOrientationSet then return end;
+	if (self:GetScroll() > self:GetRange()) then
+		self:SetScroll(self:GetRange())
 	end
 end

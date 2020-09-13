@@ -21,7 +21,7 @@
 --  LibDynamite:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
 --  LibDynamite:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
 
-local Lib = LibStub:NewLibrary('LibDynamite', 4)
+local Lib = LibStub:NewLibrary('LibDynamite', 5)
 if not Lib then return end
 --------------------------------------------------------------------------
 local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
@@ -122,8 +122,10 @@ SPECIAL = { -- Special constructors
         return frame
     end;
     ---
-    Existing = function(parent, key, region)
-        _G[parent:GetName()..key] = region
+    Existing = function(parent, key, region, anon)
+        if not anon then
+            _G[parent:GetName()..key] = region
+        end
         region:SetParent(parent)
         return region
     end;
@@ -201,10 +203,14 @@ function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
                 if object then
                     -- Region type has special constructor.
                     if SPECIAL[object] then
+                        local bp  = config[1]
                         widget = SPECIAL[object](frame, key, buildInfo, anon)
+                        if bp then
+                            widget = self:BuildFrame(widget, bp, true, anon)
+                        end
                     -- Region already exists.
                     elseif (objectType == 'table') and IsWidget(object) then
-                        widget = SPECIAL.Existing(frame, key, object)
+                        widget = SPECIAL.Existing(frame, key, object, anon)
                     -- Region should be a type of frame.
                     elseif (objectType == 'string') then
                         local xml = type(buildInfo) == 'table' and tconcat(buildInfo, ', ') or buildInfo

@@ -2,10 +2,62 @@
 ..\FrameXML\UI.xsd">
 	<Script file="Container/Container.lua"/>
 
-	<Frame name="CPContainerFrameTemplate" virtual="true" mixin="CPContainerMixin">
+	<Slider name="CPContainerSliderTemplate" virtual="true">
+		<Size x="12" y="0"/>
+		<Frames>
+			<Button parentKey="ScrollUpButton">
+				<Scripts>
+					<OnClick function="UIPanelScrollBarScrollUpButton_OnClick"/>
+				</Scripts>
+			</Button>
+			<Button parentKey="ScrollDownButton">
+				<Scripts>
+					<OnClick function="UIPanelScrollBarScrollDownButton_OnClick"/>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnValueChanged function="UIPanelScrollBar_OnValueChanged"/>
+		</Scripts>
+		<ThumbTexture parentKey="ThumbTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Slider_Thumb">
+			<Size x="18" y="34"/>
+		</ThumbTexture>
+	</Slider>
+
+	<ScrollFrame name="CPContainerInnerTemplate" virtual="true" inherits="UIPanelScrollFrameCodeTemplate">
+		<Frames>
+			<Slider parentKey="ScrollBar" inherits="CPContainerSliderTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="0" y="0"/>
+					<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+				</Anchors>
+			</Slider>
+		</Frames>
+	</ScrollFrame>
+
+	<ScrollFrame name="CPSmoothScrollTemplate" virtual="true" mixin="CPSmoothScrollMixin">
+		<Scripts>
+			<OnLoad inherit="prepend">
+				self:SetScrollOrientation('Vertical');
+			</OnLoad>
+			<OnSizeChanged method="OnScrollSizeChanged"/>
+			<OnMouseWheel method="OnScrollMouseWheel"/>
+		</Scripts>
+	</ScrollFrame>
+
+	<Frame name="CPContainerFrameTemplate" virtual="true"
+		toplevel="true" movable="true" 
+		mixin="CPContainerMixin" hidden="true">
 		<Scripts>
 			<OnLoad method="OnContainerLoad" inherit="prepend"/>
+			<OnShow method="OnContainerShow" inherit="prepend"/>
+			<OnDragStart method="StartMoving"/>
+			<OnDragStop method="StopMovingOrSizing"/>
+			<OnSizeChanged method="OnContainerSizeChanged" inherit="prepend"/>
 		</Scripts>
+		<KeyValues>
+			<KeyValue key="stepSize" value="32" type="number"/>
+		</KeyValues>
 		<!--
 		<KeyValues>
 			<KeyValue key="containerFrameType" value="Frame" type="string"/>
@@ -14,5 +66,98 @@
 		</KeyValues>
 		-->
 	</Frame>
+
+	<FontFamily name="CPHeaderFont" virtual="true">
+		<Member alphabet="roman">
+			<Font font="Fonts\FRIZQT__.TTF" height="18">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g=".82" b="0"/>
+			</Font>
+		</Member>
+		<Member alphabet="korean">
+			<Font font="Fonts\K_Pagetext.ttf" height="18">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g=".82" b="0"/>
+			</Font>
+		</Member>
+		<Member alphabet="simplifiedchinese">
+			<Font font="Fonts\ARKai_T.ttf" height="18">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g=".82" b="0"/>
+			</Font>
+		</Member>
+		<Member alphabet="traditionalchinese">
+			<Font font="Fonts\blei00d.ttf" height="18">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g=".82" b="0"/>
+			</Font>
+		</Member>
+		<Member alphabet="russian">
+			<Font font="Fonts\FRIZQT___CYR.ttf" height="18">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g=".82" b="0"/>
+			</Font>
+		</Member>
+	</FontFamily>
+
+
+	<IndexButton name="CPContainerHeaderButtonTemplate" virtual="true">
+		<Size x="140" y="80"/>
+		<ButtonText parentKey="Label" inherits="CPHeaderFont" wordwrap="false" justifyH="CENTER">
+			<Size x="140" y="80"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</ButtonText>
+	</IndexButton>
+
+	<IndexButton name="CPIndexButtonIconTemplate" virtual="true" mixin="CPIndexButtonIconMixin">
+		<Size x="60" y="60"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="42" y="42"/>
+					<Anchors>
+						<Anchor point="LEFT" x="8"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</IndexButton>
+
+	<IndexButton name="CPIndexButtonIconTextTemplate" virtual="true" inherits="CPIndexButtonIconTemplate" mixin="CPIndexButtonIconTextMixin">
+		<Size x="250" y="60"/>
+		<ButtonText parentKey="Label" inherits="GameFontNormal" wordwrap="false" justifyH="LEFT">
+			<Anchors>
+				<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="4"/>
+				<Anchor point="RIGHT"/>
+			</Anchors>
+		</ButtonText>
+	</IndexButton>
 
 </Ui>

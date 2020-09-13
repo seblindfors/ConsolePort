@@ -17,7 +17,7 @@
 	<CheckButton name="IndexButton" intrinsic="true" mixin="CPIndexButtonMixin">
 		<Size x="250" y="64"/>
 		<Scripts>
-			<OnLoad method="OnIndexButtonLoad" instrincOrder="postcall"/>
+			<OnLoad method="OnIndexButtonLoad" instrincOrder="precall"/>
 			<OnClick method="OnIndexButtonClick" instrincOrder="precall"/>
 			<OnSizeChanged method="OnBackdropSizeChanged" instrincOrder="postcall"/>
 		</Scripts>

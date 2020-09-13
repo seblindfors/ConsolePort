@@ -1,0 +1,13 @@
+## Interface: 90000
+## Title: Console Port |cff69ccf0Config|r
+## Notes: Configuration module
+## RequiredDeps: ConsolePort
+
+## Author: Sebastian Lindfors
+## X-Website: https://github.com/seblindfors/ConsolePort
+## X-Feedback: https://discord.gg/AWeHd48
+
+
+Templates.xml
+Config.lua
+Bindings.lua
