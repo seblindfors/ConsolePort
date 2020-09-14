@@ -123,5 +123,3 @@ function BindingInfoMixin:GetBindingInfo(binding)
 	name = gsub(binding, '(.* ([^:]+).*)', '%2') -- upvalue so it doesn't return more than 1 arg
 	return name or BindingInfo.NotBoundColor:format(NOT_BOUND);
 end
-
-B = BindingInfo
