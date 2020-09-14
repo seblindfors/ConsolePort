@@ -114,6 +114,7 @@ function GamepadAPI:ReindexMappedState()
 		local btn = GetCVar('GamePadEmulate'..mod)
 		if (btn and btn:match('PAD')) then
 			self.Index.Modifier.Key[mod] = btn
+			self.Index.Modifier.Key[mod:upper()] = btn
 			self.Index.Modifier.Prefix[mod..'-'] = btn
 		end
 	end
@@ -181,7 +182,7 @@ function GamepadAPI:GetBindings()
 end
 
 function GamepadAPI:GetBindingKey(binding, astable)
-	return unpack(tFilter({GetBindingKey(binding)}, IsBindingForGamePad))
+	return unpack(tFilter({GetBindingKey(binding)}, IsBindingForGamePad, true))
 end
 
 function GamepadAPI:GetIconPath(path, style)

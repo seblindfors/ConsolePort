@@ -24,7 +24,7 @@
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-1">
 				<Texture parentKey="Background" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Backdrop_Vertex_Noise" setAllPoints="true">
-					<Color r="0" g="0" b="0" a="0.25"/>
+					<Color r="0" g="0" b="0" a="0.35"/>
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
@@ -32,7 +32,7 @@
 			</Layer>
 			<Layer level="HIGHLIGHT" textureSubLevel="1">
 				<Texture parentKey="Hilite" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Backdrop_Vertex_Noise" setAllPoints="true" alphaMode="ADD">
-					<Color r="1" g="1" b="1" a="0.15"/>
+					<Color r="1" g="1" b="1" a="0.1"/>
 				</Texture>
 			</Layer>
 			<Layer level="HIGHLIGHT" textureSubLevel="2">

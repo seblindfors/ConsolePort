@@ -65,7 +65,7 @@ function CPContainerMixin:OnContainerLoad()
 					['<Setup>'] = {'ARTWORK'};
 					['<Size>']  = {headerHeight * 0.9, headerHeight * 0.9};
 					['<Point>'] = {'LEFT', headerHeight * 0.1, -2};
-					['<Texture>'] = CPAPI.GetAsset([[Textures\Logo\CP]]);
+					['<Texture>'] = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
 				};
 				Index = {
 					['<Type>']   = 'ScrollFrame';

@@ -1,10 +1,12 @@
+local _, db = ...;
+local Fader = db('Alpha/Fader');
 ---------------------------------------------------------------
 -- Intrinsic mixin
 ---------------------------------------------------------------
 CPIndexButtonMixin = CreateFromMixins(BackdropTemplateMixin, {
 	IndexColors = {
 		Nofill  = CreateColor(0, 0, 0, 0);
-		Normal  = CreateColor(0, 0, 0, .25);
+		Normal  = CreateColor(0, 0, 0, .35);
 		Checked = CreateColor(1, 0.7451, 0, 1);
 		Hilite  = CreateColor(0, 0.68235, 1, 1);
 		Border  = CreateColor(0.15, 0.15, 0.15, 0.5);
@@ -19,7 +21,7 @@ CPIndexButtonMixin = CreateFromMixins(BackdropTemplateMixin, {
 });
 
 function CPIndexButtonMixin:OnIndexButtonLoad()
-	self:SetThumbPosition('LEFT')
+	self:SetThumbPosition(self.thumbPosition or 'LEFT', self.thumbSize or 1)
 end
 
 function CPIndexButtonMixin:OnIndexButtonClick(...)
@@ -32,8 +34,8 @@ end
 
 function CPIndexButtonMixin:OnChecked(checked)
 	self:ToggleOutline(checked)
-	self.CheckedThumb:SetShown(checked)
-	self.HiliteThumb:SetShown(not checked)
+	Fader.Toggle(self.CheckedThumb, self.snappyChecked and 0 or 0.15, checked)
+	Fader.Toggle(self.HiliteThumb, self.snappyChecked and 0 or 0.15, not checked)
 	self.Background:SetVertexColor(self:GetBackgroundColor():GetRGBA())
 	if checked then
 		self:UncheckSiblings()
@@ -85,6 +87,10 @@ end
 function CPIndexButtonMixin:SetTransparent(enabled)
 	self.transparent = enabled;
 	self.Background:SetVertexColor(self:GetBackgroundColor():GetRGBA())
+end
+
+function CPIndexButtonMixin:SetSnappyChecked(enabled)
+	self.snappyChecked = enabled;
 end
 
 function CPIndexButtonMixin:SetDrawOutline(enabled, highlightOnly)

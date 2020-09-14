@@ -3,9 +3,7 @@ b:SetAttribute('type', 'macro')
 b:SetAttribute('macrotext', '/run ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())')
 SetOverrideBindingClick(b, true, 'K', 'ConfigB')
 
-local Config = CreateFrame('Frame', 'ConsolePortConfig', UIParent, 'CPContainerFrameTemplate')
-Config:SetSize(1000, 800)
-Config:SetPoint('CENTER')
+local Config = ConsolePortConfig
 
 Config:SetScript('OnMouseWheel', function(self, delta, ...)
 	local f = IsShiftKeyDown() and PixelUtil.SetHeight or IsControlKeyDown() and PixelUtil.SetWidth

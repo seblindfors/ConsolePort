@@ -98,6 +98,17 @@ end)
 db('Alpha/Fader', setmetatable({
 		In  = db('Alpha/FadeIn');
 		Out = db('Alpha/FadeOut');
+		Toggle = function(region, timeToFade, toggle)
+			if toggle then
+				region:Show()
+				db('Alpha/FadeIn')(region, timeToFade, region:GetAlpha(), 1)
+			else
+				db('Alpha/FadeOut')(region, timeToFade * 2, region:GetAlpha(), 0, {
+					finishedFunc = region.Hide;
+					finishedArg1 = region;
+				})
+			end
+		end;
 	}, {
 	__call = function(self, type, ...)
 		local func = type == 'in' and self.In or type == 'out' and self.Out

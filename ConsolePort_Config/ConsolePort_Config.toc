@@ -7,7 +7,8 @@
 ## X-Website: https://github.com/seblindfors/ConsolePort
 ## X-Feedback: https://discord.gg/AWeHd48
 
+Config.xml
 
-Templates.xml
-Config.lua
-Bindings.lua
+Bindings\BindingInfo.lua
+Bindings\BindingManager.lua
+Bindings\Bindings.lua

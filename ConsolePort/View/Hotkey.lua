@@ -81,6 +81,27 @@ function HotkeyHandler:GetHotkeyData(device, btnID, modID, styleMain, styleMod)
 	}
 end
 
+function HotkeyHandler:GetButtonSlug(device, btnID, modID)
+	local icon = '|T%s:0:0:0:0:32:32:8:24:8:24|t'
+	local data = self:GetHotkeyData(device, btnID, modID, 32, 32)
+	local slug = '';
+	for i, mod in ripairs(data.modifier) do
+		slug = slug .. icon:format(mod)
+	end
+	return slug .. icon:format(data.button)
+end
+
+function HotkeyHandler:GetButtonSlugForBinding(binding)
+	local device = db('Gamepad/Active')
+	if not device then return end;
+	local key = db('Gamepad'):GetBindingKey(binding)
+	if key then
+		local slug = {strsplit('-', key)}
+		local btnID = tremove(slug)
+		return self:GetButtonSlug(device, btnID, table.concat(slug, '-'))
+	end
+end
+
 function HotkeyHandler:GetWidget()
 	local frame, newObj = self.Widgets:Acquire()
 	if newObj then
