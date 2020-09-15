@@ -86,6 +86,29 @@ function Header:OnLoad()
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 40)
 end
 
+function Header:OnBindingsUpdated()
+	for widget in self.FramePool:EnumerateActive() do
+		widget:UpdateBinding()
+	end
+end
+
+function Header:OnExpand()
+	self.Hilite:Hide()
+	self:ScaleToContent()
+	self:RegisterEvent('UPDATE_BINDINGS')
+	self:SetScript('OnEvent', self.OnBindingsUpdated)
+end
+
+function Header:OnCollapse()
+	self:UnregisterAllEvents()
+	self:SetScript('OnEvent', nil)
+	self.Hilite:Show()
+	self:SetHeight(40)
+	if self.FramePool then
+		self:ReleaseAll()
+	end
+end
+
 function Header:OnChecked(checked)
 	CPIndexButtonMixin.OnChecked(self, checked)
 	self.Content:SetShown(checked)
@@ -121,15 +144,9 @@ function Header:OnChecked(checked)
 				separator = 20;
 			end
 		end
-		--self:SetHeight(500)
-		self.Hilite:Hide()
-		self:ScaleToContent()
+		self:OnExpand()
 	else
-		self.Hilite:Show()
-		self:SetHeight(40)
-		if self.FramePool then
-			self:ReleaseAll()
-		end
+		self:OnCollapse()
 	end
 	self:GetParent():ScaleToContent()
 end
