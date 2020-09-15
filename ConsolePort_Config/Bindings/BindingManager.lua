@@ -58,7 +58,7 @@ function BindingManager:DrawCategories(bindings, headers)
 			widget:SetDrawOutline(true)
 		end
 		widget:SetText(header)
-		widget:SetPoint('TOP', prev or self.Child, prev and 'BOTTOM' or 'TOP', 0, -16)
+		widget:SetPoint('TOP', prev or self.Child, prev and 'BOTTOM' or 'TOP', 0, -12)
 		widget:Show()
 		widget.Bindings = set;
 		prev = widget;
@@ -87,6 +87,7 @@ function Header:OnLoad()
 end
 
 function Header:OnChecked(checked)
+	CPIndexButtonMixin.OnChecked(self, checked)
 	self.Content:SetShown(checked)
 	if checked then
 		-- delay creating the pool to not waste resoruces,
@@ -101,7 +102,7 @@ function Header:OnChecked(checked)
 			if ( data.binding and not data.binding:match('^HEADER_BLANK') ) then
 				i = i + 1;
 				local widget, newObj = self:Acquire(i)
-				widget:SetText(data.name)
+				widget:SetText(data.name or data.binding)
 				widget:SetAttribute('binding', data.binding)
 				widget:Show()
 				widget:SetDrawOutline(true)
@@ -122,11 +123,9 @@ function Header:OnChecked(checked)
 		end
 		--self:SetHeight(500)
 		self.Hilite:Hide()
-		self.HiliteThumb:Hide()
 		self:ScaleToContent()
 	else
 		self.Hilite:Show()
-		self.HiliteThumb:Show()
 		self:SetHeight(40)
 		if self.FramePool then
 			self:ReleaseAll()
@@ -139,5 +138,7 @@ function Binding:UpdateBinding()
 	local binding = self:GetAttribute('binding')
 	if binding then
 		self.Slug:SetText(db('Hotkeys'):GetButtonSlugForBinding(binding))
+	else
+		self.Slug:SetText(nil)
 	end
 end

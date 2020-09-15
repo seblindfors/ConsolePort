@@ -183,7 +183,6 @@ function BindingsMixin:NotifyFocus(id, name, fraction)
 	if fraction then
 		self.Combinations:ScrollToOffset(fraction)
 	end
---	self.Combinations:ScrollTo(combo:GetID(), self.Combinations:GetAttribute('numsets'))
 end
 
 function BindingsMixin:OnLoad()

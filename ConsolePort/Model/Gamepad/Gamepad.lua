@@ -228,7 +228,7 @@ end
 function GamepadMixin:ApplyHotkeyStrings()
 	local label, hotkey = self.Theme.Label;
 	for button in pairs(self.Theme.Icons) do
-		hotkey = self:GetHotkeyButtonPrompt(button)
+		hotkey = self:GetHotkeyButtonPrompt(button) -- TODO: assert there's a label
 		_G[('KEY_ABBR_%s'):format(button)] = hotkey;
 		_G[('KEY_ABBR_%s_%s'):format(button, label)] = hotkey;
 	end

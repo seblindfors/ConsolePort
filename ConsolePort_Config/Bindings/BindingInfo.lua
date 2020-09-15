@@ -5,9 +5,12 @@ local BindingInfoMixin, BindingInfo = {}, {
 	HeaderPrefix  = 'BINDING_%s';
 	NotBoundColor = '|cFF757575%s|r';
 	DisplayFormat = '%s\n|cFF757575%s|r';
+	--------------------------------------------------------------
 	DictCounter = 0;
-	Bindings = {};
-	Headers  = {};
+	Bindings  = {};
+	Headers   = {};
+	Actionbar = {};
+	--------------------------------------------------------------
 	ActionInfoHandlers = {
 		spell        = function(id) return GetSpellInfo(id) or STAT_CATEGORY_SPELL end; -- Hack fallback: 'Spell'
 		item         = function(id) return GetItemInfo(id) or HELPFRAME_ITEM_TITLE end; -- Hack fallback: 'Item'
@@ -21,6 +24,25 @@ local BindingInfoMixin, BindingInfo = {}, {
 	--------------------------------------------------------------
 }; env.BindingInfo, env.BindingInfoMixin = BindingInfo, BindingInfoMixin;
 
+---------------------------------------------------------------
+-- Action bar handling
+---------------------------------------------------------------
+function BindingInfo:GetActionButtonID(binding)
+	return db(('Actionbar/Binding/%s'):format(binding))
+end
+
+function BindingInfo:GetActionbarBindings()
+	self:RefreshDictionary()
+	return self.Actionbar;
+end
+
+function BindingInfo:AddActionbarBinding(name, bindingID, actionID)
+	self.Actionbar[actionID] = {name = name, binding = bindingID};
+end
+
+---------------------------------------------------------------
+-- Dictionary
+---------------------------------------------------------------
 function BindingInfo:IsBindingMissingHeader(id)
 	-- called for bindings where header could not be found, so check...
 	return (id:match('^HEADER') and       -- (1) is it a header?
@@ -49,6 +71,7 @@ function BindingInfo:RefreshDictionary()
 		-- wipe all current bindings, indices may have changed
 		wipe(bindings)
 		wipe(headers)
+		wipe(self.Actionbar)
 
 		for i=1, numBindings do
 			local id, header = GetBinding(i)
@@ -61,9 +84,12 @@ function BindingInfo:RefreshDictionary()
 			-- GetBindingName() can't be verified since it returns the
 			-- original string if it doesn't find a match.
 			local global = _G[self.BindingPrefix:format(id)]
-			local name = global or _G[self.HeaderPrefix:format(id)]
+			local name   = global or _G[self.HeaderPrefix:format(id)]
+			local action = self:GetActionButtonID(id)
 
-			if header then
+			if action then
+				self:AddActionbarBinding(name, id, action)
+			elseif header then
 				-- add binding to its designated category table, omit binding index if not an actual binding
 				local title = _G[header] or header;
 				self:AddBindingToCategory(name, id, title)
@@ -73,12 +99,45 @@ function BindingInfo:RefreshDictionary()
 			end
 		end
 		self.DictCounter = numBindings;
-		-- TODO: custom handling for action bars, need to remove those IDs and add them back in
 		-- TODO: add custom bindings that we don't show in regular keybinding UI
+		self:RenameActionbarCategory(bindings)
+		self:AssertBindings(bindings)
 	end
 	return self.Bindings, self.Headers, isUpdatedDict;
 end
 
+---------------------------------------------------------------
+-- Hacks
+---------------------------------------------------------------
+function BindingInfo:AssertBindings(bindings)
+	-- HACK: trash any tables that don't have actual bindings, handling
+	-- the quirk of the game's binding system listing "separators"
+	-- in the UI as actual, legit bindings.
+	for category, set in next, bindings do
+		local gc = true;
+		for i, data in ipairs(set) do
+			if not data.binding:match('^HEADER_BLANK') then
+				gc = false; break;
+			end
+		end
+		if gc then
+			bindings[category] = nil;
+			category = nil;	
+		end
+	end
+end
+
+function BindingInfo:RenameActionbarCategory(bindings)
+	-- HACK: rename misc action bar to "Action Bar (Miscellaneous)",
+	-- so action bar can be handled separately in the binding manager.
+	local newName = ('%s (%s)'):format(BINDING_HEADER_ACTIONBAR, MISCELLANEOUS)
+	bindings[newName] = bindings[BINDING_HEADER_ACTIONBAR];
+	bindings[BINDING_HEADER_ACTIONBAR] = nil;
+end
+
+---------------------------------------------------------------
+-- Mixin for things that need formatted binding info
+---------------------------------------------------------------
 function BindingInfoMixin:GetBindingInfo(binding)
 	if (not binding or binding == '') then return BindingInfo.NotBoundColor:format(NOT_BOUND) end;
 	local bindings, headers = BindingInfo:RefreshDictionary()
@@ -87,7 +146,7 @@ function BindingInfoMixin:GetBindingInfo(binding)
 	local header = headers[binding];
 
 	-- check if this is an action bar binding
-	local actionID = db(('Actionbar/Binding/%s'):format(binding))
+	local actionID = BindingInfo:GetActionButtonID(binding)
 	if actionID then
 		-- swap the info for current bar if offset
 		actionID = actionID <= NUM_ACTIONBAR_BUTTONS and
