@@ -82,7 +82,7 @@ end
 db('table/unravelv', unravelv)
 
 -- helpers
-db('table/spairs', function(t, order)
+local function spairs(t, order)
 	local keys = {unravel(t)}
 	if order then
 		table.sort(keys, function(a,b) return order(t, a, b) end)
@@ -97,6 +97,17 @@ db('table/spairs', function(t, order)
 			return k, t[k]
 		end
 	end
+end
+db('table/spairs', spairs)
+
+-- This is a special iterator that returns a table in reverse order,
+-- or by "intuitive" modifier order. E.g. Shift comes before Ctrl.
+db('table/mpairs', function(t)
+	return spairs(t, function(t, a, b) 
+		if a == '' or b:match(a) then return true end
+		if b == '' or a:match(b) then return false end
+		return a > b
+	end)
 end)
 
 db('table/mixin', function(obj, ...)

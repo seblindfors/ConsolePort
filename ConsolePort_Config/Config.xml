@@ -30,8 +30,8 @@
 	<IndexButton name="CPIndexButtonBindingHeaderTemplate" virtual="true">
 		<Size x="560" y="40"/>
 		<KeyValues>
-			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
-			<KeyValue key="thumbSize" value="2" type="number"/>
+			<KeyValue key="thumbPosition" value="TOP" type="string"/>
+			<KeyValue key="thumbSize" value="1" type="number"/>
 		</KeyValues>
 		<ButtonText parentKey="Label" inherits="CPSubtitleFont" wordwrap="false" justifyH="CENTER">
 			<Size x="560" y="40"/>
@@ -42,7 +42,29 @@
 		<Frames>
 			<Frame parentKey="Content" hidden="true">
 				<Anchors>
-					<Anchor point="TOPLEFT" y="-50"/>
+					<Anchor point="TOPLEFT" y="-40"/>
+					<Anchor point="BOTTOMRIGHT"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</IndexButton>
+
+	<IndexButton name="CPIndexButtonBindingActionBarTemplate" virtual="true">
+		<Size x="540" y="40"/>
+		<KeyValues>
+			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
+			<KeyValue key="thumbSize" value="0" type="number"/>
+		</KeyValues>
+		<ButtonText parentKey="Label" inherits="CPWhiteFont" wordwrap="false" justifyH="CENTER">
+			<Size x="540" y="40"/>
+			<Anchors>
+				<Anchor point="TOP" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<Frames>
+			<Frame parentKey="Content" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" y="-40"/>
 					<Anchor point="BOTTOMRIGHT"/>
 				</Anchors>
 			</Frame>
@@ -65,6 +87,31 @@
 				<FontString parentKey="Slug" inherits="CPSmallFont" justifyH="RIGHT">
 					<Anchors>
 						<Anchor point="RIGHT" x="-8" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</IndexButton>
+
+	<IndexButton name="CPIndexButtonBindingActionButtonTemplate" virtual="true">
+		<Size x="38" y="38"/>
+		<KeyValues>
+			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="1" y="-1"/>
+						<Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+					</Anchors>
+					<TexCoords left="0.1" right="0.9" top="0.1" bottom="0.9"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<FontString parentKey="Slug" inherits="CPSmallFont" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="TOPRIGHT"/>
 					</Anchors>
 				</FontString>
 			</Layer>

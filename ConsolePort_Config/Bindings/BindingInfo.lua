@@ -111,7 +111,7 @@ end
 ---------------------------------------------------------------
 function BindingInfo:AssertBindings(bindings)
 	-- HACK: trash any tables that don't have actual bindings, handling
-	-- the quirk of the game's binding system listing "separators"
+	-- the quirk of the game's binding system listing separators
 	-- in the UI as actual, legit bindings.
 	for category, set in next, bindings do
 		local gc = true;
@@ -163,22 +163,24 @@ function BindingInfoMixin:GetBindingInfo(binding)
 		if name then
 			-- if action has a name, suffix the binding, omit the header,
 			-- return the concatenated string and the action texture
-			return BindingInfo.DisplayFormat:format(name, text), texture;
+			return BindingInfo.DisplayFormat:format(name, text), texture, actionID;
 		elseif texture then
 			-- no name found, but there's a texture.
 			if text then
 				name = header and _G[header]
 				name = name and BindingInfo.DisplayFormat:format(text, name) or text;
 			end
-			return name, texture;
+			return name, texture, actionID;
 		end
 	end
 	if text then
 		-- this binding does not have an action ID, just return the binding and header names
 		name = header and _G[header];
-		return name and BindingInfo.DisplayFormat:format(text, name) or text;
+		name = name and BindingInfo.DisplayFormat:format(text, name) or text;
+		return name, nil, actionID;
 	end
 	-- at this point, this is not an usual binding. this is most likely a click binding.
 	name = gsub(binding, '(.* ([^:]+).*)', '%2') -- upvalue so it doesn't return more than 1 arg
-	return name or BindingInfo.NotBoundColor:format(NOT_BOUND);
+	name = name or BindingInfo.NotBoundColor:format(NOT_BOUND);
+	return name, nil, actionID;
 end

@@ -100,13 +100,53 @@ end
 local Combos, Combo = CreateFromMixins(DynamicMixin), CreateFromMixins(env.BindingInfoMixin)
 
 function Combo:UpdateBinding(combo)
-	local name, texture = self:GetBindingInfo(GetBindingAction(combo))
+	local name, texture, actionID = self:GetBindingInfo(GetBindingAction(combo))
 	self:SetText(name)
 	self.ActionIcon:SetAlpha(texture and 1 or 0)
 	self.Mask:SetAlpha(texture and 1 or 0)
 	if texture then
-		SetPortraitToTexture(self.ActionIcon, texture)
+		SetPortraitToTexture(self.ActionIcon, texture) -- bug if action texture isnt 64x64, replace with mask
 	end
+	if actionID then
+		self:SetAttribute('action', actionID)
+		self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
+		self:RegisterEvent('UPDATE_SHAPESHIFT_FORM')
+	else
+		self:SetAttribute('action', nil)
+		self:UnregisterEvent('ACTIONBAR_SLOT_CHANGED')
+		self:UnregisterEvent('UPDATE_SHAPESHIFT_FORM')
+	end
+end
+
+function Combo:OnEvent(event, ...)
+	if (event == 'ACTIONBAR_SLOT_CHANGED') then
+		local actionID = ...;
+		if (actionID == self:GetAttribute('action')) then
+			self:UpdateBinding(self:GetAttribute('combo'))
+		end
+	elseif (event == 'UPDATE_SHAPESHIFT_FORM') then
+		self:UpdateBinding(self:GetAttribute('combo'))
+	end
+end
+
+function Combo:OnReceiveDrag()
+	if GetCursorInfo() and self:GetAttribute('action') then
+		PlaceAction(self:GetAttribute('action'))
+	end
+end
+
+function Combo:OnDragStart()
+	if self:GetAttribute('action') then
+		PickupAction(self:GetAttribute('action'))
+	end
+end
+
+function Combo:OnClick()
+	if GetCursorInfo() and self:GetAttribute('action') then
+		PlaceAction(self:GetAttribute('action'))
+		self:SetChecked(false)
+	end
+	self:OnChecked(self:GetChecked())
 end
 
 function Combo:OnShow()
@@ -132,7 +172,7 @@ function Combos:OnShow()
 		-- assert this button has an icon
 		if ( device:GetIconIDForButton(binding) ) then
 
-			for mod, keys in db.table.spairs(mods) do -- TODO: the order is wrong
+			for mod, keys in db.table.mpairs(mods) do -- TODO: the order is wrong
 				local widget, newObj = self:Acquire(mod..binding)
 				if newObj then
 					local widgetWidth = widget:GetWidth()
@@ -140,6 +180,7 @@ function Combos:OnShow()
 					widget.container = self;
 					widget:SetSiblings(self.Registry)
 					widget:SetDrawOutline(true)
+					widget:RegisterForDrag('LeftButton')
 					CPAPI.Start(widget)
 				end
 

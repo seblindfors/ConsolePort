@@ -284,7 +284,7 @@ function CPSmoothScrollMixin:SmoothScroll(elapsed)
 		return self.OnScrollFinished and self:OnScrollFinished()
 	end
 	local delta = current > self.targetPos and -1 or 1
-	self:SetScroll(current + (delta * abs(current - self.targetPos) / self.stepSize * 4 ) )
+	self:SetScroll(current + (delta * abs(current - self.targetPos) / self.stepSize * 8 ) )
 end
 
 function CPSmoothScrollMixin:OnScrollMouseWheel(delta)
