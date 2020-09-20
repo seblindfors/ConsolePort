@@ -34,6 +34,10 @@ function CPFocusPoolMixin:TryAcquireRegistered(index)
 	return self:Acquire(index)
 end
 
+function CPFocusPoolMixin:EnumerateActive()
+	return self.FramePool:EnumerateActive()
+end
+
 function CPFocusPoolMixin:GetNumActive()
 	return self.FramePool:GetNumActive()
 end

@@ -114,6 +114,16 @@ function BindingsMixin:OnLoad()
 			end;
 		};
 	})
+	local manager = self:CreateScrollableColumn('Manager', {
+		['<Mixin>'] = env.BindingManager;
+		['<Setup>'] = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
+		['<Width>'] = 600;
+		['<Backdrop>'] = CPAPI.Backdrops.Opaque;
+		['<Points>'] = {
+			{'TOPLEFT', combos, 'TOPRIGHT', 0, 1};
+			{'BOTTOMLEFT', combos, 'BOTTOMRIGHT', 0, -1};
+		};
+	})
 	local mapper = self:CreateScrollableColumn('Mapper', {
 		['<Mixin>'] = env.BindingMapper;
 		['<Setup>'] = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
@@ -121,8 +131,8 @@ function BindingsMixin:OnLoad()
 		['<SetDelta>'] = 40;
 		['<Backdrop>'] = CPAPI.Backdrops.Opaque;
 		['<Points>'] = {
-			{'TOPLEFT', combos, 'TOPRIGHT', 0, 1};
-			{'BOTTOMLEFT', combos, 'BOTTOMRIGHT', 0, -1};
+			{'TOPLEFT', manager, 'TOPRIGHT', 0, 0};
+			{'BOTTOMLEFT', manager, 'BOTTOMRIGHT', 0, 0};
 		};
 		{
 			Child = {
@@ -138,7 +148,7 @@ function BindingsMixin:OnLoad()
 					};
 					Info = {
 						['<Type>']  = 'Frame';
-						['<Setup>'] = 'CPConfigBindingDisplayTemplate';
+						['<Setup>'] = 'CPConfigMapperHeaderTemplate';
 						['<Point>'] = {'TOP', 0, 0};
 					};
 					Help = {
@@ -228,19 +238,35 @@ function BindingsMixin:OnLoad()
 						end;
 						['<OnClick>'] = function(self) self:Hide() end;
 					};
+					Option = {
+						['<Type>']  = 'Frame';
+						['<Setup>'] = 'CPConfigBindingDisplayTemplate';
+						['<Point>'] = {'TOP', '$parent.Change', 'BOTTOM', 0, 0};
+						['<Size>']  = {340, 40};
+						['<SetText>'] = function(self, ...)
+							self.Label:SetText(...);
+						end;
+						['<OnLoad>'] = function(self)
+							-- move the icon to line up with action tooltip
+							self.ActionIcon:ClearAllPoints();
+							self.ActionIcon:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 8, 0);
+							self:SetText(SETTINGS);
+						end;
+						{
+							Action = {
+								['<Type>']  = 'IndexButton';
+								['<Setup>'] = 'CPIndexButtonBindingHeaderTemplate';
+								['<Mixin>'] = env.BindingActionMapper;
+								['<Size>']  = {340, 40};
+								['<Text>']  = SPELLBOOK_ABILITIES_BUTTON;
+								-- OnLoad creates tooltip and sets point, because
+								-- tooltip needs to be a globally named frame.
+							};
+						};
+					};
 				}
 			}
 		}
-	})
-	local manager = self:CreateScrollableColumn('Manager', {
-		['<Mixin>'] = env.BindingManager;
-		['<Setup>'] = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
-		['<Width>'] = 600;
-		['<Backdrop>'] = CPAPI.Backdrops.Opaque;
-		['<Points>'] = {
-			{'TOPLEFT', mapper, 'TOPRIGHT', 0, 0};
-			{'BOTTOMLEFT', mapper, 'BOTTOMRIGHT', 0, 0};
-		};
 	})
 	self:OnActiveDeviceChanged(db('Gamepad/Active'))
 	db:RegisterCallback('Gamepad/Active', self.OnActiveDeviceChanged, self)
@@ -250,4 +276,5 @@ env.Bindings = ConsolePortConfig:CreatePanel({
 	name  = 'Bindings';
 	mixin = BindingsMixin;
 	scaleToParent = true;
+	forbidRecursiveScale = true;
 })

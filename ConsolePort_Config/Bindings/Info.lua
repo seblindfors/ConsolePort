@@ -215,3 +215,88 @@ function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
 	name = name or BindingInfo.NotBoundColor:format(NOT_BOUND);
 	return name, nil, actionID;
 end
+
+---------------------------------------------------------------
+-- Collections
+---------------------------------------------------------------
+function BindingInfo:AddCollection(collection, configuration)
+	local collections = self.Collections;
+	collections[#collections + 1] = configuration;
+	configuration.items = collection;
+	return configuration, collections;
+end
+
+function BindingInfo:RefreshCollections()
+	self.Collections = self.Collections and wipe(self.Collections) or {};
+
+	-- Spells
+	local spells, flyout, flyoutName = {}, {}
+	for tab=1, GetNumSpellTabs() do
+		local _, _, offset, slots, _, offspecID = GetSpellTabInfo(tab)
+		-- NOTE: this means it's an active spell tab, lmao
+		if (offspecID == 0) then
+			for i = (offset+1), (slots+offset) do
+				if not IsPassiveSpell(i, BOOKTYPE_SPELL) then
+					local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_SPELL)
+					if (skillType == 'SPELL') then
+						spells[#spells + 1] = i;
+					elseif (skillType == 'FLYOUT') then
+						spells[#spells + 1] = i;
+
+						local name, _, numFlyoutSlots = GetFlyoutInfo(typeID)
+						flyoutName = flyoutName and ('%s / %s'):format(flyoutName, name) or name;
+						for f=1, numFlyoutSlots do
+							flyout[#flyout+1] = GetFlyoutSlotInfo(typeID, f);
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- Pet spells
+	local pet, numPetSpells, petToken = {}, HasPetSpells()
+	if numPetSpells then
+		for i=1, numPetSpells do
+			local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_PET)
+			if (skillType == 'PETACTION') then
+				pet[#pet + 1] = i;
+			end
+		end
+	end
+
+
+	self:AddCollection(spells, {
+		name    = SPELLBOOK;
+		match   = C_ActionBar.FindSpellActionButtons;
+		pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
+		tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
+		texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
+	})
+
+	if next(flyout) then
+		self:AddCollection(flyout, {
+			name    = flyoutName;
+			match   = C_ActionBar.FindSpellActionButtons;
+			pickup  = PickupSpell;
+			tooltip = GameTooltip.SetSpellByID;
+			texture = GetSpellTexture;
+		})
+	end
+
+	if next(pet) then
+		self:AddCollection(pet, {
+			name    = PET;
+			match   = C_ActionBar.FindPetActionButtons;
+			pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_PET) end;
+			tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_PET) end;
+			texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_PET) end;
+		})
+	end
+
+	return self.Collections;
+end
+
+function BindingInfoMixin:GetCollections()
+	return BindingInfo:RefreshCollections()
+end

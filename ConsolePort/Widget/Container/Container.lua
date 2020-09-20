@@ -200,15 +200,16 @@ function CPPanelMixin:ScaleToParent(width, height)
 end
 
 function CPPanelMixin:ScaleToContent()
-	local top, bottom = self:GetTop(), math.huge
-	local left, right = self:GetLeft(), 0
+	if not self.forbidRecursiveScale then return end;
+	local top, bottom = self:GetTop() or 0, math.huge
+	local left, right = self:GetLeft() or 0, 0
 	for i, child in ipairs({self:GetChildren()}) do
 		local childBottom = child:GetBottom()
 		local childRight = child:GetRight()
-		if childBottom < bottom then
+		if childBottom and childBottom < bottom then
 			bottom = childBottom;
 		end
-		if childRight > right then
+		if childRight and childRight > right then
 			right = childRight;
 		end
 	end

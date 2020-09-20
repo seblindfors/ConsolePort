@@ -1,26 +1,19 @@
 local db, _, env = ConsolePort:DB(), ...;
-local Mapper = CreateFromMixins(env.ScaleToContentMixin, env.FlexibleMixin, env.BindingInfoMixin, env.BindingInfoMixin)
-local ActionMapper = CreateFromMixins(env.ScaleToContentMixin)
-env.BindingMapper = Mapper;
+local Mapper = CreateFromMixins(env.FlexibleMixin, env.BindingInfoMixin)
+local ActionMapper = CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, env.BindingInfoMixin)
+env.BindingMapper, env.BindingActionMapper = Mapper, ActionMapper;
 
 ---------------------------------------------------------------
 -- Mapper
 ---------------------------------------------------------------
 function Mapper:OnLoad()
 	env.OpaqueMixin.OnLoad(self)
-	self:SetFlexibleElement(self, self.Child)
-	self:SetMeasurementOrigin(self.Child, self.Child, 360, 20)
+	self:SetFlexibleElement(self, 360)
 
-	self.Action = Mixin(CreateFrame('IndexButton', nil, self.Child, 'CPIndexButtonBindingHeaderTemplate'), ActionMapper)
-	self.Action:OnLoad()
-
-	self.ActionTooltip = CreateFrame('GameTooltip',
-		'ConsolePortConfigBindingMapperTooltip', self.Child, 'GameTooltipTemplate');
-	-- HACK: call SetBackdrop on show with nil value, since OnShow has no args.
-	self.ActionTooltip:HookScript('OnShow', self.ActionTooltip.SetBackdrop)
-	-- HACK: move action texture from another widget to the tooltip.
-	self.Child.Info.ActionIcon:ClearAllPoints()
-	self.Child.Info.ActionIcon:SetPoint('TOPRIGHT', self.ActionTooltip, 'TOPLEFT', -8, 0)
+	Mixin(self.Child, env.ScaleToContentMixin)
+	self.Child:SetWidth(360)
+	self.Child:SetAllPoints()
+	self.Child:SetMeasurementOrigin(self.Child, self.Child, 360, 40)
 	CPAPI.Start(self)
 end
 
@@ -34,8 +27,9 @@ end
 -- Binding content handling
 ---------------------------------------------------------------
 function Mapper:SetBindingInfo(binding, transposedActionID)
-	local info, change = self.Child.Info, self.Child.Change;
 	if binding then
+		self:SetVerticalScroll(0)
+		local option = self.Child.Option;
 		local name = self:GetBindingName(binding)
 		local label, texture, actionID = self:GetBindingInfo(binding, true)
 		local slug, data = db('Hotkeys'):GetButtonSlugForBinding(binding)
@@ -47,25 +41,21 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 			local page = math.ceil(transposedActionID/NUM_ACTIONBAR_BUTTONS)
 			page = WrapTextInColorCode(('('..PAGE_NUMBER..')'):format(page), 'FF999999')
 			label = ('%s %s'):format(label, page)
-
-			local tooltip = self.ActionTooltip;
-			tooltip:SetOwner(self.Action, "ANCHOR_NONE")
-			tooltip:SetPoint('TOP', self.Action, 'BOTTOM', 0, -10)
-			tooltip:SetAction(transposedActionID)
-			tooltip:Show()
-		else
-			self.ActionTooltip:Hide()
 		end
 
-		change.Slug:SetText(slug or WrapTextInColorCode(NOT_BOUND, 'FF757575'))
-		info.Label:SetText(label)
-		info.ActionIcon:SetAlpha(texture and 1 or 0)
-		info.Mask:SetAlpha(texture and 1 or 0)
-		info.ActionIcon:SetTexture(texture)
+		-- dispatch to action mapper
+		option.Action:SetAction(transposedActionID)
+
+		-- set top header and key binding slug
+		self.Child.Change.Slug:SetText(slug or WrapTextInColorCode(NOT_BOUND, 'FF757575'))
+		self.Child.Info.Label:SetText(label)
+
+		-- set action texture
+		option.ActionIcon:SetAlpha(texture and 1 or 0)
+		option.Mask:SetAlpha(texture and 1 or 0)
+		option.ActionIcon:SetTexture(texture)
 	end
---	self:UpdateScrollChildRect()
-	self.Child:SetHeight(700)
---	self:ScaleToContent()
+	self.Child:SetHeight(nil)
 end
 
 ---------------------------------------------------------------
@@ -170,12 +160,226 @@ end
 ---------------------------------------------------------------
 -- Action mapper
 ---------------------------------------------------------------
+local Ability, Collection = {}, CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, {
+	rowSize = 7;
+});
+
+function Ability:OnLoad()
+	self:SetDrawOutline(true)
+	CPAPI.Start(self)
+end
+
+function Ability:OnEnter()
+	local tooltipFunc = self.tooltip;
+	if tooltipFunc then
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+		tooltipFunc(GameTooltip, self:GetID())
+		GameTooltip:Show()
+	end
+end
+
+function Ability:OnLeave()
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
+function Ability:OnHide()
+	self:OnLeave()
+end
+
+function Ability:OnClick()
+	local pickup = self.pickup;
+	local actionID = env.Bindings.Mapper.Child.Option.Action.actionID;
+	if pickup and actionID then
+		pickup(self:GetID())
+		C_ActionBar.PutActionInSlot(actionID)
+		ClearCursor()
+	end
+	self:SetChecked(false)
+	self:OnChecked(false)
+end
+
+function Ability:Update()
+	local texture = self.texture and self.texture(self:GetID())
+	self.Icon:SetTexture(texture or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
+	self.Icon:SetDesaturated(not texture or false)
+	if not texture then
+		self.Icon:SetVertexColor(0.5, 0.5, 0.5, 1)
+	else
+		self.Icon:SetVertexColor(1, 1, 1, 1)
+	end
+end
+
+function Collection:OnLoad()
+	CPFocusPoolMixin.OnLoad(self)
+	self:SetWidth(320)
+	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
+	self:CreateFramePool('IndexButton',
+		'CPIndexButtonBindingActionButtonTemplate', Ability, nil, self.Content)
+end
+
+function Collection:SetData(data)
+	self.data = data;
+end
+
+function Collection:Update()
+	self:ReleaseAll()
+	local data = self.data;
+	local prevCol, prevRow;
+	for i, item in ipairs(data.items) do
+		local widget, newObj = self:Acquire(i)
+		if newObj then
+			widget:OnLoad()
+		end
+		Mixin(widget, data)
+		widget:SetID(item)
+		widget:Update()
+		widget:Show()
+		if (i == 1) then
+			widget:SetPoint('TOPLEFT', 8, -8)
+			prevRow = widget;
+		elseif (i % self.rowSize == 1) then
+			widget:SetPoint('TOP', prevRow, 'BOTTOM', 0, -6)
+			prevRow = widget;
+		else
+			widget:SetPoint('LEFT', prevCol, 'RIGHT', 6, 0)
+		end
+		prevCol = widget;
+	end
+	self:SetHeight(nil)
+end
+
+function Collection:OnExpand()
+	self.Hilite:Hide()
+	self:Update()
+end
+
+function Collection:OnCollapse()
+	self.Hilite:Show()
+	self:ReleaseAll()
+	self:SetHeight(40)
+end
+
+function Collection:OnChecked(show)
+	CPIndexButtonMixin.OnChecked(self, show)
+	self.Content:SetShown(show)
+	if show then
+		self:OnExpand()
+	else
+		self:OnCollapse()
+	end
+end
+
+
+
+
 function ActionMapper:OnLoad()
 	--C_ActionBar.PutActionInSlot
 	--C_ActionBar.FindFlyoutActionButtons
 	--C_ActionBar.FindSpellActionButtons
-	self:SetPoint('TOP', self:GetParent().Change, 'BOTTOM', 0, -10)
-	self:SetSize(340, 40)
-	-- HACK: "Ability", let's hope this is all good on all locales
-	self:SetText(COMBATLOG_HIGHLIGHT_ABILITY)
+	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 0)
+
+	-- HACK: call SetBackdrop on show with nil value, since OnShow has no args.
+	self.Tooltip = CreateFrame('GameTooltip',
+		'ConsolePortConfigBindingMapperTooltip', self, 'GameTooltipTemplate');
+	self.Tooltip:HookScript('OnShow', self.Tooltip.SetBackdrop)
+
+	CPFocusPoolMixin.OnLoad(self)
+	self:CreateFramePool('IndexButton',
+		'CPIndexButtonBindingActionBarTemplate', Collection, nil, self.Content)
+
+end
+
+function ActionMapper:OnEvent(event, ...)
+	for widget in self:EnumerateActive() do
+		widget:ReleaseAll()
+		widget:SetChecked(false)
+		widget:OnChecked(false)
+	end
+	self:ReleaseAll()
+	self:OnExpand()
+end
+
+function ActionMapper:OnHide()
+	self:GetParent():SetText(nil)
+end
+
+function ActionMapper:OnShow()
+	if self.actionID then
+		self:Update(self.actionID)
+	else
+		self:Clear()
+	end
+end
+
+function ActionMapper:Clear()
+	self.actionID = nil;
+	self:Hide()
+end
+
+function ActionMapper:Update(actionID)
+	local tooltip, option = self.Tooltip, self:GetParent();
+	tooltip:SetOwner(option, 'ANCHOR_NONE')
+	tooltip:SetPoint('TOP', option, 'BOTTOM', 0, 10)
+	tooltip:SetAction(actionID)
+	tooltip:Show()
+	if GetActionInfo(actionID) and tooltip:IsShown() then
+		self:SetPoint('TOP', self.Tooltip, 'BOTTOM', 0, -10)
+		option:SetText(CURRENTLY_EQUIPPED)
+	else
+		self:SetPoint('TOP', option, 'BOTTOM', 0, -10)
+		option:SetText(SETTINGS)
+	end
+end
+
+function ActionMapper:SetAction(actionID)
+	self.actionID = actionID;
+	if not self:IsShown() then
+		self:Show()
+	else
+		self:OnShow()
+	end
+end
+
+function ActionMapper:OnExpand()
+	self.Hilite:Hide()
+	self:RegisterEvent('PET_SPECIALIZATION_CHANGED')
+	self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+	self:RegisterEvent('PLAYER_PVP_TALENT_UPDATE')
+	self:RegisterEvent('PLAYER_TALENT_UPDATE')
+	local prev
+	for i, collection in ipairs(self:GetCollections()) do
+		local widget, newObj = self:Acquire(i)
+		if newObj then
+			widget:OnLoad()
+		end
+		widget:SetText(collection.name)
+		widget:SetData(collection)
+		widget:Show()
+		if prev then
+			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -6)
+		else
+			widget:SetPoint('TOP')
+		end
+		prev = widget;
+	end
+	self:SetHeight(nil)
+end
+
+function ActionMapper:OnCollapse()
+	self.Hilite:Show()
+	self:SetHeight(40)
+	self:ReleaseAll()
+	self:UnregisterAllEvents()
+end
+
+function ActionMapper:OnChecked(show)
+	CPIndexButtonMixin.OnChecked(self, show)
+	self.Content:SetShown(show)
+	if show then
+		self:OnExpand()
+	else
+		self:OnCollapse()
+	end
 end

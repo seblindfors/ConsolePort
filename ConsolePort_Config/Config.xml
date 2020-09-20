@@ -37,8 +37,8 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="CPConfigBindingDisplayTemplate" inherits="CPConfigActionDisplayTemplate" virtual="true">
-		<Size x="360" y="60"/>	
+	<Frame name="CPConfigMapperHeaderTemplate" virtual="true">
+		<Size x="360" y="60"/>
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="1">
 				<FontString parentKey="Label" inherits="CPSubtitleFont" justifyH="CENTER" height="14" spacing="2">
@@ -49,6 +49,8 @@
 			</Layer>
 		</Layers>
 	</Frame>
+
+	<Frame name="CPConfigBindingDisplayTemplate" inherits="CPConfigActionDisplayTemplate, CPConfigMapperHeaderTemplate" virtual="true"/>
 
 	<IndexButton name="CPIndexButtonBindingComboTemplate" virtual="true" inherits="CPIndexButtonIconTextTemplate, CPConfigActionDisplayTemplate"/>
 

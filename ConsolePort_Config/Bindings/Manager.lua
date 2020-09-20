@@ -55,14 +55,14 @@ function Header:OnEvent()
 end
 
 function Header:UpdateBinding()
-	for widget in self.FramePool:EnumerateActive() do
+	for widget in self:EnumerateActive() do
 		widget:UpdateBinding()
 	end
 end
 
 function Header:OnExpand()
 	self.Hilite:Hide()
-	self:ScaleToContent()
+	self:SetHeight(nil)
 	self:RegisterEvent('UPDATE_BINDINGS')
 	self:SetScript('OnEvent', self.OnEvent)
 end
@@ -110,7 +110,6 @@ function Header:OnChecked(show)
 	else
 		self:OnCollapse()
 	end
-	self:GetParent():ScaleToContent()
 end
 
 ---------------------------------------------------------------
@@ -199,7 +198,7 @@ end
 
 function Actionpage:OnEvent(event, ...)
 	if (event == 'UPDATE_BINDINGS') then
-		for widget in self.FramePool:EnumerateActive() do
+		for widget in self:EnumerateActive() do
 			widget:UpdateBinding()
 		end
 	elseif (event == 'ACTIONBAR_SLOT_CHANGED') then
@@ -215,17 +214,28 @@ function Actionpage:OnExpand()
 	self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
 end
 
+function Actionpage:OnCollapse()
+	self:UnregisterAllEvents()
+	self:SetScript('OnEvent', nil)
+	self.Hilite:Show()
+	self:SetHeight(40)
+end
+
 function Actionpage:SetPages(pages)
-	self.Pages = pages;
+	-- NOTE: nullify to stop this from redrawing and causing problems.
+	-- if the header has been opened once, there is no memory saved by
+	-- releasing it and redrawing.
+	self.pages = pages;
 end
 
 function Actionpage:DrawPages()
+	if not self.pages then return end;
 	self:ReleaseAll()
 
 	local row, data = NUM_ACTIONBAR_BUTTONS, BindingInfo.Actionbar;
 	local index, prevCol, prevRow = 1;
 	
-	for _, page in ipairs(self.Pages) do
+	for _, page in ipairs(self.pages) do
 		local offset = (page - 1) * row;
 
 		for slot=1, row do
@@ -261,6 +271,7 @@ function Actionpage:DrawPages()
 			index, prevCol = index + 1, widget;
 		end
 	end
+	self:SetPages(nil)
 end
 
 function Actionpage:OnChecked(show)
@@ -272,7 +283,6 @@ function Actionpage:OnChecked(show)
 	else
 		self:OnCollapse()
 	end
-	self:GetParent():GetParent():ScaleToContent()
 end
 
 ---------------------------------------------------------------
@@ -328,7 +338,7 @@ function Actionbar:OnChecked(show)
 	else
 		self:OnCollapse()
 	end
-	self:GetParent():ScaleToContent()
+--	self:GetParent():ScaleToContent()
 end
 
 ---------------------------------------------------------------
@@ -355,7 +365,7 @@ function BindingManager:DrawCategories(bindings, headers)
 		widget.Bindings = set;
 		prev = widget;
 	end
-	self.Child:ScaleToContent()
+	self.Child:SetHeight(nil)
 end
 
 function BindingManager:OnLoad()

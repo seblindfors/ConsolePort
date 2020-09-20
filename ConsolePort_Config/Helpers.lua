@@ -30,16 +30,39 @@ function ScaleToContentMixin:CalcContentBoundary()
 	return height, height - abs(origT - top);
 end
 
-function ScaleToContentMixin:SetHeight(height)
-	self:SetHitRectInsets(0, 0, 0, 0)
+function ScaleToContentMixin:SetRawHeight(height)
 	getmetatable(self).__index.SetHeight(self, height)
+end
+
+function ScaleToContentMixin:SetHeight(height)
+	if tonumber(height) then
+		self.forbidRecursiveScale = true;
+		self:SetHitRectInsets(0, 0, 0, 0)
+		self:SetRawHeight(height)
+		self:ScaleParent()
+	else
+		self.forbidRecursiveScale = false;
+		self:ScaleToContent()
+	end
+end
+
+function ScaleToContentMixin:ScaleParent()
+	local parent = self:GetParent()
+	while parent do
+		if ( parent.ScaleToContent and not parent.forbidRecursiveScale ) then
+			parent:SetHeight(nil)
+			break
+		end
+		parent = parent:GetParent()
+	end
 end
 
 function ScaleToContentMixin:ScaleToContent()
 	self:SetWidth(self.fixedWidth)
 	local height, hitBoxOffset = self:CalcContentBoundary()
-	self:SetHeight(height)
+	self:SetRawHeight(height)
 	self:SetHitRectInsets(0, 0, 0, hitBoxOffset)
+	self:ScaleParent()
 end
 
 ---------------------------------------------------------------
@@ -92,9 +115,9 @@ function Flexer:AddFrame(frame)
 	self:SetScript('OnUpdate', self.OnUpdate)
 end
 
-function FlexibleMixin:SetFlexibleElement(element, measure)
+function FlexibleMixin:SetFlexibleElement(element, measure, fixedWidth)
 	self.flexElement = element;
-	self.flexMeasure = measure or element;
+	self.flexMeasure = fixedWidth or measure or element;
 end
 
 function FlexibleMixin:IsElementFlexed()
@@ -102,7 +125,11 @@ function FlexibleMixin:IsElementFlexed()
 end
 
 function FlexibleMixin:ToggleFlex(enabled)
-	self.flexTarget = enabled and self.flexMeasure:GetWidth() or 0.01;
+	local measure = self.flexMeasure;
+	self.flexTarget = 
+		not enabled and 0.01
+		or C_Widget.IsFrameWidget(measure) and measure:GetWidth()
+		or measure;
 	self.isFlexed = enabled;
 	Flexer:AddFrame(self)
 end

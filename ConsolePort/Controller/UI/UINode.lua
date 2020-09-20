@@ -172,11 +172,11 @@ function IsTree(node)
 end
 
 function IsDrawn(node, super)
-	local nX, nY = GetCenter(nX, nY)
+	local nX, nY = GetCenter(node)
 	local mX, mY = LIMIT:GetXY()
 	if ( PointInRange(nX, 0, mX) and PointInRange(nY, 0, mY) ) then
 		-- assert node isn't clipped inside a scroll child
-		if super and super:IsToplevel() and not node:IsObjectType('Slider') then
+		if super and super:GetScrollChild() and not node:IsObjectType('Slider') then
 			return UIDoFramesIntersect(node, super) --or UIDoFramesIntersect(node, scrollChild)
 		else
 			return true
@@ -328,6 +328,8 @@ local vlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
 function GetCenter(node)
 	local rectL, rectB, rectW, rectH = node:GetRect()
 	local insrL, insrR, insrT, insrB = node:GetHitRectInsets()
+	if not rectL or not rectB or not rectW or not rectH then return end
+	if not insrL or not insrR or not insrT or not insrB then return end
 	return	(rectL + insrL) + ((rectW - insrR) / 2),
 			(rectB + insrB) + ((rectH - insrT) / 2)
 end
