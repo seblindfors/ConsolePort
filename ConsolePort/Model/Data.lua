@@ -6,6 +6,9 @@ local DATA, DESC = 1, 2; local DEFAULT_DATA = {
     -- Action page handling:
     actionPageCondition     = {''       ; 'Macro condition to evaluate action bar page'};
     actionPageResponse      = {''       ; 'Response to condition for custom processing'};
+    -- Bindings:
+    bindingOverlapEnable    = {false    ; 'Allow binding multiple combos to the same binding'};
+    bindingShowExtraBars    = {false    ; 'Show extra action bars for non-applicable characters'};
     -- Mouse:
     mouseHandlingEnabled    = {true     ; 'Enable custom mouse handling'};
     mouseAutoClearCenter    = {2.0      ; 'Time in seconds to automatically hide centered cursor'};

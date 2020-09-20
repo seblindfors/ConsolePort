@@ -14,8 +14,8 @@ end
 ---------------------------------------------------------------
 -- API Wrappers
 ---------------------------------------------------------------
-local function GetClassInfo()	return UnitClass('player') end
-local function GetClassID() 	return select(3, UnitClass('player')) end
+local function GetClassInfo() return UnitClass('player') end
+local function GetClassID()   return select(3, UnitClass('player')) end
 
 
 function CPAPI.GetClassFile()

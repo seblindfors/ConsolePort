@@ -27,6 +27,13 @@ function CPFocusPoolMixin:Acquire(index)
 	return widget, newObj;
 end
 
+function CPFocusPoolMixin:TryAcquireRegistered(index)
+	if self.Registry[index] then
+		return self.Registry[index];
+	end
+	return self:Acquire(index)
+end
+
 function CPFocusPoolMixin:GetNumActive()
 	return self.FramePool:GetNumActive()
 end
@@ -250,74 +257,97 @@ end
 ---------------------------------------------------------------
 -- Smooth scroll
 ---------------------------------------------------------------
-CPSmoothScrollMixin = {
-	MouseWheelDelta = 100;
-	Horizontal = {
-		GetRange  = 'GetHorizontalScrollRange';
-		GetScroll = 'GetHorizontalScroll';
-		SetScroll = 'SetHorizontalScroll';
-	};
-	Vertical = {
-		GetRange  = 'GetVerticalScrollRange';
-		GetScroll = 'GetVerticalScroll';
-		SetScroll = 'SetVerticalScroll';
-	};
-}
+do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 
-function CPSmoothScrollMixin:SetScrollOrientation(orient)
-	assert(self[orient], 'Orientation must be either Horizontal or Vertical.')
-	self.ScrollOrientationSet = true;
-	for alias, metaname in pairs(self[orient]) do
-		self[alias] = self[metaname]
+	function Scroller:OnUpdate()
+		local current, delta
+		for frame in pairs(self.Frames) do
+			current = frame:GetScroll()
+			if abs(current - frame.targetPos) < 1 then
+				frame:SetScroll(frame.targetPos)
+				self:RemoveFrame(frame)
+			else
+				delta = current > frame.targetPos and -1 or 1;
+				frame:SetScroll(current +
+					(delta * abs(current - frame.targetPos) / frame.stepSize * 8));
+			end
+		end
 	end
-end
 
-function CPSmoothScrollMixin:SetDelta(delta)
-	self.MouseWheelDelta = delta;
-end
-
-function CPSmoothScrollMixin:SmoothScroll(elapsed)
-	local current = self:GetScroll()
-	if abs(current - self.targetPos) < 1 then
-		self:SetScroll(self.targetPos)
-		self:SetScript('OnUpdate', nil)
-		return self.OnScrollFinished and self:OnScrollFinished()
+	function Scroller:AddFrame(frame)
+		self.Frames[frame] = true;
+		self:SetScript('OnUpdate', self.OnUpdate)
 	end
-	local delta = current > self.targetPos and -1 or 1
-	self:SetScroll(current + (delta * abs(current - self.targetPos) / self.stepSize * 8 ) )
-end
 
-function CPSmoothScrollMixin:OnScrollMouseWheel(delta)
-	local range = self:GetRange()
-	local current = self.targetPos or self:GetScroll()
-	local new = current - delta * self.MouseWheelDelta;
-
-	self.stepSize = self.MouseWheelDelta;
-	self.targetPos = new < 0 and 0 or new > range and range or new;
-	self:SetScript('OnUpdate', self.SmoothScroll)
-end
-
-function CPSmoothScrollMixin:ScrollTo(frac, steps)
-	local range = self:GetRange()
-	local size = range / steps
-	local new = frac <= 0 and 0 or frac >= steps and range or size * (frac - 1)
-	self.stepSize = size
-	self.targetPos = new < 0 and 0 or new > range and range or new
-	self:SetScript('OnUpdate', self.SmoothScroll)
-	if range > 0 then
-		return self.targetPos / range;
+	function Scroller:RemoveFrame(frame)
+		self.Frames[frame] = nil;
+		if not next(self.Frames) then
+			self:SetScript('OnUpdate', nil)
+		end
+		return frame.OnScrollFinished and frame:OnScrollFinished()
 	end
-end
 
-function CPSmoothScrollMixin:ScrollToOffset(offset)
-	self.stepSize = self.MouseWheelDelta;
-	self.targetPos = offset * self:GetRange();
-	self:SetScript('OnUpdate', self.SmoothScroll)
-end
+	-----------------------------------------------------------
+	-- Mixin
+	-----------------------------------------------------------
+	CPSmoothScrollMixin = {
+		MouseWheelDelta = 100;
+		Horizontal = {
+			GetRange  = 'GetHorizontalScrollRange';
+			GetScroll = 'GetHorizontalScroll';
+			SetScroll = 'SetHorizontalScroll';
+		};
+		Vertical = {
+			GetRange  = 'GetVerticalScrollRange';
+			GetScroll = 'GetVerticalScroll';
+			SetScroll = 'SetVerticalScroll';
+		};
+	}
 
-function CPSmoothScrollMixin:OnScrollSizeChanged(...)
-	if not self.ScrollOrientationSet then return end;
-	if (self:GetScroll() > self:GetRange()) then
-		self:SetScroll(self:GetRange())
+	function CPSmoothScrollMixin:SetScrollOrientation(orient)
+		assert(self[orient], 'Orientation must be either Horizontal or Vertical.')
+		self.ScrollOrientationSet = true;
+		for alias, metaname in pairs(self[orient]) do
+			self[alias] = self[metaname]
+		end
+	end
+
+	function CPSmoothScrollMixin:SetDelta(delta)
+		self.MouseWheelDelta = delta;
+	end
+
+	function CPSmoothScrollMixin:OnScrollMouseWheel(delta)
+		local range = self:GetRange()
+		local current = self.targetPos or self:GetScroll()
+		local new = current - delta * self.MouseWheelDelta;
+
+		self.stepSize = self.MouseWheelDelta;
+		self.targetPos = new < 0 and 0 or new > range and range or new;
+		Scroller:AddFrame(self)
+	end
+
+	function CPSmoothScrollMixin:ScrollTo(frac, steps)
+		local range = self:GetRange()
+		local size = range / steps
+		local new = frac <= 0 and 0 or frac >= steps and range or size * (frac - 1)
+		self.stepSize = size
+		self.targetPos = new < 0 and 0 or new > range and range or new
+		Scroller:AddFrame(self)
+		if range > 0 then
+			return self.targetPos / range;
+		end
+	end
+
+	function CPSmoothScrollMixin:ScrollToOffset(offset)
+		self.stepSize = self.MouseWheelDelta;
+		self.targetPos = offset * self:GetRange();
+		Scroller:AddFrame(self)
+	end
+
+	function CPSmoothScrollMixin:OnScrollSizeChanged(...)
+		if not self.ScrollOrientationSet then return end;
+		if (self:GetScroll() > self:GetRange()) then
+			self:SetScroll(self:GetRange())
+		end
 	end
 end

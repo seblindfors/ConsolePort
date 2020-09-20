@@ -52,6 +52,7 @@ local GetRectLevelIndex
 local IterateCache
 local IterateRects
 -- Vector calculations
+local GetCenter
 local GetDistance
 local GetDistanceSum
 local GetFrameLevel
@@ -171,11 +172,11 @@ function IsTree(node)
 end
 
 function IsDrawn(node, super)
-	local nX, nY = node:GetCenter()
+	local nX, nY = GetCenter(nX, nY)
 	local mX, mY = LIMIT:GetXY()
 	if ( PointInRange(nX, 0, mX) and PointInRange(nY, 0, mY) ) then
 		-- assert node isn't clipped inside a scroll child
-		if super and super:GetScrollChild() and not node:IsObjectType('Slider') then
+		if super and super:IsToplevel() and not node:IsObjectType('Slider') then
 			return UIDoFramesIntersect(node, super) --or UIDoFramesIntersect(node, scrollChild)
 		else
 			return true
@@ -324,6 +325,13 @@ end
 local vlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
 ---------------------------------------------------------------
 
+function GetCenter(node)
+	local rectL, rectB, rectW, rectH = node:GetRect()
+	local insrL, insrR, insrT, insrB = node:GetHitRectInsets()
+	return	(rectL + insrL) + ((rectW - insrR) / 2),
+			(rectB + insrB) + ((rectH - insrT) / 2)
+end
+
 function GetDistance(x1, y1, x2, y2)
 	return abs(x1 - x2), abs(y1 - y2)
 end
@@ -350,13 +358,13 @@ function CanLevelsIntersect(level1, level2)
 end
 
 function DoNodeAndRectIntersect(node, rect)
-	local x, y = node:GetCenter()
+	local x, y = GetCenter(node)
 	return PointInRange(x, rect:GetLeft(), rect:GetRight()) and
 		   PointInRange(y, rect:GetBottom(), rect:GetTop())
 end
 
 function GetCandidateVectorForCurrent(cur)
-	local x, y = cur.node:GetCenter()
+	local x, y = GetCenter(cur.node)
 	return {x = x; y = y; h = huge; v = huge}
 end 
 
@@ -364,7 +372,7 @@ function GetCandidatesForVector(vector, comparator, candidates)
 	local thisX, thisY = vector.x, vector.y
 	for i, destination in IterateCache() do
 		local candidate = destination.node
-		local destX, destY = candidate:GetCenter()
+		local destX, destY = GetCenter(candidate)
 		local distX, distY = GetDistance(thisX, thisY, destX, destY)
 
 		if comparator(destX, destY, distX, distY, thisX, thisY) then
@@ -443,7 +451,7 @@ end
 function GetPriorityCandidate(x, y)
 	local targNode, targDist, targPrio
 	for _, this in IterateCache() do
-		local thisDist = GetDistanceSum(x, y, this.node:GetCenter())
+		local thisDist = GetDistanceSum(x, y, GetCenter(this.node))
 		local thisPrio = this.node:GetAttribute('nodepriority')
 
 		if thisPrio and not targPrio then
@@ -462,6 +470,7 @@ end
 -- Interface access
 ---------------------------------------------------------------
 NODE.IsDrawn = IsDrawn;
+NODE.GetCenter = GetCenter;
 NODE.IsRelevant = IsRelevant;
 NODE.ClearCache = ClearCache;
 NODE.GetScrollButtons = GetScrollButtons;

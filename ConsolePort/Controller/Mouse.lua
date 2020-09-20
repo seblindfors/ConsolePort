@@ -176,11 +176,7 @@ function Mouse:OnGamePadButtonDown(button)
 	if self:ShouldClearCenteredCursor(button) then
 		return self:ClearCenteredCursor()
 	end
-	if button == 'PADLSTICKDOWN' and not GetCVarBool('GamePadFaceMovement') then
-		SetCVar('GamePadFaceMovement', 1)
-	elseif button == 'PADLSTICKUP' and GetCVarBool('GamePadFaceMovement') then
-		SetCVar('GamePadFaceMovement', 0)
-	end--[[
+	--[[
 	if self:ShouldFreeCenteredCursor(button) then
 		return self:SetCentered(false):SetCursorControl(true)
 	end

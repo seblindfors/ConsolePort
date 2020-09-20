@@ -81,24 +81,31 @@ function HotkeyHandler:GetHotkeyData(device, btnID, modID, styleMain, styleMod)
 	}
 end
 
-function HotkeyHandler:GetButtonSlug(device, btnID, modID)
+function HotkeyHandler:GetButtonSlug(device, btnID, modID, split)
 	local icon = '|T%s:0:0:0:0:32:32:8:24:8:24|t'
-	local data = self:GetHotkeyData(device, btnID, modID, 32, 32)
-	local slug = '';
+	local data = self:GetHotkeyData(device, btnID, modID, split and 64 or 32, 32)
+	local slug = split and {} or '';
 	for i, mod in ripairs(data.modifier) do
-		slug = slug .. icon:format(mod)
+		if split then
+			slug[#slug + 1] = icon:format(mod)
+		else
+			slug = slug .. icon:format(mod)
+		end
 	end
-	return slug .. icon:format(data.button)
+	if split then
+		return slug, data;
+	end
+	return slug .. icon:format(data.button);
 end
 
-function HotkeyHandler:GetButtonSlugForBinding(binding)
+function HotkeyHandler:GetButtonSlugForBinding(binding, split)
 	local device = db('Gamepad/Active')
 	if not device then return end;
 	local key = db('Gamepad'):GetBindingKey(binding)
 	if key then
 		local slug = {strsplit('-', key)}
 		local btnID = tremove(slug)
-		return self:GetButtonSlug(device, btnID, table.concat(slug, '-'))
+		return self:GetButtonSlug(device, btnID, table.concat(slug, '-'), split)
 	end
 end
 
@@ -129,6 +136,7 @@ end
 function HotkeyHandler:UpdateHotkeys(device)
 	self.Widgets:ReleaseAll()
 	assert(device, 'No device specified when attempting to update hotkeys.')
+	if nil then return end
 
 	local bindings = db.Gamepad:GetBindings()
 	local bindingToActionID = {}

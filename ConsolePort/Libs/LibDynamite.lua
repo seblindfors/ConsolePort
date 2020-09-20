@@ -122,10 +122,11 @@ SPECIAL = { -- Special constructors
         return frame
     end;
     ---
-    Existing = function(parent, key, region, anon)
+    Global = function(parent, key, region, anon)
         if not anon then
             _G[parent:GetName()..key] = region
         end
+        parent[key] = region
         region:SetParent(parent)
         return region
     end;
@@ -210,7 +211,7 @@ function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
                         end
                     -- Region already exists.
                     elseif (objectType == 'table') and IsWidget(object) then
-                        widget = SPECIAL.Existing(frame, key, object, anon)
+                        widget = SPECIAL.Global(frame, key, object, anon)
                     -- Region should be a type of frame.
                     elseif (objectType == 'string') then
                         local xml = type(buildInfo) == 'table' and tconcat(buildInfo, ', ') or buildInfo
@@ -222,6 +223,11 @@ function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
                 end
                 ----------------------------------
                 frame[key] = widget
+            else
+                local bp = config[1]
+                if bp then
+                    widget = self:BuildFrame(widget, bp, true, anon)
+                end
             end
 
             if isLoop and widget.SetID then widget:SetID(i) end

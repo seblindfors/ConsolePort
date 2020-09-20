@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
-	<IndexButton name="CPIndexButtonBindingComboTemplate" virtual="true" inherits="CPIndexButtonIconTextTemplate">
+	<Frame name="CPConfigActionDisplayTemplate" virtual="true">
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="2">
 				<FontString parentKey="Modifier" inherits="Game15Font">
@@ -17,15 +17,40 @@
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="3">
-				<Texture parentKey="Mask" alpha="0" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\IconMask">
-					<Size x="32" y="32"/>
+				<Texture parentKey="Mask" alpha="0" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
 					<Anchors>
-						<Anchor point="RIGHT" x="-8"/>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ActionIcon" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActionIcon" x="1" y="-1"/>
 					</Anchors>
 				</Texture>
+				<MaskTexture parentKey="MaskAlpha"
+					file="Interface\CharacterFrame\TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ActionIcon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActionIcon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="ActionIcon"/>
+					</MaskedTextures>
+				</MaskTexture>
 			</Layer>
 		</Layers>
-	</IndexButton>
+	</Frame>
+
+	<Frame name="CPConfigBindingDisplayTemplate" inherits="CPConfigActionDisplayTemplate" virtual="true">
+		<Size x="360" y="60"/>	
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<FontString parentKey="Label" inherits="CPSubtitleFont" justifyH="CENTER" height="14" spacing="2">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<IndexButton name="CPIndexButtonBindingComboTemplate" virtual="true" inherits="CPIndexButtonIconTextTemplate, CPConfigActionDisplayTemplate"/>
 
 	<IndexButton name="CPIndexButtonBindingHeaderTemplate" virtual="true">
 		<Size x="560" y="40"/>

@@ -1,21 +1,9 @@
 local db, _, env = ConsolePort:DB(), ...;
-local BindingsMixin, DynamicMixin = {}, CreateFromMixins(CPFocusPoolMixin)
+local BindingsMixin = {}
 
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
-function DynamicMixin:OnHide()
-	self:ReleaseAll()
-end
-
-function DynamicMixin:GetWidgetByID(id, name)
-	for regID, widget in pairs(self.Registry) do
-		if ( widget:GetID() == id or name == regID ) then
-			return widget;
-		end
-	end
-end
-
 function BindingsMixin:GetActiveDeviceAndMap()
 	-- using ID to get the buttons in WinRT API order (NOTE: zero-indexed)
 	return db('Gamepad/Active'), db('Gamepad/Index/Button/ID')
@@ -34,181 +22,6 @@ function BindingsMixin:GetBindings()
 end
 
 ---------------------------------------------------------------
--- Shortcuts
----------------------------------------------------------------
-local Shortcuts, Shortcut = CreateFromMixins(DynamicMixin), {}
-
-function Shortcut:OnClick()
-	local scrollFraction = self.container:ScrollTo(self:GetID(), self.container:GetNumActive())
-	self.container:SetFocusByIndex(self:GetAttribute('button'))
-	self.container.parent:NotifyFocus(self:GetID(), self:GetAttribute('button'), scrollFraction)
-end
-
-function Shortcuts:OnLoad()
-	CPFocusPoolMixin.OnLoad(self)
-	self:CreateFramePool('IndexButton',
-		'CPIndexButtonIconTemplate', Shortcut, nil, self.Child);
-end
-
-function Shortcuts:OnScrollFinished()
-	local widget = self:GetFocusWidget()
-	if widget then
-		widget:SetChecked(false)
-		widget:OnChecked(false)
-	end
-end
-
-function Shortcuts:OnShow()
-	local device, map = self.parent:GetActiveDeviceAndMap()
-	if not device or not map then 
-		return self.Child:SetSize(0, 0)
-	end
-
-	local id, width, height, prev = 1, self.Child:GetWidth(), 0;
-	for i=0, #map do
-		local binding = map[i].Binding;
-		-- assert this button has an icon
-		if ( device:GetIconIDForButton(binding) ) then
-
-			local icon = device:GetIconForButton(binding)
-			local widget, newObj = self:Acquire(binding)
-
-			if newObj then
-				local widgetWidth = widget:GetWidth()
-				width = widgetWidth > width and widgetWidth or width;
-				widget.container = self;
-				widget:SetSiblings(self.Registry)
-				CPAPI.Start(widget)
-			end
-
-			widget:SetAttribute('button', binding)
-			widget:SetIcon(icon)
-			widget:SetID(id)
-			widget:Show()
-			widget:SetPoint('TOP', prev or self.Child, prev and 'BOTTOM' or 'TOP', 0, 0)
-
-			height = height + widget:GetHeight()
-			id, prev = id + 1, widget;
-		end
-	end
-	self.Child:SetSize(width, height)
-end
-
----------------------------------------------------------------
--- Combinations (abbrev. combos)
----------------------------------------------------------------
-local Combos, Combo = CreateFromMixins(DynamicMixin), CreateFromMixins(env.BindingInfoMixin)
-
-function Combo:UpdateBinding(combo)
-	local name, texture, actionID = self:GetBindingInfo(GetBindingAction(combo))
-	self:SetText(name)
-	self.ActionIcon:SetAlpha(texture and 1 or 0)
-	self.Mask:SetAlpha(texture and 1 or 0)
-	if texture then
-		SetPortraitToTexture(self.ActionIcon, texture) -- bug if action texture isnt 64x64, replace with mask
-	end
-	if actionID then
-		self:SetAttribute('action', actionID)
-		self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
-		self:RegisterEvent('UPDATE_SHAPESHIFT_FORM')
-	else
-		self:SetAttribute('action', nil)
-		self:UnregisterEvent('ACTIONBAR_SLOT_CHANGED')
-		self:UnregisterEvent('UPDATE_SHAPESHIFT_FORM')
-	end
-end
-
-function Combo:OnEvent(event, ...)
-	if (event == 'ACTIONBAR_SLOT_CHANGED') then
-		local actionID = ...;
-		if (actionID == self:GetAttribute('action')) then
-			self:UpdateBinding(self:GetAttribute('combo'))
-		end
-	elseif (event == 'UPDATE_SHAPESHIFT_FORM') then
-		self:UpdateBinding(self:GetAttribute('combo'))
-	end
-end
-
-function Combo:OnReceiveDrag()
-	if GetCursorInfo() and self:GetAttribute('action') then
-		PlaceAction(self:GetAttribute('action'))
-	end
-end
-
-function Combo:OnDragStart()
-	if self:GetAttribute('action') then
-		PickupAction(self:GetAttribute('action'))
-	end
-end
-
-function Combo:OnClick()
-	if GetCursorInfo() and self:GetAttribute('action') then
-		PlaceAction(self:GetAttribute('action'))
-		self:SetChecked(false)
-	end
-	self:OnChecked(self:GetChecked())
-end
-
-function Combo:OnShow()
-	self:UpdateBinding(self:GetAttribute('combo'))
-end
-
-function Combos:OnLoad()
-	CPFocusPoolMixin.OnLoad(self)
-	self:CreateFramePool('IndexButton',
-		'CPIndexButtonBindingComboTemplate', Combo, nil, self.Child)
-end
-
-function Combos:OnShow()
-	local device, map = self.parent:GetActiveDeviceAndMap()
-	local mods = self.parent:GetActiveModifiers()
-	if not device or not map or not mods then
-		return self.Child:SetSize(0, 0)
-	end
-
-	local id, width, height, prev = 1, self.Child:GetWidth(), 0;
-	for i=0, #map do
-		local binding = map[i].Binding;
-		-- assert this button has an icon
-		if ( device:GetIconIDForButton(binding) ) then
-
-			for mod, keys in db.table.mpairs(mods) do -- TODO: the order is wrong
-				local widget, newObj = self:Acquire(mod..binding)
-				if newObj then
-					local widgetWidth = widget:GetWidth()
-					width = widgetWidth > width and widgetWidth or width;
-					widget.container = self;
-					widget:SetSiblings(self.Registry)
-					widget:SetDrawOutline(true)
-					widget:RegisterForDrag('LeftButton')
-					CPAPI.Start(widget)
-				end
-
-				local data = self.parent:GetHotkeyData(binding, mod, 64, 32)
-				local modstring = '';
-
-				for i, mod in ripairs(data.modifier) do
-					modstring = modstring .. ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(mod)
-				end
-
-				widget.Modifier:SetText(modstring)
-				widget:SetIcon(data.button)
-				widget:SetID(id)
-				widget:SetAttribute('combo', mod..binding)
-				widget:Show()
-				widget:SetPoint('TOP', prev or self.Child, prev and 'BOTTOM' or 'TOP', 0, 0)
-
-				prev, height = widget, height + widget:GetHeight();
-			end
-
-			id = id + 1;
-		end
-	end
-	self:SetAttribute('numsets', id)
-	self.Child:SetSize(width, height)
-end
-
----------------------------------------------------------------
 -- Main frame
 ---------------------------------------------------------------
 function BindingsMixin:OnShow()
@@ -219,16 +32,28 @@ function BindingsMixin:OnActiveDeviceChanged(device)
 	self.device = device;
 end
 
-function BindingsMixin:NotifyFocus(id, name, fraction)
+function BindingsMixin:NotifyComboFocus(id, name, fraction)
 	local combo = self.Combinations:GetWidgetByID(id, name)
 	if fraction then
+		--self.Combinations:ToggleFlex(true) -- TODO: can't do this currently because of conflicting onupdate
 		self.Combinations:ScrollToOffset(fraction)
 	end
 end
 
+function BindingsMixin:NotifyBindingFocus(widget, show, hideShortcuts)
+	if show and hideShortcuts and self.Shortcuts.Flexer:GetChecked() then
+		self.Shortcuts.Flexer:Click()
+	end
+	self.Combinations:ToggleFlex(not show)
+	self.Mapper:ToggleWidget(widget, show)
+end
+
+---------------------------------------------------------------
+-- Setting up
+---------------------------------------------------------------
 function BindingsMixin:OnLoad()
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
-		['<Mixin>']  = Shortcuts;
+		['<Mixin>']  = env.ShortcutsMixin;
 		['<Width>']  = 0.01;
 		['<SetDelta>'] = 60;
 		['<Points>'] = {
@@ -236,9 +61,10 @@ function BindingsMixin:OnLoad()
 			{'BOTTOMLEFT', 0, 0};
 		};
 		{
-			Line = {
+			Flexer = {
 				['<Type>'] = 'CheckButton';
 				['<Setup>'] = 'BackdropTemplate';
+				['<Mixin>'] = env.FlexibleMixin;
 				['<Width>'] = 24;
 				['<Points>'] = {
 					{'TOPLEFT', 'parent', 'TOPRIGHT', 0, 0};
@@ -262,40 +88,149 @@ function BindingsMixin:OnLoad()
 					hilite:SetPoint('CENTER', -1, 0)
 					hilite:SetSize(16, 32)
 					EquipmentFlyoutPopoutButton_SetReversed(self, false)
+					self:SetFlexibleElement(self:GetParent(), self:GetParent().Child)
 				end;
 				['<OnClick>'] = function(self)
-					local parent = self:GetParent()
-					local target = self:GetChecked() and parent.Child:GetWidth() or 0.01;
+					local enabled = self:GetChecked()
 					EquipmentFlyoutPopoutButton_SetReversed(self, self:GetChecked())
-					self:SetScript('OnUpdate', function(self, elapsed)
-						local current = parent:GetWidth()
-						if abs(current - target) < 2 then
-							parent:SetWidth(target)
-							self:SetScript('OnUpdate', nil)
-							return
-						end
-						local delta = current > target and -1 or 1
-						parent:SetWidth(current + (delta * abs(current - target) / 5))
-					end)
+					self:ToggleFlex(enabled)
 				end;
 			};
 		}
 	})
 	local combos = self:CreateScrollableColumn('Combinations', {
-		['<Mixin>']  = Combos;
+		['<Mixin>']  = env.CombosMixin;
 		['<Width>']  = 300;
 		['<SetDelta>'] = 60;
 		['<Points>'] = {
-			{'TOPLEFT', shortcuts.Line, 'TOPRIGHT', 0, 0};
-			{'BOTTOMLEFT', shortcuts.Line, 'BOTTOMRIGHT', 0, 0};
+			{'TOPLEFT', shortcuts.Flexer, 'TOPRIGHT', 0, 0};
+			{'BOTTOMLEFT', shortcuts.Flexer, 'BOTTOMRIGHT', 0, 0};
 		};
 		['<Hooks>'] = {
 			['OnMouseWheel'] = function(self)
-				if not shortcuts.Line:GetChecked() then
-					shortcuts.Line:Click()
+				if not shortcuts.Flexer:GetChecked() then
+					shortcuts.Flexer:Click()
 				end
 			end;
 		};
+	})
+	local mapper = self:CreateScrollableColumn('Mapper', {
+		['<Mixin>'] = env.BindingMapper;
+		['<Setup>'] = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
+		['<Width>'] = 0.01;
+		['<SetDelta>'] = 40;
+		['<Backdrop>'] = CPAPI.Backdrops.Opaque;
+		['<Points>'] = {
+			{'TOPLEFT', combos, 'TOPRIGHT', 0, 1};
+			{'BOTTOMLEFT', combos, 'BOTTOMRIGHT', 0, -1};
+		};
+		{
+			Child = {
+				['<Width>'] = 360;
+				{
+					Close = {
+						['<Type>'] = 'Button';
+						['<Setup>'] = 'UIPanelCloseButtonNoScripts';
+						['<Point>'] = {'TOPRIGHT', -8, -8};
+						['<OnClick>'] = function(self)
+							env.Bindings:NotifyBindingFocus(nil)
+						end;
+					};
+					Info = {
+						['<Type>']  = 'Frame';
+						['<Setup>'] = 'CPConfigBindingDisplayTemplate';
+						['<Point>'] = {'TOP', 0, 0};
+					};
+					Help = {
+						['<Type>'] = 'FontString';
+						['<Setup>'] = {'ARTWORK', 'GameFontNormal'};
+						['<Width>'] = 360;
+						['<Point>'] = {'TOP', 0, -60};
+						['tutorialText'] = BIND_KEY_TO_COMMAND:gsub(' %->', ':\n');
+						['defaultText'] = ('%s%s | %s%s'):format(
+							'{Atlas|NPE_LeftClick:32}', CHOOSE,
+							REMOVE, '{Atlas|NPE_RightClick:32}'
+						);
+						['<OnLoad>'] = function(self)
+							self:SetFont(GameFontNormal:GetFont());
+							self:SetDefaultHelp()
+						end;
+						['<SetBindingHelp>'] = function(self, text)
+							if text then
+								self:SetFormattedText(self.tutorialText, text);
+							else
+								self:SetText(self.defaultText);
+							end
+						end;
+						['<SetDefaultHelp>'] = function(self)
+							self:SetText(self.defaultText:gsub('{Atlas|([%w_-]+):?(%d*)}', function(atlasName, size)
+								size = tonumber(size) or 0;
+								return CreateAtlasMarkup(atlasName, size, size);
+							end));
+						end;
+					};
+					Change = {
+						['<Type>']  = 'IndexButton';
+						['<Setup>'] = 'CPIndexButtonBindingActionTemplate';
+						['<Size>']  = {340, 40};
+						['<Point>'] = {'TOP', 0, -100};
+						['<RegisterForClicks>'] = {'LeftButtonUp', 'RightButtonUp'};
+						['<SetDrawOutline>'] = true;
+						['<Text>'] = KEY_BINDING ..':';
+						['<OnLoad>'] = function(self)
+							local label = self:GetFontString()
+							local font, _, outline = label:GetFont()
+							label:SetFont(font, 14, outline)
+						end;
+						['<OnHide>'] = function(self)
+							self:SetChecked(false)
+							self:OnChecked(false)
+						end;
+						['<OnClick>'] = function(self, button)
+							local mapper = self:GetParent():GetParent();
+							if (button == 'LeftButton') then
+								mapper:SetCatchButton(true);
+							elseif (button == 'RightButton') then
+								mapper:ClearBinding();
+							end
+						end;
+					};
+					Catch = {
+						['<Type>'] = 'Button';
+						['<Setup>'] = 'SharedButtonLargeTemplate';
+						['<Point>'] = {'CENTER', '$parent.Change', 'CENTER', 0, 0};
+						['<Level>'] = 100;
+						['<Text>'] = 'Enter World';
+						['<Size>'] = {260, 50};
+						['<Hide>'] = true;
+						['<OnShow>'] = function(self)
+							self:EnableGamePadButton(true)
+							self:GetParent().Change:Hide()
+							self.timeUntilCancel = 5;
+						end;
+						['<OnHide>'] = function(self)
+							self:EnableGamePadButton(false)
+							self:GetParent().Change:Show()
+							self:GetParent().Help:SetDefaultHelp()
+							self.timeUntilCancel = 5;
+						end;
+						['<OnUpdate>'] = function(self, elapsed)
+							self.timeUntilCancel = self.timeUntilCancel - elapsed;
+							self:SetText(('%s (%d)'):format(CANCEL, ceil(self.timeUntilCancel)))
+							if self.timeUntilCancel <= 0 then
+								self.timeUntilCancel = 5;
+								self:Hide()
+							end
+						end;
+						['<OnGamePadButtonUp>'] = function(self, ...)
+							self:Hide()
+							self:GetParent():GetParent():OnButtonCaught(...)
+						end;
+						['<OnClick>'] = function(self) self:Hide() end;
+					};
+				}
+			}
+		}
 	})
 	local manager = self:CreateScrollableColumn('Manager', {
 		['<Mixin>'] = env.BindingManager;
@@ -303,15 +238,15 @@ function BindingsMixin:OnLoad()
 		['<Width>'] = 600;
 		['<Backdrop>'] = CPAPI.Backdrops.Opaque;
 		['<Points>'] = {
-			{'TOPLEFT', combos, 'TOPRIGHT', 0, 1};
-			{'BOTTOMLEFT', combos, 'BOTTOMRIGHT', 0, -1};
+			{'TOPLEFT', mapper, 'TOPRIGHT', 0, 0};
+			{'BOTTOMLEFT', mapper, 'BOTTOMRIGHT', 0, 0};
 		};
 	})
 	self:OnActiveDeviceChanged(db('Gamepad/Active'))
 	db:RegisterCallback('Gamepad/Active', self.OnActiveDeviceChanged, self)
 end
 
-local Bindings = ConsolePortConfig:CreatePanel({
+env.Bindings = ConsolePortConfig:CreatePanel({
 	name  = 'Bindings';
 	mixin = BindingsMixin;
 	scaleToParent = true;

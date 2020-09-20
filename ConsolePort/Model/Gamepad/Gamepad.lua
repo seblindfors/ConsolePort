@@ -181,7 +181,7 @@ function GamepadAPI:GetBindings()
 	return bindings
 end
 
-function GamepadAPI:GetBindingKey(binding, astable)
+function GamepadAPI:GetBindingKey(binding)
 	return unpack(tFilter({GetBindingKey(binding)}, IsBindingForGamePad, true))
 end
 
@@ -227,6 +227,7 @@ end
 
 function GamepadMixin:ApplyHotkeyStrings()
 	local label, hotkey = self.Theme.Label;
+	assert(label, ('Gamepad device %s does not have a button label type.'):format(self.Name))
 	for button in pairs(self.Theme.Icons) do
 		hotkey = self:GetHotkeyButtonPrompt(button) -- TODO: assert there's a label
 		_G[('KEY_ABBR_%s'):format(button)] = hotkey;
@@ -247,7 +248,7 @@ function GamepadMixin:GetHotkeyButtonPrompt(button)
 end
 
 function GamepadMixin:GetIconForButton(button, style)
-	assert(button, 'Button is not defined.')
+	assert(button, 'Button is not defined.') -- TODO: needs protection from unassigned bindings
 	return GamepadAPI:GetIconPath(db(('Gamepad/Index/Icons/%s'):format(self:GetIconIDForButton(button))), style)
 end
 
