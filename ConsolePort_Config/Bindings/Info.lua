@@ -230,68 +230,119 @@ function BindingInfo:RefreshCollections()
 	self.Collections = self.Collections and wipe(self.Collections) or {};
 
 	-- Spells
-	local spells, flyout, flyoutName = {}, {}
-	for tab=1, GetNumSpellTabs() do
-		local _, _, offset, slots, _, offspecID = GetSpellTabInfo(tab)
-		-- NOTE: this means it's an active spell tab, lmao
-		if (offspecID == 0) then
-			for i = (offset+1), (slots+offset) do
-				if not IsPassiveSpell(i, BOOKTYPE_SPELL) then
-					local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_SPELL)
-					if (skillType == 'SPELL') then
-						spells[#spells + 1] = i;
-					elseif (skillType == 'FLYOUT') then
-						spells[#spells + 1] = i;
+	do  local spells, flyout, flyoutName = {}, {}
+		for tab=1, GetNumSpellTabs() do
+			local _, _, offset, slots, _, offspecID = GetSpellTabInfo(tab)
+			-- NOTE: this means it's an active spell tab, lmao
+			if (offspecID == 0) then
+				for i = (offset+1), (slots+offset) do
+					if not IsPassiveSpell(i, BOOKTYPE_SPELL) then
+						local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_SPELL)
+						if (skillType == 'SPELL') then
+							spells[#spells + 1] = i;
+						elseif (skillType == 'FLYOUT') then
+							spells[#spells + 1] = i;
 
-						local name, _, numFlyoutSlots = GetFlyoutInfo(typeID)
-						flyoutName = flyoutName and ('%s / %s'):format(flyoutName, name) or name;
-						for f=1, numFlyoutSlots do
-							flyout[#flyout+1] = GetFlyoutSlotInfo(typeID, f);
+							local name, _, numFlyoutSlots = GetFlyoutInfo(typeID)
+							flyoutName = flyoutName and ('%s / %s'):format(flyoutName, name) or name;
+							for f=1, numFlyoutSlots do
+								flyout[#flyout+1] = GetFlyoutSlotInfo(typeID, f);
+							end
 						end
 					end
 				end
 			end
 		end
-	end
 
-	-- Pet spells
-	local pet, numPetSpells, petToken = {}, HasPetSpells()
-	if numPetSpells then
-		for i=1, numPetSpells do
-			local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_PET)
-			if (skillType == 'PETACTION') then
-				pet[#pet + 1] = i;
+		-- Pet spells
+		local pet, numPetSpells, petToken = {}, HasPetSpells()
+		if numPetSpells then
+			for i=1, numPetSpells do
+				local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_PET)
+				if (skillType == 'PETACTION') then
+					pet[#pet + 1] = i;
+				end
 			end
+		end
+
+
+		self:AddCollection(spells, {
+			name    = SPELLBOOK;
+			match   = C_ActionBar.FindSpellActionButtons;
+			pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
+			tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
+			texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
+		})
+
+		if next(flyout) then
+			self:AddCollection(flyout, {
+				name    = flyoutName;
+				match   = C_ActionBar.FindSpellActionButtons;
+				pickup  = PickupSpell;
+				tooltip = GameTooltip.SetSpellByID;
+				texture = GetSpellTexture;
+			})
+		end
+
+		if next(pet) then
+			self:AddCollection(pet, {
+				name    = PET;
+				match   = C_ActionBar.FindPetActionButtons;
+				pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_PET) end;
+				tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_PET) end;
+				texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_PET) end;
+			})
 		end
 	end
 
+	-- Bags
+	do local items, omit, INDEX_ITEM_ID = {}, {}, 10
+		for bag=0, NUM_BAG_SLOTS do
+			for slot=1, GetContainerNumSlots(bag) do
+				local itemID = select(INDEX_ITEM_ID, GetContainerItemInfo(bag, slot))
+				if IsUsableItem(itemID) and not omit[itemID] then
+					items[#items + 1] = {bag, slot}
+					omit[itemID] = true;
+				end
+			end
+		end
 
-	self:AddCollection(spells, {
-		name    = SPELLBOOK;
-		match   = C_ActionBar.FindSpellActionButtons;
-		pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
-		tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
-		texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
-	})
-
-	if next(flyout) then
-		self:AddCollection(flyout, {
-			name    = flyoutName;
-			match   = C_ActionBar.FindSpellActionButtons;
-			pickup  = PickupSpell;
-			tooltip = GameTooltip.SetSpellByID;
-			texture = GetSpellTexture;
-		})
+		if next(items) then
+			self:AddCollection(items, {
+				name    = ITEMS;
+				pickup  = PickupContainerItem;
+				tooltip = GameTooltip.SetBagItem;
+				texture = GetContainerItemInfo;
+			})
+		end
 	end
 
-	if next(pet) then
-		self:AddCollection(pet, {
-			name    = PET;
-			match   = C_ActionBar.FindPetActionButtons;
-			pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_PET) end;
-			tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_PET) end;
-			texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_PET) end;
-		})
+	-- Mounts
+	do local mounts, sort = {}, {}
+		for i, mountID in pairs(C_MountJournal.GetMountIDs()) do
+			local name, spellID, _, _, isUsable, _, isFavorite = C_MountJournal.GetMountInfoByID(mountID)
+			if isUsable then
+				if isFavorite then
+					tinsert(mounts, 1, spellID)
+				else
+					sort[name] = spellID;
+				end
+			end
+		end
+
+		for _, spellID in db.table.spairs(sort) do
+			mounts[#mounts+1] = spellID;
+		end
+
+		if next(mounts) then
+			self:AddCollection(mounts, {
+				name    = MOUNTS;
+				match   = C_ActionBar.FindSpellActionButtons;
+				pickup  = PickupSpell;
+				tooltip = GameTooltip.SetSpellByID;
+				texture = GetSpellTexture;
+			})
+		end
 	end
 
 	return self.Collections;

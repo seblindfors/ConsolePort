@@ -369,6 +369,16 @@ function Actionbar:OnChecked(show)
 end
 
 ---------------------------------------------------------------
+-- Custom bindings
+---------------------------------------------------------------
+local Custom = CreateFromMixins(Header)
+
+function Custom:OnLoad()
+	self:SetText(CONTROLS_LABEL)
+	-- TODO
+end
+
+---------------------------------------------------------------
 -- Binding manager
 ---------------------------------------------------------------
 function BindingManager:OnShow()

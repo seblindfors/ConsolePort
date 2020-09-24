@@ -146,9 +146,9 @@ function Cursor:RefreshToFrame(frame)
 	end
 end
 
-function Cursor:SetCurrentNode(node)
+function Cursor:SetCurrentNode(node, uniqueTriggered)
 	local object = node and Node.ScanLocal(node)[1]
-	if object then
+	if object and (not uniqueTriggered or not GetMouseButtonClicked()) then
 		self:OnLeaveNode(self:GetCurrentNode())
 		self:SetCurrent(object)
 		self:SetFlashNextNode()
@@ -300,8 +300,9 @@ function Cursor:GetCurrentNode()
 	return obj and obj.node;
 end
 
-function Cursor:IsCurrentNode(node)
+function Cursor:IsCurrentNode(node, uniqueTriggered)
 	return (node and node == self:GetCurrentNode())
+		and (not uniqueTriggered or not node:IsMouseOver())
 end
 
 function Cursor:GetCurrentObjectType()

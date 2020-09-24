@@ -70,8 +70,8 @@ function Mapper:SetFocus(widget)
 		self:SetCatchButton(false)
 		-- HACK: route it to the close button first, so it has
 		-- a fallback if going straight into rebinding.
-		db('Cursor'):SetCurrentNode(self.Child.Close)
-		db('Cursor'):SetCurrentNode(self.Child.Change)
+		db('Cursor'):SetCurrentNode(self.Child.Close, true)
+		db('Cursor'):SetCurrentNode(self.Child.Change, true)
 	end
 end
 
@@ -84,7 +84,7 @@ function Mapper:ClearFocus(newObj)
 		self.focusWidget:SetChecked(false)
 		CPIndexButtonMixin.OnChecked(self.focusWidget, false)
 		if not newObj then
-			db('Cursor'):SetCurrentNode(self.focusWidget)
+			db('Cursor'):SetCurrentNode(self.focusWidget, true)
 		end
 		self.focusWidget = nil;
 	end
@@ -167,39 +167,39 @@ end
 ---------------------------------------------------------------
 -- Action mapper
 ---------------------------------------------------------------
-local Ability, Collection = {}, CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, {
+local Action, Collection = {}, CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, {
 	rowSize = 7;
 });
 
-function Ability:OnLoad()
+function Action:OnLoad()
 	self:SetDrawOutline(true)
 	CPAPI.Start(self)
 end
 
-function Ability:OnEnter()
+function Action:OnEnter()
 	local tooltipFunc = self.tooltip;
 	if tooltipFunc then
 		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
-		tooltipFunc(GameTooltip, self:GetID())
+		tooltipFunc(GameTooltip, self:GetValue())
 		GameTooltip:Show()
 	end
 end
 
-function Ability:OnLeave()
+function Action:OnLeave()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
 end
 
-function Ability:OnHide()
+function Action:OnHide()
 	self:OnLeave()
 end
 
-function Ability:OnClick()
+function Action:OnClick()
 	local pickup = self.pickup;
 	local actionID = env.Bindings.Mapper.Child.Option.Action.actionID;
 	if pickup and actionID then
-		pickup(self:GetID())
+		pickup(self:GetValue())
 		C_ActionBar.PutActionInSlot(actionID)
 		ClearCursor()
 	end
@@ -207,8 +207,19 @@ function Ability:OnClick()
 	self:OnChecked(false)
 end
 
-function Ability:Update()
-	local texture = self.texture and self.texture(self:GetID())
+function Action:SetValue(value)
+	self.value = value;
+end
+
+function Action:GetValue()
+	if (type(self.value) == 'table') then
+		return unpack(self.value)
+	end
+	return self.value;
+end
+
+function Action:Update()
+	local texture = self.texture and self.texture(self:GetValue())
 	self.Icon:SetTexture(texture or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
 	self.Icon:SetDesaturated(not texture or false)
 	if not texture then
@@ -221,9 +232,9 @@ end
 function Collection:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
 	self:SetWidth(320)
-	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
+	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 10)
 	self:CreateFramePool('IndexButton',
-		'CPIndexButtonBindingActionButtonTemplate', Ability, nil, self.Content)
+		'CPIndexButtonBindingActionButtonTemplate', Action, nil, self.Content)
 end
 
 function Collection:SetData(data)
@@ -240,7 +251,7 @@ function Collection:Update()
 			widget:OnLoad()
 		end
 		Mixin(widget, data)
-		widget:SetID(item)
+		widget:SetValue(item)
 		widget:Update()
 		widget:Show()
 		if (i == 1) then
@@ -348,10 +359,13 @@ end
 -- TODO: bug with the widget pool showing wrong col after expand/collapse
 function ActionMapper:OnExpand()
 	self.Hilite:Hide()
+	-- low-prio todo: maybe move these into collections
 	self:RegisterEvent('PET_SPECIALIZATION_CHANGED')
 	self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
 	self:RegisterEvent('PLAYER_PVP_TALENT_UPDATE')
 	self:RegisterEvent('PLAYER_TALENT_UPDATE')
+	self:RegisterEvent('BAG_UPDATE_DELAYED')
+	self:RegisterEvent('NEW_MOUNT_ADDED')
 	local prev
 	for i, collection in ipairs(self:GetCollections()) do
 		local widget, newObj = self:Acquire(i)
