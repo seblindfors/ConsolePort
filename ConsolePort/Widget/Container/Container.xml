@@ -4,6 +4,9 @@
 
 	<Slider name="CPContainerSliderTemplate" virtual="true">
 		<Size x="12" y="0"/>
+		<Attributes>
+			<Attribute name="nodeignore" type="boolean" value="true"/>
+		</Attributes>
 		<Frames>
 			<Button parentKey="ScrollUpButton">
 				<Scripts>

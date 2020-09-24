@@ -14,12 +14,15 @@
 		<Color r="0.15" g="0.15" b="0.15" a="1"/>
 	</Line>
 
-	<CheckButton name="IndexButton" intrinsic="true" mixin="CPIndexButtonMixin">
+	<CheckButton name="IndexButton" intrinsic="true" secureMixin="CPIndexButtonMixin">
 		<Size x="250" y="64"/>
 		<Scripts>
-			<OnLoad method="OnIndexButtonLoad" instrincOrder="precall"/>
-			<OnClick method="OnIndexButtonClick" instrincOrder="precall"/>
-			<OnSizeChanged method="OnBackdropSizeChanged" instrincOrder="postcall"/>
+			<OnLoad method="OnIndexButtonLoad" intrinsicOrder="precall"/>
+			<OnHide method="OnIndexButtonHide" intrinsicOrder="precall"/>
+			<OnClick method="OnIndexButtonClick" intrinsicOrder="precall"/>
+			<OnEnter method="OnIndexButtonEnter" intrinsicOrder="precall"/>
+			<OnLeave method="OnIndexButtonLeave" intrinsicOrder="precall"/>
+			<OnSizeChanged method="OnBackdropSizeChanged" intrinsicOrder="postcall"/>
 		</Scripts>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-1">

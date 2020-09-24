@@ -5,7 +5,7 @@ local BindingInfo = env.BindingInfo;
 -- Mixins
 ---------------------------------------------------------------
 local BindingManager = CreateFromMixins(CPFocusPoolMixin);
-local Binding, Header = {}, CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin)
+local Binding, Header = CreateFromMixins(CPIndexButtonMixin), CreateFromMixins(CPIndexButtonMixin, CPFocusPoolMixin, env.ScaleToContentMixin)
 env.BindingManager = BindingManager;
 
 ---------------------------------------------------------------
@@ -23,10 +23,6 @@ function Binding:UpdateBinding()
 	end
 end
 
-function Binding:OnClick()
-	env.Bindings:NotifyBindingFocus(self, self:GetChecked(), true)
-end
-
 function Binding:GetBinding()
 	local id = self:GetID()
 	return self:GetAttribute('binding'), id > 0 and id or nil;
@@ -36,7 +32,32 @@ function Binding:GetAction()
 	return nil;
 end
 
+function Binding:ClearKeys(key, ...)
+	if key then
+		SetBinding(key, nil)
+		self:ClearKeys(...)
+	end
+end
+
+function Binding:OnClick(button)
+	if ( button == 'RightButton' ) then
+		self:ClearKeys(db('Gamepad'):GetBindingKey(self:GetBinding()))
+		self:SetChecked(false)
+	else
+		env.Bindings:NotifyBindingFocus(self, self:GetChecked(), true)
+	end
+end
+
+function Binding:OnEnter()
+	CPIndexButtonMixin.OnIndexButtonEnter(self)
+end
+
+function Binding:OnLeave()
+	CPIndexButtonMixin.OnIndexButtonLeave(self)
+end
+
 function Binding:OnLoad()
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 	CPAPI.Start(self)
 end
 
@@ -46,6 +67,8 @@ end
 function Header:OnLoad()
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
 	CPFocusPoolMixin.OnLoad(self)
+	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
+	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingActionTemplate', Binding, nil, self.Content)
 end
@@ -152,6 +175,7 @@ function Actionbutton:OnShow()
 end
 
 function Actionbutton:OnEnter()
+	CPIndexButtonMixin.OnIndexButtonEnter(self)
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	GameTooltip:SetAction(self:GetID())
 	GameTooltip:AddLine(self:GetAttribute('name'))
@@ -163,6 +187,7 @@ function Actionbutton:OnEnter()
 end
 
 function Actionbutton:OnLeave()
+	CPIndexButtonMixin.OnIndexButtonLeave(self)
 	if ( GameTooltip:IsOwned(self) ) then
 		GameTooltip:Hide()
 	end
@@ -292,6 +317,8 @@ function Actionbar:OnLoad()
 	self:SetText(BINDING_HEADER_ACTIONBAR) --'|TInterface\\Store\\category-icon-weapons:24:24:4:0:64:64:14:50:14:50|t'
 	self:SetPoint('TOP', 0, -12)
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
+	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
+	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 	CPFocusPoolMixin.OnLoad(self)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingActionBarTemplate', Actionpage, nil, self.Content)

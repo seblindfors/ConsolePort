@@ -24,6 +24,18 @@ function CPIndexButtonMixin:OnIndexButtonLoad()
 	self:SetThumbPosition(self.thumbPosition or 'LEFT', self.thumbSize or 1)
 end
 
+function CPIndexButtonMixin:OnIndexButtonEnter()
+	self:LockHighlight()
+end
+
+function CPIndexButtonMixin:OnIndexButtonLeave()
+	self:UnlockHighlight()
+end
+
+function CPIndexButtonMixin:OnIndexButtonHide()
+	self:UnlockHighlight()
+end
+
 function CPIndexButtonMixin:OnIndexButtonClick(...)
 	-- do something with the click
 	if self.forceCheck and not self:GetChecked() then

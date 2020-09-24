@@ -117,6 +117,10 @@ function Cursor:IsObstructed()
 	return self:InCombat(), db('UIdisableCursor')
 end
 
+function Cursor:IsAnimating()
+	return self.MoveAndScale:IsPlaying()
+end
+
 function Cursor:ShowAfterCombat(enabled)
 	self.showAfterCombat = enabled
 end
@@ -142,18 +146,28 @@ function Cursor:RefreshToFrame(frame)
 	end
 end
 
+function Cursor:SetCurrentNode(node)
+	local object = node and Node.ScanLocal(node)[1]
+	if object then
+		self:OnLeaveNode(self:GetCurrentNode())
+		self:SetCurrent(object)
+		self:SetFlashNextNode()
+		self:Select(self:GetSelectParams(object, true))
+		self:RefreshAnchor()
+		self:SetHighlight(node)
+		self:Chime()
+	end
+end
 
 function Cursor:OnUpdate(elapsed)
 	if self:InCombat() then return end
-	self.timer = self.timer and self.timer + elapsed or 0
-	if self.timer > 0.1 then
-		if not self:IsCurrentNodeDrawn() then
-			self:SetFlashNextNode()
-			if not self:Refresh() then
-				self:Hide()
-			end
+	if not self:IsCurrentNodeDrawn() then
+		self:SetFlashNextNode()
+		if not self:Refresh() then
+			self:Hide()
 		end
-		self.timer = 0
+	elseif not self:IsAnimating() then
+		self:RefreshAnchor()
 	end
 end
 
@@ -223,7 +237,7 @@ end
 function Cursor:ReverseScanUI(node, key, target, changed)
 	if node then
 		local parent = node:GetParent()
-		Node(parent)
+		Node.ScanLocal(parent)
 		target, changed = Node.NavigateToBestCandidate(self.Cur, key)
 		if changed then
 			return target, changed
@@ -284,6 +298,10 @@ end
 function Cursor:GetCurrentNode()
 	local obj = self:GetCurrent()
 	return obj and obj.node;
+end
+
+function Cursor:IsCurrentNode(node)
+	return (node and node == self:GetCurrentNode())
 end
 
 function Cursor:GetCurrentObjectType()
@@ -500,10 +518,31 @@ function Cursor:SetTexture(texture)
 	self.textureLambda = lambda
 end
 
+function Cursor:SetAnchor(node)
+	self.hasCustomAnchor = node.customCursorAnchor
+	self.anchor = self.hasCustomAnchor or {'TOPLEFT', node, 'CENTER', Node.GetCenterPos(node)}
+end
+
+function Cursor:GetCustomAnchor()
+	return self.hasCustomAnchor
+end
+
+function Cursor:GetAnchor()
+	return self.anchor
+end
+
+function Cursor:RefreshAnchor()
+	if not self:GetCustomAnchor() then
+		local node = self:GetCurrentNode()
+		self:ClearAllPoints()
+		self:SetPoint('TOPLEFT', node, 'CENTER', Node.GetCenterPos(node))
+	end
+end
+
 function Cursor:SetPosition(node)
-	local oldAnchor = self.anchor
+	local oldAnchor = self:GetAnchor()
 	self:SetTexture()
-	self.anchor = node.customCursorAnchor or {'TOPLEFT', node, 'CENTER', 0, 0}
+	self:SetAnchor(node)
 	self:Show()
 	self:Move(oldAnchor)
 end
@@ -511,7 +550,7 @@ end
 function Cursor:SetPointer(node)
 	self.Pointer:ClearAllPoints()
 	self.Pointer:SetParent(node)
-	self.Pointer:SetPoint(unpack(self.anchor))
+	self.Pointer:SetPoint(unpack(self:GetAnchor()))
 	return self.Pointer:GetCenter()
 end
 
@@ -520,7 +559,7 @@ function Cursor:Move(oldAnchor)
 	if node then
 		self:ClearHighlight()
 		local newX, newY = self:SetPointer(node)
-		if self.MoveAndScale:IsPlaying() then
+		if self:IsAnimating() then
 			self.MoveAndScale:Stop()
 			self.MoveAndScale:OnFinished(oldAnchor)
 		end
@@ -578,6 +617,10 @@ function Cursor:SetHighlight(node)
 	end
 end
 
+function Cursor:Chime()
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
+end
+
 -- Animation scripts
 ---------------------------------------------------------------
 function Cursor:SetFlashNextNode()
@@ -620,12 +663,12 @@ end
 
 function Cursor.MoveAndScale:OnPlay()
 	Cursor.Highlight:SetParent(Cursor:GetCurrentNode() or Cursor)
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
+	Cursor:Chime()
 end
 
 function Cursor.MoveAndScale:OnFinished(oldAnchor)
 	Cursor:ClearAllPoints()
-	Cursor:SetPoint(unpack(oldAnchor or Cursor.anchor))
+	Cursor:SetPoint(unpack(oldAnchor or Cursor:GetAnchor()))
 end
 
 do  -- Set up animation scripts
@@ -677,7 +720,7 @@ function Scroll:OnUpdate(elapsed)
 end
 
 function Scroll:To(node, super)
-	local nodeX, nodeY = node:GetCenter()
+	local nodeX, nodeY = Node.GetCenter(node)
 	local scrollX, scrollY = super:GetCenter()
 	if nodeY and scrollY then
 

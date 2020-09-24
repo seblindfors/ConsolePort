@@ -2,7 +2,7 @@ local db, _, env = ConsolePort:DB(), ...;
 ---------------------------------------------------------------
 -- Combinations (abbrev. combos)
 ---------------------------------------------------------------
-local Combos, Combo = CreateFromMixins(env.DynamicMixin, env.FlexibleMixin), CreateFromMixins(env.BindingInfoMixin, {
+local Combos, Combo = CreateFromMixins(env.DynamicMixin, env.FlexibleMixin), CreateFromMixins(CPIndexButtonMixin, env.BindingInfoMixin, {
 	-- true for events related to action bar, false for events related to bindings.
 	Events = {
 		ACTIONBAR_SLOT_CHANGED = true;
@@ -30,6 +30,11 @@ end
 
 function Combo:GetBinding()
 	return GetBindingAction(self:GetAttribute('combo')), self:GetAttribute('action')
+end
+
+function Combo:HasBinding()
+	local binding = self:GetBinding()
+	return (binding and binding:len() > 0)
 end
 
 function Combo:GetAction()
@@ -74,18 +79,30 @@ function Combo:OnClick()
 		self:SetChecked(false)
 		isActionDrop = true;
 	end
-	self:OnChecked(self:GetChecked())
-	if not isActionDrop then
+	if not isActionDrop and self:HasBinding() then
 		env.Bindings:NotifyBindingFocus(self, self:GetChecked(), true)
+	else
+		self:SetChecked(false)
 	end
+	self:OnChecked(self:GetChecked())
 end
 
 function Combo:OnShow()
 	self:UpdateBinding()
 end
 
-function Combo:OnChecked(show)
-	CPIndexButtonMixin.OnChecked(self, show)
+function Combo:OnEnter()
+	CPIndexButtonMixin.OnIndexButtonEnter(self)
+	if db('Cursor'):IsCurrentNode(self) then
+		local flexer = env.Bindings.Shortcuts.Flexer;
+		if not flexer:GetChecked() then
+			flexer:Click()
+		end
+	end
+end
+
+function Combo:OnLeave()
+	CPIndexButtonMixin.OnIndexButtonLeave(self)
 end
 
 function Combos:OnLoad()

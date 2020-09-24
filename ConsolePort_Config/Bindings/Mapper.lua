@@ -68,6 +68,10 @@ function Mapper:SetFocus(widget)
 		self:SetCatchButton(true)
 	else
 		self:SetCatchButton(false)
+		-- HACK: route it to the close button first, so it has
+		-- a fallback if going straight into rebinding.
+		db('Cursor'):SetCurrentNode(self.Child.Close)
+		db('Cursor'):SetCurrentNode(self.Child.Change)
 	end
 end
 
@@ -75,10 +79,13 @@ function Mapper:GetFocus()
 	return self.focusWidget;
 end
 
-function Mapper:ClearFocus()
+function Mapper:ClearFocus(newObj)
 	if self.focusWidget then
 		self.focusWidget:SetChecked(false)
 		CPIndexButtonMixin.OnChecked(self.focusWidget, false)
+		if not newObj then
+			db('Cursor'):SetCurrentNode(self.focusWidget)
+		end
 		self.focusWidget = nil;
 	end
 end
@@ -95,7 +102,7 @@ function Mapper:ToggleWidget(widget, show)
 	if self:IsWidgetFocused(widget) then
 		self:ClearFocus()
 	elseif widget then
-		self:ClearFocus()
+		self:ClearFocus(widget)
 		self:SetFocus(widget)
 	else
 		self:ClearFocus()
@@ -271,13 +278,10 @@ function Collection:OnChecked(show)
 	end
 end
 
-
-
-
+---------------------------------------------------------------
+-- Action map container
+---------------------------------------------------------------
 function ActionMapper:OnLoad()
-	--C_ActionBar.PutActionInSlot
-	--C_ActionBar.FindFlyoutActionButtons
-	--C_ActionBar.FindSpellActionButtons
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 0)
 
 	-- HACK: call SetBackdrop on show with nil value, since OnShow has no args.
@@ -288,7 +292,6 @@ function ActionMapper:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingActionBarTemplate', Collection, nil, self.Content)
-
 end
 
 function ActionMapper:OnEvent(event, ...)
@@ -342,6 +345,7 @@ function ActionMapper:SetAction(actionID)
 	end
 end
 
+-- TODO: bug with the widget pool showing wrong col after expand/collapse
 function ActionMapper:OnExpand()
 	self.Hilite:Hide()
 	self:RegisterEvent('PET_SPECIALIZATION_CHANGED')

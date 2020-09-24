@@ -38,6 +38,7 @@ local GetSuperNode
 local GetScrollButtons
 -- Recursive scanner
 local Scan
+local ScanLocal
 local ScrubCache
 -- Cache control
 local CacheItem
@@ -53,6 +54,7 @@ local IterateCache
 local IterateRects
 -- Vector calculations
 local GetCenter
+local GetCenterPos
 local GetDistance
 local GetDistanceSum
 local GetFrameLevel
@@ -176,7 +178,7 @@ function IsDrawn(node, super)
 	local mX, mY = LIMIT:GetXY()
 	if ( PointInRange(nX, 0, mX) and PointInRange(nY, 0, mY) ) then
 		-- assert node isn't clipped inside a scroll child
-		if super and super:GetScrollChild() and not node:IsObjectType('Slider') then
+		if super and not node:IsObjectType('Slider') then
 			return UIDoFramesIntersect(node, super) --or UIDoFramesIntersect(node, scrollChild)
 		else
 			return true
@@ -188,7 +190,7 @@ end
 -- Attachments
 ---------------------------------------------------------------
 function GetSuperNode(super, node)
-	return node:IsObjectType('ScrollFrame') and node or super
+	return (node:IsObjectType('ScrollFrame') or node:DoesClipChildren()) and node or super
 end
 
 function GetScrollButtons(node)
@@ -227,6 +229,23 @@ function Scan(super, node, sibling, ...)
 	if sibling then
 		Scan(super, sibling, ...)
 	end
+end
+
+function ScanLocal(node)
+	if IsRelevant(node) then
+		local parent, super = node
+		while parent do
+			if parent:IsObjectType('ScrollFrame') then
+				super = parent
+				break
+			end
+			parent = parent:GetParent()
+		end
+		ClearCache()
+		Scan(super, node)
+		ScrubCache(GetNextCacheItem(nil))
+	end
+	return CACHE
 end
 
 function ScrubCache(i, item)
@@ -324,14 +343,23 @@ end
 ---------------------------------------------------------------
 local vlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
 ---------------------------------------------------------------
+local function div2(arg, ...)
+	if arg then return arg * 0.5, div2(...) end
+end
+---------------------------------------------------------------
 
 function GetCenter(node)
-	local rectL, rectB, rectW, rectH = node:GetRect()
-	local insrL, insrR, insrT, insrB = node:GetHitRectInsets()
-	if not rectL or not rectB or not rectW or not rectH then return end
-	if not insrL or not insrR or not insrT or not insrB then return end
-	return	(rectL + insrL) + ((rectW - insrR) / 2),
-			(rectB + insrB) + ((rectH - insrT) / 2)
+	local x, y, w, h = node:GetRect()
+	if not x then return end
+	local l, r, t, b = div2(node:GetHitRectInsets())
+	return (x+l) + div2(w-r), (y+b) + div2(h-t)
+end
+
+function GetCenterPos(node)
+	local x, y = node:GetCenter()
+	if not x then return end
+	local l, b = GetCenter(node)
+	return (l-x), (b-y)
 end
 
 function GetDistance(x1, y1, x2, y2)
@@ -472,7 +500,9 @@ end
 -- Interface access
 ---------------------------------------------------------------
 NODE.IsDrawn = IsDrawn;
+NODE.ScanLocal = ScanLocal;
 NODE.GetCenter = GetCenter;
+NODE.GetCenterPos = GetCenterPos;
 NODE.IsRelevant = IsRelevant;
 NODE.ClearCache = ClearCache;
 NODE.GetScrollButtons = GetScrollButtons;

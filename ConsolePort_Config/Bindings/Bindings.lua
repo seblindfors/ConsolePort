@@ -249,7 +249,8 @@ function BindingsMixin:OnLoad()
 						['<OnLoad>'] = function(self)
 							-- move the icon to line up with action tooltip
 							self.ActionIcon:ClearAllPoints();
-							self.ActionIcon:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 8, 0);
+							self.ActionIcon:SetSize(40, 40)
+							self.ActionIcon:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 6, 0);
 							self:SetText(SETTINGS);
 						end;
 						{
