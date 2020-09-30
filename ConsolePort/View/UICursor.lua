@@ -7,10 +7,11 @@
 -- Leverages Controller\UINode.lua for interface scans.
 
 local _, db = ...;
-local Cursor, Node, Input, Scroll, Fade = 
+local Cursor, Node, Input, Stack, Scroll, Fade = 
 	CPAPI.EventHandler(ConsolePortCursor),
 	ConsolePortNode,
 	ConsolePortInputHandler,
+	ConsolePortUIStackHandler,
 	CreateFrame('Frame'),
 	db('Alpha/Fader');
 
@@ -126,7 +127,7 @@ function Cursor:ShowAfterCombat(enabled)
 end
 
 function Cursor:ScanUI()
-	Node(UIParent, DropDownList1, DropDownList2) -- TODO: remove hardcoding
+	Node(Stack:GetVisibleCursorFrames())
 end
 
 function Cursor:Refresh()

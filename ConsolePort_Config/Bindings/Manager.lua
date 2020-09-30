@@ -115,8 +115,6 @@ function Header:OnChecked(show)
 				widget:SetAttribute('binding', data.binding)
 				widget:Show()
 				widget:UpdateBinding()
-				-- use modulus here to place the bindings side by side,
-				-- followed by top to bottom
 				if (i == 1) then
 					widget:SetPoint('TOPLEFT', 16, 0)
 				elseif (i % 2 == 0) then

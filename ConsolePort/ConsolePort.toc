@@ -7,7 +7,7 @@
 ## X-Website: https://github.com/seblindfors/ConsolePort
 ## X-Feedback: https://discord.gg/AWeHd48
 
-## SavedVariables: ConsolePortSettings, ConsolePortDevices
+## SavedVariables: ConsolePortSettings, ConsolePortDevices, ConsolePortUIStack
 
 
 Libs\__manifest.xml

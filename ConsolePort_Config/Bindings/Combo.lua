@@ -121,12 +121,11 @@ function Combos:OnShow()
 
 	local id, width, height, prev = 1, self.Child:GetWidth(), 0;
 	for i=0, #map do
-		local binding = map[i].Binding;
-		-- assert this button has an icon
-		if ( device:GetIconIDForButton(binding) ) then
+		local button = map[i].Binding;
+		if ( device:IsButtonValidForBinding(button) ) then
 
 			for mod, keys in db.table.mpairs(mods) do
-				local widget, newObj = self:Acquire(mod..binding)
+				local widget, newObj = self:Acquire(mod..button)
 				if newObj then
 					local widgetWidth = widget:GetWidth()
 					width = widgetWidth > width and widgetWidth or width;
@@ -137,7 +136,7 @@ function Combos:OnShow()
 					CPAPI.Start(widget)
 				end
 
-				local data = self.parent:GetHotkeyData(binding, mod, 64, 32)
+				local data = self.parent:GetHotkeyData(button, mod, 64, 32)
 				local modstring = '';
 
 				for i, mod in ripairs(data.modifier) do
@@ -147,7 +146,7 @@ function Combos:OnShow()
 				widget.Modifier:SetText(modstring)
 				widget:SetIcon(data.button)
 				widget:SetID(id)
-				widget:SetAttribute('combo', mod..binding)
+				widget:SetAttribute('combo', mod..button)
 				widget:Show()
 				widget:SetPoint('TOP', prev or self.Child, prev and 'BOTTOM' or 'TOP', 0, 0)
 

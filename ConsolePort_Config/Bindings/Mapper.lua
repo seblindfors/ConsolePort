@@ -172,6 +172,7 @@ local Action, Collection = {}, CreateFromMixins(CPFocusPoolMixin, env.ScaleToCon
 });
 
 function Action:OnLoad()
+	self.Slug:SetTextColor(1, 1, 1)
 	self:SetDrawOutline(true)
 	CPAPI.Start(self)
 end
@@ -227,6 +228,9 @@ function Action:Update()
 	else
 		self.Icon:SetVertexColor(1, 1, 1, 1)
 	end
+
+	local slug = self.text and self.text(self:GetValue())
+	self.Slug:SetText(slug)
 end
 
 function Collection:OnLoad()
@@ -243,8 +247,10 @@ end
 
 function Collection:Update()
 	self:ReleaseAll()
+
 	local data = self.data;
 	local prevCol, prevRow;
+
 	for i, item in ipairs(data.items) do
 		local widget, newObj = self:Acquire(i)
 		if newObj then
@@ -265,6 +271,7 @@ function Collection:Update()
 		end
 		prevCol = widget;
 	end
+
 	self:SetHeight(nil)
 end
 
@@ -366,9 +373,10 @@ function ActionMapper:OnExpand()
 	self:RegisterEvent('PLAYER_TALENT_UPDATE')
 	self:RegisterEvent('BAG_UPDATE_DELAYED')
 	self:RegisterEvent('NEW_MOUNT_ADDED')
+	self:RegisterEvent('UPDATE_MACROS')
 	local prev
 	for i, collection in ipairs(self:GetCollections()) do
-		local widget, newObj = self:Acquire(i)
+		local widget, newObj = self:TryAcquireRegistered(i)
 		if newObj then
 			widget:OnLoad()
 		end

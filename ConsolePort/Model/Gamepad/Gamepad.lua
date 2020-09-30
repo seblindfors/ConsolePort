@@ -235,6 +235,15 @@ function GamepadMixin:ApplyHotkeyStrings()
 	end
 end
 
+function GamepadMixin:IsButtonValidForBinding(button)
+	for var in pairs(self.Preset.Variables) do
+		if (GetCVar('Gamepad'..var) == button) then
+			return false
+		end
+	end
+	return self.Theme.Icons[button]
+end
+
 ---------------------------------------------------------------
 -- Icon queries
 ---------------------------------------------------------------

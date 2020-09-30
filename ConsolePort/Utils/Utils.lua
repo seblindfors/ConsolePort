@@ -25,10 +25,10 @@ CPAPI.EventMixin = {
 		end
 	end;
 	ADDON_LOADED = function(self, ...)
+		self:UnregisterEvent('ADDON_LOADED')
 		if self.OnDataLoaded then
 			self:OnDataLoaded(...)
 		end
-		self:UnregisterEvent('ADDON_LOADED')
 	end;
 }
 

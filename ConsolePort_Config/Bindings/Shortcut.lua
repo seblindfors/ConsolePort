@@ -33,12 +33,12 @@ function Shortcuts:OnShow()
 
 	local id, width, height, prev = 1, self.Child:GetWidth(), 0;
 	for i=0, #map do
-		local binding = map[i].Binding;
+		local button = map[i].Binding;
 		-- assert this button has an icon
-		if ( device:GetIconIDForButton(binding) ) then
+		if ( device:IsButtonValidForBinding(button) ) then
 
-			local icon = device:GetIconForButton(binding)
-			local widget, newObj = self:Acquire(binding)
+			local icon = device:GetIconForButton(button)
+			local widget, newObj = self:Acquire(button)
 
 			if newObj then
 				local widgetWidth = widget:GetWidth()
@@ -48,7 +48,7 @@ function Shortcuts:OnShow()
 				CPAPI.Start(widget)
 			end
 
-			widget:SetAttribute('button', binding)
+			widget:SetAttribute('button', button)
 			widget:SetIcon(icon)
 			widget:SetID(id)
 			widget:Show()

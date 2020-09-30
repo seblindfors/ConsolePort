@@ -296,7 +296,7 @@ function BindingInfo:RefreshCollections()
 	end
 
 	-- Bags
-	do local items, omit, INDEX_ITEM_ID = {}, {}, 10
+	do  local items, omit, INDEX_ITEM_ID = {}, {}, 10
 		for bag=0, NUM_BAG_SLOTS do
 			for slot=1, GetContainerNumSlots(bag) do
 				local itemID = select(INDEX_ITEM_ID, GetContainerItemInfo(bag, slot))
@@ -318,7 +318,7 @@ function BindingInfo:RefreshCollections()
 	end
 
 	-- Mounts
-	do local mounts, sort = {}, {}
+	do  local mounts, sort = {}, {}
 		for i, mountID in pairs(C_MountJournal.GetMountIDs()) do
 			local name, spellID, _, _, isUsable, _, isFavorite = C_MountJournal.GetMountInfoByID(mountID)
 			if isUsable then
@@ -341,6 +341,32 @@ function BindingInfo:RefreshCollections()
 				pickup  = PickupSpell;
 				tooltip = GameTooltip.SetSpellByID;
 				texture = GetSpellTexture;
+			})
+		end
+	end
+
+	-- Macros
+	do  local macros, numMacros, numCharMacros = {}, GetNumMacros()
+		for i=MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + numCharMacros do
+			macros[#macros+1] = i;
+		end
+		for i=1, numMacros do
+			macros[#macros+1] = i;
+		end
+
+		if next(macros) then
+			local tooltipFunc = function(self, id)
+				local name, texture, text = GetMacroInfo(id)
+				self:SetText(('%s'):format(name:trim():len()>0 and name or NOT_APPLICABLE))
+				self:AddLine(text, 1, 1, 1)
+			end
+
+			self:AddCollection(macros, {
+				name    = MACROS;
+				text    = GetMacroInfo;
+				pickup  = PickupMacro;
+				tooltip = tooltipFunc;
+				texture = function(id) return select(2, GetMacroInfo(id)) end;
 			})
 		end
 	end

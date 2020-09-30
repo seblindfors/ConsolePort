@@ -1,7 +1,9 @@
 ------------------------------------------------------------------------------------------------------------
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
-local DATA, DESC = 1, 2; local DEFAULT_DATA = {
+local DATA, DESC, TYPE = 1, 2, 3; local DEFAULT_DATA = {
+    --------------------------------------------------------------------------------------------------------
+    -- variable             | value     | description
     --------------------------------------------------------------------------------------------------------
     -- Action page handling:
     actionPageCondition     = {''       ; 'Macro condition to evaluate action bar page'};
@@ -30,6 +32,8 @@ local DATA, DESC = 1, 2; local DEFAULT_DATA = {
     unitHotkeyOffsetY       = {0        ; 'Offset Y-placement on unit frames (px)'};
     unitHotkeyGhostMode     = {false    ; 'Restore calculated combinations after targeting'};
     unitHotkeyIgnorePlayer  = {false    ; 'Always ignore player regardless of pool'};
+    -- Misc:
+    disableAmbientFrames    = {false    ; 'Disable ambient noise-cancelling in menus'};
     -- Structures:
     UICursor = {
         [DESC] = 'Cursor actions: which buttons to use to click on items in the interface';

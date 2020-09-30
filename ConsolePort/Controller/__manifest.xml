@@ -3,6 +3,8 @@
 	<!-- UI controllers -->
 	<Script file="UI/UINode.lua"/>
 	<Script file="UI/UIProbe.lua"/>
+	<Script file="UI/UISecure.lua"/>
+	<Script file="UI/UIStack.lua"/>
 	<!-- Single file controller -->
 	<Script file="Input.lua"/>
 	<Script file="Pager.lua"/>

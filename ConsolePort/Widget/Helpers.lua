@@ -1,3 +1,4 @@
+local db = select(2, ...)
 ---------------------------------------------------------------
 -- Trackable widget pool
 ---------------------------------------------------------------
@@ -232,6 +233,7 @@ end
 
 function CPAmbienceMixin:PlayAmbience()
 	PlaySound(self.soundKitOnShow, 'Master', true)
+	if db('disableAmbientFrames') then return end;
 	local playFileID = self.soundKits[CPAPI.GetClassFile()]
 	if playFileID and GetCVarBool('Sound_EnableAmbience') then
 		local willPlay, handle = PlaySound(playFileID, 'Master', true)
