@@ -1,9 +1,14 @@
-local _, db = ...;
 ---------------------------------------------------------------
 -- Stack functionality for UI cursor
 ---------------------------------------------------------------
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. See View\UICursor.lua.
+
+local _, db = ...;
+---------------------------------------------------------------
+local After = C_Timer.After;
+local pairs, next, unravel = pairs, next, db.table.unravel;
+local isLocked, isEnabled, isObstructed;
 ---------------------------------------------------------------
 local Stack = db:Register('Stack', CPAPI.CreateEventHandler({'Frame', '$parentUIStackHandler', ConsolePort}, {
 	'PLAYER_REGEN_ENABLED',
@@ -13,17 +18,10 @@ local Stack = db:Register('Stack', CPAPI.CreateEventHandler({'Frame', '$parentUI
 }));
 
 ---------------------------------------------------------------
--- General functions
-local After = C_Timer.After;
-local pairs, next, unravel = pairs, next, db.table.unravel;
--- Boolean checks (all default nil)
-local isLocked, isEnabled, isObstructed;
-
----------------------------------------------------------------
 -- Externals:
 ---------------------------------------------------------------
-function Stack:LockCore(...)      isLocked = ...      end
-function Stack:IsCoreLocked()     return isLocked     end
+function Stack:LockCore(...)        isLocked = ...      end
+function Stack:IsCoreLocked()       return isLocked     end
 function Stack:IsCursorObstructed() return isObstructed end
 
 ---------------------------------------------------------------
@@ -110,7 +108,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 			end
 			return true
 		else
-			self:AddFrameTracker(frame)
+			self:AddFrameWatcher(frame)
 		end
 	end
 
@@ -209,42 +207,25 @@ end
 ---------------------------------------------------------------
 -- Stack management over sessions
 ---------------------------------------------------------------
-do 
-	db:Save('Stack/Registry', 'ConsolePortUIStack')
+do db:Save('Stack/Registry', 'ConsolePortUIStack')
 
-	function Stack:GetFrameStack(name)
+	-- NOTE: this function generates the default set which
+	-- contains all the frames that are not caught by managers,
+	-- and exist within the FrameXML code in some shape or form. 
+	local function GenerateDefaultSet(self)
+		-- Special handling for containers
+		for i=1, NUM_CONTAINER_FRAMES do
+			self:TryRegisterFrame(_, 'ContainerFrame'..i, true)
+		end
+	end
+
+	function Stack:GetRegistrySet(name)
 		self.Registry[name] = self.Registry[name] or {};
 		return self.Registry[name];
 	end
 
-	function Stack:GenerateDefaultRegistry()
-		local default = self:GetFrameStack(_)
-		-- Special handling for containers
-		for i=1, NUM_CONTAINER_FRAMES do
-			default['ContainerFrame'..i] = true;
-		end
-		return default;
-	end
-
-	function Stack:AddToDefaultRegistry(name)
-		if name then
-			local default = self:GetFrameStack(_)
-			if (default[name] == nil) then
-				default[name] = true;
-			end
-			return default[name];
-		end
-	end
-
-	hooksecurefunc('RegisterUIPanel', function(frame)
-		local addedAndEnabled = Stack:AddToDefaultRegistry(frame:GetName())
-		if addedAndEnabled then
-			Stack:AddFrame(frame)
-		end
-	end)
-
-	function Stack:TryRegisterFrame(register, name, state)
-		local stack = self:GetFrameStack(register)
+	function Stack:TryRegisterFrame(set, name, state)
+		local stack = self:GetRegistrySet(set)
 		if (stack[name] == nil) then
 			stack[name] = (state == nil and true) or state;
 			return true;
@@ -253,9 +234,17 @@ do
 
 	function Stack:OnDataLoaded()
 		db:Load('Stack/Registry', 'ConsolePortUIStack')
-		self:GenerateDefaultRegistry()
+		GenerateDefaultSet(self)
 		self:ToggleCore()
-		self:LoadAddonFrames(_)
+
+		-- Load all existing frames in the registry
+		for addon in pairs(self.Registry) do
+			if IsAddOnLoaded(addon) then
+				self:LoadAddonFrames(addon)
+			end
+		end
+
+		self.OnDataLoaded = nil;
 		self:RegisterEvent('ADDON_LOADED')
 		self.ADDON_LOADED = function(self, name)
 			self:LoadAddonFrames(name)
@@ -265,17 +254,19 @@ do
 end
 
 ---------------------------------------------------------------
--- Frame tracking
+-- Frame watching
 ---------------------------------------------------------------
 -- Used to track and bind additional frames to the UI cursor.
--- Necessary since all frames do not exist on ADDON_LOADED.
--- Automatically adds all special frames, i.e. closed with ESC.
+-- Necessary since all frames do not exist when the game loads.
+-- Automatically adds all special frames and managed panels.
 
 do  local managers = {[UIPanelWindows] = true, [UISpecialFrames] = false, [UIMenus] = false};
-	local specialFrames, frameTrackers = {}, {}
+	local specialFrames, watchers = {}, {}
 
 	local function TryAddSpecialFrame(self, frame)
 		if not specialFrames[frame] then
+			-- low-prio todo: save some memory here by not cloning
+			-- the frame into the watchers table. 
 			if self:AddFrame(frame) then
 				specialFrames[frame] = true;
 			end
@@ -298,14 +289,14 @@ do  local managers = {[UIPanelWindows] = true, [UISpecialFrames] = false, [UIMen
 
 	function Stack:UpdateFrameTracker()
 		CheckSpecialFrames(self)
-		for frame in pairs(frameTrackers) do
+		for frame in pairs(watchers) do
 			if self:AddFrame(frame) then
-				frameTrackers[frame] = nil;
+				watchers[frame] = nil;
 			end
 		end
 	end
 
-	function Stack:AddFrameTracker(frame)
-		frameTrackers[frame] = true;
+	function Stack:AddFrameWatcher(frame)
+		watchers[frame] = true;
 	end
 end

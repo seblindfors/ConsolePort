@@ -52,6 +52,7 @@ select(2, ...).Gamepad:AddGamepad({
 			EmulateEsc       = 'PADBACK';
 			CursorLeftClick  = 'PADLSTICK';
 			CursorRightClick = 'PADRSTICK';
+			AbbreviatedBindingReverse = 0;
 		};
 		Bindings = {
 			PAD1 = {

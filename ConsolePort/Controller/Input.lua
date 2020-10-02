@@ -106,6 +106,9 @@ function InputMixin:Global(value, isPriority, click)
 		button = click;
 		isPriority = isPriority;
 		target = value;
+		attributes = {
+			type = 'none';
+		}
 	})
 end
 
@@ -153,9 +156,9 @@ end
 
 function InputMixin:HasOwner(owner)
 	for i=1, 2 do
-		local data = self[i]
+		local data = self[i];
 		if ( data and data.owner == owner ) then
-			return i, data
+			return i, data;
 		end
 	end
 end
@@ -165,7 +168,7 @@ function InputMixin:ClearOverride(owner)
 		local i = self:HasOwner(owner)
 		if i then
 			self:ClearDataAndBinding(i)
-			local other = self[i % 2 + 1]
+			local other = self[i % 2 + 1];
 			if other then -- reinstate other
 				return self:SetOverride(other)
 			end
@@ -206,44 +209,38 @@ end
 function InputMixin:OnMouseDown()
 	local func  = self:GetAttribute('type')
 	local click = self:GetAttribute('clickbutton')
-	self.state = true
-	self.timer = 0
-	-- secure function call, just show the state on UI
-	if (func == 'click' or func == 'action') and click then
-		return click:SetButtonState('PUSHED')
+	self.state, self.timer = true, 0;
+
+	if self:IsSecureAction(func, click) then
+		return self:EmulateFrontend(click, 'PUSHED')
 	end
-	-- insecure function call
-	if self[func] then
-		self[func](self, self.state, self:GetAttribute('id'))
-	end
+	return self:CallFunc(func)
 end
 
 function InputMixin:OnMouseUp()
 	local func  = self:GetAttribute('type')
 	local click = self:GetAttribute('clickbutton')
-	self.state = false
-	if (func == 'click' or func == 'action') and click then
-		click:SetButtonState('NORMAL')
+	self.state = false;
+
+	if self:IsSecureAction(func, click) then
+		return self:EmulateFrontend(click, 'NORMAL')
+	end
+	return self:CallFunc(func)
+end
+
+function InputMixin:IsSecureAction(func, click)
+	return (func == 'click' or func == 'action') and click;
+end
+
+function InputMixin:EmulateFrontend(click, state)
+	if click:IsEnabled() then
+		return click:SetButtonState(state)
 	end
 end
 
-function InputMixin:PreClick()
-	if InCombatLockdown() then return end
-	if ( self:GetAttribute('type') == 'click' ) then
-		local click = self:GetAttribute('clickbutton')
-		if click and not click:IsEnabled() then
-			self:SetAttribute('type', nil)
-			self:SetAttribute('postclick', 'click')
-		end
-	end
-end
-
-function InputMixin:PostClick()
-	if InCombatLockdown() then return end
-	local post = self:GetAttribute('postclick')
-	if post then -- TODO: fix scroll frame bug
-		self:SetAttribute('type', post)
-	end
+function InputMixin:CallFunc(func)
+	if not self[func] then return end
+	return self[func](self, self.state, self:GetAttribute('id'))
 end
 
 function InputMixin:ClearClickButton()
@@ -252,8 +249,7 @@ function InputMixin:ClearClickButton()
 end
 
 function InputMixin:Clear(manual)
-	self.timer = 0
-	self.state = false
+	self.timer, self.state = 0, false;
 	if manual then
 		self:ClearClickButton()
 	end

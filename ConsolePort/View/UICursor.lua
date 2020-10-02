@@ -28,6 +28,7 @@ function Cursor:OnDataLoaded()
 end
 
 function Cursor:PLAYER_REGEN_DISABLED()
+	-- TODO: relinquish to stack control
 	if self:IsShown() then
 		Fade.Out(self, 0.2, self:GetAlpha(), 0)
 		self:ShowAfterCombat(true)
@@ -37,6 +38,7 @@ function Cursor:PLAYER_REGEN_DISABLED()
 end
 
 function Cursor:PLAYER_REGEN_ENABLED()
+	-- TODO: relinquish to stack control
 	-- time lock this in case it fires more than once
 	if not self.timeLock and self.showAfterCombat then
 		self.timeLock = true
@@ -57,8 +59,7 @@ end
 
 function Cursor:CURSOR_CHANGED(isDefault)
 	if not isDefault then
-		-- TODO: QA
-	--	SetGamePadCursorControl(true)
+		SetGamePadCursorControl(true)
 	end
 end
 
@@ -214,16 +215,18 @@ do  -- Create input proxy for basic controls
 		--  @init : (optional) function to set up properties
 		--  @clear: (optional) function to run when clearing
 		--  @args : (optional) properties for initialization
-		self.BasicControls = {
-			PADDUP    = {InputProxy, DpadInit, DpadClear, DpadRepeater};
-			PADDDOWN  = {InputProxy, DpadInit, DpadClear, DpadRepeater};
-			PADDLEFT  = {InputProxy, DpadInit, DpadClear, DpadRepeater}; 
-			PADDRIGHT = {InputProxy, DpadInit, DpadClear, DpadRepeater};
-			[db('Settings/UICursor/Special')] = {InputProxy};
-		};
-		local clickL, clickR = GetCVar('GamePadCursorLeftClick'), GetCVar('GamePadCursorRightClick')
-		if clickL then self.BasicControls[clickL] = {Disable}; end
-		if clickR then self.BasicControls[clickR] = {Disable}; end
+		if not self.BasicControls then
+			self.BasicControls = {
+				PADDUP    = {InputProxy, DpadInit, DpadClear, DpadRepeater};
+				PADDDOWN  = {InputProxy, DpadInit, DpadClear, DpadRepeater};
+				PADDLEFT  = {InputProxy, DpadInit, DpadClear, DpadRepeater}; 
+				PADDRIGHT = {InputProxy, DpadInit, DpadClear, DpadRepeater};
+				[db('Settings/UICursor/Special')] = {InputProxy};
+			};
+			local clickL, clickR = GetCVar('GamePadCursorLeftClick'), GetCVar('GamePadCursorRightClick')
+			if clickL then self.BasicControls[clickL] = {Disable}; end
+			if clickR then self.BasicControls[clickR] = {Disable}; end
+		end
 		return self.BasicControls
 	end
 
@@ -232,6 +235,33 @@ do  -- Create input proxy for basic controls
 		for button, settings in pairs(controls) do
 			Input:SetCommand(button, self, false, button, 'UIControl', unpack(settings));
 		end
+	end
+
+	db:RegisterCallback('Settings/UICursor', function(self) self.BasicControls = nil; end, Cursor)
+
+	-- Emulated clicks for handlers that do not use OnClick (this may be unsafe)
+	local EmuClick = function(self, down)
+		local node, emubtn, script = self.node, self.emubtn;
+		if node then
+			script = down and node:GetScript('OnMouseDown') or node:GetScript('OnMouseUp')
+			if script then
+				script(node, emubtn)
+			end
+		end
+	end
+
+	local EmuClickInit = function(self, node, emubtn)
+		self.node   = node;
+		self.emubtn = emubtn;
+	end
+
+	local EmuClickClear = function(self)
+		self.node  = nil;
+		self.emubtn = nil;
+	end
+
+	function Cursor:GetEmuClick(node, button)
+		return button, 'UIOnMouse', EmuClick, EmuClickInit, EmuClickClear, node, button;
 	end
 end
 
@@ -249,7 +279,13 @@ function Cursor:ReverseScanUI(node, key, target, changed)
 end
 
 function Cursor:Navigate(key)
-	local target, changed = self:SetCurrent(self:ReverseScanUI(self:GetCurrentNode(), key))
+	local target, changed
+	if db('UIaccessUnlimited') then
+		target, changed = self:SetCurrent(self:ReverseScanUI(self:GetCurrentNode(), key))
+	else
+		self:ScanUI()
+		target, changed = self:SetCurrent(Node.NavigateToBestCandidate(self:GetCurrent(), key))
+	end
 	if not changed then
 		target, changed = self:SetCurrent(Node.NavigateToClosestCandidate(target, key))
 	end
@@ -337,101 +373,115 @@ function Cursor:StoreCurrent()
 end
 
 ---------------------------------------------------------------
--- Node management resources
----------------------------------------------------------------
-local IsClickable = {
-	Button 		= true;
-	CheckButton = true;
-	EditBox 	= true;
-}
-
-local DropDownMacros = {
-	SET_FOCUS = '/focus %s';
-	CLEAR_FOCUS = '/clearfocus';
-	PET_DISMISS = '/petdismiss';
-}
-
----------------------------------------------------------------
 -- SafeOnEnter, SafeOnLeave:
 -- Replace problematic OnEnter/OnLeave scripts.
 -- Original functions become taint-bearing when called insecurely
 -- because they modify properties of protected objects.
 ---------------------------------------------------------------
-local SafeOnEnter, SafeOnLeave = {}, {}
----------------------------------------------------------------
--------[[  OnEnter  ]]-------
-SafeOnEnter[ActionButton1:GetScript('OnEnter')] = function(self)
-	ActionButton_SetTooltip(self)
-end
-SafeOnEnter[SpellButton1:GetScript('OnEnter')] = function(self)
-	-- spellbook buttons push updates to the action bar controller in order to draw highlights
-	-- on actionbuttons that holds the spell in question. this taints the action bar controller.
-	local slot = SpellBook_GetSpellBookSlot(self)
-	GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-	if ( GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType) ) then
-		self.UpdateTooltip = SafeOnEnter[SpellButton1:GetScript('OnEnter')]
-	else
-		self.UpdateTooltip = nil
+do local SafeOnEnter, SafeOnLeave = {}, {}
+
+	-------[[  OnEnter  ]]-------
+	SafeOnEnter[ActionButton1:GetScript('OnEnter')] = function(self)
+		ActionButton_SetTooltip(self)
 	end
-	
-	if ( self.SpellHighlightTexture and self.SpellHighlightTexture:IsShown() ) then
-		GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
+	SafeOnEnter[SpellButton1:GetScript('OnEnter')] = function(self)
+		-- spellbook buttons push updates to the action bar controller in order to draw highlights
+		-- on actionbuttons that holds the spell in question. this taints the action bar controller.
+		local slot = SpellBook_GetSpellBookSlot(self)
+		GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+		if ( GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType) ) then
+			self.UpdateTooltip = SafeOnEnter[SpellButton1:GetScript('OnEnter')]
+		else
+			self.UpdateTooltip = nil
+		end
+		
+		if ( self.SpellHighlightTexture and self.SpellHighlightTexture:IsShown() ) then
+			GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
+		end
+		GameTooltip:Show()
 	end
-	GameTooltip:Show()
-end
-if QuestMapLogTitleButton_OnEnter then
-	SafeOnEnter[QuestMapLogTitleButton_OnEnter] = function(self)
-		-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
-		-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
-		if self.questLogIndex then
-			local _, level, _, isHeader, _, _, _, _, _, _, _, _, _, _, _, _, isScaling = GetQuestLogTitle(self.questLogIndex)
-			local _, difficultyHighlightColor = GetQuestDifficultyColor(level, isScaling)
-			if ( isHeader ) then
-				_, difficultyHighlightColor = QuestDifficultyColors['header']
-			end
-			if difficultyHighlightColor then
-				QuestMapLogTitleButton_OnEnter(self)
+	if QuestMapLogTitleButton_OnEnter then
+		SafeOnEnter[QuestMapLogTitleButton_OnEnter] = function(self)
+			-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
+			-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
+			if self.questLogIndex then
+				local _, level, _, isHeader, _, _, _, _, _, _, _, _, _, _, _, _, isScaling = GetQuestLogTitle(self.questLogIndex)
+				local _, difficultyHighlightColor = GetQuestDifficultyColor(level, isScaling)
+				if ( isHeader ) then
+					_, difficultyHighlightColor = QuestDifficultyColors['header']
+				end
+				if difficultyHighlightColor then
+					QuestMapLogTitleButton_OnEnter(self)
+				end
 			end
 		end
 	end
+	-------[[  OnLeave  ]]-------
+	SafeOnLeave[SpellButton_OnLeave] = function(self)
+		GameTooltip:Hide()
+	end
+	---------------------------------------------------------------
+	-- Allow access to these tables for plugins and addons on demand.
+	function Cursor:ReplaceOnEnter(original, replacement) SafeOnEnter[original] = replacement end
+	function Cursor:ReplaceOnLeave(original, replacement) SafeOnLeave[original] = replacement end
+
+	---------------------------------------------------------------
+	-- OnEnter/OnLeave script triggers
+	local function TriggerScript(node, scriptType, replacement)
+		local script = replacement[node:GetScript(scriptType)] or node:GetScript(scriptType)
+		if script then
+			pcall(script, node)
+		end
+	end
+
+	function Cursor:OnLeaveNode(node)
+		if node then
+			TriggerScript(node, 'OnLeave', SafeOnLeave)
+		end
+	end
+
+	function Cursor:OnEnterNode(node)
+		if node then
+			TriggerScript(node, 'OnEnter', SafeOnEnter)
+		end
+	end
 end
--------[[  OnLeave  ]]-------
-SafeOnLeave[SpellButton_OnLeave] = function(self)
-	GameTooltip:Hide()
-end
----------------------------------------------------------------
--- Allow access to these tables for plugins and addons on demand.
-function Cursor:ReplaceOnEnter(original, replacement) SafeOnEnter[original] = replacement end
-function Cursor:ReplaceOnLeave(original, replacement) SafeOnLeave[original] = replacement end
 
 ---------------------------------------------------------------
--- OnEnter/OnLeave script triggers
-local function HasOnEnterScript(node)
-	return node.GetScript and node:GetScript('OnEnter') and true
-end
+-- Node management resources
+---------------------------------------------------------------
+do	local IsClickable = {
+		Button 		= true;
+		CheckButton = true;
+		EditBox 	= true;
+	}
 
-local function TriggerScript(node, scriptType, replacement)
-	local script = replacement[node:GetScript(scriptType)] or node:GetScript(scriptType)
-	if script then
-		pcall(script, node)
+	local DropDownMacros = {
+		SET_FOCUS = '/focus %s';
+		CLEAR_FOCUS = '/clearfocus';
+		PET_DISMISS = '/petdismiss';
+	}
+
+
+	function Cursor:IsClickableNode(node, object)
+		local isClickableObject = (IsClickable[object] and object ~= 'EditBox');
+		if not isClickableObject then
+			return false;
+		end
+		if node:GetScript('OnClick') then
+			return true;
+		end
+		return not node:GetScript('OnMouseDown') and not node:GetScript('OnMouseUp')
+	end
+
+	function Cursor:GetMacroReplacement(node)
+		return DropDownMacros[node.value];
 	end
 end
 
 ---------------------------------------------------------------
 -- Node selection
 ---------------------------------------------------------------
-function Cursor:OnLeaveNode(node)
-	if node then
-		TriggerScript(node, 'OnLeave', SafeOnLeave)
-	end
-end
-
-function Cursor:OnEnterNode(node)
-	if node then
-		TriggerScript(node, 'OnEnter', SafeOnEnter)
-	end
-end
-
 function Cursor:SelectAndPosition(node, object, super, newMove)
 	if newMove then
 		self:OnLeaveNode(self:GetOldNode())
@@ -442,49 +492,47 @@ function Cursor:SelectAndPosition(node, object, super, newMove)
 end
 
 function Cursor:Select(node, object, super, triggerOnEnter)
-	local name = node.direction and node:GetName() -- TODO: fix this hack 
-	local override = (IsClickable[object] and object ~= 'EditBox')
-
 	self:OnEnterNode(triggerOnEnter and node)
 
-	-- If this node has a forbidden dropdown value, override macro instead.
-	local macro = DropDownMacros[node.value]
-	-- TODO: ignoreScroll should not be a table key
-	if super and not super.ignoreScroll and not IsShiftKeyDown() and not IsControlKeyDown() then
+	-- Scroll to node center
+	if super and not super:GetAttribute('nodeignorescroll')
+		and not IsShiftKeyDown() and not IsControlKeyDown() then
 		Scroll:To(node, super)
 	end
 
-	self:SetScrollButtonsForNode(node)
-
-	if object == 'Slider' then
+	if (object == 'Slider') then
 		-- TODO: Override:HorizontalScroll(Cursor, node)
 	end
 
-	self:SetClickButtonsForNode(node, override, macro)
+	self:SetScrollButtonsForNode(node)
+	self:SetClickButtonsForNode(node,
+		self:GetMacroReplacement(node),
+		self:IsClickableNode(node, object)
+	);
 end
 
 function Cursor:SetScrollButtonsForNode(node)
 	local scrollUp, scrollDown = Node.GetScrollButtons(node)
 	if scrollUp and scrollDown then
 		local modifier = db('UImodifierCommands')
-		Input:SetButton(format('%s-%s', modifier, 'PADDUP'), self, scrollUp)
-		Input:SetButton(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown)
+		Input:SetGlobal(format('%s-%s', modifier, 'PADDUP'), self, scrollUp:GetName())
+		Input:SetGlobal(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown:GetName())
 		return scrollUp, scrollDown
 	end
 end
 
-function Cursor:SetClickButtonsForNode(node, isClickable, macroReplacement)
+function Cursor:SetClickButtonsForNode(node, macroReplacement, isClickable)
 	for click, button in pairs({
 		LeftButton  = db('Settings/UICursor/LeftClick');
 		RightButton = db('Settings/UICursor/RightClick');
 	}) do for modifier in db:For('Gamepad/Index/Modifier/Active') do
 			if macroReplacement then
 				local unit = UIDROPDOWNMENU_INIT_MENU.unit
-				Input:Macro(button .. modifier, self, macroReplacement:format(unit or ''))
+				Input:SetMacro(modifier .. button, self, macroReplacement:format(unit or ''))
 			elseif isClickable then
-				Input:SetButton(button .. modifier, self, node, false, click)
+				Input:SetButton(modifier .. button, self, node, false, click)
 			else
-				Input:SetButton(button .. modifier, self, false, false, click)
+				Input:SetCommand(modifier .. button, self, false, self:GetEmuClick(node, click))
 			end
 		end
 	end
@@ -493,9 +541,8 @@ end
 ---------------------------------------------------------------
 -- Cursor textures and animations
 ---------------------------------------------------------------
-do  -- lambdas to handle texture swapping without caching icons
-	local f, path = format, 'Gamepad/Active/Icons/%s-64';
-
+do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
+	-- lambdas to handle texture swapping without caching icons
 	local function mod   () return db(f(path, db('Gamepad/Index/Modifier/Key/' .. db('UImodifierCommands')) or '')) end
 	local function opt   () return db(f(path, db('Settings/UICursor/Special'))) end
 	local function left  () return db(f(path, db('Settings/UICursor/LeftClick'))) end

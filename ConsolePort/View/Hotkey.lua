@@ -204,7 +204,9 @@ function HotkeyMixin:SetOwner(owner)
 	self:SetParent(owner)
 	if owner.HotKey then
 		self.preAlpha = owner.HotKey:GetAlpha()
+		self.preShown = owner.HotKey:IsShown()
 		owner.HotKey:SetAlpha(0)
+		owner.HotKey:Hide()
 	end
 	self:Show()
 end
@@ -213,8 +215,10 @@ function HotkeyMixin:ClearOwner()
 	local owner = self:GetParent()
 	if owner and owner.HotKey and self.preAlpha then
 		owner.HotKey:SetAlpha(self.preAlpha)
+		owner.HotKey:SetShown(self.preShown)
 	end
-	self.preAlpha = nil
+	self.preShown = nil;
+	self.preAlpha = nil;
 	self:SetParent(HotkeyHandler)
 end
 

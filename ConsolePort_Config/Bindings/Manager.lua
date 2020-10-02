@@ -412,6 +412,9 @@ function BindingManager:OnLoad()
 	self.Child:SetAllPoints()
 	self.Child:SetMeasurementOrigin(self.Child, self.Child, 600, 40)
 
+	--BigGoldRedThreeSliceButtonTemplate
+	-- TODO: add save/cancel, character only buttons
+
 	-- Create custom action bar handler
 	self.Actionbar = Mixin(CreateFrame('IndexButton', nil, self.Child, 'CPIndexButtonBindingHeaderTemplate'), Actionbar)
 	self.Actionbar:OnLoad()

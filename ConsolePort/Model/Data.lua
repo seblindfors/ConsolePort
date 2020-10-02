@@ -21,6 +21,7 @@ local DATA, DESC, TYPE = 1, 2, 3; local DEFAULT_DATA = {
     radialStartIndexAt      = {90       ; 'Starting angle of the first item in a pie menu'};
     radialClearFocusTime    = {0.5      ; 'Time to clear focus after intercepting stick input'};
     -- Interface cursor:
+    UIaccessUnlimited       = {false    ; 'Allow cursor to interact with the entire interface'};
     UIdisableCursor         = {false    ; 'Disable interface cursor'};
     UIleaveCombatDelay      = {.5       ; 'Delay before re-activating UI core after combat'};
     UIholdRepeatDelay       = {.125     ; 'Delay until a D-pad input is repeated (interface)'};

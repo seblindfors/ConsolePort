@@ -93,6 +93,7 @@ function CPContainerMixin:OnContainerLoad()
 		};
 	}, nil, true)
 	self:CreateFramePool('Frame', nil, CPPanelMixin, nil, self.Container)
+	db('Stack'):AddFrame(self)
 	return self.Header, self.Container;
 end
 
