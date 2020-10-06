@@ -10,6 +10,13 @@ local ESCAPE_KEY, Mouse = {}, CPAPI.CreateEventHandler({'Frame', '$parentMouseHa
 	'UPDATE_BINDINGS';
 })
 
+function Mouse:UPDATE_BINDINGS()
+	wipe(ESCAPE_KEY)
+	for _, binding in ipairs({db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU')}) do
+		ESCAPE_KEY[binding] = true
+	end
+end
+
 ---------------------------------------------------------------
 -- Upvalues since these will be called/checked frequently
 ---------------------------------------------------------------
@@ -39,14 +46,6 @@ end
 local function either(_, pred,  ...)
 	if pred == nil then return end
 	return pred(_) or either(_, ...)
-end
-
-
-function Mouse:UPDATE_BINDINGS()
-	wipe(ESCAPE_KEY)
-	for _, binding in ipairs({db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU')}) do
-		ESCAPE_KEY[binding] = true
-	end
 end
 
 ---------------------------------------------------------------
@@ -169,7 +168,6 @@ function Mouse:OnGamePadButtonDown(button)
 	if self:ShouldSetFreeCursor(button) then
 		return self:SetFreeCursor()
 	end
-	-- TODO: check bugs with blizz, expand on concept
 	if self:ShouldSetCenteredCursor(button) then
 		return self:SetCenteredCursor()
 	end

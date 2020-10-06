@@ -82,19 +82,11 @@ function Pager:SetConditionAndResponse(condition, response)
 end
 
 function Pager:GetPageCondition()
-	local condition = db('actionPageCondition')
-	if condition:len() < 1 then
-		condition = self:GetDefaultPageCondition()
-	end
-	return condition
+	return db('actionPageCondition') or self:GetDefaultPageCondition()
 end
 
 function Pager:GetPageResponse()
-	local response = db('actionPageResponse')
-	if response:len() < 1 then
-		response = self:GetDefaultPageResponse()
-	end
-	return response
+	return db('actionPageResponse') or self:GetDefaultPageResponse()
 end
 
 function Pager:GetCurrentPage()
