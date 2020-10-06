@@ -34,15 +34,25 @@ local Field = setmetatable({}, {
 	end;
 });
 
-do  local DATA, TYPE, CALL = 0x1, 0x2, 0x3;
-	function Field:Get()
-		return copy(rawget(self, DATA));
-	end
+do  local ID, DATA, TYPE, CALL = 0x0, 0x1, 0x2, 0x3;
 
 	function Field:Set(val)
 		rawset(self, DATA, val)
 		local callback = rawget(self, CALL)
 		return self, callback and callback(self, val);
+	end
+	
+	function Field:Get()
+		return copy(rawget(self, DATA));
+	end
+
+	function Field:SetID(id)
+		rawset(self, ID, id)
+		return self;
+	end
+
+	function Field:GetID()
+		return rawget(self, ID);
 	end
 
 	function Field:SetCallback(callback)
@@ -106,34 +116,38 @@ end
 ---------------------------------------------------------------
 local Data = db:Register('Data', {});
 
-function Data.Field(val)
-	return Field():Set(val)
-end
-
-function Data.Number(val)
-	return Field():Set(val):SetType('number')
-end
-
-function Data.String(val)
-	return Field():Set(val):SetType('string')
-end
-
 function Data.Bool(val)
 	return Select():SetOptions({true, false}):Set(val):SetType('bool')
-end
-
-function Data.Table(val)
-	return Field():Set(val):SetType('table')
 end
 
 function Data.Delta(val)
 	return Select():SetOptions({1, -1}):Set(val):SetType('delta')
 end
 
-function Data.Select(val, options)
-	return Select():SetOptions(options):Set(val)
+function Data.Field(val)
+	return Field():Set(val)
+end
+
+function Data.IO(val)
+	return Select():SetOptions({0, 1}):Set(val):SetType('io')
+end
+
+function Data.Number(val)
+	return Field():Set(val):SetType('number')
 end
 
 function Data.Range(val, min, max)
 	return Range():SetMinMax(min, max):Set(val)
+end
+
+function Data.Select(val, options)
+	return Select():SetOptions(options):Set(val)
+end
+
+function Data.String(val)
+	return Field():Set(val):SetType('string')
+end
+
+function Data.Table(val)
+	return Field():Set(val):SetType('table')
 end

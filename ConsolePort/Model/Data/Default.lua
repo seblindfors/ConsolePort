@@ -34,6 +34,7 @@ db:Register('Defaults', {
     unitHotkeyGhostMode    = {_.Bool(false)       ; 'Restore calculated combinations after targeting'};
     unitHotkeyIgnorePlayer = {_.Bool(false)       ; 'Always ignore player regardless of pool'};
     -- Misc:
+    classFileOverride      = {_.String(nil)       ; 'Override class theme'};
     disableAmbientFrames   = {_.Bool(false)       ; 'Disable ambient noise-cancelling in menus'};
     -- Structures:
     UICursor = {

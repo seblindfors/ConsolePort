@@ -19,7 +19,7 @@ local function GetClassID()   return select(3, UnitClass('player')) end
 
 
 function CPAPI.GetClassFile()
-	return select(2, UnitClass('player'))
+	return db('classFileOverride') or select(2, UnitClass('player'))
 end
 
 function CPAPI.GetPlayerCastingInfo()
