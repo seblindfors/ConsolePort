@@ -6,22 +6,14 @@
 -- behave.
 
 local _, db = ...;
-local ESCAPE_KEY, Mouse = {}, CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
+local Mouse = CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
 })
-
-function Mouse:UPDATE_BINDINGS()
-	wipe(ESCAPE_KEY)
-	for _, binding in ipairs({db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU')}) do
-		ESCAPE_KEY[binding] = true
-	end
-end
 
 ---------------------------------------------------------------
 -- Upvalues since these will be called/checked frequently
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
-local GetCVar, GetCVarBool, SetCVar = GetCVar, GetCVarBool, SetCVar;
 local CreateKeyChordString = CreateKeyChordStringUsingMetaKeyState;
 local UnitExists, GetMouseFocus = UnitExists, GetMouseFocus;
 local NewTimer = C_Timer.NewTimer;
@@ -68,16 +60,28 @@ function Mouse:ClearTimer(callback)
 end
 
 ---------------------------------------------------------------
+-- Console variables
+---------------------------------------------------------------
+local CVar_Center = db('Data').Cvar('GamePadCursorCentering')
+local CVar_LClick = db('Data').Cvar('GamePadCursorLeftClick')
+local CVar_RClick = db('Data').Cvar('GamePadCursorRightClick')
+local Keys_Escape = db('Data').Select(nil, {})
+
+function Mouse:UPDATE_BINDINGS()
+	Keys_Escape:SetOptions({db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU')})
+end
+
+---------------------------------------------------------------
 -- Predicates (should always return boolean)
 ---------------------------------------------------------------
 local CameraControl  = IsGamePadFreelookEnabled;
 local CursorControl  = IsGamePadCursorControlEnabled;
 local MenuFrameOpen  = IsOptionFrameOpen;
 local SpellTargeting = SpellIsTargeting;
-local LeftClick      = function(button) return button == GetCVar('GamePadCursorLeftClick') end;
-local RightClick     = function(button) return button == GetCVar('GamePadCursorRightClick') end;
-local MenuBinding    = function(button) return ESCAPE_KEY[CreateKeyChordString(button)] end;
-local CursorCentered = function() return GetCVarBool('GamePadCursorCentering') end;
+local LeftClick      = function(button) return CVar_LClick:IsValue(button) end;
+local RightClick     = function(button) return CVar_RClick:IsValue(button) end;
+local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChordString(button)) end;
+local CursorCentered = function() return CVar_Center:Get(true) end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
 local WorldInteract  = function() return TooltipShowing() and GetMouseFocus() == WorldFrame end;
 local MouseOver      = function() return UnitExists('mouseover') or WorldInteract() end;
@@ -109,7 +113,7 @@ end
 -- Base control functions (there seems to be bugs with these API functions)
 ---------------------------------------------------------------
 function Mouse:SetCentered(enabled)
-	SetCVar('GamePadCursorCentering', enabled)
+	CVar_Center:Set(enabled)
 	return self
 end
 
