@@ -65,10 +65,10 @@ end
 local CVar_Center = db('Data').Cvar('GamePadCursorCentering')
 local CVar_LClick = db('Data').Cvar('GamePadCursorLeftClick')
 local CVar_RClick = db('Data').Cvar('GamePadCursorRightClick')
-local Keys_Escape = db('Data').Select(nil, {})
+local Keys_Escape = db('Data').Select()
 
 function Mouse:UPDATE_BINDINGS()
-	Keys_Escape:SetOptions({db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU')})
+	Keys_Escape:SetOptions(db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU'))
 end
 
 ---------------------------------------------------------------
