@@ -297,5 +297,14 @@ function ConsolePort:CreateSlashHandler()
 		end
 	end
 
+	if CPAPI:IsRetailVersion() then	
+		PrintHeader(
+			'\nThis version (|cFFFF6600Legacy|r) is deprecated, and does not work with native client gamepad controls. ' ..
+			(GetCVarBool('GamePadEnable') and
+				('To use this version anyway, please disable native gamepad mode with this chat command:\n' ..
+				'|cFFFF6600/console GamePadEnable 0|r') or '')
+		);
+	end
+
 	self.CreateSlashHandler = nil
 end

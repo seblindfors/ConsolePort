@@ -162,7 +162,7 @@ end
 ---------------------------------------------------------------
 Atlas.GetArtOverlay = function(self)
 	local overlay = Atlas.GetOverlay()
-	local texture = GetAtlasInfo(overlay)
+	local texture = CPAPI:GetAtlasTexture(overlay)
 	local maxWidth, maxHeight, texSize = 722, 617, 1024
 	local maxCoordX, maxCoordY, centerCoordX, centerCoordY = 
 			maxWidth / texSize, maxHeight / texSize,

@@ -67,6 +67,28 @@ function CPAPI:GetAverageItemLevel(...)
 	return MAX_PLAYER_LEVEL
 end
 
+function CPAPI:GetAtlasInfo(...)
+	if GetAtlasInfo then
+		local args = {
+			'file', 'width', 'height',
+			'leftTexCoord', 'rightTexCoord', 'topTexCoord', 'bottomTexCoord',
+			'tilesHorizontally', 'tilesHorizontally',
+		}
+		local atlas = {GetAtlasInfo(...)}
+		for i=1, #atlas do
+			atlas[args[i]] = atlas[i]
+			atlas[i] = nil
+		end
+		return atlas
+	end
+	return C_Texture.GetAtlasInfo(...)
+end
+
+function CPAPI:GetAtlasTexture(atlas)
+	local atlas = self:GetAtlasInfo(atlas)
+	return atlas and (atlas.filename or atlas.file)
+end
+
 function CPAPI:GetNumQuestWatches(...)
 	return GetNumQuestWatches and GetNumQuestWatches(...) or 0
 end

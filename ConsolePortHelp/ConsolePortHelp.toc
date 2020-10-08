@@ -1,4 +1,4 @@
-## Interface: 90000
+## Interface: 90001
 ## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0Help|r
 ## Notes: Tutorials and help pages for ConsolePort. Loaded on demand.
 ## RequiredDeps: ConsolePort
@@ -7,5 +7,3 @@
 
 PageLoader.lua
 Pages.xml
-
-Tutorial\NewPlayerExperience.lua

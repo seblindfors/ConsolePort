@@ -122,7 +122,9 @@ function ConsolePort:LoadHookScripts()
 		end
 
 		GameTooltip:HookScript('OnShow', TooltipAdjustOnShow)
-		WorldMapTooltip:HookScript('OnShow', TooltipAdjustOnShow)
+		if WorldMapTooltip then
+			WorldMapTooltip:HookScript('OnShow', TooltipAdjustOnShow)
+		end
 	end
 	
 	-- Disable keyboard input when splitting stacks (will obstruct controller input)

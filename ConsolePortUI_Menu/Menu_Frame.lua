@@ -274,12 +274,12 @@ local Menu =  UI:CreateFrame('Frame', an, GameMenuFrame, 'SecureHandlerStateTemp
 								},
 							},
 							OnLoad = function(self)
-								hooksecurefunc('EJMicroButton_UpdateNewAdventureNotice', function()
+								hooksecurefunc(EJMicroButton, 'UpdateNewAdventureNotice', function()
 									if EJMicroButton.NewAdventureNotice:IsShown() then
 										self:Show()
 									end
 								end)
-								hooksecurefunc('EJMicroButton_ClearNewAdventureNotice', function()
+								hooksecurefunc(EJMicroButton, 'ClearNewAdventureNotice', function()
 									self:Hide()
 								end)
 							end,

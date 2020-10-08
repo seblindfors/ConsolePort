@@ -1,4 +1,4 @@
-## Interface: 90000
+## Interface: 90001
 ## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0Advanced|r
 ## Notes: Advanced configuration for Console Port.
 ## RequiredDeps: ConsolePort

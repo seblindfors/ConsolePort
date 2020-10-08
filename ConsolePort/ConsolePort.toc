@@ -1,7 +1,7 @@
-## Interface: 90000
+## Interface: 90001
 ## Title: Console Port |cFFFF6600Legacy|r
 ## Notes: Game controller addon
-## Version: 1.9.16
+## Version: 1.9.17
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort

@@ -1,4 +1,4 @@
-## Interface: 90000
+## Interface: 90001
 ## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0UI|r Loot
 ## Notes: Replaces loot frame.
 ## RequiredDeps: ConsolePort
