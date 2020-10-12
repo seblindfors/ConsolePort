@@ -217,6 +217,9 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 		for i=1, NUM_CONTAINER_FRAMES do
 			self:TryRegisterFrame(_, 'ContainerFrame'..i, true)
 		end
+		for i=1, STATICPOPUP_NUMDIALOGS do
+			self:TryRegisterFrame(_, 'StaticPopup'..i, true)
+		end
 	end
 
 	function Stack:GetRegistrySet(name)

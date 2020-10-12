@@ -21,29 +21,39 @@
 					</Anchors>
 				</Texture>
 			</Layer>
-			<Layer level="OVERLAY">
-				<Texture parentKey="Highlight">
-					<Animations>
-						<AnimationGroup parentKey="Scale">
-							<Scale parentKey="Enlarge" childKey="Highlight" smoothing="OUT" duration=".1" order="1">
-								<Origin point="CENTER"/>
-							</Scale>
-							<Scale parentKey="Shrink" childKey="Highlight" smoothing="IN" duration=".2" order="2">
-								<Origin point="CENTER"/>
-							</Scale>
-						</AnimationGroup>
-					</Animations>
-				</Texture>
-			</Layer>
 		</Layers>
 		<Frames>
-			<Frame parentKey="Pointer">
-				<Size x="32" y="32"/>
+			<Frame parentKey="Mime" frameStrata="TOOLTIP" hidden="true">
+				<Scripts>
+					<OnLoad>
+						self.Fonts = CreateFontStringPool(self, 'OVERLAY');
+						self.Textures = CreateTexturePool(self, 'OVERLAY');
+					</OnLoad>
+				</Scripts>
+				<Animations>
+					<AnimationGroup parentKey="Scale">
+						<Scale parentKey="Enlarge" childKey="Highlight" smoothing="OUT" duration=".1" order="1">
+							<Origin point="CENTER"/>
+						</Scale>
+						<Scale parentKey="Shrink" childKey="Highlight" smoothing="IN" duration=".2" order="2">
+							<Origin point="CENTER"/>
+						</Scale>
+					</AnimationGroup>
+				</Animations>
+			</Frame>
+			<Frame parentKey="Blocker" hidden="true" enableMouse="true">
+				<Scripts>
+					<OnLoad>
+						self:SetParent(nil);
+						self:SetAllPoints();
+						self:SetFrameStrata('TOOLTIP');
+					</OnLoad>
+				</Scripts>
 			</Frame>
 		</Frames>
 		<Animations>
-			<AnimationGroup parentKey="MoveAndScale">
-				<Translation parentKey="Translate" smoothing="OUT" duration=".05" order="1"/>
+			<AnimationGroup parentKey="ScaleInOut">
+				<!--<Translation parentKey="Translate" smoothing="OUT" duration=".05" order="1"/>-->
 				<Scale parentKey="Enlarge" smoothing="OUT" duration=".1" order="1">
 					<Origin point="TOPLEFT"/>
 				</Scale>

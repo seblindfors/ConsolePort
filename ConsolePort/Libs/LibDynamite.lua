@@ -37,7 +37,7 @@ local   ANCHOR, ONLOAD = {}, {}
 
 
 --------------------------------------------------------------------------
-API = { -- Syntax: ['<CallID>'] = value or {value1, ..., valueN};
+API = { -- Syntax: _CallID = value or {value1, ..., valueN};
 --------------------------------------------------------------------------
 --  [1]        = function(obj, bp)      Lib:BuildFrame(obj, bp, true) end;
     ID         = function(widget, ...)  widget:SetID(...)             end;
@@ -136,11 +136,11 @@ SPECIAL = { -- Special constructors
 RESERVED = { -- Reserved keywords in blueprints
 --------------------------------------------------------------------------
     [1]             = true, -- don't run blueprints in function stack
-    ['<Type>']      = true, -- used to determine frame type
-    ['<Mixin>']     = true, -- specially handled before function calls
-    ['<Setup>']     = true, -- used to determine inheritance
-    ['<Repeat>']    = true, -- ignore since it denotes a loop
-    ['<Anonymous>'] = true, -- denotes anonymous parent/children
+    _Type      = true, -- used to determine frame type
+    _Mixin     = true, -- specially handled before function calls
+    _Setup     = true, -- used to determine inheritance
+    _Repeat    = true, -- ignore since it denotes a loop
+    _Anonymous = true, -- denotes anonymous parent/children
 };
 
 
@@ -344,14 +344,14 @@ end
 function callMethodsOnWidget(widget, methods)
     -- mixin before running the rest of the widget method stack,
     -- since mixed in functions may be called from the blueprint
-    local mixin = methods['<Mixin>']
+    local mixin = methods._Mixin
     if mixin then
         call(widget, 'Mixin', mixin)
         -- if the mixin has an onload script, add it to the constructor stack.
         -- remove the onload function from the object itself.
-        if widget.OnLoad and not methods['<OnLoad>'] then
+        if widget.OnLoad and not methods._OnLoad then
             -- use :GetScript in case more than one load script was hooked.
-            methods['<OnLoad>'] = widget:GetScript('OnLoad')
+            methods._OnLoad = widget:GetScript('OnLoad')
             widget:SetScript('OnLoad', nil)
             widget.OnLoad = nil
         end
@@ -432,15 +432,15 @@ function onload()
 end
 
 function getbuildinfo(bp) return 
-    bp['<Type>'],
-    type(bp['<Type>']),
-    bp['<Setup>'],
-    bp['<Repeat>'],
-    bp['<Anonymous>']
+    bp._Type,
+    type(bp._Type),
+    bp._Setup,
+    bp._Repeat,
+    bp._Anonymous
 end
 
 function packtbl(tbl, ...) tbl[#tbl + 1] = {...} end;
-function strip(key) return strmatch(key, '<(%w+)>') end;
+function strip(key) return strmatch(key, '_(%w+)') end;
 function err(key, name, code) return ERROR:format(key, name or 'unnamed region', code) end;
 
 --------------------------------------------------------------------------
@@ -450,9 +450,9 @@ function err(key, name, code) return ERROR:format(key, name or 'unnamed region',
 --[[
 
 local bar = Lib:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandlerStateTemplate', {
-    ['<Size>']   = {NUM_ACTIONBAR_BUTTONS * 40, 36};
-    ['<Point>']  = {'CENTER', 0, 0};
-    ['<OnLoad>'] = function(self)
+    _Size   = {NUM_ACTIONBAR_BUTTONS * 40, 36};
+    _Point  = {'CENTER', 0, 0};
+    _OnLoad = function(self)
         local macro = '1';
         for i=1, NUM_ACTIONBAR_PAGES do
             macro = format('[bar:%d] %d;', i, i) .. macro; 
@@ -462,7 +462,7 @@ local bar = Lib:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandle
         end
         RegisterStateDriver(self, 'actionpage', macro);
     end;
-    ['<Attributes>'] = {
+    _Attributes = {
         ['type'] = 'actionbar';
         ['actionpage'] = 1;
         ['_onstate-actionpage'] = [=[
@@ -473,26 +473,26 @@ local bar = Lib:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandle
 
     {   -- A keyless table contains the children
         ActionButton = {
-            ['<Repeat>'] = NUM_ACTIONBAR_BUTTONS;
-            ['<Type>']   = 'Button';
-            ['<Point>']  = {'LEFT', '$parent', 'LEFT', 0, 0, 40, 0};
-            ['<Setup>']  = {'ActionButtonTemplate', 'SecureActionButtonTemplate'};
-            ['<Attributes>'] = {
+            _Repeat = NUM_ACTIONBAR_BUTTONS;
+            _Type   = 'Button';
+            _Point  = {'LEFT', '$parent', 'LEFT', 0, 0, 40, 0};
+            _Setup  = {'ActionButtonTemplate', 'SecureActionButtonTemplate'};
+            _Attributes = {
                 ['type'] = 'action';
                 ['_childupdate-actionpage'] = 'self:SetAttribute("actionpage", newstate)';
             };
             -- adding a custom method
-            ['<UpdateTexture>'] = function(self)
+            _UpdateTexture = function(self)
                 local page = self:GetParent():GetAttribute('actionpage');
                 local actionID = (page - 1) * NUM_ACTIONBAR_BUTTONS + self:GetID();
                 self.icon:SetTexture(GetActionTexture(actionID));
             end;
             -- calling custom method on load
-            ['<OnLoad>'] = function(self)
+            _OnLoad = function(self)
                 self:UpdateTexture();
             end;
             -- setting a script handler
-            ['<OnAttributeChanged>'] = function(self)
+            _OnAttributeChanged = function(self)
                 self:UpdateTexture();
             end;
         }

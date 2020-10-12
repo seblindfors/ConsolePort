@@ -22,16 +22,16 @@ function CPContainerMixin:OnContainerLoad()
 	-- Create container frames
 	LibDynamite:BuildFrame(self, {
 		Header = {
-			['<Type>']   = 'Frame';
-			['<Setup>']  = 'BackdropTemplate';
-			['<Mixin>']  = CPHeaderMixin;
-			['<Height>'] = headerHeight;
-			['<Points>'] = {
+			_Type   = 'Frame';
+			_Setup  = 'BackdropTemplate';
+			_Mixin  = CPHeaderMixin;
+			_Height = headerHeight;
+			_Points = {
 				{'TOPLEFT', inset-1, -inset+1};
 				{'TOPRIGHT', -inset+1, -inset+1};
 			};
-			['<Backdrop>'] = CPAPI.Backdrops.Header;
-			['<OnLoad>'] = function(self)
+			_Backdrop = CPAPI.Backdrops.Header;
+			_OnLoad = function(self)
 				local nR, nG, nB = CPAPI.NormalizeColor(r, g, b)
 				CPFocusPoolMixin.OnLoad(self)
 				CPBackgroundMixin.OnBackdropLoaded(self)
@@ -41,41 +41,41 @@ function CPContainerMixin:OnContainerLoad()
 			end;
 			{
 				Shadow = {
-					['<Type>']  = 'Texture';
-					['<Setup>'] = {'BACKGROUND', nil, -6};
-					['<Texture>'] = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]);
-					['<Gradient>'] = {'VERTICAL', 0, 0, 0, 0, 0, 0, 0, 0.5};
-					['<Points>'] = {
+					_Type  = 'Texture';
+					_Setup = {'BACKGROUND', nil, -6};
+					_Texture = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]);
+					_Gradient = {'VERTICAL', 0, 0, 0, 0, 0, 0, 0, 0.5};
+					_Points = {
 						{'TOPLEFT', 'parent', 'BOTTOMLEFT', 1, 0};
 						{'BOTTOMRIGHT', 'parent', 'BOTTOMRIGHT', -1, -20};
 					};
 				};
 				Tint = {
-					['<Type>']  = 'Texture';
-					['<Setup>'] = {'BACKGROUND', nil, -7};
-					['<Texture>'] = CPAPI.GetAsset([[Textures\Frame\Gradient_White_Horizontal]]);
-					['<Vertex>'] = {r, g, b};
-					['<Points>'] = {
+					_Type  = 'Texture';
+					_Setup = {'BACKGROUND', nil, -7};
+					_Texture = CPAPI.GetAsset([[Textures\Frame\Gradient_White_Horizontal]]);
+					_Vertex = {r, g, b};
+					_Points = {
 						{'TOPLEFT', 'parent.Center', 'TOPLEFT', 0, 0};
 						{'BOTTOMRIGHT', 'parent.Center', 'BOTTOMRIGHT', 0, 0};
 					};
 				};
 				Logo = {
-					['<Type>']  = 'Texture';
-					['<Setup>'] = {'ARTWORK'};
-					['<Size>']  = {headerHeight * 0.9, headerHeight * 0.9};
-					['<Point>'] = {'LEFT', headerHeight * 0.1, -2};
-					['<Texture>'] = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
+					_Type  = 'Texture';
+					_Setup = {'ARTWORK'};
+					_Size  = {headerHeight * 0.9, headerHeight * 0.9};
+					_Point = {'LEFT', headerHeight * 0.1, -2};
+					_Texture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
 				};
 				Index = {
-					['<Type>']   = 'ScrollFrame';
-					['<Setup>']  = {'CPSmoothScrollTemplate'};
-					['<SetScrollOrientation>'] = 'Horizontal';
-					['<Points>'] = {
+					_Type   = 'ScrollFrame';
+					_Setup  = {'CPSmoothScrollTemplate'};
+					_SetScrollOrientation = 'Horizontal';
+					_Points = {
 						{'TOPLEFT', headerHeight * 1.1, 0};
 						{'BOTTOMRIGHT', 0, 0};
 					};
-					['<OnLoad>'] = function(self)
+					_OnLoad = function(self)
 						self.Child:SetHeight(self:GetParent():GetHeight())
 						self.Child.Pool = self:GetParent():CreateFramePool('IndexButton',
 							'CPContainerHeaderButtonTemplate', {}, nil, self.Child);
@@ -84,9 +84,9 @@ function CPContainerMixin:OnContainerLoad()
 			};
 		};
 		Container = {
-			['<Type>']   = 'Frame';
-			['<SetClipsChildren>'] = true;
-			['<Points>'] = {
+			_Type   = 'Frame';
+			_SetClipsChildren = true;
+			_Points = {
 				{'TOPLEFT', 'parent.Header', 'BOTTOMLEFT', 1, -1};
 				{'BOTTOMRIGHT', -inset+1, inset};
 			};
@@ -220,8 +220,8 @@ end
 
 function CPPanelMixin:CreateScrollableColumn(key, struct)
 	local blueprint = {
-		['<Type>']  = 'ScrollFrame';
-		['<Setup>'] = {'CPSmoothScrollTemplate'};
+		_Type  = 'ScrollFrame';
+		_Setup = {'CPSmoothScrollTemplate'};
 		parent  = self;
 		container = self:GetParent();
 	}

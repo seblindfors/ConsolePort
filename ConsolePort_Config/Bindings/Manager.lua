@@ -5,7 +5,8 @@ local BindingInfo = env.BindingInfo;
 -- Mixins
 ---------------------------------------------------------------
 local BindingManager = CreateFromMixins(CPFocusPoolMixin);
-local Binding, Header = CreateFromMixins(CPIndexButtonMixin), CreateFromMixins(CPIndexButtonMixin, CPFocusPoolMixin, env.ScaleToContentMixin)
+local Binding = CreateFromMixins(CPIndexButtonMixin)
+local Header = CreateFromMixins(CPIndexButtonMixin, CPFocusPoolMixin, env.ScaleToContentMixin)
 env.BindingManager = BindingManager;
 
 ---------------------------------------------------------------
@@ -388,14 +389,14 @@ function BindingManager:OnShow()
 end
 
 function BindingManager:DrawCategories(bindings, headers)
-	local prev
+	local prev = self.Actionbar;
 	for header, set in db.table.spairs(bindings) do
 		local widget, newObj = self:Acquire(header)
 		if newObj then
 			widget:OnLoad()
 		end
 		widget:SetText(header)
-		widget:SetPoint('TOP', prev or self.Actionbar, 'BOTTOM', 0, -12)
+		widget:SetPoint('TOP', prev, 'BOTTOM', 0, -12)
 		widget:Show()
 		widget.Bindings = set;
 		prev = widget;

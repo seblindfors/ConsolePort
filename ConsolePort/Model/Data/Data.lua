@@ -104,7 +104,7 @@ do  local Set, Get, GetBool = SetCVar, GetCVar, GetCVarBool;
 
 	function Cvar:Set(val)
 		Set(self:GetID(), val)
-		return Field.Set(val)
+		return Field.Set(self, val)
 	end
 end
 

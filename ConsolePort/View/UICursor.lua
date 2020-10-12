@@ -106,6 +106,7 @@ function Cursor:OnHide()
 	self:SetAlpha(1)
 	self:SetFlashNextNode()
 	self:Release()
+	self.Blocker:Hide()
 end
 
 function Cursor:Release()
@@ -120,7 +121,7 @@ function Cursor:IsObstructed()
 end
 
 function Cursor:IsAnimating()
-	return self.MoveAndScale:IsPlaying()
+	return self.ScaleInOut:IsPlaying()
 end
 
 function Cursor:ShowAfterCombat(enabled)
@@ -161,15 +162,22 @@ function Cursor:SetCurrentNode(node, uniqueTriggered)
 	end
 end
 
-function Cursor:OnUpdate(elapsed)
-	if self:InCombat() then return end
-	if not self:IsCurrentNodeDrawn() then
-		self:SetFlashNextNode()
-		if not self:Refresh() then
-			self:Hide()
+do -- Keep track of cursor state
+	local IsGamePadInUse, IsGamePadCursor = IsGamePadFreelookEnabled, IsGamePadCursorControlEnabled;
+	function Cursor:OnUpdate(elapsed)
+		self.Blocker:SetShown(IsGamePadInUse() and not IsGamePadCursor())
+
+		if self:InCombat() then return end
+		if not self:IsCurrentNodeDrawn() then
+			self:SetFlashNextNode()
+			if not self:Refresh() then
+				self:Hide()
+			end
+		elseif self:IsAnimating() then
+			self:MoveTowardsAnchor(elapsed)
+		else
+			self:RefreshAnchor()
 		end
-	elseif not self:IsAnimating() then
-		self:RefreshAnchor()
 	end
 end
 
@@ -588,81 +596,41 @@ function Cursor:RefreshAnchor()
 	end
 end
 
-function Cursor:SetPosition(node)
-	local oldAnchor = self:GetAnchor()
-	self:SetTexture()
-	self:SetAnchor(node)
-	self:Show()
-	self:Move(oldAnchor)
-end
-
-function Cursor:SetPointer(node)
-	self.Pointer:ClearAllPoints()
-	self.Pointer:SetParent(node)
-	self.Pointer:SetPoint(unpack(self:GetAnchor()))
-	return self.Pointer:GetCenter()
-end
-
-function Cursor:Move(oldAnchor)
-	local node = self:GetCurrentNode()
-	if node then
-		self:ClearHighlight()
-		local newX, newY = self:SetPointer(node)
-		if self:IsAnimating() then
-			self.MoveAndScale:Stop()
-			self.MoveAndScale:OnFinished(oldAnchor)
-		end
-		local oldX, oldY = self:GetCenter()
-		if ( not node.noAnimation ) and oldX and oldY and newX and newY and self:IsVisible() then
-			local oldScale, newScale = self:GetEffectiveScale(), self.Pointer:GetEffectiveScale()
-			local sDiff, sMult = oldScale / newScale, newScale / oldScale
-			self.Translate:SetOffset((newX - oldX * sDiff) * sMult, (newY - oldY * sDiff) * sMult)
-			self.Enlarge:SetStartDelay(0.05)
-			self.MoveAndScale:ConfigureScale()
-			self.MoveAndScale:Play()
-		else
-			self.Enlarge:SetStartDelay(0)
-			self.MoveAndScale:OnFinished()
-		end
+function Cursor:MoveTowardsAnchor(elapsed)
+	if not self:GetCustomAnchor() then
+		local divisor = 4 - elapsed; -- 4 is about right, account for FPS
+		local cX, cY = self:GetLeft(), self:GetTop()
+		local nX, nY = Node.GetCenter(self:GetCurrentNode())
+		local xOff, yOff = cX + ((nX - cX) / divisor), cY + ((nY - cY) / divisor)
+		self:ClearAllPoints()
+		self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', xOff, yOff)
 	end
 end
 
--- Highlight mime
----------------------------------------------------------------
-function Cursor:ClearHighlight()
-	self.Highlight:ClearAllPoints()
-	self.Highlight:SetParent(self)
-	self.Highlight:SetTexture(nil)
+function Cursor:SetPosition(node)
+	self:SetTexture()
+	self:SetAnchor(node)
+	self:Show()
+	self:Move()
 end
 
-function Cursor:SetHighlight(node)
-	local mime = self.Highlight
-	local highlight = node and node.GetHighlightTexture and node:GetHighlightTexture()
-	if highlight and node:IsEnabled() then
-		if highlight:GetAtlas() then
-			mime:SetAtlas(highlight:GetAtlas())
-		else
-			local texture = highlight.GetTexture and highlight:GetTexture()
-			if (type(texture) == 'string') and texture:find('^[Cc]olor-') then
-				local r, g, b, a = CPAPI.Hex2RGB(texture:sub(7), true)
-				mime:SetColorTexture(r, g, b, a)
-			else
-				mime:SetTexture(texture)
-			end
-			mime:SetBlendMode(highlight:GetBlendMode())
-			mime:SetVertexColor(highlight:GetVertexColor())
+function Cursor:Move()
+	local node = self:GetCurrentNode()
+	if node then
+		self:ClearHighlight()
+		local newX, newY = Node.GetCenter(node)
+		local oldX, oldY = self:GetCenter()
+		if self:IsAnimating() then
+			self.ScaleInOut:Stop()
 		end
-		mime:SetSize(highlight:GetSize())
-		mime:SetTexCoord(highlight:GetTexCoord())
-		mime:SetAlpha(highlight:GetAlpha())
-		mime:ClearAllPoints()
-		mime:SetPoint(highlight:GetPoint())
-		mime:Show()
-		mime.Scale:Stop()
-		mime.Scale:Play()
-	else
-		mime:ClearAllPoints()
-		mime:Hide()
+		if oldX and oldY and newX and newY and self:IsVisible() then
+			self.Enlarge:SetStartDelay(0.05)
+			self.ScaleInOut:ConfigureScale()
+			self.ScaleInOut:Play()
+		else
+			self.Enlarge:SetStartDelay(0)
+		end
+		self:SetHighlight(node)
 	end
 end
 
@@ -670,13 +638,99 @@ function Cursor:Chime()
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
 end
 
+-- Highlight mime
+---------------------------------------------------------------
+function Cursor:ClearHighlight()
+	self.Mime:Clear()
+end
+
+
+function Cursor:SetHighlight(node)
+	if node and (not node.IsEnabled or node:IsEnabled()) then
+		self.Mime:SetNode(node)
+	else
+		self:ClearHighlight()
+	end
+end
+
+function Cursor.Mime:SetFontString(region)
+	if region:IsShown() and region:GetFont() then
+		local obj = self.Fonts:Acquire()
+		obj:SetFont(obj.GetFont(region))
+		obj:SetText(obj.GetText(region))
+		obj:SetTextColor(obj.GetTextColor(region))
+		obj:SetJustifyH(obj.GetJustifyH(region))
+		obj:SetJustifyV(obj.GetJustifyV(region))
+		obj:SetSize(obj.GetSize(region))
+		for i=1, obj.GetNumPoints(region) do
+			obj:SetPoint(obj.GetPoint(region, i))
+		end
+		obj:Show()
+	end
+end
+
+function Cursor.Mime:SetTexture(region)
+	if region:IsShown() then
+		local obj = self.Textures:Acquire()
+		if obj.GetAtlas(region) then
+			obj:SetAtlas(obj.GetAtlas(region))
+		else
+			local texture = obj.GetTexture(region)
+			if (type(texture) == 'string') and texture:find('^[Cc]olor-') then
+				obj:SetColorTexture(CPAPI.Hex2RGB(texture:sub(7), true))
+			else
+				obj:SetTexture(texture)
+			end
+		end
+		obj:SetBlendMode(obj.GetBlendMode(region))
+		obj:SetTexCoord(obj.GetTexCoord(region))
+		obj:SetVertexColor(obj.GetVertexColor(region))
+		obj:SetSize(obj.GetSize(region))
+		for i=1, obj.GetNumPoints(region) do
+			obj:SetPoint(obj.GetPoint(region, i))
+		end
+		obj:Show()
+	end
+end
+
+function Cursor.Mime:SetNode(node)
+	self:MimeRegions(node:GetRegions())
+	self:ClearAllPoints()
+	self:SetSize(node:GetSize())
+	self:Show()
+	for i=1, node:GetNumPoints() do
+		self:SetPoint(node:GetPoint(i))
+	end
+	self.Scale:Stop()
+	self.Scale:Play()
+end
+
+function Cursor.Mime:Clear()
+	self.Fonts:ReleaseAll()
+	self.Textures:ReleaseAll()
+	self:Hide()
+end
+
+function Cursor.Mime:MimeRegions(region, ...)
+	if region then
+		if (region:GetDrawLayer() == 'HIGHLIGHT') then
+			if (region:GetObjectType() == 'Texture') then
+				self:SetTexture(region)
+			elseif (region:GetObjectType() == 'FontString') then
+				self:SetFontString(region)
+			end
+		end
+		self:MimeRegions(...)
+	end
+end
+
 -- Animation scripts
 ---------------------------------------------------------------
 function Cursor:SetFlashNextNode()
-	self.MoveAndScale.Flash = true;
+	self.ScaleInOut.Flash = true;
 end
 
-function Cursor.MoveAndScale:ConfigureScale()
+function Cursor.ScaleInOut:ConfigureScale()
 	local cur, old = Cursor:GetCurrent(), Cursor:GetOld()
 	if (cur == old) and not self.Flash then
 		self.Shrink:SetDuration(0)
@@ -695,33 +749,24 @@ function Cursor.MoveAndScale:ConfigureScale()
 	end
 end
 
-function Cursor.Highlight.Scale:OnPlay()
-	self.Enlarge:SetScale(Cursor.MoveAndScale.Enlarge:GetScale())
-	self.Shrink:SetScale(Cursor.MoveAndScale.Shrink:GetScale())
+function Cursor.Mime.Scale:OnPlay()
+	self.Enlarge:SetScale(Cursor.ScaleInOut.Enlarge:GetScale())
+	self.Shrink:SetScale(Cursor.ScaleInOut.Shrink:GetScale())
 
-	self.Enlarge:SetDuration(Cursor.MoveAndScale.Enlarge:GetDuration())
-	self.Shrink:SetDuration(Cursor.MoveAndScale.Shrink:GetDuration())
+	self.Enlarge:SetDuration(Cursor.ScaleInOut.Enlarge:GetDuration())
+	self.Shrink:SetDuration(Cursor.ScaleInOut.Shrink:GetDuration())
 
-	self.Enlarge:SetStartDelay(Cursor.MoveAndScale.Enlarge:GetStartDelay())
-	self.Shrink:SetStartDelay(Cursor.MoveAndScale.Shrink:GetStartDelay())
+	self.Enlarge:SetStartDelay(Cursor.ScaleInOut.Enlarge:GetStartDelay())
+	self.Shrink:SetStartDelay(Cursor.ScaleInOut.Shrink:GetStartDelay())
 end
 
-function Cursor.MoveAndScale.Translate:OnFinished()
-	Cursor:SetHighlight(Cursor:GetCurrentNode())
-end
-
-function Cursor.MoveAndScale:OnPlay()
-	Cursor.Highlight:SetParent(Cursor:GetCurrentNode() or Cursor)
+function Cursor.ScaleInOut:OnPlay()
+	Cursor.Mime:SetParent(Cursor:GetCurrentNode() or Cursor)
 	Cursor:Chime()
 end
 
-function Cursor.MoveAndScale:OnFinished(oldAnchor)
-	Cursor:ClearAllPoints()
-	Cursor:SetPoint(unpack(oldAnchor or Cursor:GetAnchor()))
-end
-
 do  -- Set up animation scripts
-	local animationGroups = {Cursor.MoveAndScale, Cursor.Highlight.Scale}
+	local animationGroups = {Cursor.ScaleInOut, Cursor.Mime.Scale}
 
 	local function setupScripts(w) 
 		for k, v in pairs(w) do 
@@ -737,9 +782,9 @@ do  -- Set up animation scripts
 	end
 
 	-- Convenience references to animations
-	Cursor.Translate = Cursor.MoveAndScale.Translate
-	Cursor.Enlarge   = Cursor.MoveAndScale.Enlarge
-	Cursor.Shrink    = Cursor.MoveAndScale.Shrink
+--	Cursor.Translate = Cursor.ScaleInOut.Translate
+	Cursor.Enlarge   = Cursor.ScaleInOut.Enlarge
+	Cursor.Shrink    = Cursor.ScaleInOut.Shrink
 end
 
 ---------------------------------------------------------------
