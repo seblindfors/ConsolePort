@@ -15,6 +15,7 @@ XML\__manifest.xml
 
 Utils\__manifest.xml
 Model\__manifest.xml
+Locale\__manifest.xml
 Controller\__manifest.xml
 Widget\__manifest.xml
 View\__manifest.xml

@@ -109,6 +109,11 @@ function CPAPI.Start(handler)
 	end
 end
 
+function CPAPI.Popup(id, settings)
+	StaticPopupDialogs[id:upper()] = settings;
+	return StaticPopup_Show(id:upper())
+end
+
 ---------------------------------------------------------------
 -- Assets
 ---------------------------------------------------------------

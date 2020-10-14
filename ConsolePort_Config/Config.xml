@@ -120,6 +120,37 @@
 		</Layers>
 	</IndexButton>
 
+	<IndexButton name="CPIndexButtonSimpleTemplate" virtual="true">
+		<Size x="260" y="36"/>
+		<KeyValues>
+			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
+		</KeyValues>
+		<ButtonText parentKey="Label" inherits="CPSmallFont" wordwrap="false" justifyH="CENTER">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="8"/>
+				<Anchor point="BOTTOMRIGHT" x="-8"/>
+			</Anchors>
+		</ButtonText>
+		<Scripts>
+			<OnEnter>
+				if (self.TooltipHeader and self.TooltipText) then
+					GameTooltip:SetOwner(self, 'ANCHOR_RIGHT');
+					GameTooltip:SetText(self.TooltipHeader, nil, nil, nil, nil, true);
+					GameTooltip:AddLine(self.TooltipText, 1, 1, 1);
+					if (self.OnTooltipSet) then
+						self:OnTooltipSet(GameTooltip);
+					end
+					GameTooltip:Show();
+				end
+			</OnEnter>
+			<OnLeave>
+				if (GameTooltip:IsOwned(self)) then
+					GameTooltip:Hide();
+				end
+			</OnLeave>
+		</Scripts>
+	</IndexButton>
+
 	<IndexButton name="CPIndexButtonBindingActionButtonTemplate" virtual="true">
 		<Size x="38" y="38"/>
 		<KeyValues>

@@ -5,6 +5,7 @@ SetOverrideBindingClick(b, true, 'K', 'ConfigB')
 
 local Config = ConsolePortConfig
 
+Config:SetMinResize(1000, 700)
 Config:SetScript('OnMouseWheel', function(self, delta, ...)
 	local f = IsShiftKeyDown() and PixelUtil.SetHeight or IsControlKeyDown() and PixelUtil.SetWidth
 	local g = IsShiftKeyDown() and self.GetHeight or IsControlKeyDown() and self.GetWidth

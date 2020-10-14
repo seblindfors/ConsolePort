@@ -131,6 +131,7 @@ function FlexibleMixin:ToggleFlex(enabled)
 		or C_Widget.IsFrameWidget(measure) and measure:GetWidth()
 		or measure;
 	self.isFlexed = enabled;
+	self.flexElement:SetAttribute('nodeignore', not enabled)
 	Flexer:AddFrame(self)
 end
 

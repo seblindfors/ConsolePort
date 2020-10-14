@@ -149,15 +149,15 @@ function Cursor:RefreshToFrame(frame)
 	end
 end
 
-function Cursor:SetCurrentNode(node, uniqueTriggered)
+function Cursor:SetCurrentNode(node, assertNotMouse)
+	if db('UIdisableCursor') then
+		return
+	end
 	local object = node and Node.ScanLocal(node)[1]
-	if object and (not uniqueTriggered or not GetMouseButtonClicked()) then
-		self:OnLeaveNode(self:GetCurrentNode())
-		self:SetCurrent(object)
+	if object and (not assertNotMouse or IsGamePadFreelookEnabled()) then
 		self:SetFlashNextNode()
-		self:Select(self:GetSelectParams(object, true))
-		self:RefreshAnchor()
-		self:SetHighlight(node)
+		self:SetCurrent(object)
+		self:SelectAndPosition(self:GetSelectParams(object, true))
 		self:Chime()
 	end
 end
@@ -782,9 +782,8 @@ do  -- Set up animation scripts
 	end
 
 	-- Convenience references to animations
---	Cursor.Translate = Cursor.ScaleInOut.Translate
-	Cursor.Enlarge   = Cursor.ScaleInOut.Enlarge
-	Cursor.Shrink    = Cursor.ScaleInOut.Shrink
+	Cursor.Enlarge = Cursor.ScaleInOut.Enlarge;
+	Cursor.Shrink  = Cursor.ScaleInOut.Shrink;
 end
 
 ---------------------------------------------------------------
@@ -819,7 +818,7 @@ function Scroll:To(node, super)
 	if nodeY and scrollY then
 
 		-- HACK: make sure this isn't a hybrid scroll frame
-		if super:GetScript('OnLoad') ~= HybridScrollFrame_OnLoad then
+		if super:IsObjectType('ScrollFrame') and super:GetScript('OnLoad') ~= HybridScrollFrame_OnLoad then
 			local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
 			local maxHorz, maxVert = super:GetHorizontalScrollRange(), super:GetVerticalScrollRange()
 

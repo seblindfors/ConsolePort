@@ -1,4 +1,5 @@
 local db, _, env = ConsolePort:DB(), ...;
+local L = db('Locale');
 local BindingsMixin = {}
 
 ---------------------------------------------------------------
@@ -52,6 +53,8 @@ end
 -- Setting up
 ---------------------------------------------------------------
 function BindingsMixin:OnLoad()
+	local DEFAULT_BINDINGS, ACCOUNT_BINDINGS, CHARACTER_BINDINGS = 0, 1, 2;
+
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
 		_Mixin  = env.ShortcutsMixin;
 		_Width  = 0.01;
@@ -127,33 +130,155 @@ function BindingsMixin:OnLoad()
 	local control = LibStub:GetLibrary('LibDynamite'):BuildFrame(self, {
 		Control = {
 			_Type = 'Frame';
-			_Size = {600, 50};
+			_Setup = 'BackdropTemplate';
+			_Backdrop = CPAPI.Backdrops.Opaque;
+			_OnLoad = env.OpaqueMixin.OnLoad;
+			_Points = {
+				{'TOPLEFT', manager, 'BOTTOMLEFT', 0, 1};
+				{'BOTTOMRIGHT', manager, 'BOTTOMRIGHT', 0, -60};
+			};
 			{
-				Save = {
-					_Type  = 'Button';
-					_Setup = 'SharedButtonLargeTemplate';
-					_Point = {'TOPLEFT', 0, 0};
-					_Text  = SAVE_CHANGES;
-					_Size  = {200, 50};
-				};
 				Reset = {
-					_Type  = 'Button';
-					_Setup = 'BigRedRefreshButtonTemplate';
+					_Type  = 'IndexButton';
+					_Setup = 'CPIndexButtonSimpleTemplate';
+					_Point = {'LEFT', 16, 0};
+					_Size  = {40, 40};
+					_SetDrawOutline = true;
+					_SetNormalTexture = [[Interface\Buttons\UIFrameButtons]];
+					_SetHighlightTexture = [[Interface\Buttons\UIFrameButtons]];
+					_OnLoad = function(self)
+						local normal = self:GetNormalTexture()
+						local hilite = self:GetHighlightTexture()
+						normal:SetTexCoord(34/128, 0, 68/128, 102/128)
+						hilite:SetTexCoord(34/128, 0, 68/128, 102/128)
+						normal:ClearAllPoints()
+						hilite:ClearAllPoints()
+						normal:SetPoint('CENTER')
+						hilite:SetPoint('CENTER')
+						normal:SetSize(32, 32)
+						hilite:SetSize(32, 32)
+					end;
+					_OnClick = function(self)
+						CPAPI.Popup('ConsolePort_Reset_Keybindings', {
+							text = CONFIRM_RESET_KEYBINDINGS;
+							button1 = OKAY;
+							button2 = CANCEL;
+							timeout = 0;
+							whileDead = 1;
+							showAlert = 1;
+							OnHide = function()
+								self:SetChecked(false)
+								self:OnChecked(self:GetChecked())
+							end;
+							OnAccept = function()
+								db('Gamepad')
+									:GetActiveDevice()
+									:ApplyPresetBindings()
+							end;
+						})
+					end;
+				};
+				Import = {
+					_Type  = 'IndexButton';
+					_Setup = 'CPIndexButtonSimpleTemplate';
+					_Point = {'LEFT', '$parent.Reset', 'RIGHT', 0, 0};
+					_Text  = L'Import';
+					_Size  = {162, 40};
+					_SetDrawOutline = true;
+				};
+				Save = {
+					_Type  = 'IndexButton';
+					_Setup = 'CPIndexButtonSimpleTemplate';
+					_Point = {'LEFT', '$parent.Import', 'RIGHT', 0, 0};
+					_Text  = SAVE;
+					_Size  = {162, 40};
+					_SetDrawOutline = true;
+					_OnClick = function(self)
+						SaveBindings(GetCurrentBindingSet())
+						self:SetChecked(false)
+						self:OnChecked(self:GetChecked())
+					end;
+				};
+				Close = {
+					_Type  = 'IndexButton';
+					_Setup = 'CPIndexButtonSimpleTemplate';
 					_Point = {'LEFT', '$parent.Save', 'RIGHT', 0, 0};
-					_Size  = {50, 50};
+					_Size  = {162, 40};
+					_Text  = CANCEL;
+					_SetDrawOutline = true;
+					_OnClick = function(self)
+						CPAPI.Popup('ConsolePort_Previous_Keybindings', {
+							text = CONFIRM_RESET_TO_PREVIOUS_KEYBINDINGS;
+							button1 = OKAY;
+							button2 = CANCEL;
+							timeout = 0;
+							whileDead = 1;
+							showAlert = 1;
+							OnHide = function()
+								self:SetChecked(false)
+								self:OnChecked(self:GetChecked())
+							end;
+							OnAccept = function()
+								LoadBindings(GetCurrentBindingSet())
+							end;
+						})
+					end;
+				};
+				Mode = {
+					_Type  = 'IndexButton';
+					_Setup = 'CPIndexButtonSimpleTemplate';
+					_Point = {'LEFT', '$parent.Close', 'RIGHT', 0, 0};
+					_Size  = {40, 40};
+					_Events = {'UPDATE_BINDINGS'};
+					_SetDrawOutline = true;
+					_SetNormalTexture = [[Interface\Buttons\UI-PAIDCHARACTERCUSTOMIZATION-BUTTON]];
+					_SetHighlightTexture = [[Interface\Buttons\UI-PAIDCHARACTERCUSTOMIZATION-BUTTON]];
+					TooltipHeader = CHARACTER_SPECIFIC_KEYBINDINGS;
+					TooltipText = CHARACTER_SPECIFIC_KEYBINDING_TOOLTIP;
+					Update = function(self)
+						self:SetChecked(GetCurrentBindingSet() == CHARACTER_BINDINGS)
+						self:OnChecked(self:GetChecked())
+					end;
+					_OnShow = function(self)
+						self:Update()
+					end;
+					_OnEvent = function(self)
+						self:Update()
+					end;
+					_OnClick = function(self)
+						SaveBindings(GetCurrentBindingSet())
+						local set = self:GetChecked() and CHARACTER_BINDINGS or ACCOUNT_BINDINGS;
+						LoadBindings(set)
+						SaveBindings(set)
+						self:Update()
+					end;
+					_OnLoad = function(self)
+						local normal = self:GetNormalTexture()
+						local hilite = self:GetHighlightTexture()
+						normal:SetTexCoord(76/128, 116/128, 12/128, 52/128)
+						hilite:SetTexCoord(76/128, 116/128, 12/128, 52/128)
+						normal:ClearAllPoints()
+						hilite:ClearAllPoints()
+						normal:SetPoint('CENTER')
+						hilite:SetPoint('CENTER')
+						normal:SetSize(36, 36)
+						hilite:SetSize(36, 36)
+					end;
 				};
 			};
 		};
 	}).Control;
+
 	local mapper = self:CreateScrollableColumn('Mapper', {
 		_Mixin = env.BindingMapper;
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
 		_Width = 0.01;
 		_SetDelta = 40;
 		_Backdrop = CPAPI.Backdrops.Opaque;
+		_Attributes = {nodeignore = true};
 		_Points = {
-			{'TOPLEFT', manager, 'TOPRIGHT', 0, 0};
-			{'BOTTOMLEFT', manager, 'BOTTOMRIGHT', 0, 0};
+			{'TOPLEFT', manager, 'TOPRIGHT', -1, 0};
+			{'BOTTOMLEFT', manager, 'BOTTOMRIGHT', -1, -61};
 		};
 		{
 			Child = {

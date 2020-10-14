@@ -4,5 +4,6 @@
 	<Include file="Gamepad/Gamepad.xml"/>
 	<Include file="Data/Data.xml"/>
 	<!-- Single file models -->
+	<Script file="Locale.lua"/>
 	<Script file="Actionbar.lua"/>
 </Ui>
