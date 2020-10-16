@@ -267,21 +267,24 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 
 	function Scroller:OnUpdate()
 		local current, delta
-		for frame in pairs(self.Frames) do
+		for frame, data in pairs(self.Frames) do
 			current = frame:GetScroll()
-			if abs(current - frame.targetPos) < 1 then
-				frame:SetScroll(frame.targetPos)
+			if abs(current - data.targetPos) < 1 then
+				frame:SetScroll(data.targetPos)
 				self:RemoveFrame(frame)
 			else
-				delta = current > frame.targetPos and -1 or 1;
+				delta = current > data.targetPos and -1 or 1;
 				frame:SetScroll(current +
-					(delta * abs(current - frame.targetPos) / frame.stepSize * 8));
+					(delta * abs(current - data.targetPos) / data.stepSize * 8));
 			end
 		end
 	end
 
-	function Scroller:AddFrame(frame)
-		self.Frames[frame] = true;
+	function Scroller:AddFrame(frame, targetPos, stepSize)
+		self.Frames[frame] = {
+			targetPos = targetPos;
+			stepSize  = stepSize;
+		};
 		self:SetScript('OnUpdate', self.OnUpdate)
 	end
 
@@ -327,27 +330,31 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 		local current = self.targetPos or self:GetScroll()
 		local new = current - delta * self.MouseWheelDelta;
 
-		self.stepSize = self.MouseWheelDelta;
-		self.targetPos = new < 0 and 0 or new > range and range or new;
-		Scroller:AddFrame(self)
+		Scroller:AddFrame(self,
+			new < 0 and 0 or new > range and range or new,
+			self.MouseWheelDelta
+		);
 	end
 
 	function CPSmoothScrollMixin:ScrollTo(frac, steps)
 		local range = self:GetRange()
-		local size = range / steps
-		local new = frac <= 0 and 0 or frac >= steps and range or size * (frac - 1)
-		self.stepSize = size
-		self.targetPos = new < 0 and 0 or new > range and range or new
-		Scroller:AddFrame(self)
+		local step = range / steps;
+		local new = frac <= 0 and 0 or frac >= steps and range or step * (frac - 1);
+		local target = new < 0 and 0 or new > range and range or new;
+
+		Scroller:AddFrame(self, target, step)
 		if range > 0 then
-			return self.targetPos / range;
+			return target / range;
 		end
 	end
 
+	function CPSmoothScrollMixin:GetElementPosition(element)
+		local wrapper = self:GetScrollChild();
+		return PercentageBetween(element:GetTop(), wrapper:GetTop(), wrapper:GetBottom())
+	end
+
 	function CPSmoothScrollMixin:ScrollToOffset(offset)
-		self.stepSize = self.MouseWheelDelta;
-		self.targetPos = offset * self:GetRange();
-		Scroller:AddFrame(self)
+		Scroller:AddFrame(self, offset * self:GetRange(), self.MouseWheelDelta)
 	end
 
 	function CPSmoothScrollMixin:OnScrollSizeChanged(...)

@@ -74,7 +74,7 @@ end
 ---------------------------------------------------------------
 -- Predicates (should always return boolean)
 ---------------------------------------------------------------
-local CameraControl  = IsGamePadFreelookEnabled;
+local GamePadControl = IsGamePadFreelookEnabled;
 local CursorControl  = IsGamePadCursorControlEnabled;
 local MenuFrameOpen  = IsOptionFrameOpen;
 local SpellTargeting = SpellIsTargeting;
@@ -90,19 +90,19 @@ local MouseOver      = function() return UnitExists('mouseover') or WorldInterac
 -- Compounded queries
 ---------------------------------------------------------------
 function Mouse:ShouldSetFreeCursor(_)
-	return is(_, LeftClick) and isnt(_, SpellTargeting) and either(_, CameraControl, CursorCentered)
+	return is(_, LeftClick) and isnt(_, SpellTargeting) and either(_, GamePadControl, CursorCentered)
 end
 
 function Mouse:ShouldSetCenteredCursor(_)
-	return is(_, RightClick, CameraControl) and isnt(_, CursorCentered)
+	return is(_, RightClick, GamePadControl) and isnt(_, CursorCentered)
 end
 
 function Mouse:ShouldClearCenteredCursor(_)
-	return is(_, RightClick, CameraControl, CursorCentered) and isnt(_, MouseOver)
+	return is(_, RightClick, GamePadControl, CursorCentered) and isnt(_, MouseOver)
 end
 
 function Mouse:ShouldFreeCenteredCursor(_)
-	return is(_, MenuBinding, CameraControl, CursorCentered) and isnt(_, MouseOver)
+	return is(_, MenuBinding, GamePadControl, CursorCentered) and isnt(_, MouseOver)
 end
 
 function Mouse:ShouldSetCursorWhenMenuIsOpen(_)

@@ -312,9 +312,9 @@ end
 ---------------------------------------------------------------
 -- Actionbars
 ---------------------------------------------------------------
-function Actionbar:OnLoad()
+function Actionbar:OnLoad(anchorTo)
 	self:SetText(BINDING_HEADER_ACTIONBAR) --'|TInterface\\Store\\category-icon-weapons:24:24:4:0:64:64:14:50:14:50|t'
-	self:SetPoint('TOP', 0, -12)
+	self:SetPoint('TOP', anchorTo, 'BOTTOM', 0, 0)
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
 	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
@@ -368,16 +368,6 @@ function Actionbar:OnChecked(show)
 end
 
 ---------------------------------------------------------------
--- Custom bindings
----------------------------------------------------------------
-local Custom = CreateFromMixins(Header)
-
-function Custom:OnLoad()
-	self:SetText(CONTROLS_LABEL)
-	-- TODO
-end
-
----------------------------------------------------------------
 -- Binding manager
 ---------------------------------------------------------------
 function BindingManager:OnShow()
@@ -385,6 +375,29 @@ function BindingManager:OnShow()
 	if wasUpdated then
 		self:ReleaseAll()
 		self:DrawCategories(bindings, headers)
+	end
+	self:RefreshHeader()
+end
+
+function BindingManager:RefreshHeader()
+	local ACCOUNT_BINDINGS, CHARACTER_BINDINGS = 1, 2;
+	local header = self.Header;
+	local isCharacterBindings = (GetCurrentBindingSet() == CHARACTER_BINDINGS)
+
+	header.PortraitMask:SetShown(isCharacterBindings)
+	header.Portrait:SetShown(isCharacterBindings)
+	header.Button:SetShown(isCharacterBindings)
+
+	if (isCharacterBindings) then
+		local texture, coords = CPAPI.GetWebClassIcon()
+		header.Button:SetTexture(texture)
+		header.Button:SetTexCoord(unpack(coords))
+		header.Button:SetSize(24, 24)
+
+		SetPortraitTexture(header.Portrait, 'player')
+		header.Text:SetText(CHARACTER_KEY_BINDINGS:format(GetClassColoredTextForUnit('player', UnitName('player'))))
+	else
+		header.Text:SetText(KEY_BINDINGS)
 	end
 end
 
@@ -413,10 +426,9 @@ function BindingManager:OnLoad()
 	self.Child:SetAllPoints()
 	self.Child:SetMeasurementOrigin(self.Child, self.Child, 600, 40)
 
-	--BigGoldRedThreeSliceButtonTemplate
-	-- TODO: add save/cancel, character only buttons
-
 	-- Create custom action bar handler
+	self.Header = CreateFrame('Frame', nil, self.Child, 'CPConfigHeaderTemplate')
+	self.Header:SetPoint('TOP', 0, -12)
 	self.Actionbar = Mixin(CreateFrame('IndexButton', nil, self.Child, 'CPIndexButtonBindingHeaderTemplate'), Actionbar)
-	self.Actionbar:OnLoad()
+	self.Actionbar:OnLoad(self.Header)
 end

@@ -7,6 +7,7 @@ local Combos, Combo = CreateFromMixins(env.DynamicMixin, env.FlexibleMixin), Cre
 	Events = {
 		ACTIONBAR_SLOT_CHANGED = true;
 		UPDATE_SHAPESHIFT_FORM = true;
+		UPDATE_BINDINGS        = true;
 		ACTIONBAR_SHOWGRID     = false;
 		ACTIONBAR_HIDEGRID     = false;
 	};
@@ -20,10 +21,14 @@ function Combo:UpdateBinding(combo)
 	self.ActionIcon:SetTexture(texture)
 	self:SetAttribute('action', actionID)
 	for event, state in pairs(self.Events) do
-		if ( not state == not actionID ) then
-			self:RegisterEvent(event)
+		if not state then
+			if not actionID then
+				self:RegisterEvent(event)
+			else
+				self:UnregisterEvent(event)
+			end
 		else
-			self:UnregisterEvent(event)
+			self:RegisterEvent(event)
 		end
 	end
 end
@@ -49,6 +54,8 @@ function Combo:OnEvent(event, ...)
 			self:UpdateBinding()
 		end
 	elseif (event == 'UPDATE_SHAPESHIFT_FORM') then
+		self:UpdateBinding()
+	elseif (event == 'UPDATE_BINDINGS') then
 		self:UpdateBinding()
 	-- normal binding
 	elseif (event == 'ACTIONBAR_SHOWGRID') then
@@ -89,6 +96,10 @@ end
 
 function Combo:OnShow()
 	self:UpdateBinding()
+end
+
+function Combo:OnHide()
+	self:UnregisterAllEvents()
 end
 
 function Combo:OnEnter()

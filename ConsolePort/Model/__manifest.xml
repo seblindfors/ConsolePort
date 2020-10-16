@@ -6,4 +6,5 @@
 	<!-- Single file models -->
 	<Script file="Locale.lua"/>
 	<Script file="Actionbar.lua"/>
+	<Script file="Bindings.lua"/>
 </Ui>

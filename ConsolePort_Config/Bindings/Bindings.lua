@@ -197,6 +197,8 @@ function BindingsMixin:OnLoad()
 						SaveBindings(GetCurrentBindingSet())
 						self:SetChecked(false)
 						self:OnChecked(self:GetChecked())
+						local info = ChatTypeInfo.SYSTEM;
+						DEFAULT_CHAT_FRAME:AddMessage(L'Your bindings have been saved.', info.r, info.g, info.b, info.id)
 					end;
 				};
 				Close = {
@@ -238,6 +240,7 @@ function BindingsMixin:OnLoad()
 					Update = function(self)
 						self:SetChecked(GetCurrentBindingSet() == CHARACTER_BINDINGS)
 						self:OnChecked(self:GetChecked())
+						manager:RefreshHeader()
 					end;
 					_OnShow = function(self)
 						self:Update()
@@ -275,7 +278,7 @@ function BindingsMixin:OnLoad()
 		_Width = 0.01;
 		_SetDelta = 40;
 		_Backdrop = CPAPI.Backdrops.Opaque;
-		_Attributes = {nodeignore = true};
+		_IgnoreNode = true;
 		_Points = {
 			{'TOPLEFT', manager, 'TOPRIGHT', -1, 0};
 			{'BOTTOMLEFT', manager, 'BOTTOMRIGHT', -1, -61};
@@ -396,7 +399,7 @@ function BindingsMixin:OnLoad()
 							-- move the icon to line up with action tooltip
 							self.ActionIcon:ClearAllPoints();
 							self.ActionIcon:SetSize(40, 40)
-							self.ActionIcon:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 6, 0);
+							self.ActionIcon:SetPoint('TOPLEFT', self, 'BOTTOMLEFT', 0, 0);
 							self:SetText(SETTINGS);
 						end;
 						{
@@ -421,7 +424,7 @@ function BindingsMixin:OnLoad()
 end
 
 env.Bindings = ConsolePortConfig:CreatePanel({
-	name  = 'Bindings';
+	name  = KEY_BINDINGS_MAC;
 	mixin = BindingsMixin;
 	scaleToParent = true;
 	forbidRecursiveScale = true;

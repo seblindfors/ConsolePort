@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...;
+local db, _, env = ConsolePort:DB(), ...; local L = db('Locale');
 local BindingInfoMixin, BindingInfo = {}, {
 	--------------------------------------------------------------
 	BindingPrefix = 'BINDING_NAME_%s';
@@ -7,6 +7,7 @@ local BindingInfoMixin, BindingInfo = {}, {
 	DisplayFormat = '%s\n|cFF757575%s|r';
 	--------------------------------------------------------------
 	DictCounter = 0;
+	Custom    = {};
 	Bindings  = {};
 	Headers   = {};
 	Actionbar = {};
@@ -49,6 +50,15 @@ function BindingInfo:AddActionbarBinding(name, bindingID, actionID)
 	self.Actionbar[actionID] = {name = name, binding = bindingID};
 end
 
+do local customHeader = ('|T%s:0|t %s'):format(CPAPI.GetAsset('Textures\\Logo\\CP_Tiny.blp'), SPECIAL)
+	_G[customHeader] = customHeader;
+	function BindingInfo:AddCustomBinding(name, bindingID)
+		self:AddBindingToCategory(L(name), bindingID, customHeader)
+		self.Custom[bindingID] = name;
+		self.Headers[bindingID] = customHeader;
+	end
+end
+
 ---------------------------------------------------------------
 -- Dictionary
 ---------------------------------------------------------------
@@ -70,7 +80,7 @@ function BindingInfo:AddBindingToCategory(name, id, category)
 end
 
 function BindingInfo:GetBindingName(binding)
-	return _G[self.BindingPrefix:format(binding)]
+	return self.Custom[binding] or _G[self.BindingPrefix:format(binding)]
 end
 
 
@@ -79,13 +89,18 @@ function BindingInfo:RefreshDictionary()
 	local isUpdatedDict = ( numBindings ~= self.DictCounter )
 	-- only run refresh when bindings have been added
 	if ( isUpdatedDict ) then
-		local bindings, headers = self.Bindings, self.Headers;
+		local bindings, headers = wipe(self.Bindings), wipe(self.Headers);
 
-		-- wipe all current bindings, indices may have changed
-		wipe(bindings)
-		wipe(headers)
+		-- wipe custom handlers
 		wipe(self.Actionbar)
+		wipe(self.Custom)
 
+		-- custom
+		for i, data in db:For('Bindings') do
+			self:AddCustomBinding(data.name, data.binding)
+		end
+
+		-- XML-registered bindings
 		for i=1, numBindings do
 			local id, header = GetBinding(i)
 

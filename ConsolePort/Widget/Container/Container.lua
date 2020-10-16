@@ -30,6 +30,7 @@ function CPContainerMixin:OnContainerLoad()
 				{'TOPLEFT', inset-1, -inset+1};
 				{'TOPRIGHT', -inset+1, -inset+1};
 			};
+			_IgnoreNode = true;
 			_Backdrop = CPAPI.Backdrops.Header;
 			_OnLoad = function(self)
 				local nR, nG, nB = CPAPI.NormalizeColor(r, g, b)

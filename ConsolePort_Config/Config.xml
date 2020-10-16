@@ -52,6 +52,54 @@
 
 	<Frame name="CPConfigBindingDisplayTemplate" inherits="CPConfigActionDisplayTemplate, CPConfigMapperHeaderTemplate" virtual="true"/>
 
+	<Frame name="CPConfigHeaderTemplate" virtual="true">
+		<Size x="500" y="50"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Line" atlas="bonusobjectives-title-bg">
+					<Size x="500" y="50"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="12"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="BottomLine" file="Interface\QuestFrame\BonusObjectives.blp">
+					<Size x="300" y="12"/>
+					<TexCoords left="0.001953125" right="0.818359375" top="0.486328125" bottom="0.5078125"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="8"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="Fancy16Font">
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="16"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="Portrait">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent.Text" relativePoint="LEFT" x="-12" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Button">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Text" relativePoint="RIGHT" x="12" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="PortraitMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32" hidden="true">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Portrait"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
 	<IndexButton name="CPIndexButtonBindingComboTemplate" virtual="true" inherits="CPIndexButtonIconTextTemplate, CPConfigActionDisplayTemplate"/>
 
 	<IndexButton name="CPIndexButtonBindingHeaderTemplate" virtual="true">
@@ -136,7 +184,7 @@
 				if (self.TooltipHeader and self.TooltipText) then
 					GameTooltip:SetOwner(self, 'ANCHOR_RIGHT');
 					GameTooltip:SetText(self.TooltipHeader, nil, nil, nil, nil, true);
-					GameTooltip:AddLine(self.TooltipText, 1, 1, 1);
+					GameTooltip:AddLine(self.TooltipText, 1, 1, 1, true);
 					if (self.OnTooltipSet) then
 						self:OnTooltipSet(GameTooltip);
 					end

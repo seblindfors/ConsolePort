@@ -36,21 +36,10 @@ local Field = setmetatable({}, {
 
 do  local ID, DATA, TYPE, CALL, PATH = 0x0, 0x1, 0x2, 0x3, 0x4;
 
-	function Field:Get()
-		return copy(rawget(self, DATA))
-	end
-
-	function Field:GetID()
-		return rawget(self, ID)
-	end
-
-	function Field:GetPath()
-		return rawget(self, PATH)
-	end
-
-	function Field:GetType()
-		return rawget(self, TYPE)
-	end
+	function Field:Get()     return copy(rawget(self, DATA)) end
+	function Field:GetID()   return rawget(self, ID) end
+	function Field:GetPath() return rawget(self, PATH) end
+	function Field:GetType() return rawget(self, TYPE) end
 
 	function Field:IsType(cmp)
 		return (rawget(self, TYPE):lower() == cmp:lower());
@@ -144,9 +133,7 @@ function Range:GetMinMax()
 end
 
 function Range:Set(val)
-	return Field.Set(self,
-		val < self.min and self.min or
-		val > self.max and self.max or val)
+	return Field.Set(self, Clamp(val, self.min, self.max))
 end
 
 function Range:SetMinMax(min, max)

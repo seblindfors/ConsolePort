@@ -235,7 +235,7 @@ function ScanLocal(node)
 	if IsRelevant(node) then
 		local parent, super = node
 		while parent do
-			if parent:IsObjectType('ScrollFrame') then
+			if GetSuperNode(nil, parent) then
 				super = parent
 				break
 			end
@@ -243,6 +243,10 @@ function ScanLocal(node)
 		end
 		ClearCache()
 		Scan(super, node)
+		local object = node:GetObjectType()
+		if IsInteractive(node, object) then
+			CacheItem(node, object, super, GetFrameLevel(node))
+		end
 		ScrubCache(GetNextCacheItem(nil))
 	end
 	return CACHE
@@ -509,3 +513,13 @@ NODE.GetScrollButtons = GetScrollButtons;
 NODE.NavigateToBestCandidate = NavigateToBestCandidate;
 NODE.NavigateToClosestCandidate = NavigateToClosestCandidate;
 NODE.NavigateToArbitraryCandidate = NavigateToArbitraryCandidate;
+
+
+---------------------------------------------------------------
+-- Extend LibDynamite API
+---------------------------------------------------------------
+do local Lib = LibStub:GetLibrary('LibDynamite')
+	Lib:ExtendAPI('IgnoreNode', function(self, ...) self:SetAttribute('nodeignore', ...) end)
+	Lib:ExtendAPI('PriorityNode', function(self, ...) self:SetAttribute('nodepriority', ...) end)
+	Lib:ExtendAPI('SingletonNode', function(self, ...) self:SetAttribute('nodesingleton', ...) end)
+end
