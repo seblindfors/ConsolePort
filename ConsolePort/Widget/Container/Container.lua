@@ -1,4 +1,4 @@
-local LibDynamite, _, db = LibStub:GetLibrary('LibDynamite'), ...;
+local Carpenter, _, db = LibStub:GetLibrary('Carpenter'), ...;
 CPContainerMixin = CreateFromMixins(CPBackgroundMixin, CPAmbienceMixin, CPFocusPoolMixin);
 CPHeaderMixin, CPHeaderIndexMixin = CreateFromMixins(CPFocusPoolMixin), {}
 CPPanelMixin, CPColumnMixin = CreateFromMixins(CPFocusPoolMixin), {};
@@ -20,7 +20,7 @@ function CPContainerMixin:OnContainerLoad()
 	self:SetBackdropColor(r, g, b)
 
 	-- Create container frames
-	LibDynamite:BuildFrame(self, {
+	Carpenter:BuildFrame(self, {
 		Header = {
 			_Type   = 'Frame';
 			_Setup  = 'BackdropTemplate';
@@ -117,8 +117,12 @@ function CPContainerMixin:ShowPanel(name)
 	if old then
 		old:Hide()
 	end
-	panel:Show()
+	if panel.OnFirstShow then
+		panel:OnFirstShow()
+		panel.OnFirstShow = nil;
+	end
 	panel:OnContainerSizeChanged(self.Container:GetSize())
+	panel:Show()
 end
 
 function CPContainerMixin:SetHeaderHeight(height)
@@ -227,5 +231,5 @@ function CPPanelMixin:CreateScrollableColumn(key, struct)
 		container = self:GetParent();
 	}
 	for k, v in pairs(struct) do blueprint[k] = v end;
-	return LibDynamite:BuildFrame(self, {[key] = blueprint}, false, true)[key]
+	return Carpenter:BuildFrame(self, {[key] = blueprint}, false, true)[key]
 end

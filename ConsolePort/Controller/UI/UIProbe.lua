@@ -147,6 +147,6 @@ TEMPLATES = {
 }
 ----------------------------
 
-LibStub:GetLibrary('LibDynamite'):ExtendAPI('Probe', function(self, ...)
+LibStub:GetLibrary('Carpenter'):ExtendAPI('Probe', function(self, ...)
 	self:SetAttribute('probe', Probe:CreateProbe(self, ...))
 end)

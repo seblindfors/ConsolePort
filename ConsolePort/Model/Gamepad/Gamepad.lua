@@ -4,6 +4,7 @@ local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parent
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
 }, {
+	Modsims = {'Alt', 'Ctrl', 'Shift'};
 	Devices = {};
 	Index = {
 		Stick  = {};
@@ -110,7 +111,7 @@ function GamepadAPI:ReindexMappedState()
 	-- modifiers
 	map = wipe(self.Index.Modifier)
 	map.Key = {}; map.Prefix = {};
-	for _, mod in ipairs({'Shift', 'Ctrl', 'Alt'}) do
+	for _, mod in ipairs(self.Modsims) do
 		local btn = GetCVar('GamePadEmulate'..mod)
 		if (btn and btn:match('PAD')) then
 			self.Index.Modifier.Key[mod] = btn
@@ -236,8 +237,8 @@ function GamepadMixin:ApplyHotkeyStrings()
 end
 
 function GamepadMixin:IsButtonValidForBinding(button)
-	for var in pairs(self.Preset.Variables) do
-		if (GetCVar('Gamepad'..var) == button) then
+	for _, var in ipairs(GamepadAPI.Modsims) do
+		if (GetCVar('GamePadEmulate'..var) == button) then
 			return false
 		end
 	end

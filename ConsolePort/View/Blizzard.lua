@@ -35,3 +35,14 @@ do  local popups, visible, oldNode = {}, {};
 		end)
 	end
 end
+
+
+-- Remove the need to type 'DELETE' when removing rare or better quality items
+do  local DELETE_ITEM = CopyTable(StaticPopupDialogs.DELETE_ITEM);
+	DELETE_ITEM.timeout = 5; -- also add a timeout
+	StaticPopupDialogs.DELETE_GOOD_ITEM = DELETE_ITEM;
+
+	local DELETE_QUEST = CopyTable(StaticPopupDialogs.DELETE_QUEST_ITEM);
+	DELETE_QUEST.timeout = 5; -- also add a timeout
+	StaticPopupDialogs.DELETE_GOOD_QUEST_ITEM = DELETE_QUEST;
+end

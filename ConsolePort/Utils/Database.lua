@@ -35,6 +35,9 @@ function db:Get(path)
 		local value = repo[var]
 		if (value == nil) then
 			local varDefault = self.default[var]
+			if (type(varDefault) == 'table' and varDefault.Get) then
+				return varDefault:Get()
+			end
 			return varDefault
 		end
 		return value

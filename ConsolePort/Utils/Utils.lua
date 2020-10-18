@@ -109,7 +109,20 @@ end
 
 function CPAPI.Popup(id, settings)
 	StaticPopupDialogs[id:upper()] = settings;
-	return StaticPopup_Show(id:upper())
+	local dialog = StaticPopup_Show(id:upper())
+	if dialog then
+		local icon = _G[dialog:GetName() .. 'AlertIcon']
+		local original = icon:GetTexture()
+		local onHide = settings.OnHide;
+		icon:SetTexture(CPAPI.GetAsset('Textures\\Logo\\CP'))
+		settings.OnHide = function(...)
+			icon:SetTexture(original)
+			if onHide then
+				return onHide(...)
+			end
+		end;
+		return dialog;
+	end
 end
 
 ---------------------------------------------------------------
@@ -152,6 +165,14 @@ end
 
 function CPAPI.GetClassColor(classFile)
 	return GetClassColor(classFile or CPAPI.GetClassFile())
+end
+
+function CPAPI.GetPlayerName(classColored)
+	local name = UnitName('player')
+	if classColored then
+		return GetClassColorObj(select(2, UnitClass('player'))):WrapTextInColorCode(name)
+	end
+	return name;
 end
 
 function CPAPI.Hex2RGB(hex, fractal)

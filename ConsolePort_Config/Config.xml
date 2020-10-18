@@ -56,26 +56,28 @@
 		<Size x="500" y="50"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Line" atlas="bonusobjectives-title-bg">
-					<Size x="500" y="50"/>
-					<Anchors>
-						<Anchor point="CENTER" x="0" y="12"/>
-					</Anchors>
-				</Texture>
+				<Texture parentKey="Line" atlas="bonusobjectives-title-bg" setAllPoints="true"/>
 				<Texture parentKey="BottomLine" file="Interface\QuestFrame\BonusObjectives.blp">
 					<Size x="300" y="12"/>
 					<TexCoords left="0.001953125" right="0.818359375" top="0.486328125" bottom="0.5078125"/>
 					<Anchors>
-						<Anchor point="BOTTOM" x="0" y="8"/>
+						<Anchor point="BOTTOM" x="0" y="-4"/>
 					</Anchors>
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Text" inherits="Fancy16Font">
 					<Anchors>
-						<Anchor point="CENTER" x="0" y="16"/>
+						<Anchor point="CENTER" x="0" y="4"/>
 					</Anchors>
 				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPConfigIconHeaderTemplate" inherits="CPConfigHeaderTemplate" virtual="true">
+		<Layers>
+			<Layer level="ARTWORK">
 				<Texture parentKey="Portrait">
 					<Size x="32" y="32"/>
 					<Anchors>

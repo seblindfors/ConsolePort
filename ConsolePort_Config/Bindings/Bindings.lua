@@ -52,7 +52,7 @@ end
 ---------------------------------------------------------------
 -- Setting up
 ---------------------------------------------------------------
-function BindingsMixin:OnLoad()
+function BindingsMixin:OnFirstShow()
 	local DEFAULT_BINDINGS, ACCOUNT_BINDINGS, CHARACTER_BINDINGS = 0, 1, 2;
 
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
@@ -127,7 +127,7 @@ function BindingsMixin:OnLoad()
 			{'BOTTOMLEFT', combos, 'BOTTOMRIGHT', 0, 60};
 		};
 	})
-	local control = LibStub:GetLibrary('LibDynamite'):BuildFrame(self, {
+	local control = LibStub:GetLibrary('Carpenter'):BuildFrame(self, {
 		Control = {
 			_Type = 'Frame';
 			_Setup = 'BackdropTemplate';
@@ -194,11 +194,22 @@ function BindingsMixin:OnLoad()
 					_Size  = {162, 40};
 					_SetDrawOutline = true;
 					_OnClick = function(self)
-						SaveBindings(GetCurrentBindingSet())
+						local set = GetCurrentBindingSet()
+						SaveBindings(set)
 						self:SetChecked(false)
 						self:OnChecked(self:GetChecked())
 						local info = ChatTypeInfo.SYSTEM;
-						DEFAULT_CHAT_FRAME:AddMessage(L'Your bindings have been saved.', info.r, info.g, info.b, info.id)
+						if (set == CHARACTER_BINDINGS) then
+							DEFAULT_CHAT_FRAME:AddMessage(
+								L('Your gamepad bindings for %s have been saved.', CPAPI.GetPlayerName(true)),
+								info.r, info.g, info.b, info.id
+							);
+						else
+							DEFAULT_CHAT_FRAME:AddMessage(
+								L'Your gamepad bindings have been saved.',
+								info.r, info.g, info.b, info.id
+							);
+						end
 					end;
 				};
 				Close = {

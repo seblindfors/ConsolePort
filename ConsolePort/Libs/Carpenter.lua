@@ -1,5 +1,5 @@
 ----------------------------------------------------------------
--- LibDynamite
+-- Carpenter
 ----------------------------------------------------------------
 -- 
 -- Author:  Sebastian Lindfors (Munk / MunkDev)
@@ -7,7 +7,7 @@
 -- Licence: GPL version 2 (General Public License)
 --
 -- Description:
---  LibDynamite is a dynamic markup language processor, that provides a simple syntax to create frames.
+--  Carpenter is a dynamic markup language processor, that provides a simple syntax to create frames.
 --  Lua and XML are bridged by allowing dynamic inserts, such as local variables, and merging several
 --  templates into one to create inheritance. WoW XML is too rigid to handle dynamic frame creation,
 --  and implementing frames in pure Lua is messy, without clear hierarchy. This dynamic markup language
@@ -16,12 +16,12 @@
 --  See example at the bottom.
 --
 -- Usage:
---  LibDynamite(type, name, parent, inheritXML, blueprint) -> return LibDynamite:CreateFrame(...)
---  LibDynamite:CreateFrame(type, name, parent, inheritXML, blueprint) -> creates a frame from scratch.
---  LibDynamite:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
---  LibDynamite:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
+--  Carpenter(type, name, parent, inheritXML, blueprint) -> return Carpenter:CreateFrame(...)
+--  Carpenter:CreateFrame(type, name, parent, inheritXML, blueprint) -> creates a frame from scratch.
+--  Carpenter:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
+--  Carpenter:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
 
-local Lib = LibStub:NewLibrary('LibDynamite', 5)
+local Lib = LibStub:NewLibrary('Carpenter', 1)
 if not Lib then return end
 --------------------------------------------------------------------------
 local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
@@ -449,7 +449,7 @@ function err(key, name, code) return ERROR:format(key, name or 'unnamed region',
 -- This implements an action bar with simple page swapping:
 --[[
 
-local bar = Lib:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandlerStateTemplate', {
+local bar = Carpenter:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandlerStateTemplate', {
     _Size   = {NUM_ACTIONBAR_BUTTONS * 40, 36};
     _Point  = {'CENTER', 0, 0};
     _OnLoad = function(self)

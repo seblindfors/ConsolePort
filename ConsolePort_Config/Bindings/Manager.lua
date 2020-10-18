@@ -314,7 +314,7 @@ end
 ---------------------------------------------------------------
 function Actionbar:OnLoad(anchorTo)
 	self:SetText(BINDING_HEADER_ACTIONBAR) --'|TInterface\\Store\\category-icon-weapons:24:24:4:0:64:64:14:50:14:50|t'
-	self:SetPoint('TOP', anchorTo, 'BOTTOM', 0, 0)
+	self:SetPoint('TOP', anchorTo, 'BOTTOM', 0, -8)
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
 	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
@@ -395,7 +395,7 @@ function BindingManager:RefreshHeader()
 		header.Button:SetSize(24, 24)
 
 		SetPortraitTexture(header.Portrait, 'player')
-		header.Text:SetText(CHARACTER_KEY_BINDINGS:format(GetClassColoredTextForUnit('player', UnitName('player'))))
+		header.Text:SetText(CHARACTER_KEY_BINDINGS:format(CPAPI.GetPlayerName(true)))
 	else
 		header.Text:SetText(KEY_BINDINGS)
 	end
@@ -424,10 +424,10 @@ function BindingManager:OnLoad()
 		'CPIndexButtonBindingHeaderTemplate', Header, nil, self.Child)
 	Mixin(self.Child, env.ScaleToContentMixin)
 	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self.Child, self.Child, 600, 40)
+	self.Child:SetMeasurementOrigin(self.Child, self.Child, 600, 12)
 
 	-- Create custom action bar handler
-	self.Header = CreateFrame('Frame', nil, self.Child, 'CPConfigHeaderTemplate')
+	self.Header = CreateFrame('Frame', nil, self.Child, 'CPConfigIconHeaderTemplate')
 	self.Header:SetPoint('TOP', 0, -12)
 	self.Actionbar = Mixin(CreateFrame('IndexButton', nil, self.Child, 'CPIndexButtonBindingHeaderTemplate'), Actionbar)
 	self.Actionbar:OnLoad(self.Header)

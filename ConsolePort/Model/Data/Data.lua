@@ -3,7 +3,7 @@ local copy = db.table.copy;
 local DEFAULT_DATA
 
 function DataAPI:OnDataLoaded()
-	DEFAULT_DATA = db('Defaults')
+	DEFAULT_DATA = db('Variables')
 	local settings = setmetatable(ConsolePortSettings or {}, {
 		__index = function(self, key)
 			local var = DEFAULT_DATA[key]

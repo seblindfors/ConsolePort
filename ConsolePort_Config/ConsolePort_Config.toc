@@ -16,3 +16,5 @@ Bindings\Combo.lua
 Bindings\Mapper.lua
 Bindings\Manager.lua
 Bindings\Bindings.lua
+
+General\Settings.lua

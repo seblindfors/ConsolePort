@@ -516,9 +516,9 @@ NODE.NavigateToArbitraryCandidate = NavigateToArbitraryCandidate;
 
 
 ---------------------------------------------------------------
--- Extend LibDynamite API
+-- Extend Carpenter API
 ---------------------------------------------------------------
-do local Lib = LibStub:GetLibrary('LibDynamite')
+do local Lib = LibStub:GetLibrary('Carpenter')
 	Lib:ExtendAPI('IgnoreNode', function(self, ...) self:SetAttribute('nodeignore', ...) end)
 	Lib:ExtendAPI('PriorityNode', function(self, ...) self:SetAttribute('nodepriority', ...) end)
 	Lib:ExtendAPI('SingletonNode', function(self, ...) self:SetAttribute('nodesingleton', ...) end)

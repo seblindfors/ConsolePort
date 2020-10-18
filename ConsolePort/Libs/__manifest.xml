@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<Script file="LibStub.lua"/>
-	<Script file="LibDynamite.lua"/>
+	<Script file="Carpenter.lua"/>
 	<Script file="LibCompress.lua"/>
 	<Script file="AceSerializer-3.0.lua"/>
 </Ui>
