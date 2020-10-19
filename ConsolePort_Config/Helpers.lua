@@ -147,3 +147,29 @@ function OpaqueMixin:OnLoad()
 	self:SetBackdropBorderColor(0.25, 0.25, 0.25, 1)
 	self.Center:SetGradientAlpha('VERTICAL', r, g, b, 0, r, g, b, 1)
 end
+
+
+---------------------------------------------------------------
+-- Header template (XML mixin)
+---------------------------------------------------------------
+CPConfigHeaderMixin = {};
+
+function CPConfigHeaderMixin:OnLoad()
+	self.LineTopLeft:SetStartPoint('TOPLEFT', 0, 0);
+	self.LineTopLeft:SetEndPoint('TOP', 0, 0);
+	self.LineTopRight:SetStartPoint('TOP', 0, 0);
+	self.LineTopRight:SetEndPoint('TOPRIGHT', 0, 0);
+	self.LineBottomLeft:SetStartPoint('BOTTOMLEFT', 0, 8);
+	self.LineBottomLeft:SetEndPoint('BOTTOM', 0, 8);
+	self.LineBottomRight:SetStartPoint('BOTTOM', 0, 8);
+	self.LineBottomRight:SetEndPoint('BOTTOMRIGHT', 0, 8);
+
+	self.LineTopLeft:SetGradientAlpha('HORIZONTAL', 1, 1, 1, 0, 1, 1, 1, 1);
+	self.LineBottomLeft:SetGradientAlpha('HORIZONTAL', 1, 1, 1, 0, 1, 1, 1, 1);
+	self.LineTopRight:SetGradientAlpha('HORIZONTAL', 1, 1, 1, 1, 1, 1, 1, 0);
+	self.LineBottomRight:SetGradientAlpha('HORIZONTAL', 1, 1, 1, 1, 1, 1, 1, 0);
+end
+
+function CPConfigHeaderMixin:SetText(...)
+	self.Text:SetText(...)
+end

@@ -117,7 +117,7 @@ function Cursor:Release()
 end
 
 function Cursor:IsObstructed()
-	return self:InCombat(), db('UIdisableCursor')
+	return self:InCombat(), not db('UIenableCursor')
 end
 
 function Cursor:IsAnimating()
@@ -150,7 +150,7 @@ function Cursor:RefreshToFrame(frame)
 end
 
 function Cursor:SetCurrentNode(node, assertNotMouse)
-	if db('UIdisableCursor') then
+	if not db('UIenableCursor') then
 		return
 	end
 	local object = node and Node.ScanLocal(node)[1]
@@ -677,6 +677,7 @@ function Cursor.Mime:SetTexture(region)
 		else
 			local texture = obj.GetTexture(region)
 			if (type(texture) == 'string') and texture:find('^[Cc]olor-') then
+				print(texture)
 				obj:SetColorTexture(CPAPI.Hex2RGB(texture:sub(7), true))
 			else
 				obj:SetTexture(texture)

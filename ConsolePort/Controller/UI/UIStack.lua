@@ -158,7 +158,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	end
 
 	function Stack:ToggleCore()
-		isEnabled = not db('UIdisableCursor')
+		isEnabled = db('UIenableCursor')
 		if not isEnabled then
 			db('Cursor'):SetEnabled(false)
 		end

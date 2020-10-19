@@ -17,4 +17,5 @@ Bindings\Mapper.lua
 Bindings\Manager.lua
 Bindings\Bindings.lua
 
+General\Widgets.lua
 General\Settings.lua

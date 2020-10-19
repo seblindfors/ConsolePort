@@ -1,13 +1,29 @@
-local db, _, env = ConsolePort:DB(), ...;
-local ConfigMixin = {};
+local db, _, env, L = ConsolePort:DB(), ...; L = db('Locale');
+local ConfigMixin, Widgets = {}, env.Widgets;
+
+---------------------------------------------------------------
+-- General settings
+---------------------------------------------------------------
+local GENERAL_FIXED_WIDTH, SETTING_FIXED_OFFSET = 900, 8;
 local General, Field = CreateFromMixins(CPFocusPoolMixin), CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
 
-local GENERAL_FIXED_WIDTH, SETTING_FIXED_OFFSET = 900, 8;
-
 function Field:OnLoad()
-	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
+	self:SetWidth(GENERAL_FIXED_WIDTH - 32)
+	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 40)
 	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
+end
+
+function Field:Construct(name, varID, field, newObj)
+	if newObj then
+		self:SetText(L(name))
+		local constructor = Widgets[varID] or Widgets[field[1]:GetType()];
+		if constructor then
+			constructor(self, varID, field)
+		end
+	end
+	self:Hide()
+	self:Show()
 end
 
 function General:DrawOptions(showAdvanced)
@@ -21,8 +37,8 @@ function General:DrawOptions(showAdvanced)
 			sorted[group] = {};
 		end
 		sorted[group][data.name] = {
-			key = var;
-			val = data;
+			varID = var;
+			field = data;
 		};
 	end)
 
@@ -30,7 +46,7 @@ function General:DrawOptions(showAdvanced)
 	for group, set in db.table.spairs(sorted) do
 		-- render the header
 		local header = self.headerPool:Acquire()
-		header.Text:SetText(group)
+		header:SetText(L(group))
 		header:Show()
 		if prev then
 			header:SetPoint('TOP', prev, 'BOTTOM', 0, -SETTING_FIXED_OFFSET * 2)
@@ -50,9 +66,7 @@ function General:DrawOptions(showAdvanced)
 				widget:SetDrawOutline(true)
 				widget:OnLoad()
 			end
-			widget:SetText(name)
-			widget:SetWidth(GENERAL_FIXED_WIDTH - 32)
-			widget:Show()
+			widget:Construct(name, data.varID, data.field, newObj)
 			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -SETTING_FIXED_OFFSET)
 			prev = widget;
 		end
@@ -75,6 +89,9 @@ function General:OnLoad()
 	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_FIXED_WIDTH, SETTING_FIXED_OFFSET)
 end
 
+---------------------------------------------------------------
+-- Panel
+---------------------------------------------------------------
 function ConfigMixin:OnFirstShow()
 	local general = self:CreateScrollableColumn('General', {
 		_Mixin = General;
@@ -82,8 +99,8 @@ function ConfigMixin:OnFirstShow()
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
-			{'TOP', 0, 0};
-			{'BOTTOM', 0, 0};
+			{'TOP', 0, 1};
+			{'BOTTOM', 0, -1};
 		};
 	})
 end

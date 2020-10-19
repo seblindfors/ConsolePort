@@ -4,33 +4,34 @@ local UINAV_SELECT = {'PAD1', 'PAD2', 'PAD3', 'PAD4'};
 local MODID_SELECT = {'Alt', 'Shift', 'Ctrl'};
 
 local unpack, __, db = unpack, ...; __ = 1;
+setfenv(__, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
-setfenv(__, db('Data')); db:Register('Variables', {
+db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
 	-- Action page handling:
 	--------------------------------------------------------------------------------------------------------
 	actionPageCondition = {String(nil);
 		head = BINDING_HEADER_ACTIONBAR;
 		name = 'Action Page Condition';
-		desc = 'Macro condition to evaluate action bar page';
+		desc = 'Macro condition to evaluate action bar page.';
 	};
 	actionPageResponse = {String(nil);
 		head = BINDING_HEADER_ACTIONBAR;
 		name = 'Action Page Response';
-		desc = 'Response to condition for custom processing'
+		desc = 'Response to condition for custom processing.'
 	};
 	-- Bindings:
 	bindingOverlapEnable = {Bool(false);
 		head = KEY_BINDINGS_MAC;
 		name = 'Allow Binding Overlap';
-		desc = 'Allow binding multiple combos to the same binding'
+		desc = 'Allow binding multiple combos to the same binding.'
 	};
 	bindingShowExtraBars = {Bool(false);
 		head = KEY_BINDINGS_MAC;
 		name = 'Show All Action Bars';
-		desc = 'Show extra action bars for non-applicable characters'
+		desc = 'Show bonus bar configuration for characters without stances.'
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Mouse:
@@ -43,12 +44,12 @@ setfenv(__, db('Data')); db:Register('Variables', {
 	mouseAutoClearCenter = {Number(2.0);
 		head = MOUSE_LABEL;
 		name = 'Automatic Cursor Timeout';
-		desc = 'Time in seconds to automatically hide centered cursor';
+		desc = 'Time in seconds to automatically hide centered cursor.';
 	};
 	mouseAlwaysCentered = {Bool(false);
 		head = MOUSE_LABEL;
 		name = 'Always Show Mouse Cursor';
-		desc = 'Always keep cursor centered and visible when controlling camera';
+		desc = 'Always keep cursor centered and visible when controlling camera.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Radial:
@@ -110,14 +111,14 @@ setfenv(__, db('Data')); db:Register('Variables', {
 		name = 'Unlimited Navigation';
 		desc = 'Allow cursor to interact with the entire interface.';
 	};
-	UIdisableCursor = {Bool(false);
+	UIenableCursor = {Bool(true);
 		head = 'Interface Cursor';
-		name = 'Disable';
-		desc = 'Disable interface cursor in favor of mouse-based interface interaction.';
+		name = ENABLE;
+		desc = 'Enable interface cursor. Disable to use mouse-based interface interaction.';
 	};
 	UIleaveCombatDelay = {Number(.5);
 		head = 'Interface Cursor';
-		name = 'Interface Cursor Reactivation Delay';
+		name = 'Reactivation Delay';
 		desc = 'Delay before re-activating interface cursor after leaving combat.';
 	};
 	UIholdRepeatDelay = {Number(.125);

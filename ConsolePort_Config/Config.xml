@@ -52,18 +52,17 @@
 
 	<Frame name="CPConfigBindingDisplayTemplate" inherits="CPConfigActionDisplayTemplate, CPConfigMapperHeaderTemplate" virtual="true"/>
 
-	<Frame name="CPConfigHeaderTemplate" virtual="true">
+	<Frame name="CPConfigHeaderTemplate" virtual="true" mixin="CPConfigHeaderMixin">
 		<Size x="500" y="50"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Line" atlas="bonusobjectives-title-bg" setAllPoints="true"/>
-				<Texture parentKey="BottomLine" file="Interface\QuestFrame\BonusObjectives.blp">
-					<Size x="300" y="12"/>
-					<TexCoords left="0.001953125" right="0.818359375" top="0.486328125" bottom="0.5078125"/>
-					<Anchors>
-						<Anchor point="BOTTOM" x="0" y="-4"/>
-					</Anchors>
-				</Texture>
+				<Texture parentKey="BG" atlas="bonusobjectives-title-bg" setAllPoints="true"/>
+			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="2">
+				<Line parentKey="LineTopLeft" inherits="CPLineTemplateYellow" hidden="false"/>
+				<Line parentKey="LineTopRight" inherits="CPLineTemplateYellow" hidden="false"/>
+				<Line parentKey="LineBottomLeft" inherits="CPLineTemplateYellow" hidden="false"/>
+				<Line parentKey="LineBottomRight" inherits="CPLineTemplateYellow" hidden="false"/>
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Text" inherits="Fancy16Font">
@@ -71,8 +70,18 @@
 						<Anchor point="CENTER" x="0" y="4"/>
 					</Anchors>
 				</FontString>
+				<Texture parentKey="Emblem" file="Interface\QuestFrame\BonusObjectives.blp">
+					<Size x="57" y="15"/>
+					<TexCoords left="0.35546875" right="0.466796875" top="0.48046875" bottom="0.509765625"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="-3"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
 	</Frame>
 
 	<Frame name="CPConfigIconHeaderTemplate" inherits="CPConfigHeaderTemplate" virtual="true">
