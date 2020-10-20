@@ -13,29 +13,30 @@ local COLOR_HILITE  = CPIndexButtonMixin.IndexColors.Hilite;
 local Widget = {};
 
 function Widget:OnLoad(varID, data)
-	self.VariableID = varID;
-	self.Controller = data[1];
-	self.TooltipText = data.desc;
-	self.Controller:SetCallback(function(value) db('Settings/'..varID, value) end)
+	self.metaData = data;
+	self.variableID = varID;
+	self.controller = data[1];
+	self.tooltipText = data.desc;
+	self.controller:SetCallback(function(value) db('Settings/'..varID, value) end)
 end
 
 function Widget:Get()
-	return db(self.VariableID)
+	return db(self.variableID)
 end
 
 function Widget:Set(...)
-	self.Controller:Set(...)
+	self.controller:Set(...)
 	self:OnValueChanged(self:Get())
 end
 
 function Widget:SetCallback(callback)
-	self.Controller:SetCallback(callback)
+	self.controller:SetCallback(callback)
 end
 
 function Widget:OnEnter()
-	if self.TooltipText then
+	if self.tooltipText then
 		GameTooltip:SetOwner(self, 'ANCHOR_TOP')
-		GameTooltip:SetText(self.TooltipText)
+		GameTooltip:SetText(self.tooltipText)
 		GameTooltip:Show()
 	end
 end

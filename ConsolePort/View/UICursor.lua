@@ -676,8 +676,8 @@ function Cursor.Mime:SetTexture(region)
 			obj:SetAtlas(obj.GetAtlas(region))
 		else
 			local texture = obj.GetTexture(region)
+			-- DEPRECATED: returns File Data ID <num> in 9.0
 			if (type(texture) == 'string') and texture:find('^[Cc]olor-') then
-				print(texture)
 				obj:SetColorTexture(CPAPI.Hex2RGB(texture:sub(7), true))
 			else
 				obj:SetTexture(texture)

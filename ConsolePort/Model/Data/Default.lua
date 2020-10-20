@@ -22,7 +22,9 @@ db:Register('Variables', {
 		name = 'Action Page Response';
 		desc = 'Response to condition for custom processing.'
 	};
+	--------------------------------------------------------------------------------------------------------
 	-- Bindings:
+	--------------------------------------------------------------------------------------------------------
 	bindingOverlapEnable = {Bool(false);
 		head = KEY_BINDINGS_MAC;
 		name = 'Allow Binding Overlap';
