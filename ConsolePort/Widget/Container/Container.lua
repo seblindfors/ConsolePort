@@ -19,6 +19,10 @@ function CPContainerMixin:OnContainerLoad()
 	self:SetBackdrop(CPAPI.Backdrops.Frame)
 	self:SetBackdropColor(r, g, b)
 
+	-- Catch buttons
+	self:SetPropagateKeyboardInput(true)
+	self.ClosureRegistry = {};
+
 	-- Create container frames
 	Carpenter:BuildFrame(self, {
 		Header = {
@@ -99,12 +103,49 @@ function CPContainerMixin:OnContainerLoad()
 end
 
 ---------------------------------------------------------------
--- Container content handling
+-- Container button callbacks
 ---------------------------------------------------------------
-function CPContainerMixin:OnContainerShow()
-	local panel = self:GetFocusWidget()
+function CPContainerMixin:OnContainerCatchButton(button)
+	if self.ClosureRegistry[button] then
+		self.ClosureRegistry[button](button)
+		return self:SetPropagateKeyboardInput(false)
+	end
+	self:SetPropagateKeyboardInput(true)
 end
 
+function CPContainerMixin:OnContainerHide()
+	self:ReleaseClosures()
+end
+
+function CPContainerMixin:CatchButton(button, callback, ...)
+	local closure = GenerateClosure(callback, ...)
+	self.ClosureRegistry[button] = closure;
+	self:EnableGamePadButton(true)
+	return closure; -- return the event owner
+end
+
+function CPContainerMixin:FreeButton(button, ...)
+	if select('#', ...) > 0 then
+		local closure = ...;
+		if closure and (self.ClosureRegistry[button] ~= closure) then
+			return false; -- assert event owner if supplied
+		end
+	end
+	self.ClosureRegistry[button] = nil;
+	if not next(self.ClosureRegistry) then
+		self:EnableGamePadButton(false)
+	end
+	return true;
+end
+
+function CPContainerMixin:ReleaseClosures()
+	wipe(self.ClosureRegistry)
+	self:EnableGamePadButton(false)
+end
+
+---------------------------------------------------------------
+-- Container content handling
+---------------------------------------------------------------
 function CPContainerMixin:OnContainerSizeChanged()
 	local panel = self:GetFocusWidget()
 	if panel then
@@ -113,6 +154,7 @@ function CPContainerMixin:OnContainerSizeChanged()
 end
 
 function CPContainerMixin:ShowPanel(name)
+	self:ReleaseClosures()
 	local panel, old = self:SetFocusByIndex(name)
 	if old then
 		old:Hide()
@@ -151,7 +193,6 @@ function CPContainerMixin:CreatePanel(data)
 	end
 	return panel, header;
 end
-
 
 ---------------------------------------------------------------
 -- Header
@@ -232,4 +273,16 @@ function CPPanelMixin:CreateScrollableColumn(key, struct)
 	}
 	for k, v in pairs(struct) do blueprint[k] = v end;
 	return Carpenter:BuildFrame(self, {[key] = blueprint}, false, true)[key]
+end
+
+function CPPanelMixin:CatchButton(...)
+	if self:IsShown() then
+		self.container:CatchButton(...)
+	end
+end
+
+function CPPanelMixin:FreeButton(...)
+	if self:IsShown() then
+		self.container:FreeButton(...)
+	end
 end

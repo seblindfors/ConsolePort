@@ -132,12 +132,21 @@ function Range:GetMinMax()
 	return self.min, self.max;
 end
 
+function Range:GetStep()
+	return self.step;
+end
+
 function Range:Set(val)
 	return Field.Set(self, Clamp(val, self.min, self.max))
 end
 
 function Range:SetMinMax(min, max)
 	self.min, self.max = min, max;
+	return self;
+end
+
+function Range:SetStep(step)
+	self.step = step;
 	return self;
 end
 
@@ -154,8 +163,8 @@ function Data.Number(val)
 	return Field():SetType('Number'):Set(val)
 end
 
-function Data.Range(val, min, max)
-	return Range():SetMinMax(min, max):Set(val)
+function Data.Range(val, min, max, step)
+	return Range():SetMinMax(min, max):Set(val):SetStep(step)
 end
 
 function Data.Select(val, ...)

@@ -3,7 +3,8 @@ b:SetAttribute('type', 'macro')
 b:SetAttribute('macrotext', '/run ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())')
 SetOverrideBindingClick(b, true, 'K', 'ConfigB')
 
-local Config = ConsolePortConfig
+local _, env = ...;
+local Config = ConsolePortConfig; env.Config = Config;
 
 Config:SetMinResize(1000, 700)
 Config:SetScript('OnMouseWheel', function(self, delta, ...)

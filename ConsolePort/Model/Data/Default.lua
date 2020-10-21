@@ -56,7 +56,7 @@ db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
 	-- Radial:
 	--------------------------------------------------------------------------------------------------------
-	radialActionDeadzone = {Range(0.5, 0, 1);
+	radialActionDeadzone = {Range(0.5, 0, 1, 0.05);
 		head = 'Radial Menus';
 		name = 'Radial Deadzone';
 		desc = 'Deadzone for simple pie menus'
@@ -66,7 +66,7 @@ db:Register('Variables', {
 		name = 'Radial Direction Delta';
 		desc = 'Direction of item order in a pie menu (default clockwise)';
 	};
-	radialStartIndexAt = {Range(90, 0, 360);
+	radialStartIndexAt = {Range(90, 0, 360, 22.5);
 		head = 'Radial Menus';
 		name = 'Radial Start Angle';
 		desc = 'Starting angle of the first item in a pie menu';

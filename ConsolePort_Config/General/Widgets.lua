@@ -18,6 +18,7 @@ function Widget:OnLoad(varID, data)
 	self.controller = data[1];
 	self.tooltipText = data.desc;
 	self.controller:SetCallback(function(value) db('Settings/'..varID, value) end)
+	db:RegisterCallback('Settings/'..varID, self.OnValueChanged, self)
 end
 
 function Widget:Get()
@@ -25,12 +26,17 @@ function Widget:Get()
 end
 
 function Widget:Set(...)
+	self.userInput = true;
 	self.controller:Set(...)
-	self:OnValueChanged(self:Get())
+	self.userInput = false;
 end
 
 function Widget:SetCallback(callback)
 	self.controller:SetCallback(callback)
+end
+
+function Widget:IsUserInput()
+	return self.userInput;
 end
 
 function Widget:OnEnter()
@@ -75,7 +81,7 @@ function Bool:OnLoad(varID, data)
 		CheckedTexture = {
 			_Type  = 'Texture';
 			_Hide  = true;
-			_Setup = {'BORDER'};
+			_Setup = {'ARTWORK'};
 			_Point = {'CENTER', '$parent.CheckBorder', 'CENTER', 0, 0};
 			_Size  = {12, 12};
 			_SetColorTexture = {COLOR_CHECKED:GetRGBA()};
@@ -113,5 +119,70 @@ end
 
 function Widgets.Bool(self, varID, data)
 	db.table.mixin(self, Bool)
+	self:OnLoad(varID, data)
+end
+
+---------------------------------------------------------------
+-- Range
+---------------------------------------------------------------
+local Range = CreateFromMixins(Widget);
+
+function Range:OnLoad(varID, data)
+	Widget.OnLoad(self, varID, data)
+	Carpenter:BuildFrame(self, {
+		Slider = {
+			_Type  = 'Slider';
+			_Setup = 'CPConfigSliderTemplate';
+			_Point = {'RIGHT', -44, -6};
+			_IgnoreNode = true;
+			_SetObeyStepOnDrag = true;
+			_SetValueStep = {self:GetStep()};
+			_SetMinMaxValues = {self.controller:GetMinMax()};
+			_OnValueChanged = function(_, value, byInput)
+				if byInput then
+					self:Set(value)
+				end
+			end;
+		};
+	})
+end
+
+function Range:GetStep()
+	return self.controller:GetStep()
+end
+
+function Range:OnShow()
+	self:OnValueChanged(self:Get())
+end
+
+function Range:OnLeftButton()
+	self:Set(self:Get() - self:GetStep())
+end
+
+function Range:OnRightButton()
+	self:Set(self:Get() + self:GetStep())
+end
+
+function Range:OnEnter()
+	Widget.OnEnter(self)
+	self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
+	self.CatchRight = env.Config:CatchButton('PADDRIGHT', self.OnRightButton, self)
+end
+
+function Range:OnLeave()
+	Widget.OnLeave(self)
+	env.Config:FreeButton('PADDLEFT', self.CatchLeft)
+	env.Config:FreeButton('PADDRIGHT', self.CatchRight)
+	self.CatchLeft, self.CatchRight = nil, nil;
+end
+
+function Range:OnValueChanged(value)
+	local step = self.controller:GetStep()
+	self.Slider:SetValue(value)
+	self.Slider.Text:SetText(Round(value / step) * step)
+end
+
+function Widgets.Range(self, varID, data)
+	db.table.mixin(self, Range)
 	self:OnLoad(varID, data)
 end
