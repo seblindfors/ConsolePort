@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- Blizzard UI modifications and hacks
+-- Convenience UI modifications and hacks
 ---------------------------------------------------------------
 local _, db = ...;
 
@@ -45,4 +45,22 @@ do  local DELETE_ITEM = CopyTable(StaticPopupDialogs.DELETE_ITEM);
 	local DELETE_QUEST = CopyTable(StaticPopupDialogs.DELETE_QUEST_ITEM);
 	DELETE_QUEST.timeout = 5; -- also add a timeout
 	StaticPopupDialogs.DELETE_GOOD_QUEST_ITEM = DELETE_QUEST;
+end
+
+
+---------------------------------------------------------------
+-- Convenience handler
+---------------------------------------------------------------
+local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', ConsolePort}, {
+	'MERCHANT_SHOW';
+})
+
+function Handler:MERCHANT_SHOW()
+	if db('autoSellJunk') then
+		ContainerFrameUtil_IteratePlayerInventory(function(item)
+			if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
+				UseContainerItem(item:GetBagAndSlot())
+			end
+		end)
+	end
 end

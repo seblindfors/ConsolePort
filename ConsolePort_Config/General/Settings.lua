@@ -42,6 +42,20 @@ function General:DrawOptions(showAdvanced)
 		};
 	end)
 
+	-- sort groups by display order first, key second
+	local function displaysort(t, a, b)
+		local iA, iB = t[a].field.sort, t[b].field.sort;
+		if iA and not iB then
+			return true;
+		elseif iB and not iA then
+			return false;
+		elseif iA and iB then
+			return iA < iB;
+		else
+			return a < b;
+		end
+	end
+
 	local prev;
 	for group, set in db.table.spairs(sorted) do
 		-- render the header
@@ -56,7 +70,7 @@ function General:DrawOptions(showAdvanced)
 		prev = header;
 
 		-- render the options
-		for name, data in db.table.spairs(set) do
+		for name, data in db.table.spairs(set, displaysort) do
 			local widget, newObj = self:TryAcquireRegistered(name)
 			if newObj then
 				widget.Label:ClearAllPoints()

@@ -312,7 +312,7 @@ function Radial:OnDataLoaded()
 	for attr, val in pairs({
 		ANGLE_IDX_ONE = db('Settings/radialStartIndexAt') % 360; -- angle at which index should start
 		VALID_VEC_LEN = 1 - db('Settings/radialActionDeadzone'); -- vector length for valid action
-		COS_DELTA     = db('Settings/radialCosineDelta');        -- delta for the cosine value
+		COS_DELTA     = -db('Settings/radialCosineDelta');       -- delta for the cosine value
 	}) do
 		self:Execute(('%s = %f;'):format(attr, val))
 		self[attr] = val

@@ -5,5 +5,5 @@
 	<!-- Single file views -->
 	<Script file="Hotkey.lua"/>
 	<Script file="UICursor.lua"/>
-	<Script file="Blizzard.lua"/>
+	<Script file="Convenience.lua"/>
 </Ui>

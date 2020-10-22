@@ -98,6 +98,47 @@ do  local Set, Get, GetBool = SetCVar, GetCVar, GetCVarBool;
 end
 
 ---------------------------------------------------------------
+local Number = Field():SetType('Number');
+---------------------------------------------------------------
+function Number:Set(val)
+	return Field.Set(self, self:GetSigned() and val or abs(val))
+end
+
+function Number:SetStep(step)
+	self.step = step;
+	return self;
+end
+
+function Number:SetSigned(signed)
+	self.signed = signed;
+	return self;
+end
+
+function Number:GetStep()
+	return self.step;
+end
+
+function Number:GetSigned()
+	return self.signed;
+end
+
+---------------------------------------------------------------
+local Range = Number():SetType('Range');
+---------------------------------------------------------------
+function Range:GetMinMax()
+	return self.min, self.max;
+end
+
+function Range:Set(val)
+	return Field.Set(self, Clamp(val, self.min, self.max))
+end
+
+function Range:SetMinMax(min, max)
+	self.min, self.max = min, max;
+	return self;
+end
+
+---------------------------------------------------------------
 local Select = Field():SetType('Select');
 ---------------------------------------------------------------
 function Select:GetOptions()
@@ -126,31 +167,6 @@ function Select:SetRawOptions(options)
 end
 
 ---------------------------------------------------------------
-local Range = Field():SetType('Range');
----------------------------------------------------------------
-function Range:GetMinMax()
-	return self.min, self.max;
-end
-
-function Range:GetStep()
-	return self.step;
-end
-
-function Range:Set(val)
-	return Field.Set(self, Clamp(val, self.min, self.max))
-end
-
-function Range:SetMinMax(min, max)
-	self.min, self.max = min, max;
-	return self;
-end
-
-function Range:SetStep(step)
-	self.step = step;
-	return self;
-end
-
----------------------------------------------------------------
 -- Data interface
 ---------------------------------------------------------------
 local Data = db:Register('Data', {});
@@ -159,12 +175,12 @@ function Data.Cvar(id)
 	return Cvar():SetID(id)
 end
 
-function Data.Number(val)
-	return Field():SetType('Number'):Set(val)
+function Data.Number(val, step, signed)
+	return Number():SetStep(step):SetSigned(signed):Set(val)
 end
 
-function Data.Range(val, min, max, step)
-	return Range():SetMinMax(min, max):Set(val):SetStep(step)
+function Data.Range(val, step, min, max)
+	return Range():SetStep(step):SetMinMax(min, max):Set(val)
 end
 
 function Data.Select(val, ...)
