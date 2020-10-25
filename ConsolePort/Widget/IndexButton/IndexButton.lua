@@ -54,6 +54,16 @@ function CPIndexButtonMixin:OnChecked(checked)
 	end
 end
 
+function CPIndexButtonMixin:Check()
+	self:SetChecked(true)
+	self:OnChecked(true)
+end
+
+function CPIndexButtonMixin:Uncheck()
+	self:SetChecked(false)
+	self:OnChecked(false)
+end
+
 function CPIndexButtonMixin:SetSiblings(siblings)
 	self.Siblings = siblings;
 end
@@ -71,8 +81,7 @@ function CPIndexButtonMixin:UncheckSiblings()
 		if (#self.Siblings > 0) then
 			for i, sibling in ipairs(self.Siblings) do
 				if ( sibling ~= self) then
-					sibling:SetChecked(false)
-					sibling:OnChecked(false)
+					sibling:Uncheck()
 				end
 			end
 		else -- need to handle both as key and val
@@ -80,8 +89,7 @@ function CPIndexButtonMixin:UncheckSiblings()
 			for sibKey, sibVal in pairs(self.Siblings) do
 				local sibling = IsFrame(sibKey) and sibKey or IsFrame(sibVal) and sibVal;
 				if ( sibling ~= self ) then
-					sibling:SetChecked(false)
-					sibling:OnChecked(false)
+					sibling:Uncheck()
 				end
 			end
 		end

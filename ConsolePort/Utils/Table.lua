@@ -73,14 +73,6 @@ local function unravel(t, i)
 end
 db('table/unravel', unravel)
 
-local function unravelv(t, i)
-	local k, v = next(t, i)
-	if k ~= nil then
-		return v, unravelv(t, k)
-	end
-end
-db('table/unravelv', unravelv)
-
 -- helpers
 local function spairs(t, order)
 	local keys = {unravel(t)}

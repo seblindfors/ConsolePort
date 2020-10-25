@@ -4,11 +4,11 @@ local ConfigMixin, Widgets = {}, env.Widgets;
 ---------------------------------------------------------------
 -- General settings
 ---------------------------------------------------------------
-local GENERAL_FIXED_WIDTH, SETTING_FIXED_OFFSET = 900, 8;
-local General, Field = CreateFromMixins(CPFocusPoolMixin), CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
+local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET = 284, 700, 8;
+local Field = CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
 
 function Field:OnLoad()
-	self:SetWidth(GENERAL_FIXED_WIDTH - 32)
+	self:SetWidth(GENERAL_WIDTH - 32)
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 40)
 	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
@@ -24,6 +24,76 @@ function Field:Construct(name, varID, field, newObj)
 	end
 	self:Hide()
 	self:Show()
+end
+
+---------------------------------------------------------------
+-- Shortcuts
+---------------------------------------------------------------
+local Shortcut, Shortcuts = {}, CreateFromMixins(CPFocusPoolMixin)
+
+function Shortcut:OnLoad()
+	self:SetWidth(SHORTCUT_WIDTH - FIXED_OFFSET * 2)
+	self:SetScript('OnClick', self.OnClick)
+	self:SetDrawOutline(true)
+end
+
+function Shortcut:OnClick()
+	self:SetChecked(false)
+	self:OnChecked(false)
+	self.General:ScrollToOffset(self.General:GetElementPosition(self.reference))
+end
+
+function Shortcuts:OnLoad()
+	CPFocusPoolMixin.OnLoad(self)
+	env.OpaqueMixin.OnLoad(self)
+	self:CreateFramePool('IndexButton',
+		'CPIndexButtonBindingHeaderTemplate', Shortcut, nil, self.Child)
+	Mixin(self.Child, env.ScaleToContentMixin)
+	self.Child:SetAllPoints()
+	self.Child:SetMeasurementOrigin(self, self.Child, SHORTCUT_WIDTH, FIXED_OFFSET)
+end
+
+function Shortcuts:OnHide()
+	self:ReleaseAll()
+	self.lastWidget = nil;
+end
+
+function Shortcuts:Create(name, ref)
+	local widget, newObj = self:TryAcquireRegistered(name)
+	local anchor = self.lastWidget;
+	if newObj then
+		widget.General = self.General;
+		widget:OnLoad()
+	end
+	if anchor then
+		widget:SetAttribute('nodepriority', nil)
+		widget:SetPoint('TOP', anchor, 'BOTTOM', 0, -FIXED_OFFSET)
+	else
+		widget:SetAttribute('nodepriority', 1)
+		widget:SetPoint('TOP', 0, -FIXED_OFFSET)
+	end
+	widget:Show()
+	widget:SetText(L(name))
+	widget.reference = ref;
+	self.lastWidget = widget;
+end
+
+---------------------------------------------------------------
+-- General
+---------------------------------------------------------------
+local General = CreateFromMixins(CPFocusPoolMixin)
+
+function General:CreateHeader(group, anchor)
+	local header = self.headerPool:Acquire()
+	header:SetText(L(group))
+	header:Show()
+	if anchor then
+		header:SetPoint('TOP', anchor, 'BOTTOM', 0, -FIXED_OFFSET * 2)
+	else
+		header:SetPoint('TOP', 0, -FIXED_OFFSET)
+	end
+	self.Shortcuts:Create(group, header)
+	return header;
 end
 
 function General:DrawOptions(showAdvanced)
@@ -59,15 +129,7 @@ function General:DrawOptions(showAdvanced)
 	local prev;
 	for group, set in db.table.spairs(sorted) do
 		-- render the header
-		local header = self.headerPool:Acquire()
-		header:SetText(L(group))
-		header:Show()
-		if prev then
-			header:SetPoint('TOP', prev, 'BOTTOM', 0, -SETTING_FIXED_OFFSET * 2)
-		else
-			header:SetPoint('TOP', 0, -SETTING_FIXED_OFFSET)
-		end
-		prev = header;
+		prev = self:CreateHeader(group, prev)
 
 		-- render the options
 		for name, data in db.table.spairs(set, displaysort) do
@@ -81,7 +143,7 @@ function General:DrawOptions(showAdvanced)
 				widget:OnLoad()
 			end
 			widget:Construct(name, data.varID, data.field, newObj)
-			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -SETTING_FIXED_OFFSET)
+			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)
 			prev = widget;
 		end
 	end
@@ -100,23 +162,35 @@ function General:OnLoad()
 		'CPIndexButtonBindingHeaderTemplate', Field, nil, self.Child)
 	Mixin(self.Child, env.ScaleToContentMixin)
 	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_FIXED_WIDTH, SETTING_FIXED_OFFSET)
+	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_WIDTH, FIXED_OFFSET)
 end
 
 ---------------------------------------------------------------
 -- Panel
 ---------------------------------------------------------------
 function ConfigMixin:OnFirstShow()
-	local general = self:CreateScrollableColumn('General', {
-		_Mixin = General;
-		_Width = GENERAL_FIXED_WIDTH;
+	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
+		_Mixin = Shortcuts;
+		_Width = SHORTCUT_WIDTH;
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
-			{'TOP', 0, 1};
-			{'BOTTOM', 0, -1};
+			{'TOPLEFT', 0, 1};
+			{'BOTTOMLEFT', 0, -1};
 		};
 	})
+	local general = self:CreateScrollableColumn('General', {
+		_Mixin = General;
+		_Width = GENERAL_WIDTH;
+		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
+		_Backdrop = CPAPI.Backdrops.Opaque;
+		_Points = {
+			{'TOPLEFT', '$parent.Shortcuts', 'TOPRIGHT', 0, 0};
+			{'BOTTOMLEFT', '$parent.Shortcuts', 'BOTTOMRIGHT', 0, 0};
+		};
+	})
+	general.Shortcuts = shortcuts;
+	shortcuts.General = general;
 end
 
 env.General = ConsolePortConfig:CreatePanel({

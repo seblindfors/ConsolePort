@@ -1,7 +1,6 @@
 local Carpenter, _, db = LibStub:GetLibrary('Carpenter'), ...;
-CPContainerMixin = CreateFromMixins(CPBackgroundMixin, CPAmbienceMixin, CPFocusPoolMixin);
-CPHeaderMixin, CPHeaderIndexMixin = CreateFromMixins(CPFocusPoolMixin), {}
-CPPanelMixin, CPColumnMixin = CreateFromMixins(CPFocusPoolMixin), {};
+CPContainerMixin = CreateFromMixins(CPBackgroundMixin, CPAmbienceMixin, CPFocusPoolMixin, CPButtonCatcherMixin);
+CPHeaderMixin, CPPanelMixin = CreateFromMixins(CPFocusPoolMixin), CreateFromMixins(CPFocusPoolMixin);
 
 ---------------------------------------------------------------
 -- Container
@@ -34,7 +33,6 @@ function CPContainerMixin:OnContainerLoad()
 				{'TOPLEFT', inset-1, -inset+1};
 				{'TOPRIGHT', -inset+1, -inset+1};
 			};
-			_IgnoreNode = true;
 			_Backdrop = CPAPI.Backdrops.Header;
 			_OnLoad = function(self)
 				local nR, nG, nB = CPAPI.NormalizeColor(r, g, b)
@@ -66,11 +64,21 @@ function CPContainerMixin:OnContainerLoad()
 					};
 				};
 				Logo = {
-					_Type  = 'Texture';
-					_Setup = {'ARTWORK'};
+					_Type  = 'Button';
 					_Size  = {headerHeight * 0.9, headerHeight * 0.9};
 					_Point = {'LEFT', headerHeight * 0.1, -2};
-					_Texture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
+					_SetNormalTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
+					_SetPushedTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
+					_OnLoad = function(self)
+						local pushed = self:GetPushedTexture()
+						pushed:ClearAllPoints()
+						pushed:SetSize(self:GetSize())
+						pushed:SetPoint('CENTER', 0, -2)
+						self:GetParent():GetParent().TopNavButton = self;
+					end;
+					_OnClick = function(self)
+						self:GetParent():GetParent():ShowDefaultFrame(true)
+					end;
 				};
 				Index = {
 					_Type   = 'ScrollFrame';
@@ -103,47 +111,6 @@ function CPContainerMixin:OnContainerLoad()
 end
 
 ---------------------------------------------------------------
--- Container button callbacks
----------------------------------------------------------------
-function CPContainerMixin:OnContainerCatchButton(button)
-	if self.ClosureRegistry[button] then
-		self.ClosureRegistry[button](button)
-		return self:SetPropagateKeyboardInput(false)
-	end
-	self:SetPropagateKeyboardInput(true)
-end
-
-function CPContainerMixin:OnContainerHide()
-	self:ReleaseClosures()
-end
-
-function CPContainerMixin:CatchButton(button, callback, ...)
-	local closure = GenerateClosure(callback, ...)
-	self.ClosureRegistry[button] = closure;
-	self:EnableGamePadButton(true)
-	return closure; -- return the event owner
-end
-
-function CPContainerMixin:FreeButton(button, ...)
-	if select('#', ...) > 0 then
-		local closure = ...;
-		if closure and (self.ClosureRegistry[button] ~= closure) then
-			return false; -- assert event owner if supplied
-		end
-	end
-	self.ClosureRegistry[button] = nil;
-	if not next(self.ClosureRegistry) then
-		self:EnableGamePadButton(false)
-	end
-	return true;
-end
-
-function CPContainerMixin:ReleaseClosures()
-	wipe(self.ClosureRegistry)
-	self:EnableGamePadButton(false)
-end
-
----------------------------------------------------------------
 -- Container content handling
 ---------------------------------------------------------------
 function CPContainerMixin:OnContainerSizeChanged()
@@ -153,18 +120,43 @@ function CPContainerMixin:OnContainerSizeChanged()
 	end
 end
 
-function CPContainerMixin:ShowPanel(name)
+function CPContainerMixin:SetDefaultClosures()
 	self:ReleaseClosures()
+	-- TODO: special click handling?
+end
+
+function CPContainerMixin:ShowPanel(name)
+	self:ShowDefaultFrame(false)
+	self:SetDefaultClosures()
 	local panel, old = self:SetFocusByIndex(name)
 	if old then
 		old:Hide()
 	end
-	if panel.OnFirstShow then
-		panel:OnFirstShow()
-		panel.OnFirstShow = nil;
+	if panel then
+		if panel.OnFirstShow then
+			panel:OnFirstShow()
+			panel.OnFirstShow = nil;
+		end
+		panel:OnContainerSizeChanged(self.Container:GetSize())
+		panel:Show()
+	else
+		self.Header:UncheckAll()
+		self:ShowDefaultFrame(true)
 	end
-	panel:OnContainerSizeChanged(self.Container:GetSize())
-	panel:Show()
+end
+
+function CPContainerMixin:ShowDefaultFrame(show)
+	if self.DefaultFrame then
+		self.DefaultFrame:SetShown(show)
+		if show then
+			local panel = self:GetFocusWidget()
+			if panel then
+				panel:Hide()
+			end
+			self.Header:UncheckAll()
+		end
+		return show;
+	end
 end
 
 function CPContainerMixin:SetHeaderHeight(height)
@@ -198,6 +190,7 @@ end
 -- Header
 ---------------------------------------------------------------
 do  local function HeaderButtonOnClick(self)
+		self.container.focusedID = self:GetID();
 		self.container:ShowPanel(self:GetText())
 		self.parent:ScrollTo(self:GetID(), self.container:GetNumActive())
 	end
@@ -228,6 +221,19 @@ do  local function HeaderButtonOnClick(self)
 		end
 
 		return header, self.numHeaders;
+	end
+end
+
+function CPHeaderMixin:GetHeaderAtIndex(index)
+	local widget = self.Registry[index]
+	if widget and widget:IsShown() then
+		return widget;
+	end
+end
+
+function CPHeaderMixin:UncheckAll()
+	for header in self:EnumerateActive() do
+		header:Uncheck()
 	end
 end
 

@@ -50,7 +50,7 @@ function BindingInfo:AddActionbarBinding(name, bindingID, actionID)
 	self.Actionbar[actionID] = {name = name, binding = bindingID};
 end
 
-do local customHeader = ('|T%s:0|t %s'):format(CPAPI.GetAsset('Textures\\Logo\\CP_Tiny.blp'), SPECIAL)
+do local customHeader = (' |T%s:0|t %s '):format(CPAPI.GetAsset('Textures\\Logo\\CP_Tiny.blp'), SPECIAL)
 	_G[customHeader] = customHeader;
 	function BindingInfo:AddCustomBinding(name, bindingID)
 		self:AddBindingToCategory(L(name), bindingID, customHeader)

@@ -204,8 +204,7 @@ function Action:OnClick()
 		C_ActionBar.PutActionInSlot(actionID)
 		ClearCursor()
 	end
-	self:SetChecked(false)
-	self:OnChecked(false)
+	CPIndexButtonMixin.Uncheck(self)
 end
 
 function Action:SetValue(value)
@@ -315,8 +314,7 @@ end
 function ActionMapper:OnEvent(event, ...)
 	for widget in self:EnumerateActive() do
 		widget:ReleaseAll()
-		widget:SetChecked(false)
-		widget:OnChecked(false)
+		widget:Uncheck()
 	end
 	self:ReleaseAll()
 	self:OnExpand()

@@ -3,5 +3,5 @@
 	<!-- Interface -->
 	<Script file="Data/Data.lua"/>
 	<!-- Assets -->
-	<Script file="Data/Default.lua"/>
+	<Script file="Data/Variables.lua"/>
 </Ui>

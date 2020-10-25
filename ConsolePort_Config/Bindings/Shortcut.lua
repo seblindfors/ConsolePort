@@ -20,8 +20,7 @@ end
 function Shortcuts:OnScrollFinished()
 	local widget = self:GetFocusWidget()
 	if widget then
-		widget:SetChecked(false)
-		widget:OnChecked(false)
+		widget:Uncheck()
 	end
 end
 

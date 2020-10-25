@@ -198,17 +198,10 @@ function BindingsMixin:OnFirstShow()
 						SaveBindings(set)
 						self:SetChecked(false)
 						self:OnChecked(self:GetChecked())
-						local info = ChatTypeInfo.SYSTEM;
 						if (set == CHARACTER_BINDINGS) then
-							DEFAULT_CHAT_FRAME:AddMessage(
-								L('Your gamepad bindings for %s have been saved.', CPAPI.GetPlayerName(true)),
-								info.r, info.g, info.b, info.id
-							);
+							CPAPI.Log('Your gamepad bindings for %s have been saved.', CPAPI.GetPlayerName(true))
 						else
-							DEFAULT_CHAT_FRAME:AddMessage(
-								L'Your gamepad bindings have been saved.',
-								info.r, info.g, info.b, info.id
-							);
+							CPAPI.Log('Your gamepad bindings have been saved.')
 						end
 					end;
 				};
@@ -352,10 +345,7 @@ function BindingsMixin:OnFirstShow()
 							local font, _, outline = label:GetFont()
 							label:SetFont(font, 14, outline)
 						end;
-						_OnHide = function(self)
-							self:SetChecked(false)
-							self:OnChecked(false)
-						end;
+						_OnHide = CPIndexButtonMixin.Uncheck;
 						_OnClick = function(self, button)
 							local mapper = self:GetParent():GetParent();
 							if (button == 'LeftButton') then
@@ -374,11 +364,13 @@ function BindingsMixin:OnFirstShow()
 						_Size = {260, 50};
 						_Hide = true;
 						_OnShow = function(self)
+							env.Config:PauseCatcher()
 							self:EnableGamePadButton(true)
 							self:GetParent().Change:Hide()
 							self.timeUntilCancel = 5;
 						end;
 						_OnHide = function(self)
+							env.Config:ResumeCatcher()
 							self:EnableGamePadButton(false)
 							self:GetParent().Change:Show()
 							self:GetParent().Help:SetDefaultHelp()

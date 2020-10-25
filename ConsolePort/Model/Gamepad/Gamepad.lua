@@ -7,9 +7,20 @@ local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parent
 	Modsims = {'Alt', 'Ctrl', 'Shift'};
 	Devices = {};
 	Index = {
-		Stick  = {};
-		Button = {};
-		Modifier = {};
+		Stick  = {
+			ID      = {}; -- index -> config name
+			Config  = {}; -- config name -> index
+		};
+		Button = {
+			ID      = {}; -- index -> config name / binding
+			Config  = {}; -- config name -> index / binding
+			Binding = {}; -- binding -> config name / index
+		};
+		Modifier = {
+			Key     = {}; -- modifier -> button
+			Prefix  = {}; -- modifier string -> button
+			Active  = {}; -- all possible modifier combinations
+		};
 	};
 });
 ---------------------------------------------------------------
@@ -20,18 +31,18 @@ db:Save('Gamepad/Devices', 'ConsolePortDevices')
 -- Events
 ---------------------------------------------------------------
 function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
-	print('GAME_PAD_CONFIGS_CHANGED')
+	CPAPI.Log('Your gamepad configuration has changed.')
 	for device in pairs(self.Devices) do
 	--	TODO: handle this somehow, device:UpdateConfig()
 	end
 end
 
 function GamepadAPI:GAME_PAD_CONNECTED()
-	print('GAME_PAD_CONNECTED')
+	CPAPI.Log('Gamepad connected.')
 end
 
 function GamepadAPI:GAME_PAD_DISCONNECTED()
-	print('GAME_PAD_DISCONNECTED')
+	CPAPI.Log('Gamepad disconnected.')
 end
 
 function GamepadAPI:OnDataLoaded()
@@ -95,10 +106,18 @@ end
 -- Data
 ---------------------------------------------------------------
 function GamepadAPI:ReindexMappedState()
+	if not C_GamePad.IsEnabled() then
+		return
+	end
 	local state = C_GamePad.GetDeviceMappedState(C_GamePad.GetActiveDeviceID())
-	-- buttons
-	local map = wipe(self.Index.Button)
-	map.ID = {}; map.Config = {}; map.Binding = {};
+	self:ReindexSticks(state)
+	self:ReindexButtons(state)
+	self:ReindexModifiers(state)
+end
+
+function GamepadAPI:ReindexButtons(state)
+	local map = self.Index.Button;
+	wipe(map.ID); wipe(map.Config); wipe(map.Binding);
 
 	for i in ipairs(state.buttons) do
 		local conf = C_GamePad.ButtonIndexToConfigName(i-1)
@@ -108,9 +127,23 @@ function GamepadAPI:ReindexMappedState()
 		map.Config[conf]  = {ID = i-1; Binding = bind}
 		map.Binding[bind] = {ID = i-1; Config = conf}
 	end
-	-- modifiers
-	map = wipe(self.Index.Modifier)
-	map.Key = {}; map.Prefix = {};
+end
+
+function GamepadAPI:ReindexSticks(state)
+	local map = self.Index.Stick;
+	wipe(map.ID); wipe(map.Config);
+
+	for i in ipairs(state.sticks) do
+		local name = C_GamePad.StickIndexToConfigName(i-1)
+		map.ID[i] = name
+		map.Config[name] = i
+	end
+end
+
+function GamepadAPI:ReindexModifiers()
+	local map = self.Index.Modifier;
+	wipe(map.Key); wipe(map.Prefix);
+
 	for _, mod in ipairs(self.Modsims) do
 		local btn = GetCVar('GamePadEmulate'..mod)
 		if (btn and btn:match('PAD')) then
@@ -120,14 +153,6 @@ function GamepadAPI:ReindexMappedState()
 		end
 	end
 	map.Active = self:GetActiveModifiers()
-	-- sticks
-	map = wipe(self.Index.Stick)
-	map.ID = {}; map.Config = {};
-	for i in ipairs(state.sticks) do
-		local name = C_GamePad.StickIndexToConfigName(i-1)
-		map.ID[i] = name
-		map.Config[name] = i
-	end
 end
 
 function GamepadAPI:GetActiveModifiers()

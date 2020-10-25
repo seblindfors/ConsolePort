@@ -53,14 +53,30 @@ end
 ---------------------------------------------------------------
 local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', ConsolePort}, {
 	'MERCHANT_SHOW';
+	'MERCHANT_CLOSED';
+	'BAG_UPDATE_DELAYED';
+}, {
+	SellJunkHelper = function(item)
+		if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
+			UseContainerItem(item:GetBagAndSlot())
+		end
+	end;
 })
 
+function Handler:MERCHANT_CLOSED()
+	self.merchantAvailable = nil;
+end
+
 function Handler:MERCHANT_SHOW()
+	self.merchantAvailable = true;
 	if db('autoSellJunk') then
-		ContainerFrameUtil_IteratePlayerInventory(function(item)
-			if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
-				UseContainerItem(item:GetBagAndSlot())
-			end
-		end)
+		ContainerFrameUtil_IteratePlayerInventory(self.SellJunkHelper)
+	end
+end
+
+function Handler:BAG_UPDATE_DELAYED()
+	-- repeat attempt to auto-sell junk 
+	if self.merchantAvailable then
+		self:MERCHANT_SHOW()
 	end
 end

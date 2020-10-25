@@ -79,14 +79,12 @@ function Widget:OnShow()
 	self:OnValueChanged(self:Get())
 end
 
-function Widget:OnClick()
-	self:SetChecked(false)
-	self:OnChecked(false)
-end
-
 function Widget:OnValueChanged(newValue)
 	-- replace callback in mixin
 end
+
+-- default to just ignoring checked state
+Widget.OnClick = CPIndexButtonMixin.Uncheck;
 
 ---------------------------------------------------------------
 -- Boolean switch
@@ -190,17 +188,15 @@ function Number:OnRightButton()
 	self:Set(self:Get() + self:GetStep())
 end
 
-function Number:OnEnter()
-	Widget.OnEnter(self)
-	self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
-	self.CatchRight = env.Config:CatchButton('PADDRIGHT', self.OnRightButton, self)
-end
-
-function Number:OnLeave()
-	Widget.OnLeave(self)
-	env.Config:FreeButton('PADDLEFT', self.CatchLeft)
-	env.Config:FreeButton('PADDRIGHT', self.CatchRight)
-	self.CatchLeft, self.CatchRight = nil, nil;
+function Number:OnClick()
+	if self:GetChecked() then
+		self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
+		self.CatchRight = env.Config:CatchButton('PADDRIGHT', self.OnRightButton, self)
+	else
+		env.Config:FreeButton('PADDLEFT', self.CatchLeft)
+		env.Config:FreeButton('PADDRIGHT', self.CatchRight)
+		self.CatchLeft, self.CatchRight = nil, nil;
+	end
 end
 
 function Number:OnValueChanged(value)
@@ -294,14 +290,10 @@ local String = CreateWidget('String', Widget, {
 			self:ClearFocus()
 		end;
 		_OnEditFocusLost = function(self)
-			local widget = self:GetParent()
-			widget:SetChecked(false)
-			widget:OnChecked(false)
+			self:GetParent():Uncheck()
 		end;
 		_OnEditFocusGained = function(self)
-			local widget = self:GetParent()
-			widget:SetChecked(true)
-			widget:OnChecked(true)
+			self:GetParent():Check()
 		end;
 	};
 })

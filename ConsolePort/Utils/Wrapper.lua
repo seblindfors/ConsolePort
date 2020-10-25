@@ -3,12 +3,17 @@ local _, db = ...; CPAPI = {};
 -- General 
 ---------------------------------------------------------------
 -- return true or nil (nil for dynamic table insertions)
-function CPAPI:IsClassicVersion(...)
+function CPAPI.IsClassicVersion(...)
 	if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return true end
 end
 
-function CPAPI:IsRetailVersion(...)
+function CPAPI.IsRetailVersion(...)
 	if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return true end
+end
+
+function CPAPI.Log(...)
+	local cc = ChatTypeInfo.SYSTEM;
+	DEFAULT_CHAT_FRAME:AddMessage(db.Locale(...), cc.r, cc.g, cc.b, cc.id)
 end
 
 ---------------------------------------------------------------

@@ -196,6 +196,7 @@ function CPBackgroundMixin:CreateBackground(w, h, x, y, texture)
 	self:HookScript('OnSizeChanged', self.OnAspectRatioChanged)
 end
 
+
 ---------------------------------------------------------------
 -- Ambience mixin
 ---------------------------------------------------------------
@@ -363,4 +364,56 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 			self:SetScroll(self:GetRange())
 		end
 	end
+end
+
+
+---------------------------------------------------------------
+-- Specific button catcher with callbacks
+---------------------------------------------------------------
+CPButtonCatcherMixin = {};
+
+function CPButtonCatcherMixin:OnGamePadButtonDown(button)
+	if not self.catcherPaused and self.ClosureRegistry[button] then
+		self.ClosureRegistry[button](button)
+		return self:SetPropagateKeyboardInput(false)
+	end
+	self:SetPropagateKeyboardInput(true)
+end
+
+function CPButtonCatcherMixin:OnHide()
+	self:ReleaseClosures()
+end
+
+function CPButtonCatcherMixin:CatchButton(button, callback, ...)
+	local closure = GenerateClosure(callback, ...)
+	self.ClosureRegistry[button] = closure;
+	self:EnableGamePadButton(true)
+	return closure; -- return the event owner
+end
+
+function CPButtonCatcherMixin:FreeButton(button, ...)
+	if select('#', ...) > 0 then
+		local closure = ...;
+		if closure and (self.ClosureRegistry[button] ~= closure) then
+			return false; -- assert event owner if supplied
+		end
+	end
+	self.ClosureRegistry[button] = nil;
+	if not next(self.ClosureRegistry) then
+		self:EnableGamePadButton(false)
+	end
+	return true;
+end
+
+function CPButtonCatcherMixin:PauseCatcher()
+	self.catcherPaused = true;
+end
+
+function CPButtonCatcherMixin:ResumeCatcher()
+	self.catcherPaused = false;
+end
+
+function CPButtonCatcherMixin:ReleaseClosures()
+	wipe(self.ClosureRegistry)
+	self:EnableGamePadButton(false)
 end
