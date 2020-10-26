@@ -60,6 +60,9 @@ function GamepadAPI:OnDataLoaded()
 			self:SetActiveDevice(id)
 		end
 	end
+	if not self.Active then
+		ShowGamePadConfig()
+	end
 end
 
 ---------------------------------------------------------------
@@ -147,8 +150,7 @@ function GamepadAPI:ReindexModifiers()
 	for _, mod in ipairs(self.Modsims) do
 		local btn = GetCVar('GamePadEmulate'..mod)
 		if (btn and btn:match('PAD')) then
-			self.Index.Modifier.Key[mod] = btn
-			self.Index.Modifier.Key[mod:upper()] = btn
+			self.Index.Modifier.Key[mod] = btn -- BUG: uproots the mod order if uppercase
 			self.Index.Modifier.Prefix[mod..'-'] = btn
 		end
 	end
@@ -186,6 +188,14 @@ function GamepadAPI:GetActiveModifiers()
 	end
 	mods[''] = true
 	return mods
+end
+
+function GamepadAPI:GetActiveModifier(button)
+	for _, mod in ipairs(self.Modsims) do
+		if (GetCVar('GamePadEmulate'..mod) == button) then
+			return mod;
+		end
+	end
 end
 
 function GamepadAPI:GetBindings()
@@ -262,12 +272,7 @@ function GamepadMixin:ApplyHotkeyStrings()
 end
 
 function GamepadMixin:IsButtonValidForBinding(button)
-	for _, var in ipairs(GamepadAPI.Modsims) do
-		if (GetCVar('GamePadEmulate'..var) == button) then
-			return false
-		end
-	end
-	return self.Theme.Icons[button]
+	return not GamepadAPI:GetActiveModifier(button) and self.Theme.Icons[button]
 end
 
 ---------------------------------------------------------------

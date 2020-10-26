@@ -258,6 +258,30 @@
 		</Layers>
 	</Slider>
 
+	<IndexButton name="CPConfigWizardDeviceButton" virtual="true">
+		<Size x="250" y="100"/>
+		<KeyValues>
+			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Splash">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="1" y="-1"/>
+						<Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<FontString parentKey="Name" inherits="CPHeaderFont">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</IndexButton>
+
 	<Frame name="ConsolePortConfig" inherits="CPContainerFrameTemplate" parent="UIParent" clampedToScreen="true" hidden="true">
 		<Size x="1000" y="800"/>
 		<Anchors>

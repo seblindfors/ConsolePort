@@ -1,5 +1,5 @@
 local Carpenter, _, db = LibStub:GetLibrary('Carpenter'), ...;
-CPContainerMixin = CreateFromMixins(CPBackgroundMixin, CPAmbienceMixin, CPFocusPoolMixin, CPButtonCatcherMixin);
+CPContainerMixin = CreateFromMixins(CPBackgroundMixin, CPFocusPoolMixin, CPButtonCatcherMixin);
 CPHeaderMixin, CPPanelMixin = CreateFromMixins(CPFocusPoolMixin), CreateFromMixins(CPFocusPoolMixin);
 
 ---------------------------------------------------------------
@@ -9,18 +9,14 @@ function CPContainerMixin:OnContainerLoad()
 	local r, g, b = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
 	local inset, headerHeight = 8, 64;
 
-	CPAmbienceMixin.OnLoad(self)
 	CPFocusPoolMixin.OnLoad(self)
 	CPBackgroundMixin.OnLoad(self)
+	CPButtonCatcherMixin.OnLoad(self)
 
 	self:RegisterForDrag('LeftButton')
 	self:SetBackgroundInsets(true)
 	self:SetBackdrop(CPAPI.Backdrops.Frame)
 	self:SetBackdropColor(r, g, b)
-
-	-- Catch buttons
-	self:SetPropagateKeyboardInput(true)
-	self.ClosureRegistry = {};
 
 	-- Create container frames
 	Carpenter:BuildFrame(self, {
@@ -80,13 +76,28 @@ function CPContainerMixin:OnContainerLoad()
 						self:GetParent():GetParent():ShowDefaultFrame(true)
 					end;
 				};
+				Close = {
+					_Type = 'Button';
+					_Size = {13, 16};
+					_Point = {'TOPRIGHT', -8, -8};
+					_SetNormalTexture = CPAPI.GetAsset([[Textures\Frame\General_Assets]]);
+					_SetHighlightTexture = CPAPI.GetAsset([[Textures\Frame\General_Assets]]);
+					_OnLoad = function(self)
+						local normal, hilite = self:GetNormalTexture(), self:GetHighlightTexture()
+						normal:SetTexCoord(0, 0.40625, 0.5, 1)
+						hilite:SetTexCoord(0, 0.40625, 0.5, 1)
+					end;
+					_OnClick = function(self)
+						self:GetParent():GetParent():Hide()
+					end;
+				};
 				Index = {
 					_Type   = 'ScrollFrame';
 					_Setup  = {'CPSmoothScrollTemplate'};
 					_SetScrollOrientation = 'Horizontal';
 					_Points = {
 						{'TOPLEFT', headerHeight * 1.1, 0};
-						{'BOTTOMRIGHT', 0, 0};
+						{'BOTTOMRIGHT', -(headerHeight * 1.1), 0};
 					};
 					_OnLoad = function(self)
 						self.Child:SetHeight(self:GetParent():GetHeight())
@@ -120,9 +131,29 @@ function CPContainerMixin:OnContainerSizeChanged()
 	end
 end
 
+function CPContainerMixin:OnContainerShow()
+	self:SetDefaultClosures()
+end
+
 function CPContainerMixin:SetDefaultClosures()
 	self:ReleaseClosures()
 	-- TODO: special click handling?
+	self.CatchLeftTrigger = self:CatchButton('PADLTRIGGER', function(self)
+		local index = self.focusedID - 1;
+		if index < 1 then
+			return self:ShowDefaultFrame(true)
+		end
+		local widget = self.Header:GetHeaderAtIndex(index)
+		if widget and widget:IsEnabled() then
+			widget:Click()
+		end
+	end, self)
+	self.CatchRightTrigger = self:CatchButton('PADRTRIGGER', function(self)
+		local widget = self.Header:GetHeaderAtIndex(self.focusedID + 1)
+		if widget and widget:IsEnabled() then
+			widget:Click()
+		end
+	end, self)
 end
 
 function CPContainerMixin:ShowPanel(name)
@@ -140,7 +171,6 @@ function CPContainerMixin:ShowPanel(name)
 		panel:OnContainerSizeChanged(self.Container:GetSize())
 		panel:Show()
 	else
-		self.Header:UncheckAll()
 		self:ShowDefaultFrame(true)
 	end
 end
@@ -153,6 +183,7 @@ function CPContainerMixin:ShowDefaultFrame(show)
 			if panel then
 				panel:Hide()
 			end
+			self.focusedID = 0;
 			self.Header:UncheckAll()
 		end
 		return show;
@@ -170,7 +201,7 @@ end
 
 function CPContainerMixin:CreatePanel(data)
 	local panel  = self:Acquire(data.name)
-	local header = self.Header:CreateHeader(data.name, panel)
+	local header = not data.noHeader and self.Header:CreateHeader(data.name, panel)
 	panel.header = header;
 	panel.parent = self.Container;
 	panel.container = self;
@@ -234,6 +265,13 @@ end
 function CPHeaderMixin:UncheckAll()
 	for header in self:EnumerateActive() do
 		header:Uncheck()
+	end
+end
+
+function CPHeaderMixin:ToggleEnabled(enabled)
+	for header in self:EnumerateActive() do
+		header:SetEnabled(enabled)
+		header:SetAlpha(enabled and 1 or 0.5)
 	end
 end
 

@@ -4,4 +4,5 @@
 	<Script file="Data/Data.lua"/>
 	<!-- Assets -->
 	<Script file="Data/Variables.lua"/>
+	<Script file="Data/Console.lua"/>
 </Ui>

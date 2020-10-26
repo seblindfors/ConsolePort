@@ -80,3 +80,17 @@ function Handler:BAG_UPDATE_DELAYED()
 		self:MERCHANT_SHOW()
 	end
 end
+
+-- TEMP: slash handler to show config
+function ShowGamePadConfig()
+	if not IsAddOnLoaded('ConsolePort_Config') then
+		LoadAddOn('ConsolePort_Config')
+	end
+	CPAPI.Log('Use /consoleport to show the config.')
+	ConsolePortConfig:Show()
+end
+
+_G['SLASH_' .. _:upper() .. '1'] = '/' .. _:lower()
+SlashCmdList[_:upper()] = function()
+	ShowGamePadConfig()
+end

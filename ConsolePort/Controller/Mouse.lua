@@ -188,11 +188,6 @@ function Mouse:OnGamePadButtonDown(button)
 	return self:SetPropagation(true)
 end
 
-function Mouse:OnGamePadButtonUp(button)
-	-- TODO: check usefulness
-	return self:SetPropagation(true)
-end
-
 ---------------------------------------------------------------
 -- Handler on/off
 ---------------------------------------------------------------
@@ -200,6 +195,7 @@ function Mouse:SetEnabled(enabled)
 	self:EnableGamePadButton(enabled)
 	if enabled then
 		SetCVar('GamePadCursorAutoEnable', 0)
+		SetCVar('GamePadCursorCenteredEmulation', 0)
 	end
 end
 

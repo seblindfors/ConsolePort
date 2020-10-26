@@ -370,50 +370,107 @@ end
 ---------------------------------------------------------------
 -- Specific button catcher with callbacks
 ---------------------------------------------------------------
-CPButtonCatcherMixin = {};
+do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 
-function CPButtonCatcherMixin:OnGamePadButtonDown(button)
-	if not self.catcherPaused and self.ClosureRegistry[button] then
-		self.ClosureRegistry[button](button)
-		return self:SetPropagateKeyboardInput(false)
-	end
-	self:SetPropagateKeyboardInput(true)
-end
-
-function CPButtonCatcherMixin:OnHide()
-	self:ReleaseClosures()
-end
-
-function CPButtonCatcherMixin:CatchButton(button, callback, ...)
-	local closure = GenerateClosure(callback, ...)
-	self.ClosureRegistry[button] = closure;
-	self:EnableGamePadButton(true)
-	return closure; -- return the event owner
-end
-
-function CPButtonCatcherMixin:FreeButton(button, ...)
-	if select('#', ...) > 0 then
-		local closure = ...;
-		if closure and (self.ClosureRegistry[button] ~= closure) then
-			return false; -- assert event owner if supplied
+	function ModListen:OnModifierStateChanged(_, key, down)
+		if (down == 1) then
+			for _, modifier in db:For('Gamepad/Modsims') do
+				if key:match(modifier) then
+					self:TriggerModifier(modifier)
+				end
+			end
 		end
 	end
-	self.ClosureRegistry[button] = nil;
-	if not next(self.ClosureRegistry) then
+
+	function ModListen:TriggerModifier(modifier)
+		for signature, data in pairs(self.Listeners) do
+			if (data.modifier == modifier) then
+				CPButtonCatcherMixin.OnGamePadButtonDown(data.frame, data.trigger)
+			end
+		end
+	end
+
+	function ModListen:GetSignature(frame, trigger)
+		return tostring(frame) .. tostring(trigger);
+	end
+
+	function ModListen:RegisterFrame(frame, trigger, modifier)
+		self.Listeners[self:GetSignature(frame, trigger)] = {
+			frame = frame;
+			trigger = trigger;
+			modifier = modifier;
+		};
+		self:RegisterEvent('MODIFIER_STATE_CHANGED')
+		self:SetScript('OnEvent', self.OnModifierStateChanged)
+	end
+
+	function ModListen:RemoveFrame(frame, trigger)
+		self.Listeners[self:GetSignature(frame, trigger)] = nil;
+		if not next(self.Listeners) then
+			self:UnregisterAllEvents()
+		end
+	end
+
+	-----------------------------------------------------------
+	-- Mixin
+	-----------------------------------------------------------
+	CPButtonCatcherMixin = {};
+
+	function CPButtonCatcherMixin:OnLoad()
+		self.ClosureRegistry = {};
+	end
+
+	function CPButtonCatcherMixin:OnGamePadButtonDown(button)
+		if not self.catcherPaused and self.ClosureRegistry[button] then
+			self.ClosureRegistry[button](button)
+			return self:SetPropagateKeyboardInput(false)
+		end
+		self:SetPropagateKeyboardInput(true)
+	end
+
+	function CPButtonCatcherMixin:OnHide()
+		self:ReleaseClosures()
+	end
+
+	function CPButtonCatcherMixin:CatchButton(button, callback, ...)
+		local closure = GenerateClosure(callback, ...)
+		self.ClosureRegistry[button] = closure;
+
+		local modifier = db.Gamepad:GetActiveModifier(button)
+		if modifier then
+			ModListen:RegisterFrame(self, button, modifier)
+		end
+		self:EnableGamePadButton(true)
+		return closure; -- return the event owner
+	end
+
+	function CPButtonCatcherMixin:FreeButton(button, ...)
+		if select('#', ...) > 0 then
+			local closure = ...;
+			if closure and (self.ClosureRegistry[button] ~= closure) then
+				return false; -- assert event owner if supplied
+			end
+		end
+		if db.Gamepad:GetActiveModifier(button) then
+			ModListen:RemoveFrame(self, button)
+		end
+		self.ClosureRegistry[button] = nil;
+		if not next(self.ClosureRegistry) then
+			self:EnableGamePadButton(false)
+		end
+		return true;
+	end
+
+	function CPButtonCatcherMixin:PauseCatcher()
+		self.catcherPaused = true;
+	end
+
+	function CPButtonCatcherMixin:ResumeCatcher()
+		self.catcherPaused = false;
+	end
+
+	function CPButtonCatcherMixin:ReleaseClosures()
+		wipe(self.ClosureRegistry)
 		self:EnableGamePadButton(false)
 	end
-	return true;
-end
-
-function CPButtonCatcherMixin:PauseCatcher()
-	self.catcherPaused = true;
-end
-
-function CPButtonCatcherMixin:ResumeCatcher()
-	self.catcherPaused = false;
-end
-
-function CPButtonCatcherMixin:ReleaseClosures()
-	wipe(self.ClosureRegistry)
-	self:EnableGamePadButton(false)
 end

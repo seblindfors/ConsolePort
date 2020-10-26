@@ -52,12 +52,11 @@
 		toplevel="true" movable="true" 
 		mixin="CPContainerMixin" hidden="true">
 		<Scripts>
-			<OnHide method="OnHide" inherit="prepend"/>
+			<OnShow method="OnContainerShow" inherit="prepend"/>
 			<OnLoad method="OnContainerLoad" inherit="prepend"/>
 			<OnDragStart method="StartMoving"/>
 			<OnDragStop method="StopMovingOrSizing"/>
 			<OnSizeChanged method="OnContainerSizeChanged" inherit="prepend"/>
-			<OnGamePadButtonDown method="OnGamePadButtonDown" inherit="prepend"/>
 		</Scripts>
 		<KeyValues>
 			<KeyValue key="stepSize" value="32" type="number"/>

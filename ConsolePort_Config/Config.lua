@@ -15,20 +15,16 @@ Config:SetScript('OnMouseWheel', function(self, delta, ...)
 	end
 end)
 
-LibStub:GetLibrary('Carpenter'):BuildFrame(Config, {
-	DefaultFrame = {
-		_Type = 'Frame';
-		_Points = {
-			{'TOPLEFT', '$parent.Container', 'TOPLEFT', 0, 0};
-			{'BOTTOMRIGHT', '$parent.Container', 'BOTTOMRIGHT', 0, 0};
-		};
-		{
-			Logo = {
-				_Type = 'Texture';
-				_Size = {128, 128};
-				_Texture = CPAPI.GetAsset('Textures\\Logo\\CP');
-				_Point = {'TOP', 0, -100};
-			};
-		};
-	};
-})
+local db = ConsolePort:DB()
+
+function Config:OnActiveDeviceChanged()
+	local hasActiveDevice = db('Gamepad/Active') and true or false;
+	self.Header:ToggleEnabled(hasActiveDevice)
+end
+
+function Config:OnShow()
+	self:OnActiveDeviceChanged()
+end
+
+CPAPI.Start(Config)
+db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)

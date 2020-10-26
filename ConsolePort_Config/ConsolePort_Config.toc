@@ -1,7 +1,8 @@
-## Interface: 90000
+## Interface: 90002
 ## Title: Console Port |cff69ccf0Config|r
 ## Notes: Configuration module
 ## RequiredDeps: ConsolePort
+## LoadOnDemand: 1
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
@@ -9,6 +10,10 @@
 
 Helpers.lua
 Config.xml
+
+Wizard\Cvars.lua
+Wizard\Device.lua
+Wizard\Wizard.lua
 
 Bindings\Info.lua
 Bindings\Shortcut.lua

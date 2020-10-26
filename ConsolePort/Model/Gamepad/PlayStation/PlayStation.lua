@@ -132,8 +132,8 @@ select(2, ...).Gamepad:AddGamepad({
 			};
 			PADFORWARD = {
 				['']            = 'TOGGLEWORLDMAP';
-				['SHIFT-']      = 'CP_CAMZOOMOUT';
-				['CTRL-']       = 'CP_CAMZOOMIN';
+				['SHIFT-']      = 'CAMERAZOOMOUT';
+				['CTRL-']       = 'CAMERAZOOMIN';
 			};
 			-- Sticks
 			PADLSTICK = {
@@ -145,7 +145,7 @@ select(2, ...).Gamepad:AddGamepad({
 		};
 	};
 	Config = {
-		name = 'PlayStation GamePad';
+		name = 'PlayStation';
 		configID = {
 			vendorID = 1356;
 		};

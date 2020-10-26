@@ -15,9 +15,11 @@ local function CreateWidget(name, inherit, blueprint)
 	local widget = CreateFromMixins(inherit)
 	widget.blueprint = blueprint;
 
-	Widgets[name] = function(self, varID, data)
+	Widgets[name] = function(self, varID, data, skipOnLoad)
 		db.table.mixin(self, widget)
-		self:OnLoad(varID, data)
+		if not skipOnLoad then
+			self:OnLoad(varID, data)
+		end
 	end;
 
 	return widget;
@@ -309,4 +311,54 @@ end
 
 function String:OnValueChanged(value)
 	self.Input:SetText(value or '')
+end
+
+---------------------------------------------------------------
+-- Button
+---------------------------------------------------------------
+local Button = CreateWidget('Button', Widget, {
+	Input = {
+		_Type  = 'Button';
+		_Setup = 'BackdropTemplate';
+		_Point = {'RIGHT', -8, 0};
+		_Size  = {200, 26};
+		_IgnoreNode = true;
+		_OnLoad = function(self)
+			self:SetFontString(self.Label)
+		end;
+		{
+			Label = {
+				_Type  = 'FontString';
+				_Setup = 'ChatFontNormal';
+				_Points = {
+					{'LEFT', 8, 0};
+					{'RIGHT', -8, 0};
+				};
+			};
+		};
+	};
+})
+
+function Button:TryCatchInput(button)
+	if button then
+
+	end
+end
+
+function Button:OnEvent(_, key, down)
+	if ( down == 1 ) then
+		self:TryCatchInput()
+	end
+end
+
+function Button:OnGamePadButtonDown(button)
+	self:TryCatchInput(button)
+end
+
+function Button:OnClick()
+	local handler = self:GetChecked() and self.RegisterEvent or self.UnregisterEvent;
+	handler(self, 'MODIFIER_STATE_CHANGED')
+end
+
+function Button:OnValueChanged(value)
 end

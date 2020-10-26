@@ -1,7 +1,7 @@
 -- Consts
 local STICK_SELECT = {'Left', 'Right', 'Movement', 'Cursor'};
 local UINAV_SELECT = {'PAD1', 'PAD2', 'PAD3', 'PAD4'};
-local MODID_SELECT = {'Alt', 'Shift', 'Ctrl'};
+local MODID_SELECT = {'ALT', 'SHIFT', 'CTRL'};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
 
 local unpack, __, db = unpack, ...; __ = 1;
@@ -118,7 +118,7 @@ db:Register('Variables', {
 		name = 'Reactivation Delay';
 		desc = 'Delay before re-activating interface cursor after leaving combat.';
 	};
-	UImodifierCommands = {Select('Shift', unpack(MODID_SELECT));
+	UImodifierCommands = {Select('SHIFT', unpack(MODID_SELECT));
 		head = 'Interface Cursor';
 		sort = 5;
 		name = 'Modifier';

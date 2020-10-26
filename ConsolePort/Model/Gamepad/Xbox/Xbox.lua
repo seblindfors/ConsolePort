@@ -1,7 +1,8 @@
 select(2, ...).Gamepad:AddGamepad({
-	Name = 'Xbox 360 Controller';
+	Name = 'Xbox';
 	Version = 1;
 	Theme = {
+		Label = 'LTR';
 		Colors = {
 			PADDUP    = 'FFE74F';
 			PADDLEFT  = '00A2FF';
@@ -125,8 +126,8 @@ select(2, ...).Gamepad:AddGamepad({
 			PADFORWARD = {
 				['']            = 'TOGGLEGAMEMENU';
 				['SHIFT-']      = 'CLICK ConsolePortRaidCursorToggle:LeftButton';
-				['CTRL-']       = 'CP_CAMZOOMOUT';
-				['CTRL-SHIFT-'] = 'CP_CAMZOOMIN';
+				['CTRL-']       = 'CAMERAZOOMOUT';
+				['CTRL-SHIFT-'] = 'CAMERAZOOMIN';
 			};
 			-- Sticks
 			PADLSTICK = {
@@ -138,7 +139,7 @@ select(2, ...).Gamepad:AddGamepad({
 		};
 	};
 	Config = {
-		name = 'Xbox GamePad';
+		name = 'Xbox';
 		configID = {
 			vendorID = 1118;
 		};

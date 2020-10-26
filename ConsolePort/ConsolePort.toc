@@ -1,4 +1,4 @@
-## Interface: 90000
+## Interface: 90002
 ## Title: Console Port
 ## Notes: Game controller addon
 ## Version: 2.0.0
