@@ -29,8 +29,15 @@ function CPFocusPoolMixin:Acquire(index)
 end
 
 function CPFocusPoolMixin:TryAcquireRegistered(index)
-	if self.Registry[index] then
-		return self.Registry[index];
+	local widget = self.Registry[index];
+	if widget then
+		local pool = self.FramePool;
+		local inactiveIndex = tIndexOf(pool.inactiveObjects, widget)
+		if inactiveIndex then
+			pool.activeObjects[tremove(pool.inactiveObjects, inactiveIndex)] = true;
+			pool.numActiveObjects = pool.numActiveObjects + 1;
+		end
+		return widget;
 	end
 	return self:Acquire(index)
 end

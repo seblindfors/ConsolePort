@@ -321,7 +321,6 @@ function Actionbar:OnLoad(anchorTo)
 	CPFocusPoolMixin.OnLoad(self)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingActionBarTemplate', Actionpage, nil, self.Content)
-	-- TODO: need to get Extra Action Button 1 in here
 end
 
 function Actionbar:GetPages()
