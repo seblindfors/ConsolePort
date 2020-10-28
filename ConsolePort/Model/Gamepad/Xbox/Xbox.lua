@@ -79,17 +79,17 @@ select(2, ...).Gamepad:AddGamepad({
 				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON7';
 			};
 			-- Trigger buttons
+			PADLSHOULDER = {
+				['']            = 'ACTIONBUTTON5';
+				['SHIFT-']      = 'ACTIONBUTTON10';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON5';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON10';
+			};
 			PADRSHOULDER = {
 				['']            = 'ACTIONBUTTON4';
 				['SHIFT-']      = 'TARGETSCANENEMY';
 				['CTRL-']       = 'MULTIACTIONBAR1BUTTON4';
 				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON9';
-			};
-			PADRTRIGGER = {
-				['']            = 'ACTIONBUTTON5';
-				['SHIFT-']      = 'ACTIONBUTTON10';
-				['CTRL-']       = 'MULTIACTIONBAR1BUTTON5';
-				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON10';
 			};
 			-- D-Pad
 			PADDUP = {

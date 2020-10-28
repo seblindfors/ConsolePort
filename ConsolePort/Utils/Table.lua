@@ -92,13 +92,24 @@ local function spairs(t, order)
 end
 db('table/spairs', spairs)
 
+local function map(f, v, ...)
+	if (v ~= nil) then
+		return f(v), map(...)
+	end
+end
+db('table/map', map)
+
 -- This is a special iterator that returns a table in reverse order,
 -- or by "intuitive" modifier order. E.g. Shift comes before Ctrl.
 db('table/mpairs', function(t)
-	return spairs(t, function(t, a, b) 
-		if a == '' or b:match(a) then return true end
-		if b == '' or a:match(b) then return false end
-		return a > b
+	return spairs(t, function(t, a, b)
+		if (a == '') then
+			return true;
+		end
+		if (b == '' or a:match(b) or b:match(a)) then
+			return false;
+		end
+		return a > b;
 	end)
 end)
 

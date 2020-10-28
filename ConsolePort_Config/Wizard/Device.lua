@@ -5,13 +5,24 @@ local db, _, env = ConsolePort:DB(), ...;
 local Device = {}; env.DeviceSelectMixin = Device;
 
 function Device:OnClick()
-	db('Gamepad'):SetActiveDevice(self.ID)
-	db('Gamepad/Active'):ApplyPresetVars()
+	local device = self.Device;
+	device:ApplyPresetVars()
+	CPAPI.Popup('ConsolePort_Reset_Keybindings', {
+		text = CONFIRM_RESET_KEYBINDINGS;
+		button1 = OKAY;
+		button2 = CANCEL;
+		timeout = 0;
+		whileDead = 1;
+		showAlert = 1;
+		OnAccept = function()
+			device:ApplyPresetBindings(GetCurrentBindingSet())
+		end;
+	})
 	self:UpdateState()
 end
 
 function Device:UpdateState()
-	local isActive = self.Data.Active
+	local isActive = self.Device.Active;
 	self:SetChecked(isActive and true or false)
 	self:OnChecked(isActive and true or false)
 	self:SetAttribute('nodepriority', isActive and 1 or 2)

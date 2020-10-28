@@ -82,7 +82,7 @@ function HotkeyHandler:GetHotkeyData(device, btnID, modID, styleMain, styleMod)
 end
 
 function HotkeyHandler:GetButtonSlug(device, btnID, modID, split)
-	local icon = '|T%s:0:0:0:0:32:32:8:24:8:24|t'
+	local icon = ('|T%s:0:0:0:0:32:32:8:24:8:24|t')
 	local data = self:GetHotkeyData(device, btnID, modID, split and 64 or 32, 32)
 	local slug = split and {} or '';
 	for i, mod in ripairs(data.modifier) do

@@ -26,7 +26,7 @@ function WizardContent:AddDevice(name, device)
 		widget:SetDrawOutline(true)
 	end
 	widget.ID = name;
-	widget.Data = device;
+	widget.Device = device;
 	widget:Show()
 	return widget;
 end

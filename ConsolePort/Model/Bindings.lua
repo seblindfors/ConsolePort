@@ -6,7 +6,7 @@ select(2, ...):Register('Bindings', {
 	{name = KEY_BUTTON2,                      binding = 'TURNORACTION'};
 	-- Targeting
 	{name = hold(FOCUS_CAST_KEY_TEXT),        binding = 'CLICK ConsolePortFocusButton:LeftButton'};
-	{name = hold 'Target Unit Frames',        binding = 'CLICK ConsolePortEasyMotionButton:LeftButton'};
+	{name = hold'Target Unit Frames',        binding = 'CLICK ConsolePortEasyMotionButton:LeftButton'};
 	{name = 'Toggle Raid Cursor',             binding = 'CLICK ConsolePortRaidCursorToggle:LeftButton'};
 	{name = 'Focus Raid Cursor',              binding = 'CLICK ConsolePortRaidCursorFocus:LeftButton'};
 	{name = 'Target Raid Cursor',             binding = 'CLICK ConsolePortRaidCursorTarget:LeftButton'};

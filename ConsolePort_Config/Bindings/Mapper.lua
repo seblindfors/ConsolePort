@@ -69,7 +69,7 @@ function Mapper:SetFocus(widget)
 	else
 		self:SetCatchButton(false)
 		-- HACK: route it to the close button first, so it has
-		-- a fallback if going straight into rebinding.
+		-- a fallback if going straight into manual rebinding.
 		db('Cursor'):SetCurrentNode(self.Child.Close, true)
 		db('Cursor'):SetCurrentNode(self.Child.Change, true)
 	end
@@ -114,8 +114,6 @@ function Mapper:OnWidgetSet(widget)
 	self:ToggleFlex(widget)
 	if widget then
 		self:SetBindingInfo(widget:GetBinding())
-		--print(widget:GetBinding())
-		--print(widget:GetAction())
 		self:RegisterEvent('UPDATE_BINDINGS')
 		self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
 	else
@@ -128,22 +126,14 @@ end
 ---------------------------------------------------------------
 -- Binding catch, set, clear olds
 ---------------------------------------------------------------
-function Mapper:ClearKeys(key, ...)
-	if key then
-		SetBinding(key, nil)
-		self:ClearKeys(...)
-	end
-end
-
 function Mapper:ClearBinding()
-	local binding = self:GetBinding()
-	self:ClearKeys(db('Gamepad'):GetBindingKey(binding))
+	db.table.map(SetBinding, db.Gamepad:GetBindingKey(self:GetBinding()))
 end
 
 function Mapper:SetBinding(keychord)
 	local binding, transposedActionID = self:GetBinding()
 	if not db('bindingOverlapEnable') then
-		self:ClearKeys(db('Gamepad'):GetBindingKey(binding))
+		db.table.map(SetBinding, db.Gamepad:GetBindingKey(binding))
 	end
 	SetBinding(keychord, binding)
 	self:SetBindingInfo(binding, transposedActionID)

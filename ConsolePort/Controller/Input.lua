@@ -25,11 +25,11 @@ function InputAPI:GetWidget(id, owner)
 	local widget = self.Widgets[id]
 	if not widget then
 		widget = CreateFrame(
-			'Button', ('CP-Input-%s'):format(tostring(id)), self,
-			'SecureActionButtonTemplate, SecureHandlerBaseTemplate'
+			'Button', ('CP-Input-%s'):format(tostring(id):upper()),
+			self, 'SecureActionButtonTemplate, SecureHandlerBaseTemplate'
 		);
 		widget:Hide()
-		db('table/mixin')(widget, InputMixin)
+		db.table.mixin(widget, InputMixin)
 		widget:OnLoad(id)
 		self.Widgets[id] = widget
 	end
@@ -50,6 +50,29 @@ function InputAPI:ReleaseAll()
 		widget:ClearOverride()
 	end
 end
+
+---------------------------------------------------------------
+-- Conflict handler
+---------------------------------------------------------------
+InputMixin.SetOverrideBinding = SetOverrideBindingClick;
+InputMixin.ClearOverrideBinding = ClearOverrideBindings;
+
+function InputAPI:HandleConflict(owner, isPriority, key, cmd)
+	local formattedKey = tostring(key):upper()
+	if IsBindingForGamePad(formattedKey) then
+		local widget = self.Widgets[formattedKey]
+		local override = widget and widget:GetOverride(isPriority)
+		if override then
+			widget:SetOverride(override)
+		end
+	end
+end
+
+hooksecurefunc('SetOverrideBinding',      function(...) InputAPI:HandleConflict(...) end)
+hooksecurefunc('SetOverrideBindingClick', function(...) InputAPI:HandleConflict(...) end)
+hooksecurefunc('SetOverrideBindingItem',  function(...) InputAPI:HandleConflict(...) end)
+hooksecurefunc('SetOverrideBindingMacro', function(...) InputAPI:HandleConflict(...) end)
+hooksecurefunc('SetOverrideBindingSpell', function(...) InputAPI:HandleConflict(...) end)
 
 ---------------------------------------------------------------
 -- Supported functions 
@@ -145,7 +168,7 @@ function InputMixin:SetOverride(data)
 			self:SetAttribute(attribute, value)
 		end
 	end
-	SetOverrideBindingClick(self,
+	self:SetOverrideBinding(
 		data.isPriority,
 		self:GetAttribute('id'),
 		data.target or self:GetName(),
@@ -161,6 +184,13 @@ function InputMixin:HasOwner(owner)
 			return i, data;
 		end
 	end
+end
+
+function InputMixin:GetOverride(isPriority)
+	if isPriority then
+		return self[1];
+	end
+	return self[2];
 end
 
 function InputMixin:ClearOverride(owner)
@@ -187,13 +217,13 @@ function InputMixin:ClearDataAndBinding(...)
 		end
 		self[idx] = nil;
 	end
-	ClearOverrideBindings(self)
+	self:ClearOverrideBinding()
 end
 
 ---------------------------------------------------------------
 -- InputMixin
 ---------------------------------------------------------------
-InputMixin.timer = 0
+InputMixin.timer = 0;
 
 function InputMixin:OnLoad(id)
 	self:SetAttribute('id', id)

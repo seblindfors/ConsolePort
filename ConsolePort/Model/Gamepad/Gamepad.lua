@@ -4,7 +4,7 @@ local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parent
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
 }, {
-	Modsims = {'Alt', 'Ctrl', 'Shift'};
+	Modsims = {'ALT', 'CTRL', 'SHIFT'};
 	Devices = {};
 	Index = {
 		Stick  = {
@@ -151,6 +151,7 @@ function GamepadAPI:ReindexModifiers()
 		local btn = GetCVar('GamePadEmulate'..mod)
 		if (btn and btn:match('PAD')) then
 			self.Index.Modifier.Key[mod] = btn -- BUG: uproots the mod order if uppercase
+			self.Index.Modifier.Key[mod:upper()] = btn
 			self.Index.Modifier.Prefix[mod..'-'] = btn
 		end
 	end
@@ -161,7 +162,7 @@ function GamepadAPI:GetActiveModifiers()
 	local mods = db('table/copy')(self.Index.Modifier.Prefix)
 	local spairs = db('table/spairs') -- need to scan in-order
 
-	local function assertUniqueOrder(...)
+	local function assertUniqueAndInOrder(...)
 		local uniques = {}
 		for i=1, select('#', ...) do
 			local v1 = select(i, ...)
@@ -177,11 +178,11 @@ function GamepadAPI:GetActiveModifiers()
 	for M1, K1 in spairs(mods) do
 		for M2, K2 in spairs(mods) do
 			for M3, K3 in spairs(mods) do
-				if (assertUniqueOrder(M1, M2, M3)) then
+				if (assertUniqueAndInOrder(M1, M2, M3)) then
 					mods[M1..M2..M3] = ('%s-%s-%s'):format(K1, K2, K3)
 				end
 			end
-			if (assertUniqueOrder(M1, M2)) then
+			if (assertUniqueAndInOrder(M1, M2)) then
 				mods[M1..M2] = ('%s-%s'):format(K1, K2)
 			end
 		end
@@ -247,12 +248,19 @@ function GamepadMixin:ApplyPresetVars()
 	for var, val in pairs(self.Preset.Variables) do
 		SetCVar('Gamepad'..var, val)
 	end
+	GamepadAPI:ReindexMappedState()
+	GamepadAPI:SetActiveDevice(self.Name)
 end
 
 function GamepadMixin:ApplyPresetBindings(setID)
 	assert(self.Preset.Bindings, ('Preset bindings missing from %s template.'):format(self.Name))
+	local clearOverlap, map = not db('bindingOverlapEnable'), db.table.map;
+
 	for btn, set in pairs(self.Preset.Bindings) do
 		for mod, binding in pairs(set) do
+			if clearOverlap then
+				map(SetBinding, GamepadAPI:GetBindingKey(binding))
+			end
 			SetBinding(mod..btn, binding)
 		end
 	end

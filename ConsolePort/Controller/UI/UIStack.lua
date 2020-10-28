@@ -209,8 +209,8 @@ end
 ---------------------------------------------------------------
 do db:Save('Stack/Registry', 'ConsolePortUIStack')
 
-	-- NOTE: this function generates the default set which
-	-- contains all the frames that are not caught by managers,
+	-- NOTE: this function generates the default set which should
+	-- contain all the frames that are not caught by managers,
 	-- and exist within the FrameXML code in some shape or form. 
 	local function GenerateDefaultSet(self)
 		-- Special handling for containers
@@ -220,6 +220,8 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 		for i=1, STATICPOPUP_NUMDIALOGS do
 			self:TryRegisterFrame(_, 'StaticPopup'..i, true)
 		end
+
+		self:TryRegisterFrame(_, 'LFGDungeonReadyPopup', true)
 	end
 
 	function Stack:GetRegistrySet(name)
