@@ -15,11 +15,10 @@ local function CreateWidget(name, inherit, blueprint)
 	local widget = CreateFromMixins(inherit)
 	widget.blueprint = blueprint;
 
-	Widgets[name] = function(self, varID, data, skipOnLoad)
+	Widgets[name] = function(self, ...)
 		db.table.mixin(self, widget)
-		if not skipOnLoad then
-			self:OnLoad(varID, data)
-		end
+		self:OnLoad(...)
+		return self;
 	end;
 
 	return widget;
@@ -32,21 +31,19 @@ Widgets.CreateWidget = CreateWidget;
 ---------------------------------------------------------------
 local Widget = {};
 
-function Widget:OnLoad(varID, data)
-	self.metaData = data;
+function Widget:OnLoad(varID, metaData, controller, desc)
+	self.metaData = metaData;
 	self.variableID = varID;
-	self.controller = data[1];
-	self.tooltipText = data.desc;
-	self.controller:SetCallback(function(value) db('Settings/'..varID, value) end)
-	db:RegisterCallback('Settings/'..varID, self.OnValueChanged, self)
+	self.controller = controller;
+	self.tooltipText = desc;
 
 	if self.blueprint then
 		Carpenter:BuildFrame(self, self.blueprint, false, true)
 	end
 end
 
-function Widget:Get()
-	return db(self.variableID)
+function Widget:GetMetadata()
+	return self.metaData;
 end
 
 function Widget:Set(...)
@@ -323,21 +320,32 @@ local Button = CreateWidget('Button', Widget, {
 		_Point = {'RIGHT', -8, 0};
 		_Size  = {200, 26};
 		_IgnoreNode = true;
+		_Backdrop = CPAPI.Backdrops.Opaque;
 		_OnLoad = function(self)
 			self:SetFontString(self.Label)
+			self:SetBackdropColor(COLOR_NORMAL:GetRGBA());
+			self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1);
 		end;
 		{
 			Label = {
 				_Type  = 'FontString';
-				_Setup = 'ChatFontNormal';
+				_Setup = {'ARTWORK'};
+				_OnLoad = function(self)
+					self:SetFont(ChatFontNormal:GetFont())
+				end;
 				_Points = {
-					{'LEFT', 8, 0};
-					{'RIGHT', -8, 0};
+					{'TOPLEFT', 8, 0};
+					{'BOTTOMRIGHT', -8, 0};
 				};
 			};
 		};
 	};
 })
+
+function Button:OnLoad(...)
+	Widget.OnLoad(self, ...)
+	self:EnableGamePadButton(false)
+end
 
 function Button:TryCatchInput(button)
 	if button then
@@ -356,9 +364,10 @@ function Button:OnGamePadButtonDown(button)
 end
 
 function Button:OnClick()
-	local handler = self:GetChecked() and self.RegisterEvent or self.UnregisterEvent;
-	handler(self, 'MODIFIER_STATE_CHANGED')
+	self:EnableGamePadButton(true)
 end
 
 function Button:OnValueChanged(value)
+	local display = _G[('KEY_%s'):format(value or '')]
+	self.Input:SetText(display or env.BindingInfo.NotBoundColor:format(NOT_BOUND))
 end

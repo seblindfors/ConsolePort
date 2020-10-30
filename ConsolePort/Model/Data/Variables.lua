@@ -110,13 +110,13 @@ db:Register('Variables', {
 		head = 'Interface Cursor';
 		sort = 4;
 		name = 'Repeated Movement Delay';
-		desc = 'Delay until a movement is repeated, when holding down a direction.';
+		desc = 'Delay until a movement is repeated, when holding down a direction, in seconds.';
 	};
 	UIleaveCombatDelay = {Number(0.5, 0.1);
 		head = 'Interface Cursor';
 		sort = 4;
 		name = 'Reactivation Delay';
-		desc = 'Delay before re-activating interface cursor after leaving combat.';
+		desc = 'Delay before reactivating interface cursor after leaving combat, in seconds.';
 	};
 	UImodifierCommands = {Select('SHIFT', unpack(MODID_SELECT));
 		head = 'Interface Cursor';

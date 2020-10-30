@@ -7,33 +7,33 @@ db:Register('Console', {
 	--------------------------------------------------------------------------------------------------------
 	-- Bindings:
 	--------------------------------------------------------------------------------------------------------
+	{	cvar = 'GamePadEmulateShift';
+		type = Button;
+		name = 'Emulate Shift';
+		desc = 'Button that should emulate the Shift key.';
+	};
+	{	cvar = 'GamePadEmulateCtrl';
+		type = Button;
+		name = 'Emulate Ctrl';
+		desc = 'Button that should emulate the Ctrl key.';
+	};
 	{ 	cvar = 'GamePadEmulateAlt';
-		type = 'Button';
+		type = Button;
 		name = 'Emulate Alt';
 		desc = 'Button that should emulate the Alt key.';
 	};
 	{	cvar = 'GamePadEmulateEsc';
-		type = 'Button';
+		type = Button;
 		name = 'Emulate Esc';
 		desc = 'Button that should emulate the Esc key.';
 	};
-	{	cvar = 'GamePadEmulateCtrl';
-		type = 'Button';
-		name = 'Emulate Ctrl';
-		desc = 'Button that should emulate the Ctrl key.';
-	};
-	{	cvar = 'GamePadEmulateShift';
-		type = 'Button';
-		name = 'Emulate Shift';
-		desc = 'Button that should emulate the Shift key.';
-	};
 	{	cvar = 'GamePadCursorLeftClick';
-		type = 'Button';
+		type = Button;
 		name = KEY_BUTTON1;
 		desc = 'Button that should emulate mouse Left Click while controlling the mouse cursor.';
 	};
 	{	cvar = 'GamePadCursorRightClick';
-		type = 'Button';
+		type = Button;
 		name = KEY_BUTTON2;
 		desc = 'Button that should emulate mouse Right Click while controlling the mouse cursor.';
 	};
@@ -41,17 +41,17 @@ db:Register('Console', {
 	-- Cursor:
 	--------------------------------------------------------------------------------------------------------
 	{	cvar = 'GamePadCursorSpeedMax';
-		type = 'Number';
+		type = Number(1, 0.1);
 		name = 'Cursor Max Speed';
 		desc = 'Top speed of cursor movement.';
 	};
 	{	cvar = 'GamePadCursorSpeedStart';
-		type = 'Number';
+		type = Number(0.1, 0.05);
 		name = 'Cursor Start Speed';
 		desc = 'Speed of cursor when it starts moving.';
 	};
 	{	cvar = 'GamePadCursorSpeedAccel';
-		type = 'Number';
+		type = Number(2, 0.1);
 		name = 'Cursor Acceleration';
 		desc = 'Acceleration of cursor per second as it continues to move.';
 	};

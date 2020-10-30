@@ -83,6 +83,28 @@ do  local ID, DATA, TYPE, CALL, PATH = 0x0, 0x1, 0x2, 0x3, 0x4;
 end
 
 ---------------------------------------------------------------
+local Button = Field():SetType('Button');
+---------------------------------------------------------------
+function Button:Set(val)
+	if IsBindingForGamePad(val) then
+		if self:IsModifierAllowed() then
+			return Field.Set(self, CreateKeyChordStringUsingMetaKeyState(val))
+		end
+		return Field.Set(self, val)
+	end
+	return self;
+end
+
+function Button:IsModifierAllowed()
+	return self.allowModifiers;
+end
+
+function Button:SetAllowModifiers(enabled)
+	self.allowModifiers = enabled;
+	return self;
+end
+
+---------------------------------------------------------------
 local Cvar = Field():SetType('Cvar');
 ---------------------------------------------------------------
 do  local Set, Get, GetBool = SetCVar, GetCVar, GetCVarBool;
@@ -170,6 +192,10 @@ end
 -- Data interface
 ---------------------------------------------------------------
 local Data = db:Register('Data', {});
+
+function Data.Button(val, allowModifiers)
+	return Button():SetAllowModifiers(allowModifiers):Set(val)
+end
 
 function Data.Cvar(id)
 	return Cvar():SetID(id)

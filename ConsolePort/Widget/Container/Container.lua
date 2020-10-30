@@ -177,7 +177,6 @@ end
 
 function CPContainerMixin:ShowDefaultFrame(show)
 	if self.DefaultFrame then
-		self.DefaultFrame:SetShown(show)
 		if show then
 			local panel = self:GetFocusWidget()
 			if panel then
@@ -185,7 +184,12 @@ function CPContainerMixin:ShowDefaultFrame(show)
 			end
 			self.focusedID = 0;
 			self.Header:UncheckAll()
+			if self.DefaultFrame.OnFirstShow then
+				self.DefaultFrame:OnFirstShow()
+				self.DefaultFrame.OnFirstShow = nil;
+			end
 		end
+		self.DefaultFrame:SetShown(show)
 		return show;
 	end
 end

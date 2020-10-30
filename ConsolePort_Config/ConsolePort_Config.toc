@@ -9,6 +9,7 @@
 ## X-Feedback: https://discord.gg/AWeHd48
 
 Helpers.lua
+Widgets.lua
 Config.xml
 
 Wizard\Cvars.lua
@@ -22,5 +23,4 @@ Bindings\Mapper.lua
 Bindings\Manager.lua
 Bindings\Bindings.lua
 
-General\Widgets.lua
 General\Settings.lua

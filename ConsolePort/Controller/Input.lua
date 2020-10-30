@@ -52,29 +52,6 @@ function InputAPI:ReleaseAll()
 end
 
 ---------------------------------------------------------------
--- Conflict handler
----------------------------------------------------------------
-InputMixin.SetOverrideBinding = SetOverrideBindingClick;
-InputMixin.ClearOverrideBinding = ClearOverrideBindings;
-
-function InputAPI:HandleConflict(owner, isPriority, key, cmd)
-	local formattedKey = tostring(key):upper()
-	if IsBindingForGamePad(formattedKey) then
-		local widget = self.Widgets[formattedKey]
-		local override = widget and widget:GetOverride(isPriority)
-		if override then
-			widget:SetOverride(override)
-		end
-	end
-end
-
-hooksecurefunc('SetOverrideBinding',      function(...) InputAPI:HandleConflict(...) end)
-hooksecurefunc('SetOverrideBindingClick', function(...) InputAPI:HandleConflict(...) end)
-hooksecurefunc('SetOverrideBindingItem',  function(...) InputAPI:HandleConflict(...) end)
-hooksecurefunc('SetOverrideBindingMacro', function(...) InputAPI:HandleConflict(...) end)
-hooksecurefunc('SetOverrideBindingSpell', function(...) InputAPI:HandleConflict(...) end)
-
----------------------------------------------------------------
 -- Supported functions 
 ---------------------------------------------------------------
 function InputAPI:SetButton(id, owner, ...)
@@ -283,4 +260,33 @@ function InputMixin:Clear(manual)
 	if manual then
 		self:ClearClickButton()
 	end
+end
+
+---------------------------------------------------------------
+-- Conflict handler
+---------------------------------------------------------------
+-- Handles a specific case when external overrides knock input
+-- handling into a lower priority, because of the chronological
+-- stack. Might need a var for this assertion if other addons
+-- leverage custom gamepad controls outside combat.
+
+InputMixin.SetOverrideBinding = SetOverrideBindingClick;
+InputMixin.ClearOverrideBinding = ClearOverrideBindings;
+
+do local function HandleConflict(owner, isPriority, key)
+		local formattedKey = tostring(key):upper()
+		if IsBindingForGamePad(formattedKey) then
+			local widget = InputAPI.Widgets[formattedKey];
+			local override = widget and widget:GetOverride(isPriority)
+			if override then
+				widget:SetOverride(override)
+			end
+		end
+	end
+
+	hooksecurefunc('SetOverrideBinding',      HandleConflict)
+	hooksecurefunc('SetOverrideBindingClick', HandleConflict)
+	hooksecurefunc('SetOverrideBindingItem',  HandleConflict)
+	hooksecurefunc('SetOverrideBindingMacro', HandleConflict)
+	hooksecurefunc('SetOverrideBindingSpell', HandleConflict)
 end

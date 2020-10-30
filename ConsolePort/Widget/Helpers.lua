@@ -392,30 +392,48 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 	function ModListen:TriggerModifier(modifier)
 		for signature, data in pairs(self.Listeners) do
 			if (data.modifier == modifier) then
-				CPButtonCatcherMixin.OnGamePadButtonDown(data.frame, data.trigger)
+				data.frame:OnGamePadButtonDown(data.button)
 			end
 		end
 	end
 
-	function ModListen:GetSignature(frame, trigger)
-		return tostring(frame) .. tostring(trigger);
+	function ModListen:GetSignature(frame, button)
+		return tostring(frame) .. tostring(button);
 	end
 
-	function ModListen:RegisterFrame(frame, trigger, modifier)
-		self.Listeners[self:GetSignature(frame, trigger)] = {
+	function ModListen:TryIdle()
+		if not next(self.Listeners) then
+			self:UnregisterEvent('MODIFIER_STATE_CHANGED')
+			self:SetScript('OnEvent', nil)
+		end
+	end
+
+	function ModListen:RegisterClosure(frame, button, modifier)
+		self.Listeners[self:GetSignature(frame, button)] = {
 			frame = frame;
-			trigger = trigger;
+			button = button;
 			modifier = modifier;
 		};
 		self:RegisterEvent('MODIFIER_STATE_CHANGED')
 		self:SetScript('OnEvent', self.OnModifierStateChanged)
 	end
 
-	function ModListen:RemoveFrame(frame, trigger)
-		self.Listeners[self:GetSignature(frame, trigger)] = nil;
-		if not next(self.Listeners) then
-			self:UnregisterAllEvents()
+	function ModListen:RemoveClosure(frame, button)
+		self.Listeners[self:GetSignature(frame, button)] = nil;
+		self:TryIdle()
+	end
+
+	function ModListen:RemoveFrame(frame)
+		local partial = tostring(frame);
+		local signature = next(self.Listeners)
+		while signature do
+			if signature:match(partial) then
+				self.Listeners[signature] = nil;
+				signature = nil;
+			end
+			signature = next(self.Listeners, signature)
 		end
+		self:TryIdle()
 	end
 
 	-----------------------------------------------------------
@@ -428,9 +446,14 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 	end
 
 	function CPButtonCatcherMixin:OnGamePadButtonDown(button)
-		if not self.catcherPaused and self.ClosureRegistry[button] then
-			self.ClosureRegistry[button](button)
-			return self:SetPropagateKeyboardInput(false)
+		if not self.catcherPaused then
+			if self.catchAllCallback then
+				self.catchAllCallback(button)
+				return self:SetPropagateKeyboardInput(false)
+			elseif self.ClosureRegistry[button] then 
+				self.ClosureRegistry[button](button)
+				return self:SetPropagateKeyboardInput(false)
+			end
 		end
 		self:SetPropagateKeyboardInput(true)
 	end
@@ -439,13 +462,20 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 		self:ReleaseClosures()
 	end
 
+	function CPButtonCatcherMixin:CatchAll(callback, ...)
+		self.catchAllCallback = GenerateClosure(callback, ...)
+		for _, modifier in db:For('Gamepad/Modsims') do
+			ModListen:RegisterClosure(self, modifier, modifier)
+		end
+	end
+
 	function CPButtonCatcherMixin:CatchButton(button, callback, ...)
 		local closure = GenerateClosure(callback, ...)
 		self.ClosureRegistry[button] = closure;
 
 		local modifier = db.Gamepad:GetActiveModifier(button)
 		if modifier then
-			ModListen:RegisterFrame(self, button, modifier)
+			ModListen:RegisterClosure(self, button, modifier)
 		end
 		self:EnableGamePadButton(true)
 		return closure; -- return the event owner
@@ -459,7 +489,7 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 			end
 		end
 		if db.Gamepad:GetActiveModifier(button) then
-			ModListen:RemoveFrame(self, button)
+			ModListen:RemoveClosure(self, button)
 		end
 		self.ClosureRegistry[button] = nil;
 		if not next(self.ClosureRegistry) then
@@ -477,7 +507,11 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 	end
 
 	function CPButtonCatcherMixin:ReleaseClosures()
-		wipe(self.ClosureRegistry)
+		ModListen:RemoveFrame(self)
+		self.catchAllCallback = nil;
 		self:EnableGamePadButton(false)
+		if self.ClosureRegistry then
+			wipe(self.ClosureRegistry)
+		end
 	end
 end

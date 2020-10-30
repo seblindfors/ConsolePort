@@ -5,25 +5,31 @@ local ConfigMixin, Widgets = {}, env.Widgets;
 -- General settings
 ---------------------------------------------------------------
 local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET = 284, 700, 8;
-local Field = CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
+local Setting = CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
 
-function Field:OnLoad()
+function Setting:OnLoad()
 	self:SetWidth(GENERAL_WIDTH - 32)
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 40)
 	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 end
 
-function Field:Construct(name, varID, field, newObj)
+function Setting:Construct(name, varID, field, newObj)
 	if newObj then
 		self:SetText(L(name))
 		local constructor = Widgets[varID] or Widgets[field[1]:GetType()];
 		if constructor then
-			constructor(self, varID, field)
+			constructor(self, varID, field, field[1], field.desc)
+			self.controller:SetCallback(function(value) db('Settings/'..varID, value) end)
+			db:RegisterCallback('Settings/'..varID, self.OnValueChanged, self)
 		end
 	end
 	self:Hide()
 	self:Show()
+end
+
+function Setting:Get()
+	return db(self.variableID)
 end
 
 ---------------------------------------------------------------
@@ -159,7 +165,7 @@ function General:OnLoad()
 	env.OpaqueMixin.OnLoad(self)
 	self.headerPool = CreateFramePool('Frame', self.Child, 'CPConfigHeaderTemplate')
 	self:CreateFramePool('IndexButton',
-		'CPIndexButtonBindingHeaderTemplate', Field, nil, self.Child)
+		'CPIndexButtonBindingHeaderTemplate', Setting, nil, self.Child)
 	Mixin(self.Child, env.ScaleToContentMixin)
 	self.Child:SetAllPoints()
 	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_WIDTH, FIXED_OFFSET)

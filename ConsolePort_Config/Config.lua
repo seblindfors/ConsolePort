@@ -1,8 +1,3 @@
-local b = CreateFrame('Button', 'ConfigB', UIParent, 'SecureActionButtonTemplate')
-b:SetAttribute('type', 'macro')
-b:SetAttribute('macrotext', '/run ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())')
-SetOverrideBindingClick(b, true, 'K', 'ConfigB')
-
 local _, env = ...;
 local Config = ConsolePortConfig; env.Config = Config;
 

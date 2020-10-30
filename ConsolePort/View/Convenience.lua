@@ -75,22 +75,28 @@ function Handler:MERCHANT_SHOW()
 end
 
 function Handler:BAG_UPDATE_DELAYED()
-	-- repeat attempt to auto-sell junk 
+	-- repeat attempt to auto-sell junk to handle server throttling
 	if self.merchantAvailable then
 		self:MERCHANT_SHOW()
 	end
 end
 
 -- TEMP: slash handler to show config
+-- TODO: remove
 function ShowGamePadConfig()
 	if not IsAddOnLoaded('ConsolePort_Config') then
 		LoadAddOn('ConsolePort_Config')
 	end
 	CPAPI.Log('Use /consoleport to show the config.')
-	ConsolePortConfig:Show()
+	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
 end
 
 _G['SLASH_' .. _:upper() .. '1'] = '/' .. _:lower()
 SlashCmdList[_:upper()] = function()
 	ShowGamePadConfig()
 end
+
+local b = CreateFrame('Button', 'ConfigB', UIParent, 'SecureActionButtonTemplate')
+b:SetAttribute('type', 'macro')
+b:SetAttribute('macrotext', '/consoleport')
+SetOverrideBindingClick(b, true, 'K', 'ConfigB')

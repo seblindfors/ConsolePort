@@ -16,7 +16,6 @@ function WizardContent:OnLoad()
 	self.Child:SetMeasurementOrigin(self.Child, self.Child, WIZARD_WIDTH, FIXED_OFFSET * 5)
 	-- pools
 	self.DevicePool = CreateFramePool('IndexButton', self.Child.Devices, 'CPConfigWizardDeviceButton')
-	self:OnShow()
 end
 
 function WizardContent:AddDevice(name, device)
@@ -63,8 +62,13 @@ function WizardContent:UpdateDevices()
 	self.Child.Devices:SetSize(containerWidth, containerHeight + DEVICE_HEIGHT)
 end
 
+function WizardContent:UpdateVariables()
+	self.Child.Variables:OnActiveDeviceChanged()
+end
+
 function WizardContent:OnShow()
 	self:UpdateDevices()
+	self:UpdateVariables()
 	self.Child:SetHeight(nil)
 end
 
@@ -74,10 +78,6 @@ end
 local Wizard = {};
 
 function Wizard:OnShow()
-	if self.OnFirstShow then
-		self:OnFirstShow()
-		self.OnFirstShow = nil;
-	end
 	db('Alpha/FadeIn')(self, 1)
 end
 

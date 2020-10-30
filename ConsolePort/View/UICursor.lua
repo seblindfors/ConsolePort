@@ -564,15 +564,17 @@ do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 		EditBox  = opt;
 		Slider   = mod;
 	}, function() return left end)
+	-- remove texture evaluator so cursor refreshes on next movement
+	db:RegisterCallback('Gamepad/Active', function(self) self.textureEvaluator = nil; end, Cursor)
 end
 
 function Cursor:SetTexture(texture)
 	local object = texture or self:GetCurrentObjectType()
-	local lambda = self.Textures[object]
-	if ( lambda ~= self.textureLambda ) then
-		self.Button:SetTexture(lambda())
+	local evaluator = self.Textures[object]
+	if ( evaluator ~= self.textureEvaluator ) then
+		self.Button:SetTexture(evaluator())
 	end
-	self.textureLambda = lambda
+	self.textureEvaluator = evaluator;
 end
 
 function Cursor:SetAnchor(node)
