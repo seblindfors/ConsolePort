@@ -55,6 +55,16 @@ db:Register('Console', {
 		name = 'Cursor Acceleration';
 		desc = 'Acceleration of cursor per second as it continues to move.';
 	};
+	{	cvar = 'GamePadCameraYawSpeed';
+		type = Number(1, 0.1);
+		name = 'Camera Yaw Speed';
+		desc = 'Yaw speed of camera - turning left/right.';
+	};
+	{	cvar = 'GamePadCameraPitchSpeed';
+		type = Number(1, 0.1);
+		name = 'Camera Pitch Speed';
+		desc = 'Pitch speed of camera - moving up/down.';
+	};
 })
 
 --[[
@@ -62,11 +72,9 @@ db:Register('Console', {
 	GamePadCursorCentering = "When using GamePad, center the cursor",
 	GamePadCursorAutoDisableJump = "GamePad cursor control will auto-disable when you jump",
 	GamePadCursorOnLogin = "Enable GamePad cursor control on login and character screens",
-	GamePadCameraYawSpeed = "Yaw speed of GamePad camera turning left/right",
 	GamePadCursorAutoEnable = "",
 
 	GamePadCursorCenteredEmulation = "When cursor is centered for GamePad movement, also emulate mouse clicks",
-	GamePadCameraPitchSpeed = "Pitch speed of GameUp camera moving up/down",
 	GamePadTankTurnSpeed = "If non-zero, character turns like a tank from GamePad movement",
 	GamePadFaceAngleThreshold = "Angle threshold for strafing instead of facing movement direction",
 	GamePadForceXInput = "Force game to use XInput, rather than a newer, more advanced api",

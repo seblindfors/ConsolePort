@@ -345,26 +345,23 @@ local Button = CreateWidget('Button', Widget, {
 function Button:OnLoad(...)
 	Widget.OnLoad(self, ...)
 	self:EnableGamePadButton(false)
-end
-
-function Button:TryCatchInput(button)
-	if button then
-
-	end
-end
-
-function Button:OnEvent(_, key, down)
-	if ( down == 1 ) then
-		self:TryCatchInput()
-	end
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 end
 
 function Button:OnGamePadButtonDown(button)
-	self:TryCatchInput(button)
+	self:Set(button)
+	Widget.OnClick(self)
+	env.Config:SetDefaultClosures()
 end
 
-function Button:OnClick()
-	self:EnableGamePadButton(true)
+function Button:OnClick(button)
+	if (button == 'RightButton') then
+		Widget.OnClick(self)
+		self:Set('none', true)
+	elseif self:GetChecked() then
+		return env.Config:CatchAll(self.OnGamePadButtonDown, self)
+	end
+	env.Config:SetDefaultClosures()
 end
 
 function Button:OnValueChanged(value)

@@ -85,8 +85,8 @@ end
 ---------------------------------------------------------------
 local Button = Field():SetType('Button');
 ---------------------------------------------------------------
-function Button:Set(val)
-	if IsBindingForGamePad(val) then
+function Button:Set(val, force)
+	if force or IsBindingForGamePad(val) then
 		if self:IsModifierAllowed() then
 			return Field.Set(self, CreateKeyChordStringUsingMetaKeyState(val))
 		end
@@ -100,7 +100,7 @@ function Button:IsModifierAllowed()
 end
 
 function Button:SetAllowModifiers(enabled)
-	self.allowModifiers = enabled;
+	self.allowModifiers = enabled or false;
 	return self;
 end
 

@@ -392,13 +392,13 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 	function ModListen:TriggerModifier(modifier)
 		for signature, data in pairs(self.Listeners) do
 			if (data.modifier == modifier) then
-				data.frame:OnGamePadButtonDown(data.button)
+				data.frame:OnGamePadButtonDown(data.emulated)
 			end
 		end
 	end
 
-	function ModListen:GetSignature(frame, button)
-		return tostring(frame) .. tostring(button);
+	function ModListen:GetSignature(frame, modifier)
+		return tostring(frame) .. tostring(modifier);
 	end
 
 	function ModListen:TryIdle()
@@ -408,18 +408,18 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 		end
 	end
 
-	function ModListen:RegisterClosure(frame, button, modifier)
-		self.Listeners[self:GetSignature(frame, button)] = {
+	function ModListen:RegisterClosure(frame, modifier)
+		self.Listeners[self:GetSignature(frame, modifier)] = {
 			frame = frame;
-			button = button;
 			modifier = modifier;
+			emulated = GetCVar('GamepadEmulate'..modifier);
 		};
 		self:RegisterEvent('MODIFIER_STATE_CHANGED')
 		self:SetScript('OnEvent', self.OnModifierStateChanged)
 	end
 
-	function ModListen:RemoveClosure(frame, button)
-		self.Listeners[self:GetSignature(frame, button)] = nil;
+	function ModListen:RemoveClosure(frame, modifier)
+		self.Listeners[self:GetSignature(frame, modifier)] = nil;
 		self:TryIdle()
 	end
 
@@ -465,7 +465,7 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 	function CPButtonCatcherMixin:CatchAll(callback, ...)
 		self.catchAllCallback = GenerateClosure(callback, ...)
 		for _, modifier in db:For('Gamepad/Modsims') do
-			ModListen:RegisterClosure(self, modifier, modifier)
+			ModListen:RegisterClosure(self, modifier)
 		end
 	end
 
@@ -475,7 +475,7 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 
 		local modifier = db.Gamepad:GetActiveModifier(button)
 		if modifier then
-			ModListen:RegisterClosure(self, button, modifier)
+			ModListen:RegisterClosure(self, modifier)
 		end
 		self:EnableGamePadButton(true)
 		return closure; -- return the event owner
