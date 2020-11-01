@@ -43,6 +43,7 @@ function ScaleToContentMixin:SetHeight(height)
 	else
 		self.forbidRecursiveScale = false;
 		self:ScaleToContent()
+		self:ScaleToContent()
 	end
 end
 

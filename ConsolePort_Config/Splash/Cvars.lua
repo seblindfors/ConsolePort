@@ -22,6 +22,10 @@ function Cvar:Construct(data, newObj)
 			controller:SetCallback(function(value)
 				SetCVar(self.variableID, value)
 				self:OnValueChanged(value)
+				local device = db('Gamepad/Active')
+				if device then
+					device.Preset.Variables[self.variableID] = value;
+				end
 			end)
 		end
 	end
@@ -33,7 +37,7 @@ function Cvar:Get()
 	local controller = self.controller;
 	if controller:IsBool() then
 		return GetCVarBool(self.variableID)
-	elseif controller:IsNumber() then
+	elseif controller:IsNumber() or controller:IsRange() then
 		return tonumber(GetCVar(self.variableID))
 	end
 	return GetCVar(self.variableID)
@@ -48,10 +52,14 @@ env.VariablesMixin = Variables;
 
 function Variables:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
-	self:SetMeasurementOrigin(self, self, CVARS_WIDTH, 40)
+	self:SetMeasurementOrigin(self, self, CVARS_WIDTH, 0)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingHeaderTemplate', Cvar, nil, self.Child)
 	db:RegisterCallback('Gamepad/Active', self.OnActiveDeviceChanged, self)
+end
+
+function Variables:OnShow()
+	self:OnActiveDeviceChanged()
 end
 
 function Variables:OnActiveDeviceChanged()
@@ -60,7 +68,7 @@ function Variables:OnActiveDeviceChanged()
 	if device then
 		local prev;
 		-- TODO: render cvars
-		for i, data in db:For('Console') do
+		for i, data in db:For(self.dbPath) do
 			local widget, newObj = self:TryAcquireRegistered(i)
 			if newObj then
 				widget.Label:ClearAllPoints()
@@ -71,6 +79,7 @@ function Variables:OnActiveDeviceChanged()
 				widget:SetDrawOutline(true)
 				widget:OnLoad()
 			end
+			widget:SetAttribute('nodepriority', i)
 			widget:Construct(data, newObj)
 			if prev then
 				widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)
@@ -80,9 +89,5 @@ function Variables:OnActiveDeviceChanged()
 			prev = widget;
 		end
 		self:SetHeight(nil)
-		self:Show()
-	else
-		self:SetHeight(0)
-		self:Hide()
 	end
 end

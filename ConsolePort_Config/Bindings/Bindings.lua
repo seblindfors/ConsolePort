@@ -360,7 +360,6 @@ function BindingsMixin:OnFirstShow()
 						_Setup = 'SharedButtonLargeTemplate';
 						_Point = {'CENTER', '$parent.Change', 'CENTER', 0, 0};
 						_Level = 100;
-						_Text = 'Enter World';
 						_Size = {260, 50};
 						_Hide = true;
 						_OnShow = function(self)

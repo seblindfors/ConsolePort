@@ -46,13 +46,13 @@ select(2, ...).Gamepad:AddGamepad({
 	};
 	Preset = {
 		Variables = {
-			EmulateShift     = 'PADLSHOULDER';
-			EmulateCtrl      = 'PADLTRIGGER';
-			EmulateAlt       = 'none';
-			EmulateEsc       = 'PADBACK';
-			CursorLeftClick  = 'PADLSTICK';
-			CursorRightClick = 'PADRSTICK';
-			AbbreviatedBindingReverse = 0;
+			GamePadEmulateShift     = 'PADLSHOULDER';
+			GamePadEmulateCtrl      = 'PADLTRIGGER';
+			GamePadEmulateAlt       = 'none';
+			GamePadEmulateEsc       = 'PADBACK';
+			GamePadCursorLeftClick  = 'PADLSTICK';
+			GamePadCursorRightClick = 'PADRSTICK';
+			GamePadAbbreviatedBindingReverse = 0;
 		};
 		Bindings = {
 			PAD1 = {

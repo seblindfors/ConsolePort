@@ -12,9 +12,9 @@ Helpers.lua
 Widgets.lua
 Config.xml
 
-Wizard\Cvars.lua
-Wizard\Device.lua
-Wizard\Wizard.lua
+Splash\Cvars.lua
+Splash\Device.lua
+Splash\Splash.lua
 
 Bindings\Info.lua
 Bindings\Shortcut.lua

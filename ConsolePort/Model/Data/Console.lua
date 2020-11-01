@@ -5,65 +5,74 @@ setfenv(__, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------
 db:Register('Console', {
 	--------------------------------------------------------------------------------------------------------
-	-- Bindings:
+	-- Emulation:
 	--------------------------------------------------------------------------------------------------------
-	{	cvar = 'GamePadEmulateShift';
-		type = Button;
-		name = 'Emulate Shift';
-		desc = 'Button that should emulate the Shift key.';
-	};
-	{	cvar = 'GamePadEmulateCtrl';
-		type = Button;
-		name = 'Emulate Ctrl';
-		desc = 'Button that should emulate the Ctrl key.';
-	};
-	{ 	cvar = 'GamePadEmulateAlt';
-		type = Button;
-		name = 'Emulate Alt';
-		desc = 'Button that should emulate the Alt key.';
-	};
-	{	cvar = 'GamePadEmulateEsc';
-		type = Button;
-		name = 'Emulate Esc';
-		desc = 'Button that should emulate the Esc key.';
-	};
-	{	cvar = 'GamePadCursorLeftClick';
-		type = Button;
-		name = KEY_BUTTON1;
-		desc = 'Button that should emulate mouse Left Click while controlling the mouse cursor.';
-	};
-	{	cvar = 'GamePadCursorRightClick';
-		type = Button;
-		name = KEY_BUTTON2;
-		desc = 'Button that should emulate mouse Right Click while controlling the mouse cursor.';
+	Emulation = {
+		{	cvar = 'GamePadEmulateShift';
+			type = Button;
+			name = 'Emulate Shift';
+			desc = 'Button that should emulate the Shift key.';
+		};
+		{	cvar = 'GamePadEmulateCtrl';
+			type = Button;
+			name = 'Emulate Ctrl';
+			desc = 'Button that should emulate the Ctrl key.';
+		};
+		{ 	cvar = 'GamePadEmulateAlt';
+			type = Button;
+			name = 'Emulate Alt';
+			desc = 'Button that should emulate the Alt key.';
+		};
+		{	cvar = 'GamePadEmulateEsc';
+			type = Button;
+			name = 'Emulate Esc';
+			desc = 'Button that should emulate the Esc key.';
+		};
+		{	cvar = 'GamePadCursorLeftClick';
+			type = Button;
+			name = KEY_BUTTON1;
+			desc = 'Button that should emulate mouse Left Click while controlling the mouse cursor.';
+		};
+		{	cvar = 'GamePadCursorRightClick';
+			type = Button;
+			name = KEY_BUTTON2;
+			desc = 'Button that should emulate mouse Right Click while controlling the mouse cursor.';
+		};
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Cursor:
 	--------------------------------------------------------------------------------------------------------
-	{	cvar = 'GamePadCursorSpeedMax';
-		type = Number(1, 0.1);
-		name = 'Cursor Max Speed';
-		desc = 'Top speed of cursor movement.';
-	};
-	{	cvar = 'GamePadCursorSpeedStart';
-		type = Number(0.1, 0.05);
-		name = 'Cursor Start Speed';
-		desc = 'Speed of cursor when it starts moving.';
-	};
-	{	cvar = 'GamePadCursorSpeedAccel';
-		type = Number(2, 0.1);
-		name = 'Cursor Acceleration';
-		desc = 'Acceleration of cursor per second as it continues to move.';
-	};
-	{	cvar = 'GamePadCameraYawSpeed';
-		type = Number(1, 0.1);
-		name = 'Camera Yaw Speed';
-		desc = 'Yaw speed of camera - turning left/right.';
-	};
-	{	cvar = 'GamePadCameraPitchSpeed';
-		type = Number(1, 0.1);
-		name = 'Camera Pitch Speed';
-		desc = 'Pitch speed of camera - moving up/down.';
+	Handling = {
+		{	cvar = 'CursorCenteredYPos';
+			type = Range(0.6, 0.025, 0, 1);
+			name = 'Cursor Center Position';
+			desc = 'Vertical position of centered cursor & targeting, as fraction of screen height.';
+		};
+		{	cvar = 'GamePadCursorSpeedMax';
+			type = Number(1, 0.1);
+			name = 'Cursor Max Speed';
+			desc = 'Top speed of cursor movement.';
+		};
+		{	cvar = 'GamePadCursorSpeedStart';
+			type = Number(0.1, 0.05);
+			name = 'Cursor Start Speed';
+			desc = 'Speed of cursor when it starts moving.';
+		};
+		{	cvar = 'GamePadCursorSpeedAccel';
+			type = Number(2, 0.1);
+			name = 'Cursor Acceleration';
+			desc = 'Acceleration of cursor per second as it continues to move.';
+		};
+		{	cvar = 'GamePadCameraYawSpeed';
+			type = Number(1, 0.1);
+			name = 'Camera Yaw Speed';
+			desc = 'Yaw speed of camera - turning left/right.';
+		};
+		{	cvar = 'GamePadCameraPitchSpeed';
+			type = Number(1, 0.1);
+			name = 'Camera Pitch Speed';
+			desc = 'Pitch speed of camera - moving up/down.';
+		};
 	};
 })
 

@@ -246,7 +246,7 @@ end
 function GamepadMixin:ApplyPresetVars()
 	assert(self.Preset.Variables, ('Console variables missing from %s template.'):format(self.Name))
 	for var, val in pairs(self.Preset.Variables) do
-		SetCVar('Gamepad'..var, val)
+		SetCVar(var, val)
 	end
 	GamepadAPI:ReindexMappedState()
 	GamepadAPI:SetActiveDevice(self.Name)
