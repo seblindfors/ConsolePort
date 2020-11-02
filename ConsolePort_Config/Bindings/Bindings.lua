@@ -1,26 +1,5 @@
-local db, _, env = ConsolePort:DB(), ...;
-local L = db('Locale');
+local _, env = ...; local db, L = env.db, env.L;
 local BindingsMixin = {}
-
----------------------------------------------------------------
--- Helpers
----------------------------------------------------------------
-function BindingsMixin:GetActiveDeviceAndMap()
-	-- using ID to get the buttons in WinRT API order (NOTE: zero-indexed)
-	return db('Gamepad/Active'), db('Gamepad/Index/Button/ID')
-end
-
-function BindingsMixin:GetActiveModifiers()
-	return db('Gamepad/Index/Modifier/Active')
-end
-
-function BindingsMixin:GetHotkeyData(btnID, modID, styleMain, styleMod)
-	return db('Hotkeys'):GetHotkeyData(db('Gamepad/Active'), btnID, modID, styleMain, styleMod)
-end
-
-function BindingsMixin:GetBindings()
-	return db('Gamepad'):GetBindings()
-end
 
 ---------------------------------------------------------------
 -- Main frame

@@ -25,7 +25,7 @@ function Shortcuts:OnScrollFinished()
 end
 
 function Shortcuts:OnShow()
-	local device, map = self.parent:GetActiveDeviceAndMap()
+	local device, map = env:GetActiveDeviceAndMap()
 	if not device or not map then 
 		return self.Child:SetSize(0, 0)
 	end

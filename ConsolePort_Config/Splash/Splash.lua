@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...; local L = db('Locale');
+local _, env = ...; local db, L = env.db, env.L;
 ---------------------------------------------------------------
 -- Consts
 ---------------------------------------------------------------
@@ -32,20 +32,15 @@ local Content = {
 ---------------------------------------------------------------
 -- Content
 ---------------------------------------------------------------
-local WizardContent = {};
+local Wizard = {};
 
-function WizardContent:OnLoad()
+function Wizard:OnLoad()
 	Mixin(self.Child, env.ScaleToContentMixin)
 	self.Child:SetAllPoints()
 	self.Child:SetMeasurementOrigin(self.Child, self.Child, WIZARD_WIDTH, FIXED_OFFSET * 5)
 end
 
-function WizardContent:UpdateVariables()
-	self.Child.Variables:OnActiveDeviceChanged()
-end
-
-function WizardContent:OnShow()
---	self:UpdateVariables()
+function Wizard:OnShow()
 	self.Child:SetHeight(nil)
 end
 
@@ -110,6 +105,7 @@ function Splash:ShowPanel(i)
 			self:SetProgress(i)
 		end
 	end
+	self.Overview:SetShown(not data)
 end
 
 function Splash:SetProgress(step)
@@ -122,10 +118,11 @@ function Splash:AutoChoosePanel()
 			return self:ShowPanel(i)
 		end
 	end
+	self:ShowPanel(nil)
 end
 
 function Splash:ClearWizard()
-	local parent = self.Setup;
+	local parent = self.Wizard;
 	local container = parent.Child;
 	for i, data in ipairs(Content) do
 		data.button.selected:Hide()
@@ -151,8 +148,8 @@ function Splash:OnFirstShow()
 			};
 			{
 				Home = {
-					_Type = 'Button';
-					_Size = {128, 30};
+					_Type  = 'Button';
+					_Size  = {128, 30};
 					_Point = {'LEFT', 0, 0};
 					_SetNormalTexture = 'Interface\\HelpFrame\\CS_HelpTextures';
 					_SetPushedTexture = 'Interface\\HelpFrame\\CS_HelpTextures';
@@ -170,6 +167,13 @@ function Splash:OnFirstShow()
 						self:GetHighlightTexture():SetTexCoord(0.70312500-texCoordoffsetX, 0.71312500, 0.50781250, 0.74218750);
 						
 						self:SetWidth(newWidth);
+					end;
+					_OnClick = function(self)
+						if db('Gamepad/Active') then
+							env.Splash:ShowPanel(nil)
+						else
+							env.Splash:AutoChoosePanel()
+						end
 					end;
 					{
 						Shadow = {
@@ -191,11 +195,37 @@ function Splash:OnFirstShow()
 				};
 			};
 		};
-	})
-	local setup = self:CreateScrollableColumn('Setup', {
-		_Mixin = WizardContent;
+		Overview = {
+			_Type  = 'Frame';
+			_Setup = 'BackdropTemplate';
+			_Hide  = true;
+			_Mixin = env.Overview;
+			_Backdrop = CPAPI.Backdrops.Opaque;
+			_Points = {
+				{'TOPLEFT', 0, 0};
+				{'BOTTOMRIGHT', '$parent.NavBar', 'TOPRIGHT', 0, 0};
+			};
+			{
+				Splash = {
+					_Type  = 'Texture';
+					_Setup = {'ARTWORK'};
+					_Size  = {450, 450};
+					_Point = {'CENTER', 0, 0};
+				};
+				Lines = {
+					_Type  = 'Texture';
+					_Setup = {'OVERLAY'};
+					_Size  = {1024, 512};
+					_Point = {'CENTER', 0, 0};
+				};
+			};
+		};
+	}, false, true)
+	local setup = self:CreateScrollableColumn('Wizard', {
+		_Mixin = Wizard;
 		_Width = WIZARD_WIDTH;
 		_Setup = {'CPSmoothScrollTemplate'};
+		_Hide  = true;
 		_Points = {
 			{'TOP', 0, 0};
 			{'BOTTOM', '$parent.NavBar', 'TOP', 0, 0};
@@ -205,13 +235,13 @@ function Splash:OnFirstShow()
 				_Width = WIZARD_WIDTH;
 				{
 					Logo = {
-						_Type = 'Texture';
-						_Size = {128, 128};
+						_Type  = 'Texture';
+						_Size  = {128, 128};
 						_Point = {'TOP', 0, -100};
 						_Texture = CPAPI.GetAsset('Textures\\Logo\\CP');
 					};
 					Help = {
-						_Type = 'FontString';
+						_Type  = 'FontString';
 						_Point = {'TOP', '$parent.Logo', 'BOTTOM', 0, -FIXED_OFFSET};
 						_OnLoad = function(self)
 							self:SetFontObject(CPHeaderFont);
@@ -219,10 +249,10 @@ function Splash:OnFirstShow()
 						end;
 					};
 					Continue = {
-						_Type = 'Button';
+						_Type  = 'Button';
 						_Setup = 'SharedButtonLargeTemplate';
-						_Text = CONTINUE;
-						_Size = {260, 50};
+						_Text  = CONTINUE;
+						_Size  = {260, 50};
 						_OnClick = function(self)
 							local panelID = env.Splash:GetID()
 							if panelID then
@@ -239,22 +269,22 @@ function Splash:OnFirstShow()
 						}
 					};
 					Devices = {
-						_Type = 'Frame';
-						_Hide = true;
+						_Hide  = true;
+						_Type  = 'Frame';
 						_Mixin = env.DeviceSelector;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
 					};
 					Emulation = {
-						_Type  = 'Frame';
 						_Hide  = true;
+						_Type  = 'Frame';
 						_Mixin = env.VariablesMixin;
 						_Width = WIZARD_WIDTH;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
 						dbPath = 'Console/Emulation';
 					};
 					Handling = {
-						_Type  = 'Frame';
 						_Hide  = true;
+						_Type  = 'Frame';
 						_Mixin = env.VariablesMixin;
 						_Width = WIZARD_WIDTH;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};

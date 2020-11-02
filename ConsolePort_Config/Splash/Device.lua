@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...;
+local _, env = ...; local db = env.db;
 local WIZARD_WIDTH, FIXED_OFFSET, DEVICE_PER_ROW = 900, 8, 3;
 local DEVICE_WIDTH, DEVICE_HEIGHT = 250, 100;
 ---------------------------------------------------------------
@@ -9,6 +9,7 @@ local Device = {};
 function Device:OnClick()
 	local device = self.Device;
 	device:ApplyPresetVars()
+	db('Cursor'):SetCurrentNode(env.Splash.Wizard.Child.Continue, true)
 	CPAPI.Popup('ConsolePort_Reset_Keybindings', {
 		text = CONFIRM_RESET_KEYBINDINGS;
 		button1 = OKAY;
@@ -32,7 +33,7 @@ end
 
 function Device:OnShow()
 	self:UpdateState()
-	self.Splash:SetTexture(([[Interface\AddOns\ConsolePort\Model\Gamepad\%s\Assets\Splash]]):format(self.ID))
+	self.Splash:SetTexture(CPAPI.GetAsset('Splash\\Gamepad\\'..self.ID))
 	self.Splash:SetVertexColor(0.35, 0.35, 0.35, 1)
 	self.Splash:SetTexCoord(10/1024, 492/1024, 160/1024, 820/1024, 820/1024, 110/1024, 975/1024, 435/1024)
 	self.Name:SetText(self.ID)

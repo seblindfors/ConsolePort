@@ -51,6 +51,15 @@
 	</Frame>
 
 	<Frame name="CPConfigBindingDisplayTemplate" inherits="CPConfigActionDisplayTemplate, CPConfigMapperHeaderTemplate" virtual="true"/>
+	<Button name="CPConfigBindingSplashDisplayTemplate" inherits="CPConfigBindingDisplayTemplate" virtual="true">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="32" y="32"/>
+				</Texture>
+			</Layer>
+		</Layers>	
+	</Button>
 
 	<Frame name="CPConfigHeaderTemplate" virtual="true" mixin="CPConfigHeaderMixin">
 		<Size x="500" y="50"/>

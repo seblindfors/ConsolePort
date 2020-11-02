@@ -1,4 +1,25 @@
-local _, env = ...;
+local db, _, env = ConsolePort:DB(), ...; env.db, env.L = db, db.Locale;
+---------------------------------------------------------------
+-- Binding helpers
+---------------------------------------------------------------
+function env:GetActiveDeviceAndMap()
+	-- using ID to get the buttons in WinRT API order (NOTE: zero-indexed)
+	return db('Gamepad/Active'), db('Gamepad/Index/Button/ID')
+end
+
+function env:GetActiveModifiers()
+	return db('Gamepad/Index/Modifier/Active')
+end
+
+function env:GetHotkeyData(btnID, modID, styleMain, styleMod)
+	return db('Hotkeys'):GetHotkeyData(db('Gamepad/Active'), btnID, modID, styleMain, styleMod)
+end
+
+function env:GetBindings()
+	return db('Gamepad'):GetBindings()
+end
+
+
 ---------------------------------------------------------------
 -- Scale things dynamically
 ---------------------------------------------------------------

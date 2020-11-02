@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...;
+local _, env = ...; local db = env.db;
 local BindingInfo = env.BindingInfo;
 
 ---------------------------------------------------------------
@@ -371,9 +371,10 @@ end
 ---------------------------------------------------------------
 function BindingManager:OnShow()
 	local bindings, headers, wasUpdated = BindingInfo:RefreshDictionary()
-	if wasUpdated then
+	if not self.bindingsFirstDrawn or wasUpdated then
 		self:ReleaseAll()
 		self:DrawCategories(bindings, headers)
+		self.bindingsFirstDrawn = true;
 	end
 	self:RefreshHeader()
 end

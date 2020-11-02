@@ -47,11 +47,14 @@ end
 
 function GamepadAPI:OnDataLoaded()
 	self:ReindexMappedState()
-	local old = self.Devices
+	local old = self.Devices;
 	db:Load('Gamepad/Devices', 'ConsolePortDevices')
 	for id, device in pairs(old) do
-		if not self.Devices[id] then
-			self.Devices[id] = device
+		-- (1) fill in new presets that have been added,
+		-- (2) overwrite existing if version has been bumped
+		if  ( not self.Devices[id] or device.Version and
+			( self.Devices[id].Version < device.Version )) then
+			self.Devices[id] = device;
 		end
 	end
 	for id, device in pairs(self.Devices) do
@@ -80,11 +83,11 @@ function GamepadAPI:CreateGamepadFromPreset(name, preset)
 end
 
 function GamepadAPI:GetDevices()
-	local devices = {}
+	local devices = {};
 	for device in db('table/spairs')(self.Devices) do
-		devices[#devices + 1] = device
+		devices[#devices + 1] = device;
 	end
-	return devices
+	return devices;
 end
 
 function GamepadAPI:EnumerateDevices()
@@ -94,7 +97,7 @@ end
 function GamepadAPI:SetActiveDevice(name)
 	assert(self.Devices[name], ('Device %s does not exist in registry.'):format(name or '<nil>'))
 	for device, data in pairs(self.Devices) do
-		data.Active = nil
+		data.Active = nil;
 	end
 	self.Devices[name]:ApplyHotkeyStrings()
 	db(('Gamepad/Devices/%s/Active'):format(name), true)
@@ -239,8 +242,13 @@ function GamepadMixin:OnLoad(data)
 	return self
 end
 
-function GamepadMixin:UpdateConfig()
+function GamepadMixin:Activate()
+	GamepadAPI:ReindexMappedState()
+	GamepadAPI:SetActiveDevice(self.Name)
+end
 
+function GamepadMixin:UpdateConfig()
+	-- TODO: ?
 end
 
 function GamepadMixin:ApplyPresetVars()
@@ -248,8 +256,7 @@ function GamepadMixin:ApplyPresetVars()
 	for var, val in pairs(self.Preset.Variables) do
 		SetCVar(var, val)
 	end
-	GamepadAPI:ReindexMappedState()
-	GamepadAPI:SetActiveDevice(self.Name)
+	self:Activate()
 end
 
 function GamepadMixin:ApplyPresetBindings(setID)

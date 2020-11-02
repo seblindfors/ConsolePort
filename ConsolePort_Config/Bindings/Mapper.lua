@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...;
+local _, env = ...; local db = env.db;
 local Mapper = CreateFromMixins(env.FlexibleMixin, env.BindingInfoMixin)
 local ActionMapper = CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, env.BindingInfoMixin)
 env.BindingMapper, env.BindingActionMapper = Mapper, ActionMapper;

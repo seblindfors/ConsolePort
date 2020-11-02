@@ -219,7 +219,7 @@ function InputMixin:OnMouseDown()
 	self.state, self.timer = true, 0;
 
 	if self:IsSecureAction(func, click) then
-		return self:EmulateFrontend(click, 'PUSHED')
+		return self:EmulateFrontend(click, 'PUSHED', 'OnMouseDown')
 	end
 	return self:CallFunc(func)
 end
@@ -230,7 +230,7 @@ function InputMixin:OnMouseUp()
 	self.state = false;
 
 	if self:IsSecureAction(func, click) then
-		return self:EmulateFrontend(click, 'NORMAL')
+		return self:EmulateFrontend(click, 'NORMAL', 'OnMouseUp')
 	end
 	return self:CallFunc(func)
 end
@@ -239,8 +239,12 @@ function InputMixin:IsSecureAction(func, click)
 	return (func == 'click' or func == 'action') and click;
 end
 
-function InputMixin:EmulateFrontend(click, state)
+function InputMixin:EmulateFrontend(click, state, script)
 	if click:IsEnabled() then
+		local func = click:GetScript(script)
+		if func then
+			func(click)
+		end
 		return click:SetButtonState(state)
 	end
 end

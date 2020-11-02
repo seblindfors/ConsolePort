@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...; local L = db('Locale');
+local _, env = ...; local db, L = env.db, env.L;
 local BindingInfoMixin, BindingInfo = {}, {
 	--------------------------------------------------------------
 	BindingPrefix = 'BINDING_NAME_%s';

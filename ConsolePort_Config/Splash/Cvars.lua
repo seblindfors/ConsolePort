@@ -1,4 +1,5 @@
-local db, _, env = ConsolePort:DB(), ...; local L = db('Locale');
+local _, env = ...;
+local db, L = env.db, env.L;
 local CVARS_WIDTH, FIXED_OFFSET = 500, 8
 ---------------------------------------------------------------
 -- Console variable fields
@@ -25,6 +26,7 @@ function Cvar:Construct(data, newObj)
 				local device = db('Gamepad/Active')
 				if device then
 					device.Preset.Variables[self.variableID] = value;
+					device:Activate()
 				end
 			end)
 		end
@@ -67,7 +69,6 @@ function Variables:OnActiveDeviceChanged()
 	local device = db('Gamepad/Active')
 	if device then
 		local prev;
-		-- TODO: render cvars
 		for i, data in db:For(self.dbPath) do
 			local widget, newObj = self:TryAcquireRegistered(i)
 			if newObj then

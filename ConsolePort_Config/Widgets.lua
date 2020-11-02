@@ -1,4 +1,4 @@
-local db, Carpenter, _, env = ConsolePort:DB(), LibStub:GetLibrary('Carpenter'), ...;
+local Carpenter, _, env = LibStub:GetLibrary('Carpenter'), ...;
 local Widgets = {}; env.Widgets = Widgets;
 
 ---------------------------------------------------------------
@@ -16,7 +16,7 @@ local function CreateWidget(name, inherit, blueprint)
 	widget.blueprint = blueprint;
 
 	Widgets[name] = function(self, ...)
-		db.table.mixin(self, widget)
+		env.db.table.mixin(self, widget)
 		self:OnLoad(...)
 		return self;
 	end;

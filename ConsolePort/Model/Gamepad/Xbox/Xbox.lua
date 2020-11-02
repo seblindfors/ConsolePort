@@ -1,6 +1,6 @@
 select(2, ...).Gamepad:AddGamepad({
 	Name = 'Xbox';
-	Version = 1;
+	Version = 2;
 	Theme = {
 		Label = 'LTR';
 		Colors = {
@@ -42,6 +42,31 @@ select(2, ...).Gamepad:AddGamepad({
 			PADBACK     = 'Xbox/Back';
 			PADSYSTEM   = 'Xbox/System';
 			PADSOCIAL   = 'Xbox/Share';
+		};
+		Layout = {
+			PADLTRIGGER  = 0x11;
+			PADLSHOULDER = 0x12;
+			PADLSTICK    = 0x13;
+			--------------------
+			PADDUP		 = 0x14;
+			PADDLEFT	 = 0x15;
+			PADDDOWN	 = 0x16;
+			PADDRIGHT	 = 0x17;
+			--------------------
+			PADBACK      = 0x18;
+			--------------------
+			PADRTRIGGER	 = 0x21;
+			PADRSHOULDER = 0x22;
+			--------------------
+			PAD4		 = 0x23;
+			PAD2         = 0x24;
+			PAD1         = 0x25;
+			PAD3         = 0x26;
+			--------------------
+			PADRSTICK    = 0x27;
+			PADFORWARD   = 0x28;
+			--------------------
+			PADSYSTEM    = 0x32;
 		};
 	};
 	Preset = {

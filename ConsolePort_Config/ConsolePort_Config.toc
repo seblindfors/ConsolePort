@@ -11,12 +11,13 @@
 Helpers.lua
 Widgets.lua
 Config.xml
+Bindings\Info.lua
 
 Splash\Cvars.lua
 Splash\Device.lua
+Splash\Overview.lua
 Splash\Splash.lua
 
-Bindings\Info.lua
 Bindings\Shortcut.lua
 Bindings\Combo.lua
 Bindings\Mapper.lua

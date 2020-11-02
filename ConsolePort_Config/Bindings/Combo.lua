@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...;
+local _, env = ...; local db = env.db;
 ---------------------------------------------------------------
 -- Combinations (abbrev. combos)
 ---------------------------------------------------------------
@@ -124,8 +124,8 @@ function Combos:OnLoad()
 end
 
 function Combos:OnShow()
-	local device, map = self.parent:GetActiveDeviceAndMap()
-	local mods = self.parent:GetActiveModifiers()
+	local device, map = env:GetActiveDeviceAndMap()
+	local mods = env:GetActiveModifiers()
 	if not device or not map or not mods then
 		return self.Child:SetSize(0, 0)
 	end
@@ -147,7 +147,7 @@ function Combos:OnShow()
 					CPAPI.Start(widget)
 				end
 
-				local data = self.parent:GetHotkeyData(button, mod, 64, 32)
+				local data = env:GetHotkeyData(button, mod, 64, 32)
 				local modstring = '';
 
 				for i, mod in ripairs(data.modifier) do

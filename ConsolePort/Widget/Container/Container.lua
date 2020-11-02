@@ -138,7 +138,7 @@ end
 function CPContainerMixin:SetDefaultClosures()
 	self:ReleaseClosures()
 	-- TODO: special click handling?
-	self.CatchLeftTrigger = self:CatchButton('PADLTRIGGER', function(self)
+	self.CatchLeftShoulder = self:CatchButton('PADLSHOULDER', function(self)
 		local index = self.focusedID - 1;
 		if index < 1 then
 			return self:ShowDefaultFrame(true)
@@ -148,7 +148,7 @@ function CPContainerMixin:SetDefaultClosures()
 			widget:Click()
 		end
 	end, self)
-	self.CatchRightTrigger = self:CatchButton('PADRTRIGGER', function(self)
+	self.CatchRightShoulder = self:CatchButton('PADRSHOULDER', function(self)
 		local widget = self.Header:GetHeaderAtIndex(self.focusedID + 1)
 		if widget and widget:IsEnabled() then
 			widget:Click()

@@ -1,6 +1,6 @@
 select(2, ...).Gamepad:AddGamepad({
 	Name = 'PlayStation';
-	Version = 1;
+	Version = 2;
 	Theme = {
 		Label = 'SHP';
 		Colors = {
@@ -42,6 +42,31 @@ select(2, ...).Gamepad:AddGamepad({
 			PADBACK     = 'PlayStation/Back';
 			PADSYSTEM   = 'PlayStation/System';
 			PADSOCIAL   = 'PlayStation/Share';
+		};
+		Layout = {
+			PADLSHOULDER = 0x11;
+			PADLTRIGGER  = 0x12;
+			--------------------
+			PADDUP		 = 0x13;
+			PADDLEFT	 = 0x14;
+			PADDDOWN	 = 0x15;
+			PADDRIGHT	 = 0x16;
+			--------------------
+			PADSOCIAL    = 0x17;
+			PADLSTICK    = 0x18;
+			--------------------
+			PADRSHOULDER = 0x21;
+			PADRTRIGGER	 = 0x22;
+			--------------------
+			PAD4		 = 0x23;
+			PAD3         = 0x24;
+			PAD1         = 0x25;
+			PAD2         = 0x26;
+			--------------------
+			PADFORWARD   = 0x27;
+			PADRSTICK    = 0x28;
+			--------------------
+			PADSYSTEM    = 0x32;
 		};
 	};
 	Preset = {

@@ -1,4 +1,5 @@
-select(2, ...)('Gamepad/Index/Icons', {
+local db = select(2, ...);
+db('Gamepad/Index/Icons', {
 	Path = CPAPI.GetAsset([[Icons\%d\%s]]);
 	All = {
 		LG       = 'ALL_G_LEFT';
@@ -50,4 +51,9 @@ select(2, ...)('Gamepad/Index/Icons', {
 		Options  = 'XBOX_C_OPTIONS';
 		Forward  = 'XBOX_C_FORWARD';
 	};
+})
+
+db('Gamepad/Index/Splash', {
+	PlayStation = 'PlayStation';
+	Xbox = 'Xbox';
 })
