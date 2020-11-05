@@ -31,11 +31,12 @@ Widgets.CreateWidget = CreateWidget;
 ---------------------------------------------------------------
 local Widget = {};
 
-function Widget:OnLoad(varID, metaData, controller, desc)
+function Widget:OnLoad(varID, metaData, controller, desc, note)
 	self.metaData = metaData;
 	self.variableID = varID;
 	self.controller = controller;
 	self.tooltipText = desc;
+	self.tooltipNote = note;
 
 	if self.blueprint then
 		Carpenter:BuildFrame(self, self.blueprint, false, true)
@@ -63,7 +64,12 @@ end
 function Widget:OnEnter()
 	if self.tooltipText then
 		GameTooltip:SetOwner(self, 'ANCHOR_TOP')
-		GameTooltip:SetText(self.tooltipText)
+		GameTooltip:SetText(self:GetText())
+		GameTooltip:AddLine(self.tooltipText, 1, 1, 1, 1)
+		if self.tooltipNote then
+			GameTooltip:AddLine('\n'..NOTE_COLON)
+			GameTooltip:AddLine(self.tooltipNote, 1, 1, 1, 1)
+		end
 		GameTooltip:Show()
 	end
 end

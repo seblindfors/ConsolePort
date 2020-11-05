@@ -1,6 +1,6 @@
 select(2, ...).Gamepad:AddGamepad({
-	Name = 'PlayStation';
-	Version = 2;
+	Name = 'PlayStation 5';
+	Version = 1;
 	Theme = {
 		Label = 'SHP';
 		Colors = {
@@ -18,26 +18,13 @@ select(2, ...).Gamepad:AddGamepad({
 			PAD2         = 'PlayStation/Circle';
 			PAD3         = 'PlayStation/Square';
 			PAD4         = 'PlayStation/Triangle';
-			--PAD5
-			--PAD6
+			PAD5         = 'Xbox/Options';
 			PADLSTICK    = 'PlayStation/L3';
 			PADRSTICK    = 'PlayStation/R3';
 			PADLSHOULDER = 'PlayStation/L1';
 			PADRSHOULDER = 'PlayStation/R1';
 			PADLTRIGGER  = 'PlayStation/L2';
 			PADRTRIGGER  = 'PlayStation/R2';
-			--PADLSTICKUP
-			--PADLSTICKRIGHT
-			--PADLSTICKDOWN
-			--PADLSTICKLEFT
-			--PADRSTICKUP
-			--PADRSTICKRIGHT
-			--PADRSTICKDOWN
-			--PADRSTICKLEFT
-			--PADPADDLE1
-			--PADPADDLE2
-			--PADPADDLE3
-			--PADPADDLE4
 			PADFORWARD  = 'PlayStation/Options';
 			PADBACK     = 'PlayStation/Back';
 			PADSYSTEM   = 'PlayStation/System';
@@ -59,14 +46,17 @@ select(2, ...).Gamepad:AddGamepad({
 			PADRTRIGGER	 = 0x22;
 			--------------------
 			PAD4		 = 0x23;
-			PAD3         = 0x24;
+			PAD2         = 0x24;
 			PAD1         = 0x25;
-			PAD2         = 0x26;
+			PAD3         = 0x26;
 			--------------------
 			PADFORWARD   = 0x27;
 			PADRSTICK    = 0x28;
 			--------------------
-			PADSYSTEM    = 0x32;
+			PADSYSTEM    = 0x31;
+			PAD5         = 0x33;
+			--------------------
+			PADBACK      = 0x41;
 		};
 	};
 	Preset = {
@@ -170,9 +160,10 @@ select(2, ...).Gamepad:AddGamepad({
 		};
 	};
 	Config = {
-		name = 'PlayStation';
+		name = 'PlayStation 5';
 		configID = {
 			vendorID = 1356;
+			productID = 3302;
 		};
 		rawButtonMappings = {
 			{
@@ -242,6 +233,11 @@ select(2, ...).Gamepad:AddGamepad({
 				rawIndex = 13;
 				button = 'Back';
 				comment = 'Touchpad';
+			};
+			{
+				rawIndex = 14;
+				button = 'Face5';
+				comment = 'Mic button';
 			}
 		};
 		rawAxisMappings = {

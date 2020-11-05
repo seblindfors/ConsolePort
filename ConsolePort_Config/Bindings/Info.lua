@@ -227,8 +227,12 @@ function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
 	end
 	-- at this point, this is not an usual binding. this is most likely a click binding.
 	name = gsub(binding, '(.* ([^:]+).*)', '%2') -- upvalue so it doesn't return more than 1 arg
-	name = name or BindingInfo.NotBoundColor:format(NOT_BOUND);
+	name = name or self:WrapAsNotBound(NOT_BOUND);
 	return name, nil, actionID;
+end
+
+function BindingInfoMixin:WrapAsNotBound(text)
+	return BindingInfo.NotBoundColor:format(text)
 end
 
 ---------------------------------------------------------------

@@ -1,5 +1,8 @@
 local _, env = ...;
-local Config = ConsolePortConfig; env.Config = Config;
+local Config = CPAPI.EventHandler(ConsolePortConfig, {
+	'PLAYER_REGEN_ENABLED',
+	'PLAYER_REGEN_DISABLED'
+}); env.Config = Config;
 
 Config:SetMinResize(1000, 700)
 Config:SetScript('OnMouseWheel', function(self, delta, ...)
@@ -17,8 +20,31 @@ function Config:OnActiveDeviceChanged()
 	self.Header:ToggleEnabled(hasActiveDevice)
 end
 
+function Config:ShowAfterCombat()
+	self.showAfterCombat = true;
+	CPAPI.Log(db('Locale')('Your gamepad configuration will reappear when you leave combat.'))
+	self:Hide()
+end
+
 function Config:OnShow()
+	if InCombatLockdown() then
+		return self:ShowAfterCombat()
+	end
 	self:OnActiveDeviceChanged()
+end
+
+function Config:PLAYER_REGEN_DISABLED()
+	if self:IsShown() then
+		self:ShowAfterCombat()
+	end
+end
+
+function Config:PLAYER_REGEN_ENABLED()
+	if self.showAfterCombat then
+		self.showAfterCombat = nil;
+		db('Alpha/FadeIn')(self, 1)
+		self:Show()
+	end
 end
 
 CPAPI.Start(Config)

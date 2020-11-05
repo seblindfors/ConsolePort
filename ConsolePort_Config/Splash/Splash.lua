@@ -27,6 +27,13 @@ local Content = {
 			return (db('tutorialProgress') == 2);
 		end;
 	};
+	{	panel = 'Camera';
+		name  = L'Camera';
+		help  = L'Customize your camera settings.';
+		pred  = function()
+			return (db('tutorialProgress') == 3);
+		end;
+	};
 }
 
 ---------------------------------------------------------------
@@ -289,6 +296,14 @@ function Splash:OnFirstShow()
 						_Width = WIZARD_WIDTH;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
 						dbPath = 'Console/Handling';
+					};
+					Camera = {
+						_Hide  = true;
+						_Type  = 'Frame';
+						_Mixin = env.VariablesMixin;
+						_Width = WIZARD_WIDTH;
+						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
+						dbPath = 'Console/Camera';
 					};
 				};
 			};

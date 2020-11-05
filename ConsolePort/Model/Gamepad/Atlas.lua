@@ -54,6 +54,7 @@ db('Gamepad/Index/Icons', {
 })
 
 db('Gamepad/Index/Splash', {
-	PlayStation = 'PlayStation';
-	Xbox = 'Xbox';
+	['PlayStation 4'] = 'DS4';
+	['PlayStation 5'] = 'DS5';
+	['Xbox'] = 'Xbox';
 })

@@ -11,47 +11,48 @@ db:Register('Console', {
 		{	cvar = 'GamePadEmulateShift';
 			type = Button;
 			name = 'Emulate Shift';
-			desc = 'Button that should emulate the Shift key.';
+			desc = 'Button that emulates the Shift key.';
+			note = 'Recommended as first choice modifier.';
 		};
 		{	cvar = 'GamePadEmulateCtrl';
 			type = Button;
 			name = 'Emulate Ctrl';
-			desc = 'Button that should emulate the Ctrl key.';
+			desc = 'Button that emulates the Ctrl key.';
+			note = 'Recommended as second choice modifier.';
 		};
 		{ 	cvar = 'GamePadEmulateAlt';
 			type = Button;
 			name = 'Emulate Alt';
-			desc = 'Button that should emulate the Alt key.';
+			desc = 'Button that emulates the Alt key.';
+			note = 'Only recommended for super users.';
 		};
 		{	cvar = 'GamePadEmulateEsc';
 			type = Button;
 			name = 'Emulate Esc';
-			desc = 'Button that should emulate the Esc key.';
+			desc = 'Button that emulates the Esc key.';
+			note = 'This key can be replaced by binding Toggle Game Menu.';
 		};
 		{	cvar = 'GamePadCursorLeftClick';
 			type = Button;
 			name = KEY_BUTTON1;
-			desc = 'Button that should emulate mouse Left Click while controlling the mouse cursor.';
+			desc = 'Button that emulates Left Click while controlling the mouse cursor.';
+			note = 'Frees your mouse cursor when used, if the cursor is currently center-fixed or hidden.';
 		};
 		{	cvar = 'GamePadCursorRightClick';
 			type = Button;
 			name = KEY_BUTTON2;
-			desc = 'Button that should emulate mouse Right Click while controlling the mouse cursor.';
+			desc = 'Button that emulates Right Click while controlling the mouse cursor.';
+			note = 'Used for interacting with the world, at a center-fixed position.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Cursor:
+	-- Handling:
 	--------------------------------------------------------------------------------------------------------
 	Handling = {
 		{	cvar = 'CursorCenteredYPos';
 			type = Range(0.6, 0.025, 0, 1);
 			name = 'Cursor Center Position';
 			desc = 'Vertical position of centered cursor & targeting, as fraction of screen height.';
-		};
-		{	cvar = 'GamePadCursorSpeedMax';
-			type = Number(1, 0.1);
-			name = 'Cursor Max Speed';
-			desc = 'Top speed of cursor movement.';
 		};
 		{	cvar = 'GamePadCursorSpeedStart';
 			type = Number(0.1, 0.05);
@@ -63,6 +64,11 @@ db:Register('Console', {
 			name = 'Cursor Acceleration';
 			desc = 'Acceleration of cursor per second as it continues to move.';
 		};
+		{	cvar = 'GamePadCursorSpeedMax';
+			type = Number(1, 0.1);
+			name = 'Cursor Max Speed';
+			desc = 'Top speed of cursor movement.';
+		};
 		{	cvar = 'GamePadCameraYawSpeed';
 			type = Number(1, 0.1);
 			name = 'Camera Yaw Speed';
@@ -72,6 +78,23 @@ db:Register('Console', {
 			type = Number(1, 0.1);
 			name = 'Camera Pitch Speed';
 			desc = 'Pitch speed of camera - moving up/down.';
+		};
+	};
+	--------------------------------------------------------------------------------------------------------
+	-- Camera:
+	--------------------------------------------------------------------------------------------------------
+	Camera = {
+		{	cvar = 'GamePadFaceMovement';
+			type = Bool(true);
+			name = 'Face Movement Direction';
+			desc = 'Separates character movement from camera movement.';
+			note = 'Your character will strafe while moving forward, and follow your movement stick when moving backwards.';
+		};
+		{	cvar = 'GamePadFaceAngleThreshold';
+			type = Range(115, 5, 0, 180);
+			name = 'Face Movement Threshold';
+			desc = 'Controls when your character transitions from strafing to following your movement stick.';
+			note = 'Expressed in degrees, from looking straight forward.';
 		};
 	};
 })

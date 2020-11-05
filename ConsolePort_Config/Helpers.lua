@@ -12,11 +12,15 @@ function env:GetActiveModifiers()
 end
 
 function env:GetHotkeyData(btnID, modID, styleMain, styleMod)
-	return db('Hotkeys'):GetHotkeyData(db('Gamepad/Active'), btnID, modID, styleMain, styleMod)
+	return db.Hotkeys:GetHotkeyData(db('Gamepad/Active'), btnID, modID, styleMain, styleMod)
+end
+
+function env:GetButtonSlug(btnID, modID, split)
+	return db.Hotkeys:GetButtonSlug(db('Gamepad/Active'), btnID, modID, split)
 end
 
 function env:GetBindings()
-	return db('Gamepad'):GetBindings()
+	return db.Gamepad:GetBindings()
 end
 
 

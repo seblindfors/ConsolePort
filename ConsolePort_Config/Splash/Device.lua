@@ -33,7 +33,7 @@ end
 
 function Device:OnShow()
 	self:UpdateState()
-	self.Splash:SetTexture(CPAPI.GetAsset('Splash\\Gamepad\\'..self.ID))
+	self.Splash:SetTexture(CPAPI.GetAsset('Splash\\Gamepad\\'..db('Gamepad/Index/Splash/'..self.ID)))
 	self.Splash:SetVertexColor(0.35, 0.35, 0.35, 1)
 	self.Splash:SetTexCoord(10/1024, 492/1024, 160/1024, 820/1024, 820/1024, 110/1024, 975/1024, 435/1024)
 	self.Name:SetText(self.ID)
