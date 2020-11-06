@@ -326,18 +326,10 @@ function EM:OnNewBindings(bindings)
 		forceSet = forceSet:match('left') and 'L' or forceSet:match('right') and 'R'
 	end
 
-	local function tContainsKey(tbl, item)
-		for key in pairs(tbl) do
-			if key == item then
-				return true;
-			end
-		end
-	end
-
 	for unitType, slug in pairs(keys) do
 		local button, modifier = unpack(slug)
 		if button and modifier then
-			local set = forceSet or (tContainsKey(Key.R, button) and 'L' or 'R');
+			local set = forceSet or (Key.R[button] and 'L' or 'R');
 			self:Execute(format([[ %sSet = '%s' %sMod = '%s' ]], unitType, set, unitType, modifier))
 		end
 	end
