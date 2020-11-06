@@ -10,4 +10,5 @@
 	<Script file="Pager.lua"/>
 	<Script file="Radial.lua"/>
 	<Script file="Mouse.lua"/>
+	<Script file="EasyMotion.lua"/>
 </Ui>

@@ -3,6 +3,7 @@ local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parent
 	'GAME_PAD_CONFIGS_CHANGED';
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
+	'UPDATE_BINDINGS';
 }, {
 	Modsims = {'ALT', 'CTRL', 'SHIFT'};
 	Devices = {};
@@ -24,6 +25,7 @@ local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parent
 	};
 });
 ---------------------------------------------------------------
+db:Register('Icons', {})
 db:Register('Gamepad', GamepadAPI)
 db:Save('Gamepad/Devices', 'ConsolePortDevices')
 
@@ -43,6 +45,12 @@ end
 
 function GamepadAPI:GAME_PAD_DISCONNECTED()
 	CPAPI.Log('Gamepad disconnected.')
+end
+
+function GamepadAPI:UPDATE_BINDINGS()
+	if self.IsMapped then
+		db:TriggerEvent('OnNewBindings', self:GetBindings())
+	end
 end
 
 function GamepadAPI:OnDataLoaded()
@@ -99,9 +107,21 @@ function GamepadAPI:SetActiveDevice(name)
 	for device, data in pairs(self.Devices) do
 		data.Active = nil;
 	end
-	self.Devices[name]:ApplyHotkeyStrings()
+	local activeDevice = self.Devices[name]
+	self:SetActiveIconsFromDevice(activeDevice)
+	activeDevice:ApplyHotkeyStrings()
 	db(('Gamepad/Devices/%s/Active'):format(name), true)
-	db('Gamepad/Active', self.Devices[name])
+	db('Gamepad/Active', activeDevice)
+end
+
+function GamepadAPI:SetActiveIconsFromDevice(device)
+	local styler = CPAPI.Proxy({}, function(self, button)
+		return device:GetIconForButton(button, self[0])
+	end)
+	CPAPI.Proxy(db('Icons'), function(self, style)
+		styler[0] = style;
+		return styler;
+	end)
 end
 
 function GamepadAPI:GetActiveDevice()
@@ -111,14 +131,15 @@ end
 ---------------------------------------------------------------
 -- Data
 ---------------------------------------------------------------
-function GamepadAPI:ReindexMappedState()
-	if not C_GamePad.IsEnabled() then
-		return
-	end
+function GamepadAPI:ReindexMappedState(force)
+	if not C_GamePad.IsEnabled() then return end
+	if not force and self.IsMapped then return end
+
 	local state = C_GamePad.GetDeviceMappedState(C_GamePad.GetActiveDeviceID())
 	self:ReindexSticks(state)
 	self:ReindexButtons(state)
 	self:ReindexModifiers(state)
+	self.IsMapped = true;
 end
 
 function GamepadAPI:ReindexButtons(state)
@@ -243,7 +264,7 @@ function GamepadMixin:OnLoad(data)
 end
 
 function GamepadMixin:Activate()
-	GamepadAPI:ReindexMappedState()
+	GamepadAPI:ReindexMappedState(true)
 	GamepadAPI:SetActiveDevice(self.Name)
 end
 
@@ -257,6 +278,12 @@ function GamepadMixin:ApplyPresetVars()
 		SetCVar(var, val)
 	end
 	self:Activate()
+end
+
+function GamepadMixin:ApplyConfig()
+	assert(self.Config, ('Raw configuration missing from %s template.'):format(self.Name))
+	C_GamePad.SetConfig(self.Config)
+	C_GamePad.ApplyConfigs()
 end
 
 function GamepadMixin:ApplyPresetBindings(setID)

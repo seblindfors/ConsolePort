@@ -230,7 +230,27 @@ select(2, ...).Gamepad:AddGamepad({
 				rawIndex = 13;
 				button = 'Back';
 				comment = 'Touchpad';
-			}
+			};
+			{
+				rawIndex = 14;
+				button = 'Up';
+				comment = 'D-Pad Up';
+			};
+			{
+				rawIndex = 15;
+				button = 'Right';
+				comment = 'D-Pad Right';
+			};
+			{
+				rawIndex = 16;
+				button = 'Down';
+				comment = 'D-Pad Down';
+			};
+			{
+				rawIndex = 17;
+				button = 'Left';
+				comment = 'D-Pad Left';
+			};
 		};
 		rawAxisMappings = {
 			{

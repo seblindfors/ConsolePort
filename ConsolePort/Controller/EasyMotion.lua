@@ -5,30 +5,36 @@
 -- in order to alleviate targeting. A healer's delight. 
 -- Thanks to Yoki for original concept! :) 
 
-local addOn, db = ...
+local _, db = ...
 ---------------------------------------------------------------
 -- Key sets and their integer identifiers for input processing
 local Key = {
-	L = {
-		UP 		= ConsolePort:GetUIControlKey('CP_L_UP'),
-		DOWN 	= ConsolePort:GetUIControlKey('CP_L_DOWN'),
-		LEFT 	= ConsolePort:GetUIControlKey('CP_L_LEFT'),
-		RIGHT 	= ConsolePort:GetUIControlKey('CP_L_RIGHT'),
-	},
 	R = {
-		UP		= ConsolePort:GetUIControlKey('CP_R_UP'),
-		DOWN 	= ConsolePort:GetUIControlKey('CP_R_DOWN'),
-		LEFT 	= ConsolePort:GetUIControlKey('CP_R_LEFT'),
-		RIGHT 	= ConsolePort:GetUIControlKey('CP_R_RIGHT'),
-	},
+		PAD1      = 0x1;
+		PAD2      = 0x2;
+		PAD3      = 0x3;
+		PAD4      = 0x4;
+	};
+	L = {
+		PADDDOWN  = 0x5;
+		PADDRIGHT = 0x6;
+		PADDLEFT  = 0x7;
+		PADDUP    = 0x8;
+	};
 }
 
 local Index = {}
 for side, set in pairs(Key) do
 	for name, id in pairs(set) do
-		Index[id] = ('CP_%s_%s'):format(side, name)
+		Index[id] = name;
 	end
 end
+
+local Actions = {
+	plate = 'CLICK ConsolePortEasyMotionButton:RightButton';
+	frame = 'CLICK ConsolePortEasyMotionButton:LeftButton';
+	tab   = 'CLICK ConsolePortEasyMotionButton:MiddleButton';
+}
 
 ---------------------------------------------------------------
 -- Get action/input handlers, EasyMotion -> EM for brevity
@@ -53,10 +59,10 @@ EM:Execute([[
 	btns, bindings, lookup = newtable(), newtable(), newtable()
 
 	-- Ignore mouseover/target
-	ignore.mouseover = true
-	ignore.target = true
+	ignore.mouseover = true;
+	ignore.target = true;
 
-	bindRef = 'ConsolePortEasyMotionInput'
+	bindRef = 'ConsolePortEasyMotionInput';
 	MAX = self:GetAttribute('maxcombos')
 ]])
 
@@ -103,7 +109,12 @@ for name, script in pairs({
 	-- Create key combinations e.g. -> (1, 2, 3, ..., 12, 13, 14, ..., 122, 123, 124)
 	CreateBindings = [[
 		-- instantiate a keySet with a fixed format
-		local keySet = newtable(set.UP, set.LEFT, set.DOWN, set.RIGHT)
+		local keySet = newtable(
+			set.PADDUP    or set.PAD4,
+			set.PADDLEFT  or set.PAD3,
+			set.PADDDOWN  or set.PAD1,
+			set.PADDRIGHT or set.PAD2
+		);
 		local current = 1
 
 		for _, k1 in ipairs(keySet) do
@@ -136,8 +147,8 @@ for name, script in pairs({
 
 	-- Refresh everything on down press
 	Refresh = [[
-		pool, onDown = ...
-		if not onDown then
+		pool, down = ...
+		if not down then
 			self:RunAttribute('SetTarget')
 			return
 		end
@@ -228,11 +239,8 @@ for name, script in pairs({
 		end
 		if set then
 			for binding, keyID in pairs(set) do
-				local key = GetBindingKey('CP_' .. side .. '_' .. binding)
-				if key then
-					self:SetBindingClick(true, key, bindRef, keyID)
-					self:SetBindingClick(true, modifier..key, bindRef, keyID)
-				end
+				self:SetBindingClick(true, binding, bindRef, keyID)
+				self:SetBindingClick(true, modifier..binding, bindRef, keyID)
 			end
 		end
 	]],
@@ -295,33 +303,47 @@ for name, script in pairs({
 	]],
 }) do EM:WrapScript(Input, name, script) end
 
-function EM:OnNewBindings(...)
-	local keys = {
-		plate = {ConsolePort:GetCurrentBindingOwner('CLICK ConsolePortEasyMotionButton:RightButton')},
-		frame = {ConsolePort:GetCurrentBindingOwner('CLICK ConsolePortEasyMotionButton:LeftButton')},
-		tab = {ConsolePort:GetCurrentBindingOwner('CLICK ConsolePortEasyMotionButton:MiddleButton')},
-	}
-	if db.Settings.unitHotkeyPool then
-		self:SetAttribute('unitpool', db.Settings.unitHotkeyPool)
+function EM:OnNewBindings(bindings)
+	local keys = {};
+	for unitType, action in pairs(Actions) do
+		for button, set in pairs(bindings) do
+			for modifier, binding in pairs(set) do
+				if (binding == action) then
+					keys[unitType] = {button, modifier};
+				end
+			end
+		end
 	end
-	self:SetAttribute('ignorePlayer', db.Settings.unitHotkeyIgnorePlayer)
-	self:SetAttribute('ghostMode', db.Settings.unitHotkeyGhostMode)
+
+	self:SetAttribute('unitpool', db('unitHotkeyPool'))
+	self:SetAttribute('ignorePlayer', db('unitHotkeyIgnorePlayer'))
+	self:SetAttribute('ghostMode', db('unitHotkeyGhostMode'))
 	self:Execute([[self:RunAttribute('OnNewSettings')]])
-	local hSet = db.Settings.unitHotkeySet
-	if hSet then
-		hSet = hSet:lower()
-		hSet = hSet:match('left') and 'L' or hSet:match('right') and 'R'
+
+	local forceSet = db('Settings/unitHotkeySet')
+	if forceSet then
+		forceSet = forceSet:lower()
+		forceSet = forceSet:match('left') and 'L' or forceSet:match('right') and 'R'
 	end
-	for unitType, info in pairs(keys) do
-		local key, mod = unpack(info)
-		if key and mod then
-			local set = hSet or ( key:match('CP_R_') and 'L' or 'R' )
-			self:Execute(format([[ %sSet = '%s' %sMod = '%s' ]], unitType, set, unitType, mod))
+
+	local function tContainsKey(tbl, item)
+		for key in pairs(tbl) do
+			if key == item then
+				return true;
+			end
+		end
+	end
+
+	for unitType, slug in pairs(keys) do
+		local button, modifier = unpack(slug)
+		if button and modifier then
+			local set = forceSet or (tContainsKey(Key.R, button) and 'L' or 'R');
+			self:Execute(format([[ %sSet = '%s' %sMod = '%s' ]], unitType, set, unitType, modifier))
 		end
 	end
 end
 
-ConsolePort:RegisterCallback('OnNewBindings', EM.OnNewBindings, EM)
+db:RegisterSafeCallback('OnNewBindings', EM.OnNewBindings, EM)
 
 
 EM.FramePool = {}
@@ -425,10 +447,10 @@ function EM:GetHotkey(binding)
 	if self.ActiveFrames > #self.FramePool then
 		frame = CreateFrame('Frame', 'ConsolePortEasyMotionDisplay'..self.ActiveFrames, self)
 		frame:SetFrameStrata("TOOLTIP")
-		frame.size = db.Settings.unitHotkeySize or 32
-		frame.offsetX = db.Settings.unitHotkeyOffsetX or 0
-		frame.offsetY = db.Settings.unitHotkeyOffsetY or -8
-		frame.anchor = db.Settings.unitHotkeyAnchor or 'CENTER'
+		frame.size = db('unitHotkeySize') or 32
+		frame.offsetX = db('unitHotkeyOffsetX') or 0
+		frame.offsetY = db('unitHotkeyOffsetY') or -8
+		frame.anchor = db('unitHotkeyAnchor') or 'CENTER'
 		frame:SetSize(1, 1)
 		frame:Hide()
 		frame.Keys = {}
@@ -495,7 +517,7 @@ function HotkeyMixin:DrawIconsForBinding(binding)
 		else
 			icon[id] = self:CreateTexture(nil, 'OVERLAY')
 			icon = icon[id]
-			icon:SetTexture(db.ICONS[Index[id]])
+			icon:SetTexture(db.Icons[32][Index[id]])
 			icon:SetSize(size, size)
 		end
 		shown = shown + 1
