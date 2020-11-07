@@ -8,6 +8,7 @@
 local _, db = ...;
 local Mouse = CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
+	'CURRENT_SPELL_CAST_CHANGED';
 })
 
 ---------------------------------------------------------------
@@ -17,6 +18,13 @@ local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
 local CreateKeyChordString = CreateKeyChordStringUsingMetaKeyState;
 local UnitExists, GetMouseFocus = UnitExists, GetMouseFocus;
 local NewTimer = C_Timer.NewTimer;
+
+
+---------------------------------------------------------------
+-- Consts
+---------------------------------------------------------------
+local CAST_INFO_SPELLID_OFFSET = 9;
+local SPELLID_CAST_TIME_OFFSET = 4;
 
 ---------------------------------------------------------------
 -- Helpers: predicate evaluators
@@ -62,13 +70,28 @@ end
 ---------------------------------------------------------------
 -- Console variables
 ---------------------------------------------------------------
-local CVar_Center = db('Data').Cvar('GamePadCursorCentering')
-local CVar_LClick = db('Data').Cvar('GamePadCursorLeftClick')
-local CVar_RClick = db('Data').Cvar('GamePadCursorRightClick')
-local Keys_Escape = db('Data').Select()
+local CVar_FaceMove = db.Data.Cvar('GamePadFaceMovement')
+local CVar_Center   = db.Data.Cvar('GamePadCursorCentering')
+local CVar_LClick   = db.Data.Cvar('GamePadCursorLeftClick')
+local CVar_RClick   = db.Data.Cvar('GamePadCursorRightClick')
+local Keys_Escape   = db.Data.Select()
 
 function Mouse:UPDATE_BINDINGS()
 	Keys_Escape:SetOptions(db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU'))
+end
+
+function Mouse:CURRENT_SPELL_CAST_CHANGED()
+	local spellID = select(CAST_INFO_SPELLID_OFFSET, UnitCastingInfo('player'))
+	if spellID and not self.faceMovementValue then
+		local castTime = select(SPELLID_CAST_TIME_OFFSET, GetSpellInfo(spellID))
+		if (castTime > 0) then
+			self.faceMovementValue = CVar_FaceMove:Get()
+			CVar_FaceMove:Set(0)
+		end
+	elseif self.faceMovementValue then
+		CVar_FaceMove:Set(self.faceMovementValue)
+		self.faceMovementValue = nil;
+	end
 end
 
 ---------------------------------------------------------------
@@ -204,6 +227,6 @@ function Mouse:OnDataLoaded()
 end
 
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
-CPAPI.Start(Mouse)
+Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)
 Mouse:EnableGamePadButton(false)
 Mouse:SetPropagation(true)

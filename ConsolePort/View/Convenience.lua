@@ -55,6 +55,7 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 	'MERCHANT_SHOW';
 	'MERCHANT_CLOSED';
 	'BAG_UPDATE_DELAYED';
+	'CURRENT_SPELL_CAST_CHANGED';
 }, {
 	SellJunkHelper = function(item)
 		if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
@@ -87,7 +88,6 @@ function ShowGamePadConfig()
 	if not IsAddOnLoaded('ConsolePort_Config') then
 		LoadAddOn('ConsolePort_Config')
 	end
-	CPAPI.Log('Use /consoleport to show the config.')
 	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
 end
 
@@ -96,7 +96,20 @@ SlashCmdList[_:upper()] = function()
 	ShowGamePadConfig()
 end
 
-local b = CreateFrame('Button', 'ConfigB', UIParent, 'SecureActionButtonTemplate')
-b:SetAttribute('type', 'macro')
-b:SetAttribute('macrotext', '/consoleport')
-SetOverrideBindingClick(b, true, 'K', 'ConfigB')
+LibStub('Carpenter'):BuildFrame(GameMenuFrame, {
+	[_] = {
+		_Type  = 'Button';
+		_Setup = 'InsecureActionButtonTemplate';
+		_Size  = {58, 58};
+		_Point = {'TOP', 0, 70};
+		_SetNormalTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
+		_SetPushedTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
+		_Macro = '/click GameMenuButtonContinue\n/run ShowGamePadConfig()';
+		_OnLoad = function(self)
+			local pushed = self:GetPushedTexture()
+			pushed:ClearAllPoints()
+			pushed:SetSize(self:GetSize())
+			pushed:SetPoint('CENTER', 0, -2)
+		end;
+	};
+}, false, true)

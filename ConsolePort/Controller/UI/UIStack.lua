@@ -220,8 +220,12 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 		for i=1, STATICPOPUP_NUMDIALOGS do
 			self:TryRegisterFrame(_, 'StaticPopup'..i, true)
 		end
-
-		self:TryRegisterFrame(_, 'LFGDungeonReadyPopup', true)
+		for i, frame in ipairs({
+			---------------------------------
+			'LFGDungeonReadyPopup';
+			'OpenMailFrame';
+			---------------------------------
+		}) do self:TryRegisterFrame(_, frame, true) end
 	end
 
 	function Stack:GetRegistrySet(name)
@@ -230,6 +234,8 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 	end
 
 	function Stack:TryRegisterFrame(set, name, state)
+		if not name then return end
+
 		local stack = self:GetRegistrySet(set)
 		if (stack[name] == nil) then
 			stack[name] = (state == nil and true) or state;
@@ -256,6 +262,15 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 			self:UpdateFrames()
 		end;
 	end
+
+	hooksecurefunc('ShowUIPanel', function(frame)
+		if not Stack:IsFrameVisibleToCursor(frame) then
+			if Stack:TryRegisterFrame(_, frame:GetName(), true) then
+				Stack:AddFrame(frame)
+				Stack:UpdateFrames()
+			end
+		end
+	end)
 end
 
 ---------------------------------------------------------------

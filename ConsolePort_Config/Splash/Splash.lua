@@ -20,15 +20,15 @@ local Content = {
 			return (db('tutorialProgress') == 1);
 		end;
 	};
-	{	panel = 'Handling';
-		name  = L'Handling';
-		help  = L'Customize your gamepad handling.';
+	{	panel = 'Cursor';
+		name  = MOUSE_LABEL;
+		help  = L'Customize your cursor settings.';
 		pred  = function()
 			return (db('tutorialProgress') == 2);
 		end;
 	};
 	{	panel = 'Camera';
-		name  = L'Camera';
+		name  = CAMERA_LABEL;
 		help  = L'Customize your camera settings.';
 		pred  = function()
 			return (db('tutorialProgress') == 3);
@@ -289,13 +289,13 @@ function Splash:OnFirstShow()
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
 						dbPath = 'Console/Emulation';
 					};
-					Handling = {
+					Cursor = {
 						_Hide  = true;
 						_Type  = 'Frame';
 						_Mixin = env.VariablesMixin;
 						_Width = WIZARD_WIDTH;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
-						dbPath = 'Console/Handling';
+						dbPath = 'Console/Cursor';
 					};
 					Camera = {
 						_Hide  = true;

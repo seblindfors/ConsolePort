@@ -20,6 +20,30 @@ function Config:OnActiveDeviceChanged()
 	self.Header:ToggleEnabled(hasActiveDevice)
 end
 
+function Config:TryClose()
+	for panel in self:EnumerateActive() do
+		local valid, callback = panel:Validate()
+		if not valid then
+			return CPAPI.Popup('ConsolePort_Config_Unsaved_Changes', {
+				-- HACK: something, something, unsaved changes. good enough. :)
+				text = CONFIRM_COMPACT_UNIT_FRAME_PROFILE_UNSAVED_CHANGES:format(panel.name);
+				button1 = SAVE_CHANGES;
+				button2 = CANCEL;
+				whileDead = 1;
+				showAlert = 1;
+				OnHide = function()
+					self:TryClose()
+				end;
+				OnAccept = function()
+					callback(panel)
+					self:TryClose()
+				end;
+			})
+		end
+	end
+	self:Hide()
+end
+
 function Config:ShowAfterCombat()
 	self.showAfterCombat = true;
 	CPAPI.Log(db('Locale')('Your gamepad configuration will reappear when you leave combat.'))

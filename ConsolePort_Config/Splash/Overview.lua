@@ -61,12 +61,24 @@ function Button:OnShow()
 end
 
 function Button:OnEnter()
+	local tooltip = GameTooltip;
+	local override = self.reservedData;
+	tooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+
+	if override then
+		tooltip:SetText(override.name)
+		tooltip:AddLine(override.desc, 1, 1, 1, 1)
+		if override.note then
+			tooltip:AddLine('\n'..NOTE_COLON)
+			tooltip:AddLine(override.note, 1, 1, 1, 1)
+		end
+		return tooltip:Show()
+	end
+
 	local handler = db('Hotkeys')
 	local base = self:GetBaseBinding()
 	local mods = env:GetActiveModifiers()
-	local tooltip = GameTooltip;
 
-	tooltip:SetOwner(self, 'ANCHOR_BOTTOM')
 	tooltip:SetText(('|cFFFFFFFF%s|r'):format(KEY_BINDINGS_MAC))
 
 	for mod, keys in db.table.mpairs(mods) do	

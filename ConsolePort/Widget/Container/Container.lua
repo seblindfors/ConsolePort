@@ -87,8 +87,8 @@ function CPContainerMixin:OnContainerLoad()
 						normal:SetTexCoord(0, 0.40625, 0.5, 1)
 						hilite:SetTexCoord(0, 0.40625, 0.5, 1)
 					end;
-					_OnClick = function(self)
-						self:GetParent():GetParent():Hide()
+					_OnClick = function()
+						self:TryClose()
 					end;
 				};
 				Index = {
@@ -133,6 +133,10 @@ end
 
 function CPContainerMixin:OnContainerShow()
 	self:SetDefaultClosures()
+end
+
+function CPContainerMixin:TryClose()
+	self:Hide()
 end
 
 function CPContainerMixin:SetDefaultClosures()
@@ -282,6 +286,10 @@ end
 ---------------------------------------------------------------
 -- Panel
 ---------------------------------------------------------------
+function CPPanelMixin:Validate()
+	return true; -- replace with callback
+end
+
 function CPPanelMixin:OnContainerSizeChanged(width, height)
 	if self.scaleToParent then
 		self:ScaleToParent(width, height)

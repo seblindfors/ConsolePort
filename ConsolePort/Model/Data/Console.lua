@@ -48,7 +48,18 @@ db:Register('Console', {
 	--------------------------------------------------------------------------------------------------------
 	-- Handling:
 	--------------------------------------------------------------------------------------------------------
-	Handling = {
+	Cursor = {
+		{	cvar = 'GamePadCursorAutoDisableJump';
+			type = Bool(true);
+			name = 'Hide Cursor On Jump';
+			desc = 'Disable free-roaming mouse cursor when you jump.';
+		};
+		{	cvar = 'GamePadCursorAutoDisableSticks';
+			type = Range(2, 1, 0, 2);
+			name = 'Hide Cursor On Stick Input';
+			desc = 'Disable free-roaming mouse cursor when you use your sticks.';
+			note = '0: disabled\n1: on movement\n2: on movement combined with cursor';
+		};
 		{	cvar = 'CursorCenteredYPos';
 			type = Range(0.6, 0.025, 0, 1);
 			name = 'Cursor Center Position';
@@ -69,16 +80,6 @@ db:Register('Console', {
 			name = 'Cursor Max Speed';
 			desc = 'Top speed of cursor movement.';
 		};
-		{	cvar = 'GamePadCameraYawSpeed';
-			type = Number(1, 0.1);
-			name = 'Camera Yaw Speed';
-			desc = 'Yaw speed of camera - turning left/right.';
-		};
-		{	cvar = 'GamePadCameraPitchSpeed';
-			type = Number(1, 0.1);
-			name = 'Camera Pitch Speed';
-			desc = 'Pitch speed of camera - moving up/down.';
-		};
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Camera:
@@ -96,23 +97,29 @@ db:Register('Console', {
 			desc = 'Controls when your character transitions from strafing to following your movement stick.';
 			note = 'Expressed in degrees, from looking straight forward.';
 		};
+		{	cvar = 'GamePadCameraYawSpeed';
+			type = Number(1, 0.1);
+			name = 'Camera Yaw Speed';
+			desc = 'Yaw speed of camera - turning left/right.';
+		};
+		{	cvar = 'GamePadCameraPitchSpeed';
+			type = Number(1, 0.1);
+			name = 'Camera Pitch Speed';
+			desc = 'Pitch speed of camera - moving up/down.';
+		};
 	};
 })
 
---[[
-
+--[[ unhandled:
+	
 	GamePadCursorCentering = "When using GamePad, center the cursor",
-	GamePadCursorAutoDisableJump = "GamePad cursor control will auto-disable when you jump",
 	GamePadCursorOnLogin = "Enable GamePad cursor control on login and character screens",
 	GamePadCursorAutoEnable = "",
 
 	GamePadCursorCenteredEmulation = "When cursor is centered for GamePad movement, also emulate mouse clicks",
 	GamePadTankTurnSpeed = "If non-zero, character turns like a tank from GamePad movement",
-	GamePadFaceAngleThreshold = "Angle threshold for strafing instead of facing movement direction",
 	GamePadForceXInput = "Force game to use XInput, rather than a newer, more advanced api",
 	GamePadSingleActiveID = "ID of single GamePad device to use. 0 = Use all devices' combined input",
-	GamePadFaceMovement = "Sets if character should face direction of GamePad movement",
-	GamePadCursorAutoDisableSticks = "GamePad cursor control will auto-disable on stick input (0=none, 1=movement, 2=movement+cursor)",
 	GamePadAbbreviatedBindingReverse = "Display main binding button first so it's visible even if truncated on action bar",
 	GamePadListDevices = "List all connected GamePad devices in the console",
 ]]--

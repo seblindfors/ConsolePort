@@ -1,15 +1,52 @@
 local _, env = ...; local db, L = env.db, env.L;
+local DEFAULT_BINDINGS, ACCOUNT_BINDINGS, CHARACTER_BINDINGS = 0, 1, 2;
 local BindingsMixin = {}
-
 ---------------------------------------------------------------
 -- Main frame
 ---------------------------------------------------------------
 function BindingsMixin:OnShow()
 	self.container:OnContainerSizeChanged()
+	self:SnapshotBindings()
 end
 
 function BindingsMixin:OnActiveDeviceChanged(device)
 	self.device = device;
+end
+
+function BindingsMixin:Validate()
+	if not self.snapshot then
+		return true -- panel was never opened
+	end
+	if not db.table.compare(self.snapshot, db.Gamepad:GetBindings()) then
+		return false, self.SaveBindings;
+	end
+	return true
+end
+
+function BindingsMixin:LoadBindings(set)
+	LoadBindings(set)
+	SaveBindings(set)
+	return self:SnapshotBindings()
+end
+
+function BindingsMixin:SaveBindings()
+	local set = GetCurrentBindingSet()
+	SaveBindings(set)
+	if (set == CHARACTER_BINDINGS) then
+		CPAPI.Log('Your gamepad bindings for %s have been saved.', CPAPI.GetPlayerName(true))
+	else
+		CPAPI.Log('Your gamepad bindings have been saved.')
+	end
+	return set, self:SnapshotBindings();
+end
+
+function BindingsMixin:SnapshotBindings()
+	self.snapshot = db.Gamepad:GetBindings()
+	return self.snapshot;
+end
+
+function BindingsMixin:WipeSnapshot()
+	self.snapshot = nil;
 end
 
 function BindingsMixin:NotifyComboFocus(id, name, fraction)
@@ -32,8 +69,6 @@ end
 -- Setting up
 ---------------------------------------------------------------
 function BindingsMixin:OnFirstShow()
-	local DEFAULT_BINDINGS, ACCOUNT_BINDINGS, CHARACTER_BINDINGS = 0, 1, 2;
-
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
 		_Mixin  = env.ShortcutsMixin;
 		_Width  = 0.01;
@@ -173,18 +208,12 @@ function BindingsMixin:OnFirstShow()
 					_Size  = {162, 40};
 					_SetDrawOutline = true;
 					_OnClick = function(self)
-						local set = GetCurrentBindingSet()
-						SaveBindings(set)
 						self:SetChecked(false)
 						self:OnChecked(self:GetChecked())
-						if (set == CHARACTER_BINDINGS) then
-							CPAPI.Log('Your gamepad bindings for %s have been saved.', CPAPI.GetPlayerName(true))
-						else
-							CPAPI.Log('Your gamepad bindings have been saved.')
-						end
+						env.Bindings:SaveBindings()
 					end;
 				};
-				Close = {
+				Revert = {
 					_Type  = 'IndexButton';
 					_Setup = 'CPIndexButtonSimpleTemplate';
 					_Point = {'LEFT', '$parent.Save', 'RIGHT', 0, 0};
@@ -204,7 +233,7 @@ function BindingsMixin:OnFirstShow()
 								self:OnChecked(self:GetChecked())
 							end;
 							OnAccept = function()
-								LoadBindings(GetCurrentBindingSet())
+								env.Bindings:LoadBindings(GetCurrentBindingSet())
 							end;
 						})
 					end;
@@ -212,7 +241,7 @@ function BindingsMixin:OnFirstShow()
 				Mode = {
 					_Type  = 'IndexButton';
 					_Setup = 'CPIndexButtonSimpleTemplate';
-					_Point = {'LEFT', '$parent.Close', 'RIGHT', 0, 0};
+					_Point = {'LEFT', '$parent.Revert', 'RIGHT', 0, 0};
 					_Size  = {40, 40};
 					_Events = {'UPDATE_BINDINGS'};
 					_SetDrawOutline = true;
@@ -233,9 +262,7 @@ function BindingsMixin:OnFirstShow()
 					end;
 					_OnClick = function(self)
 						SaveBindings(GetCurrentBindingSet())
-						local set = self:GetChecked() and CHARACTER_BINDINGS or ACCOUNT_BINDINGS;
-						LoadBindings(set)
-						SaveBindings(set)
+						env.Bindings:LoadBindings(self:GetChecked() and CHARACTER_BINDINGS or ACCOUNT_BINDINGS)
 						self:Update()
 					end;
 					_OnLoad = function(self)
