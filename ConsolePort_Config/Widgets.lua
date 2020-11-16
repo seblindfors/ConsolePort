@@ -374,3 +374,48 @@ function Button:OnValueChanged(value)
 	local display = _G[('KEY_%s'):format(value or '')]
 	self.Input:SetText(display or env.BindingInfo.NotBoundColor:format(NOT_BOUND))
 end
+
+---------------------------------------------------------------
+-- Select
+---------------------------------------------------------------
+local Select = CreateWidget('Select', Widget, {
+	Popout = {
+		_Type  = 'Frame';
+		_Setup = 'SelectionPopoutWithButtonsAndLabelTemplate';
+		_Point = {'RIGHT', 0, 0};
+	};
+})
+
+function Select:OnLoad(...)
+	Widget.OnLoad(self, ...)
+	self.Popout.OnEntryClick = function(_, entryData)
+		self.Popout:HidePopout()
+		self:Set(entryData.value)
+	end
+	self.Popout.OnPopoutShown = function(self)
+		self.moveCursorOnClose = true;
+	end;
+	self.Popout.HidePopout = function(self)
+		SelectionPopoutWithButtonsAndLabelMixin.HidePopout(self)
+		if self.moveCursorOnClose then
+			env.db.Cursor:SetCurrentNode(self.SelectionPopoutButton, true)
+			self.moveCursorOnClose = nil;
+		end
+	end;
+end
+
+function Select:OnValueChanged(value)
+	local opts = self.controller:GetOptions()
+	local inOrder, selected = {};
+	value = tonumber(value) or value;
+	for opt, val in env.db.table.spairs(opts) do
+		inOrder[#inOrder + 1] = {
+			name  = env.L(type(val) == 'string' and val or opt);
+			value = opt;
+		};
+		if (value == opt) then
+			selected = #inOrder;
+		end
+	end
+	self.Popout:SetupSelections(inOrder, selected)
+end

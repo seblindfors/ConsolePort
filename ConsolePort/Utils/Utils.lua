@@ -60,6 +60,37 @@ CPAPI.SecureExportMixin = {
 	end;
 }
 
+CPAPI.SecureEnvironmentMixin = {
+	CreateEnvironment = function(self, newEnv)
+		if newEnv then
+			self.Env = CreateFromMixins(self.Env or {}, newEnv)
+		end
+		for func, body in pairs(self.Env) do
+			self:SetAttribute(func, body)
+			self:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
+		end
+	end;
+}
+
+CPAPI.AdvancedSecureMixin = CreateFromMixins(CPAPI.SecureExportMixin, CPAPI.SecureEnvironmentMixin, {
+	Parse = function(self, body, args)
+		local backup = {};
+		for key, value in pairs(args) do
+			backup[key] = self:GetAttribute(key)
+			self:SetAttribute(tostring(key), value)
+			body = body:gsub(
+				('{%s}'):format(key),
+				([[self:GetAttribute('%s')]]):format(key)
+			);
+		end
+		self:Execute(body)
+		for key, value in pairs(args) do
+			self:SetAttribute(key, backup[key])
+		end
+		return body;
+	end;
+})
+
 ---------------------------------------------------------------
 -- Tools
 ---------------------------------------------------------------

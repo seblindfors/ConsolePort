@@ -51,5 +51,9 @@ function db:TriggerEvent(...)
 	return CallbackHandler:TriggerEvent(...)
 end
 
+function db:RunSafe(...)
+	return CallbackHandler.safeCallback(...)
+end
+
 -- Hook into global events
 hooksecurefunc(EventRegistry, 'TriggerEvent', db.TriggerEvent)

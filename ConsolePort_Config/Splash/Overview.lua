@@ -85,7 +85,8 @@ function Button:OnEnter()
 		local name, texture, actionID = self:GetBindingInfo(self:GetChordBinding(mod))
 		local slug = env:GetButtonSlug(base, mod)
 		if texture then
-			tooltip:AddDoubleLine(('|T%s:32:32:0:0|t %s\n '):format(texture, name), slug)
+			name = name:gsub('\n', '\n|T:12:32:0:0|t ') -- offset 2nd line
+			tooltip:AddDoubleLine(('|T%s:32:32:0:-12|t %s\n '):format(texture, name), slug)
 		else
 			tooltip:AddDoubleLine(('%s\n '):format(name), slug)
 		end

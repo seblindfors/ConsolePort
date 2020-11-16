@@ -19,7 +19,7 @@ function Setting:Construct(name, varID, field, newObj)
 		self:SetText(L(name))
 		local constructor = Widgets[varID] or Widgets[field[1]:GetType()];
 		if constructor then
-			constructor(self, varID, field, field[1], field.desc)
+			constructor(self, varID, field, field[1], field.desc, field.note)
 			self.controller:SetCallback(function(value) db('Settings/'..varID, value) end)
 			db:RegisterCallback('Settings/'..varID, self.OnValueChanged, self)
 		end

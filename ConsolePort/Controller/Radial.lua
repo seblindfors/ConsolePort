@@ -7,6 +7,7 @@
 -- handler and dispatched to the display layer on the header.
 
 local Radial, Dispatcher, RadialMixin, _, db = CPAPI.EventHandler(ConsolePortRadial), CreateFrame('Frame'), {}, ...;
+Mixin(Radial, CPAPI.SecureEnvironmentMixin)
 db:Register('Radial', Radial):Execute([[
 	----------------------------------------------------------
 	HEADERS = newtable() -- maintain references to headers
@@ -185,7 +186,7 @@ end
 ---------------------------------------------------------------
 -- Restricted pie slicer
 ---------------------------------------------------------------
-Radial.Env = {
+Radial:CreateEnvironment({
 	-- @param  a1    : number [0-360], first angle
 	-- @param  a2    : number [0-360], second angle
 	-- @return diff  : number, difference between angles
@@ -227,7 +228,7 @@ Radial.Env = {
 	-- @return y      : number, the Y-position from origin
 	GetPointForAngle = [[
 		local angle, radius = ...
-		return COS_DELTA * (radius * math.cos(angle)), (radius * math.sin(angle))
+		return COS_DELTA * (radius * cos(angle)), (radius * sin(angle))
 	]];
 	-- @param  id  : numberID or name
 	-- @return x   : number [-1,1], X-position
@@ -289,7 +290,7 @@ Radial.Env = {
 		end
 		return unpack(result)
 	]];
-}
+})
 
 
 ---------------------------------------------------------------
@@ -345,14 +346,6 @@ function Radial:OnActiveDeviceChanged()
 	return self
 end
 
-function Radial:CreateEnvironment()
-	for func, body in pairs(self.Env) do
-		self:SetAttribute(func, body)
-		self:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
-	end
-	return self
-end
-
 
 ---------------------------------------------------------------
 -- Unrestricted data access
@@ -390,7 +383,6 @@ end
 ---------------------------------------------------------------
 -- Set environment on handler and feed stick data
 ---------------------------------------------------------------
-Radial:CreateEnvironment()
 RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 ---------------------------------------------------------------
 db:RegisterSafeCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)

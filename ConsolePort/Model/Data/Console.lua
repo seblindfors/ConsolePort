@@ -51,14 +51,14 @@ db:Register('Console', {
 	Cursor = {
 		{	cvar = 'GamePadCursorAutoDisableJump';
 			type = Bool(true);
-			name = 'Hide Cursor On Jump';
+			name = 'Hide Cursor on Jump';
 			desc = 'Disable free-roaming mouse cursor when you jump.';
 		};
 		{	cvar = 'GamePadCursorAutoDisableSticks';
-			type = Range(2, 1, 0, 2);
-			name = 'Hide Cursor On Stick Input';
+			type = Select(2, 2):SetRawOptions({[0] = NONE, [1] = TUTORIAL_TITLE2, [2] = STATUS_TEXT_BOTH});
+			name = 'Hide Cursor on Stick Input';
 			desc = 'Disable free-roaming mouse cursor when you use your sticks.';
-			note = '0: disabled\n1: on movement\n2: on movement combined with cursor';
+			note = 'When set to both sticks, cursor only disables when both sticks are used together.';
 		};
 		{	cvar = 'CursorCenteredYPos';
 			type = Range(0.6, 0.025, 0, 1);

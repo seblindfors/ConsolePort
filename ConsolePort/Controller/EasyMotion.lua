@@ -38,7 +38,7 @@ local Actions = {
 
 ---------------------------------------------------------------
 -- Get action/input handlers, EasyMotion -> EM for brevity
-local EM, Input = ConsolePortEasyMotionButton, ConsolePortEasyMotionInput
+local EM, Input = CPAPI.EventHandler(ConsolePortEasyMotionButton), ConsolePortEasyMotionInput
 -- Link functions for world targeting
 EM.HighlightTarget = TargetPriorityHighlightStart
 EM.GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
@@ -46,6 +46,7 @@ EM.GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 -- Mixin functions for the hotkey display
 local HotkeyMixin, GroupMixin = {}, {}
 
+---------------------------------------------------------------
 -- Initialize secure namespace
 ---------------------------------------------------------------
 EM:Execute([[
@@ -303,6 +304,12 @@ for name, script in pairs({
 	]],
 }) do EM:WrapScript(Input, name, script) end
 
+---------------------------------------------------------------
+-- Smart allocation
+---------------------------------------------------------------
+-- Handles setup of bindings in a way where the set to use for
+-- input doesn't conflict with the hold binding itself.
+
 function EM:OnNewBindings(bindings)
 	local keys = {};
 	for unitType, action in pairs(Actions) do
@@ -335,9 +342,15 @@ function EM:OnNewBindings(bindings)
 	end
 end
 
+function EM:OnDataLoaded()
+	self:OnNewBindings(db.Gamepad:GetBindings())
+end
+
 db:RegisterSafeCallback('OnNewBindings', EM.OnNewBindings, EM)
 
-
+---------------------------------------------------------------
+-- Frontend
+---------------------------------------------------------------
 EM.FramePool = {}
 EM.ActiveFrames = 0
 EM.UnitFrames = {}
@@ -462,6 +475,9 @@ end
 
 function EM:GetFrames() return pairs(self.FramePool) end
 
+---------------------------------------------------------------
+-- Hotkey mixin
+---------------------------------------------------------------
 function HotkeyMixin:Clear()
 	self.isActive = false
 	self.binding = nil

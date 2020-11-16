@@ -16,15 +16,16 @@ local Mouse = CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsoleP
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
 local CreateKeyChordString = CreateKeyChordStringUsingMetaKeyState;
-local UnitExists, GetMouseFocus = UnitExists, GetMouseFocus;
-local NewTimer = C_Timer.NewTimer;
-
+local NewTimer, GetMouseFocus = C_Timer.NewTimer, GetMouseFocus;
+local UnitExists, GetSpellInfo = UnitExists, GetSpellInfo;
+local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
 
 ---------------------------------------------------------------
 -- Consts
 ---------------------------------------------------------------
 local CAST_INFO_SPELLID_OFFSET = 9;
 local SPELLID_CAST_TIME_OFFSET = 4;
+
 
 ---------------------------------------------------------------
 -- Helpers: predicate evaluators
@@ -81,13 +82,16 @@ function Mouse:UPDATE_BINDINGS()
 end
 
 function Mouse:CURRENT_SPELL_CAST_CHANGED()
-	local spellID = select(CAST_INFO_SPELLID_OFFSET, UnitCastingInfo('player'))
-	if spellID and not self.faceMovementValue then
-		local castTime = select(SPELLID_CAST_TIME_OFFSET, GetSpellInfo(spellID))
-		if (castTime > 0) then
-			self.faceMovementValue = CVar_FaceMove:Get()
-			CVar_FaceMove:Set(0)
+	local castTime = UnitChannelInfo('player') ~= nil;
+	if not castTime then
+		local spellID = select(CAST_INFO_SPELLID_OFFSET, UnitCastingInfo('player'))
+		if spellID then
+			castTime = select(SPELLID_CAST_TIME_OFFSET, GetSpellInfo(spellID)) > 0;
 		end
+	end
+	if castTime and not self.faceMovementValue then
+		self.faceMovementValue = CVar_FaceMove:Get()
+		CVar_FaceMove:Set(0)
 	elseif self.faceMovementValue then
 		CVar_FaceMove:Set(self.faceMovementValue)
 		self.faceMovementValue = nil;

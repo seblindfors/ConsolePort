@@ -170,18 +170,30 @@ db:Register('Variables', {
 		name = 'Vertical Offset';
 		desc = 'Vertical offset of the hotkey prompt position, in pixels.';
 	};
+	unitHotkeyPool = {String('player$;party%d$;raid%d+$');
+		head = 'Unit Hotkeys';
+		sort = 6;
+		name = 'Unit Pool';
+		desc = 'Match criteria for unit pool, each type separated by semicolon.';
+		note = '$: end of match token\n+: matches multiple tokens\n%d: matches number';
+	};
 	--------------------------------------------------------------------------------------------------------
 	-- Misc:
 	--------------------------------------------------------------------------------------------------------
-	disableAmbientFrames = {Bool(false);
+	autoExtra = {Bool(true);
 		head = MISCELLANEOUS;
-		name = 'Disable Ambient Noise-Cancelling';
-		desc = 'Disable ambient noise-cancelling in menus.';
+		name = 'Automatically Bind Quest Items';
+		desc = 'Automatically add tracked quest items to main utility ring.';
 	};
 	autoSellJunk = {Bool(true);
 		head = MISCELLANEOUS;
 		name = 'Automatically Sell Junk';
 		desc = 'Automatically sell junk when interacting with a merchant.';
+	};
+	disableAmbientFrames = {Bool(false);
+		head = MISCELLANEOUS;
+		name = 'Disable Ambient Noise-Cancelling';
+		desc = 'Disable ambient noise-cancelling in menus.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Advanced:

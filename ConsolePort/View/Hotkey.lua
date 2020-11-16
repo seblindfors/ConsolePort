@@ -170,6 +170,10 @@ end
 HotkeyMixin.template = 'Default'; -- TODO: remove hardcoded
 
 function HotkeyMixin:SetData(data, owner)
+	if owner:GetAttribute('ignoregamepadhotkey') then
+		return
+	end
+	
 	self.data = data
 	self:SetSize(1, 1)
 

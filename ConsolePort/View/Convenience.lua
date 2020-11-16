@@ -55,7 +55,6 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 	'MERCHANT_SHOW';
 	'MERCHANT_CLOSED';
 	'BAG_UPDATE_DELAYED';
-	'CURRENT_SPELL_CAST_CHANGED';
 }, {
 	SellJunkHelper = function(item)
 		if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
@@ -92,7 +91,7 @@ function ShowGamePadConfig()
 end
 
 _G['SLASH_' .. _:upper() .. '1'] = '/' .. _:lower()
-SlashCmdList[_:upper()] = function()
+SlashCmdList[_:upper()] = function(msg)
 	ShowGamePadConfig()
 end
 

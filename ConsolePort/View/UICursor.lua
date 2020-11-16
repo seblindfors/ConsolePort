@@ -159,6 +159,7 @@ function Cursor:SetCurrentNode(node, assertNotMouse)
 		self:SetCurrent(object)
 		self:SelectAndPosition(self:GetSelectParams(object, true))
 		self:Chime()
+		return true;
 	end
 end
 
