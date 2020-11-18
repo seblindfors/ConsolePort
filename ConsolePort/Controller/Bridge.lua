@@ -1,20 +1,20 @@
 ---------------------------------------------------------------
--- IntelliSense
+-- Bridge
 ---------------------------------------------------------------
--- Context-aware 'code completion' for other internal modules,
+-- Context-aware bridge module for other internal modules,
 -- processing based on multiple factors in an isolated sandbox.
 
 local _, db = ...; local L = db.Locale;
-local IS = db:Register('Intellisense', {})
+local Bridge = db:Register('Bridge', {})
 
 
-function IS:ProcessInterfaceCursorEvent(button, down, node)
+function Bridge:ProcessInterfaceCursorEvent(button, down, node)
 	if ( down == false ) and db.Utility:HasPendingAction() then
 		return db.Utility:PostPendingAction()
 	end
 end
 
-function IS:GetSpecialActionPrompt(text)
+function Bridge:GetSpecialActionPrompt(text)
 	local device = db('Gamepad/Active')
 	return device and device:GetTooltipButtonPrompt(
 		db('Settings/UICursor/Special'),
@@ -22,7 +22,7 @@ function IS:GetSpecialActionPrompt(text)
 	);
 end
 
-function IS:SetPendingActionToUtilityRing(action, tooltip)
+function Bridge:SetPendingActionToUtilityRing(action, tooltip)
 	if db.Utility:SetPendingAction(1, action) then
 		if tooltip then
 			local prompt = self:GetSpecialActionPrompt('Add to Utility Ring')
@@ -50,7 +50,7 @@ GameTooltip:HookScript('OnTooltipSetItem', function(self)
 	if not InCombatLockdown() and db.Cursor:IsCurrentNode(self:GetOwner()) then
 		local name, link = self:GetItem()
 		if ( GetItemSpell(link) and GetItemCount(link) > 0 ) then
-			IS:SetPendingActionToUtilityRing({type = 'item', item = link, link = link}, self);
+			Bridge:SetPendingActionToUtilityRing({type = 'item', item = link, link = link}, self);
 		end
 	end
 end)
@@ -68,7 +68,7 @@ GameTooltip:HookScript('OnTooltipSetSpell', function(self)
 				end
 			end
 			if isKnown then
-				IS:SetPendingActionToUtilityRing({type = 'spell', spell = spellID, link = GetSpellLink(spellID)}, self)
+				Bridge:SetPendingActionToUtilityRing({type = 'spell', spell = spellID, link = GetSpellLink(spellID)}, self)
 			end
 		end
 	end

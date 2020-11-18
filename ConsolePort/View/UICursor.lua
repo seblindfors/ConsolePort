@@ -312,7 +312,7 @@ function Cursor:Input(caller, isDown, key)
 			target, changed = self:Navigate(key)
 		end
 	elseif ( key == db('Settings/UICursor/Special') ) then
-		return db.Intellisense:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
+		return db.Bridge:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
 	end
 	if ( target ) then
 		return self:SelectAndPosition(self:GetSelectParams(target, isDown))
