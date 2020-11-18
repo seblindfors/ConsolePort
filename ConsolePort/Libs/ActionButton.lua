@@ -44,14 +44,16 @@ local Action 	= setmetatable({}, {__index = Generic})
 local Spell 	= setmetatable({}, {__index = Generic})
 local Item 		= setmetatable({}, {__index = Generic})
 local Macro 	= setmetatable({}, {__index = Generic})
+local Toy       = setmetatable({}, {__index = Generic})
 local Custom 	= setmetatable({}, {__index = Generic})
 
 local Generic_MT = {__index = Generic}
-local Action_MT = {__index = Action}
-local Spell_MT 	= {__index = Spell}
-local Item_MT 	= {__index = Item}
-local Macro_MT 	= {__index = Macro}
-local Custom_MT = {__index = Custom}
+local Action_MT  = {__index = Action}
+local Spell_MT 	 = {__index = Spell}
+local Item_MT 	 = {__index = Item}
+local Macro_MT 	 = {__index = Macro}
+local Toy_MT     = {__index = Toy}
+local Custom_MT  = {__index = Custom}
 
 local type_meta_map = {
 	empty  = Generic_MT,
@@ -59,6 +61,7 @@ local type_meta_map = {
 	spell  = Spell_MT,
 	item   = Item_MT,
 	macro  = Macro_MT,
+	toy    = Toy_MT,
 	custom = Custom_MT
 }
 
@@ -1367,21 +1370,33 @@ Action.GetLossOfControlCooldown = function(self) return GetActionLossOfControlCo
 
 -----------------------------------------------------------
 --- Spell Button
+local function getSpellId(input)
+	return tonumber(input) or (select(7, GetSpellInfo(input)))
+end
+
+local function getSpellInfo(func, spellID, ...)
+	spellID = getSpellId(spellID)
+	if tonumber(spellID) then
+		local slot = FindSpellBookSlotBySpellID(spellID, 'spell')
+		return slot and func(slot, ...)
+	end
+end
+
 Spell.HasAction               = function(self) return true end
 Spell.GetActionText           = function(self) return '' end
 Spell.GetTexture              = function(self) return GetSpellTexture(self._state_action) end
 Spell.GetCharges              = function(self) return GetSpellCharges(self._state_action) end
 Spell.GetCount                = function(self) return GetSpellCount(self._state_action) end
 Spell.GetCooldown             = function(self) return GetSpellCooldown(self._state_action) end
-Spell.IsAttack                = function(self) return IsAttackSpell(FindSpellBookSlotBySpellID(self._state_action), 'spell') end -- needs spell book id as of 4.0.1.13066
+Spell.IsAttack                = function(self) return getSpellInfo(IsAttackSpell, self._state_action) end
 Spell.IsEquipped              = function(self) return nil end
 Spell.IsCurrentlyActive       = function(self) return IsCurrentSpell(self._state_action) end
-Spell.IsAutoRepeat            = function(self) return IsAutoRepeatSpell(FindSpellBookSlotBySpellID(self._state_action), 'spell') end -- needs spell book id as of 4.0.1.13066
+Spell.IsAutoRepeat            = function(self) return getSpellInfo(IsAutoRepeatSpell, self._state_action) end
 Spell.IsUsable                = function(self) return IsUsableSpell(self._state_action) end
 Spell.IsConsumableOrStackable = function(self) return IsConsumableSpell(self._state_action) end
-Spell.IsUnitInRange           = function(self, unit) return IsSpellInRange(FindSpellBookSlotBySpellID(self._state_action), 'spell', unit) end -- needs spell book id as of 4.0.1.13066
-Spell.SetTooltip              = function(self) return GameTooltip:SetSpellByID(self._state_action) end
-Spell.GetSpellId              = function(self) return self._state_action end
+Spell.IsUnitInRange           = function(self, unit) return getSpellInfo(IsSpellInRange, self._state_action, unit) end
+Spell.SetTooltip              = function(self) return GameTooltip:SetSpellByID(getSpellId(self._state_action)) end
+Spell.GetSpellId              = function(self) return getSpellId(self._state_action) end
 
 -----------------------------------------------------------
 --- Item Button
@@ -1423,6 +1438,24 @@ Macro.IsConsumableOrStackable = function(self) return nil end
 Macro.IsUnitInRange           = function(self, unit) return nil end
 Macro.SetTooltip              = function(self) return nil end
 Macro.GetSpellId              = function(self) return nil end
+
+-----------------------------------------------------------
+--- Toy Button
+Toy.HasAction               = function(self) return true end
+Toy.GetActionText           = function(self) return "" end
+Toy.GetTexture              = function(self) return select(3, C_ToyBox.GetToyInfo(self._state_action)) end
+Toy.GetCharges              = function(self) return nil end
+Toy.GetCount                = function(self) return 0 end
+Toy.GetCooldown             = function(self) return GetItemCooldown(self._state_action) end
+Toy.IsAttack                = function(self) return nil end
+Toy.IsEquipped              = function(self) return nil end
+Toy.IsCurrentlyActive       = function(self) return nil end
+Toy.IsAutoRepeat            = function(self) return nil end
+Toy.IsUsable                = function(self) return nil end
+Toy.IsConsumableOrStackable = function(self) return nil end
+Toy.IsUnitInRange           = function(self, unit) return nil end
+Toy.SetTooltip              = function(self) return GameTooltip:SetToyByItemID(self._state_action) end
+Toy.GetSpellId              = function(self) return nil end
 
 -----------------------------------------------------------
 --- Custom Button

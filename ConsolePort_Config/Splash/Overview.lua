@@ -166,7 +166,6 @@ end
 -- Gamepad overview (display bindings and info)
 ---------------------------------------------------------------
 function Overview:OnLoad()
-	env.OpaqueMixin.OnLoad(self)
 	CPFocusPoolMixin.OnLoad(self)
 	self:CreateFramePool('Button',
 		'CPConfigBindingSplashDisplayTemplate', Button, nil, self)

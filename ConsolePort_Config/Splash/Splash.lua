@@ -206,24 +206,44 @@ function Splash:OnFirstShow()
 			_Type  = 'Frame';
 			_Setup = 'BackdropTemplate';
 			_Hide  = true;
-			_Mixin = env.Overview;
+			_Mixin = env.OpaqueMixin;
 			_Backdrop = CPAPI.Backdrops.Opaque;
 			_Points = {
 				{'TOPLEFT', 0, 0};
 				{'BOTTOMRIGHT', '$parent.NavBar', 'TOPRIGHT', 0, 0};
 			};
 			{
-				Splash = {
-					_Type  = 'Texture';
-					_Setup = {'ARTWORK'};
-					_Size  = {450, 450};
-					_Point = {'CENTER', 0, 0};
+				Backdrop = {
+					_Type = 'PlayerModel';
+					_Fill = true;
+					_Alpha = 0.75;
+					_Level = 1;
+					_SetDisplayInfo = 43022;
+					_SetCamDistanceScale = 8;
+					_OnLoad = function(self)
+						local rW, gW, bW = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
+						self:SetLight(true, false, 0, 0, 1, 1, rW, gW, bW, 100, rW, gW, bW)
+					end;
 				};
-				Lines = {
-					_Type  = 'Texture';
-					_Setup = {'OVERLAY'};
-					_Size  = {1024, 512};
-					_Point = {'CENTER', 0, 0};
+				Content = {
+					_Type  = 'Frame';
+					_Mixin = env.Overview;
+					_Fill  = true;
+					_Level = 100;
+					{
+						Splash = {
+							_Type  = 'Texture';
+							_Setup = {'ARTWORK'};
+							_Size  = {450, 450};
+							_Point = {'CENTER', 0, 0};
+						};
+						Lines = {
+							_Type  = 'Texture';
+							_Setup = {'OVERLAY'};
+							_Size  = {1024, 512};
+							_Point = {'CENTER', 0, 0};
+						};
+					};
 				};
 			};
 		};

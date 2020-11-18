@@ -8,6 +8,7 @@
 local _, db = ...;
 local Mouse = CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
+	'ACTIONBAR_SHOWGRID';
 	'CURRENT_SPELL_CAST_CHANGED';
 })
 
@@ -81,6 +82,10 @@ function Mouse:UPDATE_BINDINGS()
 	Keys_Escape:SetOptions(db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU'))
 end
 
+function Mouse:ACTIONBAR_SHOWGRID()
+	self:SetFreeCursor()
+end
+
 function Mouse:CURRENT_SPELL_CAST_CHANGED()
 	local castTime = UnitChannelInfo('player') ~= nil;
 	if not castTime then
@@ -137,7 +142,7 @@ function Mouse:ShouldSetCursorWhenMenuIsOpen(_)
 end
 
 ---------------------------------------------------------------
--- Base control functions (there seems to be bugs with these API functions)
+-- Base control functions
 ---------------------------------------------------------------
 function Mouse:SetCentered(enabled)
 	CVar_Center:Set(enabled)

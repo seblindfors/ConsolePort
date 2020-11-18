@@ -5,7 +5,9 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
 ---------------------------------------------------------------
-Utility.Data = {[1] = {}};
+local DEFAULT_SET = 1;
+---------------------------------------------------------------
+Utility.Data = {[DEFAULT_SET] = {}};
 Utility:Execute([[DATA = newtable()]])
 Utility:SetAttribute('ignoregamepadhotkey', true)
 db:Register('Utility', Utility)
@@ -49,20 +51,22 @@ Utility:CreateEnvironment({
 			self:SetAttribute(attribute, value)
 		end
 	]];
-	GetRingIndexFromButton = [[
+	GetRingIndexFromButton = ([[
 		local button = ...;
 		if DATA[button] then
 			return button;
 		end
-		return tostring(1);
-	]];
+		return tostring(%s);
+	]]):format(DEFAULT_SET);
 });
 
 Utility:WrapScript(Utility, 'PreClick', [[
 	self:SetAttribute('type', nil)
 
 	if down then
-		self:Run(DrawSelectedRing, self:Run(GetRingIndexFromButton, button))
+		local set = self:Run(GetRingIndexFromButton, button)
+		self:CallMethod('CheckCursorInfo', set)
+		self:Run(DrawSelectedRing, set)
 		self:Show()
 	else
 		self:Run(CopySelectedIndex, self:Run(GetIndex))
@@ -113,6 +117,7 @@ end
 function Utility:AddSecureAction(set, idx, info)
 	local button, newObj = self:TryAcquireRegistered(idx)
 	if newObj then
+		button:SetFrameLevel(idx)
 		button:SetID(idx)
 		button:OnLoad()
 		self:SetFrameRef(tostring(idx), button)
@@ -150,11 +155,15 @@ function Utility:GetButtonSlugForSet(setID)
 	return db.Hotkeys:GetButtonSlugForBinding(('CLICK ConsolePortUtilityToggle:%s'):format(setID));
 end
 
+function Utility:GetBindingSuffixForSet(setID)
+	return (setID == DEFAULT_SET and 'LeftButton' or tostring(setID));
+end
+
 ---------------------------------------------------------------
 -- Set manager
 ---------------------------------------------------------------
 function Utility:AddAction(setID, idx, info)
-	setID = setID or 1;
+	setID = setID or DEFAULT_SET;
 	local set = self.Data[setID];
 	local maxIndex = #set + 1;
 	idx = Clamp(idx or maxIndex, 1, maxIndex)
@@ -164,29 +173,57 @@ function Utility:AddAction(setID, idx, info)
 end
 
 function Utility:RemoveAction(setID, idx)
-	return tremove(self.Data[setID], idx)
+	local action = tremove(self.Data[setID], idx)
+	self:RefreshAll()
+	return action;
 end
 
 function Utility:ClearActionByAttribute(setID, key, value)
-	local set = self.Data[setID];
-	for i, action in ipairs(set) do
-		for attribute, content in pairs(action) do
-			if (attribute == key and content == value) then
-				return self:RemoveAction(setID, i)
-			end
-		end
+	local index = self:SearchActionByAttribute(setID, key, value)
+	if index then
+		return self:RemoveAction(setID, index)
 	end
 end
 
 function Utility:ClearActionByKey(setID, key)
+	local index = self:SearchActionByKey(setID, key)
+	if index then
+		return self:RemoveAction(setID, index)
+	end
+end
+
+function Utility:SearchActionByAttribute(setID, key, value)
+	local set = self.Data[setID];
+	for i, action in ipairs(set) do
+		for attribute, content in pairs(action) do
+			if (attribute == key and content == value) then
+				return i, set;
+			end
+		end
+	end
+end
+
+function Utility:SearchActionByKey(setID, key)
 	local set = self.Data[setID];
 	for i, action in ipairs(set) do
 		for attribute in pairs(action) do
 			if (attribute == key) then
-				return self:RemoveAction(setID, i)
+				return i, set;
 			end
 		end
 	end
+end
+
+function Utility:IsUniqueAction(setID, info)
+	local set = self.Data[setID];
+	local cmp = db.table.compare;
+	-- check if already existing on ring
+	for i, action in ipairs(set) do
+		if cmp(action, info) then
+			return false, i;
+		end
+	end
+	return true;
 end
 
 function Utility:AnnounceAddition(link, set)
@@ -194,20 +231,24 @@ function Utility:AnnounceAddition(link, set)
 	CPAPI.Log('%s was added to your utility ring. Use: %s', link, slug or NOT_BOUND)
 end
 
+function Utility:AnnounceRemoval(link, set)
+	CPAPI.Log('%s was removed from your utility ring.', link)
+end
+
 ---------------------------------------------------------------
 -- Mapping from type to usable attributes
 ---------------------------------------------------------------
 Utility.KindAndActionMap = {
-	action = function(data) return data.type, data.action end;
-	item   = function(data) return data.type, data.item end;
-	pet    = function(data) return data.type, data.action end;
-	spell  = function(data) return data.type, data.spell end;
-	macro  = function(data) return data.type, data.macro end;
-	equipmentset = function(data) return data.type, data.equipmentset end;
+	action = function(data) return data.action end;
+	item   = function(data) return data.item end;
+	pet    = function(data) return data.action end;
+	spell  = function(data) return data.spell end;
+	macro  = function(data) return data.macro end;
+	equipmentset = function(data) return data.equipmentset end;
 }
 
 function Utility:GetKindAndAction(info)
-	return self.KindAndActionMap[info.type](info);
+	return info.type, self.KindAndActionMap[info.type](info);
 end
 
 ---------------------------------------------------------------
@@ -228,6 +269,7 @@ Utility.SecureHandlerMap = {
 	end;
 	mount = function(mountID)
 		local spellID = select(2, C_MountJournal.GetMountInfoByID(mountID));
+		print('spellID', spellID)
 		if spellID then
 			return {type = 'spell', spell = spellID};
 		end
@@ -263,20 +305,14 @@ function Utility:AddFromCursorInfo(setID, idx)
 end
 
 function Utility:AddUniqueAction(setID, info, preferredIndex)
-	local set = self.Data[setID];
-	local cmp = db.table.compare;
-	-- check if already existing on ring
-	for i, action in ipairs(set) do
-		if cmp(action, info) then
-			return false;
-		end
+	if self:IsUniqueAction(setID, info) then
+		return self:AddAction(setID, preferredIndex, info)
 	end
-	return self:AddAction(setID, preferredIndex, info)
 end
 
 function Utility:AutoAssignAction(info)
 	info.autoassigned = true;
-	return self:AddUniqueAction(1, info)
+	return self:AddUniqueAction(DEFAULT_SET, info)
 end
 
 function Utility:ToggleQuestWatchItem(questID, added)
@@ -293,7 +329,7 @@ function Utility:ToggleQuestWatchItem(questID, added)
 			end
 		end
 	else
-		local wasRemoved = self:ClearActionByAttribute(1, 'questID', questID)
+		local wasRemoved = self:ClearActionByAttribute(DEFAULT_SET, 'questID', questID)
 		if wasRemoved then
 			self:RefreshAll()
 		end
@@ -307,6 +343,64 @@ function Utility:AddAllQuestWatchItems()
 	end
 end
 
+function Utility:CheckCursorInfo(setID)
+	if not InCombatLockdown() then
+		setID = tonumber(setID) or setID;
+		if GetCursorInfo() then
+			if self:AddFromCursorInfo(setID) then
+				self:AnnounceAddition(GetCursorInfo(), self:GetBindingSuffixForSet(setID))
+				ClearCursor()
+			end
+		end
+	end
+end
+
+---------------------------------------------------------------
+-- Pending action
+---------------------------------------------------------------
+function Utility:SetPendingAction(setID, info, force)
+	if force or self:IsUniqueAction(setID, info) then
+		self.pendingAction = {
+			setID = setID;
+			info = info;
+			add = true;
+		};
+		return true;
+	end
+end
+
+function Utility:SetPendingRemove(setID, info)
+	self.pendingAction = {
+		setID = setID;
+		info = info;
+		add = false;
+	};
+end
+
+function Utility:HasPendingAction()
+	return self.pendingAction;
+end
+
+function Utility:ClearPendingAction()
+	self.pendingAction = nil;
+end
+
+function Utility:PostPendingAction(preferredIndex)
+	local action = self.pendingAction;
+	if action then
+		if action.add then
+			if self:AddAction(action.setID, preferredIndex, action.info) then
+				self:AnnounceAddition(action.info.link, self:GetBindingSuffixForSet(action.setID))
+			end
+		else
+			if self:ClearActionByAttribute(action.setID, 'link', action.info.link) then
+				self:AnnounceRemoval(action.info.link)
+			end
+		end
+		self.pendingAction = nil;
+	end
+end
+
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
@@ -315,7 +409,7 @@ function Utility:QUEST_WATCH_LIST_CHANGED(questID, added)
 		if questID then
 			db:RunSafe(self.ToggleQuestWatchItem, self, questID, added)
 		else
-			db:RunSafe(self.ClearActionByKey, self, 1, 'questID')
+			db:RunSafe(self.ClearActionByKey, self, DEFAULT_SET, 'questID')
 			self:AddAllQuestWatchItems()
 		end
 	end
@@ -326,12 +420,18 @@ end
 ---------------------------------------------------------------
 function Button:OnLoad()
 	self:Initialize()
+	self:SetScript('OnHide', self.OnClear)
 end
 
 function Button:OnFocus()
 	self:SetChecked(true)
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	self:SetTooltip()
 end
 
 function Button:OnClear()
 	self:SetChecked(false)
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
 end

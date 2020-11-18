@@ -47,29 +47,31 @@ db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
 	-- Radial:
 	--------------------------------------------------------------------------------------------------------
-	radialClearFocusTime = {Number(0.5, 0.1);
+	radialClearFocusTime = {Number(0.5, 0.025);
 		head = 'Radial Menus';
 		sort = 1;
 		name = 'Radial Focus Timeout';
-		desc = 'Time to clear focus after intercepting stick input';
+		desc = 'Time to clear focus after intercepting stick input, in seconds.';
 	};
 	radialActionDeadzone = {Range(0.5, 0.05, 0, 1);
 		head = 'Radial Menus';
 		sort = 2;
 		name = 'Radial Deadzone';
-		desc = 'Deadzone for simple pie menus'
+		desc = 'Deadzone for simple pie menus.';
 	};
 	radialStartIndexAt = {Range(90, 22.5, 0, 360);
 		head = 'Radial Menus';
 		sort = 3;
 		name = 'Radial Start Angle';
-		desc = 'Starting angle of the first item in a pie menu';
+		desc = 'Starting angle of the first item in a pie menu.';
+		note = 'Angle is measured clockwise from straight left.';
 	};
 	radialCosineDelta = {Delta(1);
 		head = 'Radial Menus';
 		sort = 4;
 		name = 'Radial Direction Delta';
-		desc = 'Direction of item order in a pie menu (default clockwise)';
+		desc = 'Direction of item order in a pie menu.';
+		note = '+ Clockwise\n- Counter-clockwise';
 	};
 	radialPrimaryStick = {Table({'Left', 'Movement'});
 		head = 'Radial Menus';

@@ -24,7 +24,6 @@ Cursor.InCombat = InCombatLockdown;
 function Cursor:OnDataLoaded()
 	self:RegisterEvent('PLAYER_REGEN_ENABLED')
 	self:RegisterEvent('PLAYER_REGEN_DISABLED')
-	self:RegisterEvent('CURSOR_CHANGED')
 end
 
 function Cursor:PLAYER_REGEN_DISABLED()
@@ -54,12 +53,6 @@ function Cursor:PLAYER_REGEN_ENABLED()
 	-- in case the cursor is showing and waiting to hide OOC
 	elseif self:IsShown() and not self.showAfterCombat then
 		self:Hide()
-	end
-end
-
-function Cursor:CURSOR_CHANGED(isDefault)
-	if not isDefault then
-		SetGamePadCursorControl(true)
 	end
 end
 
@@ -315,9 +308,11 @@ end
 function Cursor:Input(caller, isDown, key)
 	local target, changed
 	if isDown and key then
-		target, changed = self:Navigate(key)
+		if not self:AttemptDragStart() then
+			target, changed = self:Navigate(key)
+		end
 	elseif ( key == db('Settings/UICursor/Special') ) then
-		-- TODO: implement special action
+		return db.Intellisense:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
 	end
 	if ( target ) then
 		return self:SelectAndPosition(self:GetSelectParams(target, isDown))
@@ -543,6 +538,21 @@ function Cursor:SetClickButtonsForNode(node, macroReplacement, isClickable)
 			else
 				Input:SetCommand(modifier .. button, self, false, self:GetEmuClick(node, click))
 			end
+		end
+	end
+end
+
+function Cursor:AttemptDragStart()
+	local node = self:GetCurrentNode()
+	local script = node and node:GetScript('OnDragStart')
+	if script then
+		local widget = Input:GetActiveWidget(db('Settings/UICursor/LeftClick'), self)
+		local click = widget:HasClickButton()
+		if widget and widget.state and click then
+			widget:ClearClickButton()
+			widget:EmulateFrontend(click, 'NORMAL', 'OnMouseUp')
+			script(node, 'LeftButton')
+			return true;
 		end
 	end
 end

@@ -11,4 +11,5 @@
 	<Script file="Radial.lua"/>
 	<Script file="Mouse.lua"/>
 	<Script file="EasyMotion.lua"/>
+	<Script file="IntelliSense.lua"/>
 </Ui>

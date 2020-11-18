@@ -22,7 +22,7 @@ InputAPI:SetAttribute('_onstate-combat', [[
 
 function InputAPI:GetWidget(id, owner)
 	assert(not InCombatLockdown(), 'Attempted to get input widget in combat.')
-	local widget = self.Widgets[id]
+	local widget = self.Widgets[id];
 	if not widget then
 		widget = CreateFrame(
 			'Button', ('CP-Input-%s'):format(tostring(id):upper()),
@@ -31,10 +31,10 @@ function InputAPI:GetWidget(id, owner)
 		widget:Hide()
 		db.table.mixin(widget, InputMixin)
 		widget:OnLoad(id)
-		self.Widgets[id] = widget
+		self.Widgets[id] = widget;
 	end
 	widget:SetAttribute('owner', owner)
-	return widget
+	return widget;
 end
 
 function InputAPI:Release(owner)
@@ -48,6 +48,13 @@ end
 function InputAPI:ReleaseAll()
 	for id, widget in pairs(self.Widgets) do
 		widget:ClearOverride()
+	end
+end
+
+function InputAPI:GetActiveWidget(id, owner)
+	local widget = self.Widgets[id];
+	if (widget and widget:GetAttribute('owner') == owner) then
+		return widget;
 	end
 end
 
@@ -257,6 +264,10 @@ end
 function InputMixin:ClearClickButton()
 	assert(not InCombatLockdown(), 'Attempted to insecurely clear click action in combat.')
 	self:SetAttribute('clickbutton', nil)
+end
+
+function InputMixin:HasClickButton()
+	return self:GetAttribute('clickbutton')
 end
 
 function InputMixin:Clear(manual)
