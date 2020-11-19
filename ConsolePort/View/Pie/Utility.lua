@@ -27,6 +27,8 @@ Utility:CreateEnvironment({
 		local radius = math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
 		local numActive = #RING;
 
+		self:SetAttribute('trigger', self:Run(GetButtonsHeld))
+		self:SetAttribute('state', set)
 		control:ChildUpdate('state', set)
 
 		for i, action in ipairs(RING) do
@@ -51,26 +53,62 @@ Utility:CreateEnvironment({
 			self:SetAttribute(attribute, value)
 		end
 	]];
-	GetRingIndexFromButton = ([[
+	GetRingSetFromButton = ([[
 		local button = ...;
 		if DATA[button] then
 			return button;
 		end
 		return tostring(%s);
 	]]):format(DEFAULT_SET);
+	SetRemoveBinding = [[
+		local enabled = ...;
+		if enabled then
+			local binding = self:GetAttribute('removeButton')
+			local mods = newtable(self:Run(GetModifiersHeld))
+			table.sort(mods)
+			mods[#mods+1] = table.concat(mods)
+
+			local removeWidget = self:GetFrameRef('Remove')
+			for _, mod in ipairs(mods) do
+				self:SetBindingClick(true, mod..binding, removeWidget)
+			end
+			self:SetBindingClick(true, binding, removeWidget)
+		else
+			self:ClearBindings()
+		end
+	]];
 });
 
+---------------------------------------------------------------
+-- Trigger script
+---------------------------------------------------------------
 Utility:WrapScript(Utility, 'PreClick', [[
 	self:SetAttribute('type', nil)
 
 	if down then
-		local set = self:Run(GetRingIndexFromButton, button)
+		local set = self:Run(GetRingSetFromButton, button)
 		self:CallMethod('CheckCursorInfo', set)
 		self:Run(DrawSelectedRing, set)
+		self:Run(SetRemoveBinding, true)
 		self:Show()
 	else
 		self:Run(CopySelectedIndex, self:Run(GetIndex))
+		self:ClearBindings()
 		self:Hide()
+	end
+]])
+
+
+---------------------------------------------------------------
+-- Secure removal
+---------------------------------------------------------------
+Utility:SetFrameRef('Remove', Utility.Remove)
+Utility:WrapScript(Utility.Remove, 'OnClick', [[
+	local index = control:Run(GetIndex)
+	local set = control:GetAttribute('state')
+	if set and index then
+		control:CallMethod('SafeRemoveAction', set, index)
+		control:Run(DrawSelectedRing, set)
 	end
 ]])
 
@@ -79,6 +117,7 @@ Utility:WrapScript(Utility, 'PreClick', [[
 ---------------------------------------------------------------
 function Utility:OnDataLoaded() --SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate
 	self:SetAttribute('size', 0)
+	self:SetAttribute('removeButton', db('radialRemoveButton'))
 	self:CreateFramePool('SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate', Button)
 	local sticks = db('radialPrimaryStick')
 	db:Load('Utility/Data', 'ConsolePortUtility')
@@ -146,6 +185,9 @@ function Utility:AddSecureAction(set, idx, info)
 	return self:Parse(body, args)
 end
 
+---------------------------------------------------------------
+-- Frontend
+---------------------------------------------------------------
 function Utility:OnInput(x, y, len, stick)
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetAttribute('size')))
 	self:ReflectStickPosition(x, y, len, len > self:GetValidThreshold())
@@ -156,7 +198,23 @@ function Utility:GetButtonSlugForSet(setID)
 end
 
 function Utility:GetBindingSuffixForSet(setID)
-	return (setID == DEFAULT_SET and 'LeftButton' or tostring(setID));
+	return (tonumber(setID) == DEFAULT_SET and 'LeftButton' or tostring(setID));
+end
+
+function Utility:GetTooltipRemovePrompt()
+	local removeButton = self:GetAttribute('removeButton')
+	local device = db('Gamepad/Active')
+	if removeButton and device then
+		return device:GetTooltipButtonPrompt(removeButton, REMOVE, 64)
+	end
+end
+
+function Utility:GetTooltipUsePrompt()
+	local useButton = self:GetAttribute('trigger')
+	local device = db('Gamepad/Active')
+	if useButton and device then
+		return device:GetTooltipButtonPrompt(useButton, USE, 64)
+	end
 end
 
 ---------------------------------------------------------------
@@ -176,6 +234,12 @@ function Utility:RemoveAction(setID, idx)
 	local action = tremove(self.Data[setID], idx)
 	self:RefreshAll()
 	return action;
+end
+
+function Utility:SafeRemoveAction(setID, idx)
+	if not InCombatLockdown() then
+		self:RemoveAction(tonumber(setID) or setID, tonumber(idx))
+	end
 end
 
 function Utility:ClearActionByAttribute(setID, key, value)
@@ -339,8 +403,13 @@ end
 function Utility:AddAllQuestWatchItems()
 	for i=1, C_QuestLog.GetNumQuestWatches() do
 		local questID = C_QuestLog.GetQuestIDForQuestWatchIndex(i)
-		db:RunSafe(self.ToggleQuestWatchItem, self, questID, true)
+		self:ToggleQuestWatchItem(questID, true)
 	end
+end
+
+function Utility:RefreshQuestWatchItems()
+	self:ClearActionByKey(DEFAULT_SET, 'questID')
+	self:AddAllQuestWatchItems()
 end
 
 function Utility:CheckCursorInfo(setID)
@@ -409,8 +478,7 @@ function Utility:QUEST_WATCH_LIST_CHANGED(questID, added)
 		if questID then
 			db:RunSafe(self.ToggleQuestWatchItem, self, questID, added)
 		else
-			db:RunSafe(self.ClearActionByKey, self, DEFAULT_SET, 'questID')
-			self:AddAllQuestWatchItems()
+			db:RunSafe(self.RefreshQuestWatchItems, self)
 		end
 	end
 end
@@ -427,6 +495,15 @@ function Button:OnFocus()
 	self:SetChecked(true)
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	self:SetTooltip()
+	local use = Utility:GetTooltipUsePrompt()
+	local remove = Utility:GetTooltipRemovePrompt()
+	if use then
+		GameTooltip:AddLine(use)
+	end
+	if ( remove and remove ~= use ) then
+		GameTooltip:AddLine(remove)
+	end
+	GameTooltip:Show()
 end
 
 function Button:OnClear()

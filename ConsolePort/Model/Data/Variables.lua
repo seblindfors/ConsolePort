@@ -87,6 +87,12 @@ db:Register('Variables', {
 		desc = 'Secondary radial stick: which stick to intercept for extra radial actions';
 		opts = STICK_SELECT;
 	};
+	radialRemoveButton = {Button('PADRSHOULDER');
+		head = 'Radial Menus';
+		sort = 7;
+		name = 'Remove Button';
+		desc = 'Button used to remove a selected item from an editable pie menu.';
+	};
 	--------------------------------------------------------------------------------------------------------
 	-- Interface cursor:
 	--------------------------------------------------------------------------------------------------------

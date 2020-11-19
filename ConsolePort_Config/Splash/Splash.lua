@@ -216,13 +216,14 @@ function Splash:OnFirstShow()
 				Backdrop = {
 					_Type = 'PlayerModel';
 					_Fill = true;
-					_Alpha = 0.75;
+					_Alpha = 0.25;
 					_Level = 1;
 					_SetDisplayInfo = 43022;
 					_SetCamDistanceScale = 8;
 					_OnLoad = function(self)
 						local rW, gW, bW = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
-						self:SetLight(true, false, 0, 0, 1, 1, rW, gW, bW, 100, rW, gW, bW)
+						local rC, gC, bC = CPAPI.GetClassColor()
+						self:SetLight(true, false, -1, 1, -100, 1, rW, gW, bW, 0.5, rC, gC, bC)
 					end;
 				};
 				Content = {

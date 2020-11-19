@@ -15,6 +15,9 @@
 		<Anchors>
 			<Anchor point="CENTER"/>
 		</Anchors>
+		<Frames>
+			<Button parentKey="Remove" name="$parentRemove" registerForClicks="AnyDown" inherits="SecureActionButtonTemplate"/>
+		</Frames>
 	</PieMenu>
 
 	<!-- Single file views -->

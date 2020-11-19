@@ -216,6 +216,7 @@ function Overview:OnShow()
 		local index  = getIndex(position)
 		local layout = positions[anchor];
 		local position = CopyTable(layout.anchorPoint)
+		-- adjust yOffset
 		position[3] = position[3] - index * BUTTON_SIZE;
 
 		local widget, newObj = self:Acquire(button)
