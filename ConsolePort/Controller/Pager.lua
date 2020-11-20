@@ -109,7 +109,7 @@ end
 --  IsHarmfulAction    : check if the action slot is harmful
 --  IsHelpfulAction    : check if the action slot is helpful
 ---------------------------------------------------------------
-Pager.SecureMixin = {
+Pager.Env = {
 	GetActionID = ([[
 		local id = ...
 		if id then
@@ -166,9 +166,8 @@ Pager.SecureMixin = {
 
 function Pager:RegisterHeader(header, anonymous)
 	assert(not InCombatLockdown(), 'Header cannot be registered in combat.')
-	for name, func in pairs(self.SecureMixin) do
-		header:SetAttribute(name, func)
-	end
+	assert(header.CreateEnvironment, 'Header is missing SecureEnvironmentMixin.')
+	header:CreateEnvironment(self.Env)
 	if not anonymous then
 		local page = self:GetCurrentPage()
 		header:SetAttribute('actionpage', page)

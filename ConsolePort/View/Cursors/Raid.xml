@@ -1,0 +1,81 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Button name="ConsolePortRaidCursor" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" registerForClicks="AnyDown" frameStrata="TOOLTIP" hidden="true">
+		<Size x="32" y="32"/>
+		<Attributes>
+			<Attribute name="type" type="string" value="target"/>
+			<Attribute name="_onstate-unitexists" type="string" value="self:Run(UpdateUnitExists, newstate)"/>
+			<Attribute name="_childupdate-actionpage" type="string" value="self:Run(ActionPageChanged, newstate)"/>
+		</Attributes>
+		<Frames>
+			<Button name="$parentFocus" parentKey="SetFocus" inherits="SecureActionButtonTemplate">
+				<Attributes>
+					<Attribute name="type" type="string" value="focus"/>
+				</Attributes>
+			</Button>
+			<Button name="$parentTarget" parentKey="SetTarget" inherits="SecureActionButtonTemplate">
+				<Attributes>
+					<Attribute name="type" type="string" value="target"/>
+				</Attributes>
+			</Button>
+			<Button name="$parentToggle" parentKey="Toggle" inherits="SecureActionButtonTemplate" registerForClicks="LeftButtonDown"/>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="BG" file="Interface\Cursor\Item" setAllPoints="true"/>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="UnitPortrait" >
+					<Size x="46" y="46"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativePoint="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="SpellPortrait">
+					<Size x="46" y="46"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativePoint="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="CastBar" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\Spinner" hidden="true">
+					<Size x="54" y="54"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="2">
+				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\RoundBorder">
+					<Size x="54" y="54"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="3">
+				<Texture parentKey="Health" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\RoundBorderHighlight">
+					<Size x="54" y="54"/>
+					<Anchors>
+						<Anchor point="BOTTOM" relativeKey="$parent.Border"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Animations>
+			<AnimationGroup parentKey="Group">
+				<Scale parentKey="ScaleUp" smoothing="OUT" duration=".1" order="1">
+					<Origin point="CENTER"/>
+				</Scale>
+				<Scale parentKey="ScaleDown" smoothing="OUT" duration=".1" order="2">
+					<Origin point="CENTER"/>
+				</Scale>
+			</AnimationGroup>
+		</Animations>
+	</Button>
+
+</Ui>

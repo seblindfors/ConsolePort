@@ -155,7 +155,7 @@ function FLASH:Update(elapsed)
 		FlashTimers[syncId] = timer + elapsed
 	end
 	
-	while self[index] do
+	while index > 0 and self[index] do
 		frame = self[index]
 		frame.flashTimer = frame.flashTimer + elapsed
 

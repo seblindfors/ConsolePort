@@ -64,7 +64,7 @@ select(2, ...).Gamepad:AddGamepad({
 			GamePadEmulateShift     = 'PADLSHOULDER';
 			GamePadEmulateCtrl      = 'PADLTRIGGER';
 			GamePadEmulateAlt       = 'none';
-			GamePadEmulateEsc       = 'PADBACK';
+			GamePadEmulateEsc       = 'none';
 			GamePadCursorLeftClick  = 'PADLSTICK';
 			GamePadCursorRightClick = 'PADRSTICK';
 			GamePadAbbreviatedBindingReverse = 0;

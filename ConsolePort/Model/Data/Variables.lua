@@ -94,6 +94,23 @@ db:Register('Variables', {
 		desc = 'Button used to remove a selected item from an editable pie menu.';
 	};
 	--------------------------------------------------------------------------------------------------------
+	-- Raid cursor:
+	--------------------------------------------------------------------------------------------------------
+	raidCursorDirect = {Bool(false);
+		head = 'Raid Cursor';
+		sort = 1;
+		name = 'Direct Targeting';
+		desc = 'Change target each time the cursor is moved, instead of routing appropriate spells.';
+		note = 'The cursor cannot route macros or ambiguous spells. Enable this if you use a lot of macros.';
+	};
+	raidCursorModifier = {Select('<none>', '<none>', unpack(MODID_SELECT));
+		head = 'Raid Cursor';
+		sort = 2;
+		name = 'Modifier';
+		desc = 'Which modifier to use with the directional pad to move the cursor.';
+		note = 'The bindings underlying the button combinations will be unavailable while the cursor is in use.';
+	};
+	--------------------------------------------------------------------------------------------------------
 	-- Interface cursor:
 	--------------------------------------------------------------------------------------------------------
 	UIenableCursor = {Bool(true);
@@ -122,20 +139,20 @@ db:Register('Variables', {
 	};
 	UIleaveCombatDelay = {Number(0.5, 0.1);
 		head = 'Interface Cursor';
-		sort = 4;
+		sort = 5;
 		name = 'Reactivation Delay';
 		desc = 'Delay before reactivating interface cursor after leaving combat, in seconds.';
 	};
 	UImodifierCommands = {Select('SHIFT', unpack(MODID_SELECT));
 		head = 'Interface Cursor';
-		sort = 5;
+		sort = 6;
 		name = 'Modifier';
 		desc = 'Which modifier to use for modified commands';
 		opts = MODID_SELECT;
 	};
 	UICursor = {
 		head = 'Interface Cursor';
-		sort = 6;
+		sort = 7;
 		name = 'Action Buttons';
 		desc = 'Cursor actions: which buttons to use to click on items in the interface';
 		opts = UINAV_SELECT;

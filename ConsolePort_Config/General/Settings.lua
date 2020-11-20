@@ -139,7 +139,7 @@ function General:DrawOptions(showAdvanced)
 
 		-- render the options
 		for name, data in db.table.spairs(set, displaysort) do
-			local widget, newObj = self:TryAcquireRegistered(name)
+			local widget, newObj = self:TryAcquireRegistered(group..':'..name)
 			if newObj then
 				widget.Label:ClearAllPoints()
 				widget.Label:SetPoint('LEFT', 16, 0)

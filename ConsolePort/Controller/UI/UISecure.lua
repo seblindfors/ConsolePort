@@ -1,5 +1,6 @@
+local _, db = ...;
 ---------------------------------------------------------------
-local ENV_DPAD = {
+db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {Env = {
 	-----------------------------------------------------------
 	-- Default filters
 	-----------------------------------------------------------
@@ -16,7 +17,7 @@ local ENV_DPAD = {
 		return child and not child:GetAttribute('ignoreNode')
 	]];
 	-----------------------------------------------------------
-	-- @param old : last focused node
+	-- @param oldnode : last focused node
 	FilterOld = [[
 		return true
 	]];
@@ -59,7 +60,9 @@ local ENV_DPAD = {
 	-----------------------------------------------------------
 	GetCenter = [[
 		local rL, rB, rW, rH = ...
-		return (rL + rW / 2), (rB + rH / 2)
+		if rL and rB then
+			return (rL + rW / 2), (rB + rH / 2)
+		end
 	]];
 	-----------------------------------------------------------
 	IsDrawn = [[
@@ -86,11 +89,13 @@ local ENV_DPAD = {
 			for node in pairs(NODES) do
 				if (node ~= old) and node:IsVisible() then
 					local nX, nY = self:Run(GetCenter, node:GetRect())
-					local dist = self:Run(SumXY, cX, nX, cY, nY)
+					if nX and nY then
+						local dist = self:Run(SumXY, cX, nX, cY, nY)
 
-					if not dest or dist < dest then
-						targ = node
-						dest = dist
+						if not dest or dist < dest then
+							targ = node
+							dest = dist
+						end
 					end
 				end
 			end
@@ -135,12 +140,14 @@ local ENV_DPAD = {
 			local tX, tY = self:Run(GetCenter, curnode:GetRect())
 			local cX, cY = math.huge, math.huge
 			for node in pairs(NODES) do
-				local nX, nY = self:Run(GetCenter, node:GetRect())
-				local dX, dY, dist = self:Run(AbsXY, tX, nX, tY, nY)
+				if node:IsVisible() then
+					local nX, nY = self:Run(GetCenter, node:GetRect())
+					local dX, dY, dist = self:Run(AbsXY, tX, nX, tY, nY)
 
-				if ( dist < cX + cY ) then
-					if self:RunAttribute(key, tX, tY, nX, nY, dX, dY) then
-						curnode, cX, cY = node, dX, dY;
+					if ( dist < cX + cY ) then
+						if self:RunAttribute(key, tX, tY, nX, nY, dX, dY) then
+							curnode, cX, cY = node, dX, dY;
+						end
 					end
 				end
 			end
@@ -157,5 +164,15 @@ local ENV_DPAD = {
 			self:Run(postNodeSelect)
 		end
 	]];
-}
+}}), {
+	__call = function(self, obj)
+		Mixin(obj, self)
+		obj:Execute([[
+			CACHE = newtable();
+			NODES = newtable();
+			CACHE[self] = true;
+		]])
+		return obj;
+	end;
+}))
 --------------------------------------------------
