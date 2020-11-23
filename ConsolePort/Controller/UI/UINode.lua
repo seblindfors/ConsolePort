@@ -141,13 +141,13 @@ local NODE = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', Cons
 ---------------------------------------------------------------
 -- Events (update boundaries)
 ---------------------------------------------------------------
-function NODE.UI_SCALE_CHANGED()
+local function UIScaleChanged()
 	BOUNDS:SetXYZ(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale())
 end
 
-function NODE.DISPLAY_SIZE_CHANGED()
-	BOUNDS:SetXYZ(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale())
-end
+NODE.UI_SCALE_CHANGED = UIScaleChanged;
+NODE.DISPLAY_SIZE_CHANGED = UIScaleChanged;
+hooksecurefunc(UIParent, 'SetScale', UIScaleChanged)
 
 ---------------------------------------------------------------
 -- Eligibility
