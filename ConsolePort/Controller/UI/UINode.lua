@@ -21,9 +21,10 @@
 ---------------------------------------------------------------
 -- Node attributes
 ---------------------------------------------------------------
---  nodeignore    : (boolean) ignore this node
---  nodepriority  : (number)  priority in arbitrary selection
---  nodesingleton : (boolean) skip recursive scan on this node
+--  nodeignore       : (boolean) ignore this node
+--  nodepriority     : (number)  priority in arbitrary selection
+--  nodesingleton    : (boolean) no recursive scan on this node
+--  nodeonlychildren : (boolean) include children, skip node
 ---------------------------------------------------------------
 
 -- Eligibility
@@ -52,16 +53,19 @@ local GetFirstEligibleCacheItem
 local GetRectLevelIndex
 local IterateCache
 local IterateRects
--- Vector calculations
+-- Rect calculations
 local GetCenter
 local GetCenterPos
-local GetDistance
-local GetDistanceSum
+local GetCenterScaled
+local DoNodesIntersect
 local GetFrameLevel
-local IsCloser
 local PointInRange
 local CanLevelsIntersect
 local DoNodeAndRectIntersect
+-- Vector calculations
+local GetDistance
+local GetDistanceSum
+local IsCloser
 local GetCandidateVectorForCurrent
 local GetCandidatesForVector
 local GetPriorityCandidate
@@ -75,13 +79,13 @@ local NavigateToArbitraryCandidate
 ---------------------------------------------------------------
 -- RECTS  : cache of all interactive rectangles drawn on screen
 -- CACHE  : cache of all eligible nodes in order of priority
--- LIMIT  : limit the boundaries of scans/selection to screen
+-- BOUNDS : limit the boundaries of scans/selection to screen
 -- SCALAR : scale 2ndary plane to improve intuitive node selection
 -- USABLE : what to consider as interactive nodes by default
 -- LEVELS : frame level quantifiers (each strata has 10k levels)
 ---------------------------------------------------------------
 local CACHE, RECTS = {}, {};
-local LIMIT  = CreateVector2D(GetScreenWidth(), GetScreenHeight());
+local BOUNDS  = CreateVector3D(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale());
 local SCALAR = 3;
 local USABLE = {
 	Button      = true;
@@ -138,17 +142,15 @@ local NODE = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', Cons
 -- Events (update boundaries)
 ---------------------------------------------------------------
 function NODE.UI_SCALE_CHANGED()
-	LIMIT:SetXY(GetScreenWidth(), GetScreenHeight())
+	BOUNDS:SetXYZ(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale())
 end
 
 function NODE.DISPLAY_SIZE_CHANGED()
-	LIMIT:SetXY(GetScreenWidth(), GetScreenHeight())
+	BOUNDS:SetXYZ(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale())
 end
 
 ---------------------------------------------------------------
 -- Eligibility
----------------------------------------------------------------
-local UIDoFramesIntersect = UIDoFramesIntersect
 ---------------------------------------------------------------
 
 function IsMouseResponsive(node)
@@ -160,7 +162,7 @@ function IsUsable(object)
 end
 
 function IsInteractive(node, object)
-	return 	not node.includeChildren
+	return 	not node:IsObjectType('ScrollFrame')
 			and node:IsMouseEnabled()
 			and ( IsUsable(object) or IsMouseResponsive(node) )
 end
@@ -174,12 +176,12 @@ function IsTree(node)
 end
 
 function IsDrawn(node, super)
-	local nX, nY = GetCenter(node)
-	local mX, mY = LIMIT:GetXY()
+	local nX, nY = GetCenterScaled(node)
+	local mX, mY = BOUNDS:GetXYZ()
 	if ( PointInRange(nX, 0, mX) and PointInRange(nY, 0, mY) ) then
 		-- assert node isn't clipped inside a scroll child
 		if super and not node:IsObjectType('Slider') then
-			return UIDoFramesIntersect(node, super) --or UIDoFramesIntersect(node, scrollChild)
+			return DoNodesIntersect(node, super) --or UIDoFramesIntersect(node, scrollChild)
 		else
 			return true
 		end
@@ -343,12 +345,16 @@ function IterateRects()
 end
 
 ---------------------------------------------------------------
--- Vector calculations
----------------------------------------------------------------
-local vlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
+-- Rect calculations
 ---------------------------------------------------------------
 local function div2(arg, ...)
 	if arg then return arg * 0.5, div2(...) end
+end
+local function nrmlz(node, effScale, cmpScale, func, ...)
+	if func then
+		return func(node) * (effScale/cmpScale),
+			nrmlz(node, effScale, cmpScale, ...)
+	end
 end
 ---------------------------------------------------------------
 
@@ -359,6 +365,13 @@ function GetCenter(node)
 	return (x+l) + div2(w-r), (y+b) + div2(h-t)
 end
 
+function GetCenterScaled(node)
+	local x, y = GetCenter(node)
+	if not x then return end
+	local scale = node:GetEffectiveScale() / BOUNDS.z;
+	return x * scale, y * scale
+end
+
 function GetCenterPos(node)
 	local x, y = node:GetCenter()
 	if not x then return end
@@ -366,21 +379,21 @@ function GetCenterPos(node)
 	return (l-x), (b-y)
 end
 
-function GetDistance(x1, y1, x2, y2)
-	return abs(x1 - x2), abs(y1 - y2)
-end
-
-function GetDistanceSum(...)
-	local x, y = GetDistance(...)
-	return x + y
+function DoNodesIntersect(n1, n2)
+	local left1, right1, top1, bottom1 = nrmlz(
+		n1, n1:GetEffectiveScale(), BOUNDS.z,
+		n1.GetLeft, n1.GetRight, n1.GetTop, n1.GetBottom);
+	local left2, right2, top2, bottom2 = nrmlz(
+		n2, n2:GetEffectiveScale(), BOUNDS.z,
+		n2.GetLeft, n2.GetRight, n2.GetTop, n2.GetBottom);
+	return  (left1   <  right2)
+		and (right1  >   left2)
+		and (bottom1 <    top2)
+		and (top1    > bottom2)
 end
 
 function GetFrameLevel(node)
 	return LEVELS[node:GetFrameStrata()] + node:GetFrameLevel()
-end
-
-function IsCloser(hz1, vt1, hz2, vt2)
-	return vlen(hz1, vt1) < vlen(hz2, vt2)
 end
 
 function PointInRange(pt, min, max)
@@ -392,13 +405,33 @@ function CanLevelsIntersect(level1, level2)
 end
 
 function DoNodeAndRectIntersect(node, rect)
-	local x, y = GetCenter(node)
-	return PointInRange(x, rect:GetLeft(), rect:GetRight()) and
-		   PointInRange(y, rect:GetBottom(), rect:GetTop())
+	local x, y = GetCenterScaled(node)
+	local scale, limit = rect:GetEffectiveScale(), BOUNDS.z;
+	return PointInRange(x, nrmlz(rect, scale, limit, rect.GetLeft, rect.GetRight)) and
+		   PointInRange(y, nrmlz(rect, scale, limit, rect.GetBottom, rect.GetTop))
+end
+
+---------------------------------------------------------------
+-- Vector calculations
+---------------------------------------------------------------
+local vlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
+---------------------------------------------------------------
+
+function GetDistance(x1, y1, x2, y2)
+	return abs(x1 - x2), abs(y1 - y2)
+end
+
+function GetDistanceSum(...)
+	local x, y = GetDistance(...)
+	return x + y
+end
+
+function IsCloser(hz1, vt1, hz2, vt2)
+	return vlen(hz1, vt1) < vlen(hz2, vt2)
 end
 
 function GetCandidateVectorForCurrent(cur)
-	local x, y = GetCenter(cur.node)
+	local x, y = GetCenterScaled(cur.node)
 	return {x = x; y = y; h = huge; v = huge}
 end 
 
@@ -406,7 +439,7 @@ function GetCandidatesForVector(vector, comparator, candidates)
 	local thisX, thisY = vector.x, vector.y
 	for i, destination in IterateCache() do
 		local candidate = destination.node
-		local destX, destY = GetCenter(candidate)
+		local destX, destY = GetCenterScaled(candidate)
 		local distX, distY = GetDistance(thisX, thisY, destX, destY)
 
 		if comparator(destX, destY, distX, distY, thisX, thisY) then
@@ -485,7 +518,7 @@ end
 function GetPriorityCandidate(x, y)
 	local targNode, targDist, targPrio
 	for _, this in IterateCache() do
-		local thisDist = GetDistanceSum(x, y, GetCenter(this.node))
+		local thisDist = GetDistanceSum(x, y, GetCenterScaled(this.node))
 		local thisPrio = this.node:GetAttribute('nodepriority')
 
 		if thisPrio and not targPrio then
@@ -505,8 +538,9 @@ end
 ---------------------------------------------------------------
 NODE.IsDrawn = IsDrawn;
 NODE.ScanLocal = ScanLocal;
-NODE.GetCenter = GetCenter;
+NODE.GetCenter = GetCenterScaled;
 NODE.GetCenterPos = GetCenterPos;
+NODE.GetCenterScaled = GetCenterScaled;
 NODE.IsRelevant = IsRelevant;
 NODE.ClearCache = ClearCache;
 NODE.GetScrollButtons = GetScrollButtons;

@@ -48,6 +48,16 @@ do  local DELETE_ITEM = CopyTable(StaticPopupDialogs.DELETE_ITEM);
 end
 
 
+-- Map canvas:
+-- Disable scrolling.
+hooksecurefunc(MapCanvasScrollControllerMixin, 'OnLoad', function(self)
+	self:SetAttribute('nodeignorescroll', true)
+end)
+
+if (WorldMapFrame and WorldMapFrame.ScrollContainer) then
+	WorldMapFrame.ScrollContainer:SetAttribute('nodeignorescroll', true)
+end
+
 ---------------------------------------------------------------
 -- Convenience handler
 ---------------------------------------------------------------
@@ -101,14 +111,19 @@ LibStub('Carpenter'):BuildFrame(GameMenuFrame, {
 		_Setup = 'InsecureActionButtonTemplate';
 		_Size  = {58, 58};
 		_Point = {'TOP', 0, 70};
-		_SetNormalTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
-		_SetPushedTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
 		_Macro = '/click GameMenuButtonContinue\n/run ShowGamePadConfig()';
 		_OnLoad = function(self)
+			self:SetNormalTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
+			self:SetPushedTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
 			local pushed = self:GetPushedTexture()
 			pushed:ClearAllPoints()
 			pushed:SetSize(self:GetSize())
 			pushed:SetPoint('CENTER', 0, -2)
+			-- Protect against ElvUI shenanigans
+			self.SetNormalTexture = nop;
+			self.SetPushedTexture = nop;
+			self.GetNormalTexture = nop;
+			self.GetPushedTexture = nop;
 		end;
 	};
 }, false, true)

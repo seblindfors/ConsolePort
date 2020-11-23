@@ -107,6 +107,11 @@ db:Register('Console', {
 			name = 'Camera Pitch Speed';
 			desc = 'Pitch speed of camera - moving up/down.';
 		};
+		{	cvar = 'test_cameraOverShoulder';
+			type = Number(0, 0.5);
+			name = 'Camera Over Shoulder';
+			desc = 'Offsets the camera from the center of your character.';
+		};
 	};
 })
 

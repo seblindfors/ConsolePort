@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...; env.db, env.L = db, db.Locale;
+local db, _, env = ConsolePort:GetData(), ...; env.db, env.L = db, db.Locale;
 ---------------------------------------------------------------
 -- Binding helpers
 ---------------------------------------------------------------

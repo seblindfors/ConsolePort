@@ -7,4 +7,6 @@
 	<Include file="PieMenu/PieMenu.xml"/>
 	<!-- Widget templates -->
 	<Include file="Container/Container.xml"/>
+	<Include file="HintBar/HintBar.xml"/>
+	<Include file="ActionButton/ActionButton.xml"/>
 </Ui>

@@ -1,4 +1,4 @@
-local db, _, env, L = ConsolePort:DB(), ...; L = db('Locale');
+local _, env, db, L = ...; db, L = env.db, env.L;
 local ConfigMixin, Widgets = {}, env.Widgets;
 
 ---------------------------------------------------------------

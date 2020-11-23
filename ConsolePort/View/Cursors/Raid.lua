@@ -41,9 +41,6 @@ Cursor:Execute([[
 -- Environment
 ---------------------------------------------------------------
 Cursor:CreateEnvironment({
-	GetBaseBindings = [[
-		return 'PADDUP', 'PADDRIGHT', 'PADDDOWN', 'PADDLEFT';
-	]];
 	FilterNode = [[
 		if self:Run(IsDrawn, node:GetRect()) then
 			local unit = node:GetAttribute('unit')
@@ -134,10 +131,7 @@ Cursor:CreateEnvironment({
 		enabled = ...;
 
 		if enabled then
-			local modifier = self:GetAttribute('modifier')
-			for _, binding in pairs(newtable(self:Run(GetBaseBindings))) do
-				self:SetBindingClick(true, modifier..binding, self, binding)
-			end
+			self:Run(SetBaseBindings, self:GetAttribute('navmodifier'))
 			self:Run(UpdateNodes)
 			self:Run(RefreshActions)
 			self:Run(SelectNewNode, 0)
@@ -173,7 +167,7 @@ function Cursor:OnDataLoaded()
 	local modifier = db('Settings/raidCursorModifier')
 	modifier = modifier:match('<none>') and '' or modifier;
 	self:SetAttribute('noroute', db('Settings/raidCursorDirect'))
-	self:SetAttribute('modifier', modifier)
+	self:SetAttribute('navmodifier', modifier)
 end
 
 db:RegisterSafeCallback('Settings/raidCursorDirect', Cursor.OnDataLoaded, Cursor)
@@ -244,6 +238,7 @@ local Fade = db.Alpha.Fader;
 do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 	local UnitClass, UnitHealth, UnitHealthMax = UnitClass, UnitHealth, UnitHealthMax;
 	local GetClassColorObj, PlaySound, SOUNDKIT = GetClassColorObj, PlaySound, SOUNDKIT;
+	local WARNING_LOW_HEALTH = ChatTypeInfo.YELL;
 
 	Cursor.UnitPortrait.SetPortrait  = SetPortraitTexture;
 	Cursor.SpellPortrait.SetPortrait = SetPortraitToTexture;
@@ -263,9 +258,15 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 	end
 
 	function Cursor:UpdateHealthForUnit(unit)
-		local hp, max = UnitHealth(unit), UnitHealthMax(unit)
-		self.Health:SetTexCoord(0, 1, abs(1 - hp / max), 1)
-		self.Health:SetHeight(54 * hp / max)
+		local fraction = UnitHealth(unit) / UnitHealthMax(unit);
+		self.Health:SetTexCoord(0, 1, abs(1 - fraction), 1)
+		self.Health:SetHeight(54 * fraction)
+		if (fraction < 0.35) then
+			local color = WARNING_LOW_HEALTH;
+			self.Border:SetVertexColor(color.r, color.g, color.b)
+		else
+			self.Border:SetVertexColor(1, 1, 1)
+		end
 	end
 
 	function Cursor:UpdateColor(colorObj)
@@ -315,7 +316,7 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 	function Cursor:UpdateCastbar(startCast, endCast)
 		local time = GetTime() * 1000;
 		local progress = (time - startCast) / (endCast - startCast)
-		local resize = 86 - (22 * (1 - progress))
+		local resize = 80 - (22 * (1 - progress))
 		self.CastBar:SetRotation(-2 * progress * pi)
 		self.CastBar:SetSize(resize, resize)
 	end

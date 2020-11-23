@@ -9,7 +9,12 @@
 	<!-- Method frame (invisible) -->
 	<Frame name="ConsolePort">
 		<Frames>
-			<Button name="$parentPager" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
+			<Button name="$parentPager" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate">
+				<Attributes>
+					<Attribute name="type" type="string" value="actionbar"/>
+					<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
+				</Attributes>
+			</Button>
 			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
 		</Frames>
 	</Frame>
@@ -18,6 +23,7 @@
 	<Button name="ConsolePortEasyMotionButton" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown">
 		<Attributes>
 			<Attribute name="type" type="string" value="macro"/>
+			<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
 		</Attributes>
 		<Frames> <!-- Need a separate input feeder so the targeting button (parent) doesn't process a release event prematurely -->
 			<Button name="ConsolePortEasyMotionInput" inherits="SecureHandlerBaseTemplate" hidden="true" registerForClicks="AnyUp, AnyDown"/>

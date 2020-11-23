@@ -1,4 +1,4 @@
-local _, env = ...;
+local _, env = ...; local db = env.db;
 local Config = CPAPI.EventHandler(ConsolePortConfig, {
 	'PLAYER_REGEN_ENABLED',
 	'PLAYER_REGEN_DISABLED'
@@ -12,8 +12,6 @@ Config:SetScript('OnMouseWheel', function(self, delta, ...)
 		f(self, g(self) + (delta * 10))
 	end
 end)
-
-local db = ConsolePort:DB()
 
 function Config:OnActiveDeviceChanged()
 	local hasActiveDevice = db('Gamepad/Active') and true or false;
@@ -46,7 +44,7 @@ end
 
 function Config:ShowAfterCombat()
 	self.showAfterCombat = true;
-	CPAPI.Log(db('Locale')('Your gamepad configuration will reappear when you leave combat.'))
+	CPAPI.Log(env.L('Your gamepad configuration will reappear when you leave combat.'))
 	self:Hide()
 end
 

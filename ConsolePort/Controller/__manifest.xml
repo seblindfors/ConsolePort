@@ -6,10 +6,11 @@
 	<Script file="UI/UISecure.lua"/>
 	<Script file="UI/UIStack.lua"/>
 	<!-- Single file controller -->
+	<Script file="EasyMotion.lua"/>
+	<Script file="IntelliSense.lua"/>
+	<!-- Base controller -->
 	<Script file="Input.lua"/>
 	<Script file="Pager.lua"/>
 	<Script file="Radial.lua"/>
 	<Script file="Mouse.lua"/>
-	<Script file="EasyMotion.lua"/>
-	<Script file="IntelliSense.lua"/>
 </Ui>

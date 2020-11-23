@@ -11,19 +11,6 @@ setfenv(__, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
-	-- Bindings:
-	--------------------------------------------------------------------------------------------------------
-	bindingOverlapEnable = {Bool(false);
-		head = KEY_BINDINGS_MAC;
-		name = 'Allow Binding Overlap';
-		desc = 'Allow binding multiple combos to the same binding.'
-	};
-	bindingShowExtraBars = {Bool(false);
-		head = KEY_BINDINGS_MAC;
-		name = 'Show All Action Bars';
-		desc = 'Show bonus bar configuration for characters without stances.'
-	};
-	--------------------------------------------------------------------------------------------------------
 	-- Mouse:
 	--------------------------------------------------------------------------------------------------------
 	mouseHandlingEnabled = {Bool(true);
@@ -206,35 +193,45 @@ db:Register('Variables', {
 	-- Misc:
 	--------------------------------------------------------------------------------------------------------
 	autoExtra = {Bool(true);
-		head = MISCELLANEOUS;
-		name = 'Automatically Bind Quest Items';
-		desc = 'Automatically add tracked quest items to main utility ring.';
+		head = ACCESSIBILITY_LABEL;
+		name = 'Automatically Bind Extra Items';
+		desc = 'Automatically add tracked quest items and extra spells to main utility ring.';
 	};
 	autoSellJunk = {Bool(true);
-		head = MISCELLANEOUS;
+		head = ACCESSIBILITY_LABEL;
 		name = 'Automatically Sell Junk';
 		desc = 'Automatically sell junk when interacting with a merchant.';
-	};
-	disableAmbientFrames = {Bool(false);
-		head = MISCELLANEOUS;
-		name = 'Disable Ambient Noise-Cancelling';
-		desc = 'Disable ambient noise-cancelling in menus.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Advanced:
 	--------------------------------------------------------------------------------------------------------
+	bindingOverlapEnable = {Bool(false);
+		head = ADVANCED_OPT;
+		sort = 1;
+		name = 'Allow Binding Overlap';
+		desc = 'Allow binding multiple combos to the same binding.'
+	};
+	bindingShowExtraBars = {Bool(false);
+		head = ADVANCED_OPT;
+		sort = 2;
+		name = 'Show All Action Bars';
+		desc = 'Show bonus bar configuration for characters without stances.'
+	};
 	actionPageCondition = {String(nil);
 		head = ADVANCED_OPT;
+		sort = 3;
 		name = 'Action Page Condition';
 		desc = 'Macro condition to evaluate action bar page.';
 	};
 	actionPageResponse = {String(nil);
 		head = ADVANCED_OPT;
+		sort = 4;
 		name = 'Action Page Response';
 		desc = 'Response to condition for custom processing.'
 	};
 	classFileOverride = {String(nil);
 		head = ADVANCED_OPT;
+		sort = 5;
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
 	};

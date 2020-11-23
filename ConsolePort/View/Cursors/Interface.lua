@@ -7,13 +7,13 @@
 -- Leverages Controller\UINode.lua for interface scans.
 
 local _, db = ...;
-local Cursor, Node, Input, Stack, Scroll, Fade = 
+local Cursor, Node, Input, Stack, Scroll, Fade, Intellisense = 
 	CPAPI.EventHandler(ConsolePortCursor),
 	ConsolePortNode,
 	ConsolePortInputHandler,
 	ConsolePortUIStackHandler,
 	CreateFrame('Frame'),
-	db('Alpha/Fader');
+	db.Alpha.Fader, db.Intellisense;
 
 db:Register('Cursor', Cursor)
 Cursor.InCombat = InCombatLockdown;
@@ -245,9 +245,14 @@ do  -- Create input proxy for basic controls
 	local EmuClick = function(self, down)
 		local node, emubtn, script = self.node, self.emubtn;
 		if node then
-			script = down and node:GetScript('OnMouseDown') or node:GetScript('OnMouseUp')
+			script =
+				((down == true) and node:GetScript('OnMouseDown')) or
+				((down == false) and node:GetScript('OnMouseUp'));
 			if script then
 				script(node, emubtn)
+			end
+			if (down and node.OnClick) then
+				node:OnClick(emubtn)
 			end
 		end
 	end
@@ -282,7 +287,7 @@ end
 
 function Cursor:Navigate(key)
 	local target, changed
-	if db('UIaccessUnlimited') then
+	if db('UIaccessUnlimited') or GetCursorInfo() then
 		target, changed = self:SetCurrent(self:ReverseScanUI(self:GetCurrentNode(), key))
 	else
 		self:ScanUI()
@@ -312,7 +317,7 @@ function Cursor:Input(caller, isDown, key)
 			target, changed = self:Navigate(key)
 		end
 	elseif ( key == db('Settings/UICursor/Special') ) then
-		return db.Intellisense:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
+		return Intellisense:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
 	end
 	if ( target ) then
 		return self:SelectAndPosition(self:GetSelectParams(target, isDown))
@@ -614,9 +619,14 @@ function Cursor:MoveTowardsAnchor(elapsed)
 		local divisor = 4 - elapsed; -- 4 is about right, account for FPS
 		local cX, cY = self:GetLeft(), self:GetTop()
 		local nX, nY = Node.GetCenter(self:GetCurrentNode())
-		local xOff, yOff = cX + ((nX - cX) / divisor), cY + ((nY - cY) / divisor)
 		self:ClearAllPoints()
-		self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', xOff, yOff)
+		if cX and cY then
+			return self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT',
+				cX + ((nX - cX) / divisor),
+				cY + ((nY - cY) / divisor)
+			);
+		end
+		self:SetPoint(nX, nY)
 	end
 end
 

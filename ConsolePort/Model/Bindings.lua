@@ -1,9 +1,6 @@
 local function hold(binding) return ('%s (Hold)'):format(binding) end;
 local extra = BINDING_NAME_EXTRAACTIONBUTTON1:gsub('%d', ''):trim()
 select(2, ...):Register('Bindings', {
-	-- Mouse bindings
-	{name = KEY_BUTTON1,                      binding = 'CAMERAORSELECTORMOVE'};
-	{name = KEY_BUTTON2,                      binding = 'TURNORACTION'};
 	-- Targeting
 	{name = hold(FOCUS_CAST_KEY_TEXT),        binding = 'CLICK ConsolePortFocusButton:LeftButton'};
 	{name = hold'Target Unit Frames',         binding = 'CLICK ConsolePortEasyMotionButton:LeftButton'};

@@ -1,5 +1,5 @@
 local _, db = ...;
-local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parentGamePadHandler', ConsolePort}, {
+local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHandler({'Frame', '$parentGamePadHandler', ConsolePort}, {
 	'GAME_PAD_CONFIGS_CHANGED';
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
@@ -28,53 +28,6 @@ local GamepadMixin, GamepadAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parent
 db:Register('Icons', {})
 db:Register('Gamepad', GamepadAPI)
 db:Save('Gamepad/Devices', 'ConsolePortDevices')
-
----------------------------------------------------------------
--- Events
----------------------------------------------------------------
-function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
-	CPAPI.Log('Your gamepad configuration has changed.')
-	for device in pairs(self.Devices) do
-	--	TODO: handle this somehow, device:UpdateConfig()
-	end
-end
-
-function GamepadAPI:GAME_PAD_CONNECTED()
-	CPAPI.Log('Gamepad connected.')
-end
-
-function GamepadAPI:GAME_PAD_DISCONNECTED()
-	CPAPI.Log('Gamepad disconnected.')
-end
-
-function GamepadAPI:UPDATE_BINDINGS()
-	if self.IsMapped then
-		db:TriggerEvent('OnNewBindings', self:GetBindings())
-	end
-end
-
-function GamepadAPI:OnDataLoaded()
-	self:ReindexMappedState()
-	local old = self.Devices;
-	db:Load('Gamepad/Devices', 'ConsolePortDevices')
-	for id, device in pairs(old) do
-		-- (1) fill in new presets that have been added,
-		-- (2) overwrite existing if version has been bumped
-		if  ( not self.Devices[id] or device.Version and
-			( self.Devices[id].Version < device.Version )) then
-			self.Devices[id] = device;
-		end
-	end
-	for id, device in pairs(self.Devices) do
-		CPAPI.Proxy(device, GamepadMixin):OnLoad()
-		if device.Active then
-			self:SetActiveDevice(id)
-		end
-	end
-	if not self.Active then
-		ShowGamePadConfig()
-	end
-end
 
 ---------------------------------------------------------------
 -- API
@@ -129,13 +82,79 @@ function GamepadAPI:GetActiveDevice()
 end
 
 ---------------------------------------------------------------
+-- Events
+---------------------------------------------------------------
+function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
+	CPAPI.Log('Your gamepad configuration has changed.')
+	for device in pairs(self.Devices) do
+	--	TODO: handle this somehow, device:UpdateConfig()
+	end
+end
+
+function GamepadAPI:GAME_PAD_CONNECTED()
+	CPAPI.Log('Gamepad connected.')
+end
+
+function GamepadAPI:GAME_PAD_DISCONNECTED()
+	CPAPI.Log('Gamepad disconnected.')
+end
+
+function GamepadAPI:UPDATE_BINDINGS()
+	if self.IsMapped then
+		db:TriggerEvent('OnNewBindings', self:GetBindings())
+	end
+end
+
+function GamepadAPI:OnDataLoaded()
+	self:ReindexMappedState()
+	local old = self.Devices;
+	db:Load('Gamepad/Devices', 'ConsolePortDevices')
+	for id, device in pairs(old) do
+		-- (1) fill in new presets that have been added,
+		-- (2) overwrite existing if version has been bumped
+		if  ( not self.Devices[id] or device.Version and
+			( self.Devices[id].Version < device.Version )) then
+			self.Devices[id] = device;
+		end
+	end
+	for id, device in pairs(self.Devices) do
+		CPAPI.Proxy(device, GamepadMixin):OnLoad()
+		if device.Active then
+			self:SetActiveDevice(id)
+		end
+	end
+	if not self.Active then
+		ShowGamePadConfig()
+	end
+end
+
+---------------------------------------------------------------
+-- Callbacks
+---------------------------------------------------------------
+db:RegisterSafeCallback('GamePadCursorLeftClick', function(self, value)
+	db.table.map(SetBinding, self:GetBindingKey('CAMERAORSELECTORMOVE'))
+	SetBinding(value, 'CAMERAORSELECTORMOVE')
+	SaveBindings(GetCurrentBindingSet())
+end, GamepadAPI)
+
+db:RegisterSafeCallback('GamePadCursorRightClick', function(self, value)
+	db.table.map(SetBinding, self:GetBindingKey('TURNORACTION'))
+	SetBinding(value, 'TURNORACTION')
+	SaveBindings(GetCurrentBindingSet())
+end, GamepadAPI)
+
+---------------------------------------------------------------
 -- Data
 ---------------------------------------------------------------
+function GamepadAPI:GetState()
+	return C_GamePad.GetDeviceMappedState(C_GamePad.GetActiveDeviceID())
+end
+
 function GamepadAPI:ReindexMappedState(force)
 	if not C_GamePad.IsEnabled() then return end
 	if not force and self.IsMapped then return end
 
-	local state = C_GamePad.GetDeviceMappedState(C_GamePad.GetActiveDeviceID())
+	local state = self:GetState()
 	self:ReindexSticks(state)
 	self:ReindexButtons(state)
 	self:ReindexModifiers(state)
@@ -221,6 +240,38 @@ function GamepadAPI:GetActiveModifier(button)
 			return mod;
 		end
 	end
+end
+
+function GamepadAPI:GetModifiersHeld()
+	-- NOTE: uses input state instead of Blizzard API,
+	-- to get reliable results in things like click wrappers,
+	-- which otherwise sandbox the modifier while executing.
+	local cmp = {};
+	for i, mod in ipairs(self.Modsims) do
+		local buttonID = GetCVar('GamePadEmulate'..mod)
+		if (buttonID and buttonID ~= 'none') then
+			cmp[buttonID] = mod;
+		end
+	end
+
+	local result = {};
+	local state = self:GetState()
+	if not state or not state.buttons then return result end
+
+	for id, down in ipairs(state.buttons) do
+		if down then
+			local binding = C_GamePad.ButtonIndexToBinding(id-1)
+			local mod = cmp[binding];
+			if mod then
+				result[mod] = binding;
+			end
+		end
+	end
+	return result;
+end
+
+function GamepadAPI:GetModifierHeld(modifier)
+	return modifier and self:GetModifiersHeld()[modifier] ~= nil;
 end
 
 function GamepadAPI:GetBindings()

@@ -9,7 +9,6 @@ local _, db = ...;
 local Mouse = CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
 	'ACTIONBAR_SHOWGRID';
-	'CURRENT_SPELL_CAST_CHANGED';
 })
 
 ---------------------------------------------------------------
@@ -79,29 +78,48 @@ local CVar_RClick   = db.Data.Cvar('GamePadCursorRightClick')
 local Keys_Escape   = db.Data.Select()
 
 function Mouse:UPDATE_BINDINGS()
-	Keys_Escape:SetOptions(db('Gamepad'):GetBindingKey('TOGGLEGAMEMENU'))
+	Keys_Escape:SetOptions(db.Gamepad:GetBindingKey('TOGGLEGAMEMENU'))
 end
 
 function Mouse:ACTIONBAR_SHOWGRID()
 	self:SetFreeCursor()
 end
 
-function Mouse:CURRENT_SPELL_CAST_CHANGED()
-	local castTime = UnitChannelInfo('player') ~= nil;
-	if not castTime then
-		local spellID = select(CAST_INFO_SPELLID_OFFSET, UnitCastingInfo('player'))
-		if spellID then
-			castTime = select(SPELLID_CAST_TIME_OFFSET, GetSpellInfo(spellID)) > 0;
-		end
-	end
-	if castTime and not self.faceMovementValue then
+-- Temporary solution to fix problems with casters unable to face
+-- their intended target because of face movement.
+function Mouse:UNIT_SPELLCAST_START()
+	if self.faceMovementVehicleOverride then return end;
+	if (self.faceMovementValue == nil) then
 		self.faceMovementValue = CVar_FaceMove:Get()
 		CVar_FaceMove:Set(0)
-	elseif self.faceMovementValue then
+	end
+end
+
+function Mouse:UNIT_SPELLCAST_STOP()
+	if self.faceMovementVehicleOverride then return end;
+	if (self.faceMovementValue ~= nil) then
 		CVar_FaceMove:Set(self.faceMovementValue)
 		self.faceMovementValue = nil;
 	end
 end
+
+function Mouse:UNIT_ENTERING_VEHICLE()
+	if (self.faceMovementVehicleOverride == nil) then
+		self:UNIT_SPELLCAST_STOP()
+		self.faceMovementVehicleOverride = CVar_FaceMove:Get()
+		CVar_FaceMove:Set(0)
+	end
+end
+
+function Mouse:UNIT_EXITING_VEHICLE()
+	if (self.faceMovementVehicleOverride ~= nil) then
+		CVar_FaceMove:Set(self.faceMovementVehicleOverride)
+		self.faceMovementVehicleOverride = nil;
+	end
+end
+
+Mouse.UNIT_SPELLCAST_CHANNEL_START = Mouse.UNIT_SPELLCAST_START;
+Mouse.UNIT_SPELLCAST_CHANNEL_STOP  = Mouse.UNIT_SPELLCAST_STOP;
 
 ---------------------------------------------------------------
 -- Predicates (should always return boolean)
@@ -145,7 +163,7 @@ end
 -- Base control functions
 ---------------------------------------------------------------
 function Mouse:SetCentered(enabled)
-	CVar_Center:Set(enabled)
+	CVar_Center:Set(db('mouseAlwaysCentered') or enabled)
 	return self
 end
 
@@ -189,7 +207,6 @@ function Mouse:ClearCenteredCursor()
 end
 
 function Mouse:AttemptClearCenteredCursor(_)
-	if db('mouseAlwaysCentered') then return self end
 	-- TODO: timeout should happen after mouseover ends
 	if is(_, MouseOver) then
 		return self:SetTimer(self.AttemptClearCenteredCursor, db('mouseAutoClearCenter'))
@@ -233,6 +250,14 @@ end
 
 function Mouse:OnDataLoaded()
 	self:SetEnabled(db('mouseHandlingEnabled'))
+	for i, event in ipairs({
+		'UNIT_SPELLCAST_CHANNEL_START';
+		'UNIT_SPELLCAST_CHANNEL_STOP';
+		'UNIT_SPELLCAST_START';
+		'UNIT_SPELLCAST_STOP';
+		'UNIT_ENTERING_VEHICLE';
+		'UNIT_EXITING_VEHICLE';
+	}) do self:RegisterUnitEvent(event, 'player') end
 end
 
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)

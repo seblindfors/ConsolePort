@@ -82,6 +82,19 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-----------------------------------------------------------
 	-- Node selection
 	-----------------------------------------------------------
+	GetBaseBindings = [[
+		return 'PADDUP', 'PADDRIGHT', 'PADDDOWN', 'PADDLEFT';
+	]];
+	-----------------------------------------------------------
+	-- @param modifier : (optional) modifier prefix for base
+	SetBaseBindings = [[
+		local modifier = ...;
+		modifier = modifier or '';
+		for _, binding in pairs(newtable(self:Run(GetBaseBindings))) do
+			self:SetBindingClick(false, modifier..binding, self, binding)
+		end
+	]];
+	-----------------------------------------------------------
 	SetNodeByDistance = [[
 		local cX, cY = ...
 		local targ, dest

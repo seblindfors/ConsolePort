@@ -1,0 +1,36 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="HintBar/HintBar.lua"/>
+
+	<Frame name="CPHintTemplate" virtual="true" hidden="true" mixin="CPHintMixin">
+		<Size y="64"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Icon" name="$parentIcon">
+					<Size x="40" y="40"/>
+					<Anchors>
+						<Anchor point="LEFT"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Text" name="$parentText" inherits="Game20Font">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="8"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPHintBarTemplate" frameStrata="FULLSCREEN_DIALOG" virtual="true" hidden="true" mixin="CPHintBarMixin">
+		<Size x="0" y="72"/>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>
+
+</Ui>

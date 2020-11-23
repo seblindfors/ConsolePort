@@ -5,7 +5,7 @@
 -- mapped by various parts of the interface to override the
 -- default actions of gamepad inputs.
 
-local _, db = ...;
+local _, db = ...; local Intellisense = db.Intellisense;
 local InputMixin, InputAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parentInputHandler', ConsolePort, 'SecureHandlerStateTemplate'}, {
 	'PLAYER_REGEN_DISABLED'; -- enter combat
 	'PLAYER_REGEN_ENABLED';  -- leave combat
@@ -248,11 +248,22 @@ end
 
 function InputMixin:EmulateFrontend(click, state, script)
 	if click:IsEnabled() then
+		if Intellisense:ProcessInterfaceClickEvent(script, click, state) then
+			self.postreset = self:GetAttribute('type')
+			self:SetAttribute('type', nil)
+		end
 		local func = click:GetScript(script)
 		if func then
 			func(click)
 		end
 		return click:SetButtonState(state)
+	end
+end
+
+function InputMixin:PostClick(...)
+	if self.postreset then
+		self:SetAttribute('type', self.postreset)
+		self.postreset = nil;
 	end
 end
 

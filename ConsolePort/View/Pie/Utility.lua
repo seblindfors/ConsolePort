@@ -1,15 +1,20 @@
 local _, db = ...;
 ---------------------------------------------------------------
 local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
+	'ACTIONBAR_SLOT_CHANGED';
+	'SPELLS_CHANGED';
+	'QUEST_LOG_UPDATE';
+	'QUEST_WATCH_UPDATE';
 	'QUEST_WATCH_LIST_CHANGED';
+	'UPDATE_BINDINGS';
+	'UPDATE_EXTRA_ACTIONBAR';
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
 ---------------------------------------------------------------
-local DEFAULT_SET = 1;
+local DEFAULT_SET, EXTRA_ACTION_ID = 1, ExtraActionButton1.action;
 ---------------------------------------------------------------
 Utility.Data = {[DEFAULT_SET] = {}};
 Utility:Execute([[DATA = newtable()]])
-Utility:SetAttribute('ignoregamepadhotkey', true)
 db:Register('Utility', Utility)
 db:Save('Utility/Data', 'ConsolePortUtility')
 
@@ -17,6 +22,9 @@ db:Save('Utility/Data', 'ConsolePortUtility')
 -- Secure environment
 ---------------------------------------------------------------
 Utility:CreateEnvironment({
+	-----------------------------------------------------------
+	-- Draw current ring
+	-----------------------------------------------------------
 	DrawSelectedRing = [[
 		local set = ...;
 		RING = DATA[set];
@@ -60,6 +68,9 @@ Utility:CreateEnvironment({
 		end
 		return tostring(%s);
 	]]):format(DEFAULT_SET);
+	-----------------------------------------------------------
+	-- Set pre-defined remove binding
+	-----------------------------------------------------------
 	SetRemoveBinding = [[
 		local enabled = ...;
 		if enabled then
@@ -113,9 +124,9 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 ]])
 
 ---------------------------------------------------------------
--- Widget and data handling
+-- Data handling
 ---------------------------------------------------------------
-function Utility:OnDataLoaded() --SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate
+function Utility:OnDataLoaded()
 	self:SetAttribute('size', 0)
 	self:SetAttribute('removeButton', db('radialRemoveButton'))
 	self:CreateFramePool('SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate', Button)
@@ -129,10 +140,19 @@ function Utility:OnDataLoaded() --SecureActionButtonTemplate, SecureHandlerEnter
 		]];
 	});
 	self:RefreshAll()
-
 	setmetatable(self.Data, {__index = function(tbl, key) tbl[key] = {} return tbl[key] end})
+	self:OnAutoAssignedChanged()
 end
 
+function Utility:OnAutoAssignedChanged()
+	self.autoAssignExtras = db('autoExtra')
+end
+
+db:RegisterSafeCallback('Settings/autoExtra', Utility.OnAutoAssignedChanged, Utility)
+
+---------------------------------------------------------------
+-- Widget handling
+---------------------------------------------------------------
 function Utility:RefreshAll()
 	self:ClearAllActions()
 	local numButtons = 0;
@@ -220,20 +240,36 @@ end
 ---------------------------------------------------------------
 -- Set manager
 ---------------------------------------------------------------
-function Utility:AddAction(setID, idx, info)
+function Utility:AddSavedVar(setID, idx, info)
 	setID = setID or DEFAULT_SET;
 	local set = self.Data[setID];
 	local maxIndex = #set + 1;
 	idx = Clamp(idx or maxIndex, 1, maxIndex)
 	tinsert(set, idx, info)
+end
+
+function Utility:RemoveSavedVar(setID, idx)
+	return tremove(self.Data[setID], idx)
+end
+
+function Utility:AddAction(setID, idx, info)
+	self:AddSavedVar(setID, idx, info)
 	self:RefreshAll()
 	return true;
 end
 
 function Utility:RemoveAction(setID, idx)
-	local action = tremove(self.Data[setID], idx)
+	local action = self:RemoveSavedVar(setID, idx)
 	self:RefreshAll()
 	return action;
+end
+
+function Utility:SafeAddAction(setID, idx, ...)
+	local info = {};
+	for i=1, select('#', ...), 2 do
+		info[select(i, ...)] = select(i + 1, ...);
+	end
+	self:AddSavedVar(tonumber(setID) or setID, tonumber(idx), info)
 end
 
 function Utility:SafeRemoveAction(setID, idx)
@@ -291,7 +327,7 @@ function Utility:IsUniqueAction(setID, info)
 end
 
 function Utility:AnnounceAddition(link, set)
-	local slug = self:GetButtonSlugForSet(set)
+	local slug = self:GetButtonSlugForSet(set or 'LeftButton')
 	CPAPI.Log('%s was added to your utility ring. Use: %s', link, slug or NOT_BOUND)
 end
 
@@ -316,6 +352,30 @@ function Utility:GetKindAndAction(info)
 end
 
 ---------------------------------------------------------------
+-- Link map
+---------------------------------------------------------------
+Utility.LinkMap = {
+	spell = function(spell, ...)
+		local args = select('#', ...)
+		if (args > 1) then
+			local bookType = ...;
+			return GetSpellLink(spell, bookType)
+		end
+		return GetSpellLink(spell)
+	end;
+	item = function(...)
+		return select(2, ...)
+	end;
+}
+
+function Utility:GetLinkFromInfo(type, ...)
+	local func = self.LinkMap[type];
+	if func then
+		return func(...)
+	end
+end
+
+---------------------------------------------------------------
 -- Mapping from cursor info
 ---------------------------------------------------------------
 Utility.SecureHandlerMap = {
@@ -333,7 +393,6 @@ Utility.SecureHandlerMap = {
 	end;
 	mount = function(mountID)
 		local spellID = select(2, C_MountJournal.GetMountInfoByID(mountID));
-		print('spellID', spellID)
 		if spellID then
 			return {type = 'spell', spell = spellID};
 		end
@@ -374,28 +433,71 @@ function Utility:AddUniqueAction(setID, info, preferredIndex)
 	end
 end
 
-function Utility:AutoAssignAction(info)
+function Utility:AutoAssignAction(info, preferredIndex)
 	info.autoassigned = true;
-	return self:AddUniqueAction(DEFAULT_SET, info)
+	return self:AddUniqueAction(DEFAULT_SET, info, preferredIndex)
+end
+
+function Utility:GetItemForQuestID(questID)
+	local logIndex = C_QuestLog.GetLogIndexForQuestID(questID)
+	return logIndex and GetQuestLogSpecialItemInfo(logIndex)
+end
+
+function Utility:AddQuestWatchItem(questID)
+	local item = self:GetItemForQuestID(questID)
+	if item then
+		local info = self.SecureHandlerMap.item(item)
+		info.questID = questID;
+
+		local wasAdded = self:AutoAssignAction(info)
+		if wasAdded then
+			self:AnnounceAddition(item)
+		end
+		return wasAdded;
+	end
+end
+
+function Utility:RemoveQuestWatchItem(questID)
+	local wasRemoved = self:ClearActionByAttribute(DEFAULT_SET, 'questID', questID)
+	if wasRemoved then
+		self:RefreshAll()
+	end
 end
 
 function Utility:ToggleQuestWatchItem(questID, added)
 	if added then
-		local logIndex = C_QuestLog.GetLogIndexForQuestID(questID)
-		local item = logIndex and GetQuestLogSpecialItemInfo(logIndex)
-		if item then
-			local info = self.SecureHandlerMap.item(item)
-			info.questID = questID;
+		self:AddQuestWatchItem(questID)
+	else
+		self:RemoveQuestWatchItem(questID)
+	end
+end
 
-			local wasAdded = self:AutoAssignAction(info)
-			if wasAdded then
-				self:AnnounceAddition(item, 'LeftButton')
-			end
+function Utility:ToggleQuestWatchItemInline(questID)
+	local item = self:GetItemForQuestID(questID)
+	if item then
+		local info = self.SecureHandlerMap.item(item)
+		info.questID = questID;
+
+		local wasAdded = self:AutoAssignAction(info)
+		if wasAdded then
+			self:AnnounceAddition(item)
 		end
 	else
-		local wasRemoved = self:ClearActionByAttribute(DEFAULT_SET, 'questID', questID)
-		if wasRemoved then
-			self:RefreshAll()
+		self:RemoveQuestWatchItem(questID)
+	end
+end
+
+function Utility:SetObserveQuestID(questID)
+	self.observedQuestIDs = self.observedQuestIDs or {};
+	self.observedQuestIDs[questID] = true;
+end
+
+function Utility:ParseObservedQuestIDs()
+	local observedQuestIDs = self.observedQuestIDs;
+	if observedQuestIDs then
+		self.observedQuestIDs = nil;
+		for questID in pairs(observedQuestIDs) do
+			self:ToggleQuestWatchItemInline(questID)
 		end
 	end
 end
@@ -412,12 +514,49 @@ function Utility:RefreshQuestWatchItems()
 	self:AddAllQuestWatchItems()
 end
 
+function Utility:ToggleExtraActionButton(enabled)
+	if enabled then
+		self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
+	else
+		self:ClearActionByAttribute(DEFAULT_SET, 'action', EXTRA_ACTION_ID)
+	end
+end
+
+function Utility:ToggleZoneAbilities()
+	local zoneAbilities = C_ZoneAbility.GetActiveAbilities()
+	table.sort(zoneAbilities, function(lhs, rhs)
+		return lhs.uiPriority < rhs.uiPriority;
+	end)
+
+	for i, zoneAbility in ipairs(zoneAbilities) do
+		local spellID = zoneAbility.spellID;
+		if not C_ActionBar.FindSpellActionButtons(spellID) then
+			local wasAdded = self:AutoAssignAction(self.SecureHandlerMap.spellID(spellID))
+			if wasAdded then
+				self:AnnounceAddition((GetSpellLink(spellID)))
+			end
+		else
+			local index, set = self:SearchActionByAttribute(DEFAULT_SET, 'spell', spellID)
+			if index and set then
+				local action = set[index];
+				if action and action.autoassigned then
+					self:RemoveAction(DEFAULT_SET, index)
+				end
+			end
+		end
+	end
+end
+
 function Utility:CheckCursorInfo(setID)
 	if not InCombatLockdown() then
 		setID = tonumber(setID) or setID;
 		if GetCursorInfo() then
 			if self:AddFromCursorInfo(setID) then
-				self:AnnounceAddition(GetCursorInfo(), self:GetBindingSuffixForSet(setID))
+				-- TODO: map returns to links
+				self:AnnounceAddition(
+					GetCursorInfo():gsub('^%l', strupper),
+					self:GetBindingSuffixForSet(setID)
+				);
 				ClearCursor()
 			end
 		end
@@ -474,12 +613,53 @@ end
 -- Events
 ---------------------------------------------------------------
 function Utility:QUEST_WATCH_LIST_CHANGED(questID, added)
-	if db('autoExtra') then
+	if self.autoAssignExtras then
 		if questID then
 			db:RunSafe(self.ToggleQuestWatchItem, self, questID, added)
 		else
 			db:RunSafe(self.RefreshQuestWatchItems, self)
 		end
+	end
+end
+
+function Utility:QUEST_WATCH_UPDATE(questID)
+	if self.autoAssignExtras then
+		self:SetObserveQuestID(questID)
+	end
+end
+
+function Utility:QUEST_LOG_UPDATE()
+	if self.autoAssignExtras then
+		db:RunSafe(self.ParseObservedQuestIDs, self)
+	end
+end
+
+function Utility:UPDATE_BINDINGS()
+	if self.autoAssignExtras and not db.Gamepad:GetBindingKey('EXTRAACTIONBUTTON1') then
+		self.hasExtraActionButton = true;
+		db:RunSafe(self.ToggleExtraActionButton, self, true)
+	else
+		self.hasExtraActionButton = false;
+		db:RunSafe(self.ToggleExtraActionButton, self, false)
+	end
+end
+
+function Utility:UPDATE_EXTRA_ACTIONBAR()
+	if self.hasExtraActionButton and HasExtraActionBar() then
+		local link = self:GetLinkFromInfo(GetActionInfo(EXTRA_ACTION_ID))
+		self:AnnounceAddition(link or BINDING_NAME_EXTRAACTIONBUTTON1)
+	end
+end
+
+function Utility:SPELLS_CHANGED()
+	if self.autoAssignExtras then
+		db:RunSafe(self.ToggleZoneAbilities, self)
+	end
+end
+
+function Utility:ACTIONBAR_SLOT_CHANGED()
+	if self.autoAssignExtras then
+		db:RunSafe(self.ToggleZoneAbilities, self)
 	end
 end
 
@@ -489,6 +669,21 @@ end
 function Button:OnLoad()
 	self:Initialize()
 	self:SetScript('OnHide', self.OnClear)
+	self:SetScript('OnShow', self.UpdateAssets)
+end
+
+function Button:UpdateAssets()
+	local bg = self.Shadow;
+	bg:ClearAllPoints()
+	if (self:GetAttribute('action') == EXTRA_ACTION_ID) then
+		bg:SetTexture(GetOverrideBarSkin() or 'Interface\\ExtraButton\\Default')
+		bg:SetSize(256 * 0.8, 128 * 0.8)
+		bg:SetPoint('CENTER', -2, 0)
+	else
+		bg:SetTexture(CPAPI.GetAsset('Textures\\Button\\Shadow'))
+		bg:SetPoint('TOPLEFT', -5, 0)
+		bg:SetPoint('BOTTOMRIGHT', 5, -10)
+	end
 end
 
 function Button:OnFocus()

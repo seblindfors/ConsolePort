@@ -9,5 +9,4 @@
 	
 	<Include file="Frames/Frames.xml"/>
 	<Include file="Templates/Templates.xml"/>
-	<Include file="Templates/ActionButton.xml"/>
 </Ui>

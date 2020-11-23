@@ -28,6 +28,7 @@ function Cvar:Construct(data, newObj)
 					device.Preset.Variables[self.variableID] = value;
 					device:Activate()
 				end
+				db:TriggerEvent(self.variableID, value)
 			end)
 		end
 	end

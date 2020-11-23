@@ -1,4 +1,10 @@
 local _, db = ...;
+---------------------------------------------------------------
+-- Get the entire database object (caution)
+---------------------------------------------------------------
+function ConsolePort:GetData()
+	return db;
+end
 
 ---------------------------------------------------------------
 -- Get currently applied and validated bindings

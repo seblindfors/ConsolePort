@@ -15,7 +15,6 @@ Pager:Execute('headers = newtable()')
 ---------------------------------------------------------------
 -- Action page swapper
 ---------------------------------------------------------------
-Pager:SetAttribute('type', 'actionbar')
 Pager:RegisterForClicks('AnyUp', 'AnyDown')
 Pager:WrapScript(Pager, 'PreClick', [[
 	if down then
