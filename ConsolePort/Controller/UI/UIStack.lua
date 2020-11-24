@@ -244,6 +244,16 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 		end
 	end
 
+	function Stack:TryRemoveFrame(set, name)
+		if not name then return end
+
+		local stack = self:GetRegistrySet(set)
+		if (stack[name] ~= nil) then
+			stack[name] = nil;
+			return true;
+		end
+	end
+
 	function Stack:OnDataLoaded()
 		db:Load('Stack/Registry', 'ConsolePortUIStack')
 		GenerateDefaultSet(self)

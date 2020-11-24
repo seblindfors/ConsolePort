@@ -1,0 +1,26 @@
+## Interface: 90002
+## Title: Console Port |cff69ccf0Action Bar|r
+## Notes: Action bar module
+## RequiredDeps: ConsolePort
+
+## Author: Sebastian Lindfors
+## X-Website: https://github.com/seblindfors/ConsolePort
+## X-Feedback: https://discord.gg/AWeHd48
+
+## SavedVariablesPerCharacter: ConsolePort_BarSetup
+
+Frame.xml
+
+Core\Lookup.lua
+Core\Wrapper.lua
+Core\Bar.lua
+#Core\Config.lua
+
+Custom\Blizzard.lua
+Custom\ConsolePort.lua
+
+Components\Pet.lua
+Components\Stance.lua
+Components\MenuBar.lua
+Components\WatchBars.xml
+Components\ActionbarPlacer.lua

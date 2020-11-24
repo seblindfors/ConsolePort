@@ -52,10 +52,19 @@ end
 
 do local customHeader = (' |T%s:0|t %s '):format(CPAPI.GetAsset('Textures\\Logo\\CP_Tiny.blp'), SPECIAL)
 	_G[customHeader] = customHeader;
-	function BindingInfo:AddCustomBinding(name, bindingID)
-		self:AddBindingToCategory(L(name), bindingID, customHeader)
+	function BindingInfo:AddCustomBinding(name, bindingID, readonly)
+		self:AddBindingToCategory(L(name), bindingID, customHeader, readonly)
 		self.Custom[bindingID] = name;
 		self.Headers[bindingID] = customHeader;
+	end
+
+	function BindingInfo:IsReadonlyBinding(bindingID)
+		if self.Custom[bindingID] then
+			local _, info = FindInTableIf(db.Bindings, function(data)
+				return data.binding == bindingID;
+			end)
+			return info and info.readonly and info.readonly();
+		end
 	end
 end
 
@@ -70,12 +79,12 @@ function BindingInfo:IsBindingMissingHeader(id)
 		not id:match('^HEADER')           -- (4) or is it not a header?
 end
 
-function BindingInfo:AddBindingToCategory(name, id, category)
+function BindingInfo:AddBindingToCategory(name, id, category, readonly)
 	local bindings = self.Bindings;
 	bindings[category] = bindings[category] or {};
 	
 	local category = bindings[category];
-	category[#category+1] = {name = name, binding = id};
+	category[#category+1] = {name = name, binding = id, readonly = readonly};
 	return category;
 end
 
@@ -97,7 +106,7 @@ function BindingInfo:RefreshDictionary()
 
 		-- custom
 		for i, data in db:For('Bindings') do
-			self:AddCustomBinding(data.name, data.binding)
+			self:AddCustomBinding(data.name, data.binding, data.readonly)
 		end
 
 		-- XML-registered bindings
@@ -184,6 +193,10 @@ end
 
 function BindingInfoMixin:GetActionInfo(actionID)
 	return BindingInfo:GetActionInfo(actionID)
+end
+
+function BindingInfoMixin:IsReadonlyBinding(binding)
+	return BindingInfo:IsReadonlyBinding(binding)
 end
 
 function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)

@@ -317,14 +317,10 @@ function SetupSecureSnippets(button)
 end
 
 function WrapOnClick(button)
-	-- Wrap PreClick to get a temporary reticle macro to use on release if the header provides it.
-	button.header:WrapScript(button, 'PreClick', [[
-		local reticleMacro = owner:RunAttribute('GetReticleMacro', self:GetAttribute('action'), self:GetAttribute('plainID'), down)
+	-- Wrap PreClick to fire spells twice in order to place reticle spells in one stroke.
+	button.header:WrapScript(button, "PreClick", [[
 		if button == 'ControllerInput' and not down then
-			if reticleMacro then
-				self:SetAttribute('type', 'macro')
-				self:SetAttribute('macrotext', reticleMacro)
-			else
+			if not owner:RunAttribute('GetSpellID', self:GetAttribute('action')) then
 				self:SetAttribute('type', 'omit')
 			end
 		end

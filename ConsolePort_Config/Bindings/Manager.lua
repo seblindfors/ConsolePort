@@ -42,8 +42,12 @@ end
 
 function Binding:OnClick(button)
 	if ( button == 'RightButton' ) then
-		self:ClearKeys(db('Gamepad'):GetBindingKey(self:GetBinding()))
+		local binding = self:GetBinding()
+		if not BindingInfo:IsReadonlyBinding(binding) then
+			self:ClearKeys(db('Gamepad'):GetBindingKey(binding))
+		end
 		self:SetChecked(false)
+		self:OnChecked(false)
 	else
 		env.Bindings:NotifyBindingFocus(self, self:GetChecked(), true)
 	end

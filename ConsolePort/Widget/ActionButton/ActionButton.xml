@@ -148,7 +148,7 @@
 		<Size x="82" y="82"/>
 		<Scripts>
 			<OnLoad>
-				self.texture:SetTexture([[Interface\AddOns\ConsolePort\Assets\Textures\Button\NormalShadow]]);
+				self.texture:SetTexture([[Interface\AddOns\ConsolePort\Assets\Textures\Button\Shadow]]);
 			</OnLoad>
 		</Scripts>
 	</Frame>

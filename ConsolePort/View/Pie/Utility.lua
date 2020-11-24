@@ -2,6 +2,7 @@ local _, db = ...;
 ---------------------------------------------------------------
 local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	'ACTIONBAR_SLOT_CHANGED';
+	'ITEM_PUSH';
 	'SPELLS_CHANGED';
 	'QUEST_LOG_UPDATE';
 	'QUEST_WATCH_UPDATE';
@@ -631,6 +632,16 @@ end
 function Utility:QUEST_LOG_UPDATE()
 	if self.autoAssignExtras then
 		db:RunSafe(self.ParseObservedQuestIDs, self)
+	end
+	if self.newItemPushed then
+		db:RunSafe(self.RefreshQuestWatchItems, self)
+		self.newItemPushed = nil;
+	end
+end
+
+function Utility:ITEM_PUSH()
+	if self.autoAssignExtras then
+		self.newItemPushed = true;
 	end
 end
 

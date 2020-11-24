@@ -1,0 +1,93 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Frame name="ConsolePortBar" parent="UIParent" clampedToScreen="true" movable="true" inherits="SecureHandlerStateTemplate, SecureHandlerShowHideTemplate">
+		<Anchors>
+			<Anchor point="BOTTOM"/>
+		</Anchors>
+		<Scripts>
+			<OnDragStart>
+				self:StartMoving();
+			</OnDragStart>
+			<OnDragStop>
+				self:StopMovingOrSizing();
+			</OnDragStop>
+		</Scripts>
+		<Frames>
+			<Frame name="$parentWatchBars" parentKey="WatchBarContainer" frameStrata="LOW">
+				<Size x="804" y="16"/>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" x="90"/>
+					<Anchor point="BOTTOMRIGHT" x="-90"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="endCapWidth" value="4" type="number"/>
+					<KeyValue key="smallBarSeparatorWidth" value="24" type="number"/>
+					<KeyValue key="largeBarSeparatorWidth" value="30" type="number"/>
+				</KeyValues>
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="SingleBarLarge" hidden="true">
+							<Size x="804" y="14"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="SingleBarLargeUpper" hidden="true">
+							<Size x="804" y="14"/>
+							<Anchors>
+								<Anchor point="TOP" relativeKey="$parent.SingleBarLarge" y="9"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="SingleBarSmall" hidden="true">
+							<Size x="550" y="14"/>
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture> 
+						<Texture parentKey="SingleBarSmallUpper" hidden="true">
+							<Size x="550" y="14"/>
+							<Anchors>
+								<Anchor point="TOP" relativeKey="$parent.SingleBarSmall" y="9"/>
+							</Anchors>
+						</Texture> 
+					</Layer>
+				</Layers>
+			</Frame> 
+
+			<Button name="$parentShowHideButtons" parentKey="Eye" inherits="SecureActionButtonTemplate">
+				<Size x="40" y="40"/>
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="-20"/>
+				</Anchors>
+				<HighlightTexture parentKey="Highlight" file="Interface\AddOns\ConsolePort_Bar\Textures\Button\BigHilite" alphaMode="ADD"/>
+			</Button>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parentBG" parentKey="BG" alphaMode="ADD" file="Interface\QuestFrame\UI-QuestLogTitleHighlight">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="16" y="-16"/>
+						<Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
+					</Anchors>
+				</Texture>
+				<Texture name="$parentCoverArt" parentKey="CoverArt">
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="50"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="BORDER">
+				<Texture name="$parentBottomLine" parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
+					<TexCoords left="0.00195313" right="0.81835938" top="0.013671875" bottom="0.017578125"/>
+					<Size x="0" y="1"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="0" y="16"/>
+						<Anchor point="BOTTOMRIGHT" x="0" y="16"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+</Ui>

@@ -64,8 +64,13 @@ end
 function Mapper:SetFocus(widget)
 	self.focusWidget = widget;
 	local binding = widget and widget:GetBinding();
-	if binding and not db('Gamepad'):GetBindingKey(binding) then
-		self:SetCatchButton(true)
+	local readonly = binding and self:IsReadonlyBinding(binding);
+	if binding and not db.Gamepad:GetBindingKey(binding) then
+		if readonly then
+			self:SetCatchButton(false)
+		else
+			self:SetCatchButton(true)
+		end
 	else
 		self:SetCatchButton(false)
 		-- HACK: route it to the close button first, so it has
@@ -73,6 +78,7 @@ function Mapper:SetFocus(widget)
 		db('Cursor'):SetCurrentNode(self.Child.Close, true)
 		db('Cursor'):SetCurrentNode(self.Child.Change, true)
 	end
+	self.Child.Change:SetEnabled(not readonly)
 end
 
 function Mapper:GetFocus()

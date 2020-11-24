@@ -124,7 +124,8 @@ function GamepadAPI:OnDataLoaded()
 		end
 	end
 	if not self.Active then
-		ShowGamePadConfig()
+		-- open the config, no active device found.
+		ConsolePort()
 	end
 end
 
@@ -142,6 +143,17 @@ db:RegisterSafeCallback('GamePadCursorRightClick', function(self, value)
 	SetBinding(value, 'TURNORACTION')
 	SaveBindings(GetCurrentBindingSet())
 end, GamepadAPI)
+
+for _, modifier in ipairs(GamepadAPI.Modsims) do
+	-- Wipe all active bindings for a modifier when it's set.
+	db:RegisterSafeCallback(('GamePadEmulate%s'):format(modifier:lower():gsub('^%l', strupper)),
+	function(self, value)
+		for mod in pairs(self:GetActiveModifiers()) do
+			SetBinding(mod..value, nil)
+		end
+		SaveBindings(GetCurrentBindingSet())
+	end, GamepadAPI)
+end
 
 ---------------------------------------------------------------
 -- Data
@@ -274,7 +286,7 @@ function GamepadAPI:GetModifierHeld(modifier)
 	return modifier and self:GetModifiersHeld()[modifier] ~= nil;
 end
 
-function GamepadAPI:GetBindings()
+function GamepadAPI:GetBindings(getInactive)
 	local btns = self.Index.Button.Binding
 	local mods = self.Index.Modifier.Active
 	assert(btns, 'Active bindings have not been indexed.')
@@ -284,7 +296,7 @@ function GamepadAPI:GetBindings()
 	for btn in pairs(btns) do
 		for mod in pairs(mods) do
 			local binding = GetBindingAction(mod..btn)
-			if binding:len() > 0 then
+			if getInactive or binding:len() > 0 then
 				bindings[btn] = bindings[btn] or {}
 				bindings[btn][mod] = binding
 			end
@@ -381,8 +393,10 @@ function GamepadMixin:GetHotkeyButtonPrompt(button)
 end
 
 function GamepadMixin:GetIconForButton(button, style)
-	assert(button, 'Button is not defined.') -- TODO: needs protection from unassigned bindings
-	return GamepadAPI:GetIconPath(db(('Gamepad/Index/Icons/%s'):format(self:GetIconIDForButton(button))), style)
+	local iconID = self:GetIconIDForButton(button)
+	if iconID then
+		return GamepadAPI:GetIconPath(db(('Gamepad/Index/Icons/%s'):format(iconID)), style)
+	end
 end
 
 function GamepadMixin:GetIconIDForButton(button)

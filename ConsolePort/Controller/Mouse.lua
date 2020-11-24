@@ -15,7 +15,7 @@ local Mouse = CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsoleP
 -- Upvalues since these will be called/checked frequently
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
-local CreateKeyChordString = CreateKeyChordStringUsingMetaKeyState;
+local GetBindingAction, CreateKeyChord = GetBindingAction, CreateKeyChordStringUsingMetaKeyState;
 local NewTimer, GetMouseFocus = C_Timer.NewTimer, GetMouseFocus;
 local UnitExists, GetSpellInfo = UnitExists, GetSpellInfo;
 local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
@@ -25,6 +25,8 @@ local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
 ---------------------------------------------------------------
 local CAST_INFO_SPELLID_OFFSET = 9;
 local SPELLID_CAST_TIME_OFFSET = 4;
+local LCLICK_BINDING = 'CAMERAORSELECTORMOVE';
+local RCLICK_BINDING = 'TURNORACTION';
 
 
 ---------------------------------------------------------------
@@ -128,9 +130,19 @@ local GamePadControl = IsGamePadFreelookEnabled;
 local CursorControl  = IsGamePadCursorControlEnabled;
 local MenuFrameOpen  = IsOptionFrameOpen;
 local SpellTargeting = SpellIsTargeting;
-local LeftClick      = function(button) return CVar_LClick:IsValue(button) end;
-local RightClick     = function(button) return CVar_RClick:IsValue(button) end;
-local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChordString(button)) end;
+---------------------------------------------------------------
+local IsActionBound = function(button, binding)
+	local action = GetBindingAction(CreateKeyChord(button))
+	return (action == '' or action == binding)
+end
+local LeftClick = function(button)
+	return CVar_LClick:IsValue(button) and IsActionBound(button, LCLICK_BINDING)
+end;
+local RightClick = function(button)
+	return CVar_RClick:IsValue(button) and IsActionBound(button, RCLICK_BINDING)
+end
+---------------------------------------------------------------
+local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChord(button)) end;
 local CursorCentered = function() return CVar_Center:Get(true) end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
 local WorldInteract  = function() return TooltipShowing() and GetMouseFocus() == WorldFrame end;

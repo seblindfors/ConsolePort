@@ -101,15 +101,20 @@ db('table/map', map)
 
 -- This is a special iterator that returns a table in reverse order,
 -- or by "intuitive" modifier order. E.g. Shift comes before Ctrl.
+local mIndex = setmetatable({
+	['']                = 1;
+	['SHIFT-']          = 2;
+	['CTRL-']           = 3;
+	['ALT-']            = 4;
+	['CTRL-SHIFT-']     = 5;
+	['ALT-SHIFT-']      = 6;
+	['ALT-CTRL-']       = 7;
+	['ALT-CTRL-SHIFT-'] = 8;
+}, {__index = function() return 9 end})
+
 db('table/mpairs', function(t)
 	return spairs(t, function(t, a, b)
-		if (a == '') then
-			return true;
-		end
-		if (b == '' or a:match(b) or b:match(a)) then
-			return false;
-		end
-		return a > b;
+		return mIndex[a] < mIndex[b];
 	end)
 end)
 

@@ -57,12 +57,13 @@ function Button:OnLoad()
 end
 
 function Button:OnShow()
-	self:UpdateState()
+	self:UpdateState(CreateKeyChordStringUsingMetaKeyState(''))
 end
 
 function Button:OnEnter()
 	local tooltip = GameTooltip;
 	local override = self.reservedData;
+	local isClickOverride = self:IsClickReserved(override)
 	tooltip:SetOwner(self, 'ANCHOR_BOTTOM')
 
 	if override then
@@ -72,23 +73,28 @@ function Button:OnEnter()
 			tooltip:AddLine('\n'..NOTE_COLON)
 			tooltip:AddLine(override.note, 1, 1, 1, 1)
 		end
-		return tooltip:Show()
+		if isClickOverride then
+			tooltip:AddLine('\n'..KEY_BINDINGS_MAC)
+		end
+	else
+		tooltip:SetText(('|cFFFFFFFF%s|r'):format(KEY_BINDINGS_MAC))
 	end
 
 	local handler = db('Hotkeys')
 	local base = self:GetBaseBinding()
 	local mods = env:GetActiveModifiers()
 
-	tooltip:SetText(('|cFFFFFFFF%s|r'):format(KEY_BINDINGS_MAC))
-
-	for mod, keys in db.table.mpairs(mods) do	
-		local name, texture, actionID = self:GetBindingInfo(self:GetChordBinding(mod))
-		local slug = env:GetButtonSlug(base, mod)
-		if texture then
-			name = name:gsub('\n', '\n|T:12:32:0:0|t ') -- offset 2nd line
-			tooltip:AddDoubleLine(('|T%s:32:32:0:-12|t %s\n '):format(texture, name), slug)
-		else
-			tooltip:AddDoubleLine(('%s\n '):format(name), slug)
+	for mod, keys in db.table.mpairs(mods) do
+		if (not override or (isClickOverride and mod ~= '')) then
+			local name, texture, actionID = self:GetBindingInfo(self:GetChordBinding(mod))
+			local slug = env:GetButtonSlug(base, mod)
+			if actionID then
+				texture = texture or [[Interface\Buttons\ButtonHilight-Square]]
+				name = name:gsub('\n', '\n|T:12:32:0:0|t ') -- offset 2nd line
+				tooltip:AddDoubleLine(('|T%s:32:32:0:-12|t %s\n '):format(texture, name), slug)
+			else
+				tooltip:AddDoubleLine(('%s\n '):format(name), slug)
+			end
 		end
 	end
 	tooltip:Show()
@@ -128,6 +134,11 @@ function Button:SetReserved(reservedData)
 	self.reservedData = reservedData;
 end
 
+function Button:IsClickReserved(override)
+	local reserved = override or self.reservedData;
+	return reserved and reserved.cvar:match('Cursor');
+end
+
 function Button:GetChordBinding(mod)
 	return GetBindingAction(mod..self.baseBinding)
 end
@@ -148,9 +159,10 @@ function Button:SetActionIcon(texture)
 	self.Mask:SetAlpha(texture and 1 or 0)
 end
 
-function Button:UpdateState()
+function Button:UpdateState(currentModifier)
 	local reserved = self.reservedData;
-	if reserved then
+	local isClickOverride = (self:IsClickReserved(reserved) and currentModifier ~= '')
+	if not isClickOverride and reserved then
 		self:SetActionIcon(nil)
 		self:SetText(self:WrapAsNotBound(L(reserved.name)))
 		return
@@ -180,8 +192,9 @@ function Overview:SetDevice(device)
 end
 
 function Overview:OnEvent(_, event)
+	local currentModifier = CreateKeyChordStringUsingMetaKeyState('');
 	for widget in self:EnumerateActive() do
-		widget:UpdateState()
+		widget:UpdateState(currentModifier)
 	end
 end
 

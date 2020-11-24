@@ -32,6 +32,36 @@ Control.KeyIDToBindingMap = setmetatable({
 		elseif (key == 'M2') then
 			local var = GetCVar('GamePadEmulateCtrl')
 			return (var and var ~= 'none') and var;
+		elseif (key == 'T1' or key == 'T2') then
+			local id = tonumber(key:match('%d'))
+			local preferredKeys = {
+				[1] = {
+					'PADLSHOULDER';
+					'PADRSHOULDER';
+					'PADLTRIGGER';
+					'PADRTRIGGER';
+				};
+				[2] = {
+					'PADRTRIGGER';
+					'PADLTRIGGER';
+					'PADRSHOULDER';
+					'PADLSHOULDER';
+				};
+			}
+			local keysForID = preferredKeys[id]
+			if keysForID then
+				for _, preference in ipairs(keysForID) do
+					local isValid = true;
+					for _, mod in ipairs(db.Gamepad.Modsims) do
+						if GetCVar('GamepadEmulate'..mod) == preference then
+							isValid = false;
+						end
+					end
+					if isValid then
+						return preference;
+					end
+				end
+			end
 		elseif IsBindingForGamePad(key) then
 			return key;
 		end

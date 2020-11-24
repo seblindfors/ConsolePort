@@ -7,6 +7,13 @@ function ConsolePort:GetData()
 end
 
 ---------------------------------------------------------------
+-- Get all possible bindings
+---------------------------------------------------------------
+function ConsolePort:GetBindings()
+	return pairs(db.Gamepad:GetBindings(true))
+end
+
+---------------------------------------------------------------
 -- Get currently applied and validated bindings
 ---------------------------------------------------------------
 function ConsolePort:GetCurrentBindings()
@@ -18,6 +25,14 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetActionBinding(index)
 	return db('Actionbar/Action/'..index)
+end
+
+---------------------------------------------------------------
+-- Get unified page condition driver and current page
+---------------------------------------------------------------
+function ConsolePort:GetActionPageDriver()
+	local pager = db.Pager;
+	return pager:GetPageCondition(), pager:GetCurrentPage()
 end
 
 ---------------------------------------------------------------
