@@ -1,10 +1,10 @@
-local _, ab = ...
-local FadeIn, FadeOut = ab.data.Alpha.FadeIn, ab.data.Alpha.FadeOut
+local _, env = ...;
+local FadeIn, FadeOut = env.db.Alpha.FadeIn, env.db.Alpha.FadeOut;
 
 -------------------------------------------
 ---		Watch bar container
 -------------------------------------------
-local WBC = ab.bar.WatchBarContainer
+local WBC = env.bar.WatchBarContainer
 
 WBC.BGLeft = WBC:CreateTexture(nil, 'BACKGROUND')
 WBC.BGLeft:SetPoint('TOPLEFT')
@@ -214,7 +214,7 @@ function WBC:OnEvent(event)
 end
 
 function WBC:OnShow()
-	if ab.cfg and ab.cfg.watchbars then
+	if env.cfg and env.cfg.watchbars then
 		FadeIn(self, 0.2, self:GetAlpha(), 1)
 	else
 		self:SetAlpha(0)
@@ -230,8 +230,8 @@ function WBC:SetEndCapWidth(width)
 end
 
 local function BarColorOverride(self)
-	if (ab.cfg and ab.cfg.expRGB) and (WBC.mainBar == self) then
-		self:SetBarColorRaw(unpack(ab.cfg.expRGB))
+	if (env.cfg and env.cfg.expRGB) and (WBC.mainBar == self) then
+		self:SetBarColorRaw(unpack(env.cfg.expRGB))
 	end
 end
 
@@ -247,7 +247,7 @@ function WBC:AddBarFromTemplate(frameType, template)
 	end)
 
 	bar:HookScript('OnLeave', function()
-		if (ab.cfg and not ab.cfg.watchbars) or not ab.cfg then
+		if (env.cfg and not env.cfg.watchbars) or not env.cfg then
 			FadeOut(self, 0.2, self:GetAlpha(), 0)
 		end
 	end)

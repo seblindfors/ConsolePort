@@ -320,9 +320,9 @@ function WrapOnClick(button)
 	-- Wrap PreClick to fire spells twice in order to place reticle spells in one stroke.
 	button.header:WrapScript(button, "PreClick", [[
 		if button == 'ControllerInput' and not down then
-			if not owner:RunAttribute('GetSpellID', self:GetAttribute('action')) then
+		--	if not owner:RunAttribute('GetSpellID', self:GetAttribute('action')) then
 				self:SetAttribute('type', 'omit')
-			end
+		--	end
 		end
 	]])
 	-- Wrap OnClick, to catch changes to actions that are applied with a click on the button.

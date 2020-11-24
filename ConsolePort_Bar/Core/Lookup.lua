@@ -1,6 +1,10 @@
-local addOn, ab = ...
+local name, env = ...;
+--------------------------------------------------------
+env.db   = ConsolePort:GetData()
+env.bar  = ConsolePortBar;
+env.libs = {};
+--------------------------------------------------------
 local r, g, b = CPAPI.NormalizeColor(CPAPI.GetClassColor())
-ab.libs = {};
 --------------------------------------------------------
 local defaultIcons
 do  local custom = [[Interface\AddOns\ConsolePort_Bar\Textures\Icons\%s]]
@@ -149,11 +153,11 @@ local defaultReticleSpellIDs = {
 }
 --------------------------------------------------------
 
-function ab:GetBindingIcon(binding)
-	return ab.manifest.BindingIcons[binding]
+function env:GetBindingIcon(binding)
+	return env.manifest.BindingIcons[binding]
 end
 
-function ab:CreateManifest()
+function env:CreateManifest()
 	if type(ConsolePortBarManifest) ~= 'table' then
 		ConsolePortBarManifest = {
 			BindingIcons = defaultIcons,
@@ -162,31 +166,31 @@ function ab:CreateManifest()
 		ConsolePortBarManifest.BindingIcons = defaultIcons
 	end
 	defaultIcons = nil
-	ab.manifest = ConsolePortBarManifest
+	env.manifest = ConsolePortBarManifest
 	return ConsolePortBarManifest
 end
 
-function ab:GetCover(class)
+function env:GetCover(class)
 	local art = class and classArt[class]
 	if not class and not art then
 		art = classArt[select(2, UnitClass('player'))]
 	end
 	if art then
 		local index, px = unpack(art)
-		return [[Interface\AddOns\]]..addOn..[[\Textures\Covers\]]..index, 
+		return [[Interface\AddOns\]]..name..[[\Textures\Covers\]]..index, 
 				{0, 1, (( px - 1 ) * 256 ) / 1024, ( px * 256 ) / 1024 }
 	end
 end
 
-function ab:GetBackdrop()
+function env:GetBackdrop()
 	return {
-		edgeFile 	= 'Interface\\AddOns\\'..addOn..'\\Textures\\BarEdge',
+		edgeFile 	= 'Interface\\AddOns\\'..name..'\\Textures\\BarEdge',
 		edgeSize 	= 32,
 		insets 		= {left = 16, right = 16,	top = 16, bottom = 16}
 	}
 end
 
-function ab:GetDefaultButtonLayout(button)
+function env:GetDefaultButtonLayout(button)
 	local layout = {
 		PADLSHOULDER = {point = {'LEFT', 456, 56}, dir = 'right', size = 64},
 		PADRSHOULDER = {point = {'RIGHT', -456, 56}, dir = 'left', size = 64},
@@ -211,9 +215,9 @@ function ab:GetDefaultButtonLayout(button)
 	end
 end
 
-function ab:GetPresets()
+function env:GetPresets()
 	return {
-		Default = ab:GetDefaultSettings(),
+		Default = env:GetDefaultSettings(),
 		Orthodox = {
 			scale = 0.9,
 			width = 1100,
@@ -242,13 +246,13 @@ function ab:GetPresets()
 			showline = true,
 			showart = true,
 			lock = true,
-			layout = ab:GetDefaultButtonLayout(),
+			layout = env:GetDefaultButtonLayout(),
 		},
 	}
 end
 
-function ab:GetRGBColorFor(element, default)
-	local cfg = ab.cfg or {}
+function env:GetRGBColorFor(element, default)
+	local cfg = env.cfg or {}
 	local defaultColors = {
 		art 	= {1, 1, 1, 1},
 		tint 	= {r, g, b, 1},
@@ -273,7 +277,7 @@ function ab:GetRGBColorFor(element, default)
 	end
 end
 
-function ab:GetDefaultSettings()
+function env:GetDefaultSettings()
 	return 	{
 		scale = 0.9,
 		width = 1100,
@@ -282,11 +286,11 @@ function ab:GetDefaultSettings()
 		lock = true,
 		flashart = true,
 		quickMenu = true,
-		layout = ab:GetDefaultButtonLayout()
+		layout = env:GetDefaultButtonLayout()
 	}
 end
 
-function ab:GetColorGradient(red, green, blue)
+function env:GetColorGradient(red, green, blue)
 	local gBase = 0.15
 	local gMulti = 1.2
 	local startAlpha = 0.25
@@ -299,9 +303,9 @@ function ab:GetColorGradient(red, green, blue)
 	return unpack(gradient)
 end
 
-function ab:GetBooleanSettings(otherCFG)
-	local cfg = otherCFG or ab.cfg or {}
-	local L = ab.data.ACTIONBAR
+function env:GetBooleanSettings(otherCFG)
+	local cfg = otherCFG or env.cfg or {}
+	local L = env.db.ACTIONBAR
 	return {
 		{	desc = L.CFG_LOCK,
 			cvar = 'lock',
@@ -402,10 +406,10 @@ function ab:GetBooleanSettings(otherCFG)
 	}
 end
 
-function ab:SetRainbowScript(on) 
-	local f = ab.bar
+function env:SetRainbowScript(on) 
+	local f = env.bar
 	if on then
-		local reg, pairs = ab.libs.registry, pairs
+		local reg, pairs = env.libs.registry, pairs
 		local __cb, __bg, __bl, __wb = CastingBarFrame, f.BG, f.BottomLine, f.WatchBarContainer
 		local t, i, p, c, w, m = 0, 0, 0, 128, 127, 180
 		local hz = (math.pi*2) / m
@@ -422,7 +426,7 @@ function ab:SetRainbowScript(on)
 				end
 				__cb:SetStatusBarColor(r, g, b)
 				__wb:SetMainBarColor(r, g, b)
-				__bg:SetGradientAlpha(ab:GetColorGradient(r, g, b))
+				__bg:SetGradientAlpha(env:GetColorGradient(r, g, b))
 				__bl:SetVertexColor(r, g, b)
 				for _, rap in pairs(reg) do
 					rap:SetSwipeColor(r, g, b, 1)
@@ -435,9 +439,9 @@ function ab:SetRainbowScript(on)
 	end
 end
 
-function ab:SetArtUnderlay(enabled, flashOnProc)
-	local bar = ab.bar
-	local cfg = ab.cfg
+function env:SetArtUnderlay(enabled, flashOnProc)
+	local bar = env.bar
+	local cfg = env.cfg
 	if enabled then
 		local art, coords = self:GetCover()
 		if art and coords then

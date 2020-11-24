@@ -1,16 +1,16 @@
 ---------------------------------------------------------------
-local db = ConsolePort:GetData()
 local HANDLE, WrapperMixin = {}, {}
 ---------------------------------------------------------------
-local an, ab = ...
+local name, env = ...
+local db = env.db;
 local acb = LibStub('CPActionButton')
 ---------------------------------------------------------------
-ab.libs.wrapper = HANDLE
+env.libs.wrapper = HANDLE
 ---------------------------------------------------------------
 local Wrappers = {}
-ab.libs.registry = Wrappers
+env.libs.registry = Wrappers
 ---------------------------------------------------------------
-local TEX_PATH = [[Interface\AddOns\]]..an..[[\Textures\%s]]
+local TEX_PATH = [[Interface\AddOns\]]..name..[[\Textures\%s]]
 local NOT_BOUND_TOOLTIP = NOT_BOUND-- .. '\n' .. db.TUTORIAL.BIND.TOOLTIPCLICK
 ---------------------------------------------------------------
 local size, smallSize, tSize = 64, 46, 58
@@ -382,7 +382,7 @@ end
 local function CreateMainShadowFrame(self)
 	-- create this as a separate frame so that drop shadow doesn't overlay modifiers
 	-- note: shadow is child of bar, not of button
-	local shadow = CreateFrame('Frame', self:GetName()..'_SHADOW', ab.bar, 'CPUIActionButtonMainShadowTemplate')
+	local shadow = CreateFrame('Frame', self:GetName()..'_SHADOW', env.bar, 'CPUIActionButtonMainShadowTemplate')
 	shadow:SetPoint('CENTER', self, 'CENTER', 0, -6)
 	return shadow
 end
@@ -438,12 +438,13 @@ function HANDLE:Create(parent, id, orientation)
 	return wrapper
 end
 
-function HANDLE:UpdateAllBindings(newBindings)
-	local bindings = newBindings or db.Bindings
-	ClearOverrideBindings(ab.bar)
-	if type(bindings) == 'table' then
-		for binding, wrapper in pairs(Wrappers) do
-			self:UpdateWrapperBindings(wrapper, bindings[binding])
+function HANDLE:UpdateAllBindings(bindings)
+	if bindings then
+		ClearOverrideBindings(env.bar)
+		if type(bindings) == 'table' then
+			for binding, wrapper in pairs(Wrappers) do
+				self:UpdateWrapperBindings(wrapper, bindings[binding])
+			end
 		end
 	end
 end
@@ -458,11 +459,11 @@ function HANDLE:SetEligbleForRebind(button, id)
 	})
 end
 
-function HANDLE:SetArbitraryBinding(button, binding)
+function HANDLE:SetXMLBinding(button, binding)
 	button:SetAttribute('disableDragNDrop', true)
 	return 'custom', {
 		tooltip = _G['BINDING_NAME_'..binding] or binding,
-		texture = ab:GetBindingIcon(binding) or
+		texture = env:GetBindingIcon(binding) or
 			db('Icons/64/'..button.plainID) or
 			[[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
 		func = function() end,
@@ -472,19 +473,19 @@ end
 function HANDLE:SetActionBinding(button, main, id, actionID)
 	local key = button.plainID;
 	if key then
-		ab.bar:RegisterOverride(id..key, main:GetName())
+		env.bar:RegisterOverride(id..key, main:GetName())
 	end
-	button:SetAttribute('disableDragNDrop', (ab.cfg and ab.cfg.disablednd and true) or false)
+	button:SetAttribute('disableDragNDrop', (env.cfg and env.cfg.disablednd and true) or false)
 	return 'action', actionID
 end
 
 function HANDLE:RefreshBinding(binding, wrapper, button, modifier, main)
-	local actionID = binding and ab.data('Actionbar/Binding/'..binding) --ConsolePort:GetActionID(binding)
+	local actionID = binding and env.db('Actionbar/Binding/'..binding) --ConsolePort:GetActionID(binding)
 	local stateType, stateID
 	if actionID then
 		stateType, stateID = self:SetActionBinding(button, main, modifier, actionID)
 	elseif binding then
-		stateType, stateID = self:SetArbitraryBinding(button, binding)
+		stateType, stateID = self:SetXMLBinding(button, binding)
 	else
 		self:SetEligbleForRebind(button, modifier)
 	end

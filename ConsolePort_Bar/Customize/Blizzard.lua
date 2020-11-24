@@ -1,8 +1,8 @@
 -- This was mostly stolen from Bartender4.
 -- This code snippet hides and modifies the default action bars.
 
-local _, ab = ...
-local Bar = ab.bar
+local _, env = ...
+local Bar = env.bar
 local red, green, blue = CPAPI.GetClassColor()
 
 do
@@ -48,7 +48,6 @@ do
 	UIPARENT_MANAGED_FRAME_POSITIONS['PETACTIONBAR_YPOS'] = nil
 
 	MainMenuBar:EnableMouse(false)
-	if MicroButtonAndBagsBar then MicroButtonAndBagsBar:SetParent(UIParent) end
 	if StatusTrackingBarManager then StatusTrackingBarManager:Hide() end
 	if MainMenuExpBar then MainMenuExpBar:SetParent(UIHider) end
 	if MainMenuBarPerformanceBar then MainMenuBarPerformanceBar:SetParent(UIHider) end
@@ -64,30 +63,12 @@ do
 	for _, bar in pairs({
 		StanceBarFrame,
 		PossessBarFrame,
-		PetActionBarFrame	}) do
+		PetActionBarFrame
+	}) do
 		bar:UnregisterAllEvents()
 		bar:SetParent(UIHider)
 		bar:Hide()
 	end
-
-	function Bar:MoveMicroButtons()
-		for _, button in pairs({
-			CharacterMicroButton,
-			SpellbookMicroButton,
-			TalentMicroButton,
-			AchievementMicroButton,
-			QuestLogMicroButton,
-			GuildMicroButton,
-			LFDMicroButton,
-			CollectionsMicroButton,
-			EJMicroButton,
-			StoreMicroButton,
-			MainMenuMicroButton,
-			HelpMicroButton,
-		}) do button:SetParent(MicroButtonAndBagsBar) end
-	end
-
-	Bar:MoveMicroButtons()
 
 	-------------------------------------------
 	--- 	Casting bar modified
@@ -120,12 +101,12 @@ do
 		self.BorderShield:SetPoint('CENTER', self.Icon, 'CENTER', 10, 0)
 		self.BorderShield:SetSize(49, 49)
 
-		local r, g, b = ab:GetRGBColorFor('exp')
+		local r, g, b = env:GetRGBColorFor('exp')
 		CastingBarFrame_SetStartCastColor(self, r or 1.0, g or 0.7, b or 0.0)
 	end
 
 	local function MoveCastingBarFrame()
-		local cfg = ab.cfg
+		local cfg = env.cfg
 		if cfg and cfg.disableCastBarHook then
 			overrideCastBarPos = false
 		elseif OverrideActionBar and OverrideActionBar:IsShown() or (cfg and cfg.defaultCastBar) then

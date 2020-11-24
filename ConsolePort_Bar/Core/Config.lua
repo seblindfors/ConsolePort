@@ -1,6 +1,4 @@
-local _, ab = ...
-local db = ab.data
-local Bar = ab.bar
+local _, ab = ...; local db, Bar = ab.db, ab.bar;
 local WindowMixin, Generic, Layout, Button, Position, Color, Bool, Profiler, Preset = {}, {}, {}, {}, {}, {}, {}, {}, {}
 
 local VALID_POINTS = {

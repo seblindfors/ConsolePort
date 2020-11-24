@@ -1,22 +1,17 @@
 ---------------------------------------------------------------
-local db = ConsolePort:GetData()
----------------------------------------------------------------
-local _, ab = ...
+local _, env = ...; local db = env.db;
 ---------------------------------------------------------------
 local cfg
 
-local Bar = Mixin(ConsolePortBar, CPAPI.SecureEnvironmentMixin)
-local WrapperLib = ab.libs.wrapper
+local Bar = Mixin(env.bar, CPAPI.SecureEnvironmentMixin)
+local WrapperLib = env.libs.wrapper;
 local state, now = ConsolePort:GetActionPageDriver()
 
-local BAR_MIN_WIDTH = 1105
-local BAR_MAX_SCALE = 1.6
+local BAR_MIN_WIDTH    = 1105
+local BAR_MAX_SCALE    = 1.6
 local BAR_FIXED_HEIGHT = 140
 
 -- Set up action bar
----------------------------------------------------------------
-ab.bar = Bar
-ab.data = db
 ---------------------------------------------------------------
 
 Bar:SetAttribute('actionpage', now)
@@ -26,7 +21,6 @@ Bar:Execute([[
 	bindings = newtable()
 	bar = self
 	cursor = self:GetFrameRef('Cursor')
-	self:SetAttribute('state', '')
 ]])
 
 function Bar:FadeIn(alpha)
@@ -59,6 +53,9 @@ function Bar:UpdateOverrides()
 		for key, button in pairs(bindings) do
 			self:SetBindingClick(false, key, button, 'ControllerInput')
 		end
+		local state = self:GetAttribute('state') or '';
+		self:SetAttribute('state', state)
+		control:ChildUpdate('state', state)
 	]])
 end
 
@@ -69,15 +66,13 @@ function Bar:RegisterOverride(key, button)
 end
 
 function Bar:OnNewBindings(...)
-	if not InCombatLockdown() then
-		self:UnregisterOverrides()
-		WrapperLib:UpdateAllBindings(...)
-		self:UpdateOverrides()
-	end
+	self:UnregisterOverrides()
+	WrapperLib:UpdateAllBindings(...)
+	self:UpdateOverrides()
 end
 
-ab.data:RegisterCallback('OnNewBindings', Bar.OnNewBindings, Bar)
-ab.data.Pager:RegisterHeader(Bar, true)
+env.db:RegisterSafeCallback('OnNewBindings', Bar.OnNewBindings, Bar)
+env.db.Pager:RegisterHeader(Bar, true)
 
 function Bar:OnEvent(event, ...)
 	if self[event] then
@@ -96,7 +91,7 @@ end
 function Bar:ADDON_LOADED(name)
 	if name == _ then
 		if not ConsolePort_BarSetup then
-			ConsolePort_BarSetup = ab:GetDefaultSettings()
+			ConsolePort_BarSetup = env:GetDefaultSettings()
 		-------------------------------
 		-- compat: binding ID fix for grip buttons , remove later on
 		else local layout = ConsolePort_BarSetup.layout
@@ -107,7 +102,7 @@ function Bar:ADDON_LOADED(name)
 			end
 		-------------------------------
 		end
-		ab:CreateManifest()
+		env:CreateManifest()
 		self:OnLoad(ConsolePort_BarSetup)
 		self:UnregisterEvent('ADDON_LOADED')
 		self.ADDON_LOADED = nil
@@ -116,7 +111,7 @@ end
 
 function Bar:OnMouseWheel(delta)
 	if not InCombatLockdown() then
-		local cfg = ab.cfg
+		local cfg = env.cfg
 		if IsShiftKeyDown() then
 			local newWidth = self:GetWidth() + ( delta * 10 )
 			cfg.width = newWidth > BAR_MIN_WIDTH and newWidth or BAR_MIN_WIDTH
@@ -133,7 +128,7 @@ end
 
 function Bar:OnLoad(cfg, benign)
 	local r, g, b = CPAPI.NormalizeColor(CPAPI.GetClassColor())
-	ab.cfg = cfg
+	env.cfg = cfg
 	ConsolePortBarSetup = cfg
 	self:SetScale(cfg.scale or 1)
 
@@ -176,17 +171,17 @@ function Bar:OnLoad(cfg, benign)
 	end
 
 	-- Set action bar art
-	ab:SetArtUnderlay(cfg.showart or cfg.flashart, cfg.flashart)
+	env:SetArtUnderlay(cfg.showart or cfg.flashart, cfg.flashart)
 
 	-- Rainbow sine wave color script, cuz shiny
-	ab:SetRainbowScript(cfg.rainbow)
+	env:SetRainbowScript(cfg.rainbow)
 
 	-- Tint RGB for background textures	
 	if cfg.tintRGB then
-		self.BG:SetGradientAlpha(ab:GetColorGradient(unpack(cfg.tintRGB)))
+		self.BG:SetGradientAlpha(env:GetColorGradient(unpack(cfg.tintRGB)))
 		self.BottomLine:SetVertexColor(unpack(cfg.tintRGB))
 	else
-		self.BG:SetGradientAlpha(ab:GetColorGradient(r, g, b))
+		self.BG:SetGradientAlpha(env:GetColorGradient(r, g, b))
 		self.BottomLine:SetVertexColor(r, g, b, 1)
 	end
 
@@ -196,7 +191,7 @@ function Bar:OnLoad(cfg, benign)
 	-- Lock/unlock bar
 	self:ToggleMovable(not cfg.lock, cfg.mousewheel)
 
-	cfg.layout = cfg.layout or ab:GetDefaultButtonLayout()
+	cfg.layout = cfg.layout or env:GetDefaultButtonLayout()
 
 	-- Configure individual buttons
 	local layout = cfg.layout

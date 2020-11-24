@@ -2,8 +2,8 @@
 
 -- Idea abandoned for now, but this seems like it could be useful.
 
-local an, ab = ...
-local acb = ab.libs.acb
+local _, env = ...
+local acb = env.libs.acb
 
 local HANDLE = CreateFrame('Frame', 'ConsolePortBarActionPlacer', UIParent, 'SecureHandlerStateTemplate')
 

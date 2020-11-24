@@ -1,16 +1,14 @@
-local addOn, ab = ...
-local db = ConsolePort:GetData()
-local L = db.ACTIONBAR
-local Bar = ab.bar
+local name, env = ...;
+local Bar, db = env.bar, env.db;
 ---------------------------------------------------------------
 
 Bar.CoverArt.Flash = function(self)
 	if self.flashOnProc and not self:IsShown() then
 		self:Show()
 
-		db.UIFrameFadeIn(self, 0.2, 0, 1, {
+		db.Alpha.FadeIn(self, 0.2, 0, 1, {
 			finishedFunc = function()
-				db.UIFrameFadeOut(self, 1.5, 1, 0, {
+				db.Alpha.FadeOut(self, 1.5, 1, 0, {
 					finishedFunc = function()
 						self:SetAlpha(1)
 						self:Hide()
@@ -22,9 +20,9 @@ Bar.CoverArt.Flash = function(self)
 end
 
 ---------------------------------------------------------------
--- Set up buttons on the bar.
+-- Set up eye button
 ---------------------------------------------------------------
-local Eye, Menu, Bag = Bar.Eye, Bar.Menu, Bar.Bag
+local Eye = Bar.Eye
 ---------------------------------------------------------------
 
 Eye:RegisterForClicks('AnyUp')
@@ -32,22 +30,22 @@ Eye:SetAttribute('showbuttons', false)
 Eye.Texture = Eye:CreateTexture(nil, 'OVERLAY')
 Eye.Texture:SetPoint('CENTER', 0, 0)
 Eye.Texture:SetSize((46 * 0.9), (24 * 0.9))
-Eye.Texture:SetTexture('Interface\\AddOns\\'..addOn..'\\Textures\\Hide')
+Eye.Texture:SetTexture('Interface\\AddOns\\'..name..'\\Textures\\Hide')
 
 
 function Eye:OnAttributeChanged(attribute, value)
 	if attribute == 'showbuttons' then
-		ab.cfg.showbuttons = value
+		env.cfg.showbuttons = value
 		if value == true then
-			self.Texture:SetTexture('Interface\\AddOns\\'..addOn..'\\Textures\\Show')
+			self.Texture:SetTexture('Interface\\AddOns\\'..name..'\\Textures\\Show')
 		else
-			self.Texture:SetTexture('Interface\\AddOns\\'..addOn..'\\Textures\\Hide')
+			self.Texture:SetTexture('Interface\\AddOns\\'..name..'\\Textures\\Hide')
 		end
 	end
 end
 
 function Eye:OnClick(button)
-	local cfg = ab.cfg
+	local cfg = env.cfg
 	if button == 'RightButton' then
 		cfg.showart = not cfg.showart
 		ab:SetArtUnderlay(cfg.showart or cfg.flashart, cfg.flashart)
@@ -72,3 +70,54 @@ Bar:WrapScript(Eye, 'OnClick', [[
 		control:ChildUpdate('hover', showhide)
 	end
 ]])
+
+local Menu = MicroButtonAndBagsBar;
+if not Menu then
+	Bar.MoveMicroButtons = nop;
+	return
+end
+---------------------------------------------------------------
+-- Set up micro button bar
+---------------------------------------------------------------
+local MicroButtons = {
+	CharacterMicroButton,
+	SpellbookMicroButton,
+	TalentMicroButton,
+	AchievementMicroButton,
+	QuestLogMicroButton,
+	GuildMicroButton,
+	LFDMicroButton,
+	CollectionsMicroButton,
+	EJMicroButton,
+	StoreMicroButton,
+	MainMenuMicroButton,
+	HelpMicroButton,
+}
+---------------------------------------------------------------
+Menu:SetParent(UIParent)
+
+local function OnEnter(self)
+	db.Alpha.FadeIn(Menu, .5, Menu:GetAlpha(), 1)
+end
+
+local function OnLeave(self)
+	if not Menu:IsMouseOver() then
+		db.Alpha.FadeOut(Menu, .5, Menu:GetAlpha(), 0)
+	end
+end
+
+function Bar:MoveMicroButtons()
+	for _, button in pairs(MicroButtons) do
+		button:SetParent(MicroButtonAndBagsBar)
+	end
+end
+
+Menu:HookScript('OnEnter', OnEnter)
+Menu:HookScript('OnLeave', OnLeave)
+for _, button in pairs(MicroButtons) do
+	button:HookScript('OnEnter', OnEnter)
+	button:HookScript('OnLeave', OnLeave)
+end
+
+Menu:SetAlpha(0)
+Bar:MoveMicroButtons()

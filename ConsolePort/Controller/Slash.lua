@@ -1,5 +1,6 @@
 local _, db = ...;
 local HELP_STRING, SLASH_FUNCTIONS = 'Usage: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r';
+local CONFIG_ADDON_NAME = 'ConsolePort_Config';
 ---------------------------------------------------------------
 -- Process slash command
 ---------------------------------------------------------------
@@ -39,8 +40,9 @@ local function HandleSlashCommand(self, msg)
 	elseif ProcessVarUpdate((' '):split(msg or '')) then
 		return
 	end
-	if not IsAddOnLoaded('ConsolePort_Config') then
-		LoadAddOn('ConsolePort_Config')
+	if not IsAddOnLoaded(CONFIG_ADDON_NAME) then
+		EnableAddOn(CONFIG_ADDON_NAME)
+		LoadAddOn(CONFIG_ADDON_NAME)
 	end
 	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
 end
@@ -130,6 +132,7 @@ setmetatable(ConsolePort, {
 })
 
 _G['SLASH_' .. _:upper() .. '1'] = '/' .. _:lower()
+_G['SLASH_' .. _:upper() .. '2'] = '/cp'
 SlashCmdList[_:upper()] = ConsolePort;
 
 ---------------------------------------------------------------

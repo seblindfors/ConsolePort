@@ -16,11 +16,10 @@ Core\Wrapper.lua
 Core\Bar.lua
 #Core\Config.lua
 
-Custom\Blizzard.lua
-Custom\ConsolePort.lua
+Customize\Blizzard.lua
+Customize\ConsolePort.lua
 
 Components\Pet.lua
-Components\Stance.lua
 Components\MenuBar.lua
 Components\WatchBars.xml
 Components\ActionbarPlacer.lua

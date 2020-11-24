@@ -1,12 +1,8 @@
+local addOn, env = ...;
 ---------------------------------------------------------------
-local db = ConsolePort:GetData()
+local Bar, Lib, db = env.bar, env.libs.button, env.db;
 ---------------------------------------------------------------
-local addOn, ab = ...
----------------------------------------------------------------
-local FadeIn = db.Alpha.FadeIn
----------------------------------------------------------------
-local Bar = ab.bar
-local Lib = ab.libs.button
+local FadeIn = db.Alpha.FadeIn;
 ---------------------------------------------------------------
 local Pet = CreateFrame('Button', '$parentPet', Bar, 'SecureActionButtonTemplate, SecureHandlerBaseTemplate, SecureHandlerStateTemplate')
 local Button = {}
