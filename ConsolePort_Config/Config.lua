@@ -4,18 +4,13 @@ local Config = CPAPI.EventHandler(ConsolePortConfig, {
 	'PLAYER_REGEN_DISABLED'
 }); env.Config = Config;
 
-Config:SetMinResize(1000, 700)
-Config:SetScript('OnMouseWheel', function(self, delta, ...)
-	local f = IsShiftKeyDown() and PixelUtil.SetHeight or IsControlKeyDown() and PixelUtil.SetWidth
-	local g = IsShiftKeyDown() and self.GetHeight or IsControlKeyDown() and self.GetWidth
-	if f and g then
-		f(self, g(self) + (delta * 10))
-	end
-end)
-
 function Config:OnActiveDeviceChanged()
 	local hasActiveDevice = db('Gamepad/Active') and true or false;
 	self.Header:ToggleEnabled(hasActiveDevice)
+end
+
+function Config:OnDataLoaded()
+	db:TriggerEvent('OnConfigLoaded', self, env)
 end
 
 function Config:TryClose()
@@ -69,5 +64,4 @@ function Config:PLAYER_REGEN_ENABLED()
 	end
 end
 
-CPAPI.Start(Config)
 db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)

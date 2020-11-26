@@ -222,6 +222,7 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 		end
 		for i, frame in ipairs({
 			---------------------------------
+			'CovenantPreviewFrame';
 			'LFGDungeonReadyPopup';
 			'OpenMailFrame';
 			'StackSplitFrame';

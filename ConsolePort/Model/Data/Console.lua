@@ -1,9 +1,9 @@
-local unpack, __, db = unpack, ...; __ = 1;
+local unpack, __, db = unpack, ...; __ = 1; local Console = {};
 setfenv(__, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------
 -- Blizzard console variables
 ------------------------------------------------------------------------------------------------------------
-db:Register('Console', {
+db:Register('Console', setmetatable({
 	--------------------------------------------------------------------------------------------------------
 	-- Emulation:
 	--------------------------------------------------------------------------------------------------------
@@ -113,7 +113,27 @@ db:Register('Console', {
 			desc = 'Offsets the camera from the center of your character.';
 		};
 	};
-})
+}, {
+	__index = Console;
+}))
+
+function Console:GetMetadata(key)
+	for set, cvars in pairs(self) do
+		for i, data in ipairs(cvars) do
+			if (data.cvar == key) then
+				return data;
+			end
+		end
+	end
+end
+
+function Console:GetEmulationForButton(button)
+	for i, data in ipairs(self.Emulation) do
+		if (GetCVar(data.cvar) == button) then
+			return data;
+		end
+	end
+end
 
 --[[ unhandled:
 	

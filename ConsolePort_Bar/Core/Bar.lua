@@ -4,7 +4,7 @@ local _, env = ...; local db = env.db;
 local cfg
 
 local Bar = Mixin(env.bar, CPAPI.SecureEnvironmentMixin)
-local WrapperLib = env.libs.wrapper;
+local Clusters = env.libs.clusters;
 local state, now = ConsolePort:GetActionPageDriver()
 
 local BAR_MIN_WIDTH    = 1105
@@ -67,7 +67,7 @@ end
 
 function Bar:OnNewBindings(...)
 	self:UnregisterOverrides()
-	WrapperLib:UpdateAllBindings(...)
+	Clusters:UpdateAllBindings(...)
 	self:UpdateOverrides()
 end
 
@@ -205,28 +205,28 @@ function Bar:OnLoad(cfg, benign)
 
 	for binding in ConsolePort:GetBindings() do
 		local position = layout[db.UIHandle:GetUIControlBinding(binding)]
-		local wrapper = WrapperLib:Get(binding) or WrapperLib:Create(self, binding, position and position.dir)
+		local cluster = Clusters:Get(binding) or Clusters:Create(self, binding, position and position.dir)
 
 		if position then
-			wrapper:SetPoint(unpack(position.point))
+			cluster:SetPoint(unpack(position.point))
 			if position.size then
-				wrapper:SetSize(position.size)
+				cluster:SetSize(position.size)
 			end
 		else
-			wrapper:Hide()
+			cluster:Hide()
 		end
 
-		wrapper:ToggleIcon(not hideIcons)
-		wrapper:ToggleModifiers(not hideModifiers)
-		wrapper:SetClassicBorders(classicBorders)
+		cluster:ToggleIcon(not hideIcons)
+		cluster:ToggleModifiers(not hideModifiers)
+		cluster:SetClassicBorders(classicBorders)
 
-		if swipeRGB then wrapper:SetSwipeColor(unpack(swipeRGB))
-		else wrapper:SetSwipeColor(r, g, b, 1) end
+		if swipeRGB then cluster:SetSwipeColor(unpack(swipeRGB))
+		else cluster:SetSwipeColor(r, g, b, 1) end
 
-		if borderRGB then wrapper:SetBorderColor(unpack(borderRGB))
-		else wrapper:SetBorderColor(1, 1, 1, 1) end
+		if borderRGB then cluster:SetBorderColor(unpack(borderRGB))
+		else cluster:SetBorderColor(1, 1, 1, 1) end
 
-		self.Buttons[#self.Buttons + 1] = wrapper
+		self.Buttons[#self.Buttons + 1] = cluster
 	end
 
 	self.WatchBarContainer:Hide() -- hide so it updates OnShow, if set.
@@ -234,7 +234,7 @@ function Bar:OnLoad(cfg, benign)
 
 	-- Don't run this when updating simple cvars
 	if not benign then
-		WrapperLib:UpdateAllBindings()
+		Clusters:UpdateAllBindings()
 		self:Hide()
 		self:SetShown(not cfg.hidebar)
 

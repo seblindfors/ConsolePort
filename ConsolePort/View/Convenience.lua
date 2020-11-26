@@ -49,7 +49,7 @@ end
 
 
 -- Map canvas:
--- Disable scrolling.
+-- Disable automatic cursor scrolling.
 hooksecurefunc(MapCanvasScrollControllerMixin, 'OnLoad', function(self)
 	self:SetAttribute('nodeignorescroll', true)
 end)
@@ -57,6 +57,11 @@ end)
 if (WorldMapFrame and WorldMapFrame.ScrollContainer) then
 	WorldMapFrame.ScrollContainer:SetAttribute('nodeignorescroll', true)
 end
+
+-- Remove experimental cvar confirmation:
+-- This event shows an annoying popup on login/modifications to things
+-- like the action camera settings.
+UIParent:UnregisterEvent('EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED')
 
 ---------------------------------------------------------------
 -- Convenience handler

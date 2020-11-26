@@ -1,103 +1,100 @@
 ---------------------------------------------------------------
-local HANDLE, WrapperMixin = {}, {}
+local HANDLE, Cluster, Registry = {}, {}, {};
 ---------------------------------------------------------------
 local name, env = ...
-local db = env.db;
-local acb = LibStub('CPActionButton')
+local db, acb = env.db, env.libs.acb;
 ---------------------------------------------------------------
-env.libs.wrapper = HANDLE
----------------------------------------------------------------
-local Wrappers = {}
-env.libs.registry = Wrappers
+env.libs.clusters = HANDLE;
+env.libs.registry = Registry;
 ---------------------------------------------------------------
 local TEX_PATH = [[Interface\AddOns\]]..name..[[\Textures\%s]]
-local NOT_BOUND_TOOLTIP = NOT_BOUND-- .. '\n' .. db.TUTORIAL.BIND.TOOLTIPCLICK
 ---------------------------------------------------------------
-local size, smallSize, tSize = 64, 46, 58
-local ofs, ofsB, fixA = 38, 21, 4
+local size, smallSize, tSize = 64, 46, 58;
+local ofs, ofsB, fixA = 38, 21, 4;
+local nomod = '';
 ---------------------------------------------------------------
 local mods = {
-	[''] = {size = {size, size}},
-	['SHIFT-'] 	= {size = {smallSize, tSize}, 
-		down 	= {'TOPRIGHT', 'BOTTOMLEFT',  ofs - fixA,  ofs + fixA},
-		up 		= {'BOTTOMRIGHT', 'TOPLEFT',  ofs - fixA, -ofs - fixA},
-		left 	= {'BOTTOMRIGHT', 'TOPLEFT',  ofs + fixA, -ofs + fixA},
-		right 	= {'BOTTOMLEFT', 'TOPRIGHT', -ofs - fixA, -ofs + fixA},
+	[nomod] = {size = {size, size}},
+	['SHIFT-']  = {size = {smallSize, tSize}, 
+		down    = {'TOPRIGHT', 'BOTTOMLEFT',  ofs - fixA,  ofs + fixA},
+		up      = {'BOTTOMRIGHT', 'TOPLEFT',  ofs - fixA, -ofs - fixA},
+		left    = {'BOTTOMRIGHT', 'TOPLEFT',  ofs + fixA, -ofs + fixA},
+		right   = {'BOTTOMLEFT', 'TOPRIGHT', -ofs - fixA, -ofs + fixA},
 	},
-	['CTRL-'] 	= {size = {smallSize, tSize}, 
-		down 	= {'TOPLEFT', 'BOTTOMRIGHT', -ofs + fixA,  ofs + fixA},
-		up 		= {'BOTTOMLEFT', 'TOPRIGHT', -ofs + fixA, -ofs - fixA},
-		left 	= {'TOPRIGHT', 'BOTTOMLEFT',  ofs + fixA,  ofs - fixA},
-		right 	= {'TOPLEFT', 'BOTTOMRIGHT', -ofs - fixA,  ofs - fixA},
+	['CTRL-']   = {size = {smallSize, tSize}, 
+		down    = {'TOPLEFT', 'BOTTOMRIGHT', -ofs + fixA,  ofs + fixA},
+		up      = {'BOTTOMLEFT', 'TOPRIGHT', -ofs + fixA, -ofs - fixA},
+		left    = {'TOPRIGHT', 'BOTTOMLEFT',  ofs + fixA,  ofs - fixA},
+		right   = {'TOPLEFT', 'BOTTOMRIGHT', -ofs - fixA,  ofs - fixA},
 	},
 	['CTRL-SHIFT-'] = {size = {smallSize, tSize},
-		down 	= {'TOP', 'BOTTOM', 0, ofsB},
-		up 		= {'BOTTOM', 'TOP', 0, -ofsB},
-		left 	= {'RIGHT', 'LEFT', ofsB, 0},
-		right 	= {'LEFT', 'RIGHT', -ofsB, 0},
+		down    = {'TOP', 'BOTTOM', 0, ofsB},
+		up      = {'BOTTOM', 'TOP', 0, -ofsB},
+		left    = {'RIGHT', 'LEFT', ofsB, 0},
+		right   = {'LEFT', 'RIGHT', -ofsB, 0},
 	},
 }
 
 local modcoords = { -- ULx, ULy, LLx, LLy, URx, URy, LRx, LRy
 	['SHIFT-'] = {
-		down 	= {0, 0, 	1, 0, 	0, 1, 	1, 1},
-		up 		= {1, 0,	0, 0,	1, 1,	0, 1},
-		left 	= {1, 0,	1, 1,	0, 0,	0, 1},
-		right 	= {0, 0, 	0, 1, 	1, 0,	1, 1},
+		down    = {0, 0,    1, 0,   0, 1,   1, 1},
+		up      = {1, 0,    0, 0,   1, 1,   0, 1},
+		left    = {1, 0,    1, 1,   0, 0,   0, 1},
+		right   = {0, 0,    0, 1,   1, 0,   1, 1},
 	},
 	['CTRL-'] = {
-		down 	= {0, 1,	1, 1,	0, 0,	1, 0},
-		up 		= {1, 1,	0, 1,	1, 0,	0, 0},
-		left 	= {1, 1, 	1, 0,	0, 1,	0, 0},
-		right 	= {0, 1,	0, 0,	1, 1,	1, 0},
+		down    = {0, 1,    1, 1,   0, 0,   1, 0},
+		up      = {1, 1,    0, 1,   1, 0,   0, 0},
+		left    = {1, 1,    1, 0,   0, 1,   0, 0},
+		right   = {0, 1,    0, 0,   1, 1,   1, 0},
 	},
 	['CTRL-SHIFT-'] = {
-		down 	= {0, 1,	1, 1,	0, 0,	1, 0},
-		up 		= {1, 0,	0, 0, 	1, 1,	0, 1},
-		left 	= {1, 0,	1, 1,	0, 0,	0, 1},
-		right 	= {0, 0,	0, 1, 	1, 0,	1, 1},
+		down    = {0, 1,    1, 1,   0, 0,   1, 0},
+		up      = {1, 0,    0, 0,   1, 1,   0, 1},
+		left    = {1, 0,    1, 1,   0, 0,   0, 1},
+		right   = {0, 0,    0, 1,   1, 0,   1, 1},
 	},
 }
 
 local masks = { -- SHIFT-: M1, CTRL-: M2, CTRL-SHIFT-: M3
 	['SHIFT-'] = {
-		down 	= TEX_PATH:format([[Masks\M1_down]]),
-		up 		= TEX_PATH:format([[Masks\M1_up]]),
-		left 	= TEX_PATH:format([[Masks\M1_left]]),
-		right 	= TEX_PATH:format([[Masks\M1_right]]),
+		down    = TEX_PATH:format([[Masks\M1_down]]),
+		up      = TEX_PATH:format([[Masks\M1_up]]),
+		left    = TEX_PATH:format([[Masks\M1_left]]),
+		right   = TEX_PATH:format([[Masks\M1_right]]),
 	},
 	['CTRL-'] = {
-		down 	= TEX_PATH:format([[Masks\M2_down]]),
-		up 		= TEX_PATH:format([[Masks\M2_up]]),
-		left 	= TEX_PATH:format([[Masks\M2_left]]),
-		right 	= TEX_PATH:format([[Masks\M2_right]]),
+		down    = TEX_PATH:format([[Masks\M2_down]]),
+		up      = TEX_PATH:format([[Masks\M2_up]]),
+		left    = TEX_PATH:format([[Masks\M2_left]]),
+		right   = TEX_PATH:format([[Masks\M2_right]]),
 	},
 	['CTRL-SHIFT-'] = {
-		down 	= TEX_PATH:format([[Masks\M3_down]]),
-		up 		= TEX_PATH:format([[Masks\M3_up]]),
-		left 	= TEX_PATH:format([[Masks\M3_left]]),
-		right 	= TEX_PATH:format([[Masks\M3_right]]),
+		down    = TEX_PATH:format([[Masks\M3_down]]),
+		up      = TEX_PATH:format([[Masks\M3_up]]),
+		left    = TEX_PATH:format([[Masks\M3_left]]),
+		right   = TEX_PATH:format([[Masks\M3_right]]),
 	},
 }
 
 local swipes = { -- SHIFT-: M1, CTRL-: M2, CTRL-SHIFT-: M3
 	['SHIFT-'] = {
-		down 	= TEX_PATH:format([[Swipes\M1_down]]),
-		up 		= TEX_PATH:format([[Swipes\M1_up]]),
-		left 	= TEX_PATH:format([[Swipes\M1_left]]),
-		right 	= TEX_PATH:format([[Swipes\M1_right]]),
+		down    = TEX_PATH:format([[Swipes\M1_down]]),
+		up      = TEX_PATH:format([[Swipes\M1_up]]),
+		left    = TEX_PATH:format([[Swipes\M1_left]]),
+		right   = TEX_PATH:format([[Swipes\M1_right]]),
 	},
 	['CTRL-'] = {
-		down 	= TEX_PATH:format([[Swipes\M2_down]]),
-		up 		= TEX_PATH:format([[Swipes\M2_up]]),
-		left 	= TEX_PATH:format([[Swipes\M2_left]]),
-		right 	= TEX_PATH:format([[Swipes\M2_right]]),
+		down    = TEX_PATH:format([[Swipes\M2_down]]),
+		up      = TEX_PATH:format([[Swipes\M2_up]]),
+		left    = TEX_PATH:format([[Swipes\M2_left]]),
+		right   = TEX_PATH:format([[Swipes\M2_right]]),
 	},
 	['CTRL-SHIFT-'] = {
-		down 	= TEX_PATH:format([[Swipes\M3_down]]),
-		up 		= TEX_PATH:format([[Swipes\M3_up]]),
-		left 	= TEX_PATH:format([[Swipes\M3_left]]),
-		right 	= TEX_PATH:format([[Swipes\M3_right]]),
+		down    = TEX_PATH:format([[Swipes\M3_down]]),
+		up      = TEX_PATH:format([[Swipes\M3_up]]),
+		left    = TEX_PATH:format([[Swipes\M3_left]]),
+		right   = TEX_PATH:format([[Swipes\M3_right]]),
 	},
 }
 ---------------------------------------------------------------
@@ -118,16 +115,16 @@ local hotkeyConfig = { -- {anchor point}, modifier ID
 
 ---------------------------------------------------------------
 local buttonTextures = {
-	[''] = {
+	[nomod] = {
 		normal = TEX_PATH:format([[Button\BigNormal]]),
 		pushed = TEX_PATH:format([[Button\BigHilite]]),
 		hilite = TEX_PATH:format([[Button\BigHilite]]),
 		checkd = TEX_PATH:format([[Button\BigHilite]]),
 		border = TEX_PATH:format([[Button\BigHilite]]),
-		new_action 	= TEX_PATH:format([[Button\BigHilite]]),
-		cool_swipe 	= TEX_PATH:format([[Cooldown\Swipe]]),
-		cool_edge 	= TEX_PATH:format([[Cooldown\Edge]]),
-		cool_bling 	= TEX_PATH:format([[Cooldown\Bling]]),
+		new_action  = TEX_PATH:format([[Button\BigHilite]]),
+		cool_swipe  = TEX_PATH:format([[Cooldown\Swipe]]),
+		cool_edge   = TEX_PATH:format([[Cooldown\Edge]]),
+		cool_bling  = TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['SHIFT-'] = {
 		normal = TEX_PATH:format([[Button\M1]]),
@@ -135,11 +132,11 @@ local buttonTextures = {
 		border = TEX_PATH:format([[Button\M1]]),
 		hilite = TEX_PATH:format([[Button\M1Hilite]]),
 		checkd = TEX_PATH:format([[Button\M1Hilite]]),
-		new_action 	= TEX_PATH:format([[Button\M1Hilite]]),
-		cool_swipe 	= TEX_PATH:format([[Cooldown\SwipeSmall]]),
-	--	cool_edge 	= TEX_PATH:format([[Cooldown\Edge]]),
+		new_action  = TEX_PATH:format([[Button\M1Hilite]]),
+		cool_swipe  = TEX_PATH:format([[Cooldown\SwipeSmall]]),
+	--  cool_edge   = TEX_PATH:format([[Cooldown\Edge]]),
 		cool_charge = TEX_PATH:format([[Cooldown\SwipeSmall]]),
-		cool_bling 	= TEX_PATH:format([[Cooldown\Bling]]),
+		cool_bling  = TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['CTRL-'] = {
 		normal = TEX_PATH:format([[Button\M1]]),
@@ -147,10 +144,10 @@ local buttonTextures = {
 		border = TEX_PATH:format([[Button\M1]]),
 		hilite = TEX_PATH:format([[Button\M1Hilite]]),
 		checkd = TEX_PATH:format([[Button\M1Hilite]]),
-		new_action 	= TEX_PATH:format([[Button\M1Hilite]]),
-		cool_swipe 	= TEX_PATH:format([[Cooldown\SwipeSmall]]),
-	--	cool_edge 	= TEX_PATH:format([[Cooldown\Edge]]),
-		cool_bling 	= TEX_PATH:format([[Cooldown\Bling]]),
+		new_action  = TEX_PATH:format([[Button\M1Hilite]]),
+		cool_swipe  = TEX_PATH:format([[Cooldown\SwipeSmall]]),
+	--  cool_edge   = TEX_PATH:format([[Cooldown\Edge]]),
+		cool_bling  = TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['CTRL-SHIFT-'] = {
 		normal = TEX_PATH:format([[Button\M3]]),
@@ -158,10 +155,10 @@ local buttonTextures = {
 		border = TEX_PATH:format([[Button\M3]]),
 		hilite = TEX_PATH:format([[Button\M3Hilite]]),
 		checkd = TEX_PATH:format([[Button\M3Hilite]]),
-		new_action 	= TEX_PATH:format([[Button\M3Hilite]]),
-		cool_swipe 	= TEX_PATH:format([[Cooldown\SwipeSmall]]),
-	--	cool_edge 	= TEX_PATH:format([[Cooldown\Edge]]),
-		cool_bling 	= TEX_PATH:format([[Cooldown\Bling]]),
+		new_action  = TEX_PATH:format([[Button\M3Hilite]]),
+		cool_swipe  = TEX_PATH:format([[Cooldown\SwipeSmall]]),
+	--  cool_edge   = TEX_PATH:format([[Cooldown\Edge]]),
+		cool_bling  = TEX_PATH:format([[Cooldown\Bling]]),
 	},
 }
 
@@ -177,27 +174,31 @@ local config = {
 		macro = false,
 		equipped = false,
 	},
-	keyBoundTarget = false,
 	clickOnDown = true,
 	flyoutDirection = 'UP',
 }
+
 ---------------------------------------------------------------
-function WrapperMixin:Show()
+-- Cluster methods
+---------------------------------------------------------------
+-- Acts upon the cluster of buttons as a unified entitiy.
+
+function Cluster:Show()
 	for _, button in pairs(self.Buttons) do
 		button:Show()
 	end
-	self[''].shadow:Show()
+	self[nomod].shadow:Show()
 end
 
-function WrapperMixin:Hide()
+function Cluster:Hide()
 	for _, button in pairs(self.Buttons) do
 		button:Hide()
 	end
-	self[''].shadow:Hide()
+	self[nomod].shadow:Hide()
 end
 
-function WrapperMixin:SetPoint(...)
-	local main = self['']
+function Cluster:SetPoint(...)
+	local main = self[nomod]
 	local p, x, y = ...
 	main:ClearAllPoints()
 	if p and x and y then
@@ -205,8 +206,8 @@ function WrapperMixin:SetPoint(...)
 	end
 end
 
-function WrapperMixin:SetSize(new)
-	local main = self['']
+function Cluster:SetSize(new)
+	local main = self[nomod]
 	for mod, button in pairs(self.Buttons) do
 		local b, t, o -- button size, texture size, offset value
 		if mod == '' then -- if nomod, handle separately
@@ -237,7 +238,7 @@ function WrapperMixin:SetSize(new)
 	end
 end
 
-function WrapperMixin:UpdateOrientation(orientation)
+function Cluster:UpdateOrientation(orientation)
 	for mod, button in pairs(self.Buttons) do
 		if not button.isMainButton then
 			button:ClearAllPoints()
@@ -256,18 +257,18 @@ function WrapperMixin:UpdateOrientation(orientation)
 			end
 		end
 	end
-	self:SetSize(self['']:GetSize())
+	self:SetSize(self[nomod]:GetSize())
 end
 
-function WrapperMixin:SetSwipeColor(r, g, b, a)
-	self[''].cooldown:SetSwipeColor(r, g, b, a)
+function Cluster:SetSwipeColor(r, g, b, a)
+	self[nomod].cooldown:SetSwipeColor(r, g, b, a)
 end
 
-function WrapperMixin:ToggleIcon(enabled)
-	self[''].hotkey:SetShown(enabled)
+function Cluster:ToggleIcon(enabled)
+	self[nomod].hotkey:SetShown(enabled)
 end
 
-function WrapperMixin:ToggleModifiers(enabled)
+function Cluster:ToggleModifiers(enabled)
 	for mod, button in pairs(self.Buttons) do
 		local hotkey1, hotkey2 = button.hotkey1, button.hotkey2
 		if hotkey1 then hotkey1:SetShown(enabled) end
@@ -275,23 +276,24 @@ function WrapperMixin:ToggleModifiers(enabled)
 	end
 end
 
-function WrapperMixin:SetClassicBorders(enabled)
-	local normal = enabled and [[Interface\AddOns\ConsolePort\Textures\Button\Normal]]
-	local pushed = enabled and [[Interface\AddOns\ConsolePort\Textures\Button\Pushed]]
-	self[''].NormalTexture:SetTexture(normal or buttonTextures[''].normal)
-	self[''].PushedTexture:SetTexture(pushed or buttonTextures[''].pushed)
+function Cluster:SetClassicBorders(enabled)
+	local normal = enabled and CPAPI.GetAsset([[Textures\Button\Normal]])
+	local pushed = enabled and CPAPI.GetAsset([[Textures\Button\Pushed]])
+	self[nomod].NormalTexture:SetTexture(normal or buttonTextures[nomod].normal)
+	self[nomod].PushedTexture:SetTexture(pushed or buttonTextures[nomod].pushed)
 end
 
-function WrapperMixin:SetBorderColor(r, g, b, a)
+function Cluster:SetBorderColor(r, g, b, a)
 	for mod, button in pairs(self.Buttons) do
 		button.NormalTexture:SetVertexColor(r, g, b, a)
 	end
 end
 
-function WrapperMixin:ConfigureSwapStates(modifier, button, stateType, stateID)
-	-- modifier buttons should stay the same regardless of state
+function Cluster:ConfigureSwapStates(modifier, button, stateType, stateID)
+	-- swap entire set for ALT combinations (for now)
 	if modifier:match('ALT') then
 		button:SetState(modifier, stateType, stateID)
+	-- modifier buttons should stay the same regardless of state
 	elseif modifier ~= '' then
 		button:SetState('', stateType, stateID)
 		button:SetState('SHIFT-', stateType, stateID)
@@ -299,27 +301,16 @@ function WrapperMixin:ConfigureSwapStates(modifier, button, stateType, stateID)
 		button:SetState('CTRL-SHIFT-', stateType, stateID)
 	end
 	-- set up main button to swap to current state
-	self['']:SetState(modifier, stateType, stateID)
+	self[nomod]:SetState(modifier, stateType, stateID)
 end
 
-function WrapperMixin:SetRebindButton()
+function Cluster:SetRebindButton()
 	-- Messy code to focus this button in the rebinder
 	-- TODO: Update for new config
-	if not InCombatLockdown() then
-		ConsolePortOldConfig:OpenCategory('Binds')
-		if ConsolePortOldConfigContainerBinds.Display:GetID() ~= 2 then
-			db.Settings.bindView = 2
-			ConsolePortOldConfigContainerBinds.Display:SetID(2)
-			ConsolePortOldConfigContainerBinds:OnShow()
-		end
-		local bindingBtn = _G[self.confRef]
-		C_Timer.After(0.1, function()
-			if not InCombatLockdown() then
-				ConsolePort:ScrollToNode(bindingBtn, ConsolePortRebindFrame)
-			end
-		end)
-	end
 end
+
+---------------------------------------------------------------
+-- Cluster piece configuration
 ---------------------------------------------------------------
 local function CreateButton(parent, id, name, modifier, size, texSize, config)
 	local button = acb:CreateButton(id, name, parent, config)
@@ -386,18 +377,19 @@ local function CreateMainShadowFrame(self)
 	shadow:SetPoint('CENTER', self, 'CENTER', 0, -6)
 	return shadow
 end
----------------------------------------------------------------
 
+---------------------------------------------------------------
+-- External handle
+---------------------------------------------------------------
 function HANDLE:Get(id)
-	return Wrappers[id]
+	return Registry[id];
 end
 
 function HANDLE:Create(parent, id, orientation)
-	local wrapper = {}
-	wrapper.Buttons = {}
+	local cluster = { Buttons = {} };
 
 	for mod, info in pairs(mods) do
-		local name = 'CPB_' .. (id:sub(4, #id)) .. (mod == '' and mod or ('_' .. (mod:sub(1, #mod -1))))
+		local name = 'CPB_' .. (id) .. (mod == '' and mod or ('_' .. (mod:sub(1, #mod -1))))
 		local bSize, tSize = unpack(info.size)
 		local button = CreateButton(parent, id..mod, name, mod, bSize, tSize, mod == '' and config)
 		button.plainID = id
@@ -405,22 +397,23 @@ function HANDLE:Create(parent, id, orientation)
 		-- dispatch to header
 		button:SetAttribute('plainID', id)
 		button:SetAttribute('modifier', mod)
-		-- store button in the wrapper
-		wrapper[mod] = button
-		wrapper.Buttons[mod] = button
+		-- store button in the cluster
+		cluster[mod] = button
+		cluster.Buttons[mod] = button
 		if hotkeyConfig[mod] then
 			for i, modHotkey in pairs(hotkeyConfig[mod]) do
 				local hotkey = CreateModifierHotkeyFrame(button, i)
+				local iconID = db.UIHandle:GetUIControlBinding(modHotkey[3])
 				hotkey:SetPoint(unpack(modHotkey[1]))
 				hotkey:SetSize(unpack(modHotkey[2]))
-				hotkey.texture:SetTexture(db('Icons/32/'..db.UIHandle:GetUIControlBinding(modHotkey[3])))
+				hotkey.texture:SetTexture(iconID and db('Icons/32/'..iconID))
 				hotkey:SetAlpha(0.75)
 				button['hotkey'..i] = hotkey
 			end
 		end
 	end
 
-	local main = wrapper['']
+	local main = cluster[nomod]
 	main.isMainButton = true
 
 	main:SetFrameLevel(4)
@@ -429,31 +422,30 @@ function HANDLE:Create(parent, id, orientation)
 	main.shadow = CreateMainShadowFrame(main)
 	db.Alpha.FadeIn(main, 1, 0, 1)
 
-	Mixin(wrapper, WrapperMixin)
+	Mixin(cluster, Cluster)
+	cluster:UpdateOrientation(orientation)
 
-	wrapper:UpdateOrientation(orientation)
+	Registry[id] = cluster;
 
-	Wrappers[id] = wrapper
-
-	return wrapper
+	return cluster;
 end
 
 function HANDLE:UpdateAllBindings(bindings)
 	if bindings then
 		ClearOverrideBindings(env.bar)
 		if type(bindings) == 'table' then
-			for binding, wrapper in pairs(Wrappers) do
-				self:UpdateWrapperBindings(wrapper, bindings[binding])
+			for binding, cluster in pairs(Registry) do
+				self:UpdateClusterBindings(cluster, bindings[binding])
 			end
 		end
 	end
 end
 
-function HANDLE:SetEligbleForRebind(button, id)
-	button.confRef = button.plainID..id..'_CONF'
+function HANDLE:SetEligbleForRebind(button, modifier)
+	local emulation = db.Console:GetEmulationForButton(button.plainID)
 	button:SetAttribute('disableDragNDrop', true)
-	button:SetState(id, 'custom', {
-		tooltip = NOT_BOUND_TOOLTIP,
+	button:SetState(modifier, 'custom', {
+		tooltip = emulation and ('|cFFFFFFFF%s|r\n%s'):format(emulation.name, emulation.desc) or NOT_BOUND,
 		texture = db('Icons/64/'..button.plainID) or [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
 		func = function() end,
 	})
@@ -470,18 +462,15 @@ function HANDLE:SetXMLBinding(button, binding)
 	}
 end
 
-function HANDLE:SetActionBinding(button, main, id, actionID)
-	local key = button.plainID;
-	if key then
-		env.bar:RegisterOverride(id..key, main:GetName())
-	end
+function HANDLE:SetActionBinding(button, main, modifier, actionID)
+	env.bar:RegisterOverride(modifier..button.plainID, main:GetName())
 	button:SetAttribute('disableDragNDrop', (env.cfg and env.cfg.disablednd and true) or false)
 	return 'action', actionID
 end
 
-function HANDLE:RefreshBinding(binding, wrapper, button, modifier, main)
-	local actionID = binding and env.db('Actionbar/Binding/'..binding) --ConsolePort:GetActionID(binding)
-	local stateType, stateID
+function HANDLE:RefreshBinding(binding, cluster, button, modifier, main)
+	local actionID = binding and env.db('Actionbar/Binding/'..binding)
+	local stateType, stateID;
 	if actionID then
 		stateType, stateID = self:SetActionBinding(button, main, modifier, actionID)
 	elseif binding then
@@ -490,7 +479,7 @@ function HANDLE:RefreshBinding(binding, wrapper, button, modifier, main)
 		self:SetEligbleForRebind(button, modifier)
 	end
 
-	wrapper:ConfigureSwapStates(modifier, button, stateType, stateID)
+	cluster:ConfigureSwapStates(modifier, button, stateType, stateID)
 	-- call an update on the button to reflect new binding
 	button:Execute(format([[
 		self:RunAttribute('UpdateState', '%s')
@@ -498,18 +487,18 @@ function HANDLE:RefreshBinding(binding, wrapper, button, modifier, main)
 	]], modifier))
 end
 
-function HANDLE:UpdateWrapperBindings(wrapper, bindings)
-	local main = wrapper['']
+function HANDLE:UpdateClusterBindings(cluster, bindings)
+	local main = cluster[nomod];
 
 	if bindings then
-		for modifier, button in pairs(wrapper.Buttons) do
+		for modifier, button in pairs(cluster.Buttons) do
 			local modifierAlt = 'ALT-'..modifier;
 			local binding, bindingAlt = bindings[modifier], bindings[modifierAlt]
-			self:RefreshBinding(binding, wrapper, button, modifier, main)
-			self:RefreshBinding(bindingAlt, wrapper, button, modifierAlt, main)
+			self:RefreshBinding(binding, cluster, button, modifier, main)
+			self:RefreshBinding(bindingAlt, cluster, button, modifierAlt, main)
 		end
 	else
-		for modifier, button in pairs(wrapper.Buttons) do
+		for modifier, button in pairs(cluster.Buttons) do
 			self:SetEligbleForRebind(button, modifier)
 		end
 	end

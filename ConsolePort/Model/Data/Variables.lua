@@ -1,7 +1,8 @@
 -- Consts
 local STICK_SELECT = {'Left', 'Right', 'Movement', 'Cursor'};
 local UINAV_SELECT = {'PAD1', 'PAD2', 'PAD3', 'PAD4'};
-local MODID_SELECT = {'ALT', 'SHIFT', 'CTRL'};
+local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
+local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
 
 local unpack, __, db = unpack, ...; __ = 1;
@@ -17,7 +18,7 @@ db:Register('Variables', {
 		head = MOUSE_LABEL;
 		sort = 1;
 		name = 'Enable Mouse Handling';
-		desc = 'Enable custom mouse handling'
+		desc = 'Enable custom mouse handling.'
 	};
 	mouseAlwaysCentered = {Bool(false);
 		head = MOUSE_LABEL;
@@ -90,7 +91,7 @@ db:Register('Variables', {
 		desc = 'Change target each time the cursor is moved, instead of routing appropriate spells.';
 		note = 'The cursor cannot route macros or ambiguous spells. Enable this if you use a lot of macros.';
 	};
-	raidCursorModifier = {Select('<none>', '<none>', unpack(MODID_SELECT));
+	raidCursorModifier = {Select('<none>', '<none>', unpack(MODID_EXTEND));
 		head = 'Raid Cursor';
 		sort = 2;
 		name = 'Modifier';

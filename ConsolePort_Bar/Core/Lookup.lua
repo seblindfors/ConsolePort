@@ -2,7 +2,7 @@ local name, env = ...;
 --------------------------------------------------------
 env.db   = ConsolePort:GetData()
 env.bar  = ConsolePortBar;
-env.libs = {};
+env.libs = { acb = LibStub('CPActionButton') };
 --------------------------------------------------------
 local r, g, b = CPAPI.NormalizeColor(CPAPI.GetClassColor())
 --------------------------------------------------------
@@ -225,18 +225,18 @@ function env:GetPresets()
 			showline = true,
 			lock = true,
 			layout = {
-				CP_L_RIGHT = {dir = 'right', point = {'LEFT', 330, 9}, size = 64},
-				CP_L_LEFT = {dir = 'left', point = {'LEFT', 80, 9}, size = 64},
-				CP_L_DOWN = {dir = 'down', point = {'LEFT', 165, 9}, size = 64},
-				CP_L_UP = {dir = 'up', point = {'LEFT', 250, 9}, size = 64},
-				CP_R_RIGHT = {dir = 'right', point = {'RIGHT', -80, 9}, size = 64},
-				CP_R_LEFT = {dir = 'left', point = {'RIGHT', -330, 9}, size = 64},
-				CP_R_DOWN = {dir = 'down', point = {'RIGHT', -250, 9}, size = 64},
-				CP_R_UP = {dir = 'up', point = {'RIGHT', -165, 9}, size = 64},
-				CP_T1 = {dir = 'right', point = {'LEFT', 440, 9}, size = 64},
-				CP_T2 = {dir = 'left', point = {'RIGHT', -440, 9}, size = 64},
-				CP_T3 = {dir = 'up', point = {'LEFT', 405, 75}, size = 64},
-				CP_T4 = {dir = 'up', point = {'RIGHT', -405, 75}, size = 64},
+				PADDRIGHT = {dir = 'right', point = {'LEFT', 330, 9}, size = 64},
+				PADDLEFT = {dir = 'left', point = {'LEFT', 80, 9}, size = 64},
+				PADDDOWN = {dir = 'down', point = {'LEFT', 165, 9}, size = 64},
+				PADDUP = {dir = 'up', point = {'LEFT', 250, 9}, size = 64},
+				PAD2 = {dir = 'right', point = {'RIGHT', -80, 9}, size = 64},
+				PAD3 = {dir = 'left', point = {'RIGHT', -330, 9}, size = 64},
+				PAD1 = {dir = 'down', point = {'RIGHT', -250, 9}, size = 64},
+				PAD4 = {dir = 'up', point = {'RIGHT', -165, 9}, size = 64},
+				PADLSHOULDER = {dir = 'right', point = {'LEFT', 440, 9}, size = 64},
+				PADRSHOULDER = {dir = 'left', point = {'RIGHT', -440, 9}, size = 64},
+				PADLTRIGGER = {dir = 'up', point = {'LEFT', 405, 75}, size = 64},
+				PADRTRIGGER = {dir = 'up', point = {'RIGHT', -405, 75}, size = 64},
 			},
 		},
 		Roleplay = {

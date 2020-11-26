@@ -12,9 +12,9 @@
 Frame.xml
 
 Core\Lookup.lua
-Core\Wrapper.lua
+Core\Cluster.lua
 Core\Bar.lua
-#Core\Config.lua
+Core\Config.lua
 
 Customize\Blizzard.lua
 Customize\ConsolePort.lua
