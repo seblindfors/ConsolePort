@@ -12,20 +12,27 @@ local function ProcessSlash(command, ...)
 	end
 end
 
+local function Compile(...)
+	local args = table.concat({...}, ' ')
+	local func, errorMsg = loadstring(('return %s'):format(args))
+	if not func then
+		CPAPI.Log('Error while compiling:\n%s', errorMsg)
+		return
+	end
+	return func()
+end
+
 local function ProcessVarUpdate(var, ...)
 	if (db(var) ~= nil) then
-		local args = table.concat({...}, ' ')
-		local func, errorMsg = loadstring(('return %s'):format(args))
-		if not func then
-			CPAPI.Log('Error while compiling:\n%s', errorMsg)
+		local value = Compile(...)
+		if (value == nil) then
 			return true;
 		end
-		local value = func()
 		if (args == 'nil') then
 			db('Settings/'..var, nil)
 			CPAPI.Log('Variable |cFFFFFFFF%s|r reset to default.')
 			return true;
-		elseif value then
+		elseif (value ~= nil) then
 			db('Settings/'..var, value)
 			CPAPI.Log('Variable |cFFFFFFFF%s|r updated to:', var)
 			DevTools_Dump(value)
@@ -94,6 +101,25 @@ SLASH_FUNCTIONS = {
 			end
 		end
 		CPAPI.Log(HELP_STRING, 'removeframe', 'addonName frameName')
+	end;
+	applyconfig = function(useBluetooth)
+		local bluetooth = useBluetooth and Compile(useBluetooth)
+		local device = db('Gamepad/Active')
+		if device then
+			device:ApplyConfig(bluetooth)
+			CPAPI.Log('Config was applied for your %s device.', device.Name)
+		end
+	end;
+	bluetooth = function(state)
+		if state then
+			local bluetooth = state and Compile(state)
+			local device = db('Gamepad/Active')
+			if device then
+				device:ApplyConfig(bluetooth)
+				return CPAPI.Log('Bluetooth set to %s for %s.', state, device.Name)
+			end
+		end
+		CPAPI.Log(HELP_STRING, 'bluetooth', 'true/false')
 	end;
 	-- resets the entire addon
 	resetall = function()

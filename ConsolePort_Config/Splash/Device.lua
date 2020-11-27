@@ -1,4 +1,4 @@
-local _, env = ...; local db = env.db;
+local _, env = ...; local L, db = env.L, env.db;
 local WIZARD_WIDTH, FIXED_OFFSET, DEVICE_PER_ROW = 900, 8, 3;
 local DEVICE_WIDTH, DEVICE_HEIGHT = 250, 100;
 ---------------------------------------------------------------
@@ -19,6 +19,25 @@ function Device:OnClick()
 		showAlert = 1;
 		OnAccept = function()
 			device:ApplyPresetBindings(GetCurrentBindingSet())
+		end;
+		OnHide = function()
+			if device:ConfigHasBluetoothHandling() then
+				CPAPI.Popup('ConsolePort_Apply_Config', {
+					text = L('Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?', device.Name);
+					button1 = L'Wired';
+					button2 = CANCEL;
+					button3 = L'Bluetooth';
+					timeout = 0;
+					whileDead = 1;
+					showAlert = 1;
+					OnAccept = function()
+						device:ApplyConfig(false)
+					end;
+					OnAlt = function()
+						device:ApplyConfig(true)
+					end;
+				})
+			end
 		end;
 	})
 	self:UpdateState()

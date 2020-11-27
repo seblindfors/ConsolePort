@@ -1,6 +1,6 @@
 select(2, ...).Gamepad:AddGamepad({
 	Name = 'PlayStation 5';
-	Version = 1;
+	Version = 2;
 	Theme = {
 		Label = 'SHP';
 		Colors = {
@@ -238,7 +238,14 @@ select(2, ...).Gamepad:AddGamepad({
 				rawIndex = 14;
 				button = 'Face5';
 				comment = 'Mic button';
-			}
+				bluetooth = false;
+			};
+			{
+				rawIndex = 14;
+				button = 'Up';
+				comment = 'D-Pad Up';
+				bluetooth = true;
+			};
 		};
 		rawAxisMappings = {
 			{

@@ -60,7 +60,9 @@ function NavBarMixin:OnLoad()
 	env.OpaqueMixin.OnLoad(self)
 
 	local function NavButtonOnClick(self)
-		env.Splash:ShowPanel(self:GetID())
+		if db('Gamepad/Active') then
+			env.Splash:ShowPanel(self:GetID())
+		end
 	end
 
 	self.Buttons = {self.Home};
@@ -141,6 +143,23 @@ function Splash:ClearWizard()
 	return container, parent;
 end
 
+local function SelectAppropriatePanel()
+	if db('Gamepad/Active') then
+		env.Splash:ShowPanel(nil)
+	else
+		env.Splash:AutoChoosePanel()
+	end
+end
+
+local function SelectNextPanel()
+	if db('Gamepad/Active') then
+		local panelID = env.Splash:GetID()
+		if panelID then
+			env.Splash:ShowPanel(panelID + 1)
+		end
+	end
+end
+
 function Splash:OnFirstShow()
 	self:SetAllPoints()
 	LibStub:GetLibrary('Carpenter'):BuildFrame(self, {
@@ -175,13 +194,7 @@ function Splash:OnFirstShow()
 						
 						self:SetWidth(newWidth);
 					end;
-					_OnClick = function(self)
-						if db('Gamepad/Active') then
-							env.Splash:ShowPanel(nil)
-						else
-							env.Splash:AutoChoosePanel()
-						end
-					end;
+					_OnClick = SelectAppropriatePanel;
 					{
 						Shadow = {
 							_Type = 'Texture';
@@ -281,12 +294,7 @@ function Splash:OnFirstShow()
 						_Setup = 'SharedButtonLargeTemplate';
 						_Text  = CONTINUE;
 						_Size  = {260, 50};
-						_OnClick = function(self)
-							local panelID = env.Splash:GetID()
-							if panelID then
-								env.Splash:ShowPanel(panelID + 1)
-							end
-						end;
+						_OnClick = SelectNextPanel;
 						{
 							NextPage = {
 								_Type = 'Texture';

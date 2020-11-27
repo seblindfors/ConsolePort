@@ -128,6 +128,7 @@ function Console:GetMetadata(key)
 end
 
 function Console:GetEmulationForButton(button)
+	if (button == 'none') then return end
 	for i, data in ipairs(self.Emulation) do
 		if (GetCVar(data.cvar) == button) then
 			return data;

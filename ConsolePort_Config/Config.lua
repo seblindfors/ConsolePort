@@ -64,4 +64,5 @@ function Config:PLAYER_REGEN_ENABLED()
 	end
 end
 
+Config:SetScript('OnGamePadButtonDown', Config.OnGamePadButtonDown)
 db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)

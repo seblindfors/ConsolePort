@@ -101,7 +101,13 @@ end
 
 function GamepadAPI:UPDATE_BINDINGS()
 	if self.IsMapped then
-		db:TriggerEvent('OnNewBindings', self:GetBindings())
+		self.updateBindingDispatching = true;
+		C_Timer.After(0, function()
+			if self.updateBindingDispatching then
+				db:TriggerEvent('OnNewBindings', self:GetBindings())
+				self.updateBindingDispatching = nil;
+			end
+		end)
 	end
 end
 
@@ -343,9 +349,42 @@ function GamepadMixin:ApplyPresetVars()
 	self:Activate()
 end
 
-function GamepadMixin:ApplyConfig()
+function GamepadMixin:ConfigHasBluetoothHandling()
+	if self.Config then
+		for set, array in pairs(self.Config) do
+			if (type(array) == 'table') then
+				for i, data in ipairs(array) do
+					if (data.bluetooth ~= nil) then
+						return true;
+					end
+				end
+			end
+		end
+	end
+end
+
+function GamepadMixin:ApplyConfig(bluetooth)
 	assert(self.Config, ('Raw configuration missing from %s template.'):format(self.Name))
-	C_GamePad.SetConfig(self.Config)
+	local config = CopyTable(self.Config);
+	-- NOTE: Handle bluetooth differences if supplied
+	if (bluetooth ~= nil) then
+		for set, array in pairs(config) do
+			if (type(array) == 'table') then
+				local i, data = 1, array[1];
+				while data do
+					-- If the configured input has a bluetooth-specific value:
+					-- confirm it corresponds to the desired gamepad mapping,
+					-- otherwise junk it.
+					if (data.bluetooth ~= nil and data.bluetooth ~= bluetooth) then
+						tremove(array, i)
+						i = i - 1;
+					end
+					i = i + 1; data = array[i];
+				end
+			end
+		end
+	end
+	C_GamePad.SetConfig(config)
 	C_GamePad.ApplyConfigs()
 end
 

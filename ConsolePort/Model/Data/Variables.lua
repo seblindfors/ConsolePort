@@ -136,6 +136,7 @@ db:Register('Variables', {
 		sort = 6;
 		name = 'Modifier';
 		desc = 'Which modifier to use for modified commands';
+		note = 'The modifier can be used to scroll together with the directional pad.';
 		opts = MODID_SELECT;
 	};
 	UICursor = {
