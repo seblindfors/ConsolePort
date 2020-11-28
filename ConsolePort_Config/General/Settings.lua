@@ -46,6 +46,9 @@ end
 function Shortcut:OnClick()
 	self:SetChecked(false)
 	self:OnChecked(false)
+	if db.Cursor:IsCurrentNode(self) then
+		return db.Cursor:SetCurrentNode(self.reference)
+	end
 	self.General:ScrollToOffset(self.General:GetElementPosition(self.reference))
 end
 
@@ -91,6 +94,7 @@ local General = CreateFromMixins(CPFocusPoolMixin)
 
 function General:CreateHeader(group, anchor)
 	local header = self.headerPool:Acquire()
+	header:SetScript('OnEnter', nop)
 	header:SetText(L(group))
 	header:Show()
 	if anchor then

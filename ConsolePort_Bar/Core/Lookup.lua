@@ -67,91 +67,6 @@ local classArt = {
 	MONK 		= {3, 4},
 }
 --------------------------------------------------------
-local defaultReticleSpellIDs = {
-	DEATHKNIGHT = {
-		43265, -- Death and Decay
-		152280, -- Defile
-	},
-	DEMONHUNTER = {
-		189110, -- Infernal Strike
-		191427, -- Metamorphosis (Havoc)
-		202137, -- Sigil of Silence
-		202138, -- Sigil of Chains
-		204596, -- Sigil of Flame
-		207684, -- Sigil of Misery
-	},
-	DRUID = {
-		102793, -- Ursol's Vortex
-		191034, -- Starfall
-		205636, -- Force of Nature
-		202770, -- Fury of Elune
-	},
-	HUNTER = {
-		1543, -- Flare
-		6197, -- Eagle Eye
-		13813, -- Explosive Trap
-		109248, -- Binding Shot
-		162488, -- Steel Trap
-		187650, -- Freezing Trap
-		187698, -- Tar Trap
-		194277, -- Caltrops
-		206817, -- Sentinel
-		236776, -- Hi-Explosive Trap
-	},
-	MAGE = {
-		2120, -- Flamestrike
-		33395, -- Freeze
-		113724, -- Ring of Frost
-		153561, -- Meteor
-		190356, -- Blizzard
-	},
-	MONK = {
-		115313, -- Summon Jade Serpent Statue
-		115315, -- Summon Black Ox Statue
-		116844, -- Ring of Peace
-	},
-	PALADIN = {
-		114158, -- Light's Hammer
-	},
-	PRIEST = {
-		32375, -- Mass Dispel
-		81782, -- Power Word: Barrier
-		121536, -- Angelic Feather
-	},
-	ROGUE = {
-		1725, -- Distract
-		185767, -- Cannonball Barrage
-		195457, -- Grappling Hook
-	},
-	SHAMAN = {
-		2484, -- Earthbind Totem
-		6196, -- Far Sight
-		61882, -- Earthquake
-		73920, -- Healing Rain
-		98008, -- Spirit Link Totem (Resto Shaman baseline)
-		51485, -- Earthgrab Totem (Shaman talent, replaces Earthbind Totem)
-		192058, -- Lightning Surge Totem (Shaman talent)
-		192222, -- Liquid Magma Totem (Elemental Shaman talent)
-		196932, -- Voodoo Totem (Shaman talent)
-		192077, -- Wind Rush Totem (Shaman talent)
-		204332, -- Windfury Totem (Shaman pvp talent)
-		207399, -- Ancestral Protection Totem (Resto Shaman Talent)
-		207778, -- Gift of the Queen (Resto Artifact)
-		215864, -- Rainfall
-	},
-	WARLOCK = {
-		1122, -- Summon Infernal
-		5740, -- Rain of Fire
-		30283, -- Shadowfury
-		152108, -- Cataclysm
-	},
-	WARRIOR = {
-		6544, -- Heroic Leap
-		152277, -- Ravager (Arms)
-		228920, -- Ravager (Protection)
-	},
-}
---------------------------------------------------------
 
 function env:GetBindingIcon(binding)
 	return env.manifest.BindingIcons[binding]
@@ -223,6 +138,7 @@ function env:GetPresets()
 			width = 1100,
 			watchbars = true,
 			showline = true,
+			showbuttons = false,
 			lock = true,
 			layout = {
 				PADDRIGHT = {dir = 'right', point = {'LEFT', 330, 9}, size = 64},
@@ -245,6 +161,7 @@ function env:GetPresets()
 			watchbars = true,
 			showline = true,
 			showart = true,
+			showbuttons = false,
 			lock = true,
 			layout = env:GetDefaultButtonLayout(),
 		},
@@ -286,6 +203,7 @@ function env:GetDefaultSettings()
 		lock = true,
 		flashart = true,
 		quickMenu = true,
+		showbuttons = false,
 		layout = env:GetDefaultButtonLayout()
 	}
 end
@@ -303,108 +221,147 @@ function env:GetColorGradient(red, green, blue)
 	return unpack(gradient)
 end
 
-function env:GetBooleanSettings(otherCFG)
-	local cfg = otherCFG or env.cfg or {}
-	local L = env.db.ACTIONBAR
-	return {
-		{	desc = L.CFG_LOCK,
-			cvar = 'lock',
-			toggle = cfg.lock,
-		},
-		{	desc = L.CFG_LOCKPET,
-			cvar = 'lockpet',
-			toggle = cfg.lockpet,
-		},
-		{	desc = L.CFG_HIDEINCOMBAT,
-			cvar = 'combathide',
-			toggle = cfg.combathide,
-		},
-		{	desc = L.CFG_HIDEPETINCOMBAT,
-			cvar = 'combatpethide',
-			toggle = cfg.combatpethide,
-		},
-		{	desc = L.CFG_HIDEOUTOFCOMBAT,
-			cvar = 'hidebar',
-			toggle = cfg.hidebar,
-		},
-		{	desc = L.CFG_DISABLEPET,
-			cvar = 'hidepet',
-			toggle = cfg.hidepet,
-		},
-		{	desc = L.CFG_DISABLERETICLE,
-			cvar = 'disablecastonrelease',
-			toggle = cfg.disablecastonrelease,
-		},
-		{	desc = L.CFG_DISABLEDND,
-			cvar = 'disablednd',
-			toggle = cfg.disablednd,
-		},
-		{	desc = L.CFG_SHOWALLBUTTONS,
-			cvar = 'showbuttons',
-			toggle = cfg.showbuttons,
-		},
-		{	desc = L.CFG_QUICKMENU,
-			cvar = 'quickMenu',
-			toggle = cfg.quickMenu,
-		},
-		{	desc = L.CFG_WATCHBAR_OFF,
-			cvar = 'hidewatchbars',
-			toggle = cfg.hidewatchbars,
-		},
-		{	desc = L.CFG_WATCHBAR_ALPHA,
-			cvar = 'watchbars',
-			toggle = cfg.watchbars,
-		},
-		{	desc = L.CFG_DISABLE_ICONS,
-			cvar = 'hideIcons',
-			toggle = cfg.hideIcons,
-		},
-		{	desc = L.CFG_DISABLE_MINIS,
-			cvar = 'hideModifiers',
-			toggle = cfg.hideModifiers,
-		},
-		{	desc = L.CFG_OLD_BORDERS,
-			cvar = 'classicBorders',
-			toggle = cfg.classicBorders,
-		},
-		{	desc = L.CFG_MOUSE_ENABLE,
-			cvar = 'mousewheel',
-			toggle = cfg.mousewheel,
-		},
-		{	desc = L.CFG_CAST_DEFAULT,
-			cvar = 'defaultCastBar',
-			toggle = cfg.defaultCastBar,
-		},
-		{	desc = L.CFG_CAST_NOHOOK,
-			cvar = 'disableCastBarHook',
-			toggle = cfg.disableCastBarHook,
-		},
-		{	desc = L.CFG_ART_UNDERLAY,
-			cvar = 'showart',
-			toggle = cfg.showart,
-		},
-		{	desc = L.CFG_ART_BLEND,
-			cvar = 'blendart',
-			toggle = cfg.blendart,
-		},
-		{	desc = L.CFG_ART_FLASH,
-			cvar = 'flashart',
-			toggle = cfg.flashart,
-		},
-		{	desc = L.CFG_ART_SMALL,
-			cvar = 'smallart',
-			toggle = cfg.smallart,
-		},
-		{	desc = L.CFG_ART_TINT,
-			cvar = 'showline',
-			toggle = cfg.showline,
-		},
-		{	desc = L.CFG_COLOR_RAINBOW,
-			cvar = 'rainbow',
-			toggle = cfg.rainbow,
-		},
-	}
-end
+function env:GetBooleanSettings() return {
+	{	name = 'Lock action bar';
+		cvar = 'lock';
+		desc = 'Lock/unlock action bar, allowing it to be moved with the mouse.';
+	};
+	{	name = 'Lock pet ring';
+		cvar = 'lockpet';
+		desc = 'Lock/unlock pet ring, allowing it to be moved with the mouse.';
+	};
+	{	name = 'Hide in combat';
+		cvar = 'combathide';
+		desc = 'Hide action bar in combat.';
+		note = 'Only for the truly insane.';
+	};
+	{	name = 'Fade out of combat';
+		cvar = 'hidebar';
+		desc = 'Fades out the action bar while not in combat.';
+		note = 'The action bar will become visible if you bring your cursor over it.';
+	};
+	{	name = 'Disable pet ring';
+		cvar = 'hidepet';
+		desc = 'Disables the pet ring entirely.';
+	};
+	{	name = 'Hide pet ring in combat';
+		cvar = 'combatpethide';
+		desc = 'Hide pet ring in combat.';
+	};
+	{	name = 'Disable drag and drop';
+		cvar = 'disablednd';
+		desc = 'Disables dragging and dropping actions using your mouse cursor.';
+	};
+	{	name = 'Always show all buttons';
+		cvar = 'showbuttons';
+		desc = 'Shows the entire button cluster at all times, not just abilities on cooldown.';
+	};
+	{	name = 'Show quick menu';
+		cvar = 'quickMenu';
+		desc = 'Shows a tiny quick menu to swap cluster visibility.';
+	};
+	{	name = 'Disable watch bars';
+		cvar = 'hidewatchbars';
+		desc = 'Disables watch bars at the bottom of the action bar.';
+		note = 'Disables all tracking of experience, honor, reputation and artifacts.';
+	};
+	{	name = 'Always show watch bars';
+		cvar = 'watchbars';
+		desc = 'When enabled, shows watch bars at all times. When disabled, shows them on mouse over.';
+	};
+	{	name = 'Hide main button icons';
+		cvar = 'hideIcons';
+		desc = 'Hide binding icons on all large buttons.';
+	};
+	{	name = 'Hide modifier icons';
+		cvar = 'hideModifiers';
+		desc = 'Hide binding icons on all small buttons.';
+	};
+	{	name = 'Use beveled borders';
+		cvar = 'classicBorders';
+		desc = 'Use the classic button border texture.';
+	};
+	{	name = 'Width/scale on mouse wheel';
+		cvar = 'mousewheel';
+		desc = 'Allows you to scroll on the action bar to adjust its proportions.';
+		note = 'Hold Shift to adjust width, otherwise scale.';
+	};
+	{	name = 'Show default cast bar';
+		cvar = 'defaultCastBar';
+		desc = 'Shows the default cast bar, adjusted to the action bar position.';
+	};
+	{	name = 'Disable cast bar modification';
+		cvar = 'disableCastBarHook';
+		desc = 'Disables any modifications to the cast bar, including position.';
+	};
+	{	name = 'Show class art underlay';
+		cvar = 'showart';
+		desc = 'Shows a class-based artpiece under your button clusters, to use as anchoring reference.';
+	};
+	{	name = 'Blend class art underlay';
+		cvar = 'blendart';
+		desc = 'Sets class art underlay to blend colors with the background, resulting in a brighter, less opaque texture.';
+	};
+	{	name = 'Flash art underlay on proc';
+		cvar = 'flashart';
+		desc = 'Flashes the art underlay whenever a spell procs and starts glowing.';
+	};
+	{	name = 'Smaller art underlay';
+		cvar = 'smallart';
+		desc = 'Reduces the size of the class art underlay.';
+	};
+	{	name = 'Show color tint';
+		cvar = 'showline';
+		desc = 'Shows a subtle tint, anchored to the top of the watch bars.';
+	};
+	{	name = 'I like rainbows';
+		cvar = 'rainbow';
+		desc = 'Do you like rainbows?';
+	};
+} end
+
+function env:GetNumberSettings() return {
+	{	name = 'Width';
+		cvar = 'width';
+		desc = 'Changes the overall action bar width.';
+		note = 'Affects button placement.';
+		step = 10;
+	};
+	{	name = 'Scale';
+		cvar = 'scale';
+		desc = 'Changes the overall action bar scale.';
+		note = 'Affects button size - individual size is multiplied by scale.';
+		step = 0.05;
+	};
+} end
+
+function env:GetColorSettings() return {
+	{	name = 'Border';
+		cvar = 'borderRGB';
+		desc = 'Changes the color of your button borders.';
+		note = 'Right click to reset to default color.';
+	};
+	{	name = 'Cooldown';
+		cvar = 'swipeRGB';
+		desc = 'Changes the color of your cooldown graphics.';
+		note = 'Right click to reset to class color.';
+	};
+	{	name = 'Tint';
+		cvar = 'tintRGB';
+		desc = 'Changes the color of the tint texture above experience bars.';
+		note = 'Right click to reset to class color.';
+	};
+	{	name = 'Experience Bars';
+		cvar = 'expRGB';
+		desc = 'Changes the preferred color of your experience bars.';
+		note = 'Right click to reset to class color.';
+	};
+	{	name = 'Artwork';
+		cvar = 'artRGB';
+		desc = 'Changes the color of class-based background artwork.';
+		note = 'Right click to reset to default color.';
+	};
+} end
 
 function env:SetRainbowScript(on) 
 	local f = env.bar

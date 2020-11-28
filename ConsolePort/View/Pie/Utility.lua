@@ -129,7 +129,6 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 ---------------------------------------------------------------
 function Utility:OnDataLoaded()
 	self:SetAttribute('size', 0)
-	self:SetAttribute('removeButton', db('radialRemoveButton'))
 	self:CreateFramePool('SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate', Button)
 	local sticks = db('radialPrimaryStick')
 	db:Load('Utility/Data', 'ConsolePortUtility')
@@ -143,13 +142,19 @@ function Utility:OnDataLoaded()
 	self:RefreshAll()
 	setmetatable(self.Data, {__index = function(tbl, key) tbl[key] = {} return tbl[key] end})
 	self:OnAutoAssignedChanged()
+	self:OnRemoveButtonChanged()
 end
 
 function Utility:OnAutoAssignedChanged()
 	self.autoAssignExtras = db('autoExtra')
 end
 
+function Utility:OnRemoveButtonChanged()
+	self:SetAttribute('removeButton', db('radialRemoveButton'))
+end
+
 db:RegisterSafeCallback('Settings/autoExtra', Utility.OnAutoAssignedChanged, Utility)
+db:RegisterSafeCallback('Settings/radialRemoveButton', Utility.OnRemoveButtonChanged, Utility)
 
 ---------------------------------------------------------------
 -- Widget handling

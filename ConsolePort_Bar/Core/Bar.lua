@@ -31,10 +31,6 @@ function Bar:FadeOut(alpha)
 	db.Alpha.FadeOut(self, 1, alpha or 1, 0)
 end
 
-function Bar:StopCamera()
-	ConsolePortCamera:Stop()
-end
-
 function Bar:ToggleMovable(enableMouseDrag, enableMouseWheel)
 	self:RegisterForDrag(enableMouseDrag and 'LeftButton')
 	self:EnableMouse(enableMouseDrag)
@@ -93,15 +89,6 @@ function Bar:ADDON_LOADED(name)
 	if name == _ then
 		if not ConsolePort_BarSetup then
 			ConsolePort_BarSetup = env:GetDefaultSettings()
-		-------------------------------
-		-- compat: binding ID fix for grip buttons , remove later on
-		else local layout = ConsolePort_BarSetup.layout
-			if layout then
-				layout.CP_T3 = layout.CP_T3 or layout.CP_L_GRIP -- translate Lgrip to t3
-				layout.CP_T4 = layout.CP_T4 or layout.CP_R_GRIP -- translate Rgrip to t4
-				layout.CP_L_GRIP = nil layout.CP_R_GRIP = nil
-			end
-		-------------------------------
 		end
 		env:CreateManifest()
 		self:OnLoad(ConsolePort_BarSetup)
@@ -119,9 +106,7 @@ function Bar:OnMouseWheel(delta)
 			self:SetWidth(cfg.width)
 		else
 			local newScale = self:GetScale() + ( delta * 0.1 )
-			if newScale > BAR_MAX_SCALE then cfg.scale = BAR_MAX_SCALE
-			elseif newScale <= 0 then cfg.scale = 0.1
-			else cfg.scale = newScale end
+			cfg.scale = Clamp(newScale, 0.1, BAR_MAX_SCALE)
 			self:SetScale(cfg.scale)
 		end
 	end
@@ -129,9 +114,8 @@ end
 
 function Bar:OnLoad(cfg, benign)
 	local r, g, b = CPAPI.NormalizeColor(CPAPI.GetClassColor())
-	env.cfg = cfg
-	ConsolePortBarSetup = cfg
-	self:SetScale(cfg.scale or 1)
+	env:SetConfig(cfg, false)
+	self:SetScale(Clamp(cfg.scale or 1, 0.1, BAR_MAX_SCALE))
 
 	self:SetAttribute('hidesafe', cfg.hidebar)
 	if cfg.hidebar then
@@ -264,6 +248,8 @@ function Bar:OnLoad(cfg, benign)
 	local width = cfg.width or ( #self.Buttons > 10 and (10 * 110) + 55 or (#self.Buttons * 110) + 55 )
 	self:SetSize(width, BAR_FIXED_HEIGHT)
 end
+
+db:RegisterSafeCallback('OnActionBarConfigChanged', Bar.OnLoad, Bar)
 
 --------------------------
 ---- Secure functions ----

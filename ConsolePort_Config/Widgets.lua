@@ -181,10 +181,6 @@ function Number:GetStep()
 	return self.controller:GetStep()
 end
 
-function Number:OnShow()
-	self:OnValueChanged(self:Get())
-end
-
 function Number:OnLeftButton()
 	self:Set(self:Get() - self:GetStep())
 end
@@ -418,4 +414,65 @@ function Select:OnValueChanged(value)
 		end
 	end
 	self.Popout:SetupSelections(inOrder, selected)
+end
+
+---------------------------------------------------------------
+-- Color
+---------------------------------------------------------------
+local Color = CreateWidget('Color', Widget, {
+	Border = {
+		_Type  = 'Texture';
+		_Setup = {'BACKGROUND'};
+		_Point = {'RIGHT', -8, 0};
+		_Size  = {24, 24};
+		_SetColorTexture = {0.25, 0.25, 0.25, 1}
+	};
+	Checker = {
+		_Type  = 'Texture';
+		_Setup = {'ARTWORK'};
+		_Point = {'CENTER', '$parent.Border', 'CENTER', 0, 0};
+		_Size  = {20, 20};
+		_Texture = CPAPI.GetAsset('Textures\\Frame\\Backdrop_Vertex_Checker');
+	};
+	Color = {
+		_Type  = 'Texture';
+		_Setup = {'OVERLAY'};
+		_Point = {'CENTER', '$parent.Border', 'CENTER', 0, 0};
+		_Size  = {20, 20};
+	};
+})
+
+function Color:OnClick(button)
+	self:Uncheck()
+	if (button == 'LeftButton') then
+		local color, opacity = ColorPickerFrame, OpacitySliderFrame;
+
+		local function OnColorChanged()
+			local r, g, b = color:GetColorRGB()
+			local a = opacity:GetValue()
+			self:Set(r, g, b, 1 - a)
+			self:OnValueChanged(self:Get())
+		end
+
+		local function OnColorCancel(oldColor)
+			self:Set(unpack(oldColor))
+			self:OnValueChanged(self:Get())
+		end
+
+		local r, g, b, a = self:Get()
+		color:SetColorRGB(r, g, b, a)
+		color.hasOpacity = true;
+		color.opacity = 1 - (a or 0);
+		color.previousValues = {r, g, b, a};
+		color.func = OnColorChanged;
+		color.cancelFunc = OnColorCancel;
+		color.opacityFunc = OnColorChanged;
+		color:Hide()
+		color:Show()
+		color:GetScript('OnColorSelect')(color, r, g, b)
+	end
+end
+
+function Color:OnValueChanged(...)
+	self.Color:SetColorTexture(...)
 end

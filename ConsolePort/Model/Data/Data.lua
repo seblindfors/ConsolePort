@@ -56,7 +56,7 @@ do  local ID, DATA, TYPE, CALL, PATH = 0x0, 0x1, 0x2, 0x3, 0x4;
 	function Field:Set(val)
 		rawset(self, DATA, val)
 		local callback = rawget(self, CALL)
-		return self, callback and callback(val);
+		return self, callback and callback(self:Get());
 	end
 
 	function Field:SetCallback(callback)
@@ -102,6 +102,17 @@ end
 function Button:SetAllowModifiers(enabled)
 	self.allowModifiers = enabled or false;
 	return self;
+end
+
+---------------------------------------------------------------
+local Color = Field():SetType('Color');
+---------------------------------------------------------------
+function Color:Set(r, g, b, a)
+	return Field.Set(self, CreateColor(r, g, b, a))
+end
+
+function Color:Get()
+	return Field.Get(self):GetRGBA()
 end
 
 ---------------------------------------------------------------
@@ -199,6 +210,10 @@ end
 
 function Data.Cvar(id)
 	return Cvar():SetID(id)
+end
+
+function Data.Color(r, g, b, a)
+	return Color():Set(r, g, b, a)
 end
 
 function Data.Number(val, step, signed)

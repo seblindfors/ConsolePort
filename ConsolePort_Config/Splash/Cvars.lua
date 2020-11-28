@@ -8,12 +8,17 @@ local Cvar = CreateFromMixins(CPIndexButtonMixin)
 local Widgets = env.Widgets;
 
 function Cvar:OnLoad()
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('LEFT', 16, 0)
+	self.Label:SetJustifyH('LEFT')
+	self.Label:SetTextColor(1, 1, 1)
 	self:SetWidth(CVARS_WIDTH)
+	self:SetDrawOutline(true)
 	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 end
 
-function Cvar:Construct(data, newObj)
+function Cvar:Construct(data, newObj, owner)
 	if newObj then
 		self:SetText(L(data.name))
 		local controller = data.type(GetCVar(data.cvar))
@@ -21,7 +26,7 @@ function Cvar:Construct(data, newObj)
 		if constructor then
 			constructor(self, data.cvar, data, controller, data.desc, data.note)
 			controller:SetCallback(function(value)
-				SetCVar(self.variableID, value)
+				SetCVar(self.variableID, value, self.variableID)
 				self:OnValueChanged(value)
 				local device = db('Gamepad/Active')
 				if device then
@@ -29,6 +34,7 @@ function Cvar:Construct(data, newObj)
 					device:Activate()
 				end
 				db:TriggerEvent(self.variableID, value)
+				owner:OnVariableChanged(self.variableID, value)
 			end)
 		end
 	end
@@ -65,6 +71,12 @@ function Variables:OnShow()
 	self:OnActiveDeviceChanged()
 end
 
+function Variables:OnVariableChanged(variable, value)
+	if self.OnVariableChangedCallback then
+		self:OnVariableChangedCallback(variable, value)
+	end
+end
+
 function Variables:OnActiveDeviceChanged()
 	self:ReleaseAll()
 	local device = db('Gamepad/Active')
@@ -73,16 +85,10 @@ function Variables:OnActiveDeviceChanged()
 		for i, data in db:For(self.dbPath) do
 			local widget, newObj = self:TryAcquireRegistered(i)
 			if newObj then
-				widget.Label:ClearAllPoints()
-				widget.Label:SetPoint('LEFT', 16, 0)
-				widget.Label:SetJustifyH('LEFT')
-				widget.Label:SetTextColor(1, 1, 1)
-				widget:SetWidth(CVARS_WIDTH)
-				widget:SetDrawOutline(true)
 				widget:OnLoad()
 			end
 			widget:SetAttribute('nodepriority', i)
-			widget:Construct(data, newObj)
+			widget:Construct(data, newObj, self)
 			if prev then
 				widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)
 			else

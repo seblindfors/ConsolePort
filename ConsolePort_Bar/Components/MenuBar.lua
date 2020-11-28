@@ -35,7 +35,7 @@ Eye.Texture:SetTexture('Interface\\AddOns\\'..name..'\\Textures\\Hide')
 
 function Eye:OnAttributeChanged(attribute, value)
 	if attribute == 'showbuttons' then
-		env.cfg.showbuttons = value
+		env.cfg.showbuttons = value;
 		if value == true then
 			self.Texture:SetTexture('Interface\\AddOns\\'..name..'\\Textures\\Show')
 		else
@@ -48,7 +48,7 @@ function Eye:OnClick(button)
 	local cfg = env.cfg
 	if button == 'RightButton' then
 		cfg.showart = not cfg.showart
-		ab:SetArtUnderlay(cfg.showart or cfg.flashart, cfg.flashart)
+		env:SetArtUnderlay(cfg.showart or cfg.flashart, cfg.flashart)
 	elseif button == 'LeftButton' then
 		if IsShiftKeyDown() and not InCombatLockdown() then
 			cfg.lock = not cfg.lock

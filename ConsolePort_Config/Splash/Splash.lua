@@ -317,6 +317,18 @@ function Splash:OnFirstShow()
 						_Width = WIZARD_WIDTH;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
 						dbPath = 'Console/Emulation';
+						_OnVariableChangedCallback = function(self, variable, value)
+							-- dealing with emulation button overlap (don't trust the user)
+							if not self.isMutexLocked then
+								self.isMutexLocked = true;
+								for cvar in self:EnumerateActive() do
+									if (cvar:Get() == value) and (cvar.variableID ~= variable) then
+										cvar:Set('none', true)
+									end
+								end
+								self.isMutexLocked = false;
+							end
+						end;
 					};
 					Cursor = {
 						_Hide  = true;

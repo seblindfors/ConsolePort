@@ -86,9 +86,6 @@ end
 ---------------------------------------------------------------
 function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
 	CPAPI.Log('Your gamepad configuration has changed.')
-	for device in pairs(self.Devices) do
-	--	TODO: handle this somehow, device:UpdateConfig()
-	end
 end
 
 function GamepadAPI:GAME_PAD_CONNECTED()
@@ -327,18 +324,12 @@ function GamepadMixin:OnLoad(data)
 		local id, style = strsplit('-', id)
 		return style and self:GetIconForButton(id, style) or self:GetIconIDForButton(id)
 	end)
-
-	self:UpdateConfig()
 	return self
 end
 
 function GamepadMixin:Activate()
 	GamepadAPI:ReindexMappedState(true)
 	GamepadAPI:SetActiveDevice(self.Name)
-end
-
-function GamepadMixin:UpdateConfig()
-	-- TODO: ?
 end
 
 function GamepadMixin:ApplyPresetVars()
@@ -424,11 +415,17 @@ end
 ---------------------------------------------------------------
 function GamepadMixin:GetTooltipButtonPrompt(button, prompt, style)
 	local color = self.Theme.Colors[button] or 'FFFFFF';
-	return ('|T%s:24:24:0:0|t |cFF%s%s|r'):format(self:GetIconForButton(button, style), color, prompt)
+	local icon  = self:GetIconForButton(button, style)
+	if icon then
+		return ('|T%s:24:24:0:0|t |cFF%s%s|r'):format(icon, color, prompt)
+	end
 end
 
 function GamepadMixin:GetHotkeyButtonPrompt(button)
-	return ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(self:GetIconForButton(button, 32))
+	local icon = self:GetIconForButton(button, 32)
+	if icon then
+		return ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(icon)
+	end
 end
 
 function GamepadMixin:GetIconForButton(button, style)

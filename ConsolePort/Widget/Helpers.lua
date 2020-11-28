@@ -358,7 +358,7 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 
 	function CPSmoothScrollMixin:GetElementPosition(element)
 		local wrapper = self:GetScrollChild();
-		return PercentageBetween(element:GetTop(), wrapper:GetTop(), wrapper:GetBottom())
+		return PercentageBetween(select(2, element:GetCenter()), wrapper:GetTop(), wrapper:GetBottom())
 	end
 
 	function CPSmoothScrollMixin:ScrollToOffset(offset)
