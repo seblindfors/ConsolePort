@@ -385,7 +385,7 @@ function HANDLE:Get(id)
 	return Registry[id];
 end
 
-function HANDLE:Create(parent, id, orientation)
+function HANDLE:Create(parent, id)
 	local cluster = { Buttons = {} };
 
 	for mod, info in pairs(mods) do
@@ -423,7 +423,6 @@ function HANDLE:Create(parent, id, orientation)
 	db.Alpha.FadeIn(main, 1, 0, 1)
 
 	Mixin(cluster, Cluster)
-	cluster:UpdateOrientation(orientation)
 
 	Registry[id] = cluster;
 

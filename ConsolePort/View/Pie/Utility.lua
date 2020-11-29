@@ -4,7 +4,6 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	'ACTIONBAR_SLOT_CHANGED';
 	'ITEM_PUSH';
 	'SPELLS_CHANGED';
-	'QUEST_LOG_UPDATE';
 	'QUEST_WATCH_UPDATE';
 	'QUEST_WATCH_LIST_CHANGED';
 	'UPDATE_BINDINGS';
@@ -634,16 +633,6 @@ function Utility:QUEST_WATCH_UPDATE(questID)
 	end
 end
 
-function Utility:QUEST_LOG_UPDATE()
-	if self.autoAssignExtras then
-		db:RunSafe(self.ParseObservedQuestIDs, self)
-	end
-	if self.newItemPushed then
-		db:RunSafe(self.RefreshQuestWatchItems, self)
-		self.newItemPushed = nil;
-	end
-end
-
 function Utility:ITEM_PUSH()
 	if self.autoAssignExtras then
 		self.newItemPushed = true;
@@ -666,6 +655,20 @@ function Utility:UPDATE_EXTRA_ACTIONBAR()
 		self:AnnounceAddition(link or BINDING_NAME_EXTRAACTIONBUTTON1)
 	end
 end
+
+-- NOTE: Register unit event instead of QUEST_LOG_UPDATE
+-- to get around spam issue with certain addons.
+Utility:RegisterUnitEvent('UNIT_QUEST_LOG_CHANGED', 'player')
+function Utility:UNIT_QUEST_LOG_CHANGED()
+	if self.autoAssignExtras then
+		db:RunSafe(self.ParseObservedQuestIDs, self)
+	end
+	if self.newItemPushed then
+		db:RunSafe(self.RefreshQuestWatchItems, self)
+		self.newItemPushed = nil;
+	end
+end
+
 
 function Utility:SPELLS_CHANGED()
 	if self.autoAssignExtras then

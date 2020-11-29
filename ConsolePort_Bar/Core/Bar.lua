@@ -188,30 +188,41 @@ function Bar:OnLoad(cfg, benign)
 	local hideModifiers = cfg.hideModifiers
 	local classicBorders = cfg.classicBorders
 
+	wipe(self.Buttons)
 	for binding in ConsolePort:GetBindings() do
-		local position = layout[db.UIHandle:GetUIControlBinding(binding)]
-		local cluster = Clusters:Get(binding) or Clusters:Create(self, binding, position and position.dir)
+		local positionData = layout[db.UIHandle:GetUIControlBinding(binding)]
+		local cluster = Clusters:Get(binding)
 
-		if position then
-			cluster:SetPoint(unpack(position.point))
-			if position.size then
-				cluster:SetSize(position.size)
-			end
-		else
-			cluster:Hide()
+		if not cluster and positionData then
+			cluster = Clusters:Create(self, binding)
 		end
 
-		cluster:ToggleIcon(not hideIcons)
-		cluster:ToggleModifiers(not hideModifiers)
-		cluster:SetClassicBorders(classicBorders)
+		if cluster then
+			if positionData then
+				cluster:Show()
+				cluster:SetPoint(unpack(positionData.point))
+				if positionData.dir then
+					cluster:UpdateOrientation(positionData.dir)
+				end
+				if positionData.size then
+					cluster:SetSize(positionData.size)
+				end
+			else
+				cluster:Hide()
+			end
 
-		if swipeRGB then cluster:SetSwipeColor(unpack(swipeRGB))
-		else cluster:SetSwipeColor(r, g, b, 1) end
+			cluster:ToggleIcon(not hideIcons)
+			cluster:ToggleModifiers(not hideModifiers)
+			cluster:SetClassicBorders(classicBorders)
 
-		if borderRGB then cluster:SetBorderColor(unpack(borderRGB))
-		else cluster:SetBorderColor(1, 1, 1, 1) end
+			if swipeRGB then cluster:SetSwipeColor(unpack(swipeRGB))
+			else cluster:SetSwipeColor(r, g, b, 1) end
 
-		self.Buttons[#self.Buttons + 1] = cluster
+			if borderRGB then cluster:SetBorderColor(unpack(borderRGB))
+			else cluster:SetBorderColor(1, 1, 1, 1) end
+
+			self.Buttons[#self.Buttons + 1] = cluster
+		end
 	end
 
 	self.WatchBarContainer:Hide() -- hide so it updates OnShow, if set.

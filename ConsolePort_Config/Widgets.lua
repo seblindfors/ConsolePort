@@ -159,10 +159,18 @@ local Number = CreateWidget('Number', Widget, {
 			self:SetBackdropColor(COLOR_NORMAL:GetRGBA());
 			self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1);
 		end;
+		_OnEnter = function(self)
+			self:GetParent():OnEnter()
+		end;
 		_OnTextChanged = function(self, byInput)
 			local widget = self:GetParent()
 			if byInput then
-				local value = tonumber(self:GetText())
+				local text, reps = self:GetText():gsub('%-', '')
+				if (text == '') then
+					return
+				end
+
+				local value = tonumber((reps > 0 and '-' or '') .. text)
 				if not value or (not widget:GetSigned() and value < 0) then
 					self:SetText(widget:Get())
 				else

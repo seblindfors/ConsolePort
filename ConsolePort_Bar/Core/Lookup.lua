@@ -222,13 +222,16 @@ function env:GetColorGradient(red, green, blue)
 end
 
 function env:GetBooleanSettings() return {
+	{	name = 'Width/scale on mouse wheel';
+		cvar = 'mousewheel';
+		desc = 'Allows you to scroll on the action bar to adjust its proportions.';
+		note = 'Hold Shift to adjust width, otherwise scale.';
+	};
+	---------------------------------------
+	{	name = 'Visibility & Lock' };
 	{	name = 'Lock action bar';
 		cvar = 'lock';
 		desc = 'Lock/unlock action bar, allowing it to be moved with the mouse.';
-	};
-	{	name = 'Lock pet ring';
-		cvar = 'lockpet';
-		desc = 'Lock/unlock pet ring, allowing it to be moved with the mouse.';
 	};
 	{	name = 'Hide in combat';
 		cvar = 'combathide';
@@ -240,14 +243,6 @@ function env:GetBooleanSettings() return {
 		desc = 'Fades out the action bar while not in combat.';
 		note = 'The action bar will become visible if you bring your cursor over it.';
 	};
-	{	name = 'Disable pet ring';
-		cvar = 'hidepet';
-		desc = 'Disables the pet ring entirely.';
-	};
-	{	name = 'Hide pet ring in combat';
-		cvar = 'combatpethide';
-		desc = 'Hide pet ring in combat.';
-	};
 	{	name = 'Disable drag and drop';
 		cvar = 'disablednd';
 		desc = 'Disables dragging and dropping actions using your mouse cursor.';
@@ -256,6 +251,22 @@ function env:GetBooleanSettings() return {
 		cvar = 'showbuttons';
 		desc = 'Shows the entire button cluster at all times, not just abilities on cooldown.';
 	};
+	---------------------------------------
+	{	name = 'Pet Ring' };
+	{	name = 'Lock pet ring';
+		cvar = 'lockpet';
+		desc = 'Lock/unlock pet ring, allowing it to be moved with the mouse.';
+	};
+	{	name = 'Disable pet ring';
+		cvar = 'hidepet';
+		desc = 'Disables the pet ring entirely.';
+	};
+	{	name = 'Hide pet ring in combat';
+		cvar = 'combatpethide';
+		desc = 'Hide pet ring in combat.';
+	};
+	---------------------------------------
+	{	name = 'Display' };
 	{	name = 'Show quick menu';
 		cvar = 'quickMenu';
 		desc = 'Shows a tiny quick menu to swap cluster visibility.';
@@ -281,11 +292,8 @@ function env:GetBooleanSettings() return {
 		cvar = 'classicBorders';
 		desc = 'Use the classic button border texture.';
 	};
-	{	name = 'Width/scale on mouse wheel';
-		cvar = 'mousewheel';
-		desc = 'Allows you to scroll on the action bar to adjust its proportions.';
-		note = 'Hold Shift to adjust width, otherwise scale.';
-	};
+	---------------------------------------
+	{	name = 'Cast Bar' };
 	{	name = 'Show default cast bar';
 		cvar = 'defaultCastBar';
 		desc = 'Shows the default cast bar, adjusted to the action bar position.';
@@ -293,7 +301,10 @@ function env:GetBooleanSettings() return {
 	{	name = 'Disable cast bar modification';
 		cvar = 'disableCastBarHook';
 		desc = 'Disables any modifications to the cast bar, including position.';
+		note = 'This may fix compatibility issues with other addons modifying the cast bar.';
 	};
+	---------------------------------------
+	{	name = 'Artwork' };
 	{	name = 'Show class art underlay';
 		cvar = 'showart';
 		desc = 'Shows a class-based artpiece under your button clusters, to use as anchoring reference.';
@@ -321,6 +332,8 @@ function env:GetBooleanSettings() return {
 } end
 
 function env:GetNumberSettings() return {
+	---------------------------------------
+	{	name = 'Size' };
 	{	name = 'Width';
 		cvar = 'width';
 		desc = 'Changes the overall action bar width.';
@@ -336,6 +349,8 @@ function env:GetNumberSettings() return {
 } end
 
 function env:GetColorSettings() return {
+	---------------------------------------
+	{	name = 'Colors' };
 	{	name = 'Border';
 		cvar = 'borderRGB';
 		desc = 'Changes the color of your button borders.';

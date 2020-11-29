@@ -235,7 +235,7 @@ do  -- Create input proxy for basic controls
 	function Cursor:SetBasicControls()
 		local controls = self:GetBasicControls()
 		for button, settings in pairs(controls) do
-			Input:SetCommand(button, self, false, button, 'UIControl', unpack(settings));
+			Input:SetCommand(button, self, true, button, 'UIControl', unpack(settings));
 		end
 	end
 
@@ -524,8 +524,8 @@ function Cursor:SetScrollButtonsForNode(node)
 	local scrollUp, scrollDown = Node.GetScrollButtons(node)
 	if scrollUp and scrollDown then
 		local modifier = db('UImodifierCommands')
-		Input:SetGlobal(format('%s-%s', modifier, 'PADDUP'), self, scrollUp:GetName())
-		Input:SetGlobal(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown:GetName())
+		Input:SetGlobal(format('%s-%s', modifier, 'PADDUP'), self, scrollUp:GetName(), true)
+		Input:SetGlobal(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown:GetName(), true)
 		return scrollUp, scrollDown
 	end
 end
@@ -537,11 +537,11 @@ function Cursor:SetClickButtonsForNode(node, macroReplacement, isClickable)
 	}) do for modifier in db:For('Gamepad/Index/Modifier/Active') do
 			if macroReplacement then
 				local unit = UIDROPDOWNMENU_INIT_MENU.unit
-				Input:SetMacro(modifier .. button, self, macroReplacement:format(unit or ''))
+				Input:SetMacro(modifier .. button, self, macroReplacement:format(unit or ''), true)
 			elseif isClickable then
-				Input:SetButton(modifier .. button, self, node, false, click)
+				Input:SetButton(modifier .. button, self, node, true, click)
 			else
-				Input:SetCommand(modifier .. button, self, false, self:GetEmuClick(node, click))
+				Input:SetCommand(modifier .. button, self, true, self:GetEmuClick(node, click))
 			end
 		end
 	end

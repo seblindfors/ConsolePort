@@ -1,10 +1,11 @@
 local _, env = ...; local db, L = env.db;
 local Config = {};
 
-local PRESETS_WIDTH = 270;
-local OPTIONS_WIDTH = 300;
-local CLUSTER_WIDTH = 414;
-local FIXED_OFFSET  = 8;
+local FIXED_OFFSET   = 8;
+local PRESETS_WIDTH  = 270;
+local OPTIONS_WIDTH  = 300;
+local CLUSTER_WIDTH  = 414;
+local CLUSTER_HEIGHT = 80;
 
 function env:SetConfig(cfg, triggerEvent)
 	self.cfg = cfg;
@@ -33,9 +34,32 @@ function env:Set(key, ...)
 end
 
 ---------------------------------------------------------------
+-- Base mixin for collections
+---------------------------------------------------------------
+local BaseMixin = CreateFromMixins(CPFocusPoolMixin)
+
+function BaseMixin:OnShow()
+	self:DrawOptions()
+end
+
+function BaseMixin:OnHide()
+	self:ReleaseAll()
+end
+
+function BaseMixin:OnLoad()
+	CPFocusPoolMixin.OnLoad(self)
+	self:CreateFramePool('IndexButton',
+		'CPIndexButtonBindingHeaderTemplate', self.WidgetMixin, nil, self.Child)
+	Mixin(self.Child, env.config.ScaleToContentMixin)
+	self.Child:SetAllPoints()
+	self.Child:SetMeasurementOrigin(self, self.Child, self.FixedWidth, FIXED_OFFSET)
+end
+
+---------------------------------------------------------------
 -- Presets
 ---------------------------------------------------------------
-local Preset, Presets = {}, CreateFromMixins(CPFocusPoolMixin)
+local Preset, Presets = {}, CreateFromMixins(BaseMixin)
+Presets.WidgetMixin, Presets.FixedWidth = Preset, PRESETS_WIDTH;
 
 function Preset:OnLoad()
 	self:SetWidth(PRESETS_WIDTH - FIXED_OFFSET)
@@ -54,23 +78,6 @@ function Preset:OnShow()
 	else
 		self:Uncheck()
 	end
-end
-
-function Presets:OnLoad()
-	CPFocusPoolMixin.OnLoad(self)
-	self:CreateFramePool('IndexButton',
-		'CPIndexButtonBindingHeaderTemplate', Preset, nil, self.Child)
-	Mixin(self.Child, env.config.ScaleToContentMixin)
-	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self, self.Child, PRESETS_WIDTH, FIXED_OFFSET)
-end
-
-function Presets:OnHide()
-	self:ReleaseAll()
-end
-
-function Presets:OnShow()
-	self:DrawOptions()
 end
 
 function Presets:DrawPreset(name, settings, anchor)
@@ -102,7 +109,8 @@ end
 ---------------------------------------------------------------
 -- General settings
 ---------------------------------------------------------------
-local Option, Options = {}, CreateFromMixins(CPFocusPoolMixin)
+local Option, Options = {}, CreateFromMixins(BaseMixin)
+Options.WidgetMixin, Options.FixedWidth = Option, OPTIONS_WIDTH;
 
 function Option:OnLoad()
 	self.Label:ClearAllPoints()
@@ -111,6 +119,19 @@ function Option:OnLoad()
 	self.Label:SetTextColor(1, 1, 1)
 	self:SetWidth(OPTIONS_WIDTH - FIXED_OFFSET)
 	self:SetDrawOutline(true)
+end
+
+function Option:SetAsHeader(name)
+	self.OnValueChanged = nop;
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('CENTER', 0, 0)
+	self.Label:SetJustifyH('CENTER')
+	self.Label:SetTextColor(1, 1, 0)
+	self:SetText(L(name))
+	self:SetDrawOutline(false)
+	self:SetForceChecked(true)
+	self:Check()
+	self:Show()
 end
 
 function Option:Construct(objType, data, newObj, widgets, get)
@@ -143,12 +164,7 @@ function Option:Get()
 end
 
 function Options:OnLoad()
-	CPFocusPoolMixin.OnLoad(self)
-	self:CreateFramePool('IndexButton',
-		'CPIndexButtonBindingHeaderTemplate', Option, nil, self.Child)
-	Mixin(self.Child, env.config.ScaleToContentMixin)
-	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self, self.Child, OPTIONS_WIDTH, FIXED_OFFSET)
+	BaseMixin.OnLoad(self)
 	db:RegisterCallback('OnActionBarConfigChanged', self.UpdateOptions, self)
 end
 
@@ -158,12 +174,16 @@ function Options:UpdateOptions()
 	end
 end
 
-function Options:DrawOption(i, data, type, widgets, anchor, get)
-	local widget, newObj = self:TryAcquireRegistered(i)
+function Options:DrawOption(cvar, data, type, widgets, anchor, get)
+	local widget, newObj = self:TryAcquireRegistered(cvar or data.name)
 	if newObj then
 		widget:OnLoad()
 	end
-	widget:Construct(type, data, newObj, widgets, get)
+	if cvar then
+		widget:Construct(type, data, newObj, widgets, get)
+	else
+		widget:SetAsHeader(data.name)
+	end
 	if anchor then
 		widget:SetPoint('TOP', anchor, 'BOTTOM', 0, -FIXED_OFFSET)
 	else
@@ -177,37 +197,287 @@ function Options:DrawOptions()
 	local widgets, widget = env.config.Widgets;
 	for i, data in ipairs(env:GetNumberSettings()) do
 		widget = self:DrawOption(data.cvar, data, 'Number', widgets, widget)
-		widget.controller:SetStep(data.step)
+		if widget.controller then
+			widget.controller:SetStep(data.step)
+		end
 	end
 	for i, data in ipairs(env:GetBooleanSettings()) do
 		widget = self:DrawOption(data.cvar, data, 'Bool', widgets, widget)
 	end
 	for i, data in ipairs(env:GetColorSettings()) do
-		local colorCode = data.cvar:gsub('RGB', '')
+		local colorCode = data.cvar and data.cvar:gsub('RGB', '')
 		widget = self:DrawOption(data.cvar, data, 'Color', widgets, widget, function()
 			return env:GetRGBColorFor(colorCode)
 		end)
 		-- augment OnClick to reset colors
-		local script = widget:GetScript('OnClick')
-		widget:RegisterForClicks('AnyUp')
-		widget:SetScript('OnClick', function(self, button)
-			self:Uncheck()
-			if (button == 'RightButton') then
-				env:Set(data.cvar, nil)
-				return self:OnValueChanged(self:Get())
-			end
-			script(self, button)
-		end)
+		if widget.controller then
+			local script = widget:GetScript('OnClick')
+			widget:RegisterForClicks('AnyUp')
+			widget:SetScript('OnClick', function(self, button)
+				self:Uncheck()
+				if (button == 'RightButton') then
+					env:Set(data.cvar, nil)
+					return self:OnValueChanged(self:Get())
+				end
+				script(self, button)
+			end)
+		end
 	end
 	self.Child:SetHeight(nil)
 end
 
-function Options:OnShow()
-	self:DrawOptions()
+---------------------------------------------------------------
+-- Clusters
+---------------------------------------------------------------
+local Cluster, Field, Clusters = {}, {}, CreateFromMixins(BaseMixin)
+Clusters.WidgetMixin, Clusters.FixedWidth = Cluster, CLUSTER_WIDTH;
+
+local VALID_POINTS = {
+	'TOP',
+	'BOTTOM',
+	'CENTER',
+	'LEFT', 'TOPLEFT', 'BOTTOMLEFT',
+	'RIGHT', 'TOPRIGHT', 'BOTTOMRIGHT',
+};
+
+local VALID_DIRS = {
+	'up',
+	'left',
+	'down',
+	'right',
+	'<none>',
+}
+
+local POINT_MAP = {
+	anchor  = 1;
+	xOffset = 2;
+	yOffset = 3;
+}
+
+local Data = db.Data;
+local Carpenter, Blueprint = LibStub('Carpenter'), {
+	Dir = {
+		_Type  = 'IndexButton';
+		_Size  = {220, 36};
+		_Point = {'TOPRIGHT', 0, -4};
+		cvar   = 'dir';
+		text   = 'Cluster Direction';
+		field  = Data.Select('<none>', unpack(VALID_DIRS));
+	};
+	Size = {
+		_Type  = 'IndexButton';
+		_Size  = {90, 36};
+		_Point = {'RIGHT', '$parent.Dir', 'LEFT', -8, 0};
+		cvar   = 'size';
+		text   = 'Size';
+		field  = Data.Number(64, 1, true);
+	};
+	Anchor = {
+		_Type  = 'IndexButton';
+		_Size  = {220, 36};
+		_Point = {'BOTTOMRIGHT', 0, 4};
+		cvar   = 'anchor';
+		text   = 'Anchor Point';
+		field  = Data.Select('CENTER', unpack(VALID_POINTS));
+	};
+	Y = {
+		_Type  = 'IndexButton';
+		_Size  = {90, 36};
+		_Point = {'RIGHT', '$parent.Anchor', 'LEFT', -8, 0};
+		cvar   = 'yOffset';
+		text   = 'Vertical Offset';
+		field  = Data.Number(0, 1);
+	};
+	X = {
+		_Type  = 'IndexButton';
+		_Size  = {90, 36};
+		_Point = {'RIGHT', '$parent.Y', 'LEFT', 0, 0};
+		cvar   = 'xOffset';
+		text   = 'Horizontal Offset';
+		field  = Data.Number(0, 1);
+	};
+	Enabled = {
+		_Type  = 'IndexButton';
+		_Size  = {40, 36};
+		_Point = {'RIGHT', '$parent.Size', 'LEFT', 0, 0};
+		cvar   = 'enabled';
+		text   = 'Enabled';
+		field  = Data.Bool(true);
+	};
+}
+
+function Field:GetText()
+	return self.text;
 end
 
-function Options:OnHide()
+function Field:Get()
+	local clusterData = env:Get('layout')[self.binding];
+	local cvar = self.cvar;
+	if (cvar == 'enabled') then
+		return clusterData ~= nil;
+	end
+	if clusterData then
+		local anchorCvar = POINT_MAP[cvar];
+
+		if anchorCvar then
+			local anchor = clusterData.point;
+			if anchor and anchorCvar then
+				return anchor[anchorCvar];
+			end
+		elseif (clusterData[cvar] ~= nil) then
+			return clusterData[cvar];
+		end
+	end
+	return self.default;
+end
+
+function Cluster:IsEnabled()
+	return env:Get('layout')[self.binding] ~= nil;
+end
+
+function Cluster:ConstructOnClick()
+	self:SetScript('OnClick', nil)
+	self:Construct(true)
+end
+
+function Cluster:SetPendingConstruct()
+	local abbreviation = _G[('KEY_ABBR_%s'):format(self.binding)] or '';
+	local bindingName  = _G[('KEY_%s'):format(self.binding)] or '';
+	self:SetScript('OnClick', self.ConstructOnClick)
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('LEFT', 16, 0)
+	self.Label:SetJustifyH('LEFT')
+	self.Label:SetText(('%s %s'):format(
+		abbreviation,
+		abbreviation:match('ConsolePort') and
+		('|cFFFFFFFF%s|r'):format(bindingName) or
+		('|cFF555555%s|r'):format(bindingName)
+	));
+end
+
+function Cluster:Recompile()
+	local layout = env:Get('layout') or {};
+	local set = layout[self.binding] or {};
+
+	for obj, data in pairs(Blueprint) do
+		local controller = self[obj].controller;
+		local anchorCvar = POINT_MAP[data.cvar];
+
+		if (data.cvar == 'enabled') then
+			if not controller:Get() then
+				set = nil;
+				break;
+			end
+		elseif anchorCvar then
+			local point = set.point or {};
+			point[anchorCvar] = controller:Get()
+			set.point = point;
+		else
+			set[data.cvar] = controller:Get()
+		end
+	end
+	layout[self.binding] = set;
+	env:Set('layout', layout)
+end
+
+function Cluster:OnLoad()
+	self:SetDrawOutline(true)
+	self:SetWidth(CLUSTER_WIDTH - (FIXED_OFFSET/2))
+end
+
+function Cluster:MoveLabel()
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('TOPLEFT', 16, -4)
+	self.Label:SetJustifyH('LEFT')
+	self.Label:SetTextColor(1, 1, 1)
+	self.Label:SetText(_G[('KEY_ABBR_%s'):format(self.binding)])
+end
+
+function Cluster:Construct(newObj)
+	if newObj then
+		self:SetHeight(CLUSTER_HEIGHT)
+		self:SetDrawOutline(false)
+		self:SetForceChecked(true)
+		self:SetThumbPosition('TOP', .5)
+		self:MoveLabel()
+		self:Check()
+		Carpenter:BuildFrame(self, Blueprint, false, true)
+		for obj, data in pairs(Blueprint) do
+			local container = self[obj];
+			local controller = data.field();
+			local constructor = self.widgets[controller:GetType()];
+			container.default = controller:Get()
+			container.controller = controller;
+			container.binding = self.binding;
+			container.cvar = data.cvar;
+			Mixin(container, Field)
+			if constructor then
+				constructor(container, data.cvar, nil, controller, data.cvar)
+				controller:SetCallback(function(...)
+					self:Recompile()
+					container:OnValueChanged(...)
+				end)
+			end
+		end
+	end
+	self:Hide()
+	self:Show()
+end
+
+function Clusters:DrawOption(binding, widgets, anchor)
+	local widget, newObj = self:TryAcquireRegistered(binding)
+	if newObj then
+		widget.widgets = widgets;
+		widget.binding = binding;
+		widget.Label:SetText(_G[('KEY_%s'):format(binding)])
+		widget:OnLoad()
+		if widget:IsEnabled() then
+			widget:Construct(newObj)
+		else
+			widget:SetPendingConstruct()
+		end
+	end
+	widget:Show()
+	if anchor then
+		widget:SetPoint('TOP', anchor, 'BOTTOM', 0, -FIXED_OFFSET)
+	else
+		widget:SetPoint('TOP', 0, -FIXED_OFFSET)
+	end
+	return widget;
+end
+
+function Clusters:OnLoad()
+	BaseMixin.OnLoad(self)
+	db:RegisterCallback('OnActionBarConfigChanged', self.UpdateOptions, self)
+end
+
+function Clusters:DrawOptions()
 	self:ReleaseAll()
+	local widgets, proto, widget = env.config.Widgets, db.Data;
+	-- Separate bindings into enabled/disabled, so that enabled
+	-- buttons come out on top. 
+	local enabled, disabled = {}, {};
+	for binding in ConsolePort:GetBindings() do
+		if env:Get('layout')[binding] then
+			enabled[binding] = true;
+		else
+			disabled[binding] = true;
+		end
+	end
+	for binding in db.table.spairs(enabled) do
+		widget = self:DrawOption(binding, widgets, widget)
+	end
+	for binding in db.table.spairs(disabled) do
+		widget = self:DrawOption(binding, widgets, widget)
+	end
+	self.Child:SetHeight(nil)
+end
+
+function Clusters:UpdateOptions()
+	for obj in self:EnumerateActive() do
+		obj:Hide()
+		obj:Show()
+	end
 end
 
 ---------------------------------------------------------------
@@ -234,8 +504,8 @@ function Config:OnFirstShow()
 		};
 	})
 	local clusters = self:CreateScrollableColumn('Clusters', {
-		_Mixin = {};
-		_Width = 414;
+		_Mixin = Clusters;
+		_Width = CLUSTER_WIDTH;
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {

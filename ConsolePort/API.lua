@@ -10,7 +10,7 @@ end
 -- Get all possible bindings
 ---------------------------------------------------------------
 function ConsolePort:GetBindings()
-	return pairs(db.Gamepad:GetBindings(true))
+	return db.table.spairs(db.Gamepad:GetBindings(true))
 end
 
 ---------------------------------------------------------------
