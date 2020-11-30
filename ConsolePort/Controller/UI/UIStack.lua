@@ -158,8 +158,9 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	end
 
 	function Stack:ToggleCore()
-		isEnabled = db('UIenableCursor')
-		if not isEnabled then
+		local showOnDemand = db('UIshowOnDemand')
+		isEnabled = db('UIenableCursor') and not showOnDemand;
+		if not isEnabled and not showOnDemand then
 			db('Cursor'):SetEnabled(false)
 		end
 	end
@@ -273,6 +274,9 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 			self:LoadAddonFrames(name)
 			self:UpdateFrames()
 		end;
+
+		db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
+		db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
 	end
 
 	hooksecurefunc('ShowUIPanel', function(frame)

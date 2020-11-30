@@ -5,4 +5,5 @@
 	<!-- Assets -->
 	<Script file="Data/Variables.lua"/>
 	<Script file="Data/Console.lua"/>
+	<Script file="Data/Shared.lua"/>
 </Ui>

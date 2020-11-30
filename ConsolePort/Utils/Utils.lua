@@ -99,7 +99,7 @@ function CPAPI.CreateFrame(...)
 end
 
 function CPAPI.CreateEventHandler(args, events, ...)
-	local handler = db('table/mixin')(CreateFrame(unpack(args)), ...)
+	local handler = db.table.mixin(CreateFrame(unpack(args)), ...)
 	return CPAPI.EventHandler(handler, events)
 end
 

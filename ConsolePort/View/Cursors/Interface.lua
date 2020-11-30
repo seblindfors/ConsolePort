@@ -63,6 +63,10 @@ end
 ---------------------------------------------------------------
 -- Cursor state
 ---------------------------------------------------------------
+function Cursor:OnClick()
+	self:SetEnabled(not self:IsShown())
+end
+
 function Cursor:SetEnabled(enable)
 	if enable then
 		return self:Enable()
@@ -122,7 +126,11 @@ function Cursor:ShowAfterCombat(enabled)
 end
 
 function Cursor:ScanUI()
-	Node(Stack:GetVisibleCursorFrames())
+	if db('UIaccessUnlimited') then
+		Node(UIParent, DropDownList1, DropDownList2)
+	else
+		Node(Stack:GetVisibleCursorFrames())
+	end
 end
 
 function Cursor:Refresh()
@@ -287,7 +295,7 @@ end
 
 function Cursor:Navigate(key)
 	local target, changed
-	if db('UIaccessUnlimited') or GetCursorInfo() then
+	if db('UIaccessUnlimited') then
 		target, changed = self:SetCurrent(self:ReverseScanUI(self:GetCurrentNode(), key))
 	else
 		self:ScanUI()

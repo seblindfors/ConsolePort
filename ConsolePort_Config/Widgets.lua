@@ -84,7 +84,7 @@ function Widget:OnShow()
 	self:OnValueChanged(self:Get())
 end
 
-function Widget:OnValueChanged(newValue)
+function Widget:OnValueChanged(...)
 	-- replace callback in mixin
 end
 
@@ -158,6 +158,7 @@ local Number = CreateWidget('Number', Widget, {
 		_OnLoad = function(self)
 			self:SetBackdropColor(COLOR_NORMAL:GetRGBA());
 			self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1);
+			self:EnableMouseWheel(false)
 		end;
 		_OnEnter = function(self)
 			self:GetParent():OnEnter()
@@ -165,21 +166,49 @@ local Number = CreateWidget('Number', Widget, {
 		_OnTextChanged = function(self, byInput)
 			local widget = self:GetParent()
 			if byInput then
-				local text, reps = self:GetText():gsub('%-', '')
-				if (text == '') then
-					return
-				end
-
-				local value = tonumber((reps > 0 and '-' or '') .. text)
-				if not value or (not widget:GetSigned() and value < 0) then
-					self:SetText(widget:Get())
-				else
-					widget:Set(value)
-				end
+				self:GetParent():FormatText(self:GetText())
 			end
+		end;
+		_OnEnterPressed = function(self)
+			self:ClearFocus()
+			self:GetParent():FormatText(self:GetText())
+		end;
+		_OnEscapePressed = function(self)
+			self:ClearFocus()
+			self:GetParent():Set(self:GetParent():Get())
+		end;
+		_OnEditFocusGained = function(self)
+			self:EnableMouseWheel(true)
+		end;
+		_OnEditFocusLost = function(self)
+			self:EnableMouseWheel(false)
+		end;
+		_OnMouseWheel = function(self, delta)
+			self:GetParent():Delta(delta)
+			self:SetFocus()
 		end;
 	};
 })
+
+function Number:FormatText(text)
+	local text, reps = text:gsub('%-', '')
+	if (text == '') then
+		return;
+	end
+
+	local value = tonumber((reps > 0 and '-' or '') .. text)
+	if not value or (not self:GetSigned() and value < 0) then
+		self.Input:SetText(self:Get())
+	elseif self.Input:HasFocus() then
+		self.Input:SetText(value)
+	else
+		self:Set(value)
+	end
+end
+
+function Number:Delta(delta)
+	self:Set(self:Get() + (delta * self:GetStep()))
+end
 
 function Number:GetSigned()
 	return self.controller:GetSigned()
@@ -406,6 +435,23 @@ function Select:OnLoad(...)
 			self.moveCursorOnClose = nil;
 		end
 	end;
+	self.Popout.OnEnterHook = function(self)
+		local parent = self:GetParent()
+		parent:GetScript('OnEnter')(parent)
+	end;
+	self.Popout.OnLeaveHook = function(self)
+		local parent = self:GetParent()
+		parent:GetScript('OnLeave')(parent)
+	end;
+	for _, obj in pairs({
+		self.Popout,
+		self.Popout.SelectionPopoutButton,
+		self.Popout.IncrementButton,
+		self.Popout.DecrementButton,
+	}) do
+		obj:HookScript('OnEnter', self.Popout.OnEnterHook)
+		obj:HookScript('OnLeave', self.Popout.OnLeaveHook)
+	end
 end
 
 function Select:OnValueChanged(value)
@@ -453,7 +499,7 @@ local Color = CreateWidget('Color', Widget, {
 function Color:OnClick(button)
 	self:Uncheck()
 	if (button == 'LeftButton') then
-		local color, opacity = ColorPickerFrame, OpacitySliderFrame;
+		local color, swatch, opacity = ColorPickerFrame, ColorSwatch, OpacitySliderFrame;
 
 		local function OnColorChanged()
 			local r, g, b = color:GetColorRGB()
@@ -467,7 +513,7 @@ function Color:OnClick(button)
 			self:OnValueChanged(self:Get())
 		end
 
-		local r, g, b, a = self:Get()
+		local r, g, b, a = self:GetRGBA(self:Get())
 		color:SetColorRGB(r, g, b, a)
 		color.hasOpacity = true;
 		color.opacity = 1 - (a or 0);
@@ -477,10 +523,28 @@ function Color:OnClick(button)
 		color.opacityFunc = OnColorChanged;
 		color:Hide()
 		color:Show()
-		color:GetScript('OnColorSelect')(color, r, g, b)
+		swatch:SetColorTexture(r, g, b)
 	end
 end
 
+function Color:Set(r, g, b, a)
+	if self:IsHex() then
+		Widget.Set(self, ('%.2x%.2x%.2x%.2x'):format(
+			a * 255, r * 255, g * 255, b * 255
+		))
+	else
+		Widget.Set(self, r, g, b, a)
+	end
+end
+
+function Color:GetRGBA(...)
+	return self.controller:ConvertToRGBA(...):GetRGBA()
+end
+
+function Color:IsHex()
+	return self.controller:IsHex()
+end
+
 function Color:OnValueChanged(...)
-	self.Color:SetColorTexture(...)
+	self.Color:SetColorTexture(self:GetRGBA(...))
 end

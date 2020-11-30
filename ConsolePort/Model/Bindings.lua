@@ -10,6 +10,7 @@ select(2, ...):Register('Bindings', {
 	{name = 'Focus Raid Cursor',            binding = 'CLICK ConsolePortRaidCursorFocus:LeftButton'};
 	{name = 'Target Raid Cursor',           binding = 'CLICK ConsolePortRaidCursorTarget:LeftButton'};
 	-- Utility
+	{name = 'Toggle Interface Cursor',      binding = 'CLICK ConsolePortCursor:LeftButton'};
 	{name = 'Utility Ring',                 binding = 'CLICK ConsolePortUtilityToggle:LeftButton'};
 --	{name = 'Pet Ring',                     binding = 'CLICK ConsolePortBarPet:MiddleButton'};
 --	{name = L.CP_TOGGLEADDON,               binding = 'CLICK ConsolePortLoader:LeftButton'};

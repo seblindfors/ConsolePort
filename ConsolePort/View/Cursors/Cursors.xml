@@ -2,7 +2,9 @@
 ..\FrameXML\UI.xsd">
 	<Include file="Cursors/Raid.xml"/>
 	<Include file="Cursors/Interface.xml"/>
+	<Include file="Cursors/Crosshair.xml"/>
 
 	<Script file="Cursors/Raid.lua"/>
 	<Script file="Cursors/Interface.lua"/>
+	<Script file="Cursors/Crosshair.lua"/>
 </Ui>

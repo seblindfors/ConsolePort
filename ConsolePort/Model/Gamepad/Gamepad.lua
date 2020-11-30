@@ -81,6 +81,10 @@ function GamepadAPI:GetActiveDevice()
 	return self.Active
 end
 
+function GamepadAPI:GetActiveDeviceName()
+	return self.Active and self.Active.Name;
+end
+
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------

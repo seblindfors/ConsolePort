@@ -7,9 +7,10 @@ function DataAPI:OnDataLoaded()
 	local settings = setmetatable(ConsolePortSettings or {}, {
 		__index = function(self, key)
 			local var = DEFAULT_DATA[key]
-			return var and var[1]:Get()
+			if var then
+				return var[1]:Get()
+			end
 		end;
-		-- TODO: newindex handling
 	})
 	db:Register('Settings', settings, true)
 	db:Default(settings)
@@ -107,12 +108,37 @@ end
 ---------------------------------------------------------------
 local Color = Field():SetType('Color');
 ---------------------------------------------------------------
-function Color:Set(r, g, b, a)
-	return Field.Set(self, CreateColor(r, g, b, a))
+function Color:Set(...)
+	local colorObj, converted = self:ConvertToRGBA(...)
+	return Field.Set(self, colorObj):SetHex(converted)
 end
 
 function Color:Get()
+	if self.hex then
+		return self:GetHex()
+	end
 	return Field.Get(self):GetRGBA()
+end
+
+function Color:GetHex()
+	local r, g, b, a = Field.Get(self):GetRGBAAsBytes()
+	return ('%.2x%.2x%.2x%.2x'):format(a, r, g, b)
+end
+
+function Color:ConvertToRGBA(arg1, ...)
+	if (type(arg1) == 'string') then
+		return CreateColorFromHexString(arg1), true;
+	end
+	return CreateColor(arg1, ...), false;
+end
+
+function Color:SetHex(enabled)
+	self.hex = enabled;
+	return self;
+end
+
+function Color:IsHex()
+	return self.hex;
 end
 
 ---------------------------------------------------------------
@@ -212,8 +238,8 @@ function Data.Cvar(id)
 	return Cvar():SetID(id)
 end
 
-function Data.Color(r, g, b, a)
-	return Color():Set(r, g, b, a)
+function Data.Color(...)
+	return Color():Set(...)
 end
 
 function Data.Number(val, step, signed)

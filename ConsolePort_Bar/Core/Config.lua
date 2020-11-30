@@ -245,7 +245,7 @@ local VALID_DIRS = {
 	'left',
 	'down',
 	'right',
-	'<none>',
+	'<hide>',
 }
 
 local POINT_MAP = {
@@ -258,34 +258,41 @@ local Data = db.Data;
 local Carpenter, Blueprint = LibStub('Carpenter'), {
 	Dir = {
 		_Type  = 'IndexButton';
-		_Size  = {220, 36};
+		_Size  = {230, 36};
 		_Point = {'TOPRIGHT', 0, -4};
 		cvar   = 'dir';
 		text   = 'Cluster Direction';
-		field  = Data.Select('<none>', unpack(VALID_DIRS));
+		desc   = 'Direction of modifier flyouts.';
+		field  = Data.Select('<hide>', unpack(VALID_DIRS));
 	};
 	Size = {
 		_Type  = 'IndexButton';
 		_Size  = {90, 36};
-		_Point = {'RIGHT', '$parent.Dir', 'LEFT', -8, 0};
+		_Point = {'RIGHT', '$parent.Dir', 'LEFT', 0, 0};
 		cvar   = 'size';
 		text   = 'Size';
+		desc   = 'Size of the main button.';
+		note   = 'Modifier buttons will adapt their size accordingly.';
+		label  = 'S:';
 		field  = Data.Number(64, 1, true);
 	};
 	Anchor = {
 		_Type  = 'IndexButton';
-		_Size  = {220, 36};
+		_Size  = {230, 36};
 		_Point = {'BOTTOMRIGHT', 0, 4};
 		cvar   = 'anchor';
 		text   = 'Anchor Point';
+		desc   = 'Point on the bar frame where the cluster is anchored.';
 		field  = Data.Select('CENTER', unpack(VALID_POINTS));
 	};
 	Y = {
 		_Type  = 'IndexButton';
 		_Size  = {90, 36};
-		_Point = {'RIGHT', '$parent.Anchor', 'LEFT', -8, 0};
+		_Point = {'RIGHT', '$parent.Anchor', 'LEFT', 0, 0};
 		cvar   = 'yOffset';
 		text   = 'Vertical Offset';
+		desc   = 'Number of vertical pixel units from the origin point.';
+		label  = 'Y:';
 		field  = Data.Number(0, 1);
 	};
 	X = {
@@ -294,6 +301,8 @@ local Carpenter, Blueprint = LibStub('Carpenter'), {
 		_Point = {'RIGHT', '$parent.Y', 'LEFT', 0, 0};
 		cvar   = 'xOffset';
 		text   = 'Horizontal Offset';
+		desc   = 'Number of horizontal pixel units from the origin point.';
+		label  = 'X:';
 		field  = Data.Number(0, 1);
 	};
 	Enabled = {
@@ -302,6 +311,7 @@ local Carpenter, Blueprint = LibStub('Carpenter'), {
 		_Point = {'RIGHT', '$parent.Size', 'LEFT', 0, 0};
 		cvar   = 'enabled';
 		text   = 'Enabled';
+		desc   = 'Show the cluster for this binding.';
 		field  = Data.Bool(true);
 	};
 }
@@ -336,7 +346,7 @@ function Cluster:IsEnabled()
 end
 
 function Cluster:ConstructOnClick()
-	self:SetScript('OnClick', nil)
+	self:SetScript('OnClick', nil) -- remove so it doesn't get hooked
 	self:Construct(true)
 end
 
@@ -387,7 +397,7 @@ end
 
 function Cluster:MoveLabel()
 	self.Label:ClearAllPoints()
-	self.Label:SetPoint('TOPLEFT', 16, -4)
+	self.Label:SetPoint('TOPLEFT', 4, -4)
 	self.Label:SetJustifyH('LEFT')
 	self.Label:SetTextColor(1, 1, 1)
 	self.Label:SetText(_G[('KEY_ABBR_%s'):format(self.binding)])
@@ -406,17 +416,25 @@ function Cluster:Construct(newObj)
 			local container = self[obj];
 			local controller = data.field();
 			local constructor = self.widgets[controller:GetType()];
-			container.default = controller:Get()
+			----------------------------------
 			container.controller = controller;
-			container.binding = self.binding;
-			container.cvar = data.cvar;
+			container.default    = controller:Get()
+			container.binding    = self.binding;
+			container.cvar       = data.cvar;
+			----------------------------------
 			Mixin(container, Field)
-			if constructor then
-				constructor(container, data.cvar, nil, controller, data.cvar)
-				controller:SetCallback(function(...)
-					self:Recompile()
-					container:OnValueChanged(...)
-				end)
+			constructor(container, data.cvar, nil, controller, data.desc, data.note)
+			controller:Set(container:Get())
+			controller:SetCallback(function(...)
+				self:Recompile()
+				container:OnValueChanged(...)
+			end)
+			----------------------------------
+			if data.label then
+				container.Label = container:CreateFontString(nil, 'ARTWORK', 'GameFontWhiteTiny')
+				container.Label:SetPoint('LEFT', 6, 0)
+				container.Label:SetJustifyH('LEFT')
+				container.Label:SetText(data.label)
 			end
 		end
 	end
@@ -453,15 +471,17 @@ end
 
 function Clusters:DrawOptions()
 	self:ReleaseAll()
-	local widgets, proto, widget = env.config.Widgets, db.Data;
+	local widgets, device, widget = env.config.Widgets, db('Gamepad/Active');
 	-- Separate bindings into enabled/disabled, so that enabled
 	-- buttons come out on top. 
 	local enabled, disabled = {}, {};
 	for binding in ConsolePort:GetBindings() do
-		if env:Get('layout')[binding] then
-			enabled[binding] = true;
-		else
-			disabled[binding] = true;
+		if device:IsButtonValidForBinding(binding) then
+			if env:Get('layout')[binding] then
+				enabled[binding] = true;
+			else
+				disabled[binding] = true;
+			end
 		end
 	end
 	for binding in db.table.spairs(enabled) do

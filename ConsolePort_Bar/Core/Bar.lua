@@ -189,39 +189,44 @@ function Bar:OnLoad(cfg, benign)
 	local classicBorders = cfg.classicBorders
 
 	wipe(self.Buttons)
-	for binding in ConsolePort:GetBindings() do
-		local positionData = layout[db.UIHandle:GetUIControlBinding(binding)]
-		local cluster = Clusters:Get(binding)
+	local activeDevice = db('Gamepad/Active')
 
-		if not cluster and positionData then
-			cluster = Clusters:Create(self, binding)
-		end
+	if activeDevice then
+		for binding in ConsolePort:GetBindings() do
+			local positionData = layout[db.UIHandle:GetUIControlBinding(binding)]
+			local isUsableBinding = activeDevice:IsButtonValidForBinding(binding)
+			local cluster = Clusters:Get(binding)
 
-		if cluster then
-			if positionData then
-				cluster:Show()
-				cluster:SetPoint(unpack(positionData.point))
-				if positionData.dir then
-					cluster:UpdateOrientation(positionData.dir)
-				end
-				if positionData.size then
-					cluster:SetSize(positionData.size)
-				end
-			else
-				cluster:Hide()
+			if not cluster and positionData and isUsableBinding then
+				cluster = Clusters:Create(self, binding)
 			end
 
-			cluster:ToggleIcon(not hideIcons)
-			cluster:ToggleModifiers(not hideModifiers)
-			cluster:SetClassicBorders(classicBorders)
+			if cluster then
+				if positionData and isUsableBinding then
+					cluster:Show()
+					cluster:SetPoint(unpack(positionData.point))
+					if positionData.dir then
+						cluster:UpdateOrientation(positionData.dir)
+					end
+					if positionData.size then
+						cluster:SetSize(positionData.size)
+					end
+				else
+					cluster:Hide()
+				end
 
-			if swipeRGB then cluster:SetSwipeColor(unpack(swipeRGB))
-			else cluster:SetSwipeColor(r, g, b, 1) end
+				cluster:ToggleIcon(not hideIcons)
+				cluster:ToggleModifiers(not hideModifiers)
+				cluster:SetClassicBorders(classicBorders)
 
-			if borderRGB then cluster:SetBorderColor(unpack(borderRGB))
-			else cluster:SetBorderColor(1, 1, 1, 1) end
+				if swipeRGB then cluster:SetSwipeColor(unpack(swipeRGB))
+				else cluster:SetSwipeColor(r, g, b, 1) end
 
-			self.Buttons[#self.Buttons + 1] = cluster
+				if borderRGB then cluster:SetBorderColor(unpack(borderRGB))
+				else cluster:SetBorderColor(1, 1, 1, 1) end
+
+				self.Buttons[#self.Buttons + 1] = cluster
+			end
 		end
 	end
 
@@ -260,6 +265,7 @@ function Bar:OnLoad(cfg, benign)
 	self:SetSize(width, BAR_FIXED_HEIGHT)
 end
 
+db:RegisterSafeCallback('Gamepad/Active', function(self) self:OnLoad(env.cfg) end, Bar)
 db:RegisterSafeCallback('OnActionBarConfigChanged', Bar.OnLoad, Bar)
 
 --------------------------

@@ -30,7 +30,7 @@ db:Register('Console', setmetatable({
 			type = Button;
 			name = 'Emulate Esc';
 			desc = 'Button that emulates the Esc key.';
-			note = 'This key can be replaced by binding Toggle Game Menu.';
+			note = 'This key can be replaced by binding Toggle Game Menu. This emulation is not necessary.';
 		};
 		{	cvar = 'GamePadCursorLeftClick';
 			type = Button;
