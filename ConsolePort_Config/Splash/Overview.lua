@@ -202,12 +202,17 @@ function Overview:OnHide()
 	self:UnregisterAllEvents()
 end
 
+function Overview:PlayIntro()
+	self:GetParent().TintAnimation:Play()
+end
+
 function Overview:OnShow()
 	local device = db('Gamepad/Active')
 	if not device then
 		return self:UnregisterAllEvents()
 	end
 
+	self:PlayIntro()
 	self:SetDevice(device)
 	self:ReleaseAll()
 

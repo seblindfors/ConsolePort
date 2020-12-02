@@ -400,6 +400,7 @@ function HANDLE:Create(parent, id)
 		-- store button in the cluster
 		cluster[mod] = button
 		cluster.Buttons[mod] = button
+		-- for modifiers only
 		if hotkeyConfig[mod] then
 			for i, modHotkey in pairs(hotkeyConfig[mod]) do
 				local hotkey = CreateModifierHotkeyFrame(button, i)
@@ -438,6 +439,10 @@ function HANDLE:UpdateAllBindings(bindings)
 			end
 		end
 	end
+end
+
+function HANDLE:UpdateAllHotkeys()
+	-- TODO!
 end
 
 function HANDLE:SetEligbleForRebind(button, modifier)

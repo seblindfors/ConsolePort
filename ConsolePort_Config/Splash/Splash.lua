@@ -65,6 +65,8 @@ function NavBarMixin:OnLoad()
 		end
 	end
 
+	local r, g, b = CPAPI.NormalizeColor(CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB())
+
 	self.Buttons = {self.Home};
 	for i, data in ipairs(Content) do
 		local button = CreateFrame('Button', nil, self, 'CPConfigNavButtonTemplate')
@@ -73,6 +75,9 @@ function NavBarMixin:OnLoad()
 		button:SetWidth(button.text:GetStringWidth() + 40)
 		button:SetScript('OnClick', NavButtonOnClick)
 		button:SetID(i)
+		--button.arrowUp:SetVertexColor(r, g, b)
+		button.arrowUp:SetGradientAlpha('HORIZONTAL', r, g, b, 0.75, r, g, b, 1)
+		button:GetNormalTexture():SetGradientAlpha('HORIZONTAL', r, g, b, 0, r, g, b, 0.75)
 		Content[i].button = button;
 		self.Buttons[#self.Buttons + 1] = button;
 	end
@@ -169,7 +174,7 @@ function Splash:OnFirstShow()
 			_Mixin = NavBarMixin;
 			_Backdrop = CPAPI.Backdrops.Opaque;
 			_Points = {
-				{'TOPLEFT', '$parent', 'BOTTOMLEFT', 0, 34};
+				{'TOPLEFT', '$parent', 'BOTTOMLEFT', 0, 32};
 				{'BOTTOMRIGHT', 0, 0};
 			};
 			{
@@ -222,7 +227,7 @@ function Splash:OnFirstShow()
 			_Mixin = env.OpaqueMixin;
 			_Backdrop = CPAPI.Backdrops.Opaque;
 			_Points = {
-				{'TOPLEFT', 0, 0};
+				{'TOPLEFT', 0, 1};
 				{'BOTTOMRIGHT', '$parent.NavBar', 'TOPRIGHT', 0, 0};
 			};
 			{
@@ -256,6 +261,52 @@ function Splash:OnFirstShow()
 							_Setup = {'OVERLAY'};
 							_Size  = {1024, 512};
 							_Point = {'CENTER', 0, 0};
+						};
+					};
+				};
+				TintTop = {
+					_Type  = 'Texture';
+					_Point = {'TOPRIGHT', 0, 0};
+					_Size  = {720, 400};
+					_Blend = 'ADD';
+					_Alpha = 0.3;
+					_Texture = CPAPI.GetAsset([[Textures\Frame\Tint]]);
+				};
+				TintBottom = {
+					_Type  = 'Texture';
+					_Point = {'BOTTOMLEFT', 0, 0};
+					_Size  = {720, 400};
+					_Blend = 'ADD';
+					_Alpha = 0.15;
+					_Coords = {1, 0, 1, 0};
+					_Texture = CPAPI.GetAsset([[Textures\Frame\Tint]]);
+				};
+				TintAnimation = {
+					_Type = 'AnimationGroup';
+					{
+						Top = {
+							_Type  = 'Animation';
+							_Setup = 'SCALE';
+							_OnLoad = function(self)
+								self:SetChildKey('TintTop');
+								self:SetOrigin('TOPRIGHT', 0, 0);
+								self:SetFromScale(0, 0);
+								self:SetToScale(1, 1);
+								self:SetDuration(3);
+								self:SetSmoothing('OUT');
+							end;
+						};
+						Bottom = {
+							_Type  = 'Animation';
+							_Setup = 'SCALE';
+							_OnLoad = function(self)
+								self:SetChildKey('TintBottom');
+								self:SetOrigin('BOTTOMLEFT', 0, 0);
+								self:SetFromScale(0, 0);
+								self:SetToScale(1, 1);
+								self:SetDuration(3);
+								self:SetSmoothing('OUT');
+							end;
 						};
 					};
 				};

@@ -60,8 +60,10 @@ local function Uninstall()
 		'ConsolePortSettings',
 		'ConsolePortDevices',
 		'ConsolePortUIStack',
+		'ConsolePortShared',
 		-- Saved variables per character
-		'ConsolePortUtility'
+		'ConsolePortUtility',
+		'ConsolePort_BarSetup',
 	}) do _G[var] = nil; end
 	ReloadUI()
 end

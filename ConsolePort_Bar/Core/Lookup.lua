@@ -107,22 +107,27 @@ end
 
 function env:GetDefaultButtonLayout(button)
 	local layout = {
-		PADLSHOULDER = {point = {'LEFT', 456, 56}, dir = 'right', size = 64},
-		PADRSHOULDER = {point = {'RIGHT', -456, 56}, dir = 'left', size = 64},
-		---
-		PADLTRIGGER  = {point = {'LEFT', 396, 16}, dir = 'down', size = 64},
-		PADRTRIGGER  = {point = {'RIGHT', -396, 16}, dir = 'down', size = 64},
-		---
+		---------
 		PADDLEFT 	= {point = {'LEFT', 176, 56}, dir = 'left', size = 64},
 		PADDRIGHT 	= {point = {'LEFT', 306, 56}, dir = 'right', size = 64},
 		PADDUP 	    = {point = {'LEFT', 240, 100}, dir = 'up', size = 64},
 		PADDDOWN 	= {point = {'LEFT', 240, 16}, dir = 'down', size = 64},
-		---
+		---------
 		PAD3 		= {point = {'RIGHT', -306, 56}, dir = 'left', size = 64},
 		PAD2 		= {point = {'RIGHT', -176, 56}, dir = 'right', size = 64},
 		PAD4 		= {point = {'RIGHT', -240, 100}, dir = 'up', size = 64},
 		PAD1 		= {point = {'RIGHT', -240, 16}, dir = 'down', size = 64},
 	}
+
+	local handle = env.db.UIHandle;
+	local T1, T2 = handle:GetUIControlBinding('T1'), handle:GetUIControlBinding('T2')
+	local M1, M2 = handle:GetUIControlBinding('M1'), handle:GetUIControlBinding('M2')
+
+	if M1 then layout[M1] = {point = {'LEFT', 456, 56}, dir = 'right', size = 64} end;
+	if M2 then layout[M2] = {point = {'RIGHT', -456, 56}, dir = 'left', size = 64} end;
+	if T1 then layout[T1] = {point = {'LEFT', 396, 16}, dir = 'down', size = 64} end;
+	if T2 then layout[T2] = {point = {'RIGHT', -396, 16}, dir = 'down', size = 64} end;
+
 	if button ~= nil then
 		return layout[button]
 	else
@@ -130,9 +135,35 @@ function env:GetDefaultButtonLayout(button)
 	end
 end
 
+function env:GetOrthodoxButtonLayout()
+	local layout = {
+		---------
+		PADDRIGHT = {dir = 'right', point = {'LEFT', 330, 9}, size = 64},
+		PADDLEFT = {dir = 'left', point = {'LEFT', 80, 9}, size = 64},
+		PADDDOWN = {dir = 'down', point = {'LEFT', 165, 9}, size = 64},
+		PADDUP = {dir = 'up', point = {'LEFT', 250, 9}, size = 64},
+		---------
+		PAD2 = {dir = 'right', point = {'RIGHT', -80, 9}, size = 64},
+		PAD3 = {dir = 'left', point = {'RIGHT', -330, 9}, size = 64},
+		PAD1 = {dir = 'down', point = {'RIGHT', -250, 9}, size = 64},
+		PAD4 = {dir = 'up', point = {'RIGHT', -165, 9}, size = 64},
+	}
+
+	local handle = env.db.UIHandle;
+	local T1, T2 = handle:GetUIControlBinding('T1'), handle:GetUIControlBinding('T2')
+	local M1, M2 = handle:GetUIControlBinding('M1'), handle:GetUIControlBinding('M2')
+
+	if M1 then layout[M1] = {dir = 'up', point = {'LEFT', 405, 75}, size = 64} end;
+	if M2 then layout[M2] = {dir = 'up', point = {'RIGHT', -405, 75}, size = 64} end;
+	if T1 then layout[T1] = {dir = 'right', point = {'LEFT', 440, 9}, size = 64} end;
+	if T2 then layout[T2] = {dir = 'left', point = {'RIGHT', -440, 9}, size = 64} end;
+
+	return layout;
+end
+
 function env:GetPresets()
 	return {
-		Default = env:GetDefaultSettings(),
+		Default = self:GetDefaultSettings(),
 		Orthodox = {
 			scale = 0.9,
 			width = 1100,
@@ -140,20 +171,7 @@ function env:GetPresets()
 			showline = true,
 			showbuttons = false,
 			lock = true,
-			layout = {
-				PADDRIGHT = {dir = 'right', point = {'LEFT', 330, 9}, size = 64},
-				PADDLEFT = {dir = 'left', point = {'LEFT', 80, 9}, size = 64},
-				PADDDOWN = {dir = 'down', point = {'LEFT', 165, 9}, size = 64},
-				PADDUP = {dir = 'up', point = {'LEFT', 250, 9}, size = 64},
-				PAD2 = {dir = 'right', point = {'RIGHT', -80, 9}, size = 64},
-				PAD3 = {dir = 'left', point = {'RIGHT', -330, 9}, size = 64},
-				PAD1 = {dir = 'down', point = {'RIGHT', -250, 9}, size = 64},
-				PAD4 = {dir = 'up', point = {'RIGHT', -165, 9}, size = 64},
-				PADLSHOULDER = {dir = 'right', point = {'LEFT', 440, 9}, size = 64},
-				PADRSHOULDER = {dir = 'left', point = {'RIGHT', -440, 9}, size = 64},
-				PADLTRIGGER = {dir = 'up', point = {'LEFT', 405, 75}, size = 64},
-				PADRTRIGGER = {dir = 'up', point = {'RIGHT', -405, 75}, size = 64},
-			},
+			layout = self:GetOrthodoxButtonLayout(),
 		},
 		Roleplay = {
 			scale = 0.9,
@@ -163,9 +181,23 @@ function env:GetPresets()
 			showart = true,
 			showbuttons = false,
 			lock = true,
-			layout = env:GetDefaultButtonLayout(),
+			layout = self:GetDefaultButtonLayout(),
 		},
 	}
+end
+
+function env:GetUserPresets()
+	local presets, copy = {}, env.db.table.copy;
+	for character, data in env.db:For('Shared/Data') do
+		if data.Bar and data.Bar.layout then
+			presets[character] = copy(data.Bar)
+		end
+	end
+	return presets;
+end
+
+function env:GetAllPresets()
+	return env.db.table.merge(self:GetPresets(), self:GetUserPresets())
 end
 
 function env:GetRGBColorFor(element, default)

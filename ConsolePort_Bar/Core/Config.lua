@@ -7,12 +7,16 @@ local OPTIONS_WIDTH  = 300;
 local CLUSTER_WIDTH  = 414;
 local CLUSTER_HEIGHT = 80;
 
-function env:SetConfig(cfg, triggerEvent)
+function env:SetConfig(cfg, triggerEvent, saveToShared)
 	self.cfg = cfg;
 	ConsolePort_BarSetup = cfg;
 	if triggerEvent then
 		db:TriggerEvent('OnActionBarConfigChanged', cfg, true)
 	end
+end
+
+function env:SaveConfig(cfg)
+	env.db.Shared:SavePlayerData('Bar', cfg, true)
 end
 
 function env:Get(key)
@@ -68,7 +72,7 @@ function Preset:OnLoad()
 end
 
 function Preset:OnClick()
-	env:SetConfig(db.table.copy(self.preset), true)
+	env:SetConfig(db.table.copy(self.preset), true, true)
 	self:Check()
 end
 
@@ -101,6 +105,9 @@ function Presets:DrawOptions()
 	self:ReleaseAll()
 	local prev;
 	for name, settings in db.table.spairs(env:GetPresets()) do
+		prev = self:DrawPreset(name, settings, prev)
+	end
+	for name, settings in db.table.spairs(env:GetUserPresets()) do
 		prev = self:DrawPreset(name, settings, prev)
 	end
 	self.Child:SetHeight(nil)
@@ -503,6 +510,10 @@ end
 ---------------------------------------------------------------
 -- Panel
 ---------------------------------------------------------------
+function Config:OnHide()
+	env:SaveConfig(env.cfg)
+end
+
 function Config:OnFirstShow()
 	local presets = self:CreateScrollableColumn('Presets', {
 		_Mixin = Presets;
