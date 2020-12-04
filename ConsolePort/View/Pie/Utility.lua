@@ -184,6 +184,7 @@ function Utility:AddSecureAction(set, idx, info)
 		button:SetFrameLevel(idx)
 		button:SetID(idx)
 		button:OnLoad()
+		button:DisableDragNDrop(true)
 		self:SetFrameRef(tostring(idx), button)
 	end
 
@@ -331,13 +332,35 @@ function Utility:IsUniqueAction(setID, info)
 	return true;
 end
 
-function Utility:AnnounceAddition(link, set)
+---------------------------------------------------------------
+-- Announcements
+---------------------------------------------------------------
+Utility.Messages, Utility.MessageCount = {}, 0;
+
+function Utility:AnnounceAddition(link, set, force)
 	local slug = self:GetButtonSlugForSet(set or 'LeftButton')
-	CPAPI.Log('%s was added to your utility ring. Use: %s', link, slug or NOT_BOUND)
+	if self.MessageCount > 10 then
+		wipe(self.Messages)
+		self.MessageCount = 0;
+	end
+	local messageID = self:GetBindingSuffixForSet(set) .. link;
+	local messageIsNew = not self.Messages[messageID]; 
+	if force or messageIsNew then
+		CPAPI.Log('%s was added to your utility ring. Use: %s', link, slug or NOT_BOUND)
+		self.Messages[messageID] = true;
+		if messageIsNew then
+			self.MessageCount = self.MessageCount + 1;
+		end
+	end
 end
 
 function Utility:AnnounceRemoval(link, set)
 	CPAPI.Log('%s was removed from your utility ring.', link)
+	local messageID = self:GetBindingSuffixForSet(set) .. link;
+	if self.Messages[messageID] then
+		self.Messages[messageID] = nil;
+		self.MessageCount = self.MessageCount - 1;
+	end
 end
 
 ---------------------------------------------------------------
@@ -560,7 +583,7 @@ function Utility:CheckCursorInfo(setID)
 				-- TODO: map returns to links
 				self:AnnounceAddition(
 					GetCursorInfo():gsub('^%l', strupper),
-					self:GetBindingSuffixForSet(setID)
+					self:GetBindingSuffixForSet(setID), true
 				);
 				ClearCursor()
 			end
@@ -603,7 +626,7 @@ function Utility:PostPendingAction(preferredIndex)
 	if action then
 		if action.add then
 			if self:AddAction(action.setID, preferredIndex, action.info) then
-				self:AnnounceAddition(action.info.link, self:GetBindingSuffixForSet(action.setID))
+				self:AnnounceAddition(action.info.link, self:GetBindingSuffixForSet(action.setID), true)
 			end
 		else
 			if self:ClearActionByAttribute(action.setID, 'link', action.info.link) then
@@ -652,7 +675,7 @@ end
 function Utility:UPDATE_EXTRA_ACTIONBAR()
 	if self.hasExtraActionButton and HasExtraActionBar() then
 		local link = self:GetLinkFromInfo(GetActionInfo(EXTRA_ACTION_ID))
-		self:AnnounceAddition(link or BINDING_NAME_EXTRAACTIONBUTTON1)
+		self:AnnounceAddition(link or BINDING_NAME_EXTRAACTIONBUTTON1, nil, true)
 	end
 end
 

@@ -5,12 +5,17 @@ local Config = CPAPI.EventHandler(ConsolePortConfig, {
 }); env.Config = Config;
 
 function Config:OnActiveDeviceChanged()
-	local hasActiveDevice = db('Gamepad/Active') and true or false;
-	self.Header:ToggleEnabled(hasActiveDevice)
+	self.hasActiveDevice = db('Gamepad/Active') and true or false;
+	self.Header:ToggleEnabled(self.hasActiveDevice)
+end
+
+function Config:OnUIScaleChanged()
+	self:SetScale(db('UIscale'))
 end
 
 function Config:OnDataLoaded()
 	db:TriggerEvent('OnConfigLoaded', self, env)
+	self:OnUIScaleChanged()
 end
 
 function Config:TryClose()
@@ -64,5 +69,14 @@ function Config:PLAYER_REGEN_ENABLED()
 	end
 end
 
+function Config:OnPanelAdded(panel, header)
+	if not self.hasActiveDevice and header then
+		header:SetEnabled(false)
+		header:SetAlpha(0.5)
+	end
+end
+
+Config:HookScript('OnShow', Config.OnShow)
 Config:SetScript('OnGamePadButtonDown', Config.OnGamePadButtonDown)
 db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)
+db:RegisterCallback('Settings/UIscale', Config.OnUIScaleChanged, Config)

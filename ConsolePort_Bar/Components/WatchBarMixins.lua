@@ -1,4 +1,4 @@
-local _, ab = ...
+local _, env = ...
 ---------------------------------------------------------------
 CPStatusTrackingBarMixin = { } 
 
@@ -252,26 +252,27 @@ function CPExhaustionTickMixin:UpdateTickPosition()
 	local playerMaxXP = UnitXPMax("player")
 	local exhaustionThreshold = GetXPExhaustion()
 	local exhaustionStateID, exhaustionStateName, exhaustionStateMultiplier = GetRestState()
-		
+	local parent = self:GetParent()
+
 	if ( exhaustionStateID and exhaustionStateID >= 3 ) then
-		self:SetPoint("CENTER", self:GetParent() , "RIGHT", 0, 0)
+		self:SetPoint("CENTER", parent , "RIGHT", 0, 0)
 	end
 
 	if ( not exhaustionThreshold ) then
 		self:Hide()
-		self:GetParent().ExhaustionLevelFillBar:Hide()
+		parent.ExhaustionLevelFillBar:Hide()
 	else
-		local exhaustionTickSet = max(((playerCurrXP + exhaustionThreshold) / playerMaxXP) * (self:GetParent():GetWidth()), 0)
+		local exhaustionTickSet = max(((playerCurrXP + exhaustionThreshold) / playerMaxXP) * (parent:GetWidth()), 0)
 		self:ClearAllPoints()
 		
-		if ( exhaustionTickSet > self:GetParent():GetWidth() ) then
+		if ( exhaustionTickSet > parent:GetWidth() ) then
 			self:Hide()
-			self:GetParent().ExhaustionLevelFillBar:Hide()
+			parent.ExhaustionLevelFillBar:Hide()
 		else
 			self:Show()
-			self:SetPoint("CENTER", self:GetParent(), "LEFT", exhaustionTickSet, 2)
-			self:GetParent().ExhaustionLevelFillBar:Show()
-			self:GetParent().ExhaustionLevelFillBar:SetPoint("TOPRIGHT", self:GetParent(), "TOPLEFT", exhaustionTickSet, 0)
+			self:SetPoint("CENTER", parent, "LEFT", exhaustionTickSet, 0)
+			parent.ExhaustionLevelFillBar:Show()
+			parent.ExhaustionLevelFillBar:SetPoint("TOPRIGHT", parent, "TOPLEFT", exhaustionTickSet, 0)
 		end
 	end
 
@@ -283,22 +284,22 @@ end
 
 function CPExhaustionTickMixin:UpdateExhaustionColor()
 	local exhaustionStateID = GetRestState()
+	local parent = self:GetParent()
 	if ( exhaustionStateID == 1 ) then
-		self:GetParent():SetBarColor(0.0, 0.39, 0.88, 1.0)
-		self:GetParent().ExhaustionLevelFillBar:SetVertexColor(0.0, 0.39, 0.88, 0.25)
+		parent.ExhaustionLevelFillBar:SetVertexColor(0.0, 0.39, 0.88, 0.5)
 		self.Highlight:SetVertexColor(0.0, 0.39, 0.88)
 	elseif ( exhaustionStateID == 2 ) then
-		self:GetParent():SetBarColor(ab:GetRGBColorFor('exp'))
-		self:GetParent().ExhaustionLevelFillBar:SetVertexColor(0.58, 0.0, 0.55, 0.25)
+		parent.ExhaustionLevelFillBar:SetVertexColor(0.58, 0.0, 0.55, 0.25)
 		self.Highlight:SetVertexColor(0.58, 0.0, 0.55)
 	end
+	parent:SetBarColor(env:GetRGBColorFor('exp'))
 end
 
 function CPExhaustionTickMixin:OnEvent(event, ...)
 	if (IsRestrictedAccount()) then
 		local rlevel = GetRestrictedAccountData()
 		if (UnitLevel("player") >= rlevel) then
-			self:GetParent():SetBarColor(ab:GetRGBColorFor('exp'))
+			self:GetParent():SetBarColor(env:GetRGBColorFor('exp'))
 			self:Hide()
 			self:GetParent().ExhaustionLevelFillBar:Hide()
 			self:UnregisterAllEvents()	

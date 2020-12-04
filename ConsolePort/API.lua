@@ -53,7 +53,7 @@ end
 ---------------------------------------------------------------
 function ConsolePort:GetFormattedButtonCombination(key, mod)
 	local device = db.Gamepad.Active;
-	if device then
+	if device and key and mod then
 		return db.Hotkeys:GetButtonSlug(device, key, mod)
 	end
 end

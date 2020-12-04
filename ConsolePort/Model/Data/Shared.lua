@@ -1,5 +1,5 @@
 local _, db = ...;
-local Shared = db:Register('Shared', CPAPI.CreateEventHandler({'Frame', '$parentShared', ConsolePort}, {
+local Shared = db:Register('Shared', CPAPI.CreateEventHandler({'Frame', nil, ConsolePort}, {
 	'PLAYER_LOGOUT';
 }, {
 	Data = {};
@@ -52,6 +52,18 @@ function Shared:SavePlayerData(set, newData, unique)
 	end
 	self.Data['<player>'][set] = db.table.copy(newData);
 	return true;
+end
+
+function Shared:SaveData(idx, set, newData, unique)
+	if unique then
+		local cmp = db.table.compare;
+		for owner, data in pairs(self.Data) do
+			if data[set] and cmp(data[set], newData) then
+				return false;
+			end
+		end
+	end
+	self.Data[idx][set] = db.table.copy(newData);
 end
 
 ---------------------------------------------------------------

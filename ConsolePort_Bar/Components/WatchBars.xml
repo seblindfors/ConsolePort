@@ -5,7 +5,7 @@
 	<Frame name="CP_StatusTrackingBarTemplate" frameStrata="MEDIUM" enableMouse="true" hidden="true" virtual="true">
 		<Size x="804" y="11"/>
 		<Frames>
-			<StatusBar parentKey="StatusBar" frameStrata="LOW" drawLayer="BORDER" inherits="AnimatedStatusBarTemplate">
+			<StatusBar parentKey="StatusBar" drawLayer="BORDER" inherits="AnimatedStatusBarTemplate">
 				<Size x="804" y="10"/>
 				<Anchors>
 					<Anchor point="RIGHT" x="0" y="0"/>
@@ -57,19 +57,20 @@
 	<Frame name="CP_ExpStatusBarTemplate" useParentLevel="true" inherits="CP_StatusTrackingBarTemplate" hidden="true" mixin="CPExpBarMixin" virtual="true">
 		<Size x="804" y="11"/>
 		<Layers>
-			<Layer level="ARTWORK" textureSubLevel="-1">
-				<Texture parentKey="ExhaustionLevelFillBar" file="Interface\AddOns\ConsolePortBar\Textures\XPBar">
-					<Size x="0" y="10"/>
+			<Layer level="BACKGROUND" textureSubLevel="-1">
+				<Texture parentKey="ExhaustionLevelFillBar" file="Interface\AddOns\ConsolePort_Bar\Textures\XPBar">
+					<Size x="0" y="14"/>
 					<Anchors>
-						<Anchor point="TOPLEFT"/>
+						<Anchor point="TOPLEFT" y="0"/>
 					</Anchors>
+					<TexCoords left="0" right="0.75" top="1" bottom="0"/>
 					<Color r="1.0" g="1.0" b="1.0" a="1.0"/>
 				</Texture>
 			</Layer>
 		</Layers>
 		<Frames>
 			<Button parentKey="ExhaustionTick" hidden="true" frameStrata="HIGH" mixin="CPExhaustionTickMixin">
-				<Size x="32" y="32"/>
+				<Size x="32" y="40"/>
 				<Anchors>
 					<Anchor point="CENTER" relativeKey="$parent.ExhaustionLevelFillBar" relativePoint="RIGHT"/>
 				</Anchors>
@@ -78,6 +79,19 @@
 					<OnEvent method="OnEvent"/>
 					<OnEnter method="ExhaustionToolTipText"/>
 					<OnLeave function="GameTooltip_Hide"/>
+				</Scripts>
+				<NormalTexture parentKey="Normal" file="Interface\MainMenuBar\UI-ExhaustionTickNormal"/>
+				<HighlightTexture parentKey="Highlight" file="Interface\MainMenuBar\UI-ExhaustionTickHighlight" alphaMode="ADD"/>
+			</Button>
+			<Button parentKey="CurrentXPTick" frameStrata="HIGH">
+				<Size x="32" y="40"/>
+				<Anchors>
+					<Anchor point="CENTER" relativeKey="$parent.StatusBar.BarTexture" relativePoint="RIGHT"/>
+				</Anchors>
+				<Scripts>
+					<OnEnter>
+						CPExhaustionTickMixin.ExhaustionToolTipText()
+					</OnEnter>
 				</Scripts>
 				<NormalTexture parentKey="Normal" file="Interface\MainMenuBar\UI-ExhaustionTickNormal"/>
 				<HighlightTexture parentKey="Highlight" file="Interface\MainMenuBar\UI-ExhaustionTickHighlight" alphaMode="ADD"/>

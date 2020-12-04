@@ -2,7 +2,7 @@ local addOn, env = ...;
 ---------------------------------------------------------------
 local Bar, Lib, db = env.bar, env.libs.button, env.db;
 ---------------------------------------------------------------
-local FadeIn = db.Alpha.FadeIn;
+local FadeIn, FadeOut = db.Alpha.FadeIn, db.Alpha.FadeOut;
 ---------------------------------------------------------------
 local Pet = CreateFrame('Button', '$parentPet', Bar, 'SecureActionButtonTemplate, SecureHandlerBaseTemplate, SecureHandlerStateTemplate')
 local Button = {}
@@ -24,7 +24,7 @@ Pet:RegisterForDrag('LeftButton')
 Pet:SetScript('OnDragStart', Pet.StartMoving)
 Pet:SetScript('OnDragStop', Pet.StopMovingOrSizing)
 Pet:SetPoint('TOPRIGHT', 0, 50)
-Pet:SetSize(64, 64)
+Pet:SetSize(70, 70)
 
 for _, event in pairs({
 	'PET_BAR_UPDATE_COOLDOWN',
@@ -48,20 +48,53 @@ Pet.Portrait = Pet:CreateTexture(nil, 'ARTWORK')
 Pet.Shadow = Pet:CreateTexture(nil, 'ARTWORK')
 Pet.Border = Pet:CreateTexture(nil, 'OVERLAY')
 
-Pet.Portrait:SetAllPoints()
-Pet.Border:SetAllPoints()
-Pet.Shadow:SetPoint('CENTER', 0, -5)
-
-Pet.Border:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\BigNormal')
+Pet.Portrait:SetPoint('TOPLEFT', 2, -2)
+Pet.Portrait:SetPoint('BOTTOMRIGHT', -2, 2)
 Pet.Portrait:SetMask('Interface\\Minimap\\UI-Minimap-Background')
 
+Pet.Shadow:SetPoint('CENTER', 0, -5)
 Pet.Shadow:SetSize(82, 82)
 Pet.Shadow:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\BigShadow')
 Pet.Shadow:SetAlpha(0.75)
 
+Pet.Border:SetAllPoints()
+Pet.Border:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\BigNormal')
+
+Pet.Ring = CreateFrame('Frame', nil, Pet)
+Pet.Ring:SetFrameLevel(3)
+Pet.Ring:SetPoint('TOPLEFT', -48, 48)
+Pet.Ring:SetPoint('BOTTOMRIGHT', 48, -48)
+Pet.Ring.Texture = Pet.Ring:CreateTexture(nil, 'OVERLAY')
+Pet.Ring.Texture:SetAllPoints()
+Pet.Ring.Texture:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\PetRing')
+Pet.Ring.Texture:SetRotation(rad(18))
+Pet.Ring.Mask = Pet.Ring:CreateMaskTexture()
+Pet.Ring.Mask:SetAllPoints()
+Pet.Ring.Mask:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\PetRingMask')
+
 RegisterStateDriver(Pet, 'visibility', '[pet] show; hide')
 
+
+function Pet:FadeIn()
+	for i, button in ipairs(self.Buttons) do
+		FadeIn(button, 0.2, button:GetAlpha(), 1)
+	end
+	FadeIn(self.Ring, 0.2, self.Ring:GetAlpha(), 1)
+	self.isOpaque = true;
+end
+
+function Pet:FadeOut()
+	for i, button in ipairs(self.Buttons) do
+		if not button.onCooldown then
+			FadeOut(button, 0.2, button:GetAlpha(), 0)
+		end
+	end
+	FadeOut(self.Ring, 0.2, self.Ring:GetAlpha(), 0)
+	self.isOpaque = false;
+end
+
 function Button:OnEnter()
+	self:GetParent():FadeIn()
 	if ( not self.tooltipName ) then
 		return
 	end
@@ -86,6 +119,10 @@ function Button:OnEnter()
 	end
 end
 
+function Button:OnLeave()
+	self:GetParent():FadeOut()
+end
+
 function Button:StartFlash()
 	self.flashing = true
 	self.flashtime = 0
@@ -104,13 +141,22 @@ end
 
 
 do 
-	local RADIAN_FRACTION = rad( 360 / (NUM_PET_ACTION_SLOTS - 2) )
+	local RADIAN_FRACTION = rad( 360 / (NUM_PET_ACTION_SLOTS) )
 	local Mixin = db.table.mixin
 	local BUTTON_SIZE = 40
 
+	local function OnCooldownDone(self)
+		local button = self:GetParent()
+		button.onCooldown = nil;
+		button:SetChecked(false)
+		if not Pet.isOpaque then
+			FadeOut(button, 0.1, button:GetAlpha(), 0)
+		end
+	end
+
 	for i=1, NUM_PET_ACTION_SLOTS do
-		local x, y, r = 0, 0, 60 -- xOffset, yOffset, radius
-		local angle = (i+3) * RADIAN_FRACTION
+		local x, y, r = 0, 0, 68 -- xOffset, yOffset, radius
+		local angle = (i-4) * RADIAN_FRACTION
 		local ptx, pty = x + r * math.cos( angle ), y + r * math.sin( angle )
 
 		local name = addOn..'Pet'..i
@@ -120,6 +166,7 @@ do
 		button:SetAttribute('action', i)
 		button:SetID(i)
 		button:SetScript('OnEnter', nil)
+		button.textureRotation = rad(270) - angle;
 		button.HotKey:SetAlpha(0)
 
 		Mixin(button, CPActionButtonMixin)
@@ -131,12 +178,13 @@ do
 
 		button.Flash:SetMask('Interface\\Minimap\\UI-Minimap-Background')
 		button.Flash:SetAlpha(0.25)
-		button.icon:SetMask('Interface\\Minimap\\UI-Minimap-Background')
+		button.icon:AddMaskTexture(Pet.Ring.Mask)
 		button.icon:SetAllPoints()
 
+		button.AutoCastable:SetRotation(button.textureRotation)
 		button.AutoCastable:Hide()
 
-		button.NormalTexture:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\PetNormal')
+		button.NormalTexture:SetTexture(nil)--'Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\Pet10')
 		button.NormalTexture:ClearAllPoints()
 		button.NormalTexture:SetPoint('CENTER', 0, 0)
 
@@ -144,33 +192,35 @@ do
 		button.HighlightTexture = button:GetHighlightTexture()
 		button.CheckedTexture = button:GetCheckedTexture()
 
-		button.PushedTexture:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\PetPushed')
-		button.PushedTexture:ClearAllPoints()
-		button.PushedTexture:SetPoint('CENTER', 0, 0)
+		button.PushedTexture:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\Pet10Pushed')
+		button.PushedTexture:SetPoint('TOPLEFT', -6, 6)
+		button.PushedTexture:SetPoint('BOTTOMRIGHT', 6, -6)
+		button.PushedTexture:SetRotation(button.textureRotation)
 
-		button.HighlightTexture:SetTexture('Interface\\AddOns\\ConsolePort\\Assets\\Textures\\Button\\Hilite')
-		button.HighlightTexture:SetAllPoints()
+		button.HighlightTexture:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\Pet10Hilite')
+		button.HighlightTexture:SetPoint('TOPLEFT', -6, 6)
+		button.HighlightTexture:SetPoint('BOTTOMRIGHT', 6, -6)
+		button.HighlightTexture:SetRotation(button.textureRotation)
 
-		button.CheckedTexture:SetTexture('Interface\\AddOns\\ConsolePort\\Assets\\Textures\\Button\\Hilite')
-		button.CheckedTexture:SetAllPoints()
+		button.CheckedTexture:SetTexture('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\Pet10Checked')
+		button.CheckedTexture:SetPoint('TOPLEFT', -6, 6)
+		button.CheckedTexture:SetPoint('BOTTOMRIGHT', 6, -6)
+		button.CheckedTexture:SetRotation(button.textureRotation)
 
-		button.cooldown:SetSwipeTexture('Interface\\AddOns\\ConsolePort\\Assets\\Textures\\Button\\Normal')
-		button.cooldown:SetBlingTexture('Interface\\AddOns\\ConsolePort\\Assets\\Textures\\Button\\Bling')
+		button.cooldown:SetDrawSwipe(false)
+		button.cooldown:SetDrawBling(false)
+		button.cooldown:SetHideCountdownNumbers(false)
+		button.cooldown:SetScript('OnCooldownDone', OnCooldownDone)
 
 		Mixin(button, Button)
 
-		if i > 2 then
-			button:SetPoint('CENTER', ptx, -pty -8)
-			button:SetSize(BUTTON_SIZE, BUTTON_SIZE)
-		else
-			button:SetPoint(i == 1 and 'BOTTOMLEFT' or 'BOTTOMRIGHT', i == 1 and 4 or -4, -12)
-			button:SetSize(28, 28)
-		end
-
-
+		button:SetPoint('CENTER', ptx, -pty)
+		button:SetSize(BUTTON_SIZE, BUTTON_SIZE)
 		Pet.Buttons[i] = button
 	end
 end
+
+Pet:FadeOut()
 
 Pet:HookScript('OnShow', function(self)
 	self:Update()
@@ -180,11 +230,13 @@ end)
 
 Pet:HookScript('OnEnter', function(self)
 	UnitFrame_UpdateTooltip(self)
+	self:FadeIn()
 end)
 
 Pet:HookScript('OnLeave', function(self)
 	self.UpdateTooltip = nil
 	GameTooltip:Hide()
+	self:FadeOut()
 end)
 
 Pet:SetScript('OnEvent', function(self, event, ...)
@@ -217,6 +269,7 @@ function Pet:Update()
 			petActionButton:SetIcon(_G[texture])
 			petActionButton.tooltipName = _G[name]
 		end
+		petActionButton.icon:SetRotation(petActionButton.textureRotation)
 		petActionButton.isToken = isToken
 		if ( isActive ) then
 			if ( IsPetAttackAction(i) ) then
@@ -238,7 +291,7 @@ function Pet:Update()
 		-- 	petAutoCastableTexture:Hide()
 		-- end
 		if ( autoCastEnabled ) then
-			AutoCastShine_AutoCastStart(petAutoCastShine)
+			AutoCastShine_AutoCastStart(petAutoCastShine, CPAPI.GetClassColor())
 		else
 			AutoCastShine_AutoCastStop(petAutoCastShine)
 		end
@@ -254,11 +307,18 @@ function Pet:Update()
 end
 
 function Pet:UpdateCooldowns()
+	local time = GetTime()
 	for i=1, NUM_PET_ACTION_SLOTS, 1 do
 		local button = Pet.Buttons[i]
 		local cooldown = button.cooldown
 		local start, duration, enable = GetPetActionCooldown(i)
 		CooldownFrame_Set(cooldown, start, duration, enable)
+
+		if (time < start + duration) then
+			button.onCooldown = true;
+			button:SetChecked(true)
+			FadeIn(button, 0.1, button:GetAlpha(), 1)
+		end
 		
 		-- Update tooltip
 		if ( GameTooltip:GetOwner() == button ) then
@@ -267,196 +327,28 @@ function Pet:UpdateCooldowns()
 	end
 end
 
-function Pet:OnControlPet(hasControl)
-	if hasControl then
-		self.Buttons[1].HotkeyIcon:Show()
-		self.Buttons[2].HotkeyIcon:Show()
-	else
-
-		self.Buttons[1].HotkeyIcon:Hide()
-		self.Buttons[2].HotkeyIcon:Hide()
-	end
-end 
-
-do -- Wheel setup
+do
 	Pet:Execute([[
-		Bar = self
 		---------------------------------------------------------------
 		TARGET_PET = 'LeftButton'
 		TOGGLE_MENU = 'RightButton'
-		CONTROL_PET = 'MiddleButton'
 		---------------------------------------------------------------
-		BUTTONS = newtable()
-		---------------------------------------------------------------
-		KEYS = newtable()
-		BINDINGS = newtable()
-		---------------------------------------------------------------
-		INDEX = 0
-		---------------------------------------------------------------
-		KEYS.UP 	= false		KEYS.W 		= false
-		KEYS.LEFT 	= false		KEYS.A 		= false
-		KEYS.DOWN 	= false		KEYS.S 		= false
-		KEYS.RIGHT 	= false		KEYS.D 		= false
-		---------------------------------------------------------------
-		OnKey = [=[
-			if self:IsVisible() then
-				local key, down = ...
-				-----------------------------
-				if BUTTON then
-					BUTTON:SetWidth(40)
-					BUTTON:SetHeight(40)
-				end
-				-----------------------------
-				if down then
-					if key == 'UP' then
-						KEYS.DOWN = false
-						KEYS.UP = true
-					elseif key == 'DOWN' then
-						KEYS.UP = false
-						KEYS.DOWN = true
-					elseif key == 'LEFT' then
-						KEYS.RIGHT = false
-						KEYS.LEFT = true
-					elseif key == 'RIGHT' then
-						KEYS.LEFT = false
-						KEYS.RIGHT = true
-					end
-				else
-					KEYS[key] = false
-				end
-				-----------------------------
-				INDEX = 
-					( KEYS.UP and KEYS.RIGHT 	) and 2 or -- Up/right
-					( KEYS.DOWN and KEYS.RIGHT 	) and 4 or -- Down/right
-					( KEYS.DOWN and KEYS.LEFT 	) and 6 or -- Down/left
-					( KEYS.UP and KEYS.LEFT 	) and 8 or -- Up/left
-					( KEYS.UP 					) and 1 or -- Up
-					( KEYS.RIGHT 				) and 3 or -- Right
-					( KEYS.DOWN 				) and 5 or -- Down
-					( KEYS.LEFT 				) and 7 or 0 -- Left || none
-				-----------------------------
-				self:SetAttribute('index', INDEX)
-				BUTTON = BUTTONS[INDEX]
-				if BUTTON then
-					BUTTON:SetWidth(50)
-					BUTTON:SetHeight(50)
-				end
-				-----------------------------
-			end
-		]=]
-		SetBindingClick = [=[
-			local binding, owner, ID = ...
-			self:SetBindingClick(true, binding, owner, ID)
-			self:SetBindingClick(true, 'CTRL-'..binding, owner, ID)
-			self:SetBindingClick(true, 'SHIFT-'..binding, owner, ID)
-			self:SetBindingClick(true, 'CTRL-SHIFT-'..binding, owner, ID)
-		]=]
 	]])
 
 	Pet:WrapScript(Pet, 'PreClick', [[
 		self:SetAttribute('type', nil)
 
 		-- Target pet on regular click
-		-----------------------------
 		if button == TARGET_PET then
 			if not down then
 				self:SetAttribute('type', 'target')
 			end
-		-----------------------------
 
 		-- Show unit menu on right click
-		-----------------------------	
 		elseif button == TOGGLE_MENU then
 			if not down then
 				self:SetAttribute('type', 'togglemenu')
 			end
-		-----------------------------
-
-		-- Pet control
-		-----------------------------
-		elseif button == CONTROL_PET then
-			-----------------------------
-			-- Enable
-			-----------------------------
-			if down then
-				for binding, keyID in pairs(BINDINGS) do
-					self:Run(SetBindingClick, binding, self:GetFrameRef(keyID):GetName(), 'MiddleButton')
-				end
-
-				-- Attack / follow buttons
-				-----------------------------
-				local key1 = GetBindingKey('CP_T1')
-				local key2 = GetBindingKey('CP_T2')
-
-				if key1 then self:Run(SetBindingClick, key1, 'ConsolePortBarPet1', 'LeftButton') end
-				if key2 then self:Run(SetBindingClick, key2, 'ConsolePortBarPet2', 'LeftButton') end
-				-----------------------------
-
-				-- Signal the insecure changes
-				self:CallMethod('OnControlPet', true)
-			-----------------------------
-			-- Disable
-			-----------------------------
-			else
-				if BUTTON then
-					self:SetAttribute('type', 'macro')
-					self:SetAttribute('macrotext', ('/click %s'):format(BUTTON:GetName()))
-					BUTTON:SetWidth(40)
-					BUTTON:SetHeight(40)
-					BUTTON = nil
-				end
-				self:ClearBindings()
-				self:CallMethod('OnControlPet', false)
-			end
 		end
 	]])
-
-	Pet:WrapScript(Pet, 'OnHide', [[
-		self:ClearBindings()
-	]])
-
-	-- Set these buttons to handle the input for the ring.
-	local actionButtons = {
-		[Pet.Buttons[3]] = 'UP',
-		[Pet.Buttons[5]] = 'RIGHT',
-		[Pet.Buttons[7]] = 'DOWN',
-		[Pet.Buttons[9]] = 'LEFT',
-	}
-
-	for button, keyID in pairs(actionButtons) do
-		button:SetAttribute('keyID', keyID)
-		Pet:SetFrameRef(keyID, button)
-		Pet:WrapScript(button, 'PreClick', [[
-			self:SetAttribute('type', nil)
-			if button == 'LeftButton' or button == 'RightButton' then
-				self:SetAttribute('type', 'pet')
-			else
-				Bar:Run(OnKey, self:GetAttribute('keyID'), down)
-			end
-		]])
-	end
-
-	-- Define the inputs to control the pet ring
-	local buttons = {
-		['UP'] 		= {'W', 'UP'},
-		['LEFT'] 	= {'A', 'LEFT'},
-		['DOWN'] 	= {'S', 'DOWN'},
-		['RIGHT'] 	= {'D', 'RIGHT'},
-	}
-
-	for direction, keys in pairs(buttons) do
-		for _, key in pairs(keys) do
-			Pet:Execute(format([[
-				BINDINGS.%s = '%s'
-			]], key, direction))
-		end
-	end
-
-	-- Reference buttons 3-10 so they can be used like the utility ring
-	for i=3, NUM_PET_ACTION_SLOTS do
-		Pet:SetFrameRef('button', Pet.Buttons[i])
-		Pet:Execute(format([[
-			BUTTONS[%d] = self:GetFrameRef('button')
-		]], i-2))
-	end
 end

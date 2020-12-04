@@ -23,20 +23,39 @@ Bar:Execute([[
 	cursor = self:GetFrameRef('Cursor')
 ]])
 
-function Bar:FadeIn(alpha)
-	db.Alpha.FadeIn(self, .25, alpha or 0, 1)
+-- Opacity handling
+---------------------------------------------------------------
+function Bar:FadeIn(alpha, time)
+	if self.forceFadeOut then return end;
+	db.Alpha.FadeIn(self, time or .25, alpha or 0, 1)
 end
 
-function Bar:FadeOut(alpha)
-	db.Alpha.FadeOut(self, 1, alpha or 1, 0)
+function Bar:FadeOut(alpha, time)
+	db.Alpha.FadeOut(self, time or 1, alpha or 1, 0)
 end
 
+db:RegisterCallback('OnHintsClear', function(self)
+	self.forceFadeOut = false;
+	if not env:Get('hidebar') or InCombatLockdown() then
+		self:FadeIn(self:GetAlpha())
+	end
+end, Bar)
+
+db:RegisterCallback('OnHintsFocus', function(self)
+	self.forceFadeOut = true;
+	self:FadeOut(self:GetAlpha(), .1)
+end, Bar)
+
+-- Global movement
+---------------------------------------------------------------
 function Bar:ToggleMovable(enableMouseDrag, enableMouseWheel)
 	self:RegisterForDrag(enableMouseDrag and 'LeftButton')
 	self:EnableMouse(enableMouseDrag)
 	self:EnableMouseWheel(enableMouseWheel)
 end
 
+-- Override bindings
+---------------------------------------------------------------
 function Bar:UnregisterOverrides()
 	self:Execute([[
 		bindings = wipe(bindings)
@@ -71,6 +90,8 @@ end
 env.db:RegisterSafeCallback('OnNewBindings', Bar.OnNewBindings, Bar)
 env.db.Pager:RegisterHeader(Bar, true)
 
+-- Event handler
+---------------------------------------------------------------
 function Bar:OnEvent(event, ...)
 	if self[event] then
 		self[event](self, ...)
@@ -97,6 +118,8 @@ function Bar:ADDON_LOADED(name)
 	end
 end
 
+-- Script handlers
+---------------------------------------------------------------
 function Bar:OnMouseWheel(delta)
 	if not InCombatLockdown() then
 		local cfg = env.cfg
@@ -117,6 +140,7 @@ function Bar:OnLoad(cfg, benign)
 	env:SetConfig(cfg, false)
 	self:SetScale(Clamp(cfg.scale or 1, 0.1, BAR_MAX_SCALE))
 
+	-- Fade out of combat
 	self:SetAttribute('hidesafe', cfg.hidebar)
 	if cfg.hidebar then
 		self:RegisterEvent('PLAYER_REGEN_ENABLED')
@@ -169,6 +193,9 @@ function Bar:OnLoad(cfg, benign)
 		self.BG:SetGradientAlpha(env:GetColorGradient(r, g, b))
 		self.BottomLine:SetVertexColor(r, g, b, 1)
 	end
+
+	-- Show 'the eye'
+	self.Eye:SetShown(cfg.eye)
 
 	-- Lock/unlock pet ring
 	self.Pet:RegisterForDrag(not cfg.lockpet and 'LeftButton')
@@ -235,17 +262,14 @@ function Bar:OnLoad(cfg, benign)
 
 	-- Don't run this when updating simple cvars
 	if not benign then
-		Clusters:UpdateAllBindings()
-		self:Hide()
-		self:SetShown(not cfg.hidebar)
-
-		self:SetAttribute('disableCastOnRelease', cfg.disablecastonrelease)
+		Clusters:UpdateAllBindings(db.Gamepad:GetBindings())
+		self:UpdateOverrides()
 		self:SetAttribute('page', 1)
-		self:Execute(format([[
-			disableCastOnRelease = self:GetAttribute('disableCastOnRelease')
-			control:ChildUpdate('state', '')
-			self:RunAttribute('_onstate-page', '%s')
-		]], now or 1))
+		-- states have been reparsed, set back to current state
+		self:Execute([[
+			control:ChildUpdate('state', self:GetAttribute('state'))
+			self:RunAttribute('_onstate-page', self:GetAttribute('actionpage'))
+		]])
 	end
 
 	-- Always show modifiers
@@ -317,10 +341,13 @@ for _, event in ipairs({
 	'PLAYER_TALENT_UPDATE',
 }) do pcall(Bar.RegisterEvent, Bar, event) end
 
-Bar.ignoreNode = true
+-- Registry
+---------------------------------------------------------------
 Bar.Buttons = {}
 Bar.Elements = {}
-Bar.isForbidden = true
+
+-- State drivers
+---------------------------------------------------------------
 RegisterStateDriver(Bar, 'page', state)
 RegisterStateDriver(Bar, 'modifier',
 	'[mod:alt,mod:ctrl,mod:shift] ALT-CTRL-SHIFT-;' ..

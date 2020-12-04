@@ -164,9 +164,10 @@ local Number = CreateWidget('Number', Widget, {
 			self:GetParent():OnEnter()
 		end;
 		_OnTextChanged = function(self, byInput)
+			self:SetBackdropColor(COLOR_NORMAL:GetRGBA())
 			local widget = self:GetParent()
 			if byInput then
-				self:GetParent():FormatText(self:GetText())
+				self:GetParent():PreformatText(self:GetText())
 			end
 		end;
 		_OnEnterPressed = function(self)
@@ -190,13 +191,20 @@ local Number = CreateWidget('Number', Widget, {
 	};
 })
 
-function Number:FormatText(text)
+function Number:PreformatText(text)
 	local text, reps = text:gsub('%-', '')
-	if (text == '') then
-		return;
+	if (reps > 0) then
+		text = '-' .. text;
+		self.Input:SetText(text)
 	end
+	if (text == '') or tonumber(text) then
+		return;
+	end -- set redish background to indicate failure
+	self.Input:SetBackdropColor(1, 0, 0, 0.35)
+end
 
-	local value = tonumber((reps > 0 and '-' or '') .. text)
+function Number:FormatText(text)
+	local value = tonumber(text)
 	if not value or (not self:GetSigned() and value < 0) then
 		self.Input:SetText(self:Get())
 	elseif self.Input:HasFocus() then
@@ -502,18 +510,23 @@ function Color:OnClick(button)
 		local color, swatch, opacity = ColorPickerFrame, ColorSwatch, OpacitySliderFrame;
 
 		local function OnColorChanged()
-			local r, g, b = color:GetColorRGB()
-			local a = opacity:GetValue()
-			self:Set(r, g, b, 1 - a)
-			self:OnValueChanged(self:Get())
+			if (color.owner == self) then
+				local r, g, b = color:GetColorRGB()
+				local a = opacity:GetValue()
+				self:Set(r, g, b, 1 - a)
+				self:OnValueChanged(self:Get())
+			end
 		end
 
 		local function OnColorCancel(oldColor)
-			self:Set(unpack(oldColor))
-			self:OnValueChanged(self:Get())
+			if (color.owner == self) then
+				self:Set(unpack(oldColor))
+				self:OnValueChanged(self:Get())
+			end
 		end
 
 		local r, g, b, a = self:GetRGBA(self:Get())
+		color:Hide()
 		color:SetColorRGB(r, g, b, a)
 		color.hasOpacity = true;
 		color.opacity = 1 - (a or 0);
@@ -521,7 +534,7 @@ function Color:OnClick(button)
 		color.func = OnColorChanged;
 		color.cancelFunc = OnColorCancel;
 		color.opacityFunc = OnColorChanged;
-		color:Hide()
+		color.owner = self;
 		color:Show()
 		swatch:SetColorTexture(r, g, b)
 	end
@@ -529,9 +542,7 @@ end
 
 function Color:Set(r, g, b, a)
 	if self:IsHex() then
-		Widget.Set(self, ('%.2x%.2x%.2x%.2x'):format(
-			a * 255, r * 255, g * 255, b * 255
-		))
+		Widget.Set(self, ('%.2x%.2x%.2x%.2x'):format(a * 255, r * 255, g * 255, b * 255))
 	else
 		Widget.Set(self, r, g, b, a)
 	end
@@ -548,3 +559,5 @@ end
 function Color:OnValueChanged(...)
 	self.Color:SetColorTexture(self:GetRGBA(...))
 end
+
+ColorPickerFrame:HookScript('OnHide', function(self) self.owner = nil; end)

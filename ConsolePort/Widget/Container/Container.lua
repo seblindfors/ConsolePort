@@ -100,6 +100,7 @@ function CPContainerMixin:OnContainerLoad()
 						{'BOTTOMRIGHT', -(headerHeight * 1.1), 0};
 					};
 					_OnLoad = function(self)
+						self.GetVerticalScrollRange = function() return 0 end;
 						self.Child:SetHeight(self:GetParent():GetHeight())
 						self.Child.Pool = self:GetParent():CreateFramePool('IndexButton',
 							'CPContainerHeaderButtonTemplate', {}, nil, self.Child);
@@ -221,6 +222,9 @@ function CPContainerMixin:CreatePanel(data)
 	Mixin(panel, data)
 	if panel.OnLoad then
 		panel:OnLoad()
+	end
+	if self.OnPanelAdded then
+		self:OnPanelAdded(panel, header)
 	end
 	return panel, header;
 end

@@ -447,7 +447,7 @@ end
 
 function HANDLE:SetEligbleForRebind(button, modifier)
 	local emulation = db.Console:GetEmulationForButton(button.plainID)
-	button:SetAttribute('disableDragNDrop', true)
+	button:SetAttribute(('dnd-%s'):format(modifier), true)
 	button:SetState(modifier, 'custom', {
 		tooltip = emulation and ('|cFFFFFFFF%s|r\n%s'):format(emulation.name, emulation.desc) or NOT_BOUND,
 		texture = db('Icons/64/'..button.plainID) or [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
@@ -455,8 +455,8 @@ function HANDLE:SetEligbleForRebind(button, modifier)
 	})
 end
 
-function HANDLE:SetXMLBinding(button, binding)
-	button:SetAttribute('disableDragNDrop', true)
+function HANDLE:SetXMLBinding(button, modifier, binding)
+	button:SetAttribute(('dnd-%s'):format(modifier), true)
 	return 'custom', {
 		tooltip = _G['BINDING_NAME_'..binding] or binding,
 		texture = env:GetBindingIcon(binding) or
@@ -468,7 +468,7 @@ end
 
 function HANDLE:SetActionBinding(button, main, modifier, actionID)
 	env.bar:RegisterOverride(modifier..button.plainID, main:GetName())
-	button:SetAttribute('disableDragNDrop', (env.cfg and env.cfg.disablednd and true) or false)
+	button:SetAttribute(('dnd-%s'):format(modifier), env:Get('disablednd'))
 	return 'action', actionID
 end
 
@@ -478,7 +478,7 @@ function HANDLE:RefreshBinding(binding, cluster, button, modifier, main)
 	if actionID then
 		stateType, stateID = self:SetActionBinding(button, main, modifier, actionID)
 	elseif binding then
-		stateType, stateID = self:SetXMLBinding(button, binding)
+		stateType, stateID = self:SetXMLBinding(button, modifier, binding)
 	else
 		self:SetEligbleForRebind(button, modifier)
 	end

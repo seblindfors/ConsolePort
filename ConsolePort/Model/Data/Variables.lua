@@ -245,13 +245,22 @@ db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
 	autoExtra = {Bool(true);
 		head = ACCESSIBILITY_LABEL;
+		sort = 1;
 		name = 'Automatically Bind Extra Items';
 		desc = 'Automatically add tracked quest items and extra spells to main utility ring.';
 	};
 	autoSellJunk = {Bool(true);
 		head = ACCESSIBILITY_LABEL;
+		sort = 2;
 		name = 'Automatically Sell Junk';
 		desc = 'Automatically sell junk when interacting with a merchant.';
+	};
+	UIscale = {Number(1, 0.025, true);
+		head = ACCESSIBILITY_LABEL;
+		sort = 3;
+		name = 'Global Scale';
+		desc = 'Scale of most ConsolePort frames, relative to UI scale.';
+		note = 'Action bar is scaled separately.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Advanced:

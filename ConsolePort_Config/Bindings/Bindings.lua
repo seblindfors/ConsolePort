@@ -18,6 +18,7 @@ function BindingsMixin:Validate()
 		return true -- panel was never opened
 	end
 	if not db.table.compare(self.snapshot, db.Gamepad:GetBindings()) then
+		self.snapshot = nil;
 		return false, self.SaveBindings;
 	end
 	return true

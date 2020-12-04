@@ -291,7 +291,12 @@ end
 
 setmetatable(Lib, {
     __index = API;
-    __call = Lib.CreateFrame;
+    __call = function(self, arg1, ...)
+        if IsWidget(arg1) then
+            return self:BuildFrame(arg1, ...)
+        end
+        return self:CreateFrame(arg1, ...)
+    end;
 })
 
 --------------------------------------------------------------------------

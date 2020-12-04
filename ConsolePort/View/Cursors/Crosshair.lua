@@ -1,10 +1,10 @@
 local _, db = ...;
 local Crosshair = CPAPI.EventHandler(ConsolePortCrosshair)
-local CVAR_CENTER = 'GamePadCursorCentering';
 
 ---------------------------------------------------------------
 -- Predicates
 ---------------------------------------------------------------
+local CVAR_CENTER    = 'GamePadCursorCentering';
 local GetCVarBool    = GetCVarBool;
 local GamePadControl = IsGamePadFreelookEnabled;
 local CursorControl  = IsGamePadCursorControlEnabled;

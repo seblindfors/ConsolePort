@@ -231,7 +231,7 @@ function Splash:OnFirstShow()
 				{'BOTTOMRIGHT', '$parent.NavBar', 'TOPRIGHT', 0, 0};
 			};
 			{
-				Backdrop = {
+				FX = {
 					_Type = 'PlayerModel';
 					_Fill = true;
 					_Alpha = 0.25;

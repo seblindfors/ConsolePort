@@ -53,9 +53,24 @@ CPHintBarMixin = {}
 
 function CPHintBarMixin:OnLoad()
 	self.Hints = {}
+	self:SetAlpha(0)
 	self:SetParent(UIParent)
 	self:SetIgnoreParentAlpha(true)
 	self:SetFrameStrata('FULLSCREEN_DIALOG')
+	db:RegisterCallback('Settings/UIscale', self.SetScale, self)
+end
+
+function CPHintBarMixin:Show()
+	self:SetScale(db('UIscale'))
+	getmetatable(self).__index.Show(self)
+	db.Alpha.FadeIn(self, 0.1, self:GetAlpha(), 1)
+end
+
+function CPHintBarMixin:Hide()
+	db.Alpha.FadeOut(self, 0.1, self:GetAlpha(), 0, {
+		finishedFunc = getmetatable(self).__index.Hide;
+		finishedArg1 = self;
+	})
 end
 
 function CPHintBarMixin:AdjustWidth(newWidth)

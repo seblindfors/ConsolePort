@@ -234,7 +234,7 @@ function env:GetDefaultSettings()
 		showline = true,
 		lock = true,
 		flashart = true,
-		quickMenu = true,
+		eye = true,
 		showbuttons = false,
 		layout = env:GetDefaultButtonLayout()
 	}
@@ -299,9 +299,10 @@ function env:GetBooleanSettings() return {
 	};
 	---------------------------------------
 	{	name = 'Display' };
-	{	name = 'Show quick menu';
-		cvar = 'quickMenu';
-		desc = 'Shows a tiny quick menu to swap cluster visibility.';
+	{	name = 'The Eye';
+		cvar = 'eye';
+		desc = 'Shows an "eye" in the middle of your action bar, to quickly toggle between show/hide all buttons.';
+		note = 'The Eye can be used to train your gameplay performance.';
 	};
 	{	name = 'Disable watch bars';
 		cvar = 'hidewatchbars';

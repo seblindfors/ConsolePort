@@ -166,6 +166,11 @@ function SetupSecureSnippets(button)
 		if onStateChanged then
 			self:Run(onStateChanged, state, type, action)
 		end
+
+		local stateDnD = self:GetAttribute(('dnd-%s'):format(state))
+		if stateDnD ~= nil then
+			self:SetAttribute('disableDragNDrop', stateDnD)
+		end
 	]])
 
 	button:SetAttribute('actionpage', 1)
@@ -216,7 +221,7 @@ function SetupSecureSnippets(button)
 	]])
 
 	button:SetAttribute('OnDragStart', [[
-		if (self:GetAttribute('buttonlock') and not IsModifiedClick('PICKUPACTION')) or self:GetAttribute('disableDragNDrop') then return false end
+		if self:GetAttribute('disableDragNDrop') then return false end
 		local state = self:GetAttribute('state')
 		local type = self:GetAttribute('type')
 		-- if the button is empty, we can't drag anything off it

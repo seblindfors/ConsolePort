@@ -86,10 +86,15 @@ Control.StoredHints = {}
 function Control:SetHintFocus(forceFrame)
 	self.HintBar.focus = forceFrame or self:GetAttribute('focus')
 	self.focus = self.HintBar.focus;
+	db:TriggerEvent('OnHintsFocus', self.focus)
+end
+
+function Control:GetHintFocus()
+	return self.focus;
 end
 
 function Control:IsHintFocus(frame)
-	return (self.focus == frame)
+	return (self.focus == frame);
 end
 
 function Control:ClearHintsForFrame(forceFrame)
@@ -114,6 +119,7 @@ end
 function Control:HideHintBar()
 	self:ResetHintBar()
 	self.HintBar:Hide()
+	db:TriggerEvent('OnHintsClear', self.focus)
 end
 
 function Control:ResetHintBar()
