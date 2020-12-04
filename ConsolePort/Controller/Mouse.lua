@@ -131,7 +131,7 @@ local CursorControl  = IsGamePadCursorControlEnabled;
 local MenuFrameOpen  = IsOptionFrameOpen;
 local SpellTargeting = SpellIsTargeting;
 ---------------------------------------------------------------
-local IsActionOrUnbound = function(button, binding)
+local IsClickAction = function(button, binding)
 	local action = GetBindingAction(CreateKeyChord(button))
 	return (action == '' or action == binding)
 end
@@ -140,13 +140,13 @@ local IsAction = function(button, binding)
 end
 local LeftClick = function(button)
 	if CVar_LClick:IsValue(button) then
-		return IsActionOrUnbound(button, LCLICK_BINDING)
+		return IsClickAction(button, LCLICK_BINDING)
 	end
 	return IsAction(button, LCLICK_BINDING)
 end;
 local RightClick = function(button)
 	if CVar_RClick:IsValue(button) then
-		return IsActionOrUnbound(button, RCLICK_BINDING)
+		return IsClickAction(button, RCLICK_BINDING)
 	end
 	return IsAction(button, RCLICK_BINDING)
 end
