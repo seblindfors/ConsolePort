@@ -131,15 +131,24 @@ local CursorControl  = IsGamePadCursorControlEnabled;
 local MenuFrameOpen  = IsOptionFrameOpen;
 local SpellTargeting = SpellIsTargeting;
 ---------------------------------------------------------------
-local IsActionBound = function(button, binding)
+local IsActionOrUnbound = function(button, binding)
 	local action = GetBindingAction(CreateKeyChord(button))
 	return (action == '' or action == binding)
 end
+local IsAction = function(button, binding)
+	return GetBindingAction(CreateKeyChord(button)) == binding;
+end
 local LeftClick = function(button)
-	return CVar_LClick:IsValue(button) and IsActionBound(button, LCLICK_BINDING)
+	if CVar_LClick:IsValue(button) then
+		return IsActionOrUnbound(button, LCLICK_BINDING)
+	end
+	return IsAction(button, LCLICK_BINDING)
 end;
 local RightClick = function(button)
-	return CVar_RClick:IsValue(button) and IsActionBound(button, RCLICK_BINDING)
+	if CVar_RClick:IsValue(button) then
+		return IsActionOrUnbound(button, RCLICK_BINDING)
+	end
+	return IsAction(button, RCLICK_BINDING)
 end
 ---------------------------------------------------------------
 local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChord(button)) end;
