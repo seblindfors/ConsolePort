@@ -395,7 +395,14 @@ function Button:OnLoad(...)
 	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 end
 
+function Button:IsModifierAllowed()
+	return self.controller:IsModifierAllowed()
+end
+
 function Button:OnGamePadButtonDown(button)
+	if self:IsModifierAllowed() and env:GetActiveModifier(button) then
+		return
+	end
 	self:Set(button)
 	Widget.OnClick(self)
 	env.Config:SetDefaultClosures()
@@ -412,8 +419,11 @@ function Button:OnClick(button)
 end
 
 function Button:OnValueChanged(value)
-	local display = _G[('KEY_%s'):format(value or '')]
-	self.Input:SetText(display or env.BindingInfo.NotBoundColor:format(NOT_BOUND))
+	local display = GetBindingText(value, 'KEY_ABBR_')
+	if (display == 'none') then
+		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
+	end
+	self.Input:SetText(display)
 end
 
 ---------------------------------------------------------------

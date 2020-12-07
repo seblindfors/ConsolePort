@@ -11,6 +11,10 @@ function env:GetActiveModifiers()
 	return db('Gamepad/Index/Modifier/Active')
 end
 
+function env:GetActiveModifier(button)
+	return db.Gamepad:GetActiveModifier(button)
+end
+
 function env:GetHotkeyData(btnID, modID, styleMain, styleMod)
 	return db.Hotkeys:GetHotkeyData(db('Gamepad/Active'), btnID, modID, styleMain, styleMod)
 end
@@ -22,7 +26,6 @@ end
 function env:GetBindings()
 	return db.Gamepad:GetBindings()
 end
-
 
 ---------------------------------------------------------------
 -- Scale things dynamically

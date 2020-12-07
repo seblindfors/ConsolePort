@@ -7,6 +7,9 @@ local OPTIONS_WIDTH  = 300;
 local CLUSTER_WIDTH  = 414;
 local CLUSTER_HEIGHT = 80;
 
+---------------------------------------------------------------
+-- Config management
+---------------------------------------------------------------
 function env:SetConfig(cfg, triggerEvent, saveToShared)
 	self.cfg = cfg;
 	ConsolePort_BarSetup = cfg;
@@ -314,11 +317,12 @@ local Carpenter, Blueprint = LibStub('Carpenter'), {
 	};
 	Enabled = {
 		_Type  = 'IndexButton';
-		_Size  = {40, 36};
+		_Size  = {68, 36};
 		_Point = {'RIGHT', '$parent.Size', 'LEFT', 0, 0};
 		cvar   = 'enabled';
 		text   = 'Enabled';
 		desc   = 'Show the cluster for this binding.';
+		label  = ('|T%s:14:28:0:0:128:64|t'):format('Interface\\AddOns\\ConsolePort_Bar\\Textures\\Show');
 		field  = Data.Bool(true);
 	};
 }

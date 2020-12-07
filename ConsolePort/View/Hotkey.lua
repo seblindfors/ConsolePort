@@ -140,7 +140,6 @@ end
 function HotkeyHandler:UpdateHotkeys(device)
 	self.Widgets:ReleaseAll()
 	assert(device, 'No device specified when attempting to update hotkeys.')
-	if nil then return end
 
 	local bindings = db.Gamepad:GetBindings()
 	local bindingToActionID = {}

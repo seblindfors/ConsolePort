@@ -77,11 +77,6 @@ function CPFrameWithTooltipMixin:OnLeave()
 end
 
 
-
-
-
-
-
 CPMaskedButtonMixin = CreateFromMixins(CPFrameWithTooltipMixin)
 
 function CPMaskedButtonMixin:OnLoad()

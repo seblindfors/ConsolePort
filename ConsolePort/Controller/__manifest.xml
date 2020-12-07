@@ -8,6 +8,7 @@
 	<!-- Single file controller -->
 	<Script file="EasyMotion.lua"/>
 	<Script file="IntelliSense.lua"/>
+	<Script file="Interact.lua"/>
 	<!-- Base controller -->
 	<Script file="Input.lua"/>
 	<Script file="Pager.lua"/>

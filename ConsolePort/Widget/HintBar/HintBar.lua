@@ -136,3 +136,42 @@ function CPHintBarMixin:AddHint(key, text)
 		return hint
 	end
 end
+
+----------------------------------
+-- HintFocus mixin
+----------------------------------
+CPHintFocusMixin = {}
+
+function CPHintFocusMixin:SetHint(key, text)
+	self.hints = self.hints or {};
+	self.hints[key] = text;
+end
+
+function CPHintFocusMixin:OnEnter()
+	if self.hints and next(self.hints) and self:GetAttribute('hintOnEnter') then
+		self:ShowHints()
+	end
+end
+
+function CPHintFocusMixin:OnLeave()
+	if self.hints and self:GetAttribute('hintOnLeave') then
+		self:HideHints()
+	end
+end
+
+function CPHintFocusMixin:ShowHints()
+	for key, text in db.table.spairs(self.hints) do
+		self.handle:AddHint(key, text)
+	end
+end
+
+function CPHintFocusMixin:SetHintHandle(handle)
+	self.handle = handle;
+end
+
+function CPHintFocusMixin:SetHintTriggers(OnEnter, OnLeave, OnShow, OnHide)
+	self:SetAttribute('hintOnEnter', OnEnter)
+	self:SetAttribute('hintOnLeave', OnLeave)
+	self:SetAttribute('hintOnShow',  OnShow)
+	self:SetAttribute('hintOnHide',  OnHide)
+end

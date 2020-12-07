@@ -1,9 +1,10 @@
 -- Consts
-local STICK_SELECT = {'Left', 'Right', 'Movement', 'Cursor'};
+local STICK_SELECT = {'Movement', 'Camera'};
 local UINAV_SELECT = {'PAD1', 'PAD2', 'PAD3', 'PAD4'};
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
+local INTERACT_OPT = UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT;
 
 local unpack, __, db = unpack, ...; __ = 1;
 setfenv(__, setmetatable(db('Data'), {__index = _G}));
@@ -11,6 +12,63 @@ setfenv(__, setmetatable(db('Data'), {__index = _G}));
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', {
+	--------------------------------------------------------------------------------------------------------
+	-- Crosshair:
+	--------------------------------------------------------------------------------------------------------
+	crosshairEnable = {Bool(true);
+		head = 'Crosshair';
+		sort = 1;
+		name = 'Enable';
+		desc = 'Enables a crosshair to reveal your hidden center cursor position at all times.';
+		note = 'Use together with [@cursor] macros to place reticle spells in a single click.';
+	};
+	crosshairSizeX = {Number(24, 1, true);
+		head = 'Crosshair';
+		sort = 2;
+		name = 'Width';
+		desc = 'Width of the crosshair, in scaled pixel units.';
+	};
+	crosshairSizeY = {Number(24, 1, true);
+		head = 'Crosshair';
+		sort = 3;
+		name = 'Height';
+		desc = 'Height of the crosshair, in scaled pixel units.';
+	};
+	crosshairCenter = {Number(0.2, 0.05, true);
+		head = 'Crosshair';
+		sort = 4;
+		name = 'Center Gap';
+		desc = 'Center gap, as fraction of overall crosshair size.';
+	};
+	crosshairThickness = {Number(1, 0.025, true);
+		head = 'Crosshair';
+		sort = 5;
+		name = 'Thickness';
+		desc = 'Thickness in scaled pixel units.';
+		note = 'Value below one may appear interlaced.';
+	};
+	crosshairColor = {Color('ff00fcff');
+		head = 'Crosshair';
+		sort = 6;
+		name = 'Color';
+		desc = 'Color of the crosshair.';
+	};
+	--------------------------------------------------------------------------------------------------------
+	-- Interact button:
+	--------------------------------------------------------------------------------------------------------
+	interactButton = {Button('PADRSHOULDER', true):Set('none', true);
+		head = INTERACT_OPT;
+		sort = 1;
+		name = 'Interact Button';
+		desc = 'Button or combination used to interact when interact condition(s) apply.';
+	};
+	interactCondition = {String('[@target,noharm][@target,noexists] TURNORACTION; [@target,harm,dead] INTERACTTARGET; nil');
+		head = INTERACT_OPT;
+		sort = 2;
+		name = 'Interact Condition';
+		desc = 'Macro condition to enable the interact button override.';
+		note = 'Use "true" to mark an applicable condition, "nil" to clear override.';
+	};
 	--------------------------------------------------------------------------------------------------------
 	-- Mouse:
 	--------------------------------------------------------------------------------------------------------
@@ -61,19 +119,11 @@ db:Register('Variables', {
 		desc = 'Direction of item order in a pie menu.';
 		note = '+ Clockwise\n- Counter-clockwise';
 	};
-	radialPrimaryStick = {Table({'Left', 'Movement'});
+	radialPrimaryStick = {Select('Movement', unpack(STICK_SELECT));
 		head = 'Radial Menus';
 		sort = 5;
 		name = 'Primary Stick';
-		desc = 'Primary radial stick: which stick to intercept for main radial actions';
-		opts = STICK_SELECT;
-	};
-	radialSecondaryStick = {Table({'Right', 'Cursor'});
-		head = 'Radial Menus';
-		sort = 6;
-		name = 'Secondary Stick';
-		desc = 'Secondary radial stick: which stick to intercept for extra radial actions';
-		opts = STICK_SELECT;
+		desc = 'Stick to use for main radial actions.';
 	};
 	radialRemoveButton = {Button('PADRSHOULDER');
 		head = 'Radial Menus';
@@ -91,9 +141,15 @@ db:Register('Variables', {
 		desc = 'Change target each time the cursor is moved, instead of routing appropriate spells.';
 		note = 'The cursor cannot route macros or ambiguous spells. Enable this if you use a lot of macros.';
 	};
-	raidCursorModifier = {Select('<none>', '<none>', unpack(MODID_EXTEND));
+	raidCursorScale = {Number(1, 0.1);
 		head = 'Raid Cursor';
 		sort = 2;
+		name = 'Scale';
+		desc = 'Scale of the cursor.';
+	};
+	raidCursorModifier = {Select('<none>', '<none>', unpack(MODID_EXTEND));
+		head = 'Raid Cursor';
+		sort = 3;
 		name = 'Modifier';
 		desc = 'Which modifier to use with the directional pad to move the cursor.';
 		note = 'The bindings underlying the button combinations will be unavailable while the cursor is in use.';
@@ -198,47 +254,6 @@ db:Register('Variables', {
 		name = 'Unit Pool';
 		desc = 'Match criteria for unit pool, each type separated by semicolon.';
 		note = '$: end of match token\n+: matches multiple tokens\n%d: matches number';
-	};
-	--------------------------------------------------------------------------------------------------------
-	-- Crosshair:
-	--------------------------------------------------------------------------------------------------------
-	crosshairEnable = {Bool(false);
-		head = 'Crosshair';
-		sort = 1;
-		name = 'Enable';
-		desc = 'Enables a crosshair to reveal your hidden center cursor position at all times.';
-		note = 'Use together with [@cursor] macros to place reticle spells in a single click.';
-	};
-	crosshairSizeX = {Number(24, 1, true);
-		head = 'Crosshair';
-		sort = 2;
-		name = 'Width';
-		desc = 'Width of the crosshair, in scaled pixel units.';
-	};
-	crosshairSizeY = {Number(24, 1, true);
-		head = 'Crosshair';
-		sort = 3;
-		name = 'Height';
-		desc = 'Height of the crosshair, in scaled pixel units.';
-	};
-	crosshairCenter = {Number(0.2, 0.05, true);
-		head = 'Crosshair';
-		sort = 4;
-		name = 'Center Gap';
-		desc = 'Center gap, as fraction of overall crosshair size.';
-	};
-	crosshairThickness = {Number(1, 0.025, true);
-		head = 'Crosshair';
-		sort = 5;
-		name = 'Thickness';
-		desc = 'Thickness in scaled pixel units.';
-		note = 'Value below one may appear interlaced.';
-	};
-	crosshairColor = {Color('ff00fcff');
-		head = 'Crosshair';
-		sort = 6;
-		name = 'Color';
-		desc = 'Color of the crosshair.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Misc:

@@ -164,14 +164,16 @@ Cursor:CreateEnvironment({
 -- Settings
 ---------------------------------------------------------------
 function Cursor:OnDataLoaded()
-	local modifier = db('Settings/raidCursorModifier')
+	local modifier = db('raidCursorModifier')
 	modifier = modifier:match('<none>') and '' or modifier;
-	self:SetAttribute('noroute', db('Settings/raidCursorDirect'))
+	self:SetAttribute('noroute', db('raidCursorDirect'))
 	self:SetAttribute('navmodifier', modifier)
+	self:SetScale(db('raidCursorScale'))
 end
 
 db:RegisterSafeCallback('Settings/raidCursorDirect', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorModifier', Cursor.OnDataLoaded, Cursor)
+db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
 
 ---------------------------------------------------------------
 -- Script handlers

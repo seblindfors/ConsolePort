@@ -129,8 +129,9 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 function Utility:OnDataLoaded()
 	self:SetAttribute('size', 0)
 	self:CreateFramePool('SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate', Button)
-	local sticks = db('radialPrimaryStick')
 	db:Load('Utility/Data', 'ConsolePortUtility')
+
+	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
 	db.Radial:Register(self, 'UtiliyRing', {
 		sticks = sticks;
 		target = {sticks[1]};

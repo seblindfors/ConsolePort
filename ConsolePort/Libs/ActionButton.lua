@@ -166,11 +166,6 @@ function SetupSecureSnippets(button)
 		if onStateChanged then
 			self:Run(onStateChanged, state, type, action)
 		end
-
-		local stateDnD = self:GetAttribute(('dnd-%s'):format(state))
-		if stateDnD ~= nil then
-			self:SetAttribute('disableDragNDrop', stateDnD)
-		end
 	]])
 
 	button:SetAttribute('actionpage', 1)

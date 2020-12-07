@@ -1,0 +1,23 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Button name="ConsolePortSecureCursor" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" registerForClicks="AnyDown" frameStrata="TOOLTIP" hidden="true">
+		<Size x="32" y="32"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="BG" file="Interface\Cursor\Item" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+		<Animations>
+			<AnimationGroup parentKey="Group">
+				<Scale parentKey="ScaleUp" smoothing="OUT" duration=".1" order="1">
+					<Origin point="CENTER"/>
+				</Scale>
+				<Scale parentKey="ScaleDown" smoothing="OUT" duration=".1" order="2">
+					<Origin point="CENTER"/>
+				</Scale>
+			</AnimationGroup>
+		</Animations>
+	</Button>
+
+</Ui>

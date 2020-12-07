@@ -16,11 +16,13 @@ local BAR_FIXED_HEIGHT = 140
 
 Bar:SetAttribute('actionpage', now)
 Bar:SetFrameRef('Cursor', ConsolePortRaidCursor)
+Bar:SetFrameRef('Mouse', ConsolePortInteract)
 
 Bar:Execute([[
 	bindings = newtable()
 	bar = self
 	cursor = self:GetFrameRef('Cursor')
+	mouse  = self:GetFrameRef('Mouse')
 ]])
 
 -- Opacity handling
@@ -71,6 +73,7 @@ function Bar:UpdateOverrides()
 		local state = self:GetAttribute('state') or '';
 		self:SetAttribute('state', state)
 		control:ChildUpdate('state', state)
+		mouse:RunAttribute('OnBindingsChanged')
 	]])
 end
 
@@ -199,6 +202,11 @@ function Bar:OnLoad(cfg, benign)
 
 	-- Lock/unlock pet ring
 	self.Pet:RegisterForDrag(not cfg.lockpet and 'LeftButton')
+	if cfg.disablepetfade then
+		self.Pet:FadeIn()
+	else
+		self.Pet:FadeOut()
+	end
 
 	-- Lock/unlock bar
 	self:ToggleMovable(not cfg.lock, cfg.mousewheel)
@@ -264,7 +272,6 @@ function Bar:OnLoad(cfg, benign)
 	if not benign then
 		Clusters:UpdateAllBindings(db.Gamepad:GetBindings())
 		self:UpdateOverrides()
-		self:SetAttribute('page', 1)
 		-- states have been reparsed, set back to current state
 		self:Execute([[
 			control:ChildUpdate('state', self:GetAttribute('state'))
@@ -307,6 +314,7 @@ for name, script in pairs({
 			self:CallMethod('FadeIn')
 		end
 		self:CallMethod('MoveMicroButtons')
+		mouse:RunAttribute('OnBindingsChanged')
 	]],
 	['_onstate-modifier'] = [[
 		self:SetAttribute('state', newstate)

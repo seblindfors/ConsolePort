@@ -16,6 +16,7 @@
 				</Attributes>
 			</Button>
 			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
+			<Frame name="$parentInteract" inherits="SecureHandlerStateTemplate"/>
 		</Frames>
 	</Frame>
 

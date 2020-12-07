@@ -136,7 +136,7 @@ local IsClickAction = function(button, binding)
 	return (action == '' or action == binding)
 end
 local IsAction = function(button, binding)
-	return GetBindingAction(CreateKeyChord(button)) == binding;
+	return GetBindingAction(CreateKeyChord(button), true) == binding;
 end
 local LeftClick = function(button)
 	if CVar_LClick:IsValue(button) then

@@ -346,6 +346,12 @@ function Radial:OnActiveDeviceChanged()
 	return self
 end
 
+function Radial:GetStickStruct(type)
+	return ({
+		Movement = {'Left', 'Movement'};
+		Camera   = {'Right', 'Camera'};
+	})[type]
+end
 
 ---------------------------------------------------------------
 -- Unrestricted data access

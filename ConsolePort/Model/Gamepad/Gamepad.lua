@@ -437,6 +437,7 @@ function GamepadMixin:GetIconForButton(button, style)
 	if iconID then
 		return GamepadAPI:GetIconPath(db(('Gamepad/Index/Icons/%s'):format(iconID)), style)
 	end
+	return GamepadAPI:GetIconPath('ALL_MISSING', style)
 end
 
 function GamepadMixin:GetIconIDForButton(button)

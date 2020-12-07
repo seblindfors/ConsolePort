@@ -52,8 +52,8 @@ function Selector:OnDataLoaded(...)
 			self:OnClear()
 		end
 	end)
-	local sticks = db('radialPrimaryStick')
-	db('Radial'):Register(self, 'SpellFlyout', {
+	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	db.Radial:Register(self, 'SpellFlyout', {
 		sticks = sticks;
 		target = {sticks[1]};
 		sizer  = [[

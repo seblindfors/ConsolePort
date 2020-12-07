@@ -297,6 +297,10 @@ function env:GetBooleanSettings() return {
 		cvar = 'combatpethide';
 		desc = 'Hide pet ring in combat.';
 	};
+	{	name = 'Always show all buttons';
+		cvar = 'disablepetfade';
+		desc = 'Shows the entire pet ring cluster at all times, not just abilities on cooldown.';
+	};
 	---------------------------------------
 	{	name = 'Display' };
 	{	name = 'The Eye';

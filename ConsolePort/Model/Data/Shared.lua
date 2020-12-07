@@ -1,5 +1,5 @@
 local _, db = ...;
-local Shared = db:Register('Shared', CPAPI.CreateEventHandler({'Frame', nil, ConsolePort}, {
+local Shared = db:Register('Shared', CPAPI.CreateEventHandler({'Frame', '$parentShared', ConsolePort}, {
 	'PLAYER_LOGOUT';
 }, {
 	Data = {};
