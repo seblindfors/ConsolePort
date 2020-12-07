@@ -17,6 +17,7 @@
 --
 -- Usage:
 --  Carpenter(type, name, parent, inheritXML, blueprint) -> return Carpenter:CreateFrame(...)
+--  Carpenter(frame, blueprint) -> return Carpenter:BuildFrame(...)
 --  Carpenter:CreateFrame(type, name, parent, inheritXML, blueprint) -> creates a frame from scratch.
 --  Carpenter:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
 --  Carpenter:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
@@ -27,12 +28,12 @@ if not Lib then return end
 local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
         assert, pairs, ipairs, type, unpack, wipe, table.concat, strmatch
 --------------------------------------------------------------------------
-local   Create, IsWidget = CreateFrame, C_Widget.IsFrameWidget
+local   Create, IsWidget = CreateFrame, C_Widget.IsWidget
 --------------------------------------------------------------------------
 local   anchor, onload, constructor, call, callMethodsOnWidget, -- build
-        packtbl, err, getbuildinfo, getrelative, strip -- misc
+        packtbl, getbuildinfo, getrelative, strip -- misc
 --------------------------------------------------------------------------
-local   ARGS, ERROR, ERROR_CODES, SPECIAL, API, RESERVED
+local   SPECIAL, API, RESERVED
 local   ANCHOR, ONLOAD = {}, {}
 
 
@@ -93,9 +94,7 @@ API = { -- Syntax: _CallID = value or {value1, ..., valueN};
     MixinDry   = function(widget, ...)  Mixin(widget, ...)            end;
     --- Multiple runs of single function ---------------------------------
     ForEach    = function(widget, multiTable)
-        for k, v in pairs(multiTable) do k = strip(k) 
-            assert(widget[k] or API[k], err(k, widget:GetName(), ERROR_CODES.MULTI_FUNC))
-            assert(type(v) == 'table', err(k, widget:GetName(), ERROR_CODES.MULTI_TABLE))
+        for k, v in pairs(multiTable) do k = strip(k)
             for _, args in pairs(v) do
                 call(widget, k, args)
             end
@@ -135,14 +134,13 @@ SPECIAL = { -- Special constructors
 --------------------------------------------------------------------------
 RESERVED = { -- Reserved keywords in blueprints
 --------------------------------------------------------------------------
-    [1]             = true, -- don't run blueprints in function stack
+    [1]        = true, -- don't run blueprints in function stack
     _Type      = true, -- used to determine frame type
     _Mixin     = true, -- specially handled before function calls
     _Setup     = true, -- used to determine inheritance
     _Repeat    = true, -- ignore since it denotes a loop
     _Anonymous = true, -- denotes anonymous parent/children
 };
-
 
 ----------------------------------------------------------------
 -- Create a new frame.
@@ -185,9 +183,7 @@ end
 -- @return  frame     : Returns the altered frame.
 ----------------------------------------------------------------
 function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
-    assert(type(blueprint) == 'table', err('Blueprint', frame:GetName(), ERROR_CODES.BLUEPRINT))
     for key, config in pairs(blueprint) do
-        assert(type(config) == 'table', err(key, frame:GetName(), ERROR_CODES.CONFIGTABLE))
         ----------------------------------
         local object, objectType, buildInfo, isLoop, anonobj = getbuildinfo(config)
         ----------------------------------
@@ -195,11 +191,8 @@ function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
             local key    = isLoop and key..i or key
             local anon   = anonframe or anonobj
             local name   = not anon and '$parent'..key
-            local widget = frame[key]
+            local widget = IsWidget(frame[key]) and frame[key]
             if not widget then
-                ----------------------------------
-                -- Assert object type exists if setup table exists.
-                assert((buildInfo and object) or (not buildInfo), err(key, frame:GetName(), ERROR_CODES.REGION))
                 ----------------------------------
                 if object then
                     -- Region type has special constructor.
@@ -231,7 +224,6 @@ function Lib:BuildFrame(frame, blueprint, recursive, anonframe)
             end
 
             if isLoop and widget.SetID then widget:SetID(i) end
-
             callMethodsOnWidget(widget, config)
         end
     end
@@ -300,29 +292,6 @@ setmetatable(Lib, {
 })
 
 --------------------------------------------------------------------------
-ARGS = {
---------------------------------------------------------------------------
-    MULTI_RUN = 'function name on object as key, table of values to be unpacked into key function. Nesting allowed.',
-    REGION = 'Region key should be of type string and refer to a valid widget type.',
-    BLUEPRINT = '(frame, blueprint); blueprint = { child1 = {}, child2 = {}, ..., childN = {} }',
-    RELATIVEREGION = '(frame or string). Example of string: $parent.Sibling',
-};
-
---------------------------------------------------------------------------
-ERROR = '%s in %s %s.'
---------------------------------------------------------------------------
-ERROR_CODES = {
---------------------------------------------------------------------------
-    MULTI_FUNC  = 'does not exist. Loop table should contain: '..ARGS.MULTI_RUN,
-    MULTI_TABLE = 'has an invalid loop table. Loop table should contain: '..ARGS.MULTI_RUN,
-    REGION  = 'missing region type. '..ARGS.REGION,
-    RELATIVEREGION = 'is invalid. Type should be a parsable string or existing frame. Arguments: '..ARGS.RELATIVEREGION,
-    CONSTRUCTOR = 'is invalid. Constructor must be a function.',
-    BLUEPRINT = 'is invalid. Blueprint should be a nested table. Arguments: '..ARGS.BLUEPRINT,
-    CONFIGTABLE = 'is not a valid config table or existing region.',
-};
-
---------------------------------------------------------------------------
 -- Internal circuit
 --------------------------------------------------------------------------
 function call(widget, method, data)
@@ -389,8 +358,6 @@ function getrelative(region, query)
             end
         end
         return relative
-    else
-        err('Relative region', region:GetName(), ERROR.CODES.RELATIVEREGION)
     end
 end
 
@@ -419,7 +386,6 @@ end
 
 function constructor(region, load, ...)
     if not load then return end
-    assert(type(load) == 'function', err('Constructor', region:GetName(), ERROR_CODES.CONSTRUCTOR))
     load(region)
     return constructor(region, ...)
 end
@@ -446,7 +412,6 @@ end
 
 function packtbl(tbl, ...) tbl[#tbl + 1] = {...} end;
 function strip(key) return strmatch(key, '_(%w+)') end;
-function err(key, name, code) return ERROR:format(key, name or 'unnamed region', code) end;
 
 --------------------------------------------------------------------------
 -- Example:

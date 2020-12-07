@@ -1,0 +1,14 @@
+## Interface: 90002
+## Title: Console Port |cff69ccf0Menu|r
+## Notes: Game menu module
+## RequiredDeps: ConsolePort
+
+## Author: Sebastian Lindfors
+## X-Website: https://github.com/seblindfors/ConsolePort
+## X-Feedback: https://discord.gg/AWeHd48
+
+Core\MenuMixin.lua
+Core\ButtonMixin.lua
+Templates\Templates.xml
+
+Menus\GameMenu.lua

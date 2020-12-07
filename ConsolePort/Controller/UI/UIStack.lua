@@ -188,6 +188,16 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	end
 end
 
+function Stack:HideFrame(frame, ignoreAlpha)
+	assert(frame, 'Usage: Stack:HideFrame(frame)')
+	frame:SetSize(0, 0)
+	frame:EnableMouse(false)
+	frame:EnableKeyboard(false)
+	frame:SetAlpha(ignoreAlpha and frame:GetAlpha() or 0)
+	frame:ClearAllPoints()
+	self:ForbidFrame(frame)
+end
+
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------

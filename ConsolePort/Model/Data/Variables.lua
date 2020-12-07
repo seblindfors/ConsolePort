@@ -67,7 +67,9 @@ db:Register('Variables', {
 		sort = 2;
 		name = 'Interact Condition';
 		desc = 'Macro condition to enable the interact button override.';
-		note = 'Use "true" to mark an applicable condition, "nil" to clear override.';
+		note = 'Takes the format of...\n'
+			.. BLUE_FONT_COLOR:WrapTextInColorCode('[condition] bindingID; nil')
+			.. '\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Mouse:
