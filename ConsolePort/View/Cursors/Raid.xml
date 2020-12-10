@@ -24,7 +24,11 @@
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="BG" file="Interface\Cursor\Item" setAllPoints="true"/>
+				<Texture parentKey="Arrow" atlas="Navigation-Tracked-Arrow" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="1">
 				<Texture parentKey="UnitPortrait" >

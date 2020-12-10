@@ -579,13 +579,25 @@ function Config:OnHide()
 end
 
 function Config:OnFirstShow()
+	local cvars = Carpenter:BuildFrame(self, {
+		Cvars = {
+			_Type  = 'Frame';
+			_Setup = 'BackdropTemplate';
+			_Backdrop = CPAPI.Backdrops.Opaque; 
+			_Width = PRESETS_WIDTH + 1;
+			_Points = {
+				{'TOPLEFT', '$parent', 'BOTTOMLEFT', -1, 200};
+				{'BOTTOMLEFT', -1, -1};
+			};
+		};
+	}, false, true).Cvars;
 	local presets = self:CreateScrollableColumn('Presets', {
 		_Mixin = Presets;
 		_Width = PRESETS_WIDTH;
 		_Setup = {'CPSmoothScrollTemplate'};
 		_Points = {
 			{'TOPLEFT', 0, 1};
-			{'BOTTOMLEFT', 0, -1};
+			{'BOTTOMLEFT', '$parent.Cvars', 'TOPLEFT', 0, 0};
 		};
 	})
 	local options = self:CreateScrollableColumn('Options', {
@@ -595,7 +607,7 @@ function Config:OnFirstShow()
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
 			{'TOPLEFT', '$parent.Presets', 'TOPRIGHT', 0, 0};
-			{'BOTTOMLEFT', '$parent.Presets', 'BOTTOMRIGHT', 0, 0};
+			{'BOTTOMLEFT', '$parent.Cvars', 'BOTTOMRIGHT', -1, 0};
 		};
 	})
 	local clusters = self:CreateScrollableColumn('Clusters', {
@@ -611,6 +623,7 @@ function Config:OnFirstShow()
 	self.Movers = CreateFramePool('Frame', env.bar);
 	env.config.OpaqueMixin.OnLoad(options)
 	env.config.OpaqueMixin.OnLoad(clusters)
+	env.config.OpaqueMixin.OnLoad(cvars)
 end
 
 

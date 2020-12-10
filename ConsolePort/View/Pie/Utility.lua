@@ -2,7 +2,6 @@ local _, db = ...;
 ---------------------------------------------------------------
 local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	'ACTIONBAR_SLOT_CHANGED';
-	'ITEM_PUSH';
 	'SPELLS_CHANGED';
 	'QUEST_WATCH_UPDATE';
 	'QUEST_WATCH_LIST_CHANGED';
@@ -657,12 +656,6 @@ function Utility:QUEST_WATCH_UPDATE(questID)
 	end
 end
 
-function Utility:ITEM_PUSH()
-	if self.autoAssignExtras then
-		self.newItemPushed = true;
-	end
-end
-
 function Utility:UPDATE_BINDINGS()
 	if self.autoAssignExtras and not db.Gamepad:GetBindingKey('EXTRAACTIONBUTTON1') then
 		self.hasExtraActionButton = true;
@@ -686,10 +679,7 @@ Utility:RegisterUnitEvent('UNIT_QUEST_LOG_CHANGED', 'player')
 function Utility:UNIT_QUEST_LOG_CHANGED()
 	if self.autoAssignExtras then
 		db:RunSafe(self.ParseObservedQuestIDs, self)
-	end
-	if self.newItemPushed then
 		db:RunSafe(self.RefreshQuestWatchItems, self)
-		self.newItemPushed = nil;
 	end
 end
 

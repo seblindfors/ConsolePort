@@ -360,6 +360,8 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 		self.endTime       = endTime;
 		self.resetPortrait = isCasting or isChanneling;
 	end
+
+	Cursor.Arrow:SetRotation(rad(45))
 end
 
 ---------------------------------------------------------------

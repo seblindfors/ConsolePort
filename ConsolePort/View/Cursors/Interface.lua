@@ -634,7 +634,7 @@ function Cursor:MoveTowardsAnchor(elapsed)
 				cY + ((nY - cY) / divisor)
 			);
 		end
-		self:SetPoint(nX, nY)
+		self:SetPoint('TOPLEFT', self:GetCurrentNode(), 'CENTER', nX, nY)
 	end
 end
 

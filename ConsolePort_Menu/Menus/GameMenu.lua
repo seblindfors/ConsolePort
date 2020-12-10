@@ -319,7 +319,7 @@ do	-- Initiate frame
 
 	Menu:SetIgnoreParentAlpha(true)
 	Menu:HookScript('OnShow', function(self)
-		env.db.Alpha.FadeOut(UIParent, 0.1, UIParent:GetAlpha(), 0)
+--		env.db.Alpha.FadeOut(UIParent, 0.1, UIParent:GetAlpha(), 0)
 		if UIDoFramesIntersect(self, Minimap) and Minimap:IsShown() then
 			self.minimapHidden = true
 			Minimap:Hide()
@@ -328,7 +328,7 @@ do	-- Initiate frame
 	end)
 	
 	Menu:HookScript('OnHide', function(self)
-		env.db.Alpha.FadeIn(UIParent, 0.1, UIParent:GetAlpha(), 1)
+--		env.db.Alpha.FadeIn(UIParent, 0.1, UIParent:GetAlpha(), 1)
 		if self.minimapHidden then
 			Minimap:Show()
 			MinimapCluster:Show()
@@ -336,5 +336,14 @@ do	-- Initiate frame
 		end
 	end)
 
-	env.db.Stack:HideFrame(GameMenuFrame, true)	
+	env.db.Stack:HideFrame(GameMenuFrame, true)
+	env.db.Secure:RegisterUser(Menu)
+
+	local r, g, b = CPAPI.GetClassColor()
+	Mixin(Menu, CPBackgroundMixin)
+	CPBackgroundMixin.OnLoad(Menu)
+	Menu.Background:SetAllPoints()
+	Menu.Background:SetVertexColor(r/5, g/5, b/5, 0.25)
+	r, g, b = r / 10, g / 10, b / 10;
+	Menu.Rollover:SetGradientAlpha('VERTICAL', r, g, b, 1, r, g, b, 0)
 end

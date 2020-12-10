@@ -101,11 +101,13 @@ db:Register('Console', setmetatable({
 			type = Number(1, 0.1);
 			name = 'Camera Yaw Speed';
 			desc = 'Yaw speed of camera - turning left/right.';
+			note = 'Choose a negative value to invert the axis.';
 		};
 		{	cvar = 'GamePadCameraPitchSpeed';
 			type = Number(1, 0.1);
 			name = 'Camera Pitch Speed';
 			desc = 'Pitch speed of camera - moving up/down.';
+			note = 'Choose a negative value to invert the axis.';
 		};
 		{	cvar = 'test_cameraOverShoulder';
 			type = Number(0, 0.5);
