@@ -31,7 +31,7 @@
 	<Button name="CPMenuListCategoryTemplate" virtual="true">
 		<Size x="230" y="50"/>
 		<Attributes>
-			<Attribute name="_onclick" type="string" value="self:GetParent():RunAttribute('ShowHeader', self:GetID())"/>
+			<Attribute name="_onclick" type="string" value="self:GetParent():RunAttribute('ChangeHeader', self:GetID())"/>
 		</Attributes>
 		<HighlightTexture parentKey="HighlightTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\List_Button_Hilite.blp" alphaMode="ADD">
 			<Anchors>

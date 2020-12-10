@@ -160,8 +160,18 @@ function CPHintFocusMixin:OnLeave()
 end
 
 function CPHintFocusMixin:ShowHints()
-	for key, text in db.table.spairs(self.hints) do
-		self.handle:AddHint(key, text)
+	if self.hints then
+		for key, text in db.table.spairs(self.hints) do
+			self.handle:AddHint(key, text)
+		end
+	end
+end
+
+function CPHintFocusMixin:HideHints()
+	if self.hints then
+		for key in pairs(hints) do
+			self.handle:RemoveHint(key)
+		end
 	end
 end
 

@@ -22,7 +22,7 @@ function CPMenuButtonMixin:OnLoad()
 	self.Overlay:SetFrameLevel(self.Overlay:GetFrameLevel() + 1)
 	self:SetHintHandle(ConsolePortUIHandle)
 	self:SetHintTriggers(true)
-	self:SetHint('CROSS', ACCEPT)
+--	self:SetHint('CROSS', ACCEPT)
 end
 
 function CPMenuButtonMixin:OnHide()
@@ -72,16 +72,3 @@ function CPMenuButtonMixin:SetPulse(enabled)
 		env.db.Alpha.Stop(self.Hilite, 0)
 	end
 end
-
-
---[[
-function Button:OnLoad()
-	self:SetHint(ConsolePortUIHandle, db.KEY.CROSS, ACCEPT)
-	self:SetHintTriggers(true)
-	self.Icon:SetTexture(self.Img)
-	self:SetText(self.Desc)
-	if self.OnLoadHook then
-		self:OnLoadHook()
-		self.OnLoadHook = nil
-	end
-end]]

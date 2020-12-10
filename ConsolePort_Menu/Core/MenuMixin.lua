@@ -36,34 +36,13 @@ local ENV_DEFAULT = {
 		header:CallMethod('UnlockHighlight')
 		header:SetAttribute('focused', false)
 	]];
-	-- @param delta : increment/decrement from current hID
+	-- @param hID : header to set, identified by ID
 	ChangeHeader = [[
-		local delta = ...
-		local newIndex = hID + delta
-		local header = headers[newIndex]
+		local header = headers[...]
 		if header and header:IsShown() then
-			hID = newIndex
+			hID = ...;
 			self:RunAttribute('_onhide')
 			self:RunAttribute('_onshow')
-		end
-	]];
-	-- @param returnHandler : secure button type (e.g. 'macrotext')
-	-- @param returnValue : secure button action (e.g. '/click Button')
-	-- @return (optional) clickType, clickHandler, clickValue
-	OnInput = [[
-		local key, down = ...
-		local returnHandler, returnValue
-
-		if down then
-			-- Change header
-			if (key == T1 and hID > 1) then
-				self:RunAttribute('ChangeHeader', -1)
-			elseif (key == T2 and hID < numheaders) then
-				self:RunAttribute('ChangeHeader', 1)
-			end
-
-			-- Play a notification sound when inputting
-			self:CallMethod('OnButtonPressed', key)
 		end
 	]];
 }

@@ -17,10 +17,9 @@ do	-- Initiate frame
 					_ID = 1;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOPLEFT', '$parent.$parent', 'BOTTOMLEFT', 16, -16};
+					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
 					_Text  = CHARACTER_BUTTON;
 					_Attributes = hideMenuHook;
-					--------------------------------------
 					_UpdateLevel = function(self, newLevel)
 						local level = newLevel or UnitLevel('player')
 						if ( level and level < MAX_PLAYER_LEVEL ) then
@@ -174,13 +173,353 @@ do	-- Initiate frame
 				};
 			};
 		};
+		Gameplay = {
+			_ID    = 2;
+			_Type  = 'CheckButton';
+			_Setup = headerTemplates;
+			_Text  = '|TInterface\\Store\\category-icon-weapons:18:18:-4:0:64:64:14:50:14:50|t' .. GAME;
+			{
+				QuestLog = {
+					_ID    = 1;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
+					_Text  = ('%s / %s'):format(WORLD_MAP, QUEST_LOG);
+					_Image = 'INV_Misc_Map02';
+					_RefTo = QuestLogMicroButton;
+					_Attributes = hideMenuHook;
+				};
+				Guide = {
+					_ID    = 2;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.QuestLog', 'BOTTOM', 0, 0};
+					_Text  = ADVENTURE_JOURNAL;
+					_RefTo = EJMicroButton;
+					_Attributes = hideMenuHook;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\ENCOUNTERJOURNAL\UI-EJ-PortraitIcon]]);
+					end;
+					{
+						Notice = {
+							_Type  = 'Frame';
+							_Size  = {28, 28};
+							_Point = {'RIGHT', -10, 0};
+							_Hide  = not EJMicroButton.NewAdventureNotice:IsShown();
+							_OnLoad = function(self)
+								hooksecurefunc(EJMicroButton, 'UpdateNewAdventureNotice', function()
+									if EJMicroButton.NewAdventureNotice:IsShown() then
+										self:Show()
+									end
+								end)
+								hooksecurefunc(EJMicroButton, 'ClearNewAdventureNotice', function()
+									self:Hide()
+								end)
+							end;
+							{
+								Texture = {
+									_Type  = 'Texture';
+									_Setup = {'OVERLAY'};
+									_Fill  = true;
+									_Atlas = 'adventureguide-microbutton-alert';
+								};
+							};
+						};
+					};
+				};
+				Finder = {
+					_ID    = 3;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Guide', 'BOTTOM', 0, 0};
+					_Text  = DUNGEONS_BUTTON;
+					_RefTo = LFDMicroButton;
+					_Attributes = hideMenuHook;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\LFGFRAME\UI-LFG-PORTRAIT]])
+					end;
+				};
+				Achievements = {
+					_ID    = 4,
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Finder', 'BOTTOM', 0, -16};
+					_Text  = ACHIEVEMENTS;
+					_Image = 'ACHIEVEMENT_WIN_WINTERGRASP';
+					_RefTo = AchievementMicroButton;
+					_Attributes = hideMenuHook;
+				},
+				WhatsNew = {
+					_ID    = 5;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Achievements', 'BOTTOM', 0, 0};
+					_Text  = GAMEMENU_NEW_BUTTON;
+					_RefTo = GameMenuButtonWhatsNew;
+					_Image = 'WoW_Token01';
+				};
+				Shop = {
+					_ID    = 6;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.WhatsNew', 'BOTTOM', 0, 0};
+					_Text  = BLIZZARD_STORE;
+					_RefTo = GameMenuButtonStore;
+					_Image = 'WoW_Store';
+				};
+				Teleport = {
+					_ID    = 7;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Shop', 'BOTTOM', 0, 0};
+					_Image = 'Spell_Shadow_Teleport';
+					_Attributes = {
+						hidemenu  = true;
+						condition = 'return PlayerInGroup()';
+					};
+					_OnShow = function(self)
+						local isLFG, inDungeon = IsPartyLFG(), IsInLFGDungeon()
+						self:SetText(inDungeon and TELEPORT_OUT_OF_DUNGEON or isLFG and TELEPORT_TO_DUNGEON or '|cFF757575'..TELEPORT_TO_DUNGEON)
+					end;
+					_OnClick = function(self)
+						LFGTeleport(IsInLFGDungeon())
+					end;
+				};
+			};
+		};
+		Social = {
+			_ID    = 3;
+			_Type  = 'CheckButton';
+			_Setup = headerTemplates;
+			_Text  = '|TInterface\\Store\\category-icon-featured:18:18:-4:0:64:64:14:50:14:50|t' .. SOCIAL_BUTTON;
+			{
+				Friends = {
+					_ID    = 1;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
+					_Text  = FRIENDS_LIST;
+					_RefTo = QuickJoinToastButton;
+					_Attributes = hideMenuHook;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\FriendsFrame\Battlenet-Portrait]])
+					end;
+					_OnEvent = function(self)
+						local _, numBNetOnline = BNGetNumFriends()
+						local numWoWOnline = C_FriendList.GetNumFriends()
+						self.Count:SetText(numBNetOnline + numWoWOnline)
+					end;
+					_Events = {
+						'FRIENDLIST_UPDATE';
+						'BN_FRIEND_INFO_CHANGED';
+						'PLAYER_ENTERING_WORLD';
+					};
+					{
+						Count = {
+							_Type   = 'FontString';
+							_Setup  = {'OVERLAY'};
+							_Font   = {Game12Font:GetFont()};
+							_AlignH = 'RIGHT';
+							_Point  = {'RIGHT', -10, 0};
+						};
+					};
+				};
+				Guild = {
+					_ID    = 2;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Friends', 'BOTTOM', 0, 0};
+					_Text  = GUILD_AND_COMMUNITIES;
+					_Image = 'Achievement_GuildPerk_EverybodysFriend';
+					_RefTo = GuildMicroButton;
+					_Attributes = hideMenuHook;
+				};
+				Calendar = {
+					_ID    = 3;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Guild', 'BOTTOM', 0, 0};
+					_Text  = EVENTS_LABEL;
+					_RefTo = GameTimeFrame;
+					_Attributes = hideMenuHook;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\Calendar\MeetingIcon]])
+					end;
+				};
+				Raid = {
+					_ID    = 4;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Calendar', 'BOTTOM', 0, 0};
+					_Text  = RAID;
+					_Attributes = hideMenuHook;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\LFGFRAME\UI-LFR-PORTRAIT]])
+					end;
+					_OnClick = ToggleRaidFrame;
+				};
+				Party = {
+					_ID    = 5;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Raid', 'BOTTOM', 0, -16};
+					_Attributes = {
+						hidemenu  = true;
+						condition = 'return PlayerInGroup()';
+					};
+					_OnShow = function(self)
+						self:SetText(CPAPI.IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
+					end;
+					_OnClick = function(self)
+						if CPAPI.IsPartyLFG() or CPAPI.IsInLFGDungeon() then
+							ConfirmOrLeaveLFGParty()
+						else
+							LeaveParty()
+						end
+					end;
+				};
+			};
+		};
+		System = {
+			_ID    = 4;
+			_Type  = 'CheckButton';
+			_Setup = headerTemplates;
+			_Text  = '|TInterface\\Store\\category-icon-wow:18:18:-4:0:64:64:14:50:14:50|t' .. SYSTEMOPTIONS_MENU;
+			{
+				Return = {
+					_ID    = 1;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
+					_Text  = RETURN_TO_GAME;
+					_RefTo = GameMenuButtonContinue;
+					_OnLoad = function(self)
+						local iconFile, iconTCoords = CPAPI.GetClassIcon(select(2, UnitClass('player')))
+						self.Icon:SetTexture(iconFile)
+						self.Icon:SetTexCoord(unpack(iconTCoords))
+					end;
+				};
+				Logout = {
+					_ID    = 2;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Return', 'BOTTOM', 0, 0};
+					_Text  = LOGOUT;
+					_RefTo = GameMenuButtonLogout;
+					_Image = 'RaceChange';
+				};
+				Exit = {
+					_ID    = 3;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Logout', 'BOTTOM', 0, 0};
+					_Text  = EXIT_GAME;
+					_RefTo = GameMenuButtonQuit;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\RAIDFRAME\ReadyCheck-NotReady]])
+					end;
+				};
+				Controller  = {
+					_ID    = 4;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Exit', 'BOTTOM', 0, -16};
+					_Text  = CONTROLS_LABEL;
+					_RefTo = GameMenuFrameConsolePort;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
+						self.Icon:SetTexCoord(0.03125, 0.96875, 0, 0.9375)
+					end;
+				};
+				System  = {
+					_ID    = 5;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', 'parent.Controller', 'BOTTOM', 0, 0};
+					_Text  = SYSTEMOPTIONS_MENU;
+					_RefTo = GameMenuButtonOptions;
+					_Image = 'Pet_Type_Mechanical';
+				};
+				Interface  = {
+					_ID    = 6;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', 'parent.System', 'BOTTOM', 0, 0};
+					_Text  = UIOPTIONS_MENU;
+					_RefTo = GameMenuButtonUIOptions;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\TUTORIALFRAME\UI-TutorialFrame-GloveCursor]])
+					end;
+				};
+				AddOns  = {
+					_ID    = 7;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', 'parent.Interface', 'BOTTOM', 0, 0};
+					_Text  = ADDONS;
+					_RefTo = GameMenuButtonAddons;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\PaperDollInfoFrame\Character-Plus]])
+					end;
+				};
+				Macros  = {
+					_ID    = 8;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', 'parent.AddOns', 'BOTTOM', 0, -16};
+					_Text  = MACROS;
+					_RefTo = GameMenuButtonMacros;
+					_Image = 'Pet_Type_Magical';
+				};
+				KeyBindings  = {
+					_ID    = 9;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', 'parent.Macros', 'BOTTOM', 0, 0};
+					_Text  = KEY_BINDINGS;
+					_RefTo = GameMenuButtonKeybindings;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\MacroFrame\MacroFrame-Icon]])
+					end;
+				};
+				Help  = {
+					_ID    = 10;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', 'parent.KeyBindings', 'BOTTOM', 0, 0};
+					_Text  = GAMEMENU_HELP;
+					_RefTo = GameMenuButtonHelp;
+					_Image = 'INV_Misc_QuestionMark';
+				};
+			};
+		};
 	})
 
+	---------------------------------------------------------------
+	-- Configure the headers and dropdowns
+	---------------------------------------------------------------
 	Mixin(Menu, env.MenuMixin)
 	Menu:LoadArt()
 	Menu:StartEnvironment()
-	Menu:Execute('hID, bID = 1, 1')
+	Menu:Execute('hID = 4')
+	Menu:SetAttribute('priorityoverride', true)
 	Menu:DrawIndex(function(header)
+		if not header.soundScriptAdded then
+			header.soundScriptAdded = true;
+			header:HookScript('OnClick', function()
+				PlaySound(SOUNDKIT.UI_COVENANT_ANIMA_DIVERSION_CLOSE, nil, SOUNDKIT_ALLOW_DUPLICATES);
+			end)
+		end
 		for i, button in ipairs({header:GetChildren()}) do
 			if button:GetAttribute('hidemenu') then
 				button:SetAttribute('type', 'macro')
@@ -197,13 +536,10 @@ do	-- Initiate frame
 		end
 	end)
 
+	---------------------------------------------------------------
+	-- Extend environment
+	---------------------------------------------------------------
 	for name, script in pairs({
-		_onshow = [[
-			self:RunAttribute('SetDropdownButton', 0, 1)
-		]],
-		SetHeaderID = [[
-			hID = ...
-		]],
 		ShowHeader = [[
 			local hID = ...
 			local header = headers[hID]
@@ -250,76 +586,21 @@ do	-- Initiate frame
 				highestIndex = highIndex
 			end
 		]],
-		SetDropdownButton = [[
-			local newIndex, delta = ...
-			bID = newIndex + delta
-			if current then
-				current:CallMethod('OnLeave')
-			end
-			local header = headers[hID]
-			if header then
-				current = header:GetFrameRef(tostring(bID))
-				if current and current:IsShown() then
-					current:CallMethod('OnEnter')
-				elseif bID > 1 and bID < highestIndex then
-					self:RunAttribute('SetDropdownButton', bID, delta)
-				end
-			end
-		]],
-		OnInput = [[
-			-- Click on a button
-			if key == CROSS and current then
-				current:CallMethod('SetButtonState', down and 'PUSHED' or 'NORMAL')
-				if not down then
-					returnHandler, returnValue = 'macrotext', '/click ' .. current:GetName()
-				end
-
-			-- Alternative clicks
-			elseif key == CIRCLE and current then
-				current:CallMethod('SetButtonState', down and 'PUSHED' or 'NORMAL')
-				if not down then
-					if current:GetAttribute('circleclick') then
-						current:RunAttribute('circleclick')
-					end
-				end
-			elseif key == SQUARE and current then
-				current:CallMethod('SetButtonState', down and 'PUSHED' or 'NORMAL')
-				if not down then
-					if current:GetAttribute('squareclick') then
-						current:RunAttribute('squareclick')
-					end
-				end
-			elseif key == TRIANGLE and current then
-				current:CallMethod('SetButtonState', down and 'PUSHED' or 'NORMAL')
-				if not down then
-					if current:GetAttribute('triangleclick') then
-						current:RunAttribute('triangleclick')
-					end
-				end
-
-			elseif ( key == CENTER or key == OPTIONS or key == SHARE ) and down then
-				returnHandler, returnValue = 'macrotext', '/click GameMenuButtonContinue'
-
-			-- Select button
-			elseif key == UP and down and bID > 1 then
-				self:RunAttribute('SetDropdownButton', bID, -1)
-			elseif key == DOWN and down and bID < highestIndex then
-				self:RunAttribute('SetDropdownButton', bID, 1)
-
-			-- Select header
-			elseif key == LEFT and down and hID > 1 then
-				self:RunAttribute('ChangeHeader', -1)
-			elseif key == RIGHT and down and hID < numheaders then
-				self:RunAttribute('ChangeHeader', 1)
-			end
-
-			return 'macro', returnHandler, returnValue
-		]],
 	}) do Menu:AppendSecureScript(name, script) end
 
+	---------------------------------------------------------------
+	-- Display properties
+	---------------------------------------------------------------
+	local db = env.db;
 	Menu:SetIgnoreParentAlpha(true)
 	Menu:HookScript('OnShow', function(self)
---		env.db.Alpha.FadeOut(UIParent, 0.1, UIParent:GetAlpha(), 0)
+		if ConsolePortCursor:IsShown() then
+			ConsolePortCursor:Click()
+		end
+
+		db.UIHandle:SetHintFocus(self)
+		db.Alpha.FadeIn(self, 0.1, self:GetAlpha(), 1)
+		db.Alpha.FadeOut(UIParent, 0.1, UIParent:GetAlpha(), 0)
 		if UIDoFramesIntersect(self, Minimap) and Minimap:IsShown() then
 			self.minimapHidden = true
 			Minimap:Hide()
@@ -328,7 +609,12 @@ do	-- Initiate frame
 	end)
 	
 	Menu:HookScript('OnHide', function(self)
---		env.db.Alpha.FadeIn(UIParent, 0.1, UIParent:GetAlpha(), 1)
+		if db.UIHandle:IsHintFocus(self) then
+			db.UIHandle:HideHintBar()
+		end
+		db.UIHandle:ClearHintsForFrame(self)
+		db.Alpha.FadeIn(UIParent, 0.1, UIParent:GetAlpha(), 1)
+		db.Alpha.FadeOut(self, 0.1, self:GetAlpha(), 0)
 		if self.minimapHidden then
 			Minimap:Show()
 			MinimapCluster:Show()
@@ -336,14 +622,14 @@ do	-- Initiate frame
 		end
 	end)
 
-	env.db.Stack:HideFrame(GameMenuFrame, true)
-	env.db.Secure:RegisterUser(Menu)
+	db.Stack:HideFrame(GameMenuFrame, true)
+	db.Secure:RegisterUser(Menu)
 
 	local r, g, b = CPAPI.GetClassColor()
 	Mixin(Menu, CPBackgroundMixin)
 	CPBackgroundMixin.OnLoad(Menu)
 	Menu.Background:SetAllPoints()
-	Menu.Background:SetVertexColor(r/5, g/5, b/5, 0.25)
+	Menu.Background:SetVertexColor(r/5, g/5, b/5, 0.5)
 	r, g, b = r / 10, g / 10, b / 10;
 	Menu.Rollover:SetGradientAlpha('VERTICAL', r, g, b, 1, r, g, b, 0)
 end

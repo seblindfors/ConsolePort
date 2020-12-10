@@ -187,4 +187,4 @@ LibStub('Carpenter'):BuildFrame(GameMenuFrame, {
 			self.GetPushedTexture = nop;
 		end;
 	};
-}, false, true)
+})

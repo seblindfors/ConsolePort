@@ -541,6 +541,7 @@ NODE.ScanLocal = ScanLocal;
 NODE.GetCenter = GetCenterScaled;
 NODE.GetCenterPos = GetCenterPos;
 NODE.GetCenterScaled = GetCenterScaled;
+NODE.GetDistance = GetDistance;
 NODE.IsRelevant = IsRelevant;
 NODE.ClearCache = ClearCache;
 NODE.GetScrollButtons = GetScrollButtons;
