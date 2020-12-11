@@ -11,4 +11,5 @@ Core\MenuMixin.lua
 Core\ButtonMixin.lua
 Templates\Templates.xml
 
-Menus\GameMenu.lua
+Menus\GameMenuSplash.lua
+Menus\GameMenuFrame.lua

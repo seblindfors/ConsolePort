@@ -98,13 +98,17 @@ function Cursor.Display:OnUpdate(elapsed)
 
 	self:ClearAllPoints()
 	if cX and cY and nX and nY then
-		if ( Node.GetDistance(cX, cY, nX, nY) < 1 ) then
+		-- TODO: handle scale differences
+		local diff = Node.GetDistance(cX, cY, nX, nY)
+		if (  diff < 1 ) then
 			arrow.rotation = arrow.rotation + ((BASE_ARROW_ROTATION - arrow.rotation) / divisor)
 			arrow:SetRotation(arrow.rotation)
 		else
-			arrow.rotation = rad((math.atan2(nY - cY, nX - cX) * 180 / math.pi)-90);
+			arrow.rotation = rad((math.atan2(nY - cY, nX - cX) * 180 / math.pi) - 90);
 			arrow:SetRotation(arrow.rotation)
 		end
+		self.ArrowHilite:SetRotation(arrow.rotation)
+		self.ArrowHilite:SetAlpha(diff)
 		self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT',
 			cX + ((nX - cX) / divisor),
 			cY + ((nY - cY) / divisor)
@@ -118,11 +122,18 @@ function Cursor.Display:OnHide()
 	self:GetParent().Blocker:Hide()
 end
 
+function Cursor.Display:OnShow()
+	self.Group:Stop()
+	self.Group:Play()
+end
+
 function Cursor:Chime()
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
 end
 
 Cursor.Display.Arrow.rotation = BASE_ARROW_ROTATION;
-Cursor.Display.Arrow:SetRotation(Cursor.Display.Arrow.rotation)
+Cursor.Display.Arrow:SetRotation(BASE_ARROW_ROTATION)
+Cursor.Display.ArrowHilite:SetRotation(BASE_ARROW_ROTATION)
 Cursor.Display:SetScript('OnUpdate', Cursor.Display.OnUpdate)
 Cursor.Display:SetScript('OnHide', Cursor.Display.OnHide)
+Cursor.Display:SetScript('OnShow', Cursor.Display.OnShow)

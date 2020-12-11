@@ -76,6 +76,10 @@ function Config:OnPanelAdded(panel, header)
 	end
 end
 
+function Config:GetEnvironment()
+	return env;
+end
+
 Config:HookScript('OnShow', Config.OnShow)
 Config:SetScript('OnGamePadButtonDown', Config.OnGamePadButtonDown)
 db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)

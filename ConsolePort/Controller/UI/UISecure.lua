@@ -120,11 +120,17 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	]];
 	-----------------------------------------------------------
 	SetNodeByShown = [[
+		local highprio, candidate = -1
 		for node in pairs(NODES) do
 			if node:IsVisible() then
-				curnode = node
-				break
+				local targPrio = node:GetAttribute('nodepriority') or 0
+				if (targPrio > highprio) then
+					candidate, highprio = node, targPrio
+				end
 			end
+		end
+		if candidate then
+			curnode = candidate
 		end
 	]];
 	-----------------------------------------------------------

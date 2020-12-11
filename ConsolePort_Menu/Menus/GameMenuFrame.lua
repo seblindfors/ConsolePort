@@ -5,6 +5,7 @@ do	-- Initiate frame
 	local headerTemplates = {'SecureHandlerBaseTemplate', 'SecureHandlerClickTemplate', 'CPMenuListCategoryTemplate'}; 
 	local baseTemplates   = {'CPMenuButtonBaseTemplate', 'SecureActionButtonTemplate'};
 	local hideMenuHook    = {hidemenu = true};
+	local PLAYER_CLASS    = select(2, UnitClass('player'))
 
 	LibStub('Carpenter')(Menu, {
 		Character = {
@@ -132,7 +133,7 @@ do	-- Initiate frame
 					_OnLoad = function(self)
 						CPMenuButtonMixin.OnLoad(self)
 
-						local iconFile, iconTCoords = CPAPI.GetClassIcon(select(2, UnitClass('player')))
+						local iconFile, iconTCoords = CPAPI.GetClassIcon(PLAYER_CLASS)
 						self.Icon:SetTexture(iconFile)
 						self.Icon:SetTexCoord(unpack(iconTCoords))
 						for _, event in ipairs({
@@ -290,7 +291,7 @@ do	-- Initiate frame
 			};
 		};
 		Social = {
-			_ID    = 3;
+			_ID    = 4;
 			_Type  = 'CheckButton';
 			_Setup = headerTemplates;
 			_Text  = '|TInterface\\Store\\category-icon-featured:18:18:-4:0:64:64:14:50:14:50|t' .. SOCIAL_BUTTON;
@@ -386,7 +387,7 @@ do	-- Initiate frame
 			};
 		};
 		System = {
-			_ID    = 4;
+			_ID    = 5;
 			_Type  = 'CheckButton';
 			_Setup = headerTemplates;
 			_Text  = '|TInterface\\Store\\category-icon-wow:18:18:-4:0:64:64:14:50:14:50|t' .. SYSTEMOPTIONS_MENU;
@@ -399,7 +400,7 @@ do	-- Initiate frame
 					_Text  = RETURN_TO_GAME;
 					_RefTo = GameMenuButtonContinue;
 					_OnLoad = function(self)
-						local iconFile, iconTCoords = CPAPI.GetClassIcon(select(2, UnitClass('player')))
+						local iconFile, iconTCoords = CPAPI.GetClassIcon(PLAYER_CLASS)
 						self.Icon:SetTexture(iconFile)
 						self.Icon:SetTexCoord(unpack(iconTCoords))
 					end;
@@ -503,6 +504,99 @@ do	-- Initiate frame
 				};
 			};
 		};
+		Splash = {
+			_ID = 3;
+			_Type = 'CheckButton';
+			_Size = {54, 54};
+			_Setup = {'CPButtonTemplate', 'SecureHandlerClickTemplate'};
+			_Attributes = {_onclick = 'self:GetParent():RunAttribute("ChangeHeader", self:GetID())'};
+			{
+				ClassIcon = {
+					_Type = 'Texture';
+					_Setup = {'ARTWORK'};
+					_Point = {'CENTER', 0, 0};
+					_Size = {42, 42};
+					_OnLoad = function(self)
+						local iconFile, iconTCoords = CPAPI.GetWebClassIcon()
+						self:SetTexture(iconFile)
+						self:SetTexCoord(unpack(iconTCoords))
+					end;
+				};
+				ClassIconShadow = {
+					_Type = 'Texture';
+					_Setup = {'Background'};
+					_Point = {'CENTER', 0, -2};
+					_Size = {42, 42};
+					_OnLoad = function(self)
+						local iconFile, iconTCoords = CPAPI.GetWebClassIcon()
+						self:SetTexture(iconFile)
+						self:SetTexCoord(unpack(iconTCoords))
+						self:SetVertexColor(0, 0, 0)
+					end;
+				};
+				BackgroundFrame = {
+					_Type = 'Frame';
+					_Hide = true;
+					_Level = 1;
+					_Alpha = 0;
+					_Points = {
+						{'TOPLEFT', '$parent.$parent', 'BOTTOMLEFT', 0, 0};
+						{'BOTTOMRIGHT', UIParent, 'BOTTOMRIGHT', 0, 0};
+					};
+					_OnShow = function(self)
+						env.db.Alpha.FadeIn(self, 0.5, self:GetAlpha(), 1)
+					end;
+					_OnHide = function(self)
+						env.db.Alpha.FadeOut(self, 0.5, self:GetAlpha(), 0)
+					end;
+					{
+						Rollover1 = {
+							_Type = 'Texture';
+							_Fill = true;
+							_Texture = CPAPI.GetAsset([[Textures\Menu\Gradient]]);
+							_OnLoad = function(self)
+								local r, g, b = CPAPI.GetClassColor()
+								self:SetGradientAlpha('VERTICAL', r, g, b, 0.75, r, g, b, 1)
+							end;
+						};
+						Rollover2 = {
+							_Type = 'Texture';
+							_Fill = true;
+							_Texture = CPAPI.GetAsset([[Textures\Menu\Gradient]]);
+							_OnLoad = function(self)
+								local r, g, b = CPAPI.GetClassColor()
+								self:SetGradientAlpha('VERTICAL', r, g, b, 0, r, g, b, 1)
+							end;
+						};
+					};
+				};
+				ContentFrame = {
+					_Type = 'Frame';
+					_Hide = true;
+					_Width = 1000;
+					_Level = 2;
+					_Scale = 1.2;
+					_Points = {
+						{'TOP', '$parent.$parent', 'BOTTOM', 0, 0};
+						{'BOTTOM', UIParent, 'BOTTOM', 0, 0};
+					};
+					{
+						Splash = {
+							_Type  = 'Texture';
+							_Setup = {'ARTWORK'};
+							_Size  = {450, 450};
+							_Point = {'CENTER', 0, 0};
+						};
+						Lines = {
+							_Type  = 'Texture';
+							_Setup = {'OVERLAY'};
+							_Size  = {1024, 512};
+							_Point = {'CENTER', 0, 0};
+						};
+					};
+				};
+			};
+		};
 	})
 
 	---------------------------------------------------------------
@@ -511,28 +605,36 @@ do	-- Initiate frame
 	Mixin(Menu, env.MenuMixin)
 	Menu:LoadArt()
 	Menu:StartEnvironment()
-	Menu:Execute('hID = 4')
+	Menu:Execute('hID = 5; self:RunAttribute("SetHeader", hID)')
 	Menu:SetAttribute('priorityoverride', true)
 	Menu:DrawIndex(function(header)
+		for i, button in ipairs({header:GetChildren()}) do
+			if button:IsObjectType('Button') then
+				if button:GetAttribute('hidemenu') then
+					button:SetAttribute('type', 'macro')
+					button:SetAttribute('macrotext', '/click GameMenuButtonContinue')
+				end
+				if button.RefTo then
+					local macrotext = button:GetAttribute('macrotext')
+					local prefix = (macrotext and macrotext .. '\n') or ''
+					button:SetAttribute('macrotext', prefix .. '/click ' .. button.RefTo:GetName())
+					button:SetAttribute('type', 'macro')
+				end
+				button:Hide()
+				header:SetFrameRef(tostring(button:GetID()), button)
+			end
+		end
+
 		if not header.soundScriptAdded then
 			header.soundScriptAdded = true;
 			header:HookScript('OnClick', function()
-				PlaySound(SOUNDKIT.UI_COVENANT_ANIMA_DIVERSION_CLOSE, nil, SOUNDKIT_ALLOW_DUPLICATES);
+				PlaySound(SOUNDKIT.UI_COVENANT_ANIMA_DIVERSION_CLOSE, 'Master', false, false)
 			end)
 		end
-		for i, button in ipairs({header:GetChildren()}) do
-			if button:GetAttribute('hidemenu') then
-				button:SetAttribute('type', 'macro')
-				button:SetAttribute('macrotext', '/click GameMenuButtonContinue')
-			end
-			if button.RefTo then
-				local macrotext = button:GetAttribute('macrotext')
-				local prefix = (macrotext and macrotext .. '\n') or ''
-				button:SetAttribute('macrotext', prefix .. '/click ' .. button.RefTo:GetName())
-				button:SetAttribute('type', 'macro')
-			end
-			button:Hide()
-			header:SetFrameRef(tostring(button:GetID()), button)
+		if (header:GetID() ~= 3) then
+			local point, relativeTo, relativePoint, x = header:GetPoint()
+			header:ClearAllPoints()
+			header:SetPoint(point, relativeTo, relativePoint, x > 0 and x -40 or x +40, 0)
 		end
 	end)
 
@@ -543,47 +645,25 @@ do	-- Initiate frame
 		ShowHeader = [[
 			local hID = ...
 			local header = headers[hID]
-			for _, button in ipairs(newtable(header:GetChildren())) do
-				local condition = button:GetAttribute('condition')
-				if condition then
-					local show = self:Run(condition)
-					if show then
-						button:Show()
+			for _, child in ipairs(newtable(header:GetChildren())) do
+				if child:IsProtected() then
+					local condition = child:GetAttribute('condition')
+					if condition then
+						local show = self:Run(condition)
+						if show then
+							child:Show()
+						else
+							child:Hide()
+						end
 					else
-						button:Hide()
+						child:Show()
 					end
-				else
-					button:Show()
 				end
 			end
 		]],
 		ClearHeader = [[
-			for _, button in ipairs(newtable(header:GetChildren())) do
-				button:Hide()
-			end
-		]],
-		SetHeader = [[
-			local buttons = newtable(header:GetChildren())
-			local highIndex = 0
-			if header:GetAttribute('onheaderset') then
-				highestIndex = header:RunAttribute('onheaderset')
-			else
-				for _, button in pairs(buttons) do
-					local condition = button:GetAttribute('condition')
-					local currentID
-					if condition then
-						local show = self:Run(condition)
-						if show then
-							currentID = tonumber(button:GetID())
-						end
-					else
-						currentID = tonumber(button:GetID())
-					end
-					if currentID and currentID > highIndex then
-						highIndex = currentID
-					end
-				end
-				highestIndex = highIndex
+			for _, child in ipairs(newtable(header:GetChildren())) do
+				child:Hide()
 			end
 		]],
 	}) do Menu:AppendSecureScript(name, script) end
@@ -601,11 +681,15 @@ do	-- Initiate frame
 		db.UIHandle:SetHintFocus(self)
 		db.Alpha.FadeIn(self, 0.1, self:GetAlpha(), 1)
 		db.Alpha.FadeOut(UIParent, 0.1, UIParent:GetAlpha(), 0)
+
 		if UIDoFramesIntersect(self, Minimap) and Minimap:IsShown() then
 			self.minimapHidden = true
 			Minimap:Hide()
 			MinimapCluster:Hide()
 		end
+
+		self.tooltipIgnoringAlpha = GameTooltip:IsIgnoringParentAlpha()
+		GameTooltip:SetIgnoreParentAlpha(true)
 	end)
 	
 	Menu:HookScript('OnHide', function(self)
@@ -615,15 +699,16 @@ do	-- Initiate frame
 		db.UIHandle:ClearHintsForFrame(self)
 		db.Alpha.FadeIn(UIParent, 0.1, UIParent:GetAlpha(), 1)
 		db.Alpha.FadeOut(self, 0.1, self:GetAlpha(), 0)
+
 		if self.minimapHidden then
 			Minimap:Show()
 			MinimapCluster:Show()
 			self.minimapHidden = false
 		end
-	end)
 
-	db.Stack:HideFrame(GameMenuFrame, true)
-	db.Secure:RegisterUser(Menu)
+		GameTooltip:SetIgnoreParentAlpha(self.tooltipIgnoringAlpha)
+		self.tooltipIgnoringAlpha = nil;
+	end)
 
 	local r, g, b = CPAPI.GetClassColor()
 	Mixin(Menu, CPBackgroundMixin)
@@ -632,4 +717,25 @@ do	-- Initiate frame
 	Menu.Background:SetVertexColor(r/5, g/5, b/5, 0.5)
 	r, g, b = r / 10, g / 10, b / 10;
 	Menu.Rollover:SetGradientAlpha('VERTICAL', r, g, b, 1, r, g, b, 0)
+
+	---------------------------------------------------------------
+	-- Initialize splash button
+	---------------------------------------------------------------
+	Mixin(Menu.Splash, env.SplashButtonMixin)
+	Menu.Splash:Initialize(Menu)
+
+	---------------------------------------------------------------
+	-- Register frame
+	---------------------------------------------------------------
+	db.Stack:HideFrame(GameMenuFrame, true)
+	db.Secure:RegisterUser(Menu)
+
+	---------------------------------------------------------------
+	-- Scale/overflow handling
+	---------------------------------------------------------------
+	function Menu:OnUIScaleChanged()
+		self:SetScale(db('UIscale'))
+	end
+	Menu:SetScale(db('UIscale'))
+	db:RegisterSafeCallback('Settings/UIscale', Menu.OnUIScaleChanged, Menu)
 end

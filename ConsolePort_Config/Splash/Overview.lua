@@ -164,7 +164,7 @@ function Button:UpdateState(currentModifier)
 	local isClickOverride = (self:IsClickReserved(reserved) and currentModifier ~= '')
 	if not isClickOverride and reserved then
 		self:SetActionIcon(nil)
-		self:SetText(self:WrapAsNotBound(L(reserved.name)))
+		self:SetText(WHITE_FONT_COLOR:WrapTextInColorCode(L(reserved.name)))
 		return
 	end
 
@@ -203,7 +203,10 @@ function Overview:OnHide()
 end
 
 function Overview:PlayIntro()
-	self:GetParent().TintAnimation:Play()
+	local animation = self:GetParent().TintAnimation;
+	if animation then
+		animation:Play()
+	end
 end
 
 function Overview:OnShow()

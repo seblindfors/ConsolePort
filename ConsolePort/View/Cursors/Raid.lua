@@ -86,21 +86,35 @@ Cursor:CreateEnvironment({
 		if reroute then
 			for action, unit in pairs(ACTIONS) do
 				action:SetAttribute('unit', unit)
+				if action:GetAttribute('backup-checkselfcast') then
+					action:SetAttribute('checkselfcast', action:GetAttribute('backup-checkselfcast'))
+					action:SetAttribute('backup-checkselfcast', nil)
+				end
+				if action:GetAttribute('backup-checkfocuscast') then
+					action:SetAttribute('checkfocuscast', action:GetAttribute('backup-checkfocuscast'))
+					action:SetAttribute('backup-checkfocuscast', nil)
+				end
 			end
 		end
 		return reroute;
 	]];
 	RerouteUnit = [[
 		local unit = ...;
+		local actionset;
 		if PlayerCanAttack(unit) then
 			self:SetAttribute('relation', 'harm')
-			for action in pairs(HARMFUL) do
-				action:SetAttribute('unit', unit)
-			end
+			actionset = HARMFUL;
 		elseif PlayerCanAssist(unit) then
 			self:SetAttribute('relation', 'help')
-			for action in pairs(HELPFUL) do
+			actionset = HELPFUL;
+		end
+		if actionset then
+			for action in pairs(actionset) do
 				action:SetAttribute('unit', unit)
+				action:SetAttribute('backup-checkselfcast', action:GetAttribute('checkselfcast'))
+				action:SetAttribute('backup-checkfocuscast', action:GetAttribute('checkfocuscast'))
+				action:SetAttribute('checkselfcast', nil)
+				action:SetAttribute('checkfocuscast', nil)
 			end
 		end
 	]];

@@ -25,6 +25,7 @@ local ENV_DEFAULT = {
 		if not header then return end
 		header:CallMethod('SetButtonState', 'PUSHED')
 		header:CallMethod('LockHighlight')
+		header:SetAttribute('nodepriority', 1)
 		header:SetAttribute('focused', true)
 		self:CallMethod('OnHeaderSet', header:GetName(), header:GetID())
 	]];
@@ -34,7 +35,9 @@ local ENV_DEFAULT = {
 		if not header then return end
 		header:CallMethod('SetButtonState', 'NORMAL')
 		header:CallMethod('UnlockHighlight')
+		header:SetAttribute('nodepriority', 0)
 		header:SetAttribute('focused', false)
+		self:CallMethod('OnHeaderCleared', header:GetName(), header:GetID())
 	]];
 	-- @param hID : header to set, identified by ID
 	ChangeHeader = [[
@@ -99,7 +102,7 @@ end
 function Menu:UpdateHeaderIndex(forceCount)
 	self.headers = forceCount and {} or self.headers or {}
 	if ( #self.headers < 1 or forceCount ) then
-		self:SetAttribute('headerwidth', 0)
+		self:SetAttribute('headerwidth', self:GetAttribute('indexwidth') or 0)
 		for _, child in ipairs({self:GetChildren()}) do
 			local id = child:GetID()
 			if child:IsObjectType('CheckButton') and id > 0 then
@@ -205,11 +208,21 @@ function Menu:OnHeaderSet(id)
 		if header.OnFocusAnim then
 			header.OnFocusAnim:Play()
 		end
+		if header.OnFocus then
+			header:OnFocus()
+		end
 		self.FadeOut(self.Flair, 0.5, 1, .25)
 		self.Flair:SetPoint('BOTTOMLEFT', header, 'BOTTOMLEFT')
 		self.Flair:SetPoint('BOTTOMRIGHT', header, 'BOTTOMRIGHT')
 		self.Flair:SetHeight(64)
 		self.Flair:Show()
+	end
+end
+
+function Menu:OnHeaderCleared(id)
+	local header = type(id) == 'string' and _G[id] or id
+	if header and header.OnClear then
+		header:OnClear()
 	end
 end
 

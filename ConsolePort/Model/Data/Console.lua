@@ -11,13 +11,13 @@ db:Register('Console', setmetatable({
 		{	cvar = 'GamePadEmulateShift';
 			type = Button;
 			name = 'Emulate Shift';
-			desc = 'Button that emulates the Shift key.';
+			desc = 'Button that emulates the Shift key. Hold this button to swap your binding set.';
 			note = 'Recommended as first choice modifier.';
 		};
 		{	cvar = 'GamePadEmulateCtrl';
 			type = Button;
 			name = 'Emulate Ctrl';
-			desc = 'Button that emulates the Ctrl key.';
+			desc = 'Button that emulates the Ctrl key. Hold this button to swap your binding set.';
 			note = 'Recommended as second choice modifier.';
 		};
 		{ 	cvar = 'GamePadEmulateAlt';
