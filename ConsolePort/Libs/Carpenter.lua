@@ -333,9 +333,9 @@ function callMethodsOnWidget(widget, methods)
 
     for method, data in pairs(methods) do
         if not RESERVED[method] then
-            local index = strip(method)
-            if index then
-                call(widget, index, data)
+            local func = strip(method)
+            if func then
+                call(widget, func, data)
             else
                 widget[method] = data
             end

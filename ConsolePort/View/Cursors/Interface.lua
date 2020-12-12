@@ -98,6 +98,10 @@ function Cursor:Disable()
 	end
 end
 
+function Cursor:OnShow()
+	self:SetScale(UIParent:GetEffectiveScale())
+end
+
 function Cursor:OnHide()
 	self.timer = 0
 	self:SetAlpha(1)

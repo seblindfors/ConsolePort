@@ -27,15 +27,6 @@ function CPAPI.GetClassFile()
 	return db('classFileOverride') or select(2, UnitClass('player'))
 end
 
-function CPAPI.GetPlayerCastingInfo()
-	-- use UnitCastingInfo on retail
-	if UnitCastingInfo then
-		return UnitCastingInfo('player')
-	end
-	-- use CastingInfo on classic
-	return CastingInfo()
-end
-
 function CPAPI.GetSpecialization()
 	-- returns specializationID on retail
 	if GetSpecialization then
@@ -79,51 +70,4 @@ function CPAPI.GetAverageItemLevel(...)
 		return floor(select(2, GetAverageItemLevel(...)))
 	end
 	return MAX_PLAYER_LEVEL
-end
-
-function CPAPI.GetNumQuestWatches(...)
-	return GetNumQuestWatches and GetNumQuestWatches(...) or 0
-end
-
-function CPAPI.GetNumWorldQuestWatches(...)
-	return GetNumWorldQuestWatches and GetNumWorldQuestWatches(...) or 0
-end
-
-function CPAPI.GetQuestLogSpecialItemInfo(...)
-	return GetQuestLogSpecialItemInfo and GetQuestLogSpecialItemInfo(...)
-end
-
-function CPAPI.UnitIsBattlePet(...)
-	return UnitIsBattlePet and UnitIsBattlePet(...)
-end
-
-function CPAPI.UnitThreatSituation(...)
-	return UnitThreatSituation and UnitThreatSituation(...)
-end
-
-function CPAPI.IsXPUserDisabled(...)
-	return IsXPUserDisabled and IsXPUserDisabled(...)
-end
-
-function CPAPI.IsSpellOverlayed(...)
-	return IsSpellOverlayed and IsSpellOverlayed(...)
-end
-
-function CPAPI.GetFriendshipReputation(...)
-	return GetFriendshipReputation and GetFriendshipReputation(...)
-end
-
-function CPAPI.IsPartyLFG(...)
-	return IsPartyLFG and IsPartyLFG(...)
-end
-
-function CPAPI.IsInLFGDungeon(...)
-	return IsInLFGDungeon and IsInLFGDungeon(...)
-end
-
-function CPAPI.OpenStackSplitFrame(...)
-	if OpenStackSplitFrame then
-		return OpenStackSplitFrame(...)
-	end
-	return StackSplitFrame:OpenStackSplitFrame(...)
 end

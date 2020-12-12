@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
-	<Button name="ConsolePortCursor" parent="UIParent" hidden="true" frameStrata="TOOLTIP" frameLevel="10000">
+	<Button name="ConsolePortCursor" hidden="true" frameStrata="TOOLTIP" frameLevel="10000">
 		<Size x="32" y="32"/>
 		<Attributes>
 			<Attribute name="nodeignore" type="boolean" value="true"/>

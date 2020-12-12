@@ -1250,7 +1250,7 @@ end
 
 function UpdateOverlayGlow(self)
 	local spellId = self:GetSpellId()
-	if spellId and CPAPI.IsSpellOverlayed(spellId) then
+	if spellId and IsSpellOverlayed(spellId) then
 		ShowOverlayGlow(self)
 	else
 		HideOverlayGlow(self)

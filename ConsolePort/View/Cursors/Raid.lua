@@ -86,11 +86,11 @@ Cursor:CreateEnvironment({
 		if reroute then
 			for action, unit in pairs(ACTIONS) do
 				action:SetAttribute('unit', unit)
-				if action:GetAttribute('backup-checkselfcast') then
+				if action:GetAttribute('backup-checkselfcast') ~= nil then
 					action:SetAttribute('checkselfcast', action:GetAttribute('backup-checkselfcast'))
 					action:SetAttribute('backup-checkselfcast', nil)
 				end
-				if action:GetAttribute('backup-checkfocuscast') then
+				if action:GetAttribute('backup-checkfocuscast') ~= nil then
 					action:SetAttribute('checkfocuscast', action:GetAttribute('backup-checkfocuscast'))
 					action:SetAttribute('backup-checkfocuscast', nil)
 				end

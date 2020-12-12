@@ -69,7 +69,7 @@ function CPExpBarMixin:GetPriority()
 end
 
 function CPExpBarMixin:ShouldBeVisible()
-	return not IsPlayerAtEffectiveMaxLevel() and not CPAPI:IsXPUserDisabled()
+	return not IsPlayerAtEffectiveMaxLevel() and not IsXPUserDisabled()
 end
 
 function CPExpBarMixin:Update() 
@@ -277,7 +277,7 @@ function CPExhaustionTickMixin:UpdateTickPosition()
 	end
 
 	-- Hide exhaustion tick if player is max level or XP is turned off
-	if ( IsPlayerAtEffectiveMaxLevel() or CPAPI:IsXPUserDisabled() ) then
+	if ( IsPlayerAtEffectiveMaxLevel() or IsXPUserDisabled() ) then
 		self:Hide()
 	end			
 end

@@ -280,13 +280,15 @@ do	-- Initiate frame
 						hidemenu  = true;
 						condition = 'return PlayerInGroup()';
 					};
-					_OnShow = function(self)
-						local isLFG, inDungeon = IsPartyLFG(), IsInLFGDungeon()
-						self:SetText(inDungeon and TELEPORT_OUT_OF_DUNGEON or isLFG and TELEPORT_TO_DUNGEON or '|cFF757575'..TELEPORT_TO_DUNGEON)
-					end;
-					_OnClick = function(self)
-						LFGTeleport(IsInLFGDungeon())
-					end;
+					_Hooks = {
+						OnShow = function(self)
+							local isLFG, inDungeon = IsPartyLFG(), IsInLFGDungeon()
+							self:SetText(inDungeon and TELEPORT_OUT_OF_DUNGEON or isLFG and TELEPORT_TO_DUNGEON or '|cFF757575'..TELEPORT_TO_DUNGEON)
+						end;
+						OnClick = function(self)
+							LFGTeleport(IsInLFGDungeon())
+						end;
+					};
 				};
 			};
 		};
@@ -369,20 +371,27 @@ do	-- Initiate frame
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Raid', 'BOTTOM', 0, -16};
+					_Image = 'Spell_Shadow_Teleport';
 					_Attributes = {
 						hidemenu  = true;
 						condition = 'return PlayerInGroup()';
 					};
-					_OnShow = function(self)
-						self:SetText(CPAPI.IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\LFGFRAME\UI-LFG-PORTRAIT]])
 					end;
-					_OnClick = function(self)
-						if CPAPI.IsPartyLFG() or CPAPI.IsInLFGDungeon() then
-							ConfirmOrLeaveLFGParty()
-						else
-							LeaveParty()
-						end
-					end;
+					_Hooks = {
+						OnShow = function(self)
+							self:SetText(IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
+						end;
+						OnClick = function(self)
+							if IsPartyLFG() or IsInLFGDungeon() then
+								ConfirmOrLeaveLFGParty()
+							else
+								C_PartyInfo.LeaveParty()
+							end
+						end;
+					};
 				};
 			};
 		};

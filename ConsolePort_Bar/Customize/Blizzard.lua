@@ -153,6 +153,13 @@ do
 		end)
 	end
 
+	if MainMenuBarVehicleLeaveButton then
+		hooksecurefunc('MainMenuBarVehicleLeaveButton_Update', function()
+			MainMenuBarVehicleLeaveButton:ClearAllPoints()
+			MainMenuBarVehicleLeaveButton:SetPoint('BOTTOM', Bar.Eye, 'TOP', 0, 0)
+		end)
+	end
+
 	-- Replace spell push animations. 
 	if IconIntroTracker then
 		IconIntroTracker:HookScript('OnEvent', function(self, event, ...)
