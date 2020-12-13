@@ -148,7 +148,7 @@ function HotkeyHandler:UpdateHotkeys(device)
 		for modID, binding in pairs(set) do
 			local actionBarID = db('Actionbar/Binding/'..binding)
 			if actionBarID then
-				bindingToActionID[actionBarID] = self:GetHotkeyData(device, btnID, modID, 32, 32)
+				bindingToActionID[binding] = self:GetHotkeyData(device, btnID, modID, 32, 32)
 			else
 				local widget = _G[(gsub(gsub(binding, 'CLICK ', ''), ':.+', ''))]
 				if C_Widget.IsFrameWidget(widget) then
@@ -160,7 +160,7 @@ function HotkeyHandler:UpdateHotkeys(device)
 
 	-- draw on action buttons
 	for owner, action in db.Actionbar:GetActionButtons() do
-		local data = bindingToActionID[action]
+		local data = bindingToActionID[db('Actionbar/Action/'..action)]
 		if data then
 			self:GetWidget():SetData(data, owner)
 		end

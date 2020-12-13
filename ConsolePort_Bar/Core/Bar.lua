@@ -109,13 +109,17 @@ function Bar:PLAYER_REGEN_DISABLED()
 	self:FadeIn(self:GetAlpha())
 end
 
+function Bar:PLAYER_LOGIN()
+	self:OnLoad(env.cfg)
+end
+
 function Bar:ADDON_LOADED(name)
 	if name == _ then
 		if not ConsolePort_BarSetup then
 			ConsolePort_BarSetup = env:GetDefaultSettings()
 		end
 		env:CreateManifest()
-		self:OnLoad(ConsolePort_BarSetup)
+		env:SetConfig(ConsolePort_BarSetup, false)
 		self:UnregisterEvent('ADDON_LOADED')
 		self.ADDON_LOADED = nil
 	end

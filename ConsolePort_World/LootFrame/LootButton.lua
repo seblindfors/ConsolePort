@@ -10,6 +10,7 @@ function LootButton:OnLoad()
 	CPAPI.Start(self)
 	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 	self:RegisterForDrag('LeftButton')
+	self:SetScript('OnUpdate', nil)
 end
 
 function LootButton:OnDragStart()
@@ -35,20 +36,19 @@ function LootButton:OnEnter()
 	if ( slotType == LOOT_SLOT_ITEM ) then
 		FocusTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 		FocusTooltip:SetLootItem(slot)
-		FocusTooltip:Show()
 		CursorUpdate(self)
+		self:SetScript('OnUpdate', self.OnUpdate)
 	end
 	if ( slotType == LOOT_SLOT_CURRENCY ) then
 		FocusTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 		FocusTooltip:SetLootCurrency(slot)
-		FocusTooltip:Show()
 		CursorUpdate(self)
+		self:SetScript('OnUpdate', nil)
+		self:OnUpdate()
 	end
 
 	if FocusTooltip:IsOwned(self) then
 		FocusTooltip:SetBackdrop(nil)
-		local width, height = (FocusTooltip:GetWidth() or 330) + 50, (FocusTooltip:GetHeight() or 50)
-		self.NameFrame:SetSize(width < 330 and 330 or width, height < 50 and 50 or height)
 		self.Text:SetAlpha(0)
 	end
 
@@ -59,12 +59,18 @@ end
 function LootButton:OnLeave()
 	if FocusTooltip:IsOwned(self) then
 		FocusTooltip:Hide()
+		self:SetScript('OnUpdate', nil)
 	end
 	self.hasTooltipFocus = false;
 	self.NameFrame:SetSize(300, 50)
 	self.Text:SetAlpha(1)
 	self:UnlockHighlight()
 	self.QuestTexture:SetDrawLayer('OVERLAY')
+end
+
+function LootButton:OnUpdate()
+	local width, height = (FocusTooltip:GetWidth() or 330) + 50, (FocusTooltip:GetHeight() or 50)
+	self.NameFrame:SetSize(Clamp(width, 330, width), Clamp(height, 50, height))
 end
 
 function LootButton:OnHide()

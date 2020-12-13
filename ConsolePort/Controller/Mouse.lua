@@ -6,10 +6,10 @@
 -- behave.
 
 local _, db = ...;
-local Mouse = CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
+local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
 	'ACTIONBAR_SHOWGRID';
-})
+}))
 
 ---------------------------------------------------------------
 -- Upvalues since these will be called/checked frequently

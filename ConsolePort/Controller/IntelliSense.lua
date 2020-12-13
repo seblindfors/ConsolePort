@@ -8,6 +8,13 @@ local _, db = ...; local L = db.Locale;
 local Intellisense = db:Register('Intellisense', {})
 local Intellinode = {};
 
+function Intellisense:OnHintsFocus()
+	if db('mouseHandlingEnabled') then
+		db.Mouse:ClearCenteredCursor()
+	end
+end
+
+db:RegisterCallback('OnHintsFocus', Intellisense.OnHintsFocus, Intellisense)
 
 function Intellisense:ProcessInterfaceCursorEvent(button, down, node)
 	if (down == false) then

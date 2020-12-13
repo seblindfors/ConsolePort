@@ -101,14 +101,11 @@ function GamepadAPI:GAME_PAD_DISCONNECTED()
 end
 
 function GamepadAPI:UPDATE_BINDINGS()
+	self.updateBindingDispatching = true;
 	if self.IsMapped then
-		self.updateBindingDispatching = true;
-		C_Timer.After(0, function()
-			if self.updateBindingDispatching then
-				db:TriggerEvent('OnNewBindings', self:GetBindings())
-				self.updateBindingDispatching = nil;
-			end
-		end)
+		C_Timer.After(0, GamepadAPI.OnNewBindings)
+	else
+		GamepadAPI.OnNewBindings()
 	end
 end
 
@@ -160,6 +157,13 @@ for _, modifier in ipairs(GamepadAPI.Modsims) do
 		end
 		SaveBindings(GetCurrentBindingSet())
 	end, GamepadAPI)
+end
+
+function GamepadAPI.OnNewBindings()
+	if GamepadAPI.updateBindingDispatching then
+		db:TriggerEvent('OnNewBindings', GamepadAPI:GetBindings())
+		GamepadAPI.updateBindingDispatching = nil;
+	end
 end
 
 ---------------------------------------------------------------
@@ -294,22 +298,20 @@ function GamepadAPI:GetModifierHeld(modifier)
 end
 
 function GamepadAPI:GetBindings(getInactive)
-	local btns = self.Index.Button.Binding
-	local mods = self.Index.Modifier.Active
-	assert(btns, 'Active bindings have not been indexed.')
-	assert(mods, 'Active modifiers have not been indexed.')
+	local btns = self.Index.Button.Binding;
+	local mods = self.Index.Modifier.Active;
 
 	local bindings = {}
 	for btn in pairs(btns) do
 		for mod in pairs(mods) do
 			local binding = GetBindingAction(mod..btn)
 			if getInactive or binding:len() > 0 then
-				bindings[btn] = bindings[btn] or {}
-				bindings[btn][mod] = binding
+				bindings[btn] = bindings[btn] or {};
+				bindings[btn][mod] = binding;
 			end
 		end
 	end
-	return bindings
+	return bindings;
 end
 
 function GamepadAPI:GetBindingKey(binding)
