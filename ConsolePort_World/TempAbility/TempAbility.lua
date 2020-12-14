@@ -46,11 +46,11 @@ function Ability:Update()
 end
 
 function Ability:OnLoad()
+	CPAPI.Start(self)
 	self.tooltip = CreateTooltip(self)
 	self.QuestTexture:Hide()
-	self:SetScript('OnClick', self.OnClick)
-	self:SetScript('OnHide', self.OnHide)
 	self:RegisterForDrag('LeftButton')
+	self:OnHide()
 end
 
 function Ability:OnDragStart()
@@ -62,9 +62,7 @@ function Ability:OnDragStop()
 end
 
 function Ability:OnClick()
-	TempAbility.Info[self:GetID()] = nil;
-	TempAbility.Shown[self:GetID()] = true;
-	TempAbility:UpdateItems()
+	self:GetParent():RemoveSpell(self:GetID())
 end
 
 function Ability:OnHide()
@@ -159,8 +157,7 @@ function TempAbility:OnUpdate(elapsed)
 		while spellID do
 			timer = timer - elapsed;
 			if timer < 0 then
-				self.Info[spellID] = nil;
-				self.Shown[spellID] = true;
+				self:RemoveSpell(spellID)
 				spellID, timer = next(self.Info)
 			else
 				self.Info[spellID] = timer;
@@ -187,6 +184,12 @@ function TempAbility:AddSpell(spellID)
 		self.Info[spellID] = self.Info[spellID] or Clamp(showTime, 5, showTime);
 		self:UpdateItems()
 	end
+end
+
+function TempAbility:RemoveSpell(spellID)
+	self.Info[spellID]  = nil;
+	self.Shown[spellID] = true;
+	self:UpdateItems()
 end
 
 function TempAbility:UpdateItems()
