@@ -23,9 +23,7 @@ end
 
 
 function Ability:Update()
-	local name, _, icon = GetSpellInfo(self:GetID())
-	self:SetIcon(icon)
-	self:SetText(name)
+	self:SetIcon(GetSpellTexture(self:GetID()))
 
 	self.tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 	self.tooltip:SetSpellByID(self:GetID())
