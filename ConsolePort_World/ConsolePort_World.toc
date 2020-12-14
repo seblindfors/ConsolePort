@@ -8,3 +8,4 @@
 ## X-Feedback: https://discord.gg/AWeHd48
 
 LootFrame\LootFrame.xml
+TempAbility\TempAbility.xml

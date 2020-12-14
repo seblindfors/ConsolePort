@@ -1,8 +1,8 @@
 local _, env, db, L = ...; db, L = env.db, env.L;
-local ConfigMixin, Widgets = {}, env.Widgets;
+local PanelMixin, Widgets = {}, env.Widgets;
 
 ---------------------------------------------------------------
--- General settings
+-- Addon settings
 ---------------------------------------------------------------
 local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET = 284, 700, 8;
 local Setting = CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
@@ -36,6 +36,7 @@ end
 -- Shortcuts
 ---------------------------------------------------------------
 local Shortcut, Shortcuts = {}, CreateFromMixins(CPFocusPoolMixin)
+env.SettingShortcutsMixin = Shortcuts;
 
 function Shortcut:OnLoad()
 	self:SetWidth(SHORTCUT_WIDTH - FIXED_OFFSET * 2)
@@ -49,7 +50,7 @@ function Shortcut:OnClick()
 	if db.Cursor:IsCurrentNode(self) then
 		return db.Cursor:SetCurrentNode(self.reference)
 	end
-	self.General:ScrollToOffset(self.General:GetElementPosition(self.reference))
+	self.List:ScrollToOffset(self.List:GetElementPosition(self.reference))
 end
 
 function Shortcuts:OnLoad()
@@ -71,7 +72,7 @@ function Shortcuts:Create(name, ref)
 	local widget, newObj = self:TryAcquireRegistered(name)
 	local anchor = self.lastWidget;
 	if newObj then
-		widget.General = self.General;
+		widget.List = self.List;
 		widget:OnLoad()
 	end
 	if anchor then
@@ -88,11 +89,12 @@ function Shortcuts:Create(name, ref)
 end
 
 ---------------------------------------------------------------
--- General
+-- Options
 ---------------------------------------------------------------
-local General = CreateFromMixins(CPFocusPoolMixin)
+local Options = CreateFromMixins(CPFocusPoolMixin)
+env.SettingListMixin = Options;
 
-function General:CreateHeader(group, anchor)
+function Options:CreateHeader(group, anchor)
 	local header = self.headerPool:Acquire()
 	header:SetScript('OnEnter', nop)
 	header:SetText(L(group))
@@ -106,7 +108,7 @@ function General:CreateHeader(group, anchor)
 	return header;
 end
 
-function General:DrawOptions(showAdvanced)
+function Options:DrawOptions(showAdvanced)
 	self.headerPool:ReleaseAll()
 
 	-- sort settings by group
@@ -160,11 +162,11 @@ function General:DrawOptions(showAdvanced)
 	self.Child:SetHeight(nil)
 end
 
-function General:OnShow()
+function Options:OnShow()
 	self:DrawOptions()
 end
 
-function General:OnLoad()
+function Options:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
 	env.OpaqueMixin.OnLoad(self)
 	self.headerPool = CreateFramePool('Frame', self.Child, 'CPConfigHeaderTemplate')
@@ -178,7 +180,7 @@ end
 ---------------------------------------------------------------
 -- Panel
 ---------------------------------------------------------------
-function ConfigMixin:OnFirstShow()
+function PanelMixin:OnFirstShow()
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
 		_Mixin = Shortcuts;
 		_Width = SHORTCUT_WIDTH;
@@ -189,8 +191,8 @@ function ConfigMixin:OnFirstShow()
 			{'BOTTOMLEFT', 0, -1};
 		};
 	})
-	local general = self:CreateScrollableColumn('General', {
-		_Mixin = General;
+	local options = self:CreateScrollableColumn('Options', {
+		_Mixin = Options;
 		_Width = GENERAL_WIDTH;
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
 		_Backdrop = CPAPI.Backdrops.Opaque;
@@ -199,13 +201,13 @@ function ConfigMixin:OnFirstShow()
 			{'BOTTOMLEFT', '$parent.Shortcuts', 'BOTTOMRIGHT', 0, 0};
 		};
 	})
-	general.Shortcuts = shortcuts;
-	shortcuts.General = general;
+	options.Shortcuts = shortcuts;
+	shortcuts.List = options;
 end
 
-env.General = ConsolePortConfig:CreatePanel({
-	name  = SETTINGS;
-	mixin = ConfigMixin;
+env.Options = ConsolePortConfig:CreatePanel({
+	name  = UIOPTIONS_MENU;
+	mixin = PanelMixin;
 	scaleToParent = true;
 	forbidRecursiveScale = true;
 })

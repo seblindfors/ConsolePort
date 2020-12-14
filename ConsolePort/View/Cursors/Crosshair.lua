@@ -24,12 +24,12 @@ end
 ---------------------------------------------------------------
 -- Update script
 ---------------------------------------------------------------
-local timer, throttle, drawn = 0, 0.125;
+local Clamp, multiplier, timer, throttle, drawn = Clamp, 30, 0, 0.1;
 function Crosshair:OnUpdate(elapsed)
 	timer = timer + elapsed;
 	if (timer > throttle) then
 		timer, drawn = 0, self:ShouldDraw()
-		self:SetAlpha(drawn and 1 or 0)
+		self:SetAlpha(Clamp(self:GetAlpha() + (drawn and elapsed*multiplier or -elapsed*multiplier), 0, 1))
 		if drawn then
 			self:Move()
 		end

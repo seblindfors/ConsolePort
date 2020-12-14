@@ -60,7 +60,7 @@ db:Register('Variables', {
 		head = INTERACT_OPT;
 		sort = 1;
 		name = 'Interact Button';
-		desc = 'Button or combination used to interact when interact condition(s) apply.';
+		desc = 'Button or combination used to interact for a given condition. By default, interacts using centered cursor.';
 		note = 'Use a shoulder button combined with crosshair for smooth and precise interactions.';
 	};
 	interactCondition = {String('[@target,noharm][@target,noexists] TURNORACTION; [@target,harm,dead] INTERACTTARGET; nil');

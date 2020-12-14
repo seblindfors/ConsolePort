@@ -4,7 +4,7 @@ local CVARS_WIDTH, FIXED_OFFSET = 500, 8
 ---------------------------------------------------------------
 -- Console variable fields
 ---------------------------------------------------------------
-local Cvar = CreateFromMixins(CPIndexButtonMixin)
+local Cvar = CreateFromMixins(CPIndexButtonMixin); env.CvarMixin = Cvar;
 local Widgets = env.Widgets;
 
 function Cvar:OnLoad()
@@ -54,7 +54,7 @@ end
 
 
 ---------------------------------------------------------------
--- Console variable fields
+-- Console variable container
 ---------------------------------------------------------------
 local Variables = CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin)
 env.VariablesMixin = Variables;

@@ -49,11 +49,7 @@
 		</Layers>
 	</Button>
 
-	<Frame name="ConsolePortLootFrame" frameStrata="HIGH" parent="UIParent" hidden="true" movable="true">
-		<Size x="200" y="0"/>
-		<Anchors>
-			<Anchor point="CENTER" x="200" y="0"/>
-		</Anchors>
+	<Frame name="CPUILootFrameTemplate" virtual="true">
 		<Frames>
 			<Frame parentKey="Header">
 				<Size x="235" y="25"/>
@@ -130,6 +126,13 @@
 				</Animations>
 			</Frame>
 		</Frames>
+	</Frame>
+
+	<Frame name="ConsolePortLootFrame" inherits="CPUILootFrameTemplate" frameStrata="HIGH" parent="UIParent" hidden="true" movable="true">
+		<Size x="200" y="0"/>
+		<Anchors>
+			<Anchor point="CENTER" x="200" y="0"/>
+		</Anchors>
 	</Frame>
 
 	<Script file="LootButton.lua"/>

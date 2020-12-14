@@ -236,6 +236,7 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 			'CovenantPreviewFrame';
 			'LFGDungeonReadyPopup';
 			'OpenMailFrame';
+			'PetBattleFrame';
 			'StackSplitFrame';
 			---------------------------------
 		}) do self:TryRegisterFrame(_, frame, true) end

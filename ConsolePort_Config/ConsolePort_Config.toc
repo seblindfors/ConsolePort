@@ -24,4 +24,5 @@ Bindings\Mapper.lua
 Bindings\Manager.lua
 Bindings\Bindings.lua
 
-General\Settings.lua
+Settings\Variables.lua
+Settings\Console.lua
