@@ -354,11 +354,11 @@ function CPReputationBarMixin:Update()
 	local name, reaction, minBar, maxBar, value, factionID = GetWatchedFactionInfo()
 	local colorIndex = reaction
 	local isCapped
-	local friendshipID = CPAPI:GetFriendshipReputation(factionID)
+	local friendshipID = GetFriendshipReputation(factionID)
 	
 	if ( self.factionID ~= factionID ) then
 			self.factionID = factionID
-			self.friendshipID = CPAPI:GetFriendshipReputation(factionID)
+			self.friendshipID = GetFriendshipReputation(factionID)
 		end
 	
 	-- do something different for friendships

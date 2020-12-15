@@ -1,6 +1,6 @@
 ## Interface: 90002
 ## Title: Console Port |cff69ccf0World|r
-## Notes: World augmentation module
+## Notes: World augmentation module: custom loot frame, new ability prompts
 ## RequiredDeps: ConsolePort
 
 ## Author: Sebastian Lindfors

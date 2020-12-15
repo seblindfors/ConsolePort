@@ -18,7 +18,7 @@ function Config:OnDataLoaded()
 	self:OnUIScaleChanged()
 end
 
-function Config:TryClose()
+function Config:Hide()
 	for panel in self:EnumerateActive() do
 		local valid, callback = panel:Validate()
 		if not valid then
@@ -30,16 +30,16 @@ function Config:TryClose()
 				whileDead = 1;
 				showAlert = 1;
 				OnHide = function()
-					self:TryClose()
+					self:Hide()
 				end;
 				OnAccept = function()
 					callback(panel)
-					self:TryClose()
+					self:Hide()
 				end;
 			})
 		end
 	end
-	self:Hide()
+	getmetatable(self).__index.Hide(self)
 end
 
 function Config:ShowAfterCombat()
@@ -84,3 +84,5 @@ Config:HookScript('OnShow', Config.OnShow)
 Config:SetScript('OnGamePadButtonDown', Config.OnGamePadButtonDown)
 db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)
 db:RegisterCallback('Settings/UIscale', Config.OnUIScaleChanged, Config)
+
+tinsert(UISpecialFrames, 'ConsolePortConfig')

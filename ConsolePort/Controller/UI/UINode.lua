@@ -148,6 +148,7 @@ end
 NODE.UI_SCALE_CHANGED = UIScaleChanged;
 NODE.DISPLAY_SIZE_CHANGED = UIScaleChanged;
 hooksecurefunc(UIParent, 'SetScale', UIScaleChanged)
+UIParent:HookScript('OnSizeChanged', UIScaleChanged)
 
 ---------------------------------------------------------------
 -- Eligibility

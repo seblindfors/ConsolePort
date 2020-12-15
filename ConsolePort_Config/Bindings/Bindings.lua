@@ -423,9 +423,19 @@ function BindingsMixin:OnFirstShow()
 							};
 						};
 					};
-				}
-			}
-		}
+					Desc = {
+						_Type  = 'SimpleHTML';
+						_Hide  = true;
+						_Width = 340;
+						_Mixin = env.BindingHTML;
+						_Points = {
+							{'TOP', '$parent.Change', 'BOTTOM', 0, 0};
+							{'BOTTOM', 0, 0};
+						};
+					};
+				};
+			};
+		};
 	})
 
 	self:OnActiveDeviceChanged(db('Gamepad/Active'))

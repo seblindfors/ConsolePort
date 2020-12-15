@@ -1,7 +1,8 @@
 local _, env = ...; local db = env.db;
 local Mapper = CreateFromMixins(env.FlexibleMixin, env.BindingInfoMixin)
 local ActionMapper = CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, env.BindingInfoMixin)
-env.BindingMapper, env.BindingActionMapper = Mapper, ActionMapper;
+local BindingHTML = {};
+env.BindingMapper, env.BindingActionMapper, env.BindingHTML = Mapper, ActionMapper, BindingHTML;
 
 ---------------------------------------------------------------
 -- Mapper
@@ -35,6 +36,11 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 		local slug, data = db('Hotkeys'):GetButtonSlugForBinding(binding)
 		texture = actionID and GetActionTexture(transposedActionID or actionID)
 
+		-- HACK: handle extra action button 1 case
+		if (transposedActionID == 169) then
+			transposedActionID = nil;
+		end
+
 		-- Set the text for the transposed action ID, make it clear
 		-- which action page this widget was coming from.
 		if transposedActionID then
@@ -45,6 +51,9 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 
 		-- dispatch to action mapper
 		option.Action:SetAction(transposedActionID)
+
+		-- dispatch to HTML display
+		self.Child.Desc:SetContent(db.Bindings:GetDescriptionForBinding(binding))
 
 		-- set top header and key binding slug
 		self.Child.Change.Slug:SetText(slug or WrapTextInColorCode(NOT_BOUND, 'FF757575'))
@@ -402,4 +411,41 @@ function ActionMapper:OnChecked(show)
 	else
 		self:OnCollapse()
 	end
+end
+
+---------------------------------------------------------------
+-- Binding HTML container
+---------------------------------------------------------------
+function BindingHTML:SetContent(desc, image)
+	if desc or image then
+		local wrapper = ('<html><body>%s</body></html>');
+		local content = '';
+		if desc then
+			content = ('<br/><h1 align="center">%s</h1><br/><p>%s</p>'):format(DESCRIPTION,
+				desc:gsub('\t+', ''):gsub('\n\n', '<br/><br/>'))
+		end
+		if image then
+			content = content .. ('<br/><br/><img src="%s" align="%s" width="%s" height="%s"/>'):format(
+				image.file,
+				image.align or 'CENTER',
+				image.width or '340',
+				image.height 
+			);
+		end
+		self:SetText(wrapper:format(content))
+		return self:Show()
+	end
+	self:Hide()
+end
+
+function BindingHTML:OnLoad()
+	self:SetFontObject(CPSubtitleFont)
+
+	self:SetFont('p', [[Fonts\FRIZQT__.ttf]], 14, '')
+	self:SetFont('h2', Game13Font:GetFont())
+	self:SetFont('h1', CPSubtitleFont:GetFont())
+
+	self:SetTextColor('p', 1, 1, 1)
+	self:SetTextColor('h1', Fancy22Font:GetTextColor())
+	self:SetTextColor('h2', Fancy22Font:GetTextColor())
 end

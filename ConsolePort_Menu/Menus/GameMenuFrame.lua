@@ -579,7 +579,7 @@ do	-- Initiate frame
 						};
 					};
 				};
-				ContentFrame = {
+				OverviewFrame = {
 					_Type = 'Frame';
 					_Hide = true;
 					_Width = 1000;
@@ -602,6 +602,17 @@ do	-- Initiate frame
 							_Size  = {1024, 512};
 							_Point = {'CENTER', 0, 0};
 						};
+					};
+				};
+				GridFrame = {
+					_Type  = 'ScrollFrame';
+					_Setup = {'CPSmoothScrollTemplate'};
+					_Hide  = true;
+					_Width = 1200;
+					_Level = 2;
+					_Points = {
+						{'TOP', '$parent.$parent', 'BOTTOM', 0, 0};
+						{'BOTTOM', UIParent, 'BOTTOM', 0, 0};
 					};
 				};
 			};

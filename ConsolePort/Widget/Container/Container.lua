@@ -88,7 +88,7 @@ function CPContainerMixin:OnContainerLoad()
 						hilite:SetTexCoord(0, 0.40625, 0.5, 1)
 					end;
 					_OnClick = function()
-						self:TryClose()
+						self:Hide()
 					end;
 				};
 				Index = {
@@ -134,10 +134,6 @@ end
 
 function CPContainerMixin:OnContainerShow()
 	self:SetDefaultClosures()
-end
-
-function CPContainerMixin:TryClose()
-	self:Hide()
 end
 
 function CPContainerMixin:SetDefaultClosures()

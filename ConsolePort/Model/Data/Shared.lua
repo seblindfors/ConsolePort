@@ -66,6 +66,11 @@ function Shared:SaveData(idx, set, newData, unique)
 	self.Data[idx][set] = db.table.copy(newData);
 end
 
+
+function Shared:SaveBindings(bindings)
+	self:SavePlayerData('Bindings', bindings, true)
+end
+
 ---------------------------------------------------------------
 -- Collect garbage
 ---------------------------------------------------------------
@@ -103,5 +108,6 @@ end
 
 function Shared:OnDataLoaded()
 	db:Load('Shared/Data', 'ConsolePortShared')
+	db:RegisterCallback('OnNewBindings', self.SaveBindings, self)
 	setmetatable(self.Data, sharedMeta)
 end

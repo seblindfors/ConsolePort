@@ -11,7 +11,7 @@ local Combos, Combo = CreateFromMixins(env.DynamicMixin, env.FlexibleMixin), Cre
 		ACTIONBAR_SHOWGRID     = false;
 		ACTIONBAR_HIDEGRID     = false;
 	};
-}); env.CombosMixin = Combos;
+}); env.CombosMixin = Combos; env.ComboMixin = Combo;
 
 function Combo:UpdateBinding(combo)
 	local name, texture, actionID = self:GetBindingInfo(self:GetBinding(), nil)
