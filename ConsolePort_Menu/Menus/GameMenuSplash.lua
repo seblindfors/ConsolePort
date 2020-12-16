@@ -191,7 +191,12 @@ end
 
 function Combo:OnCombatHandle(event, ...)
 	if (event == 'PLAYER_REGEN_DISABLED') and GetCursorInfo() then
-		originalOwner:PlaceAction()
+		if originalOwner then
+			originalOwner:PlaceAction()
+		elseif cachedAction and not GetActionInfo(cachedAction) then
+			PlaceAction(cachedAction)
+			cachedAction = nil;
+		end
 	else
 		self:OnEvent(event, ...)
 	end

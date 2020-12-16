@@ -12,7 +12,7 @@ Interact:SetAttribute('_onstate-override', [[
 	self:RunAttribute('OnOverrideChanged', newstate)
 ]])
 Interact:SetAttribute('OnOverrideChanged', [[
-	self:SetBinding(true, self:GetAttribute('slug'), ...)
+	self:SetBinding(false, self:GetAttribute('slug'), ...)
 ]])
 Interact:SetAttribute('OnBindingsChanged', [[
 	self:RunAttribute('OnOverrideChanged', self:GetAttribute('enabled'))

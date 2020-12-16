@@ -38,7 +38,7 @@ end
 
 function LootFrame:LOOT_OPENED(autoLoot, isFromItem)
 	if autoLoot then
-		return self:LootAllItems()
+		self:LootAllItems()
 	end
 	if isFromItem then
 		PlaySound(SOUNDKIT.UI_CONTAINER_ITEM_OPEN)

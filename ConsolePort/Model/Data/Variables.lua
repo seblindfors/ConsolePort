@@ -79,7 +79,8 @@ db:Register('Variables', {
 		head = MOUSE_LABEL;
 		sort = 1;
 		name = 'Enable Mouse Handling';
-		desc = 'Enable custom mouse handling.'
+		desc = 'Enable custom mouse handling, overriding Blizzard defaults intended for use without addons.';
+		note = 'While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.';
 	};
 	mouseAlwaysCentered = {Bool(false);
 		head = MOUSE_LABEL;
@@ -87,9 +88,15 @@ db:Register('Variables', {
 		name = 'Always Show Mouse Cursor';
 		desc = 'Always keep cursor centered and visible when controlling camera.';
 	};
-	mouseAutoClearCenter = {Number(2.0, 0.25);
+	mouseFreeCursorReticle = {Bool(false);
 		head = MOUSE_LABEL;
 		sort = 3;
+		name = 'Free Cursor Reticle Targeting';
+		desc = 'Reticle targeting uses free cursor instead of center-fixed cursor.';
+	};
+	mouseAutoClearCenter = {Number(2.0, 0.25);
+		head = MOUSE_LABEL;
+		sort = 4;
 		name = 'Automatic Cursor Timeout';
 		desc = 'Time in seconds to automatically hide centered cursor.';
 	};

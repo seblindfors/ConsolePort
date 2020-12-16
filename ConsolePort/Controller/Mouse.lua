@@ -9,6 +9,7 @@ local _, db = ...;
 local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
 	'ACTIONBAR_SHOWGRID';
+	'CURRENT_SPELL_CAST_CHANGED';
 }))
 
 ---------------------------------------------------------------
@@ -74,54 +75,11 @@ end
 -- Console variables
 ---------------------------------------------------------------
 local CVar_FaceMove = db.Data.Cvar('GamePadFaceMovement')
+local CVar_Sticks   = db.Data.Cvar('GamePadCursorAutoDisableSticks')
 local CVar_Center   = db.Data.Cvar('GamePadCursorCentering')
 local CVar_LClick   = db.Data.Cvar('GamePadCursorLeftClick')
 local CVar_RClick   = db.Data.Cvar('GamePadCursorRightClick')
 local Keys_Escape   = db.Data.Select()
-
-function Mouse:UPDATE_BINDINGS()
-	Keys_Escape:SetOptions(db.Gamepad:GetBindingKey('TOGGLEGAMEMENU'))
-end
-
-function Mouse:ACTIONBAR_SHOWGRID()
-	self:SetFreeCursor()
-end
-
--- Temporary solution to fix problems with casters unable to face
--- their intended target because of face movement.
-function Mouse:UNIT_SPELLCAST_START()
-	if self.faceMovementVehicleOverride then return end;
-	if (self.faceMovementValue == nil) then
-		self.faceMovementValue = CVar_FaceMove:Get()
-		CVar_FaceMove:Set(0)
-	end
-end
-
-function Mouse:UNIT_SPELLCAST_STOP()
-	if self.faceMovementVehicleOverride then return end;
-	if (self.faceMovementValue ~= nil) then
-		CVar_FaceMove:Set(self.faceMovementValue)
-		self.faceMovementValue = nil;
-	end
-end
-
-function Mouse:UNIT_ENTERING_VEHICLE()
-	if (self.faceMovementVehicleOverride == nil) then
-		self:UNIT_SPELLCAST_STOP()
-		self.faceMovementVehicleOverride = CVar_FaceMove:Get()
-		CVar_FaceMove:Set(0)
-	end
-end
-
-function Mouse:UNIT_EXITING_VEHICLE()
-	if (self.faceMovementVehicleOverride ~= nil) then
-		CVar_FaceMove:Set(self.faceMovementVehicleOverride)
-		self.faceMovementVehicleOverride = nil;
-	end
-end
-
-Mouse.UNIT_SPELLCAST_CHANNEL_START = Mouse.UNIT_SPELLCAST_START;
-Mouse.UNIT_SPELLCAST_CHANNEL_STOP  = Mouse.UNIT_SPELLCAST_STOP;
 
 ---------------------------------------------------------------
 -- Predicates (should always return boolean)
@@ -156,6 +114,67 @@ local CursorCentered = function() return CVar_Center:Get(true) end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
 local WorldInteract  = function() return TooltipShowing() and GetMouseFocus() == WorldFrame end;
 local MouseOver      = function() return UnitExists('mouseover') or WorldInteract() end;
+
+
+---------------------------------------------------------------
+-- Events
+---------------------------------------------------------------
+function Mouse:UPDATE_BINDINGS()
+	Keys_Escape:SetOptions(db.Gamepad:GetBindingKey('TOGGLEGAMEMENU'))
+end
+
+function Mouse:ACTIONBAR_SHOWGRID()
+	self:SetFreeCursor()
+end
+
+-- Temporary solution to fix problems with casters unable to face
+-- their intended target because of face movement.
+function Mouse:UNIT_SPELLCAST_START()
+	if self.fmVehicleOverride then return end;
+	if (self.fmSpellOverride == nil) then
+		self.fmSpellOverride = CVar_FaceMove:Get()
+		CVar_FaceMove:Set(0)
+	end
+end
+
+function Mouse:UNIT_SPELLCAST_STOP()
+	if self.fmVehicleOverride then return end;
+	if (self.fmSpellOverride ~= nil) then
+		CVar_FaceMove:Set(self.fmSpellOverride)
+		self.fmSpellOverride = nil;
+	end
+end
+
+function Mouse:UNIT_ENTERING_VEHICLE()
+	if (self.fmVehicleOverride == nil) then
+		self:UNIT_SPELLCAST_STOP()
+		self.fmVehicleOverride = CVar_FaceMove:Get()
+		CVar_FaceMove:Set(0)
+	end
+end
+
+function Mouse:UNIT_EXITING_VEHICLE()
+	if (self.fmVehicleOverride ~= nil) then
+		CVar_FaceMove:Set(self.fmVehicleOverride)
+		self.fmVehicleOverride = nil;
+	end
+end
+
+Mouse.UNIT_SPELLCAST_CHANNEL_START = Mouse.UNIT_SPELLCAST_START;
+Mouse.UNIT_SPELLCAST_CHANNEL_STOP  = Mouse.UNIT_SPELLCAST_STOP;
+
+function Mouse:CURRENT_SPELL_CAST_CHANGED()
+	if SpellTargeting() then
+		if (self.reticleOverride == nil) and db('mouseFreeCursorReticle') then
+			self.reticleOverride = CVar_Sticks:Get()
+			CVar_Sticks:Set(0)
+			self:SetFreeCursor()
+		end
+	elseif (self.reticleOverride ~= nil) then
+		CVar_Sticks:Set(self.reticleOverride)
+		self.reticleOverride = nil;
+	end
+end
 
 ---------------------------------------------------------------
 -- Compounded queries

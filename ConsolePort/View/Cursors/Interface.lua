@@ -179,8 +179,8 @@ do -- Keep track of cursor state
 			if not self:Refresh() then
 				self:Hide()
 			end
-		elseif self:IsAnimating() then
-			self:MoveTowardsAnchor(elapsed)
+	--	elseif self:IsAnimating() then
+	--		self:MoveTowardsAnchor(elapsed)
 		else
 			self:RefreshAnchor()
 		end
@@ -581,11 +581,10 @@ do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 	-- lambdas to handle texture swapping without caching icons
 	local function mod   () return db(f(path, db('Gamepad/Index/Modifier/Key/' .. db('UImodifierCommands')) or '')) end
 	local function opt   () return db(f(path, db('Settings/UICursor/Special'))) end
-	local function left  () return db(f(path, db('Settings/UICursor/LeftClick'))) end
 	local function right () return db(f(path, db('Settings/UICursor/RightClick'))) end
+	local function left  () return nil end;
 
 	Cursor.Textures = CPAPI.Proxy({
-		Left     = left;
 		Right    = right;
 		Modifier = mod;
 		-- object cases
@@ -600,7 +599,7 @@ function Cursor:SetTexture(texture)
 	local object = texture or self:GetCurrentObjectType()
 	local evaluator = self.Textures[object]
 	if ( evaluator ~= self.textureEvaluator ) then
-		self.Button:SetTexture(evaluator())
+		self.Display.Button:SetTexture(evaluator())
 	end
 	self.textureEvaluator = evaluator;
 end
@@ -622,7 +621,7 @@ function Cursor:RefreshAnchor()
 	if not self:GetCustomAnchor() then
 		local node = self:GetCurrentNode()
 		self:ClearAllPoints()
-		self:SetPoint('TOPLEFT', node, 'CENTER', Node.GetCenterPos(node))
+		self:SetPoint('CENTER', node, 'CENTER', Node.GetCenterPos(node))
 	end
 end
 
@@ -656,12 +655,12 @@ function Cursor:Move()
 		local newX, newY = Node.GetCenter(node)
 		local oldX, oldY = self:GetCenter()
 		if self:IsAnimating() then
-			self.ScaleInOut:Stop()
+		--	self.ScaleInOut:Stop()
 		end
 		if oldX and oldY and newX and newY and self:IsVisible() then
 			self.Enlarge:SetStartDelay(0.05)
 			self.ScaleInOut:ConfigureScale()
-			self.ScaleInOut:Play()
+			self:Chime()
 		else
 			self.Enlarge:SetStartDelay(0)
 		end
@@ -733,6 +732,7 @@ function Cursor.Mime:SetNode(node)
 	self:MimeRegions(node:GetRegions())
 	self:ClearAllPoints()
 	self:SetSize(node:GetSize())
+	self:SetScale(node:GetEffectiveScale() / Cursor:GetEffectiveScale())
 	self:Show()
 	for i=1, node:GetNumPoints() do
 		self:SetPoint(node:GetPoint(i))
@@ -798,7 +798,6 @@ end
 
 function Cursor.ScaleInOut:OnPlay()
 	Cursor.Mime:SetParent(Cursor:GetCurrentNode() or Cursor)
-	Cursor:Chime()
 end
 
 do  -- Set up animation scripts
@@ -880,6 +879,9 @@ end
 ---------------------------------------------------------------
 -- Initialize the cursor
 ---------------------------------------------------------------
+Cursor.Display.animationSpeed = 4;
+Cursor.Display.Arrow:SetPoint('TOPLEFT', -2, 2)
+Cursor.Display.ArrowHilite:SetPoint('TOPLEFT', -2, 2)
 CPAPI.Start(Cursor)
 hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
 	-- TODO: work on this, it's not good yet

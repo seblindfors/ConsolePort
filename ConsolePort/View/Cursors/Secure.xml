@@ -4,35 +4,7 @@
 	<Button name="ConsolePortSecureCursor" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" registerForClicks="AnyDown" frameStrata="TOOLTIP" hidden="true">
 		<Size x="2" y="2"/>
 		<Frames>
-			<Frame parentKey="Display">
-				<Size x="32" y="32"/>
-				<Layers>
-					<Layer level="BACKGROUND">
-						<Texture parentKey="Arrow" atlas="Navigation-Tracked-Arrow" useAtlasSize="true">
-							<Anchors>
-								<Anchor point="TOPLEFT"/>
-							</Anchors>
-						</Texture>
-					</Layer>
-					<Layer level="OVERLAY">
-						<Texture parentKey="ArrowHilite" atlas="Navigation-Tracked-Arrow" useAtlasSize="true" alphaMode="ADD">
-							<Anchors>
-								<Anchor point="TOPLEFT"/>
-							</Anchors>
-						</Texture>
-					</Layer>
-				</Layers>
-				<Animations>
-					<AnimationGroup parentKey="Group">
-						<Scale parentKey="ScaleUp" smoothing="IN" duration=".1" order="1" fromScaleX="1" fromScaleY="1" toScaleX="2" toScaleY="2">
-							<Origin point="CENTER"/>
-						</Scale>
-						<Scale parentKey="ScaleDown" smoothing="OUT" duration=".1" order="2" fromScaleX="2" fromScaleY="2" toScaleX="1" toScaleY="1">
-							<Origin point="CENTER"/>
-						</Scale>
-					</AnimationGroup>
-				</Animations>
-			</Frame>
+			<Frame parentKey="Display" inherits="CPCursorArrowTemplate"/>
 			<Frame parentKey="Blocker" hidden="true" enableMouse="true">
 				<Scripts>
 					<OnLoad>

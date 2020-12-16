@@ -19,7 +19,7 @@ local Console = CreateFromMixins(env.SettingListMixin)
 
 function Console:OnVariableChanged(variable, value)
 	-- dealing with emulation button overlap (don't trust the user)
-	if variable:match('Emulate') and not self.isMutexLocked then
+	if (variable:match('Emulate') or variable:match('Click')) and not self.isMutexLocked then
 		self.isMutexLocked = true;
 		for cvar in self:EnumerateActive() do
 			if (cvar:Get() == value) and (cvar.variableID ~= variable) then

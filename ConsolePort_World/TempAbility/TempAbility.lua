@@ -179,7 +179,7 @@ function TempAbility:AddSpell(spellID)
 		for spellID, timer in pairs(self.Info) do
 			showTime = showTime + timer;
 		end
-		self.Info[spellID] = self.Info[spellID] or Clamp(showTime, 5, showTime);
+		self.Info[spellID] = self.Info[spellID] or Clamp(showTime, 10, showTime);
 		self:UpdateItems()
 	end
 end
