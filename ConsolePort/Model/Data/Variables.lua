@@ -1,6 +1,5 @@
 -- Consts
 local STICK_SELECT = {'Movement', 'Camera'};
-local UINAV_SELECT = {'PAD1', 'PAD2', 'PAD3', 'PAD4'};
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
@@ -205,25 +204,52 @@ db:Register('Variables', {
 		name = 'Reactivation Delay';
 		desc = 'Delay before reactivating interface cursor after leaving combat, in seconds.';
 	};
-	UImodifierCommands = {Select('SHIFT', unpack(MODID_SELECT));
+	UIpointerSize = {Number(22, 2, true);
 		head = 'Interface Cursor';
 		sort = 7;
+		name = 'Pointer Size';
+		desc = 'Size of pointer arrow, in pixels.';
+	};
+	UIpointerOffset = {Number(-2, 1);
+		head = 'Interface Cursor';
+		sort = 8;
+		name = 'Pointer Offset';
+		desc = 'Offset of pointer arrow, from the selected node center, in pixels.';
+	};
+	UItravelTime = {Range(4, 1, 1, 10);
+		head = 'Interface Cursor';
+		sort = 9;
+		name = 'Travel Time';
+		desc = 'How long the cursor should take to transition from one node to another.';
+		note = 'Higher is slower.';
+	};
+	UICursorLeftClick = {Button('PAD1');
+		head = 'Interface Cursor';
+		sort = 10;
+		name = KEY_BUTTON1;
+		desc = 'Button to replicate left click. This is the primary interface action.';
+		note = 'While held down, can simulate dragging by clicking on the directional pad.';
+	};
+	UICursorRightClick = {Button('PAD2');
+		head = 'Interface Cursor';
+		sort = 11;
+		name = KEY_BUTTON2;
+		desc = 'Button to replicate right click. This is the secondary interface action.';
+		note = 'This button is necessary to use or sell an item directly from your bags.';
+	};
+	UICursorSpecial = {Button('PAD4');
+		head = 'Interface Cursor';
+		sort = 12;
+		name = 'Special Button';
+		desc = 'Button to handle special actions, such as adding items to the utility ring.';
+	};
+	UImodifierCommands = {Select('SHIFT', unpack(MODID_SELECT));
+		head = 'Interface Cursor';
+		sort = 13;
 		name = 'Modifier';
 		desc = 'Which modifier to use for modified commands';
 		note = 'The modifier can be used to scroll together with the directional pad.';
 		opts = MODID_SELECT;
-	};
-	UICursor = {
-		head = 'Interface Cursor';
-		sort = 8;
-		name = 'Action Buttons';
-		desc = 'Cursor actions: which buttons to use to click on items in the interface';
-		opts = UINAV_SELECT;
-		[__] = Table({
-			LeftClick  = 'PAD1'; -- cross
-			RightClick = 'PAD2'; -- circle
-			Special    = 'PAD4'; -- triangle
-		});
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Unit hotkeys:

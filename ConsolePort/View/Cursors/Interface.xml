@@ -32,7 +32,7 @@
 						<Texture parentKey="Button">
 							<Size x="32" y="32"/>
 							<Anchors>
-								<Anchor point="CENTER" x="8" y="-8"/>
+								<Anchor point="CENTER" x="10" y="-10"/>
 							</Anchors>
 						</Texture>
 					</Layer>

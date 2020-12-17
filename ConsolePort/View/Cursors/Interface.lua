@@ -24,6 +24,7 @@ Cursor.InCombat = InCombatLockdown;
 function Cursor:OnDataLoaded()
 	self:RegisterEvent('PLAYER_REGEN_ENABLED')
 	self:RegisterEvent('PLAYER_REGEN_DISABLED')
+	self:UpdatePointer()
 end
 
 function Cursor:PLAYER_REGEN_DISABLED()
@@ -37,7 +38,6 @@ function Cursor:PLAYER_REGEN_DISABLED()
 end
 
 function Cursor:PLAYER_REGEN_ENABLED()
-	-- TODO: relinquish to stack control
 	-- time lock this in case it fires more than once
 	if not self.timeLock and self.showAfterCombat then
 		self.timeLock = true
@@ -235,7 +235,7 @@ do  -- Create input proxy for basic controls
 				PADDDOWN  = {InputProxy, DpadInit, DpadClear, DpadRepeater};
 				PADDLEFT  = {InputProxy, DpadInit, DpadClear, DpadRepeater}; 
 				PADDRIGHT = {InputProxy, DpadInit, DpadClear, DpadRepeater};
-				[db('Settings/UICursor/Special')] = {InputProxy};
+				[db('Settings/UICursorSpecial')] = {InputProxy};
 			};
 			local clickL, clickR = GetCVar('GamePadCursorLeftClick'), GetCVar('GamePadCursorRightClick')
 			if clickL then self.BasicControls[clickL] = {Disable}; end
@@ -251,7 +251,14 @@ do  -- Create input proxy for basic controls
 		end
 	end
 
-	db:RegisterCallback('Settings/UICursor', function(self) self.BasicControls = nil; end, Cursor)
+	-- Callbacks to reset controls when inputters change
+	do local function ResetControls(self) self.BasicControls = nil; end
+		for _, event in ipairs({
+		'Settings/UICursorSpecial',
+		'Settings/UICursorLeftClick',
+		'Settings/UICursorRightClick'
+		}) do db:RegisterCallback(event, ResetControls, Cursor) end
+	end
 
 	-- Emulated clicks for handlers that do not use OnClick (this may be unsafe)
 	local EmuClick = function(self, down)
@@ -328,7 +335,7 @@ function Cursor:Input(caller, isDown, key)
 		if not self:AttemptDragStart() then
 			target, changed = self:Navigate(key)
 		end
-	elseif ( key == db('Settings/UICursor/Special') ) then
+	elseif ( key == db('Settings/UICursorSpecial') ) then
 		return Intellisense:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
 	end
 	if ( target ) then
@@ -544,8 +551,8 @@ end
 
 function Cursor:SetClickButtonsForNode(node, macroReplacement, isClickable)
 	for click, button in pairs({
-		LeftButton  = db('Settings/UICursor/LeftClick');
-		RightButton = db('Settings/UICursor/RightClick');
+		LeftButton  = db('Settings/UICursorLeftClick');
+		RightButton = db('Settings/UICursorRightClick');
 	}) do for modifier in db:For('Gamepad/Index/Modifier/Active') do
 			if macroReplacement then
 				local unit = UIDROPDOWNMENU_INIT_MENU.unit
@@ -563,7 +570,7 @@ function Cursor:AttemptDragStart()
 	local node = self:GetCurrentNode()
 	local script = node and node:GetScript('OnDragStart')
 	if script then
-		local widget = Input:GetActiveWidget(db('Settings/UICursor/LeftClick'), self)
+		local widget = Input:GetActiveWidget(db('Settings/UICursorLeftClick'), self)
 		local click = widget:HasClickButton()
 		if widget and widget.state and click then
 			widget:ClearClickButton()
@@ -580,8 +587,8 @@ end
 do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 	-- lambdas to handle texture swapping without caching icons
 	local function mod   () return db(f(path, db('Gamepad/Index/Modifier/Key/' .. db('UImodifierCommands')) or '')) end
-	local function opt   () return db(f(path, db('Settings/UICursor/Special'))) end
-	local function right () return db(f(path, db('Settings/UICursor/RightClick'))) end
+	local function opt   () return db(f(path, db('Settings/UICursorSpecial'))) end
+	local function right () return db(f(path, db('Settings/UICursorRightClick'))) end
 	local function left  () return nil end;
 
 	Cursor.Textures = CPAPI.Proxy({
@@ -671,6 +678,16 @@ end
 function Cursor:Chime()
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
 end
+
+function Cursor:UpdatePointer()
+	self.Display:SetSize(db('UIpointerSize'))
+	self.Display:SetOffset(db('UIpointerOffset'))
+	self.Display.animationSpeed = db('UItravelTime');
+end
+
+db:RegisterCallback('Settings/UItravelTime', Cursor.UpdatePointer, Cursor)
+db:RegisterCallback('Settings/UIpointerSize', Cursor.UpdatePointer, Cursor)
+db:RegisterCallback('Settings/UIpointerOffset', Cursor.UpdatePointer, Cursor)
 
 -- Highlight mime
 ---------------------------------------------------------------
@@ -879,9 +896,6 @@ end
 ---------------------------------------------------------------
 -- Initialize the cursor
 ---------------------------------------------------------------
-Cursor.Display.animationSpeed = 4;
-Cursor.Display.Arrow:SetPoint('TOPLEFT', -2, 2)
-Cursor.Display.ArrowHilite:SetPoint('TOPLEFT', -2, 2)
 CPAPI.Start(Cursor)
 hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
 	-- TODO: work on this, it's not good yet

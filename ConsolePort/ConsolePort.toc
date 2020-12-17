@@ -22,3 +22,4 @@ Widget\__manifest.xml
 View\__manifest.xml
 
 API.lua
+Upgrade.lua

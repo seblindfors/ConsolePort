@@ -56,7 +56,7 @@ end
 function Intellisense:GetSpecialActionPrompt(text)
 	local device = db('Gamepad/Active')
 	return device and device:GetTooltipButtonPrompt(
-		db('Settings/UICursor/Special'),
+		db('Settings/UICursorSpecial'),
 		L(text), 64
 	);
 end

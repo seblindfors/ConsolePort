@@ -2,24 +2,38 @@
 -- Spinny cursor arrow
 ---------------------------------------------------------------
 local RAD_ARROW_ROTATION, RAD_MOD, RAD_RESET = rad(45), rad(360), rad(180);
-local Node, IsGamePadInUse, IsGamePadCursor =
-	ConsolePortNode, IsGamePadFreelookEnabled, IsGamePadCursorControlEnabled;
+local Clamp, Node, IsGamePadInUse, IsGamePadCursor =
+	Clamp, ConsolePortNode, IsGamePadFreelookEnabled, IsGamePadCursorControlEnabled;
 
 CPCursorArrowMixin = {};
 
 function CPCursorArrowMixin:SetRotation(rotation)
 	self.rotation = rotation < 0 and RAD_MOD + rotation or rotation % RAD_MOD;
-	self.Arrow:SetRotation(rotation)
+	self.ArrowNormal:SetRotation(rotation)
 	self.ArrowHilite:SetRotation(rotation)
 end
 
 function CPCursorArrowMixin:ResetRotation(rotation, elapsed)
-	local delta = rotation < RAD_RESET and 1 or -1;
-	self:SetRotation(rotation + delta * ((RAD_ARROW_ROTATION - rotation) / (self.resetAngleSpeed - elapsed)))
+	self.timeUntilReset = Clamp((self.timeUntilReset or 0.2) - elapsed, -1, 0.2)
+	if self.timeUntilReset < 0 then
+		local delta = rotation < RAD_RESET and 1 or -1;
+		self:SetRotation(rotation + delta * ((RAD_ARROW_ROTATION - rotation) / (self.resetAngleSpeed - elapsed)))
+	end
 end
 
-function CPCursorArrowMixin:SetDeltaRotation(delta)
-	self:SetRotation(self.rotation + delta)
+function CPCursorArrowMixin:SetAngledRotation(rotation)
+	self.timeUntilReset = 0.2;
+	self:SetRotation(rotation)
+end
+
+function CPCursorArrowMixin:SetSize(size)
+	self.ArrowNormal:SetSize(size, 18/22 * size)
+	self.ArrowHilite:SetSize(size, 18/22 * size)
+end
+
+function CPCursorArrowMixin:SetOffset(value)
+	self.ArrowNormal:SetPoint('TOPLEFT', value, -value)
+	self.ArrowHilite:SetPoint('TOPLEFT', value, -value)
 end
 
 function CPCursorArrowMixin:OnUpdate(elapsed)
@@ -38,7 +52,7 @@ function CPCursorArrowMixin:OnUpdate(elapsed)
 		if (  diff < 1 ) then
 			self:ResetRotation(self.rotation, elapsed)
 		else
-			self:SetRotation(rad((math.atan2(nY - cY, nX - cX) * 180 / math.pi) - 90))
+			self:SetAngledRotation(rad((math.atan2(nY - cY, nX - cX) * 180 / math.pi) - 90))
 		end
 		self.ArrowHilite:SetAlpha(diff)
 		self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT',
