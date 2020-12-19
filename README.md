@@ -7,11 +7,11 @@ Please refer to Wowinterface or Curse for stable versions.
 
 <h2>What is ConsolePort?</h2>
 ConsolePort is an interface add-on for World of Warcraft that will give you a handful of nifty features
-in order to let you play the game on a controller - without inconvenience. There are a lot of tutorials and videos on
-how to set up your controller for World of Warcraft, but the most game-breaking part about all of them is how they in no way contribute to an easy game experience. They are mostly just Xpadder tutorials with a bunch of in-game macros thrown into the mix. Using a setup like that, it's a hassle just to sell a few items or turn in a quest. <br>This addon will remove most of the inconvenience for you.
-
-The main <i>goal</i> here is to turn an experience that was designed for mouse and keyboard into one that is equally fitting for a game controller, without losing gameplay quality in return. Using the addon, you should be able to effortlessly do the same tasks with a controller as you would with a mouse and keyboard. On top of this, it will NOT interfere with your normal keyboard and mouse setup, leaving you to choose which way you want to play the game without having to rebind and reconfigure every time you change peripherals.
-
+in order to let you play the game on a controller - without inconvenience.
+<br/><br/>
+ConsolePort is a fully-fledged solution to handling all the quirks in a game where gamepad support was not intended,
+including interface navigation, custom-tailored UI elements to assist in gameplay, and easy-to-use targeting systems
+for end-game content. As of Shadowlands, ConsolePort uses native gamepad controls. No external software is required.
 <h2>Downloads</h2>
 <a href="https://www.wowinterface.com/downloads/info23536-ConsolePort.html" target="_blank">Download the latest stable version at Wowinterface.</a></br>
 <a href="https://www.curseforge.com/wow/addons/console-port" target="_blank">Download the latest stable version at Curse.</a>
