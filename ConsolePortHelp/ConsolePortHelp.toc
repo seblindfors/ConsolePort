@@ -1,9 +1,0 @@
-## Interface: 90001
-## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0Help|r
-## Notes: Tutorials and help pages for ConsolePort. Loaded on demand.
-## RequiredDeps: ConsolePort
-## LoadOnDemand: 1
-## LoadWith: Blizzard_Tutorial
-
-PageLoader.lua
-Pages.xml

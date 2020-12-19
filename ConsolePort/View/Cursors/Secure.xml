@@ -1,0 +1,23 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Button name="ConsolePortSecureCursor" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" registerForClicks="AnyDown" frameStrata="TOOLTIP" hidden="true">
+		<Size x="2" y="2"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="UIParent" relativePoint="CENTER"/>
+		</Anchors>
+		<Frames>
+			<Frame parentKey="Display" inherits="CPCursorArrowTemplate"/>
+			<Frame parentKey="Blocker" hidden="true" enableMouse="true">
+				<Scripts>
+					<OnLoad>
+						self:SetParent(nil);
+						self:SetAllPoints();
+						self:SetFrameStrata('TOOLTIP');
+					</OnLoad>
+				</Scripts>
+			</Frame>
+		</Frames>
+	</Button>
+
+</Ui>

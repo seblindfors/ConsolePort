@@ -1,0 +1,46 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="IndexButton/IndexButton.lua"/>
+
+	<!-- todo? might want to abstract this somewhere else -->
+	<Line name="CPLineTemplate" virtual="true" thickness="2"/>
+	<Line name="CPLineTemplateYellow" virtual="true" inherits="CPLineTemplate">
+		<Color r="1" g="0.7451" b="0" a="1"/>
+	</Line>
+	<Line name="CPLineTemplateBlue" virtual="true" inherits="CPLineTemplate">
+		<Color r="0" g="0.68235" b="1" a="1"/>
+	</Line>
+	<Line name="CPLineTemplateBorder" virtual="true" inherits="CPLineTemplate">
+		<Color r="0.15" g="0.15" b="0.15" a="1"/>
+	</Line>
+
+	<CheckButton name="IndexButton" intrinsic="true" secureMixin="CPIndexButtonMixin">
+		<Size x="250" y="64"/>
+		<Scripts>
+			<OnLoad method="OnIndexButtonLoad" intrinsicOrder="precall"/>
+			<OnHide method="OnIndexButtonHide" intrinsicOrder="precall"/>
+			<OnClick method="OnIndexButtonClick" intrinsicOrder="precall"/>
+			<OnEnter method="OnIndexButtonEnter" intrinsicOrder="precall"/>
+			<OnLeave method="OnIndexButtonLeave" intrinsicOrder="precall"/>
+			<OnSizeChanged method="OnBackdropSizeChanged" intrinsicOrder="postcall"/>
+		</Scripts>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="-1">
+				<Texture parentKey="Background" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Backdrop_Vertex_Noise" setAllPoints="true">
+					<Color r="0" g="0" b="0" a="0.35"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Line parentKey="CheckedThumb" inherits="CPLineTemplateYellow" thickness="4" hidden="true"/>
+			</Layer>
+			<Layer level="HIGHLIGHT" textureSubLevel="1">
+				<Texture parentKey="Hilite" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Backdrop_Vertex_Noise" setAllPoints="true" alphaMode="ADD">
+					<Color r="1" g="1" b="1" a="0.1"/>
+				</Texture>
+			</Layer>
+			<Layer level="HIGHLIGHT" textureSubLevel="2">
+				<Line parentKey="HiliteThumb" inherits="CPLineTemplateBlue" thickness="4" alphaMode="BLEND"/>
+			</Layer>
+		</Layers>
+	</CheckButton>
+</Ui>

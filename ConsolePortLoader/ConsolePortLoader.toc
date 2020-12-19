@@ -1,7 +1,0 @@
-## Interface: 90001
-## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0Loader|r
-## Notes: Toggle ConsolePort on/off with your controller. Configured within ConsolePort.
-## OptionalDeps: ConsolePort
-## SavedVariablesPerCharacter: ConsolePortLoaderBinding
-
-Loader.lua

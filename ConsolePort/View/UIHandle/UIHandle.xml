@@ -1,0 +1,28 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Button name="ConsolePortUIHandle" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate">
+		<Frames>
+			<!-- Displays button hints at the bottom of the screen -->
+			<Frame name="$parentHintBar" parentKey="HintBar" hidden="true" inherits="CPHintBarTemplate">
+				<Anchors>
+					<Anchor point="BOTTOM" relativeTo="UIParent" x="0" y="0"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Gradient" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Menu_Top_BG" alpha="0.6">
+							<Size x="0" y="100"/>
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativeTo="UIParent"/>
+								<Anchor point="BOTTOMRIGHT" relativeTo="UIParent"/>
+							</Anchors>
+							<TexCoords left="0" right="1" top="1" bottom="0"/>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+	</Button>
+
+	<Script file="UIHandle/UIHandle.lua"/>
+</Ui>

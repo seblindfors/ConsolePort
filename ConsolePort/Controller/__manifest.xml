@@ -1,0 +1,18 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<!-- UI controllers -->
+	<Script file="UI/UINode.lua"/>
+	<Script file="UI/UIProbe.lua"/>
+	<Script file="UI/UISecure.lua"/>
+	<Script file="UI/UIStack.lua"/>
+	<!-- Single file controller -->
+	<Script file="EasyMotion.lua"/>
+	<Script file="IntelliSense.lua"/>
+	<Script file="Interact.lua"/>
+	<!-- Base controller -->
+	<Script file="Input.lua"/>
+	<Script file="Pager.lua"/>
+	<Script file="Radial.lua"/>
+	<Script file="Mouse.lua"/>
+	<Script file="Slash.lua"/>
+</Ui>

@@ -1,0 +1,32 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Script file="PieMenu/PieMenu.lua"/>
+
+	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin">
+		<Size x="500" y="500"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Arrow" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Arrow.blp" alpha="0">
+					<Size x="50" y="400"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="BG" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_BG.blp" alpha="0">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="78" y="-78"/>
+						<Anchor point="BOTTOMRIGHT" x="-78" y="78"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnPreLoad" intrinsicOrder="precall"/>
+			<OnHide method="OnPostHide" intrinsicOrder="postcall"/>
+		</Scripts>
+	</Button>
+	
+</Ui>

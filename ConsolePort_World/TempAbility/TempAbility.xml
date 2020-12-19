@@ -1,0 +1,12 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Frame name="ConsolePortTempAbilityFrame" inherits="CPUILootFrameTemplate" frameStrata="HIGH" parent="UIParent" hidden="true" movable="true">
+		<Size x="200" y="0"/>
+		<Anchors>
+			<Anchor point="CENTER" x="-500" y="0"/>
+		</Anchors>
+	</Frame>
+
+	<Script file="TempAbility.lua"/>
+</Ui>

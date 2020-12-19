@@ -1,0 +1,111 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="WatchBarMixins.lua"/>
+
+	<Frame name="CP_StatusTrackingBarTemplate" frameStrata="MEDIUM" enableMouse="true" hidden="true" virtual="true">
+		<Size x="804" y="11"/>
+		<Frames>
+			<StatusBar parentKey="StatusBar" drawLayer="BORDER" inherits="AnimatedStatusBarTemplate">
+				<Size x="804" y="10"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="0" y="0"/>
+				</Anchors>
+				<BarTexture parentKey="BarTexture" file="Interface\TargetingFrame\UI-StatusBar"/>
+				<BarColor r="0.58" g="0.0" b="0.55"/>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Background">
+							<Color r="0.0" g="0.0" b="0.0" a="0.9"/>
+						</Texture>
+					</Layer>
+					<Layer level="BACKGROUND" textureSubLevel="1">
+						<Texture parentKey="Underlay" hidden="true" file="Interface\TargetingFrame\UI-StatusBar">
+							<Color r=".502" g=".443" b=".278" />
+						</Texture>
+					</Layer>
+					<Layer level="ARTWORK" textureSubLevel="-1">
+						<Texture parentKey="Overlay" hidden="true" atlas="XPBarAnim-OrangeGain" alphaMode="ADD">
+							<Color r=".901" g=".8" b=".601" />
+						</Texture>
+					</Layer>
+				</Layers>
+			</StatusBar>
+			<Frame parentKey="OverlayFrame" frameStrata="HIGH" setAllPoints="true">
+				<Layers>
+					<Layer level="ARTWORK" textureSubLevel="5">
+						<FontString parentKey="Text" inherits="TextStatusBarText" hidden="true">
+							<Anchors>
+								<Anchor point="CENTER" relativeKey="$parent.StatusBar" relativePoint="CENTER" x="0" y="1"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Frame name="CP_ReputationStatusBarTemplate" inherits="CP_StatusTrackingBarTemplate" mixin="CPReputationBarMixin" virtual="true">
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnEvent method="OnEvent"/>
+			<OnShow method="OnShow"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/> 
+		</Scripts>
+	</Frame>
+
+	<Frame name="CP_ExpStatusBarTemplate" useParentLevel="true" inherits="CP_StatusTrackingBarTemplate" hidden="true" mixin="CPExpBarMixin" virtual="true">
+		<Size x="804" y="11"/>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="-1">
+				<Texture parentKey="ExhaustionLevelFillBar" file="Interface\AddOns\ConsolePort_Bar\Textures\XPBar">
+					<Size x="0" y="14"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" y="0"/>
+					</Anchors>
+					<TexCoords left="0" right="0.75" top="1" bottom="0"/>
+					<Color r="1.0" g="1.0" b="1.0" a="1.0"/>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button parentKey="ExhaustionTick" hidden="true" frameStrata="HIGH" mixin="CPExhaustionTickMixin">
+				<Size x="32" y="40"/>
+				<Anchors>
+					<Anchor point="CENTER" relativeKey="$parent.ExhaustionLevelFillBar" relativePoint="RIGHT"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad method="OnLoad"/>
+					<OnEvent method="OnEvent"/>
+					<OnEnter method="ExhaustionToolTipText"/>
+					<OnLeave function="GameTooltip_Hide"/>
+				</Scripts>
+				<NormalTexture parentKey="Normal" file="Interface\MainMenuBar\UI-ExhaustionTickNormal"/>
+				<HighlightTexture parentKey="Highlight" file="Interface\MainMenuBar\UI-ExhaustionTickHighlight" alphaMode="ADD"/>
+			</Button>
+			<Button parentKey="CurrentXPTick" frameStrata="HIGH">
+				<Size x="32" y="40"/>
+				<Anchors>
+					<Anchor point="CENTER" relativeKey="$parent.StatusBar.BarTexture" relativePoint="RIGHT"/>
+				</Anchors>
+				<Scripts>
+					<OnEnter>
+						CPExhaustionTickMixin.ExhaustionToolTipText()
+					</OnEnter>
+				</Scripts>
+				<NormalTexture parentKey="Normal" file="Interface\MainMenuBar\UI-ExhaustionTickNormal"/>
+				<HighlightTexture parentKey="Highlight" file="Interface\MainMenuBar\UI-ExhaustionTickHighlight" alphaMode="ADD"/>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnEvent method="OnEvent"/>
+			<OnShow method="OnShow"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnUpdate method="OnUpdate"/>
+		</Scripts>
+	</Frame>
+
+	<Script file="WatchBars.lua"/>
+</Ui>

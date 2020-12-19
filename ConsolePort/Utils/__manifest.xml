@@ -1,0 +1,11 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<!-- Utils -->
+	<!-- TODO: document utils -->
+	<Script file="Callback.lua"/>
+	<Script file="Database.lua"/>
+	<Script file="Wrapper.lua"/>
+	<Script file="Utils.lua"/>
+	<Script file="Table.lua"/>
+	<Script file="UIFade.lua"/>
+</Ui>

@@ -1,0 +1,107 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="Container/Container.lua"/>
+
+	<Slider name="CPContainerSliderTemplate" virtual="true">
+		<Size x="12" y="0"/>
+		<Attributes>
+			<Attribute name="nodeignore" type="boolean" value="true"/>
+		</Attributes>
+		<Frames>
+			<Button parentKey="ScrollUpButton">
+				<Scripts>
+					<OnClick function="UIPanelScrollBarScrollUpButton_OnClick"/>
+				</Scripts>
+			</Button>
+			<Button parentKey="ScrollDownButton">
+				<Scripts>
+					<OnClick function="UIPanelScrollBarScrollDownButton_OnClick"/>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnValueChanged function="UIPanelScrollBar_OnValueChanged"/>
+		</Scripts>
+		<ThumbTexture parentKey="ThumbTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Slider_Thumb">
+			<Size x="18" y="34"/>
+		</ThumbTexture>
+	</Slider>
+
+	<ScrollFrame name="CPContainerInnerTemplate" virtual="true" inherits="UIPanelScrollFrameCodeTemplate">
+		<Frames>
+			<Slider parentKey="ScrollBar" inherits="CPContainerSliderTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="0" y="0"/>
+					<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+				</Anchors>
+			</Slider>
+		</Frames>
+	</ScrollFrame>
+
+	<ScrollFrame name="CPSmoothScrollTemplate" virtual="true" mixin="CPSmoothScrollMixin">
+		<Scripts>
+			<OnLoad inherit="prepend">
+				self:SetScrollOrientation('Vertical');
+			</OnLoad>
+			<OnSizeChanged method="OnScrollSizeChanged"/>
+			<OnMouseWheel method="OnScrollMouseWheel"/>
+		</Scripts>
+	</ScrollFrame>
+
+	<Frame name="CPContainerFrameTemplate" virtual="true"
+		toplevel="true" movable="true" 
+		mixin="CPContainerMixin" hidden="true">
+		<Scripts>
+			<OnShow method="OnContainerShow" inherit="prepend"/>
+			<OnLoad method="OnContainerLoad" inherit="prepend"/>
+			<OnDragStart method="StartMoving"/>
+			<OnDragStop method="StopMovingOrSizing"/>
+			<OnSizeChanged method="OnContainerSizeChanged" inherit="prepend"/>
+		</Scripts>
+		<KeyValues>
+			<KeyValue key="stepSize" value="32" type="number"/>
+		</KeyValues>
+		<!--
+		<KeyValues>
+			<KeyValue key="containerFrameType" value="Frame" type="string"/>
+			<KeyValue key="containerFrameTemplate" value="Template1, Template2" type="string"/>
+			<KeyValue key="containerFrameMixin" value"GlobalMixin" type="global"/>
+		</KeyValues>
+		-->
+	</Frame>
+
+	<IndexButton name="CPContainerHeaderButtonTemplate" virtual="true">
+		<Size x="140" y="80"/>
+		<ButtonText parentKey="Label" inherits="CPHeaderFont" wordwrap="false" justifyH="CENTER">
+			<Size x="140" y="80"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</ButtonText>
+	</IndexButton>
+
+	<IndexButton name="CPIndexButtonIconTemplate" virtual="true" mixin="CPIndexButtonIconMixin">
+		<Size x="60" y="60"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="38" y="38"/>
+					<Anchors>
+						<Anchor point="LEFT" x="10"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</IndexButton>
+
+	<IndexButton name="CPIndexButtonIconTextTemplate" virtual="true" inherits="CPIndexButtonIconTemplate" mixin="CPIndexButtonIconTextMixin">
+		<Size x="300" y="60"/>
+		<ButtonText parentKey="Label" inherits="GameFontNormal" justifyH="LEFT" height="14" spacing="2">
+			<Anchors>
+				<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="6"/>
+				<Anchor point="RIGHT"/>
+			</Anchors>
+		</ButtonText>
+	</IndexButton>
+
+</Ui>

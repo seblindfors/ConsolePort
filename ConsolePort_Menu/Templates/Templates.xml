@@ -1,0 +1,177 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	
+	<Script file="Helpers.lua"/>
+
+	<Frame name="CPLineSheenTemplate" virtual="true" mixin="CPLineSheenMixin">
+		<Size x="235" y="25"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="LineSheen" hidden="false" alpha="0" alphaMode="ADD" atlas="OBJFX_LineBurst">
+					<Size x="60" y="20"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+		<Animations>
+			<AnimationGroup parentKey="OnShowAnim" setToFinalAlpha="true">
+				<Alpha childKey="LineSheen" startDelay="0" duration="0.5" order="1" fromAlpha="0" toAlpha="0.75"/>
+				<Alpha childKey="LineSheen" startDelay="0.5" duration="0.5" order="1" fromAlpha="0.75" toAlpha="0"/>
+				<Translation parentKey="LineSheenTranslation" childKey="LineSheen" startDelay="0.15" duration="1" order="1" offsetX="230" offsetY="0"/>
+			</AnimationGroup>
+		</Animations>
+	</Frame>
+
+	<Button name="CPMenuListCategoryTemplate" virtual="true">
+		<Size x="230" y="50"/>
+		<Attributes>
+			<Attribute name="_onclick" type="string" value="self:GetParent():RunAttribute('ChangeHeader', self:GetID())"/>
+			<Attribute name="OnEnter" type="string" value="self:GetParent():RunAttribute('ChangeHeader', self:GetID())"/>
+		</Attributes>
+		<HighlightTexture parentKey="HighlightTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\List_Button_Hilite.blp" alphaMode="ADD">
+			<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="0"/>
+					<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+			</Anchors>
+			<Color r="0.47" g="0.86" b="1" a="1"/>
+		</HighlightTexture>
+		<ButtonText parentKey="Label" inherits="Fancy22Font" justifyH="CENTER">
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</ButtonText>
+		<Animations>
+			<AnimationGroup parentKey="OnFocusAnim">
+				<Scale childKey="HighlightTexture" duration="0.1" order="1" fromScaleX="0.1" fromScaleY="1" toScaleX="1.05" toScaleY="1"/>
+				<Scale childKey="HighlightTexture" duration="0.1" order="2" fromScaleX="1.05" fromScaleY="1" toScaleX="1" toScaleY="1"/>
+			</AnimationGroup>
+		</Animations>
+	</Button>
+
+	<Button name="CPMenuButtonBaseTemplate" virtual="true" mixin="CPMenuButtonMixin" inherits="BackdropTemplate">
+		<Size x="230" y="60"/>
+		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
+			<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" y="-4"/>
+				<Anchor point="BOTTOMRIGHT" y="4"/>
+			</Anchors>
+		</HighlightTexture>
+		<ButtonText parentKey="Label" inherits="Game12Font" justifyH="LEFT">
+			<Size x="150"/>
+			<Anchors>
+				<Anchor point="LEFT" x="60" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="40" y="40"/>
+					<Anchors>
+						<Anchor point="LEFT" x="12"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<MaskTexture parentKey="IconMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Overlay" setAllPoints="true" inherits="BackdropTemplate"/>
+			<Frame parentKey="Hilite" setAllPoints="true" alpha="0" inherits="BackdropTemplate"/>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+
+	<Frame name="CPFullscreenMenuTemplate" frameStrata="FULLSCREEN" virtual="true" inherits="SecureHandlerStateTemplate, SecureHandlerShowHideTemplate">
+		<Size x="0" y="54"/>
+		<Anchors>
+			<Anchor point="TOPLEFT" relativeTo="UIParent"/>
+			<Anchor point="TOPRIGHT" relativeTo="UIParent"/>
+		</Anchors>
+		<Frames>
+			<PlayerModel parentKey="Flair" name="$parentFlair" hidden="true" alpha="0.25">
+				<Size x="230" y="52"/>
+				<Scripts>
+					<OnLoad>
+						self:SetDisplayInfo(54419);
+						self:SetCamDistanceScale(3);
+						self:SetPosition(0, 0, -1.5);
+					</OnLoad>
+				</Scripts>
+			</PlayerModel>
+			<Frame parentKey="GlowLeft" name="$parentGlowLeft" inherits="CPLineSheenTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="12"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self:SetDirection('LEFT', 1.5);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+			<Frame parentKey="GlowRight" name="$parentGlowRight" inherits="CPLineSheenTemplate" hidden="true">
+				<Anchors>
+					<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="12"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						self:SetDirection('RIGHT', 1.5);
+					</OnLoad>
+				</Scripts>
+			</Frame>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="1">
+				<Texture parentKey="BG" name="$parentBG" setAllPoints="true" hidden="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient">
+					<TexCoords left="0" right="1" top="0.25" bottom="0"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="TopLine" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\TopLine.blp">
+					<Size y="8"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" y="-4"/>
+						<Anchor point="BOTTOMRIGHT" y="-4"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Emblem" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\TopLine_Emblem.blp">
+					<Size x="1024" y="16"/>
+					<Anchors>
+						<Anchor point="BOTTOM" y="-15"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+</Ui>

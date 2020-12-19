@@ -1,9 +1,0 @@
-## Interface: 90001
-## Title: Console Port |cFFFF6600Legacy|r |cff69ccf0UI|r Menu
-## Notes: Replaces game menu.
-## RequiredDeps: ConsolePort
-
-Menu_Button.lua
-Menu_LootButton.lua
-Menu_Frame.lua
-Menu_Logic.lua

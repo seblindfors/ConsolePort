@@ -1,0 +1,33 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script>
+		if not GetCVarBool('GamePadEnable') then
+			SetCVar('GamePadEnable', 1);
+		end
+	</Script>
+
+	<!-- Method frame (invisible) -->
+	<Frame name="ConsolePort">
+		<Frames>
+			<Button name="$parentPager" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate">
+				<Attributes>
+					<Attribute name="type" type="string" value="actionbar"/>
+					<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
+				</Attributes>
+			</Button>
+			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
+			<Frame name="$parentInteract" inherits="SecureHandlerStateTemplate"/>
+		</Frames>
+	</Frame>
+
+	<!-- Controllers\EasyMotion.lua -->
+	<Button name="ConsolePortEasyMotionButton" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown">
+		<Attributes>
+			<Attribute name="type" type="string" value="macro"/>
+			<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
+		</Attributes>
+		<Frames> <!-- Need a separate input feeder so the targeting button (parent) doesn't process a release event prematurely -->
+			<Button name="ConsolePortEasyMotionInput" inherits="SecureHandlerBaseTemplate" hidden="true" registerForClicks="AnyUp, AnyDown"/>
+		</Frames>
+	</Button>
+</Ui>

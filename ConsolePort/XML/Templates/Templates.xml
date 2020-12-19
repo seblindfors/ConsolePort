@@ -1,0 +1,201 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Script file="Templates/Templates.lua"/>
+
+	<GameTooltip name="CPTooltipTemplate" inherits="SharedTooltipTemplate, DefaultScaleFrame" ignoreParentScale="true" virtual="true">
+		<KeyValues>
+			<KeyValue key="maxScale" value="CHAR_CUSTOMIZE_MAX_SCALE" type="global"/>
+		</KeyValues>
+	</GameTooltip>
+
+	<GameTooltip name="CPNoHeaderTooltip" inherits="CPTooltipTemplate">
+		<KeyValues>
+			<KeyValue key="textLeft1Font" value="GameFontNormalMed3" type="string"/>
+			<KeyValue key="textRight1Font" value="GameFontNormalMed3" type="string"/>
+			<KeyValue key="textLeft2Font" value="GameFontNormalMed3" type="string"/>
+			<KeyValue key="textRight2Font" value="GameFontNormalMed3" type="string"/>
+		</KeyValues>
+	</GameTooltip>
+
+
+	<!-- CharCustomizeFrameWithTooltipMixin -->
+	<Frame name="CPFrameWithTooltipTemplate" mixin="CPFrameWithTooltipMixin" virtual="true">
+		<KeyValues>
+			<KeyValue key="tooltipAnchor" value="ANCHOR_TOPRIGHT" type="string"/>
+			<KeyValue key="tooltipXOffset" value="10" type="number"/>
+			<KeyValue key="tooltipYOffset" value="0" type="number"/>
+			<KeyValue key="tooltipMinWidth" value="300" type="number"/>
+			<KeyValue key="tooltipPadding" value="5" type="number"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Frame>
+
+	<!-- inherits CharCustomizeFrameWithTooltipTemplate, CharCustomizeMaskedButtonMixin -->
+	<CheckButton name="CPMaskedButtonTemplate" inherits="CPFrameWithTooltipTemplate" mixin="CPMaskedButtonMixin" motionScriptsWhileDisabled="true" virtual="true">
+		<KeyValues>
+			<KeyValue key="disabledOverlayAlpha" value="0" type="number"/>
+			<KeyValue key="circleMaskSizeOffset" value="2" type="number"/>
+		</KeyValues>
+		<NormalTexture parentKey="NormalTexture"/>
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" alpha="0.5"/>
+		<PushedTexture parentKey="PushedTexture">
+			<Anchors>
+				<Anchor point="TOPLEFT" y="-1"/>
+				<Anchor point="BOTTOMRIGHT" y="-1"/>
+			</Anchors>
+		</PushedTexture>
+		<CheckedTexture parentKey="CheckedTexture" atlas="charactercreate-ring-select" texelSnappingBias="0.0" snapToPixelGrid="false">
+			<Anchors>
+				<Anchor point="CENTER" />
+			</Anchors>
+		</CheckedTexture>
+		
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="-1">
+				<Texture parentKey="DisabledOverlay" hidden="true" setAllPoints="true">
+					<Color r="0.0" g="0.0" b="0.0"/>
+				</Texture>
+				<Texture parentKey="Ring">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<MaskTexture parentKey="CircleMask" file="Interface\CharacterFrame\TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE" />
+			</Layer>
+		</Layers>
+		
+		<Frames>
+			<Frame parentKey="Flash" setAllPoints="true" hidden="true">
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Portrait" setAllPoints="true" alphaMode="ADD" />
+						<Texture parentKey="Ring" alphaMode="ADD">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="Ring2" alphaMode="ADD">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Animations>
+					<AnimationGroup parentKey="Anim" setToFinalAlpha="true" looping="REPEAT">
+						<Alpha order="1" childKey="Portrait" duration="0.8" fromAlpha="0" toAlpha="0.6" />
+						<Alpha order="1" childKey="Portrait" duration="0.8" fromAlpha="0.6" toAlpha="0" startDelay="0.8" />
+						<Alpha order="1" childKey="Ring" duration="0.8" fromAlpha="0" toAlpha="1" />
+						<Alpha order="1" childKey="Ring" duration="0.8" fromAlpha="1" toAlpha="0" startDelay="0.8" />
+						<Alpha order="1" childKey="Ring2" duration="0.8" fromAlpha="1" toAlpha="0" />
+						<Scale order="1" childKey="Ring2" duration="0.8" fromScaleX="1.3" toScaleX="1" fromScaleY="1.3" toScaleY="1" smoothing="NONE" />
+					</AnimationGroup>
+				</Animations>
+			</Frame>
+		</Frames>
+		
+		<Scripts>
+			<OnMouseDown method="OnMouseDown"/>
+			<OnMouseUp method="OnMouseUp"/>
+			<OnClick method="OnClick"/>
+		</Scripts>
+	</CheckButton>
+
+
+	<!-- CharacterCreateClassButtonMixin -->
+	<CheckButton name="CPButtonTemplate" inherits="CPMaskedButtonTemplate" mixin="CPButtonMixin" virtual="true">
+		<Size x="67" y="67"/>
+		<KeyValues>
+			<KeyValue key="ringAtlas" value="charactercreate-ring-metaldark" type="string"/>
+			<KeyValue key="ringWidth" value="116" type="number"/>
+			<KeyValue key="ringHeight" value="117" type="number"/>
+			<KeyValue key="checkedTextureSize" value="99" type="number"/>
+			<KeyValue key="disabledOverlayAlpha" value="0.75" type="number"/>
+			<KeyValue key="tooltipAnchor" value="ANCHOR_RIGHT" type="string"/>
+			<KeyValue key="tooltipXOffset" value="0" type="number"/>
+			<KeyValue key="tooltipYOffset" value="10" type="number"/>
+		</KeyValues>
+
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="2">
+				<FontString parentKey="Description" inherits="GameFontNormalMed3" justifyH="CENTER" justifyV="MIDDLE">
+					<Size x="85" y="50"/>
+					<Anchors>
+						<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="3"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<CheckButton name="CPActionButtonTemplate" inherits="CPButtonTemplate" mixin="CPActionButtonMixin" virtual="true">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="FlyoutBorder" inherits="ActionBarFlyoutButton-IconFrame" hidden="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="FlyoutBorderShadow" inherits="ActionBarFlyoutButton-IconShadow" hidden="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="FlyoutArrow" inherits="ActionBarFlyoutButton-ArrowUp" hidden="true"/>
+				<FontString parentKey="HotKey" inherits="NumberFontNormalSmallGray" justifyH="RIGHT">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="1" y="-3"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Count" inherits="NumberFontNormal" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Page" inherits="NumberFontNormalYellow" justifyH="RIGHT" hidden="true">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="2" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Name" inherits="GameFontHighlightSmallOutline">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="NewActionTexture" atlas="bags-newitem" useAtlasSize="false" alphaMode="ADD" hidden="true">
+					<Size x="44" y="44"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate">
+				<Size x="36" y="36"/>
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="-1"/>
+				</Anchors>
+				<SwipeTexture>
+					<Color r="1" g="1" b="1" a="0.8"/>
+				</SwipeTexture>
+			</Cooldown>
+		</Frames>
+	</CheckButton>
+	
+</Ui>

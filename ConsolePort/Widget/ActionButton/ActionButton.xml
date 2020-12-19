@@ -1,0 +1,238 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+
+	<Script file="ActionButton/ActionButton.lua"/>
+	<CheckButton name="CPUIActionButtonBaseTemplate" virtual="true" mixin="CPActionButtonMixin">
+		<Size>
+			<AbsDimension x="64" y="64"/>
+		</Size>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="icon" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon" desaturated="true"/>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Flash" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask" alpha="0.5" hidden="true"/>
+				<Texture parentKey="FlyoutBorder" inherits="ActionBarFlyoutButton-IconFrame" hidden="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="FlyoutBorderShadow" inherits="ActionBarFlyoutButton-IconShadow" hidden="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="FlyoutArrow" inherits="ActionBarFlyoutButton-ArrowUp" hidden="true"/>
+				<FontString parentKey="HotKey" inherits="NumberFontNormalSmallGray" justifyH="RIGHT">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="1" y="-3"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Count" inherits="NumberFontNormal" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Page" inherits="NumberFontNormalYellow" justifyH="RIGHT" hidden="true">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="2" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Name" inherits="GameFontHighlightSmallOutline">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="Border" file="Interface\Buttons\UI-ActionButton-Border" hidden="true" alphaMode="ADD">
+					<Size x="62" y="62"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="NewActionTexture" atlas="bags-newitem" useAtlasSize="false" alphaMode="ADD" hidden="true">
+					<Size x="44" y="44"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate">
+				<Size x="36" y="36"/>
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="-1"/>
+				</Anchors>
+				<SwipeTexture>
+					<Color r="1" g="1" b="1" a="0.8"/>
+				</SwipeTexture>
+			</Cooldown>
+		</Frames>
+	</CheckButton>
+
+	<CheckButton name="CPUIActionButtonTemplate" virtual="true" inherits="CPUIActionButtonBaseTemplate">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Shadow" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Shadow">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-5" y="0"/>
+						<Anchor point="BOTTOMRIGHT" x="5" y="-10"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+						<Anchor point="BOTTOMRIGHT"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+		<NormalTexture parentKey="NormalTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Normal"/>
+		<PushedTexture parentKey="PushedTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Pushed" />
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Hilite"/>
+		<CheckedTexture parentKey="CheckedTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Hilite"/>
+	</CheckButton>
+
+	<CheckButton name="CPUISquareActionButtonTemplate" virtual="true" inherits="CPUIActionButtonBaseTemplate">
+		<NormalTexture name="$parentNormalTexture" parentKey="NormalTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Square_Normal">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-2" y="2"/>
+				<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
+			</Anchors>
+		</NormalTexture>
+		<PushedTexture parentKey="PushedTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Square_Pushed">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-2" y="2"/>
+				<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
+			</Anchors>
+		</PushedTexture>
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Square_Hilite">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-1" y="1"/>
+				<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+			</Anchors>
+		</HighlightTexture>
+		<CheckedTexture parentKey="CheckedTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Square_Hilite"/>
+	</CheckButton>
+
+
+	<Frame name="CPUIActionButtonTextureOverlayTemplate" virtual="true">
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="7">
+				<Texture name="$parent_TEXTURE" parentKey="texture" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPUIActionButtonMainHotkeyTemplate" virtual="true" frameLevel="20" inherits="CPUIActionButtonTextureOverlayTemplate">
+		<Size x="32" y="32"/>
+		<Anchors>
+			<Anchor point="TOP" x="0" y="12"/>
+		</Anchors>
+	</Frame>
+
+	<Frame name="CPUIActionButtonMainShadowTemplate" virtual="true" frameLevel="1" alpha="0.3" inherits="CPUIActionButtonTextureOverlayTemplate">
+		<Size x="82" y="82"/>
+		<Scripts>
+			<OnLoad>
+				self.texture:SetTexture([[Interface\AddOns\ConsolePort\Assets\Textures\Button\Shadow]]);
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+	<CheckButton name="CPUIPetActionButtonTemplate" inherits="SecureFrameTemplate, CPUIActionButtonTemplate" frameStrata="MEDIUM" virtual="true">
+		<Size>
+			<AbsDimension x="30" y="30"/>
+		</Size>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture name="$parentAutoCastable" file="Interface\Buttons\UI-AutoCastableOverlay" hidden="true">
+					<Size>
+						<AbsDimension x="58" y="58"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER">
+							<Offset>
+								<AbsDimension x="0" y="0"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</Texture>		
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame name="$parentShine" inherits="AutoCastShineTemplate">
+				<Anchors>
+					<Anchor point="CENTER">
+						<Offset>
+							<AbsDimension x="0" y="0"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Size>
+					<AbsDimension x="28" y="28"/>
+				</Size>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				PetActionButton_OnLoad(self);
+				self.cooldown:SetSwipeColor(0, 0, 0);
+			</OnLoad>
+			<OnEvent>
+				PetActionButton_OnEvent(self, event, ...);
+			</OnEvent>
+			<PreClick>
+				self:SetChecked(false);
+			</PreClick>
+			<OnClick>
+				if ( IsModifiedClick() ) then
+					PetActionButton_OnModifiedClick(self, button);
+				else
+					PetActionButton_OnClick(self, button);
+				end
+			</OnClick>
+			<OnDragStart>
+				PetActionButton_OnDragStart(self, button);
+			</OnDragStart>
+			<OnReceiveDrag>
+				PetActionButton_OnReceiveDrag(self);
+			</OnReceiveDrag>
+			<OnEnter>
+				PetActionButton_OnEnter(self, motion);
+			</OnEnter>
+			<OnLeave>
+				PetActionButton_OnLeave(self, motion);
+			</OnLeave>
+			<OnUpdate>
+				PetActionButton_OnUpdate(self, elapsed);
+			</OnUpdate>
+		</Scripts>
+		<NormalTexture name="$parentNormalTexture2" file="Interface\Buttons\UI-Quickslot2">
+			<Size>
+				<AbsDimension x="54" y="54"/>
+			</Size>
+			<Anchors>
+				<Anchor point="CENTER">
+					<Offset>
+						<AbsDimension x="0" y="-1"/>
+					</Offset>
+				</Anchor>
+			</Anchors>
+		</NormalTexture>
+	</CheckButton>
+
+</Ui>
