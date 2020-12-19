@@ -1,5 +1,6 @@
 # ConsolePort
 <h2>Game Controller Addon for World of Warcraft</h2>
+![banner image](https://raw.githubusercontent.com/seblindfors/ConsolePort/master/Wiki/header.png)
 
 <h2>DISCLAIMER</h2>
 Please refer to Wowinterface or Curse for stable versions.
