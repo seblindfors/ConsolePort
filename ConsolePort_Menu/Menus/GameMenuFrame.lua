@@ -615,6 +615,17 @@ do	-- Initiate frame
 						{'BOTTOM', UIParent, 'BOTTOM', 0, 0};
 					};
 				};
+				EscapeButton = {
+					_Type = 'Button';
+					_Hide = true;
+					_Fill = true;
+					_OnClick = function(self)
+						local parent = self:GetParent()
+						parent.GridFrame:Hide()
+						parent.OverviewFrame:Hide()
+						parent.BackgroundFrame:Hide()
+					end;
+				};
 			};
 		};
 	})

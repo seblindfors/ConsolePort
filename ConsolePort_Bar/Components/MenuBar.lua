@@ -71,29 +71,12 @@ Bar:WrapScript(Eye, 'OnClick', [[
 	end
 ]])
 
-local Menu = MicroButtonAndBagsBar;
-if not Menu then
-	Bar.MoveMicroButtons = nop;
-	return
-end
 ---------------------------------------------------------------
 -- Set up micro button bar
 ---------------------------------------------------------------
-local MicroButtons = {
-	CharacterMicroButton,
-	SpellbookMicroButton,
-	TalentMicroButton,
-	AchievementMicroButton,
-	QuestLogMicroButton,
-	GuildMicroButton,
-	LFDMicroButton,
-	CollectionsMicroButton,
-	EJMicroButton,
-	StoreMicroButton,
-	MainMenuMicroButton,
-	HelpMicroButton,
-}
----------------------------------------------------------------
+local Menu = MicroButtonAndBagsBar;
+if not Menu then return end
+
 Menu:SetParent(UIParent)
 
 local function OnEnter(self)
@@ -106,18 +89,29 @@ local function OnLeave(self)
 	end
 end
 
+Menu:HookScript('OnEnter', OnEnter)
+Menu:HookScript('OnLeave', OnLeave)
+
+for _, button in pairs(MICRO_BUTTONS) do
+	local widget = _G[button]
+	widget:HookScript('OnEnter', OnEnter)
+	widget:HookScript('OnLeave', OnLeave)
+end
+
 function Bar:MoveMicroButtons()
 	for _, button in pairs(MicroButtons) do
 		button:SetParent(MicroButtonAndBagsBar)
 	end
 end
 
-Menu:HookScript('OnEnter', OnEnter)
-Menu:HookScript('OnLeave', OnLeave)
-for _, button in pairs(MicroButtons) do
-	button:HookScript('OnEnter', OnEnter)
-	button:HookScript('OnLeave', OnLeave)
+local UpdateMicroButtonsParent = UpdateMicroButtonsParent;
+local function MoveMicroButtons(parent)
+	if parent and parent:IsShown() then
+		return
+	end 
+	UpdateMicroButtonsParent(Menu)
 end
 
+hooksecurefunc('UpdateMicroButtonsParent', MoveMicroButtons)
 Menu:SetAlpha(0)
-Bar:MoveMicroButtons()
+MoveMicroButtons(nil)

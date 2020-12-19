@@ -33,6 +33,7 @@ Utility:CreateEnvironment({
 
 		local radius = math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
 		local numActive = #RING;
+		local invertY = self:GetAttribute('axisInversion')
 
 		self:SetAttribute('trigger', self:Run(GetButtonsHeld))
 		self:SetAttribute('state', set)
@@ -44,7 +45,7 @@ Utility:CreateEnvironment({
 
 			widget:Show()
 			widget:ClearAllPoints()
-			widget:SetPoint('CENTER', '$parent', 'CENTER', x, y)
+			widget:SetPoint('CENTER', '$parent', 'CENTER', x, invertY * y)
 		end
 		for i=numActive+1, self:GetAttribute('numButtons') do
 			self:GetFrameRef(tostring(i)):Hide()
@@ -142,10 +143,16 @@ function Utility:OnDataLoaded()
 	setmetatable(self.Data, {__index = function(tbl, key) tbl[key] = {} return tbl[key] end})
 	self:OnAutoAssignedChanged()
 	self:OnRemoveButtonChanged()
+	self:OnAxisInversionChanged()
 end
 
 function Utility:OnAutoAssignedChanged()
 	self.autoAssignExtras = db('autoExtra')
+end
+
+function Utility:OnAxisInversionChanged()
+	self.axisInversion = db('radialCosineDelta')
+	self:SetAttribute('axisInversion', self.axisInversion)
 end
 
 function Utility:OnRemoveButtonChanged()
@@ -153,6 +160,7 @@ function Utility:OnRemoveButtonChanged()
 end
 
 db:RegisterSafeCallback('Settings/autoExtra', Utility.OnAutoAssignedChanged, Utility)
+db:RegisterSafeCallback('Settings/radialCosineDelta', Utility.OnAxisInversionChanged, Utility)
 db:RegisterSafeCallback('Settings/radialRemoveButton', Utility.OnRemoveButtonChanged, Utility)
 
 ---------------------------------------------------------------
@@ -216,7 +224,7 @@ end
 ---------------------------------------------------------------
 function Utility:OnInput(x, y, len, stick)
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetAttribute('size')))
-	self:ReflectStickPosition(x, y, len, len > self:GetValidThreshold())
+	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
 end
 
 function Utility:GetButtonSlugForSet(setID)

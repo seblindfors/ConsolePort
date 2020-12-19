@@ -66,11 +66,18 @@ function Selector:OnDataLoaded(...)
 			local size = #BUTTONS;
 		]];
 	});
+	self:OnAxisInversionChanged()
 end
+
+function Selector:OnAxisInversionChanged()
+	self.axisInversion = db('radialCosineDelta')
+end
+
+db:RegisterCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
 
 function Selector:OnInput(x, y, len, stick)
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
-	self:ReflectStickPosition(x, y, len, len > self:GetValidThreshold())
+	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
 end
 
 function Selector:OnBindingSet(btn, mod)
@@ -81,9 +88,10 @@ end
 
 function Selector:AddButton(i, size)
 	local button = self:Acquire(i)
+	local p, x, y = self:GetPointForIndex(i, size)
 	button:RegisterForDrag('LeftButton')
 	button:SetScript('OnDragStart', FlyoutButtonMixin.OnDragStart)
-	button:SetPoint(self:GetPointForIndex(i, size))
+	button:SetPoint(p, x, self.axisInversion * y)
 	button:Show()
 	return button
 end

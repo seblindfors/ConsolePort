@@ -13,11 +13,9 @@ db:Register('Radial', Radial):Execute([[
 	HEADERS = newtable() -- maintain references to headers
 	STIX    = newtable() -- track config name to stick ID
 	BTNS    = newtable() -- track config ID to bind name
-	MODS    = newtable() -- track modifiers
-	ANGLE_IDX_ONE, VALID_VEC_LEN, COS_DELTA = 90, .5, -1;    
+	MODS    = newtable() -- track modifiers  
 	----------------------------------------------------------
 ]])
-
 
 ---------------------------------------------------------------
 -- Dispatcher
@@ -311,7 +309,7 @@ end
 
 function Radial:OnDataLoaded()
 	for attr, val in pairs({
-		ANGLE_IDX_ONE = db('Settings/radialStartIndexAt') % 360; -- angle at which index should start
+		ANGLE_IDX_ONE = 90;
 		VALID_VEC_LEN = 1 - db('Settings/radialActionDeadzone'); -- vector length for valid action
 		COS_DELTA     = -db('Settings/radialCosineDelta');       -- delta for the cosine value
 	}) do
@@ -392,6 +390,5 @@ end
 RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 ---------------------------------------------------------------
 db:RegisterSafeCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
-db:RegisterSafeCallback('Settings/radialStartIndexAt', Radial.OnDataLoaded, Radial)
 db:RegisterSafeCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
 db:RegisterSafeCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)

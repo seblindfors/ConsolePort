@@ -67,9 +67,7 @@ end
 
 function Bar:UpdateOverrides()
 	self:Execute([[
-		for key, button in pairs(bindings) do
-			self:SetBindingClick(false, key, button, 'ControllerInput')
-		end
+		self:RunAttribute('ApplyBindings')
 		local state = self:GetAttribute('state') or '';
 		self:SetAttribute('state', state)
 		control:ChildUpdate('state', state)
@@ -81,6 +79,10 @@ function Bar:RegisterOverride(key, button)
 	self:Execute(format([[
 		bindings['%s'] = '%s'
 	]], key, button))
+end
+
+function Bar:OnOverrideSet(key)
+	db.Input:HandleConflict(self, false, key)
 end
 
 function Bar:OnNewBindings(bindings)
@@ -311,13 +313,10 @@ for name, script in pairs({
 		self:ClearBindings()
 	]],
 	['_onshow'] = [[
-		for key, button in pairs(bindings) do
-			self:SetBindingClick(false, key, button, 'ControllerInput')
-		end
+		self:RunAttribute('ApplyBindings')
 		if PlayerInCombat() or ( not self:GetAttribute('hidesafe') ) then
 			self:CallMethod('FadeIn')
 		end
-		self:CallMethod('MoveMicroButtons')
 		mouse:RunAttribute('OnBindingsChanged')
 	]],
 	['_onstate-modifier'] = [[
@@ -340,6 +339,12 @@ for name, script in pairs({
 		self:SetAttribute('actionpage', newstate)
 		control:ChildUpdate('actionpage', newstate)
 	]],
+	['ApplyBindings'] = [[
+		for key, button in pairs(bindings) do
+			self:SetBindingClick(false, key, button, 'ControllerInput')
+			self:CallMethod('OnOverrideSet', key)
+		end
+	]];
 --------------------------
 }) do Bar:SetAttribute(name, script) end
 --------------------------

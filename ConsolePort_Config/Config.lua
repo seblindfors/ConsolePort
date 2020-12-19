@@ -7,6 +7,10 @@ local Config = CPAPI.EventHandler(ConsolePortConfig, {
 function Config:OnActiveDeviceChanged()
 	self.hasActiveDevice = db('Gamepad/Active') and true or false;
 	self.Header:ToggleEnabled(self.hasActiveDevice)
+	if self.hasActiveDevice and not self.isClosableByEsc then
+		tinsert(UISpecialFrames, 'ConsolePortConfig')
+		self.isClosableByEsc = true;
+	end
 end
 
 function Config:OnUIScaleChanged()
@@ -84,5 +88,3 @@ Config:HookScript('OnShow', Config.OnShow)
 Config:SetScript('OnGamePadButtonDown', Config.OnGamePadButtonDown)
 db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)
 db:RegisterCallback('Settings/UIscale', Config.OnUIScaleChanged, Config)
-
-tinsert(UISpecialFrames, 'ConsolePortConfig')

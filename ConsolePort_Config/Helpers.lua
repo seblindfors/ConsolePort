@@ -72,6 +72,13 @@ function ScaleToContentMixin:SetHeight(height)
 		self.forbidRecursiveScale = false;
 		self:ScaleToContent()
 		self:ScaleToContent()
+		-- BUG: (9.0.2.36949) Scroll child invalid rect OnShow,
+		-- The rect for the scroll child is not properly drawn,
+		-- resulting in -nan(ind) width/height on child widgets.
+		-- Removing the second call triggers a Lua error in
+		-- SharedUIPanelTemplates.lua:1229 when showing the initial
+		-- 'wizard' panels that have a three-slice button on them,
+		-- even though the button size is never changed manually.
 	end
 end
 

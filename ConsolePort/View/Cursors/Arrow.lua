@@ -7,6 +7,23 @@ local Clamp, Node, IsGamePadInUse, IsGamePadCursor =
 
 CPCursorArrowMixin = {};
 
+function CPCursorArrowMixin:SetSize(size)
+	self.ArrowNormal:SetSize(size, 18/22 * size)
+	self.ArrowHilite:SetSize(size, 18/22 * size)
+end
+
+function CPCursorArrowMixin:SetOffset(value)
+	self.ArrowNormal:SetPoint('TOPLEFT', value, -value)
+	self.ArrowHilite:SetPoint('TOPLEFT', value, -value)
+end
+
+function CPCursorArrowMixin:SetRotationEnabled(enabled)
+	self.rotationEnabled = enabled;
+	if not self.rotationEnabled then
+		self:SetRotation(RAD_ARROW_ROTATION)
+	end
+end
+
 function CPCursorArrowMixin:SetRotation(rotation)
 	self.rotation = rotation < 0 and RAD_MOD + rotation or rotation % RAD_MOD;
 	self.ArrowNormal:SetRotation(rotation)
@@ -26,16 +43,6 @@ function CPCursorArrowMixin:SetAngledRotation(rotation)
 	self:SetRotation(rotation)
 end
 
-function CPCursorArrowMixin:SetSize(size)
-	self.ArrowNormal:SetSize(size, 18/22 * size)
-	self.ArrowHilite:SetSize(size, 18/22 * size)
-end
-
-function CPCursorArrowMixin:SetOffset(value)
-	self.ArrowNormal:SetPoint('TOPLEFT', value, -value)
-	self.ArrowHilite:SetPoint('TOPLEFT', value, -value)
-end
-
 function CPCursorArrowMixin:OnUpdate(elapsed)
 	local divisor  = self.animationSpeed - elapsed;
 	local parent   = self:GetParent()
@@ -47,12 +54,13 @@ function CPCursorArrowMixin:OnUpdate(elapsed)
 
 	self:ClearAllPoints()
 	if cX and cY and nX and nY then
-		-- TODO: handle scale differences
 		local diff = Node.GetDistance(cX, cY, nX, nY)
-		if (  diff < 1 ) then
-			self:ResetRotation(self.rotation, elapsed)
-		else
-			self:SetAngledRotation(rad((math.atan2(nY - cY, nX - cX) * 180 / math.pi) - 90))
+		if self.rotationEnabled then
+			if (  diff < 1 ) then
+				self:ResetRotation(self.rotation, elapsed)
+			else
+				self:SetAngledRotation(rad((math.atan2(nY - cY, nX - cX) * 180 / math.pi) - 90))
+			end
 		end
 		self.ArrowHilite:SetAlpha(diff)
 		self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT',
@@ -74,7 +82,10 @@ function CPCursorArrowMixin:OnShow()
 end
 
 function CPCursorArrowMixin:OnLoad()
-	self.animationSpeed  = 8;
-	self.resetAngleSpeed = 16;
 	self:SetRotation(RAD_ARROW_ROTATION)
+	self.animationSpeed  = self.animationSpeed or 8;
+	self.resetAngleSpeed = self.resetAngleSpeed or 16;
+	if (self.rotationEnabled == nil) then
+		self.rotationEnabled = true;
+	end
 end

@@ -27,9 +27,9 @@ local Content = {
 			return (db('tutorialProgress') == 2);
 		end;
 	};
-	{	panel = 'Camera';
-		name  = CAMERA_LABEL;
-		help  = L'Customize your camera settings.';
+	{	panel = 'Controls';
+		name  = CONTROLS_LABEL;
+		help  = L'Customize your movement settings.';
 		pred  = function()
 			return (db('tutorialProgress') == 3);
 		end;
@@ -389,13 +389,13 @@ function Splash:OnFirstShow()
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
 						dbPath = 'Console/Cursor';
 					};
-					Camera = {
+					Controls = {
 						_Hide  = true;
 						_Type  = 'Frame';
 						_Mixin = env.VariablesMixin;
 						_Width = WIZARD_WIDTH;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
-						dbPath = 'Console/Camera';
+						dbPath = 'Console/Controls';
 					};
 				};
 			};

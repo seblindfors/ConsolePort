@@ -9,6 +9,7 @@ local _, db = ...;
 local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
 	'ACTIONBAR_SHOWGRID';
+	'PLAYER_STARTED_MOVING';
 	'CURRENT_SPELL_CAST_CHANGED';
 }))
 
@@ -176,6 +177,12 @@ function Mouse:CURRENT_SPELL_CAST_CHANGED()
 	end
 end
 
+function Mouse:PLAYER_STARTED_MOVING()
+	if db('mouseHideCursorOnMovement') and self:ShouldClearCursorOnMovement() then
+		self:ClearCenteredCursor()
+	end
+end
+
 ---------------------------------------------------------------
 -- Compounded queries
 ---------------------------------------------------------------
@@ -197,6 +204,10 @@ end
 
 function Mouse:ShouldSetCursorWhenMenuIsOpen(_)
 	return is(_, MenuBinding, MenuFrameOpen) and isnt(_, CursorControl)
+end
+
+function Mouse:ShouldClearCursorOnMovement()
+	return is(nil, GamePadControl, CursorControl) and isnt(nil, MouseOver)
 end
 
 ---------------------------------------------------------------

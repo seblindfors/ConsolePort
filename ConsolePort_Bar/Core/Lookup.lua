@@ -362,9 +362,10 @@ function env:GetBooleanSettings() return {
 		cvar = 'showline';
 		desc = 'Shows a subtle tint, anchored to the top of the watch bars.';
 	};
-	{	name = 'I like rainbows';
+	{	name = 'RGB Gaming God';
 		cvar = 'rainbow';
-		desc = 'Do you like rainbows?';
+		desc = 'Behold the might of my personal computer, you dirty console peasant. Do you really have enough buttons on that thing to match me?';
+		note = ('|T%s:64:128:0|t'):format([[Interface\AddOns\ConsolePort_Config\Assets\master.blp]]);
 	};
 } end
 

@@ -586,8 +586,21 @@ function Config:OnFirstShow()
 			_Backdrop = CPAPI.Backdrops.Opaque; 
 			_Width = PRESETS_WIDTH + 1;
 			_Points = {
-				{'TOPLEFT', '$parent', 'BOTTOMLEFT', -1, 200};
+				{'TOPLEFT', '$parent', 'BOTTOMLEFT', -1, 50 + FIXED_OFFSET};
 				{'BOTTOMLEFT', -1, -1};
+			};
+			{
+				CooldownNum = {
+					_Type  = 'IndexButton';
+					_Setup = 'CPIndexButtonBindingHeaderTemplate';
+					_Point = {'TOP', 0, -FIXED_OFFSET};
+					meta = {
+						type = Data.Bool;
+						cvar = 'countdownForCooldowns';
+						name = 'Cooldown Numbers';
+						desc = OPTION_TOOLTIP_COUNTDOWN_FOR_COOLDOWNS; 
+					};
+				};
 			};
 		};
 	}, false, true).Cvars;
@@ -624,6 +637,16 @@ function Config:OnFirstShow()
 	env.config.OpaqueMixin.OnLoad(options)
 	env.config.OpaqueMixin.OnLoad(clusters)
 	env.config.OpaqueMixin.OnLoad(cvars)
+
+
+	cvars.OnVariableChanged = nop; -- need this to ignore callback
+	for i, child in ipairs({'CooldownNum'}) do
+		local cvar = cvars[child];
+		env.db.table.mixin(cvar, env.config.CvarMixin)
+		cvar:OnLoad()
+		cvar:SetWidth(PRESETS_WIDTH - FIXED_OFFSET - 1)
+		cvar:Construct(cvar.meta, true, cvars)
+	end
 end
 
 

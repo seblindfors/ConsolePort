@@ -9,7 +9,7 @@ local Setting = CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
 
 function Setting:OnLoad()
 	self:SetWidth(GENERAL_WIDTH - 32)
-	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 40)
+	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 100)
 	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 end

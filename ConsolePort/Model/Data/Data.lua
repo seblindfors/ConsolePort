@@ -1,6 +1,6 @@
-local DataAPI, _, db = CPAPI.CreateEventHandler({'Frame', '$parentDataHandler', ConsolePort}), ...
+local DataAPI, _, db = CPAPI.CreateEventHandler({'Frame', '$parentDataHandler', ConsolePort}), ...;
 local copy = db.table.copy;
-local DEFAULT_DATA
+local DEFAULT_DATA;
 
 function DataAPI:OnDataLoaded()
 	DEFAULT_DATA = db('Variables')

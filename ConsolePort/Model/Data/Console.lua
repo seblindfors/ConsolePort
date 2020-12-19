@@ -82,9 +82,9 @@ db:Register('Console', setmetatable({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Camera:
+	-- Controls:
 	--------------------------------------------------------------------------------------------------------
-	Camera = {
+	Controls = {
 		{	cvar = 'GamePadFaceMovement';
 			type = Bool(true);
 			name = 'Face Movement Direction';
@@ -95,7 +95,7 @@ db:Register('Console', setmetatable({
 			type = Range(115, 5, 0, 180);
 			name = 'Face Movement Threshold';
 			desc = 'Controls when your character transitions from strafing to following your movement stick.';
-			note = 'Expressed in degrees, from looking straight forward.';
+			note = 'Expressed in degrees, from looking straight forward. Max value is recommended for tanking.';
 		};
 		{	cvar = 'GamePadCameraYawSpeed';
 			type = Number(1, 0.1);
@@ -109,10 +109,37 @@ db:Register('Console', setmetatable({
 			desc = 'Pitch speed of camera - moving up/down.';
 			note = 'Choose a negative value to invert the axis.';
 		};
+	};
+	--------------------------------------------------------------------------------------------------------
+	-- Camera:
+	--------------------------------------------------------------------------------------------------------
+	Camera = {
+		{	cvar = 'CameraKeepCharacterCentered';
+			type = Bool;
+			name = MOTION_SICKNESS_CHARACTER_CENTERED;
+			desc = 'Keeps your character centered to reduce motion sickness.';
+		};
+		{	cvar = 'CameraReduceUnexpectedMovement';
+			type = Bool;
+			name = MOTION_SICKNESS_REDUCE_CAMERA_MOTION;
+			desc = 'Reduces unexpected camera movement to reduce motion sickness.';
+		};
+		{	cvar = 'test_cameraDynamicPitch';
+			type = Bool;
+			name = 'Dynamic Pitch';
+			desc = 'Pitches the camera upwards as you zoom out.';
+			note = ('Incompatible with %s.'):format(MOTION_SICKNESS_CHARACTER_CENTERED);
+		};
+		{	cvar = 'CameraFollowOnStick';
+			type = Bool;
+			name = 'Follow On A Stick';
+			desc = ('|T%s:128:128:0|t'):format([[Interface\AddOns\ConsolePort_Config\Assets\jose.blp]]);
+		};
 		{	cvar = 'test_cameraOverShoulder';
 			type = Number(0, 0.5);
-			name = 'Camera Over Shoulder';
-			desc = 'Offsets the camera from the center of your character.';
+			name = 'Over Shoulder';
+			desc = 'Offsets the camera horizontally from your character, for a more cinematic view.';
+			note = ('Incompatible with %s.'):format(MOTION_SICKNESS_CHARACTER_CENTERED);
 		};
 	};
 }, {

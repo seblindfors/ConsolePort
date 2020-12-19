@@ -23,6 +23,8 @@ function Splash:OnClear()
 	self:SetChecked(false)
 	self:StopFlash()
 	self.BackgroundFrame:Hide()
+	self.OverviewFrame:Hide()
+	self.GridFrame:Hide()
 
 	env.db.Alpha.FadeOut(self.OverviewFrame, 0.1, self.OverviewFrame:GetAlpha(), 0, {
 		finishedFunc = self.OverviewFrame.Hide;
@@ -66,6 +68,7 @@ function Splash:OnFocus()
 			env.db.table.mixin(self.GridFrame, CreateFromMixins(configEnv.CombosMixin, Grid))
 			self.GridFrame:OnLoad(CreateFromMixins(configEnv.ComboMixin, Combo))
 			env.db.Stack:AddFrame(self.GridFrame)
+			env.db.Stack:AddFrame(self.EscapeButton)
 		end
 	end
 
@@ -85,6 +88,10 @@ function Grid:OnLoad(mixin)
 	CPFocusPoolMixin.OnLoad(self)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingComboTemplate', mixin, nil, self.Child)
+end
+
+function Grid:OnHide()
+	self:GetParent().EscapeButton:Hide()
 end
 
 function Grid:OnShow()
@@ -146,6 +153,7 @@ function Grid:OnShow()
 			id, prev = id + 1, nil;
 		end
 	end
+	self:GetParent().EscapeButton:Show()
 	self.Child:SetSize(self:GetWidth(), height)
 end
 

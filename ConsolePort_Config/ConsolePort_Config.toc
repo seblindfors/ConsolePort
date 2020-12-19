@@ -22,6 +22,7 @@ Bindings\Shortcut.lua
 Bindings\Combo.lua
 Bindings\Mapper.lua
 Bindings\Manager.lua
+Bindings\Import.lua
 Bindings\Bindings.lua
 
 Settings\Variables.lua

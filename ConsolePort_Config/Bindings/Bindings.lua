@@ -142,6 +142,18 @@ function BindingsMixin:OnFirstShow()
 			{'BOTTOMLEFT', combos, 'BOTTOMRIGHT', 0, 60};
 		};
 	})
+	local import = self:CreateScrollableColumn('Import', {
+		_Mixin = env.ImportManager;
+		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
+		_Width = 600;
+		_Hide  = true;
+		_Level = 10;
+		_Backdrop = CPAPI.Backdrops.Opaque;
+		_Points = {
+			{'TOPLEFT', combos, 'TOPRIGHT', 0, 1};
+			{'BOTTOMLEFT', combos, 'BOTTOMRIGHT', 0, 60};
+		};
+	})
 	local control = LibStub:GetLibrary('Carpenter'):BuildFrame(self, {
 		Control = {
 			_Type = 'Frame';
@@ -200,6 +212,10 @@ function BindingsMixin:OnFirstShow()
 					_Text  = L'Import';
 					_Size  = {162, 40};
 					_SetDrawOutline = true;
+					_OnClick = function()
+						self.Manager:SetShown(not self.Manager:IsShown())
+						self.Import:SetShown(not self.Import:IsShown())
+					end;
 				};
 				Save = {
 					_Type  = 'IndexButton';

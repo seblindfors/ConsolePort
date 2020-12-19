@@ -55,6 +55,10 @@ Cursor:CreateEnvironment({
 			self:SetPoint('TOPLEFT', curnode, 'CENTER', 0, 0)
 			self:SetBindingClick(owner:GetAttribute('priorityoverride'), 'PAD1', curnode)
 			self:CallMethod('CallScript', 'OnEnter', curnode:GetName())
+			local secureOnEnterScript = curnode:GetAttribute('OnEnter')
+			if secureOnEnterScript then
+				self:RunFor(curnode, secureOnEnterScript)
+			end
 		else
 			self:ClearBinding('PAD1')
 		end
@@ -62,6 +66,10 @@ Cursor:CreateEnvironment({
 	ClearHighlight = [[
 		if curnode then
 			self:CallMethod('CallScript', 'OnLeave', curnode:GetName())
+			local secureOnLeaveScript = curnode:GetAttribute('OnLeave')
+			if secureOnLeaveScript then
+				self:RunFor(curnode, secureOnLeaveScript)
+			end
 		end
 	]];
 })

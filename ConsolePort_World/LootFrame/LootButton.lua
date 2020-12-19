@@ -36,15 +36,13 @@ function LootButton:OnEnter()
 	if ( slotType == LOOT_SLOT_ITEM ) then
 		FocusTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 		FocusTooltip:SetLootItem(slot)
-		CursorUpdate(self)
 		self:SetScript('OnUpdate', self.OnUpdate)
 	end
 	if ( slotType == LOOT_SLOT_CURRENCY ) then
 		FocusTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 		FocusTooltip:SetLootCurrency(slot)
-		CursorUpdate(self)
 		self:SetScript('OnUpdate', nil)
-		self:OnUpdate()
+		self:SetClampedSize(330, 50)
 	end
 
 	if FocusTooltip:IsOwned(self) then
@@ -69,7 +67,13 @@ function LootButton:OnLeave()
 end
 
 function LootButton:OnUpdate()
-	local width, height = (FocusTooltip:GetWidth() or 330) + 50, (FocusTooltip:GetHeight() or 50)
+	self:SetClampedSize(
+		(FocusTooltip:GetWidth() or 330) + 50,
+		(FocusTooltip:GetHeight() or 50)
+	);
+end
+
+function LootButton:SetClampedSize(width, height)
 	self.NameFrame:SetSize(Clamp(width, 330, width), Clamp(height, 50, height))
 end
 

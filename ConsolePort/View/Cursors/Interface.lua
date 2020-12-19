@@ -160,6 +160,7 @@ function Cursor:SetCurrentNode(node, assertNotMouse)
 	end
 	local object = node and Node.ScanLocal(node)[1]
 	if object and (not assertNotMouse or IsGamePadFreelookEnabled()) then
+		self:SetBasicControls()
 		self:SetFlashNextNode()
 		self:SetCurrent(object)
 		self:SelectAndPosition(self:GetSelectParams(object, true))
@@ -171,16 +172,12 @@ end
 do -- Keep track of cursor state
 	local IsGamePadInUse, IsGamePadCursor = IsGamePadFreelookEnabled, IsGamePadCursorControlEnabled;
 	function Cursor:OnUpdate(elapsed)
-		self.Blocker:SetShown(IsGamePadInUse() and not IsGamePadCursor())
-
 		if self:InCombat() then return end
 		if not self:IsCurrentNodeDrawn() then
 			self:SetFlashNextNode()
 			if not self:Refresh() then
 				self:Hide()
 			end
-	--	elseif self:IsAnimating() then
-	--		self:MoveTowardsAnchor(elapsed)
 		else
 			self:RefreshAnchor()
 		end
@@ -237,9 +234,6 @@ do  -- Create input proxy for basic controls
 				PADDRIGHT = {InputProxy, DpadInit, DpadClear, DpadRepeater};
 				[db('Settings/UICursorSpecial')] = {InputProxy};
 			};
-			local clickL, clickR = GetCVar('GamePadCursorLeftClick'), GetCVar('GamePadCursorRightClick')
-			if clickL then self.BasicControls[clickL] = {Disable}; end
-			if clickR then self.BasicControls[clickR] = {Disable}; end
 		end
 		return self.BasicControls
 	end
@@ -586,10 +580,10 @@ end
 ---------------------------------------------------------------
 do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 	-- lambdas to handle texture swapping without caching icons
+	local function left  () return db('UIpointerDefaultIcon') and db(f(path, db('UICursorLeftClick'))) end
 	local function mod   () return db(f(path, db('Gamepad/Index/Modifier/Key/' .. db('UImodifierCommands')) or '')) end
-	local function opt   () return db(f(path, db('Settings/UICursorSpecial'))) end
-	local function right () return db(f(path, db('Settings/UICursorRightClick'))) end
-	local function left  () return nil end;
+	local function opt   () return db(f(path, db('UICursorSpecial'))) end
+	local function right () return db(f(path, db('UICursorRightClick'))) end
 
 	Cursor.Textures = CPAPI.Proxy({
 		Right    = right;
@@ -599,7 +593,9 @@ do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 		Slider   = mod;
 	}, function() return left end)
 	-- remove texture evaluator so cursor refreshes on next movement
-	db:RegisterCallback('Gamepad/Active', function(self) self.textureEvaluator = nil; end, Cursor)
+	local function resetTexture(self) self.textureEvaluator = nil; end
+	db:RegisterCallback('Gamepad/Active', resetTexture, Cursor)
+	db:RegisterCallback('Settings/UIpointerDefaultIcon', resetTexture, Cursor)
 end
 
 function Cursor:SetTexture(texture)
@@ -661,9 +657,6 @@ function Cursor:Move()
 		self:ClearHighlight()
 		local newX, newY = Node.GetCenter(node)
 		local oldX, oldY = self:GetCenter()
-		if self:IsAnimating() then
-		--	self.ScaleInOut:Stop()
-		end
 		if oldX and oldY and newX and newY and self:IsVisible() then
 			self.Enlarge:SetStartDelay(0.05)
 			self.ScaleInOut:ConfigureScale()
@@ -682,12 +675,14 @@ end
 function Cursor:UpdatePointer()
 	self.Display:SetSize(db('UIpointerSize'))
 	self.Display:SetOffset(db('UIpointerOffset'))
+	self.Display:SetRotationEnabled(db('UIpointerAnimation'))
 	self.Display.animationSpeed = db('UItravelTime');
 end
 
 db:RegisterCallback('Settings/UItravelTime', Cursor.UpdatePointer, Cursor)
 db:RegisterCallback('Settings/UIpointerSize', Cursor.UpdatePointer, Cursor)
 db:RegisterCallback('Settings/UIpointerOffset', Cursor.UpdatePointer, Cursor)
+db:RegisterCallback('Settings/UIpointerAnimation', Cursor.UpdatePointer, Cursor)
 
 -- Highlight mime
 ---------------------------------------------------------------

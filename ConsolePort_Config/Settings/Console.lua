@@ -9,7 +9,7 @@ local Setting = CreateFromMixins(env.CvarMixin)
 
 function Setting:OnLoad()
 	env.CvarMixin.OnLoad(self)
-	self:SetWidth(GENERAL_WIDTH)
+	self:SetWidth(GENERAL_WIDTH - 32)
 end
 
 ---------------------------------------------------------------

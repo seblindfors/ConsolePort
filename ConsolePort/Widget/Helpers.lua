@@ -273,7 +273,7 @@ end
 ---------------------------------------------------------------
 do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 
-	function Scroller:OnUpdate()
+	function Scroller:OnUpdate(elapsed)
 		local current, delta
 		for frame, data in pairs(self.Frames) do
 			current = frame:GetScroll()
@@ -338,17 +338,14 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 		local current = self.targetPos or self:GetScroll()
 		local new = current - delta * self.MouseWheelDelta;
 
-		Scroller:AddFrame(self,
-			new < 0 and 0 or new > range and range or new,
-			self.MouseWheelDelta
-		);
+		Scroller:AddFrame(self, Clamp(new, 0, range), self.MouseWheelDelta)
 	end
 
 	function CPSmoothScrollMixin:ScrollTo(frac, steps)
 		local range = self:GetRange()
 		local step = range / steps;
 		local new = frac <= 0 and 0 or frac >= steps and range or step * (frac - 1);
-		local target = new < 0 and 0 or new > range and range or new;
+		local target = Clamp(new, 0, range)
 
 		Scroller:AddFrame(self, target, step)
 		if range > 0 then
@@ -358,7 +355,7 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 
 	function CPSmoothScrollMixin:GetElementPosition(element)
 		local wrapper = self:GetScrollChild();
-		return PercentageBetween(select(2, element:GetCenter()), wrapper:GetTop(), wrapper:GetBottom())
+		return ClampedPercentageBetween(select(2, element:GetCenter()), wrapper:GetTop(), wrapper:GetBottom())
 	end
 
 	function CPSmoothScrollMixin:ScrollToOffset(offset)

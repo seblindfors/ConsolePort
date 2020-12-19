@@ -290,14 +290,17 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 		db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
 	end
 
-	hooksecurefunc('ShowUIPanel', function(frame)
+	local function CatchNewFrame(frame)
 		if not Stack:IsFrameVisibleToCursor(frame) then
 			if Stack:TryRegisterFrame(_, frame:GetName(), true) then
 				Stack:AddFrame(frame)
 				Stack:UpdateFrames()
 			end
 		end
-	end)
+	end
+
+	hooksecurefunc('ShowUIPanel', CatchNewFrame)
+	hooksecurefunc('StaticPopupSpecial_Show', CatchNewFrame)
 end
 
 ---------------------------------------------------------------

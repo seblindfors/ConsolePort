@@ -315,4 +315,10 @@ do local function HandleConflict(owner, isPriority, key)
 	hooksecurefunc('SetOverrideBindingItem',  HandleConflict)
 	hooksecurefunc('SetOverrideBindingMacro', HandleConflict)
 	hooksecurefunc('SetOverrideBindingSpell', HandleConflict)
+
+	function InputAPI:HandleConflict(...)
+		if not InCombatLockdown() then
+			HandleConflict(...)
+		end
+	end
 end
