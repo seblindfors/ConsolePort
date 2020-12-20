@@ -329,6 +329,11 @@ function env:GetBooleanSettings() return {
 		cvar = 'classicBorders';
 		desc = 'Use the classic button border texture.';
 	};
+	{ 	name = 'Disable micro menu modifications';
+		cvar = 'disablemicromenu';
+		desc = 'Disables micro menu modifications.';
+		note = 'Check this if you have another addon customizing the micro menu.';
+	};
 	---------------------------------------
 	{	name = 'Cast Bar' };
 	{	name = 'Show default cast bar';

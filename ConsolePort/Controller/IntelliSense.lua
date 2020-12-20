@@ -14,6 +14,11 @@ function Intellisense:OnHintsFocus()
 	end
 end
 
+function Intellisense:OnNodeLeave()
+	self.dressupItem = nil;
+	self.inventorySlotID = nil;
+end
+
 db:RegisterCallback('OnHintsFocus', Intellisense.OnHintsFocus, Intellisense)
 
 function Intellisense:ProcessInterfaceCursorEvent(button, down, node)
@@ -24,6 +29,12 @@ function Intellisense:ProcessInterfaceCursorEvent(button, down, node)
 			else
 				node:SetFocus()
 			end
+		elseif self.inventorySlotID then
+			Intellinode.OnInventoryButtonModifiedClick(node, 'LeftButton')
+			return true;
+		elseif self.dressupItem then
+			Intellinode.OnDressupButtonModifiedClick(node, 'LeftButton')
+			return true;
 		elseif db.Utility:HasPendingAction() then
 			return db.Utility:PostPendingAction()
 		end
@@ -85,12 +96,46 @@ function Intellisense:SetPendingActionToUtilityRing(action, tooltip)
 	end
 end
 
+function Intellisense:SetPendingDressupItem(item, tooltip)
+	self.dressupItem = item;
+	if tooltip then
+		local prompt = self:GetSpecialActionPrompt(INSPECT)
+		if prompt then
+			tooltip:AddLine(prompt)
+			tooltip:Show()
+		end
+	end
+end
+
+function Intellisense:SetPendingInspectItem(item, tooltip)
+	if tonumber(item) then
+		self.inventorySlotID = item;
+		if tooltip then
+			local prompt = self:GetSpecialActionPrompt(('%s / %s'):format(INSPECT, SOCKET_GEMS))
+			if prompt then
+				tooltip:AddLine(prompt)
+				tooltip:Show()
+			end
+		end
+		return
+	end
+end
+
 GameTooltip:HookScript('OnTooltipSetItem', function(self)
 	if not InCombatLockdown() and db.Cursor:IsCurrentNode(self:GetOwner()) then
+
 		local name, link = self:GetItem()
-		if ( GetItemSpell(link) and GetItemCount(link) > 0 ) then
+		local numOwned = GetItemCount(link)
+		local isEquipped = IsEquippedItem(link)
+		local isEquippable = IsEquippableItem(link)
+
+		if ( GetItemSpell(link) and numOwned > 0 ) then
 			Intellisense:SetPendingActionToUtilityRing(
 				{type = 'item', item = link, link = link}, self);
+		elseif isEquippable and not isEquipped then
+			Intellisense:SetPendingDressupItem(link, self);
+		elseif isEquippable and isEquipped then
+			Intellisense:SetPendingInspectItem(self:GetOwner():GetID(), self)
 		end
 	end
 end)
@@ -135,4 +180,38 @@ function Intellinode:OnContainerButtonModifiedClick(...)
 			return db.Gamepad:GetModifierHeld(GetModifiedClick(action))
 		end;
 	}, self, ...)
+end
+
+function Intellinode:OnDressupButtonModifiedClick()
+	WrappedExecute(HandleModifiedItemClick, {
+		IsModifiedClick = function(action)
+			if (action == 'CHATLINK') then
+				return false;
+			elseif (action == 'DRESSUP') then
+				return true;
+			end
+		end;
+	}, Intellisense.dressupItem)
+	Intellisense.dressupItem = nil;
+end
+
+function Intellinode:OnInventoryButtonModifiedClick()
+	WrappedExecute(PaperDollItemSlotButton_OnModifiedClick, {
+		IsModifiedClick = function(action)
+			if (action == 'EXPANDITEM') then
+				return true;
+			end
+		end;
+	}, self)
+	if not GetSocketItemInfo() then
+		WrappedExecute(HandleModifiedItemClick, {
+			IsModifiedClick = function(action)
+				if (action == 'CHATLINK') then
+					return false;
+				elseif (action == 'DRESSUP') then
+					return true;
+				end
+			end;
+		}, GetInventoryItemLink('player', self:GetID()))
+	end
 end

@@ -76,15 +76,16 @@ Bar:WrapScript(Eye, 'OnClick', [[
 ---------------------------------------------------------------
 local Menu = MicroButtonAndBagsBar;
 if not Menu then return end
-
-Menu:SetParent(UIParent)
+local fadeEnabled;
 
 local function OnEnter(self)
-	db.Alpha.FadeIn(Menu, .5, Menu:GetAlpha(), 1)
+	if fadeEnabled then
+		db.Alpha.FadeIn(Menu, .5, Menu:GetAlpha(), 1)
+	end
 end
 
 local function OnLeave(self)
-	if not Menu:IsMouseOver() then
+	if fadeEnabled and not Menu:IsMouseOver() then
 		db.Alpha.FadeOut(Menu, .5, Menu:GetAlpha(), 0)
 	end
 end
@@ -98,20 +99,32 @@ for _, button in pairs(MICRO_BUTTONS) do
 	widget:HookScript('OnLeave', OnLeave)
 end
 
-function Bar:MoveMicroButtons()
-	for _, button in pairs(MicroButtons) do
-		button:SetParent(MicroButtonAndBagsBar)
-	end
-end
-
 local UpdateMicroButtonsParent = UpdateMicroButtonsParent;
 local function MoveMicroButtons(parent)
-	if parent and parent:IsShown() then
+	if env:Get('disablemicromenu') or (parent and parent:IsShown()) then
 		return
-	end 
+	end
 	UpdateMicroButtonsParent(Menu)
 end
 
 hooksecurefunc('UpdateMicroButtonsParent', MoveMicroButtons)
-Menu:SetAlpha(0)
-MoveMicroButtons(nil)
+
+local oldParent;
+function Bar:MoveMicroButtons()
+	if env:Get('disablemicromenu') then
+		if oldParent then
+			Menu:SetParent(oldParent)
+			Menu:SetAlpha(1)
+			oldParent, fadeEnabled = nil, nil;
+		end
+		return
+	end
+
+	if not oldParent then
+		oldParent = Menu:GetParent()
+	end
+	fadeEnabled = true;
+	Menu:SetAlpha(0)
+	Menu:SetParent(UIParent)
+	UpdateMicroButtonsParent(Menu)
+end

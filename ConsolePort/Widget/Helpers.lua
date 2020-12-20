@@ -444,7 +444,7 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 
 	function CPButtonCatcherMixin:OnGamePadButtonDown(button)
 		if not self.catcherPaused then
-			if self.catchAllCallback then
+			if self.catchAllCallback and self:IsButtonValid(button) then
 				self.catchAllCallback(button)
 				return self:SetPropagateKeyboardInput(false)
 			elseif self.ClosureRegistry[button] then 
@@ -510,5 +510,9 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 		if self.ClosureRegistry then
 			wipe(self.ClosureRegistry)
 		end
+	end
+
+	function CPButtonCatcherMixin:IsButtonValid(button)
+		return db('bindingAllowSticks') or (not button:match('PAD.STICK.+'))
 	end
 end

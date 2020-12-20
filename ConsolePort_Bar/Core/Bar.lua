@@ -283,6 +283,7 @@ function Bar:OnLoad(cfg, benign)
 			control:ChildUpdate('state', self:GetAttribute('state'))
 			self:RunAttribute('_onstate-page', self:GetAttribute('actionpage'))
 		]])
+		self:MoveMicroButtons()
 	end
 
 	-- Always show modifiers

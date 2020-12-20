@@ -458,6 +458,7 @@ do local SafeOnEnter, SafeOnLeave = {}, {}
 
 	function Cursor:OnLeaveNode(node)
 		if node then
+			Intellisense:OnNodeLeave()
 			TriggerScript(node, 'OnLeave', SafeOnLeave)
 		end
 	end
@@ -537,9 +538,17 @@ function Cursor:SetScrollButtonsForNode(node)
 	local scrollUp, scrollDown = Node.GetScrollButtons(node)
 	if scrollUp and scrollDown then
 		local modifier = db('UImodifierCommands')
-		Input:SetGlobal(format('%s-%s', modifier, 'PADDUP'), self, scrollUp:GetName(), true)
-		Input:SetGlobal(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown:GetName(), true)
+		self.scrollers = {
+			Input:SetGlobal(format('%s-%s', modifier, 'PADDUP'), self, scrollUp:GetName(), true),
+			Input:SetGlobal(format('%s-%s', modifier, 'PADDDOWN'), self, scrollDown:GetName(), true)
+		};
 		return scrollUp, scrollDown
+	end
+	if self.scrollers then
+		for _, widget in ipairs(self.scrollers) do
+			widget:ClearOverride(self)
+		end
+		self.scrollers = nil;
 	end
 end
 

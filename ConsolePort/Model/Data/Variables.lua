@@ -335,27 +335,33 @@ db:Register('Variables', {
 		name = 'Allow Binding Overlap';
 		desc = 'Allow binding multiple combos to the same binding.'
 	};
-	bindingShowExtraBars = {Bool(false);
+	bindingAllowSticks = {Bool(false);
 		head = ADVANCED_OPT;
 		sort = 2;
+		name = 'Allow Radial Bindings';
+		desc = 'Allow binding discrete radial stick inputs.';
+	};
+	bindingShowExtraBars = {Bool(false);
+		head = ADVANCED_OPT;
+		sort = 3;
 		name = 'Show All Action Bars';
 		desc = 'Show bonus bar configuration for characters without stances.'
 	};
 	actionPageCondition = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 3;
+		sort = 4;
 		name = 'Action Page Condition';
 		desc = 'Macro condition to evaluate action bar page.';
 	};
 	actionPageResponse = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 4;
+		sort = 5;
 		name = 'Action Page Response';
 		desc = 'Response to condition for custom processing.'
 	};
 	classFileOverride = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 5;
+		sort = 6;
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
 	};
