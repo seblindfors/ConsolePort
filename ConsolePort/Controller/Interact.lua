@@ -20,12 +20,15 @@ Interact:SetAttribute('OnBindingsChanged', [[
 
 function Interact:OnDataLoaded()
 	local button = db('interactButton')
+	local condition = db('interactCondition')
+
 	self:SetAttribute('slug', button)
 	ClearOverrideBindings(self)
+	UnregisterStateDriver(self, 'override')
+	
 	if IsBindingForGamePad(button) then
-		RegisterStateDriver(self, 'override', db('interactCondition'))
-	else
-		UnregisterStateDriver(self, 'override')
+		RegisterStateDriver(self, 'override', condition)
+		self:Execute([[self:RunAttribute('OnBindingsChanged')]])
 	end
 end
 

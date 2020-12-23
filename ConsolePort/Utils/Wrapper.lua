@@ -71,3 +71,10 @@ function CPAPI.GetAverageItemLevel(...)
 	end
 	return MAX_PLAYER_LEVEL
 end
+
+---------------------------------------------------------------
+-- Internal wrappers
+---------------------------------------------------------------
+function CPAPI.IsButtonValidForBinding(button)
+	return db('bindingAllowSticks') or (not button:match('PAD.STICK.+'))
+end

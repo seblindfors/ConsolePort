@@ -76,6 +76,7 @@ end
 -- Console variables
 ---------------------------------------------------------------
 local CVar_FaceMove = db.Data.Cvar('GamePadFaceMovement')
+local CVar_Follow   = db.Data.Cvar('CameraFollowOnStick')
 local CVar_Sticks   = db.Data.Cvar('GamePadCursorAutoDisableSticks')
 local CVar_Center   = db.Data.Cvar('GamePadCursorCentering')
 local CVar_LClick   = db.Data.Cvar('GamePadCursorLeftClick')
@@ -180,6 +181,39 @@ end
 function Mouse:PLAYER_STARTED_MOVING()
 	if db('mouseHideCursorOnMovement') and self:ShouldClearCursorOnMovement() then
 		self:ClearCenteredCursor()
+	end
+end
+
+function Mouse:PLAYER_MOUNT_DISPLAY_CHANGED()
+	local isMounted = IsMounted()
+	if (isMounted ~= self.mountedState) then
+		CVar_Follow:Set(isMounted and 1 or 0)
+		self.mountedState = isMounted;
+	end 
+end
+
+do local function OnModifierUpdate(self, elapsed)
+		self.tapTimer = self.tapTimer + elapsed;
+		if self.tapNum > 1 then
+			self.tapNum = 0;
+			if CursorControl() then
+				self:SetCenteredCursor()
+			else
+				self:SetFreeCursor()
+			end
+		end
+		if self.tapTimer > self.tapWindow then
+			self.tapNum = Clamp(self.tapNum - 1, 0, self.tapNum)
+			self.tapTimer = self.tapTimer - self.tapWindow;
+		end
+	end
+
+	function Mouse:MODIFIER_STATE_CHANGED(modifier, down)
+		if (down == 1) and modifier:match(self.tapModifier) then
+			self.tapTimer = 0;
+			self.tapNum = self.tapNum + 1;
+			self:SetScript('OnUpdate', OnModifierUpdate)
+		end
 	end
 end
 
@@ -309,9 +343,38 @@ function Mouse:OnDataLoaded()
 		'UNIT_ENTERING_VEHICLE';
 		'UNIT_EXITING_VEHICLE';
 	}) do self:RegisterUnitEvent(event, 'player') end
+	self:OnVariableChanged()
+end
+
+function Mouse:OnVariableChanged()
+	local modTapModifier = db('doubleTapModifier')
+	if not modTapModifier:match('none') then
+		self:RegisterEvent('MODIFIER_STATE_CHANGED')
+		self.tapWindow = db('doubleTapTimeout')
+		self.tapModifier = modTapModifier;
+		self.tapTimer = 0;
+		self.tapNum = 0;
+	else
+		self:UnregisterEvent('MODIFIER_STATE_CHANGED')
+	end
+
+	if db('mouseFollowOnStickMounted') then
+		self.mountedState = nil;
+		self:RegisterEvent('PLAYER_MOUNT_DISPLAY_CHANGED')
+		self:PLAYER_MOUNT_DISPLAY_CHANGED()
+	else
+		self:UnregisterEvent('PLAYER_MOUNT_DISPLAY_CHANGED')
+	end
 end
 
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
+---------------------------------------------------------------
+-- Variables
+---------------------------------------------------------------
+db:RegisterCallback('Settings/mouseFollowOnStickMounted', Mouse.OnVariableChanged, Mouse)
+db:RegisterCallback('Settings/doubleTapModifier', Mouse.OnVariableChanged, Mouse)
+db:RegisterCallback('Settings/doubleTapTimeout', Mouse.OnVariableChanged, Mouse)
+---------------------------------------------------------------
 Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)
 Mouse:EnableGamePadButton(false)
 Mouse:SetPropagation(true)

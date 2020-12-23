@@ -6,7 +6,7 @@ local CURRENT_BINDINGS;
 env.ImportManager = Import;
 
 function Preset:OnLoad()
-	self:SetWidth(PRESETS_WIDTH - FIXED_OFFSET)
+	self:SetWidth(PRESETS_WIDTH - 32)
 	self:SetScript('OnClick', self.OnClick)
 	self:SetScript('OnShow', self.OnShow)
 end

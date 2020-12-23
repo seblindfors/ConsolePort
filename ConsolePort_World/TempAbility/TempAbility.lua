@@ -174,7 +174,7 @@ function TempAbility:AdjustHeight()
 end
 
 function TempAbility:AddSpell(spellID)
-	if not self.Shown[spellID] then
+	if not self.Shown[spellID] and db('showAbilityBriefing') then
 		local showTime = 0;
 		for spellID, timer in pairs(self.Info) do
 			showTime = showTime + timer;

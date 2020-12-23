@@ -407,8 +407,9 @@ function BindingsMixin:OnFirstShow()
 							end
 						end;
 						_OnGamePadButtonUp = function(self, ...)
-							self:Hide()
-							self:GetParent():GetParent():OnButtonCaught(...)
+							if self:GetParent():GetParent():OnButtonCaught(...) then
+								self:Hide()
+							end
 						end;
 						_OnClick = function(self) self:Hide() end;
 					};

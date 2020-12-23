@@ -447,11 +447,11 @@ end
 
 function HANDLE:SetEligbleForRebind(button, modifier)
 	local emulation = db.Console:GetEmulationForButton(button.plainID)
-	button:SetState(modifier, 'custom', {
+	return 'custom', {
 		tooltip = emulation and ('|cFFFFFFFF%s|r\n%s'):format(emulation.name, emulation.desc) or NOT_BOUND,
 		texture = db('Icons/64/'..button.plainID) or [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
 		func = function() end,
-	})
+	}
 end
 
 function HANDLE:SetXMLBinding(button, modifier, binding)
@@ -479,7 +479,7 @@ function HANDLE:RefreshBinding(binding, cluster, button, modifier, main)
 	elseif binding then
 		stateType, stateID = self:SetXMLBinding(button, modifier, binding)
 	else
-		self:SetEligbleForRebind(button, modifier)
+		stateType, stateID = self:SetEligbleForRebind(button, modifier)
 	end
 
 	cluster:ConfigureSwapStates(modifier, button, stateType, stateID)

@@ -513,6 +513,6 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 	end
 
 	function CPButtonCatcherMixin:IsButtonValid(button)
-		return db('bindingAllowSticks') or (not button:match('PAD.STICK.+'))
+		return CPAPI.IsButtonValidForBinding(button)
 	end
 end

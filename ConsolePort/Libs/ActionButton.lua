@@ -105,7 +105,7 @@ end
 function lib:InitButton(button, id, header)
 	button = setmetatable(button, Generic_MT)
 	button:RegisterForDrag('LeftButton', 'RightButton')
-	button:RegisterForClicks('AnyUp', 'AnyDown')
+	button:RegisterForClicks('AnyDown')
 
 	-- Frame Scripts
 	button:HookScript('OnEnter', Generic.OnEnter)
@@ -318,14 +318,6 @@ function SetupSecureSnippets(button)
 end
 
 function WrapOnClick(button)
-	-- Wrap PreClick to fire spells twice in order to place reticle spells in one stroke.
-	button.header:WrapScript(button, "PreClick", [[
-		if button == 'ControllerInput' and not down then
-		--	if not owner:RunAttribute('GetSpellID', self:GetAttribute('action')) then
-				self:SetAttribute('type', 'omit')
-		--	end
-		end
-	]])
 	-- Wrap OnClick, to catch changes to actions that are applied with a click on the button.
 	button.header:WrapScript(button, 'OnClick', [[
 		if down then
@@ -341,10 +333,6 @@ function WrapOnClick(button)
 				self:RunAttribute('UpdateState', self:GetAttribute('state'))
 			end
 		end
-	]])
-	-- Wrap PostClick to reset the type and state of the button.
-	button.header:WrapScript(button, 'PostClick', [[
-		self:SetAttribute('type', self:GetAttribute('action_field'))
 	]])
 end
 
@@ -876,7 +864,7 @@ function Generic:SetClicks(mouseover)
 	if mouseover then
 		self:RegisterForClicks('AnyUp')
 	else
-		self:RegisterForClicks('AnyUp', 'AnyDown')
+		self:RegisterForClicks('AnyDown')
 	end
 end
 

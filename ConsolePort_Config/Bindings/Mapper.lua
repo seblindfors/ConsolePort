@@ -165,8 +165,11 @@ function Mapper:SetCatchButton(enabled)
 	end
 end
 
-function Mapper:OnButtonCaught(...)
-	self:SetBinding(CreateKeyChordStringUsingMetaKeyState(...))
+function Mapper:OnButtonCaught(button)
+	if CPAPI.IsButtonValidForBinding(button) then
+		self:SetBinding(CreateKeyChordStringUsingMetaKeyState(button))
+		return true;
+	end
 end
 
 ---------------------------------------------------------------
