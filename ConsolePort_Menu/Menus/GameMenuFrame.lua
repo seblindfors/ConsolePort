@@ -190,8 +190,36 @@ do	-- Initiate frame
 					_RefTo = QuestLogMicroButton;
 					_Attributes = hideMenuHook;
 				};
-				Guide = {
+				Garrison = {
 					_ID    = 2;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.QuestLog', 'BOTTOM', 0, 0};
+					_RefTo = GarrisonLandingPageMinimapButton;
+					_Attributes = {
+						hidemenu = true;
+						condition = 'return false;'
+					};
+					_OnEvent = function(self, event, ...)
+						if event == 'GARRISON_SHOW_LANDING_PAGE' then
+							self:SetAttribute('condition', 'return true;');
+							self.Icon:SetAtlas(GarrisonLandingPageMinimapButton:GetNormalTexture():GetAtlas(), false)
+							self:SetText(GarrisonLandingPageMinimapButton.title)
+							local top, _, rel, y, x = self:GetParent().Guide:GetPoint()
+							self:GetParent().Guide:SetPoint(top, self, rel, y, x)
+						else
+							self:SetAttribute('condition', 'return false;');
+							local top, _, rel, y, x = self:GetParent().Guide:GetPoint()
+							self:GetParent().Guide:SetPoint(top, self:GetParent().QuestLog, rel, y, x)
+						end;
+					end;
+					_Events = {
+						'GARRISON_SHOW_LANDING_PAGE',
+						'GARRISON_HIDE_LANDING_PAGE',
+					};
+				};
+				Guide = {
+					_ID    = 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.QuestLog', 'BOTTOM', 0, 0};
@@ -230,7 +258,7 @@ do	-- Initiate frame
 					};
 				};
 				Finder = {
-					_ID    = 3;
+					_ID    = 4;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Guide', 'BOTTOM', 0, 0};
@@ -243,7 +271,7 @@ do	-- Initiate frame
 					end;
 				};
 				Achievements = {
-					_ID    = 4,
+					_ID    = 5,
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Finder', 'BOTTOM', 0, -16};
@@ -253,7 +281,7 @@ do	-- Initiate frame
 					_Attributes = hideMenuHook;
 				},
 				WhatsNew = {
-					_ID    = 5;
+					_ID    = 6;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Achievements', 'BOTTOM', 0, 0};
@@ -262,7 +290,7 @@ do	-- Initiate frame
 					_Image = 'WoW_Token01';
 				};
 				Shop = {
-					_ID    = 6;
+					_ID    = 7;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.WhatsNew', 'BOTTOM', 0, 0};
@@ -271,7 +299,7 @@ do	-- Initiate frame
 					_Image = 'WoW_Store';
 				};
 				Teleport = {
-					_ID    = 7;
+					_ID    = 8;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Shop', 'BOTTOM', 0, 0};
