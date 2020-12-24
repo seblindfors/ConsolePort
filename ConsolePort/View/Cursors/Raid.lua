@@ -45,9 +45,10 @@ Cursor:CreateEnvironment({
 		if self:Run(IsDrawn, node:GetRect()) then
 			local unit = node:GetAttribute('unit')
 			local action = node:GetAttribute('action')
+			local filter = self:GetAttribute('filter')
 
 			if unit and not action then
-				if node:GetRect() then
+				if node:GetRect() and self:Run(filter) then
 					NODES[node] = true;
 					CACHE[node] = true;
 				end
@@ -182,12 +183,14 @@ function Cursor:OnDataLoaded()
 	modifier = modifier:match('<none>') and '' or modifier;
 	self:SetAttribute('noroute', db('raidCursorDirect'))
 	self:SetAttribute('navmodifier', modifier)
+	self:SetAttribute('filter', 'return ' .. (db('raidCursorFilter') or 'true') .. ';') 
 	self:SetScale(db('raidCursorScale'))
 end
 
 db:RegisterSafeCallback('Settings/raidCursorDirect', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorModifier', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
+db:RegisterSafeCallback('Settings/raidCursorFilter', Cursor.OnDataLoaded, Cursor)
 
 ---------------------------------------------------------------
 -- Script handlers
