@@ -37,10 +37,11 @@ function LootButton:OnEnter()
 		FocusTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 		FocusTooltip:SetLootItem(slot)
 		self:SetScript('OnUpdate', self.OnUpdate)
-	end
-	if ( slotType == LOOT_SLOT_CURRENCY ) then
+	elseif ( slotType == LOOT_SLOT_CURRENCY ) then
 		FocusTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 		FocusTooltip:SetLootCurrency(slot)
+		self:SetScript('OnUpdate', self.OnUpdate)
+	elseif ( slotType == LOOT_SLOT_MONEY ) then
 		self:SetScript('OnUpdate', nil)
 		self:SetClampedSize(330, 50)
 	end

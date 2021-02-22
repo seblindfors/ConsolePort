@@ -37,8 +37,8 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 		texture = actionID and GetActionTexture(transposedActionID or actionID)
 
 		-- HACK: handle extra action button 1 case
-		if (transposedActionID == 169) then
-			transposedActionID = nil;
+		if (transposedActionID == 169 or actionID == 169) then
+			transposedActionID, texture = nil, nil;
 		end
 
 		-- Set the text for the transposed action ID, make it clear

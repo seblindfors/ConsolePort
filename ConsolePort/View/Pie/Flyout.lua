@@ -73,7 +73,14 @@ function Selector:OnAxisInversionChanged()
 	self.axisInversion = db('radialCosineDelta')
 end
 
-db:RegisterCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
+function Selector:OnPrimaryStickChanged()
+	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	self:SetInterrupt(sticks)
+	self:SetIntercept({sticks[1]})
+end
+
+db:RegisterSafeCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
+db:RegisterSafeCallback('Settings/radialPrimaryStick', Selector.OnPrimaryStickChanged, Selector)
 
 function Selector:OnInput(x, y, len, stick)
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
@@ -189,7 +196,3 @@ hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActi
 		button:SetDescription(data.spellName)
 	end
 end)
-
-
-
-local Mouse = Selector.MouseTrap

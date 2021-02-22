@@ -132,7 +132,7 @@ function Utility:OnDataLoaded()
 	db:Load('Utility/Data', 'ConsolePortUtility')
 
 	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
-	db.Radial:Register(self, 'UtiliyRing', {
+	db.Radial:Register(self, 'UtilityRing', {
 		sticks = sticks;
 		target = {sticks[1]};
 		sizer  = [[
@@ -159,9 +159,16 @@ function Utility:OnRemoveButtonChanged()
 	self:SetAttribute('removeButton', db('radialRemoveButton'))
 end
 
+function Utility:OnPrimaryStickChanged()
+	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	self:SetInterrupt(sticks)
+	self:SetIntercept({sticks[1]})
+end
+
 db:RegisterSafeCallback('Settings/autoExtra', Utility.OnAutoAssignedChanged, Utility)
 db:RegisterSafeCallback('Settings/radialCosineDelta', Utility.OnAxisInversionChanged, Utility)
 db:RegisterSafeCallback('Settings/radialRemoveButton', Utility.OnRemoveButtonChanged, Utility)
+db:RegisterSafeCallback('Settings/radialPrimaryStick', Utility.OnPrimaryStickChanged, Utility)
 
 ---------------------------------------------------------------
 -- Widget handling

@@ -92,7 +92,7 @@ db:Register('Console', setmetatable({
 			note = 'Your character will strafe while moving forward, and follow your movement stick when moving backwards.';
 		};
 		{	cvar = 'GamePadFaceAngleThreshold';
-			type = Range(115, 5, 0, 180);
+			type = Range(115, 5, 0, 360);
 			name = 'Face Movement Threshold';
 			desc = 'Controls when your character transitions from strafing to following your movement stick.';
 			note = 'Expressed in degrees, from looking straight forward. Max value is recommended for tanking.';
@@ -108,6 +108,12 @@ db:Register('Console', setmetatable({
 			name = 'Camera Pitch Speed';
 			desc = 'Pitch speed of camera - moving up/down.';
 			note = 'Choose a negative value to invert the axis.';
+		};
+		{	cvar = 'MouseUseLazyRepositioning';
+			type = Bool(true);
+			name = 'Lazy Mouse Repositioning';
+			desc = 'During camera control, only reposition mouse cursor when nearing edge of window, rather than every input event.';
+			note = 'Disabling this can help with choppy camera controls.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------

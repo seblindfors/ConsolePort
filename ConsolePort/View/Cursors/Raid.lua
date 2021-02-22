@@ -130,6 +130,8 @@ Cursor:CreateEnvironment({
 			RegisterStateDriver(self, 'unitexists', ('[@%s,exists] true; nil'):format(unit))
 
 			self:ClearAllPoints()
+			self:SetFrameStrata(curnode:GetFrameStrata())
+			self:SetFrameLevel(curnode:GetFrameLevel() + 100)
 			self:SetPoint('TOPLEFT', curnode, 'CENTER', 0, 0)
 			self:SetAttribute('node', curnode)
 			self:SetAttribute('cursorunit', unit)

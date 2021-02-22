@@ -27,3 +27,5 @@ Bindings\Bindings.lua
 
 Settings\Variables.lua
 Settings\Console.lua
+
+Mapper\Bootloader.lua

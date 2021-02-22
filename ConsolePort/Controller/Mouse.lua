@@ -114,7 +114,8 @@ end
 local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChord(button)) end;
 local CursorCentered = function() return CVar_Center:Get(true) end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
-local WorldInteract  = function() return TooltipShowing() and GetMouseFocus() == WorldFrame end;
+local IsWorldFocus   = function() return GetMouseFocus() == WorldFrame end;
+local WorldInteract  = function() return TooltipShowing() and IsWorldFocus() end;
 local MouseOver      = function() return UnitExists('mouseover') or WorldInteract() end;
 
 
@@ -241,7 +242,7 @@ function Mouse:ShouldSetCursorWhenMenuIsOpen(_)
 end
 
 function Mouse:ShouldClearCursorOnMovement()
-	return is(nil, GamePadControl, CursorControl) and isnt(nil, MouseOver)
+	return is(nil, GamePadControl, CursorControl, IsWorldFocus)
 end
 
 ---------------------------------------------------------------
