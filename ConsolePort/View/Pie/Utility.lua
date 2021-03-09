@@ -698,7 +698,6 @@ function Utility:UNIT_QUEST_LOG_CHANGED()
 	end
 end
 
-
 function Utility:SPELLS_CHANGED()
 	if self.autoAssignExtras then
 		db:RunSafe(self.ToggleZoneAbilities, self)

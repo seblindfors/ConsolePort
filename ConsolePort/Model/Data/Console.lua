@@ -85,17 +85,17 @@ db:Register('Console', setmetatable({
 	-- Controls:
 	--------------------------------------------------------------------------------------------------------
 	Controls = {
-		{	cvar = 'GamePadFaceMovement';
+		{	cvar = 'GamePadSmoothFacing';
 			type = Bool(true);
-			name = 'Face Movement Direction';
-			desc = 'Separates character movement from camera movement.';
-			note = 'Your character will strafe while moving forward, and follow your movement stick when moving backwards.';
+			name = 'Analog Movement';
+			desc = 'Movement is analog, translated from your movement stick angle.';
+			note = 'Disable to use discrete legacy movement controls.';
 		};
-		{	cvar = 'GamePadFaceAngleThreshold';
-			type = Range(115, 5, 0, 360);
+		{	cvar = 'GamePadFaceMovementThreshold';
+			type = Range(115, 5, 0, 180);
 			name = 'Face Movement Threshold';
-			desc = 'Controls when your character transitions from strafing to following your movement stick.';
-			note = 'Expressed in degrees, from looking straight forward. Max value is recommended for tanking.';
+			desc = 'Controls when your character transitions from strafing to following your movement stick. Expressed in degrees, from looking straight forward.';
+			note = 'When set to zero, always follows your movement stick.\nWhen set to max, never follows your movement stick.';
 		};
 		{	cvar = 'GamePadCameraYawSpeed';
 			type = Number(1, 0.1);
