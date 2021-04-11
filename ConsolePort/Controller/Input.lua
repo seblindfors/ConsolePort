@@ -252,10 +252,7 @@ function InputMixin:EmulateFrontend(click, state, script)
 			self.postreset = self:GetAttribute('type')
 			self:SetAttribute('type', nil)
 		end
-		local func = click:GetScript(script)
-		if func then
-			func(click)
-		end
+		ExecuteFrameScript(click, script)
 		return click:SetButtonState(state)
 	end
 end

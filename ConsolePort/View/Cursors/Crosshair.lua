@@ -68,9 +68,11 @@ function Crosshair:OnDataLoaded()
 	self:Show()
 end
 
-db:RegisterCallback('Settings/crosshairEnable', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairSizeX', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairSizeY', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairColor', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairCenter', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairThickness', Crosshair.OnDataLoaded, Crosshair)
+db:RegisterCallbacks(Crosshair.OnDataLoaded, Crosshair,
+	'Settings/crosshairEnable',
+	'Settings/crosshairSizeX',
+	'Settings/crosshairSizeY',
+	'Settings/crosshairColor',
+	'Settings/crosshairCenter',
+	'Settings/crosshairThickness'
+);

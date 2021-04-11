@@ -1,0 +1,13 @@
+## Interface: 90005
+## Title: Console Port |cff69ccf0Keyboard|r
+## Notes: Virtual keyboard module
+## SavedVariables: ConsolePort_KeyboardLayout, ConsolePort_KeyboardDictionary
+## RequiredDeps: ConsolePort
+## DefaultState: disabled
+
+Core\UTF8.lua
+Core\Charset.lua
+
+Lookup.lua
+Keyboard.xml
+Core\Observer.lua

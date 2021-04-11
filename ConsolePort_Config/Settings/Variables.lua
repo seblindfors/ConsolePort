@@ -39,6 +39,11 @@ local Shortcut, Shortcuts = {}, CreateFromMixins(CPFocusPoolMixin)
 env.SettingShortcutsMixin = Shortcuts;
 
 function Shortcut:OnLoad()
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('LEFT', 16, 0)
+	self.Label:SetPoint('RIGHT', -16, 0)
+	self.Label:SetJustifyH('LEFT')
+	self.Label:SetTextColor(1, 1, 1)
 	self:SetWidth(SHORTCUT_WIDTH - FIXED_OFFSET * 2)
 	self:SetScript('OnClick', self.OnClick)
 	self:SetDrawOutline(true)

@@ -75,13 +75,13 @@ end
 ---------------------------------------------------------------
 -- Console variables
 ---------------------------------------------------------------
-local CVar_FaceMove = db.Data.Cvar('GamePadFaceMovement')
-local CVar_Follow   = db.Data.Cvar('CameraFollowOnStick')
-local CVar_Sticks   = db.Data.Cvar('GamePadCursorAutoDisableSticks')
-local CVar_Center   = db.Data.Cvar('GamePadCursorCentering')
-local CVar_LClick   = db.Data.Cvar('GamePadCursorLeftClick')
-local CVar_RClick   = db.Data.Cvar('GamePadCursorRightClick')
-local Keys_Escape   = db.Data.Select()
+local CVar_Analog = db.Data.Cvar('GamePadSmoothFacing')
+local CVar_Follow = db.Data.Cvar('CameraFollowOnStick')
+local CVar_Sticks = db.Data.Cvar('GamePadCursorAutoDisableSticks')
+local CVar_Center = db.Data.Cvar('GamePadCursorCentering')
+local CVar_LClick = db.Data.Cvar('GamePadCursorLeftClick')
+local CVar_RClick = db.Data.Cvar('GamePadCursorRightClick')
+local Keys_Escape = db.Data.Select()
 
 ---------------------------------------------------------------
 -- Predicates (should always return boolean)
@@ -135,15 +135,15 @@ end
 function Mouse:UNIT_SPELLCAST_START()
 	if self.fmVehicleOverride then return end;
 	if (self.fmSpellOverride == nil) then
-		self.fmSpellOverride = CVar_FaceMove:Get()
-		CVar_FaceMove:Set(0)
+		self.fmSpellOverride = CVar_Analog:Get()
+		CVar_Analog:Set(0)
 	end
 end
 
 function Mouse:UNIT_SPELLCAST_STOP()
 	if self.fmVehicleOverride then return end;
 	if (self.fmSpellOverride ~= nil) then
-		CVar_FaceMove:Set(self.fmSpellOverride)
+		CVar_Analog:Set(self.fmSpellOverride)
 		self.fmSpellOverride = nil;
 	end
 end
@@ -151,14 +151,14 @@ end
 function Mouse:UNIT_ENTERING_VEHICLE()
 	if (self.fmVehicleOverride == nil) then
 		self:UNIT_SPELLCAST_STOP()
-		self.fmVehicleOverride = CVar_FaceMove:Get()
-		CVar_FaceMove:Set(0)
+		self.fmVehicleOverride = CVar_Analog:Get()
+		CVar_Analog:Set(0)
 	end
 end
 
 function Mouse:UNIT_EXITING_VEHICLE()
 	if (self.fmVehicleOverride ~= nil) then
-		CVar_FaceMove:Set(self.fmVehicleOverride)
+		CVar_Analog:Set(self.fmVehicleOverride)
 		self.fmVehicleOverride = nil;
 	end
 end
@@ -372,9 +372,11 @@ db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
 ---------------------------------------------------------------
 -- Variables
 ---------------------------------------------------------------
-db:RegisterCallback('Settings/mouseFollowOnStickMounted', Mouse.OnVariableChanged, Mouse)
-db:RegisterCallback('Settings/doubleTapModifier', Mouse.OnVariableChanged, Mouse)
-db:RegisterCallback('Settings/doubleTapTimeout', Mouse.OnVariableChanged, Mouse)
+db:RegisterCallbacks(Mouse.OnVariableChanged, Mouse, 
+	'Settings/mouseFollowOnStickMounted',
+	'Settings/doubleTapModifier',
+	'Settings/doubleTapTimeout'
+);
 ---------------------------------------------------------------
 Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)
 Mouse:EnableGamePadButton(false)

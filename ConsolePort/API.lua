@@ -7,6 +7,13 @@ function ConsolePort:GetData()
 end
 
 ---------------------------------------------------------------
+-- Add variable options to database
+---------------------------------------------------------------
+function ConsolePort:AddVariables(variables)
+	db.table.merge(db.Variables, variables)
+end
+
+---------------------------------------------------------------
 -- Get all possible bindings
 ---------------------------------------------------------------
 function ConsolePort:GetBindings()

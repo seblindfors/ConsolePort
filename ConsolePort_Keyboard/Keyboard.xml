@@ -1,0 +1,38 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<CheckButton name="ConsolePortKeyboardChar" virtual="true" registerForClicks="AnyUp">
+		<Size x="32" y="32"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" file="Interface\CHARACTERFRAME\TempPortraitAlphaMaskSmall">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-4" y="4"/>
+						<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString inherits="GameFontHighlightLarge" justifyH="CENTER" parentKey="Text" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<PieMenu name="ConsolePortKeyboardSet" virtual="true" registerForClicks="AnyUp">
+		<Size x="160" y="160"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</PieMenu>
+
+	<PieMenu name="ConsolePortKeyboard" parent="UIParent" registerForClicks="AnyUp" hidden="true">
+		<Size x="400" y="400"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+	</PieMenu>
+
+	<Script file="Keyboard.lua"/>
+</Ui>

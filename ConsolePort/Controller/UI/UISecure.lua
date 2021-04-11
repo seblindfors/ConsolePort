@@ -89,7 +89,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-- @param modifier : (optional) modifier prefix for base
 	SetBaseBindings = [[
 		local modifier = ...;
-		modifier = modifier or '';
+		modifier = modifier and modifier or '';
 		for _, binding in pairs(newtable(self:Run(GetBaseBindings))) do
 			self:SetBindingClick(self:GetAttribute('priorityoverride'), modifier..binding, self, binding)
 		end

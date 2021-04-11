@@ -125,7 +125,7 @@ function CPBackgroundMixin:OnLoad()
 	self.Rollover   = self:CreateTexture(nil, 'BACKGROUND', nil, 3)
 	self.Rollover:SetAllPoints(self.Background)
 	self.Rollover:SetTexture(CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]))
-	self.Rollover:SetGradientAlpha('VERTICAL', r, g, b, 1, r, g, b, 0)
+	self.Rollover:SetGradientAlpha('VERTICAL', r*0.5, g*0.5, b*0.5, 1, r*0.5, g*0.5, b*0.5, 0)
 	self:SetOriginTop(true)
 	self:CreateBackground(2048, 2048, 2048, 2048, CPAPI.GetAsset([[Art\Background\%s]]):format(CPAPI.GetClassFile()))
 end
@@ -201,6 +201,10 @@ function CPBackgroundMixin:CreateBackground(w, h, x, y, texture)
 	self:OnAspectRatioChanged()
 	self:HookScript('OnShow', self.OnAspectRatioChanged)
 	self:HookScript('OnSizeChanged', self.OnAspectRatioChanged)
+end
+
+function CPBackgroundMixin:SetBackgroundVertexColor(...)
+	self.Background:SetVertexColor(...)
 end
 
 

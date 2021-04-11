@@ -247,11 +247,11 @@ do  -- Create input proxy for basic controls
 
 	-- Callbacks to reset controls when inputters change
 	do local function ResetControls(self) self.BasicControls = nil; end
-		for _, event in ipairs({
-		'Settings/UICursorSpecial',
-		'Settings/UICursorLeftClick',
-		'Settings/UICursorRightClick'
-		}) do db:RegisterCallback(event, ResetControls, Cursor) end
+		db:RegisterCallbacks(ResetControls, Cursor,
+			'Settings/UICursorSpecial',
+			'Settings/UICursorLeftClick',
+			'Settings/UICursorRightClick'	
+		);
 	end
 
 	-- Emulated clicks for handlers that do not use OnClick (this may be unsafe)
@@ -343,11 +343,11 @@ end
 function Cursor:SetCurrent(newObj)
 	local oldObj = self:GetCurrent()
 	if ( oldObj and newObj == oldObj ) then
-		return oldObj, false
+		return oldObj, false;
 	end
 	self.Old = oldObj;
 	self.Cur = newObj;
-	return newObj, true
+	return newObj, true;
 end
 
 function Cursor:GetCurrent()
@@ -376,7 +376,7 @@ function Cursor:IsCurrentNodeDrawn()
 end
 
 function Cursor:GetSelectParams(obj, triggerOnEnter)
-	return obj.node, obj.object, obj.super, triggerOnEnter
+	return obj.node, obj.object, obj.super, triggerOnEnter;
 end
 
 function Cursor:GetOld()
@@ -385,12 +385,12 @@ end
 
 function Cursor:GetOldNode()
 	local obj = self:GetOld()
-	return obj and obj.node
+	return obj and obj.node;
 end
 
 function Cursor:StoreCurrent()
 	local current = self:GetCurrent()
-	self.Old = current
+	self.Old = current;
 	self:SetCurrent(nil)
 end
 
@@ -400,7 +400,7 @@ end
 -- Original functions become taint-bearing when called insecurely
 -- because they modify properties of protected objects.
 ---------------------------------------------------------------
-do local SafeOnEnter, SafeOnLeave = {}, {}
+do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
 
 	-------[[  OnEnter  ]]-------
 	SafeOnEnter[ActionButton1:GetScript('OnEnter')] = function(self)
@@ -450,9 +450,11 @@ do local SafeOnEnter, SafeOnLeave = {}, {}
 	---------------------------------------------------------------
 	-- OnEnter/OnLeave script triggers
 	local function TriggerScript(node, scriptType, replacement)
-		local script = replacement[node:GetScript(scriptType)] or node:GetScript(scriptType)
+		local script = replacement[node:GetScript(scriptType)]
 		if script then
 			pcall(script, node)
+		else
+			pcall(SafeExecute, node, scriptType)
 		end
 	end
 
@@ -688,10 +690,12 @@ function Cursor:UpdatePointer()
 	self.Display.animationSpeed = db('UItravelTime');
 end
 
-db:RegisterCallback('Settings/UItravelTime', Cursor.UpdatePointer, Cursor)
-db:RegisterCallback('Settings/UIpointerSize', Cursor.UpdatePointer, Cursor)
-db:RegisterCallback('Settings/UIpointerOffset', Cursor.UpdatePointer, Cursor)
-db:RegisterCallback('Settings/UIpointerAnimation', Cursor.UpdatePointer, Cursor)
+db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
+	'Settings/UItravelTime',
+	'Settings/UIpointerSize',
+	'Settings/UIpointerOffset',
+	'Settings/UIpointerAnimation'
+);
 
 -- Highlight mime
 ---------------------------------------------------------------

@@ -94,8 +94,8 @@ db:Register('Console', setmetatable({
 		{	cvar = 'GamePadFaceMovementThreshold';
 			type = Range(115, 5, 0, 180);
 			name = 'Face Movement Threshold';
-			desc = 'Controls when your character transitions from strafing to following your movement stick. Expressed in degrees, from looking straight forward.';
-			note = 'When set to zero, always follows your movement stick.\nWhen set to max, never follows your movement stick.';
+			desc = 'Controls when your character transitions from strafing to facing your movement stick angle. Expressed in degrees, from looking straight forward.';
+			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
 		};
 		{	cvar = 'GamePadCameraYawSpeed';
 			type = Number(1, 0.1);
