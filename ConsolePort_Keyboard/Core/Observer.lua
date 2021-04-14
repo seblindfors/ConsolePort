@@ -6,6 +6,7 @@ CreateFrame('Frame'):SetScript('OnUpdate', function(self, elapsed)
 		self.focusFrame = focus;
 		Keyboard:OnFocusChanged(focus)
 	end
+	if not focus then return end
 	Keyboard:SetState(1 + bitbor(
 		IsShiftKeyDown()   and 0x1 or 0,
 		IsControlKeyDown() and 0x2 or 0,

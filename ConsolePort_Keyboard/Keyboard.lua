@@ -1,4 +1,5 @@
-local Keyboard, Radial, db, _, env = CPAPI.EventHandler(ConsolePortKeyboard), ConsolePortRadial, ConsolePort:DB(), ...;
+local Keyboard, Radial, db = CPAPI.EventHandler(ConsolePortKeyboard), ConsolePortRadial, ConsolePort:DB();
+local L, _, env = db.Locale, ...;
 local VALID_VEC_LEN = 0.5;
 
 ---------------------------------------------------------------
@@ -12,14 +13,25 @@ function Keyboard:Left(x, y, len)
 	self.focusSet = len > VALID_VEC_LEN and
 		self.Registry[Radial:GetIndexForStickPosition(x, y, len, self.numSets)]
 
-	if oldFocusSet and oldFocusSet ~= self.focusSet then
+	local isNewFocusSet = oldFocusSet ~= self.focusSet;
+	if oldFocusSet and isNewFocusSet then
 		oldFocusSet:OnStickChanged(0, 0, 0, false)
+		oldFocusSet:SetHighlight(false)
+	end
+	if isNewFocusSet and self.focusSet then
+		self.focusSet:SetHighlight(true)
 	end
 end
 
 function Keyboard:Right(x, y, len)
 	if self.focusSet then
 		self.focusSet:OnStickChanged(x, y, len, len > VALID_VEC_LEN)
+	end
+	if not self.inputLock and len > VALID_VEC_LEN then
+		self.inputLock = true;
+		self:Insert()
+	elseif len <= VALID_VEC_LEN then
+		self.inputLock = false;
 	end
 end
 
@@ -54,6 +66,23 @@ function Keyboard:SetState(state)
 	end
 end
 
+function Keyboard:OnShow()
+	ConsolePortUIHandle:SetHintFocus(self)
+	for _, data in ipairs(self.hints) do
+		local text, key = unpack(data)
+		if text and key then
+			ConsolePortUIHandle:AddHint(key, text)
+		end
+	end
+end
+
+function Keyboard:OnHide()
+	if ConsolePortUIHandle:IsHintFocus(self) then
+		ConsolePortUIHandle:HideHintBar()
+	end
+	ConsolePortUIHandle:ClearHintsForFrame(self)
+end
+
 ---------------------------------------------------------------
 -- Input scripts
 ---------------------------------------------------------------
@@ -63,6 +92,7 @@ function Keyboard:Insert()
 	local key = self.focusSet and self.focusSet.focusKey;
 	if key then
 		self.focusFrame:Insert(key:GetText())
+		key:Flash()
 	end
 end
 
@@ -110,9 +140,24 @@ end
 ---------------------------------------------------------------
 
 function Keyboard:OnDataLoaded(...)
+	self:OnVariableChanged()
+
 	if not ConsolePort_KeyboardLayout then
 		ConsolePort_KeyboardLayout = CopyTable(env.DefaultLayout)
 	end
+	if not ConsolePort_KeyboardMarkers then
+		ConsolePort_KeyboardMarkers = CopyTable(env.DefaultMarkers)
+	end
+	if not ConsolePort_KeyboardDictionary then
+		ConsolePort_KeyboardDictionary = env.Dictionary:Generate()
+	end
+
+	ConsolePort_KeyboardPrefixTree = env.Dictionary:GenerateTree(ConsolePort_KeyboardDictionary)
+
+	env.Layout     = ConsolePort_KeyboardLayout;
+	env.Markers    = ConsolePort_KeyboardMarkers;
+	env.Dictionary = ConsolePort_KeyboardDictionary;
+
 	self:ReleaseAll()
 	self.numSets = #ConsolePort_KeyboardLayout;
 	for i, set in ipairs(ConsolePort_KeyboardLayout) do
@@ -124,7 +169,6 @@ function Keyboard:OnDataLoaded(...)
 		widget:SetData(set)
 		widget:Show()
 	end
-	self:OnVariableChanged()
 end
 
 function Keyboard:OnVariableChanged()
@@ -137,6 +181,16 @@ function Keyboard:OnVariableChanged()
 		[db('keyboardMoveLeftButton')]  = self.MoveLeft;
 		[db('keyboardMoveRightButton')] = self.MoveRight;
 	};
+	self.hints = {
+		{L'Enter', db('keyboardEnterButton')};
+		{L'Erase', db('keyboardEraseButton')};
+		{L'Space', db('keyboardSpaceButton')};
+		{L'Escape', db('keyboardEscapeButton')};
+		{L'Insert', db('keyboardInsertButton')};
+	};
+	-- update dictionary pattern
+	env.DictMatchPattern = db('keyboardDictPattern');
+	env.DictMatchAlphabet = db('keyboardDictAlphabet');
 end
 
 db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
@@ -144,7 +198,9 @@ db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
 	'Settings/keyboardEraseButton',
 	'Settings/keyboardEnterButton',
 	'Settings/keyboardSpaceButton',
-	'Settings/keyboardEscapeButton'
+	'Settings/keyboardEscapeButton',
+	'Settings/keyboardDictPattern',
+	'Settings/keyboardDictAlphabet'
 );
 
 ---------------------------------------------------------------
@@ -152,7 +208,9 @@ db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
 ---------------------------------------------------------------
 
 Keyboard:EnableGamePadStick(true)
-Keyboard.Arrow:SetSize(50*0.7, 400*0.7)
+Keyboard.Arrow:SetSize(50*0.71, 400*0.71)
+Keyboard:SetScript('OnShow', Keyboard.OnShow)
+Keyboard:SetScript('OnHide', Keyboard.OnHide)
 Keyboard:SetScript('OnGamePadStick', Keyboard.OnGamePadStick)
 Keyboard:SetScript('OnGamePadButtonDown', Keyboard.OnGamePadButtonDown)
 CPFocusPoolMixin.CreateFramePool(Keyboard, 'PieMenu', 'ConsolePortKeyboardSet', env.CharsetMixin)

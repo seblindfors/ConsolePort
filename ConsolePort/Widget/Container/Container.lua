@@ -118,7 +118,6 @@ function CPContainerMixin:OnContainerLoad()
 	}, nil, true)
 	self:CreateFramePool('Frame', nil, CPPanelMixin, nil, self.Container)
 	self:SetBackgroundVertexColor(.75, .75, .75, 1)
-	--self.Background:SetAlpha(.5)
 	db('Stack'):AddFrame(self)
 	return self.Header, self.Container;
 end

@@ -14,6 +14,12 @@
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString inherits="GameFontHighlightLarge" justifyH="CENTER" parentKey="Text" setAllPoints="true"/>
+				<Texture parentKey="Ring" atlas="charactercreate-ring-select" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-16" y="16"/>
+						<Anchor point="BOTTOMRIGHT" x="16" y="-16"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
 	</CheckButton>
@@ -23,6 +29,14 @@
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture parentKey="Background" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask" setAllPoints="true"/>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Ring" atlas="charactercreate-ring-select" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-32" y="32"/>
+						<Anchor point="BOTTOMRIGHT" x="32" y="-32"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
 	</PieMenu>

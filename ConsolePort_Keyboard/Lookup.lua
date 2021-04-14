@@ -51,6 +51,45 @@ env.DefaultLayout = {
 	},
 }
 
+env.DefaultMarkers = {
+	["{rt1}"] = "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_1:0|t",
+	["{rt2}"] = "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_2:0|t",
+	["{rt3}"] = "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_3:0|t",
+	["{rt4}"] = "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_4:0|t",
+	["{rt5}"] = "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_5:0|t",
+	["{rt6}"] = "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_6:0|t",
+	["{rt7}"] = "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_7:0|t",
+	["{rt8}"] = "|TInterface\\TARGETINGFRAME\\UI-RaidTargetingIcon_8:0|t",
+	
+	["{ck1}"] = "|TInterface\\AddOns\\ConsolePortKeyboard\\Textures\\IconSpace:0|t",
+	["{ck2}"] = "|TInterface\\AddOns\\ConsolePortKeyboard\\Textures\\IconEraser:0|t",
+	["{ck3}"] = "|TInterface\\RAIDFRAME\\ReadyCheck-NotReady:0|t",
+	["{ck4}"] = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:0|t",
+
+	["/rw "] = "|TInterface\\DialogFrame\\UI-Dialog-Icon-AlertNew:0|t",
+	["/raid "] = "|TInterface\\Scenarios\\ScenarioIcon-Boss:0|t",
+	["/readycheck "] = "|TInterface\\RAIDFRAME\\ReadyCheck-Waiting:0|t",
+	["/attacktarget "] = "|TInterface\\CURSOR\\Attack:0|t",
+
+	["%T "] = "|TInterface\\MINIMAP\\TRACKING\\Target:0|t",
+	["%T"]  = "|TInterface\\MINIMAP\\TRACKING\\Target:0|t",
+	["%F "] = "|TInterface\\MINIMAP\\TRACKING\\Focus:0|t",
+	["%F"]  = "|TInterface\\MINIMAP\\TRACKING\\Focus:0|t",
+
+	["/s "] = "/s",
+	["/p "] = "/p",
+	["/i "] = "/i",
+	["/g "] = "/g",
+	["/y "] = "/y",
+	["/w "] = "/w",
+	["/e "] = "/e",
+	["/r "] = "/r",
+}
+
+function env:GetText(text)
+	return self.Markers[text] or text;
+end
+
 ConsolePort:AddVariables({
 	keyboardInsertButton = {Data.Button('PADRSHOULDER');
 		head = 'Keyboard';
@@ -93,5 +132,17 @@ ConsolePort:AddVariables({
 		sort = 7;
 		name = 'Move Right';
 		desc = 'Button to use to move the cursor rightwards.';
+	};
+	keyboardDictPattern = {Data.String("[%a][%w']*[%w]+");
+		head = 'Keyboard';
+		sort = 8;
+		name = 'Dictionary Match Pattern';
+		desc = 'Lua pattern to match words for dictionary lookups.';
+	};
+	keyboardDictAlphabet = {Data.String('abcdefghijklmnopqrstuvwxyz');
+		head = 'Keyboard';
+		sort = 9;
+		name = 'Dictionary Match Alphabet';
+		desc = 'Alphabet to use for dictionary suggestions.';
 	};
 })

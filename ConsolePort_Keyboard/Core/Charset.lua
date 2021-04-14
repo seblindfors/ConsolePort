@@ -1,4 +1,4 @@
-local Radial, _, env = ConsolePortRadial, ...;
+local Radial, Fader, _, env = ConsolePortRadial, ConsolePort:DB('Alpha/Fader'), ...;
 local Key, Charset = {}, {}; env.CharsetMixin = Charset;
 
 ---------------------------------------------------------------
@@ -47,12 +47,16 @@ function Charset:SetState(state)
 	end
 end
 
+function Charset:SetHighlight(enabled)
+	Fader.Toggle(self.Ring, .05, enabled)
+end
+
 ---------------------------------------------------------------
 --
 ---------------------------------------------------------------
 
 function Key:OnLoad()
-	self.Background:SetVertexColor(0, 0, 0, 0.5)
+	self.Background:SetVertexColor(0, 0, 0, 0.75)
 end
 
 function Key:SetData(data)
@@ -60,13 +64,18 @@ function Key:SetData(data)
 end
 
 function Key:GetText()
-	return self.Text:GetText()
+	return self.content;
 end
 
 function Key:SetState(state)
-	self.Text:SetText(self.data[state])
+	self.content = self.data[state];
+	self.Text:SetText(env:GetText(self.content))
 end
 
 function Key:SetFocus(enabled)
-	self.Background:SetVertexColor(0, enabled and 0.5 or 0, 0, 0.5)
+	self.Background:SetVertexColor(0, enabled and 0.5 or 0, 0, 0.75)
+end
+
+function Key:Flash()
+	Fader.Out(self.Ring, .35, 1, 0)
 end
