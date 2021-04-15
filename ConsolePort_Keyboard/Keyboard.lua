@@ -83,6 +83,21 @@ function Keyboard:OnHide()
 	ConsolePortUIHandle:ClearHintsForFrame(self)
 end
 
+function Keyboard:OnTextChanged(text, pos)
+	local word = env.utf8.getword(text, pos);
+	env:GetAutoCorrectSuggestions(word, env.Dictionary, function(result, iterator)
+		print('Suggestions for:', word)
+		local count = 0;
+		for k, v in iterator(result) do
+			count = count + 1;
+			print(k, v)
+			if count > 10 then
+				break
+			end
+		end
+	end)
+end
+
 ---------------------------------------------------------------
 -- Input scripts
 ---------------------------------------------------------------
@@ -152,7 +167,7 @@ function Keyboard:OnDataLoaded(...)
 		ConsolePort_KeyboardDictionary = env.Dictionary:Generate()
 	end
 
-	ConsolePort_KeyboardPrefixTree = env.Dictionary:GenerateTree(ConsolePort_KeyboardDictionary)
+	--ConsolePort_KeyboardPrefixTree = env.Dictionary:GenerateTree(ConsolePort_KeyboardDictionary)
 
 	env.Layout     = ConsolePort_KeyboardLayout;
 	env.Markers    = ConsolePort_KeyboardMarkers;
@@ -211,6 +226,7 @@ Keyboard:EnableGamePadStick(true)
 Keyboard.Arrow:SetSize(50*0.71, 400*0.71)
 Keyboard:SetScript('OnShow', Keyboard.OnShow)
 Keyboard:SetScript('OnHide', Keyboard.OnHide)
+Keyboard:SetScript('OnUpdate', Keyboard.OnUpdate)
 Keyboard:SetScript('OnGamePadStick', Keyboard.OnGamePadStick)
 Keyboard:SetScript('OnGamePadButtonDown', Keyboard.OnGamePadButtonDown)
 CPFocusPoolMixin.CreateFramePool(Keyboard, 'PieMenu', 'ConsolePortKeyboardSet', env.CharsetMixin)

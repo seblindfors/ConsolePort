@@ -35,3 +35,8 @@ function utf8.pos(text, position)
 	end
 	return startIndex - 1;
 end
+
+function utf8.getword(text, position)
+	local altText = text:sub(1, position) .. ('\t') .. text:sub(position + 1);
+	return (altText:sub(altText:find("[%a']*\t[%a']*")):gsub('\t', ''))
+end
