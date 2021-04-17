@@ -1,4 +1,4 @@
-local Dictionary, _, env = {}, ...; env.Dictionary = Dictionary;
+local Dictionary, _, env = {}, ...; env.DictHandler = Dictionary;
 ---------------------------------------------------------------
 -- Local resources
 ---------------------------------------------------------------

@@ -10,6 +10,7 @@ function Charset:OnLoad()
 	self.BG:SetPoint('TOPLEFT', -10, 10)
 	self.BG:SetPoint('BOTTOMRIGHT', 10, -10)
 	self.Arrow:SetSize(50*0.52, 400*0.52)
+	self.Arrow:SetDrawLayer('ARTWORK')
 	self.Background:SetVertexColor(0, 0, 0, .25)
 	self:CreateFramePool('ConsolePortKeyboardChar', Key)
 end
@@ -32,12 +33,12 @@ function Charset:OnStickChanged(x, y, len, valid)
 	self:ReflectStickPosition(x, y, len, valid)
 
 	local oldFocusKey = self.focusKey;
-	self.focusKey = valid and self.Registry[Radial:GetIndexForStickPosition(x, y, len, self.numSets)]
+	self.focusKey = valid and self.Registry[Radial:GetIndexForStickPosition(x, y, .5, self.numSets)]
 	if oldFocusKey and oldFocusKey ~= self.focusKey then
 		oldFocusKey:SetFocus(false)
 	end
 	if self.focusKey then
-		self.focusKey:SetFocus(true)
+		self.focusKey:SetFocus(len)
 	end
 end
 
@@ -73,7 +74,7 @@ function Key:SetState(state)
 end
 
 function Key:SetFocus(enabled)
-	self.Background:SetVertexColor(0, enabled and 0.5 or 0, 0, 0.75)
+	self.Background:SetVertexColor(0, enabled or 0, 0, 0.75)
 end
 
 function Key:Flash()

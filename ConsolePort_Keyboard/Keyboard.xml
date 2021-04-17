@@ -24,6 +24,18 @@
 		</Layers>
 	</CheckButton>
 
+	<Button name="ConsolePortKeyboardACButton" virtual="true">
+		<Size x="180" y="20"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Hilite" file="Interface\QuestFrame\UI-QuestTitleHighlight" setAllPoints="true" alphaMode="ADD" alpha="0"/>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontHighlightLarge" justifyH="CENTER" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</Button>
+
 	<PieMenu name="ConsolePortKeyboardSet" virtual="true" registerForClicks="AnyUp">
 		<Size x="160" y="160"/>
 		<Layers>
@@ -46,6 +58,14 @@
 		<Anchors>
 			<Anchor point="CENTER"/>
 		</Anchors>
+		<Frames>
+			<Frame parentKey="AutoCorrectContainer">
+				<Size x="180" y="20"/>
+				<Anchors>
+					<Anchor point="CENTER"/>
+				</Anchors>
+			</Frame>
+		</Frames>
 	</PieMenu>
 
 	<Script file="Keyboard.lua"/>

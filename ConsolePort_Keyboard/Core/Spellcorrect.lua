@@ -1,3 +1,5 @@
+-- Loosely based on https://norvig.com/spell-correct.html
+
 local Scheduler, threads, _, env = CreateFrame('Frame'), {}, ...;
 local THREAD_LOOP_COUNT_MAX = 4000;
 
@@ -99,7 +101,7 @@ local function MatchPartial(prefix, dict, callback)
 	local result, count = {}, 0;
 	for word, weight in pairs(dict) do
 		if word ~= prefix and word:match(prefix) then
-			result[word] = weight;
+			result[word] = weight ^ 2;
 		end
 		count = count + 1;
 		yieldif(count)
@@ -154,6 +156,7 @@ end
 -- Get word suggestions
 ---------------------------------------------------------------
 function env:GetAutoCorrectSuggestions(word, dict, callback)
+	word = word:lower();
 	wipe(threads)
 	GetEdits(word, function(edits)
 		GetPartials(word, dict, function(result)

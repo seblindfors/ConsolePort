@@ -1,9 +1,9 @@
-local Keyboard, Radial, db = CPAPI.EventHandler(ConsolePortKeyboard), ConsolePortRadial, ConsolePort:DB();
+local Keyboard, Radial, db = CPAPI.EventHandler(ConsolePortKeyboard, {'PLAYER_LOGOUT'}), ConsolePortRadial, ConsolePort:DB();
 local L, _, env = db.Locale, ...;
-local VALID_VEC_LEN = 0.5;
+local VALID_VEC_LEN, VALID_DSP_LEN = 0.5, 0.15;
 
 ---------------------------------------------------------------
---
+-- Hardware events
 ---------------------------------------------------------------
 
 function Keyboard:Left(x, y, len)
@@ -25,7 +25,7 @@ end
 
 function Keyboard:Right(x, y, len)
 	if self.focusSet then
-		self.focusSet:OnStickChanged(x, y, len, len > VALID_VEC_LEN)
+		self.focusSet:OnStickChanged(x, y, len, len > VALID_DSP_LEN)
 	end
 	if not self.inputLock and len > VALID_VEC_LEN then
 		self.inputLock = true;
@@ -83,21 +83,6 @@ function Keyboard:OnHide()
 	ConsolePortUIHandle:ClearHintsForFrame(self)
 end
 
-function Keyboard:OnTextChanged(text, pos)
-	local word = env.utf8.getword(text, pos);
-	env:GetAutoCorrectSuggestions(word, env.Dictionary, function(result, iterator)
-		print('Suggestions for:', word)
-		local count = 0;
-		for k, v in iterator(result) do
-			count = count + 1;
-			print(k, v)
-			if count > 10 then
-				break
-			end
-		end
-	end)
-end
-
 ---------------------------------------------------------------
 -- Input scripts
 ---------------------------------------------------------------
@@ -127,6 +112,10 @@ end
 
 function Keyboard:Enter()
 	ExecuteFrameScript(self.focusFrame, 'OnEnterPressed')
+	if self.cachedFocusText then
+		env.DictHandler:Update(env.Dictionary, self.cachedFocusText)
+		self.cachedFocusText = nil;
+	end
 end
 
 function Keyboard:Space()
@@ -150,8 +139,88 @@ function Keyboard:MoveRight()
 	self.focusFrame:SetCursorPosition(utf8.pos(text, marker and pos + 5 or pos + 1))
 end
 
+function Keyboard:PrevWord()
+	self:SetAutoCorrectIndexDelta(-1)
+end
+
+function Keyboard:NextWord()
+	self:SetAutoCorrectIndexDelta(1)
+end
+
 ---------------------------------------------------------------
---
+-- Auto correct handling
+---------------------------------------------------------------
+
+do -- Auto correct suggestion buttons
+	local autoCorrectContainer = Keyboard.AutoCorrectContainer;
+	local autoCorrectPool = CreateFramePool('Button', autoCorrectContainer, 'ConsolePortKeyboardACButton')
+	Keyboard.acWidgets = {};
+
+	local function OnAutoCorrectSuggestionsUpdated(result, iterator)
+		local widgets, i = wipe(Keyboard.acWidgets), 1;
+		for word, weight in iterator(result) do
+			local widget, newObj = autoCorrectPool:Acquire()
+			widget.Text:SetText(word)
+			widget:Show()
+			widgets[i], i = widget, i + 1;
+			if i > 8 then
+				break
+			end
+		end
+
+		autoCorrectContainer:SetHeight(#widgets * 20)
+		local prev;
+		for i, widget in ipairs(widgets) do
+			widget:SetPoint('TOP', prev or autoCorrectContainer, prev and 'BOTTOM' or 'TOP', 0, 0)
+			prev = widget;
+		end
+
+		Keyboard:OnSuggestionsChanged(result, iterator)
+	end
+
+	function Keyboard:OnTextChanged(text, pos)
+		local word = utf8.getword(text, pos);
+		autoCorrectPool:ReleaseAll()
+		env:GetAutoCorrectSuggestions(word, env.Dictionary, OnAutoCorrectSuggestionsUpdated)
+		self.cachedFocusText = text;
+	end
+end
+
+function Keyboard:OnSuggestionsChanged(result, iterator)
+	self.acCurIndex, self.acMaxIndex = 1, #self.acWidgets;
+	self:SetAutoCorrectIndex(self.acCurIndex)
+end
+
+function Keyboard:SetAutoCorrectIndexDelta(delta)
+	if self.acCurIndex and self.acMaxIndex then
+		self:SetAutoCorrectIndex(Clamp(self.acCurIndex + delta, 1, self.acMaxIndex))
+	end
+end
+
+function Keyboard:SetAutoCorrectIndex(index)
+	self.acText, self.acCurIndex = nil, index;
+	for i, widget in ipairs(self.acWidgets) do
+		widget.Hilite:SetAlpha(0)
+	end
+	local widget = self.acWidgets[index];
+	if widget then
+		widget.Hilite:SetAlpha(1)
+		self.acText = widget.Text:GetText()
+	end
+end
+
+function Keyboard:AutoCorrect()
+	if self.acText then
+		local text, word = self.focusFrame:GetText(), self.acText;
+		local _, startPos, endPos = utf8.getword(text, self.focusFrame:GetUTF8CursorPosition())
+		if text and word and startPos and endPos then
+			self.focusFrame:SetText(text:sub(0, startPos - 1) .. word .. text:sub(endPos + 1))
+		end
+	end
+end
+
+---------------------------------------------------------------
+-- Data handling
 ---------------------------------------------------------------
 
 function Keyboard:OnDataLoaded(...)
@@ -164,10 +233,8 @@ function Keyboard:OnDataLoaded(...)
 		ConsolePort_KeyboardMarkers = CopyTable(env.DefaultMarkers)
 	end
 	if not ConsolePort_KeyboardDictionary then
-		ConsolePort_KeyboardDictionary = env.Dictionary:Generate()
+		ConsolePort_KeyboardDictionary = env.DictHandler:Generate()
 	end
-
-	--ConsolePort_KeyboardPrefixTree = env.Dictionary:GenerateTree(ConsolePort_KeyboardDictionary)
 
 	env.Layout     = ConsolePort_KeyboardLayout;
 	env.Markers    = ConsolePort_KeyboardMarkers;
@@ -195,16 +262,20 @@ function Keyboard:OnVariableChanged()
 		[db('keyboardInsertButton')]    = self.Insert;
 		[db('keyboardMoveLeftButton')]  = self.MoveLeft;
 		[db('keyboardMoveRightButton')] = self.MoveRight;
+		[db('keyboardNextWordButton')]  = self.NextWord;
+		[db('keyboardPrevWordButton')]  = self.PrevWord;
+		[db('keyboardAutoCorrButton')]  = self.AutoCorrect;
 	};
 	self.hints = {
-		{L'Enter', db('keyboardEnterButton')};
-		{L'Erase', db('keyboardEraseButton')};
-		{L'Space', db('keyboardSpaceButton')};
-		{L'Escape', db('keyboardEscapeButton')};
-		{L'Insert', db('keyboardInsertButton')};
+		{L'Enter',   db('keyboardEnterButton')};
+		{L'Erase',   db('keyboardEraseButton')};
+		{L'Space',   db('keyboardSpaceButton')};
+		{L'Escape',  db('keyboardEscapeButton')};
+		{L'Insert',  db('keyboardInsertButton')};
+		{L'Correct', db('keyboardAutoCorrButton')};
 	};
 	-- update dictionary pattern
-	env.DictMatchPattern = db('keyboardDictPattern');
+	env.DictMatchPattern  = db('keyboardDictPattern');
 	env.DictMatchAlphabet = db('keyboardDictAlphabet');
 end
 
@@ -218,10 +289,13 @@ db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
 	'Settings/keyboardDictAlphabet'
 );
 
----------------------------------------------------------------
---
----------------------------------------------------------------
+function Keyboard:PLAYER_LOGOUT()
+	env.DictHandler:Normalize(env.Dictionary)
+end
 
+---------------------------------------------------------------
+-- Init
+---------------------------------------------------------------
 Keyboard:EnableGamePadStick(true)
 Keyboard.Arrow:SetSize(50*0.71, 400*0.71)
 Keyboard:SetScript('OnShow', Keyboard.OnShow)
