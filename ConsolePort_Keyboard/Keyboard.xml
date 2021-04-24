@@ -59,7 +59,7 @@
 			<Anchor point="CENTER"/>
 		</Anchors>
 		<Frames>
-			<Frame parentKey="AutoCorrectContainer">
+			<Frame parentKey="WordSuggester">
 				<Size x="180" y="20"/>
 				<Anchors>
 					<Anchor point="CENTER"/>
@@ -67,6 +67,4 @@
 			</Frame>
 		</Frames>
 	</PieMenu>
-
-	<Script file="Keyboard.lua"/>
 </Ui>

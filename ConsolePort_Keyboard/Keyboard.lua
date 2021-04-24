@@ -140,78 +140,17 @@ function Keyboard:MoveRight()
 end
 
 function Keyboard:PrevWord()
-	self:SetAutoCorrectIndexDelta(-1)
+	self.WordSuggester:SetDelta(-1)
 end
 
 function Keyboard:NextWord()
-	self:SetAutoCorrectIndexDelta(1)
+	self.WordSuggester:SetDelta(1)
 end
 
----------------------------------------------------------------
--- Auto correct handling
----------------------------------------------------------------
-
-do -- Auto correct suggestion buttons
-	local autoCorrectContainer = Keyboard.AutoCorrectContainer;
-	local autoCorrectPool = CreateFramePool('Button', autoCorrectContainer, 'ConsolePortKeyboardACButton')
-	Keyboard.acWidgets = {};
-
-	local function OnAutoCorrectSuggestionsUpdated(result, iterator)
-		local widgets, i = wipe(Keyboard.acWidgets), 1;
-		for word, weight in iterator(result) do
-			local widget, newObj = autoCorrectPool:Acquire()
-			widget.Text:SetText(word)
-			widget:Show()
-			widgets[i], i = widget, i + 1;
-			if i > 8 then
-				break
-			end
-		end
-
-		autoCorrectContainer:SetHeight(#widgets * 20)
-		local prev;
-		for i, widget in ipairs(widgets) do
-			widget:SetPoint('TOP', prev or autoCorrectContainer, prev and 'BOTTOM' or 'TOP', 0, 0)
-			prev = widget;
-		end
-
-		Keyboard:OnSuggestionsChanged(result, iterator)
-	end
-
-	function Keyboard:OnTextChanged(text, pos)
-		local word = utf8.getword(text, pos);
-		autoCorrectPool:ReleaseAll()
-		env:GetAutoCorrectSuggestions(word, env.Dictionary, OnAutoCorrectSuggestionsUpdated)
-		self.cachedFocusText = text;
-	end
-end
-
-function Keyboard:OnSuggestionsChanged(result, iterator)
-	self.acCurIndex, self.acMaxIndex = 1, #self.acWidgets;
-	self:SetAutoCorrectIndex(self.acCurIndex)
-end
-
-function Keyboard:SetAutoCorrectIndexDelta(delta)
-	if self.acCurIndex and self.acMaxIndex then
-		self:SetAutoCorrectIndex(Clamp(self.acCurIndex + delta, 1, self.acMaxIndex))
-	end
-end
-
-function Keyboard:SetAutoCorrectIndex(index)
-	self.acText, self.acCurIndex = nil, index;
-	for i, widget in ipairs(self.acWidgets) do
-		widget.Hilite:SetAlpha(0)
-	end
-	local widget = self.acWidgets[index];
-	if widget then
-		widget.Hilite:SetAlpha(1)
-		self.acText = widget.Text:GetText()
-	end
-end
-
-function Keyboard:AutoCorrect()
-	if self.acText then
-		local text, word = self.focusFrame:GetText(), self.acText;
+function Keyboard:SpellCorrect()
+	local word = self.WordSuggester:GetSuggestion()
+	if word then
+		local text = self.focusFrame:GetText()
 		local _, startPos, endPos = utf8.getword(text, self.focusFrame:GetUTF8CursorPosition())
 		if text and word and startPos and endPos then
 			self.focusFrame:SetText(text:sub(0, startPos - 1) .. word .. text:sub(endPos + 1))
@@ -222,6 +161,12 @@ end
 ---------------------------------------------------------------
 -- Data handling
 ---------------------------------------------------------------
+
+function Keyboard:OnTextChanged(text, pos)
+	local word = utf8.getword(text, pos);
+	self.WordSuggester:OnWordChanged(word)
+	self.cachedFocusText = text; -- cache for dictionary
+end
 
 function Keyboard:OnDataLoaded(...)
 	self:OnVariableChanged()
@@ -264,7 +209,7 @@ function Keyboard:OnVariableChanged()
 		[db('keyboardMoveRightButton')] = self.MoveRight;
 		[db('keyboardNextWordButton')]  = self.NextWord;
 		[db('keyboardPrevWordButton')]  = self.PrevWord;
-		[db('keyboardAutoCorrButton')]  = self.AutoCorrect;
+		[db('keyboardAutoCorrButton')]  = self.SpellCorrect;
 	};
 	self.hints = {
 		{L'Enter',   db('keyboardEnterButton')};

@@ -155,7 +155,7 @@ end
 ---------------------------------------------------------------
 -- Get word suggestions
 ---------------------------------------------------------------
-function env:GetAutoCorrectSuggestions(word, dict, callback)
+function env:GetSpellCorrectSuggestions(word, dict, callback)
 	word = word:lower();
 	wipe(threads)
 	GetEdits(word, function(edits)

@@ -15,7 +15,7 @@ Your bindings have been automatically converted to the new native format. You ma
 If you need help during this transitionary period, please visit our Discord server for further assistance:
 ]]
 ---------------------------------------------------------------
--- Upgrade script from Legacy (9.0.1) -> Native (9.0.2)
+-- Upgrade script from Legacy (9.0.1) -> Native (9.0.2+)
 ---------------------------------------------------------------
 DisableAddOn('ConsolePortAdvanced')
 DisableAddOn('ConsolePortBar')
@@ -25,10 +25,29 @@ DisableAddOn('ConsolePortUI_Loot')
 DisableAddOn('ConsolePortUI_Menu')
 
 function UpgradeHandler:OnDataLoaded()
+	-- Clean out old utility ring information
+	local utility = ConsolePortUtility;
+	if utility then
+		local removalPending;
+		for id, ring in pairs(utility) do
+			ring.value = nil; ------\
+			ring.action = nil; ------> old format detection
+			ring.cursorID = nil; ---/
+			if not next(ring) then
+				removalPending = removalPending or {};
+				removalPending[id] = true;
+			end
+		end
+		if removalPending then
+			for id in pairs(removalPending) do
+				utility[id] = nil;
+			end
+		end
+	end
+
 	-- Cleaning out old settings
 	local variables = db.Variables;
 	local function isDeprecated(variable)
-		
 		if variable == 'tutorialProgress'
 			or variable == 'type' -- retain for binding translation
 			or variable:match('^CP_') -- retain modifier setup for binding translation
@@ -36,6 +55,7 @@ function UpgradeHandler:OnDataLoaded()
 		return variables[variable] == nil;
 	end
 
+	-- Look for deprecated settings data
 	local settings = ConsolePortSettings;
 	if not settings then
 		self.OnDataLoaded = nil;
