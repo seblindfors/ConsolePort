@@ -1,5 +1,5 @@
 local Suggester, _, env = ConsolePortKeyboard.WordSuggester, ...;
-local widgetPool, suggestions = CreateFramePool('Button', Suggester, 'ConsolePortKeyboardACButton'), {};
+local widgetPool, suggestions = CreateFramePool('Button', Suggester, 'ConsolePortKeyboardWordButton'), {};
 ---------------------------------------------------------------
 local MAX_DISPLAY_ENTRIES, WIDGET_HEIGHT = 8, 20;
 ---------------------------------------------------------------

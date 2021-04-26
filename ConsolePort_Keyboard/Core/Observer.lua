@@ -1,6 +1,8 @@
 local Keyboard, GetCurrentKeyBoardFocus, bitbor = ConsolePortKeyboard, GetCurrentKeyBoardFocus, bit.bor;
 local IsShiftKeyDown, IsControlKeyDown, IsAltKeyDown = IsShiftKeyDown, IsControlKeyDown, IsAltKeyDown;
-CreateFrame('Frame'):SetScript('OnUpdate', function(self, elapsed)
+local Observer, _, env = CreateFrame('Frame'), ...;
+
+function Observer:OnUpdate(elapsed)
 	local focus = GetCurrentKeyBoardFocus()
 	if focus ~= self.focusFrame then
 		self.focusFrame = focus;
@@ -14,8 +16,14 @@ CreateFrame('Frame'):SetScript('OnUpdate', function(self, elapsed)
 	);
 	local text, pos = focus:GetText(), focus:GetUTF8CursorPosition()
 	if text ~= self.focusText or pos ~= self.focusPos then
-		self.focusText = text;
-		self.focusPos = pos;
+		self.focusText, self.focusPos = text, pos;
 		Keyboard:OnTextChanged(text, pos)
 	end
-end)
+end
+
+function env:ToggleObserver(enabled)
+	Observer:SetScript('OnUpdate', enabled and Observer.OnUpdate or nil)
+	if not enabled then
+		Observer.focusFrame = nil;
+	end
+end

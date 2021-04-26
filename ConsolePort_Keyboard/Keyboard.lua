@@ -185,6 +185,11 @@ function Keyboard:OnDataLoaded(...)
 	env.Markers    = ConsolePort_KeyboardMarkers;
 	env.Dictionary = ConsolePort_KeyboardDictionary;
 
+	env:ToggleObserver(true)
+	self:OnLayoutChanged()
+end
+
+function Keyboard:OnLayoutChanged()
 	self:ReleaseAll()
 	self.numSets = #ConsolePort_KeyboardLayout;
 	for i, set in ipairs(ConsolePort_KeyboardLayout) do
@@ -204,7 +209,6 @@ function Keyboard:OnVariableChanged()
 		[db('keyboardEraseButton')]     = self.Erase;
 		[db('keyboardSpaceButton')]     = self.Space;
 		[db('keyboardEscapeButton')]    = self.Escape;
-		[db('keyboardInsertButton')]    = self.Insert;
 		[db('keyboardMoveLeftButton')]  = self.MoveLeft;
 		[db('keyboardMoveRightButton')] = self.MoveRight;
 		[db('keyboardNextWordButton')]  = self.NextWord;
@@ -216,7 +220,6 @@ function Keyboard:OnVariableChanged()
 		{L'Erase',   db('keyboardEraseButton')};
 		{L'Space',   db('keyboardSpaceButton')};
 		{L'Escape',  db('keyboardEscapeButton')};
-		{L'Insert',  db('keyboardInsertButton')};
 		{L'Correct', db('keyboardAutoCorrButton')};
 	};
 	-- update dictionary pattern
@@ -225,7 +228,6 @@ function Keyboard:OnVariableChanged()
 end
 
 db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
-	'Settings/keyboardInsertButton',
 	'Settings/keyboardEraseButton',
 	'Settings/keyboardEnterButton',
 	'Settings/keyboardSpaceButton',
