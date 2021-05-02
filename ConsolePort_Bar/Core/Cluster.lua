@@ -365,7 +365,7 @@ local function CreateModifierHotkeyFrame(self, num)
 end
 
 local function CreateMainHotkeyFrame(self, id)
-	local hotkey = CreateFrame('Frame', '$parent_HOTKEY', self, 'CPUIActionButtonMainHotkeyTemplate')
+	local hotkey = CreateFrame('Frame', nil, self, 'CPUIActionButtonMainHotkeyTemplate')
 	hotkey.texture:SetTexture(db('Icons/32/'..id))
 	return hotkey
 end
@@ -373,7 +373,7 @@ end
 local function CreateMainShadowFrame(self)
 	-- create this as a separate frame so that drop shadow doesn't overlay modifiers
 	-- note: shadow is child of bar, not of button
-	local shadow = CreateFrame('Frame', self:GetName()..'_SHADOW', env.bar, 'CPUIActionButtonMainShadowTemplate')
+	local shadow = CreateFrame('Frame', nil, env.bar, 'CPUIActionButtonMainShadowTemplate')
 	shadow:SetPoint('CENTER', self, 'CENTER', 0, -6)
 	return shadow
 end

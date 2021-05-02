@@ -125,6 +125,7 @@ end
 
 function Keyboard:Escape()
 	ExecuteFrameScript(self.focusFrame, 'OnEscapePressed')
+	self:OnFocusChanged(nil)
 end
 
 function Keyboard:MoveLeft()
@@ -220,7 +221,7 @@ function Keyboard:OnVariableChanged()
 		{L'Erase',   db('keyboardEraseButton')};
 		{L'Space',   db('keyboardSpaceButton')};
 		{L'Escape',  db('keyboardEscapeButton')};
-		{L'Correct', db('keyboardAutoCorrButton')};
+		{L'Insert',  db('keyboardAutoCorrButton')};
 	};
 	-- update dictionary pattern
 	env.DictMatchPattern  = db('keyboardDictPattern');

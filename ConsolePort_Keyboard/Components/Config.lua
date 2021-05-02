@@ -1,4 +1,4 @@
-local Config, db, _, env, L = {}, ConsolePort:DB(), ...;
+local Config, _, env, L = {}, ...;
 ---------------------------------------------------------------
 local LAYOUT_SET_WIDTH, LAYOUT_ROW_WIDTH, NUM_FIELDS = 700, 600, 8;
 local TABBUTTON_WIDTH, CONTAINER_WIDTH, FIXED_OFFSET = 284, 700, 8;
@@ -481,7 +481,7 @@ function Config:OnHide()
 	env:ToggleObserver(true)
 end
 
-db:RegisterCallback('OnConfigLoaded', function(localEnv, config, env)
+ConsolePort:DB():RegisterCallback('OnConfigLoaded', function(localEnv, config, env)
 	localEnv.config, localEnv.panel, L = env, config, env.L;
 	env.Keyboard = config:CreatePanel({
 		name = L'Keyboard';

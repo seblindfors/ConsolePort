@@ -2,13 +2,27 @@ local Keyboard, GetCurrentKeyBoardFocus, bitbor = ConsolePortKeyboard, GetCurren
 local IsShiftKeyDown, IsControlKeyDown, IsAltKeyDown = IsShiftKeyDown, IsControlKeyDown, IsAltKeyDown;
 local Observer, _, env = CreateFrame('Frame'), ...;
 
-function Observer:OnUpdate(elapsed)
-	local focus = GetCurrentKeyBoardFocus()
-	if focus ~= self.focusFrame then
-		self.focusFrame = focus;
-		Keyboard:OnFocusChanged(focus)
+function Observer:UpdateFocus()
+	local focus = self.forceFrame;
+	if focus == nil then
+		focus = GetCurrentKeyBoardFocus()
 	end
-	if not focus then return end
+
+	local valid = focus and not focus:GetAttribute('hidekeyboard');
+	local changed = focus ~= self.focusFrame;
+	if changed then
+		self.focusFrame = focus;
+	end
+
+	return focus, changed, valid;
+end
+
+function Observer:OnUpdate(elapsed)
+	local focus, changed, valid = self:UpdateFocus()
+	if changed then
+		Keyboard:OnFocusChanged(valid and focus)
+	end
+	if not valid then return end
 	Keyboard:SetState(1 + bitbor(
 		IsShiftKeyDown()   and 0x1 or 0,
 		IsControlKeyDown() and 0x2 or 0,
@@ -19,6 +33,10 @@ function Observer:OnUpdate(elapsed)
 		self.focusText, self.focusPos = text, pos;
 		Keyboard:OnTextChanged(text, pos)
 	end
+end
+
+function Keyboard:ForceFocus(frame)
+	Observer.forceFrame = frame;
 end
 
 function env:ToggleObserver(enabled)

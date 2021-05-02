@@ -74,3 +74,13 @@ function ConsolePort:GetFormattedBindingOwner(bindingID)
 		return self:GetFormattedButtonCombination(key, mod)
 	end
 end
+
+---------------------------------------------------------------
+-- Force focus the keyboard (nil to clear, false to disable kb)
+---------------------------------------------------------------
+function ConsolePort:ForceKeyboardFocus(frame)
+	if ConsolePortKeyboard then
+		ConsolePortKeyboard:ForceFocus(frame)
+		return true;
+	end
+end
