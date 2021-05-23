@@ -9,6 +9,7 @@ local _, db = ...;
 local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
 	'ACTIONBAR_SHOWGRID';
+	'ACTIONBAR_HIDEGRID';
 	'PLAYER_STARTED_MOVING';
 	'CURRENT_SPELL_CAST_CHANGED';
 }))
@@ -17,7 +18,7 @@ local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMo
 -- Upvalues since these will be called/checked frequently
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
-local GetBindingAction, CreateKeyChord = GetBindingAction, CreateKeyChordStringUsingMetaKeyState;
+local GetBindingAction, CreateKeyChord = GetBindingAction, CPAPI.CreateKeyChordStringUsingMetaKeyState;
 local NewTimer, GetMouseFocus = C_Timer.NewTimer, GetMouseFocus;
 local UnitExists, GetSpellInfo = UnitExists, GetSpellInfo;
 local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
@@ -130,6 +131,10 @@ function Mouse:ACTIONBAR_SHOWGRID()
 	self:SetFreeCursor()
 end
 
+function Mouse:ACTIONBAR_HIDEGRID()
+	self:SetCameraControl()
+end
+
 -- Temporary solution to fix problems with casters unable to face
 -- their intended target because of face movement.
 function Mouse:UNIT_SPELLCAST_START()
@@ -176,12 +181,13 @@ function Mouse:CURRENT_SPELL_CAST_CHANGED()
 	elseif (self.reticleOverride ~= nil) then
 		CVar_Sticks:Set(self.reticleOverride)
 		self.reticleOverride = nil;
+		self:SetCameraControl()
 	end
 end
 
 function Mouse:PLAYER_STARTED_MOVING()
 	if db('mouseHideCursorOnMovement') and self:ShouldClearCursorOnMovement() then
-		self:ClearCenteredCursor()
+		self:SetCameraControl()
 	end
 end
 
@@ -229,7 +235,7 @@ function Mouse:ShouldSetCenteredCursor(_)
 	return is(_, RightClick, GamePadControl) and isnt(_, CursorCentered)
 end
 
-function Mouse:ShouldClearCenteredCursor(_)
+function Mouse:ShouldSetCameraControl(_)
 	return is(_, RightClick, GamePadControl, CursorCentered) and isnt(_, MouseOver)
 end
 
@@ -279,25 +285,25 @@ function Mouse:SetFreeCursor()
 end
 
 function Mouse:SetCenteredCursor()
-	self:SetTimer(self.AttemptClearCenteredCursor, db('mouseAutoClearCenter'))
+	self:SetTimer(self.AttemptSetCameraControl, db('mouseAutoClearCenter'))
 	return self
 		:SetCentered(true)
 		:SetCursorControl(false)
 end
 
-function Mouse:ClearCenteredCursor()
-	self:ClearTimer(self.AttemptClearCenteredCursor)
+function Mouse:SetCameraControl()
+	self:ClearTimer(self.AttemptSetCameraControl)
 	return self
 		:SetCentered(false)
 		:SetCursorControl(false)
 end
 
-function Mouse:AttemptClearCenteredCursor(_)
+function Mouse:AttemptSetCameraControl(_)
 	-- TODO: timeout should happen after mouseover ends
 	if is(_, MouseOver) then
-		return self:SetTimer(self.AttemptClearCenteredCursor, db('mouseAutoClearCenter'))
+		return self:SetTimer(self.AttemptSetCameraControl, db('mouseAutoClearCenter'))
 	end
-	return self:ClearCenteredCursor()
+	return self:SetCameraControl()
 end
 
 ---------------------------------------------------------------
@@ -310,8 +316,8 @@ function Mouse:OnGamePadButtonDown(button)
 	if self:ShouldSetCenteredCursor(button) then
 		return self:SetCenteredCursor()
 	end
-	if self:ShouldClearCenteredCursor(button) then
-		return self:ClearCenteredCursor()
+	if self:ShouldSetCameraControl(button) then
+		return self:SetCameraControl()
 	end
 	--[[
 	if self:ShouldFreeCenteredCursor(button) then

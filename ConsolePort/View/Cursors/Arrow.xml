@@ -7,14 +7,14 @@
 		<Size x="32" y="32"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="ArrowNormal" atlas="Navigation-Tracked-Arrow" useAtlasSize="true">
+				<Texture parentKey="ArrowNormal">
 					<Anchors>
 						<Anchor point="TOPLEFT"/>
 					</Anchors>
 				</Texture>
 			</Layer>
 			<Layer level="OVERLAY">
-				<Texture parentKey="ArrowHilite" atlas="Navigation-Tracked-Arrow" useAtlasSize="true" alphaMode="ADD">
+				<Texture parentKey="ArrowHilite" alphaMode="ADD">
 					<Anchors>
 						<Anchor point="TOPLEFT"/>
 					</Anchors>

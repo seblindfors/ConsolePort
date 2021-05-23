@@ -4,9 +4,9 @@ local TempAbility = Mixin(CPAPI.EventHandler(ConsolePortTempAbilityFrame, {
 	'ACTIONBAR_SLOT_CHANGED';
 	'SPELLS_CHANGED';
 	'UPDATE_BONUS_ACTIONBAR';
-	'UPDATE_EXTRA_ACTIONBAR';
-	'UPDATE_VEHICLE_ACTIONBAR';
-	'UPDATE_OVERRIDE_ACTIONBAR';
+	CPAPI.IsRetailVersion and 'UPDATE_OVERRIDE_ACTIONBAR';
+	CPAPI.IsRetailVersion and 'UPDATE_VEHICLE_ACTIONBAR';
+	CPAPI.IsRetailVersion and 'UPDATE_EXTRA_ACTIONBAR';
 }), CPFocusPoolMixin)
 
 local EXTRA_AID, VEHICLE_AID = 169, 133;
@@ -98,7 +98,7 @@ TempAbility.UPDATE_VEHICLE_ACTIONBAR = TempAbility.UPDATE_BONUS_ACTIONBAR;
 TempAbility.UPDATE_OVERRIDE_ACTIONBAR = TempAbility.UPDATE_BONUS_ACTIONBAR;
 
 function TempAbility:SPELLS_CHANGED()
-	local zoneAbilities = C_ZoneAbility.GetActiveAbilities()
+	local zoneAbilities = CPAPI.GetActiveZoneAbilities()
 	table.sort(zoneAbilities, function(lhs, rhs)
 		return lhs.uiPriority < rhs.uiPriority;
 	end)

@@ -1,3 +1,6 @@
+-- Consts
+local MOTION_SICKNESS_CHARACTER_CENTERED = MOTION_SICKNESS_CHARACTER_CENTERED or 'Keep Character Centered';
+local MOTION_SICKNESS_REDUCE_CAMERA_MOTION = MOTION_SICKNESS_REDUCE_CAMERA_MOTION or 'Reduce Camera Motion';
 local unpack, __, db = unpack, ...; __ = 1; local Console = {};
 setfenv(__, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------

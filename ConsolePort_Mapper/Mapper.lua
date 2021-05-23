@@ -569,6 +569,9 @@ function StickConfig:Set(stick, i)
 	self:UpdateFields(stick)
 end
 
+----------------------------------------------------------------
+----------------------------------------------------------------
+----------------------------------------------------------------
 local Config = CreateFromMixins(Wrapper, env.ScaleToContentMixin)
 
 function Config:OnLoad()
@@ -659,6 +662,26 @@ function BlockMixin:OnLoad()
 end
 
 function Panel:OnFirstShow()
+	local function FlyoutPopoutButtonSetReversed(self, isReversed)
+		if ( self:GetParent().verticalFlyout ) then
+			if ( isReversed ) then
+				self:GetNormalTexture():SetTexCoord(0.15625, 0.84375, 0, 0.5);
+				self:GetHighlightTexture():SetTexCoord(0.15625, 0.84375, 0.5, 1);
+			else
+				self:GetNormalTexture():SetTexCoord(0.15625, 0.84375, 0.5, 0);
+				self:GetHighlightTexture():SetTexCoord(0.15625, 0.84375, 1, 0.5);
+			end
+		else
+			if ( isReversed ) then
+				self:GetNormalTexture():SetTexCoord(0.15625, 0, 0.84375, 0, 0.15625, 0.5, 0.84375, 0.5);
+				self:GetHighlightTexture():SetTexCoord(0.15625, 0.5, 0.84375, 0.5, 0.15625, 1, 0.84375, 1);
+			else
+				self:GetNormalTexture():SetTexCoord(0.15625, 0.5, 0.84375, 0.5, 0.15625, 0, 0.84375, 0);
+				self:GetHighlightTexture():SetTexCoord(0.15625, 1, 0.84375, 1, 0.15625, 0.5, 0.84375, 0.5);
+			end
+		end
+	end
+	
 	local config = self:CreateScrollableColumn('Config', {
 		_Mixin = Display;
 		_Width = PANEL_WIDTH;
@@ -695,13 +718,13 @@ function Panel:OnFirstShow()
 					hilite:ClearAllPoints()
 					hilite:SetPoint('CENTER', -1, 0)
 					hilite:SetSize(16, 32)
-					EquipmentFlyoutPopoutButton_SetReversed(self, true)
+					FlyoutPopoutButtonSetReversed(self, true)
 					self:SetFlexibleElement(self:GetParent(), PANEL_WIDTH)
 					self:SetChecked(true)
 				end;
 				_OnClick = function(self)
 					local enabled = self:GetChecked()
-					EquipmentFlyoutPopoutButton_SetReversed(self, self:GetChecked())
+					FlyoutPopoutButtonSetReversed(self, self:GetChecked())
 					self:ToggleFlex(enabled)
 				end;
 			};

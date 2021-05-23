@@ -69,7 +69,7 @@ function CPExpBarMixin:GetPriority()
 end
 
 function CPExpBarMixin:ShouldBeVisible()
-	return not IsPlayerAtEffectiveMaxLevel() and not IsXPUserDisabled()
+	return not IsPlayerAtEffectiveMaxLevel() and not CPAPI.IsXPUserDisabled()
 end
 
 function CPExpBarMixin:Update() 
@@ -277,7 +277,7 @@ function CPExhaustionTickMixin:UpdateTickPosition()
 	end
 
 	-- Hide exhaustion tick if player is max level or XP is turned off
-	if ( IsPlayerAtEffectiveMaxLevel() or IsXPUserDisabled() ) then
+	if ( IsPlayerAtEffectiveMaxLevel() or CPAPI.IsXPUserDisabled() ) then
 		self:Hide()
 	end			
 end
@@ -354,11 +354,11 @@ function CPReputationBarMixin:Update()
 	local name, reaction, minBar, maxBar, value, factionID = GetWatchedFactionInfo()
 	local colorIndex = reaction
 	local isCapped
-	local friendshipID = GetFriendshipReputation(factionID)
+	local friendshipID = CPAPI.GetFriendshipReputation(factionID)
 	
 	if ( self.factionID ~= factionID ) then
 			self.factionID = factionID
-			self.friendshipID = GetFriendshipReputation(factionID)
+			self.friendshipID = CPAPI.GetFriendshipReputation(factionID)
 		end
 	
 	-- do something different for friendships

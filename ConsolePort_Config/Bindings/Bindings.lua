@@ -70,6 +70,26 @@ end
 -- Setting up
 ---------------------------------------------------------------
 function BindingsMixin:OnFirstShow()
+	local function FlyoutPopoutButtonSetReversed(self, isReversed)
+		if ( self:GetParent().verticalFlyout ) then
+			if ( isReversed ) then
+				self:GetNormalTexture():SetTexCoord(0.15625, 0.84375, 0, 0.5);
+				self:GetHighlightTexture():SetTexCoord(0.15625, 0.84375, 0.5, 1);
+			else
+				self:GetNormalTexture():SetTexCoord(0.15625, 0.84375, 0.5, 0);
+				self:GetHighlightTexture():SetTexCoord(0.15625, 0.84375, 1, 0.5);
+			end
+		else
+			if ( isReversed ) then
+				self:GetNormalTexture():SetTexCoord(0.15625, 0, 0.84375, 0, 0.15625, 0.5, 0.84375, 0.5);
+				self:GetHighlightTexture():SetTexCoord(0.15625, 0.5, 0.84375, 0.5, 0.15625, 1, 0.84375, 1);
+			else
+				self:GetNormalTexture():SetTexCoord(0.15625, 0.5, 0.84375, 0.5, 0.15625, 0, 0.84375, 0);
+				self:GetHighlightTexture():SetTexCoord(0.15625, 1, 0.84375, 1, 0.15625, 0.5, 0.84375, 0.5);
+			end
+		end
+	end
+
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
 		_Mixin  = env.ShortcutsMixin;
 		_Width  = 0.01;
@@ -105,12 +125,12 @@ function BindingsMixin:OnFirstShow()
 					hilite:ClearAllPoints()
 					hilite:SetPoint('CENTER', -1, 0)
 					hilite:SetSize(16, 32)
-					EquipmentFlyoutPopoutButton_SetReversed(self, false)
+					FlyoutPopoutButtonSetReversed(self, false)
 					self:SetFlexibleElement(self:GetParent(), self:GetParent().Child)
 				end;
 				_OnClick = function(self)
 					local enabled = self:GetChecked()
-					EquipmentFlyoutPopoutButton_SetReversed(self, self:GetChecked())
+					FlyoutPopoutButtonSetReversed(self, self:GetChecked())
 					self:ToggleFlex(enabled)
 				end;
 			};
@@ -176,8 +196,8 @@ function BindingsMixin:OnFirstShow()
 					_OnLoad = function(self)
 						local normal = self:GetNormalTexture()
 						local hilite = self:GetHighlightTexture()
-						normal:SetTexCoord(34/128, 0, 68/128, 102/128)
-						hilite:SetTexCoord(34/128, 0, 68/128, 102/128)
+						CPAPI.SetAtlas(normal, 'reset-button')
+						CPAPI.SetAtlas(hilite, 'reset-button')
 						normal:ClearAllPoints()
 						hilite:ClearAllPoints()
 						normal:SetPoint('CENTER')
@@ -380,7 +400,7 @@ function BindingsMixin:OnFirstShow()
 					};
 					Catch = {
 						_Type = 'Button';
-						_Setup = 'SharedButtonLargeTemplate';
+						_Setup = CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate';
 						_Point = {'CENTER', '$parent.Change', 'CENTER', 0, 0};
 						_Level = 100;
 						_Size = {260, 50};

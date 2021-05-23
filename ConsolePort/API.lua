@@ -84,3 +84,19 @@ function ConsolePort:ForceKeyboardFocus(frame)
 		return true;
 	end
 end
+
+function ConsolePort:GetKeyboardFocus()
+	if ConsolePortKeyboard then
+		return ConsolePortKeyboard:GetForceFocus()
+	end
+end
+
+---------------------------------------------------------------
+-- Add a new frame to the interface cursor stack
+---------------------------------------------------------------
+function ConsolePort:AddInterfaceCursorFrame(frame)
+	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
+	if object then
+		return db.Stack:AddFrame(object)
+	end
+end

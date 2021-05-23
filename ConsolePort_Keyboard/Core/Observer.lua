@@ -22,7 +22,7 @@ function Observer:OnUpdate(elapsed)
 	if changed then
 		Keyboard:OnFocusChanged(valid and focus)
 	end
-	if not valid then return end
+	if not valid or not Keyboard:IsShown() then return end
 	Keyboard:SetState(1 + bitbor(
 		IsShiftKeyDown()   and 0x1 or 0,
 		IsControlKeyDown() and 0x2 or 0,

@@ -44,6 +44,10 @@ function CPMenuButtonMixin:Image(texture)
 	self.Icon:SetTexture(('Interface\\Icons\\%s'):format(texture))
 end
 
+function CPMenuButtonMixin:CustomImage(texture)
+	self.Icon:SetTexture(texture)
+end
+
 function CPMenuButtonMixin:OnEnter()
 	self:LockHighlight()
 

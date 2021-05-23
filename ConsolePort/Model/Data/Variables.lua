@@ -39,12 +39,12 @@ db:Register('Variables', {
 		name = 'Center Gap';
 		desc = 'Center gap, as fraction of overall crosshair size.';
 	};
-	crosshairThickness = {Number(1, 0.025, true);
+	crosshairThickness = {Number(2, 0.025, true);
 		head = 'Crosshair';
 		sort = 5;
 		name = 'Thickness';
 		desc = 'Thickness in scaled pixel units.';
-		note = 'Value below one may appear interlaced.';
+		note = 'Value below two may appear interlaced or not at all.';
 	};
 	crosshairColor = {Color('ff00fcff');
 		head = 'Crosshair';
@@ -62,7 +62,7 @@ db:Register('Variables', {
 		desc = 'Button or combination used to interact for a given condition. By default, interacts using centered cursor.';
 		note = 'Use a shoulder button combined with crosshair for smooth and precise interactions.';
 	};
-	interactCondition = {String('[vehicleui] nil; [@target,noharm][@target,noexists] TURNORACTION; [@target,harm,dead] INTERACTTARGET; nil');
+	interactCondition = {String('[vehicleui] nil; [@target,noharm][@target,noexists][@target,harm,dead] TURNORACTION; nil');
 		head = INTERACT_OPT;
 		sort = 2;
 		name = 'Interact Condition';
@@ -379,21 +379,27 @@ db:Register('Variables', {
 		name = 'Show All Action Bars';
 		desc = 'Show bonus bar configuration for characters without stances.'
 	};
-	actionPageCondition = {String(nil);
+	disableHotkeyRendering = {Bool(false);
 		head = ADVANCED_OPT;
 		sort = 4;
+		name = 'Disable Hotkey Rendering';
+		desc = 'Disables customization to hotkeys on regular action bar.'
+	};
+	actionPageCondition = {String(nil);
+		head = ADVANCED_OPT;
+		sort = 5;
 		name = 'Action Page Condition';
 		desc = 'Macro condition to evaluate action bar page.';
 	};
 	actionPageResponse = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 5;
+		sort = 6;
 		name = 'Action Page Response';
 		desc = 'Response to condition for custom processing.'
 	};
 	classFileOverride = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 6;
+		sort = 7;
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
 	};

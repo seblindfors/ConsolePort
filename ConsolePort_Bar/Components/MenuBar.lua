@@ -75,7 +75,7 @@ Bar:WrapScript(Eye, 'OnClick', [[
 -- Set up micro button bar
 ---------------------------------------------------------------
 local Menu = MicroButtonAndBagsBar;
-if not Menu then return end
+if not Menu then Bar.MoveMicroButtons = nop; return end
 local fadeEnabled;
 
 local function OnEnter(self)

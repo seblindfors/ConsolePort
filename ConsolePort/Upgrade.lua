@@ -51,6 +51,7 @@ function UpgradeHandler:OnDataLoaded()
 		if variable == 'tutorialProgress'
 			or variable == 'type' -- retain for binding translation
 			or variable:match('^CP_') -- retain modifier setup for binding translation
+			or variable:match('^keyboard')
 			then return false end
 		return variables[variable] == nil;
 	end

@@ -326,9 +326,9 @@ for name, script in pairs({
 		cursor:RunAttribute('ActionPageChanged')
 	]],
 	['_onstate-page'] = [[
-		if HasVehicleActionBar() then
+		if HasVehicleActionBar and HasVehicleActionBar() then
 			newstate = GetVehicleBarIndex()
-		elseif HasOverrideActionBar() then
+		elseif HasOverrideActionBar and HasOverrideActionBar() then
 			newstate = GetOverrideBarIndex()
 		elseif HasTempShapeshiftActionBar() then
 			newstate = GetTempShapeshiftBarIndex()

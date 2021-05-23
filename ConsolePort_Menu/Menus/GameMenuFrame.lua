@@ -6,6 +6,8 @@ do	-- Initiate frame
 	local baseTemplates   = {'CPMenuButtonBaseTemplate', 'SecureActionButtonTemplate'};
 	local hideMenuHook    = {hidemenu = true};
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
+	local IsRetailVersion = CPAPI.IsRetailVersion;
+	local IsClassicVersion = CPAPI.IsClassicVersion;
 
 	LibStub('Carpenter')(Menu, {
 		Character = {
@@ -15,7 +17,7 @@ do	-- Initiate frame
 			_Text  = '|TInterface\\Store\\category-icon-armor:18:18:-4:0:64:64:14:50:14:50|t' .. CHARACTER;
 			{
 				Info = {
-					_ID = 1;
+					_ID    = 1;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
@@ -55,12 +57,12 @@ do	-- Initiate frame
 					};
 				};
 				Inventory = {
-					_ID = 2;
+					_ID    = 2;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Info', 'BOTTOM', 0, 0};
 					_Text  = INVENTORY_TOOLTIP;
-					_Image = 'INV_Misc_Bag_29';
+					_Image = IsRetailVersion and 'INV_Misc_Bag_29' or 'INV_Misc_Bag_08';
 					_Events = {'BAG_UPDATE'};
 					_Attributes = hideMenuHook;
 					_OnClick = ToggleAllBags;
@@ -86,7 +88,7 @@ do	-- Initiate frame
 					};
 				};
 				Spec = {
-					_ID = 3;
+					_ID    = 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Inventory', 'BOTTOM', 0, 0};
@@ -137,7 +139,7 @@ do	-- Initiate frame
 						self.Icon:SetTexture(iconFile)
 						self.Icon:SetTexCoord(unpack(iconTCoords))
 						for _, event in ipairs({
-							'HONOR_LEVEL_UPDATE',
+							IsRetailVersion and 'HONOR_LEVEL_UPDATE',
 							'NEUTRAL_FACTION_SELECT_RESULT',
 							'PLAYER_LEVEL_CHANGED',
 							'PLAYER_SPECIALIZATION_CHANGED',
@@ -150,7 +152,7 @@ do	-- Initiate frame
 					end;
 				};
 				Spellbook = {
-					_ID = 4;
+					_ID    = 4;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Spec', 'BOTTOM', 0, 0};
@@ -162,8 +164,8 @@ do	-- Initiate frame
 						self.Icon:SetTexture([[Interface\Spellbook\Spellbook-Icon]])
 					end;
 				};
-				Collections = {
-					_ID = 5;
+				Collections = IsRetailVersion and {
+					_ID    = 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Spellbook', 'BOTTOM', 0, 0};
@@ -171,6 +173,16 @@ do	-- Initiate frame
 					_RefTo = CollectionsMicroButton;
 					_Image = 'MountJournalPortrait';
 					_Attributes = hideMenuHook;
+				};
+				Keyring = IsClassicVersion and {
+					_ID    = 5;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.Spellbook', 'BOTTOM', 0, 0};
+					_Text  = KEYRING;
+					_RefTo = KeyRingButton;
+					_Attributes = hideMenuHook;
+					_CustomImage = [[Interface\ContainerFrame\KeyRing-Bag-Icon]];
 				};
 			};
 		};
@@ -185,12 +197,23 @@ do	-- Initiate frame
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
-					_Text  = ('%s / %s'):format(WORLD_MAP, QUEST_LOG);
-					_Image = 'INV_Misc_Map02';
+					_Text  = IsRetailVersion and ('%s / %s'):format(WORLD_MAP, QUEST_LOG) or QUEST_LOG;
+					_Image = IsRetailVersion and 'INV_Misc_Map02';
 					_RefTo = QuestLogMicroButton;
 					_Attributes = hideMenuHook;
+					_CustomImage = IsClassicVersion and [[Interface\QUESTFRAME\UI-QuestLog-BookIcon]];
 				};
-				Guide = {
+				WorldMap = IsClassicVersion and {
+					_ID    = 2;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', '$parent.QuestLog', 'BOTTOM', 0, 0};
+					_Text  = WORLD_MAP;
+					_RefTo = WorldMapMicroButton;
+					_Attributes = hideMenuHook;
+					_CustomImage = [[Interface\WorldMap\WorldMap-Icon]];
+				};
+				Guide = IsRetailVersion and {
 					_ID    = 2;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -229,11 +252,11 @@ do	-- Initiate frame
 						};
 					};
 				};
-				Finder = {
+				Finder = IsRetailVersion and {
 					_ID    = 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', '$parent.Guide', 'BOTTOM', 0, 0};
+					_Point = {'TOP', IsRetailVersion and '$parent.Guide' or '$parent.WorldMap', 'BOTTOM', 0, 0};
 					_Text  = DUNGEONS_BUTTON;
 					_RefTo = LFDMicroButton;
 					_Attributes = hideMenuHook;
@@ -242,7 +265,7 @@ do	-- Initiate frame
 						self.Icon:SetTexture([[Interface\LFGFRAME\UI-LFG-PORTRAIT]])
 					end;
 				};
-				Achievements = {
+				Achievements = IsRetailVersion and {
 					_ID    = 4,
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -252,7 +275,7 @@ do	-- Initiate frame
 					_RefTo = AchievementMicroButton;
 					_Attributes = hideMenuHook;
 				},
-				WhatsNew = {
+				WhatsNew = IsRetailVersion and {
 					_ID    = 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -262,15 +285,16 @@ do	-- Initiate frame
 					_Image = 'WoW_Token01';
 				};
 				Shop = {
-					_ID    = 6;
+					_ID    = IsRetailVersion and 6 or 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', '$parent.WhatsNew', 'BOTTOM', 0, 0};
+					_Point = {'TOP', IsRetailVersion and '$parent.WhatsNew' or '$parent.WorldMap', 'BOTTOM', 0, 0};
 					_Text  = BLIZZARD_STORE;
 					_RefTo = GameMenuButtonStore;
-					_Image = 'WoW_Store';
+					_Image = IsRetailVersion and 'WoW_Store';
+					_CustomImage = IsClassicVersion and [[Interface\MERCHANTFRAME\UI-BuyBack-Icon]];
 				};
-				Teleport = {
+				Teleport = IsRetailVersion and {
 					_ID    = 7;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -304,7 +328,7 @@ do	-- Initiate frame
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
 					_Text  = FRIENDS_LIST;
-					_RefTo = QuickJoinToastButton;
+					_RefTo = IsRetailVersion and QuickJoinToastButton or SocialsMicroButton;
 					_Attributes = hideMenuHook;
 					_OnLoad = function(self)
 						CPMenuButtonMixin.OnLoad(self)
@@ -335,12 +359,13 @@ do	-- Initiate frame
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Friends', 'BOTTOM', 0, 0};
-					_Text  = GUILD_AND_COMMUNITIES;
+					_Text  = IsRetailVersion and GUILD_AND_COMMUNITIES or GUILD;
 					_Image = 'Achievement_GuildPerk_EverybodysFriend';
-					_RefTo = GuildMicroButton;
+					_RefTo = IsRetailVersion and GuildMicroButton;
 					_Attributes = hideMenuHook;
+					_OnClick = IsClassicVersion and ToggleGuildFrame;
 				};
-				Calendar = {
+				Calendar = IsRetailVersion and {
 					_ID    = 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -354,10 +379,10 @@ do	-- Initiate frame
 					end;
 				};
 				Raid = {
-					_ID    = 4;
+					_ID    = IsRetailVersion and 4 or 2;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', '$parent.Calendar', 'BOTTOM', 0, 0};
+					_Point = {'TOP', IsRetailVersion and '$parent.Calendar' or '$parent.Guild', 'BOTTOM', 0, 0};
 					_Text  = RAID;
 					_Attributes = hideMenuHook;
 					_OnLoad = function(self)
@@ -367,7 +392,7 @@ do	-- Initiate frame
 					_OnClick = ToggleRaidFrame;
 				};
 				Party = {
-					_ID    = 5;
+					_ID    = IsRetailVersion and 5 or 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Raid', 'BOTTOM', 0, -16};
@@ -382,13 +407,13 @@ do	-- Initiate frame
 					end;
 					_Hooks = {
 						OnShow = function(self)
-							self:SetText(IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
+							self:SetText(CPAPI.IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
 						end;
 						OnClick = function(self)
-							if IsPartyLFG() or IsInLFGDungeon() then
+							if CPAPI.IsPartyLFG() or CPAPI.IsInLFGDungeon() then
 								ConfirmOrLeaveLFGParty()
 							else
-								C_PartyInfo.LeaveParty()
+								CPAPI.LeaveParty()
 							end
 						end;
 					};
@@ -421,7 +446,7 @@ do	-- Initiate frame
 					_Point = {'TOP', '$parent.Return', 'BOTTOM', 0, 0};
 					_Text  = LOGOUT;
 					_RefTo = GameMenuButtonLogout;
-					_Image = 'RaceChange';
+					_Image = IsRetailVersion and 'RaceChange' or 'Spell_Nature_TimeStop';
 				};
 				Exit = {
 					_ID    = 3;
@@ -455,7 +480,7 @@ do	-- Initiate frame
 					_Point = {'TOP', 'parent.Controller', 'BOTTOM', 0, 0};
 					_Text  = SYSTEMOPTIONS_MENU;
 					_RefTo = GameMenuButtonOptions;
-					_Image = 'Pet_Type_Mechanical';
+					_Image = IsRetailVersion and 'Pet_Type_Mechanical' or 'Trade_Engineering';
 				};
 				Interface  = {
 					_ID    = 6;
@@ -488,7 +513,7 @@ do	-- Initiate frame
 					_Point = {'TOP', 'parent.AddOns', 'BOTTOM', 0, -16};
 					_Text  = MACROS;
 					_RefTo = GameMenuButtonMacros;
-					_Image = 'Pet_Type_Magical';
+					_Image = IsRetailVersion and 'Pet_Type_Magical' or 'Trade_Alchemy';
 				};
 				KeyBindings  = {
 					_ID    = 9;
@@ -658,9 +683,11 @@ do	-- Initiate frame
 
 		if not header.soundScriptAdded then
 			header.soundScriptAdded = true;
-			header:HookScript('OnClick', function()
-				PlaySound(SOUNDKIT.UI_COVENANT_ANIMA_DIVERSION_CLOSE, 'Master', false, false)
-			end)
+			if IsRetailVersion then
+				header:HookScript('OnClick', function()
+					PlaySound(SOUNDKIT.UI_COVENANT_ANIMA_DIVERSION_CLOSE, 'Master', false, false)
+				end)
+			end
 		end
 		if (header:GetID() ~= 3) then
 			local point, relativeTo, relativePoint, x = header:GetPoint()

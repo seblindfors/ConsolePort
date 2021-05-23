@@ -1,25 +1,21 @@
 local db = select(2, ...)
 ---------------------------------------------------------------
--- Trackable widget pool
+-- Indexed widget pool
 ---------------------------------------------------------------
-CPFocusPoolMixin = {};
+CPIndexPoolMixin = {};
 
-function CPFocusPoolMixin:OnLoad()
+function CPIndexPoolMixin:OnLoad()
 	self.Registry = {};
 end
 
-function CPFocusPoolMixin:OnPostHide()
-	self.focusIndex = nil;
-end
-
-function CPFocusPoolMixin:CreateFramePool(type, template, mixin, resetterFunc, parent)
+function CPIndexPoolMixin:CreateFramePool(type, template, mixin, resetterFunc, parent)
 	assert(not self.FramePool, 'Frame pool already exists.')
 	self.FramePool = CreateFramePool(type, parent or self, template, resetterFunc)
 	self.FramePoolMixin = mixin;
 	return self.FramePool;
 end
 
-function CPFocusPoolMixin:Acquire(index)
+function CPIndexPoolMixin:Acquire(index)
 	local widget, newObj = self.FramePool:Acquire()
 	if newObj then
 		Mixin(widget, self.FramePoolMixin)
@@ -28,7 +24,7 @@ function CPFocusPoolMixin:Acquire(index)
 	return widget, newObj;
 end
 
-function CPFocusPoolMixin:TryAcquireRegistered(index)
+function CPIndexPoolMixin:TryAcquireRegistered(index)
 	local widget = self.Registry[index];
 	if widget then
 		local pool = self.FramePool;
@@ -42,12 +38,29 @@ function CPFocusPoolMixin:TryAcquireRegistered(index)
 	return self:Acquire(index)
 end
 
-function CPFocusPoolMixin:EnumerateActive()
+function CPIndexPoolMixin:GetObjectByIndex(index)
+	return self.Registry[index];
+end
+
+function CPIndexPoolMixin:EnumerateActive()
 	return self.FramePool:EnumerateActive()
 end
 
-function CPFocusPoolMixin:GetNumActive()
+function CPIndexPoolMixin:GetNumActive()
 	return self.FramePool:GetNumActive()
+end
+
+function CPIndexPoolMixin:ReleaseAll()
+	self.FramePool:ReleaseAll()
+end
+
+---------------------------------------------------------------
+-- Trackable widget pool
+---------------------------------------------------------------
+CPFocusPoolMixin = CreateFromMixins(CPIndexPoolMixin);
+
+function CPFocusPoolMixin:OnPostHide()
+	self.focusIndex = nil;
 end
 
 function CPFocusPoolMixin:GetFocusIndex()
@@ -56,10 +69,6 @@ end
 
 function CPFocusPoolMixin:GetFocusWidget()
 	return self.focusIndex and self.Registry[self.focusIndex]
-end
-
-function CPFocusPoolMixin:ReleaseAll()
-	self.FramePool:ReleaseAll()
 end
 
 function CPFocusPoolMixin:SetFocusByIndex(index)
@@ -82,7 +91,7 @@ end
 CPGradientMixin = {};
 
 function CPGradientMixin:OnLoad()
-	self.VertexColor  = C_ClassColor.GetClassColor(CPAPI.GetClassFile())
+	self.VertexColor  = CPAPI.GetClassColorObject()
 	self.VertexValid  = CreateColor(1, .81, 0, 1)
 	self.VertexOrient = 'VERTICAL';
 end

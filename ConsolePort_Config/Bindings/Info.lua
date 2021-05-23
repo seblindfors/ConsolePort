@@ -173,7 +173,7 @@ function BindingInfo:RenameActionbarCategory(bindings)
 end
 
 function BindingInfo:ConvertTextToBonusBar(text, page, actionID)
-	if (C_ActionBar.GetBonusBarIndexForSlot(actionID) == page) then
+	if (CPAPI.GetBonusBarIndexForSlot(actionID) == page) then
 		for i=1, GetNumShapeshiftForms() do
 			local _, isActive, _, spellID = GetShapeshiftFormInfo(i)
 			if isActive and spellID then
@@ -350,7 +350,8 @@ function BindingInfo:RefreshCollections()
 	end
 
 	-- Mounts
-	do  local mounts, sort = {}, {}
+	if CPAPI.IsRetailVersion then
+		local mounts, sort = {}, {}
 		for i, mountID in pairs(C_MountJournal.GetMountIDs()) do
 			local name, spellID, _, _, isUsable, _, isFavorite = C_MountJournal.GetMountInfoByID(mountID)
 			if isUsable then

@@ -143,14 +143,16 @@ do
 	end
 	AlertFrame:SetPoint('BOTTOM', UIParent, 'BOTTOM', 0, 200)
 
-	if PlayerTalentFrame then
-		PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
-	else
-		hooksecurefunc('TalentFrame_LoadUI', function()
-			if PlayerTalentFrame then
-				PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
-			end 
-		end)
+	if CPAPI.IsRetailVersion then
+		if PlayerTalentFrame then
+			PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+		else
+			hooksecurefunc('TalentFrame_LoadUI', function()
+				if PlayerTalentFrame then
+					PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+				end 
+			end)
+		end
 	end
 
 	if MainMenuBarVehicleLeaveButton then

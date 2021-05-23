@@ -6,11 +6,11 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	'QUEST_WATCH_UPDATE';
 	'QUEST_WATCH_LIST_CHANGED';
 	'UPDATE_BINDINGS';
-	'UPDATE_EXTRA_ACTIONBAR';
+	CPAPI.IsRetailVersion and 'UPDATE_EXTRA_ACTIONBAR';
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
 ---------------------------------------------------------------
-local DEFAULT_SET, EXTRA_ACTION_ID = 1, ExtraActionButton1.action;
+local DEFAULT_SET, EXTRA_ACTION_ID = 1, ExtraActionButton1 and ExtraActionButton1.action or 169;
 ---------------------------------------------------------------
 Utility.Data = {[DEFAULT_SET] = {}};
 Utility:Execute([[DATA = newtable()]])
@@ -482,7 +482,7 @@ function Utility:AutoAssignAction(info, preferredIndex)
 end
 
 function Utility:GetItemForQuestID(questID)
-	local logIndex = C_QuestLog.GetLogIndexForQuestID(questID)
+	local logIndex = CPAPI.GetQuestLogIndexForQuestID(questID)
 	return logIndex and GetQuestLogSpecialItemInfo(logIndex)
 end
 
@@ -546,7 +546,7 @@ function Utility:ParseObservedQuestIDs()
 end
 
 function Utility:AddAllQuestWatchItems()
-	for i=1, C_QuestLog.GetNumQuestWatches() do
+	for i=1, CPAPI.GetNumQuestWatches() do
 		local questID = C_QuestLog.GetQuestIDForQuestWatchIndex(i)
 		self:ToggleQuestWatchItem(questID, true)
 	end
@@ -558,15 +558,17 @@ function Utility:RefreshQuestWatchItems()
 end
 
 function Utility:ToggleExtraActionButton(enabled)
-	if enabled then
-		self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
-	else
-		self:ClearActionByAttribute(DEFAULT_SET, 'action', EXTRA_ACTION_ID)
+	if CPAPI.IsRetailVersion then
+		if enabled then
+			self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
+		else
+			self:ClearActionByAttribute(DEFAULT_SET, 'action', EXTRA_ACTION_ID)
+		end
 	end
 end
 
 function Utility:ToggleZoneAbilities()
-	local zoneAbilities = C_ZoneAbility.GetActiveAbilities()
+	local zoneAbilities = CPAPI.GetActiveZoneAbilities()
 	table.sort(zoneAbilities, function(lhs, rhs)
 		return lhs.uiPriority < rhs.uiPriority;
 	end)
@@ -609,23 +611,23 @@ end
 ---------------------------------------------------------------
 -- Pending action
 ---------------------------------------------------------------
+local function CreatePendingAction(setID, info, enabled)
+	return {
+		setID = setID;
+		info  = info;
+		add   = enabled;
+	};
+end
+
 function Utility:SetPendingAction(setID, info, force)
 	if force or self:IsUniqueAction(setID, info) then
-		self.pendingAction = {
-			setID = setID;
-			info = info;
-			add = true;
-		};
+		self.pendingAction = CreatePendingAction(setID, info, true)
 		return true;
 	end
 end
 
 function Utility:SetPendingRemove(setID, info)
-	self.pendingAction = {
-		setID = setID;
-		info = info;
-		add = false;
-	};
+	self.pendingAction = CreatePendingAction(setID, info, false)
 end
 
 function Utility:HasPendingAction()
@@ -723,7 +725,7 @@ function Button:UpdateAssets()
 	local bg = self.Shadow;
 	bg:ClearAllPoints()
 	if (self:GetAttribute('action') == EXTRA_ACTION_ID) then
-		bg:SetTexture(GetOverrideBarSkin() or 'Interface\\ExtraButton\\Default')
+		bg:SetTexture(CPAPI.GetOverrideBarSkin() or 'Interface\\ExtraButton\\Default')
 		bg:SetSize(256 * 0.8, 128 * 0.8)
 		bg:SetPoint('CENTER', -2, 0)
 	else

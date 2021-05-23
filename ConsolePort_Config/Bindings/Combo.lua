@@ -150,7 +150,7 @@ function Combos:OnShow()
 				local data = env:GetHotkeyData(button, mod, 64, 32)
 				local modstring = '';
 
-				for i, mod in ripairs(data.modifier) do
+				for i, mod in db.table.ripairs(data.modifier) do
 					modstring = modstring .. ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(mod)
 				end
 

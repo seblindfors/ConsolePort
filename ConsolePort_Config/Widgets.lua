@@ -432,7 +432,7 @@ end
 local Select = CreateWidget('Select', Widget, {
 	Popout = {
 		_Type  = 'Frame';
-		_Setup = 'SelectionPopoutWithButtonsAndLabelTemplate';
+		_Setup = 'CPSelectionPopoutWithButtonsAndLabelTemplate';
 		_Point = {'RIGHT', 0, 0};
 	};
 })
@@ -447,7 +447,7 @@ function Select:OnLoad(...)
 		self.moveCursorOnClose = true;
 	end;
 	self.Popout.HidePopout = function(self)
-		SelectionPopoutWithButtonsAndLabelMixin.HidePopout(self)
+		CPSelectionPopoutWithButtonsAndLabelMixin.HidePopout(self)
 		if self.moveCursorOnClose then
 			env.db.Cursor:SetCurrentNode(self.SelectionPopoutButton, true)
 			self.moveCursorOnClose = nil;

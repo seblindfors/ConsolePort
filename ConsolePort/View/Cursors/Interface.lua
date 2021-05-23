@@ -169,18 +169,15 @@ function Cursor:SetCurrentNode(node, assertNotMouse)
 	end
 end
 
-do -- Keep track of cursor state
-	local IsGamePadInUse, IsGamePadCursor = IsGamePadFreelookEnabled, IsGamePadCursorControlEnabled;
-	function Cursor:OnUpdate(elapsed)
-		if self:InCombat() then return end
-		if not self:IsCurrentNodeDrawn() then
-			self:SetFlashNextNode()
-			if not self:Refresh() then
-				self:Hide()
-			end
-		else
-			self:RefreshAnchor()
+function Cursor:OnUpdate(elapsed)
+	if self:InCombat() then return end
+	if not self:IsCurrentNodeDrawn() then
+		self:SetFlashNextNode()
+		if not self:Refresh() then
+			self:Hide()
 		end
+	else
+		self:RefreshAnchor()
 	end
 end
 

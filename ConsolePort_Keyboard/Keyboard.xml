@@ -2,18 +2,25 @@
 ..\FrameXML\UI.xsd">
 
 	<!-- Keyboard frame -->
-	<PieMenu name="ConsolePortKeyboard" parent="UIParent" registerForClicks="AnyUp" hidden="true" frameStrata="TOOLTIP">
+	<PieMenu name="ConsolePortKeyboard" parent="UIParent" hidden="true" frameStrata="TOOLTIP">
 		<Size x="400" y="400"/>
 		<Anchors>
 			<Anchor point="CENTER"/>
 		</Anchors>
 		<Frames>
-			<Frame parentKey="WordSuggester">
+			<Frame parentKey="WordSuggester" frameLevel="1">
 				<Size x="180" y="20"/>
 				<Anchors>
 					<Anchor point="CENTER"/>
 				</Anchors>
 			</Frame>
+			<Button parentKey="Close" setAllPoints="true" frameLevel="10000">
+				<Scripts>
+					<OnClick>
+						self:GetParent():OnFocusChanged(nil);
+					</OnClick>
+				</Scripts>
+			</Button>
 		</Frames>
 	</PieMenu>
 
@@ -31,7 +38,7 @@
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString inherits="GameFontHighlightLarge" justifyH="CENTER" parentKey="Text" setAllPoints="true"/>
-				<Texture parentKey="Ring" atlas="charactercreate-ring-select" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
+				<Texture parentKey="Ring" inherits="CPRingSelectTexture" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-16" y="16"/>
 						<Anchor point="BOTTOMRIGHT" x="16" y="-16"/>
@@ -41,7 +48,7 @@
 		</Layers>
 	</CheckButton>
 
-	<Button name="ConsolePortKeyboardWordButton" virtual="true">
+	<Frame name="ConsolePortKeyboardWordButton" virtual="true">
 		<Size x="180" y="20"/>
 		<Layers>
 			<Layer level="BACKGROUND">
@@ -51,7 +58,7 @@
 				<FontString parentKey="Text" inherits="GameFontHighlightLarge" justifyH="CENTER" setAllPoints="true"/>
 			</Layer>
 		</Layers>
-	</Button>
+	</Frame>
 
 	<PieMenu name="ConsolePortKeyboardSet" virtual="true" registerForClicks="AnyUp">
 		<Size x="160" y="160"/>
@@ -60,7 +67,7 @@
 				<Texture parentKey="Background" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask" setAllPoints="true"/>
 			</Layer>
 			<Layer level="ARTWORK">
-				<Texture parentKey="Ring" atlas="charactercreate-ring-select" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
+				<Texture parentKey="Ring" inherits="CPRingSelectTexture" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-32" y="32"/>
 						<Anchor point="BOTTOMRIGHT" x="32" y="-32"/>

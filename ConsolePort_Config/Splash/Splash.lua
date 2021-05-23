@@ -103,7 +103,7 @@ function NavBarMixin:OnLoad()
 	end
 
 	local baseFrameLevel = self.Home:GetFrameLevel() * 2;
-	for i, button in ripairs(self.Buttons) do
+	for i, button in db.table.ripairs(self.Buttons) do
 		button:SetFrameLevel(baseFrameLevel -i)
 	end
 end
@@ -384,7 +384,7 @@ function Splash:OnFirstShow()
 					};
 					Continue = {
 						_Type  = 'Button';
-						_Setup = 'SharedButtonLargeTemplate';
+						_Setup = CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate';
 						_Text  = CONTINUE;
 						_Size  = {260, 50};
 						_OnClick = SelectNextPanel;

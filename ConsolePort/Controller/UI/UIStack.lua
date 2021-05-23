@@ -231,6 +231,9 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 		for i=1, STATICPOPUP_NUMDIALOGS do
 			self:TryRegisterFrame(_, 'StaticPopup'..i, true)
 		end
+		for i=1, NUM_GROUP_LOOT_FRAMES do
+			self:TryRegisterFrame(_, 'GroupLootFrame'..i, true)
+		end
 		for i, frame in ipairs({
 			---------------------------------
 			'CovenantPreviewFrame';

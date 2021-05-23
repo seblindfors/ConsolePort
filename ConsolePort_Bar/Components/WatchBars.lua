@@ -301,7 +301,7 @@ end
 WBC:OnLoad()
 WBC:AddBarFromTemplate('FRAME', 'CP_ReputationStatusBarTemplate')
 
-if CPAPI:IsRetailVersion() then
+if CPAPI.IsRetailVersion then
 	WBC:AddBarFromTemplate('FRAME', 'HonorStatusBarTemplate')
 	WBC:AddBarFromTemplate('FRAME', 'ArtifactStatusBarTemplate')
 	WBC:AddBarFromTemplate('FRAME', 'AzeriteBarTemplate')

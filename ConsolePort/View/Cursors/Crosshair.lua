@@ -55,7 +55,7 @@ function Crosshair:OnDataLoaded()
 	self.Bottom:SetEndPoint('CENTER', 0, -(w * c))
 
 	local thickness = db('crosshairThickness')
-	local r, g, b, a = CreateColorFromHexString(db('crosshairColor')):GetRGBA()
+	local r, g, b, a = CPAPI.CreateColorFromHexString(db('crosshairColor')):GetRGBA()
 
 	for _, obj in ipairs({'Top', 'Left', 'Right', 'Bottom'}) do
 		local line = self[obj]

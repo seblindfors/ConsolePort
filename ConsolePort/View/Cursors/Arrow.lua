@@ -88,6 +88,14 @@ function CPCursorArrowMixin:OnShow()
 end
 
 function CPCursorArrowMixin:OnLoad()
+	if CPAPI.IsRetailVersion then
+		self.ArrowNormal:SetAtlas('Navigation-Tracked-Arrow', true)
+		self.ArrowHilite:SetAtlas('Navigation-Tracked-Arrow', true)
+	else
+		self.ArrowNormal:SetTexture([[Interface\WorldMap\WorldMapArrow]])
+		self.ArrowHilite:SetTexture([[Interface\WorldMap\WorldMapArrow]])
+	end
+
 	self:SetRotation(RAD_ARROW_ROTATION)
 	self.animationSpeed  = self.animationSpeed or 8;
 	self.resetAngleSpeed = self.resetAngleSpeed or 16;

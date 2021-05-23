@@ -63,4 +63,6 @@ function db:RunSafe(...)
 end
 
 -- Hook into global events
-hooksecurefunc(EventRegistry, 'TriggerEvent', db.TriggerEvent)
+if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
+	hooksecurefunc(EventRegistry, 'TriggerEvent', db.TriggerEvent)
+end

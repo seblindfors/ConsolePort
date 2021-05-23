@@ -4,6 +4,7 @@ local Overview = CreateFromMixins(CPFocusPoolMixin); env.Overview = Overview;
 -- Consts
 ---------------------------------------------------------------
 local BUTTON_SIZE = 48;
+local WHITE_FONT_COLOR = WHITE_FONT_COLOR or CreateColor(1, 1, 1)
 local Layout = {
 	Anchor = {
 		[0x1] = 'LEFT';
@@ -57,7 +58,7 @@ function Button:OnLoad()
 end
 
 function Button:OnShow()
-	self:UpdateState(CreateKeyChordStringUsingMetaKeyState(''))
+	self:UpdateState(CPAPI.CreateKeyChordStringUsingMetaKeyState(''))
 end
 
 function Button:OnEnter()
@@ -144,7 +145,7 @@ function Button:GetChordBinding(mod)
 end
 
 function Button:GetBinding()
-	return GetBindingAction(CreateKeyChordStringUsingMetaKeyState(self.baseBinding));
+	return GetBindingAction(CPAPI.CreateKeyChordStringUsingMetaKeyState(self.baseBinding));
 end
 
 function Button:GetBaseBinding()
@@ -192,7 +193,7 @@ function Overview:SetDevice(device)
 end
 
 function Overview:OnEvent(_, event)
-	local currentModifier = CreateKeyChordStringUsingMetaKeyState('');
+	local currentModifier = CPAPI.CreateKeyChordStringUsingMetaKeyState('');
 	for widget in self:EnumerateActive() do
 		widget:UpdateState(currentModifier)
 	end

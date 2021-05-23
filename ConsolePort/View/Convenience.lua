@@ -86,7 +86,7 @@ end
 function Handler:MERCHANT_SHOW()
 	self.merchantAvailable = true;
 	if db('autoSellJunk') then
-		ContainerFrameUtil_IteratePlayerInventory(self.SellJunkHelper)
+		CPAPI.IteratePlayerInventory(self.SellJunkHelper)
 	end
 end
 

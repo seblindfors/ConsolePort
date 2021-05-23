@@ -198,6 +198,14 @@ function CPAPI.GetClassColor(classFile)
 	return GetClassColor(classFile or CPAPI.GetClassFile())
 end
 
+function CPAPI.GetClassColorObject(classFile)
+	if C_ClassColor then
+		return C_ClassColor.GetClassColor(classFile or CPAPI.GetClassFile())
+	end
+	local r, g, b = CPAPI.GetClassColor(classFile)
+	return CreateColor(r, g, b)
+end
+
 function CPAPI.GetPlayerName(classColored)
 	local name = UnitName('player')
 	if classColored then
@@ -266,15 +274,15 @@ CPAPI.Backdrops = {
 		bgFile   = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_Noise]]);
 	--	edgeFile = CPAPI.GetAsset([[Textures\Edgefile\EdgeFile_Simple_White_4x32]]);
 		edgeSize = 4;
-		tile = true;
+		tile     = true;
 		insets   = {left = 1, right = 1, top = 1, bottom = 1};
 	};
 	Frame = {
-		bgFile      = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]),
-		edgeFile 	= CPAPI.GetAsset([[Textures\Edgefile\Edgefile.blp]]),
-		edgeSize 	= 8,
-		tile = true,
-		insets 		= {left = 8, right = 8,	top = 8, bottom = 8}
+		bgFile   = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]);
+		edgeFile = CPAPI.GetAsset([[Textures\Edgefile\Edgefile.blp]]);
+		edgeSize = 8;
+		tile     = true;
+		insets   = {left = 8, right = 8, top = 8, bottom = 8};
 	};
 	Simple = {
 	--	bgFile   = CPAPI.GetAsset([[Textures\Frame\Gradient_Alpha_Horizontal]]);
@@ -282,4 +290,84 @@ CPAPI.Backdrops = {
 		edgeSize = 4;
 		insets   = {left = 1, right = 1, top = 1, bottom = 1};
 	};
+	Popup = {
+		bgFile   = CPAPI.GetAsset([[Textures\Frame\Backdrop_Black_Transparent.blp]]);
+		edgeFile = CPAPI.GetAsset([[Textures\Edgefile\EdgefileTalkbox.blp]]);
+		edgeTile = false;
+		edgeSize = 10;
+		insets   = {left = 10, right = 10, top = 10, bottom = 10};
+	};
 }
+
+---------------------------------------------------------------
+-- Asset atlas
+---------------------------------------------------------------
+CPAPI.Atlas = {
+	['banner-bottom'] = {200, 64, 0.89892578125, 0.99658203125, 0.0009765625, 0.0634765625, false, false};
+	['banner-middle'] = {200, 194, 0.41064453125, 0.50830078125, 0.6220703125, 0.8115234375, false, false};
+	['banner-top'] = {200, 49, 0.75146484375, 0.84912109375, 0.0771484375, 0.125, false, false};
+	['gendericon-male'] = {56, 56, 0.10595703125, 0.13330078125, 0.9365234375, 0.9912109375, false, false};
+	['gendericon-female'] = {56, 56, 0.07763671875, 0.10498046875, 0.9365234375, 0.9912109375, false, false};
+	['icon-alliance'] = {184, 200, 0.51318359375, 0.60302734375, 0.0009765625, 0.1962890625, false, false};
+	['icon-customize-accessories-selected'] = {156, 158, 0.13720703125, 0.21337890625, 0.8271484375, 0.9814453125, false, false};
+	['icon-customize-accessories'] = {156, 158, 0.00048828125, 0.07666015625, 0.8271484375, 0.9814453125, false, false};
+	['icon-customize-body-selected'] = {156, 158, 0.51318359375, 0.58935546875, 0.3955078125, 0.5498046875, false, false};
+	['icon-customize-body'] = {156, 158, 0.41064453125, 0.48681640625, 0.8134765625, 0.9677734375, false, false};
+	['icon-customize-hair-selected'] = {208, 210, 0.41064453125, 0.51220703125, 0.0009765625, 0.2060546875, false, false};
+	['icon-customize-hair'] = {208, 210, 0.27392578125, 0.37548828125, 0.7509765625, 0.9560546875, false, false};
+	['icon-customize-head-selected'] = {156, 158, 0.51318359375, 0.58935546875, 0.7080078125, 0.8623046875, false, false};
+	['icon-customize-head'] = {156, 158, 0.51318359375, 0.58935546875, 0.5517578125, 0.7060546875, false, false};
+	['icon-customize-torso-selected'] = {208, 210, 0.41064453125, 0.51220703125, 0.4150390625, 0.6201171875, false, false};
+	['icon-customize-torso'] = {208, 210, 0.41064453125, 0.51220703125, 0.2080078125, 0.4130859375, false, false};
+	['icon-dice'] = {32, 30, 0.21435546875, 0.22998046875, 0.8916015625, 0.9208984375, false, false};
+	['icon-horde'] = {184, 200, 0.51318359375, 0.60302734375, 0.1982421875, 0.3935546875, false, false};
+	['ring-alliance'] = {278, 280, 0.00048828125, 0.13623046875, 0.0009765625, 0.2744140625, false, false};
+	['ring-customizebackground'] = {246, 246, 0.27392578125, 0.39404296875, 0.2763671875, 0.5166015625, false, false};
+	['ring-horde'] = {278, 280, 0.00048828125, 0.13623046875, 0.5517578125, 0.8251953125, false, false};
+	['ring-metaldark'] = {278, 280, 0.13720703125, 0.27294921875, 0.2763671875, 0.5498046875, false, false};
+	['ring-metallight'] = {278, 280, 0.27392578125, 0.40966796875, 0.0009765625, 0.2744140625, false, false};
+	['ring-select'] = {236, 236, 0.27392578125, 0.38916015625, 0.5185546875, 0.7490234375, false, false};
+	['vignette-bottom'] = {1, 577, 0.60400390625, 0.6044921875, 0.15625, 0.7197265625, false, false};
+	['vignette-sides'] = {703, 1, 0.60400390625, 0.947265625, 0.1533203125, 0.154296875, false, false};
+	['vignette-top'] = {1, 451, 0.60546875, 0.60595703125, 0.15625, 0.5966796875, false, false};
+	['ring-alliance-disabled'] = {278, 280, 0.00048828125, 0.13623046875, 0.2763671875, 0.5498046875, false, false};
+	['ring-metaldark-disabled'] = {278, 280, 0.13720703125, 0.27294921875, 0.5517578125, 0.8251953125, false, false};
+	['ring-horde-disabled'] = {278, 280, 0.13720703125, 0.27294921875, 0.0009765625, 0.2744140625, false, false};
+	['tooltip-background'] = {1, 1, 0.044921875, 0.04541015625, 0.9833984375, 0.984375, false, false};
+	['tooltip-corner'] = {68, 68, 0.07763671875, 0.11083984375, 0.8271484375, 0.8935546875, false, false};
+	['tooltip-side'] = {1, 68, 0.21435546875, 0.21484375, 0.9228515625, 0.9892578125, false, false};
+	['tooltip-top'] = {1, 68, 0.2158203125, 0.21630859375, 0.9228515625, 0.9892578125, false, false};
+	['ring-racialtrait'] = {38, 38, 0.11181640625, 0.13037109375, 0.8271484375, 0.8642578125, false, false};
+	['customize-dropdownbox'] = {300, 76, 0.60400390625, 0.75048828125, 0.0009765625, 0.0751953125, false, false};
+	['customize-palette'] = {84, 20, 0.21435546875, 0.25537109375, 0.8271484375, 0.8466796875, false, false};
+	['customize-dropdown-linemouseover-middle'] = {1, 40, 0.13525390625, 0.1357421875, 0.8955078125, 0.9345703125, false, false};
+	['customize-dropdown-linemouseover-side'] = {12, 40, 0.12841796875, 0.13427734375, 0.8955078125, 0.9345703125, false, false};
+	['customize-dropdownbox-hover'] = {300, 76, 0.75146484375, 0.89794921875, 0.0009765625, 0.0751953125, false, false};
+	['customize-dropdownbox-open'] = {300, 76, 0.60400390625, 0.75048828125, 0.0771484375, 0.1513671875, false, false};
+	['customize-palette-selected'] = {102, 40, 0.07763671875, 0.12744140625, 0.8955078125, 0.9345703125, false, false};
+	['customize-palette-glow'] = {84, 20, 0.21435546875, 0.25537109375, 0.8486328125, 0.8681640625, false, false};
+	['customize-palette-half'] = {84, 20, 0.21435546875, 0.25537109375, 0.8701171875, 0.8896484375, false, false};
+	['vignette-sides-widescreen'] = {89, 1, 0.00048828125, 0.0439453125, 0.9833984375, 0.984375, false, false};
+	['reset-button'] = {34, 34, 0.9375, 0.9541015625, 0.94140625, 0.974609375, false, false};
+}
+
+function CPAPI.SetAtlas(object, atlas, useAtlasSize, flipHoriz, flipVert)
+	local atlasInfo = CPAPI.Atlas[atlas];
+	if atlasInfo then
+		local width, height, leftTX, rightTX, topTX, bottomTX,
+			tilesHorizontally, tilesVertically = unpack(atlasInfo)
+		if useAtlasSize then
+			object:SetSize(width, height)
+		end
+		object:SetTexture(CPAPI.GetAsset([[Textures\Frame\General_Atlas]]))
+		object:SetTexCoord(
+			flipHoriz and rightTX or leftTX,
+			flipHoriz and leftTX or rightTX,
+			flipVert and bottomTX or topTX,
+			flipVert and topTX or bottomTX
+		);
+		object:SetHorizTile(tilesHorizontally)
+		object:SetVertTile(tilesVertically)
+		return true;
+	end
+end

@@ -184,6 +184,13 @@ function Cursor:OnDataLoaded()
 	self:SetAttribute('noroute', db('raidCursorDirect'))
 	self:SetAttribute('navmodifier', modifier)
 	self:SetScale(db('raidCursorScale'))
+
+	if CPAPI.IsRetailVersion then
+		self.Arrow:SetAtlas('Navigation-Tracked-Arrow', true)
+	else
+		self.Arrow:SetTexture([[Interface\WorldMap\WorldMapArrow]])
+		self.Arrow:SetSize(24, 24)
+	end
 end
 
 db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
