@@ -357,8 +357,8 @@ function CPReputationBarMixin:Update()
 	local friendshipID = CPAPI.GetFriendshipReputation(factionID)
 	
 	if ( self.factionID ~= factionID ) then
-			self.factionID = factionID
-			self.friendshipID = CPAPI.GetFriendshipReputation(factionID)
+			self.factionID = factionID;
+			self.friendshipID = friendshipID;
 		end
 	
 	-- do something different for friendships

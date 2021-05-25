@@ -7,4 +7,5 @@
 	<Script file="AceSerializer-3.0.lua"/>-->
 	<Script file="ButtonGlow.lua"/>
 	<Script file="ActionButton.lua"/>
+	<Script file="LibUIDropDownMenu.lua"/>
 </Ui>

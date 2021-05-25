@@ -11,6 +11,7 @@ local CursorControl  = IsGamePadCursorControlEnabled;
 function Crosshair:ShouldDraw()
 	return GamePadControl() and not CursorControl() and not GetCVarBool(CVAR_CENTER)
 end
+
 ---------------------------------------------------------------
 -- Move crosshair to position offset
 ---------------------------------------------------------------

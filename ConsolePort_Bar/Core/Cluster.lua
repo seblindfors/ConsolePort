@@ -450,7 +450,7 @@ function HANDLE:SetEligbleForRebind(button, modifier)
 	return 'custom', {
 		tooltip = emulation and ('|cFFFFFFFF%s|r\n%s'):format(emulation.name, emulation.desc) or NOT_BOUND,
 		texture = db('Icons/64/'..button.plainID) or [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
-		func = function() end,
+		func = not emulation and function() env:OpenBindingDropdown(button) end or nop,
 	}
 end
 

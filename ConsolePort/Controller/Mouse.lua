@@ -279,6 +279,7 @@ end
 ---------------------------------------------------------------
 function Mouse:SetFreeCursor()
 	return self
+		:SetFreeLook(true)
 		:SetCentered(false)
 		:SetCursorControl(true)
 		:SetPropagation(false)
@@ -287,6 +288,7 @@ end
 function Mouse:SetCenteredCursor()
 	self:SetTimer(self.AttemptSetCameraControl, db('mouseAutoClearCenter'))
 	return self
+		:SetFreeLook(true)
 		:SetCentered(true)
 		:SetCursorControl(false)
 end
@@ -294,6 +296,7 @@ end
 function Mouse:SetCameraControl()
 	self:ClearTimer(self.AttemptSetCameraControl)
 	return self
+		:SetFreeLook(true)
 		:SetCentered(false)
 		:SetCursorControl(false)
 end
@@ -336,6 +339,7 @@ function Mouse:SetEnabled(enabled)
 	self:EnableGamePadButton(enabled)
 	if enabled then
 		SetCVar('GamePadCursorAutoEnable', 0)
+		SetCVar('CursorFreelookStartDelta', 0.001)
 		SetCVar('GamePadCursorCenteredEmulation', 0)
 	end
 end

@@ -97,6 +97,8 @@ end
 function ConsolePort:AddInterfaceCursorFrame(frame)
 	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
 	if object then
-		return db.Stack:AddFrame(object)
+		local result = db.Stack:AddFrame(object)
+		db.Stack:UpdateFrames()
+		return result;
 	end
 end
