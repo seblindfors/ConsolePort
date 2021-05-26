@@ -491,4 +491,11 @@ db:Register('Variables', {
 		note = BLUE_FONT_COLOR:WrapTextInColorCode('node') .. ' is the current frame under scrutinization.';
 		advd = true;
 	};
+	raidCursorFrameFilters = {String(nil);
+		head = ADVANCED_OPT;
+		sort = 8;
+		name = 'Raid Cursor Frame Filters';
+		desc = 'List of strings (space delmited) to check frame names for to exclude from raid cursor and target unit frames feature. Use /fstack to identify frame names and /reload for changes to take effect';
+		note = 'vuhdo fix: BgBarIcBarHlBarIc';
+	};
 })  --------------------------------------------------------------------------------------------------------

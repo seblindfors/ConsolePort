@@ -46,7 +46,17 @@ Cursor:CreateEnvironment({
 			local unit = node:GetAttribute('unit')
 			local action = node:GetAttribute('action')
 
-			if unit and not action then
+			local name = node:GetName()
+			local excludeFrame = false;
+			if name then
+			  for token in string.gmatch(self:GetAttribute('FrameExcludeStrings'), "[^%s]+") do
+				  if string.find(name,token) then
+					  excludeFrame = true;
+				  end
+		 	  end
+		  end
+			
+			if unit and not action and not excludeFrame then
 				if node:GetRect() and self:Run(filter) then
 					NODES[node] = true;
 					CACHE[node] = true;
@@ -181,6 +191,7 @@ Cursor:CreateEnvironment({
 function Cursor:OnDataLoaded()
 	local modifier = db('raidCursorModifier')
 	modifier = modifier:match('<none>') and '' or modifier..'-';
+	self:SetAttribute('FrameExcludeStrings', db('raidCursorFrameFilters'))
 	self:SetAttribute('noroute', db('raidCursorDirect'))
 	self:SetAttribute('navmodifier', modifier)
 	self:SetAttribute('filter', 'return ' .. (db('raidCursorFilter') or 'true') .. ';') 
