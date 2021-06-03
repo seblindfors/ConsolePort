@@ -74,7 +74,13 @@ Utility:CreateEnvironment({
 	SetRemoveBinding = [[
 		local enabled = ...;
 		if enabled then
-			local binding = self:GetAttribute('removeButton')
+			local binding, trigger = self:GetAttribute('removeButton'), self:GetAttribute('trigger')
+			if trigger and binding and trigger:match(binding) then
+				self:SetAttribute('removeButtonBlocked', true)
+				return self:ClearBindings()
+			end
+
+			self:SetAttribute('removeButtonBlocked', false)
 			local mods = newtable(self:Run(GetModifiersHeld))
 			table.sort(mods)
 			mods[#mods+1] = table.concat(mods)
@@ -243,7 +249,7 @@ function Utility:GetBindingSuffixForSet(setID)
 end
 
 function Utility:GetTooltipRemovePrompt()
-	local removeButton = self:GetAttribute('removeButton')
+	local removeButton = not self:GetAttribute('removeButtonBlocked') and self:GetAttribute('removeButton')
 	local device = db('Gamepad/Active')
 	if removeButton and device then
 		return device:GetTooltipButtonPrompt(removeButton, REMOVE, 64)

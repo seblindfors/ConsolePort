@@ -58,7 +58,7 @@ function Intellisense:ProcessInterfaceClickEvent(script, node)
 			end
 		elseif self:IsModifiedClick() then
 			-- HACK: identify a container slot button
-			if (node.UpdateTooltip == ContainerFrameItemButton_OnUpdate) then
+			if (node.UpdateTooltip and node.UpdateTooltip == ContainerFrameItemButton_OnUpdate) then
 				Intellinode.OnContainerButtonModifiedClick(node, 'LeftButton')
 				return true;
 			end

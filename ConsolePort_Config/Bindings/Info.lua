@@ -113,30 +113,31 @@ function BindingInfo:RefreshDictionary()
 		for i=1, numBindings do
 			local id, header = GetBinding(i)
 
-			-- link binding IDs to their headers
-			headers[id] = header;
+			if not id:match('^HEADER') then
+				-- link binding IDs to their headers
+				headers[id] = header;
 
-			-- NOTE: GetBindingName() is not reliable, use global
-			-- Some bindings are actually subheaders or separators, and
-			-- GetBindingName() can't be verified since it returns the
-			-- original string if it doesn't find a match.
-			local global = self:GetBindingName(id)
-			local name   = global or _G[self.HeaderPrefix:format(id)]
-			local action = self:GetActionButtonID(id)
+				-- NOTE: GetBindingName() is not reliable, use global
+				-- Some bindings are actually subheaders or separators, and
+				-- GetBindingName() can't be verified since it returns the
+				-- original string if it doesn't find a match.
+				local global = self:GetBindingName(id)
+				local name   = global or _G[self.HeaderPrefix:format(id)]
+				local action = self:GetActionButtonID(id)
 
-			if action then
-				self:AddActionbarBinding(name, id, action)
-			elseif header then
-				-- add binding to its designated category table, omit binding index if not an actual binding
-				local title = _G[header] or header;
-				self:AddBindingToCategory(name, id, title)
-			elseif self:IsBindingMissingHeader(id) then
-				-- at this point, the binding definitely belongs in the "Other" category
-				self:AddBindingToCategory(name, id, BINDING_HEADER_OTHER)
+				if action then
+					self:AddActionbarBinding(name, id, action)
+				elseif header then
+					-- add binding to its designated category table, omit binding index if not an actual binding
+					local title = _G[header] or header;
+					self:AddBindingToCategory(name, id, title)
+				elseif self:IsBindingMissingHeader(id) then
+					-- at this point, the binding definitely belongs in the "Other" category
+					self:AddBindingToCategory(name, id, BINDING_HEADER_OTHER)
+				end
 			end
 		end
 		self.DictCounter = numBindings;
-		-- TODO: add custom bindings that we don't show in regular keybinding UI
 		self:RenameActionbarCategory(bindings)
 		self:AssertBindings(bindings)
 	end

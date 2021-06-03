@@ -14,7 +14,7 @@
 		</Anchors>
 	</PieMenu>
 
-	<PieMenu name="ConsolePortPetRing" parent="UIParent" registerForClicks="AnyUp" inherits="ConsolePortSecurePie" hidden="true">
+	<PieMenu name="ConsolePortPetRing" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie" hidden="true">
 		<Size x="500" y="500"/>
 		<Anchors>
 			<Anchor point="CENTER"/>

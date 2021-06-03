@@ -45,6 +45,7 @@ local Spell 	= setmetatable({}, {__index = Generic})
 local Item 		= setmetatable({}, {__index = Generic})
 local Macro 	= setmetatable({}, {__index = Generic})
 local Toy       = setmetatable({}, {__index = Generic})
+local Pet       = setmetatable({}, {__index = Generic})
 local Custom 	= setmetatable({}, {__index = Generic})
 
 local Generic_MT = {__index = Generic}
@@ -53,6 +54,7 @@ local Spell_MT 	 = {__index = Spell}
 local Item_MT 	 = {__index = Item}
 local Macro_MT 	 = {__index = Macro}
 local Toy_MT     = {__index = Toy}
+local Pet_MT     = {__index = Pet}
 local Custom_MT  = {__index = Custom}
 
 local type_meta_map = {
@@ -62,6 +64,7 @@ local type_meta_map = {
 	item   = Item_MT,
 	macro  = Macro_MT,
 	toy    = Toy_MT,
+	pet    = Pet_MT,
 	custom = Custom_MT
 }
 
@@ -609,46 +612,55 @@ function InitializeEventHandler()
 	--------------------------------
 	for _, event in ipairs({
 		----------------------------
-		'PLAYER_ENTERING_WORLD',
-		'ACTIONBAR_SHOWGRID',
-		'ACTIONBAR_HIDEGRID',
 	--	'ACTIONBAR_PAGE_CHANGED',
 	--	'UPDATE_BONUS_ACTIONBAR',
-		'ACTIONBAR_SLOT_CHANGED',
-		'UPDATE_BINDINGS',
 	--	'UPDATE_SHAPESHIFT_FORM',
-		'UPDATE_VEHICLE_ACTIONBAR',
-
+		'ACTIONBAR_HIDEGRID',
+		'ACTIONBAR_SHOWGRID',
+		'ACTIONBAR_SLOT_CHANGED',
+		'ACTIONBAR_UPDATE_COOLDOWN',
 		'ACTIONBAR_UPDATE_STATE',
 		'ACTIONBAR_UPDATE_USABLE',
-		'ACTIONBAR_UPDATE_COOLDOWN',
-		'PLAYER_TARGET_CHANGED',
-		'TRADE_SKILL_SHOW',
-		'TRADE_SKILL_CLOSE',
-		'ARCHAEOLOGY_CLOSED',
-		'PLAYER_ENTER_COMBAT',
-		'PLAYER_LEAVE_COMBAT',
-		'START_AUTOREPEAT_SPELL',
-		'STOP_AUTOREPEAT_SPELL',
-		'UNIT_ENTERED_VEHICLE',
-		'UNIT_EXITED_VEHICLE',
-		'COMPANION_UPDATE',
-		'UNIT_INVENTORY_CHANGED',
-		'LEARNED_SPELL_IN_TAB',
-		'PET_STABLE_UPDATE',
-		'PET_STABLE_SHOW',
-		'SPELL_ACTIVATION_OVERLAY_GLOW_SHOW',
-		'SPELL_ACTIVATION_OVERLAY_GLOW_HIDE',
-		'SPELL_UPDATE_CHARGES',
-		'UPDATE_SUMMONPETS_ACTION',
 
-		-- With those two, do we still need the ACTIONBAR equivalents of them?
-		'SPELL_UPDATE_COOLDOWN',
-		'SPELL_UPDATE_USABLE',
-		'PLAYER_EQUIPMENT_CHANGED',
+		'ARCHAEOLOGY_CLOSED',
+		'COMPANION_UPDATE',
+		'LEARNED_SPELL_IN_TAB',
 
 		'LOSS_OF_CONTROL_ADDED',
 		'LOSS_OF_CONTROL_UPDATE',
+
+		'PET_BAR_UPDATE',
+		'PET_BAR_UPDATE_COOLDOWN',
+
+		'PET_STABLE_SHOW',
+		'PET_STABLE_UPDATE',
+
+		'PLAYER_ENTER_COMBAT',
+		'PLAYER_ENTERING_WORLD',
+		'PLAYER_EQUIPMENT_CHANGED',
+		'PLAYER_LEAVE_COMBAT',
+		'PLAYER_TARGET_CHANGED',
+
+		'SPELL_ACTIVATION_OVERLAY_GLOW_HIDE',
+		'SPELL_ACTIVATION_OVERLAY_GLOW_SHOW',
+
+		'SPELL_UPDATE_CHARGES',
+		'SPELL_UPDATE_COOLDOWN',
+		'SPELL_UPDATE_USABLE',
+
+		'START_AUTOREPEAT_SPELL',
+		'STOP_AUTOREPEAT_SPELL',
+
+		'TRADE_SKILL_CLOSE',
+		'TRADE_SKILL_SHOW',
+
+		'UNIT_ENTERED_VEHICLE',
+		'UNIT_EXITED_VEHICLE',
+		'UNIT_INVENTORY_CHANGED',
+
+		'UPDATE_BINDINGS',
+		'UPDATE_SUMMONPETS_ACTION',
+		'UPDATE_VEHICLE_ACTIONBAR',
 		----------------------------
 	}) do pcall(eventFrame.RegisterEvent, eventFrame, event) end
 	--------------------------------
@@ -742,6 +754,14 @@ function OnEvent(_, event, arg1, ...)
 		end
 	elseif event == 'PET_STABLE_UPDATE' or event == 'PET_STABLE_SHOW' then
 		ForAllButtons(Update)
+	elseif event == 'PET_BAR_UPDATE' then
+		for button in next, NonActionButtons do
+			Update(button)
+		end
+	elseif event == 'PET_BAR_UPDATE_COOLDOWN' then
+		for button in next, NonActionButtons do
+			UpdateCooldown(button)
+		end
 	elseif event == 'SPELL_ACTIVATION_OVERLAY_GLOW_SHOW' then
 		for button in next, ActiveButtons do
 			local spellId = button:GetSpellId()
@@ -985,7 +1005,7 @@ function Update(self)
 	end
 
 	-- Update icon and hotkey
-	local texture = self:GetTexture()
+	local texture, preventTextureUpdate = self:GetTexture()
 
 	-- Draenor zone button handling
 	self.draenorZoneDisabled = false
@@ -1008,14 +1028,13 @@ function Update(self)
 		self.rangeTimer = nil
 	end
 
-	self:SetIcon(texture)
+	if not preventTextureUpdate then
+		self:SetIcon(texture)
+	end
 
 	UpdateCount(self)
-
 	UpdateFlyout(self)
-
 	UpdateOverlayGlow(self)
-
 	UpdateNewAction(self)
 
 	if GameTooltip:GetOwner() == self then
@@ -1299,19 +1318,19 @@ end
 -----------------------------------------------------------
 --- WoW API mapping
 --- Generic Button
-Generic.HasAction               = function(self) return nil end
+Generic.HasAction               = nop;
 Generic.GetActionText           = function(self) return '' end
-Generic.GetTexture              = function(self) return nil end
-Generic.GetCharges              = function(self) return nil end
+Generic.GetTexture              = nop;
+Generic.GetCharges              = nop;
 Generic.GetCount                = function(self) return 0 end
 Generic.GetCooldown             = function(self) return 0, 0, 0 end
-Generic.IsAttack                = function(self) return nil end
-Generic.IsEquipped              = function(self) return nil end
-Generic.IsCurrentlyActive       = function(self) return nil end
-Generic.IsAutoRepeat            = function(self) return nil end
-Generic.IsUsable                = function(self) return nil end
-Generic.IsConsumableOrStackable = function(self) return nil end
-Generic.IsUnitInRange           = function(self, unit) return nil end
+Generic.IsAttack                = nop;
+Generic.IsEquipped              = nop;
+Generic.IsCurrentlyActive       = nop;
+Generic.IsAutoRepeat            = nop;
+Generic.IsUsable                = nop;
+Generic.IsConsumableOrStackable = nop;
+Generic.IsUnitInRange           = nop;
 Generic.IsInRange               = function(self)
 	local unit = self:GetAttribute('unit')
 	if unit == 'player' then
@@ -1322,8 +1341,8 @@ Generic.IsInRange               = function(self)
 	if val == 1 then val = true elseif val == 0 then val = false end
 	return val
 end
-Generic.SetTooltip              = function(self) return nil end
-Generic.GetSpellId              = function(self) return nil end
+Generic.SetTooltip              = nop;
+Generic.GetSpellId              = nop;
 Generic.GetLossOfControlCooldown = function(self) return 0, 0 end
 
 -----------------------------------------------------------
@@ -1368,13 +1387,11 @@ local function getSpellInfo(func, spellID, ...)
 end
 
 Spell.HasAction               = function(self) return true end
-Spell.GetActionText           = function(self) return '' end
-Spell.GetTexture              = function(self) return GetSpellTexture(self._state_action) end
+Spell.GetTexture              = function(self) return (GetSpellTexture(self._state_action)) end
 Spell.GetCharges              = function(self) return GetSpellCharges(self._state_action) end
 Spell.GetCount                = function(self) return GetSpellCount(self._state_action) end
 Spell.GetCooldown             = function(self) return GetSpellCooldown(self._state_action) end
 Spell.IsAttack                = function(self) return getSpellInfo(IsAttackSpell, self._state_action) end
-Spell.IsEquipped              = function(self) return nil end
 Spell.IsCurrentlyActive       = function(self) return IsCurrentSpell(self._state_action) end
 Spell.IsAutoRepeat            = function(self) return getSpellInfo(IsAutoRepeatSpell, self._state_action) end
 Spell.IsUsable                = function(self) return IsUsableSpell(self._state_action) end
@@ -1390,75 +1407,58 @@ local function getItemId(input)
 end
 
 Item.HasAction               = function(self) return true end
-Item.GetActionText           = function(self) return '' end
 Item.GetTexture              = function(self) return GetItemIcon(self._state_action) end
-Item.GetCharges              = function(self) return nil end
 Item.GetCount                = function(self) return GetItemCount(self._state_action, nil, true) end
 Item.GetCooldown             = function(self) return GetItemCooldown(getItemId(self._state_action)) end
-Item.IsAttack                = function(self) return nil end
 Item.IsEquipped              = function(self) return IsEquippedItem(self._state_action) end
 Item.IsCurrentlyActive       = function(self) return IsCurrentItem(self._state_action) end
-Item.IsAutoRepeat            = function(self) return nil end
 Item.IsUsable                = function(self) return IsUsableItem(self._state_action) end
 Item.IsConsumableOrStackable = function(self) return IsConsumableItem(self._state_action) end
 Item.IsUnitInRange           = function(self, unit) return IsItemInRange(self._state_action, unit) end
 Item.SetTooltip              = function(self) return GameTooltip:SetHyperlink(self._state_action) end
-Item.GetSpellId              = function(self) return nil end
 
 -----------------------------------------------------------
 --- Macro Button
 -- TODO: map results of GetMacroSpell/GetMacroItem to proper results
-Macro.HasAction               = function(self) return true end
-Macro.GetActionText           = function(self) return (GetMacroInfo(self._state_action)) end
-Macro.GetTexture              = function(self) return (select(2, GetMacroInfo(self._state_action))) end
-Macro.GetCharges              = function(self) return nil end
-Macro.GetCount                = function(self) return 0 end
-Macro.GetCooldown             = function(self) return 0, 0, 0 end
-Macro.IsAttack                = function(self) return nil end
-Macro.IsEquipped              = function(self) return nil end
-Macro.IsCurrentlyActive       = function(self) return nil end
-Macro.IsAutoRepeat            = function(self) return nil end
-Macro.IsUsable                = function(self) return nil end
-Macro.IsConsumableOrStackable = function(self) return nil end
-Macro.IsUnitInRange           = function(self, unit) return nil end
-Macro.SetTooltip              = function(self) return nil end
-Macro.GetSpellId              = function(self) return nil end
+Macro.HasAction              = function(self) return true end
+Macro.GetActionText          = function(self) return (GetMacroInfo(self._state_action)) end
+Macro.GetTexture             = function(self) return (select(2, GetMacroInfo(self._state_action))) end
+Macro.IsUsable               = function(self) return true end
 
 -----------------------------------------------------------
 --- Toy Button
-Toy.HasAction               = function(self) return true end
-Toy.GetActionText           = function(self) return "" end
-Toy.GetTexture              = function(self) return select(3, C_ToyBox.GetToyInfo(self._state_action)) end
-Toy.GetCharges              = function(self) return nil end
-Toy.GetCount                = function(self) return 0 end
-Toy.GetCooldown             = function(self) return GetItemCooldown(self._state_action) end
-Toy.IsAttack                = function(self) return nil end
-Toy.IsEquipped              = function(self) return nil end
-Toy.IsCurrentlyActive       = function(self) return nil end
-Toy.IsAutoRepeat            = function(self) return nil end
-Toy.IsUsable                = function(self) return nil end
-Toy.IsConsumableOrStackable = function(self) return nil end
-Toy.IsUnitInRange           = function(self, unit) return nil end
-Toy.SetTooltip              = function(self) return GameTooltip:SetToyByItemID(self._state_action) end
-Toy.GetSpellId              = function(self) return nil end
+Toy.HasAction                = function(self) return true end
+Toy.GetTexture               = function(self) return select(3, C_ToyBox.GetToyInfo(self._state_action)) end
+Toy.GetCooldown              = function(self) return GetItemCooldown(self._state_action) end
+Toy.IsUnitInRange            = function(self, unit) return nil end
+Toy.SetTooltip               = function(self) return GameTooltip:SetToyByItemID(self._state_action) end
+
+-----------------------------------------------------------
+--- Pet Button
+Pet.HasAction                = function(self) return true end
+Pet.GetTexture               = function(self)
+	local texture, isToken = select(2, GetPetActionInfo(self._state_action))
+	return isToken and _G[texture] or texture;
+end
+Pet.GetCooldown              = function(self) return GetPetActionCooldown(self._state_action) end
+Pet.IsAttack                 = function(self) return IsPetAttackAction(self._state_action) end
+Pet.IsCurrentlyActive        = function(self) return select(4, GetPetActionInfo(self._state_action)) end
+Pet.IsAutoRepeat             = function(self) return select(6, GetPetActionInfo(self._state_action)) end
+Pet.IsUsable                 = function(self) return GetPetActionSlotUsable(self._state_action) end
+Pet.SetTooltip               = function(self) return GameTooltip:SetPetAction(self._state_action) end
 
 -----------------------------------------------------------
 --- Custom Button
-Custom.HasAction               = function(self) return true end
-Custom.GetActionText           = function(self) return '' end
-Custom.GetTexture              = function(self) return self._state_action.texture end
-Custom.GetCharges              = function(self) return nil end
-Custom.GetCount                = function(self) return 0 end
-Custom.GetCooldown             = function(self) return 0, 0, 0 end
-Custom.IsAttack                = function(self) return nil end
-Custom.IsEquipped              = function(self) return nil end
-Custom.IsCurrentlyActive       = function(self) return nil end
-Custom.IsAutoRepeat            = function(self) return nil end
-Custom.IsUsable                = function(self) return true end
-Custom.IsConsumableOrStackable = function(self) return nil end
-Custom.IsUnitInRange           = function(self, unit) return nil end
-Custom.SetTooltip              = function(self) return GameTooltip:SetText(self._state_action.tooltip) end
-Custom.GetSpellId              = function(self) return nil end
-Custom.RunCustom               = function(self, unit, button) return self._state_action.func(self, unit, button) end
+Custom.HasAction             = function(self) return true end
+Custom.GetTexture            = function(self)
+	local texture = self._state_action.texture
+	if type(texture) == 'function' then
+		return texture(self.icon, self._state_action), true
+	end
+	return texture
+end
+Custom.IsUsable              = function(self) return true end
+Custom.SetTooltip            = function(self) return GameTooltip:SetText(self._state_action.tooltip) end
+Custom.RunCustom             = function(self, unit, button) return self._state_action.func(self, unit, button) end
 
 -----------------------------------------------------------

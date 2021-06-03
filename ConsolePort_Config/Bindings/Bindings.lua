@@ -259,7 +259,7 @@ function BindingsMixin:OnFirstShow()
 					_SetDrawOutline = true;
 					_OnClick = function(self)
 						CPAPI.Popup('ConsolePort_Previous_Keybindings', {
-							text = CONFIRM_RESET_TO_PREVIOUS_KEYBINDINGS;
+							text = CONFIRM_RESET_TO_PREVIOUS_KEYBINDINGS or L'Do you want to reset all keybindings to their previous configurations?';
 							button1 = OKAY;
 							button2 = CANCEL;
 							timeout = 0;

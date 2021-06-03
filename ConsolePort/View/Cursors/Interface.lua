@@ -256,10 +256,10 @@ do  -- Create input proxy for basic controls
 		local node, emubtn, script = self.node, self.emubtn;
 		if node then
 			script =
-				((down == true) and node:GetScript('OnMouseDown')) or
-				((down == false) and node:GetScript('OnMouseUp'));
+				((down == true)  and 'OnMouseDown') or
+				((down == false) and 'OnMouseUp');
 			if script then
-				script(node, emubtn)
+				pcall(ExecuteFrameScript, node, script, emubtn)
 			end
 			if (down and node.OnClick) then
 				node:OnClick(emubtn)

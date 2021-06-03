@@ -52,6 +52,7 @@ do
 	if MainMenuExpBar then MainMenuExpBar:SetParent(UIHider) end
 	if MainMenuBarPerformanceBar then MainMenuBarPerformanceBar:SetParent(UIHider) end
 	if ReputationWatchBar then ReputationWatchBar:SetParent(UIHider) end
+	if MainMenuBarMaxLevelBar then MainMenuBarMaxLevelBar:SetParent(UIHider) end
 
 	local animations = {MainMenuBar.slideOut:GetAnimations()}
 	animations[1]:SetOffset(0,0)

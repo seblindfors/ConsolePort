@@ -359,47 +359,57 @@ db:Register('Variables', {
 		note = 'Action bar is scaled separately.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Advanced:
+	-- Bindings:
 	--------------------------------------------------------------------------------------------------------
 	bindingOverlapEnable = {Bool(false);
-		head = ADVANCED_OPT;
+		head = KEY_BINDINGS_MAC;
 		sort = 1;
 		name = 'Allow Binding Overlap';
-		desc = 'Allow binding multiple combos to the same binding.'
+		desc = 'Allow binding multiple combos to the same binding.';
 	};
 	bindingAllowSticks = {Bool(false);
-		head = ADVANCED_OPT;
+		head = KEY_BINDINGS_MAC;
 		sort = 2;
 		name = 'Allow Radial Bindings';
 		desc = 'Allow binding discrete radial stick inputs.';
 	};
 	bindingShowExtraBars = {Bool(false);
-		head = ADVANCED_OPT;
+		head = KEY_BINDINGS_MAC;
 		sort = 3;
 		name = 'Show All Action Bars';
 		desc = 'Show bonus bar configuration for characters without stances.'
 	};
-	disableHotkeyRendering = {Bool(false);
-		head = ADVANCED_OPT;
+	bindingDisableQuickAssign = {Bool(false);
+		head = KEY_BINDINGS_MAC;
 		sort = 4;
-		name = 'Disable Hotkey Rendering';
-		desc = 'Disables customization to hotkeys on regular action bar.'
+		name = 'Disable Quick Assign';
+		desc = 'Disables quick assign for unbound combinations when using the gamepad action bar.';
+		note = 'Requires reload.';
 	};
+	disableHotkeyRendering = {Bool(false);
+		head = KEY_BINDINGS_MAC;
+		sort = 5;
+		name = 'Disable Hotkey Rendering';
+		desc = 'Disables customization to hotkeys on regular action bar.';
+	};
+	--------------------------------------------------------------------------------------------------------
+	-- Advanced:
+	--------------------------------------------------------------------------------------------------------
 	actionPageCondition = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 5;
+		sort = 1;
 		name = 'Action Page Condition';
 		desc = 'Macro condition to evaluate action bar page.';
 	};
 	actionPageResponse = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 6;
+		sort = 2;
 		name = 'Action Page Response';
-		desc = 'Response to condition for custom processing.'
+		desc = 'Response to condition for custom processing.';
 	};
 	classFileOverride = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 7;
+		sort = 3;
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
 	};

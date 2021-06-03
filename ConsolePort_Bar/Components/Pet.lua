@@ -27,18 +27,16 @@ Pet:SetPoint('TOPRIGHT', 0, 50)
 Pet:SetSize(70, 70)
 
 for _, event in pairs({
-	'PET_BAR_UPDATE_COOLDOWN',
-	'PET_BAR_UPDATE',
-	'PLAYER_CONTROL_LOST',
-	'PLAYER_CONTROL_GAINED',
-	'PLAYER_FARSIGHT_FOCUS_CHANGED',
-	'UNIT_PET',
-	'UNIT_FLAGS',
-	'UNIT_AURA',
-	'UNIT_PORTRAIT_UPDATE',
 	'PET_BAR_UPDATE',
 	'PET_BAR_UPDATE_COOLDOWN',
 	'PET_SPECIALIZATION_CHANGED',
+	'PLAYER_CONTROL_GAINED',
+	'PLAYER_CONTROL_LOST',
+	'PLAYER_FARSIGHT_FOCUS_CHANGED',
+	'UNIT_AURA',
+	'UNIT_FLAGS',
+	'UNIT_PET',
+	'UNIT_PORTRAIT_UPDATE',
 }) do pcall(Pet.RegisterEvent, Pet, event) end
 
 Pet:RegisterForClicks('AnyUp', 'AnyDown')
@@ -162,8 +160,8 @@ do
 
 		local name = addOn..'Pet'..i
 		local button = CreateFrame('CheckButton', name, Pet, 'SecureActionButtonTemplate, PetActionButtonTemplate')
-		button:SetAttribute('type', 'pet')
 		button:RegisterForClicks('LeftButtonUp', 'RightButtonUp', 'MiddleButtonDown', 'MiddleButtonUp')
+		button:SetAttribute('type', 'pet')
 		button:SetAttribute('action', i)
 		button:SetID(i)
 		button:SetScript('OnEnter', nil)
