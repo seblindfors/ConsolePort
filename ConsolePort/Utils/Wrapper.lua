@@ -3,13 +3,8 @@ local _, db = ...; CPAPI = {};
 -- General 
 ---------------------------------------------------------------
 -- return true or nil (nil for dynamic table insertions)
-function CPAPI.IsClassicVersion(...)
-	if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then return true end
-end
-
-function CPAPI.IsRetailVersion(...)
-	if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then return true end
-end
+CPAPI.IsClassicVersion = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or nil;
+CPAPI.IsRetailVersion  = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 
 function CPAPI.Log(...)
 	local cc = ChatTypeInfo.SYSTEM;
@@ -78,3 +73,90 @@ end
 function CPAPI.IsButtonValidForBinding(button)
 	return db('bindingAllowSticks') or (not button:match('PAD.STICK.+'))
 end
+
+---------------------------------------------------------------
+-- Classic lua wrappers
+---------------------------------------------------------------
+CPAPI.CreateColorFromHexString = CreateColorFromHexString or function(hexColor)
+	if #hexColor == 8 then
+		local function ExtractColorValueFromHex(str, index)
+			return tonumber(str:sub(index, index + 1), 16) / 255;
+		end
+		local a, r, g, b =
+			ExtractColorValueFromHex(hexColor, 1),
+			ExtractColorValueFromHex(hexColor, 3),
+			ExtractColorValueFromHex(hexColor, 5),
+			ExtractColorValueFromHex(hexColor, 7);
+		return CreateColor(r, g, b, a);
+	end
+end
+
+CPAPI.CreateKeyChordStringUsingMetaKeyState = CreateKeyChordStringUsingMetaKeyState or function(key)
+	local function CreateKeyChordStringFromTable(keys, preventSort)
+		if not preventSort then
+			table.sort(keys, KeyComparator);
+		end
+
+		return table.concat(keys, "-");
+	end
+
+	local chord = {};
+	if IsAltKeyDown() then
+		table.insert(chord, "ALT");
+	end
+
+	if IsControlKeyDown() then
+		table.insert(chord, "CTRL");
+	end
+
+	if IsShiftKeyDown() then
+		table.insert(chord, "SHIFT");
+	end
+
+	if IsMetaKeyDown() then
+		table.insert(chord, "META");
+	end
+
+	if not IsMetaKey(key) then
+		table.insert(chord, key);
+	end
+
+	local preventSort = true;
+	return CreateKeyChordStringFromTable(chord, preventSort);
+end
+
+CPAPI.IteratePlayerInventory = ContainerFrameUtil_IteratePlayerInventory or function(callback)
+	for bag = 0, NUM_BAG_FRAMES do
+		for slot = 1, MAX_CONTAINER_ITEMS do
+			local bagItem = ItemLocation:CreateFromBagAndSlot(bag, slot);
+			if C_Item.DoesItemExist(bagItem) then
+				callback(bagItem);
+			end
+		end
+	end
+end
+
+CPAPI.OpenStackSplitFrame = OpenStackSplitFrame or function(...)
+	return StackSplitFrame:OpenStackSplitFrame(...)
+end
+
+---------------------------------------------------------------
+-- Classic API wrappers
+---------------------------------------------------------------
+local function nopz() return 0  end;
+local function nopt() return {} end;
+
+CPAPI.GetActiveZoneAbilities = C_ZoneAbility and C_ZoneAbility.GetActiveAbilities or nopt;
+CPAPI.GetBonusBarIndexForSlot = C_ActionBar.GetBonusBarIndexForSlot or nop;
+CPAPI.GetFriendshipReputation = GetFriendshipReputation or nop;
+CPAPI.GetMountFromSpell = C_MountJournal and C_MountJournal.GetMountFromSpell or nop;
+CPAPI.GetMountInfoByID = C_MountJournal and C_MountJournal.GetMountInfoByID or nop;
+CPAPI.GetNumQuestWatches = C_QuestLog.GetNumQuestWatches or nopz;
+CPAPI.GetOverrideBarSkin = GetOverrideBarSkin or nop;
+CPAPI.GetQuestLogIndexForQuestID = C_QuestLog and C_QuestLog.GetLogIndexForQuestID or nop;
+CPAPI.IsInLFGDungeon = IsInLFGDungeon or nop;
+CPAPI.IsPartyLFG = IsPartyLFG or nop;
+CPAPI.IsSpellOverlayed = IsSpellOverlayed or nop;
+CPAPI.IsXPUserDisabled = IsXPUserDisabled or nop;
+CPAPI.LeaveParty = C_PartyInfo and C_PartyInfo.LeaveParty or LeaveParty;
+CPAPI.PutActionInSlot = C_ActionBar and C_ActionBar.PutActionInSlot or PlaceAction;

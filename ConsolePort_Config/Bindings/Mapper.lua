@@ -37,8 +37,8 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 		texture = actionID and GetActionTexture(transposedActionID or actionID)
 
 		-- HACK: handle extra action button 1 case
-		if (transposedActionID == 169) then
-			transposedActionID = nil;
+		if (transposedActionID == 169 or actionID == 169) then
+			transposedActionID, texture = nil, nil;
 		end
 
 		-- Set the text for the transposed action ID, make it clear
@@ -167,7 +167,7 @@ end
 
 function Mapper:OnButtonCaught(button)
 	if CPAPI.IsButtonValidForBinding(button) then
-		self:SetBinding(CreateKeyChordStringUsingMetaKeyState(button))
+		self:SetBinding(CPAPI.CreateKeyChordStringUsingMetaKeyState(button))
 		return true;
 	end
 end
@@ -209,7 +209,7 @@ function Action:OnClick()
 	local actionID = env.Bindings.Mapper.Child.Option.Action.actionID;
 	if pickup and actionID then
 		pickup(self:GetValue())
-		C_ActionBar.PutActionInSlot(actionID)
+		CPAPI.PutActionInSlot(actionID)
 		ClearCursor()
 	end
 	CPIndexButtonMixin.Uncheck(self)
@@ -256,7 +256,7 @@ function Collection:Update()
 	self:ReleaseAll()
 
 	local data = self.data;
-	local prevCol, prevRow;
+	local numRows, prevCol, prevRow = 0;
 
 	for i, item in ipairs(data.items) do
 		local widget, newObj = self:Acquire(i)
@@ -269,21 +269,21 @@ function Collection:Update()
 		widget:Show()
 		if (i == 1) then
 			widget:SetPoint('TOPLEFT', 8, -8)
-			prevRow = widget;
+			prevRow, numRows = widget, 1;
 		elseif (i % self.rowSize == 1) then
 			widget:SetPoint('TOP', prevRow, 'BOTTOM', 0, -6)
-			prevRow = widget;
+			prevRow, numRows = widget, numRows + 1;
 		else
 			widget:SetPoint('LEFT', prevCol, 'RIGHT', 6, 0)
 		end
 		prevCol = widget;
 	end
-
 	self:SetHeight(nil)
 end
 
 function Collection:OnExpand()
 	self.Hilite:Hide()
+	self:ReleaseAll()
 	self:Update()
 end
 
@@ -352,7 +352,7 @@ function ActionMapper:Update(actionID)
 	tooltip:SetAction(actionID)
 	tooltip:Show()
 	if GetActionInfo(actionID) and tooltip:IsShown() then
-		self:SetPoint('TOP', self.Tooltip, 'BOTTOM', 0, -10)
+		self:SetPoint('TOP', option, 'BOTTOM', 0, -10-tooltip:GetHeight())
 		option:SetText(CURRENTLY_EQUIPPED)
 	else
 		self:SetPoint('TOP', option, 'BOTTOM', 0, -10)
@@ -373,12 +373,14 @@ end
 function ActionMapper:OnExpand()
 	self.Hilite:Hide()
 	-- low-prio todo: maybe move these into collections
-	self:RegisterEvent('PET_SPECIALIZATION_CHANGED')
-	self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
-	self:RegisterEvent('PLAYER_PVP_TALENT_UPDATE')
-	self:RegisterEvent('PLAYER_TALENT_UPDATE')
+	if CPAPI.IsRetailVersion then
+		self:RegisterEvent('PET_SPECIALIZATION_CHANGED')
+		self:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+		self:RegisterEvent('PLAYER_PVP_TALENT_UPDATE')
+		self:RegisterEvent('PLAYER_TALENT_UPDATE')
+		self:RegisterEvent('NEW_MOUNT_ADDED')
+	end
 	self:RegisterEvent('BAG_UPDATE_DELAYED')
-	self:RegisterEvent('NEW_MOUNT_ADDED')
 	self:RegisterEvent('UPDATE_MACROS')
 	local prev
 	for i, collection in ipairs(self:GetCollections()) do

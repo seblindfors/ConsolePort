@@ -44,13 +44,18 @@ function CPCursorArrowMixin:SetAngledRotation(rotation)
 end
 
 function CPCursorArrowMixin:OnUpdate(elapsed)
-	local divisor  = self.animationSpeed - elapsed;
-	local parent   = self:GetParent()
+	local divisor = self.animationSpeed - elapsed;
+	local parent  = self:GetParent()
 
 	parent.Blocker:SetShown(IsGamePadInUse() and not IsGamePadCursor())
 
 	local cX, cY = self:GetLeft(), self:GetTop()
 	local nX, nY = Node.GetCenter(parent)
+	
+	if nX and nY then
+		local scaler = UIParent:GetEffectiveScale() / parent:GetEffectiveScale()
+		nX, nY = nX * scaler, nY * scaler;
+	end
 
 	self:ClearAllPoints()
 	if cX and cY and nX and nY then
@@ -63,9 +68,10 @@ function CPCursorArrowMixin:OnUpdate(elapsed)
 			end
 		end
 		self.ArrowHilite:SetAlpha(diff)
+
 		self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT',
-			cX + ((nX - cX) / divisor),
-			cY + ((nY - cY) / divisor)
+			(cX + ((nX - cX) / divisor)),
+			(cY + ((nY - cY) / divisor))
 		);
 	elseif nX and nY then
 		self:SetPoint('TOPLEFT', self:GetParent(), 'CENTER', nX, nY)
@@ -82,6 +88,14 @@ function CPCursorArrowMixin:OnShow()
 end
 
 function CPCursorArrowMixin:OnLoad()
+	if CPAPI.IsRetailVersion then
+		self.ArrowNormal:SetAtlas('Navigation-Tracked-Arrow', true)
+		self.ArrowHilite:SetAtlas('Navigation-Tracked-Arrow', true)
+	else
+		self.ArrowNormal:SetTexture([[Interface\WorldMap\WorldMapArrow]])
+		self.ArrowHilite:SetTexture([[Interface\WorldMap\WorldMapArrow]])
+	end
+
 	self:SetRotation(RAD_ARROW_ROTATION)
 	self.animationSpeed  = self.animationSpeed or 8;
 	self.resetAngleSpeed = self.resetAngleSpeed or 16;

@@ -9,7 +9,7 @@ local r, g, b = CPAPI.NormalizeColor(CPAPI.GetClassColor())
 local defaultIcons
 do  local custom = [[Interface\AddOns\ConsolePort_Bar\Textures\Icons\%s]]
 	local client = [[Interface\Icons\%s]]
-	local isRetail = CPAPI:IsRetailVersion()
+	local isRetail = CPAPI.IsRetailVersion;
 	defaultIcons = {
 	----------------------------
 	JUMP = custom:format('Jump'),

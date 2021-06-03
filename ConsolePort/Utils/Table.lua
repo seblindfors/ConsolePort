@@ -118,6 +118,16 @@ db('table/mpairs', function(t)
 	end)
 end)
 
+db('table/ripairs', ripairs or function(t)
+	local function ripairsiter(t, index)
+		index = index - 1;
+		if index > 0 then
+			return index, t[index];
+		end
+	end
+	return ripairsiter, t, #t + 1;
+end)
+
 db('table/mixin', function(obj, ...)
 	local scriptHandler = (type(obj.HasScript) == 'function')
 	for i = 1, select('#', ...) do

@@ -89,7 +89,7 @@ local Button = Field():SetType('Button');
 function Button:Set(val, force)
 	if force or IsBindingForGamePad(val) then
 		if self:IsModifierAllowed() then
-			return Field.Set(self, CreateKeyChordStringUsingMetaKeyState(val))
+			return Field.Set(self, CPAPI.CreateKeyChordStringUsingMetaKeyState(val))
 		end
 		return Field.Set(self, val)
 	end
@@ -127,7 +127,7 @@ end
 
 function Color:ConvertToRGBA(arg1, ...)
 	if (type(arg1) == 'string') then
-		return CreateColorFromHexString(arg1), true;
+		return CPAPI.CreateColorFromHexString(arg1), true;
 	end
 	return CreateColor(arg1, ...), false;
 end

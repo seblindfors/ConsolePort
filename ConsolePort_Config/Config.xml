@@ -291,7 +291,6 @@
 		</Layers>
 	</IndexButton>
 
-
 	<Button name="CPConfigNavButtonTemplate" motionScriptsWhileDisabled="true" virtual="true">
 		<Size x="80" y="30"/>
 		<Layers>
@@ -358,6 +357,55 @@
 			</Anchors>
 		</ButtonText>
 	</Button>
+
+	<Slider name="CPConfigAxisTemplate" orientation="VERTICAL" minValue="-1" maxValue="1" valueStep="0.01" defaultValue="0" inherits="BackdropTemplate" virtual="true">
+		<Size x="16" y="128"/>
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="BACKDROP_SLIDER_8_8" type="global"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontNormalSmall">
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="TOP" y="24"/>
+					</Anchors>
+				</FontString>
+				<FontString inherits="GameFontNormalHuge" text="-">
+					<Anchors>
+						<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="0"/>
+					</Anchors>
+					<Color r="1" g="1" b="1" />
+				</FontString>
+				<FontString inherits="GameFontNormalHuge" text="+">
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="TOP" x="0" y="0"/>
+					</Anchors>
+					<Color r="1" g="1" b="1" />
+				</FontString>
+			</Layer>
+		</Layers>
+		<ThumbTexture file="Interface\Buttons\UI-SliderBar-Button-Vertical">
+			<Size x="32" y="32"/>
+		</ThumbTexture>
+	</Slider>
+
+	<Frame name="CPConfigRawButtonTemplate" virtual="true">
+		<Size x="40" y="40"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="State" setAllPoints="true" file="Interface\Masks\CircleMaskScalable">
+					<Color r="0" g="0" b="0" />
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontNormalLarge">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
 
 	<Frame name="ConsolePortConfig" inherits="CPContainerFrameTemplate" parent="UIParent" clampedToScreen="true" hidden="true">
 		<Size x="1000" y="800"/>

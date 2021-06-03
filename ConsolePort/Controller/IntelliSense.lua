@@ -10,12 +10,14 @@ local Intellinode = {};
 
 function Intellisense:OnHintsFocus()
 	if db('mouseHandlingEnabled') then
-		db.Mouse:ClearCenteredCursor()
+		db.Mouse:SetCameraControl()
 	end
 end
 
 function Intellisense:OnNodeLeave()
 	self.dressupItem = nil;
+	self.bagLocation = nil;
+	self.itemLocation = nil;
 	self.inventorySlotID = nil;
 end
 
@@ -35,6 +37,10 @@ function Intellisense:ProcessInterfaceCursorEvent(button, down, node)
 		elseif self.dressupItem then
 			Intellinode.OnDressupButtonModifiedClick(node, 'LeftButton')
 			return true;
+		elseif self.itemLocation then
+			db.ItemMenu:SetItem(self.itemLocation:GetBagAndSlot())
+		elseif self.bagLocation then
+			PickupBagFromSlot(self.bagLocation)
 		elseif db.Utility:HasPendingAction() then
 			return db.Utility:PostPendingAction()
 		end
@@ -52,7 +58,7 @@ function Intellisense:ProcessInterfaceClickEvent(script, node)
 			end
 		elseif self:IsModifiedClick() then
 			-- HACK: identify a container slot button
-			if (node.UpdateTooltip == ContainerFrameItemButton_OnUpdate) then
+			if (node.UpdateTooltip and node.UpdateTooltip == ContainerFrameItemButton_OnUpdate) then
 				Intellinode.OnContainerButtonModifiedClick(node, 'LeftButton')
 				return true;
 			end
@@ -64,6 +70,37 @@ function Intellisense:IsModifiedClick()
 	return next(db.Gamepad:GetModifiersHeld()) ~= nil;
 end
 
+
+---------------------------------------------------------------
+-- Special handling for container item buttons
+---------------------------------------------------------------
+do  local IsWidget, GetID, GetParent, GetScript =
+		C_Widget.IsFrameWidget, UIParent.GetID, UIParent.GetParent, UIParent.GetScript;
+
+	local TryIdentifyContainerSlot = CPAPI.IsRetailVersion and function(node)
+		return node.UpdateTooltip == ContainerFrameItemButton_OnUpdate;
+	end or function(node)
+		return node.UpdateTooltip == ContainerFrameItemButton_OnEnter;
+	end
+
+	local TryIdentifyContainerBag = function(node)
+		return GetScript(node, 'OnEnter') == ContainerFramePortraitButton_OnEnter and GetID(node) ~= 0;
+	end
+
+	function Intellisense:GetItemLocationFromNode(node)
+		return IsWidget(node) and TryIdentifyContainerSlot(node) and
+			ItemLocation:CreateFromBagAndSlot(GetID(GetParent(node)), GetID(node)) or nil;
+	end
+
+	function Intellisense:GetBagLocationFromNode(node)
+		return IsWidget(node) and TryIdentifyContainerBag(node) and
+			ContainerIDToInventoryID(node:GetID());
+	end
+end
+
+---------------------------------------------------------------
+-- Prompts
+---------------------------------------------------------------
 function Intellisense:GetSpecialActionPrompt(text)
 	local device = db('Gamepad/Active')
 	return device and device:GetTooltipButtonPrompt(
@@ -72,7 +109,26 @@ function Intellisense:GetSpecialActionPrompt(text)
 	);
 end
 
-function Intellisense:SetPendingActionToUtilityRing(action, tooltip)
+function Intellisense:SetPendingItemMenu(tooltip, itemLocation)
+	self.itemLocation = itemLocation;
+	local prompt = self:GetSpecialActionPrompt(OPTIONS)
+	if prompt then
+		tooltip:AddLine(prompt)
+		tooltip:Show()
+	end
+end
+
+function Intellisense:SetPendingBagPickup(tooltip, bagLocation)
+	self.bagLocation = bagLocation;
+	local prompt = self:GetSpecialActionPrompt(L'Pickup')
+	if prompt then
+		tooltip:AddLine(prompt)
+		tooltip:Show()
+	end
+end
+
+function Intellisense:SetPendingActionToUtilityRing(tooltip, action)
+	self.pendingAction = action;
 	if db.Utility:SetPendingAction(1, action) then
 		if tooltip then
 			local prompt = self:GetSpecialActionPrompt('Add to Utility Ring')
@@ -96,7 +152,7 @@ function Intellisense:SetPendingActionToUtilityRing(action, tooltip)
 	end
 end
 
-function Intellisense:SetPendingDressupItem(item, tooltip)
+function Intellisense:SetPendingDressupItem(tooltip, item)
 	self.dressupItem = item;
 	if tooltip then
 		local prompt = self:GetSpecialActionPrompt(INSPECT)
@@ -107,7 +163,7 @@ function Intellisense:SetPendingDressupItem(item, tooltip)
 	end
 end
 
-function Intellisense:SetPendingInspectItem(item, tooltip)
+function Intellisense:SetPendingInspectItem(tooltip, item)
 	if tonumber(item) then
 		self.inventorySlotID = item;
 		if tooltip then
@@ -122,7 +178,17 @@ function Intellisense:SetPendingInspectItem(item, tooltip)
 end
 
 GameTooltip:HookScript('OnTooltipSetItem', function(self)
-	if not InCombatLockdown() and db.Cursor:IsCurrentNode(self:GetOwner()) then
+	local owner = self:GetOwner()
+	if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
+		local itemLocation = Intellisense:GetItemLocationFromNode(owner)
+		if itemLocation then
+			return Intellisense:SetPendingItemMenu(self, itemLocation)
+		end
+
+		local bagLocation = Intellisense:GetBagLocationFromNode(owner)
+		if bagLocation then
+			return Intellisense:SetPendingBagPickup(self, bagLocation)
+		end
 
 		local name, link = self:GetItem()
 		local numOwned = GetItemCount(link)
@@ -130,12 +196,15 @@ GameTooltip:HookScript('OnTooltipSetItem', function(self)
 		local isEquippable = IsEquippableItem(link)
 
 		if ( GetItemSpell(link) and numOwned > 0 ) then
-			Intellisense:SetPendingActionToUtilityRing(
-				{type = 'item', item = link, link = link}, self);
+			Intellisense:SetPendingActionToUtilityRing(self, {
+				type = 'item',
+				item = link,
+				link = link
+			});
 		elseif isEquippable and not isEquipped then
-			Intellisense:SetPendingDressupItem(link, self);
+			Intellisense:SetPendingDressupItem(self, link);
 		elseif isEquippable and isEquipped then
-			Intellisense:SetPendingInspectItem(self:GetOwner():GetID(), self)
+			Intellisense:SetPendingInspectItem(self, self:GetOwner():GetID())
 		end
 	end
 end)
@@ -146,22 +215,28 @@ GameTooltip:HookScript('OnTooltipSetSpell', function(self)
 		if spellID and not IsPassiveSpell(spellID) then
 			local isKnown = IsSpellKnown(spellID)
 			if not isKnown then
-				local mountID = C_MountJournal.GetMountFromSpell(spellID)
+				local mountID = CPAPI.GetMountFromSpell(spellID)
 				if mountID then
-					isKnown = (select(11, C_MountJournal.GetMountInfoByID(mountID)))
+					isKnown = (select(11, CPAPI.GetMountInfoByID(mountID)))
 					spellID = name;
 				end
 			end
 			if isKnown then
-				Intellisense:SetPendingActionToUtilityRing(
-					{type = 'spell', spell = spellID, link = GetSpellLink(spellID)}, self)
+				Intellisense:SetPendingActionToUtilityRing(self, {
+					type  = 'spell',
+					spell = spellID,
+					link  = GetSpellLink(spellID)
+				});
 			end
 		end
 	end
 end)
 
 GameTooltip:HookScript('OnHide', function(self)
-	db.Utility:ClearPendingAction()
+	if self.pendingAction then
+		db.Utility:ClearPendingAction()
+		self.pendingAction = nil;
+	end
 end)
 
 ---------------------------------------------------------------

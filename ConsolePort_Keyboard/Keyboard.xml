@@ -1,0 +1,179 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<!-- Keyboard frame -->
+	<PieMenu name="ConsolePortKeyboard" parent="UIParent" hidden="true" frameStrata="TOOLTIP">
+		<Size x="400" y="400"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Frames>
+			<Frame parentKey="WordSuggester" frameLevel="1">
+				<Size x="180" y="20"/>
+				<Anchors>
+					<Anchor point="CENTER"/>
+				</Anchors>
+			</Frame>
+			<Button parentKey="Close" setAllPoints="true" frameLevel="10000">
+				<Scripts>
+					<OnClick>
+						self:GetParent():OnFocusChanged(nil);
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</PieMenu>
+
+	<!-- Templates -->
+	<CheckButton name="ConsolePortKeyboardChar" virtual="true" registerForClicks="AnyUp">
+		<Size x="32" y="32"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" file="Interface\CHARACTERFRAME\TempPortraitAlphaMaskSmall">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-4" y="4"/>
+						<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString inherits="GameFontHighlightLarge" justifyH="CENTER" parentKey="Text" setAllPoints="true"/>
+				<Texture parentKey="Ring" inherits="CPRingSelectTexture" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-16" y="16"/>
+						<Anchor point="BOTTOMRIGHT" x="16" y="-16"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<Frame name="ConsolePortKeyboardWordButton" virtual="true">
+		<Size x="180" y="20"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Hilite" file="Interface\QuestFrame\UI-QuestTitleHighlight" setAllPoints="true" alphaMode="ADD" alpha="0"/>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontHighlightLarge" justifyH="CENTER" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<PieMenu name="ConsolePortKeyboardSet" virtual="true" registerForClicks="AnyUp">
+		<Size x="160" y="160"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask" setAllPoints="true"/>
+			</Layer>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Ring" inherits="CPRingSelectTexture" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-32" y="32"/>
+						<Anchor point="BOTTOMRIGHT" x="32" y="-32"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</PieMenu>
+
+
+	<!-- Config templates -->
+	<EditBox name="ConsolePortKeyboardLayoutField" virtual="true" inherits="BackdropTemplate">
+		<Size x="60" y="26"/>
+		<Scripts>
+			<OnLoad>
+				BackdropTemplateMixin.OnBackdropLoaded(self);
+				self:SetScript('OnSizeChanged', BackdropTemplateMixin.OnBackdropSizeChanged);
+				self:SetAutoFocus(false);
+				self:SetFontObject(ChatFontNormal);
+				self:SetTextInsets(8, 8, 0, 0);
+				self:SetBackdrop(CPAPI.Backdrops.Opaque);
+				self:SetBackdropColor(CPIndexButtonMixin.IndexColors.Normal:GetRGBA());
+				self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1);
+				self:EnableMouseWheel(false);
+			</OnLoad>
+		</Scripts>
+	</EditBox>
+
+	<IndexButton name="ConsolePortKeyboardLayoutRow" virtual="true">
+		<Frames>
+			<Button parentKey="Remove" inherits="CPFrameWithTooltipTemplate">
+				<Size x="32" y="20"/>
+				<NormalTexture file="Interface\Buttons\CancelButton-Up"/>
+				<PushedTexture file="Interface\Buttons\CancelButton-Down"/>
+				<DisabledTexture file="Interface\Buttons\CancelButton-Disabled"/>
+				<HighlightTexture file="Interface\Buttons\CancelButton-Highlight" alphaMode="ADD"/>
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="0" y="-8"/>
+				</Anchors>
+				<Scripts>
+					<OnLoad>
+						for _, texture in ipairs({ 
+							self:GetNormalTexture(),
+							self:GetPushedTexture(),
+							self:GetDisabledTexture(),
+							self:GetHighlightTexture()
+						}) do
+							texture:ClearAllPoints();
+							texture:SetTexCoord(0, 1, 0.2, 0.8);
+							texture:SetPoint('CENTER');
+							texture:SetSize(32, 20);
+						end
+					</OnLoad>
+					<OnClick>
+						self:GetParent():RemoveData();
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button parentKey="MoveUp">
+				<Size x="16" y="16"/>
+				<NormalTexture file="Interface\Buttons\Arrow-Up-Up"/>
+				<PushedTexture file="Interface\Buttons\Arrow-Up-Down"/>
+				<DisabledTexture file="Interface\Buttons\Arrow-Up-Disabled"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="8" y="-4"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						self:GetParent():MoveData(-1);
+					</OnClick>
+				</Scripts>
+			</Button>
+			<Button parentKey="MoveDown">
+				<Size x="16" y="16"/>
+				<NormalTexture file="Interface\Buttons\Arrow-Down-Up"/>
+				<PushedTexture file="Interface\Buttons\Arrow-Down-Down"/>
+				<DisabledTexture file="Interface\Buttons\Arrow-Down-Disabled"/>
+				<Anchors>
+					<Anchor relativeKey="$parent.MoveUp" relativePoint="BOTTOM" point="TOP" y="-4"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						self:GetParent():MoveData(1);
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</IndexButton>
+
+	<IndexButton name="ConsolePortKeyboardLayoutSet" virtual="true" inherits="ConsolePortKeyboardLayoutRow">
+		<Frames>
+			<Button parentKey="Add" inherits="CPFrameWithTooltipTemplate">
+				<Size x="20" y="20"/>
+				<NormalTexture file="Interface\Buttons\UI-PlusButton-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-PlusButton-Down"/>
+				<DisabledTexture file="Interface\Buttons\UI-PlusButton-Disabled"/>
+				<HighlightTexture file="Interface\Buttons\UI-PlusButton-Hilight" alphaMode="ADD"/>
+				<Anchors>
+					<Anchor point="TOP" relativeKey="$parent.Remove" relativePoint="BOTTOM" x="2"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						self:GetParent():AddData({});
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+	</IndexButton>
+</Ui>

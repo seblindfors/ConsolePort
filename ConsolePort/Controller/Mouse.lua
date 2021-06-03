@@ -9,6 +9,7 @@ local _, db = ...;
 local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
 	'ACTIONBAR_SHOWGRID';
+	'ACTIONBAR_HIDEGRID';
 	'PLAYER_STARTED_MOVING';
 	'CURRENT_SPELL_CAST_CHANGED';
 }))
@@ -17,7 +18,7 @@ local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMo
 -- Upvalues since these will be called/checked frequently
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
-local GetBindingAction, CreateKeyChord = GetBindingAction, CreateKeyChordStringUsingMetaKeyState;
+local GetBindingAction, CreateKeyChord = GetBindingAction, CPAPI.CreateKeyChordStringUsingMetaKeyState;
 local NewTimer, GetMouseFocus = C_Timer.NewTimer, GetMouseFocus;
 local UnitExists, GetSpellInfo = UnitExists, GetSpellInfo;
 local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
@@ -75,13 +76,13 @@ end
 ---------------------------------------------------------------
 -- Console variables
 ---------------------------------------------------------------
-local CVar_FaceMove = db.Data.Cvar('GamePadFaceMovement')
-local CVar_Follow   = db.Data.Cvar('CameraFollowOnStick')
-local CVar_Sticks   = db.Data.Cvar('GamePadCursorAutoDisableSticks')
-local CVar_Center   = db.Data.Cvar('GamePadCursorCentering')
-local CVar_LClick   = db.Data.Cvar('GamePadCursorLeftClick')
-local CVar_RClick   = db.Data.Cvar('GamePadCursorRightClick')
-local Keys_Escape   = db.Data.Select()
+local CVar_Analog = db.Data.Cvar('GamePadSmoothFacing')
+local CVar_Follow = db.Data.Cvar('CameraFollowOnStick')
+local CVar_Sticks = db.Data.Cvar('GamePadCursorAutoDisableSticks')
+local CVar_Center = db.Data.Cvar('GamePadCursorCentering')
+local CVar_LClick = db.Data.Cvar('GamePadCursorLeftClick')
+local CVar_RClick = db.Data.Cvar('GamePadCursorRightClick')
+local Keys_Escape = db.Data.Select()
 
 ---------------------------------------------------------------
 -- Predicates (should always return boolean)
@@ -114,7 +115,8 @@ end
 local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChord(button)) end;
 local CursorCentered = function() return CVar_Center:Get(true) end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
-local WorldInteract  = function() return TooltipShowing() and GetMouseFocus() == WorldFrame end;
+local IsWorldFocus   = function() return GetMouseFocus() == WorldFrame end;
+local WorldInteract  = function() return TooltipShowing() and IsWorldFocus() end;
 local MouseOver      = function() return UnitExists('mouseover') or WorldInteract() end;
 
 
@@ -129,20 +131,24 @@ function Mouse:ACTIONBAR_SHOWGRID()
 	self:SetFreeCursor()
 end
 
+function Mouse:ACTIONBAR_HIDEGRID()
+	self:SetCameraControl()
+end
+
 -- Temporary solution to fix problems with casters unable to face
 -- their intended target because of face movement.
 function Mouse:UNIT_SPELLCAST_START()
 	if self.fmVehicleOverride then return end;
 	if (self.fmSpellOverride == nil) then
-		self.fmSpellOverride = CVar_FaceMove:Get()
-		CVar_FaceMove:Set(0)
+		self.fmSpellOverride = CVar_Analog:Get()
+		CVar_Analog:Set(0)
 	end
 end
 
 function Mouse:UNIT_SPELLCAST_STOP()
 	if self.fmVehicleOverride then return end;
 	if (self.fmSpellOverride ~= nil) then
-		CVar_FaceMove:Set(self.fmSpellOverride)
+		CVar_Analog:Set(self.fmSpellOverride)
 		self.fmSpellOverride = nil;
 	end
 end
@@ -150,14 +156,14 @@ end
 function Mouse:UNIT_ENTERING_VEHICLE()
 	if (self.fmVehicleOverride == nil) then
 		self:UNIT_SPELLCAST_STOP()
-		self.fmVehicleOverride = CVar_FaceMove:Get()
-		CVar_FaceMove:Set(0)
+		self.fmVehicleOverride = CVar_Analog:Get()
+		CVar_Analog:Set(0)
 	end
 end
 
 function Mouse:UNIT_EXITING_VEHICLE()
 	if (self.fmVehicleOverride ~= nil) then
-		CVar_FaceMove:Set(self.fmVehicleOverride)
+		CVar_Analog:Set(self.fmVehicleOverride)
 		self.fmVehicleOverride = nil;
 	end
 end
@@ -175,12 +181,13 @@ function Mouse:CURRENT_SPELL_CAST_CHANGED()
 	elseif (self.reticleOverride ~= nil) then
 		CVar_Sticks:Set(self.reticleOverride)
 		self.reticleOverride = nil;
+		self:SetCameraControl()
 	end
 end
 
 function Mouse:PLAYER_STARTED_MOVING()
 	if db('mouseHideCursorOnMovement') and self:ShouldClearCursorOnMovement() then
-		self:ClearCenteredCursor()
+		self:SetCameraControl()
 	end
 end
 
@@ -228,7 +235,7 @@ function Mouse:ShouldSetCenteredCursor(_)
 	return is(_, RightClick, GamePadControl) and isnt(_, CursorCentered)
 end
 
-function Mouse:ShouldClearCenteredCursor(_)
+function Mouse:ShouldSetCameraControl(_)
 	return is(_, RightClick, GamePadControl, CursorCentered) and isnt(_, MouseOver)
 end
 
@@ -241,7 +248,7 @@ function Mouse:ShouldSetCursorWhenMenuIsOpen(_)
 end
 
 function Mouse:ShouldClearCursorOnMovement()
-	return is(nil, GamePadControl, CursorControl) and isnt(nil, MouseOver)
+	return is(nil, GamePadControl, CursorControl, IsWorldFocus)
 end
 
 ---------------------------------------------------------------
@@ -272,31 +279,34 @@ end
 ---------------------------------------------------------------
 function Mouse:SetFreeCursor()
 	return self
+		:SetFreeLook(true)
 		:SetCentered(false)
 		:SetCursorControl(true)
 		:SetPropagation(false)
 end
 
 function Mouse:SetCenteredCursor()
-	self:SetTimer(self.AttemptClearCenteredCursor, db('mouseAutoClearCenter'))
+	self:SetTimer(self.AttemptSetCameraControl, db('mouseAutoClearCenter'))
 	return self
+		:SetFreeLook(true)
 		:SetCentered(true)
 		:SetCursorControl(false)
 end
 
-function Mouse:ClearCenteredCursor()
-	self:ClearTimer(self.AttemptClearCenteredCursor)
+function Mouse:SetCameraControl()
+	self:ClearTimer(self.AttemptSetCameraControl)
 	return self
+		:SetFreeLook(true)
 		:SetCentered(false)
 		:SetCursorControl(false)
 end
 
-function Mouse:AttemptClearCenteredCursor(_)
+function Mouse:AttemptSetCameraControl(_)
 	-- TODO: timeout should happen after mouseover ends
 	if is(_, MouseOver) then
-		return self:SetTimer(self.AttemptClearCenteredCursor, db('mouseAutoClearCenter'))
+		return self:SetTimer(self.AttemptSetCameraControl, db('mouseAutoClearCenter'))
 	end
-	return self:ClearCenteredCursor()
+	return self:SetCameraControl()
 end
 
 ---------------------------------------------------------------
@@ -309,8 +319,8 @@ function Mouse:OnGamePadButtonDown(button)
 	if self:ShouldSetCenteredCursor(button) then
 		return self:SetCenteredCursor()
 	end
-	if self:ShouldClearCenteredCursor(button) then
-		return self:ClearCenteredCursor()
+	if self:ShouldSetCameraControl(button) then
+		return self:SetCameraControl()
 	end
 	--[[
 	if self:ShouldFreeCenteredCursor(button) then
@@ -329,6 +339,7 @@ function Mouse:SetEnabled(enabled)
 	self:EnableGamePadButton(enabled)
 	if enabled then
 		SetCVar('GamePadCursorAutoEnable', 0)
+		SetCVar('CursorFreelookStartDelta', 0.001)
 		SetCVar('GamePadCursorCenteredEmulation', 0)
 	end
 end
@@ -371,9 +382,11 @@ db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
 ---------------------------------------------------------------
 -- Variables
 ---------------------------------------------------------------
-db:RegisterCallback('Settings/mouseFollowOnStickMounted', Mouse.OnVariableChanged, Mouse)
-db:RegisterCallback('Settings/doubleTapModifier', Mouse.OnVariableChanged, Mouse)
-db:RegisterCallback('Settings/doubleTapTimeout', Mouse.OnVariableChanged, Mouse)
+db:RegisterCallbacks(Mouse.OnVariableChanged, Mouse, 
+	'Settings/mouseFollowOnStickMounted',
+	'Settings/doubleTapModifier',
+	'Settings/doubleTapTimeout'
+);
 ---------------------------------------------------------------
 Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)
 Mouse:EnableGamePadButton(false)

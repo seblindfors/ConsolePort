@@ -4,6 +4,7 @@
 	<Include file="Pie/Pie.xml"/>
 	<Include file="Cursors/Cursors.xml"/>
 	<Include file="UIHandle/UIHandle.xml"/>
+	<Include file="Popup/Popup.xml"/>
 	<!-- Single file views -->
 	<Script file="Hotkey.lua"/>
 	<Script file="Convenience.lua"/>

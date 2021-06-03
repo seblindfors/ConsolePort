@@ -7,6 +7,13 @@ function ConsolePort:GetData()
 end
 
 ---------------------------------------------------------------
+-- Add variable options to database
+---------------------------------------------------------------
+function ConsolePort:AddVariables(variables)
+	db.table.merge(db.Variables, variables)
+end
+
+---------------------------------------------------------------
 -- Get all possible bindings
 ---------------------------------------------------------------
 function ConsolePort:GetBindings()
@@ -65,5 +72,33 @@ function ConsolePort:GetFormattedBindingOwner(bindingID)
 	local key, mod = self:GetCurrentBindingOwner(bindingID)
 	if key and mod then
 		return self:GetFormattedButtonCombination(key, mod)
+	end
+end
+
+---------------------------------------------------------------
+-- Force focus the keyboard (nil to clear, false to disable kb)
+---------------------------------------------------------------
+function ConsolePort:ForceKeyboardFocus(frame)
+	if ConsolePortKeyboard then
+		ConsolePortKeyboard:ForceFocus(frame)
+		return true;
+	end
+end
+
+function ConsolePort:GetKeyboardFocus()
+	if ConsolePortKeyboard then
+		return ConsolePortKeyboard:GetForceFocus()
+	end
+end
+
+---------------------------------------------------------------
+-- Add a new frame to the interface cursor stack
+---------------------------------------------------------------
+function ConsolePort:AddInterfaceCursorFrame(frame)
+	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
+	if object then
+		local result = db.Stack:AddFrame(object)
+		db.Stack:UpdateFrames()
+		return result;
 	end
 end

@@ -36,17 +36,16 @@ function CPContainerMixin:OnContainerLoad()
 				CPBackgroundMixin.OnBackdropLoaded(self)
 				self.Center:SetBlendMode('ADD')
 				self.Center:SetVertexColor(nR, nG, nB)
-				self:SetBackdropBorderColor(r+0.25, g+0.25, b+0.25, 1)
 			end;
 			{
 				Shadow = {
 					_Type  = 'Texture';
 					_Setup = {'BACKGROUND', nil, -6};
 					_Texture = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]);
-					_Gradient = {'VERTICAL', 0, 0, 0, 0, 0, 0, 0, 0.5};
+					_Gradient = {'VERTICAL', 0, 0, 0, 0, 0, 0, 0, 0.3};
 					_Points = {
 						{'TOPLEFT', 'parent', 'BOTTOMLEFT', 1, 0};
-						{'BOTTOMRIGHT', 'parent', 'BOTTOMRIGHT', -1, -20};
+						{'BOTTOMRIGHT', 'parent', 'BOTTOMRIGHT', -1, -30};
 					};
 				};
 				Tint = {
@@ -78,7 +77,7 @@ function CPContainerMixin:OnContainerLoad()
 				};
 				Close = {
 					_Type = 'Button';
-					_Size = {13, 16};
+					_Size = {16.25, 20};
 					_Point = {'TOPRIGHT', -8, -8};
 					_SetNormalTexture = CPAPI.GetAsset([[Textures\Frame\General_Assets]]);
 					_SetHighlightTexture = CPAPI.GetAsset([[Textures\Frame\General_Assets]]);
@@ -112,12 +111,13 @@ function CPContainerMixin:OnContainerLoad()
 			_Type   = 'Frame';
 			_SetClipsChildren = true;
 			_Points = {
-				{'TOPLEFT', 'parent.Header', 'BOTTOMLEFT', 1, -1};
+				{'TOPLEFT', 'parent.Header', 'BOTTOMLEFT', 1, 2};
 				{'BOTTOMRIGHT', -inset+1, inset};
 			};
 		};
 	}, nil, true)
 	self:CreateFramePool('Frame', nil, CPPanelMixin, nil, self.Container)
+	self:SetBackgroundVertexColor(.75, .75, .75, 1)
 	db('Stack'):AddFrame(self)
 	return self.Header, self.Container;
 end
@@ -244,7 +244,7 @@ do  local function HeaderButtonOnClick(self)
 		header.parent = self.Index;
 		header.container = self:GetParent()
 		header:SetScript('OnClick', HeaderButtonOnClick)
-		header:SetHeight(self:GetHeight())
+		header:SetHeight(self:GetHeight() - 2)
 		header:SetSiblings(self.Registry)
 		header:SetThumbPosition('BOTTOM')
 		header:SetTransparent(true)

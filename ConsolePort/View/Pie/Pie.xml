@@ -14,6 +14,13 @@
 		</Anchors>
 	</PieMenu>
 
+	<PieMenu name="ConsolePortPetRing" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie" hidden="true">
+		<Size x="500" y="500"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+	</PieMenu>
+
 	<PieMenu name="ConsolePortUtilityToggle" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie" hidden="true">
 		<Size x="500" y="500"/>
 		<Anchors>
@@ -26,5 +33,6 @@
 
 	<!-- Single file views -->
 	<Script file="Pie/Flyout.lua"/>
+	<Script file="Pie/Petring.lua"/>
 	<Script file="Pie/Utility.lua"/>
 </Ui>

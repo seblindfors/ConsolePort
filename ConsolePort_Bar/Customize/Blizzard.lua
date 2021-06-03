@@ -52,6 +52,7 @@ do
 	if MainMenuExpBar then MainMenuExpBar:SetParent(UIHider) end
 	if MainMenuBarPerformanceBar then MainMenuBarPerformanceBar:SetParent(UIHider) end
 	if ReputationWatchBar then ReputationWatchBar:SetParent(UIHider) end
+	if MainMenuBarMaxLevelBar then MainMenuBarMaxLevelBar:SetParent(UIHider) end
 
 	local animations = {MainMenuBar.slideOut:GetAnimations()}
 	animations[1]:SetOffset(0,0)
@@ -143,14 +144,16 @@ do
 	end
 	AlertFrame:SetPoint('BOTTOM', UIParent, 'BOTTOM', 0, 200)
 
-	if PlayerTalentFrame then
-		PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
-	else
-		hooksecurefunc('TalentFrame_LoadUI', function()
-			if PlayerTalentFrame then
-				PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
-			end 
-		end)
+	if CPAPI.IsRetailVersion then
+		if PlayerTalentFrame then
+			PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+		else
+			hooksecurefunc('TalentFrame_LoadUI', function()
+				if PlayerTalentFrame then
+					PlayerTalentFrame:UnregisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+				end 
+			end)
+		end
 	end
 
 	if MainMenuBarVehicleLeaveButton then

@@ -105,12 +105,32 @@ API = { -- Syntax: _CallID = value or {value1, ..., valueN};
 --------------------------------------------------------------------------
 SPECIAL = { -- Special constructors
 --------------------------------------------------------------------------
-    AnimationGroup = function(parent, key, setup, anon) return parent:CreateAnimationGroup(not anon and '$parent'..key or nil, setup and unpack(setup)) end;
-    Animation      = function(parent, key, setup, anon) return parent:CreateAnimation(setup, not anon and '$parent'..key or nil) end;
-    FontString     = function(parent, key, setup, anon) return parent:CreateFontString(not anon and '$parent'..key or nil, setup and unpack(setup)) end;
-    Texture        = function(parent, key, setup, anon) return parent:CreateTexture(not anon and '$parent'..key or nil, setup and unpack(setup)) end;
+    AnimationGroup = function(parent, key, setup, anon)
+        local name = not anon and '$parent'..key or nil;
+        if setup then
+            return parent:CreateAnimationGroup(name, unpack(setup))
+        end
+        return parent:CreateAnimationGroup(name)
+    end;
+    Animation = function(parent, key, setup, anon)
+        return parent:CreateAnimation(setup, not anon and '$parent'..key or nil)
+    end;
+    FontString = function(parent, key, setup, anon)
+        local name = not anon and '$parent'..key or nil;
+        if setup then
+            return parent:CreateFontString(name, unpack(setup))
+        end
+        return parent:CreateFontString(name)
+    end;
+    Texture = function(parent, key, setup, anon)
+        local name = not anon and '$parent'..key or nil;
+        if setup then
+            return parent:CreateTexture(name, unpack(setup))
+        end
+        return parent:CreateTexture(name)
+    end;
     ---
-    ScrollFrame    = function(parent, key, setup, anon)
+    ScrollFrame = function(parent, key, setup, anon)
         local frame = Create('ScrollFrame', not anon and '$parent'..key or nil, parent, setup and not IsWidget(setup) and unpack(setup))
         local child = IsWidget(setup) and setup or Create('Frame', not anon and '$parentChild' or nil, frame)
         frame.Child = child

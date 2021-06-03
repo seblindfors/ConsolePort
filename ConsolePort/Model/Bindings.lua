@@ -110,6 +110,19 @@ select(2, ...):Register('Bindings', setmetatable({
 			abilities that you have not placed on your action bar.
 		]];
 	};
+	{	name = 'Pet Ring';
+		binding = 'CLICK ConsolePortPetRing:LeftButton';
+		texture = function(self)
+			if UnitExists('pet') then
+				SetPortraitTexture(self, 'pet')
+			else
+				self:SetTexture([[Interface\ICONS\INV_Box_PetCarrier_01]])
+			end
+		end;
+		desc = [[
+			A ring menu that lets you control your current pet.
+		]];
+	};
 	{	name    = extra;
 		binding = 'EXTRAACTIONBUTTON1';
 		desc = [[
@@ -148,7 +161,7 @@ select(2, ...):Register('Bindings', setmetatable({
 function Bindings:GetDescriptionForBinding(binding)
 	for i, set in ipairs(self) do
 		if (set.binding == binding) then
-			return set.desc, set.image, set.name;
+			return set.desc, set.image, set.name, set.texture;
 		end
 	end
 end

@@ -39,12 +39,12 @@ db:Register('Variables', {
 		name = 'Center Gap';
 		desc = 'Center gap, as fraction of overall crosshair size.';
 	};
-	crosshairThickness = {Number(1, 0.025, true);
+	crosshairThickness = {Number(2, 0.025, true);
 		head = 'Crosshair';
 		sort = 5;
 		name = 'Thickness';
 		desc = 'Thickness in scaled pixel units.';
-		note = 'Value below one may appear interlaced.';
+		note = 'Value below two may appear interlaced or not at all.';
 	};
 	crosshairColor = {Color('ff00fcff');
 		head = 'Crosshair';
@@ -62,7 +62,7 @@ db:Register('Variables', {
 		desc = 'Button or combination used to interact for a given condition. By default, interacts using centered cursor.';
 		note = 'Use a shoulder button combined with crosshair for smooth and precise interactions.';
 	};
-	interactCondition = {String('[vehicleui] nil; [@target,noharm][@target,noexists] TURNORACTION; [@target,harm,dead] INTERACTTARGET; nil');
+	interactCondition = {String('[vehicleui] nil; [@target,noharm][@target,noexists][@target,harm,dead] TURNORACTION; nil');
 		head = INTERACT_OPT;
 		sort = 2;
 		name = 'Interact Condition';
@@ -127,29 +127,35 @@ db:Register('Variables', {
 		name = 'Radial Focus Timeout';
 		desc = 'Time to clear focus after intercepting stick input, in seconds.';
 	};
-	radialActionDeadzone = {Range(0.5, 0.05, 0, 1);
+	radialScale = {Number(1, 0.025, true);
 		head = 'Radial Menus';
 		sort = 2;
+		name = 'Ring Scale';
+		desc = 'Scale of all radial menus, relative to UI scale.';
+	};
+	radialActionDeadzone = {Range(0.5, 0.05, 0, 1);
+		head = 'Radial Menus';
+		sort = 3;
 		name = 'Radial Deadzone';
 		desc = 'Deadzone for simple pie menus.';
 	};
 	radialCosineDelta = {Delta(1);
 		head = 'Radial Menus';
-		sort = 4;
+		sort = 5;
 		name = 'Axis Interpretation';
 		desc = 'Correlation between stick position and pie selection.';
 		note = '+ Normal\n- Inverted';
 	};
 	radialPrimaryStick = {Select('Movement', unpack(STICK_SELECT));
 		head = 'Radial Menus';
-		sort = 5;
+		sort = 6;
 		name = 'Primary Stick';
 		desc = 'Stick to use for main radial actions.';
 		note = 'Make sure your choice does not conflict with your bindings.';
 	};
 	radialRemoveButton = {Button('PADRSHOULDER');
 		head = 'Radial Menus';
-		sort = 7;
+		sort = 8;
 		name = 'Remove Button';
 		desc = 'Button used to remove a selected item from an editable pie menu.';
 	};
@@ -353,41 +359,57 @@ db:Register('Variables', {
 		note = 'Action bar is scaled separately.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Advanced:
+	-- Bindings:
 	--------------------------------------------------------------------------------------------------------
 	bindingOverlapEnable = {Bool(false);
-		head = ADVANCED_OPT;
+		head = KEY_BINDINGS_MAC;
 		sort = 1;
 		name = 'Allow Binding Overlap';
-		desc = 'Allow binding multiple combos to the same binding.'
+		desc = 'Allow binding multiple combos to the same binding.';
 	};
 	bindingAllowSticks = {Bool(false);
-		head = ADVANCED_OPT;
+		head = KEY_BINDINGS_MAC;
 		sort = 2;
 		name = 'Allow Radial Bindings';
 		desc = 'Allow binding discrete radial stick inputs.';
 	};
 	bindingShowExtraBars = {Bool(false);
-		head = ADVANCED_OPT;
+		head = KEY_BINDINGS_MAC;
 		sort = 3;
 		name = 'Show All Action Bars';
 		desc = 'Show bonus bar configuration for characters without stances.'
 	};
+	bindingDisableQuickAssign = {Bool(false);
+		head = KEY_BINDINGS_MAC;
+		sort = 4;
+		name = 'Disable Quick Assign';
+		desc = 'Disables quick assign for unbound combinations when using the gamepad action bar.';
+		note = 'Requires reload.';
+	};
+	disableHotkeyRendering = {Bool(false);
+		head = KEY_BINDINGS_MAC;
+		sort = 5;
+		name = 'Disable Hotkey Rendering';
+		desc = 'Disables customization to hotkeys on regular action bar.';
+	};
+	--------------------------------------------------------------------------------------------------------
+	-- Advanced:
+	--------------------------------------------------------------------------------------------------------
 	actionPageCondition = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 4;
+		sort = 1;
 		name = 'Action Page Condition';
 		desc = 'Macro condition to evaluate action bar page.';
 	};
 	actionPageResponse = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 5;
+		sort = 2;
 		name = 'Action Page Response';
-		desc = 'Response to condition for custom processing.'
+		desc = 'Response to condition for custom processing.';
 	};
 	classFileOverride = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 6;
+		sort = 3;
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
 	};

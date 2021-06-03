@@ -1,0 +1,12 @@
+## Interface: 90002
+## Title: Console Port |cff69ccf0Mapper|r
+## Notes: Configuration module for raw controller state
+## RequiredDeps: ConsolePort, ConsolePort_Config
+## LoadOnDemand: 1
+
+## Author: Sebastian Lindfors
+## X-Website: https://github.com/seblindfors/ConsolePort
+## X-Feedback: https://discord.gg/AWeHd48
+
+Consts.lua
+Mapper.lua

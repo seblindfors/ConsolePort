@@ -164,6 +164,7 @@ Cursor:CreateEnvironment({
 	UpdateUnitExists = [[
 		local exists = ...;
 		if not exists then
+			self:Run(UpdateNodes)
 			self:Run(SelectNewNode, 0)
 		end
 	]];
@@ -180,13 +181,21 @@ Cursor:CreateEnvironment({
 ---------------------------------------------------------------
 function Cursor:OnDataLoaded()
 	local modifier = db('raidCursorModifier')
-	modifier = modifier:match('<none>') and '' or modifier;
+	modifier = modifier:match('<none>') and '' or modifier..'-';
 	self:SetAttribute('noroute', db('raidCursorDirect'))
 	self:SetAttribute('navmodifier', modifier)
 	self:SetAttribute('filter', 'return ' .. (db('raidCursorFilter') or 'true') .. ';') 
 	self:SetScale(db('raidCursorScale'))
+
+	if CPAPI.IsRetailVersion then
+		self.Arrow:SetAtlas('Navigation-Tracked-Arrow', true)
+	else
+		self.Arrow:SetTexture([[Interface\WorldMap\WorldMapArrow]])
+		self.Arrow:SetSize(24, 24)
+	end
 end
 
+db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorDirect', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorModifier', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
@@ -326,16 +335,15 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 				self:SetAlpha(1)
 			end
 		else
-			self.animateOnShow = true;
-			self.node = nil;
+			self.animateOnShow, self.node = true, nil;
 		end
 	end
 
-	local GetTime, pi = GetTime, math.pi;
+	local GetTime, Clamp, pi = GetTime, Clamp, math.pi;
 	function Cursor:UpdateCastbar(startCast, endCast)
 		local time = GetTime() * 1000;
 		local progress = (time - startCast) / (endCast - startCast)
-		local resize = 80 - (22 * (1 - progress))
+		local resize = Clamp(80 - (22 * (1 - progress)), 58, 80)
 		self.CastBar:SetRotation(-2 * progress * pi)
 		self.CastBar:SetSize(resize, resize)
 	end

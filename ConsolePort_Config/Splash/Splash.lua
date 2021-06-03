@@ -3,6 +3,19 @@ local _, env = ...; local db, L = env.db, env.L;
 -- Consts
 ---------------------------------------------------------------
 local WIZARD_WIDTH, FIXED_OFFSET = 900, 8;
+---------------------------------------------------------------
+local DISCORD_LINK, DISCORD_TEXT = 'https://discord.gg/AWeHd48',
+	'The community where you can find support, discuss gameplay, share ideas, and find like-minded players.' ..
+	'\n\nClick here to join the server.'
+local PATREON_LINK, PATREON_TEXT = 'https://www.patreon.com/consoleport',
+	'The development and maintenance of this addon takes a lot of time and effort, but ConsolePort will always be completely free to use. ' ..
+	'\n\nBecome a supporter on Patreon to unlock your Discord flair, and in turn support the future of the project.' ..
+	'\n\nClick here to become a patron.'
+local PAYPAL_LINK, PAYPAL_TEXT = 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5ADQW5L2FE4XC',
+	'Donations are invested right back into the development and maintenance of the addon. ' ..
+	'Any contribution, big or small, is highly appreciated.' ..
+	'\n\nClick here to donate using PayPal.'
+---------------------------------------------------------------
 
 local Content = {
 	{	panel = 'Devices';
@@ -32,6 +45,13 @@ local Content = {
 		help  = L'Customize your movement settings.';
 		pred  = function()
 			return (db('tutorialProgress') == 3);
+		end;
+	};
+	{	panel = 'Links';
+		name  = GAMEMENU_SUPPORT;
+		help  = L'Before you go on your next adventure...';
+		pred  = function()
+			return (db('tutorialProgress') == 4);
 		end;
 	};
 }
@@ -83,7 +103,7 @@ function NavBarMixin:OnLoad()
 	end
 
 	local baseFrameLevel = self.Home:GetFrameLevel() * 2;
-	for i, button in ripairs(self.Buttons) do
+	for i, button in db.table.ripairs(self.Buttons) do
 		button:SetFrameLevel(baseFrameLevel -i)
 	end
 end
@@ -165,6 +185,28 @@ local function SelectNextPanel()
 	end
 end
 
+local function ShowExternalLink(name, link)
+	CPAPI.Popup('ConsolePort_External_Link', {
+		text = L('Link to %s.\nCtrl+A to select and Ctrl+C to copy.\n\nPaste (Ctrl+V) the link in your web browser.', name);
+		button1 = CLOSE;
+		showAlert = true;
+		timeout = 0;
+		whileDead = true;
+		hideOnEscape = true;
+		preferredIndex = 3;
+		hasEditBox = 1;
+		enterClicksFirstButton = true;
+		exclusive = true;
+		OnHide = function(self)
+			ConsolePort:ForceKeyboardFocus(nil)
+		end;
+		OnShow = function(self)
+			self.editBox:SetText(link)
+			ConsolePort:ForceKeyboardFocus(false)
+		end;
+	})
+end
+
 function Splash:OnFirstShow()
 	self:SetAllPoints()
 	LibStub:GetLibrary('Carpenter'):BuildFrame(self, {
@@ -227,7 +269,7 @@ function Splash:OnFirstShow()
 			_Mixin = env.OpaqueMixin;
 			_Backdrop = CPAPI.Backdrops.Opaque;
 			_Points = {
-				{'TOPLEFT', 0, 1};
+				{'TOPLEFT', 0, 0};
 				{'BOTTOMRIGHT', '$parent.NavBar', 'TOPRIGHT', 0, 0};
 			};
 			{
@@ -342,7 +384,7 @@ function Splash:OnFirstShow()
 					};
 					Continue = {
 						_Type  = 'Button';
-						_Setup = 'SharedButtonLargeTemplate';
+						_Setup = CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate';
 						_Text  = CONTINUE;
 						_Size  = {260, 50};
 						_OnClick = SelectNextPanel;
@@ -396,6 +438,129 @@ function Splash:OnFirstShow()
 						_Width = WIZARD_WIDTH;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
 						dbPath = 'Console/Controls';
+					};
+					Links = {
+						_Hide  = true;
+						_Type  = 'Frame';
+						_Size  = {600, 220};
+						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
+						{
+							Discord = {
+								_Type  = 'Button';
+								_Mixin = env.OpaqueMixin;
+								_Setup = {'BackdropTemplate', 'CPFrameWithTooltipTemplate'};
+								_Size  = {200, 200};
+								_Point = {'CENTER', 0, 0};
+								_Backdrop = CPAPI.Backdrops.Frame;
+								_SetNormalTexture = CPAPI.GetAsset('Textures\\Logo\\Discord');
+								_SetPushedTexture = CPAPI.GetAsset('Textures\\Logo\\Discord');
+								_SetHighlightTexture = [[Interface\Buttons\IconBorder-GlowRing]];
+								_OnLoad = function(self)
+									env.OpaqueMixin.OnLoad(self)
+									local normal, pushed, hilite = 
+										self:GetNormalTexture(),
+										self:GetPushedTexture(),
+										self:GetHighlightTexture();
+									for _, texture in ipairs({normal, pushed, hilite}) do
+										texture:ClearAllPoints()
+										texture:SetSize(100, 100)
+										texture:SetPoint('CENTER', 0, 8)
+									end
+									pushed:SetPoint('CENTER', 0, 6)
+									hilite:SetVertexColor(0.3, 0.45, 0.84)
+
+									self:AddTooltipLine(L'Join Discord')
+									self:AddTooltipLine(L(DISCORD_TEXT), HIGHLIGHT_FONT_COLOR)
+								end;
+								_OnClick = function(self)
+									ShowExternalLink('Discord', DISCORD_LINK)
+								end;
+								{
+									Label = {
+										_Type = 'FontString';
+										_Setup = {'ARTWORK', 'GameFontHighlightMedium'};
+										_Text  = L'Join Discord';
+										_Point = {'BOTTOM', 0, 32};
+									};
+								};
+							};
+							Patreon = {
+								_Type  = 'Button';
+								_Mixin = env.OpaqueMixin;
+								_Setup = {'BackdropTemplate', 'CPFrameWithTooltipTemplate'};
+								_Size  = {200, 200};
+								_Point = {'RIGHT', 0, 0};
+								_Backdrop = CPAPI.Backdrops.Frame;
+								_SetNormalTexture = CPAPI.GetAsset('Textures\\Logo\\Patreon');
+								_SetPushedTexture = CPAPI.GetAsset('Textures\\Logo\\Patreon');
+								_SetHighlightTexture = CPAPI.GetAsset('Textures\\Logo\\Patreon');
+								_OnLoad = function(self)
+									env.OpaqueMixin.OnLoad(self)
+									local normal, pushed, hilite = 
+										self:GetNormalTexture(),
+										self:GetPushedTexture(),
+										self:GetHighlightTexture();
+									for _, texture in ipairs({normal, pushed, hilite}) do
+										texture:ClearAllPoints()
+										texture:SetSize(100, 100)
+										texture:SetPoint('CENTER', 0, 8)
+									end
+									pushed:SetPoint('CENTER', 0, 6)
+
+									self:AddTooltipLine(L'Support on Patreon')
+									self:AddTooltipLine(L(PATREON_TEXT), HIGHLIGHT_FONT_COLOR)
+								end;
+								_OnClick = function(self)
+									ShowExternalLink('Patreon', PATREON_LINK)
+								end;
+								{
+									Label = {
+										_Type = 'FontString';
+										_Setup = {'ARTWORK', 'GameFontHighlightMedium'};
+										_Text  = L'Support on Patreon';
+										_Point = {'BOTTOM', 0, 32};
+									};
+								};
+							};
+							PayPal = {
+								_Type  = 'Button';
+								_Mixin = env.OpaqueMixin;
+								_Setup = {'BackdropTemplate', 'CPFrameWithTooltipTemplate'};
+								_Size  = {200, 200};
+								_Point = {'LEFT', 0, 0};
+								_Backdrop = CPAPI.Backdrops.Frame;
+								_SetNormalTexture = CPAPI.GetAsset('Textures\\Logo\\PayPal');
+								_SetPushedTexture = CPAPI.GetAsset('Textures\\Logo\\PayPal');
+								_SetHighlightTexture = CPAPI.GetAsset('Textures\\Logo\\PayPal');
+								_OnLoad = function(self)
+									env.OpaqueMixin.OnLoad(self)
+									local normal, pushed, hilite = 
+										self:GetNormalTexture(),
+										self:GetPushedTexture(),
+										self:GetHighlightTexture();
+									for _, texture in ipairs({normal, pushed, hilite}) do
+										texture:ClearAllPoints()
+										texture:SetSize(100, 100)
+										texture:SetPoint('CENTER', 0, 8)
+									end
+									pushed:SetPoint('CENTER', 0, 6)
+
+									self:AddTooltipLine(L'Donate on PayPal')
+									self:AddTooltipLine(L(PAYPAL_TEXT), HIGHLIGHT_FONT_COLOR)
+								end;
+								_OnClick = function(self)
+									ShowExternalLink('PayPal', PAYPAL_LINK)
+								end;
+								{
+									Label = {
+										_Type = 'FontString';
+										_Setup = {'ARTWORK', 'GameFontHighlightMedium'};
+										_Text  = L'Donate on PayPal';
+										_Point = {'BOTTOM', 0, 32};
+									};
+								};
+							};
+						};
 					};
 				};
 			};

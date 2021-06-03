@@ -89,7 +89,7 @@ function HotkeyHandler:GetButtonSlug(device, btnID, modID, split)
 		isTextAbbr = true;
 	end
 	local slug = split and {} or '';
-	for i, mod in ripairs(data.modifier) do
+	for i, mod in db.table.ripairs(data.modifier) do
 		if split then
 			slug[#slug + 1] = icon:format(mod)
 		else
@@ -140,6 +140,8 @@ end
 function HotkeyHandler:UpdateHotkeys(device)
 	self.Widgets:ReleaseAll()
 	assert(device, 'No device specified when attempting to update hotkeys.')
+	if db('disableHotkeyRendering') then return end
+	self:ReplaceHotkeyFont()
 
 	local bindings = db.Gamepad:GetBindings()
 	local bindingToActionID = {}
@@ -165,6 +167,17 @@ function HotkeyHandler:UpdateHotkeys(device)
 			self:GetWidget():SetData(data, owner)
 		end
 	end
+end
+
+---------------------------------------------------------------
+-- Replace font on Blizzard hotkey template
+---------------------------------------------------------------
+-- The original font draws an outline around each character,
+-- pushing the text width over 36 px for double modifier
+-- combinations. Removing the outline places 3 icons at exactly
+-- 36 px without reducing the icon fidelity.
+function HotkeyHandler:ReplaceHotkeyFont()
+	NumberFontNormalSmallGray:SetFont('FONTS\\ARIALN.TTF', 12)
 end
 
 ---------------------------------------------------------------
@@ -254,12 +267,3 @@ HotkeyMixin.Templates = {
 	end]];
 };
 db('Hotkeys/Template', HotkeyMixin.Templates)
-
----------------------------------------------------------------
--- Replace font on Blizzard hotkey template
----------------------------------------------------------------
--- The original font draws an outline around each character,
--- pushing the text width over 36 px for double modifier
--- combinations. Removing the outline places 3 icons at exactly
--- 36 px without reducing the icon fidelity.
-NumberFontNormalSmallGray:SetFont('FONTS\\ARIALN.TTF', 12)

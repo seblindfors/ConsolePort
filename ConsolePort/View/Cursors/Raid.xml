@@ -24,7 +24,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Arrow" atlas="Navigation-Tracked-Arrow" useAtlasSize="true">
+				<Texture parentKey="Arrow">
 					<Anchors>
 						<Anchor point="TOPLEFT"/>
 					</Anchors>

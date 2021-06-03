@@ -47,6 +47,13 @@ function db:RegisterCallback(...)
 	return CallbackHandler:RegisterCallback(...)
 end
 
+function db:RegisterCallbacks(...)
+	local callback, owner = ...;
+	for i = 3, select('#', ...) do
+		CallbackHandler:RegisterCallback(select(i, ...), callback, owner)
+	end
+end
+
 function db:TriggerEvent(...)
 	return CallbackHandler:TriggerEvent(...)
 end
@@ -56,4 +63,6 @@ function db:RunSafe(...)
 end
 
 -- Hook into global events
-hooksecurefunc(EventRegistry, 'TriggerEvent', db.TriggerEvent)
+if (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) then
+	hooksecurefunc(EventRegistry, 'TriggerEvent', db.TriggerEvent)
+end

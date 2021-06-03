@@ -11,6 +11,7 @@ local CursorControl  = IsGamePadCursorControlEnabled;
 function Crosshair:ShouldDraw()
 	return GamePadControl() and not CursorControl() and not GetCVarBool(CVAR_CENTER)
 end
+
 ---------------------------------------------------------------
 -- Move crosshair to position offset
 ---------------------------------------------------------------
@@ -55,7 +56,7 @@ function Crosshair:OnDataLoaded()
 	self.Bottom:SetEndPoint('CENTER', 0, -(w * c))
 
 	local thickness = db('crosshairThickness')
-	local r, g, b, a = CreateColorFromHexString(db('crosshairColor')):GetRGBA()
+	local r, g, b, a = CPAPI.CreateColorFromHexString(db('crosshairColor')):GetRGBA()
 
 	for _, obj in ipairs({'Top', 'Left', 'Right', 'Bottom'}) do
 		local line = self[obj]
@@ -68,9 +69,11 @@ function Crosshair:OnDataLoaded()
 	self:Show()
 end
 
-db:RegisterCallback('Settings/crosshairEnable', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairSizeX', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairSizeY', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairColor', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairCenter', Crosshair.OnDataLoaded, Crosshair)
-db:RegisterCallback('Settings/crosshairThickness', Crosshair.OnDataLoaded, Crosshair)
+db:RegisterCallbacks(Crosshair.OnDataLoaded, Crosshair,
+	'Settings/crosshairEnable',
+	'Settings/crosshairSizeX',
+	'Settings/crosshairSizeY',
+	'Settings/crosshairColor',
+	'Settings/crosshairCenter',
+	'Settings/crosshairThickness'
+);

@@ -34,9 +34,9 @@ local ScaleToContentMixin = {};
 env.ScaleToContentMixin = ScaleToContentMixin;
 
 function ScaleToContentMixin:SetMeasurementOrigin(top, content, width, offset)
-	self.fixedWidth = width;
-	self.fixedOffset = offset;
-	self.topElement = top;
+	self.fixedWidth     = width;
+	self.fixedOffset    = offset;
+	self.topElement     = top;
 	self.contentElement = content;
 end
 

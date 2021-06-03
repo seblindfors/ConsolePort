@@ -1,4 +1,4 @@
-## Interface: 90002
+## Interface: 20501
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar module
 ## RequiredDeps: ConsolePort
@@ -8,6 +8,8 @@
 ## X-Feedback: https://discord.gg/AWeHd48
 
 ## SavedVariablesPerCharacter: ConsolePort_BarSetup
+
+Libs\LibUIDropDownMenu.lua
 
 Frame.xml
 
@@ -23,3 +25,4 @@ Components\Pet.lua
 Components\MenuBar.lua
 Components\WatchBars.xml
 Components\ActionbarPlacer.lua
+Components\BindHelper.lua

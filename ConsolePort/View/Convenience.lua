@@ -70,6 +70,7 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 	'MERCHANT_SHOW';
 	'MERCHANT_CLOSED';
 	'BAG_UPDATE_DELAYED';
+	'QUEST_AUTOCOMPLETE';
 }, {
 	SellJunkHelper = function(item)
 		if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
@@ -85,7 +86,7 @@ end
 function Handler:MERCHANT_SHOW()
 	self.merchantAvailable = true;
 	if db('autoSellJunk') then
-		ContainerFrameUtil_IteratePlayerInventory(self.SellJunkHelper)
+		CPAPI.IteratePlayerInventory(self.SellJunkHelper)
 	end
 end
 
@@ -94,4 +95,9 @@ function Handler:BAG_UPDATE_DELAYED()
 	if self.merchantAvailable then
 		self:MERCHANT_SHOW()
 	end
+end
+
+function Handler:QUEST_AUTOCOMPLETE(...)
+	-- automatically show autocomplete quests
+	ShowQuestComplete(...)
 end

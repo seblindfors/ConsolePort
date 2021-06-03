@@ -7,7 +7,7 @@
 -- handler and dispatched to the display layer on the header.
 
 local Radial, Dispatcher, RadialMixin, _, db = CPAPI.EventHandler(ConsolePortRadial), CreateFrame('Frame'), {}, ...;
-Mixin(Radial, CPAPI.SecureEnvironmentMixin)
+Mixin(Radial, CPAPI.SecureEnvironmentMixin).Headers = {};
 db:Register('Radial', Radial):Execute([[
 	----------------------------------------------------------
 	HEADERS = newtable() -- maintain references to headers
@@ -297,13 +297,21 @@ Radial:CreateEnvironment({
 function Radial:Register(header, name, ...)
 	header:SetFrameRef('radial', self)
 	header:Execute('radial = self:GetFrameRef("radial")')
+
+	self.Headers[header] = true;
 	self:SetFrameRef(name, header)
 	self:Execute(('HEADERS["%s"] = self:GetFrameRef("%s")'):format(name, name))
-	local OnInput = header.OnInput
-	local OnBindingSet = header.OnBindingSet
+
+	-- upvalue in case predefined methods should be mixed in post load
+	local OnInput, OnBindingSet = header.OnInput, header.OnBindingSet;
+
 	db('table/mixin')(header, RadialMixin)
 	if OnInput then header.OnInput = OnInput; end
 	if OnBindingSet then header.OnBindingSet = OnBindingSet; end;
+
+	header:SetScale(db('radialScale'))
+	db:RegisterSafeCallback('Settings/radialScale', header.SetScale, header)
+
 	return header:OnLoad(...)
 end
 
@@ -350,6 +358,7 @@ function Radial:GetStickStruct(type)
 		Camera   = {'Right', 'Camera'};
 	})[type]
 end
+
 
 ---------------------------------------------------------------
 -- Unrestricted data access

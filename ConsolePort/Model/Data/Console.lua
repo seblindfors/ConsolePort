@@ -1,3 +1,6 @@
+-- Consts
+local MOTION_SICKNESS_CHARACTER_CENTERED = MOTION_SICKNESS_CHARACTER_CENTERED or 'Keep Character Centered';
+local MOTION_SICKNESS_REDUCE_CAMERA_MOTION = MOTION_SICKNESS_REDUCE_CAMERA_MOTION or 'Reduce Camera Motion';
 local unpack, __, db = unpack, ...; __ = 1; local Console = {};
 setfenv(__, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------
@@ -85,17 +88,17 @@ db:Register('Console', setmetatable({
 	-- Controls:
 	--------------------------------------------------------------------------------------------------------
 	Controls = {
-		{	cvar = 'GamePadFaceMovement';
+		{	cvar = 'GamePadSmoothFacing';
 			type = Bool(true);
-			name = 'Face Movement Direction';
-			desc = 'Separates character movement from camera movement.';
-			note = 'Your character will strafe while moving forward, and follow your movement stick when moving backwards.';
+			name = 'Analog Movement';
+			desc = 'Movement is analog, translated from your movement stick angle.';
+			note = 'Disable to use discrete legacy movement controls.';
 		};
-		{	cvar = 'GamePadFaceAngleThreshold';
+		{	cvar = 'GamePadFaceMovementThreshold';
 			type = Range(115, 5, 0, 180);
 			name = 'Face Movement Threshold';
-			desc = 'Controls when your character transitions from strafing to following your movement stick.';
-			note = 'Expressed in degrees, from looking straight forward. Max value is recommended for tanking.';
+			desc = 'Controls when your character transitions from strafing to facing your movement stick angle. Expressed in degrees, from looking straight forward.';
+			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
 		};
 		{	cvar = 'GamePadCameraYawSpeed';
 			type = Number(1, 0.1);
@@ -108,6 +111,12 @@ db:Register('Console', setmetatable({
 			name = 'Camera Pitch Speed';
 			desc = 'Pitch speed of camera - moving up/down.';
 			note = 'Choose a negative value to invert the axis.';
+		};
+		{	cvar = 'MouseUseLazyRepositioning';
+			type = Bool(true);
+			name = 'Lazy Mouse Repositioning';
+			desc = 'During camera control, only reposition mouse cursor when nearing edge of window, rather than every input event.';
+			note = 'Disabling this can help with choppy camera controls.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
