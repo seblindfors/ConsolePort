@@ -413,4 +413,10 @@ db:Register('Variables', {
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
 	};
+	raidCursorFilter = {String(nil);
+		head = ADVANCED_OPT;
+		sort = 7;
+		name = 'Raid Cursor Condition';
+		desc = 'Filter condition to find raid cursor frames.'
+	};
 })  --------------------------------------------------------------------------------------------------------
