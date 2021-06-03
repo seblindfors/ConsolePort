@@ -445,41 +445,53 @@ function HANDLE:UpdateAllHotkeys()
 	-- TODO!
 end
 
-function HANDLE:SetEligbleForRebind(button, modifier)
+function HANDLE:SetEligbleForRebind(button, modifier, main)
 	local emulation = db.Console:GetEmulationForButton(button.plainID)
+	local texture = db('Icons/64/'..button.plainID) or [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]]
+	if emulation then
+		return 'custom', {
+			texture = texture;
+			tooltip = ('|cFFFFFFFF%s|r\n%s'):format(emulation.name, emulation.desc);
+			func = nop;
+		}
+	end
+	env.bar:RegisterOverride(modifier..button.plainID, main:GetName())
+	local disableQuickAssign = db('bindingDisableQuickAssign')
 	return 'custom', {
-		tooltip = emulation and ('|cFFFFFFFF%s|r\n%s'):format(emulation.name, emulation.desc) or NOT_BOUND,
-		texture = db('Icons/64/'..button.plainID) or [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
-		func = not emulation and function() env:OpenBindingDropdown(button) end or nop,
+		texture = texture,
+		tooltip = ('|cFFFFFFFF%s|r\n%s'):format(NOT_BOUND,
+			'To use this combination, you must first connect it to a binding or an action bar slot.' ..
+			(not disableQuickAssign and '\nClick here to access the quick binding menu.' or '')
+		),
+		func = disableQuickAssign and nop or function() env:OpenBindingDropdown(button) end,
 	}
 end
 
 function HANDLE:SetXMLBinding(button, modifier, binding)
-	local desc, _, name = db.Bindings:GetDescriptionForBinding(binding)
+	local desc, _, name, texture = db.Bindings:GetDescriptionForBinding(binding)
 	local tooltip = desc and ('|cFFFFFFFF%s|r\n%s'):format(name, desc:gsub('\t+', ''))
 	return 'custom', {
 		tooltip = tooltip or _G['BINDING_NAME_'..binding] or binding,
-		texture = env:GetBindingIcon(binding) or
 			db('Icons/64/'..button.plainID) or
 			[[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
 		func = function() end,
 	}
 end
 
-function HANDLE:SetActionBinding(button, main, modifier, actionID)
+function HANDLE:SetActionBinding(button, modifier, actionID, main)
 	env.bar:RegisterOverride(modifier..button.plainID, main:GetName())
 	return 'action', actionID
 end
 
 function HANDLE:RefreshBinding(binding, cluster, button, modifier, main)
-	local actionID = binding and env.db('Actionbar/Binding/'..binding)
+	local actionID = binding and db('Actionbar/Binding/'..binding)
 	local stateType, stateID;
 	if actionID then
-		stateType, stateID = self:SetActionBinding(button, main, modifier, actionID)
+		stateType, stateID = self:SetActionBinding(button, modifier, actionID, main)
 	elseif binding then
 		stateType, stateID = self:SetXMLBinding(button, modifier, binding)
 	else
-		stateType, stateID = self:SetEligbleForRebind(button, modifier)
+		stateType, stateID = self:SetEligbleForRebind(button, modifier, main)
 	end
 
 	cluster:ConfigureSwapStates(modifier, button, stateType, stateID)

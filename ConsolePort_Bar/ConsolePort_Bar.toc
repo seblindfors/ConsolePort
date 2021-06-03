@@ -9,6 +9,8 @@
 
 ## SavedVariablesPerCharacter: ConsolePort_BarSetup
 
+Libs\LibUIDropDownMenu.lua
+
 Frame.xml
 
 Core\Lookup.lua
