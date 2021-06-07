@@ -415,8 +415,9 @@ db:Register('Variables', {
 	};
 	raidCursorFilter = {String(nil);
 		head = ADVANCED_OPT;
-		sort = 7;
+		sort = 4;
 		name = 'Raid Cursor Condition';
-		desc = 'Filter condition to find raid cursor frames.'
+		desc = 'Filter condition to find raid cursor frames.';
+		note = BLUE_FONT_COLOR:WrapTextInColorCode('node') .. ' is the current frame under scrutinization.';
 	};
 })  --------------------------------------------------------------------------------------------------------

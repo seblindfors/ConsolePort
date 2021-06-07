@@ -2,6 +2,7 @@ local _, db = ...;
 ---------------------------------------------------------------
 local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	'ACTIONBAR_SLOT_CHANGED';
+	'BAG_UPDATE_DELAYED';
 	'SPELLS_CHANGED';
 	'QUEST_WATCH_UPDATE';
 	'QUEST_WATCH_LIST_CHANGED';
@@ -598,6 +599,32 @@ function Utility:ToggleZoneAbilities()
 	end
 end
 
+function Utility:ToggleInventoryQuestItems(hideAnnouncement)
+	if CPAPI.IsRetailVersion then return end
+
+	local set = self.Data[DEFAULT_SET];
+	for i = #set, 1, -1 do
+		local info = set[i];
+		if info.autoqitem and GetItemCount(info.item) < 1 then
+			self:RemoveAction(DEFAULT_SET, i)
+		end
+	end
+
+	CPAPI.IteratePlayerInventory(function(item)
+		local link = select(7, GetContainerItemInfo(item:GetBagAndSlot()))
+		local isQuestItem = link and select(6, GetItemInfoInstant(link)) == LE_ITEM_CLASS_QUESTITEM;
+		if isQuestItem and IsUsableItem(link) then
+			local info = self.SecureHandlerMap.item(link)
+			info.autoqitem = true;
+
+			local wasAdded = self:AutoAssignAction(info)
+			if wasAdded and not hideAnnouncement then
+				self:AnnounceAddition(link)
+			end
+		end
+	end)
+end
+
 function Utility:CheckCursorInfo(setID)
 	if not InCombatLockdown() then
 		setID = tonumber(setID) or setID;
@@ -715,6 +742,13 @@ end
 function Utility:ACTIONBAR_SLOT_CHANGED()
 	if self.autoAssignExtras then
 		db:RunSafe(self.ToggleZoneAbilities, self)
+	end
+end
+
+function Utility:BAG_UPDATE_DELAYED()
+	if self.autoAssignExtras then
+		db:RunSafe(self.ToggleInventoryQuestItems, self, not self.announceBagAdditions)
+		self.announceBagAdditions = true;
 	end
 end
 

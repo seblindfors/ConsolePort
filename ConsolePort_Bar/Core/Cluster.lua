@@ -455,7 +455,9 @@ function HANDLE:SetEligbleForRebind(button, modifier, main)
 			func = nop;
 		}
 	end
-	env.bar:RegisterOverride(modifier..button.plainID, main:GetName())
+	if main then
+		env.bar:RegisterOverride(modifier..button.plainID, main:GetName())
+	end
 	local disableQuickAssign = db('bindingDisableQuickAssign')
 	return 'custom', {
 		texture = texture,

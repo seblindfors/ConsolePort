@@ -742,8 +742,8 @@ do	-- Initiate frame
 
 		if UIDoFramesIntersect(self, Minimap) and Minimap:IsShown() then
 			self.minimapHidden = true
-			Minimap:Hide()
-			MinimapCluster:Hide()
+			if not Minimap:IsProtected() then Minimap:Hide() end
+			if not MinimapCluster:IsProtected() then MinimapCluster:Hide() end
 		end
 
 		self.tooltipIgnoringAlpha = GameTooltip:IsIgnoringParentAlpha()
@@ -759,9 +759,9 @@ do	-- Initiate frame
 		db.Alpha.FadeOut(self, 0.1, self:GetAlpha(), 0)
 
 		if self.minimapHidden then
-			Minimap:Show()
-			MinimapCluster:Show()
 			self.minimapHidden = false
+			if not Minimap:IsProtected() then Minimap:Show() end
+			if not MinimapCluster:IsProtected() then MinimapCluster:Show() end
 		end
 
 		GameTooltip:SetIgnoreParentAlpha(self.tooltipIgnoringAlpha)
