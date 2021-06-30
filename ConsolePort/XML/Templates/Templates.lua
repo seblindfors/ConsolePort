@@ -270,10 +270,10 @@ local CreateGridLayout = GenerateClosure(CreateAndInitFromMixin, GridLayoutMixin
 
 function CPSelectionPopoutButtonMixin:OnLoad()
 	self.parent = self:GetParent();
-	self.SelectionDetails:SetPoint("CENTER", self.ButtonText,"CENTER");
+	self.SelectionDetails:SetPoint('CENTER', self.ButtonText, 'CENTER');
 
-	self.buttonPool = CreateFramePool("BUTTON", self.Popout, "CPSelectionPopoutEntryTemplate");
-	self.initialAnchor = CreateAnchor("TOPLEFT", self.Popout, "TOPLEFT", 6, -12);
+	self.buttonPool = CreateFramePool('BUTTON', self.Popout, 'CPSelectionPopoutEntryTemplate');
+	self.initialAnchor = CreateAnchor('TOPLEFT', self.Popout, 'TOPLEFT', 6, -12);
 
 	CPAPI.SetAtlas(self.NormalTexture, 'customize-dropdownbox')
 	CPAPI.SetAtlas(self.HighlightTexture, 'customize-dropdownbox-open')
@@ -575,7 +575,7 @@ function CPSelectionPopoutDetailsMixin:SetupDetails(selectionData, index, isSele
 
 		self.SelectionName:Hide();
 		self.SelectionNumber:SetWidth(25);
-	elseif selectionData.name ~= "" then
+	elseif selectionData.name ~= '' then
 		self.ColorSwatch1:Hide();
 		self.ColorSwatch1Glow:Hide();
 		self.ColorSwatch2:Hide();
@@ -601,18 +601,18 @@ function CPSelectionPopoutDetailsMixin:SetupDetails(selectionData, index, isSele
 		self.ColorSelected:SetShown(color1 and isSelected);
 	end
 
-	local hideNumber = ((isSelected == nil) and (color1 or (selectionData.name ~= "")));
+	local hideNumber = ((isSelected == nil) and (color1 or (selectionData.name ~= '')));
 	if hideNumber then
 		self.SelectionNumber:Hide();
-		self.SelectionName:SetPoint("LEFT", self, "LEFT", 0, 0);
-		self.ColorSwatch1:SetPoint("LEFT", self, "LEFT", 0, 0);
-		self.ColorSwatch2:SetPoint("LEFT", self, "LEFT", 18, -2);
+		self.SelectionName:SetPoint('LEFT', self, 'LEFT', 0, 0);
+		self.ColorSwatch1:SetPoint('LEFT', self, 'LEFT', 0, 0);
+		self.ColorSwatch2:SetPoint('LEFT', self, 'LEFT', 18, -2);
 	else
 		self.SelectionNumber:Show();
 		self.SelectionNumber:SetText(index);
-		self.SelectionName:SetPoint("LEFT", self.SelectionNumber, "RIGHT", 0, 0);
-		self.ColorSwatch1:SetPoint("LEFT", self.SelectionNumber, "RIGHT", 0, 0);
-		self.ColorSwatch2:SetPoint("LEFT", self.SelectionNumber, "RIGHT", 18, -2);
+		self.SelectionName:SetPoint('LEFT', self.SelectionNumber, 'RIGHT', 0, 0);
+		self.ColorSwatch1:SetPoint('LEFT', self.SelectionNumber, 'RIGHT', 0, 0);
+		self.ColorSwatch2:SetPoint('LEFT', self.SelectionNumber, 'RIGHT', 18, -2);
 	end
 end
 
@@ -624,7 +624,7 @@ function CPSelectionPopoutMixin:OnShow()
 		self.Border:OnLoad()
 
 		self.heightPadding = 12;
-		self.widthPadding  = 18;
+		self.widthPadding  = 6;
 	end
 
 	self:Layout();
@@ -634,8 +634,8 @@ end
 CPSelectionPopoutEntryMixin = {};
 
 function CPSelectionPopoutEntryMixin:OnLoad()
-	self.SelectionDetails:SetPoint("TOPLEFT", self.ButtonText,"TOPLEFT", 14, 0);
-	self.SelectionDetails.SelectionName:SetPoint("RIGHT", self.SelectionDetails, "RIGHT");
+	self.SelectionDetails:SetPoint('TOPLEFT', self.ButtonText,'TOPLEFT', 14, 0);
+	self.SelectionDetails.SelectionName:SetPoint('RIGHT', self.SelectionDetails, 'RIGHT');
 	self.parentButton = self:GetParent():GetParent();
 
 	CPAPI.SetAtlas(self.HighlightBGTex.Left, 'customize-dropdown-linemouseover-side', true)
@@ -644,7 +644,7 @@ function CPSelectionPopoutEntryMixin:OnLoad()
 end
 
 function CPSelectionPopoutEntryMixin:HandlesGlobalMouseEvent(buttonID, event)
-	return event == "GLOBAL_MOUSE_DOWN" and buttonID == "LeftButton";
+	return event == 'GLOBAL_MOUSE_DOWN' and buttonID == 'LeftButton';
 end
 
 function CPSelectionPopoutEntryMixin:SetupEntry(selectionData, index, isSelected, multipleColumns, hasAFailedReq)

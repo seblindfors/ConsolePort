@@ -1,4 +1,4 @@
-## Interface: 90100
+## Interface: 20501
 ## Title: Console Port
 ## Notes: Game controller addon
 ## Version: 2.1.4

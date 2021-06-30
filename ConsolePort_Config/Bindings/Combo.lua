@@ -105,8 +105,10 @@ end
 function Combo:OnEnter()
 	CPIndexButtonMixin.OnIndexButtonEnter(self)
 	if db('Cursor'):IsCurrentNode(self, true) then
-		local flexer = env.Bindings.Shortcuts.Flexer;
-		if not flexer:GetChecked() then
+		local flexer = env.Bindings
+			and env.Bindings.Shortcuts
+			and env.Bindings.Shortcuts.Flexer;
+		if flexer and flexer:IsVisible() and not flexer:GetChecked() then
 			flexer:Click()
 		end
 	end

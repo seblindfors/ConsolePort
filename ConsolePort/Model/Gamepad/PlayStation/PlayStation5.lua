@@ -274,11 +274,11 @@ select(2, ...).Gamepad:AddGamepad({
 			}
 		};
 		axisConfigs = {
-			{
+			[2] = {
 				axis = 'LStickY';
 				scale = -2;
 			};
-			{
+			[4] = {
 				axis = 'RStickY';
 				scale = -2;
 			}

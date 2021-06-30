@@ -565,12 +565,12 @@ function Utility:RefreshQuestWatchItems()
 end
 
 function Utility:ToggleExtraActionButton(enabled)
-	if CPAPI.IsRetailVersion then
-		if enabled then
-			self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
-		else
-			self:ClearActionByAttribute(DEFAULT_SET, 'action', EXTRA_ACTION_ID)
-		end
+	if CPAPI.IsClassicVersion then return end
+	
+	if enabled then
+		self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
+	else
+		self:ClearActionByAttribute(DEFAULT_SET, 'action', EXTRA_ACTION_ID)
 	end
 end
 
@@ -601,19 +601,25 @@ end
 
 function Utility:ToggleInventoryQuestItems(hideAnnouncement)
 	if CPAPI.IsRetailVersion then return end
+	local function getItemID(input) return input:match('item:(%d+)') end;
 
-	local set = self.Data[DEFAULT_SET];
+	local set, exists = self.Data[DEFAULT_SET], {};
 	for i = #set, 1, -1 do
 		local info = set[i];
-		if info.autoqitem and GetItemCount(info.item) < 1 then
-			self:RemoveAction(DEFAULT_SET, i)
+		if info.autoqitem then
+			local itemID = getItemID(info.item);
+			if GetItemCount(info.item) < 1 or exists[itemID] then
+				self:RemoveAction(DEFAULT_SET, i)
+			else
+				exists[itemID] = true;
+			end
 		end
 	end
 
 	CPAPI.IteratePlayerInventory(function(item)
 		local link = select(7, GetContainerItemInfo(item:GetBagAndSlot()))
 		local isQuestItem = link and select(6, GetItemInfoInstant(link)) == LE_ITEM_CLASS_QUESTITEM;
-		if isQuestItem and IsUsableItem(link) then
+		if isQuestItem and IsUsableItem(link) and not exists[getItemID(link)] then
 			local info = self.SecureHandlerMap.item(link)
 			info.autoqitem = true;
 

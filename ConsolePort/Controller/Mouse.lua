@@ -7,11 +7,14 @@
 
 local _, db = ...;
 local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
-	'UPDATE_BINDINGS';
-	'ACTIONBAR_SHOWGRID';
 	'ACTIONBAR_HIDEGRID';
-	'PLAYER_STARTED_MOVING';
+	'ACTIONBAR_SHOWGRID';
 	'CURRENT_SPELL_CAST_CHANGED';
+	'GOSSIP_SHOW';
+	'LOOT_OPENED';
+	'PLAYER_STARTED_MOVING';
+	'QUEST_GREETING';
+	'UPDATE_BINDINGS';
 }))
 
 ---------------------------------------------------------------
@@ -127,14 +130,6 @@ function Mouse:UPDATE_BINDINGS()
 	Keys_Escape:SetOptions(db.Gamepad:GetBindingKey('TOGGLEGAMEMENU'))
 end
 
-function Mouse:ACTIONBAR_SHOWGRID()
-	self:SetFreeCursor()
-end
-
-function Mouse:ACTIONBAR_HIDEGRID()
-	self:SetCameraControl()
-end
-
 -- Temporary solution to fix problems with casters unable to face
 -- their intended target because of face movement.
 function Mouse:UNIT_SPELLCAST_START()
@@ -223,6 +218,14 @@ do local function OnModifierUpdate(self, elapsed)
 		end
 	end
 end
+
+-- Direct function calls from events
+Mouse.ACTIONBAR_HIDEGRID = Mouse.SetCameraControl;
+Mouse.ACTIONBAR_SHOWGRID = Mouse.SetFreeCursor;
+
+Mouse.GOSSIP_SHOW        = Mouse.SetCameraControl;
+Mouse.LOOT_OPENED        = Mouse.SetCameraControl;
+Mouse.QUEST_GREETING     = Mouse.SetCameraControl;
 
 ---------------------------------------------------------------
 -- Compounded queries
@@ -342,6 +345,7 @@ function Mouse:SetEnabled(enabled)
 		SetCVar('CursorFreelookStartDelta', 0.001)
 		SetCVar('GamePadCursorCenteredEmulation', 0)
 	end
+	(enabled and FrameUtil.RegisterFrameForEvents or FrameUtil.UnregisterFrameForEvents)(self, self.Events);
 end
 
 function Mouse:OnDataLoaded()

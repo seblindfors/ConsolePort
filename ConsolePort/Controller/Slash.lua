@@ -72,6 +72,9 @@ end
 -- Slash functions
 ---------------------------------------------------------------
 SLASH_FUNCTIONS = {
+	-----------------------------------------------------------
+	-- Stack handling
+	-----------------------------------------------------------
 	addframe = function(owner, frame)
 		if owner and frame then
 			local loadable, reason = select(4, GetAddOnInfo(owner))
@@ -104,6 +107,9 @@ SLASH_FUNCTIONS = {
 		end
 		CPAPI.Log(HELP_STRING, 'removeframe', 'addonName frameName')
 	end;
+	-----------------------------------------------------------
+	-- Config
+	-----------------------------------------------------------
 	applyconfig = function(useBluetooth)
 		local bluetooth = useBluetooth and Compile(useBluetooth)
 		local device = db('Gamepad/Active')
@@ -123,7 +129,43 @@ SLASH_FUNCTIONS = {
 		end
 		CPAPI.Log(HELP_STRING, 'bluetooth', 'true/false')
 	end;
-	-- resets the entire addon
+	config = function(path, value)
+		if not path and not value then
+			return CPAPI.Log(HELP_STRING, 'config', 'path/to/key [value]')
+		end
+
+		local config = db('Gamepad/Active/Config')
+		if not config then return CPAPI.Log('No active config found.') end
+
+		if not value then
+			value = db('Gamepad/Active/Config/'..path)
+			if value then
+				CPAPI.Log('Value found for %s:', path)
+				DevTools_Dump(value)
+			else
+				CPAPI.Log('Value not found for %s.', path)
+			end
+			return
+		end
+
+		local newstate = Compile(value)
+		local __mt, __index = {};
+		function __index(t, k)
+			local v = setmetatable({}, __mt)
+			rawset(t, k, v)
+			return v;
+		end
+		__mt.__index = __index;
+
+		setmetatable(config, __mt)
+		if db('Gamepad/Active/Config/'..path, newstate) then
+			db('Gamepad/Active'):ApplyConfig()
+			return CPAPI.Log('Value %s set at %s.', tostring(newstate), path)
+		end
+	end;
+	-----------------------------------------------------------
+	-- Reset/uninstall
+	-----------------------------------------------------------
 	resetall = function()
 		CPAPI.Popup('ConsolePort_Uninstall_Settings', {
 			text = 'This action will remove all your saved settings and reload your interface.';

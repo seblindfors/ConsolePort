@@ -7,8 +7,11 @@ local function CacheAvailableBinding(bindings, prune, binding, category, key, ..
 			return -- handle overlap if pruning enabled
 		end
 	else
-		bindings[category] = bindings[category] or {};
-		bindings[category][#bindings[category] + 1] = binding;
+		if binding then
+			category = category or BINDING_HEADER_OTHER;
+			bindings[category] = bindings[category] or {};
+			bindings[category][#bindings[category] + 1] = binding;
+		end
 		return
 	end
 	return CacheAvailableBinding(bindings, prune, binding, category, ...)
@@ -89,7 +92,7 @@ local function ShowBindingDropdown(frame, level, menuList)
 						lastIndexWasSeparator = true;
 					end
 				elseif binding:match('^HEADER') then
-					-- do something
+					-- do something?
 				else
 					lastIndexWasSeparator = false;
 					info.text = GetRealBindingName(binding);

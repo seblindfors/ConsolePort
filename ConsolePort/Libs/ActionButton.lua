@@ -623,6 +623,7 @@ function InitializeEventHandler()
 		'ACTIONBAR_UPDATE_USABLE',
 
 		'ARCHAEOLOGY_CLOSED',
+		'BAG_UPDATE_DELAYED',
 		'COMPANION_UPDATE',
 		'LEARNED_SPELL_IN_TAB',
 
@@ -805,7 +806,7 @@ function OnEvent(_, event, arg1, ...)
 				Update(button)
 			end
 		end
-	elseif event == 'SPELL_UPDATE_CHARGES' then
+	elseif event == 'SPELL_UPDATE_CHARGES' or event == 'BAG_UPDATE_DELAYED' then
 		ForAllButtons(UpdateCount, true)
 	elseif event == 'UPDATE_SUMMONPETS_ACTION' then
 		for button in next, ActiveButtons do

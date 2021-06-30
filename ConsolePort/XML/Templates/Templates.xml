@@ -291,7 +291,7 @@
 							<TexCoords left="1" right="0" top="0" bottom="1"/>
 							<Anchors>
 								<Anchor point="BOTTOMRIGHT"/>
-								<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="12"/>
+								<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-12"/>
 							</Anchors>
 						</Texture>
 						<Texture parentKey="Middle">
