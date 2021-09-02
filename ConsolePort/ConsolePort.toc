@@ -1,7 +1,7 @@
-## Interface: 90100
+## Interface: 20502
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 2.1.4
+## Version: 2.1.5
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort

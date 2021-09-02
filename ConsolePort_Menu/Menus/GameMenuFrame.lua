@@ -209,7 +209,7 @@ do	-- Initiate frame
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.QuestLog', 'BOTTOM', 0, 0};
 					_Text  = WORLD_MAP;
-					_RefTo = WorldMapMicroButton;
+					_RefTo = MiniMapWorldMapButton;
 					_Attributes = hideMenuHook;
 					_CustomImage = [[Interface\WorldMap\WorldMap-Icon]];
 				};

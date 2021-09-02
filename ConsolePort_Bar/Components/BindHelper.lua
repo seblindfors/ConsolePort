@@ -126,7 +126,7 @@ function HANDLER:SetFrame(owner)
 	self:SetAllPoints(owner)
 
 	self.btn = owner.plainID;
-	self.mod = owner.isMainButton and CPAPI.CreateKeyChordStringUsingMetaKeyState('') or owner.mod;
+	self.mod = owner.isMainButton and CPAPI.CreateKeyChord('') or owner.mod;
 
 	LDD:UIDropDownMenu_Initialize(self, ShowBindingDropdown)
 	LDD:ToggleDropDownMenu(nil, nil, self, 'cursor')

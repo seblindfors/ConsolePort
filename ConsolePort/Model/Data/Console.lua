@@ -88,7 +88,7 @@ db:Register('Console', setmetatable({
 	-- Controls:
 	--------------------------------------------------------------------------------------------------------
 	Controls = {
-		{	cvar = 'GamePadSmoothFacing';
+		{	cvar = 'GamePadAnalogMovement';
 			type = Bool(true);
 			name = 'Analog Movement';
 			desc = 'Movement is analog, translated from your movement stick angle.';
@@ -99,6 +99,11 @@ db:Register('Console', setmetatable({
 			name = 'Face Movement Threshold';
 			desc = 'Controls when your character transitions from strafing to facing your movement stick angle. Expressed in degrees, from looking straight forward.';
 			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
+		};
+		{	cvar = 'GamePadTurnWithCamera';
+			type = Select(2, 2):SetRawOptions({[0] = NEVER, [1] = 'Autorun', [2] = ALWAYS});
+			name = 'Turn Character With Camera';
+			desc = 'Turn your character facing when you turn your camera angle.';
 		};
 		{	cvar = 'GamePadCameraYawSpeed';
 			type = Number(1, 0.1);

@@ -263,11 +263,15 @@ function BindingInfo:RefreshCollections()
 	self.Collections = self.Collections and wipe(self.Collections) or {};
 
 	-- Spells
-	do  local spells, flyout, flyoutName = {}, {}
+	do  local spellBook, flyout, flyoutName = {}, {}
 		for tab=1, GetNumSpellTabs() do
-			local _, _, offset, slots, _, offspecID = GetSpellTabInfo(tab)
+			local tabName, _, offset, slots, _, offspecID = GetSpellTabInfo(tab)
 			-- NOTE: this means it's an active spell tab, lmao
 			if (offspecID == 0) then
+
+				local spells = {};
+				spellBook[#spellBook + 1] = spells;
+
 				for i = (offset+1), (slots+offset) do
 					if not IsPassiveSpell(i, BOOKTYPE_SPELL) then
 						local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_SPELL)
@@ -284,6 +288,7 @@ function BindingInfo:RefreshCollections()
 						end
 					end
 				end
+				spells.tabName = tabName;
 			end
 		end
 
@@ -298,14 +303,18 @@ function BindingInfo:RefreshCollections()
 			end
 		end
 
+		for _, spells in ipairs(spellBook) do
+			local name = spells.tabName;
+			spells.tabName = nil;
 
-		self:AddCollection(spells, {
-			name    = SPELLBOOK;
-			match   = C_ActionBar.FindSpellActionButtons;
-			pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
-			tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
-			texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
-		})
+			self:AddCollection(spells, {
+				name    = name;
+				match   = C_ActionBar.FindSpellActionButtons;
+				pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
+				tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
+				texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
+			})
+		end
 
 		if next(flyout) then
 			self:AddCollection(flyout, {

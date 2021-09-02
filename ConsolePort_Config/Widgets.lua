@@ -485,7 +485,7 @@ function Select:OnValueChanged(value)
 			selected = #inOrder;
 		end
 	end
-	self.Popout:SetupSelections(inOrder, selected)
+	self.Popout:SetupSelections(inOrder, selected or 1)
 end
 
 ---------------------------------------------------------------

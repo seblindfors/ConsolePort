@@ -1,4 +1,4 @@
-local UIHandle, FadeIn, _, env = ConsolePort:DB('UIHandle'), ConsolePort:DB('Alpha/FadeIn'), ...;
+local UIHandle, Input, FadeIn, _, env = ConsolePort:DB('UIHandle'), ConsolePort:DB('Input'), ConsolePort:DB('Alpha/FadeIn'), ...;
 local LootFrame = Mixin(CPAPI.EventHandler(ConsolePortLootFrame, {
 	'LOOT_OPENED';
 	'LOOT_CLOSED';
@@ -105,6 +105,10 @@ LootFrame.CloseOnButton = {
 
 function LootFrame:OnGamePadButtonDown(button)
 	self:SetPropagateKeyboardInput(false)
+	if Input:IsOverrideActive(CPAPI.CreateKeyChord(button)) then
+		return self:SetPropagateKeyboardInput(true)
+	end
+
 	if (button == 'PAD1') then
 		local lootSlot = self:GetFocusWidget()
 		if lootSlot then

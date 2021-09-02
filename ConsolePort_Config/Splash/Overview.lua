@@ -58,7 +58,7 @@ function Button:OnLoad()
 end
 
 function Button:OnShow()
-	self:UpdateState(CPAPI.CreateKeyChordStringUsingMetaKeyState(''))
+	self:UpdateState(CPAPI.CreateKeyChord(''))
 end
 
 function Button:OnEnter()
@@ -145,7 +145,7 @@ function Button:GetChordBinding(mod)
 end
 
 function Button:GetBinding()
-	return GetBindingAction(CPAPI.CreateKeyChordStringUsingMetaKeyState(self.baseBinding));
+	return GetBindingAction(CPAPI.CreateKeyChord(self.baseBinding));
 end
 
 function Button:GetBaseBinding()
@@ -193,7 +193,7 @@ function Overview:SetDevice(device)
 end
 
 function Overview:OnEvent(_, event)
-	local currentModifier = CPAPI.CreateKeyChordStringUsingMetaKeyState('');
+	local currentModifier = CPAPI.CreateKeyChord('');
 	for widget in self:EnumerateActive() do
 		widget:UpdateState(currentModifier)
 	end

@@ -1,4 +1,4 @@
-## Interface: 90100
+## Interface: 20502
 ## Title: Console Port |cff69ccf0Keyboard|r
 ## Notes: Virtual keyboard module
 ## SavedVariables: ConsolePort_KeyboardLayout, ConsolePort_KeyboardDictionary, ConsolePort_KeyboardMarkers

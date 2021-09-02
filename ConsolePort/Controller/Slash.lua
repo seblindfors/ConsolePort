@@ -1,5 +1,6 @@
 local _, db = ...;
 local HELP_STRING, SLASH_FUNCTIONS = 'Usage: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r';
+local DOCU_STRING = '  |cFF00FFFF%s|r |cFF00FF00%s|r \n- |cFFFFFFFF%s|r';
 local CONFIG_ADDON_NAME = 'ConsolePort_Config';
 ---------------------------------------------------------------
 -- Process slash command
@@ -66,6 +67,21 @@ local function Uninstall()
 		'ConsolePort_BarSetup',
 	}) do _G[var] = nil; end
 	ReloadUI()
+end
+
+function ClearPadBindings()
+	local function ClearPadBinding(binding, key, ...)
+		if key then
+			if IsBindingForGamePad(key) then
+				SetBinding(key, nil)
+			end
+			ClearPadBinding(binding, ...)
+		end
+	end
+
+	for i=1, GetNumBindings() do
+		ClearPadBinding(GetBinding(i))
+	end
 end
 
 ---------------------------------------------------------------
@@ -163,9 +179,44 @@ SLASH_FUNCTIONS = {
 			return CPAPI.Log('Value %s set at %s.', tostring(newstate), path)
 		end
 	end;
+	status = function(deviceID)
+		local activeDevices = {};
+		for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
+			local device = C_GamePad.GetDeviceRawState(i)
+			if device then
+				tinsert(activeDevices, {
+					id    = i;
+					state = device;
+				})
+			end
+		end
+		if next(activeDevices) then
+			CPAPI.Log('Connected devices:')
+			for _, device in ipairs(activeDevices) do
+				local vendorID  = ('%04x'):format(device.state.vendorID):upper();
+				local productID = ('%04x'):format(device.state.productID):upper();
+				local config = C_GamePad.GetConfig({
+					vendorID  = device.state.vendorID;
+					productID = device.state.productID;
+				});
+
+				CPAPI.Log('%d: |cFFFFFFFF%s|r', device.id, device.state.name)
+				CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s',
+					vendorID, productID,
+					config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r'
+				);
+			end
+		else
+			CPAPI.Log('No connected devices found.')
+		end
+	end;
 	-----------------------------------------------------------
 	-- Reset/uninstall
 	-----------------------------------------------------------
+	clearbindings = function()
+		ClearPadBindings()
+		ReloadUI()
+	end;
 	resetall = function()
 		CPAPI.Popup('ConsolePort_Uninstall_Settings', {
 			text = 'This action will remove all your saved settings and reload your interface.';
@@ -187,9 +238,44 @@ SLASH_FUNCTIONS = {
 			showAlert = 1;
 			OnAccept = function()
 				DisableAddOn('ConsolePort')
+				SetCVar('GamePadEnable', 0)
+				ClearPadBindings()
 				Uninstall()
 			end;
 		})
+	end;
+	-----------------------------------------------------------
+	-- Help
+	-----------------------------------------------------------
+	help = function(command)
+		local commands = {
+			{'<empty>', '',
+				'Open configuration interface.'};
+			{'addframe', 'addonName frameName',
+				'Add a custom frame to cursor stack.'};
+			{'removeframe', 'addonName frameName',
+				'Remove a frame from cursor stack.'};
+			{'applyconfig', 'useBluetooth',
+				'Apply config for the active device.'};
+			{'bluetooth', 'true/false',
+				'Change bluetooth state for active device.'};
+			{'config', 'path/to/key [value]',
+				'Change or print a value from the active device configuration.'};
+			{'status', '[deviceID]',
+				'Show connected devices.'};
+			{'clearbindings', '',
+				'Clear configured gamepad bindings and reload interface.'};
+			{'resetall', '',
+				'Remove all saved settings and reload interface.'};
+			{'uninstall', '',
+				'Remove all saved settings and bindings, disable addon, and reload interface.'};
+		}
+		if not command then
+			CPAPI.Log(HELP_STRING, 'command', '[args]')
+			for i, command in ipairs(commands) do
+				CPAPI.Log(DOCU_STRING, unpack(command))
+			end
+		end
 	end;
 }
 

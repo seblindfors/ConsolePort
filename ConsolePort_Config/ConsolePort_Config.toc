@@ -1,4 +1,4 @@
-## Interface: 90100
+## Interface: 20502
 ## Title: Console Port |cff69ccf0Config|r
 ## Notes: Configuration module
 ## RequiredDeps: ConsolePort

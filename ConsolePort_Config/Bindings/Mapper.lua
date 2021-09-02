@@ -167,7 +167,7 @@ end
 
 function Mapper:OnButtonCaught(button)
 	if CPAPI.IsButtonValidForBinding(button) then
-		self:SetBinding(CPAPI.CreateKeyChordStringUsingMetaKeyState(button))
+		self:SetBinding(CPAPI.CreateKeyChord(button))
 		return true;
 	end
 end

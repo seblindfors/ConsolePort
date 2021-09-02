@@ -21,7 +21,7 @@ local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMo
 -- Upvalues since these will be called/checked frequently
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
-local GetBindingAction, CreateKeyChord = GetBindingAction, CPAPI.CreateKeyChordStringUsingMetaKeyState;
+local GetBindingAction, CreateKeyChord = GetBindingAction, CPAPI.CreateKeyChord;
 local NewTimer, GetMouseFocus = C_Timer.NewTimer, GetMouseFocus;
 local UnitExists, GetSpellInfo = UnitExists, GetSpellInfo;
 local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
@@ -31,6 +31,7 @@ local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
 ---------------------------------------------------------------
 local CAST_INFO_SPELLID_OFFSET = 9;
 local SPELLID_CAST_TIME_OFFSET = 4;
+local ALWAYS_TURN_CAMERA_VALUE = CPAPI.IsRetailVersion and 2 or 0;
 local LCLICK_BINDING = 'CAMERAORSELECTORMOVE';
 local RCLICK_BINDING = 'TURNORACTION';
 
@@ -79,7 +80,7 @@ end
 ---------------------------------------------------------------
 -- Console variables
 ---------------------------------------------------------------
-local CVar_Analog = db.Data.Cvar('GamePadSmoothFacing')
+local CVar_Camera = db.Data.Cvar(CPAPI.IsRetailVersion and 'GamePadTurnWithCamera' or 'GamePadSmoothFacing')
 local CVar_Follow = db.Data.Cvar('CameraFollowOnStick')
 local CVar_Sticks = db.Data.Cvar('GamePadCursorAutoDisableSticks')
 local CVar_Center = db.Data.Cvar('GamePadCursorCentering')
@@ -135,15 +136,15 @@ end
 function Mouse:UNIT_SPELLCAST_START()
 	if self.fmVehicleOverride then return end;
 	if (self.fmSpellOverride == nil) then
-		self.fmSpellOverride = CVar_Analog:Get()
-		CVar_Analog:Set(0)
+		self.fmSpellOverride = CVar_Camera:Get()
+		CVar_Camera:Set(ALWAYS_TURN_CAMERA_VALUE)
 	end
 end
 
 function Mouse:UNIT_SPELLCAST_STOP()
 	if self.fmVehicleOverride then return end;
 	if (self.fmSpellOverride ~= nil) then
-		CVar_Analog:Set(self.fmSpellOverride)
+		CVar_Camera:Set(self.fmSpellOverride)
 		self.fmSpellOverride = nil;
 	end
 end
@@ -151,14 +152,14 @@ end
 function Mouse:UNIT_ENTERING_VEHICLE()
 	if (self.fmVehicleOverride == nil) then
 		self:UNIT_SPELLCAST_STOP()
-		self.fmVehicleOverride = CVar_Analog:Get()
-		CVar_Analog:Set(0)
+		self.fmVehicleOverride = CVar_Camera:Get()
+		CVar_Camera:Set(ALWAYS_TURN_CAMERA_VALUE)
 	end
 end
 
 function Mouse:UNIT_EXITING_VEHICLE()
 	if (self.fmVehicleOverride ~= nil) then
-		CVar_Analog:Set(self.fmVehicleOverride)
+		CVar_Camera:Set(self.fmVehicleOverride)
 		self.fmVehicleOverride = nil;
 	end
 end

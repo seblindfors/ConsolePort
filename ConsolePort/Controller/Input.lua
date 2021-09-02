@@ -20,12 +20,12 @@ InputAPI:SetAttribute('_onstate-combat', [[
 ]])
 ---------------------------------------------------------------
 
-function InputAPI:GetWidget(id, owner)
+function InputAPI:GetWidget(id, owner) id = tostring(id):upper();
 	assert(not InCombatLockdown(), 'Attempted to get input widget in combat.')
 	local widget = self.Widgets[id];
 	if not widget then
 		widget = CreateFrame(
-			'Button', ('CP-Input-%s'):format(tostring(id):upper()),
+			'Button', ('CP-Input-%s'):format(id),
 			self, 'SecureActionButtonTemplate, SecureHandlerBaseTemplate'
 		);
 		widget:Hide()
@@ -56,6 +56,16 @@ function InputAPI:GetActiveWidget(id, owner)
 	if (widget and widget:GetAttribute('owner') == owner) then
 		return widget;
 	end
+end
+
+function InputAPI:IsOverrideActive(id, isPriority)
+	local widget = self.Widgets[id];
+	if not widget then
+		return false;
+	elseif isPriority then
+		return widget[1] and true or false;
+	end
+	return widget[1] or widget[2] and true or false;
 end
 
 ---------------------------------------------------------------

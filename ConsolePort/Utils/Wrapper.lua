@@ -91,7 +91,7 @@ CPAPI.CreateColorFromHexString = CreateColorFromHexString or function(hexColor)
 	end
 end
 
-CPAPI.CreateKeyChordStringUsingMetaKeyState = CreateKeyChordStringUsingMetaKeyState or function(key)
+CPAPI.CreateKeyChord = CreateKeyChordStringUsingMetaKeyState or function(key)
 	local function CreateKeyChordStringFromTable(keys, preventSort)
 		if not preventSort then
 			table.sort(keys, KeyComparator);
