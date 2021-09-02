@@ -31,7 +31,7 @@ local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
 ---------------------------------------------------------------
 local CAST_INFO_SPELLID_OFFSET = 9;
 local SPELLID_CAST_TIME_OFFSET = 4;
-local ALWAYS_TURN_CAMERA_VALUE = CPAPI.IsRetailVersion and 2 or 0;
+local ALWAYS_TURN_CAMERA_VALUE = 2;
 local LCLICK_BINDING = 'CAMERAORSELECTORMOVE';
 local RCLICK_BINDING = 'TURNORACTION';
 
@@ -80,7 +80,7 @@ end
 ---------------------------------------------------------------
 -- Console variables
 ---------------------------------------------------------------
-local CVar_Camera = db.Data.Cvar(CPAPI.IsRetailVersion and 'GamePadTurnWithCamera' or 'GamePadSmoothFacing')
+local CVar_Camera = db.Data.Cvar('GamePadTurnWithCamera')
 local CVar_Follow = db.Data.Cvar('CameraFollowOnStick')
 local CVar_Sticks = db.Data.Cvar('GamePadCursorAutoDisableSticks')
 local CVar_Center = db.Data.Cvar('GamePadCursorCentering')
