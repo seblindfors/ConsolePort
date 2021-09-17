@@ -100,13 +100,24 @@ local function AnimIn_OnFinished(group)
 	frame.ants:SetAlpha(1.0)
 end
 
+local antsVariant = 0 -- store variant for functions like Update
 local function CreateOverlayGlow()
 	lib.numOverlays = lib.numOverlays + 1
 
 	-- create frame and textures
 	local name = 'CPButtonGlowOverlay' .. tostring(lib.numOverlays)
 	local overlay = CreateFrame('Frame', name, UIParent)
-
+	overlay.SetAntsTexture = (function(self, variant)
+		variant = tonumber(variant) or antsVariant
+		antsVariant = variant
+		if variant == 1 then 
+			self.ants:SetTexture(CPAPI.GetAsset('Textures\\Glow\\AntsGreen'))
+		elseif variant == 2 then
+			self.ants:SetTexture(CPAPI.GetAsset('Textures\\Glow\\AntsRed'))
+		else
+			self.ants:SetTexture(CPAPI.GetAsset('Textures\\Glow\\Ants'))
+		end
+	end)
 	-- spark
 	overlay.spark = overlay:CreateTexture(name .. 'Spark', 'BACKGROUND')
 	overlay.spark:SetPoint('CENTER')
@@ -138,7 +149,8 @@ local function CreateOverlayGlow()
 	overlay.ants = overlay:CreateTexture(name .. 'Ants', 'OVERLAY')
 	overlay.ants:SetPoint('CENTER')
 	overlay.ants:SetAlpha(0)
-	overlay.ants:SetTexture(CPAPI.GetAsset('Textures\\Glow\\Ants'))
+	overlay:SetAntsTexture(0)
+	-- overlay.ants:SetTexture(CPAPI.GetAsset('Textures\\Glow\\Ants'))
 
 	-- setup antimations
 	overlay.animIn = overlay:CreateAnimationGroup()
@@ -169,22 +181,23 @@ local function CreateOverlayGlow()
 	return overlay
 end
 
-local function GetOverlayGlow()
+local function GetOverlayGlow(variant)
 	local overlay = tremove(lib.unusedOverlays)
 	if not overlay then
 		overlay = CreateOverlayGlow()
 	end
+	overlay:SetAntsTexture(variant)
 	return overlay
 end
 
-function lib.ShowOverlayGlow(frame)
+function lib.ShowOverlayGlow(frame, variant)
 	if frame.__LBGoverlay then
 		if frame.__LBGoverlay.animOut:IsPlaying() then
 			frame.__LBGoverlay.animOut:Stop()
 			frame.__LBGoverlay.animIn:Play()
 		end
 	else
-		local overlay = GetOverlayGlow()
+		local overlay = GetOverlayGlow(variant)
 		local frameWidth, frameHeight = frame:GetSize()
 		overlay:SetParent(frame)
 		overlay:ClearAllPoints()

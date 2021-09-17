@@ -606,6 +606,47 @@ function ForAllButtons(method, onlyWithAction)
 	end
 end
 
+lib.EventOverlayGlowShow = (function(arg1, variant)
+	for button in next, ActiveButtons do
+		local spellId = button:GetSpellId()
+		if spellId and spellId == arg1 then
+			if not button.isMainButton then
+				button:SetGlowing(true, true)
+			end
+			ShowOverlayGlow(button, variant)
+		else
+			if button._state_type == 'action' then
+				local actionType, id = GetActionInfo(button._state_action)
+				if actionType == 'flyout' and FlyoutHasSpell(id, arg1) then
+					button:SetGlowing(true, true)
+					ShowOverlayGlow(button)
+				end
+			end
+		end
+	end
+end)
+
+lib.EventOverlayGlowHide = (function(arg1)
+	for button in next, ActiveButtons do
+		local spellId = button:GetSpellId()
+		if spellId and spellId == arg1 then
+			HideOverlayGlow(button)
+			if not button.isMainButton then
+				button:SetGlowing(false)
+				UpdateCooldown(button)
+			end
+		else
+			if button._state_type == 'action' then
+				local actionType, id = GetActionInfo(button._state_action)
+				if actionType == 'flyout' and FlyoutHasSpell(id, arg1) then
+					button:SetGlowing(false)
+					HideOverlayGlow(button)
+				end
+			end
+		end
+	end
+end)
+
 function InitializeEventHandler()
 	local eventFrame = lib.eventFrame
 	eventFrame:SetScript('OnEvent', OnEvent)
@@ -764,42 +805,9 @@ function OnEvent(_, event, arg1, ...)
 			UpdateCooldown(button)
 		end
 	elseif event == 'SPELL_ACTIVATION_OVERLAY_GLOW_SHOW' then
-		for button in next, ActiveButtons do
-			local spellId = button:GetSpellId()
-			if spellId and spellId == arg1 then
-				if not button.isMainButton then
-					button:SetGlowing(true, true)
-				end
-				ShowOverlayGlow(button)
-			else
-				if button._state_type == 'action' then
-					local actionType, id = GetActionInfo(button._state_action)
-					if actionType == 'flyout' and FlyoutHasSpell(id, arg1) then
-						button:SetGlowing(true, true)
-						ShowOverlayGlow(button)
-					end
-				end
-			end
-		end
+		lib.EventOverlayGlowShow(arg1)
 	elseif event == 'SPELL_ACTIVATION_OVERLAY_GLOW_HIDE' then
-		for button in next, ActiveButtons do
-			local spellId = button:GetSpellId()
-			if spellId and spellId == arg1 then
-				HideOverlayGlow(button)
-				if not button.isMainButton then
-					button:SetGlowing(false)
-					UpdateCooldown(button)
-				end
-			else
-				if button._state_type == 'action' then
-					local actionType, id = GetActionInfo(button._state_action)
-					if actionType == 'flyout' and FlyoutHasSpell(id, arg1) then
-						button:SetGlowing(false)
-						HideOverlayGlow(button)
-					end
-				end
-			end
-		end
+		lib.EventOverlayGlowHide(arg1)
 	elseif event == 'PLAYER_EQUIPMENT_CHANGED' then
 		for button in next, ActiveButtons do
 			if button._state_type == 'item' then
@@ -1248,8 +1256,8 @@ function UpdateTooltip(self)
 --	end
 end
 
-function ShowOverlayGlow(self)
-	LBG.ShowOverlayGlow(self)
+function ShowOverlayGlow(self, variant)
+	LBG.ShowOverlayGlow(self, variant)
 end
 
 function HideOverlayGlow(self)
