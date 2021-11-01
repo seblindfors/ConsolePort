@@ -312,7 +312,7 @@ function ActionMapper:OnLoad()
 	-- HACK: call SetBackdrop on show with nil value, since OnShow has no args.
 	self.Tooltip = CreateFrame('GameTooltip',
 		'ConsolePortConfigBindingMapperTooltip', self, 'GameTooltipTemplate');
-	self.Tooltip:HookScript('OnShow', self.Tooltip.SetBackdrop)
+	self.Tooltip.NineSlice:HookScript('OnShow', self.Tooltip.NineSlice.Hide)
 
 	CPFocusPoolMixin.OnLoad(self)
 	self:CreateFramePool('IndexButton',

@@ -94,10 +94,16 @@ db:Register('Console', setmetatable({
 			desc = 'Movement is analog, translated from your movement stick angle.';
 			note = 'Disable to use discrete legacy movement controls.';
 		};
-		{	cvar = 'GamePadFaceMovementThreshold';
+		{	cvar = 'GamePadFaceMovementMaxAngle';
 			type = Range(115, 5, 0, 180);
-			name = 'Face Movement Threshold';
+			name = 'Face Movement Max Angle';
 			desc = 'Controls when your character transitions from strafing to facing your movement stick angle. Expressed in degrees, from looking straight forward.';
+			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
+		};
+		{	cvar = 'GamePadFaceMovementMaxAngleCombat';
+			type = Range(115, 5, 0, 180);
+			name = 'Face Movement Max Angle (Combat)';
+			desc = 'Controls when your character transitions from strafing to facing your movement stick angle in combat. Expressed in degrees, from looking straight forward.';
 			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
 		};
 		{	cvar = 'GamePadTurnWithCamera';
@@ -154,6 +160,54 @@ db:Register('Console', setmetatable({
 			name = 'Over Shoulder';
 			desc = 'Offsets the camera horizontally from your character, for a more cinematic view.';
 			note = ('Incompatible with %s.'):format(MOTION_SICKNESS_CHARACTER_CENTERED);
+		};
+	};
+	--------------------------------------------------------------------------------------------------------
+	-- Touchpad:
+	--------------------------------------------------------------------------------------------------------
+	Touchpad = {
+		{	cvar = 'GamePadTouchCursorEnable';
+			type = Bool;
+			name = 'Enable Touchpad Cursor';
+			desc = 'Allows the use of the touchpad to control cursor movement.';
+		};
+		{	cvar = 'GamePadTouchCursorMoveThreshold';
+			type = Number(0.042, 0.002, true);
+			name = 'Cursor Move Threshold';
+			desc = 'Change before touchpad moves the cursor.';
+			note = 'Larger value for easier taps.';
+		};
+		{	cvar = 'GamePadTouchCursorAccel';
+			type = Number(1.0, 0.25, true);
+			name = 'Cursor Acceleration';
+			desc = 'Cursor acceleration for touchpad control.';
+		};
+		{	cvar = 'GamePadTouchCursorSpeed';
+			type = Number(1.0, 0.25, true);
+			name = 'Cursor Speed';
+			desc = 'Cursor speed for touchpad control.';
+		};
+		{	cvar = 'GamePadTouchTapButtons';
+			type = Bool;
+			name = 'Touch Tap Buttons';
+			desc = 'Enable touch tap to press touchpad buttons.';
+			note = 'When enabled, a tap will act as a button press.';
+		};
+		{	cvar = 'GamePadTouchTapMaxMs';
+			type = Number(200, 50, true);
+			name = 'Touch Tap Max Time';
+			desc = 'Max time for a touch to register a tap/click, in milliseconds.';
+		};
+		{	cvar = 'GamePadTouchTapOnlyClick';
+			type = Bool;
+			name = 'Touch Tap Exclusive Click';
+			desc = 'Only use taps for cursor clicks, do not use tap presses.';
+			note = 'When disabled, a button press will also act as a cursor click.';
+		};
+		{	cvar = 'GamePadTouchTapRightClick';
+			type = Bool;
+			name = 'Touch Tap Right Click';
+			desc = 'Taps for cursor clicks are right clicks instead of left.';
 		};
 	};
 }, {
