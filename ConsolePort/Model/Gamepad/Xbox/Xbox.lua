@@ -164,10 +164,4 @@ select(2, ...).Gamepad:AddGamepad({
 			};
 		};
 	};
-	Config = {
-		name = 'Xbox';
-		configID = {
-			vendorID = 1118;
-		};
-	};
 })

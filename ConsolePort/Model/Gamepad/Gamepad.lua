@@ -32,9 +32,9 @@ db:Save('Gamepad/Devices', 'ConsolePortDevices')
 ---------------------------------------------------------------
 -- API
 ---------------------------------------------------------------
-function GamepadAPI:AddGamepad(data, skipDefault)
+function GamepadAPI:AddGamepad(data, mergeDefault)
 	local defaultData = db('table/copy')(self.Devices.Default)
-	local gamepadData = skipDefault and data or db('table/merge')(defaultData, data)
+	local gamepadData = mergeDefault and db('table/merge')(defaultData, data) or data
 	self.Devices[data.Name] = CPAPI.Proxy(gamepadData, GamepadMixin):OnLoad()
 end
 
