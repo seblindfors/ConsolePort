@@ -228,6 +228,13 @@ SLASH_FUNCTIONS = {
 			OnAccept = Uninstall;
 		})
 	end;
+	resetconfigs = function()
+		for i, config in ipairs(C_GamePad.GetAllConfigIDs()) do
+			C_GamePad.DeleteConfig(config)
+		end
+		C_GamePad.ApplyConfigs()
+		ReloadUI()
+	end;
 	uninstall = function()
 		CPAPI.Popup('ConsolePort_Uninstall_Addon', {
 			text = 'This action will remove all your saved settings and reload your interface.';
@@ -267,6 +274,8 @@ SLASH_FUNCTIONS = {
 				'Clear configured gamepad bindings and reload interface.'};
 			{'resetall', '',
 				'Remove all saved settings and reload interface.'};
+			{'resetconfigs', '',
+				'Reset all mapping configurations and reload. (will not affect bindings)'};
 			{'uninstall', '',
 				'Remove all saved settings and bindings, disable addon, and reload interface.'};
 		}
