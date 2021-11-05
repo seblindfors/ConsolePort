@@ -52,6 +52,12 @@ db:Register('Console', setmetatable({
 	-- Handling:
 	--------------------------------------------------------------------------------------------------------
 	Cursor = {
+		{	cvar = 'GamePadCursorForTargeting';
+			type = Bool(true);
+			name = 'Use Cursor for Spell Targeting';
+			desc = 'Use free-roaming mouse cursor for spell targeting.';
+			note = 'Defaults to target position when using ground-target spells.';
+		};
 		{	cvar = 'GamePadCursorAutoDisableJump';
 			type = Bool(true);
 			name = 'Hide Cursor on Jump';
@@ -152,8 +158,19 @@ db:Register('Console', setmetatable({
 		};
 		{	cvar = 'CameraFollowOnStick';
 			type = Bool;
-			name = 'Follow On A Stick';
-			desc = ('|T%s:128:128:0|t'):format([[Interface\AddOns\ConsolePort_Config\Assets\jose.blp]]);
+			name = 'Follow On A Stick (FOAS)';
+			desc = 'Auto-adjusts your camera, allowing you to control movement with a single stick.';
+			note = ('|T%s:128:128:0|t'):format([[Interface\AddOns\ConsolePort_Config\Assets\jose.blp]]);
+		};
+		{	cvar = 'CameraFollowGamepadAdjustDelay';
+			type = Number(1, 0.25);
+			name = 'FOAS Adjust Delay';
+			desc = 'Delay before starting to adjust angle when camera control is idle, in seconds.';
+		};
+		{	cvar = 'CameraFollowGamepadAdjustEaseIn';
+			type = Number(1, 0.25);
+			name = 'FOAS Adjust Ease In';
+			desc = 'The time it takes to transition from idle camera control to auto-adjustment (FOAS).';
 		};
 		{	cvar = 'test_cameraOverShoulder';
 			type = Number(0, 0.5);

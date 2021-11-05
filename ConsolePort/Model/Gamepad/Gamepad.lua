@@ -177,35 +177,41 @@ function GamepadAPI:ReindexMappedState(force)
 	if not C_GamePad.IsEnabled() then return end
 	if not force and self.IsMapped then return end
 
-	local state = self:GetState()
-	self:ReindexSticks(state)
-	self:ReindexButtons(state)
-	self:ReindexModifiers(state)
+	self:ReindexSticks()
+	self:ReindexButtons()
+	self:ReindexModifiers()
 	self.IsMapped = true;
 end
 
-function GamepadAPI:ReindexButtons(state)
+function GamepadAPI:ReindexButtons()
 	local map = self.Index.Button;
 	wipe(map.ID); wipe(map.Config); wipe(map.Binding);
 
-	for i in ipairs(state.buttons) do
-		local conf = C_GamePad.ButtonIndexToConfigName(i-1)
-		local bind = C_GamePad.ButtonIndexToBinding(i-1)
+	local i = 0;
+	while true do
+		local conf = C_GamePad.ButtonIndexToConfigName(i)
+		local bind = C_GamePad.ButtonIndexToBinding(i)
+		if not conf or not bind then break end;
 
-		map.ID[i-1]       = {Config = conf; Binding = bind}
-		map.Config[conf]  = {ID = i-1; Binding = bind}
-		map.Binding[bind] = {ID = i-1; Config = conf}
+		map.ID[i]         = {Config = conf; Binding = bind}
+		map.Config[conf]  = {ID = i; Binding = bind}
+		map.Binding[bind] = {ID = i; Config = conf}
+		i = i + 1;
 	end
 end
 
-function GamepadAPI:ReindexSticks(state)
+function GamepadAPI:ReindexSticks()
 	local map = self.Index.Stick;
 	wipe(map.ID); wipe(map.Config);
 
-	for i in ipairs(state.sticks) do
-		local name = C_GamePad.StickIndexToConfigName(i-1)
-		map.ID[i] = name
-		map.Config[name] = i
+	local i = 0;
+	while true do
+		local name = C_GamePad.StickIndexToConfigName(i)
+		if not name then break end;
+
+		map.ID[i+1] = name
+		map.Config[name] = i+1
+		i = i + 1;
 	end
 end
 

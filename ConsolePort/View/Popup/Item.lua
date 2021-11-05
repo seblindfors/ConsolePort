@@ -180,7 +180,7 @@ function ItemMenu.Tooltip:GetTooltipStrings(index)
 end
 
 function ItemMenu.Tooltip:Readjust()
-	self:SetBackdrop(nil)
+	self.NineSlice:Hide()
 	self:SetWidth(340)
 	self:GetTooltipStrings(1):Hide()
 	local i, left, right = 2, self:GetTooltipStrings(2)
