@@ -66,9 +66,13 @@ CPAPI.SecureEnvironmentMixin = {
 			self.Env = CreateFromMixins(self.Env or {}, newEnv)
 		end
 		for func, body in pairs(self.Env) do
+			body = CPAPI.ConvertSecureBody(body);
 			self:SetAttribute(func, body)
 			self:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
 		end
+	end;
+	Wrap = function(self, scriptHandler, body)
+		return self:WrapScript(self, scriptHandler, CPAPI.ConvertSecureBody(body))
 	end;
 }
 
@@ -154,6 +158,18 @@ function CPAPI.Popup(id, settings)
 		end;
 		return dialog;
 	end
+end
+
+function CPAPI.GetSecureBodySignature(obj, func, args)
+	return CPAPI.ConvertSecureBody(
+		('%s:RunAttribute(\'%s\'%s)'):format(obj, func,
+			args and args:trim():len() > 0 and (', %s'):format(args) or ''
+		)
+	);
+end
+
+function CPAPI.ConvertSecureBody(body)
+	return (body:gsub('(%a+)::(%a+)%((.-)%)', CPAPI.GetSecureBodySignature))
 end
 
 ---------------------------------------------------------------

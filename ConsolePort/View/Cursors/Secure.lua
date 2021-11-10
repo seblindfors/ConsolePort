@@ -39,12 +39,12 @@ Cursor:CreateEnvironment({
 		enabled = ...;
 
 		if enabled then
-			self:Run(SetBaseBindings)
-			self:Run(UpdateNodes)
-			self:Run(SelectNewNode, 0)
+			self::SetBaseBindings()
+			self::UpdateNodes()
+			self::SelectNewNode(0)
 			self:Show()
 		else
-			self:Run(ClearHighlight)
+			self::ClearHighlight()
 			self:ClearBindings()
 			self:Hide()
 		end
@@ -75,8 +75,8 @@ Cursor:CreateEnvironment({
 })
 
 Cursor:WrapScript(Cursor, 'PreClick', [[
-	self:Run(ClearHighlight)
-	self:Run(SelectNewNode, button)
+	self:RunAttribute('ClearHighlight')
+	self:RunAttribute('SelectNewNode', button)
 	self:CallMethod('Chime')
 ]])
 
