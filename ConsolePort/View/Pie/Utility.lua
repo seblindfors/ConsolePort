@@ -565,7 +565,7 @@ function Utility:RefreshQuestWatchItems()
 end
 
 function Utility:ToggleExtraActionButton(enabled)
-	if CPAPI.IsClassicVersion then return end
+	if not CPAPI.IsRetailVersion then return end
 	
 	if enabled then
 		self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)

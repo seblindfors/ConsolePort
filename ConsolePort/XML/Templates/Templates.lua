@@ -619,7 +619,7 @@ end
 CPSelectionPopoutMixin = {};
 
 function CPSelectionPopoutMixin:OnShow()
-	if CPAPI.IsClassicVersion then
+	if not CPAPI.IsRetailVersion then
 		self.Border.layoutType = 'ChatBubble';
 		self.Border:OnLoad()
 

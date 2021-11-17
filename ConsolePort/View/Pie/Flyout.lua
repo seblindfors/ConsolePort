@@ -1,4 +1,4 @@
-if CPAPI.IsClassicVersion then return end;
+if not CPAPI.IsRetailVersion then return end;
 local _, db = ...;
 local Selector, Fade, FlyoutButtonMixin = CPAPI.EventHandler(ConsolePortSpellFlyout, {'SPELL_FLYOUT_UPDATE'}), db('Alpha/Fader'), {}
 
