@@ -82,7 +82,7 @@ Utility:CreateEnvironment({
 			end
 
 			self:SetAttribute('removeButtonBlocked', false)
-			local mods = newtable(self::GetModifiersHeld())
+			local mods = {self::GetModifiersHeld()}
 			table.sort(mods)
 			mods[#mods+1] = table.concat(mods)
 

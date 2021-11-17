@@ -74,11 +74,15 @@ Cursor:CreateEnvironment({
 	]];
 })
 
-Cursor:WrapScript(Cursor, 'PreClick', [[
-	self:RunAttribute('ClearHighlight')
-	self:RunAttribute('SelectNewNode', button)
+Cursor:Wrap('PreClick', [[
+	self::ClearHighlight()
+	self::SelectNewNode(button)
 	self:CallMethod('Chime')
 ]])
+
+db:RegisterSafeCallback('OnUpdateOverrides', function(self, isPriority)
+	self:Execute('self:RunAttribute("ToggleCursor", enabled)')
+end, Cursor)
 
 function Cursor:CallScript(scriptID, name)
 	local widget = _G[name];

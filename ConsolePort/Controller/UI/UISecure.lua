@@ -25,7 +25,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-- Node recognition and caching
 	-----------------------------------------------------------
 	UpdateNodes = [[
-		for i, object in ipairs(newtable(self:GetParent():GetChildren())) do
+		for i, object in ipairs({self:GetParent():GetChildren()}) do
 			node = object; self::GetNodes();
 		end
 	]];
@@ -39,7 +39,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-----------------------------------------------------------
 	ChildScan = [[
 		local parent = node
-		for i, object in ipairs(newtable(parent:GetChildren())) do
+		for i, object in ipairs({parent:GetChildren()}) do
 			if object:IsProtected() then
 				child = object
 				if self::FilterChild() then
@@ -90,7 +90,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	SetBaseBindings = [[
 		local modifier = ...;
 		modifier = modifier and modifier or '';
-		for _, binding in pairs(newtable(self::GetBaseBindings())) do
+		for _, binding in pairs({self::GetBaseBindings()}) do
 			self:SetBindingClick(self:GetAttribute('priorityoverride'), modifier..binding, self, binding)
 		end
 	]];

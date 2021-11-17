@@ -89,7 +89,6 @@ function Bar:OnNewBindings(bindings)
 	self:UnregisterOverrides()
 	Clusters:UpdateAllBindings(bindings)
 	self:UpdateOverrides()
-	self.timeLock = nil;
 end
 
 env.db:RegisterSafeCallback('OnNewBindings', Bar.OnNewBindings, Bar)

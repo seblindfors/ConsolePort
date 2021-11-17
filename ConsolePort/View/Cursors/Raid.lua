@@ -195,11 +195,18 @@ function Cursor:OnDataLoaded()
 	end
 end
 
+function Cursor:OnUpdateOverrides(isPriority)
+	if not isPriority then
+		self:Execute('self:RunAttribute("ToggleCursor", enabled)')
+	end
+end
+
 db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorDirect', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorModifier', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorFilter', Cursor.OnDataLoaded, Cursor)
+db:RegisterSafeCallback('OnUpdateOverrides', Cursor.OnUpdateOverrides, Cursor)
 
 ---------------------------------------------------------------
 -- Script handlers

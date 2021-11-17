@@ -160,16 +160,28 @@ function CPAPI.Popup(id, settings)
 	end
 end
 
-function CPAPI.GetSecureBodySignature(obj, func, args)
-	return CPAPI.ConvertSecureBody(
-		('%s:RunAttribute(\'%s\'%s)'):format(obj, func,
-			args and args:trim():len() > 0 and (', %s'):format(args) or ''
-		)
-	);
-end
+---------------------------------------------------------------
+-- Secure environment translation
+---------------------------------------------------------------
+do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
+	function GetSecureBodySignature(obj, func, args)
+		return ConvertSecureBody(
+			('%s:RunAttribute(\'%s\'%s%s)'):format(
+				obj, func, args:trim():len() > 0 and ', ' or '', args));
+	end
 
-function CPAPI.ConvertSecureBody(body)
-	return (body:gsub('(%a+)::(%a+)%((.-)%)', CPAPI.GetSecureBodySignature))
+	function GetNewtableSignature(contents)
+		return ('newtable(%s)'):format(contents:sub(2, -2))
+	end
+
+	function ConvertSecureBody(body)
+		return (body
+			:gsub('(%w+)::(%w+)%((.-)%)', GetSecureBodySignature)
+			:gsub('%b{}', GetNewtableSignature)
+		);
+	end
+
+	CPAPI.ConvertSecureBody = ConvertSecureBody;
 end
 
 ---------------------------------------------------------------
