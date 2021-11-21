@@ -162,21 +162,23 @@ db:Register('Console', setmetatable({
 			desc = 'Auto-adjusts your camera, allowing you to control movement with a single stick.';
 			note = ('|T%s:128:128:0|t'):format([[Interface\AddOns\ConsolePort_Config\Assets\jose.blp]]);
 		};
-		{	cvar = 'CameraFollowGamepadAdjustDelay';
-			type = Number(1, 0.25);
-			name = 'FOAS Adjust Delay';
-			desc = 'Delay before starting to adjust angle when camera control is idle, in seconds.';
-		};
-		{	cvar = 'CameraFollowGamepadAdjustEaseIn';
-			type = Number(1, 0.25);
-			name = 'FOAS Adjust Ease In';
-			desc = 'The time it takes to transition from idle camera control to auto-adjustment (FOAS).';
-		};
 		{	cvar = 'test_cameraOverShoulder';
 			type = Number(0, 0.5);
 			name = 'Over Shoulder';
 			desc = 'Offsets the camera horizontally from your character, for a more cinematic view.';
 			note = ('Incompatible with %s.'):format(MOTION_SICKNESS_CHARACTER_CENTERED);
+		};
+		CPAPI.IsRetailVersion and
+		{	cvar = 'CameraFollowGamepadAdjustDelay';
+			type = Number(1, 0.25);
+			name = 'FOAS Adjust Delay';
+			desc = 'Delay before starting to adjust angle when camera control is idle, in seconds.';
+		};
+		CPAPI.IsRetailVersion and
+		{	cvar = 'CameraFollowGamepadAdjustEaseIn';
+			type = Number(1, 0.25);
+			name = 'FOAS Adjust Ease In';
+			desc = 'The time it takes to transition from idle camera control to auto-adjustment (FOAS).';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
