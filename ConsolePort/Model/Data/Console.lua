@@ -129,12 +129,6 @@ db:Register('Console', setmetatable({
 			desc = 'Pitch speed of camera - moving up/down.';
 			note = 'Choose a negative value to invert the axis.';
 		};
-		{	cvar = 'MouseUseLazyRepositioning';
-			type = Bool(true);
-			name = 'Lazy Mouse Repositioning';
-			desc = 'During camera control, only reposition mouse cursor when nearing edge of window, rather than every input event.';
-			note = 'Disabling this can help with choppy camera controls.';
-		};
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Camera:
