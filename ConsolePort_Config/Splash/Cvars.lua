@@ -21,12 +21,14 @@ end
 function Cvar:Construct(data, newObj, owner)
 	if newObj then
 		self:SetText(L(data.name))
-		local controller = data.type(GetCVar(data.cvar))
+		local origin = data.path or data.cvar;
+		-- either copy existing controller or spawn controller from cvar value
+		local controller = data.data and data.data() or data.type(GetCVar(origin));
 		local constructor = Widgets[cvar] or Widgets[controller:GetType()];
 		if constructor then
-			constructor(self, data.cvar, data, controller, data.desc, data.note)
+			constructor(self, origin, data, controller, data.desc, data.note)
 			controller:SetCallback(function(value)
-				SetCVar(self.variableID, value, self.variableID)
+				self:SetRaw(self.variableID, value, self.variableID)
 				self:OnValueChanged(value)
 				local device = db('Gamepad/Active')
 				if device then
@@ -45,13 +47,24 @@ end
 function Cvar:Get()
 	local controller = self.controller;
 	if controller:IsBool() then
-		return GetCVarBool(self.variableID)
+		return self:GetRawBool(self.variableID)
 	elseif controller:IsNumber() or controller:IsRange() then
-		return tonumber(GetCVar(self.variableID))
+		return tonumber(self:GetRaw(self.variableID))
 	end
-	return GetCVar(self.variableID)
+	return self:GetRaw(self.variableID)
 end
 
+function Cvar:SetRaw(...)
+	return SetCVar(...)
+end
+
+function Cvar:GetRaw(...)
+	return GetCVar(...)
+end
+
+function Cvar:GetRawBool(...)
+	return GetCVarBool(...)
+end
 
 ---------------------------------------------------------------
 -- Console variable container
