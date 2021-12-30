@@ -1,4 +1,4 @@
-## Interface: 11401
+## Interface: 90105
 ## Title: Console Port |cff69ccf0World|r
 ## Notes: World augmentation module: custom loot frame, new ability prompts
 ## RequiredDeps: ConsolePort

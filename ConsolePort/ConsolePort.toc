@@ -1,4 +1,4 @@
-## Interface: 11401
+## Interface: 90105
 ## Title: Console Port
 ## Notes: Game controller addon
 ## Version: 2.1.8

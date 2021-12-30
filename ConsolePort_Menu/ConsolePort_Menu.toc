@@ -1,4 +1,4 @@
-## Interface: 11401
+## Interface: 90105
 ## Title: Console Port |cff69ccf0Menu|r
 ## Notes: Game menu module
 ## RequiredDeps: ConsolePort
