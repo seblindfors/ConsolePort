@@ -83,6 +83,7 @@ function Mapper:OnDeviceChanged(device, deviceID)
 	};
 
 	self.config = ApplyMetatable(config);
+	db:TriggerEvent('OnMapperConfigLoaded', self.config)
 end
 
 function Mapper:OnValueChanged()

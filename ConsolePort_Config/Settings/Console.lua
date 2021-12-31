@@ -41,7 +41,7 @@ function Setting:GetRawBool(...)
 	return Cvar.GetRawBool(self, ...)
 end
 
-function Setting:OnMapperDeviceChanged()
+function Setting:OnMapperConfigLoaded()
 	self:OnValueChanged(self:GetRaw())
 end
 
@@ -177,7 +177,7 @@ function Console:DrawOptions(showAdvanced)
 			if newObj then
 				widget:SetDrawOutline(true)
 				widget:OnLoad()
-				db:RegisterCallback('OnMapperDeviceChanged', widget.OnMapperDeviceChanged, widget)
+				db:RegisterCallback('OnMapperConfigLoaded', widget.OnMapperConfigLoaded, widget)
 			end
 			widget:Construct(data, newObj, self)
 			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)

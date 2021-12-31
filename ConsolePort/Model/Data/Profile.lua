@@ -9,5 +9,9 @@ db:Register('Profile', {
 			path = 'stickConfigs/<stick:Movement>/deadzone';
 			data = Range(0.25, 0.01, 0, 1);
 		};
+		{	name = 'Camera';
+			path = 'stickConfigs/<stick:Camera>/deadzone';
+			data = Range(0.25, 0.01, 0, 1);
+		};
 	};
 })
