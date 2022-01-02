@@ -81,9 +81,5 @@ db:Register('Profile', {
 			desc = 'The Analog input for up/down Camera Pitch "look" feature.';
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
 		};
-		{	name = 'Camera';
-			path = 'stickConfigs/<stick:Camera>/deadzone';
-			data = Range(0.25, 0.01, 0, 1);
-		};
 	};
 })
