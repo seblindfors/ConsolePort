@@ -1,6 +1,8 @@
 select(2, ...).Gamepad:AddGamepad({
 	Name = 'PlayStation 5';
-	Version = 3;
+	LabelStyle = 'Shapes';
+	StyleNameMatches = { [1]='PS5', [2]='DS5', [3]='DualShock 5', [4]='PlayStation 5' };
+	Version = 4;
 	Theme = {
 		Label = 'SHP';
 		Colors = {

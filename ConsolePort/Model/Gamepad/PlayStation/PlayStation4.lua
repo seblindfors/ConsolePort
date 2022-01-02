@@ -1,6 +1,7 @@
 select(2, ...).Gamepad:AddGamepad({
 	Name = 'PlayStation 4';
-	Version = 3;
+	LabelStyle = 'Shapes';
+	Version = 4;
 	Theme = {
 		Label = 'SHP';
 		Colors = {
