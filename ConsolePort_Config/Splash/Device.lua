@@ -84,6 +84,15 @@ function Devices:AddDevice(name, device)
 	return widget;
 end
 
+function Devices:GetFirstDeviceStyle()
+	for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
+		local state = C_GamePad.GetDeviceMappedState(i)
+		if (state and state.labelStyle and not(state.labelStyle == 'Generic')) then
+			return state.labelStyle, state.name;
+		end
+	end
+end
+
 function Devices:UpdateDevices()
 	self.DevicePool:ReleaseAll()
 	local usableDevices = {};
@@ -92,6 +101,10 @@ function Devices:UpdateDevices()
 			tinsert(usableDevices, self:AddDevice(name, device))
 		end
 	end
+
+	local connectedStyle, connectedName = self:GetFirstDeviceStyle();
+	local connectedDeviceWidget;
+	local connectedIsNameMatched = false; -- A name matched device will be preferred
 
 	local containerHeight, prev = 0;
 	for i, device in ipairs(usableDevices) do
@@ -104,6 +117,21 @@ function Devices:UpdateDevices()
 			end
 			device:SetPoint('LEFT', prev, 'RIGHT', FIXED_OFFSET, 0)
 		end
+		if (connectedStyle and (device.Device.LabelStyle == connectedStyle)) then
+			if (device.Device.StyleNameSubStrs) then
+				-- This device must also have a name substring match
+				for _, subStr in ipairs(device.Device.StyleNameSubStrs) do
+					if (string.find(connectedName, subStr)) then
+						connectedDeviceWidget = device;
+						connectedIsNameMatched = true;
+						break
+					end
+				end
+			elseif (not connectedIsNameMatched) then
+				-- A style match is sufficient for this device
+				connectedDeviceWidget = device;
+			end
+		end
 		prev = device;
 	end
 
@@ -114,4 +142,16 @@ function Devices:UpdateDevices()
 		containerWidth = (#usableDevices * DEVICE_WIDTH) + (FIXED_OFFSET * (#usableDevices - 1))
 	end
 	self:SetSize(containerWidth, containerHeight + DEVICE_HEIGHT)
+
+	if (connectedDeviceWidget) then
+		local device = connectedDeviceWidget.Device;
+		db('Cursor'):SetCurrentNode(connectedDeviceWidget);
+
+		local activeDevice = db.Gamepad:GetActiveDevice();
+		if (not activeDevice) then
+			C_Timer.After(0, function ()
+				connectedDeviceWidget:OnClick();
+			end);
+		end
+	end
 end

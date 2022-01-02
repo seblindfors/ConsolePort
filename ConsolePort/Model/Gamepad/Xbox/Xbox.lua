@@ -1,6 +1,7 @@
 select(2, ...).Gamepad:AddGamepad({
 	Name = 'Xbox';
-	Version = 2;
+	LabelStyle = 'Letters';
+	Version = 3;
 	Theme = {
 		Label = 'LTR';
 		Colors = {
