@@ -47,7 +47,7 @@ function LootButton:OnEnter()
 	end
 
 	if FocusTooltip:IsOwned(self) then
-		FocusTooltip:SetBackdrop(nil)
+		FocusTooltip.NineSlice:Hide()
 		self.Text:SetAlpha(0)
 	end
 

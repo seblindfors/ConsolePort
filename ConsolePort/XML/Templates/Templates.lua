@@ -265,8 +265,8 @@ function CPSelectionPopoutWithButtonsAndLabelMixin:UpdateButtons()
 end
 
 CPSelectionPopoutButtonMixin = {};
-local CreateAnchor = GenerateClosure(CreateAndInitFromMixin, AnchorMixin)
-local CreateGridLayout = GenerateClosure(CreateAndInitFromMixin, GridLayoutMixin)
+local CreateAnchor = AnchorUtil.CreateAnchor;
+local CreateGridLayout = AnchorUtil.CreateGridLayout;
 
 function CPSelectionPopoutButtonMixin:OnLoad()
 	self.parent = self:GetParent();
@@ -619,7 +619,7 @@ end
 CPSelectionPopoutMixin = {};
 
 function CPSelectionPopoutMixin:OnShow()
-	if CPAPI.IsClassicVersion then
+	if not CPAPI.IsRetailVersion then
 		self.Border.layoutType = 'ChatBubble';
 		self.Border:OnLoad()
 
@@ -685,4 +685,90 @@ end
 
 function CPSelectionPopoutEntryMixin:OnClick()
 	self.parentButton:OnEntryClick(self.selectionData);
+end
+
+CPResizeLayoutMixin = CreateFromMixins(ResizeLayoutMixin);
+if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
+	local function GetExtents(childFrame, left, right, top, bottom, layoutFrameScale)
+		local frameLeft, frameBottom, frameWidth, frameHeight = GetUnscaledFrameRect(childFrame, layoutFrameScale);
+		local frameRight = frameLeft + frameWidth;
+		local frameTop = frameBottom + frameHeight;
+
+		left = left and math.min(frameLeft, left) or frameLeft;
+		right = right and math.max(frameRight, right) or frameRight;
+		top = top and math.max(frameTop, top) or frameTop;
+		bottom = bottom and math.min(frameBottom, bottom) or frameBottom;
+
+		return left, right, top, bottom;
+	end
+
+	local function GetSize(desired, fixed, minimum, maximum)
+		return fixed or Clamp(desired, minimum or desired, maximum or desired);
+	end
+
+	local function IsLayoutFrame(f)
+		return f.IsLayoutFrame and f:IsLayoutFrame();
+	end
+
+	function CPResizeLayoutMixin:AddLayoutChildren(layoutChildren, ...)
+		for i = 1, select("#", ...) do
+			local region = select(i, ...);
+			if region:IsShown() and not region.ignoreInLayout and (self:IgnoreLayoutIndex() or region.layoutIndex) then
+				layoutChildren[#layoutChildren + 1] = region;
+			end
+		end
+	end
+
+	function CPResizeLayoutMixin:GetAdditionalRegions()
+		-- optional;
+	end
+
+	function CPResizeLayoutMixin:GetLayoutChildren()
+		local children = {};
+		self:AddLayoutChildren(children, self:GetChildren());
+		self:AddLayoutChildren(children, self:GetRegions());
+		self:AddLayoutChildren(children, self:GetAdditionalRegions());
+		if not self:IgnoreLayoutIndex() then
+			table.sort(children, LayoutIndexComparator);
+		end
+
+		return children;
+	end
+
+	function CPResizeLayoutMixin:IgnoreLayoutIndex()
+		return true;
+	end
+
+	function CPResizeLayoutMixin:Layout()
+		-- GetExtents will fail if the LayoutFrame has 0 width or height, so set them to 1 to start
+		self:SetSize(1, 1);
+
+		-- GetExtents will also fail if the LayoutFrame has no anchors set, so if that is the case, set an anchor and then clear it after we are done
+		local hadNoAnchors = (self:GetNumPoints() == 0);
+		if hadNoAnchors then
+			self:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0);
+		end
+
+		local left, right, top, bottom;
+		local layoutFrameScale = self:GetEffectiveScale();
+		for childIndex, child in ipairs(self:GetLayoutChildren()) do
+			if IsLayoutFrame(child) then
+				child:Layout();
+			end
+
+			left, right, top, bottom = GetExtents(child, left, right, top, bottom, layoutFrameScale);
+		end
+
+		if left and right and top and bottom then
+			local width = GetSize((right - left) + (self.widthPadding or 0), self.fixedWidth, self.minimumWidth, self.maximumWidth);
+			local height = GetSize((top - bottom) + (self.heightPadding or 0), self.fixedHeight, self.minimumHeight, self.maximumHeight);
+			self:SetSize(width, height);
+		end
+
+		if hadNoAnchors then
+			self:ClearAllPoints();
+		end
+
+		self:MarkClean();
+	end
 end

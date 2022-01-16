@@ -33,7 +33,7 @@ db:Register('Console', setmetatable({
 			type = Button;
 			name = 'Emulate Esc';
 			desc = 'Button that emulates the Esc key.';
-			note = 'This key can be replaced by binding Toggle Game Menu. This emulation is not necessary.';
+			note = 'This key can be replaced by binding Toggle Game Menu. This emulation is not necessary with ConsolePort.';
 		};
 		{	cvar = 'GamePadCursorLeftClick';
 			type = Button;
@@ -49,9 +49,15 @@ db:Register('Console', setmetatable({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Handling:
+	-- Cursor:
 	--------------------------------------------------------------------------------------------------------
 	Cursor = {
+		{	cvar = 'GamePadCursorForTargeting';
+			type = Bool(true);
+			name = 'Use Cursor for Spell Targeting';
+			desc = 'Use free-roaming mouse cursor for spell targeting.';
+			note = 'Defaults to target position when using ground-target spells.';
+		};
 		{	cvar = 'GamePadCursorAutoDisableJump';
 			type = Bool(true);
 			name = 'Hide Cursor on Jump';
@@ -94,34 +100,34 @@ db:Register('Console', setmetatable({
 			desc = 'Movement is analog, translated from your movement stick angle.';
 			note = 'Disable to use discrete legacy movement controls.';
 		};
-		{	cvar = 'GamePadFaceMovementThreshold';
+		{	cvar = 'GamePadFaceMovementMaxAngle';
 			type = Range(115, 5, 0, 180);
-			name = 'Face Movement Threshold';
+			name = 'Face Movement Max Angle';
 			desc = 'Controls when your character transitions from strafing to facing your movement stick angle. Expressed in degrees, from looking straight forward.';
 			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
 		};
+		{	cvar = 'GamePadFaceMovementMaxAngleCombat';
+			type = Range(115, 5, 0, 180);
+			name = 'Face Movement Max Angle (In Combat)';
+			desc = 'Controls when your character transitions from strafing to facing your movement stick angle in combat. Expressed in degrees, from looking straight forward.';
+			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
+		};
 		{	cvar = 'GamePadTurnWithCamera';
-			type = Select(2, 2):SetRawOptions({[0] = NEVER, [1] = 'Autorun', [2] = ALWAYS});
+			type = Select(2, 2):SetRawOptions({[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
 			name = 'Turn Character With Camera';
 			desc = 'Turn your character facing when you turn your camera angle.';
 		};
 		{	cvar = 'GamePadCameraYawSpeed';
-			type = Number(1, 0.1);
+			type = Range(1, 0.25, -2.0, 2.0);
 			name = 'Camera Yaw Speed';
 			desc = 'Yaw speed of camera - turning left/right.';
 			note = 'Choose a negative value to invert the axis.';
 		};
 		{	cvar = 'GamePadCameraPitchSpeed';
-			type = Number(1, 0.1);
+			type = Range(1, 0.25, -2.0, 2.0);
 			name = 'Camera Pitch Speed';
 			desc = 'Pitch speed of camera - moving up/down.';
 			note = 'Choose a negative value to invert the axis.';
-		};
-		{	cvar = 'MouseUseLazyRepositioning';
-			type = Bool(true);
-			name = 'Lazy Mouse Repositioning';
-			desc = 'During camera control, only reposition mouse cursor when nearing edge of window, rather than every input event.';
-			note = 'Disabling this can help with choppy camera controls.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
@@ -129,31 +135,106 @@ db:Register('Console', setmetatable({
 	--------------------------------------------------------------------------------------------------------
 	Camera = {
 		{	cvar = 'CameraKeepCharacterCentered';
-			type = Bool;
+			type = Bool(true);
 			name = MOTION_SICKNESS_CHARACTER_CENTERED;
 			desc = 'Keeps your character centered to reduce motion sickness.';
 		};
 		{	cvar = 'CameraReduceUnexpectedMovement';
-			type = Bool;
+			type = Bool(true);
 			name = MOTION_SICKNESS_REDUCE_CAMERA_MOTION;
 			desc = 'Reduces unexpected camera movement to reduce motion sickness.';
 		};
 		{	cvar = 'test_cameraDynamicPitch';
-			type = Bool;
+			type = Bool(false);
 			name = 'Dynamic Pitch';
 			desc = 'Pitches the camera upwards as you zoom out.';
 			note = ('Incompatible with %s.'):format(MOTION_SICKNESS_CHARACTER_CENTERED);
 		};
-		{	cvar = 'CameraFollowOnStick';
-			type = Bool;
-			name = 'Follow On A Stick';
-			desc = ('|T%s:128:128:0|t'):format([[Interface\AddOns\ConsolePort_Config\Assets\jose.blp]]);
-		};
 		{	cvar = 'test_cameraOverShoulder';
-			type = Number(0, 0.5);
+			type = Range(0, 0.5, -1.0, 1.0);
 			name = 'Over Shoulder';
 			desc = 'Offsets the camera horizontally from your character, for a more cinematic view.';
 			note = ('Incompatible with %s.'):format(MOTION_SICKNESS_CHARACTER_CENTERED);
+		};
+		{	cvar = 'CameraFollowOnStick';
+			type = Bool(false);
+			name = 'Follow On A Stick (FOAS)';
+			desc = 'Auto-adjusts your camera, allowing you to control movement with a single stick.';
+			note = ('|T%s:128:128:0|t'):format([[Interface\AddOns\ConsolePort_Config\Assets\jose.blp]]);
+		};
+		CPAPI.IsRetailVersion and
+		{	cvar = 'CameraFollowGamepadAdjustDelay';
+			type = Number(1, 0.25);
+			name = 'FOAS Adjust Delay';
+			desc = 'Delay before starting to adjust angle when camera control is idle, in seconds.';
+		};
+		CPAPI.IsRetailVersion and
+		{	cvar = 'CameraFollowGamepadAdjustEaseIn';
+			type = Number(1, 0.25);
+			name = 'FOAS Adjust Ease In';
+			desc = 'The time it takes to transition from idle camera control to auto-adjustment (FOAS).';
+		};
+		{
+			cvar = 'GamePadCameraLookMaxYaw';
+			type = Range(0, 15, 0, 45);
+			name = 'Camera Look Max Yaw';
+			desc = 'Maximum Yaw adjust for the camera "look" feature.';
+			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
+		};
+		{
+			cvar = 'GamePadCameraLookMaxPitch';
+			type = Range(0, 15, 0, 30);
+			name = 'Camera Look Max Pitch';
+			desc = 'Maximum Pitch adjust for the camera "look" feature.';
+			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
+		};
+	};
+	--------------------------------------------------------------------------------------------------------
+	-- Touchpad:
+	--------------------------------------------------------------------------------------------------------
+	Touchpad = {
+		{	cvar = 'GamePadTouchCursorEnable';
+			type = Bool(false);
+			name = 'Enable Touchpad Cursor';
+			desc = 'Allows the use of the touchpad to control cursor movement.';
+		};
+		{	cvar = 'GamePadTouchCursorMoveThreshold';
+			type = Number(0.042, 0.002, true);
+			name = 'Cursor Move Threshold';
+			desc = 'Change before touchpad moves the cursor.';
+			note = 'Larger value for easier taps.';
+		};
+		{	cvar = 'GamePadTouchCursorAccel';
+			type = Number(1.0, 0.25, true);
+			name = 'Cursor Acceleration';
+			desc = 'Cursor acceleration for touchpad control.';
+		};
+		{	cvar = 'GamePadTouchCursorSpeed';
+			type = Number(1.0, 0.25, true);
+			name = 'Cursor Speed';
+			desc = 'Cursor speed for touchpad control.';
+		};
+		{	cvar = 'GamePadTouchTapButtons';
+			type = Bool(false);
+			name = 'Touch Tap Buttons';
+			desc = 'Enable touch tap to press touchpad buttons.';
+			note = 'When enabled, a tap will act as a button press.';
+		};
+		{	cvar = 'GamePadTouchTapMaxMs';
+			type = Number(200, 50, true);
+			name = 'Touch Tap Max Time';
+			desc = 'Max time for a touch to register a tap/click, in milliseconds.';
+		};
+		{	cvar = 'GamePadTouchTapOnlyClick';
+			type = Bool(false);
+			name = 'Touch Tap Exclusive Click';
+			desc = 'Only use taps for cursor clicks, do not use tap presses.';
+			note = 'When disabled, a button press will also act as a cursor click.';
+		};
+		{	cvar = 'GamePadTouchTapRightClick';
+			type = Bool(false);
+			name = 'Touch Tap Right Click';
+			desc = 'Taps for cursor clicks are right clicks instead of left.';
 		};
 	};
 }, {

@@ -7,4 +7,5 @@
 	<Script file="Locale.lua"/>
 	<Script file="Actionbar.lua"/>
 	<Script file="Bindings.lua"/>
+	<Script file="Mapper.lua"/>
 </Ui>

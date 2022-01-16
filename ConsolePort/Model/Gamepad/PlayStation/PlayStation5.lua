@@ -1,6 +1,8 @@
 select(2, ...).Gamepad:AddGamepad({
 	Name = 'PlayStation 5';
-	Version = 2;
+	LabelStyle = 'Shapes';
+	StyleNameSubStrs = { [1]='PS5', [2]='DS5', [3]='DualShock 5', [4]='PlayStation 5' };
+	Version = 4;
 	Theme = {
 		Label = 'SHP';
 		Colors = {
@@ -159,129 +161,4 @@ select(2, ...).Gamepad:AddGamepad({
 			};
 		};
 	};
-	Config = {
-		name = 'PlayStation 5';
-		configID = {
-			vendorID = 1356;
-			productID = 3302;
-		};
-		rawButtonMappings = {
-			{
-				rawIndex = 0;
-				button = 'Face3';
-				comment = 'Square';
-			};
-			{
-				rawIndex = 1;
-				button = 'Face1';
-				comment = 'Cross';
-			};
-			{
-				rawIndex = 2;
-				button = 'Face2';
-				comment = 'Circle';
-			};
-			{
-				rawIndex = 3;
-				button = 'Face4';
-				comment = 'Triangle';
-			};
-			{
-				rawIndex = 4;
-				button = 'LShoulder';
-				comment = 'L1';
-			};
-			{
-				rawIndex = 5;
-				button = 'RShoulder';
-				comment = 'R2';
-			};
-			{
-				rawIndex = 6;
-				button = 'None'; -- Face5 for half-press
-				comment = 'immediate L2 (disabled so we can control trigger point)';
-			};
-			{
-				rawIndex = 7;
-				button = 'None'; -- Face6 for half-press
-				comment = 'immediate R2 (disabled so we can control trigger point)';
-			};
-			{
-				rawIndex = 8;
-				button = 'Social';
-				comment = 'Share';
-			};
-			{
-				rawIndex = 9;
-				button = 'Forward';
-				comment = 'Options';
-			};
-			{
-				rawIndex = 10;
-				button = 'LStickIn';
-			};
-			{
-				rawIndex = 11;
-				button = 'RStickIn';
-			};
-			{
-				rawIndex = 12;
-				button = 'System';
-				comment = 'PS button';
-			};
-			{
-				rawIndex = 13;
-				button = 'Back';
-				comment = 'Touchpad';
-			};
-			{
-				rawIndex = 14;
-				button = 'Face5';
-				comment = 'Mic button';
-				bluetooth = false;
-			};
-			{
-				rawIndex = 14;
-				button = 'Up';
-				comment = 'D-Pad Up';
-				bluetooth = true;
-			};
-		};
-		rawAxisMappings = {
-			{
-				rawIndex = 0;
-				axis = 'LStickX';
-			};
-			{
-				rawIndex = 1;
-				axis = 'LStickY';
-			};
-			{
-				rawIndex = 2;
-				axis = 'RStickX';
-			};
-			{
-				rawIndex = 3;
-				axis = 'LTrigger';
-			};
-			{
-				rawIndex = 4;
-				axis = 'RTrigger';
-			};
-			{
-				rawIndex = 5;
-				axis = 'RStickY';
-			}
-		};
-		axisConfigs = {
-			[2] = {
-				axis = 'LStickY';
-				scale = -2;
-			};
-			[4] = {
-				axis = 'RStickY';
-				scale = -2;
-			}
-		}
-	}
 })

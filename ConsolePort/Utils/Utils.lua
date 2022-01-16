@@ -66,9 +66,13 @@ CPAPI.SecureEnvironmentMixin = {
 			self.Env = CreateFromMixins(self.Env or {}, newEnv)
 		end
 		for func, body in pairs(self.Env) do
+			body = CPAPI.ConvertSecureBody(body);
 			self:SetAttribute(func, body)
 			self:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
 		end
+	end;
+	Wrap = function(self, scriptHandler, body)
+		return self:WrapScript(self, scriptHandler, CPAPI.ConvertSecureBody(body))
 	end;
 }
 
@@ -154,6 +158,30 @@ function CPAPI.Popup(id, settings)
 		end;
 		return dialog;
 	end
+end
+
+---------------------------------------------------------------
+-- Secure environment translation
+---------------------------------------------------------------
+do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
+	function GetSecureBodySignature(obj, func, args)
+		return ConvertSecureBody(
+			('%s:RunAttribute(\'%s\'%s%s)'):format(
+				obj, func, args:trim():len() > 0 and ', ' or '', args));
+	end
+
+	function GetNewtableSignature(contents)
+		return ('newtable(%s)'):format(contents:sub(2, -2))
+	end
+
+	function ConvertSecureBody(body)
+		return (body
+			:gsub('(%w+)::(%w+)%((.-)%)', GetSecureBodySignature)
+			:gsub('%b{}', GetNewtableSignature)
+		);
+	end
+
+	CPAPI.ConvertSecureBody = ConvertSecureBody;
 end
 
 ---------------------------------------------------------------

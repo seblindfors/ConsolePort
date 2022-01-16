@@ -39,12 +39,12 @@ Cursor:CreateEnvironment({
 		enabled = ...;
 
 		if enabled then
-			self:Run(SetBaseBindings)
-			self:Run(UpdateNodes)
-			self:Run(SelectNewNode, 0)
+			self::SetBaseBindings()
+			self::UpdateNodes()
+			self::SelectNewNode(0)
 			self:Show()
 		else
-			self:Run(ClearHighlight)
+			self::ClearHighlight()
 			self:ClearBindings()
 			self:Hide()
 		end
@@ -74,11 +74,15 @@ Cursor:CreateEnvironment({
 	]];
 })
 
-Cursor:WrapScript(Cursor, 'PreClick', [[
-	self:Run(ClearHighlight)
-	self:Run(SelectNewNode, button)
+Cursor:Wrap('PreClick', [[
+	self::ClearHighlight()
+	self::SelectNewNode(button)
 	self:CallMethod('Chime')
 ]])
+
+db:RegisterSafeCallback('OnUpdateOverrides', function(self, isPriority)
+	self:Execute('self:RunAttribute("ToggleCursor", enabled)')
+end, Cursor)
 
 function Cursor:CallScript(scriptID, name)
 	local widget = _G[name];

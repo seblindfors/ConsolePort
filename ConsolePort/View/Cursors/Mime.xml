@@ -1,0 +1,22 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Script file="Cursors/Mime.lua"/>
+
+	<Frame name="CPCursorMimeTemplate" mixin="CPCursorMimeMixin" virtual="true">
+		<Animations>
+			<AnimationGroup parentKey="Scale">
+				<Scale parentKey="Enlarge" childKey="Highlight" smoothing="OUT" duration=".1" order="1">
+					<Origin point="CENTER"/>
+				</Scale>
+				<Scale parentKey="Shrink" childKey="Highlight" smoothing="IN" duration=".2" order="2">
+					<Origin point="CENTER"/>
+				</Scale>
+			</AnimationGroup>
+		</Animations>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>
+	
+</Ui>

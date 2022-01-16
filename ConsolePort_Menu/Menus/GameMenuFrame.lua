@@ -7,7 +7,7 @@ do	-- Initiate frame
 	local hideMenuHook    = {hidemenu = true};
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
 	local IsRetailVersion = CPAPI.IsRetailVersion;
-	local IsClassicVersion = CPAPI.IsClassicVersion;
+	local IsClassicVersion = not CPAPI.IsRetailVersion or nil;
 
 	LibStub('Carpenter')(Menu, {
 		Character = {

@@ -144,6 +144,29 @@
 		</Frames>
 	</IndexButton>
 
+	<IndexButton name="CPIndexButtonSettingTemplate" virtual="true">
+		<Size x="560" y="40"/>
+		<KeyValues>
+			<KeyValue key="thumbPosition" value="TOP" type="string"/>
+			<KeyValue key="thumbSize" value="1" type="number"/>
+		</KeyValues>
+		<ButtonText parentKey="Label" inherits="CPSubtitleFont" wordwrap="false" justifyH="LEFT">
+			<Color r="1" g="1" b="1" />
+			<Size x="560" y="40"/>
+			<Anchors>
+				<Anchor point="LEFT" x="16" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<Frames>
+			<Frame parentKey="Content" hidden="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" y="-40"/>
+					<Anchor point="BOTTOMRIGHT"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</IndexButton>
+
 	<IndexButton name="CPIndexButtonBindingActionBarTemplate" virtual="true">
 		<Size x="540" y="40"/>
 		<KeyValues>

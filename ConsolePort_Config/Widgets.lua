@@ -264,9 +264,24 @@ local Range = CreateWidget('Range', Number, {
 			self:SetValueStep(widget:GetStep());
 			self:SetMinMaxValues(widget.controller:GetMinMax());
 		end;
+		_OnMouseDown = function(self, button)
+			self.isDraggingThumb = self:IsDraggingThumb();
+		end;
+		_OnMouseUp = function(self, button)
+			if self.isDraggingThumb then
+				self.isDraggingThumb = self:IsDraggingThumb();
+				if not self.isDraggingThumb then
+					self:GetParent():Set(self:GetValue())
+				end
+			end
+		end;
 		_OnValueChanged = function(self, value, byInput)
 			if byInput then
-				self:GetParent():Set(value)
+				if self.isDraggingThumb then
+					self:GetParent():OnValueChanged(value)
+				else 
+					self:GetParent():Set(value)
+				end
 			end
 		end;
 	};

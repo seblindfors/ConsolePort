@@ -15,11 +15,11 @@ local Cursor = db:Register('Raid', db.Pager:RegisterHeader(db.Securenav(ConsoleP
 Cursor:SetFrameRef('SetFocus', Cursor.SetFocus)
 Cursor:SetFrameRef('SetTarget', Cursor.SetTarget)
 Cursor:WrapScript(Cursor.Toggle, 'OnClick', [[
-	control:Run(ToggleCursor, not enabled)
+	control:RunAttribute('ToggleCursor', not enabled)
 ]])
 
-Cursor:WrapScript(Cursor, 'PreClick', [[
-	self:Run(SelectNewNode, button)
+Cursor:Wrap('PreClick', [[
+	self::SelectNewNode(button)
 	if self:GetAttribute('noroute') then
 		self:SetAttribute('unit', self:GetAttribute('cursorunit'))
 	else
@@ -42,7 +42,7 @@ Cursor:Execute([[
 ---------------------------------------------------------------
 Cursor:CreateEnvironment({
 	FilterNode = [[
-		if self:Run(IsDrawn, node:GetRect()) then
+		if self::IsDrawn(node:GetRect()) then
 			local unit = node:GetAttribute('unit')
 			local action = node:GetAttribute('action')
 
@@ -66,9 +66,9 @@ Cursor:CreateEnvironment({
 
 		for actionButton in pairs(ACTIONS) do
 			local action = actionButton:GetAttribute('action')
-			if self:Run(IsHelpfulAction, action) then
+			if self::IsHelpfulAction(action) then
 				HELPFUL[actionButton] = true;
-			elseif self:Run(IsHarmfulAction, action) then
+			elseif self::IsHarmfulAction(action) then
 				HARMFUL[actionButton] = true;
 			else
 				HELPFUL[actionButton] = true;
@@ -120,7 +120,7 @@ Cursor:CreateEnvironment({
 	]];
 	PostNodeSelect = [[
 		local unit = curnode and curnode:GetAttribute('unit')
-		local reroute = self:Run(PrepareReroute)
+		local reroute = self::PrepareReroute()
 
 		if unit then
 			self:Show()
@@ -135,24 +135,24 @@ Cursor:CreateEnvironment({
 			self:SetAttribute('cursorunit', unit)
 
 			if reroute then
-				self:Run(RerouteUnit, unit)
+				self::RerouteUnit(unit)
 			end
 		else
-			self:Run(ToggleCursor, false)
+			self::ToggleCursor(false)
 		end
 	]];
 	ToggleCursor = [[
 		enabled = ...;
 
 		if enabled then
-			self:Run(SetBaseBindings, self:GetAttribute('navmodifier'))
-			self:Run(UpdateNodes)
-			self:Run(RefreshActions)
-			self:Run(SelectNewNode, 0)
+			self::SetBaseBindings(self:GetAttribute('navmodifier'))
+			self::UpdateNodes()
+			self::RefreshActions()
+			self::SelectNewNode(0)
 			self:Show()
 		else
-			self:Run(ClearFocusUnit)
-			self:Run(PrepareReroute)
+			self::ClearFocusUnit()
+			self::PrepareReroute()
 			self:SetAttribute('node', nil)
 			self:SetAttribute('cursorunit', nil)
 			self:ClearBindings()
@@ -163,14 +163,14 @@ Cursor:CreateEnvironment({
 	UpdateUnitExists = [[
 		local exists = ...;
 		if not exists then
-			self:Run(UpdateNodes)
-			self:Run(SelectNewNode, 0)
+			self::UpdateNodes()
+			self::SelectNewNode(0)
 		end
 	]];
 	ActionPageChanged = [[
 		if enabled then
-			self:Run(RefreshActions)
-			self:Run(SelectNewNode, 0)
+			self::RefreshActions()
+			self::SelectNewNode(0)
 		end
 	]];
 })
@@ -195,11 +195,18 @@ function Cursor:OnDataLoaded()
 	end
 end
 
+function Cursor:OnUpdateOverrides(isPriority)
+	if not isPriority then
+		self:Execute('self:RunAttribute("ToggleCursor", enabled)')
+	end
+end
+
 db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorDirect', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorModifier', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorScale', Cursor.OnDataLoaded, Cursor)
 db:RegisterSafeCallback('Settings/raidCursorFilter', Cursor.OnDataLoaded, Cursor)
+db:RegisterSafeCallback('OnUpdateOverrides', Cursor.OnUpdateOverrides, Cursor)
 
 ---------------------------------------------------------------
 -- Script handlers

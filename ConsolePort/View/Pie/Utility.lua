@@ -36,7 +36,7 @@ Utility:CreateEnvironment({
 		local numActive = #RING;
 		local invertY = self:GetAttribute('axisInversion')
 
-		self:SetAttribute('trigger', self:Run(GetButtonsHeld))
+		self:SetAttribute('trigger', self::GetButtonsHeld())
 		self:SetAttribute('state', set)
 		control:ChildUpdate('state', set)
 
@@ -82,7 +82,7 @@ Utility:CreateEnvironment({
 			end
 
 			self:SetAttribute('removeButtonBlocked', false)
-			local mods = newtable(self:Run(GetModifiersHeld))
+			local mods = {self::GetModifiersHeld()}
 			table.sort(mods)
 			mods[#mods+1] = table.concat(mods)
 
@@ -100,17 +100,17 @@ Utility:CreateEnvironment({
 ---------------------------------------------------------------
 -- Trigger script
 ---------------------------------------------------------------
-Utility:WrapScript(Utility, 'PreClick', [[
+Utility:Wrap('PreClick', [[
 	self:SetAttribute('type', nil)
 
 	if down then
-		local set = self:Run(GetRingSetFromButton, button)
+		local set = self::GetRingSetFromButton(button)
 		self:CallMethod('CheckCursorInfo', set)
-		self:Run(DrawSelectedRing, set)
-		self:Run(SetRemoveBinding, true)
+		self::DrawSelectedRing(set)
+		self::SetRemoveBinding(true)
 		self:Show()
 	else
-		self:Run(CopySelectedIndex, self:Run(GetIndex))
+		self::CopySelectedIndex(self::GetIndex())
 		self:ClearBindings()
 		self:Hide()
 	end
@@ -565,7 +565,7 @@ function Utility:RefreshQuestWatchItems()
 end
 
 function Utility:ToggleExtraActionButton(enabled)
-	if CPAPI.IsClassicVersion then return end
+	if not CPAPI.IsRetailVersion then return end
 	
 	if enabled then
 		self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)

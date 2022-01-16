@@ -27,7 +27,7 @@ function Ability:Update()
 
 	self.tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 	self.tooltip:SetSpellByID(self:GetID())
-	self.tooltip:SetBackdrop(nil)
+	self.tooltip.NineSlice:Hide()
 
 	for _, slot in ipairs(C_ActionBar.FindSpellActionButtons(self:GetID()) or {}) do
 		local binding = db.Actionbar.Action[slot];

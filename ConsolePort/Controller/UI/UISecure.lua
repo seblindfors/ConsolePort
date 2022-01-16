@@ -6,7 +6,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-----------------------------------------------------------
 	-- @param node : current node in iteration
 	FilterNode = [[
-		if self:Run(IsDrawn, node:GetRect()) then
+		if self::IsDrawn(node:GetRect()) then
 			CACHE[node] = true
 			NODES[node] = true
 		end
@@ -25,25 +25,25 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-- Node recognition and caching
 	-----------------------------------------------------------
 	UpdateNodes = [[
-		for i, object in ipairs(newtable(self:GetParent():GetChildren())) do
-			node = object; self:Run(GetNodes);
+		for i, object in ipairs({self:GetParent():GetChildren()}) do
+			node = object; self::GetNodes();
 		end
 	]];
 	-----------------------------------------------------------
 	GetNodes = [[
 		if node and node:IsProtected() then
-			self:Run(ChildScan)
-			self:Run(CacheNode)
+			self::ChildScan()
+			self::CacheNode()
 		end
 	]];
 	-----------------------------------------------------------
 	ChildScan = [[
 		local parent = node
-		for i, object in ipairs(newtable(parent:GetChildren())) do
+		for i, object in ipairs({parent:GetChildren()}) do
 			if object:IsProtected() then
 				child = object
-				if self:Run(FilterChild) then
-					node = child; self:Run(GetNodes)
+				if self::FilterChild() then
+					node = child; self::GetNodes()
 				end
 			end
 		end
@@ -52,7 +52,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-----------------------------------------------------------
 	CacheNode = [[
 		if not CACHE[node] then
-			self:Run(FilterNode)
+			self::FilterNode()
 		end
 	]];
 	-----------------------------------------------------------
@@ -77,7 +77,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	]];
 	-----------------------------------------------------------
 	SumXY = [[
-		return select(3, self:Run(AbsXY, ...))
+		return select(3, self::AbsXY(...))
 	]];
 	-----------------------------------------------------------
 	-- Node selection
@@ -90,7 +90,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	SetBaseBindings = [[
 		local modifier = ...;
 		modifier = modifier and modifier or '';
-		for _, binding in pairs(newtable(self:Run(GetBaseBindings))) do
+		for _, binding in pairs({self::GetBaseBindings()}) do
 			self:SetBindingClick(self:GetAttribute('priorityoverride'), modifier..binding, self, binding)
 		end
 	]];
@@ -101,9 +101,9 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 		if cX and cY then
 			for node in pairs(NODES) do
 				if (node ~= old) and node:IsVisible() then
-					local nX, nY = self:Run(GetCenter, node:GetRect())
+					local nX, nY = self::GetCenter(node:GetRect())
 					if nX and nY then
-						local dist = self:Run(SumXY, cX, nX, cY, nY)
+						local dist = self::SumXY(cX, nX, cY, nY)
 
 						if not dest or dist < dest then
 							targ = node
@@ -136,13 +136,13 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-----------------------------------------------------------
 	SetAnyNode = [[
 		local old = oldnode
-		if old and old:IsVisible() and self:Run(FilterOld) then
+		if old and old:IsVisible() and self::FilterOld() then
 			curnode = old; return;
 		end
 		if (not curnode or not curnode:IsVisible()) and next(NODES) then
-			local cX, cY = self:Run(GetCenter, self:GetRect())
-			if not self:Run(SetNodeByDistance, cX, cY) then
-				self:Run(SetNodeByShown)
+			local cX, cY = self::GetCenter(self:GetRect())
+			if not self::SetNodeByDistance(cX, cY) then
+				self::SetNodeByShown()
 			end
 		end
 	]];
@@ -156,12 +156,12 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 		local key = ...
 		if curnode and (key ~= 0) then
 			local rL, rB, rW, rH = curnode:GetRect()
-			local tX, tY = self:Run(GetCenter, curnode:GetRect())
+			local tX, tY = self::GetCenter(curnode:GetRect())
 			local cX, cY = math.huge, math.huge
 			for node in pairs(NODES) do
 				if node:IsVisible() then
-					local nX, nY = self:Run(GetCenter, node:GetRect())
-					local dX, dY, dist = self:Run(AbsXY, tX, nX, tY, nY)
+					local nX, nY = self::GetCenter(node:GetRect())
+					local dX, dY, dist = self::AbsXY(tX, nX, tY, nY)
 
 					if ( dist < cX + cY ) then
 						if self:RunAttribute(key, tX, tY, nX, nY, dX, dY) then
@@ -175,8 +175,8 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	-----------------------------------------------------------
 	SelectNewNode = [[
 		if curnode then oldnode = curnode; end
-		self:Run(SetAnyNode)
-		self:Run(SetNodeByKey, ...)
+		self::SetAnyNode()
+		self::SetNodeByKey(...)
 
 		local postNodeSelect = self:GetAttribute('_postnodeselect') or PostNodeSelect;
 		if postNodeSelect then

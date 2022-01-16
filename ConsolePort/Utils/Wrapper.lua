@@ -3,8 +3,9 @@ local _, db = ...; CPAPI = {};
 -- General 
 ---------------------------------------------------------------
 -- return true or nil (nil for dynamic table insertions)
-CPAPI.IsClassicVersion = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or nil;
-CPAPI.IsRetailVersion  = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
+CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or nil;
+CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
+CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
 
 function CPAPI.Log(...)
 	local cc = ChatTypeInfo.SYSTEM;
