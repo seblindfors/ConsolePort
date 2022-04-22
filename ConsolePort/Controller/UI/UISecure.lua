@@ -147,6 +147,31 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 		end
 	]];
 	-----------------------------------------------------------
+	PADDUPOPPOSITE    = [[ local currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY = ... return nodeCenterX == currentNodeCenterX and nodeCenterY < currentNodeCenterY ]];
+	PADDDOWNOPPOSITE  = [[ local currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY = ... return nodeCenterX == currentNodeCenterX and nodeCenterY > currentNodeCenterY ]];
+	PADDLEFTOPPOSITE  = [[ local currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY = ... return nodeCenterY == currentNodeCenterY and nodeCenterX > currentNodeCenterX ]];
+	PADDRIGHTOPPOSITE = [[ local currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY = ... return nodeCenterY == currentNodeCenterY and nodeCenterX < currentNodeCenterX ]];
+	-----------------------------------------------------------
+	GetOppositeNode = [[
+		local key = ...
+		local keyOPPOSITE = key .. "OPPOSITE"
+
+		local currentNodeCenterX, currentNodeCenterY = self::GetCenter(curnode:GetRect())
+		local nextNodeDistanceX, nextNodeDistanceY = 0, 0
+		for node in pairs(NODES) do
+			if node:IsVisible() then
+				local nodeCenterX, nodeCenterY = self::GetCenter(node:GetRect())
+				local absDistanceX, absDistanceY, distance = self::AbsXY(currentNodeCenterX, nodeCenterX, currentNodeCenterY, nodeCenterY)
+
+				if ( distance > nextNodeDistanceX + nextNodeDistanceY ) then
+					if self:RunAttribute(keyOPPOSITE, currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY) then
+						curnode, nextNodeDistanceX, nextNodeDistanceY = node, absDistanceX, absDistanceY;
+					end
+				end
+			end
+		end
+	]];
+	-----------------------------------------------------------
 	PADDUP    = [[ local tX, tY, nX, nY, dX, dY = ... return dY > dX and nY > tY ]];
 	PADDDOWN  = [[ local tX, tY, nX, nY, dX, dY = ... return dY > dX and nY < tY ]];
 	PADDLEFT  = [[ local tX, tY, nX, nY, dX, dY = ... return dY < dX and nX < tX ]];
@@ -158,6 +183,7 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 			local rL, rB, rW, rH = curnode:GetRect()
 			local tX, tY = self::GetCenter(curnode:GetRect())
 			local cX, cY = math.huge, math.huge
+			local edgeOfFrames = true
 			for node in pairs(NODES) do
 				if node:IsVisible() then
 					local nX, nY = self::GetCenter(node:GetRect())
@@ -166,9 +192,13 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 					if ( dist < cX + cY ) then
 						if self:RunAttribute(key, tX, tY, nX, nY, dX, dY) then
 							curnode, cX, cY = node, dX, dY;
+							edgeOfFrames = false
 						end
 					end
 				end
+			end
+			if edgeOfFrames then
+				self::GetOppositeNode(key)
 			end
 		end
 	]];
