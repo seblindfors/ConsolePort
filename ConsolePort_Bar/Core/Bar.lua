@@ -194,12 +194,16 @@ function Bar:OnLoad(cfg, benign)
 	env:SetRainbowScript(cfg.rainbow)
 
 	-- Tint RGB for background textures	
+	SetCVar("GamePadFactionColor", 0)
 	if cfg.tintRGB then
 		self.BG:SetGradientAlpha(env:GetColorGradient(unpack(cfg.tintRGB)))
 		self.BottomLine:SetVertexColor(unpack(cfg.tintRGB))
+		-- Add GamepadLedTint
+		C_GamePad.SetLedColor(CreateColor(unpack(cfg.tintRGB)))
 	else
 		self.BG:SetGradientAlpha(env:GetColorGradient(r, g, b))
 		self.BottomLine:SetVertexColor(r, g, b, 1)
+		C_GamePad.SetLedColor(CreateColor(r,g,b,1))
 	end
 
 	-- Show 'the eye'
