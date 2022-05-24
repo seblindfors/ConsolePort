@@ -1,4 +1,6 @@
-## Interface: 90105
+## Interface: 90200
+## Interface-Classic: 11402
+## Interface-BCC: 20504
 ## Title: Console Port |cff69ccf0Menu|r
 ## Notes: Game menu module
 ## RequiredDeps: ConsolePort
@@ -6,6 +8,9 @@
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
 ## X-Feedback: https://discord.gg/AWeHd48
+## X-Curse-Project-ID: 91376
+## X-WoWI-ID: 23536
+## X-Wago-ID: LvNAYjNo
 
 Core\MenuMixin.lua
 Core\ButtonMixin.lua

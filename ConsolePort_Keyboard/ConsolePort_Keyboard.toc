@@ -1,9 +1,14 @@
-## Interface: 90105
+## Interface: 90200
+## Interface-Classic: 11402
+## Interface-BCC: 20504
 ## Title: Console Port |cff69ccf0Keyboard|r
 ## Notes: Virtual keyboard module
 ## SavedVariables: ConsolePort_KeyboardLayout, ConsolePort_KeyboardDictionary, ConsolePort_KeyboardMarkers
 ## RequiredDeps: ConsolePort
 ## DefaultState:  disabled
+## X-Curse-Project-ID: 91376
+## X-WoWI-ID: 23536
+## X-Wago-ID: LvNAYjNo
 
 Keyboard.xml
 
