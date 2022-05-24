@@ -7,6 +7,5 @@ move-folders:
   ConsolePort/ConsolePort_Bar: ConsolePort_Bar
   ConsolePort/ConsolePort_Config: ConsolePort_Config
   ConsolePort/ConsolePort_Keyboard: ConsolePort_Keyboard
-  ConsolePort/ConsolePort_Mapper: ConsolePort_Mapper
   ConsolePort/ConsolePort_Menu: ConsolePort_Menu
   ConsolePort/ConsolePort_World: ConsolePort_World
