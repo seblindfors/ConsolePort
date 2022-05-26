@@ -649,6 +649,8 @@ function InitializeEventHandler()
 		'SPELL_UPDATE_COOLDOWN',
 		'SPELL_UPDATE_USABLE',
 
+		'SPELLS_CHANGED',
+
 		'START_AUTOREPEAT_SPELL',
 		'STOP_AUTOREPEAT_SPELL',
 
@@ -753,7 +755,7 @@ function OnEvent(_, event, arg1, ...)
 				StopFlash(button)
 			end
 		end
-	elseif event == 'PET_STABLE_UPDATE' or event == 'PET_STABLE_SHOW' then
+	elseif event == 'PET_STABLE_UPDATE' or event == 'PET_STABLE_SHOW' or event == 'SPELLS_CHANGED' then
 		ForAllButtons(Update)
 	elseif event == 'PET_BAR_UPDATE' then
 		for button in next, NonActionButtons do
