@@ -127,6 +127,9 @@ CPAPI.CreateKeyChord = CreateKeyChordStringUsingMetaKeyState or function(key)
 end
 
 CPAPI.IteratePlayerInventory = ContainerFrameUtil_IteratePlayerInventory or function(callback)
+	local MAX_CONTAINER_ITEMS = MAX_CONTAINER_ITEMS or 36;
+	local NUM_BAG_FRAMES = NUM_BAG_FRAMES or 4;
+	
 	for bag = 0, NUM_BAG_FRAMES do
 		for slot = 1, MAX_CONTAINER_ITEMS do
 			local bagItem = ItemLocation:CreateFromBagAndSlot(bag, slot);
