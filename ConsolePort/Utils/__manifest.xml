@@ -2,10 +2,8 @@
 ..\FrameXML\UI.xsd">
 	<!-- Utils -->
 	<!-- TODO: document utils -->
-	<Script file="Callback.lua"/>
 	<Script file="Database.lua"/>
 	<Script file="Wrapper.lua"/>
 	<Script file="Utils.lua"/>
-	<Script file="Table.lua"/>
 	<Script file="UIFade.lua"/>
 </Ui>
