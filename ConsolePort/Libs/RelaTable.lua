@@ -234,9 +234,9 @@ end
 function spairs(t, order)
     local keys = {unravel(t)}
     if order then
-        table.sort(keys, function(a,b) return order(t, a, b) end)
+        sort(keys, function(a,b) return order(t, a, b) end)
     else
-        table.sort(keys)
+        sort(keys)
     end
     local i, k = 0;
     return function()
