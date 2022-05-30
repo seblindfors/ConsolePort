@@ -9,16 +9,19 @@
 local Lib = LibStub:NewLibrary('RelaTable', 1)
 if not Lib then return end
 
-local Database = {};
-local compare, copy, map, merge, spairs, unravel
-local assert, strsplit, select, rawget, rawset, type = assert, strsplit, select, rawget, rawset, type
+local compare, copy, map, merge, spairs, unravel;
+local assert, strsplit, select, type = assert, strsplit, select, type;
+local next, ipairs, pairs, sort = next, ipairs, pairs, sort;
+local getmetatable, setmetatable, rawget, rawset = getmetatable, setmetatable, rawget, rawset;
 
 ----------------------------------------------------------------
 -- Database handler
 ----------------------------------------------------------------
+local Database = {};
+
 local __mt = {
     __call = function(self, ...)
-        local func = select('#', ...) > 1 and self.Set or self.Get
+        local func = select('#', ...) > 1 and self.Set or self.Get;
         return func(self, ...)
     end;
 }
@@ -37,7 +40,7 @@ function Database:Set(path, value)
     if repo and var then
         repo[var] = value;
         self:TriggerEvent(path, value)
-        return true 
+        return true;
     end
 end
 
@@ -76,7 +79,7 @@ function Database:Register(name, obj, raw)
 end
 
 function Database:Default(tbl)
-    rawset(self, 'default', tbl) -- add vars
+    rawset(self, 'default', tbl)
     return tbl;
 end
 
@@ -165,44 +168,44 @@ end
 ----------------------------------------------------------------
 function compare(t1, t2)
     if t1 == t2 then
-        return true
+        return true;
     elseif (t1 and not t2) or (t2 and not t1) then
-        return false
+        return false;
     end
     if type(t1) ~= "table" then
-        return false
+        return false;
     end
     local mt1, mt2 = getmetatable(t1), getmetatable(t2)
     if not compare(mt1,mt2) then
-        return false
+        return false;
     end
     for k1, v1 in pairs(t1) do
         local v2 = t2[k1]
         if not compare(v1,v2) then
-            return false
+            return false;
         end
     end
     for k2, v2 in pairs(t2) do
         local v1 = t1[k2]
         if not compare(v1,v2) then
-            return false
+            return false;
         end
     end
-    return true
+    return true;
 end
 
 function copy(src)
     local srcType, t = type(src)
     if srcType == "table" then
-        t = {}
+        t = {};
         for key, value in next, src, nil do
             t[copy(key)] = copy(value)
         end
         setmetatable(t, copy(getmetatable(src)))
     else
-        t = src
+        t = src;
     end
-    return t
+    return t;
 end
 
 function map(f, v, ...)
@@ -211,15 +214,21 @@ function map(f, v, ...)
     end
 end
 
+function mapt(f, t)
+    for k, v in pairs(t) do
+        t[k] = f(v)
+    end
+end
+
 function merge(t1, t2)
     for k, v in pairs(t2) do
         if (type(v) == "table") and (type(t1[k] or false) == "table") then
             merge(t1[k], t2[k])
         else
-            t1[k] = v
+            t1[k] = v;
         end
     end
-    return t1
+    return t1;
 end
 
 function spairs(t, order)
@@ -229,12 +238,12 @@ function spairs(t, order)
     else
         table.sort(keys)
     end
-    local i, k = 0
+    local i, k = 0;
     return function()
-        i = i + 1
-        k = keys[i]
+        i = i + 1;
+        k = keys[i];
         if k then
-            return k, t[k]
+            return k, t[k];
         end
     end
 end
@@ -250,6 +259,7 @@ local TableUtils = setmetatable({
     compare = compare;
     copy    = copy;
     map     = map;
+    mapt    = mapt;
     merge   = merge;
     spairs  = spairs;
     unravel = unravel;
@@ -261,13 +271,11 @@ local TableUtils = setmetatable({
 ----------------------------------------------------------------
 setmetatable(Lib, {
     __newindex = nop;
-    __call = function(self, db, id, silent)
+    __call = function(self, id, db)
         if id then
-            if rawget(self, id) ~= nil then
-                if silent then
-                    return
-                end
-                error(('Database %s already exists.'):format(tostring(id)))
+            local dbHandle = rawget(self, id)
+            if dbHandle then
+                return dbHandle;
             end
             rawset(self, id, db)
         end
@@ -286,6 +294,6 @@ setmetatable(Lib, {
             end)
         end
 
-        return setmetatable(db, __mt), callbackHandle;
+        return setmetatable(db, __mt)
     end;
 })

@@ -1,8 +1,7 @@
-local _, db = ...
 ---------------------------------------------------------------
 -- Initialize database
 ---------------------------------------------------------------
-LibStub('RelaTable')(db, _)
+local db = LibStub('RelaTable')(...)
 
 -- Provide a wrapper for default field data
 function db:GetDefault(var)
