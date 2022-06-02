@@ -9,3 +9,8 @@ move-folders:
   ConsolePort/ConsolePort_Keyboard: ConsolePort_Keyboard
   ConsolePort/ConsolePort_Menu: ConsolePort_Menu
   ConsolePort/ConsolePort_World: ConsolePort_World
+
+ignore:
+  - Wiki
+  - ConsolePort_Mapper
+  - README.md
