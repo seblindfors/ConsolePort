@@ -157,6 +157,10 @@
 				<Anchor point="LEFT" x="16" y="0"/>
 			</Anchors>
 		</ButtonText>
+	</IndexButton>
+
+
+	<IndexButton name="CPIndexButtonSettingWithContentTemplate" inherits="CPIndexButtonSettingTemplate" virtual="true">
 		<Frames>
 			<Frame parentKey="Content" hidden="true">
 				<Anchors>

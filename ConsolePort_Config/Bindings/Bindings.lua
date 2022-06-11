@@ -1,19 +1,19 @@
 local _, env = ...; local db, L = env.db, env.L;
 local DEFAULT_BINDINGS, ACCOUNT_BINDINGS, CHARACTER_BINDINGS = 0, 1, 2;
-local BindingsMixin = {}
+local BindingsManager = {}
 ---------------------------------------------------------------
 -- Main frame
 ---------------------------------------------------------------
-function BindingsMixin:OnShow()
+function BindingsManager:OnShow()
 	self.container:OnContainerSizeChanged()
 	self:SnapshotBindings()
 end
 
-function BindingsMixin:OnActiveDeviceChanged(device)
+function BindingsManager:OnActiveDeviceChanged(device)
 	self.device = device;
 end
 
-function BindingsMixin:Validate()
+function BindingsManager:Validate()
 	if not self.snapshot then
 		return true -- panel was never opened
 	end
@@ -24,13 +24,13 @@ function BindingsMixin:Validate()
 	return true
 end
 
-function BindingsMixin:LoadBindings(set)
+function BindingsManager:LoadBindings(set)
 	LoadBindings(set)
 	SaveBindings(set)
 	return self:SnapshotBindings()
 end
 
-function BindingsMixin:SaveBindings()
+function BindingsManager:SaveBindings()
 	local set = GetCurrentBindingSet()
 	SaveBindings(set)
 	if (set == CHARACTER_BINDINGS) then
@@ -41,16 +41,16 @@ function BindingsMixin:SaveBindings()
 	return set, self:SnapshotBindings();
 end
 
-function BindingsMixin:SnapshotBindings()
+function BindingsManager:SnapshotBindings()
 	self.snapshot = db.Gamepad:GetBindings()
 	return self.snapshot;
 end
 
-function BindingsMixin:WipeSnapshot()
+function BindingsManager:WipeSnapshot()
 	self.snapshot = nil;
 end
 
-function BindingsMixin:NotifyComboFocus(id, name, fraction)
+function BindingsManager:NotifyComboFocus(id, name, fraction)
 	local combo = self.Combinations:GetWidgetByID(id, name)
 	if fraction then
 		--self.Combinations:ToggleFlex(true) -- TODO: can't do this currently because of conflicting onupdate
@@ -58,7 +58,7 @@ function BindingsMixin:NotifyComboFocus(id, name, fraction)
 	end
 end
 
-function BindingsMixin:NotifyBindingFocus(widget, show, hideShortcuts)
+function BindingsManager:NotifyBindingFocus(widget, show, hideShortcuts)
 	if show and hideShortcuts and self.Shortcuts.Flexer:GetChecked() then
 		self.Shortcuts.Flexer:Click()
 	end
@@ -69,7 +69,7 @@ end
 ---------------------------------------------------------------
 -- Setting up
 ---------------------------------------------------------------
-function BindingsMixin:OnFirstShow()
+function BindingsManager:OnFirstShow()
 	local function FlyoutPopoutButtonSetReversed(self, isReversed)
 		if ( self:GetParent().verticalFlyout ) then
 			if ( isReversed ) then
@@ -481,7 +481,7 @@ end
 
 env.Bindings = ConsolePortConfig:CreatePanel({
 	name  = KEY_BINDINGS_MAC;
-	mixin = BindingsMixin;
+	mixin = BindingsManager;
 	scaleToParent = true;
 	forbidRecursiveScale = true;
 })
