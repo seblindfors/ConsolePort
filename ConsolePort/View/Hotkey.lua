@@ -69,7 +69,7 @@ db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, Hotke
 function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	for i, modifier in ipairs(modifiers) do
 		local button = db('Gamepad/Index/Modifier/Key/'..modifier)
-		modifiers[i] = button and device:GetIconForButton(button, style) or nil
+		modifiers[i] = button and device:GetIconForButton(button, style) or db.Gamepad:GetIconPath('ALL_MISSING', style)
 	end
 	return modifiers
 end
