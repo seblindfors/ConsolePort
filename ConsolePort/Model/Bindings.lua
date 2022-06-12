@@ -1,7 +1,8 @@
+local _, db = ...
 local function hold(binding) return ('%s (Hold)'):format(binding) end;
-local extra = BINDING_NAME_EXTRAACTIONBUTTON1:gsub('%d', ''):trim()
+local EXTRA_ACTION_BUTTON = BINDING_NAME_EXTRAACTIONBUTTON1:gsub('%d', ''):trim()
 local Bindings = {};
-select(2, ...):Register('Bindings', setmetatable({
+db:Register('Bindings', setmetatable({
 	-------------
 	-- Mouse
 	-------------
@@ -123,7 +124,7 @@ select(2, ...):Register('Bindings', setmetatable({
 			A ring menu that lets you control your current pet.
 		]];
 	};
-	{	name    = extra;
+	{	name    = EXTRA_ACTION_BUTTON;
 		binding = 'EXTRAACTIONBUTTON1';
 		desc = [[
 			The extra action button houses a temporary ability used in
@@ -158,10 +159,33 @@ select(2, ...):Register('Bindings', setmetatable({
 	__index = Bindings;
 }))
 
+---------------------------------------------------------------
+-- Handle custom rings
+---------------------------------------------------------------
+local CUSTOM_RING_DESC = [[
+	A ring menu where you can add your items, spells, macros and
+	mounts that you do not want to sacrifice action bar space for.
+
+	To use, hold the binding down, tilt your stick in the direction
+	of the item you want to select, then release the binding.
+
+	To remove items from the ring, follow the tooltip prompt when you
+	have the item in question focused.
+]]
+local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Textures\Icons\Ring]]
+
+---------------------------------------------------------------
+-- Get description for custom bindings
+---------------------------------------------------------------
 function Bindings:GetDescriptionForBinding(binding)
 	for i, set in ipairs(self) do
 		if (set.binding == binding) then
 			return set.desc, set.image, set.name, set.texture;
 		end
+	end
+
+	local customRingName = db.Utility:ConvertBindingToDisplayName(binding)
+	if customRingName then
+		return CUSTOM_RING_DESC, nil, customRingName, CUSTOM_RING_ICON, customRingName;
 	end
 end

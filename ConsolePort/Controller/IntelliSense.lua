@@ -127,7 +127,11 @@ function Intellisense:SetPendingBagPickup(tooltip, bagLocation)
 	end
 end
 
-function Intellisense:SetPendingActionToUtilityRing(tooltip, action)
+function Intellisense:SetPendingActionToUtilityRing(tooltip, owner, action)
+	if owner.ignoreUtilityRing then
+		return
+	end
+
 	self.pendingAction = action;
 	if db.Utility:SetPendingAction(1, action) then
 		if tooltip then
@@ -196,7 +200,7 @@ GameTooltip:HookScript('OnTooltipSetItem', function(self)
 		local isEquippable = IsEquippableItem(link)
 
 		if ( GetItemSpell(link) and numOwned > 0 ) then
-			Intellisense:SetPendingActionToUtilityRing(self, {
+			Intellisense:SetPendingActionToUtilityRing(self, owner, {
 				type = 'item',
 				item = link,
 				link = link
@@ -204,13 +208,14 @@ GameTooltip:HookScript('OnTooltipSetItem', function(self)
 		elseif isEquippable and not isEquipped then
 			Intellisense:SetPendingDressupItem(self, link);
 		elseif isEquippable and isEquipped then
-			Intellisense:SetPendingInspectItem(self, self:GetOwner():GetID())
+			Intellisense:SetPendingInspectItem(self, owner:GetID())
 		end
 	end
 end)
 
 GameTooltip:HookScript('OnTooltipSetSpell', function(self)
-	if not InCombatLockdown() and db.Cursor:IsCurrentNode(self:GetOwner()) then
+	local owner = self:GetOwner()
+	if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
 		local name, spellID = self:GetSpell()
 		if spellID and not IsPassiveSpell(spellID) then
 			local isKnown = IsSpellKnown(spellID)
@@ -222,7 +227,7 @@ GameTooltip:HookScript('OnTooltipSetSpell', function(self)
 				end
 			end
 			if isKnown then
-				Intellisense:SetPendingActionToUtilityRing(self, {
+				Intellisense:SetPendingActionToUtilityRing(self, owner, {
 					type  = 'spell',
 					spell = spellID,
 					link  = GetSpellLink(spellID)

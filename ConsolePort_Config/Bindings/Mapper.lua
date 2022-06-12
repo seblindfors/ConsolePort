@@ -177,11 +177,22 @@ end
 ---------------------------------------------------------------
 local Action, Collection = {}, CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, {
 	rowSize = 7;
+	clickActionCallback = function(self)
+		local pickup = self.pickup;
+		local actionID = env.Bindings.Mapper.Child.Option.Action.actionID;
+		if pickup and actionID then
+			pickup(self:GetValue())
+			CPAPI.PutActionInSlot(actionID)
+			ClearCursor()
+		end
+		CPIndexButtonMixin.Uncheck(self)
+	end;
 });
 
 function Action:OnLoad()
 	self.Slug:SetTextColor(1, 1, 1)
 	self:SetDrawOutline(true)
+	self.ignoreUtilityRing = true;
 	CPAPI.Start(self)
 end
 
@@ -204,15 +215,12 @@ function Action:OnHide()
 	self:OnLeave()
 end
 
-function Action:OnClick()
-	local pickup = self.pickup;
-	local actionID = env.Bindings.Mapper.Child.Option.Action.actionID;
-	if pickup and actionID then
-		pickup(self:GetValue())
-		CPAPI.PutActionInSlot(actionID)
-		ClearCursor()
-	end
-	CPIndexButtonMixin.Uncheck(self)
+function Action:OnClick(...)
+	self:callback(...)
+end
+
+function Action:SetCallback(callback)
+	self.callback = callback;
 end
 
 function Action:SetValue(value)
@@ -252,10 +260,22 @@ function Collection:SetData(data)
 	self.data = data;
 end
 
+function Collection:SetClickActionCallback(callback)
+	self.clickActionCallback = callback;
+	for widget in self:EnumerateActive() do
+		widget:SetCallback(callback)
+	end
+end
+
+function Collection:GetClickActionCallback()
+	return self.clickActionCallback;
+end
+
 function Collection:Update()
 	self:ReleaseAll()
 
 	local data = self.data;
+	local callback = self:GetClickActionCallback()
 	local numRows, prevCol, prevRow = 0;
 
 	for i, item in ipairs(data.items) do
@@ -265,6 +285,7 @@ function Collection:Update()
 		end
 		Mixin(widget, data)
 		widget:SetValue(item)
+		widget:SetCallback(callback)
 		widget:Update()
 		widget:Show()
 		if (i == 1) then
@@ -306,6 +327,9 @@ end
 ---------------------------------------------------------------
 -- Action map container
 ---------------------------------------------------------------
+ActionMapper.CollectionMixin = Collection;
+ActionMapper.ActionMixin = Action;
+
 function ActionMapper:OnLoad()
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 0)
 

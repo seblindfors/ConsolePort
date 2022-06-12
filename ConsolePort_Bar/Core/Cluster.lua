@@ -470,9 +470,10 @@ function HANDLE:SetEligbleForRebind(button, modifier, main)
 end
 
 function HANDLE:SetXMLBinding(button, modifier, binding)
-	local desc, _, name, texture = db.Bindings:GetDescriptionForBinding(binding)
+	local desc, _, name, texture, text = db.Bindings:GetDescriptionForBinding(binding)
 	local tooltip = desc and ('|cFFFFFFFF%s|r\n%s'):format(name, desc:gsub('\t+', ''))
 	return 'custom', {
+		text = text,
 		tooltip = tooltip or _G['BINDING_NAME_'..binding] or binding,
 		texture = texture or env:GetBindingIcon(binding) or
 			db('Icons/64/'..button.plainID) or

@@ -239,6 +239,12 @@ function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
 		name = name and BindingInfo.DisplayFormat:format(text, name) or text;
 		return name, nil, actionID;
 	end
+
+	-- check if this is a ring binding
+	name = db.Utility:ConvertBindingToDisplayName(binding)
+	if name then
+		return name, nil, actionID;
+	end
 	-- at this point, this is not an usual binding. this is most likely a click binding.
 	name = gsub(binding, '(.* ([^:]+).*)', '%2') -- upvalue so it doesn't return more than 1 arg
 	name = name or self:WrapAsNotBound(NOT_BOUND);
@@ -361,29 +367,23 @@ function BindingInfo:RefreshCollections()
 
 	-- Mounts
 	if CPAPI.IsRetailVersion then
-		local mounts, sort = {}, {}
-		for i, mountID in pairs(C_MountJournal.GetMountIDs()) do
-			local name, spellID, _, _, isUsable, _, isFavorite = C_MountJournal.GetMountInfoByID(mountID)
-			if isUsable then
-				if isFavorite then
-					tinsert(mounts, 1, spellID)
-				else
-					sort[name] = spellID;
-				end
-			end
-		end
-
-		for _, spellID in db.table.spairs(sort) do
-			mounts[#mounts+1] = spellID;
+		local mounts = {};
+		for i=1, C_MountJournal.GetNumDisplayedMounts() do
+			mounts[#mounts+1] = i;
 		end
 
 		if next(mounts) then
+			local tooltipFunc = function(self, id)
+				local spellID = (select(2, C_MountJournal.GetDisplayedMountInfo(id)))
+				GameTooltip.SetSpellByID(self, spellID)
+			end
+
 			self:AddCollection(mounts, {
 				name    = MOUNTS;
 				match   = C_ActionBar.FindSpellActionButtons;
-				pickup  = PickupSpell;
-				tooltip = GameTooltip.SetSpellByID;
-				texture = GetSpellTexture;
+				pickup  = C_MountJournal.Pickup;
+				tooltip = tooltipFunc;
+				texture = function(id) return (select(3, C_MountJournal.GetDisplayedMountInfo(id))) end;
 			})
 		end
 	end

@@ -1,4 +1,8 @@
+local _, db = ...;
+
+---------------------------------------------------------------
 CPFrameWithTooltipMixin = {}
+---------------------------------------------------------------
 
 function CPFrameWithTooltipMixin:OnLoad()
 	if self.simpleTooltipLine then
@@ -77,7 +81,9 @@ function CPFrameWithTooltipMixin:OnLeave()
 end
 
 
+---------------------------------------------------------------
 CPMaskedButtonMixin = CreateFromMixins(CPFrameWithTooltipMixin)
+---------------------------------------------------------------
 
 function CPMaskedButtonMixin:OnLoad()
 	CPFrameWithTooltipMixin.OnLoad(self)
@@ -191,7 +197,9 @@ function CPMaskedButtonMixin:UpdateHighlightTexture()
 end
 
 
+---------------------------------------------------------------
 CPButtonMixin = CreateFromMixins(CPMaskedButtonMixin)
+---------------------------------------------------------------
 
 function CPButtonMixin:OnClick()
 	PlaySound(SOUNDKIT.GS_CHARACTER_CREATION_CLASS)
@@ -214,7 +222,79 @@ function CPButtonMixin:OnLeave()
 	CPFrameWithTooltipMixin.OnLeave(self)
 end
 
+
+---------------------------------------------------------------
+CPSmoothButtonMixin = {}
+---------------------------------------------------------------
+
+function CPSmoothButtonMixin:OnLoad()
+	self:SetBackdrop({
+		bgFile   = CPAPI.GetAsset('Textures\\Frame\\Backdrop_Gossip.blp');
+		edgeFile = CPAPI.GetAsset('Textures\\Frame\\Edge_Gossip_BG.blp');
+		edgeSize = 8;
+		insets   = {left = 2, right = 2, top = 8, bottom = 8};
+	})
+	self.Overlay:SetBackdrop({
+		edgeFile = CPAPI.GetAsset('Textures\\Frame\\Edge_Gossip_Normal.blp');
+		edgeSize = 8;
+		insets   = {left = 5, right = 5, top = -10, bottom = 7};	
+	})
+	self.Hilite:SetBackdrop({
+		edgeFile = CPAPI.GetAsset('Textures\\Frame\\Edge_Gossip_Hilite.blp');
+		edgeSize = 8;
+		insets   = {left = 5, right = 5, top = 5, bottom = 6};	
+	})
+	self.Overlay:SetFrameLevel(self.Overlay:GetFrameLevel() + 1)
+end
+
+function CPSmoothButtonMixin:OnHide()
+	self:OnLeave()
+	db.Alpha.FadeOut(self, 0.1, self:GetAlpha(), 0)
+end
+
+function CPSmoothButtonMixin:OnShow()
+	self:Animate()
+end
+
+function CPSmoothButtonMixin:Animate()
+	C_Timer.After((self:GetID() or 1) * 0.01, function()
+		db.Alpha.FadeIn(self, 0.1, self:GetAlpha(), 1)
+	end)
+end
+
+function CPSmoothButtonMixin:Image(texture)
+	self.Icon:SetTexture(('Interface\\Icons\\%s'):format(texture))
+end
+
+function CPSmoothButtonMixin:CustomImage(texture)
+	self.Icon:SetTexture(texture)
+end
+
+function CPSmoothButtonMixin:SetPulse(enabled)
+	if enabled then
+		db.Alpha.Flash(self.Hilite, 0.5, 0.5, -1, true, 0.2, 0.1)
+	else
+		db.Alpha.Stop(self.Hilite, 0)
+	end
+end
+
+function CPSmoothButtonMixin:OnEnter()
+	self:LockHighlight()
+	if self.Hilite.flashTimer then
+		db.Alpha.Stop(self.Hilite, self.Hilite:GetAlpha())
+	end
+	db.Alpha.FadeIn(self.Hilite, 0.15, self.Hilite:GetAlpha(), 1)
+end
+
+function CPSmoothButtonMixin:OnLeave()
+	self:UnlockHighlight()
+	db.Alpha.FadeOut(self.Hilite, 0.2, self.Hilite:GetAlpha(), 0)
+end
+
+
+---------------------------------------------------------------
 CPSelectionPopoutWithButtonsAndLabelMixin = {};
+---------------------------------------------------------------
 
 function CPSelectionPopoutWithButtonsAndLabelMixin:SetupSelections(selections, selectedIndex, label)
 	self.SelectionPopoutButton:SetupSelections(selections, selectedIndex);
@@ -492,7 +572,10 @@ function CPSelectionPopoutButtonMixin:Decrement()
 	end
 end
 
+
+---------------------------------------------------------------
 CPSelectionPopoutDetailsMixin = {};
+---------------------------------------------------------------
 
 function CPSelectionPopoutDetailsMixin:OnLoad()
 	CPAPI.SetAtlas(self.ColorSwatch1, 'customize-palette', true)
@@ -616,7 +699,10 @@ function CPSelectionPopoutDetailsMixin:SetupDetails(selectionData, index, isSele
 	end
 end
 
+
+---------------------------------------------------------------
 CPSelectionPopoutMixin = {};
+---------------------------------------------------------------
 
 function CPSelectionPopoutMixin:OnShow()
 	if not CPAPI.IsRetailVersion then
@@ -687,7 +773,11 @@ function CPSelectionPopoutEntryMixin:OnClick()
 	self.parentButton:OnEntryClick(self.selectionData);
 end
 
+
+---------------------------------------------------------------
 CPResizeLayoutMixin = CreateFromMixins(ResizeLayoutMixin);
+---------------------------------------------------------------
+
 if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
 	local function GetExtents(childFrame, left, right, top, bottom, layoutFrameScale)
 		local frameLeft, frameBottom, frameWidth, frameHeight = GetUnscaledFrameRect(childFrame, layoutFrameScale);

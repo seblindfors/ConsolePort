@@ -147,7 +147,12 @@ function Utility:OnDataLoaded()
 		]];
 	});
 	self:RefreshAll()
-	setmetatable(self.Data, {__index = function(tbl, key) tbl[key] = {} return tbl[key] end})
+	setmetatable(self.Data, {__index = function(data, key)
+		self:Parse([[
+			DATA[{ring}] = newtable();
+		]], {ring = tostring(key)})
+		return rawset(data, key, {})[key];
+	end})
 	self:OnAutoAssignedChanged()
 	self:OnRemoveButtonChanged()
 	self:OnAxisInversionChanged()
@@ -241,12 +246,28 @@ function Utility:OnInput(x, y, len, stick)
 	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
 end
 
-function Utility:GetButtonSlugForSet(setID)
-	return db.Hotkeys:GetButtonSlugForBinding(('CLICK ConsolePortUtilityToggle:%s'):format(setID));
+function Utility:GetSetID(rawSetID)
+	return tonumber(rawSetID) or rawSetID;
+end
+
+function Utility:ConvertBindingToDisplayName(binding)
+	if ( type(binding) == 'string' ) then
+		local name = binding:gsub('CLICK ConsolePortUtilityToggle:(.*)', '%1')
+		return ( name ~= binding ) and
+			((tonumber(name) and ('Ring |cFF00FFFF%s|r'):format(name) or name)) or nil;
+	end
+end
+
+function Utility:GetBindingForSet(setID)
+	return ('CLICK ConsolePortUtilityToggle:%s'):format(self:GetBindingSuffixForSet(setID));
 end
 
 function Utility:GetBindingSuffixForSet(setID)
 	return (tonumber(setID) == DEFAULT_SET and 'LeftButton' or tostring(setID));
+end
+
+function Utility:GetButtonSlugForSet(setID)
+	return db.Hotkeys:GetButtonSlugForBinding(self:GetBindingForSet(setID));
 end
 
 function Utility:GetTooltipRemovePrompt()
@@ -297,12 +318,12 @@ function Utility:SafeAddAction(setID, idx, ...)
 	for i=1, select('#', ...), 2 do
 		info[select(i, ...)] = select(i + 1, ...);
 	end
-	self:AddSavedVar(tonumber(setID) or setID, tonumber(idx), info)
+	self:AddSavedVar(self:GetSetID(setID), tonumber(idx), info)
 end
 
 function Utility:SafeRemoveAction(setID, idx)
 	if not InCombatLockdown() then
-		self:RemoveAction(tonumber(setID) or setID, tonumber(idx))
+		self:RemoveAction(self:GetSetID(setID), tonumber(idx))
 	end
 end
 
@@ -433,18 +454,18 @@ Utility.SecureHandlerMap = {
 		return {type = 'action', action = action};
 	end;
 	item = function(itemID, itemLink)
-		return {type = 'item', item = itemLink or itemID};
+		return {type = 'item', item = itemLink or itemID, link = itemLink};
 	end;
 	spell = function(spellIndex, bookType, spellID)
-		return {type = 'spell', spell = spellID};
+		return {type = 'spell', spell = spellID, link = GetSpellLink(spellID)};
 	end;
 	macro = function(index)
 		return {type = 'macro', macro = index};
 	end;
 	mount = function(mountID)
-		local spellID = select(2, C_MountJournal.GetMountInfoByID(mountID));
-		if spellID then
-			return {type = 'spell', spell = spellID};
+		local spellName = C_MountJournal.GetMountInfoByID(mountID);
+		if spellName then
+			return {type = 'spell', spell = spellName, link = GetSpellLink(spellName)};
 		end
 	end;
 	petaction = function(spellID, indexIsOffset)
@@ -465,7 +486,7 @@ function Utility:AddActionFromInfo(setID, idx, infoType, ...)
 	if infoHandler then
 		local info = infoHandler(...)
 		if info then
-			return self:AddAction(setID, idx, info)
+			return self:AddUniqueAction(setID, idx, info)
 		end
 	end
 end
@@ -477,7 +498,7 @@ function Utility:AddFromCursorInfo(setID, idx)
 	return self:AddActionFromInfo(setID, idx, GetCursorInfo())
 end
 
-function Utility:AddUniqueAction(setID, info, preferredIndex)
+function Utility:AddUniqueAction(setID, preferredIndex, info)
 	if self:IsUniqueAction(setID, info) then
 		return self:AddAction(setID, preferredIndex, info)
 	end
@@ -485,7 +506,7 @@ end
 
 function Utility:AutoAssignAction(info, preferredIndex)
 	info.autoassigned = true;
-	return self:AddUniqueAction(DEFAULT_SET, info, preferredIndex)
+	return self:AddUniqueAction(DEFAULT_SET, preferredIndex, info)
 end
 
 function Utility:GetItemForQuestID(questID)
@@ -631,17 +652,20 @@ function Utility:ToggleInventoryQuestItems(hideAnnouncement)
 	end)
 end
 
-function Utility:CheckCursorInfo(setID)
+function Utility:CheckCursorInfo(setID, silent)
 	if not InCombatLockdown() then
-		setID = tonumber(setID) or setID;
+		setID = self:GetSetID(setID);
 		if GetCursorInfo() then
 			if self:AddFromCursorInfo(setID) then
-				-- TODO: map returns to links
-				self:AnnounceAddition(
-					GetCursorInfo():gsub('^%l', strupper),
-					self:GetBindingSuffixForSet(setID), true
-				);
+				if not silent then
+					-- TODO: map returns to links
+					self:AnnounceAddition(
+						GetCursorInfo():gsub('^%l', strupper),
+						self:GetBindingSuffixForSet(setID), true
+					);
+				end
 				ClearCursor()
+				db:TriggerEvent('OnRingContentChanged', setID)
 			end
 		end
 	end
@@ -770,7 +794,7 @@ end
 function Button:UpdateAssets()
 	local bg = self.Shadow;
 	bg:ClearAllPoints()
-	if (self:GetAttribute('action') == EXTRA_ACTION_ID) then
+	if (self:GetAttribute('type') == 'action' and self:GetAttribute('action') == EXTRA_ACTION_ID) then
 		bg:SetTexture(CPAPI.GetOverrideBarSkin() or 'Interface\\ExtraButton\\Default')
 		bg:SetSize(256 * 0.8, 128 * 0.8)
 		bg:SetPoint('CENTER', -2, 0)

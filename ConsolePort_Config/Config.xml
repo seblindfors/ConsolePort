@@ -434,6 +434,57 @@
 		</Layers>
 	</Frame>
 
+	<Button name="CPRingLoadoutButtonTemplate" virtual="true" inherits="CPSmoothRectangleButtonTemplate, InsecureActionButtonTemplate">
+		<Frames>
+			<Button parentKey="removeButton">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="-8" y="0" />
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						self:GetParent():Remove();
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\ChatFrame\UI-ChatIcon-Minimize-Up"/>
+				<PushedTexture file="Interface\ChatFrame\UI-ChatIcon-Minimize-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
+			</Button>
+			<Button parentKey="downButton">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="-36" y="0" />
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						self:GetParent():OnDeltaChanged(1);
+						PlaySound(SOUNDKIT.IG_CHAT_SCROLL_DOWN);
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\ChatFrame\UI-ChatIcon-ScrollDown-Up"/>
+				<PushedTexture file="Interface\ChatFrame\UI-ChatIcon-ScrollDown-Down"/>
+				<DisabledTexture file="Interface\ChatFrame\UI-ChatIcon-ScrollDown-Disabled"/>
+				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
+			</Button>
+			<Button parentKey="upButton">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="RIGHT" x="-64" y="0" />
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						self:GetParent():OnDeltaChanged(-1);
+						PlaySound(SOUNDKIT.IG_CHAT_SCROLL_UP);
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\ChatFrame\UI-ChatIcon-ScrollUp-Up"/>
+				<PushedTexture file="Interface\ChatFrame\UI-ChatIcon-ScrollUp-Down"/>
+				<DisabledTexture file="Interface\ChatFrame\UI-ChatIcon-ScrollUp-Disabled"/>
+				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
+			</Button>
+		</Frames>
+	</Button>
+
 	<Frame name="ConsolePortConfig" inherits="CPContainerFrameTemplate" parent="UIParent" clampedToScreen="true" hidden="true">
 		<Size x="1000" y="800"/>
 		<Anchors>

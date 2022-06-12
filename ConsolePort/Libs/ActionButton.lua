@@ -68,6 +68,8 @@ local type_meta_map = {
 	custom = Custom_MT
 }
 
+lib.TypeMetaMap = type_meta_map;
+
 local ButtonRegistry, ActiveButtons, ActionButtons, NonActionButtons = lib.buttonRegistry, lib.activeButtons, lib.actionButtons, lib.nonActionButtons
 
 -- Local functions
@@ -1390,6 +1392,7 @@ local function getSpellInfo(func, spellID, ...)
 end
 
 Spell.HasAction               = function(self) return true end
+Spell.GetActionText           = function(self) return (GetSpellInfo(self._state_action)) end
 Spell.GetTexture              = function(self) return (GetSpellTexture(self._state_action)) end
 Spell.GetCharges              = function(self) return GetSpellCharges(self._state_action) end
 Spell.GetCount                = function(self) return GetSpellCount(self._state_action) end
@@ -1410,6 +1413,7 @@ local function getItemId(input)
 end
 
 Item.HasAction               = function(self) return true end
+Item.GetActionText           = function(self) return (GetItemInfo(self._state_action)) end
 Item.GetTexture              = function(self) return GetItemIcon(self._state_action) end
 Item.GetCount                = function(self) return GetItemCount(self._state_action, nil, true) end
 Item.GetCooldown             = function(self) return GetItemCooldown(getItemId(self._state_action)) end
@@ -1453,6 +1457,7 @@ Pet.SetTooltip               = function(self) return GameTooltip:SetPetAction(se
 -----------------------------------------------------------
 --- Custom Button
 Custom.HasAction             = function(self) return true end
+Custom.GetActionText         = function(self) return self._state_action.text end
 Custom.GetTexture            = function(self)
 	local texture = self._state_action.texture
 	if type(texture) == 'function' then
