@@ -321,6 +321,10 @@ local CollectionMixin = CreateFromMixins(ActionMapper.CollectionMixin, {
 	end;
 })
 
+function Mapper:OnShow()
+	self:SetVerticalScroll(0)
+end
+
 function Mapper:OnLoad()
 	env.OpaqueMixin.OnLoad(self)
 	self:SetFlexibleElement(self, 360)
