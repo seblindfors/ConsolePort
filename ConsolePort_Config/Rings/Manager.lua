@@ -26,6 +26,7 @@ Press a button combination to select a new binding for this ring.
 ]]
 
 local EXTRA_ACTION_ID = ExtraActionButton1 and ExtraActionButton1.action or 169;
+local GET_SPELLID_IDX = 7;
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
@@ -355,7 +356,21 @@ end
 -- Loadout
 ---------------------------------------------------------------
 local Loadout = CreateFromMixins(CPFocusPoolMixin)
-local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin)
+local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin, {
+	AsyncMap = {
+		item = function(self, id)
+			local constructor = tonumber(id) and Item.CreateFromItemID or Item.CreateFromItemLink;
+			constructor(Item, id):ContinueOnItemLoad(function()
+				self:UpdateProps()
+			end)
+		end;
+		spell = function(self, id)
+			Spell:CreateFromSpellID((select(GET_SPELLID_IDX, GetSpellInfo(id)))):ContinueOnSpellLoad(function()
+				self:UpdateProps()
+			end)
+		end;
+	};
+})
 
 
 function LoadoutButton:OnLoad()
@@ -424,7 +439,17 @@ function LoadoutButton:SetData(data, set, setID)
 	self.downButton:SetEnabled(self:GetID() < #set)
 	self.removeButton:SetEnabled(not IsExtraActionButton(kind, action))
 
-	self:CustomImage(self:GetTexture())
+	local asyncCallback = self.AsyncMap[kind];
+	if asyncCallback then
+		self:CustomImage(CPAPI.GetAsset('Textures\\Button\\Loading'))
+		self:SetText(LFG_LIST_LOADING)
+		return asyncCallback(self, action)
+	end
+	self:UpdateProps()
+end
+
+function LoadoutButton:UpdateProps()
+	self:CustomImage(self:GetTexture() or CPAPI.GetAsset('Textures\\Button\\EmptyIcon'))
 	self:SetText(self:GetDisplayText())
 end
 
