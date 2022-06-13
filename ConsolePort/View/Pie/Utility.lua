@@ -463,7 +463,8 @@ Utility.SecureHandlerMap = {
 		return {type = 'macro', macro = index};
 	end;
 	mount = function(mountID)
-		local spellName = C_MountJournal.GetMountInfoByID(mountID);
+		local spellID = select(2, C_MountJournal.GetMountInfoByID(mountID));
+		local spellName = spellID and GetSpellInfo(spellID)
 		if spellName then
 			return {type = 'spell', spell = spellName, link = GetSpellLink(spellName)};
 		end
