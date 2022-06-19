@@ -238,6 +238,9 @@ function Utility:AddSecureAction(set, idx, info)
 	return self:Parse(body, args)
 end
 
+db:RegisterSafeCallback('OnRingCleared', Utility.RefreshAll, Utility)
+db:RegisterSafeCallback('OnRingRemoved', Utility.RefreshAll, Utility)
+
 ---------------------------------------------------------------
 -- Frontend
 ---------------------------------------------------------------

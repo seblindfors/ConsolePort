@@ -8,7 +8,7 @@ local DEFAULT_RING_BINDING = 'LeftButton';
 
 local BUTTON_WITH_ICON_TEXT = '     %s';
 
-local SELECTED_RING_TEXT = L[[This is your currently selected ring set.
+local SELECTED_RING_TEXT = L[[This is your currently selected ring.
 When you press and hold your selected key binding, all your selected abilities will appear in a ring on the screen.
 
 Tilt your radial stick in the direction of the ability or item you want to use, then release the key binding to commit.]]
@@ -24,6 +24,18 @@ local SET_BINDING_TEXT = L[[
 Press a button combination to select a new binding for this ring.
 
 ]]
+local RING_MENU_DESC = L(([[
+Create your own ring menus where you can add your items, spells, macros and mounts that you do not want to sacrifice action bar space for.
+
+To use, hold the selected binding down, tilt your stick in the direction of the item you want to select, then release the binding.
+
+The default ring, or the |CFF00FF00Utility Ring|r, has special properties to alleviate questing and world interaction, and is not static. It will automatically add and remove items as necessary.
+
+If you want to create a ring to use in your rotation and not just for utility, it's highly recommended to not use the default ring for this purpose.
+]]):trim())
+
+local RING_EMPTY_DESC = L[[You do not have any abilities in this ring yet.]]
+
 
 local EXTRA_ACTION_ID = ExtraActionButton1 and ExtraActionButton1.action or 169;
 local GET_SPELLID_IDX = 7;
@@ -83,6 +95,7 @@ local function TrySetBinding(button)
 	if CPAPI.IsButtonValidForBinding(button) then
 		local keychord = CPAPI.CreateKeyChord(button)
 		local binding = db.Utility:GetBindingForSet(GetSelectedRingID())
+		db.table.map(SetBinding, db.Gamepad:GetBindingKey(binding))
 		if SetBinding(keychord, binding) then
 			SaveBindings(GetCurrentBindingSet())
 			return true;
@@ -482,6 +495,8 @@ function Loadout:Update(animate)
 	local ringID = GetSelectedRingID()
 	local set = rawget(db.Utility.Data, ringID)
 
+	self.EmptyText:SetShown(not set or #set == 0)
+
 	if not set then
 		return
 	end
@@ -625,6 +640,43 @@ function RingsManager:OnFirstShow()
 						_Text  = SPELLBOOK_ABILITIES_BUTTON;
 						_Point = {'TOP', 0, -8};
 					};
+					Information = {
+						_Type  = 'IndexButton';
+						_Setup = 'CPIndexButtonBindingHeaderTemplate';
+						_Size  = {340, 40};
+						_Text  = INFO;
+						_Point = {'TOP', '$parent.ActionMapper', 'BOTTOM', 0, -8};
+						_OnLoad = function(self)
+							self.Label:ClearAllPoints()
+							self.Label:SetPoint('TOP', 0, 0)
+							self.Label:SetWidth(0)
+						end;
+						_OnClick = function(self)
+							self.Content:SetShown(self:GetChecked())
+							self:SetHeight((self:GetChecked() and self.Content.HelpText:GetStringHeight() + 40 or 0) + 40)
+						end;
+						{
+							HelpButton = {
+								_Type = 'Texture';
+								_Size = {40, 40};
+								_Texture = 'Interface\\common\\help-i';
+								_Point = {'RIGHT', '$parent.Label', 'LEFT', 0, 0};
+							};
+							Content = {
+								{
+									HelpText = {
+										_Type = 'FontString';
+										_Setup = {'ARTWORK', 'GameTooltipText'};
+										_Text = RING_MENU_DESC;
+										_Points = {
+											{'TOPLEFT', 8, 0};
+											{'BOTTOMRIGHT', -8, 8};
+										};
+									};
+								};
+							};
+						};
+					};
 				};
 			};
 		};
@@ -639,6 +691,14 @@ function RingsManager:OnFirstShow()
 		_Points = {
 			{'TOPLEFT', 360, 0};
 			{'BOTTOMRIGHT', 0, 60};
+		};
+		{
+			EmptyText = {
+				_Type = 'FontString';
+				_Setup = {'ARTWORK', 'Fancy22Font'};
+				_Point = {'CENTER', 0, 0};
+				_Text  = RING_EMPTY_DESC;
+			};
 		};
 	})
 
