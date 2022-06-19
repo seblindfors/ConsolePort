@@ -3,7 +3,7 @@
 ## Interface-BCC: 20504
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 2.3.0
+## Version: 2.3.1
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
