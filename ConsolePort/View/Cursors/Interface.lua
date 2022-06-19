@@ -163,7 +163,7 @@ function Cursor:SetCurrentNode(node, assertNotMouse)
 		self:SetBasicControls()
 		self:SetFlashNextNode()
 		self:SetCurrent(object)
-		self:SelectAndPosition(self:GetSelectParams(object, true))
+		self:SelectAndPosition(self:GetSelectParams(object, true, true))
 		self:Chime()
 		return true;
 	end
@@ -372,8 +372,20 @@ function Cursor:IsCurrentNodeDrawn()
 	return node and ( node:IsVisible() and Node.IsDrawn(node) )
 end
 
-function Cursor:GetSelectParams(obj, triggerOnEnter)
-	return obj.node, obj.object, obj.super, triggerOnEnter;
+function Cursor:IsValidForAutoScroll(super, force)
+	if not super then return end;
+
+	local old = self:GetOld()
+	local oldSuper = old and old.super;
+	local validSuper = force or super == oldSuper;
+	return validSuper and
+		not super:GetAttribute('nodeignorescroll') and
+		not IsShiftKeyDown() and
+		not IsControlKeyDown()
+end
+
+function Cursor:GetSelectParams(obj, triggerOnEnter, automatic)
+	return obj.node, obj.object, obj.super, triggerOnEnter, automatic;
 end
 
 function Cursor:GetOld()
@@ -504,22 +516,21 @@ end
 ---------------------------------------------------------------
 -- Node selection
 ---------------------------------------------------------------
-function Cursor:SelectAndPosition(node, object, super, newMove)
+function Cursor:SelectAndPosition(node, object, super, newMove, automatic)
 	if newMove then
 		self:OnLeaveNode(self:GetOldNode())
 		self:SetPosition(node)
 	end
-	self:Select(node, object, super, newMove)
+	self:Select(node, object, super, newMove, automatic)
 	return node
 end
 
-function Cursor:Select(node, object, super, triggerOnEnter)
+function Cursor:Select(node, object, super, triggerOnEnter, automatic)
 	self:OnEnterNode(triggerOnEnter and node)
 
 	-- Scroll to node center
-	if super and not super:GetAttribute('nodeignorescroll')
-		and not IsShiftKeyDown() and not IsControlKeyDown() then
-		Scroll:To(node, super)
+	if self:IsValidForAutoScroll(super, automatic) then
+		Scroll:To(node, super, self:GetOldNode(), automatic)
 	end
 
 	if (object == 'Slider') then
@@ -846,6 +857,8 @@ end
 ---------------------------------------------------------------
 -- Scroll management
 ---------------------------------------------------------------
+local Clamp = Clamp;
+
 function Scroll:OnUpdate(elapsed)
 	for super, target in pairs(self.Active) do
 		local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
@@ -861,41 +874,51 @@ function Scroll:OnUpdate(elapsed)
 		local newX = ( currHorz + (deltaX * abs(currHorz - target.horz) / 16 * 4) )
 		local newY = ( currVert + (deltaY * abs(currVert - target.vert) / 16 * 4) )
 
-		super:SetVerticalScroll(newY < 0 and 0 or newY > maxVert and maxVert or newY)
-		super:SetHorizontalScroll(newX < 0 and 0 or newX > maxHorz and maxHorz or newX)
+		super:SetVerticalScroll(Clamp(newY, 0, maxVert))
+		super:SetHorizontalScroll(Clamp(newX, 0, maxHorz))
 	end
 	if not next(self.Active) then
 		self:SetScript('OnUpdate', nil)
 	end
 end
 
-function Scroll:To(node, super)
+function Scroll:To(node, super, prev, force)
 	local nodeX, nodeY = Node.GetCenter(node)
 	local scrollX, scrollY = super:GetCenter()
 	if nodeY and scrollY then
 
-		-- HACK: make sure this isn't a hybrid scroll frame
-		if super:IsObjectType('ScrollFrame') and super:GetScript('OnLoad') ~= HybridScrollFrame_OnLoad then
+		if self:IsValidScrollFrame(super) then
 			local currHorz, currVert = super:GetHorizontalScroll(), super:GetVerticalScroll()
 			local maxHorz, maxVert = super:GetHorizontalScrollRange(), super:GetVerticalScrollRange()
 
-			local newVert = currVert + (scrollY - nodeY)
-			local newHorz = 0
-		-- 	TODO: horizontal scrollers
-		--	local newHorz = currHorz + (scrollX - nodeX)
+			local prevX, prevY = nodeX, nodeY;
+			if prev then
+				prevX, prevY = Node.GetCenter(prev)
+			end
 
 			if not self.Active then
 				self.Active = {}
 			end
 
 			self.Active[super] = {
-				vert = newVert < 0 and 0 or newVert > maxVert and maxVert or newVert,
-				horz = newHorz < 0 and 0 or newHorz > maxHorz and maxHorz or newHorz,
+				vert = Clamp(self:GetScrollTarget(currVert, scrollY, nodeY, prevY, force), 0, maxVert),
+				horz = Clamp(self:GetScrollTarget(currHorz, scrollX, nodeX, prevX, force), 0, maxHorz),
 			}
 
 			self:SetScript('OnUpdate', self.OnUpdate)
 		end
 	end
+end
+
+function Scroll:GetScrollTarget(curr, scrollPos, nodePos, prevPos, force)
+	local new = curr + (scrollPos - nodePos)
+	return force and new or (new > curr) == (nodePos > prevPos) and curr or new;
+end
+
+function Scroll:IsValidScrollFrame(super)
+	-- HACK: make sure this isn't a hybrid scroll frame
+	return super:IsObjectType('ScrollFrame') and
+		super:GetScript('OnLoad') ~= HybridScrollFrame_OnLoad;
 end
 
 ---------------------------------------------------------------
