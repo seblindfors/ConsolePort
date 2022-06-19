@@ -371,8 +371,20 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 		return ClampedPercentageBetween(select(2, element:GetCenter()), wrapper:GetTop(), wrapper:GetBottom())
 	end
 
+	function CPSmoothScrollMixin:GetElementOffsetFromTop(element, padding)
+		return self:GetTop() - element:GetTop() + self:GetScroll() + (padding or 0);
+	end
+
 	function CPSmoothScrollMixin:ScrollToOffset(offset)
 		Scroller:AddFrame(self, offset * self:GetRange(), self.MouseWheelDelta)
+	end
+
+	function CPSmoothScrollMixin:ScrollToPosition(position)
+		Scroller:AddFrame(self, position, self.MouseWheelDelta)
+	end
+
+	function CPSmoothScrollMixin:ScrollToElement(element, padding)
+		Scroller:AddFrame(self, Clamp(self:GetElementOffsetFromTop(element, padding), 0, self:GetRange()), self.MouseWheelDelta)
 	end
 
 	function CPSmoothScrollMixin:OnScrollSizeChanged(...)

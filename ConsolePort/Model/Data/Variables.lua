@@ -11,6 +11,10 @@ setfenv(__, setmetatable(db('Data'), {__index = _G}));
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', {
+	showAdvancedSettings = {Bool(false);
+		name = 'Show Advanced';
+		hide = true;
+	};
 	--------------------------------------------------------------------------------------------------------
 	-- Crosshair:
 	--------------------------------------------------------------------------------------------------------
@@ -26,18 +30,21 @@ db:Register('Variables', {
 		sort = 2;
 		name = 'Width';
 		desc = 'Width of the crosshair, in scaled pixel units.';
+		advd = true;
 	};
 	crosshairSizeY = {Number(24, 1, true);
 		head = 'Crosshair';
 		sort = 3;
 		name = 'Height';
 		desc = 'Height of the crosshair, in scaled pixel units.';
+		advd = true;
 	};
 	crosshairCenter = {Number(0.2, 0.05, true);
 		head = 'Crosshair';
 		sort = 4;
 		name = 'Center Gap';
 		desc = 'Center gap, as fraction of overall crosshair size.';
+		advd = true;
 	};
 	crosshairThickness = {Number(2, 0.025, true);
 		head = 'Crosshair';
@@ -45,6 +52,7 @@ db:Register('Variables', {
 		name = 'Thickness';
 		desc = 'Thickness in scaled pixel units.';
 		note = 'Value below two may appear interlaced or not at all.';
+		advd = true;
 	};
 	crosshairColor = {Color('ff00fcff');
 		head = 'Crosshair';
@@ -70,6 +78,7 @@ db:Register('Variables', {
 		note = 'Takes the format of...\n'
 			.. BLUE_FONT_COLOR:WrapTextInColorCode('[condition] bindingID; nil')
 			.. '\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Mouse:
@@ -80,12 +89,14 @@ db:Register('Variables', {
 		name = 'Enable Mouse Handling';
 		desc = 'Enable custom mouse handling, overriding Blizzard defaults intended for use without addons.';
 		note = 'While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.';
+		advd = true;
 	};
 	mouseFreeCursorReticle = {Bool(false);
 		head = MOUSE_LABEL;
 		sort = 2;
 		name = 'Free Cursor Reticle Targeting';
 		desc = 'Reticle targeting uses free cursor instead of center-fixed cursor.';
+		note = 'Reticle targeting means anything you place on the ground.';
 	};
 	mouseHideCursorOnMovement = {Bool(false);
 		head = MOUSE_LABEL;
@@ -105,12 +116,14 @@ db:Register('Variables', {
 		sort = 6;
 		name = 'Automatic Cursor Timeout';
 		desc = 'Time in seconds to automatically hide centered cursor.';
+		advd = true;
 	};
 	doubleTapTimeout = {Number(0.25, 0.05, true);
 		head = MOUSE_LABEL;
 		sort = 7;
 		name = 'Double Tap Timeframe';
 		desc = 'Timeframe to toggle the mouse cursor when double-tapping a selected modifier.';
+		advd = true;
 	};
 	doubleTapModifier = {Select('<none>', '<none>', unpack(MODID_SELECT));
 		head = MOUSE_LABEL;
@@ -132,6 +145,7 @@ db:Register('Variables', {
 		sort = 2;
 		name = 'Ring Scale';
 		desc = 'Scale of all radial menus, relative to UI scale.';
+		advd = true;
 	};
 	radialActionDeadzone = {Range(0.5, 0.05, 0, 1);
 		head = 'Radial Menus';
@@ -145,6 +159,7 @@ db:Register('Variables', {
 		name = 'Axis Interpretation';
 		desc = 'Correlation between stick position and pie selection.';
 		note = '+ Normal\n- Inverted';
+		advd = true;
 	};
 	radialPrimaryStick = {Select('Movement', unpack(STICK_SELECT));
 		head = 'Radial Menus';
@@ -196,12 +211,14 @@ db:Register('Variables', {
 		sort = 2;
 		name = 'Show Default Button';
 		desc = 'Show the default mouse action button.';
+		advd = true;
 	};
 	UIpointerAnimation = {Bool(true);
 		head = 'Interface Cursor';
 		sort = 3;
 		name = 'Enable Animation';
 		desc = 'Pointer arrow rotates in the direction of travel.';
+		advd = true;
 	};
 	UIaccessUnlimited = {Bool(false);
 		head = 'Interface Cursor';
@@ -209,6 +226,7 @@ db:Register('Variables', {
 		name = 'Unlimited Navigation';
 		desc = 'Allow cursor to interact with the entire interface, not only panels.';
 		note = 'Combine with use on demand for full cursor control.';
+		advd = true;
 	};
 	UIshowOnDemand = {Bool(false);
 		head = 'Interface Cursor';
@@ -216,6 +234,7 @@ db:Register('Variables', {
 		name = 'Use On Demand';
 		desc = 'Cursor appears on demand, instead of in response to a panel showing up.';
 		note = 'Requires Toggle Interface Cursor binding & Unlimited Navigation to use the cursor.';
+		advd = true;
 	};
 	UIholdRepeatDisable = {Bool(false);
 		head = 'Interface Cursor';
@@ -228,24 +247,28 @@ db:Register('Variables', {
 		sort = 7;
 		name = 'Repeated Movement Delay';
 		desc = 'Delay until a movement is repeated, when holding down a direction, in seconds.';
+		advd = true;
 	};
 	UIleaveCombatDelay = {Number(0.5, 0.1);
 		head = 'Interface Cursor';
 		sort = 8;
 		name = 'Reactivation Delay';
 		desc = 'Delay before reactivating interface cursor after leaving combat, in seconds.';
+		advd = true;
 	};
 	UIpointerSize = {Number(22, 2, true);
 		head = 'Interface Cursor';
 		sort = 9;
 		name = 'Pointer Size';
 		desc = 'Size of pointer arrow, in pixels.';
+		advd = true;
 	};
 	UIpointerOffset = {Number(-2, 1);
 		head = 'Interface Cursor';
 		sort = 10;
 		name = 'Pointer Offset';
 		desc = 'Offset of pointer arrow, from the selected node center, in pixels.';
+		advd = true;
 	};
 	UItravelTime = {Range(4, 1, 1, 10);
 		head = 'Interface Cursor';
@@ -253,6 +276,7 @@ db:Register('Variables', {
 		name = 'Travel Time';
 		desc = 'How long the cursor should take to transition from one node to another.';
 		note = 'Higher is slower.';
+		advd = true;
 	};
 	UICursorLeftClick = {Button('PAD1');
 		head = 'Interface Cursor';
@@ -301,19 +325,21 @@ db:Register('Variables', {
 		head = 'Unit Hotkeys';
 		sort = 3;
 		name = 'Size';
-		desc = 'Size of unit hotkeys (px)';
+		desc = 'Size of unit hotkeys, in pixels.';
 	};
 	unitHotkeyOffsetX = {Number(0, 1, true);
 		head = 'Unit Hotkeys';
 		sort = 4;
 		name = 'Horizontal Offset';
 		desc = 'Horizontal offset of the hotkey prompt position, in pixels.';
+		advd = true;
 	};
 	unitHotkeyOffsetY = {Number(0, 1, true);
 		head = 'Unit Hotkeys';
 		sort = 5;
 		name = 'Vertical Offset';
 		desc = 'Vertical offset of the hotkey prompt position, in pixels.';
+		advd = true;
 	};
 	unitHotkeyPool = {String('player$;party%d$;raid%d+$');
 		head = 'Unit Hotkeys';
@@ -321,6 +347,7 @@ db:Register('Variables', {
 		name = 'Unit Pool';
 		desc = 'Match criteria for unit pool, each type separated by semicolon.';
 		note = '$: end of match token\n+: matches multiple tokens\n%d: matches number';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Misc:
@@ -357,6 +384,7 @@ db:Register('Variables', {
 		name = 'Global Scale';
 		desc = 'Scale of most ConsolePort frames, relative to UI scale.';
 		note = 'Action bar is scaled separately.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Bindings:
@@ -366,18 +394,21 @@ db:Register('Variables', {
 		sort = 1;
 		name = 'Allow Binding Overlap';
 		desc = 'Allow binding multiple combos to the same binding.';
+		advd = true;
 	};
 	bindingAllowSticks = {Bool(false);
 		head = KEY_BINDINGS_MAC;
 		sort = 2;
 		name = 'Allow Radial Bindings';
 		desc = 'Allow binding discrete radial stick inputs.';
+		advd = true;
 	};
 	bindingShowExtraBars = {Bool(false);
 		head = KEY_BINDINGS_MAC;
 		sort = 3;
 		name = 'Show All Action Bars';
-		desc = 'Show bonus bar configuration for characters without stances.'
+		desc = 'Show bonus bar configuration for characters without stances.';
+		advd = true;
 	};
 	bindingDisableQuickAssign = {Bool(false);
 		head = KEY_BINDINGS_MAC;
@@ -385,12 +416,14 @@ db:Register('Variables', {
 		name = 'Disable Quick Assign';
 		desc = 'Disables quick assign for unbound combinations when using the gamepad action bar.';
 		note = 'Requires reload.';
+		advd = true;
 	};
 	disableHotkeyRendering = {Bool(false);
 		head = KEY_BINDINGS_MAC;
 		sort = 5;
 		name = 'Disable Hotkey Rendering';
 		desc = 'Disables customization to hotkeys on regular action bar.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Advanced:
@@ -400,18 +433,21 @@ db:Register('Variables', {
 		sort = 1;
 		name = 'Action Page Condition';
 		desc = 'Macro condition to evaluate action bar page.';
+		advd = true;
 	};
 	actionPageResponse = {String(nil);
 		head = ADVANCED_OPT;
 		sort = 2;
 		name = 'Action Page Response';
 		desc = 'Response to condition for custom processing.';
+		advd = true;
 	};
 	classFileOverride = {String(nil);
 		head = ADVANCED_OPT;
 		sort = 3;
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
+		advd = true;
 	};
 	raidCursorFilter = {String(nil);
 		head = ADVANCED_OPT;
@@ -419,5 +455,6 @@ db:Register('Variables', {
 		name = 'Raid Cursor Condition';
 		desc = 'Filter condition to find raid cursor frames.';
 		note = BLUE_FONT_COLOR:WrapTextInColorCode('node') .. ' is the current frame under scrutinization.';
+		advd = true;
 	};
 })  --------------------------------------------------------------------------------------------------------

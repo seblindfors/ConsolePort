@@ -4,7 +4,7 @@ local PanelMixin, Widgets = {}, env.Widgets;
 ---------------------------------------------------------------
 -- Addon settings
 ---------------------------------------------------------------
-local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET = 284, 700, 8;
+local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET, OPTION_HEIGHT = 284, 700, 8, 40;
 local Setting = CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
 
 function Setting:OnLoad()
@@ -55,7 +55,7 @@ function Shortcut:OnClick()
 	if db.Cursor:IsCurrentNode(self) then
 		return db.Cursor:SetCurrentNode(self.reference)
 	end
-	self.List:ScrollToOffset(self.List:GetElementPosition(self.reference))
+	self.List:ScrollToElement(self.reference, -FIXED_OFFSET)
 end
 
 function Shortcuts:OnLoad()
@@ -73,13 +73,14 @@ function Shortcuts:OnHide()
 	self.lastWidget = nil;
 end
 
-function Shortcuts:Create(name, ref)
-	local widget, newObj = self:TryAcquireRegistered(name)
+function Shortcuts:Create(name, ref, count)
+	local widget, newObj = self:Acquire(name)
 	local anchor = self.lastWidget;
 	if newObj then
 		widget.List = self.List;
 		widget:OnLoad()
 	end
+	widget:ClearAllPoints()
 	if anchor then
 		widget:SetAttribute('nodepriority', nil)
 		widget:SetPoint('TOP', anchor, 'BOTTOM', 0, -FIXED_OFFSET)
@@ -115,14 +116,24 @@ end
 
 function Options:DrawOptions(showAdvanced)
 	self.headerPool:ReleaseAll()
+	self.Shortcuts:OnHide()
 
 	-- sort settings by group
 	local sorted = {};
+	local showAdvanced = db('showAdvancedSettings')
+
 	foreach(db('Variables'), function(var, data)
-		local group = data.head or OTHER;
+		local group = data.head or MISCELLANEOUS;
+
+		if data.hide or not showAdvanced and data.advd then
+			local widget = self:GetObjectByIndex(group..':'..data.name)
+			return widget and widget:Hide()
+		end
+
 		if not sorted[group] then
 			sorted[group] = {};
 		end
+
 		sorted[group][data.name] = {
 			varID = var;
 			field = data;
@@ -180,12 +191,49 @@ function Options:OnLoad()
 	Mixin(self.Child, env.ScaleToContentMixin)
 	self.Child:SetAllPoints()
 	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_WIDTH, FIXED_OFFSET)
+
+	db:RegisterCallback('Settings/showAdvancedSettings', self.DrawOptions, self)
 end
 
 ---------------------------------------------------------------
 -- Panel
 ---------------------------------------------------------------
 function PanelMixin:OnFirstShow()
+	local metaVars = {
+		ShowAdvanced = {
+			_Type  = 'IndexButton';
+			_Setup = 'CPIndexButtonBindingHeaderTemplate';
+			_Point = {'TOP', 0, -FIXED_OFFSET};
+			meta = 'showAdvancedSettings';
+		};
+	};
+
+	local varContainer = LibStub('Carpenter'):BuildFrame(self, {
+		MetaVars = {
+			_Type  = 'Frame';
+			_Setup = 'BackdropTemplate';
+			_Backdrop = CPAPI.Backdrops.Opaque; 
+			_Width = SHORTCUT_WIDTH + 1;
+			_Points = {
+				{'TOPLEFT', '$parent', 'BOTTOMLEFT', -1, 50 + FIXED_OFFSET};
+				{'BOTTOMLEFT', -1, -1};
+			};
+			metaVars;
+		};
+	}, false, true).MetaVars;
+
+	env.OpaqueMixin.OnLoad(varContainer)
+
+	for child, data in db.table.spairs(metaVars) do
+		local var = varContainer[child];
+		local field = db('Variables/'.. var.meta)
+		env.db.table.mixin(var, Setting)
+		Setting.OnLoad(var)
+		Shortcut.OnLoad(var)
+		var:SetWidth(SHORTCUT_WIDTH - FIXED_OFFSET - 1)
+		var:Construct(field.name, var.meta, field, true)
+	end
+
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
 		_Mixin = Shortcuts;
 		_Width = SHORTCUT_WIDTH;
@@ -193,7 +241,7 @@ function PanelMixin:OnFirstShow()
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
 			{'TOPLEFT', 0, 1};
-			{'BOTTOMLEFT', 0, -1};
+			{'BOTTOMLEFT', '$parent.MetaVars', 'TOPLEFT', 0, 0};
 		};
 	})
 	local options = self:CreateScrollableColumn('Options', {
@@ -203,7 +251,7 @@ function PanelMixin:OnFirstShow()
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
 			{'TOPLEFT', '$parent.Shortcuts', 'TOPRIGHT', 0, 0};
-			{'BOTTOMLEFT', '$parent.Shortcuts', 'BOTTOMRIGHT', 0, 0};
+			{'BOTTOMLEFT', '$parent.MetaVars', 'BOTTOMRIGHT', -1, 0};
 		};
 	})
 	options.Shortcuts = shortcuts;
