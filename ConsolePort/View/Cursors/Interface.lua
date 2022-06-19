@@ -902,7 +902,7 @@ function Scroll:To(node, super, prev, force)
 
 			self.Active[super] = {
 				vert = Clamp(self:GetScrollTarget(currVert, scrollY, nodeY, prevY, force), 0, maxVert),
-				horz = Clamp(self:GetScrollTarget(currHorz, scrollX, nodeX, prevX, force), 0, maxHorz),
+				horz = Clamp(0, 0, maxHorz), -- TODO: solve horizontal scrolling
 			}
 
 			self:SetScript('OnUpdate', self.OnUpdate)
