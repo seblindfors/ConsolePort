@@ -403,6 +403,7 @@ function ActionMapper:OnExpand()
 		self:RegisterEvent('PLAYER_PVP_TALENT_UPDATE')
 		self:RegisterEvent('PLAYER_TALENT_UPDATE')
 		self:RegisterEvent('NEW_MOUNT_ADDED')
+		self:RegisterEvent('MOUNT_JOURNAL_SEARCH_UPDATED')
 	end
 	self:RegisterEvent('BAG_UPDATE_DELAYED')
 	self:RegisterEvent('UPDATE_MACROS')
