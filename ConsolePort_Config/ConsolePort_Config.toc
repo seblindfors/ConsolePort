@@ -18,6 +18,9 @@ Widgets.lua
 Config.xml
 Bindings\Info.lua
 
+Data\Serializer.lua
+Data\ImportExport.lua
+
 Splash\Cvars.lua
 Splash\Device.lua
 Splash\Overview.lua

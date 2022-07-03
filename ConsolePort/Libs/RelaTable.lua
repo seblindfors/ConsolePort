@@ -210,7 +210,7 @@ end
 
 function map(f, v, ...)
     if (v ~= nil) then
-        return f(v), map(...)
+        return f(v), map(f, ...)
     end
 end
 
@@ -231,14 +231,16 @@ function merge(t1, t2)
     return t1;
 end
 
-function spairs(t, order)
-    local keys = {unravel(t)}
-    if order then
-        sort(keys, function(a,b) return order(t, a, b) end)
-    else
-        sort(keys)
+local function ksort(t, k1, k2)
+    if tonumber(k1) and tonumber(k2) then
+        return k1 < k2;
     end
-    local i, k = 0;
+    return tostring(k1) < tostring(k2)
+end
+
+function spairs(t, order)
+    local i, keys, sorter, k = 0, {unravel(t)}, order or ksort;
+    sort(keys, function(a,b) return sorter(t, a, b) end)
     return function()
         i = i + 1;
         k = keys[i];

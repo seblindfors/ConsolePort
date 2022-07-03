@@ -3,9 +3,9 @@
 	<Script file="LibStub.lua"/>
 	<Script file="RelaTable.lua"/>
 	<Script file="Carpenter.lua"/>
-	<!-- Not in use currently
-	<Script file="LibCompress.lua"/>
-	<Script file="AceSerializer-3.0.lua"/>-->
 	<Script file="ButtonGlow.lua"/>
 	<Script file="ActionButton.lua"/>
+	<Script file="LibCompress.lua"/>
+	<Script file="AceSerializer-3.0.lua"/>
+	<Script file="Tabular.lua"/>
 </Ui>
