@@ -6,7 +6,7 @@ local Fader = db('Alpha/Fader');
 CPIndexButtonMixin = CreateFromMixins(BackdropTemplateMixin, {
 	IndexColors = {
 		Nofill  = CreateColor(0, 0, 0, 0);
-		Normal  = CreateColor(0, 0, 0, .35);
+		Normal  = CreateColor(0.05, 0.05, 0.05, .35);
 		Checked = CreateColor(1, 0.7451, 0, 1);
 		Hilite  = CreateColor(0, 0.68235, 1, 1);
 		Border  = CreateColor(0.15, 0.15, 0.15, 0.5);
@@ -22,6 +22,7 @@ CPIndexButtonMixin = CreateFromMixins(BackdropTemplateMixin, {
 
 function CPIndexButtonMixin:OnIndexButtonLoad()
 	self:SetThumbPosition(self.thumbPosition or 'LEFT', self.thumbSize or 1)
+	self:ApplyBackground()
 end
 
 function CPIndexButtonMixin:OnIndexButtonEnter()
@@ -48,7 +49,7 @@ function CPIndexButtonMixin:OnChecked(checked)
 	self:ToggleOutline(checked)
 	Fader.Toggle(self.CheckedThumb, self.snappyChecked and 0 or 0.15, checked)
 	Fader.Toggle(self.HiliteThumb, self.snappyChecked and 0 or 0.15, not checked)
-	self.Background:SetVertexColor(self:GetBackgroundColor():GetRGBA())
+	self:ApplyBackground()
 	if checked then
 		self:UncheckSiblings()
 	end
@@ -106,6 +107,10 @@ end
 
 function CPIndexButtonMixin:SetTransparent(enabled)
 	self.transparent = enabled;
+	self:ApplyBackground()
+end
+
+function CPIndexButtonMixin:ApplyBackground()
 	self.Background:SetVertexColor(self:GetBackgroundColor():GetRGBA())
 end
 
@@ -136,6 +141,23 @@ function CPIndexButtonMixin:SetThumbPosition(dir, size) size = size or 1;
 	self.CheckedThumb:SetEndPoint(stop, xOff * size, yOff * size)
 	self.HiliteThumb:SetStartPoint(start, xOff * size, yOff * size)
 	self.HiliteThumb:SetEndPoint(stop, xOff * size, yOff * size)
+end
+
+function CPIndexButtonMixin:SetThumbColor(obj, color, ...)
+	if type(color) == 'table' then
+		assert(color.GetRGBA, 'Invalid color object.')
+		obj:SetColorTexture(color:GetRGBA())
+	else
+		obj:SetColorTexture(color, ...)
+	end
+end
+
+function CPIndexButtonMixin:SetCheckedThumbColor(...)
+	return self:SetThumbColor(self.CheckedThumb, ...)
+end
+
+function CPIndexButtonMixin:SetHiliteThumbColor(...)
+	return self:SetThumbColor(self.HiliteThumb, ...)
 end
 
 

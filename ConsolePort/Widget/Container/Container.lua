@@ -7,7 +7,7 @@ CPHeaderMixin, CPPanelMixin = CreateFromMixins(CPFocusPoolMixin), CreateFromMixi
 ---------------------------------------------------------------
 function CPContainerMixin:OnContainerLoad()
 	local r, g, b = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
-	local inset, headerHeight = 8, 64;
+	local inset, headerHeight = 8, 50;
 
 	CPFocusPoolMixin.OnLoad(self)
 	CPBackgroundMixin.OnLoad(self)
@@ -60,8 +60,9 @@ function CPContainerMixin:OnContainerLoad()
 				};
 				Logo = {
 					_Type  = 'Button';
-					_Size  = {headerHeight * 0.9, headerHeight * 0.9};
-					_Point = {'LEFT', headerHeight * 0.1, -2};
+					_Size  = {64, 64};
+					_Point = {'LEFT', -8, -2};
+					_Level = 10;
 					_SetNormalTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
 					_SetPushedTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
 					_OnLoad = function(self)
@@ -75,20 +76,25 @@ function CPContainerMixin:OnContainerLoad()
 						self:GetParent():GetParent():ShowDefaultFrame(true)
 					end;
 				};
-				Close = {
-					_Type = 'Button';
-					_Size = {16.25, 20};
-					_Point = {'TOPRIGHT', -8, -8};
-					_SetNormalTexture = CPAPI.GetAsset([[Textures\Frame\General_Assets]]);
-					_SetHighlightTexture = CPAPI.GetAsset([[Textures\Frame\General_Assets]]);
-					_OnLoad = function(self)
-						local normal, hilite = self:GetNormalTexture(), self:GetHighlightTexture()
-						normal:SetTexCoord(0, 0.40625, 0.5, 1)
-						hilite:SetTexCoord(0, 0.40625, 0.5, 1)
-					end;
-					_OnClick = function()
-						self:Hide()
-					end;
+				Controls = {
+					_Type = 'Frame';
+					_Size = {headerHeight, headerHeight};
+					_Point = {'TOPRIGHT', 0, 0};
+					{
+
+						Close = {
+							_Type = 'IndexButton';
+							_Size = {headerHeight - 24, headerHeight - 24};
+							_Point = {'TOPRIGHT', -12, -12};
+							_SetNormalTexture = CPAPI.GetAsset([[Textures\Frame\Close]]);
+							_SetHighlightTexture = CPAPI.GetAsset([[Textures\Frame\Close]]);
+							_SetThumbPosition = {'BOTTOM', 0.5};
+							_OnClick = function(button)
+								self:Hide()
+								button:Uncheck()
+							end;
+						};
+					};
 				};
 				Index = {
 					_Type   = 'ScrollFrame';
@@ -96,7 +102,7 @@ function CPContainerMixin:OnContainerLoad()
 					_SetScrollOrientation = 'Horizontal';
 					_Points = {
 						{'TOPLEFT', headerHeight * 1.1, 0};
-						{'BOTTOMRIGHT', -(headerHeight * 1.1), 0};
+						{'BOTTOMRIGHT', '$parent.Controls', 'BOTTOMLEFT', 0, 0};
 					};
 					_OnLoad = function(self)
 						self.GetVerticalScrollRange = function() return 0 end;
@@ -231,7 +237,8 @@ end
 do  local function HeaderButtonOnClick(self)
 		self.container.focusedID = self:GetID();
 		self.container:ShowPanel(self:GetText())
-		self.parent:ScrollTo(self:GetID(), self.container:GetNumActive())
+
+		self.parent:ScrollToElement(self)
 	end
 
 	function CPHeaderMixin:CreateHeader(name, panel)
@@ -240,9 +247,16 @@ do  local function HeaderButtonOnClick(self)
 		local parent, container = self.Index, self:GetParent()
 		self.Index.Child:SetWidth(header:GetWidth() * self.numHeaders)
 
+		local r, g, b = CPAPI.NormalizeColor(CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB())
+		local colorObj = CPAPI.GetClassColorObject()
+
+		header:GetFontString():SetTextColor(r, g, b)
+		header:SetCheckedThumbColor(colorObj)
+		header:SetHiliteThumbColor(CPAPI.NormalizeColor(CPAPI.InvertColor(colorObj:GetRGB())))
+
 		header.panel  = panel;
-		header.parent = self.Index;
-		header.container = self:GetParent()
+		header.parent = parent;
+		header.container = container;
 		header:SetScript('OnClick', HeaderButtonOnClick)
 		header:SetHeight(self:GetHeight() - 2)
 		header:SetSiblings(self.Registry)

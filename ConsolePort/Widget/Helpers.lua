@@ -284,19 +284,20 @@ end
 ---------------------------------------------------------------
 -- Smooth scroll
 ---------------------------------------------------------------
-do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
-
+do local Scroller, Clamp = CreateFrame('Frame'), Clamp; Scroller.Frames = {};
 	function Scroller:OnUpdate(elapsed)
-		local current, delta
+		local current, delta, target, range;
 		for frame, data in pairs(self.Frames) do
+			range = frame:GetRange()
 			current = frame:GetScroll()
 			if abs(current - data.targetPos) < 1 then
 				frame:SetScroll(data.targetPos)
 				self:RemoveFrame(frame)
 			else
 				delta = current > data.targetPos and -1 or 1;
-				frame:SetScroll(current +
-					(delta * abs(current - data.targetPos) / data.stepSize * 8));
+				target = current +
+					(delta * abs(current - data.targetPos) / data.stepSize * 8)
+				frame:SetScroll(Clamp(target, 0, range));
 			end
 		end
 	end
@@ -326,11 +327,13 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 			GetRange  = 'GetHorizontalScrollRange';
 			GetScroll = 'GetHorizontalScroll';
 			SetScroll = 'SetHorizontalScroll';
+			GetAnchor = 'GetLeft';
 		};
 		Vertical = {
 			GetRange  = 'GetVerticalScrollRange';
 			GetScroll = 'GetVerticalScroll';
 			SetScroll = 'SetVerticalScroll';
+			GetAnchor = 'GetTop';
 		};
 	}
 
@@ -371,8 +374,9 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 		return ClampedPercentageBetween(select(2, element:GetCenter()), wrapper:GetTop(), wrapper:GetBottom())
 	end
 
-	function CPSmoothScrollMixin:GetElementOffsetFromTop(element, padding)
-		return self:GetTop() - element:GetTop() + self:GetScroll() + (padding or 0);
+	function CPSmoothScrollMixin:GetElementOffsetFromAnchor(element, padding)
+		local getAnchor = self.GetAnchor;
+		return getAnchor(self) - getAnchor(element) + self:GetScroll() + (padding or 0);
 	end
 
 	function CPSmoothScrollMixin:ScrollToOffset(offset)
@@ -384,7 +388,7 @@ do local Scroller = CreateFrame('Frame'); Scroller.Frames = {};
 	end
 
 	function CPSmoothScrollMixin:ScrollToElement(element, padding)
-		Scroller:AddFrame(self, Clamp(self:GetElementOffsetFromTop(element, padding), 0, self:GetRange()), self.MouseWheelDelta)
+		Scroller:AddFrame(self, Clamp(self:GetElementOffsetFromAnchor(element, padding), 0, self:GetRange()), self.MouseWheelDelta)
 	end
 
 	function CPSmoothScrollMixin:OnScrollSizeChanged(...)

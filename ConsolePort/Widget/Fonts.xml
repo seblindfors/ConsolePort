@@ -59,6 +59,64 @@
 		</Member>
 	</FontFamily>
 
+	<FontFamily name="CPHeaderButtonFont" virtual="true">
+		<Member alphabet="roman">
+			<Font font="Fonts\FRIZQT__.TTF" height="16">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g="0.75235" b="1"/>
+			</Font>
+		</Member>
+		<Member alphabet="korean">
+			<Font font="Fonts\K_Pagetext.ttf" height="16">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g="0.75235" b="1"/>
+			</Font>
+		</Member>
+		<Member alphabet="simplifiedchinese">
+			<Font font="Fonts\ARKai_T.ttf" height="16">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g="0.75235" b="1"/>
+			</Font>
+		</Member>
+		<Member alphabet="traditionalchinese">
+			<Font font="Fonts\blei00d.ttf" height="16">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g="0.75235" b="1"/>
+			</Font>
+		</Member>
+		<Member alphabet="russian">
+			<Font font="Fonts\FRIZQT___CYR.ttf" height="16">
+				<Shadow>
+					<Offset>
+						<AbsDimension x="1" y="-2"/>
+					</Offset>
+					<Color r="0" g="0" b="0" a="0.75"/>
+				</Shadow>
+				<Color r="1" g="0.75235" b="1"/>
+			</Font>
+		</Member>
+	</FontFamily>
+
 	<FontFamily name="CPSubtitleFont" virtual="true">
 		<Member alphabet="roman">
 			<Font font="Fonts\FRIZQT__.TTF" height="14">
