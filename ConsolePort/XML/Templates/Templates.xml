@@ -256,7 +256,12 @@
 		</Layers>
 		<Frames>
 			<Frame parentKey="Overlay" setAllPoints="true" inherits="BackdropTemplate"/>
-			<Frame parentKey="Hilite" setAllPoints="true" alpha="0" inherits="BackdropTemplate"/>
+			<Frame parentKey="Hilite" alpha="0" inherits="BackdropTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-1"/>
+					<Anchor point="BOTTOMRIGHT" x="1"/>
+				</Anchors>
+			</Frame>
 		</Frames>
 		<Scripts>
 			<OnLoad method="OnLoad"/>

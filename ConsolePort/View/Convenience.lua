@@ -18,19 +18,19 @@ do  local popups, visible, oldNode = {}, {};
 			if not InCombatLockdown() then
 				local prio = popups[previous];
 				if not prio or ( not prio:IsVisible() ) then
-					local current = db('Cursor'):GetCurrentNode()
+					local current = db.Cursor:GetCurrentNode()
 					-- assert not caching a return-to node on a popup
 					if current and not popups[current:GetParent()] then
 						oldNode = current;
 					end
-					db('Cursor'):SetCurrentNode(self.button1)
+					db.Cursor:SetCurrentNode(self.button1)
 				end
 			end
 		end)
 		popup:HookScript('OnHide', function(self)
 			visible[self] = nil;
 			if not next(visible) and not InCombatLockdown() and oldNode then
-				db('Cursor'):SetCurrentNode(oldNode)
+				db.Cursor:SetCurrentNode(oldNode)
 			end
 		end)
 	end

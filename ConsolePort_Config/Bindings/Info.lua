@@ -15,12 +15,14 @@ local BindingInfoMixin, BindingInfo = {}, {
 	ActionInfoHandlers = {
 		spell        = function(id) return GetSpellInfo(id) or STAT_CATEGORY_SPELL end; -- Hack fallback: 'Spell'
 		item         = function(id) return GetItemInfo(id) or HELPFRAME_ITEM_TITLE end; -- Hack fallback: 'Item'
-		macro        = function(id) return GetActionText(id) and GetActionText(id) .. ' ('..MACRO..')' end;
+		macro        = function(id) return GetMacroInfo(id) and GetMacroInfo(id) .. ' ('..MACRO..')' end;
 		mount        = function(id) return C_MountJournal.GetMountInfoByID(id) end;
+		summonmount  = function(id) return C_MountJournal.GetMountInfoByID(id) end;
+		summonpet    = function(id) return (C_PetJournal.GetPetInfoTableByPetID(id) or {}).name or TOOLTIP_BATTLE_PET end;
 		flyout       = function(id) return GetFlyoutInfo(id) end;
+		equipmentset = function(id) return tostring(id)..' ('..BAG_FILTER_EQUIPMENT..')' end;
 		companion    = function() return COMPANIONS end; -- low-prio todo: get some info on whatever this is
-		summonmount  = function() return MOUNT end;
-		equipmentset = function() return BAG_FILTER_EQUIPMENT end;
+
 	};
 	--------------------------------------------------------------
 }; env.BindingInfo, env.BindingInfoMixin = BindingInfo, BindingInfoMixin;
@@ -35,7 +37,7 @@ end
 function BindingInfo:GetActionInfo(actionID)
 	local kind, kindID = GetActionInfo(actionID)
 	local getinfo = self.ActionInfoHandlers[kind]
-	
+
 	if getinfo then
 		return getinfo(kindID)
 	end
