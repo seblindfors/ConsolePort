@@ -28,6 +28,83 @@
 		</Anchors>
 		<Frames>
 			<Button parentKey="Remove" name="$parentRemove" registerForClicks="AnyDown" inherits="SecureActionButtonTemplate"/>
+			<Frame parentKey="FocusOverlay" name="$parentFocusOverlay" setAllPoints="true" frameLevel="1">
+				<Layers>
+					<Layer level="ARTWORK" textureSubLevel="1">
+						<Texture parentKey="BgRunes" hidden="false" alpha="0.05" alphaMode="ADD">
+							<Size x="400" y="400" />
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture parentKey="RunesSmall" hidden="false" alpha="0" alphaMode="BLEND" atlas="ChallengeMode-Runes-Small"/>
+						<Texture parentKey="GlowBurstSmall" hidden="false" alpha="0" alphaMode="BLEND" atlas="ChallengeMode-Runes-GlowBurstLarge" useAtlasSize="true"/>
+					</Layer>
+					<Layer level="OVERLAY" textureSubLevel="3">
+						<Texture parentKey="LargeRuneGlow" hidden="false" alpha="0" alphaMode="ADD" atlas="ChallengeMode-Runes-GlowLarge">
+							<Size x="198" y="199"/>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.RunesLarge" x="-2" y="2"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.RunesLarge" x="2" y="-2"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="SmallRuneGlow" hidden="false" alpha="0" alphaMode="ADD" atlas="ChallengeMode-Runes-GlowSmall">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.RunesSmall" x="-2" y="2"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.RunesSmall" x="2" y="-2"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY" textureSubLevel="4">
+						<Texture parentKey="SlotGlow" hidden="false" alphaMode="ADD" alpha="0" atlas="NavalMap-CircleGlowTrails" useAtlasSize="true">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="60"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Animations>
+					<AnimationGroup parentKey="PulseAnim" setToFinalAlpha="true" looping="REPEAT">
+						<Alpha parentKey="PulseIn" childKey="BgRunes" duration="1.5" order="1" fromAlpha="0" toAlpha="0"/>
+						<Alpha parentKey="PulseOut" childKey="BgRunes" startDelay="1.5" duration="1.5" order="1" fromAlpha="0" toAlpha="0"/>
+						<Scripts>
+							<OnLoad>
+								self:Play();
+							</OnLoad>
+						</Scripts>
+					</AnimationGroup>
+					<AnimationGroup parentKey="PulseRotateAnim" looping="REPEAT">
+						<Rotation childKey="BgRunes" duration="30" order="1" degrees="-360"/>
+						<Scripts>
+							<OnLoad>
+								self:Play();
+							</OnLoad>
+						</Scripts>
+					</AnimationGroup>
+					<AnimationGroup parentKey="RunesSmallRotateAnim" looping="REPEAT">
+						<Rotation childKey="SlotGlow" duration="15" order="1" degrees="-5400"/>
+						<Rotation childKey="RunesSmall" duration="15" order="1" degrees="360"/>
+						<Rotation childKey="SmallRuneGlow" duration="15" order="1" degrees="360"/>
+						<Rotation childKey="GlowBurstSmall" duration="15" order="1" degrees="360"/>
+						<Scripts>
+							<OnLoad>
+								self:Play();
+							</OnLoad>
+						</Scripts>
+					</AnimationGroup>
+					<AnimationGroup parentKey="RunesSmallAnim" setToFinalAlpha="true">
+						<Alpha childKey="SlotGlow" duration="0.15" order="1" fromAlpha="0" toAlpha="1"/>
+						<Alpha childKey="RunesSmall" smoothing="OUT" duration="0.25" order="1" fromAlpha="0.15" toAlpha="1"/>
+						<Alpha childKey="SmallRuneGlow" duration="0.25" order="1" fromAlpha="0" toAlpha="1"/>
+						<Alpha childKey="SmallRuneGlow" startDelay="0.5" smoothing="IN" duration="1" order="1" fromAlpha="1" toAlpha="0"/>
+						<Alpha childKey="GlowBurstSmall" smoothing="OUT" duration="0.25" order="1" fromAlpha="0" toAlpha="1"/>
+						<Alpha childKey="GlowBurstSmall" startDelay="0.25" smoothing="IN" duration="0.5" order="1" fromAlpha="1" toAlpha="0"/>
+						<Scale childKey="GlowBurstSmall" smoothing="OUT" duration="0.5" order="1" fromScaleX="0.5" fromScaleY="0.5" toScaleX="0.65" toScaleY="0.65"/>
+					</AnimationGroup>
+				</Animations>
+			</Frame>
 		</Frames>
 	</PieMenu>
 

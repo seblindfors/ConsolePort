@@ -37,6 +37,7 @@ function CPPieMenuMixin:ReflectStickPosition(x, y, len, isValid)
 	local rotation = self:GetRotation(x, y)
 	self.BG:SetRotation(rotation)
 	self.Arrow:SetRotation(rotation)
+	return rotation;
 end
 
 function CPPieMenuMixin:GetRotation(x, y)

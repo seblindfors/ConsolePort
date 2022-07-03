@@ -156,6 +156,11 @@ function Utility:OnDataLoaded()
 	self:OnAutoAssignedChanged()
 	self:OnRemoveButtonChanged()
 	self:OnAxisInversionChanged()
+	if CPAPI.IsRetailVersion then
+		self.FocusOverlay.BgRunes:SetAtlas('heartofazeroth-orb-activated')
+	else
+		self.FocusOverlay.BgRunes:SetAtlas('ChallengeMode-RuneBG')
+	end
 end
 
 function Utility:OnAutoAssignedChanged()
@@ -245,8 +250,10 @@ db:RegisterSafeCallback('OnRingRemoved', Utility.RefreshAll, Utility)
 -- Frontend
 ---------------------------------------------------------------
 function Utility:OnInput(x, y, len, stick)
-	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetAttribute('size')))
-	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
+	local size = self:GetAttribute('size')
+	local obj = self:SetFocusByIndex(self:GetIndexForPos(x, y, len, size))
+	local rot = self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
+	self:SetAnimations(obj, rot, len)
 end
 
 function Utility:GetSetID(rawSetID)
@@ -273,6 +280,10 @@ function Utility:GetButtonSlugForSet(setID)
 	return db.Hotkeys:GetButtonSlugForBinding(self:GetBindingForSet(setID));
 end
 
+function Utility:GetBindingDisplayNameForSet(setID)
+	return self:ConvertBindingToDisplayName(self:GetBindingForSet(setID));
+end
+
 function Utility:GetTooltipRemovePrompt()
 	local removeButton = not self:GetAttribute('removeButtonBlocked') and self:GetAttribute('removeButton')
 	local device = db('Gamepad/Active')
@@ -287,6 +298,77 @@ function Utility:GetTooltipUsePrompt()
 	if useButton and device then
 		return device:GetTooltipButtonPrompt(useButton, USE, 64)
 	end
+end
+
+---------------------------------------------------------------
+-- Animations
+---------------------------------------------------------------
+do
+	local map, Clamp = db.table.map, Clamp;
+
+	local function replay(group)
+		group:Stop()
+		group:Finish()
+		group:Play()
+	end
+
+	local function hide(obj) return obj:Hide() end
+	local function show(obj) return obj:Show() end
+
+	function Utility:SetAnimations(obj, rot, len)
+		local overlay = self.FocusOverlay;
+		local oldObj = self.oldAniObj;
+		local pulse = Clamp(len, 0.05, 0.25)
+		local glow = Clamp(len, 0, 1)
+
+		overlay.PulseAnim.PulseIn:SetFromAlpha(pulse / 2)
+		overlay.PulseAnim.PulseIn:SetToAlpha(pulse)
+		overlay.PulseAnim.PulseOut:SetToAlpha(pulse / 2)
+		overlay.PulseAnim.PulseOut:SetFromAlpha(pulse)
+
+		if oldObj == obj then
+			return
+		end
+		
+		if oldObj then
+			oldObj.Name:Show()
+		end
+
+		self.oldAniObj = obj;
+		
+		if obj then
+			obj.Name:Hide()
+
+			map(show,
+				overlay.SlotGlow,
+				overlay.RunesSmall,
+				overlay.SmallRuneGlow,
+				overlay.GlowBurstSmall
+			);
+
+			replay(overlay.RunesSmallAnim)
+
+			overlay.GlowBurstSmall:SetPoint('TOPLEFT', obj, 'TOPLEFT', -50, 50)
+			overlay.GlowBurstSmall:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 50, -50)
+
+			overlay.RunesSmall:SetPoint('TOPLEFT', obj, 'TOPLEFT', -16, 16)
+			overlay.RunesSmall:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 16, -16)
+
+			overlay.SlotGlow:SetPoint('TOPLEFT', obj, 'TOPLEFT', -8, 8)
+			overlay.SlotGlow:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 8, -8)
+		else
+			map(hide,
+				overlay.SlotGlow,
+				overlay.RunesSmall,
+				overlay.SmallRuneGlow,
+				overlay.GlowBurstSmall
+			);
+		end
+	end
+
+	Utility:HookScript('OnHide', function(self)
+		self:SetAnimations(nil, 0, 0)
+	end)
 end
 
 ---------------------------------------------------------------
