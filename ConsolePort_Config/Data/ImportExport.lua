@@ -388,6 +388,19 @@ end
 
 
 ---------------------------------------------------------------
+local function AdjustBrowserSize(popup, container, browser)
+	C_Timer.After(0, function()
+		local offset = -popup:GetBottom()
+		if offset < 0 then
+			container:SetHeight(BROWSER_HEIGHT)
+			return browser:SetHeight(BROWSER_HEIGHT)
+		end
+		container:SetHeight(BROWSER_HEIGHT - offset)
+		browser:SetHeight(BROWSER_HEIGHT - offset)
+		popup:SetHeight(popup:GetHeight() - offset)
+	end)
+end
+
 local function GenerateExportData()
 	local data = {};
 	for key, aggregator in pairs(Aggregators) do
@@ -485,6 +498,7 @@ function ImportButton:OnClick()
 		end;
 		OnShow = function(self)
 			self.button3:SetEnabled(false)
+			AdjustBrowserSize(self, dataBin, dataBin.Browser)
 		end;
 		OnAccept = function(popup)
 			db:RunSafe(EvaluateImportData, dataBin.Browser:Compile())
@@ -524,6 +538,7 @@ function ExportButton:OnClick()
 		end;
 		OnShow = function(self, data)
 			local browser = dataBin.Browser;
+			AdjustBrowserSize(self, dataBin, browser)
 			browser:SetData({callback = callback, alias = alias}, data)
 		end;
 	}, nil, nil, data, dataBin)
