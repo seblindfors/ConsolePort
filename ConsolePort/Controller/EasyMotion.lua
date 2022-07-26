@@ -205,21 +205,29 @@ for name, script in pairs({
 
 	-- Sort the units by name, to retain some coherence when setting up bindings
 	SortUnits = [[
-		local specific = self:GetAttribute('unitpool')
-		for unit in pairs(units) do
-			if ( not specific ) then
-				sorted[#sorted + 1] = unit
-			else
-				specific = specific:gsub(';', '\n')
-				for token in specific:gmatch('[%a%p]+') do
-					if unit:match(token) then
-						sorted[#sorted + 1] = unit
-						break 
-					end
+		local pool = self:GetAttribute('unitpool')
+		if ( not pool ) then
+			for unit in pairs(units) do
+				table.insert(sorted, unit)
+			end
+			return table.sort(sorted)
+		end
+
+		local c = 0;
+		for token in pool:gmatch('[%a%p]+') do
+			local set = newtable()
+			for unit in pairs(units) do
+				if unit:match(token) then
+					table.insert(set, unit)
 				end
 			end
+			table.sort(set)
+			for i, unit in ipairs(set) do
+				sorted[c + i] = unit
+				units[unit] = nil
+			end
+			c = #sorted
 		end
-		table.sort(sorted)
 	]],
 
 	-- Set the bindings that control the input
@@ -322,11 +330,6 @@ function EM:OnNewBindings(bindings)
 		end
 	end
 
-	self:SetAttribute('unitpool', db('unitHotkeyPool'))
-	self:SetAttribute('ignorePlayer', db('unitHotkeyIgnorePlayer'))
-	self:SetAttribute('ghostMode', db('unitHotkeyGhostMode'))
-	self:Execute([[self:RunAttribute('OnNewSettings')]])
-
 	local forceSet = db('Settings/unitHotkeySet')
 	if forceSet then
 		forceSet = forceSet:lower()
@@ -342,11 +345,23 @@ function EM:OnNewBindings(bindings)
 	end
 end
 
+function EM:OnNewAttributes()
+	self:SetAttribute('unitpool', (db('unitHotkeyPool') or ''):gsub(';', '\n'))
+	self:SetAttribute('ghostMode', db('unitHotkeyGhostMode'))
+	self:SetAttribute('ignorePlayer', db('unitHotkeyIgnorePlayer'))
+	self:Execute([[self:RunAttribute('OnNewSettings')]])
+end
+
 function EM:OnDataLoaded()
+	self:OnNewAttributes()
 	self:OnNewBindings(db.Gamepad:GetBindings())
 end
 
 db:RegisterSafeCallback('OnNewBindings', EM.OnNewBindings, EM)
+
+db:RegisterSafeCallback('Settings/unitHotkeyPool', EM.OnNewAttributes, EM)
+db:RegisterSafeCallback('Settings/unitHotkeyGhostMode', EM.OnNewAttributes, EM)
+db:RegisterSafeCallback('Settings/unitHotkeyIgnorePlayer', EM.OnNewAttributes, EM)
 
 ---------------------------------------------------------------
 -- Frontend
