@@ -341,7 +341,7 @@ db:Register('Variables', {
 		desc = 'Vertical offset of the hotkey prompt position, in pixels.';
 		advd = true;
 	};
-	unitHotkeyPool = {String('player$;party%d$;raid%d+$');
+	unitHotkeyPool = {String('party%d$;raid%d+$;player$');
 		head = 'Unit Hotkeys';
 		sort = 6;
 		name = 'Unit Pool';
