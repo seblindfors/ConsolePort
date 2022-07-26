@@ -108,7 +108,7 @@ db:Register('Console', setmetatable({
 		};
 		{	cvar = 'GamePadFaceMovementMaxAngleCombat';
 			type = Range(115, 5, 0, 180);
-			name = 'Face Movement Max Angle (In Combat)';
+			name = 'Face Movement Max Angle (Combat)';
 			desc = 'Controls when your character transitions from strafing to facing your movement stick angle in combat. Expressed in degrees, from looking straight forward.';
 			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
 		};
@@ -116,18 +116,6 @@ db:Register('Console', setmetatable({
 			type = Select(2, 2):SetRawOptions({[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
 			name = 'Turn Character With Camera';
 			desc = 'Turn your character facing when you turn your camera angle.';
-		};
-		{	cvar = 'GamePadCameraYawSpeed';
-			type = Range(1, 0.25, -2.0, 2.0);
-			name = 'Camera Yaw Speed';
-			desc = 'Yaw speed of camera - turning left/right.';
-			note = 'Choose a negative value to invert the axis.';
-		};
-		{	cvar = 'GamePadCameraPitchSpeed';
-			type = Range(1, 0.25, -2.0, 2.0);
-			name = 'Camera Pitch Speed';
-			desc = 'Pitch speed of camera - moving up/down.';
-			note = 'Choose a negative value to invert the axis.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
@@ -187,6 +175,18 @@ db:Register('Console', setmetatable({
 			name = 'Camera Look Max Pitch';
 			desc = 'Maximum Pitch adjust for the camera "look" feature.';
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
+		};
+		{	cvar = 'GamePadCameraYawSpeed';
+			type = Range(1, 0.25, -4.0, 4.0);
+			name = 'Camera Yaw Speed';
+			desc = 'Yaw speed of camera - turning left/right.';
+			note = 'Choose a negative value to invert the axis.';
+		};
+		{	cvar = 'GamePadCameraPitchSpeed';
+			type = Range(1, 0.25, -4.0, 4.0);
+			name = 'Camera Pitch Speed';
+			desc = 'Pitch speed of camera - moving up/down.';
+			note = 'Choose a negative value to invert the axis.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
