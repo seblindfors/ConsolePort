@@ -4,6 +4,7 @@ local Config = CPAPI.EventHandler(ConsolePortConfig, {
 	'PLAYER_REGEN_DISABLED',
 	'UI_SCALE_CHANGED'
 }); env.Config = Config;
+local CONFIG_HEIGHT = 800;
 
 function Config:OnActiveDeviceChanged()
 	self.hasActiveDevice = db('Gamepad/Active') and true or false;
@@ -18,7 +19,7 @@ function Config:UI_SCALE_CHANGED()
 	self:SetScale(db('UIscale'))
 	local relScale = UIParent:GetEffectiveScale() / self:GetEffectiveScale();
 	local maxHeight = relScale * UIParent:GetHeight();
-	self:SetHeight(Clamp(800, 800, maxHeight))
+	self:SetHeight(Clamp(CONFIG_HEIGHT, CONFIG_HEIGHT, maxHeight))
 end
 
 function Config:OnDataLoaded()

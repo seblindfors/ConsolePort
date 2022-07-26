@@ -47,9 +47,9 @@ if not Tabular then return end
 local ROW_HEIGHT, ROW_PADDING = 30, 4;
 
 local COLOR_TYPES = setmetatable({
-	number  = CreateColor(0.53, 1,    73);
-	string  = CreateColor(1,    1,    0.47);
-	table   = CreateColor(1,    0.82, 0);
+	number  = CreateColor(0.53, 1.00, 0.73);
+	string  = CreateColor(1.00, 1.00, 0.47);
+	table   = CreateColor(1.00, 0.82, 0.00);
 	boolean = CreateColor(0.98, 0.15, 0.45);
 }, {__index = function() return WHITE_FONT_COLOR end})
 
@@ -383,7 +383,7 @@ function DataRow:SetChecked(state)
 	self:SetState(state)
 	self:UpdateChildren(state)
 	self:UpdateParents(state, true)
-	self:Desaturate(not state)
+	self:SetPartiallyChecked(not state)
 end
 
 function DataRow:SetState(state)
@@ -391,7 +391,7 @@ function DataRow:SetState(state)
 	self.callback(self.path, self.key, self.value, state)
 end
 
-function DataRow:Desaturate(enabled)
+function DataRow:SetPartiallyChecked(enabled)
 	self.Check:GetCheckedTexture():SetDesaturated(enabled)
 end
 
@@ -412,7 +412,7 @@ function DataRow:UpdateParents(state, isFullyChecked)
 	if isFullyChecked then
 		isFullyChecked = parent:GetParentState()
 	end
-	parent:Desaturate(not isFullyChecked)
+	parent:SetPartiallyChecked(not isFullyChecked)
 	return parent:UpdateParents(state, isFullyChecked)
 end
 
@@ -582,6 +582,7 @@ DataRow.Registry = CreateObjectPool(
 		self:SetData(nil, nil, nil)
 		self:SetHeight(ROW_HEIGHT)
 		self:SetParent(nil)
+		self:SetPartiallyChecked(false)
 		self:ClearAllPoints()
 		self:Hide()
 	end

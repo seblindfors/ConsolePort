@@ -31,7 +31,7 @@ To use, hold the selected binding down, tilt your stick in the direction of the 
 
 The default ring, or the |CFF00FF00Utility Ring|r, has special properties to alleviate questing and world interaction, and is not static. It will automatically add and remove items as necessary.
 
-If you want to create a ring to use in your rotation and not just for utility, it's highly recommended to not use the default ring for this purpose.
+If you want to create a ring to use in your rotation and not just for utility, it's highly recommended to use a custom ring for this purpose.
 ]]):trim())
 
 local RING_EMPTY_DESC = L[[You do not have any abilities in this ring yet.]]
