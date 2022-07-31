@@ -356,6 +356,7 @@ function Radial:GetStickStruct(type)
 	return ({
 		Movement = {'Left', 'Movement'};
 		Camera   = {'Right', 'Camera'};
+		Gyro     = {'Gyro'};
 	})[type]
 end
 
