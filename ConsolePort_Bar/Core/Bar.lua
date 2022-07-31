@@ -193,13 +193,12 @@ function Bar:OnLoad(cfg, benign)
 	-- Rainbow sine wave color script, cuz shiny
 	env:SetRainbowScript(cfg.rainbow)
 
-	-- Tint RGB for background textures	
+	-- Tint RGB for background textures and LED
+	SetCVar('GamePadFactionColor', 0)
 	if cfg.tintRGB then
-		self.BG:SetGradientAlpha(env:GetColorGradient(unpack(cfg.tintRGB)))
-		self.BottomLine:SetVertexColor(unpack(cfg.tintRGB))
+		env:SetTintColor(unpack(cfg.tintRGB))
 	else
-		self.BG:SetGradientAlpha(env:GetColorGradient(r, g, b))
-		self.BottomLine:SetVertexColor(r, g, b, 1)
+		env:SetTintColor(r, g, b, 1)
 	end
 
 	-- Show 'the eye'
