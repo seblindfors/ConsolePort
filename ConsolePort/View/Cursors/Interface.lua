@@ -40,15 +40,21 @@ end
 function Cursor:PLAYER_REGEN_ENABLED()
 	-- time lock this in case it fires more than once
 	if not self.timeLock and self.showAfterCombat then
-		self.timeLock = true
-		C_Timer.After(db('UIleaveCombatDelay'), function()
-			Fade.In(self, 0.2, self:GetAlpha(), 1)
-			if not self:InCombat() and self:IsShown() then
-				self:SetBasicControls()
-				self:Refresh()
+		self.timeLock = true;
+		if not self.onEnableCallback then
+			self.onEnableCallback = function()
+				Fade.In(self, 0.2, self:GetAlpha(), 1)
+				if not self:InCombat() and self:IsShown() then
+					self:SetBasicControls()
+					self:Refresh()
+				end
 			end
-			self.timeLock = nil
-			self.showAfterCombat = nil
+		end
+		C_Timer.After(db('UIleaveCombatDelay'), function()
+			self.onEnableCallback()
+			self.timeLock = nil;
+			self.showAfterCombat = nil;
+			self.onEnableCallback = nil;
 		end)
 	-- in case the cursor is showing and waiting to hide OOC
 	elseif self:IsShown() and not self.showAfterCombat then
@@ -160,13 +166,26 @@ function Cursor:SetCurrentNode(node, assertNotMouse)
 	end
 	local object = node and Node.ScanLocal(node)[1]
 	if object and (not assertNotMouse or IsGamePadFreelookEnabled()) then
-		self:SetBasicControls()
-		self:SetFlashNextNode()
-		self:SetCurrent(object)
-		self:SelectAndPosition(self:GetSelectParams(object, true, true))
-		self:Chime()
+		self:SetOnEnableCallback(function(self, object)
+			self:SetBasicControls()
+			self:SetFlashNextNode()
+			self:SetCurrent(object)
+			self:SelectAndPosition(self:GetSelectParams(object, true, true))
+			self:Chime()
+		end, object)
 		return true;
 	end
+end
+
+function Cursor:SetOnEnableCallback(callback, ...)
+	local inCombat, disabled = self:IsObstructed()
+	if disabled then
+		return
+	end
+	if not inCombat then
+		return callback(self, ...)
+	end
+	self.onEnableCallback = GenerateClosure(callback, self, ...)
 end
 
 function Cursor:OnUpdate(elapsed)
