@@ -1,6 +1,7 @@
-## Interface: 90205
+## Interface: 90207
 ## Interface-Classic: 11402
 ## Interface-BCC: 20504
+## Interface-Wrath: 30400
 ## Title: Console Port |cff69ccf0World|r
 ## Notes: World augmentation module: custom loot frame, new ability prompts
 ## RequiredDeps: ConsolePort

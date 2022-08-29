@@ -1,6 +1,7 @@
-## Interface: 90205
+## Interface: 90207
 ## Interface-Classic: 11402
 ## Interface-BCC: 20504
+## Interface-Wrath: 30400
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar module
 ## RequiredDeps: ConsolePort
