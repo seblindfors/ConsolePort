@@ -189,7 +189,7 @@ function Console:DrawOptions(showAdvanced)
 	for group, set in db.table.spairs(db.Console) do
 		prev = self:CreateHeader(group, prev)
 
-		for i, data in ipairs(set) do
+		for i, data in db.table.spairs(set) do
 			local widget, newObj = self:TryAcquireRegistered(group..':'..data.cvar)
 			if newObj then
 				widget:SetDrawOutline(true)
