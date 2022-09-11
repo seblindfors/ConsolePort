@@ -66,7 +66,7 @@ db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
 	-- Interact button:
 	--------------------------------------------------------------------------------------------------------
-	interactButton = {Button('PAD1', true);
+	interactButton = {Button('PAD1', true):Set(CPAPI.IsWoW10Version and 'PAD1' or 'none', true);
 		head = INTERACT_OPT;
 		sort = 1;
 		name = 'Interact Button';
