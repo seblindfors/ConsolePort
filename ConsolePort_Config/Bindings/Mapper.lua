@@ -469,11 +469,16 @@ function BindingHTML:SetContent(desc, image)
 end
 
 function BindingHTML:OnLoad()
-	self:SetFontObject(CPSubtitleFont)
-
-	self:SetFont('p', [[Fonts\FRIZQT__.ttf]], 14, '')
-	self:SetFont('h2', Game13Font:GetFont())
-	self:SetFont('h1', CPSubtitleFont:GetFont())
+	if CPAPI.IsWoW10Version then
+		self:SetFontObject('p', CPSubtitleFont)
+		self:SetFontObject('h2', Game13Font)
+		self:SetFontObject('h1', CPSubtitleFont)
+	else
+		self:SetFontObject(CPSubtitleFont)
+		self:SetFont('p', [[Fonts\FRIZQT__.ttf]], 14, '')
+		self:SetFont('h2', Game13Font:GetFont())
+		self:SetFont('h1', CPSubtitleFont:GetFont())
+	end
 
 	self:SetTextColor('p', 1, 1, 1)
 	self:SetTextColor('h1', Fancy22Font:GetTextColor())

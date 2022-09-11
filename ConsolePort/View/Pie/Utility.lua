@@ -12,9 +12,14 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 local Button = CreateFromMixins(CPActionButton);
 ---------------------------------------------------------------
 local DEFAULT_SET, EXTRA_ACTION_ID = 1, ExtraActionButton1 and ExtraActionButton1.action or 169;
+local TYPE_ATTRIBUTE = CPAPI.IsRetailVersion and 'typerelease' or 'type';
 ---------------------------------------------------------------
 Utility.Data = {[DEFAULT_SET] = {}};
-Utility:Execute([[DATA = newtable()]])
+Utility:Execute(([[
+	DATA = newtable()
+	TYPE = '%s';
+]]):format(TYPE_ATTRIBUTE))
+---------------------------------------------------------------
 db:Register('Utility', Utility)
 db:Save('Utility/Data', 'ConsolePortUtility')
 
@@ -59,7 +64,8 @@ Utility:CreateEnvironment({
 			return self:CallMethod('ClearInstantly')
 		end
 		for attribute, value in pairs(RING[index]) do
-			self:SetAttribute(attribute, value)
+			local convertedAttribute = (attribute == 'type') and TYPE or attribute;
+			self:SetAttribute(convertedAttribute, value)
 		end
 	]];
 	GetRingSetFromButton = ([[
@@ -100,8 +106,9 @@ Utility:CreateEnvironment({
 ---------------------------------------------------------------
 -- Trigger script
 ---------------------------------------------------------------
-Utility:Wrap('PreClick', [[
-	self:SetAttribute('type', nil)
+Utility:SetAttribute('pressAndHoldAction', true)
+Utility:Wrap('PreClick', ([[
+	self:SetAttribute('%s', nil)
 
 	if down then
 		local set = self::GetRingSetFromButton(button)
@@ -114,7 +121,7 @@ Utility:Wrap('PreClick', [[
 		self:ClearBindings()
 		self:Hide()
 	end
-]])
+]]):format(TYPE_ATTRIBUTE))
 
 
 ---------------------------------------------------------------

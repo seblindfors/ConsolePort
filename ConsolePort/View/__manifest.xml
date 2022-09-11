@@ -1,10 +1,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<!-- Views -->
-	<Include file="Pie/Pie.xml"/>
-	<Include file="Cursors/Cursors.xml"/>
-	<Include file="UIHandle/UIHandle.xml"/>
-	<Include file="Popup/Popup.xml"/>
+	<Include file="Pie\Pie.xml"/>
+	<Include file="Cursors\Cursors.xml"/>
+	<Include file="UIHandle\UIHandle.xml"/>
+	<Include file="Popup\Popup.xml"/>
 	<!-- Single file views -->
 	<Script file="Hotkey.lua"/>
 	<Script file="Convenience.lua"/>

@@ -1,4 +1,5 @@
 CPPieMenuMixin = CreateFromMixins(CPFocusPoolMixin, CPGradientMixin);
+local Clamp, atan2 = Clamp, math.atan2;
 
 function CPPieMenuMixin:OnPreLoad()
 	CPFocusPoolMixin.OnLoad(self)
@@ -31,8 +32,8 @@ function CPPieMenuMixin:ReflectStickPosition(x, y, len, isValid)
 	self.Arrow:SetVertexColor(color:GetRGBA())
 
 	local r, g, b = self.VertexColor:GetRGBA()
-	self.BG:SetGradientAlpha(self:GetMixGradient(r * len, g * len, b * len, len))
-	self.Arrow:SetAlpha(len + len/1.5)
+	CPAPI.SetGradient(self.BG, self:GetMixGradient(r * len, g * len, b * len, len))
+	self.Arrow:SetAlpha(Clamp(len + len/1.5, 0, 1))
 
 	local rotation = self:GetRotation(x, y)
 	self.BG:SetRotation(rotation)
@@ -41,5 +42,5 @@ function CPPieMenuMixin:ReflectStickPosition(x, y, len, isValid)
 end
 
 function CPPieMenuMixin:GetRotation(x, y)
-	return -math.atan2(x, y)
+	return -atan2(x, y)
 end

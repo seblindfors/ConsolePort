@@ -170,10 +170,10 @@ do
 
 		Mixin(button, CPActionButtonMixin)
 
-		button.AutoCastable = _G[name..'AutoCastable']
-		button.Shine = _G[name..'Shine']
-		button.cooldown = _G[name..'Cooldown'];
-		button.NormalTexture = _G[name..'NormalTexture2']
+		button.AutoCastable = button.AutoCastable or _G[name..'AutoCastable']
+		button.Shine = button.Shine or _G[name..'Shine']
+		button.cooldown = button.cooldown or _G[name..'Cooldown'];
+		button.NormalTexture = button.NormalTexture or _G[name..'NormalTexture2']
 
 		button.Flash:SetMask('Interface\\Minimap\\UI-Minimap-Background')
 		button.Flash:SetAlpha(0.25)

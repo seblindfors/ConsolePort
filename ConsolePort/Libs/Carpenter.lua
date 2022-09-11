@@ -22,7 +22,7 @@
 --  Carpenter:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
 --  Carpenter:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
 
-local Lib = LibStub:NewLibrary('Carpenter', 1)
+local Lib = LibStub:NewLibrary('Carpenter', 2)
 if not Lib then return end
 --------------------------------------------------------------------------
 local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
@@ -46,7 +46,7 @@ API = { -- Syntax: _CallID = value or {value1, ..., valueN};
     Atlas      = function(texture, ...) texture:SetAtlas(...)         end;
     Blend      = function(texture, ...) texture:SetBlendMode(...)     end;
     Coords     = function(texture, ...) texture:SetTexCoord(...)      end;
-    Gradient   = function(texture, ...) texture:SetGradientAlpha(...) end;
+    Gradient   = function(texture, ...) Lib:SetGradient(texture, ...) end;
     Texture    = function(texture, ...) texture:SetTexture(...)       end;
     --- FontString -------------------------------------------------------
     AlignH     = function(fontstr, ...) fontstr:SetJustifyH(...)      end;
@@ -301,6 +301,26 @@ function Lib:SetBackdrop(frame, ...)
     end
 end
 
+function Lib:SetGradient(texture, orientation, ...)
+    local isOldFormat = (select('#', ...) == 8)
+    if texture.SetGradientAlpha then
+        if isOldFormat then 
+            return texture:SetGradientAlpha(orientation, ...)
+        end
+        local minR, minG, minB, minA = CreateColor(...):GetRGBA()
+        local maxR, maxG, maxB, maxA = CreateColor(select(5, ...)):GetRGBA()
+        return texture:SetGradientAlpha(orientation, minR, minG, minB, minA, maxR, maxG, maxB, maxA)
+    end
+    if texture.SetGradient then
+        if isOldFormat then
+            local minColor = CreateColor(...)
+            local maxColor = CreateColor(select(5, ...))
+            return texture:SetGradient(orientation, minColor, maxColor)
+        end
+        return texture:SetGradient(orientation, ...)
+    end
+end
+
 setmetatable(Lib, {
     __index = API;
     __call = function(self, arg1, ...)
@@ -432,61 +452,3 @@ end
 
 function packtbl(tbl, ...) tbl[#tbl + 1] = {...} end;
 function strip(key) return strmatch(key, '_(%w+)') end;
-
---------------------------------------------------------------------------
--- Example:
---------------------------------------------------------------------------
--- This implements an action bar with simple page swapping:
---[[
-
-local bar = Carpenter:CreateFrame('Frame', 'ActionBarExample', UIParent, 'SecureHandlerStateTemplate', {
-    _Size   = {NUM_ACTIONBAR_BUTTONS * 40, 36};
-    _Point  = {'CENTER', 0, 0};
-    _OnLoad = function(self)
-        local macro = '1';
-        for i=1, NUM_ACTIONBAR_PAGES do
-            macro = format('[bar:%d] %d;', i, i) .. macro; 
-        end
-        for i=1, 4 do
-            macro = format('[bonusbar:%d] %d;', i, i + NUM_ACTIONBAR_PAGES) .. macro;
-        end
-        RegisterStateDriver(self, 'actionpage', macro);
-    end;
-    _Attributes = {
-        ['type'] = 'actionbar';
-        ['actionpage'] = 1;
-        ['_onstate-actionpage'] = [=[
-            self:SetAttribute('actionpage', newstate);
-            control:ChildUpdate('actionpage', newstate);
-        ]=];
-    };
-
-    {   -- A keyless table contains the children
-        ActionButton = {
-            _Repeat = NUM_ACTIONBAR_BUTTONS;
-            _Type   = 'Button';
-            _Point  = {'LEFT', '$parent', 'LEFT', 0, 0, 40, 0};
-            _Setup  = {'ActionButtonTemplate', 'SecureActionButtonTemplate'};
-            _Attributes = {
-                ['type'] = 'action';
-                ['_childupdate-actionpage'] = 'self:SetAttribute("actionpage", newstate)';
-            };
-            -- adding a custom method
-            _UpdateTexture = function(self)
-                local page = self:GetParent():GetAttribute('actionpage');
-                local actionID = (page - 1) * NUM_ACTIONBAR_BUTTONS + self:GetID();
-                self.icon:SetTexture(GetActionTexture(actionID));
-            end;
-            -- calling custom method on load
-            _OnLoad = function(self)
-                self:UpdateTexture();
-            end;
-            -- setting a script handler
-            _OnAttributeChanged = function(self)
-                self:UpdateTexture();
-            end;
-        }
-    }
-})
-
-]]

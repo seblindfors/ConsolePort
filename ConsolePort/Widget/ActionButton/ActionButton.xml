@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 
-	<Script file="ActionButton/ActionButton.lua"/>
+	<Script file="ActionButton.lua"/>
 	<CheckButton name="CPUIActionButtonBaseTemplate" virtual="true" mixin="CPActionButtonMixin">
 		<Size>
 			<AbsDimension x="64" y="64"/>
@@ -17,14 +17,8 @@
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
-				<Texture parentKey="FlyoutBorderShadow" inherits="ActionBarFlyoutButton-IconShadow" hidden="true">
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="2">
-				<Texture parentKey="FlyoutArrow" inherits="ActionBarFlyoutButton-ArrowUp" hidden="true"/>
 				<FontString parentKey="HotKey" inherits="NumberFontNormalSmallGray" justifyH="RIGHT">
 					<Size x="36" y="10"/>
 					<Anchors>

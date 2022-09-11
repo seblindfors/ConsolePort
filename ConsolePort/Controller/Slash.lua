@@ -310,7 +310,10 @@ LibStub('Carpenter'):BuildFrame(GameMenuFrame, {
 		_Size  = {58, 58};
 		_Point = {'TOP', 0, 70};
 		_Macro = '/click GameMenuButtonContinue\n/consoleport';
+		_RegisterForClicks = 'AnyUp';
 		_OnLoad = function(self)
+			self:SetAttribute('typerelease', 'macro')
+			self:SetAttribute('pressAndHoldAction', true)
 			self:SetNormalTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
 			self:SetPushedTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
 			local pushed = self:GetPushedTexture()

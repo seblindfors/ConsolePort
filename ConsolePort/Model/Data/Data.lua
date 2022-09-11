@@ -87,7 +87,7 @@ end
 local Button = Field():SetType('Button');
 ---------------------------------------------------------------
 function Button:Set(val, force)
-	if force or IsBindingForGamePad(val) then
+	if force or (val and IsBindingForGamePad(val)) then
 		if self:IsModifierAllowed() then
 			return Field.Set(self, CPAPI.CreateKeyChord(val))
 		end

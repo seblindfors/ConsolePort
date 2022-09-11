@@ -1,10 +1,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<!-- UI controllers -->
-	<Script file="UI/UINode.lua"/>
-	<Script file="UI/UIProbe.lua"/>
-	<Script file="UI/UISecure.lua"/>
-	<Script file="UI/UIStack.lua"/>
+	<Script file="UI\UINode.lua"/>
+	<Script file="UI\UIProbe.lua"/>
+	<Script file="UI\UISecure.lua"/>
+	<Script file="UI\UIStack.lua"/>
 	<!-- Single file controller -->
 	<Script file="EasyMotion.lua"/>
 	<Script file="IntelliSense.lua"/>

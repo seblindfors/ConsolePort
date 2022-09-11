@@ -109,7 +109,7 @@
 	</PieMenu>
 
 	<!-- Single file views -->
-	<Script file="Pie/Flyout.lua"/>
-	<Script file="Pie/Petring.lua"/>
-	<Script file="Pie/Utility.lua"/>
+	<Script file="Flyout.lua"/>
+	<Script file="Petring.lua"/>
+	<Script file="Utility.lua"/>
 </Ui>

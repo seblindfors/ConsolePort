@@ -431,24 +431,30 @@ end
 do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
 
 	-------[[  OnEnter  ]]-------
-	SafeOnEnter[ActionButton1:GetScript('OnEnter')] = function(self)
-		ActionButton_SetTooltip(self)
+	local ActionButtonOnEnter = ActionButton1 and ActionButton1:GetScript('OnEnter')
+	if ActionButtonOnEnter then
+		SafeOnEnter[ActionButtonOnEnter] = function(self)
+			ActionButton_SetTooltip(self)
+		end
 	end
-	SafeOnEnter[SpellButton1:GetScript('OnEnter')] = function(self)
-		-- spellbook buttons push updates to the action bar controller in order to draw highlights
-		-- on actionbuttons that holds the spell in question. this taints the action bar controller.
-		local slot = SpellBook_GetSpellBookSlot(self)
-		GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-		if ( GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType) ) then
-			self.UpdateTooltip = SafeOnEnter[SpellButton1:GetScript('OnEnter')]
-		else
-			self.UpdateTooltip = nil
+	local SpellButtonOnEnter = SpellButton1 and SpellButton1:GetScript('OnEnter')
+	if SpellButtonOnEnter then
+		SafeOnEnter[SpellButtonOnEnter] = function(self)
+			-- spellbook buttons push updates to the action bar controller in order to draw highlights
+			-- on actionbuttons that holds the spell in question. this taints the action bar controller.
+			local slot = SpellBook_GetSpellBookSlot(self)
+			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+			if ( GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType) ) then
+				self.UpdateTooltip = SafeOnEnter[SpellButton1:GetScript('OnEnter')]
+			else
+				self.UpdateTooltip = nil
+			end
+			
+			if ( self.SpellHighlightTexture and self.SpellHighlightTexture:IsShown() ) then
+				GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
+			end
+			GameTooltip:Show()
 		end
-		
-		if ( self.SpellHighlightTexture and self.SpellHighlightTexture:IsShown() ) then
-			GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
-		end
-		GameTooltip:Show()
 	end
 	if QuestMapLogTitleButton_OnEnter then
 		SafeOnEnter[QuestMapLogTitleButton_OnEnter] = function(self)
@@ -467,8 +473,10 @@ do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
 		end
 	end
 	-------[[  OnLeave  ]]-------
-	SafeOnLeave[SpellButton_OnLeave] = function(self)
-		GameTooltip:Hide()
+	if SpellButton_OnLeave then
+		SafeOnLeave[SpellButton_OnLeave] = function(self)
+			GameTooltip:Hide()
+		end
 	end
 	---------------------------------------------------------------
 	-- Allow access to these tables for plugins and addons on demand.

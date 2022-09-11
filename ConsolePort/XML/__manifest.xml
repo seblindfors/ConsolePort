@@ -7,6 +7,6 @@
 	<Include file="Templates\Ring.xml"/>
 	<Include file="Templates\Popup.xml"/>-->
 	
-	<Include file="Frames/Frames.xml"/>
-	<Include file="Templates/Templates.xml"/>
+	<Include file="Frames\Frames.xml"/>
+	<Include file="Templates\Templates.xml"/>
 </Ui>

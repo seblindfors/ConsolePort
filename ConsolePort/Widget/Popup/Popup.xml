@@ -5,7 +5,7 @@
 	<Frame name="CPPopupFrameTemplate" virtual="true" inherits="BackdropTemplate">
 		<Size x="500" y="96"/>
 		<Frames>
-			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonNoScripts" alphaMode="BLEND">
+			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonNoScripts">
 				<Anchors>
 					<Anchor point="TOPRIGHT" x="-8" y="-8"/>
 				</Anchors>

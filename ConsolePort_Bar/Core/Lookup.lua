@@ -448,9 +448,11 @@ function env:SetTintColor(r, g, b, a) a = a or 1;
 	local color = CreateColor(r, g, b, a)
 	local bar, castBar = env.bar, CastingBarFrame;
 	local buttons = env.libs.registry;
-	castBar:SetStatusBarColor(r, g, b)
+	if castBar then
+		castBar:SetStatusBarColor(r, g, b)
+	end
 	bar.WatchBarContainer:SetMainBarColor(r, g, b)
-	bar.BG:SetGradientAlpha(self:GetColorGradient(r, g, b))
+	CPAPI.SetGradient(bar.BG, self:GetColorGradient(r, g, b))
 	bar.BottomLine:SetVertexColor(r, g, b, a)
 	for _, button in pairs(buttons) do
 		button:SetSwipeColor(r, g, b, a)

@@ -67,7 +67,7 @@ function CPCursorArrowMixin:OnUpdate(elapsed)
 				self:SetAngledRotation(rad((math.atan2(nY - cY, nX - cX) * 180 / math.pi) - 90))
 			end
 		end
-		self.ArrowHilite:SetAlpha(diff)
+		self.ArrowHilite:SetAlpha(Clamp(diff, 0, 1))
 
 		self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT',
 			(cX + ((nX - cX) / divisor)),

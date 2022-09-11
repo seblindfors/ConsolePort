@@ -271,7 +271,7 @@
 		</Layers>
 	</IndexButton>
 
-	<Slider name="CPConfigSliderTemplate" inherits="HorizontalSliderTemplate" virtual="true">
+	<Slider name="CPConfigSliderTemplate" inherits="CPHorizontalSliderTemplate" virtual="true">
 		<Size x="144" y="17"/>
 		<Layers>
 			<Layer level="ARTWORK">

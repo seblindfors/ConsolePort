@@ -10,13 +10,13 @@ WBC.BGLeft = WBC:CreateTexture(nil, 'BACKGROUND')
 WBC.BGLeft:SetPoint('TOPLEFT')
 WBC.BGLeft:SetPoint('BOTTOMRIGHT', WBC, 'BOTTOM', 0, 0)
 WBC.BGLeft:SetColorTexture(0, 0, 0, 1)
-WBC.BGLeft:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 0, 0, 0, 0, 1)
+CPAPI.SetGradient(WBC.BGLeft, 'HORIZONTAL', 0, 0, 0, 0, 0, 0, 0, 1)
 
 WBC.BGRight = WBC:CreateTexture(nil, 'BACKGROUND')
 WBC.BGRight:SetPoint('TOPRIGHT')
 WBC.BGRight:SetPoint('BOTTOMLEFT', WBC, 'BOTTOM', 0, 0)
 WBC.BGRight:SetColorTexture(0, 0, 0, 1)
-WBC.BGRight:SetGradientAlpha('HORIZONTAL', 0, 0, 0, 1, 0, 0, 0, 0)
+CPAPI.SetGradient(WBC.BGRight, 'HORIZONTAL', 0, 0, 0, 1, 0, 0, 0, 0)
 
 local MAX_BARS_VISIBLE = 2
 

@@ -6,6 +6,7 @@
 -- default actions of gamepad inputs.
 
 local _, db = ...; local Intellisense = db.Intellisense;
+local TYPE_ATTRIBUTE = CPAPI.IsRetailVersion and 'typerelease' or 'type';
 local InputMixin, InputAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parentInputHandler', ConsolePort, 'SecureHandlerStateTemplate'}, {
 	'PLAYER_REGEN_DISABLED'; -- enter combat
 	'PLAYER_REGEN_ENABLED';  -- leave combat
@@ -99,7 +100,7 @@ function InputMixin:Button(value, isPriority, click)
 		button = click;
 		isPriority = isPriority;
 		attributes = {
-			type = 'click';
+			[TYPE_ATTRIBUTE] = 'click';
 			clickbutton = value;
 		}
 	})
@@ -111,7 +112,7 @@ function InputMixin:Macro(value, isPriority, click)
 		button = click;
 		isPriority = isPriority;
 		attributes = {
-			type = 'macro';
+			[TYPE_ATTRIBUTE] = 'macro';
 			macrotext = value;
 		}
 	})
@@ -124,7 +125,7 @@ function InputMixin:Global(value, isPriority, click)
 		isPriority = isPriority;
 		target = value;
 		attributes = {
-			type = 'none';
+			[TYPE_ATTRIBUTE] = 'none';
 		}
 	})
 end
@@ -146,7 +147,7 @@ function InputMixin:Command(isPriority, click, name, func, init, clear, ...)
 		button = click;
 		isPriority = isPriority;
 		attributes = {
-			type = name;
+			[TYPE_ATTRIBUTE] = name;
 		}
 	})
 end
@@ -220,6 +221,10 @@ end
 InputMixin.timer = 0;
 
 function InputMixin:OnLoad(id)
+	if CPAPI.IsRetailVersion then
+		self:RegisterForClicks('AnyUp', 'AnyDown')
+		self:SetAttribute('pressAndHoldAction', true)
+	end
 	self:SetAttribute('id', id)
 	self:SetAttribute('_childupdate-combat', [[
 		if message then
@@ -231,7 +236,7 @@ function InputMixin:OnLoad(id)
 end
 
 function InputMixin:OnMouseDown()
-	local func  = self:GetAttribute('type')
+	local func  = self:GetAttribute(TYPE_ATTRIBUTE)
 	local click = self:GetAttribute('clickbutton')
 	self.state, self.timer = true, 0;
 
@@ -242,7 +247,7 @@ function InputMixin:OnMouseDown()
 end
 
 function InputMixin:OnMouseUp()
-	local func  = self:GetAttribute('type')
+	local func  = self:GetAttribute(TYPE_ATTRIBUTE)
 	local click = self:GetAttribute('clickbutton')
 	self.state = false;
 
@@ -259,8 +264,8 @@ end
 function InputMixin:EmulateFrontend(click, state, script)
 	if click:IsEnabled() then
 		if Intellisense:ProcessInterfaceClickEvent(script, click, state) then
-			self.postreset = self:GetAttribute('type')
-			self:SetAttribute('type', nil)
+			self.postreset = self:GetAttribute(TYPE_ATTRIBUTE)
+			self:SetAttribute(TYPE_ATTRIBUTE, nil)
 		end
 		ExecuteFrameScript(click, script)
 		return click:SetButtonState(state)
@@ -269,7 +274,7 @@ end
 
 function InputMixin:PostClick(...)
 	if self.postreset then
-		self:SetAttribute('type', self.postreset)
+		self:SetAttribute(TYPE_ATTRIBUTE, self.postreset)
 		self.postreset = nil;
 	end
 end

@@ -196,7 +196,7 @@ function Menu:SetClassGradient(object, alpha)
 	local r, g, b = CPAPI.GetClassColor()
 	local gBase, gMulti, gAlpha = .3, 1.1, alpha or 0.5;
 
-	object:SetGradientAlpha('HORIZONTAL',
+	CPAPI.SetGradient(object, 'HORIZONTAL',
 		(r + gBase) * gMulti, (g + gBase) * gMulti, (b + gBase) * gMulti, gAlpha,
 		1 - (r - gBase) * gMulti, 1 - (g - gBase) * gMulti, 1 - (b - gBase) * gMulti, gAlpha)
 end

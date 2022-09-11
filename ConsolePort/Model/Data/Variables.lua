@@ -4,6 +4,9 @@ local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
 local INTERACT_OPT = UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT;
+local INTERACT_STR = CPAPI.IsWoW10Version and
+	'[@softinteract,exists] INTERACTTARGET; nil' or
+	'[vehicleui] nil; [@target,noharm][@target,noexists][@target,harm,dead] TURNORACTION; nil';
 
 local unpack, __, db = unpack, ...; __ = 1;
 setfenv(__, setmetatable(db('Data'), {__index = _G}));
@@ -63,14 +66,14 @@ db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
 	-- Interact button:
 	--------------------------------------------------------------------------------------------------------
-	interactButton = {Button('PADRSHOULDER', true):Set('none', true);
+	interactButton = {Button('PAD1', true);
 		head = INTERACT_OPT;
 		sort = 1;
 		name = 'Interact Button';
 		desc = 'Button or combination used to interact for a given condition. By default, interacts using centered cursor.';
 		note = 'Use a shoulder button combined with crosshair for smooth and precise interactions.';
 	};
-	interactCondition = {String('[vehicleui] nil; [@target,noharm][@target,noexists][@target,harm,dead] TURNORACTION; nil');
+	interactCondition = {String(INTERACT_STR);
 		head = INTERACT_OPT;
 		sort = 2;
 		name = 'Interact Condition';

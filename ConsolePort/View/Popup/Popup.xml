@@ -45,5 +45,5 @@
 		</Scripts>
 	</Frame>
 
-	<Script file="Popup/Item.lua"/>
+	<Script file="Item.lua"/>
 </Ui>

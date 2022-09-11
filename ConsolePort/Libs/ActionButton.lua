@@ -22,6 +22,8 @@ local type, error, tostring, tonumber, assert, select = type, error, tostring, t
 local setmetatable, wipe, unpack, pairs, next = setmetatable, wipe, unpack, pairs, next
 local str_match, format, tinsert, tremove = string.match, format, tinsert, tremove
 
+local WoW10 = select(4, GetBuildInfo()) >= 100000
+
 -- Libs
 local LBG = LibStub('CPButtonGlow');
 
@@ -75,7 +77,7 @@ local ButtonRegistry, ActiveButtons, ActionButtons, NonActionButtons = lib.butto
 -- Local functions
 local Update, UpdateButtonState, UpdateUsable, UpdateCount, UpdateCooldown, UpdateTooltip, UpdateNewAction, UpdatePage
 local StartFlash, StopFlash, UpdateFlash, UpdateRangeTimer, UpdateOverlayGlow
-local UpdateFlyout, ShowGrid, HideGrid, SetupSecureSnippets, WrapOnClick
+local ShowGrid, HideGrid, SetupSecureSnippets, WrapOnClick
 local ShowOverlayGlow, HideOverlayGlow
 local EndChargeCooldown
 
@@ -110,13 +112,18 @@ end
 function lib:InitButton(button, id, header)
 	button = setmetatable(button, Generic_MT)
 	button:RegisterForDrag('LeftButton', 'RightButton')
-	button:RegisterForClicks('AnyDown')
 
 	-- Frame Scripts
 	button:HookScript('OnEnter', Generic.OnEnter)
 	button:HookScript('OnLeave', Generic.OnLeave)
 	button:HookScript('PreClick', Generic.PreClick)
 	button:HookScript('PostClick', Generic.PostClick)
+
+	if WoW10 then
+		button:RegisterForClicks('AnyDown', 'AnyUp')
+	else
+		button:RegisterForClicks('AnyDown')
+	end
 
 	button.id = id
 	button.header = header or button:GetParent()
@@ -255,7 +262,10 @@ function SetupSecureSnippets(button)
 		if not kind or not value then return false end
 		local state = self:GetAttribute('state')
 		local buttonType, buttonAction = self:GetAttribute('type'), nil
-		if buttonType == 'custom' then return false end
+		if buttonType == 'custom' then
+			self:CallMethod('OnReceiveDragCustom', ...)
+			return false
+		end
 		-- action buttons can do their magic themself
 		-- for all other buttons, we'll need to update the content now
 		if buttonType ~= 'action' and buttonType ~= 'pet' then
@@ -458,6 +468,10 @@ end
 
 function Generic:UpdateAlpha()
 	UpdateCooldown(self)
+end
+
+function Generic:OnReceiveDragCustom(...)
+	--print('test', ...)
 end
 
 -----------------------------------------------------------
@@ -886,6 +900,7 @@ end
 --- button management
 
 function Generic:SetClicks(mouseover)
+	if WoW10 then return end
 	if mouseover then
 		self:RegisterForClicks('AnyUp')
 	else
@@ -959,6 +974,26 @@ function Generic:UpdateAction(force)
 		self._state_action = action
 		Update(self)
 	end
+end
+
+
+
+function Generic:UpdateFlyout()
+	self.FlyoutBorder:Hide()
+	if self._state_type == 'action' then
+		-- based on ActionButton_UpdateFlyout in ActionButton.lua
+		local actionType = GetActionInfo(self._state_action)
+		if actionType == 'flyout' then
+			
+			--self.FlyoutArrow:Show()
+			--self.FlyoutArrow:ClearAllPoints()
+			
+			--self.FlyoutArrow:SetPoint('CENTER', 0, self.isMainButton and -20 or -10)
+			--SetClampedTextureRotation(self.FlyoutArrow, 180)
+			return
+		end
+	end
+	--self.FlyoutArrow:Hide()
 end
 
 function Update(self)
@@ -1037,8 +1072,8 @@ function Update(self)
 		self:SetIcon(texture)
 	end
 
+	self:UpdateFlyout()
 	UpdateCount(self)
-	UpdateFlyout(self)
 	UpdateOverlayGlow(self)
 	UpdateNewAction(self)
 
@@ -1291,29 +1326,17 @@ function UpdateNewAction(self)
 end
 
 -- Hook UpdateFlyout so we can use the blizzy templates
-hooksecurefunc('ActionButton_UpdateFlyout', function(self, ...)
-	if ButtonRegistry[self] then
-		UpdateFlyout(self)
-	end
-end)
-
-function UpdateFlyout(self)
-	self.FlyoutBorder:Hide()
-	self.FlyoutBorderShadow:Hide()
-	if self._state_type == 'action' then
-		-- based on ActionButton_UpdateFlyout in ActionButton.lua
-		local actionType = GetActionInfo(self._state_action)
-		if actionType == 'flyout' then
-
-			self.FlyoutArrow:Show()
-			self.FlyoutArrow:ClearAllPoints()
-			
-			self.FlyoutArrow:SetPoint('CENTER', 0, self.isMainButton and -20 or -10)
-			SetClampedTextureRotation(self.FlyoutArrow, 180)
-			return
+do local function UpdateFlyoutHook(self, ...)
+		if ButtonRegistry[self] then
+			self:UpdateFlyout()
 		end
 	end
-	self.FlyoutArrow:Hide()
+
+	if ActionButton_UpdateFlyOut then
+		hooksecurefunc('ActionButton_UpdateFlyout', UpdateFlyoutHook)
+	elseif ActionBarActionButtonMixin and ActionBarActionButtonMixin.UpdateFlyout then
+		hooksecurefunc(ActionBarActionButtonMixin, 'UpdateFlyout', UpdateFlyoutHook)
+	end
 end
 
 function UpdateRangeTimer()

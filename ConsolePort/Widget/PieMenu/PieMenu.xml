@@ -1,7 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
-	<Script file="PieMenu/PieMenu.lua"/>
+	<Script file="PieMenu.lua"/>
 
 	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin">
 		<Size x="500" y="500"/>

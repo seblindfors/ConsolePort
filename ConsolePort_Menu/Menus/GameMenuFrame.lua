@@ -8,6 +8,7 @@ do	-- Initiate frame
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
 	local IsRetailVersion = CPAPI.IsRetailVersion;
 	local IsClassicVersion = not CPAPI.IsRetailVersion or nil;
+	local TYPE_ATTRIBUTE = IsRetailVersion and 'typerelease' or 'type';
 
 	LibStub('Carpenter')(Menu, {
 		Character = {
@@ -230,10 +231,10 @@ do	-- Initiate frame
 							_Type  = 'Frame';
 							_Size  = {28, 28};
 							_Point = {'RIGHT', -10, 0};
-							_Hide  = not EJMicroButton.NewAdventureNotice:IsShown();
+							_Hide  = not EJMicroButton.FlashBorder:IsShown();
 							_OnLoad = function(self)
 								hooksecurefunc(EJMicroButton, 'UpdateNewAdventureNotice', function()
-									if EJMicroButton.NewAdventureNotice:IsShown() then
+									if EJMicroButton.FlashBorder:IsShown() then
 										self:Show()
 									end
 								end)
@@ -590,7 +591,7 @@ do	-- Initiate frame
 							_Texture = CPAPI.GetAsset([[Textures\Menu\Gradient]]);
 							_OnLoad = function(self)
 								local r, g, b = CPAPI.GetClassColor()
-								self:SetGradientAlpha('VERTICAL', r, g, b, 0.75, r, g, b, 1)
+								CPAPI.SetGradient(self, 'VERTICAL', r, g, b, 0.75, r, g, b, 1)
 							end;
 						};
 						Rollover2 = {
@@ -599,7 +600,7 @@ do	-- Initiate frame
 							_Texture = CPAPI.GetAsset([[Textures\Menu\Gradient]]);
 							_OnLoad = function(self)
 								local r, g, b = CPAPI.GetClassColor()
-								self:SetGradientAlpha('VERTICAL', r, g, b, 0, r, g, b, 1)
+								CPAPI.SetGradient(self, 'VERTICAL', r, g, b, 0, r, g, b, 1)
 							end;
 						};
 					};
@@ -667,15 +668,16 @@ do	-- Initiate frame
 		for i, button in ipairs({header:GetChildren()}) do
 			if button:IsObjectType('Button') then
 				if button:GetAttribute('hidemenu') then
-					button:SetAttribute('type', 'macro')
+					button:SetAttribute(TYPE_ATTRIBUTE, 'macro')
 					button:SetAttribute('macrotext', '/click GameMenuButtonContinue')
 				end
 				if button.RefTo then
 					local macrotext = button:GetAttribute('macrotext')
 					local prefix = (macrotext and macrotext .. '\n') or ''
 					button:SetAttribute('macrotext', prefix .. '/click ' .. button.RefTo:GetName())
-					button:SetAttribute('type', 'macro')
+					button:SetAttribute(TYPE_ATTRIBUTE, 'macro')
 				end
+				button:SetAttribute('pressAndHoldAction', true)
 				button:Hide()
 				header:SetFrameRef(tostring(button:GetID()), button)
 			end
@@ -774,7 +776,7 @@ do	-- Initiate frame
 	Menu.Background:SetAllPoints()
 	Menu.Background:SetVertexColor(r/5, g/5, b/5, 0.5)
 	r, g, b = r / 10, g / 10, b / 10;
-	Menu.Rollover:SetGradientAlpha('VERTICAL', r, g, b, 1, r, g, b, 0)
+	CPAPI.SetGradient(Menu.Rollover, 'VERTICAL', r, g, b, 1, r, g, b, 0)
 
 	---------------------------------------------------------------
 	-- Initialize splash button

@@ -6,6 +6,7 @@ local _, db = ...; CPAPI = {};
 CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or nil;
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
+CPAPI.IsWoW10Version      = select(4, GetBuildInfo()) >= 100000;
 
 function CPAPI.Log(...)
 	local cc = ChatTypeInfo.SYSTEM;
@@ -164,3 +165,11 @@ CPAPI.IsSpellOverlayed = IsSpellOverlayed or nop;
 CPAPI.IsXPUserDisabled = IsXPUserDisabled or nop;
 CPAPI.LeaveParty = C_PartyInfo and C_PartyInfo.LeaveParty or LeaveParty;
 CPAPI.PutActionInSlot = C_ActionBar and C_ActionBar.PutActionInSlot or PlaceAction;
+
+---------------------------------------------------------------
+-- Widget wrappers
+---------------------------------------------------------------
+
+function CPAPI.SetGradient(...)
+	return LibStub('Carpenter'):SetGradient(...)
+end

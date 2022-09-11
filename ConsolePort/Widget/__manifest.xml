@@ -3,11 +3,11 @@
 	<Script file="Helpers.lua"/>
 	<Include file="Fonts.xml"/>
 	<!-- Intrinsics -->
-	<Include file="IndexButton/IndexButton.xml"/>
-	<Include file="PieMenu/PieMenu.xml"/>
+	<Include file="IndexButton\IndexButton.xml"/>
+	<Include file="PieMenu\PieMenu.xml"/>
 	<!-- Widget templates -->
-	<Include file="Container/Container.xml"/>
-	<Include file="HintBar/HintBar.xml"/>
-	<Include file="ActionButton/ActionButton.xml"/>
-	<Include file="Popup/Popup.xml"/>
+	<Include file="Container\Container.xml"/>
+	<Include file="HintBar\HintBar.xml"/>
+	<Include file="ActionButton\ActionButton.xml"/>
+	<Include file="Popup\Popup.xml"/>
 </Ui>

@@ -51,9 +51,11 @@ end, Bar)
 -- Global movement
 ---------------------------------------------------------------
 function Bar:ToggleMovable(enableMouseDrag, enableMouseWheel)
-	self:RegisterForDrag(enableMouseDrag and 'LeftButton')
-	self:EnableMouse(enableMouseDrag)
-	self:EnableMouseWheel(enableMouseWheel)
+	if enableMouseDrag then
+		self:RegisterForDrag('LeftButton')
+	end
+	self:EnableMouse(not not enableMouseDrag)
+	self:EnableMouseWheel(not not enableMouseWheel)
 end
 
 -- Override bindings

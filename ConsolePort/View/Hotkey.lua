@@ -179,7 +179,7 @@ end
 -- combinations. Removing the outline places 3 icons at exactly
 -- 36 px without reducing the icon fidelity.
 function HotkeyHandler:ReplaceHotkeyFont()
-	NumberFontNormalSmallGray:SetFont('FONTS\\ARIALN.TTF', 12)
+	NumberFontNormalSmallGray:SetFont('FONTS\\ARIALN.TTF', 12, '')
 end
 
 ---------------------------------------------------------------

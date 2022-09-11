@@ -96,8 +96,8 @@ function NavBarMixin:OnLoad()
 		button:SetScript('OnClick', NavButtonOnClick)
 		button:SetID(i)
 		--button.arrowUp:SetVertexColor(r, g, b)
-		button.arrowUp:SetGradientAlpha('HORIZONTAL', r, g, b, 0.75, r, g, b, 1)
-		button:GetNormalTexture():SetGradientAlpha('HORIZONTAL', r, g, b, 0, r, g, b, 0.75)
+		CPAPI.SetGradient(button.arrowUp, 'HORIZONTAL', r, g, b, 0.75, r, g, b, 1)
+		CPAPI.SetGradient(button:GetNormalTexture(), 'HORIZONTAL', r, g, b, 0, r, g, b, 0.75)
 		Content[i].button = button;
 		self.Buttons[#self.Buttons + 1] = button;
 	end
@@ -177,6 +177,7 @@ local function SelectAppropriatePanel()
 end
 
 local function SelectNextPanel()
+	print('SelectNextPanel')
 	if db('Gamepad/Active') then
 		local panelID = env.Splash:GetID()
 		if panelID then
@@ -283,7 +284,18 @@ function Splash:OnFirstShow()
 					_OnLoad = function(self)
 						local rW, gW, bW = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
 						local rC, gC, bC = CPAPI.GetClassColor()
-						self:SetLight(true, false, -1, 1, -100, 1, rW, gW, bW, 0.5, rC, gC, bC)
+						if CPAPI.IsClassicVersion then
+							self:SetLight(true, false, -1, 1, -100, 1, rW, gW, bW, 0.5, rC, gC, bC)
+						else
+							self:SetLight(true, {
+								omnidirectional = false;
+								point = CreateVector3D(-1, 1, -100);
+								ambientIntensity = 1;
+								ambientColor = CreateColor(rW, gW, bW);
+								diffuseIntensity = 0.5;
+								diffuseColor = CreateColor(rC, gC, bC);
+							})
+						end
 					end;
 				};
 				Content = {
@@ -332,8 +344,7 @@ function Splash:OnFirstShow()
 							_OnLoad = function(self)
 								self:SetChildKey('TintTop');
 								self:SetOrigin('TOPRIGHT', 0, 0);
-								self:SetFromScale(0, 0);
-								self:SetToScale(1, 1);
+								local fromScale, toScale = self.SetFromScale or self.SetScaleFrom, self.SetToScale or self.SetScaleTo;
 								self:SetDuration(3);
 								self:SetSmoothing('OUT');
 							end;
@@ -344,8 +355,9 @@ function Splash:OnFirstShow()
 							_OnLoad = function(self)
 								self:SetChildKey('TintBottom');
 								self:SetOrigin('BOTTOMLEFT', 0, 0);
-								self:SetFromScale(0, 0);
-								self:SetToScale(1, 1);
+								local fromScale, toScale = self.SetFromScale or self.SetScaleFrom, self.SetToScale or self.SetScaleTo;
+								fromScale(self, 0, 0);
+								toScale(self, 1, 1);
 								self:SetDuration(3);
 								self:SetSmoothing('OUT');
 							end;
@@ -387,6 +399,7 @@ function Splash:OnFirstShow()
 						_Setup = CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate';
 						_Text  = CONTINUE;
 						_Size  = {260, 50};
+						_RegisterForClicks = 'AnyUp';
 						_OnClick = SelectNextPanel;
 						{
 							NextPage = {

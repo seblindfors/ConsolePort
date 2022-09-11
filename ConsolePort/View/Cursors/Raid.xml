@@ -20,7 +20,7 @@
 					<Attribute name="type" type="string" value="target"/>
 				</Attributes>
 			</Button>
-			<Button name="$parentToggle" parentKey="Toggle" inherits="SecureActionButtonTemplate" registerForClicks="LeftButtonDown"/>
+			<Button name="$parentToggle" parentKey="Toggle" inherits="SecureActionButtonTemplate" registerForClicks="LeftButtonDown" setAllPoints="true" alpha="0"/>
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
@@ -37,6 +37,15 @@
 						<Anchor point="TOPLEFT" relativePoint="CENTER"/>
 					</Anchors>
 				</Texture>
+				<MaskTexture parentKey="PlayerPortraitMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.UnitPortrait"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.UnitPortrait"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="UnitPortrait"/>
+					</MaskedTextures>
+				</MaskTexture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="2">
 				<Texture parentKey="SpellPortrait">

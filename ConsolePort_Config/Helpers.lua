@@ -40,22 +40,32 @@ function ScaleToContentMixin:SetMeasurementOrigin(top, content, width, offset)
 	self.contentElement = content;
 end
 
-function ScaleToContentMixin:CalcContentBoundary()
-	local origT = self.topElement:GetTop() or 0
-	local top, bottom = -math.huge, math.huge
-	for i, child in ipairs({self.contentElement:GetChildren()}) do
-		if child:IsShown() then
-			local childTop, childBottom = child:GetTop(), child:GetBottom()
-			if childBottom then
-				bottom = childBottom < bottom and childBottom or bottom;
-			end
-			if childTop then
-				top = childTop > top and childTop or top;
+do -- Wrap calls to ensure no overrides
+	local function GetTop(child)
+		return getmetatable(child).__index.GetTop(child)
+	end
+
+	local function GetBottom(child)
+		return getmetatable(child).__index.GetBottom(child)
+	end
+
+	function ScaleToContentMixin:CalcContentBoundary()
+		local origT = GetTop(self.topElement) or 0
+		local top, bottom = -math.huge, math.huge
+		for i, child in ipairs({self.contentElement:GetChildren()}) do
+			if child:IsShown() then
+				local childTop, childBottom = GetTop(child), GetBottom(child)
+				if childBottom then
+					bottom = childBottom < bottom and childBottom or bottom;
+				end
+				if childTop then
+					top = childTop > top and childTop or top;
+				end
 			end
 		end
+		local height = abs(origT - bottom) + self.fixedOffset;
+		return height, height - abs(origT - top);
 	end
-	local height = abs(origT - bottom) + self.fixedOffset;
-	return height, height - abs(origT - top);
 end
 
 function ScaleToContentMixin:SetRawHeight(height)
@@ -181,7 +191,7 @@ env.OpaqueMixin = OpaqueMixin;
 function OpaqueMixin:OnLoad()
 	local r, g, b = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
 	self:SetBackdropBorderColor(0.25, 0.25, 0.25, 1)
-	self.Center:SetGradientAlpha('VERTICAL', r, g, b, 0, r, g, b, 1)
+	CPAPI.SetGradient(self.Center, 'VERTICAL', r, g, b, 0, r, g, b, 1)
 end
 
 
@@ -200,10 +210,10 @@ function CPConfigHeaderMixin:OnLoad()
 	self.LineBottomRight:SetStartPoint('BOTTOM', 0, 8);
 	self.LineBottomRight:SetEndPoint('BOTTOMRIGHT', 0, 8);
 
-	self.LineTopLeft:SetGradientAlpha('HORIZONTAL', 1, 1, 1, 0, 1, 1, 1, 1);
-	self.LineBottomLeft:SetGradientAlpha('HORIZONTAL', 1, 1, 1, 0, 1, 1, 1, 1);
-	self.LineTopRight:SetGradientAlpha('HORIZONTAL', 1, 1, 1, 1, 1, 1, 1, 0);
-	self.LineBottomRight:SetGradientAlpha('HORIZONTAL', 1, 1, 1, 1, 1, 1, 1, 0);
+	CPAPI.SetGradient(self.LineTopLeft, 'HORIZONTAL', 1, 1, 1, 0, 1, 1, 1, 1);
+	CPAPI.SetGradient(self.LineBottomLeft, 'HORIZONTAL', 1, 1, 1, 0, 1, 1, 1, 1);
+	CPAPI.SetGradient(self.LineTopRight, 'HORIZONTAL', 1, 1, 1, 1, 1, 1, 1, 0);
+	CPAPI.SetGradient(self.LineBottomRight, 'HORIZONTAL', 1, 1, 1, 1, 1, 1, 1, 0);
 end
 
 function CPConfigHeaderMixin:SetText(...)

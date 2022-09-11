@@ -1,10 +1,10 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<!-- Interface -->
-	<Script file="Data/Data.lua"/>
+	<Script file="Data.lua"/>
 	<!-- Assets -->
-	<Script file="Data/Variables.lua"/>
-	<Script file="Data/Console.lua"/>
-	<Script file="Data/Profile.lua"/>
-	<Script file="Data/Shared.lua"/>
+	<Script file="Variables.lua"/>
+	<Script file="Console.lua"/>
+	<Script file="Profile.lua"/>
+	<Script file="Shared.lua"/>
 </Ui>

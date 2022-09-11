@@ -93,10 +93,12 @@ end
 Menu:HookScript('OnEnter', OnEnter)
 Menu:HookScript('OnLeave', OnLeave)
 
-for _, button in pairs(MICRO_BUTTONS) do
-	local widget = _G[button]
-	widget:HookScript('OnEnter', OnEnter)
-	widget:HookScript('OnLeave', OnLeave)
+if MICRO_BUTTONS then
+	for _, button in pairs(MICRO_BUTTONS) do
+		local widget = _G[button]
+		widget:HookScript('OnEnter', OnEnter)
+		widget:HookScript('OnLeave', OnLeave)
+	end
 end
 
 local UpdateMicroButtonsParent = UpdateMicroButtonsParent;
