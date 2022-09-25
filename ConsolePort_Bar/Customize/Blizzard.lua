@@ -16,18 +16,28 @@ do
 	UIHider:Hide()
 	Bar.UIHider = UIHider
 
-	for _, name in pairs({
-		'MainMenuBarArtFrame',
-	--	MultiBarLeft,
-	--	MultiBarRight,
-		'MultiBarBottomLeft',
-		'MultiBarBottomRight'}) do
-		local frame = _G[name]
+	local hide = function(_, frame)
 		if frame then
 			frame:Hide()
 			frame:SetParent(UIHider)
 		end
 	end
+
+	foreach({
+		MainMenuBarArtFrame,
+	--	MultiBarLeft,
+	--	MultiBarRight,
+		MultiBarBottomLeft,
+		MultiBarBottomRight,
+		StatusTrackingBarManager,
+		MainMenuExpBar,
+		MainMenuBarPerformanceBar,
+		ReputationWatchBar,
+		MainMenuBarMaxLevelBar,
+		MainMenuBar and MainMenuBar.EndCaps,
+		MainMenuBar and MainMenuBar.BorderArt,
+		MainMenuBar and MainMenuBar.Background,
+	}, hide)
 
 	-- Hide MultiBar Buttons, but keep the bars alive
 	for _, n in pairs({
@@ -51,16 +61,12 @@ do
 		UIPARENT_MANAGED_FRAME_POSITIONS['PETACTIONBAR_YPOS'] = nil
 	end
 
-	MainMenuBar:EnableMouse(false)
-	if StatusTrackingBarManager then StatusTrackingBarManager:Hide() end
-	if MainMenuExpBar then MainMenuExpBar:SetParent(UIHider) end
-	if MainMenuBarPerformanceBar then MainMenuBarPerformanceBar:SetParent(UIHider) end
-	if ReputationWatchBar then ReputationWatchBar:SetParent(UIHider) end
-	if MainMenuBarMaxLevelBar then MainMenuBarMaxLevelBar:SetParent(UIHider) end
-
-	if MainMenuBar and MainMenuBar.slideOut then
-		local animations = {MainMenuBar.slideOut:GetAnimations()}
-		animations[1]:SetOffset(0,0)
+	if MainMenuBar then
+		MainMenuBar:EnableMouse(false)
+		if MainMenuBar.slideOut then
+			local animations = {MainMenuBar.slideOut:GetAnimations()}
+			animations[1]:SetOffset(0,0)
+		end
 	end
 
 	-------------------------------------------

@@ -253,24 +253,38 @@ do	-- Initiate frame
 						};
 					};
 				};
-				Finder = IsRetailVersion and {
+				Finder = {
 					_ID    = 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', IsRetailVersion and '$parent.Guide' or '$parent.WorldMap', 'BOTTOM', 0, 0};
 					_Text  = DUNGEONS_BUTTON;
-					_RefTo = LFDMicroButton;
+					_RefTo = LFDMicroButton or LFGMicroButton;
 					_Attributes = hideMenuHook;
 					_OnLoad = function(self)
 						CPMenuButtonMixin.OnLoad(self)
 						self.Icon:SetTexture([[Interface\LFGFRAME\UI-LFG-PORTRAIT]])
 					end;
 				};
-				Achievements = IsRetailVersion and {
-					_ID    = 4,
+				PvP = IsClassicVersion and {
+					_ID    = 4;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', '$parent.Finder', 'BOTTOM', 0, -16};
+					_Point = {'TOP', IsRetailVersion and '$parent.Guide' or '$parent.Finder', 'BOTTOM', 0, 0};
+					_Text  = PLAYER_V_PLAYER;
+					_Attributes = hideMenuHook;	
+					_Image = ('Achievement_PVP_%1$s_%1$s'):format(UnitFactionGroup('player'):sub(1,1));
+					_Hooks = {
+						OnClick = function()
+							PVPParentFrame:Show() -- hack because this micro button is using OnMouseDown/OnMouseUp for some reason
+						end;
+					};
+				};
+				Achievements = {
+					_ID    = IsClassicVersion and 5 or 4,
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', IsRetailVersion and '$parent.Finder' or '$parent.PvP', 'BOTTOM', 0, -16};
 					_Text  = ACHIEVEMENTS;
 					_Image = 'ACHIEVEMENT_WIN_WINTERGRASP';
 					_RefTo = AchievementMicroButton;
@@ -286,10 +300,10 @@ do	-- Initiate frame
 					_Image = 'WoW_Token01';
 				};
 				Shop = {
-					_ID    = IsRetailVersion and 6 or 3;
+					_ID    = IsRetailVersion and 6 or 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsRetailVersion and '$parent.WhatsNew' or '$parent.WorldMap', 'BOTTOM', 0, 0};
+					_Point = {'TOP', IsRetailVersion and '$parent.WhatsNew' or '$parent.Achievements', 'BOTTOM', 0, 0};
 					_Text  = BLIZZARD_STORE;
 					_RefTo = GameMenuButtonStore;
 					_Image = IsRetailVersion and 'WoW_Store';

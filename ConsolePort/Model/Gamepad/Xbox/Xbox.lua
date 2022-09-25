@@ -83,8 +83,8 @@ select(2, ...).Gamepad:AddGamepad({
 		Bindings = {
 			PAD1 = {
 				['']            = 'JUMP';
-				['SHIFT-']      = 'ACTIONBUTTON9';
-				['CTRL-']       = 'EXTRAACTIONBUTTON1';
+				['SHIFT-']      = 'INTERACTTARGET';
+				['CTRL-']       = 'ACTIONBUTTON9';
 				['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton';
 			};
 			PAD2 = {
