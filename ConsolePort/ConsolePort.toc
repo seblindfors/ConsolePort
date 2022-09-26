@@ -4,7 +4,7 @@
 ## Interface-Wrath: 30400
 ## Title: Console Port
 ## Notes: Game controller addon
-## Version: 2.4.3
+## Version: 2.4.4
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
