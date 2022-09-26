@@ -8,7 +8,7 @@ do	-- Initiate frame
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
 	local IsRetailVersion = CPAPI.IsRetailVersion;
 	local IsClassicVersion = not CPAPI.IsRetailVersion or nil;
-	local TYPE_ATTRIBUTE = IsRetailVersion and 'typerelease' or 'type';
+	local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 
 	LibStub('Carpenter')(Menu, {
 		Character = {

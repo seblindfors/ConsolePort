@@ -1,7 +1,7 @@
 if not CPAPI.IsRetailVersion then return end;
 local _, db = ...;
 local Selector, Fade, FlyoutButtonMixin = CPAPI.EventHandler(ConsolePortSpellFlyout, {'SPELL_FLYOUT_UPDATE'}), db('Alpha/Fader'), {}
-local TYPE_ATTRIBUTE = CPAPI.IsRetailVersion and 'typerelease' or 'type';
+local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 
 Selector:SetFrameRef('flyout', SpellFlyout)
 Selector:Execute('this = self; that = self:GetFrameRef("flyout"); BUTTONS = newtable()')

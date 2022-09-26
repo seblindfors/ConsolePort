@@ -12,7 +12,7 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 local Button = CreateFromMixins(CPActionButton);
 ---------------------------------------------------------------
 local DEFAULT_SET, EXTRA_ACTION_ID = 1, ExtraActionButton1 and ExtraActionButton1.action or 169;
-local TYPE_ATTRIBUTE = CPAPI.IsRetailVersion and 'typerelease' or 'type';
+local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 ---------------------------------------------------------------
 Utility.Data = {[DEFAULT_SET] = {}};
 Utility:Execute(([[

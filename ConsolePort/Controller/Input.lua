@@ -6,7 +6,7 @@
 -- default actions of gamepad inputs.
 
 local _, db = ...; local Intellisense = db.Intellisense;
-local TYPE_ATTRIBUTE = CPAPI.IsRetailVersion and 'typerelease' or 'type';
+local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 local InputMixin, InputAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parentInputHandler', ConsolePort, 'SecureHandlerStateTemplate'}, {
 	'PLAYER_REGEN_DISABLED'; -- enter combat
 	'PLAYER_REGEN_ENABLED';  -- leave combat
@@ -221,7 +221,7 @@ end
 InputMixin.timer = 0;
 
 function InputMixin:OnLoad(id)
-	if CPAPI.IsRetailVersion then
+	if CPAPI.IsWoW10Version then
 		self:RegisterForClicks('AnyUp', 'AnyDown')
 		self:SetAttribute('pressAndHoldAction', true)
 	end
