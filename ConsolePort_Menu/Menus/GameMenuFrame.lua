@@ -231,10 +231,13 @@ do	-- Initiate frame
 							_Type  = 'Frame';
 							_Size  = {28, 28};
 							_Point = {'RIGHT', -10, 0};
-							_Hide  = not EJMicroButton.FlashBorder:IsShown();
 							_OnLoad = function(self)
+								self.borderTextureRef = EJMicroButton.NewAdventureNotice or EJMicroButton.FlashBorder;
+								if not self.borderTextureRef then return self:Hide() end
+
+								self:SetShown(self.borderTextureRef:IsShown())
 								hooksecurefunc(EJMicroButton, 'UpdateNewAdventureNotice', function()
-									if EJMicroButton.FlashBorder:IsShown() then
+									if self.borderTextureRef:IsShown() then
 										self:Show()
 									end
 								end)

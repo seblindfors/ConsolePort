@@ -177,7 +177,6 @@ local function SelectAppropriatePanel()
 end
 
 local function SelectNextPanel()
-	print('SelectNextPanel')
 	if db('Gamepad/Active') then
 		local panelID = env.Splash:GetID()
 		if panelID then
@@ -284,9 +283,7 @@ function Splash:OnFirstShow()
 					_OnLoad = function(self)
 						local rW, gW, bW = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
 						local rC, gC, bC = CPAPI.GetClassColor()
-						if CPAPI.IsClassicVersion then
-							self:SetLight(true, false, -1, 1, -100, 1, rW, gW, bW, 0.5, rC, gC, bC)
-						else
+						if CPAPI.IsWoW10Version then
 							self:SetLight(true, {
 								omnidirectional = false;
 								point = CreateVector3D(-1, 1, -100);
@@ -295,6 +292,8 @@ function Splash:OnFirstShow()
 								diffuseIntensity = 0.5;
 								diffuseColor = CreateColor(rC, gC, bC);
 							})
+						else
+							self:SetLight(true, false, -1, 1, -100, 1, rW, gW, bW, 0.5, rC, gC, bC)
 						end
 					end;
 				};

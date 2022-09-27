@@ -29,7 +29,6 @@ do
 	--	MultiBarRight,
 		MultiBarBottomLeft,
 		MultiBarBottomRight,
-		StatusTrackingBarManager,
 		MainMenuExpBar,
 		MainMenuBarPerformanceBar,
 		ReputationWatchBar,
@@ -59,6 +58,7 @@ do
 		UIPARENT_MANAGED_FRAME_POSITIONS['StanceBarFrame'] = nil
 		UIPARENT_MANAGED_FRAME_POSITIONS['PossessBarFrame'] = nil
 		UIPARENT_MANAGED_FRAME_POSITIONS['PETACTIONBAR_YPOS'] = nil
+		UIPARENT_MANAGED_FRAME_POSITIONS['MultiCastActionBarFrame'] = nil
 	end
 
 	if MainMenuBar then
@@ -68,6 +68,8 @@ do
 			animations[1]:SetOffset(0,0)
 		end
 	end
+
+	if StatusTrackingBarManager then StatusTrackingBarManager:Hide() end
 
 	-------------------------------------------
 	--- 	Special action bars
@@ -85,6 +87,12 @@ do
 			frame:SetParent(UIHider)
 			frame:Hide()
 		end
+	end
+
+	if MultiCastActionBarFrame then
+		MultiCastActionBarFrame:SetScript('OnUpdate', nil)
+		MultiCastActionBarFrame:ClearAllPoints()
+		MultiCastActionBarFrame:SetPoint('BOTTOM', Bar, 'BOTTOM', 150, 0)
 	end
 
 	-------------------------------------------
