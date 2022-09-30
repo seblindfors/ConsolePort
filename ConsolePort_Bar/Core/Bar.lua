@@ -325,18 +325,7 @@ for name, script in pairs({
 		control:ChildUpdate('state', newstate)
 		cursor:RunAttribute('ActionPageChanged')
 	]],
-	['_onstate-page'] = [[
-		if HasVehicleActionBar and HasVehicleActionBar() then
-			newstate = GetVehicleBarIndex()
-		elseif HasOverrideActionBar and HasOverrideActionBar() then
-			newstate = GetOverrideBarIndex()
-		elseif HasTempShapeshiftActionBar() then
-			newstate = GetTempShapeshiftBarIndex()
-		elseif GetBonusBarOffset() > 0 then
-			newstate = GetBonusBarOffset()+6
-		else
-			newstate = GetActionBarPage()
-		end
+	['_onstate-page'] = env.db.Pager:GetPageResponse() .. [[
 		self:SetAttribute('actionpage', newstate)
 		control:ChildUpdate('actionpage', newstate)
 	]],
