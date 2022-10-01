@@ -89,7 +89,9 @@ function Pager:GetPageResponse()
 end
 
 function Pager:GetCurrentPage()
-	return loadstring(format('local newstate; %s; return newstate;', self:GetPageResponse()))()
+	return loadstring(format('local newstate = %d; %s; return newstate;',
+		tonumber(SecureCmdOptionParse(self:GetPageCondition())) or 1,
+		self:GetPageResponse()))()
 end
 
 function Pager:OnDataLoaded()
