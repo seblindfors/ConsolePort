@@ -97,7 +97,7 @@ end
 function Pager:OnDataLoaded()
 	local driver, response = self:GetPageCondition(), self:GetPageResponse()
 	response = response .. self:GetHeaderResponse()
-	return self:SetConditionAndResponse(driver, response)
+	self:SetConditionAndResponse(driver, response)
 end
 
 ---------------------------------------------------------------
