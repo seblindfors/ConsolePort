@@ -78,7 +78,6 @@ do	-- Initiate frame
 								numSlots = numSlots + CPAPI.GetContainerNumSlots(i)
 							end
 						end
-						print(totalFree, numSlots)
 						self.Count:SetFormattedText('%s\n|cFFAAAAAA%s|r', totalFree, numSlots)
 					end;
 					{

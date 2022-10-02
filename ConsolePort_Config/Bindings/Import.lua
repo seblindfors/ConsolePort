@@ -5,6 +5,16 @@ local CURRENT_BINDINGS;
 
 env.ImportManager = Import;
 
+local function GenerateEmptyPreset()
+	local bindings = db.Gamepad:GetBindings(true)
+	for btn, set in pairs(bindings) do
+		for mod, _ in pairs(set) do
+			bindings[btn][mod] = '';
+		end
+	end
+	return bindings;
+end
+
 function Preset:OnLoad()
 	self:SetWidth(PRESETS_WIDTH - 32)
 	self:SetScript('OnClick', self.OnClick)
@@ -51,7 +61,7 @@ function Import:DrawOptions()
 	self:ReleaseAll()
 	CURRENT_BINDINGS = db.Gamepad:GetBindings()
 
-	local prev;
+	local prev = self:DrawPreset(EMPTY, GenerateEmptyPreset());
 	for name, device in db:For('Gamepad/Devices', true) do
 		local bindings = device.Preset and device.Preset.Bindings;
 		if bindings then

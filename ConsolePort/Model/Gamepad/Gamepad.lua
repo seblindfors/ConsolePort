@@ -161,7 +161,7 @@ end
 
 function GamepadAPI.OnNewBindings()
 	if GamepadAPI.updateBindingDispatching then
-		local newBindings = GamepadAPI:GetBindings()
+		local newBindings = GamepadAPI:GetBindings(true)
 		db:TriggerEvent('OnNewBindings', newBindings)
 		db:TriggerEvent('OnUpdateOverrides', false, newBindings)
 		db:TriggerEvent('OnUpdateOverrides', true,  newBindings)

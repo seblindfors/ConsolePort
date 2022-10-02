@@ -276,7 +276,7 @@ function Bar:OnLoad(cfg, benign)
 
 	-- Don't run this when updating simple cvars
 	if not benign then
-		Clusters:UpdateAllBindings(db.Gamepad:GetBindings())
+		Clusters:UpdateAllBindings(db.Gamepad:GetBindings(true))
 		self:UpdateOverrides()
 		-- states have been reparsed, set back to current state
 		self:Execute([[
