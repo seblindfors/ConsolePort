@@ -11,7 +11,7 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
 ---------------------------------------------------------------
-local DEFAULT_SET, EXTRA_ACTION_ID = 1, ExtraActionButton1 and ExtraActionButton1.action or 169;
+local DEFAULT_SET, EXTRA_ACTION_ID = 1, CPAPI.ExtraActionButtonID;
 local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 ---------------------------------------------------------------
 Utility.Data = {[DEFAULT_SET] = {}};

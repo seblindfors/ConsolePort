@@ -6,7 +6,7 @@ local _, db = ...; CPAPI = {};
 CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or nil;
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
-CPAPI.IsWoW10Version      = select(4, GetBuildInfo()) >= 100000;
+CPAPI.IsWoW10Version      = select(4, GetBuildInfo()) >= 100000 or nil;
 
 function CPAPI.Log(...)
 	local cc = ChatTypeInfo.SYSTEM;
@@ -68,6 +68,12 @@ function CPAPI.GetAverageItemLevel(...)
 	end
 	return MAX_PLAYER_LEVEL
 end
+
+---------------------------------------------------------------
+-- Extra action button ID
+---------------------------------------------------------------
+CPAPI.ExtraActionButtonID = ExtraActionButton1 and ExtraActionButton1.action or
+	CPAPI.IsWoW10Version and 181 or 169;
 
 ---------------------------------------------------------------
 -- Internal wrappers

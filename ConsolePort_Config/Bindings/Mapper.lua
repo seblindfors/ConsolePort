@@ -37,7 +37,7 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 		texture = actionID and GetActionTexture(transposedActionID or actionID)
 
 		-- HACK: handle extra action button 1 case
-		if (transposedActionID == 169 or actionID == 169) then
+		if (transposedActionID == CPAPI.ExtraActionButtonID or actionID == CPAPI.ExtraActionButtonID) then
 			transposedActionID, texture = nil, nil;
 		end
 

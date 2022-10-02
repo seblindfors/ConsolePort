@@ -7,6 +7,8 @@ do	-- Initiate frame
 	local hideMenuHook    = {hidemenu = true};
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
 	local IsRetailVersion = CPAPI.IsRetailVersion;
+	local IsWoW10Version  = CPAPI.IsWoW10Version;
+	local IsWoW9Version   = not IsWoW10Version or nil;
 	local IsClassicVersion = not CPAPI.IsRetailVersion or nil;
 	local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 
@@ -64,7 +66,7 @@ do	-- Initiate frame
 					_Point = {'TOP', '$parent.Info', 'BOTTOM', 0, 0};
 					_Text  = INVENTORY_TOOLTIP;
 					_Image = IsRetailVersion and 'INV_Misc_Bag_29' or 'INV_Misc_Bag_08';
-					_Events = {'BAG_UPDATE'};
+					_Events = {'BAG_UPDATE_DELAYED'};
 					_Attributes = hideMenuHook;
 					_OnClick = ToggleAllBags;
 					_OnEvent = function(self, event, ...)
@@ -76,6 +78,7 @@ do	-- Initiate frame
 								numSlots = numSlots + CPAPI.GetContainerNumSlots(i)
 							end
 						end
+						print(totalFree, numSlots)
 						self.Count:SetFormattedText('%s\n|cFFAAAAAA%s|r', totalFree, numSlots)
 					end;
 					{
@@ -497,10 +500,22 @@ do	-- Initiate frame
 					_Setup = baseTemplates;
 					_Point = {'TOP', 'parent.Controller', 'BOTTOM', 0, 0};
 					_Text  = SYSTEMOPTIONS_MENU;
-					_RefTo = GameMenuButtonOptions;
+					_RefTo = GameMenuButtonSettings or GameMenuButtonOptions;
 					_Image = IsRetailVersion and 'Pet_Type_Mechanical' or 'Trade_Engineering';
 				};
-				Interface  = {
+				EditMode = IsWoW10Version and {
+					_ID    = 6;
+					_Type  = 'Button';
+					_Setup = baseTemplates;
+					_Point = {'TOP', 'parent.System', 'BOTTOM', 0, 0};
+					_Text  = HUD_EDIT_MODE_MENU;
+					_RefTo = GameMenuButtonEditMode;
+					_OnLoad = function(self)
+						CPMenuButtonMixin.OnLoad(self)
+						self.Icon:SetTexture([[Interface\TUTORIALFRAME\UI-TutorialFrame-GloveCursor]])
+					end;
+				};
+				Interface  = IsWoW9Version and {
 					_ID    = 6;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -516,7 +531,7 @@ do	-- Initiate frame
 					_ID    = 7;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', 'parent.Interface', 'BOTTOM', 0, 0};
+					_Point = {'TOP', IsWoW10Version and 'parent.EditMode' or 'parent.Interface', 'BOTTOM', 0, 0};
 					_Text  = ADDONS;
 					_RefTo = GameMenuButtonAddons;
 					_OnLoad = function(self)
@@ -533,7 +548,7 @@ do	-- Initiate frame
 					_RefTo = GameMenuButtonMacros;
 					_Image = IsRetailVersion and 'Pet_Type_Magical' or 'Trade_Alchemy';
 				};
-				KeyBindings  = {
+				KeyBindings  = IsWoW9Version and {
 					_ID    = 9;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -549,7 +564,7 @@ do	-- Initiate frame
 					_ID    = 10;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', 'parent.KeyBindings', 'BOTTOM', 0, 0};
+					_Point = {'TOP', IsWoW9Version and 'parent.KeyBindings' or 'parent.Macros', 'BOTTOM', 0, 0};
 					_Text  = GAMEMENU_HELP;
 					_RefTo = GameMenuButtonHelp;
 					_Image = 'INV_Misc_QuestionMark';

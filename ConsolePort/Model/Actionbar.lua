@@ -13,7 +13,7 @@ local _, db = ...; local ActionBarAPI = {
 			[136] = 'ACTIONBUTTON4';
 			[137] = 'ACTIONBUTTON5';
 			[138] = 'ACTIONBUTTON6';
-			[169] = 'EXTRAACTIONBUTTON1';
+			[CPAPI.ExtraActionButtonID] = 'EXTRAACTIONBUTTON1';
 		};
 	};
 	Widget = {
@@ -29,7 +29,7 @@ local _, db = ...; local ActionBarAPI = {
 			[136] = 'OverrideActionBarButton4';
 			[137] = 'OverrideActionBarButton5';
 			[138] = 'OverrideActionBarButton6';
-			[169] = 'ExtraActionButton1';
+			[CPAPI.ExtraActionButtonID] = 'ExtraActionButton1';
 		};
 	};
 	Lookup = {
@@ -75,7 +75,7 @@ end)
 -- Blizzard's own system does not use the attribute by default,
 -- instead resorting to table keys/:GetID() to determine correct action.
 -- Assigning the attribute manually unifies default UI with addons.
-for i=169, 1, -1 do
+for i=CPAPI.ExtraActionButtonID, 1, -1 do
 	local button = ActionBarAPI.Widget[i]
 	if button then
 		ActionBarAPI.Binding[ActionBarAPI.Action[i]] = i

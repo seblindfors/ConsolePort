@@ -37,7 +37,7 @@ If you want to create a ring to use in your rotation and not just for utility, i
 local RING_EMPTY_DESC = L[[You do not have any abilities in this ring yet.]]
 
 
-local EXTRA_ACTION_ID = ExtraActionButton1 and ExtraActionButton1.action or 169;
+local EXTRA_ACTION_ID = CPAPI.ExtraActionButtonID;
 local GET_SPELLID_IDX = 7;
 ---------------------------------------------------------------
 -- Helpers

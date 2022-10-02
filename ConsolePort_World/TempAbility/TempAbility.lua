@@ -9,7 +9,7 @@ local TempAbility = Mixin(CPAPI.EventHandler(ConsolePortTempAbilityFrame, {
 	CPAPI.IsRetailVersion and 'UPDATE_EXTRA_ACTIONBAR';
 }), CPFocusPoolMixin)
 
-local EXTRA_AID, VEHICLE_AID = 169, 133;
+local EXTRA_AID, VEHICLE_AID = CPAPI.ExtraActionButtonID, 133;
 
 ---------------------------------------------------------------
 -- Shown ability mixin
