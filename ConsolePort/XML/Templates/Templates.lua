@@ -231,20 +231,19 @@ function CPSmoothButtonMixin:OnLoad()
 	self:SetBackdrop({
 		bgFile   = CPAPI.GetAsset('Textures\\Frame\\Backdrop_Gossip.blp');
 		edgeFile = CPAPI.GetAsset('Textures\\Frame\\Edge_Gossip_BG.blp');
-		edgeSize = 8;
-		insets   = {left = 2, right = 2, top = 8, bottom = 8};
+		edgeSize = 4;
+		insets   = {left = 2, right = 2, top = 2, bottom = 2};
 	})
 	self.Overlay:SetBackdrop({
 		edgeFile = CPAPI.GetAsset('Textures\\Frame\\Edge_Gossip_Normal.blp');
-		edgeSize = 8;
-		insets   = {left = 5, right = 5, top = -10, bottom = 7};	
+		edgeSize = 4;
 	})
 	self.Hilite:SetBackdrop({
 		edgeFile = CPAPI.GetAsset('Textures\\Frame\\Edge_Gossip_Hilite.blp');
-		edgeSize = 8;
-		insets   = {left = 5, right = 5, top = 5, bottom = 6};	
+		edgeSize = 4;
 	})
 	self.Overlay:SetFrameLevel(self.Overlay:GetFrameLevel() + 1)
+	self.Hilite:SetFrameLevel(self.Overlay:GetFrameLevel() + 1)
 end
 
 function CPSmoothButtonMixin:OnHide()

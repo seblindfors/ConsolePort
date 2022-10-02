@@ -92,7 +92,7 @@ do
 	if MultiCastActionBarFrame then
 		MultiCastActionBarFrame:SetScript('OnUpdate', nil)
 		MultiCastActionBarFrame:ClearAllPoints()
-		MultiCastActionBarFrame:SetPoint('BOTTOM', Bar, 'BOTTOM', 150, 0)
+		MultiCastActionBarFrame:SetPoint('BOTTOM', Bar, 'BOTTOM', 0, 120)
 	end
 
 	-------------------------------------------
