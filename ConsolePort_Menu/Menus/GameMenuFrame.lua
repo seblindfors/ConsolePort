@@ -70,10 +70,10 @@ do	-- Initiate frame
 					_OnEvent = function(self, event, ...)
 						local totalFree, numSlots, freeSlots, bagFamily = 0, 0
 						for i = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-							freeSlots, bagFamily = GetContainerNumFreeSlots(i)
+							freeSlots, bagFamily = CPAPI.GetContainerNumFreeSlots(i)
 							if ( bagFamily == 0 ) then
 								totalFree = totalFree + freeSlots
-								numSlots = numSlots + GetContainerNumSlots(i)
+								numSlots = numSlots + CPAPI.GetContainerNumSlots(i)
 							end
 						end
 						self.Count:SetFormattedText('%s\n|cFFAAAAAA%s|r', totalFree, numSlots)

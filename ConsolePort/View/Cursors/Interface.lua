@@ -7,13 +7,13 @@
 -- Leverages Controller\UINode.lua for interface scans.
 
 local _, db = ...;
-local Cursor, Node, Input, Stack, Scroll, Fade, Intellisense = 
+local Cursor, Node, Input, Stack, Scroll, Fade, Hooks = 
 	CPAPI.EventHandler(ConsolePortCursor),
 	ConsolePortNode,
 	ConsolePortInputHandler,
 	ConsolePortUIStackHandler,
 	CreateFrame('Frame'),
-	db.Alpha.Fader, db.Intellisense;
+	db.Alpha.Fader, db.Hooks;
 
 db:Register('Cursor', Cursor)
 Cursor.InCombat = InCombatLockdown;
@@ -346,7 +346,7 @@ function Cursor:Input(caller, isDown, key)
 			target, changed = self:Navigate(key)
 		end
 	elseif ( key == db('Settings/UICursorSpecial') ) then
-		return Intellisense:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
+		return Hooks:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
 	end
 	if ( target ) then
 		return self:SelectAndPosition(self:GetSelectParams(target, isDown))
@@ -496,7 +496,7 @@ do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
 
 	function Cursor:OnLeaveNode(node)
 		if node then
-			Intellisense:OnNodeLeave()
+			Hooks:OnNodeLeave()
 			TriggerScript(node, 'OnLeave', SafeOnLeave)
 		end
 	end

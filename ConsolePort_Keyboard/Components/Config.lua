@@ -478,10 +478,12 @@ function Config:OnShow()
 end
 
 function Config:OnHide()
-	env:ToggleObserver(true)
+	if env.config.db('keyboardEnable') then
+		env:ToggleObserver(true)
+	end
 end
 
-ConsolePort:DB():RegisterCallback('OnConfigLoaded', function(localEnv, config, env)
+local function OnConfigLoaded(localEnv, config, env)
 	localEnv.config, localEnv.panel, L = env, config, env.L;
 	env.Keyboard = config:CreatePanel({
 		name = L'Keyboard';
@@ -489,4 +491,13 @@ ConsolePort:DB():RegisterCallback('OnConfigLoaded', function(localEnv, config, e
 		scaleToParent = true;
 		forbidRecursiveScale = true;
 	})
-end, env)
+	env.db:RegisterCallback('Settings/keyboardEnable', function(localEnv, enabled)
+		localEnv:ToggleObserver(enabled)
+	end, localEnv)
+end
+
+if IsAddOnLoaded('ConsolePort_Config') then
+	OnConfigLoaded(env, ConsolePortConfig, ConsolePortConfig:GetEnvironment())
+else
+	ConsolePort:DB():RegisterCallback('OnConfigLoaded', OnConfigLoaded, env)
+end

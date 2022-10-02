@@ -9,9 +9,6 @@ local ItemMenuButtonMixin, ItemMenu = {}, db:Register('ItemMenu', CPAPI.EventHan
 	'PLAYER_REGEN_DISABLED';
 }))
 ---------------------------------------------------------------
-local INDEX_BAGS_COUNT = 2
-local INDEX_BAGS_NOVAL = 9
----------------------------------------------------------------
 local INDEX_INFO_ILINK = 2
 local INDEX_INFO_ITEMQ = 3
 local INDEX_INFO_STACK = 8
@@ -236,7 +233,7 @@ function ItemMenu:GetQuality()
 end
 
 function ItemMenu:GetCount()
-	return select(INDEX_BAGS_COUNT, GetContainerItemInfo(self:GetBagAndSlot()))
+	return CPAPI.GetContainerItemInfo(self:GetBagAndSlot()).stackCount;
 end
 
 function ItemMenu:GetStackCount()
@@ -248,7 +245,7 @@ function ItemMenu:GetInventoryLocation()
 end
 
 function ItemMenu:HasNoValue()
-	return select(INDEX_BAGS_NOVAL, GetContainerItemInfo(self:GetBagAndSlot()))
+	return CPAPI.GetContainerItemInfo(self:GetBagAndSlot()).hasNoValue;
 end
 
 function ItemMenu:IsSplittableItem()
@@ -271,12 +268,12 @@ end
 -- Commands
 ---------------------------------------------------------------
 function ItemMenu:Pickup()
-	PickupContainerItem(self:GetBagAndSlot())
+	CPAPI.PickupContainerItem(self:GetBagAndSlot())
 	self:Hide()
 end
 
 function ItemMenu:Delete()
-	PickupContainerItem(self:GetBagAndSlot())
+	CPAPI.PickupContainerItem(self:GetBagAndSlot())
 	local link, quality, hasSpellID = self:GetLink(), self:GetQuality(), self:GetSpellID();
 	self:Hide()
 	-- show confirm popup for good+ and usable items
@@ -289,7 +286,7 @@ end
 
 function ItemMenu:Equip(slot)
 	if self:IsEquippableItem() then
-		PickupContainerItem(self:GetBagAndSlot())
+		CPAPI.PickupContainerItem(self:GetBagAndSlot())
 		EquipCursorItem(slot or self:GetInventoryType())
 	end
 	self:Hide()

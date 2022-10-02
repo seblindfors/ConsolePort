@@ -63,6 +63,17 @@ end
 -- like the action camera settings.
 UIParent:UnregisterEvent('EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED')
 
+-- Loads the keyboard
+local function TryLoadKeyboardUI()
+	if not db('keyboardEnable') or IsAddOnLoaded('ConsolePort_Keyboard') then
+		return
+	end
+	local loaded, reason = LoadAddOn('ConsolePort_Keyboard')
+	if not loaded then
+		CPAPI.Log('Failed to load radial keyboard. Reason: %s', _G['ADDON_'..reason])
+	end
+end
+
 ---------------------------------------------------------------
 -- Convenience handler
 ---------------------------------------------------------------
@@ -101,3 +112,9 @@ function Handler:QUEST_AUTOCOMPLETE(...)
 	-- automatically show autocomplete quests
 	ShowQuestComplete(...)
 end
+
+function Handler:OnDataLoaded()
+	TryLoadKeyboardUI()
+end
+
+db:RegisterCallback('Settings/keyboardEnable', TryLoadKeyboardUI, Handler)

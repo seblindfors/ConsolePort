@@ -193,6 +193,7 @@ function Options:OnLoad()
 	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_WIDTH, FIXED_OFFSET)
 
 	db:RegisterCallback('Settings/showAdvancedSettings', self.DrawOptions, self)
+	db:RegisterCallback('OnVariablesChanged', self.DrawOptions, self)
 end
 
 ---------------------------------------------------------------

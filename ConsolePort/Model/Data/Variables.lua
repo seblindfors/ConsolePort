@@ -178,6 +178,15 @@ db:Register('Variables', {
 		desc = 'Button used to remove a selected item from an editable pie menu.';
 	};
 	--------------------------------------------------------------------------------------------------------
+	-- Radial:
+	--------------------------------------------------------------------------------------------------------
+	keyboardEnable = {Bool(false);
+		head = 'Radial Keyboard';
+		sort = 1;
+		name = 'Enable';
+		desc = 'Enables a radial on-screen keyboard that can be used to type messages.';
+	};
+	--------------------------------------------------------------------------------------------------------
 	-- Raid cursor:
 	--------------------------------------------------------------------------------------------------------
 	raidCursorDirect = {Bool(false);

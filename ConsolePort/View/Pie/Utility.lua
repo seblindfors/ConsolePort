@@ -731,7 +731,7 @@ function Utility:ToggleInventoryQuestItems(hideAnnouncement)
 	end
 
 	CPAPI.IteratePlayerInventory(function(item)
-		local link = select(7, GetContainerItemInfo(item:GetBagAndSlot()))
+		local link = CPAPI.GetContainerItemInfo(item:GetBagAndSlot()).hyperlink;
 		local isQuestItem = link and select(6, GetItemInfoInstant(link)) == LE_ITEM_CLASS_QUESTITEM;
 		if isQuestItem and IsUsableItem(link) and not exists[getItemID(link)] then
 			local info = self.SecureHandlerMap.item(link)

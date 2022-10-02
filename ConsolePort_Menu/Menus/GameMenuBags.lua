@@ -45,7 +45,7 @@ function BagContainer:UpdateActiveSlots()
 	end
 	wipe(self.Active)
 	for bagID = 0, NUM_BAG_FRAMES do
-		for slotID = 1, GetContainerNumSlots(bagID) do
+		for slotID = 1, CPAPI.GetContainerNumSlots(bagID) do
 			local button = self:GetButton(bagID, slotID)
 			button:ClearAllPoints()
 			button:Show()
@@ -168,8 +168,8 @@ end
 function BagSlot:Update(tooltipOwner, atMerchant, shouldDoTutorialChecks)
 	local bagID, slotID = self:GetBagAndSlot()
 	local texture, itemCount, locked, quality, readable, _, itemLink, isFiltered, noValue, itemID, isBound =
-		GetContainerItemInfo(bagID, slotID);
-	local isQuestItem, questId, isActive = GetContainerItemQuestInfo(bagID, slotID);
+		CPAPI.GetContainerItemInfo(bagID, slotID);
+	local isQuestItem, questId, isActive = CPAPI.GetContainerItemQuestInfo(bagID, slotID);
 
 	SetItemButtonTexture(self, texture)
 

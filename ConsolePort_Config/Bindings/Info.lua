@@ -346,10 +346,10 @@ function BindingInfo:RefreshCollections()
 	end
 
 	-- Bags
-	do  local items, omit, INDEX_ITEM_ID = {}, {}, 10
+	do  local items, omit = {}, {};
 		for bag=0, NUM_BAG_SLOTS do
-			for slot=1, GetContainerNumSlots(bag) do
-				local itemID = select(INDEX_ITEM_ID, GetContainerItemInfo(bag, slot))
+			for slot=1, CPAPI.GetContainerNumSlots(bag) do
+				local itemID = CPAPI.GetContainerItemInfo(bag, slot).itemID;
 				if IsUsableItem(itemID) and not omit[itemID] then
 					items[#items + 1] = {bag, slot}
 					omit[itemID] = true;
@@ -360,9 +360,9 @@ function BindingInfo:RefreshCollections()
 		if next(items) then
 			self:AddCollection(items, {
 				name    = ITEMS;
-				pickup  = PickupContainerItem;
+				pickup  = CPAPI.PickupContainerItem;
 				tooltip = GameTooltip.SetBagItem;
-				texture = GetContainerItemInfo;
+				texture = function(...) return CPAPI.GetContainerItemInfo(...).iconFileID end;
 			})
 		end
 	end

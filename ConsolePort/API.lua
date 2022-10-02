@@ -11,6 +11,7 @@ end
 ---------------------------------------------------------------
 function ConsolePort:AddVariables(variables)
 	db.table.merge(db.Variables, variables)
+	db:TriggerEvent('OnVariablesChanged', variables)
 end
 
 ---------------------------------------------------------------

@@ -646,6 +646,7 @@ function InitializeEventHandler()
 		'LOSS_OF_CONTROL_ADDED',
 		'LOSS_OF_CONTROL_UPDATE',
 
+		'PET_BAR_HIDEGRID',
 		'PET_BAR_UPDATE',
 		'PET_BAR_UPDATE_COOLDOWN',
 
@@ -704,7 +705,7 @@ function OnEvent(_, event, arg1, ...)
 		ForAllButtons(Update)
 	elseif event == 'ACTIONBAR_SHOWGRID' then
 		ShowGrid()
-	elseif event == 'ACTIONBAR_HIDEGRID' then
+	elseif event == 'ACTIONBAR_HIDEGRID' or 'PET_BAR_HIDEGRID' then
 		HideGrid()
 	elseif event == 'PLAYER_TARGET_CHANGED' then
 		UpdateRangeTimer()

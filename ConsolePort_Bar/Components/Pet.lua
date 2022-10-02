@@ -134,8 +134,9 @@ end
 
 function Button:OnSizeChanged(width, height)
 	local normalX, normalY = (width * (46/32)), (height * (46/32))
-	self.NormalTexture:SetSize(normalX, normalY)
 	self.PushedTexture:SetSize(normalX, normalY)
+	self.NormalTexture:SetSize(normalX, normalY)
+	self.NormalTexture2:SetSize(normalX, normalY)
 end
 
 
@@ -173,19 +174,34 @@ do
 		button.AutoCastable = button.AutoCastable or _G[name..'AutoCastable']
 		button.Shine = button.Shine or _G[name..'Shine']
 		button.cooldown = button.cooldown or _G[name..'Cooldown'];
-		button.NormalTexture = button.NormalTexture or _G[name..'NormalTexture2']
+		button.NormalTexture  = button.NormalTexture or _G[name..'NormalTexture']
+		button.NormalTexture2 = _G[name..'NormalTexture2'] or button.NormalTexture
+
+		if button.SlotBackground then
+			button.SlotBackground:SetTexture(nil)
+			button.SlotBackground:ClearAllPoints()
+			button.SlotBackground:Hide()
+		end
 
 		button.Flash:SetMask('Interface\\Minimap\\UI-Minimap-Background')
 		button.Flash:SetAlpha(0.25)
+
+		if button.IconMask then
+			button.icon:RemoveMaskTexture(button.IconMask)
+		end
 		button.icon:AddMaskTexture(Pet.Ring.Mask)
 		button.icon:SetAllPoints()
 
 		button.AutoCastable:SetRotation(button.textureRotation)
 		button.AutoCastable:Hide()
 
-		button.NormalTexture:SetTexture(nil)--'Interface\\AddOns\\ConsolePort_Bar\\Textures\\Button\\Pet10')
+		button.NormalTexture:SetTexture(nil)
 		button.NormalTexture:ClearAllPoints()
 		button.NormalTexture:SetPoint('CENTER', 0, 0)
+
+		button.NormalTexture2:SetTexture(nil)
+		button.NormalTexture2:ClearAllPoints()
+		button.NormalTexture2:SetPoint('CENTER', 0, 0)
 
 		button.PushedTexture = button:GetPushedTexture()
 		button.HighlightTexture = button:GetHighlightTexture()

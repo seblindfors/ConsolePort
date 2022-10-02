@@ -5,7 +5,7 @@
 -- mapped by various parts of the interface to override the
 -- default actions of gamepad inputs.
 
-local _, db = ...; local Intellisense = db.Intellisense;
+local _, db = ...; local Hooks = db.Hooks;
 local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 local InputMixin, InputAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parentInputHandler', ConsolePort, 'SecureHandlerStateTemplate'}, {
 	'PLAYER_REGEN_DISABLED'; -- enter combat
@@ -263,7 +263,7 @@ end
 
 function InputMixin:EmulateFrontend(click, state, script)
 	if click:IsEnabled() then
-		if Intellisense:ProcessInterfaceClickEvent(script, click, state) then
+		if Hooks:ProcessInterfaceClickEvent(script, click, state) then
 			self.postreset = self:GetAttribute(TYPE_ATTRIBUTE)
 			self:SetAttribute(TYPE_ATTRIBUTE, nil)
 		end

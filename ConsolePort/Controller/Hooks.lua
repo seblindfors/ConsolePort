@@ -1,29 +1,29 @@
 ---------------------------------------------------------------
--- Intellisense
+-- Hooks
 ---------------------------------------------------------------
 -- Context-aware bridge module for other internal modules,
 -- processing based on multiple factors in an isolated sandbox.
 
 local _, db = ...; local L = db.Locale;
-local Intellisense = db:Register('Intellisense', {})
-local Intellinode = {};
+local Hooks = db:Register('Hooks', {})
+local Hooknode = {};
 
-function Intellisense:OnHintsFocus()
+function Hooks:OnHintsFocus()
 	if db('mouseHandlingEnabled') then
 		db.Mouse:SetCameraControl()
 	end
 end
 
-function Intellisense:OnNodeLeave()
+function Hooks:OnNodeLeave()
 	self.dressupItem = nil;
 	self.bagLocation = nil;
 	self.itemLocation = nil;
 	self.inventorySlotID = nil;
 end
 
-db:RegisterCallback('OnHintsFocus', Intellisense.OnHintsFocus, Intellisense)
+db:RegisterCallback('OnHintsFocus', Hooks.OnHintsFocus, Hooks)
 
-function Intellisense:ProcessInterfaceCursorEvent(button, down, node)
+function Hooks:ProcessInterfaceCursorEvent(button, down, node)
 	if (down == false) then
 		if node and node:IsObjectType('EditBox') then
 			if node:HasFocus() then
@@ -32,10 +32,10 @@ function Intellisense:ProcessInterfaceCursorEvent(button, down, node)
 				node:SetFocus()
 			end
 		elseif self.inventorySlotID then
-			Intellinode.OnInventoryButtonModifiedClick(node, 'LeftButton')
+			Hooknode.OnInventoryButtonModifiedClick(node, 'LeftButton')
 			return true;
 		elseif self.dressupItem then
-			Intellinode.OnDressupButtonModifiedClick(node, 'LeftButton')
+			Hooknode.OnDressupButtonModifiedClick(node, 'LeftButton')
 			return true;
 		elseif self.itemLocation then
 			db.ItemMenu:SetItem(self.itemLocation:GetBagAndSlot())
@@ -47,7 +47,7 @@ function Intellisense:ProcessInterfaceCursorEvent(button, down, node)
 	end
 end
 
-function Intellisense:ProcessInterfaceClickEvent(script, node)
+function Hooks:ProcessInterfaceClickEvent(script, node)
 	if (script == 'OnMouseUp') then
 		if GetCursorInfo() then
 			local isActionButton = (node:IsProtected() and node:GetAttribute('type') == 'action')
@@ -59,14 +59,14 @@ function Intellisense:ProcessInterfaceClickEvent(script, node)
 		elseif self:IsModifiedClick() then
 			-- HACK: identify a container slot button
 			if (node.UpdateTooltip and node.UpdateTooltip == ContainerFrameItemButton_OnUpdate) then
-				Intellinode.OnContainerButtonModifiedClick(node, 'LeftButton')
+				Hooknode.OnContainerButtonModifiedClick(node, 'LeftButton')
 				return true;
 			end
 		end
 	end
 end
 
-function Intellisense:IsModifiedClick()
+function Hooks:IsModifiedClick()
 	return next(db.Gamepad:GetModifiersHeld()) ~= nil;
 end
 
@@ -87,12 +87,12 @@ do  local IsWidget, GetID, GetParent, GetScript =
 		return GetScript(node, 'OnEnter') == ContainerFramePortraitButton_OnEnter and GetID(node) ~= 0;
 	end
 
-	function Intellisense:GetItemLocationFromNode(node)
+	function Hooks:GetItemLocationFromNode(node)
 		return IsWidget(node) and TryIdentifyContainerSlot(node) and
 			ItemLocation:CreateFromBagAndSlot(GetID(GetParent(node)), GetID(node)) or nil;
 	end
 
-	function Intellisense:GetBagLocationFromNode(node)
+	function Hooks:GetBagLocationFromNode(node)
 		return IsWidget(node) and TryIdentifyContainerBag(node) and
 			ContainerIDToInventoryID(node:GetID());
 	end
@@ -101,7 +101,7 @@ end
 ---------------------------------------------------------------
 -- Prompts
 ---------------------------------------------------------------
-function Intellisense:GetSpecialActionPrompt(text)
+function Hooks:GetSpecialActionPrompt(text)
 	local device = db('Gamepad/Active')
 	return device and device:GetTooltipButtonPrompt(
 		db('Settings/UICursorSpecial'),
@@ -109,7 +109,7 @@ function Intellisense:GetSpecialActionPrompt(text)
 	);
 end
 
-function Intellisense:SetPendingItemMenu(tooltip, itemLocation)
+function Hooks:SetPendingItemMenu(tooltip, itemLocation)
 	self.itemLocation = itemLocation;
 	local prompt = self:GetSpecialActionPrompt(OPTIONS)
 	if prompt then
@@ -118,7 +118,7 @@ function Intellisense:SetPendingItemMenu(tooltip, itemLocation)
 	end
 end
 
-function Intellisense:SetPendingBagPickup(tooltip, bagLocation)
+function Hooks:SetPendingBagPickup(tooltip, bagLocation)
 	self.bagLocation = bagLocation;
 	local prompt = self:GetSpecialActionPrompt(L'Pickup')
 	if prompt then
@@ -127,7 +127,7 @@ function Intellisense:SetPendingBagPickup(tooltip, bagLocation)
 	end
 end
 
-function Intellisense:SetPendingActionToUtilityRing(tooltip, owner, action)
+function Hooks:SetPendingActionToUtilityRing(tooltip, owner, action)
 	if owner.ignoreUtilityRing then
 		return
 	end
@@ -156,7 +156,7 @@ function Intellisense:SetPendingActionToUtilityRing(tooltip, owner, action)
 	end
 end
 
-function Intellisense:SetPendingDressupItem(tooltip, item)
+function Hooks:SetPendingDressupItem(tooltip, item)
 	self.dressupItem = item;
 	if tooltip then
 		local prompt = self:GetSpecialActionPrompt(INSPECT)
@@ -167,7 +167,7 @@ function Intellisense:SetPendingDressupItem(tooltip, item)
 	end
 end
 
-function Intellisense:SetPendingInspectItem(tooltip, item)
+function Hooks:SetPendingInspectItem(tooltip, item)
 	if tonumber(item) then
 		self.inventorySlotID = item;
 		if tooltip then
@@ -184,14 +184,14 @@ end
 GameTooltip:HookScript('OnTooltipSetItem', function(self)
 	local owner = self:GetOwner()
 	if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
-		local itemLocation = Intellisense:GetItemLocationFromNode(owner)
+		local itemLocation = Hooks:GetItemLocationFromNode(owner)
 		if itemLocation then
-			return Intellisense:SetPendingItemMenu(self, itemLocation)
+			return Hooks:SetPendingItemMenu(self, itemLocation)
 		end
 
-		local bagLocation = Intellisense:GetBagLocationFromNode(owner)
+		local bagLocation = Hooks:GetBagLocationFromNode(owner)
 		if bagLocation then
-			return Intellisense:SetPendingBagPickup(self, bagLocation)
+			return Hooks:SetPendingBagPickup(self, bagLocation)
 		end
 
 		local name, link = self:GetItem()
@@ -200,15 +200,15 @@ GameTooltip:HookScript('OnTooltipSetItem', function(self)
 		local isEquippable = IsEquippableItem(link)
 
 		if ( GetItemSpell(link) and numOwned > 0 ) then
-			Intellisense:SetPendingActionToUtilityRing(self, owner, {
+			Hooks:SetPendingActionToUtilityRing(self, owner, {
 				type = 'item',
 				item = link,
 				link = link
 			});
 		elseif isEquippable and not isEquipped then
-			Intellisense:SetPendingDressupItem(self, link);
+			Hooks:SetPendingDressupItem(self, link);
 		elseif isEquippable and isEquipped then
-			Intellisense:SetPendingInspectItem(self, owner:GetID())
+			Hooks:SetPendingInspectItem(self, owner:GetID())
 		end
 	end
 end)
@@ -227,7 +227,7 @@ GameTooltip:HookScript('OnTooltipSetSpell', function(self)
 				end
 			end
 			if isKnown then
-				Intellisense:SetPendingActionToUtilityRing(self, owner, {
+				Hooks:SetPendingActionToUtilityRing(self, owner, {
 					type  = 'spell',
 					spell = spellID,
 					link  = GetSpellLink(spellID)
@@ -254,7 +254,7 @@ local function WrappedExecute(func, execEnv, ...)
 	setfenv(func, env)
 end
 
-function Intellinode:OnContainerButtonModifiedClick(...)
+function Hooknode:OnContainerButtonModifiedClick(...)
 	WrappedExecute(ContainerFrameItemButton_OnModifiedClick, {
 		IsModifiedClick = function(action)
 			return db.Gamepad:GetModifierHeld(GetModifiedClick(action))
@@ -262,7 +262,7 @@ function Intellinode:OnContainerButtonModifiedClick(...)
 	}, self, ...)
 end
 
-function Intellinode:OnDressupButtonModifiedClick()
+function Hooknode:OnDressupButtonModifiedClick()
 	WrappedExecute(HandleModifiedItemClick, {
 		IsModifiedClick = function(action)
 			if (action == 'CHATLINK') then
@@ -271,11 +271,11 @@ function Intellinode:OnDressupButtonModifiedClick()
 				return true;
 			end
 		end;
-	}, Intellisense.dressupItem)
-	Intellisense.dressupItem = nil;
+	}, Hooks.dressupItem)
+	Hooks.dressupItem = nil;
 end
 
-function Intellinode:OnInventoryButtonModifiedClick()
+function Hooknode:OnInventoryButtonModifiedClick()
 	WrappedExecute(PaperDollItemSlotButton_OnModifiedClick, {
 		IsModifiedClick = function(action)
 			if (action == 'EXPANDITEM') then

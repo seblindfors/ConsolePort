@@ -5,7 +5,7 @@
 ## Notes: Virtual keyboard module
 ## SavedVariables: ConsolePort_KeyboardLayout, ConsolePort_KeyboardDictionary, ConsolePort_KeyboardMarkers
 ## RequiredDeps: ConsolePort
-## DefaultState:  disabled
+## LoadOnDemand: 1
 ## X-Curse-Project-ID: 91376
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
