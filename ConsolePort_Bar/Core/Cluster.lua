@@ -492,7 +492,7 @@ function HANDLE:RefreshBinding(binding, cluster, button, modifier, main)
 	local stateType, stateID;
 	if actionID then
 		stateType, stateID = self:SetActionBinding(button, modifier, actionID, main)
-	elseif binding then
+	elseif binding and binding:len() > 0 then
 		stateType, stateID = self:SetXMLBinding(button, modifier, binding)
 	else
 		stateType, stateID = self:SetEligbleForRebind(button, modifier, main)
