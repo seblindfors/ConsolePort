@@ -705,7 +705,7 @@ function OnEvent(_, event, arg1, ...)
 		ForAllButtons(Update)
 	elseif event == 'ACTIONBAR_SHOWGRID' then
 		ShowGrid()
-	elseif event == 'ACTIONBAR_HIDEGRID' or 'PET_BAR_HIDEGRID' then
+	elseif event == 'ACTIONBAR_HIDEGRID' or event == 'PET_BAR_HIDEGRID' then
 		HideGrid()
 	elseif event == 'PLAYER_TARGET_CHANGED' then
 		UpdateRangeTimer()
