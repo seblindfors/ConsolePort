@@ -205,10 +205,10 @@ function CPConfigHeaderMixin:OnLoad()
 	self.LineTopLeft:SetEndPoint('TOP', 0, 0);
 	self.LineTopRight:SetStartPoint('TOP', 0, 0);
 	self.LineTopRight:SetEndPoint('TOPRIGHT', 0, 0);
-	self.LineBottomLeft:SetStartPoint('BOTTOMLEFT', 0, 8);
-	self.LineBottomLeft:SetEndPoint('BOTTOM', 0, 8);
-	self.LineBottomRight:SetStartPoint('BOTTOM', 0, 8);
-	self.LineBottomRight:SetEndPoint('BOTTOMRIGHT', 0, 8);
+	self.LineBottomLeft:SetStartPoint('BOTTOMLEFT', 0, 7);
+	self.LineBottomLeft:SetEndPoint('BOTTOM', 0, 7);
+	self.LineBottomRight:SetStartPoint('BOTTOM', 0, 7);
+	self.LineBottomRight:SetEndPoint('BOTTOMRIGHT', 0, 7);
 
 	CPAPI.SetGradient(self.LineTopLeft, 'HORIZONTAL', 1, 1, 1, 0, 1, 1, 1, 1);
 	CPAPI.SetGradient(self.LineBottomLeft, 'HORIZONTAL', 1, 1, 1, 0, 1, 1, 1, 1);

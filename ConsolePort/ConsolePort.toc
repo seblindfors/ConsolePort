@@ -14,7 +14,7 @@
 ## X-Wago-ID: LvNAYjNo
 
 ## SavedVariables: ConsolePortSettings, ConsolePortDevices, ConsolePortUIStack, ConsolePortShared
-## SavedVariablesPerCharacter: ConsolePortUtility
+## SavedVariablesPerCharacter: ConsolePortCharacterSettings, ConsolePortUtility
 
 
 Libs\__manifest.xml

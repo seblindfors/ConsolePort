@@ -1,21 +1,56 @@
 local DataAPI, _, db = CPAPI.CreateEventHandler({'Frame', '$parentDataHandler', ConsolePort}), ...;
 local copy = db.table.copy;
-local DEFAULT_DATA;
 
 function DataAPI:OnDataLoaded()
-	DEFAULT_DATA = db('Variables')
-	local settings = setmetatable(ConsolePortSettings or {}, {
-		__index = function(self, key)
-			local var = DEFAULT_DATA[key]
-			if var then
-				return var[1]:Get()
-			end
-		end;
-	})
+	self.Defaults = {};
+	self:OnVariablesChanged(db.Variables)
+	self:UpdateDataSource()
+end
+
+function DataAPI:UpdateDataSource()
+	local settings, saveAsID;
+
+	if not ConsolePortSettings then
+		ConsolePortSettings = {};
+	end
+
+	if ConsolePortCharacterSettings then
+		saveAsID = 'ConsolePortCharacterSettings';
+		settings = CPAPI.Proxy(ConsolePortCharacterSettings,
+			CPAPI.Proxy(ConsolePortSettings, self.Defaults)
+		);
+	else
+		saveAsID = 'ConsolePortSettings';
+		settings = CPAPI.Proxy(ConsolePortSettings, self.Defaults)
+	end
+
 	db:Register('Settings', settings, true)
 	db:Default(settings)
-	db:Save('Settings', 'ConsolePortSettings')
+	db:Save('Settings', saveAsID)
 end
+
+function DataAPI:OnToggleCharacterSettings(enabled)
+	local overrides = ConsolePortCharacterSettings;
+	ConsolePortCharacterSettings = enabled and {} or nil;
+	self:UpdateDataSource()
+	-- Since data source was switched, dispatch to update callbacks
+	db('Settings/useCharacterSettings', enabled)
+	if overrides then
+		-- Trigger updates for all the variables that had overrides
+		for id in pairs(overrides) do
+			db('Settings/'..id, db(id))
+		end
+	end
+end
+
+function DataAPI:OnVariablesChanged(variables)
+	for varID, data in pairs(variables) do
+		self.Defaults[varID] = data[1]:Get();
+	end
+end
+
+db:RegisterCallback('OnVariablesChanged', DataAPI.OnVariablesChanged, DataAPI)
+db:RegisterCallback('OnToggleCharacterSettings', DataAPI.OnToggleCharacterSettings, DataAPI)
 
 ---------------------------------------------------------------
 -- Fields
@@ -24,9 +59,7 @@ local Field = setmetatable({}, {
 	__index = function(self, k)
 		local typeCheck = k:gsub('^Is(%w+)$', '%1');
 		if typeCheck then
-			return function()
-				return self:IsType(typeCheck)
-			end
+			return GenerateClosure(self.IsType, self, typeCheck)
 		end
 		return nop;
 	end;

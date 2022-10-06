@@ -43,7 +43,7 @@
 						<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="-4"/>
 					</Anchors>
 				</FontString>
-				<Texture parentKey="Border" file="Interface\Buttons\UI-ActionButton-Border" hidden="true" alphaMode="ADD">
+				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Assets\Textures\Cooldown\Swipe" hidden="true" alphaMode="ADD">
 					<Size x="62" y="62"/>
 					<Anchors>
 						<Anchor point="CENTER"/>

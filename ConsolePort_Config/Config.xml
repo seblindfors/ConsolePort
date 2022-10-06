@@ -62,7 +62,7 @@
 	</Button>
 
 	<Frame name="CPConfigHeaderTemplate" virtual="true" mixin="CPConfigHeaderMixin">
-		<Size x="500" y="50"/>
+		<Size x="400" y="46"/>
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture parentKey="BG" atlas="bonusobjectives-title-bg" setAllPoints="true"/>
@@ -74,18 +74,11 @@
 				<Line parentKey="LineBottomRight" inherits="CPLineTemplateYellow" hidden="false"/>
 			</Layer>
 			<Layer level="ARTWORK">
-				<FontString parentKey="Text" inherits="Fancy16Font">
+				<FontString parentKey="Text" inherits="Fancy14Font">
 					<Anchors>
 						<Anchor point="CENTER" x="0" y="4"/>
 					</Anchors>
 				</FontString>
-				<Texture parentKey="Emblem" file="Interface\QuestFrame\BonusObjectives.blp">
-					<Size x="57" y="15"/>
-					<TexCoords left="0.35546875" right="0.466796875" top="0.48046875" bottom="0.509765625"/>
-					<Anchors>
-						<Anchor point="BOTTOM" x="0" y="-3"/>
-					</Anchors>
-				</Texture>
 			</Layer>
 		</Layers>
 		<Scripts>

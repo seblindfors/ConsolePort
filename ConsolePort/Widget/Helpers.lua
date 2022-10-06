@@ -504,7 +504,8 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 
 		local modifier = db.Gamepad:GetActiveModifier(button)
 		if modifier then
-			ModListen:RegisterClosure(self, modifier)
+			-- TODO: This seems like it's no longer necessary
+			--ModListen:RegisterClosure(self, modifier)
 		end
 		self:EnableGamePadButton(true)
 		return closure; -- return the event owner

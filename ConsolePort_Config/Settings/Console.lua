@@ -42,6 +42,7 @@ function Setting:GetRawBool(...)
 end
 
 function Setting:OnMapperConfigLoaded()
+	db.Alpha.FadeIn(self, 1, 0, 1)
 	self:OnValueChanged(self:GetRaw())
 end
 
@@ -219,13 +220,15 @@ end
 -- Panel
 ---------------------------------------------------------------
 function PanelMixin:OnFirstShow()
-	LibStub('Carpenter'):BuildFrame(self, {
+	local Carpenter = LibStub('Carpenter')
+	Carpenter:BuildFrame(self, {
 		Select = {
 			_Type  = 'IndexButton';
 			_Setup = 'CPIndexButtonBindingHeaderTemplate';
 			_Mixin = DeviceSelect;
 			_Width = SHORTCUT_WIDTH - 16;
-			_Point = {'TOPLEFT', 8, -32};
+			_Level = 2;
+			_Point = {'TOPLEFT', 8, -FIXED_OFFSET*8};
 			{
 				TopText = {
 					_Type = 'FontString';
@@ -235,16 +238,43 @@ function PanelMixin:OnFirstShow()
 						self:SetText(L'Selected device profile:')
 					end;
 				};
+				HeaderCategories = {
+					_Type  = 'Frame';
+					_Setup = 'CPAnimatedLootHeaderTemplate';
+					_Width = SHORTCUT_WIDTH;
+					_Point = {'BOTTOM', FIXED_OFFSET * 3, -FIXED_OFFSET*9};
+					_Text  = CATEGORIES;
+				};
 			};
+		};
+		LeftBackground = {
+			_Type  = 'Frame';
+			_Setup = 'BackdropTemplate';
+			_Mixin = env.OpaqueMixin;
+			_Backdrop = CPAPI.Backdrops.Opaque;
+			_Width = SHORTCUT_WIDTH + 1;
+			_Level = 1;
+			_Points = {
+				{'TOPLEFT', 0, 0};
+				{'BOTTOMLEFT', 0, 0};
+			};
+			{
+				HeaderDevice = {
+					_Type  = 'Frame';
+					_Setup = 'CPAnimatedLootHeaderTemplate';
+					_Width = SHORTCUT_WIDTH;
+					_Point = {'TOP', FIXED_OFFSET * 3, -FIXED_OFFSET};
+					_Text  = L'Device';
+				};
+			}
 		};
 	}, false, true)
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
 		_Mixin = env.SettingShortcutsMixin;
 		_Width = SHORTCUT_WIDTH;
-		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
-		_Backdrop = CPAPI.Backdrops.Opaque;
+		_Setup = {'CPSmoothScrollTemplate'};
 		_Points = {
-			{'TOPLEFT', '$parent.Select', 'BOTTOMLEFT', -8, -40};
+			{'TOPLEFT', '$parent.Select', 'BOTTOMLEFT', -8, -FIXED_OFFSET * 9};
 			{'BOTTOMLEFT', 0, 200};
 		};
 	})
@@ -254,10 +284,19 @@ function PanelMixin:OnFirstShow()
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
-			{'TOPLEFT', '$parent.Select', 'TOPRIGHT', 8, 32};
-			{'BOTTOMLEFT', '$parent.Shortcuts', 'BOTTOMRIGHT', 0, -200};
+			{'TOPLEFT', '$parent.LeftBackground', 'TOPRIGHT', 0, 0};
+			{'BOTTOMLEFT', '$parent.LeftBackground', 'BOTTOMRIGHT', 0, 0};
 		};
 	})
+	Carpenter:BuildFrame(shortcuts.Child, {
+		HeaderCategories = {
+			_Type  = 'Frame';
+			_Setup = 'CPAnimatedLootHeaderTemplate';
+			_Width = SHORTCUT_WIDTH;
+			_OnLoad = function(self) self.Text:SetText(CATEGORIES) end;
+		};
+	}, false, true)
+
 	self.Select:Construct()
 	cvars.Shortcuts = shortcuts;
 	shortcuts.List = cvars;

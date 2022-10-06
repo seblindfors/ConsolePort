@@ -14,14 +14,15 @@ function Setting:OnLoad()
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 end
 
-function Setting:Construct(name, varID, field, newObj)
+function Setting:Construct(name, varID, field, newObj, callbackID)
 	if newObj then
 		self:SetText(L(name))
 		local constructor = Widgets[varID] or Widgets[field[1]:GetType()];
 		if constructor then
+			callbackID = callbackID or 'Settings/'..varID;
 			constructor(self, varID, field, field[1], field.desc, field.note)
-			self.controller:SetCallback(function(...) db('Settings/'..varID, ...) end)
-			db:RegisterCallback('Settings/'..varID, self.OnValueChanged, self)
+			self.controller:SetCallback(function(...) db(callbackID, ...) end)
+			db:RegisterCallback(callbackID, self.OnValueChanged, self)
 		end
 	end
 	self:Hide()
@@ -60,7 +61,6 @@ end
 
 function Shortcuts:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
-	env.OpaqueMixin.OnLoad(self)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingHeaderTemplate', Shortcut, nil, self.Child)
 	Mixin(self.Child, env.ScaleToContentMixin)
@@ -92,6 +92,7 @@ function Shortcuts:Create(name, ref, count)
 	widget:SetText(L(name))
 	widget.reference = ref;
 	self.lastWidget = widget;
+	return widget;
 end
 
 ---------------------------------------------------------------
@@ -110,11 +111,10 @@ function Options:CreateHeader(group, anchor)
 	else
 		header:SetPoint('TOP', 0, -FIXED_OFFSET)
 	end
-	self.Shortcuts:Create(group, header)
-	return header;
+	return header, self.Shortcuts:Create(group, header);
 end
 
-function Options:DrawOptions(showAdvanced)
+function Options:DrawOptions()
 	self.headerPool:ReleaseAll()
 	self.Shortcuts:OnHide()
 
@@ -193,6 +193,7 @@ function Options:OnLoad()
 	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_WIDTH, FIXED_OFFSET)
 
 	db:RegisterCallback('Settings/showAdvancedSettings', self.DrawOptions, self)
+	db:RegisterCallback('OnToggleCharacterSettings', self.DrawOptions, self)
 	db:RegisterCallback('OnVariablesChanged', self.DrawOptions, self)
 end
 
@@ -200,49 +201,88 @@ end
 -- Panel
 ---------------------------------------------------------------
 function PanelMixin:OnFirstShow()
+	local Carpenter = LibStub('Carpenter')
 	local metaVars = {
 		ShowAdvanced = {
 			_Type  = 'IndexButton';
 			_Setup = 'CPIndexButtonBindingHeaderTemplate';
-			_Point = {'TOP', 0, -FIXED_OFFSET};
+			_Point = {'TOP', 0, -FIXED_OFFSET*5};
 			meta = 'showAdvancedSettings';
+		};
+		CharacterSettings = {
+			_Type  = 'IndexButton';
+			_Setup = 'CPIndexButtonBindingHeaderTemplate';
+			_Point = {'TOP', '$parent.ShowAdvanced', 'BOTTOM', 0, -FIXED_OFFSET};
+			meta = 'useCharacterSettings';
+			call = 'OnToggleCharacterSettings';
+			pred = function() return ConsolePortCharacterSettings ~= nil end;
 		};
 	};
 
-	local varContainer = LibStub('Carpenter'):BuildFrame(self, {
+	local varContainer = Carpenter:BuildFrame(self, {
 		MetaVars = {
 			_Type  = 'Frame';
 			_Setup = 'BackdropTemplate';
-			_Backdrop = CPAPI.Backdrops.Opaque; 
+			_Level = 2;
 			_Width = SHORTCUT_WIDTH + 1;
 			_Points = {
-				{'TOPLEFT', '$parent', 'BOTTOMLEFT', -1, 50 + FIXED_OFFSET};
-				{'BOTTOMLEFT', -1, -1};
+				{'TOPLEFT', 0, 0};
+				{'BOTTOMLEFT', '$parent', 'TOPLEFT', 0, -(((50 + FIXED_OFFSET)*2) + 25)};
 			};
 			metaVars;
 		};
+		LeftBackground = {
+			_Type  = 'Frame';
+			_Setup = 'BackdropTemplate';
+			_Mixin = env.OpaqueMixin;
+			_Backdrop = CPAPI.Backdrops.Opaque;
+			_Width = SHORTCUT_WIDTH + 1;
+			_Level = 1;
+			_Points = {
+				{'TOPLEFT', 0, 0};
+				{'BOTTOMLEFT', 0, 0};
+			};
+		};
 	}, false, true).MetaVars;
 
-	env.OpaqueMixin.OnLoad(varContainer)
+	local headerCategories = Carpenter:BuildFrame(varContainer, {
+		HeaderSettings = {
+			_Type  = 'Frame';
+			_Setup = 'CPAnimatedLootHeaderTemplate';
+			_Width = SHORTCUT_WIDTH;
+			_Point = {'TOP', FIXED_OFFSET * 3, -FIXED_OFFSET};
+			_Text  = ADVANCED_LABEL;
+		};
+		HeaderCategories = {
+			_Type  = 'Frame';
+			_Setup = 'CPAnimatedLootHeaderTemplate';
+			_Width = SHORTCUT_WIDTH;
+			_Point = {'BOTTOM', FIXED_OFFSET * 3, -FIXED_OFFSET*3};
+			_Text  = CATEGORIES;
+		};
+	}, false, true).HeaderCategories;
 
 	for child, data in db.table.spairs(metaVars) do
 		local var = varContainer[child];
 		local field = db('Variables/'.. var.meta)
+		if var.pred then
+			field[1]:Set(var.pred())
+		end
 		env.db.table.mixin(var, Setting)
 		Setting.OnLoad(var)
 		Shortcut.OnLoad(var)
 		var:SetWidth(SHORTCUT_WIDTH - FIXED_OFFSET - 1)
-		var:Construct(field.name, var.meta, field, true)
+		var:Construct(field.name, var.meta, field, true, var.call)
 	end
 
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {
 		_Mixin = Shortcuts;
 		_Width = SHORTCUT_WIDTH;
-		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
-		_Backdrop = CPAPI.Backdrops.Opaque;
+		_Level = 2;
+		_Setup = {'CPSmoothScrollTemplate'};
 		_Points = {
-			{'TOPLEFT', 0, 1};
-			{'BOTTOMLEFT', '$parent.MetaVars', 'TOPLEFT', 0, 0};
+			{'TOPLEFT', '$parent.MetaVars', 'BOTTOMLEFT', 0, -FIXED_OFFSET *3};
+			{'BOTTOMLEFT', 0, 1};
 		};
 	})
 	local options = self:CreateScrollableColumn('Options', {
@@ -251,10 +291,18 @@ function PanelMixin:OnFirstShow()
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
-			{'TOPLEFT', '$parent.Shortcuts', 'TOPRIGHT', 0, 0};
-			{'BOTTOMLEFT', '$parent.MetaVars', 'BOTTOMRIGHT', -1, 0};
+			{'TOPLEFT', '$parent.LeftBackground', 'TOPRIGHT', 0, 0};
+			{'BOTTOMLEFT', '$parent.LeftBackground', 'BOTTOMRIGHT', 0, 0};
 		};
 	})
+
+
+	db:RegisterCallback('Settings/showAdvancedSettings', function(self)
+		self:Play()
+		db.Alpha.FadeIn(shortcuts, 1, 0, 1)
+		db.Alpha.FadeIn(options, 1.5, 0, 1)
+	end, headerCategories)
+
 	options.Shortcuts = shortcuts;
 	shortcuts.List = options;
 end

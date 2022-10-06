@@ -216,3 +216,16 @@ function TempAbility:UpdateItems()
 	self:AdjustHeight()
 	Fader.Toggle(self, 0.1, true)
 end
+
+---------------------------------------------------------------
+-- Add to config
+---------------------------------------------------------------
+ConsolePort:AddVariables({
+	showAbilityBriefing = {db.Data.Bool(true);
+		head = ACCESSIBILITY_LABEL;
+		sort = 3;
+		name = 'Show Ability Briefings';
+		desc = 'Displays a briefing for newly acquired abilities.';
+		note = 'Requires ConsolePort World.';
+	};
+})

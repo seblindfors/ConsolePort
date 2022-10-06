@@ -19,12 +19,10 @@ local getmetatable, setmetatable, rawget, rawset = getmetatable, setmetatable, r
 ----------------------------------------------------------------
 local Database = {};
 
-local __mt = {
-    __call = function(self, ...)
-        local func = select('#', ...) > 1 and self.Set or self.Get;
-        return func(self, ...)
-    end;
-}
+local function __call(self, ...)
+    local func = select('#', ...) > 1 and self.Set or self.Get;
+    return func(self, ...)
+end
 
 local function __cd(dir, idx, nxt, ...)
     if not nxt then
@@ -35,6 +33,7 @@ local function __cd(dir, idx, nxt, ...)
     return __cd(dir, nxt, ...)
 end
 
+-- Public
 function Database:Set(path, value)
     local repo, var = __cd(self, strsplit('/', path))
     if repo and var then
@@ -81,13 +80,6 @@ end
 function Database:Default(tbl)
     rawset(self, 'default', tbl)
     return tbl;
-end
-
-function Database:Call(path, ...)
-    local repo, func = __cd(self, _G[_], path)
-    if repo and func then
-        return func(repo, ...)
-    end
 end
 
 function Database:Copy(path)
@@ -273,7 +265,7 @@ local TableUtils = setmetatable({
 ----------------------------------------------------------------
 setmetatable(Lib, {
     __newindex = nop;
-    __call = function(self, id, db)
+    __call = function(self, id, db, ignoreHookEvents)
         if id then
             local dbHandle = rawget(self, id)
             if dbHandle then
@@ -285,17 +277,22 @@ setmetatable(Lib, {
         local callbackHandle = Mixin(CreateFrame('Frame'), Callbacks)
         callbackHandle:OnLoad()
 
-        Mixin(db, Database)
-        db.table = copy(TableUtils);
         db.default = db;
-        db.callbacks = callbackHandle;
 
-        if (EventRegistry and EventRegistry.TriggerEvent) then
+        if (ignoreHookEvents ~= false and EventRegistry and EventRegistry.TriggerEvent) then
             hooksecurefunc(EventRegistry, 'TriggerEvent', function(_, ...)
                 db:TriggerEvent(...)
             end)
         end
 
-        return setmetatable(db, __mt)
+        return setmetatable(db, {
+            __call = __call;
+            __index = setmetatable(CopyTable(Database), {
+                __index = {
+                    table = copy(TableUtils);
+                    callbacks = callbackHandle;
+                };
+            });
+        })
     end;
 })

@@ -15,7 +15,13 @@ setfenv(__, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', {
 	showAdvancedSettings = {Bool(false);
-		name = 'Show Advanced';
+		name = ALL_SETTINGS;
+		desc = 'Display all available settings.';
+		hide = true;
+	};
+	useCharacterSettings = {Bool(false);
+		name = 'Character Specific';
+		desc = 'Use character specific settings for this character.';
 		hide = true;
 	};
 	--------------------------------------------------------------------------------------------------------
@@ -375,13 +381,6 @@ db:Register('Variables', {
 		sort = 2;
 		name = 'Automatically Sell Junk';
 		desc = 'Automatically sell junk when interacting with a merchant.';
-	};
-	showAbilityBriefing = {Bool(true);
-		head = ACCESSIBILITY_LABEL;
-		sort = 3;
-		name = 'Show Ability Briefings';
-		desc = 'Displays a briefing for newly acquired abilities.';
-		note = 'Requires ConsolePort World.';
 	};
 	mouseFollowOnStickMounted = {Bool(false);
 		head = ACCESSIBILITY_LABEL;

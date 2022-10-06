@@ -184,17 +184,17 @@ local config = {
 -- Acts upon the cluster of buttons as a unified entitiy.
 
 function Cluster:Show()
-	for _, button in pairs(self.Buttons) do
+	for _, button in pairs(self) do
 		button:Show()
 	end
-	self[nomod].shadow:Show()
+	self[nomod].Shadow:Show()
 end
 
 function Cluster:Hide()
-	for _, button in pairs(self.Buttons) do
+	for _, button in pairs(self) do
 		button:Hide()
 	end
-	self[nomod].shadow:Hide()
+	self[nomod].Shadow:Hide()
 end
 
 function Cluster:SetPoint(...)
@@ -208,13 +208,13 @@ end
 
 function Cluster:SetSize(new)
 	local main = self[nomod]
-	for mod, button in pairs(self.Buttons) do
+	for mod, button in pairs(self) do
 		local b, t, o -- button size, texture size, offset value
 		if mod == '' then -- if nomod, handle separately
 			b = new -- 64
 			t = new
 			o = new * ( 82 / size )
-			button.shadow:SetSize(o, o)
+			button.Shadow:SetSize(o, o)
 		else -- calculate size for modifier buttons to maintain correct ratio
 			b = new * ( smallSize / size )
 			t = new * ( tSize / size ) * (mod == 'CTRL-SHIFT-' and .9 or 1)
@@ -239,7 +239,7 @@ function Cluster:SetSize(new)
 end
 
 function Cluster:UpdateOrientation(orientation)
-	for mod, button in pairs(self.Buttons) do
+	for mod, button in pairs(self) do
 		if not button.isMainButton then
 			button:ClearAllPoints()
 			button:Hide()
@@ -265,12 +265,12 @@ function Cluster:SetSwipeColor(r, g, b, a)
 end
 
 function Cluster:ToggleIcon(enabled)
-	self[nomod].hotkey:SetShown(enabled)
+	self[nomod].Hotkey:SetShown(enabled)
 end
 
 function Cluster:ToggleModifiers(enabled)
-	for mod, button in pairs(self.Buttons) do
-		local hotkey1, hotkey2 = button.hotkey1, button.hotkey2
+	for mod, button in pairs(self) do
+		local hotkey1, hotkey2 = button.Hotkey1, button.Hotkey2;
 		if hotkey1 then hotkey1:SetShown(enabled) end
 		if hotkey2 then hotkey2:SetShown(enabled) end
 	end
@@ -284,7 +284,7 @@ function Cluster:SetClassicBorders(enabled)
 end
 
 function Cluster:SetBorderColor(r, g, b, a)
-	for mod, button in pairs(self.Buttons) do
+	for mod, button in pairs(self) do
 		button.NormalTexture:SetVertexColor(r, g, b, a)
 	end
 end
@@ -361,7 +361,7 @@ local function CreateButton(parent, id, name, modifier, size, texSize, config)
 end
 
 local function CreateModifierHotkeyFrame(self, num)
-	return CreateFrame('Frame', '$parent_HOTKEY'..( num or '' ), self, 'CPUIActionButtonTextureOverlayTemplate')
+	return CreateFrame('Frame', nil, self, 'CPUIActionButtonTextureOverlayTemplate')
 end
 
 local function CreateMainHotkeyFrame(self, id)
@@ -386,10 +386,10 @@ function HANDLE:Get(id)
 end
 
 function HANDLE:Create(parent, id)
-	local cluster = { Buttons = {} };
+	local cluster = CPAPI.Proxy({}, Cluster);
 
 	for mod, info in pairs(mods) do
-		local name = 'CPB_' .. (id) .. (mod == '' and mod or ('_' .. (mod:sub(1, #mod -1))))
+		local name = ('CPB_%s_%s'):format(id, mod):gsub('-', '_'):gsub('_$', '')
 		local bSize, tSize = unpack(info.size)
 		local button = CreateButton(parent, id..mod, name, mod, bSize, tSize, mod == '' and config)
 		button.plainID = id
@@ -399,7 +399,6 @@ function HANDLE:Create(parent, id)
 		button:SetAttribute('modifier', mod)
 		-- store button in the cluster
 		cluster[mod] = button
-		cluster.Buttons[mod] = button
 		-- for modifiers only
 		if hotkeyConfig[mod] then
 			for i, modHotkey in pairs(hotkeyConfig[mod]) do
@@ -419,11 +418,9 @@ function HANDLE:Create(parent, id)
 
 	main:SetFrameLevel(4)
 	main:SetAlpha(1)
-	main.hotkey = CreateMainHotkeyFrame(main, id)
-	main.shadow = CreateMainShadowFrame(main)
+	main.Hotkey = CreateMainHotkeyFrame(main, id)
+	main.Shadow = CreateMainShadowFrame(main)
 	db.Alpha.FadeIn(main, 1, 0, 1)
-
-	Mixin(cluster, Cluster)
 
 	Registry[id] = cluster;
 
@@ -511,14 +508,14 @@ function HANDLE:UpdateClusterBindings(cluster, bindings)
 	local main = cluster[nomod];
 
 	if bindings then
-		for modifier, button in pairs(cluster.Buttons) do
+		for modifier, button in pairs(cluster) do
 			local modifierAlt = 'ALT-'..modifier;
 			local binding, bindingAlt = bindings[modifier], bindings[modifierAlt]
 			self:RefreshBinding(binding, cluster, button, modifier, main)
 			self:RefreshBinding(bindingAlt, cluster, button, modifierAlt, main)
 		end
 	else
-		for modifier, button in pairs(cluster.Buttons) do
+		for modifier, button in pairs(cluster) do
 			self:SetEligbleForRebind(button, modifier)
 		end
 	end
