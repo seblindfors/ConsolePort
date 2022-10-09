@@ -259,9 +259,12 @@ function Select:SetRawOptions(options)
 end
 
 ---------------------------------------------------------------
--- Data interface
+-- Data interface (call obj to enter data definition env)
 ---------------------------------------------------------------
-local Data = db:Register('Data', {});
+local Data = db:Register('Data', setmetatable({}, {
+	__call = function(self) setfenv(2, self) end;
+	__index = _G;
+}));
 
 function Data.Button(val, allowModifiers)
 	return Button():SetAllowModifiers(allowModifiers):Set(val)

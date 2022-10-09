@@ -187,14 +187,6 @@ function Mouse:PLAYER_STARTED_MOVING()
 	end
 end
 
-function Mouse:PLAYER_MOUNT_DISPLAY_CHANGED()
-	local isMounted = IsMounted()
-	if (isMounted ~= self.mountedState) then
-		CVar_Follow:Set(isMounted and 1 or 0)
-		self.mountedState = isMounted;
-	end 
-end
-
 do local function OnModifierUpdate(self, elapsed)
 		self.tapTimer = self.tapTimer + elapsed;
 		if self.tapNum > 1 then
@@ -373,22 +365,13 @@ function Mouse:OnVariableChanged()
 	else
 		self:UnregisterEvent('MODIFIER_STATE_CHANGED')
 	end
-
-	if db('mouseFollowOnStickMounted') then
-		self.mountedState = nil;
-		self:RegisterEvent('PLAYER_MOUNT_DISPLAY_CHANGED')
-		self:PLAYER_MOUNT_DISPLAY_CHANGED()
-	else
-		self:UnregisterEvent('PLAYER_MOUNT_DISPLAY_CHANGED')
-	end
 end
 
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
 ---------------------------------------------------------------
 -- Variables
 ---------------------------------------------------------------
-db:RegisterCallbacks(Mouse.OnVariableChanged, Mouse, 
-	'Settings/mouseFollowOnStickMounted',
+db:RegisterCallbacks(Mouse.OnVariableChanged, Mouse,
 	'Settings/doubleTapModifier',
 	'Settings/doubleTapTimeout'
 );

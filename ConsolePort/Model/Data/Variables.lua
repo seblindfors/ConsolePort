@@ -8,8 +8,7 @@ local INTERACT_STR = CPAPI.IsWoW10Version and
 	'[@softinteract,exists] INTERACTTARGET; nil' or
 	'[vehicleui] nil; [@target,noharm][@target,noexists][@target,harm,dead] TURNORACTION; nil';
 
-local unpack, __, db = unpack, ...; __ = 1;
-setfenv(__, setmetatable(db('Data'), {__index = _G}));
+local unpack, _, db = unpack, ...; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
@@ -381,13 +380,6 @@ db:Register('Variables', {
 		sort = 2;
 		name = 'Automatically Sell Junk';
 		desc = 'Automatically sell junk when interacting with a merchant.';
-	};
-	mouseFollowOnStickMounted = {Bool(false);
-		head = ACCESSIBILITY_LABEL;
-		sort = 4;
-		name = 'Follow On Stick While Mounted';
-		desc = 'Sets your camera to "follow on a stick" when you are mounted.';
-		note = 'Enable Settings > Camera > Follow On A Stick instead of this option if this is your preferred permanent camera style.';
 	};
 	UIscale = {Number(1, 0.025, true);
 		head = ACCESSIBILITY_LABEL;

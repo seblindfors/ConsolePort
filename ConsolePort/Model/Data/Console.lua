@@ -1,8 +1,7 @@
 -- Consts
 local MOTION_SICKNESS_CHARACTER_CENTERED = MOTION_SICKNESS_CHARACTER_CENTERED or 'Keep Character Centered';
 local MOTION_SICKNESS_REDUCE_CAMERA_MOTION = MOTION_SICKNESS_REDUCE_CAMERA_MOTION or 'Reduce Camera Motion';
-local unpack, __, db = unpack, ...; __ = 1; local Console = {};
-setfenv(__, setmetatable(db('Data'), {__index = _G}));
+local unpack, _, db = unpack, ...; local Console = {}; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 -- Blizzard console variables
 ------------------------------------------------------------------------------------------------------------
@@ -150,13 +149,11 @@ db:Register('Console', setmetatable({
 			desc = 'Auto-adjusts your camera, allowing you to control movement with a single stick.';
 			note = ('|T%s:128:128:0|t'):format([[Interface\AddOns\ConsolePort_Config\Assets\jose.blp]]);
 		};
-		CPAPI.IsRetailVersion and
 		{	cvar = 'CameraFollowGamepadAdjustDelay';
 			type = Number(1, 0.25);
 			name = 'FOAS Adjust Delay';
 			desc = 'Delay before starting to adjust angle when camera control is idle, in seconds.';
 		};
-		CPAPI.IsRetailVersion and
 		{	cvar = 'CameraFollowGamepadAdjustEaseIn';
 			type = Number(1, 0.25);
 			name = 'FOAS Adjust Ease In';

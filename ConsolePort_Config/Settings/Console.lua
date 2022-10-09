@@ -191,14 +191,16 @@ function Console:DrawOptions(showAdvanced)
 		prev = self:CreateHeader(group, prev)
 
 		for i, data in db.table.spairs(set) do
-			local widget, newObj = self:TryAcquireRegistered(group..':'..data.cvar)
-			if newObj then
-				widget:SetDrawOutline(true)
-				widget:OnLoad()
+			if GetCVar(data.cvar) then
+				local widget, newObj = self:TryAcquireRegistered(group..':'..data.cvar)
+				if newObj then
+					widget:SetDrawOutline(true)
+					widget:OnLoad()
+				end
+				widget:Construct(data, newObj, self)
+				widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)
+				prev = widget;
 			end
-			widget:Construct(data, newObj, self)
-			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)
-			prev = widget;
 		end
 	end
 	self.Child:SetHeight(nil)
