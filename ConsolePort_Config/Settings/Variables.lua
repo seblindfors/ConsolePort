@@ -271,7 +271,7 @@ function PanelMixin:OnFirstShow()
 		env.db.table.mixin(var, Setting)
 		Setting.OnLoad(var)
 		Shortcut.OnLoad(var)
-		var:SetWidth(SHORTCUT_WIDTH - FIXED_OFFSET - 1)
+		var:SetWidth(SHORTCUT_WIDTH - FIXED_OFFSET * 2)
 		var:Construct(field.name, var.meta, field, true, var.call)
 	end
 
