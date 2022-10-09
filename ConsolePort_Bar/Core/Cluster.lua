@@ -312,6 +312,24 @@ end
 ---------------------------------------------------------------
 -- Cluster piece configuration
 ---------------------------------------------------------------
+local function CreateModifierHotkeyFrame(self, num)
+	return CreateFrame('Frame', nil, self, 'CPUIActionButtonTextureOverlayTemplate')
+end
+
+local function CreateMainHotkeyFrame(self, id)
+	local hotkey = CreateFrame('Frame', nil, self, 'CPUIActionButtonMainHotkeyTemplate')
+	hotkey.texture:SetTexture(db('Icons/32/'..id))
+	return hotkey
+end
+
+local function CreateMainShadowFrame(self)
+	-- create this as a separate frame so that drop shadow doesn't overlay modifiers
+	-- note: shadow is child of bar, not of button
+	local shadow = CreateFrame('Frame', nil, env.bar, 'CPUIActionButtonMainShadowTemplate')
+	shadow:SetPoint('CENTER', self, 'CENTER', 0, -6)
+	return shadow
+end
+
 local function CreateButton(parent, id, name, modifier, size, texSize, config)
 	local button = acb:CreateButton(id, name, parent, config)
 
@@ -333,11 +351,31 @@ local function CreateButton(parent, id, name, modifier, size, texSize, config)
 	button.cooldown:SetBlingTexture(textures.cool_bling)
 	button.cooldown.text = button.cooldown:GetRegions()
 
-	-- Small buttons should not have drop shadow and smaller CD font
-	if modifier ~= '' then
+	if modifier == '' then -- This is the main large button
+		button:SetFrameLevel(4)
+		button:SetAlpha(1)
+		button.isMainButton = true;
+
+		button.Hotkey = CreateMainHotkeyFrame(button, id)
+		button.Shadow = CreateMainShadowFrame(button)
+	else
+		-- Small buttons should have smaller CD font and no drop shadow
 		local file, height, flags = button.cooldown.text:GetFont()
 		button.cooldown.text:SetFont(file, height * 0.75, flags)
 		button:ToggleShadow(false)
+
+		-- Add modifier icons
+		if hotkeyConfig[modifier] then
+			for i, modHotkey in pairs(hotkeyConfig[modifier]) do
+				local hotkey = CreateModifierHotkeyFrame(button, i)
+				local iconID = db.UIHandle:GetUIControlBinding(modHotkey[3])
+				hotkey:SetPoint(unpack(modHotkey[1]))
+				hotkey:SetSize(unpack(modHotkey[2]))
+				hotkey.texture:SetTexture(iconID and db('Icons/32/'..iconID))
+				hotkey:SetAlpha(0.75)
+				button['hotkey'..i] = hotkey
+			end
+		end
 	end
 
 	if textures.cool_edge then
@@ -358,24 +396,6 @@ local function CreateButton(parent, id, name, modifier, size, texSize, config)
 	button:SetAlpha(0)
 
 	return button
-end
-
-local function CreateModifierHotkeyFrame(self, num)
-	return CreateFrame('Frame', nil, self, 'CPUIActionButtonTextureOverlayTemplate')
-end
-
-local function CreateMainHotkeyFrame(self, id)
-	local hotkey = CreateFrame('Frame', nil, self, 'CPUIActionButtonMainHotkeyTemplate')
-	hotkey.texture:SetTexture(db('Icons/32/'..id))
-	return hotkey
-end
-
-local function CreateMainShadowFrame(self)
-	-- create this as a separate frame so that drop shadow doesn't overlay modifiers
-	-- note: shadow is child of bar, not of button
-	local shadow = CreateFrame('Frame', nil, env.bar, 'CPUIActionButtonMainShadowTemplate')
-	shadow:SetPoint('CENTER', self, 'CENTER', 0, -6)
-	return shadow
 end
 
 ---------------------------------------------------------------
@@ -399,31 +419,11 @@ function HANDLE:Create(parent, id)
 		button:SetAttribute('modifier', mod)
 		-- store button in the cluster
 		cluster[mod] = button
-		-- for modifiers only
-		if hotkeyConfig[mod] then
-			for i, modHotkey in pairs(hotkeyConfig[mod]) do
-				local hotkey = CreateModifierHotkeyFrame(button, i)
-				local iconID = db.UIHandle:GetUIControlBinding(modHotkey[3])
-				hotkey:SetPoint(unpack(modHotkey[1]))
-				hotkey:SetSize(unpack(modHotkey[2]))
-				hotkey.texture:SetTexture(iconID and db('Icons/32/'..iconID))
-				hotkey:SetAlpha(0.75)
-				button['hotkey'..i] = hotkey
-			end
-		end
 	end
 
-	local main = cluster[nomod]
-	main.isMainButton = true
-
-	main:SetFrameLevel(4)
-	main:SetAlpha(1)
-	main.Hotkey = CreateMainHotkeyFrame(main, id)
-	main.Shadow = CreateMainShadowFrame(main)
-	db.Alpha.FadeIn(main, 1, 0, 1)
+	db.Alpha.FadeIn(cluster[nomod], 1, 0, 1)
 
 	Registry[id] = cluster;
-
 	return cluster;
 end
 

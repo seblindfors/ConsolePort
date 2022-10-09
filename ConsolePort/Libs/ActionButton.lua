@@ -12,7 +12,7 @@ local MAJOR_VERSION = 'CPActionButton';
 local MINOR_VERSION = 1;
 
 if not LibStub then error(MAJOR_VERSION .. ' requires LibStub.') end
-local lib, oldversion = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
+local lib = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
 if not lib then return end
 
 local _, db = ...;
