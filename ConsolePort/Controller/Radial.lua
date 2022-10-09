@@ -71,18 +71,17 @@ Dispatcher:EnableGamePadStick(false)
 RadialMixin.Env = {
 	GetIndex = [[
 		local stickID, size = ...
-		return radial:RunAttribute(
-			'GetIndexForStickPosition',
+		return radial::GetIndexForStickPosition(
 			stickID or self:GetAttribute('stick'),
-			size or UpdateSize and self:Run(UpdateSize) or
+			size or UpdateSize and self::UpdateSize() or
 			self:GetAttribute('size')
 		);
 	]];
 	GetButtonsHeld = [[
-		return radial:RunAttribute('GetButtonsHeld')
+		return radial::GetButtonsHeld()
 	]];
 	GetModifiersHeld = [[
-		return radial:RunAttribute('GetModifiersHeld')
+		return radial::GetModifiersHeld()
 	]];
 	SpaceEvenly = [[
 		local children = newtable(self:GetChildren())
@@ -91,7 +90,7 @@ RadialMixin.Env = {
 		self:SetAttribute('size', count)
 		for i, child in ipairs(children) do
 			child:ClearAllPoints()
-			child:SetPoint('CENTER', radial:RunAttribute('GetPointForIndex', i, count, radius))
+			child:SetPoint('CENTER', radial::GetPointForIndex(i, count, radius))
 		end
 	]];
 	SetBinding = [[
@@ -100,15 +99,15 @@ RadialMixin.Env = {
 		self:CallMethod('OnBindingSet', btn, mod)
 	]];
 	SetBindingsForTriggers = [[
-		local mods = newtable(self:Run(GetModifiersHeld))
-		local btns = newtable(self:Run(GetButtonsHeld))
+		local mods = newtable(self::GetModifiersHeld())
+		local btns = newtable(self::GetButtonsHeld())
 		table.sort(mods)
 		mods[#mods+1] = table.concat(mods)
 
 		for _, btn in ipairs(btns) do
-			self:Run(SetBinding, btn)
+			self::SetBinding(btn)
 			for _, mod in ipairs(mods) do
-				self:Run(SetBinding, btn, mod)
+				self::SetBinding(btn, mod)
 			end
 		end
 		return #btns > 0;
@@ -217,8 +216,8 @@ Radial:CreateEnvironment({
 	-- @return y      : number, the Y-position from CENTER
 	GetPointForIndex = [[
 		local index, size, radius = ...
-		local angle = self:Run(GetAngleForIndex, index, size)
-		return self:Run(GetPointForAngle, angle, radius)
+		local angle = self::GetAngleForIndex(index, size)
+		return self::GetPointForAngle(angle, radius)
 	]];
 	-- @param  angle  : number[0, 360], the angle
 	-- @param  radius : number, multiplier for size
@@ -246,7 +245,7 @@ Radial:CreateEnvironment({
 	-- @return index   : number, the slot on the pie
 	GetIndexForStickPosition = [[
 		local stickID, size = ...
-		local x, y, len = self:Run(GetStickPosition, stickID)
+		local x, y, len = self::GetStickPosition(stickID)
 		if not len or len < VALID_VEC_LEN then return end
 
 		local angle = math.deg(math.atan2(x, y)) + ANGLE_IDX_ONE
@@ -254,8 +253,8 @@ Radial:CreateEnvironment({
 
 		local offset, index = math.huge
 		for i=1, size do
-			local comp = self:Run(GetAngleForIndex, i, size)
-			local distance = self:Run(GetAngleDistance, angle, comp)
+			local comp = self::GetAngleForIndex(i, size)
+			local distance = self::GetAngleDistance(angle, comp)
 			if distance < offset then
 				offset, index = distance, i
 			end
