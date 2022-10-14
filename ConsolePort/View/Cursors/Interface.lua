@@ -495,14 +495,14 @@ do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
 	end
 
 	function Cursor:OnLeaveNode(node)
-		if node then
+		if node and not (node:IsObjectType('Button') and not node:IsEnabled()) then
 			Hooks:OnNodeLeave()
 			TriggerScript(node, 'OnLeave', SafeOnLeave)
 		end
 	end
 
 	function Cursor:OnEnterNode(node)
-		if node then
+		if node and not (node:IsObjectType('Button') and not node:IsEnabled()) then
 			TriggerScript(node, 'OnEnter', SafeOnEnter)
 		end
 	end
