@@ -175,6 +175,32 @@ function SetupSecureSnippets(button)
 		if self:GetID() > 0 then
 			self:CallMethod('ButtonContentsChanged', state, type, action + ((self:GetAttribute('actionpage') - 1) * 12))
 		end
+		if IsPressHoldReleaseSpell then
+			local pressAndHold = false
+			if type == "action" then
+				self:SetAttribute("typerelease", "actionrelease")
+				local actionType, id = GetActionInfo(action)
+				if actionType == "spell" then
+					pressAndHold = IsPressHoldReleaseSpell(id)
+				elseif actionType == "macro" then
+					-- GetMacroSpell is not in the restricted environment
+					--[=[
+						local spellID = GetMacroSpell(id)
+						if spellID then
+							pressAndHold = IsPressHoldReleaseSpell(spellID)
+						end
+					]=]
+				end
+			elseif type == "spell" then
+				self:SetAttribute("typerelease", nil)
+				-- XXX: while we can query this attribute, there is no corresponding action to release a spell button, only "actionrelease" exists
+				pressAndHold = IsPressHoldReleaseSpell(action)
+			else
+				self:SetAttribute("typerelease", nil)
+			end
+
+			self:SetAttribute("pressAndHoldAction", pressAndHold)
+		end
 		local onStateChanged = self:GetAttribute('OnStateChanged')
 		if onStateChanged then
 			self:Run(onStateChanged, state, type, action)
