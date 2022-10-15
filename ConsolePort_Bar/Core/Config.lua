@@ -512,70 +512,15 @@ function Clusters:UpdateOptions()
 end
 
 ---------------------------------------------------------------
--- Mover
----------------------------------------------------------------
-local Mover = {};
-
-function Mover:OnDragStart()
-	local button = self.button;
-	button:SetClampedToScreen(true)
-	button:SetMovable(true)
-	button:StartMoving()
-	env.db.Alpha.FadeOut(env.config.Config, 0.25, env.config.Config:GetAlpha(), 0)
-	self:RegisterEvent('PLAYER_REGEN_DISABLED')
-	self:SetScript('OnEvent', self.OnDragStop)
-end
-
-function Mover:OnDragStop()
-	local button = self.button;
-	button:StopMovingOrSizing()
-	button:SetMovable(false)
-	button:SetClampedToScreen(false)
-
-	env.db.Alpha.FadeIn(env.config.Config, 0.25, env.config.Config:GetAlpha(), 1)
-	self:UnregisterAllEvents()
-	self:SetScript('OnEvent', nil)
-
-	local layout = env:Get('layout')
-	local barX, barY = env.bar:GetCenter()
-	local point, x, y = 'CENTER', button:GetCenter()
-
-	layout[button.plainID].point = {point, floor(x - barX), floor(y - barY)};
-	env:Set('layout', layout)
-end
-
-function Mover:OnLoad()
-	self:RegisterForDrag('LeftButton')
-	self:EnableMouse(true)
-end
-
----------------------------------------------------------------
 -- Panel
 ---------------------------------------------------------------
-function Config:DrawMovers()
-	self.Movers:ReleaseAll()
-	local mixer = env.db.table.mixin;
-	for i, cluster in ipairs(env.bar.Buttons) do
-		local button = cluster[''];
-		local mover, newObj = self.Movers:Acquire()
-		if newObj then
-			mixer(mover, Mover)
-			mover:OnLoad()
-		end
-		mover:SetAllPoints(button)
-		mover:SetFrameLevel(button:GetFrameLevel() + 1)
-		mover:Show()
-		mover.button = button;
-	end
-end
-
 function Config:OnShow()
-	self:DrawMovers()
+	env:ShowMovers()
 end
 
 function Config:OnHide()
 	env:SaveConfig(env.cfg)
-	self.Movers:ReleaseAll()
+	env:HideMovers()
 end
 
 function Config:OnFirstShow()
@@ -633,7 +578,6 @@ function Config:OnFirstShow()
 			{'BOTTOMLEFT', '$parent.Options', 'BOTTOMRIGHT', 0, 0};
 		};
 	})
-	self.Movers = CreateFramePool('Frame', env.bar);
 	env.config.OpaqueMixin.OnLoad(options)
 	env.config.OpaqueMixin.OnLoad(clusters)
 	env.config.OpaqueMixin.OnLoad(cvars)

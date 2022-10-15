@@ -32,3 +32,4 @@ Components\MenuBar.lua
 Components\WatchBars.xml
 Components\ActionbarPlacer.lua
 Components\BindHelper.lua
+Components\Movers.lua
