@@ -204,6 +204,7 @@ function Console:DrawOptions(showAdvanced)
 		end
 	end
 	self.Child:SetHeight(nil)
+	self.Shortcuts.Child:SetHeight(nil)
 end
 
 function Console:OnLoad()
@@ -277,7 +278,7 @@ function PanelMixin:OnFirstShow()
 		_Setup = {'CPSmoothScrollTemplate'};
 		_Points = {
 			{'TOPLEFT', '$parent.Select', 'BOTTOMLEFT', -8, -FIXED_OFFSET * 9};
-			{'BOTTOMLEFT', 0, 200};
+			{'BOTTOMLEFT', 0, 0};
 		};
 	})
 	local cvars = self:CreateScrollableColumn('Console', {

@@ -176,6 +176,7 @@ function Options:DrawOptions()
 		end
 	end
 	self.Child:SetHeight(nil)
+	self.Shortcuts.Child:SetHeight(nil)
 end
 
 function Options:OnShow()
@@ -190,7 +191,7 @@ function Options:OnLoad()
 		'CPIndexButtonBindingHeaderTemplate', Setting, nil, self.Child)
 	Mixin(self.Child, env.ScaleToContentMixin)
 	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_WIDTH, FIXED_OFFSET)
+	self.Child:SetMeasurementOrigin(self, self.Child, GENERAL_WIDTH, FIXED_OFFSET * 2)
 
 	db:RegisterCallback('Settings/showAdvancedSettings', self.DrawOptions, self)
 	db:RegisterCallback('OnToggleCharacterSettings', self.DrawOptions, self)
@@ -299,6 +300,7 @@ function PanelMixin:OnFirstShow()
 
 	db:RegisterCallback('Settings/showAdvancedSettings', function(self)
 		self:Play()
+		options:SetVerticalScroll(0)
 		db.Alpha.FadeIn(shortcuts, 1, 0, 1)
 		db.Alpha.FadeIn(options, 1.5, 0, 1)
 	end, headerCategories)
