@@ -494,15 +494,19 @@ do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
 		end
 	end
 
+	local function IsDisabledButton(node)
+		return node:IsObjectType('Button') and not (node:IsEnabled() or node:GetMotionScriptsWhileDisabled())
+	end
+
 	function Cursor:OnLeaveNode(node)
-		if node and not (node:IsObjectType('Button') and not node:IsEnabled()) then
+		if node and not IsDisabledButton(node) then
 			Hooks:OnNodeLeave()
 			TriggerScript(node, 'OnLeave', SafeOnLeave)
 		end
 	end
 
 	function Cursor:OnEnterNode(node)
-		if node and not (node:IsObjectType('Button') and not node:IsEnabled()) then
+		if node and not IsDisabledButton(node) then
 			TriggerScript(node, 'OnEnter', SafeOnEnter)
 		end
 	end
