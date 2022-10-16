@@ -7,9 +7,8 @@ local unpack, _, db = unpack, ...; local Console = {}; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 db:Register('Console', setmetatable({
 	--------------------------------------------------------------------------------------------------------
-	-- Emulation:
-	--------------------------------------------------------------------------------------------------------
 	Emulation = {
+	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'GamePadEmulateShift';
 			type = Button;
 			name = 'Emulate Shift';
@@ -48,15 +47,8 @@ db:Register('Console', setmetatable({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Cursor:
-	--------------------------------------------------------------------------------------------------------
 	Cursor = {
-		{	cvar = 'GamePadCursorForTargeting';
-			type = Bool(true);
-			name = 'Use Cursor for Spell Targeting';
-			desc = 'Use free-roaming mouse cursor for spell targeting.';
-			note = 'Defaults to target position when using ground-target spells.';
-		};
+	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'GamePadCursorAutoDisableJump';
 			type = Bool(true);
 			name = 'Hide Cursor on Jump';
@@ -90,9 +82,8 @@ db:Register('Console', setmetatable({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Controls:
-	--------------------------------------------------------------------------------------------------------
 	Controls = {
+	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'GamePadAnalogMovement';
 			type = Bool(true);
 			name = 'Analog Movement';
@@ -118,9 +109,8 @@ db:Register('Console', setmetatable({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Camera:
-	--------------------------------------------------------------------------------------------------------
 	Camera = {
+	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'CameraKeepCharacterCentered';
 			type = Bool(true);
 			name = MOTION_SICKNESS_CHARACTER_CENTERED;
@@ -187,13 +177,41 @@ db:Register('Console', setmetatable({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Interact
+	-- Interact (NYI)
 	--------------------------------------------------------------------------------------------------------
-	-- NYI
+	System = {
 	--------------------------------------------------------------------------------------------------------
-	-- Touchpad:
+		{	cvar = 'synchronizeSettings';
+			type = Bool(true);
+			name = 'Synchronize Settings';
+			desc = 'Whether client settings should be saved to the server.';
+			note = 'Master setting for Synchronize Bindings, Synchronize Config and Synchronize Macros.';
+		};
+		{	cvar = 'synchronizeBindings';
+			type = Bool(true);
+			name = 'Synchronize Bindings';
+			desc = 'Whether client keybindings should be saved to the server.';
+		};
+		{	cvar = 'synchronizeConfig';
+			type = Bool(true);
+			name = 'Synchronize Config';
+			desc = 'Whether to save character- and account-scoped variables to the server.';
+		};
+		{	cvar = 'synchronizeMacros';
+			type = Bool(true);
+			name = 'Synchronize Macros';
+			desc = 'Whether client macros should be saved to the server.';
+		};
+		{	cvar = 'GamePadUseWinRTForXbox';
+			type = Bool(true);
+			name = 'Use WinRT Gamepad Mapping (Xbox)';
+			desc = 'Uses a Microsoft API to map Xbox controllers to the game.';
+			note = 'Disable if you are experiencing movement and binding issues.';
+		};
+	};
 	--------------------------------------------------------------------------------------------------------
 	Touchpad = {
+	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'GamePadTouchCursorEnable';
 			type = Bool(false);
 			name = 'Enable Touchpad Cursor';
