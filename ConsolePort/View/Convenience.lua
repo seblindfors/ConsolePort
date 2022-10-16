@@ -85,7 +85,7 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 }, {
 	SellJunkHelper = function(item)
 		if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
-			UseContainerItem(item:GetBagAndSlot())
+			CPAPI.UseContainerItem(item:GetBagAndSlot())
 		end
 	end;
 })

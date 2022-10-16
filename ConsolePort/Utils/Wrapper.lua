@@ -197,6 +197,7 @@ CPAPI.IsXPUserDisabled = IsXPUserDisabled or nop;
 CPAPI.LeaveParty = C_PartyInfo and C_PartyInfo.LeaveParty or LeaveParty;
 CPAPI.PickupContainerItem = C_Container and C_Container.PickupContainerItem or PickupContainerItem;
 CPAPI.PutActionInSlot = C_ActionBar and C_ActionBar.PutActionInSlot or PlaceAction;
+CPAPI.UseContainerItem = C_Container and C_Container.UseContainerItem or UseContainerItem;
 
 end
 
