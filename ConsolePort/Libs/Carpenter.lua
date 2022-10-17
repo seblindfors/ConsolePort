@@ -307,8 +307,9 @@ function Lib:SetGradient(texture, orientation, ...)
         if isOldFormat then 
             return texture:SetGradientAlpha(orientation, ...)
         end
-        local minR, minG, minB, minA = CreateColor(...):GetRGBA()
-        local maxR, maxG, maxB, maxA = CreateColor(select(5, ...)):GetRGBA()
+        local min, max = ...;
+        local minR, minG, minB, minA = ColorMixin.GetRGBA(min)
+        local maxR, maxG, maxB, maxA = ColorMixin.GetRGBA(max)
         return texture:SetGradientAlpha(orientation, minR, minG, minB, minA, maxR, maxG, maxB, maxA)
     end
     if texture.SetGradient then

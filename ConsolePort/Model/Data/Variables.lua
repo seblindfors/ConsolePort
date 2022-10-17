@@ -102,8 +102,8 @@ db:Register('Variables', {
 	mouseFreeCursorReticle = {Bool(false);
 		head = MOUSE_LABEL;
 		sort = 2;
-		name = 'Free Cursor Reticle Targeting';
-		desc = 'Reticle targeting uses free cursor instead of center-fixed cursor.';
+		name = 'Cursor Reticle Targeting';
+		desc = 'Reticle targeting uses free cursor instead of staying center-fixed.';
 		note = 'Reticle targeting means anything you place on the ground.';
 	};
 	mouseHideCursorOnMovement = {Bool(false);
@@ -142,28 +142,34 @@ db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
 	-- Radial:
 	--------------------------------------------------------------------------------------------------------
-	radialClearFocusTime = {Number(0.5, 0.025);
+	radialStickySelect = {Bool(false);
 		head = 'Radial Menus';
 		sort = 1;
-		name = 'Radial Focus Timeout';
+		name = 'Sticky Selection';
+		desc = 'Selecting an item on a ring will stick until another item is chosen.';
+	};
+	radialClearFocusTime = {Number(0.5, 0.025);
+		head = 'Radial Menus';
+		sort = 2;
+		name = 'Focus Timeout';
 		desc = 'Time to clear focus after intercepting stick input, in seconds.';
 	};
 	radialScale = {Number(1, 0.025, true);
 		head = 'Radial Menus';
-		sort = 2;
+		sort = 3;
 		name = 'Ring Scale';
 		desc = 'Scale of all radial menus, relative to UI scale.';
 		advd = true;
 	};
 	radialActionDeadzone = {Range(0.5, 0.05, 0, 1);
 		head = 'Radial Menus';
-		sort = 3;
-		name = 'Radial Deadzone';
-		desc = 'Deadzone for simple pie menus.';
+		sort = 4;
+		name = 'Deadzone';
+		desc = 'Deadzone for simple point-to-select rings.';
 	};
 	radialCosineDelta = {Delta(1);
 		head = 'Radial Menus';
-		sort = 5;
+		sort = 6;
 		name = 'Axis Interpretation';
 		desc = 'Correlation between stick position and pie selection.';
 		note = '+ Normal\n- Inverted';
@@ -171,16 +177,16 @@ db:Register('Variables', {
 	};
 	radialPrimaryStick = {Select('Movement', unpack(STICK_SELECT));
 		head = 'Radial Menus';
-		sort = 6;
+		sort = 7;
 		name = 'Primary Stick';
 		desc = 'Stick to use for main radial actions.';
 		note = 'Make sure your choice does not conflict with your bindings.';
 	};
 	radialRemoveButton = {Button('PADRSHOULDER');
 		head = 'Radial Menus';
-		sort = 8;
+		sort = 9;
 		name = 'Remove Button';
-		desc = 'Button used to remove a selected item from an editable pie menu.';
+		desc = 'Button used to remove a selected item from an editable ring.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Radial:
