@@ -346,15 +346,17 @@ function Hotkey:OnUpdateModifierHotkeyCallback()
 end
 
 local function CreateModifierHotkeyFrame(self, modConfig)
-	return db:RegisterCallback('OnIconsChanged', Hotkey.OnUpdateModifierHotkeyCallback,
-		Mixin(CreateFrame('Frame', nil, self, 'CPUIActionButtonTextureOverlayTemplate'), Hotkey)
-		:OnLoad(nil, modConfig))
+	local frame = Mixin(CreateFrame('Frame', nil, self, 'CPUIActionButtonTextureOverlayTemplate'), Hotkey)
+		:OnLoad(nil, modConfig)
+	db:RegisterCallback('OnIconsChanged', Hotkey.OnUpdateModifierHotkeyCallback, frame)
+	return frame;
 end
 
 local function CreateMainHotkeyFrame(self, id)
-	return db:RegisterCallback('OnIconsChanged', Hotkey.OnUpdateHotkeyCallback,
-		Mixin(CreateFrame('Frame', nil, self, 'CPUIActionButtonMainHotkeyTemplate'), Hotkey)
-		:OnLoad(id, hotkeyConfig[''][1]))
+	local frame = Mixin(CreateFrame('Frame', nil, self, 'CPUIActionButtonMainHotkeyTemplate'), Hotkey)
+		:OnLoad(id, hotkeyConfig[''][1])
+	db:RegisterCallback('OnIconsChanged', Hotkey.OnUpdateHotkeyCallback, frame)
+	return frame;
 end
 
 local function CreateMainShadowFrame(self)
