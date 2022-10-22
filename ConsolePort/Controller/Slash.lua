@@ -312,7 +312,7 @@ LibStub('Carpenter'):BuildFrame(GameMenuFrame, {
 		_Macro = '/click GameMenuButtonContinue\n/consoleport';
 		_RegisterForClicks = 'AnyUp';
 		_OnLoad = function(self)
-			self:SetAttribute(CPAPI.IsWoW10Version and 'typerelease' or 'type', 'macro')
+			self:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
 			self:SetAttribute('pressAndHoldAction', true)
 			self:SetNormalTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
 			self:SetPushedTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))

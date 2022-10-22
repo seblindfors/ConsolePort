@@ -10,7 +10,6 @@ do	-- Initiate frame
 	local IsWoW10Version  = CPAPI.IsWoW10Version;
 	local IsWoW9Version   = not IsWoW10Version or nil;
 	local IsClassicVersion = not CPAPI.IsRetailVersion or nil;
-	local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 
 	LibStub('Carpenter')(Menu, {
 		Character = {
@@ -699,14 +698,14 @@ do	-- Initiate frame
 		for i, button in ipairs({header:GetChildren()}) do
 			if button:IsObjectType('Button') then
 				if button:GetAttribute('hidemenu') then
-					button:SetAttribute(TYPE_ATTRIBUTE, 'macro')
+					button:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
 					button:SetAttribute('macrotext', '/click GameMenuButtonContinue')
 				end
 				if button.RefTo then
 					local macrotext = button:GetAttribute('macrotext')
 					local prefix = (macrotext and macrotext .. '\n') or ''
 					button:SetAttribute('macrotext', prefix .. '/click ' .. button.RefTo:GetName())
-					button:SetAttribute(TYPE_ATTRIBUTE, 'macro')
+					button:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
 				end
 				button:SetAttribute('pressAndHoldAction', true)
 				button:Hide()

@@ -12,13 +12,12 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 local Button = CreateFromMixins(CPActionButton);
 ---------------------------------------------------------------
 local DEFAULT_SET, EXTRA_ACTION_ID = 1, CPAPI.ExtraActionButtonID;
-local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 ---------------------------------------------------------------
 Utility.Data = {[DEFAULT_SET] = {}};
 Utility:Execute(([[
 	DATA = newtable()
 	TYPE = '%s';
-]]):format(TYPE_ATTRIBUTE))
+]]):format(CPAPI.ActionTypeRelease))
 ---------------------------------------------------------------
 db:Register('Utility', Utility)
 db:Save('Utility/Data', 'ConsolePortUtility')
@@ -137,7 +136,7 @@ Utility:Wrap('PreClick', ([[
 		self:ClearBindings()
 		self:Hide()
 	end
-]]):gsub('TYPE', TYPE_ATTRIBUTE))
+]]):gsub('TYPE', CPAPI.ActionTypeRelease))
 
 
 ---------------------------------------------------------------
@@ -208,7 +207,7 @@ end
 
 function Utility:OnStickySelectChanged()
 	self:SetAttribute('stickySelect', db('radialStickySelect'))
-	self:SetAttribute(TYPE_ATTRIBUTE, nil)
+	self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 	self:SetAttribute('backup', nil)
 end
 

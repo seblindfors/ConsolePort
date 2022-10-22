@@ -6,7 +6,6 @@
 -- default actions of gamepad inputs.
 
 local _, db = ...; local Hooks = db.Hooks;
-local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 local InputMixin, InputAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parentInputHandler', ConsolePort, 'SecureHandlerStateTemplate'}, {
 	'PLAYER_REGEN_DISABLED'; -- enter combat
 	'PLAYER_REGEN_ENABLED';  -- leave combat
@@ -100,7 +99,7 @@ function InputMixin:Button(value, isPriority, click)
 		button = click;
 		isPriority = isPriority;
 		attributes = {
-			[TYPE_ATTRIBUTE] = 'click';
+			[CPAPI.ActionTypeRelease] = 'click';
 			clickbutton = value;
 		}
 	})
@@ -112,7 +111,7 @@ function InputMixin:Macro(value, isPriority, click)
 		button = click;
 		isPriority = isPriority;
 		attributes = {
-			[TYPE_ATTRIBUTE] = 'macro';
+			[CPAPI.ActionTypeRelease] = 'macro';
 			macrotext = value;
 		}
 	})
@@ -125,7 +124,7 @@ function InputMixin:Global(value, isPriority, click)
 		isPriority = isPriority;
 		target = value;
 		attributes = {
-			[TYPE_ATTRIBUTE] = 'none';
+			[CPAPI.ActionTypeRelease] = 'none';
 		}
 	})
 end
@@ -147,7 +146,7 @@ function InputMixin:Command(isPriority, click, name, func, init, clear, ...)
 		button = click;
 		isPriority = isPriority;
 		attributes = {
-			[TYPE_ATTRIBUTE] = name;
+			[CPAPI.ActionTypeRelease] = name;
 		}
 	})
 end
@@ -236,7 +235,7 @@ function InputMixin:OnLoad(id)
 end
 
 function InputMixin:OnMouseDown()
-	local func  = self:GetAttribute(TYPE_ATTRIBUTE)
+	local func  = self:GetAttribute(CPAPI.ActionTypeRelease)
 	local click = self:GetAttribute('clickbutton')
 	self.state, self.timer = true, 0;
 
@@ -247,7 +246,7 @@ function InputMixin:OnMouseDown()
 end
 
 function InputMixin:OnMouseUp()
-	local func  = self:GetAttribute(TYPE_ATTRIBUTE)
+	local func  = self:GetAttribute(CPAPI.ActionTypeRelease)
 	local click = self:GetAttribute('clickbutton')
 	self.state = false;
 
@@ -264,8 +263,8 @@ end
 function InputMixin:EmulateFrontend(click, state, script)
 	if click:IsEnabled() then
 		if Hooks:ProcessInterfaceClickEvent(script, click, state) then
-			self.postreset = self:GetAttribute(TYPE_ATTRIBUTE)
-			self:SetAttribute(TYPE_ATTRIBUTE, nil)
+			self.postreset = self:GetAttribute(CPAPI.ActionTypeRelease)
+			self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 		end
 		ExecuteFrameScript(click, script)
 		return click:SetButtonState(state)
@@ -274,7 +273,7 @@ end
 
 function InputMixin:PostClick(...)
 	if self.postreset then
-		self:SetAttribute(TYPE_ATTRIBUTE, self.postreset)
+		self:SetAttribute(CPAPI.ActionTypeRelease, self.postreset)
 		self.postreset = nil;
 	end
 end

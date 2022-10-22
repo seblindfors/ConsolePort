@@ -45,8 +45,6 @@ EM.GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 
 -- Mixin functions for the hotkey display
 local HotkeyMixin, GroupMixin = {}, {}
--- Type attribute to use for targeting
-local TYPE_ATTRIBUTE = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 
 ---------------------------------------------------------------
 -- Initialize secure namespace
@@ -78,7 +76,7 @@ end
 
 -- Run snippets
 ---------------------------------------------------------------
-for name, script in pairs({[TYPE_ATTRIBUTE] = 'macro',
+for name, script in pairs({[CPAPI.ActionTypeRelease] = 'macro',
 	-- Parse the input
 	Input = [[
 		key = ...

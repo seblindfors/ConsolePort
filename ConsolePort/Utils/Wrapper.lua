@@ -70,10 +70,14 @@ function CPAPI.GetAverageItemLevel(...)
 end
 
 ---------------------------------------------------------------
--- Extra action button ID
+-- Action button info
 ---------------------------------------------------------------
 CPAPI.ExtraActionButtonID = ExtraActionButton1 and ExtraActionButton1.action or
-	CPAPI.IsWoW10Version and 181 or 169;
+	CPAPI.IsWoW10Version and 217 or 169;
+
+-- BUG: release/click logic in SecureTemplates.lua in 10.0.46144, use 'type' for now
+CPAPI.ActionTypeRelease = 'type';--CPAPI.IsWoW10Version and 'typerelease' or 'type';
+CPAPI.ActionTypePress   = 'type';
 
 ---------------------------------------------------------------
 -- Internal wrappers
