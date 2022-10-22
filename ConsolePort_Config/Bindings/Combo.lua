@@ -153,11 +153,11 @@ function Combos:OnShow()
 				local modstring = '';
 
 				for i, mod in db.table.ripairs(data.modifier) do
-					modstring = modstring .. ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(mod)
+					modstring = modstring .. (db.Hotkeys:FormatIconSlug(mod, nil, '|A:%s:12:12|a') or '')
 				end
 
+				CPAPI.SetTextureOrAtlas(widget.Icon, data.button)
 				widget.Modifier:SetText(modstring)
-				widget:SetIcon(data.button)
 				widget:SetID(id)
 				widget:SetAttribute('combo', mod..button)
 				widget:Show()

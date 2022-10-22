@@ -35,8 +35,6 @@ function Shortcuts:OnShow()
 		local button = map[i].Binding;
 		-- assert this button has an icon
 		if ( device:IsButtonValidForBinding(button) ) then
-
-			local icon = device:GetIconForButton(button)
 			local widget, newObj = self:Acquire(button)
 
 			if newObj then
@@ -47,8 +45,8 @@ function Shortcuts:OnShow()
 				CPAPI.Start(widget)
 			end
 
+			CPAPI.SetTextureOrAtlas(widget.Icon, {device:GetIconForButton(button)})
 			widget:SetAttribute('button', button)
-			widget:SetIcon(icon)
 			widget:SetID(id)
 			widget:Show()
 			widget:SetPoint('TOP', prev or self.Child, prev and 'BOTTOM' or 'TOP', 0, 0)

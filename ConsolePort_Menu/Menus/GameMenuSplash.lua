@@ -130,11 +130,11 @@ function Grid:OnShow()
 				local modstring = '';
 
 				for i, mod in env.db.table.ripairs(data.modifier) do
-					modstring = modstring .. ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(mod)
+					modstring = modstring .. (env.db.Hotkeys:FormatIconSlug(mod, nil, '|A:%s:12:12|a') or '')
 				end
 
 				widget.Modifier:SetText(modstring)
-				widget:SetIcon(data.button)
+				CPAPI.SetTextureOrAtlas(widget.Icon, data.button)
 				widget:SetID(id)
 				widget:SetAttribute('combo', mod..button)
 				widget:Show()

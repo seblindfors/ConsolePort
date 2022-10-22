@@ -66,42 +66,50 @@ db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, Hotke
 ---------------------------------------------------------------
 -- API
 ---------------------------------------------------------------
+HotkeyHandler.IconFormat = ('|T%s:0:0:0:0:32:32:8:24:8:24|t')
+HotkeyHandler.AtlasFormat = ('|A:%s:14:14|a')
+
 function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	for i, modifier in ipairs(modifiers) do
 		local button = db('Gamepad/Index/Modifier/Key/'..modifier)
-		modifiers[i] = button and device:GetIconForButton(button, style) or nil
+		modifiers[i] = button and {device:GetIconForButton(button, style)} or {}
 	end
 	return modifiers
 end
 
 function HotkeyHandler:GetHotkeyData(device, btnID, modID, styleMain, styleMod)
 	return {
-		button = device:GetIconForButton(btnID, styleMain);
+		button = {device:GetIconForButton(btnID, styleMain)};
 		modifier = self:GetIconsForModifier({strsplit('-', modID)}, device, styleMod);
 	}
 end
 
+function HotkeyHandler:FormatIconSlug(iconData, iconFormat, atlasFormat)
+	local icon, isAtlas = unpack(iconData)
+	if not icon then return end;
+	if isAtlas then
+		return (atlasFormat or self.AtlasFormat):format(icon), icon, true;
+	end
+	return (iconFormat or self.IconFormat):format(icon), icon, false;
+end
+
 function HotkeyHandler:GetButtonSlug(device, btnID, modID, split)
-	local icon, isTextAbbr = ('|T%s:0:0:0:0:32:32:8:24:8:24|t')
 	local data = self:GetHotkeyData(device, btnID, modID, split and 64 or 32, 32)
-	if not data.button then
-		data.button = _G[('KEY_ABBR_%s'):format(btnID)] or btnID:gsub('^PAD', '');
-		isTextAbbr = true;
+	local slug = {};
+
+	for i, modData in db.table.ripairs(data.modifier) do
+		slug[#slug + 1] = self:FormatIconSlug(modData, self.IconFormat, self.AtlasFormat)
 	end
-	local slug = split and {} or '';
-	for i, mod in db.table.ripairs(data.modifier) do
-		if mod then
-			if split then
-				slug[#slug + 1] = icon:format(mod)
-			else
-				slug = slug .. icon:format(mod)
-			end
-		end
-	end
+
 	if split then
 		return slug, data;
 	end
-	return slug .. (isTextAbbr and data.button or icon:format(data.button));
+
+	slug[#slug + 1] = self:FormatIconSlug(data.button, self.IconFormat, self.AtlasFormat)
+		or _G[('KEY_ABBR_%s'):format(btnID)]
+		or btnID:gsub('^PAD', '')
+
+	return table.concat(slug)
 end
 
 function HotkeyHandler:GetButtonSlugForBinding(binding, split)
@@ -143,7 +151,7 @@ function HotkeyHandler:UpdateHotkeys(device)
 	self.Widgets:ReleaseAll()
 	assert(device, 'No device specified when attempting to update hotkeys.')
 	if db('disableHotkeyRendering') then return end
-	self:ReplaceHotkeyFont()
+	if not CPAPI.IsWoW10Version then self:ReplaceHotkeyFont() end
 
 	local bindings = db.Gamepad:GetBindings()
 	local bindingToActionID = {}
@@ -253,16 +261,20 @@ HotkeyMixin.Templates = {
 		self:SetPoint('TOPRIGHT', owner, 0, 0)
 		local cur = self:Acquire()
 
-		cur:SetSize(24, 24)
-		cur:SetPoint('TOPRIGHT', 4, 4)
-		cur:SetTexture(button)
+		local _, isAtlas = unpack(button)
+		local offset = isAtlas and 2 or 4;
+		local size = isAtlas and 14 or 24;
+
+		CPAPI.SetTextureOrAtlas(cur, button)
+		cur:SetSize(size, size)
+		cur:SetPoint('TOPRIGHT', offset, offset)
 		cur:Show()
 
 		for i = 1, #modifier do
 			local mod = self:Acquire()
-			mod:SetSize(24, 24)
-			mod:SetPoint('RIGHT', cur, 'LEFT', 14, 0)
-			mod:SetTexture(modifier[i])
+			CPAPI.SetTextureOrAtlas(mod, modifier[i])
+			mod:SetSize(size, size)
+			mod:SetPoint('RIGHT', cur, 'LEFT', isAtlas and 1 or 14, 0)
 			mod:Show()
 			cur = mod
 		end

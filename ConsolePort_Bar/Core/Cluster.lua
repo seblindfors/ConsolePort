@@ -108,9 +108,11 @@ local adjustTextures = {
 }
 ---------------------------------------------------------------
 local hotkeyConfig = { -- {anchor point}, modifier ID
-	['SHIFT-'] = {{{'CENTER', 0, 0}, {20, 20}, 'M1'}},
-	['CTRL-'] = {{{'CENTER', 0, 0}, {20, 20}, 'M2'}},
-	['CTRL-SHIFT-'] = {{{'CENTER', -4, 0}, {20, 20}, 'M1'}, {{'CENTER', 4, 0}, {20, 20}, 'M2'}},
+    ['']            = {{{'TOP',     0, 12}, {32, 32}, {18, 18}, nil }},
+    ['SHIFT-']      = {{{'CENTER',  0,  0}, {20, 20}, {14, 14}, 'M1'}},
+    ['CTRL-']       = {{{'CENTER',  0,  0}, {20, 20}, {14, 14}, 'M2'}},
+    ['CTRL-SHIFT-'] = {{{'CENTER', -4,  0}, {20, 20}, {14, 14}, 'M1'},
+                       {{'CENTER',  4,  0}, {20, 20}, {14, 14}, 'M2'}},
 }
 
 ---------------------------------------------------------------
@@ -312,14 +314,47 @@ end
 ---------------------------------------------------------------
 -- Cluster piece configuration
 ---------------------------------------------------------------
-local function CreateModifierHotkeyFrame(self, num)
-	return CreateFrame('Frame', nil, self, 'CPUIActionButtonTextureOverlayTemplate')
+local Hotkey = {};
+
+function Hotkey:OnLoad(id, modConfig)
+	self:SetPoint(unpack(modConfig[1]))
+	self.iconID    = id;
+	self.iconSize  = modConfig[2];
+	self.atlasSize = modConfig[3];
+	self.controlID = modConfig[4];
+	return self;
+end
+
+function Hotkey:SetTexture(...)
+	self.texture:SetTexture(...)
+end
+
+function Hotkey:SetAtlas(...)
+	self.texture:SetAtlas(...)
+end
+
+function Hotkey:OnUpdateHotkeyCallback()
+	local icon = db('Icons/32/'..self.iconID)
+	CPAPI.SetTextureOrAtlas(self,
+		{icon, db.Gamepad.UseAtlasIcons},
+		self.iconSize, self.atlasSize)
+end
+
+function Hotkey:OnUpdateModifierHotkeyCallback()
+	self.iconID = db.UIHandle:GetUIControlBinding(self.controlID)
+	self:OnUpdateHotkeyCallback()
+end
+
+local function CreateModifierHotkeyFrame(self, modConfig)
+	return db:RegisterCallback('OnIconsChanged', Hotkey.OnUpdateModifierHotkeyCallback,
+		Mixin(CreateFrame('Frame', nil, self, 'CPUIActionButtonTextureOverlayTemplate'), Hotkey)
+		:OnLoad(nil, modConfig))
 end
 
 local function CreateMainHotkeyFrame(self, id)
-	local hotkey = CreateFrame('Frame', nil, self, 'CPUIActionButtonMainHotkeyTemplate')
-	hotkey.texture:SetTexture(db('Icons/32/'..id))
-	return hotkey
+	return db:RegisterCallback('OnIconsChanged', Hotkey.OnUpdateHotkeyCallback,
+		Mixin(CreateFrame('Frame', nil, self, 'CPUIActionButtonMainHotkeyTemplate'), Hotkey)
+		:OnLoad(id, hotkeyConfig[''][1]))
 end
 
 local function CreateMainShadowFrame(self)
@@ -358,6 +393,7 @@ local function CreateButton(parent, id, name, modifier, size, texSize, config)
 
 		button.Hotkey = CreateMainHotkeyFrame(button, id)
 		button.Shadow = CreateMainShadowFrame(button)
+		button.Hotkey:OnUpdateHotkeyCallback()
 	else
 		-- Small buttons should have smaller CD font and no drop shadow
 		local file, height, flags = button.cooldown.text:GetFont()
@@ -367,11 +403,8 @@ local function CreateButton(parent, id, name, modifier, size, texSize, config)
 		-- Add modifier icons
 		if hotkeyConfig[modifier] then
 			for i, modHotkey in pairs(hotkeyConfig[modifier]) do
-				local hotkey = CreateModifierHotkeyFrame(button, i)
-				local iconID = db.UIHandle:GetUIControlBinding(modHotkey[3])
-				hotkey:SetPoint(unpack(modHotkey[1]))
-				hotkey:SetSize(unpack(modHotkey[2]))
-				hotkey.texture:SetTexture(iconID and db('Icons/32/'..iconID))
+				local hotkey = CreateModifierHotkeyFrame(button, modHotkey)
+				hotkey:OnUpdateModifierHotkeyCallback()
 				hotkey:SetAlpha(0.75)
 				button['hotkey'..i] = hotkey
 			end
@@ -436,10 +469,6 @@ function HANDLE:UpdateAllBindings(bindings)
 			end
 		end
 	end
-end
-
-function HANDLE:UpdateAllHotkeys()
-	-- TODO!
 end
 
 function HANDLE:SetEligbleForRebind(button, modifier, main)

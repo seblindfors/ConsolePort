@@ -128,7 +128,7 @@ end
 function Button:SetBinding(binding)
 	local data = env:GetHotkeyData(binding, '', 64, 32)
 	self.baseBinding = binding;
-	self.Icon:SetTexture(data.button)
+	CPAPI.SetTextureOrAtlas(self.Icon, data.button)
 end
 
 function Button:SetReserved(reservedData)

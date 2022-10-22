@@ -643,16 +643,24 @@ do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 		Slider   = mod;
 	}, function() return left end)
 	-- remove texture evaluator so cursor refreshes on next movement
-	local function resetTexture(self) self.textureEvaluator = nil; end
+	local function resetTexture(self)
+		self.textureEvaluator = nil;
+		self.useAtlasIcons = db('useAtlasIcons')
+	end
 	db:RegisterCallback('Gamepad/Active', resetTexture, Cursor)
 	db:RegisterCallback('Settings/UIpointerDefaultIcon', resetTexture, Cursor)
+	db:RegisterCallback('Settings/useAtlasIcons', resetTexture, Cursor)
 end
 
 function Cursor:SetTexture(texture)
 	local object = texture or self:GetCurrentObjectType()
 	local evaluator = self.Textures[object]
 	if ( evaluator ~= self.textureEvaluator ) then
-		self.Display.Button:SetTexture(evaluator())
+		if self.useAtlasIcons then
+			self.Display.Button:SetAtlas(evaluator())
+		else
+			self.Display.Button:SetTexture(evaluator())
+		end
 	end
 	self.textureEvaluator = evaluator;
 end

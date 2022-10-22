@@ -22,6 +22,12 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 			Prefix  = {}; -- modifier string -> button
 			Active  = {}; -- all possible modifier combinations
 		};
+		Atlas = {
+			['']    = {[32] = {}; [64] = {}}; -- Generic button labels
+			SHP     = {[32] = {}; [64] = {}}; -- "Shapes" label style specializations
+			LTR     = {[32] = {}; [64] = {}}; -- "Letters" label style specializations
+			REV     = {[32] = {}; [64] = {}}; -- "Reverse" label style specializations
+		};
 	};
 });
 ---------------------------------------------------------------
@@ -111,9 +117,12 @@ end
 
 function GamepadAPI:OnDataLoaded()
 	self:ReindexMappedState()
-	local old = self.Devices;
+	self:ReindexIconAtlas()
+	-- Load preset devices
+	local presets = self.Devices;
+	-- Load saved devices
 	db:Load('Gamepad/Devices', 'ConsolePortDevices')
-	for id, device in pairs(old) do
+	for id, device in pairs(presets) do
 		-- (1) fill in new presets that have been added,
 		-- (2) overwrite existing if version has been bumped
 		if  ( not self.Devices[id] or device.Version and
@@ -168,6 +177,11 @@ function GamepadAPI.OnNewBindings()
 		GamepadAPI.updateBindingDispatching = nil;
 	end
 end
+
+db:RegisterCallback('Settings/useAtlasIcons', function(self, value)
+	self.UseAtlasIcons = value;
+	db:TriggerEvent('OnIconsChanged', value)
+end, GamepadAPI)
 
 ---------------------------------------------------------------
 -- Data
@@ -415,7 +429,7 @@ function GamepadMixin:ApplyHotkeyStrings()
 	local label, hotkey = self.Theme.Label;
 	assert(label, ('Gamepad device %s does not have a button label type.'):format(self.Name))
 	for button in pairs(self.Theme.Icons) do
-		hotkey = self:GetHotkeyButtonPrompt(button) -- TODO: assert there's a label
+		hotkey = self:GetHotkeyStringForButton(button)
 		_G[('KEY_ABBR_%s'):format(button)] = hotkey;
 		_G[('KEY_ABBR_%s_%s'):format(button, label)] = hotkey;
 	end
@@ -428,22 +442,51 @@ end
 ---------------------------------------------------------------
 -- Icon queries
 ---------------------------------------------------------------
-function GamepadMixin:GetTooltipButtonPrompt(button, prompt, style)
-	local color = self.Theme.Colors[button] or 'FFFFFF';
-	local icon  = self:GetIconForButton(button, style)
-	if icon then
-		return ('|T%s:24:24:0:0|t |cFF%s%s|r'):format(icon, color, prompt)
+function GamepadAPI:ReindexIconAtlas()
+	self.UseAtlasIcons = db('useAtlasIcons')
+
+	local function getAtlasFromGlobalEscSeq(modifier, button, style)
+		local globalKey = ('KEY_%s%s_%s'):format(modifier, button, style):gsub('_$', '')
+		local atlasEscSeq = _G[globalKey]
+		if not atlasEscSeq then return end
+		return atlasEscSeq:gsub('|A:([%w_]+)(.+)', '%1')
+	end
+
+	-- Do indexing of the different styles
+	for style, sizes in pairs(self.Index.Atlas) do --SHP, 
+		for size, icons in pairs(sizes) do -- 32,64
+			local modifier = (size == 32) and 'ABBR_' or '';
+			for button in pairs(self.Index.Button.Binding) do
+				icons[button] = getAtlasFromGlobalEscSeq(modifier, button, style)
+			end
+		end
+	end
+
+	-- Proxy the other styles to fallback on generic
+	for style, sizes in pairs(self.Index.Atlas) do
+		if (style ~= '') then
+			for size, icons in pairs(sizes) do
+				CPAPI.Proxy(icons, self.Index.Atlas[''][size])
+			end
+		end
 	end
 end
 
-function GamepadMixin:GetHotkeyButtonPrompt(button)
-	local icon = self:GetIconForButton(button, 32)
-	if icon then
-		return ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(icon)
-	end
+function GamepadMixin:GetIconAtlasForButton(button, style)
+	if not GamepadAPI.UseAtlasIcons then return end
+	return db(('Gamepad/Index/Atlas/%s/%s/%s'):format(self.Theme.Label, style or 64, button))
+end
+
+function GamepadMixin:GetIconIDForButton(button)
+	assert(button, 'Button is not defined.')
+	return self.Theme.Icons[button]
 end
 
 function GamepadMixin:GetIconForButton(button, style)
+	local atlas = self:GetIconAtlasForButton(button, style)
+	if atlas then
+		return atlas, true;
+	end
 	local iconID = self:GetIconIDForButton(button)
 	if iconID then
 		return GamepadAPI:GetIconPath(db(('Gamepad/Index/Icons/%s'):format(iconID)), style)
@@ -451,9 +494,23 @@ function GamepadMixin:GetIconForButton(button, style)
 	return GamepadAPI:GetIconPath('ALL_MISSING', style)
 end
 
-function GamepadMixin:GetIconIDForButton(button)
-	assert(button, 'Button is not defined.')
-	return self.Theme.Icons[button]
+function GamepadMixin:GetTooltipButtonPrompt(button, prompt, style)
+	local color = self.Theme.Colors[button] or 'FFFFFF';
+	local icon, isAtlas = self:GetIconForButton(button, style)
+	if icon and isAtlas then
+		return ('|A:%s:24:24|a |cFF%s%s|r'):format(icon, color, prompt)
+	elseif icon then
+		return ('|T%s:24:24:0:0|t |cFF%s%s|r'):format(icon, color, prompt)
+	end
+end
+
+function GamepadMixin:GetHotkeyStringForButton(button)
+	local icon, isAtlas = self:GetIconForButton(button, 32)
+	if icon and isAtlas then
+		return ('|A:%s:14:14|a'):format(icon)
+	elseif icon then
+		return ('|T%s:0:0:0:0:32:32:8:24:8:24|t'):format(icon)
+	end
 end
 
 function GamepadMixin:GetIconForName(name, style)

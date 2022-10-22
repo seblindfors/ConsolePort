@@ -400,3 +400,18 @@ function CPAPI.SetAtlas(object, atlas, useAtlasSize, flipHoriz, flipVert)
 		return true;
 	end
 end
+
+function CPAPI.SetTextureOrAtlas(object, info, sizeTexture, sizeAtlas)
+	local textureOrAtlas, isAtlas, useAtlasSize = unpack(info)
+	if isAtlas then
+		object:SetAtlas(textureOrAtlas, useAtlasSize)
+		if sizeAtlas then
+			object:SetSize(unpack(sizeAtlas))
+		end
+		return 
+	end
+	object:SetTexture(textureOrAtlas)
+	if sizeTexture then
+		object:SetSize(unpack(sizeTexture))
+	end
+end
