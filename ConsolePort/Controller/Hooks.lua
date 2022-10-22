@@ -181,68 +181,79 @@ function Hooks:SetPendingInspectItem(tooltip, item)
 	end
 end
 
-GameTooltip:HookScript('OnTooltipSetItem', function(self)
-	local owner = self:GetOwner()
-	if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
-		local itemLocation = Hooks:GetItemLocationFromNode(owner)
-		if itemLocation then
-			return Hooks:SetPendingItemMenu(self, itemLocation)
-		end
 
-		local bagLocation = Hooks:GetBagLocationFromNode(owner)
-		if bagLocation then
-			return Hooks:SetPendingBagPickup(self, bagLocation)
-		end
+do -- Tooltip hooking
+	local function OnTooltipSetItem(self)
+		local owner = self:GetOwner()
+		if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
+			local itemLocation = Hooks:GetItemLocationFromNode(owner)
+			if itemLocation then
+				return Hooks:SetPendingItemMenu(self, itemLocation)
+			end
 
-		local name, link = self:GetItem()
-		local numOwned = GetItemCount(link)
-		local isEquipped = IsEquippedItem(link)
-		local isEquippable = IsEquippableItem(link)
+			local bagLocation = Hooks:GetBagLocationFromNode(owner)
+			if bagLocation then
+				return Hooks:SetPendingBagPickup(self, bagLocation)
+			end
 
-		if ( GetItemSpell(link) and numOwned > 0 ) then
-			Hooks:SetPendingActionToUtilityRing(self, owner, {
-				type = 'item',
-				item = link,
-				link = link
-			});
-		elseif isEquippable and not isEquipped then
-			Hooks:SetPendingDressupItem(self, link);
-		elseif isEquippable and isEquipped then
-			Hooks:SetPendingInspectItem(self, owner:GetID())
+			local name, link = self:GetItem()
+			local numOwned = GetItemCount(link)
+			local isEquipped = IsEquippedItem(link)
+			local isEquippable = IsEquippableItem(link)
+
+			if ( GetItemSpell(link) and numOwned > 0 ) then
+				Hooks:SetPendingActionToUtilityRing(self, owner, {
+					type = 'item',
+					item = link,
+					link = link
+				});
+			elseif isEquippable and not isEquipped then
+				Hooks:SetPendingDressupItem(self, link);
+			elseif isEquippable and isEquipped then
+				Hooks:SetPendingInspectItem(self, owner:GetID())
+			end
 		end
 	end
-end)
 
-GameTooltip:HookScript('OnTooltipSetSpell', function(self)
-	local owner = self:GetOwner()
-	if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
-		local name, spellID = self:GetSpell()
-		if spellID and not IsPassiveSpell(spellID) then
-			local isKnown = IsSpellKnown(spellID)
-			if not isKnown then
-				local mountID = CPAPI.GetMountFromSpell(spellID)
-				if mountID then
-					isKnown = (select(11, CPAPI.GetMountInfoByID(mountID)))
-					spellID = name;
+	local function OnTooltipSetSpell(self)
+		local owner = self:GetOwner()
+		if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
+			local name, spellID = self:GetSpell()
+			if spellID and not IsPassiveSpell(spellID) then
+				local isKnown = IsSpellKnown(spellID)
+				if not isKnown then
+					local mountID = CPAPI.GetMountFromSpell(spellID)
+					if mountID then
+						isKnown = (select(11, CPAPI.GetMountInfoByID(mountID)))
+						spellID = name;
+					end
+				end
+				if isKnown then
+					Hooks:SetPendingActionToUtilityRing(self, owner, {
+						type  = 'spell',
+						spell = spellID,
+						link  = GetSpellLink(spellID)
+					});
 				end
 			end
-			if isKnown then
-				Hooks:SetPendingActionToUtilityRing(self, owner, {
-					type  = 'spell',
-					spell = spellID,
-					link  = GetSpellLink(spellID)
-				});
-			end
 		end
 	end
-end)
 
-GameTooltip:HookScript('OnHide', function(self)
-	if self.pendingAction then
-		db.Utility:ClearPendingAction()
-		self.pendingAction = nil;
+	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
+		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
+		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
+	else
+		GameTooltip:HookScript('OnTooltipSetItem', OnTooltipSetItem)
+		GameTooltip:HookScript('OnTooltipSetSpell', OnTooltipSetSpell)
 	end
-end)
+
+	GameTooltip:HookScript('OnHide', function(self)
+		if Hooks.pendingAction then
+			db.Utility:ClearPendingAction()
+			Hooks.pendingAction = nil;
+		end
+	end)
+end
 
 ---------------------------------------------------------------
 -- Node

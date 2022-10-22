@@ -171,12 +171,14 @@ end
 ---------------------------------------------------------------
 -- Tooltip hacks
 ---------------------------------------------------------------
-function ItemMenu.Tooltip:GetTooltipStrings(index)
+local Tooltip = ItemMenu.Tooltip;
+
+function Tooltip:GetTooltipStrings(index)
 	local name = self:GetName()
 	return _G[name .. 'TextLeft' .. index], _G[name .. 'TextRight' .. index]
 end
 
-function ItemMenu.Tooltip:Readjust()
+function Tooltip:Readjust()
 	self.NineSlice:Hide()
 	self:SetWidth(340)
 	self:GetTooltipStrings(1):Hide()
@@ -192,12 +194,23 @@ function ItemMenu.Tooltip:Readjust()
 	self:GetParent():FixSize()
 end
 
-function ItemMenu.Tooltip:OnUpdate(elapsed)
+function Tooltip:OnUpdate(elapsed)
 	self.tooltipUpdate = self.tooltipUpdate + elapsed
 	if self.tooltipUpdate > 0.25 then
 		self:Readjust()
 		self.tooltipUpdate = 0
 	end
+end
+
+Tooltip.tooltipUpdate = 0
+Tooltip:HookScript('OnUpdate', Tooltip.OnUpdate)
+if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
+	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip)
+		if not (tooltip == Tooltip) then return end
+		Tooltip:Readjust()
+	end)
+else
+	Tooltip:HookScript('OnTooltipSetItem', Tooltip.Readjust)
 end
 
 function ItemMenu:SetTooltip()
@@ -212,10 +225,6 @@ end
 function ItemMenu:ClearTooltip()
 	self.Tooltip:Hide()
 end
-
-ItemMenu.Tooltip.tooltipUpdate = 0
-ItemMenu.Tooltip:HookScript('OnUpdate', ItemMenu.Tooltip.OnUpdate)
-ItemMenu.Tooltip:HookScript('OnTooltipSetItem', ItemMenu.Tooltip.Readjust)
 
 ---------------------------------------------------------------
 -- API
