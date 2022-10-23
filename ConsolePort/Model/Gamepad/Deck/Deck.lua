@@ -80,7 +80,7 @@ select(2, ...).Gamepad:AddGamepad({
 			synchronizeSettings     = 0;
 			synchronizeBindings     = 0;
 			synchronizeConfig       = 0;
-			synchronizeMacros       = 0;
+			synchronizeMacros       = 1;
 			GamePadEmulateShift     = 'PADLTRIGGER';
 			GamePadEmulateCtrl      = 'PADRTRIGGER';
 			GamePadEmulateAlt       = 'none';
