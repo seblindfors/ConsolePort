@@ -358,11 +358,13 @@ local function nrmlz(node, effScale, cmpScale, func, ...)
 	end
 end
 ---------------------------------------------------------------
-
+local IsWoW10Version = CPAPI.IsWoW10Version;
 function GetCenter(node)
 	local x, y, w, h = node:GetRect()
 	if not x then return end
-	local l, r, t, b = div2(node:GetHitRectInsets())
+	local l, r, t, b;
+	if IsWoW10Version then l, r, b, t = div2(node:GetHitRectInsets()) -- handle hit rect bug on retail
+	else l, r, t, b = div2(node:GetHitRectInsets()) end
 	return (x+l) + div2(w-r), (y+b) + div2(h-t)
 end
 

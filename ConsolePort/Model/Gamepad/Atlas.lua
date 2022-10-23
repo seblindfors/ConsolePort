@@ -57,5 +57,6 @@ db('Gamepad/Index/Icons', {
 db('Gamepad/Index/Splash', {
 	['PlayStation 4'] = 'DS4';
 	['PlayStation 5'] = 'DS5';
+	['Steam Deck'] = 'Deck';
 	['Xbox'] = 'Xbox';
 })

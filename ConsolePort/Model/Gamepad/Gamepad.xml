@@ -9,6 +9,7 @@
 	<Script file="Xbox\Xbox.lua"/>
 	<Script file="PlayStation\PlayStation4.lua"/>
 	<Script file="PlayStation\PlayStation5.lua"/>
+	<Script file="Deck\Deck.lua"/>
 	<!--
 	<Script file="STEAM/Steam.lua"/>
 	<Script file="XBOX/Xbox.lua"/>

@@ -110,7 +110,7 @@ function Devices:UpdateDevices()
 	for i, device in ipairs(usableDevices) do
 		device:SetSiblings(usableDevices)
 		if (i % DEVICE_PER_ROW == 1) then
-			device:SetPoint('TOPLEFT', 0, containerHeight)
+			device:SetPoint('TOPLEFT', 0, -containerHeight)
 		else
 			if (i % DEVICE_PER_ROW == 0) then
 				containerHeight = containerHeight + DEVICE_HEIGHT + FIXED_OFFSET;

@@ -441,6 +441,30 @@ db:Register('Variables', {
 		desc = 'Uses the default hotkey icons instead of the custom icons provided by ConsolePort.';
 		note = 'Requires reload.';
 	};
+	emulatePADPADDLE1 = {Pseudokey('none');
+		head = KEY_BINDINGS_MAC;
+		sort = 7;
+		name = 'Emulate '..(KEY_PADPADDLE1 or 'Paddle 1');
+		desc = 'Keyboard button to emulate the paddle 1 button.';
+	};
+	emulatePADPADDLE2 = {Pseudokey('none');
+		head = KEY_BINDINGS_MAC;
+		sort = 8;
+		name = 'Emulate '..(KEY_PADPADDLE2 or 'Paddle 2');
+		desc = 'Keyboard button to emulate the paddle 2 button.';
+	};
+	emulatePADPADDLE3 = {Pseudokey('none');
+		head = KEY_BINDINGS_MAC;
+		sort = 9;
+		name = 'Emulate '..(KEY_PADPADDLE3 or 'Paddle 3');
+		desc = 'Keyboard button to emulate the paddle 3 button.';
+	};
+	emulatePADPADDLE4 = {Pseudokey('none');
+		head = KEY_BINDINGS_MAC;
+		sort = 10;
+		name = 'Emulate '..(KEY_PADPADDLE4 or 'Paddle 4');
+		desc = 'Keyboard button to emulate the paddle 4 button.';
+	};
 	--------------------------------------------------------------------------------------------------------
 	-- Advanced:
 	--------------------------------------------------------------------------------------------------------
