@@ -2,7 +2,7 @@ select(2, ...).Gamepad:AddGamepad({
 	Name = 'PlayStation 5';
 	LabelStyle = 'Shapes';
 	StyleNameSubStrs = { [1]='PS5', [2]='DS5', [3]='DualShock 5', [4]='PlayStation 5' };
-	Version = 4;
+	Version = 5;
 	Theme = {
 		Label = 'SHP';
 		Colors = {
@@ -27,10 +27,11 @@ select(2, ...).Gamepad:AddGamepad({
 			PADRSHOULDER = 'PlayStation/R1';
 			PADLTRIGGER  = 'PlayStation/L2';
 			PADRTRIGGER  = 'PlayStation/R2';
-			PADFORWARD  = 'PlayStation/Options';
-			PADBACK     = 'PlayStation/Back';
-			PADSYSTEM   = 'PlayStation/System';
-			PADSOCIAL   = 'PlayStation/Share';
+			PADFORWARD   = 'PlayStation/Options';
+			PADBACK      = 'PlayStation/Back';
+			PAD6         = 'PlayStation/Back2';
+			PADSYSTEM    = 'PlayStation/System';
+			PADSOCIAL    = 'PlayStation/Share';
 		};
 		Layout = {
 			PADLSHOULDER = 0x11;
@@ -59,6 +60,7 @@ select(2, ...).Gamepad:AddGamepad({
 			PAD5         = 0x33;
 			--------------------
 			PADBACK      = 0x41;
+			PAD6         = 0x43;
 		};
 	};
 	Preset = {

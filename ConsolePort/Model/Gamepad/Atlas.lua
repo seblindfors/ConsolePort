@@ -27,6 +27,7 @@ db('Gamepad/Index/Icons', {
 		Circle   = 'PS_R_CIRCLE';
 		Triangle = 'PS_R_TRIANGLE';
 		Back     = 'PS_C_BACK';
+		Back2    = 'PS_C_BACK2';
 		Share    = 'PS_C_SHARE';
 		System   = 'PS_C_SYSTEM';
 		Options  = 'PS_C_OPTIONS';

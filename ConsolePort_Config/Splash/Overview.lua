@@ -36,7 +36,7 @@ local Layout = {
 			buttonPoint = {'CENTER', 0, 0},
 		},
 		TOP = {
-			anchorPoint = {'CENTER', 0, 50 + (BUTTON_SIZE * 4)},
+			anchorPoint = {'CENTER', 0, 50 + (BUTTON_SIZE * 6)},
 			iconPoint = {'BOTTOM', 'TOP', 0, 4},
 			textPoint = {'TOP', 'BOTTOM', 0, -8},
 			buttonPoint = {'CENTER', 0, 0},

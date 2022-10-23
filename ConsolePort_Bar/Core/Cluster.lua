@@ -108,32 +108,32 @@ local adjustTextures = {
 }
 ---------------------------------------------------------------
 local hotkeyConfig = { -- {anchor point}, modifier ID
-    ['']            = {{{'TOP',     0, 12}, {32, 32}, {18, 18}, nil }},
-    ['SHIFT-']      = {{{'CENTER',  0,  0}, {20, 20}, {14, 14}, 'M1'}},
-    ['CTRL-']       = {{{'CENTER',  0,  0}, {20, 20}, {14, 14}, 'M2'}},
-    ['CTRL-SHIFT-'] = {{{'CENTER', -4,  0}, {20, 20}, {14, 14}, 'M1'},
-                       {{'CENTER',  4,  0}, {20, 20}, {14, 14}, 'M2'}},
+	['']            = {{{'TOP',     0, 12}, {32, 32}, {18, 18}, nil }},
+	['SHIFT-']      = {{{'CENTER',  0,  0}, {20, 20}, {14, 14}, 'M1'}},
+	['CTRL-']       = {{{'CENTER',  0,  0}, {20, 20}, {14, 14}, 'M2'}},
+	['CTRL-SHIFT-'] = {{{'CENTER', -4,  0}, {20, 20}, {14, 14}, 'M1'},
+	                   {{'CENTER',  4,  0}, {20, 20}, {14, 14}, 'M2'}},
 }
 
 ---------------------------------------------------------------
 local buttonTextures = {
 	[nomod] = {
-		normal = TEX_PATH:format([[Button\BigNormal]]),
-		pushed = TEX_PATH:format([[Button\BigHilite]]),
-		hilite = TEX_PATH:format([[Button\BigHilite]]),
-		checkd = TEX_PATH:format([[Button\BigHilite]]),
-		border = TEX_PATH:format([[Button\BigHilite]]),
+		normal      = TEX_PATH:format([[Button\BigNormal]]),
+		pushed      = TEX_PATH:format([[Button\BigHilite]]),
+		hilite      = TEX_PATH:format([[Button\BigHilite]]),
+		checkd      = TEX_PATH:format([[Button\BigHilite]]),
+		border      = TEX_PATH:format([[Button\BigHilite]]),
 		new_action  = TEX_PATH:format([[Button\BigHilite]]),
 		cool_swipe  = TEX_PATH:format([[Cooldown\Swipe]]),
 		cool_edge   = TEX_PATH:format([[Cooldown\Edge]]),
 		cool_bling  = TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['SHIFT-'] = {
-		normal = TEX_PATH:format([[Button\M1]]),
-		pushed = TEX_PATH:format([[Button\M1]]),
-		border = TEX_PATH:format([[Button\M1]]),
-		hilite = TEX_PATH:format([[Button\M1Hilite]]),
-		checkd = TEX_PATH:format([[Button\M1Hilite]]),
+		normal      = TEX_PATH:format([[Button\M1]]),
+		pushed      = TEX_PATH:format([[Button\M1]]),
+		border      = TEX_PATH:format([[Button\M1]]),
+		hilite      = TEX_PATH:format([[Button\M1Hilite]]),
+		checkd      = TEX_PATH:format([[Button\M1Hilite]]),
 		new_action  = TEX_PATH:format([[Button\M1Hilite]]),
 		cool_swipe  = TEX_PATH:format([[Cooldown\SwipeSmall]]),
 	--  cool_edge   = TEX_PATH:format([[Cooldown\Edge]]),
@@ -141,22 +141,22 @@ local buttonTextures = {
 		cool_bling  = TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['CTRL-'] = {
-		normal = TEX_PATH:format([[Button\M1]]),
-		pushed = TEX_PATH:format([[Button\M1]]),
-		border = TEX_PATH:format([[Button\M1]]),
-		hilite = TEX_PATH:format([[Button\M1Hilite]]),
-		checkd = TEX_PATH:format([[Button\M1Hilite]]),
+		normal      = TEX_PATH:format([[Button\M1]]),
+		pushed      = TEX_PATH:format([[Button\M1]]),
+		border      = TEX_PATH:format([[Button\M1]]),
+		hilite      = TEX_PATH:format([[Button\M1Hilite]]),
+		checkd      = TEX_PATH:format([[Button\M1Hilite]]),
 		new_action  = TEX_PATH:format([[Button\M1Hilite]]),
 		cool_swipe  = TEX_PATH:format([[Cooldown\SwipeSmall]]),
 	--  cool_edge   = TEX_PATH:format([[Cooldown\Edge]]),
 		cool_bling  = TEX_PATH:format([[Cooldown\Bling]]),
 	},
 	['CTRL-SHIFT-'] = {
-		normal = TEX_PATH:format([[Button\M3]]),
-		pushed = TEX_PATH:format([[Button\M3]]),
-		border = TEX_PATH:format([[Button\M3]]),
-		hilite = TEX_PATH:format([[Button\M3Hilite]]),
-		checkd = TEX_PATH:format([[Button\M3Hilite]]),
+		normal      = TEX_PATH:format([[Button\M3]]),
+		pushed      = TEX_PATH:format([[Button\M3]]),
+		border      = TEX_PATH:format([[Button\M3]]),
+		hilite      = TEX_PATH:format([[Button\M3Hilite]]),
+		checkd      = TEX_PATH:format([[Button\M3Hilite]]),
 		new_action  = TEX_PATH:format([[Button\M3Hilite]]),
 		cool_swipe  = TEX_PATH:format([[Cooldown\SwipeSmall]]),
 	--  cool_edge   = TEX_PATH:format([[Cooldown\Edge]]),
@@ -312,7 +312,7 @@ function Cluster:SetRebindButton()
 end
 
 ---------------------------------------------------------------
--- Cluster piece configuration
+-- Hotkeys
 ---------------------------------------------------------------
 local Hotkey = {};
 
@@ -359,9 +359,12 @@ local function CreateMainHotkeyFrame(self, id)
 	return frame;
 end
 
+---------------------------------------------------------------
+-- Factory
+---------------------------------------------------------------
 local function CreateMainShadowFrame(self)
-	-- create this as a separate frame so that drop shadow doesn't overlay modifiers
-	-- note: shadow is child of bar, not of button
+	-- Create this as a separate frame so that drop shadow doesn't overlay modifiers
+	-- NOTE: shadow is child of bar, not of button
 	local shadow = CreateFrame('Frame', nil, env.bar, 'CPUIActionButtonMainShadowTemplate')
 	shadow:SetPoint('CENTER', self, 'CENTER', 0, -6)
 	return shadow

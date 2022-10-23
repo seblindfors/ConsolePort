@@ -215,6 +215,19 @@ function Number:GetSigned()
 end
 
 ---------------------------------------------------------------
+local Pseudokey = Button():SetType('Pseudokey');
+---------------------------------------------------------------
+function Pseudokey:Set(val, force)
+	if (force or val) then
+		if self:IsModifierAllowed() then
+			return Field.Set(self, CPAPI.CreateKeyChord(val))
+		end
+		return Field.Set(self, val)
+	end
+	return self;
+end
+
+---------------------------------------------------------------
 local Range = Number():SetType('Range');
 ---------------------------------------------------------------
 function Range:GetMinMax()
@@ -280,6 +293,10 @@ end
 
 function Data.Number(val, step, signed)
 	return Number():SetStep(step):SetSigned(signed):Set(val)
+end
+
+function Data.Pseudokey(val, allowModifiers)
+	return Pseudokey():SetAllowModifiers(allowModifiers):Set(val)
 end
 
 function Data.Range(val, step, min, max)

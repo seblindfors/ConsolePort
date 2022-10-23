@@ -71,6 +71,7 @@ function GamepadAPI:SetActiveDevice(name)
 	activeDevice:ApplyHotkeyStrings()
 	db(('Gamepad/Devices/%s/Active'):format(name), true)
 	db('Gamepad/Active', activeDevice)
+	db:TriggerEvent('OnIconsChanged', db('useAtlasIcons'))
 end
 
 function GamepadAPI:SetActiveIconsFromDevice(device)

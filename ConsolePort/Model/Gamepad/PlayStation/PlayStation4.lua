@@ -1,7 +1,7 @@
 select(2, ...).Gamepad:AddGamepad({
 	Name = 'PlayStation 4';
 	LabelStyle = 'Shapes';
-	Version = 4;
+	Version = 5;
 	Theme = {
 		Label = 'SHP';
 		Colors = {
@@ -55,7 +55,7 @@ select(2, ...).Gamepad:AddGamepad({
 			PADRSTICK    = 0x28;
 			--------------------
 			PADSYSTEM    = 0x32;
-			PADBACK      = 0x41;
+			PADBACK      = 0x43;
 		};
 	};
 	Preset = {

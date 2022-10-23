@@ -442,6 +442,84 @@ function Button:OnValueChanged(value)
 end
 
 ---------------------------------------------------------------
+-- Pseudokey
+---------------------------------------------------------------
+local Pseudokey = CreateWidget('Pseudokey', Widget, {
+	Input = {
+		_Type  = 'Button';
+		_Setup = 'BackdropTemplate';
+		_Point = {'RIGHT', -8, 0};
+		_Size  = {200, 26};
+		_IgnoreNode = true;
+		_Backdrop = CPAPI.Backdrops.Opaque;
+		_OnLoad = function(self)
+			self:SetFontString(self.Label)
+			self:SetBackdropColor(COLOR_NORMAL:GetRGBA());
+			self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1);
+		end;
+		{
+			Label = {
+				_Type  = 'FontString';
+				_Setup = {'ARTWORK'};
+				_OnLoad = function(self)
+					self:SetFont(ChatFontNormal:GetFont())
+				end;
+				_Points = {
+					{'TOPLEFT', 8, 0};
+					{'BOTTOMRIGHT', -8, 0};
+				};
+			};
+		};
+	};
+})
+
+function Pseudokey:OnLoad(...)
+	Widget.OnLoad(self, ...)
+	self:EnableKeyboard(false)
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+end
+
+function Pseudokey:OnHide()
+	self:Uncheck()
+	self:EnableKeyboard(false)
+end
+
+function Pseudokey:IsModifierAllowed()
+	return self.controller:IsModifierAllowed()
+end
+
+function Pseudokey:OnKeyDown(button)
+	if not self:IsModifierAllowed() then
+		for i, modifier in ipairs(env.db.Gamepad.Modsims) do
+			if button:match(modifier) then
+				return
+			end
+		end
+	end
+	self:Set(button)
+	Widget.OnClick(self)
+	self:EnableKeyboard(false)
+end
+
+function Pseudokey:OnClick(button)
+	if (button == 'RightButton') then
+		Widget.OnClick(self)
+		self:Set('none', true)
+	elseif self:GetChecked() then
+		return self:EnableKeyboard(true)
+	end
+	self:EnableKeyboard(false)
+end
+
+function Pseudokey:OnValueChanged(value)
+	local display = GetBindingText(value, 'KEY_ABBR_')
+	if (display == 'none') then
+		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
+	end
+	self.Input:SetText(display)
+end
+
+---------------------------------------------------------------
 -- Select
 ---------------------------------------------------------------
 local Select = CreateWidget('Select', Widget, {
