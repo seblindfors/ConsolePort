@@ -478,8 +478,8 @@ function HANDLE:UpdateAllBindings(bindings)
 	end
 end
 
-local function GetClusterTextureForButtonID(plainID)
-	local texture = db('Icons/64/'..button.plainID)
+local function GetClusterTextureForButtonID(buttonID)
+	local texture = db('Icons/64/'..buttonID)
 	if texture then
 		return GenerateClosure(function(set, texture, obj)
 			set(obj, texture)
