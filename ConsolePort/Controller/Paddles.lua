@@ -50,8 +50,8 @@ function Paddles:UpdatePaddleBindings(id)
 
 	-- Clear old bindings
 	if self[id] then
-		for modifier, mapping in pairs(self[id]) do
-			SetOverrideBinding(self, false, modifier..mapping, nil)
+		for activeMapping in pairs(self[id]) do
+			SetOverrideBinding(self, false, activeMapping, nil)
 		end
 		self[id] = nil;
 	end
@@ -67,8 +67,10 @@ function Paddles:UpdatePaddleBindings(id)
 		-- Set new bindings
 		self[id] = {};
 		for modifier in pairs(db.Gamepad.Index.Modifier.Active) do
-			self[id][modifier] = modifier..mapping;
-			SetOverrideBinding(self, false, modifier..mapping, GetBindingAction(modifier..button))
+			local action = GetBindingAction(modifier..button)
+			local activeMapping = modifier..mapping;
+			self[id][activeMapping] = action;
+			SetOverrideBinding(self, false, activeMapping, action)
 		end
 	end
 end
