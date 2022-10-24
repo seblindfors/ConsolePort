@@ -9,6 +9,31 @@ local _, db = ...
 local Paddles = db:Register('Paddles', CPAPI.EventHandler(ConsolePortPaddles, { 'UPDATE_BINDINGS' }))
 local NUM_PADDLES, NOT_BOUND = 4, 'none';
 
+
+function Paddles:IsButtonBound(button)
+	return button ~= nil and button ~= NOT_BOUND;
+end
+
+function Paddles:GetEmulatedButton(key)
+	if not self:IsButtonBound(key) then return end;
+	for i = 1, NUM_PADDLES do
+		local mapping, buttonID = self:GetEmulation(i)
+		if (key == mapping) then
+			return buttonID;
+		end
+	end
+end
+
+function Paddles:GetEmulation(id)
+	local button  = ('PADPADDLE' .. id)
+	local mapping = db('emulate' .. button)
+	return mapping, button, self:IsButtonBound(mapping);
+end
+
+function Paddles:SetEmulation(id, key)
+	return db('Settings/emulatePADPADDLE'..id, key)
+end
+
 function Paddles:UPDATE_BINDINGS()
 	C_Timer.After(0, function()
 		db:RunSafe(self.OnPaddlesChanged, self)
@@ -19,30 +44,10 @@ function Paddles:OnDataLoaded()
 	self:OnPaddlesChanged()
 end
 
-function Paddles:GetEmulatedButton(key)
-	if (key == nil or key == NOT_BOUND) then return end;
-	for i = 1, NUM_PADDLES do
-		local mapping, buttonID = self:GetEmulation(i)
-		if (key == mapping) then
-			return buttonID;
-		end
-	end
-end
-
 function Paddles:OnPaddlesChanged()
 	for i = 1, NUM_PADDLES do
 		self:UpdatePaddleBindings(i)
 	end
-end
-
-function Paddles:GetEmulation(id)
-	local button  = ('PADPADDLE' .. id)
-	local mapping = db('emulate' .. button)
-	return mapping, button, mapping ~= nil and mapping ~= NOT_BOUND;
-end
-
-function Paddles:SetEmulation(id, key)
-	return db('Settings/emulatePADPADDLE'..id, key)
 end
 
 function Paddles:UpdatePaddleBindings(id)
