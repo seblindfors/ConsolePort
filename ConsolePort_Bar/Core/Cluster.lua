@@ -335,9 +335,11 @@ end
 
 function Hotkey:OnUpdateHotkeyCallback()
 	local icon = db('Icons/32/'..self.iconID)
-	CPAPI.SetTextureOrAtlas(self,
-		{icon, db.Gamepad.UseAtlasIcons},
-		self.iconSize, self.atlasSize)
+	if type(icon) == 'string' then
+		CPAPI.SetTextureOrAtlas(self,
+			{icon, db.Gamepad.UseAtlasIcons},
+			self.iconSize, self.atlasSize)
+	end
 end
 
 function Hotkey:OnUpdateModifierHotkeyCallback()
@@ -491,7 +493,7 @@ function HANDLE:SetEligbleForRebind(button, modifier, main)
 	end
 	local disableQuickAssign = db('bindingDisableQuickAssign')
 	return 'custom', {
-		texture = texture,
+		texture = GenerateClosure(function(set, texture, obj) set(obj, texture) end, CPAPI.SetTextureOrAtlas, {texture, db.Gamepad.UseAtlasIcons}),
 		tooltip = ('|cFFFFFFFF%s|r\n%s'):format(NOT_BOUND,
 			'To use this combination, you must first connect it to a binding or an action bar slot.' ..
 			(not disableQuickAssign and '\nClick here to access the quick binding menu.' or '')

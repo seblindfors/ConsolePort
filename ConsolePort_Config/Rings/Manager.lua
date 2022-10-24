@@ -590,11 +590,13 @@ function RingsManager:OnFirstShow()
 							_OnShow = function(self)
 								env.Config:PauseCatcher()
 								self:EnableGamePadButton(true)
+								self:EnableKeyboard(true)
 								self.timeUntilCancel = 5;
 							end;
 							_OnHide = function(self)
 								env.Config:ResumeCatcher()
 								self:EnableGamePadButton(false)
+								self:EnableKeyboard(false)
 								self.timeUntilCancel = 5;
 							end;
 							_OnUpdate = function(self, elapsed)
@@ -609,6 +611,13 @@ function RingsManager:OnFirstShow()
 								if TrySetBinding(...) then
 									self:GetParent():Hide()
 								end
+							end;
+							_OnKeyUp = function(self, button)
+								local emulatedButton = db.Paddles:GetEmulatedButton(button)
+								if emulatedButton then
+									return self:GetScript('OnGamePadButtonUp')(self, emulatedButton)
+								end
+								self:SetPropagateKeyboardInput(true)
 							end;
 							_OnClick = function(self) self:Hide() end;
 						};

@@ -408,12 +408,14 @@ function BindingsManager:OnFirstShow()
 						_OnShow = function(self)
 							env.Config:PauseCatcher()
 							self:EnableGamePadButton(true)
+							self:EnableKeyboard(true)
 							self:GetParent().Change:Hide()
 							self.timeUntilCancel = 5;
 						end;
 						_OnHide = function(self)
 							env.Config:ResumeCatcher()
 							self:EnableGamePadButton(false)
+							self:EnableKeyboard(false)
 							self:GetParent().Change:Show()
 							self:GetParent().Help:SetDefaultHelp()
 							self.timeUntilCancel = 5;
@@ -430,6 +432,13 @@ function BindingsManager:OnFirstShow()
 							if self:GetParent():GetParent():OnButtonCaught(...) then
 								self:Hide()
 							end
+						end;
+						_OnKeyUp = function(self, button)
+							local emulatedButton = db.Paddles:GetEmulatedButton(button)
+							if emulatedButton then
+								return self:GetScript('OnGamePadButtonUp')(self, emulatedButton)
+							end
+							self:SetPropagateKeyboardInput(true)
 						end;
 						_OnClick = function(self) self:Hide() end;
 					};

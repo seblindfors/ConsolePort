@@ -15,4 +15,5 @@
 	<Script file="Radial.lua"/>
 	<Script file="Mouse.lua"/>
 	<Script file="Slash.lua"/>
+	<Script file="Paddles.lua"/>
 </Ui>

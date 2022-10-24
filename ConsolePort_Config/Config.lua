@@ -91,5 +91,6 @@ end
 
 Config:HookScript('OnShow', Config.OnShow)
 Config:SetScript('OnGamePadButtonDown', Config.OnGamePadButtonDown)
+Config:SetScript('OnKeyDown', Config.OnKeyDown)
 db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)
 db:RegisterCallback('Settings/UIscale', Config.UI_SCALE_CHANGED, Config)

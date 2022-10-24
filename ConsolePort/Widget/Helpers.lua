@@ -487,6 +487,20 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 		self:SetPropagateKeyboardInput(true)
 	end
 
+	function CPButtonCatcherMixin:OnKeyDown(button)
+		local emulatedButton = db.Paddles:GetEmulatedButton(button)
+		if emulatedButton and not self.catcherPaused then
+			if self.catchAllCallback and self:IsButtonValid(emulatedButton) then
+				self.catchAllCallback(emulatedButton)
+				return self:SetPropagateKeyboardInput(false)
+			elseif self.ClosureRegistry[emulatedButton] then 
+				self.ClosureRegistry[emulatedButton](emulatedButton)
+				return self:SetPropagateKeyboardInput(false)
+			end
+		end
+		self:SetPropagateKeyboardInput(true)
+	end
+
 	function CPButtonCatcherMixin:OnHide()
 		self:ReleaseClosures()
 	end
@@ -507,7 +521,7 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 			-- TODO: This seems like it's no longer necessary
 			--ModListen:RegisterClosure(self, modifier)
 		end
-		self:EnableGamePadButton(true)
+		self:ToggleInputs(true)
 		return closure; -- return the event owner
 	end
 
@@ -523,7 +537,7 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 		end
 		self.ClosureRegistry[button] = nil;
 		if not next(self.ClosureRegistry) then
-			self:EnableGamePadButton(false)
+			self:ToggleInputs(false)
 		end
 		return true;
 	end
@@ -539,10 +553,15 @@ do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
 	function CPButtonCatcherMixin:ReleaseClosures()
 		ModListen:RemoveFrame(self)
 		self.catchAllCallback = nil;
-		self:EnableGamePadButton(false)
+		self:ToggleInputs(false)
 		if self.ClosureRegistry then
 			wipe(self.ClosureRegistry)
 		end
+	end
+
+	function CPButtonCatcherMixin:ToggleInputs(enabled)
+		self:EnableGamePadButton(enabled)
+		self:EnableKeyboard(enabled)
 	end
 
 	function CPButtonCatcherMixin:IsButtonValid(button)
