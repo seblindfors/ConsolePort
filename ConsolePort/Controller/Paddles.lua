@@ -7,7 +7,7 @@
 
 local _, db = ...
 local Paddles = db:Register('Paddles', CPAPI.EventHandler(ConsolePortPaddles, { 'UPDATE_BINDINGS' }))
-local NOT_BOUND = 'none';
+local NUM_PADDLES, NOT_BOUND = 4, 'none';
 
 function Paddles:UPDATE_BINDINGS()
 	C_Timer.After(0, function()
@@ -21,21 +21,22 @@ end
 
 function Paddles:GetEmulatedButton(button)
 	if (button == nil or button == NOT_BOUND) then return end;
-	for i=1, 4 do
-		if (button == db('emulatePADPADDLE' .. i)) then
-			return 'PADPADDLE'..i;
+	for i = 1, NUM_PADDLES do
+		local mapping, buttonID = self:GetEmulation(i)
+		if (button == mapping) then
+			return buttonID;
 		end
 	end
 end
 
 function Paddles:OnPaddlesChanged()
-	for i = 1, 4 do
+	for i = 1, NUM_PADDLES do
 		self:UpdatePaddleBindings(i)
 	end
 end
 
 function Paddles:GetEmulation(id)
-	local button = ('PADPADDLE' .. id)
+	local button  = ('PADPADDLE' .. id)
 	local mapping = db('emulate' .. button)
 	return mapping, button, mapping ~= nil and mapping ~= NOT_BOUND;
 end
@@ -57,7 +58,7 @@ function Paddles:UpdatePaddleBindings(id)
 
 	if (isBound) then
 		-- Clear overlap
-		for other = 1, 4 do
+		for other = 1, NUM_PADDLES do
 			if (other ~= id and self:GetEmulation(other) == mapping) then
 				self:SetEmulation(other, NOT_BOUND)
 			end
@@ -72,8 +73,7 @@ function Paddles:UpdatePaddleBindings(id)
 	end
 end
 
-db:RegisterSafeCallback('Settings/emulatePADPADDLE1', Paddles.UpdatePaddleBindings, Paddles, 1)
-db:RegisterSafeCallback('Settings/emulatePADPADDLE2', Paddles.UpdatePaddleBindings, Paddles, 2)
-db:RegisterSafeCallback('Settings/emulatePADPADDLE3', Paddles.UpdatePaddleBindings, Paddles, 3)
-db:RegisterSafeCallback('Settings/emulatePADPADDLE4', Paddles.UpdatePaddleBindings, Paddles, 4)
 db:RegisterSafeCallback('Gamepad/Active', Paddles.OnPaddlesChanged, Paddles)
+for i = 1, NUM_PADDLES do
+	db:RegisterSafeCallback('Settings/emulatePADPADDLE'..i, Paddles.UpdatePaddleBindings, Paddles, i)
+end
