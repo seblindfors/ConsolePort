@@ -1,0 +1,7 @@
+## Interface: 90002
+## Title: Gamepad Tool
+## Notes: Munk's gamepad debug tool
+## SavedVariables: GamepadInfo
+
+GamepadTool.lua
+GamepadTool.xml

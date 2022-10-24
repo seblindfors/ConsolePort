@@ -1,0 +1,34 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<GameTooltip name="GamepadTooltipTemplate" inherits="GameTooltipTemplate" parent="UIParent" enableMouse="true" toplevel="true" movable="true" frameStrata="TOOLTIP" virtual="true" mixin="GamepadTooltipMixin">
+		<Size x="128" y="64"/>
+		<Anchors>
+			<Anchor point="BOTTOM" x="0" y="80"/>
+		</Anchors>
+		<Frames>
+			<Button parentKey="CloseButton">
+				<Size x="32" y="32"/>
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="1" y="0"/>
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						local tooltip = self:GetParent();
+						tooltip.poolRef:Release(tooltip);
+					</OnClick>
+				</Scripts>
+				<NormalTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Up"/>
+				<PushedTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Down"/>
+				<HighlightTexture file="Interface\Buttons\UI-Panel-MinimizeButton-Highlight" alphaMode="ADD"/>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnDragStart method="OnDragStart"/>
+			<OnDragStop method="OnDragStop"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnUpdate method="OnUpdate"/>
+		</Scripts>
+	</GameTooltip>
+</Ui>

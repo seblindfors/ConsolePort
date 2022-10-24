@@ -13,4 +13,5 @@ move-folders:
 ignore:
   - Wiki
   - ConsolePort_Mapper
+  - GamepadTool
   - README.md
