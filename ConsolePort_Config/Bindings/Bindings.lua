@@ -14,12 +14,9 @@ function BindingsManager:OnActiveDeviceChanged(device)
 end
 
 function BindingsManager:Validate()
-	if not self.snapshot then
-		return true -- panel was never opened
-	end
-	if not db.table.compare(self.snapshot, db.Gamepad:GetBindings()) then
-		self.snapshot = nil;
-		return false, self.SaveBindings;
+	if self.snapshot and not db.table.compare(self.snapshot, db.Gamepad:GetBindings()) then
+		self:WipeSnapshot()
+		return false, self.SaveBindings, self.ResetBindingsOnClose;
 	end
 	return true
 end
@@ -39,6 +36,15 @@ function BindingsManager:SaveBindings()
 		CPAPI.Log('Your gamepad bindings have been saved.')
 	end
 	return set, self:SnapshotBindings();
+end
+
+function BindingsManager:ResetBindings()
+	self:LoadBindings(GetCurrentBindingSet())
+end
+
+function BindingsManager:ResetBindingsOnClose()
+	self:ResetBindings()
+	self:WipeSnapshot()
 end
 
 function BindingsManager:SnapshotBindings()
@@ -270,7 +276,7 @@ function BindingsManager:OnFirstShow()
 								self:OnChecked(self:GetChecked())
 							end;
 							OnAccept = function()
-								env.Bindings:LoadBindings(GetCurrentBindingSet())
+								env.Bindings:ResetBindings()
 							end;
 						})
 					end;

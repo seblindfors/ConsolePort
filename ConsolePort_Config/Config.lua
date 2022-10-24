@@ -29,7 +29,7 @@ end
 
 function Config:Hide()
 	for panel in self:EnumerateActive() do
-		local valid, callback = panel:Validate()
+		local valid, acceptCallback, cancelCallback = panel:Validate()
 		if not valid then
 			return CPAPI.Popup('ConsolePort_Config_Unsaved_Changes', {
 				-- HACK: something, something, unsaved changes. good enough. :)
@@ -41,9 +41,15 @@ function Config:Hide()
 				OnHide = function()
 					self:Hide()
 				end;
+				OnCancel = function()
+					if cancelCallback then
+						cancelCallback(panel)
+					end
+				end;
 				OnAccept = function()
-					callback(panel)
-					self:Hide()
+					if acceptCallback then 
+						acceptCallback(panel)
+					end
 				end;
 			})
 		end
