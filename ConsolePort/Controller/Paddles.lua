@@ -19,11 +19,11 @@ function Paddles:OnDataLoaded()
 	self:OnPaddlesChanged()
 end
 
-function Paddles:GetEmulatedButton(button)
-	if (button == nil or button == NOT_BOUND) then return end;
+function Paddles:GetEmulatedButton(key)
+	if (key == nil or key == NOT_BOUND) then return end;
 	for i = 1, NUM_PADDLES do
 		local mapping, buttonID = self:GetEmulation(i)
-		if (button == mapping) then
+		if (key == mapping) then
 			return buttonID;
 		end
 	end
