@@ -1,6 +1,7 @@
-## Interface: 90200
+## Interface: 10000
 ## Interface-Classic: 11402
 ## Interface-BCC: 20504
+## Interface-Wrath: 30400
 ## Title: Console Port |cff69ccf0Keyboard|r
 ## Notes: Virtual keyboard module
 ## SavedVariables: ConsolePort_KeyboardLayout, ConsolePort_KeyboardDictionary, ConsolePort_KeyboardMarkers

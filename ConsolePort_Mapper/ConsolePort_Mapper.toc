@@ -1,6 +1,7 @@
-## Interface: 90200
+## Interface: 10000
 ## Interface-Classic: 11402
 ## Interface-BCC: 20504
+## Interface-Wrath: 30400
 ## Title: Console Port |cff69ccf0Mapper|r
 ## Notes: Configuration module for raw controller state
 ## RequiredDeps: ConsolePort, ConsolePort_Config
