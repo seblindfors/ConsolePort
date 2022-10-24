@@ -478,9 +478,19 @@ function HANDLE:UpdateAllBindings(bindings)
 	end
 end
 
+local function GetClusterTextureForButtonID(plainID)
+	local texture = db('Icons/64/'..button.plainID)
+	if texture then
+		return GenerateClosure(function(set, texture, obj)
+			set(obj, texture)
+		end, CPAPI.SetTextureOrAtlas, {texture, db.Gamepad.UseAtlasIcons})
+	end
+	return [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]]
+end
+
 function HANDLE:SetEligbleForRebind(button, modifier, main)
 	local emulation = db.Console:GetEmulationForButton(button.plainID)
-	local texture = db('Icons/64/'..button.plainID) or [[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]]
+	local texture = GetClusterTextureForButtonID(button.plainID)
 	if emulation then
 		return 'custom', {
 			texture = texture;
@@ -493,7 +503,7 @@ function HANDLE:SetEligbleForRebind(button, modifier, main)
 	end
 	local disableQuickAssign = db('bindingDisableQuickAssign')
 	return 'custom', {
-		texture = GenerateClosure(function(set, texture, obj) set(obj, texture) end, CPAPI.SetTextureOrAtlas, {texture, db.Gamepad.UseAtlasIcons}),
+		texture = texture,
 		tooltip = ('|cFFFFFFFF%s|r\n%s'):format(NOT_BOUND,
 			'To use this combination, you must first connect it to a binding or an action bar slot.' ..
 			(not disableQuickAssign and '\nClick here to access the quick binding menu.' or '')
@@ -508,9 +518,7 @@ function HANDLE:SetXMLBinding(button, modifier, binding)
 	return 'custom', {
 		text = text,
 		tooltip = tooltip or _G['BINDING_NAME_'..binding] or binding,
-		texture = texture or env:GetBindingIcon(binding) or
-			db('Icons/64/'..button.plainID) or
-			[[Interface\AddOns\ConsolePortBar\Textures\Icons\Unbound]],
+		texture = texture or env:GetBindingIcon(binding) or GetClusterTextureForButtonID(button.plainID),
 		func = function() end,
 	}
 end
