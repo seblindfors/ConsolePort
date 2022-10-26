@@ -27,11 +27,11 @@ db:Register('Console', setmetatable({
 			desc = 'Button that emulates the Alt key.';
 			note = 'Only recommended for super users.';
 		};
-		{	cvar = 'GamePadEmulateEsc';
-			type = Button;
-			name = 'Emulate Esc';
-			desc = 'Button that emulates the Esc key.';
-			note = 'This key can be replaced by binding Toggle Game Menu. This emulation is not necessary with ConsolePort.';
+		{	cvar = 'GamePadEmulateTapWindowMs';
+			type = Number(350, 25);
+			name = 'Emulated Modifier Tap Window';
+			desc = 'Buttons emulating modifiers will instead trigger bindings when tapped within the time window.';
+			note = 'Expressed in milliseconds.';
 		};
 		{	cvar = 'GamePadCursorLeftClick';
 			type = Button;
@@ -212,6 +212,12 @@ db:Register('Console', setmetatable({
 			name = 'Use WinRT Gamepad Mapping (Xbox)';
 			desc = 'Uses a Microsoft API to map Xbox controllers to the game.';
 			note = 'Disable if you are experiencing movement and binding issues.';
+		};
+		{	cvar = 'GamePadEmulateEsc';
+			type = Button;
+			name = 'Emulate Esc';
+			desc = 'Button that emulates the Esc key.';
+			note = 'This key can be replaced by binding Toggle Game Menu. This emulation is not necessary with ConsolePort.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
