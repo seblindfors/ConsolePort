@@ -406,165 +406,89 @@ end
 ---------------------------------------------------------------
 -- Specific button catcher with callbacks
 ---------------------------------------------------------------
-do local ModListen = CreateFrame('Frame'); ModListen.Listeners = {};
+CPButtonCatcherMixin = {};
 
-	function ModListen:OnModifierStateChanged(_, key, down)
-		if (down == 1) then
-			for _, modifier in db:For('Gamepad/Modsims') do
-				if key:match(modifier) then
-					self:TriggerModifier(modifier)
-				end
-			end
+function CPButtonCatcherMixin:OnLoad()
+	self.ClosureRegistry = {};
+end
+
+function CPButtonCatcherMixin:OnGamePadButtonDown(button)
+	if not self.catcherPaused then
+		if self.catchAllCallback and self:IsButtonValid(button) then
+			self.catchAllCallback(button)
+			return self:SetPropagateKeyboardInput(false)
+		elseif self.ClosureRegistry[button] then 
+			self.ClosureRegistry[button](button)
+			return self:SetPropagateKeyboardInput(false)
 		end
 	end
+	self:SetPropagateKeyboardInput(true)
+end
 
-	function ModListen:TriggerModifier(modifier)
-		for signature, data in pairs(self.Listeners) do
-			if (data.modifier == modifier) then
-				data.frame:OnGamePadButtonDown(data.emulated)
-			end
+function CPButtonCatcherMixin:OnKeyDown(button)
+	local emulatedButton = db.Paddles:GetEmulatedButton(button)
+	if emulatedButton and not self.catcherPaused then
+		if self.catchAllCallback and self:IsButtonValid(emulatedButton) then
+			self.catchAllCallback(emulatedButton)
+			return self:SetPropagateKeyboardInput(false)
+		elseif self.ClosureRegistry[emulatedButton] then 
+			self.ClosureRegistry[emulatedButton](emulatedButton)
+			return self:SetPropagateKeyboardInput(false)
 		end
 	end
+	self:SetPropagateKeyboardInput(true)
+end
 
-	function ModListen:GetSignature(frame, modifier)
-		return tostring(frame) .. tostring(modifier);
-	end
+function CPButtonCatcherMixin:OnHide()
+	self:ReleaseClosures()
+end
 
-	function ModListen:TryIdle()
-		if not next(self.Listeners) then
-			self:UnregisterEvent('MODIFIER_STATE_CHANGED')
-			self:SetScript('OnEvent', nil)
+function CPButtonCatcherMixin:CatchAll(callback, ...)
+	self.catchAllCallback = GenerateClosure(callback, ...)
+end
+
+function CPButtonCatcherMixin:CatchButton(button, callback, ...)
+	local closure = GenerateClosure(callback, ...)
+	self.ClosureRegistry[button] = closure;
+	self:ToggleInputs(true)
+	return closure; -- return the event owner
+end
+
+function CPButtonCatcherMixin:FreeButton(button, ...)
+	if select('#', ...) > 0 then
+		local closure = ...;
+		if closure and (self.ClosureRegistry[button] ~= closure) then
+			return false; -- assert event owner if supplied
 		end
 	end
-
-	function ModListen:RegisterClosure(frame, modifier)
-		self.Listeners[self:GetSignature(frame, modifier)] = {
-			frame = frame;
-			modifier = modifier;
-			emulated = GetCVar('GamepadEmulate'..modifier);
-		};
-		self:RegisterEvent('MODIFIER_STATE_CHANGED')
-		self:SetScript('OnEvent', self.OnModifierStateChanged)
-	end
-
-	function ModListen:RemoveClosure(frame, modifier)
-		self.Listeners[self:GetSignature(frame, modifier)] = nil;
-		self:TryIdle()
-	end
-
-	function ModListen:RemoveFrame(frame)
-		local partial = tostring(frame);
-		local signature = next(self.Listeners)
-		while signature do
-			if signature:match(partial) then
-				self.Listeners[signature] = nil;
-				signature = nil;
-			end
-			signature = next(self.Listeners, signature)
-		end
-		self:TryIdle()
-	end
-
-	-----------------------------------------------------------
-	-- Mixin
-	-----------------------------------------------------------
-	CPButtonCatcherMixin = {};
-
-	function CPButtonCatcherMixin:OnLoad()
-		self.ClosureRegistry = {};
-	end
-
-	function CPButtonCatcherMixin:OnGamePadButtonDown(button)
-		if not self.catcherPaused then
-			if self.catchAllCallback and self:IsButtonValid(button) then
-				self.catchAllCallback(button)
-				return self:SetPropagateKeyboardInput(false)
-			elseif self.ClosureRegistry[button] then 
-				self.ClosureRegistry[button](button)
-				return self:SetPropagateKeyboardInput(false)
-			end
-		end
-		self:SetPropagateKeyboardInput(true)
-	end
-
-	function CPButtonCatcherMixin:OnKeyDown(button)
-		local emulatedButton = db.Paddles:GetEmulatedButton(button)
-		if emulatedButton and not self.catcherPaused then
-			if self.catchAllCallback and self:IsButtonValid(emulatedButton) then
-				self.catchAllCallback(emulatedButton)
-				return self:SetPropagateKeyboardInput(false)
-			elseif self.ClosureRegistry[emulatedButton] then 
-				self.ClosureRegistry[emulatedButton](emulatedButton)
-				return self:SetPropagateKeyboardInput(false)
-			end
-		end
-		self:SetPropagateKeyboardInput(true)
-	end
-
-	function CPButtonCatcherMixin:OnHide()
-		self:ReleaseClosures()
-	end
-
-	function CPButtonCatcherMixin:CatchAll(callback, ...)
-		self.catchAllCallback = GenerateClosure(callback, ...)
-		for _, modifier in db:For('Gamepad/Modsims') do
-			ModListen:RegisterClosure(self, modifier)
-		end
-	end
-
-	function CPButtonCatcherMixin:CatchButton(button, callback, ...)
-		local closure = GenerateClosure(callback, ...)
-		self.ClosureRegistry[button] = closure;
-
-		local modifier = db.Gamepad:GetActiveModifier(button)
-		if modifier then
-			-- TODO: This seems like it's no longer necessary
-			--ModListen:RegisterClosure(self, modifier)
-		end
-		self:ToggleInputs(true)
-		return closure; -- return the event owner
-	end
-
-	function CPButtonCatcherMixin:FreeButton(button, ...)
-		if select('#', ...) > 0 then
-			local closure = ...;
-			if closure and (self.ClosureRegistry[button] ~= closure) then
-				return false; -- assert event owner if supplied
-			end
-		end
-		if db.Gamepad:GetActiveModifier(button) then
-			ModListen:RemoveClosure(self, button)
-		end
-		self.ClosureRegistry[button] = nil;
-		if not next(self.ClosureRegistry) then
-			self:ToggleInputs(false)
-		end
-		return true;
-	end
-
-	function CPButtonCatcherMixin:PauseCatcher()
-		self.catcherPaused = true;
-	end
-
-	function CPButtonCatcherMixin:ResumeCatcher()
-		self.catcherPaused = false;
-	end
-
-	function CPButtonCatcherMixin:ReleaseClosures()
-		ModListen:RemoveFrame(self)
-		self.catchAllCallback = nil;
+	self.ClosureRegistry[button] = nil;
+	if not next(self.ClosureRegistry) then
 		self:ToggleInputs(false)
-		if self.ClosureRegistry then
-			wipe(self.ClosureRegistry)
-		end
 	end
+	return true;
+end
 
-	function CPButtonCatcherMixin:ToggleInputs(enabled)
-		self:EnableGamePadButton(enabled)
-		self:EnableKeyboard(enabled)
-	end
+function CPButtonCatcherMixin:PauseCatcher()
+	self.catcherPaused = true;
+end
 
-	function CPButtonCatcherMixin:IsButtonValid(button)
-		return CPAPI.IsButtonValidForBinding(button)
+function CPButtonCatcherMixin:ResumeCatcher()
+	self.catcherPaused = false;
+end
+
+function CPButtonCatcherMixin:ReleaseClosures()
+	self.catchAllCallback = nil;
+	self:ToggleInputs(false)
+	if self.ClosureRegistry then
+		wipe(self.ClosureRegistry)
 	end
+end
+
+function CPButtonCatcherMixin:ToggleInputs(enabled)
+	self:EnableGamePadButton(enabled)
+	self:EnableKeyboard(enabled)
+end
+
+function CPButtonCatcherMixin:IsButtonValid(button)
+	return CPAPI.IsButtonValidForBinding(button)
 end

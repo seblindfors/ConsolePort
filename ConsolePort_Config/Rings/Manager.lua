@@ -588,15 +588,15 @@ function RingsManager:OnFirstShow()
 							_Size = {260, 50};
 							_Hide = true;
 							_OnShow = function(self)
-								env.Config:PauseCatcher()
-								self:EnableGamePadButton(true)
-								self:EnableKeyboard(true)
+								env.Config:CatchAll(function(self, ...)
+									if TrySetBinding(...) then
+										self:GetParent():Hide()
+									end
+								end, self)
 								self.timeUntilCancel = 5;
 							end;
 							_OnHide = function(self)
-								env.Config:ResumeCatcher()
-								self:EnableGamePadButton(false)
-								self:EnableKeyboard(false)
+								env.Config:SetDefaultClosures()
 								self.timeUntilCancel = 5;
 							end;
 							_OnUpdate = function(self, elapsed)
@@ -606,18 +606,6 @@ function RingsManager:OnFirstShow()
 									self.timeUntilCancel = 5;
 									self:GetParent():Hide()
 								end
-							end;
-							_OnGamePadButtonUp = function(self, ...)
-								if TrySetBinding(...) then
-									self:GetParent():Hide()
-								end
-							end;
-							_OnKeyUp = function(self, button)
-								local emulatedButton = db.Paddles:GetEmulatedButton(button)
-								if emulatedButton then
-									return self:GetScript('OnGamePadButtonUp')(self, emulatedButton)
-								end
-								self:SetPropagateKeyboardInput(true)
 							end;
 							_OnClick = function(self) self:Hide() end;
 						};
