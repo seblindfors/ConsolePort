@@ -75,7 +75,7 @@ end
 CPAPI.ExtraActionButtonID = ExtraActionButton1 and ExtraActionButton1.action or
 	CPAPI.IsWoW10Version and 217 or 169;
 
-CPAPI.ActionTypeRelease =  CPAPI.IsWoW10Version and 'typerelease' or 'type';
+CPAPI.ActionTypeRelease = CPAPI.IsWoW10Version and 'typerelease' or 'type';
 CPAPI.ActionTypePress   = 'type';
 
 ---------------------------------------------------------------
