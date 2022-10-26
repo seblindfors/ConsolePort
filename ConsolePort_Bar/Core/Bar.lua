@@ -207,7 +207,7 @@ function Bar:OnLoad(cfg, benign)
 	self.Eye:SetShown(cfg.eye)
 
 	-- Lock/unlock pet ring
-	self.Pet:RegisterForDrag(not cfg.lockpet and 'LeftButton')
+	self.Pet:RegisterForDrag(not cfg.lockpet and 'LeftButton' or '')
 	if cfg.disablepetfade then
 		self.Pet:FadeIn()
 	else
