@@ -383,6 +383,7 @@ function GamepadAPI:GetIconPath(path, style)
 end
 
 function GamepadAPI.SetIconToTexture(obj, iconID, style, iconSize, atlasSize)
+	if not iconID then return obj:SetTexture(nil) end;
 	local icon = db(('Icons/%s/%s'):format(style or 64, iconID))
 	if ( type(icon) == 'string' ) then
 		CPAPI.SetTextureOrAtlas(obj, {icon, GamepadAPI.UseAtlasIcons}, iconSize, atlasSize)
