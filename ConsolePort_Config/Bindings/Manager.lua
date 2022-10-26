@@ -329,7 +329,7 @@ end
 
 function Actionbar:GetPages()
 	local showExtra = GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars')
-	return ipairs({
+	local pages = {
 		-- (1) Page 1 / Page 2
 		-- (2) Bottom Left / Bottom Right
 		-- (3) Right / Right 2
@@ -338,7 +338,12 @@ function Actionbar:GetPages()
 		{{6, 5}, ('%s / %s'):format(SHOW_MULTIBAR1_TEXT, SHOW_MULTIBAR2_TEXT)};
 		{{3, 4}, ('%s / %s'):format(SHOW_MULTIBAR3_TEXT, SHOW_MULTIBAR4_TEXT)}; showExtra and 
 		{{7, 8, 9, 10}, ('%s / %s'):format(TUTORIAL_TITLE61_WARRIOR, TUTORIAL_TITLE61_DRUID)} or nil;
-	})
+	}
+	if CPAPI.IsRetailVersion then
+		local str = OPTION_SHOW_ACTION_BAR;
+		tinsert(pages, {{12, 13, 14}, BINDING_HEADER_MULTIACTIONBAR})
+	end
+	return ipairs(pages)
 end
 
 function Actionbar:OnChecked(show)

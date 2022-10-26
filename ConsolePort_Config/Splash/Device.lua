@@ -11,7 +11,7 @@ function Device:OnClick()
 	device:ApplyPresetVars()
 	db('Cursor'):SetCurrentNode(env.Splash.Wizard.Child.Continue, true)
 	CPAPI.Popup('ConsolePort_Reset_Keybindings', {
-		text = CONFIRM_RESET_KEYBINDINGS;
+		text = ('%s\n\n%s'):format(CONFIRM_RESET_KEYBINDINGS, L'This only affects gamepad bindings.');
 		button1 = OKAY;
 		button2 = CANCEL;
 		timeout = 0;
