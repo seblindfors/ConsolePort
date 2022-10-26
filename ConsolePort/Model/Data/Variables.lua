@@ -14,7 +14,7 @@ local unpack, _, db = unpack, ...; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', {
 	showAdvancedSettings = {Bool(false);
-		name = ALL_SETTINGS;
+		name = 'All Settings';
 		desc = 'Display all available settings.';
 		hide = true;
 	};
