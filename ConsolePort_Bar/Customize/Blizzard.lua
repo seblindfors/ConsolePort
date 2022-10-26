@@ -37,7 +37,6 @@ do
 		MainMenuBar and MainMenuBar.BorderArt,
 		MainMenuBar and MainMenuBar.Background,
 	}, hide)
-
 	-- Hide MultiBar Buttons, but keep the bars alive
 	for _, n in pairs({
 		'ActionButton',	
@@ -164,10 +163,6 @@ do
 	-------------------------------------------
 	--- 	Misc changes
 	-------------------------------------------
-
-	if ObjectiveTrackerFrame then
-		ObjectiveTrackerFrame:SetPoint('TOPRIGHT', MinimapCluster, 'BOTTOMRIGHT', -100, -132)
-	end
 	AlertFrame:SetPoint('BOTTOM', UIParent, 'BOTTOM', 0, 200)
 
 	if CPAPI.IsRetailVersion then
