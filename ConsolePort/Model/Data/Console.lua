@@ -27,12 +27,6 @@ db:Register('Console', setmetatable({
 			desc = 'Button that emulates the Alt key.';
 			note = 'Only recommended for super users.';
 		};
-		{	cvar = 'GamePadEmulateTapWindowMs';
-			type = Number(350, 25);
-			name = 'Emulated Modifier Tap Window';
-			desc = 'Buttons emulating modifiers will instead trigger bindings when tapped within the time window.';
-			note = 'Expressed in milliseconds.';
-		};
 		{	cvar = 'GamePadCursorLeftClick';
 			type = Button;
 			name = KEY_BUTTON1;
@@ -44,6 +38,12 @@ db:Register('Console', setmetatable({
 			name = KEY_BUTTON2;
 			desc = 'Button that emulates Right Click while controlling the mouse cursor.';
 			note = 'Used for interacting with the world, at a center-fixed position.';
+		};
+		{	cvar = 'GamePadEmulateTapWindowMs';
+			type = Number(350, 25);
+			name = 'Emulated Modifier Tap Window';
+			desc = 'Buttons emulating modifiers will instead trigger bindings when pressed and released within the time span.';
+			note = 'Expressed in milliseconds. Pressing any combination of modifier and button will cancel the effect.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
