@@ -334,12 +334,7 @@ function Hotkey:SetAtlas(...)
 end
 
 function Hotkey:OnUpdateHotkeyCallback()
-	local icon = db('Icons/32/'..self.iconID)
-	if type(icon) == 'string' then
-		CPAPI.SetTextureOrAtlas(self,
-			{icon, db.Gamepad.UseAtlasIcons},
-			self.iconSize, self.atlasSize)
-	end
+	db.Gamepad.SetIconToTexture(self, self.iconID, 32, self.iconSize, self.atlasSize)
 end
 
 function Hotkey:OnUpdateModifierHotkeyCallback()

@@ -185,7 +185,7 @@ db:RegisterCallback('Settings/useAtlasIcons', function(self, value)
 end, GamepadAPI)
 
 ---------------------------------------------------------------
--- Data
+-- Data: state
 ---------------------------------------------------------------
 function GamepadAPI:GetState()
 	return C_GamePad.GetDeviceMappedState(C_GamePad.GetActiveDeviceID())
@@ -289,6 +289,9 @@ function GamepadAPI:GetActiveModifier(button)
 	end
 end
 
+---------------------------------------------------------------
+-- Data: bindings
+---------------------------------------------------------------
 function GamepadAPI:GetModifiersHeld()
 	-- NOTE: uses input state instead of Blizzard API,
 	-- to get reliable results in things like click wrappers,
@@ -342,8 +345,50 @@ function GamepadAPI:GetBindingKey(binding)
 	return unpack(tFilter({GetBindingKey(binding)}, IsBindingForGamePad, true))
 end
 
+---------------------------------------------------------------
+-- Data: icons
+---------------------------------------------------------------
+function GamepadAPI:ReindexIconAtlas()
+	self.UseAtlasIcons = db('useAtlasIcons')
+
+	local function getAtlasFromGlobalEscSeq(modifier, button, style)
+		local globalKey = ('KEY_%s%s_%s'):format(modifier, button, style):gsub('_$', '')
+		local atlasEscSeq = _G[globalKey]
+		if not atlasEscSeq then return end
+		return atlasEscSeq:gsub('|A:([%w_]+)(.+)', '%1')
+	end
+
+	-- Do indexing of the different styles
+	for style, sizes in pairs(self.Index.Atlas) do --SHP, 
+		for size, icons in pairs(sizes) do -- 32,64
+			local modifier = (size == 32) and 'ABBR_' or '';
+			for button in pairs(self.Index.Button.Binding) do
+				icons[button] = getAtlasFromGlobalEscSeq(modifier, button, style)
+			end
+		end
+	end
+
+	-- Proxy the other styles to fallback on generic
+	for style, sizes in pairs(self.Index.Atlas) do
+		if (style ~= '') then
+			for size, icons in pairs(sizes) do
+				CPAPI.Proxy(icons, self.Index.Atlas[''][size])
+			end
+		end
+	end
+end
+
 function GamepadAPI:GetIconPath(path, style)
 	return self.Index.Icons.Path:format(style or 64, path)
+end
+
+function GamepadAPI.SetIconToTexture(obj, iconID, style, iconSize, atlasSize)
+	local icon = db(('Icons/%s/%s'):format(style or 64, iconID))
+	if ( type(icon) == 'string' ) then
+		CPAPI.SetTextureOrAtlas(obj, {icon, GamepadAPI.UseAtlasIcons}, iconSize, atlasSize)
+		return true;
+	end
+	return false;
 end
 
 ---------------------------------------------------------------
@@ -443,36 +488,6 @@ end
 ---------------------------------------------------------------
 -- Icon queries
 ---------------------------------------------------------------
-function GamepadAPI:ReindexIconAtlas()
-	self.UseAtlasIcons = db('useAtlasIcons')
-
-	local function getAtlasFromGlobalEscSeq(modifier, button, style)
-		local globalKey = ('KEY_%s%s_%s'):format(modifier, button, style):gsub('_$', '')
-		local atlasEscSeq = _G[globalKey]
-		if not atlasEscSeq then return end
-		return atlasEscSeq:gsub('|A:([%w_]+)(.+)', '%1')
-	end
-
-	-- Do indexing of the different styles
-	for style, sizes in pairs(self.Index.Atlas) do --SHP, 
-		for size, icons in pairs(sizes) do -- 32,64
-			local modifier = (size == 32) and 'ABBR_' or '';
-			for button in pairs(self.Index.Button.Binding) do
-				icons[button] = getAtlasFromGlobalEscSeq(modifier, button, style)
-			end
-		end
-	end
-
-	-- Proxy the other styles to fallback on generic
-	for style, sizes in pairs(self.Index.Atlas) do
-		if (style ~= '') then
-			for size, icons in pairs(sizes) do
-				CPAPI.Proxy(icons, self.Index.Atlas[''][size])
-			end
-		end
-	end
-end
-
 function GamepadMixin:GetIconAtlasForButton(button, style)
 	if not GamepadAPI.UseAtlasIcons then return end
 	return db(('Gamepad/Index/Atlas/%s/%s/%s'):format(self.Theme.Label, style or 64, button))

@@ -40,10 +40,7 @@ function CPHintMixin:GetText()
 end
 
 function CPHintMixin:SetData(icon, text)
-	local texture = icon and db('Icons/64/'..icon)
-	if texture then
-		CPAPI.SetTextureOrAtlas(self.Icon, {texture, db.Gamepad.UseAtlasIcons})
-	end
+	db.Gamepad.SetIconToTexture(self.Icon, icon)
 	self.Text:SetText(text)
 	self:SetWidth(self.Text:GetStringWidth() + 64)
 	self:UpdateParentWidth()
