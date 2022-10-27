@@ -219,6 +219,11 @@ db:Register('Console', setmetatable({
 			desc = 'Button that emulates the Esc key.';
 			note = 'This key can be replaced by binding Toggle Game Menu. This emulation is not necessary with ConsolePort.';
 		};
+		{	cvar = 'GamePadOverlapMouseMs';
+			type = Number(2000, 100);
+			name = 'Combined Input Overlap Time';
+			desc = 'Duration after using gamepad and mouse at the same time before switching to just one or the other, in milliseconds.';
+		};
 	};
 	--------------------------------------------------------------------------------------------------------
 	Touchpad = {
