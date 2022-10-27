@@ -6,7 +6,6 @@ local _, db = ...; CPAPI = {};
 CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or nil;
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
-CPAPI.IsWoW10Version      = select(4, GetBuildInfo()) >= 100000 or nil;
 
 function CPAPI.Log(...)
 	local cc = ChatTypeInfo.SYSTEM;
@@ -73,9 +72,9 @@ end
 -- Action button info
 ---------------------------------------------------------------
 CPAPI.ExtraActionButtonID = ExtraActionButton1 and ExtraActionButton1.action or
-	CPAPI.IsWoW10Version and 217 or 169;
+	CPAPI.IsRetailVersion and 217 or 169;
 
-CPAPI.ActionTypeRelease = CPAPI.IsWoW10Version and 'typerelease' or 'type';
+CPAPI.ActionTypeRelease = CPAPI.IsRetailVersion and 'typerelease' or 'type';
 CPAPI.ActionTypePress   = 'type';
 
 ---------------------------------------------------------------

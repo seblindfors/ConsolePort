@@ -220,7 +220,7 @@ end
 InputMixin.timer = 0;
 
 function InputMixin:OnLoad(id)
-	if CPAPI.IsWoW10Version then
+	if CPAPI.IsRetailVersion then
 		self:RegisterForClicks('AnyUp', 'AnyDown')
 		self:SetAttribute('pressAndHoldAction', true)
 	end

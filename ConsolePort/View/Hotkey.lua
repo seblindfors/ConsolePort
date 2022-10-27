@@ -151,7 +151,7 @@ function HotkeyHandler:UpdateHotkeys(device)
 	self.Widgets:ReleaseAll()
 	assert(device, 'No device specified when attempting to update hotkeys.')
 	if db('disableHotkeyRendering') then return end
-	if not CPAPI.IsWoW10Version then self:ReplaceHotkeyFont() end
+	if not CPAPI.IsRetailVersion then self:ReplaceHotkeyFont() end
 
 	local bindings = db.Gamepad:GetBindings()
 	local bindingToActionID = {}

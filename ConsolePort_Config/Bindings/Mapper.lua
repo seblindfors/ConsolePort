@@ -469,7 +469,7 @@ function BindingHTML:SetContent(desc, image)
 end
 
 function BindingHTML:OnLoad()
-	if CPAPI.IsWoW10Version then
+	if CPAPI.IsRetailVersion then
 		self:SetFontObject('p', CPSubtitleFont)
 		self:SetFontObject('h2', Game13Font)
 		self:SetFontObject('h1', CPSubtitleFont)

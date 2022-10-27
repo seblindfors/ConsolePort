@@ -7,8 +7,8 @@ do	-- Initiate frame
 	local hideMenuHook    = {hidemenu = true};
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
 	local IsRetailVersion = CPAPI.IsRetailVersion;
-	local IsWoW10Version  = CPAPI.IsWoW10Version;
-	local IsWoW9Version   = not IsWoW10Version or nil;
+	local IsRetailVersion  = CPAPI.IsRetailVersion;
+	local IsWoW9Version   = not IsRetailVersion or nil;
 	local IsClassicVersion = not CPAPI.IsRetailVersion or nil;
 
 	LibStub('Carpenter')(Menu, {
@@ -501,7 +501,7 @@ do	-- Initiate frame
 					_RefTo = GameMenuButtonSettings or GameMenuButtonOptions;
 					_Image = IsRetailVersion and 'Pet_Type_Mechanical' or 'Trade_Engineering';
 				};
-				EditMode = IsWoW10Version and {
+				EditMode = IsRetailVersion and {
 					_ID    = 6;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -529,7 +529,7 @@ do	-- Initiate frame
 					_ID    = 7;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsWoW10Version and 'parent.EditMode' or 'parent.Interface', 'BOTTOM', 0, 0};
+					_Point = {'TOP', IsRetailVersion and 'parent.EditMode' or 'parent.Interface', 'BOTTOM', 0, 0};
 					_Text  = ADDONS;
 					_RefTo = GameMenuButtonAddons;
 					_OnLoad = function(self)
