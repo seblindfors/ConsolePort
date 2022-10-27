@@ -4,9 +4,6 @@ local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
 local INTERACT_OPT = UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT;
-local INTERACT_STR = CPAPI.IsWoW10Version and
-	'[@softinteract,exists] INTERACTTARGET; nil' or
-	'[vehicleui] nil; [@target,noharm][@target,noexists][@target,harm,dead] TURNORACTION; nil';
 
 local unpack, _, db = unpack, ...; db('Data')();
 ------------------------------------------------------------------------------------------------------------
@@ -67,26 +64,6 @@ db:Register('Variables', {
 		sort = 6;
 		name = 'Color';
 		desc = 'Color of the crosshair.';
-	};
-	--------------------------------------------------------------------------------------------------------
-	-- Interact button:
-	--------------------------------------------------------------------------------------------------------
-	interactButton = {Button('PAD1', true):Set(CPAPI.IsWoW10Version and 'PAD1' or 'none', true);
-		head = INTERACT_OPT;
-		sort = 1;
-		name = 'Interact Button';
-		desc = 'Button or combination used to interact for a given condition. By default, interacts using centered cursor.';
-		note = 'Use a shoulder button combined with crosshair for smooth and precise interactions.';
-	};
-	interactCondition = {String(INTERACT_STR);
-		head = INTERACT_OPT;
-		sort = 2;
-		name = 'Interact Condition';
-		desc = 'Macro condition to enable the interact button override.';
-		note = 'Takes the format of...\n'
-			.. BLUE_FONT_COLOR:WrapTextInColorCode('[condition] bindingID; nil')
-			.. '\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.';
-		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Mouse:
@@ -434,7 +411,7 @@ db:Register('Variables', {
 		desc = 'Disables customization to hotkeys on regular action bar.';
 		advd = true;
 	};
-	useAtlasIcons = CPAPI.IsWoW10Version and {Bool(true);
+	useAtlasIcons = CPAPI.IsRetailVersion and {Bool(true);
 		head = KEY_BINDINGS_MAC;
 		sort = 6;
 		name = 'Use Default Hotkey Icons';
@@ -464,6 +441,23 @@ db:Register('Variables', {
 		sort = 10;
 		name = 'Emulate '..(KEY_PADPADDLE4 or 'Paddle 4');
 		desc = 'Keyboard button to emulate the paddle 4 button.';
+	};
+	interactButton = {Button('PAD1', true):Set('none', true);
+		head = KEY_BINDINGS_MAC;
+		sort = 11;
+		name = 'Click Override Button';
+		desc = 'Button or combination used to click when a given condition applies, but act as a normal binding otherwise.';
+		note = 'Use a shoulder button combined with crosshair for smooth and precise interactions. The click is performed at crosshair or cursor location.';
+	};
+	interactCondition = {String('[vehicleui] nil; [@target,noharm][@target,noexists][@target,harm,dead] TURNORACTION; nil');
+		head = KEY_BINDINGS_MAC;
+		sort = 12;
+		name = 'Click Override Condition';
+		desc = 'Macro condition to enable the click override button. The default condition clicks right mouse button when there is no enemy target.';
+		note = 'Takes the format of...\n'
+			.. BLUE_FONT_COLOR:WrapTextInColorCode('[condition] bindingID; nil')
+			.. '\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Advanced:
