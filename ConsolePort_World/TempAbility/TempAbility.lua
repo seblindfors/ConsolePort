@@ -9,8 +9,6 @@ local TempAbility = Mixin(CPAPI.EventHandler(ConsolePortTempAbilityFrame, {
 	CPAPI.IsRetailVersion and 'UPDATE_EXTRA_ACTIONBAR';
 }), CPFocusPoolMixin)
 
-local EXTRA_AID, VEHICLE_AID = CPAPI.ExtraActionButtonID, 133;
-
 ---------------------------------------------------------------
 -- Shown ability mixin
 ---------------------------------------------------------------
@@ -77,7 +75,7 @@ end
 ---------------------------------------------------------------
 function TempAbility:UPDATE_EXTRA_ACTIONBAR()
 	if HasExtraActionBar() then
-		local spellID = select(2, GetActionInfo(EXTRA_AID))
+		local spellID = select(2, GetActionInfo(CPAPI.ExtraActionButtonID))
 		if spellID and spellID > 0 then
 			self:AddSpell(spellID)
 		end

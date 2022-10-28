@@ -762,6 +762,14 @@ do	-- Initiate frame
 	-- Display properties
 	---------------------------------------------------------------
 	local db = env.db;
+	local ignoreFadeFrames = {
+		[GameTooltip] = GameTooltip:IsIgnoringParentAlpha();
+		[StaticPopup1] = StaticPopup1:IsIgnoringParentAlpha();
+		[StaticPopup2] = StaticPopup2:IsIgnoringParentAlpha();
+		[StaticPopup3] = StaticPopup3:IsIgnoringParentAlpha();
+		[StaticPopup4] = StaticPopup4:IsIgnoringParentAlpha();
+	}
+
 	Menu:SetIgnoreParentAlpha(true)
 	Menu:HookScript('OnShow', function(self)
 		if ConsolePortCursor:IsShown() then
@@ -778,8 +786,10 @@ do	-- Initiate frame
 			if not MinimapCluster:IsProtected() then MinimapCluster:Hide() end
 		end
 
-		self.tooltipIgnoringAlpha = GameTooltip:IsIgnoringParentAlpha()
-		GameTooltip:SetIgnoreParentAlpha(true)
+		for frame, state in pairs(ignoreFadeFrames) do
+			ignoreFadeFrames[frame] = frame:IsIgnoringParentAlpha()
+			frame:SetIgnoreParentAlpha(true)
+		end
 	end)
 	
 	Menu:HookScript('OnHide', function(self)
@@ -796,8 +806,9 @@ do	-- Initiate frame
 			if not MinimapCluster:IsProtected() then MinimapCluster:Show() end
 		end
 
-		GameTooltip:SetIgnoreParentAlpha(self.tooltipIgnoringAlpha)
-		self.tooltipIgnoringAlpha = nil;
+		for frame, state in pairs(ignoreFadeFrames) do
+			frame:SetIgnoreParentAlpha(state)
+		end
 	end)
 
 	local r, g, b = CPAPI.GetClassColor()
