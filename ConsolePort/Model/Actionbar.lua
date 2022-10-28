@@ -25,9 +25,9 @@ local _, db = ...; local ActionBarAPI = {
 		['4']   = 'MultiBarLeftButton%d';
 		['5']   = 'MultiBarBottomRightButton%d';
 		['6']   = 'MultiBarBottomLeftButton%d';
-		['13']  = 'MultBar5Button%d';
-		['14']  = 'MultBar6Button%d';
-		['15']  = 'MultBar7Button%d';
+		['13']  = 'MultiBar5Button%d';
+		['14']  = 'MultiBar6Button%d';
+		['15']  = 'MultiBar7Button%d';
 		Default = 'ActionButton%d';
 		Abnormal = {
 			[133] = 'OverrideActionBarButton1';
