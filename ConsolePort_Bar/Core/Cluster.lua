@@ -408,7 +408,7 @@ local function CreateButton(parent, id, name, modifier, size, texSize, config)
 				local hotkey = CreateModifierHotkeyFrame(button, modHotkey)
 				hotkey:OnUpdateModifierHotkeyCallback()
 				hotkey:SetAlpha(0.75)
-				button['hotkey'..i] = hotkey
+				button['Hotkey'..i] = hotkey
 			end
 		end
 	end
