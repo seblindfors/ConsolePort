@@ -84,13 +84,23 @@ function TempAbility:UPDATE_EXTRA_ACTIONBAR()
 	end
 end
 
+local HasVehicleActionBar = HasVehicleActionBar or nop;
+local HasOverrideActionBar = HasOverrideActionBar or nop;
+local HasTempShapeshiftActionBar = HasTempShapeshiftActionBar or nop;
 function TempAbility:UPDATE_BONUS_ACTIONBAR()
-	for i=VEHICLE_AID, EXTRA_AID - 1 do
-		local spellID = select(2, GetActionInfo(i))
-		if spellID and spellID > 0 then
-			self:AddSpell(spellID)
-		end
-	end 
+	local barIndex =
+		HasVehicleActionBar() and GetVehicleBarIndex() or
+		HasOverrideActionBar() and GetOverrideBarIndex() or
+		HasTempShapeshiftActionBar() and GetTempShapeshiftBarIndex()
+	if barIndex then
+		local offset = (barIndex - 1) * NUM_ACTIONBAR_BUTTONS;
+		for i = offset + 1, offset + NUM_ACTIONBAR_BUTTONS do
+			local spellID = select(2, GetActionInfo(i))
+			if spellID and spellID > 0 then
+				self:AddSpell(spellID)
+			end
+		end 
+	end
 end
 
 TempAbility.UNIT_ENTERED_VEHICLE = TempAbility.UPDATE_BONUS_ACTIONBAR;

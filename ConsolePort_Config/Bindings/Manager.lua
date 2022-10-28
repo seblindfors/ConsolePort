@@ -341,7 +341,7 @@ function Actionbar:GetPages()
 	}
 	if CPAPI.IsRetailVersion then
 		local str = OPTION_SHOW_ACTION_BAR;
-		tinsert(pages, {{12, 13, 14}, BINDING_HEADER_MULTIACTIONBAR})
+		tinsert(pages, {{13, 14, 15}, BINDING_HEADER_MULTIACTIONBAR})
 	end
 	return ipairs(pages)
 end

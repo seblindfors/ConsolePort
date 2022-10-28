@@ -5,9 +5,9 @@ local _, db = ...; local ActionBarAPI = {
 		['4']   = 'MULTIACTIONBAR4BUTTON%d';
 		['5']   = 'MULTIACTIONBAR2BUTTON%d';
 		['6']   = 'MULTIACTIONBAR1BUTTON%d';
-		['12']  = 'MULTIACTIONBAR5BUTTON%d';
-		['13']  = 'MULTIACTIONBAR6BUTTON%d';
-		['14']  = 'MULTIACTIONBAR7BUTTON%d';
+		['13']  = 'MULTIACTIONBAR5BUTTON%d';
+		['14']  = 'MULTIACTIONBAR6BUTTON%d';
+		['15']  = 'MULTIACTIONBAR7BUTTON%d';
 		Default = 'ActionButton%d';
 		Default = 'ACTIONBUTTON%d';
 		Abnormal = {
@@ -25,9 +25,9 @@ local _, db = ...; local ActionBarAPI = {
 		['4']   = 'MultiBarLeftButton%d';
 		['5']   = 'MultiBarBottomRightButton%d';
 		['6']   = 'MultiBarBottomLeftButton%d';
-		['12']  = 'MultBar5Button%d';
-		['13']  = 'MultBar6Button%d';
-		['14']  = 'MultBar7Button%d';
+		['13']  = 'MultBar5Button%d';
+		['14']  = 'MultBar6Button%d';
+		['15']  = 'MultBar7Button%d';
 		Default = 'ActionButton%d';
 		Abnormal = {
 			[133] = 'OverrideActionBarButton1';
