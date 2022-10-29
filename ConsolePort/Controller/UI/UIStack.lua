@@ -303,8 +303,23 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 		end
 	end
 
+	local poolFrames = {}
+	local function CatchPoolFrame(frame)
+		if not Stack:IsFrameVisibleToCursor(frame) then
+			if not poolFrames[frame] then
+				Stack:AddFrame(frame)
+				Stack:UpdateFrames()
+				poolFrames[frame] = true;
+			end
+		end
+	end
+
 	hooksecurefunc('ShowUIPanel', CatchNewFrame)
 	hooksecurefunc('StaticPopupSpecial_Show', CatchNewFrame)
+	--hooksecurefunc('AlertFrame_ShowNewAlert', CatchPoolFrame)
+	if HelpTipTemplateMixin and HelpTipTemplateMixin.Init then
+		hooksecurefunc(HelpTipTemplateMixin, 'Init', CatchPoolFrame)
+	end
 end
 
 ---------------------------------------------------------------

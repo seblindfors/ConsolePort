@@ -63,6 +63,35 @@ end
 -- like the action camera settings.
 UIParent:UnregisterEvent('EXPERIMENTAL_CVAR_CONFIRMATION_NEEDED')
 
+-- Cancel cinematics
+do local MovieControls = {
+		[MovieFrame] = {
+			PAD1 = MovieFrame.CloseDialog.ResumeButton;
+			PAD2 = MovieFrame.CloseDialog.ConfirmButton;
+		};
+		[CinematicFrame] = {
+			PAD1 = CinematicFrameCloseDialogResumeButton;
+			PAD2 = CinematicFrameCloseDialogConfirmButton;
+		};
+	};
+
+	local function MovieOnGamePadButtonUp(controls, self, button)
+		controls.PAD1:SetText(('%s %s'):format(GetBindingText('PAD1', '_ABBR'), NO))
+		controls.PAD2:SetText(('%s %s'):format(GetBindingText('PAD2', '_ABBR'), YES))
+
+		if controls[button] then
+			controls[button]:Click()
+		else
+			(self.CloseDialog or self.closeDialog):Show()
+		end
+	end
+
+	for frame, controls in pairs(MovieControls) do
+		frame:SetScript('OnGamePadButtonDown', nil)
+		frame:SetScript('OnGamePadButtonUp', GenerateClosure(MovieOnGamePadButtonUp, controls))
+	end
+end
+
 -- Loads the keyboard
 local function TryLoadKeyboardUI()
 	if not db('keyboardEnable') or IsAddOnLoaded('ConsolePort_Keyboard') then
