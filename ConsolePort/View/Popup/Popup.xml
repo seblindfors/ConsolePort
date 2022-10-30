@@ -1,6 +1,21 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 
+	<GameTooltip frameStrata="MEDIUM" name="ConsolePortPopupMenuTooltip" parentKey="Tooltip" inherits="GameTooltipTemplate">
+		<Layers>
+			<Layer level="BORDER">
+				<Texture parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
+					<TexCoords left="0.00195313" right="0.81835938" top="0.013671875" bottom="0.017578125"/>
+					<Size x="0" y="1"/>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" y="-12"/>
+						<Anchor point="BOTTOMRIGHT" y="-12"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</GameTooltip>
+
 	<!-- Container item menu -->
 	<Frame name="ConsolePortItemMenu"
 		clampedToScreen="true"
@@ -14,22 +29,6 @@
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>
-		<Frames>
-			<GameTooltip frameStrata="MEDIUM" name="$parentTooltip" parentKey="Tooltip" inherits="GameTooltipTemplate">
-				<Layers>
-					<Layer level="BORDER">
-						<Texture parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
-							<TexCoords left="0.00195313" right="0.81835938" top="0.013671875" bottom="0.017578125"/>
-							<Size x="0" y="1"/>
-							<Anchors>
-								<Anchor point="BOTTOMLEFT" y="-12"/>
-								<Anchor point="BOTTOMRIGHT" y="-12"/>
-							</Anchors>
-						</Texture>
-					</Layer>
-				</Layers>
-			</GameTooltip>
-		</Frames>
 		<Layers>
 			<Layer level="OVERLAY">
 				<FontString parentKey="Count" inherits="GameFontHighlightOutline">
@@ -45,5 +44,27 @@
 		</Scripts>
 	</Frame>
 
+	<!-- Spell menu -->
+	<Frame name="ConsolePortSpellMenu"
+		clampedToScreen="true"
+		movable="true"
+		enableMouse="true"
+		hidden="true"
+		parent="UIParent"
+		inherits="CPPopupFrameTemplate"
+		mixin="SpellMixin">
+		<Size x="440" y="130"/>
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
+		<Scripts>
+			<OnMouseDown method="StartMoving"/>
+			<OnMouseUp method="StopMovingOrSizing"/>
+		</Scripts>
+	</Frame>
+
+	<Script file="Tooltip.lua"/>
+	<Script file="Button.lua"/>
 	<Script file="Item.lua"/>
+	<Script file="Spell.lua"/>
 </Ui>

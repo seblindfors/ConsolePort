@@ -8,7 +8,6 @@ local _, db = ...; local ActionBarAPI = {
 		['13']  = 'MULTIACTIONBAR5BUTTON%d';
 		['14']  = 'MULTIACTIONBAR6BUTTON%d';
 		['15']  = 'MULTIACTIONBAR7BUTTON%d';
-		Default = 'ActionButton%d';
 		Default = 'ACTIONBUTTON%d';
 		Abnormal = {
 			[133] = 'ACTIONBUTTON1';

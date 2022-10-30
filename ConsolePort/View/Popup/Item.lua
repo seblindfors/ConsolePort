@@ -2,7 +2,7 @@
 -- Item.lua: Popup menu for managing container items
 ---------------------------------------------------------------
 local _, db, L = ...; L = db.Locale;
-local ItemMenuButtonMixin, ItemMenu = {}, db:Register('ItemMenu', CPAPI.EventHandler(ConsolePortItemMenu, {
+local ItemMenu = db:Register('ItemMenu', CPAPI.EventHandler(ConsolePortItemMenu, {
 	'MERCHANT_SHOW';
 	'MERCHANT_CLOSED';
 	'BAG_UPDATE_DELAYED';
@@ -15,16 +15,7 @@ local INDEX_INFO_STACK = 8
 local INDEX_INFO_EQLOC = 9
 local INDEX_INFO_CLASS = 12
 ---------------------------------------------------------------
-local COMMAND_OPT_ICON = {
-	Default   = [[Interface\QuestFrame\UI-Quest-BulletPoint]];
-	Sell      = [[Interface\GossipFrame\BankerGossipIcon]];
-	Split     = [[Interface\Cursor\UI-Cursor-SizeLeft]];
-	Equip     = [[Interface\GossipFrame\transmogrifyGossipIcon]];
-	Pickup    = [[Interface\Cursor\openhand]];
-	Delete    = [[Interface\Buttons\UI-GroupLoot-Pass-Up]];
-	RingBind  = [[Interface\Buttons\UI-AttributeButton-Encourage-Up]];
-	RingClear = [[Interface\Buttons\UI-MinusButton-Up]];
-}
+
 local INV_EQ_LOCATIONS = {
 	INVTYPE_WEAPON  = {INVSLOT_MAINHAND, INVSLOT_OFFHAND};
 	INVTYPE_FINGER  = {INVSLOT_FINGER1,  INVSLOT_FINGER2};
@@ -51,12 +42,12 @@ function ItemMenu:SetItem(bagID, slotID)
 
 	self:SetTooltip()
 	self:SetCommands()
-	self:FixSize()
+	self:FixHeight()
 	self:Show()
 	self:RedirectCursor()
 end
 
-function ItemMenu:FixSize()
+function ItemMenu:FixHeight()
 	local lastItem = self:GetObjectByIndex(self:GetNumActive())
 	if lastItem then
 		local height = self:GetHeight() or 0
@@ -169,52 +160,13 @@ function ItemMenu:AddCommand(text, command, data)
 end
 
 ---------------------------------------------------------------
--- Tooltip hacks
+-- Tooltip
 ---------------------------------------------------------------
-local Tooltip = ItemMenu.Tooltip;
-
-function Tooltip:GetTooltipStrings(index)
-	local name = self:GetName()
-	return _G[name .. 'TextLeft' .. index], _G[name .. 'TextRight' .. index]
-end
-
-function Tooltip:Readjust()
-	self.NineSlice:Hide()
-	self:SetWidth(340)
-	self:GetTooltipStrings(1):Hide()
-	local i, left, right = 2, self:GetTooltipStrings(2)
-	while left and right do
-		right:ClearAllPoints()
-		right:SetPoint('LEFT', left, 'RIGHT', 0, 0)
-		right:SetPoint('RIGHT', -32, 0)
-		right:SetJustifyH('RIGHT')
-		i = i + 1
-		left, right = self:GetTooltipStrings(i)
-	end
-	self:GetParent():FixSize()
-end
-
-function Tooltip:OnUpdate(elapsed)
-	self.tooltipUpdate = self.tooltipUpdate + elapsed
-	if self.tooltipUpdate > 0.25 then
-		self:Readjust()
-		self.tooltipUpdate = 0
-	end
-end
-
-Tooltip.tooltipUpdate = 0
-Tooltip:HookScript('OnUpdate', Tooltip.OnUpdate)
-if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
-	TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip)
-		if not (tooltip == Tooltip) then return end
-		Tooltip:Readjust()
-	end)
-else
-	Tooltip:HookScript('OnTooltipSetItem', Tooltip.Readjust)
-end
+ItemMenu.Tooltip = ConsolePortPopupMenuTooltip;
 
 function ItemMenu:SetTooltip()
 	local tooltip = self.Tooltip
+	tooltip:SetParent(self)
 	tooltip:SetOwner(self, 'ANCHOR_NONE')
 	tooltip:SetBagItem(self:GetBagAndSlot())
 	tooltip:Show()
@@ -328,25 +280,6 @@ end
 
 ItemMenu.RingClear = ItemMenu.RingBind;
 
----------------------------------------------------------------
--- Button mixin
----------------------------------------------------------------
-function ItemMenuButtonMixin:OnClick()
-	if self.command then
-		self:GetParent()[self.command](self:GetParent(), self.data)
-	end
-end
-
-function ItemMenuButtonMixin:SpecialClick()
-	self:OnClick()
-end
-
-function ItemMenuButtonMixin:SetCommand(text, command, data)
-	self.data = data
-	self.command = command
-	self.Icon:SetTexture(COMMAND_OPT_ICON[command] or COMMAND_OPT_ICON.Default)
-	self:SetText(text)
-end
 
 ---------------------------------------------------------------
 -- Handlers and init
@@ -376,5 +309,5 @@ end
 ---------------------------------------------------------------
 ItemMenu:SetScript('OnHide', ItemMenu.OnHide)
 Mixin(ItemMenu, CPIndexPoolMixin):OnLoad()
-ItemMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', ItemMenuButtonMixin)
+ItemMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
 db.Stack:AddFrame(ItemMenu)

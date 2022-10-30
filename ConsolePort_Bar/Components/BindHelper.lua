@@ -34,23 +34,54 @@ local function OnBindingClick(self)
 	HANDLER:Close()
 end
 
+local function OnButtonEnter(self)
+	if self.arg1 and self.arg1 ~= CPAPI.ExtraActionButtonID then 
+		GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+		GameTooltip:SetAction(self.arg1)
+	end
+end
+
+local function OnButtonLeave(self)
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
 local function OnBindingCancel(self)
 	HANDLER:Close()
 end
 
+local function DivideTable(tbl, num)
+	if not next(tbl) then return end
+	return {unpack(tbl, 1, num)}, DivideTable({unpack(tbl, num+1)}, num)
+end
+
 local function ShowBindingDropdown(frame, level, menuList)
 	local info = LDD:UIDropDownMenu_CreateInfo()
-	local bindings = {};
+	local allBindings = {};
 	local pruningEnabled = not env.db('bindingOverlapEnable')
 
 	for i=1, GetNumBindings() do
-		CacheAvailableBinding(bindings, pruningEnabled, GetBinding(i))
+		CacheAvailableBinding(allBindings, pruningEnabled, GetBinding(i))
 	end
 
 	local customHeader = (' |T%s:0|t %s '):format(CPAPI.GetAsset('Textures\\Logo\\CP_Tiny.blp'), SPECIAL)
 	for i, data in env.db:For('Bindings') do
 		if not data.readonly then
-			CacheAvailableBinding(bindings, pruningEnabled, data.binding, customHeader, GetBindingKey(data.binding))
+			CacheAvailableBinding(allBindings, pruningEnabled, data.binding, customHeader, GetBindingKey(data.binding))
+		end
+	end
+
+	local bindings = {}
+	for category, set in pairs(allBindings) do
+		local title = _G[category] or category
+		local subsets = {DivideTable(set, 26)}
+		if ( #subsets == 1 ) then
+			bindings[title] = subsets[1];
+		else
+			for i, subset in ipairs(subsets) do
+				bindings[('%s (%d)'):format(title, i)] = subset;
+			end
 		end
 	end
 
@@ -76,7 +107,7 @@ local function ShowBindingDropdown(frame, level, menuList)
 
 		-- binding menus
 		for category, set in env.db.table.spairs(bindings) do
-			info.text = _G[category] or category;
+			info.text = category;
 			info.hasArrow = true;
 			info.menuList = category;
 			LDD:UIDropDownMenu_AddButton(info)
@@ -87,18 +118,28 @@ local function ShowBindingDropdown(frame, level, menuList)
 			local lastIndexWasSeparator = true;
 			for i, binding in ipairs(set) do
 				if binding:match('^HEADER_BLANK') then
-					if not lastIndexWasSeparator then
+					if ( not lastIndexWasSeparator and i ~= #set ) then
 						LDD:UIDropDownMenu_AddSeparator(level)
 						lastIndexWasSeparator = true;
 					end
 				elseif binding:match('^HEADER') then
 					-- do something?
 				else
+					local action = env.db('Actionbar/Binding/'..binding)
+					local icon = action and GetActionTexture(action)
+					local desc, _, name = env.db.Bindings:GetDescriptionForBinding(binding)
 					lastIndexWasSeparator = false;
 					info.text = GetRealBindingName(binding);
 					info.value = binding;
 					info.owner = frame;
 					info.func = OnBindingClick;
+					info.icon = icon;
+					info.arg1 = action;
+					info.tooltipTitle = name;
+					info.tooltipText = desc and desc:gsub('\t+', ''):gsub('\n\n', '\t'):gsub('\n', ' '):gsub('\t', '\n\n')
+					info.tooltipOnButton = not not (desc and name);
+					info.funcOnEnter = OnButtonEnter;
+					info.funcOnLeave = OnButtonLeave;
 					LDD:UIDropDownMenu_AddButton(info, level)
 				end
 			end
@@ -142,13 +183,13 @@ function env:OpenBindingDropdown(frame)
 		ConsolePort:AddInterfaceCursorFrame('L_DropDownList1')
 		ConsolePort:AddInterfaceCursorFrame('L_DropDownList2')
 		HANDLER.initialized = true;
-		if L_DropDownList1Border then
-			L_DropDownList1Border:SetBackdrop(CPAPI.Backdrops.Frame)
-			L_DropDownList1Border:SetBackdropColor(0, 0, 0, 0.75)
+		if L_DropDownList1.Backdrop then
+			L_DropDownList1.Backdrop:SetBackdrop(CPAPI.Backdrops.Frame)
+			L_DropDownList1.Backdrop:SetBackdropColor(0, 0, 0, 0.75)
 		end
-		if L_DropDownList2Border then
-			L_DropDownList2Border:SetBackdrop(CPAPI.Backdrops.Frame)
-			L_DropDownList2Border:SetBackdropColor(0, 0, 0, 0.75)
+		if L_DropDownList2.Backdrop then
+			L_DropDownList2.Backdrop:SetBackdrop(CPAPI.Backdrops.Frame)
+			L_DropDownList2.Backdrop:SetBackdropColor(0, 0, 0, 0.75)
 		end
 	end
 end

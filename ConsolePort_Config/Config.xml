@@ -239,31 +239,6 @@
 		</Scripts>
 	</IndexButton>
 
-	<IndexButton name="CPIndexButtonBindingActionButtonTemplate" virtual="true">
-		<Size x="38" y="38"/>
-		<KeyValues>
-			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
-		</KeyValues>
-		<Layers>
-			<Layer level="ARTWORK" textureSubLevel="1">
-				<Texture parentKey="Icon" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="1" y="-1"/>
-						<Anchor point="BOTTOMRIGHT" x="-1" y="1"/>
-					</Anchors>
-					<TexCoords left="0.1" right="0.9" top="0.1" bottom="0.9"/>
-				</Texture>
-			</Layer>
-			<Layer level="ARTWORK" textureSubLevel="2">
-				<FontString parentKey="Slug" inherits="CPSmallFont" justifyH="RIGHT">
-					<Anchors>
-						<Anchor point="TOPRIGHT"/>
-					</Anchors>
-				</FontString>
-			</Layer>
-		</Layers>
-	</IndexButton>
-
 	<Slider name="CPConfigSliderTemplate" inherits="CPHorizontalSliderTemplate" virtual="true">
 		<Size x="144" y="17"/>
 		<Layers>
