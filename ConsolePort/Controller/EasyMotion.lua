@@ -531,6 +531,7 @@ end
 
 function HotkeyMixin:DrawIconsForBinding(binding)
 	binding = binding or self.binding
+	if not binding then return end
 	local icon, shown = self.Keys, 0
 	for id in binding:gmatch('%d') do
 		id = tonumber(id)
@@ -540,8 +541,7 @@ function HotkeyMixin:DrawIconsForBinding(binding)
 		else
 			icon[id] = self:CreateTexture(nil, 'OVERLAY')
 			icon = icon[id]
-			db.Gamepad.SetIconToTexture(icon, Index[id], 32)
-			icon:SetSize(size, size)
+			db.Gamepad.SetIconToTexture(icon, Index[id], 32, {size, size}, {size * 0.75, size * 0.75})
 		end
 		shown = shown + 1
 		self.ShownKeys[shown] = icon
