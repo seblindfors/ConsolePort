@@ -235,7 +235,7 @@
 			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
 		</KeyValues>
 		<Layers>
-			<Layer level="ARTWORK" textureSubLevel="1">
+			<Layer level="ARTWORK" textureSubLevel="-1">
 				<Texture parentKey="Icon" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="1" y="-1"/>

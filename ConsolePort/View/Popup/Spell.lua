@@ -129,6 +129,7 @@ function SpellMenu:MapActionBar()
 			local widget, newObj = self.ActionButtons:Acquire()
 			if newObj then
 				widget:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+				widget:SetDrawOutline(true)
 				db.table.mixin(widget, db.PopupMenuMapActionButton)
 			end
 			if not firstWidget and not GetActionInfo(actionID) then
