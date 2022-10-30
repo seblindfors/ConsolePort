@@ -443,12 +443,8 @@ do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
 			-- spellbook buttons push updates to the action bar controller in order to draw highlights
 			-- on actionbuttons that holds the spell in question. this taints the action bar controller.
 			local slot = SpellBook_GetSpellBookSlot(self)
-			GameTooltip:SetOwner(Cursor, 'ANCHOR_RIGHT')
-			if ( GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType) ) then
-				Cursor.UpdateTooltip = SafeOnEnter[SpellButton1:GetScript('OnEnter')]
-			else
-				Cursor.UpdateTooltip = nil
-			end
+			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+			GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType)
 			
 			if ( self.SpellHighlightTexture and self.SpellHighlightTexture:IsShown() ) then
 				GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
