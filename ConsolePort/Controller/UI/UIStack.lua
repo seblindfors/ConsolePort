@@ -241,6 +241,7 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 			'LFGDungeonReadyPopup';
 			'OpenMailFrame';
 			'PetBattleFrame';
+			'ReadyCheckFrame';
 			'StackSplitFrame';
 			---------------------------------
 		}) do self:TryRegisterFrame(_, frame, true) end
