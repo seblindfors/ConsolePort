@@ -24,6 +24,7 @@
 		hidden="true"
 		parent="UIParent"
 		inherits="CPPopupFrameTemplate"
+		frameStrata="DIALOG"
 		mixin="ItemLocationMixin, ItemMixin">
 		<Size x="440" y="130"/>
 		<Anchors>
@@ -52,6 +53,7 @@
 		hidden="true"
 		parent="UIParent"
 		inherits="CPPopupFrameTemplate"
+		frameStrata="DIALOG"
 		mixin="SpellMixin">
 		<Size x="440" y="130"/>
 		<Anchors>
