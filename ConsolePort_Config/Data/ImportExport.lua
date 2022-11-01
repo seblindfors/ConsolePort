@@ -85,7 +85,7 @@ local AliasMap = {
 			end
 			return cvar;
 		end;
-		[PFX..'Settings/(%a+)$'] = function(variable)
+		[PFX..'Settings/(%w+)$'] = function(variable)
 			local var = db('Variables/'..variable);
 			if type(var) == 'table' then
 				return ('|cFF757575%s|r\n%s'):format(var.head or NOT_APPLICABLE, var.name)
