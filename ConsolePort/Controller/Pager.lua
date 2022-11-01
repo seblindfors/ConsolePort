@@ -16,13 +16,17 @@ Pager:Execute('headers = newtable()')
 -- Action page swapper
 ---------------------------------------------------------------
 Pager:RegisterForClicks('AnyUp', 'AnyDown')
-Pager:WrapScript(Pager, 'PreClick', [[
+Pager:WrapScript(Pager, 'PreClick', (([[
 	if down then
 		self:SetAttribute('action', tonumber(button) or 1)
+		self:SetAttribute('release', nil)
+		self:SetAttribute('press', 'actionbar')
 	else
 		self:SetAttribute('action', 1)
+		self:SetAttribute('press', nil)
+		self:SetAttribute('release', 'actionbar')
 	end
-]])
+]]):gsub('press', CPAPI.ActionTypePress):gsub('release', CPAPI.ActionTypeRelease)))
 
 ---------------------------------------------------------------
 -- Action page driver

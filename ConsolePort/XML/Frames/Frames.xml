@@ -11,8 +11,8 @@
 		<Frames>
 			<Button name="$parentPager" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate">
 				<Attributes>
-					<Attribute name="type" type="string" value="actionbar"/>
 					<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
+					<Attribute name="pressAndHoldAction" type="boolean" value="true"/>
 				</Attributes>
 			</Button>
 			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
