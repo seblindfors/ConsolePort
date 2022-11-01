@@ -8,7 +8,12 @@ local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMe
 ---------------------------------------------------------------
 local SPELL_MENU_SIZE = 440;
 local SPELL_MAP_BAR_SIZE = 600;
-local SPELL_MAP_BAR_IDS = {1, 6, 5, 3, 4, 13, 14, 15, 7, 8, 9, 10, 2};
+local SPELL_MAP_BAR_IDS = {
+	setmetatable({1, 6, 5, 3, 4}, {__call = function() return true end}),
+	setmetatable({13, 14, 15},    {__call = function() return CPAPI.IsRetailVersion end}),
+	setmetatable({7, 8, 9, 10},   {__call = function() return GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars') end}),
+	setmetatable({2},             {__call = function() return db('bindingShowExtraBars') or db.Gamepad:GetBindingKey('ACTIONPAGE2') end}),
+}
 local SPELL_MAP_BAR_NAMES = {
 	[2] = L'Page 2';
 	[7] = L'Stance 1';
@@ -118,33 +123,40 @@ function SpellMenu:MapActionBar()
 	self:Show()
 
 	self.ActionButtons:ReleaseAll()
-	local actionButtonsWithSpellID, firstWidget, targetWidget = tInvert(C_ActionBar.FindSpellActionButtons(self:GetSpellID()) or {})
-	for barPos, barID in ipairs(SPELL_MAP_BAR_IDS) do
-		local text = self.ActionBarText:Acquire()
-		text:SetText(SPELL_MAP_BAR_NAMES[barID] or ('%s %d'):format(L'Bar', barPos))
-		text:SetPoint('TOPLEFT', 16, -((barPos + 1) * 40) - 12)
-		text:Show()
-		for i=1, NUM_ACTIONBAR_BUTTONS do
-			local actionID = (barID - 1) * NUM_ACTIONBAR_BUTTONS + i;
-			local widget, newObj = self.ActionButtons:Acquire()
-			if newObj then
-				widget:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
-				widget:SetDrawOutline(true)
-				db.table.mixin(widget, db.PopupMenuMapActionButton)
+	local drawnBars, actionButtonsWithSpellID, firstWidget, targetWidget = 0, tInvert(C_ActionBar.FindSpellActionButtons(self:GetSpellID()) or {})
+	for _, data in ipairs(SPELL_MAP_BAR_IDS) do
+		local shouldDrawBars = data();
+		if shouldDrawBars then
+			for barPos, barID in ipairs(data) do
+				drawnBars = drawnBars + 1;
+
+				local text = self.ActionBarText:Acquire()
+				text:SetText(SPELL_MAP_BAR_NAMES[barID] or ('%s %d'):format(L'Bar', drawnBars))
+				text:SetPoint('TOPLEFT', 16, -((drawnBars + 1) * 40) - 12)
+				text:Show()
+				for i=1, NUM_ACTIONBAR_BUTTONS do
+					local actionID = (barID - 1) * NUM_ACTIONBAR_BUTTONS + i;
+					local widget, newObj = self.ActionButtons:Acquire()
+					if newObj then
+						widget:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+						widget:SetDrawOutline(true)
+						db.table.mixin(widget, db.PopupMenuMapActionButton)
+					end
+					if not firstWidget and not GetActionInfo(actionID) then
+						firstWidget = widget;
+					end
+					if not targetWidget and actionButtonsWithSpellID[actionID] then
+						targetWidget = widget;
+					end
+					widget:SetID(actionID)
+					widget:SetPoint('TOPLEFT', i * 40 + 40, -((drawnBars + 1) * 40))
+					widget:Update()
+					widget:Show()
+				end
 			end
-			if not firstWidget and not GetActionInfo(actionID) then
-				firstWidget = widget;
-			end
-			if not targetWidget and actionButtonsWithSpellID[actionID] then
-				targetWidget = widget;
-			end
-			widget:SetID(actionID)
-			widget:SetPoint('TOPLEFT', i * 40 + 40, -((barPos + 1) * 40))
-			widget:Update()
-			widget:Show()
 		end
 	end
-	self:SetHeight(#SPELL_MAP_BAR_IDS * 40 + 100)
+	self:SetHeight(drawnBars * 40 + 100)
 	if targetWidget or firstWidget then
 		ConsolePortCursor:SetCurrentNode(targetWidget or firstWidget)
 	end
@@ -198,6 +210,10 @@ end
 ---------------------------------------------------------------
 function SpellMenu:GetLink()
 	return GetSpellLink(self:GetSpellID())
+end
+
+SpellMenu.GetSpellTexture = SpellMenu.GetSpellTexture or function(self)
+	return (GetSpellTexture(self:GetSpellID()));
 end
 
 ---------------------------------------------------------------
