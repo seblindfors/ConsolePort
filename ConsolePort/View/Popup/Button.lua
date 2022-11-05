@@ -93,16 +93,26 @@ function MapActionButton:UpdateBinding()
 		self.Slug:SetText(nil)
 		self.Slug:SetAttribute('slug', nil)
 	end
+	self.bindingID = binding;
+end
+
+function MapActionButton:OnSpecialClick(...)
+	if self.bindingID then
+		self:GetParent():ReportSetBinding(self, self.bindingID, self:GetID())
+	end
 end
 
 function MapActionButton:OnClick(button)
+	local parent = self:GetParent()
 	if ( button == 'RightButton' ) then
+		if not GetActionInfo(self:GetID()) then
+			parent:ReportClearBinding(self.bindingID)
+		end
 		PickupAction(self:GetID())
 		self:Update()
 		return ClearCursor()
 	end
 
-	local parent = self:GetParent()
 	local spellID = parent:GetSpellID()
 	PickupSpell(spellID)
 	PlaceAction(self:GetID())
@@ -113,7 +123,11 @@ function MapActionButton:OnClick(button)
 		parent:SetSpellID(cursorSpellID)
 		parent:MapActionBar()
 	else
-		parent:Hide()
+		if self.bindingID and not self:GetAttribute('slug') then
+			parent:ReportNoBinding(self, self.bindingID, self:GetID())
+		else
+			parent:Hide()
+		end
 	end
 	ClearCursor()
 end

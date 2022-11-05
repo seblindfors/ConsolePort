@@ -4,6 +4,7 @@
 local _, db, L = ...; L = db.Locale;
 local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMenu, {
 	'PLAYER_REGEN_DISABLED';
+	'UPDATE_BINDINGS';
 }))
 ---------------------------------------------------------------
 local SPELL_MENU_SIZE = 440;
@@ -87,7 +88,7 @@ function SpellMenu:Pickup()
 end
 
 function SpellMenu:AddUtilityRingCommand()
-	local link = self:GetLink()
+	local link = self:GetSpellLink()
 	local action = {
 		type  = 'spell';
 		spell = self:GetSpellName();
@@ -160,6 +161,21 @@ function SpellMenu:MapActionBar()
 	if targetWidget or firstWidget then
 		ConsolePortCursor:SetCurrentNode(targetWidget or firstWidget)
 	end
+
+	local handle = db.UIHandle;
+	local leftClick, rightClick, specialClick =
+		db('UICursorLeftClick'), db('UICursorRightClick'), db('UICursorSpecial')
+
+	handle:SetHintFocus(self)
+	if leftClick then
+		handle:AddHint(leftClick, L'Place in slot')
+	end
+	if rightClick then
+		handle:AddHint(rightClick, L'Clear slot or binding')
+	end
+	if specialClick then
+		handle:AddHint(specialClick, L'Set binding')
+	end
 end
 
 function SpellMenu:AddCommand(text, command, data)
@@ -206,18 +222,79 @@ function SpellMenu:ClearTooltip()
 end
 
 ---------------------------------------------------------------
--- API
+-- Catcher
 ---------------------------------------------------------------
-function SpellMenu:GetLink()
-	return GetSpellLink(self:GetSpellID())
+SpellMenu.CatchBinding = CreateFrame('Button', nil, SpellMenu,
+	(CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate') .. ',CPPopupBindingCatchButtonTemplate')
+
+local NO_BINDING_TEXT, SET_BINDING_TEXT = [[ 
+|cFFFFFF00Set Binding|r
+
+%s in %s, does not have a binding assigned to it.
+
+Press a button combination to select a new binding for this slot.
+
+]], [[ 
+|cFFFFFF00Set Binding|r
+
+Press a button combination to select a new binding for %s.
+
+]]
+
+function SpellMenu.CatchBinding:OnBindingCaught(button)
+	local bindingID = self.bindingID;
+	if not bindingID then return end;
+
+	if CPAPI.IsButtonValidForBinding(button) then
+		local keychord = CPAPI.CreateKeyChord(button)
+		if not db('bindingOverlapEnable') then
+			db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
+		end
+		if SetBinding(keychord, bindingID) then
+			SaveBindings(GetCurrentBindingSet())
+			return true;
+		end
+	end
 end
 
-SpellMenu.GetSpellTexture = SpellMenu.GetSpellTexture or function(self)
-	return (GetSpellTexture(self:GetSpellID()));
+function SpellMenu:CatchBindingForSlot(slot, bindingID, text)
+	self.CatchBinding.bindingID = bindingID;
+	self.CatchBinding:TryCatchBinding({
+		text = text;
+		OnShow = function()
+			db.Cursor:SetCurrentNode(slot)
+		end;
+	})
+end
+
+function SpellMenu:ReportNoBinding(slot, bindingID)
+	self:CatchBindingForSlot(slot, bindingID, NO_BINDING_TEXT:format(self:GetSpellLink(), _G['BINDING_NAME_'..bindingID] or bindingID))
+end
+
+function SpellMenu:ReportSetBinding(slot, bindingID, actionID)
+	self:CatchBindingForSlot(slot, bindingID, SET_BINDING_TEXT:format(_G['BINDING_NAME_'..bindingID] or bindingID))
+end
+
+function SpellMenu:ReportClearBinding(bindingID)
+	if bindingID then
+		db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
+		SaveBindings(GetCurrentBindingSet())
+	end
+end
+
+---------------------------------------------------------------
+-- API
+---------------------------------------------------------------
+SpellMenu.GetSpellLink = SpellMenu.GetSpellLink or function(self)
+	return (GetSpellLink(self:GetSpellID()));
 end
 
 SpellMenu.GetSpellName = SpellMenu.GetSpellName or function(self)
 	return (GetSpellName(self:GetSpellID()));
+end
+
+SpellMenu.GetSpellTexture = SpellMenu.GetSpellTexture or function(self)
+	return (GetSpellTexture(self:GetSpellID()));
 end
 
 ---------------------------------------------------------------
@@ -226,10 +303,22 @@ end
 function SpellMenu:OnHide()
 	self:ReturnCursor()
 	self.ActionButtons:ReleaseAll()
+
+	local handle = db.UIHandle;
+	if handle:IsHintFocus(self) then
+		handle:HideHintBar()
+	end
+	handle:ClearHintsForFrame(self)
 end
 
 function SpellMenu:PLAYER_REGEN_DISABLED()
 	self:Hide()
+end
+
+function SpellMenu:UPDATE_BINDINGS()
+	for widget in self.ActionButtons:EnumerateActive() do
+		widget:UpdateBinding()
+	end
 end
 
 ---------------------------------------------------------------

@@ -32,6 +32,9 @@ function Hooks:ProcessInterfaceCursorEvent(button, down, node)
 			else
 				node:SetFocus()
 			end
+		elseif node and node.OnSpecialClick then
+			node:OnSpecialClick(button)
+			return true;
 		elseif self.inventorySlotID then
 			Hooknode.OnInventoryButtonModifiedClick(node, 'LeftButton')
 			return true;
@@ -231,9 +234,11 @@ do -- Tooltip hooking
 	local function OnTooltipSetSpell(self)
 		local owner = self:GetOwner()
 		if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
+			if owner.OnSpecialClick then return end;
+			
 			local name, spellID = self:GetSpell()
 			if spellID and not IsPassiveSpell(spellID) then
-				local isKnown = IsSpellKnown(spellID)
+				local isKnown = IsSpellKnownOrOverridesKnown(spellID)
 				if not isKnown then
 					local mountID = CPAPI.GetMountFromSpell(spellID)
 					if mountID then

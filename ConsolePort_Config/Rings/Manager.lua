@@ -286,7 +286,7 @@ end
 ---------------------------------------------------------------
 -- Binding button
 ---------------------------------------------------------------
-local BindingButton = {};
+local BindingButton, BindingCatcher = {}, {};
 
 function BindingButton:OnLoad()
 	db:RegisterCallback('OnRingSelectionChanged', self.UpdateBinding, self)
@@ -298,16 +298,18 @@ function BindingButton:OnClick(button)
 		self:UpdateBinding()
 		return self:Uncheck()
 	end
-	CPAPI.Popup('ConsolePort_Rings_Change_Binding', {
+	self.Catch:TryCatchBinding({
 		text = SET_BINDING_TEXT;
 		OnHide = function()
 			self:UpdateBinding()
 			self:Uncheck()
+			env.Config:ResumeCatcher()
 		end;
 		OnShow = function()
 			db.Cursor:SetCurrentNode(self)
+			env.Config:PauseCatcher()
 		end;
-	}, nil, nil, nil, self.Catch)
+	})
 end
 
 function BindingButton:OnShow()
@@ -316,6 +318,10 @@ end
 
 function BindingButton:UpdateBinding()
 	self.Slug:SetText(db.Utility:GetButtonSlugForSet(GetSelectedRingID()) or WrapTextInColorCode(NOT_BOUND, 'FF757575'))
+end
+
+function BindingCatcher:OnBindingCaught(...)
+	return TrySetBinding(...)
 end
 
 ---------------------------------------------------------------
@@ -584,30 +590,8 @@ function RingsManager:OnFirstShow()
 					{
 						Catch = {
 							_Type = 'Button';
-							_Setup = CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate';
-							_Size = {260, 50};
-							_Hide = true;
-							_OnShow = function(self)
-								env.Config:CatchAll(function(self, ...)
-									if TrySetBinding(...) then
-										self:GetParent():Hide()
-									end
-								end, self)
-								self.timeUntilCancel = 5;
-							end;
-							_OnHide = function(self)
-								env.Config:SetDefaultClosures()
-								self.timeUntilCancel = 5;
-							end;
-							_OnUpdate = function(self, elapsed)
-								self.timeUntilCancel = self.timeUntilCancel - elapsed;
-								self:SetText(('%s (%d)'):format(CANCEL, ceil(self.timeUntilCancel)))
-								if self.timeUntilCancel <= 0 then
-									self.timeUntilCancel = 5;
-									self:GetParent():Hide()
-								end
-							end;
-							_OnClick = function(self) self:Hide() end;
+							_Setup = {CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate', 'CPPopupBindingCatchButtonTemplate'};
+							_Mixin = BindingCatcher;
 						};
 					};
 				};

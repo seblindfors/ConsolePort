@@ -1,5 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+	<Script file="Popup.lua"/>
 
 	<!-- Generic semi-opaque popup with close button -->
 	<Frame name="CPPopupFrameTemplate" virtual="true" inherits="BackdropTemplate">
@@ -83,6 +84,18 @@
 			</Anchors>
 		</ButtonText>
 		<NormalFont style="GameFontNormalLeft"/>
+	</Button>
+
+	<Button name="CPPopupBindingCatchButtonTemplate" virtual="true" mixin="CPPopupBindingCatchButtonMixin" hidden="true">
+		<Scripts>
+			<OnGamePadButtonDown method="OnGamePadButtonDown"/>
+			<OnKeyDown method="OnKeyDown"/>
+			<OnUpdate method="OnUpdate"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnClick method="OnClick"/>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
 	</Button>
 	
 </Ui>
