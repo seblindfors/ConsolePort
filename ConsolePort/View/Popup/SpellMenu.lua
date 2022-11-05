@@ -90,7 +90,7 @@ function SpellMenu:AddUtilityRingCommand()
 	local link = self:GetLink()
 	local action = {
 		type  = 'spell';
-		spell = self:GetSpellID();
+		spell = self:GetSpellName();
 		link  = link;
 	};
 
@@ -214,6 +214,10 @@ end
 
 SpellMenu.GetSpellTexture = SpellMenu.GetSpellTexture or function(self)
 	return (GetSpellTexture(self:GetSpellID()));
+end
+
+SpellMenu.GetSpellName = SpellMenu.GetSpellName or function(self)
+	return (GetSpellName(self:GetSpellID()));
 end
 
 ---------------------------------------------------------------
