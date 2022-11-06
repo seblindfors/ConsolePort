@@ -175,3 +175,52 @@ do
 		return matches
 	end)
 end
+
+---------------------------------------------------------------
+-- Action bar page map (and evaluator whether pages are shown)
+---------------------------------------------------------------
+ActionBarAPI.Pages = {
+	CPAPI.Callable({01, 06, 05, 03, 04}, function() return true end);
+	CPAPI.Callable({13, 14, 15        }, function() return CPAPI.IsRetailVersion end);
+	CPAPI.Callable({07, 08, 09, 10    }, function() return GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars') end);
+	CPAPI.Callable({02                }, function()
+		return db('bindingShowExtraBars')
+			or db.Gamepad:GetBindingKey('CLICK ConsolePortPager:2')
+			or db.Gamepad:GetBindingKey('ACTIONPAGE2')
+			or db.Gamepad:GetBindingKey('NEXTACTIONPAGE')
+			or db.Gamepad:GetBindingKey('PREVIOUSACTIONPAGE')
+	end);
+};
+
+ActionBarAPI.Names = {
+	-- Sets
+	[ActionBarAPI.Pages[1]] = ACTIONBARS_LABEL or 'Action Bars';
+	[ActionBarAPI.Pages[2]] = BINDING_HEADER_MULTIACTIONBAR or 'Extra Action Bars';
+	[ActionBarAPI.Pages[3]] = ('%s | %s'):format(TUTORIAL_TITLE61_WARRIOR or 'Combat Stances', TUTORIAL_TITLE61_DRUID or 'Shapeshifting');
+	[ActionBarAPI.Pages[4]] = BINDING_NAME_ACTIONPAGE2 or 'Action Page 2';
+	-- Individual pages
+	Pages = {
+		[02] = 'Page 2';
+		[07] = 'Stance 1';
+		[08] = 'Stance 2';
+		[09] = 'Stance 3';
+		[10] = 'Stance 4';
+	};
+}
+
+CPAPI.Proxy(ActionBarAPI.Names, function(self, id)
+	if self.Pages[id] then
+		return db.Locale(self.Pages[id]);
+	end
+	local displayID = 0;
+	for _, pages in ipairs(ActionBarAPI.Pages) do
+		if pages() then
+			for _, page in ipairs(pages) do
+				displayID = displayID + 1;
+				if (page == id) then
+					return ('%s %d'):format(db.Locale('Bar'), displayID)
+				end
+			end
+		end
+	end
+end)

@@ -1,12 +1,13 @@
-local _, env = ...; local db = env.db;
+local _, env, db, L = ...; db, L = env.db, env.L;
 local BindingInfo = env.BindingInfo;
 
+local FIXED_OFFSET, LEFT_PANEL_WIDTH, RIGHT_PANEL_WIDTH = 8, 360, 600;
 ---------------------------------------------------------------
 -- Mixins
 ---------------------------------------------------------------
 local BindingManager = CreateFromMixins(CPFocusPoolMixin);
 local Binding = CreateFromMixins(CPIndexButtonMixin)
-local Header = CreateFromMixins(CPIndexButtonMixin, CPFocusPoolMixin, env.ScaleToContentMixin)
+local Wrapper = CreateFromMixins(CPIndexButtonMixin, CPFocusPoolMixin, env.ScaleToContentMixin)
 env.BindingManager = BindingManager;
 
 ---------------------------------------------------------------
@@ -55,10 +56,28 @@ end
 
 function Binding:OnEnter()
 	CPIndexButtonMixin.OnIndexButtonEnter(self)
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	GameTooltip:SetText(self:GetText())
+	local desc, image = db.Bindings:GetDescriptionForBinding(self:GetBinding(), true)
+	if desc then
+		GameTooltip:AddLine(desc, 1, 1, 1, true)
+	end
+	if image then
+		GameTooltip:AddLine('\n')
+		GameTooltip:AddLine(CPAPI.CreateSimpleTextureMarkup(image.file, image.width, image.height))
+	end
+	GameTooltip:Show()
+	-- Don't show this tooltip on small screens where it intersects the config
+	if UIDoFramesIntersect(GameTooltip, env.Config) then
+		GameTooltip:Hide()
+	end
 end
 
 function Binding:OnLeave()
 	CPIndexButtonMixin.OnIndexButtonLeave(self)
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
 end
 
 function Binding:OnLoad()
@@ -69,7 +88,7 @@ end
 ---------------------------------------------------------------
 -- Headers
 ---------------------------------------------------------------
-function Header:OnLoad()
+function Wrapper:OnLoad()
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
 	CPFocusPoolMixin.OnLoad(self)
 	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
@@ -78,24 +97,24 @@ function Header:OnLoad()
 		'CPIndexButtonBindingActionTemplate', Binding, nil, self.Content)
 end
 
-function Header:OnEvent()
+function Wrapper:OnEvent()
 	self:UpdateBinding()
 end
 
-function Header:UpdateBinding()
+function Wrapper:UpdateBinding()
 	for widget in self:EnumerateActive() do
 		widget:UpdateBinding()
 	end
 end
 
-function Header:OnExpand()
+function Wrapper:OnExpand()
 	self.Hilite:Hide()
 	self:SetHeight(nil)
 	self:RegisterEvent('UPDATE_BINDINGS')
 	self:SetScript('OnEvent', self.OnEvent)
 end
 
-function Header:OnCollapse()
+function Wrapper:OnCollapse()
 	self:UnregisterAllEvents()
 	self:SetScript('OnEvent', nil)
 	self.Hilite:Show()
@@ -103,7 +122,7 @@ function Header:OnCollapse()
 	self:ReleaseAll()
 end
 
-function Header:OnChecked(show)
+function Wrapper:OnChecked(show)
 	CPIndexButtonMixin.OnChecked(self, show)
 	self.Content:SetShown(show)
 	if show then
@@ -141,7 +160,7 @@ end
 ---------------------------------------------------------------
 -- Actionbars
 ---------------------------------------------------------------
-local Actionbutton, Actionbar, Actionpage = CreateFromMixins(Binding), CreateFromMixins(Header), CreateFromMixins(Header)
+local Actionbutton, Actionpage, Actionbar = CreateFromMixins(Binding), CreateFromMixins(Wrapper), CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin)
 
 function Actionbutton:OnClick(...)
 	if GetCursorInfo() then
@@ -169,6 +188,7 @@ end
 function Actionbutton:OnLoad()
 	self:SetDrawOutline(true)
 	self:RegisterForDrag('LeftButton')
+	self:SetSize(42, 42)
 	CPAPI.Start(self)
 end
 
@@ -218,7 +238,7 @@ end
 ---------------------------------------------------------------
 function Actionpage:OnLoad()
 	self:SetPoint('TOP')
-	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 0)
+	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
 	CPFocusPoolMixin.OnLoad(self)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingActionButtonTemplate', Actionbutton, nil, self.Content)
@@ -238,7 +258,8 @@ function Actionpage:OnEvent(event, ...)
 end
 
 function Actionpage:OnExpand()
-	Header.OnExpand(self)
+	Wrapper.OnExpand(self)
+	self:SetBackdropBorderColor(CPIndexButtonMixin.IndexColors.Border:GetRGBA())
 	self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
 end
 
@@ -250,9 +271,6 @@ function Actionpage:OnCollapse()
 end
 
 function Actionpage:SetPages(pages)
-	-- NOTE: nullify to stop this from redrawing and causing problems.
-	-- if the header has been opened once, there is no memory saved by
-	-- releasing it and redrawing.
 	self.pages = pages;
 end
 
@@ -288,7 +306,7 @@ function Actionpage:DrawPages()
 			widget:Show()
 
 			if (index == 1) then
-				widget:SetPoint('TOPLEFT', 8, 0)
+				widget:SetPoint('TOPLEFT', 6, 0)
 				prevRow = widget;
 			elseif (index % row == 1) then
 				widget:SetPoint('TOP', prevRow, 'BOTTOM', 0, -6)
@@ -299,7 +317,6 @@ function Actionpage:DrawPages()
 			index, prevCol = index + 1, widget;
 		end
 	end
-	self:SetPages(nil)
 end
 
 function Actionpage:OnChecked(show)
@@ -317,50 +334,33 @@ end
 -- Actionbars
 ---------------------------------------------------------------
 function Actionbar:OnLoad(anchorTo)
-	self:SetText(BINDING_HEADER_ACTIONBAR) --'|TInterface\\Store\\category-icon-weapons:24:24:4:0:64:64:14:50:14:50|t'
-	self:SetPoint('TOP', anchorTo, 'BOTTOM', 0, -8)
-	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 20)
-	self:SetScript('OnEnter', CPIndexButtonMixin.OnIndexButtonEnter)
-	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 	CPFocusPoolMixin.OnLoad(self)
+	self:SetSize(RIGHT_PANEL_WIDTH, 40)
+	self:SetPoint('TOP', anchorTo, 'BOTTOM', 0, -8)
+	self:SetMeasurementOrigin(self, self, RIGHT_PANEL_WIDTH, 0)
 	self:CreateFramePool('IndexButton',
-		'CPIndexButtonBindingActionBarTemplate', Actionpage, nil, self.Content)
+		'CPIndexButtonBindingActionBarTemplate', Actionpage, nil, self)
+	self:SetScript('OnShow', self.OnShow)
+	self:Hide()
+	self:Show()
 end
 
-function Actionbar:GetPages()
-	local showExtra = GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars')
-	local pages = {
-		-- (1) Page 1 / Page 2
-		-- (2) Bottom Left / Bottom Right
-		-- (3) Right / Right 2
-		-- (4) Stances / Shapeshifting
-		{{1, 2}, ('%s / %s'):format(BINDING_NAME_ACTIONPAGE1, BINDING_NAME_ACTIONPAGE2)};
-		{{6, 5}, ('%s / %s'):format(SHOW_MULTIBAR1_TEXT, SHOW_MULTIBAR2_TEXT)};
-		{{3, 4}, ('%s / %s'):format(SHOW_MULTIBAR3_TEXT, SHOW_MULTIBAR4_TEXT)}; showExtra and 
-		{{7, 8, 9, 10}, ('%s / %s'):format(TUTORIAL_TITLE61_WARRIOR, TUTORIAL_TITLE61_DRUID)} or nil;
-	}
-	if CPAPI.IsRetailVersion then
-		local str = OPTION_SHOW_ACTION_BAR;
-		tinsert(pages, {{13, 14, 15}, BINDING_HEADER_MULTIACTIONBAR})
-	end
-	return ipairs(pages)
-end
-
-function Actionbar:OnChecked(show)
-	CPIndexButtonMixin.OnChecked(self, show)
-	self.Content:SetShown(show)
-	if show then
-		local prev;
-		for i, pageSet in self:GetPages() do
-			local bars, desc = pageSet[1], pageSet[2]
+function Actionbar:OnShow()
+	self:ReleaseAll()
+	
+	local prev;
+	for i, pages in ipairs(db.Actionbar.Pages) do
+		if pages() then
+			local desc = db.Actionbar.Names[pages];
 			local widget, newObj = self:TryAcquireRegistered(i)
 			if newObj then
 				widget:OnLoad()
 			end
 			widget:SetID(i)
 			widget:SetText(desc)
-			widget:SetPages(bars)
+			widget:SetPages(pages)
 			widget:Show()
+			widget:SetDrawOutline(true)
 			if prev then
 				widget:SetPoint('TOP', prev, 'BOTTOM', 0, -6)
 			else
@@ -368,11 +368,8 @@ function Actionbar:OnChecked(show)
 			end
 			prev = widget;
 		end
-		self:OnExpand()
-	else
-		self:OnCollapse()
 	end
---	self:GetParent():ScaleToContent()
+	self:SetHeight(nil)
 end
 
 ---------------------------------------------------------------
@@ -381,63 +378,87 @@ end
 function BindingManager:OnShow()
 	local bindings, headers, wasUpdated = BindingInfo:RefreshDictionary()
 	if not self.bindingsFirstDrawn or wasUpdated then
-		self:ReleaseAll()
+		self:ReleaseCategories()
+		if not self.bindingsFirstDrawn then
+			-- Create custom action bar handler
+			self.Header = self:CreateHeader('|TInterface\\Store\\category-icon-weapons:20:20:4:0:64:64:18:46:18:46|t  ' .. BINDING_HEADER_ACTIONBAR, nil)
+			self.Actionbar = Mixin(CreateFrame('Frame', nil, self.Child), Actionbar)
+			self.Actionbar:OnLoad(self.Header)
+		end
 		self:DrawCategories(bindings, headers)
 		self.bindingsFirstDrawn = true;
 	end
-	self:RefreshHeader()
+	self:RegisterEvent('UPDATE_BINDINGS')
 end
 
-function BindingManager:RefreshHeader()
-	local ACCOUNT_BINDINGS, CHARACTER_BINDINGS = 1, 2;
-	local header = self.Header;
-	local isCharacterBindings = (GetCurrentBindingSet() == CHARACTER_BINDINGS)
+function BindingManager:OnHide()
+	self:UnregisterEvent('UPDATE_BINDINGS')
+end
 
-	header.PortraitMask:SetShown(isCharacterBindings)
-	header.Portrait:SetShown(isCharacterBindings)
-	header.Button:SetShown(isCharacterBindings)
+function BindingManager:ReleaseCategories()
+	self:ReleaseAll()
+	self.Shortcuts:ReleaseAll()
+	self.Headers:ReleaseAll()
+end
 
-	if (isCharacterBindings) then
-		local texture, coords = CPAPI.GetWebClassIcon()
-		header.Button:SetTexture(texture)
-		header.Button:SetTexCoord(unpack(coords))
-		header.Button:SetSize(24, 24)
-
-		SetPortraitTexture(header.Portrait, 'player')
-		header.Text:SetText(CHARACTER_KEY_BINDINGS:format(CPAPI.GetPlayerName(true)))
+function BindingManager:CreateHeader(group, anchor)
+	local header = self.Headers:Acquire()
+	header:SetScript('OnEnter', nop)
+	header:SetText(L(group))
+	header:Show()
+	if anchor then
+		header:SetPoint('TOP', anchor, 'BOTTOM', 0, -FIXED_OFFSET * 2)
 	else
-		header.Text:SetText(KEY_BINDINGS)
+		header:SetPoint('TOP', 0, -FIXED_OFFSET)
 	end
+	local shortcut = self.Shortcuts:Create(group, header)
+	shortcut:SetWidth(LEFT_PANEL_WIDTH - FIXED_OFFSET * 2)
+	return header, shortcut;
 end
 
 function BindingManager:DrawCategories(bindings, headers)
 	local prev = self.Actionbar;
-	for header, set in db.table.spairs(bindings) do
-		local widget, newObj = self:Acquire(header)
-		if newObj then
-			widget:OnLoad()
+
+	for category, set in db.table.spairs(bindings) do
+		prev = self:CreateHeader(category, prev)
+
+		local separator = 0;
+		for i, data in ipairs(set) do
+			if ( data.binding and not data.binding:match('^HEADER_BLANK') ) then
+				local widget, newObj = self:Acquire(i)
+				if newObj then
+					widget:OnLoad()
+					widget:SetDrawOutline(true)
+				end
+				widget:SetText(data.name or data.binding)
+				widget:SetAttribute('binding', data.binding)
+				widget:Show()
+				widget:UpdateBinding()
+				widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET-separator)
+				prev, separator = widget, 0;
+			else
+				separator = 20;
+			end
 		end
-		widget:SetText(header)
-		widget:SetPoint('TOP', prev, 'BOTTOM', 0, -12)
-		widget:Show()
-		widget.Bindings = set;
-		prev = widget;
 	end
 	self.Child:SetHeight(nil)
+	self.Shortcuts:Update()
+end
+
+function BindingManager:UpdateBindings()
+	for widget in self:EnumerateActive() do
+		widget:UpdateBinding()
+	end
 end
 
 function BindingManager:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
 	env.OpaqueMixin.OnLoad(self)
+	self.Headers = CreateFramePool('Frame', self.Child, 'CPConfigHeaderTemplate')
 	self:CreateFramePool('IndexButton',
-		'CPIndexButtonBindingHeaderTemplate', Header, nil, self.Child)
+		'CPIndexButtonBindingActionTemplate', Binding, nil, self.Child)
 	Mixin(self.Child, env.ScaleToContentMixin)
 	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self.Child, self.Child, 600, 12)
-
-	-- Create custom action bar handler
-	self.Header = CreateFrame('Frame', nil, self.Child, 'CPConfigIconHeaderTemplate')
-	self.Header:SetPoint('TOP', 0, -12)
-	self.Actionbar = Mixin(CreateFrame('IndexButton', nil, self.Child, 'CPIndexButtonBindingHeaderTemplate'), Actionbar)
-	self.Actionbar:OnLoad(self.Header)
+	self.Child:SetMeasurementOrigin(self.Child, self.Child, RIGHT_PANEL_WIDTH, FIXED_OFFSET)
+	self:SetScript('OnEvent', self.UpdateBindings)
 end

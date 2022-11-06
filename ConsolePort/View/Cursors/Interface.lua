@@ -177,6 +177,12 @@ function Cursor:SetCurrentNode(node, assertNotMouse)
 	end
 end
 
+function Cursor:SetCurrentNodeIfActive(...)
+	if self:IsShown() then
+		return self:SetCurrentNode(...)
+	end
+end
+
 function Cursor:SetOnEnableCallback(callback, ...)
 	local inCombat, disabled = self:IsObstructed()
 	if disabled then

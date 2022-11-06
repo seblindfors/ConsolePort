@@ -2,7 +2,7 @@ local _, env = ...; local db = env.db;
 ---------------------------------------------------------------
 -- Combinations (abbrev. combos)
 ---------------------------------------------------------------
-local Combos, Combo = CreateFromMixins(env.DynamicMixin, env.FlexibleMixin), CreateFromMixins(CPIndexButtonMixin, env.BindingInfoMixin, {
+local Combos, Combo = CreateFromMixins(env.DynamicMixin), CreateFromMixins(CPIndexButtonMixin, env.BindingInfoMixin, {
 	-- true for events related to action bar, false for events related to bindings.
 	Events = {
 		ACTIONBAR_SLOT_CHANGED = true;
@@ -106,8 +106,8 @@ function Combo:OnEnter()
 	CPIndexButtonMixin.OnIndexButtonEnter(self)
 	if db('Cursor'):IsCurrentNode(self, true) then
 		local flexer = env.Bindings
-			and env.Bindings.Shortcuts
-			and env.Bindings.Shortcuts.Flexer;
+			and env.Bindings.ComboShortcuts
+			and env.Bindings.ComboShortcuts.Flexer;
 		if flexer and flexer:IsVisible() and not flexer:GetChecked() then
 			flexer:Click()
 		end
@@ -120,7 +120,6 @@ end
 
 function Combos:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
-	self:SetFlexibleElement(self, self.Child)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingComboTemplate', Combo, nil, self.Child)
 end

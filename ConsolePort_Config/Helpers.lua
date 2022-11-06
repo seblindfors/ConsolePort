@@ -23,6 +23,10 @@ function env:GetButtonSlug(btnID, modID, split)
 	return db.Hotkeys:GetButtonSlug(db('Gamepad/Active'), btnID, modID, split)
 end
 
+function env:GetTooltipPrompt(btnID, text)
+	return db('Gamepad/Active'):GetTooltipButtonPrompt(btnID, text)
+end
+
 function env:GetBindings()
 	return db.Gamepad:GetBindings()
 end
@@ -172,12 +176,16 @@ end
 
 function FlexibleMixin:ToggleFlex(enabled)
 	local measure = self.flexMeasure;
+	local isMeasureWidget = C_Widget.IsFrameWidget(measure)
 	self.flexTarget = 
 		not enabled and 0.01
-		or C_Widget.IsFrameWidget(measure) and measure:GetWidth()
+		or isMeasureWidget and measure:GetWidth()
 		or measure;
 	self.isFlexed = enabled;
 	self.flexElement:SetAttribute('nodeignore', not enabled)
+	if isMeasureWidget then
+		measure:SetAttribute('nodeignore', not enabled)
+	end
 	Flexer:AddFrame(self)
 end
 

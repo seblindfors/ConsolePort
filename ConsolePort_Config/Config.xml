@@ -152,20 +152,8 @@
 		</ButtonText>
 	</IndexButton>
 
-
-	<IndexButton name="CPIndexButtonSettingWithContentTemplate" inherits="CPIndexButtonSettingTemplate" virtual="true">
-		<Frames>
-			<Frame parentKey="Content" hidden="true">
-				<Anchors>
-					<Anchor point="TOPLEFT" y="-40"/>
-					<Anchor point="BOTTOMRIGHT"/>
-				</Anchors>
-			</Frame>
-		</Frames>
-	</IndexButton>
-
 	<IndexButton name="CPIndexButtonBindingActionBarTemplate" virtual="true">
-		<Size x="540" y="40"/>
+		<Size x="584" y="40"/>
 		<KeyValues>
 			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
 			<KeyValue key="thumbSize" value="0" type="number"/>
@@ -187,11 +175,11 @@
 	</IndexButton>
 
 	<IndexButton name="CPIndexButtonBindingActionTemplate" virtual="true">
-		<Size x="260" y="36"/>
+		<Size x="584" y="36"/>
 		<KeyValues>
 			<KeyValue key="thumbPosition" value="BOTTOM" type="string"/>
 		</KeyValues>
-		<ButtonText parentKey="Label" inherits="CPSmallFont" wordwrap="false" justifyH="LEFT">
+		<ButtonText parentKey="Label" inherits="CPWhiteFont" wordwrap="false" justifyH="LEFT">
 			<Anchors>
 				<Anchor point="TOPLEFT" x="8"/>
 				<Anchor point="BOTTOMRIGHT" x="-16"/>

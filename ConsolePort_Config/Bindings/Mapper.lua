@@ -16,11 +16,18 @@ function Mapper:OnLoad()
 	self.Child:SetAllPoints()
 	self.Child:SetMeasurementOrigin(self.Child, self.Child, 360, 40)
 	CPAPI.Start(self)
+
+	self.Catch.OnBindingCaught = function(_, ...)
+		return self:OnButtonCaught(...)
+	end;
 end
 
 function Mapper:OnEvent(event, ...)
 	if (event == 'UPDATE_BINDINGS' or event == 'ACTIONBAR_SLOT_CHANGED') then
-		self:SetBindingInfo(self:GetBinding())
+		local binding = self:GetBinding()
+		if binding then
+			self:SetBindingInfo(binding)
+		end
 	end
 end
 
@@ -28,7 +35,7 @@ end
 -- Binding content handling
 ---------------------------------------------------------------
 function Mapper:SetBindingInfo(binding, transposedActionID)
-	if binding then
+	if binding and binding:len() > 0 then
 		self:SetVerticalScroll(0)
 		local option = self.Child.Option;
 		local name = self:GetBindingName(binding)
@@ -56,13 +63,16 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 		self.Child.Desc:SetContent(db.Bindings:GetDescriptionForBinding(binding))
 
 		-- set top header and key binding slug
-		self.Child.Change.Slug:SetText(slug or WrapTextInColorCode(NOT_BOUND, 'FF757575'))
+		self.Child.Binding.Slug:SetText(slug or WrapTextInColorCode(NOT_BOUND, 'FF757575'))
 		self.Child.Info.Label:SetText(label)
 
 		-- set action texture
 		option.ActionIcon:SetAlpha(texture and 1 or 0)
 		option.Mask:SetAlpha(texture and 1 or 0)
 		option.ActionIcon:SetTexture(texture)
+	else
+		self.Child.Close:Click()
+		-- TODO: fix when removing binding from combo pane
 	end
 	self.Child:SetHeight(nil)
 end
@@ -74,20 +84,23 @@ function Mapper:SetFocus(widget)
 	self.focusWidget = widget;
 	local binding = widget and widget:GetBinding();
 	local readonly = binding and self:IsReadonlyBinding(binding);
+
+	self.Child.Binding:SetEnabled(not readonly)
+
 	if binding and not db.Gamepad:GetBindingKey(binding) then
 		if readonly then
 			self:SetCatchButton(false)
 		else
+			db('Cursor'):SetCurrentNodeIfActive(self.Child.Binding, true)
 			self:SetCatchButton(true)
 		end
 	else
 		self:SetCatchButton(false)
 		-- HACK: route it to the close button first, so it has
 		-- a fallback if going straight into manual rebinding.
-		db('Cursor'):SetCurrentNode(self.Child.Close, true)
-		db('Cursor'):SetCurrentNode(self.Child.Change, true)
+		db('Cursor'):SetCurrentNodeIfActive(self.Child.Close, true)
+		db('Cursor'):SetCurrentNodeIfActive(self.Child.Binding, true)
 	end
-	self.Child.Change:SetEnabled(not readonly)
 end
 
 function Mapper:GetFocus()
@@ -99,14 +112,17 @@ function Mapper:ClearFocus(newObj)
 		self.focusWidget:SetChecked(false)
 		CPIndexButtonMixin.OnChecked(self.focusWidget, false)
 		if not newObj then
-			db('Cursor'):SetCurrentNode(self.focusWidget, true)
+			db('Cursor'):SetCurrentNodeIfActive(self.focusWidget, true)
 		end
 		self.focusWidget = nil;
 	end
 end
 
 function Mapper:GetBinding()
-	return self:GetFocus():GetBinding()
+	local focus = self:GetFocus()
+	if focus then
+		return focus:GetBinding()
+	end
 end
 
 function Mapper:IsWidgetFocused(widget)
@@ -126,16 +142,20 @@ function Mapper:ToggleWidget(widget, show)
 end
 
 function Mapper:OnWidgetSet(widget)
-	self:ToggleFlex(widget)
 	if widget then
+		env.Bindings:SetState(env.Bindings.State.Mapper)
 		self:SetBindingInfo(widget:GetBinding())
 		self:RegisterEvent('UPDATE_BINDINGS')
 		self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
+		env.Config:CatchButton(db('UICursorSpecial'), function()
+			self.Child.Close:Click()
+		end)
 	else
+		env.Bindings:SetState(env.Bindings.StatePrev)
 		self:SetCatchButton(false)
 		self:UnregisterAllEvents()
+		env.Config:CatchButton(db('UICursorSpecial'), nil)
 	end
-	-- todo
 end
 
 ---------------------------------------------------------------
@@ -155,13 +175,26 @@ function Mapper:SetBinding(keychord)
 end
 
 function Mapper:SetCatchButton(enabled)
-	self.Child.Catch:SetShown(enabled)
+	local bindingTrigger = self.Child.Binding;
 	if enabled then
 		local binding = self:GetBinding()
 		local name = binding and self:GetBindingName(binding)
-		self.Child.Help:SetBindingHelp(name)
-	else
-		self.Child.Help:SetDefaultHelp()
+		self.Catch:TryCatchBinding({
+			text = self.Catch.PopupText:format(name or binding);
+			OnShow = function()
+				bindingTrigger:Check()
+				bindingTrigger:Disable()
+				env.Config:PauseCatcher()
+			end;
+			OnHide = function()
+				bindingTrigger:Uncheck()
+				bindingTrigger:Enable()
+				env.Config:ResumeCatcher()
+			end;
+		})
+	elseif self.Catch:IsShown() then
+		ExecuteFrameScript(bindingTrigger, 'OnLeave')
+		self.Catch:Click() -- cancel
 	end
 end
 

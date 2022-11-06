@@ -526,7 +526,7 @@ local Select = CreateWidget('Select', Widget, {
 	Popout = {
 		_Type  = 'Frame';
 		_Setup = 'CPSelectionPopoutWithButtonsAndLabelTemplate';
-		_Point = {'RIGHT', 0, 0};
+		_Point = {'RIGHT', -2, 0};
 	};
 })
 

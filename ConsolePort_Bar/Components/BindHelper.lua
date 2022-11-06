@@ -127,7 +127,7 @@ local function ShowBindingDropdown(frame, level, menuList)
 				else
 					local action = env.db('Actionbar/Binding/'..binding)
 					local icon = action and GetActionTexture(action)
-					local desc, _, name = env.db.Bindings:GetDescriptionForBinding(binding)
+					local desc, _, name = env.db.Bindings:GetDescriptionForBinding(binding, true)
 					lastIndexWasSeparator = false;
 					info.text = GetRealBindingName(binding);
 					info.value = binding;
@@ -136,7 +136,7 @@ local function ShowBindingDropdown(frame, level, menuList)
 					info.icon = icon;
 					info.arg1 = action;
 					info.tooltipTitle = name;
-					info.tooltipText = desc and desc:gsub('\t+', ''):gsub('\n\n', '\t'):gsub('\n', ' '):gsub('\t', '\n\n')
+					info.tooltipText = desc;
 					info.tooltipOnButton = not not (desc and name);
 					info.funcOnEnter = OnButtonEnter;
 					info.funcOnLeave = OnButtonLeave;

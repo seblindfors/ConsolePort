@@ -177,10 +177,14 @@ local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Textures\Icons\Ring]
 ---------------------------------------------------------------
 -- Get description for custom bindings
 ---------------------------------------------------------------
-function Bindings:GetDescriptionForBinding(binding)
+function Bindings:GetDescriptionForBinding(binding, useTooltipFormat)
 	for i, set in ipairs(self) do
 		if (set.binding == binding) then
-			return set.desc, set.image, set.name, set.texture;
+			local desc = set.desc;
+			if desc and useTooltipFormat then
+				desc = desc:gsub('\t+', ''):gsub('\n\n', '\t'):gsub('\n', ' '):gsub('\t', '\n\n')
+			end
+			return desc, set.image, set.name, set.texture;
 		end
 	end
 

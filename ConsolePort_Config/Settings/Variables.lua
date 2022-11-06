@@ -73,7 +73,7 @@ function Shortcuts:OnHide()
 	self.lastWidget = nil;
 end
 
-function Shortcuts:Create(name, ref, count)
+function Shortcuts:Create(name, ref)
 	local widget, newObj = self:Acquire(name)
 	local anchor = self.lastWidget;
 	if newObj then

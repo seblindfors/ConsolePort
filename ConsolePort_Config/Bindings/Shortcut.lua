@@ -2,8 +2,8 @@ local _, env = ...;
 ---------------------------------------------------------------
 -- Shortcuts
 ---------------------------------------------------------------
-local Shortcuts, Shortcut = CreateFromMixins(env.DynamicMixin), {}
-env.ShortcutsMixin = Shortcuts;
+local Shortcuts, Shortcut = CreateFromMixins(env.DynamicMixin, env.FlexibleMixin), {}
+env.ComboShortcutsMixin = Shortcuts;
 
 function Shortcut:OnClick()
 	local scrollFraction = self.container:ScrollTo(self:GetID(), self.container:GetNumActive())
@@ -13,6 +13,7 @@ end
 
 function Shortcuts:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
+	self:SetFlexibleElement(self, self.Child)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonIconTemplate', Shortcut, nil, self.Child);
 end

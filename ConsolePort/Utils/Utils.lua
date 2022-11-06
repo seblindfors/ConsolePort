@@ -117,19 +117,6 @@ function CPAPI.EventHandler(handler, events)
 	return handler;
 end
 
-function CPAPI.Proxy(owner, proxy)
-	assert(not C_Widget.IsFrameWidget(owner), 'Attempted to proxy frame widget.')
-	local mt = getmetatable(owner) or {};
-	mt.__index = proxy;
-	return setmetatable(owner, mt)
-end
-
-function CPAPI.Lock(object)
-	local mt = getmetatable(object) or {};
-	mt.__newindex = nop;
-	return setmetatable(object, mt)
-end
-
 function CPAPI.Start(handler)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then
@@ -157,6 +144,26 @@ function CPAPI.Popup(id, settings, ...)
 			end
 		end;
 		return dialog;
+	end
+end
+
+do local function ModifyMetatable(owner, key, value)
+		assert(not C_Widget.IsFrameWidget(owner), 'Attempted to proxy frame widget.')
+		local mt = getmetatable(owner) or {};
+		mt[key] = value;
+		return setmetatable(owner, mt)
+	end
+
+	function CPAPI.Proxy(owner, proxy)
+		return ModifyMetatable(owner, '__index', proxy)
+	end
+
+	function CPAPI.Lock(owner)
+		return ModifyMetatable(owner, '__newindex', nop)
+	end
+
+	function CPAPI.Callable(owner, func)
+		return ModifyMetatable(owner, '__call', func)
 	end
 end
 

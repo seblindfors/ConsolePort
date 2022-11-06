@@ -9,12 +9,7 @@ local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMe
 ---------------------------------------------------------------
 local SPELL_MENU_SIZE = 440;
 local SPELL_MAP_BAR_SIZE = 600;
-local SPELL_MAP_BAR_IDS = {
-	setmetatable({1, 6, 5, 3, 4}, {__call = function() return true end}),
-	setmetatable({13, 14, 15},    {__call = function() return CPAPI.IsRetailVersion end}),
-	setmetatable({7, 8, 9, 10},   {__call = function() return GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars') end}),
-	setmetatable({2},             {__call = function() return db('bindingShowExtraBars') or db.Gamepad:GetBindingKey('ACTIONPAGE2') end}),
-}
+local SPELL_MAP_BAR_IDS = db.Actionbar.Pages;
 local SPELL_MAP_BAR_NAMES = {
 	[2] = L'Page 2';
 	[7] = L'Stance 1';
@@ -132,7 +127,7 @@ function SpellMenu:MapActionBar()
 				drawnBars = drawnBars + 1;
 
 				local text = self.ActionBarText:Acquire()
-				text:SetText(SPELL_MAP_BAR_NAMES[barID] or ('%s %d'):format(L'Bar', drawnBars))
+				text:SetText(db('Actionbar/Names/'..barID))
 				text:SetPoint('TOPLEFT', 16, -((drawnBars + 1) * 40) - 12)
 				text:Show()
 				for i=1, NUM_ACTIONBAR_BUTTONS do

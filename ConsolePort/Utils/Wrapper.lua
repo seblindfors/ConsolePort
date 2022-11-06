@@ -174,6 +174,14 @@ CPAPI.GetContainerItemInfo = function(...)
 	}
 end
 
+CPAPI.CreateSimpleTextureMarkup = CreateSimpleTextureMarkup or function(file, width, height)
+	return ("|T%s:%d:%d|t"):format(
+		  file
+		, height or width
+		, width
+	);
+end
+
 ---------------------------------------------------------------
 -- Classic API wrappers
 ---------------------------------------------------------------
