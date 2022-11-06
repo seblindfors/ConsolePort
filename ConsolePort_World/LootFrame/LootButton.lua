@@ -1,5 +1,8 @@
 local _, env = ...; env.LootButtonMixin = CreateFromMixins(CPActionButtonMixin);
 local FocusTooltip = CreateFrame('GameTooltip', 'ConsolePortLootButtonTooltip', ConsolePortLootFrame, 'GameTooltipTemplate')
+---------------------------------------------------------------
+local LOOT_SLOT_ITEM = LOOT_SLOT_ITEM or Enum.LootSlotType and Enum.LootSlotType.Item;
+local LOOT_SLOT_CURRENCY = LOOT_SLOT_CURRENCY or Enum.LootSlotType and Enum.LootSlotType.Currency;
 
 ---------------------------------------------------------------
 -- Loot button scripts
