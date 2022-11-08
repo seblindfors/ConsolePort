@@ -40,7 +40,7 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 		local option = self.Child.Option;
 		local name = self:GetBindingName(binding)
 		local label, texture, actionID = self:GetBindingInfo(binding, true)
-		local slug, data = db('Hotkeys'):GetButtonSlugForBinding(binding)
+		local slug = db('Hotkeys'):GetButtonSlugsForBinding(binding, ' | ')
 		texture = actionID and GetActionTexture(transposedActionID or actionID)
 
 		-- HACK: handle extra action button 1 case
@@ -154,7 +154,7 @@ function Mapper:OnWidgetSet(widget)
 		env.Bindings:SetState(env.Bindings.StatePrev)
 		self:SetCatchButton(false)
 		self:UnregisterAllEvents()
-		env.Config:CatchButton(db('UICursorSpecial'), nil)
+		env.Config:FreeButton(db('UICursorSpecial'))
 	end
 end
 

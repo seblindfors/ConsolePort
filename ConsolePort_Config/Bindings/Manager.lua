@@ -16,7 +16,7 @@ env.BindingManager = BindingManager;
 function Binding:UpdateBinding()
 	local binding = self:GetAttribute('binding')
 	if binding then
-		local slug = db('Hotkeys'):GetButtonSlugForBinding(binding)
+		local slug = db('Hotkeys'):GetButtonSlugsForBinding(binding, ' | ')
 		self.Slug:SetText(slug)
 		self:SetAttribute('slug', slug)
 	else
@@ -434,7 +434,7 @@ function BindingManager:DrawCategories(bindings, headers)
 				widget:SetAttribute('binding', data.binding)
 				widget:Show()
 				widget:UpdateBinding()
-				widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET-separator)
+				widget:SetPoint('TOP', prev, 'BOTTOM', 0, 2-FIXED_OFFSET-separator)
 				prev, separator = widget, 0;
 			else
 				separator = 20;
