@@ -260,7 +260,7 @@ do -- Tooltip hooking
 		GameTooltip:HookScript('OnTooltipSetSpell', OnTooltipSetSpell)
 	end
 
-	GameTooltip:HookScript('OnHide', function(self)
+	GameTooltip:HookScript('OnHide', function()
 		if Hooks.pendingAction then
 			db.Utility:ClearPendingAction()
 			Hooks.pendingAction = nil;
