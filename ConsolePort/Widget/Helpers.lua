@@ -448,6 +448,7 @@ function CPButtonCatcherMixin:CatchAll(callback, ...)
 end
 
 function CPButtonCatcherMixin:CatchButton(button, callback, ...)
+	if not button then return end;
 	local closure = GenerateClosure(callback, ...)
 	self.ClosureRegistry[button] = closure;
 	self:ToggleInputs(true)
@@ -455,6 +456,7 @@ function CPButtonCatcherMixin:CatchButton(button, callback, ...)
 end
 
 function CPButtonCatcherMixin:FreeButton(button, ...)
+	if not button then return end;
 	if select('#', ...) > 0 then
 		local closure = ...;
 		if closure and (self.ClosureRegistry[button] ~= closure) then
