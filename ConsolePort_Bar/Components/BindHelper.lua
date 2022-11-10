@@ -166,8 +166,17 @@ function HANDLER:SetFrame(owner)
 	self:SetParent(owner)
 	self:SetAllPoints(owner)
 
+	local state, mod = owner:GetAttribute('state');
+	if owner.isMainButton then
+		mod = state;
+	elseif state:match('ALT') then
+		mod = 'ALT-'..owner.mod;
+	else
+		mod = owner.mod;
+	end
+
 	self.btn = owner.plainID;
-	self.mod = owner.isMainButton and CPAPI.CreateKeyChord('') or owner.mod;
+	self.mod = mod;
 
 	LDD:UIDropDownMenu_Initialize(self, ShowBindingDropdown)
 	LDD:ToggleDropDownMenu(nil, nil, self, 'cursor')
