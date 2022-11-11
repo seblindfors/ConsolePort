@@ -204,7 +204,7 @@ function Actionbutton:OnEnter()
 	GameTooltip:AddLine(self:GetAttribute('name'))
 	local slug = self:GetAttribute('slug')
 	if slug then
-		GameTooltip:AddLine(('%s: %s'):format(KEY_BINDING, self.Slug:GetText()), GameFontGreen:GetTextColor())
+		GameTooltip:AddLine(('%s: %s'):format(KEY_BINDING, slug), GameFontGreen:GetTextColor())
 	end
 	GameTooltip:Show()
 end
