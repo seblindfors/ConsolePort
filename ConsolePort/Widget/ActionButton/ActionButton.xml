@@ -245,9 +245,10 @@
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="2">
-				<FontString parentKey="Slug" inherits="CPSmallFont" justifyH="RIGHT">
+				<FontString parentKey="Slug" inherits="CPSmallFont" justifyH="RIGHT" maxLines="3">
 					<Anchors>
 						<Anchor point="TOPRIGHT"/>
+						<Anchor point="TOPLEFT"/>
 					</Anchors>
 				</FontString>
 			</Layer>

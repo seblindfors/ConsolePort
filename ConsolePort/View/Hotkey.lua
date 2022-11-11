@@ -130,8 +130,14 @@ do local function GetBindingSlugs(self, device, split, key, ...)
 		return GetBindingSlugs(self, device, split, db('Gamepad'):GetBindingKey(binding))
 	end
 
-	function HotkeyHandler:GetButtonSlugsForBinding(binding, separator)
-		return table.concat({self:GetButtonSlugForBinding(binding)}, separator)
+	function HotkeyHandler:GetButtonSlugsForBinding(binding, separator, limit)
+		local slugs = {self:GetButtonSlugForBinding(binding)}
+		if limit then
+			for i = limit + 1, #slugs do
+				slugs[i] = nil;
+			end
+		end
+		return table.concat(slugs, separator)
 	end
 end
 

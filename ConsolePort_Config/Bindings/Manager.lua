@@ -16,7 +16,7 @@ env.BindingManager = BindingManager;
 function Binding:UpdateBinding()
 	local binding = self:GetAttribute('binding')
 	if binding then
-		local slug = db('Hotkeys'):GetButtonSlugsForBinding(binding, ' | ')
+		local slug = db('Hotkeys'):GetButtonSlugsForBinding(binding, self.KeySeparator, self.KeyLimit)
 		self.Slug:SetText(slug)
 		self:SetAttribute('slug', slug)
 	else
@@ -84,6 +84,8 @@ function Binding:OnLoad()
 	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 	CPAPI.Start(self)
 end
+
+Binding.KeySeparator = ' | ';
 
 ---------------------------------------------------------------
 -- Headers
@@ -232,6 +234,9 @@ function Actionbutton:UpdateInfo()
 		self.Icon:SetVertexColor(1, 1, 1, 1)
 	end
 end
+
+Actionbutton.KeySeparator = '\n';
+Actionbutton.KeyLimit = 3;
 
 ---------------------------------------------------------------
 -- Actionpage
