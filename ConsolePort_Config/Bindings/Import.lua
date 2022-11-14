@@ -76,7 +76,7 @@ end
 
 function Preset:SetData(data)
 	local color = data.Class and RAID_CLASS_COLORS[data.Class] or WHITE_FONT_COLOR;
-	local icon = data.Icon and CreateSimpleTextureMarkup(data.Icon, 20, 20) or '     ';
+	local icon = data.Icon and CPAPI.CreateSimpleTextureMarkup(data.Icon, 20, 20) or '     ';
 	self:SetText(('%s %s'):format(icon, color:WrapTextInColorCode(data.Name)))
 	self.specID = data.Spec;
 	self.classID = data.Class;
