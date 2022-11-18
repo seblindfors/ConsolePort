@@ -346,6 +346,7 @@ function EM:OnNewBindings(bindings)
 end
 
 function EM:OnNewAttributes()
+  self:SetAttribute('FrameExcludeStrings', db('raidCursorFrameFilters'))
 	self:SetAttribute('unitpool', (db('unitHotkeyPool') or ''):gsub(';', '\n'))
 	self:SetAttribute('ghostMode', db('unitHotkeyGhostMode'))
 	self:SetAttribute('ignorePlayer', db('unitHotkeyIgnorePlayer'))
@@ -395,7 +396,18 @@ function EM:RefreshUnitFrames(current)
 		stack = {self:GetParent():GetChildren()}
 	elseif current:IsVisible() then
 		local unit = current:GetAttribute('unit')
-		if unit then
+
+		local name = current:GetName()
+		local excludeFrame = false;
+		if name then
+			for token in string.gmatch(self:GetAttribute('FrameExcludeStrings'), "[^%s]+") do
+				if string.find(name,token) then
+					excludeFrame = true;
+				end
+			end
+		end
+
+		if unit and not excludeFrame then
 			self:AddFrameForUnit(current, unit)
 		end
 		stack = {current:GetChildren()}
