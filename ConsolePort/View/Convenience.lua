@@ -47,6 +47,14 @@ do  local DELETE_ITEM = CopyTable(StaticPopupDialogs.DELETE_ITEM);
 	StaticPopupDialogs.DELETE_GOOD_QUEST_ITEM = DELETE_QUEST;
 end
 
+-- TODO: remove.
+-- Add reload option to addon action forbidden because
+-- of the many taint issues spreading in edit mode
+do local popup = StaticPopupDialogs.ADDON_ACTION_FORBIDDEN;
+	popup.button3 = 'Reload';
+	popup.OnAlt = ReloadUI;
+end
+
 
 -- Map canvas:
 -- Disable automatic cursor scrolling.

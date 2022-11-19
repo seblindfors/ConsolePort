@@ -98,10 +98,6 @@ function Database:For(path, alphabetical)
 end
 
 -- Callback handling proxy
-function Database:RegisterSafeCallback(...)
-    return self.callbacks:RegisterSafeCallback(...)
-end
-
 function Database:RegisterCallback(...)
     return self.callbacks:RegisterCallback(...)
 end
@@ -110,6 +106,17 @@ function Database:RegisterCallbacks(...)
     local callback, owner = ...;
     for i = 3, select('#', ...) do
         self.callbacks:RegisterCallback(select(i, ...), callback, owner)
+    end
+end
+
+function Database:RegisterSafeCallback(...)
+    return self.callbacks:RegisterSafeCallback(...)
+end
+
+function Database:RegisterSafeCallbacks(...)
+    local callback, owner = ...;
+    for i = 3, select('#', ...) do
+        self.callbacks:RegisterSafeCallback(select(i, ...), callback, owner)
     end
 end
 

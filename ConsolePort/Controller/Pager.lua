@@ -128,27 +128,27 @@ Pager.Env = {
 		end
 	]]):format(NUM_ACTIONBAR_BUTTONS);
 	GetActionInfo = [[
-		local id = self:RunAttribute('GetActionID', ...)
+		local id = self::GetActionID(...)
 		if id then
 			return GetActionInfo(id)
 		end
 	]];
 	GetSpellID = [[
-		local actionType, spellID, subType = self:RunAttribute('GetActionInfo', ...)
+		local actionType, spellID, subType = self::GetActionInfo(...)
 		if actionType == 'spell' and subType == 'spell' then
 			return spellID
 		end
 	]];
 	GetActionSpellInfo = [[
-		local type, spellID, subType = self:RunAttribute('GetActionInfo', ...)
+		local type, spellID, subType = self::GetActionInfo(...)
 		if type == 'spell' and spellID and spellID ~= 0 and subType == 'spell' then
 			return FindSpellBookSlotBySpellID(spellID)
 		end
 	]];
 	IsHarmfulAction = [[
-		local type, id = self:RunAttribute('GetActionInfo', ...)
+		local type, id = self::GetActionInfo(...)
 		if type == 'spell' then
-			local slot = self:RunAttribute('GetActionSpellInfo', ...)
+			local slot = self::GetActionSpellInfo(...)
 			if slot then
 				return IsHarmfulSpell(slot, 'spell')
 			end
@@ -157,9 +157,9 @@ Pager.Env = {
 		end
 	]];
 	IsHelpfulAction = [[
-		local type, id = self:RunAttribute('GetActionInfo', ...)
+		local type, id = self::GetActionInfo(...)
 		if type == 'spell' then
-			local slot = self:RunAttribute('GetActionSpellInfo', ...)
+			local slot = self::GetActionSpellInfo(...)
 			if slot then
 				return IsHelpfulSpell(slot, 'spell')
 			end
