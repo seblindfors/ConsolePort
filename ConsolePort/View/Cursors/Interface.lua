@@ -474,12 +474,28 @@ do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
 			end
 		end
 	end
+	if CPAPI.IsRetailVersion then
+		EventUtil.ContinueOnAddOnLoaded('Blizzard_ClassTalentUI', function()
+			SafeOnEnter[ClassTalentButtonSpendMixin.OnEnter] = TalentButtonSpendMixin.OnEnter;
+			SafeOnEnter[ClassTalentButtonSelectMixin.OnEnter] = TalentButtonSelectMixin.OnEnter;
+			SafeOnEnter[ClassTalentButtonSplitSelectMixin.OnEnter] = TalentButtonSplitSelectMixin.OnEnter;
+			SafeOnEnter[ClassTalentSelectionChoiceMixin.OnEnter] = TalentDisplayMixin.OnEnter;
+		end)
+	end
 	-------[[  OnLeave  ]]-------
 	local SpellButtonOnLeave = SpellButton_OnLeave or SpellButton1 and SpellButton1:GetScript('OnLeave')
 	if SpellButtonOnLeave then
 		SafeOnLeave[SpellButtonOnLeave] = function(self)
 			GameTooltip:Hide()
 		end
+	end
+	if CPAPI.IsRetailVersion then
+		EventUtil.ContinueOnAddOnLoaded('Blizzard_ClassTalentUI', function()
+			SafeOnLeave[ClassTalentButtonSpendMixin.OnLeave] = TalentDisplayMixin.OnLeave;
+			SafeOnLeave[ClassTalentButtonSelectMixin.OnLeave] = TalentButtonSelectMixin.OnLeave;
+			SafeOnLeave[ClassTalentButtonSplitSelectMixin.OnLeave] = TalentButtonSplitSelectMixin.OnLeave;
+			SafeOnLeave[ClassTalentSelectionChoiceMixin.OnLeave] = TalentDisplayMixin.OnLeave;
+		end)
 	end
 	---------------------------------------------------------------
 	-- Allow access to these tables for plugins and addons on demand.
