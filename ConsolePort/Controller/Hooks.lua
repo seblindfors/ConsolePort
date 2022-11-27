@@ -252,8 +252,17 @@ do -- Tooltip hooking
 		end
 	end
 
+	local function OnTooltipSetMount(self, info)
+		local spellID = select(2, CPAPI.GetMountInfoByID(info.id))
+		local isKnown = select(11, CPAPI.GetMountInfoByID(info.id))
+		if isKnown and spellID then
+			Hooks:SetPendingSpellMenu(self, spellID)
+		end
+	end	
+
 	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
+		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Mount, OnTooltipSetMount)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
 	else
 		GameTooltip:HookScript('OnTooltipSetItem', OnTooltipSetItem)
