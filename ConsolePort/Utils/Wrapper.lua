@@ -191,6 +191,7 @@ local function nopt() return {} end;
 
 CPAPI.GetActiveZoneAbilities = C_ZoneAbility and C_ZoneAbility.GetActiveAbilities or nopt;
 CPAPI.GetBonusBarIndexForSlot = C_ActionBar.GetBonusBarIndexForSlot or nop;
+CPAPI.GetCollectedDragonridingMounts = C_MountJournal and C_MountJournal.GetCollectedDragonridingMounts or nopt;
 CPAPI.GetContainerItemQuestInfo = C_Container and C_Container.GetContainerItemQuestInfo or GetContainerItemQuestInfo;
 CPAPI.GetContainerNumFreeSlots = C_Container and C_Container.GetContainerNumFreeSlots or GetContainerNumFreeSlots;
 CPAPI.GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots or GetContainerNumSlots;
@@ -207,6 +208,7 @@ CPAPI.IsXPUserDisabled = IsXPUserDisabled or nop;
 CPAPI.LeaveParty = C_PartyInfo and C_PartyInfo.LeaveParty or LeaveParty;
 CPAPI.PickupContainerItem = C_Container and C_Container.PickupContainerItem or PickupContainerItem;
 CPAPI.PutActionInSlot = C_ActionBar and C_ActionBar.PutActionInSlot or PlaceAction;
+CPAPI.RequestLoadQuestByID = C_QuestLog and C_QuestLog.RequestLoadQuestByID or nop;
 CPAPI.UseContainerItem = C_Container and C_Container.UseContainerItem or UseContainerItem;
 
 end

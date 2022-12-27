@@ -183,6 +183,7 @@ ActionBarAPI.Pages = {
 	CPAPI.Callable({01, 06, 05, 03, 04}, function() return true end);
 	CPAPI.Callable({13, 14, 15        }, function() return CPAPI.IsRetailVersion end);
 	CPAPI.Callable({07, 08, 09, 10    }, function() return GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars') end);
+	CPAPI.Callable({11                }, function() return not not next(CPAPI.GetCollectedDragonridingMounts()) end);
 	CPAPI.Callable({02                }, function()
 		return db('bindingShowExtraBars')
 			or db.Gamepad:GetBindingKey('CLICK ConsolePortPager:2')
@@ -197,7 +198,8 @@ ActionBarAPI.Names = {
 	[ActionBarAPI.Pages[1]] = ACTIONBARS_LABEL or 'Action Bars';
 	[ActionBarAPI.Pages[2]] = BINDING_HEADER_MULTIACTIONBAR or 'Extra Action Bars';
 	[ActionBarAPI.Pages[3]] = ('%s | %s'):format(TUTORIAL_TITLE61_WARRIOR or 'Combat Stances', TUTORIAL_TITLE61_DRUID or 'Shapeshifting');
-	[ActionBarAPI.Pages[4]] = BINDING_NAME_ACTIONPAGE2 or 'Action Page 2';
+	[ActionBarAPI.Pages[4]] = MOUNT_JOURNAL_FILTER_DRAGONRIDING or 'Dragonriding';
+	[ActionBarAPI.Pages[5]] = BINDING_NAME_ACTIONPAGE2 or 'Action Page 2';
 	-- Individual pages
 	Pages = {
 		[02] = 'Page 2';
@@ -205,6 +207,7 @@ ActionBarAPI.Names = {
 		[08] = 'Stance 2';
 		[09] = 'Stance 3';
 		[10] = 'Stance 4';
+		[11] = 'Dragon';
 	};
 }
 
