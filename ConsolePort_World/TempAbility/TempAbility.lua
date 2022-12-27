@@ -183,12 +183,15 @@ end
 
 function TempAbility:AddSpell(spellID)
 	if not self.Shown[spellID] and db('showAbilityBriefing') then
-		local showTime = 0;
-		for spellID, timer in pairs(self.Info) do
-			showTime = showTime + timer;
-		end
-		self.Info[spellID] = self.Info[spellID] or Clamp(showTime, 10, showTime);
-		self:UpdateItems()
+		local spell = Spell:CreateFromSpellID(spellID)
+		spell:ContinueOnSpellLoad(function()
+			local showTime = 0;
+			for spellID, timer in pairs(self.Info) do
+				showTime = showTime + timer;
+			end
+			self.Info[spellID] = self.Info[spellID] or Clamp(showTime, 10, showTime);
+			self:UpdateItems()
+		end)
 	end
 end
 
