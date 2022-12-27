@@ -177,18 +177,18 @@ db:Register('Variables', {
 	--------------------------------------------------------------------------------------------------------
 	-- Raid cursor:
 	--------------------------------------------------------------------------------------------------------
-	raidCursorDirect = {Bool(false);
-		head = 'Raid Cursor';
-		sort = 1;
-		name = 'Direct Targeting';
-		desc = 'Change target each time the cursor is moved, instead of routing appropriate spells.';
-		note = 'The cursor cannot route macros or ambiguous spells. Enable this if you use a lot of macros.';
-	};
 	raidCursorScale = {Number(1, 0.1);
 		head = 'Raid Cursor';
-		sort = 2;
+		sort = 1;
 		name = 'Scale';
 		desc = 'Scale of the cursor.';
+	};
+	raidCursorMode = {Select('Redirect', 'Redirect'):SetRawOptions({'Redirect', FOCUS, TARGET}),
+		head = 'Raid Cursor';
+		sort = 2;
+		name = 'Targeting Mode';
+		desc = 'Change how the raid cursor acquires a target. Redirect and focus modes will reroute appropriate spells without changing your target.';
+		note = 'Basic redirect cannot route macros or ambiguous spells. Use target mode or focus mode with [@focus] macros to control behavior.';
 	};
 	raidCursorModifier = {Select('<none>', '<none>', unpack(MODID_EXTEND));
 		head = 'Raid Cursor';
@@ -196,6 +196,14 @@ db:Register('Variables', {
 		name = 'Modifier';
 		desc = 'Which modifier to use with the directional pad to move the cursor.';
 		note = 'The bindings underlying the button combinations will be unavailable while the cursor is in use.';
+	};
+	raidCursorFilter = {String(nil);
+		head = 'Raid Cursor';
+		sort = 4;
+		name = 'Filter Condition';
+		desc = 'Filter condition to find raid cursor frames.';
+		note = BLUE_FONT_COLOR:WrapTextInColorCode('node') .. ' is the current frame under scrutinization.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Interface cursor:
@@ -481,14 +489,6 @@ db:Register('Variables', {
 		sort = 3;
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
-		advd = true;
-	};
-	raidCursorFilter = {String(nil);
-		head = ADVANCED_OPT;
-		sort = 4;
-		name = 'Raid Cursor Condition';
-		desc = 'Filter condition to find raid cursor frames.';
-		note = BLUE_FONT_COLOR:WrapTextInColorCode('node') .. ' is the current frame under scrutinization.';
 		advd = true;
 	};
 })  --------------------------------------------------------------------------------------------------------

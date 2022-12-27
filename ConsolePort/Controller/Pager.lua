@@ -8,7 +8,7 @@
 --   Settings/actionPageCondition : macro condition
 --   Settings/actionPageResponse  : response to condition
 
-local Pager, _, db = CPAPI.EventHandler(ConsolePortPager), ...;
+local Pager, _, db = CPAPI.EventHandler(ConsolePortPager, {'UPDATE_MACROS'}), ...;
 db:Register('Pager', Pager)
 Pager:Execute('headers = newtable()')
 
@@ -145,6 +145,12 @@ Pager.Env = {
 			return FindSpellBookSlotBySpellID(spellID)
 		end
 	]];
+	IsHelpfulMacro = [[
+		return false -- default, override in header
+	]];
+	IsHarmfulMacro = [[
+		return false -- default, override in header
+	]];
 	IsHarmfulAction = [[
 		local type, id = self::GetActionInfo(...)
 		if type == 'spell' then
@@ -154,6 +160,12 @@ Pager.Env = {
 			end
 		elseif type == 'item' and id then
 			return IsHarmfulItem(id)
+		elseif type == 'macro' and id then
+			local pager = self:GetFrameRef('pager')
+			if pager then
+				local body = pager:GetAttribute(tostring(id))
+				return self::IsHarmfulMacro(body)
+			end
 		end
 	]];
 	IsHelpfulAction = [[
@@ -165,6 +177,12 @@ Pager.Env = {
 			end
 		elseif type == 'item' and id then
 			return IsHelpfulItem(id)
+		elseif type == 'macro' and id then
+			local pager = self:GetFrameRef('pager')
+			if pager then
+				local body = pager:GetAttribute(tostring(id))
+				return self::IsHelpfulMacro(body)
+			end
 		end
 	]];
 }
@@ -176,6 +194,7 @@ function Pager:RegisterHeader(header, anonymous)
 	if not anonymous then
 		local page = self:GetCurrentPage()
 		header:SetAttribute('actionpage', page)
+		header:SetFrameRef('pager', self)
 
 		-- add references to Blizzard frames
 		if MainMenuBarArtFrame then header:SetFrameRef('mainmenubar', MainMenuBarArtFrame) end
@@ -186,3 +205,23 @@ function Pager:RegisterHeader(header, anonymous)
 	end
 	return header
 end
+
+---------------------------------------------------------------
+-- Macro boxy indexing
+---------------------------------------------------------------
+
+function Pager:OnUpdateMacros(macroInfo)
+	for id, body in pairs(macroInfo) do
+		self:SetAttribute(tostring(id), body)
+	end
+end
+
+function Pager:UPDATE_MACROS()
+	local macroInfo = {}
+	for i=1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
+		macroInfo[i] = select(3, GetMacroInfo(i))
+	end
+	db:TriggerEvent('OnUpdateMacros', macroInfo)
+end
+
+db:RegisterSafeCallback('OnUpdateMacros', Pager.OnUpdateMacros, Pager)

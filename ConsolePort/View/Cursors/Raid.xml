@@ -4,7 +4,6 @@
 	<Button name="ConsolePortRaidCursor" parent="UIParent" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate" registerForClicks="AnyDown" frameStrata="TOOLTIP" hidden="true">
 		<Size x="32" y="32"/>
 		<Attributes>
-			<Attribute name="type" type="string" value="target"/>
 			<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
 			<Attribute name="_onstate-unitexists" type="string" value="self:Run(UpdateUnitExists, newstate)"/>
 			<Attribute name="_childupdate-actionpage" type="string" value="self:Run(ActionPageChanged, newstate)"/>
