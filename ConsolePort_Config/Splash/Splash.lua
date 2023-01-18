@@ -283,19 +283,15 @@ function Splash:OnFirstShow()
 					_SetCamDistanceScale = 8;
 					_OnLoad = function(self)
 						local rW, gW, bW = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
-						local rC, gC, bC = CPAPI.GetClassColor()
-						if CPAPI.IsRetailVersion then
-							self:SetLight(true, {
-								omnidirectional = false;
-								point = CreateVector3D(-1, 1, -100);
-								ambientIntensity = 1;
-								ambientColor = CreateColor(rW, gW, bW);
-								diffuseIntensity = 0.5;
-								diffuseColor = CreateColor(rC, gC, bC);
-							})
-						else
-							self:SetLight(true, false, -1, 1, -100, 1, rW, gW, bW, 0.5, rC, gC, bC)
-						end
+						local rC, gC, bC = CPAPI.GetClassColor()	
+						self:SetLight(true, {
+							omnidirectional = false;
+							point = CreateVector3D(-1, 1, -100);
+							ambientIntensity = 1;
+							ambientColor = CreateColor(rW, gW, bW);
+							diffuseIntensity = 0.5;
+							diffuseColor = CreateColor(rC, gC, bC);
+						})
 					end;
 				};
 				Content = {

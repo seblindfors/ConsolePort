@@ -384,9 +384,12 @@ local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin, {
 			end)
 		end;
 		spell = function(self, id)
-			Spell:CreateFromSpellID((select(GET_SPELLID_IDX, GetSpellInfo(id)))):ContinueOnSpellLoad(function()
-				self:UpdateProps()
-			end)
+			local spellID = (select(GET_SPELLID_IDX, GetSpellInfo(id)))
+			if spellID then
+				Spell:CreateFromSpellID(spellID):ContinueOnSpellLoad(function()
+					self:UpdateProps()
+				end)
+			end
 		end;
 	};
 })
