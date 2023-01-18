@@ -243,6 +243,7 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 			'PetBattleFrame';
 			'ReadyCheckFrame';
 			'StackSplitFrame';
+			'UIWidgetCenterDisplayFrame';
 			---------------------------------
 		}) do self:TryRegisterFrame(_, frame, true) end
 	end
