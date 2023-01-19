@@ -60,7 +60,7 @@ function CPAPI.GetItemLevelColor(...)
 		color = GetItemLevelColor(...)
 	end
 	color = CPAPI.GetClassColor()
-	return {color[1], color[2], color[3], 1.0}
+	return CreateColor(color[1], color[2], color[3], 1.0)
 end
 
 function CPAPI.GetAverageItemLevel(...)
