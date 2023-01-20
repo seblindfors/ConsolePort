@@ -101,7 +101,7 @@ do  local IsWidget, GetID, GetParent, GetScript =
 
 	function Hooks:GetBagLocationFromNode(node)
 		return IsWidget(node) and TryIdentifyContainerBag(node) and
-			ContainerIDToInventoryID(node:GetID());
+			CPAPI.ContainerIDToInventoryID(node:GetID());
 	end
 end
 
