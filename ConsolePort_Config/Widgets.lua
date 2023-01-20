@@ -378,7 +378,13 @@ function String:OnClick()
 	end
 end
 
-function String:OnValueChanged(value)
+function String:OnValueChanged(value, valueExists)
+	-- subvert default widget behavior for strings
+	if not valueExists then
+		self:SetAlpha(1)
+		self:SetEnabled(true)
+		self.Input:EnableMouse(true)
+	end
 	self.Input:SetText(value or '')
 end
 
