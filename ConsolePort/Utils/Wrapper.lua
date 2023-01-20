@@ -55,17 +55,20 @@ function CPAPI.GetCharacterMetadata()
 end
 
 function CPAPI.GetItemLevelColor(...)
-	local color
 	if GetItemLevelColor then
-		color = GetItemLevelColor(...)
+		return GetItemLevelColor(...)
 	end
-	color = CPAPI.GetClassColor()
-	return CreateColor(color[1], color[2], color[3], 1.0)
+	local r, g, b = CPAPI.GetClassColor()
+	return r, g, b;
 end
 
 function CPAPI.GetAverageItemLevel(...)
 	if GetAverageItemLevel then
 		return floor(select(2, GetAverageItemLevel(...)))
+	end
+	-- TODO: Some simple method of calculating average ilvl on Classic
+	if GetClassicExpansionLevel and MAX_PLAYER_LEVEL_TABLE then
+		return MAX_PLAYER_LEVEL_TABLE[GetClassicExpansionLevel()]
 	end
 	return MAX_PLAYER_LEVEL
 end

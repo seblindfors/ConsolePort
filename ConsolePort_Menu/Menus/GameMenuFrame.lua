@@ -31,7 +31,7 @@ do	-- Initiate frame
 							self.Level:SetTextColor(1, 0.8, 0)
 							self.Level:SetText(level)
 						else
-							self.Level:SetTextColor(CPAPI.GetItemLevelColor():GetRGBA())
+							self.Level:SetTextColor(CPAPI.GetItemLevelColor())
 							self.Level:SetText(CPAPI.GetAverageItemLevel())
 						end
 					end;
