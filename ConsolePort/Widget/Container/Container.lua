@@ -250,7 +250,10 @@ do  local function HeaderButtonOnClick(self)
 		local r, g, b = CPAPI.NormalizeColor(CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB())
 		local colorObj = CPAPI.GetClassColorObject()
 
-		header:GetFontString():SetTextColor(r, g, b)
+		header.Label:SetFontObjectsToTry(CPHeaderButtonFont, CPSubtitleFont, CPSmallFont)
+		header.Label:SetTextColor(r, g, b)
+		header.Label:SetText(name)
+
 		header:SetCheckedThumbColor(colorObj)
 		header:SetHiliteThumbColor(CPAPI.NormalizeColor(CPAPI.InvertColor(colorObj:GetRGB())))
 
@@ -264,7 +267,6 @@ do  local function HeaderButtonOnClick(self)
 		header:SetTransparent(true)
 		header:SetForceChecked(true)
 		header:SetID(self.numHeaders)
-		header:SetText(name)
 		header:Show()
 
 		if (self.numHeaders == 1) then
