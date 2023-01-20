@@ -1440,19 +1440,34 @@ local function getSpellInfo(func, spellID, ...)
 	end
 end
 
+local function getSpellCd(input)
+	if GetSpellCooldown(input) == nil then
+		return 0, 0, 0
+	end
+	return GetSpellCooldown(input)
+end
+
+local function setSpellTooltip(input)
+	local spellId = getSpellId(input)
+	if spellId and IsSpellKnownOrOverridesKnown(spellId) then
+		return GameTooltip:SetSpellByID(spellId)
+	end
+	return GameTooltip:SetText(input)
+end
+
 Spell.HasAction               = function(self) return true end
 Spell.GetActionText           = function(self) return (GetSpellInfo(self._state_action)) end
 Spell.GetTexture              = function(self) return (GetSpellTexture(self._state_action)) end
 Spell.GetCharges              = function(self) return GetSpellCharges(self._state_action) end
 Spell.GetCount                = function(self) return GetSpellCount(self._state_action) end
-Spell.GetCooldown             = function(self) return GetSpellCooldown(self._state_action) end
+Spell.GetCooldown             = function(self) return getSpellCd(self._state_action) end
 Spell.IsAttack                = function(self) return getSpellInfo(IsAttackSpell, self._state_action) end
 Spell.IsCurrentlyActive       = function(self) return IsCurrentSpell(self._state_action) end
 Spell.IsAutoRepeat            = function(self) return getSpellInfo(IsAutoRepeatSpell, self._state_action) end
 Spell.IsUsable                = function(self) return IsUsableSpell(self._state_action) end
 Spell.IsConsumableOrStackable = function(self) return IsConsumableSpell(self._state_action) end
 Spell.IsUnitInRange           = function(self, unit) return getSpellInfo(IsSpellInRange, self._state_action, unit) end
-Spell.SetTooltip              = function(self) return GameTooltip:SetSpellByID(getSpellId(self._state_action)) end
+Spell.SetTooltip              = function(self) return setSpellTooltip(self._state_action) end
 Spell.GetSpellId              = function(self) return getSpellId(self._state_action) end
 
 -----------------------------------------------------------
@@ -1461,11 +1476,20 @@ local function getItemId(input)
 	return input:match('^item:(%d+)')
 end
 
+local function getItemCd(input)
+	if GetItemCooldown then
+		return GetItemCooldown(input)
+	elseif C_Container and C_Container.GetItemCooldown then
+		return C_Container.GetItemCooldown(input)
+	end
+	return 0, 0, 0
+end
+
 Item.HasAction               = function(self) return true end
 Item.GetActionText           = function(self) return (GetItemInfo(self._state_action)) end
 Item.GetTexture              = function(self) return GetItemIcon(self._state_action) end
 Item.GetCount                = function(self) return GetItemCount(self._state_action, nil, true) end
-Item.GetCooldown             = function(self) return GetItemCooldown(getItemId(self._state_action)) end
+Item.GetCooldown             = function(self) return getItemCd(getItemId(self._state_action)) end
 Item.IsEquipped              = function(self) return IsEquippedItem(self._state_action) end
 Item.IsCurrentlyActive       = function(self) return IsCurrentItem(self._state_action) end
 Item.IsUsable                = function(self) return IsUsableItem(self._state_action) end
@@ -1485,7 +1509,7 @@ Macro.IsUsable               = function(self) return true end
 --- Toy Button
 Toy.HasAction                = function(self) return true end
 Toy.GetTexture               = function(self) return select(3, C_ToyBox.GetToyInfo(self._state_action)) end
-Toy.GetCooldown              = function(self) return GetItemCooldown(self._state_action) end
+Toy.GetCooldown              = function(self) return getItemCd(self._state_action) end
 Toy.IsUnitInRange            = function(self, unit) return nil end
 Toy.SetTooltip               = function(self) return GameTooltip:SetToyByItemID(self._state_action) end
 
