@@ -6,10 +6,8 @@ do	-- Initiate frame
 	local baseTemplates   = {'CPMenuButtonBaseTemplate', 'SecureActionButtonTemplate'};
 	local hideMenuHook    = {hidemenu = true};
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
-	local IsRetailVersion = CPAPI.IsRetailVersion;
-	local IsRetailVersion  = CPAPI.IsRetailVersion;
-	local IsWoW9Version   = not IsRetailVersion or nil;
-	local IsClassicVersion = not CPAPI.IsRetailVersion or nil;
+	local IsWoW9Version   = not CPAPI.IsRetailVersion or nil;
+	local IsClassicGameVersion = CPAPI.IsClassicVersion or CPAPI.IsClassicEraVersion or nil;
 
 	LibStub('Carpenter')(Menu, {
 		Character = {
@@ -64,7 +62,7 @@ do	-- Initiate frame
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Info', 'BOTTOM', 0, 0};
 					_Text  = INVENTORY_TOOLTIP;
-					_Image = IsRetailVersion and 'INV_Misc_Bag_29' or 'INV_Misc_Bag_08';
+					_Image = CPAPI.IsRetailVersion and 'INV_Misc_Bag_29' or 'INV_Misc_Bag_08';
 					_Events = {'BAG_UPDATE_DELAYED'};
 					_Attributes = hideMenuHook;
 					_OnClick = ToggleAllBags;
@@ -141,7 +139,7 @@ do	-- Initiate frame
 						self.Icon:SetTexture(iconFile)
 						self.Icon:SetTexCoord(unpack(iconTCoords))
 						for _, event in ipairs({
-							IsRetailVersion and 'HONOR_LEVEL_UPDATE',
+							CPAPI.IsRetailVersion and 'HONOR_LEVEL_UPDATE',
 							'NEUTRAL_FACTION_SELECT_RESULT',
 							'PLAYER_LEVEL_CHANGED',
 							'PLAYER_SPECIALIZATION_CHANGED',
@@ -166,7 +164,7 @@ do	-- Initiate frame
 						self.Icon:SetTexture([[Interface\Spellbook\Spellbook-Icon]])
 					end;
 				};
-				Collections = IsRetailVersion and {
+				Collections = CPAPI.IsRetailVersion and {
 					_ID    = 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -176,7 +174,7 @@ do	-- Initiate frame
 					_Image = 'MountJournalPortrait';
 					_Attributes = hideMenuHook;
 				};
-				Keyring = IsClassicVersion and {
+				Keyring = IsClassicGameVersion and {
 					_ID    = 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -199,13 +197,13 @@ do	-- Initiate frame
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
-					_Text  = IsRetailVersion and ('%s / %s'):format(WORLD_MAP, QUEST_LOG) or QUEST_LOG;
-					_Image = IsRetailVersion and 'INV_Misc_Map02';
+					_Text  = CPAPI.IsRetailVersion and ('%s / %s'):format(WORLD_MAP, QUEST_LOG) or QUEST_LOG;
+					_Image = CPAPI.IsRetailVersion and 'INV_Misc_Map02';
 					_RefTo = QuestLogMicroButton;
 					_Attributes = hideMenuHook;
-					_CustomImage = IsClassicVersion and [[Interface\QUESTFRAME\UI-QuestLog-BookIcon]];
+					_CustomImage = IsClassicGameVersion and [[Interface\QUESTFRAME\UI-QuestLog-BookIcon]];
 				};
-				WorldMap = IsClassicVersion and {
+				WorldMap = IsClassicGameVersion and {
 					_ID    = 2;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -215,7 +213,7 @@ do	-- Initiate frame
 					_Attributes = hideMenuHook;
 					_CustomImage = [[Interface\WorldMap\WorldMap-Icon]];
 				};
-				Guide = IsRetailVersion and {
+				Guide = CPAPI.IsRetailVersion and {
 					_ID    = 2;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -261,7 +259,7 @@ do	-- Initiate frame
 					_ID    = 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsRetailVersion and '$parent.Guide' or '$parent.WorldMap', 'BOTTOM', 0, 0};
+					_Point = {'TOP', CPAPI.IsRetailVersion and '$parent.Guide' or '$parent.WorldMap', 'BOTTOM', 0, 0};
 					_Text  = DUNGEONS_BUTTON;
 					_RefTo = LFDMicroButton or LFGMicroButton;
 					_Attributes = hideMenuHook;
@@ -270,11 +268,11 @@ do	-- Initiate frame
 						self.Icon:SetTexture([[Interface\LFGFRAME\UI-LFG-PORTRAIT]])
 					end;
 				};
-				PvP = IsClassicVersion and {
+				PvP = CPAPI.IsClassicVersion and {
 					_ID    = 4;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsRetailVersion and '$parent.Guide' or '$parent.Finder', 'BOTTOM', 0, 0};
+					_Point = {'TOP', CPAPI.IsRetailVersion and '$parent.Guide' or '$parent.Finder', 'BOTTOM', 0, 0};
 					_Text  = PLAYER_V_PLAYER;
 					_Attributes = hideMenuHook;	
 					_Image = ('Achievement_PVP_%1$s_%1$s'):format(UnitFactionGroup('player'):sub(1,1));
@@ -284,17 +282,17 @@ do	-- Initiate frame
 						end;
 					};
 				};
-				Achievements = {
-					_ID    = IsClassicVersion and 5 or 4,
+				Achievements = (CPAPI.IsClassicVersion or CPAPI.IsRetailVersion or nil) and {
+					_ID    = CPAPI.IsClassicVersion and 5 or 4,
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsRetailVersion and '$parent.Finder' or '$parent.PvP', 'BOTTOM', 0, -16};
+					_Point = {'TOP', CPAPI.IsRetailVersion and '$parent.Finder' or '$parent.PvP', 'BOTTOM', 0, -16};
 					_Text  = ACHIEVEMENTS;
 					_Image = 'ACHIEVEMENT_WIN_WINTERGRASP';
 					_RefTo = AchievementMicroButton;
 					_Attributes = hideMenuHook;
 				},
-				WhatsNew = IsRetailVersion and {
+				WhatsNew = CPAPI.IsRetailVersion and {
 					_ID    = 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -304,16 +302,16 @@ do	-- Initiate frame
 					_Image = 'WoW_Token01';
 				};
 				Shop = {
-					_ID    = IsRetailVersion and 6 or 5;
+					_ID    = CPAPI.IsRetailVersion and 6 or 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsRetailVersion and '$parent.WhatsNew' or '$parent.Achievements', 'BOTTOM', 0, 0};
+					_Point = {'TOP', CPAPI.IsRetailVersion and '$parent.WhatsNew' or '$parent.Achievements', 'BOTTOM', 0, 0};
 					_Text  = BLIZZARD_STORE;
 					_RefTo = GameMenuButtonStore;
-					_Image = IsRetailVersion and 'WoW_Store';
-					_CustomImage = IsClassicVersion and [[Interface\MERCHANTFRAME\UI-BuyBack-Icon]];
+					_Image = CPAPI.IsRetailVersion and 'WoW_Store';
+					_CustomImage = IsClassicGameVersion and [[Interface\MERCHANTFRAME\UI-BuyBack-Icon]];
 				};
-				Teleport = IsRetailVersion and {
+				Teleport = CPAPI.IsRetailVersion and {
 					_ID    = 7;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -347,7 +345,7 @@ do	-- Initiate frame
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
 					_Text  = FRIENDS_LIST;
-					_RefTo = IsRetailVersion and QuickJoinToastButton or SocialsMicroButton;
+					_RefTo = CPAPI.IsRetailVersion and QuickJoinToastButton or SocialsMicroButton;
 					_Attributes = hideMenuHook;
 					_OnLoad = function(self)
 						CPMenuButtonMixin.OnLoad(self)
@@ -378,13 +376,13 @@ do	-- Initiate frame
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Friends', 'BOTTOM', 0, 0};
-					_Text  = IsRetailVersion and GUILD_AND_COMMUNITIES or GUILD;
+					_Text  = CPAPI.IsRetailVersion and GUILD_AND_COMMUNITIES or GUILD;
 					_Image = 'Achievement_GuildPerk_EverybodysFriend';
-					_RefTo = IsRetailVersion and GuildMicroButton;
+					_RefTo = CPAPI.IsRetailVersion and GuildMicroButton;
 					_Attributes = hideMenuHook;
-					_OnClick = IsClassicVersion and ToggleGuildFrame;
+					_OnClick = IsClassicGameVersion and ToggleGuildFrame;
 				};
-				Calendar = IsRetailVersion and {
+				Calendar = CPAPI.IsRetailVersion and {
 					_ID    = 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -398,10 +396,10 @@ do	-- Initiate frame
 					end;
 				};
 				Raid = {
-					_ID    = IsRetailVersion and 4 or 2;
+					_ID    = CPAPI.IsRetailVersion and 4 or 2;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsRetailVersion and '$parent.Calendar' or '$parent.Guild', 'BOTTOM', 0, 0};
+					_Point = {'TOP', CPAPI.IsRetailVersion and '$parent.Calendar' or '$parent.Guild', 'BOTTOM', 0, 0};
 					_Text  = RAID;
 					_Attributes = hideMenuHook;
 					_OnLoad = function(self)
@@ -411,7 +409,7 @@ do	-- Initiate frame
 					_OnClick = ToggleRaidFrame;
 				};
 				Party = {
-					_ID    = IsRetailVersion and 5 or 3;
+					_ID    = CPAPI.IsRetailVersion and 5 or 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Raid', 'BOTTOM', 0, -16};
@@ -465,7 +463,7 @@ do	-- Initiate frame
 					_Point = {'TOP', '$parent.Return', 'BOTTOM', 0, 0};
 					_Text  = LOGOUT;
 					_RefTo = GameMenuButtonLogout;
-					_Image = IsRetailVersion and 'RaceChange' or 'Spell_Nature_TimeStop';
+					_Image = CPAPI.IsRetailVersion and 'RaceChange' or 'Spell_Nature_TimeStop';
 				};
 				Exit = {
 					_ID    = 3;
@@ -499,9 +497,9 @@ do	-- Initiate frame
 					_Point = {'TOP', 'parent.Controller', 'BOTTOM', 0, 0};
 					_Text  = SYSTEMOPTIONS_MENU;
 					_RefTo = GameMenuButtonSettings or GameMenuButtonOptions;
-					_Image = IsRetailVersion and 'Pet_Type_Mechanical' or 'Trade_Engineering';
+					_Image = CPAPI.IsRetailVersion and 'Pet_Type_Mechanical' or 'Trade_Engineering';
 				};
-				EditMode = IsRetailVersion and {
+				EditMode = CPAPI.IsRetailVersion and {
 					_ID    = 6;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -529,7 +527,7 @@ do	-- Initiate frame
 					_ID    = 7;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsRetailVersion and 'parent.EditMode' or 'parent.Interface', 'BOTTOM', 0, 0};
+					_Point = {'TOP', CPAPI.IsRetailVersion and 'parent.EditMode' or 'parent.Interface', 'BOTTOM', 0, 0};
 					_Text  = ADDONS;
 					_RefTo = GameMenuButtonAddons;
 					_OnLoad = function(self)
@@ -544,7 +542,7 @@ do	-- Initiate frame
 					_Point = {'TOP', 'parent.AddOns', 'BOTTOM', 0, -16};
 					_Text  = MACROS;
 					_RefTo = GameMenuButtonMacros;
-					_Image = IsRetailVersion and 'Pet_Type_Magical' or 'Trade_Alchemy';
+					_Image = CPAPI.IsRetailVersion and 'Pet_Type_Magical' or 'Trade_Alchemy';
 				};
 				KeyBindings  = IsWoW9Version and {
 					_ID    = 9;
@@ -715,7 +713,7 @@ do	-- Initiate frame
 
 		if not header.soundScriptAdded then
 			header.soundScriptAdded = true;
-			if IsRetailVersion then
+			if CPAPI.IsRetailVersion then
 				header:HookScript('OnClick', function()
 					PlaySound(SOUNDKIT.UI_COVENANT_ANIMA_DIVERSION_CLOSE, 'Master', false, false)
 				end)
