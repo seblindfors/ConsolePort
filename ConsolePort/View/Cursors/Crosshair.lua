@@ -19,7 +19,7 @@ local GetScaledCursorPosition, SetPoint = GetScaledCursorPosition, PixelUtil.Set
 local UIParent, select = UIParent, select;
 
 function Crosshair:Move()
-	SetPoint(self, 'BOTTOMLEFT', UIParent, 'BOTTOMLEFT', GetScaledCursorPosition())
+	SetPoint(self, 'CENTER', UIParent, 'BOTTOM', 0, GetScreenHeight() * tonumber(GetCVar('CursorCenteredYPos')))
 end
 
 ---------------------------------------------------------------
