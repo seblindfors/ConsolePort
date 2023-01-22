@@ -83,20 +83,22 @@ do local MovieControls = {
 		};
 	};
 
-	local function MovieOnGamePadButtonUp(controls, self, button)
+	local function MovieOnGamePadButtonDown(controls, self, button)
 		controls.PAD1:SetText(('%s %s'):format(GetBindingText('PAD1', '_ABBR'), NO))
 		controls.PAD2:SetText(('%s %s'):format(GetBindingText('PAD2', '_ABBR'), YES))
 
+		local binding = GetBindingFromClick(button)
 		if controls[button] then
 			controls[button]:Click()
+		elseif ( binding == 'SCREENSHOT' or binding == 'TOGGLEMUSIC' or binding == 'TOGGLESOUND' ) then
+			self:SetPropagateKeyboardInput(true)
 		else
 			(self.CloseDialog or self.closeDialog):Show()
 		end
 	end
 
 	for frame, controls in pairs(MovieControls) do
-		frame:SetScript('OnGamePadButtonDown', nil)
-		frame:SetScript('OnGamePadButtonUp', GenerateClosure(MovieOnGamePadButtonUp, controls))
+		frame:HookScript('OnGamePadButtonDown', GenerateClosure(MovieOnGamePadButtonDown, controls))
 	end
 end
 
