@@ -1,0 +1,17 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Script file="Blocker.lua"/>
+
+	<Frame name="CPCursorBlockerTemplate" mixin="CPCursorBlockerMixin" virtual="true">
+		<Frames>
+			<Frame parentKey="BlockingFrame"/>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnHide method="OnHide"/>
+			<OnUpdate method="OnUpdate"/>
+		</Scripts>
+	</Frame>
+	
+</Ui>

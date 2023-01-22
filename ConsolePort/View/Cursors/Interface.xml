@@ -38,15 +38,7 @@
 					</Layer>
 				</Layers>
 			</Frame>
-			<Frame parentKey="Blocker" hidden="true" enableMouse="true">
-				<Scripts>
-					<OnLoad>
-						self:SetParent(nil);
-						self:SetAllPoints();
-						self:SetFrameStrata('TOOLTIP');
-					</OnLoad>
-				</Scripts>
-			</Frame>
+			<Frame parentKey="Blocker" inherits="CPCursorBlockerTemplate"/>
 		</Frames>
 		<Animations>
 			<AnimationGroup parentKey="ScaleInOut">
