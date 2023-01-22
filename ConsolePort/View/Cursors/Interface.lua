@@ -218,7 +218,7 @@ do  -- Create input proxy for basic controls
 	local DpadRepeater = function(self, elapsed)
 		self.timer = self.timer + elapsed
 		if self.timer >= self.UIControlTickNext and self.state then
-			local func = self:GetAttribute('type')
+			local func = self:GetAttribute(CPAPI.ActionTypeRelease)
 			if ( func == 'UIControl' ) then
 				self[func](self, self.state, self:GetAttribute('id'))
 			end
