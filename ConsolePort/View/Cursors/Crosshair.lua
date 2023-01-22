@@ -15,8 +15,8 @@ end
 ---------------------------------------------------------------
 -- Move crosshair to position offset
 ---------------------------------------------------------------
-local GetScaledCursorPosition, SetPoint = GetScaledCursorPosition, PixelUtil.SetPoint;
-local UIParent, select = UIParent, select;
+local GetScreenHeight, SetPoint = GetScreenHeight, PixelUtil.SetPoint;
+local UIParent, GetCVar, tonumber = UIParent, GetCVar, tonumber;
 
 function Crosshair:Move()
 	SetPoint(self, 'CENTER', UIParent, 'BOTTOM', 0, GetScreenHeight() * tonumber(GetCVar('CursorCenteredYPos')))
