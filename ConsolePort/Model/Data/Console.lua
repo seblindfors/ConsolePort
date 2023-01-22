@@ -1,6 +1,8 @@
 -- Consts
 local MOTION_SICKNESS_CHARACTER_CENTERED = MOTION_SICKNESS_CHARACTER_CENTERED or 'Keep Character Centered';
 local MOTION_SICKNESS_REDUCE_CAMERA_MOTION = MOTION_SICKNESS_REDUCE_CAMERA_MOTION or 'Reduce Camera Motion';
+local SOFT_TARGET_DEVICE_OPTS = {[0] = OFF, [1] = 'Gamepad', [2] = 'KBM', [3] = ALWAYS};
+local SOFT_TARGET_ARC_ALLOWANCE = {[0] = 'Front', [1] = 'Cone', [2] = 'Around'};
 local unpack, _, db = unpack, ...; local Console = {}; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 -- Blizzard console variables
@@ -55,7 +57,7 @@ db:Register('Console', setmetatable({
 			desc = 'Disable free-roaming mouse cursor when you jump.';
 		};
 		{	cvar = 'GamePadCursorAutoDisableSticks';
-			type = Select(2, 2):SetRawOptions({[0] = NONE, [1] = TUTORIAL_TITLE2, [2] = STATUS_TEXT_BOTH});
+			type = Map(2, {[0] = NONE, [1] = TUTORIAL_TITLE2, [2] = STATUS_TEXT_BOTH});
 			name = 'Hide Cursor on Stick Input';
 			desc = 'Disable free-roaming mouse cursor when you use your sticks.';
 			note = 'When set to both sticks, cursor only disables when both sticks are used together.';
@@ -108,7 +110,7 @@ db:Register('Console', setmetatable({
 			desc = 'Amount of stick movement before transitioning from walk to run.';
 		};
 		{	cvar = 'GamePadTurnWithCamera';
-			type = Select(2, 2):SetRawOptions({[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
+			type = Map(2, {[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
 			name = 'Turn Character With Camera';
 			desc = 'Turn your character facing when you turn your camera angle.';
 		};
@@ -182,8 +184,6 @@ db:Register('Console', setmetatable({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	-- Interact (NYI)
-	--------------------------------------------------------------------------------------------------------
 	System = {
 	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'synchronizeSettings';
@@ -223,6 +223,118 @@ db:Register('Console', setmetatable({
 			type = Number(2000, 100);
 			name = 'Combined Input Overlap Time';
 			desc = 'Duration after using gamepad and mouse at the same time before switching to just one or the other, in milliseconds.';
+		};
+	};
+	--------------------------------------------------------------------------------------------------------
+	Interact = {
+	--------------------------------------------------------------------------------------------------------
+		{	cvar = 'SoftTargetInteract';
+			type = Map(0, SOFT_TARGET_DEVICE_OPTS);
+			name = 'Enable Interact Key';
+			desc = 'Enable interact key to interact with objects and creatures in the game world.';
+			note = ('To interact with a target, use the binding %s.'):format(BLUE_FONT_COLOR:WrapTextInColorCode(BINDING_NAME_INTERACTTARGET));
+		};
+		{	cvar = 'SoftTargetInteractArc';
+			type = Map(0, SOFT_TARGET_ARC_ALLOWANCE);
+			name = 'Arc Allowance';
+			desc = 'Area where the interact key can find a suitable target.';
+		};
+		{	cvar = 'SoftTargetInteractRange';
+			type = Range(10, 1, 1, 45);
+			name = 'Target Range';
+			desc = 'Controls the cutoff range where an interactable target or object can be found.';
+			note = 'Does not affect actual ability to interact with the target, which may have a different range.';
+		};
+		{	cvar = 'SoftTargetInteractRangeIsHard';
+			type = Bool(false);
+			name = 'Target Range Hard Cutoff';
+			desc = 'Sets if range should be a hard cutoff, even for something you can interact with.';
+		};
+		{	cvar = 'SoftTargetIconInteract';
+			type = Bool(true);
+			name = 'Show Target Icon';
+			desc = 'Show icon above the current interactable target.';
+		};
+		{	cvar = 'SoftTargetIconGameObject';
+			type = Bool(true);
+			name = 'Show Object Icon';
+			desc = 'Show icon above the current interactable object.';
+		};
+		{	cvar = 'SoftTargetTooltipInteract';
+			type = Bool(false);
+			name = 'Show Tooltip';
+			desc = 'Show tooltip for interactables.';
+		};
+	};
+	--------------------------------------------------------------------------------------------------------
+	Targeting = {
+	--------------------------------------------------------------------------------------------------------
+		{	cvar = 'SoftTargetEnemy';
+			type = Map(0, SOFT_TARGET_DEVICE_OPTS);
+			name = 'Enable Soft Enemy Targeting';
+			desc = 'Target enemies automatically by looking at them.';
+			note = 'Use a targeting binding to turn a soft target into a hard target.';
+		};
+		{	cvar = 'SoftTargetFriend';
+			type = Map(0, SOFT_TARGET_DEVICE_OPTS);
+			name = 'Enable Soft Friend Targeting';
+			desc = 'Target friends automatically by looking at them.';
+			note = 'A friendly soft target can be acquired while having an enemy hard target.';
+		};
+		{	cvar = 'SoftTargetForce';
+			type = Map(0, {[0] = OFF, [1] = ENEMY, [2] = FRIEND});
+			name = 'Force Hard Target';
+			desc = 'Auto-set target to match soft target.';
+		};
+		{	cvar = 'SoftTargetMatchLocked';
+			type = Map(0, {[0] = OFF, [1] = 'Explicit', [2] = 'Implicit'});
+			name = 'Target Match Lock';
+			desc = 'Match appropriate soft target to locked target.';
+			note = 'Explicit only matches hard locked targets, while implicit matches targets you attack.';
+		};
+		{	cvar = 'SoftTargetNameplateEnemy';
+			type = Bool(true);
+			name = 'Show Soft Target Enemy Nameplate';
+			desc = 'Always show nameplate for soft enemy target.';
+		};
+		{	cvar = 'SoftTargetNameplateFriend';
+			type = Bool(false);
+			name = 'Show Soft Target Friendly Nameplate';
+			desc = 'Always show nameplate for soft friendly target.';
+		};
+		{	cvar = 'SoftTargetIconEnemy';
+			type = Bool(false);
+			name = 'Show Enemy Target Icon';
+			desc = 'Show icon above the current enemy soft target.';
+		};
+		{	cvar = 'SoftTargetIconFriend';
+			type = Bool(false);
+			name = 'Show Friendly Target Icon';
+			desc = 'Show icon above the current friendly soft target.';
+		};
+		{	cvar = 'SoftTargetTooltipEnemy';
+			type = Bool(false);
+			name = 'Show Enemy Tooltip';
+			desc = 'Show tooltip for enemy soft target.';
+		};
+		{	cvar = 'SoftTargetTooltipFriend';
+			type = Bool(false);
+			name = 'Show Friendly Tooltip';
+			desc = 'Show tooltip for friendly soft target.';
+		};
+	};
+	--------------------------------------------------------------------------------------------------------
+	Tooltips = {
+	--------------------------------------------------------------------------------------------------------
+		{	cvar = 'SoftTargetTooltipDurationMs';
+			type = Number(2000, 250, true);
+			name = 'Automatic Tooltip Duration';
+			desc = 'Duration under which a tooltip is displayed for an automatically acquired target, in milliseconds.';
+		};
+		{	cvar = 'SoftTargetTooltipLocked';
+			type = Bool(false);
+			name = 'Lock Automatic Tooltip';
+			desc = 'Always show tooltip for an automatically acquired target, as long as it exists.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------

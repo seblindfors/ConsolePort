@@ -3,7 +3,6 @@ local STICK_SELECT = {'Movement', 'Camera', 'Gyro'};
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
-local INTERACT_OPT = UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT;
 
 local unpack, _, db = unpack, ...; db('Data')();
 ------------------------------------------------------------------------------------------------------------
@@ -183,7 +182,7 @@ db:Register('Variables', {
 		name = 'Scale';
 		desc = 'Scale of the cursor.';
 	};
-	raidCursorMode = {Select('Redirect', 'Redirect'):SetRawOptions({'Redirect', FOCUS, TARGET}),
+	raidCursorMode = {Map(1, {'Redirect', FOCUS, TARGET}),
 		head = 'Raid Cursor';
 		sort = 2;
 		name = 'Targeting Mode';

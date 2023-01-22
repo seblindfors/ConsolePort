@@ -188,18 +188,27 @@ function Console:DrawOptions(showAdvanced)
 
 	-- console variables
 	for group, set in db.table.spairs(db.Console) do
-		prev = self:CreateHeader(group, prev)
-
-		for i, data in db.table.spairs(set) do
+		local hasSettingsToShow = false;
+		for i, data in pairs(set) do
 			if GetCVar(data.cvar) then
-				local widget, newObj = self:TryAcquireRegistered(group..':'..data.cvar)
-				if newObj then
-					widget:SetDrawOutline(true)
-					widget:OnLoad()
+				hasSettingsToShow = true;
+				break
+			end
+		end
+		if hasSettingsToShow then
+			prev = self:CreateHeader(group, prev)
+
+			for i, data in db.table.spairs(set) do
+				if GetCVar(data.cvar) then
+					local widget, newObj = self:TryAcquireRegistered(group..':'..data.cvar)
+					if newObj then
+						widget:SetDrawOutline(true)
+						widget:OnLoad()
+					end
+					widget:Construct(data, newObj, self)
+					widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)
+					prev = widget;
 				end
-				widget:Construct(data, newObj, self)
-				widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)
-				prev = widget;
 			end
 		end
 	end

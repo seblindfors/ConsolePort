@@ -26,14 +26,14 @@ db:Register('Profile', {
 		{
 			name = 'Movement X Axis';
 			path = 'stickConfigs/<stick:Movement>/axisX';
-			data = Select('LStickX', 'LStickX'):SetRawOptions(kSelectAxisOptions);
-			desc = 'The Analog input for left/right movement.';
+			data = Map('LStickX', kSelectAxisOptions);
+			desc = 'The analog input for left/right movement.';
 		};
 		{
 			name = 'Movement Y Axis';
 			path = 'stickConfigs/<stick:Movement>/axisY';
-			data = Select('LStickY', 'LStickY'):SetRawOptions(kSelectAxisOptions);
-			desc = 'The Analog input for forward/back movement.';
+			data = Map('LStickY', kSelectAxisOptions);
+			desc = 'The analog input for forward/back movement.';
 		};
 	};
 	['Camera Input'] = {
@@ -58,27 +58,27 @@ db:Register('Profile', {
 		{
 			name = 'Camera Yaw Axis';
 			path = 'stickConfigs/<stick:Camera>/axisX';
-			data = Select('RStickX', 'RStickX'):SetRawOptions(kSelectAxisOptions);
-			desc = 'The Analog input for left/right Camera Yaw.';
+			data = Map('RStickX', kSelectAxisOptions);
+			desc = 'The analog input for left/right Camera Yaw.';
 		};
 		{
 			name = 'Camera Pitch Axis';
 			path = 'stickConfigs/<stick:Camera>/axisY';
-			data = Select('RStickY', 'RStickY'):SetRawOptions(kSelectAxisOptions);
-			desc = 'The Analog input for up/down Camera Pitch.';
+			data = Map('RStickY', kSelectAxisOptions);
+			desc = 'The analog input for up/down Camera Pitch.';
 		};
 		{
 			name = 'Camera Look Yaw Axis';
 			path = 'stickConfigs/<stick:Look>/axisX';
-			data = Select('GStickX', 'GStickX'):SetRawOptions(kSelectAxisOptions);
-			desc = 'The Analog input for left/right Camera Yaw "look" feature.';
+			data = Map('GStickX', kSelectAxisOptions);
+			desc = 'The analog input for left/right Camera Yaw "look" feature.';
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
 		};
 		{
 			name = 'Camera Look Pitch Axis';
 			path = 'stickConfigs/<stick:Look>/axisY';
-			data = Select('GStickY', 'GStickY'):SetRawOptions(kSelectAxisOptions);
-			desc = 'The Analog input for up/down Camera Pitch "look" feature.';
+			data = Map('GStickY', kSelectAxisOptions);
+			desc = 'The analog input for up/down Camera Pitch "look" feature.';
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
 		};
 	};

@@ -295,6 +295,10 @@ function Data.Number(val, step, signed)
 	return Number():SetStep(step):SetSigned(signed):Set(val)
 end
 
+function Data.Map(val, opts)
+	return Select(val, val):SetRawOptions(opts):Set(val)
+end
+
 function Data.Pseudokey(val, allowModifiers)
 	return Pseudokey():SetAllowModifiers(allowModifiers):Set(val)
 end
