@@ -81,11 +81,16 @@ function Widget:OnLeave()
 end
 
 function Widget:OnShow()
-	local value = self:Get()
-	local valueExists = value ~= nil;
+	local value = {self:Get()}
+	local valueExists = next(value) ~= nil;
 	self:SetAlpha(valueExists and 1 or .5)
 	self:SetEnabled(valueExists)
-	self:OnValueChanged(value, valueExists)
+	if valueExists then
+		tinsert(value, valueExists)
+		self:OnValueChanged(unpack(value))
+	else
+		self:OnValueChanged(nil, false)
+	end
 	if self.Input then
 		self.Input:EnableMouse(valueExists)
 	end

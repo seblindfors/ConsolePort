@@ -212,7 +212,9 @@ function Options:DrawOptions()
 		end
 	end
 	for i, data in ipairs(env:GetBooleanSettings()) do
-		widget = self:DrawOption(data.cvar, data, 'Bool', widgets, widget)
+		widget = self:DrawOption(data.cvar, data, 'Bool', widgets, widget, function()
+			return not not env:Get(data.cvar)
+		end)
 	end
 	for i, data in ipairs(env:GetColorSettings()) do
 		local colorCode = data.cvar and data.cvar:gsub('RGB', '')
