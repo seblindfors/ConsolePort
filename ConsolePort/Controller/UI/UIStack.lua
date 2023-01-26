@@ -297,7 +297,7 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 	end
 
 	local function CatchNewFrame(frame)
-		if not Stack:IsFrameVisibleToCursor(frame) then
+		if C_Widget.IsFrameWidget(frame) and not Stack:IsFrameVisibleToCursor(frame) then
 			if Stack:TryRegisterFrame(_, frame:GetName(), true) then
 				Stack:AddFrame(frame)
 				Stack:UpdateFrames()
