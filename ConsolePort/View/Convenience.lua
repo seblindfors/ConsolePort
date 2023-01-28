@@ -130,11 +130,11 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 })
 
 function Handler:MERCHANT_CLOSED()
-	self.merchantAvailable = nil;
+	CPAPI.IsMerchantAvailable = nil;
 end
 
 function Handler:MERCHANT_SHOW()
-	self.merchantAvailable = true;
+	CPAPI.IsMerchantAvailable = true;
 	if db('autoSellJunk') then
 		CPAPI.IteratePlayerInventory(self.SellJunkHelper)
 	end
@@ -142,7 +142,7 @@ end
 
 function Handler:BAG_UPDATE_DELAYED()
 	-- repeat attempt to auto-sell junk to handle server throttling
-	if self.merchantAvailable then
+	if CPAPI.IsMerchantAvailable then
 		self:MERCHANT_SHOW()
 	end
 end

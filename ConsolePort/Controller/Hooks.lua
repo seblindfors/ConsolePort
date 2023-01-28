@@ -116,12 +116,33 @@ function Hooks:GetSpecialActionPrompt(text)
 	);
 end
 
+function Hooks:GetRightActionPrompt(text)
+	local device = db('Gamepad/Active')
+	return device and device:GetTooltipButtonPrompt(
+		db('Settings/UICursorRightClick'),
+		L(text), 64
+	);
+end
+
 function Hooks:SetPendingItemMenu(tooltip, itemLocation)
 	self.itemLocation = itemLocation;
 	local prompt = self:GetSpecialActionPrompt(OPTIONS)
 	if prompt then
 		tooltip:AddLine(prompt)
 		tooltip:Show()
+	end
+end
+
+function Hooks:SetSellItemPrompt(tooltip, itemLocation)
+	local bagID, slotID = itemLocation:GetBagAndSlot()
+	if bagID and slotID then
+		if ( CPAPI.GetContainerItemInfo(bagID, slotID).hasNoValue == false ) then
+			local prompt = self:GetRightActionPrompt(L'Sell')
+			if prompt then
+				tooltip:AddLine(prompt)
+				tooltip:Show()
+			end
+		end
 	end
 end
 
@@ -204,6 +225,9 @@ do -- Tooltip hooking
 		if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
 			local itemLocation = Hooks:GetItemLocationFromNode(owner)
 			if itemLocation then
+				if CPAPI.IsMerchantAvailable then
+					Hooks:SetSellItemPrompt(self, itemLocation)
+				end
 				return Hooks:SetPendingItemMenu(self, itemLocation)
 			end
 
