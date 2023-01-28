@@ -256,7 +256,7 @@ end
 function ItemMenu:Sell()
 	-- confirm to ensure item isn't used
 	if self:IsSellableItem() then
-		UseContainerItem(self:GetBagAndSlot())
+		CPAPI.UseContainerItem(self:GetBagAndSlot())
 	end
 	self:Hide()
 end
