@@ -84,7 +84,7 @@ do  local IsWidget, GetID, GetParent, GetScript =
 		C_Widget.IsFrameWidget, UIParent.GetID, UIParent.GetParent, UIParent.GetScript;
 
 	local TryIdentifyContainerSlot = CPAPI.IsRetailVersion and function(node)
-		return node.GetSlotAndBagID;
+		return node.GetSlotAndBagID == ContainerFrameItemButtonMixin.GetSlotAndBagID;
 	end or function(node)
 		return node.UpdateTooltip == ContainerFrameItemButton_OnEnter;
 	end
