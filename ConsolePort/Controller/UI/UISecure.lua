@@ -147,43 +147,18 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 		end
 	]];
 	-----------------------------------------------------------
-	PADDUPOPPOSITE    = [[ local currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY = ... return nodeCenterX == currentNodeCenterX and nodeCenterY < currentNodeCenterY ]];
-	PADDDOWNOPPOSITE  = [[ local currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY = ... return nodeCenterX == currentNodeCenterX and nodeCenterY > currentNodeCenterY ]];
-	PADDLEFTOPPOSITE  = [[ local currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY = ... return nodeCenterY == currentNodeCenterY and nodeCenterX > currentNodeCenterX ]];
-	PADDRIGHTOPPOSITE = [[ local currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY = ... return nodeCenterY == currentNodeCenterY and nodeCenterX < currentNodeCenterX ]];
-	-----------------------------------------------------------
-	GetOppositeNode = [[
-		local key = ...
-		local keyOPPOSITE = key .. "OPPOSITE"
-
-		local currentNodeCenterX, currentNodeCenterY = self::GetCenter(curnode:GetRect())
-		local nextNodeDistanceX, nextNodeDistanceY = 0, 0
-		for node in pairs(NODES) do
-			if node:IsVisible() then
-				local nodeCenterX, nodeCenterY = self::GetCenter(node:GetRect())
-				local absDistanceX, absDistanceY, distance = self::AbsXY(currentNodeCenterX, nodeCenterX, currentNodeCenterY, nodeCenterY)
-
-				if ( distance > nextNodeDistanceX + nextNodeDistanceY ) then
-					if self:RunAttribute(keyOPPOSITE, currentNodeCenterX, currentNodeCenterY, nodeCenterX, nodeCenterY, absDistanceX, absDistanceY) then
-						curnode, nextNodeDistanceX, nextNodeDistanceY = node, absDistanceX, absDistanceY;
-					end
-				end
-			end
-		end
-	]];
-	-----------------------------------------------------------
-	PADDUP    = [[ local tX, tY, nX, nY, dX, dY = ... return dY > dX and nY > tY ]];
-	PADDDOWN  = [[ local tX, tY, nX, nY, dX, dY = ... return dY > dX and nY < tY ]];
-	PADDLEFT  = [[ local tX, tY, nX, nY, dX, dY = ... return dY < dX and nX < tX ]];
-	PADDRIGHT = [[ local tX, tY, nX, nY, dX, dY = ... return dY < dX and nX > tX ]];
+	PADDUP    = [[ local _, tY, _, nY, dX, dY = ... return dY > dX and nY > tY ]];
+	PADDDOWN  = [[ local _, tY, _, nY, dX, dY = ... return dY > dX and nY < tY ]];
+	PADDLEFT  = [[ local tX, _, nX, _, dX, dY = ... return dY < dX and nX < tX ]];
+	PADDRIGHT = [[ local tX, _, nX, _, dX, dY = ... return dY < dX and nX > tX ]];
 	-----------------------------------------------------------
 	SetNodeByKey = [[
 		local key = ...
 		if curnode and (key ~= 0) then
-			local rL, rB, rW, rH = curnode:GetRect()
 			local tX, tY = self::GetCenter(curnode:GetRect())
 			local cX, cY = math.huge, math.huge
-			local edgeOfFrames = true
+			local currentNodeChanged = false
+
 			for node in pairs(NODES) do
 				if node:IsVisible() then
 					local nX, nY = self::GetCenter(node:GetRect())
@@ -192,13 +167,37 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 					if ( dist < cX + cY ) then
 						if self:RunAttribute(key, tX, tY, nX, nY, dX, dY) then
 							curnode, cX, cY = node, dX, dY;
-							edgeOfFrames = false
+							currentNodeChanged = true
 						end
 					end
 				end
 			end
-			if edgeOfFrames then
-				self::GetOppositeNode(key)
+			if not currentNodeChanged then
+				self::SetWrapAroundNode(key, tX, tY)
+			end
+		end
+	]];
+	-----------------------------------------------------------
+	PADDUP_WRAP    = [[ local cX, cY, nX, nY = ... return nX == cX and nY < cY ]];
+	PADDDOWN_WRAP  = [[ local cX, cY, nX, nY = ... return nX == cX and nY > cY ]];
+	PADDLEFT_WRAP  = [[ local cX, cY, nX, nY = ... return nY == cY and nX > cX ]];
+	PADDRIGHT_WRAP = [[ local cX, cY, nX, nY = ... return nY == cY and nX < cX ]];
+	-----------------------------------------------------------
+	SetWrapAroundNode = [[
+		local key, tX, tY = ...
+		local keyWrap = ('%s_WRAP'):format(key)
+
+		local curdist = 0
+		for node in pairs(NODES) do
+			if node:IsVisible() then
+				local nX, nY = self::GetCenter(node:GetRect())
+				local _, _, dist = self::AbsXY(tX, nX, tY, nY)
+
+				if ( dist > curdist ) then
+					if self:RunAttribute(keyWrap, tX, tY, nX, nY) then
+						curnode, curdist = node, dist;
+					end
+				end
 			end
 		end
 	]];
