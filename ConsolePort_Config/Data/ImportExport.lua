@@ -253,31 +253,9 @@ local Aggregators = {
 		end
 		return actions;
 	end;
-	ConsolePort_Talents = function()
-		if CPAPI.IsClassicVersion then return end;
-		local talents = {};
-		for tier = 1, MAX_TALENT_TIERS do
-			local available, column = GetTalentTierInfo(tier, 1)
-			if available and column and column > 0 then
-				local id, name = GetTalentInfo(tier, column, 1)
-				talents[name] = id;
-			end
-		end
-		return talents;
-	end;
 }
 
 local Evaluators = {
-	{'ConsolePort_Talents', function(talents)
-		if CPAPI.IsClassicVersion then
-			return L'Cannot import talents in Classic.';
-		end
-		for name, id in pairs(talents) do
-			if not LearnTalent(id) then
-				return L('Failed to activate talent %s.', name)
-			end
-		end
-	end};
 	{'ConsolePortSettings', function(settings)
 		for varID, value in pairs(settings) do
 			if ( db(varID) ~= value ) then
@@ -515,8 +493,14 @@ function ExportButton:OnClick()
 	local alias = AliasMapExport;
 	local data  = GenerateExportData()
 	local callback = CreateAsyncCallback(function()
-		self.output = env.Serialize(dataBin.Browser:Compile())
-		self.popup.editBox:SetText(self.output)
+		local data = dataBin.Browser:Compile()
+		if next(data) then
+			self.output = env.Serialize(data)
+			self.popup.editBox:SetText(self.output)
+		else
+			self.output = nil;
+			self.popup.editBox:SetText('')
+		end
 	end)
 
 	self.popup = CPAPI.Popup('ConsolePort_Export_Data', {

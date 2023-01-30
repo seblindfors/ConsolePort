@@ -38,7 +38,7 @@
 --
 ---------------------------------------------------------------
 
-local Tabular = LibStub:NewLibrary('Tabular', 1)
+local Tabular = LibStub:NewLibrary('Tabular', 2)
 if not Tabular then return end
 
 ---------------------------------------------------------------
@@ -232,12 +232,13 @@ local Check = CreateObject(function(parent)
 end)
 
 function Check:OnLoad()
-	local font, _, flags = self.text:GetFont()
-	self.text:SetFont(font, 12, flags)
-	self.text:SetPoint('LEFT', self, 'RIGHT', 0, 0)
-	self.text:SetPoint('RIGHT', self:GetParent(), 'CENTER', 0, 0)
-	self.text:SetJustifyH('LEFT')
-	self.text:SetMaxLines(2)
+	self.Text = self.Text or self.text;
+	local font, _, flags = self.Text:GetFont()
+	self.Text:SetFont(font, 12, flags)
+	self.Text:SetPoint('LEFT', self, 'RIGHT', 0, 0)
+	self.Text:SetPoint('RIGHT', self:GetParent(), 'CENTER', 0, 0)
+	self.Text:SetJustifyH('LEFT')
+	self.Text:SetMaxLines(2)
 	self:SetSize(24, 24)
 	self:SetPoint('TOPLEFT', 2, -4)
 end
@@ -333,8 +334,8 @@ function DataRow:OnLoad()
 	self.Expander = Expander(self)
 
 	self:SetHeight(ROW_HEIGHT)
-	self:SetFontString(self.Check.text)
-	self.Label = self.Check.text;
+	self:SetFontString(self.Check.Text)
+	self.Label = self.Check.Text;
 	self.Children = {};
 end
 
