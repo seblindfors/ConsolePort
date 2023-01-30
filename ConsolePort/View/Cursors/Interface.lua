@@ -676,7 +676,12 @@ function Cursor:SetTexture(texture)
 	local evaluator = self.Textures[object]
 	if ( evaluator ~= self.textureEvaluator ) then
 		if self.useAtlasIcons then
-			self.Display.Button:SetAtlas(evaluator())
+			local atlas = evaluator()
+			if atlas then
+				self.Display.Button:SetAtlas(atlas)
+			else
+				self.Display.Button:SetTexture(nil)
+			end
 		else
 			self.Display.Button:SetTexture(evaluator())
 		end
