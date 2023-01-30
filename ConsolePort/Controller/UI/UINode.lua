@@ -362,9 +362,7 @@ local IsRetailVersion = CPAPI.IsRetailVersion;
 function GetCenter(node)
 	local x, y, w, h = node:GetRect()
 	if not x then return end
-	local l, r, t, b;
-	if IsRetailVersion then l, r, b, t = div2(node:GetHitRectInsets()) -- handle hit rect bug on retail
-	else l, r, t, b = div2(node:GetHitRectInsets()) end
+	local l, r, t, b = div2(node:GetHitRectInsets())
 	return (x+l) + div2(w-r), (y+b) + div2(h-t)
 end
 
