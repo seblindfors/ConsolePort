@@ -302,7 +302,7 @@ local Range = CreateWidget('Range', Number, {
 function Range:OnValueChanged(value, valueExists)
 	value = tonumber(value)
 	local step = self.controller:GetStep()
-	if valueExists then
+	if ( valueExists ~= false ) then
 		self.Input:SetValue(value)
 		self.Input.Text:SetText(Round(value / step) * step)
 	end
