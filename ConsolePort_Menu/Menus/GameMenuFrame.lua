@@ -65,7 +65,8 @@ do	-- Initiate frame
 					_Image = CPAPI.IsRetailVersion and 'INV_Misc_Bag_29' or 'INV_Misc_Bag_08';
 					_Events = {'BAG_UPDATE_DELAYED'};
 					_Attributes = hideMenuHook;
-					_OnClick = ToggleAllBags;
+					_RefTo = CPAPI.IsRetailVersion and MainMenuBarBackpackButton;
+					_OnClick = IsClassicGameVersion and ToggleAllBags;
 					_OnEvent = function(self, event, ...)
 						local totalFree, numSlots, freeSlots, bagFamily = 0, 0
 						for i = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
