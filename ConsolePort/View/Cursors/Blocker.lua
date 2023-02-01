@@ -4,6 +4,7 @@
 local _, db = ...;
 local IsGamePadFreelookEnabled = IsGamePadFreelookEnabled;
 local IsGamePadCursorControlEnabled = IsGamePadCursorControlEnabled;
+local IsUsingGamepad, IsUsingMouse = IsUsingGamepad, IsUsingMouse;
 local CVar_CenterY, tonumber = db.Data.Cvar('CursorCenteredYPos'), tonumber;
 local GetScaledCursorPosition, GetScreenWidth, GetScreenHeight =
 	GetScaledCursorPosition, GetScreenWidth, GetScreenHeight;
@@ -19,15 +20,6 @@ function CPCursorBlockerMixin:OnLoad()
 	self.throttledTimer = 0;
 end
 
-function CPCursorBlockerMixin:OnUpdate(elapsed)
-	self.BlockingFrame:SetShown(self:ShouldBlockCursor())
-	self.throttledTimer = self.throttledTimer + elapsed;
-	if self.throttledTimer > .1 then
-		self.isCenterPositioned = self:IsCenterPositioned()
-		self.throttledTimer = 0;
-	end
-end
-
 function CPCursorBlockerMixin:OnHide()
 	self.BlockingFrame:Hide()
 end
@@ -39,8 +31,30 @@ function CPCursorBlockerMixin:IsCenterPositioned()
 	return floor(w / 2) == floor(x) and floor(h * c) == floor(y);
 end
 
-function CPCursorBlockerMixin:ShouldBlockCursor()
-	return IsGamePadFreelookEnabled()
-		and not IsGamePadCursorControlEnabled()
-		and self.isCenterPositioned;
+if IsUsingGamepad and IsUsingMouse then
+	function CPCursorBlockerMixin:ShouldBlockCursor()
+		return not IsUsingMouse()
+			and IsUsingGamepad()
+			and IsGamePadFreelookEnabled()
+			and not IsGamePadCursorControlEnabled()
+	end
+
+	function CPCursorBlockerMixin:OnUpdate()
+		self.BlockingFrame:SetShown(self:ShouldBlockCursor())
+	end
+else
+	function CPCursorBlockerMixin:ShouldBlockCursor()
+		return IsGamePadFreelookEnabled()
+			and not IsGamePadCursorControlEnabled()
+			and self.isCenterPositioned;
+	end
+
+	function CPCursorBlockerMixin:OnUpdate(elapsed)
+		self.BlockingFrame:SetShown(self:ShouldBlockCursor())
+		self.throttledTimer = self.throttledTimer + elapsed;
+		if self.throttledTimer > .1 then
+			self.isCenterPositioned = self:IsCenterPositioned()
+			self.throttledTimer = 0;
+		end
+	end
 end

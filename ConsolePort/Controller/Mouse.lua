@@ -38,9 +38,6 @@ local RCLICK_BINDING = 'TURNORACTION';
 ---------------------------------------------------------------
 -- Helpers: predicate evaluators
 ---------------------------------------------------------------
--- These functions are used to write clear, dynamic statements
--- on combinations of different events. Without these, compound
--- boolean expressions would be hard to understand.
 -- Args: button ID, followed by list of predicates.
 
 local function is(_, pred, ...)
