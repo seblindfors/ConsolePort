@@ -36,41 +36,6 @@ do  local popups, visible, oldNode = {}, {};
 	end
 end
 
--- Add manipulation of bag bar while inventory is open
-do local containers = {};
-	local bagsBar = BagsBar; -- TODO: classic equivalent?
-	if bagsBar then
-		local function OnContainerShow(self)
-			containers[self] = true;
-			db.Stack:AddFrame(bagsBar)
-		end
-
-		local function OnContainerHide(self)
-			containers[self] = false;
-			for container, isShown in pairs(containers) do
-				if isShown then
-					return	
-				end
-			end
-			db.Stack:RemoveFrame(bagsBar)
-		end
-
-		if ContainerFrameCombinedBags then
-			containers[ContainerFrameCombinedBags] = ContainerFrameCombinedBags:IsShown()
-		end
-		for i=1, NUM_CONTAINER_FRAMES do
-			local frame = _G['ContainerFrame'..i];
-			if frame then
-				containers[frame] = frame:IsShown();
-			end
-		end
-		for container in pairs(containers) do
-			container:HookScript('OnShow', OnContainerShow)
-			container:HookScript('OnHide', OnContainerHide)
-		end
-	end
-end
-
 -- Remove the need to type 'DELETE' when removing rare or better quality items
 do  local DELETE_ITEM = CopyTable(StaticPopupDialogs.DELETE_ITEM);
 	DELETE_ITEM.timeout = 5; -- also add a timeout
