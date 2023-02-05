@@ -2,9 +2,9 @@
 -- Mouse cursor blocker to eliminate hidden motion scripts
 ---------------------------------------------------------------
 local _, db = ...;
+local IsUsingMouse = IsUsingMouse;
 local IsGamePadFreelookEnabled = IsGamePadFreelookEnabled;
 local IsGamePadCursorControlEnabled = IsGamePadCursorControlEnabled;
-local IsUsingGamepad, IsUsingMouse = IsUsingGamepad, IsUsingMouse;
 local CVar_CenterY, tonumber = db.Data.Cvar('CursorCenteredYPos'), tonumber;
 local GetScaledCursorPosition, GetScreenWidth, GetScreenHeight =
 	GetScaledCursorPosition, GetScreenWidth, GetScreenHeight;
@@ -31,10 +31,9 @@ function CPCursorBlockerMixin:IsCenterPositioned()
 	return floor(w / 2) == floor(x) and floor(h * c) == floor(y);
 end
 
-if IsUsingGamepad and IsUsingMouse then
+if IsUsingMouse then
 	function CPCursorBlockerMixin:ShouldBlockCursor()
 		return not IsUsingMouse()
-			and IsUsingGamepad()
 			and IsGamePadFreelookEnabled()
 			and not IsGamePadCursorControlEnabled()
 	end
