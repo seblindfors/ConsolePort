@@ -18,7 +18,6 @@ local SPELL_MAP_BAR_NAMES = {
 	[10] = L'Stance 4';
 }
 ---------------------------------------------------------------
-local SpellMapButtonPool;
 
 function SpellMenu:SetSpell(spellID)
 	self.ActionButtons:ReleaseAll()

@@ -1,8 +1,15 @@
-local _, env = ...; env.LootButtonMixin = CreateFromMixins(CPActionButtonMixin);
-local FocusTooltip = CreateFrame('GameTooltip', 'ConsolePortLootButtonTooltip', ConsolePortLootFrame, 'GameTooltipTemplate')
+local db, _, env = ConsolePort:DB(), ...; env.LootButtonMixin = CreateFromMixins(CPActionButtonMixin);
 ---------------------------------------------------------------
 local LOOT_SLOT_ITEM = LOOT_SLOT_ITEM or Enum.LootSlotType and Enum.LootSlotType.Item;
 local LOOT_SLOT_CURRENCY = LOOT_SLOT_CURRENCY or Enum.LootSlotType and Enum.LootSlotType.Currency;
+
+local function GetTooltip()
+	if db('useGlobalLootTooltip') then
+		return GameTooltip;
+	end
+	return ConsolePortLootButtonTooltip or
+		CreateFrame('GameTooltip', 'ConsolePortLootButtonTooltip', ConsolePortLootFrame, 'GameTooltipTemplate')
+end
 
 ---------------------------------------------------------------
 -- Loot button scripts
@@ -36,22 +43,24 @@ function LootButton:OnEnter()
 		sibling:OnLeave()
 	end
 
+	local tooltip = GetTooltip()
 	if ( slotType == LOOT_SLOT_ITEM ) then
-		FocusTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
-		FocusTooltip:SetLootItem(slot)
+		tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
+		tooltip:SetLootItem(slot)
 		self:SetScript('OnUpdate', self.OnUpdate)
 	elseif ( slotType == LOOT_SLOT_CURRENCY ) then
-		FocusTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
-		FocusTooltip:SetLootCurrency(slot)
+		tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
+		tooltip:SetLootCurrency(slot)
 		self:SetScript('OnUpdate', self.OnUpdate)
 	elseif ( slotType == LOOT_SLOT_MONEY ) then
 		self:SetScript('OnUpdate', nil)
 		self:SetClampedSize(330, 50)
 	end
 
-	if FocusTooltip:IsOwned(self) then
-		FocusTooltip.NineSlice:Hide()
+	if tooltip:IsOwned(self) then
+		tooltip.NineSlice:Hide()
 		self.Text:SetAlpha(0)
+		self.hasTooltipFocus = true;
 	end
 
 	self:LockHighlight()
@@ -59,8 +68,10 @@ function LootButton:OnEnter()
 end
 
 function LootButton:OnLeave()
-	if FocusTooltip:IsOwned(self) then
-		FocusTooltip:Hide()
+	local tooltip = GetTooltip()
+	if tooltip:IsOwned(self) then
+		tooltip.NineSlice:Show()
+		tooltip:Hide()
 		self:SetScript('OnUpdate', nil)
 	end
 	self.hasTooltipFocus = false;
@@ -71,10 +82,14 @@ function LootButton:OnLeave()
 end
 
 function LootButton:OnUpdate()
+	local tooltip = GetTooltip()
 	self:SetClampedSize(
-		(FocusTooltip:GetWidth() or 330) + 50,
-		(FocusTooltip:GetHeight() or 50)
+		(tooltip:GetWidth() or 330) + 50,
+		(tooltip:GetHeight() or 50)
 	);
+	if self.hasTooltipFocus and not tooltip:IsOwned(self) then
+		self:OnLeave()
+	end
 end
 
 function LootButton:SetClampedSize(width, height)
@@ -113,3 +128,16 @@ function LootButton:Update()
 	self:SetText(name)
 	self:SetQuestItem(isQuestItem)
 end
+
+---------------------------------------------------------------
+-- Add to config
+---------------------------------------------------------------
+ConsolePort:AddVariables({
+	useGlobalLootTooltip = {db.Data.Bool(false);
+		head = ACCESSIBILITY_LABEL;
+		sort = 3;
+		name = 'Use Global Loot Tooltip';
+		desc = 'Use global game tooltip for loot information, allowing other addons to add information to lootable items.';
+		note = 'Requires ConsolePort World.';
+	};
+})
