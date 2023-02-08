@@ -398,6 +398,7 @@ local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin, {
 function LoadoutButton:OnLoad()
 	self.ignoreUtilityRing = true;
 	self:SetWidth(self:GetParent():GetWidth() - 16)
+	self.Label:SetWidth(self:GetWidth() - 100)
 	self:SetScript('OnShow', self.OnShow)
 	self:HookScript('OnEnter', self.OnEnter)
 	self:HookScript('OnLeave', self.OnLeave)
@@ -464,7 +465,7 @@ function LoadoutButton:SetData(data, set, setID)
 	local asyncCallback = self.AsyncMap[kind];
 	if asyncCallback then
 		self:CustomImage(CPAPI.GetAsset('Textures\\Button\\Loading'))
-		self:SetText(LFG_LIST_LOADING)
+		self:SetText(('%s |c50757575(%s, %s)|r'):format(LFG_LIST_LOADING, kind, action))
 		return asyncCallback(self, action)
 	end
 	self:UpdateProps()
