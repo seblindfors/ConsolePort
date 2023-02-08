@@ -1449,7 +1449,7 @@ end
 
 local function setSpellTooltip(input)
 	local spellId = getSpellId(input)
-	if spellId and IsSpellKnownOrOverridesKnown(spellId) then
+	if spellId and ( IsSpellKnownOrOverridesKnown(spellId) or IsPlayerSpell(spellId) ) then
 		return GameTooltip:SetSpellByID(spellId)
 	end
 	return GameTooltip:SetText(input)

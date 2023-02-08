@@ -608,6 +608,10 @@ Utility.SecureHandlerMap = {
 	spellID = function(spellID)
 		return {type = 'spell', spell = spellID}
 	end;
+	companion = function(companionID, companionType)
+		local _, spellName = GetCompanionInfo(companionType, companionID)
+		return {type = 'spell', spell = spellName, link = GetSpellLink(spellName)}
+	end;
 }
 
 function Utility:AddActionFromInfo(setID, idx, infoType, ...)

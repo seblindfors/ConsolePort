@@ -375,17 +375,29 @@ function BindingInfo:RefreshCollections()
 		end
 
 		if next(mounts) then
-			local tooltipFunc = function(self, id)
-				local spellID = (select(2, C_MountJournal.GetDisplayedMountInfo(id)))
-				GameTooltip.SetSpellByID(self, spellID)
-			end
-
 			self:AddCollection(mounts, {
 				name    = MOUNTS;
 				match   = C_ActionBar.FindSpellActionButtons;
 				pickup  = C_MountJournal.Pickup;
-				tooltip = tooltipFunc;
+				tooltip = function(self, id) GameTooltip.SetSpellByID(self, (select(2, C_MountJournal.GetDisplayedMountInfo(id)))) end;
 				texture = function(id) return (select(3, C_MountJournal.GetDisplayedMountInfo(id))) end;
+			})
+		end
+	elseif CPAPI.IsClassicVersion then
+		local mounts = {};
+		for i=1, GetNumCompanions('MOUNT') do
+			mounts[#mounts+1] = i;
+		end
+		if next(mounts) then
+			local getMountSpellID = function(id)
+				return (select(3, GetCompanionInfo('MOUNT', id)))
+			end
+
+			self:AddCollection(mounts, {
+				name    = MOUNTS;
+				pickup  = function(id) return PickupSpell(getMountSpellID(id)) end;
+				tooltip = function(self, id) GameTooltip.SetSpellByID(self, getMountSpellID(id)) end;
+				texture = function(id) return (select(4, GetCompanionInfo('MOUNT', id))) end;
 			})
 		end
 	end

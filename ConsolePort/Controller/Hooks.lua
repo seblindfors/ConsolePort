@@ -262,7 +262,7 @@ do -- Tooltip hooking
 			
 			local name, spellID = self:GetSpell()
 			if spellID and not IsPassiveSpell(spellID) then
-				local isKnown = IsSpellKnownOrOverridesKnown(spellID)
+				local isKnown = IsSpellKnownOrOverridesKnown(spellID) or IsPlayerSpell(spellID)
 				if not isKnown then
 					local mountID = CPAPI.GetMountFromSpell(spellID)
 					if mountID then
