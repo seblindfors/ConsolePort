@@ -183,10 +183,12 @@ SLASH_FUNCTIONS = {
 		local activeDevices = {};
 		for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
 			local device = C_GamePad.GetDeviceRawState(i)
+			local devicePowerLevel = C_GamePad.GetPowerLevel(deviceID)
 			if device then
 				tinsert(activeDevices, {
 					id    = i;
 					state = device;
+					powerLevel = devicePowerLevel;
 				})
 			end
 		end
@@ -198,12 +200,14 @@ SLASH_FUNCTIONS = {
 				local config = C_GamePad.GetConfig({
 					vendorID  = device.state.vendorID;
 					productID = device.state.productID;
+					powerLevel = device.powerLevel;
 				});
 
 				CPAPI.Log('%d: |cFFFFFFFF%s|r', device.id, device.state.name)
-				CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s',
+				CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s, Power Level: %s',
 					vendorID, productID,
-					config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r'
+					config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r',
+					device.powerLevel
 				);
 			end
 		else

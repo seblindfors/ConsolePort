@@ -3,6 +3,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 	'GAME_PAD_CONFIGS_CHANGED';
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
+	'GAME_PAD_POWER_CHANGED';
 	'UPDATE_BINDINGS';
 }, {
 	Modsims = {'ALT', 'CTRL', 'SHIFT'};
@@ -67,10 +68,12 @@ function GamepadAPI:SetActiveDevice(name)
 		data.Active = nil;
 	end
 	local activeDevice = self.Devices[name]
+	local powerLevel = self:GetPowerLevel()
 	self:SetActiveIconsFromDevice(activeDevice)
 	activeDevice:ApplyHotkeyStrings()
 	db(('Gamepad/Devices/%s/Active'):format(name), true)
 	db('Gamepad/Active', activeDevice)
+	db('Gamepad/Active/Powerlevel', powerLevel)
 	db:TriggerEvent('OnIconsChanged', db('useAtlasIcons'))
 end
 
@@ -107,6 +110,11 @@ function GamepadAPI:GAME_PAD_DISCONNECTED()
 	CPAPI.Log('Gamepad disconnected.')
 end
 
+function GamepadAPI:GAME_PAD_POWER_CHANGED(...)
+	db('Gamepad/Active/Powerlevel', ...)
+	CPAPI.Log('Gamepad power level changed to '.. ...)
+end
+
 function GamepadAPI:UPDATE_BINDINGS()
 	self.updateBindingDispatching = true;
 	if self.IsMapped then
@@ -129,6 +137,8 @@ function GamepadAPI:OnDataLoaded()
 		if  ( not self.Devices[id] or device.Version and
 			( self.Devices[id].Version < device.Version )) then
 			self.Devices[id] = device;
+			self.Devices[id].powerLevelText = self:TranslatePowerLevel(self:GetPowerLevel())
+			self.Devices[id].powerLevel = self:GetPowerLevel()
 		end
 	end
 	for id, device in pairs(self.Devices) do
@@ -189,6 +199,10 @@ end, GamepadAPI)
 ---------------------------------------------------------------
 function GamepadAPI:GetState()
 	return C_GamePad.GetDeviceMappedState(C_GamePad.GetActiveDeviceID())
+end
+
+function GamepadAPI:GetPowerLevel()
+	return C_GamePad.GetPowerLevel(C_GamePad.GetActiveDeviceID())
 end
 
 function GamepadAPI:ReindexMappedState(force)

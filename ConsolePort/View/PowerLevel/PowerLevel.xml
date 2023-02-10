@@ -1,0 +1,104 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+	<Frame name="PowerLevelMeter" parent="MicroButtonAndBagsBar" hidden="true">
+		<Size x="150" y="24" />
+		<Anchors>
+			<Anchor relativePoint="BOTTOMLEFT" point="BOTTOMRIGHT" />
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture atlas="bonusobjectives-bar-frame" parentKey="Decor">
+					<Size x="120" y="25" />
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString text="" name="$parent_LevelText" inherits="GameFontWhiteTiny">
+					<Size x="130" y="12" />
+					<Anchors>
+						<Anchor point="TOP" relativeKey="$parent.Decor" relativePoint="CENTER" x="-8" y="-5" />
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture name="$parent_Icon" parentKey="Icon">
+					<Size x="28" y="28" />
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Decor" x="-28" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="BACKGROUND">
+				<Texture atlas="ui-hud-experiencebar-fill-honor" name="$parent_Critical">
+					<Size x="6" y="9" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Decor" x="3" y="-8" />
+					</Anchors>
+					<Animations>
+						<AnimationGroup parentKey="CriticalPulse" setToFinalAlpha="true" looping="REPEAT">
+							<Alpha parentKey="PulseIn" childKey="Critical" duration="0.25" order="1"
+								fromAlpha="0" toAlpha="1" />
+							<Alpha parentKey="PulseOut" childKey="Critical" startDelay="0.25"
+								duration="0.25" order="2" fromAlpha="1" toAlpha="0" />
+							<Scripts>
+								<OnLoad>
+									self:Play();
+								</OnLoad>
+							</Scripts>
+						</AnimationGroup>
+					</Animations>
+				</Texture>
+				<Texture atlas="ui-hud-experiencebar-fill-honor" name="$parent_Low">
+					<Size x="31" y="9" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Decor" x="3" y="-8" />
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="BACKGROUND">
+				<Texture atlas="ui-hud-experiencebar-fill-reputation-faction-orange" name="$parent_Medium">
+					<Size x="63" y="9" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Decor" x="3" y="-8" />
+					</Anchors>
+				</Texture>
+				<Texture atlas="ui-hud-experiencebar-fill-reputation-faction-green" name="$parent_High">
+					<Size x="95" y="9" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Decor" x="3" y="-8" />
+					</Anchors>
+				</Texture>
+				<Texture atlas="ui-hud-experiencebar-fill-rested" name="$parent_Charging">
+					<Size x="95" y="9" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Decor" x="3" y="-8" />
+					</Anchors>
+					<Animations>
+						<AnimationGroup parentKey="WiredPulse" setToFinalAlpha="true" looping="REPEAT">
+							<Alpha parentKey="PulseIn" childKey="Wired" startDelay="0.75" duration="0.25" order="2" fromAlpha="0" toAlpha="1" />
+							<Alpha parentKey="PulseOut" childKey="Wired" duration="0.25" order="1" fromAlpha="1" toAlpha="0" />
+							<Scripts>
+								<OnLoad>
+									self:Play();
+								</OnLoad>
+							</Scripts>
+						</AnimationGroup>
+					</Animations>
+				</Texture>
+				<Texture atlas="ui-hud-experiencebar-background" name="$parent_Unknown">
+					<Size x="95" y="9" />
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Decor" x="3" y="-8" />
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+	<!-- <Frame name="PowerLevelAlert" parent="MicroButtonAndBagsBar" hidden="true"
+		inherits="UIWidgetTemplateTextureAndText">
+		atlas = splash-bigbutton
+	</Frame> -->
+	<Script file="PowerLevel.lua" />
+</Ui>

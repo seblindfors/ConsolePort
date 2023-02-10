@@ -379,6 +379,28 @@ db:Register('Variables', {
 		note = 'Action bar is scaled separately.';
 		advd = true;
 	};
+	showPowerLevel = {
+		Bool(true);
+		head = ACCESSIBILITY_LABEL;
+		sort = 6;
+		name = 'Power level Guage';
+		desc = 'Display power level for the current active gamepad.';
+		note = 'This will not work with Xbox controllers connected via normal bluetooth.';
+   };
+	showGamepadIcon = {
+		Bool(true);
+		head = ACCESSIBILITY_LABEL;
+		sort = 7;
+		name = 'GamePad Icon';
+		desc = 'Display icon next to the power level for the current active gamepad.';
+   };
+	showPowerLevelText = {
+		Bool(true);
+		head = ACCESSIBILITY_LABEL;
+		sort = 8;
+		name = 'Power Level status text';
+		desc = 'Display power level status text for the current active gamepad.';
+   };
 	--------------------------------------------------------------------------------------------------------
 	-- Bindings:
 	--------------------------------------------------------------------------------------------------------

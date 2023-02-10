@@ -71,7 +71,7 @@ function Button:OnEnter()
 		tooltip:SetText(override.name)
 		tooltip:AddLine(override.desc, 1, 1, 1, 1)
 		if override.note then
-			tooltip:AddLine('\n'..NOTE_COLON)
+			tooltip:AddLine('\n'..NOTE_COLON..' ')
 			tooltip:AddLine(override.note, 1, 1, 1, 1)
 		end
 		if isClickOverride then
