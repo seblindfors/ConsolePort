@@ -68,12 +68,10 @@ function GamepadAPI:SetActiveDevice(name)
 		data.Active = nil;
 	end
 	local activeDevice = self.Devices[name]
-	local powerLevel = self:GetPowerLevel()
 	self:SetActiveIconsFromDevice(activeDevice)
 	activeDevice:ApplyHotkeyStrings()
 	db(('Gamepad/Devices/%s/Active'):format(name), true)
 	db('Gamepad/Active', activeDevice)
-	db('Gamepad/Active/Powerlevel', powerLevel)
 	db:TriggerEvent('OnIconsChanged', db('useAtlasIcons'))
 end
 
@@ -104,15 +102,17 @@ end
 
 function GamepadAPI:GAME_PAD_CONNECTED()
 	CPAPI.Log('Gamepad connected.')
+	db:TriggerEvent('OnGamePadConnect')
 end
 
 function GamepadAPI:GAME_PAD_DISCONNECTED()
 	CPAPI.Log('Gamepad disconnected.')
+	db:TriggerEvent('OnGamePadDisconnect')
 end
 
 function GamepadAPI:GAME_PAD_POWER_CHANGED(...)
-	db('Gamepad/Active/Powerlevel', ...)
 	CPAPI.Log('Gamepad power level changed to '.. ...)
+	db:TriggerEvent('OnGamePadPowerChange')
 end
 
 function GamepadAPI:UPDATE_BINDINGS()
@@ -137,8 +137,6 @@ function GamepadAPI:OnDataLoaded()
 		if  ( not self.Devices[id] or device.Version and
 			( self.Devices[id].Version < device.Version )) then
 			self.Devices[id] = device;
-			self.Devices[id].powerLevelText = self:TranslatePowerLevel(self:GetPowerLevel())
-			self.Devices[id].powerLevel = self:GetPowerLevel()
 		end
 	end
 	for id, device in pairs(self.Devices) do
