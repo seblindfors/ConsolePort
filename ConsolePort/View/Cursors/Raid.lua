@@ -46,6 +46,7 @@ Cursor:Execute([[
 	ACTIONS = newtable();
 	HELPFUL = newtable();
 	HARMFUL = newtable();
+	BUTTONS = newtable();
 	---------------------------------------
 	Focus  = self:GetFrameRef('SetFocus')
 	Target = self:GetFrameRef('SetTarget')
@@ -76,6 +77,13 @@ Cursor:CreateEnvironment({
 	]];
 	FilterOld = [[
 		return UnitExists(oldnode:GetAttribute('unit'));
+	]];
+	SetBaseBindings = [[
+		local modifier = ...;
+		modifier = modifier and modifier or '';
+		for buttonID, keyID in pairs(BUTTONS) do
+			self:SetBindingClick(self:GetAttribute('priorityoverride'), modifier..keyID, self, buttonID)
+		end
 	]];
 	RefreshActions = [[
 		HELPFUL = wipe(HELPFUL)
@@ -215,6 +223,13 @@ Cursor.Modes = {
 	Target   = 3;
 }
 
+Cursor.Directions = {
+	PADDUP    = 'raidCursorUp';
+	PADDDOWN  = 'raidCursorDown';
+	PADDLEFT  = 'raidCursorLeft';
+	PADDRIGHT = 'raidCursorRight';
+};
+
 function Cursor:OnDataLoaded()
 	local modifier = db('raidCursorModifier')
 	modifier = modifier:match('<none>') and '' or modifier..'-';
@@ -227,6 +242,11 @@ function Cursor:OnDataLoaded()
 
 	self:SetAttribute('IsValidNode', 'return ' .. (db('raidCursorFilter') or 'true') .. ';') 
 	self:SetScale(db('raidCursorScale'))
+
+	self:Execute('wipe(BUTTONS)')
+	for direction, varID in pairs(self.Directions) do
+		self:Execute(('BUTTONS[%q] = %q'):format(direction, db(varID)))
+	end 
 
 	if CPAPI.IsRetailVersion then
 		self.Arrow:SetAtlas('Navigation-Tracked-Arrow', true)
@@ -248,7 +268,11 @@ db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'Settings/raidCursorAutoFocus',
 	'Settings/raidCursorModifier',
 	'Settings/raidCursorScale',
-	'Settings/raidCursorFilter'
+	'Settings/raidCursorFilter',
+	'Settings/raidCursorUp',
+	'Settings/raidCursorDown',
+	'Settings/raidCursorLeft',
+	'Settings/raidCursorRight'
 );
 db:RegisterSafeCallback('OnUpdateOverrides', Cursor.OnUpdateOverrides, Cursor)
 
