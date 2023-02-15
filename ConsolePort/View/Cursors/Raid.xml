@@ -9,14 +9,14 @@
 			<Attribute name="_childupdate-actionpage" type="string" value="self:Run(ActionPageChanged, newstate)"/>
 		</Attributes>
 		<Frames>
-			<Button name="$parentFocus" parentKey="SetFocus" inherits="SecureActionButtonTemplate">
+			<Button name="$parentFocus" parentKey="SetFocus" inherits="SecureActionButtonTemplate" registerForClicks="AnyUp">
 				<Attributes>
-					<Attribute name="type" type="string" value="focus"/>
+					<Attribute name="pressAndHoldAction" type="boolean" value="true"/>
 				</Attributes>
 			</Button>
-			<Button name="$parentTarget" parentKey="SetTarget" inherits="SecureActionButtonTemplate">
+			<Button name="$parentTarget" parentKey="SetTarget" inherits="SecureActionButtonTemplate" registerForClicks="AnyUp">
 				<Attributes>
-					<Attribute name="type" type="string" value="target"/>
+					<Attribute name="pressAndHoldAction" type="boolean" value="true"/>
 				</Attributes>
 			</Button>
 			<Button name="$parentToggle" parentKey="Toggle" inherits="SecureActionButtonTemplate" registerForClicks="LeftButtonDown" setAllPoints="true" alpha="0"/>

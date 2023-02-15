@@ -12,6 +12,8 @@ local Cursor = db:Register('Raid', db.Pager:RegisterHeader(db.Securenav(ConsoleP
 ---------------------------------------------------------------
 -- Frame refs, init scripts, click handlers
 ---------------------------------------------------------------
+Cursor.SetTarget:SetAttribute(CPAPI.ActionTypeRelease, 'target')
+Cursor.SetFocus:SetAttribute(CPAPI.ActionTypeRelease, 'focus')
 Cursor:SetFrameRef('SetFocus', Cursor.SetFocus)
 Cursor:SetFrameRef('SetTarget', Cursor.SetTarget)
 Cursor:SetFrameRef('Toggle', Cursor.Toggle)
