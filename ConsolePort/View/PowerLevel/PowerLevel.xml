@@ -1,11 +1,11 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
-	<Frame name="CPPowerLevel" parent="UIParent" enableMouse="false">
+	<Frame frameStrata="ARTWORK" name="CPPowerLevel" inherits="CPFrameWithTooltipTemplate" parent="UIParent">
 		<Frames>
-			<Frame frameStrata="ARTWORK" name="PowerLevel_Widget">
+			<Frame name="PowerLevel_Widget" enableMouse="true" movable="true">
 				<Size x="145" y="24" />
 				<Anchors>
-					<Anchor relativeTo="UIParent" relativePoint="BOTTOM" point="CENTER" y="20" x="-5" />
+					<Anchor relativeTo="UIParent" point="CENTER" y="20" x="-5" />
 				</Anchors>
 				<Layers>
 					<Layer level="BACKGROUND">
@@ -47,10 +47,15 @@
 								<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
 							</Anchors>
 							<Animations>
-								<AnimationGroup parentKey="Animation" setToFinalAlpha="true" looping="REPEAT">
-									<Alpha duration="0.25" order="1" fromAlpha="0.30" toAlpha="1" />
-									<Alpha duration="0.25" order="2" fromAlpha="1" toAlpha="0.30"
+								<AnimationGroup parentKey="Anim" setToFinalAlpha="true" looping="REPEAT">
+									<Alpha duration="0.25" order="1" fromAlpha="0" toAlpha="1" />
+									<Alpha duration="0.25" order="2" fromAlpha="1" toAlpha="0"
 										startDelay="0.25" />
+										<Scripts>
+											<OnLoad>
+												self:Play();
+											</OnLoad>
+										</Scripts>
 								</AnimationGroup>
 							</Animations>
 						</Texture>
@@ -80,23 +85,28 @@
 								<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
 							</Anchors>
 							<Animations>
-								<AnimationGroup parentKey="Animation" looping="REPEAT">
-									<Scale fromScaleY="1" toScaleY="1" fromScaleX="0" smoothing="NONE"
-										toScaleX="1" duration="0.25" order="1" startDelay="0.25">
+								<AnimationGroup parentKey="Anim" setToFinalAlpha="false" looping="REPEAT">
+									<Scale fromScaleY="1" toScaleY="1" fromScaleX="0" smoothing="IN"
+										toScaleX="1" duration=".05" order="1" startDelay="0">
 										<Origin point="LEFT" />
 									</Scale>
-									<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="NONE"
-										toScaleX="2" duration="0.25" order="2" startDelay="0.5">
+									<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="IN"
+										toScaleX="2.05" duration=".05" order="2" startDelay="0.20">
 										<Origin point="LEFT" />
 									</Scale>
-									<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="NONE"
-										toScaleX="1.55" duration="0.25" order="3" startDelay="0.75">
+									<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="IN"
+										toScaleX="1.55" duration="0.05" order="3" startDelay="0.20">
 										<Origin point="LEFT" />
 									</Scale>
-									<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="NONE"
-										toScaleX="1" duration="0.25" order="4" startDelay="1.0">
+									<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="IN"
+										toScaleX="1" duration="0.25" order="4" startDelay=".20">
 										<Origin point="LEFT" />
 									</Scale>
+									<Scripts>
+										<OnLoad>
+											self:Play();
+										</OnLoad>
+									</Scripts>
 								</AnimationGroup>
 							</Animations>
 						</Texture>
@@ -108,6 +118,27 @@
 						</Texture>
 					</Layer>
 				</Layers>
+				<Scripts>
+					<OnLoad>
+						self:RegisterForDrag("LeftButton");
+						GameTooltip:SetOwner(self, 'ANCHOR_TOPRIGHT')
+						GameTooltip:AddLine('Hold Shift + Left Click to move.')
+					</OnLoad>
+					<OnDragStart>
+						if IsShiftKeyDown() then
+							self:StartMoving();
+						end
+						</OnDragStart>
+					<OnDragStop>
+						self:StopMovingOrSizing();
+					</OnDragStop>
+					<OnEnter>
+						GameTooltip:Show()
+					</OnEnter>
+					<OnLeave>
+						GameTooltip:Hide()
+					</OnLeave>
+				  </Scripts>
 			</Frame>
 			<!--
 			<Frame name="$parent_Alert" hidden="true">

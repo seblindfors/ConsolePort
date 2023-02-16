@@ -379,27 +379,32 @@ db:Register('Variables', {
 		note = 'Action bar is scaled separately.';
 		advd = true;
 	};
+	--------------------------------------------------------------------------------------------------------
+	-- Bindings:
+	--------------------------------------------------------------------------------------------------------
 	showPowerLevel = {
 		Bool(true);
-		head = ACCESSIBILITY_LABEL;
-		sort = 6;
-		name = 'Power level Guage';
+		head = 'Power Level';
+		sort = 1;
+		name = 'Show gauge';
 		desc = 'Display power level for the current active gamepad.';
-		note = 'This will not work with Xbox controllers connected via normal bluetooth.';
+		note = 'This will not work with Xbox controllers connected via bluetooth. The Xbox Adapter is required.';
    };
 	showGamepadIcon = {
 		Bool(true);
-		head = ACCESSIBILITY_LABEL;
-		sort = 7;
-		name = 'GamePad Icon';
+		head = 'Power Level';
+		sort = 2;
+		name = 'Show type icon';
 		desc = 'Display icon next to the power level for the current active gamepad.';
+		note = 'Types are PlayStation, Xbox, or Generic.';
    };
 	showPowerLevelText = {
 		Bool(true);
-		head = ACCESSIBILITY_LABEL;
-		sort = 8;
-		name = 'Power Level status text';
+		head = 'Power Level';
+		sort = 3;
+		name = 'Show status text';
 		desc = 'Display power level status text for the current active gamepad.';
+		note = 'Critical, Low, Medium, High, Charging, or Unknown.'
    };
 	--------------------------------------------------------------------------------------------------------
 	-- Bindings:
