@@ -404,7 +404,7 @@ db:Register('Variables', {
 		sort = 3;
 		name = 'Show status text';
 		desc = 'Display power level status text for the current active gamepad.';
-		note = 'Critical, Low, Medium, High, Charging, or Unknown.'
+		note = 'Critical, Low, Medium, High, Wired/Charging, or Unknown/Disconnected.'
    };
 	--------------------------------------------------------------------------------------------------------
 	-- Bindings:

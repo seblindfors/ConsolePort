@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
 	<Frame frameStrata="ARTWORK" name="CPPowerLevel" inherits="CPFrameWithTooltipTemplate" parent="UIParent">
 		<Frames>
-			<Frame name="PowerLevel_Widget" enableMouse="true" movable="true">
+			<Frame name="PowerLevel_Widget" enableMouse="true" movable="true" alpha="0">
 				<Size x="145" y="24" />
 				<Anchors>
 					<Anchor relativeTo="UIParent" point="CENTER" y="20" x="-5" />
@@ -110,7 +110,7 @@
 								</AnimationGroup>
 							</Animations>
 						</Texture>
-						<Texture atlas="ui-hud-experiencebar-background" name="$parent_Unknown">
+						<Texture atlas="ui-hud-experiencebar-background" name="$parent_Disconnected">
 							<Size x="93" y="8" />
 							<Anchors>
 								<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
@@ -120,17 +120,17 @@
 				</Layers>
 				<Scripts>
 					<OnLoad>
-						self:RegisterForDrag("LeftButton");
+						self:RegisterForDrag("LeftButton")
 						GameTooltip:SetOwner(self, 'ANCHOR_TOPRIGHT')
 						GameTooltip:AddLine('Hold Shift + Left Click to move.')
 					</OnLoad>
 					<OnDragStart>
 						if IsShiftKeyDown() then
-							self:StartMoving();
+							self:StartMoving()
 						end
 						</OnDragStart>
 					<OnDragStop>
-						self:StopMovingOrSizing();
+						self:StopMovingOrSizing()
 					</OnDragStop>
 					<OnEnter>
 						GameTooltip:Show()
