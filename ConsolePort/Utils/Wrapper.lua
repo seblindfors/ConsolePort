@@ -205,6 +205,7 @@ CPAPI.GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots or
 CPAPI.GetFriendshipReputation = GetFriendshipReputation or nop;
 CPAPI.GetMountFromSpell = C_MountJournal and C_MountJournal.GetMountFromSpell or nop;
 CPAPI.GetMountInfoByID = C_MountJournal and C_MountJournal.GetMountInfoByID or nop;
+CPAPI.GetToyInfo = C_ToyBox and C_ToyBox.GetToyInfo or nop;
 CPAPI.GetNumQuestWatches = C_QuestLog.GetNumQuestWatches or nopz;
 CPAPI.GetOverrideBarSkin = GetOverrideBarSkin or nop;
 CPAPI.GetQuestLogIndexForQuestID = C_QuestLog and C_QuestLog.GetLogIndexForQuestID or nop;

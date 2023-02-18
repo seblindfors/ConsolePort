@@ -101,18 +101,18 @@ function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
 end
 
 function GamepadAPI:GAME_PAD_CONNECTED()
-	CPAPI.Log('Gamepad connected.')
 	db:TriggerEvent('OnGamePadConnect')
+	CPAPI.Log('Gamepad connected.')
 end
 
 function GamepadAPI:GAME_PAD_DISCONNECTED()
+	db:TriggerEvent('OnGamePadDisconnect', 'Disconnect')
 	CPAPI.Log('Gamepad disconnected.')
-	db:TriggerEvent('OnGamePadDisconnect')
 end
 
-function GamepadAPI:GAME_PAD_POWER_CHANGED(...)
-	CPAPI.Log('Gamepad power level changed to '.. ...)
+function GamepadAPI:GAME_PAD_POWER_CHANGED()
 	db:TriggerEvent('OnGamePadPowerChange')
+	-- CPAPI.Log('Gamepad power level changed to '.. ...)
 end
 
 function GamepadAPI:UPDATE_BINDINGS()

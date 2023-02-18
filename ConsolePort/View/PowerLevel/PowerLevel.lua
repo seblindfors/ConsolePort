@@ -20,28 +20,28 @@ local fadeSpeed = 0.25
 function PowerLevel:SetPowerLevel()
 	local level = db.Gamepad:GetPowerLevel() + 1
 	local PowerLeveltoSet = Levels[level]
-	FadeOut(PowerLevel_Widget_LevelText, fadeSpeed, PowerLevel_Widget_LevelText:GetAlpha(), 0)
+	FadeOut(CPPowerLevel_LevelText, fadeSpeed, CPPowerLevel_LevelText:GetAlpha(), 0)
 	for i = 1, 6 do
 		if i ~= level then
 			-- print("Hiding: " .. Levels[i])
-			FadeOut(_G["PowerLevel_Widget_" .. Levels[i]], fadeSpeed, 1, 0)
-			_G["PowerLevel_Widget_" .. Levels[i]]:Hide()
-			if _G["PowerLevel_Widget_" .. Levels[i]].Anim then
+			FadeOut(_G["CPPowerLevel_" .. Levels[i]], fadeSpeed, 1, 0)
+			_G["CPPowerLevel_" .. Levels[i]]:Hide()
+			if _G["CPPowerLevel_" .. Levels[i]].Anim then
 				-- print("Pausing " .. Levels[i] .. " animation")
-				_G["PowerLevel_Widget_" .. Levels[i]].Anim:Pause()
+				_G["CPPowerLevel_" .. Levels[i]].Anim:Pause()
 			end
 		end
 	end
 	-- print("Showing: " .. PowerLeveltoSet)
-	PowerLevel_Widget_LevelText:SetFormattedText(PowerLeveltoSet)
-	FadeIn(PowerLevel_Widget_LevelText, fadeSpeed, 0, 1)
-	if _G["PowerLevel_Widget_" .. PowerLeveltoSet].Anim then
+	CPPowerLevel_LevelText:SetFormattedText(PowerLeveltoSet)
+	FadeIn(CPPowerLevel_LevelText, fadeSpeed, 0, 1)
+	if _G["CPPowerLevel_" .. PowerLeveltoSet].Anim then
 		-- print("Playing " .. PowerLeveltoSet .. " animation")
-		_G["PowerLevel_Widget_" .. PowerLeveltoSet].Anim:Play()
-		_G["PowerLevel_Widget_" .. PowerLeveltoSet].Anim:Restart()
+		_G["CPPowerLevel_" .. PowerLeveltoSet].Anim:Play()
+		_G["CPPowerLevel_" .. PowerLeveltoSet].Anim:Restart()
 	end
-	_G["PowerLevel_Widget_" .. PowerLeveltoSet]:Show()
-	FadeIn(_G["PowerLevel_Widget_" .. PowerLeveltoSet], fadeSpeed, 0, 1)
+	_G["CPPowerLevel_" .. PowerLeveltoSet]:Show()
+	FadeIn(_G["CPPowerLevel_" .. PowerLeveltoSet], fadeSpeed, 0, 1)
 	--
 	-- WIP: optional auto fade on all levels except critical so it's less distracting
 	--
@@ -58,20 +58,20 @@ function PowerLevel:OnConfigChanged()
 	plShow = db("showPowerLevel")
 	if plShow then
 		self:SetPowerLevel()
-		FadeIn(PowerLevel_Widget, fadeSpeed, PowerLevel_Widget:GetAlpha(), 1)
+		FadeIn(self, fadeSpeed, self:GetAlpha(), 1)
 		if plTextShow then
-			FadeIn(PowerLevel_Widget_LevelText, fadeSpeed, PowerLevel_Widget_LevelText:GetAlpha(), 1)
+			FadeIn(CPPowerLevel_LevelText, fadeSpeed, CPPowerLevel_LevelText:GetAlpha(), 1)
 		else
-			FadeOut(PowerLevel_Widget_LevelText, fadeSpeed, PowerLevel_Widget_LevelText:GetAlpha(), 0)
+			FadeOut(CPPowerLevel_LevelText, fadeSpeed, CPPowerLevel_LevelText:GetAlpha(), 0)
 		end
 		if plIconShow then
-			db.Gamepad.SetIconToTexture(PowerLevel_Widget_Icon, "PADSYSTEM")
-			FadeIn(PowerLevel_Widget_Icon, fadeSpeed, PowerLevel_Widget_Icon:GetAlpha(), 1)
+			db.Gamepad.SetIconToTexture(CPPowerLevel_Icon, "PADSYSTEM")
+			FadeIn(CPPowerLevel_Icon, fadeSpeed, CPPowerLevel_Icon:GetAlpha(), 1)
 		else
-			FadeOut(PowerLevel_Widget_Icon, fadeSpeed, PowerLevel_Widget_Icon:GetAlpha(), 0)
+			FadeOut(CPPowerLevel_Icon, fadeSpeed, CPPowerLevel_Icon:GetAlpha(), 0)
 		end
 	else
-		FadeOut(PowerLevel_Widget, fadeSpeed, PowerLevel_Widget:GetAlpha(), 0)
+		FadeOut(self, fadeSpeed, self:GetAlpha(), 0)
 	end
 end
 

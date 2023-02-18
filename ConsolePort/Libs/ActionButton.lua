@@ -516,6 +516,8 @@ local function PickupAny(kind, target, detail, ...)
 		PickupItem(target)
 	elseif kind == 'macro' then
 		PickupMacro(target)
+	elseif kind == 'usetoy' then
+		C_ToyBox.PickupToyBoxItem(target)
 	elseif kind == 'petaction' then
 		PickupPetAction(target)
 	elseif kind == 'spell' then
