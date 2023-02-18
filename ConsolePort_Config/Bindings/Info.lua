@@ -18,6 +18,7 @@ local BindingInfoMixin, BindingInfo = {}, {
 		macro        = function(id) return GetMacroInfo(id) and GetMacroInfo(id) .. ' ('..MACRO..')' end;
 		mount        = function(id) return C_MountJournal.GetMountInfoByID(id) end;
 		summonmount  = function(id) return C_MountJournal.GetMountInfoByID(id) end;
+		usetoy		 = function(id) return C_ToyBox.GetToyInfo(id) end;
 		summonpet    = function(id) return (C_PetJournal.GetPetInfoTableByPetID(id) or {}).name or TOOLTIP_BATTLE_PET end;
 		flyout       = function(id) return GetFlyoutInfo(id) end;
 		equipmentset = function(id) return tostring(id)..' ('..BAG_FILTER_EQUIPMENT..')' end;
@@ -401,6 +402,23 @@ function BindingInfo:RefreshCollections()
 			})
 		end
 	end
+
+		-- Toy Box
+		if CPAPI.IsRetailVersion then
+			local toybox = {};
+			for i=1, C_ToyBox.GetNumLearnedDisplayedToys() do
+				toybox[#toybox+1] = i;
+			end
+
+			if next(toybox) then
+				self:AddCollection(toybox, {
+					name    = TOY_BOX;
+					pickup  = function(id) return C_ToyBox.PickupToyBoxItem(select(1, C_ToyBox.GetToyFromIndex(id))) end;
+					tooltip = function(self, id) GameTooltip.SetToyByItemID(self, (select(1, C_ToyBox.GetToyFromIndex(id)))) end;
+					texture = function(id) return (select(3, C_ToyBox.GetToyInfo(C_ToyBox.GetToyFromIndex(id)))) end;
+				})
+			end
+		end
 
 	-- Macros
 	do  local macros, numMacros, numCharMacros = {}, GetNumMacros()

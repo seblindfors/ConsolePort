@@ -154,7 +154,7 @@ local ActionPickupHandlers = {
 			return C_EquipmentSet.PickupEquipmentSet(setID)
 		end
 	end;
-	summonmount  = function(id)
+	summonmount = function(id)
 		local mountInfo = {C_MountJournal.GetMountInfoByID(id)}
 		local spellID, isCollected = mountInfo[2], mountInfo[11];
 		if not isCollected then return end
@@ -165,6 +165,9 @@ local ActionPickupHandlers = {
 				return C_MountJournal.Pickup(i)
 			end
 		end
+	end;
+	usetoy = function(id)
+		return C_ToyBox.PickupToyBoxItem(id)
 	end;
 	flyout = function(id)
 		local spellBookIndex;
