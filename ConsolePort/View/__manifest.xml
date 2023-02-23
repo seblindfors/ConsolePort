@@ -5,6 +5,7 @@
 	<Include file="Cursors\Cursors.xml"/>
 	<Include file="UIHandle\UIHandle.xml"/>
 	<Include file="Popup\Popup.xml"/>
+	<Include file="PowerLevel\PowerLevel.xml"/>
 	<!-- Single file views -->
 	<Script file="Hotkey.lua"/>
 	<Script file="Convenience.lua"/>
