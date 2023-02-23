@@ -3,6 +3,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 	'GAME_PAD_CONFIGS_CHANGED';
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
+	'GAME_PAD_POWER_CHANGED';
 	'UPDATE_BINDINGS';
 }, {
 	Modsims = {'ALT', 'CTRL', 'SHIFT'};
@@ -100,11 +101,18 @@ function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
 end
 
 function GamepadAPI:GAME_PAD_CONNECTED()
+	db:TriggerEvent('OnGamePadConnect')
 	CPAPI.Log('Gamepad connected.')
 end
 
 function GamepadAPI:GAME_PAD_DISCONNECTED()
+	db:TriggerEvent('OnGamePadDisconnect', 'Disconnect')
 	CPAPI.Log('Gamepad disconnected.')
+end
+
+function GamepadAPI:GAME_PAD_POWER_CHANGED()
+	db:TriggerEvent('OnGamePadPowerChange')
+	-- CPAPI.Log('Gamepad power level changed to '.. ...)
 end
 
 function GamepadAPI:UPDATE_BINDINGS()
@@ -189,6 +197,10 @@ end, GamepadAPI)
 ---------------------------------------------------------------
 function GamepadAPI:GetState()
 	return C_GamePad.GetDeviceMappedState(C_GamePad.GetActiveDeviceID())
+end
+
+function GamepadAPI:GetPowerLevel()
+	return C_GamePad.GetPowerLevel(C_GamePad.GetActiveDeviceID())
 end
 
 function GamepadAPI:ReindexMappedState(force)

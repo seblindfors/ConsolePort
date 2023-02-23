@@ -89,6 +89,13 @@ db:Register('Variables', {
 		desc = 'Cursor hides when you start moving, if free of obstacles.';
 		note = 'Requires Settings > Hide Cursor on Stick Input set to None.';
 	};
+	mouseHideCursorOnDeath = {Bool(false);
+	head = MOUSE_LABEL;
+	sort = 4;
+	name = 'Hide Cursor On Death';
+	desc = 'Cursor hides when you die, so you don\'t accidentally release.';
+	note = 'Requires Settings > Hide Cursor on Stick Input set to None.';
+};
 	mouseAlwaysCentered = {Bool(false);
 		head = MOUSE_LABEL;
 		sort = 5;
@@ -193,40 +200,12 @@ db:Register('Variables', {
 		head = 'Raid Cursor';
 		sort = 3;
 		name = 'Modifier';
-		desc = 'Which modifier to use with the movement buttons to move the cursor.';
-		note = 'The bindings underlying the button combinations will be unavailable while the cursor is in use.\n\nModifier can also be configured on a per button basis.';
-	};
-	raidCursorUp = {Button('PADDUP', true);
-		head = 'Raid Cursor';
-		sort = 4;
-		name = 'Move Up';
-		desc = 'Button to move the cursor up.';
-		advd = true;
-	};
-	raidCursorDown = {Button('PADDDOWN', true);
-		head = 'Raid Cursor';
-		sort = 5;
-		name = 'Move Down';
-		desc = 'Button to move the cursor down.';
-		advd = true;
-	};
-	raidCursorLeft = {Button('PADDLEFT', true);
-		head = 'Raid Cursor';
-		sort = 6;
-		name = 'Move Left';
-		desc = 'Button to move the cursor left.';
-		advd = true;
-	};
-	raidCursorRight = {Button('PADDRIGHT', true);
-		head = 'Raid Cursor';
-		sort = 7;
-		name = 'Move Right';
-		desc = 'Button to move the cursor right.';
-		advd = true;
+		desc = 'Which modifier to use with the directional pad to move the cursor.';
+		note = 'The bindings underlying the button combinations will be unavailable while the cursor is in use.';
 	};
 	raidCursorFilter = {String(nil);
 		head = 'Raid Cursor';
-		sort = 8;
+		sort = 4;
 		name = 'Filter Condition';
 		desc = 'Filter condition to find raid cursor frames.';
 		note = BLUE_FONT_COLOR:WrapTextInColorCode('node') .. ' is the current frame under scrutinization.';
@@ -407,6 +386,33 @@ db:Register('Variables', {
 		note = 'Action bar is scaled separately.';
 		advd = true;
 	};
+	--------------------------------------------------------------------------------------------------------
+	-- Bindings:
+	--------------------------------------------------------------------------------------------------------
+	showPowerLevel = {
+		Bool(true);
+		head = 'Power Level';
+		sort = 1;
+		name = 'Show gauge';
+		desc = 'Display power level for the current active gamepad.';
+		note = 'This will not work with Xbox controllers connected via bluetooth. The Xbox Adapter is required.';
+   };
+	showGamepadIcon = {
+		Bool(true);
+		head = 'Power Level';
+		sort = 2;
+		name = 'Show type icon';
+		desc = 'Display icon next to the power level for the current active gamepad.';
+		note = 'Types are PlayStation, Xbox, or Generic.';
+   };
+	showPowerLevelText = {
+		Bool(true);
+		head = 'Power Level';
+		sort = 3;
+		name = 'Show status text';
+		desc = 'Display power level status text for the current active gamepad.';
+		note = 'Critical, Low, Medium, High, Wired/Charging, or Unknown/Disconnected.'
+   };
 	--------------------------------------------------------------------------------------------------------
 	-- Bindings:
 	--------------------------------------------------------------------------------------------------------
