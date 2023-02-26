@@ -1,130 +1,78 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
-	<Script file="PowerLevelMixin.lua" />
-	<Frame frameStrata="ARTWORK" name="CPPowerLevel"
-		parent="UIParent" enableMouse="true" movable="true" alpha="0" mixin="PowerLevelMixin">
-		<Size x="145" y="24" />
+	<StatusBar name="ConsolePortPowerLevel"
+		minValue="0"
+		maxValue="3"
+		frameStrata="ARTWORK"
+		parent="UIParent"
+		enableMouse="true"
+		movable="true"
+		hidden="true">
+		<Size x="104" y="12" />
 		<Anchors>
 			<Anchor relativeTo="UIParent" point="CENTER" y="20" x="-5" />
 		</Anchors>
+		<BarTexture parentKey="BarTexture" file="Interface\TargetingFrame\UI-StatusBar"/>
+		<Frames>
+			<Frame parentKey="OverlayFrame" setAllPoints="true">
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Overlay" atlas="bonusobjectives-bar-frame">
+							<Size x="130" y="30" />
+							<Anchors>
+								<Anchor point="CENTER" x="10" />
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Icon">
+							<Size x="25" y="25" />
+							<Anchors>
+								<Anchor point="RIGHT" relativeKey="$parent.Overlay" relativePoint="LEFT" />
+							</Anchors>
+						</Texture>
+						<FontString parentKey="Text" inherits="GameFontHighlightSmallOutline" justifyH="CENTER">
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="-12" />
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture atlas="jailerstower-wayfinder-rewardbackground-disable"
-					name="$parent_Backdrop">
+				<Texture parentKey="Background">
 					<Size x="105" y="35" />
 					<Anchors>
 						<Anchor point="CENTER" x="2" y="0" />
 					</Anchors>
 				</Texture>
 			</Layer>
-			<Layer level="OVERLAY">
-				<Texture atlas="bonusobjectives-bar-frame" name="$parent_Frame">
-					<Size x="120" y="25" />
-					<Anchors>
-						<Anchor point="RIGHT" />
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="OVERLAY">
-				<Texture name="$parent_Icon">
-					<Size x="25" y="25" />
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent_Frame" />
-					</Anchors>
-				</Texture>
-				<FontString text="" name="$parent_LevelText"
-					inherits="GameFontHighlightSmallOutline">
-					<Size x="130" y="12" />
-					<Anchors>
-						<Anchor point="CENTER" relativeKey="$parent_Frame" x="4" y="-11" />
-					</Anchors>
-				</FontString>
-			</Layer>
-			<Layer level="LOW">
-				<Texture atlas="ui-hud-experiencebar-fill-honor" name="$parent_Critical">
-					<Size x="6" y="8" />
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
-					</Anchors>
-					<Animations>
-						<AnimationGroup parentKey="Anim" setToFinalAlpha="true" looping="REPEAT">
-							<Alpha duration="0.25" order="1" fromAlpha="0" toAlpha="1" />
-							<Alpha duration="0.25" order="2" fromAlpha="1" toAlpha="0"
-								startDelay="0.25" />
-							<Scripts>
-								<OnLoad>
-									self:Play();
-								</OnLoad>
-							</Scripts>
-						</AnimationGroup>
-					</Animations>
-				</Texture>
-				<Texture atlas="ui-hud-experiencebar-fill-honor" name="$parent_Low">
-					<Size x="30" y="8" />
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
-					</Anchors>
-				</Texture>
-				<Texture atlas="ui-hud-experiencebar-fill-reputation-faction-orange"
-					name="$parent_Medium">
-					<Size x="62" y="8" />
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
-					</Anchors>
-				</Texture>
-				<Texture atlas="ui-hud-experiencebar-fill-reputation-faction-green"
-					name="$parent_High">
-					<Size x="93" y="8" />
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
-					</Anchors>
-				</Texture>
-				<Texture atlas="ui-hud-experiencebar-fill-rested" name="$parent_Charging">
-					<Size x="30" y="8" />
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
-					</Anchors>
-					<Animations>
-						<AnimationGroup parentKey="Anim" setToFinalAlpha="false" looping="REPEAT">
-							<Scale fromScaleY="1" toScaleY="1" fromScaleX="0" smoothing="IN"
-								toScaleX="1" duration=".05" order="1" startDelay="0">
-								<Origin point="LEFT" />
-							</Scale>
-							<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="IN"
-								toScaleX="2.05" duration=".05" order="2" startDelay="0.20">
-								<Origin point="LEFT" />
-							</Scale>
-							<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="IN"
-								toScaleX="1.55" duration="0.05" order="3" startDelay="0.20">
-								<Origin point="LEFT" />
-							</Scale>
-							<Scale fromScaleY="1" toScaleY="1" fromScaleX="1" smoothing="IN"
-								toScaleX="1" duration="0.25" order="4" startDelay=".20">
-								<Origin point="LEFT" />
-							</Scale>
-							<Scripts>
-								<OnLoad>
-									self:Play();
-								</OnLoad>
-							</Scripts>
-						</AnimationGroup>
-					</Animations>
-				</Texture>
-				<Texture atlas="ui-hud-experiencebar-background" name="$parent_Disconnected">
-					<Size x="93" y="8" />
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent_Frame" x="30" />
-					</Anchors>
-				</Texture>
-			</Layer>
 		</Layers>
-		<Scripts>
-			<OnLoad method="OnLoad" />
-			<OnEnter method="OnEnter" />
-			<OnLeave method="OnLeave" />
-			<OnDragStart method="OnDragStart" />
-			<OnDragStop method="OnDragStop" />
-		</Scripts>
-	</Frame>
+		<Animations>
+			<AnimationGroup parentKey="Critical" looping="REPEAT">
+				<Alpha childKey="BarTexture" duration="0.25" order="1" fromAlpha="0" toAlpha="1" />
+				<Alpha childKey="BarTexture" duration="0.25" order="2" fromAlpha="1" toAlpha="0" startDelay="0.25" />
+			</AnimationGroup>
+			<AnimationGroup parentKey="Charging" looping="REPEAT">
+				<Alpha childKey="BarTexture" duration="0.25" order="1" fromAlpha="0" toAlpha="1" />
+				<Alpha childKey="BarTexture" duration="0.25" order="2" fromAlpha="1" toAlpha="0" startDelay="0.25" />
+				<Scripts>
+					<OnPlay>
+						self.fillValue = 1;
+						self:GetParent():SetValue(self.fillValue);
+					</OnPlay>
+					<OnLoop>
+						self.fillValue = (self.fillValue % 4) + 1;
+
+						local bar = self:GetParent();
+						local min, max = bar:GetMinMaxValues()
+						bar:SetValue(Clamp(self.fillValue, min + 1, max))
+					</OnLoop>
+				</Scripts>
+			</AnimationGroup>
+		</Animations>
+	</StatusBar>
 	<Script file="PowerLevel.lua" />
 </Ui>

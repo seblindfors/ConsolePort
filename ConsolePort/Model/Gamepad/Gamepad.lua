@@ -1,10 +1,10 @@
 local _, db = ...;
 local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHandler({'Frame', '$parentGamePadHandler', ConsolePort}, {
+	'UPDATE_BINDINGS';
 	'GAME_PAD_CONFIGS_CHANGED';
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
-	'GAME_PAD_POWER_CHANGED';
-	'UPDATE_BINDINGS';
+	(CPAPI.IsRetailVersion or CPAPI.IsClassicVersion) and 'GAME_PAD_POWER_CHANGED';
 }, {
 	Modsims = {'ALT', 'CTRL', 'SHIFT'};
 	Devices = {};
@@ -109,8 +109,8 @@ function GamepadAPI:GAME_PAD_DISCONNECTED()
 	CPAPI.Log('Gamepad disconnected.')
 end
 
-function GamepadAPI:GAME_PAD_POWER_CHANGED()
-	db:TriggerEvent('OnGamePadPowerChange')
+function GamepadAPI:GAME_PAD_POWER_CHANGED(level)
+	db:TriggerEvent('OnGamePadPowerChange', level)
 end
 
 function GamepadAPI:UPDATE_BINDINGS()
