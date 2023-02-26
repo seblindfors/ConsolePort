@@ -64,11 +64,11 @@
 						self:GetParent():SetValue(self.fillValue);
 					</OnPlay>
 					<OnLoop>
-						self.fillValue = (self.fillValue % 4) + 1;
-
 						local bar = self:GetParent();
-						local min, max = bar:GetMinMaxValues()
-						bar:SetValue(Clamp(self.fillValue, min + 1, max))
+						local min, max = bar:GetMinMaxValues();
+
+						self.fillValue = (self.fillValue % (max + 1)) + 1;
+						bar:SetValue(Clamp(self.fillValue, min + 1, max));
 					</OnLoop>
 				</Scripts>
 			</AnimationGroup>

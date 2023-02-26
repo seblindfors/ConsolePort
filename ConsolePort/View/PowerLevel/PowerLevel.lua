@@ -5,7 +5,9 @@ if CPAPI.IsClassicEraVersion then return end;
 
 local _, db = ...; local L = db.Locale;
 local PowerLevel = ConsolePortPowerLevel;
-local FadeIn, FadeOut = db('Alpha/FadeIn'), db('Alpha/FadeOut')
+local FadeIn, FadeOut = db.Alpha.FadeIn, db.Alpha.FadeOut;
+
+local FADE_SPEED = 0.25;
 
 PowerLevel.Levels = {
 	{fill = 1, color = RED_FONT_COLOR,    name = L'Critical', animation = 'Critical'};
@@ -16,13 +18,11 @@ PowerLevel.Levels = {
 	{fill = 0, color = WHITE_FONT_COLOR,  name = L'Disconnected'};
 }
 
-local fadeSpeed = 0.25
-
 function PowerLevel:SetPowerLevel(level)
 	local info = self.Levels[level + 1];
 	local text = self.OverlayFrame.Text;
 
-	FadeOut(text, fadeSpeed, text:GetAlpha(), 0)
+	FadeOut(text, FADE_SPEED, text:GetAlpha(), 0)
 
 	if self.currentAnimation then
 		self.currentAnimation:Stop()
@@ -32,7 +32,7 @@ function PowerLevel:SetPowerLevel(level)
 
 	text:SetFormattedText(info.name)
 
-	FadeIn(text, fadeSpeed, 0, 1)
+	FadeIn(text, FADE_SPEED, 0, 1)
 	self.currentAnimation = info.animation and self[info.animation];
 	if self.currentAnimation then
 		self.currentAnimation:Play()
@@ -45,9 +45,8 @@ function PowerLevel:SetPowerLevel(level)
 end
 
 function PowerLevel:OnDataLoaded()
-	local isEnabled = db('powerLevelShow')
-	self:SetShown(isEnabled)
-	if not isEnabled then return end
+	self:SetShown(db('powerLevelShow'))
+	if not self:IsShown() then return end
 
 	local showIcon = db('powerLevelShowIcon')
 	local showText = db('powerLevelShowText')
@@ -56,17 +55,17 @@ function PowerLevel:OnDataLoaded()
 	local icon = self.OverlayFrame.Icon;
 
 	self:SetPowerLevel(db.Gamepad:GetPowerLevel())
-	FadeIn(self, fadeSpeed, self:GetAlpha(), 1)
+	FadeIn(self, FADE_SPEED, self:GetAlpha(), 1)
 	if showText then
-		FadeIn(text, fadeSpeed, text:GetAlpha(), 1)
+		FadeIn(text, FADE_SPEED, text:GetAlpha(), 1)
 	else
-		FadeOut(text, fadeSpeed, text:GetAlpha(), 0)
+		FadeOut(text, FADE_SPEED, text:GetAlpha(), 0)
 	end
 	if showIcon then
 		db.Gamepad.SetIconToTexture(icon, 'PADSYSTEM')
-		FadeIn(icon, fadeSpeed, icon:GetAlpha(), 1)
+		FadeIn(icon, FADE_SPEED, icon:GetAlpha(), 1)
 	else
-		FadeOut(icon, fadeSpeed, icon:GetAlpha(), 0)
+		FadeOut(icon, FADE_SPEED, icon:GetAlpha(), 0)
 	end
 
 	if CPAPI.IsRetailVersion then
