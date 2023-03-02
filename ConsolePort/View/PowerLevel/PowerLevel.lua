@@ -62,16 +62,12 @@ function PowerLevel:OnDataLoaded()
 
 	self:SetPowerLevel(db.Gamepad:GetPowerLevel())
 	FadeIn(self, FADE_SPEED, self:GetAlpha(), 1)
-	if showText then
-		FadeIn(self.Text, FADE_SPEED, self.Text:GetAlpha(), 1)
-	else
-		FadeOut(self.Text, FADE_SPEED, self.Text:GetAlpha(), 0)
-	end
+
+	self.Text:SetShown(showText)
+	self.Icon:SetShown(showIcon)
+	
 	if showIcon then
 		db.Gamepad.SetIconToTexture(self.Icon, 'PADSYSTEM')
-		FadeIn(self.Icon, FADE_SPEED, self.Icon:GetAlpha(), 1)
-	else
-		FadeOut(self.Icon, FADE_SPEED, self.Icon:GetAlpha(), 0)
 	end
 
 	if CPAPI.IsRetailVersion then
