@@ -43,7 +43,7 @@
 				<Texture parentKey="BorderRight">
 					<Size x="24" y="20"/>
 					<Anchors>
-						<Anchor point="RIGHT" x="6" />
+						<Anchor point="RIGHT" x="5" />
 					</Anchors>
 				</Texture>
 				<Texture parentKey="BorderCenter">
@@ -77,7 +77,7 @@
 				<Texture parentKey="GlowRight" alpha="0">
 					<Size x="35" y="31"/>
 					<Anchors>
-						<Anchor point="RIGHT" x="12" />
+						<Anchor point="RIGHT" x="11" />
 					</Anchors>
 				</Texture>
 				<Texture parentKey="GlowCenter" alpha="0">

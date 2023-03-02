@@ -20,8 +20,12 @@ PowerLevel.Levels = CPAPI.Proxy({
 	{fill = 3, color = WHITE_FONT_COLOR,  atlas = 'ui-frame-bar-fill-white',  name = UNKNOWN}
 end)
 
+function PowerLevel:GetPowerLevelInfo(level)
+	return self.Levels[level + 1];
+end
+
 function PowerLevel:SetPowerLevel(level)
-	local info = self.Levels[level + 1];
+	local info = self:GetPowerLevelInfo(level)
 
 	FadeOut(self.Text, FADE_SPEED, self.Text:GetAlpha(), 0)
 
@@ -88,13 +92,19 @@ db:RegisterCallbacks(PowerLevel.OnDataLoaded, PowerLevel,
 -- Scripts
 ---------------------------------------------------------------
 function PowerLevel:OnEnter()
-      GameTooltip_SetDefaultAnchor(GameTooltip, self)
-      GameTooltip:AddLine('Hold Shift + Left Click to move.')
-		GameTooltip:Show()
+	local header = L'Battery Level'
+	local device = db('Gamepad/Active')
+	local desc = device and device:GetTooltipButtonPrompt('PADSYSTEM', header, 64) or header;
+	local info = self:GetPowerLevelInfo(db.Gamepad:GetPowerLevel())
+
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	GameTooltip:SetText(('%s: %s'):format(desc, info.color:WrapTextInColorCode(info.name)))
+	GameTooltip:AddLine('Hold Shift + Left Click to move.')
+	GameTooltip:Show()
 end
 
 function PowerLevel:OnLeave()
-   if GameTooltip:IsOwned(self) then
+	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
 end
@@ -102,13 +112,13 @@ end
 PowerLevel:RegisterForDrag('LeftButton')
 
 function PowerLevel:OnDragStart()
-   if IsShiftKeyDown() then
-      self:StartMoving()
-   end
+	if IsShiftKeyDown() then
+		self:StartMoving()
+	end
 end
 
 function PowerLevel:OnDragStop()
-   self:StopMovingOrSizing()
+	self:StopMovingOrSizing()
 end
 
 CPAPI.Start(PowerLevel)
