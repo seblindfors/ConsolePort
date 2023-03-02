@@ -408,6 +408,33 @@ db:Register('Variables', {
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
+	-- Power Level:
+	--------------------------------------------------------------------------------------------------------
+	powerLevelShow = {Bool(true);
+		head = 'Power Level';
+		sort = 1;
+		name = 'Show Gauge';
+		desc = 'Display power level for the current active gamepad.';
+		note = 'This will not work with Xbox controllers connected via bluetooth. The Xbox Adapter is required.';
+		hide = CPAPI.IsClassicEraVersion;
+	};
+	powerLevelShowIcon = {Bool(true);
+		head = 'Power Level';
+		sort = 2;
+		name = 'Show Type Icon';
+		desc = 'Display icon next to the power level for the current active gamepad.';
+		note = 'Types are PlayStation, Xbox, or Generic.';
+		hide = CPAPI.IsClassicEraVersion;
+	};
+	powerLevelShowText = {Bool(true);
+		head = 'Power Level';
+		sort = 3;
+		name = 'Show Status Text';
+		desc = 'Display power level status text for the current active gamepad.';
+		note = 'Critical, Low, Medium, High, Wired/Charging, or Unknown/Disconnected.';
+		hide = CPAPI.IsClassicEraVersion;
+	};
+	--------------------------------------------------------------------------------------------------------
 	-- Bindings:
 	--------------------------------------------------------------------------------------------------------
 	bindingOverlapEnable = {Bool(false);
