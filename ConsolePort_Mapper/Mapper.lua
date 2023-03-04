@@ -32,15 +32,29 @@ local function GetRealDeviceIDs()
 end
 
 local function ConvertToHex(number)
-	local hex = string.format('%x', number)
-	return ((#hex % 2 == 1) and '0'..hex or hex):upper();
+	local hex = string.format('%x', number);
+	return ((#hex % 2 == 1) and '0'..hex or hex):upper()
 end
 
 local function Round(num, numDecimalPlaces)
-	local mult = 10^(numDecimalPlaces or 0)
-	return math.floor(num * mult + 0.5) / mult
+	local mult = 10^(numDecimalPlaces or 0);
+	return math.floor(num * mult + 0.5) / mult;
 end
 
+local function GetConfig(vendorID, productID)
+	local config = C_GamePad.GetConfig({
+		vendorID  = vendorID;
+		productID = productID;
+	}) or {};
+
+	for requiredField in pairs(tInvert(Consts.ConfigGroups)) do
+		if not config[requiredField] then
+			config[requiredField] = {};
+		end
+	end
+
+	return config;
+end
 
 ----------------------------------------------------------------
 -- Device selection
@@ -139,6 +153,14 @@ end
 function Mapbutton:OnLeave()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
+	end
+end
+
+function Mapbutton:SetID(id)
+	getmetatable(self).__index.SetID(self, id)
+	local glyph = GetBindingText(C_GamePad.ButtonIndexToBinding(id - 1))
+	if glyph then
+		self.Text:SetText(glyph)
 	end
 end
 
@@ -287,6 +309,9 @@ function FieldMixin:OnLoad()
 	self.Label:SetTextColor(1, 1, 1)
 end
 
+----------------------------------------------------------------
+-- Base
+----------------------------------------------------------------
 function BaseMixin:OnLoad()
 	self.Label:ClearAllPoints()
 	self.Label:SetPoint('TOPLEFT', 8, 0)
@@ -330,7 +355,12 @@ function BaseMixin:OnClick(...)
 	self:SetHitRectInsets(0, 0, 0, expanded and self:GetHeight() - 40 or 0)
 end
 
-function BaseMixin:UpdateFields(data)
+function BaseMixin:SetOrigin(origin)
+	self.origin = origin;
+end
+
+function BaseMixin:Update(data)
+	self.set = data;
 	for varID, value in pairs(data) do
 		local field = self.Content[varID]
 		if field then
@@ -377,7 +407,7 @@ function AxisMap:Set(data, i)
 		data.rawIndex or Consts.Unassigned,
 		data.axis or data.comment or Consts.Unassigned
 	))
-	self:UpdateFields(data)
+	self:Update(data)
 end
 
 ----------------------------------------------------------------
@@ -434,7 +464,7 @@ function ButtonMap:Set(data, i)
 		data.rawIndex or Consts.Unassigned,
 		data.button or data.axis or Consts.Unassigned
 	))
-	self:UpdateFields(data)
+	self:Update(data)
 end
 
 ----------------------------------------------------------------
@@ -512,7 +542,7 @@ local AxisConfig = CreateFromMixins(BaseMixin, {
 
 function AxisConfig:Set(axis, i)
 	self:SetText(axis.comment or axis.axis or L('Mapped Axis %d', tostring(i)))
-	self:UpdateFields(axis)
+	self:Update(axis)
 end
 
 ----------------------------------------------------------------
@@ -566,7 +596,7 @@ local StickConfig = CreateFromMixins(BaseMixin, {
 
 function StickConfig:Set(stick, i)
 	self:SetText(stick.comment or stick.stick or L('Stick %d', tostring(i)))
-	self:UpdateFields(stick)
+	self:Update(stick)
 end
 
 ----------------------------------------------------------------
@@ -592,10 +622,10 @@ function Config:LayoutData(set, pool, mixin, sort)
 			widget:OnLoad()
 		end
 		widget:Set(data, i)
+		widget:SetOrigin(set)
 		widget:Show()
 
-		-- odd
-		if ((i-1) % 2 == 0) then
+		if ((i-1) % 2 == 0) then -- odd
 			if not prev1 then
 				widget:SetPoint('TOPLEFT', 16, -24)
 			else
@@ -616,19 +646,21 @@ function Config:LayoutData(set, pool, mixin, sort)
 end
 
 function Config:OnDeviceChanged(device, deviceID)
+	local config = GetConfig(device.vendorID, device.productID)
+	self:SetData(config)
+end
+
+function Config:SetData(config)
 	self:ReleaseAll()
 
-	local config = C_GamePad.GetConfig({
-		vendorID  = device.vendorID;
-		productID = device.productID; 
-	})
+	for i, group in ipairs(Consts.ConfigGroups) do
+		local layout = self.layouts[group];
+		if layout then
+			self:LayoutData(config[group], layout.pool, layout.mixin, layout.sort)
+		end
+	end
 
-	self:LayoutData(config.rawAxisMappings, self.pools.axisMap, AxisMap, function(a, b) return a.rawIndex < b.rawIndex; end)
-	self:LayoutData(config.rawButtonMappings, self.pools.buttonMap, ButtonMap, function(a, b) return a.rawIndex < b.rawIndex; end)
-	self:LayoutData(config.axisConfigs, self.pools.axisConfig, AxisConfig)
-	self:LayoutData(config.stickConfigs, self.pools.stickConfig, StickConfig)
-
-	C = config --REMOVE
+	localenv.data = config;
 end
 
 function Config:ReleaseAll()
@@ -644,6 +676,12 @@ function Config:Construct()
 		axisConfig  = CreateFramePool('IndexButton', self.Content.MappedAxisBlock, 'CPIndexButtonBindingHeaderTemplate');
 		stickConfig = CreateFramePool('IndexButton', self.Content.StickBlock, 'CPIndexButtonBindingHeaderTemplate');
 	};
+	self.layouts = {
+		rawAxisMappings   = { pool = self.pools.axisMap,     mixin = AxisMap,    sort = function(a, b) return a.rawIndex < b.rawIndex; end };
+		rawButtonMappings = { pool = self.pools.buttonMap,   mixin = ButtonMap,  sort = function(a, b) return a.rawIndex < b.rawIndex; end };
+		axisConfigs       = { pool = self.pools.axisConfig,  mixin = AxisConfig  };
+		stickConfigs      = { pool = self.pools.stickConfig, mixin = StickConfig };
+	};
 
 	Wrapper.OnLoad(self)
 	db:RegisterCallback('OnMapperDeviceChanged', self.OnDeviceChanged, self)
@@ -651,7 +689,7 @@ end
 
 ----------------------------------------------------------------
 ----------------------------------------------------------------
-local Panel, BlockMixin = env.Mapper, CreateFromMixins(env.ScaleToContentMixin);
+local Panel, BlockMixin = {}, CreateFromMixins(env.ScaleToContentMixin);
 
 function BlockMixin:OnLoad()
 	self:SetMeasurementOrigin(self, self, PANEL_WIDTH, 0)
@@ -890,3 +928,10 @@ function Panel:OnFirstShow()
 	})
 	config:Init()
 end
+
+env.Mapper = ConsolePortConfig:CreatePanel({
+	name = 'Mapper';
+	mixin = Panel;
+	scaleToParent = true;
+	forbidRecursiveScale = true;
+})

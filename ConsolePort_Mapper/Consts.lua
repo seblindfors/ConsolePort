@@ -70,3 +70,11 @@ do local unassigned = '|cffffffffN/A|r';
 	end
 	Consts.Unassigned = unassigned;
 end
+
+Consts.ConfigGroups = {
+	'configID';
+	'rawAxisMappings';
+	'rawButtonMappings';
+	'axisConfigs';
+	'stickConfigs'
+}
