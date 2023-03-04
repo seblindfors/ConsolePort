@@ -158,14 +158,14 @@ db:Register('Console', setmetatable({
 		};
 		{
 			cvar = 'GamePadCameraLookMaxYaw';
-			type = Range(0, 15, 0, 45);
+			type = Range(0, 15, -180, 180);
 			name = 'Camera Look Max Yaw';
 			desc = 'Maximum Yaw adjust for the camera "look" feature.';
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
 		};
 		{
 			cvar = 'GamePadCameraLookMaxPitch';
-			type = Range(0, 15, 0, 30);
+			type = Range(0, 5, 0, 90);
 			name = 'Camera Look Max Pitch';
 			desc = 'Maximum Pitch adjust for the camera "look" feature.';
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
