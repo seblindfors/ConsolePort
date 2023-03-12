@@ -2,6 +2,23 @@ local _, db = ...; local Mapper = db:Register('Mapper', {});
 ---------------------------------------------------------------
 -- Helpers & shared metatable
 ---------------------------------------------------------------
+Mapper.ConfigGroups = tInvert {
+	'configID';
+	'rawAxisMappings';
+	'rawButtonMappings';
+	'axisConfigs';
+	'stickConfigs';
+};
+
+local function FillGroups(config)
+	for group in pairs(Mapper.ConfigGroups) do
+		if not config[group] then
+			config[group] = {};
+		end
+	end
+	return config;
+end
+
 local function MatchTable(source, criteria)
 	if type(source) ~= 'table' then return end;
 	for k, v in pairs(criteria) do
@@ -72,6 +89,7 @@ end
 ---------------------------------------------------------------
 -- Mapper handler
 ---------------------------------------------------------------
+
 function Mapper:OnDeviceChanged(device, deviceID)
 	local configID = {
 		vendorID  = device.vendorID;
@@ -82,27 +100,17 @@ function Mapper:OnDeviceChanged(device, deviceID)
 		configID = configID;
 	};
 
-	self.config = ApplyMetatable(config);
+	self.config = ApplyMetatable(FillGroups(config));
 	db:TriggerEvent('OnMapperConfigLoaded', self.config)
 end
 
-function Mapper:OnValueChanged()
+function Mapper:OnValueChanged(path, value)
 	local rawConfig = self.config;
 	if rawConfig then
-		local config = Scrub(ClearMetatable(CopyTable(rawConfig)));
-		for i, key in ipairs({
-			'configID';
-			'rawAxisMappings';
-			'rawButtonMappings';
-			'axisConfigs';
-			'stickConfigs';
-		}) do if not config[key] then
-				config[key] = {};
-			end
-		end
+		local config = FillGroups(Scrub(ClearMetatable(CopyTable(rawConfig))));
 		C_GamePad.SetConfig(config)
 		C_GamePad.ApplyConfigs()
-		return true;
+		return value;
 	end
 end
 
@@ -119,10 +127,11 @@ end
 function Mapper:SetValue(path, value)
 	if self.config then
 		if db('Mapper/config/'..path, value) then
-			return self:OnValueChanged()
+			return self:OnValueChanged(path, value)
 		end
 	end
 end
+
 
 db:RegisterCallback('OnMapperValueChanged', Mapper.OnValueChanged, Mapper)
 db:RegisterCallback('OnMapperDeviceChanged', Mapper.OnDeviceChanged, Mapper)

@@ -1,5 +1,7 @@
-local env = ConsolePortConfig:GetEnvironment()
+local env, _, localEnv = ConsolePortConfig:GetEnvironment(), ...;
+----------------------------------------------------------------
 local Consts = {}; env.MapperConsts = Consts;
+----------------------------------------------------------------
 
 Consts.Buttons = {
 	'Up';
@@ -51,8 +53,10 @@ Consts.Sticks = {
 	'Left';
 	'Right';
 	'Gyro';
+	'Pad';
 	'Movement';
 	'Camera';
+	'Look';
 	'Cursor';
 }
 
@@ -63,6 +67,7 @@ Consts.Labels = {
 	'Shapes';
 }
 
+----------------------------------------------------------------
 -- Append 'unassigned' value to each enum for the config.
 do local unassigned = '|cffffffffN/A|r';
 	for _, enum in pairs(Consts) do
@@ -71,10 +76,29 @@ do local unassigned = '|cffffffffN/A|r';
 	Consts.Unassigned = unassigned;
 end
 
-Consts.ConfigGroups = {
-	'configID';
-	'rawAxisMappings';
-	'rawButtonMappings';
-	'axisConfigs';
-	'stickConfigs'
-}
+----------------------------------------------------------------
+-- Local shared variables
+----------------------------------------------------------------
+localEnv[1], localEnv[2], localEnv[3] = env, env.db, env.L;
+----------------------------------------------------------------
+localEnv.PANEL_WIDTH = 960;
+localEnv.FIELD_WIDTH = 480;
+localEnv.STATE_VIEW_HEIGHT = 250;
+----------------------------------------------------------------
+-- Simple sub-content wrapper
+----------------------------------------------------------------
+local Wrapper = {}; localEnv.Wrapper = Wrapper;
+
+function Wrapper:OnClick()
+	local checked = self:GetChecked()
+	self.Content:SetShown(checked)
+	self.Hilite:SetShown(not checked)
+	self:SetHeight(checked and self.fixedHeight or 40)
+end
+
+function Wrapper:OnLoad()
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('TOPLEFT', 16, 0)
+	self.Label:SetJustifyH('LEFT')
+	self.Label:SetTextColor(1, 1, 1)
+end

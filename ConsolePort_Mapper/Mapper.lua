@@ -1,302 +1,27 @@
-local env, _, localenv = ConsolePortConfig:GetEnvironment(), ...;
-local db, L = env.db, env.L;
+local _, localEnv = ...;
+local env, db, L = unpack(localEnv)
 ----------------------------------------------------------------
 local Data, Consts, Widgets = db.Data, env.MapperConsts, env.Widgets;
-----------------------------------------------------------------
-local PANEL_WIDTH, STATE_VIEW_HEIGHT = 960, 250;
-local FIELD_WIDTH = 480;
 
 ----------------------------------------------------------------
 -- Helpers
 ----------------------------------------------------------------
-local function GetRealDevices()
-	local realDevices = {};
-	for i, deviceID in ipairs(C_GamePad.GetAllDeviceIDs()) do
-		local device = C_GamePad.GetDeviceRawState(deviceID)
-		if device then
-			tinsert(realDevices, device)
-		end
-	end
-	return realDevices;
-end
-
-local function GetRealDeviceIDs()
-	local realDeviceIDs = {};
-	for i, deviceID in ipairs(C_GamePad.GetAllDeviceIDs()) do
-		local device = C_GamePad.GetDeviceRawState(deviceID)
-		if device then
-			tinsert(realDeviceIDs, deviceID)
-		end
-	end
-	return realDeviceIDs;
-end
-
-local function ConvertToHex(number)
-	local hex = string.format('%x', number);
-	return ((#hex % 2 == 1) and '0'..hex or hex):upper()
-end
-
 local function Round(num, numDecimalPlaces)
 	local mult = 10^(numDecimalPlaces or 0);
 	return math.floor(num * mult + 0.5) / mult;
 end
 
-local function GetConfig(vendorID, productID)
-	local config = C_GamePad.GetConfig({
-		vendorID  = vendorID;
-		productID = productID;
-	}) or {};
-
-	for requiredField in pairs(tInvert(Consts.ConfigGroups)) do
-		if not config[requiredField] then
-			config[requiredField] = {};
-		end
+local function SetValue(group, index, dataPoint, value)
+	if ( value == Consts.Unassigned ) then
+		value = nil;
 	end
-
-	return config;
+	return db.Mapper:SetValue(('%s/%s/%s'):format(group, index, dataPoint), value)
 end
 
 ----------------------------------------------------------------
--- Device selection
+-- Config
 ----------------------------------------------------------------
--- Renders real devices in a list for individual mapping.
-
-local DeviceSelect = {};
-
-function DeviceSelect:Construct()
-	local options = self:GetRawOptions()
-	self:SetDrawOutline(true)
-	self:SetText(L'Device')
-	self.Label:ClearAllPoints()
-	self.Label:SetPoint('LEFT', 16, 0)
-	self.Label:SetJustifyH('LEFT')
-	self.Label:SetTextColor(1, 1, 1)
-	Widgets.Select(self, 'DeviceID', nil, Data.Select(1, 1):SetRawOptions(options), 'Device Information')
-	self.controller:SetCallback(function(value)
-		self:OnValueChanged(value)
-		self:Update()
-	end)
-	self:Update()
-end
-
-function DeviceSelect:GetRawOptions()
-	local options = {};
-	for i, device in ipairs(GetRealDevices()) do
-		tinsert(options, device.name)
-	end
-	return options;
-end
-
-function DeviceSelect:Get()
-	return self.controller:Get()
-end
-
-function DeviceSelect:GetCurrentDevice()
-	return GetRealDevices()[self:Get()]
-end
-
-function DeviceSelect:GetCurrentDeviceID()
-	return GetRealDeviceIDs()[self:Get()]
-end
-
-function DeviceSelect:Update()
-	local device = self:GetCurrentDevice()
-	if device then
-		self:SetText(('%s <|cFF00FF00%s|r:|cFF00FF00%s|r>'):format(
-			device.name, ConvertToHex(device.vendorID), ConvertToHex(device.productID)))
-		self.tooltipText = ('Name: %s\nVendor ID: |cFF00FFFF%s|r / |cFF00FF00%s|r\nProduct ID: |cFF00FFFF%s|r / |cFF00FF00%s|r'):format(
-			device.name,
-			device.vendorID, ConvertToHex(device.vendorID),
-			device.productID, ConvertToHex(device.productID)
-		);
-	else
-		self:SetText(L'Select a device from the list to continue.')
-	end
-	db:TriggerEvent('OnMapperDeviceChanged', device, self:GetCurrentDeviceID())
-end
-
-----------------------------------------------------------------
--- Button state indicators
-----------------------------------------------------------------
-local Rawaxis = {};
-
-function Rawaxis:Update(device)
-	self:SetValue(device.rawAxes[self:GetID()])
-end
-
-----------------------------------------------------------------
-local Rawbutton = {};
-
-function Rawbutton:Update(device)
-	self.State:SetVertexColor(0, device.rawButtons[self:GetID()] and 1 or 0, 0)
-end
-
-----------------------------------------------------------------
-local Mapaxis = {};
-
-function Mapaxis:Update(device)
-	self:SetValue(device.axes[self:GetID()])
-end
-
-----------------------------------------------------------------
-local Mapbutton = {};
-
-function Mapbutton:Update(device)
-	self.State:SetVertexColor(0, device.buttons[self:GetID()] and 1 or 0, 0)
-end
-
-function Mapbutton:OnEnter()
-	GameTooltip:SetOwner(self, 'ANCHOR_TOPRIGHT')
-	GameTooltip:SetText(GetBindingText(C_GamePad.ButtonIndexToBinding(self:GetID()-1)))
-end
-
-function Mapbutton:OnLeave()
-	if GameTooltip:IsOwned(self) then
-		GameTooltip:Hide()
-	end
-end
-
-function Mapbutton:SetID(id)
-	getmetatable(self).__index.SetID(self, id)
-	local glyph = GetBindingText(C_GamePad.ButtonIndexToBinding(id - 1))
-	if glyph then
-		self.Text:SetText(glyph)
-	end
-end
-
-----------------------------------------------------------------
--- State update display handler
-----------------------------------------------------------------
-local Display = {};
-
-function Display:OnDeviceUpdate(elapsed)
-	self.throttle = not self.throttle;
-	if self.throttle then return end;
-	local pools = self.pools;
-
-	local device = C_GamePad.GetDeviceRawState(self.deviceID)
-	if not device then return end
-	for obj in pools.rawAxis:EnumerateActive()   do obj:Update(device) end
-	for obj in pools.rawButton:EnumerateActive() do obj:Update(device) end
-
-	local device = C_GamePad.GetDeviceMappedState(self.deviceID)
-	if not device then return end
-	for obj in pools.mapAxis:EnumerateActive()   do obj:Update(device) end
-	for obj in pools.mapButton:EnumerateActive() do obj:Update(device) end
-end
-
-function Display:RefreshAxes(count, pool, mixin)
-	local prev;
-	for i=1, count do
-		local widget, newObj = pool:Acquire()
-		if newObj then
-			env.db.table.mixin(widget, mixin)
-		end
-		widget.Text:SetText(i-1)
-		widget:SetID(i)
-		widget:Show()
-
-		if prev then
-			widget:SetPoint('LEFT', prev, 'RIGHT', 24, 0)
-		else
-			widget:SetPoint('LEFT', 0, -16)
-		end
-		prev = widget;
-	end
-	pool.parent:SetWidth(count * 40)
-end
-
-function Display:RefreshButtons(count, pool, mixin)
-	local prev;
-	for i=1, count do
-		local widget, newObj = pool:Acquire()
-		if newObj then
-			env.db.table.mixin(widget, mixin)
-			widget.Text:SetJustifyH('CENTER')
-		end
-		widget.Text:SetText(i-1)
-		widget:SetID(i)
-		widget:Show()
-
-		local row = floor((i-1) / 8)
-		local col = (i-1) % 8;
-
-		widget:SetPoint('TOPLEFT', (col) * 46, -((row) * 46) - 16)
-	end
-end
-
-function Display:OnDeviceChanged(device, deviceID)
-	self:ReleaseAll()
-	if not device then
-		return self:SetScript('OnUpdate', nil)
-	end
-
-	-- Refresh raw values
-	self:RefreshAxes(device.rawAxisCount, self.pools.rawAxis, Rawaxis)
-	self:RefreshButtons(device.rawButtonCount, self.pools.rawButton, Rawbutton)
-
-	-- Refresh mapped values
-	local device = C_GamePad.GetDeviceMappedState(deviceID)
-	self:RefreshAxes(device.axisCount, self.pools.mapAxis, Mapaxis)
-	self:RefreshButtons(device.buttonCount, self.pools.mapButton, Mapbutton)
-
-	self.deviceID = deviceID;
-	self:SetScript('OnUpdate', self.OnDeviceUpdate)
-end
-
-function Display:ReleaseAll()
-	for _, pool in pairs(self.pools) do
-		pool:ReleaseAll()
-	end
-end
-
-function Display:Init()
-	env.OpaqueMixin.OnLoad(self)
-	self.pools = {
-		rawAxis   = CreateFramePool('Slider', self.Child.Raw.Content.RawAxes,    'CPConfigAxisTemplate');
-		mapAxis   = CreateFramePool('Slider', self.Child.Map.Content.MapAxes,    'CPConfigAxisTemplate');
-		rawButton = CreateFramePool('Frame',  self.Child.Raw.Content.RawButtons, 'CPConfigRawButtonTemplate');
-		mapButton = CreateFramePool('Frame',  self.Child.Map.Content.MapButtons, 'CPConfigRawButtonTemplate');
-	};
-
-	Mixin(self.Child, env.ScaleToContentMixin)
-	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self, self.Child, PANEL_WIDTH, 32)
-	self.Child:SetHeight(300)
-
-	db:RegisterCallback('OnMapperDeviceChanged', self.OnDeviceChanged, self)
-	self.Child.Config:Construct()
-	self.Child.DeviceSelect:Construct()
-end
-
-----------------------------------------------------------------
--- Simple sub-content wrapper
-----------------------------------------------------------------
-local Wrapper = {};
-
-function Wrapper:OnClick()
-	local checked = self:GetChecked()
-	self.Content:SetShown(checked)
-	self.Hilite:SetShown(not checked)
-	self:SetHeight(checked and self.fixedHeight or 40)
-end
-
-function Wrapper:OnLoad()
-	self.Label:ClearAllPoints()
-	self.Label:SetPoint('TOPLEFT', 16, 0)
-	self.Label:SetJustifyH('LEFT')
-	self.Label:SetTextColor(1, 1, 1)
-end
-
-----------------------------------------------------------------
---//////////////////////////////\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\--
-----------------------------------------------------------------
---                           Config                           --
-----------------------------------------------------------------
---\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\//////////////////////////////--
-----------------------------------------------------------------
-local Carpenter, FieldSize = LibStub('Carpenter'), {FIELD_WIDTH - 32, 36};
-local BaseMixin, FieldMixin = CreateFromMixins(env.ScaleToContentMixin), {}
+local Carpenter, FieldSize, FieldMixin = LibStub('Carpenter'), {localEnv.FIELD_WIDTH - 32, 36}, {};
 
 function FieldMixin:Get()
 	return self.controller:Get()
@@ -312,6 +37,22 @@ end
 ----------------------------------------------------------------
 -- Base
 ----------------------------------------------------------------
+local BaseMixin = CreateFromMixins(env.ScaleToContentMixin, {
+	BaseBlueprint = {
+		removeButton = {
+			_Type = 'Button';
+			_Size = {32, 32};
+			_Point = {'TOPRIGHT', -2, -4};
+			_SetNormalTexture = [[Interface\ChatFrame\UI-ChatIcon-Minimize-Up]];
+			_SetPushedTexture = [[Interface\ChatFrame\UI-ChatIcon-Minimize-Down]];
+			_SetHighlightTexture = [[Interface\Buttons\UI-Common-MouseHilight]];
+			_OnClick = function(self)
+				self:GetParent():Destroy()
+			end;
+		};
+	};
+})
+
 function BaseMixin:OnLoad()
 	self.Label:ClearAllPoints()
 	self.Label:SetPoint('TOPLEFT', 8, 0)
@@ -324,6 +65,7 @@ function BaseMixin:OnLoad()
 		instructions._Setup = 'CPIndexButtonBindingHeaderTemplate';
 		instructions._Point = instructions.point;
 	end
+	Carpenter:BuildFrame(self, self.BaseBlueprint, false, true)
 	Carpenter:BuildFrame(self.Content, blueprint, false, true)
 
 	for key, data in pairs(blueprint) do
@@ -335,16 +77,16 @@ function BaseMixin:OnLoad()
 			widget:OnLoad()
 			constructor(widget, widget.data, data, data.field, data.desc)
 			widget.controller:SetCallback(function(...)
-				print(...)
-				-- TODO
+				widget:OnValueChanged(SetValue(self.group, self.index, data.data, ...))
+				self:UpdateText(self.set)
 			end)
 		end
 	end
 	self:Hide()
 	self:Show()
-	self:SetMeasurementOrigin(self.Content, self.Content, FIELD_WIDTH - 20, 50)
+	self:SetMeasurementOrigin(self.Content, self.Content, localEnv.FIELD_WIDTH - 20, 50)
 	self:HookScript('OnClick', self.OnClick)
-	self:SetWidth(FIELD_WIDTH - 20)
+	self:SetWidth(localEnv.FIELD_WIDTH - 20)
 	self:SetDrawOutline(true)
 end
 
@@ -355,18 +97,32 @@ function BaseMixin:OnClick(...)
 	self:SetHitRectInsets(0, 0, 0, expanded and self:GetHeight() - 40 or 0)
 end
 
-function BaseMixin:SetOrigin(origin)
-	self.origin = origin;
+function BaseMixin:Update(data, i, group)
+	self.index = i;
+	self.group = group;
+	self.set = data;
+	self:UpdateFields(data)
 end
 
-function BaseMixin:Update(data)
-	self.set = data;
+function BaseMixin:UpdateFields(data)
+	data = data or self.set;
 	for varID, value in pairs(data) do
 		local field = self.Content[varID]
 		if field then
 			field:Set(type(value) == 'number' and Round(value, 5) or value)
 		end
 	end
+end
+
+function BaseMixin:Set(data, i, group)
+	self:UpdateText(data, i)
+	self:Update(data, i, group)
+end
+
+function BaseMixin:Destroy()
+	local group = self.group;
+	db.Mapper:SetValue(('%s/%s'):format(group, self.index), nil)
+	db:TriggerEvent('OnMapperGroupChanged', group, db('Mapper/config/'..group))
 end
 
 ----------------------------------------------------------------
@@ -402,12 +158,12 @@ local AxisMap = CreateFromMixins(BaseMixin, {
 	};
 })
 
-function AxisMap:Set(data, i)
+function AxisMap:UpdateText(data)
+	local rawIndex, axis, comment = rawget(data, 'rawIndex'), rawget(data, 'axis'), rawget(data, 'comment')
 	self:SetText(('Raw Axis %s: |cffffffff%s|r'):format(
-		data.rawIndex or Consts.Unassigned,
-		data.axis or data.comment or Consts.Unassigned
+		rawIndex or Consts.Unassigned,
+		axis or comment or Consts.Unassigned
 	))
-	self:Update(data)
 end
 
 ----------------------------------------------------------------
@@ -459,12 +215,12 @@ local ButtonMap = CreateFromMixins(BaseMixin, {
 	};
 })
 
-function ButtonMap:Set(data, i)
+function ButtonMap:UpdateText(data)
+	local rawIndex, button, axis = rawget(data, 'rawIndex'), rawget(data, 'button'), rawget(data, 'axis')
 	self:SetText(('Raw Button %s: |cffffffff%s|r'):format(
-		data.rawIndex or Consts.Unassigned,
-		data.button or data.axis or Consts.Unassigned
+		rawIndex or Consts.Unassigned,
+		button or axis or Consts.Unassigned
 	))
-	self:Update(data)
 end
 
 ----------------------------------------------------------------
@@ -530,7 +286,7 @@ local AxisConfig = CreateFromMixins(BaseMixin, {
 			desc   = 'Deadzone applied to ignore axis input from raw state.';
 			field  = Data.Number(0.25, 0.1);
 		};
-		buttonThresh = {
+		buttonThreshold = {
 			point  = {'TOP', '$parent.deadzone', 'BOTTOM', 0, -4};
 			data   = 'buttonThreshold';
 			text   = 'Button Threshold';
@@ -540,9 +296,9 @@ local AxisConfig = CreateFromMixins(BaseMixin, {
 	};
 });
 
-function AxisConfig:Set(axis, i)
-	self:SetText(axis.comment or axis.axis or L('Mapped Axis %d', tostring(i)))
-	self:Update(axis)
+function AxisConfig:UpdateText(axis, i, group)
+	local comment, name = rawget(axis, 'comment'), rawget(axis, 'axis')
+	self:SetText(comment or name or L('Mapped Axis %d', tostring(i)))
 end
 
 ----------------------------------------------------------------
@@ -551,7 +307,9 @@ end
 --   stick    stick
 --   axis     axisX
 --   axis     axisY
---   [float]  deadzone
+--	 [float]  deadzone (2D deadzone applied when normalizing the stick input length)
+--	 [float]  deadzoneX (X axis deadzone applied when mapping to stick)
+--	 [float]  deadzoneY (Y axis deadzone applied when mapping to stick)
 --   [string] comment
 
 local StickConfig = CreateFromMixins(BaseMixin, {
@@ -588,29 +346,102 @@ local StickConfig = CreateFromMixins(BaseMixin, {
 			point  = {'TOP', '$parent.axisY', 'BOTTOM', 0, -4};
 			data   = 'deadzone';
 			text   = 'Deadzone';
-			desc   = 'Deadzone applied when normalizing the stick input length.';
-			field  = Data.Number(0.25, 0.1);
+			desc   = '2D Deadzone applied when normalizing the stick input length.';
+			field  = Data.Number(0.25, 0.05);
+		};
+		deadzoneX = {
+			point  = {'TOP', '$parent.deadzone', 'BOTTOM', 0, -4};
+			data   = 'deadzoneX';
+			text   = 'Deadzone X';
+			desc   = 'Deadzone applied to Axis X when mapping to the stick.';
+			field  = Data.Number(0.05, 0.05);
+		};
+		deadzoneY = {
+			point  = {'TOP', '$parent.deadzoneX', 'BOTTOM', 0, -4};
+			data   = 'deadzoneY';
+			text   = 'Deadzone Y';
+			desc   = 'Deadzone applied to Axis Y when mapping to the stick.';
+			field  = Data.Number(0.05, 0.05);
 		};
 	};
 })
 
-function StickConfig:Set(stick, i)
-	self:SetText(stick.comment or stick.stick or L('Stick %d', tostring(i)))
-	self:Update(stick)
+function StickConfig:UpdateText(stick, i)
+	local comment, name = rawget(stick, 'comment'), rawget(stick, 'stick')
+	self:SetText(comment or name or L('Stick %d', tostring(i)))
 end
 
 ----------------------------------------------------------------
+-- Add field button
 ----------------------------------------------------------------
+local AddFieldButton = {};
+
+function AddFieldButton:OnLoad()
+	self:SetNormalTexture([[Interface\PaperDollInfoFrame\Character-Plus]])
+	self:SetPushedTexture([[Interface\PaperDollInfoFrame\Character-Plus]])
+	self:SetDrawOutline(true)
+	self:SetWidth(localEnv.FIELD_WIDTH - 20)
+	self:SetText(ADD)
+
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('TOPLEFT', 8, 0)
+	self.Label:SetJustifyH('LEFT')
+
+	local normal = self:GetNormalTexture()
+	local pushed = self:GetPushedTexture()
+
+	normal:ClearAllPoints()
+	pushed:ClearAllPoints()
+	normal:SetPoint('RIGHT', -8, 0)
+	pushed:SetPoint('RIGHT', -10, -2)
+	normal:SetSize(20, 20)
+	pushed:SetSize(20, 20)
+end
+
+function AddFieldButton:OnClick()
+	local group, data = self.group, self.data;
+	self:Uncheck()
+	db.Mapper:SetValue(('%s/%s'):format(group, #data+1), {})
+	db:TriggerEvent('OnMapperGroupChanged', group, data)
+end
+
+function AddFieldButton:Set(group, data)
+	self.group = group;
+	self.data = data;
+end
+
 ----------------------------------------------------------------
-local Config = CreateFromMixins(Wrapper, env.ScaleToContentMixin)
+-- Config content
+----------------------------------------------------------------
+local Config = CreateFromMixins(localEnv.Wrapper, env.ScaleToContentMixin);
+localEnv.Config = Config;
 
 function Config:OnLoad()
-	Wrapper.OnLoad(self)
+	localEnv.Wrapper.OnLoad(self)
 	self:SetHeight(40)
-	self:SetMeasurementOrigin(self.Content, self.Content, PANEL_WIDTH - 32, 0)
+	self:SetMeasurementOrigin(self.Content, self.Content, localEnv.PANEL_WIDTH - 32, 0)
 end
 
-function Config:LayoutData(set, pool, mixin, sort)
+local function PlaceWidgetInGrid(i, widget, prev1, prev2)
+	if ((i-1) % 2 == 0) then -- odd
+		if not prev1 then
+			widget:SetPoint('TOPLEFT', 16, -24)
+		else
+			widget:SetPoint('TOP', prev1, 'BOTTOM', 0, -8)
+		end
+		prev1 = widget;
+	else -- even
+		if not prev2 then
+			widget:SetPoint('TOPRIGHT', -16, -24)
+		else
+			widget:SetPoint('TOP', prev2, 'BOTTOM', 0, -8)
+		end
+		prev2 = widget;
+	end
+	return prev1, prev2;
+end
+
+function Config:LayoutData(group, set, pool, mixin, sort)
 	local prev1, prev2;
 	if sort then
 		table.sort(set, sort)
@@ -621,46 +452,33 @@ function Config:LayoutData(set, pool, mixin, sort)
 			Mixin(widget, mixin)
 			widget:OnLoad()
 		end
-		widget:Set(data, i)
-		widget:SetOrigin(set)
+		widget:Set(data, i, group)
 		widget:Show()
 
-		if ((i-1) % 2 == 0) then -- odd
-			if not prev1 then
-				widget:SetPoint('TOPLEFT', 16, -24)
-			else
-				widget:SetPoint('TOP', prev1, 'BOTTOM', 0, -8)
-			end
-			prev1 = widget;
-		else -- even
-			if not prev2 then
-				widget:SetPoint('TOPRIGHT', -16, -24)
-			else
-				widget:SetPoint('TOP', prev2, 'BOTTOM', 0, -8)
-			end
-			prev2 = widget;
-		end
+		prev1, prev2 = PlaceWidgetInGrid(i, widget, prev1, prev2)
 	end
-	pool.parent:SetHeight(ceil(#set/2) * 40 + 40)
+
+	pool.addNewButton:Set(group, set)
+	pool.addNewButton:ClearAllPoints()
+	PlaceWidgetInGrid(#set + 1, pool.addNewButton, prev1, prev2)
+
+	pool.parent:SetHeight(ceil((#set +1)/2) * 40 + 40)
 	pool.parent.forbidRecursiveScale = false;
 end
 
-function Config:OnDeviceChanged(device, deviceID)
-	local config = GetConfig(device.vendorID, device.productID)
+function Config:OnConfigLoaded(config)
 	self:SetData(config)
 end
 
 function Config:SetData(config)
 	self:ReleaseAll()
 
-	for i, group in ipairs(Consts.ConfigGroups) do
+	for i, group in ipairs(tInvert(db.Mapper.ConfigGroups)) do
 		local layout = self.layouts[group];
 		if layout then
-			self:LayoutData(config[group], layout.pool, layout.mixin, layout.sort)
+			self:LayoutData(group, rawget(config, group), layout.pool, layout.mixin, layout.sort)
 		end
 	end
-
-	localenv.data = config;
 end
 
 function Config:ReleaseAll()
@@ -669,269 +487,41 @@ function Config:ReleaseAll()
 	end
 end
 
+function Config:RefreshGroup(group, data)
+	local layout = self.layouts[group];
+	if layout then
+		layout.pool:ReleaseAll()
+		self:LayoutData(group, data, layout.pool, layout.mixin, layout.sort)
+	end
+end
+
 function Config:Construct()
+	local function CreatePool(type, parent, template)
+		local pool = CreateFramePool(type, parent, template)
+		pool.addNewButton = CreateFrame(type, nil, parent, 'CPIndexButtonBindingHeaderTemplate')
+		db.table.mixin(pool.addNewButton, AddFieldButton):OnLoad()
+		return pool;
+	end
+
 	self.pools = {
-		axisMap     = CreateFramePool('IndexButton', self.Content.RawAxisBlock, 'CPIndexButtonBindingHeaderTemplate');
-		buttonMap   = CreateFramePool('IndexButton', self.Content.RawButtonBlock, 'CPIndexButtonBindingHeaderTemplate');
-		axisConfig  = CreateFramePool('IndexButton', self.Content.MappedAxisBlock, 'CPIndexButtonBindingHeaderTemplate');
-		stickConfig = CreateFramePool('IndexButton', self.Content.StickBlock, 'CPIndexButtonBindingHeaderTemplate');
+		axisMap     = CreatePool('IndexButton', self.Content.RawAxisBlock, 'CPIndexButtonBindingHeaderTemplate');
+		buttonMap   = CreatePool('IndexButton', self.Content.RawButtonBlock, 'CPIndexButtonBindingHeaderTemplate');
+		axisConfig  = CreatePool('IndexButton', self.Content.MappedAxisBlock, 'CPIndexButtonBindingHeaderTemplate');
+		stickConfig = CreatePool('IndexButton', self.Content.StickBlock, 'CPIndexButtonBindingHeaderTemplate');
 	};
+
+	local function rawIndexSort(a, b)
+		return (a and a.rawIndex or 0) < (b and b.rawIndex or 0)
+	end
+
 	self.layouts = {
-		rawAxisMappings   = { pool = self.pools.axisMap,     mixin = AxisMap,    sort = function(a, b) return a.rawIndex < b.rawIndex; end };
-		rawButtonMappings = { pool = self.pools.buttonMap,   mixin = ButtonMap,  sort = function(a, b) return a.rawIndex < b.rawIndex; end };
+		rawAxisMappings   = { pool = self.pools.axisMap,     mixin = AxisMap,    sort = rawIndexSort };
+		rawButtonMappings = { pool = self.pools.buttonMap,   mixin = ButtonMap,  sort = rawIndexSort };
 		axisConfigs       = { pool = self.pools.axisConfig,  mixin = AxisConfig  };
 		stickConfigs      = { pool = self.pools.stickConfig, mixin = StickConfig };
 	};
 
-	Wrapper.OnLoad(self)
-	db:RegisterCallback('OnMapperDeviceChanged', self.OnDeviceChanged, self)
+	localEnv.Wrapper.OnLoad(self)
+	db:RegisterCallback('OnMapperConfigLoaded', self.OnConfigLoaded, self)
+	db:RegisterCallback('OnMapperGroupChanged', self.RefreshGroup, self)
 end
-
-----------------------------------------------------------------
-----------------------------------------------------------------
-local Panel, BlockMixin = {}, CreateFromMixins(env.ScaleToContentMixin);
-
-function BlockMixin:OnLoad()
-	self:SetMeasurementOrigin(self, self, PANEL_WIDTH, 0)
-	self.Label = self:CreateFontString()
-	self.Label:SetPoint('TOPLEFT', 24, -6)
-	self.Label:SetFontObject(GameFontGreen)
-	self.Label:SetText(self.text)
-end
-
-function Panel:OnFirstShow()
-	local function FlyoutPopoutButtonSetReversed(self, isReversed)
-		if ( self:GetParent().verticalFlyout ) then
-			if ( isReversed ) then
-				self:GetNormalTexture():SetTexCoord(0.15625, 0.84375, 0, 0.5);
-				self:GetHighlightTexture():SetTexCoord(0.15625, 0.84375, 0.5, 1);
-			else
-				self:GetNormalTexture():SetTexCoord(0.15625, 0.84375, 0.5, 0);
-				self:GetHighlightTexture():SetTexCoord(0.15625, 0.84375, 1, 0.5);
-			end
-		else
-			if ( isReversed ) then
-				self:GetNormalTexture():SetTexCoord(0.15625, 0, 0.84375, 0, 0.15625, 0.5, 0.84375, 0.5);
-				self:GetHighlightTexture():SetTexCoord(0.15625, 0.5, 0.84375, 0.5, 0.15625, 1, 0.84375, 1);
-			else
-				self:GetNormalTexture():SetTexCoord(0.15625, 0.5, 0.84375, 0.5, 0.15625, 0, 0.84375, 0);
-				self:GetHighlightTexture():SetTexCoord(0.15625, 1, 0.84375, 1, 0.15625, 0.5, 0.84375, 0.5);
-			end
-		end
-	end
-	
-	local config = self:CreateScrollableColumn('Config', {
-		_Mixin = Display;
-		_Width = PANEL_WIDTH;
-		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
-		_Backdrop = CPAPI.Backdrops.Opaque;
-		_Points = {
-			{'TOPLEFT', 0, 1};
-			{'BOTTOMLEFT', 0, -1};
-		};
-		{
-			Flexer = {
-				_Type = 'CheckButton';
-				_Setup = 'BackdropTemplate';
-				_Mixin = env.FlexibleMixin;
-				_Width = 24;
-				_Points = {
-					{'TOPLEFT', 'parent', 'TOPRIGHT', 0, 0};
-					{'BOTTOMLEFT', 'parent', 'BOTTOMRIGHT', 0, 0};
-				};
-				_Backdrop = CPAPI.Backdrops.Opaque;
-				_SetBackdropBorderColor = {0.15, 0.15, 0.15, 1};
-				_SetNormalTexture = 'Interface\\PaperDollInfoFrame\\UI-GearManager-FlyoutButton';
-				_SetHighlightTexture = 'Interface\\PaperDollInfoFrame\\UI-GearManager-FlyoutButton';
-				['state'] = true;
-				_OnLoad = function(self)
-					local r, g, b = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
-					self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1)
-					CPAPI.SetGradient(self.Center, 'HORIZONTAL', r*2, g*2, b*2, 1, r/1.25, g/1.25, b/1.25, 1)
-					local normal = self:GetNormalTexture()
-					local hilite = self:GetHighlightTexture()
-					normal:ClearAllPoints()
-					normal:SetPoint('CENTER', -1, 0)
-					normal:SetSize(16, 32)
-					hilite:ClearAllPoints()
-					hilite:SetPoint('CENTER', -1, 0)
-					hilite:SetSize(16, 32)
-					FlyoutPopoutButtonSetReversed(self, true)
-					self:SetFlexibleElement(self:GetParent(), PANEL_WIDTH)
-					self:SetChecked(true)
-				end;
-				_OnClick = function(self)
-					local enabled = self:GetChecked()
-					FlyoutPopoutButtonSetReversed(self, self:GetChecked())
-					self:ToggleFlex(enabled)
-				end;
-			};
-			Child = {
-				_Width = PANEL_WIDTH;
-				{
-					DeviceSelect = {
-						_Type  = 'IndexButton';
-						_Setup = 'CPIndexButtonBindingHeaderTemplate';
-						_Mixin = DeviceSelect;
-						_Width = PANEL_WIDTH - 32;
-						_Point = {'TOP', 0, -32};
-						{
-							TopText = {
-								_Type = 'FontString';
-								_Point = {'BOTTOMLEFT', '$parent', 'TOPLEFT', 8, 8};
-								_OnLoad = function(self)
-									self:SetFontObject(GameFontNormal)
-									self:SetText(L'Selected device:')
-								end;
-							};
-						};
-					};
-					Raw = {
-						_Type  = 'IndexButton';
-						_Mixin = Wrapper;
-						_Text  = L'Raw state';
-						_Setup = 'CPIndexButtonBindingHeaderTemplate';
-						_Width = PANEL_WIDTH - 32;
-						_Point = {'TOP', '$parent.DeviceSelect', 'BOTTOM', 0, -8};
-						fixedHeight = STATE_VIEW_HEIGHT;
-						{
-							Content = {
-								{
-									RawAxes = {
-										_Type = 'Frame';
-										_Point = {'TOPRIGHT', '$parent', 'TOP', 0, 0};
-										_Height = 200;
-										{
-											TopText = {
-												_Type = 'FontString';
-												_Point = {'TOPLEFT', 0, 0};
-												_OnLoad = function(self)
-													self:SetFontObject(GameFontNormal)
-													self:SetText(L'Raw Axes:')
-												end;
-											};
-										};
-									};
-									RawButtons = {
-										_Type  = 'Frame';
-										_Point = {'TOPLEFT', '$parent', 'TOP', 0, 0};
-										_Size  = {240, 200};
-										{
-											TopText = {
-												_Type = 'FontString';
-												_Point = {'TOPLEFT', 0, 0};
-												_OnLoad = function(self)
-													self:SetFontObject(GameFontNormal)
-													self:SetText(L'Raw Buttons:')
-												end;
-											};
-										};
-									};
-								};
-							};
-						};
-					};
-					Map = {
-						_Type  = 'IndexButton';
-						_Mixin = Wrapper;
-						_Text  = L'Mapped state';
-						_Setup = 'CPIndexButtonBindingHeaderTemplate';
-						_Width = PANEL_WIDTH - 32;
-						_Point = {'TOP', '$parent.Raw', 'BOTTOM', 0, -8};
-						fixedHeight = STATE_VIEW_HEIGHT;
-						{
-							Content = {
-								{
-									MapAxes = {
-										_Type = 'Frame';
-										_Point = {'TOPRIGHT', '$parent', 'TOP', 0, 0};
-										_Height = 200;
-										{
-											TopText = {
-												_Type = 'FontString';
-												_Point = {'TOPLEFT', 0, 0};
-												_OnLoad = function(self)
-													self:SetFontObject(GameFontNormal)
-													self:SetText(L'Mapped Axes:')
-												end;
-											};
-										};
-									};
-									MapButtons = {
-										_Type  = 'Frame';
-										_Point = {'TOPLEFT', '$parent', 'TOP', 0, 0};
-										_Size  = {240, 200};
-										{
-											TopText = {
-												_Type = 'FontString';
-												_Point = {'TOPLEFT', 0, 0};
-												_OnLoad = function(self)
-													self:SetFontObject(GameFontNormal)
-													self:SetText(L'Mapped Buttons:')
-												end;
-											};
-										};
-									};
-								};
-							};
-						};
-					};
-					Config = {
-						_Type  = 'IndexButton';
-						_Mixin = Config;
-						_Text  = L'Configuration';
-						_Setup = 'CPIndexButtonBindingHeaderTemplate';
-						_Width = PANEL_WIDTH - 32;
-						_Point = {'TOP', '$parent.Map', 'BOTTOM', 0, -8};
-						{
-							Content = {
-								{
-									RawAxisBlock = {
-										text   = L'Raw Axis -> Mapped Axis';
-										struct = 'rawAxisMappings';
-										_Type  = 'Frame';
-										_Mixin = BlockMixin;
-										_Size  = {PANEL_WIDTH, 40};
-										_Point = {'TOP', 0, 0};
-									};
-									RawButtonBlock = {
-										text   = L'Raw Button -> Mapped Button';
-										struct = 'rawButtonMappings';
-										_Type  = 'Frame';
-										_Mixin = BlockMixin;
-										_Size  = {PANEL_WIDTH, 40};
-										_Point = {'TOP', '$parent.RawAxisBlock', 'BOTTOM', 0, 0};
-									};
-									MappedAxisBlock = {
-										text   = L'Mapped Axes';
-										struct = 'axisConfigs';
-										_Type  = 'Frame';
-										_Mixin = BlockMixin;
-										_Size  = {PANEL_WIDTH, 40};
-										_Point = {'TOP', '$parent.RawButtonBlock', 'BOTTOM', 0, 0};
-									};
-									StickBlock = {
-										text   = L'Stick Configuration';
-										struct = 'stickConfigs';
-										_Type  = 'Frame';
-										_Mixin = BlockMixin;
-										_Size  = {PANEL_WIDTH, 40};
-										_Point = {'TOP', '$parent.MappedAxisBlock', 'BOTTOM', 0, 0};
-									};
-								};
-							};
-						};
-					};
-				};
-			};
-		};
-	})
-	config:Init()
-end
-
-env.Mapper = ConsolePortConfig:CreatePanel({
-	name = 'Mapper';
-	mixin = Panel;
-	scaleToParent = true;
-	forbidRecursiveScale = true;
-})
