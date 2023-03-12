@@ -163,6 +163,7 @@ function Display:OnDeviceUpdate(elapsed)
 end
 
 function Display:RefreshAxes(count, pool, mixin)
+	if not count then return end;
 	local prev;
 	for i=1, count do
 		local widget, newObj = pool:Acquire()
@@ -184,6 +185,7 @@ function Display:RefreshAxes(count, pool, mixin)
 end
 
 function Display:RefreshButtons(count, pool, mixin)
+	if not count then return end;
 	local prev;
 	for i=1, count do
 		local widget, newObj = pool:Acquire()

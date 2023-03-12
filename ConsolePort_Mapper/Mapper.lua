@@ -120,8 +120,9 @@ function BaseMixin:Set(data, i, group)
 end
 
 function BaseMixin:Destroy()
-	local group = self.group;
-	db.Mapper:SetValue(('%s/%s'):format(group, self.index), nil)
+	local group, index = self.group, self.index;
+	tremove(db.Mapper.config[group], index)
+	db:TriggerEvent('OnMapperValueChanged', ('%s/%s'):format(group, index), nil)
 	db:TriggerEvent('OnMapperGroupChanged', group, db('Mapper/config/'..group))
 end
 

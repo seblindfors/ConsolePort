@@ -89,7 +89,6 @@ end
 ---------------------------------------------------------------
 -- Mapper handler
 ---------------------------------------------------------------
-
 function Mapper:OnDeviceChanged(device, deviceID)
 	local configID = {
 		vendorID  = device.vendorID;
