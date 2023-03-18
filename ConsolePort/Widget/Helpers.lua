@@ -331,12 +331,14 @@ do local Scroller, Clamp = CreateFrame('Frame'), Clamp; Scroller.Frames = {};
 			GetScroll = 'GetHorizontalScroll';
 			SetScroll = 'SetHorizontalScroll';
 			GetAnchor = 'GetLeft';
+			GetElementOffsetFromAnchor = 'GetElementOffsetFromLeftAnchor';
 		};
 		Vertical = {
 			GetRange  = 'GetVerticalScrollRange';
 			GetScroll = 'GetVerticalScroll';
 			SetScroll = 'SetVerticalScroll';
 			GetAnchor = 'GetTop';
+			GetElementOffsetFromAnchor = 'GetElementOffsetFromTopAnchor';
 		};
 	}
 
@@ -377,9 +379,14 @@ do local Scroller, Clamp = CreateFrame('Frame'), Clamp; Scroller.Frames = {};
 		return ClampedPercentageBetween(select(2, element:GetCenter()), wrapper:GetTop(), wrapper:GetBottom())
 	end
 
-	function CPSmoothScrollMixin:GetElementOffsetFromAnchor(element, padding)
+	function CPSmoothScrollMixin:GetElementOffsetFromTopAnchor(element, padding)
 		local getAnchor = self.GetAnchor;
 		return getAnchor(self) - getAnchor(element) + self:GetScroll() + (padding or 0);
+	end
+
+	function CPSmoothScrollMixin:GetElementOffsetFromLeftAnchor(element, padding)
+		local getAnchor = self.GetAnchor;
+		return getAnchor(element) - getAnchor(self) + self:GetScroll() + (padding or 0);
 	end
 
 	function CPSmoothScrollMixin:ScrollToOffset(offset)

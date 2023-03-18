@@ -71,7 +71,7 @@
 	</Frame>
 
 	<IndexButton name="CPContainerHeaderButtonTemplate" virtual="true">
-		<Size x="130" y="80"/>
+		<Size x="120" y="80"/>
 		<ButtonText parentKey="Label" inherits="CPHeaderButtonFont" mixin="ShrinkUntilTruncateFontStringMixin" wordwrap="false" justifyH="CENTER">
 			<Anchors>
 				<Anchor point="LEFT"/>

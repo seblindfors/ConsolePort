@@ -7,7 +7,7 @@ CPHeaderMixin, CPPanelMixin = CreateFromMixins(CPFocusPoolMixin), CreateFromMixi
 ---------------------------------------------------------------
 function CPContainerMixin:OnContainerLoad()
 	local r, g, b = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
-	local inset, headerHeight = 8, 50;
+	local inset, headerHeight = 8, 40;
 
 	CPFocusPoolMixin.OnLoad(self)
 	CPBackgroundMixin.OnLoad(self)
@@ -61,8 +61,9 @@ function CPContainerMixin:OnContainerLoad()
 				Logo = {
 					_Type  = 'Button';
 					_Size  = {64, 64};
-					_Point = {'LEFT', -8, -2};
+					_Point = {'LEFT', -8, 0};
 					_Level = 10;
+					_Strata = 'HIGH';
 					_SetNormalTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
 					_SetPushedTexture = CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]);
 					_OnLoad = function(self)
@@ -84,8 +85,8 @@ function CPContainerMixin:OnContainerLoad()
 
 						Close = {
 							_Type = 'IndexButton';
-							_Size = {headerHeight - 24, headerHeight - 24};
-							_Point = {'TOPRIGHT', -12, -12};
+							_Size = {headerHeight - 16, headerHeight - 16};
+							_Point = {'TOPRIGHT', -8, -8};
 							_SetNormalTexture = CPAPI.GetAsset([[Textures\Frame\Close]]);
 							_SetHighlightTexture = CPAPI.GetAsset([[Textures\Frame\Close]]);
 							_SetThumbPosition = {'BOTTOM', 0.5};
