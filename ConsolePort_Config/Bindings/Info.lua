@@ -12,7 +12,7 @@ local BindingInfoMixin, BindingInfo = {}, {
 	Headers   = {};
 	Actionbar = {};
 	--------------------------------------------------------------
-	ActionInfoHandlers = {
+	ActionNameHandlers = {
 		spell        = function(id) return GetSpellInfo(id) or STAT_CATEGORY_SPELL end; -- Hack fallback: 'Spell'
 		item         = function(id) return GetItemInfo(id) or HELPFRAME_ITEM_TITLE end; -- Hack fallback: 'Item'
 		macro        = function(id) return GetMacroInfo(id) and GetMacroInfo(id) .. ' ('..MACRO..')' end;
@@ -36,7 +36,7 @@ end
 
 function BindingInfo:GetActionInfo(actionID)
 	local kind, kindID = GetActionInfo(actionID)
-	local getinfo = self.ActionInfoHandlers[kind]
+	local getinfo = self.ActionNameHandlers[kind]
 
 	if getinfo then
 		return getinfo(kindID)

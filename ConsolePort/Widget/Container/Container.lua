@@ -85,7 +85,7 @@ function CPContainerMixin:OnContainerLoad()
 
 						Close = {
 							_Type = 'IndexButton';
-							_Size = {headerHeight - 16, headerHeight - 16};
+							_Size = {headerHeight - 14, headerHeight - 14};
 							_Point = {'TOPRIGHT', -8, -8};
 							_SetNormalTexture = CPAPI.GetAsset([[Textures\Frame\Close]]);
 							_SetHighlightTexture = CPAPI.GetAsset([[Textures\Frame\Close]]);

@@ -271,7 +271,7 @@ function Splash:OnFirstShow()
 			_Backdrop = CPAPI.Backdrops.Opaque;
 			_Points = {
 				{'TOPLEFT', 0, 0};
-				{'BOTTOMRIGHT', '$parent.NavBar', 'TOPRIGHT', 0, 0};
+				{'BOTTOMRIGHT', '$parent.NavBar', 'TOPRIGHT', -2, 0};
 			};
 			{
 				FX = {
