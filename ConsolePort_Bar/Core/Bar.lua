@@ -121,7 +121,6 @@ function Bar:ADDON_LOADED(name)
 		if not ConsolePort_BarSetup then
 			ConsolePort_BarSetup = env:GetDefaultSettings()
 		end
-		env:CreateManifest()
 		env:SetConfig(ConsolePort_BarSetup, false)
 		self:UnregisterEvent('ADDON_LOADED')
 		self.ADDON_LOADED = nil

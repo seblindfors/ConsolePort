@@ -6,52 +6,6 @@ env.libs = { acb = LibStub('CPActionButton') };
 --------------------------------------------------------
 local r, g, b = CPAPI.NormalizeColor(CPAPI.GetClassColor())
 --------------------------------------------------------
-local defaultIcons do
-	local custom = [[Interface\AddOns\ConsolePort_Bar\Textures\Icons\%s]]
-	local client = [[Interface\Icons\%s]]
-	local isRetail = CPAPI.IsRetailVersion;
-	defaultIcons = {
-		----------------------------
-		JUMP = custom:format('Jump'),
-		TOGGLERUN = custom:format('Run'),
-		OPENALLBAGS = custom:format('Bags'),
-		TOGGLEGAMEMENU = custom:format('Menu'),
-		TOGGLEWORLDMAP = custom:format('Map'),
-		----------------------------
-		INTERACTTARGET = custom:format('Target'),
-		----------------------------
-		TARGETNEARESTENEMY = custom:format('Target'),
-		TARGETPREVIOUSENEMY = custom:format('Target'),
-		TARGETSCANENEMY = custom:format('Target'),
-		TARGETNEARESTFRIEND = custom:format('Target'),
-		TARGETPREVIOUSFRIEND = custom:format('Target'),
-		TARGETNEARESTENEMYPLAYER = custom:format('Target'),
-		TARGETPREVIOUSENEMYPLAYER = custom:format('Target'),
-		TARGETNEARESTFRIENDPLAYER = custom:format('Target'),
-		TARGETPREVIOUSFRIENDPLAYER = custom:format('Target'),
-		----------------------------
-		TARGETPARTYMEMBER1 = isRetail and client:format('Achievement_PVP_A_01'),
-		TARGETPARTYMEMBER2 = isRetail and client:format('Achievement_PVP_A_02'),
-		TARGETPARTYMEMBER3 = isRetail and client:format('Achievement_PVP_A_03'),
-		TARGETPARTYMEMBER4 = isRetail and client:format('Achievement_PVP_A_04'),
-		TARGETSELF = isRetail and client:format('Achievement_PVP_A_05'),
-		TARGETPET = client:format('Spell_Hunter_AspectOfTheHawk'),
-		----------------------------
-		ATTACKTARGET = client:format('Ability_SteelMelee'),
-		STARTATTACK  = client:format('Ability_SteelMelee'),
-		PETATTACK    = client:format('ABILITY_HUNTER_INVIGERATION'),
-		FOCUSTARGET  = client:format('Ability_Hunter_MasterMarksman'),
-		----------------------------
-		['CLICK ConsolePortFocusButton:LeftButton']      = client:format('VAS_RaceChange'),
-		['CLICK ConsolePortEasyMotionButton:LeftButton'] = custom:format('Group'),
-		['CLICK ConsolePortRaidCursorToggle:LeftButton'] = custom:format('Group'),
-		['CLICK ConsolePortRaidCursorFocus:LeftButton']  = custom:format('Group'),
-		['CLICK ConsolePortRaidCursorTarget:LeftButton'] = custom:format('Group'),
-		['CLICK ConsolePortUtilityToggle:LeftButton']    = custom:format('Ring'),
-		----------------------------
-	}
-end
---------------------------------------------------------
 local classArt = {
 	WARRIOR 	= {1, 1},
 	PALADIN 	= {1, 2},
@@ -71,20 +25,7 @@ local classArt = {
 --------------------------------------------------------
 
 function env:GetBindingIcon(binding)
-	return env.manifest.BindingIcons[binding]
-end
-
-function env:CreateManifest()
-	if type(ConsolePortBarManifest) ~= 'table' then
-		ConsolePortBarManifest = {
-			BindingIcons = defaultIcons,
-		}
-	elseif type(ConsolePortBarManifest.BindingIcons) ~= 'table' then
-		ConsolePortBarManifest.BindingIcons = defaultIcons
-	end
-	defaultIcons = nil
-	env.manifest = ConsolePortBarManifest
-	return ConsolePortBarManifest
+	return env.db.Bindings.Icons[binding]
 end
 
 function env:GetCover(class)

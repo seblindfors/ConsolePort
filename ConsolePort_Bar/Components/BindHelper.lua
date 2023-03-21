@@ -66,7 +66,7 @@ local function ShowBindingDropdown(frame, level, menuList)
 	end
 
 	local customHeader = (' |T%s:0|t %s '):format(CPAPI.GetAsset('Textures\\Logo\\CP_Tiny.blp'), SPECIAL)
-	for i, data in env.db:For('Bindings') do
+	for i, data in env.db:For('Bindings/Special') do
 		if not data.readonly then
 			CacheAvailableBinding(allBindings, pruningEnabled, data.binding, customHeader, GetBindingKey(data.binding))
 		end
