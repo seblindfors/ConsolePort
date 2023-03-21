@@ -25,7 +25,9 @@ CPAPI.EventMixin = {
 		end
 	end;
 	ADDON_LOADED = function(self, ...)
-		self:UnregisterEvent('ADDON_LOADED')
+		if self.UnregisterEvent then
+			self:UnregisterEvent('ADDON_LOADED')
+		end
 		if self.OnDataLoaded then
 			self:OnDataLoaded(...)
 		end
@@ -107,6 +109,11 @@ function CPAPI.CreateEventHandler(args, events, ...)
 	return CPAPI.EventHandler(handler, events)
 end
 
+function CPAPI.CreateDataHandler(...)
+	local handler = CreateFromMixins(...)
+	return CPAPI.DataHandler(handler)
+end
+
 function CPAPI.EventHandler(handler, events)
 	db('table/mixin')(handler, CPAPI.EventMixin)
 	if events then
@@ -114,6 +121,11 @@ function CPAPI.EventHandler(handler, events)
 		handler.Events = events;
 	end
 	handler:RegisterEvent('ADDON_LOADED')
+	return handler;
+end
+
+function CPAPI.DataHandler(handler)
+	db:RegisterCallback('OnDataLoaded', CPAPI.EventMixin.ADDON_LOADED, handler)
 	return handler;
 end
 

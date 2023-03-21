@@ -38,7 +38,7 @@ local Actions = {
 
 ---------------------------------------------------------------
 -- Get action/input handlers, EasyMotion -> EM for brevity
-local EM, Input = CPAPI.EventHandler(ConsolePortEasyMotionButton), ConsolePortEasyMotionInput
+local EM, Input = CPAPI.DataHandler(ConsolePortEasyMotionButton), ConsolePortEasyMotionInput
 -- Link functions for world targeting
 EM.HighlightTarget = TargetPriorityHighlightStart
 EM.GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit

@@ -118,7 +118,7 @@ function PowerLevel:OnDragStop()
 end
 
 CPAPI.Start(PowerLevel)
-CPAPI.EventHandler(PowerLevel)
+CPAPI.DataHandler(PowerLevel)
 
 ---------------------------------------------------------------
 -- Textures

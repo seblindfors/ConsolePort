@@ -5,6 +5,7 @@ function DataAPI:OnDataLoaded()
 	self.Defaults = {};
 	self:OnVariablesChanged(db.Variables)
 	self:UpdateDataSource()
+	db:TriggerEvent('OnDataLoaded')
 end
 
 function DataAPI:UpdateDataSource()

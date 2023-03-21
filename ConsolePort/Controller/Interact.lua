@@ -5,7 +5,7 @@
 -- macro condtions apply.
 
 local _, db = ...;
-local Interact = db:Register('Interact', CPAPI.EventHandler(ConsolePortInteract))
+local Interact = db:Register('Interact', CPAPI.DataHandler(ConsolePortInteract))
 
 Interact:SetAttribute('_onstate-override', [[
 	self:SetAttribute('enabled', newstate)

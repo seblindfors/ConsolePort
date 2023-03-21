@@ -1,5 +1,5 @@
 local _, db = ...;
-local Crosshair = CPAPI.EventHandler(ConsolePortCrosshair)
+local Crosshair = CPAPI.DataHandler(ConsolePortCrosshair)
 
 ---------------------------------------------------------------
 -- Predicates

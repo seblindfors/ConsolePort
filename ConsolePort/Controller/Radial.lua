@@ -6,7 +6,7 @@
 -- Keystrokes and specific stick inputs are interrupted by the
 -- handler and dispatched to the display layer on the header.
 
-local Radial, Dispatcher, RadialMixin, _, db = CPAPI.EventHandler(ConsolePortRadial), CreateFrame('Frame'), {}, ...;
+local Radial, Dispatcher, RadialMixin, _, db = CPAPI.DataHandler(ConsolePortRadial), CreateFrame('Frame'), {}, ...;
 Mixin(Radial, CPAPI.SecureEnvironmentMixin).Headers = {};
 db:Register('Radial', Radial):Execute([[
 	----------------------------------------------------------
