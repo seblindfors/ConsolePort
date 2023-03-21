@@ -406,8 +406,9 @@ do -- Icon provider (see FrameXML\IconDataProvider.lua)
 		pcall(GetMacroIcons, provider)
 		pcall(GetMacroItemIcons, provider)
 
+		local customIconsRef = tInvert(Bindings.CustomIcons)
 		for i, iconID in ipairs(provider) do
-			if not tonumber(iconID) then
+			if not tonumber(iconID) and not customIconsRef[iconID] then
 				provider[i] = client(iconID)
 			end
 		end
