@@ -218,7 +218,7 @@ function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
 	local actionID = BindingInfo:GetActionButtonID(binding)
 	if actionID and not skipActionInfo then
 		-- swap the info for current bar if offset
-		local page = db('Pager'):GetCurrentPage()
+		local page = db.Pager:GetCurrentPage()
 		actionID = actionID <= NUM_ACTIONBAR_BUTTONS and
 			actionID + ((page - 1) * 12) or actionID;
 
@@ -244,18 +244,18 @@ function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
 		-- this binding may have an action ID, but the slot is empty, or it's just a normal binding.
 		name = header and _G[header];
 		name = name and BindingInfo.DisplayFormat:format(text, name) or text;
-		return name, nil, actionID;
+		return name, db.Bindings:GetIcon(binding), actionID;
 	end
 
 	-- check if this is a ring binding
 	name = db.Utility:ConvertBindingToDisplayName(binding)
 	if name then
-		return name, nil, actionID;
+		return name, db.Bindings:GetIcon(binding), actionID;
 	end
 	-- at this point, this is not an usual binding. this is most likely a click binding.
 	name = gsub(binding, '(.* ([^:]+).*)', '%2') -- upvalue so it doesn't return more than 1 arg
 	name = name or self:WrapAsNotBound(NOT_BOUND);
-	return name, nil, actionID;
+	return name, db.Bindings:GetIcon(binding), actionID;
 end
 
 function BindingInfoMixin:WrapAsNotBound(text)

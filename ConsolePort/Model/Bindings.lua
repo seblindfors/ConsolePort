@@ -236,7 +236,7 @@ end
 ---------------------------------------------------------------
 do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Textures\Icons\%s]]):format(id) end;
 
-	Bindings.CustomIcons = {
+	local CustomIcons = {
 		Bags   = custom 'Bags';
 		Group  = custom 'Group';
 		Jump   = custom 'Jump';
@@ -245,27 +245,27 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Textures
 		Ring   = custom 'Ring';
 		Run    = custom 'Run';
 		Target = custom 'Target';
-	};
+	}; Bindings.CustomIcons = CustomIcons;
 
 	Bindings.DefaultIcons = {
 		---------------------------------------------------------------
-		JUMP                               = Bindings.CustomIcons.Jump;
-		TOGGLERUN                          = Bindings.CustomIcons.Run;
-		OPENALLBAGS                        = Bindings.CustomIcons.Bags;
-		TOGGLEGAMEMENU                     = Bindings.CustomIcons.Menu;
-		TOGGLEWORLDMAP                     = Bindings.CustomIcons.Map;
+		JUMP                               = CustomIcons.Jump;
+		TOGGLERUN                          = CustomIcons.Run;
+		OPENALLBAGS                        = CustomIcons.Bags;
+		TOGGLEGAMEMENU                     = CustomIcons.Menu;
+		TOGGLEWORLDMAP                     = CustomIcons.Map;
 		---------------------------------------------------------------
-		INTERACTTARGET                     = Bindings.CustomIcons.Target;
+		INTERACTTARGET                     = CustomIcons.Target;
 		---------------------------------------------------------------
-		TARGETNEARESTENEMY                 = Bindings.CustomIcons.Target;
-		TARGETPREVIOUSENEMY                = Bindings.CustomIcons.Target;
-		TARGETSCANENEMY                    = Bindings.CustomIcons.Target;
-		TARGETNEARESTFRIEND                = Bindings.CustomIcons.Target;
-		TARGETPREVIOUSFRIEND               = Bindings.CustomIcons.Target;
-		TARGETNEARESTENEMYPLAYER           = Bindings.CustomIcons.Target;
-		TARGETPREVIOUSENEMYPLAYER          = Bindings.CustomIcons.Target;
-		TARGETNEARESTFRIENDPLAYER          = Bindings.CustomIcons.Target;
-		TARGETPREVIOUSFRIENDPLAYER         = Bindings.CustomIcons.Target;
+		TARGETNEARESTENEMY                 = CustomIcons.Target;
+		TARGETPREVIOUSENEMY                = CustomIcons.Target;
+		TARGETSCANENEMY                    = CustomIcons.Target;
+		TARGETNEARESTFRIEND                = CustomIcons.Target;
+		TARGETPREVIOUSFRIEND               = CustomIcons.Target;
+		TARGETNEARESTENEMYPLAYER           = CustomIcons.Target;
+		TARGETPREVIOUSENEMYPLAYER          = CustomIcons.Target;
+		TARGETNEARESTFRIENDPLAYER          = CustomIcons.Target;
+		TARGETPREVIOUSFRIENDPLAYER         = CustomIcons.Target;
 		---------------------------------------------------------------
 		TARGETPARTYMEMBER1                 = CPAPI.IsRetailVersion and client 'Achievement_PVP_A_01';
 		TARGETPARTYMEMBER2                 = CPAPI.IsRetailVersion and client 'Achievement_PVP_A_02';
@@ -279,11 +279,11 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Textures
 		PETATTACK                          = client 'ABILITY_HUNTER_INVIGERATION';
 		FOCUSTARGET                        = client 'Ability_Hunter_MasterMarksman';
 		---------------------------------------------------------------
-		[Bindings.Custom.EasyMotion]       = Bindings.CustomIcons.Group;
-		[Bindings.Custom.RaidCursorToggle] = Bindings.CustomIcons.Group;
-		[Bindings.Custom.RaidCursorFocus]  = Bindings.CustomIcons.Group;
-		[Bindings.Custom.RaidCursorTarget] = Bindings.CustomIcons.Group;
-		[Bindings.Custom.UtilityRing]      = Bindings.CustomIcons.Ring;
+		[Bindings.Custom.EasyMotion]       = CustomIcons.Group;
+		[Bindings.Custom.RaidCursorToggle] = CustomIcons.Group;
+		[Bindings.Custom.RaidCursorFocus]  = CustomIcons.Group;
+		[Bindings.Custom.RaidCursorTarget] = CustomIcons.Group;
+		[Bindings.Custom.UtilityRing]      = CustomIcons.Ring;
 		--[Bindings.Custom.FocusButton]    = client 'VAS_RaceChange';
 		---------------------------------------------------------------
 	};
@@ -292,6 +292,10 @@ end
 function Bindings:OnDataLoaded()
 	self.Icons = CPAPI.Proxy(ConsolePortBindingIcons or {}, self.DefaultIcons)
 	db:Save('Bindings/Icons', 'ConsolePortBindingIcons')
+end
+
+function Bindings:GetIcon(bindingID)
+	return self.Icons[bindingID];
 end
 
 function Bindings:SetIcon(bindingID, icon)

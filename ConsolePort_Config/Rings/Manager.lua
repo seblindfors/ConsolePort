@@ -39,6 +39,7 @@ local RING_EMPTY_DESC = L[[You do not have any abilities in this ring yet.]]
 
 local EXTRA_ACTION_ID = CPAPI.ExtraActionButtonID;
 local GET_SPELLID_IDX = 7;
+local FIXED_OFFSET = 8;
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
@@ -75,7 +76,7 @@ local function ProcessRingName(name)
 end
 
 local function GetSelectedRingID()
-	local controller = env.Rings.Control.RingSelect.controller;
+	local controller = env.Rings.Mapper.Child.RingSelect.controller;
 	local index = controller:Get()
 	local options = controller:GetOptions()
 	local selectedOption = options and index and options[index];
@@ -141,6 +142,18 @@ end
 ---------------------------------------------------------------
 local RingSelectMixin = {};
 
+function RingSelectMixin:OnLoad()
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('TOPLEFT', 40, 0)
+	self.Label:SetWidth(0)
+end
+
+function RingSelectMixin:OnChecked(checked)
+	CPIndexButtonMixin.OnChecked(self, checked)
+	self.Content:SetShown(checked)
+	self:SetHeight((checked and self.Content.HelpText:GetStringHeight() + 40 or 0) + 40)
+end
+
 function RingSelectMixin:Update()
 	self:SetText(GetRingDisplayNameForIndex(self.controller:Get()))
 end
@@ -184,6 +197,9 @@ end
 function RingSelectMixin:Construct()
 	Widgets.Select(self, 'RingID', nil, db.Data.Select(1, 1):SetRawOptions(GetRingOptions()), SELECTED_RING_TEXT)
 	self:SetDrawOutline(true)
+	self.tooltipAnchor = 'ANCHOR_BOTTOM';
+	self.Popout:ClearAllPoints()
+	self.Popout:SetPoint('TOPRIGHT', -2, 0)
 	self.controller:SetCallback(function(value)
 		self:OnValueChanged(value)
 		self:Update()
@@ -191,6 +207,7 @@ function RingSelectMixin:Construct()
 	end)
 	db:RegisterCallback('OnRingAdded', self.OnRingAdded, self)
 	db:RegisterCallback('OnRingRemoved', self.OnRingRemoved, self)
+	self:SetScript('OnClick', CPIndexButtonMixin.OnIndexButtonClick)
 end
 
 ---------------------------------------------------------------
@@ -330,6 +347,8 @@ end
 local Mapper = CreateFromMixins(env.FlexibleMixin)
 local ActionMapper = CreateFromMixins(env.BindingActionMapper)
 local CollectionMixin = CreateFromMixins(ActionMapper.CollectionMixin, {
+	width = 360;
+	rowSize = 8;
 	clickActionCallback = function(self)
 		local pickup = self.pickup;
 		if pickup then
@@ -343,18 +362,28 @@ local CollectionMixin = CreateFromMixins(ActionMapper.CollectionMixin, {
 
 function Mapper:OnShow()
 	self:SetVerticalScroll(0)
+	self:OnRingSelectionChanged(GetSelectedRingID())
+end
+
+function Mapper:OnRingSelectionChanged(value)
+	local bindingID = db.Utility:GetBindingForSet(value)
+	if bindingID then
+		self.IconMapper:SetBinding(bindingID, true)
+	end
 end
 
 function Mapper:OnLoad()
 	env.OpaqueMixin.OnLoad(self)
-	self:SetFlexibleElement(self, 360)
+	self:SetFlexibleElement(self, 400)
 	Mixin(self.Child, env.ScaleToContentMixin)
-	self.Child:SetWidth(360)
+	self.Child:SetWidth(400)
 	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self.Child, self.Child, 360, 40)
+	self.Child:SetMeasurementOrigin(self.Child, self.Child, 400, 40)
 	CPAPI.Start(self)
 
 	self.ActionMapper = self.Child.ActionMapper;
+	self.IconMapper = self.Child.IconMapper;
+	db:RegisterCallback('OnRingSelectionChanged', self.OnRingSelectionChanged, self)
 end
 
 ActionMapper.OnHide = nil;
@@ -364,6 +393,10 @@ function ActionMapper:OnShow()
 end
 
 function ActionMapper:OnLoad()
+	self.CheckedThumb:ClearAllPoints()
+	self.CheckedThumb:Hide()
+	self.Background:Hide()
+	self.Background:ClearAllPoints()
 	self:SetEnabled(false)
 	CPFocusPoolMixin.OnLoad(self)
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 0)
@@ -524,13 +557,27 @@ function Loadout:Update(animate)
 			widget:Animate()
 		end
 		if prev then
-			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -4)
+			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET/2)
 		else
-			widget:SetPoint('TOP', 0, -8)
+			widget:SetPoint('TOP', 0, -FIXED_OFFSET)
 		end
 		prev = widget;
 	end
 	self.Child:SetHeight(nil)
+end
+
+---------------------------------------------------------------
+-- Icon mapper
+---------------------------------------------------------------
+local IconMapper = CreateFromMixins(env.BindingIconMapper)
+
+function IconMapper:OnLoad()
+	env.BindingIconMapper.OnLoad(self)
+
+	local inset = (FIXED_OFFSET * 2.5);
+	self.Content:ClearAllPoints()
+	self.Content:SetPoint('TOPLEFT', inset, -40)
+	self.Content:SetPoint('BOTTOMRIGHT', -inset, 0)
 end
 
 ---------------------------------------------------------------
@@ -539,113 +586,49 @@ end
 local RingsManager = {};
 
 function RingsManager:OnFirstShow()
-	LibStub('Carpenter'):BuildFrame(self, {
-		Control = {
-			_Type = 'Frame';
-			_Setup = 'BackdropTemplate';
-			_Backdrop = CPAPI.Backdrops.Opaque;
-			_OnLoad = env.OpaqueMixin.OnLoad;
-			_Points = {
-				{'TOPLEFT', self, 'BOTTOMLEFT', 0, 60};
-				{'BOTTOMRIGHT', self, 'BOTTOMRIGHT', -1, 0};
-			};
-			{
-				RingSelect = {
-					_Type = 'IndexButton';
-					_Setup = 'CPIndexButtonSettingTemplate';
-					_Mixin = RingSelectMixin;
-					_Point = {'LEFT', 8, 0};
-					_Width = 400;
-				};
-				RingRemove = {
-					_Type = 'IndexButton';
-					_Setup = 'CPIndexButtonSimpleTemplate';
-					_Point = {'RIGHT', -8, 0};
-					_Mixin = RemoveRingButton;
-					_Text = BUTTON_WITH_ICON_TEXT:format(RESET);
-					_Size = {162, 40};
-					_SetNormalTexture = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
-					_SetPushedTexture = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
-					_SetDrawOutline = true;
-				};
-				RingAdd = {
-					_Type = 'IndexButton';
-					_Setup = 'CPIndexButtonSimpleTemplate';
-					_Point = {'RIGHT', '$parent.RingRemove', 'LEFT', 0, 0};
-					_Mixin = AddRingButton;
-					_Text = BUTTON_WITH_ICON_TEXT:format(BATTLETAG_CREATE);
-					_Size = {162, 40};
-					_SetNormalTexture = [[Interface\PaperDollInfoFrame\Character-Plus]];
-					_SetPushedTexture = [[Interface\PaperDollInfoFrame\Character-Plus]];
-					_SetDrawOutline = true;
-				};
-				RingBinding = {
-					_Type = 'IndexButton';
-					_Setup = 'CPIndexButtonBindingActionTemplate';
-					_Height = 40;
-					_Points = {
-						{'LEFT', '$parent.RingSelect', 'RIGHT', 8, 0};
-						{'RIGHT', '$parent.RingAdd', 'LEFT', -8, 0};
-					};
-					_SetDrawOutline = true;
-					_RegisterForClicks = {'LeftButtonUp', 'RightButtonUp'};
-					_Text = KEY_BINDING ..':';
-					_Mixin = BindingButton;
-					{
-						Catch = {
-							_Type = 'Button';
-							_Setup = {CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate', 'CPPopupBindingCatchButtonTemplate'};
-							_Mixin = BindingCatcher;
-						};
-					};
-				};
-			}
-		};
-	})
-
 	local mapper = self:CreateScrollableColumn('Mapper', {
 		_Mixin = Mapper;
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
-		_Width = 360;
+		_Width = 400;
 		_SetDelta = 40;
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
 			{'TOPLEFT', 0, 0};
-			{'BOTTOMLEFT', 0, 60};
+			{'BOTTOMLEFT', 0, 0};
 		};
 		{
 			Child = {
-				_Width = 360;
+				_Width = 400;
 				{
-					ActionMapper = {
-						_Type  = 'IndexButton';
-						_Setup = 'CPIndexButtonBindingHeaderTemplate';
-						_Mixin = ActionMapper;
-						_Size  = {340, 40};
-						_Text  = SPELLBOOK_ABILITIES_BUTTON;
-						_Point = {'TOP', 0, -8};
+					HeaderSelect = {
+						_Type  = 'Frame';
+						_Setup = 'CPAnimatedLootHeaderTemplate';
+						_Width = 380;
+						_Point = {'TOP', 14, -FIXED_OFFSET};
+						_Text  = L'Ring selection';
 					};
-					Information = {
-						_Type  = 'IndexButton';
+					RingSelect = {
+						_Type = 'IndexButton';
 						_Setup = 'CPIndexButtonBindingHeaderTemplate';
-						_Size  = {340, 40};
-						_Text  = INFO;
-						_Point = {'TOP', '$parent.ActionMapper', 'BOTTOM', 0, -8};
-						_OnLoad = function(self)
-							self.Label:ClearAllPoints()
-							self.Label:SetPoint('TOP', 0, 0)
-							self.Label:SetWidth(0)
-						end;
-						_OnClick = function(self)
-							self.Content:SetShown(self:GetChecked())
-							self:SetHeight((self:GetChecked() and self.Content.HelpText:GetStringHeight() + 40 or 0) + 40)
-						end;
+						_Mixin = RingSelectMixin;
+						_Width = 380;
+						_Point = {'TOP', 0, -FIXED_OFFSET * 5};
 						{
 							HelpButton = {
-								_Type = 'Texture';
+								_Type = 'Button';
 								_Size = {40, 40};
-								_Texture = 'Interface\\common\\help-i';
+								_SetNormalTexture = 'Interface\\common\\help-i';
+								_SetHighlightTexture = 'Interface\\common\\help-i';
 								_Point = {'RIGHT', '$parent.Label', 'LEFT', 0, 0};
+								_OnClick = function(self, ...)
+									self:GetParent():Click()
+								end;
+								_OnEnter = function(self, ...)
+									self:GetParent():OnEnter()
+								end;
+								_OnLeave = function(self, ...)
+									self:GetParent():OnLeave()
+								end;
 							};
 							Content = {
 								{
@@ -654,18 +637,102 @@ function RingsManager:OnFirstShow()
 										_Setup = {'ARTWORK', 'GameTooltipText'};
 										_Text = RING_MENU_DESC;
 										_Points = {
-											{'TOPLEFT', 8, 0};
-											{'BOTTOMRIGHT', -8, 8};
+											{'TOPLEFT', FIXED_OFFSET, 0};
+											{'BOTTOMRIGHT', -FIXED_OFFSET, FIXED_OFFSET};
 										};
 									};
 								};
 							};
 						};
 					};
+					RingAdd = {
+						_Type = 'IndexButton';
+						_Setup = 'CPIndexButtonSimpleTemplate';
+						_Point = {'TOPLEFT', '$parent.RingSelect', 'BOTTOMLEFT', 0, -FIXED_OFFSET};
+						_Mixin = AddRingButton;
+						_Text = BUTTON_WITH_ICON_TEXT:format(BATTLETAG_CREATE);
+						_Size = {186, 40};
+						_SetNormalTexture = [[Interface\PaperDollInfoFrame\Character-Plus]];
+						_SetPushedTexture = [[Interface\PaperDollInfoFrame\Character-Plus]];
+						_SetDrawOutline = true;
+					};
+					RingRemove = {
+						_Type = 'IndexButton';
+						_Setup = 'CPIndexButtonSimpleTemplate';
+						_Point = {'TOPRIGHT', '$parent.RingSelect', 'BOTTOMRIGHT', 0, -FIXED_OFFSET};
+						_Mixin = RemoveRingButton;
+						_Text = BUTTON_WITH_ICON_TEXT:format(RESET);
+						_Size = {186, 40};
+						_SetNormalTexture = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
+						_SetPushedTexture = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
+						_SetDrawOutline = true;
+					};
+					RingBinding = {
+						_Type = 'IndexButton';
+						_Setup = 'CPIndexButtonBindingActionTemplate';
+						_Size  = {380, 40};
+						_Point = {'TOP', '$parent.RingSelect', 'BOTTOM', 0, -56};
+						_SetDrawOutline = true;
+						_RegisterForClicks = {'LeftButtonUp', 'RightButtonUp'};
+						_Text = KEY_BINDING ..':';
+						_Mixin = BindingButton;
+						{
+							Catch = {
+								_Type = 'Button';
+								_Setup = {CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate', 'CPPopupBindingCatchButtonTemplate'};
+								_Mixin = BindingCatcher;
+							};
+						};
+					};
+					IconMapper = {
+						_Type  = 'IndexButton';
+						_Setup = 'CPIndexButtonBindingHeaderTemplate';
+						_Mixin = IconMapper;
+						_Size  = {380, 40};
+						_Text  = L'Icon:';
+						_Point = {'TOP', '$parent.RingBinding', 'BOTTOM', 0, -FIXED_OFFSET};
+						_Hide  = true;
+						{
+							CurrentIcon = {
+								_Type  = 'IndexButton';
+								_Setup = 'CPIndexButtonBindingActionButtonTemplate';
+								_Point = {'TOPRIGHT', -4, -6};
+								_Size  = {30, 30};
+								_SetEnabled = false;
+							};
+							Content = {
+								_Mixin = env.BindingIconMapper.Container;
+								{
+									PageSelector = {
+										_Type = 'IndexButton';
+										_Mixin = env.BindingIconMapper.PageSelector;
+										_Height = 40;
+										_Points = {
+											{'TOPLEFT', 0, 0};
+											{'TOPRIGHT', 0, 0};
+										};
+									};
+								};
+							};
+						};
+					};
+					HeaderCollection = {
+						_Type  = 'Frame';
+						_Setup = 'CPAnimatedLootHeaderTemplate';
+						_Width = 380;
+						_Point = {'TOP', '$parent.IconMapper', 'BOTTOM', 12, -FIXED_OFFSET*2};
+						_Text  = COLLECTIONS;
+					};
+					ActionMapper = {
+						_Type  = 'IndexButton';
+						_Setup = 'CPIndexButtonBindingHeaderTemplate';
+						_Mixin = ActionMapper;
+						_Size  = {380, 40};
+						_Point = {'TOP', '$parent.IconMapper', 'BOTTOM', 0, -FIXED_OFFSET};
+					};
 				};
 			};
 		};
-
 	})
 
 	local loadout = self:CreateScrollableColumn('Loadout', {
@@ -674,8 +741,8 @@ function RingsManager:OnFirstShow()
 		_SetDelta = 40;
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_Points = {
-			{'TOPLEFT', 360, 0};
-			{'BOTTOMRIGHT', 0, 60};
+			{'TOPLEFT', 400, 0};
+			{'BOTTOMRIGHT', 0, 0};
 		};
 		{
 			EmptyText = {
@@ -687,7 +754,7 @@ function RingsManager:OnFirstShow()
 		};
 	})
 
-	self.Control.RingSelect:Construct()
+	self.Mapper.Child.RingSelect:Construct()
 end
 
 env.Rings = ConsolePortConfig:CreatePanel({

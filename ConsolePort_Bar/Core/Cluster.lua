@@ -466,8 +466,8 @@ function HANDLE:UpdateAllBindings(bindings)
 	if bindings then
 		ClearOverrideBindings(env.bar)
 		if type(bindings) == 'table' then
-			for binding, cluster in pairs(Registry) do
-				self:UpdateClusterBindings(cluster, bindings[binding])
+			for clusterID, cluster in pairs(Registry) do
+				self:UpdateClusterBindings(cluster, bindings[clusterID])
 			end
 		end
 	end

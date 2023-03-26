@@ -1,5 +1,19 @@
 local Carpenter, _, env = LibStub:GetLibrary('Carpenter'), ...;
 local Widgets = {}; env.Widgets = Widgets;
+---------------------------------------------------------------
+-- Widgets
+---------------------------------------------------------------
+-- Convert to or inherit a data handler widget design to work
+-- with the data interface. Calling a widget will construct the
+-- necessary frames and handlers to handle a given datapoint.
+-- Arguments to a widget:
+-- @param owner frame on which the widget should be implemented
+-- @param varID identifier for the variable the widget changes
+-- @param meta  metadata, see Model\Data\Data.lua:Field
+-- @param ctrl  controller, which contains data and callback
+-- @param desc  description for tooltips
+-- @param note  notes for tooltips
+-- @return owner
 
 ---------------------------------------------------------------
 -- Consts
@@ -63,7 +77,7 @@ end
 
 function Widget:OnEnter()
 	if self.tooltipText then
-		GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+		GameTooltip:SetOwner(self, self.tooltipAnchor or 'ANCHOR_TOP')
 		GameTooltip:SetText(self:GetText())
 		GameTooltip:AddLine(self.tooltipText, 1, 1, 1, 1)
 		if self.tooltipNote then
@@ -275,6 +289,7 @@ local Range = CreateWidget('Range', Number, {
 			local widget = self:GetParent()
 			self:SetValueStep(widget:GetStep());
 			self:SetMinMaxValues(widget.controller:GetMinMax());
+			self:EnableMouseWheel(false)
 		end;
 		_OnMouseDown = function(self, button)
 			self.isDraggingThumb = self:IsDraggingThumb();
@@ -287,6 +302,9 @@ local Range = CreateWidget('Range', Number, {
 				end
 			end
 		end;
+		_OnMouseWheel = function(self, delta)
+			self:GetParent():Set(Clamp(self:GetValue() + delta, self:GetMinMaxValues()))
+		end;
 		_OnValueChanged = function(self, value, byInput)
 			if byInput then
 				if self.isDraggingThumb then
@@ -298,6 +316,15 @@ local Range = CreateWidget('Range', Number, {
 		end;
 	};
 })
+
+function Range:EnableMouseWheel(enabled)
+	self.Input:EnableMouseWheel(enabled)
+end
+
+function Range:SetMinMax(min, max, value)
+	self.Input:SetMinMaxValues(min, max)
+	self.Input:SetValue(Clamp(value or self.Input:GetValue(), min, max))
+end
 
 function Range:OnValueChanged(value, valueExists)
 	value = tonumber(value)

@@ -1,6 +1,6 @@
 local _, env = ...; local db, L = env.db, env.L;
 local DEFAULT_BINDINGS, ACCOUNT_BINDINGS, CHARACTER_BINDINGS = 0, 1, 2;
-local LEFT_PANEL_WIDTH, CONTROL_BUTTON_WIDTH, CONTROL_HEIGHT = 360, 112, 140;
+local LEFT_PANEL_WIDTH, MAPPER_WIDTH, CONTROL_BUTTON_WIDTH, CONTROL_HEIGHT = 360, 340, 112, 140;
 local BindingsPanel = {}
 ---------------------------------------------------------------
 -- Main frame
@@ -490,7 +490,7 @@ function BindingsPanel:OnFirstShow()
 			};
 		};
 	})
-
+	
 	mapper = self:CreateScrollableColumn('Mapper', {
 		_Mixin = env.BindingMapper;
 		_Setup = {'CPSmoothScrollTemplate', 'BackdropTemplate'};
@@ -527,18 +527,50 @@ function BindingsPanel:OnFirstShow()
 					Binding = {
 						_Type  = 'IndexButton';
 						_Setup = 'CPIndexButtonBindingActionTemplate';
-						_Size  = {340, 40};
+						_Size  = {MAPPER_WIDTH, 40};
 						_Point = {'TOP', 0, -60};
 						_RegisterForClicks = {'LeftButtonUp', 'RightButtonUp'};
 						_SetDrawOutline = true;
 						_Text = KEY_BINDING ..':';
 						_Mixin = MapperBindingButton;
 					};
+					IconMap = {
+						_Type  = 'IndexButton';
+						_Setup = 'CPIndexButtonBindingHeaderTemplate';
+						_Mixin = env.BindingIconMapper;
+						_Size  = {MAPPER_WIDTH, 40};
+						_Text  = L'Icon:';
+						_Point = {'TOP', '$parent.Binding', 'BOTTOM', 0, -8};
+						_Hide  = true;
+						{
+							CurrentIcon = {
+								_Type  = 'IndexButton';
+								_Setup = 'CPIndexButtonBindingActionButtonTemplate';
+								_Point = {'TOPRIGHT', -4, -6};
+								_Size  = {30, 30};
+								_SetEnabled = false;
+							};
+							Content = {
+								_Mixin = env.BindingIconMapper.Container;
+								{
+									PageSelector = {
+										_Type = 'IndexButton';
+										_Mixin = env.BindingIconMapper.PageSelector;
+										_Height = 40;
+										_Points = {
+											{'TOPLEFT', 0, 0};
+											{'TOPRIGHT', 0, 0};
+										};
+									};
+								};
+							};
+						};
+					};
 					Option = {
 						_Type  = 'Frame';
 						_Setup = 'CPConfigBindingDisplayTemplate';
 						_Point = {'TOP', '$parent.Binding', 'BOTTOM', 0, 0};
-						_Size  = {340, 40};
+						_Size  = {MAPPER_WIDTH, 40};
 						_SetText = function(self, ...)
 							self.Label:SetText(...);
 						end;
@@ -554,7 +586,7 @@ function BindingsPanel:OnFirstShow()
 								_Type  = 'IndexButton';
 								_Setup = 'CPIndexButtonBindingHeaderTemplate';
 								_Mixin = env.BindingActionMapper;
-								_Size  = {340, 40};
+								_Size  = {MAPPER_WIDTH, 40};
 								_Text  = SPELLBOOK_ABILITIES_BUTTON;
 								-- OnLoad creates tooltip and sets point, because
 								-- tooltip needs to be a globally named frame.
@@ -564,10 +596,10 @@ function BindingsPanel:OnFirstShow()
 					Desc = {
 						_Type  = 'SimpleHTML';
 						_Hide  = true;
-						_Width = 340;
+						_Width = MAPPER_WIDTH;
 						_Mixin = env.BindingHTML;
 						_Points = {
-							{'TOP', '$parent.Binding', 'BOTTOM', 0, 0};
+							{'TOP', '$parent.IconMap', 'BOTTOM', 0, 0};
 							{'BOTTOM', 0, 0};
 						};
 					};

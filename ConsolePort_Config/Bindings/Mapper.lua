@@ -1,8 +1,10 @@
-local _, env = ...; local db = env.db;
+local _, env = ...; local db, L = env.db, env.L;
 local Mapper = CreateFromMixins(env.FlexibleMixin, env.BindingInfoMixin)
 local ActionMapper = CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, env.BindingInfoMixin)
+local IconMapper = CreateFromMixins(env.ScaleToContentMixin)
 local BindingHTML = {};
-env.BindingMapper, env.BindingActionMapper, env.BindingHTML = Mapper, ActionMapper, BindingHTML;
+env.BindingMapper, env.BindingActionMapper, env.BindingIconMapper, env.BindingHTML
+	= Mapper, ActionMapper, IconMapper, BindingHTML;
 
 ---------------------------------------------------------------
 -- Mapper
@@ -44,7 +46,8 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 		texture = actionID and GetActionTexture(transposedActionID or actionID)
 
 		-- HACK: handle extra action button 1 case
-		if (transposedActionID == CPAPI.ExtraActionButtonID or actionID == CPAPI.ExtraActionButtonID) then
+		local isExtraActionButton = transposedActionID == CPAPI.ExtraActionButtonID or actionID == CPAPI.ExtraActionButtonID;
+		if (isExtraActionButton) then
 			transposedActionID, texture = nil, nil;
 		end
 
@@ -58,6 +61,9 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 
 		-- dispatch to action mapper
 		option.Action:SetAction(transposedActionID)
+
+		-- dispatch to icon mapper
+		self.Child.IconMap:SetBinding(binding, not transposedActionID and not isExtraActionButton)
 
 		-- dispatch to HTML display
 		self.Child.Desc:SetContent(db.Bindings:GetDescriptionForBinding(binding))
@@ -209,6 +215,7 @@ end
 -- Action mapper
 ---------------------------------------------------------------
 local Action, Collection = {}, CreateFromMixins(CPFocusPoolMixin, env.ScaleToContentMixin, {
+	width = 320;
 	rowSize = 7;
 	clickActionCallback = function(self)
 		local pickup = self.pickup;
@@ -283,7 +290,7 @@ end
 
 function Collection:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
-	self:SetWidth(320)
+	self:SetWidth(self.width)
 	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 10)
 	self:CreateFramePool('IndexButton',
 		'CPIndexButtonBindingActionButtonTemplate', Action, nil, self.Content)
@@ -477,25 +484,247 @@ function ActionMapper:OnChecked(show)
 end
 
 ---------------------------------------------------------------
+-- Icon map container
+---------------------------------------------------------------
+local NUM_ICONS_SHOW, NUM_ICONS_PER_ROW = 80, 8;
+local ICON_SIZE, ICON_SPACING = 40, 8;
+local IconContainer = CreateFromMixins(CPFocusPoolMixin)
+local IconPageSelector = {};
+local IconButton = {};
+
+IconMapper.Container = IconContainer;
+IconMapper.PageSelector = IconPageSelector;
+
+local function GetIconForBinding(bindingID)
+	return db.Bindings:GetIcon(bindingID)
+end
+
+local function SetIconForBinding(bindingID, icon)
+	db.Bindings:SetIcon(bindingID, icon)
+end
+
+---------------------------------------------------------------
+function IconPageSelector:Get()
+	return self.controller:Get()
+end
+
+function IconPageSelector:GetText()
+	return L('Page %d', self.controller:Get())
+end
+
+function IconPageSelector:SetPageSelection(currentPage, numPages)
+	self.controller:SetMinMax(1, numPages):Set(currentPage)
+	self:SetMinMax(1, numPages, currentPage)
+	self:OnValueChanged(currentPage, true)
+end
+
+function IconPageSelector:Construct()
+	self.pageDataPoint = db.Data.Range(1, 1, 1, 1)
+
+	env.Widgets.Range(self, 'IconPage', nil, self.pageDataPoint, L'Change to see different icons.')
+	self.Input:ClearAllPoints()
+	self.Input:SetPoint('TOP', 0, -12)
+	self.Input:SetWidth(self:GetWidth() - 40)
+	self.Input.High:Hide()
+	self.Input.Low:Hide()
+	self:SetThumbPosition('BOTTOM')
+	self:EnableMouseWheel(true)
+
+	self:SetCallback(function(...)
+		self:GetParent():SetPage(...)
+		self:OnValueChanged(...)
+	end)
+	self.Construct = nil;
+end
+
+---------------------------------------------------------------
+
+function IconButton:SetTexture(texture)
+	self.Icon:SetTexture(texture)
+	self.texture = texture;
+end
+
+function IconButton:OnClick()
+	local isSelected = self:GetChecked()
+	local newTexture = isSelected and self.texture or nil;
+	SetIconForBinding(self:GetParent().bindingID, newTexture)
+end
+
+function IconButton:OnLoad()
+	self:SetScript('OnClick', self.OnClick)
+end
+
+---------------------------------------------------------------
+
+function IconContainer:SetPage(page)
+	self:ReleaseAll()
+	local provider = self:GetIconProvider()
+	local startIndex = 1 + (page - 1) * NUM_ICONS_SHOW;
+	local endIndex = Clamp(startIndex + NUM_ICONS_SHOW - 1, 1, #provider)
+
+	local count = 0;
+	for i = startIndex, endIndex do
+		local widget, newObj = self:Acquire(i)
+		local iconID = provider[i];
+		if newObj then
+			widget:OnLoad()
+		end
+		widget:SetSiblings(self.EnumerableObjects)
+		widget:SetPoint('TOPLEFT',
+			(ICON_SPACING + 4) + ((count) % NUM_ICONS_PER_ROW) * ICON_SIZE,
+			-(ICON_SIZE + ICON_SPACING) - math.floor(count / NUM_ICONS_PER_ROW) * ICON_SIZE)
+		widget:Show()
+		widget:SetID(i)
+		widget:SetTexture(iconID)
+		widget:Uncheck()
+		count = count + 1;
+	end
+	self:SetHeight(NUM_ICONS_SHOW / NUM_ICONS_PER_ROW * 42)
+	self.currentPage = page;
+	self.provider = provider;
+end
+
+function IconContainer:FindIcon(icon)
+	local provider, pages = self:GetIconProvider()
+	local index = tIndexOf(provider, icon)
+	if index then
+		self.PageSelector:Set(math.ceil(index / NUM_ICONS_SHOW))
+		local widget = self:GetObjectByIndex(index)
+		if widget then
+			widget:Check()
+		end
+	end
+end
+
+function IconContainer:SetBinding(bindingID)
+	self.bindingID = bindingID;
+	if self:IsShown() then
+		self:Update()
+	end
+end
+
+function IconContainer:Construct()
+	CPFocusPoolMixin.OnLoad(self)
+	self:CreateFramePool('IndexButton',
+		'CPIndexButtonBindingActionButtonTemplate', IconButton, nil, self)
+	self.PageSelector:Construct()
+	self.Construct = nil;
+end
+
+function IconContainer:GetIconProvider()
+	local provider = db.Bindings:GetIconProvider()
+	return provider, math.ceil(#provider / NUM_ICONS_SHOW);
+end
+
+function IconContainer:OnShow()
+	if self.Construct then
+		self:Construct()
+	end
+	self.PageSelector:SetPageSelection(self.currentPage or 1, select(2, self:GetIconProvider()))
+	self:Update()
+end
+
+function IconContainer:Update()
+	if not self.bindingID then return end;
+	self:SetPage(self.currentPage or 1)
+
+	local icon = GetIconForBinding(self.bindingID);
+	if icon then
+		self:FindIcon(icon)
+	end
+end
+
+function IconContainer:ReleaseAll()
+	CPFocusPoolMixin.ReleaseAll(self)
+	wipe(self.EnumerableObjects)
+end
+
+function IconContainer:Acquire(...)
+	local widget, newObj = CPFocusPoolMixin.Acquire(self, ...)
+	self.EnumerableObjects[#self.EnumerableObjects + 1] = widget;
+	return widget, newObj;
+end
+
+function IconContainer:OnHide()
+	self:ReleaseAll()
+	self.provider = nil;
+end
+
+function IconContainer:OnLoad()
+	self.EnumerableObjects = {};
+end
+
+function IconContainer:OnMouseWheel(...)
+	ExecuteFrameScript(self.PageSelector.Input, 'OnMouseWheel', ...)
+end
+
+---------------------------------------------------------------
+function IconMapper:OnLoad()
+	self:SetMeasurementOrigin(self, self.Content, self:GetWidth(), 0)
+	self.Label:ClearAllPoints()
+	self.Label:SetPoint('TOPLEFT', 8, 0)
+	self.Label:SetPoint('TOPRIGHT', -8, 0)
+	self.Label:SetJustifyH('LEFT')
+	self.Label:SetTextColor(1, 1, 1)
+	db:RegisterCallback('OnBindingIconChanged', self.UpdateIcon, self)
+end
+
+function IconMapper:UpdateIcon()
+	if not self.bindingID then return end;
+	self.iconID = GetIconForBinding(self.bindingID)
+	self.CurrentIcon.Icon:SetTexture(self.iconID or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
+end
+
+function IconMapper:SetBinding(bindingID, show)
+	self:SetShown(show)
+	if not show then
+		return db.Bindings:ReleaseIconProvider()
+	end
+	self.bindingID = bindingID;
+	self.Content:SetBinding(bindingID)
+	self:UpdateIcon()
+end
+
+IconMapper.OnChecked = ActionMapper.OnChecked;
+
+function IconMapper:OnExpand()
+	self.Hilite:Hide()
+	self:SetHeight(80 + (NUM_ICONS_SHOW / NUM_ICONS_PER_ROW * 42))
+	self:SetHitRectInsets(0, 0, 0, self:GetHeight() - 40)
+end
+
+function IconMapper:OnCollapse()
+	self.Hilite:Show()
+	self:SetHeight(40)
+	self:SetHitRectInsets(0, 0, 0, 0)
+end
+
+---------------------------------------------------------------
 -- Binding HTML container
 ---------------------------------------------------------------
+local HTML_WRAPPER_PAGE = '<html><body>%s</body></html>';
+local HTML_WRAPPER_BODY = '<br/><h1 align="center">%s</h1><br/><p>%s</p>';
+local HTML_WRAPPER_IMG  = '<br/><br/><img src="%s" align="%s" width="%s" height="%s"/>';
+local HTML_REPLACE_TABS = {'\t+', ''};
+local HTML_REPLACE_NEWL = {'\n\n', '<br/><br/>'};
+
 function BindingHTML:SetContent(desc, image)
 	if desc or image then
-		local wrapper = ('<html><body>%s</body></html>');
 		local content = '';
 		if desc then
-			content = ('<br/><h1 align="center">%s</h1><br/><p>%s</p>'):format(DESCRIPTION,
-				desc:gsub('\t+', ''):gsub('\n\n', '<br/><br/>'))
+			content = (HTML_WRAPPER_BODY):format(DESCRIPTION, desc
+				:gsub(unpack(HTML_REPLACE_TABS))
+				:gsub(unpack(HTML_REPLACE_NEWL)))
 		end
 		if image then
-			content = content .. ('<br/><br/><img src="%s" align="%s" width="%s" height="%s"/>'):format(
+			content = content .. (HTML_WRAPPER_IMG):format(
 				image.file,
 				image.align or 'CENTER',
 				image.width or '340',
 				image.height 
 			);
 		end
-		self:SetText(wrapper:format(content))
+		self:SetText(HTML_WRAPPER_PAGE:format(content))
 		return self:Show()
 	end
 	self:Hide()

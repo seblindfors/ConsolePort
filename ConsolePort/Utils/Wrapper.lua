@@ -89,6 +89,12 @@ function CPAPI.IsButtonValidForBinding(button)
 	return db('bindingAllowSticks') or (not button:match('PAD.STICK.+'))
 end
 
+function CPAPI.GetKeyChordParts(keyChord)
+	return
+	--[[buttonID]] (keyChord:match('PAD.+')),
+	--[[modifier]] (keyChord:gsub('PAD.+', ''));
+end
+
 ---------------------------------------------------------------
 -- Classic lua wrappers
 ---------------------------------------------------------------
