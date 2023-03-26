@@ -227,7 +227,7 @@ function Bindings:GetDescriptionForBinding(binding, useTooltipFormat)
 
 	local customRingName = db.Utility:ConvertBindingToDisplayName(binding)
 	if customRingName then
-		return CUSTOM_RING_DESC, nil, customRingName, CUSTOM_RING_ICON, customRingName;
+		return CUSTOM_RING_DESC, nil, customRingName, self:GetIcon(binding) or CUSTOM_RING_ICON, customRingName;
 	end
 end
 
