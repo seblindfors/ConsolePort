@@ -515,7 +515,7 @@ function Loadout:OnLoad()
 	self.Child:SetWidth(self:GetWidth())
 	Mixin(self.Child, env.ScaleToContentMixin)
 	self.Child:SetAllPoints()
-	self.Child:SetMeasurementOrigin(self.Child, self.Child, 625, 0)
+	self.Child:SetMeasurementOrigin(self.Child, self.Child, 585, 0)
 	self:CreateFramePool('Button', 'CPRingLoadoutButtonTemplate', LoadoutButton, nil, self.Child)
 
 	db:RegisterCallback('OnRingSelectionChanged', self.Reset, self)
