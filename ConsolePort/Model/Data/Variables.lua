@@ -75,7 +75,7 @@ db:Register('Variables', {
 		note = 'While disabled, cursor timeout, and toggling between free-roaming and center-fixed cursor are also disabled.';
 		advd = true;
 	};
-	mouseFreeCursorReticle = {Bool(false);
+	mouseFreeCursorReticle = {Map(0, {[0] = OFF, [1] = VIDEO_OPTIONS_ENABLED, [2] = TARGET});
 		head = MOUSE_LABEL;
 		sort = 2;
 		name = 'Cursor Reticle Targeting';

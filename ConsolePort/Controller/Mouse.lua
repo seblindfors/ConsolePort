@@ -166,7 +166,7 @@ Mouse.UNIT_SPELLCAST_CHANNEL_STOP  = Mouse.UNIT_SPELLCAST_STOP;
 
 function Mouse:CURRENT_SPELL_CAST_CHANGED()
 	if SpellTargeting() then
-		if (self.reticleOverride == nil) and db('mouseFreeCursorReticle') then
+		if (self.reticleOverride == nil) and (db('mouseFreeCursorReticle') ~= 0) then
 			self.reticleOverride = CVar_Sticks:Get()
 			CVar_Sticks:Set(0)
 			self:SetFreeCursor()
@@ -364,7 +364,7 @@ function Mouse:OnVariableChanged()
 	end
 
 	local useCursorReticleTargeting = db('mouseFreeCursorReticle')
-	if useCursorReticleTargeting then
+	if (useCursorReticleTargeting ~= 0) then
 		self:RegisterEvent('CURRENT_SPELL_CAST_CHANGED')
 	else
 		self:UnregisterEvent('CURRENT_SPELL_CAST_CHANGED')
