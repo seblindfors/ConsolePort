@@ -57,8 +57,9 @@ end
 db:RegisterSafeCallback('Settings/radialCosineDelta', Petring.OnAxisInversionChanged, Petring)
 db:RegisterSafeCallback('Settings/radialPrimaryStick', Petring.OnPrimaryStickChanged, Petring)
 
-Petring:WrapScript(Petring, 'PreClick', [[
-	self:SetAttribute('type', nil)
+Petring:SetAttribute('pressAndHoldAction', true)
+Petring:WrapScript(Petring, 'PreClick', (([[
+	self:SetAttribute('TYPE', nil)
 	if down then
 
 		self:Show()
@@ -67,13 +68,13 @@ Petring:WrapScript(Petring, 'PreClick', [[
 		if index then
 			local button = self:GetFrameRef(tostring(index))
 			if button then
-				self:SetAttribute('type', button:GetAttribute('type'))
+				self:SetAttribute('TYPE', button:GetAttribute('type'))
 				self:SetAttribute('action', button:GetAttribute('action'))
 			end
 		end
 		self:Hide()
 	end
-]])
+]]):gsub('TYPE', CPAPI.ActionTypeRelease)))
 ---------------------------------------------------------------
 -- Petbutton mixin
 ---------------------------------------------------------------
