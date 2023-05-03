@@ -235,12 +235,17 @@ local function BarColorOverride(self)
 	end
 end
 
-function WBC:AddBarFromTemplate(frameType, template)
+local function BarColorRaw(self, r, g, b, a)
+	self.StatusBar.BarTexture:SetVertexColor(r, g, b, a)
+end
+
+function WBC:AddBarFromTemplate(frameType, template, showPredicate)
 	local bar = CreateFrame(frameType, nil, self, template)
 	table.insert(self.bars, bar)
 	bar.StatusBar.Background:Hide()
 	bar.StatusBar.BarTexture:SetTexture([[Interface\AddOns\ConsolePort_Bar\Textures\XPBar]])
-	bar.SetBarColorRaw = bar.SetBarColor
+	bar.SetBarColorRaw = bar.SetBarColor or BarColorRaw;
+	bar.ShouldBeVisible = bar.ShouldBeVisible or showPredicate or nop;
 
 	bar:HookScript('OnEnter', function()
 		FadeIn(self, 0.2, self:GetAlpha(), 1)
@@ -253,7 +258,9 @@ function WBC:AddBarFromTemplate(frameType, template)
 	end)
 
 	bar:HookScript('OnShow', BarColorOverride)
-	hooksecurefunc(bar, 'SetBarColor', BarColorOverride)
+	if bar.SetBarColor then
+		hooksecurefunc(bar, 'SetBarColor', BarColorOverride)
+	end
 
 	self:UpdateBarsShown()
 	return bar
@@ -299,12 +306,23 @@ function WBC:LayoutBars(visBars)
 end
 
 WBC:OnLoad()
-WBC:AddBarFromTemplate('FRAME', 'CP_ReputationStatusBarTemplate')
 
 if CPAPI.IsRetailVersion then
-	WBC:AddBarFromTemplate('FRAME', 'HonorStatusBarTemplate')
-	WBC:AddBarFromTemplate('FRAME', 'ArtifactStatusBarTemplate')
-	WBC:AddBarFromTemplate('FRAME', 'AzeriteBarTemplate')
+	-- See FrameXML\StatusTrackingManager.lua
+	local BarsEnum = {
+		None       = -1,
+		Reputation = 1,
+		Honor      = 2,
+		Artifact   = 3,
+		Experience = 4,
+		Azerite    = 5,
+	}
+	WBC:AddBarFromTemplate('FRAME', 'CP_ReputationStatusBarTemplate', GenerateClosure(StatusTrackingManagerMixin.CanShowBar, WBC, BarsEnum.Reputation))
+	WBC:AddBarFromTemplate('FRAME', 'HonorStatusBarTemplate',         GenerateClosure(StatusTrackingManagerMixin.CanShowBar, WBC, BarsEnum.Honor))
+	WBC:AddBarFromTemplate('FRAME', 'ArtifactStatusBarTemplate',      GenerateClosure(StatusTrackingManagerMixin.CanShowBar, WBC, BarsEnum.Artifact))
+	WBC:AddBarFromTemplate('FRAME', 'AzeriteBarTemplate',             GenerateClosure(StatusTrackingManagerMixin.CanShowBar, WBC, BarsEnum.Azerite))
+else
+	WBC:AddBarFromTemplate('FRAME', 'CP_ReputationStatusBarTemplate')
 end
 
 do 	local xpBar = WBC:AddBarFromTemplate('FRAME', 'CP_ExpStatusBarTemplate')
