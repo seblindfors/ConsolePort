@@ -93,6 +93,20 @@ local CursorControl  = IsGamePadCursorControlEnabled;
 local MenuFrameOpen  = IsOptionFrameOpen;
 local SpellTargeting = SpellIsTargeting;
 ---------------------------------------------------------------
+local reverseMouseHandling = false;
+
+local GetClickCvar = function(isLeftClick)
+	if reverseMouseHandling then
+		isLeftClick = not isLeftClick;
+	end
+	return isLeftClick and CVar_LClick or CVar_RClick;
+end
+local GetClickBinding = function(isLeftClick)
+	if reverseMouseHandling then
+		isLeftClick = not isLeftClick;
+	end
+	return isLeftClick and LCLICK_BINDING or RCLICK_BINDING;
+end
 local IsClickAction = function(button, binding)
 	local action = GetBindingAction(CreateKeyChord(button))
 	return (action == '' or action == binding)
@@ -101,16 +115,18 @@ local IsAction = function(button, binding)
 	return GetBindingAction(CreateKeyChord(button), true) == binding;
 end
 local LeftClick = function(button)
-	if CVar_LClick:IsValue(button) then
-		return IsClickAction(button, LCLICK_BINDING)
+	local cvar, binding = GetClickCvar(true), GetClickBinding(true)
+	if cvar:IsValue(button) then
+		return IsClickAction(button, binding)
 	end
-	return IsAction(button, LCLICK_BINDING)
+	return IsAction(button, binding)
 end;
 local RightClick = function(button)
-	if CVar_RClick:IsValue(button) then
-		return IsClickAction(button, RCLICK_BINDING)
+	local cvar, binding = GetClickCvar(false), GetClickBinding(false)
+	if cvar:IsValue(button) then
+		return IsClickAction(button, binding)
 	end
-	return IsAction(button, RCLICK_BINDING)
+	return IsAction(button, binding)
 end
 ---------------------------------------------------------------
 local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChord(button)) end;
@@ -370,6 +386,7 @@ function Mouse:OnVariableChanged()
 		self:UnregisterEvent('CURRENT_SPELL_CAST_CHANGED')
 	end
 	CVar_Target:Set(useCursorReticleTargeting)
+	reverseMouseHandling = db('mouseHandlingReversed')
 end
 
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
@@ -379,7 +396,8 @@ db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
 db:RegisterCallbacks(Mouse.OnVariableChanged, Mouse,
 	'Settings/doubleTapModifier',
 	'Settings/doubleTapTimeout',
-	'Settings/mouseFreeCursorReticle'
+	'Settings/mouseFreeCursorReticle',
+	'Settings/mouseHandlingReversed'
 );
 ---------------------------------------------------------------
 Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)

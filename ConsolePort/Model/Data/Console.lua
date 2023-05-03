@@ -51,6 +51,12 @@ db:Register('Console', setmetatable({
 	--------------------------------------------------------------------------------------------------------
 	Cursor = {
 	--------------------------------------------------------------------------------------------------------
+		{	cvar = 'interactOnLeftClick';
+			type = Bool(false);
+			name = INTERACT_ON_LEFT_CLICK_TEXT;
+			desc = OPTION_TOOLTIP_INTERACT_ON_LEFT_CLICK;
+			note = 'Affects both mouse and gamepad.';
+		};
 		{	cvar = 'GamePadCursorAutoDisableJump';
 			type = Bool(true);
 			name = 'Hide Cursor on Jump';
