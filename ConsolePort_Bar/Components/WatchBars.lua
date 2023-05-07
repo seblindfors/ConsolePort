@@ -6,6 +6,9 @@ local FadeIn, FadeOut = env.db.Alpha.FadeIn, env.db.Alpha.FadeOut;
 -------------------------------------------
 local WBC = env.bar.WatchBarContainer
 
+local XP_BAR_TEXTURE_NORMAL   = ([[Interface\AddOns\ConsolePort_Bar\Textures\XPBar]])
+local XP_BAR_TEXTURE_INVERTED = ([[Interface\AddOns\ConsolePort_Bar\Textures\XPBar_Inverted]])
+
 WBC.BGLeft = WBC:CreateTexture(nil, 'BACKGROUND')
 WBC.BGLeft:SetPoint('TOPLEFT')
 WBC.BGLeft:SetPoint('BOTTOMRIGHT', WBC, 'BOTTOM', 0, 0)
@@ -118,7 +121,7 @@ end
 -- If the multi-bar is shown, a different texture needs to be displayed that is smaller. 
 function WBC:SetDoubleBarSize(bar, width)
 	local textureHeight = self:GetInitialBarHeight() 
-	local statusBarHeight = textureHeight - 4 
+	local statusBarHeight = textureHeight - 0
 	if( self.largeSize ) then 
 		self.SingleBarLargeUpper:SetSize(width, statusBarHeight) 
 		self.SingleBarLargeUpper:SetPoint('CENTER', bar, 0, 4)
@@ -160,22 +163,45 @@ function WBC:SetSingleBarSize(bar, width)
 end
 
 function WBC:LayoutBar(bar, barWidth, isTopBar, isDouble)
-	bar:Update() 
-	bar:Show() 
-		
+	bar:Update()
+	bar:Show()
 	bar:ClearAllPoints()
 	
 	if ( isDouble ) then
 		if ( isTopBar ) then
-			bar:SetPoint('BOTTOM', self:GetParent(), 0, -10)
-		else		
-			bar:SetPoint('BOTTOM', self:GetParent(), 0, -19)
+			bar:SetPoint('BOTTOM', self:GetParent(), 0, 18)
+			bar.StatusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_INVERTED)
+		else
+			bar:SetPoint('BOTTOM', self:GetParent(), 0, 0)
+			bar.StatusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_NORMAL)
 		end
 		self:SetDoubleBarSize(bar, barWidth)
 	else 
-		bar:SetPoint('BOTTOM', self:GetParent(), 0, -14)
+		bar:SetPoint('BOTTOM', self:GetParent(), 0, 0)
+		bar.StatusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_NORMAL)
 		self:SetSingleBarSize(bar, barWidth)
 	end
+end
+
+function WBC:SetMainBarColor(r, g, b)
+	if self.mainBar then
+		self.mainBar:SetBarColorRaw(r, g, b)
+	end
+end
+
+function WBC:LayoutBars(visBars)
+	local width = self:GetWidth()
+	self:HideStatusBars()
+
+	local TOP_BAR, IS_DOUBLE = true, true
+	if ( #visBars > 1 ) then
+		self:LayoutBar(visBars[1], width, not TOP_BAR, IS_DOUBLE)
+		self:LayoutBar(visBars[2], width, TOP_BAR, IS_DOUBLE)
+	elseif( #visBars == 1 ) then 
+		self:LayoutBar(visBars[1], width, TOP_BAR, not IS_DOUBLE)
+	end
+	self.mainBar = visBars and visBars[1]
+	self:UpdateBarTicks()
 end
 
 
@@ -239,13 +265,17 @@ local function BarColorRaw(self, r, g, b, a)
 	self.StatusBar.BarTexture:SetVertexColor(r, g, b, a)
 end
 
-function WBC:AddBarFromTemplate(frameType, template, showPredicate)
+function WBC:AddBarFromTemplate(frameType, template, showPredicate, getPriority)
 	local bar = CreateFrame(frameType, nil, self, template)
+	local statusBar = bar.StatusBar;
 	table.insert(self.bars, bar)
-	bar.StatusBar.Background:Hide()
-	bar.StatusBar.BarTexture:SetTexture([[Interface\AddOns\ConsolePort_Bar\Textures\XPBar]])
+	statusBar.Background:Hide()
+	statusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_NORMAL)
+	statusBar.BarTexture:SetSnapToPixelGrid(true)
+	statusBar.BarTexture:SetTexelSnappingBias(0)
 	bar.SetBarColorRaw = bar.SetBarColor or BarColorRaw;
 	bar.ShouldBeVisible = bar.ShouldBeVisible or showPredicate or nop;
+	bar.GetPriority = bar.GetPriority or getPriority;
 
 	bar:HookScript('OnEnter', function()
 		FadeIn(self, 0.2, self:GetAlpha(), 1)
@@ -266,45 +296,6 @@ function WBC:AddBarFromTemplate(frameType, template, showPredicate)
 	return bar
 end
 
-function WBC:LayoutBar(bar, barWidth, isTopBar, isDouble)
-	bar:Update()
-	bar:Show()
-	bar:ClearAllPoints()
-	
-	if ( isDouble ) then
-		if ( isTopBar ) then
-			bar:SetPoint('BOTTOM', self:GetParent(), 0, 14)
-		else
-			bar:SetPoint('BOTTOM', self:GetParent(), 0, 2)
-		end
-		self:SetDoubleBarSize(bar, barWidth)
-	else 
-		bar:SetPoint('BOTTOM', self:GetParent(), 0, 0)
-		self:SetSingleBarSize(bar, barWidth)
-	end
-end
-
-function WBC:SetMainBarColor(r, g, b)
-	if self.mainBar then
-		self.mainBar:SetBarColorRaw(r, g, b)
-	end
-end
-
-function WBC:LayoutBars(visBars)
-	local width = self:GetWidth()
-	self:HideStatusBars()
-
-	local TOP_BAR, IS_DOUBLE = true, true
-	if ( #visBars > 1 ) then
-		self:LayoutBar(visBars[1], width, not TOP_BAR, IS_DOUBLE)
-		self:LayoutBar(visBars[2], width, TOP_BAR, IS_DOUBLE)
-	elseif( #visBars == 1 ) then 
-		self:LayoutBar(visBars[1], width, TOP_BAR, not IS_DOUBLE)
-	end
-	self.mainBar = visBars and visBars[1]
-	self:UpdateBarTicks()
-end
-
 WBC:OnLoad()
 
 if CPAPI.IsRetailVersion then
@@ -317,14 +308,25 @@ if CPAPI.IsRetailVersion then
 		Experience = 4,
 		Azerite    = 5,
 	}
-	WBC:AddBarFromTemplate('FRAME', 'CP_ReputationStatusBarTemplate', GenerateClosure(StatusTrackingManagerMixin.CanShowBar, WBC, BarsEnum.Reputation))
-	WBC:AddBarFromTemplate('FRAME', 'HonorStatusBarTemplate',         GenerateClosure(StatusTrackingManagerMixin.CanShowBar, WBC, BarsEnum.Honor))
-	WBC:AddBarFromTemplate('FRAME', 'ArtifactStatusBarTemplate',      GenerateClosure(StatusTrackingManagerMixin.CanShowBar, WBC, BarsEnum.Artifact))
-	WBC:AddBarFromTemplate('FRAME', 'AzeriteBarTemplate',             GenerateClosure(StatusTrackingManagerMixin.CanShowBar, WBC, BarsEnum.Azerite))
+	local BarPriorities = {
+		[BarsEnum.Azerite]    = 0;
+		[BarsEnum.Reputation] = 1;
+		[BarsEnum.Honor]      = 2;
+		[BarsEnum.Artifact]   = 3;
+		[BarsEnum.Experience] = 4;
+	}
+
+	local CanShowBar, GetBarPriority = StatusTrackingManagerMixin.CanShowBar, StatusTrackingManagerMixin.GetBarPriority;
+	local __ = function(f, ...) return GenerateClosure(f, WBC, ...) end;
+
+	WBC:AddBarFromTemplate('FRAME', 'CP_ReputationStatusBarTemplate', __(CanShowBar, BarsEnum.Reputation), __(GetBarPriority, BarPriorities[BarsEnum.Reputation]))
+	WBC:AddBarFromTemplate('FRAME', 'HonorStatusBarTemplate',         __(CanShowBar, BarsEnum.Honor),      __(GetBarPriority, BarPriorities[BarsEnum.Honor]))
+	WBC:AddBarFromTemplate('FRAME', 'ArtifactStatusBarTemplate',      __(CanShowBar, BarsEnum.Artifact),   __(GetBarPriority, BarPriorities[BarsEnum.Artifact]))
+	WBC:AddBarFromTemplate('FRAME', 'AzeriteBarTemplate',             __(CanShowBar, BarsEnum.Azerite),    __(GetBarPriority, BarPriorities[BarsEnum.Azerite]))
+	WBC:AddBarFromTemplate('FRAME', 'CP_ExpStatusBarTemplate',        __(CanShowBar, BarsEnum.Experience), __(GetBarPriority, BarPriorities[BarsEnum.Experience]))
+
 else
 	WBC:AddBarFromTemplate('FRAME', 'CP_ReputationStatusBarTemplate')
-end
-
-do 	local xpBar = WBC:AddBarFromTemplate('FRAME', 'CP_ExpStatusBarTemplate')
+	WBC:AddBarFromTemplate('FRAME', 'CP_ExpStatusBarTemplate')
 	--xpBar.ExhaustionLevelFillBar:SetTexture([[Interface\AddOns\ConsolePortBar\Textures\XPBar]])
 end

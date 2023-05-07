@@ -350,72 +350,113 @@ function CPReputationBarMixin:ShouldBeVisible()
 	return name ~= nil
 end
 
-function CPReputationBarMixin:Update() 
+function CPReputationBarMixin:GetMaxLevel()
 	local name, reaction, minBar, maxBar, value, factionID = GetWatchedFactionInfo()
-	local colorIndex = reaction
-	local isCapped
-	local friendshipID = CPAPI.GetFriendshipReputation(factionID)
-	
-	if ( self.factionID ~= factionID ) then
-			self.factionID = factionID;
-			self.friendshipID = friendshipID;
-		end
-	
+	if not factionID or factionID == 0 then
+		return nil;
+	end
+
+	if CPAPI.IsFactionParagon(factionID) then
+		return nil;
+	end
+
+	if CPAPI.IsMajorFaction(factionID) then
+		local renownLevelsInfo = CPAPI.GetRenownLevels(factionID)
+		return renownLevelsInfo[#renownLevelsInfo].level;
+	end
+
+	local reputationInfo = CPAPI.GetFriendshipReputation(factionID)
+	local friendshipID = reputationInfo.friendshipFactionID;
+	if friendshipID > 0 then
+		local repRankInfo = CPAPI.GetFriendshipReputationRanks(factionID)
+		return repRankInfo.maxLevel;
+	end
+
+	return MAX_REPUTATION_REACTION;
+end
+
+function CPReputationBarMixin:Update()
+	local name, reaction, minBar, maxBar, value, factionID = GetWatchedFactionInfo();
+	if not factionID or factionID == 0 then
+		return;
+	end
+
+	local colorIndex = reaction;
+	local overrideUseBlueBar = false;
+
+	local isShowingNewFaction = self.factionID ~= factionID;
+	if isShowingNewFaction then
+		local reputationInfo = CPAPI.GetFriendshipReputation(factionID)
+		self.factionID = factionID;
+		self.friendshipID = reputationInfo.friendshipFactionID;
+	end
+
 	-- do something different for friendships
-	local level
-	
-	if ( friendshipID ) then
-		local friendID, friendRep, friendMaxRep, friendName, friendText, friendTexture, friendTextLevel, friendThreshold, nextFriendThreshold = GetFriendshipReputation(factionID)
-		level = GetFriendshipReputationRanks(factionID)
-		if ( nextFriendThreshold ) then
-			minBar, maxBar, value = friendThreshold, nextFriendThreshold, friendRep
+	local level;
+	local maxLevel = self:GetMaxLevel()
+
+	if CPAPI.IsFactionParagon(factionID) then
+		local currentValue, threshold, _, hasRewardPending = CPAPI.GetFactionParagonInfo(factionID);
+		minBar, maxBar  = 0, threshold;
+		value = currentValue % threshold;
+		level = maxLevel;
+		if hasRewardPending then
+			value = value + threshold;
+		end
+		if CPAPI.IsMajorFaction(factionID) then
+			overrideUseBlueBar = true;
+		end
+	elseif CPAPI.IsMajorFaction(factionID) then
+		local majorFactionData = CPAPI.GetMajorFactionData(factionID);
+		minBar, maxBar = 0, majorFactionData.renownLevelThreshold;
+		level = majorFactionData.renownLevel;
+		overrideUseBlueBar = true;
+	elseif self.friendshipID > 0 then
+		local repInfo = CPAPI.GetFriendshipReputation(factionID)
+		local repRankInfo = CPAPI.GetFriendshipReputationRanks(factionID)
+		level = repRankInfo.currentLevel;
+		if repInfo.nextThreshold then
+			minBar, maxBar, value = repInfo.reactionThreshold, repInfo.nextThreshold, repInfo.standing;
 		else
 			-- max rank, make it look like a full bar
-			minBar, maxBar, value = 0, 1, 1
-			isCapped = true
+			minBar, maxBar, value = 0, 1, 1;
 		end
-		colorIndex = 5		-- always color friendships green
-		
-	elseif ( C_Reputation and C_Reputation.IsFactionParagon(factionID) ) then
-		local currentValue, threshold, _, hasRewardPending = C_Reputation.GetFactionParagonInfo(factionID)
-		minBar, maxBar  = 0, threshold
-		value = currentValue % threshold
-		if ( hasRewardPending ) then 
-			value = value + threshold
-		end
+		colorIndex = 5; -- Friendships always use same
 	else
-		level = reaction
-		if ( reaction == MAX_REPUTATION_REACTION ) then
-			isCapped = true
-		end
+		level = reaction;
 	end
-	
+
+	local isCapped = (level and maxLevel) and level >= maxLevel;
+
 	-- Normalize values
-	maxBar = maxBar - minBar
-	value = value - minBar
-	if ( isCapped and maxBar == 0 ) then
-		maxBar = 1
-		value = 1
+	maxBar = maxBar - minBar;
+	value = value - minBar;
+	if isCapped and maxBar == 0 then
+		maxBar = 1;
+		value = 1;
 	end
-	minBar = 0
-	
-	self:SetBarValues(value, minBar, maxBar, level) 
-	
-	if ( isCapped ) then
-		self:SetBarText(name)
+	minBar = 0;
+
+	self:SetBarValues(value, minBar, maxBar, level, maxLevel)
+
+	if isCapped then
+		self:SetBarText(name);
 	else
-		name = name.." %d / %d"
-		self:SetBarText(name:format(value, maxBar)) 
+		name = name..' %d / %d';
+		self:SetBarText(name:format(value, maxBar))
 	end
-	
-	local color = FACTION_BAR_COLORS[colorIndex]
-	
+ 
+	local color = overrideUseBlueBar and BLUE_FONT_COLOR or FACTION_BAR_COLORS[colorIndex];
 	self:SetBarColor(color.r, color.g, color.b, 1) 
-	
-	self.isCapped = isCapped 
-	self.name = name
-	self.value = value 
-	self.max = maxBar 
+
+	self.name = name;
+	self.value = value;
+	self.max = maxBar;
+
+	-- When showing new faction, force status bar to update instantly
+	if isShowingNewFaction then
+		self.StatusBar:ProcessChangesInstantly()
+	end
 end
 
 function CPReputationBarMixin:OnLoad()
