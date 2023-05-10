@@ -262,7 +262,8 @@ function CPExhaustionTickMixin:UpdateTickPosition()
 		self:Hide()
 		parent.ExhaustionLevelFillBar:Hide()
 	else
-		local exhaustionTickSet = max(((playerCurrXP + exhaustionThreshold) / playerMaxXP) * (parent:GetWidth()), 0)
+		local exhaustionFillFraction = max(((playerCurrXP + exhaustionThreshold) / playerMaxXP), 0)
+		local exhaustionTickSet = max(exhaustionFillFraction * parent:GetWidth(), 0)
 		self:ClearAllPoints()
 		
 		if ( exhaustionTickSet > parent:GetWidth() ) then
@@ -272,6 +273,8 @@ function CPExhaustionTickMixin:UpdateTickPosition()
 			self:Show()
 			self:SetPoint("CENTER", parent, "LEFT", exhaustionTickSet, 0)
 			parent.ExhaustionLevelFillBar:Show()
+			parent.ExhaustionLevelFillBar:SetTexture(parent.StatusBar:GetStatusBarTexture():GetTexture())
+			parent.ExhaustionLevelFillBar:SetTexCoord(0, exhaustionFillFraction, 0, 1)
 			parent.ExhaustionLevelFillBar:SetPoint("TOPRIGHT", parent, "TOPLEFT", exhaustionTickSet, 0)
 		end
 	end
@@ -367,7 +370,7 @@ function CPReputationBarMixin:GetMaxLevel()
 
 	local reputationInfo = CPAPI.GetFriendshipReputation(factionID)
 	local friendshipID = reputationInfo.friendshipFactionID;
-	if friendshipID > 0 then
+	if friendshipID and friendshipID > 0 then
 		local repRankInfo = CPAPI.GetFriendshipReputationRanks(factionID)
 		return repRankInfo.maxLevel;
 	end
@@ -411,7 +414,7 @@ function CPReputationBarMixin:Update()
 		minBar, maxBar = 0, majorFactionData.renownLevelThreshold;
 		level = majorFactionData.renownLevel;
 		overrideUseBlueBar = true;
-	elseif self.friendshipID > 0 then
+	elseif self.friendshipID and self.friendshipID > 0 then
 		local repInfo = CPAPI.GetFriendshipReputation(factionID)
 		local repRankInfo = CPAPI.GetFriendshipReputationRanks(factionID)
 		level = repRankInfo.currentLevel;
