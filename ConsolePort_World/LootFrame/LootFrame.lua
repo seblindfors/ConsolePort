@@ -72,6 +72,7 @@ function LootFrame:OnShow()
 end
 
 function LootFrame:OnHide()
+	self:ReleaseAll()
 	self.Header.HeaderOpenAnim:Finish()
 	if UIHandle:IsHintFocus(self) then
 		UIHandle:HideHintBar()
