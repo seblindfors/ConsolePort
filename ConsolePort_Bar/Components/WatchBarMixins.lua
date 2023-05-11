@@ -268,13 +268,20 @@ function CPExhaustionTickMixin:UpdateTickPosition()
 		
 		if ( exhaustionTickSet > parent:GetWidth() ) then
 			self:Hide()
-			parent.ExhaustionLevelFillBar:Hide()
 		else
 			self:Show()
 			self:SetPoint("CENTER", parent, "LEFT", exhaustionTickSet, 0)
-			parent.ExhaustionLevelFillBar:Show()
-			parent.ExhaustionLevelFillBar:SetTexture(parent.StatusBar:GetStatusBarTexture():GetTexture())
-			parent.ExhaustionLevelFillBar:SetTexCoord(0, exhaustionFillFraction, 0, 1)
+		end
+
+		exhaustionFillFraction = Clamp(exhaustionFillFraction, 0, 1)
+
+		parent.ExhaustionLevelFillBar:Show()
+		parent.ExhaustionLevelFillBar:SetTexture(parent.StatusBar:GetStatusBarTexture():GetTexture())
+		parent.ExhaustionLevelFillBar:SetTexCoord(0, exhaustionFillFraction, 0, 1)
+
+		if (exhaustionFillFraction == 1) then
+			parent.ExhaustionLevelFillBar:SetPoint("TOPRIGHT", parent, "TOPRIGHT", 0, 0)
+		else	
 			parent.ExhaustionLevelFillBar:SetPoint("TOPRIGHT", parent, "TOPLEFT", exhaustionTickSet, 0)
 		end
 	end
