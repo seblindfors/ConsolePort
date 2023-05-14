@@ -192,8 +192,22 @@ Bindings.Primary = {
 	---------------------------------------------------------------
 	-- Targeting
 	---------------------------------------------------------------
+	{	binding = Bindings.Proxied.InteractTarget;
+		desc    = [[
+			Allows you to interact with NPCs and objects in the game world.
+
+			Has the same capability as center cursor, but does not require you to
+			aim the cursor or crosshair directly on the target.
+
+			Interactables are highlighted when in range.
+		]] -- TODO: remove the following then interact key gets added to classic era
+		.. (CPAPI.IsClassicEraVersion and ([[
+
+			Not available on Classic Era yet. Prefer using %s.
+		]]):format(BLUE_FONT_COLOR:WrapTextInColorCode(KEY_BUTTON2)) or '');
+	};
 	{	binding = Bindings.Proxied.TargetScan;
-		desc = [[
+		desc    = [[
 			Scans for enemies in a narrow cone in front of you.
 			Hold down to highlight targets before making the decision
 			to switch targets.
@@ -216,7 +230,7 @@ Bindings.Primary = {
 		};
 	};
 	{	binding = Bindings.Proxied.TargetNearest;
-		desc = [[
+		desc    = [[
 			Switch between the nearest enemy targets in front of you.
 			Without a current target, the centermost enemy will be selected.
 			Otherwise it will cycle through the nearest targets.
@@ -240,7 +254,7 @@ Bindings.Primary = {
 	-- Movement keys
 	---------------------------------------------------------------
 	{	binding = Bindings.Proxied.Jump;
-		desc = [[
+		desc    = [[
 			Can also be used to swim up while under water, ascend with
 			flying mounts, and lift off or flap upward while dragonriding.
 
@@ -254,7 +268,7 @@ Bindings.Primary = {
 		]];
 	};
 	{ 	binding = Bindings.Proxied.ToggleAutoRun;
-		desc = [[
+		desc    = [[
 			Autorun will cause your character to continue moving
 			in the direction you're facing without any input from you.
 
@@ -267,7 +281,7 @@ Bindings.Primary = {
 	-- Interface
 	---------------------------------------------------------------
 	{	binding = Bindings.Proxied.ToggleGameMenu;
-		desc = [[
+		desc    = [[
 			The menu binding handles all functionality which occurs by pressing
 			the Escape key on a keyboard. It handles different actions based
 			on the current state of the game.
@@ -287,7 +301,7 @@ Bindings.Primary = {
 		]];
 	};
 	{	binding = Bindings.Proxied.ToggleAllBags;
-		desc = 'Opens and closes all bags.';
+		desc    = 'Opens and closes all bags.';
 	};
 	{	binding = Bindings.Proxied.ToggleWorldMap;
 		desc = CPAPI.IsRetailVersion and 'Toggles the combined world map and quest log.' or 'Toggles the world map.';
@@ -296,10 +310,10 @@ Bindings.Primary = {
 	-- Camera
 	---------------------------------------------------------------
 	{	binding = 'CAMERAZOOMIN';
-		desc = 'Zooms the camera in. Hold for continuous zoom.';
+		desc    = 'Zooms the camera in. Hold for continuous zoom.';
 	};
 	{	binding = 'CAMERAZOOMOUT';
-		desc = 'Zooms the camera out. Hold for continuous zoom.';
+		desc    = 'Zooms the camera out. Hold for continuous zoom.';
 	};
 	---------------------------------------------------------------
 	-- Misc
