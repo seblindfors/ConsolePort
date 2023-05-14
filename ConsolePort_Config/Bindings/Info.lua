@@ -52,7 +52,7 @@ function BindingInfo:AddActionbarBinding(name, bindingID, actionID)
 	self.Actionbar[actionID] = {name = name, binding = bindingID};
 end
 
-do local customHeader = ' |TInterface\\Store\\category-icon-featured:18:18:4:0:64:64:18:46:18:46|t  ' .. SPECIAL;
+do local customHeader = ' |TInterface\\Store\\category-icon-featured:18:18:0:0:64:64:18:46:18:46|t  ' .. SPECIAL;
 	--(' |T%s:20:20:0:-2|t %s '):format(CPAPI.GetAsset('Textures\\Logo\\CP_Thumb.blp'), SPECIAL)
 	_G[customHeader] = customHeader;
 	function BindingInfo:AddCustomBinding(name, bindingID, readonly)
@@ -69,7 +69,7 @@ do local customHeader = ' |TInterface\\Store\\category-icon-featured:18:18:4:0:6
 	end
 end
 
-do local primaryHeader = '  |TInterface\\Store\\category-icon-wow:18:18:4:0:64:64:18:46:18:46|t  ' .. PRIMARY;
+do local primaryHeader = '  |TInterface\\Store\\category-icon-wow:18:18:0:0:64:64:18:46:18:46|t  ' .. PRIMARY;
 	function BindingInfo:AddPrimaryBinding(name, bindingID, readonly)
 		self:AddBindingToCategory(name, bindingID, primaryHeader, readonly)
 		self.Custom[bindingID] = name;

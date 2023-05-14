@@ -386,7 +386,7 @@ function BindingManager:OnShow()
 		self:ReleaseCategories()
 		if not self.bindingsFirstDrawn then
 			-- Create custom action bar handler
-			self.Header = self:CreateHeader('|TInterface\\Store\\category-icon-weapons:18:18:4:0:64:64:18:46:18:46|t  ' .. BINDING_HEADER_ACTIONBAR, nil)
+			self.Header = self:CreateHeader('|TInterface\\Store\\category-icon-weapons:18:18:0:0:64:64:18:46:18:46|t  ' .. BINDING_HEADER_ACTIONBAR, nil)
 			self.Actionbar = Mixin(CreateFrame('Frame', nil, self.Child), Actionbar)
 			self.Actionbar:OnLoad(self.Header)
 		end

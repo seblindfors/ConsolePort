@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- Convenience UI modifications and hacks
 ---------------------------------------------------------------
-local _, db = ...;
+local name, db = ...;
 
 -- Popups:
 -- Since popups normally appear in response to an event or
@@ -117,6 +117,7 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 	'MERCHANT_CLOSED';
 	'BAG_UPDATE_DELAYED';
 	'QUEST_AUTOCOMPLETE';
+	'ADDON_ACTION_FORBIDDEN';
 }, {
 	SellJunkHelper = function(item)
 		if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
@@ -153,3 +154,37 @@ function Handler:OnDataLoaded()
 end
 
 db:RegisterCallback('Settings/keyboardEnable', TryLoadKeyboardUI, Handler)
+
+-- Replace popup messages for forbidden actions which cannot be fixed by the addon
+do local ForbiddenActions = {
+		['FocusUnit()'] = ([[
+			While the interface cursor is active, focus cannot reliably be set from unit dropdown menus.
+
+			Please use another method to set focus, such as the %s binding, a /focus macro or the raid cursor.
+		]]):format(BLUE_FONT_COLOR:WrapTextInColorCode(BINDING_NAME_FOCUSTARGET));
+		['ClearFocus()'] = ([[
+			While the interface cursor is active, focus cannot reliably be cleared from unit dropdown menus.
+
+			Please use another method to clear focus, such as the %s binding, a /focus macro or the raid cursor.
+		]]):format(BLUE_FONT_COLOR:WrapTextInColorCode(BINDING_NAME_FOCUSTARGET));
+		['CastSpellByID()'] = [[
+			While the interface cursor is active, a few actions are not possible to perform reliably.
+			It appears you tried to cast a spell from a source that has been tainted by the
+			interface cursor.
+
+			Please use another method to cast this spell, such as using a macro or your action bars.
+		]];
+	};
+
+	function Handler:ADDON_ACTION_FORBIDDEN(addOnName, func)
+		if ( addOnName == name and ForbiddenActions[func] ) then
+			local message = CPAPI.FormatLongText(db.Locale(ForbiddenActions[func]))
+			local popup = StaticPopup_FindVisible('ADDON_ACTION_FORBIDDEN')
+			if popup then
+				_G[popup:GetName()..'Text']:SetText(message)
+				popup.button1:SetEnabled(false)
+				StaticPopup_Resize(popup, 'ADDON_ACTION_FORBIDDEN')
+			end
+		end
+	end
+end

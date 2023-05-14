@@ -220,6 +220,17 @@ function CPAPI.GetWebClassIcon(class)
 end
 
 ---------------------------------------------------------------
+-- Text
+---------------------------------------------------------------
+function CPAPI.FormatLongText(text)
+	return text
+		:gsub('\t+', '')	-- (1) replace tabs
+		:gsub('\n\n', '\t') -- (2) replace double newline with tabs
+		:gsub('\n', ' ')	-- (3) replace newline with space
+		:gsub('\t', '\n\n') -- (4) replace tab with double newline
+end
+
+---------------------------------------------------------------
 -- Colors
 ---------------------------------------------------------------
 CPAPI.WebColors = {

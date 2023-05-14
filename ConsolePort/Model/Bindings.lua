@@ -358,11 +358,7 @@ do -- Handle custom rings
 		if set then
 			local desc = set.desc;
 			if desc and useTooltipFormat then
-				desc = desc
-					:gsub('\t+', '')	-- (1) replace tabs
-					:gsub('\n\n', '\t') -- (2) replace double newline with tabs
-					:gsub('\n', ' ')	-- (3) replace newline with space
-					:gsub('\t', '\n\n') -- (4) replace tab with double newline
+				desc = CPAPI.FormatLongText(desc)
 			end
 			return desc, set.image, set.name, set.texture;
 		end
