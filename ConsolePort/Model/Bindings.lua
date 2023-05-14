@@ -20,45 +20,14 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		UtilityRing       = click 'UtilityToggle';
 		--FocusButton     = click 'FocusButton';
 	};
-
-	Bindings.Proxied = {
-		ExtraActionButton = 'EXTRAACTIONBUTTON1';
-		InteractTarget    = 'INTERACTTARGET';
-		LeftMouseButton   = 'CAMERAORSELECTORMOVE';
-		RightMouseButton  = 'TURNORACTION';
-		ToggleGameMenu    = 'TOGGLEGAMEMENU';
-	};
 end
 
 ---------------------------------------------------------------
 -- Special bindings provider
 ---------------------------------------------------------------
 do local function hold(binding) return ('%s (Hold)'):format(binding) end;
-	local EXTRA_ACTION_BUTTON = BINDING_NAME_EXTRAACTIONBUTTON1:gsub('%d', ''):trim()
 
 	Bindings.Special = {
-		---------------------------------------------------------------
-		-- Mouse
-		---------------------------------------------------------------
-		{	binding = Bindings.Proxied.LeftMouseButton;
-			name    = KEY_BUTTON1;
-			desc    = [[
-				Used to toggle free cursor, allowing you to use your camera stick as a mouse pointer.
-
-				While one of your buttons is set to emulate left click, this binding cannot be changed.
-			]];
-			readonly = function() return GetCVar('GamePadCursorLeftClick') ~= 'none' end;
-		};
-		{	binding = Bindings.Proxied.RightMouseButton;
-			name    = KEY_BUTTON2;
-			desc    = [[
-				Used to toggle center cursor, allowing you to interact with objects and characters
-				in the game world, at a center-fixed mouse position.
-
-				While one of your buttons is set to emulate right click, this binding cannot be changed.
-			]];
-			readonly = function() return GetCVar('GamePadCursorRightClick') ~= 'none' end;
-		};
 		---------------------------------------------------------------
 		-- Targeting
 		---------------------------------------------------------------
@@ -158,19 +127,6 @@ do local function hold(binding) return ('%s (Hold)'):format(binding) end;
 				end
 			end;
 		};
-		{	binding = Bindings.Proxied.ExtraActionButton;
-			name    = EXTRA_ACTION_BUTTON;
-			desc    = [[
-				The extra action button houses a temporary ability used in
-				various quests, scenarios and boss encounters.
-
-				When this binding is unset, the extra action button is always
-				available on the utility ring.
-
-				This button appears on your gamepad action bar as a normal
-				action button, but you cannot change its content.
-			]];
-		};
 		---------------------------------------------------------------
 		-- Pager
 		---------------------------------------------------------------
@@ -193,26 +149,213 @@ do local function hold(binding) return ('%s (Hold)'):format(binding) end;
 end
 
 ---------------------------------------------------------------
--- Handle custom rings
+-- Primary bindings provider
 ---------------------------------------------------------------
-local CUSTOM_RING_DESC = [[
-	A ring menu where you can add your items, spells, macros and
-	mounts that you do not want to sacrifice action bar space for.
+Bindings.Proxied = {
+	ExtraActionButton = 'EXTRAACTIONBUTTON1';
+	InteractTarget    = 'INTERACTTARGET';
+	Jump              = 'JUMP';
+	LeftMouseButton   = 'CAMERAORSELECTORMOVE';
+	RightMouseButton  = 'TURNORACTION';
+	TargetNearest     = 'TARGETNEARESTENEMY';
+	TargetPrevious    = 'TARGETPREVIOUSENEMY';
+	TargetScan		  = 'TARGETSCANENEMY';
+	ToggleAllBags     = 'OPENALLBAGS';
+	ToggleAutoRun     = 'TOGGLEAUTORUN';
+	ToggleGameMenu    = 'TOGGLEGAMEMENU';
+	ToggleWorldMap    = 'TOGGLEWORLDMAP';
+};
 
-	To use, hold the binding down, tilt your stick in the direction
-	of the item you want to select, then release the binding.
+Bindings.Primary = {
+	---------------------------------------------------------------
+	-- Mouse
+	---------------------------------------------------------------
+	{	binding = Bindings.Proxied.LeftMouseButton;
+		name    = KEY_BUTTON1;
+		desc    = [[
+			Used to toggle free cursor, allowing you to use your camera stick as a mouse pointer.
 
-	To remove items from the ring, follow the tooltip prompt when you
-	have the item in question focused.
-]]
-local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Textures\Icons\Ring]]
+			While one of your buttons is set to emulate left click, this binding cannot be changed.
+		]];
+		readonly = function() return GetCVar('GamePadCursorLeftClick') ~= 'none' end;
+	};
+	{	binding = Bindings.Proxied.RightMouseButton;
+		name    = KEY_BUTTON2;
+		desc    = [[
+			Used to toggle center cursor, allowing you to interact with objects and characters
+			in the game world, at a center-fixed mouse position.
+
+			While one of your buttons is set to emulate right click, this binding cannot be changed.
+		]];
+		readonly = function() return GetCVar('GamePadCursorRightClick') ~= 'none' end;
+	};
+	---------------------------------------------------------------
+	-- Targeting
+	---------------------------------------------------------------
+	{	binding = Bindings.Proxied.TargetScan;
+		desc = [[
+			Scans for enemies in a narrow cone in front of you.
+			Hold down to highlight targets before making the decision
+			to switch targets.
+
+			Especially useful for quickly switching targets
+			while in combat with high precision.
+
+			The target priority is aim biased, meaning that the
+			target closest to the center of the cone will be
+			selected first. This may result in prioritizing a
+			distant target over a closer one, if the distant
+			target is closer to the center of the cone.
+
+			Recommended as main targeting binding for most players.
+		]];
+		image = {
+			file  = CPAPI.GetAsset([[Tutorial\TargetScan]]);
+			width = 512 * 0.65;
+			height = 256 * 0.65;
+		};
+	};
+	{	binding = Bindings.Proxied.TargetNearest;
+		desc = [[
+			Switch between the nearest enemy targets in front of you.
+			Without a current target, the centermost enemy will be selected.
+			Otherwise it will cycle through the nearest targets.
+
+			Hold down to highlight targets before making the decision
+			to switch targets.
+
+			Recommended for use as a secondary targeting binding,
+			or as main targeting binding in casual gameplay or if
+			target scan requires too much precision to be comfortable.
+
+			Not recommended for dungeons or other high precision scenarios.
+		]];
+		image = {
+			file  = CPAPI.GetAsset([[Tutorial\TargetNearest]]);
+			width = 512 * 0.65;
+			height = 256 * 0.65;
+		};
+	};
+	---------------------------------------------------------------
+	-- Movement keys
+	---------------------------------------------------------------
+	{	binding = Bindings.Proxied.Jump;
+		desc = [[
+			Can also be used to swim up while under water, ascend with
+			flying mounts, and lift off or flap upward while dragonriding.
+
+			Jump is useful to bridge gaps in movement while doing a left-handed
+			action that requires your thumb.
+
+			In a regular setup, the left stick controls your movement.
+			If you need to press a directional pad combo while on the move,
+			jump can be used to maintain your forward momentum, while briefly
+			taking your thumb off the stick.
+		]];
+	};
+	{ 	binding = Bindings.Proxied.ToggleAutoRun;
+		desc = [[
+			Autorun will cause your character to continue moving
+			in the direction you're facing without any input from you.
+
+			Autorun is useful to alleviate thumb strain from long
+			periods of movement, or to free up your thumb to do other
+			things while you're on the move.
+		]];
+	};
+	---------------------------------------------------------------
+	-- Interface
+	---------------------------------------------------------------
+	{	binding = Bindings.Proxied.ToggleGameMenu;
+		desc = [[
+			The menu binding handles all functionality which occurs by pressing
+			the Escape key on a keyboard. It handles different actions based
+			on the current state of the game.
+
+			If there are any ongoing actions related to spells or targeting,
+			they will be cancelled. Pressing the binding with an active target
+			will clear it. Pressing the binding while casting a spell will
+			interrupt the spell cast.
+
+			The binding also handles various other cases depending on what
+			is currently displayed on the screen. For example, if any panel
+			is open, such as the spellbook, the binding will perform the
+			necessary action to close or hide it.
+
+			If none of the above cases apply, the game menu will open or
+			close when pressed.
+		]];
+	};
+	{	binding = Bindings.Proxied.ToggleAllBags;
+		desc = 'Opens and closes all bags.';
+	};
+	{	binding = Bindings.Proxied.ToggleWorldMap;
+		desc = CPAPI.IsRetailVersion and 'Toggles the combined world map and quest log.' or 'Toggles the world map.';
+	};
+	---------------------------------------------------------------
+	-- Camera
+	---------------------------------------------------------------
+	{	binding = 'CAMERAZOOMIN';
+		desc = 'Zooms the camera in. Hold for continuous zoom.';
+	};
+	{	binding = 'CAMERAZOOMOUT';
+		desc = 'Zooms the camera out. Hold for continuous zoom.';
+	};
+	---------------------------------------------------------------
+	-- Misc
+	---------------------------------------------------------------
+	{	binding = Bindings.Proxied.ExtraActionButton;
+		name    = BINDING_NAME_EXTRAACTIONBUTTON1:gsub('%d', ''):trim();
+		desc    = [[
+			The extra action button houses a temporary ability used in
+			various quests, scenarios and boss encounters.
+
+			When this binding is unset, the extra action button is always
+			available on the utility ring.
+
+			This button appears on your gamepad action bar as a normal
+			action button, but you cannot change its content.
+		]];
+	};
+};
+
+for i, set in ipairs(Bindings.Primary) do
+	set.name = set.name or GetBindingName(set.binding)
+end
 
 ---------------------------------------------------------------
 -- Get description for custom bindings
 ---------------------------------------------------------------
-function Bindings:GetDescriptionForBinding(binding, useTooltipFormat)
-	for i, set in ipairs(self.Special) do
-		if (set.binding == binding) then
+do -- Handle custom rings
+	local CUSTOM_RING_DESC = [[
+		A ring menu where you can add your items, spells, macros and
+		mounts that you do not want to sacrifice action bar space for.
+
+		To use, hold the binding down, tilt your stick in the direction
+		of the item you want to select, then release the binding.
+
+		To remove items from the ring, follow the tooltip prompt when you
+		have the item in question focused.
+	]]
+	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Textures\Icons\Ring]]
+
+	local function FindBindingInCollection(binding, collection)
+		for i, set in ipairs(collection) do
+			if (set.binding == binding) then
+				return set;
+			end
+		end
+	end
+
+	function Bindings:GetCustomBindingInfo(binding)
+		return FindBindingInCollection(binding, self.Special)
+			or FindBindingInCollection(binding, self.Primary)
+	end
+
+	function Bindings:GetDescriptionForBinding(binding, useTooltipFormat)
+		local set = self:GetCustomBindingInfo(binding)
+
+		if set then
 			local desc = set.desc;
 			if desc and useTooltipFormat then
 				desc = desc
@@ -223,11 +366,11 @@ function Bindings:GetDescriptionForBinding(binding, useTooltipFormat)
 			end
 			return desc, set.image, set.name, set.texture;
 		end
-	end
 
-	local customRingName = db.Utility:ConvertBindingToDisplayName(binding)
-	if customRingName then
-		return CUSTOM_RING_DESC, nil, customRingName, self:GetIcon(binding) or CUSTOM_RING_ICON, customRingName;
+		local customRingName = db.Utility:ConvertBindingToDisplayName(binding)
+		if customRingName then
+			return CUSTOM_RING_DESC, nil, customRingName, self:GetIcon(binding) or CUSTOM_RING_ICON, customRingName;
+		end
 	end
 end
 

@@ -52,7 +52,8 @@ function BindingInfo:AddActionbarBinding(name, bindingID, actionID)
 	self.Actionbar[actionID] = {name = name, binding = bindingID};
 end
 
-do local customHeader = (' |T%s:20:20:0:-2|t %s '):format(CPAPI.GetAsset('Textures\\Logo\\CP_Thumb.blp'), SPECIAL)
+do local customHeader = ' |TInterface\\Store\\category-icon-featured:18:18:4:0:64:64:18:46:18:46|t  ' .. SPECIAL;
+	--(' |T%s:20:20:0:-2|t %s '):format(CPAPI.GetAsset('Textures\\Logo\\CP_Thumb.blp'), SPECIAL)
 	_G[customHeader] = customHeader;
 	function BindingInfo:AddCustomBinding(name, bindingID, readonly)
 		self:AddBindingToCategory(L(name), bindingID, customHeader, readonly)
@@ -62,13 +63,20 @@ do local customHeader = (' |T%s:20:20:0:-2|t %s '):format(CPAPI.GetAsset('Textur
 
 	function BindingInfo:IsReadonlyBinding(bindingID)
 		if self.Custom[bindingID] then
-			local _, info = FindInTableIf(db.Bindings.Special, function(data)
-				return data.binding == bindingID;
-			end)
+			local info = db.Bindings:GetCustomBindingInfo(bindingID)
 			return info and info.readonly and info.readonly();
 		end
 	end
 end
+
+do local primaryHeader = '  |TInterface\\Store\\category-icon-wow:18:18:4:0:64:64:18:46:18:46|t  ' .. PRIMARY;
+	function BindingInfo:AddPrimaryBinding(name, bindingID, readonly)
+		self:AddBindingToCategory(name, bindingID, primaryHeader, readonly)
+		self.Custom[bindingID] = name;
+		self.Headers[bindingID] = customHeader;
+	end
+end
+
 
 ---------------------------------------------------------------
 -- Dictionary
@@ -109,6 +117,11 @@ function BindingInfo:RefreshDictionary()
 		-- custom
 		for i, data in db:For('Bindings/Special') do
 			self:AddCustomBinding(data.name, data.binding, data.readonly)
+		end
+
+		-- primary
+		for i, data in db:For('Bindings/Primary') do
+			self:AddPrimaryBinding(data.name, data.binding, data.readonly)
 		end
 
 		-- XML-registered bindings
