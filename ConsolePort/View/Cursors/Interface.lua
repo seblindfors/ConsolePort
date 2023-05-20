@@ -29,6 +29,7 @@ end
 
 function Cursor:PLAYER_REGEN_DISABLED()
 	-- TODO: relinquish to stack control
+	self.isCombatLocked = true;
 	if self:IsShown() then
 		Fade.Out(self, 0.2, self:GetAlpha(), 0)
 		self:ShowAfterCombat(true)
@@ -38,27 +39,37 @@ function Cursor:PLAYER_REGEN_DISABLED()
 end
 
 function Cursor:PLAYER_REGEN_ENABLED()
+	-- in case the cursor is showing and waiting to hide OOC
+	if self:IsShown() and not self.showAfterCombat then
+		self:Hide()
+	end
 	-- time lock this in case it fires more than once
-	if not self.timeLock and self.showAfterCombat then
+	if not self.timeLock then
 		self.timeLock = true;
-		if not self.onEnableCallback then
-			self.onEnableCallback = function()
-				Fade.In(self, 0.2, self:GetAlpha(), 1)
-				if not self:InCombat() and self:IsShown() then
-					self:SetBasicControls()
-					self:Refresh()
+		if self.showAfterCombat then
+			if not self.onEnableCallback then
+				self.onEnableCallback = function()
+					Fade.In(self, 0.2, self:GetAlpha(), 1)
+					if not self:InCombat() and self:IsShown() then
+						self:SetBasicControls()
+						self:Refresh()
+					end
 				end
 			end
+			C_Timer.After(db('UIleaveCombatDelay'), function()
+				self.onEnableCallback()
+				self.timeLock = nil;
+				self.showAfterCombat = nil;
+				self.onEnableCallback = nil;
+				self.isCombatLocked = nil;
+			end)
+		else -- do nothing but clear the locked state
+			C_Timer.After(db('UIleaveCombatDelay'), function()
+				self.onEnableCallback = nil;
+				self.timeLock = nil;
+				self.isCombatLocked = nil;
+			end)
 		end
-		C_Timer.After(db('UIleaveCombatDelay'), function()
-			self.onEnableCallback()
-			self.timeLock = nil;
-			self.showAfterCombat = nil;
-			self.onEnableCallback = nil;
-		end)
-	-- in case the cursor is showing and waiting to hide OOC
-	elseif self:IsShown() and not self.showAfterCombat then
-		self:Hide()
 	end
 end
 
@@ -124,7 +135,7 @@ function Cursor:Release()
 end
 
 function Cursor:IsObstructed()
-	return self:InCombat(), not db('UIenableCursor')
+	return self:InCombat(), not db('UIenableCursor'), self.isCombatLocked;
 end
 
 function Cursor:IsAnimating()
@@ -184,11 +195,11 @@ function Cursor:SetCurrentNodeIfActive(...)
 end
 
 function Cursor:SetOnEnableCallback(callback, ...)
-	local inCombat, disabled = self:IsObstructed()
+	local inCombat, disabled, isCombatLocked = self:IsObstructed()
 	if disabled then
 		return
 	end
-	if not inCombat then
+	if not inCombat and not isCombatLocked then
 		return callback(self, ...)
 	end
 	self.onEnableCallback = GenerateClosure(callback, self, ...)
