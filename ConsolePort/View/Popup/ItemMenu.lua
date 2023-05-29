@@ -267,7 +267,7 @@ end
 
 function ItemMenu:SplitStack(count)
 	local bagID, slotID = self:GetBagAndSlot()
-	SplitContainerItem(bagID, slotID, count)
+	CPAPI.SplitContainerItem(bagID, slotID, count)
 	self:Hide()
 end
 
