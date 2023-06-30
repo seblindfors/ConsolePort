@@ -200,11 +200,7 @@ Bindings.Primary = {
 			aim the cursor or crosshair directly on the target.
 
 			Interactables are highlighted when in range.
-		]] -- TODO: remove the following then interact key gets added to classic era
-		.. (CPAPI.IsClassicEraVersion and ([[
-
-			Not available on Classic Era yet. Prefer using %s.
-		]]):format(BLUE_FONT_COLOR:WrapTextInColorCode(KEY_BUTTON2)) or '');
+		]];
 	};
 	{	binding = Bindings.Proxied.TargetScan;
 		desc    = [[

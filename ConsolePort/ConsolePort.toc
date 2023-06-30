@@ -1,12 +1,12 @@
 ## Interface: 100100
-## Interface-Classic: 11403
+## Interface-Classic: 11404
 ## Interface-BCC: 20504
 ## Interface-Wrath: 30401
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port
 ## Notes: Game controller addon
 ## AddonCompartmentFunc: ConsolePort
-## Version: 2.6.7
+## Version: 2.6.8
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort

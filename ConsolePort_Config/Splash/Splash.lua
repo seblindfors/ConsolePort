@@ -284,9 +284,6 @@ function Splash:OnFirstShow()
 					_OnLoad = function(self)
 						local rW, gW, bW = CPAPI.GetWebColor(CPAPI.GetClassFile()):GetRGB()
 						local rC, gC, bC = CPAPI.GetClassColor()
-						if CPAPI.IsClassicEraVersion then
-							return self:SetLight(true, false, -1, 1, -100, 1, rW, gW, bW, 0.5, rC, gC, bC)
-						end
 						self:SetLight(true, {
 							omnidirectional = false;
 							point = CreateVector3D(-1, 1, -100);
