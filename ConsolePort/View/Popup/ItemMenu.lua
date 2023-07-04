@@ -15,7 +15,7 @@ local INDEX_INFO_STACK = 8
 local INDEX_INFO_EQLOC = 9
 local INDEX_INFO_CLASS = 12
 ---------------------------------------------------------------
-
+local QUALITY_STANDARD = Enum.ItemQuality.Standard or Enum.ItemQuality.Common;
 local INV_EQ_LOCATIONS = {
 	INVTYPE_WEAPON  = {INVSLOT_MAINHAND, INVSLOT_OFFHAND};
 	INVTYPE_FINGER  = {INVSLOT_FINGER1,  INVSLOT_FINGER2};
@@ -238,7 +238,7 @@ function ItemMenu:Delete()
 	local link, quality, hasSpellID = self:GetLink(), self:GetQuality(), self:GetSpellID();
 	self:Hide()
 	-- show confirm popup for good+ and usable items
-	if hasSpellID or quality > Enum.ItemQuality.Standard then
+	if hasSpellID or ( quality > QUALITY_STANDARD ) then
 		StaticPopup_Show('DELETE_ITEM', link)
 	else
 		DeleteCursorItem()
