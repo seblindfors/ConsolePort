@@ -8,36 +8,54 @@ local Device = {};
 
 function Device:OnClick()
 	local device = self.Device;
-	device:ApplyPresetVars()
 	db('Cursor'):SetCurrentNode(env.Splash.Wizard.Child.Continue, true)
-	CPAPI.Popup('ConsolePort_Reset_Keybindings', {
-		text = ('%s\n\n%s'):format(CONFIRM_RESET_KEYBINDINGS, L'This only affects gamepad bindings.');
+	CPAPI.Popup('ConsolePort_Apply_Preset', {
+		text = L('Do you want to load settings for %s?\n\nThis will configure your modifiers, mouse emulation buttons, and previously saved device settings (if any).', device.Name);
 		button1 = OKAY;
 		button2 = CANCEL;
 		timeout = 0;
 		whileDead = 1;
 		showAlert = 1;
+		fullScreenCover = 1;
 		OnAccept = function()
-			device:ApplyPresetBindings(GetCurrentBindingSet())
+			device:ApplyPresetVars()
+		end;
+		OnCancel = function()
+			device:Activate()
 		end;
 		OnHide = function()
-			if device:ConfigHasBluetoothHandling() then
-				CPAPI.Popup('ConsolePort_Apply_Config', {
-					text = L('Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?', device.Name);
-					button1 = L'Wired';
-					button2 = CANCEL;
-					button3 = L'Bluetooth';
-					timeout = 0;
-					whileDead = 1;
-					showAlert = 1;
-					OnAccept = function()
-						device:ApplyConfig(false)
-					end;
-					OnAlt = function()
-						device:ApplyConfig(true)
-					end;
-				})
-			end
+			CPAPI.Popup('ConsolePort_Reset_Keybindings', {
+				text = ('%s\n\n%s'):format(CONFIRM_RESET_KEYBINDINGS, L'This only affects gamepad bindings.');
+				button1 = OKAY;
+				button2 = CANCEL;
+				timeout = 0;
+				whileDead = 1;
+				showAlert = 1;
+				fullScreenCover = 1;
+				OnAccept = function()
+					device:ApplyPresetBindings(GetCurrentBindingSet())
+				end;
+				OnHide = function()
+					if device:ConfigHasBluetoothHandling() then
+						CPAPI.Popup('ConsolePort_Apply_Config', {
+							text = L('Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?', device.Name);
+							button1 = L'Wired';
+							button2 = CANCEL;
+							button3 = L'Bluetooth';
+							timeout = 0;
+							whileDead = 1;
+							showAlert = 1;
+							fullScreenCover = 1;
+							OnAccept = function()
+								device:ApplyConfig(false)
+							end;
+							OnAlt = function()
+								device:ApplyConfig(true)
+							end;
+						})
+					end
+				end;
+			})
 		end;
 	})
 	self:UpdateState()
