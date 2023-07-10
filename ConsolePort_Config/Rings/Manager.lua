@@ -80,7 +80,7 @@ local function GetSelectedRingID()
 	local index = controller:Get()
 	local options = controller:GetOptions()
 	local selectedOption = options and index and options[index];
-	return selectedOption == DEFAULT and 1 or tonumber(selectedOption) or selectedOption;
+	return selectedOption == DEFAULT and DEFAULT_RING_ID or tonumber(selectedOption) or selectedOption;
 end
 
 local function GetKindAndAction(info)
