@@ -1,7 +1,7 @@
 ## Interface: 100100
 ## Interface-Classic: 11404
 ## Interface-BCC: 20504
-## Interface-Wrath: 30401
+## Interface-Wrath: 30402
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Keyboard|r
 ## Notes: Virtual keyboard module

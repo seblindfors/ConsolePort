@@ -366,7 +366,7 @@ function Mapper:OnShow()
 end
 
 function Mapper:OnRingSelectionChanged(value)
-	local bindingID = db.Utility:GetBindingForSet(value)
+	local bindingID = db.Utility:GetBindingForSet(GetRingDisplayNameForIndex(value))
 	if bindingID then
 		self.IconMapper:SetBinding(bindingID, true)
 	end
