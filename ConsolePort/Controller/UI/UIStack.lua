@@ -225,13 +225,13 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 	-- and exist within the FrameXML code in some shape or form. 
 	local function GenerateDefaultSet(self)
 		-- Special handling for containers
-		for i=1, NUM_CONTAINER_FRAMES do
+		for i=1, (NUM_CONTAINER_FRAMES or 13) do
 			self:TryRegisterFrame(_, 'ContainerFrame'..i, true)
 		end
-		for i=1, STATICPOPUP_NUMDIALOGS do
+		for i=1, (STATICPOPUP_NUMDIALOGS or 4) do
 			self:TryRegisterFrame(_, 'StaticPopup'..i, true)
 		end
-		for i=1, NUM_GROUP_LOOT_FRAMES do
+		for i=1, (NUM_GROUP_LOOT_FRAMES or 4) do
 			self:TryRegisterFrame(_, 'GroupLootFrame'..i, true)
 		end
 		for i, frame in ipairs({

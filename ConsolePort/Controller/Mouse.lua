@@ -279,7 +279,8 @@ function Mouse:SetFreeLook(enabled)
 end
 
 function Mouse:SetPropagation(enabled)
-	self:SetPropagateKeyboardInput(enabled)
+	--[[ TODO, revert when WoW bug gets fixed: https://github.com/Stanzilla/WoWUIBugs/issues/451 ]]
+	--self:SetPropagateKeyboardInput(enabled)
 	return self
 end
 
@@ -403,3 +404,5 @@ db:RegisterCallbacks(Mouse.OnVariableChanged, Mouse,
 Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)
 Mouse:EnableGamePadButton(false)
 Mouse:SetPropagation(true)
+--[[ TODO, revert when WoW bug gets fixed: https://github.com/Stanzilla/WoWUIBugs/issues/451 ]]
+Mouse:SetPropagateKeyboardInput(true)
