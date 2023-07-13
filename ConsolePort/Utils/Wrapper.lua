@@ -240,3 +240,22 @@ end
 function CPAPI.SetGradient(...)
 	return LibStub('Carpenter'):SetGradient(...)
 end
+
+function CPAPI.SetModelLight(self, enabled, lightValues)
+	if (pcall(self.SetLight, self, enabled, lightValues)) then
+		return
+	end
+
+	local dirX, dirY, dirZ = lightValues.point:GetXYZ()
+	local ambR, ambG, ambB = lightValues.ambientColor:GetRGB()
+	local difR, difG, difB = lightValues.diffuseColor:GetRGB()
+
+	return (pcall(self.SetLight, self, enabled,
+		lightValues.omnidirectional,
+		dirX, dirY, dirZ,
+		lightValues.diffuseIntensity,
+		difR, difG, difB,
+		lightValues.ambientIntensity,
+		ambR, ambG, ambB
+	))
+end
