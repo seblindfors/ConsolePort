@@ -84,6 +84,15 @@ function Widget:OnEnter()
 			GameTooltip:AddLine('\n'..NOTE_COLON)
 			GameTooltip:AddLine(self.tooltipNote, 1, 1, 1, 1)
 		end
+		if self.LClickText or self.RClickText then
+			GameTooltip:AddLine('\n')
+			if self.LClickText then
+				GameTooltip:AddLine(self.LClickText)
+			end
+			if self.RClickText then
+				GameTooltip:AddLine(self.RClickText)
+			end
+		end
 		GameTooltip:Show()
 	end
 end
@@ -448,6 +457,30 @@ local Button = CreateWidget('Button', Widget, {
 					{'BOTTOMRIGHT', -8, 0};
 				};
 			};
+			Clear = {
+				_Type  = 'Button';
+				_Size  = {16, 16};
+				_Point = {'RIGHT', -8, 0};
+				_OnClick = function(self)
+					self:GetParent():GetParent():OnClick('RightButton')
+				end;
+				_OnEnter = function(self)
+					self.Icon:SetAlpha(1)
+				end;
+				_OnLeave = function(self)
+					self.Icon:SetAlpha(0.5)
+				end;
+				{
+					Icon = {
+						_Type  = 'Texture';
+						_Setup = {'ARTWORK'};
+						_Point = {'CENTER', 0, 0};
+						_Size  = {16, 16};
+						_Alpha = 0.5;
+						_Atlas = 'common-search-clearbutton';
+					};
+				};
+			};
 		};
 	};
 })
@@ -483,10 +516,15 @@ end
 
 function Button:OnValueChanged(value)
 	local display = GetBindingText(value, 'KEY_ABBR_')
-	if (display == 'none') then
+	local isNotBound = display == 'none';
+	self.widgetText = nil;
+	if (isNotBound) then
 		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
-	end
+	end 
+	self.Input.Clear:SetShown(not isNotBound)
 	self.Input:SetText(display)
+	self.LClickText = env:GetTooltipPromptForClick('LeftClick', CHOOSE)
+	self.RClickText = env:GetTooltipPromptForClick('RightClick', REMOVE)
 end
 
 ---------------------------------------------------------------
@@ -515,6 +553,30 @@ local Pseudokey = CreateWidget('Pseudokey', Widget, {
 				_Points = {
 					{'TOPLEFT', 8, 0};
 					{'BOTTOMRIGHT', -8, 0};
+				};
+			};
+			Clear = {
+				_Type  = 'Button';
+				_Size  = {16, 16};
+				_Point = {'RIGHT', -8, 0};
+				_OnClick = function(self)
+					self:GetParent():GetParent():OnClick('RightButton')
+				end;
+				_OnEnter = function(self)
+					self.Icon:SetAlpha(1)
+				end;
+				_OnLeave = function(self)
+					self.Icon:SetAlpha(0.5)
+				end;
+				{
+					Icon = {
+						_Type  = 'Texture';
+						_Setup = {'ARTWORK'};
+						_Point = {'CENTER', 0, 0};
+						_Size  = {16, 16};
+						_Alpha = 0.5;
+						_Atlas = 'common-search-clearbutton';
+					};
 				};
 			};
 		};
@@ -561,9 +623,13 @@ end
 
 function Pseudokey:OnValueChanged(value)
 	local display = GetBindingText(value, 'KEY_ABBR_')
-	if (display == 'none') then
+	local isNotBound = display == 'none';
+	if (isNotBound) then
 		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
 	end
+	self.LClickText = env:GetTooltipPromptForClick('LeftClick', CHOOSE)
+	self.RClickText = env:GetTooltipPromptForClick('RightClick', REMOVE)
+	self.Input.Clear:SetShown(not isNotBound)
 	self.Input:SetText(display)
 end
 

@@ -27,6 +27,14 @@ function env:GetTooltipPrompt(btnID, text)
 	return db('Gamepad/Active'):GetTooltipButtonPrompt(btnID, text)
 end
 
+function env:GetTooltipPromptForClick(clickID, text)
+	local device = db('Gamepad/Active')
+	local btnID = db('UICursor'..clickID)
+	if device and btnID then
+		return device:GetTooltipButtonPrompt(btnID, text)
+	end
+end
+
 function env:GetBindings()
 	return db.Gamepad:GetBindings()
 end

@@ -171,15 +171,15 @@ function MapperBindingButton:OnEnter()
 	GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
 	GameTooltip:SetText(KEY_BINDING)
 	if db.Cursor:IsCurrentNode(self) then
-		local leftClick = db('UICursorLeftClick')
-		local rightClick = db('UICursorRightClick')
-		local specialClick = db('UICursorSpecial')
+		local leftClick = env:GetTooltipPromptForClick('LeftClick', CHOOSE)
+		local rightClick = env:GetTooltipPromptForClick('RightClick', REMOVE)
+		local specialClick = env:GetTooltipPromptForClick('Special', CLOSE)
 		if leftClick then
-			GameTooltip:AddLine(env:GetTooltipPrompt(leftClick, CHOOSE))
+			GameTooltip:AddLine(leftClick)
 		end if rightClick then
-			GameTooltip:AddLine(env:GetTooltipPrompt(rightClick, REMOVE))
+			GameTooltip:AddLine(rightClick)
 		end if specialClick then
-			GameTooltip:AddLine(env:GetTooltipPrompt(specialClick, CLOSE))
+			GameTooltip:AddLine(specialClick)
 		end
 	end
 	GameTooltip:AddLine(('%s %s'):format(CreateAtlasMarkup('NPE_LeftClick', 24, 24), CHOOSE))
