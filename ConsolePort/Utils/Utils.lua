@@ -282,6 +282,24 @@ function CPAPI.Hex2RGB(hex, fractal)
     		( (tonumber(hex:sub(7,8), 16) or div) / div ); -- A
 end
 
+function CPAPI.HSV2RGB(h, s, v)
+	local chroma = v * s;
+	local hue = h / 60;
+	local x = chroma * (1 - math.abs(hue % 2 - 1));
+	local r, g, b = 0, 0, 0;
+	if
+		hue < 1 then r, g, b = chroma, x, 0; elseif
+		hue < 2 then r, g, b = x, chroma, 0; elseif
+		hue < 3 then r, g, b = 0, chroma, x; elseif
+		hue < 4 then r, g, b = 0, x, chroma; elseif
+		hue < 5 then r, g, b = x, 0, chroma;
+		else         r, g, b = chroma, 0, x;
+	end
+	
+	local m = v - chroma;
+	return r + m, g + m, b + m;
+end
+
 function CPAPI.GetMixColorGradient(dir, r, g, b, a, base, multi)
 	local add = base or 0.3
 	local mul = multi or 1.1
@@ -317,6 +335,16 @@ function CPAPI.NormalizeColor(...)
 	local diff = (1 - high)
 	local r, g, b, a = ...
 	return r + diff, g + diff, b + diff, a;
+end
+
+function CPAPI.XY2Polar(x, y)
+	local r = math.sqrt(x*x + y*y)
+	local theta = math.atan2(y, x)
+	return r, theta;
+end
+
+function CPAPI.Rad2Deg(rad)
+    return ((rad + math.pi) / (2 * math.pi)) * 360;
 end
 
 ---------------------------------------------------------------

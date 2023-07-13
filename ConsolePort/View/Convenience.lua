@@ -98,6 +98,56 @@ do local MovieControls = {
 	end
 end
 
+-- Use color picker frame with sticks
+if ColorPickerFrame then
+	local delta, saturation, oldNode = 30, 1;
+
+	local function ColorPickerStickToRGB(self, x, y, len)
+		local radius, theta = CPAPI.XY2Polar(x, y)
+		local deg = CPAPI.Rad2Deg(theta)
+		local r, g, b = CPAPI.HSV2RGB(deg, radius, saturation)
+		self:SetColorRGB(r, g, b)
+	end
+
+	local function ColorPickerStickSaturation(self, x, y, len)
+		local r, g, b = self:GetColorRGB()
+		saturation = Clamp(saturation + y / delta, 0, 1);
+		-- Handle case where we're picking a shade of gray
+		if (r == g and g == b) then
+			self:SetColorRGB(saturation, saturation, saturation)
+		end
+	end
+
+	local function OpacitySliderStickValue(self, x, y, len)
+		local opacityDelta = -x / delta;
+		local a = self:GetValue()
+		self:SetValue(a + opacityDelta)
+	end
+
+	ColorPickerFrame:EnableGamePadStick(true)
+	ColorPickerFrame:SetScript('OnGamePadStick', function(self, stick, x, y, len)
+		if ( stick == 'Left' ) then
+			ColorPickerStickToRGB(self, x, y, len)
+		elseif ( stick == 'Right' and len > .1 ) then
+			if (math.abs(x) > math.abs(y) and OpacitySliderFrame and OpacitySliderFrame:IsShown()) then
+				OpacitySliderStickValue(OpacitySliderFrame, x, y, len)
+			else
+				ColorPickerStickSaturation(self, x, y, len)
+			end
+		end
+	end)
+	ColorPickerFrame:HookScript('OnShow', function()
+		oldNode = db.Cursor:GetCurrentNode()
+		db.Cursor:SetCurrentNodeIfActive(ColorPickerOkayButton, true)
+	end)
+	ColorPickerFrame:HookScript('OnHide', function()
+		if oldNode then
+			db.Cursor:SetCurrentNode(oldNode)
+			oldNode = nil;
+		end
+	end)
+end
+
 -- Loads the keyboard
 local function TryLoadKeyboardUI()
 	if not db('keyboardEnable') or IsAddOnLoaded('ConsolePort_Keyboard') then
