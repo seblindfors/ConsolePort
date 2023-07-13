@@ -269,7 +269,27 @@ function Mouse:SetCentered(enabled)
 end
 
 function Mouse:SetCursorControl(enabled)
-	SetGamePadCursorControl(enabled)
+	-- We have to use a timer in order to not trigger a race condition between
+	-- treating the left click as a button press and a mouse click.
+	if enabled then
+		if (self.cursorOverride == nil) then
+			self.cursorOverride = self.reticleOverride or CVar_Sticks:Get()
+		end
+		CVar_Sticks:Set(0)
+		C_Timer.After(db('mouseFreeCursorEnableTime'), function()
+			SetGamePadCursorControl(true)
+			if (self.cursorOverride) then
+				CVar_Sticks:Set(self.cursorOverride)
+				self.cursorOverride = nil;
+			end
+		end)
+	else
+		SetGamePadCursorControl(false)
+		if (self.cursorOverride) then
+			CVar_Sticks:Set(self.cursorOverride)
+			self.cursorOverride = nil;
+		end
+	end
 	return self
 end
 
@@ -278,21 +298,14 @@ function Mouse:SetFreeLook(enabled)
 	return self
 end
 
-function Mouse:SetPropagation(enabled)
-	--[[ TODO, revert when WoW bug gets fixed: https://github.com/Stanzilla/WoWUIBugs/issues/451 ]]
-	--self:SetPropagateKeyboardInput(enabled)
-	return self
-end
-
 ---------------------------------------------------------------
 -- Compounded control functions
 ---------------------------------------------------------------
 function Mouse:SetFreeCursor()
 	return self
-		:SetFreeLook(true)
+		:SetFreeLook(false)
 		:SetCentered(false)
 		:SetCursorControl(true)
-		:SetPropagation(false)
 end
 
 function Mouse:SetCenteredCursor()
@@ -332,14 +345,7 @@ function Mouse:OnGamePadButtonDown(button)
 	if self:ShouldSetCameraControl(button) then
 		return self:SetCameraControl()
 	end
-	--[[
-	if self:ShouldFreeCenteredCursor(button) then
-		return self:SetCentered(false):SetCursorControl(true)
-	end
-	if self:ShouldSetCursorWhenMenuIsOpen(button) then
-		return self:SetPropagation(false):SetCursorControl(true)
-	end]]
-	return self:SetPropagation(true)
+	return self
 end
 
 ---------------------------------------------------------------
@@ -403,6 +409,4 @@ db:RegisterCallbacks(Mouse.OnVariableChanged, Mouse,
 ---------------------------------------------------------------
 Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)
 Mouse:EnableGamePadButton(false)
-Mouse:SetPropagation(true)
---[[ TODO, revert when WoW bug gets fixed: https://github.com/Stanzilla/WoWUIBugs/issues/451 ]]
 Mouse:SetPropagateKeyboardInput(true)
