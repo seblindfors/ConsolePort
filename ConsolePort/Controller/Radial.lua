@@ -29,9 +29,7 @@ function Dispatcher:OnGamePadStick(stick, x, y, len)
 		if this.intercept[stick] and not self.disabled then
 			this:OnInput(x, y, len, stick)
 		end
-		return self:SetPropagateKeyboardInput(false)
 	end
-	return self:SetPropagateKeyboardInput(true)
 end
 
 function Dispatcher:SetFocus(frame)
@@ -61,7 +59,7 @@ function Dispatcher.Disable() -- callback
 end
 
 CPAPI.Start(Dispatcher)
-Dispatcher:SetPropagateKeyboardInput(true)
+Dispatcher:SetPropagateKeyboardInput(false)
 Dispatcher:EnableGamePadStick(false)
 
 
