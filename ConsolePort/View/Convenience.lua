@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- Convenience UI modifications and hacks
 ---------------------------------------------------------------
-local name, db = ...;
+local name, db, L = ...; L = db.Locale;
 
 -- Popups:
 -- Since popups normally appear in response to an event or
@@ -94,56 +94,95 @@ do local MovieControls = {
 	end
 
 	for frame, controls in pairs(MovieControls) do
-		frame:HookScript('OnGamePadButtonDown', GenerateClosure(MovieOnGamePadButtonDown, controls))
+		if frame then
+			frame:HookScript('OnGamePadButtonDown', GenerateClosure(MovieOnGamePadButtonDown, controls))
+		end
 	end
 end
 
 -- Use color picker frame with sticks
 if ColorPickerFrame then
-	local delta, saturation, oldNode = 30, 1;
+	local controls = {
+		PAD1 = ColorPickerOkayButton;
+		PAD2 = ColorPickerCancelButton;
+	};
+	local tooltipLines = {
+		PADLSTICKUP    = CreateColor(CPAPI.HSV2RGB(270, 0.5, 1)):WrapTextInColorCode(L'Purple');
+		PADLSTICKDOWN  = CreateColor(CPAPI.HSV2RGB(090, 0.5, 1)):WrapTextInColorCode(L'Green');
+		PADLSTICKLEFT  = CreateColor(CPAPI.HSV2RGB(000, 0.5, 1)):WrapTextInColorCode(L'Red');
+		PADLSTICKRIGHT = CreateColor(CPAPI.HSV2RGB(180, 0.5, 1)):WrapTextInColorCode(L'Cyan');
+		PADRSTICKUP    = L'Increase lightness';
+		PADRSTICKDOWN  = L'Decrease lightness';
+		PADRSTICKLEFT  = L'Decrease opacity';
+		PADRSTICKRIGHT = L'Increase opacity';
+	}
+	for button, control in pairs(controls) do
+		control:SetText(('%s %s'):format(GetBindingText(button, '_ABBR'), control:GetText()))
+	end
 
-	local function ColorPickerStickToRGB(self, x, y, len)
+	-- Handle color change
+	local delta, lightness, oldNode = 40, 1;
+
+	local function ColorPickerStickToRGB(self, x, y)
 		local radius, theta = CPAPI.XY2Polar(x, y)
 		local deg = CPAPI.Rad2Deg(theta)
-		local r, g, b = CPAPI.HSV2RGB(deg, radius, saturation)
+		local r, g, b = CPAPI.HSV2RGB(deg, radius, lightness)
 		self:SetColorRGB(r, g, b)
 	end
 
-	local function ColorPickerStickSaturation(self, x, y, len)
+	local function ColorPickerStickSaturation(self, y)
 		local r, g, b = self:GetColorRGB()
-		saturation = Clamp(saturation + y / delta, 0, 1);
+		lightness = Clamp(lightness + y / delta, 0, 1);
 		-- Handle case where we're picking a shade of gray
 		if (r == g and g == b) then
-			self:SetColorRGB(saturation, saturation, saturation)
+			self:SetColorRGB(lightness, lightness, lightness)
 		end
 	end
 
-	local function OpacitySliderStickValue(self, x, y, len)
+	local function OpacitySliderStickValue(self, x)
 		local opacityDelta = -x / delta;
 		local a = self:GetValue()
 		self:SetValue(a + opacityDelta)
 	end
 
-	ColorPickerFrame:EnableGamePadStick(true)
+	-- Scripts
 	ColorPickerFrame:SetScript('OnGamePadStick', function(self, stick, x, y, len)
 		if ( stick == 'Left' ) then
-			ColorPickerStickToRGB(self, x, y, len)
+			ColorPickerStickToRGB(self, x, y)
 		elseif ( stick == 'Right' and len > .1 ) then
 			if (math.abs(x) > math.abs(y) and OpacitySliderFrame and OpacitySliderFrame:IsShown()) then
-				OpacitySliderStickValue(OpacitySliderFrame, x, y, len)
+				OpacitySliderStickValue(OpacitySliderFrame, x)
 			else
-				ColorPickerStickSaturation(self, x, y, len)
+				ColorPickerStickSaturation(self, y)
 			end
 		end
 	end)
-	ColorPickerFrame:HookScript('OnShow', function()
+	ColorPickerFrame:SetScript('OnGamePadButtonDown', function(self, button)
+		if controls[button] then
+			controls[button]:Click()
+		end
+	end)
+	ColorPickerFrame:HookScript('OnShow', function(self)
 		oldNode = db.Cursor:GetCurrentNode()
 		db.Cursor:SetCurrentNodeIfActive(ColorPickerOkayButton, true)
+
+		local device = db('Gamepad/Active')
+		if device then
+			GameTooltip:SetOwner(self, 'ANCHOR_NONE')
+			GameTooltip:SetPoint('TOPLEFT', self, 'TOPRIGHT')
+			GameTooltip:SetText(COLOR_PICKER)
+			for button, line in db.table.spairs(tooltipLines) do
+				GameTooltip:AddLine(device:GetTooltipButtonPrompt(button, line))
+			end
+		end
 	end)
-	ColorPickerFrame:HookScript('OnHide', function()
+	ColorPickerFrame:HookScript('OnHide', function(self)
 		if oldNode then
 			db.Cursor:SetCurrentNode(oldNode)
 			oldNode = nil;
+		end
+		if GameTooltip:IsOwned(self) then
+			GameTooltip:Hide()
 		end
 	end)
 end
