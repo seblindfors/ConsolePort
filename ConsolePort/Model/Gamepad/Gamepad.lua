@@ -500,8 +500,8 @@ end
 -- Icon queries
 ---------------------------------------------------------------
 function GamepadMixin:GetIconAtlasForButton(button, style)
-	if not GamepadAPI.UseAtlasIcons then return end
-	return db(('Gamepad/Index/Atlas/%s/%s/%s'):format(self.Theme.Label, style or 64, button))
+	return db(('Gamepad/Index/Atlas/%s/%s/%s'):format(self.Theme.Label, style or 64, button)),
+		GamepadAPI.UseAtlasIcons;
 end
 
 function GamepadMixin:GetIconIDForButton(button)
@@ -510,13 +510,16 @@ function GamepadMixin:GetIconIDForButton(button)
 end
 
 function GamepadMixin:GetIconForButton(button, style)
-	local atlas = self:GetIconAtlasForButton(button, style)
-	if atlas then
+	local atlas, useAtlasIcon = self:GetIconAtlasForButton(button, style)
+	if atlas and useAtlasIcon then
 		return atlas, true;
 	end
 	local iconID = self:GetIconIDForButton(button)
 	if iconID then
 		return GamepadAPI:GetIconPath(db(('Gamepad/Index/Icons/%s'):format(iconID)), style)
+	end
+	if atlas then
+		return atlas, true;
 	end
 	return GamepadAPI:GetIconPath('ALL_MISSING', style)
 end
