@@ -446,6 +446,26 @@ function BindingInfo:RefreshCollections()
 		end
 	end
 
+	-- Toys
+	if CPAPI.IsRetailVersion then
+		local toys = {};
+		for i=1, C_ToyBox.GetNumToys() do
+			local itemID = C_ToyBox.GetToyInfo(C_ToyBox.GetToyFromIndex(i))
+			if itemID and CPAPI.PlayerHasToy(itemID) then
+				toys[#toys+1] = itemID;
+			end
+		end
+
+		if next(toys) then
+			self:AddCollection(toys, {
+				name    = TOY_BOX;
+				pickup  = C_ToyBox.PickupToyBoxItem;
+				tooltip = function(self, id) GameTooltip.SetToyByItemID(self, id) end;
+				texture = function(id) return select(3, C_ToyBox.GetToyInfo(id)) end;
+			})
+		end
+	end
+
 	return self.Collections;
 end
 
