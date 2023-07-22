@@ -31,6 +31,7 @@ local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
 local CAST_INFO_SPELLID_OFFSET = 9;
 local SPELLID_CAST_TIME_OFFSET = 4;
 local ALWAYS_TURN_CAMERA_VALUE = 2;
+local MOUSEOVER_THROTTLE       = 0.1;
 local LCLICK_BINDING = 'CAMERAORSELECTORMOVE';
 local RCLICK_BINDING = 'TURNORACTION';
 
@@ -94,6 +95,7 @@ local MenuFrameOpen  = IsOptionFrameOpen;
 local SpellTargeting = SpellIsTargeting;
 ---------------------------------------------------------------
 local reverseMouseHandling = false;
+local showMouseOverTooltip = true;
 
 local GetClickCvar = function(isLeftClick)
 	if reverseMouseHandling then
@@ -132,9 +134,10 @@ end
 local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyChord(button)) end;
 local CursorCentered = function() return CVar_Center:Get(true) end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
+local IsMouseOver    = function() return UnitExists('mouseover') end;
 local IsWorldFocus   = function() return GetMouseFocus() == WorldFrame end;
 local WorldInteract  = function() return TooltipShowing() and IsWorldFocus() end;
-local MouseOver      = function() return UnitExists('mouseover') or WorldInteract() end;
+local WorldObjFocus  = function() return IsMouseOver() or WorldInteract() end;
 
 
 ---------------------------------------------------------------
@@ -245,11 +248,11 @@ function Mouse:ShouldSetCenteredCursor(_)
 end
 
 function Mouse:ShouldSetCameraControl(_)
-	return is(_, RightClick, GamePadControl, CursorCentered) and isnt(_, MouseOver)
+	return is(_, RightClick, GamePadControl, CursorCentered) and isnt(_, WorldObjFocus)
 end
 
 function Mouse:ShouldFreeCenteredCursor(_)
-	return is(_, MenuBinding, GamePadControl, CursorCentered) and isnt(_, MouseOver)
+	return is(_, MenuBinding, GamePadControl, CursorCentered) and isnt(_, WorldObjFocus)
 end
 
 function Mouse:ShouldSetCursorWhenMenuIsOpen(_)
@@ -326,7 +329,7 @@ end
 
 function Mouse:AttemptSetCameraControl(_)
 	-- TODO: timeout should happen after mouseover ends
-	if is(_, MouseOver) then
+	if is(_, WorldObjFocus) then
 		return self:SetTimer(self.AttemptSetCameraControl, db('mouseAutoClearCenter'))
 	end
 	return self:SetCameraControl()
@@ -346,6 +349,25 @@ function Mouse:OnGamePadButtonDown(button)
 		return self:SetCameraControl()
 	end
 	return self
+end
+
+function Mouse:OnUpdate(elapsed)
+	self.elapsed = (self.elapsed or 0) + elapsed;
+	if self.elapsed > MOUSEOVER_THROTTLE then
+		self.elapsed = 0;
+		return
+	end
+	if is(_, IsMouseOver, CursorCentered) then
+		local guid = UnitGUID('mouseover')
+		if ( self.mouseOverGUID ~= guid ) then
+			self.mouseOverGUID = guid;
+			GameTooltip_SetDefaultAnchor(GameTooltip, self)
+			GameTooltip:SetUnit('mouseover')
+		end
+	elseif GameTooltip:IsOwned(self) then
+		self.mouseOverGUID = nil;
+		GameTooltip:Hide()
+	end
 end
 
 ---------------------------------------------------------------
@@ -394,6 +416,7 @@ function Mouse:OnVariableChanged()
 	end
 	CVar_Target:Set(useCursorReticleTargeting)
 	reverseMouseHandling = db('mouseHandlingReversed')
+	showMouseOverTooltip = db('mouseShowCenterTooltip')
 end
 
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
@@ -404,9 +427,11 @@ db:RegisterCallbacks(Mouse.OnVariableChanged, Mouse,
 	'Settings/doubleTapModifier',
 	'Settings/doubleTapTimeout',
 	'Settings/mouseFreeCursorReticle',
-	'Settings/mouseHandlingReversed'
+	'Settings/mouseHandlingReversed',
+	'Settings/mouseShowCenterTooltip'
 );
 ---------------------------------------------------------------
 Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)
+Mouse:SetScript('OnUpdate', Mouse.OnUpdate)
 Mouse:EnableGamePadButton(false)
 Mouse:SetPropagateKeyboardInput(true)
