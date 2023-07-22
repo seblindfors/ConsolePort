@@ -96,7 +96,7 @@ function CPAPI.GetKeyChordParts(keyChord)
 end
 
 ---------------------------------------------------------------
--- Classic lua wrappers
+-- Lua wrappers
 ---------------------------------------------------------------
 CPAPI.CreateColorFromHexString = CreateColorFromHexString or function(hexColor)
 	if #hexColor == 8 then
@@ -164,27 +164,6 @@ CPAPI.OpenStackSplitFrame = OpenStackSplitFrame or function(...)
 	return StackSplitFrame:OpenStackSplitFrame(...)
 end
 
-CPAPI.GetContainerItemInfo = function(...)
-	if C_Container and C_Container.GetContainerItemInfo then
-		return C_Container.GetContainerItemInfo(...) or {};
-	end
-	local icon, itemCount, locked, quality, readable, lootable, itemLink, isFiltered, noValue, itemID, isBound
-		= GetContainerItemInfo(...)
-	return {
-		hasLoot = lootable;
-		hasNoValue = noValue;
-		hyperlink = itemLink;
-		iconFileID = icon;
-		isBound = isBound;
-		isFiltered = isFiltered;
-		isLocked = locked;
-		isReadable = readable;
-		itemID = itemID;
-		quality = quality;
-		stackCount = itemCount;
-	}
-end
-
 CPAPI.CreateSimpleTextureMarkup = CreateSimpleTextureMarkup or function(file, width, height)
 	return ("|T%s:%d:%d|t"):format(
 		  file
@@ -194,12 +173,13 @@ CPAPI.CreateSimpleTextureMarkup = CreateSimpleTextureMarkup or function(file, wi
 end
 
 ---------------------------------------------------------------
--- Classic API wrappers
+-- API wrappers
 ---------------------------------------------------------------
 do
 local function nopz() return 0  end;
 local function nopt() return {} end;
 
+-- Simple wrappers
 CPAPI.ContainerIDToInventoryID = C_Container and C_Container.ContainerIDToInventoryID or ContainerIDToInventoryID;
 CPAPI.GetActiveZoneAbilities = C_ZoneAbility and C_ZoneAbility.GetActiveAbilities or nopt;
 CPAPI.GetBonusBarIndexForSlot = C_ActionBar.GetBonusBarIndexForSlot or nop;
@@ -226,10 +206,81 @@ CPAPI.IsSpellOverlayed = IsSpellOverlayed or nop;
 CPAPI.IsXPUserDisabled = IsXPUserDisabled or nop;
 CPAPI.LeaveParty = C_PartyInfo and C_PartyInfo.LeaveParty or LeaveParty;
 CPAPI.PickupContainerItem = C_Container and C_Container.PickupContainerItem or PickupContainerItem;
+CPAPI.PlayerHasToy = PlayerHasToy or nop;
 CPAPI.PutActionInSlot = C_ActionBar and C_ActionBar.PutActionInSlot or PlaceAction;
 CPAPI.RequestLoadQuestByID = C_QuestLog and C_QuestLog.RequestLoadQuestByID or nop;
 CPAPI.SplitContainerItem = C_Container and C_Container.SplitContainerItem or SplitContainerItem;
 CPAPI.UseContainerItem = C_Container and C_Container.UseContainerItem or UseContainerItem;
+
+-- Complex wrappers
+CPAPI.GetContainerItemInfo = function(...)
+	if C_Container and C_Container.GetContainerItemInfo then
+		return C_Container.GetContainerItemInfo(...) or {};
+	end
+	if GetContainerItemInfo then
+		local icon, itemCount, locked, quality, readable, lootable, itemLink,
+			isFiltered, noValue, itemID, isBound = GetContainerItemInfo(...)
+		return {
+			--[[ boolean          ]] hasLoot = lootable;
+			--[[ boolean          ]] hasNoValue = noValue;
+			--[[ itemLink         ]] hyperlink = itemLink;
+			--[[ FileID           ]] iconFileID = icon;
+			--[[ boolean          ]] isBound = isBound;
+			--[[ boolean          ]] isFiltered = isFiltered;
+			--[[ boolean          ]] isLocked = locked;
+			--[[ boolean          ]] isReadable = readable;
+			--[[ number           ]] itemID = itemID;
+			--[[ Enum.ItemQuality ]] quality = quality;
+			--[[ number           ]] stackCount = itemCount;
+		};
+	end
+	return {};
+end
+
+CPAPI.GetItemInfo = function(...)
+	if GetItemInfo then
+		local itemName, itemLink, itemQuality, itemLevel, itemMinLevel, itemType, itemSubType,
+		itemStackCount, itemEquipLoc, itemTexture, sellPrice, classID, subclassID, bindType,
+		expacID, setID, isCraftingReagent = GetItemInfo(...)
+
+		return {
+			--[[ string           ]] itemName = itemName;
+			--[[ itemLink         ]] itemLink = itemLink;
+			--[[ Enum.ItemQuality ]] itemQuality = itemQuality;
+			--[[ number           ]] itemLevel = itemLevel;
+			--[[ number           ]] itemMinLevel = itemMinLevel;
+			--[[ ItemType         ]] itemType = itemType;
+			--[[ ItemType         ]] itemSubType = itemSubType;
+			--[[ number           ]] itemStackCount = itemStackCount;
+			--[[ ItemEquipLoc     ]] itemEquipLoc = itemEquipLoc;
+			--[[ number           ]] itemTexture = itemTexture;
+			--[[ number           ]] sellPrice = sellPrice;
+			--[[ ItemType         ]] classID = classID;
+			--[[ ItemType         ]] subclassID = subclassID;
+			--[[ Enum.ItemBind    ]] bindType = bindType;
+			--[[ LE_EXPANSION     ]] expacID = expacID;
+			--[[ ItemSetID        ]] setID = setID;
+			--[[ boolean          ]] isCraftingReagent = isCraftingReagent;
+		};
+	end
+	return {};
+end
+
+CPAPI.GetItemInfoInstant = function(...)
+	if GetItemInfoInstant then
+		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(...)
+		return {
+			--[[ number           ]] itemID = itemID;
+			--[[ ItemType         ]] itemType = itemType;
+			--[[ ItemType         ]] itemSubType = itemSubType;
+			--[[ ItemEquipLoc     ]] itemEquipLoc = itemEquipLoc;
+			--[[ FileID           ]] icon = icon;
+			--[[ ItemType         ]] classID = classID;
+			--[[ ItemType         ]] subclassID = subclassID;
+		};
+	end
+	return {};
+end
 
 end
 
