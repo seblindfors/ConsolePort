@@ -492,12 +492,13 @@ db:Register('Variables', {
 		desc = 'Disables customization to hotkeys on regular action bar.';
 		advd = true;
 	};
-	useAtlasIcons = CPAPI.IsRetailVersion and {Bool(true);
+	useAtlasIcons = {Bool(not CPAPI.IsClassicEraVersion);
 		head = KEY_BINDINGS_MAC;
 		sort = 6;
 		name = 'Use Default Hotkey Icons';
 		desc = 'Uses the default hotkey icons instead of the custom icons provided by ConsolePort.';
 		note = 'Requires reload.';
+		hide = CPAPI.IsClassicEraVersion;
 	};
 	emulatePADPADDLE1 = {Pseudokey('none');
 		head = KEY_BINDINGS_MAC;
