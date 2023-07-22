@@ -357,7 +357,7 @@ function Mouse:OnUpdate(elapsed)
 		self.elapsed = 0;
 		return
 	end
-	if is(_, IsMouseOver, CursorCentered) then
+	if showMouseOverTooltip and is(_, IsMouseOver, CursorCentered) then
 		local guid = UnitGUID('mouseover')
 		if ( self.mouseOverGUID ~= guid ) then
 			self.mouseOverGUID = guid;
