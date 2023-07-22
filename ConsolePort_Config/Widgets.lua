@@ -71,33 +71,46 @@ function Widget:SetCallback(callback)
 	self.controller:SetCallback(callback)
 end
 
-function Widget:IsUserInput()
-	return self.userInput;
-end
-
-function Widget:OnEnter()
-	if self.tooltipText then
+function Widget:UpdateTooltip(text, note, hints)
+	if not self.isTooltipOwned then return end;
+	text = text or self.tooltipText;
+	note = note or self.tooltipNote;
+	hints = hints or self.tooltipHints;
+	if text or note or hints then
 		GameTooltip:SetOwner(self, self.tooltipAnchor or 'ANCHOR_TOP')
 		GameTooltip:SetText(self:GetText())
-		GameTooltip:AddLine(self.tooltipText, 1, 1, 1, 1)
-		if self.tooltipNote then
-			GameTooltip:AddLine('\n'..NOTE_COLON)
-			GameTooltip:AddLine(self.tooltipNote, 1, 1, 1, 1)
+		if text then
+			GameTooltip:AddLine(text, 1, 1, 1, 1)
 		end
-		if self.LClickText or self.RClickText then
-			GameTooltip:AddLine('\n')
-			if self.LClickText then
-				GameTooltip:AddLine(self.LClickText)
+		if note then
+			if text then
+				GameTooltip:AddLine('\n'..NOTE_COLON)
 			end
-			if self.RClickText then
-				GameTooltip:AddLine(self.RClickText)
+			GameTooltip:AddLine(note, 1, 1, 1, 1)
+		end
+		if hints then
+			if text or note then
+				GameTooltip:AddLine('\n')
+			end
+			for _, line in ipairs(hints) do
+				GameTooltip:AddLine(line)
 			end
 		end
 		GameTooltip:Show()
 	end
 end
 
+function Widget:IsUserInput()
+	return self.userInput;
+end
+
+function Widget:OnEnter()
+	self.isTooltipOwned = true;
+	self:UpdateTooltip()
+end
+
 function Widget:OnLeave()
+	self.isTooltipOwned = nil;
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
@@ -273,10 +286,16 @@ function Number:OnClick()
 	if self:GetChecked() then
 		self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
 		self.CatchRight = env.Config:CatchButton('PADDRIGHT', self.OnRightButton, self)
+		self.tooltipHints = {
+			env:GetTooltipPromptForClick('LeftClick', APPLY);
+			env:GetTooltipPrompt('PADDLEFT', env.L'Decrease');
+			env:GetTooltipPrompt('PADDRIGHT', env.L'Increase');
+		};
 	else
 		env.Config:FreeButton('PADDLEFT', self.CatchLeft)
 		env.Config:FreeButton('PADDRIGHT', self.CatchRight)
 		self.CatchLeft, self.CatchRight = nil, nil;
+		self.tooltipHints = nil;
 	end
 end
 
@@ -509,6 +528,10 @@ function Button:OnClick(button)
 		Widget.OnClick(self)
 		self:Set('none', true)
 	elseif self:GetChecked() then
+		self.tooltipHints = {
+			YELLOW_FONT_COLOR:WrapTextInColorCode(BIND_KEY_TO_COMMAND:format(BLUE_FONT_COLOR:WrapTextInColorCode(self:GetText())));
+		};
+		self:UpdateTooltip()
 		return env.Config:CatchAll(self.OnGamePadButtonDown, self)
 	end
 	env.Config:SetDefaultClosures()
@@ -523,8 +546,10 @@ function Button:OnValueChanged(value)
 	end 
 	self.Input.Clear:SetShown(not isNotBound)
 	self.Input:SetText(display)
-	self.LClickText = env:GetTooltipPromptForClick('LeftClick', CHOOSE)
-	self.RClickText = env:GetTooltipPromptForClick('RightClick', REMOVE)
+	self.tooltipHints = {
+		env:GetTooltipPromptForClick('LeftClick', CHOOSE);
+		env:GetTooltipPromptForClick('RightClick', REMOVE);
+	};
 end
 
 ---------------------------------------------------------------
@@ -616,8 +641,16 @@ function Pseudokey:OnClick(button)
 		Widget.OnClick(self)
 		self:Set('none', true)
 	elseif self:GetChecked() then
+		self.tooltipHints = {
+			YELLOW_FONT_COLOR:WrapTextInColorCode(BIND_KEY_TO_COMMAND:format(BLUE_FONT_COLOR:WrapTextInColorCode(self:GetText())));
+		};
 		return self:EnableKeyboard(true)
 	end
+	self.tooltipHints = {
+		env:GetTooltipPromptForClick('LeftClick', CHOOSE);
+		env:GetTooltipPromptForClick('RightClick', REMOVE);
+	};
+	self:UpdateTooltip()
 	self:EnableKeyboard(false)
 end
 
@@ -627,8 +660,10 @@ function Pseudokey:OnValueChanged(value)
 	if (isNotBound) then
 		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
 	end
-	self.LClickText = env:GetTooltipPromptForClick('LeftClick', CHOOSE)
-	self.RClickText = env:GetTooltipPromptForClick('RightClick', REMOVE)
+	self.tooltipHints = {
+		env:GetTooltipPromptForClick('LeftClick', CHOOSE);
+		env:GetTooltipPromptForClick('RightClick', REMOVE);
+	};
 	self.Input.Clear:SetShown(not isNotBound)
 	self.Input:SetText(display)
 end

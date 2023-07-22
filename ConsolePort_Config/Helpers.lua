@@ -24,7 +24,10 @@ function env:GetButtonSlug(btnID, modID, split)
 end
 
 function env:GetTooltipPrompt(btnID, text)
-	return db('Gamepad/Active'):GetTooltipButtonPrompt(btnID, text)
+	local device = db('Gamepad/Active')
+	if device then
+		return device:GetTooltipButtonPrompt(btnID, text)
+	end
 end
 
 function env:GetTooltipPromptForClick(clickID, text)
