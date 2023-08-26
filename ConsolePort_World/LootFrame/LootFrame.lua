@@ -105,9 +105,8 @@ LootFrame.CloseOnButton = {
 }
 
 function LootFrame:OnGamePadButtonDown(button)
-	self:SetPropagateKeyboardInput(false)
 	if Input:IsOverrideActive(CPAPI.CreateKeyChord(button)) then
-		return self:SetPropagateKeyboardInput(true)
+		return
 	end
 
 	if (button == 'PAD1') then
@@ -123,8 +122,6 @@ function LootFrame:OnGamePadButtonDown(button)
 		self:UpdateFocus(self.focusIndex - 1)
 	elseif (self.CloseOnButton[button]) then
 		CloseLoot()
-	else
-		self:SetPropagateKeyboardInput(true)
 	end
 end
 

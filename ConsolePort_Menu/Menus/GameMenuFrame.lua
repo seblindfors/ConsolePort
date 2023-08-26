@@ -6,7 +6,6 @@ do	-- Initiate frame
 	local baseTemplates   = {'CPMenuButtonBaseTemplate', 'SecureActionButtonTemplate'};
 	local hideMenuHook    = {hidemenu = true};
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
-	local IsWoW9Version   = not CPAPI.IsRetailVersion or nil;
 	local IsClassicGameVersion = CPAPI.IsClassicVersion or CPAPI.IsClassicEraVersion or nil;
 
 	LibStub('Carpenter')(Menu, {
@@ -512,23 +511,11 @@ do	-- Initiate frame
 						self.Icon:SetTexture([[Interface\TUTORIALFRAME\UI-TutorialFrame-GloveCursor]])
 					end;
 				};
-				Interface  = IsWoW9Version and {
-					_ID    = 6;
-					_Type  = 'Button';
-					_Setup = baseTemplates;
-					_Point = {'TOP', 'parent.System', 'BOTTOM', 0, 0};
-					_Text  = UIOPTIONS_MENU;
-					_RefTo = GameMenuButtonUIOptions;
-					_OnLoad = function(self)
-						CPMenuButtonMixin.OnLoad(self)
-						self.Icon:SetTexture([[Interface\TUTORIALFRAME\UI-TutorialFrame-GloveCursor]])
-					end;
-				};
 				AddOns  = {
 					_ID    = 7;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', CPAPI.IsRetailVersion and 'parent.EditMode' or 'parent.Interface', 'BOTTOM', 0, 0};
+					_Point = {'TOP', CPAPI.IsRetailVersion and 'parent.EditMode' or 'parent.System', 'BOTTOM', 0, 0};
 					_Text  = ADDONS;
 					_RefTo = GameMenuButtonAddons;
 					_OnLoad = function(self)
@@ -545,23 +532,11 @@ do	-- Initiate frame
 					_RefTo = GameMenuButtonMacros;
 					_Image = CPAPI.IsRetailVersion and 'Pet_Type_Magical' or 'Trade_Alchemy';
 				};
-				KeyBindings  = IsWoW9Version and {
-					_ID    = 9;
-					_Type  = 'Button';
-					_Setup = baseTemplates;
-					_Point = {'TOP', 'parent.Macros', 'BOTTOM', 0, 0};
-					_Text  = KEY_BINDINGS;
-					_RefTo = GameMenuButtonKeybindings;
-					_OnLoad = function(self)
-						CPMenuButtonMixin.OnLoad(self)
-						self.Icon:SetTexture([[Interface\MacroFrame\MacroFrame-Icon]])
-					end;
-				};
 				Help  = {
 					_ID    = 10;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', IsWoW9Version and 'parent.KeyBindings' or 'parent.Macros', 'BOTTOM', 0, 0};
+					_Point = {'TOP', 'parent.Macros', 'BOTTOM', 0, 0};
 					_Text  = GAMEMENU_HELP;
 					_RefTo = GameMenuButtonHelp;
 					_Image = 'INV_Misc_QuestionMark';
