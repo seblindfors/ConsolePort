@@ -71,18 +71,34 @@ end
 ---------------------------------------------------------------
 -- Supported functions 
 ---------------------------------------------------------------
+-- Common args:
+-- @id    : id of the input widget
+-- @owner : frame that owns the input widget
+
+---------------------------------------------------------------
+-- @value : button frame to click on
 function InputAPI:SetButton(id, owner, ...)
 	return self:GetWidget(id, owner):Button(...)
 end
 
+---------------------------------------------------------------
+-- @value : macrotext
 function InputAPI:SetMacro(id, owner, ...)
 	return self:GetWidget(id, owner):Macro(...)
 end
 
+---------------------------------------------------------------
+-- @value : global button name
 function InputAPI:SetGlobal(id, owner, ...)
 	return self:GetWidget(id, owner):Global(...)
 end
 
+---------------------------------------------------------------
+-- @value : name of the function to call
+-- @func  : custom function to call
+-- @init  : (optional) function to set up properties on attach
+-- @clear : (optional) function to run when clearing/detaching
+-- @args  : (optional) vararg properties fed to initialization
 function InputAPI:SetCommand(id, owner, ...)
 	return self:GetWidget(id, owner):Command(...)
 end
@@ -129,12 +145,6 @@ function InputMixin:Global(value, isPriority, click)
 	})
 end
 
--- Creates a new command:
---  @name : name of the function to add
---  @func : lambda function to call
---  @init : (optional) function to set up properties
---  @clear: (optional) function to run when clearing
---  @args : (optional) properties for initialization
 function InputMixin:Command(isPriority, click, name, func, init, clear, ...)
 	self[name] = func
 	if init then

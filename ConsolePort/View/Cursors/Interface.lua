@@ -222,7 +222,6 @@ end
 ---------------------------------------------------------------
 do  -- Create input proxy for basic controls
 	local InputProxy = function(self, ...)
-		self:Show()
 		Cursor:Input(self, ...)
 	end
 
@@ -241,6 +240,7 @@ do  -- Create input proxy for basic controls
 		if not db('UIholdRepeatDisable') then
 			self.UIControlTickNext = db('UIholdRepeatDelay')
 			self:SetScript('OnUpdate', dpadRepeater)
+			self:Show()
 		end
 	end
 
@@ -259,14 +259,29 @@ do  -- Create input proxy for basic controls
 		--  @init : (optional) function to set up properties
 		--  @clear: (optional) function to run when clearing
 		--  @args : (optional) properties for initialization
-		if not self.BasicControls then
-			self.BasicControls = {
-				PADDUP    = {InputProxy, DpadInit, DpadClear, DpadRepeater};
-				PADDDOWN  = {InputProxy, DpadInit, DpadClear, DpadRepeater};
-				PADDLEFT  = {InputProxy, DpadInit, DpadClear, DpadRepeater}; 
-				PADDRIGHT = {InputProxy, DpadInit, DpadClear, DpadRepeater};
-				[db('Settings/UICursorSpecial')] = {InputProxy};
+		if not self.DpadControls then
+			self.DpadControls = {
+				PADDUP    = {GenerateClosure(InputProxy, 'PADDUP'),    DpadInit, DpadClear, DpadRepeater};
+				PADDDOWN  = {GenerateClosure(InputProxy, 'PADDDOWN'),  DpadInit, DpadClear, DpadRepeater};
+				PADDLEFT  = {GenerateClosure(InputProxy, 'PADDLEFT'),  DpadInit, DpadClear, DpadRepeater}; 
+				PADDRIGHT = {GenerateClosure(InputProxy, 'PADDRIGHT'), DpadInit, DpadClear, DpadRepeater};
 			};
+		end
+		if not self.BasicControls then
+			self.BasicControls = CopyTable(self.DpadControls)
+		end
+		for key in pairs(self.BasicControls) do
+			if not self.DpadControls[key] then
+				self.BasicControls[key] = nil
+			end
+		end
+		local dynamicKeys = {
+			db('Settings/UICursorSpecial'),
+		}
+		for _, key in ipairs(dynamicKeys) do
+			if not self.BasicControls[key] then
+				self.BasicControls[key] = {GenerateClosure(InputProxy, key)}
+			end
 		end
 		return self.BasicControls
 	end
@@ -274,7 +289,7 @@ do  -- Create input proxy for basic controls
 	function Cursor:SetBasicControls()
 		local controls = self:GetBasicControls()
 		for button, settings in pairs(controls) do
-			Input:SetCommand(button, self, true, button, 'UIControl', unpack(settings));
+			Input:SetCommand(button, self, true, 'LeftButton', 'UIControl', unpack(settings));
 		end
 	end
 
@@ -356,7 +371,7 @@ function Cursor:AttemptSelectNode()
 	end
 end
 
-function Cursor:Input(caller, isDown, key)
+function Cursor:Input(key, caller, isDown)
 	local target, changed
 	if isDown and key then
 		if not self:AttemptDragStart() then
