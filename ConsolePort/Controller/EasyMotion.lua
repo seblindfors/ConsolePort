@@ -184,7 +184,8 @@ for name, script in pairs({[CPAPI.ActionTypeRelease] = 'macro',
 		end
 		if stack then
 			for i, frame in pairs(stack) do
-				if frame:IsProtected() then
+				local isProtected, isProtectedExplicitly = frame:IsProtected()
+				if isProtected or isProtectedExplicitly then
 					current = frame
 					self:RunAttribute('UpdateFrames')
 				end
@@ -321,6 +322,8 @@ for name, script in pairs({
 function EM:OnNewBindings(bindings)
 	local keys = {};
 	for unitType, action in pairs(Actions) do
+		-- TODO: fix the bug that causes this to be empty when
+		-- reloading in combat
 		for button, set in pairs(bindings) do
 			for modifier, binding in pairs(set) do
 				if (binding == action) then
@@ -402,8 +405,11 @@ function EM:RefreshUnitFrames(current)
 	end
 	if stack then
 		for i, frame in pairs(stack) do
-			if not frame:IsForbidden() and frame:IsProtected() then
-				self:RefreshUnitFrames(frame)
+			if not frame:IsForbidden() then
+				local isProtected, isProtectedExplicitly = frame:IsProtected()
+				if isProtected or isProtectedExplicitly then
+					self:RefreshUnitFrames(frame)
+				end
 			end
 		end
 	end
