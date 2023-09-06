@@ -31,16 +31,20 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 	]];
 	-----------------------------------------------------------
 	GetNodes = [[
-		if node and node:IsProtected() then
-			self::ChildScan()
-			self::CacheNode()
+		if node then
+			local isProtected, isProtectedExplicitly = node:IsProtected()
+			if isProtected or isProtectedExplicitly then
+				self::ChildScan()
+				self::CacheNode()
+			end
 		end
 	]];
 	-----------------------------------------------------------
 	ChildScan = [[
 		local parent = node
 		for i, object in ipairs({parent:GetChildren()}) do
-			if object:IsProtected() then
+			local isProtected, isProtectedExplicitly = object:IsProtected()
+			if isProtected or isProtectedExplicitly then
 				child = object
 				if self::FilterChild() then
 					node = child; self::GetNodes()
