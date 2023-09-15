@@ -18,7 +18,15 @@ Cursor:SetFrameRef('SetFocus', Cursor.SetFocus)
 Cursor:SetFrameRef('SetTarget', Cursor.SetTarget)
 Cursor:SetFrameRef('Toggle', Cursor.Toggle)
 Cursor:WrapScript(Cursor.Toggle, 'PreClick', [[
-	control:RunAttribute('ToggleCursor', not enabled)
+	if button == 'ON' then
+		if enabled then return end;
+		control:RunAttribute('ToggleCursor', true)
+	elseif button == 'OFF' then
+		if not enabled then return end;
+		control:RunAttribute('ToggleCursor', false)
+	else
+		control:RunAttribute('ToggleCursor', not enabled)
+	end
 	if control:GetAttribute('usefocus') then
 		if enabled then
 			self:SetAttribute('type', 'focus')
