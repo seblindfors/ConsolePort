@@ -296,9 +296,7 @@ setmetatable(ConsolePort, {
 	__call  = HandleSlashCommand;
 })
 
-_G['SLASH_' .. _:upper() .. '1'] = '/' .. _:lower()
-_G['SLASH_' .. _:upper() .. '2'] = '/cp'
-SlashCmdList[_:upper()] = ConsolePort;
+RegisterNewSlashCommand(ConsolePort, 'consoleport', 'cp')
 
 ---------------------------------------------------------------
 -- Temp?: add a game menu button to access config
