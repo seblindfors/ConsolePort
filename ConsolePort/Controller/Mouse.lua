@@ -9,6 +9,7 @@ local _, db = ...;
 local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMouseHandler', ConsolePort}, {
 	'ACTIONBAR_HIDEGRID';
 	'ACTIONBAR_SHOWGRID';
+	'CURSOR_CHANGED';
 	'GOSSIP_SHOW';
 	'LOOT_OPENED';
 	'PLAYER_STARTED_MOVING';
@@ -227,6 +228,16 @@ do local function OnModifierUpdate(self, elapsed)
 		end
 	end
 end
+
+function Mouse:CURSOR_CHANGED(isDefault, cursorType)
+	if not db('mouseAutoControlPickup') then return end
+	if isDefault then
+		self:SetCameraControl()
+	else
+		self:SetFreeCursor()
+	end
+end
+
 
 -- Direct function calls from events
 Mouse.ACTIONBAR_HIDEGRID = Mouse.SetCameraControl;
