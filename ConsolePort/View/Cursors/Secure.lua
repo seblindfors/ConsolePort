@@ -80,6 +80,17 @@ Cursor:Wrap('PreClick', [[
 	self:CallMethod('Chime')
 ]])
 
+function Cursor:OnDataLoaded()
+	local wrapDisable = db('Settings/UIWrapDisable')
+	if wrapDisable ~= nil then
+		Cursor:SetAttribute('wrapDisable', wrapDisable)
+	end
+end
+
+db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
+	'OnDataLoaded',
+	'Settings/UIWrapDisable'
+);
 db:RegisterSafeCallback('OnUpdateOverrides', function(self, isPriority)
 	self:Execute('self:RunAttribute("ToggleCursor", enabled)')
 end, Cursor)

@@ -261,6 +261,12 @@ db:Register('Variables', {
 		note = BLUE_FONT_COLOR:WrapTextInColorCode('node') .. ' is the current frame under scrutinization.';
 		advd = true;
 	};
+	raidCursorWrapDisable = {Bool(false);
+		head = 'Raid Cursor';
+		sort = 9;
+		name = 'Disable Raid Cursor Wrapping';
+		desc = 'Prevent raid cursor from wrapping when navigating';
+	};
 	--------------------------------------------------------------------------------------------------------
 	-- Interface cursor:
 	--------------------------------------------------------------------------------------------------------
@@ -369,6 +375,12 @@ db:Register('Variables', {
 		desc = 'Which modifier to use for modified commands';
 		note = 'The modifier can be used to scroll together with the directional pad.';
 		opts = MODID_SELECT;
+	};
+	UIWrapDisable = {Bool(false);
+		head = 'Interface Cursor';
+		sort = 16;
+		name = 'Disable Interface Cursor Wrapping';
+		desc = 'Prevent interface cursor from wrapping when navigating';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Unit hotkeys:

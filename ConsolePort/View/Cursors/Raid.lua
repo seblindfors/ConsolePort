@@ -264,6 +264,10 @@ function Cursor:OnDataLoaded()
 		self.Arrow:SetTexture([[Interface\WorldMap\WorldMapArrow]])
 		self.Arrow:SetSize(24, 24)
 	end
+	local wrapDisable = db('Settings/raidCursorWrapDisable')
+	if wrapDisable ~= nil then
+		self:SetAttribute('wrapDisable', wrapDisable)
+	end
 end
 
 function Cursor:OnUpdateOverrides(isPriority)
@@ -282,7 +286,8 @@ db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'Settings/raidCursorUp',
 	'Settings/raidCursorDown',
 	'Settings/raidCursorLeft',
-	'Settings/raidCursorRight'
+	'Settings/raidCursorRight',
+	'Settings/raidCursorWrapDisable'
 );
 db:RegisterSafeCallback('OnUpdateOverrides', Cursor.OnUpdateOverrides, Cursor)
 
