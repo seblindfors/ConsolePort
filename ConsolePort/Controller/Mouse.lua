@@ -229,12 +229,28 @@ do local function OnModifierUpdate(self, elapsed)
 	end
 end
 
-function Mouse:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
-	if not db('mouseAutoControlPickup') then return end
-	if isDefault and oldCursorType ~= Enum.UICursorType.Default then
-		self:SetCameraControl()
-	else
-		self:SetFreeCursor()
+do local FreeCursorOnPickup = {
+		[Enum.UICursorType.Flyout]   = true;
+		[Enum.UICursorType.Item]     = true;
+		[Enum.UICursorType.Macro]    = true;
+		[Enum.UICursorType.Merchant] = true;
+		[Enum.UICursorType.Mount]    = true;
+		[Enum.UICursorType.Pet]      = true;
+		[Enum.UICursorType.Spell]    = true;
+		[Enum.UICursorType.Toy]      = true;
+	};
+
+	function Mouse:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
+		if not db('mouseAutoControlPickup') then return end
+		if isDefault then
+			if ( oldCursorType == self.hasCursorItem ) then
+				self:SetCameraControl()
+			end
+			self.hasCursorItem = nil;
+		elseif FreeCursorOnPickup[cursorType] then
+			self.hasCursorItem = cursorType;
+			self:SetFreeCursor()
+		end
 	end
 end
 

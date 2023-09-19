@@ -358,7 +358,7 @@ local function nrmlz(node, effScale, cmpScale, func, ...)
 	end
 end
 ---------------------------------------------------------------
-local IsRetailVersion = CPAPI.IsRetailVersion;
+
 function GetCenter(node)
 	local x, y, w, h = node:GetRect()
 	if not x then return end
