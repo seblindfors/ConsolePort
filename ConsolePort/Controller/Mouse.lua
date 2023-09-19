@@ -229,9 +229,9 @@ do local function OnModifierUpdate(self, elapsed)
 	end
 end
 
-function Mouse:CURSOR_CHANGED(isDefault, cursorType)
+function Mouse:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
 	if not db('mouseAutoControlPickup') then return end
-	if isDefault then
+	if isDefault and oldCursorType ~= Enum.UICursorType.Default then
 		self:SetCameraControl()
 	else
 		self:SetFreeCursor()
