@@ -1,5 +1,6 @@
 CPPieMenuMixin = CreateFromMixins(CPFocusPoolMixin, CPGradientMixin);
 local Clamp, atan2 = Clamp, math.atan2;
+local DEFAULT_SIZE, ARROW_SIZE_W_FRACTION, ARROW_SIZE_H_FRACTION, BG_POINT_INSET = 500, 0.1, 0.8, 422/500;
 
 function CPPieMenuMixin:OnPreLoad()
 	CPFocusPoolMixin.OnLoad(self)
@@ -14,6 +15,14 @@ function CPPieMenuMixin:OnPostHide()
 	CPFocusPoolMixin.OnPostHide(self)
 	self.Arrow:SetAlpha(0)
 	self.BG:SetVertexColor(1, 1, 1, 0)
+end
+
+function CPPieMenuMixin:OnPostSizeChanged()
+	local width, height = self:GetSize()
+	local x, y = (BG_POINT_INSET * width) - width, (BG_POINT_INSET * height) - height;
+	self.Arrow:SetSize(width * ARROW_SIZE_W_FRACTION, height * ARROW_SIZE_H_FRACTION)
+	self.BG:SetPoint('TOPLEFT', -x, y)
+	self.BG:SetPoint('BOTTOMRIGHT', x, -y)
 end
 
 function CPPieMenuMixin:SetFocusByIndex(index)

@@ -307,7 +307,9 @@ function Radial:Register(header, name, ...)
 	if OnBindingSet then header.OnBindingSet = OnBindingSet; end;
 
 	header:SetScale(db('radialScale'))
+	header:SetSize(db('radialPreferredSize'), db('radialPreferredSize'))
 	db:RegisterSafeCallback('Settings/radialScale', header.SetScale, header)
+	db:RegisterSafeCallback('Settings/radialPreferredSize', function(self, size) self:SetSize(size, size) end, header)
 
 	return header:OnLoad(...)
 end

@@ -26,6 +26,7 @@
 		<Scripts>
 			<OnLoad method="OnPreLoad" intrinsicOrder="precall"/>
 			<OnHide method="OnPostHide" intrinsicOrder="postcall"/>
+			<OnSizeChanged method="OnPostSizeChanged" intrinsicOrder="postcall"/>
 		</Scripts>
 	</Button>
 	

@@ -166,9 +166,16 @@ db:Register('Variables', {
 		desc = 'Scale of all radial menus, relative to UI scale.';
 		advd = true;
 	};
-	radialActionDeadzone = {Range(0.5, 0.05, 0, 1);
+	radialPreferredSize = {Number(500, 25, true);
 		head = 'Radial Menus';
 		sort = 4;
+		name = 'Ring Size';
+		desc = 'Preferred size of radial menus, in pixels.';
+		advd = true;
+	};
+	radialActionDeadzone = {Range(0.5, 0.05, 0, 1);
+		head = 'Radial Menus';
+		sort = 5;
 		name = 'Deadzone';
 		desc = 'Deadzone for simple point-to-select rings.';
 	};
@@ -189,7 +196,7 @@ db:Register('Variables', {
 	};
 	radialRemoveButton = {Button('PADRSHOULDER');
 		head = 'Radial Menus';
-		sort = 9;
+		sort = 8;
 		name = 'Remove Button';
 		desc = 'Button used to remove a selected item from an editable ring.';
 	};

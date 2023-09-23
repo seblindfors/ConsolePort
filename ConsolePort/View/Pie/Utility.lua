@@ -45,7 +45,7 @@ Utility:CreateEnvironment({
 		control:ChildUpdate('state', set)
 
 		for i, action in ipairs(RING) do
-			local x, y = radial:RunAttribute('GetPointForIndex', i, numActive, radius)
+			local x, y = radial::GetPointForIndex(i, numActive, radius)
 			local widget = self:GetFrameRef(set..':'..i)
 
 			widget:Show()
@@ -211,11 +211,17 @@ function Utility:OnStickySelectChanged()
 	self:SetAttribute('backup', nil)
 end
 
+function Utility:OnSizeChanged()
+	local width, height = self:GetSize()
+	self.FocusOverlay.BgRunes:SetSize(width * 0.8, height * 0.8)
+end
+
 db:RegisterSafeCallback('Settings/autoExtra', Utility.OnAutoAssignedChanged, Utility)
 db:RegisterSafeCallback('Settings/radialCosineDelta', Utility.OnAxisInversionChanged, Utility)
 db:RegisterSafeCallback('Settings/radialRemoveButton', Utility.OnRemoveButtonChanged, Utility)
 db:RegisterSafeCallback('Settings/radialPrimaryStick', Utility.OnPrimaryStickChanged, Utility)
 db:RegisterSafeCallback('Settings/radialStickySelect', Utility.OnStickySelectChanged, Utility)
+Utility:SetScript('OnSizeChanged', Utility.OnSizeChanged)
 
 ---------------------------------------------------------------
 -- Widget handling
