@@ -176,7 +176,9 @@ db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMi
 					end
 				end
 			end
-			if not currentNodeChanged then
+
+			local wrapDisable = self:GetAttribute('wrapDisable')
+			if not currentNodeChanged and not wrapDisable then
 				self::SetWrapAroundNode(key, tX, tY)
 			end
 		end

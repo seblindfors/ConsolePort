@@ -250,7 +250,8 @@ function Cursor:OnDataLoaded()
 	self:SetAttribute('usefocus', mode == self.Modes.Focus)
 	self:SetAttribute('type', mode == self.Modes.Focus and 'focus' or 'target')
 
-	self:SetAttribute('IsValidNode', 'return ' .. (db('raidCursorFilter') or 'true') .. ';') 
+	self:SetAttribute('IsValidNode', 'return ' .. (db('raidCursorFilter') or 'true') .. ';')
+	self:SetAttribute('wrapDisable', db('raidCursorWrapDisable'))
 	self:SetScale(db('raidCursorScale'))
 
 	self:Execute('wipe(BUTTONS)')
@@ -282,7 +283,8 @@ db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'Settings/raidCursorUp',
 	'Settings/raidCursorDown',
 	'Settings/raidCursorLeft',
-	'Settings/raidCursorRight'
+	'Settings/raidCursorRight',
+	'Settings/raidCursorWrapDisable'
 );
 db:RegisterSafeCallback('OnUpdateOverrides', Cursor.OnUpdateOverrides, Cursor)
 
