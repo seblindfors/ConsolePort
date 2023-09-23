@@ -250,7 +250,8 @@ function Cursor:OnDataLoaded()
 	self:SetAttribute('usefocus', mode == self.Modes.Focus)
 	self:SetAttribute('type', mode == self.Modes.Focus and 'focus' or 'target')
 
-	self:SetAttribute('IsValidNode', 'return ' .. (db('raidCursorFilter') or 'true') .. ';') 
+	self:SetAttribute('IsValidNode', 'return ' .. (db('raidCursorFilter') or 'true') .. ';')
+	self:SetAttribute('wrapDisable', db('raidCursorWrapDisable'))
 	self:SetScale(db('raidCursorScale'))
 
 	self:Execute('wipe(BUTTONS)')
@@ -263,10 +264,6 @@ function Cursor:OnDataLoaded()
 	else
 		self.Arrow:SetTexture([[Interface\WorldMap\WorldMapArrow]])
 		self.Arrow:SetSize(24, 24)
-	end
-	local wrapDisable = db('Settings/raidCursorWrapDisable')
-	if wrapDisable ~= nil then
-		self:SetAttribute('wrapDisable', wrapDisable)
 	end
 end
 

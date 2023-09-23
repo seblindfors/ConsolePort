@@ -380,7 +380,7 @@ db:Register('Variables', {
 		head = 'Interface Cursor';
 		sort = 16;
 		name = 'Disable Interface Cursor Wrapping';
-		desc = 'Prevent interface cursor from wrapping when navigating';
+		desc = 'Prevent interface cursor from wrapping when navigating.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Unit hotkeys:

@@ -81,16 +81,14 @@ Cursor:Wrap('PreClick', [[
 ]])
 
 function Cursor:OnDataLoaded()
-	local wrapDisable = db('Settings/UIWrapDisable')
-	if wrapDisable ~= nil then
-		Cursor:SetAttribute('wrapDisable', wrapDisable)
-	end
+	self:SetAttribute('wrapDisable', db('UIWrapDisable'))
 end
 
 db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'OnDataLoaded',
 	'Settings/UIWrapDisable'
 );
+
 db:RegisterSafeCallback('OnUpdateOverrides', function(self, isPriority)
 	self:Execute('self:RunAttribute("ToggleCursor", enabled)')
 end, Cursor)
