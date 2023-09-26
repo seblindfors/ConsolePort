@@ -272,7 +272,8 @@ db:Register('Variables', {
 		head = 'Raid Cursor';
 		sort = 9;
 		name = 'Disable Raid Cursor Wrapping';
-		desc = 'Prevent raid cursor from wrapping when navigating';
+		desc = 'Prevent raid cursor from wrapping when navigating.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Interface cursor:
@@ -388,6 +389,7 @@ db:Register('Variables', {
 		sort = 16;
 		name = 'Disable Interface Cursor Wrapping';
 		desc = 'Prevent interface cursor from wrapping when navigating.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	-- Unit hotkeys:
