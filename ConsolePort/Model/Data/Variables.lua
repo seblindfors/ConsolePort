@@ -3,6 +3,7 @@ local STICK_SELECT = {'Movement', 'Camera', 'Gyro'};
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
+local BINDINGS_OPT = KEY_BINDINGS_MAC or 'Bindings';
 
 local unpack, _, db, __ = unpack, ...; db('Data')();
 do local s,h=0;__=function(v)if type(v)=='string'then h=v;s=0;else s=s+1;v.sort=s;v.head=h;return v end end end
@@ -21,7 +22,7 @@ db:Register('Variables', {
 		hide = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	__'Crosshair';
+	__ 'Crosshair' ;
 	--------------------------------------------------------------------------------------------------------
 	crosshairEnable = __({Bool(true);
 		name = 'Enable';
@@ -54,7 +55,7 @@ db:Register('Variables', {
 		desc = 'Color of the crosshair.';
 	});
 	--------------------------------------------------------------------------------------------------------
-	__(MOUSE_LABEL); -- Mouse
+	__( MOUSE_LABEL ); -- Mouse
 	--------------------------------------------------------------------------------------------------------
 	mouseHandlingEnabled = __({Bool(true);
 		name = 'Enable Mouse Handling';
@@ -112,7 +113,7 @@ db:Register('Variables', {
 		desc = 'Which modifier to use to toggle the mouse cursor when double-tapped.';
 	});
 	--------------------------------------------------------------------------------------------------------
-	__'Radial Menus';
+	__ 'Radial Menus' ;
 	--------------------------------------------------------------------------------------------------------
 	radialStickySelect = __({Bool(false);
 		name = 'Sticky Selection';
@@ -152,14 +153,14 @@ db:Register('Variables', {
 		desc = 'Button used to remove a selected item from an editable ring.';
 	});
 	--------------------------------------------------------------------------------------------------------
-	__'Radial Keyboard';
+	__ 'Radial Keyboard' ;
 	--------------------------------------------------------------------------------------------------------
 	keyboardEnable = __({Bool(false);
 		name = 'Enable';
 		desc = 'Enables a radial on-screen keyboard that can be used to type messages.';
 	});
 	--------------------------------------------------------------------------------------------------------
-	__'Raid Cursor';
+	__ 'Raid Cursor' ;
 	--------------------------------------------------------------------------------------------------------
 	raidCursorScale = __({Number(1, 0.1);
 		name = 'Scale';
@@ -207,7 +208,7 @@ db:Register('Variables', {
 		advd = true;
 	});
 	--------------------------------------------------------------------------------------------------------
-	__'Interface Cursor';
+	__ 'Interface Cursor' ;
 	--------------------------------------------------------------------------------------------------------
 	UIenableCursor = __({Bool(true);
 		name = ENABLE;
@@ -291,7 +292,7 @@ db:Register('Variables', {
 		advd = true;
 	});
 	--------------------------------------------------------------------------------------------------------
-	__'Unit Hotkeys';
+	__ 'Unit Hotkeys' ;
 	--------------------------------------------------------------------------------------------------------
 	unitHotkeyGhostMode = __({Bool(false);
 		name = 'Always Show';
@@ -326,7 +327,7 @@ db:Register('Variables', {
 		advd = true;
 	});
 	--------------------------------------------------------------------------------------------------------
-	__(ACCESSIBILITY_LABEL); -- Accessibility
+	__( ACCESSIBILITY_LABEL ); -- Accessibility
 	--------------------------------------------------------------------------------------------------------
 	autoExtra = __({Bool(true);
 		name = 'Automatically Bind Extra Items';
@@ -343,7 +344,7 @@ db:Register('Variables', {
 		advd = true;
 	});
 	--------------------------------------------------------------------------------------------------------
-	__'Power Level';
+	__ 'Power Level' ;
 	--------------------------------------------------------------------------------------------------------
 	powerLevelShow = __({Bool(false);
 		name = 'Show Gauge';
@@ -361,7 +362,7 @@ db:Register('Variables', {
 		note = 'Critical, Low, Medium, High, Wired/Charging, or Unknown/Disconnected.';
 	});
 	--------------------------------------------------------------------------------------------------------
-	__(KEY_BINDINGS_MAC); -- Bindings
+	__( BINDINGS_OPT ); -- Bindings
 	--------------------------------------------------------------------------------------------------------
 	bindingOverlapEnable = __({Bool(false);
 		name = 'Allow Binding Overlap';
@@ -425,7 +426,7 @@ db:Register('Variables', {
 		advd = true;
 	});
 	--------------------------------------------------------------------------------------------------------
-	__(ADVANCED_OPT); -- Advanced
+	__( ADVANCED_OPT ); -- Advanced
 	--------------------------------------------------------------------------------------------------------
 	actionPageCondition = __({String(nil);
 		name = 'Action Page Condition';
