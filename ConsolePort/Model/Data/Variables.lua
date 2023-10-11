@@ -203,8 +203,8 @@ db:Register('Variables', {
 		advd = true;
 	});
 	raidCursorWrapDisable = __({Bool(false);
-		name = 'Disable Raid Cursor Wrapping';
-		desc = 'Prevent raid cursor from wrapping when navigating.';
+		name = 'Disable Wrapping';
+		desc = 'Prevent the cursor from wrapping when navigating.';
 		advd = true;
 	});
 	--------------------------------------------------------------------------------------------------------
@@ -287,8 +287,8 @@ db:Register('Variables', {
 		opts = MODID_SELECT;
 	});
 	UIWrapDisable = __({Bool(false);
-		name = 'Disable Interface Cursor Wrapping';
-		desc = 'Prevent interface cursor from wrapping when navigating.';
+		name = 'Disable Wrapping';
+		desc = 'Prevent the cursor from wrapping when navigating.';
 		advd = true;
 	});
 	--------------------------------------------------------------------------------------------------------
