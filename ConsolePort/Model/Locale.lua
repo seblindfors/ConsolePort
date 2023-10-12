@@ -4,7 +4,10 @@ local Locale = db:Register('Locale', setmetatable({}, {
 		return k;
 	end;
 	__call = function(self, str, ...)
-		return self[str]:format(...)
+		if (str == nil) then return end;
+		return (self[str]:format(...):gsub('L%b[]', function(str)
+			return self[str:sub(3, -2)]
+		end))
 	end;
 }))
 
