@@ -26,7 +26,7 @@ function Cvar:Construct(data, newObj, owner)
 		local controller = data.data and data.data() or data.type(GetCVar(origin));
 		local constructor = Widgets[cvar] or Widgets[controller:GetType()];
 		if constructor then
-			constructor(self, origin, data, controller, data.desc, data.note)
+			constructor(self, origin, data, controller, L(data.desc), L(data.note))
 			controller:SetCallback(function(value)
 				self:SetRaw(self.variableID, value, self.variableID)
 				self:OnValueChanged(value)
