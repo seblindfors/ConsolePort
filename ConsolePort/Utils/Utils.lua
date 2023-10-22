@@ -73,6 +73,9 @@ CPAPI.SecureEnvironmentMixin = {
 			self:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
 		end
 	end;
+	Run = function(self, body, ...)
+		return self:Execute(CPAPI.ConvertSecureBody(body:format(...)))
+	end;
 	Wrap = function(self, scriptHandler, body)
 		return self:WrapScript(self, scriptHandler, CPAPI.ConvertSecureBody(body))
 	end;

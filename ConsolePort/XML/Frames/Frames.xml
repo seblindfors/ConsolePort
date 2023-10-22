@@ -9,14 +9,18 @@
 	<!-- Method frame (invisible) -->
 	<Frame name="ConsolePort">
 		<Frames>
+			<!-- Controllers\Pager.lua -->
 			<Button name="$parentPager" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate">
 				<Attributes>
 					<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
 					<Attribute name="pressAndHoldAction" type="boolean" value="true"/>
 				</Attributes>
 			</Button>
+			<!-- Controllers\Radial.lua -->
 			<Button name="$parentRadial" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate"/>
+			<!-- Controllers\Interact.lua -->
 			<Frame name="$parentInteract" inherits="SecureHandlerStateTemplate"/>
+			<!-- Controllers\Paddles.lua -->
 			<Frame name="$parentPaddles" inherits="SecureHandlerBaseTemplate"/>
 		</Frames>
 	</Frame>

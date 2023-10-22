@@ -560,4 +560,19 @@
 			</AnimationGroup>
 		</Animations>
 	</Frame>
+
+	<Frame name="CPUnitHotkeyTemplate" virtual="true" hidden="true" frameStrata="TOOLTIP">
+		<Size x="1" y="1" />
+	</Frame>
+
+	<AnimationGroup name="CPUnitHotkeyMatchAnimTemplate" virtual="true">
+		<Scale parentKey="Enlarge" scaleX="2" scaleY="2" duration="0.1" smoothing="OUT"/>
+		<Scale parentKey="Shrink" scaleX="0.25" scaleY="0.25" duration="0.2" smoothing="OUT" startDelay="0.1"/>
+		<Alpha parentKey="Alpha" fromAlpha="1" toAlpha="0" duration="0.2" startDelay="0.1"/>
+	</AnimationGroup>
+
+	<AnimationGroup name="CPUnitHotkeyFilterAnimTemplate" virtual="true">
+		<Scale parentKey="Enlarge" scaleX="1.35" scaleY="1.35" duration="0.1" smoothing="OUT" />
+		<Alpha parentKey="Alpha" fromAlpha="1" toAlpha="0.5" duration="0.1" startDelay="0.1"/>
+	</AnimationGroup>
 </Ui>

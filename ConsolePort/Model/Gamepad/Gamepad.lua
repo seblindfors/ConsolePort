@@ -352,7 +352,7 @@ function GamepadAPI:GetBindings(getInactive)
 end
 
 function GamepadAPI:GetBindingKey(binding)
-	return unpack(tFilter({GetBindingKey(binding)}, IsBindingForGamePad, true))
+	return unpack(tFilter({GetBindingKey(binding, true)}, IsBindingForGamePad, true))
 end
 
 ---------------------------------------------------------------
