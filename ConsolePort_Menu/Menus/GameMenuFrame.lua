@@ -267,6 +267,11 @@ do	-- Initiate frame
 						CPMenuButtonMixin.OnLoad(self)
 						self.Icon:SetTexture([[Interface\LFGFRAME\UI-LFG-PORTRAIT]])
 					end;
+					_Hooks = CPAPI.IsClassicVersion and {
+						OnClick = function()
+							PVEFrame_ToggleFrame() -- hack because this micro button is using OnMouseDown/OnMouseUp for some reason
+						end;
+					};
 				};
 				PvP = CPAPI.IsClassicVersion and {
 					_ID    = 4;
