@@ -1,7 +1,7 @@
 ## Interface: 100107
 ## Interface-Classic: 11404
 ## Interface-BCC: 20504
-## Interface-Wrath: 30402
+## Interface-Wrath: 30403
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0World|r
 ## Notes: World augmentation module: custom loot frame, new ability prompts
