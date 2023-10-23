@@ -164,21 +164,22 @@ do	-- Initiate frame
 						self.Icon:SetTexture([[Interface\Spellbook\Spellbook-Icon]])
 					end;
 				};
-				Collections = CPAPI.IsRetailVersion and {
+				Collections = CPAPI.IsRetailVersion or CPAPI.IsClassicVersion and {
 					_ID    = 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent.Spellbook', 'BOTTOM', 0, 0};
 					_Text  = COLLECTIONS;
 					_RefTo = CollectionsMicroButton;
-					_Image = 'MountJournalPortrait';
+					_Image = CPAPI.IsRetailVersion and 'MountJournalPortrait';
+					_CustomImage = CPAPI.IsClassicVersion and [[Interface\Icons\inv_misc_enggizmos_19]];
 					_Attributes = hideMenuHook;
 				};
 				Keyring = IsClassicGameVersion and {
-					_ID    = 5;
+					_ID    = CPAPI.IsClassicVersion and 6 or 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', '$parent.Spellbook', 'BOTTOM', 0, 0};
+					_Point = {'TOP', CPAPI.IsClassicVersion and '$parent.Collections' or '$parent.Spellbook', 'BOTTOM', 0, 0};
 					_Text  = KEYRING;
 					_RefTo = KeyRingButton;
 					_Attributes = hideMenuHook;
