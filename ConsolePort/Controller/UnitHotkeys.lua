@@ -61,7 +61,8 @@ end
 ---------------------------------------------------------------
 -- Secure environment
 ---------------------------------------------------------------
-local UH, Input = Mixin(CPAPI.DataHandler(ConsolePortEasyMotionButton), CPAPI.SecureEnvironmentMixin), ConsolePortEasyMotionInput
+local UH = Mixin(CPAPI.EventHandler(ConsolePortEasyMotionButton, {'PLAYER_ENTERING_WORLD'}), CPAPI.SecureEnvironmentMixin)
+local Input = ConsolePortEasyMotionInput;
 UH.GetNamePlateForUnit, UH.UnitDrivers, UH.UnitFrames = C_NamePlate.GetNamePlateForUnit, {}, {};
 
 UH:Run([[bindRef = %q;
@@ -205,6 +206,7 @@ UH:CreateEnvironment({
 
 UH:Wrap('PreClick', [[
 	isActive = down;
+	self:SetAttribute('macrotext', nil)
 	if not down then
 		return self::SetTarget()
 	end
@@ -224,9 +226,11 @@ UH:WrapScript(Input, 'OnClick', [[
 ---------------------------------------------------------------
 function UH:OnDataLoaded()
 	self:OnDisplaySettingsChanged()
-	self:OnHotkeyTokensChanged()
-	self:OnHotkeySetChanged()
 	self:OnTargetSettingsChanged()
+end
+
+function UH:PLAYER_ENTERING_WORLD()
+	self:OnUnitPoolChanged()
 end
 
 function UH:OnDisplaySettingsChanged()
@@ -249,7 +253,8 @@ function UH:OnTargetSettingsChanged()
 	self:SetAttribute('defaultToTab', db('unitHotkeyDefaultMode'))
 end
 
-function UH:OnHotkeyTokensChanged()
+function UH:OnUnitPoolChanged()
+	-- Reparse the unit pool and rebuild the unit drivers
 	self:ClearWatchedUnits()
 	local tokens = db('unitHotkeyTokens')
 	self:Execute('units = wipe(units)')
@@ -257,16 +262,16 @@ function UH:OnHotkeyTokensChanged()
 	for token in tokens:gmatch(UNIT_POOL_DELIMITER) do
 		self:ParseToken(token, token)
 	end
-end
 
-function UH:OnHotkeySetChanged()
+	-- Reparse the hotkey set and rebuild the hotkey buttons
 	local evaluator = SetEvaluator[db('unitHotkeySet')]
 	assert(evaluator, 'Invalid hotkey set: '..tostring(db('unitHotkeySet')))
 	local keys = evaluator()
 	for i, key in ipairs(keys) do
 		self:SetAttribute(tostring(i), key)
 	end
-	self:SetAttribute('unitpool', db('unitHotkeyTokens'))
+
+	-- Refresh active units
 	self:Run([[
 		self::RefreshUnits()
 	]])
@@ -315,14 +320,14 @@ end
 ---------------------------------------------------------------
 -- Callbacks
 ---------------------------------------------------------------
-db:RegisterSafeCallback('Settings/unitHotkeyTokens', UH.OnHotkeyTokensChanged, UH)
 db:RegisterSafeCallbacks(UH.OnTargetSettingsChanged, UH,
 	'Settings/unitHotkeyFocusMode',
 	'Settings/unitHotkeyDefaultMode'
 );
-db:RegisterSafeCallbacks(UH.OnHotkeySetChanged, UH,
+db:RegisterSafeCallbacks(UH.OnUnitPoolChanged, UH,
 	'OnNewBindings',
 	'Settings/unitHotkeySet',
+	'Settings/unitHotkeyTokens',
 	(function(n)
 		local res = {};
 		for i=1, n do
