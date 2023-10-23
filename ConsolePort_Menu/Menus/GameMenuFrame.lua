@@ -7,6 +7,7 @@ do	-- Initiate frame
 	local hideMenuHook    = {hidemenu = true};
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
 	local IsClassicGameVersion = CPAPI.IsClassicVersion or CPAPI.IsClassicEraVersion or nil;
+	local GameVersionHasCollections = CPAPI.IsRetailVersion or CPAPI.IsClassicVersion or nil;
 
 	LibStub('Carpenter')(Menu, {
 		Character = {
@@ -164,7 +165,7 @@ do	-- Initiate frame
 						self.Icon:SetTexture([[Interface\Spellbook\Spellbook-Icon]])
 					end;
 				};
-				Collections = CPAPI.IsRetailVersion or CPAPI.IsClassicVersion and {
+				Collections = GameVersionHasCollections and {
 					_ID    = 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
