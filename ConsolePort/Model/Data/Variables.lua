@@ -7,8 +7,7 @@ local BINDINGS_OPT = KEY_BINDINGS_MAC or 'Bindings';
 
 -- Helpers
 local BLUE = GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
-local unpack, _, db = unpack, ...; db('Data')();
-do local s,h=0;_=function(v)if type(v)=='string'then h=v;s=0;else s=s+1;v.sort=s;v.head=h;return v end end end
+local unpack, _, db = unpack, ...; _ = CPAPI.Define; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------

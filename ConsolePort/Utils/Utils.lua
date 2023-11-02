@@ -182,6 +182,20 @@ do local function ModifyMetatable(owner, key, value)
 	end
 end
 
+do local sort, head = 0;
+	function CPAPI.Define(value)
+		if ( type(value) == 'string' ) then
+			head, sort = value, 0;
+		else
+			assert(type(value) == 'table', 'Invalid value type.')
+			sort = sort + 1;
+			value.sort = sort;
+			value.head = head;
+			return value;
+		end
+	end
+end
+
 ---------------------------------------------------------------
 -- Secure environment translation
 ---------------------------------------------------------------
