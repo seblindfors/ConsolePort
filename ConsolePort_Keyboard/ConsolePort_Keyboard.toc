@@ -12,7 +12,7 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-Keyboard.xml
+View\Keyboard.xml
 
 Components\Charset.lua
 Components\Config.lua
@@ -23,5 +23,5 @@ Core\Dictionary.lua
 Core\Spellcorrect.lua
 
 Database.lua
-Keyboard.lua
+View\Keyboard.lua
 Core\Observer.lua
