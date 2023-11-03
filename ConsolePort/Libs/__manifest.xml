@@ -8,4 +8,5 @@
 	<Script file="LibCompress.lua"/>
 	<Script file="AceSerializer-3.0.lua"/>
 	<Script file="Tabular.lua"/>
+	<Script file="ConsolePortNode.lua"/>
 </Ui>

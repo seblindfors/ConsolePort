@@ -9,7 +9,7 @@
 local _, db = ...;
 local Cursor, Node, Input, Stack, Scroll, Fade, Hooks = 
 	CPAPI.EventHandler(ConsolePortCursor),
-	ConsolePortNode,
+	LibStub('ConsolePortNode'),
 	ConsolePortInputHandler,
 	ConsolePortUIStackHandler,
 	CreateFrame('Frame'),

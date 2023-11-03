@@ -3,7 +3,7 @@
 ---------------------------------------------------------------
 local RAD_ARROW_ROTATION, RAD_MOD, RAD_RESET = rad(45), rad(360), rad(180);
 local Clamp, Node, IsGamePadInUse, IsGamePadCursor =
-	Clamp, ConsolePortNode, IsGamePadFreelookEnabled, IsGamePadCursorControlEnabled;
+	Clamp, LibStub('ConsolePortNode'), IsGamePadFreelookEnabled, IsGamePadCursorControlEnabled;
 
 CPCursorArrowMixin = {};
 

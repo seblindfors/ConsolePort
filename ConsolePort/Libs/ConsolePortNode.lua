@@ -1,3 +1,11 @@
+----------------------------------------------------------------
+-- ConsolePortNode
+----------------------------------------------------------------
+-- 
+-- Author:  Sebastian Lindfors (Munk / MunkDev)
+-- Website: https://github.com/seblindfors
+-- Licence: GPL version 2 (General Public License)
+--
 ---------------------------------------------------------------
 -- Interface node calculations and management
 ---------------------------------------------------------------
@@ -26,6 +34,8 @@
 --  nodesingleton    : (boolean) no recursive scan on this node
 --  nodeonlychildren : (boolean) include children, skip node
 ---------------------------------------------------------------
+local NODE = LibStub:NewLibrary('ConsolePortNode', 1)
+if not NODE then return end
 
 -- Eligibility
 local IsMouseResponsive
@@ -70,6 +80,8 @@ local GetCandidateVectorForCurrent
 local GetCandidatesForVector
 local GetPriorityCandidate
 -- Navigation
+local GetNavigationKey
+local SetNavigationKey
 local NavigateToBestCandidate
 local NavigateToClosestCandidate
 local NavigateToArbitraryCandidate
@@ -107,24 +119,26 @@ local LEVELS = {
 ---------------------------------------------------------------
 -- Main object
 ---------------------------------------------------------------
-local NODE = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', ConsolePort}, {
-	-- Events to handle
-	'UI_SCALE_CHANGED';
-	'DISPLAY_SIZE_CHANGED';
-}, {
+local NODE = setmetatable(Mixin(NODE, {
 	-- Compares distance between nodes for eligibility when filtering cached nodes
 	distance = {
-		PADDUP    = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
-		PADDDOWN  = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
-		PADDLEFT  = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
-		PADDRIGHT = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX > thisX) end;
+		UP    = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
+		DOWN  = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
+		LEFT  = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
+		RIGHT = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX > thisX) end;
 	};
 	-- Compares more generally to catch any nodes located in a given direction
 	direction = {
-		PADDUP    = function(_, destY, _, _, _, thisY) return (destY > thisY) end;
-		PADDDOWN  = function(_, destY, _, _, _, thisY) return (destY < thisY) end;
-		PADDLEFT  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
-		PADDRIGHT = function(destX, _, _, _, thisX, _) return (destX > thisX) end;
+		UP    = function(_, destY, _, _, _, thisY) return (destY > thisY) end;
+		DOWN  = function(_, destY, _, _, _, thisY) return (destY < thisY) end;
+		LEFT  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
+		RIGHT = function(destX, _, _, _, thisX, _) return (destX > thisX) end;
+	};
+	keys = {
+		PADDUP    = 'UP';    W = 'UP';
+		PADDDOWN  = 'DOWN';  S = 'DOWN';
+		PADDLEFT  = 'LEFT';  A = 'LEFT';
+		PADDRIGHT = 'RIGHT'; D = 'RIGHT';
 	};
 }), {
 	-- @param  varargs : list of frames to scan recursively
@@ -135,20 +149,23 @@ local NODE = setmetatable(CPAPI.CreateEventHandler({'Frame', '$parentNode', Cons
 		ScrubCache(GetNextCacheItem(nil))
 		return CACHE
 	end;
-	__index = getmetatable(UIParent).__index;
 })
 
 ---------------------------------------------------------------
 -- Events (update boundaries)
 ---------------------------------------------------------------
-local function UIScaleChanged()
-	BOUNDS:SetXYZ(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale())
+do local function UIScaleChanged()
+		BOUNDS:SetXYZ(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale())
+	end
+	local UIScaleHandler = CreateFrame('Frame')
+	UIScaleHandler:RegisterEvent('UI_SCALE_CHANGED')
+	UIScaleHandler:RegisterEvent('DISPLAY_SIZE_CHANGED')
+
+	UIScaleHandler:SetScript('OnEvent', UIScaleChanged)
+	hooksecurefunc(UIParent, 'SetScale', UIScaleChanged)
+	UIParent:HookScript('OnSizeChanged', UIScaleChanged)
 end
 
-NODE.UI_SCALE_CHANGED = UIScaleChanged;
-NODE.DISPLAY_SIZE_CHANGED = UIScaleChanged;
-hooksecurefunc(UIParent, 'SetScale', UIScaleChanged)
-UIParent:HookScript('OnSizeChanged', UIScaleChanged)
 
 ---------------------------------------------------------------
 -- Eligibility
@@ -453,6 +470,19 @@ function GetCandidatesForVector(vector, comparator, candidates)
 end
 
 ---------------------------------------------------------------
+-- Navigation
+---------------------------------------------------------------
+-- @param key       : navigation key
+-- @param direction : direction of travel (nil to remove)
+function SetNavigationKey(key, direction)
+	NODE.keys[key] = direction
+end
+
+function GetNavigationKey(key)
+	return NODE.keys[key] or key;
+end
+
+---------------------------------------------------------------
 -- Get the best candidate to a given origin and direction
 ---------------------------------------------------------------
 -- This method uses vectors over manhattan distance, stretching 
@@ -462,13 +492,13 @@ end
 -- prioritizing candidates more linearly aligned to the origin.
 -- Comparing Euclidean distance on vectors yields the best node.
 
-function NavigateToBestCandidate(cur, key, curNodeChanged)
+function NavigateToBestCandidate(cur, key, curNodeChanged) key = GetNavigationKey(key)
 	if cur and NODE.distance[key] then
 		local this = GetCandidateVectorForCurrent(cur)
 		local candidates = GetCandidatesForVector(this, NODE.distance[key], {})
 
-		local hMult = (key == 'PADDUP' or key == 'PADDDOWN') and SCALAR or 1
-		local vMult = (key == 'PADDLEFT' or key == 'PADDRIGHT') and SCALAR or 1
+		local hMult = (key == 'UP' or key == 'DOWN') and SCALAR or 1
+		local vMult = (key == 'LEFT' or key == 'RIGHT') and SCALAR or 1
 
 		for candidate, vector in pairs(candidates) do
 			if IsCloser(vector.h * hMult, vector.v * vMult, this.h, this.v) then
@@ -488,7 +518,7 @@ end
 -- located using both direction and distance-based vectors,
 -- instead using only shortest path as the metric for movement.
 
-function NavigateToClosestCandidate(cur, key, curNodeChanged)
+function NavigateToClosestCandidate(cur, key, curNodeChanged) key = GetNavigationKey(key)
 	if cur and NODE.direction[key] then
 		local this = GetCandidateVectorForCurrent(cur)
 		local candidates = GetCandidatesForVector(this, NODE.direction[key], {})
@@ -546,15 +576,17 @@ NODE.GetDistance = GetDistance;
 NODE.IsRelevant = IsRelevant;
 NODE.ClearCache = ClearCache;
 NODE.GetScrollButtons = GetScrollButtons;
+NODE.GetNavigationKey = GetNavigationKey;
+NODE.SetNavigationKey = SetNavigationKey;
 NODE.NavigateToBestCandidate = NavigateToBestCandidate;
 NODE.NavigateToClosestCandidate = NavigateToClosestCandidate;
 NODE.NavigateToArbitraryCandidate = NavigateToArbitraryCandidate;
-
 
 ---------------------------------------------------------------
 -- Extend Carpenter API
 ---------------------------------------------------------------
 do local Lib = LibStub:GetLibrary('Carpenter')
+	if not Lib then return end
 	Lib:ExtendAPI('IgnoreNode', function(self, ...) self:SetAttribute('nodeignore', ...) end)
 	Lib:ExtendAPI('PriorityNode', function(self, ...) self:SetAttribute('nodepriority', ...) end)
 	Lib:ExtendAPI('SingletonNode', function(self, ...) self:SetAttribute('nodesingleton', ...) end)
