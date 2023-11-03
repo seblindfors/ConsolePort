@@ -22,6 +22,6 @@ Core\UTF8.lua
 Core\Dictionary.lua
 Core\Spellcorrect.lua
 
-Lookup.lua
+Database.lua
 Keyboard.lua
 Core\Observer.lua
