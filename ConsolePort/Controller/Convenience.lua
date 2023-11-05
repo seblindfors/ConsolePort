@@ -18,19 +18,19 @@ do  local popups, visible, oldNode = {}, {};
 			if not InCombatLockdown() then
 				local prio = popups[previous];
 				if not prio or ( not prio:IsVisible() ) then
-					local current = db.Cursor:GetCurrentNode()
+					local current = ConsolePort:GetCursorNode()
 					-- assert not caching a return-to node on a popup
 					if current and not popups[current:GetParent()] then
 						oldNode = current;
 					end
-					db.Cursor:SetCurrentNode(self.button1)
+					ConsolePort:SetCursorNode(self.button1)
 				end
 			end
 		end)
 		popup:HookScript('OnHide', function(self)
 			visible[self] = nil;
 			if not next(visible) and not InCombatLockdown() and oldNode then
-				db.Cursor:SetCurrentNode(oldNode)
+				ConsolePort:SetCursorNode(oldNode)
 			end
 		end)
 	end
@@ -163,8 +163,8 @@ if ColorPickerFrame then
 		end
 	end)
 	ColorPickerFrame:HookScript('OnShow', function(self)
-		oldNode = db.Cursor:GetCurrentNode()
-		db.Cursor:SetCurrentNodeIfActive(ColorPickerOkayButton, true)
+		oldNode = ConsolePort:GetCursorNode()
+		ConsolePort:SetCursorNodeIfActive(ColorPickerOkayButton, true)
 
 		local device = db('Gamepad/Active')
 		if device then
@@ -178,7 +178,7 @@ if ColorPickerFrame then
 	end)
 	ColorPickerFrame:HookScript('OnHide', function(self)
 		if oldNode then
-			db.Cursor:SetCurrentNode(oldNode)
+			ConsolePort:SetCursorNode(oldNode)
 			oldNode = nil;
 		end
 		if GameTooltip:IsOwned(self) then
@@ -187,15 +187,41 @@ if ColorPickerFrame then
 	end)
 end
 
--- Loads the keyboard
-local function TryLoadKeyboardUI()
-	if not db('keyboardEnable') or IsAddOnLoaded('ConsolePort_Keyboard') then
-		return
+-- Loads and disables extra modules
+local OnDemandModules, TryLoadModule = {
+	ConsolePort_Keyboard = 'keyboardEnable';
+	ConsolePort_Cursor   = 'UIenableCursor';
+}; do local EnableAddOn = EnableAddOn;
+	
+	function TryLoadModule(predicate, module)
+		if not db(predicate) or IsAddOnLoaded(module) then
+			return
+		end
+		EnableAddOn(module)
+		local loaded, reason = LoadAddOn(module)
+		if not loaded then
+			CPAPI.Log('Failed to load %s. Reason: %s\nPlease check your installation.', (module:gsub('_', ' ')), _G['ADDON_'..reason])
+		end
 	end
-	local loaded, reason = LoadAddOn('ConsolePort_Keyboard')
-	if not loaded then
-		CPAPI.Log('Failed to load radial keyboard. Reason: %s', _G['ADDON_'..reason])
-	end
+
+	-- Automatically load modules when they are enabled through the addon list
+	hooksecurefunc('EnableAddOn', function(module)
+		local name = GetAddOnInfo(module)
+		local var  = name and OnDemandModules[name];
+		if ( name and var ) then
+			db('Settings/'..var, true)
+			TryLoadModule(var, name)
+		end
+	end)
+
+	-- Automatically disable predicate variable when a module is disabled through the addon list
+	hooksecurefunc('DisableAddOn', function(module)
+		local name = GetAddOnInfo(module)
+		local var  = name and OnDemandModules[name];
+		if ( var ) then
+			db('Settings/'..var, false)
+		end
+	end)
 end
 
 ---------------------------------------------------------------
@@ -239,10 +265,13 @@ function Handler:QUEST_AUTOCOMPLETE(...)
 end
 
 function Handler:OnDataLoaded()
-	TryLoadKeyboardUI()
+	for module, predicate in pairs(OnDemandModules) do
+		TryLoadModule(predicate, module)
+	end
 end
 
-db:RegisterCallback('Settings/keyboardEnable', TryLoadKeyboardUI, Handler)
+db:RegisterCallback('Settings/keyboardEnable', GenerateClosure(TryLoadModule, 'keyboardEnable', 'ConsolePort_Keyboard'))
+db:RegisterCallback('Settings/UIenableCursor', GenerateClosure(TryLoadModule, 'UIenableCursor', 'ConsolePort_Cursor'))
 
 -- Replace popup messages for forbidden actions which cannot be fixed by the addon
 do local ForbiddenActions = {

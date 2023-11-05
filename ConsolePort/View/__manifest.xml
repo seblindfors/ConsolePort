@@ -8,5 +8,4 @@
 	<Include file="PowerLevel\PowerLevel.xml"/>
 	<!-- Single file views -->
 	<Script file="Hotkey.lua"/>
-	<Script file="Convenience.lua"/>
 </Ui>

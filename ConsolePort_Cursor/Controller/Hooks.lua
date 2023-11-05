@@ -1,18 +1,12 @@
 ---------------------------------------------------------------
 -- Hooks
 ---------------------------------------------------------------
--- Context-aware bridge module for other internal modules,
--- processing based on multiple factors in an isolated sandbox.
+-- Hooks for the interface cursor to do magic things.
 
-local _, db = ...; local L = db.Locale;
-local Hooks = db:Register('Hooks', {})
+local _, env, db = ...; db = env.db;
+local L = db.Locale;
+local Hooks = db:Register('Hooks', {}, true)
 local Hooknode = {};
-
-function Hooks:OnHintsFocus()
-	if db('mouseHandlingEnabled') then
-		db.Mouse:SetCameraControl()
-	end
-end
 
 function Hooks:OnNodeLeave()
 	self.dressupItem,
@@ -22,7 +16,6 @@ function Hooks:OnNodeLeave()
 	self.spellID = nil;
 end
 
-db:RegisterCallback('OnHintsFocus', Hooks.OnHintsFocus, Hooks)
 
 function Hooks:ProcessInterfaceCursorEvent(button, down, node)
 	if (down == false) then

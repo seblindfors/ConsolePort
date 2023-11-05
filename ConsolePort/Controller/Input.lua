@@ -272,7 +272,7 @@ end
 
 function InputMixin:EmulateFrontend(click, state, script)
 	if click:IsEnabled() then
-		if Hooks:ProcessInterfaceClickEvent(script, click, state) then
+		if db.Hooks:ProcessInterfaceClickEvent(script, click, state) then
 			self.postreset = self:GetAttribute(CPAPI.ActionTypeRelease)
 			self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 		end

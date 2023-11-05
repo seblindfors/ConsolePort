@@ -22,11 +22,11 @@
 Libs\__manifest.xml
 XML\__manifest.xml
 
+API.lua
+
 Utils\__manifest.xml
 Model\__manifest.xml
 Locale\__manifest.xml
 Controller\__manifest.xml
 Widget\__manifest.xml
 View\__manifest.xml
-
-API.lua

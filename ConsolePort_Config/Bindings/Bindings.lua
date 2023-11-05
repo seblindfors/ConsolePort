@@ -170,7 +170,7 @@ end
 function MapperBindingButton:OnEnter()
 	GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
 	GameTooltip:SetText(KEY_BINDING)
-	if db.Cursor:IsCurrentNode(self) then
+	if ConsolePort:IsCursorNode(self) then
 		local leftClick = env:GetTooltipPromptForClick('LeftClick', CHOOSE)
 		local rightClick = env:GetTooltipPromptForClick('RightClick', REMOVE)
 		local specialClick = env:GetTooltipPromptForClick('Special', CLOSE)

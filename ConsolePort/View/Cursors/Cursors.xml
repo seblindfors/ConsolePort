@@ -4,11 +4,9 @@
 	<Include file="Arrow.xml"/>
 	<Include file="Raid.xml"/>
 	<Include file="Secure.xml"/>
-	<Include file="Interface.xml"/>
 	<Include file="Crosshair.xml"/>
 
 	<Script file="Raid.lua"/>
 	<Script file="Secure.lua"/>
-	<Script file="Interface.lua"/>
 	<Script file="Crosshair.lua"/>
 </Ui>

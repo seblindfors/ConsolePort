@@ -256,7 +256,7 @@ function SpellMenu:CatchBindingForSlot(slot, bindingID, text)
 	self.CatchBinding:TryCatchBinding({
 		text = text;
 		OnShow = function()
-			db.Cursor:SetCurrentNode(slot)
+			ConsolePort:SetCursorNode(slot)
 		end;
 	})
 end
@@ -321,4 +321,4 @@ Mixin(SpellMenu, CPIndexPoolMixin):OnLoad()
 SpellMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
 SpellMenu.ActionButtons = CreateFramePool('IndexButton', SpellMenu, 'CPIndexButtonBindingActionButtonTemplate')
 SpellMenu.ActionBarText = CreateFontStringPool(SpellMenu, 'ARTWORK', nil, 'CPSmallFont')
-db.Stack:AddFrame(SpellMenu)
+ConsolePort:AddInterfaceCursorFrame(SpellMenu)

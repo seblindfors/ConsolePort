@@ -6,27 +6,21 @@
 -- actions based on node priority and position on screen.
 -- Leverages Controller\UINode.lua for interface scans.
 
-local _, db = ...;
+local _, env, db = ...; db = env.db;
 local Cursor, Node, Input, Stack, Scroll, Fade, Hooks = 
-	CPAPI.EventHandler(ConsolePortCursor),
+	CPAPI.EventHandler(ConsolePortCursor, {'PLAYER_REGEN_ENABLED', 'PLAYER_REGEN_DISABLED'}),
 	LibStub('ConsolePortNode'),
 	ConsolePortInputHandler,
 	ConsolePortUIStackHandler,
 	CreateFrame('Frame'),
 	db.Alpha.Fader, db.Hooks;
 
-db:Register('Cursor', Cursor)
+db:Register('Cursor', Cursor, true)
 Cursor.InCombat = InCombatLockdown;
 
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
-function Cursor:OnDataLoaded()
-	self:RegisterEvent('PLAYER_REGEN_ENABLED')
-	self:RegisterEvent('PLAYER_REGEN_DISABLED')
-	self:UpdatePointer()
-end
-
 function Cursor:PLAYER_REGEN_DISABLED()
 	-- TODO: relinquish to stack control
 	self.isCombatLocked = true;
@@ -695,6 +689,7 @@ do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 	db:RegisterCallback('Gamepad/Active', resetTexture, Cursor)
 	db:RegisterCallback('Settings/UIpointerDefaultIcon', resetTexture, Cursor)
 	db:RegisterCallback('Settings/useAtlasIcons', resetTexture, Cursor)
+	resetTexture(Cursor)
 end
 
 function Cursor:SetTexture(texture)
@@ -1014,6 +1009,7 @@ end
 -- Initialize the cursor
 ---------------------------------------------------------------
 CPAPI.Start(Cursor)
+Cursor:UpdatePointer()
 hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
 	-- TODO: work on this, it's not good yet
 	if not state then

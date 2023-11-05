@@ -753,7 +753,7 @@ do	-- Initiate frame
 
 	Menu:SetIgnoreParentAlpha(true)
 	Menu:HookScript('OnShow', function(self)
-		if ConsolePortCursor:IsShown() then
+		if ConsolePortCursor and ConsolePortCursor:IsShown() then
 			ConsolePortCursor:Click()
 		end
 
@@ -809,7 +809,7 @@ do	-- Initiate frame
 	---------------------------------------------------------------
 	-- Register frame
 	---------------------------------------------------------------
-	db.Stack:HideFrame(GameMenuFrame, true)
+	CPAPI.DisableFrame(GameMenuFrame, true)
 	db.Secure:RegisterUser(Menu)
 
 	---------------------------------------------------------------

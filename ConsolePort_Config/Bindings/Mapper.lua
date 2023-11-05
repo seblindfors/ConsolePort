@@ -97,15 +97,15 @@ function Mapper:SetFocus(widget)
 		if readonly then
 			self:SetCatchButton(false)
 		else
-			db('Cursor'):SetCurrentNodeIfActive(self.Child.Binding, true)
+			ConsolePort:SetCursorNodeIfActive(self.Child.Binding, true)
 			self:SetCatchButton(true)
 		end
 	else
 		self:SetCatchButton(false)
 		-- HACK: route it to the close button first, so it has
 		-- a fallback if going straight into manual rebinding.
-		db('Cursor'):SetCurrentNodeIfActive(self.Child.Close, true)
-		db('Cursor'):SetCurrentNodeIfActive(self.Child.Binding, true)
+		ConsolePort:SetCursorNodeIfActive(self.Child.Close, true)
+		ConsolePort:SetCursorNodeIfActive(self.Child.Binding, true)
 	end
 end
 
@@ -118,7 +118,7 @@ function Mapper:ClearFocus(newObj)
 		self.focusWidget:SetChecked(false)
 		CPIndexButtonMixin.OnChecked(self.focusWidget, false)
 		if not newObj then
-			db('Cursor'):SetCurrentNodeIfActive(self.focusWidget, true)
+			ConsolePort:SetCursorNodeIfActive(self.focusWidget, true)
 		end
 		self.focusWidget = nil;
 	end

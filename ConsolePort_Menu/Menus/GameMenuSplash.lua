@@ -67,8 +67,8 @@ function Splash:OnFocus()
 			-- Initialize grid
 			env.db.table.mixin(self.GridFrame, CreateFromMixins(configEnv.CombosMixin, Grid))
 			self.GridFrame:OnLoad(CreateFromMixins(configEnv.ComboMixin, Combo))
-			env.db.Stack:AddFrame(self.GridFrame)
-			env.db.Stack:AddFrame(self.EscapeButton)
+			ConsolePort:AddInterfaceCursorFrame(self.GridFrame)
+			ConsolePort:AddInterfaceCursorFrame(self.EscapeButton)
 		end
 	end
 
@@ -222,7 +222,7 @@ function Combo:OnClick()
 	end
 
 	-- disable cursor if using interface cursor
-	if env.db.Cursor:IsCurrentNode(self) and IsGamePadFreelookEnabled() then
+	if ConsolePort:IsCursorNode(self) and IsGamePadFreelookEnabled() then
 		SetGamePadCursorControl(false)
 	end
 end

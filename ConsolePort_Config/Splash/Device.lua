@@ -8,7 +8,7 @@ local Device = {};
 
 function Device:OnClick()
 	local device = self.Device;
-	db('Cursor'):SetCurrentNode(env.Splash.Wizard.Child.Continue, true)
+	ConsolePort:SetCursorNode(env.Splash.Wizard.Child.Continue, true)
 	CPAPI.Popup('ConsolePort_Apply_Preset', {
 		text = L('Do you want to load settings for %s?\n\nThis will configure your modifiers, mouse emulation buttons, and previously saved device settings (if any).', device.Name);
 		button1 = OKAY;
@@ -163,7 +163,7 @@ function Devices:UpdateDevices()
 
 	if (connectedDeviceWidget) then
 		local device = connectedDeviceWidget.Device;
-		db('Cursor'):SetCurrentNode(connectedDeviceWidget);
+		ConsolePort:SetCursorNode(connectedDeviceWidget);
 
 		local activeDevice = db.Gamepad:GetActiveDevice();
 		if (not activeDevice) then

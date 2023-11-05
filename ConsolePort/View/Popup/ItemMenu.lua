@@ -310,4 +310,4 @@ end
 ItemMenu:SetScript('OnHide', ItemMenu.OnHide)
 Mixin(ItemMenu, CPIndexPoolMixin):OnLoad()
 ItemMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
-db.Stack:AddFrame(ItemMenu)
+ConsolePort:AddInterfaceCursorFrame(ItemMenu)

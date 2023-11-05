@@ -90,8 +90,8 @@ function LootFrame:OnDataLoaded()
 
 	self.Header.Text:SetText(LOOT)
 	self.Header:SetDurationMultiplier(.5)
-
-	ConsolePort:DB('Stack'):HideFrame(_G.LootFrame)
+	
+	CPAPI.DisableFrame(_G.LootFrame)
 	_G.LootFrame:UnregisterAllEvents()
 end
 

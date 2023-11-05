@@ -691,7 +691,7 @@ function Select:OnLoad(...)
 	self.Popout.HidePopout = function(self)
 		CPSelectionPopoutWithButtonsAndLabelMixin.HidePopout(self)
 		if self.moveCursorOnClose then
-			env.db.Cursor:SetCurrentNode(self.SelectionPopoutButton, true)
+			ConsolePort:SetCursorNode(self.SelectionPopoutButton, true)
 			self.moveCursorOnClose = nil;
 		end
 	end;

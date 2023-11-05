@@ -446,7 +446,14 @@ function Mouse:OnVariableChanged()
 	showMouseOverTooltip = db('mouseShowCenterTooltip')
 end
 
+function Mouse:OnHintsFocus()
+	if db('mouseHandlingEnabled') then
+		self:SetCameraControl()
+	end
+end
+
 db:RegisterCallback('Settings/mouseHandlingEnabled', Mouse.SetEnabled, Mouse)
+db:RegisterCallback('OnHintsFocus', Mouse.OnHintsFocus, Mouse)
 ---------------------------------------------------------------
 -- Variables
 ---------------------------------------------------------------

@@ -323,7 +323,7 @@ function BindingButton:OnClick(button)
 			env.Config:ResumeCatcher()
 		end;
 		OnShow = function()
-			db.Cursor:SetCurrentNode(self)
+			ConsolePort:SetCursorNode(self)
 			env.Config:PauseCatcher()
 		end;
 	})

@@ -2,9 +2,9 @@
 -- Stack functionality for UI cursor
 ---------------------------------------------------------------
 -- Keeps a stack of frames to control with the D-pad when they
--- are visible on screen. See View\UICursor.lua.
+-- are visible on screen. See Cursor.lua.
 
-local _, db = ...;
+local _, env, db = ...; db = env.db;
 ---------------------------------------------------------------
 local After = C_Timer.After;
 local pairs, next, unravel = pairs, next, db.table.unravel;
@@ -15,7 +15,7 @@ local Stack = db:Register('Stack', CPAPI.CreateEventHandler({'Frame', '$parentUI
 	'PLAYER_REGEN_DISABLED',
 }, {
 	Registry = {};
-}));
+}), true);
 
 ---------------------------------------------------------------
 -- Externals:
@@ -161,14 +161,14 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 		local showOnDemand = db('UIshowOnDemand')
 		isEnabled = db('UIenableCursor') and not showOnDemand;
 		if not isEnabled and not showOnDemand then
-			db('Cursor'):SetEnabled(false)
+			db.Cursor:SetEnabled(false)
 		end
 	end
 
 	function Stack:UpdateFrames(updateCursor)
 		if not isLocked then
 			self:UpdateFrameTracker()
-			db('Cursor'):SetEnabled(next(visible))
+			db.Cursor:SetEnabled(next(visible))
 		end
 	end
 
@@ -188,16 +188,6 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	end
 end
 
-function Stack:HideFrame(frame, ignoreAlpha)
-	assert(frame, 'Usage: Stack:HideFrame(frame)')
-	frame:SetSize(0, 0)
-	frame:EnableMouse(false)
-	frame:EnableKeyboard(false)
-	frame:SetAlpha(ignoreAlpha and frame:GetAlpha() or 0)
-	frame:ClearAllPoints()
-	self:ForbidFrame(frame)
-end
-
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
@@ -211,7 +201,7 @@ function Stack:PLAYER_REGEN_ENABLED()
 end
 
 function Stack:PLAYER_REGEN_DISABLED()
-	db('Cursor'):SetEnabled(false)
+	db.Cursor:SetEnabled(false)
 	self:LockCore(true)
 end
 

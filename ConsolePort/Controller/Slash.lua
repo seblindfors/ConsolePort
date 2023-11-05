@@ -2,6 +2,7 @@ local _, db = ...;
 local HELP_STRING, SLASH_FUNCTIONS = 'Usage: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r';
 local DOCU_STRING = '  |cFF00FFFF%s|r |cFF00FF00%s|r \n- |cFFFFFFFF%s|r';
 local CONFIG_ADDON_NAME = 'ConsolePort_Config';
+local CURSOR_ADDON_NAME = 'ConsolePort_Cursor';
 ---------------------------------------------------------------
 -- Process slash command
 ---------------------------------------------------------------
@@ -95,15 +96,18 @@ SLASH_FUNCTIONS = {
 		if owner and frame then
 			local loadable, reason = select(4, GetAddOnInfo(owner))
 			if loadable then
-				local stack = db.Stack;
-				if stack:TryRegisterFrame(owner, frame, true) then
-					stack:AddFrame(frame)
-					stack:UpdateFrames()
-					return CPAPI.Log('Frame %s was added under %s.', frame, owner)
-				end
-			else
-				return CPAPI.Log('Addon %s is not eligble. Reason: %s', owner, _G['ADDON_'..reason])
+				EnableAddOn(CURSOR_ADDON_NAME)
+				LoadAddOn(CURSOR_ADDON_NAME)
+				return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
+					local stack = db.Stack;
+					if stack:TryRegisterFrame(owner, frame, true) then
+						stack:AddFrame(frame)
+						stack:UpdateFrames()
+						return CPAPI.Log('Frame %s was added under %s.', frame, owner)
+					end
+				end)
 			end
+			return CPAPI.Log('Addon %s is not eligble. Reason: %s', owner, _G['ADDON_'..reason])
 		end
 		CPAPI.Log(HELP_STRING, 'addframe', 'addonName frameName')
 	end;
@@ -111,15 +115,18 @@ SLASH_FUNCTIONS = {
 		if owner and frame then
 			local loadable, reason = select(4, GetAddOnInfo(owner))
 			if loadable then
-				local stack = db.Stack;
-				if stack:TryRemoveFrame(owner, frame) then
-					stack:RemoveFrame(_G[frame])
-					stack:UpdateFrames()
-					return CPAPI.Log('Frame %s was removed from %s.', frame, owner)
-				end
-			else
-				return CPAPI.Log('Addon is not eligble. Reason: %s', reason)
+				EnableAddOn(CURSOR_ADDON_NAME)
+				LoadAddOn(CURSOR_ADDON_NAME)
+				return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
+					local stack = db.Stack;
+					if stack:TryRemoveFrame(owner, frame) then
+						stack:RemoveFrame(_G[frame])
+						stack:UpdateFrames()
+						return CPAPI.Log('Frame %s was removed from %s.', frame, owner)
+					end
+				end)
 			end
+			return CPAPI.Log('Addon is not eligble. Reason: %s', reason)
 		end
 		CPAPI.Log(HELP_STRING, 'removeframe', 'addonName frameName')
 	end;

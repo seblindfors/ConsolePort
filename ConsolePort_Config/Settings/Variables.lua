@@ -53,8 +53,8 @@ end
 function Shortcut:OnClick()
 	self:SetChecked(false)
 	self:OnChecked(false)
-	if db.Cursor:IsCurrentNode(self) then
-		return db.Cursor:SetCurrentNode(self.reference)
+	if ConsolePort:IsCursorNode(self) then
+		return ConsolePort:SetCursorNode(self.reference)
 	end
 	self.List:ScrollToElement(self.reference, -FIXED_OFFSET)
 end

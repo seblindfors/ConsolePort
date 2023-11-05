@@ -104,7 +104,7 @@ end
 
 function Combo:OnEnter()
 	CPIndexButtonMixin.OnIndexButtonEnter(self)
-	if db('Cursor'):IsCurrentNode(self, true) then
+	if ConsolePort:IsCursorNode(self, true) then
 		local flexer = env.Bindings
 			and env.Bindings.ComboShortcuts
 			and env.Bindings.ComboShortcuts.Flexer;
