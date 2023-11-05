@@ -95,7 +95,13 @@ end
 ---------------------------------------------------------------
 -- Interface cursor API
 ---------------------------------------------------------------
+-- The interface cursor has three major components:
+--  Cursor: The cursor object itself, which is a frame
+--  Stack: The stack of frames that the cursor can interact with
+--  Hooks: The hooking process that allows custom interactions
+---------------------------------------------------------------
 local CURSOR_ADDON_NAME = 'ConsolePort_Cursor';
+
 ---------------------------------------------------------------
 -- Add a new frame to the interface cursor stack
 ---------------------------------------------------------------
@@ -121,6 +127,15 @@ function ConsolePort:ForbidInterfaceCursorFrame(frame)
 			db.Stack:ForbidFrame(object)
 		end)
 		return true;
+	end
+end
+
+---------------------------------------------------------------
+-- Notify the hooks process that a click event occurred
+---------------------------------------------------------------
+function ConsolePort:ProcessInterfaceClickEvent(...)
+	if db.Hooks then
+		return db.Hooks:ProcessInterfaceClickEvent(...)
 	end
 end
 

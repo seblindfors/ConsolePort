@@ -5,7 +5,7 @@
 -- mapped by various parts of the interface to override the
 -- default actions of gamepad inputs.
 
-local _, db = ...; local Hooks = db.Hooks;
+local _, db = ...;
 local InputMixin, InputAPI = {}, CPAPI.CreateEventHandler({'Frame', '$parentInputHandler', ConsolePort, 'SecureHandlerStateTemplate'}, {
 	'PLAYER_REGEN_DISABLED'; -- enter combat
 	'PLAYER_REGEN_ENABLED';  -- leave combat
@@ -272,7 +272,7 @@ end
 
 function InputMixin:EmulateFrontend(click, state, script)
 	if click:IsEnabled() then
-		if db.Hooks:ProcessInterfaceClickEvent(script, click, state) then
+		if ConsolePort:ProcessInterfaceClickEvent(script, click, state) then
 			self.postreset = self:GetAttribute(CPAPI.ActionTypeRelease)
 			self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 		end
