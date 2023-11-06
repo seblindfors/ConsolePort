@@ -15,7 +15,7 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-## SavedVariables: ConsolePortSettings, ConsolePortDevices, ConsolePortUIStack, ConsolePortShared, ConsolePortBindingIcons
+## SavedVariables: ConsolePortSettings, ConsolePortDevices, ConsolePortShared, ConsolePortBindingIcons
 ## SavedVariablesPerCharacter: ConsolePortCharacterSettings, ConsolePortUtility
 
 

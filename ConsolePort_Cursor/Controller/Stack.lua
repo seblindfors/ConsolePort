@@ -361,3 +361,8 @@ do  local managers = {[UIPanelWindows] = true, [UISpecialFrames] = false, [UIMen
 		watchers[frame] = true;
 	end
 end
+
+---------------------------------------------------------------
+-- On demand explicit load
+---------------------------------------------------------------
+if IsAddOnLoaded(_) then Stack:ADDON_LOADED(_) end;
