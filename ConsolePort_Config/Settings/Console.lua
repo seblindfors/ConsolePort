@@ -89,6 +89,7 @@ function DeviceSelect:Construct()
 	self:SetText(L'Device')
 	self.Label:ClearAllPoints()
 	self.Label:SetPoint('LEFT', 16, 0)
+	self.Label:SetPoint('RIGHT', -16, 0)
 	self.Label:SetJustifyH('LEFT')
 	self.Label:SetTextColor(1, 1, 1)
 	Widgets.Select(self, 'DeviceID', nil, db.Data.Select(1, 1):SetRawOptions(options), L'Device Information')
@@ -140,10 +141,58 @@ function DeviceSelect:Update()
 			device.vendorID, ConvertToHex(device.vendorID),
 			device.productID, ConvertToHex(device.productID)
 		);
+		self.tooltipText = self.tooltipText .. '\n\n'
+			.. YELLOW_FONT_COLOR:WrapTextInColorCode(L'Click here to reset your device profile.');
 	else
 		self:SetText(L'Select a device from the list to continue.')
 	end
 	db:TriggerEvent('OnMapperDeviceChanged', device, self:GetCurrentDeviceID())
+end
+
+function DeviceSelect:OnClick()
+	local device = self:GetCurrentDevice()
+	if device then
+		local disclaimer = '\n\n'..L'This will not affect your bindings, interface settings or system-wide settings.';
+		if IsModifierKeyDown() then
+			CPAPI.Popup('ConsolePort_Reset_Devices', {
+				text = L'Are you sure you want to reset all device profiles?'
+					.. disclaimer;
+				button1 = RESET;
+				button2 = CANCEL;
+				whileDead = 1;
+				showAlert = 1;
+				OnAccept = function()
+					for i, config in ipairs(C_GamePad.GetAllConfigIDs()) do
+						C_GamePad.DeleteConfig(config)
+					end
+					C_GamePad.ApplyConfigs()
+					db:TriggerEvent('OnMapperDeviceChanged', self:GetCurrentDevice(), self:GetCurrentDeviceID())
+	 			end;
+			})
+		else
+			CPAPI.Popup('ConsolePort_Reset_Device', {
+				text = YELLOW_FONT_COLOR:WrapTextInColorCode(self:GetText())
+					..'\n'
+					.. L'Are you sure you want to reset your device profile?'
+					.. disclaimer;
+				button1 = RESET;
+				button2 = CANCEL;
+				whileDead = 1;
+				showAlert = 1;
+				OnAccept = function()
+					for i, identifier in ipairs(C_GamePad.GetAllConfigIDs()) do
+						local config = C_GamePad.GetConfig(identifier)
+						if ( config.name == device.name ) then
+							C_GamePad.DeleteConfig(identifier)
+							C_GamePad.ApplyConfigs()
+							db:TriggerEvent('OnMapperDeviceChanged', self:GetCurrentDevice(), self:GetCurrentDeviceID())
+							break
+						end
+					end
+	 			end;
+			})
+		end
+	end
 end
 
 ---------------------------------------------------------------
