@@ -58,13 +58,13 @@ function ItemMenu:FixHeight()
 end
 
 function ItemMenu:RedirectCursor()
-	self.returnToNode = self.returnToNode or ConsolePortCursor:GetCurrentNode()
-	ConsolePortCursor:SetCurrentNode(self:GetObjectByIndex(1))
+	self.returnToNode = self.returnToNode or ConsolePort:GetCursorNode()
+	ConsolePort:SetCursorNode(self:GetObjectByIndex(1))
 end
 
 function ItemMenu:ReturnCursor()
 	if self.returnToNode then
-		ConsolePortCursor:SetCurrentNode(self.returnToNode)
+		ConsolePort:SetCursorNode(self.returnToNode)
 		self.returnToNode = nil
 	end
 end
@@ -104,6 +104,16 @@ function ItemMenu:GetEquipCommand(invSlot, i, numSlots)
 				or EQUIPSET_EQUIP;
 		data = invSlot;
 		free = not link;
+		handlers = {
+			OnEnter = function(self)
+				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
+				GameTooltip:SetInventoryItem('player', invSlot)
+				GameTooltip:Show()
+			end;
+			OnLeave = function(self)
+				GameTooltip:Hide()
+			end;
+		};
 	}
 end
 
@@ -123,7 +133,7 @@ function ItemMenu:AddEquipCommands()
 	end
 	-- add in order (make sure 'Equip' comes first)
 	for i, command in ipairs(commands) do
-		self:AddCommand(command.text, 'Equip', command.data)
+		self:AddCommand(command.text, 'Equip', command.data, command.handlers)
 	end
 end
 
@@ -146,15 +156,15 @@ function ItemMenu:AddUtilityRingCommand()
 	end
 end
 
-function ItemMenu:AddCommand(text, command, data)
+function ItemMenu:AddCommand(text, command, data, handlers)
 	local widget, newObj = self:Acquire(self:GetNumActive() + 1)
 	local anchor = self:GetObjectByIndex(self:GetNumActive() - 1)
 
 	if newObj then
 		widget:SetScript('OnClick', widget.OnClick)
 	end
-	
-	widget:SetCommand(text, command, data)
+
+	widget:SetCommand(text, command, data, handlers)
 	widget:SetPoint('TOPLEFT', anchor or self.Tooltip, 'BOTTOMLEFT', anchor and 0 or 8, anchor and 0 or -16)
 	widget:Show()
 end
@@ -172,6 +182,7 @@ function ItemMenu:SetTooltip()
 	tooltip:Show()
 	tooltip:ClearAllPoints()
 	tooltip:SetPoint('TOPLEFT', 80, -16)
+	db.Alpha.FadeIn(self.Tooltip, 0.25, 0, 1)
 end
 
 function ItemMenu:ClearTooltip()
@@ -308,6 +319,7 @@ end
 
 ---------------------------------------------------------------
 ItemMenu:SetScript('OnHide', ItemMenu.OnHide)
+ItemMenu:SetAttribute('nodepass', true)
 Mixin(ItemMenu, CPIndexPoolMixin):OnLoad()
 ItemMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
 ConsolePort:AddInterfaceCursorFrame(ItemMenu)

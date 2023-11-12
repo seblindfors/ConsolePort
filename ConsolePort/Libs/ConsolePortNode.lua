@@ -32,7 +32,7 @@
 --  nodeignore       : (boolean) ignore this node
 --  nodepriority     : (number)  priority in arbitrary selection
 --  nodesingleton    : (boolean) no recursive scan on this node
---  nodeonlychildren : (boolean) include children, skip node
+--  nodepass         : (boolean) include children, skip node
 ---------------------------------------------------------------
 local NODE = LibStub:NewLibrary('ConsolePortNode', 1)
 if not NODE then return end
@@ -182,6 +182,7 @@ end
 function IsInteractive(node, object)
 	return 	not node:IsObjectType('ScrollFrame')
 			and node:IsMouseEnabled()
+			and not node:GetAttribute('nodepass')
 			and ( IsUsable(object) or IsMouseResponsive(node) )
 end
 

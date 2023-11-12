@@ -5,6 +5,7 @@ local _, db, L = ...; L = db.Locale;
 local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMenu, {
 	'PLAYER_REGEN_DISABLED';
 	'UPDATE_BINDINGS';
+	'CURSOR_CHANGED';
 }))
 ---------------------------------------------------------------
 local SPELL_MENU_SIZE = 440;
@@ -51,13 +52,13 @@ function SpellMenu:FixHeight()
 end
 
 function SpellMenu:RedirectCursor()
-	self.returnToNode = self.returnToNode or ConsolePortCursor:GetCurrentNode()
-	ConsolePortCursor:SetCurrentNode(self:GetObjectByIndex(1))
+	self.returnToNode = self.returnToNode or ConsolePort:GetCursorNode()
+	ConsolePort:SetCursorNode(self:GetObjectByIndex(1))
 end
 
 function SpellMenu:ReturnCursor()
 	if self.returnToNode then
-		ConsolePortCursor:SetCurrentNode(self.returnToNode)
+		ConsolePort:SetCursorNode(self.returnToNode)
 		self.returnToNode = nil
 	end
 end
@@ -153,7 +154,7 @@ function SpellMenu:MapActionBar()
 	end
 	self:SetHeight(drawnBars * 40 + 100)
 	if targetWidget or firstWidget then
-		ConsolePortCursor:SetCurrentNode(targetWidget or firstWidget)
+		ConsolePort:SetCursorNode(targetWidget or firstWidget)
 	end
 
 	local handle = db.UIHandle;
@@ -315,8 +316,21 @@ function SpellMenu:UPDATE_BINDINGS()
 	end
 end
 
+function SpellMenu:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
+	if not db('bindingShowSpellMenuGrid') or self:IsShown() then return end;
+
+	if ( isDefault and oldCursorType == Enum.UICursorType.Spell ) then
+		return self:Hide()
+	elseif ( cursorType == Enum.UICursorType.Spell ) then
+		local _, _, _, spellID = GetCursorInfo()
+		self:SetSpell(spellID)
+		self:MapActionBar()
+	end
+end
+
 ---------------------------------------------------------------
 SpellMenu:SetScript('OnHide', SpellMenu.OnHide)
+SpellMenu:SetAttribute('nodepass', true)
 Mixin(SpellMenu, CPIndexPoolMixin):OnLoad()
 SpellMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
 SpellMenu.ActionButtons = CreateFramePool('IndexButton', SpellMenu, 'CPIndexButtonBindingActionButtonTemplate')

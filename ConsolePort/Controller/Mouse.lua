@@ -242,6 +242,8 @@ do local FreeCursorOnPickup = {
 
 	function Mouse:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
 		if not db('mouseAutoControlPickup') then return end
+		if db('bindingShowSpellMenuGrid') and cursorType == Enum.UICursorType.Spell then return end;
+		
 		if isDefault then
 			if ( oldCursorType == self.hasCursorItem ) then
 				self:SetCameraControl()

@@ -27,10 +27,25 @@ function MenuButton:SpecialClick()
 	self:OnClick()
 end
 
-function MenuButton:SetCommand(text, command, data)
+function MenuButton:OnEnter()
+	if not GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
+function MenuButton:OnLeave()
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
+function MenuButton:SetCommand(text, command, data, handlers)
 	self.data = data
 	self.command = command
 	self.Icon:SetTexture(COMMAND_OPT_ICON[command] or COMMAND_OPT_ICON.Default)
+	self:SetAttribute('nohooks', true)
+	self:SetScript('OnEnter', handlers and handlers.OnEnter or self.OnEnter)
+	self:SetScript('OnLeave', handlers and handlers.OnLeave or self.OnLeave)
 	self:SetText(text)
 end
 
@@ -112,7 +127,8 @@ function MapActionButton:OnClick(button)
 		self:Update()
 		return ClearCursor()
 	end
-
+	ClearCursor()
+	
 	local spellID = parent:GetSpellID()
 	PickupSpell(spellID)
 	PlaceAction(self:GetID())

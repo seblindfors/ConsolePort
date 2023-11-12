@@ -347,6 +347,10 @@ db:Register('Variables', {
 		note = 'Requires reload.';
 		advd = true;
 	};
+	bindingShowSpellMenuGrid = _{Bool(true);
+		name = 'Show Action Bar Grid on Spell Pickup';
+		desc = 'Display the action bar grid when picking up a spell on the cursor.';
+	};
 	disableHotkeyRendering = _{Bool(false);
 		name = 'Disable Hotkey Rendering';
 		desc = 'Disables customization to hotkeys on regular action bar.';

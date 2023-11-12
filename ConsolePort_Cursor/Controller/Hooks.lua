@@ -101,6 +101,10 @@ end
 ---------------------------------------------------------------
 -- Prompts
 ---------------------------------------------------------------
+function Hooks:IsPromptProcessingValid(node)
+	return not InCombatLockdown() and db.Cursor:IsCurrentNode(node) and not node:GetAttribute('nohooks')
+end
+
 function Hooks:GetSpecialActionPrompt(text)
 	local device = db('Gamepad/Active')
 	return device and device:GetTooltipButtonPrompt(
@@ -215,7 +219,7 @@ end
 do -- Tooltip hooking
 	local function OnTooltipSetItem(self)
 		local owner = self:GetOwner()
-		if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
+		if Hooks:IsPromptProcessingValid(owner) then
 			local itemLocation = Hooks:GetItemLocationFromNode(owner)
 			if itemLocation then
 				if CPAPI.IsMerchantAvailable then
@@ -250,7 +254,7 @@ do -- Tooltip hooking
 
 	local function OnTooltipSetSpell(self)
 		local owner = self:GetOwner()
-		if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
+		if Hooks:IsPromptProcessingValid(owner) then
 			if owner.OnSpecialClick then return end;
 			
 			local name, spellID = self:GetSpell()
@@ -279,7 +283,7 @@ do -- Tooltip hooking
 
 	local function OnTooltipSetToy(self, info)
 		local owner = self:GetOwner()
-		if not InCombatLockdown() and db.Cursor:IsCurrentNode(owner) then
+		if Hooks:IsPromptProcessingValid(owner) then
 			local itemID = type(info) == 'table' and info.id;
 			if itemID and CPAPI.PlayerHasToy(itemID) then
 				local itemInfo = CPAPI.GetItemInfo(itemID)
