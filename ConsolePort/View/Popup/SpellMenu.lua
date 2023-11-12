@@ -90,8 +90,8 @@ function SpellMenu:AddUtilityRingCommand()
 		link  = link;
 	};
 
-	if db.Utility:SetPendingAction(1, action) then
-		self:AddCommand(L'Add to Utility Ring', 'RingBind')
+	if db.Utility:IsUniqueAction(1, action) then
+		self:AddCommand(L'Add to Utility Ring', 'RingBind', action)
 	else
 		local _, existingIndex = db.Utility:IsUniqueAction(1, action)
 		if existingIndex then
@@ -101,8 +101,8 @@ function SpellMenu:AddUtilityRingCommand()
 	end
 end
 
-function SpellMenu:RingBind()
-	if db.Utility:HasPendingAction() then
+function SpellMenu:RingBind(action)
+	if db.Utility:SetPendingAction(1, action) then
 		db.Utility:PostPendingAction()
 	end
 	self:Hide()
@@ -317,7 +317,8 @@ function SpellMenu:UPDATE_BINDINGS()
 end
 
 function SpellMenu:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
-	if not db('bindingShowSpellMenuGrid') or self:IsShown() then return end;
+	if not db('bindingShowSpellMenuGrid') then return end;
+	if ConsolePortConfig and ConsolePortConfig:IsShown() then return end;
 
 	if ( isDefault and oldCursorType == Enum.UICursorType.Spell ) then
 		return self:Hide()
