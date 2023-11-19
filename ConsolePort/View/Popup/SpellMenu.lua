@@ -90,25 +90,31 @@ function SpellMenu:AddUtilityRingCommand()
 		link  = link;
 	};
 
-	if db.Utility:IsUniqueAction(1, action) then
-		self:AddCommand(L'Add to Utility Ring', 'RingBind', action)
-	else
-		local _, existingIndex = db.Utility:IsUniqueAction(1, action)
-		if existingIndex then
-			db.Utility:SetPendingRemove(1, action)
-			self:AddCommand(L'Remove from Utility Ring', 'RingClear')
+	for key in db.table.spairs(db.Utility.Data) do
+		local isUniqueAction, existingIndex = db.Utility:IsUniqueAction(key, action)
+		if isUniqueAction then
+			self:AddCommand(L('Add to %s', db.Utility:ConvertSetIDToDisplayName(key)), 'RingBind', {key, action})
+		elseif existingIndex then
+			self:AddCommand(L('Remove from %s', db.Utility:ConvertSetIDToDisplayName(key)), 'RingClear', {key, action})
 		end
 	end
 end
 
-function SpellMenu:RingBind(action)
-	if db.Utility:SetPendingAction(1, action) then
+function SpellMenu:RingBind(data)
+	local setID, action = unpack(data)
+	if db.Utility:SetPendingAction(setID, action) then
 		db.Utility:PostPendingAction()
 	end
 	self:Hide()
 end
 
-SpellMenu.RingClear = SpellMenu.RingBind;
+function SpellMenu:RingClear(data)
+	local setID, action = unpack(data)
+	if db.Utility:SetPendingRemove(setID, action) then
+		db.Utility:PostPendingAction()
+	end
+	self:Hide()
+end
 
 function SpellMenu:MapActionBar()
 	self:SetDisplaySpell(self:GetSpellID())

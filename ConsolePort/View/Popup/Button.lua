@@ -118,12 +118,15 @@ function MapActionButton:OnSpecialClick(...)
 end
 
 function MapActionButton:OnClick(button)
+	local actionID, bindingID = self:GetID(), self.bindingID;
+	local isUnbound = not self:GetAttribute('slug');
+
 	local parent = self:GetParent()
 	if ( button == 'RightButton' ) then
-		if not GetActionInfo(self:GetID()) then
-			parent:ReportClearBinding(self.bindingID)
+		if not GetActionInfo(actionID) then
+			parent:ReportClearBinding(bindingID)
 		end
-		PickupAction(self:GetID())
+		PickupAction(actionID)
 		self:Update()
 		return ClearCursor()
 	end
@@ -131,7 +134,7 @@ function MapActionButton:OnClick(button)
 	
 	local spellID = parent:GetSpellID()
 	PickupSpell(spellID)
-	PlaceAction(self:GetID())
+	PlaceAction(actionID)
 	self:Update()
 
 	local type, _, _, cursorSpellID = GetCursorInfo()
@@ -139,8 +142,8 @@ function MapActionButton:OnClick(button)
 		parent:SetSpellID(cursorSpellID)
 		parent:MapActionBar()
 	else
-		if self.bindingID and not self:GetAttribute('slug') then
-			parent:ReportNoBinding(self, self.bindingID, self:GetID())
+		if bindingID and isUnbound then
+			parent:ReportNoBinding(self, bindingID, actionID)
 		else
 			parent:Hide()
 		end

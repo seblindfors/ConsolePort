@@ -204,24 +204,31 @@ local OnDemandModules, TryLoadModule = {
 		end
 	end
 
+
+
 	-- Automatically load modules when they are enabled through the addon list
-	hooksecurefunc('EnableAddOn', function(module)
+	local function OnEnableAddOn(module)
 		local name = GetAddOnInfo(module)
 		local var  = name and OnDemandModules[name];
 		if ( name and var ) then
 			db('Settings/'..var, true)
 			TryLoadModule(var, name)
 		end
-	end)
+	end
 
 	-- Automatically disable predicate variable when a module is disabled through the addon list
-	hooksecurefunc('DisableAddOn', function(module)
+	local function OnDisableAddOn(module)
 		local name = GetAddOnInfo(module)
 		local var  = name and OnDemandModules[name];
 		if ( var ) then
 			db('Settings/'..var, false)
 		end
-	end)
+	end
+
+	if C_AddOns and C_AddOns.EnableAddOn  then hooksecurefunc(C_AddOns, 'EnableAddOn',  OnEnableAddOn)  end
+	if C_AddOns and C_AddOns.DisableAddOn then hooksecurefunc(C_AddOns, 'DisableAddOn', OnDisableAddOn) end
+	if EnableAddOn  then hooksecurefunc('EnableAddOn',  OnEnableAddOn)  end
+	if DisableAddOn then hooksecurefunc('DisableAddOn', OnDisableAddOn) end
 end
 
 ---------------------------------------------------------------

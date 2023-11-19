@@ -11,7 +11,7 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
 ---------------------------------------------------------------
-local DEFAULT_SET, EXTRA_ACTION_ID = 1, CPAPI.ExtraActionButtonID;
+local DEFAULT_SET, EXTRA_ACTION_ID = CPAPI.DefaultRingSetID, CPAPI.ExtraActionButtonID;
 ---------------------------------------------------------------
 Utility.Data = {[DEFAULT_SET] = {}};
 Utility:Execute(([[
@@ -302,6 +302,13 @@ function Utility:ConvertBindingToDisplayName(binding)
 		return ( name ~= binding ) and
 			((tonumber(name) and ('Ring |cFF00FFFF%s|r'):format(name) or name)) or nil;
 	end
+end
+
+function Utility:ConvertSetIDToDisplayName(setID)
+	local L = db.Locale;
+	return (setID == DEFAULT_SET and L'Utility Ring')
+		or (tonumber(setID) and L('Ring |cFF00FFFF%s|r', setID))
+		or (tostring(setID));
 end
 
 function Utility:GetBindingForSet(setID)
@@ -830,6 +837,7 @@ end
 
 function Utility:SetPendingRemove(setID, info)
 	self.pendingAction = CreatePendingAction(setID, info, false)
+	return true;
 end
 
 function Utility:HasPendingAction()

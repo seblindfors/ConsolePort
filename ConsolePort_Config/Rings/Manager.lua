@@ -3,7 +3,7 @@ local db, L, Widgets = env.db, env.L, env.Widgets;
 local LoadoutTypeMetaMap = LibStub('CPActionButton').TypeMetaMap;
 
 ---------------------------------------------------------------
-local DEFAULT_RING_ID = 1;
+local DEFAULT_RING_ID = CPAPI.DefaultRingSetID;
 local DEFAULT_RING_BINDING = 'LeftButton';
 
 local BUTTON_WITH_ICON_TEXT = '     %s';

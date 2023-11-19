@@ -82,6 +82,8 @@ CPAPI.ExtraActionButtonID = ExtraActionButton1 and ExtraActionButton1.action or
 CPAPI.ActionTypeRelease = CPAPI.IsRetailVersion and 'typerelease' or 'type';
 CPAPI.ActionTypePress   = 'type';
 
+CPAPI.DefaultRingSetID = 1;
+
 ---------------------------------------------------------------
 -- Internal wrappers
 ---------------------------------------------------------------
