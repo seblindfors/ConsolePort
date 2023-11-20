@@ -1,51 +1,72 @@
 local _, db = ...;
 ---------------------------------------------------------------
--- Get the entire database object (caution)
----------------------------------------------------------------
+-- @brief Get the entire database object (caution)
+-- @return db: database object (table)
 function ConsolePort:GetData()
 	return db;
 end
 
 ---------------------------------------------------------------
--- Add variable options to database
----------------------------------------------------------------
+-- @brief Add variable options to database
+-- @param variables: table {
+--    [variableID] = {
+--        @param 1 = datapoint (table) see Data.lua for examples
+--        @param name = display name (string)
+--        @param desc = description (string)
+--        @param note = additional notes (string)
+--        @param advd = advanced option flag (bool)
+--        @param hide = hide option flag (bool)
+--    }, ...
+-- }
 function ConsolePort:AddVariables(variables)
 	db.table.merge(db.Variables, variables)
 	db:TriggerEvent('OnVariablesChanged', variables)
 end
 
 ---------------------------------------------------------------
--- Get all possible bindings
----------------------------------------------------------------
+-- @brief Get all possible bindings
+-- @return table {
+--    [buttonID] = {
+--        [modifier] = bindingID, ...
+--    }, ...
+-- }
 function ConsolePort:GetBindings()
 	return db.table.spairs(db.Gamepad:GetBindings(true))
 end
 
 ---------------------------------------------------------------
--- Get currently applied and validated bindings
----------------------------------------------------------------
+-- @brief Get currently applied and validated bindings
+-- @return table {
+--    [buttonID] = {
+--        [modifier] = bindingID, ...
+--    }, ...
+-- }
 function ConsolePort:GetCurrentBindings()
 	return db.Gamepad:GetBindings()
 end
 
 ---------------------------------------------------------------
--- Get corresponding binding ID for an action index
----------------------------------------------------------------
+-- @brief Get corresponding binding ID for an action index
+-- @param index: action index (number)
+-- @return bindingID: binding ID (string)
 function ConsolePort:GetActionBinding(index)
 	return db('Actionbar/Action/'..index)
 end
 
 ---------------------------------------------------------------
--- Get unified page condition driver and current page
----------------------------------------------------------------
+-- @brief Get unified page condition driver and current page
+-- @return condition: condition driver (string)
+-- @return page: current page (number)
 function ConsolePort:GetActionPageDriver()
 	local pager = db.Pager;
 	return pager:GetPageCondition(), pager:GetCurrentPage()
 end
 
 ---------------------------------------------------------------
--- Get the button that's currently bound to a defined ID
----------------------------------------------------------------
+-- @brief Get the button that's currently bound to a defined ID
+-- @param bindingID: binding ID (string)
+-- @return key: button ID (string)
+-- @return mod: modifier (string)
 function ConsolePort:GetCurrentBindingOwner(bindingID)
 	for key, set in pairs(self:GetCurrentBindings()) do
 		for mod, binding in pairs(set) do
@@ -57,8 +78,10 @@ function ConsolePort:GetCurrentBindingOwner(bindingID)
 end
 
 ---------------------------------------------------------------
--- Get a slugified texture escape string for a button combo
----------------------------------------------------------------
+-- @brief Get a slugified texture escape string for a button combo
+-- @param key: button ID (string)
+-- @param mod: modifier (string)
+-- @return slug: texture escape string (string)
 function ConsolePort:GetFormattedButtonCombination(key, mod)
 	local device = db.Gamepad.Active;
 	if device and key and mod then
@@ -67,8 +90,9 @@ function ConsolePort:GetFormattedButtonCombination(key, mod)
 end
 
 ---------------------------------------------------------------
--- Get a slugified texture escape string for a binding ID
----------------------------------------------------------------
+-- @brief Get a slugified texture escape string for a binding ID
+-- @param bindingID: binding ID (string)
+-- @return slug: texture escape string (string)
 function ConsolePort:GetFormattedBindingOwner(bindingID)
 	local key, mod = self:GetCurrentBindingOwner(bindingID)
 	if key and mod then
@@ -77,8 +101,8 @@ function ConsolePort:GetFormattedBindingOwner(bindingID)
 end
 
 ---------------------------------------------------------------
--- Force focus the keyboard (nil to clear, false to disable kb)
----------------------------------------------------------------
+-- @brief Force focus the keyboard (nil to clear, false to disable kb)
+-- @param frame: frame to focus, false to disable (frame or bool)
 function ConsolePort:ForceKeyboardFocus(frame)
 	if ConsolePortKeyboard then
 		ConsolePortKeyboard:ForceFocus(frame)
@@ -86,6 +110,9 @@ function ConsolePort:ForceKeyboardFocus(frame)
 	end
 end
 
+---------------------------------------------------------------
+-- @brief Get the current keyboard focus
+-- @return frame: frame that has focus (frame)
 function ConsolePort:GetKeyboardFocus()
 	if ConsolePortKeyboard then
 		return ConsolePortKeyboard:GetForceFocus()
@@ -103,8 +130,9 @@ end
 local CURSOR_ADDON_NAME = 'ConsolePort_Cursor';
 
 ---------------------------------------------------------------
--- Add a new frame to the interface cursor stack
----------------------------------------------------------------
+-- @brief Add a new frame to the interface cursor stack
+-- @param frame: frame to add (string or frame)
+-- @return success: true if frame was added
 function ConsolePort:AddInterfaceCursorFrame(frame)
 	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
 	if object then
@@ -118,8 +146,9 @@ function ConsolePort:AddInterfaceCursorFrame(frame)
 end
 
 ---------------------------------------------------------------
--- Forbid a frame from being used by the interface cursor stack
----------------------------------------------------------------
+-- @brief Forbid a frame from being used by the interface cursor stack
+-- @param frame: frame to forbid (string or frame)
+-- @return success: true if frame was forbidden
 function ConsolePort:ForbidInterfaceCursorFrame(frame)
 	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
 	if object then
@@ -131,8 +160,10 @@ function ConsolePort:ForbidInterfaceCursorFrame(frame)
 end
 
 ---------------------------------------------------------------
--- Notify the hooks process that a click event occurred
----------------------------------------------------------------
+-- @brief Notify the hooks process that a click event occurred
+-- @param script: script name (string)
+-- @param node: node that was clicked (frame)
+-- @return success: true if node click was processed somehow
 function ConsolePort:ProcessInterfaceClickEvent(...)
 	if db.Hooks then
 		return db.Hooks:ProcessInterfaceClickEvent(...)
@@ -150,8 +181,30 @@ do local map = function(func)
 		end
 	end
 
+	-----------------------------------------------------------
+	-- @brief Set the cursor to a node
+	-- @param node: node to set (frame)
+	-- @param assertNotMouse: assert that node is not mouseovered (bool)
 	ConsolePort.SetCursorNode         = map 'SetCurrentNode'
+	-----------------------------------------------------------
+	-- @brief Check if cursor is currently on a node
+	-- @param node: node to check (frame)
+	-- @return isCurrent: true if node is current (bool)
 	ConsolePort.IsCursorNode          = map 'IsCurrentNode'
+	-----------------------------------------------------------
+	-- @brief Get the current node
+	-- @return node: current node (frame)
 	ConsolePort.GetCursorNode         = map 'GetCurrentNode'
+	-----------------------------------------------------------
+	-- @brief Set the cursor to a node if the cursor is active
+	-- @param node: node to set (frame)
+	-- @param assertNotMouse: assert that node is not mouseovered (bool)
+	-- @return success: true if cursor is active and node was set (bool)
 	ConsolePort.SetCursorNodeIfActive = map 'SetCurrentNodeIfActive'
+	-----------------------------------------------------------
+	-- @brief Replace the OnEnter script of a node by function pointer
+	-- @param scriptType: script type (string)
+	-- @param original: original script (function)
+	-- @param replacement: replacement script (function)
+	ConsolePort.ReplaceCursorScript   = map 'ReplaceScript'
 end
