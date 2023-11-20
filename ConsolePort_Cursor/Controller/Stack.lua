@@ -208,88 +208,60 @@ end
 ---------------------------------------------------------------
 -- Stack management over sessions
 ---------------------------------------------------------------
-do db:Save('Stack/Registry', 'ConsolePortUIStack')
+db:Save('Stack/Registry', 'ConsolePortUIStack')
 
-	function Stack:GetRegistrySet(name)
-		self.Registry[name] = self.Registry[name] or {};
-		return self.Registry[name];
+function Stack:GetRegistrySet(name)
+	self.Registry[name] = self.Registry[name] or {};
+	return self.Registry[name];
+end
+
+function Stack:TryRegisterFrame(set, name, state)
+	if not name then return end
+
+	local stack = self:GetRegistrySet(set)
+	if (stack[name] == nil) then
+		stack[name] = (state == nil and true) or state;
+		return true;
+	end
+end
+
+function Stack:TryRemoveFrame(set, name)
+	if not name then return end
+
+	local stack = self:GetRegistrySet(set)
+	if (stack[name] ~= nil) then
+		stack[name] = nil;
+		return true;
+	end
+end
+
+function Stack:OnDataLoaded()
+	db:Load('Stack/Registry', 'ConsolePortUIStack')
+
+	-- Load standalone frame stack
+	for i, frame in ipairs(env.StandaloneFrameStack) do
+		self:TryRegisterFrame(_, frame, true)
 	end
 
-	function Stack:TryRegisterFrame(set, name, state)
-		if not name then return end
+	-- Toggle the stack core
+	self:ToggleCore()
 
-		local stack = self:GetRegistrySet(set)
-		if (stack[name] == nil) then
-			stack[name] = (state == nil and true) or state;
-			return true;
+	-- Load all existing frames in the registry
+	for addon in pairs(self.Registry) do
+		if IsAddOnLoaded(addon) then
+			self:LoadAddonFrames(addon)
 		end
 	end
 
-	function Stack:TryRemoveFrame(set, name)
-		if not name then return end
+	self.OnDataLoaded = nil;
+	self:RegisterEvent('ADDON_LOADED')
+	self.ADDON_LOADED = function(self, name)
+		self:LoadAddonFrames(name)
+		self:UpdateFrames()
+	end;
 
-		local stack = self:GetRegistrySet(set)
-		if (stack[name] ~= nil) then
-			stack[name] = nil;
-			return true;
-		end
-	end
-
-	function Stack:OnDataLoaded()
-		db:Load('Stack/Registry', 'ConsolePortUIStack')
-
-		-- Load standalone frame stack
-		for i, frame in ipairs(env.StandaloneFrameStack) do
-			self:TryRegisterFrame(_, frame, true)
-		end
-
-		-- Toggle the stack core
-		self:ToggleCore()
-
-		-- Load all existing frames in the registry
-		for addon in pairs(self.Registry) do
-			if IsAddOnLoaded(addon) then
-				self:LoadAddonFrames(addon)
-			end
-		end
-
-		self.OnDataLoaded = nil;
-		self:RegisterEvent('ADDON_LOADED')
-		self.ADDON_LOADED = function(self, name)
-			self:LoadAddonFrames(name)
-			self:UpdateFrames()
-		end;
-
-		db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
-		db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
-	end
-
-	local function CatchNewFrame(frame)
-		if C_Widget.IsFrameWidget(frame) and not Stack:IsFrameVisibleToCursor(frame) then
-			if Stack:TryRegisterFrame(_, frame:GetName(), true) then
-				Stack:AddFrame(frame)
-				Stack:UpdateFrames()
-			end
-		end
-	end
-
-	local poolFrames = {}
-	local function CatchPoolFrame(frame)
-		if not Stack:IsFrameVisibleToCursor(frame) then
-			if not poolFrames[frame] then
-				Stack:AddFrame(frame)
-				Stack:UpdateFrames()
-				poolFrames[frame] = true;
-			end
-		end
-	end
-
-	hooksecurefunc('ShowUIPanel', CatchNewFrame)
-	hooksecurefunc('StaticPopupSpecial_Show', CatchNewFrame)
-	--hooksecurefunc('AlertFrame_ShowNewAlert', CatchPoolFrame)
-	if HelpTipTemplateMixin and HelpTipTemplateMixin.Init then
-		hooksecurefunc(HelpTipTemplateMixin, 'Init', CatchPoolFrame)
-	end
+	db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
+	db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
 end
 
 ---------------------------------------------------------------
@@ -299,7 +271,7 @@ end
 -- Necessary since all frames do not exist when the game loads.
 -- Automatically adds all special frames and managed panels.
 
-do  local specialFrames, watchers = {}, {}
+do  local specialFrames, poolFrames, watchers = {}, {}, {};
 
 	local function TryAddSpecialFrame(self, frame)
 		if not specialFrames[frame] then
@@ -322,6 +294,36 @@ do  local specialFrames, watchers = {}, {}
 					TryAddSpecialFrame(self, frame)
 				end
 			end
+		end
+	end
+
+	local function CatchNewFrame(frame)
+		if C_Widget.IsFrameWidget(frame) and not Stack:IsFrameVisibleToCursor(frame) then
+			if Stack:TryRegisterFrame(_, frame:GetName(), true) then
+				Stack:AddFrame(frame)
+				Stack:UpdateFrames()
+			end
+		end
+	end
+
+	local function CatchPoolFrame(frame)
+		if not Stack:IsFrameVisibleToCursor(frame) then
+			if not poolFrames[frame] then
+				Stack:AddFrame(frame)
+				Stack:UpdateFrames()
+				poolFrames[frame] = true;
+			end
+		end
+	end
+
+	for name, method in pairs(env.FramePipelines) do
+		if type(method) == 'string' then
+			local object = _G[name];
+			if object then
+				hooksecurefunc(object, method, CatchPoolFrame)
+			end
+		elseif type(method) == 'boolean' then
+			hooksecurefunc(name, CatchNewFrame)
 		end
 	end
 

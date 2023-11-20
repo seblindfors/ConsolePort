@@ -105,14 +105,24 @@ for i=1, (STATICPOPUP_NUMDIALOGS or 4)  do tinsert(env.StandaloneFrameStack, 'St
 ---------------------------------------------------------------
 -- Frame management resources
 ---------------------------------------------------------------
+
 -- Managers are periodically scanned by the frame stack handler
 -- to add new frames to the registry. The table is associative
 -- if the value is true, and indexed if the value is false.
-
 env.FrameManagers = { -- table, isAssociative
 	[UIPanelWindows]  = true;
 	[UISpecialFrames] = false;
 	[UIMenus]         = false;
+};
+
+-- Pipelines are hooked by the frame stack handler to add new
+-- frames to the registry as they pass through the pipeline.
+-- Global references are hooked by name, and methods are hooked
+-- by name and method name.
+env.FramePipelines = { -- global ref, bool or method
+	ShowUIPanel             = true;
+	StaticPopupSpecial_Show = true;
+	HelpTipTemplateMixin    = 'Init';
 };
 
 ---------------------------------------------------------------
