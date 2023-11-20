@@ -449,104 +449,26 @@ function Cursor:StoreCurrent()
 end
 
 ---------------------------------------------------------------
--- SafeOnEnter, SafeOnLeave:
--- Replace problematic OnEnter/OnLeave scripts.
--- Original functions become taint-bearing when called insecurely
--- because they modify properties of protected objects.
+-- Script handling
 ---------------------------------------------------------------
-do local SafeOnEnter, SafeOnLeave, SafeExecute = {}, {}, ExecuteFrameScript
+function Cursor:ReplaceScript(scriptType, original, replacement)
+	return env.ReplaceScript(scriptType, original, replacement)
+end
 
-	-------[[  OnEnter  ]]-------
-	local ActionButtonOnEnter = ActionButton1 and ActionButton1:GetScript('OnEnter')
-	if ActionButtonOnEnter then
-		SafeOnEnter[ActionButtonOnEnter] = function(self)
-			ActionButton_SetTooltip(self)
-		end
-	end
-	local SpellButtonOnEnter = SpellButton1 and SpellButton1:GetScript('OnEnter')
-	if SpellButtonOnEnter then
-		SafeOnEnter[SpellButtonOnEnter] = function(self)
-			-- spellbook buttons push updates to the action bar controller in order to draw highlights
-			-- on actionbuttons that holds the spell in question. this taints the action bar controller.
-			local slot = SpellBook_GetSpellBookSlot(self)
-			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-			GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType)
-			
-			if ( self.SpellHighlightTexture and self.SpellHighlightTexture:IsShown() ) then
-				GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
-			end
-			GameTooltip:Show()
-		end
-	end
-	if QuestMapLogTitleButton_OnEnter then
-		SafeOnEnter[QuestMapLogTitleButton_OnEnter] = function(self)
-			-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
-			-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
-			if self.questLogIndex then
-				local _, level, _, isHeader, _, _, _, _, _, _, _, _, _, _, _, _, isScaling = GetQuestLogTitle(self.questLogIndex)
-				local _, difficultyHighlightColor = GetQuestDifficultyColor(level, isScaling)
-				if ( isHeader ) then
-					_, difficultyHighlightColor = QuestDifficultyColors['header']
-				end
-				if difficultyHighlightColor then
-					QuestMapLogTitleButton_OnEnter(self)
-				end
-			end
-		end
-	end
-	if CPAPI.IsRetailVersion then
-		EventUtil.ContinueOnAddOnLoaded('Blizzard_ClassTalentUI', function()
-			SafeOnEnter[ClassTalentButtonSpendMixin.OnEnter] = TalentButtonSpendMixin.OnEnter;
-			SafeOnEnter[ClassTalentButtonSelectMixin.OnEnter] = TalentButtonSelectMixin.OnEnter;
-			SafeOnEnter[ClassTalentButtonSplitSelectMixin.OnEnter] = TalentButtonSplitSelectMixin.OnEnter;
-			SafeOnEnter[ClassTalentSelectionChoiceMixin.OnEnter] = TalentDisplayMixin.OnEnter;
-		end)
-	end
-	-------[[  OnLeave  ]]-------
-	local SpellButtonOnLeave = SpellButton_OnLeave or SpellButton1 and SpellButton1:GetScript('OnLeave')
-	if SpellButtonOnLeave then
-		SafeOnLeave[SpellButtonOnLeave] = function(self)
-			GameTooltip:Hide()
-		end
-	end
-	if CPAPI.IsRetailVersion then
-		EventUtil.ContinueOnAddOnLoaded('Blizzard_ClassTalentUI', function()
-			SafeOnLeave[ClassTalentButtonSpendMixin.OnLeave] = TalentDisplayMixin.OnLeave;
-			SafeOnLeave[ClassTalentButtonSelectMixin.OnLeave] = TalentButtonSelectMixin.OnLeave;
-			SafeOnLeave[ClassTalentButtonSplitSelectMixin.OnLeave] = TalentButtonSplitSelectMixin.OnLeave;
-			SafeOnLeave[ClassTalentSelectionChoiceMixin.OnLeave] = TalentDisplayMixin.OnLeave;
-		end)
-	end
-	---------------------------------------------------------------
-	-- Allow access to these tables for plugins and addons on demand.
-	function Cursor:ReplaceOnEnter(original, replacement) SafeOnEnter[original] = replacement end
-	function Cursor:ReplaceOnLeave(original, replacement) SafeOnLeave[original] = replacement end
-
-	---------------------------------------------------------------
-	-- OnEnter/OnLeave script triggers
-	local function TriggerScript(node, scriptType, replacement)
-		local script = replacement[node:GetScript(scriptType)]
-		if script then
-			pcall(script, node)
-		else
-			pcall(SafeExecute, node, scriptType)
-		end
-	end
-
-	local function IsDisabledButton(node)
+do	local function IsDisabledButton(node)
 		return node:IsObjectType('Button') and not (node:IsEnabled() or node:GetMotionScriptsWhileDisabled())
 	end
 
 	function Cursor:OnLeaveNode(node)
 		if node and not IsDisabledButton(node) then
 			Hooks:OnNodeLeave()
-			TriggerScript(node, 'OnLeave', SafeOnLeave)
+			env.TriggerScript(node, 'OnLeave')
 		end
 	end
 
 	function Cursor:OnEnterNode(node)
 		if node and not IsDisabledButton(node) then
-			TriggerScript(node, 'OnEnter', SafeOnEnter)
+			env.TriggerScript(node, 'OnEnter')
 		end
 	end
 end
