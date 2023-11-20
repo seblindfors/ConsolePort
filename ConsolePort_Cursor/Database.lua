@@ -1,6 +1,9 @@
 local db, Data, _, env = ConsolePort:DB(), ConsolePort:DB('Data'), ...; _, env.db = CPAPI.Define, db;
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 
+---------------------------------------------------------------
+-- Add variables to config
+---------------------------------------------------------------
 ConsolePort:AddVariables({
 	_('Interface Cursor', 2);
 	UIpointerDefaultIcon = _{Data.Bool(true);
@@ -76,3 +79,53 @@ ConsolePort:AddVariables({
 		opts = MODID_SELECT;
 	};
 })
+
+---------------------------------------------------------------
+-- Standalone frame stack
+---------------------------------------------------------------
+-- This list aims to contain all the frames, popups, panels
+-- that are not caught by frame managers (e.g. UIPanelWindows),
+-- and exist within the FrameXML code in some shape or form. 
+
+env.StandaloneFrameStack = {
+	'ContainerFrameCombinedBags';
+	'CovenantPreviewFrame';
+	'LFGDungeonReadyPopup';
+	'OpenMailFrame';
+	'PetBattleFrame';
+	'ReadyCheckFrame';
+	'StackSplitFrame';
+	'UIWidgetCenterDisplayFrame';
+};
+for i=1, (NUM_CONTAINER_FRAMES   or 13) do tinsert(env.StandaloneFrameStack, 'ContainerFrame'..i) end
+for i=1, (NUM_GROUP_LOOT_FRAMES  or 4)  do tinsert(env.StandaloneFrameStack, 'GroupLootFrame'..i) end
+for i=1, (STATICPOPUP_NUMDIALOGS or 4)  do tinsert(env.StandaloneFrameStack, 'StaticPopup'..i)    end
+
+
+---------------------------------------------------------------
+-- Frame management resources
+---------------------------------------------------------------
+-- Managers are periodically scanned by the frame stack handler
+-- to add new frames to the registry. The table is associative
+-- if the value is true, and indexed if the value is false.
+
+env.FrameManagers = { -- table, isAssociative
+	[UIPanelWindows]  = true;
+	[UISpecialFrames] = false;
+	[UIMenus]         = false;
+};
+
+---------------------------------------------------------------
+-- Node management resources
+---------------------------------------------------------------
+env.IsClickableType = {
+	Button      = true;
+	CheckButton = true;
+	EditBox     = true;
+};
+
+env.DropdownReplacementMacro = {
+	SET_FOCUS   = '/focus %s';
+	CLEAR_FOCUS = '/clearfocus';
+	PET_DISMISS = '/petdismiss';
+};

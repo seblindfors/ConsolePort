@@ -476,33 +476,19 @@ end
 ---------------------------------------------------------------
 -- Node management resources
 ---------------------------------------------------------------
-do	local IsClickable = {
-		Button 		= true;
-		CheckButton = true;
-		EditBox 	= true;
-	}
-
-	local DropDownMacros = {
-		SET_FOCUS = '/focus %s';
-		CLEAR_FOCUS = '/clearfocus';
-		PET_DISMISS = '/petdismiss';
-	}
-
-
-	function Cursor:IsClickableNode(node, object)
-		local isClickableObject = (IsClickable[object] and object ~= 'EditBox');
-		if not isClickableObject then
-			return false;
-		end
-		if node:GetScript('OnClick') then
-			return true;
-		end
-		return not node:GetScript('OnMouseDown') and not node:GetScript('OnMouseUp')
+function Cursor:IsClickableNode(node, object)
+	local isClickableObject = (env.IsClickableType[object] and object ~= 'EditBox');
+	if not isClickableObject then
+		return false;
 	end
-
-	function Cursor:GetMacroReplacement(node)
-		return DropDownMacros[node.value];
+	if node:GetScript('OnClick') then
+		return true;
 	end
+	return not node:GetScript('OnMouseDown') and not node:GetScript('OnMouseUp')
+end
+
+function Cursor:GetMacroReplacement(node)
+	return env.DropdownReplacementMacro[node.value];
 end
 
 ---------------------------------------------------------------

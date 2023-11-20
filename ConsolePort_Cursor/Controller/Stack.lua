@@ -210,34 +210,6 @@ end
 ---------------------------------------------------------------
 do db:Save('Stack/Registry', 'ConsolePortUIStack')
 
-	-- NOTE: this function generates the default set which should
-	-- contain all the frames that are not caught by managers,
-	-- and exist within the FrameXML code in some shape or form. 
-	local function GenerateDefaultSet(self)
-		-- Special handling for containers
-		for i=1, (NUM_CONTAINER_FRAMES or 13) do
-			self:TryRegisterFrame(_, 'ContainerFrame'..i, true)
-		end
-		for i=1, (STATICPOPUP_NUMDIALOGS or 4) do
-			self:TryRegisterFrame(_, 'StaticPopup'..i, true)
-		end
-		for i=1, (NUM_GROUP_LOOT_FRAMES or 4) do
-			self:TryRegisterFrame(_, 'GroupLootFrame'..i, true)
-		end
-		for i, frame in ipairs({
-			---------------------------------
-			'ContainerFrameCombinedBags';
-			'CovenantPreviewFrame';
-			'LFGDungeonReadyPopup';
-			'OpenMailFrame';
-			'PetBattleFrame';
-			'ReadyCheckFrame';
-			'StackSplitFrame';
-			'UIWidgetCenterDisplayFrame';
-			---------------------------------
-		}) do self:TryRegisterFrame(_, frame, true) end
-	end
-
 	function Stack:GetRegistrySet(name)
 		self.Registry[name] = self.Registry[name] or {};
 		return self.Registry[name];
@@ -265,7 +237,13 @@ do db:Save('Stack/Registry', 'ConsolePortUIStack')
 
 	function Stack:OnDataLoaded()
 		db:Load('Stack/Registry', 'ConsolePortUIStack')
-		GenerateDefaultSet(self)
+
+		-- Load standalone frame stack
+		for i, frame in ipairs(env.StandaloneFrameStack) do
+			self:TryRegisterFrame(_, frame, true)
+		end
+
+		-- Toggle the stack core
 		self:ToggleCore()
 
 		-- Load all existing frames in the registry
@@ -321,8 +299,7 @@ end
 -- Necessary since all frames do not exist when the game loads.
 -- Automatically adds all special frames and managed panels.
 
-do  local managers = {[UIPanelWindows] = true, [UISpecialFrames] = false, [UIMenus] = false};
-	local specialFrames, watchers = {}, {}
+do  local specialFrames, watchers = {}, {}
 
 	local function TryAddSpecialFrame(self, frame)
 		if not specialFrames[frame] then
@@ -335,7 +312,7 @@ do  local managers = {[UIPanelWindows] = true, [UISpecialFrames] = false, [UIMen
 	end
 
 	local function CheckSpecialFrames(self)
-		for manager, isAssociative in pairs(managers) do
+		for manager, isAssociative in pairs(env.FrameManagers) do
 			if isAssociative then
 				for frame in pairs(manager) do
 					TryAddSpecialFrame(self, frame)
