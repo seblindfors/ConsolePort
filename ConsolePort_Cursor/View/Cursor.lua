@@ -590,14 +590,16 @@ do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 		Slider   = mod;
 	}, function() return left end)
 	-- remove texture evaluator so cursor refreshes on next movement
-	local function resetTexture(self)
+	local function ResetTexture(self)
 		self.textureEvaluator = nil;
 		self.useAtlasIcons = db('useAtlasIcons')
 	end
-	db:RegisterCallback('Gamepad/Active', resetTexture, Cursor)
-	db:RegisterCallback('Settings/UIpointerDefaultIcon', resetTexture, Cursor)
-	db:RegisterCallback('Settings/useAtlasIcons', resetTexture, Cursor)
-	resetTexture(Cursor)
+	db:RegisterCallbacks(ResetTexture, Cursor,
+		'Gamepad/Active',
+		'Settings/UIpointerDefaultIcon',
+		'Settings/useAtlasIcons'
+	);
+	ResetTexture(Cursor)
 end
 
 function Cursor:SetTexture(texture)
@@ -918,15 +920,3 @@ end
 ---------------------------------------------------------------
 CPAPI.Start(Cursor)
 Cursor:UpdatePointer()
-hooksecurefunc('CanAutoSetGamePadCursorControl', function(state)
-	-- TODO: work on this, it's not good yet
-	if not state then
-	--	Cursor:SetEnabled(state)
-	end
-end)
-
-hooksecurefunc('ShowUIPanel', function(frame)
-	if not Cursor:InCombat() then
-	--	Cursor:RefreshToFrame(frame)
-	end
-end)
