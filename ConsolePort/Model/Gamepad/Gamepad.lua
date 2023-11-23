@@ -22,6 +22,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 			Key     = {}; -- modifier -> button
 			Prefix  = {}; -- modifier string -> button
 			Active  = {}; -- all possible modifier combinations
+			Driver  = ''; -- state driver for all active modifiers
 		};
 		Atlas = {
 			['']    = {[32] = {}; [64] = {}}; -- Generic button labels
@@ -165,13 +166,15 @@ db:RegisterSafeCallback('GamePadCursorRightClick', function(self, value)
 end, GamepadAPI)
 
 for _, modifier in ipairs(GamepadAPI.Modsims) do
-	-- Wipe all active bindings for a modifier when it's set.
 	db:RegisterSafeCallback(('GamePadEmulate%s'):format(modifier:lower():gsub('^%l', strupper)),
 	function(self, value)
-		for mod in pairs(self:GetActiveModifiers()) do
+		self:ReindexModifiers()
+		-- Wipe all active bindings for a modifier when it's set.
+		for mod in pairs(self.Index.Modifier.Active) do
 			SetBinding(mod..value, nil)
 		end
 		SaveBindings(GetCurrentBindingSet())
+		db:TriggerEvent('OnModifierChanged', modifier, value)
 	end, GamepadAPI)
 end
 
@@ -255,11 +258,12 @@ function GamepadAPI:ReindexModifiers()
 			self.Index.Modifier.Prefix[mod..'-'] = btn
 		end
 	end
-	map.Active = self:GetActiveModifiers()
+	map.Active, map.Driver = self:GetActiveModifiers()
 end
 
 function GamepadAPI:GetActiveModifiers()
 	local mods = db.table.copy(self.Index.Modifier.Prefix)
+	local driver = {'[nomod] '};
 	local spairs = db.table.spairs; -- need to scan in-order
 
 	local function assertUniqueAndInOrder(...)
@@ -279,17 +283,23 @@ function GamepadAPI:GetActiveModifiers()
 		for M2, K2 in spairs(mods) do
 			for M3, K3 in spairs(mods) do
 				if (assertUniqueAndInOrder(M1, M2, M3)) then
-					mods[M1..M2..M3] = ('%s-%s-%s'):format(K1, K2, K3)
+					local modifier = M1..M2..M3;
+					mods[modifier] = ('%s-%s-%s'):format(K1, K2, K3)
+					tinsert(driver, ('[mod:%s] %s'):format(modifier, modifier))
 				end
 			end
 			if (assertUniqueAndInOrder(M1, M2)) then
-				mods[M1..M2] = ('%s-%s'):format(K1, K2)
+				local modifier = M1..M2;
+				mods[modifier] = ('%s-%s'):format(K1, K2)
+				tinsert(driver, ('[mod:%s] %s'):format(modifier, modifier))
 			end
 		end
+		tinsert(driver, ('[mod:%s] %s'):format(M1, M1))
 	end
 	mods[''] = true
-	return mods
+	return mods, table.concat(driver, '; ');
 end
+
 
 function GamepadAPI:GetActiveModifier(button)
 	for _, mod in ipairs(self.Modsims) do

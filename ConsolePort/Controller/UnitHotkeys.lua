@@ -179,29 +179,14 @@ UH:CreateEnvironment({
 	]];
 
 	SetBindings = ([[
-		local modifier = self::ResolveModifier()
+		local modifier = self:GetAttribute('modifier')
 		for i=1, %d do
 			local binding = self:GetAttribute(tostring(i))
 			if binding then
-				self:SetBindingClick(true, binding, bindRef, tostring(i))
 				self:SetBindingClick(true, modifier..binding, bindRef, tostring(i))
 			end
 		end
 	]]):format(NUM_COMBO_BUTTONS);
-
-	ResolveModifier = [[
-		local chord = {};
-		if IsAltKeyDown() then
-			table.insert(chord, 'ALT');
-		end
-		if IsControlKeyDown() then
-			table.insert(chord, 'CTRL');
-		end
-		if IsShiftKeyDown() then
-			table.insert(chord, 'SHIFT');
-		end
-		return table.concat(chord, '-')
-	]];
 })
 
 UH:Wrap('PreClick', [[
@@ -246,6 +231,11 @@ function UH:OnDisplaySettingsChanged()
 	for hotkey in self.Hotkeys:EnumerateActive() do
 		hotkey:OnDisplayUpdated()
 	end
+end
+
+function UH:OnModifiersChanged()
+	UnregisterAttributeDriver(self, 'modifier')
+	RegisterAttributeDriver(self, 'modifier', db('Gamepad/Index/Modifier/Driver'))
 end
 
 function UH:OnTargetSettingsChanged()
@@ -323,6 +313,10 @@ end
 db:RegisterSafeCallbacks(UH.OnTargetSettingsChanged, UH,
 	'Settings/unitHotkeyFocusMode',
 	'Settings/unitHotkeyDefaultMode'
+);
+db:RegisterSafeCallbacks(UH.OnModifiersChanged, UH,
+	'Gamepad/Active',
+	'OnModifierChanged'
 );
 db:RegisterSafeCallbacks(UH.OnUnitPoolChanged, UH,
 	'OnNewBindings',
