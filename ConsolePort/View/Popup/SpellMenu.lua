@@ -5,7 +5,6 @@ local _, db, L = ...; L = db.Locale;
 local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMenu, {
 	'PLAYER_REGEN_DISABLED';
 	'UPDATE_BINDINGS';
-	'CURSOR_CHANGED';
 }))
 ---------------------------------------------------------------
 local SPELL_MENU_SIZE = 440;
@@ -167,7 +166,7 @@ function SpellMenu:MapActionBar()
 	local leftClick, rightClick, specialClick =
 		db('UICursorLeftClick'), db('UICursorRightClick'), db('UICursorSpecial')
 
-	handle:SetHintFocus(self)
+	handle:SetHintFocus(self, IsGamePadCursorControlEnabled())
 	if leftClick then
 		handle:AddHint(leftClick, L'Place in slot')
 	end
@@ -312,17 +311,7 @@ function SpellMenu:OnHide()
 	handle:ClearHintsForFrame(self)
 end
 
-function SpellMenu:PLAYER_REGEN_DISABLED()
-	self:Hide()
-end
-
-function SpellMenu:UPDATE_BINDINGS()
-	for widget in self.ActionButtons:EnumerateActive() do
-		widget:UpdateBinding()
-	end
-end
-
-function SpellMenu:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
+function SpellMenu:OnCursorChanged(isDefault, cursorType, oldCursorType)
 	if not db('bindingShowSpellMenuGrid') then return end;
 	if ConsolePortConfig and ConsolePortConfig:IsShown() then return end;
 
@@ -335,6 +324,16 @@ function SpellMenu:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
 	end
 end
 
+function SpellMenu:PLAYER_REGEN_DISABLED()
+	self:Hide()
+end
+
+function SpellMenu:UPDATE_BINDINGS()
+	for widget in self.ActionButtons:EnumerateActive() do
+		widget:UpdateBinding()
+	end
+end
+
 ---------------------------------------------------------------
 SpellMenu:SetScript('OnHide', SpellMenu.OnHide)
 SpellMenu:SetAttribute('nodepass', true)
@@ -343,3 +342,4 @@ SpellMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
 SpellMenu.ActionButtons = CreateFramePool('IndexButton', SpellMenu, 'CPIndexButtonBindingActionButtonTemplate')
 SpellMenu.ActionBarText = CreateFontStringPool(SpellMenu, 'ARTWORK', nil, 'CPSmallFont')
 ConsolePort:AddInterfaceCursorFrame(SpellMenu)
+db:RegisterCallback('OnCursorChanged', SpellMenu.OnCursorChanged, SpellMenu)

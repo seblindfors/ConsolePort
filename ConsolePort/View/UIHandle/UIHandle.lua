@@ -83,10 +83,10 @@ Control.HideUI = nop;
 ----------------------------------
 Control.StoredHints = {}
 
-function Control:SetHintFocus(forceFrame)
+function Control:SetHintFocus(forceFrame, disableMouseHandling)
 	self.HintBar.focus = forceFrame or self:GetAttribute('focus')
 	self.focus = self.HintBar.focus;
-	db:TriggerEvent('OnHintsFocus', self.focus)
+	db:TriggerEvent('OnHintsFocus', self.focus, disableMouseHandling)
 end
 
 function Control:GetHintFocus()
