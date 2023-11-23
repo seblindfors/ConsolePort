@@ -10,11 +10,14 @@ local _, env = ...;
 local Execute, Scripts = ExecuteFrameScript, CPAPI.Proxy({}, function(self, key) return rawget(rawset(self, key, {}), key) end);
 
 function env.TriggerScript(node, scriptType, ...)
-	local script = Scripts[scriptType][node:GetScript(scriptType)]
+	local script, ok, err = Scripts[scriptType][node:GetScript(scriptType)];
 	if script then
-		pcall(script, node, ...)
+		ok, err = pcall(script, node, ...)
 	else
-		pcall(Execute, node, scriptType, ...)
+		ok, err = pcall(Execute, node, scriptType, ...)
+	end
+	if not ok then
+		CPAPI.Log('Script execution failed in %s handler:\n%s', scriptType, err)
 	end
 end
 
@@ -25,19 +28,22 @@ function env.ReplaceScript(scriptType, original, replacement)
 	Scripts[scriptType][original] = replacement;
 end
 
+function _(addOn, script) EventUtil.ContinueOnAddOnLoaded(addOn, GenerateClosure(pcall, script)) end
+
 ---------------------------------------------------------------
 -- Scripts: OnEnter
 ---------------------------------------------------------------
 do
 	local ActionButtonOnEnter = ActionButton1 and ActionButton1:GetScript('OnEnter')
 	if ActionButtonOnEnter then
-		Scripts.OnEnter[ActionButtonOnEnter] = function(self)
+		Scripts.OnEnter[ ActionButtonOnEnter ] = function(self)
+			-- strips action bar highlights from action buttons
 			ActionButton_SetTooltip(self)
 		end
 	end
 	local SpellButtonOnEnter = SpellButton1 and SpellButton1:GetScript('OnEnter')
 	if SpellButtonOnEnter then
-		Scripts.OnEnter[SpellButtonOnEnter] = function(self)
+		Scripts.OnEnter[ SpellButtonOnEnter ] = function(self)
 			-- spellbook buttons push updates to the action bar controller in order to draw highlights
 			-- on actionbuttons that holds the spell in question. this taints the action bar controller.
 			local slot = SpellBook_GetSpellBookSlot(self)
@@ -51,7 +57,7 @@ do
 		end
 	end
 	if QuestMapLogTitleButton_OnEnter then
-		Scripts.OnEnter[QuestMapLogTitleButton_OnEnter] = function(self)
+		Scripts.OnEnter[ QuestMapLogTitleButton_OnEnter ] = function(self)
 			-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
 			-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
 			if self.questLogIndex then
@@ -67,12 +73,23 @@ do
 		end
 	end
 	if CPAPI.IsRetailVersion then
-		EventUtil.ContinueOnAddOnLoaded('Blizzard_ClassTalentUI', GenerateClosure(pcall, function()
-			Scripts.OnEnter[ClassTalentButtonSpendMixin.OnEnter] = TalentButtonSpendMixin.OnEnter;
-			Scripts.OnEnter[ClassTalentButtonSelectMixin.OnEnter] = TalentButtonSelectMixin.OnEnter;
-			Scripts.OnEnter[ClassTalentButtonSplitSelectMixin.OnEnter] = TalentButtonSplitSelectMixin.OnEnter;
-			Scripts.OnEnter[ClassTalentSelectionChoiceMixin.OnEnter] = TalentDisplayMixin.OnEnter;
-		end))
+		_('Blizzard_Collections', function()
+			Scripts.OnEnter[ ToySpellButton_OnEnter ] = function(self)
+				-- strips fanfare/UpdateTooltip from toy spell buttons, since the taint prevents UseToy from working
+				if self.itemID then
+					GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+					GameTooltip:SetToyByItemID(self.itemID)
+					GameTooltip:Show()
+				end
+			end
+		end)
+		_('Blizzard_ClassTalentUI', function()
+			-- also taints action bar controller through highlights
+			Scripts.OnEnter[ ClassTalentButtonSpendMixin.OnEnter ]       = TalentButtonSpendMixin.OnEnter;
+			Scripts.OnEnter[ ClassTalentButtonSelectMixin.OnEnter ]      = TalentButtonSelectMixin.OnEnter;
+			Scripts.OnEnter[ ClassTalentButtonSplitSelectMixin.OnEnter ] = TalentButtonSplitSelectMixin.OnEnter;
+			Scripts.OnEnter[ ClassTalentSelectionChoiceMixin.OnEnter ]   = TalentDisplayMixin.OnEnter;
+		end)
 	end
 end
 
@@ -82,16 +99,17 @@ end
 do
 	local SpellButtonOnLeave = SpellButton_OnLeave or SpellButton1 and SpellButton1:GetScript('OnLeave')
 	if SpellButtonOnLeave then
-		Scripts.OnLeave[SpellButtonOnLeave] = function(self)
+		Scripts.OnLeave[ SpellButtonOnLeave ] = function(self)
 			GameTooltip:Hide()
 		end
 	end
 	if CPAPI.IsRetailVersion then
-		EventUtil.ContinueOnAddOnLoaded('Blizzard_ClassTalentUI', GenerateClosure(pcall, function()
-			Scripts.OnLeave[ClassTalentButtonSpendMixin.OnLeave] = TalentDisplayMixin.OnLeave;
-			Scripts.OnLeave[ClassTalentButtonSelectMixin.OnLeave] = TalentButtonSelectMixin.OnLeave;
-			Scripts.OnLeave[ClassTalentButtonSplitSelectMixin.OnLeave] = TalentButtonSplitSelectMixin.OnLeave;
-			Scripts.OnLeave[ClassTalentSelectionChoiceMixin.OnLeave] = TalentDisplayMixin.OnLeave;
-		end))
+		_('Blizzard_ClassTalentUI', function()
+			-- also taints action bar controller through highlights
+			Scripts.OnLeave[ ClassTalentButtonSpendMixin.OnLeave ]       = TalentDisplayMixin.OnLeave;
+			Scripts.OnLeave[ ClassTalentButtonSelectMixin.OnLeave ]      = TalentButtonSelectMixin.OnLeave;
+			Scripts.OnLeave[ ClassTalentButtonSplitSelectMixin.OnLeave ] = TalentButtonSplitSelectMixin.OnLeave;
+			Scripts.OnLeave[ ClassTalentSelectionChoiceMixin.OnLeave ]   = TalentDisplayMixin.OnLeave;
+		end)
 	end
 end

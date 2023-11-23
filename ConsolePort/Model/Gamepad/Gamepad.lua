@@ -259,8 +259,8 @@ function GamepadAPI:ReindexModifiers()
 end
 
 function GamepadAPI:GetActiveModifiers()
-	local mods = db('table/copy')(self.Index.Modifier.Prefix)
-	local spairs = db('table/spairs') -- need to scan in-order
+	local mods = db.table.copy(self.Index.Modifier.Prefix)
+	local spairs = db.table.spairs; -- need to scan in-order
 
 	local function assertUniqueAndInOrder(...)
 		local uniques = {}

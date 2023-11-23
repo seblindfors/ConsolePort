@@ -215,13 +215,13 @@ end
 -- Navigation and input
 ---------------------------------------------------------------
 do  -- Create input proxy for basic controls
-	local InputProxy = function(self, ...)
-		Cursor:Input(self, ...)
+	local InputProxy = function(key, self, isDown)
+		Cursor:Input(key, self, isDown)
 	end
 
 	local DpadRepeater = function(self, elapsed)
 		self.timer = self.timer + elapsed
-		if self.timer >= self.UIControlTickNext and self.state then
+		if self.timer >= self:GetAttribute('ticker') and self.state then
 			local func = self:GetAttribute(CPAPI.ActionTypeRelease)
 			if ( func == 'UIControl' ) then
 				self[func](self, self.state, self:GetAttribute('id'))
@@ -232,7 +232,8 @@ do  -- Create input proxy for basic controls
 
 	local DpadInit = function(self, dpadRepeater)
 		if not db('UIholdRepeatDisable') then
-			self.UIControlTickNext = db('UIholdRepeatDelay')
+			self:SetAttribute('timer', -db('UIholdRepeatDelayFirst'))
+			self:SetAttribute('ticker', db('UIholdRepeatDelay'))
 			self:SetScript('OnUpdate', dpadRepeater)
 			self:Show()
 		end
@@ -331,7 +332,7 @@ function Cursor:ReverseScanUI(node, key, target, changed)
 	if node then
 		local parent = node:GetParent()
 		Node.ScanLocal(parent)
-		target, changed = Node.NavigateToBestCandidate(self.Cur, key)
+		target, changed = Node.NavigateToBestCandidateV2(self.Cur, key)
 		if changed then
 			return target, changed
 		end
@@ -346,7 +347,7 @@ function Cursor:Navigate(key)
 		target, changed = self:SetCurrent(self:ReverseScanUI(self:GetCurrentNode(), key))
 	else
 		self:ScanUI()
-		target, changed = self:SetCurrent(Node.NavigateToBestCandidate(self:GetCurrent(), key))
+		target, changed = self:SetCurrent(Node.NavigateToBestCandidateV2(self:GetCurrent(), key))
 	end
 	if not changed then
 		target, changed = self:SetCurrent(Node.NavigateToClosestCandidate(target, key))

@@ -37,6 +37,11 @@ ConsolePort:AddVariables({
 		desc = 'Delay until a movement is repeated, when holding down a direction, in seconds.';
 		advd = true;
 	};
+	UIholdRepeatDelayFirst = _{Data.Number(.125, 0.025);
+		name = 'Repeated Movement First Delay';
+		desc = 'Delay until the first movement is repeated, when holding down a direction, in seconds.';
+		advd = true;
+	};
 	UIleaveCombatDelay = _{Data.Number(0.5, 0.1);
 		name = 'Reactivation Delay';
 		desc = 'Delay before reactivating interface cursor after leaving combat, in seconds.';
@@ -95,6 +100,7 @@ env.StandaloneFrameStack = {
 	'PetBattleFrame';
 	'ReadyCheckFrame';
 	'StackSplitFrame';
+	'SplashFrame';
 	'UIWidgetCenterDisplayFrame';
 };
 for i=1, (NUM_CONTAINER_FRAMES   or 13) do tinsert(env.StandaloneFrameStack, 'ContainerFrame'..i) end

@@ -73,6 +73,8 @@ local PointInRange
 local CanLevelsIntersect
 local DoNodeAndRectIntersect
 -- Vector calculations
+local GetAngleBetween
+local GetAngleDistance
 local GetDistance
 local GetDistanceSum
 local IsCloser
@@ -83,6 +85,7 @@ local GetPriorityCandidate
 local GetNavigationKey
 local SetNavigationKey
 local NavigateToBestCandidate
+local NavigateToBestCandidateV2
 local NavigateToClosestCandidate
 local NavigateToArbitraryCandidate
 
@@ -93,12 +96,14 @@ local NavigateToArbitraryCandidate
 -- CACHE  : cache of all eligible nodes in order of priority
 -- BOUNDS : limit the boundaries of scans/selection to screen
 -- SCALAR : scale 2ndary plane to improve intuitive node selection
+-- DIVDEG : angle divisor for vector scaling
 -- USABLE : what to consider as interactive nodes by default
 -- LEVELS : frame level quantifiers (each strata has 10k levels)
 ---------------------------------------------------------------
 local CACHE, RECTS = {}, {};
-local BOUNDS  = CreateVector3D(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale());
+local BOUNDS = CreateVector3D(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale());
 local SCALAR = 3;
+local DIVDEG = 10;
 local USABLE = {
 	Button      = true;
 	CheckButton = true;
@@ -133,6 +138,12 @@ local NODE = setmetatable(Mixin(NODE, {
 		DOWN  = function(_, destY, _, _, _, thisY) return (destY < thisY) end;
 		LEFT  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
 		RIGHT = function(destX, _, _, _, thisX, _) return (destX > thisX) end;
+	};
+	angles = {
+		UP    = math.rad(0);
+		DOWN  = math.rad(180);
+		LEFT  = math.rad(-90);
+		RIGHT = math.rad(90);
 	};
 	keys = {
 		PADDUP    = 'UP';    W = 'UP';
@@ -433,7 +444,8 @@ end
 ---------------------------------------------------------------
 -- Vector calculations
 ---------------------------------------------------------------
-local vlen, abs, huge = Vector2D_GetLength, math.abs, math.huge
+local vlen, huge, abs, deg, atan2 =
+	Vector2D_GetLength, math.huge, math.abs, math.deg, math.atan2;
 ---------------------------------------------------------------
 
 function GetDistance(x1, y1, x2, y2)
@@ -449,9 +461,17 @@ function IsCloser(hz1, vt1, hz2, vt2)
 	return vlen(hz1, vt1) < vlen(hz2, vt2)
 end
 
+function GetAngleBetween(x1, y1, x2, y2)
+	return atan2(x2 - x1, y2 - y1)
+end
+
+function GetAngleDistance(a1, a2)
+	return (180 - abs(abs(deg(a1) - deg(a2)) - 180));
+end
+
 function GetCandidateVectorForCurrent(cur)
 	local x, y = GetCenterScaled(cur.node)
-	return {x = x; y = y; h = huge; v = huge}
+	return {x = x; y = y; h = huge; v = huge; a = 0}
 end 
 
 function GetCandidatesForVector(vector, comparator, candidates)
@@ -464,6 +484,7 @@ function GetCandidatesForVector(vector, comparator, candidates)
 		if comparator(destX, destY, distX, distY, thisX, thisY) then
 			candidates[destination] = { 
 				x = destX; y = destY; h = distX; v = distY;
+				a = GetAngleBetween(thisX, thisY, destX, destY);
 			}
 		end
 	end 
@@ -503,12 +524,39 @@ function NavigateToBestCandidate(cur, key, curNodeChanged) key = GetNavigationKe
 
 		for candidate, vector in pairs(candidates) do
 			if IsCloser(vector.h * hMult, vector.v * vMult, this.h, this.v) then
-				this = vector; this.h = (this.h * hMult); this.v = (this.v * vMult);
-				cur = candidate
-				curNodeChanged = true
+				this, cur, curNodeChanged = vector, candidate, curNodeChanged;
+				this.h, this.v = (this.h * hMult), (this.v * vMult);
 			end
 		end
-		return cur, curNodeChanged
+		return cur, curNodeChanged;
+	end
+end
+
+---------------------------------------------------------------
+-- Get the best candidate to a given origin and direction (v2)
+---------------------------------------------------------------
+-- This method uses vectors and angles to prioritize candidates
+-- that are closer to the optimal direction of travel, using
+-- the angle between the origin and the destination as another
+-- metric for comparison. The difference from V1 is that this
+-- method has a dynamic scaling factor for the vectors, making
+-- it more accurate when the travel direction is diagonal.
+
+function NavigateToBestCandidateV2(cur, key, curNodeChanged) key = GetNavigationKey(key)
+	if cur and NODE.distance[key] then
+		local this = GetCandidateVectorForCurrent(cur)
+		local optimalAngle = NODE.angles[key];
+		local candidates = GetCandidatesForVector(this, NODE.distance[key], {})
+
+		for candidate, vector in pairs(candidates) do
+			local offset = GetAngleDistance(optimalAngle, vector.a)
+			local weight = 1 + (offset / DIVDEG)
+			if IsCloser(vector.h * weight, vector.v * weight, this.h, this.v) then
+				this, cur, curNodeChanged = vector, candidate, true;
+				this.h, this.v = (this.h * weight), (this.v * weight);
+			end
+		end
+		return cur, curNodeChanged;
 	end
 end
 
@@ -526,10 +574,10 @@ function NavigateToClosestCandidate(cur, key, curNodeChanged) key = GetNavigatio
 
 		for candidate, vector in pairs(candidates) do
 			if IsCloser(vector.h, vector.v, this.h, this.v) then
-				this = vector; cur = candidate
+				this, cur, curNodeChanged = vector, candidate, true;
 			end
 		end
-		return cur, curNodeChanged
+		return cur, curNodeChanged;
 	end
 end
 
@@ -547,22 +595,19 @@ function NavigateToArbitraryCandidate(cur, old, x, y)
 			( HasItems() ) and GetPriorityCandidate(x, y)
 end
 
-function GetPriorityCandidate(x, y)
-	local targNode, targDist, targPrio
+function GetPriorityCandidate(x, y, targNode, targDist, targPrio)
 	for _, this in IterateCache() do
 		local thisDist = GetDistanceSum(x, y, GetCenterScaled(this.node))
 		local thisPrio = this.node:GetAttribute('nodepriority')
 
 		if thisPrio and not targPrio then
-			targNode = this
+			targNode = this;
 			break
 		elseif not targNode or ( not targPrio and thisDist < targDist ) then
-			targNode = this
-			targDist = thisDist
-			targPrio = thisPrio
+			targNode, targDist, targPrio = this, thisDist, thisPrio;
 		end
 	end
-	return targNode
+	return targNode;
 end
 
 ---------------------------------------------------------------
@@ -580,6 +625,7 @@ NODE.GetScrollButtons = GetScrollButtons;
 NODE.GetNavigationKey = GetNavigationKey;
 NODE.SetNavigationKey = SetNavigationKey;
 NODE.NavigateToBestCandidate = NavigateToBestCandidate;
+NODE.NavigateToBestCandidateV2 = NavigateToBestCandidateV2;
 NODE.NavigateToClosestCandidate = NavigateToClosestCandidate;
 NODE.NavigateToArbitraryCandidate = NavigateToArbitraryCandidate;
 

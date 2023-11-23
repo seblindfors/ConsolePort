@@ -247,7 +247,7 @@ end
 function InputMixin:OnMouseDown()
 	local func  = self:GetAttribute(CPAPI.ActionTypeRelease)
 	local click = self:GetAttribute('clickbutton')
-	self.state, self.timer = true, 0;
+	self.state, self.timer = true, self:GetAttribute('timer') or 0;
 
 	if self:IsSecureAction(func, click) then
 		return self:EmulateFrontend(click, 'PUSHED', 'OnMouseDown')
