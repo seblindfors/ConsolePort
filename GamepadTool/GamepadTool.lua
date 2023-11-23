@@ -82,7 +82,11 @@ end
 ---------------------------------------------------------------
 -- Data
 ---------------------------------------------------------------
-local Pad, cmds, btnsUI = C_GamePad, {}, {}
+local Pad, btnsUI, trackers = C_GamePad, {}, {
+	gamepad  = {};
+	interact = {};
+	cursor   = {};
+}
 
 GamepadInfo = {}
 FRAME:SetPropagateKeyboardInput(true)
@@ -90,32 +94,43 @@ FRAME:SetPropagateKeyboardInput(true)
 
 do local include = {
 		CursorCenteredYPos = true;
+		CursorStickyCentering = true;
 		CameraFollowOnStick = true;
 	}
 	-- Gather all commands that are related to gamepads
-	for i, cmd in ipairs(C_Console.GetAllCommands()) do
+	for i, cmd in ipairs(ConsoleGetAllCommands()) do
 		if cmd.command:lower():match('gamepad') or include[cmd.command] then
-			--print(cmd.command, cmd.help)
-			cmds[#cmds+1] = cmd
+			tinsert(trackers.gamepad, cmd)
+		end
+		if cmd.command:lower():match('softtarget') then
+			tinsert(trackers.interact, cmd)
+		end
+		if cmd.command:lower():match('^target') then
+			tinsert(trackers.interact, cmd)
+		end
+		if cmd.command:lower():match('cursor') then
+			tinsert(trackers.cursor, cmd)
 		end
 	end
-	table.sort(cmds, function(a, b) return a.command < b.command end)
+	for _, tracker in pairs(trackers) do
+		table.sort(tracker, function(a, b) return a.command < b.command end)
+	end
 end
 
-local function showConsoleVars(tooltip)
-	for i, cmd in ipairs(cmds) do
+local function showConsoleVars(tooltip, data)
+	for i, cmd in ipairs(data) do
 		tooltip:AddDoubleLine(cmd.command, formatCvar(cmd.command), 1, 1, 1, 1, 1, 0)
 	end
 	tooltip:Show()
 end
 
 local focused
-local function showConsoleVarDetails(tooltip, i)
+local function showConsoleVarDetails(tooltip, data, i)
 	local line = _G[('%sTextLeft%d'):format(tooltip:GetName(), i)]
-	local cmd = cmds[i-1]
+	local cmd = data[i-1]
 	if line and cmd and line:IsMouseOver() then
 		if (focused ~= line) then
-			GameTooltip_SetDefaultAnchor(GameTooltip, tooltip)
+			GameTooltip:SetOwner(tooltip, 'ANCHOR_CURSOR')
 			GameTooltip:SetText(cmd.command)
 			GameTooltip:AddDoubleLine('Value', formatCvar(cmd.command), 0, 1, 0, 1, 1, 0)
 			GameTooltip:AddLine(cmd.help, 1, 1, 1)
@@ -222,11 +237,12 @@ FRAME:SetScript('OnGamePadStick', function(self, stick, x, y, len)
 			self[stick].Line = line
 		end
 		local obj = self[stick]
+		local alpha = Clamp(tonumber(len) or 0, 0, 1)
 		obj:SetParent(self.axisInfo)
-		obj:SetAlpha(len)
+		obj:SetAlpha(alpha)
 		obj:SetPoint('CENTER', (x * half), (y * half))
 		obj.Line:SetRotation(-math.atan2(x, y))
-		obj.Line:SetAlpha(len)
+		obj.Line:SetAlpha(alpha)
 		obj.Line:SetParent(self.axisInfo)
 		obj.Text:SetParent(self.axisInfo)
 		obj.Text:SetPoint(unpack(obj.Text.point))
@@ -250,14 +266,22 @@ end)
 
 FRAME:SetScript('OnShow', function(self)
 	self.consoleVars = Pool:Acquire()
+	self.interactVars = Pool:Acquire()
+	self.cursorVars = Pool:Acquire()
 	self.realtimeInfo = Pool:Acquire()
 	self.axisInfo = Pool:Acquire()
 
 	self.consoleVars:SetOwner(UIParent, 'ANCHOR_PRESERVE')
+	self.interactVars:SetOwner(UIParent, 'ANCHOR_PRESERVE')
+	self.cursorVars:SetOwner(UIParent, 'ANCHOR_PRESERVE')
+
 	self.realtimeInfo:SetOwner(UIParent, 'ANCHOR_PRESERVE')
 	self.axisInfo:SetOwner(UIParent, 'ANCHOR_PRESERVE')
 
 	self.consoleVars:SetPoint('TOPLEFT')
+	self.interactVars:SetPoint('TOPRIGHT')
+	self.cursorVars:SetPoint('TOP')
+
 	self.realtimeInfo:SetPoint('BOTTOMRIGHT')
 	self.axisInfo:SetPoint('BOTTOMLEFT')
 
@@ -268,20 +292,26 @@ end)
 
 local throttle = 0.25
 local timer = 0
-FRAME:SetScript('OnUpdate', function(self, elapsed)
-	if self.consoleVars then
-		self.consoleVars:SetText('Variables')
-		showConsoleVars(self.consoleVars)
-		if self.consoleVars:IsMouseOver() then
-			timer = timer + elapsed
-			if timer > throttle then
-				for i=2, self.consoleVars:NumLines() do
-					showConsoleVarDetails(self.consoleVars, i)
-				end
-				timer = timer - elapsed
+
+local function showTooltipFrame(self, frame, text, commands)
+	if frame then
+		frame:SetText(text)
+		showConsoleVars(frame, commands)
+		if frame:IsMouseOver() then
+			for i=2, frame:NumLines() do
+				showConsoleVarDetails(frame, commands, i)
 			end
+			timer = timer - throttle
+		elseif GameTooltip:IsOwned(frame) then
+			GameTooltip:Hide()
 		end
 	end
+end
+
+FRAME:SetScript('OnUpdate', function(self, elapsed)
+	showTooltipFrame(self, self.consoleVars, 'Variables', trackers.gamepad)
+	showTooltipFrame(self, self.interactVars, 'Interact', trackers.interact)
+	showTooltipFrame(self, self.cursorVars, 'Cursor', trackers.cursor)
 	if self.realtimeInfo then
 		self.realtimeInfo:SetText('Gamepad')
 		showRealtimeInfo(self.realtimeInfo)
