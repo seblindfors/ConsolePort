@@ -117,7 +117,7 @@ end
 function GamepadAPI:UPDATE_BINDINGS()
 	self.updateBindingDispatching = true;
 	if self.IsMapped then
-		C_Timer.After(0, GamepadAPI.OnNewBindings)
+		CPAPI.NextRender(GamepadAPI.OnNewBindings)
 	else
 		GamepadAPI.OnNewBindings()
 	end

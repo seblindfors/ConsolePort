@@ -167,7 +167,7 @@ function Devices:UpdateDevices()
 
 		local activeDevice = db.Gamepad:GetActiveDevice();
 		if (not activeDevice) then
-			C_Timer.After(0, function ()
+			CPAPI.NextRender(function()
 				connectedDeviceWidget:OnClick();
 			end);
 		end
