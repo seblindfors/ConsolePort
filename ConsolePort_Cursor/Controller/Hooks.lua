@@ -5,7 +5,7 @@
 
 local _, env, db = ...; db = env.db;
 local L = db.Locale;
-local Hooks = db:Register('Hooks', {}, true)
+local Hooks = db:Register('Hooks', {}, true); env.Hooks = Hooks;
 local Hooknode = {};
 
 function Hooks:OnNodeLeave()
@@ -19,15 +19,16 @@ end
 
 function Hooks:ProcessInterfaceCursorEvent(button, down, node)
 	if (down == false) then
-		if node and node:IsObjectType('EditBox') then
+		local specialClickHandler = self:GetSpecialClickHandler(node)
+		if specialClickHandler then
+			specialClickHandler(node, button, down)
+			return true;
+		elseif node and node:IsObjectType('EditBox') then
 			if node:HasFocus() then
 				node:ClearFocus()
 			else
 				node:SetFocus()
 			end
-		elseif node and node.OnSpecialClick then
-			node:OnSpecialClick(button)
-			return true;
 		elseif self.inventorySlotID then
 			Hooknode.OnInventoryButtonModifiedClick(node, 'LeftButton')
 			return true;
@@ -67,6 +68,10 @@ end
 
 function Hooks:IsModifiedClick()
 	return next(db.Gamepad:GetModifiersHeld()) ~= nil;
+end
+
+function Hooks:GetSpecialClickHandler(node)
+	return node and (node.OnSpecialClick or node:GetAttribute(env.Attributes.SpecialClick));
 end
 
 
@@ -220,6 +225,8 @@ do -- Tooltip hooking
 	local function OnTooltipSetItem(self)
 		local owner = self:GetOwner()
 		if Hooks:IsPromptProcessingValid(owner) then
+			if Hooks:GetSpecialClickHandler(owner) then return end;
+
 			local itemLocation = Hooks:GetItemLocationFromNode(owner)
 			if itemLocation then
 				if CPAPI.IsMerchantAvailable then
@@ -255,7 +262,7 @@ do -- Tooltip hooking
 	local function OnTooltipSetSpell(self)
 		local owner = self:GetOwner()
 		if Hooks:IsPromptProcessingValid(owner) then
-			if owner.OnSpecialClick then return end;
+			if Hooks:GetSpecialClickHandler(owner) then return end;
 			
 			local name, spellID = self:GetSpell()
 			if spellID and not IsPassiveSpell(spellID) then

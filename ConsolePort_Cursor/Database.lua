@@ -145,3 +145,12 @@ env.DropdownReplacementMacro = {
 	CLEAR_FOCUS = '/clearfocus';
 	PET_DISMISS = '/petdismiss';
 };
+
+env.Attributes = {
+	IgnoreNode   = 'nodeignore';
+	IgnoreScroll = 'nodeignorescroll';
+	PassThrough  = 'nodepass';
+	Priority     = 'nodepriority';
+	Singleton    = 'nodesingleton';
+	SpecialClick = 'nodespecialclick';
+};

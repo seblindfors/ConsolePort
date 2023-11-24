@@ -15,7 +15,7 @@ local Cursor, Node, Input, Stack, Scroll, Fade, Hooks =
 	CreateFrame('Frame'),
 	db.Alpha.Fader, db.Hooks;
 
-db:Register('Cursor', Cursor, true)
+db:Register('Cursor', Cursor, true); env.Cursor = Cursor;
 Cursor.InCombat = InCombatLockdown;
 
 ---------------------------------------------------------------
@@ -425,7 +425,7 @@ function Cursor:IsValidForAutoScroll(super, force)
 	local oldSuper = old and old.super;
 	local validSuper = force or super == oldSuper;
 	return validSuper and
-		not super:GetAttribute('nodeignorescroll') and
+		not super:GetAttribute(env.Attributes.IgnoreScroll) and
 		not IsShiftKeyDown() and
 		not IsControlKeyDown()
 end
