@@ -21,6 +21,7 @@ Database.lua
 
 Controller\Stack.lua
 Controller\Hooks.lua
+Controller\Mods.lua
 Controller\Scripts.lua
 
 View\Cursor.xml
