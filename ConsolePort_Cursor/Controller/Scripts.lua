@@ -59,16 +59,9 @@ do
 		Scripts.OnEnter[ QuestMapLogTitleButton_OnEnter ] = function(self)
 			-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
 			-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
-			if self.questLogIndex then
-				local _, level, _, isHeader, _, _, _, _, _, _, _, _, _, _, _, _, isScaling = GetQuestLogTitle(self.questLogIndex)
-				local _, difficultyHighlightColor = GetQuestDifficultyColor(level, isScaling)
-				if ( isHeader ) then
-					_, difficultyHighlightColor = QuestDifficultyColors['header']
-				end
-				if difficultyHighlightColor then
-					QuestMapLogTitleButton_OnEnter(self)
-				end
-			end
+			CPAPI.NextRender(function()
+				QuestMapLogTitleButton_OnEnter(self)
+			end)
 		end
 	end
 	if CPAPI.IsRetailVersion then

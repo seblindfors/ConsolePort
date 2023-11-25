@@ -202,7 +202,7 @@ do local map = function(func)
 	-- @return success: true if cursor is active and node was set (bool)
 	ConsolePort.SetCursorNodeIfActive = map 'SetCurrentNodeIfActive'
 	-----------------------------------------------------------
-	-- @brief Replace the OnEnter script of a node by function pointer
+	-- @brief Replace the script of a node by function pointer
 	-- @param scriptType: script type (string)
 	-- @param original: original script (function)
 	-- @param replacement: replacement script (function)

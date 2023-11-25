@@ -204,8 +204,6 @@ local OnDemandModules, TryLoadModule = {
 		end
 	end
 
-
-
 	-- Automatically load modules when they are enabled through the addon list
 	local function OnEnableAddOn(module)
 		local name = GetAddOnInfo(module)

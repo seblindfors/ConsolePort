@@ -223,6 +223,7 @@ CPAPI.GetContainerItemInfo = function(...)
 		local icon, itemCount, locked, quality, readable, lootable, itemLink,
 			isFiltered, noValue, itemID, isBound = GetContainerItemInfo(...)
 		return {
+			--[[ ContainerItemInfo ]]
 			--[[ boolean          ]] hasLoot = lootable;
 			--[[ boolean          ]] hasNoValue = noValue;
 			--[[ itemLink         ]] hyperlink = itemLink;
@@ -246,6 +247,7 @@ CPAPI.GetItemInfo = function(...)
 		expacID, setID, isCraftingReagent = GetItemInfo(...)
 
 		return {
+			--[[ ItemInfo ]]
 			--[[ string           ]] itemName = itemName;
 			--[[ itemLink         ]] itemLink = itemLink;
 			--[[ Enum.ItemQuality ]] itemQuality = itemQuality;
@@ -272,6 +274,7 @@ CPAPI.GetItemInfoInstant = function(...)
 	if GetItemInfoInstant then
 		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(...)
 		return {
+			--[[ ItemInfo ]]
 			--[[ number           ]] itemID = itemID;
 			--[[ ItemType         ]] itemType = itemType;
 			--[[ ItemType         ]] itemSubType = itemSubType;
@@ -279,6 +282,38 @@ CPAPI.GetItemInfoInstant = function(...)
 			--[[ FileID           ]] icon = icon;
 			--[[ ItemType         ]] classID = classID;
 			--[[ ItemType         ]] subclassID = subclassID;
+		};
+	end
+	return {};
+end
+
+CPAPI.GetQuestInfo = function(...)
+	if C_QuestLog and C_QuestLog.GetInfo then
+		return C_QuestLog.GetInfo(...) or {};
+	end
+	if GetQuestLogTitle then
+		local title, level, suggestedGroup, isHeader, isCollapsed, isComplete,
+		frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI,
+		isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(...)
+		return {
+			--[[ QuestInfo ]]
+			--[[ string           ]] title = title;
+			--[[ number           ]] level = level;
+			--[[ number           ]] suggestedGroup = suggestedGroup;
+			--[[ boolean          ]] isHeader = isHeader;
+			--[[ boolean          ]] isCollapsed = isCollapsed;
+			--[[ boolean          ]] isComplete = isComplete;
+			--[[ Enum.QuestFrequency ]] frequency = frequency;
+			--[[ number           ]] questID = questID;
+			--[[ number           ]] startEvent = startEvent;
+			--[[ number           ]] displayQuestID = displayQuestID;
+			--[[ boolean          ]] isOnMap = isOnMap;
+			--[[ boolean          ]] hasLocalPOI = hasLocalPOI;
+			--[[ boolean          ]] isTask = isTask;
+			--[[ boolean          ]] isBounty = isBounty;
+			--[[ boolean          ]] isStory = isStory;
+			--[[ boolean          ]] isHidden = isHidden;
+			--[[ boolean          ]] isScaling = isScaling;
 		};
 	end
 	return {};
