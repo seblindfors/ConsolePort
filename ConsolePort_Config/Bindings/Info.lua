@@ -102,6 +102,14 @@ function BindingInfo:GetBindingName(binding)
 	return self.Custom[binding] or _G[self.BindingPrefix:format(binding)]
 end
 
+function BindingInfo:GetCategoryName(header)
+	if not header then return end
+	local name = _G[header];
+	if type(name) ~= 'string' then
+		name = tostring(header)
+	end
+	return name;
+end
 
 function BindingInfo:RefreshDictionary()
 	local numBindings = GetNumBindings()
@@ -144,7 +152,7 @@ function BindingInfo:RefreshDictionary()
 					self:AddActionbarBinding(name, id, action)
 				elseif header then
 					-- add binding to its designated category table, omit binding index if not an actual binding
-					local title = _G[header] or header;
+					local title = self:GetCategoryName(header)
 					self:AddBindingToCategory(name, id, title)
 				elseif self:IsBindingMissingHeader(id) then
 					-- at this point, the binding definitely belongs in the "Other" category
@@ -255,7 +263,7 @@ function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
 	end
 	if text then
 		-- this binding may have an action ID, but the slot is empty, or it's just a normal binding.
-		name = header and _G[header];
+		name = BindingInfo:GetCategoryName(header)
 		name = name and BindingInfo.DisplayFormat:format(text, name) or text;
 		return name, db.Bindings:GetIcon(binding), actionID;
 	end
