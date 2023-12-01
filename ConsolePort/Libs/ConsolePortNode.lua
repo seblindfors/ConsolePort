@@ -103,7 +103,7 @@ local NavigateToArbitraryCandidate
 local CACHE, RECTS = {}, {};
 local BOUNDS = CreateVector3D(GetScreenWidth(), GetScreenHeight(), UIParent:GetEffectiveScale());
 local SCALAR = 3;
-local DIVDEG = 10;
+local DIVDEG = 15;
 local USABLE = {
 	Button      = true;
 	CheckButton = true;
@@ -126,14 +126,21 @@ local LEVELS = {
 ---------------------------------------------------------------
 local NODE = setmetatable(Mixin(NODE, {
 	-- Compares distance between nodes for eligibility when filtering cached nodes
-	distance = {
+	picky = {
 		UP    = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY > thisY) end;
 		DOWN  = function(_, destY, horz, vert, _, thisY) return (vert > horz and destY < thisY) end;
 		LEFT  = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX < thisX) end;
 		RIGHT = function(destX, _, horz, vert, thisX, _) return (vert < horz and destX > thisX) end;
 	};
+	-- Balances distance and direction for eligibility when filtering cached nodes
+	balanced = {
+		UP    = function(_, destY, horz, vert, _, thisY) return (vert >= horz and destY > thisY) end;
+		DOWN  = function(_, destY, horz, vert, _, thisY) return (vert >= horz and destY < thisY) end;
+		LEFT  = function(destX, _, horz, vert, thisX, _) return (vert <= horz and destX < thisX) end;
+		RIGHT = function(destX, _, horz, vert, thisX, _) return (vert <= horz and destX > thisX) end;
+	};
 	-- Compares more generally to catch any nodes located in a given direction
-	direction = {
+	permissive = {
 		UP    = function(_, destY, _, _, _, thisY) return (destY > thisY) end;
 		DOWN  = function(_, destY, _, _, _, thisY) return (destY < thisY) end;
 		LEFT  = function(destX, _, _, _, thisX, _) return (destX < thisX) end;
@@ -515,9 +522,9 @@ end
 -- Comparing Euclidean distance on vectors yields the best node.
 
 function NavigateToBestCandidate(cur, key, curNodeChanged) key = GetNavigationKey(key)
-	if cur and NODE.distance[key] then
+	if cur and NODE.picky[key] then
 		local this = GetCandidateVectorForCurrent(cur)
-		local candidates = GetCandidatesForVector(this, NODE.distance[key], {})
+		local candidates = GetCandidatesForVector(this, NODE.picky[key], {})
 
 		local hMult = (key == 'UP' or key == 'DOWN') and SCALAR or 1
 		local vMult = (key == 'LEFT' or key == 'RIGHT') and SCALAR or 1
@@ -543,10 +550,10 @@ end
 -- it more accurate when the travel direction is diagonal.
 
 function NavigateToBestCandidateV2(cur, key, curNodeChanged) key = GetNavigationKey(key)
-	if cur and NODE.distance[key] then
+	if cur and NODE.balanced[key] then
 		local this = GetCandidateVectorForCurrent(cur)
 		local optimalAngle = NODE.angles[key];
-		local candidates = GetCandidatesForVector(this, NODE.distance[key], {})
+		local candidates = GetCandidatesForVector(this, NODE.balanced[key], {})
 
 		for candidate, vector in pairs(candidates) do
 			local offset = GetAngleDistance(optimalAngle, vector.a)
@@ -568,9 +575,9 @@ end
 -- instead using only shortest path as the metric for movement.
 
 function NavigateToClosestCandidate(cur, key, curNodeChanged) key = GetNavigationKey(key)
-	if cur and NODE.direction[key] then
+	if cur and NODE.permissive[key] then
 		local this = GetCandidateVectorForCurrent(cur)
-		local candidates = GetCandidatesForVector(this, NODE.direction[key], {})
+		local candidates = GetCandidatesForVector(this, NODE.permissive[key], {})
 
 		for candidate, vector in pairs(candidates) do
 			if IsCloser(vector.h, vector.v, this.h, this.v) then
