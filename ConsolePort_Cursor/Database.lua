@@ -95,12 +95,13 @@ ConsolePort:AddVariables({
 env.StandaloneFrameStack = {
 	'ContainerFrameCombinedBags';
 	'CovenantPreviewFrame';
+	'EngravingFrame';
 	'LFGDungeonReadyPopup';
 	'OpenMailFrame';
 	'PetBattleFrame';
 	'ReadyCheckFrame';
-	'StackSplitFrame';
 	'SplashFrame';
+	'StackSplitFrame';
 	'UIWidgetCenterDisplayFrame';
 };
 for i=1, (NUM_CONTAINER_FRAMES   or 13) do tinsert(env.StandaloneFrameStack, 'ContainerFrame'..i) end
