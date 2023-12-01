@@ -9,12 +9,13 @@ local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMe
 ---------------------------------------------------------------
 local SPELL_MENU_SIZE = 440;
 local SPELL_MAP_BAR_SIZE = 600;
+local SPELL_MAP_BAR_VOFF = 44;
 local SPELL_MAP_BAR_IDS = db.Actionbar.Pages;
 local SPELL_MAP_BAR_NAMES = {
-	[2] = L'Page 2';
-	[7] = L'Stance 1';
-	[8] = L'Stance 2';
-	[9] = L'Stance 3';
+	[02] = L'Page 2';
+	[07] = L'Stance 1';
+	[08] = L'Stance 2';
+	[09] = L'Stance 3';
 	[10] = L'Stance 4';
 }
 ---------------------------------------------------------------
@@ -133,7 +134,7 @@ function SpellMenu:MapActionBar()
 
 				local text = self.ActionBarText:Acquire()
 				text:SetText(db('Actionbar/Names/'..barID))
-				text:SetPoint('TOPLEFT', 16, -((drawnBars + 1) * 40) - 12)
+				text:SetPoint('TOPLEFT', 16, -((drawnBars + 1) * SPELL_MAP_BAR_VOFF) - 12)
 				text:Show()
 				for i=1, NUM_ACTIONBAR_BUTTONS do
 					local actionID = (barID - 1) * NUM_ACTIONBAR_BUTTONS + i;
@@ -150,14 +151,14 @@ function SpellMenu:MapActionBar()
 						targetWidget = widget;
 					end
 					widget:SetID(actionID)
-					widget:SetPoint('TOPLEFT', i * 40 + 40, -((drawnBars + 1) * 40))
+					widget:SetPoint('TOPLEFT', i * 40 + 40, -((drawnBars + 1) * SPELL_MAP_BAR_VOFF))
 					widget:Update()
 					widget:Show()
 				end
 			end
 		end
 	end
-	self:SetHeight(drawnBars * 40 + 100)
+	self:SetHeight(drawnBars * SPELL_MAP_BAR_VOFF + 100)
 	if targetWidget or firstWidget then
 		ConsolePort:SetCursorNode(targetWidget or firstWidget)
 	end

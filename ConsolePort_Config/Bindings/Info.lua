@@ -53,7 +53,6 @@ function BindingInfo:AddActionbarBinding(name, bindingID, actionID)
 end
 
 do local customHeader = ' |TInterface\\Store\\category-icon-featured:18:18:0:0:64:64:18:46:18:46|t  ' .. SPECIAL;
-	--(' |T%s:20:20:0:-2|t %s '):format(CPAPI.GetAsset('Textures\\Logo\\CP_Thumb.blp'), SPECIAL)
 	_G[customHeader] = customHeader;
 	function BindingInfo:AddCustomBinding(name, bindingID, readonly)
 		self:AddBindingToCategory(L(name), bindingID, customHeader, readonly)
