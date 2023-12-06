@@ -167,7 +167,7 @@ function Devices:UpdateDevices()
 
 		local activeDevice = db.Gamepad:GetActiveDevice();
 		if (not activeDevice) then
-			CPAPI.NextRender(function()
+			RunNextFrame(function()
 				connectedDeviceWidget:OnClick();
 			end);
 		end

@@ -35,7 +35,7 @@ function Paddles:SetEmulation(id, key)
 end
 
 function Paddles:UPDATE_BINDINGS()
-	CPAPI.NextRender(function()
+	RunNextFrame(function()
 		db:RunSafe(self.OnPaddlesChanged, self)
 	end)
 end

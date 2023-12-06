@@ -205,10 +205,6 @@ do local sort, head = 0;
 	end
 end
 
-function CPAPI.NextRender(func)
-	C_Timer.After(0, func)
-end
-
 ---------------------------------------------------------------
 -- Secure environment translation
 ---------------------------------------------------------------

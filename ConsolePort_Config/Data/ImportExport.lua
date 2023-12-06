@@ -367,7 +367,7 @@ end
 
 ---------------------------------------------------------------
 local function AdjustBrowserSize(popup, container, browser)
-	CPAPI.NextRender(function()
+	RunNextFrame(function()
 		local offset = -popup:GetBottom()
 		if offset < 0 then
 			container:SetHeight(BROWSER_HEIGHT)
@@ -425,7 +425,7 @@ local function CreateAsyncCallback(callback)
 	return function()
 		if not mutex then
 			mutex = true;
-			CPAPI.NextRender(function()
+			RunNextFrame(function()
 				callback()
 				mutex = nil;
 			end)
