@@ -16,6 +16,7 @@ local Stack = db:Register('Stack', CPAPI.CreateEventHandler({'Frame', '$parentUI
 }, {
 	Registry = {};
 }), true);
+local GetPoint, IsVisible = Stack.GetPoint, Stack.IsVisible;
 
 ---------------------------------------------------------------
 -- Externals:
@@ -32,7 +33,7 @@ function Stack:IsCursorObstructed() return isObstructed end
 do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}, {}, {};
 
 	local function updateVisible(self)
-		visible[self] = self:GetPoint() and self:IsVisible() and true or nil;
+		visible[self] = GetPoint(self) and IsVisible(self) and true or nil;
 	end
 
 	local function updateBuffer(self, flag)
@@ -102,9 +103,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 				end
 
 				frames[widget] = true
-				if widget:IsVisible() and widget:GetPoint() then
-					visible[widget] = true
-				end
+				updateVisible(widget)
 			end
 			return true
 		else
@@ -168,7 +167,11 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	function Stack:UpdateFrames(updateCursor)
 		if not isLocked then
 			self:UpdateFrameTracker()
-			db.Cursor:SetEnabled(next(visible))
+			RunNextFrame(function()
+				if not isLocked then
+					db.Cursor:SetEnabled(not not next(visible))
+				end
+			end)
 		end
 	end
 

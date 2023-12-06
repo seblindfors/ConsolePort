@@ -55,15 +55,6 @@ do
 			GameTooltip:Show()
 		end
 	end
-	if QuestMapLogTitleButton_OnEnter then
-		Scripts.OnEnter[ QuestMapLogTitleButton_OnEnter ] = function(self)
-			-- this replacement script runs itself, but handles a particular bug when the cursor is atop a quest button when the map is opened.
-			-- all data is not yet populated so difficultyHighlightColor can be nil, which isn't checked for in the default UI code.
-			RunNextFrame(function()
-				QuestMapLogTitleButton_OnEnter(self)
-			end)
-		end
-	end
 	if CPAPI.IsRetailVersion then
 	-----------------------------------------------------------
 		_('Blizzard_Collections', function()
