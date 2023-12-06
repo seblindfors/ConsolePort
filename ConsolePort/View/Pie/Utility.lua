@@ -7,6 +7,7 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	'QUEST_WATCH_UPDATE';
 	'QUEST_WATCH_LIST_CHANGED';
 	'UPDATE_BINDINGS';
+	'UPDATE_MACROS';
 	CPAPI.IsRetailVersion and 'UPDATE_EXTRA_ACTIONBAR';
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
@@ -926,6 +927,12 @@ function Utility:BAG_UPDATE_DELAYED()
 	if self.autoAssignExtras then
 		db:RunSafe(self.ToggleInventoryQuestItems, self, not self.announceBagAdditions)
 		self.announceBagAdditions = true;
+	end
+end
+
+function Utility:UPDATE_MACROS()
+	for button in self:EnumerateActive() do
+		button:UpdateAction(true)
 	end
 end
 
