@@ -56,6 +56,48 @@ db:Register('Variables', {
 		desc = 'Color of the crosshair.';
 	};
 	--------------------------------------------------------------------------------------------------------
+	_'Movement';
+	--------------------------------------------------------------------------------------------------------
+	mvmtAnalog = _{Bool(true);
+		name = 'Analog Movement';
+		desc = 'Movement is analog, translated from your movement stick angle.';
+		note = 'Disable to use discrete legacy movement controls.';
+	};
+	mvmtStrafeAngleTravel = _{Range(tonumber(GetCVar('GamePadFaceMovementMaxAngle')) or 115, 5, 0, 180);
+		name = 'Strafe Angle Threshold (Travel)';
+		desc = 'Controls when your character transitions from strafing to facing your movement stick direction. Expressed in degrees, from looking straight forward.';
+		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
+	};
+	mvmtStrafeAngleCombat = _{Range(tonumber(GetCVar('GamePadFaceMovementMaxAngleCombat')) or 115, 5, 0, 180);
+		name = 'Strafe Angle Threshold (Combat)';
+		desc = 'Controls when your character transitions from strafing to facing your movement stick direction while in combat. Expressed in degrees, from looking straight forward.';
+		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
+	};
+	mvmtRunThreshold = _{Range(tonumber(GetCVar('GamePadRunThreshold')) or 0.5, 0.05, 0, 1);
+		name = 'Run / Walk Threshold';
+		desc = 'Controls when your character starts running. Expressed as a fraction of your total movement stick radius.';
+	};
+	mvmtTurnWithCamera = _{Map(tonumber(GetCVar('GamePadTurnWithCamera')) or 2, {[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
+		name = 'Turn Character With Camera';
+		desc = 'Turn your character facing when you turn your camera angle.';
+	};
+	mvmtStrafeAngleTravelMacro = _{String(nil);
+		name = 'Strafe Angle Macro Condition (Travel)';
+		desc = 'Macro condition to override the strafe angle threshold for travel.';
+		note = 'Takes the format of...\n'
+			.. BLUE'[condition] angle; nil'
+			.. '\n...where each condition/angle is separated by a semicolon, and "nil" clears the override.';
+		advd = true;
+	};
+	mvmtStrafeAngleCombatMacro = _{String(nil);
+		name = 'Strafe Angle Macro Condition (Combat)';
+		desc = 'Macro condition to override the strafe angle threshold for combat.';
+		note = 'Takes the format of...\n'
+			.. BLUE'[condition] angle; nil'
+			.. '\n...where each condition/angle is separated by a semicolon, and "nil" clears the override.';
+		advd = true;
+	};
+	--------------------------------------------------------------------------------------------------------
 	_( MOUSE_LABEL ); -- Mouse
 	--------------------------------------------------------------------------------------------------------
 	mouseHandlingEnabled = _{Bool(true);
@@ -347,7 +389,7 @@ db:Register('Variables', {
 		note = 'Requires reload.';
 		advd = true;
 	};
-	bindingShowSpellMenuGrid = _{Bool(true);
+	bindingShowSpellMenuGrid = _{Bool(false);
 		name = 'Show Action Bar Grid on Spell Pickup';
 		desc = 'Display the action bar grid when picking up a spell on the cursor.';
 	};

@@ -30,7 +30,7 @@ function Crosshair:OnUpdate(elapsed)
 	timer = timer + elapsed;
 	if (timer > throttle) then
 		timer, drawn = 0, self:ShouldDraw()
-		self:SetAlpha(Clamp(self:GetAlpha() + (drawn and elapsed*multiplier or -elapsed*multiplier), 0, 1))
+		self:SetAlpha(Clamp(self:GetAlpha() + ((drawn and 1 or -1) * (elapsed*multiplier)), 0, 1))
 		if drawn then
 			self:Move()
 		end

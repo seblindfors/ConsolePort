@@ -90,38 +90,6 @@ db:Register('Console', setmetatable({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	Controls = {
-	--------------------------------------------------------------------------------------------------------
-		{	cvar = 'GamePadAnalogMovement';
-			type = Bool(true);
-			name = 'Analog Movement';
-			desc = 'Movement is analog, translated from your movement stick angle.';
-			note = 'Disable to use discrete legacy movement controls.';
-		};
-		{	cvar = 'GamePadFaceMovementMaxAngle';
-			type = Range(115, 5, 0, 180);
-			name = 'Face Movement Max Angle';
-			desc = 'Controls when your character transitions from strafing to facing your movement stick angle. Expressed in degrees, from looking straight forward.';
-			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
-		};
-		{	cvar = 'GamePadFaceMovementMaxAngleCombat';
-			type = Range(115, 5, 0, 180);
-			name = 'Face Movement Max Angle (Combat)';
-			desc = 'Controls when your character transitions from strafing to facing your movement stick angle in combat. Expressed in degrees, from looking straight forward.';
-			note = 'When set to zero, always face your movement stick.\nWhen set to max, never face your movement stick.';
-		};
-		{	cvar = 'GamePadRunThreshold';
-			type = Range(0.5, 0.1, 0, 1);
-			name = 'Run / Walk Threshold';
-			desc = 'Amount of stick movement before transitioning from walk to run.';
-		};
-		{	cvar = 'GamePadTurnWithCamera';
-			type = Map(2, {[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
-			name = 'Turn Character With Camera';
-			desc = 'Turn your character facing when you turn your camera angle.';
-		};
-	};
-	--------------------------------------------------------------------------------------------------------
 	Camera = {
 	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'CameraKeepCharacterCentered';

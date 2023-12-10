@@ -40,18 +40,11 @@ local Content = {
 			return (db('tutorialProgress') == 2);
 		end;
 	};
-	{	panel = 'Controls';
-		name  = CONTROLS_LABEL;
-		help  = L'Customize your movement settings.';
-		pred  = function()
-			return (db('tutorialProgress') == 3);
-		end;
-	};
 	{	panel = 'Links';
 		name  = GAMEMENU_SUPPORT;
 		help  = L'Before you go on your next adventure...';
 		pred  = function()
-			return (db('tutorialProgress') == 4);
+			return (db('tutorialProgress') == 3);
 		end;
 	};
 }
@@ -441,14 +434,6 @@ function Splash:OnFirstShow()
 						_Width = WIZARD_WIDTH;
 						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
 						dbPath = 'Console/Cursor';
-					};
-					Controls = {
-						_Hide  = true;
-						_Type  = 'Frame';
-						_Mixin = env.VariablesMixin;
-						_Width = WIZARD_WIDTH;
-						_Point = {'TOP', '$parent.Help', 'BOTTOM', 0, -FIXED_OFFSET * 2};
-						dbPath = 'Console/Controls';
 					};
 					Links = {
 						_Hide  = true;
