@@ -29,12 +29,9 @@ local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
 ---------------------------------------------------------------
 -- Consts
 ---------------------------------------------------------------
-local CAST_INFO_SPELLID_OFFSET = 9;
-local SPELLID_CAST_TIME_OFFSET = 4;
-local ALWAYS_TURN_CAMERA_VALUE = 2;
-local MOUSEOVER_THROTTLE       = 0.1;
-local LCLICK_BINDING = 'CAMERAORSELECTORMOVE';
-local RCLICK_BINDING = 'TURNORACTION';
+local MOUSEOVER_THROTTLE = 0.1;
+local LCLICK_BINDING     = 'CAMERAORSELECTORMOVE';
+local RCLICK_BINDING     = 'TURNORACTION';
 
 
 ---------------------------------------------------------------
@@ -78,8 +75,6 @@ end
 ---------------------------------------------------------------
 -- Console variables
 ---------------------------------------------------------------
-local CVar_Camera = db.Data.Cvar('GamePadTurnWithCamera')
-local CVar_Follow = db.Data.Cvar('CameraFollowOnStick')
 local CVar_Sticks = db.Data.Cvar('GamePadCursorAutoDisableSticks')
 local CVar_Target = db.Data.Cvar('GamePadCursorForTargeting')
 local CVar_Center = db.Data.Cvar('GamePadCursorCentering')
@@ -147,42 +142,6 @@ local WorldObjFocus  = function() return IsMouseOver() or WorldInteract() end;
 function Mouse:UPDATE_BINDINGS()
 	Keys_Escape:SetOptions(db.Gamepad:GetBindingKey('TOGGLEGAMEMENU'))
 end
-
--- Temporary solution to fix problems with casters unable to face
--- their intended target because of face movement.
-function Mouse:UNIT_SPELLCAST_START()
-	if self.fmVehicleOverride then return end;
-	if (self.fmSpellOverride == nil) then
-		self.fmSpellOverride = CVar_Camera:Get()
-		CVar_Camera:Set(ALWAYS_TURN_CAMERA_VALUE)
-	end
-end
-
-function Mouse:UNIT_SPELLCAST_STOP()
-	if self.fmVehicleOverride then return end;
-	if (self.fmSpellOverride ~= nil) then
-		CVar_Camera:Set(self.fmSpellOverride)
-		self.fmSpellOverride = nil;
-	end
-end
-
-function Mouse:UNIT_ENTERING_VEHICLE()
-	if (self.fmVehicleOverride == nil) then
-		self:UNIT_SPELLCAST_STOP()
-		self.fmVehicleOverride = CVar_Camera:Get()
-		CVar_Camera:Set(ALWAYS_TURN_CAMERA_VALUE)
-	end
-end
-
-function Mouse:UNIT_EXITING_VEHICLE()
-	if (self.fmVehicleOverride ~= nil) then
-		CVar_Camera:Set(self.fmVehicleOverride)
-		self.fmVehicleOverride = nil;
-	end
-end
-
-Mouse.UNIT_SPELLCAST_CHANNEL_START = Mouse.UNIT_SPELLCAST_START;
-Mouse.UNIT_SPELLCAST_CHANNEL_STOP  = Mouse.UNIT_SPELLCAST_STOP;
 
 function Mouse:CURRENT_SPELL_CAST_CHANGED()
 	if SpellTargeting() then
@@ -415,14 +374,6 @@ end
 
 function Mouse:OnDataLoaded()
 	self:SetEnabled(db('mouseHandlingEnabled'))
-	for i, event in ipairs({
-		'UNIT_SPELLCAST_CHANNEL_START';
-		'UNIT_SPELLCAST_CHANNEL_STOP';
-		'UNIT_SPELLCAST_START';
-		'UNIT_SPELLCAST_STOP';
-		'UNIT_ENTERING_VEHICLE';
-		'UNIT_EXITING_VEHICLE';
-	}) do self:RegisterUnitEvent(event, 'player') end
 	self:OnVariableChanged()
 end
 

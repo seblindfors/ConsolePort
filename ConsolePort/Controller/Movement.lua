@@ -4,7 +4,14 @@
 -- Handles movement settings and conditionals.
 
 local _, db = ...;
-local Movement = db:Register('Movement', CPAPI.CreateEventHandler({'Frame', '$parentMovementHandler', ConsolePort, 'SecureHandlerAttributeTemplate'}, nil, {
+local Movement = db:Register('Movement', CPAPI.CreateEventHandler({'Frame', '$parentMovementHandler', ConsolePort, 'SecureHandlerAttributeTemplate'}, {
+	'UNIT_ENTERING_VEHICLE';
+	'UNIT_EXITING_VEHICLE';
+	'UNIT_SPELLCAST_CHANNEL_START';
+	'UNIT_SPELLCAST_CHANNEL_STOP';
+	'UNIT_SPELLCAST_START';
+	'UNIT_SPELLCAST_STOP';
+}, {
 	Proxy = {
 		AnalogMovement    = db.Data.Cvar('GamePadAnalogMovement');
 		StrafeAngleTravel = db.Data.Cvar('GamePadFaceMovementMaxAngle');
@@ -18,6 +25,9 @@ local Movement = db:Register('Movement', CPAPI.CreateEventHandler({'Frame', '$pa
 	};
 }));
 
+---------------------------------------------------------------
+-- Data loading
+---------------------------------------------------------------
 function Movement:OnDataLoaded()
 	self:UpdateAnalogMovement()
 	self:UpdateStrafeAngleTravel()
@@ -25,8 +35,13 @@ function Movement:OnDataLoaded()
 	self:UpdateRunWalkThreshold()
 	self:UpdateTurnWithCamera()
 	self:UpdateConditionals()
+	self:UnregisterAllEvents()
+	FrameUtil.RegisterFrameForUnitEvents(self, self.Events, 'player')
 end
 
+---------------------------------------------------------------
+-- Proxy updates
+---------------------------------------------------------------
 function Movement:UpdateAnalogMovement()
 	self.Proxy.AnalogMovement:Set(db('mvmtAnalog'))
 end
@@ -53,6 +68,9 @@ db:RegisterCallback('Settings/mvmtStrafeAngleCombat', Movement.UpdateStrafeAngle
 db:RegisterCallback('Settings/mvmtRunThreshold',      Movement.UpdateRunWalkThreshold,  Movement)
 db:RegisterCallback('Settings/mvmtTurnWithCamera',    Movement.UpdateTurnWithCamera,    Movement)
 
+---------------------------------------------------------------
+-- Conditionals
+---------------------------------------------------------------
 function Movement:UpdateConditionals()
 	local strafeAngleTravelMacro = db('mvmtStrafeAngleTravelMacro')
 	local strafeAngleCombatMacro = db('mvmtStrafeAngleCombatMacro')
@@ -80,4 +98,45 @@ function Movement:OnAttributeChanged(attribute, value)
 	end
 end
 
-CPAPI.Start(Movement)
+Movement:HookScript('OnAttributeChanged', Movement.OnAttributeChanged)
+
+---------------------------------------------------------------
+-- Cast events
+---------------------------------------------------------------
+-- Always turn with camera when casting.
+
+local ALWAYS_TURN_CAMERA_VALUE = 2;
+
+function Movement:UNIT_SPELLCAST_START()
+	if self.fmVehicleOverride then return end;
+	if (self.fmSpellOverride == nil) then
+		self.fmSpellOverride = db('mvmtTurnWithCamera')
+		self:UpdateTurnWithCamera(ALWAYS_TURN_CAMERA_VALUE)
+	end
+end
+
+function Movement:UNIT_SPELLCAST_STOP()
+	if self.fmVehicleOverride then return end;
+	if (self.fmSpellOverride ~= nil) then
+		self:UpdateTurnWithCamera(self.fmSpellOverride)
+		self.fmSpellOverride = nil;
+	end
+end
+
+function Movement:UNIT_ENTERING_VEHICLE()
+	if (self.fmVehicleOverride == nil) then
+		self:UNIT_SPELLCAST_STOP()
+		self.fmVehicleOverride = db('mvmtTurnWithCamera')
+		self:UpdateTurnWithCamera(ALWAYS_TURN_CAMERA_VALUE)
+	end
+end
+
+function Movement:UNIT_EXITING_VEHICLE()
+	if (self.fmVehicleOverride ~= nil) then
+		self:UpdateTurnWithCamera(self.fmVehicleOverride)
+		self.fmVehicleOverride = nil;
+	end
+end
+
+Movement.UNIT_SPELLCAST_CHANNEL_START = Movement.UNIT_SPELLCAST_START;
+Movement.UNIT_SPELLCAST_CHANNEL_STOP  = Movement.UNIT_SPELLCAST_STOP;
