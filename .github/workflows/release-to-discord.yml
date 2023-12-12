@@ -1,0 +1,23 @@
+name: Publish release on Discord
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  github-releases-to-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Github Releases To Discord
+        uses: SethCohen/github-releases-to-discord@v1.13.1
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_DISCORD }}
+          color: "2105893"
+          username: "Release Bot"
+          avatar_url: "https://cdn.discordapp.com/icons/187704823657922560/2d5ad5a82db4287835019f8109f088e0.png"
+          content: "New version [available for download](https://www.curseforge.com/wow/addons/console-port/files):"
+          footer_title: "Changelog"
+          footer_icon_url: "https://cdn.discordapp.com/icons/187704823657922560/2d5ad5a82db4287835019f8109f088e0.png"
+          footer_timestamp: true
