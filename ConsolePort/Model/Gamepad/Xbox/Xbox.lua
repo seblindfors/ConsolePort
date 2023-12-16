@@ -19,30 +19,20 @@ select(2, ...).Gamepad:AddGamepad({
 			PAD2         = 'Xbox/B';
 			PAD3         = 'Xbox/X';
 			PAD4         = 'Xbox/Y';
-			--PAD5
-			--PAD6
 			PADLSTICK    = 'Xbox/LSB';
 			PADRSTICK    = 'Xbox/RSB';
 			PADLSHOULDER = 'Xbox/LB';
 			PADRSHOULDER = 'Xbox/RB';
 			PADLTRIGGER  = 'Xbox/LT';
 			PADRTRIGGER  = 'Xbox/RT';
-			--PADLSTICKUP
-			--PADLSTICKRIGHT
-			--PADLSTICKDOWN
-			--PADLSTICKLEFT
-			--PADRSTICKUP
-			--PADRSTICKRIGHT
-			--PADRSTICKDOWN
-			--PADRSTICKLEFT
-			PADPADDLE1  = 'PlayStation/L1';
-			PADPADDLE2  = 'PlayStation/L2';
-			PADPADDLE3  = 'PlayStation/R1';
-			PADPADDLE4  = 'PlayStation/R2';
-			PADFORWARD  = 'Xbox/Forward';
-			PADBACK     = 'Xbox/Back';
-			PADSYSTEM   = 'Xbox/System';
-			PADSOCIAL   = 'Xbox/Share';
+			PADPADDLE1   = 'PlayStation/L1';
+			PADPADDLE2   = 'PlayStation/L2';
+			PADPADDLE3   = 'PlayStation/R1';
+			PADPADDLE4   = 'PlayStation/R2';
+			PADFORWARD   = 'Xbox/Forward';
+			PADBACK      = 'Xbox/Back';
+			PADSYSTEM    = 'Xbox/System';
+			PADSOCIAL    = 'Xbox/Share';
 		};
 		Layout = {
 			PADLTRIGGER  = 0x11;
