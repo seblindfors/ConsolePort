@@ -313,6 +313,17 @@ do -- Tooltip hooking
 		GameTooltip:HookScript('OnTooltipSetSpell', OnTooltipSetSpell)
 	end
 
+	GameTooltip:HookScript('OnShow', function(self)
+		local owner = self:GetOwner()
+		if Hooks:IsPromptProcessingValid(owner) then
+			-- Prevent tooltip from following mouse cursor if UI cursor triggered the tooltip
+			if (self:GetAnchorType() == 'ANCHOR_CURSOR') then
+				self:SetAnchorType('ANCHOR_TOPLEFT')
+				self:Show()
+			end
+		end
+	end)
+
 	GameTooltip:HookScript('OnHide', function()
 		if Hooks.pendingAction then
 			db.Utility:ClearPendingAction()
