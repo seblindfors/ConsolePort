@@ -157,10 +157,9 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	end
 
 	function Stack:ToggleCore()
-		local showOnDemand = db('UIshowOnDemand')
-		isEnabled = db('UIenableCursor') and not showOnDemand;
-		if not isEnabled and not showOnDemand then
-			db.Cursor:SetEnabled(false)
+		isEnabled = db('UIenableCursor');
+		if not isEnabled then
+			db.Cursor:OnStackChanged(false)
 		end
 	end
 
@@ -169,7 +168,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 			self:UpdateFrameTracker()
 			RunNextFrame(function()
 				if not isLocked then
-					db.Cursor:SetEnabled(not not next(visible))
+					db.Cursor:OnStackChanged(not not next(visible))
 				end
 			end)
 		end
@@ -204,7 +203,7 @@ function Stack:PLAYER_REGEN_ENABLED()
 end
 
 function Stack:PLAYER_REGEN_DISABLED()
-	db.Cursor:SetEnabled(false)
+	db.Cursor:OnStackChanged(false)
 	self:LockCore(true)
 end
 

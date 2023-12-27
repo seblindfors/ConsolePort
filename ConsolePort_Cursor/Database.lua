@@ -25,7 +25,7 @@ ConsolePort:AddVariables({
 	UIshowOnDemand = _{Data.Bool(false);
 		name = 'Use On Demand';
 		desc = 'Cursor appears on demand, instead of in response to a panel showing up.';
-		note = 'Requires Toggle Interface Cursor binding & Unlimited Navigation to use the cursor.';
+		note = 'Requires Toggle Interface Cursor binding to use the cursor.';
 		advd = true;
 	};
 	UIholdRepeatDisable = _{Data.Bool(false);
@@ -107,6 +107,12 @@ env.StandaloneFrameStack = {
 for i=1, (NUM_CONTAINER_FRAMES   or 13) do tinsert(env.StandaloneFrameStack, 'ContainerFrame'..i) end
 for i=1, (NUM_GROUP_LOOT_FRAMES  or 4)  do tinsert(env.StandaloneFrameStack, 'GroupLootFrame'..i) end
 for i=1, (STATICPOPUP_NUMDIALOGS or 4)  do tinsert(env.StandaloneFrameStack, 'StaticPopup'..i)    end
+
+env.UnlimitedFrameStack = {
+	UIParent;
+	DropDownList1;
+	DropDownList2;
+};
 
 
 ---------------------------------------------------------------

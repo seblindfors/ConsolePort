@@ -22,8 +22,7 @@ Cursor.InCombat = InCombatLockdown;
 -- Events
 ---------------------------------------------------------------
 function Cursor:PLAYER_REGEN_DISABLED()
-	-- TODO: relinquish to stack control
-	self.isCombatLocked = true;
+	self.isCombatPaused = true;
 	if self:IsShown() then
 		Fade.Out(self, 0.2, self:GetAlpha(), 0)
 		self:ShowAfterCombat(true)
@@ -40,35 +39,30 @@ function Cursor:PLAYER_REGEN_ENABLED()
 	-- time lock this in case it fires more than once
 	if not self.timeLock then
 		self.timeLock = true;
+
+		local clearLockedState = function()
+			self.timeLock = nil;
+			self.isCombatPaused = nil;
+			self.onEnableCallback = nil;
+		end
+
 		if self.showAfterCombat then
-			if not self.onEnableCallback then
-				self.onEnableCallback = function()
-					Fade.In(self, 0.2, self:GetAlpha(), 1)
-					if not self:InCombat() and self:IsShown() then
-						self:SetBasicControls()
-						self:Refresh()
-					end
+			self.onEnableCallback = self.onEnableCallback or function()
+				Fade.In(self, 0.2, self:GetAlpha(), 1)
+				if not self:InCombat() and self:IsShown() then
+					self:SetBasicControls()
+					self:Refresh()
 				end
 			end
 			C_Timer.After(db('UIleaveCombatDelay'), function()
 				self.onEnableCallback()
-				self.timeLock = nil;
 				self.showAfterCombat = nil;
-				self.onEnableCallback = nil;
-				self.isCombatLocked = nil;
+				clearLockedState()
 			end)
 		else -- do nothing but clear the locked state
-			C_Timer.After(db('UIleaveCombatDelay'), function()
-				self.onEnableCallback = nil;
-				self.timeLock = nil;
-				self.isCombatLocked = nil;
-			end)
+			C_Timer.After(db('UIleaveCombatDelay'), clearLockedState)
 		end
 	end
-end
-
-function Cursor:MODIFIER_STATE_CHANGED()
-	-- TODO: implement this? maybe?
 end
 
 ---------------------------------------------------------------
@@ -76,6 +70,13 @@ end
 ---------------------------------------------------------------
 function Cursor:OnClick()
 	self:SetEnabled(not self:IsShown())
+end
+
+function Cursor:OnStackChanged(hasFrames)
+	if db('UIshowOnDemand') then
+		return
+	end
+	return self:SetEnabled(hasFrames)
 end
 
 function Cursor:SetEnabled(enable)
@@ -129,7 +130,7 @@ function Cursor:Release()
 end
 
 function Cursor:IsObstructed()
-	return self:InCombat(), not db('UIenableCursor'), self.isCombatLocked;
+	return self:InCombat(), not db('UIenableCursor'), self.isCombatPaused;
 end
 
 function Cursor:IsAnimating()
@@ -142,7 +143,7 @@ end
 
 function Cursor:ScanUI()
 	if db('UIaccessUnlimited') then
-		Node(UIParent, DropDownList1, DropDownList2)
+		Node(unpack(env.UnlimitedFrameStack))
 	else
 		Node(Stack:GetVisibleCursorFrames())
 	end
@@ -166,7 +167,7 @@ function Cursor:RefreshToFrame(frame)
 end
 
 function Cursor:SetCurrentNode(node, assertNotMouse)
-	if not db('UIenableCursor') then
+	if not db('UIenableCursor') or (db('UIshowOnDemand') and not self:IsShown()) then
 		return
 	end
 	local object = node and Node.ScanLocal(node)[1]
@@ -189,11 +190,11 @@ function Cursor:SetCurrentNodeIfActive(...)
 end
 
 function Cursor:SetOnEnableCallback(callback, ...)
-	local inCombat, disabled, isCombatLocked = self:IsObstructed()
+	local inCombat, disabled, isCombatPaused = self:IsObstructed()
 	if disabled then
 		return
 	end
-	if not inCombat and not isCombatLocked then
+	if not inCombat and not isCombatPaused then
 		return callback(self, ...)
 	end
 	self.onEnableCallback = GenerateClosure(callback, self, ...)
@@ -749,6 +750,7 @@ function Cursor.Mime:SetTexture(region)
 		obj:SetTexCoord(obj.GetTexCoord(region))
 		obj:SetVertexColor(obj.GetVertexColor(region))
 		obj:SetSize(obj.GetSize(region))
+		obj:SetRotation(obj.GetRotation(region))
 		for i=1, obj.GetNumPoints(region) do
 			obj:SetPoint(obj.GetPoint(region, i))
 		end
