@@ -501,3 +501,14 @@ end
 function CPButtonCatcherMixin:IsButtonValid(button)
 	return CPAPI.IsButtonValidForBinding(button)
 end
+
+---------------------------------------------------------------
+-- Propagation mixin
+---------------------------------------------------------------
+CPPropagationMixin = {};
+
+function CPPropagationMixin:SetPropagation(enabled)
+	if not InCombatLockdown() then
+		self:SetPropagateKeyboardInput(enabled)
+	end
+end

@@ -7,7 +7,8 @@ local LootFrame = Mixin(CPAPI.EventHandler(ConsolePortLootFrame, {
 	'LOOT_SLOT_CHANGED';
 	'OPEN_MASTER_LOOT_LIST';
 	'UPDATE_MASTER_LOOT_LIST';
-}), CPFocusPoolMixin)
+	'PLAYER_REGEN_DISABLED';
+}), CPFocusPoolMixin, CPPropagationMixin)
 
 ---------------------------------------------------------------
 -- Events
@@ -58,6 +59,10 @@ function LootFrame:UPDATE_MASTER_LOOT_LIST()
 	MasterLooterFrame_UpdatePlayers()
 end
 
+function LootFrame:PLAYER_REGEN_DISABLED()
+	self:SetPropagation(false)
+end
+
 ---------------------------------------------------------------
 -- Script handlers
 ---------------------------------------------------------------
@@ -106,8 +111,9 @@ LootFrame.CloseOnButton = {
 
 function LootFrame:OnGamePadButtonDown(button)
 	if Input:IsOverrideActive(CPAPI.CreateKeyChord(button)) then
-		return
+		return self:SetPropagation(true)
 	end
+	self:SetPropagation(false)
 
 	if (button == 'PAD1') then
 		local lootSlot = self:GetFocusWidget()
