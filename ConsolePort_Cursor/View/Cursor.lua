@@ -112,6 +112,7 @@ end
 
 function Cursor:OnShow()
 	self:SetScale(UIParent:GetEffectiveScale())
+	db:TriggerEvent('OnCursorShow', self)
 end
 
 function Cursor:OnHide()
@@ -120,6 +121,7 @@ function Cursor:OnHide()
 	self:SetFlashNextNode()
 	self:Release()
 	self.Blocker:Hide()
+	db:TriggerEvent('OnCursorHide', self)
 end
 
 function Cursor:Release()

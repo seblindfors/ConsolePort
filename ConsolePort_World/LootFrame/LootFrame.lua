@@ -1,4 +1,5 @@
-local UIHandle, Input, FadeIn, _, env = ConsolePort:DB('UIHandle'), ConsolePort:DB('Input'), ConsolePort:DB('Alpha/FadeIn'), ...;
+local db, _, env = ConsolePort:DB(), ...;
+local UIHandle, Input, FadeIn = db.UIHandle, db.Input, db.Alpha.FadeIn;
 local LootFrame = Mixin(CPAPI.EventHandler(ConsolePortLootFrame, {
 	'LOOT_OPENED';
 	'LOOT_CLOSED';
@@ -67,22 +68,22 @@ end
 -- Script handlers
 ---------------------------------------------------------------
 function LootFrame:OnShow()
-	UIHandle:SetHintFocus(self)
-	UIHandle:AddHint('PAD1', LOOT)
-	UIHandle:AddHint('PAD2', ALL)
-	UIHandle:AddHint('PAD4', CLOSE)
-
 	self.Header.HeaderOpenAnim:Stop()
 	self.Header.HeaderOpenAnim:Play()
+
+	if ConsolePort:IsCursorActive() then
+		ConsolePort:AddInterfaceCursorFrame(self)
+		ConsolePort:SetCursorNode(self:GetFocusWidget())
+	else
+		self:SetHints()
+	end
 end
 
 function LootFrame:OnHide()
 	self:ReleaseAll()
 	self.Header.HeaderOpenAnim:Finish()
-	if UIHandle:IsHintFocus(self) then
-		UIHandle:HideHintBar()
-	end
-	UIHandle:ClearHintsForFrame(self)
+	self:ClearHints()
+	ConsolePort:RemoveInterfaceCursorFrame(self)
 end
 
 function LootFrame:OnDataLoaded()
@@ -99,6 +100,34 @@ function LootFrame:OnDataLoaded()
 	CPAPI.DisableFrame(_G.LootFrame)
 	_G.LootFrame:UnregisterAllEvents()
 end
+
+function LootFrame:SetHints()
+	UIHandle:SetHintFocus(self)
+	UIHandle:AddHint('PAD1', LOOT)
+	UIHandle:AddHint('PAD2', ALL)
+	UIHandle:AddHint('PAD4', CLOSE)
+end
+
+function LootFrame:ClearHints()
+	if UIHandle:IsHintFocus(self) then
+		UIHandle:HideHintBar()
+	end
+	UIHandle:ClearHintsForFrame(self)
+end
+
+function LootFrame:OnCursorShow()
+	if not self:IsShown() then return end;
+	ConsolePort:AddInterfaceCursorFrame(self)
+	self:ClearHints()
+end
+
+function LootFrame:OnCursorHide()
+	if not self:IsShown() then return end;
+	self:SetHints() 
+end
+
+db:RegisterCallback('OnCursorShow', LootFrame.OnCursorShow, LootFrame)
+db:RegisterCallback('OnCursorHide', LootFrame.OnCursorHide, LootFrame)
 
 LootFrame.CloseOnButton = {
 	PAD3 = true;

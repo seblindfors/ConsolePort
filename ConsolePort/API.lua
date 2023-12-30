@@ -146,6 +146,21 @@ function ConsolePort:AddInterfaceCursorFrame(frame)
 end
 
 ---------------------------------------------------------------
+-- @brief Remove a frame from the interface cursor stack
+-- @param frame: frame to remove (string or frame)
+-- @return success: true if frame was removed
+function ConsolePort:RemoveInterfaceCursorFrame(frame)
+	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
+	if object then
+		EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
+			db.Stack:RemoveFrame(object)
+		end)
+		return true;
+	end
+end
+
+
+---------------------------------------------------------------
 -- @brief Forbid a frame from being used by the interface cursor stack
 -- @param frame: frame to forbid (string or frame)
 -- @return success: true if frame was forbidden
@@ -207,4 +222,8 @@ do local map = function(func)
 	-- @param original: original script (function)
 	-- @param replacement: replacement script (function)
 	ConsolePort.ReplaceCursorScript   = map 'ReplaceScript'
+	-----------------------------------------------------------
+	-- @brief Check if the cursor is currently active
+	-- @return isActive: true if cursor is active (bool)
+	ConsolePort.IsCursorActive        = map 'IsShown'
 end

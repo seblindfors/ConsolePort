@@ -58,7 +58,6 @@ function LootButton:OnEnter()
 	end
 
 	if tooltip:IsOwned(self) then
-		tooltip.NineSlice:Hide()
 		self.Text:SetAlpha(0)
 		self.hasTooltipFocus = true;
 	end
@@ -83,12 +82,16 @@ end
 
 function LootButton:OnUpdate()
 	local tooltip = GetTooltip()
-	self:SetClampedSize(
-		(tooltip:GetWidth() or 330) + 50,
-		(tooltip:GetHeight() or 50)
-	);
-	if self.hasTooltipFocus and not tooltip:IsOwned(self) then
+	local isOwned = tooltip:IsOwned(self)
+	local width   = (isOwned and tooltip:GetWidth() or 330) + 50;
+	local height  = (isOwned and tooltip:GetHeight() or 50);
+	self:SetClampedSize(width, height)
+	if self.hasTooltipFocus and not isOwned then
 		self:OnLeave()
+	else
+		-- HACK: Readjust the tooltip if showing a single line, because it looks nicer.
+		tooltip.NineSlice:Hide()
+		tooltip:SetAnchorType('ANCHOR_BOTTOMRIGHT', 0, (tooltip:NumLines() == 1) and 40 or 50)
 	end
 end
 
