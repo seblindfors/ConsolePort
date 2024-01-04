@@ -138,4 +138,10 @@ ConsolePort:AddVariables({
 		desc = 'Alphabet to use for dictionary suggestions and word processing.';
 		advd = true;
 	};
+	keyboardDictYieldRate = _{Data.Number(4000, 500, true);
+		name = 'Autocorrect Yield Rate';
+		desc = 'Amount of spell correction mutations to yield per frame.';
+		note = 'A higher rate will yield suggestions faster, but may cause stuttering.';
+		advd = true;
+	};
 })

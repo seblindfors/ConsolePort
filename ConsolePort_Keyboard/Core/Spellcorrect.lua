@@ -1,7 +1,6 @@
 -- Loosely based on https://norvig.com/spell-correct.html
 
 local Scheduler, threads, _, env = CreateFrame('Frame'), {}, ...;
-local THREAD_LOOP_COUNT_MAX = 4000;
 
 ---------------------------------------------------------------
 -- Scheduler
@@ -26,7 +25,7 @@ local function yield()
 end
 
 local function yieldif(count)
-	if count % THREAD_LOOP_COUNT_MAX == 0 then
+	if count % env.DictYieldRate == 0 then
 		yield()
 	end
 end

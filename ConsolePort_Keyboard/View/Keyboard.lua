@@ -223,9 +223,10 @@ function Keyboard:OnVariableChanged()
 		{L'Escape',  db('keyboardEscapeButton')};
 		{L'Insert',  db('keyboardAutoCorrButton')};
 	};
-	-- update dictionary pattern
+	-- update dictionary settings
 	env.DictMatchPattern  = db('keyboardDictPattern');
 	env.DictMatchAlphabet = db('keyboardDictAlphabet');
+	env.DictYieldRate     = db('keyboardDictYieldRate');
 end
 
 db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
@@ -234,7 +235,8 @@ db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
 	'Settings/keyboardSpaceButton',
 	'Settings/keyboardEscapeButton',
 	'Settings/keyboardDictPattern',
-	'Settings/keyboardDictAlphabet'
+	'Settings/keyboardDictAlphabet',
+	'Settings/keyboardDictYieldRate'
 );
 
 function Keyboard:PLAYER_LOGOUT()
