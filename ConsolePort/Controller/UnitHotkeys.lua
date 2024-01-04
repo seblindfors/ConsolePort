@@ -468,38 +468,12 @@ end
 ---------------------------------------------------------------
 -- Frontend async updates
 ---------------------------------------------------------------
-local CreateMutex;
-do local QueueUpdate, __mCount = GenerateClosure(C_Timer.After, 0), 0;
-	local MutexHandler = function(self, mutex, callback)
-		if not self[mutex] then
-			self[mutex] = true;
-			QueueUpdate(callback)
-		end
-	end
-	local MutexExecute = function(self, mutex, callback)
-		self[mutex] = nil;
-		local timer = '__time_'..mutex;
-		local updateTime = GetTime()
-		if self[timer] and self[timer] >= updateTime then
-			return;
-		end
-		self[timer] = updateTime;
-		callback(self)
-	end
-
-	function CreateMutex(self, callback) __mCount = __mCount + 1;
-		local mutex = 'mutex_'..__mCount;
-		local handler = GenerateClosure(MutexExecute, self, mutex, callback)
-		return GenerateClosure(MutexHandler, self, mutex, handler)
-	end
-end
-
-UH.QueueDisplayBindings = CreateMutex(UH, UH.DisplayBindings)
-UH.QueueUnitFrameRefresh = CreateMutex(UH, function(self)
+UH.QueueDisplayBindings = CPAPI.Debounce(UH.DisplayBindings, UH)
+UH.QueueUnitFrameRefresh = CPAPI.Debounce(function(self)
 	self:ClearUnitFrames()
 	self:RefreshUnitFrames()
 	self:RedrawBindings()
-end)
+end, UH)
 
 ---------------------------------------------------------------
 -- Hotkey display

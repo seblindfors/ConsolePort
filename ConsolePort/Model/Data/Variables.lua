@@ -241,7 +241,7 @@ db:Register('Variables', {
 	};
 	raidCursorFilter = _{String(nil);
 		name = 'Filter Condition';
-		desc = 'Filter condition to find raid cursor frames.';
+		desc = 'Filter condition to find raid cursor frames, as a boolean expression.';
 		note = BLUE'node' .. ' is the current frame under scrutinization.';
 		advd = true;
 	};

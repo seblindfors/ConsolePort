@@ -16,7 +16,6 @@ Cursor.SetTarget:SetAttribute(CPAPI.ActionTypeRelease, 'target')
 Cursor.SetFocus:SetAttribute(CPAPI.ActionTypeRelease, 'focus')
 Cursor:SetFrameRef('SetFocus', Cursor.SetFocus)
 Cursor:SetFrameRef('SetTarget', Cursor.SetTarget)
-Cursor:SetFrameRef('Toggle', Cursor.Toggle)
 Cursor:WrapScript(Cursor.Toggle, 'PreClick', [[
 	if button == 'ON' then
 		if enabled then return end;
@@ -43,6 +42,7 @@ Cursor:WrapScript(Cursor.Toggle, 'PreClick', [[
 ]])
 
 Cursor:Wrap('PreClick', [[
+	self::UpdateNodes()
 	self::SelectNewNode(button)
 	if self:GetAttribute('usefocus') or not self:GetAttribute('useroute') then
 		self:SetAttribute('unit', self:GetAttribute('cursorunit'))
@@ -60,9 +60,8 @@ Cursor:Execute([[
 	---------------------------------------
 	Focus  = self:GetFrameRef('SetFocus')
 	Target = self:GetFrameRef('SetTarget')
-	Toggle = self:GetFrameRef('Toggle')
 	---------------------------------------
-	CACHE[Toggle] = true;
+	CACHE[self] = nil;
 ]])
 
 ---------------------------------------------------------------
@@ -75,14 +74,18 @@ Cursor:CreateEnvironment({
 			local action = node:GetAttribute('action')
 
 			if unit and not action then
-				if node:GetRect() and self::IsValidNode() then
+				if self::IsValidNode() and node:IsVisible() then
 					NODES[node] = true;
-					CACHE[node] = true;
 				end
 			elseif action and tonumber(action) then
 				ACTIONS[node] = unit or false;
-				CACHE[node] = true;
 			end
+		end
+	]];
+	UpdateNodes = [[
+		wipe(NODES)
+		for object in pairs(CACHE) do
+			node = object; self::FilterNode()
 		end
 	]];
 	FilterOld = [[
@@ -250,7 +253,7 @@ function Cursor:OnDataLoaded()
 	self:SetAttribute('usefocus', mode == self.Modes.Focus)
 	self:SetAttribute('type', mode == self.Modes.Focus and 'focus' or 'target')
 
-	self:SetAttribute('IsValidNode', 'return ' .. (db('raidCursorFilter') or 'true') .. ';')
+	self:SetFilter(db('raidCursorFilter'))
 	self:SetAttribute('wrapDisable', db('raidCursorWrapDisable'))
 	self:SetScale(db('raidCursorScale'))
 
@@ -292,14 +295,13 @@ db:RegisterSafeCallback('OnUpdateOverrides', Cursor.OnUpdateOverrides, Cursor)
 -- Script handlers
 ---------------------------------------------------------------
 function Cursor:OnHide()
-	self:UnregisterAllEvents()
+	for _, event in ipairs(self.PlayerEvents) do self:UnregisterEvent(event) end
+	for _, event in ipairs(self.ActiveEvents) do self:UnregisterEvent(event) end
 end
 
 function Cursor:OnShow()
-	for _, event in ipairs(self.PlayerEvents) do
-		self:RegisterUnitEvent(event, 'player')
-	end
-	self:RegisterEvent('PLAYER_TARGET_CHANGED')
+	for _, event in ipairs(self.PlayerEvents) do self:RegisterUnitEvent(event, 'player') end
+	for _, event in ipairs(self.ActiveEvents) do self:RegisterEvent(event) end
 end
 
 function Cursor:OnAttributeChanged(attribute, value)
@@ -328,7 +330,12 @@ do 	local UnitExists = UnitExists;
 end
 
 CPAPI.Start(Cursor)
-Mixin(CPAPI.EventHandler(Cursor), {
+Mixin(CPAPI.EventHandler(Cursor, {
+	'GROUP_ROSTER_UPDATE';
+	'PLAYER_ENTERING_WORLD';
+	'PLAYER_REGEN_DISABLED';
+	'PLAYER_REGEN_ENABLED';
+}), {
 	-----------------
 	timer    = 0;
 	throttle = 0.025;
@@ -342,6 +349,9 @@ Mixin(CPAPI.EventHandler(Cursor), {
 		'UNIT_SPELLCAST_START';
 		'UNIT_SPELLCAST_STOP';
 		'UNIT_SPELLCAST_SUCCEEDED';
+	};
+	ActiveEvents = {
+		'PLAYER_TARGET_CHANGED';
 	};
 })
 
@@ -477,8 +487,89 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 end
 
 ---------------------------------------------------------------
+-- UI Caching
+---------------------------------------------------------------
+local ScanUI;
+do	local EnumerateFrames, GetAttribute, IsProtected = EnumerateFrames, Cursor.GetAttribute, Cursor.IsProtected;
+	ScanUI = CPAPI.Debounce(function(self)
+		if InCombatLockdown() then
+			return CPAPI.Log('Raid cursor scan failed due to combat lockdown. Waiting for combat to end...')
+		end
+		local node = EnumerateFrames()
+		while node do
+			if IsProtected(node) then
+				local unit, action = GetAttribute(node, 'unit'), GetAttribute(node, 'action')
+				if unit and not action then
+					self:CacheNode(node)
+				elseif action and tonumber(action) then
+					self:CacheNode(node)
+				end
+			end
+			node = EnumerateFrames(node)
+		end
+	end, Cursor)
+end
+
+function Cursor:AddFrame(frame)
+	self:SetFrameRef('cachenode', frame)
+	self:Execute([[
+		CACHE[self:GetFrameRef('cachenode')] = true;
+	]])
+end
+
+Cursor.CachedFrames = {[Cursor] = true; [Cursor.Toggle] = true};
+function Cursor:CacheNode(node)
+	if not self.CachedFrames[node] then
+		self.CachedFrames[node] = true;
+		self:AddFrame(node)
+		return true;
+	end
+end
+
+do 	local FILTER_SIGNATURE, DEFAULT_NODE_PREDICATE = 'return %s;', 'true';
+	-----------------------------------------------------------
+	-- @brief ConsolePortRaidCursor:IsValidNode(node)
+	-- @param node The node to test
+	-- @return true if the node is valid, falsy otherwise
+	-----------------------------------------------------------
+
+	function Cursor:SetFilter(filter)
+		-- Create the script body for the filter
+		local filterPredicate = FILTER_SIGNATURE:format(filter or DEFAULT_NODE_PREDICATE)
+		-- Check if the filter compiles and is a function
+		local test, error = loadstring(filterPredicate)
+		if ( type(test) ~= 'function' ) then
+			filterPredicate = FILTER_SIGNATURE:format(DEFAULT_NODE_PREDICATE)
+			CPAPI.Log('Invalid raid cursor filter:\n%s\nThe default filter has been applied.', WHITE_FONT_COLOR:WrapTextInColorCode(error))
+		end
+		-- Check if the filter runs without errors
+		test = loadstring(filterPredicate)
+		test, error = pcallwithenv(test, {owner = self, self = self, node = PlayerFrame})
+		if not test then
+			CPAPI.Log('Raid cursor filter failed a test:\n%s\nThe default filter has been applied.', WHITE_FONT_COLOR:WrapTextInColorCode(error))
+			filterPredicate = FILTER_SIGNATURE:format(DEFAULT_NODE_PREDICATE)
+		end
+		-- Create the filter function
+		self.IsValidNode = loadstring(('return function(self, node) %s end'):format(filterPredicate))()
+		self:SetAttribute('IsValidNode', filterPredicate)
+	end
+end
+
+---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
+function Cursor:GROUP_ROSTER_UPDATE()
+	if not InCombatLockdown() then
+		ScanUI()
+	end
+end
+
+function Cursor:PLAYER_REGEN_DISABLED()
+	ScanUI.Cancel()
+end
+
+Cursor.PLAYER_REGEN_ENABLED  = Cursor.GROUP_ROSTER_UPDATE;
+Cursor.PLAYER_ENTERING_WORLD = Cursor.GROUP_ROSTER_UPDATE;
 
 function Cursor:UNIT_HEALTH(unit)
 	self:UpdateHealthForUnit(unit)

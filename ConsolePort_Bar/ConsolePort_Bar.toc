@@ -26,7 +26,6 @@ Core\Bar.lua
 Core\Config.lua
 
 Customize\Blizzard.lua
-Customize\ConsolePort.lua
 
 Components\Pet.lua
 Components\MenuBar.lua

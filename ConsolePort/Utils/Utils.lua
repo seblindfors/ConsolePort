@@ -2,21 +2,6 @@ local _, db = ...;
 ---------------------------------------------------------------
 -- Mixins
 ---------------------------------------------------------------
--- Frame wrapper, provide backwards compat in widgets
-CPAPI.DisplayMixin = {
-	SetBackdrop = function(self, ...)
-		if BackdropTemplateMixin then
-			if not self.OnBackdropLoaded then 
-				Mixin(self, BackdropTemplateMixin)
-				self:HookScript('OnSizeChanged', self.OnBackdropSizeChanged)
-			end
-			BackdropTemplateMixin.SetBackdrop(self, ...)
-		else
-			getmetatable(self).__index.SetBackdrop(self, ...)
-		end
-	end;
-};
-
 -- Event handler mixin
 CPAPI.EventMixin = {
 	OnEvent = function(self, event, ...)
@@ -103,10 +88,6 @@ CPAPI.AdvancedSecureMixin = CreateFromMixins(CPAPI.SecureExportMixin, CPAPI.Secu
 ---------------------------------------------------------------
 -- Tools
 ---------------------------------------------------------------
-function CPAPI.CreateFrame(...)
-	return Mixin(CreateFrame(...), CPAPI.DisplayMixin)
-end
-
 function CPAPI.DisableFrame(frame, ignoreAlpha)
 	frame:SetSize(0, 0)
 	frame:EnableMouse(false)
@@ -116,24 +97,9 @@ function CPAPI.DisableFrame(frame, ignoreAlpha)
 	ConsolePort:ForbidInterfaceCursorFrame(frame)
 end
 
-function CPAPI.CreateEventHandler(args, events, ...)
-	local handler = db.table.mixin(CreateFrame(unpack(args)), ...)
-	return CPAPI.EventHandler(handler, events)
-end
-
 function CPAPI.CreateDataHandler(...)
 	local handler = CreateFromMixins(...)
 	return CPAPI.DataHandler(handler)
-end
-
-function CPAPI.EventHandler(handler, events)
-	db('table/mixin')(handler, CPAPI.EventMixin)
-	if events then
-		FrameUtil.RegisterFrameForEvents(handler, events)
-		handler.Events = events;
-	end
-	handler:RegisterEvent('ADDON_LOADED')
-	return handler;
 end
 
 function CPAPI.DataHandler(handler)
@@ -206,6 +172,83 @@ do local sort, head = 0;
 end
 
 ---------------------------------------------------------------
+-- Debounce
+---------------------------------------------------------------
+do local __tCount, __tID, __tTime = 0, 'task', '__time_';
+	local function Execute(self, task, callback)
+		if not self[task] then
+			self[task] = true;
+			RunNextFrame(callback)
+		end
+	end
+	local function Handler(self, task, timer, callback, args)
+		self[task] = nil;
+		local updateTime = GetTime()
+		if self[timer] and self[timer] >= updateTime then
+			return; -- task was already executed this frame
+		end
+		self[timer] = updateTime;
+		callback(self, unpack(args))
+	end
+	local function Cancel(self, task, timer, timeout)
+		self[timer] = GetTime() + (timeout or 1);
+	end
+
+	function CPAPI.Debounce(callback, owner, ...) __tCount = __tCount + 1;
+		local task    = __tID .. __tCount;
+		local timer   = task   .. __tTime;
+		local handler = GenerateClosure(Handler, owner, task, timer, callback, {...})
+		local execute = GenerateClosure(Execute, owner, task, handler)
+		local cancel  = GenerateClosure(Cancel,  owner, task, timer)
+		return setmetatable({
+			Execute = execute;
+			Cancel  = cancel;
+		}, {__call = execute})
+	end
+end
+
+---------------------------------------------------------------
+-- Event handlers
+---------------------------------------------------------------
+function CPAPI.CreateEventHandler(args, events, ...)
+	local handler = db.table.mixin(CreateFrame(unpack(args)), ...)
+	return CPAPI.EventHandler(handler, events)
+end
+
+function CPAPI.EventHandler(handler, events)
+	db.table.mixin(handler, CPAPI.EventMixin)
+	if events then
+		for _, event in pairs(events) do
+			if CPAPI.IsEventValid(event) then
+				handler:RegisterEvent(event)
+			end
+		end
+		handler.Events = events;
+	end
+	handler:RegisterEvent('ADDON_LOADED')
+	return handler;
+end
+
+CPAPI.IsEventValid = C_EventUtils and (function(event)
+	return type(event) == 'string' and C_EventUtils.IsEventValid(event)
+end) or (function()
+	local tester = CreateFrame('Frame')
+	return function(event)
+		local isEventValid = pcall(tester.RegisterEvent, tester, event)
+		tester:UnregisterAllEvents()
+		return isEventValid;
+	end
+end)()
+
+ function CPAPI.RegisterFrameForEvents(frame, events)
+	for _, event in pairs(events) do
+		if CPAPI.IsEventValid(event) then
+			frame:RegisterEvent(event)
+		end
+	end
+end
+
+---------------------------------------------------------------
 -- Secure environment translation
 ---------------------------------------------------------------
 do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
@@ -227,6 +270,15 @@ do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
 	end
 
 	CPAPI.ConvertSecureBody = ConvertSecureBody;
+	CPAPI.FormatSecureBody  = function(body, args)
+		for key, value in pairs(args) do
+			body = body:gsub(
+				('{%s}'):format(key),
+				(type(value) == 'string' and ('%q'):format(value) or tostring(value))
+			);
+		end
+		return ConvertSecureBody(body);
+	end
 end
 
 ---------------------------------------------------------------
