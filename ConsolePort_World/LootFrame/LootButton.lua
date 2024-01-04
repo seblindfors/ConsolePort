@@ -142,5 +142,6 @@ ConsolePort:AddVariables({
 		name = 'Use Global Loot Tooltip';
 		desc = 'Use global game tooltip for loot information, allowing other addons to add information to lootable items.';
 		note = 'Requires ConsolePort World.';
+		advd = true;
 	};
 })
