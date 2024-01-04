@@ -268,6 +268,9 @@ function Cursor:OnDataLoaded()
 		self.Arrow:SetTexture([[Interface\WorldMap\WorldMapArrow]])
 		self.Arrow:SetSize(24, 24)
 	end
+
+	self:RegisterEvent('ADDON_LOADED')
+	self.ADDON_LOADED = self.GROUP_ROSTER_UPDATE;
 end
 
 function Cursor:OnUpdateOverrides(isPriority)
