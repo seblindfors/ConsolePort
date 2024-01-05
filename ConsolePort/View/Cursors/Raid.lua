@@ -74,7 +74,7 @@ Cursor:CreateEnvironment({
 			local action = node:GetAttribute('action')
 
 			if unit and not action then
-				if self::IsValidNode() and node:IsVisible() then
+				if self::IsValidNode(unit) and node:IsVisible() then
 					NODES[node] = true;
 				end
 			elseif action and tonumber(action) then
@@ -531,31 +531,41 @@ function Cursor:CacheNode(node)
 	end
 end
 
-do 	local FILTER_SIGNATURE, DEFAULT_NODE_PREDICATE = 'return %s;', 'true';
+do 	local FILTER_SIGNATURE, DEFAULT_NODE_PREDICATE = 'local unit = unit or ...; return %s;', 'true';
 	-----------------------------------------------------------
 	-- @brief ConsolePortRaidCursor:IsValidNode(node)
 	-- @param node The node to test
+	-- @param unit The unit that the node represents
 	-- @return true if the node is valid, falsy otherwise
 	-----------------------------------------------------------
-
 	function Cursor:SetFilter(filter)
+		-- Format potential error message to remove the filter signature
+		local function FormatError(error)
+			return WHITE_FONT_COLOR:WrapTextInColorCode(
+				error:gsub(FILTER_SIGNATURE:sub(1, #FILTER_SIGNATURE - 3), ''))
+		end
 		-- Create the script body for the filter
 		local filterPredicate = FILTER_SIGNATURE:format(filter or DEFAULT_NODE_PREDICATE)
 		-- Check if the filter compiles and is a function
 		local test, error = loadstring(filterPredicate)
 		if ( type(test) ~= 'function' ) then
 			filterPredicate = FILTER_SIGNATURE:format(DEFAULT_NODE_PREDICATE)
-			CPAPI.Log('Invalid raid cursor filter:\n%s\nThe default filter has been applied.', WHITE_FONT_COLOR:WrapTextInColorCode(error))
+			CPAPI.Log('Invalid raid cursor filter:\n%s\nThe default filter has been applied.', FormatError(error))
 		end
 		-- Check if the filter runs without errors
 		test = loadstring(filterPredicate)
-		test, error = pcallwithenv(test, CPAPI.Proxy({owner = self, self = self, node = PlayerFrame}, _G))
+		test, error = pcallwithenv(test, CPAPI.Proxy({
+			owner = self;
+			self  = self;
+			unit  = 'player';
+			node  = PlayerFrame;
+		}, _G))
 		if not test then
-			CPAPI.Log('Raid cursor filter failed a test:\n%s\nThe default filter has been applied.', WHITE_FONT_COLOR:WrapTextInColorCode(error))
+			CPAPI.Log('Raid cursor filter failed a test:\n%s\nThe default filter has been applied.', FormatError(error))
 			filterPredicate = FILTER_SIGNATURE:format(DEFAULT_NODE_PREDICATE)
 		end
 		-- Create the filter function
-		self.IsValidNode = loadstring(('return function(self, node) %s end'):format(filterPredicate))()
+		self.IsValidNode = loadstring(('return function(self, node, ...) %s end'):format(filterPredicate))()
 		self:SetAttribute('IsValidNode', filterPredicate)
 	end
 end

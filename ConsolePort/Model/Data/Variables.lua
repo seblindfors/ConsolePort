@@ -242,7 +242,8 @@ db:Register('Variables', {
 	raidCursorFilter = _{String(nil);
 		name = 'Filter Condition';
 		desc = 'Filter condition to find raid cursor frames, as a boolean expression.';
-		note = BLUE'node' .. ' is the current frame under scrutinization.';
+		note = BLUE'node' .. ' is the current frame under scrutinization.\n'
+			.. BLUE'unit' .. ' is the current unit ID for the frame.';
 		advd = true;
 	};
 	raidCursorWrapDisable = _{Bool(false);
