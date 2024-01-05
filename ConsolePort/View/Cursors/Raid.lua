@@ -78,7 +78,9 @@ Cursor:CreateEnvironment({
 					NODES[node] = true;
 				end
 			elseif action and tonumber(action) then
-				ACTIONS[node] = unit or false;
+				if not ACTIONS[node] then
+					ACTIONS[node] = unit or false;
+				end
 			end
 		end
 	]];
@@ -547,7 +549,7 @@ do 	local FILTER_SIGNATURE, DEFAULT_NODE_PREDICATE = 'return %s;', 'true';
 		end
 		-- Check if the filter runs without errors
 		test = loadstring(filterPredicate)
-		test, error = pcallwithenv(test, {owner = self, self = self, node = PlayerFrame})
+		test, error = pcallwithenv(test, CPAPI.Proxy({owner = self, self = self, node = PlayerFrame}, _G))
 		if not test then
 			CPAPI.Log('Raid cursor filter failed a test:\n%s\nThe default filter has been applied.', WHITE_FONT_COLOR:WrapTextInColorCode(error))
 			filterPredicate = FILTER_SIGNATURE:format(DEFAULT_NODE_PREDICATE)
