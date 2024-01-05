@@ -78,7 +78,7 @@ Cursor:CreateEnvironment({
 					NODES[node] = true;
 				end
 			elseif action and tonumber(action) then
-				if not ACTIONS[node] then
+				if ( ACTIONS[node] == nil ) then
 					ACTIONS[node] = unit or false;
 				end
 			end
