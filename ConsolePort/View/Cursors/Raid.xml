@@ -9,6 +9,7 @@
 			<Attribute name="_childupdate-actionpage" type="string" value="self:Run(ActionPageChanged, newstate)"/>
 		</Attributes>
 		<Frames>
+			<!-- Secure -->
 			<Button name="$parentFocus" parentKey="SetFocus" inherits="SecureActionButtonTemplate" registerForClicks="AnyUp">
 				<Attributes>
 					<Attribute name="pressAndHoldAction" type="boolean" value="true"/>
@@ -20,71 +21,79 @@
 				</Attributes>
 			</Button>
 			<Button name="$parentToggle" parentKey="Toggle" inherits="SecureActionButtonTemplate" registerForClicks="LeftButtonDown" setAllPoints="true" alpha="0"/>
+			<!-- Frontend -->
+			<Frame parentKey="Display" inherits="CPCursorArrowTemplate" frameStrata="TOOLTIP">
+				<Frames>
+					<Frame parentKey="UnitInformation" setAllPoints="true">
+						<Layers>
+							<Layer level="ARTWORK" textureSubLevel="1">
+								<Texture parentKey="UnitPortrait" >
+									<Size x="46" y="46"/>
+									<Anchors>
+										<Anchor point="TOPLEFT" x="12" y="-12"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+							<Layer level="ARTWORK" textureSubLevel="2">
+								<Texture parentKey="SpellPortrait">
+									<Size x="46" y="46"/>
+									<Anchors>
+										<Anchor point="TOPLEFT" x="12" y="-12"/>
+									</Anchors>
+								</Texture>
+								<Texture parentKey="LineSheen" hidden="true" alphaMode="ADD" atlas="OBJFX_LineBurst" rotation="0">
+									<Size x="12" y="80"/>
+									<Anchors>
+										<Anchor point="LEFT" relativeKey="$parent.SpellPortrait" relativePoint="RIGHT" x="-8" y="0"/>
+									</Anchors>
+								</Texture>
+								<MaskTexture parentKey="PortraitMask" file="Interface\Masks\CircleMaskScalable" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+									<Anchors>
+										<Anchor point="TOPLEFT" relativeKey="$parent.UnitPortrait"/>
+										<Anchor point="BOTTOMRIGHT" relativeKey="$parent.UnitPortrait"/>
+									</Anchors>
+									<MaskedTextures>
+										<MaskedTexture childKey="UnitPortrait"/>
+										<MaskedTexture childKey="SpellPortrait"/>
+										<MaskedTexture childKey="LineSheen"/>
+									</MaskedTextures>
+								</MaskTexture>
+							</Layer>
+							<Layer level="OVERLAY" textureSubLevel="1">
+								<Texture parentKey="CastBar" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\Spinner" hidden="true">
+									<Size x="58" y="58"/>
+									<Anchors>
+										<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+							<Layer level="OVERLAY" textureSubLevel="2">
+								<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\RoundBorder">
+									<Size x="54" y="54"/>
+									<Anchors>
+										<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+							<Layer level="OVERLAY" textureSubLevel="3">
+								<Texture parentKey="Health" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\RoundBorderHighlight">
+									<Size x="54" y="54"/>
+									<Anchors>
+										<Anchor point="BOTTOM" relativeKey="$parent.Border"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+					</Frame>
+				</Frames>
+			</Frame>
 		</Frames>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="Arrow">
-					<Anchors>
-						<Anchor point="TOPLEFT"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="ARTWORK" textureSubLevel="1">
-				<Texture parentKey="UnitPortrait" >
-					<Size x="46" y="46"/>
-					<Anchors>
-						<Anchor point="TOPLEFT" relativePoint="CENTER"/>
-					</Anchors>
-				</Texture>
-				<MaskTexture parentKey="PlayerPortraitMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.UnitPortrait"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.UnitPortrait"/>
-					</Anchors>
-					<MaskedTextures>
-						<MaskedTexture childKey="UnitPortrait"/>
-					</MaskedTextures>
-				</MaskTexture>
-			</Layer>
-			<Layer level="ARTWORK" textureSubLevel="2">
-				<Texture parentKey="SpellPortrait">
-					<Size x="46" y="46"/>
-					<Anchors>
-						<Anchor point="TOPLEFT" relativePoint="CENTER"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="OVERLAY" textureSubLevel="1">
-				<Texture parentKey="CastBar" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\Spinner" hidden="true">
-					<Size x="54" y="54"/>
-					<Anchors>
-						<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="OVERLAY" textureSubLevel="2">
-				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\RoundBorder">
-					<Size x="54" y="54"/>
-					<Anchors>
-						<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="OVERLAY" textureSubLevel="3">
-				<Texture parentKey="Health" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\RoundBorderHighlight">
-					<Size x="54" y="54"/>
-					<Anchors>
-						<Anchor point="BOTTOM" relativeKey="$parent.Border"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
 		<Animations>
 			<AnimationGroup parentKey="Group">
-				<Scale parentKey="ScaleUp" smoothing="OUT" duration=".1" order="1">
+				<Scale parentKey="ScaleUp" smoothing="OUT" duration=".1" order="1" scaleX="1.15" scaleY="1.15">
 					<Origin point="CENTER"/>
 				</Scale>
-				<Scale parentKey="ScaleDown" smoothing="OUT" duration=".1" order="2">
+				<Scale parentKey="ScaleDown" smoothing="OUT" duration=".2" order="2" scaleX="0.8695652173913044" scaleY="0.8695652173913044">
 					<Origin point="CENTER"/>
 				</Scale>
 			</AnimationGroup>

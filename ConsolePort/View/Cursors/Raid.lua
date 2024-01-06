@@ -170,7 +170,7 @@ Cursor:CreateEnvironment({
 			RegisterStateDriver(self, 'unitexists', ('[@%s,exists] true; nil'):format(unit))
 
 			self:ClearAllPoints()
-			self:SetPoint('TOPLEFT', curnode, 'CENTER', 0, 0)
+			self:SetPoint('CENTER', curnode, 'CENTER', 0, 0)
 			self:SetAttribute('node', curnode)
 			self:SetAttribute('cursorunit', unit)
 
@@ -258,18 +258,12 @@ function Cursor:OnDataLoaded()
 	self:SetFilter(db('raidCursorFilter'))
 	self:SetAttribute('wrapDisable', db('raidCursorWrapDisable'))
 	self:SetScale(db('raidCursorScale'))
+	self:UpdatePointer()
 
 	self:Execute('wipe(BUTTONS)')
 	for direction, varID in pairs(self.Directions) do
 		self:Execute(('BUTTONS[%q] = %q'):format(direction, db(varID)))
 	end 
-
-	if CPAPI.IsRetailVersion then
-		self.Arrow:SetAtlas('Navigation-Tracked-Arrow', true)
-	else
-		self.Arrow:SetTexture([[Interface\WorldMap\WorldMapArrow]])
-		self.Arrow:SetSize(24, 24)
-	end
 
 	self:RegisterEvent('ADDON_LOADED')
 	self.ADDON_LOADED = self.GROUP_ROSTER_UPDATE;
@@ -326,6 +320,7 @@ do 	local UnitExists = UnitExists;
 					self:UpdateCastbar(self.startTime, self.endTime)
 				elseif (self.resetPortrait) then
 					self.resetPortrait = false;
+					self.LineSheen:Hide()
 					self.UnitPortrait:SetPortrait(self.unit)
 				end
 			end
@@ -364,14 +359,17 @@ Mixin(CPAPI.EventHandler(Cursor, {
 -- Frontend
 ---------------------------------------------------------------
 local Fade = db.Alpha.Fader;
+local PORTRAIT_TEXTURE_SIZE = 46;
 
 do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 	local UnitClass, UnitHealth, UnitHealthMax = UnitClass, UnitHealth, UnitHealthMax;
 	local GetClassColorObj, PlaySound, SOUNDKIT = GetClassColorObj, PlaySound, SOUNDKIT;
 	local WARNING_LOW_HEALTH = ChatTypeInfo.YELL;
 
+	for _, region in ipairs({Cursor.Display.UnitInformation:GetRegions()}) do
+		Cursor[region:GetParentKey()] = region;
+	end
 	Cursor.UnitPortrait.SetPortrait  = SetPortraitTexture;
-	Cursor.SpellPortrait.SetPortrait = SetPortraitToTexture;
 
 	function Cursor:UpdateUnit(unit)
 		self.unit = unit;
@@ -422,18 +420,12 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 
 				if self.animateOnShow then
 					self.animateOnShow = false;
-					self.ScaleUp:SetScale(1.5, 1.5)
-					self.ScaleDown:SetScale(1/1.5, 1/1.5)
-					self.ScaleDown:SetDuration(0.5)
 					PlaySound(SOUNDKIT.ACHIEVEMENT_MENU_OPEN)
-				else
-					self.ScaleUp:SetScale(1.15, 1.15)
-					self.ScaleDown:SetScale(1/1.15, 1/1.15)
-					self.ScaleDown:SetDuration(0.2)
 				end
-
-				self.Group:Stop()
-				self.Group:Play()
+				if self.animationEnabled then
+					self.Group:Stop()
+					self.Group:Play()
+				end
 				self:SetAlpha(1)
 			end
 		else
@@ -445,9 +437,13 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 	function Cursor:UpdateCastbar(startCast, endCast)
 		local time = GetTime() * 1000;
 		local progress = (time - startCast) / (endCast - startCast)
-		local resize = Clamp(80 - (22 * (1 - progress)), 58, 80)
+		local resize = Clamp(72 - (14 * (1 - progress)), 58, 72)
+		progress = self.isChanneling and 1 - progress or progress;
+		self.LineSheen:Show()
 		self.CastBar:SetRotation(-2 * progress * pi)
 		self.CastBar:SetSize(resize, resize)
+		self.SpellPortrait:SetTexCoord(0, progress, 0, 1)
+		self.SpellPortrait:SetWidth(PORTRAIT_TEXTURE_SIZE * progress)
 	end
 
 	function Cursor:UpdateCastingState(name, texture, isCasting, isChanneling, startTime, endTime)
@@ -471,7 +467,7 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 			castBar:SetRotation(0)
 			spellPortrait:Show()
 			if texture then
-				spellPortrait:SetPortrait(texture)
+				spellPortrait:SetTexture(texture)
 			end
 
 			Fade.In(castBar, 0.2, castBar:GetAlpha(), 1)
@@ -488,8 +484,25 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 		self.resetPortrait = isCasting or isChanneling;
 	end
 
-	Cursor.Arrow:SetRotation(rad(45))
+	function Cursor:UpdatePointer()
+		local animationEnabled = db('raidCursorPointerAnimation')
+		self.Display:SetSize(db('raidCursorPointerSize'))
+		self.Display:SetOffset(db('raidCursorPointerOffset'))
+		self.Display:SetRotationEnabled(animationEnabled)
+		self.Display:SetAnimationEnabled(animationEnabled)
+		self.Display.UnitInformation:SetShown(db('raidCursorPortraitShow'))
+		self.animationSpeed = db('raidCursorTravelTime');
+		self.animationEnabled = animationEnabled;
+	end
 end
+
+db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
+	'Settings/raidCursorTravelTime',
+	'Settings/raidCursorPointerSize',
+	'Settings/raidCursorPointerOffset',
+	'Settings/raidCursorPointerAnimation',
+	'Settings/raidCursorPortraitShow'
+);
 
 ---------------------------------------------------------------
 -- UI Caching
@@ -596,6 +609,7 @@ function Cursor:PLAYER_TARGET_CHANGED()
 	end
 end
 
+-- Casting and channeling events
 do 	local UnitChannelInfo, UnitCastingInfo = UnitChannelInfo, UnitCastingInfo;
 	local Flash = db.Alpha.Flash;
 
@@ -607,6 +621,7 @@ do 	local UnitChannelInfo, UnitCastingInfo = UnitChannelInfo, UnitCastingInfo;
 	function Cursor:UNIT_SPELLCAST_CHANNEL_STOP()
 		self.isChanneling = false;
 		Fade.Out(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
+		Fade.Out(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
 	end
 
 	function Cursor:UNIT_SPELLCAST_START(unit)
@@ -625,13 +640,12 @@ do 	local UnitChannelInfo, UnitCastingInfo = UnitChannelInfo, UnitCastingInfo;
 		if name and icon then
 			if self:IsApplicableSpell(name) then
 				local spellPortrait = self.SpellPortrait;
-				spellPortrait:SetPortrait(icon)
+				spellPortrait:SetTexture(icon)
 				-- instant cast spell
 				if not self.isCasting and not self.isChanneling then
+					spellPortrait:SetWidth(PORTRAIT_TEXTURE_SIZE)
+					spellPortrait:SetTexCoord(0, 1, 0, 1)
 					Flash(spellPortrait, 0.25, 0.25, 0.75, false, 0.25, 0)
-				else
-					spellPortrait:Show()
-					Fade.Out(spellPortrait, 0.25, spellPortrait:GetAlpha(), 0)
 				end
 			end
 		end

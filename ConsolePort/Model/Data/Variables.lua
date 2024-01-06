@@ -251,6 +251,32 @@ db:Register('Variables', {
 		desc = 'Prevent the cursor from wrapping when navigating.';
 		advd = true;
 	};
+	raidCursorPortraitShow = _{Bool(true);
+		name = 'Show Portrait';
+		desc = 'Show portrait for the current unit, with health percentage and applicable spell casts.';
+		advd = true;
+	};
+	raidCursorPointerAnimation = _{Bool(true);
+		name = 'Enable Animation';
+		desc = 'Pointer arrow rotates in the direction of travel, and portraits scale up and down on movement.';
+		advd = true;
+	};
+	raidCursorPointerSize = _{Number(22, 2, true);
+		name = 'Pointer Size';
+		desc = 'Size of pointer arrow, in pixels.';
+		advd = true;
+	};
+	raidCursorPointerOffset = _{Number(-2, 1);
+		name = 'Pointer Offset';
+		desc = 'Offset of pointer arrow, from the selected node center, in pixels.';
+		advd = true;
+	};
+	raidCursorTravelTime = _{Range(4, 1, 1, 10);
+		name = 'Travel Time';
+		desc = 'How long the cursor should take to transition from one node to another.';
+		note = 'Higher is slower.';
+		advd = true;
+	};
 	--------------------------------------------------------------------------------------------------------
 	_'Interface Cursor';
 	--------------------------------------------------------------------------------------------------------

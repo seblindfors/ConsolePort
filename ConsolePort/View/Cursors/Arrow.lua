@@ -24,6 +24,10 @@ function CPCursorArrowMixin:SetRotationEnabled(enabled)
 	end
 end
 
+function CPCursorArrowMixin:SetAnimationEnabled(enabled)
+	self.animationEnabled = enabled;
+end
+
 function CPCursorArrowMixin:SetRotation(rotation)
 	self.rotation = rotation < 0 and RAD_MOD + rotation or rotation % RAD_MOD;
 	self.ArrowNormal:SetRotation(rotation)
@@ -47,7 +51,7 @@ function CPCursorArrowMixin:OnUpdate(elapsed)
 	local divisor = self.animationSpeed - elapsed;
 	local parent  = self:GetParent()
 
-	parent.Blocker:SetShown(IsGamePadInUse() and not IsGamePadCursor())
+	self:ToggleBlocker(IsGamePadInUse() and IsGamePadCursor())
 
 	local cX, cY = self:GetLeft(), self:GetTop()
 	local nX, nY = Node.GetCenter(parent)
@@ -79,12 +83,21 @@ function CPCursorArrowMixin:OnUpdate(elapsed)
 end
 
 function CPCursorArrowMixin:OnHide()
-	self:GetParent().Blocker:Hide()
+	self:ToggleBlocker(false)
+end
+
+function CPCursorArrowMixin:ToggleBlocker(enabled)
+	local blocker = self:GetParent().Blocker;
+	if blocker then
+		blocker:SetShown(enabled)
+	end
 end
 
 function CPCursorArrowMixin:OnShow()
-	self.Group:Stop()
-	self.Group:Play()
+	if self.animationEnabled then
+		self.Group:Stop()
+		self.Group:Play()
+	end
 end
 
 function CPCursorArrowMixin:OnLoad()
