@@ -115,4 +115,7 @@ function CPCursorArrowMixin:OnLoad()
 	if (self.rotationEnabled == nil) then
 		self.rotationEnabled = true;
 	end
+	if (self.animationEnabled == nil) then
+		self.animationEnabled = true;
+	end
 end
