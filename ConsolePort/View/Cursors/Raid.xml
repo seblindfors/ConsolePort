@@ -60,7 +60,7 @@
 								</MaskTexture>
 							</Layer>
 							<Layer level="OVERLAY" textureSubLevel="1">
-								<Texture parentKey="CastBar" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\Spinner" hidden="true">
+								<Texture parentKey="Spinner" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\Spinner" hidden="true">
 									<Size x="58" y="58"/>
 									<Anchors>
 										<Anchor point="CENTER" relativeKey="$parent.UnitPortrait"/>

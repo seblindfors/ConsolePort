@@ -358,7 +358,7 @@ Mixin(CPAPI.EventHandler(Cursor, {
 ---------------------------------------------------------------
 -- Frontend
 ---------------------------------------------------------------
-local Fade = db.Alpha.Fader;
+local Fade, Flash = db.Alpha.Fader, db.Alpha.Flash;
 local PORTRAIT_TEXTURE_SIZE = 46;
 
 do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
@@ -408,7 +408,7 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 
 	function Cursor:UpdateSpinnerColor(colorObj)
 		if colorObj then
-			self.CastBar:SetVertexColor(colorObj.r, colorObj.g, colorObj.b)
+			self.Spinner:SetVertexColor(colorObj.r, colorObj.g, colorObj.b)
 		end
 	end
 
@@ -437,13 +437,9 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 	function Cursor:UpdateCastbar(startCast, endCast)
 		local time = GetTime() * 1000;
 		local progress = (time - startCast) / (endCast - startCast)
-		local resize = Clamp(72 - (14 * (1 - progress)), 58, 72)
 		progress = self.isChanneling and 1 - progress or progress;
-		self.LineSheen:Show()
-		self.CastBar:SetRotation(-2 * progress * pi)
-		self.CastBar:SetSize(resize, resize)
-		self.SpellPortrait:SetTexCoord(0, progress, 0, 1)
-		self.SpellPortrait:SetWidth(PORTRAIT_TEXTURE_SIZE * progress)
+		self:SetSpinnerProgress(progress)
+		self:SetSpellProgress(progress)
 	end
 
 	function Cursor:UpdateCastingState(name, texture, isCasting, isChanneling, startTime, endTime)
@@ -451,37 +447,64 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 			self:UpdateSpinnerColor(self.color)
 			self:SetCastingInfo(texture, isCasting, isChanneling, startTime, endTime)
 		else
-			self.CastBar:Hide()
-			self.SpellPortrait:Hide()
+			self:HideCastingInfo()
 		end
 	end
 
 	function Cursor:IsApplicableSpell(spell)
-		return self:GetAttribute('relation') == (IsHarmfulSpell(spell) and 'harm' or IsHelpfulSpell(spell) and 'help');
+		return self:GetAttribute('relation')
+			== (IsHarmfulSpell(spell) and 'harm' or IsHelpfulSpell(spell) and 'help');
+	end
+
+	function Cursor:SetSpellTexture(texture)
+		self.SpellPortrait:SetTexture(texture)
+		self.SpellPortrait:SetShown(not not texture)
+	end
+
+	function Cursor:SetSpellProgress(progress)
+		self.SpellPortrait:SetWidth(PORTRAIT_TEXTURE_SIZE * progress)
+		self.SpellPortrait:SetTexCoord(0, progress, 0, 1)
+		self.LineSheen:SetShown(progress < 1)
+	end
+
+	function Cursor:SetSpinnerProgress(progress)
+		local spinner, size = self.Spinner, Clamp(72 - (14 * (1 - progress)), 58, 72)
+		spinner:SetShown(true)
+		spinner:SetSize(size, size)
+		spinner:SetRotation(-2 * progress * pi)
+	end
+
+	function Cursor:SetCastInfoAlpha(isCasting, isChanneling, isInstantCast)
+		if isCasting or isChanneling then
+			Fade.In(self.Spinner, 0.2, self.Spinner:GetAlpha(), 1)
+			Fade.In(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 1)
+		elseif isInstantCast then
+			Flash(self.SpellPortrait, 0.25, 0.25, 0.75, false, 0.25, 0)
+		else
+			Fade.Out(self.Spinner, 0.2, self.Spinner:GetAlpha(), 0)
+			Fade.Out(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+		end
 	end
 
 	function Cursor:SetCastingInfo(texture, isCasting, isChanneling, startTime, endTime)
-		local castBar, spellPortrait = self.CastBar, self.SpellPortrait;
 		if isCasting or isChanneling then
-			castBar:Show()
-			castBar:SetRotation(0)
-			spellPortrait:Show()
-			if texture then
-				spellPortrait:SetTexture(texture)
-			end
-
-			Fade.In(castBar, 0.2, castBar:GetAlpha(), 1)
-			Fade.In(spellPortrait, 0.25, spellPortrait:GetAlpha(), 1)
+			self:SetSpinnerProgress(0)
+			self:SetSpellTexture(texture)
 		else
-			castBar:Hide()
-			spellPortrait:Hide()
+			self:HideCastingInfo()
 		end
+		self:SetCastInfoAlpha(isCasting, isChanneling)
 
 		self.isCasting     = isCasting;
 		self.isChanneling  = isChanneling;
 		self.startTime     = startTime;
 		self.endTime       = endTime;
 		self.resetPortrait = isCasting or isChanneling;
+	end
+
+	function Cursor:HideCastingInfo()
+		self.Spinner:Hide()
+		self:SetSpellTexture(nil)
 	end
 
 	function Cursor:UpdatePointer()
@@ -611,7 +634,6 @@ end
 
 -- Casting and channeling events
 do 	local UnitChannelInfo, UnitCastingInfo = UnitChannelInfo, UnitCastingInfo;
-	local Flash = db.Alpha.Flash;
 
 	function Cursor:UNIT_SPELLCAST_CHANNEL_START(unit)
 		local name, _, texture, startTime, endTime = UnitChannelInfo(unit)
@@ -620,8 +642,7 @@ do 	local UnitChannelInfo, UnitCastingInfo = UnitChannelInfo, UnitCastingInfo;
 
 	function Cursor:UNIT_SPELLCAST_CHANNEL_STOP()
 		self.isChanneling = false;
-		Fade.Out(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
-		Fade.Out(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+		self:SetCastInfoAlpha(self.isCasting, self.isChanneling)
 	end
 
 	function Cursor:UNIT_SPELLCAST_START(unit)
@@ -631,21 +652,18 @@ do 	local UnitChannelInfo, UnitCastingInfo = UnitChannelInfo, UnitCastingInfo;
 
 	function Cursor:UNIT_SPELLCAST_STOP()
 		self.isCasting = false;
-		Fade.Out(self.CastBar, 0.2, self.CastBar:GetAlpha(), 0)
-		Fade.Out(self.SpellPortrait, 0.25, self.SpellPortrait:GetAlpha(), 0)
+		self:SetCastInfoAlpha(self.isCasting, self.isChanneling)
 	end
 
 	function Cursor:UNIT_SPELLCAST_SUCCEEDED(_, _, spellID)
-		local name, _, icon = GetSpellInfo(spellID)
-		if name and icon then
+		local name, _, texture = GetSpellInfo(spellID)
+		if name and texture then
 			if self:IsApplicableSpell(name) then
-				local spellPortrait = self.SpellPortrait;
-				spellPortrait:SetTexture(icon)
+				self:SetSpellTexture(texture)
 				-- instant cast spell
 				if not self.isCasting and not self.isChanneling then
-					spellPortrait:SetWidth(PORTRAIT_TEXTURE_SIZE)
-					spellPortrait:SetTexCoord(0, 1, 0, 1)
-					Flash(spellPortrait, 0.25, 0.25, 0.75, false, 0.25, 0)
+					self:SetSpellProgress(1)
+					self:SetCastInfoAlpha(false, false, true)
 				end
 			end
 		end
