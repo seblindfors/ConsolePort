@@ -229,6 +229,13 @@ Cursor:CreateEnvironment({
 	]];
 })
 
+-- Attempt to move the cursor to another unit frame when the current unit expires.
+-- This may only work for unit frames loaded before the cursor is created,
+-- since they are otherwise likely to be on screen when the state handler runs.
+Cursor:SetAttribute('_onstate-unitexists', CPAPI.ConvertSecureBody([[
+	self::UpdateUnitExists(newstate)
+]]))
+
 ---------------------------------------------------------------
 -- Settings
 ---------------------------------------------------------------
@@ -271,7 +278,7 @@ end
 
 function Cursor:OnUpdateOverrides(isPriority)
 	if not isPriority then
-		self:Execute('self:RunAttribute("ToggleCursor", enabled)')
+		self:Run('self::ToggleCursor(enabled)')
 	end
 end
 
