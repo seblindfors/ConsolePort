@@ -51,7 +51,7 @@ function CPCursorArrowMixin:OnUpdate(elapsed)
 	local divisor = self.animationSpeed - elapsed;
 	local parent  = self:GetParent()
 
-	self:ToggleBlocker(IsGamePadInUse() and IsGamePadCursor())
+	self:ToggleBlocker(IsGamePadInUse() and not IsGamePadCursor())
 
 	local cX, cY = self:GetLeft(), self:GetTop()
 	local nX, nY = Node.GetCenter(parent)
