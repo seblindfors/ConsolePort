@@ -34,6 +34,7 @@
 --  nodesingleton    : (boolean) no recursive scan on this node
 --  nodepass         : (boolean) include children, skip node
 ---------------------------------------------------------------
+local LibStub = _G.LibStub
 local NODE = LibStub:NewLibrary('ConsolePortNode', 1)
 if not NODE then return end
 
@@ -68,7 +69,7 @@ local GetCenter
 local GetCenterPos
 local GetCenterScaled
 local DoNodesIntersect
-local GetFrameLevel
+local GetAbsFrameLevel
 local PointInRange
 local CanLevelsIntersect
 local DoNodeAndRectIntersect
@@ -184,13 +185,22 @@ do local function UIScaleChanged()
 	UIParent:HookScript('OnSizeChanged', UIScaleChanged)
 end
 
+---------------------------------------------------------------
+-- Upvalues
+---------------------------------------------------------------
+local tinsert, tremove, pairs, ipairs, next, wipe =
+	tinsert, tremove, pairs, ipairs, next, wipe;
+local vlen, huge, abs, deg, atan2 =
+	Vector2D_GetLength, math.huge, math.abs, math.deg, math.atan2;
+-- Operate within the frame metatable
+setfenv(1, GetFrameMetatable().__index)
 
 ---------------------------------------------------------------
 -- Eligibility
 ---------------------------------------------------------------
 
 function IsMouseResponsive(node)
-	return node.GetScript and ( node:GetScript('OnEnter') or node:GetScript('OnMouseDown') ) and true
+	return ( GetScript(node, 'OnEnter') or GetScript(node, 'OnMouseDown') ) and true
 end
 
 function IsUsable(object)
@@ -198,18 +208,18 @@ function IsUsable(object)
 end
 
 function IsInteractive(node, object)
-	return 	not node:IsObjectType('ScrollFrame')
-			and node:IsMouseEnabled()
-			and not node:GetAttribute('nodepass')
+	return 	not IsObjectType(node, 'ScrollFrame')
+			and IsMouseEnabled(node)
+			and not GetAttribute(node, 'nodepass')
 			and ( IsUsable(object) or IsMouseResponsive(node) )
 end
 
 function IsRelevant(node)
-	return node and not node:IsForbidden() and not node:GetAttribute('nodeignore') and node:IsVisible()
+	return node and not IsForbidden(node) and not GetAttribute(node, 'nodeignore') and IsVisible(node)
 end
 
 function IsTree(node)
-	return not node:GetAttribute('nodesingleton')
+	return not GetAttribute(node, 'nodesingleton')
 end
 
 function IsDrawn(node, super)
@@ -217,7 +227,7 @@ function IsDrawn(node, super)
 	local mX, mY = BOUNDS:GetXYZ()
 	if ( PointInRange(nX, 0, mX) and PointInRange(nY, 0, mY) ) then
 		-- assert node isn't clipped inside a scroll child
-		if super and not node:IsObjectType('Slider') then
+		if super and not IsObjectType(node, 'Slider') then
 			return DoNodesIntersect(node, super) --or UIDoFramesIntersect(node, scrollChild)
 		else
 			return true
@@ -229,21 +239,23 @@ end
 -- Attachments
 ---------------------------------------------------------------
 function GetSuperNode(super, node)
-	return (node:IsObjectType('ScrollFrame') or node:DoesClipChildren()) and node or super
+	return (IsObjectType(node, 'ScrollFrame')
+		or DoesClipChildren(node)) and node
+		or super
 end
 
 function GetScrollButtons(node)
 	if node then
-		if node:IsMouseWheelEnabled() then
-			for _, frame in pairs({node:GetChildren()}) do
-				if frame:IsObjectType('Slider') then
-					return frame:GetChildren()
+		if IsMouseWheelEnabled(node) then
+			for _, frame in pairs({GetChildren(node)}) do
+				if IsObjectType(frame, 'Slider') then
+					return GetChildren(frame)
 				end
 			end
-		elseif node:IsObjectType('Slider') then
-			return node:GetChildren()
+		elseif IsObjectType(node, 'Slider') then
+			return GetChildren(node)
 		else
-			return GetScrollButtons(node:GetParent())
+			return GetScrollButtons(GetParent(node))
 		end
 	end
 end
@@ -253,16 +265,16 @@ end
 ---------------------------------------------------------------
 function Scan(super, node, sibling, ...)
 	if IsRelevant(node) then
-		local object, level = node:GetObjectType(), GetFrameLevel(node)
+		local object, level = GetObjectType(node), GetAbsFrameLevel(node)
 		if IsDrawn(node, super) then
 			if IsInteractive(node, object) then
 				CacheItem(node, object, super, level)
-			elseif node:IsMouseEnabled() then
+			elseif IsMouseEnabled(node) then
 				CacheRect(node, level)
 			end
 		end
 		if IsTree(node) then
-			Scan(GetSuperNode(super, node), node:GetChildren())
+			Scan(GetSuperNode(super, node), GetChildren(node))
 		end
 	end
 	if sibling then
@@ -282,9 +294,9 @@ function ScanLocal(node)
 		end
 		ClearCache()
 		Scan(super, node)
-		local object = node:GetObjectType()
+		local object = GetObjectType(node)
 		if IsInteractive(node, object) then
-			CacheItem(node, object, super, GetFrameLevel(node))
+			CacheItem(node, object, super, GetAbsFrameLevel(node))
 		end
 		ScrubCache(GetNextCacheItem(nil))
 	end
@@ -310,12 +322,10 @@ end
 ---------------------------------------------------------------
 -- Cache control
 ---------------------------------------------------------------
-local tinsert, tremove, ipairs, next = tinsert, tremove, ipairs, next
----------------------------------------------------------------
 
 function CacheItem(node, object, super, level)
 	CacheRect(node, level)
-	Insert(CACHE, node:GetAttribute('nodepriority'), {
+	Insert(CACHE, GetAttribute(node, 'nodepriority'), {
 		node   = node;
 		object = object;
 		super  = super;
@@ -358,7 +368,7 @@ end
 function GetFirstEligibleCacheItem()
 	for _, item in IterateCache() do
 		local node = item.node
-		if node:IsVisible() and IsDrawn(node, item.super) then
+		if IsVisible(node) and IsDrawn(node, item.super) then
 			return item
 		end
 	end
@@ -396,21 +406,21 @@ end
 ---------------------------------------------------------------
 
 function GetCenter(node)
-	local x, y, w, h = node:GetRect()
+	local x, y, w, h = GetRect(node)
 	if not x then return end
-	local l, r, t, b = div2(node:GetHitRectInsets())
+	local l, r, t, b = div2(GetHitRectInsets(node))
 	return (x+l) + div2(w-r), (y+b) + div2(h-t)
 end
 
 function GetCenterScaled(node)
 	local x, y = GetCenter(node)
 	if not x then return end
-	local scale = node:GetEffectiveScale() / BOUNDS.z;
+	local scale = GetEffectiveScale(node) / BOUNDS.z;
 	return x * scale, y * scale
 end
 
 function GetCenterPos(node)
-	local x, y = node:GetCenter()
+	local x, y = GetCenter(node)
 	if not x then return end
 	local l, b = GetCenter(node)
 	return (l-x), (b-y)
@@ -429,8 +439,8 @@ function DoNodesIntersect(n1, n2)
 		and (top1    > bottom2)
 end
 
-function GetFrameLevel(node)
-	return LEVELS[node:GetFrameStrata()] + node:GetFrameLevel()
+function GetAbsFrameLevel(node)
+	return LEVELS[GetFrameStrata(node)] + GetFrameLevel(node)
 end
 
 function PointInRange(pt, min, max)
@@ -443,7 +453,7 @@ end
 
 function DoNodeAndRectIntersect(node, rect)
 	local x, y = GetCenterScaled(node)
-	local scale, limit = rect:GetEffectiveScale(), BOUNDS.z;
+	local scale, limit = GetEffectiveScale(rect), BOUNDS.z;
 	return PointInRange(x, nrmlz(rect, scale, limit, rect.GetLeft, rect.GetRight)) and
 		   PointInRange(y, nrmlz(rect, scale, limit, rect.GetBottom, rect.GetTop))
 end
@@ -451,10 +461,6 @@ end
 ---------------------------------------------------------------
 -- Vector calculations
 ---------------------------------------------------------------
-local vlen, huge, abs, deg, atan2 =
-	Vector2D_GetLength, math.huge, math.abs, math.deg, math.atan2;
----------------------------------------------------------------
-
 function GetDistance(x1, y1, x2, y2)
 	return abs(x1 - x2), abs(y1 - y2)
 end
@@ -605,7 +611,7 @@ end
 function GetPriorityCandidate(x, y, targNode, targDist, targPrio)
 	for _, this in IterateCache() do
 		local thisDist = GetDistanceSum(x, y, GetCenterScaled(this.node))
-		local thisPrio = this.node:GetAttribute('nodepriority')
+		local thisPrio = GetAttribute(this.node, 'nodepriority')
 
 		if thisPrio and not targPrio then
 			targNode = this;
