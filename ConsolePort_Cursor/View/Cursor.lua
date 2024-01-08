@@ -466,13 +466,13 @@ do	local function IsDisabledButton(node)
 	function Cursor:OnLeaveNode(node)
 		if node and not IsDisabledButton(node) then
 			Hooks:OnNodeLeave()
-			env.TriggerScript(node, 'OnLeave')
+			env.ExecuteScript(node, 'OnLeave')
 		end
 	end
 
 	function Cursor:OnEnterNode(node)
 		if node and not IsDisabledButton(node) then
-			env.TriggerScript(node, 'OnEnter')
+			env.ExecuteScript(node, 'OnEnter')
 		end
 	end
 end
@@ -519,15 +519,19 @@ function Cursor:Select(node, object, super, triggerOnEnter, automatic)
 		-- TODO: Override:HorizontalScroll(Cursor, node)
 	end
 
-	self:SetScrollButtonsForNode(node)
+	self:SetScrollButtonsForNode(node, super)
 	self:SetClickButtonsForNode(node,
 		self:GetMacroReplacement(node),
 		self:IsClickableNode(node, object)
 	);
 end
 
-function Cursor:SetScrollButtonsForNode(node)
-	local scrollUp, scrollDown = Node.GetScrollButtons(node)
+function Cursor:SetScrollButtonsForNode(node, super)
+	local scrollUp, scrollDown = Scroll:GetScrollButtonsForController(node, super)
+	if not scrollUp or not scrollDown then
+		scrollUp, scrollDown = Node.GetScrollButtons(node)
+	end
+	self:ToggleScrollIndicator(scrollUp and scrollDown)
 	if scrollUp and scrollDown then
 		local modifier = db('UImodifierCommands')
 		self.scrollers = {
@@ -591,7 +595,7 @@ do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 		Modifier = mod;
 		-- object cases
 		EditBox  = opt;
-		Slider   = mod;
+		Slider   = nop;
 	}, function() return left end)
 	-- remove texture evaluator so cursor refreshes on next movement
 	local function ResetTexture(self)
@@ -622,6 +626,29 @@ function Cursor:SetTexture(texture)
 		end
 	end
 	self.textureEvaluator = evaluator;
+end
+
+function Cursor:ToggleScrollIndicator(enabled)
+	self.Display.Scroller:SetPoint('LEFT', self.Display.Button, 'RIGHT', self.Display.Button:GetTexture() and 2 or -24, 0)
+	if self.isScrollingActive == enabled then return end;
+	local evaluator = self.Textures.Modifier;
+	local texture   = evaluator and evaluator() or nil;
+	local newAlpha  = ( enabled and texture and 1 ) or 0;
+	Fade.In(self.Display.ScrollUp,   0.2, self.Display.ScrollUp:GetAlpha(),   newAlpha)
+	Fade.In(self.Display.ScrollDown, 0.2, self.Display.ScrollDown:GetAlpha(), newAlpha)
+	Fade.In(self.Display.Scroller,   0.2, self.Display.Scroller:GetAlpha(),   newAlpha)
+	if enabled then
+		if self.useAtlasIcons then
+			if texture then
+				self.Display.Scroller:SetAtlas(texture)
+			else
+				self.Display.Scroller:SetTexture(nil)
+			end
+		else
+			self.Display.Scroller:SetTexture(texture)
+		end
+	end
+	self.isScrollingActive = enabled;
 end
 
 function Cursor:SetAnchor(node)

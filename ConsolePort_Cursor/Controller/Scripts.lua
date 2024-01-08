@@ -9,7 +9,7 @@
 local _, env, L = ...; L = env.db.Locale;
 local Execute, Scripts = ExecuteFrameScript, CPAPI.Proxy({}, function(self, key) return rawget(rawset(self, key, {}), key) end);
 
-function env.TriggerScript(node, scriptType, ...)
+function env.ExecuteScript(node, scriptType, ...)
 	local script, ok, err = Scripts[scriptType][node:GetScript(scriptType)];
 	if script then
 		ok, err = pcall(script, node, ...)

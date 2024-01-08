@@ -35,6 +35,28 @@
 								<Anchor point="CENTER" x="10" y="-10"/>
 							</Anchors>
 						</Texture>
+						<Texture parentKey="Scroller" alpha="0">
+							<Size x="16" y="16"/>
+							<Anchors>
+								<Anchor point="LEFT" relativeKey="$parent.Button" relativePoint="RIGHT" x="2" y="0"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY" textureSubLevel="6">
+						<Texture parentKey="ScrollUp" file="Interface\Common\ReputationStar" alpha="0">
+							<Size x="16" y="16"/>
+							<Anchors>
+								<Anchor point="BOTTOM" relativeKey="$parent.Scroller" relativePoint="TOP" x="0" y="-2"/>
+							</Anchors>
+							<TexCoords left="0.5" right="1" top="0.5" bottom="1"/>
+						</Texture>
+						<Texture parentKey="ScrollDown" file="Interface\Common\ReputationStar" alpha="0">
+							<Size x="16" y="16"/>
+							<Anchors>
+								<Anchor point="TOP" relativeKey="$parent.Scroller" relativePoint="BOTTOM" x="0" y="2"/>
+							</Anchors>
+							<TexCoords left="0.5" right="1" top="1" bottom="0.5"/>
+						</Texture>
 					</Layer>
 				</Layers>
 			</Frame>

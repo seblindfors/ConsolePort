@@ -79,7 +79,7 @@ ConsolePort:AddVariables({
 	};
 	UImodifierCommands = _{Data.Select('SHIFT', unpack(MODID_SELECT));
 		name = 'Modifier';
-		desc = 'Which modifier to use for modified commands';
+		desc = 'Which modifier to use for modified commands.';
 		note = 'The modifier can be used to scroll together with the directional pad.';
 		opts = MODID_SELECT;
 	};
