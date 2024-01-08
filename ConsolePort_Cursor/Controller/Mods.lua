@@ -50,3 +50,15 @@ end
 if (WorldMapFrame and WorldMapFrame.ScrollContainer) then
 	WorldMapFrame.ScrollContainer:SetAttribute(env.Attributes.IgnoreScroll, true)
 end
+
+-- Group loot frames:
+-- Set priority to icon/tooltip to minimize accidental need/greed/pass.
+do local NUM_GROUP_LOOT_FRAMES = NUM_GROUP_LOOT_FRAMES or 4;
+	for i=1, NUM_GROUP_LOOT_FRAMES do
+		local frame = _G['GroupLootFrame'..i];
+		local iconFrame = frame and frame.IconFrame;
+		if iconFrame then
+			iconFrame:SetAttribute(env.Attributes.Priority, i)
+		end
+	end
+end
