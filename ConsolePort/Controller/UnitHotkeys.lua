@@ -552,7 +552,7 @@ function HotkeyMixin:SetUnitFrame(frame)
 	if frame and frame:IsVisible() then
 		self:SetParent(UIParent)
 		self:SetPoint(UH.display.anchor, frame, UH.display.anchor, UH.display.offsetX, UH.display.offsetY)
-		self:SetFrameLevel(frame:GetFrameLevel() + 1)
+		self:SetFrameLevel(frame:GetFrameLevel() + 10)
 		self:SetScale(1)
 		self:Show()
 	end
