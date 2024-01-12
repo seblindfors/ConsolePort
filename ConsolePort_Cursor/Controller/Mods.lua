@@ -58,7 +58,7 @@ do local NUM_GROUP_LOOT_FRAMES = NUM_GROUP_LOOT_FRAMES or 4;
 		local frame = _G['GroupLootFrame'..i];
 		local iconFrame = frame and frame.IconFrame;
 		if iconFrame then
-			iconFrame:SetAttribute(env.Attributes.Priority, i)
+			iconFrame:SetAttribute(env.Attributes.Priority, 1)
 		end
 	end
 end
