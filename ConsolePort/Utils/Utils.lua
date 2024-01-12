@@ -120,6 +120,9 @@ function CPAPI.Start(handler)
 end
 
 function CPAPI.Popup(id, settings, ...)
+	if (settings and settings.whileDead == nil) then
+		settings.whileDead = true; -- popup enabled while dead by default
+	end
 	StaticPopupDialogs[id:upper()] = settings;
 	local dialog = StaticPopup_Show(id:upper(), ...)
 	if dialog then
@@ -270,7 +273,7 @@ do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
 	end
 
 	CPAPI.ConvertSecureBody = ConvertSecureBody;
-	CPAPI.FormatSecureBody  = function(body, args)
+	CPAPI.FormatSecureBody  = function(args, body)
 		for key, value in pairs(args) do
 			body = body:gsub(
 				('{%s}'):format(key),
