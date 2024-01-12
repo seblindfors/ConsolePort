@@ -520,8 +520,8 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 		self.Display:SetOffset(db('raidCursorPointerOffset'))
 		self.Display:SetRotationEnabled(animationEnabled)
 		self.Display:SetAnimationEnabled(animationEnabled)
+		self.Display:SetAnimationSpeed(db('raidCursorTravelTime'))
 		self.Display.UnitInformation:SetShown(db('raidCursorPortraitShow'))
-		self.animationSpeed = db('raidCursorTravelTime');
 		self.animationEnabled = animationEnabled;
 	end
 end

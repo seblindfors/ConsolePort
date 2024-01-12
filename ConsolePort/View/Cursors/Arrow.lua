@@ -28,6 +28,10 @@ function CPCursorArrowMixin:SetAnimationEnabled(enabled)
 	self.animationEnabled = enabled;
 end
 
+function CPCursorArrowMixin:SetAnimationSpeed(speed)
+	self.animationSpeed = speed;
+end
+
 function CPCursorArrowMixin:SetRotation(rotation)
 	self.rotation = rotation < 0 and RAD_MOD + rotation or rotation % RAD_MOD;
 	self.ArrowNormal:SetRotation(rotation)
