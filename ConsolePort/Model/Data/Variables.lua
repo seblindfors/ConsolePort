@@ -326,7 +326,7 @@ db:Register('Variables', {
 		desc = 'Vertical offset of the hotkey prompt position, in pixels.';
 		advd = true;
 	};
-	unitHotkeyTokens = _{String('party1-4; player; raid1-40; boss1-4; arena1-5; party1-4pet; raid1-40target');
+	unitHotkeyTokens = _{String('raid1-9; raid10-40; party1-4; player; boss1-4; arena1-5; party1-4pet; raid1-40target');
 		name = 'Unit Pool';
 		desc = 'Match criteria for unit pool, each type separated by semicolon.';
 		note = 'E.g. '..BLUE('party1-4')..'; '..BLUE('player')..' will match party1, party2, party3, party4, and player.';
