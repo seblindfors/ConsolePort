@@ -65,7 +65,7 @@ local GetRectLevelIndex
 local IterateCache
 local IterateRects
 -- Rect calculations
-local GetCenter
+local GetHitRectCenter
 local GetCenterPos
 local GetCenterScaled
 local DoNodesIntersect
@@ -405,7 +405,7 @@ local function nrmlz(node, effScale, cmpScale, func, ...)
 end
 ---------------------------------------------------------------
 
-function GetCenter(node)
+function GetHitRectCenter(node)
 	local x, y, w, h = GetRect(node)
 	if not x then return end
 	local l, r, t, b = div2(GetHitRectInsets(node))
@@ -413,7 +413,7 @@ function GetCenter(node)
 end
 
 function GetCenterScaled(node)
-	local x, y = GetCenter(node)
+	local x, y = GetHitRectCenter(node)
 	if not x then return end
 	local scale = GetEffectiveScale(node) / BOUNDS.z;
 	return x * scale, y * scale
@@ -422,7 +422,7 @@ end
 function GetCenterPos(node)
 	local x, y = GetCenter(node)
 	if not x then return end
-	local l, b = GetCenter(node)
+	local l, b = GetHitRectCenter(node)
 	return (l-x), (b-y)
 end
 
