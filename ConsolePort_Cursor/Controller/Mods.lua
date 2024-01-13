@@ -3,7 +3,7 @@
 ---------------------------------------------------------------
 -- Modifications to the UI to support better cursor behavior.
 
-local _, env = ...;
+local _, env = ...; _ = CPAPI.OnAddonLoaded;
 
 -- Popups:
 -- Since popups normally appear in response to an event or
@@ -62,3 +62,15 @@ do local NUM_GROUP_LOOT_FRAMES = NUM_GROUP_LOOT_FRAMES or 4;
 		end
 	end
 end
+
+-- PVP match results:
+-- The PvP match results frame has a scroll box with a data provider that is recreated on every
+-- rendered frame. If the cursor focuses a line in the scroll box, it will flicker around the
+-- screen as the data provider is recreated, and the lines are recycled, appearing in a different
+-- order. To prevent this, ignore the entire scroll box and limit acccess to just the scroll bar
+-- and other standard frame elements.
+_('Blizzard_PVPMatch', function()
+	if (PVPMatchResults and PVPMatchResults.content and PVPMatchResults.content.scrollBox) then
+		PVPMatchResults.content.scrollBox:SetAttribute(env.Attributes.IgnoreNode, true)
+	end
+end)

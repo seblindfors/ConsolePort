@@ -6,7 +6,7 @@
 -- because they modify properties of protected objects, either
 -- directly or indirectly by execution path.
 
-local _, env, L = ...; L = env.db.Locale;
+local _, env, L = ...; L = env.db.Locale; _ = CPAPI.OnAddonLoaded;
 local Execute, Scripts = ExecuteFrameScript, CPAPI.Proxy({}, function(self, key) return rawget(rawset(self, key, {}), key) end);
 
 function env.ExecuteScript(node, scriptType, ...)
@@ -28,7 +28,6 @@ function env.ReplaceScript(scriptType, original, replacement)
 	Scripts[scriptType][original] = replacement;
 end
 
-function _(addOn, script) EventUtil.ContinueOnAddOnLoaded(addOn, GenerateClosure(pcall, script)) end
 ---------------------------------------------------------------
 -- Scripts: OnEnter
 ---------------------------------------------------------------
