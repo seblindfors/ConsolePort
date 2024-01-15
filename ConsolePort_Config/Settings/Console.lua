@@ -150,6 +150,7 @@ function DeviceSelect:Update()
 end
 
 function DeviceSelect:OnClick()
+	CPIndexButtonMixin.Uncheck(self)
 	local device = self:GetCurrentDevice()
 	if device then
 		local disclaimer = '\n\n'..L'This will not affect your bindings, interface settings or system-wide settings.';
@@ -194,6 +195,8 @@ function DeviceSelect:OnClick()
 		end
 	end
 end
+
+DeviceSelect.GetChecked = nop;
 
 ---------------------------------------------------------------
 -- Console

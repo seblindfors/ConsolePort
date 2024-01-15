@@ -712,6 +712,7 @@ function Select:OnLoad(...)
 		obj:HookScript('OnEnter', self.Popout.OnEnterHook)
 		obj:HookScript('OnLeave', self.Popout.OnLeaveHook)
 	end
+	self:EnableMouseWheelSelect(false)
 end
 
 function Select:OnValueChanged(value)
@@ -728,6 +729,41 @@ function Select:OnValueChanged(value)
 		end
 	end
 	self.Popout:SetupSelections(inOrder, selected or 1)
+end
+
+function Select:OnLeftButton()
+	self.Popout.DecrementButton:Click()
+end
+
+function Select:OnRightButton()
+	self.Popout.IncrementButton:Click()
+end
+
+function Select:EnableMouseWheelSelect(enabled)
+	self.Popout.SelectionPopoutButton:EnableMouseWheel(enabled)
+	self:EnableMouseWheel(enabled)
+end
+
+function Select:OnMouseWheel(delta)
+	self.Popout.SelectionPopoutButton:OnMouseWheel(delta)
+end
+
+function Select:OnClick(button)
+	self:EnableMouseWheelSelect(self:GetChecked())
+	if self:GetChecked() then
+		self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
+		self.CatchRight = env.Config:CatchButton('PADDRIGHT', self.OnRightButton, self)
+		self.tooltipHints = {
+			env:GetTooltipPromptForClick('LeftClick', APPLY);
+			env:GetTooltipPrompt('PADDLEFT', PREVIOUS);
+			env:GetTooltipPrompt('PADDRIGHT', NEXT);
+		};
+	else
+		env.Config:FreeButton('PADDLEFT', self.CatchLeft)
+		env.Config:FreeButton('PADDRIGHT', self.CatchRight)
+		self.CatchLeft, self.CatchRight = nil, nil;
+		self.tooltipHints = nil;
+	end
 end
 
 ---------------------------------------------------------------

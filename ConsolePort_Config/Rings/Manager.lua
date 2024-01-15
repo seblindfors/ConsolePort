@@ -91,6 +91,14 @@ local function IsExtraActionButton(kind, action)
 	return (kind == 'action' and action == EXTRA_ACTION_ID);
 end
 
+local function GetExtraActionButtonInfo()
+	return db.Bindings:GetDescriptionForBinding(db.Bindings.Proxied.ExtraActionButton, true)
+end
+
+local function GetExtraActionButtonName()
+	return select(3, GetExtraActionButtonInfo())
+end
+
 -- Bindings
 local function TrySetBinding(button)
 	if CPAPI.IsButtonValidForBinding(button) then
@@ -435,6 +443,7 @@ function LoadoutButton:OnLoad()
 	self:SetScript('OnShow', self.OnShow)
 	self:HookScript('OnEnter', self.OnEnter)
 	self:HookScript('OnLeave', self.OnLeave)
+	self:SetAttribute('nohooks', true)
 end
 
 function LoadoutButton:OnShow()
@@ -445,6 +454,12 @@ function LoadoutButton:OnEnter()
 	GameTooltip:SetOwner(self, 'ANCHOR_TOP')
 	if self:SetTooltip() then
 		self.UpdateTooltip = self.OnEnter;
+	elseif self:IsExtraActionButton() then
+		local desc, _, name = GetExtraActionButtonInfo()
+		GameTooltip:SetOwner(self, 'ANCHOR_TOP')
+		GameTooltip:SetText(name, WHITE_FONT_COLOR:GetRGB())
+		GameTooltip:AddLine(desc)
+		GameTooltip:Show()
 	else
 		self.UpdateTooltip = nil;
 	end
@@ -472,11 +487,15 @@ end
 function LoadoutButton:GetDisplayText()
 	local text = self:GetActionText()
 	if not text then
-		if IsExtraActionButton(self._state_type, self._state_action) then
-			text = BINDING_NAME_EXTRAACTIONBUTTON1:gsub('%d', ''):trim()
+		if self:IsExtraActionButton() then
+			text = GetExtraActionButtonName()
 		end
 	end
 	return text;
+end
+
+function LoadoutButton:IsExtraActionButton()
+	return IsExtraActionButton(self._state_type, self._state_action)
 end
 
 function LoadoutButton:SetData(data, set, setID)
