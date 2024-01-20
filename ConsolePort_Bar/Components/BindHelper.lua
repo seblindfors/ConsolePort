@@ -17,8 +17,23 @@ local function CacheAvailableBinding(bindings, prune, binding, category, key, ..
 	return CacheAvailableBinding(bindings, prune, binding, category, ...)
 end
 
+local function GetGlobalCategoryName(category)
+	local name = _G[category] or category;
+	if type(name) == 'string' then
+		return name
+	end
+	return category
+end
+
+local function GetGlobalBindingName(binding)
+	local name = _G[('BINDING_NAME_%s'):format(binding) or binding]
+	if type(name) == 'string' then
+		return name
+	end
+end
+
 local function GetRealBindingName(binding)
-	return _G[('BINDING_NAME_%s'):format(binding) or binding]
+	return GetGlobalBindingName(binding)
 		or (select(3, env.db.Bindings:GetDescriptionForBinding(binding)))
 		or GetBindingName(binding)
 end
@@ -74,7 +89,7 @@ local function ShowBindingDropdown(frame, level, menuList)
 
 	local bindings = {}
 	for category, set in pairs(allBindings) do
-		local title = _G[category] or category
+		local title = GetGlobalCategoryName(category)
 		local subsets = {DivideTable(set, 26)}
 		if ( #subsets == 1 ) then
 			bindings[title] = subsets[1];
@@ -178,6 +193,8 @@ function HANDLER:SetFrame(owner)
 	self.btn = owner.plainID;
 	self.mod = mod;
 
+	-- HACK: the lib has a hook which causes an error due to bad init
+	LDD.UIDropDownMenu_HandleGlobalMouseEvent = nop;
 	LDD:UIDropDownMenu_Initialize(self, ShowBindingDropdown)
 	LDD:ToggleDropDownMenu(nil, nil, self, 'cursor')
 end
