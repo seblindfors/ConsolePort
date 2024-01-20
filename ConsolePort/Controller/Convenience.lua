@@ -59,9 +59,12 @@ end
 
 -- Use color picker frame with sticks
 if ColorPickerFrame then
+	local OkayButton   = ColorPickerOkayButton or ColorPickerFrame.Footer.OkayButton;
+	local CancelButton = ColorPickerCancelButton or ColorPickerFrame.Footer.CancelButton; 
+
 	local controls = {
-		PAD1 = ColorPickerOkayButton;
-		PAD2 = ColorPickerCancelButton;
+		PAD1 = OkayButton;
+		PAD2 = CancelButton;
 	};
 	local tooltipLines = {
 		PADLSTICKUP    = CreateColor(CPAPI.HSV2RGB(270, 0.5, 1)):WrapTextInColorCode(L'Purple');
@@ -78,39 +81,53 @@ if ColorPickerFrame then
 	end
 
 	-- Handle color change
-	local delta, lightness, oldNode = 40, 1;
+	local delta, lightness, opacityInversion, oldNode = 40, 1, ColorPickerFrameMixin and 1 or -1;
 
-	local function ColorPickerStickToRGB(self, x, y)
+	local SetColorRGB, GetColorRGB, SetOpacity, GetOpacity;
+	if ColorPickerFrameMixin then
+		SetColorRGB = GenerateClosure(ColorPickerFrame.Content.ColorPicker.SetColorRGB,   ColorPickerFrame.Content.ColorPicker)
+		GetColorRGB = GenerateClosure(ColorPickerFrame.Content.ColorPicker.GetColorRGB,   ColorPickerFrame.Content.ColorPicker)
+		SetOpacity  = GenerateClosure(ColorPickerFrame.Content.ColorPicker.SetColorAlpha, ColorPickerFrame.Content.ColorPicker)
+		GetOpacity  = GenerateClosure(ColorPickerFrame.Content.ColorPicker.GetColorAlpha, ColorPickerFrame.Content.ColorPicker)
+	else
+		SetColorRGB = GenerateClosure(ColorPickerFrame.SetColorRGB, ColorPickerFrame)
+		GetColorRGB = GenerateClosure(ColorPickerFrame.GetColorRGB, ColorPickerFrame)
+		SetOpacity  = GenerateClosure(OpacitySliderFrame.SetValue,  OpacitySliderFrame)
+		GetOpacity  = GenerateClosure(OpacitySliderFrame.GetValue,  OpacitySliderFrame)
+	end
+
+
+	local function ColorPickerStickToRGB(x, y)
 		local radius, theta = CPAPI.XY2Polar(x, y)
 		local deg = CPAPI.Rad2Deg(theta)
 		local r, g, b = CPAPI.HSV2RGB(deg, radius, lightness)
-		self:SetColorRGB(r, g, b)
+		SetColorRGB(r, g, b)
 	end
 
-	local function ColorPickerStickSaturation(self, y)
-		local r, g, b = self:GetColorRGB()
+	local function ColorPickerStickSaturation(y)
+		local r, g, b = GetColorRGB()
 		lightness = Clamp(lightness + y / delta, 0, 1);
 		-- Handle case where we're picking a shade of gray
 		if (r == g and g == b) then
-			self:SetColorRGB(lightness, lightness, lightness)
+			SetColorRGB(lightness, lightness, lightness)
 		end
 	end
 
-	local function OpacitySliderStickValue(self, x)
-		local opacityDelta = -x / delta;
-		local a = self:GetValue()
-		self:SetValue(a + opacityDelta)
+	local function OpacitySliderStickValue(x)
+		local opacityDelta = x * opacityInversion / delta;
+		local a = GetOpacity()
+		SetOpacity(a + opacityDelta)
 	end
 
 	-- Scripts
 	ColorPickerFrame:SetScript('OnGamePadStick', function(self, stick, x, y, len)
 		if ( stick == 'Left' ) then
-			ColorPickerStickToRGB(self, x, y)
+			ColorPickerStickToRGB(x, y)
 		elseif ( stick == 'Right' and len > .1 ) then
-			if (math.abs(x) > math.abs(y) and OpacitySliderFrame and OpacitySliderFrame:IsShown()) then
-				OpacitySliderStickValue(OpacitySliderFrame, x)
+			if (math.abs(x) > math.abs(y)) then
+				OpacitySliderStickValue(x)
 			else
-				ColorPickerStickSaturation(self, y)
+				ColorPickerStickSaturation(y)
 			end
 		end
 	end)
@@ -121,7 +138,7 @@ if ColorPickerFrame then
 	end)
 	ColorPickerFrame:HookScript('OnShow', function(self)
 		oldNode = ConsolePort:GetCursorNode()
-		ConsolePort:SetCursorNodeIfActive(ColorPickerOkayButton, true)
+		ConsolePort:SetCursorNodeIfActive(OkayButton, true)
 
 		local device = db('Gamepad/Active')
 		if device then

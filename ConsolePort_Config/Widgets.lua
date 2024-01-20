@@ -795,37 +795,66 @@ local Color = CreateWidget('Color', Widget, {
 function Color:OnClick(button)
 	self:Uncheck()
 	if (button == 'LeftButton') then
-		local color, swatch, opacity = ColorPickerFrame, ColorSwatch, OpacitySliderFrame;
+		local picker, opacity = ColorPickerFrame, OpacitySliderFrame or OpacityFrameSlider;
+
+		local function GetOpacity()
+			if picker.GetColorAlpha then
+				return 1 - picker:GetColorAlpha()
+			end
+			return opacity:GetValue()
+		end
+
+		local function UnpackOldColor(old)
+			if #old > 0 then
+				return unpack(old)
+			end
+			return old.r, old.g, old.b, old.a;
+		end
 
 		local function OnColorChanged()
-			if (color.owner == self) then
-				local r, g, b = color:GetColorRGB()
-				local a = opacity:GetValue()
+			if (picker.extraInfo == self) then
+				local r, g, b = picker:GetColorRGB()
+				local a = GetOpacity()
 				self:Set(r, g, b, 1 - a)
 				self:OnValueChanged(self:Get())
 			end
 		end
 
 		local function OnColorCancel(oldColor)
-			if (color.owner == self) then
-				self:Set(unpack(oldColor))
+			if (picker.extraInfo == self) then
+				self:Set(UnpackOldColor(oldColor))
 				self:OnValueChanged(self:Get())
 			end
 		end
 
 		local r, g, b, a = self:GetRGBA(self:Get())
-		color:Hide()
-		color:SetColorRGB(r, g, b, a)
-		color.hasOpacity = true;
-		color.opacity = 1 - (a or 0);
-		color.previousValues = {r, g, b, a};
-		color.func = OnColorChanged;
-		color.cancelFunc = OnColorCancel;
-		color.opacityFunc = OnColorChanged;
-		color.owner = self;
-		color:Show()
-		swatch:SetColorTexture(r, g, b)
+		self:SetupColorPickerAndShow(picker, {
+			r = r, g = g, b = b, a = a,
+			opacity     = a or 0,
+			hasOpacity  = true,
+			swatchFunc  = OnColorChanged,
+			opacityFunc = OnColorChanged,
+			cancelFunc  = OnColorCancel,
+			extraInfo   = self,
+		}, ColorSwatch)
 	end
+end
+
+function Color:SetupColorPickerAndShow(picker, info, swatch)
+	if picker.SetupColorPickerAndShow then
+		return picker:SetupColorPickerAndShow(info)
+	end
+	picker:Hide()
+	picker:SetColorRGB(info.r, info.g, info.b, info.a)
+	picker.hasOpacity     = info.hasOpacity;
+	picker.opacity        = 1 - info.opacity;
+	picker.previousValues = {info.r, info.g, info.b, info.a};
+	picker.func           = info.swatchFunc;
+	picker.cancelFunc     = info.cancelFunc;
+	picker.opacityFunc    = info.swatchFunc;
+	picker.extraInfo      = self;
+	picker:Show()
+	swatch:SetColorTexture(info.r, info.g, info.b)
 end
 
 function Color:Set(r, g, b, a)
