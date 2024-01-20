@@ -193,12 +193,14 @@ function env:OpenBindingDropdown(frame)
 		ConsolePort:AddInterfaceCursorFrame('L_DropDownList2')
 		HANDLER.initialized = true;
 		if L_DropDownList1.Backdrop then
-			L_DropDownList1.Backdrop:SetBackdrop(CPAPI.Backdrops.Frame)
-			L_DropDownList1.Backdrop:SetBackdropColor(0, 0, 0, 0.75)
+			Mixin(L_DropDownList1.Backdrop, BackdropTemplateMixin)
+			BackdropTemplateMixin.SetBackdrop(L_DropDownList1.Backdrop, CPAPI.Backdrops.Frame)
+			BackdropTemplateMixin.SetBackdropColor(L_DropDownList1.Backdrop, 0, 0, 0, 0.75)
 		end
 		if L_DropDownList2.Backdrop then
-			L_DropDownList2.Backdrop:SetBackdrop(CPAPI.Backdrops.Frame)
-			L_DropDownList2.Backdrop:SetBackdropColor(0, 0, 0, 0.75)
+			Mixin(L_DropDownList2.Backdrop, BackdropTemplateMixin)
+			BackdropTemplateMixin.SetBackdrop(L_DropDownList2.Backdrop, CPAPI.Backdrops.Frame)
+			BackdropTemplateMixin.SetBackdropColor(L_DropDownList2.Backdrop, 0, 0, 0, 0.75)
 		end
 	end
 end
