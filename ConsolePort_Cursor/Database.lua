@@ -161,3 +161,33 @@ env.Attributes = {
 	Singleton    = 'nodesingleton';
 	SpecialClick = 'nodespecialclick';
 };
+
+---------------------------------------------------------------
+-- Unavoidable taint error messages
+---------------------------------------------------------------
+env.ForbiddenActions = CPAPI.Proxy({
+	['FocusUnit()'] = ([[
+		While the interface cursor is active, focus cannot reliably be set from unit dropdown menus.
+
+		Please use another method to set focus, such as the %s binding, a /focus macro or the raid cursor.
+	]]):format(BLUE_FONT_COLOR:WrapTextInColorCode(BINDING_NAME_FOCUSTARGET));
+	['ClearFocus()'] = ([[
+		While the interface cursor is active, focus cannot reliably be cleared from unit dropdown menus.
+
+		Please use another method to clear focus, such as the %s binding, a /focus macro or the raid cursor.
+	]]):format(BLUE_FONT_COLOR:WrapTextInColorCode(BINDING_NAME_FOCUSTARGET));
+	['CastSpellByID()'] = [[
+		While the interface cursor is active, a few actions are not possible to perform reliably.
+		It appears you tried to cast a spell from a source that has been tainted by the
+		interface cursor.
+
+		Please use another method to cast this spell, such as using a macro or your action bars.
+	]];
+}, function()
+	return [[
+		While the interface cursor is active, a few actions are not possible to perform reliably.
+		It appears you tried to perform an action that has been blocked due to taint from the cursor.
+
+		You can most likely ignore this message, but a reload may be required if your UI is not working properly.
+	]];
+end);

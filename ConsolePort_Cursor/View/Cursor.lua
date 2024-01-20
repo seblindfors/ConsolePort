@@ -6,9 +6,13 @@
 -- actions based on node priority and position on screen.
 -- Leverages Controller\UINode.lua for interface scans.
 
-local _, env, db = ...; db = env.db;
-local Cursor, Node, Input, Stack, Scroll, Fade, Hooks = 
-	CPAPI.EventHandler(ConsolePortCursor, {'PLAYER_REGEN_ENABLED', 'PLAYER_REGEN_DISABLED'}),
+local name, env, db = ...; db = env.db;
+local Cursor, Node, Input, Stack, Scroll, Fade, Hooks =
+	CPAPI.EventHandler(ConsolePortCursor, {
+		'PLAYER_REGEN_ENABLED';
+		'PLAYER_REGEN_DISABLED';
+		'ADDON_ACTION_FORBIDDEN';
+	}),
 	LibStub('ConsolePortNode'),
 	ConsolePortInputHandler,
 	ConsolePortUIStackHandler,
@@ -62,6 +66,12 @@ function Cursor:PLAYER_REGEN_ENABLED()
 		else -- do nothing but clear the locked state
 			C_Timer.After(db('UIleaveCombatDelay'), clearLockedState)
 		end
+	end
+end
+
+function Cursor:ADDON_ACTION_FORBIDDEN(addOnName, action)
+	if ( addOnName == name ) then
+		env.HandleTaintError(action)
 	end
 end
 
@@ -247,12 +257,6 @@ do  -- Create input proxy for basic controls
 		self:Hide()
 	end
 
-	local Disable = function(self)
-		self:Hide()
-		Cursor:Hide()
-		SetGamePadCursorControl(true)
-	end
-
 	function Cursor:GetBasicControls()
 		--  @init : (optional) function to set up properties
 		--  @clear: (optional) function to run when clearing
@@ -308,10 +312,10 @@ do  -- Create input proxy for basic controls
 				((down == true)  and 'OnMouseDown') or
 				((down == false) and 'OnMouseUp');
 			if script then
-				pcall(ExecuteFrameScript, node, script, emubtn)
+				env.ExecuteScript(node, script, emubtn)
 			end
 			if (down and node.OnClick) then
-				node:OnClick(emubtn)
+				env.ExecuteMethod(node, 'OnClick', emubtn)
 			end
 		end
 	end
@@ -322,7 +326,7 @@ do  -- Create input proxy for basic controls
 	end
 
 	local EmuClickClear = function(self)
-		self.node  = nil;
+		self.node   = nil;
 		self.emubtn = nil;
 	end
 

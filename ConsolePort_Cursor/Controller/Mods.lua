@@ -74,3 +74,20 @@ _('Blizzard_PVPMatch', function()
 		PVPMatchResults.content.scrollBox:SetAttribute(env.Attributes.IgnoreNode, true)
 	end
 end)
+
+-- Taint error callback:
+-- Replace popup messages for forbidden actions which cannot be fixed by the addon.
+function env.HandleTaintError(action)
+	local errorMessage =  env.ForbiddenActions[action];
+	if (errorMessage) then
+		RunNextFrame(function()
+			local message = CPAPI.FormatLongText(env.db.Locale(errorMessage))
+			local popup = StaticPopup_FindVisible('ADDON_ACTION_FORBIDDEN')
+			if popup then
+				_G[popup:GetName()..'Text']:SetText(message)
+				popup.button1:SetEnabled(false)
+				StaticPopup_Resize(popup, 'ADDON_ACTION_FORBIDDEN')
+			end
+		end)
+	end
+end

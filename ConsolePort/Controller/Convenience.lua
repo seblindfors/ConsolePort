@@ -8,15 +8,15 @@ do  local DELETE_ITEM = CopyTable(StaticPopupDialogs.DELETE_ITEM);
 	DELETE_ITEM.timeout = 5; -- also add a timeout
 	StaticPopupDialogs.DELETE_GOOD_ITEM = DELETE_ITEM;
 
-	local DELETE_QUEST = CopyTable(StaticPopupDialogs.DELETE_QUEST_ITEM);
-	DELETE_QUEST.timeout = 5; -- also add a timeout
-	StaticPopupDialogs.DELETE_GOOD_QUEST_ITEM = DELETE_QUEST;
+	local DELETE_QUEST_ITEM = CopyTable(StaticPopupDialogs.DELETE_QUEST_ITEM);
+	DELETE_QUEST_ITEM.timeout = 5; -- also add a timeout
+	StaticPopupDialogs.DELETE_GOOD_QUEST_ITEM = DELETE_QUEST_ITEM;
 end
 
 -- Add reload option to addon action forbidden
-do local popup = StaticPopupDialogs.ADDON_ACTION_FORBIDDEN;
-	popup.button3 = 'Reload';
-	popup.OnAlt = ReloadUI;
+do local ADDON_ACTION_FORBIDDEN = StaticPopupDialogs.ADDON_ACTION_FORBIDDEN;
+	ADDON_ACTION_FORBIDDEN.button3 = L'Reload';
+	ADDON_ACTION_FORBIDDEN.OnAlt = ReloadUI;
 end
 
 -- Remove experimental cvar confirmation:
@@ -194,7 +194,6 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 	'MERCHANT_CLOSED';
 	'BAG_UPDATE_DELAYED';
 	'QUEST_AUTOCOMPLETE';
-	'ADDON_ACTION_FORBIDDEN';
 }, {
 	SellJunkHelper = function(item)
 		if (C_Item.GetItemQuality(item) == Enum.ItemQuality.Poor) then
@@ -234,37 +233,3 @@ end
 
 db:RegisterCallback('Settings/keyboardEnable', GenerateClosure(TryLoadModule, 'keyboardEnable', 'ConsolePort_Keyboard'))
 db:RegisterCallback('Settings/UIenableCursor', GenerateClosure(TryLoadModule, 'UIenableCursor', 'ConsolePort_Cursor'))
-
--- Replace popup messages for forbidden actions which cannot be fixed by the addon
-do local ForbiddenActions = {
-		['FocusUnit()'] = ([[
-			While the interface cursor is active, focus cannot reliably be set from unit dropdown menus.
-
-			Please use another method to set focus, such as the %s binding, a /focus macro or the raid cursor.
-		]]):format(BLUE_FONT_COLOR:WrapTextInColorCode(BINDING_NAME_FOCUSTARGET));
-		['ClearFocus()'] = ([[
-			While the interface cursor is active, focus cannot reliably be cleared from unit dropdown menus.
-
-			Please use another method to clear focus, such as the %s binding, a /focus macro or the raid cursor.
-		]]):format(BLUE_FONT_COLOR:WrapTextInColorCode(BINDING_NAME_FOCUSTARGET));
-		['CastSpellByID()'] = [[
-			While the interface cursor is active, a few actions are not possible to perform reliably.
-			It appears you tried to cast a spell from a source that has been tainted by the
-			interface cursor.
-
-			Please use another method to cast this spell, such as using a macro or your action bars.
-		]];
-	};
-
-	function Handler:ADDON_ACTION_FORBIDDEN(addOnName, func)
-		if ( addOnName == name and ForbiddenActions[func] ) then
-			local message = CPAPI.FormatLongText(db.Locale(ForbiddenActions[func]))
-			local popup = StaticPopup_FindVisible('ADDON_ACTION_FORBIDDEN')
-			if popup then
-				_G[popup:GetName()..'Text']:SetText(message)
-				popup.button1:SetEnabled(false)
-				StaticPopup_Resize(popup, 'ADDON_ACTION_FORBIDDEN')
-			end
-		end
-	end
-end

@@ -21,6 +21,18 @@ function env.ExecuteScript(node, scriptType, ...)
 	end
 end
 
+function env.ExecuteMethod(node, method, ...)
+	local script, ok, err = Scripts[method][node[method]];
+	if script then
+		ok, err = pcall(script, node, ...)
+	else
+		ok, err = pcall(node[method], node, ...)
+	end
+	if not ok then
+		CPAPI.Log('Method execution failed in %s handler:\n%s', method, err)
+	end
+end
+
 function env.ReplaceScript(scriptType, original, replacement)
 	assert(type(scriptType)  == 'string',   'scriptType must be of type string'   )
 	assert(type(original)    == 'function', 'original must be of type function'   )
@@ -47,7 +59,7 @@ do
 			local slot = SpellBook_GetSpellBookSlot(self)
 			GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
 			GameTooltip:SetSpellBookItem(slot, SpellBookFrame.bookType)
-			
+
 			if ( self.SpellHighlightTexture and self.SpellHighlightTexture:IsShown() ) then
 				GameTooltip:AddLine(SPELLBOOK_SPELL_NOT_ON_ACTION_BAR, LIGHTBLUE_FONT_COLOR.r, LIGHTBLUE_FONT_COLOR.g, LIGHTBLUE_FONT_COLOR.b)
 			end
@@ -171,13 +183,51 @@ do
 				TalentDisplayMixin.OnLeave(self)
 				RunNextFrame(function()
 					if ConsolePortSpellMenu:IsShown() then return end;
-					
+
 					local currentNode = env.Cursor:GetCurrentNode()
 					if currentNode and currentNode:GetParent() ~= selectionChoiceFrame then
 						selectionChoiceFrame:Hide()
 					end
 				end)
 			end;
+		end)
+	end
+end
+
+---------------------------------------------------------------
+-- Scripts: OnMouseDown/OnMouseUp
+---------------------------------------------------------------
+do
+	if CPAPI.IsRetailVersion then
+	-----------------------------------------------------------
+		_('Blizzard_MapCanvas', function()
+			_('Blizzard_SharedMapDataProviders', function()
+	-----------------------------------------------------------
+				-- Problematic map pins:
+				-- Map pins use faux OnClick handlers to trigger different actions depending on the type of pin.
+				-- Since we can't simulate these OnClick handlers in a safe way, we have to inject our own handler
+				-- to prevent unsafe calls that spread taint in the UI.
+				local OnPinClick;
+				-- Unfortunately the faux pin click handler is private, so we have to hook into the pin creation process
+				-- to get a reference to it. This is done by hooking into the AcquirePin method of the world map frame.
+				hooksecurefunc(WorldMapFrame, 'AcquirePin', function(self, pinTemplate)
+					if OnPinClick then return end;
+					if ( pinTemplate == 'DungeonEntrancePinTemplate' ) then
+						for pin in self:EnumeratePinsByTemplate(pinTemplate) do
+							OnPinClick = pin.OnClick;
+							Scripts.OnClick[ OnPinClick ] = function(self, ...)
+								if ( self.OnMouseClickAction == DungeonEntrancePinMixin.OnMouseClickAction ) then
+									-- We don't want to taint the UI panel controller by opening the dungeon journal
+									-- when clicking on a dungeon entrance pin, so we just do nothing.
+									return;
+								end
+								return OnPinClick(self, ...)
+							end
+							return;
+						end
+					end
+				end)
+			end)
 		end)
 	end
 end
