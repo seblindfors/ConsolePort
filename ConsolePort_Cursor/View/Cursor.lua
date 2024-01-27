@@ -676,22 +676,6 @@ function Cursor:RefreshAnchor()
 	end
 end
 
-function Cursor:MoveTowardsAnchor(elapsed)
-	if not self:GetCustomAnchor() then
-		local divisor = 4 - elapsed; -- 4 is about right, account for FPS
-		local cX, cY = self:GetLeft(), self:GetTop()
-		local nX, nY = Node.GetCenter(self:GetCurrentNode())
-		self:ClearAllPoints()
-		if cX and cY then
-			return self:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT',
-				cX + ((nX - cX) / divisor),
-				cY + ((nY - cY) / divisor)
-			);
-		end
-		self:SetPoint('TOPLEFT', self:GetCurrentNode(), 'CENTER', nX, nY)
-	end
-end
-
 function Cursor:SetPosition(node)
 	self:SetTexture()
 	self:SetAnchor(node)
