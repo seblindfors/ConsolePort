@@ -13,17 +13,24 @@ local INDEX_INFO_ILINK = 2
 local INDEX_INFO_ITEMQ = 3
 local INDEX_INFO_STACK = 8
 local INDEX_INFO_EQLOC = 9
-local INDEX_INFO_CLASS = 12
 ---------------------------------------------------------------
 local QUALITY_STANDARD = Enum.ItemQuality.Standard or Enum.ItemQuality.Common;
 local INV_EQ_LOCATIONS = {
-	INVTYPE_WEAPON  = {INVSLOT_MAINHAND, INVSLOT_OFFHAND};
-	INVTYPE_FINGER  = {INVSLOT_FINGER1,  INVSLOT_FINGER2};
-	INVTYPE_TRINKET = {INVSLOT_TRINKET1, INVSLOT_TRINKET2};
-	INVTYPE_WEAPONMAINHAND = {INVSLOT_MAINHAND};
-	INVTYPE_WEAPONOFFHAND  = {INVSLOT_OFFHAND};
-	INVTYPE_BAG = { 20, 21, 22, 23 };
-}
+	INVTYPE_CLOAK          = {'BACKSLOT'};
+	INVTYPE_FINGER         = {'FINGER0SLOT',  'FINGER1SLOT'};
+	INVTYPE_TRINKET        = {'TRINKET0SLOT', 'TRINKET1SLOT'};
+	INVTYPE_WEAPON         = {'MAINHANDSLOT', 'SECONDARYHANDSLOT'};
+	INVTYPE_RANGED         = {'RANGEDSLOT'};
+	INVTYPE_WEAPONMAINHAND = {'MAINHANDSLOT'};
+	INVTYPE_2HWEAPON       = {'MAINHANDSLOT'};
+	INVTYPE_WEAPONOFFHAND  = {'SECONDARYHANDSLOT'};
+	INVTYPE_SHIELD         = {'SECONDARYHANDSLOT'};
+	INVTYPE_BAG            = {'BAG0SLOT', 'BAG1SLOT', 'BAG2SLOT', 'BAG3SLOT'};
+}; for _, slots in pairs(INV_EQ_LOCATIONS) do
+	for i, slot in ipairs(slots) do
+		slots[i] = GetInventorySlotInfo(slot);
+	end
+end
 ---------------------------------------------------------------
 
 function ItemMenu:SetItem(bagID, slotID)
