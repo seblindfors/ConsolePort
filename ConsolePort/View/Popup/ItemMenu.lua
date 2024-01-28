@@ -16,11 +16,11 @@ local INDEX_INFO_EQLOC = 9
 ---------------------------------------------------------------
 local QUALITY_STANDARD = Enum.ItemQuality.Standard or Enum.ItemQuality.Common;
 local INV_EQ_LOCATIONS = {
+	INVTYPE_RANGED         = CPAPI.IsClassicVersion and {'RANGEDSLOT'};
 	INVTYPE_CLOAK          = {'BACKSLOT'};
 	INVTYPE_FINGER         = {'FINGER0SLOT',  'FINGER1SLOT'};
 	INVTYPE_TRINKET        = {'TRINKET0SLOT', 'TRINKET1SLOT'};
 	INVTYPE_WEAPON         = {'MAINHANDSLOT', 'SECONDARYHANDSLOT'};
-	INVTYPE_RANGED         = {'RANGEDSLOT'};
 	INVTYPE_WEAPONMAINHAND = {'MAINHANDSLOT'};
 	INVTYPE_2HWEAPON       = {'MAINHANDSLOT'};
 	INVTYPE_WEAPONOFFHAND  = {'SECONDARYHANDSLOT'};
