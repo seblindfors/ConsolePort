@@ -84,7 +84,7 @@ if ColorPickerFrame then
 	local delta, lightness, opacityInversion, oldNode = 40, 1, ColorPickerFrameMixin and 1 or -1;
 
 	local SetColorRGB, GetColorRGB, SetOpacity, GetOpacity;
-	if ColorPickerFrameMixin then
+	if ColorPickerFrame.Content then
 		SetColorRGB = GenerateClosure(ColorPickerFrame.Content.ColorPicker.SetColorRGB,   ColorPickerFrame.Content.ColorPicker)
 		GetColorRGB = GenerateClosure(ColorPickerFrame.Content.ColorPicker.GetColorRGB,   ColorPickerFrame.Content.ColorPicker)
 		SetOpacity  = GenerateClosure(ColorPickerFrame.Content.ColorPicker.SetColorAlpha, ColorPickerFrame.Content.ColorPicker)
