@@ -103,7 +103,7 @@ UH:CreateEnvironment({
 		self::AssignUnits()
 		if isActive then
 			self::ClearInput()
-			self:CallMethod('QueueDisplayBindings')
+			self:CallMethod('SecureRefreshDisplayBindings')
 		end
 	]];
 
@@ -474,6 +474,10 @@ UH.QueueUnitFrameRefresh = CPAPI.Debounce(function(self)
 	self:RefreshUnitFrames()
 	self:RedrawBindings()
 end, UH)
+
+function UH:SecureRefreshDisplayBindings()
+	self:QueueDisplayBindings()
+end
 
 ---------------------------------------------------------------
 -- Hotkey display
