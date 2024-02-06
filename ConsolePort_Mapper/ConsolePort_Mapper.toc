@@ -1,5 +1,5 @@
 ## Interface: 100205
-## Interface-Classic: 11500
+## Interface-Classic: 11501
 ## Interface-BCC: 20504
 ## Interface-Wrath: 30403
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
