@@ -64,7 +64,7 @@
 		</Scripts>
 	</Frame>
 
-	<Button name="CPPopupButtonTemplate" virtual="true">
+	<Button name="CPPopupButtonTemplate" virtual="true" inherits="InsecureActionButtonTemplate">
 		<Size x="300" y="16"/>
 		<Layers>
 			<Layer level="BACKGROUND">

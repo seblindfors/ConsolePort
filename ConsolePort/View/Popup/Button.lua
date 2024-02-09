@@ -39,7 +39,7 @@ function MenuButton:OnLeave()
 	end
 end
 
-function MenuButton:SetCommand(text, command, data, handlers)
+function MenuButton:SetCommand(text, command, data, handlers, init)
 	self.data = data
 	self.command = command
 	self.Icon:SetTexture(COMMAND_OPT_ICON[command] or COMMAND_OPT_ICON.Default)
@@ -47,6 +47,9 @@ function MenuButton:SetCommand(text, command, data, handlers)
 	self:SetScript('OnEnter', handlers and handlers.OnEnter or self.OnEnter)
 	self:SetScript('OnLeave', handlers and handlers.OnLeave or self.OnLeave)
 	self:SetText(text)
+	if init then
+		init(self)
+	end
 end
 
 ---------------------------------------------------------------

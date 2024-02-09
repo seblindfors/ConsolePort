@@ -32,6 +32,7 @@ local INV_EQ_LOCATIONS = {
 	end
 end
 ---------------------------------------------------------------
+local DEFAULT_BUTTON_INIT = function(self) self:SetAttribute('type', nil) end;
 
 function ItemMenu:SetItem(bagID, slotID)
 	self:SetBagAndSlot(bagID, slotID)
@@ -98,6 +99,14 @@ function ItemMenu:SetCommands()
 		self:AddCommand(L'Split stack', 'Split')
 	end
 
+	if self:IsDisenchantableItem() then	
+		self:AddCommand(L'Disenchant', 'Disenchant', {self:GetBagAndSlot()}, nil, function(self)
+			local bagID, slotID = unpack(self.data)
+			self:SetAttribute('type', 'macro')
+			self:SetAttribute('macrotext', '/cast Disenchant\n/use '..bagID..' '..slotID)
+		end)
+	end
+
 	self:AddCommand(L'Pick up', 'Pickup')
 	self:AddCommand(DELETE, 'Delete')
 end
@@ -162,15 +171,15 @@ function ItemMenu:AddUtilityRingCommand()
 	end
 end
 
-function ItemMenu:AddCommand(text, command, data, handlers)
+function ItemMenu:AddCommand(text, command, data, handlers, init)
 	local widget, newObj = self:Acquire(self:GetNumActive() + 1)
 	local anchor = self:GetObjectByIndex(self:GetNumActive() - 1)
 
 	if newObj then
-		widget:SetScript('OnClick', widget.OnClick)
+		widget:HookScript('OnClick', widget.OnClick)
 	end
 
-	widget:SetCommand(text, command, data, handlers)
+	widget:SetCommand(text, command, data, handlers, init or DEFAULT_BUTTON_INIT)
 	widget:SetPoint('TOPLEFT', anchor or self.Tooltip, 'BOTTOMLEFT', anchor and 0 or 8, anchor and 0 or -16)
 	widget:Show()
 end
@@ -242,11 +251,20 @@ function ItemMenu:IsSellableItem()
 	return self.merchantAvailable and not self:HasNoValue()
 end
 
+function ItemMenu:IsDisenchantableItem()
+	return CPAPI.CanPlayerDisenchantItem(self:GetItemID())
+end
+
 ---------------------------------------------------------------
 -- Commands
 ---------------------------------------------------------------
 function ItemMenu:Pickup()
 	CPAPI.PickupContainerItem(self:GetBagAndSlot())
+	self:Hide()
+end
+
+function ItemMenu:Disenchant()
+	-- Execution handled by macro
 	self:Hide()
 end
 

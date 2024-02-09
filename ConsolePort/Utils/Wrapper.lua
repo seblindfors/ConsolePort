@@ -114,39 +114,40 @@ CPAPI.CreateColorFromHexString = CreateColorFromHexString or function(hexColor)
 	end
 end
 
-CPAPI.CreateKeyChord = CreateKeyChordStringUsingMetaKeyState or function(key)
+CPAPI.CreateKeyChord = CreateKeyChordStringUsingMetaKeyState or (function()
 	local function CreateKeyChordStringFromTable(keys, preventSort)
 		if not preventSort then
-			table.sort(keys, KeyComparator);
+			table.sort(keys, KeyComparator)
+		end
+		return table.concat(keys, "-")
+	end
+
+	return function(key)
+		local chord = {};
+		if IsAltKeyDown() then
+			table.insert(chord, "ALT")
 		end
 
-		return table.concat(keys, "-");
-	end
+		if IsControlKeyDown() then
+			table.insert(chord, "CTRL")
+		end
 
-	local chord = {};
-	if IsAltKeyDown() then
-		table.insert(chord, "ALT");
-	end
+		if IsShiftKeyDown() then
+			table.insert(chord, "SHIFT")
+		end
 
-	if IsControlKeyDown() then
-		table.insert(chord, "CTRL");
-	end
+		if IsMetaKeyDown() then
+			table.insert(chord, "META")
+		end
 
-	if IsShiftKeyDown() then
-		table.insert(chord, "SHIFT");
-	end
+		if not IsMetaKey(key) then
+			table.insert(chord, key)
+		end
 
-	if IsMetaKeyDown() then
-		table.insert(chord, "META");
+		local preventSort = true;
+		return CreateKeyChordStringFromTable(chord, preventSort)
 	end
-
-	if not IsMetaKey(key) then
-		table.insert(chord, key);
-	end
-
-	local preventSort = true;
-	return CreateKeyChordStringFromTable(chord, preventSort);
-end
+end)()
 
 CPAPI.IteratePlayerInventory = ContainerFrameUtil_IteratePlayerInventory or function(callback)
 	local MAX_CONTAINER_ITEMS = MAX_CONTAINER_ITEMS or 36;
@@ -319,6 +320,20 @@ CPAPI.GetQuestInfo = function(...)
 	return {};
 end
 
+CPAPI.CanPlayerDisenchantItem = function(itemID)
+	local spellID = select(7, GetSpellInfo('Disenchant'))
+	if spellID and IsPlayerSpell(spellID) then
+		local info = CPAPI.GetItemInfo(itemID)
+		local class, quality = info.classID, info.itemQuality;
+		if class and quality then
+			return
+				(class == Enum.ItemClass.Weapon or class == Enum.ItemClass.Armor)
+				and quality >= (Enum.ItemQuality.Good or Enum.ItemQuality.Uncommon)
+				and quality <= (Enum.ItemQuality.Epic);
+		end
+	end
+	return false;
+end
 end
 
 ---------------------------------------------------------------
