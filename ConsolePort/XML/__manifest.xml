@@ -2,4 +2,5 @@
 ..\FrameXML\UI.xsd">	
 	<Include file="Frames\Frames.xml"/>
 	<Include file="Templates\Templates.xml"/>
+	<Include file="Templates\Buttons.xml"/>
 </Ui>

@@ -1,0 +1,334 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<Script file="Buttons.lua"/>
+
+	<!-- inherits CharCustomizeFrameWithTooltipTemplate, CharCustomizeMaskedButtonMixin -->
+	<CheckButton name="CPMaskedButtonTemplate" inherits="CPFrameWithTooltipTemplate" mixin="CPMaskedButtonMixin" motionScriptsWhileDisabled="true" virtual="true">
+		<KeyValues>
+			<KeyValue key="disabledOverlayAlpha" value="0" type="number"/>
+			<KeyValue key="circleMaskSizeOffset" value="2" type="number"/>
+		</KeyValues>
+		<NormalTexture parentKey="NormalTexture"/>
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" alpha="0.5"/>
+		<PushedTexture parentKey="PushedTexture">
+			<Anchors>
+				<Anchor point="TOPLEFT" y="-1"/>
+				<Anchor point="BOTTOMRIGHT" y="-1"/>
+			</Anchors>
+		</PushedTexture>
+		<CheckedTexture parentKey="CheckedTexture" inherits="CPRingSelectTexture" texelSnappingBias="0.0" snapToPixelGrid="false">
+			<Anchors>
+				<Anchor point="CENTER" />
+			</Anchors>
+		</CheckedTexture>
+		
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="-1">
+				<Texture parentKey="DisabledOverlay" hidden="true" setAllPoints="true">
+					<Color r="0.0" g="0.0" b="0.0"/>
+				</Texture>
+				<Texture parentKey="Ring">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<MaskTexture parentKey="CircleMask" file="Interface\CharacterFrame\TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE" />
+			</Layer>
+		</Layers>
+		
+		<Frames>
+			<Frame parentKey="Flash" setAllPoints="true" hidden="true">
+				<Layers>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Portrait" setAllPoints="true" alphaMode="ADD" />
+						<Texture parentKey="Ring" alphaMode="ADD">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="Ring2" alphaMode="ADD">
+							<Anchors>
+								<Anchor point="CENTER"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Animations>
+					<AnimationGroup parentKey="Anim" setToFinalAlpha="true" looping="REPEAT">
+						<Alpha order="1" childKey="Portrait" duration="0.8" fromAlpha="0" toAlpha="0.6" />
+						<Alpha order="1" childKey="Portrait" duration="0.8" fromAlpha="0.6" toAlpha="0" startDelay="0.8" />
+						<Alpha order="1" childKey="Ring" duration="0.8" fromAlpha="0" toAlpha="1" />
+						<Alpha order="1" childKey="Ring" duration="0.8" fromAlpha="1" toAlpha="0" startDelay="0.8" />
+						<Alpha order="1" childKey="Ring2" duration="0.8" fromAlpha="1" toAlpha="0" />
+						<Scale order="1" childKey="Ring2" duration="0.8" fromScaleX="1.3" toScaleX="1" fromScaleY="1.3" toScaleY="1" smoothing="NONE" />
+					</AnimationGroup>
+				</Animations>
+			</Frame>
+		</Frames>
+		
+		<Scripts>
+			<OnMouseDown method="OnMouseDown"/>
+			<OnMouseUp method="OnMouseUp"/>
+			<OnClick method="OnClick"/>
+		</Scripts>
+	</CheckButton>
+
+
+	<!-- CharacterCreateClassButtonMixin -->
+	<CheckButton name="CPButtonTemplate" inherits="CPMaskedButtonTemplate" mixin="CPButtonMixin" virtual="true">
+		<Size x="67" y="67"/>
+		<KeyValues>
+			<KeyValue key="ringAtlas" value="ring-metaldark" type="string"/>
+			<KeyValue key="ringWidth" value="116" type="number"/>
+			<KeyValue key="ringHeight" value="117" type="number"/>
+			<KeyValue key="checkedTextureSize" value="99" type="number"/>
+			<KeyValue key="disabledOverlayAlpha" value="0.75" type="number"/>
+			<KeyValue key="tooltipAnchor" value="ANCHOR_RIGHT" type="string"/>
+			<KeyValue key="tooltipXOffset" value="0" type="number"/>
+			<KeyValue key="tooltipYOffset" value="10" type="number"/>
+		</KeyValues>
+
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="2">
+				<FontString parentKey="Description" inherits="GameFontNormalMed3" justifyH="CENTER" justifyV="MIDDLE">
+					<Size x="85" y="50"/>
+					<Anchors>
+						<Anchor point="TOP" relativePoint="BOTTOM" x="0" y="3"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<CheckButton name="CPActionButtonTemplate" inherits="CPButtonTemplate" mixin="CPActionButtonMixin" virtual="true">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="FlyoutBorder" inherits="ActionBarFlyoutButton-IconFrame" hidden="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<FontString parentKey="HotKey" inherits="NumberFontNormalSmallGray" justifyH="RIGHT">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="1" y="-3"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Count" inherits="NumberFontNormal" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Page" inherits="NumberFontNormalYellow" justifyH="RIGHT" hidden="true">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="2" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Name" inherits="GameFontHighlightSmallOutline">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="NewActionTexture" atlas="bags-newitem" useAtlasSize="false" alphaMode="ADD" hidden="true">
+					<Size x="44" y="44"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate">
+				<Size x="36" y="36"/>
+				<Anchors>
+					<Anchor point="CENTER" x="0" y="-1"/>
+				</Anchors>
+				<SwipeTexture>
+					<Color r="1" g="1" b="1" a="0.8"/>
+				</SwipeTexture>
+			</Cooldown>
+		</Frames>
+	</CheckButton>
+	
+	<Button name="CPSmoothRectangleButtonTemplate" virtual="true" mixin="CPSmoothRectangleButtonMixin" inherits="BackdropTemplate">
+		<Size x="230" y="60"/>
+		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
+			<TexCoords left="0.00195313" right="0.63867188" top="0.70703125" bottom="0.76757813"/>
+			<Anchors>
+				<Anchor point="TOPLEFT" y="-4"/>
+				<Anchor point="BOTTOMRIGHT" y="4"/>
+			</Anchors>
+		</HighlightTexture>
+		<ButtonText parentKey="Label" inherits="Game12Font" justifyH="LEFT">
+			<Size x="150"/>
+			<Anchors>
+				<Anchor point="LEFT" x="60" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="40" y="40"/>
+					<Anchors>
+						<Anchor point="LEFT" x="12"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<MaskTexture parentKey="IconMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Overlay" setAllPoints="true" inherits="BackdropTemplate"/>
+			<Frame parentKey="Hilite" alpha="0" inherits="BackdropTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-1"/>
+					<Anchor point="BOTTOMRIGHT" x="1"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+
+	<Button name="CPThreeSliceButtonTemplate" mixin="CPThreeSliceButtonMixin" motionScriptsWhileDisabled="true" virtual="true">
+		<!--
+		atlasName: The art kit to use for the 3 sections of the button.
+						* The left textures will be "atlasName-Left", "atlasName-Left-Disabled" and "atlasName-Left-Pressed"
+						* The right textures will be "atlasName-Right", "atlasName-Right-Disabled" and "atlasName-Right-Pressed"
+						* The center textures will be "_atlasName-Center", "_atlasName-Disabled" and "_atlasName-Pressed"
+						* The highlight texture will be "atlasName-Highlight"
+		tooltip: This can be either a string or a function which returns a string
+
+		<KeyValues>
+			<KeyValue key="atlasName" value="128-RedButton" type="string"/>
+			<KeyValue key="tooltip" value="MyTooltipFunction" type="global"/>
+				or
+			<KeyValue key="tooltip" value="REFRESH_BUTTON_TOOLTIP" type="string"/>
+		</KeyValues>
+		-->
+		<Size x="20" y="20"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Left">
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Right">
+					<Anchors>
+						<Anchor point="TOPRIGHT"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Center" horizTile="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Left" relativePoint="TOPRIGHT"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Right" relativePoint="BOTTOMLEFT"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<HighlightTexture parentKey="Hilite" alphaMode="ADD">
+			<Anchors>
+				<Anchor point="TOPLEFT" y="-4"/>
+				<Anchor point="BOTTOMRIGHT" y="4"/>
+			</Anchors>
+		</HighlightTexture>
+		<Frames>
+			<Frame parentKey="Controller" mixin="ButtonControllerMixin">
+				<Scripts>
+					<OnLoad method="OnLoad"/>
+					<OnShow method="OnShow"/>
+				</Scripts>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnMouseDown method="OnMouseDown"/>
+			<OnMouseUp method="OnMouseUp"/>
+			<OnShow method="UpdateButton"/>
+			<OnDisable method="UpdateButton"/>
+			<OnEnable method="UpdateButton"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnSizeChanged method="UpdateScale"/>
+		</Scripts>
+	</Button>
+
+    <Button name="CPLargeButtonTemplate" inherits="CPThreeSliceButtonTemplate" virtual="true">
+        <Size x="200" y="30"/>
+        <KeyValues>
+			<KeyValue key="atlasName" value="128-GoldButton" type="string"/>
+		</KeyValues>
+    </Button>
+
+    <Button name="CPLargeIconButtonTemplate" inherits="CPLargeButtonTemplate" mixin="CPLargeIconButtonMixin" virtual="true">
+        <Size x="200" y="60"/>
+		<ButtonText parentKey="Label" inherits="Game12Font" justifyH="LEFT">
+			<Size x="150"/>
+			<Anchors>
+				<Anchor point="LEFT" x="60" y="-2"/>
+			</Anchors>
+		</ButtonText>
+		<PushedTextOffset x="8" y="-4"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="LEFT" x="20" y="-2"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<MaskTexture parentKey="IconMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+        </Layers>
+    </Button>
+</Ui>

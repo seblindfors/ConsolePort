@@ -416,7 +416,7 @@ end
 -- Loadout
 ---------------------------------------------------------------
 local Loadout = CreateFromMixins(CPFocusPoolMixin)
-local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin, {
+local LoadoutButton = CreateFromMixins(CPSmoothRectangleButtonMixin, {
 	AsyncMap = {
 		item = function(self, id)
 			local constructor = tonumber(id) and Item.CreateFromItemID or Item.CreateFromItemLink;

@@ -54,9 +54,9 @@
 		</Animations>
 	</Button>
 
-	<Button name="CPMenuButtonBaseTemplate" virtual="true" mixin="CPMenuButtonMixin" inherits="CPSmoothRectangleButtonTemplate">
+	<Button name="CPMenuButtonBaseTemplate" virtual="true" mixin="CPMenuButtonMixin" inherits="CPLargeIconButtonTemplate">
+		<Size x="230" y="70"/>
 		<Scripts>
-			<OnLoad method="OnLoad"/>
 			<OnShow method="OnShow"/>
 			<OnHide method="OnHide"/>
 			<OnEnter method="OnEnter"/>
