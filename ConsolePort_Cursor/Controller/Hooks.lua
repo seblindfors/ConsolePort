@@ -84,7 +84,9 @@ do  local IsWidget, GetID, GetParent, GetScript =
 	local TryIdentifyContainerSlot = CPAPI.IsRetailVersion and function(node)
 		return node.GetSlotAndBagID == ContainerFrameItemButtonMixin.GetSlotAndBagID;
 	end or function(node)
-		return node.UpdateTooltip == ContainerFrameItemButton_OnEnter;
+		-- Since the classic container slot buttons are hard to identify by script or inheritance,
+		-- we have to rely on some reasonably unique property for identification.
+		return not not node.JunkIcon and not not node.SplitStack;
 	end
 
 	local TryIdentifyContainerBag = function(node)
