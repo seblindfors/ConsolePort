@@ -1495,7 +1495,7 @@ Item.IsEquipped              = function(self) return IsEquippedItem(self._state_
 Item.IsCurrentlyActive       = function(self) return IsCurrentItem(self._state_action) end
 Item.IsUsable                = function(self) return IsUsableItem(self._state_action) end
 Item.IsConsumableOrStackable = function(self) return IsConsumableItem(self._state_action) end
-Item.IsUnitInRange           = function(self, unit) return IsItemInRange(self._state_action, unit) end
+Item.IsUnitInRange           = function(self, unit) return not InCombatLockdown() and IsItemInRange(self._state_action, unit or 'target') or nil end
 Item.SetTooltip              = function(self) return GameTooltip:SetHyperlink(self._state_action) end
 
 -----------------------------------------------------------
