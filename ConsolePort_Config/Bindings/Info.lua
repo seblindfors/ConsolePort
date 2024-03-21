@@ -375,7 +375,7 @@ function BindingInfo:RefreshCollections()
 		for bag=0, NUM_BAG_SLOTS do
 			for slot=1, CPAPI.GetContainerNumSlots(bag) do
 				local itemID = CPAPI.GetContainerItemInfo(bag, slot).itemID;
-				if IsUsableItem(itemID) and not omit[itemID] then
+				if itemID and IsUsableItem(itemID) and not omit[itemID] then
 					items[#items + 1] = {bag, slot}
 					omit[itemID] = true;
 				end
@@ -396,7 +396,9 @@ function BindingInfo:RefreshCollections()
 	if CPAPI.IsRetailVersion then
 		local mounts = {};
 		for i=1, C_MountJournal.GetNumDisplayedMounts() do
-			mounts[#mounts+1] = i;
+			if (select(11, C_MountJournal.GetDisplayedMountInfo(i))) then -- isCollected
+				mounts[#mounts+1] = i;
+			end
 		end
 
 		if next(mounts) then
