@@ -5,4 +5,6 @@
 	<Script file="LibCompress\LibCompress.lua"/>
 	<Script file="LibButtonGlow-1.0\LibButtonGlow-1.0.lua"/>
 	<Script file="LibActionButton-1.0\LibActionButton-1.0.lua"/>
+	<Script file="RelaTable\RelaTable.lua"/>
+	<Script file="ConsolePortNode\ConsolePortNode.lua"/>
 </Ui>

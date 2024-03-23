@@ -3,12 +3,14 @@ package-as: ConsolePort
 enable-toc-creation: yes
 
 externals:
-  Libs/External/AceSerializer-3.0: https://repos.wowace.com/wow/ace3/trunk/AceSerializer-3.0
-  Libs/External/CallbackHandler-1.0: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
-  Libs/External/LibActionButton-1.0: https://repos.wowace.com/wow/libactionbutton-1-0
-  Libs/External/LibButtonGlow-1.0: https://repos.wowace.com/wow/libbuttonglow-1-0
-  Libs/External/LibCompress: https://repos.wowace.com/wow/libcompress/tags/r86-release
-  Libs/External/LibStub: https://repos.wowace.com/wow/libstub/tags/1.0
+  ConsolePort/Libs/External/AceSerializer-3.0: https://repos.wowace.com/wow/ace3/trunk/AceSerializer-3.0
+  ConsolePort/Libs/External/CallbackHandler-1.0: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+  ConsolePort/Libs/External/ConsolePortNode: https://github.com/seblindfors/ConsolePortNode.git
+  ConsolePort/Libs/External/LibActionButton-1.0: https://repos.wowace.com/wow/libactionbutton-1-0
+  ConsolePort/Libs/External/LibButtonGlow-1.0: https://repos.wowace.com/wow/libbuttonglow-1-0
+  ConsolePort/Libs/External/LibCompress: https://repos.wowace.com/wow/libcompress/tags/r86-release
+  ConsolePort/Libs/External/LibStub: https://repos.wowace.com/wow/libstub/tags/1.0
+  ConsolePort/Libs/External/RelaTable: https://github.com/seblindfors/RelaTable.git
 
 move-folders:
   ConsolePort/ConsolePort: ConsolePort

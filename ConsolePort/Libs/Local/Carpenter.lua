@@ -22,7 +22,7 @@
 --  Carpenter:BuildFrame(frame, blueprint) -> builds blueprint on top of existing frame.
 --  Carpenter:ExtendAPI(name, func, force) -> adds an API function that can be called from blueprints.
 
-local Lib = LibStub:NewLibrary('Carpenter', 2)
+local Lib = LibStub:NewLibrary('Carpenter', 3)
 if not Lib then return end
 --------------------------------------------------------------------------
 local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
@@ -453,3 +453,11 @@ end
 
 function packtbl(tbl, ...) tbl[#tbl + 1] = {...} end;
 function strip(key) return strmatch(key, '_(%w+)') end;
+
+---------------------------------------------------------------
+-- Extend API
+---------------------------------------------------------------
+if not LibStub:GetLibrary('ConsolePortNode') then return end
+Lib:ExtendAPI('IgnoreNode', function(self, ...) self:SetAttribute('nodeignore', ...) end)
+Lib:ExtendAPI('PriorityNode', function(self, ...) self:SetAttribute('nodepriority', ...) end)
+Lib:ExtendAPI('SingletonNode', function(self, ...) self:SetAttribute('nodesingleton', ...) end)
