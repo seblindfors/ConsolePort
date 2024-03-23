@@ -171,7 +171,7 @@ function compare(t1, t2)
     elseif (t1 and not t2) or (t2 and not t1) then
         return false;
     end
-    if type(t1) ~= "table" then
+    if type(t1) ~= 'table' then
         return false;
     end
     local mt1, mt2 = getmetatable(t1), getmetatable(t2)
@@ -195,7 +195,7 @@ end
 
 function copy(src)
     local srcType, t = type(src)
-    if srcType == "table" then
+    if srcType == 'table' then
         t = {};
         for key, value in next, src, nil do
             t[copy(key)] = copy(value)
@@ -219,13 +219,16 @@ function mapt(f, t)
     end
 end
 
-function merge(t1, t2)
+function merge(t1, t2, t3, ...)
     for k, v in pairs(t2) do
-        if (type(v) == "table") and (type(t1[k] or false) == "table") then
+        if (type(v) == 'table') and (type(t1[k] or false) == 'table') then
             merge(t1[k], t2[k])
         else
             t1[k] = v;
         end
+    end
+    if (type(t3) == 'table') then
+        return merge(t1, t3, ...)
     end
     return t1;
 end

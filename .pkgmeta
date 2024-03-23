@@ -2,6 +2,14 @@ package-as: ConsolePort
 
 enable-toc-creation: yes
 
+externals:
+  Libs/External/AceSerializer-3.0: https://repos.wowace.com/wow/ace3/trunk/AceSerializer-3.0
+  Libs/External/CallbackHandler-1.0: https://repos.wowace.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+  Libs/External/LibActionButton-1.0: https://repos.wowace.com/wow/libactionbutton-1-0
+  Libs/External/LibButtonGlow-1.0: https://repos.wowace.com/wow/libbuttonglow-1-0
+  Libs/External/LibCompress: https://repos.wowace.com/wow/libcompress/tags/r86-release
+  Libs/External/LibStub: https://repos.wowace.com/wow/libstub/tags/1.0
+
 move-folders:
   ConsolePort/ConsolePort: ConsolePort
   ConsolePort/ConsolePort_Bar: ConsolePort_Bar
