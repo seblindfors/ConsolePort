@@ -209,10 +209,10 @@ end
 HotkeyMixin.template = 'Default'; -- TODO: remove hardcoded
 
 function HotkeyMixin:SetData(data, owner)
-	if owner:GetAttribute('ignoregamepadhotkey') then
+	if owner:GetAttribute(CPAPI.SkipHotkeyRender) then
 		return
 	end
-	
+
 	self.data = data
 	self:SetSize(1, 1)
 
@@ -220,8 +220,8 @@ function HotkeyMixin:SetData(data, owner)
 	self:SetOwner(owner)
 
 	-- TODO: allow more templates
-	local signature = 'return function(self, button, modifier, owner)' 
-	local render, msg = loadstring(signature..self.Templates[self.template])
+	local signature = 'return function(self, button, modifier, owner)\n%s\nend' 
+	local render, msg = loadstring(signature:format(self.Templates[self.template]))
 	if render then
 		return render()(self, data.button, data.modifier, owner)
 	end
@@ -291,6 +291,6 @@ HotkeyMixin.Templates = {
 			mod:Show()
 			cur = mod
 		end
-	end]];
+	]];
 };
 db('Hotkeys/Template', HotkeyMixin.Templates)

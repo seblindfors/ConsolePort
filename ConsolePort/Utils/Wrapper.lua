@@ -84,6 +84,8 @@ CPAPI.ActionTypePress   = 'type';
 
 CPAPI.DefaultRingSetID = 1;
 
+CPAPI.SkipHotkeyRender = 'ignoregamepadhotkey';
+
 ---------------------------------------------------------------
 -- Internal wrappers
 ---------------------------------------------------------------

@@ -74,7 +74,6 @@ function CPActionButton:SetLargeButton(enabled)
 end
 
 function CPActionButton:Initialize()
-	LibStub('CPActionButton'):InitButton(self, self.id or self:GetID())
-	self:SetAttribute('ignoregamepadhotkey', true)
+	self:SetAttribute(CPAPI.SkipHotkeyRender, true)
 	self:SetLargeButton(self:IsLargeButton())
 end

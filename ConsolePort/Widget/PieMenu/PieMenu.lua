@@ -1,20 +1,33 @@
-CPPieMenuMixin = CreateFromMixins(CPFocusPoolMixin, CPGradientMixin);
 local Clamp, atan2 = Clamp, math.atan2;
-local DEFAULT_SIZE, ARROW_SIZE_W_FRACTION, ARROW_SIZE_H_FRACTION, BG_POINT_INSET = 500, 0.1, 0.8, 422/500;
+local ARROW_SIZE_W_FRACTION, ARROW_SIZE_H_FRACTION, BG_POINT_INSET = 0.1, 0.8, 422/500;
+---------------------------------------------------------------
+-- Intrinsic mixin
+---------------------------------------------------------------
+CPPieMenuMixin = CreateFromMixins(CPFocusPoolMixin, CPGradientMixin);
 
 function CPPieMenuMixin:OnPreLoad()
 	CPFocusPoolMixin.OnLoad(self)
 	CPGradientMixin.OnLoad(self)
+	if self.isSlicedPie then
+		self.SlicePool = CreateFramePool('PieSlice', self)
+		self.ActiveSlice:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
+		self.BG:SetTexture(nil)
+	end
 end
 
 function CPPieMenuMixin:CreateFramePool(template, mixin, resetterFunc)
 	CPFocusPoolMixin.CreateFramePool(self, 'CheckButton', template, mixin, resetterFunc)
 end
 
+function CPPieMenuMixin:OnPostShow()
+	self:UpdatePieSlices(true)
+end
+
 function CPPieMenuMixin:OnPostHide()
 	CPFocusPoolMixin.OnPostHide(self)
 	self.Arrow:SetAlpha(0)
 	self.BG:SetVertexColor(1, 1, 1, 0)
+	self:UpdatePieSlices(false)
 end
 
 function CPPieMenuMixin:OnPostSizeChanged()
@@ -25,7 +38,7 @@ function CPPieMenuMixin:OnPostSizeChanged()
 	self.BG:SetPoint('BOTTOMRIGHT', x, -y)
 end
 
-function CPPieMenuMixin:SetFocusByIndex(index)
+function CPPieMenuMixin:SetFocusByIndex(index, pointerIndex)
 	local newObj, oldObj = CPFocusPoolMixin.SetFocusByIndex(self, index)
 	if ( oldObj ) then
 		oldObj:OnClear()
@@ -33,6 +46,7 @@ function CPPieMenuMixin:SetFocusByIndex(index)
 	if ( newObj ) then
 		newObj:OnFocus(oldObj)
 	end
+	self:UpdateBackgroundFocus(pointerIndex)
 	return newObj
 end
 
@@ -47,9 +61,70 @@ function CPPieMenuMixin:ReflectStickPosition(x, y, len, isValid)
 	local rotation = self:GetRotation(x, y)
 	self.BG:SetRotation(rotation)
 	self.Arrow:SetRotation(rotation)
+
+	self:UpdateBackgroundAssets(len)
+
 	return rotation;
 end
 
 function CPPieMenuMixin:GetRotation(x, y)
 	return -atan2(x, y)
+end
+
+---------------------------------------------------------------
+-- Sliced pie mixin
+---------------------------------------------------------------
+function CPPieMenuMixin:UpdateBackgroundAssets(len)
+	if not self.isSlicedPie then return end;
+	local bgAlpha = Clamp(1 - (len + len/1.5), 0.5, 1)
+	local activeAlpha = Clamp(math.sqrt(math.sqrt(len)), 0, 1)
+	local activeColor = self:IsValidThreshold(len) and GREEN_FONT_COLOR or NORMAL_FONT_COLOR;
+	self.ActiveSlice:SetVertexColor(activeColor:GetRGB())
+	self.ActiveSlice:SetAlpha(activeAlpha)
+	for slice in self.SlicePool:EnumerateActive() do
+		slice:SetAlpha(bgAlpha)
+	end
+end
+
+function CPPieMenuMixin:UpdateBackgroundFocus(index)
+	if not self.isSlicedPie then return end;
+	self.ActiveSlice:SetIndex(index)
+end
+
+function CPPieMenuMixin:UpdatePieSlices(isShown)
+    if not self.isSlicedPie then return end;
+    if not isShown then
+		self.ActiveSlice:SetAlpha(0)
+		return;
+	end
+	self.SlicePool:ReleaseAll()
+	local slices = self:GetNumActive()
+	for i = 1, slices do
+		local slice = self.SlicePool:Acquire()
+		slice:SetIndex(i - 1)
+		slice:SetAlpha(1)
+		slice:Show()
+	end
+end
+
+---------------------------------------------------------------
+-- Pie slice mixin
+---------------------------------------------------------------
+CPPieSliceMixin = {};
+
+function CPPieSliceMixin:OnPreLoad()
+	local r, g, b = CPAPI.GetMutedClassColor(0.75)
+	self.Slice:SetVertexColor(r, g, b)
+	self:Lower()
+end
+
+function CPPieSliceMixin:SetIndex(index)
+    if not index then return end;
+    local startAngle, endAngle = self:GetParent():GetBoundingAnglesForIndex(index)
+    self.RectMask1:SetRotation(-(math.rad(startAngle)))
+    self.RectMask2:SetRotation(-(math.rad(endAngle)) + math.pi)
+end
+
+function CPPieSliceMixin:SetVertexColor(r, g, b)
+	self.Slice:SetVertexColor(r, g, b)
 end

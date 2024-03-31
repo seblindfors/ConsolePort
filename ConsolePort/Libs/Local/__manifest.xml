@@ -2,4 +2,5 @@
 ..\FrameXML\UI.xsd">
 	<Script file="Carpenter.lua"/>
 	<Script file="Tabular.lua"/>
+	<Script file="ActionButton.lua"/>
 </Ui>

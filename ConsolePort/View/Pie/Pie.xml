@@ -7,6 +7,25 @@
 		</Attributes>
 	</PieMenu>
 
+	<PieMenu name="ConsolePortSlicedPie" virtual="true">
+		<KeyValues>
+			<KeyValue key="isSlicedPie" type="boolean" value="true"/>
+		</KeyValues>
+		<Frames>
+			<PieSlice parentKey="ActiveSlice" alpha="0"/>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<MaskTexture parentKey="InnerMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_InnerMask">
+					<Size x="500" y="500"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</PieMenu>
+
 	<PieMenu name="ConsolePortSpellFlyout" parent="UIParent" registerForClicks="AnyUp" inherits="ConsolePortSecurePie" hidden="true">
 		<Size x="500" y="500"/>
 		<Anchors>
@@ -14,11 +33,13 @@
 		</Anchors>
 	</PieMenu>
 
-	<PieMenu name="ConsolePortPetRing" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie" hidden="true">
-		<Size x="500" y="500"/>
+	<PieMenu name="ConsolePortPetRing" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie, ConsolePortSlicedPie" hidden="true">
 		<Anchors>
 			<Anchor point="CENTER"/>
 		</Anchors>
+		<KeyValues>
+			<KeyValue key="radius" type="number" value="0.6"/>
+		</KeyValues>
 	</PieMenu>
 
 	<PieMenu name="ConsolePortUtilityToggle" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie" hidden="true">

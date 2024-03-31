@@ -136,12 +136,25 @@ function RadialMixin:GetPointForIndex(index, size, radius)
 	return 'CENTER', Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
 end
 
+function RadialMixin:GetBoundingAnglesForIndex(index)
+	return Radial:GetBoundingAnglesForIndex(index, self:GetAttribute('size'))
+end
+
 function RadialMixin:GetIndexForPos(x, y, len, size)
 	return Radial:GetIndexForStickPosition(x, y, len, size or self:GetAttribute('size'))
 end
 
 function RadialMixin:GetValidThreshold()
 	return Radial.VALID_VEC_LEN or .5;
+end
+
+function RadialMixin:IsValidThreshold(len)
+	return len >= self:GetValidThreshold()
+end
+
+function RadialMixin:SetRadialSize(size)
+	local radius = self.radius or 1;
+	return self:SetSize(size * radius, size * radius)
 end
 
 function RadialMixin:OnLoad(data)
@@ -157,6 +170,7 @@ end
 
 function RadialMixin:OnShow()
 	Dispatcher:SetFocus(self)
+	db:TriggerEvent('OnRadialShown', true, self)
 end
 
 function RadialMixin:ClearInstantly()
@@ -167,6 +181,7 @@ function RadialMixin:OnHide()
 	if not Dispatcher:IsDisabling() then
 		Dispatcher:ClearFocus(self)
 	end
+	db:TriggerEvent('OnRadialShown', false, self)
 end
 
 function RadialMixin:OnInput(x, y, len, stick)
@@ -306,10 +321,11 @@ function Radial:Register(header, name, ...)
 	if OnInput then header.OnInput = OnInput; end
 	if OnBindingSet then header.OnBindingSet = OnBindingSet; end;
 
+	local radius = header.radius or 1;
 	header:SetScale(db('radialScale'))
-	header:SetSize(db('radialPreferredSize'), db('radialPreferredSize'))
+	header:SetRadialSize(db('radialPreferredSize'))
 	db:RegisterSafeCallback('Settings/radialScale', header.SetScale, header)
-	db:RegisterSafeCallback('Settings/radialPreferredSize', function(self, size) self:SetSize(size, size) end, header)
+	db:RegisterSafeCallback('Settings/radialPreferredSize', header.SetRadialSize, header)
 
 	return header:OnLoad(...)
 end
@@ -372,13 +388,20 @@ function Radial:GetAngleForIndex(index, size)
 	return ((self.ANGLE_IDX_ONE + ((index - 1) * step)) % 360)
 end
 
+function Radial:GetBoundingAnglesForIndex(index, size)
+	local centerAngle = self:GetAngleForIndex(index, size)
+	local halfstep = 360 / size / 2;
+	local startAngle = centerAngle - halfstep;
+	local endAngle = centerAngle + halfstep;
+	return startAngle, endAngle;
+end
+
 function Radial:GetPointForIndex(index, size, radius)
 	local angle = self:GetAngleForIndex(index, size)
 	return self.COS_DELTA * (radius * cos(angle)), (radius * sin(angle))
 end
 
 function Radial:GetIndexForStickPosition(x, y, len, size)
-	if not len or len < self.VALID_VEC_LEN then return end
 	local angle = math.deg(math.atan2(x, y)) + self.ANGLE_IDX_ONE
 	angle = ((angle % 360) + 360) % 360;
 
@@ -389,7 +412,7 @@ function Radial:GetIndexForStickPosition(x, y, len, size)
 			offset, index = distance, i
 		end
 	end
-	return index
+	return len and len >= self.VALID_VEC_LEN and index or nil, index;
 end
 
 

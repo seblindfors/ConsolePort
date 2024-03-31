@@ -41,8 +41,8 @@ db:Save('Gamepad/Devices', 'ConsolePortDevices')
 -- API
 ---------------------------------------------------------------
 function GamepadAPI:AddGamepad(data, mergeDefault)
-	local defaultData = db('table/copy')(self.Devices.Default)
-	local gamepadData = mergeDefault and db('table/merge')(defaultData, data) or data
+	local defaultData = db.table.copy(self.Devices.Default)
+	local gamepadData = mergeDefault and db.table.merge(defaultData, data) or data
 	self.Devices[data.Name] = CPAPI.Proxy(gamepadData, GamepadMixin):OnLoad()
 end
 
@@ -53,14 +53,14 @@ end
 
 function GamepadAPI:GetDevices()
 	local devices = {};
-	for device in db('table/spairs')(self.Devices) do
+	for device in db.table.spairs(self.Devices) do
 		devices[#devices + 1] = device;
 	end
 	return devices;
 end
 
 function GamepadAPI:EnumerateDevices()
-	return db('table/spairs')(GamepadAPI.Devices)
+	return db.table.spairs(GamepadAPI.Devices)
 end
 
 function GamepadAPI:SetActiveDevice(name)

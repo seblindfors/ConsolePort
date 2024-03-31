@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- Convenience UI modifications and hacks
 ---------------------------------------------------------------
-local name, db, L = ...; L = db.Locale;
+local _, db, L = ...; L = db.Locale;
 
 -- Remove the need to type 'DELETE' when removing rare or better quality items
 do  local DELETE_ITEM = CopyTable(StaticPopupDialogs.DELETE_ITEM);

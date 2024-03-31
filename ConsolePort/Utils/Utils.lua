@@ -342,6 +342,10 @@ function CPAPI.GetClassColor(classFile)
 	return GetClassColor(classFile or CPAPI.GetClassFile())
 end
 
+function CPAPI.GetMutedClassColor(factor, classFile)
+	return CPAPI.GetMutedColor(factor, CPAPI.GetClassColor(classFile))
+end
+
 function CPAPI.GetClassColorObject(classFile)
 	if C_ClassColor then
 		return C_ClassColor.GetClassColor(classFile or CPAPI.GetClassFile())
@@ -420,6 +424,11 @@ function CPAPI.NormalizeColor(...)
 	local diff = (1 - high)
 	local r, g, b, a = ...
 	return r + diff, g + diff, b + diff, a;
+end
+
+function CPAPI.GetMutedColor(factor, ...)
+	local r, g, b, a = CPAPI.NormalizeColor(...)
+	return r * factor, g * factor, b * factor, a;
 end
 
 function CPAPI.XY2Polar(x, y)

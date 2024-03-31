@@ -9,16 +9,23 @@ function CPIndexPoolMixin:OnLoad()
 end
 
 function CPIndexPoolMixin:CreateFramePool(type, template, mixin, resetterFunc, parent)
-	assert(not self.FramePool, 'Frame pool already exists.')
-	self.FramePool = CreateFramePool(type, parent or self, template, resetterFunc)
-	self.FramePoolMixin = mixin;
-	return self.FramePool;
+	assert(not self.ObjectPool, 'Frame pool already exists.')
+	self.ObjectPool = CreateFramePool(type, parent or self, template, resetterFunc)
+	self.ObjectPoolMixin = mixin;
+	return self.ObjectPool;
+end
+
+function CPIndexPoolMixin:CreateObjectPool(creationFunc, resetterFunc, mixin)
+	assert(not self.ObjectPool, 'Object pool already exists.')
+	self.ObjectPool = CreateObjectPool(creationFunc, resetterFunc)
+	self.ObjectPoolMixin = mixin;
+	return self.ObjectPool;
 end
 
 function CPIndexPoolMixin:Acquire(index)
-	local widget, newObj = self.FramePool:Acquire()
-	if newObj then
-		Mixin(widget, self.FramePoolMixin)
+	local widget, newObj = self.ObjectPool:Acquire()
+	if newObj and self.ObjectPoolMixin then
+		Mixin(widget, self.ObjectPoolMixin)
 	end
 	self.Registry[index] = widget;
 	return widget, newObj;
@@ -27,7 +34,7 @@ end
 function CPIndexPoolMixin:TryAcquireRegistered(index)
 	local widget = self.Registry[index];
 	if widget then
-		local pool = self.FramePool;
+		local pool = self.ObjectPool;
 		local inactiveIndex = tIndexOf(pool.inactiveObjects, widget)
 		if inactiveIndex then
 			pool.activeObjects[tremove(pool.inactiveObjects, inactiveIndex)] = true;
@@ -43,15 +50,15 @@ function CPIndexPoolMixin:GetObjectByIndex(index)
 end
 
 function CPIndexPoolMixin:EnumerateActive()
-	return self.FramePool:EnumerateActive()
+	return self.ObjectPool:EnumerateActive()
 end
 
 function CPIndexPoolMixin:GetNumActive()
-	return self.FramePool:GetNumActive()
+	return self.ObjectPool:GetNumActive()
 end
 
 function CPIndexPoolMixin:ReleaseAll()
-	self.FramePool:ReleaseAll()
+	self.ObjectPool:ReleaseAll()
 end
 
 ---------------------------------------------------------------
