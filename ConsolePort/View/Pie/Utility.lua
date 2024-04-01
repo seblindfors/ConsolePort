@@ -11,6 +11,7 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	CPAPI.IsRetailVersion and 'UPDATE_EXTRA_ACTIONBAR';
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
+local ActionButton = LibStub('ConsolePortActionButton')
 ---------------------------------------------------------------
 local DEFAULT_SET, EXTRA_ACTION_ID = CPAPI.DefaultRingSetID, CPAPI.ExtraActionButtonID;
 ---------------------------------------------------------------
@@ -37,8 +38,8 @@ Utility:CreateEnvironment({
 			return
 		end
 
-		local radius = math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
 		local numActive = #RING;
+		local radius = self::SetDynamicRadius(numActive)
 		local invertY = self:GetAttribute('axisInversion')
 
 		self:SetAttribute('trigger', self::GetButtonsHeld())
@@ -150,6 +151,7 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 	if set and index then
 		control:CallMethod('SafeRemoveAction', set, index)
 		control:Run(DrawSelectedRing, set)
+		control:CallMethod('OnPostShow')
 	end
 ]])
 
@@ -158,7 +160,12 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 ---------------------------------------------------------------
 function Utility:OnDataLoaded()
 	self:SetAttribute('size', 0)
-	self:CreateFramePool('SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate', Button)
+
+	self:CreateObjectPool(ActionButton:NewPool({
+		name   = self:GetName()..'Button';
+		header = self;
+		mixin  = Button;
+	}))
 	db:Load('Utility/Data', 'ConsolePortUtility')
 
 	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
@@ -250,10 +257,11 @@ end
 function Utility:AddSecureAction(set, idx, info)
 	local button, newObj = self:TryAcquireRegistered(idx)
 	if newObj then
-		button:SetFrameLevel(idx)
+		button:SetFrameLevel(idx + 1)
 		button:SetID(idx)
 		button:OnLoad()
 		button:DisableDragNDrop(true)
+		button:SetSize(64, 64)
 		self:SetFrameRef(tostring(idx), button)
 	end
 
@@ -361,65 +369,29 @@ end
 -- Animations
 ---------------------------------------------------------------
 do
-	local map, Clamp = db.table.map, Clamp;
+	local Clamp = Clamp;
 
-	local function replay(group)
-		group:Stop()
-		group:Finish()
-		group:Play()
-	end
-
-	local function hide(obj) return obj:Hide() end
-	local function show(obj) return obj:Show() end
 
 	function Utility:SetAnimations(obj, rot, len)
 		local overlay = self.FocusOverlay;
 		local oldObj = self.oldAniObj;
 		local pulse = Clamp(len, 0.05, 0.25)
-		local glow = Clamp(len, 0, 1)
 
 		overlay.PulseAnim.PulseIn:SetFromAlpha(pulse / 2)
 		overlay.PulseAnim.PulseIn:SetToAlpha(pulse)
 		overlay.PulseAnim.PulseOut:SetToAlpha(pulse / 2)
 		overlay.PulseAnim.PulseOut:SetFromAlpha(pulse)
 
-		if oldObj == obj then
+		if ( oldObj == obj ) then
 			return
 		end
-		
 		if oldObj then
 			oldObj.Name:Show()
 		end
-
 		self.oldAniObj = obj;
-		
+
 		if obj then
 			obj.Name:Hide()
-
-			map(show,
-				overlay.SlotGlow,
-				overlay.RunesSmall,
-				overlay.SmallRuneGlow,
-				overlay.GlowBurstSmall
-			);
-
-			replay(overlay.RunesSmallAnim)
-
-			overlay.GlowBurstSmall:SetPoint('TOPLEFT', obj, 'TOPLEFT', -50, 50)
-			overlay.GlowBurstSmall:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 50, -50)
-
-			overlay.RunesSmall:SetPoint('TOPLEFT', obj, 'TOPLEFT', -16, 16)
-			overlay.RunesSmall:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 16, -16)
-
-			overlay.SlotGlow:SetPoint('TOPLEFT', obj, 'TOPLEFT', -8, 8)
-			overlay.SlotGlow:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 8, -8)
-		else
-			map(hide,
-				overlay.SlotGlow,
-				overlay.RunesSmall,
-				overlay.SmallRuneGlow,
-				overlay.GlowBurstSmall
-			);
 		end
 	end
 
@@ -555,7 +527,7 @@ Utility.KindAndActionMap = {
 	action = function(data) return data.action end;
 	item   = function(data) return data.item end;
 	pet    = function(data) return data.action end;
-	spell  = function(data) return data.spell end;
+	spell  = function(data) return (select(7, GetSpellInfo(data.spell))) end;
 	macro  = function(data) return data.macro end;
 	equipmentset = function(data) return data.equipmentset end;
 }
@@ -734,7 +706,7 @@ end
 
 function Utility:ToggleExtraActionButton(enabled)
 	if not CPAPI.IsRetailVersion then return end
-	
+
 	if enabled then
 		self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
 	else
@@ -940,9 +912,10 @@ end
 -- Button mixin
 ---------------------------------------------------------------
 function Button:OnLoad()
+	self:SetPreventSkinning(true)
 	self:Initialize()
 	self:SetScript('OnHide', self.OnClear)
-	self:SetScript('OnShow', self.UpdateAssets)
+	--self:SetScript('OnShow', self.UpdateAssets)
 end
 
 function Button:UpdateAssets()
@@ -960,7 +933,7 @@ function Button:UpdateAssets()
 end
 
 function Button:OnFocus()
-	self:SetChecked(true)
+	self:LockHighlight()
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	self:SetTooltip()
 	local use = Utility:GetTooltipUsePrompt()
@@ -975,8 +948,20 @@ function Button:OnFocus()
 end
 
 function Button:OnClear()
-	self:SetChecked(false)
+	self:UnlockHighlight()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
+	end
+end
+
+function Button:UpdateLocal()
+	self:SetRotation(0)
+	ActionButton.Skin.RingButton(self)
+	if not self.masked then
+		local mask = self:GetParent().InnerMask;
+		self.NormalTexture:AddMaskTexture(mask)
+		self.HighlightTexture:AddMaskTexture(mask)
+		self.PushedTexture:AddMaskTexture(mask)
+		self.masked = true;
 	end
 end
