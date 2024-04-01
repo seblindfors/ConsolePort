@@ -1,6 +1,7 @@
 local Lib = LibStub:NewLibrary('ConsolePortActionButton', 1) -- TODO: rename the lib?
 if not Lib then return end
 local LAB = LibStub('LibActionButton-1.0')
+local LBG = LibStub('LibButtonGlow-1.0')
 ---------------------------------------------------------------
 Lib.CustomTypes = {};
 ---------------------------------------------------------------
@@ -118,8 +119,10 @@ Lib.Skin.RingButton = function(self)
 		tex:SetTexture(CPAPI.GetAsset([[Textures\Button\Icon_Mask64]]))
 		tex:SetRotation(self.rotation + math.pi)
 	end
-	do tex = self.Border;
+	do tex = self.SpellHighlightTexture;
 		tex:ClearAllPoints()
-		tex:Hide()
+		tex:SetPoint('CENTER', 0, 0)
+		tex:SetSize(64, 64)
+		tex:SetTexture([[Interface\Buttons\IconBorder-GlowRing]])
 	end
 end;

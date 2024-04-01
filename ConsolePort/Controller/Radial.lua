@@ -18,6 +18,13 @@ db:Register('Radial', Radial):Execute([[
 ]])
 
 ---------------------------------------------------------------
+-- Consts
+---------------------------------------------------------------
+local DEFAULT_ANGLE_OFFSET = 90;
+local DEFAULT_ITEM_SIZE    = 64;
+local DEFAULT_ITEM_PADDING = 32;
+
+---------------------------------------------------------------
 -- Dispatcher
 ---------------------------------------------------------------
 -- This frame is necessary to intercept the stick input, and
@@ -81,6 +88,18 @@ RadialMixin.Env = {
 	GetModifiersHeld = [[
 		return radial::GetModifiersHeld()
 	]];
+	GetRadius = [[
+		return math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
+	]];
+	SetDynamicRadius = ([[
+		local numItems, itemSize, padding = ...;
+		local preferSize = self:GetAttribute('preferSize')
+		local minSize = radial::CalculateMinimumDiameter(numItems, itemSize or %d, padding or %d)
+		local size = math.max(preferSize, minSize)
+		self:SetWidth(size)
+		self:SetHeight(size)
+		return self::GetRadius()
+	]]):format(DEFAULT_ITEM_SIZE, DEFAULT_ITEM_PADDING);
 	SpaceEvenly = [[
 		local children = newtable(self:GetChildren())
 		local radius = math.sqrt(self:GetWidth() * self:GetHeight()) / 2
@@ -133,7 +152,11 @@ function RadialMixin:SetDynamicSizeFunction(body)
 end
 
 function RadialMixin:GetPointForIndex(index, size, radius)
-	return 'CENTER', Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
+	return 'CENTER', self:GetCoordsForIndex(index, size, radius)
+end
+
+function RadialMixin:GetCoordsForIndex(index, size, radius)
+	return Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
 end
 
 function RadialMixin:GetBoundingAnglesForIndex(index)
@@ -154,7 +177,16 @@ end
 
 function RadialMixin:SetRadialSize(size)
 	local radius = self.radius or 1;
-	return self:SetSize(size * radius, size * radius)
+	local newSize = size * radius;
+	self:SetAttribute('preferSize', newSize)
+	return self:SetSize(newSize, newSize)
+end
+
+function RadialMixin:SetDynamicRadius(numItems, itemSize, padding)
+	assert(not InCombatLockdown(), 'Cannot set dynamic radius from insecure code in combat.')
+	return self:Execute(([[
+		self:RunAttribute('SetDynamicRadius', %d, %d, %d)
+	]]):format(numItems, itemSize, padding or 0))
 end
 
 function RadialMixin:OnLoad(data)
@@ -240,6 +272,14 @@ Radial:CreateEnvironment({
 		local angle, radius = ...
 		return COS_DELTA * (radius * cos(angle)), (radius * sin(angle))
 	]];
+	-- @param  items    : number, how many items
+	-- @param  size     : number, size of each item
+	-- @param  padding  : number, padding between items
+	-- @return diameter : number, minimum diameter for items
+	CalculateMinimumDiameter = [[
+        local items, size, padding = ...;
+        return (items * (size + (padding or 0))) / math.pi;
+    ]];
 	-- @param  id  : numberID or name
 	-- @return x   : number [-1,1], X-position
 	-- @return y   : number [-1,1], Y-position
@@ -317,7 +357,7 @@ function Radial:Register(header, name, ...)
 	-- upvalue in case predefined methods should be mixed in post load
 	local OnInput, OnBindingSet = header.OnInput, header.OnBindingSet;
 
-	db('table/mixin')(header, RadialMixin)
+	db.table.mixin(header, RadialMixin)
 	if OnInput then header.OnInput = OnInput; end
 	if OnBindingSet then header.OnBindingSet = OnBindingSet; end;
 
@@ -332,9 +372,9 @@ end
 
 function Radial:OnDataLoaded()
 	for attr, val in pairs({
-		ANGLE_IDX_ONE = 90;
-		VALID_VEC_LEN = 1 - db('Settings/radialActionDeadzone'); -- vector length for valid action
-		COS_DELTA     = -db('Settings/radialCosineDelta');       -- delta for the cosine value
+		ANGLE_IDX_ONE = DEFAULT_ANGLE_OFFSET;
+		VALID_VEC_LEN = 1 - db('radialActionDeadzone'); -- vector length for valid action
+		COS_DELTA     = -db('radialCosineDelta');       -- delta for the cosine value
 	}) do
 		self:Execute(('%s = %f;'):format(attr, val))
 		self[attr] = val
@@ -390,7 +430,7 @@ end
 
 function Radial:GetBoundingAnglesForIndex(index, size)
 	local centerAngle = self:GetAngleForIndex(index, size)
-	local halfstep = 360 / size / 2;
+	local halfstep = -(self.COS_DELTA) * 360 / size / 2;
 	local startAngle = centerAngle - halfstep;
 	local endAngle = centerAngle + halfstep;
 	return startAngle, endAngle;
@@ -401,9 +441,13 @@ function Radial:GetPointForIndex(index, size, radius)
 	return self.COS_DELTA * (radius * cos(angle)), (radius * sin(angle))
 end
 
-function Radial:GetIndexForStickPosition(x, y, len, size)
+function Radial:GetNormalizedAngle(x, y)
 	local angle = math.deg(math.atan2(x, y)) + self.ANGLE_IDX_ONE
-	angle = ((angle % 360) + 360) % 360;
+	return ((angle % 360) + 360) % 360;
+end
+
+function Radial:GetIndexForStickPosition(x, y, len, size)
+	local angle = self:GetNormalizedAngle(x, y)
 
 	local offset, index = math.huge
 	for i=1, size do
@@ -413,6 +457,10 @@ function Radial:GetIndexForStickPosition(x, y, len, size)
 		end
 	end
 	return len and len >= self.VALID_VEC_LEN and index or nil, index;
+end
+
+function Radial:CalculateMinimumDiameter(itemCount, itemSize, padding)
+	return (itemCount * (itemSize + (padding or 0))) / math.pi
 end
 
 

@@ -64,7 +64,7 @@
 			</Layer>
 		</Layers>
 		<Animations>
-			<AnimationGroup parentKey="RingAnim" looping="REPEAT">
+			<AnimationGroup parentKey="BgAnim" looping="REPEAT">
 				<Rotation childKey="Slice" duration="60" order="1" degrees="-360"/>
 				<Scripts>
 					<OnLoad>

@@ -6,25 +6,27 @@ local ActionButton = LibStub('ConsolePortActionButton')
 
 function Petring:UpdateButtons()
 	self:ReleaseAll()
+	self:SetDynamicRadius(NUM_PET_ACTION_SLOTS)
 	for i=1, NUM_PET_ACTION_SLOTS do
 		local button, newObj = self:Acquire(i)
-		local p, x, y = self:GetPointForIndex(i, NUM_PET_ACTION_SLOTS, self:GetWidth() / 1.92)
+		local p, x, y = self:GetPointForIndex(i, NUM_PET_ACTION_SLOTS)
 		if newObj then
 			button:SetID(i)
 			button:RegisterForDrag('LeftButton')
-			button:OnLoad(i)
-			button.rotation = self:GetRotation(x, y)
+			button:OnLoad()
 			button:SetSize(64, 64)
 		end
+		button:SetRotation(self:GetRotation(x, y))
 		button:SetState('', 'custom', {func = nop})
 		button:SetPoint(p, x, self.axisInversion * y)
 		button:Show()
 		self:SetFrameRef(tostring(i), button)
 	end
 	self:Execute(([[
+		local numButtons = %d;
 		self:SetAttribute('state', '')
 		self:ChildUpdate('state', '')
-		for i=1, %d do
+		for i=1, numButtons do
 			local button = self:GetFrameRef(tostring(i))
 			button:SetAttribute('type', 'pet')
 			button:SetAttribute('action', i)
@@ -57,6 +59,7 @@ end
 
 function Petring:OnAxisInversionChanged()
 	self.axisInversion = db('radialCosineDelta')
+	-- TODO: set points for buttons
 end
 
 function Petring:OnPrimaryStickChanged()
@@ -110,8 +113,8 @@ end
 ---------------------------------------------------------------
 -- Petbutton mixin
 ---------------------------------------------------------------
-function Petbutton:OnLoad(i)
-	self.MasqueSkinned = true; -- A hack for LAB to not skin this button
+function Petbutton:OnLoad()
+	self:SetPreventSkinning(true)
 	self:Initialize()
 	self:HookScript('OnHide', self.OnClear)
 	self:GetCheckedTexture():SetVertexColor(1, 0.84, 0, 1)
@@ -141,6 +144,7 @@ function Petbutton:UpdateLocal()
 		self.NormalTexture:AddMaskTexture(mask)
 		self.HighlightTexture:AddMaskTexture(mask)
 		self.PushedTexture:AddMaskTexture(mask)
+		self.Border:AddMaskTexture(mask)
 		self.masked = true;
 	end
 end

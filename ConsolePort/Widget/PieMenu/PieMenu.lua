@@ -36,6 +36,7 @@ function CPPieMenuMixin:OnPostSizeChanged()
 	self.Arrow:SetSize(width * ARROW_SIZE_W_FRACTION, height * ARROW_SIZE_H_FRACTION)
 	self.BG:SetPoint('TOPLEFT', -x, y)
 	self.BG:SetPoint('BOTTOMRIGHT', x, -y)
+	self:UpdatePieSliceSize(width, height)
 end
 
 function CPPieMenuMixin:SetFocusByIndex(index, pointerIndex)
@@ -74,6 +75,8 @@ end
 ---------------------------------------------------------------
 -- Sliced pie mixin
 ---------------------------------------------------------------
+local SLICE_FRACTION, BG_FRACTION, MASK_FRACTION = 512/300, 480/300, 512/300;
+
 function CPPieMenuMixin:UpdateBackgroundAssets(len)
 	if not self.isSlicedPie then return end;
 	local bgAlpha = Clamp(1 - (len + len/1.5), 0.5, 1)
@@ -99,11 +102,27 @@ function CPPieMenuMixin:UpdatePieSlices(isShown)
 	end
 	self.SlicePool:ReleaseAll()
 	local slices = self:GetNumActive()
+	local width, height = self:GetSize()
 	for i = 1, slices do
-		local slice = self.SlicePool:Acquire()
-		slice:SetIndex(i - 1)
+		local slice, newObj = self.SlicePool:Acquire()
 		slice:SetAlpha(1)
+		slice:SetPoint('CENTER')
+		slice:SetIndex(i - 1)
+		slice:UpdateSize(width, height)
 		slice:Show()
+		if newObj then
+			slice:SynchronizeAnimation(self.ActiveSlice)
+		end
+	end
+end
+
+function CPPieMenuMixin:UpdatePieSliceSize(width, height)
+	if not self.isSlicedPie then return end;
+	self.InnerMask:SetSize(width * BG_FRACTION, height * BG_FRACTION)
+	self.ActiveSlice:UpdateSize(width, height)
+	if not self.SlicePool then return end; -- TODO: error here for some reason?
+	for slice in self.SlicePool:EnumerateActive() do
+		slice:UpdateSize(width, height)
 	end
 end
 
@@ -127,4 +146,18 @@ end
 
 function CPPieSliceMixin:SetVertexColor(r, g, b)
 	self.Slice:SetVertexColor(r, g, b)
+end
+
+function CPPieSliceMixin:UpdateSize(width, height)
+	if not width or not height then
+		width, height = self:GetParent():GetSize()
+	end
+	self:SetSize(width * SLICE_FRACTION, height * SLICE_FRACTION)
+	self.Slice:SetSize(width * BG_FRACTION, height * BG_FRACTION)
+	self.RectMask1:SetSize(width * MASK_FRACTION, height * MASK_FRACTION)
+	self.RectMask2:SetSize(width * MASK_FRACTION, height * MASK_FRACTION)
+end
+
+function CPPieSliceMixin:SynchronizeAnimation(other)
+	self.BgAnim:Restart(false, other.BgAnim:GetElapsed())
 end
