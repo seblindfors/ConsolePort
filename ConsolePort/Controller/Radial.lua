@@ -186,7 +186,7 @@ function RadialMixin:SetDynamicRadius(numItems, itemSize, padding)
 	assert(not InCombatLockdown(), 'Cannot set dynamic radius from insecure code in combat.')
 	return self:Execute(([[
 		self:RunAttribute('SetDynamicRadius', %d, %d, %d)
-	]]):format(numItems, itemSize, padding or 0))
+	]]):format(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING))
 end
 
 function RadialMixin:OnLoad(data)

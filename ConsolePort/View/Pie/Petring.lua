@@ -59,7 +59,9 @@ end
 
 function Petring:OnAxisInversionChanged()
 	self.axisInversion = db('radialCosineDelta')
-	-- TODO: set points for buttons
+	if self.ObjectPool then
+		self:UpdateButtons()
+	end
 end
 
 function Petring:OnPrimaryStickChanged()

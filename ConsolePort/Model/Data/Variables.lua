@@ -171,7 +171,7 @@ db:Register('Variables', {
 		desc = 'Scale of all radial menus, relative to UI scale.';
 		advd = true;
 	};
-	radialPreferredSize = _{Number(500, 25, true);
+	radialPreferredSize = _{Number(400, 25, true);
 		name = 'Ring Size';
 		desc = 'Preferred size of radial menus, in pixels.';
 		advd = true;
