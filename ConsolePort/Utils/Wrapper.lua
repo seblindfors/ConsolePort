@@ -74,13 +74,14 @@ function CPAPI.GetAverageItemLevel(...)
 end
 
 ---------------------------------------------------------------
--- Action button info
+-- Button constants
 ---------------------------------------------------------------
 CPAPI.ExtraActionButtonID = ExtraActionButton1 and ExtraActionButton1.action or
 	CPAPI.IsRetailVersion and 217 or 169;
 
-CPAPI.ActionTypeRelease = CPAPI.IsRetailVersion and 'typerelease' or 'type';
-CPAPI.ActionTypePress   = 'type';
+CPAPI.ActionTypeRelease  = CPAPI.IsRetailVersion and 'typerelease' or 'type';
+CPAPI.ActionTypePress    = 'type';
+CPAPI.ActionPressAndHold = 'pressAndHoldAction';
 
 CPAPI.DefaultRingSetID = 1;
 

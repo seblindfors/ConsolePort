@@ -67,88 +67,88 @@ Lib.Skin = {};
 ---------------------------------------------------------------
 
 do -- Lib.Skin.RingButton
-local inject = function(self, k, v)
-	-- NOTE: This is a workaround for LAB charge cooldowns.
-	if ( k == 'chargeCooldown' and v ) then
-		local script = v:GetScript('OnCooldownDone')
-		v:SetUseCircularEdge(true)
-		v:SetScript('OnCooldownDone', function()
-			v:SetUseCircularEdge(false)
-			if script then
-				script(v)
-			end
-		end)
-	end
-	rawset(self, k, v)
-end
 Lib.Skin.RingButton = function(self)
 	assert(type(self.rotation) == 'number', 'Ring button must have a rotation value.')
-	local tex;
+	local obj;
 	local r, g, b = CPAPI.GetClassColor()
-	do tex = self.NormalTexture;
-		tex:ClearAllPoints()
-		tex:SetPoint('CENTER', -1, 0)
-		tex:SetSize(110, 110)
-		tex:SetVertexColor(r, g, b, 1)
-		CPAPI.SetAtlas(tex, 'ring-metallight')
+	do obj = self.NormalTexture;
+		obj:ClearAllPoints()
+		obj:SetPoint('CENTER', -1, 0)
+		obj:SetSize(110, 110)
+		obj:SetVertexColor(r, g, b, 1)
+		CPAPI.SetAtlas(obj, 'ring-metallight')
 	end
-	do tex = self.PushedTexture;
-		tex:ClearAllPoints()
-		tex:SetPoint('CENTER')
-		tex:SetSize(110, 110)
-		tex:SetVertexColor(r, g, b, 1)
-		CPAPI.SetAtlas(tex, 'ring-metaldark')
+	do obj = self.PushedTexture;
+		obj:ClearAllPoints()
+		obj:SetPoint('CENTER')
+		obj:SetSize(110, 110)
+		obj:SetVertexColor(r, g, b, 1)
+		CPAPI.SetAtlas(obj, 'ring-metaldark')
 	end
-	do tex = self.CheckedTexture;
-		tex:ClearAllPoints()
-		tex:SetPoint('CENTER', 0, 0)
-		tex:SetSize(78, 78)
-		tex:SetDrawLayer('OVERLAY', -1)
-		CPAPI.SetAtlas(tex, 'ring-select')
+	do obj = self.CheckedTexture;
+		obj:ClearAllPoints()
+		obj:SetPoint('CENTER', 0, 0)
+		obj:SetSize(78, 78)
+		obj:SetDrawLayer('OVERLAY', -1)
+		CPAPI.SetAtlas(obj, 'ring-select')
 	end
-	do tex = self.HighlightTexture;
-		tex:ClearAllPoints()
-		tex:SetPoint('CENTER')
-		tex:SetSize(90, 90)
-		CPAPI.SetAtlas(tex, 'ring-select')
+	do obj = self.HighlightTexture;
+		obj:ClearAllPoints()
+		obj:SetPoint('CENTER')
+		obj:SetSize(90, 90)
+		CPAPI.SetAtlas(obj, 'ring-select')
 	end
-	do tex = self.icon;
-		tex:SetAllPoints()
+	do obj = self.icon;
+		obj:SetAllPoints()
 	end
-	do tex = self.IconMask;
-		tex:SetTexture([[Interface\Masks\CircleMask]])
-		tex:SetPoint('CENTER')
-		tex:SetSize(58, 58)
+	do obj = self.IconMask;
+		obj:SetTexture([[Interface\Masks\CircleMask]])
+		obj:SetPoint('CENTER')
+		obj:SetSize(58, 58)
 	end
-	do tex = self.Flash;
-		tex:ClearAllPoints()
-		tex:SetPoint('CENTER', 1, 0)
-		tex:SetSize(110, 110)
-		tex:SetBlendMode('ADD')
-		CPAPI.SetAtlas(tex, 'ring-horde')
-		tex:SetDrawLayer('OVERLAY', 1)
+	do obj = self.Flash;
+		obj:ClearAllPoints()
+		obj:SetPoint('CENTER', 1, 0)
+		obj:SetSize(110, 110)
+		obj:SetBlendMode('ADD')
+		CPAPI.SetAtlas(obj, 'ring-horde')
+		obj:SetDrawLayer('OVERLAY', 1)
 	end
-	do tex = self.SlotBackground;
-		tex:SetPoint('CENTER')
-		tex:SetSize(64, 64)
-		tex:SetTexture(CPAPI.GetAsset([[Textures\Button\Icon_Mask64]]))
-		tex:SetRotation(self.rotation + math.pi)
-		tex:AddMaskTexture(self.IconMask)
-		tex:SetDrawLayer('BACKGROUND', -1)
+	do obj = self.SlotBackground;
+		obj:SetPoint('CENTER')
+		obj:SetSize(64, 64)
+		obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Icon_Mask64]]))
+		obj:SetRotation(self.rotation + math.pi)
+		obj:AddMaskTexture(self.IconMask)
+		obj:SetDrawLayer('BACKGROUND', -1)
 	end
-	do tex = self.SpellHighlightTexture;
-		tex:ClearAllPoints()
-		tex:SetPoint('CENTER', 0, 0)
-		tex:SetSize(64, 64)
-		tex:SetTexture([[Interface\Buttons\IconBorder-GlowRing]])
+	do obj = self.SpellHighlightTexture;
+		obj:ClearAllPoints()
+		obj:SetPoint('CENTER', 0, 0)
+		obj:SetSize(64, 64)
+		obj:SetTexture([[Interface\Buttons\IconBorder-GlowRing]])
 	end
-	do tex = self.cooldown;
-		tex:SetSwipeTexture([[Interface\AddOns\ConsolePort_Bar\Textures\Cooldown\Swipe]])
-		tex:SetSwipeColor(RED_FONT_COLOR:GetRGBA())
-		tex:SetUseCircularEdge(true)
-		tex.SetEdgeTexture = nop;
+	do obj = self.cooldown;
+		obj:SetSwipeTexture([[Interface\AddOns\ConsolePort_Bar\Textures\Cooldown\Swipe]])
+		obj:SetSwipeColor(RED_FONT_COLOR:GetRGBA())
+		obj:SetUseCircularEdge(true)
+		obj.SetEdgeTexture = nop;
 	end
-	CPAPI.Inject(self, inject)
+	do obj = self.chargeCooldown;
+		-- HACK: Workaround for LAB's private charge cooldowns.
+		if obj and not self.hookedChargeCooldown then
+			self.hookedChargeCooldown = true;
+			local script = obj:GetScript('OnCooldownDone')
+			obj:SetUseCircularEdge(true)
+			obj:SetScript('OnCooldownDone', function()
+				obj:SetUseCircularEdge(false)
+				self.hookedChargeCooldown = nil;
+				if script then
+					script(obj)
+				end
+			end)
+		end
+	end
 	if not self.RingMasked then
 		local mask = self:GetParent().InnerMask;
 		for _, region in ipairs({
@@ -166,36 +166,36 @@ end -- Lib.Skin.RingButton
 do Lib.Skin.UtilityRingButton = function(self)
 	Lib.Skin.RingButton(self)
 	local r, g, b = CPAPI.GetClassColor()
-	local tex;
-	do tex = self.SlotBackground;
-		tex:SetDrawLayer('BACKGROUND', -1)
-		tex:SetTexture(CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
-		tex:SetDesaturated(true)
-		tex:SetVertexColor(0.5, 0.5, 0.5, 1)
-		tex:AddMaskTexture(self.IconMask)
-		tex:SetRotation(self.rotation)
+	local obj;
+	do obj = self.SlotBackground;
+		obj:SetDrawLayer('BACKGROUND', -1)
+		obj:SetTexture(CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
+		obj:SetDesaturated(true)
+		obj:SetVertexColor(0.5, 0.5, 0.5, 1)
+		obj:AddMaskTexture(self.IconMask)
+		obj:SetRotation(self.rotation)
 	end
-	do tex = self.Border;
-		tex:SetDrawLayer('BACKGROUND', -2)
-		tex:ClearAllPoints()
-		tex:Show()
+	do obj = self.Border;
+		obj:SetDrawLayer('BACKGROUND', -2)
+		obj:ClearAllPoints()
+		obj:Show()
 		if (self:GetAttribute('type') == 'action' and self:GetAttribute('action') == CPAPI.ExtraActionButtonID) then
 			local skin, hasBarSkin = CPAPI.GetOverrideBarSkin(), true;
 			if not skin then
 				skin, hasBarSkin = [[Interface\ExtraButton\stormwhite-extrabutto]], false;
 			end
-			tex:SetSize(256 * 0.8, 128 * 0.8)
-			tex:SetPoint('CENTER', -2, 0)
-			tex:SetTexture(skin)
+			obj:SetSize(256 * 0.8, 128 * 0.8)
+			obj:SetPoint('CENTER', -2, 0)
+			obj:SetTexture(skin)
 			if hasBarSkin then
-				tex:SetVertexColor(1, 1, 1, 1)
+				obj:SetVertexColor(1, 1, 1, 1)
 			else
-				tex:SetVertexColor(r, g, b, 0.5)
+				obj:SetVertexColor(r, g, b, 0.5)
 			end
 		else
-			tex:SetTexture(CPAPI.GetAsset([[Textures\Button\Shadow]]))
-			tex:SetPoint('TOPLEFT', -5, 0)
-			tex:SetPoint('BOTTOMRIGHT', 5, -10)
+			obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Shadow]]))
+			obj:SetPoint('TOPLEFT', -5, 0)
+			obj:SetPoint('BOTTOMRIGHT', 5, -10)
 		end
 	end
 end;

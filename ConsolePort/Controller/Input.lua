@@ -232,7 +232,7 @@ InputMixin.timer = 0;
 function InputMixin:OnLoad(id)
 	if CPAPI.IsRetailVersion then
 		self:RegisterForClicks('AnyUp', 'AnyDown')
-		self:SetAttribute('pressAndHoldAction', true)
+		self:SetAttribute(CPAPI.ActionPressAndHold, true)
 	end
 	self:SetAttribute('id', id)
 	self:SetAttribute('_childupdate-combat', [[

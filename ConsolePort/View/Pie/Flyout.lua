@@ -1,66 +1,100 @@
 if not CPAPI.IsRetailVersion then return end;
 local _, db = ...;
-local Selector, Fade, FlyoutButtonMixin = CPAPI.EventHandler(ConsolePortSpellFlyout, {'SPELL_FLYOUT_UPDATE'}), db('Alpha/Fader'), {}
+local SpellFlyout, FlyoutButtonMixin = SpellFlyout, CreateFromMixins(CPActionButton);
+local Selector = Mixin(CPAPI.EventHandler(ConsolePortSpellFlyout, {
+	'SPELL_FLYOUT_UPDATE'
+}), CPAPI.SecureEnvironmentMixin);
 
+---------------------------------------------------------------
+-- Secure environment
+---------------------------------------------------------------
 Selector:SetFrameRef('flyout', SpellFlyout)
-Selector:Execute('this = self; that = self:GetFrameRef("flyout"); BUTTONS = newtable()')
-Selector:SetAttribute('pressAndHoldAction', true)
-Selector:SetAttribute('ClearAndHide', [[
-	self:CallMethod('ClearInstantly')
-	self:SetAttribute('type', nil)
-	local owner = that:GetParent()
-	owner:Hide()
-	owner:Show()
+Selector:SetAttribute(CPAPI.ActionPressAndHold, true)
+Selector:Run([[
+	selector, flyout = self, self:GetFrameRef('flyout')
+	BUTTONS = {};
 ]])
-Selector:WrapScript(SpellFlyout, 'OnShow', [[
-	if this:RunAttribute('SetBindingsForTriggers') then
-		this:Show()
-		self:SetAlpha(0)
+
+Selector:CreateEnvironment({
+	ClearAndHide = ([[
+		self:CallMethod('ClearInstantly')
+		self:SetAttribute(%q, nil)
+		local owner = flyout:GetParent()
+		owner:Hide()
+		owner:Show()
+	]]):format(CPAPI.ActionTypeRelease);
+})
+
+Selector:Hook(SpellFlyout, 'OnShow', [[
+	if selector::SetBindingsForTriggers() then
+		selector::UpdateSize()
+		selector:Show()
+		selector:CallMethod('SetOverride', true)
 	else
-		self:SetAlpha(1)
-		this:Hide()
+		selector:CallMethod('SetOverride', false)
+		selector:Hide()
 	end
 ]])
 
-Selector:WrapScript(SpellFlyout, 'OnHide', [[
+Selector:Hook(SpellFlyout, 'OnHide', [[
 	wipe(BUTTONS)
-	this:ClearBindings()
-	this:Hide()
-	this:CallMethod('ReleaseAll')
+	control:ClearBindings()
+	control:Hide()
+	control:CallMethod('ReleaseAll')
 	self:SetAlpha(1)
 ]])
 
-Selector:WrapScript(Selector, 'PreClick', ([[
-	local index = self:RunAttribute('GetIndex')
-	local button = index and BUTTONS[index]
-	if button then
-		self:SetAttribute('%s', 'macro')
-		self:SetAttribute('macrotext', '/click '..button:GetName())
-	else
-		self:RunAttribute('ClearAndHide')
-	end
-]]):format(CPAPI.ActionTypeRelease))
+Selector:Wrap('PreClick', ([[
+	self::UpdateSize()
 
-function Selector:SPELL_FLYOUT_UPDATE(...)
---	print(GetTime(), ...)
+	local index = self::GetIndex()
+	local button = index and BUTTONS[index];
+	if button then
+		self:SetAttribute(%q, 'macro')
+		self:SetAttribute('macrotext', '/click '..button:GetName())
+		self:CallMethod('SetOverride', false)
+	else
+		self::ClearAndHide()
+	end
+]]):format(CPAPI.ActionTypeRelease, CPAPI.ActionTypeRelease))
+
+---------------------------------------------------------------
+-- Events
+---------------------------------------------------------------
+function Selector:SPELL_FLYOUT_UPDATE()
+	for button in self:EnumerateActive() do
+		button:Update()
+	end
 end
 
+---------------------------------------------------------------
+-- Handler
+---------------------------------------------------------------
 function Selector:OnDataLoaded(...)
-	self:CreateFramePool('CPButtonTemplate', FlyoutButtonMixin, function(pool, self)
-		self:Hide()
-		self:ClearAllPoints()
-		if self.OnClear then
-			self:OnClear()
-		end
-	end)
+	local counter = CreateCounter();
+	self:CreateObjectPool(function()
+		return CreateFrame(
+			'CheckButton',
+			self:GetName()..'Button'..counter(),
+			self, 'ActionButtonTemplate')
+		end,
+		function(_, self)
+			self:Hide()
+			self:ClearAllPoints()
+			if self.OnClear then
+				self:OnClear()
+			end
+		end, FlyoutButtonMixin)
 	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
 	db.Radial:Register(self, 'SpellFlyout', {
 		sticks = sticks;
 		target = {sticks[1]};
 		sizer  = [[
 			wipe(BUTTONS)
-			for i, child in ipairs(newtable(that:GetChildren())) do
-				if child:IsVisible() then
+			for i, child in ipairs(newtable(flyout:GetChildren())) do
+				if child:IsVisible()
+				and child:IsProtected()
+				and child:IsObjectType('CheckButton') then
 					BUTTONS[#BUTTONS+1] = child
 				end
 			end
@@ -83,6 +117,9 @@ end
 db:RegisterSafeCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
 db:RegisterSafeCallback('Settings/radialPrimaryStick', Selector.OnPrimaryStickChanged, Selector)
 
+---------------------------------------------------------------
+-- Frontend
+---------------------------------------------------------------
 function Selector:OnInput(x, y, len, stick)
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
 	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
@@ -95,24 +132,43 @@ function Selector:OnBindingSet(btn, mod)
 end
 
 function Selector:AddButton(i, size)
-	local button = self:Acquire(i)
+	local button, newObj = self:Acquire(i)
 	local p, x, y = self:GetPointForIndex(i, size)
-	button:RegisterForDrag('LeftButton')
-	button:SetScript('OnDragStart', FlyoutButtonMixin.OnDragStart)
+	if newObj then
+		button:RegisterForDrag('LeftButton')
+		button:SetScript('OnDragStart', FlyoutButtonMixin.OnDragStart)
+		button:SetSize(64, 64)
+	end
 	button:SetPoint(p, x, self.axisInversion * y)
+	button:SetRotation(self:GetRotation(x, y))
 	button:Show()
-	return button
+	return button;
 end
 
+function Selector:SetOverride(enabled)
+	SpellFlyout:SetAlpha(enabled and 0 or 1)
+	local owner = SpellFlyout:GetParent()
+	if owner and owner.UpdateFlyout then
+		owner:UpdateFlyout(false)
+	end
+	if not enabled and owner and owner.SetButtonState then
+		owner:SetButtonState('NORMAL')
+	end
+end
+
+---------------------------------------------------------------
+-- Buttons
+---------------------------------------------------------------
+local ActionButton = LibStub('ConsolePortActionButton')
+
 function FlyoutButtonMixin:OnFocus(newFocus)
-	self:SetChecked(true)
+	self:LockHighlight()
 	if newFocus then
 		local button = self:GetParent().buttonTrigger;
 		if button then
 			local device = db('Gamepad/Active')
 			button = device and device:GetTooltipButtonPrompt(button, USE, 64)
 		end
-		self:StartFlash()
 		GameTooltip_SetDefaultAnchor(GameTooltip, self)
 		GameTooltip:SetSpellByID(self.spellID)
 		if button then
@@ -123,28 +179,10 @@ function FlyoutButtonMixin:OnFocus(newFocus)
 end
 
 function FlyoutButtonMixin:OnClear()
-	self:SetChecked(false)
-	self:StopFlash()
+	self:UnlockHighlight()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
-end
-
-function FlyoutButtonMixin:UpdateState(i, name)
-	local proxy = _G[name]
-	if not proxy or not proxy:IsVisible() then return false end
-	self.offSpec = proxy.offSpec;
-	self.spellID = proxy.spellID;
-	self.spellName = proxy.spellName;
-	self:SetIcon(proxy.icon:GetTexture())
-	return true
-end
-
-function FlyoutButtonMixin:Update(offSpec, spellID, spellName, overrideSpellID)
-	self.offSpec = offSpec;
-	self.spellID = spellID;
-	self.spellName = spellName;
-	self:SetIcon(GetSpellTexture(overrideSpellID))
 end
 
 function FlyoutButtonMixin:OnDragStart()
@@ -153,13 +191,36 @@ function FlyoutButtonMixin:OnDragStart()
 	end
 end
 
+function FlyoutButtonMixin:SetData(data)
+	Mixin(self, data)
+	self:Update()
+end
+
+function FlyoutButtonMixin:Update()
+	if not self.spellID then return end;
+	SpellFlyoutButton_UpdateCooldown(self);
+	SpellFlyoutButton_UpdateCount(self);
+	SpellFlyoutButton_UpdateUsable(self);
+	SpellFlyoutButton_UpdateState(self);
+
+	self.icon:SetTexture(GetSpellTexture(self.overrideSpellID))
+	self:GetNormalTexture():SetDesaturated(self.offSpec)
+	self.Name:SetText(self.spellName)
+	self:SetEnabled(not self.offSpec)
+	ActionButton.Skin.RingButton(self)
+end
+
+---------------------------------------------------------------
+-- Hook
+---------------------------------------------------------------
+
 -- signature: (self, flyoutID, parent, direction, distance, isActionBar, specID, showFullTooltip, reason)
-hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActionBar, specID)
+hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActionBar, specID, _, reason)
 	local self = Selector; self:ReleaseAll();
 	if not flyout:IsShown() then return end
 
 	-- BUG: Flyout sometimes clicks the wrong button
-	local active, offSpec, _, _, numSlots, isKnown = {}, specID and (specID ~= 0), GetFlyoutInfo(flyoutID)
+	local active, offSpec, _, _, numSlots = {}, specID and (specID ~= 0), GetFlyoutInfo(flyoutID)
 	for i=1, numSlots do
 		local spellID, overrideSpellID, isKnown, spellName, slotSpecID = GetFlyoutSlotInfo(flyoutID, i)
 		local visible = true
@@ -167,34 +228,25 @@ hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActi
 		-- ignore Call Pet spells if there isn't a pet in that slot
 		local petIndex, petName = GetCallPetSpellInfo(spellID)
 		if (isActionBar and petIndex and (not petName or petName == '')) then
-			visible = false
+			visible = false;
 		end
 
 		-- show buttons
-		if ( ((not offSpec or slotSpecID == 0) and visible and isKnown) or (offSpec and slotSpecID == specID) ) then
+		if ( (not offSpec or slotSpecID == 0) and visible and isKnown )
+		or ( offSpec and slotSpecID == specID ) then
 			active[#active+1] = {
 				overrideSpellID = overrideSpellID;
-				desaturated = offSpec;
-				offSpec = offSpec;
-				spellID = spellID;
-				spellName = spellName;
+				desaturated     = offSpec;
+				offSpec         = offSpec;
+				spellID         = spellID;
+				spellName       = spellName;
+				reason          = reason;
 			}
-			-- TODO: all this
-			-- SpellFlyoutButton_UpdateCooldown(button);
-			-- SpellFlyoutButton_UpdateState(button);
-			-- SpellFlyoutButton_UpdateUsable(button);
-			-- SpellFlyoutButton_UpdateCount(button);
-			-- SpellFlyoutButton_UpdateGlyphState(button, reason);
 		end
 	end
 	for i, data in ipairs(active) do
 		local button = self:AddButton(i, #active)
-		button:SetIcon(GetSpellTexture(data.overrideSpellID))
-		button:GetNormalTexture():SetDesaturated(data.offSpec)
-		button.offSpec = data.offSpec;
-		button.spellID = data.spellID;
-		button.spellName = data.spellName;
-		button:SetEnabledState(not data.offSpec)
-		button:SetDescription(data.spellName)
+		button:SetData(data)
 	end
+	self:UpdatePieSlices(true, #active)
 end)

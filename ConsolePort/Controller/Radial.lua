@@ -165,8 +165,8 @@ function RadialMixin:GetCoordsForIndex(index, size, radius)
 	return Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
 end
 
-function RadialMixin:GetBoundingAnglesForIndex(index)
-	return Radial:GetBoundingAnglesForIndex(index, self:GetAttribute('size'))
+function RadialMixin:GetBoundingAnglesForIndex(index, size)
+	return Radial:GetBoundingAnglesForIndex(index, size or self:GetAttribute('size'))
 end
 
 function RadialMixin:GetIndexForPos(x, y, len, size)
@@ -367,7 +367,6 @@ function Radial:Register(header, name, ...)
 	if OnInput then header.OnInput = OnInput; end
 	if OnBindingSet then header.OnBindingSet = OnBindingSet; end;
 
-	local radius = header.radius or 1;
 	header:SetScale(db('radialScale'))
 	header:SetRadialSize(db('radialPreferredSize'))
 	db:RegisterSafeCallback('Settings/radialScale', header.SetScale, header)

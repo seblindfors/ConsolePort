@@ -190,10 +190,12 @@ SLASH_FUNCTIONS = {
 		local activeDevices = {};
 		for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
 			local device = C_GamePad.GetDeviceRawState(i)
+			local devicePowerLevel = C_GamePad.GetPowerLevel(deviceID)
 			if device then
 				tinsert(activeDevices, {
 					id    = i;
 					state = device;
+					powerLevel = devicePowerLevel;
 				})
 			end
 		end
@@ -202,15 +204,17 @@ SLASH_FUNCTIONS = {
 			for _, device in ipairs(activeDevices) do
 				local vendorID  = ('%04x'):format(device.state.vendorID):upper();
 				local productID = ('%04x'):format(device.state.productID):upper();
+				local powerLevel = device.powerLevel;
 				local config = C_GamePad.GetConfig({
 					vendorID  = device.state.vendorID;
 					productID = device.state.productID;
 				});
 
 				CPAPI.Log('%d: |cFFFFFFFF%s|r', device.id, device.state.name)
-				CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s',
+				CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s, Battery Level: %s',
 					vendorID, productID,
-					config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r'
+					config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r',
+					powerLevel
 				);
 			end
 		else
@@ -318,7 +322,7 @@ LibStub('Carpenter'):BuildFrame(GameMenuFrame, {
 		_RegisterForClicks = 'AnyUp';
 		_OnLoad = function(self)
 			self:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
-			self:SetAttribute('pressAndHoldAction', true)
+			self:SetAttribute(CPAPI.ActionPressAndHold, true)
 			self:SetNormalTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
 			self:SetPushedTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
 			local pushed = self:GetPushedTexture()

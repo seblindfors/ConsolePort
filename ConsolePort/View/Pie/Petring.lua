@@ -78,7 +78,7 @@ end
 db:RegisterSafeCallback('Settings/radialCosineDelta', Petring.OnAxisInversionChanged, Petring)
 db:RegisterSafeCallback('Settings/radialPrimaryStick', Petring.OnPrimaryStickChanged, Petring)
 
-Petring:SetAttribute('pressAndHoldAction', true)
+Petring:SetAttribute(CPAPI.ActionPressAndHold, true)
 Petring:WrapScript(Petring, 'PreClick', (([[
 	self:SetAttribute('TYPE', nil)
 	if down then

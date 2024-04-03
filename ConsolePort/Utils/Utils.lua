@@ -64,6 +64,9 @@ CPAPI.SecureEnvironmentMixin = {
 	Wrap = function(self, scriptHandler, body)
 		return self:WrapScript(self, scriptHandler, CPAPI.ConvertSecureBody(body))
 	end;
+	Hook = function(self, target, scriptHandler, body)
+		return self:WrapScript(target, scriptHandler, CPAPI.ConvertSecureBody(body))
+	end;
 }
 
 CPAPI.AdvancedSecureMixin = CreateFromMixins(CPAPI.SecureExportMixin, CPAPI.SecureEnvironmentMixin, {
@@ -78,7 +81,7 @@ CPAPI.AdvancedSecureMixin = CreateFromMixins(CPAPI.SecureExportMixin, CPAPI.Secu
 			);
 		end
 		self:Execute(body)
-		for key, value in pairs(args) do
+		for key in pairs(args) do
 			self:SetAttribute(key, backup[key])
 		end
 		return body;

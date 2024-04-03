@@ -95,14 +95,14 @@ function CPPieMenuMixin:UpdateBackgroundFocus(index)
 	self.ActiveSlice:SetIndex(index, self:GetNumActive())
 end
 
-function CPPieMenuMixin:UpdatePieSlices(isShown)
+function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
     if not self.isSlicedPie then return end;
     if not isShown then
 		self.ActiveSlice:SetAlpha(0)
 		return;
 	end
 	self.SlicePool:ReleaseAll()
-	local slices = self:GetNumActive()
+	local slices = numSlices or self:GetNumActive()
 	local width, height = self:GetSize()
 	for i = 1, slices do
 		local slice, newObj = self.SlicePool:Acquire()
@@ -133,14 +133,14 @@ end
 CPPieSliceMixin = {};
 
 function CPPieSliceMixin:OnPreLoad()
-	local r, g, b = CPAPI.GetMutedClassColor(0.75)
+	local r, g, b = CPAPI.GetMutedClassColor(0.5)
 	self.Slice:SetVertexColor(r, g, b)
 	self:Lower()
 end
 
 function CPPieSliceMixin:SetIndex(index, numActive)
     if not index then return end;
-    local startAngle, endAngle = self:GetParent():GetBoundingAnglesForIndex(index)
+    local startAngle, endAngle = self:GetParent():GetBoundingAnglesForIndex(index, numActive)
 	local enableMasking = not numActive or numActive > 1;
 	self.RectMask1:SetRotation(-(math.rad(startAngle)))
 	self.RectMask2:SetRotation(-(math.rad(endAngle)) + math.pi)

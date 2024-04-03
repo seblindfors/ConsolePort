@@ -554,7 +554,7 @@ do	-- Initiate frame
 			_ID = 3;
 			_Type = 'CheckButton';
 			_Size = {54, 54};
-			_Setup = {'CPButtonTemplate', 'SecureHandlerClickTemplate'};
+			_Setup = {'CPButtonTemplate', 'SecureHandlerClickTemplate'}; -- TODO: Replace template
 			_Attributes = {_onclick = 'self:GetParent():RunAttribute("ChangeHeader", self:GetID())'};
 			{
 				ClassIcon = {
@@ -688,7 +688,7 @@ do	-- Initiate frame
 					button:SetAttribute('macrotext', prefix .. '/click ' .. button.RefTo:GetName())
 					button:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
 				end
-				button:SetAttribute('pressAndHoldAction', true)
+				button:SetAttribute(CPAPI.ActionPressAndHold, true)
 				button:Hide()
 				header:SetFrameRef(tostring(button:GetID()), button)
 			end

@@ -170,7 +170,8 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 	if set and index then
 		control:CallMethod('SafeRemoveAction', set, index)
 		control:Run(DrawSelectedRing, set)
-		return control:CallMethod('OnPostShow')
+		control:CallMethod('OnPostShow')
+		return control:CallMethod('OnStickySelectChanged')
 	end
 	return control:Run(ClearStickyIndex)
 ]])
@@ -212,9 +213,9 @@ function Utility:OnDataLoaded()
 	self:OnAxisInversionChanged()
 	self:OnStickySelectChanged()
 	if CPAPI.IsRetailVersion then
-		self.FocusOverlay.BgRunes:SetAtlas('heartofazeroth-orb-activated')
+		self.BgRunes:SetAtlas('heartofazeroth-orb-activated')
 	else
-		self.FocusOverlay.BgRunes:SetAtlas('ChallengeMode-RuneBG')
+		self.BgRunes:SetAtlas('ChallengeMode-RuneBG')
 	end
 end
 
@@ -248,7 +249,7 @@ end
 
 function Utility:OnSizeChanged()
 	local width, height = self:GetSize()
-	self.FocusOverlay.BgRunes:SetSize(width * 0.8, height * 0.8)
+	self.BgRunes:SetSize(width * 0.8, height * 0.8)
 	self.StickySlice:UpdateSize(width, height)
 end
 
@@ -295,7 +296,7 @@ end
 function Utility:AddSecureAction(set, idx, info)
 	local button, newObj = self:TryAcquireRegistered(idx)
 	if newObj then
-		button:SetFrameLevel(idx + 1)
+		button:SetFrameLevel(idx + 2)
 		button:SetID(idx)
 		button:OnLoad()
 		button:DisableDragNDrop(true)
@@ -415,14 +416,13 @@ do
 	local Clamp = Clamp;
 
 	function Utility:SetAnimations(obj, rot, len)
-		local overlay = self.FocusOverlay;
 		local oldObj = self.oldAniObj;
 		local pulse = Clamp(len, 0.05, 0.25)
 
-		overlay.PulseAnim.PulseIn:SetFromAlpha(pulse / 2)
-		overlay.PulseAnim.PulseIn:SetToAlpha(pulse)
-		overlay.PulseAnim.PulseOut:SetToAlpha(pulse / 2)
-		overlay.PulseAnim.PulseOut:SetFromAlpha(pulse)
+		self.PulseAnim.PulseIn:SetFromAlpha(pulse / 2)
+		self.PulseAnim.PulseIn:SetToAlpha(pulse)
+		self.PulseAnim.PulseOut:SetToAlpha(pulse / 2)
+		self.PulseAnim.PulseOut:SetFromAlpha(pulse)
 
 		if ( oldObj == obj ) then
 			return
