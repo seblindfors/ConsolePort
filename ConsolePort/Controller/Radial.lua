@@ -42,12 +42,17 @@ end
 function Dispatcher:SetFocus(frame)
 	self.focusFrame = frame;
 	self:EnableGamePadStick(true)
+	if self.focusTimer then
+		self.focusTimer:Cancel()
+		self.focusTimer = nil;
+		self.disabled = nil;
+	end
 end
 
 function Dispatcher:ClearFocus(frame)
 	if self.focusFrame ~= frame then return end;
-	self.disabled = true
-	C_Timer.After(db('radialClearFocusTime'), self.Disable)
+	self.disabled = true;
+	self.focusTimer = C_Timer.NewTimer(db('radialClearFocusTime'), self.Disable)
 end
 
 function Dispatcher:ClearFocusInstantly(frame)
@@ -56,12 +61,13 @@ function Dispatcher:ClearFocusInstantly(frame)
 end
 
 function Dispatcher:IsDisabling()
-	return self.disabled
+	return self.disabled;
 end
 
 function Dispatcher.Disable() -- callback
 	Dispatcher.disabled = nil;
 	Dispatcher.focusFrame = nil;
+	Dispatcher.focusTimer = nil;
 	Dispatcher:EnableGamePadStick(false);
 end
 
