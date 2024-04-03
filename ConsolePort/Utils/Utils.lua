@@ -141,7 +141,6 @@ function CPAPI.Popup(id, settings, ...)
 end
 
 do local function ModifyMetatable(owner, key, value)
-		assert(not C_Widget.IsFrameWidget(owner), 'Attempted to proxy frame widget.')
 		local mt = getmetatable(owner) or {};
 		mt[key] = value;
 		return setmetatable(owner, mt)
@@ -151,8 +150,8 @@ do local function ModifyMetatable(owner, key, value)
 		return ModifyMetatable(owner, '__index', proxy)
 	end
 
-	function CPAPI.Lock(owner)
-		return ModifyMetatable(owner, '__newindex', nop)
+	function CPAPI.Inject(owner, inject)
+		return ModifyMetatable(owner, '__newindex', inject)
 	end
 
 	function CPAPI.Callable(owner, func)
