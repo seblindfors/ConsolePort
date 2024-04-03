@@ -63,7 +63,7 @@ function CPPieMenuMixin:ReflectStickPosition(x, y, len, isValid)
 	self.BG:SetRotation(rotation)
 	self.Arrow:SetRotation(rotation)
 
-	self:UpdateBackgroundAssets(len)
+	self:UpdateBackgroundAssets(len, isValid)
 
 	return rotation;
 end
@@ -76,12 +76,13 @@ end
 -- Sliced pie mixin
 ---------------------------------------------------------------
 local SLICE_FRACTION, BG_FRACTION, MASK_FRACTION = 512/300, 480/300, 512/300;
+local ACTIVE_COLOR, NORMAL_COLOR = GREEN_FONT_COLOR, NORMAL_FONT_COLOR;
 
-function CPPieMenuMixin:UpdateBackgroundAssets(len)
+function CPPieMenuMixin:UpdateBackgroundAssets(len, isValid)
 	if not self.isSlicedPie then return end;
 	local bgAlpha = Clamp(1 - (len + len/1.5), 0.5, 1)
 	local activeAlpha = Clamp(math.sqrt(math.sqrt(len)), 0, 1)
-	local activeColor = self:IsValidThreshold(len) and GREEN_FONT_COLOR or NORMAL_FONT_COLOR;
+	local activeColor = isValid and ACTIVE_COLOR or NORMAL_COLOR;
 	self.ActiveSlice:SetVertexColor(activeColor:GetRGB())
 	self.ActiveSlice:SetAlpha(activeAlpha)
 	for slice in self.SlicePool:EnumerateActive() do

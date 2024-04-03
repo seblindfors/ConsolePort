@@ -48,6 +48,7 @@
 			<Anchor point="CENTER"/>
 		</Anchors>
 		<Frames>
+			<PieSlice parentKey="StickySlice" alpha="0" frameLevel="3"/>
 			<Button parentKey="Remove" name="$parentRemove" registerForClicks="AnyDown" inherits="SecureActionButtonTemplate"/>
 			<Frame parentKey="FocusOverlay" name="$parentFocusOverlay" setAllPoints="true" frameLevel="1">
 				<Layers>

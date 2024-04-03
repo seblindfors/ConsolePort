@@ -106,6 +106,15 @@ Utility:CreateEnvironment({
 			self:ClearBindings()
 		end
 	]];
+	-----------------------------------------------------------
+	ClearStickyIndex = ([[
+		if self:GetAttribute('stickyIndex') then
+			self:SetAttribute('stickyIndex', nil)
+			self:SetAttribute('backup', nil)
+			self:SetAttribute('TYPE', nil)
+			self:CallMethod('OnStickyIndexChanged')
+		end
+	]]):gsub('TYPE', CPAPI.ActionTypeRelease);
 });
 
 ---------------------------------------------------------------
@@ -123,7 +132,6 @@ Utility:Wrap('PreClick', ([[
 			self:SetAttribute('TYPE', self:GetAttribute('backup'))
 			self:SetAttribute('backup', nil)
 		end
-		self:CallMethod('IndicateStickySelect')
 	else
 		self:SetAttribute('TYPE', nil)
 	end
@@ -134,10 +142,20 @@ Utility:Wrap('PreClick', ([[
 		self::DrawSelectedRing(set)
 		self::SetRemoveBinding(true)
 		self:Show()
+		if stickySelect then
+			if ( set ~= self:GetAttribute('stickyState') ) then
+				self:SetAttribute('stickyIndex', nil)
+				self:SetAttribute('stickyState', set)
+			end
+		end
 	else
-		self::CopySelectedIndex(self::GetIndex())
+		local index = self::GetIndex()
+		self::CopySelectedIndex(index)
 		self:ClearBindings()
 		self:Hide()
+		if stickySelect then
+			self:SetAttribute('stickyIndex', index or self:GetAttribute('stickyIndex'))
+		end
 	end
 ]]):gsub('TYPE', CPAPI.ActionTypeRelease))
 
@@ -152,8 +170,9 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 	if set and index then
 		control:CallMethod('SafeRemoveAction', set, index)
 		control:Run(DrawSelectedRing, set)
-		control:CallMethod('OnPostShow')
+		return control:CallMethod('OnPostShow')
 	end
+	return control:Run(ClearStickyIndex)
 ]])
 
 ---------------------------------------------------------------
@@ -161,6 +180,7 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 ---------------------------------------------------------------
 function Utility:OnDataLoaded()
 	self:SetAttribute('size', 0)
+	self.StickySlice:SetVertexColor(ORANGE_FONT_COLOR:GetRGB())
 
 	self:CreateObjectPool(ActionButton:NewPool({
 		name   = self:GetName()..'Button';
@@ -221,11 +241,24 @@ function Utility:OnStickySelectChanged()
 	self:SetAttribute('stickySelect', db('radialStickySelect'))
 	self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 	self:SetAttribute('backup', nil)
+	self:SetAttribute('stickyIndex', nil)
+	self:SetAttribute('stickyState', nil)
+	self.StickySlice:Hide()
 end
 
 function Utility:OnSizeChanged()
 	local width, height = self:GetSize()
 	self.FocusOverlay.BgRunes:SetSize(width * 0.8, height * 0.8)
+	self.StickySlice:UpdateSize(width, height)
+end
+
+function Utility:OnStickyIndexChanged()
+	local hasStickySelection = self:GetAttribute('stickyIndex')
+	self.StickySlice:SetShown(hasStickySelection)
+	if hasStickySelection then
+		self.StickySlice:SetAlpha(1)
+		self.StickySlice:SetIndex(hasStickySelection)
+	end
 end
 
 db:RegisterSafeCallback('Settings/autoExtra', Utility.OnAutoAssignedChanged, Utility)
@@ -234,6 +267,7 @@ db:RegisterSafeCallback('Settings/radialRemoveButton', Utility.OnRemoveButtonCha
 db:RegisterSafeCallback('Settings/radialPrimaryStick', Utility.OnPrimaryStickChanged, Utility)
 db:RegisterSafeCallback('Settings/radialStickySelect', Utility.OnStickySelectChanged, Utility)
 Utility:SetScript('OnSizeChanged', Utility.OnSizeChanged)
+Utility:HookScript('OnShow', Utility.OnStickyIndexChanged)
 
 ---------------------------------------------------------------
 -- Widget handling
@@ -298,16 +332,15 @@ db:RegisterSafeCallback('OnRingRemoved', Utility.RefreshAll, Utility)
 ---------------------------------------------------------------
 -- Frontend
 ---------------------------------------------------------------
-function Utility:OnInput(x, y, len, stick)
+function Utility:OnInput(x, y, len)
 	local size = self:GetAttribute('size')
 	local obj = self:SetFocusByIndex(self:GetIndexForPos(x, y, len, size))
-	local rot = self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
+	local valid = self:IsValidThreshold(len)
+	local rot = self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, valid)
 	self:SetAnimations(obj, rot, len)
-end
 
-function Utility:IndicateStickySelect()
-	if self:GetAttribute(CPAPI.ActionTypeRelease) then
-		self.ActiveSlice:SetAlpha(1)
+	if self:GetAttribute('stickyIndex') then
+		self.StickySlice:SetAlpha(Clamp(1 - len, 0, 1))
 	end
 end
 
@@ -380,7 +413,6 @@ end
 ---------------------------------------------------------------
 do
 	local Clamp = Clamp;
-
 
 	function Utility:SetAnimations(obj, rot, len)
 		local overlay = self.FocusOverlay;
