@@ -123,6 +123,7 @@ Utility:Wrap('PreClick', ([[
 			self:SetAttribute('TYPE', self:GetAttribute('backup'))
 			self:SetAttribute('backup', nil)
 		end
+		self:CallMethod('IndicateStickySelect')
 	else
 		self:SetAttribute('TYPE', nil)
 	end
@@ -165,6 +166,9 @@ function Utility:OnDataLoaded()
 		name   = self:GetName()..'Button';
 		header = self;
 		mixin  = Button;
+		config = {
+			showGrid = true;
+		};
 	}))
 	db:Load('Utility/Data', 'ConsolePortUtility')
 
@@ -299,6 +303,12 @@ function Utility:OnInput(x, y, len, stick)
 	local obj = self:SetFocusByIndex(self:GetIndexForPos(x, y, len, size))
 	local rot = self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
 	self:SetAnimations(obj, rot, len)
+end
+
+function Utility:IndicateStickySelect()
+	if self:GetAttribute(CPAPI.ActionTypeRelease) then
+		self.ActiveSlice:SetAlpha(1)
+	end
 end
 
 function Utility:GetSetID(rawSetID)
@@ -915,21 +925,7 @@ function Button:OnLoad()
 	self:SetPreventSkinning(true)
 	self:Initialize()
 	self:SetScript('OnHide', self.OnClear)
-	--self:SetScript('OnShow', self.UpdateAssets)
-end
-
-function Button:UpdateAssets()
-	local bg = self.Shadow;
-	bg:ClearAllPoints()
-	if (self:GetAttribute('type') == 'action' and self:GetAttribute('action') == EXTRA_ACTION_ID) then
-		bg:SetTexture(CPAPI.GetOverrideBarSkin() or 'Interface\\ExtraButton\\Default')
-		bg:SetSize(256 * 0.8, 128 * 0.8)
-		bg:SetPoint('CENTER', -2, 0)
-	else
-		bg:SetTexture(CPAPI.GetAsset('Textures\\Button\\Shadow'))
-		bg:SetPoint('TOPLEFT', -5, 0)
-		bg:SetPoint('BOTTOMRIGHT', 5, -10)
-	end
+	self:SetScript('OnShow', self.UpdateLocal)
 end
 
 function Button:OnFocus()
@@ -956,12 +952,5 @@ end
 
 function Button:UpdateLocal()
 	self:SetRotation(0)
-	ActionButton.Skin.RingButton(self)
-	if not self.masked then
-		local mask = self:GetParent().InnerMask;
-		self.NormalTexture:AddMaskTexture(mask)
-		self.HighlightTexture:AddMaskTexture(mask)
-		self.PushedTexture:AddMaskTexture(mask)
-		self.masked = true;
-	end
+	ActionButton.Skin.UtilityRingButton(self)
 end
