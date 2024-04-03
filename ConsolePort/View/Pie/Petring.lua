@@ -141,12 +141,4 @@ end
 function Petbutton:UpdateLocal()
 	ActionButton.CustomTypes.Pet.UpdateLocal(self)
 	ActionButton.Skin.RingButton(self)
-	if not self.masked then
-		local mask = self:GetParent().InnerMask;
-		self.NormalTexture:AddMaskTexture(mask)
-		self.HighlightTexture:AddMaskTexture(mask)
-		self.PushedTexture:AddMaskTexture(mask)
-		self.Border:AddMaskTexture(mask)
-		self.masked = true;
-	end
 end

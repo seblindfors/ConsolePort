@@ -66,13 +66,28 @@ end
 Lib.Skin = {};
 ---------------------------------------------------------------
 
+do -- Lib.Skin.RingButton
+local inject = function(self, k, v)
+	-- NOTE: This is a workaround for LAB charge cooldowns.
+	if ( k == 'chargeCooldown' and v ) then
+		local script = v:GetScript('OnCooldownDone')
+		v:SetUseCircularEdge(true)
+		v:SetScript('OnCooldownDone', function()
+			v:SetUseCircularEdge(false)
+			if script then
+				script(v)
+			end
+		end)
+	end
+	rawset(self, k, v)
+end
 Lib.Skin.RingButton = function(self)
 	assert(type(self.rotation) == 'number', 'Ring button must have a rotation value.')
 	local tex;
 	local r, g, b = CPAPI.GetClassColor()
 	do tex = self.NormalTexture;
 		tex:ClearAllPoints()
-		tex:SetPoint('CENTER')
+		tex:SetPoint('CENTER', -1, 0)
 		tex:SetSize(110, 110)
 		tex:SetVertexColor(r, g, b, 1)
 		CPAPI.SetAtlas(tex, 'ring-metallight')
@@ -118,6 +133,8 @@ Lib.Skin.RingButton = function(self)
 		tex:SetSize(64, 64)
 		tex:SetTexture(CPAPI.GetAsset([[Textures\Button\Icon_Mask64]]))
 		tex:SetRotation(self.rotation + math.pi)
+		tex:AddMaskTexture(self.IconMask)
+		tex:SetDrawLayer('BACKGROUND', -1)
 	end
 	do tex = self.SpellHighlightTexture;
 		tex:ClearAllPoints()
@@ -125,4 +142,61 @@ Lib.Skin.RingButton = function(self)
 		tex:SetSize(64, 64)
 		tex:SetTexture([[Interface\Buttons\IconBorder-GlowRing]])
 	end
+	do tex = self.cooldown;
+		tex:SetSwipeTexture([[Interface\AddOns\ConsolePort_Bar\Textures\Cooldown\Swipe]])
+		tex:SetSwipeColor(RED_FONT_COLOR:GetRGBA())
+		tex:SetUseCircularEdge(true)
+		tex.SetEdgeTexture = nop;
+	end
+	CPAPI.Inject(self, inject)
+	if not self.RingMasked then
+		local mask = self:GetParent().InnerMask;
+		for _, region in ipairs({
+			self.NormalTexture,
+			self.PushedTexture,
+			self.HighlightTexture,
+			self.Border,
+		}) do region:AddMaskTexture(mask) end
+		self.RingMasked = true;
+	end
 end;
+end -- Lib.Skin.RingButton
+
+
+do Lib.Skin.UtilityRingButton = function(self)
+	Lib.Skin.RingButton(self)
+	local r, g, b = CPAPI.GetClassColor()
+	local tex;
+	do tex = self.SlotBackground;
+		tex:SetDrawLayer('BACKGROUND', -1)
+		tex:SetTexture(CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
+		tex:SetDesaturated(true)
+		tex:SetVertexColor(0.5, 0.5, 0.5, 1)
+		tex:AddMaskTexture(self.IconMask)
+		tex:SetRotation(self.rotation)
+	end
+	do tex = self.Border;
+		tex:SetDrawLayer('BACKGROUND', -2)
+		tex:ClearAllPoints()
+		tex:Show()
+		if (self:GetAttribute('type') == 'action' and self:GetAttribute('action') == CPAPI.ExtraActionButtonID) then
+			local skin, hasBarSkin = CPAPI.GetOverrideBarSkin(), true;
+			if not skin then
+				skin, hasBarSkin = [[Interface\ExtraButton\stormwhite-extrabutto]], false;
+			end
+			tex:SetSize(256 * 0.8, 128 * 0.8)
+			tex:SetPoint('CENTER', -2, 0)
+			tex:SetTexture(skin)
+			if hasBarSkin then
+				tex:SetVertexColor(1, 1, 1, 1)
+			else
+				tex:SetVertexColor(r, g, b, 0.5)
+			end
+		else
+			tex:SetTexture(CPAPI.GetAsset([[Textures\Button\Shadow]]))
+			tex:SetPoint('TOPLEFT', -5, 0)
+			tex:SetPoint('BOTTOMRIGHT', 5, -10)
+		end
+	end
+end;
+end -- Lib.Skin.UtilityRingButton
