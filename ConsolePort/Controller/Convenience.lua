@@ -137,6 +137,7 @@ if ColorPickerFrame then
 		end
 	end)
 	ColorPickerFrame:HookScript('OnShow', function(self)
+		db.Radial:ToggleFocusFrame(self, true)
 		oldNode = ConsolePort:GetCursorNode()
 		ConsolePort:SetCursorNodeIfActive(OkayButton, true)
 
@@ -151,6 +152,7 @@ if ColorPickerFrame then
 		end
 	end)
 	ColorPickerFrame:HookScript('OnHide', function(self)
+		db.Radial:ToggleFocusFrame(self, false)
 		if oldNode then
 			ConsolePort:SetCursorNode(oldNode)
 			oldNode = nil;

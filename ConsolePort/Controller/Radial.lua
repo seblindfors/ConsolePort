@@ -32,7 +32,7 @@ local DEFAULT_ITEM_PADDING = 32;
 
 function Dispatcher:OnGamePadStick(stick, x, y, len)
 	local this = self.focusFrame
-	if this and this.interrupt[stick] then
+	if this and this.interrupt and this.interrupt[stick] then
 		if this.intercept[stick] and not self.disabled then
 			this:OnInput(x, y, len, stick)
 		end
@@ -468,6 +468,13 @@ function Radial:CalculateMinimumDiameter(itemCount, itemSize, padding)
 	return (itemCount * (itemSize + (padding or 0))) / math.pi
 end
 
+function Radial:ToggleFocusFrame(frame, enabled)
+	if enabled then
+		Dispatcher:SetFocus(frame)
+	else
+		Dispatcher:ClearFocus(frame)
+	end
+end
 
 ---------------------------------------------------------------
 -- Set environment on handler and feed stick data
