@@ -26,6 +26,12 @@
 		</Layers>
 	</PieMenu>
 
+	<PieMenu name="ConsolePortSlicedStickyPie" inherits="ConsolePortSlicedPie" virtual="true">
+		<Frames>
+			<PieSlice parentKey="StickySlice" alpha="0" frameLevel="2"/>
+		</Frames>
+	</PieMenu>
+
 	<PieMenu name="ConsolePortSpellFlyout" parent="UIParent" registerForClicks="AnyUp" inherits="ConsolePortSecurePie, ConsolePortSlicedPie" hidden="true">
 		<Size x="500" y="500"/>
 		<Anchors>
@@ -42,13 +48,12 @@
 		</KeyValues>
 	</PieMenu>
 
-	<PieMenu name="ConsolePortUtilityToggle" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie, ConsolePortSlicedPie" hidden="true">
+	<PieMenu name="ConsolePortUtilityToggle" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie, ConsolePortSlicedStickyPie" hidden="true">
 		<Size x="500" y="500"/>
 		<Anchors>
 			<Anchor point="CENTER"/>
 		</Anchors>
 		<Frames>
-			<PieSlice parentKey="StickySlice" alpha="0" frameLevel="2"/>
 			<Button parentKey="Remove" name="$parentRemove" registerForClicks="AnyDown" inherits="SecureActionButtonTemplate"/>
 		</Frames>
 		<Layers>

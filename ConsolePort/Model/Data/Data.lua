@@ -69,12 +69,13 @@ local Field = setmetatable({}, {
 	end;
 });
 
-do  local ID, DATA, TYPE, CALL, PATH = 0x0, 0x1, 0x2, 0x3, 0x4;
+do  local ID, DATA, TYPE, CALL, PATH, INIT, DEF = 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6;
 
-	function Field:Get()     return copy(rawget(self, DATA)) end
-	function Field:GetID()   return rawget(self, ID) end
-	function Field:GetPath() return rawget(self, PATH) end
-	function Field:GetType() return rawget(self, TYPE) end
+	function Field:Get()        return copy(rawget(self, DATA)) end
+	function Field:GetID()      return rawget(self, ID) end
+	function Field:GetPath()    return rawget(self, PATH) end
+	function Field:GetType()    return rawget(self, TYPE) end
+	function Field:GetDefault() return copy(rawget(self, DEF)) end
 
 	function Field:IsType(cmp)
 		return (rawget(self, TYPE):lower() == cmp:lower());
@@ -90,6 +91,10 @@ do  local ID, DATA, TYPE, CALL, PATH = 0x0, 0x1, 0x2, 0x3, 0x4;
 
 	function Field:Set(val)
 		rawset(self, DATA, val)
+		if not rawget(self, INIT) then
+			rawset(self, INIT, true)
+			rawset(self, DEF, copy(val))
+		end
 		local callback = rawget(self, CALL)
 		return self, callback and callback(self:Get());
 	end
@@ -112,6 +117,10 @@ do  local ID, DATA, TYPE, CALL, PATH = 0x0, 0x1, 0x2, 0x3, 0x4;
 	function Field:SetType(type)
 		rawset(self, TYPE, type)
 		return self;
+	end
+
+	function Field:SetDefault()
+		return self:Set(rawget(self, DEF));
 	end
 
 	Field:SetType('Field')
@@ -159,11 +168,18 @@ function Color:GetHex()
 	return ('%.2x%.2x%.2x%.2x'):format(a, r, g, b)
 end
 
+function Color:GetObject()
+	return CreateColor(Field.Get(self):GetRGBA())
+end
+
 function Color:ConvertToRGBA(arg1, ...)
 	if (type(arg1) == 'string') then
 		return CPAPI.CreateColorFromHexString(arg1), true;
+	elseif (type(arg1) == 'table' and arg1.OnLoad == ColorMixin.OnLoad) then
+		return CreateColor(arg1:GetRGBA()), true;
 	end
-	return CreateColor(arg1, ...), false;
+	local r, g, b, a = arg1, ...;
+	return CreateColor(r, g, b, tonumber(a) and a or 1), false;
 end
 
 function Color:SetHex(enabled)

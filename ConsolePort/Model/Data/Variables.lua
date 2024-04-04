@@ -11,7 +11,7 @@ local unpack, _, db = unpack, ...; _ = CPAPI.Define; db.Data();
 ------------------------------------------------------------------------------------------------------------
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
-db:Register('Variables', {
+db:Register('Variables', CPAPI.Callable({
 	showAdvancedSettings = {Bool(false);
 		name = 'All Settings';
 		desc = 'Display all available settings.';
@@ -194,6 +194,31 @@ db:Register('Variables', {
 	radialRemoveButton = _{Button('PADRSHOULDER');
 		name = 'Remove Button';
 		desc = 'Button used to remove a selected item from an editable ring.';
+	};
+	radialNormalColor = _{Color(CPAPI.GetMutedClassColor(0.6, true));
+		name = 'Normal Color';
+		desc = 'Normal background color of pie slices.';
+		advd = true;
+	};
+	radialActiveColor = _{Color(GREEN_FONT_COLOR);
+		name = 'Active Color';
+		desc = 'Color of the active slice.';
+		advd = true;
+	};
+	radialHiliteColor = _{Color(NORMAL_FONT_COLOR);
+		name = 'Highlight Color';
+		desc = 'Color of a partially selected slice.';
+		advd = true;
+	};
+	radialStickyColor = _{Color(ORANGE_FONT_COLOR);
+		name = 'Sticky Color';
+		desc = 'Color of the sticky selection slice.';
+		advd = true;
+	};
+	radialAccentColor = _{Color(CPAPI.GetClassColorObject());
+		name = 'Accent Color';
+		desc = 'Color accent of radial menu items.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	_'Radial Keyboard';
@@ -478,4 +503,5 @@ db:Register('Variables', {
 		desc = 'Override class theme for interface styling.';
 		advd = true;
 	};
-})  --------------------------------------------------------------------------------------------------------
+},  --------------------------------------------------------------------------------------------------------
+function(self, key) return (rawget(self, key) or {})[1] end))

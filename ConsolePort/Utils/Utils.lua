@@ -344,8 +344,12 @@ function CPAPI.GetClassColor(classFile)
 	return GetClassColor(classFile or CPAPI.GetClassFile())
 end
 
-function CPAPI.GetMutedClassColor(factor, classFile)
-	return CPAPI.GetMutedColor(factor, CPAPI.GetClassColor(classFile))
+function CPAPI.GetMutedClassColor(factor, asObject, classFile)
+	local r, g, b = CPAPI.GetMutedColor(factor, CPAPI.GetClassColor(classFile))
+	if asObject then
+		return CreateColor(r, g, b)
+	end
+	return r, g, b, 1;
 end
 
 function CPAPI.GetClassColorObject(classFile)

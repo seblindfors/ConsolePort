@@ -181,7 +181,6 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 ---------------------------------------------------------------
 function Utility:OnDataLoaded()
 	self:SetAttribute('size', 0)
-	self.StickySlice:SetVertexColor(ORANGE_FONT_COLOR:GetRGB())
 
 	self:CreateObjectPool(ActionButton:NewPool({
 		name   = self:GetName()..'Button';

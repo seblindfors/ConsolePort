@@ -21,6 +21,7 @@ local Widgets = {}; env.Widgets = Widgets;
 local COLOR_CHECKED = CPIndexButtonMixin.IndexColors.Checked;
 local COLOR_HILITE  = CPIndexButtonMixin.IndexColors.Hilite;
 local COLOR_NORMAL  = CPIndexButtonMixin.IndexColors.Normal;
+local NONE          = 'none';
 
 ---------------------------------------------------------------
 -- Create new widget
@@ -67,6 +68,12 @@ function Widget:Set(...)
 	self.userInput = false;
 end
 
+function Widget:SetDefault()
+	self.userInput = true;
+	self.controller:SetDefault()
+	self.userInput = false;
+end
+
 function Widget:SetCallback(callback)
 	self.controller:SetCallback(callback)
 end
@@ -76,6 +83,12 @@ function Widget:UpdateTooltip(text, note, hints)
 	text = text or self.tooltipText;
 	note = note or self.tooltipNote;
 	hints = hints or self.tooltipHints;
+	if not hints then
+		hints = {
+			env:GetTooltipPromptForClick('LeftClick', EDIT);
+			env:GetTooltipPromptForClick('RightClick', DEFAULT);
+		};
+	end
 	if text or note or hints then
 		GameTooltip:SetOwner(self, self.tooltipAnchor or 'ANCHOR_TOP')
 		GameTooltip:SetText(self:GetText())
@@ -174,6 +187,11 @@ local Bool = CreateWidget('Bool', Widget, {
 	};
 })
 
+function Bool:OnLoad(...)
+	Widget.OnLoad(self, ...)
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+end
+
 function Bool:OnValueChanged(state)
 	self.CheckedTexture:SetShown(state)
 	self.CheckedHilite:SetShown(not state)
@@ -184,8 +202,11 @@ function Bool:OnValueChanged(state)
 	end
 end
 
-function Bool:OnClick()
+function Bool:OnClick(button)
 	Widget.OnClick(self)
+	if (button == 'RightButton') then
+		return self:SetDefault()
+	end
 	self:Set(not self:Get())
 end
 
@@ -239,6 +260,11 @@ local Number = CreateWidget('Number', Widget, {
 	};
 })
 
+function Number:OnLoad(...)
+	Widget.OnLoad(self, ...)
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+end
+
 function Number:PreformatText(text)
 	local text, reps = text:gsub('%-', '')
 	if (reps > 0) then
@@ -282,7 +308,11 @@ function Number:OnRightButton()
 	self:Set(self:Get() + self:GetStep())
 end
 
-function Number:OnClick()
+function Number:OnClick(button)
+	if (button == 'RightButton') then
+		Widget.OnClick(self)
+		return self:SetDefault()
+	end
 	if self:GetChecked() then
 		self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
 		self.CatchRight = env.Config:CatchButton('PADDRIGHT', self.OnRightButton, self)
@@ -429,7 +459,17 @@ local String = CreateWidget('String', Widget, {
 	};
 })
 
-function String:OnClick()
+function String:OnLoad(...)
+	Widget.OnLoad(self, ...)
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+end
+
+function String:OnClick(button)
+	if (button == 'RightButton') then
+		Widget.OnClick(self)
+		self.Input:ClearFocus()
+		return self:SetDefault()
+	end
 	local input = self.Input;
 	if input:HasFocus() then
 		self.Input:ClearFocus()
@@ -526,7 +566,11 @@ end
 function Button:OnClick(button)
 	if (button == 'RightButton') then
 		Widget.OnClick(self)
-		self:Set('none', true)
+		if ( self:Get() == NONE ) then
+			self:SetDefault()
+		else
+			self:Set(NONE, true)
+		end
 	elseif self:GetChecked() then
 		self.tooltipHints = {
 			YELLOW_FONT_COLOR:WrapTextInColorCode(BIND_KEY_TO_COMMAND:format(BLUE_FONT_COLOR:WrapTextInColorCode(self:GetText())));
@@ -539,7 +583,7 @@ end
 
 function Button:OnValueChanged(value)
 	local display = GetBindingText(value, 'KEY_ABBR_')
-	local isNotBound = display == 'none';
+	local isNotBound = display == NONE;
 	self.widgetText = nil;
 	if (isNotBound) then
 		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
@@ -548,7 +592,7 @@ function Button:OnValueChanged(value)
 	self.Input:SetText(display)
 	self.tooltipHints = {
 		env:GetTooltipPromptForClick('LeftClick', CHOOSE);
-		env:GetTooltipPromptForClick('RightClick', REMOVE);
+		env:GetTooltipPromptForClick('RightClick', isNotBound and DEFAULT or REMOVE);
 	};
 end
 
@@ -639,7 +683,11 @@ end
 function Pseudokey:OnClick(button)
 	if (button == 'RightButton') then
 		Widget.OnClick(self)
-		self:Set('none', true)
+		if ( self:Get() == NONE ) then
+			self:SetDefault()
+		else
+			self:Set(NONE, true)
+		end
 	elseif self:GetChecked() then
 		self.tooltipHints = {
 			YELLOW_FONT_COLOR:WrapTextInColorCode(BIND_KEY_TO_COMMAND:format(BLUE_FONT_COLOR:WrapTextInColorCode(self:GetText())));
@@ -656,13 +704,13 @@ end
 
 function Pseudokey:OnValueChanged(value)
 	local display = GetBindingText(value, 'KEY_ABBR_')
-	local isNotBound = display == 'none';
+	local isNotBound = display == NONE;
 	if (isNotBound) then
 		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
 	end
 	self.tooltipHints = {
 		env:GetTooltipPromptForClick('LeftClick', CHOOSE);
-		env:GetTooltipPromptForClick('RightClick', REMOVE);
+		env:GetTooltipPromptForClick('RightClick', isNotBound and DEFAULT or REMOVE);
 	};
 	self.Input.Clear:SetShown(not isNotBound)
 	self.Input:SetText(display)
@@ -713,6 +761,7 @@ function Select:OnLoad(...)
 		obj:HookScript('OnLeave', self.Popout.OnLeaveHook)
 	end
 	self:EnableMouseWheelSelect(false)
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 end
 
 function Select:OnValueChanged(value)
@@ -749,6 +798,10 @@ function Select:OnMouseWheel(delta)
 end
 
 function Select:OnClick(button)
+	if (button == 'RightButton') then
+		Widget.OnClick(self)
+		return self:SetDefault()
+	end
 	self:EnableMouseWheelSelect(self:GetChecked())
 	if self:GetChecked() then
 		self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
@@ -791,6 +844,11 @@ local Color = CreateWidget('Color', Widget, {
 		_Size  = {20, 20};
 	};
 })
+
+function Color:OnLoad(...)
+	Widget.OnLoad(self, ...)
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+end
 
 function Color:OnClick(button)
 	self:Uncheck()
@@ -837,6 +895,8 @@ function Color:OnClick(button)
 			cancelFunc  = OnColorCancel,
 			extraInfo   = self,
 		}, ColorSwatch)
+	elseif (button == 'RightButton') then
+		self:SetDefault()
 	end
 end
 

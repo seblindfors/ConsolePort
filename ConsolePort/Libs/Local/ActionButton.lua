@@ -1,5 +1,6 @@
 local Lib = LibStub:NewLibrary('ConsolePortActionButton', 1) -- TODO: rename the lib?
 if not Lib then return end
+local _, db = ...;
 local LAB = LibStub('LibActionButton-1.0')
 local LBG = LibStub('LibButtonGlow-1.0')
 ---------------------------------------------------------------
@@ -70,7 +71,7 @@ do -- Lib.Skin.RingButton
 Lib.Skin.RingButton = function(self)
 	assert(type(self.rotation) == 'number', 'Ring button must have a rotation value.')
 	local obj;
-	local r, g, b = CPAPI.GetClassColor()
+	local r, g, b = CPPieMenuMixin.SliceColors.Accent:GetRGB()
 	do obj = self.NormalTexture;
 		obj:ClearAllPoints()
 		obj:SetPoint('CENTER', -1, 0)
@@ -78,21 +79,21 @@ Lib.Skin.RingButton = function(self)
 		obj:SetVertexColor(r, g, b, 1)
 		CPAPI.SetAtlas(obj, 'ring-metallight')
 	end
-	do obj = self.PushedTexture;
+	do obj = self.PushedTexture or self:GetPushedTexture();
 		obj:ClearAllPoints()
 		obj:SetPoint('CENTER')
 		obj:SetSize(110, 110)
 		obj:SetVertexColor(r, g, b, 1)
 		CPAPI.SetAtlas(obj, 'ring-metaldark')
 	end
-	do obj = self.CheckedTexture;
+	do obj = self.CheckedTexture or self:GetCheckedTexture();
 		obj:ClearAllPoints()
 		obj:SetPoint('CENTER', 0, 0)
 		obj:SetSize(78, 78)
 		obj:SetDrawLayer('OVERLAY', -1)
 		CPAPI.SetAtlas(obj, 'ring-select')
 	end
-	do obj = self.HighlightTexture;
+	do obj = self.HighlightTexture or self:GetHighlightTexture();
 		obj:ClearAllPoints()
 		obj:SetPoint('CENTER')
 		obj:SetSize(90, 90)
@@ -102,9 +103,11 @@ Lib.Skin.RingButton = function(self)
 		obj:SetAllPoints()
 	end
 	do obj = self.IconMask;
+		if obj then
 		obj:SetTexture([[Interface\Masks\CircleMask]])
 		obj:SetPoint('CENTER')
 		obj:SetSize(58, 58)
+		end
 	end
 	do obj = self.Flash;
 		obj:ClearAllPoints()
@@ -115,12 +118,14 @@ Lib.Skin.RingButton = function(self)
 		obj:SetDrawLayer('OVERLAY', 1)
 	end
 	do obj = self.SlotBackground;
+		if obj then
 		obj:SetPoint('CENTER')
 		obj:SetSize(64, 64)
 		obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Icon_Mask64]]))
 		obj:SetRotation(self.rotation + math.pi)
 		obj:AddMaskTexture(self.IconMask)
 		obj:SetDrawLayer('BACKGROUND', -1)
+		end
 	end
 	do obj = self.SpellHighlightTexture;
 		obj:ClearAllPoints()
@@ -165,16 +170,16 @@ end -- Lib.Skin.RingButton
 
 do Lib.Skin.UtilityRingButton = function(self)
 	Lib.Skin.RingButton(self)
-	local r, g, b = CPAPI.GetClassColor()
+	local r, g, b = CPPieMenuMixin.SliceColors.Accent:GetRGB()
 	local obj;
-	do obj = self.SlotBackground;
+	do obj = self.SlotBackground; if obj then
 		obj:SetDrawLayer('BACKGROUND', -1)
 		obj:SetTexture(CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
 		obj:SetDesaturated(true)
 		obj:SetVertexColor(0.5, 0.5, 0.5, 1)
 		obj:AddMaskTexture(self.IconMask)
 		obj:SetRotation(self.rotation)
-	end
+	end; end
 	do obj = self.Border;
 		obj:SetDrawLayer('BACKGROUND', -2)
 		obj:ClearAllPoints()

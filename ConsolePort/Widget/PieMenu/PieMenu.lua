@@ -1,4 +1,4 @@
-local Clamp, atan2 = Clamp, math.atan2;
+local Clamp, atan2, _, db = Clamp, math.atan2, ...;
 local ARROW_SIZE_W_FRACTION, ARROW_SIZE_H_FRACTION, BG_POINT_INSET = 0.1, 0.8, 422/500;
 ---------------------------------------------------------------
 -- Intrinsic mixin
@@ -12,6 +12,7 @@ function CPPieMenuMixin:OnPreLoad()
 		self.SlicePool = CreateFramePool('PieSlice', self)
 		self.ActiveSlice:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 		self.BG:SetTexture(nil)
+		self:RegisterColorCallbacks()
 	end
 end
 
@@ -76,13 +77,12 @@ end
 -- Sliced pie mixin
 ---------------------------------------------------------------
 local SLICE_FRACTION, BG_FRACTION, MASK_FRACTION = 512/300, 480/300, 512/300;
-local ACTIVE_COLOR, NORMAL_COLOR = GREEN_FONT_COLOR, NORMAL_FONT_COLOR;
 
 function CPPieMenuMixin:UpdateBackgroundAssets(len, isValid)
 	if not self.isSlicedPie then return end;
 	local bgAlpha = Clamp(1 - (len + len/1.5), 0.5, 1)
 	local activeAlpha = Clamp(math.sqrt(math.sqrt(len)), 0, 1)
-	local activeColor = isValid and ACTIVE_COLOR or NORMAL_COLOR;
+	local activeColor = self.SliceColors[ isValid and 'Active' or 'Hilite' ];
 	self.ActiveSlice:SetVertexColor(activeColor:GetRGB())
 	self.ActiveSlice:SetAlpha(activeAlpha)
 	for slice in self.SlicePool:EnumerateActive() do
@@ -128,13 +128,68 @@ function CPPieMenuMixin:UpdatePieSliceSize(width, height)
 end
 
 ---------------------------------------------------------------
+-- Slice color settings
+---------------------------------------------------------------
+CPPieMenuMixin.SliceColors = {
+	Normal = db.Variables('radialNormalColor'):GetObject();
+	Active = db.Variables('radialActiveColor'):GetObject();
+	Hilite = db.Variables('radialHiliteColor'):GetObject();
+	Sticky = db.Variables('radialStickyColor'):GetObject();
+	Accent = db.Variables('radialAccentColor'):GetObject();
+};
+
+local SharedColorMutex;
+function CPPieMenuMixin:UpdateColorSettings()
+	local function UpdateLocalColors()
+		if self.StickySlice then
+			self.StickySlice:SetVertexColor(self.SliceColors.Sticky:GetRGB())
+		end
+		if self.ActiveSlice then
+			self.ActiveSlice:SetVertexColor(self.SliceColors.Normal:GetRGB())
+		end
+		for slice in self.SlicePool:EnumerateActive() do
+			slice:SetVertexColor(self.SliceColors.Normal:GetRGB())
+		end
+	end
+
+	local function UpdateSharedColors()
+		self.SliceColors.Normal = CPAPI.CreateColorFromHexString(db('radialNormalColor'))
+		self.SliceColors.Active = CPAPI.CreateColorFromHexString(db('radialActiveColor'))
+		self.SliceColors.Hilite = CPAPI.CreateColorFromHexString(db('radialHiliteColor'))
+		self.SliceColors.Sticky = CPAPI.CreateColorFromHexString(db('radialStickyColor'))
+		self.SliceColors.Accent = CPAPI.CreateColorFromHexString(db('radialAccentColor'))
+	end
+
+	if not SharedColorMutex then
+		SharedColorMutex = true;
+		UpdateSharedColors()
+		RunNextFrame(function()
+			SharedColorMutex = nil;
+			UpdateLocalColors()
+		end)
+	else
+		RunNextFrame(UpdateLocalColors)
+	end
+end
+
+function CPPieMenuMixin:RegisterColorCallbacks()
+	db:RegisterCallbacks(self.UpdateColorSettings, self,
+		'OnDataLoaded',
+		'Settings/radialNormalColor',
+		'Settings/radialActiveColor',
+		'Settings/radialHiliteColor',
+		'Settings/radialStickyColor',
+		'Settings/radialAccentColor'
+	);
+end
+
+---------------------------------------------------------------
 -- Pie slice mixin
 ---------------------------------------------------------------
 CPPieSliceMixin = {};
 
 function CPPieSliceMixin:OnPreLoad()
-	local r, g, b = CPAPI.GetMutedClassColor(0.5)
-	self.Slice:SetVertexColor(r, g, b)
+	self:SetVertexColor(CPPieMenuMixin.SliceColors.Normal:GetRGB())
 	self:Lower()
 end
 
