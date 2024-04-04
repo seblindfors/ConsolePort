@@ -1,4 +1,4 @@
-local Clamp, atan2, _, db = Clamp, math.atan2, ...;
+local Clamp, atan2, sqrt, _, db = Clamp, math.atan2, math.sqrt, ...;
 local ARROW_SIZE_W_FRACTION, ARROW_SIZE_H_FRACTION, BG_POINT_INSET = 0.1, 0.8, 422/500;
 ---------------------------------------------------------------
 -- Intrinsic mixin
@@ -10,7 +10,6 @@ function CPPieMenuMixin:OnPreLoad()
 	CPGradientMixin.OnLoad(self)
 	if self.isSlicedPie then
 		self.SlicePool = CreateFramePool('PieSlice', self)
-		self.ActiveSlice:SetVertexColor(NORMAL_FONT_COLOR:GetRGB())
 		self.BG:SetTexture(nil)
 		self:RegisterColorCallbacks()
 	end
@@ -81,12 +80,12 @@ local SLICE_FRACTION, BG_FRACTION, MASK_FRACTION = 512/300, 480/300, 512/300;
 function CPPieMenuMixin:UpdateBackgroundAssets(len, isValid)
 	if not self.isSlicedPie then return end;
 	local bgAlpha = Clamp(1 - (len + len/1.5), 0.5, 1)
-	local activeAlpha = Clamp(math.sqrt(math.sqrt(len)), 0, 1)
+	local activeAlpha = sqrt(sqrt(len))
 	local activeColor = self.SliceColors[ isValid and 'Active' or 'Hilite' ];
-	self.ActiveSlice:SetVertexColor(activeColor:GetRGB())
-	self.ActiveSlice:SetAlpha(activeAlpha)
+	self.ActiveSlice:SetColor(activeColor)
+	self.ActiveSlice:SetOpacity(activeAlpha)
 	for slice in self.SlicePool:EnumerateActive() do
-		slice:SetAlpha(bgAlpha)
+		slice:SetOpacity(bgAlpha)
 	end
 end
 
@@ -98,7 +97,7 @@ end
 function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
     if not self.isSlicedPie then return end;
     if not isShown then
-		self.ActiveSlice:SetAlpha(0)
+		self.ActiveSlice:SetOpacity(0)
 		return;
 	end
 	self.SlicePool:ReleaseAll()
@@ -106,7 +105,7 @@ function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
 	local width, height = self:GetSize()
 	for i = 1, slices do
 		local slice, newObj = self.SlicePool:Acquire()
-		slice:SetAlpha(1)
+		slice:SetOpacity(1)
 		slice:SetPoint('CENTER')
 		slice:SetIndex(i - 1, slices)
 		slice:UpdateSize(width, height)
@@ -121,7 +120,7 @@ function CPPieMenuMixin:UpdatePieSliceSize(width, height)
 	if not self.isSlicedPie then return end;
 	self.InnerMask:SetSize(width * BG_FRACTION, height * BG_FRACTION)
 	self.ActiveSlice:UpdateSize(width, height)
-	if not self.SlicePool then return end; -- TODO: error here for some reason?
+	if not self.SlicePool then return end;
 	for slice in self.SlicePool:EnumerateActive() do
 		slice:UpdateSize(width, height)
 	end
@@ -142,13 +141,14 @@ local SharedColorMutex;
 function CPPieMenuMixin:UpdateColorSettings()
 	local function UpdateLocalColors()
 		if self.StickySlice then
-			self.StickySlice:SetVertexColor(self.SliceColors.Sticky:GetRGB())
+			self.StickySlice:SetColor(self.SliceColors.Sticky)
 		end
 		if self.ActiveSlice then
-			self.ActiveSlice:SetVertexColor(self.SliceColors.Normal:GetRGB())
+			self.ActiveSlice:SetColor(self.SliceColors.Active)
+			self.ActiveSlice:SetOpacity(0)
 		end
 		for slice in self.SlicePool:EnumerateActive() do
-			slice:SetVertexColor(self.SliceColors.Normal:GetRGB())
+			slice:SetColor(self.SliceColors.Normal)
 		end
 	end
 
@@ -189,7 +189,7 @@ end
 CPPieSliceMixin = {};
 
 function CPPieSliceMixin:OnPreLoad()
-	self:SetVertexColor(CPPieMenuMixin.SliceColors.Normal:GetRGB())
+	self:SetColor(CPPieMenuMixin.SliceColors.Normal)
 	self:Lower()
 end
 
@@ -201,6 +201,16 @@ function CPPieSliceMixin:SetIndex(index, numActive)
 	self.RectMask2:SetRotation(-(math.rad(endAngle)) + math.pi)
 	self.RectMask1:SetShown(enableMasking)
 	self.RectMask2:SetShown(enableMasking)
+end
+
+function CPPieSliceMixin:SetColor(color)
+	self.color = color;
+	self:SetVertexColor(color.r, color.g, color.b)
+	self:SetOpacity(color.a)
+end
+
+function CPPieSliceMixin:SetOpacity(a)
+	self:SetAlpha(Clamp(a, 0, self.color.a))
 end
 
 function CPPieSliceMixin:SetVertexColor(r, g, b)
