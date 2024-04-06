@@ -45,6 +45,7 @@ local IsInteractive
 local IsRelevant
 local IsTree
 local IsDrawn
+local IsCandidate
 -- Attachments
 local GetSuperNode
 local GetScrollButtons
@@ -233,6 +234,12 @@ function IsDrawn(node, super)
 			return true
 		end
 	end
+end
+
+function IsCandidate(node)
+	return  IsRelevant(node)
+		and IsDrawn(node)
+		and IsInteractive(node, GetObjectType(node))
 end
 
 ---------------------------------------------------------------
@@ -602,8 +609,8 @@ function NavigateToArbitraryCandidate(cur, old, x, y)
 	-- (2) attempt to return the current node if it's still drawn
 	-- (3) return the first item in the cache if there are no origin coordinates
 	-- (4) return any node that's close to the origin coordinates or has priority
-	return 	( cur and IsRelevant(cur.node) and IsDrawn(cur.node) ) and cur or
-			( old and IsRelevant(old.node) and IsDrawn(old.node) ) and old or
+	return 	( cur and IsCandidate(cur.node) ) and cur or
+			( old and IsCandidate(old.node) ) and old or
 			( not x or not y ) and GetFirstEligibleCacheItem() or
 			( HasItems() ) and GetPriorityCandidate(x, y)
 end
