@@ -138,9 +138,11 @@ function Selector:AddButton(i, size)
 		button:RegisterForDrag('LeftButton')
 		button:SetScript('OnDragStart', FlyoutButtonMixin.OnDragStart)
 		button:SetSize(64, 64)
+		button.Name:Hide()
 	end
 	button:SetPoint(p, x, self.axisInversion * y)
 	button:SetRotation(self:GetRotation(x, y))
+	button:SetID(i)
 	button:Show()
 	return button;
 end
@@ -176,6 +178,7 @@ function FlyoutButtonMixin:OnFocus(newFocus)
 		end
 		GameTooltip:Show()
 	end
+	self:GetParent():SetActiveSliceText(self.Name:GetText())
 end
 
 function FlyoutButtonMixin:OnClear()
@@ -183,6 +186,7 @@ function FlyoutButtonMixin:OnClear()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
+	self:GetParent():SetActiveSliceText(nil)
 end
 
 function FlyoutButtonMixin:OnDragStart()
@@ -208,6 +212,9 @@ function FlyoutButtonMixin:Update()
 	self.Name:SetText(self.spellName)
 	self:SetEnabled(not self.offSpec)
 	ActionButton.Skin.RingButton(self)
+	RunNextFrame(function()
+		self:GetParent():SetSliceText(self:GetID(), self.Name:GetText())
+	end)
 end
 
 ---------------------------------------------------------------

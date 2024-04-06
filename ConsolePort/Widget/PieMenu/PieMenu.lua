@@ -76,6 +76,7 @@ end
 -- Sliced pie mixin
 ---------------------------------------------------------------
 local SLICE_FRACTION, BG_FRACTION, MASK_FRACTION = 512/300, 480/300, 512/300;
+local LINE_MUL, LINE_OFFSET_DIV = 1.25, 2.75;
 
 function CPPieMenuMixin:UpdateBackgroundAssets(len, isValid)
 	if not self.isSlicedPie then return end;
@@ -95,8 +96,8 @@ function CPPieMenuMixin:UpdateBackgroundFocus(index)
 end
 
 function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
-    if not self.isSlicedPie then return end;
-    if not isShown then
+	if not self.isSlicedPie then return end;
+	if not isShown then
 		self.ActiveSlice:SetOpacity(0)
 		return;
 	end
@@ -107,8 +108,9 @@ function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
 		local slice, newObj = self.SlicePool:Acquire()
 		slice:SetOpacity(1)
 		slice:SetPoint('CENTER')
-		slice:SetIndex(i - 1, slices)
+		slice:SetText(nil)
 		slice:UpdateSize(width, height)
+		slice:SetIndex(i, slices)
 		slice:Show()
 		if newObj then
 			slice:SynchronizeAnimation(self.ActiveSlice)
@@ -124,6 +126,26 @@ function CPPieMenuMixin:UpdatePieSliceSize(width, height)
 	for slice in self.SlicePool:EnumerateActive() do
 		slice:UpdateSize(width, height)
 	end
+end
+
+function CPPieMenuMixin:GetSlice(index)
+	for slice in self.SlicePool:EnumerateActive() do
+		if ( slice:GetID() == index ) then
+			return slice;
+		end
+	end
+end
+
+function CPPieMenuMixin:SetSliceText(index, text)
+	local slice = self:GetSlice(index)
+	if slice then
+		slice:SetText(text)
+		return true;
+	end
+end
+
+function CPPieMenuMixin:SetActiveSliceText(text)
+	self.ActiveSlice:SetText(text)
 end
 
 ---------------------------------------------------------------
@@ -186,6 +208,7 @@ end
 ---------------------------------------------------------------
 -- Pie slice mixin
 ---------------------------------------------------------------
+local cos, sin, rad, pi = math.cos, math.sin, math.rad, math.pi;
 CPPieSliceMixin = {};
 
 function CPPieSliceMixin:OnPreLoad()
@@ -194,13 +217,44 @@ function CPPieSliceMixin:OnPreLoad()
 end
 
 function CPPieSliceMixin:SetIndex(index, numActive)
-    if not index then return end;
-    local startAngle, endAngle = self:GetParent():GetBoundingAnglesForIndex(index, numActive)
+	if not index then return end;
+	local startAngle, endAngle, centerAngle = self:GetParent():GetBoundingAnglesForIndex(index, numActive)
 	local enableMasking = not numActive or numActive > 1;
-	self.RectMask1:SetRotation(-(math.rad(startAngle)))
-	self.RectMask2:SetRotation(-(math.rad(endAngle)) + math.pi)
+	self.index, self.centerAngle = index, centerAngle;
+	self:RotateMasks(enableMasking, startAngle, endAngle)
+	self:RotateLines(centerAngle)
+	self:SetID(index)
+end
+
+function CPPieSliceMixin:RotateMasks(enableMasking, startAngle, endAngle)
+	self.RectMask1:SetRotation(-(rad(startAngle)))
+	self.RectMask2:SetRotation(-(rad(endAngle)) + pi)
 	self.RectMask1:SetShown(enableMasking)
 	self.RectMask2:SetShown(enableMasking)
+end
+
+function CPPieSliceMixin:RotateLines(centerAngle)
+	if not centerAngle then return end;
+	local radius = self:GetWidth() / LINE_OFFSET_DIV;
+	local angle = rad(centerAngle)
+
+	local startX, startY = -(radius * cos(angle)), (radius * sin(angle));
+	local endX, endY = startX * LINE_MUL, startY * LINE_MUL;
+
+	local flatDirection = (endX < 1) and -1 or 1;
+	local flatLength = self.Text:GetStringWidth() * LINE_MUL;
+	local textYDelta = (endY < 1) and -1 or 1;
+	local textYOffset = self.Text:GetStringHeight();
+	local flipLines = startX > endX;
+
+	self.Line1:SetStartPoint('CENTER', startX, startY)
+	self.Line1:SetEndPoint('CENTER', endX, endY)
+	self.Line2:SetStartPoint('CENTER', endX, endY)
+	self.Line2:SetEndPoint('CENTER', endX + flatDirection * flatLength, endY)
+	self.Text:SetPoint('CENTER', self.Line2, 'CENTER', 0, textYDelta * textYOffset)
+
+	self.Line1:SetTexCoord(0, 1, flipLines and 1 or 0, flipLines and 0 or 1)
+	self.Line2:SetTexCoord(0, 1, flipLines and 1 or 0, flipLines and 0 or 1)
 end
 
 function CPPieSliceMixin:SetColor(color)
@@ -215,6 +269,7 @@ end
 
 function CPPieSliceMixin:SetVertexColor(r, g, b)
 	self.Slice:SetVertexColor(r, g, b)
+	self:SetLineColor(r, g, b)
 end
 
 function CPPieSliceMixin:UpdateSize(width, height)
@@ -229,4 +284,24 @@ end
 
 function CPPieSliceMixin:SynchronizeAnimation(other)
 	self.BgAnim:Restart(false, other.BgAnim:GetElapsed())
+end
+
+function CPPieSliceMixin:SetLineColor(r, g, b)
+	self.Line1:SetVertexColor(r, g, b)
+	self.Line2:SetVertexColor(r, g, b)
+end
+
+function CPPieSliceMixin:SetText(text)
+	local isTextEnabled = text and (text:trim()) ~= '';
+	self.Line1:SetShown(isTextEnabled)
+	self.Line2:SetShown(isTextEnabled)
+	self.Text:SetShown(isTextEnabled)
+	self.Text:SetText(text)
+	if isTextEnabled then
+		self:RotateLines(self.centerAngle)
+	end
+end
+
+function CPPieSliceMixin:GetText()
+	return self.Text:GetText()
 end

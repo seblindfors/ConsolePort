@@ -62,6 +62,11 @@
 					</MaskedTextures>
 				</MaskTexture>
 			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="-6">
+				<Line parentKey="Line1" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" hidden="true"/>
+				<Line parentKey="Line2" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2" hidden="true"/>
+				<FontString parentKey="Text" inherits="GameFontHighlightSmallOutline" hidden="true"/>
+			</Layer>
 		</Layers>
 		<Animations>
 			<AnimationGroup parentKey="BgAnim" looping="REPEAT">

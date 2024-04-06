@@ -50,6 +50,7 @@ Utility:CreateEnvironment({
 			local x, y = radial::GetPointForIndex(i, numActive, radius)
 			local widget = self:GetFrameRef(set..':'..i)
 
+			widget:CallMethod('SetRotation', -math.atan2(x, y))
 			widget:Show()
 			widget:ClearAllPoints()
 			widget:SetPoint('CENTER', '$parent', 'CENTER', x, invertY * y)
@@ -188,6 +189,9 @@ function Utility:OnDataLoaded()
 		mixin  = Button;
 		config = {
 			showGrid = true;
+			hideElements = {
+				macro = true;
+			};
 		};
 	}))
 	db:Load('Utility/Data', 'ConsolePortUtility')
@@ -415,25 +419,12 @@ do
 	local Clamp = Clamp;
 
 	function Utility:SetAnimations(obj, rot, len)
-		local oldObj = self.oldAniObj;
 		local pulse = Clamp(len, 0.05, 0.25)
 
 		self.PulseAnim.PulseIn:SetFromAlpha(pulse / 2)
 		self.PulseAnim.PulseIn:SetToAlpha(pulse)
 		self.PulseAnim.PulseOut:SetToAlpha(pulse / 2)
 		self.PulseAnim.PulseOut:SetFromAlpha(pulse)
-
-		if ( oldObj == obj ) then
-			return
-		end
-		if oldObj then
-			oldObj.Name:Show()
-		end
-		self.oldAniObj = obj;
-
-		if obj then
-			obj.Name:Hide()
-		end
 	end
 
 	Utility:HookScript('OnHide', function(self)
@@ -972,6 +963,7 @@ function Button:OnFocus()
 		GameTooltip:AddLine(remove)
 	end
 	GameTooltip:Show()
+	self:GetParent():SetActiveSliceText(self.Name:GetText())
 end
 
 function Button:OnClear()
@@ -979,9 +971,13 @@ function Button:OnClear()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
+	self:GetParent():SetActiveSliceText(nil)
 end
 
 function Button:UpdateLocal()
-	self:SetRotation(0)
+	self:SetRotation(self.rotation or 0)
 	ActionButton.Skin.UtilityRingButton(self)
+	RunNextFrame(function()
+		self:GetParent():SetSliceText(self:GetID(), self.Name:GetText())
+	end)
 end

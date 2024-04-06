@@ -178,7 +178,7 @@ do Lib.Skin.UtilityRingButton = function(self)
 		obj:SetDesaturated(true)
 		obj:SetVertexColor(0.5, 0.5, 0.5, 1)
 		obj:AddMaskTexture(self.IconMask)
-		obj:SetRotation(self.rotation)
+		obj:SetRotation(0)
 	end; end
 	do obj = self.Border;
 		obj:SetDrawLayer('BACKGROUND', -2)

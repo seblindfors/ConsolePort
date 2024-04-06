@@ -129,6 +129,7 @@ function Petbutton:OnFocus()
 		self:SetTooltip()
 		GameTooltip:Show()
 	end
+	self:GetParent():SetActiveSliceText(self.Name:GetText())
 end
 
 function Petbutton:OnClear()
@@ -136,9 +137,13 @@ function Petbutton:OnClear()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
+	self:GetParent():SetActiveSliceText(nil)
 end
 
 function Petbutton:UpdateLocal()
 	ActionButton.CustomTypes.Pet.UpdateLocal(self)
 	ActionButton.Skin.RingButton(self)
+	RunNextFrame(function()
+		self:GetParent():SetSliceText(self:GetID(), self.Name:GetText())
+	end)
 end

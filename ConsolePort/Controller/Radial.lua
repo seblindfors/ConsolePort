@@ -438,7 +438,7 @@ function Radial:GetBoundingAnglesForIndex(index, size)
 	local halfstep = -(self.COS_DELTA) * 360 / size / 2;
 	local startAngle = centerAngle - halfstep;
 	local endAngle = centerAngle + halfstep;
-	return startAngle, endAngle;
+	return startAngle, endAngle, centerAngle;
 end
 
 function Radial:GetPointForIndex(index, size, radius)
