@@ -1,10 +1,10 @@
+----------------------------------------------------------------
+-- LibActionButton-1.0 and LibButtonGlow-1.0 wrapper for CP
+----------------------------------------------------------------
 local Lib = LibStub:NewLibrary('ConsolePortActionButton', 1) -- TODO: rename the lib?
 if not Lib then return end
-local _, db = ...;
 local LAB = LibStub('LibActionButton-1.0')
 local LBG = LibStub('LibButtonGlow-1.0')
----------------------------------------------------------------
-Lib.CustomTypes = {};
 ---------------------------------------------------------------
 
 function Lib:NewPool(info)
@@ -31,6 +31,8 @@ function Lib:NewPool(info)
 	return creationFunc, resetterFunc, mixin;
 end
 
+---------------------------------------------------------------
+Lib.CustomTypes = {};
 ---------------------------------------------------------------
 -- Common action button
 ---------------------------------------------------------------
@@ -205,3 +207,25 @@ do Lib.Skin.UtilityRingButton = function(self)
 	end
 end;
 end -- Lib.Skin.UtilityRingButton
+
+---------------------------------------------------------------
+Lib.TypeMetaMap = {};
+---------------------------------------------------------------
+do -- Workaround for LAB's private type meta map.
+	local ReferenceHeader = CreateFrame('Frame', 'ConsolePortReferenceHeader', nil, 'SecureHandlerStateTemplate')
+	local ReferenceButton = LAB:CreateButton('ref', '$parentReferenceButton', ReferenceHeader)
+	for actionType, meta in pairs({
+		empty  = 0;
+		action = 1;
+		spell  = 2;
+		item   = 3;
+		macro  = 4;
+		custom = {};
+	}) do
+		ReferenceButton:SetState(actionType, actionType, meta)
+		ReferenceButton:SetAttribute('state', actionType)
+		ReferenceButton:UpdateAction(true)
+		Lib.TypeMetaMap[actionType] = getmetatable(ReferenceButton)
+	end
+	ReferenceButton:SetAttribute('state', 'empty')
+end

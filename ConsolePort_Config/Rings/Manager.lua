@@ -1,6 +1,6 @@
 local _, env = ...;
 local db, L, Widgets = env.db, env.L, env.Widgets;
-local LoadoutTypeMetaMap = LibStub('CPActionButton').TypeMetaMap;
+local LoadoutTypeMetaMap = LibStub('ConsolePortActionButton').TypeMetaMap;
 
 ---------------------------------------------------------------
 local DEFAULT_RING_ID = CPAPI.DefaultRingSetID;
@@ -438,6 +438,7 @@ local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin, {
 
 function LoadoutButton:OnLoad()
 	self.ignoreUtilityRing = true;
+	self.MasqueSkinned = true;
 	self:SetWidth(self:GetParent():GetWidth() - 16)
 	self.Label:SetWidth(self:GetWidth() - 100)
 	self:SetScript('OnShow', self.OnShow)
@@ -486,9 +487,13 @@ end
 
 function LoadoutButton:GetDisplayText()
 	local text = self:GetActionText()
-	if not text then
+	if ( not text or text == '' ) then
 		if self:IsExtraActionButton() then
 			text = GetExtraActionButtonName()
+		elseif ( self._state_type == 'item' ) then
+			text = (GetItemInfo(self._state_action))
+		elseif ( self._state_type == 'spell' ) then
+			text = (GetSpellInfo(self._state_action))
 		end
 	end
 	return text;
