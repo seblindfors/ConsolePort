@@ -165,8 +165,8 @@ function RadialMixin:GetCoordsForIndex(index, size, radius)
 	return Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
 end
 
-function RadialMixin:GetBoundingAnglesForIndex(index, size)
-	return Radial:GetBoundingAnglesForIndex(index, size or self:GetAttribute('size'))
+function RadialMixin:GetBoundingRadiansForIndex(index, size)
+	return Radial:GetBoundingRadiansForIndex(index, size or self:GetAttribute('size'))
 end
 
 function RadialMixin:GetIndexForPos(x, y, len, size)
@@ -433,11 +433,16 @@ function Radial:GetAngleForIndex(index, size)
 	return ((self.ANGLE_IDX_ONE + ((index - 1) * step)) % 360)
 end
 
-function Radial:GetBoundingAnglesForIndex(index, size)
+function Radial:GetBoundingRadiansForIndex(index, size)
 	local centerAngle = self:GetAngleForIndex(index, size)
 	local halfstep = -(self.COS_DELTA) * 360 / size / 2;
 	local startAngle = centerAngle - halfstep;
 	local endAngle = centerAngle + halfstep;
+	startAngle = -(math.rad(startAngle));
+	endAngle = -(math.rad(endAngle) + math.pi);
+	centerAngle = centerAngle - self.ANGLE_IDX_ONE;
+	centerAngle =  self.COS_DELTA * -math.atan2(cos(centerAngle), self.COS_DELTA * sin(centerAngle));
+
 	return startAngle, endAngle, centerAngle;
 end
 

@@ -70,9 +70,9 @@ function Petring:OnPrimaryStickChanged()
 	self:SetIntercept({sticks[1]})
 end
 
-function Petring:OnInput(x, y, len, stick)
+function Petring:OnInput(x, y, len)
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, NUM_PET_ACTION_SLOTS))
-	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
+	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, self:IsValidThreshold(len))
 end
 
 db:RegisterSafeCallback('Settings/radialCosineDelta', Petring.OnAxisInversionChanged, Petring)

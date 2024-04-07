@@ -208,7 +208,6 @@ end
 ---------------------------------------------------------------
 -- Pie slice mixin
 ---------------------------------------------------------------
-local cos, sin, rad, pi = math.cos, math.sin, math.rad, math.pi;
 CPPieSliceMixin = {};
 
 function CPPieSliceMixin:OnPreLoad()
@@ -218,7 +217,7 @@ end
 
 function CPPieSliceMixin:SetIndex(index, numActive)
 	if not index then return end;
-	local startAngle, endAngle, centerAngle = self:GetParent():GetBoundingAnglesForIndex(index, numActive)
+	local startAngle, endAngle, centerAngle = self:GetParent():GetBoundingRadiansForIndex(index, numActive)
 	local enableMasking = not numActive or numActive > 1;
 	self.index, self.centerAngle = index, centerAngle;
 	self:RotateMasks(enableMasking, startAngle, endAngle)
@@ -227,8 +226,8 @@ function CPPieSliceMixin:SetIndex(index, numActive)
 end
 
 function CPPieSliceMixin:RotateMasks(enableMasking, startAngle, endAngle)
-	self.RectMask1:SetRotation(-(rad(startAngle)))
-	self.RectMask2:SetRotation(-(rad(endAngle)) + pi)
+	self.RectMask1:SetRotation(startAngle)
+	self.RectMask2:SetRotation(endAngle)
 	self.RectMask1:SetShown(enableMasking)
 	self.RectMask2:SetShown(enableMasking)
 end
@@ -236,9 +235,8 @@ end
 function CPPieSliceMixin:RotateLines(centerAngle)
 	if not centerAngle then return end;
 	local radius = self:GetWidth() / LINE_OFFSET_DIV;
-	local angle = rad(centerAngle)
 
-	local startX, startY = -(radius * cos(angle)), (radius * sin(angle));
+	local startX, startY = -(radius * math.cos(centerAngle)), (radius * math.sin(centerAngle));
 	local endX, endY = startX * LINE_MUL, startY * LINE_MUL;
 
 	local flatDirection = (endX < 1) and -1 or 1;

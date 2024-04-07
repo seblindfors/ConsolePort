@@ -136,7 +136,7 @@ Lib.Skin.RingButton = function(self)
 		obj:SetTexture([[Interface\Buttons\IconBorder-GlowRing]])
 	end
 	do obj = self.cooldown;
-		obj:SetSwipeTexture([[Interface\AddOns\ConsolePort_Bar\Textures\Cooldown\Swipe]])
+		obj:SetSwipeTexture([[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe]])
 		obj:SetSwipeColor(RED_FONT_COLOR:GetRGBA())
 		obj:SetUseCircularEdge(true)
 		obj.SetEdgeTexture = nop;
