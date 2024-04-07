@@ -364,10 +364,11 @@ local Range = CreateWidget('Range', Number, {
 			self:GetParent():Set(Clamp(self:GetValue() + delta, self:GetMinMaxValues()))
 		end;
 		_OnValueChanged = function(self, value, byInput)
-			if byInput then
+			if byInput and self.cacheValue ~= value then
+				self.cacheValue = value;
 				if self.isDraggingThumb then
 					self:GetParent():OnValueChanged(value)
-				else 
+				else
 					self:GetParent():Set(value)
 				end
 			end
@@ -407,8 +408,9 @@ local Delta = CreateWidget('Delta', Range, {
 		_SetMinMaxValues = {-1, 1};
 		_OnValueChanged = function(self, value, byInput)
 			local widget = self:GetParent()
-			if byInput and widget.controller:IsOption(value) then
+			if byInput and self.cacheValue ~= value and  widget.controller:IsOption(value) then
 				widget:Set(value)
+				self.cacheValue = value;
 			end
 		end;
 	};
