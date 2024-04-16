@@ -204,7 +204,6 @@ function Utility:OnDataLoaded()
 			local size = self:GetAttribute('size');
 		]];
 	});
-	self:RefreshAll()
 	setmetatable(self.Data, {__index = function(data, key)
 		self:Parse([[
 			DATA[{ring}] = newtable();
@@ -308,7 +307,11 @@ function Utility:AddSecureAction(set, idx, info)
 	end
 
 	self:SetFrameRef(set..':'..idx, button)
-	button:SetState(set, self:GetKindAndAction(info))
+	local kind, action = self:GetKindAndAction(info)
+	if not kind or not action then
+		return
+	end
+	button:SetState(set, kind, action)
 
 	local args, body = { ring = tostring(set), slot = idx }, [[
 		local ring = DATA[{ring}];
@@ -559,7 +562,7 @@ Utility.KindAndActionMap = {
 	action = function(data) return data.action end;
 	item   = function(data) return data.item end;
 	pet    = function(data) return data.action end;
-	spell  = function(data) return data.link:match('spell:(%d+)') end;
+	spell  = function(data) return (data.link:match('spell:(%d+)')) or (select(7, GetSpellInfo(data.spell))) or data.spell end;
 	macro  = function(data) return data.macro end;
 	equipmentset = function(data) return data.equipmentset end;
 }
@@ -919,6 +922,7 @@ function Utility:SPELLS_CHANGED()
 	if self.autoAssignExtras then
 		db:RunSafe(self.ToggleZoneAbilities, self)
 	end
+	db:RunSafe(self.RefreshAll, self)
 end
 
 function Utility:ACTIONBAR_SLOT_CHANGED()

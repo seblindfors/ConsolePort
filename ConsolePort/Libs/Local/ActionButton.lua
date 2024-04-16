@@ -70,6 +70,16 @@ Lib.Skin = {};
 ---------------------------------------------------------------
 
 do -- Lib.Skin.RingButton
+local function GetIconMask(self)
+	if self.IconMask then
+		return self.IconMask;
+	end
+	self.IconMask = self:CreateMaskTexture(nil, 'BACKGROUND')
+	self.icon:AddMaskTexture(self.IconMask)
+	return self.IconMask;
+end
+
+
 Lib.Skin.RingButton = function(self)
 	assert(type(self.rotation) == 'number', 'Ring button must have a rotation value.')
 	local obj;
@@ -93,23 +103,22 @@ Lib.Skin.RingButton = function(self)
 		obj:SetPoint('CENTER', 0, 0)
 		obj:SetSize(78, 78)
 		obj:SetDrawLayer('OVERLAY', -1)
+		obj:SetBlendMode('BLEND')
 		CPAPI.SetAtlas(obj, 'ring-select')
 	end
 	do obj = self.HighlightTexture or self:GetHighlightTexture();
 		obj:ClearAllPoints()
 		obj:SetPoint('CENTER')
 		obj:SetSize(90, 90)
+		obj:SetBlendMode('BLEND')
 		CPAPI.SetAtlas(obj, 'ring-select')
 	end
 	do obj = self.icon;
 		obj:SetAllPoints()
 	end
-	do obj = self.IconMask;
-		if obj then
-		obj:SetTexture([[Interface\Masks\CircleMask]])
-		obj:SetPoint('CENTER')
-		obj:SetSize(58, 58)
-		end
+	do obj = GetIconMask(self);
+		obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Mask]]), 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
+		obj:SetAllPoints()
 	end
 	do obj = self.Flash;
 		obj:ClearAllPoints()
@@ -212,20 +221,23 @@ end -- Lib.Skin.UtilityRingButton
 Lib.TypeMetaMap = {};
 ---------------------------------------------------------------
 do -- Workaround for LAB's private type meta map.
-	local ReferenceHeader = CreateFrame('Frame', 'ConsolePortReferenceHeader', nil, 'SecureHandlerStateTemplate')
-	local ReferenceButton = LAB:CreateButton('ref', '$parentReferenceButton', ReferenceHeader)
-	for actionType, meta in pairs({
-		empty  = 0;
-		action = 1;
-		spell  = 2;
-		item   = 3;
-		macro  = 4;
-		custom = {};
-	}) do
-		ReferenceButton:SetState(actionType, actionType, meta)
-		ReferenceButton:SetAttribute('state', actionType)
-		ReferenceButton:UpdateAction(true)
-		Lib.TypeMetaMap[actionType] = getmetatable(ReferenceButton)
-	end
-	ReferenceButton:SetAttribute('state', 'empty')
+	setmetatable(Lib.TypeMetaMap, {__index = function(self, k)
+		local ReferenceHeader = CreateFrame('Frame', 'ConsolePortABRefHeader', nil, 'SecureHandlerStateTemplate')
+		local ReferenceButton = LAB:CreateButton('ref', '$parentButton', ReferenceHeader)
+		for meta, dummy in pairs({
+			empty  = 0;
+			action = 1;
+			spell  = 6603; -- Auto-attack
+			item   = 6948; -- Hearthstone
+			macro  = 1;
+			custom = {};
+		}) do
+			ReferenceButton:SetState(meta, meta, dummy)
+			ReferenceButton:SetAttribute('state', meta)
+			ReferenceButton:UpdateAction(true)
+			Lib.TypeMetaMap[meta] = getmetatable(ReferenceButton)
+		end
+		ReferenceButton:SetAttribute('state', 'empty')
+		return rawget(setmetatable(self, nil), k);
+	end})
 end

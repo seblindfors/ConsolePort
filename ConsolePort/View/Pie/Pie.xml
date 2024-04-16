@@ -12,7 +12,11 @@
 			<KeyValue key="isSlicedPie" type="boolean" value="true"/>
 		</KeyValues>
 		<Frames>
-			<PieSlice parentKey="ActiveSlice" alpha="0"/>
+			<PieSlice parentKey="ActiveSlice" alpha="0" frameLevel="2">
+				<KeyValues>
+					<KeyValue key="isActiveSlice" type="boolean" value="true"/>
+				</KeyValues>
+			</PieSlice>
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">

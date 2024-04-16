@@ -65,6 +65,18 @@
 			<Layer level="BACKGROUND" textureSubLevel="-6">
 				<Line parentKey="Line1" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" hidden="true"/>
 				<Line parentKey="Line2" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2" hidden="true"/>
+				<Texture parentKey="Separator1" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Separator" hidden="true">
+					<Size x="500" y="500"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Separator2" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Separator" hidden="true">
+					<Size x="500" y="500"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
 				<FontString parentKey="Text" inherits="GameFontHighlightSmallOutline" hidden="true"/>
 			</Layer>
 		</Layers>

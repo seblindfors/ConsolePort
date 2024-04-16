@@ -168,6 +168,9 @@ function CPPieMenuMixin:UpdateColorSettings()
 		if self.ActiveSlice then
 			self.ActiveSlice:SetColor(self.SliceColors.Active)
 			self.ActiveSlice:SetOpacity(0)
+			self.ActiveSlice.Separator1:SetTexture(CPAPI.GetAsset([[Textures\Pie\Pie_Separator2]]))
+			self.ActiveSlice.Separator2:SetTexture(CPAPI.GetAsset([[Textures\Pie\Pie_Separator2]]))
+			self.ActiveSlice:SetSeparatorColor(self.SliceColors.Hilite:GetRGBA())
 		end
 		for slice in self.SlicePool:EnumerateActive() do
 			slice:SetColor(self.SliceColors.Normal)
@@ -230,6 +233,10 @@ function CPPieSliceMixin:RotateMasks(enableMasking, startAngle, endAngle)
 	self.RectMask2:SetRotation(endAngle)
 	self.RectMask1:SetShown(enableMasking)
 	self.RectMask2:SetShown(enableMasking)
+	self.Separator1:SetRotation(startAngle)
+	self.Separator2:SetRotation(endAngle - math.pi)
+	self.Separator1:SetShown(enableMasking)
+	self.Separator2:SetShown(enableMasking)
 end
 
 function CPPieSliceMixin:RotateLines(centerAngle)
@@ -268,6 +275,9 @@ end
 function CPPieSliceMixin:SetVertexColor(r, g, b)
 	self.Slice:SetVertexColor(r, g, b)
 	self:SetLineColor(r, g, b)
+	if not self.isActiveSlice then
+		self:SetSeparatorColor(r, g, b, 0.25)
+	end
 end
 
 function CPPieSliceMixin:UpdateSize(width, height)
@@ -276,6 +286,8 @@ function CPPieSliceMixin:UpdateSize(width, height)
 	end
 	self:SetSize(width * SLICE_FRACTION, height * SLICE_FRACTION)
 	self.Slice:SetSize(width * BG_FRACTION, height * BG_FRACTION)
+	self.Separator1:SetSize(width * BG_FRACTION, height * BG_FRACTION)
+	self.Separator2:SetSize(width * BG_FRACTION, height * BG_FRACTION)
 	self.RectMask1:SetSize(width * MASK_FRACTION, height * MASK_FRACTION)
 	self.RectMask2:SetSize(width * MASK_FRACTION, height * MASK_FRACTION)
 end
@@ -287,6 +299,11 @@ end
 function CPPieSliceMixin:SetLineColor(r, g, b)
 	self.Line1:SetVertexColor(r, g, b)
 	self.Line2:SetVertexColor(r, g, b)
+end
+
+function CPPieSliceMixin:SetSeparatorColor(r, g, b, a)
+	self.Separator1:SetVertexColor(r, g, b, a)
+	self.Separator2:SetVertexColor(r, g, b, a)
 end
 
 function CPPieSliceMixin:SetText(text)
