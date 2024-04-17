@@ -100,6 +100,7 @@ function DeviceSelect:Construct()
 		self:Update()
 	end)
 	self:Update()
+	self.disableTooltipHints = true;
 end
 
 function DeviceSelect:GetRawOptions()

@@ -9,7 +9,7 @@ local DEFAULT_RING_BINDING = 'LeftButton';
 local BUTTON_WITH_ICON_TEXT = '     %s';
 
 local SELECTED_RING_TEXT = L[[This is your currently selected ring.
-When you press and hold your selected key binding, all your selected abilities will appear in a ring on the screen.
+When you press and hold the key binding, all your selected abilities will appear in a ring on the screen.
 
 Tilt your radial stick in the direction of the ability or item you want to use, then release the key binding to commit.]]
 local ADD_NEW_RING_TEXT = L[[|cFFFFFF00Create New Ring|r
@@ -216,6 +216,7 @@ function RingSelectMixin:Construct()
 	db:RegisterCallback('OnRingAdded', self.OnRingAdded, self)
 	db:RegisterCallback('OnRingRemoved', self.OnRingRemoved, self)
 	self:SetScript('OnClick', CPIndexButtonMixin.OnIndexButtonClick)
+	self.disableTooltipHints = true;
 end
 
 ---------------------------------------------------------------

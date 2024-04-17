@@ -83,7 +83,7 @@ function Widget:UpdateTooltip(text, note, hints)
 	text = text or self.tooltipText;
 	note = note or self.tooltipNote;
 	hints = hints or self.tooltipHints;
-	if not hints then
+	if not hints and not self.disableTooltipHints then
 		hints = {
 			env:GetTooltipPromptForClick('LeftClick', EDIT);
 			env:GetTooltipPromptForClick('RightClick', DEFAULT);
