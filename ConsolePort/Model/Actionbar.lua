@@ -203,10 +203,10 @@ ActionBarAPI.Names = {
 	-- Individual pages
 	Pages = {
 		[02] = 'Page 2';
-		[07] = 'Stance 1';
-		[08] = 'Stance 2';
-		[09] = 'Stance 3';
-		[10] = 'Stance 4';
+		[07] = 'Form 1';
+		[08] = 'Form 2';
+		[09] = 'Form 3';
+		[10] = 'Form 4';
 		[11] = 'Dragon';
 	};
 }

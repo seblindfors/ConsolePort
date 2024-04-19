@@ -104,11 +104,13 @@ function SpellMenu:MapActionBar()
 	for _, data in ipairs(SPELL_MAP_BAR_IDS) do
 		local shouldDrawBars = data();
 		if shouldDrawBars then
-			for barPos, barID in ipairs(data) do
+			for _, barID in ipairs(data) do
 				drawnBars = drawnBars + 1;
 
 				local text = self.ActionBarText:Acquire()
 				text:SetText(db('Actionbar/Names/'..barID))
+				text:SetWidth(50)
+				text:SetJustifyH('LEFT')
 				text:Show()
 				for i=1, NUM_ACTIONBAR_BUTTONS do
 					local actionID = (barID - 1) * NUM_ACTIONBAR_BUTTONS + i;
@@ -130,7 +132,7 @@ function SpellMenu:MapActionBar()
 					widget:Update()
 					widget:Show()
 					if ( i == 1 ) then
-						text:SetPoint('RIGHT', widget, 'LEFT', -8, 0)
+						text:SetPoint('LEFT', widget, 'LEFT', -50, 0)
 					end
 				end
 			end
