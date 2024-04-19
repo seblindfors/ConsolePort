@@ -104,9 +104,8 @@ function Mapper:OnDeviceChanged(device, deviceID)
 end
 
 function Mapper:OnValueChanged(path, value)
-	local rawConfig = self.config;
-	if rawConfig then
-		local config = FillGroups(Scrub(ClearMetatable(CopyTable(rawConfig))));
+	local config = self:GetConfig()
+	if config then
 		C_GamePad.SetConfig(config)
 		C_GamePad.ApplyConfigs()
 		return value;
@@ -131,6 +130,12 @@ function Mapper:SetValue(path, value)
 	end
 end
 
+function Mapper:GetConfig()
+	local rawConfig = self.config;
+	if rawConfig then
+		return FillGroups(Scrub(ClearMetatable(CopyTable(rawConfig))));
+	end
+end
 
 db:RegisterCallback('OnMapperValueChanged', Mapper.OnValueChanged, Mapper)
 db:RegisterCallback('OnMapperDeviceChanged', Mapper.OnDeviceChanged, Mapper)
