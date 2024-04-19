@@ -328,12 +328,20 @@ end
 ---------------------------------------------------------------
 -- Handlers and init
 ---------------------------------------------------------------
+function ItemMenu:Refresh()
+	if self:IsShown() then
+		self:SetItem(self.bagID, self.slotIndex)
+	end
+end
+
 function ItemMenu:MERCHANT_SHOW()
-	self.merchantAvailable = true
+	self.merchantAvailable = true;
+	self:Refresh()
 end
 
 function ItemMenu:MERCHANT_CLOSED()
-	self.merchantAvailable = false
+	self.merchantAvailable = false;
+	self:Refresh()
 end
 
 function ItemMenu:PLAYER_REGEN_DISABLED()
@@ -341,9 +349,7 @@ function ItemMenu:PLAYER_REGEN_DISABLED()
 end
 
 function ItemMenu:BAG_UPDATE_DELAYED()
-	if self:IsShown() then
-		self:SetItem(self.bagID, self.slotIndex)
-	end
+	self:Refresh()
 end
 
 ---------------------------------------------------------------
