@@ -4,16 +4,17 @@
 local _, db = ...;
 local MenuButton = db:Register('PopupMenuButton', {})
 ---------------------------------------------------------------
-local COMMAND_OPT_ICON = {
-	Default   = [[Interface\QuestFrame\UI-Quest-BulletPoint]];
-	Sell      = [[Interface\GossipFrame\BankerGossipIcon]];
-	Split     = [[Interface\Cursor\UI-Cursor-SizeLeft]];
-	Equip     = [[Interface\GossipFrame\transmogrifyGossipIcon]];
-	Pickup    = [[Interface\Cursor\openhand]];
-	Delete    = [[Interface\Buttons\UI-GroupLoot-Pass-Up]];
-	RingBind  = [[Interface\Buttons\UI-AttributeButton-Encourage-Up]];
-	RingClear = [[Interface\Buttons\UI-MinusButton-Up]];
-}
+local COMMAND_OPT_ICON = CPAPI.Proxy({
+	Sell       = 'Auctioneer';
+	Split      = 'Banker';
+	Equip      = 'poi-transmogrifier';
+	Pickup     = 'MiniMap-QuestArrow';
+	Delete     = 'XMarksTheSpot';
+	RingBind   = 'GreenCross';
+	RingClear  = 'Islands-MarkedArea';
+	Disenchant = 'UpgradeItem-32x32';
+	MapActionBar = 'TorghastDoor-ArrowDown-32x32';
+}, 'Waypoint-MapPin-Minimap-Tracked')
 ---------------------------------------------------------------
 -- Button mixin
 ---------------------------------------------------------------
@@ -27,22 +28,28 @@ function MenuButton:SpecialClick()
 	self:OnClick()
 end
 
+function MenuButton:OnCancelClick(...)
+	self:GetParent():Hide()
+end
+
 function MenuButton:OnEnter()
 	if not GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
+	self:LockHighlight()
 end
 
 function MenuButton:OnLeave()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
+	self:UnlockHighlight()
 end
 
 function MenuButton:SetCommand(text, command, data, handlers, init)
 	self.data = data
 	self.command = command
-	self.Icon:SetTexture(COMMAND_OPT_ICON[command] or COMMAND_OPT_ICON.Default)
+	CPAPI.SetAtlas(self.Icon, COMMAND_OPT_ICON[command])
 	self:SetAttribute('nohooks', true)
 	self:SetScript('OnEnter', handlers and handlers.OnEnter or self.OnEnter)
 	self:SetScript('OnLeave', handlers and handlers.OnLeave or self.OnLeave)
@@ -120,6 +127,10 @@ function MapActionButton:OnSpecialClick(...)
 	end
 end
 
+function MapActionButton:OnCancelClick(...)
+	self:GetParent():Hide()
+end
+
 function MapActionButton:OnClick(button)
 	local actionID, bindingID = self:GetID(), self.bindingID;
 	local isUnbound = not self:GetAttribute('slug');
@@ -134,7 +145,7 @@ function MapActionButton:OnClick(button)
 		return ClearCursor()
 	end
 	ClearCursor()
-	
+
 	local spellID = parent:GetSpellID()
 	PickupSpell(spellID)
 	PlaceAction(actionID)
