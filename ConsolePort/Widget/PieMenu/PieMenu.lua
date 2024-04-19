@@ -92,7 +92,7 @@ end
 
 function CPPieMenuMixin:UpdateBackgroundFocus(index)
 	if not self.isSlicedPie then return end;
-	self.ActiveSlice:SetIndex(index, self:GetNumActive())
+	self.ActiveSlice:SetIndex(index, self:GetNumVisible())
 end
 
 function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
@@ -102,7 +102,7 @@ function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
 		return;
 	end
 	self.SlicePool:ReleaseAll()
-	local slices = numSlices or self:GetNumActive()
+	local slices = numSlices or self:GetNumVisible()
 	local width, height = self:GetSize()
 	for i = 1, slices do
 		local slice, newObj = self.SlicePool:Acquire()

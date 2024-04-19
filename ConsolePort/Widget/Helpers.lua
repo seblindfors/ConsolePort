@@ -57,6 +57,16 @@ function CPIndexPoolMixin:GetNumActive()
 	return self.ObjectPool:GetNumActive()
 end
 
+function CPIndexPoolMixin:GetNumVisible()
+	local count = 0;
+	for object in self:EnumerateActive() do
+		if object:IsVisible() then
+			count = count + 1;
+		end
+	end
+	return count;
+end
+
 function CPIndexPoolMixin:ReleaseAll()
 	self.ObjectPool:ReleaseAll()
 end
