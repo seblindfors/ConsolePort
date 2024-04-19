@@ -274,18 +274,23 @@ do  -- Create input proxy for basic controls
 		end
 		for key in pairs(self.BasicControls) do
 			if not self.DpadControls[key] then
-				self.BasicControls[key] = nil
+				self.BasicControls[key] = nil;
 			end
 		end
-		local dynamicKeys = {
-			db('Settings/UICursorSpecial'),
-		}
-		for _, key in ipairs(dynamicKeys) do
+		self.DynamicControls = {
+			db('Settings/UICursorSpecial');
+			db('Settings/UICursorCancel');
+		};
+		for _, key in ipairs(self.DynamicControls) do
 			if not self.BasicControls[key] then
 				self.BasicControls[key] = {GenerateClosure(InputProxy, key)}
 			end
 		end
-		return self.BasicControls
+		return self.BasicControls;
+	end
+
+	function Cursor:IsDynamicControl(key)
+		return self.DynamicControls and tContains(self.DynamicControls, key)
 	end
 
 	function Cursor:SetBasicControls()
@@ -296,11 +301,12 @@ do  -- Create input proxy for basic controls
 	end
 
 	-- Callbacks to reset controls when inputters change
-	do local function ResetControls(self) self.BasicControls = nil; end
+	do local function ResetControls(self) self.BasicControls, self.DynamicControls = nil; end
 		db:RegisterCallbacks(ResetControls, Cursor,
 			'Settings/UICursorSpecial',
+			'Settings/UICursorCancel',
 			'Settings/UICursorLeftClick',
-			'Settings/UICursorRightClick'	
+			'Settings/UICursorRightClick'
 		);
 	end
 
@@ -379,7 +385,7 @@ function Cursor:Input(key, caller, isDown)
 		if not self:AttemptDragStart() then
 			target, changed = self:Navigate(key)
 		end
-	elseif ( key == db('Settings/UICursorSpecial') ) then
+	elseif self:IsDynamicControl(key) then
 		return Hooks:ProcessInterfaceCursorEvent(key, isDown, self:GetCurrentNode())
 	end
 	if ( target ) then
@@ -726,7 +732,7 @@ end
 
 
 function Cursor:SetHighlight(node)
-	if node and (not node.IsEnabled or node:IsEnabled()) then
+	if node and (not node.IsEnabled or node:IsEnabled()) and not node:GetAttribute(env.Attributes.IgnoreMime) then
 		self.Mime:SetNode(node)
 	else
 		self:ClearHighlight()

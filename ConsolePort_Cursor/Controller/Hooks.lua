@@ -18,7 +18,14 @@ end
 
 
 function Hooks:ProcessInterfaceCursorEvent(button, down, node)
-	if (down == false) then
+	if down then return end;
+	if self:IsCancelClick(button) then
+		local cancelClickHandler = self:GetCancelClickHandler(node)
+		if cancelClickHandler then
+			cancelClickHandler(node, button, down)
+			return true;
+		end
+	else
 		local specialClickHandler = self:GetSpecialClickHandler(node)
 		if specialClickHandler then
 			specialClickHandler(node, button, down)
@@ -70,8 +77,16 @@ function Hooks:IsModifiedClick()
 	return next(db.Gamepad:GetModifiersHeld()) ~= nil;
 end
 
+function Hooks:IsCancelClick(button)
+	return button == db('UICursorCancel');
+end
+
 function Hooks:GetSpecialClickHandler(node)
 	return node and (node.OnSpecialClick or node:GetAttribute(env.Attributes.SpecialClick));
+end
+
+function Hooks:GetCancelClickHandler(node)
+	return node and (node.OnCancelClick or node:GetAttribute(env.Attributes.CancelClick));
 end
 
 

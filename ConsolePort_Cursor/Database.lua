@@ -74,8 +74,12 @@ ConsolePort:AddVariables({
 		note = 'This button is necessary to use or sell an item directly from your bags.';
 	};
 	UICursorSpecial = _{Data.Button('PAD4');
-		name = 'Special Button';
-		desc = 'Button to handle special actions, such as adding items to the utility ring.';
+		name = 'Context Button';
+		desc = 'Button to handle contextual actions, such as adding items to the utility ring.';
+	};
+	UICursorCancel = _{Data.Button('PAD3');
+		name = 'Cancel Button';
+		desc = 'Button to handle cancel actions, such as exiting menus.';
 	};
 	UImodifierCommands = _{Data.Select('SHIFT', unpack(MODID_SELECT));
 		name = 'Modifier';
@@ -160,6 +164,8 @@ env.Attributes = {
 	Priority     = 'nodepriority';
 	Singleton    = 'nodesingleton';
 	SpecialClick = 'nodespecialclick';
+	CancelClick  = 'nodecancelclick';
+	IgnoreMime   = 'nodeignoremime';
 };
 
 ---------------------------------------------------------------
