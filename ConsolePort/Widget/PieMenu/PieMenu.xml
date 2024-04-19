@@ -37,7 +37,7 @@
 		</Anchors>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-7">
-				<Texture parentKey="Slice" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Background">
+				<Texture parentKey="Slice" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Background.png">
 					<Size x="500" y="500"/>
 					<Anchors>
 						<Anchor point="CENTER"/>
@@ -65,13 +65,13 @@
 			<Layer level="BACKGROUND" textureSubLevel="-6">
 				<Line parentKey="Line1" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" hidden="true"/>
 				<Line parentKey="Line2" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2" hidden="true"/>
-				<Texture parentKey="Separator1" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Separator" hidden="true">
+				<Texture parentKey="Separator1" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Separator_Inactive.png" hidden="true">
 					<Size x="500" y="500"/>
 					<Anchors>
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
-				<Texture parentKey="Separator2" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Separator" hidden="true">
+				<Texture parentKey="Separator2" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Separator_Inactive.png" hidden="true">
 					<Size x="500" y="500"/>
 					<Anchors>
 						<Anchor point="CENTER"/>

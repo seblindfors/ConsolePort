@@ -168,8 +168,8 @@ function CPPieMenuMixin:UpdateColorSettings()
 		if self.ActiveSlice then
 			self.ActiveSlice:SetColor(self.SliceColors.Active)
 			self.ActiveSlice:SetOpacity(0)
-			self.ActiveSlice.Separator1:SetTexture(CPAPI.GetAsset([[Textures\Pie\Pie_Separator2]]))
-			self.ActiveSlice.Separator2:SetTexture(CPAPI.GetAsset([[Textures\Pie\Pie_Separator2]]))
+			self.ActiveSlice.Separator1:SetTexture(CPAPI.GetAsset([[Textures\Pie\Pie_Separator_Active.png]]))
+			self.ActiveSlice.Separator2:SetTexture(CPAPI.GetAsset([[Textures\Pie\Pie_Separator_Active.png]]))
 			self.ActiveSlice:SetSeparatorColor(self.SliceColors.Hilite:GetRGBA())
 		end
 		for slice in self.SlicePool:EnumerateActive() do
