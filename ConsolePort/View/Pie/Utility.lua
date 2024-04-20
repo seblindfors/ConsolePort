@@ -956,6 +956,10 @@ end
 
 function Button:OnFocus()
 	self:LockHighlight()
+	self:GetParent():SetActiveSliceText(self.Name:GetText())
+	if GameTooltip:IsOwned(self) then
+		return;
+	end
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	self:SetTooltip()
 	local use = Utility:GetTooltipUsePrompt()
@@ -967,7 +971,6 @@ function Button:OnFocus()
 		GameTooltip:AddLine(remove)
 	end
 	GameTooltip:Show()
-	self:GetParent():SetActiveSliceText(self.Name:GetText())
 end
 
 function Button:OnClear()
