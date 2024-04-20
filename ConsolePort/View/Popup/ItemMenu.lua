@@ -171,7 +171,7 @@ function ItemMenu:AddCommand(text, command, data, handlers, init)
 	local anchor = self:GetObjectByIndex(self:GetNumActive() - 1)
 
 	if newObj then
-		widget:HookScript('OnClick', widget.OnClick)
+		widget:OnLoad()
 	end
 
 	widget:SetCommand(text, command, data, handlers, init or DEFAULT_BUTTON_INIT)

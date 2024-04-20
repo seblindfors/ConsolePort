@@ -167,7 +167,7 @@ function SpellMenu:AddCommand(text, command, data)
 	local anchor = self:GetObjectByIndex(self:GetNumActive() - 1)
 
 	if newObj then
-		widget:SetScript('OnClick', widget.OnClick)
+		widget:OnLoad()
 	end
 
 	widget:SetCommand(text, command, data)

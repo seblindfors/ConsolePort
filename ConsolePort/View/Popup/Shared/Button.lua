@@ -18,6 +18,11 @@ local COMMAND_OPT_ICON = CPAPI.Proxy({
 ---------------------------------------------------------------
 -- Button mixin
 ---------------------------------------------------------------
+function MenuButton:OnLoad()
+	self:HookScript('OnClick', self.OnClick)
+	self:HookScript('OnHide', self.OnLeave)
+end
+
 function MenuButton:OnClick()
 	if self.command then
 		self:GetParent()[self.command](self:GetParent(), self.data)
