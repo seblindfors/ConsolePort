@@ -195,11 +195,6 @@ function Pager:RegisterHeader(header, anonymous)
 		local page = self:GetCurrentPage()
 		header:SetAttribute('actionpage', page)
 		header:SetFrameRef('pager', self)
-
-		-- add references to Blizzard frames
-		if MainMenuBarArtFrame then header:SetFrameRef('mainmenubar', MainMenuBarArtFrame) end
-		if OverrideActionBar   then header:SetFrameRef('overridebar', OverrideActionBar) end
-
 		self:SetFrameRef('header', header)
 		self:Execute('headers[self:GetFrameRef("header")] = true')
 	end
