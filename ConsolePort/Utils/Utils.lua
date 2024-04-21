@@ -441,7 +441,7 @@ function CPAPI.NormalizeColor(...)
 	end
 	local diff = (1 - high)
 	local r, g, b, a = ...
-	return r + diff, g + diff, b + diff, a;
+	return r + diff, g + diff, b + diff, tonumber(a) and a or 1;
 end
 
 function CPAPI.GetMutedColor(factor, ...)
