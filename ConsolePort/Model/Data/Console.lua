@@ -7,7 +7,7 @@ local unpack, _, db = unpack, ...; local Console = {}; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 -- Blizzard console variables
 ------------------------------------------------------------------------------------------------------------
-db:Register('Console', setmetatable({
+db:Register('Console', CPAPI.Proxy({
 	--------------------------------------------------------------------------------------------------------
 	Emulation = {
 	--------------------------------------------------------------------------------------------------------
@@ -358,9 +358,7 @@ db:Register('Console', setmetatable({
 			desc = 'Taps for cursor clicks are right clicks instead of left.';
 		};
 	};
-}, {
-	__index = Console;
-}))
+}, Console))
 
 function Console:GetMetadata(key)
 	for set, cvars in pairs(self) do
