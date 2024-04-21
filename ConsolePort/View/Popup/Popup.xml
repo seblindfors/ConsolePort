@@ -10,7 +10,7 @@
 		enableMouse="true"
 		hidden="true"
 		parent="UIParent"
-		inherits="CPPopupFrameTemplate"
+		inherits="CPPopupPortraitFrameTemplate"
 		frameStrata="DIALOG"
 		mixin="ItemLocationMixin, ItemMixin">
 		<Size x="440" y="130"/>
@@ -30,7 +30,7 @@
 		enableMouse="true"
 		hidden="true"
 		parent="UIParent"
-		inherits="CPPopupFrameTemplate"
+		inherits="CPPopupPortraitFrameTemplate"
 		frameStrata="DIALOG"
 		mixin="SpellMixin">
 		<Size x="440" y="130"/>

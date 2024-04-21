@@ -10,12 +10,13 @@ function CPPopupFrameMixin:OnLoad()
 			self[region]:SetAlpha(self.layoutAlpha);
 		end
 	end
+	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -20)
 	db:RegisterCallback('OnPopupShown', self.OnPopupShown, self)
 	ConsolePort:AddInterfaceCursorFrame(self)
 end
 
 function CPPopupFrameMixin:OnPopupShown(shown, frame)
-	if ( frame == self or not shown ) then return end;
+	if ( frame == self or not shown or self.nonExclusive ) then return end;
 	self:Hide()
 end
 
@@ -51,7 +52,7 @@ function CPPopupFrameMixin:ReturnCursor()
 end
 
 function CPPopupFrameMixin:SetTargetHeight(height)
-	if ( self:GetHeight() == height ) then 
+	if ( self:GetHeight() == height ) then
 		return self:SetScript('OnUpdate', nil)
 	end
 	self.targetHeight, self.adjustTimer = height, 0;
