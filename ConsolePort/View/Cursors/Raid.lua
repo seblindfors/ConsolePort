@@ -27,17 +27,15 @@ Cursor:WrapScript(Cursor.Toggle, 'PreClick', [[
 		control:RunAttribute('ToggleCursor', not enabled)
 	end
 	if control:GetAttribute('usefocus') then
+		self:SetAttribute('type', 'focus')
 		if enabled then
-			self:SetAttribute('type', 'focus')
 			self:SetAttribute('unit', control:GetAttribute('cursorunit'))
 		else
-			self:SetAttribute('type', 'macro')
-			self:SetAttribute('macrotext', '/clearfocus')
+			self:SetAttribute('unit', 'none')
 		end
 	else
 		self:SetAttribute('type', nil)
 		self:SetAttribute('unit', nil)
-		self:SetAttribute('macrotext', nil)
 	end
 ]])
 
