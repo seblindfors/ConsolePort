@@ -23,10 +23,7 @@ function Lib:NewPool(info)
 		return frame;
 	end
 
-	local function resetterFunc(pool, frame)
-		frame:Hide()
-		frame:ClearAllPoints()
-	end
+	local resetterFunc = FramePool_HideAndClearAnchors;
 
 	return creationFunc, resetterFunc, mixin;
 end
@@ -66,11 +63,10 @@ function Pet:UpdateLocal()
 end
 
 ---------------------------------------------------------------
-Lib.Skin = {};
+Lib.Skin, Lib.SkinUtility = {}, {};
 ---------------------------------------------------------------
 
-do -- Lib.Skin.RingButton
-local function GetIconMask(self)
+function Lib.SkinUtility.GetIconMask(self)
 	if self.IconMask then
 		return self.IconMask;
 	end
@@ -79,6 +75,28 @@ local function GetIconMask(self)
 	return self.IconMask;
 end
 
+function Lib.SkinUtility.PreventSkinning(self)
+	self.MasqueSkinned = true;
+end
+
+function Lib.SkinUtility.SkinChargeCooldown(self, skin, reset)
+	local obj = self.chargeCooldown;
+	if not obj or self.hookedChargeCooldown then return end;
+	local script = obj:GetScript('OnCooldownDone')
+	self.hookedChargeCooldown = true;
+	skin(obj, self)
+	obj:SetScript('OnCooldownDone', function()
+		self.hookedChargeCooldown = nil;
+		reset(obj, self)
+		if script then
+			script(obj)
+		end
+	end)
+end
+
+do -- Lib.Skin.RingButton
+local GetIconMask = Lib.SkinUtility.GetIconMask;
+local SkinChargeCooldown = Lib.SkinUtility.SkinChargeCooldown;
 
 Lib.Skin.RingButton = function(self)
 	assert(type(self.rotation) == 'number', 'Ring button must have a rotation value.')
@@ -150,20 +168,11 @@ Lib.Skin.RingButton = function(self)
 		obj:SetUseCircularEdge(true)
 		obj.SetEdgeTexture = nop;
 	end
-	do obj = self.chargeCooldown;
-		-- HACK: Workaround for LAB's private charge cooldowns.
-		if obj and not self.hookedChargeCooldown then
-			self.hookedChargeCooldown = true;
-			local script = obj:GetScript('OnCooldownDone')
-			obj:SetUseCircularEdge(true)
-			obj:SetScript('OnCooldownDone', function()
-				obj:SetUseCircularEdge(false)
-				self.hookedChargeCooldown = nil;
-				if script then
-					script(obj)
-				end
-			end)
-		end
+	do SkinChargeCooldown(self, function(cd)
+			cd:SetUseCircularEdge(true)
+		end, function(cd)
+			cd:SetUseCircularEdge(false)
+		end)
 	end
 	if not self.RingMasked then
 		local mask = self:GetParent().InnerMask;
