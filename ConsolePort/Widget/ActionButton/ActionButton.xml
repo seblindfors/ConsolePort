@@ -122,31 +122,6 @@
 		<CheckedTexture parentKey="CheckedTexture" alphaMode="ADD" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Square_Hilite"/>
 	</CheckButton>
 
-
-	<Frame name="CPUIActionButtonTextureOverlayTemplate" virtual="true">
-		<Layers>
-			<Layer level="OVERLAY" textureSubLevel="7">
-				<Texture name="$parent_TEXTURE" parentKey="texture" setAllPoints="true"/>
-			</Layer>
-		</Layers>
-	</Frame>
-
-	<Frame name="CPUIActionButtonMainHotkeyTemplate" virtual="true" frameLevel="20" inherits="CPUIActionButtonTextureOverlayTemplate">
-		<Size x="32" y="32"/>
-		<Anchors>
-			<Anchor point="TOP" x="0" y="12"/>
-		</Anchors>
-	</Frame>
-
-	<Frame name="CPUIActionButtonMainShadowTemplate" virtual="true" frameLevel="1" alpha="0.3" inherits="CPUIActionButtonTextureOverlayTemplate">
-		<Size x="82" y="82"/>
-		<Scripts>
-			<OnLoad>
-				self.texture:SetTexture([[Interface\AddOns\ConsolePort\Assets\Textures\Button\Shadow]]);
-			</OnLoad>
-		</Scripts>
-	</Frame>
-
 	<CheckButton name="CPUIPetActionButtonTemplate" inherits="SecureFrameTemplate, CPUIActionButtonTemplate" frameStrata="MEDIUM" virtual="true">
 		<Size>
 			<AbsDimension x="30" y="30"/>
