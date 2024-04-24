@@ -1,0 +1,32 @@
+## Interface: 100206
+## Interface-Classic: 11501
+## Interface-BCC: 20504
+## Interface-Wrath: 30403
+## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
+## Title: Console Port |cff69ccf0Action Bar|r
+## Notes: Action bar module
+## RequiredDeps: ConsolePort
+
+## Author: Sebastian Lindfors
+## X-Website: https://github.com/seblindfors/ConsolePort
+## X-Feedback: https://discord.gg/AWeHd48
+## X-Curse-Project-ID: 91376
+## X-WoWI-ID: 23536
+## X-Wago-ID: LvNAYjNo
+
+## SavedVariablesPerCharacter: ConsolePort_BarSetup, ConsolePort_BarDB, ConsolePort_BarLayout
+
+Database.lua
+
+Widget\Widget.lua
+Widget\Watch\Watch.xml
+Widget\Bar\Bar.xml
+Widget\Cluster\Cluster.xml
+
+View\Blizzard\Retail.lua
+View\Blizzard\Classic.lua
+
+View\Toolbar\Toolbar.xml
+
+View\Manager\Manager.xml
+#test.lua
