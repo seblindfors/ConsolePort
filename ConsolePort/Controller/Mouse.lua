@@ -22,9 +22,7 @@ local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMo
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
 local GetBindingAction, CreateKeyChord = GetBindingAction, CPAPI.CreateKeyChord;
-local NewTimer, GetMouseFocus = C_Timer.NewTimer, GetMouseFocus;
-local UnitExists, GetSpellInfo = UnitExists, GetSpellInfo;
-local UnitCastingInfo, UnitChannelInfo = UnitCastingInfo, UnitChannelInfo;
+local NewTimer, UnitExists = C_Timer.NewTimer, UnitExists;
 
 ---------------------------------------------------------------
 -- Consts
@@ -131,7 +129,7 @@ local MenuBinding    = function(button) return Keys_Escape:IsOption(CreateKeyCho
 local CursorCentered = function() return CVar_Center:Get(true) end;
 local TooltipShowing = function() return GameTooltip:IsOwned(UIParent) and GameTooltip:GetAlpha() == 1 end;
 local IsMouseOver    = function() return UnitExists('mouseover') end;
-local IsWorldFocus   = function() return GetMouseFocus() == WorldFrame end;
+local IsWorldFocus   = function() return WorldFrame:IsMouseMotionFocus() end;
 local WorldInteract  = function() return TooltipShowing() and IsWorldFocus() end;
 local WorldObjFocus  = function() return IsMouseOver() or WorldInteract() end;
 
