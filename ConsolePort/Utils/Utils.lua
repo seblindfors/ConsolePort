@@ -149,6 +149,13 @@ do local function ModifyMetatable(owner, key, value)
 		return setmetatable(owner, mt)
 	end
 
+	local function Enumerator(self, asTable)
+		if asTable then
+			return tInvert(self);
+		end
+		return unpack(tInvert(self))
+	end
+
 	function CPAPI.Proxy(owner, proxy)
 		if (type(proxy) ~= 'table' and type(proxy) ~= 'function') then
 			proxy = function() return proxy end;
@@ -162,6 +169,10 @@ do local function ModifyMetatable(owner, key, value)
 
 	function CPAPI.Callable(owner, func)
 		return ModifyMetatable(owner, '__call', func)
+	end
+
+	function CPAPI.Enum(...)
+		return CPAPI.Callable(EnumUtil.MakeEnum(...), Enumerator)
 	end
 end
 
