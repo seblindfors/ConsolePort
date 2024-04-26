@@ -1,6 +1,6 @@
 local _, env, db = ...; db = env.db;
 ---------------------------------------------------------------
-local NOMOD, SHIFT, CTRL, CTRL_SHIFT = env.ClusterConstants.ModNames();
+local NOMOD, SHIFT, CTRL, CTRL_SHIFT, ALT = env.ClusterConstants.ModNames();
 local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_HOTKEY, CLUSTER_SHADOW = env.ClusterConstants.Types();
 local ClusterLayout, Skins = env.ClusterConstants.Layout, {};
 env.LIB.Skin.ClusterBar = Skins;
@@ -135,16 +135,41 @@ function Shadow:Update()
 end
 
 ---------------------------------------------------------------
+local Icon = {}; -- LAB custom type dynamic icon textures
+---------------------------------------------------------------
+
+function Icon:SetTexture(texture, ...)
+	if (type(texture) == 'function') then
+		return texture(self, self:GetParent(), ...)
+	end
+	return getmetatable(self).__index.SetTexture(self, texture, ...)
+end
+
+local function GetClusterTextureForButtonID(buttonID)
+	local texture = db('Icons/64/'..buttonID)
+	if texture then
+		return GenerateClosure(function(set, texture, obj)
+			set(obj, texture)
+		end, CPAPI.SetTextureOrAtlas, {texture, db.Gamepad.UseAtlasIcons})
+	end
+	return env.GetAsset([[Textures\Icons\Unbound]]);
+end
+
+---------------------------------------------------------------
 local Button = {};
 ---------------------------------------------------------------
 
 function Button:OnLoad(modifier, layoutData)
+	self:SetAttribute(CPAPI.SkipHotkeyRender, true)
+	self:SetAttribute('id', self.id)
+	self:SetAttribute('mod', modifier)
 	self.mod = modifier;
 	self.layoutData = layoutData;
 	self:UpdateSkin()
 	if ( layoutData.Level ) then
 		self:SetFrameLevel(layoutData.Level)
 	end
+	Mixin(self.icon, Icon)
 	self.cooldown.text = self.cooldown:GetRegions()
 	if ( modifier ~= NOMOD ) then
 		-- Flyout cluster buttons should have smaller CD font
@@ -161,21 +186,57 @@ function Button:UpdateSkin()
 	self.Skin = Skins[self.mod] or nop;
 end
 
-function Button:SetBindings(binding, set)
-	DevTools_Dump({self.id, self.mod, binding})
-	-- TODO: implement
+function Button:SetBindings(primary, allBindings)
+	if ( self.mod == NOMOD ) then
+		for modifier, binding in pairs(allBindings) do
+			self:RefreshBinding(modifier, binding)
+		end
+	else
+		for modifier, binding in pairs(allBindings) do
+			if ( modifier ~= self.mod ) then
+				self:RefreshBinding(modifier, primary)
+			end
+		end
+		self:RefreshBinding(self.mod, allBindings[NOMOD])
+		self:RefreshBinding(ALT..self.mod, allBindings[ALT..self.mod])
+	end
 end
 
-function Button:SetActionBinding(binding)
-	return 'action', actionID; -- TODO: implement
+function Button:RefreshBinding(modifier, binding)
+	local actionID = binding and db('Actionbar/Binding/'..binding)
+	local stateType, stateID;
+	if actionID then
+		stateType, stateID = self:SetActionBinding(modifier, actionID)
+	elseif binding and binding:len() > 0 then
+		stateType, stateID = self:SetXMLBinding(binding)
+	else
+		stateType, stateID = self:SetEligbleForRebind(modifier)
+	end
+	self:SetState(modifier, stateType, stateID)
+end
+
+function Button:SetActionBinding(modifier, actionID)
+	if ( self.mod == NOMOD ) then
+		env.Manager:RegisterOverride(self, modifier..self.id, self:GetName())
+	end
+	return 'action', actionID;
 end
 
 function Button:SetXMLBinding(binding)
-	return 'custom', { } -- TODO: implement
+	local info = env.GetXMLBindingInfo(binding)
+	return 'custom', {
+		tooltip = info.tooltip or env.GetBindingName(binding);
+		texture = info.texture or env.GetBindingIcon(binding) or GetClusterTextureForButtonID(self.id);
+		func    = function() end; -- TODO
+	}
 end
 
-function Button:SetEligbleForRebind()
-	return 'custom', { } -- TODO: implement
+function Button:SetEligbleForRebind(modifier)
+	return 'custom', {
+		tooltip = 'Click to bind this button';
+		texture = GetClusterTextureForButtonID(self.id);
+		func    = print; -- TODO
+	};
 end
 
 ---------------------------------------------------------------
@@ -212,6 +273,11 @@ CPClusterBar = CreateFromMixins(CPActionBar);
 function CPClusterBar:OnLoad()
 	CPActionBar.OnLoad(self)
 	env:RegisterSafeCallback('OnNewBindings', self.OnNewBindings, self)
+	self:RegisterModifierDriver(env.ClusterConstants.ModDriver, [[
+		self:SetAttribute('state', newstate)
+		control:ChildUpdate('state', newstate)
+		--cursor:RunAttribute('ActionPageChanged')
+	]])
 end
 
 function CPClusterBar:SetConfig(config)
@@ -228,6 +294,7 @@ function CPClusterBar:OnNewBindings(bindings)
 			end
 		end)
 	end
+	self:RunDriver('modifier')
 end
 
 function CPClusterBar:UpdateClusters(clusters)
