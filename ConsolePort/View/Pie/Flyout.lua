@@ -8,55 +8,134 @@ local Selector = Mixin(CPAPI.EventHandler(ConsolePortSpellFlyout, {
 ---------------------------------------------------------------
 -- Secure environment
 ---------------------------------------------------------------
-Selector:SetFrameRef('flyout', SpellFlyout)
+Selector:SetFrameRef('nativeflyout', SpellFlyout)
+Selector:SetAttribute('numbuttons', 0)
 Selector:SetAttribute(CPAPI.ActionPressAndHold, true)
 Selector:Run([[
-	selector, flyout = self, self:GetFrameRef('flyout')
+	selector, nativeflyout = self, self:GetFrameRef('nativeflyout')
 	BUTTONS = {};
 ]])
 
-Selector:CreateEnvironment({
+Selector.PrivateEnv = {
 	ClearAndHide = ([[
-		self:CallMethod('ClearInstantly')
-		self:SetAttribute(%q, nil)
-		local owner = flyout:GetParent()
-		owner:Hide()
-		owner:Show()
+		local clearInstantly = ...;
+		if clearInstantly then
+			selector:CallMethod('ClearInstantly')
+			self:SetAttribute(%q, nil)
+		end
+		local owner = nativeflyout:GetParent()
+		if owner then
+			owner:Hide()
+			owner:Show()
+		end
+		if customflyout and customflyout:IsVisible() then
+			customflyout:Hide()
+		end
 	]]):format(CPAPI.ActionTypeRelease);
-})
+	OnFlyoutShow = [[
+		local flyoutName, isCustom = ...;
+		if selector::SetBindingsForTriggers()
+		or isCustom and selector::SetBindingsForButton(selector::GetCustomBinding()) then
+			selector::UpdateSize()
+			selector:Show()
+			selector:CallMethod('SetOverride', flyoutName, true)
+			return true;
+		else
+			selector:CallMethod('SetOverride', flyoutName, false)
+			selector:Hide()
+		end
+	]];
+	OnFlyoutHide = [[
+		wipe(BUTTONS)
+		control:ClearBindings()
+		control:Hide()
+		control:CallMethod('ReleaseAll')
+		self:SetAlpha(1)
+	]];
+	OnNativeFlyoutShow = [[
+		if selector::OnFlyoutShow(nativeflyout:GetName(), false) then
+			if (nativeflyout:GetWidth() > nativeflyout:GetHeight()) then
+				nativeflyout:ClearAllPoints()
+				nativeflyout:SetPoint('BOTTOM', selector, 'TOP', 0, selector:GetHeight() * 0.35)
+			else
+				nativeflyout:ClearAllPoints()
+				nativeflyout:SetPoint('LEFT', selector, 'RIGHT', selector:GetWidth() * 0.75, 0)
+			end
+			control:CallMethod('ModifyCustomFlyout', nativeflyout:GetName())
+		end
+	]];
+	OnNativeFlyoutHide = [[
+		selector::OnFlyoutHide()
+		control:CallMethod('ModifyCustomFlyout', nativeflyout:GetName())
+	]];
+	OnCustomFlyoutShow = [[
+		if selector::OnFlyoutShow(customflyout:GetName(), true) then
+			if (customflyout:GetWidth() > customflyout:GetHeight()) then
+				customflyout:ClearAllPoints()
+				customflyout:SetPoint('BOTTOM', selector, 'TOP', 0, selector:GetHeight() * 0.35)
+			else
+				customflyout:ClearAllPoints()
+				customflyout:SetPoint('LEFT', selector, 'RIGHT', selector:GetWidth() * 0.75, 0)
+			end
+			local numActiveButtons = #BUTTONS;
+			for i, button in ipairs(BUTTONS) do
+				control:CallMethod('AddCustomButton', i, button:GetAttribute('spell'), button:GetName(), numActiveButtons)
+			end
+			control:CallMethod('ModifyCustomFlyout', customflyout:GetName())
+			control:CallMethod('UpdatePieSlices', true, numActiveButtons)
+		end
+	]];
+	OnCustomFlyoutHide = [[
+		selector::OnFlyoutHide()
+		control:CallMethod('ModifyCustomFlyout', customflyout:GetName())
+	]];
+	GetCustomBinding = [[
+		local buttonID = customflyout:GetAttribute('flyoutParentHandle'):GetAttribute('id')
+		return buttonID and buttonID:match('^PAD') and buttonID or nil;
+	]];
+	GetNumActive = [[
+		wipe(BUTTONS)
+		for i, child in ipairs(newtable(nativeflyout:GetChildren())) do
+			if child:IsVisible()
+			and child:IsProtected()
+			and child:IsObjectType('CheckButton') then
+				BUTTONS[#BUTTONS+1] = child
+			end
+		end
+		for i = 1, selector:GetAttribute('numbuttons') do
+			local button = selector:GetFrameRef(tostring(i))
+			if button and button:IsVisible() then
+				BUTTONS[#BUTTONS+1] = button;
+			end
+		end
+		return #BUTTONS;
+	]];
+	PreClick = ([[
+		self::UpdateSize()
+		local type = %q;
+		local index = self::GetIndex()
+		local button = index and BUTTONS[index];
+		if button then
+			self:CallMethod('SetOverride', button:GetParent():GetName(), false)
+			local spellID = button:GetAttribute('spell')
+			if spellID then
+				self:SetAttribute(type, 'spell')
+				self:SetAttribute('spell', spellID)
+				self::ClearAndHide(false)
+			else
+				self:SetAttribute(type, 'macro')
+				self:SetAttribute('macrotext', '/click '..button:GetName())
+			end
+		else
+			self::ClearAndHide(true)
+		end
+	]]):format(CPAPI.ActionTypeRelease);
+};
 
-Selector:Hook(SpellFlyout, 'OnShow', [[
-	if selector::SetBindingsForTriggers() then
-		selector::UpdateSize()
-		selector:Show()
-		selector:CallMethod('SetOverride', true)
-	else
-		selector:CallMethod('SetOverride', false)
-		selector:Hide()
-	end
-]])
-
-Selector:Hook(SpellFlyout, 'OnHide', [[
-	wipe(BUTTONS)
-	control:ClearBindings()
-	control:Hide()
-	control:CallMethod('ReleaseAll')
-	self:SetAlpha(1)
-]])
-
-Selector:Wrap('PreClick', ([[
-	self::UpdateSize()
-
-	local index = self::GetIndex()
-	local button = index and BUTTONS[index];
-	if button then
-		self:SetAttribute(%q, 'macro')
-		self:SetAttribute('macrotext', '/click '..button:GetName())
-		self:CallMethod('SetOverride', false)
-	else
-		self::ClearAndHide()
-	end
-]]):format(CPAPI.ActionTypeRelease, CPAPI.ActionTypeRelease))
+Selector:CreateEnvironment(Selector.PrivateEnv)
+Selector:Hook(SpellFlyout, 'OnShow', Selector.PrivateEnv.OnNativeFlyoutShow)
+Selector:Hook(SpellFlyout, 'OnHide', Selector.PrivateEnv.OnNativeFlyoutHide)
+Selector:Wrap('PreClick', Selector.PrivateEnv.PreClick)
 
 ---------------------------------------------------------------
 -- Events
@@ -90,15 +169,7 @@ function Selector:OnDataLoaded(...)
 		sticks = sticks;
 		target = {sticks[1]};
 		sizer  = [[
-			wipe(BUTTONS)
-			for i, child in ipairs(newtable(flyout:GetChildren())) do
-				if child:IsVisible()
-				and child:IsProtected()
-				and child:IsObjectType('CheckButton') then
-					BUTTONS[#BUTTONS+1] = child
-				end
-			end
-			local size = #BUTTONS;
+			local size = self:RunAttribute('GetNumActive')
 		]];
 	});
 	self:OnAxisInversionChanged()
@@ -147,14 +218,34 @@ function Selector:AddButton(i, size)
 	return button;
 end
 
-function Selector:SetOverride(enabled)
-	SpellFlyout:SetAlpha(enabled and 0 or 1)
-	local owner = SpellFlyout:GetParent()
+function Selector:SetOverride(name, enabled)
+	local frame = _G[name];
+	--frame:SetAlpha(enabled and 0 or 1)
+	local owner = frame:GetParent()
 	if owner and owner.UpdateFlyout then
 		owner:UpdateFlyout(false)
 	end
 	if not enabled and owner and owner.SetButtonState then
 		owner:SetButtonState('NORMAL')
+	end
+end
+
+function Selector:AddCustomButton(i, spellID, name, size)
+	local button = self:AddButton(i, size)
+	button:SetData({
+		overrideSpellID = spellID;
+		desaturated     = false;
+		offSpec         = false;
+		spellID         = spellID;
+		spellName       = GetSpellInfo(spellID);
+		owner           = _G[name];
+	})
+end
+
+function Selector:ModifyCustomFlyout(name)
+	local frame = _G[name]
+	if frame and frame.Background then
+		frame.Background:SetShown(not frame:IsShown())
 	end
 end
 
@@ -178,6 +269,9 @@ function FlyoutButtonMixin:OnFocus(newFocus)
 		end
 		GameTooltip:Show()
 	end
+	if self.owner then
+		self.owner:LockHighlight()
+	end
 	self:GetParent():SetActiveSliceText(self.Name:GetText())
 end
 
@@ -185,6 +279,9 @@ function FlyoutButtonMixin:OnClear()
 	self:UnlockHighlight()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
+	end
+	if self.owner then
+		self.owner:UnlockHighlight()
 	end
 	self:GetParent():SetActiveSliceText(nil)
 end
@@ -248,6 +345,7 @@ hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActi
 				spellID         = spellID;
 				spellName       = spellName;
 				reason          = reason;
+				owner           = _G['SpellFlyoutButton'..#active+1];
 			}
 		end
 	end
@@ -257,3 +355,18 @@ hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActi
 	end
 	self:UpdatePieSlices(true, #active)
 end)
+
+do local LAB, hookedLAB = LibStub('LibActionButton-1.0'), false;
+	LAB:RegisterCallback('OnFlyoutButtonCreated', function(_, button)
+		local self = Selector;
+		self:SetFrameRef(tostring(button.id), button)
+		self:SetAttribute('numbuttons', button.id)
+		if not hookedLAB then hookedLAB = true;
+			local handler = LAB.flyoutHandler;
+			self:SetFrameRef('customflyout', handler)
+			self:Hook(handler, 'OnShow', self.PrivateEnv.OnCustomFlyoutShow)
+			self:Hook(handler, 'OnHide', self.PrivateEnv.OnCustomFlyoutHide)
+			self:Run([[ customflyout = self:GetFrameRef('customflyout') ]])
+		end
+	end)
+end
