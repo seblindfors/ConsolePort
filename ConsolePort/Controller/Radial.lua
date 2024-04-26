@@ -135,6 +135,20 @@ RadialMixin.Env = {
 		end
 		return #btns > 0;
 	]];
+	SetBindingsForButton = [[
+		local btns = newtable(...)
+		local mods = newtable(self::GetModifiersHeld())
+		table.sort(mods)
+		mods[#mods+1] = table.concat(mods)
+
+		for _, btn in ipairs(btns) do
+			self::SetBinding(btn)
+			for _, mod in ipairs(mods) do
+				self::SetBinding(btn, mod)
+			end
+		end
+		return #btns > 0;
+	]];
 }
 
 function RadialMixin:SetInterrupt(sticks)
