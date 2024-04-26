@@ -16,6 +16,7 @@
 
 ## SavedVariablesPerCharacter: ConsolePort_BarSetup, ConsolePort_BarDB, ConsolePort_BarLayout
 
+Utils.lua
 Database.lua
 
 Widget\Widget.lua
