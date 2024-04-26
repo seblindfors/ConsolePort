@@ -332,12 +332,41 @@ end
 ---------------------------------------------------------------
 -- Text
 ---------------------------------------------------------------
-function CPAPI.FormatLongText(text)
-	return text
-		:gsub('\t+', '')	-- (1) replace tabs
-		:gsub('\n\n', '\t') -- (2) replace double newline with tabs
-		:gsub('\n', ' ')	-- (3) replace newline with space
-		:gsub('\t', '\n\n') -- (4) replace tab with double newline
+function CPAPI.FormatLongText(text, linelength) text = text
+	:gsub('\t+', '')    -- (1) replace tabs
+	:gsub('\n\n', '\t') -- (2) replace double newline with tabs
+	:gsub('\n', ' ')    -- (3) replace newline with space
+	:gsub('\t', '\n\n') -- (4) replace tab with double newline
+
+    return linelength and CPAPI.FormatLineLength(text, linelength) or text;
+end
+
+function CPAPI.FormatLineLength(text, linelength)
+	local function split(line)
+		local lines, currentLine = {}, '';
+		for word in line:gmatch('%S+') do
+			if #currentLine + #word > linelength then
+				tinsert(lines, currentLine)
+				currentLine = word;
+			else
+				currentLine = #currentLine ~= 0 and (currentLine .. ' ' .. word) or word;
+			end
+		end
+		tinsert(lines, currentLine)
+		return table.concat(lines, '\n')
+	end
+
+	local lines = {('\n\n'):split(text)}
+	for i, line in ipairs(lines) do
+		if ( #line == 0 ) then
+			if i > 1 and #lines[i - 1] ~= 0 then
+				lines[i] = '\n\n';
+			end
+		else
+			lines[i] = split(line)
+		end
+	end
+	return table.concat(lines, '')
 end
 
 ---------------------------------------------------------------

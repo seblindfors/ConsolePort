@@ -347,7 +347,7 @@ do -- Handle custom rings
 		To remove items from the ring, follow the tooltip prompt when you
 		have the item in question focused.
 	]]
-	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Textures\Icons\Ring]]
+	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring]]
 
 	local function FindBindingInCollection(binding, collection)
 		for i, set in ipairs(collection) do
@@ -362,15 +362,18 @@ do -- Handle custom rings
 			or FindBindingInCollection(binding, self.Primary)
 	end
 
-	function Bindings:GetDescriptionForBinding(binding, useTooltipFormat)
+	function Bindings:GetDescriptionForBinding(binding, useTooltipFormat, tooltipLineLength)
 		local set = self:GetCustomBindingInfo(binding)
 
 		if set then
-			local desc = set.desc;
+			local desc, image = set.desc, set.image;
 			if desc and useTooltipFormat then
-				desc = CPAPI.FormatLongText(desc)
+				desc = CPAPI.FormatLongText(desc, tooltipLineLength)
 			end
-			return desc, set.image, set.name, set.texture;
+			if image and useTooltipFormat then
+				image = CPAPI.CreateSimpleTextureMarkup(image.file, image.width, image.height)
+			end
+			return desc, image, set.name, set.texture;
 		end
 
 		local customRingName = db.Utility:ConvertBindingToDisplayName(binding)
@@ -383,7 +386,7 @@ end
 ---------------------------------------------------------------
 -- Binding icon management
 ---------------------------------------------------------------
-do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Textures\Icons\%s]]):format(id) end;
+do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\%s]]):format(id) end;
 
 	local CustomIcons = {
 		Bags   = custom 'Bags';
