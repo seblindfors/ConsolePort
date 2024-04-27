@@ -81,13 +81,13 @@ end
 -- Initialize manager
 ---------------------------------------------------------------
 
-Manager:SetFrameRef('Cursor', ConsolePortRaidCursor)
-Manager:SetFrameRef('Mouse', ConsolePortInteract)
+Manager:SetFrameRef('Cursor', db.Raid)
+Manager:SetFrameRef('Mouse', db.Interact)
+Manager:SetFrameRef('Pager', db.Pager)
 Manager:Run([[
     bindings = {};
     owners   = {};
     manager  = self;
-    cursor   = self:GetFrameRef('Cursor');
     mouse    = self:GetFrameRef('Mouse');
 ]])
 

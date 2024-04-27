@@ -7,14 +7,14 @@ local STATE_PREFIX, DRIVER_PREFIX = '_onstate-', 'driver-';
 CPActionBar.Env = {
     OnLoad = [[
         manager = self:GetFrameRef('Manager')
-        pager   = self:GetFrameRef('Pager')
+        cursor  = manager:GetFrameRef('Cursor')
+        pager   = manager:GetFrameRef('Pager')
     ]];
 };
 
 function CPActionBar:OnLoad()
     db.Pager:RegisterHeader(self, true);
     self:SetFrameRef('Manager', env.Manager)
-    self:SetFrameRef('Pager', db.Pager)
     self:Run(self.Env.OnLoad)
 end
 
