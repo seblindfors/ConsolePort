@@ -75,6 +75,13 @@ function Lib.SkinUtility.GetIconMask(self)
 	return self.IconMask;
 end
 
+function Lib.SkinUtility.GetSlotBackground(self)
+	if not self.SlotBackground then
+		self.SlotBackground = self:CreateTexture(nil, 'BACKGROUND')
+	end
+	return self.SlotBackground;
+end
+
 function Lib.SkinUtility.PreventSkinning(self)
 	self.MasqueSkinned = true;
 end
@@ -93,6 +100,25 @@ function Lib.SkinUtility.SkinChargeCooldown(self, skin, reset)
 		end
 	end)
 end
+
+do -- Lib.SkinUtility.SkinOverlayGlow
+local function MockOverlay(self, onShow, onHide)
+	local IsPlaying, Stop = function() return true end, nop;
+	local overlay = {
+		animIn  = { IsPlaying = IsPlaying, Stop = Stop, Play = GenerateClosure(onShow, self) };
+		animOut = { IsPlaying = IsPlaying, Stop = Stop, Play = GenerateClosure(onHide, self) };
+	};
+	return overlay;
+end
+
+function Lib.SkinUtility.SkinOverlayGlow(self, onShow, onHide)
+	if self.__LBGoverlaySkin then return end;
+	self.__LBGoverlay = MockOverlay(self, onShow, onHide);
+	self:HookScript('OnHide', function(self) self.__LBGoverlay = nil end)
+	self:HookScript('OnShow', function(self) self.__LBGoverlay = MockOverlay(self, onShow, onHide) end)
+	self.__LBGoverlaySkin = true;
+end
+end -- Lib.SkinUtility.SkinOverlayGlow
 
 do -- Lib.Skin.RingButton
 local GetIconMask = Lib.SkinUtility.GetIconMask;

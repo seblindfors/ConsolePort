@@ -207,7 +207,7 @@ function Selector:AddButton(i, size)
 	local p, x, y = self:GetPointForIndex(i, size)
 	if newObj then
 		button:RegisterForDrag('LeftButton')
-		button:SetScript('OnDragStart', FlyoutButtonMixin.OnDragStart)
+		CPAPI.Start(button)
 		button:SetSize(64, 64)
 		button.Name:Hide()
 	end
@@ -289,8 +289,16 @@ end
 function FlyoutButtonMixin:OnDragStart()
 	if (self.spellID) and not InCombatLockdown() then
 		PickupSpell(self.spellID);
+		self:RegisterEvent('CURSOR_CHANGED')
 	end
 end
+
+function FlyoutButtonMixin:OnEvent()
+	self:SetChecked(false)
+	self:UnregisterEvent('CURSOR_CHANGED')
+end
+
+FlyoutButtonMixin.OnClick = FlyoutButtonMixin.OnDragStart;
 
 function FlyoutButtonMixin:SetData(data)
 	Mixin(self, data)

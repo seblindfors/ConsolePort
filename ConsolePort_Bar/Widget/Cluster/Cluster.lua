@@ -2,8 +2,7 @@ local _, env, db = ...; db = env.db;
 ---------------------------------------------------------------
 local NOMOD, SHIFT, CTRL, CTRL_SHIFT, ALT = env.ClusterConstants.ModNames();
 local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_HOTKEY, CLUSTER_SHADOW = env.ClusterConstants.Types();
-local ClusterLayout, Skins = env.ClusterConstants.Layout, {};
-env.LIB.Skin.ClusterBar = Skins;
+local ClusterLayout = env.ClusterConstants.Layout;
 ---------------------------------------------------------------
 local Cluster = {};
 ---------------------------------------------------------------
@@ -156,6 +155,34 @@ local function GetClusterTextureForButtonID(buttonID)
 end
 
 ---------------------------------------------------------------
+local Cooldown = {};
+---------------------------------------------------------------
+
+function Cooldown:OnLoad(modifier)
+	self.text = self:GetRegions()
+	if ( modifier ~= NOMOD ) then
+		-- Flyout cluster buttons should have smaller CD font
+		local file, height, flags = self.text:GetFont()
+		self.text:SetFont(file, height * 0.75, flags)
+	end
+end
+
+function Cooldown:SetHideCountdownNumbers(...)
+	self:GetParent().countdownNumbersHidden = ...;
+	getmetatable(self).__index.SetHideCountdownNumbers(self, ...)
+end
+
+function Cooldown:SetCooldown(...)
+	self:GetParent():OnCooldownSet(self, ...)
+	getmetatable(self).__index.SetCooldown(self, ...)
+end
+
+function Cooldown:Clear(...)
+	self:GetParent():OnCooldownClear(self, ...)
+	getmetatable(self).__index.Clear(self, ...)
+end
+
+---------------------------------------------------------------
 local Button = {};
 ---------------------------------------------------------------
 
@@ -169,13 +196,24 @@ function Button:OnLoad(modifier, layoutData)
 	if ( layoutData.Level ) then
 		self:SetFrameLevel(layoutData.Level)
 	end
+	self.OnCooldownClearCallback = GenerateClosure(self.OnCooldownClear, self)
+	Mixin(self.cooldown, Cooldown):OnLoad(modifier)
 	Mixin(self.icon, Icon)
-	self.cooldown.text = self.cooldown:GetRegions()
-	if ( modifier ~= NOMOD ) then
-		-- Flyout cluster buttons should have smaller CD font
-		local file, height, flags = self.cooldown.text:GetFont()
-		self.cooldown.text:SetFont(file, height * 0.75, flags)
-	end
+end
+
+function Button:OnCooldownSet(cooldown, _, duration)
+	if ( self.mod == NOMOD ) then return end;
+    local showHotkeys = not (cooldown and duration and duration > 0);
+    local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
+    if hotkey1 then hotkey1:SetShown(showHotkeys) end;
+    if hotkey2 then hotkey2:SetShown(showHotkeys) end;
+	cooldown:HookScript('OnCooldownDone', self.OnCooldownClearCallback)
+end
+
+function Button:OnCooldownClear()
+	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
+	if hotkey1 then hotkey1:SetShown(true) end;
+	if hotkey2 then hotkey2:SetShown(true) end;
 end
 
 function Button:UpdateLocal(force)
@@ -183,7 +221,7 @@ function Button:UpdateLocal(force)
 end
 
 function Button:UpdateSkin()
-	self.Skin = Skins[self.mod] or nop;
+	self.Skin = env.LIB.Skin.ClusterBar[self.mod] or nop; -- Skins.lua
 end
 
 function Button:SetBindings(primary, allBindings)
@@ -273,6 +311,8 @@ CPClusterBar = CreateFromMixins(CPActionBar);
 function CPClusterBar:OnLoad()
 	CPActionBar.OnLoad(self)
 	env:RegisterSafeCallback('OnNewBindings', self.OnNewBindings, self)
+	self.ProcAnimation:SetSize(200, 200)
+	self.ProcAnimation:SetAnimationSpeedMultiplier(0.5)
 	self:RegisterModifierDriver(env.ClusterConstants.ModDriver, [[
 		self:SetAttribute('state', newstate)
 		control:ChildUpdate('state', newstate)
@@ -368,98 +408,3 @@ env:AddFactory(CLUSTER_SHADOW, function(_, parent, owner, layoutData)
 end)
 
 end -- Cluster bar factory
-
-
----------------------------------------------------------------
-do -- Skins
----------------------------------------------------------------
-
-local Masks = env.ClusterConstants.Masks;
-local Swipes = env.ClusterConstants.Swipes;
-local Assets = env.ClusterConstants.Assets;
-local AdjustTextures = env.ClusterConstants.AdjustTextures;
-local GetIconMask = env.LIB.SkinUtility.GetIconMask;
-local SkinChargeCooldown = env.LIB.SkinUtility.SkinChargeCooldown;
-
-local function SetRotatedMaskTexture(self, mask, prefix, direction)
-	local maskTexture = Masks[prefix][direction];
-	mask:SetTexture(maskTexture)
-	self.Flash:SetTexture(maskTexture)
-end
-
-local function SetRotatedSwipeTexture(self, prefix, direction)
-	local swipeTexture = Swipes[prefix][direction];
-	self.cooldown:SetSwipeTexture(swipeTexture)
-	self.cooldown:SetBlingTexture(Assets.CooldownBling)
-end
-
-local function SetMainSwipeTexture(self)
-	self.cooldown:SetSwipeTexture(Assets.MainSwipe)
-	self.cooldown:SetBlingTexture(Assets.CooldownBling)
-	if self.swipeColor then
-		self.cooldown:SetSwipeColor(self.swipeColor:GetRGBA())
-	end
-end
-
-local function SetTextures(self, adjustTextures, coords, texSize)
-	for key, file in pairs(adjustTextures) do
-		local texture = self[key];
-		if texture then
-			if coords then
-				texture:SetTexCoord(unpack(coords))
-			end
-			texture:SetTexture(file)
-			texture:ClearAllPoints()
-			texture:SetPoint('CENTER', 0, 0)
-			texture:SetSize(texSize, texSize)
-		end
-	end
-	self.HighlightTexture:SetBlendMode('ADD')
-end
-
-local function SetBackground(self, mask)
-	if ( self.SlotBackground ) then
-		self.SlotBackground:Hide()
-		self.SlotBackground:ClearAllPoints()
-	end
-	if ( self.mod == NOMOD ) then
-		mask:SetTexture(Assets.MainMask)
-	end
-	if (not self.icon:IsShown() or not self.icon:GetTexture()) then
-		self.icon:SetTexture(Assets.EmptyIcon)
-		self.icon:Show()
-	end
-	mask:SetAllPoints(self.icon)
-end
-
-local function OnChargeCooldownSet(self)
-	self:SetUseCircularEdge(true)
-end
-
-local function OnChargeCooldownUnset(self)
-	self:SetUseCircularEdge(false)
-end
-
-for mod, data in pairs(ClusterLayout) do
-	local prefix  = data.Prefix;
-	local offset  = data.TexSize or 1;
-	local adjust  = AdjustTextures[mod];
-
-	env.LIB.Skin.ClusterBar[mod] = function(self, force)
-		-- TODO: stop this from running on every UpdateLocal call
-		local size = self:GetSize()
-		local mask = GetIconMask(self)
-		local direction = self.direction;
-		local coords = direction and data[direction].Coords;
-		if direction then
-			SetRotatedMaskTexture(self, mask, prefix, direction)
-			SetRotatedSwipeTexture(self, prefix, direction)
-		else
-			SetMainSwipeTexture(self)
-		end
-		SetTextures(self, adjust, coords, size * offset)
-		SetBackground(self, mask)
-		SkinChargeCooldown(self, OnChargeCooldownSet, OnChargeCooldownUnset)
-	end;
-end
-end -- Skins

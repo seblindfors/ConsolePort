@@ -51,6 +51,29 @@ CPAPI.Atlas = {
 		['Banker'] = { 32, 32, 0.2431640625, 0.2744140625, 0.4638671875, 0.4951171875, false, false };
 		['Waypoint-MapPin-Minimap-Tracked'] = { 32, 32, 0.5419921875, 0.5732421875, 0.4306640625, 0.4619140625, false, false };
 	};
+	[CPAPI.GetAsset([[Textures\Atlas\AnimationsMaskFiligreeActivate.png]])] = {
+		['animations-mask-filigree-activate'] = { 1612, 774, 0, 1612/2048, 0, 774/1024, false, false };
+	};
+	[CPAPI.GetAsset([[Textures\Atlas\ClassAnimations.png]])] = {
+		['animations-activationgrid'] = { 1612, 774, 0.00048828125, 0.78759765625, 0.00048828125, 0.37841796875, false, false };
+		['animations-class-evoker'] = { 461, 461, 0.64013671875, 0.865234375, 0.37939453125, 0.6044921875, false, false };
+		['animations-particles'] = { 1308, 774, 0.00048828125, 0.63916015625, 0.37939453125, 0.75732421875, false, false };
+	};
+	[CPAPI.GetAsset([[Textures\Atlas\ClassAnimations2.png]])] = {
+		['animations-class-deathknight'] = { 461, 461, 0.50146484375, 0.7265625, 0.00048828125, 0.2255859375, false, false };
+		['animations-class-demonhunter'] = { 461, 461, 0.7275390625, 0.95263671875, 0.00048828125, 0.2255859375, false, false };
+		['animations-class-druid'] = { 461, 461, 0.50146484375, 0.7265625, 0.2265625, 0.45166015625, false, false };
+		['animations-class-hunter'] = { 461, 461, 0.7275390625, 0.95263671875, 0.2265625, 0.45166015625, false, false };
+		['animations-class-mage'] = { 461, 461, 0.00048828125, 0.2255859375, 0.50146484375, 0.7265625, false, false };
+		['animations-class-monk'] = { 461, 461, 0.00048828125, 0.2255859375, 0.7275390625, 0.95263671875, false, false };
+		['animations-class-paladin'] = { 461, 461, 0.2265625, 0.45166015625, 0.50146484375, 0.7265625, false, false };
+		['animations-class-priest'] = { 461, 461, 0.2265625, 0.45166015625, 0.7275390625, 0.95263671875, false, false };
+		['animations-class-rogue'] = { 461, 461, 0.45263671875, 0.677734375, 0.50146484375, 0.7265625, false, false };
+		['animations-class-shaman'] = { 461, 461, 0.45263671875, 0.677734375, 0.7275390625, 0.95263671875, false, false };
+		['animations-class-warlock'] = { 461, 461, 0.6787109375, 0.90380859375, 0.50146484375, 0.7265625, false, false };
+		['animations-class-warrior'] = { 461, 461, 0.6787109375, 0.90380859375, 0.7275390625, 0.95263671875, false, false };
+		['animations-gridburst'] = { 1024, 1024, 0.00048828125, 0.50048828125, 0.00048828125, 0.50048828125, false, false };
+	};
 };
 
 ---------------------------------------------------------------

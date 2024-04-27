@@ -575,4 +575,109 @@
 		<Scale parentKey="Enlarge" scaleX="1.35" scaleY="1.35" duration="0.1" smoothing="OUT" />
 		<Alpha parentKey="Alpha" fromAlpha="1" toAlpha="0.5" duration="0.1" startDelay="0.1"/>
 	</AnimationGroup>
+
+	<Frame name="CPFlashableFiligreeTemplate" mixin="CPFlashableFiligreeMixin" virtual="true">
+		<Size x="806" y="300"/>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="3">
+				<Texture parentKey="ActivationExpandFx" alpha="1" alphaMode="ADD">
+					<Size x="160" y="160"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="ActivationExpandFxMask" vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE">
+					<Size x="1209" y="558"/>
+					<Anchors>
+						<Anchor point="CENTER" x="130" y="-60"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="ActivationExpandFx"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<Texture parentKey="ActivationFx1" parentArray="fxTextures" alpha="1" alphaMode="ADD">
+					<Size x="230" y="230"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="ActivationFx2" parentArray="fxTextures" alpha="1" alphaMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="ActivationFx3" parentArray="fxTextures" alpha="1" alphaMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="ActivationFx4" parentArray="fxTextures" alpha="1" alphaMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
+					</Anchors>
+				</Texture>		
+				<MaskTexture parentKey="ActivationFxMask" atlas="CircleMaskScalable" vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="ActivationFx1"/>
+						<MaskedTexture childKey="ActivationFx2"/>
+						<MaskedTexture childKey="ActivationFx3"/>
+						<MaskedTexture childKey="ActivationFx4"/>
+					</MaskedTextures>
+				</MaskTexture>	
+			</Layer>
+		</Layers>
+		<Animations>
+			<AnimationGroup parentKey="filigreeAnim" setToFinalAlpha="true" inherits="TargetsVisibleWhilePlayingAnimGroupTemplate">
+				<Scale childKey="ActivationExpandFx" parentKey="ActivationExpandFxScale" smoothing="IN" duration="1.4" fromScaleX="1" fromScaleY="1" toScaleX="10" toScaleY="10"/>
+				<Alpha childKey="ActivationExpandFx" parentKey="ActivationExpandFxAlpha" smoothing="IN" duration="1.4" fromAlpha="1" toAlpha="0"/>
+				<Alpha childKey="ActivationFx1" parentKey="ActivationFx1Alpha" smoothing="OUT" duration="1.2" fromAlpha="1" toAlpha="0"/>
+				<Alpha childKey="ActivationFx2" parentKey="ActivationFx2Alpha" smoothing="OUT" duration="1.2" fromAlpha="1" toAlpha="0"/>
+				<Alpha childKey="ActivationFx3" parentKey="ActivationFx3Alpha" smoothing="OUT" duration=".3" fromAlpha=".3" toAlpha="0"/>
+				<Alpha childKey="ActivationFx4" parentKey="ActivationFx4Alpha" smoothing="OUT" duration=".5" fromAlpha=".2" toAlpha="0"/>
+				<Scale childKey="ActivationFx3" parentKey="ActivationFx3Scale" duration=".3" fromScaleX="1" fromScaleY="1" toScaleX="1.5" toScaleY="1.5"/>
+				<Scale childKey="ActivationFx4" parentKey="ActivationFx4Scale" duration=".5" fromScaleX="1" fromScaleY="1" toScaleX="1.5" toScaleY="1.5"/>
+			</AnimationGroup>
+		</Animations>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPSwatchHighlightTemplate" virtual="true" mixin="CPSwatchHighlightMixin">
+		<Size x="64" y="64"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Swatch" file="Interface\AddOns\ConsolePort\Assets\Textures\Glow\Swatch.png" setAllPoints="true" alphaMode="ADD"/>
+				<MaskTexture parentKey="SwatchMask" vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE" setAllPoints="true">
+					<MaskedTextures>
+						<MaskedTexture childKey="Swatch"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+		<Animations>
+			<AnimationGroup parentKey="SwatchHighlightAnim" looping="REPEAT">
+				<Alpha childKey="Swatch" smoothing="OUT" duration="1" order="1" fromAlpha="0.25" toAlpha="1"/>
+				<Alpha childKey="Swatch" smoothing="IN" duration="1" order="2" fromAlpha="1" toAlpha="0.25"/>
+				<Rotation childKey="Swatch" duration="1" order="1" degrees="-180"/>
+				<Rotation childKey="Swatch" duration="1" order="2" degrees="-180"/>
+				<Scripts>
+					<OnLoad>
+						self:Play()
+					</OnLoad>
+				</Scripts>
+			</AnimationGroup>
+		</Animations>
+	</Frame>
+
 </Ui>

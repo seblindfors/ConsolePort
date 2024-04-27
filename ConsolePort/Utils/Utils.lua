@@ -442,7 +442,7 @@ function CPAPI.HSV2RGB(h, s, v)
 		hue < 5 then r, g, b = x, 0, chroma;
 		else         r, g, b = chroma, 0, x;
 	end
-	
+
 	local m = v - chroma;
 	return r + m, g + m, b + m;
 end
@@ -503,7 +503,7 @@ end
 -- Atlas tools
 ---------------------------------------------------------------
 
-function CPAPI.SetAtlas(object, id, useAtlasSize, flipHoriz, flipVert)
+function CPAPI.SetAtlas(object, id, useAtlasSize, flipHoriz, flipVert, ...)
 	for file, atlasData in pairs(CPAPI.Atlas) do
 		local atlasInfo = atlasData[id];
 		if atlasInfo then
@@ -512,7 +512,7 @@ function CPAPI.SetAtlas(object, id, useAtlasSize, flipHoriz, flipVert)
 			if useAtlasSize then
 				object:SetSize(width, height)
 			end
-			object:SetTexture(file)
+			object:SetTexture(file, ...)
 			object:SetTexCoord(
 				flipHoriz and rightTX or leftTX,
 				flipHoriz and leftTX or rightTX,
@@ -533,7 +533,7 @@ function CPAPI.SetTextureOrAtlas(object, info, sizeTexture, sizeAtlas)
 		if sizeAtlas then
 			object:SetSize(unpack(sizeAtlas))
 		end
-		return 
+		return
 	end
 	object:SetTexture(textureOrAtlas)
 	if sizeTexture then

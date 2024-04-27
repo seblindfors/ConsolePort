@@ -121,7 +121,7 @@ env.ClusterConstants = {
 			HighlightTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
 			CheckedTexture        =   env.GetAsset([[Textures\Button\Hilite]]);
 			NewActionTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
-			SpellHighlightTexture =   env.GetAsset([[Textures\Button\Hilite]]);
+			SpellHighlightTexture =   env.GetAsset([[Textures\Button\Hilite2x.png]]);
 		};
 		[SHIFT] = {
 			Border                =   env.GetAsset([[Textures\Button\M1]]);

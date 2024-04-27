@@ -1,9 +1,17 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
 	<Script file="Cluster.lua"/>
+	<Script file="Skins.lua"/>
 
 	<Frame name="CPClusterBar" virtual="true" clampedToScreen="true" movable="true" mixin="CPClusterBar" inherits="CPActionBar">
 		<Size x="900" y="140"/>
+		<Frames>
+			<Frame parentKey="ProcAnimation" inherits="CPFlashableFiligreeTemplate">
+				<Anchors>
+					<Anchor point="CENTER" y="30"/>
+				</Anchors>
+			</Frame>
+		</Frames>
 	</Frame>
 
 </Ui>
