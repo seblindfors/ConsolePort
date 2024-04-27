@@ -9,13 +9,14 @@ local _, db = ...; db:Register('Alpha', {})
 -- 	Flash: frame, fadeInTime, fadeOutTime, flashDuration, showWhenDone, flashInHoldTime, flashOutHoldTime, syncId
 
 local FADE = CreateFrame('Frame')
+local SetAlpha = FADE:CreateTexture().SetAlpha;
 
 function FADE:Remove(frame)
 	tDeleteItem(self, frame)
 end
 
 function FADE:Add(frame, fadeInfo)
-	frame:SetAlpha(fadeInfo.startAlpha)
+	SetAlpha(frame, fadeInfo.startAlpha)
 	frame.fadeInfo = fadeInfo
 
 	local index = 1
@@ -45,12 +46,12 @@ function FADE:Update(elapsed)
 		-- If the fadeTimer is less then the desired fade time then set the alpha otherwise hold the fade state, call the finished function, or just finish the fade
 		if fadeInfo.fadeTimer < fadeInfo.timeToFade then
 			if fadeInfo.mode == 'IN' then
-				frame:SetAlpha((fadeInfo.fadeTimer / fadeInfo.timeToFade) * (fadeInfo.endAlpha - fadeInfo.startAlpha) + fadeInfo.startAlpha)
+				SetAlpha(frame, (fadeInfo.fadeTimer / fadeInfo.timeToFade) * (fadeInfo.endAlpha - fadeInfo.startAlpha) + fadeInfo.startAlpha)
 			elseif fadeInfo.mode == 'OUT' then
-				frame:SetAlpha(((fadeInfo.timeToFade - fadeInfo.fadeTimer) / fadeInfo.timeToFade) * (fadeInfo.startAlpha - fadeInfo.endAlpha)  + fadeInfo.endAlpha)
+				SetAlpha(frame, ((fadeInfo.timeToFade - fadeInfo.fadeTimer) / fadeInfo.timeToFade) * (fadeInfo.startAlpha - fadeInfo.endAlpha)  + fadeInfo.endAlpha)
 			end
 		else
-			frame:SetAlpha(fadeInfo.endAlpha)
+			SetAlpha(frame, fadeInfo.endAlpha)
 			-- If there is a fadeHoldTime then wait until its passed to continue on
 			if fadeInfo.fadeHoldTime and fadeInfo.fadeHoldTime > 0  then
 				fadeInfo.fadeHoldTime = fadeInfo.fadeHoldTime - elapsed
@@ -128,7 +129,7 @@ local FlashTimerRefCount = {}
 -- Function to stop flashing
 function FLASH:Stop(frame, alpha)
 	tDeleteItem(self, frame)
-	frame:SetAlpha(alpha or 1.0)
+	SetAlpha(frame, alpha or 1.0)
 	frame.flashTimer = nil
 	if frame.syncId then
 		FlashTimerRefCount[frame.syncId] = FlashTimerRefCount[frame.syncId]-1
@@ -180,7 +181,7 @@ function FLASH:Update(elapsed)
 				alpha = 0
 			end
 
-			frame:SetAlpha(alpha)
+			SetAlpha(frame, alpha)
 			frame:Show()
 		end
 
