@@ -102,115 +102,173 @@ function Lib.SkinUtility.SkinChargeCooldown(self, skin, reset)
 end
 
 do -- Lib.SkinUtility.SkinOverlayGlow
-local function MockOverlay(self, onShow, onHide)
-	local IsPlaying, Stop = function() return true end, nop;
-	local overlay = {
-		animIn  = { IsPlaying = IsPlaying, Stop = Stop, Play = GenerateClosure(onShow, self) };
-		animOut = { IsPlaying = IsPlaying, Stop = Stop, Play = GenerateClosure(onHide, self) };
-	};
-	return overlay;
-end
+	local function MockOverlay(self, onShow, onHide)
+		local IsPlaying, Stop = function() return true end, nop;
+		local overlay = {
+			animIn  = { IsPlaying = IsPlaying, Stop = Stop, Play = GenerateClosure(onShow, self) };
+			animOut = { IsPlaying = IsPlaying, Stop = Stop, Play = GenerateClosure(onHide, self) };
+		};
+		return overlay;
+	end
 
-function Lib.SkinUtility.SkinOverlayGlow(self, onShow, onHide)
-	if self.__LBGoverlaySkin then return end;
-	self.__LBGoverlay = MockOverlay(self, onShow, onHide);
-	self:HookScript('OnHide', function(self) self.__LBGoverlay = nil end)
-	self:HookScript('OnShow', function(self) self.__LBGoverlay = MockOverlay(self, onShow, onHide) end)
-	self.__LBGoverlaySkin = true;
-end
+	function Lib.SkinUtility.SkinOverlayGlow(self, onShow, onHide)
+		if self.__LBGoverlaySkin then return end;
+		if self:IsVisible() then
+			self.__LBGoverlay = MockOverlay(self, onShow, onHide)
+		end
+		self:HookScript('OnHide', function(self) self.__LBGoverlay = nil end)
+		self:HookScript('OnShow', function(self) self.__LBGoverlay = MockOverlay(self, onShow, onHide) end)
+		self.__LBGoverlaySkin = true;
+	end
 end -- Lib.SkinUtility.SkinOverlayGlow
 
-do -- Lib.Skin.RingButton
-local GetIconMask = Lib.SkinUtility.GetIconMask;
-local SkinChargeCooldown = Lib.SkinUtility.SkinChargeCooldown;
+---------------------------------------------------------------
+-- Skins
+---------------------------------------------------------------
 
-Lib.Skin.RingButton = function(self)
-	assert(type(self.rotation) == 'number', 'Ring button must have a rotation value.')
-	local obj;
-	local r, g, b = CPPieMenuMixin.SliceColors.Accent:GetRGB()
-	do obj = self.NormalTexture;
-		obj:ClearAllPoints()
-		obj:SetPoint('CENTER', -1, 0)
-		obj:SetSize(110, 110)
-		obj:SetVertexColor(r, g, b, 1)
-		CPAPI.SetAtlas(obj, 'ring-metallight')
-	end
-	do obj = self.PushedTexture or self:GetPushedTexture();
-		obj:ClearAllPoints()
-		obj:SetPoint('CENTER')
-		obj:SetSize(110, 110)
-		obj:SetVertexColor(r, g, b, 1)
-		CPAPI.SetAtlas(obj, 'ring-metaldark')
-	end
-	do obj = self.CheckedTexture or self:GetCheckedTexture();
-		obj:ClearAllPoints()
-		obj:SetPoint('CENTER', 0, 0)
-		obj:SetSize(78, 78)
-		obj:SetDrawLayer('OVERLAY', -1)
-		obj:SetBlendMode('BLEND')
-		CPAPI.SetAtlas(obj, 'ring-select')
-	end
-	do obj = self.HighlightTexture or self:GetHighlightTexture();
-		obj:ClearAllPoints()
-		obj:SetPoint('CENTER')
-		obj:SetSize(90, 90)
-		obj:SetBlendMode('BLEND')
-		CPAPI.SetAtlas(obj, 'ring-select')
-	end
-	do obj = self.icon;
-		obj:SetAllPoints()
-	end
-	do obj = GetIconMask(self);
-		obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Mask]]), 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
-		obj:SetAllPoints()
-	end
-	do obj = self.Flash;
-		obj:ClearAllPoints()
-		obj:SetPoint('CENTER', 1, 0)
-		obj:SetSize(110, 110)
-		obj:SetBlendMode('ADD')
-		CPAPI.SetAtlas(obj, 'ring-horde')
-		obj:SetDrawLayer('OVERLAY', 1)
-	end
-	do obj = self.SlotBackground;
-		if obj then
-		obj:SetPoint('CENTER')
-		obj:SetSize(64, 64)
-		obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Icon_Mask64]]))
-		obj:SetRotation(self.rotation + math.pi)
-		obj:AddMaskTexture(self.IconMask)
-		obj:SetDrawLayer('BACKGROUND', -1)
+do -- Lib.Skin.ColorSwatchProc
+	local SkinOverlayGlow = Lib.SkinUtility.SkinOverlayGlow;
+	local OverlayPool = CreateFramePool('Frame', UIParent, 'CPFlashableFiligreeTemplate')
+	local SwatchPool = CreateFramePool('Frame', UIParent, 'CPSwatchHighlightTemplate')
+
+	local function OnShowOverlay(self)
+		local overlay, swatch = self.__overlay, self.__swatch;
+		if not overlay then
+			overlay = OverlayPool:Acquire()
+			overlay:SetParent(self:GetParent())
+			overlay:SetFrameLevel(2)
+			overlay:SetAnchor(self)
+			overlay:SetSize(self:GetSize() * 2)
+			overlay:SetScale(self.__procSize)
+			overlay:SetTexture(self.SpellHighlightTexture:GetTexture())
+			overlay:SetTexCoord(self.SpellHighlightTexture:GetTexCoord())
+			overlay:SetAnimationSpeedMultiplier(0.75)
+			overlay.filigreeAnim:SetLooping('BOUNCE')
+			overlay:Show()
 		end
+		if not swatch then
+			swatch = SwatchPool:Acquire()
+			swatch:SetParent(self)
+			swatch:SetAllPoints(self)
+			swatch:SetTexture(self.__procText)
+			swatch:Show()
+		end
+		overlay:Stop()
+		overlay:Play()
+		local parentProcAnim = self:GetParent().ProcAnimation;
+		if parentProcAnim then
+			parentProcAnim:Play()
+		end
+		self.__overlay, self.__swatch = overlay, swatch;
 	end
-	do obj = self.SpellHighlightTexture;
-		obj:ClearAllPoints()
-		obj:SetPoint('CENTER', 0, 0)
-		obj:SetSize(64, 64)
-		obj:SetTexture([[Interface\Buttons\IconBorder-GlowRing]])
+
+	local function OnHideOverlay(self)
+		OverlayPool:Release(self.__overlay)
+		SwatchPool:Release(self.__swatch)
+		self.SpellHighlightTexture:Hide()
+		self.SpellHighlightAnim:Stop()
+		self.__overlay, self.__swatch = nil, nil;
 	end
-	do obj = self.cooldown;
-		obj:SetSwipeTexture([[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe]])
-		obj:SetSwipeColor(RED_FONT_COLOR:GetRGBA())
-		obj:SetUseCircularEdge(true)
-		obj.SetEdgeTexture = nop;
-	end
-	do SkinChargeCooldown(self, function(cd)
+
+	Lib.Skin.ColorSwatchProc = function(self, procSize, procText)
+		self.__procSize = procSize or self.__procSize or 0.6;
+		self.__procText = procText or self.__procText;
+		SkinOverlayGlow(self, OnShowOverlay, OnHideOverlay)
+	end;
+end -- Lib.Skin.ColorSwatchProc
+
+do -- Lib.Skin.RingButton
+	local GetIconMask = Lib.SkinUtility.GetIconMask;
+	local SkinChargeCooldown = Lib.SkinUtility.SkinChargeCooldown;
+	local SkinOverlayGlow = Lib.Skin.ColorSwatchProc;
+
+	Lib.Skin.RingButton = function(self)
+		assert(type(self.rotation) == 'number', 'Ring button must have a rotation value.')
+		local obj;
+		local r, g, b = CPPieMenuMixin.SliceColors.Accent:GetRGB()
+		do obj = self.NormalTexture;
+			obj:ClearAllPoints()
+			obj:SetPoint('CENTER', -1, 0)
+			obj:SetSize(110, 110)
+			obj:SetVertexColor(r, g, b, 1)
+			CPAPI.SetAtlas(obj, 'ring-metallight')
+		end
+		do obj = self.PushedTexture or self:GetPushedTexture();
+			obj:ClearAllPoints()
+			obj:SetPoint('CENTER')
+			obj:SetSize(110, 110)
+			obj:SetVertexColor(r, g, b, 1)
+			CPAPI.SetAtlas(obj, 'ring-metaldark')
+		end
+		do obj = self.CheckedTexture or self:GetCheckedTexture();
+			obj:ClearAllPoints()
+			obj:SetPoint('CENTER', 0, 0)
+			obj:SetSize(78, 78)
+			obj:SetDrawLayer('OVERLAY', -1)
+			obj:SetBlendMode('BLEND')
+			CPAPI.SetAtlas(obj, 'ring-select')
+		end
+		do obj = self.HighlightTexture or self:GetHighlightTexture();
+			obj:ClearAllPoints()
+			obj:SetPoint('CENTER')
+			obj:SetSize(90, 90)
+			obj:SetBlendMode('BLEND')
+			CPAPI.SetAtlas(obj, 'ring-select')
+		end
+		do obj = self.icon;
+			obj:SetAllPoints()
+		end
+		do obj = GetIconMask(self);
+			obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Mask]]), 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
+			obj:SetAllPoints()
+		end
+		do obj = self.Flash;
+			obj:ClearAllPoints()
+			obj:SetPoint('CENTER', 1, 0)
+			obj:SetSize(110, 110)
+			obj:SetBlendMode('ADD')
+			CPAPI.SetAtlas(obj, 'ring-horde')
+			obj:SetDrawLayer('OVERLAY', 1)
+		end
+		do obj = self.SlotBackground;
+			if obj then
+				obj:SetPoint('CENTER')
+				obj:SetSize(64, 64)
+				obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Icon_Mask64]]))
+				obj:SetRotation(self.rotation + math.pi)
+				obj:AddMaskTexture(self.IconMask)
+				obj:SetDrawLayer('BACKGROUND', -1)
+			end
+		end
+		do obj = self.SpellHighlightTexture;
+			obj:ClearAllPoints()
+			obj:SetPoint('CENTER', 0, 0)
+			obj:SetSize(64, 64)
+			obj:SetTexture([[Interface\Buttons\IconBorder-GlowRing]])
+		end
+		do obj = self.cooldown;
+			obj:SetSwipeTexture([[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe]])
+			obj:SetSwipeColor(RED_FONT_COLOR:GetRGBA())
+			obj:SetUseCircularEdge(true)
+			obj.SetEdgeTexture = nop;
+		end
+		SkinChargeCooldown(self, function(cd)
 			cd:SetUseCircularEdge(true)
 		end, function(cd)
 			cd:SetUseCircularEdge(false)
 		end)
-	end
-	if not self.RingMasked then
-		local mask = self:GetParent().InnerMask;
-		for _, region in ipairs({
-			self.NormalTexture,
-			self.PushedTexture,
-			self.HighlightTexture,
-			self.Border,
-		}) do region:AddMaskTexture(mask) end
-		self.RingMasked = true;
-	end
-end;
+		SkinOverlayGlow(self, 0.62, [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe]])
+		if not self.RingMasked then
+			local mask = self:GetParent().InnerMask;
+			for _, region in ipairs({
+				self.NormalTexture,
+				self.PushedTexture,
+				self.HighlightTexture,
+				self.Border,
+			}) do region:AddMaskTexture(mask) end
+			self.RingMasked = true;
+		end
+	end;
 end -- Lib.Skin.RingButton
 
 

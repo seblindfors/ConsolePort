@@ -10,7 +10,7 @@ local Assets = env.ClusterConstants.Assets;
 local AdjustTextures = env.ClusterConstants.AdjustTextures;
 local GetIconMask = env.LIB.SkinUtility.GetIconMask;
 local GetSlotBackground = env.LIB.SkinUtility.GetSlotBackground;
-local SkinOverlayGlow = env.LIB.SkinUtility.SkinOverlayGlow;
+local SkinOverlayGlow = env.LIB.Skin.ColorSwatchProc;
 local SkinChargeCooldown = env.LIB.SkinUtility.SkinChargeCooldown;
 ---------------------------------------------------------------
 
@@ -22,7 +22,7 @@ end
 
 local function SetRotatedSwipeTexture(self, prefix, direction)
     local swipeTexture = Swipes[prefix][direction];
-    self.procTexture, self.procSize = swipeTexture, 0.6;
+    self.__procText, self.__procSize = swipeTexture, 0.6;
     self.cooldown:SetSwipeTexture(swipeTexture)
     self.cooldown:SetBlingTexture(Assets.CooldownBling)
 end
@@ -30,7 +30,7 @@ end
 local function SetMainSwipeTexture(self)
     self.cooldown:SetSwipeTexture(Assets.MainSwipe)
     self.cooldown:SetBlingTexture(Assets.CooldownBling)
-    self.procTexture, self.procSize = Assets.MainSwipe, 0.62;
+    self.__procText, self.__procSize = Assets.MainSwipe, 0.62;
     if self.swipeColor then
         self.cooldown:SetSwipeColor(self.swipeColor:GetRGBA())
     end
@@ -74,45 +74,6 @@ local function OnChargeCooldownUnset(self)
     self:SetUseCircularEdge(false)
 end
 
-local OverlayPool = CreateFramePool('Frame', UIParent, 'CPFlashableFiligreeTemplate')
-local SwatchPool = CreateFramePool('Frame', UIParent, 'CPSwatchHighlightTemplate')
-
-local function OnShowOverlay(self)
-    local overlay, swatch = self.overlay, self.swatch;
-    if not overlay then
-        overlay = OverlayPool:Acquire()
-        overlay:SetParent(self:GetParent())
-        overlay:SetFrameLevel(2)
-        overlay:SetAnchor(self)
-        overlay:SetSize(self:GetSize() * 2)
-        overlay:SetScale(self.procSize)
-        overlay:SetTexture(self.SpellHighlightTexture:GetTexture())
-        overlay:SetTexCoord(self.SpellHighlightTexture:GetTexCoord())
-        overlay:SetAnimationSpeedMultiplier(0.75)
-        overlay.filigreeAnim:SetLooping('BOUNCE')
-        overlay:Show()
-    end
-    if not swatch then
-        swatch = SwatchPool:Acquire()
-        swatch:SetParent(self)
-        swatch:SetAllPoints(self)
-        swatch:SetTexture(self.procTexture)
-        swatch:Show()
-    end
-    overlay:Stop()
-    overlay:Play()
-    self:GetParent().ProcAnimation:Play()
-    self.overlay, self.swatch = overlay, swatch;
-end
-
-local function OnHideOverlay(self)
-    OverlayPool:Release(self.overlay)
-    SwatchPool:Release(self.swatch)
-    self.SpellHighlightTexture:Hide()
-    self.SpellHighlightAnim:Stop()
-    self.overlay, self.swatch = nil, nil;
-end
-
 for mod, data in pairs(env.ClusterConstants.Layout) do
     local prefix  = data.Prefix;
     local offset  = data.TexSize or 1;
@@ -136,6 +97,6 @@ for mod, data in pairs(env.ClusterConstants.Layout) do
         if direction then
             SetRotatedMaskTexture(self, mask, prefix, direction)
         end
-        SkinOverlayGlow(self, OnShowOverlay, OnHideOverlay)
+        SkinOverlayGlow(self)
     end;
 end
