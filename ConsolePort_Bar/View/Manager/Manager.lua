@@ -33,7 +33,9 @@ function Manager:OnConfigChanged()
     RegisterStateDriver(self, 'visibility', layout.visibility or 'show')
     for id, config in pairs(layout.bars or {}) do
         local bar = env:Acquire(config.type, id)
-        bar:SetConfig(config)
+        if bar then
+            bar:SetConfig(config)
+        end
     end
 end
 
