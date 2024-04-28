@@ -182,6 +182,117 @@ function Cooldown:Clear(...)
 	getmetatable(self).__index.Clear(self, ...)
 end
 
+function Cooldown:Hide()
+	self:GetParent():OnCooldownClear(self)
+	getmetatable(self).__index.Hide(self)
+end
+
+---------------------------------------------------------------
+local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, visibility = 0};
+---------------------------------------------------------------
+do  -- Visibility update closures
+	local function UpdateFlags(flag, flags, predicate)
+		return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
+	end
+
+	FlyoutButton.VisibilityFlags = {
+		AlwaysShow    = 0x01;
+		OnCooldown    = 0x02;
+		OverlayActive = 0x04;
+		MouseOver     = 0x08;
+		ShowGrid      = 0x10;
+	};
+
+	FlyoutButton.VisibilityState = {};
+	for flagName, flagValue in pairs(FlyoutButton.VisibilityFlags) do
+		FlyoutButton.VisibilityState[flagName] = GenerateClosure(UpdateFlags, flagValue);
+	end
+
+	FlyoutButton.VisibilityEvents = {
+		ACTIONBAR_SHOWGRID = { FlyoutButton.VisibilityState.ShowGrid, true  };
+		ACTIONBAR_HIDEGRID = { FlyoutButton.VisibilityState.ShowGrid, false };
+	};
+end
+
+function FlyoutButton:OnShowAll(showAll)
+	self:UpdateFade(self.VisibilityState.AlwaysShow, showAll)
+end
+
+function FlyoutButton:OnShowOverlay()
+	self:UpdateFade(self.VisibilityState.OverlayActive, true)
+end
+
+function FlyoutButton:OnHideOverlay()
+	self:UpdateFade(self.VisibilityState.OverlayActive, false)
+end
+
+function FlyoutButton:OnMouseMotionFocus()
+	self:UpdateFade(self.VisibilityState.MouseOver, true)
+end
+
+function FlyoutButton:OnMouseMotionClear()
+	self:UpdateFade(self.VisibilityState.MouseOver, false)
+end
+
+function FlyoutButton:OnVisibilityEvent(event)
+	local eventClosure = self.VisibilityEvents[event];
+	if eventClosure then
+		self:UpdateFade(unpack(eventClosure))
+	end
+end
+
+function FlyoutButton:OnLoad(modifier)
+	env:RegisterCallback('Settings/clusterShowAll', self.OnShowAll, self)
+	env:RegisterCallback('Settings/clusterShowFlyoutIcons', self.ToggleHotkeys, self)
+
+	self:OnShowAll(env('clusterShowAll'))
+	self.OnCooldownClearCallback = GenerateClosure(self.OnCooldownClear, self)
+	Mixin(self.cooldown, Cooldown):OnLoad(modifier)
+	self:HookScript('OnEnter', self.OnMouseMotionFocus)
+	self:HookScript('OnLeave', self.OnMouseMotionClear)
+	self:HookScript('OnEvent', self.OnVisibilityEvent)
+	for event in pairs(self.VisibilityEvents) do
+		self:RegisterEvent(event)
+	end
+end
+
+function FlyoutButton:OnCooldownSet(cooldown, _, duration, enable)
+	local onCooldown = (cooldown and duration and duration > 0);
+	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
+	if hotkey1 then hotkey1:SetShown(not onCooldown) end;
+	if hotkey2 then hotkey2:SetShown(not onCooldown) end;
+	cooldown:HookScript('OnCooldownDone', self.OnCooldownClearCallback)
+	self:UpdateFade(self.VisibilityState.OnCooldown, onCooldown)
+end
+
+function FlyoutButton:OnCooldownClear()
+	self:ToggleHotkeys(env('clusterShowFlyoutIcons'))
+	self:UpdateFade(self.VisibilityState.OnCooldown, false)
+end
+
+function FlyoutButton:SetAlpha(alpha, force)
+	if force then return getmetatable(self).__index.SetAlpha(self, alpha) end
+end
+
+function FlyoutButton:UpdateFade(closure, state)
+	self.visibility = closure(self.visibility, state);
+	local fadeOut = self.visibility == 0;
+	if fadeOut then
+		self:FadeOut(0.25, self:GetAlpha())
+	else
+		self:FadeIn(0.25, self:GetAlpha())
+	end
+end
+
+---------------------------------------------------------------
+local MainButton = {};
+---------------------------------------------------------------
+
+function MainButton:OnLoad()
+	env:RegisterCallback('Settings/clusterShowMainIcons', self.ToggleHotkeys, self)
+	self:ToggleHotkeys(env('clusterShowMainIcons'))
+end
+
 ---------------------------------------------------------------
 local Button = {};
 ---------------------------------------------------------------
@@ -196,24 +307,14 @@ function Button:OnLoad(modifier, layoutData)
 	if ( layoutData.Level ) then
 		self:SetFrameLevel(layoutData.Level)
 	end
-	self.OnCooldownClearCallback = GenerateClosure(self.OnCooldownClear, self)
-	Mixin(self.cooldown, Cooldown):OnLoad(modifier)
 	Mixin(self.icon, Icon)
+	Mixin(self, modifier == NOMOD and MainButton or FlyoutButton):OnLoad(modifier)
 end
 
-function Button:OnCooldownSet(cooldown, _, duration)
-	if ( self.mod == NOMOD ) then return end;
-    local showHotkeys = not (cooldown and duration and duration > 0);
-    local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
-    if hotkey1 then hotkey1:SetShown(showHotkeys) end;
-    if hotkey2 then hotkey2:SetShown(showHotkeys) end;
-	cooldown:HookScript('OnCooldownDone', self.OnCooldownClearCallback)
-end
-
-function Button:OnCooldownClear()
+function Button:ToggleHotkeys(enabled)
 	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
-	if hotkey1 then hotkey1:SetShown(true) end;
-	if hotkey2 then hotkey2:SetShown(true) end;
+	if hotkey1 then hotkey1:SetShown(enabled) end;
+	if hotkey2 then hotkey2:SetShown(enabled) end;
 end
 
 function Button:UpdateLocal(force)
@@ -222,6 +323,10 @@ end
 
 function Button:UpdateSkin()
 	self.Skin = env.LIB.Skin.ClusterBar[self.mod] or nop; -- Skins.lua
+end
+
+function Button:GetOverlayColor()
+	return env:GetColorRGBA('procColor')
 end
 
 function Button:SetBindings(primary, allBindings)
@@ -311,12 +416,13 @@ CPClusterBar = CreateFromMixins(CPActionBar);
 function CPClusterBar:OnLoad()
 	CPActionBar.OnLoad(self)
 	env:RegisterSafeCallback('OnNewBindings', self.OnNewBindings, self)
+	env:RegisterCallback('Settings/procColor', self.OnVariableChanged, self)
 	self.ProcAnimation:SetSize(200, 200)
 	self.ProcAnimation:SetAnimationSpeedMultiplier(0.5)
 	self:RegisterModifierDriver(env.ClusterConstants.ModDriver, [[
 		self:SetAttribute('state', newstate)
 		control:ChildUpdate('state', newstate)
-		--cursor:RunAttribute('ActionPageChanged')
+		cursor::ActionPageChanged()
 	]])
 end
 
@@ -356,6 +462,10 @@ function CPClusterBar:OnRelease()
 	end)
 end
 
+function CPClusterBar:OnVariableChanged()
+	self.ProcAnimation:SetVertexColor(env:GetColorRGBA('procColor'))
+end
+
 ---------------------------------------------------------------
 do -- Cluster bar factory
 ---------------------------------------------------------------
@@ -382,7 +492,6 @@ end)
 env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutData)
 	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.ClusterConstants.LABConfig), Button)
 	env.LIB.SkinUtility.PreventSkinning(button)
-	button:OnLoad(modifier, layoutData)
 	for i, hotkeyData in ipairs(layoutData.Hotkey) do
 		local hotkeyID = env.MakeID('%s_%s_%d', id, modifier, i)
 		button['Hotkey'..i] = env:Acquire(CLUSTER_HOTKEY, hotkeyID, button, hotkeyData)
@@ -390,6 +499,7 @@ env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutDa
 	if ( layoutData.Shadow ) then
 		button.Shadow = env:Acquire(CLUSTER_SHADOW, buttonID, parent, button, layoutData.Shadow)
 	end
+	button:OnLoad(modifier, layoutData)
 	return button;
 end)
 

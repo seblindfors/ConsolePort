@@ -88,9 +88,14 @@ end
 
 function Lib.SkinUtility.SkinChargeCooldown(self, skin, reset)
 	local obj = self.chargeCooldown;
-	if not obj or self.hookedChargeCooldown then return end;
+	if ( not obj or ( self.hookedChargeCooldown == obj ) ) then
+		return;
+	end
+	if self.hookedChargeCooldown then
+		reset(self.hookedChargeCooldown, self)
+	end
 	local script = obj:GetScript('OnCooldownDone')
-	self.hookedChargeCooldown = true;
+	self.hookedChargeCooldown = obj;
 	skin(obj, self)
 	obj:SetScript('OnCooldownDone', function()
 		self.hookedChargeCooldown = nil;
@@ -133,7 +138,7 @@ do -- Lib.Skin.ColorSwatchProc
 
 	local function OnShowOverlay(self)
 		local overlay, swatch = self.__overlay, self.__swatch;
-		if not overlay then
+		if not overlay and not self.__procNoFlash then
 			overlay = OverlayPool:Acquire()
 			overlay:SetParent(self:GetParent())
 			overlay:SetFrameLevel(2)
@@ -145,19 +150,27 @@ do -- Lib.Skin.ColorSwatchProc
 			overlay:SetAnimationSpeedMultiplier(0.75)
 			overlay.filigreeAnim:SetLooping('BOUNCE')
 			overlay:Show()
+			if self.GetOverlayColor then
+				overlay:SetVertexColor(self:GetOverlayColor())
+			end
 		end
-		if not swatch then
+		if not swatch and not self.__procNoSwatch then
 			swatch = SwatchPool:Acquire()
 			swatch:SetParent(self)
 			swatch:SetAllPoints(self)
 			swatch:SetTexture(self.__procText)
 			swatch:Show()
 		end
-		overlay:Stop()
-		overlay:Play()
+		if overlay then
+			overlay:Stop()
+			overlay:Play()
+		end
 		local parentProcAnim = self:GetParent().ProcAnimation;
 		if parentProcAnim then
 			parentProcAnim:Play()
+		end
+		if self.OnShowOverlay then
+			self:OnShowOverlay(overlay, swatch)
 		end
 		self.__overlay, self.__swatch = overlay, swatch;
 	end
@@ -165,14 +178,17 @@ do -- Lib.Skin.ColorSwatchProc
 	local function OnHideOverlay(self)
 		OverlayPool:Release(self.__overlay)
 		SwatchPool:Release(self.__swatch)
-		self.SpellHighlightTexture:Hide()
-		self.SpellHighlightAnim:Stop()
+		if self.OnHideOverlay then
+			self:OnHideOverlay(self.__overlay, self.__swatch)
+		end
 		self.__overlay, self.__swatch = nil, nil;
 	end
 
-	Lib.Skin.ColorSwatchProc = function(self, procSize, procText)
-		self.__procSize = procSize or self.__procSize or 0.6;
-		self.__procText = procText or self.__procText;
+	Lib.Skin.ColorSwatchProc = function(self, config) config = config or {};
+		self.__procSize     = config.procSize or self.__procSize or 0.6;
+		self.__procText     = config.procText or self.__procText;
+		self.__procNoSwatch = config.noSwatch or self.__procNoSwatch;
+		self.__procNoFlash  = config.noFlash  or self.__procNoFlash;
 		SkinOverlayGlow(self, OnShowOverlay, OnHideOverlay)
 	end;
 end -- Lib.Skin.ColorSwatchProc
@@ -257,7 +273,11 @@ do -- Lib.Skin.RingButton
 		end, function(cd)
 			cd:SetUseCircularEdge(false)
 		end)
-		SkinOverlayGlow(self, 0.62, [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe]])
+		SkinOverlayGlow(self, {
+			procSize = 0.62;
+			noFlash  = true;
+			procText = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe]];
+		})
 		if not self.RingMasked then
 			local mask = self:GetParent().InnerMask;
 			for _, region in ipairs({
