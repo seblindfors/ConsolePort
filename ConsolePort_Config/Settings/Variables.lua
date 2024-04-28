@@ -14,15 +14,49 @@ function Setting:OnLoad()
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 end
 
+local Comparator = CPAPI.Proxy({
+	['function'] = function (lhs, rhs) return not lhs(rhs) end;
+}, function() return function(lhs, rhs) return lhs ~= rhs end end)
+
+local TriggerDependencyChanged = CPAPI.Debounce(db.TriggerEvent, db, 'OnDependencyChanged');
+local function OnDependencyChanged(self, dep, depValue, _, value)
+	self.deps:SetOrClear(self.flags[dep], Comparator[type(depValue)](depValue, value))
+	self.metaData.hide = self.deps:IsAnySet();
+	TriggerDependencyChanged()
+end
+
+function Setting:AddDependencyCallback(dep, value)
+	local callbackID = ('Settings/'..dep);
+	local callback = GenerateClosure(OnDependencyChanged, self, dep, value)
+	db:RegisterCallback(callbackID, callback)
+	return callback;
+end
+
+function Setting:AddDependencies(deps)
+	self.deps = CreateFlags(0);
+	local flags, callbacks = {}, {};
+	for dep, value in db.table.spairs(deps) do
+		tinsert(flags, dep)
+		callbacks[dep] = self:AddDependencyCallback(dep, value)
+	end
+	self.flags = FlagsUtil.MakeFlags(unpack(flags))
+	for dep, callback in pairs(callbacks) do
+		callback(nil, db(dep))
+	end
+end
+
 function Setting:Construct(name, varID, field, newObj, callbackID)
 	if newObj then
 		self:SetText(L(name))
 		local constructor = Widgets[varID] or Widgets[field[1]:GetType()];
 		if constructor then
-			callbackID = callbackID or 'Settings/'..varID;
+			callbackID = callbackID or ('Settings/'..varID);
 			constructor(self, varID, field, field[1], L(field.desc), L(field.note))
 			self.controller:SetCallback(function(...) db(callbackID, ...) end)
 			db:RegisterCallback(callbackID, self.OnValueChanged, self)
+			if (field.deps) then
+				self:AddDependencies(field.deps)
+			end
 		end
 	end
 	self:Hide()
@@ -195,6 +229,7 @@ function Options:OnLoad()
 
 	db:RegisterCallback('Settings/showAdvancedSettings', self.DrawOptions, self)
 	db:RegisterCallback('OnToggleCharacterSettings', self.DrawOptions, self)
+	db:RegisterCallback('OnDependencyChanged', self.DrawOptions, self)
 	db:RegisterCallback('OnVariablesChanged', self.DrawOptions, self)
 end
 
