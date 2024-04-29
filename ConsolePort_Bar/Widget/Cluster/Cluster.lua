@@ -89,7 +89,10 @@ end
 
 function Cluster:SetDirection(direction)
 	for modifier, button in self:Enumerate() do
-		if modifier ~= NOMOD then
+		if modifier == NOMOD then
+			button:SetAttribute('flyoutDirection', 'DOWN')
+		else
+			button:SetAttribute('flyoutDirection', direction)
 			button.direction = direction;
 			button:UpdateLocal(true)
 		end

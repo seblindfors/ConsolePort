@@ -113,7 +113,7 @@ Selector.PrivateEnv = {
 	PreClick = ([[
 		self::UpdateSize()
 		local type = %q;
-		local index = self::GetIndex()
+		local index = self::GetIndex('Left') or self::GetIndex('Right');
 		local button = index and BUTTONS[index];
 		if button then
 			self:CallMethod('SetOverride', button:GetParent():GetName(), false)
@@ -164,10 +164,10 @@ function Selector:OnDataLoaded(...)
 				self:OnClear()
 			end
 		end, FlyoutButtonMixin)
-	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	local sticks = {'Left', 'Right'};
 	db.Radial:Register(self, 'SpellFlyout', {
 		sticks = sticks;
-		target = {sticks[1]};
+		target = sticks;
 		sizer  = [[
 			local size = self:RunAttribute('GetNumActive')
 		]];
@@ -179,14 +179,7 @@ function Selector:OnAxisInversionChanged()
 	self.axisInversion = db('radialCosineDelta')
 end
 
-function Selector:OnPrimaryStickChanged()
-	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
-	self:SetInterrupt(sticks)
-	self:SetIntercept({sticks[1]})
-end
-
 db:RegisterSafeCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
-db:RegisterSafeCallback('Settings/radialPrimaryStick', Selector.OnPrimaryStickChanged, Selector)
 
 ---------------------------------------------------------------
 -- Frontend

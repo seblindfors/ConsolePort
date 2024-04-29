@@ -113,7 +113,8 @@ end
 function CPAPI.Start(handler)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then
-			if handler:GetScript(k) then
+			local currentScript = handler:GetScript(k)
+			if ( currentScript and currentScript ~= v ) then
 				handler:HookScript(k, v)
 			else
 				handler:SetScript(k, v)
