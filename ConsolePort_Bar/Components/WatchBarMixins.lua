@@ -205,7 +205,7 @@ function CPExhaustionTickMixin:ExhaustionToolTipText()
 	
 	exhaustionStateMultiplier = exhaustionStateMultiplier * 100
 	
-	if ( GetTimeToWellRested() ) then
+	if ( GetTimeToWellRested and GetTimeToWellRested() ) then
 		exhaustionCountdown = GetTimeToWellRested() / 60
 	end
 	
