@@ -7,6 +7,29 @@ local classColor = CreateColor(CPAPI.NormalizeColor(CPAPI.GetClassColor()));
 
 env:Register('Variables', CPAPI.Callable({
 	---------------------------------------------------------------
+	_'Action Bars';
+	---------------------------------------------------------------
+	---------------------------------------------------------------
+	_'Clusters';
+	---------------------------------------------------------------
+	clusterShowAll = _{Data.Bool(false);
+		name = 'Always Show All Buttons';
+		desc = 'Show all combinations in the cluster at all times.';
+		note = 'By default, shows modifiers on mouseover and on cooldown.';
+	};
+	clusterShowMainIcons = _{Data.Bool(true);
+		name = 'Show Main Icons';
+		desc = 'Show the icons for main buttons.';
+	};
+	clusterShowFlyoutIcons = _{Data.Bool(true);
+		name = 'Show Modifier Icons';
+		desc = 'Show the icons for modifier buttons.';
+	};
+	clusterFullStateModifier = _{Data.Bool(false);
+		name = 'Full State Modifier';
+		desc = 'Enable all modifier states for the cluster, including unmapped modifiers.';
+	};
+	---------------------------------------------------------------
 	_'Toolbar';
 	---------------------------------------------------------------
 	enableXPBar = _{Data.Bool(true);
@@ -18,15 +41,11 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Fade out the XP bar when not mousing over it.';
 	};
 	---------------------------------------------------------------
-	_'Clusters';
-	---------------------------------------------------------------
-	-- TODO: Add cluster settings
-	---------------------------------------------------------------
 	_'Colors';
 	---------------------------------------------------------------
 	xpBarColor = _{Data.Color(classColor);
 		name = 'XP Bar Color';
-		desc = 'Normal background color of pie slices.';
+		desc = 'Color of the main XP bar.';
 	};
 	swipeColor = _{Data.Color(classColor);
 		name = 'Swipe Color';
@@ -34,7 +53,11 @@ env:Register('Variables', CPAPI.Callable({
 	};
 	tintColor = _{Data.Color(classColor);
 		name = 'Tint Color';
-		desc = 'Color of the tint effect on buttons.';
+		desc = 'Color of the tint effect on bars.';
+	};
+	procColor = _{Data.Color(classColor);
+		name = 'Spell Proc Color';
+		desc = 'Color of the spell proc effect.';
 	};
 	borderVertexColor = _{Data.Color(WHITE_FONT_COLOR);
 		name = 'Border Vertex Color';
@@ -152,7 +175,8 @@ env.ClusterConstants = {
 		};
 	};
 	Assets = {
-		CooldownBling             =   env.GetAsset([[Cooldown\Bling]]);
+		CooldownBling             =   env.GetAsset([[Textures\Cooldown\Bling]]);
+		CooldownEdge              =   env.GetAsset([[Textures\Cooldown\Edge2x3.png]]);
 		MainMask                  = CPAPI.GetAsset([[Textures\Button\Mask]]);
 		MainSwipe                 =   env.GetAsset([[Textures\Cooldown\Swipe]]);
 		EmptyIcon                 = CPAPI.GetAsset([[Textures\Button\EmptyIcon]]);
