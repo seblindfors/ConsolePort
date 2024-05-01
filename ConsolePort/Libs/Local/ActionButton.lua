@@ -136,23 +136,30 @@ do -- Lib.Skin.ColorSwatchProc
 	local OverlayPool = CreateFramePool('Frame', UIParent, 'CPFlashableFiligreeTemplate')
 	local SwatchPool = CreateFramePool('Frame', UIParent, 'CPSwatchHighlightTemplate')
 
+	local function OnOverlayFinished(self)
+		OverlayPool:Release(self:GetParent())
+	end
+
 	local function OnShowOverlay(self)
-		local overlay, swatch = self.__overlay, self.__swatch;
+		local overlay, swatch, newObj = self.__overlay, self.__swatch;
 		if not overlay and not self.__procNoFlash then
-			overlay = OverlayPool:Acquire()
+			overlay, newObj = OverlayPool:Acquire()
 			overlay:SetParent(self:GetParent())
-			overlay:SetFrameLevel(2)
 			overlay:SetAnchor(self)
 			overlay:SetSize(self:GetSize() * 2)
 			overlay:SetScale(self.__procSize)
 			overlay:SetTexture(self.SpellHighlightTexture:GetTexture())
 			overlay:SetTexCoord(self.SpellHighlightTexture:GetTexCoord())
-			overlay:SetAnimationSpeedMultiplier(0.75)
-			overlay.filigreeAnim:SetLooping('BOUNCE')
-			overlay:Show()
+			overlay:SetLooping('BOUNCE')
 			if self.GetOverlayColor then
 				overlay:SetVertexColor(self:GetOverlayColor())
 			end
+			if newObj then
+				overlay:SetFrameLevel(2)
+				overlay:SetAnimationSpeedMultiplier(0.75)
+				overlay.filigreeAnim:SetScript('OnFinished', OnOverlayFinished)
+			end
+			overlay:Show()
 		end
 		if not swatch and not self.__procNoSwatch then
 			swatch = SwatchPool:Acquire()
@@ -176,8 +183,11 @@ do -- Lib.Skin.ColorSwatchProc
 	end
 
 	local function OnHideOverlay(self)
-		OverlayPool:Release(self.__overlay)
 		SwatchPool:Release(self.__swatch)
+		local overlay = self.__overlay;
+		if overlay then
+			overlay:SetLooping('NONE')
+		end
 		if self.OnHideOverlay then
 			self:OnHideOverlay(self.__overlay, self.__swatch)
 		end

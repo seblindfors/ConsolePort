@@ -22,6 +22,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 			Key     = {}; -- modifier -> button
 			Prefix  = {}; -- modifier string -> button
 			Active  = {}; -- all possible modifier combinations
+			Owner   = {}; -- button -> modifier string
 			Driver  = ''; -- state driver for all active modifiers
 		};
 		Atlas = {
@@ -248,7 +249,7 @@ end
 
 function GamepadAPI:ReindexModifiers()
 	local map = self.Index.Modifier;
-	wipe(map.Key); wipe(map.Prefix);
+	wipe(map.Key); wipe(map.Prefix); wipe(map.Owner);
 
 	for _, mod in ipairs(self.Modsims) do
 		local btn = GetCVar('GamePadEmulate'..mod)
@@ -256,6 +257,7 @@ function GamepadAPI:ReindexModifiers()
 			self.Index.Modifier.Key[mod] = btn -- BUG: uproots the mod order if uppercase
 			self.Index.Modifier.Key[mod:upper()] = btn
 			self.Index.Modifier.Prefix[mod..'-'] = btn
+			self.Index.Modifier.Owner[btn] = mod..'-';
 		end
 	end
 	map.Active, map.Driver = self:GetActiveModifiers()

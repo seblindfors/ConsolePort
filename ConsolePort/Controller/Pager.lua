@@ -69,9 +69,10 @@ end
 
 function Pager:GetHeaderResponse()
 	return [[
-		for header in pairs(headers) do
+		for i = #headers, 1, -1 do
+			local header = headers[i];
 			header:SetAttribute('actionpage', newstate)
-			local snippet = header:GetAttribute('_childupdate-actionpage')
+			local snippet = header:GetAttribute('ActionPageChanged')
 			if snippet then
 				header:Run(snippet, newstate)
 			end
@@ -196,7 +197,7 @@ function Pager:RegisterHeader(header, anonymous)
 		header:SetAttribute('actionpage', page)
 		header:SetFrameRef('pager', self)
 		self:SetFrameRef('header', header)
-		self:Execute('headers[self:GetFrameRef("header")] = true')
+		self:Execute('headers[#headers + 1] = self:GetFrameRef("header")')
 	end
 	return header
 end

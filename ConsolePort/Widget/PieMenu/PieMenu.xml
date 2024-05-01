@@ -3,7 +3,7 @@
 
 	<Script file="PieMenu.lua"/>
 
-	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin">
+	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin" frameStrata="HIGH">
 		<Layers>
 			<Layer level="BORDER">
 				<Texture parentKey="Arrow" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Arrow.blp" alpha="0">

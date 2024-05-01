@@ -919,6 +919,17 @@ function CPFlashableFiligreeMixin:Play(...)
     self.filigreeAnim:Play(...)
 end
 
+function CPFlashableFiligreeMixin:SetLooping(loopState)
+	local anim = self.filigreeAnim;
+	if ( loopState == 'NONE' and anim:GetLoopState() == 'REVERSE' ) then
+		return anim:SetScript('OnLoop', function(group)
+			group:SetLooping(loopState)
+			group:SetScript('OnLoop', nil)
+		end)
+	end
+	anim:SetLooping(loopState)
+end
+
 function CPFlashableFiligreeMixin:SetVertexColor(r, g, b, a)
     self.ActivationExpandFx:SetVertexColor(r, g, b, a)
 	for i, fxTexture in ipairs(self.fxTextures) do

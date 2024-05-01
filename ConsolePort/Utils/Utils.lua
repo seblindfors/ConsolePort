@@ -55,7 +55,7 @@ CPAPI.SecureEnvironmentMixin = {
 		for func, body in pairs(self.Env) do
 			body = CPAPI.ConvertSecureBody(body);
 			self:SetAttribute(func, body)
-			self:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
+			if self.Execute then self:Execute(('%s = self:GetAttribute("%s")'):format(func, func)) end;
 		end
 	end;
 	Run = function(self, body, ...)

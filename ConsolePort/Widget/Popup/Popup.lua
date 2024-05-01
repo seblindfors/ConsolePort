@@ -1,8 +1,8 @@
 local _, db = ...;
 ---------------------------------------------------------------
-CPPopupFrameMixin = CreateFromMixins(NineSlicePanelMixin, CPIndexPoolMixin)
+CPPopupFrameBaseMixin = CreateFromMixins(NineSlicePanelMixin, CPIndexPoolMixin)
 ---------------------------------------------------------------
-function CPPopupFrameMixin:OnLoad()
+function CPPopupFrameBaseMixin:OnLoad()
 	NineSlicePanelMixin.OnLoad(self);
 	CPIndexPoolMixin.OnLoad(self);
 	for region in pairs(NineSliceLayouts[self.layoutType]) do
@@ -11,6 +11,13 @@ function CPPopupFrameMixin:OnLoad()
 		end
 	end
 	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -20)
+end
+
+---------------------------------------------------------------
+CPPopupFrameMixin = CreateFromMixins(CPPopupFrameBaseMixin)
+---------------------------------------------------------------
+function CPPopupFrameMixin:OnLoad()
+	CPPopupFrameBaseMixin.OnLoad(self)
 	db:RegisterCallback('OnPopupShown', self.OnPopupShown, self)
 	ConsolePort:AddInterfaceCursorFrame(self)
 end

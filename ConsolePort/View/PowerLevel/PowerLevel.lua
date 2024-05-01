@@ -3,7 +3,7 @@
 ---------------------------------------------------------------
 
 local _, db = ...; local L = db.Locale;
-local PowerLevel = ConsolePortPowerLevel;
+local PowerLevel = db:Register('Battery', ConsolePortPowerLevel);
 local FadeIn, FadeOut = db.Alpha.FadeIn, db.Alpha.FadeOut;
 
 local FADE_SPEED = 0.25;

@@ -173,6 +173,14 @@ function env.MakeSig(type, id)
 	return type..':'..(id or '');
 end
 
+function env.ModComplement(A, B)
+	return A:gsub((B:gsub('%-', '%%-')), '')
+end
+
+function env.IsModSubset(A, B)
+	return not not (B:find(A:gsub('%-', '%%-')))
+end
+
 ---------------------------------------------------------------
 do -- Binding data handler
 	-----------------------------------------------------------
@@ -202,3 +210,15 @@ do -- Binding data handler
 end
 
 end -- Binding data handler
+
+
+---------------------------------------------------------------
+-- State handler helpers
+---------------------------------------------------------------
+env.State   = GenerateClosure(format, '_onstate-%s');     -- macro conditional response
+env.Driver  = GenerateClosure(format, 'driver-%s');       -- macro conditional driver
+env.Update  = GenerateClosure(format, '_childupdate-%s'); -- child update closure
+env.OnState = 'OnStateChanged';                           -- see LibActionButton-1.0.lua
+env.OnPage  = 'ActionPageChanged';                        -- see Pager.lua
+env.Visible = 'visibility';
+env.Hidden  = 'statehidden';

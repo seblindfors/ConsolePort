@@ -95,7 +95,7 @@ SLASH_FUNCTIONS = {
 	addframe = function(owner, frame)
 		if owner and frame then
 			local loadable, reason = select(4, GetAddOnInfo(owner))
-			if loadable then
+			if loadable or IsAddOnLoaded(owner) then
 				EnableAddOn(CURSOR_ADDON_NAME)
 				LoadAddOn(CURSOR_ADDON_NAME)
 				return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
@@ -114,7 +114,7 @@ SLASH_FUNCTIONS = {
 	removeframe = function(owner, frame)
 		if owner and frame then
 			local loadable, reason = select(4, GetAddOnInfo(owner))
-			if loadable then
+			if loadable or IsAddOnLoaded(owner) then
 				EnableAddOn(CURSOR_ADDON_NAME)
 				LoadAddOn(CURSOR_ADDON_NAME)
 				return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
@@ -190,12 +190,13 @@ SLASH_FUNCTIONS = {
 		local activeDevices = {};
 		for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
 			local device = C_GamePad.GetDeviceRawState(i)
-			local devicePowerLevel = C_GamePad.GetPowerLevel(deviceID)
+			local devicePowerLevel = C_GamePad.GetPowerLevel(i)
+			local powerLevelInfo = db.Battery:GetPowerLevelInfo(devicePowerLevel)
 			if device then
 				tinsert(activeDevices, {
 					id    = i;
 					state = device;
-					powerLevel = devicePowerLevel;
+					powerLevel = powerLevelInfo.color:WrapTextInColorCode(powerLevelInfo.name);
 				})
 			end
 		end
@@ -220,6 +221,7 @@ SLASH_FUNCTIONS = {
 		else
 			CPAPI.Log('No connected devices found.')
 		end
+		-- TODO: show axis readings and state when device ID is provided
 	end;
 	-----------------------------------------------------------
 	-- Reset/uninstall
