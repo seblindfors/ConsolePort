@@ -2,7 +2,7 @@
 ..\FrameXML\UI.xsd">
 	<Script file="Watch.lua"/>
 
-	<Frame name="CP_StatusTrackingBarTemplate" frameStrata="MEDIUM" enableMouse="true" hidden="true" virtual="true">
+	<Frame name="CPStatusTrackingBarTemplate" frameStrata="MEDIUM" enableMouse="true" hidden="true" virtual="true">
 		<Size x="804" y="11"/>
 		<Frames>
 			<StatusBar parentKey="StatusBar" drawLayer="BORDER" inherits="AnimatedStatusBarTemplate">
@@ -44,7 +44,7 @@
 		</Frames>
 	</Frame>
 
-	<Frame name="CP_ReputationStatusBarTemplate" inherits="CP_StatusTrackingBarTemplate" mixin="CPReputationBarMixin" virtual="true">
+	<Frame name="CPReputationStatusBarTemplate" inherits="CPStatusTrackingBarTemplate" mixin="CPReputationBarMixin" virtual="true">
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 			<OnEvent method="OnEvent"/>
@@ -54,7 +54,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CP_ExpStatusBarTemplate" useParentLevel="true" inherits="CP_StatusTrackingBarTemplate" hidden="true" mixin="CPExpBarMixin" virtual="true">
+	<Frame name="CPExpStatusBarTemplate" useParentLevel="true" inherits="CPStatusTrackingBarTemplate" hidden="true" mixin="CPExpBarMixin" virtual="true">
 		<Size x="804" y="11"/>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="-1">
@@ -107,7 +107,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CP_WatchBarContainer" frameStrata="LOW" mixin="CPWatchBarContainerMixin" virtual="true">
+	<Frame name="CPWatchBarContainer" frameStrata="LOW" mixin="CPWatchBarContainerMixin" virtual="true">
 		<Size x="804" y="16"/>
 		<Anchors>
 			<Anchor point="BOTTOMLEFT" x="90"/>

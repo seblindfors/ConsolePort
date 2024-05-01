@@ -819,16 +819,16 @@ do -- Initialize bars
 			local CanShowBar, GetBarPriority = StatusTrackingManagerMixin.CanShowBar, StatusTrackingManagerMixin.GetBarPriority;
 			local __ = function(f, ...) return GenerateClosure(f, WBC, ...) end;
 
-			self:AddBarFromTemplate('CP_ReputationStatusBarTemplate', __(CanShowBar, BarsEnum.Reputation), __(GetBarPriority, BarPriorities[BarsEnum.Reputation]) )
+			self:AddBarFromTemplate('CPReputationStatusBarTemplate', __(CanShowBar, BarsEnum.Reputation), __(GetBarPriority, BarPriorities[BarsEnum.Reputation]) )
 			self:AddBarFromTemplate('HonorStatusBarTemplate',         __(CanShowBar, BarsEnum.Honor),      __(GetBarPriority, BarPriorities[BarsEnum.Honor])      )
 			self:AddBarFromTemplate('ArtifactStatusBarTemplate',      __(CanShowBar, BarsEnum.Artifact),   __(GetBarPriority, BarPriorities[BarsEnum.Artifact])   )
 			self:AddBarFromTemplate('AzeriteBarTemplate',             __(CanShowBar, BarsEnum.Azerite),    __(GetBarPriority, BarPriorities[BarsEnum.Azerite])    )
-			self:AddBarFromTemplate('CP_ExpStatusBarTemplate',        __(CanShowBar, BarsEnum.Experience), __(GetBarPriority, BarPriorities[BarsEnum.Experience]) )
+			self:AddBarFromTemplate('CPExpStatusBarTemplate',        __(CanShowBar, BarsEnum.Experience), __(GetBarPriority, BarPriorities[BarsEnum.Experience]) )
 		end
 	else
 		function CPWatchBarContainerMixin:Init()
-			self:AddBarFromTemplate('CP_ReputationStatusBarTemplate')
-			self:AddBarFromTemplate('CP_ExpStatusBarTemplate')
+			self:AddBarFromTemplate('CPReputationStatusBarTemplate')
+			self:AddBarFromTemplate('CPExpStatusBarTemplate')
 		end
 	end
 end

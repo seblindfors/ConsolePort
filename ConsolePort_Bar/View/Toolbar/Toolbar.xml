@@ -2,24 +2,271 @@
 ..\FrameXML\UI.xsd">
 	<Script file="Toolbar.lua"/>
 
-	<Frame name="CPToolbar" virtual="true" clampedToScreen="true" movable="true" mixin="CPToolbar">
+	<Button name="CPToolbarMicroButton" mixin="CPMicroButton" motionScriptsWhileDisabled="true" virtual="true" ignoreParentAlpha="true">
+		<Size x="32" y="40"/>
+		<NormalTexture parentKey="NormalTexture">
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</NormalTexture>
+		<PushedTexture parentKey="PushedTexture">
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</PushedTexture>
+		<HighlightTexture parentKey="HighlightTexture">
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</HighlightTexture>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background">
+					<Size x="32" y="41"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="PushedBackground" hidden="true">
+					<Size x="32" y="41"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="FlashBorder" setAllPoints="true" alphaMode="BLEND" hidden="true"/>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnEnter method="OnEnter" inherit="append"/>
+			<OnLeave method="OnLeave" inherit="append"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+			<OnMouseDown method="OnMouseDown"/>
+			<OnMouseUp method="OnMouseUp"/>
+			<OnEnable>
+				self:SetAlpha(1);
+			</OnEnable>
+			<OnDisable>
+				self:SetAlpha(0.5);
+			</OnDisable>
+			<OnLeave inherit="append">
+				GameTooltip:Hide();
+			</OnLeave>
+		</Scripts>
+	</Button>
+
+	<Frame name="CPToolbarDivider" virtual="true">
+		<Size x="16" y="40"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" atlas="BattleBar-ButtonBG-Divider">
+					<Size x="12" y="40"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Texture name="CPToolbarPopoutSixSlice" virtual="true" alpha="0.65">
+		<KeyValues>
+			<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
+		</KeyValues>
+	</Texture>
+
+	<Texture name="CPToolbarGradient" virtual="true" alphaMode="ADD" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" alpha="1">
+		<KeyValues>
+			<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
+		</KeyValues>
+	</Texture>
+
+	<Frame name="CPCoverArtFrame" virtual="true">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="CoverArt" atlas="Artifacts-Paladin-Header" useAtlasSize="true" scale="0.75">
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="50"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="CoverArtPulse" atlas="Artifacts-Paladin-Header" useAtlasSize="true" scale="0.75">
+					<Anchors>
+						<Anchor point="CENTER" x="0" y="50"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="CoverArtMask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\CoverArtLine.png"
+					vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE" scale="0.75">
+					<Size x="1024" y="128"/>
+					<Anchors>
+						<Anchor point="TOP" relativeKey="$parent.CoverArt" x="0" y="0"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="CoverArt"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPToolbarSixSliceFrame" virtual="true">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentArray="SixSlice" parentKey="TopLeftCorner" atlas="CharacterCreateDropdown-NineSlice-CornerTopLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-34" y="24"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="SixSlice" parentKey="TopRightCorner" atlas="CharacterCreateDropdown-NineSlice-CornerTopRight" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="34" y="24"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="SixSlice" parentKey="TopEdge" atlas="_CharacterCreateDropdown-NineSlice-EdgeTop" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.TopLeftCorner" relativePoint="TOPRIGHT"/>
+						<Anchor point="TOPRIGHT" relativeKey="$parent.TopRightCorner" relativePoint="TOPLEFT"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="SixSlice" parentKey="LeftEdge" atlas="!CharacterCreateDropdown-NineSlice-EdgeLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.TopLeftCorner" relativePoint="BOTTOMLEFT"/>
+						<Anchor point="BOTTOMLEFT" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="SixSlice" parentKey="RightEdge" atlas="!CharacterCreateDropdown-NineSlice-EdgeRight" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="TOPRIGHT" relativeKey="$parent.TopRightCorner" relativePoint="BOTTOMRIGHT"/>
+						<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="SixSlice" parentKey="Center" atlas="CharacterCreateDropdown-NineSlice-Center" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.LeftEdge" relativePoint="TOPRIGHT"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.RightEdge" relativePoint="BOTTOMLEFT"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPToolbar" virtual="true" clampedToScreen="true" movable="true" mixin="CPToolbar" enableMouseClicks="false">
 		<Size y="64"/>
 		<Scripts>
 			<OnDragStart method="StartMoving"/>
 			<OnDragStop method="StopMovingOrSizing"/>
             <OnLoad method="OnLoad"/>
+			<OnEnter method="OnEnter"/>
+			<OnEvent method="OnEvent"/>
 		</Scripts>
+		<Frames>
+			<Frame parentKey="PopoutContainer" clipChildren="true">
+				<Size x="300" y="200"/>
+				<Anchors>
+					<Anchor point="BOTTOM" y="17"/>
+				</Anchors>
+				<Frames>
+					<Frame parentKey="PopoutFrame" inherits="HorizontalLayoutFrame, CPToolbarSixSliceFrame" alpha="0">
+						<KeyValues>
+							<KeyValue key="childXPadding" value="2" type="number"/>
+							<KeyValue key="childYPadding" value="2" type="number"/>
+							<KeyValue key="isHorizontal" value="true" type="boolean"/>
+						</KeyValues>
+						<Size x="300" y="40"/>
+						<Anchors>
+							<Anchor point="BOTTOM" y="0"/>
+						</Anchors>
+						<Layers>
+							<Layer level="BORDER">
+								<Texture parentKey="Gradient" inherits="CPToolbarGradient">
+									<Anchors>
+										<Anchor point="TOPLEFT" x="0" y="0"/>
+										<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+									</Anchors>
+								</Texture>
+							</Layer>
+						</Layers>
+						<Frames>
+							<Button parentKey="Eye" inherits="CPToolbarMicroButton">
+								<NormalTexture parentKey="NormalTexture" alphaMode="BLEND" alpha="1" rotation="90">
+									<Size x="32" y="16"/>
+									<Anchors>
+										<Anchor point="CENTER"/>
+									</Anchors>
+								</NormalTexture>
+								<PushedTexture parentKey="PushedTexture" alphaMode="BLEND" alpha="1" rotation="90">
+									<Size x="32" y="16"/>
+									<Anchors>
+										<Anchor point="CENTER" x="1" y="-1"/>
+									</Anchors>
+								</PushedTexture>
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="-4" type="number"/>
+								</KeyValues>
+							</Button>
+							<Button parentKey="Config" inherits="CPToolbarMicroButton">
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="-3" type="number"/>
+									<KeyValue key="normalAtlas" value="Barbershop-32x32" type="string"/>
+									<KeyValue key="highlightAtlas" value="Barbershop-32x32" type="string"/>
+								</KeyValues>
+							</Button>
+							<!--<Button parentKey="Button3" inherits="CPToolbarMicroButton">
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="-2" type="number"/>
+								</KeyValues>
+							</Button>-->
+							<Frame parentKey="Divider1" inherits="CPToolbarDivider">
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="-1" type="number"/>
+								</KeyValues>
+							</Frame>
+							<!--<Frame parentKey="Divider2" inherits="CPToolbarDivider">
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="13" type="number"/>
+								</KeyValues>
+							</Frame>-->
+						</Frames>
+					</Frame>
+				</Frames>
+				<Animations>
+					<AnimationGroup parentKey="SlideIn" setToFinalAlpha="true">
+						<Alpha childKey="PopoutFrame" fromAlpha="0" toAlpha="1" duration="0.25"/>
+						<Translation childKey="PopoutFrame" offsetX="0" offsetY="40" duration="0.25"/>
+						<Scripts>
+							<OnPlay>
+								self:GetParent().SlideOut:Finish();
+								self:GetParent().PopoutFrame:SetPoint('BOTTOM', 0, -40);
+							</OnPlay>
+							<OnFinished>
+								self:GetParent().PopoutFrame:SetPoint('BOTTOM', 0, 0);
+							</OnFinished>
+						</Scripts>
+					</AnimationGroup>
+					<AnimationGroup parentKey="SlideOut" setToFinalAlpha="true">
+						<Alpha childKey="PopoutFrame" fromAlpha="1" toAlpha="0" duration="0.25"/>
+						<Translation childKey="PopoutFrame" offsetX="0" offsetY="-40" duration="0.25"/>
+						<Scripts>
+							<OnPlay>
+								self:GetParent().SlideIn:Finish();
+								self:GetParent().PopoutFrame:SetPoint('BOTTOM', 0, 0);
+							</OnPlay>
+							<OnFinished>
+								self:GetParent().PopoutFrame:SetPoint('BOTTOM', 0, -40);
+							</OnFinished>
+						</Scripts>
+					</AnimationGroup>
+				</Animations>
+			</Frame>
+		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture name="$parentBG" parentKey="BG" alphaMode="ADD" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" alpha="1">
+				<Texture name="$parentBG" parentKey="BG" inherits="CPToolbarGradient">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="16" y="60"/>
 						<Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
-					</Anchors>
-				</Texture>
-				<Texture name="$parentCoverArt" parentKey="CoverArt">
-					<Anchors>
-						<Anchor point="CENTER" x="0" y="50"/>
 					</Anchors>
 				</Texture>
 			</Layer>
