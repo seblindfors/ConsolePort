@@ -25,11 +25,17 @@ local function SetRotatedSwipeTexture(self, prefix, direction)
     self.__procText, self.__procSize = swipeTexture, 0.6;
     self.cooldown:SetSwipeTexture(swipeTexture)
     self.cooldown:SetBlingTexture(Assets.CooldownBling)
+    self.cooldown:SetAllPoints()
 end
 
 local function SetMainSwipeTexture(self)
     self.cooldown:SetSwipeTexture(Assets.MainSwipe)
     self.cooldown:SetBlingTexture(Assets.CooldownBling)
+    self.cooldown:SetEdgeTexture(Assets.CooldownEdge)
+    self.cooldown:SetDrawEdge(true)
+    self.cooldown:SetUseCircularEdge(true)
+    self.cooldown:SetPoint('TOPLEFT', self.icon, 'TOPLEFT', 3, -3)
+    self.cooldown:SetPoint('BOTTOMRIGHT', self.icon, 'BOTTOMRIGHT', -3, 3)
     self.__procText, self.__procSize = Assets.MainSwipe, 0.62;
     if self.swipeColor then
         self.cooldown:SetSwipeColor(self.swipeColor:GetRGBA())
@@ -68,6 +74,7 @@ end
 
 local function OnChargeCooldownSet(self)
     self:SetUseCircularEdge(true)
+    self:SetEdgeTexture(Assets.CooldownEdge)
 end
 
 local function OnChargeCooldownUnset(self)

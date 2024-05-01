@@ -136,38 +136,17 @@ function Shadow:Update()
 	self:SetPoint(pt, self.owner, pt, x, y)
 end
 
----------------------------------------------------------------
-local Icon = {}; -- LAB custom type dynamic icon textures
----------------------------------------------------------------
-
-function Icon:SetTexture(texture, ...)
-	if (type(texture) == 'function') then
-		return texture(self, self:GetParent(), ...)
-	end
-	return getmetatable(self).__index.SetTexture(self, texture, ...)
-end
-
-local function GetClusterTextureForButtonID(buttonID)
-	local texture = db('Icons/64/'..buttonID)
-	if texture then
-		return GenerateClosure(function(set, texture, obj)
-			set(obj, texture)
-		end, CPAPI.SetTextureOrAtlas, {texture, db.Gamepad.UseAtlasIcons})
-	end
-	return env.GetAsset([[Textures\Icons\Unbound]]);
-end
 
 ---------------------------------------------------------------
 local Cooldown = {};
 ---------------------------------------------------------------
 
-function Cooldown:OnLoad(modifier)
+function Cooldown:OnLoad(callback)
 	self.text = self:GetRegions()
-	if ( modifier ~= NOMOD ) then
-		-- Flyout cluster buttons should have smaller CD font
-		local file, height, flags = self.text:GetFont()
-		self.text:SetFont(file, height * 0.75, flags)
-	end
+	-- Flyout cluster buttons should have smaller CD font
+	local file, height, flags = self.text:GetFont()
+	self.text:SetFont(file, height * 0.75, flags)
+	self:HookScript('OnCooldownDone', callback)
 end
 
 function Cooldown:SetHideCountdownNumbers(...)
@@ -244,13 +223,16 @@ function FlyoutButton:OnVisibilityEvent(event)
 	end
 end
 
-function FlyoutButton:OnLoad(modifier)
+function FlyoutButton:OnLoad()
 	env:RegisterCallback('Settings/clusterShowAll', self.OnShowAll, self)
-	env:RegisterCallback('Settings/clusterShowFlyoutIcons', self.ToggleHotkeys, self)
+	env:RegisterCallback('Settings/clusterShowFlyoutIcons', self.OnShowFlyoutIcons, self)
 
 	self:OnShowAll(env('clusterShowAll'))
-	self.OnCooldownClearCallback = GenerateClosure(self.OnCooldownClear, self)
-	Mixin(self.cooldown, Cooldown):OnLoad(modifier)
+	self:OnShowFlyoutIcons(env('clusterShowFlyoutIcons'))
+
+	local onCooldownDone = GenerateClosure(self.OnCooldownClear, self)
+	Mixin(self.cooldown, Cooldown):OnLoad(onCooldownDone)
+
 	self:HookScript('OnEnter', self.OnMouseMotionFocus)
 	self:HookScript('OnLeave', self.OnMouseMotionClear)
 	self:HookScript('OnEvent', self.OnVisibilityEvent)
@@ -264,13 +246,17 @@ function FlyoutButton:OnCooldownSet(cooldown, _, duration, enable)
 	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
 	if hotkey1 then hotkey1:SetShown(not onCooldown) end;
 	if hotkey2 then hotkey2:SetShown(not onCooldown) end;
-	cooldown:HookScript('OnCooldownDone', self.OnCooldownClearCallback)
 	self:UpdateFade(self.VisibilityState.OnCooldown, onCooldown)
 end
 
 function FlyoutButton:OnCooldownClear()
-	self:ToggleHotkeys(env('clusterShowFlyoutIcons'))
+	self:ToggleHotkeys(self.showFlyoutIcons)
 	self:UpdateFade(self.VisibilityState.OnCooldown, false)
+end
+
+function FlyoutButton:OnShowFlyoutIcons(enabled)
+	self.showFlyoutIcons = enabled;
+	self:ToggleHotkeys(enabled)
 end
 
 function FlyoutButton:SetAlpha(alpha, force)
@@ -287,6 +273,23 @@ function FlyoutButton:UpdateFade(closure, state)
 	end
 end
 
+function FlyoutButton:SetBindings(primary, allBindings)
+	local emulation = db.Gamepad.Index.Modifier.Owner[self.id];
+	if emulation and env.IsModSubset(emulation, self.mod) then
+		return self:ToggleShown(false)
+	end
+	for modifier in pairs(allBindings) do
+		if not env.IsModSubset(self.mod, modifier) then
+			self:RefreshBinding(modifier, primary)
+		else
+			self:RefreshBinding(modifier, emulation and allBindings[NOMOD] or primary)
+		end
+	end
+	self:RefreshBinding(self.mod, allBindings[NOMOD])
+	self:RefreshBinding(ALT..self.mod, allBindings[ALT..self.mod])
+	self:ToggleShown(true)
+end
+
 ---------------------------------------------------------------
 local MainButton = {};
 ---------------------------------------------------------------
@@ -296,28 +299,54 @@ function MainButton:OnLoad()
 	self:ToggleHotkeys(env('clusterShowMainIcons'))
 end
 
+function MainButton:SetBindings(_, allBindings)
+	local emulation = db.Gamepad.Index.Modifier.Owner[self.id];
+	for modifier, binding in pairs(allBindings) do
+		if not emulation then
+			self:RefreshBinding(modifier, binding)
+		else
+			self:RefreshBinding(modifier, allBindings[env.ModComplement(modifier, emulation)])
+		end
+	end
+end
+
+function MainButton:ShouldOverrideActionBarBinding()
+	return true;
+end
+
+function MainButton:GetOverrideBinding(modifier)
+	return modifier..self.id;
+end
+
 ---------------------------------------------------------------
-local Button = {};
+local Button = CreateFromMixins(env.ProxyButton);
 ---------------------------------------------------------------
 
 function Button:OnLoad(modifier, layoutData)
+	env.ProxyButton.OnLoad(self)
 	self:SetAttribute(CPAPI.SkipHotkeyRender, true)
 	self:SetAttribute('id', self.id)
 	self:SetAttribute('mod', modifier)
+
 	self.mod = modifier;
 	self.layoutData = layoutData;
 	self:UpdateSkin()
 	if ( layoutData.Level ) then
 		self:SetFrameLevel(layoutData.Level)
 	end
-	Mixin(self.icon, Icon)
-	Mixin(self, modifier == NOMOD and MainButton or FlyoutButton):OnLoad(modifier)
+
+	Mixin(self, modifier == NOMOD and MainButton or FlyoutButton):OnLoad()
 end
 
 function Button:ToggleHotkeys(enabled)
 	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
 	if hotkey1 then hotkey1:SetShown(enabled) end;
 	if hotkey2 then hotkey2:SetShown(enabled) end;
+end
+
+function Button:ToggleShown(enabled)
+	self:SetShown(enabled)
+	self:SetAttribute(env.Hidden, not enabled)
 end
 
 function Button:UpdateLocal(force)
@@ -330,59 +359,6 @@ end
 
 function Button:GetOverlayColor()
 	return env:GetColorRGBA('procColor')
-end
-
-function Button:SetBindings(primary, allBindings)
-	if ( self.mod == NOMOD ) then
-		for modifier, binding in pairs(allBindings) do
-			self:RefreshBinding(modifier, binding)
-		end
-	else
-		for modifier, binding in pairs(allBindings) do
-			if ( modifier ~= self.mod ) then
-				self:RefreshBinding(modifier, primary)
-			end
-		end
-		self:RefreshBinding(self.mod, allBindings[NOMOD])
-		self:RefreshBinding(ALT..self.mod, allBindings[ALT..self.mod])
-	end
-end
-
-function Button:RefreshBinding(modifier, binding)
-	local actionID = binding and db('Actionbar/Binding/'..binding)
-	local stateType, stateID;
-	if actionID then
-		stateType, stateID = self:SetActionBinding(modifier, actionID)
-	elseif binding and binding:len() > 0 then
-		stateType, stateID = self:SetXMLBinding(binding)
-	else
-		stateType, stateID = self:SetEligbleForRebind(modifier)
-	end
-	self:SetState(modifier, stateType, stateID)
-end
-
-function Button:SetActionBinding(modifier, actionID)
-	if ( self.mod == NOMOD ) then
-		env.Manager:RegisterOverride(self, modifier..self.id, self:GetName())
-	end
-	return 'action', actionID;
-end
-
-function Button:SetXMLBinding(binding)
-	local info = env.GetXMLBindingInfo(binding)
-	return 'custom', {
-		tooltip = info.tooltip or env.GetBindingName(binding);
-		texture = info.texture or env.GetBindingIcon(binding) or GetClusterTextureForButtonID(self.id);
-		func    = function() end; -- TODO
-	}
-end
-
-function Button:SetEligbleForRebind(modifier)
-	return 'custom', {
-		tooltip = 'Click to bind this button';
-		texture = GetClusterTextureForButtonID(self.id);
-		func    = print; -- TODO
-	};
 end
 
 ---------------------------------------------------------------
@@ -418,14 +394,18 @@ CPClusterBar = CreateFromMixins(CPActionBar);
 
 function CPClusterBar:OnLoad()
 	CPActionBar.OnLoad(self)
+
 	env:RegisterSafeCallback('OnNewBindings', self.OnNewBindings, self)
+	env:RegisterSafeCallback('Settings/clusterFullStateModifier', self.OnDriverChanged, self)
+	db:RegisterSafeCallback('OnModifierChanged', self.OnDriverChanged, self)
+	self:OnDriverChanged()
+
 	env:RegisterCallback('Settings/procColor', self.OnVariableChanged, self)
 	self.ProcAnimation:SetSize(200, 200)
 	self.ProcAnimation:SetAnimationSpeedMultiplier(0.5)
-	self:RegisterModifierDriver(env.ClusterConstants.ModDriver, [[
-		self:SetAttribute('state', newstate)
-		control:ChildUpdate('state', newstate)
-		cursor::ActionPageChanged()
+	self:RegisterPageResponse([[
+		local newstate = ...;
+		self:ChildUpdate('actionpage', newstate)
 	]])
 end
 
@@ -444,6 +424,15 @@ function CPClusterBar:OnNewBindings(bindings)
 		end)
 	end
 	self:RunDriver('modifier')
+end
+
+function CPClusterBar:OnDriverChanged()
+	local driver = env('clusterFullStateModifier') and env.ClusterConstants.ModDriver
+		or db('Gamepad/Index/Modifier/Driver');
+	self:RegisterModifierDriver(driver, [[
+		self:SetAttribute('state', newstate)
+		control:ChildUpdate('state', newstate)
+	]])
 end
 
 function CPClusterBar:UpdateClusters(clusters)

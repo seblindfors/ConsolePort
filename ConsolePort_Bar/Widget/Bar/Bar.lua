@@ -1,44 +1,46 @@
 local _, env, db = ...; db = env.db;
 ---------------------------------------------------------------
-CPActionBar = CreateFromMixins(CPAPI.AdvancedSecureMixin, env.CommonWidgetMixin);
+CPActionBar = Mixin({
 ---------------------------------------------------------------
-local STATE_PREFIX, DRIVER_PREFIX = '_onstate-', 'driver-';
+    Env = {
+        OnLoad = [[
+            manager = self:GetFrameRef('Manager')
+            cursor  = manager:GetFrameRef('Cursor')
+            pager   = manager:GetFrameRef('Pager')
+        ]];
+    };
+    -----------------------------------------------------------
+}, CPAPI.AdvancedSecureMixin, env.CommonWidgetMixin);
 ---------------------------------------------------------------
-CPActionBar.Env = {
-    OnLoad = [[
-        manager = self:GetFrameRef('Manager')
-        cursor  = manager:GetFrameRef('Cursor')
-        pager   = manager:GetFrameRef('Pager')
-    ]];
-};
 
 function CPActionBar:OnLoad()
-    db.Pager:RegisterHeader(self, true);
+    db.Pager:RegisterHeader(self)
     self:SetFrameRef('Manager', env.Manager)
     self:Run(self.Env.OnLoad)
+    self:EnableMouse(false)
 end
 
 function CPActionBar:RegisterDriver(type, driver, body, current) body = CPAPI.ConvertSecureBody(body)
     RegisterStateDriver(self, type, driver)
     self:SetAttribute(type, current or SecureCmdOptionParse(driver))
-    self:SetAttribute(DRIVER_PREFIX..type, driver)
-    self:SetAttribute(STATE_PREFIX..type, body)
+    self:SetAttribute(env.Driver(type), driver)
+    self:SetAttribute(env.State(type), body)
     self:Run([[local newstate = self:GetAttribute(%q) %s]], type, body)
 end
 
 function CPActionBar:RunDriver(type) self:Run([[
     local newstate = SecureCmdOptionParse(%q); %s
-]], self:GetAttribute(DRIVER_PREFIX..type), self:GetAttribute(STATE_PREFIX..type)) end
+]], self:GetAttribute(env.Driver(type)), self:GetAttribute(env.State(type))) end
 
 function CPActionBar:RegisterModifierDriver(driver, body, current)
     self:RegisterDriver('modifier', driver, body, current)
 end
 
-function CPActionBar:RegisterPageDriver(driver, body, current)
-    self:RegisterDriver('actionpage', driver, body, current)
+function CPActionBar:RegisterVisibilityDriver(driver, current)
+    RegisterStateDriver(self, env.Visible, driver)
+    self:SetAttribute(env.Visible, current or SecureCmdOptionParse(driver))
 end
 
-function CPActionBar:RegisterVisibilityDriver(driver, current)
-    RegisterStateDriver(self, 'visibility', driver)
-    self:SetAttribute('visibility', current or SecureCmdOptionParse(driver))
+function CPActionBar:RegisterPageResponse(body)
+    self:SetAttribute(env.OnPage, body)
 end

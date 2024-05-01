@@ -30,7 +30,7 @@ end
 
 function Manager:OnConfigChanged()
     local layout = env.Layout;
-    RegisterStateDriver(self, 'visibility', layout.visibility or 'show')
+    RegisterStateDriver(self, env.Visible, layout.visibility or 'show')
     for id, config in pairs(layout.bars or {}) do
         local bar = env:Acquire(config.type, id)
         if bar then
