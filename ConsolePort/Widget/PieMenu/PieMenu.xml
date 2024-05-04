@@ -77,7 +77,7 @@
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
-				<FontString parentKey="Text" inherits="GameFontHighlightSmallOutline" hidden="true"/>
+				<FontString parentKey="Text" inherits="GameFontHighlightOutline" hidden="true"/>
 			</Layer>
 		</Layers>
 		<Animations>
