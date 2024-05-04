@@ -22,6 +22,7 @@
 				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
+						<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT"/>
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -109,11 +110,11 @@
 				</Texture>
 			</Layer>
 		</Layers>
-		<NormalTexture setAllPoints="true"/>
-		<HighlightTexture alphaMode="ADD" setAllPoints="true">
+		<NormalTexture setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0"/>
+		<HighlightTexture alphaMode="ADD" setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0">
 			<TexCoords left="1" right="0" top="0" bottom="1"/>
 		</HighlightTexture>
-		<ButtonText>
+		<ButtonText parentKey="Text">
 			<Size x="275" y="0"/>
 			<Anchors>
 				<Anchor point="LEFT" x="78" y="0"/>
@@ -147,7 +148,7 @@
 						<Anchor point="RIGHT"/>
 					</Anchors>
 				</Texture>
-				<MaskTexture parentKey="BarMask" atlas="TransparentSquareMask" vWrapMode="CLAMPTOBLACK" hWrapMode="CLAMPTOBLACK">
+				<MaskTexture parentKey="BarMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\TransparentSquareMask" vWrapMode="CLAMPTOBLACK" hWrapMode="CLAMPTOBLACK">
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.Text" x="-5" y="0"/>
 						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Text" x="5" y="0"/>
