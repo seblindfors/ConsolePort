@@ -82,6 +82,13 @@ function Lib.SkinUtility.GetSlotBackground(self)
 	return self.SlotBackground;
 end
 
+function Lib.SkinUtility.GetHighlightTexture(self)
+	if not self.HighlightTexture then
+		self.HighlightTexture = self:GetHighlightTexture()
+	end
+	return self.HighlightTexture;
+end
+
 function Lib.SkinUtility.PreventSkinning(self)
 	self.MasqueSkinned = true;
 end

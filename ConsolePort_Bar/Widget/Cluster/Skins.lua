@@ -9,6 +9,7 @@ local Swipes = env.ClusterConstants.Swipes;
 local Assets = env.ClusterConstants.Assets;
 local AdjustTextures = env.ClusterConstants.AdjustTextures;
 local GetIconMask = env.LIB.SkinUtility.GetIconMask;
+local GetHighlightTexture = env.LIB.SkinUtility.GetHighlightTexture;
 local GetSlotBackground = env.LIB.SkinUtility.GetSlotBackground;
 local SkinOverlayGlow = env.LIB.Skin.ColorSwatchProc;
 local SkinChargeCooldown = env.LIB.SkinUtility.SkinChargeCooldown;
@@ -21,24 +22,25 @@ local function SetRotatedMaskTexture(self, mask, prefix, direction)
 end
 
 local function SetRotatedSwipeTexture(self, prefix, direction)
-    local swipeTexture = Swipes[prefix][direction];
+    local cooldown, swipeTexture = self.cooldown, Swipes[prefix][direction];
     self.__procText, self.__procSize = swipeTexture, 0.6;
-    self.cooldown:SetSwipeTexture(swipeTexture)
-    self.cooldown:SetBlingTexture(Assets.CooldownBling)
-    self.cooldown:SetAllPoints()
+    cooldown:SetSwipeTexture(swipeTexture)
+    cooldown:SetDrawBling(false, true)
+    cooldown:SetAllPoints()
 end
 
 local function SetMainSwipeTexture(self)
-    self.cooldown:SetSwipeTexture(Assets.MainSwipe)
-    self.cooldown:SetBlingTexture(Assets.CooldownBling)
-    self.cooldown:SetEdgeTexture(Assets.CooldownEdge)
-    self.cooldown:SetDrawEdge(true)
-    self.cooldown:SetUseCircularEdge(true)
-    self.cooldown:SetPoint('TOPLEFT', self.icon, 'TOPLEFT', 3, -3)
-    self.cooldown:SetPoint('BOTTOMRIGHT', self.icon, 'BOTTOMRIGHT', -3, 3)
+    local cooldown = self.cooldown;
+    cooldown:SetSwipeTexture(Assets.MainSwipe)
+    cooldown:SetEdgeTexture(Assets.CooldownEdge)
+    cooldown:SetBlingTexture(Assets.CooldownBling)
+    cooldown:SetDrawEdge(true)
+    cooldown:SetUseCircularEdge(true)
+    cooldown:SetPoint('TOPLEFT', self.icon, 'TOPLEFT', 3, -3)
+    cooldown:SetPoint('BOTTOMRIGHT', self.icon, 'BOTTOMRIGHT', -3, 3)
     self.__procText, self.__procSize = Assets.MainSwipe, 0.62;
     if self.swipeColor then
-        self.cooldown:SetSwipeColor(self.swipeColor:GetRGBA())
+        cooldown:SetSwipeColor(self.swipeColor:GetRGBA())
     end
 end
 
@@ -55,7 +57,10 @@ local function SetTextures(self, adjustTextures, coords, texSize)
             texture:SetSize(texSize, texSize)
         end
     end
-    self.HighlightTexture:SetBlendMode('ADD')
+    GetHighlightTexture(self):SetBlendMode('ADD')
+    if self.borderColor then
+        self.NormalTexture:SetVertexColor(self.borderColor:GetRGBA())
+    end
 end
 
 local function SetBackground(self, mask)

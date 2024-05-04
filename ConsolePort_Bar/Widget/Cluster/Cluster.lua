@@ -12,12 +12,14 @@ function Cluster:OnLoad(buttonID, parent)
 	self.header   = parent;
 	self:OnVariableChanged()
 	env:RegisterCallbacks(self.OnVariableChanged, self,
-		'Settings/swipeColor'
+		'Settings/swipeColor',
+		'Settings/borderColor'
 	);
 end
 
 function Cluster:OnVariableChanged()
 	self:SetSwipeColor(env:GetColor('swipeColor'))
+	self:SetBorderColor(env:GetColor('borderColor'))
 end
 
 function Cluster:Enumerate()
@@ -70,6 +72,13 @@ function Cluster:SetSwipeColor(color)
 	local main = self:GetMainButton();
 	main.cooldown:SetSwipeColor(color:GetRGBA())
 	main.swipeColor = color;
+end
+
+function Cluster:SetBorderColor(color)
+	for _, button in self:Enumerate() do
+		button.NormalTexture:SetVertexColor(color:GetRGBA())
+		button.borderColor = color;
+	end
 end
 
 function Cluster:GetParent()
@@ -141,17 +150,10 @@ end
 local Cooldown = {};
 ---------------------------------------------------------------
 
-function Cooldown:OnLoad(callback)
-	self.text = self:GetRegions()
-	-- Flyout cluster buttons should have smaller CD font
-	local file, height, flags = self.text:GetFont()
-	self.text:SetFont(file, height * 0.75, flags)
-	self:HookScript('OnCooldownDone', callback)
-end
-
-function Cooldown:SetHideCountdownNumbers(...)
-	self:GetParent().countdownNumbersHidden = ...;
-	getmetatable(self).__index.SetHideCountdownNumbers(self, ...)
+function Cooldown:OnLoad()
+	local parent = self:GetParent()
+	local onCooldownDone = GenerateClosure(parent.OnCooldownClear, parent)
+	self:HookScript('OnCooldownDone', onCooldownDone)
 end
 
 function Cooldown:SetCooldown(...)
@@ -167,6 +169,22 @@ end
 function Cooldown:Hide()
 	self:GetParent():OnCooldownClear(self)
 	getmetatable(self).__index.Hide(self)
+end
+
+---------------------------------------------------------------
+local FlyoutCooldown = CreateFromMixins(Cooldown);
+---------------------------------------------------------------
+
+function FlyoutCooldown:OnLoad()
+	Cooldown.OnLoad(self)
+	self.text = self:GetRegions()
+	-- Flyout cluster buttons should have smaller CD font
+	local file, height, flags = self.text:GetFont()
+	self.text:SetFont(file, height * 0.75, flags)
+end
+
+function FlyoutCooldown:SetDrawBling(enabled, force)
+	if force then return getmetatable(self).__index.SetDrawBling(self, enabled) end
 end
 
 ---------------------------------------------------------------
@@ -230,8 +248,7 @@ function FlyoutButton:OnLoad()
 	self:OnShowAll(env('clusterShowAll'))
 	self:OnShowFlyoutIcons(env('clusterShowFlyoutIcons'))
 
-	local onCooldownDone = GenerateClosure(self.OnCooldownClear, self)
-	Mixin(self.cooldown, Cooldown):OnLoad(onCooldownDone)
+	Mixin(self.cooldown, FlyoutCooldown):OnLoad()
 
 	self:HookScript('OnEnter', self.OnMouseMotionFocus)
 	self:HookScript('OnLeave', self.OnMouseMotionClear)
@@ -241,7 +258,7 @@ function FlyoutButton:OnLoad()
 	end
 end
 
-function FlyoutButton:OnCooldownSet(cooldown, _, duration, enable)
+function FlyoutButton:OnCooldownSet(cooldown, _, duration)
 	local onCooldown = (cooldown and duration and duration > 0);
 	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
 	if hotkey1 then hotkey1:SetShown(not onCooldown) end;
@@ -297,6 +314,14 @@ local MainButton = {};
 function MainButton:OnLoad()
 	env:RegisterCallback('Settings/clusterShowMainIcons', self.ToggleHotkeys, self)
 	self:ToggleHotkeys(env('clusterShowMainIcons'))
+	Mixin(self.cooldown, Cooldown):OnLoad()
+end
+
+function MainButton:OnCooldownSet()
+	self:Skin(false)
+end
+
+function MainButton:OnCooldownClear()
 end
 
 function MainButton:SetBindings(_, allBindings)
@@ -355,6 +380,7 @@ end
 
 function Button:UpdateSkin()
 	self.Skin = env.LIB.Skin.ClusterBar[self.mod] or nop; -- Skins.lua
+	self:Skin(true)
 end
 
 function Button:GetOverlayColor()
@@ -423,6 +449,7 @@ function CPClusterBar:OnNewBindings(bindings)
 			end
 		end)
 	end
+	self:RunAttribute(env.OnPage, self:GetAttribute('actionpage'))
 	self:RunDriver('modifier')
 end
 

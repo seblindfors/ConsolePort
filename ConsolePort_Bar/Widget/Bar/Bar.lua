@@ -32,6 +32,10 @@ function CPActionBar:RunDriver(type) self:Run([[
     local newstate = SecureCmdOptionParse(%q); %s
 ]], self:GetAttribute(env.Driver(type)), self:GetAttribute(env.State(type))) end
 
+function CPActionBar:RunAttribute(attribute, ...) self:Run([[
+    self::%s(%q) 
+]], attribute, ...) end
+
 function CPActionBar:RegisterModifierDriver(driver, body, current)
     self:RegisterDriver('modifier', driver, body, current)
 end
