@@ -70,22 +70,37 @@ local PopoutFrame = {};
 function PopoutFrame:OnLoad()
     Mixin(self.Eye, Eye):OnLoad()
     Mixin(self.Config, Config):OnLoad()
+
+    self.MicroButtons = {};
+    local count = CreateCounter()
+    for _, button in pairs(MICRO_BUTTONS) do
+        local button = _G[button];
+        if button then
+            self.MicroButtons[button] = button.layoutIndex or count();
+        end
+    end
+
     self:MoveMicroButtons()
     self:SlideOut()
+    RunNextFrame(function()
+        self:Layout()
+    end)
 end
 
 function PopoutFrame:Layout()
-    LayoutMixin.Layout(self)
-    self:GetParent():SetWidth(self:GetWidth())
+    local container = self:GetParent()
+    self.maximumWidth = ConsolePortToolbar:GetWidth() - 64;
+    self.stride = math.floor(self.maximumWidth / 32) - 1;
+    GridLayoutFrameMixin.Layout(self)
+    container:SetSize(self:GetWidth() + 64, self:GetHeight() + 64)
+    container.SlideIn.Translate:SetOffset(0, self:GetHeight())
+    container.SlideOut.Translate:SetOffset(0, -self:GetHeight())
 end
 
 function PopoutFrame:MoveMicroButtons()
-    for button in pairs(tInvert(MICRO_BUTTONS)) do
-        local button = _G[button];
-        if button then
-            button:SetParent(self)
-            button:SetIgnoreParentAlpha(true)
-        end
+    for button in pairs(self.MicroButtons) do
+        button:SetParent(self)
+        button:SetIgnoreParentAlpha(true)
     end
     self:Layout()
 end
@@ -98,6 +113,14 @@ function PopoutFrame:SlideOut()
     self:GetParent().SlideOut:Play()
 end
 
+function PopoutFrame:SetActive(active)
+    self:SetPoint('BOTTOM', 0, active and 0 or -self:GetHeight())
+    for button in pairs(self.MicroButtons) do
+        -- Show help tip frames when the micro buttons are hidden,
+        -- which is why this is true when the popout is NOT active.
+        button:SetIgnoreParentAlpha(not active)
+    end
+end
 
 ---------------------------------------------------------------
 CPMicroButton = {};
@@ -176,12 +199,14 @@ function CPToolbar:OnLoad()
         'OnDataLoaded',
         'Settings/enableXPBar',
         'Settings/fadeXPBar',
-        'Settings/tintColor'
+        'Settings/tintColor',
+        'Settings/xpBarColor',
+        'Settings/toolbarWidth'
     );
     self:RegisterEvent('CURSOR_CHANGED')
-    Mixin(self.PopoutContainer.PopoutFrame, PopoutFrame):OnLoad()
     self.PopoutContainer:SetParent(self:GetParent())
     self.PopoutContainer:SetFrameLevel(self:GetFrameLevel() + 10)
+    Mixin(self.PopoutContainer.PopoutFrame, PopoutFrame):OnLoad()
 end
 
 function CPToolbar:OnEnter()
@@ -191,8 +216,15 @@ function CPToolbar:OnEnter()
     self.fadeOutTimer = 0;
 end
 
+function CPToolbar:OnSizeChanged()
+    self.PopoutContainer.PopoutFrame:Layout()
+    if ( not self.XPBar ) then return end;
+    self.XPBar:SetWidth(self:GetWidth() * 0.8)
+    self.XPBar:UpdateBarsShown()
+end
+
 function CPToolbar:OnUpdate(elapsed)
-    if self:IsMouseOver() then
+    if self.PopoutContainer:IsMouseOver() then
         self.fadeOutTimer = 0;
         return
     end
@@ -211,14 +243,15 @@ function CPToolbar:ToggleXPBar(enabled)
     if ( not self.XPBar ) then
         if not enabled then return end;
         self.XPBar = CreateFrame('Frame', nil, self, 'CPWatchBarContainer')
-        self.XPBar:SetPoint('BOTTOM')
     end
     self.XPBar:SetShown(enabled)
+    self.XPBar:SetMainBarColor(env:GetColorRGB('xpBarColor'))
 end
 
-function CPToolbar:ToggleXPBarFade(enabled)
+function CPToolbar:ToggleXPBarFade(xpBarEnabled)
     if ( not self.XPBar ) then return end;
-    self.XPBar:OnShow()
+    if not xpBarEnabled then return end;
+    self.XPBar:OnShow() -- env('fadeXPBar') is handled by the XPBar itself
 end
 
 function CPToolbar:SetTintColor(r, g, b, a)
@@ -228,9 +261,10 @@ function CPToolbar:SetTintColor(r, g, b, a)
 end
 
 function CPToolbar:OnDataLoaded()
-    self:SetTintColor(env:GetColorRGB('tintColor'))
+    self:SetTintColor(env:GetColorRGBA('tintColor'))
     self:ToggleXPBar(env('enableXPBar'))
-    self:ToggleXPBarFade(env('fadeXPBar'))
+    self:ToggleXPBarFade(env('enableXPBar'))
+    self:SetWidth(env('toolbarWidth'))
 end
 
 function CPToolbar:SetConfig(config)

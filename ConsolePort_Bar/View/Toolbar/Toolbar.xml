@@ -2,7 +2,7 @@
 ..\FrameXML\UI.xsd">
 	<Script file="Toolbar.lua"/>
 
-	<Button name="CPToolbarMicroButton" mixin="CPMicroButton" motionScriptsWhileDisabled="true" virtual="true" ignoreParentAlpha="true">
+	<Button name="CPToolbarMicroButton" mixin="CPMicroButton" motionScriptsWhileDisabled="true" virtual="true">
 		<Size x="32" y="40"/>
 		<NormalTexture parentKey="NormalTexture">
 			<Anchors>
@@ -160,21 +160,25 @@
             <OnLoad method="OnLoad"/>
 			<OnEnter method="OnEnter"/>
 			<OnEvent method="OnEvent"/>
+			<OnSizeChanged method="OnSizeChanged"/>
 		</Scripts>
 		<Frames>
 			<Frame parentKey="PopoutContainer" clipChildren="true">
-				<Size x="300" y="200"/>
+				<Size x="300" y="300"/>
 				<Anchors>
 					<Anchor point="BOTTOM" y="17"/>
 				</Anchors>
 				<Frames>
-					<Frame parentKey="PopoutFrame" inherits="HorizontalLayoutFrame, CPToolbarSixSliceFrame" alpha="0">
+					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarSixSliceFrame" alpha="0">
+						<Size x="300" y="40"/>
 						<KeyValues>
 							<KeyValue key="childXPadding" value="2" type="number"/>
 							<KeyValue key="childYPadding" value="2" type="number"/>
+							<KeyValue key="stride" value="1" type="number"/>
 							<KeyValue key="isHorizontal" value="true" type="boolean"/>
+							<KeyValue key="layoutFramesGoingRight" value="true" type="boolean"/>
+							<KeyValue key="alwaysUpdateLayout" value="true" type="boolean"/>
 						</KeyValues>
-						<Size x="300" y="40"/>
 						<Anchors>
 							<Anchor point="BOTTOM" y="0"/>
 						</Anchors>
@@ -213,48 +217,38 @@
 									<KeyValue key="highlightAtlas" value="Barbershop-32x32" type="string"/>
 								</KeyValues>
 							</Button>
-							<!--<Button parentKey="Button3" inherits="CPToolbarMicroButton">
-								<KeyValues>
-									<KeyValue key="layoutIndex" value="-2" type="number"/>
-								</KeyValues>
-							</Button>-->
 							<Frame parentKey="Divider1" inherits="CPToolbarDivider">
 								<KeyValues>
 									<KeyValue key="layoutIndex" value="-1" type="number"/>
 								</KeyValues>
 							</Frame>
-							<!--<Frame parentKey="Divider2" inherits="CPToolbarDivider">
-								<KeyValues>
-									<KeyValue key="layoutIndex" value="13" type="number"/>
-								</KeyValues>
-							</Frame>-->
 						</Frames>
 					</Frame>
 				</Frames>
 				<Animations>
 					<AnimationGroup parentKey="SlideIn" setToFinalAlpha="true">
 						<Alpha childKey="PopoutFrame" fromAlpha="0" toAlpha="1" duration="0.25"/>
-						<Translation childKey="PopoutFrame" offsetX="0" offsetY="40" duration="0.25"/>
+						<Translation parentKey="Translate" childKey="PopoutFrame" offsetX="0" offsetY="40" duration="0.25"/>
 						<Scripts>
 							<OnPlay>
 								self:GetParent().SlideOut:Finish();
-								self:GetParent().PopoutFrame:SetPoint('BOTTOM', 0, -40);
+								self:GetParent().PopoutFrame:SetActive(false);
 							</OnPlay>
 							<OnFinished>
-								self:GetParent().PopoutFrame:SetPoint('BOTTOM', 0, 0);
+								self:GetParent().PopoutFrame:SetActive(true);
 							</OnFinished>
 						</Scripts>
 					</AnimationGroup>
 					<AnimationGroup parentKey="SlideOut" setToFinalAlpha="true">
 						<Alpha childKey="PopoutFrame" fromAlpha="1" toAlpha="0" duration="0.25"/>
-						<Translation childKey="PopoutFrame" offsetX="0" offsetY="-40" duration="0.25"/>
+						<Translation parentKey="Translate" childKey="PopoutFrame" offsetX="0" offsetY="-40" duration="0.25"/>
 						<Scripts>
 							<OnPlay>
 								self:GetParent().SlideIn:Finish();
-								self:GetParent().PopoutFrame:SetPoint('BOTTOM', 0, 0);
+								self:GetParent().PopoutFrame:SetActive(true);
 							</OnPlay>
 							<OnFinished>
-								self:GetParent().PopoutFrame:SetPoint('BOTTOM', 0, -40);
+								self:GetParent().PopoutFrame:SetActive(false);
 							</OnFinished>
 						</Scripts>
 					</AnimationGroup>
@@ -263,7 +257,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture name="$parentBG" parentKey="BG" inherits="CPToolbarGradient">
+				<Texture parentKey="BG" inherits="CPToolbarGradient">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="16" y="60"/>
 						<Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
@@ -271,7 +265,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="BORDER">
-				<Texture name="$parentBottomLine" parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
+				<Texture parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
 					<TexCoords left="0.00195313" right="0.81835938" top="0.013671875" bottom="0.017578125"/>
 					<Size x="0" y="1"/>
 					<Anchors>

@@ -108,10 +108,9 @@
 	</Frame>
 
 	<Frame name="CPWatchBarContainer" frameStrata="LOW" mixin="CPWatchBarContainerMixin" virtual="true">
-		<Size x="804" y="16"/>
+		<Size x="800" y="16"/>
 		<Anchors>
-			<Anchor point="BOTTOMLEFT" x="90"/>
-			<Anchor point="BOTTOMRIGHT" x="-90"/>
+			<Anchor point="BOTTOM"/>
 		</Anchors>
 		<KeyValues>
 			<KeyValue key="endCapWidth" value="4" type="number"/>

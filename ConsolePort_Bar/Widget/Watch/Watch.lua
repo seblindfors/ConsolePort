@@ -210,14 +210,14 @@ function CPExhaustionTickMixin:ExhaustionToolTipText()
 	GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
 
 	local exhaustionStateID, exhaustionStateName, exhaustionStateMultiplier = GetRestState()
-	local exhaustionCurrXP, exhaustionMaxXP
 	local exhaustionThreshold = GetXPExhaustion()
 	local exhaustionCountdown = nil
 
 	exhaustionStateMultiplier = exhaustionStateMultiplier * 100
 
-	if ( GetTimeToWellRested() ) then
-		exhaustionCountdown = GetTimeToWellRested() / 60
+	local timeToWellRested = GetTimeToWellRested and GetTimeToWellRested()
+	if ( timeToWellRested ) then
+		exhaustionCountdown = timeToWellRested / 60;
 	end
 
 	local currXP = UnitXP('player')
