@@ -46,12 +46,13 @@ Widgets.CreateWidget = CreateWidget;
 ---------------------------------------------------------------
 local Widget = {};
 
-function Widget:OnLoad(varID, metaData, controller, desc, note)
-	self.metaData = metaData;
-	self.variableID = varID;
-	self.controller = controller;
+function Widget:OnLoad(varID, metaData, controller, desc, note, owner)
+	self.metaData    = metaData;
+	self.variableID  = varID;
+	self.controller  = controller;
 	self.tooltipText = desc;
 	self.tooltipNote = note;
+	self.owner       = owner or env.Config;
 
 	if self.blueprint then
 		Carpenter:BuildFrame(self, self.blueprint, false, true)
@@ -314,16 +315,16 @@ function Number:OnClick(button)
 		return self:SetDefault()
 	end
 	if self:GetChecked() then
-		self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
-		self.CatchRight = env.Config:CatchButton('PADDRIGHT', self.OnRightButton, self)
+		self.CatchLeft  = self.owner:CatchButton('PADDLEFT', self.OnLeftButton, self)
+		self.CatchRight = self.owner:CatchButton('PADDRIGHT', self.OnRightButton, self)
 		self.tooltipHints = {
 			env:GetTooltipPromptForClick('LeftClick', APPLY);
 			env:GetTooltipPrompt('PADDLEFT', env.L'Decrease');
 			env:GetTooltipPrompt('PADDRIGHT', env.L'Increase');
 		};
 	else
-		env.Config:FreeButton('PADDLEFT', self.CatchLeft)
-		env.Config:FreeButton('PADDRIGHT', self.CatchRight)
+		self.owner:FreeButton('PADDLEFT', self.CatchLeft)
+		self.owner:FreeButton('PADDRIGHT', self.CatchRight)
 		self.CatchLeft, self.CatchRight = nil, nil;
 		self.tooltipHints = nil;
 	end
@@ -562,7 +563,7 @@ function Button:OnGamePadButtonDown(button)
 	end
 	self:Set(button)
 	Widget.OnClick(self)
-	env.Config:SetDefaultClosures()
+	self.owner:SetDefaultClosures()
 end
 
 function Button:OnClick(button)
@@ -578,9 +579,9 @@ function Button:OnClick(button)
 			YELLOW_FONT_COLOR:WrapTextInColorCode(BIND_KEY_TO_COMMAND:format(BLUE_FONT_COLOR:WrapTextInColorCode(self:GetText())));
 		};
 		self:UpdateTooltip()
-		return env.Config:CatchAll(self.OnGamePadButtonDown, self)
+		return self.owner:CatchAll(self.OnGamePadButtonDown, self)
 	end
-	env.Config:SetDefaultClosures()
+	self.owner:SetDefaultClosures()
 end
 
 function Button:OnValueChanged(value)
@@ -806,16 +807,16 @@ function Select:OnClick(button)
 	end
 	self:EnableMouseWheelSelect(self:GetChecked())
 	if self:GetChecked() then
-		self.CatchLeft  = env.Config:CatchButton('PADDLEFT', self.OnLeftButton, self)
-		self.CatchRight = env.Config:CatchButton('PADDRIGHT', self.OnRightButton, self)
+		self.CatchLeft  = self.owner:CatchButton('PADDLEFT', self.OnLeftButton, self)
+		self.CatchRight = self.owner:CatchButton('PADDRIGHT', self.OnRightButton, self)
 		self.tooltipHints = {
 			env:GetTooltipPromptForClick('LeftClick', APPLY);
 			env:GetTooltipPrompt('PADDLEFT', PREVIOUS);
 			env:GetTooltipPrompt('PADDRIGHT', NEXT);
 		};
 	else
-		env.Config:FreeButton('PADDLEFT', self.CatchLeft)
-		env.Config:FreeButton('PADDRIGHT', self.CatchRight)
+		self.owner:FreeButton('PADDLEFT', self.CatchLeft)
+		self.owner:FreeButton('PADDRIGHT', self.CatchRight)
 		self.CatchLeft, self.CatchRight = nil, nil;
 		self.tooltipHints = nil;
 	end
