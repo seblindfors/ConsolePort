@@ -16,8 +16,9 @@
 
 ## SavedVariablesPerCharacter: ConsolePort_BarSetup, ConsolePort_BarDB, ConsolePort_BarLayout
 
-Utils.lua
-Database.lua
+Model\Utils.lua
+Model\Assets.lua
+Model\Database.lua
 
 Widget\Widget.lua
 Widget\Watch\Watch.xml
@@ -29,6 +30,5 @@ View\Blizzard\Retail.lua
 View\Blizzard\Classic.lua
 
 View\Toolbar\Toolbar.xml
-
+View\Config\Config.xml
 View\Manager\Manager.xml
-#test.lua

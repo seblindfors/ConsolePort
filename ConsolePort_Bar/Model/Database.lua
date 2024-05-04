@@ -39,6 +39,11 @@ env:Register('Variables', CPAPI.Callable({
 	fadeXPBar = _{Data.Bool(false);
 		name = 'Fade Watch Bars';
 		desc = 'Fade out the XP bar when not mousing over it.';
+		deps = { enableXPBar = true };
+	};
+	toolbarWidth = _{Data.Range(900, 25, 300, 1200);
+		name = 'Toolbar Width';
+		desc = 'Width of the toolbar.';
 	};
 	---------------------------------------------------------------
 	_'Colors';
@@ -59,9 +64,9 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Spell Proc Color';
 		desc = 'Color of the spell proc effect.';
 	};
-	borderVertexColor = _{Data.Color(WHITE_FONT_COLOR);
+	borderColor = _{Data.Color(WHITE_FONT_COLOR);
 		name = 'Border Vertex Color';
-		desc = 'Color of the vertexes on the border of buttons.';
+		desc = 'Color of the vertices on the border of buttons.';
 	};
 }, function(self, key) return (rawget(self, key) or {})[1] end))
 ---------------------------------------------------------------
@@ -239,7 +244,6 @@ env.Presets.Default = function() return {
 	bars = {
 		Cluster = {
 			type     = 'Cluster';
-			lock     = true;
 			scale 	 = 1;
 			width 	 = 1200;
 			height   = 140;
@@ -268,10 +272,7 @@ env.Presets.Default = function() return {
 		};
 		Toolbar = {
 			type    = 'Toolbar';
-			lock     = true;
-			scale    = 1;
-			width    = 900;
-			point    = { point = 'BOTTOM', x = 0, y = 0};
+			point   = { point = 'BOTTOM', x = 0, y = 0};
 		};
 	};
 }; end;
