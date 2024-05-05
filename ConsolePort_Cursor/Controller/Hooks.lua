@@ -310,7 +310,8 @@ do -- Tooltip hooking
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Mount, OnTooltipSetMount)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
-	else
+	end
+	if not CPAPI.IsRetailVersion then -- TooltipDataProcessor exists on Cata but is not used
 		GameTooltip:HookScript('OnTooltipSetItem', OnTooltipSetItem)
 		GameTooltip:HookScript('OnTooltipSetSpell', OnTooltipSetSpell)
 	end
