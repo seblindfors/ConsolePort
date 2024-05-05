@@ -4,7 +4,7 @@ local PanelMixin, Widgets = {}, env.Widgets;
 ---------------------------------------------------------------
 -- Addon settings
 ---------------------------------------------------------------
-local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET, OPTION_HEIGHT = 284, 700, 8, 40;
+local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET, DATA_POINT = 284, 700, 8, 1;
 local Setting = CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
 env.SettingMixin = Setting;
 
@@ -15,12 +15,12 @@ function Setting:OnLoad()
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 end
 
-function Setting:AddDependencies(deps)
+function Setting:SetDependencies(deps)
 	self.deps = CreateFlags(0);
 	local flags, callbacks = {}, {};
 	for dep, value in db.table.spairs(deps) do
 		tinsert(flags, dep)
-		callbacks[dep] = self:AddDependencyCallback(dep, value)
+		callbacks[dep] = self:RegisterDependency(dep, value)
 	end
 	self.flags = FlagsUtil.MakeFlags(unpack(flags))
 	for dep, callback in pairs(callbacks) do
@@ -28,23 +28,40 @@ function Setting:AddDependencies(deps)
 	end
 end
 
+function Setting:RegisterCallback(callbackID, callback)
+	self.callbacks = self.callbacks or {};
+	self.registry:RegisterCallback(callbackID, callback, self)
+	self.callbacks[callbackID] = callback;
+	return callback;
+end
+
 function Setting:Construct(name, varID, field, newObj, registry, callbackID, owner)
 	if newObj then
 		self.registry = registry;
 		self:SetText(L(name))
-		local constructor = Widgets[varID] or Widgets[field[1]:GetType()];
+		local constructor = Widgets[varID] or Widgets[field[DATA_POINT]:GetType()];
 		if constructor then
+			constructor(self, varID, field, field[DATA_POINT], L(field.desc), L(field.note), owner)
+
 			callbackID = callbackID or ('Settings/'..varID);
-			constructor(self, varID, field, field[1], L(field.desc), L(field.note), owner)
-			self.controller:SetCallback(function(...) registry(callbackID, ...) end)
-			registry:RegisterCallback(callbackID, self.OnValueChanged, self)
+			local callback = function(...) registry(callbackID, ...) end;
+			self:SetCallback(callback)
+			self:RegisterCallback(callbackID, self.OnValueChanged)
+
 			if (field.deps) then
-				self:AddDependencies(field.deps)
+				self:SetDependencies(field.deps)
 			end
 		end
 	end
 	self:Hide()
 	self:Show()
+end
+
+function Setting:Destruct()
+	for callbackID in pairs(self.callbacks) do
+		self.registry:UnregisterCallback(callbackID, self)
+	end
+	self.registry, self.callbacks = nil, nil;
 end
 
 function Setting:Get()
@@ -65,14 +82,13 @@ do -- Dependencies
 	local function OnDependencyChanged(self, dep, depValue, _, value)
 		self.deps:SetOrClear(self.flags[dep], Comparator[type(depValue)](depValue, value))
 		self.metaData.hide = self.deps:IsAnySet();
-		TriggerDependencyChanged[self.registry]()
+		TriggerDependencyChanged[self.registry](dep)
 	end
 
-	function Setting:AddDependencyCallback(dep, value)
+	function Setting:RegisterDependency(dep, value)
 		local callbackID = dep:match('/') and dep or ('Settings/'..dep);
 		local callback = GenerateClosure(OnDependencyChanged, self, dep, value)
-		self.registry:RegisterCallback(callbackID, callback)
-		return callback;
+		return self:RegisterCallback(callbackID, callback)
 	end
 end
 

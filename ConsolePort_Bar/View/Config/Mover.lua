@@ -182,8 +182,10 @@ end
 function Mover:SetSnapPixels(snapToPixels)
     self.snapToPixels = snapToPixels;
     self.Snap:SetText(('Snap: %dpx'):format(snapToPixels))
-    self.Grid:SetGridSpacing(snapToPixels)
-    self.Grid:SetShown(snapToPixels > 1)
+    self.Grid:SetShown(snapToPixels > 5)
+    if self.Grid:IsShown() then
+        self.Grid:SetGridSpacing(snapToPixels)
+    end
 end
 
 function Mover:SetWidget(frame)
@@ -280,6 +282,8 @@ end
 function Mover:OnGamePadStick(stick, x, y, len)
     if (stick == 'Right') then
         self:NudgeFrame(x * 4, y * 4, len)
+    elseif (stick == 'Left') then
+        self:NudgeFrame(x * 2, y * 2, len)
     end
 end
 

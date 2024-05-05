@@ -110,7 +110,7 @@ function ProxyButton:SetXMLBinding(binding)
 		tooltip = info.tooltip or env.GetBindingName(binding);
 		texture = info.texture or env.GetBindingIcon(binding) or ProxyButtonTextureProvider(self.id);
 		func    = function() end; -- TODO
-	}
+	};
 end
 
 function ProxyButton:SetEligbleForRebind(state)

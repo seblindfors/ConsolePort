@@ -56,6 +56,8 @@ db:RegisterCallback('OnToggleCharacterSettings', DataAPI.OnToggleCharacterSettin
 ---------------------------------------------------------------
 -- Fields
 ---------------------------------------------------------------
+local ID, DATA, TYPE, CALL, PATH, INIT, DEF = 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6;
+
 local Field = setmetatable({}, {
 	__index = function(self, k)
 		local typeCheck = k:gsub('^Is(%w+)$', '%1');
@@ -69,62 +71,59 @@ local Field = setmetatable({}, {
 	end;
 });
 
-do  local ID, DATA, TYPE, CALL, PATH, INIT, DEF = 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6;
+function Field:Get()        return copy(rawget(self, DATA)) end
+function Field:GetID()      return rawget(self, ID) end
+function Field:GetPath()    return rawget(self, PATH) end
+function Field:GetType()    return rawget(self, TYPE) end
+function Field:GetDefault() return copy(rawget(self, DEF)) end
 
-	function Field:Get()        return copy(rawget(self, DATA)) end
-	function Field:GetID()      return rawget(self, ID) end
-	function Field:GetPath()    return rawget(self, PATH) end
-	function Field:GetType()    return rawget(self, TYPE) end
-	function Field:GetDefault() return copy(rawget(self, DEF)) end
-
-	function Field:IsType(cmp)
-		return (rawget(self, TYPE):lower() == cmp:lower());
-	end
-
-	function Field:IsValue(cmp)
-		return (self:Get() == cmp)
-	end
-
-	function Field:Save()
-		db(self:GetPath(), self:Get())
-	end
-
-	function Field:Set(val)
-		rawset(self, DATA, val)
-		if not rawget(self, INIT) then
-			rawset(self, INIT, true)
-			rawset(self, DEF, copy(val))
-		end
-		local callback = rawget(self, CALL)
-		return self, callback and callback(self:Get());
-	end
-
-	function Field:SetCallback(callback)
-		rawset(self, CALL, callback)
-		return self;
-	end
-
-	function Field:SetID(id)
-		rawset(self, ID, id)
-		return self;
-	end
-
-	function Field:SetPath(path)
-		rawset(self, PATH, path)
-		return self;
-	end
-
-	function Field:SetType(type)
-		rawset(self, TYPE, type)
-		return self;
-	end
-
-	function Field:SetDefault()
-		return self:Set(rawget(self, DEF));
-	end
-
-	Field:SetType('Field')
+function Field:IsType(cmp)
+	return (rawget(self, TYPE):lower() == cmp:lower());
 end
+
+function Field:IsValue(cmp)
+	return (self:Get() == cmp)
+end
+
+function Field:Save()
+	db(self:GetPath(), self:Get())
+end
+
+function Field:Set(val)
+	rawset(self, DATA, val)
+	if not rawget(self, INIT) then
+		rawset(self, INIT, true)
+		rawset(self, DEF, copy(val))
+	end
+	local callback = rawget(self, CALL)
+	return self, callback and callback(self:Get());
+end
+
+function Field:SetCallback(callback)
+	rawset(self, CALL, callback)
+	return self;
+end
+
+function Field:SetID(id)
+	rawset(self, ID, id)
+	return self;
+end
+
+function Field:SetPath(path)
+	rawset(self, PATH, path)
+	return self;
+end
+
+function Field:SetType(type)
+	rawset(self, TYPE, type)
+	return self;
+end
+
+function Field:SetDefault()
+	return self:Set(rawget(self, DEF));
+end
+
+Field:SetType('Field')
 
 ---------------------------------------------------------------
 local Button = Field():SetType('Button');
@@ -289,6 +288,67 @@ function Select:SetRawOptions(options)
 end
 
 ---------------------------------------------------------------
+local Table = Field():SetType('Table');
+---------------------------------------------------------------
+
+function Table:Get()
+	local result = {};
+	local data = Field.Get(self);
+	for child, field in pairs(data) do
+		result[child] = field[DATA]:Get();
+	end
+	return result;
+end
+
+function Table:Set(tbl)
+	if not rawget(self, INIT) then
+		return Field.Set(self, tbl)
+	end
+	local inline = rawget(self, DATA);
+	for key, val in pairs(tbl) do
+		if inline[key] then
+			inline[key][DATA]:Set(val)
+		else
+			error('Key not found in table: '..key)
+		end
+	end
+	local callback = rawget(self, CALL)
+	return self, callback and callback(self:Get());
+end
+
+---------------------------------------------------------------
+local Container = Table():SetType('Container');
+---------------------------------------------------------------
+
+function Container:Get()
+	return Table.Get(self[DATA][DATA]);
+end
+
+function Container:Set(tbl)
+	if not rawget(self, INIT) then
+		return Table.Set(self, tbl)
+	end
+	return Table.Set(self[DATA][DATA], tbl):Get();
+end
+
+function Container:New(props)
+	local overrides = props[DATA];
+	local instance = Field.Get(self)
+	if overrides then
+		Table.Set(instance[DATA], overrides)
+		props[DATA] = nil;
+	end
+	if props then
+		Mixin(instance, props)
+	end
+	return instance;
+end
+
+function Container:Instance(props)
+	return db.table.merge(self:Get(), props)
+end
+
+---------------------------------------------------------------
 -- Data interface (call obj to enter data definition env)
 ---------------------------------------------------------------
 local Data = db:Register('Data', setmetatable({}, {
@@ -333,7 +393,15 @@ function Data.String(val)
 end
 
 function Data.Table(val)
-	return Field():SetType('Table'):Set(val)
+	return Table():Set(val)
+end
+
+function Data.Container(val)
+	return Container():Set(val)
+end
+
+function Data.Field(val)
+	return Field():Set(val)
 end
 
 

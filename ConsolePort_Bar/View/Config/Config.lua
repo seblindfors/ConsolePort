@@ -70,11 +70,11 @@ local Settings = Mixin({
 			return a < b;
 		end
 	end;
-}, CPFocusPoolMixin);
+}, CPIndexPoolMixin);
 
 function Settings:OnLoad(widgetOwner)
 	self.owner = widgetOwner;
-	CPFocusPoolMixin.OnLoad(self)
+	CPIndexPoolMixin.OnLoad(self)
 	Mixin(Setting, config.SettingMixin)
 	self.headerPool = CreateFramePool('Button', self, 'CPPopupHeaderTemplate')
 	self:CreateFramePool('CheckButton', 'CPPopupButtonTemplate', Setting, nil, self)
@@ -110,7 +110,7 @@ end
 function Settings:DrawOptions()
 	self.headerPool:ReleaseAll()
 
-	local owner, sortedGroups, layoutIndex = self.owner, {}, CreateCounter();
+	local sortedGroups, layoutIndex = {}, CreateCounter();
 	foreach(env.Variables, function(var, data)
 		local group = data.head or MISCELLANEOUS;
 

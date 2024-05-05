@@ -1,8 +1,8 @@
 local _, env = ...;
+local Data, _ = env.db.Data, CPAPI.Define;
 ---------------------------------------------------------------
 do -- Variables
 ---------------------------------------------------------------
-local Data, _ = env.db.Data, CPAPI.Define;
 local classColor = CreateColor(CPAPI.NormalizeColor(CPAPI.GetClassColor()));
 
 env:Register('Variables', CPAPI.Callable({
@@ -51,6 +51,7 @@ env:Register('Variables', CPAPI.Callable({
 	xpBarColor = _{Data.Color(classColor);
 		name = 'XP Bar Color';
 		desc = 'Color of the main XP bar.';
+		deps = { enableXPBar = true };
 	};
 	swipeColor = _{Data.Color(classColor);
 		name = 'Swipe Color';
@@ -71,7 +72,6 @@ env:Register('Variables', CPAPI.Callable({
 }, function(self, key) return (rawget(self, key) or {})[1] end))
 ---------------------------------------------------------------
 end -- Variables
-
 
 ---------------------------------------------------------------
 do -- Cluster information
@@ -231,13 +231,130 @@ end)( {}, env.ClusterConstants.ModNames() )
 
 end -- Cluster information
 
-
-
 ---------------------------------------------------------------
--- Presets
+env.Types = {};
+---------------------------------------------------------------
+env.Types.SimplePoint = Data.Container {
+	name = 'Position';
+	desc = 'Position of the element.';
+	Data.Table {
+		point = {
+			name = 'Anchor';
+			desc = 'Anchor point relative to parent action bar.';
+			Data.Select('CENTER', 'CENTER', 'BOTTOM', 'TOP', 'LEFT', 'RIGHT');
+		};
+		x = {
+			name = 'X Offset';
+			desc = 'Horizontal offset from anchor point.';
+			Data.Number(0, 5, true);
+		};
+		y = {
+			name = 'Y Offset';
+			desc = 'Vertical offset from anchor point.';
+			Data.Number(0, 5, true);
+		};
+	};
+};
+
+env.Types.ClusterHandle = Data.Container {
+	name = 'Cluster Handle';
+	desc = 'A handle for a cluster bar.';
+	Data.Table {
+		size = {
+			name = 'Size';
+			desc = 'Size of the cluster handle.';
+			Data.Number(64, 2);
+		};
+		dir = {
+			name = 'Direction';
+			desc = 'Direction of the cluster handle.';
+			Data.Select('DOWN', env.ClusterConstants.Directions());
+		};
+		pos = env.Types.SimplePoint : New { desc = 'Position of the cluster handle.' };
+	};
+};
+
+env.Types.Cluster = Data.Container {
+	name = DEFAULT;
+	desc = 'A cluster action bar.';
+	Data.Table {
+		type = {
+			hide = true;
+			name = 'Type';
+			desc = 'Type of the cluster bar.';
+			Data.String('Cluster');
+		};
+		width = {
+			name = 'Width';
+			desc = 'Width of the cluster bar.';
+			Data.Number(1200, 25, true);
+		};
+		height = {
+			name = 'Height';
+			desc = 'Height of the cluster bar.';
+			Data.Number(140, 25, true);
+		};
+		scale = {
+			name = 'Scale';
+			desc = 'Scale of the cluster bar.';
+			Data.Number(1, 0.1, true);
+		};
+		pos = env.Types.SimplePoint : New { desc = 'Position of the cluster bar.'; {
+			point = 'BOTTOM';
+			y     = 16;
+		}};
+	};
+};
+
+env.Types.Toolbar = Data.Container {
+	name = 'Toolbar';
+	desc = 'A toolbar with XP indicators, shortcuts and other information.';
+	Data.Table {
+		type = {
+			hide = true;
+			name = 'Type';
+			desc = 'Type of the toolbar.';
+			Data.String('Toolbar');
+		};
+		pos = env.Types.SimplePoint : New { desc = 'Position of the toolbar.'; {
+			point = 'BOTTOM';
+		}};
+	};
+
+};
+
 ---------------------------------------------------------------
 env.Presets = {};
-env.Presets.Default = function() return {
+---------------------------------------------------------------
+do -- Cluster layouts
+local Button = env.Types.ClusterHandle();
+
+env.Presets.Default = {
+	name       = DEFAULT;
+	desc       = 'A cluster bar with a toolbar below it.';
+	visibility = '[petbattle][vehicleui][overridebar] hide; show';
+	bars = {
+		Cluster = env.Types.Cluster : Instance {
+			buttons = {
+				PADDLEFT     = Button:Set { dir = 'LEFT',  pos = { point = 'LEFT',  x =  176, y =  56 } };
+				PADDRIGHT    = Button:Set { dir = 'RIGHT', pos = { point = 'LEFT',  x =  306, y =  56 } };
+				PADDUP       = Button:Set { dir = 'UP',    pos = { point = 'LEFT',  x =  240, y = 100 } };
+				PADDDOWN     = Button:Set { dir = 'DOWN',  pos = { point = 'LEFT',  x =  240, y =  16 } };
+				PAD2         = Button:Set { dir = 'RIGHT', pos = { point = 'RIGHT', x = -176, y =  56 } };
+				PAD3         = Button:Set { dir = 'LEFT',  pos = { point = 'RIGHT', x = -306, y =  56 } };
+				PAD4         = Button:Set { dir = 'UP',    pos = { point = 'RIGHT', x = -240, y = 100 } };
+				PAD1         = Button:Set { dir = 'DOWN',  pos = { point = 'RIGHT', x = -240, y =  16 } };
+				PADLSHOULDER = Button:Set { dir = 'RIGHT', pos = { point = 'LEFT',  x =  456, y =  56 } };
+				PADRSHOULDER = Button:Set { dir = 'LEFT',  pos = { point = 'RIGHT', x = -456, y =  56 } };
+				PADLTRIGGER  = Button:Set { dir = 'DOWN',  pos = { point = 'LEFT',  x =  396, y =  16 } };
+				PADRTRIGGER  = Button:Set { dir = 'DOWN',  pos = { point = 'RIGHT', x = -396, y =  16 } };
+			};
+		};
+		Toolbar = env.Types.Toolbar : Instance();
+	};
+};
+
+function env.Presets.Orthodox() return {
 	name = DEFAULT;
 	desc = 'A cluster bar with a toolbar below it.';
 	visibility = '[petbattle][vehicleui][overridebar] hide; show';
@@ -253,21 +370,21 @@ env.Presets.Default = function() return {
 				local T1, T2 = handle:GetUIControlBinding('T1'), handle:GetUIControlBinding('T2')
 				local M1, M2 = handle:GetUIControlBinding('M1'), handle:GetUIControlBinding('M2')
 
-				if M1 then buttons[M1] = { dir = 'UP',    point = {'LEFT',   405, 75}, size = 64 } end;
-				if M2 then buttons[M2] = { dir = 'UP',    point = {'RIGHT', -405, 75}, size = 64 } end;
-				if T1 then buttons[T1] = { dir = 'RIGHT', point = {'LEFT',   440,  9}, size = 64 } end;
-				if T2 then buttons[T2] = { dir = 'LEFT',  point = {'RIGHT', -440,  9}, size = 64 } end;
+				if M1 then buttons[M1] = Button:Set { dir =    'UP', pos = { point = 'LEFT',  x =  405, y = 75} } end;
+				if M2 then buttons[M2] = Button:Set { dir =    'UP', pos = { point = 'RIGHT', x = -405, y = 75} } end;
+				if T1 then buttons[T1] = Button:Set { dir = 'RIGHT', pos = { point = 'LEFT',  x =  440, y =  9} } end;
+				if T2 then buttons[T2] = Button:Set { dir =  'LEFT', pos = { point = 'RIGHT', x = -440, y =  9} } end;
 
 				return buttons;
 			end)({
-				PADDRIGHT = { dir = 'RIGHT', point = {'LEFT',   330, 9}, size = 64 };
-				PADDLEFT  = { dir = 'LEFT',  point = {'LEFT',    80, 9}, size = 64 };
-				PADDDOWN  = { dir = 'DOWN',  point = {'LEFT',   165, 9}, size = 64 };
-				PADDUP    = { dir = 'UP',    point = {'LEFT',   250, 9}, size = 64 };
-				PAD2      = { dir = 'RIGHT', point = {'RIGHT',  -80, 9}, size = 64 };
-				PAD3      = { dir = 'LEFT',  point = {'RIGHT', -330, 9}, size = 64 };
-				PAD1      = { dir = 'DOWN',  point = {'RIGHT', -250, 9}, size = 64 };
-				PAD4      = { dir = 'UP',    point = {'RIGHT', -165, 9}, size = 64 };
+				PADDRIGHT = Button:Set { dir = 'RIGHT', pos = { point = 'LEFT',  x =  330, y = 9 } };
+				PADDLEFT  = Button:Set { dir =  'LEFT', pos = { point = 'LEFT',  x =   80, y = 9 } };
+				PADDDOWN  = Button:Set { dir =  'DOWN', pos = { point = 'LEFT',  x =  165, y = 9 } };
+				PADDUP    = Button:Set { dir =    'UP', pos = { point = 'LEFT',  x =  250, y = 9 } };
+				PAD2      = Button:Set { dir = 'RIGHT', pos = { point = 'RIGHT', x =  -80, y = 9 } };
+				PAD3      = Button:Set { dir =  'LEFT', pos = { point = 'RIGHT', x = -330, y = 9 } };
+				PAD1      = Button:Set { dir =  'DOWN', pos = { point = 'RIGHT', x = -250, y = 9 } };
+				PAD4      = Button:Set { dir =    'UP', pos = { point = 'RIGHT', x = -165, y = 9 } };
 			});
 		};
 		Toolbar = {
@@ -276,8 +393,9 @@ env.Presets.Default = function() return {
 		};
 	};
 }; end;
+end -- Cluster layouts
 
 
 function env:GetDefaultLayout()
-	return env.Presets.Default();
+	return env.Presets.Default;
 end

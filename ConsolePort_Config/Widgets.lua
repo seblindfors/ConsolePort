@@ -54,8 +54,8 @@ function Widget:OnLoad(varID, metaData, controller, desc, note, owner)
 	self.tooltipNote = note;
 	self.owner       = owner or env.Config;
 
-	if self.blueprint then
-		Carpenter:BuildFrame(self, self.blueprint, false, true)
+	if self.blueprint and not self.constructed then
+		self.constructed = not not Carpenter:BuildFrame(self, self.blueprint, false, true)
 	end
 end
 

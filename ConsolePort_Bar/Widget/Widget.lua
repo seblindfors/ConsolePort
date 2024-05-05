@@ -18,8 +18,8 @@ function CommonWidget:SetCommonConfig(config)
             handler(self, config[key]);
         end
     end
-    if config.point then
-        local info = config.point;
+    if config.pos then
+        local info = config.pos;
         self:SetPoint(info.point, UIParent, info.relativePoint or info.point, info.x, info.y)
     end
 end

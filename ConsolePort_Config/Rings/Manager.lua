@@ -208,7 +208,7 @@ function RingSelectMixin:Construct()
 	self.tooltipAnchor = 'ANCHOR_BOTTOM';
 	self.Popout:ClearAllPoints()
 	self.Popout:SetPoint('TOPRIGHT', -2, 0)
-	self.controller:SetCallback(function(value)
+	self:SetCallback(function(value)
 		self:OnValueChanged(value)
 		self:Update()
 		db:TriggerEvent('OnRingSelectionChanged', value)

@@ -109,7 +109,8 @@ function Cluster:SetDirection(direction)
 end
 
 function Cluster:SetConfig(config)
-	self:SetPoint(unpack(config.point))
+	local pos = config.pos;
+	self:SetPoint(pos.point, pos.x, pos.y)
 	self:SetDirection(config.dir)
 	self:SetSize(config.size)
 end
@@ -260,10 +261,11 @@ end
 
 function FlyoutButton:OnCooldownSet(cooldown, _, duration)
 	local onCooldown = (cooldown and duration and duration > 0);
+	local fadeInForCD = onCooldown and duration > 2;
 	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
 	if hotkey1 then hotkey1:SetShown(not onCooldown) end;
 	if hotkey2 then hotkey2:SetShown(not onCooldown) end;
-	self:UpdateFade(self.VisibilityState.OnCooldown, onCooldown)
+	self:UpdateFade(self.VisibilityState.OnCooldown, fadeInForCD)
 end
 
 function FlyoutButton:OnCooldownClear()
