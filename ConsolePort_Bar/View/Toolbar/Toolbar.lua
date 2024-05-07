@@ -278,4 +278,4 @@ env:AddFactory('Toolbar', function()
         ConsolePortToolbar:OnLoad()
     end
     return ConsolePortToolbar;
-end)
+end, env.Types.Toolbar)

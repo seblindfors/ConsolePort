@@ -43,15 +43,41 @@ end
 local Header = {};
 ---------------------------------------------------------------
 
-function Header:OnCreate()
+function Header:OnAcquire(parent)
+	self:SetParent(parent)
 	self:SetScript('OnClick', self.OnClick)
 end
 
-function Header:OnClick()
+---------------------------------------------------------------
+local SettingsHeader = CreateFromMixins(Header);
+---------------------------------------------------------------
+
+function SettingsHeader:OnClick()
 	local parent = self:GetParent()
 	parent.HiddenGroups[self.groupID] = not parent.HiddenGroups[self.groupID];
 	parent:ReleaseAll()
-	parent:DrawOptions()
+	parent:OnShow()
+end
+
+---------------------------------------------------------------
+local HeaderOwner = {};
+---------------------------------------------------------------
+
+function HeaderOwner:OnLoad(headerMixin)
+	self.headerMixin = headerMixin;
+end
+
+function HeaderOwner:CreateHeader(name, groupID)
+	local header, newObj = self.headerPool:Acquire()
+	if newObj then
+		header.Text:SetTextColor(WHITE_FONT_COLOR:GetRGBA())
+	end
+	header.groupID = groupID or name;
+	header.Text:SetText(L(name))
+	Mixin(header, self.headerMixin)
+	header:OnAcquire(self)
+	header:Show()
+	return header;
 end
 
 ---------------------------------------------------------------
@@ -70,29 +96,17 @@ local Settings = Mixin({
 			return a < b;
 		end
 	end;
-}, CPIndexPoolMixin);
+}, CPIndexPoolMixin, HeaderOwner);
 
-function Settings:OnLoad(widgetOwner)
-	self.owner = widgetOwner;
+function Settings:OnLoad(inputHandler, headerPool)
 	CPIndexPoolMixin.OnLoad(self)
-	Mixin(Setting, config.SettingMixin)
-	self.headerPool = CreateFramePool('Button', self, 'CPPopupHeaderTemplate')
+	HeaderOwner.OnLoad(self, SettingsHeader)
+	self.owner = inputHandler;
+	self.headerPool = headerPool;
 	self:CreateFramePool('CheckButton', 'CPPopupButtonTemplate', Setting, nil, self)
-	env:RegisterCallback('OnDependencyChanged', self.DrawOptions, self)
-	self:DrawOptions()
-end
-
-function Settings:CreateHeader(name)
-	local header, newObj = self.headerPool:Acquire()
-	if newObj then
-		Mixin(header, Header)
-		header.Text:SetTextColor(WHITE_FONT_COLOR:GetRGBA())
-		header:OnCreate()
-	end
-	header.groupID = name;
-	header.Text:SetText(L(name))
-	header:Show()
-	return header;
+	env:RegisterCallback('OnDependencyChanged', self.OnShow, self)
+	self:OnShow()
+	CPAPI.Start(self)
 end
 
 function Settings:DrawGroup(group, set, layoutIndex)
@@ -107,8 +121,9 @@ function Settings:DrawGroup(group, set, layoutIndex)
 	end
 end
 
-function Settings:DrawOptions()
+function Settings:OnShow()
 	self.headerPool:ReleaseAll()
+	self:MarkDirty()
 
 	local sortedGroups, layoutIndex = {}, CreateCounter();
 	foreach(env.Variables, function(var, data)
@@ -135,8 +150,33 @@ function Settings:DrawOptions()
 			self:DrawGroup(group, set, layoutIndex)
 		end
 	end
+end
 
-	self:Layout()
+---------------------------------------------------------------
+local LoadoutHeader = CreateFromMixins(Header);
+---------------------------------------------------------------
+
+function LoadoutHeader:OnClick()
+	print('hello')
+end
+
+---------------------------------------------------------------
+local Loadout = {};
+---------------------------------------------------------------
+
+function Loadout:OnLoad(inputHandler, headerPool)
+	HeaderOwner.OnLoad(self, LoadoutHeader)
+	self.owner = inputHandler;
+	self.headerPool = headerPool;
+	CPAPI.Start(self)
+end
+
+function Loadout:OnShow()
+	self:MarkDirty()
+	self.headerPool:ReleaseAll()
+	for signature, interface in db.table.spairs(env:GetConfiguration()) do
+		print(signature, interface.name, interface.desc)
+	end
 end
 
 ---------------------------------------------------------------
@@ -150,7 +190,9 @@ function SettingsContainer:OnLoad()
 	self.Tabs:AddButtons(self.TabButtons)
 	self.Tabs:RegisterCallback(ButtonGroupBaseMixin.Event.Selected, self.OnTabSelected, self)
 	self.Tabs:SelectAtIndex(1)
-	Mixin(self.ScrollChild.Options, Settings):OnLoad(self:GetParent())
+	self.headerPool = CreateFramePool('Button', self, 'CPPopupHeaderTemplate')
+	Mixin(self.ScrollChild.Options, Settings):OnLoad(self:GetParent(), self.headerPool)
+	Mixin(self.ScrollChild.Loadout, Loadout):OnLoad(self:GetParent(), self.headerPool)
 	CPAPI.Start(self)
 end
 
@@ -183,6 +225,7 @@ function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	self:SetUserPlaced(false)
 	LoadAddOn('ConsolePort_Config'); config = ConsolePortConfig:GetEnvironment();
+	Mixin(Setting, config.SettingMixin) -- borrow code from the config for the settings
 	self.Name:SetText(L'Action Bar Configuration')
 	self.Mover:SetTooltipInfo(L'Move', L'Click here to start moving the configuration window.')
 	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self))
@@ -211,5 +254,5 @@ env:RegisterSafeCallback('OnConfigToggle', function()
 		end
 		env.Config:OnLoad()
 	end
-	env.Config:Show()
+	env.Config:SetShown(not env.Config:IsShown())
 end)

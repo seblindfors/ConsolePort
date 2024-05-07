@@ -56,37 +56,36 @@ db:RegisterCallback('OnToggleCharacterSettings', DataAPI.OnToggleCharacterSettin
 ---------------------------------------------------------------
 -- Fields
 ---------------------------------------------------------------
-local ID, DATA, TYPE, CALL, PATH, INIT, DEF = 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6;
+local ID, DATA, TYPE, CALL, INIT, DEF = 0x0, 0x1, 0x2, 0x3, 0x4, 0x5;
 
-local Field = setmetatable({}, {
-	__index = function(self, k)
-		local typeCheck = k:gsub('^Is(%w+)$', '%1');
-		if typeCheck then
-			return GenerateClosure(self.IsType, self, typeCheck)
+local Field = setmetatable({[TYPE] = 'Field'}, {
+	__index = {};
+	__newindex = function(self, key, value)
+		if (type(value) == 'function') then
+			getmetatable(self).__index[key] = value;
+			return
 		end
-		return nop;
+		rawset(self, key, value);
 	end;
-	__call = function(self)
-		return setmetatable(CopyTable(self), getmetatable(self));
+	__call = function(self, newType)
+		if newType then
+			return rawset(copy(self), TYPE, newType);
+		end
+		return setmetatable(copy(self), getmetatable(self));
 	end;
 });
 
 function Field:Get()        return copy(rawget(self, DATA)) end
 function Field:GetID()      return rawget(self, ID) end
-function Field:GetPath()    return rawget(self, PATH) end
 function Field:GetType()    return rawget(self, TYPE) end
 function Field:GetDefault() return copy(rawget(self, DEF)) end
 
 function Field:IsType(cmp)
-	return (rawget(self, TYPE):lower() == cmp:lower());
+	return (self:GetType() == cmp)
 end
 
 function Field:IsValue(cmp)
 	return (self:Get() == cmp)
-end
-
-function Field:Save()
-	db(self:GetPath(), self:Get())
 end
 
 function Field:Set(val)
@@ -109,24 +108,12 @@ function Field:SetID(id)
 	return self;
 end
 
-function Field:SetPath(path)
-	rawset(self, PATH, path)
-	return self;
-end
-
-function Field:SetType(type)
-	rawset(self, TYPE, type)
-	return self;
-end
-
 function Field:SetDefault()
 	return self:Set(rawget(self, DEF));
 end
 
-Field:SetType('Field')
-
 ---------------------------------------------------------------
-local Button = Field():SetType('Button');
+local Button = Field('Button');
 ---------------------------------------------------------------
 function Button:Set(val, force)
 	if force or (val and IsBindingForGamePad(val)) then
@@ -148,7 +135,7 @@ function Button:SetAllowModifiers(enabled)
 end
 
 ---------------------------------------------------------------
-local Color = Field():SetType('Color');
+local Color = Field('Color');
 ---------------------------------------------------------------
 function Color:Set(...)
 	local colorObj, converted = self:ConvertToRGBA(...)
@@ -191,7 +178,7 @@ function Color:IsHex()
 end
 
 ---------------------------------------------------------------
-local Cvar = Field():SetType('Cvar');
+local Cvar = Field('Cvar');
 ---------------------------------------------------------------
 do  local Set, Get, GetBool = SetCVar, GetCVar, GetCVarBool;
 
@@ -206,7 +193,7 @@ do  local Set, Get, GetBool = SetCVar, GetCVar, GetCVarBool;
 end
 
 ---------------------------------------------------------------
-local Number = Field():SetType('Number');
+local Number = Field('Number');
 ---------------------------------------------------------------
 function Number:Set(val)
 	return Field.Set(self, self:GetSigned() and val or abs(val))
@@ -231,7 +218,7 @@ function Number:GetSigned()
 end
 
 ---------------------------------------------------------------
-local Pseudokey = Button():SetType('Pseudokey');
+local Pseudokey = Button('Pseudokey');
 ---------------------------------------------------------------
 function Pseudokey:Set(val, force)
 	if (force or val) then
@@ -244,7 +231,7 @@ function Pseudokey:Set(val, force)
 end
 
 ---------------------------------------------------------------
-local Range = Number():SetType('Range');
+local Range = Number('Range');
 ---------------------------------------------------------------
 function Range:GetMinMax()
 	return self.min, self.max;
@@ -260,7 +247,7 @@ function Range:SetMinMax(min, max)
 end
 
 ---------------------------------------------------------------
-local Select = Field():SetType('Select');
+local Select = Field('Select');
 ---------------------------------------------------------------
 function Select:GetOptions()
 	return self.options;
@@ -288,7 +275,7 @@ function Select:SetRawOptions(options)
 end
 
 ---------------------------------------------------------------
-local Table = Field():SetType('Table');
+local Table = Field('Table');
 ---------------------------------------------------------------
 
 function Table:Get()
@@ -305,11 +292,11 @@ function Table:Set(tbl)
 		return Field.Set(self, tbl)
 	end
 	local inline = rawget(self, DATA);
-	for key, val in pairs(tbl) do
-		if inline[key] then
-			inline[key][DATA]:Set(val)
+	for child, field in pairs(tbl) do
+		if inline[child] then
+			inline[child][DATA]:Set(field)
 		else
-			error('Key not found in table: '..key)
+			error('Malformed table: field "'..child..'" does not exist in definition.')
 		end
 	end
 	local callback = rawget(self, CALL)
@@ -317,36 +304,84 @@ function Table:Set(tbl)
 end
 
 ---------------------------------------------------------------
-local Container = Table():SetType('Container');
+local Interface = Table('Interface');
 ---------------------------------------------------------------
 
-function Container:Get()
+function Interface:Get()
 	return Table.Get(self[DATA][DATA]);
 end
 
-function Container:Set(tbl)
+function Interface:Set(tbl)
 	if not rawget(self, INIT) then
 		return Table.Set(self, tbl)
 	end
-	return Table.Set(self[DATA][DATA], tbl):Get();
+	return Table.Set(self[DATA][DATA], tbl)
 end
 
-function Container:New(props)
-	local overrides = props[DATA];
+function Interface:Warp(tbl)
+	return self:Set(tbl):Get()
+end
+
+function Interface:Implement(props)
 	local instance = Field.Get(self)
-	if overrides then
-		Table.Set(instance[DATA], overrides)
-		props[DATA] = nil;
-	end
 	if props then
+		local overrides = props[DATA];
+		if overrides then
+			Table.Set(instance[DATA], overrides)
+			props[DATA] = nil;
+		end
 		Mixin(instance, props)
 	end
 	return instance;
 end
 
-function Container:Instance(props)
+function Interface:Render(props)
 	return db.table.merge(self:Get(), props)
 end
+
+---------------------------------------------------------------
+local Mutable = Field('Mutable');
+---------------------------------------------------------------
+
+function Mutable:SetMutator(type)
+	self.mutator = type();
+	return Field.Set(self, {})
+end
+
+function Mutable:SetKeyOptions(options)
+	self.keyOptions = options;
+	return self;
+end
+
+function Mutable:GetKeyOptions()
+	return self.keyOptions;
+end
+
+function Mutable:Set(values)
+	if values then
+		local data = rawget(self, DATA);
+		local mutator = self.mutator;
+		local keyOptions = self:GetKeyOptions();
+		for key, val in pairs(values) do
+			if keyOptions and not keyOptions[key] then
+				error('Malformed mutable: key "'..key..'" does not exist in definition.')
+			end
+			data[key] = mutator():Set(val)
+		end
+	end
+	return self;
+end
+
+function Mutable:Get()
+	local result = {};
+	local data = Field.Get(self);
+	for key, field in pairs(data) do
+		result[key] = field[DATA]:Get();
+	end
+	return result;
+end
+
+---------------------------------------------------------------
 
 ---------------------------------------------------------------
 -- Data interface (call obj to enter data definition env)
@@ -389,15 +424,19 @@ function Data.Select(val, ...)
 end
 
 function Data.String(val)
-	return Field():SetType('String'):Set(val)
+	return Field('String'):Set(val)
 end
 
 function Data.Table(val)
 	return Table():Set(val)
 end
 
-function Data.Container(val)
-	return Container():Set(val)
+function Data.Interface(val)
+	return Interface():Set(val)
+end
+
+function Data.Mutable(type, initialValues)
+	return Mutable():SetMutator(type):Set(initialValues)
 end
 
 function Data.Field(val)
@@ -407,18 +446,18 @@ end
 
 do  _ = newproxy() -- Select variants with pre-defined options
 
-	local Bool = {[true] =_, [false] =_};
+	local Bool = Select('Bool'):SetRawOptions({[true] =_, [false] =_});
 	function Data.Bool(val)
-		return Select():SetRawOptions(Bool):SetType('Bool'):Set(val)
+		return Bool():Set(val)
 	end
 
-	local Delta = {[-1] =_, [1] =_};
+	local Delta = Select('Delta'):SetRawOptions({[-1] =_, [1] =_});
 	function Data.Delta(val)
-		return Select():SetRawOptions(Delta):SetType('Delta'):Set(val)
+		return Delta():Set(val)
 	end
 
-	local IO = {[0] =_, [1] =_};
+	local IO = Select('IO'):SetRawOptions({[0] =_, [1] =_});
 	function Data.IO(val)
-		return Select():SetRawOptions(IO):SetType('IO'):Set(val)
+		return IO():Set(val)
 	end
 end

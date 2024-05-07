@@ -657,3 +657,11 @@ setmetatable(Tabular, {
 		return GenerateClosure(Compile, objects), GenerateClosure(Release, objects), objects;
 	end;
 })
+
+RegisterNewSlashCommand(function(message)
+	local retOK, data = pcall(loadstring, 'return ' .. message);
+	if not retOK then print('Loadstring failed: ' .. data) return end;
+	retOK, data = pcall(data)
+	if not retOK then print('Failed to load data: ' .. data) return end;
+	Tabular({parent = UIParent, width = 600, inline = true}, data)
+end, 'tabular', 'tbl')

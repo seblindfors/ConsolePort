@@ -234,7 +234,7 @@ end -- Cluster information
 ---------------------------------------------------------------
 env.Types = {};
 ---------------------------------------------------------------
-env.Types.SimplePoint = Data.Container {
+env.Types.SimplePoint = Data.Interface {
 	name = 'Position';
 	desc = 'Position of the element.';
 	Data.Table {
@@ -256,7 +256,7 @@ env.Types.SimplePoint = Data.Container {
 	};
 };
 
-env.Types.ClusterHandle = Data.Container {
+env.Types.ClusterHandle = Data.Interface {
 	name = 'Cluster Handle';
 	desc = 'A handle for a cluster bar.';
 	Data.Table {
@@ -270,19 +270,22 @@ env.Types.ClusterHandle = Data.Container {
 			desc = 'Direction of the cluster handle.';
 			Data.Select('DOWN', env.ClusterConstants.Directions());
 		};
-		pos = env.Types.SimplePoint : New { desc = 'Position of the cluster handle.' };
+		pos = env.Types.SimplePoint : Implement {
+			desc = 'Position of the cluster handle.';
+		};
 	};
 };
 
-env.Types.Cluster = Data.Container {
-	name = DEFAULT;
-	desc = 'A cluster action bar.';
+env.Types.Cluster = Data.Interface {
+	name    = 'Cluster Action Bar';
+	desc    = 'A cluster action bar.';
+	buttons = {};
 	Data.Table {
-		type = {
-			hide = true;
-			name = 'Type';
-			desc = 'Type of the cluster bar.';
-			Data.String('Cluster');
+		type = {hide = true; Data.String('Cluster')};
+		buttons = {
+			name = 'Buttons';
+			desc = 'Buttons in the cluster bar.';
+			Data.Mutable(env.Types.ClusterHandle):SetKeyOptions(env.db.Gamepad.Index.Button.Binding);
 		};
 		width = {
 			name = 'Width';
@@ -299,100 +302,85 @@ env.Types.Cluster = Data.Container {
 			desc = 'Scale of the cluster bar.';
 			Data.Number(1, 0.1, true);
 		};
-		pos = env.Types.SimplePoint : New { desc = 'Position of the cluster bar.'; {
-			point = 'BOTTOM';
-			y     = 16;
-		}};
+		pos = env.Types.SimplePoint : Implement {
+			desc = 'Position of the cluster bar.';
+			{
+				point = 'BOTTOM';
+				y     = 16;
+			};
+		};
 	};
 };
 
-env.Types.Toolbar = Data.Container {
+env.Types.Toolbar = Data.Interface {
 	name = 'Toolbar';
 	desc = 'A toolbar with XP indicators, shortcuts and other information.';
 	Data.Table {
-		type = {
-			hide = true;
-			name = 'Type';
-			desc = 'Type of the toolbar.';
-			Data.String('Toolbar');
+		type = {hide = true; Data.String('Toolbar')};
+		pos = env.Types.SimplePoint : Implement {
+			desc = 'Position of the toolbar.';
+			{
+				point = 'BOTTOM';
+			};
 		};
-		pos = env.Types.SimplePoint : New { desc = 'Position of the toolbar.'; {
-			point = 'BOTTOM';
-		}};
 	};
-
 };
 
 ---------------------------------------------------------------
 env.Presets = {};
 ---------------------------------------------------------------
 do -- Cluster layouts
-local Button = env.Types.ClusterHandle();
+local Handle = env.Types.ClusterHandle(); -- reuse one handle instance and warp it
 
 env.Presets.Default = {
 	name       = DEFAULT;
 	desc       = 'A cluster bar with a toolbar below it.';
 	visibility = '[petbattle][vehicleui][overridebar] hide; show';
 	bars = {
-		Cluster = env.Types.Cluster : Instance {
+		Toolbar = env.Types.Toolbar:Render();
+		Cluster = env.Types.Cluster:Render {
 			buttons = {
-				PADDLEFT     = Button:Set { dir = 'LEFT',  pos = { point = 'LEFT',  x =  176, y =  56 } };
-				PADDRIGHT    = Button:Set { dir = 'RIGHT', pos = { point = 'LEFT',  x =  306, y =  56 } };
-				PADDUP       = Button:Set { dir = 'UP',    pos = { point = 'LEFT',  x =  240, y = 100 } };
-				PADDDOWN     = Button:Set { dir = 'DOWN',  pos = { point = 'LEFT',  x =  240, y =  16 } };
-				PAD2         = Button:Set { dir = 'RIGHT', pos = { point = 'RIGHT', x = -176, y =  56 } };
-				PAD3         = Button:Set { dir = 'LEFT',  pos = { point = 'RIGHT', x = -306, y =  56 } };
-				PAD4         = Button:Set { dir = 'UP',    pos = { point = 'RIGHT', x = -240, y = 100 } };
-				PAD1         = Button:Set { dir = 'DOWN',  pos = { point = 'RIGHT', x = -240, y =  16 } };
-				PADLSHOULDER = Button:Set { dir = 'RIGHT', pos = { point = 'LEFT',  x =  456, y =  56 } };
-				PADRSHOULDER = Button:Set { dir = 'LEFT',  pos = { point = 'RIGHT', x = -456, y =  56 } };
-				PADLTRIGGER  = Button:Set { dir = 'DOWN',  pos = { point = 'LEFT',  x =  396, y =  16 } };
-				PADRTRIGGER  = Button:Set { dir = 'DOWN',  pos = { point = 'RIGHT', x = -396, y =  16 } };
+				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  176, y =  56 } };
+				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  306, y =  56 } };
+				PADDUP       = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  240, y = 100 } };
+				PADDDOWN     = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  240, y =  16 } };
+				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -176, y =  56 } };
+				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -306, y =  56 } };
+				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -240, y = 100 } };
+				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -240, y =  16 } };
+				PADLSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  456, y =  56 } };
+				PADRSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -456, y =  56 } };
+				PADLTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  396, y =  16 } };
+				PADRTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -396, y =  16 } };
 			};
 		};
-		Toolbar = env.Types.Toolbar : Instance();
 	};
 };
 
-function env.Presets.Orthodox() return {
-	name = DEFAULT;
-	desc = 'A cluster bar with a toolbar below it.';
+env.Presets.Orthodox = {
+	name       = 'Orthodox';
+	desc       = 'A cluster bar with a toolbar below it, laid out Horizontally.';
 	visibility = '[petbattle][vehicleui][overridebar] hide; show';
 	bars = {
-		Cluster = {
-			type     = 'Cluster';
-			scale 	 = 1;
-			width 	 = 1200;
-			height   = 140;
-			point    = { point = 'BOTTOM', x = 0, y = 16};
-			buttons  = (function(buttons)
-				local handle = env.db.UIHandle;
-				local T1, T2 = handle:GetUIControlBinding('T1'), handle:GetUIControlBinding('T2')
-				local M1, M2 = handle:GetUIControlBinding('M1'), handle:GetUIControlBinding('M2')
-
-				if M1 then buttons[M1] = Button:Set { dir =    'UP', pos = { point = 'LEFT',  x =  405, y = 75} } end;
-				if M2 then buttons[M2] = Button:Set { dir =    'UP', pos = { point = 'RIGHT', x = -405, y = 75} } end;
-				if T1 then buttons[T1] = Button:Set { dir = 'RIGHT', pos = { point = 'LEFT',  x =  440, y =  9} } end;
-				if T2 then buttons[T2] = Button:Set { dir =  'LEFT', pos = { point = 'RIGHT', x = -440, y =  9} } end;
-
-				return buttons;
-			end)({
-				PADDRIGHT = Button:Set { dir = 'RIGHT', pos = { point = 'LEFT',  x =  330, y = 9 } };
-				PADDLEFT  = Button:Set { dir =  'LEFT', pos = { point = 'LEFT',  x =   80, y = 9 } };
-				PADDDOWN  = Button:Set { dir =  'DOWN', pos = { point = 'LEFT',  x =  165, y = 9 } };
-				PADDUP    = Button:Set { dir =    'UP', pos = { point = 'LEFT',  x =  250, y = 9 } };
-				PAD2      = Button:Set { dir = 'RIGHT', pos = { point = 'RIGHT', x =  -80, y = 9 } };
-				PAD3      = Button:Set { dir =  'LEFT', pos = { point = 'RIGHT', x = -330, y = 9 } };
-				PAD1      = Button:Set { dir =  'DOWN', pos = { point = 'RIGHT', x = -250, y = 9 } };
-				PAD4      = Button:Set { dir =    'UP', pos = { point = 'RIGHT', x = -165, y = 9 } };
-			});
-		};
-		Toolbar = {
-			type    = 'Toolbar';
-			point   = { point = 'BOTTOM', x = 0, y = 0};
+		Toolbar = env.Types.Toolbar : Render();
+		Cluster = env.Types.Cluster : Render {
+			buttons = {
+				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  330, y =  9 } };
+				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =   80, y =  9 } };
+				PADDDOWN     = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  165, y =  9 } };
+				PADDUP       = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  250, y =  9 } };
+				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x =  -80, y =  9 } };
+				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -330, y =  9 } };
+				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -250, y =  9 } };
+				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -165, y =  9 } };
+				PADLSHOULDER = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  405, y = 75 } };
+				PADLTRIGGER  = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  440, y =  9 } };
+				PADRSHOULDER = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -405, y = 75 } };
+				PADRTRIGGER  = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -440, y =  9 } };
+			};
 		};
 	};
-}; end;
+};
 end -- Cluster layouts
 
 

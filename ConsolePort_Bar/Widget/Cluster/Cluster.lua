@@ -112,7 +112,8 @@ function Cluster:SetConfig(config)
 	local pos = config.pos;
 	self:SetPoint(pos.point, pos.x, pos.y)
 	self:SetDirection(config.dir)
-	self:SetSize(config.size)
+	self:SetSize(config.size) -- TODO: flyout size is not consistent
+	self.config = config;
 end
 
 function Cluster:SetBindings(bindings)
@@ -188,6 +189,30 @@ function FlyoutCooldown:SetDrawBling(enabled, force)
 	if force then return getmetatable(self).__index.SetDrawBling(self, enabled) end
 end
 
+
+---------------------------------------------------------------
+local FlyoutArrow = {};
+---------------------------------------------------------------
+
+do -- Flyout arrow owner check, report to parent
+	local function CheckSpellFlyoutOwnership(self)
+		local native, custom = SpellFlyout, env.LAB:GetSpellFlyoutFrame();
+		return (native and native:IsShown() and native:GetParent() == self)
+			or (custom and custom:IsShown() and custom:GetParent() == self)
+	end
+
+	function FlyoutArrow:Show()
+		local parent = self:GetParent()
+		parent:OnSpellFlyout(CheckSpellFlyoutOwnership(parent))
+		return getmetatable(self).__index.Show(self)
+	end
+
+	function FlyoutArrow:Hide()
+		self:GetParent():OnSpellFlyout(false)
+		return getmetatable(self).__index.Hide(self)
+	end
+end
+
 ---------------------------------------------------------------
 local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, visibility = 0};
 ---------------------------------------------------------------
@@ -202,6 +227,7 @@ do  -- Visibility update closures
 		OverlayActive = 0x04;
 		MouseOver     = 0x08;
 		ShowGrid      = 0x10;
+		Flyout        = 0x20;
 	};
 
 	FlyoutButton.VisibilityState = {};
@@ -235,6 +261,10 @@ function FlyoutButton:OnMouseMotionClear()
 	self:UpdateFade(self.VisibilityState.MouseOver, false)
 end
 
+function FlyoutButton:OnSpellFlyout(enabled)
+	self:UpdateFade(self.VisibilityState.Flyout, enabled)
+end
+
 function FlyoutButton:OnVisibilityEvent(event)
 	local eventClosure = self.VisibilityEvents[event];
 	if eventClosure then
@@ -250,6 +280,7 @@ function FlyoutButton:OnLoad()
 	self:OnShowFlyoutIcons(env('clusterShowFlyoutIcons'))
 
 	Mixin(self.cooldown, FlyoutCooldown):OnLoad()
+	Mixin(self.FlyoutArrowContainer or self.FlyoutArrow, FlyoutArrow)
 
 	self:HookScript('OnEnter', self.OnMouseMotionFocus)
 	self:HookScript('OnLeave', self.OnMouseMotionClear)
@@ -495,7 +526,7 @@ env:AddFactory(CLUSTER_BAR, function(id)
 	local frame = CreateFrame('Frame', 'ConsolePortBar'..id, env.Manager, 'CPClusterBar')
 	frame:OnLoad()
 	return frame;
-end)
+end, env.Types.Cluster)
 
 env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 	local buttons = {};
@@ -508,7 +539,7 @@ env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 	end
 	cluster:OnLoad(id, parent)
 	return cluster;
-end)
+end, env.Types.ClusterHandle)
 
 env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutData)
 	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.ClusterConstants.LABConfig), Button)

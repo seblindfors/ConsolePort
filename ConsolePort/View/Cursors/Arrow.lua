@@ -59,7 +59,7 @@ function CPCursorArrowMixin:OnUpdate(elapsed)
 
 	local cX, cY = self:GetLeft(), self:GetTop()
 	local nX, nY = Node.GetCenter(parent)
-	
+
 	if nX and nY then
 		local scaler = UIParent:GetEffectiveScale() / parent:GetEffectiveScale()
 		nX, nY = nX * scaler, nY * scaler;

@@ -50,7 +50,6 @@
 						<KeyValues>
 							<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
 							<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
-							<KeyValue key="layoutTextureKit" value="OptionsFrame" type="string"/>
 						</KeyValues>
 						<Anchors>
 							<Anchor point="TOPLEFT" x="-6" y="4"/>
@@ -64,8 +63,22 @@
 										<Anchor point="BOTTOMRIGHT" x="-8" y="26"/>
 									</Anchors>
 								</Texture>
+								<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\InnerFrame.png" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+									<Anchors>
+										<Anchor point="TOPLEFT" x="-20"/>
+										<Anchor point="BOTTOMRIGHT" x="20"/>
+									</Anchors>
+								</MaskTexture>
 							</Layer>
 						</Layers>
+						<Scripts>
+							<OnLoad inherit="append">
+								NineSlicePanelMixin.OnLoad(self);
+								for slice in pairs(NineSliceLayouts[self.layoutType]) do
+									self[slice]:AddMaskTexture(self.Mask);
+								end
+							</OnLoad>
+						</Scripts>
 					</Frame>
 					<Button parentKey="OptionsTab" parentArray="TabButtons" inherits="MinimalTabTemplate" scale="1.2">
 						<Size y="37"/>

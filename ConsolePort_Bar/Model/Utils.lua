@@ -70,15 +70,16 @@ end -- Data handler
 ---------------------------------------------------------------
 do -- Widget factory
 	-----------------------------------------------------------
-	env.Factories, env.Widgets, env.ActiveWidgets = {}, {}, {};
+	local Factories, Interface, Widgets, ActiveWidgets = {}, {}, {}, {};
 
 	local function HideAndClearAnchors(widget)
 		widget:Hide()
 		widget:ClearAllPoints()
 	end
 
-	function env:AddFactory(type, factory)
-		self.Factories[type] = factory;
+	function env:AddFactory(type, factory, props)
+		Factories[type] = factory;
+		Interface[type] = props;
 	end
 
 	function env:Acquire(...)
@@ -86,19 +87,19 @@ do -- Widget factory
 	end
 
 	function env:Factory(frameType, id, ...)
-		assert(self.Factories[frameType], 'Factory does not exist: '..frameType)
+		assert(Factories[frameType], 'Factory does not exist: '..frameType)
 		assert(type(id) == 'string', 'Factory widget ID must be a string')
 		local signature = self.MakeSig(frameType, id);
-		if not self.Widgets[signature] then
-			self.Widgets[signature] = self.Factories[frameType](id, ...);
+		if not Widgets[signature] then
+			Widgets[signature] = Factories[frameType](id, ...);
 		end
-		self.ActiveWidgets[self.Widgets[signature]] = signature;
-		return self.Widgets[signature];
+		ActiveWidgets[Widgets[signature]] = signature;
+		return Widgets[signature];
 	end
 
 	function env:Map(frameType, id, func, ...)
 		local signature = '^'..self.MakeSig(frameType, id);
-		for widget, sig in pairs(self.ActiveWidgets) do
+		for widget, sig in pairs(ActiveWidgets) do
 			if sig:find(signature) then
 				func(widget, ...);
 			end
@@ -106,19 +107,94 @@ do -- Widget factory
 	end
 
 	function env:GetSignature(widget)
-		return self.ActiveWidgets[widget];
+		return ActiveWidgets[widget];
 	end
 
 	function env:IsActive(widget)
-		return not not self.ActiveWidgets[widget];
+		return not not ActiveWidgets[widget];
 	end
 
 	function env:Release(widget, release)
-		self.ActiveWidgets[widget] = nil;
+		ActiveWidgets[widget] = nil;
 		(release or HideAndClearAnchors)(widget);
 		if widget.OnRelease then
 			widget:OnRelease();
 		end
+	end
+
+	-----------------------------------------------------------
+	-- Interface
+	-----------------------------------------------------------
+	local function GetFrameType(signature)
+		return signature:match('^(%a+):');
+	end
+
+	local function GetInterfaceBySignature(signature)
+		return Interface[GetFrameType(signature)];
+	end
+
+	function env:GetInterface(widget)
+		local signature = ActiveWidgets[widget];
+		if signature then
+			return GetInterfaceBySignature(signature);
+		end
+	end
+
+	function env:GetProps(widget)
+		local interface = self:GetInterface(widget);
+		if interface then
+			return interface():Set(widget.config);
+		end
+	end
+
+	local function GetLocalProps(signature)
+		local interface = GetInterfaceBySignature(signature);
+		if interface then
+			return interface;
+		end
+	end
+
+	function env:GetConfiguration()
+		local hierarchy = {children = {}}
+		local activeCopy = CopyTable(ActiveWidgets)
+		local scaffold, filterProps, filterParent;
+
+		function scaffold(widget, sig)
+			activeCopy[widget] = nil;
+			local props = GetLocalProps(sig)
+			if not props then return nil end;
+			return {
+				widget    = widget;
+				props     = props():Set(widget.config);
+				children  = {};
+				name      = props[1].name;
+				desc      = props[1].desc;
+			}
+		end
+
+		function filterProps(root, widget, sig)
+			local object = scaffold(widget, sig)
+			if object then
+				root.children[sig] = object;
+				filterParent(root.children[sig], widget)
+			end
+		end
+
+		function filterParent(root, parent)
+			for widget, sig in pairs(activeCopy) do
+				if ( widget:GetParent() == parent ) then
+					filterProps(root, widget, sig)
+				end
+			end
+		end
+
+		for widget, sig in pairs(activeCopy) do
+			if not activeCopy[widget:GetParent()] then
+				filterProps(hierarchy, widget, sig)
+			end
+		end
+
+		return hierarchy.children; -- skip the manager level
 	end
 
 end -- Widget factory

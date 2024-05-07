@@ -27,6 +27,7 @@ local ProxyButton = Mixin({
     Env = {
         UpdateState = [[
             local state = ...; self:SetAttribute('state', state)
+            if not state then return end;
             local typeof, numBarButtons = type, ]]..NUM_ACTIONBAR_BUTTONS..[[;
 
             local type   = self:GetAttribute(format('labtype-%s', state)) or 'empty';

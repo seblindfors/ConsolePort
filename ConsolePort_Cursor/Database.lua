@@ -7,15 +7,21 @@ local DEPENDENCY = { UIenableCursor = true };
 ---------------------------------------------------------------
 ConsolePort:AddVariables({
 	_('Interface Cursor', 2);
-	UIpointerDefaultIcon = _{Data.Bool(true);
-		name = 'Show Default Button';
-		desc = 'Show the default mouse action button.';
-		deps = DEPENDENCY;
-		advd = true;
-	};
 	UIpointerAnimation = _{Data.Bool(true);
 		name = 'Enable Animation';
 		desc = 'Pointer arrow rotates in the direction of travel.';
+		deps = DEPENDENCY;
+		advd = true;
+	};
+	UIpointerSound = _{Data.Bool(true);
+		name = 'Enable Sound';
+		desc = 'Play a sound when the pointer arrow reaches its destination.';
+		deps = DEPENDENCY;
+		advd = true;
+	};
+	UIpointerDefaultIcon = _{Data.Bool(true);
+		name = 'Show Default Button';
+		desc = 'Show the default mouse action button.';
 		deps = DEPENDENCY;
 		advd = true;
 	};

@@ -606,6 +606,7 @@ do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
 		-- object cases
 		EditBox  = opt;
 		Slider   = nop;
+		Frame    = nop;
 	}, function() return left end)
 	-- remove texture evaluator so cursor refreshes on next movement
 	local function ResetTexture(self)
@@ -624,22 +625,23 @@ function Cursor:SetTexture(texture)
 	local object = texture or self:GetCurrentObjectType()
 	local evaluator = self.Textures[object]
 	if ( evaluator ~= self.textureEvaluator ) then
+		local node = self:GetCurrentNode()
 		if self.useAtlasIcons then
-			local atlas = evaluator()
+			local atlas = evaluator(node)
 			if atlas then
 				self.Display.Button:SetAtlas(atlas)
 			else
 				self.Display.Button:SetTexture(nil)
 			end
 		else
-			self.Display.Button:SetTexture(evaluator())
+			self.Display.Button:SetTexture(evaluator(node))
 		end
 	end
 	self.textureEvaluator = evaluator;
 end
 
 function Cursor:ToggleScrollIndicator(enabled)
-	self.Display.Scroller:SetPoint('LEFT', self.Display.Button, 'RIGHT', self.Display.Button:GetTexture() and 2 or -24, 0)
+	self.Display.Scroller:SetPoint('LEFT', self.Display.Button, 'RIGHT', self.Display.Button:GetTexture() and 2 or -16, 0)
 	if self.isScrollingActive == enabled then return end;
 	local evaluator = self.Textures.Modifier;
 	local texture   = evaluator and evaluator() or nil;
@@ -707,6 +709,7 @@ function Cursor:Move()
 end
 
 function Cursor:Chime()
+	if not self.enableSound then return end;
 	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
 end
 
@@ -715,13 +718,15 @@ function Cursor:UpdatePointer()
 	self.Display:SetOffset(db('UIpointerOffset'))
 	self.Display:SetRotationEnabled(db('UIpointerAnimation'))
 	self.Display.animationSpeed = db('UItravelTime');
+	self.enableSound = db('UIpointerSound')
 end
 
 db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
 	'Settings/UItravelTime',
 	'Settings/UIpointerSize',
 	'Settings/UIpointerOffset',
-	'Settings/UIpointerAnimation'
+	'Settings/UIpointerAnimation',
+	'Settings/UIpointerSound'
 );
 
 -- Highlight mime

@@ -46,9 +46,9 @@ end
 
 function Cvar:Get()
 	local controller = self.controller;
-	if controller:IsBool() then
+	if controller:IsType('Bool') then
 		return self:GetRawBool(self.variableID)
-	elseif controller:IsNumber() or controller:IsRange() then
+	elseif controller:IsType('Number') or controller:IsType('Range') then
 		return tonumber(self:GetRaw(self.variableID))
 	end
 	return self:GetRaw(self.variableID)

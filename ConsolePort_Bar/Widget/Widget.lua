@@ -22,4 +22,5 @@ function CommonWidget:SetCommonConfig(config)
         local info = config.pos;
         self:SetPoint(info.point, UIParent, info.relativePoint or info.point, info.x, info.y)
     end
+    self.config = config;
 end
