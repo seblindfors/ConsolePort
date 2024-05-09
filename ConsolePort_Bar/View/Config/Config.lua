@@ -161,8 +161,13 @@ function LoadoutHeader:OnClick()
 end
 
 ---------------------------------------------------------------
-local Loadout = {};
+local Loadout, DP = {}, 1;
 ---------------------------------------------------------------
+
+local function IsConfigurableType(field)
+	return not not config.Widgets[field[DP]:GetType()];
+end
+
 
 function Loadout:OnLoad(inputHandler, headerPool)
 	HeaderOwner.OnLoad(self, LoadoutHeader)

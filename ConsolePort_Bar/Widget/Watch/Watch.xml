@@ -5,7 +5,7 @@
 	<Frame name="CPStatusTrackingBarTemplate" frameStrata="MEDIUM" enableMouse="true" hidden="true" virtual="true">
 		<Size x="804" y="11"/>
 		<Frames>
-			<StatusBar parentKey="StatusBar" drawLayer="BORDER" inherits="AnimatedStatusBarTemplate">
+			<StatusBar parentKey="StatusBar" drawLayer="BORDER" inherits="AnimatedStatusBarTemplate" mixin="CPTextStatusBarMixin">
 				<Size x="804" y="10"/>
 				<Anchors>
 					<Anchor point="RIGHT" x="0" y="0"/>

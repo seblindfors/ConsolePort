@@ -118,7 +118,7 @@ function CPExpBarMixin:UpdateCurrentText()
 end
 
 function CPExpBarMixin:OnLoad()
-	TextStatusBar_Initialize(self)
+	self.StatusBar:InitializeTextStatusBar()
 	self:Update()
 	CPAPI.RegisterFrameForEvents(self, self.Events)
 	self.priority = 3;
@@ -140,7 +140,7 @@ function CPExpBarMixin:OnShow()
 end
 
 function CPExpBarMixin:OnEnter()
-	TextStatusBar_UpdateTextString(self)
+	self.StatusBar:UpdateTextString()
 	self:ShowText(self)
 	self:UpdateCurrentText()
 	self.ExhaustionTick.timer = 1;
@@ -399,7 +399,7 @@ function CPReputationBarMixin:GetMaxLevel()
 end
 
 function CPReputationBarMixin:Update()
-	local name, reaction, minBar, maxBar, value, factionID = GetWatchedFactionInfo();
+	local name, reaction, minBar, maxBar, value, factionID = GetWatchedFactionInfo()
 	if not factionID or factionID == 0 then
 		return;
 	end
@@ -419,7 +419,7 @@ function CPReputationBarMixin:Update()
 	local maxLevel = self:GetMaxLevel()
 
 	if CPAPI.IsFactionParagon(factionID) then
-		local currentValue, threshold, _, hasRewardPending = CPAPI.GetFactionParagonInfo(factionID);
+		local currentValue, threshold, _, hasRewardPending = CPAPI.GetFactionParagonInfo(factionID)
 		minBar, maxBar  = 0, threshold;
 		value = currentValue % threshold;
 		level = maxLevel;
@@ -430,7 +430,7 @@ function CPReputationBarMixin:Update()
 			overrideUseBlueBar = true;
 		end
 	elseif CPAPI.IsMajorFaction(factionID) then
-		local majorFactionData = CPAPI.GetMajorFactionData(factionID);
+		local majorFactionData = CPAPI.GetMajorFactionData(factionID)
 		minBar, maxBar = 0, majorFactionData.renownLevelThreshold;
 		level = majorFactionData.renownLevel;
 		overrideUseBlueBar = true;
@@ -463,7 +463,7 @@ function CPReputationBarMixin:Update()
 	self:SetBarValues(value, minBar, maxBar, level, maxLevel)
 
 	if isCapped then
-		self:SetBarText(name);
+		self:SetBarText(name)
 	else
 		name = name..' %d / %d';
 		self:SetBarText(name:format(value, maxBar))
@@ -817,12 +817,12 @@ do -- Initialize bars
 
 		function CPWatchBarContainerMixin:Init()
 			local CanShowBar, GetBarPriority = StatusTrackingManagerMixin.CanShowBar, StatusTrackingManagerMixin.GetBarPriority;
-			local __ = function(f, ...) return GenerateClosure(f, WBC, ...) end;
+			local __ = function(f, ...) return GenerateClosure(f, nil, ...) end;
 
 			self:AddBarFromTemplate('CPReputationStatusBarTemplate', __(CanShowBar, BarsEnum.Reputation), __(GetBarPriority, BarPriorities[BarsEnum.Reputation]) )
-			self:AddBarFromTemplate('HonorStatusBarTemplate',         __(CanShowBar, BarsEnum.Honor),      __(GetBarPriority, BarPriorities[BarsEnum.Honor])      )
-			self:AddBarFromTemplate('ArtifactStatusBarTemplate',      __(CanShowBar, BarsEnum.Artifact),   __(GetBarPriority, BarPriorities[BarsEnum.Artifact])   )
-			self:AddBarFromTemplate('AzeriteBarTemplate',             __(CanShowBar, BarsEnum.Azerite),    __(GetBarPriority, BarPriorities[BarsEnum.Azerite])    )
+			self:AddBarFromTemplate('HonorStatusBarTemplate',        __(CanShowBar, BarsEnum.Honor),      __(GetBarPriority, BarPriorities[BarsEnum.Honor])      )
+			self:AddBarFromTemplate('ArtifactStatusBarTemplate',     __(CanShowBar, BarsEnum.Artifact),   __(GetBarPriority, BarPriorities[BarsEnum.Artifact])   )
+			self:AddBarFromTemplate('AzeriteBarTemplate',            __(CanShowBar, BarsEnum.Azerite),    __(GetBarPriority, BarPriorities[BarsEnum.Azerite])    )
 			self:AddBarFromTemplate('CPExpStatusBarTemplate',        __(CanShowBar, BarsEnum.Experience), __(GetBarPriority, BarPriorities[BarsEnum.Experience]) )
 		end
 	else
@@ -830,5 +830,235 @@ do -- Initialize bars
 			self:AddBarFromTemplate('CPReputationStatusBarTemplate')
 			self:AddBarFromTemplate('CPExpStatusBarTemplate')
 		end
+	end
+end
+
+
+---------------------------------------------------------------
+CPTextStatusBarMixin = {};
+---------------------------------------------------------------
+if TextStatusBarMixin then
+	Mixin(CPTextStatusBarMixin, TextStatusBarMixin)
+	return; -- see TextStatusBar.lua
+end
+
+local STATUS_TEXT_DISPLAY_MODE = {
+	NUMERIC = 'NUMERIC';
+	PERCENT = 'PERCENT';
+	BOTH    = 'BOTH';
+	NONE    = 'NONE';
+};
+
+function CPTextStatusBarMixin:InitializeTextStatusBar()
+	self:RegisterEvent('CVAR_UPDATE')
+	self.lockShow = 0;
+
+	local function OnStatusTextSettingChanged()
+		self:UpdateTextString()
+	end
+
+	Settings.SetOnValueChangedCallback('PROXY_STATUS_TEXT', OnStatusTextSettingChanged)
+end
+
+function CPTextStatusBarMixin:SetBarText(text)
+	if ( not text ) then
+		return
+	end
+	self.TextString = text;
+end
+
+function CPTextStatusBarMixin:TextStatusBarOnEvent(event, ...)
+	if ( event == 'CVAR_UPDATE' ) then
+		local cvar, value = ...;
+		if ( self.cvar and cvar == self.cvar ) then
+			if ( self.TextString ) then
+				if ( (value == '1' and self.textLockable) or self.forceShow ) then
+					self.TextString:Show()
+				elseif ( self.lockShow == 0 ) then
+					self.TextString:Hide()
+				end
+			end
+			self:UpdateTextString()
+		end
+	end
+end
+
+function CPTextStatusBarMixin:UpdateTextString()
+	local textString = self.TextString;
+	if(textString) then
+		local value = self:GetValue()
+		local valueMin, valueMax = self:GetMinMaxValues()
+		self:UpdateTextStringWithValues(textString, value, valueMin, valueMax)
+	end
+end
+
+function CPTextStatusBarMixin:UpdateTextStringWithValues(textString, value, valueMin, valueMax)
+	if( self.LeftText and self.RightText ) then
+		self.LeftText:SetText('')
+		self.RightText:SetText('')
+		self.LeftText:Hide()
+		self.RightText:Hide()
+	end
+
+	-- Max value is valid and updates aren't paused
+	if ( ( tonumber(valueMax) ~= valueMax or valueMax > 0 ) and not ( self.pauseUpdates ) ) then
+		self:Show()
+
+		if ( (self.cvar and GetCVar(self.cvar) == '1' and self.textLockable) or self.forceShow ) then
+			textString:Show()
+		elseif ( self.lockShow > 0 and (not self.forceHideText) ) then
+			textString:Show()
+		else
+			textString:SetText('')
+			textString:Hide()
+			return;
+		end
+
+		-- Display zero text
+		if ( value == 0 and self.zeroText ) then
+			textString:SetText(self.zeroText)
+			self.isZero = 1;
+			textString:Show()
+			return;
+		end
+
+		self.isZero = nil;
+
+		local valueDisplay = value;
+		local valueMaxDisplay = valueMax;
+
+		-- If custom text transform func provided, use that
+		if ( self.numericDisplayTransformFunc ) then
+			valueDisplay, valueMaxDisplay = self.numericDisplayTransformFunc(value, valueMax)
+		-- Otherwise just the usual large number handling
+		else
+			if ( self.capNumericDisplay ) then
+				valueDisplay = AbbreviateLargeNumbers(value)
+				valueMaxDisplay = AbbreviateLargeNumbers(valueMax)
+			else
+				valueDisplay = BreakUpLargeNumbers(value)
+				valueMaxDisplay = BreakUpLargeNumbers(valueMax)
+			end
+		end
+
+		local shouldUsePrefix = self.prefix and (self.alwaysPrefix or not (self.cvar and GetCVar(self.cvar) == '1' and self.textLockable) )
+
+		local displayMode = GetCVar('statusTextDisplay')
+		-- Evaluate display mode overrides in priority order
+		if ( self.showNumeric ) then
+			displayMode = STATUS_TEXT_DISPLAY_MODE.NUMERIC;
+		elseif ( self.showPercentage ) then
+			displayMode = STATUS_TEXT_DISPLAY_MODE.PERCENT;
+		end
+
+		-- If percent-only mode and percentages disabled, fall back on numeric-only
+		if ( self.disablePercentages and displayMode == STATUS_TEXT_DISPLAY_MODE.PERCENT ) then
+			displayMode = STATUS_TEXT_DISPLAY_MODE.NUMERIC;
+		end
+
+		-- Numeric only
+		if ( valueMax <= 0 or displayMode == STATUS_TEXT_DISPLAY_MODE.NUMERIC or displayMode == STATUS_TEXT_DISPLAY_MODE.NONE) then
+			if ( shouldUsePrefix ) then
+				textString:SetText(self.prefix..' '..valueDisplay..' / '..valueMaxDisplay)
+			else
+				textString:SetText(valueDisplay..' / '..valueMaxDisplay)
+			end
+		-- Numeric + Percentage
+		elseif ( displayMode == STATUS_TEXT_DISPLAY_MODE.BOTH ) then
+			if ( self.LeftText and self.RightText ) then
+				-- Unless explicitly disabled, only display percentage on left if displaying mana or a non-power value (legacy behavior that should eventually be revisited)
+				if ( not self.disablePercentages and (not self.powerToken or self.powerToken == 'MANA') ) then
+					self.LeftText:SetText(math.ceil((value / valueMax) * 100) .. '%')
+					self.LeftText:Show()
+				end
+				self.RightText:SetText(valueDisplay)
+				self.RightText:Show()
+				textString:Hide()
+			else
+				valueDisplay = valueDisplay .. ' / ' .. valueMaxDisplay;
+				if ( not self.disablePercentages ) then
+					valueDisplay = '(' .. math.ceil((value / valueMax) * 100) .. '%) ' .. valueDisplay;
+				end
+			end
+			textString:SetText(valueDisplay)
+		-- Percentage Only
+		elseif ( displayMode == STATUS_TEXT_DISPLAY_MODE.PERCENT ) then
+			valueDisplay = math.ceil((value / valueMax) * 100) .. '%';
+			if ( shouldUsePrefix ) then
+				textString:SetText(self.prefix .. ' ' .. valueDisplay)
+			else
+				textString:SetText(valueDisplay)
+			end
+		end
+	-- Max value is invalid or updates are paused
+	else
+		textString:Hide()
+		textString:SetText('')
+		if ( not self.alwaysShow ) then
+			self:Hide()
+		else
+			self:SetValue(0)
+		end
+	end
+end
+
+function CPTextStatusBarMixin:OnStatusBarEnter()
+	self:ShowStatusBarText()
+	self:UpdateTextString()
+end
+
+function CPTextStatusBarMixin:OnStatusBarLeave()
+	self:HideStatusBarText()
+	GameTooltip:Hide()
+end
+
+function CPTextStatusBarMixin:OnStatusBarValueChanged()
+	self:UpdateTextString()
+end
+
+function CPTextStatusBarMixin:OnStatusBarMinMaxChanged(min, max)
+end
+
+function CPTextStatusBarMixin:SetBarTextPrefix(prefix)
+	if ( self.TextString ) then
+		self.prefix = prefix;
+	end
+end
+
+function CPTextStatusBarMixin:SetBarTextZeroText(zeroText)
+	if ( self.TextString ) then
+		self.zeroText = zeroText;
+	end
+end
+
+function CPTextStatusBarMixin:ShowStatusBarText()
+	if ( self and self.TextString ) then
+		if ( not self.lockShow ) then
+			self.lockShow = 0;
+		end
+		if ( not self.forceHideText ) then
+			self.TextString:Show()
+		end
+		self.lockShow = self.lockShow + 1;
+		self:UpdateTextString()
+	end
+end
+
+function CPTextStatusBarMixin:HideStatusBarText()
+	if ( self and self.TextString ) then
+		if ( not self.lockShow ) then
+			self.lockShow = 0;
+		end
+		if ( self.lockShow > 0 ) then
+			self.lockShow = self.lockShow - 1;
+		end
+		if ( self.lockShow > 0 or self.isZero == 1) then
+			self.TextString:Show()
+		elseif ( (self.cvar and GetCVarBool(self.cvar) and self.textLockable) or self.forceShow ) then
+			self.TextString:Show()
+		else
+			self.TextString:Hide()
+		end
+		self:UpdateTextString()
 	end
 end
