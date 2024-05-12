@@ -163,20 +163,23 @@ do -- Widget factory
 			activeCopy[widget] = nil;
 			local props = GetLocalProps(sig)
 			if not props then return nil end;
-			return {
-				widget    = widget;
-				props     = props():Set(widget.config);
+			local widgetType, widgetName = self.UnpackSig(sig);
+			return widgetName, {
 				children  = {};
-				name      = props[1].name;
 				desc      = props[1].desc;
-			}
+				internal  = widgetType;
+				props     = props():Set(widget.config);
+				type      = props[1].name;
+				widget    = widget;
+				signature = sig;
+			};
 		end
 
 		function filterProps(root, widget, sig)
-			local object = scaffold(widget, sig)
-			if object then
-				root.children[sig] = object;
-				filterParent(root.children[sig], widget)
+			local key, value = scaffold(widget, sig)
+			if key and value then
+				root.children[key] = value;
+				filterParent(root.children[key], widget)
 			end
 		end
 
@@ -247,6 +250,10 @@ end
 
 function env.MakeSig(type, id)
 	return type..':'..(id or '');
+end
+
+function env.UnpackSig(sig)
+	return sig:match('^(%a+):(.+)$');
 end
 
 function env.ModComplement(A, B)

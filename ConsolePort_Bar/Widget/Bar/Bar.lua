@@ -10,7 +10,7 @@ CPActionBar = Mixin({
         ]];
     };
     -----------------------------------------------------------
-}, CPAPI.AdvancedSecureMixin, env.CommonWidgetMixin);
+}, CPAPI.AdvancedSecureMixin, env.CommonWidgetMixin, env.DynamicWidgetMixin);
 ---------------------------------------------------------------
 
 function CPActionBar:OnLoad()

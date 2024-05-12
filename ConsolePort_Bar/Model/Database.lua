@@ -237,7 +237,7 @@ env.Types = {};
 env.Types.SimplePoint = Data.Interface {
 	name = 'Position';
 	desc = 'Position of the element.';
-	Data.Table {
+	Data.Point {
 		point = {
 			name = 'Anchor';
 			desc = 'Anchor point relative to parent action bar.';
@@ -246,32 +246,33 @@ env.Types.SimplePoint = Data.Interface {
 		x = {
 			name = 'X Offset';
 			desc = 'Horizontal offset from anchor point.';
-			Data.Number(0, 5, true);
+			Data.Number(0, 1, true);
 		};
 		y = {
 			name = 'Y Offset';
 			desc = 'Vertical offset from anchor point.';
-			Data.Number(0, 5, true);
+			vert = true;
+			Data.Number(0, 1, true);
 		};
 	};
 };
 
 env.Types.ClusterHandle = Data.Interface {
 	name = 'Cluster Handle';
-	desc = 'A handle for a cluster bar.';
+	desc = 'A button cluster for all modifiers of a single button.';
 	Data.Table {
 		size = {
 			name = 'Size';
-			desc = 'Size of the cluster handle.';
+			desc = 'Size of the button cluster.';
 			Data.Number(64, 2);
 		};
 		dir = {
 			name = 'Direction';
-			desc = 'Direction of the cluster handle.';
+			desc = 'Direction of the button cluster.';
 			Data.Select('DOWN', env.ClusterConstants.Directions());
 		};
 		pos = env.Types.SimplePoint : Implement {
-			desc = 'Position of the cluster handle.';
+			desc = 'Position of the button cluster.';
 		};
 	};
 };
@@ -279,10 +280,9 @@ env.Types.ClusterHandle = Data.Interface {
 env.Types.Cluster = Data.Interface {
 	name    = 'Cluster Action Bar';
 	desc    = 'A cluster action bar.';
-	buttons = {};
 	Data.Table {
 		type = {hide = true; Data.String('Cluster')};
-		buttons = {
+		children = {
 			name = 'Buttons';
 			desc = 'Buttons in the cluster bar.';
 			Data.Mutable(env.Types.ClusterHandle):SetKeyOptions(env.db.Gamepad.Index.Button.Binding);
@@ -290,17 +290,17 @@ env.Types.Cluster = Data.Interface {
 		width = {
 			name = 'Width';
 			desc = 'Width of the cluster bar.';
-			Data.Number(1200, 25, true);
+			Data.Number(1200, 25);
 		};
 		height = {
 			name = 'Height';
 			desc = 'Height of the cluster bar.';
-			Data.Number(140, 25, true);
+			Data.Number(140, 25);
 		};
 		scale = {
 			name = 'Scale';
 			desc = 'Scale of the cluster bar.';
-			Data.Number(1, 0.1, true);
+			Data.Number(1, 0.1);
 		};
 		pos = env.Types.SimplePoint : Implement {
 			desc = 'Position of the cluster bar.';
@@ -336,10 +336,10 @@ env.Presets.Default = {
 	name       = DEFAULT;
 	desc       = 'A cluster bar with a toolbar below it.';
 	visibility = '[petbattle][vehicleui][overridebar] hide; show';
-	bars = {
+	children = {
 		Toolbar = env.Types.Toolbar:Render();
 		Cluster = env.Types.Cluster:Render {
-			buttons = {
+			children = {
 				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  176, y =  56 } };
 				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  306, y =  56 } };
 				PADDUP       = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  240, y = 100 } };
@@ -361,10 +361,10 @@ env.Presets.Orthodox = {
 	name       = 'Orthodox';
 	desc       = 'A cluster bar with a toolbar below it, laid out Horizontally.';
 	visibility = '[petbattle][vehicleui][overridebar] hide; show';
-	bars = {
+	children = {
 		Toolbar = env.Types.Toolbar : Render();
 		Cluster = env.Types.Cluster : Render {
-			buttons = {
+			children = {
 				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  330, y =  9 } };
 				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =   80, y =  9 } };
 				PADDDOWN     = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  165, y =  9 } };

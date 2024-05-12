@@ -357,6 +357,18 @@ function Mutable:GetKeyOptions()
 	return self.keyOptions;
 end
 
+function Mutable:GetAvailableKeys()
+	local result = {};
+	local options = self:GetKeyOptions();
+	local data = rawget(self, DATA);
+	for key, info in pairs(options) do
+		if ( data[key] == nil ) then
+			result[key] = info;
+		end
+	end
+	return result;
+end
+
 function Mutable:Set(values)
 	if values then
 		local data = rawget(self, DATA);
@@ -366,7 +378,9 @@ function Mutable:Set(values)
 			if keyOptions and not keyOptions[key] then
 				error('Malformed mutable: key "'..key..'" does not exist in definition.')
 			end
-			data[key] = mutator():Set(val)
+			local newField = mutator();
+			newField:Set(val)
+			data[key] = newField;
 		end
 	end
 	return self;
@@ -374,12 +388,16 @@ end
 
 function Mutable:Get()
 	local result = {};
-	local data = Field.Get(self);
+	local data = rawget(self, DATA);
 	for key, field in pairs(data) do
-		result[key] = field[DATA]:Get();
+		result[key] = field:Get();
 	end
 	return result;
 end
+
+---------------------------------------------------------------
+local Point = Table('Point');
+---------------------------------------------------------------
 
 ---------------------------------------------------------------
 
@@ -437,6 +455,10 @@ end
 
 function Data.Mutable(type, initialValues)
 	return Mutable():SetMutator(type):Set(initialValues)
+end
+
+function Data.Point(val)
+	return Point():Set(val)
 end
 
 function Data.Field(val)

@@ -4,28 +4,28 @@ local Setting = {};
 ---------------------------------------------------------------
 
 function Setting:OnCreate()
-	CPAPI.SetAtlas(self:GetNormalTexture(), "perks-list-hover", false, true)
-	CPAPI.SetAtlas(self:GetHighlightTexture(), "perks-list-active", false, false)
+	CPAPI.SetAtlas(self:GetNormalTexture(), 'perks-list-hover', false, true)
+	CPAPI.SetAtlas(self:GetHighlightTexture(), 'perks-list-active', false, false)
 	self:HookScript('OnEnter', self.LockHighlight)
 	self:HookScript('OnLeave', self.UnlockHighlight)
-	self:HookScript('OnClick', self.OnPreClick)
+	self:HookScript('OnClick', self.OnExpandOrCollapse)
 	self:SetIndentation(1)
-	self:SetSize(440, 40)
+	self:SetSize(540, 40)
 	self:GetNormalTexture():SetPoint('BOTTOMRIGHT', 8, 0)
 	CPAPI.SetAtlas(self.Icon, 'Waypoint-MapPin-Minimap-Tracked')
 	self.Icon:Hide()
 end
 
 function Setting:SetIndentation(level)
-	self.Text:SetPoint('LEFT', 32 + ((level - 1) * 16), 0)
-	self.Icon:SetPoint('LEFT', 8 + ((level - 1) * 16), 0)
+	self.Text:SetPoint('LEFT', 32 + ((level - 1) * 8), 0)
+	self.Icon:SetPoint('LEFT', 8 + ((level - 1) * 8), 0)
 end
 
 function Setting:OnChecked(checked)
 	self.Icon:SetShown(checked)
 end
 
-function Setting:OnPreClick()
+function Setting:OnExpandOrCollapse()
 	self.Icon:SetShown(self:GetChecked())
 end
 
@@ -45,6 +45,7 @@ local Header = {};
 
 function Header:OnAcquire(parent)
 	self:SetParent(parent)
+	self:SetWidth(540)
 	self:SetScript('OnClick', self.OnClick)
 end
 
@@ -153,38 +154,6 @@ function Settings:OnShow()
 end
 
 ---------------------------------------------------------------
-local LoadoutHeader = CreateFromMixins(Header);
----------------------------------------------------------------
-
-function LoadoutHeader:OnClick()
-	print('hello')
-end
-
----------------------------------------------------------------
-local Loadout, DP = {}, 1;
----------------------------------------------------------------
-
-local function IsConfigurableType(field)
-	return not not config.Widgets[field[DP]:GetType()];
-end
-
-
-function Loadout:OnLoad(inputHandler, headerPool)
-	HeaderOwner.OnLoad(self, LoadoutHeader)
-	self.owner = inputHandler;
-	self.headerPool = headerPool;
-	CPAPI.Start(self)
-end
-
-function Loadout:OnShow()
-	self:MarkDirty()
-	self.headerPool:ReleaseAll()
-	for signature, interface in db.table.spairs(env:GetConfiguration()) do
-		print(signature, interface.name, interface.desc)
-	end
-end
-
----------------------------------------------------------------
 local SettingsContainer = { Tabs = CreateRadioButtonGroup() };
 ---------------------------------------------------------------
 
@@ -197,7 +166,7 @@ function SettingsContainer:OnLoad()
 	self.Tabs:SelectAtIndex(1)
 	self.headerPool = CreateFramePool('Button', self, 'CPPopupHeaderTemplate')
 	Mixin(self.ScrollChild.Options, Settings):OnLoad(self:GetParent(), self.headerPool)
-	Mixin(self.ScrollChild.Loadout, Loadout):OnLoad(self:GetParent(), self.headerPool)
+	Mixin(self.ScrollChild.Loadout, env.SharedConfig.Loadout):OnLoad(self:GetParent(), self.headerPool)
 	CPAPI.Start(self)
 end
 
@@ -229,8 +198,9 @@ local Config = CreateFromMixins(CPButtonCatcherMixin);
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	self:SetUserPlaced(false)
-	LoadAddOn('ConsolePort_Config'); config = ConsolePortConfig:GetEnvironment();
-	Mixin(Setting, config.SettingMixin) -- borrow code from the config for the settings
+	LoadAddOn('ConsolePort_Config');
+	env.SharedConfig.Env = ConsolePortConfig:GetEnvironment();
+	Mixin(Setting, env.SharedConfig.Env.SettingMixin) -- borrow code from the config for the settings
 	self.Name:SetText(L'Action Bar Configuration')
 	self.Mover:SetTooltipInfo(L'Move', L'Click here to start moving the configuration window.')
 	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self))
@@ -261,3 +231,9 @@ env:RegisterSafeCallback('OnConfigToggle', function()
 	end
 	env.Config:SetShown(not env.Config:IsShown())
 end)
+
+env.SharedConfig = {
+	Setting     = Setting;
+	Header      = Header;
+	HeaderOwner = HeaderOwner;
+};

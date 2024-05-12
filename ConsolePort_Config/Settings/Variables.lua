@@ -28,9 +28,9 @@ function Setting:SetDependencies(deps)
 	end
 end
 
-function Setting:RegisterCallback(callbackID, callback)
+function Setting:RegisterCallback(callbackID, callback, ...)
 	self.callbacks = self.callbacks or {};
-	self.registry:RegisterCallback(callbackID, callback, self)
+	self.registry:RegisterCallback(callbackID, callback, self, ...)
 	self.callbacks[callbackID] = callback;
 	return callback;
 end
@@ -57,9 +57,12 @@ function Setting:Construct(name, varID, field, newObj, registry, callbackID, own
 	self:Show()
 end
 
-function Setting:Destruct()
-	for callbackID in pairs(self.callbacks) do
-		self.registry:UnregisterCallback(callbackID, self)
+function Setting:Reset()
+	if self.SetCallback then self:SetCallback(nil) end;
+	if self.registry and self.callbacks then
+		for callbackID in pairs(self.callbacks) do
+			self.registry:UnregisterCallback(callbackID, self)
+		end
 	end
 	self.registry, self.callbacks = nil, nil;
 end

@@ -2,11 +2,31 @@
 ..\FrameXML\UI.xsd">
 	<Script file="Mover.lua"/>
 	<Script file="Config.lua"/>
+	<Script file="Loadout.lua"/>
+
+	<Button name="CPSquareButtonTemplate" virtual="true" motionScriptsWhileDisabled="true" mixin="SquareIconButtonMixin" inherits="SquareIconButtonTemplate">
+		<Size x="48" y="48"/>
+		<HitRectInsets left="6" right="6" top="6" bottom="6"/>
+		<NormalTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" alpha="0.4">
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeKey="$parent.Icon" relativePoint="TOPLEFT"/>
+				<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" relativePoint="BOTTOMRIGHT"/>
+			</Anchors>
+		</HighlightTexture>
+		<PushedTexture parentKey="PushedTexture" atlas="common-button-square-gray-down">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="1" y="-1"/>
+				<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+			</Anchors>
+		</PushedTexture>
+		<DisabledTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
+	</Button>
 
 	<Frame name="CPActionBarConfig" virtual="true" inherits="CPPopupFrameTemplate" hidden="true" movable="true" enableMouse="true">
-		<Size x="500" y="500"/>
+		<Size x="600" y="500"/>
 		<Frames>
-			<Button parentKey="Mover" motionScriptsWhileDisabled="true" mixin="SquareIconButtonMixin" inherits="SquareIconButtonTemplate">
+			<Button parentKey="Mover" inherits="CPSquareButtonTemplate">
 				<Size x="48" y="48"/>
 				<Anchors>
 					<Anchor point="LEFT" relativeKey="$parent.Name" relativePoint="RIGHT" x="4"/>
@@ -15,21 +35,6 @@
 					<KeyValue key="icon" value="Interface\CURSOR\UI-Cursor-Move" type="string"/>
 					<KeyValue key="iconSize" value="24" type="number"/>
 				</KeyValues>
-				<HitRectInsets left="6" right="6" top="6" bottom="6"/>
-				<NormalTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
-				<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" alpha="0.4">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" relativePoint="TOPLEFT"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" relativePoint="BOTTOMRIGHT"/>
-					</Anchors>
-				</HighlightTexture>
-				<PushedTexture parentKey="PushedTexture" atlas="common-button-square-gray-down">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="1" y="-1"/>
-						<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
-					</Anchors>
-				</PushedTexture>
-				<DisabledTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
 			</Button>
 			<ScrollFrame parentKey="SettingsContainer" inherits="ResizeLayoutFrame, ScrollFrameTemplate">
 				<Anchors>
@@ -40,7 +45,7 @@
 					<KeyValue key="layoutIndex" value="1" type="number"/>
 					<KeyValue key="fixedWidth" value="470" type="number"/>
 					<KeyValue key="fixedHeight" value="325" type="number"/>
-					<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
+					<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
 					<KeyValue key="scrollBarX" value="-4" type="number"/>
 					<KeyValue key="scrollBarTopY" value="-4" type="number"/>
 					<KeyValue key="scrollBarBottomY" value="4" type="number"/>
@@ -142,6 +147,7 @@
 							<Frame parentKey="Loadout" inherits="VerticalLayoutFrame" hidden="true">
 								<KeyValues>
 									<KeyValue key="layoutIndex" value="2" type="number"/>
+									<KeyValue key="spacing" value="4" type="number"/>
 								</KeyValues>
 								<Anchors>
 									<Anchor point="TOPLEFT"/>

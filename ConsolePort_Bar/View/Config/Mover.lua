@@ -122,10 +122,14 @@ local Mover = {
 		Selected  = 'editmode-actionbar-selected';
 	};
 	ButtonCommands = {
-		PAD1     = function(self) self:ClearAndHide() end;
-		PAD3     = function(self) self:RestorePoint() end;
-		PADDUP   = function(self) self:OnMouseWheel(1) end;
-		PADDDOWN = function(self) self:OnMouseWheel(-1) end;
+		PAD1         = function(self) self:ClearAndHide() end;
+		PAD3         = function(self) self:RestorePoint() end;
+		PADRSHOULDER = function(self) self:OnMouseWheel(1) end;
+		PADLSHOULDER = function(self) self:OnMouseWheel(-1) end;
+		PADDLEFT     = function(self) self:SnapTo(-1,  0) end;
+		PADDRIGHT    = function(self) self:SnapTo( 1,  0) end;
+		PADDUP       = function(self) self:SnapTo( 0,  1) end;
+		PADDDOWN     = function(self) self:SnapTo( 0, -1) end;
 	};
 };
 
@@ -143,6 +147,7 @@ function Mover:OnLoad()
 	self:SetUserPlaced(false)
 	self:SetClampedToScreen(true)
 	self:RegisterForDrag('LeftButton')
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 	CPAPI.Start(self)
 
 	self.Omitter = CreateFrame('Frame', nil, self)
@@ -187,19 +192,21 @@ function Mover:SetSnapPixels(snapToPixels)
 	end
 end
 
-function Mover:SetWidget(frame)
+function Mover:SetWidget(frame, callback)
 	if C_Widget.IsFrameWidget(frame) then
-		self:SetFrame(frame)
-	else
-		self:SetHandle(frame)
+		return self:SetFrame(frame, callback)
 	end
+	error('Frame is not a widget, unhandled type.')
 end
 
 function Mover:ClearAndHide()
-	self.frame, self.relativeTo, self.isMoving, self.origPoint = nil;
 	self:ClearAllPoints()
 	self:Hide()
 	self:ResetCursorNode()
+	if ( self.frame and type(self.callback) == 'function' ) then
+		securecallfunction(self.callback, self.frame:GetPoint())
+	end
+	self.frame, self.callback, self.relativeTo, self.isMoving, self.origPoint = nil;
 end
 
 function Mover:StoreCursorNode()
@@ -218,10 +225,11 @@ function Mover:ResetCursorNode()
 	end
 end
 
-function Mover:SetFrame(frame)
+function Mover:SetFrame(frame, callback)
 	if ( self.frame == frame ) then
 		return self:ClearAndHide()
 	end
+	self.callback = callback;
 	assert(frame:GetNumPoints() == 1, 'Frame must have only one point')
 	self:SetSize(frame:GetSize())
 	self:SetFrameStrata(frame:GetFrameStrata())
@@ -236,6 +244,13 @@ function Mover:SetOmitterSize(width, height)
 	width  = 1.2 * (math.floor(width  / self.snapToPixels) * self.snapToPixels);
 	height = 1.2 * (math.floor(height / self.snapToPixels) * self.snapToPixels);
 	self.Omitter:SetSize(width, height)
+end
+
+function Mover:SnapTo(x, y)
+	local point, relativeTo, relativePoint, xOfs, yOfs = unpack(self.snapPoint)
+	self.snapPoint = { point, relativeTo, relativePoint, xOfs + x * self.snapToPixels, yOfs + y * self.snapToPixels };
+	self:SetPoint(unpack(self.snapPoint))
+	self:ProcessPoint(self:GetPoint())
 end
 
 function Mover:NudgeFrame(x, y, len)
@@ -260,6 +275,7 @@ function Mover:CopyPoint(frame)
 	self:SetPoint(point, relativeTo, relativePoint, x, y)
 	self.frame, self.relativeTo = frame, relativeTo;
 	self.origPoint = { point, relativeTo, relativePoint, x, y };
+	self.snapPoint = CopyTable(self.origPoint)
 end
 
 function Mover:RestorePoint()
@@ -304,7 +320,10 @@ function Mover:OnDragStop()
 	self:ProcessPoint(self:GetPoint())
 end
 
-function Mover:OnClick()
+function Mover:OnClick(button)
+	if ( button == 'RightButton' ) then
+		return self:RestorePoint()
+	end
 	self:ClearAndHide()
 end
 
@@ -332,10 +351,10 @@ end
 ---------------------------------------------------------------
 -- Factory
 ---------------------------------------------------------------
-env:RegisterSafeCallback('OnMoveFrame', function(frame)
+env:RegisterSafeCallback('OnMoveFrame', function(frame, callback)
 	if not env.Mover then
 		env.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
 		env.Mover:OnLoad()
 	end
-	env.Mover:SetWidget(frame)
+	env.Mover:SetWidget(frame, callback)
 end)

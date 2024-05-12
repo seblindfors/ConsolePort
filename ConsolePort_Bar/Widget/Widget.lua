@@ -24,3 +24,46 @@ function CommonWidget:SetCommonConfig(config)
     end
     self.config = config;
 end
+
+---------------------------------------------------------------
+local DynamicWidget = {};
+env.DynamicWidgetMixin = DynamicWidget;
+---------------------------------------------------------------
+local NESTING_LEVEL = 1; -- How deep to register callbacks
+
+function DynamicWidget:SetDynamicCallbacks(config, level)
+    env:RegisterCallback(tostring(config), self.OnConfigChanged, self);
+    if level == 0 then return end;
+    for _, datapoint in pairs(config) do
+        if type(datapoint) == 'table' then
+            self:SetDynamicCallbacks(datapoint, level - 1)
+        end
+    end
+end
+
+function DynamicWidget:ClearDynamicCallbacks(config, level)
+    env:UnregisterCallback(tostring(config), self);
+    if level == 0 then return end;
+    for _, datapoint in pairs(config) do
+        if type(datapoint) == 'table' then
+            self:ClearDynamicCallbacks(datapoint, level - 1)
+        end
+    end
+end
+
+function DynamicWidget:SetDynamicConfig(config)
+    if self.config then
+        self:ClearDynamicCallbacks(self.config, NESTING_LEVEL)
+        self.config = nil;
+    end
+    if self.SetCommonConfig then
+        self:SetCommonConfig(config)
+    end
+    self.config = config;
+    self:SetDynamicCallbacks(config, NESTING_LEVEL)
+end
+
+function DynamicWidget:OnConfigChanged(key, value)
+    -- Implement in child
+    CPAPI.Log('Config changed '..tostring(key)..' to '..tostring(value)..' but it was not handled.');
+end

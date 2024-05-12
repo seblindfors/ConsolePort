@@ -44,7 +44,7 @@ Widgets.CreateWidget = CreateWidget;
 ---------------------------------------------------------------
 -- Base widget object
 ---------------------------------------------------------------
-local Widget = {};
+local Widget = {}; Widgets.Base = Widget;
 
 function Widget:OnLoad(varID, metaData, controller, desc, note, owner)
 	self.metaData    = metaData;
@@ -301,11 +301,18 @@ function Number:GetStep()
 	return self.controller:GetStep()
 end
 
-function Number:OnLeftButton()
+function Number:GetControllerButtons()
+	if self.metaData.vert then
+		return 'PADDDOWN', 'PADDUP';
+	end
+	return 'PADDLEFT', 'PADDRIGHT';
+end
+
+function Number:OnDecrement()
 	self:Set(self:Get() - self:GetStep())
 end
 
-function Number:OnRightButton()
+function Number:OnIncrement()
 	self:Set(self:Get() + self:GetStep())
 end
 
@@ -314,18 +321,19 @@ function Number:OnClick(button)
 		Widget.OnClick(self)
 		return self:SetDefault()
 	end
+	local decrement, increment = self:GetControllerButtons()
 	if self:GetChecked() then
-		self.CatchLeft  = self.owner:CatchButton('PADDLEFT', self.OnLeftButton, self)
-		self.CatchRight = self.owner:CatchButton('PADDRIGHT', self.OnRightButton, self)
+		self.CatchDecrement = self.owner:CatchButton(decrement, self.OnDecrement, self)
+		self.CatchIncrement = self.owner:CatchButton(increment, self.OnIncrement, self)
 		self.tooltipHints = {
 			env:GetTooltipPromptForClick('LeftClick', APPLY);
-			env:GetTooltipPrompt('PADDLEFT', env.L'Decrease');
-			env:GetTooltipPrompt('PADDRIGHT', env.L'Increase');
+			env:GetTooltipPrompt(decrement, env.L'Decrease');
+			env:GetTooltipPrompt(increment, env.L'Increase');
 		};
 	else
-		self.owner:FreeButton('PADDLEFT', self.CatchLeft)
-		self.owner:FreeButton('PADDRIGHT', self.CatchRight)
-		self.CatchLeft, self.CatchRight = nil, nil;
+		self.owner:FreeButton(decrement, self.CatchDecrement)
+		self.owner:FreeButton(increment, self.CatchIncrement)
+		self.CatchDecrement, self.CatchIncrement = nil, nil;
 		self.tooltipHints = nil;
 	end
 end
@@ -732,36 +740,39 @@ local Select = CreateWidget('Select', Widget, {
 
 function Select:OnLoad(...)
 	Widget.OnLoad(self, ...)
-	self.Popout.OnEntryClick = function(_, entryData)
-		self.Popout:HidePopout()
-		self:Set(entryData.value)
-	end
-	self.Popout.OnPopoutShown = function(self)
-		self.moveCursorOnClose = true;
-	end;
-	self.Popout.HidePopout = function(self)
-		CPSelectionPopoutWithButtonsAndLabelMixin.HidePopout(self)
-		if self.moveCursorOnClose then
-			ConsolePort:SetCursorNode(self.SelectionPopoutButton, true)
-			self.moveCursorOnClose = nil;
+	if not self.popoutLoaded then
+		self.popoutLoaded = true;
+		self.Popout.OnEntryClick = function(_, entryData)
+			self.Popout:HidePopout()
+			self:Set(entryData.value)
 		end
-	end;
-	self.Popout.OnEnterHook = function(self)
-		local parent = self:GetParent()
-		parent:GetScript('OnEnter')(parent)
-	end;
-	self.Popout.OnLeaveHook = function(self)
-		local parent = self:GetParent()
-		parent:GetScript('OnLeave')(parent)
-	end;
-	for _, obj in pairs({
-		self.Popout,
-		self.Popout.SelectionPopoutButton,
-		self.Popout.IncrementButton,
-		self.Popout.DecrementButton,
-	}) do
-		obj:HookScript('OnEnter', self.Popout.OnEnterHook)
-		obj:HookScript('OnLeave', self.Popout.OnLeaveHook)
+		self.Popout.OnPopoutShown = function(self)
+			self.moveCursorOnClose = true;
+		end;
+		self.Popout.HidePopout = function(self)
+			CPSelectionPopoutWithButtonsAndLabelMixin.HidePopout(self)
+			if self.moveCursorOnClose then
+				ConsolePort:SetCursorNode(self.SelectionPopoutButton, true)
+				self.moveCursorOnClose = nil;
+			end
+		end;
+		self.Popout.OnEnterHook = function(self)
+			local parent = self:GetParent()
+			parent:GetScript('OnEnter')(parent)
+		end;
+		self.Popout.OnLeaveHook = function(self)
+			local parent = self:GetParent()
+			parent:GetScript('OnLeave')(parent)
+		end;
+		for _, obj in pairs({
+			self.Popout,
+			self.Popout.SelectionPopoutButton,
+			self.Popout.IncrementButton,
+			self.Popout.DecrementButton,
+		}) do
+			obj:HookScript('OnEnter', self.Popout.OnEnterHook)
+			obj:HookScript('OnLeave', self.Popout.OnLeaveHook)
+		end
 	end
 	self:EnableMouseWheelSelect(false)
 	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')

@@ -4,7 +4,7 @@ local NOMOD, SHIFT, CTRL, CTRL_SHIFT, ALT = env.ClusterConstants.ModNames();
 local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_HOTKEY, CLUSTER_SHADOW = env.ClusterConstants.Types();
 local ClusterLayout = env.ClusterConstants.Layout;
 ---------------------------------------------------------------
-local Cluster = {};
+local Cluster = CreateFromMixins(env.DynamicWidgetMixin);
 ---------------------------------------------------------------
 
 function Cluster:OnLoad(buttonID, parent)
@@ -61,6 +61,7 @@ function Cluster:SetSize(size)
 		if relativePointData then
 			local p, rel, x, y = unpack(relativePointData);
 			local offset = layoutData.Offset or 1;
+			button:ClearAllPoints()
 			button:SetPoint(p, main, rel, x * offset, y * offset)
 		end
 		button:SetSize(objSize, objSize)
@@ -109,11 +110,19 @@ function Cluster:SetDirection(direction)
 end
 
 function Cluster:SetConfig(config)
+	self:SetDynamicConfig(config)
+	self:OnConfigChanged()
+end
+
+function Cluster:OnConfigChanged(key, ...)
+	if ( key == 'OnMoveStart' ) then
+		return env:TriggerEvent('OnMoveFrame', self:GetMainButton(), ...)
+	end
+	local config = self.config;
 	local pos = config.pos;
 	self:SetPoint(pos.point, pos.x, pos.y)
 	self:SetDirection(config.dir)
 	self:SetSize(config.size) -- TODO: flyout size is not consistent
-	self.config = config;
 end
 
 function Cluster:SetBindings(bindings)
@@ -469,8 +478,8 @@ function CPClusterBar:OnLoad()
 end
 
 function CPClusterBar:SetConfig(config)
-	self:SetCommonConfig(config)
-	self:UpdateClusters(config.buttons or {})
+	self:SetDynamicConfig(config)
+	self:UpdateClusters(config.children or {})
 end
 
 function CPClusterBar:OnNewBindings(bindings)
