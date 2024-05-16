@@ -470,10 +470,9 @@ function CPSelectionPopoutButtonMixin:UpdatePopout()
 	local maxDetailsWidth = 0;
 	for index, selectionData in ipairs(self.selections) do
 		local button = self.buttonPool:Acquire();
-		local selectionInfo = self.selections[index];
 
 		local isSelected = (index == self.selectedIndex);
-		button:SetupEntry(selectionInfo, index, isSelected, numColumns > 1, hasIneligibleChoice);
+		button:SetupEntry(selectionData, index, isSelected, numColumns > 1, hasIneligibleChoice);
 		maxDetailsWidth = math.max(maxDetailsWidth, button.SelectionDetails:GetWidth());
 
 		table.insert(buttons, button);

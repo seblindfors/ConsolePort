@@ -291,12 +291,14 @@ function Table:Set(tbl)
 	if not rawget(self, INIT) then
 		return Field.Set(self, tbl)
 	end
-	local inline = rawget(self, DATA);
-	for child, field in pairs(tbl) do
-		if inline[child] then
-			inline[child][DATA]:Set(field)
-		else
-			error('Malformed table: field "'..child..'" does not exist in definition.')
+	if tbl then
+		local inline = rawget(self, DATA);
+		for child, field in pairs(tbl) do
+			if inline[child] then
+				inline[child][DATA]:Set(field)
+			else
+				error('Malformed table: field "'..child..'" does not exist in definition.')
+			end
 		end
 	end
 	local callback = rawget(self, CALL)
@@ -340,12 +342,16 @@ function Interface:Render(props)
 end
 
 ---------------------------------------------------------------
-local Mutable = Field('Mutable');
+local Mutable = Table('Mutable');
 ---------------------------------------------------------------
 
 function Mutable:SetMutator(type)
 	self.mutator = type();
 	return Field.Set(self, {})
+end
+
+function Mutable:GetMutator()
+	return self.mutator;
 end
 
 function Mutable:SetKeyOptions(options)
@@ -371,19 +377,32 @@ end
 
 function Mutable:Set(values)
 	if values then
-		local data = rawget(self, DATA);
-		local mutator = self.mutator;
 		local keyOptions = self:GetKeyOptions();
 		for key, val in pairs(values) do
 			if keyOptions and not keyOptions[key] then
 				error('Malformed mutable: key "'..key..'" does not exist in definition.')
 			end
-			local newField = mutator();
-			newField:Set(val)
-			data[key] = newField;
+			self:Add(key, val)
 		end
 	end
 	return self;
+end
+
+function Mutable:Remove(key)
+	local data = rawget(self, DATA);
+	if ( data[key] ~= nil ) then
+		data[key] = nil;
+		return true;
+	end
+	return false;
+end
+
+function Mutable:Add(key, val)
+	local data = rawget(self, DATA);
+	local newField = self.mutator();
+	newField:Set(val)
+	data[key] = newField;
+	return true;
 end
 
 function Mutable:Get()

@@ -114,15 +114,25 @@ function Cluster:SetConfig(config)
 	self:OnConfigChanged()
 end
 
+function Cluster:ToggleFlyouts(enabled)
+	local main = self:GetMainButton()
+	for _, button in self:Enumerate() do
+		if ( button ~= main ) then
+			button:OnEnabledChanged(enabled)
+		end
+	end
+end
+
 function Cluster:OnConfigChanged(key, ...)
 	if ( key == 'OnMoveStart' ) then
-		return env:TriggerEvent('OnMoveFrame', self:GetMainButton(), ...)
+		return env:TriggerEvent('OnMoveFrame', self:GetMainButton(), ..., env.ClusterConstants.SnapPixels)
 	end
 	local config = self.config;
 	local pos = config.pos;
 	self:SetPoint(pos.point, pos.x, pos.y)
 	self:SetDirection(config.dir)
 	self:SetSize(config.size) -- TODO: flyout size is not consistent
+	self:ToggleFlyouts(not not config.showFlyouts)
 end
 
 function Cluster:SetBindings(bindings)
@@ -223,67 +233,87 @@ do -- Flyout arrow owner check, report to parent
 end
 
 ---------------------------------------------------------------
-local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, visibility = 0};
+local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, alpha = 0, shown = 0};
 ---------------------------------------------------------------
-do  -- Visibility update closures
+do  -- Alpha update closures
 	local function UpdateFlags(flag, flags, predicate)
 		return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
 	end
 
-	FlyoutButton.VisibilityFlags = {
+	FlyoutButton.AlphaFlags = {
 		AlwaysShow    = 0x01;
 		OnCooldown    = 0x02;
 		OverlayActive = 0x04;
 		MouseOver     = 0x08;
 		ShowGrid      = 0x10;
 		Flyout        = 0x20;
+		ConfigShown   = 0x40;
+	};
+
+	FlyoutButton.AlphaState = {};
+	for flagName, flagValue in pairs(FlyoutButton.AlphaFlags) do
+		FlyoutButton.AlphaState[flagName] = GenerateClosure(UpdateFlags, flagValue);
+	end
+
+	FlyoutButton.AlphaEvents = {
+		ACTIONBAR_SHOWGRID = { FlyoutButton.AlphaState.ShowGrid, true  };
+		ACTIONBAR_HIDEGRID = { FlyoutButton.AlphaState.ShowGrid, false };
+	};
+
+	FlyoutButton.VisibilityFlags = {
+		NoBinding     = 0x01;
+		Disabled	  = 0x02;
 	};
 
 	FlyoutButton.VisibilityState = {};
 	for flagName, flagValue in pairs(FlyoutButton.VisibilityFlags) do
 		FlyoutButton.VisibilityState[flagName] = GenerateClosure(UpdateFlags, flagValue);
 	end
-
-	FlyoutButton.VisibilityEvents = {
-		ACTIONBAR_SHOWGRID = { FlyoutButton.VisibilityState.ShowGrid, true  };
-		ACTIONBAR_HIDEGRID = { FlyoutButton.VisibilityState.ShowGrid, false };
-	};
 end
 
 function FlyoutButton:OnShowAll(showAll)
-	self:UpdateFade(self.VisibilityState.AlwaysShow, showAll)
+	self:UpdateAlpha(self.AlphaState.AlwaysShow, showAll)
 end
 
 function FlyoutButton:OnShowOverlay()
-	self:UpdateFade(self.VisibilityState.OverlayActive, true)
+	self:UpdateAlpha(self.AlphaState.OverlayActive, true)
 end
 
 function FlyoutButton:OnHideOverlay()
-	self:UpdateFade(self.VisibilityState.OverlayActive, false)
+	self:UpdateAlpha(self.AlphaState.OverlayActive, false)
 end
 
 function FlyoutButton:OnMouseMotionFocus()
-	self:UpdateFade(self.VisibilityState.MouseOver, true)
+	self:UpdateAlpha(self.AlphaState.MouseOver, true)
 end
 
 function FlyoutButton:OnMouseMotionClear()
-	self:UpdateFade(self.VisibilityState.MouseOver, false)
+	self:UpdateAlpha(self.AlphaState.MouseOver, false)
 end
 
 function FlyoutButton:OnSpellFlyout(enabled)
-	self:UpdateFade(self.VisibilityState.Flyout, enabled)
+	self:UpdateAlpha(self.AlphaState.Flyout, enabled)
 end
 
-function FlyoutButton:OnVisibilityEvent(event)
-	local eventClosure = self.VisibilityEvents[event];
+function FlyoutButton:OnConfigShown(shown)
+	self:UpdateAlpha(self.AlphaState.ConfigShown, shown)
+end
+
+function FlyoutButton:OnEnabledChanged(enabled)
+	self:UpdateVisibility(self.VisibilityState.Disabled, not enabled)
+end
+
+function FlyoutButton:OnAlphaEvent(event)
+	local eventClosure = self.AlphaEvents[event];
 	if eventClosure then
-		self:UpdateFade(unpack(eventClosure))
+		self:UpdateAlpha(unpack(eventClosure))
 	end
 end
 
 function FlyoutButton:OnLoad()
 	env:RegisterCallback('Settings/clusterShowAll', self.OnShowAll, self)
 	env:RegisterCallback('Settings/clusterShowFlyoutIcons', self.OnShowFlyoutIcons, self)
+	env:RegisterCallback('OnLoadoutConfigShown', self.OnConfigShown, self)
 
 	self:OnShowAll(env('clusterShowAll'))
 	self:OnShowFlyoutIcons(env('clusterShowFlyoutIcons'))
@@ -293,8 +323,8 @@ function FlyoutButton:OnLoad()
 
 	self:HookScript('OnEnter', self.OnMouseMotionFocus)
 	self:HookScript('OnLeave', self.OnMouseMotionClear)
-	self:HookScript('OnEvent', self.OnVisibilityEvent)
-	for event in pairs(self.VisibilityEvents) do
+	self:HookScript('OnEvent', self.OnAlphaEvent)
+	for event in pairs(self.AlphaEvents) do
 		self:RegisterEvent(event)
 	end
 end
@@ -305,12 +335,12 @@ function FlyoutButton:OnCooldownSet(cooldown, _, duration)
 	local hotkey1, hotkey2 = self.Hotkey1, self.Hotkey2;
 	if hotkey1 then hotkey1:SetShown(not onCooldown) end;
 	if hotkey2 then hotkey2:SetShown(not onCooldown) end;
-	self:UpdateFade(self.VisibilityState.OnCooldown, fadeInForCD)
+	self:UpdateAlpha(self.AlphaState.OnCooldown, fadeInForCD)
 end
 
 function FlyoutButton:OnCooldownClear()
 	self:ToggleHotkeys(self.showFlyoutIcons)
-	self:UpdateFade(self.VisibilityState.OnCooldown, false)
+	self:UpdateAlpha(self.AlphaState.OnCooldown, false)
 end
 
 function FlyoutButton:OnShowFlyoutIcons(enabled)
@@ -322,9 +352,9 @@ function FlyoutButton:SetAlpha(alpha, force)
 	if force then return getmetatable(self).__index.SetAlpha(self, alpha) end
 end
 
-function FlyoutButton:UpdateFade(closure, state)
-	self.visibility = closure(self.visibility, state);
-	local fadeOut = self.visibility == 0;
+function FlyoutButton:UpdateAlpha(closure, state)
+	self.alpha = closure(self.alpha, state);
+	local fadeOut = self.alpha == 0;
 	if fadeOut then
 		self:FadeOut(0.25, self:GetAlpha())
 	else
@@ -332,10 +362,15 @@ function FlyoutButton:UpdateFade(closure, state)
 	end
 end
 
+function FlyoutButton:UpdateVisibility(closure, state)
+	self.shown = closure(self.shown, state);
+	self:ToggleShown(self.shown == 0)
+end
+
 function FlyoutButton:SetBindings(primary, allBindings)
 	local emulation = db.Gamepad.Index.Modifier.Owner[self.id];
 	if emulation and env.IsModSubset(emulation, self.mod) then
-		return self:ToggleShown(false)
+		return self:UpdateVisibility(self.VisibilityState.NoBinding, true)
 	end
 	for modifier in pairs(allBindings) do
 		if not env.IsModSubset(self.mod, modifier) then
@@ -346,7 +381,7 @@ function FlyoutButton:SetBindings(primary, allBindings)
 	end
 	self:RefreshBinding(self.mod, allBindings[NOMOD])
 	self:RefreshBinding(ALT..self.mod, allBindings[ALT..self.mod])
-	self:ToggleShown(true)
+	self:UpdateVisibility(self.VisibilityState.NoBinding, false)
 end
 
 ---------------------------------------------------------------
@@ -482,6 +517,13 @@ function CPClusterBar:SetConfig(config)
 	self:UpdateClusters(config.children or {})
 end
 
+function CPClusterBar:OnConfigChanged(key, ...)
+	if ( key == 'OnMoveStart' ) then
+		return env:TriggerEvent('OnMoveFrame', self, ..., env.ClusterConstants.SnapPixels * 4)
+	end
+	self:SetConfig(self.config)
+end
+
 function CPClusterBar:OnNewBindings(bindings)
 	if not env:IsActive(self) then return end;
 	for buttonID, set in pairs(bindings) do
@@ -511,6 +553,7 @@ function CPClusterBar:UpdateClusters(clusters)
 		if ( cluster:GetParent() ~= self ) then
 			cluster:SetParent(self)
 		end
+		cluster:Show()
 		cluster:SetConfig(config)
 	end
 end

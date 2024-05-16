@@ -64,6 +64,10 @@ do -- Data handler
 		env:TriggerEvent('OnDataLoaded')
 	end
 
+	function env:TriggerPathEvent(path, ...)
+		self:TriggerEvent(tostring(self(path)), ...)
+	end
+
 	env:RegisterCallback('OnEnvLoaded', env.OnEnvLoaded, env)
 end -- Data handler
 
@@ -280,7 +284,7 @@ do -- Binding data handler
 	function env.GetXMLBindingInfo(binding)
 		local desc, image, name, texture = env.db.Bindings:GetDescriptionForBinding(binding, true, TOOLTIP_LINE_LEN)
 		local tooltip = ('%s%s%s'):format(
-		WHITE_FONT_COLOR:WrapTextInColorCode(name),
+		WHITE_FONT_COLOR:WrapTextInColorCode(name or binding),
 		desc  and ('\n\n%s'):format(desc)  or '',
 		image and ('\n\n%s'):format(image) or ''
 	);

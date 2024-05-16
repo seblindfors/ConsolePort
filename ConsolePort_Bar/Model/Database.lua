@@ -14,7 +14,7 @@ env:Register('Variables', CPAPI.Callable({
 	---------------------------------------------------------------
 	clusterShowAll = _{Data.Bool(false);
 		name = 'Always Show All Buttons';
-		desc = 'Show all combinations in the cluster at all times.';
+		desc = 'Show all enabled combinations in the cluster at all times.';
 		note = 'By default, shows modifiers on mouseover and on cooldown.';
 	};
 	clusterShowMainIcons = _{Data.Bool(true);
@@ -91,6 +91,7 @@ env.ClusterConstants = {
 	Directions = CPAPI.Enum('UP', 'DOWN', 'LEFT', 'RIGHT');
 	Types      = CPAPI.Enum('Cluster', 'ClusterHandle', 'ClusterButton', 'ClusterHotkey', 'ClusterShadow');
 	ModNames   = CPAPI.Enum(NOMOD, SHIFT, CTRL, CTRL..SHIFT, ALT, ALT..SHIFT, ALT..CTRL, ALT..CTRL..SHIFT);
+	SnapPixels = 4;
 	PxSize     = SIZE_L;
 	Layout = {
 		[NOMOD]      = { ----------------------------------------------------------------------------------------------------------
@@ -274,6 +275,11 @@ env.Types.ClusterHandle = Data.Interface {
 		pos = env.Types.SimplePoint : Implement {
 			desc = 'Position of the button cluster.';
 		};
+		showFlyouts = {
+			name = 'Show Flyouts';
+			desc = 'Show the flyout of small buttons for the button cluster.';
+			Data.Bool(true);
+		};
 	};
 };
 
@@ -295,6 +301,7 @@ env.Types.Cluster = Data.Interface {
 		height = {
 			name = 'Height';
 			desc = 'Height of the cluster bar.';
+			vert = true;
 			Data.Number(140, 25);
 		};
 		scale = {

@@ -31,7 +31,9 @@ local function CreateWidget(name, inherit, blueprint)
 	widget.blueprint = blueprint;
 
 	Widgets[name] = function(self, ...)
-		env.db.table.mixin(self, widget)
+		if not Widgets.Registry[self] then
+			env.db.table.mixin(self, widget)
+		end
 		self:OnLoad(...)
 		return self;
 	end;
@@ -40,6 +42,7 @@ local function CreateWidget(name, inherit, blueprint)
 end
 
 Widgets.CreateWidget = CreateWidget;
+Widgets.Registry     = {};
 
 ---------------------------------------------------------------
 -- Base widget object
@@ -54,8 +57,8 @@ function Widget:OnLoad(varID, metaData, controller, desc, note, owner)
 	self.tooltipNote = note;
 	self.owner       = owner or env.Config;
 
-	if self.blueprint and not self.constructed then
-		self.constructed = not not Carpenter:BuildFrame(self, self.blueprint, false, true)
+	if self.blueprint and not Widgets.Registry[self] then
+		Widgets.Registry[Carpenter:BuildFrame(self, self.blueprint, false, true)] = true;
 	end
 end
 

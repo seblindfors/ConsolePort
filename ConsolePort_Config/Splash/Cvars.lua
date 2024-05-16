@@ -45,7 +45,7 @@ function Cvar:Construct(data, newObj, owner)
 end
 
 function Cvar:Get()
-	local controller = self.controller;
+	local controller = self.controller; -- TODO: bug, controller can be nil?
 	if controller:IsType('Bool') then
 		return self:GetRawBool(self.variableID)
 	elseif controller:IsType('Number') or controller:IsType('Range') then

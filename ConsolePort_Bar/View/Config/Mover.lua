@@ -192,8 +192,11 @@ function Mover:SetSnapPixels(snapToPixels)
 	end
 end
 
-function Mover:SetWidget(frame, callback)
+function Mover:SetWidget(frame, callback, snapPixels)
 	if C_Widget.IsFrameWidget(frame) then
+		if tonumber(snapPixels) then
+			self:SetSnapPixels(snapPixels)
+		end
 		return self:SetFrame(frame, callback)
 	end
 	error('Frame is not a widget, unhandled type.')
@@ -241,14 +244,14 @@ function Mover:SetFrame(frame, callback)
 end
 
 function Mover:SetOmitterSize(width, height)
-	width  = 1.2 * (math.floor(width  / self.snapToPixels) * self.snapToPixels);
-	height = 1.2 * (math.floor(height / self.snapToPixels) * self.snapToPixels);
+	width  = math.floor(1.2 * (math.floor(width  / self.snapToPixels) * self.snapToPixels));
+	height = math.floor(1.2 * (math.floor(height / self.snapToPixels) * self.snapToPixels));
 	self.Omitter:SetSize(width, height)
 end
 
 function Mover:SnapTo(x, y)
 	local point, relativeTo, relativePoint, xOfs, yOfs = unpack(self.snapPoint)
-	self.snapPoint = { point, relativeTo, relativePoint, xOfs + x * self.snapToPixels, yOfs + y * self.snapToPixels };
+	self.snapPoint = { point, relativeTo, relativePoint, xOfs + (x * self.snapToPixels), yOfs + (y * self.snapToPixels) };
 	self:SetPoint(unpack(self.snapPoint))
 	self:ProcessPoint(self:GetPoint())
 end
@@ -351,10 +354,10 @@ end
 ---------------------------------------------------------------
 -- Factory
 ---------------------------------------------------------------
-env:RegisterSafeCallback('OnMoveFrame', function(frame, callback)
+env:RegisterSafeCallback('OnMoveFrame', function(frame, callback, snapPixels)
 	if not env.Mover then
 		env.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
 		env.Mover:OnLoad()
 	end
-	env.Mover:SetWidget(frame, callback)
+	env.Mover:SetWidget(frame, callback, snapPixels)
 end)

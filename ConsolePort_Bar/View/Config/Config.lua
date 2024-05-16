@@ -19,6 +19,7 @@ end
 function Setting:SetIndentation(level)
 	self.Text:SetPoint('LEFT', 32 + ((level - 1) * 8), 0)
 	self.Icon:SetPoint('LEFT', 8 + ((level - 1) * 8), 0)
+	self.indentation = level;
 end
 
 function Setting:OnChecked(checked)
@@ -203,7 +204,7 @@ function Config:OnLoad()
 	Mixin(Setting, env.SharedConfig.Env.SettingMixin) -- borrow code from the config for the settings
 	self.Name:SetText(L'Action Bar Configuration')
 	self.Mover:SetTooltipInfo(L'Move', L'Click here to start moving the configuration window.')
-	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self))
+	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self, nil, 10))
 	Mixin(self.SettingsContainer, SettingsContainer):OnLoad()
 	CPAPI.Start(self)
 end
