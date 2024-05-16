@@ -108,11 +108,16 @@ function Button:OnLeave()
 	end
 end
 
+local ConvertAnchorToJustifyH = CPAPI.Proxy({
+	LEFT  = 'LEFT',
+	RIGHT = 'RIGHT',
+}, function() return 'CENTER' end)
+
 function Button:SetupRegions(anchor)
 	local set = Layout.Position[anchor];
 
 	local point, relativePoint, xOffset, yOffset = unpack(set.textPoint);
-	self.Label:SetJustifyH(anchor)
+	self.Label:SetJustifyH(ConvertAnchorToJustifyH[anchor])
 	self.Label:ClearAllPoints()
 	self.Label:SetPoint(point, self, relativePoint, xOffset, yOffset)
 
