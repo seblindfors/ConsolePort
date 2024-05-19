@@ -2,7 +2,7 @@ local env = LibStub('RelaTable')(...)
 env.db        = ConsolePort:DB();
 env.UIHandler = CPAPI.CreateEventHandler({'Frame'}, {
 	-- events go here
-}); local UIHandler = env.UIHandler;
+}); local db, UIHandler = env.db, env.UIHandler;
 
 UIHandler:Hide()
 function UIHandler:OnDataLoaded()
@@ -274,7 +274,7 @@ do -- Binding data handler
 	local TOOLTIP_LINE_LEN = 50;
 
 	function env.GetBindingIcon(binding)
-		return env.db.Bindings.Icons[binding];
+		return db.Bindings.Icons[binding];
 	end
 
 	function env.GetBindingName(binding)
@@ -282,20 +282,32 @@ do -- Binding data handler
 	end
 
 	function env.GetXMLBindingInfo(binding)
-		local desc, image, name, texture = env.db.Bindings:GetDescriptionForBinding(binding, true, TOOLTIP_LINE_LEN)
+		local desc, image, name, texture = db.Bindings:GetDescriptionForBinding(binding, true, TOOLTIP_LINE_LEN)
 		local tooltip = ('%s%s%s'):format(
-		WHITE_FONT_COLOR:WrapTextInColorCode(name or binding),
-		desc  and ('\n\n%s'):format(desc)  or '',
-		image and ('\n\n%s'):format(image) or ''
-	);
-	return {
-		name    = name;
-		desc    = desc;
-		texture = texture;
-		tooltip = tooltip;
-	};
-end
+			WHITE_FONT_COLOR:WrapTextInColorCode(name or binding),
+			desc  and ('\n\n%s'):format(desc)  or '',
+			image and ('\n\n%s'):format(image) or ''
+		);
+		return {
+			name    = name;
+			desc    = desc;
+			texture = texture;
+			tooltip = tooltip;
+		};
+	end
 
+	function env.GetRebindInfo(buttonID)
+		local emulation = db.Console:GetEmulationForButton(buttonID)
+		local title = emulation and emulation.name or NOT_BOUND;
+		local desc  = emulation and CPAPI.FormatLongText(emulation.desc, TOOLTIP_LINE_LEN) or 'This button is not bound to any action.';
+		local tooltip = ('%s\n%s'):format(WHITE_FONT_COLOR:WrapTextInColorCode(title), desc)
+		return {
+			name    = title;
+			desc    = desc;
+			texture = nil;
+			tooltip = tooltip;
+		};
+	end
 end -- Binding data handler
 
 

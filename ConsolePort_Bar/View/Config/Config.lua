@@ -211,6 +211,12 @@ end
 
 function Config:OnShow()
 	self:SetDefaultClosures()
+	env:TriggerEvent('OnConfigShown', true, self)
+end
+
+function Config:OnHide()
+	self:ReleaseClosures()
+	env:TriggerEvent('OnConfigShown', false, self)
 end
 
 function Config:SetDefaultClosures()

@@ -115,8 +115,9 @@ function ProxyButton:SetXMLBinding(binding)
 end
 
 function ProxyButton:SetEligbleForRebind(state)
+    local info = env.GetRebindInfo(self.id)
 	return 'custom', {
-		tooltip = 'Click to bind this button';
+        tooltip = info.tooltip;
 		texture = ProxyButtonTextureProvider(self.id);
 		func    = print; -- TODO
 	};
