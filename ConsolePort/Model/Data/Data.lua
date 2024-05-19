@@ -238,7 +238,7 @@ function Range:GetMinMax()
 end
 
 function Range:Set(val)
-	return Field.Set(self, Clamp(val, self.min, self.max))
+	return Field.Set(self, Clamp(tonumber(val), self.min, self.max))
 end
 
 function Range:SetMinMax(min, max)
@@ -445,7 +445,7 @@ function Data.Number(val, step, signed)
 end
 
 function Data.Map(val, opts)
-	return Select(val, val):SetRawOptions(opts):Set(val)
+	return Select():SetRawOptions(opts):Set(val)
 end
 
 function Data.Pseudokey(val, allowModifiers)
