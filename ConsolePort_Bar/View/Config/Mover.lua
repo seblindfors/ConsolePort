@@ -126,10 +126,10 @@ local Mover = {
 		PAD3         = function(self) self:RestorePoint() end;
 		PADRSHOULDER = function(self) self:OnMouseWheel(1) end;
 		PADLSHOULDER = function(self) self:OnMouseWheel(-1) end;
-		PADDLEFT     = function(self) self:SnapTo(-1,  0) end;
-		PADDRIGHT    = function(self) self:SnapTo( 1,  0) end;
-		PADDUP       = function(self) self:SnapTo( 0,  1) end;
-		PADDDOWN     = function(self) self:SnapTo( 0, -1) end;
+		PADDLEFT     = function(self) self:SnapXY(-1,  0) end;
+		PADDRIGHT    = function(self) self:SnapXY( 1,  0) end;
+		PADDUP       = function(self) self:SnapXY( 0,  1) end;
+		PADDDOWN     = function(self) self:SnapXY( 0, -1) end;
 	};
 };
 
@@ -249,28 +249,29 @@ function Mover:SetOmitterSize(width, height)
 	self.Omitter:SetSize(width, height)
 end
 
-function Mover:SnapTo(x, y)
-	local point, relativeTo, relativePoint, xOfs, yOfs = unpack(self.snapPoint)
-	self.snapPoint = { point, relativeTo, relativePoint, xOfs + (x * self.snapToPixels), yOfs + (y * self.snapToPixels) };
-	self:SetPoint(unpack(self.snapPoint))
+function Mover:SnapXY(x, y)
+	self:SetPoint(self:MoveXY(x * self.snapToPixels, y * self.snapToPixels))
 	self:ProcessPoint(self:GetPoint())
 end
 
-function Mover:NudgeFrame(x, y, len)
-	if ( len < 0.1 ) then
+function Mover:MoveXY(x, y)
+	local point, relativeTo, relativePoint, xOfs, yOfs = unpack(self.snapPoint)
+	self.snapPoint = { point, relativeTo, relativePoint, xOfs + x, yOfs + y };
+	return unpack( self.snapPoint );
+end
+
+function Mover:NudgeXY(x, y, len)
+	if ( len < 0.05 ) then
 		if self.isMoving then
 			self.isMoving = false;
-			self:StopMovingOrSizing()
 			self:ProcessPoint(self:GetPoint())
 		end
 		return;
 	end
 	if not self.isMoving then
 		self.isMoving = true;
-		self:StartMoving()
 	end
-	local point, relativeTo, relativePoint, xOfs, yOfs = self:GetPoint()
-	self:SetPoint(point, relativeTo, relativePoint, xOfs + x, yOfs + y)
+	self:SetPoint(self:MoveXY(x, y))
 end
 
 function Mover:CopyPoint(frame)
@@ -287,21 +288,29 @@ function Mover:RestorePoint()
 	self:ClearAndHide()
 end
 
+
+local function Snap(value, bias)
+	local lower = math.floor(value / bias) * bias;
+	local upper = math.ceil(value / bias) * bias;
+	return (value - lower < upper - value) and lower or upper;
+end
+
 function Mover:ProcessPoint(point, relativeTo, relativePoint, x, y)
-	x = math.floor(x / self.snapToPixels) * self.snapToPixels;
-	y = math.floor(y / self.snapToPixels) * self.snapToPixels;
-	relativeTo = relativeTo or self.relativeTo;
-	self:ClearAllPoints()
-	self:SetPoint(point, relativeTo, relativePoint, x, y)
-	self.frame:ClearAllPoints()
-	self.frame:SetPoint(point, relativeTo, relativePoint, x, y)
+    x = Snap(x, self.snapToPixels)
+    y = Snap(y, self.snapToPixels)
+    relativeTo = relativeTo or self.relativeTo;
+
+    self:ClearAllPoints()
+    self:SetPoint(point, relativeTo, relativePoint, x, y)
+    self.frame:ClearAllPoints()
+    self.frame:SetPoint(point, relativeTo, relativePoint, x, y)
 end
 
 function Mover:OnGamePadStick(stick, x, y, len)
 	if (stick == 'Right') then
-		self:NudgeFrame(x * 4, y * 4, len)
+		self:NudgeXY(x * 2, y * 2, len)
 	elseif (stick == 'Left') then
-		self:NudgeFrame(x * 2, y * 2, len)
+		self:NudgeXY(x * 1, y * 1, len)
 	end
 end
 
@@ -314,12 +323,12 @@ end
 
 function Mover:OnDragStart()
 	self.isMoving = true;
-	self:StartMoving()
+	self.startX, self.startY = GetScaledCursorPosition()
 end
 
 function Mover:OnDragStop()
 	self.isMoving = false;
-	self:StopMovingOrSizing()
+	self.startX, self.startY = nil, nil;
 	self:ProcessPoint(self:GetPoint())
 end
 
@@ -332,6 +341,12 @@ end
 
 function Mover:OnUpdate()
 	if not self.frame or not self.frame:IsVisible() then self:ClearAndHide() end;
+	if self.startX and self.startY then
+		local x, y = GetScaledCursorPosition()
+		local dx, dy = x - self.startX, y - self.startY;
+		self:SetPoint(self:MoveXY(dx, dy))
+		self.startX, self.startY = x, y;
+	end
 end
 
 function Mover:OnMouseWheel(delta)
