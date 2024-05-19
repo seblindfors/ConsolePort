@@ -89,6 +89,13 @@ function Lib.SkinUtility.GetHighlightTexture(self)
 	return self.HighlightTexture;
 end
 
+function Lib.SkinUtility.GetPushedTexture(self)
+	if not self.PushedTexture then
+		self.PushedTexture = self:GetPushedTexture()
+	end
+	return self.PushedTexture;
+end
+
 function Lib.SkinUtility.PreventSkinning(self)
 	self.MasqueSkinned = true;
 end

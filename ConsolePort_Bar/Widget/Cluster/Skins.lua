@@ -9,7 +9,7 @@ local Swipes = env.ClusterConstants.Swipes;
 local Assets = env.ClusterConstants.Assets;
 local AdjustTextures = env.ClusterConstants.AdjustTextures;
 local GetIconMask = env.LIB.SkinUtility.GetIconMask;
-local GetHighlightTexture = env.LIB.SkinUtility.GetHighlightTexture;
+local GetHighlightTexture, GetPushedTexture = env.LIB.SkinUtility.GetHighlightTexture, env.LIB.SkinUtility.GetPushedTexture;
 local GetSlotBackground = env.LIB.SkinUtility.GetSlotBackground;
 local SkinOverlayGlow = env.LIB.Skin.ColorSwatchProc;
 local SkinChargeCooldown = env.LIB.SkinUtility.SkinChargeCooldown;
@@ -58,6 +58,7 @@ local function SetTextures(self, adjustTextures, coords, texSize)
         end
     end
     GetHighlightTexture(self):SetBlendMode('ADD')
+    GetPushedTexture(self):SetBlendMode('ADD')
     if self.borderColor then
         self.NormalTexture:SetVertexColor(self.borderColor:GetRGBA())
     end
