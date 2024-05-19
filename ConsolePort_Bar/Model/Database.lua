@@ -29,6 +29,10 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Full State Modifier';
 		desc = 'Enable all modifier states for the cluster, including unmapped modifiers.';
 	};
+	clusterBorderStyle = _{Data.Select('Normal', 'Normal', 'Large', 'Beveled');
+		name = 'Main Button Border Style';
+		desc = 'Style of the border around main buttons.';
+	};
 	---------------------------------------------------------------
 	_'Toolbar';
 	---------------------------------------------------------------
@@ -40,10 +44,6 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Fade Watch Bars';
 		desc = 'Fade out the XP bar when not mousing over it.';
 		deps = { enableXPBar = true };
-	};
-	toolbarWidth = _{Data.Range(900, 25, 300, 1200);
-		name = 'Toolbar Width';
-		desc = 'Width of the toolbar.';
 	};
 	---------------------------------------------------------------
 	_'Colors';
@@ -145,9 +145,6 @@ env.ClusterConstants = {
 	AdjustTextures = {
 		[NOMOD] = {
 			Border                =   env.GetAsset([[Textures\Button\Hilite]]);
-			NormalTexture         =   env.GetAsset([[Textures\Button\Normal]]);
-			PushedTexture         =   env.GetAsset([[Textures\Button\Hilite]]);
-			HighlightTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
 			CheckedTexture        =   env.GetAsset([[Textures\Button\Hilite]]);
 			NewActionTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
 			SpellHighlightTexture =   env.GetAsset([[Textures\Button\Hilite2x.png]]);
@@ -186,6 +183,23 @@ env.ClusterConstants = {
 		MainMask                  = CPAPI.GetAsset([[Textures\Button\Mask]]);
 		MainSwipe                 =   env.GetAsset([[Textures\Cooldown\Swipe]]);
 		EmptyIcon                 = CPAPI.GetAsset([[Textures\Button\EmptyIcon]]);
+	};
+	BorderStyle = {
+		Normal = {
+			NormalTexture         =   env.GetAsset([[Textures\Button\Normal]]);
+			PushedTexture         =   env.GetAsset([[Textures\Button\Hilite]]);
+			HighlightTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
+		};
+		Large = {
+			NormalTexture         =   env.GetAsset([[Textures\Button\Normal2x.png]]);
+			PushedTexture         =   env.GetAsset([[Textures\Button\Normal2x.png]]);
+			HighlightTexture      =   env.GetAsset([[Textures\Button\Hilite2x.png]]);
+		};
+		Beveled = {
+			NormalTexture         = CPAPI.GetAsset([[Textures\Button\Normal]]);
+			PushedTexture         = CPAPI.GetAsset([[Textures\Button\Hilite]]);
+			HighlightTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
+		};
 	};
 	LABConfig = {
 		clickOnDown     = true;
@@ -329,6 +343,11 @@ env.Types.Toolbar = Data.Interface {
 			{
 				point = 'BOTTOM';
 			};
+		};
+		width = {
+			name = 'Width';
+			desc = 'Width of the toolbar.';
+			Data.Range(900, 25, 300, 1200);
 		};
 	};
 };

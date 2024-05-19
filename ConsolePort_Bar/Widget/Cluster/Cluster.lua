@@ -1,10 +1,10 @@
 local _, env, db = ...; db = env.db;
 ---------------------------------------------------------------
-local NOMOD, SHIFT, CTRL, CTRL_SHIFT, ALT = env.ClusterConstants.ModNames();
+local NOMOD, _, _, _, ALT = env.ClusterConstants.ModNames();
 local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_HOTKEY, CLUSTER_SHADOW = env.ClusterConstants.Types();
 local ClusterLayout = env.ClusterConstants.Layout;
 ---------------------------------------------------------------
-local Cluster = CreateFromMixins(env.DynamicWidgetMixin);
+local Cluster = CreateFromMixins(env.DynamicWidgetMixin, env.MovableWidgetMixin);
 ---------------------------------------------------------------
 
 function Cluster:OnLoad(buttonID, parent)
@@ -111,7 +111,7 @@ end
 
 function Cluster:SetConfig(config)
 	self:SetDynamicConfig(config)
-	self:OnConfigChanged()
+	self:OnConfigUpdated()
 end
 
 function Cluster:ToggleFlyouts(enabled)
@@ -123,10 +123,7 @@ function Cluster:ToggleFlyouts(enabled)
 	end
 end
 
-function Cluster:OnConfigChanged(key, ...)
-	if ( key == 'OnMoveStart' ) then
-		return env:TriggerEvent('OnMoveFrame', self:GetMainButton(), ..., env.ClusterConstants.SnapPixels)
-	end
+function Cluster:OnConfigUpdated()
 	local config = self.config;
 	local pos = config.pos;
 	self:SetPoint(pos.point, pos.x, pos.y)
@@ -140,6 +137,9 @@ function Cluster:SetBindings(bindings)
 		button:SetBindings(bindings[modifier], bindings)
 	end
 end
+
+Cluster.GetMoveTarget = Cluster.GetMainButton;
+Cluster.GetSnapSize   = function() return env.ClusterConstants.SnapPixels end;
 
 ---------------------------------------------------------------
 local Shadow = {};
@@ -492,7 +492,7 @@ function Hotkey:OnIconsChanged()
 end
 
 ---------------------------------------------------------------
-CPClusterBar = CreateFromMixins(CPActionBar);
+CPClusterBar = CreateFromMixins(CPActionBar, env.MovableWidgetMixin);
 ---------------------------------------------------------------
 
 function CPClusterBar:OnLoad()
@@ -517,10 +517,7 @@ function CPClusterBar:SetConfig(config)
 	self:UpdateClusters(config.children or {})
 end
 
-function CPClusterBar:OnConfigChanged(key, ...)
-	if ( key == 'OnMoveStart' ) then
-		return env:TriggerEvent('OnMoveFrame', self, ..., env.ClusterConstants.SnapPixels * 4)
-	end
+function CPClusterBar:OnConfigUpdated()
 	self:SetConfig(self.config)
 end
 
@@ -568,6 +565,10 @@ end
 
 function CPClusterBar:OnVariableChanged()
 	self.ProcAnimation:SetVertexColor(env:GetColorRGBA('procColor'))
+end
+
+function CPClusterBar:GetSnapSize()
+	return env.ClusterConstants.SnapPixels * 4;
 end
 
 ---------------------------------------------------------------
@@ -620,5 +621,15 @@ env:AddFactory(CLUSTER_SHADOW, function(_, parent, owner, layoutData)
 	shadow:OnLoad(owner, unpack(layoutData))
 	return shadow;
 end)
+
+env:RegisterCallbacks(function(self)
+	local style = env.ClusterConstants.BorderStyle[self('clusterBorderStyle')];
+	for key, texture in pairs(style) do
+		self.ClusterConstants.AdjustTextures[NOMOD][key] = texture;
+	end
+	self:Map(CLUSTER_HANDLE, nil, function(cluster)
+		cluster:GetMainButton():Skin(true)
+	end)
+end, env, 'OnDataLoaded', 'Settings/clusterBorderStyle')
 
 end -- Cluster bar factory
