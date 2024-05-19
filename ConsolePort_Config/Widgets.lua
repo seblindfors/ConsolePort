@@ -149,6 +149,24 @@ function Widget:OnShow()
 	end
 end
 
+function Widget:ToggleClosure(button, enabled, callback, ...)
+    if not button then
+        self.closures = nil;
+        return enabled and self.owner:CatchAll(callback, ...) or self.owner:SetDefaultClosures()
+    end
+
+    if enabled then
+        self.closures = self.closures or {};
+        self.closures[button] = self.owner:CatchButton(button, callback, ...)
+    elseif self.closures and self.closures[button] then
+        self.owner:FreeButton(button, self.closures[button])
+        self.closures[button] = nil;
+        if not next(self.closures) then
+            self.closures = nil;
+        end
+    end
+end
+
 function Widget:OnValueChanged(...)
 	-- replace callback in mixin
 end
@@ -326,17 +344,16 @@ function Number:OnClick(button)
 	end
 	local decrement, increment = self:GetControllerButtons()
 	if self:GetChecked() then
-		self.CatchDecrement = self.owner:CatchButton(decrement, self.OnDecrement, self)
-		self.CatchIncrement = self.owner:CatchButton(increment, self.OnIncrement, self)
+		self:ToggleClosure(decrement, true, self.OnDecrement, self)
+		self:ToggleClosure(increment, true, self.OnIncrement, self)
 		self.tooltipHints = {
 			env:GetTooltipPromptForClick('LeftClick', APPLY);
 			env:GetTooltipPrompt(decrement, env.L'Decrease');
 			env:GetTooltipPrompt(increment, env.L'Increase');
 		};
 	else
-		self.owner:FreeButton(decrement, self.CatchDecrement)
-		self.owner:FreeButton(increment, self.CatchIncrement)
-		self.CatchDecrement, self.CatchIncrement = nil, nil;
+		self:ToggleClosure(decrement, false)
+		self:ToggleClosure(increment, false)
 		self.tooltipHints = nil;
 	end
 end
@@ -590,9 +607,9 @@ function Button:OnClick(button)
 			YELLOW_FONT_COLOR:WrapTextInColorCode(BIND_KEY_TO_COMMAND:format(BLUE_FONT_COLOR:WrapTextInColorCode(self:GetText())));
 		};
 		self:UpdateTooltip()
-		return self.owner:CatchAll(self.OnGamePadButtonDown, self)
+		return self:ToggleClosure(nil, true, self.OnGamePadButtonDown, self)
 	end
-	self.owner:SetDefaultClosures()
+	self:ToggleClosure()
 end
 
 function Button:OnValueChanged(value)
@@ -821,17 +838,16 @@ function Select:OnClick(button)
 	end
 	self:EnableMouseWheelSelect(self:GetChecked())
 	if self:GetChecked() then
-		self.CatchLeft  = self.owner:CatchButton('PADDLEFT', self.OnLeftButton, self)
-		self.CatchRight = self.owner:CatchButton('PADDRIGHT', self.OnRightButton, self)
+		self:ToggleClosure('PADDLEFT', true, self.OnLeftButton, self)
+		self:ToggleClosure('PADDRIGHT', true, self.OnRightButton, self)
 		self.tooltipHints = {
 			env:GetTooltipPromptForClick('LeftClick', APPLY);
 			env:GetTooltipPrompt('PADDLEFT', PREVIOUS);
 			env:GetTooltipPrompt('PADDRIGHT', NEXT);
 		};
 	else
-		self.owner:FreeButton('PADDLEFT', self.CatchLeft)
-		self.owner:FreeButton('PADDRIGHT', self.CatchRight)
-		self.CatchLeft, self.CatchRight = nil, nil;
+		self:ToggleClosure('PADDLEFT', false)
+		self:ToggleClosure('PADDRIGHT', false)
 		self.tooltipHints = nil;
 	end
 end

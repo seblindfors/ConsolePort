@@ -23,10 +23,10 @@ function Cvar:Construct(data, newObj, owner)
 		self:SetText(L(data.name))
 		local origin = data.path or data.cvar;
 		-- either copy existing controller or spawn controller from cvar value
-		local controller = data.data and data.data() or data.type(GetCVar(origin));
-		local constructor = Widgets[cvar] or Widgets[controller:GetType()];
+		local controller = data.data and data.data() or data.type():Set(GetCVar(origin));
+		local constructor = Widgets[data.cvar] or Widgets[controller:GetType()];
 		if constructor then
-			constructor(self, origin, data, controller, L(data.desc), L(data.note))
+			constructor(self, origin, data, controller, L(data.desc), L(data.note), db)
 			controller:SetCallback(function(value)
 				self:SetRaw(self.variableID, value, self.variableID)
 				self:OnValueChanged(value)
@@ -45,7 +45,7 @@ function Cvar:Construct(data, newObj, owner)
 end
 
 function Cvar:Get()
-	local controller = self.controller; -- TODO: bug, controller can be nil?
+	local controller = self.controller;
 	if controller:IsType('Bool') then
 		return self:GetRawBool(self.variableID)
 	elseif controller:IsType('Number') or controller:IsType('Range') then
