@@ -192,7 +192,7 @@ function CPMicroButton:OnMouseUp()
 end
 
 ---------------------------------------------------------------
-CPToolbar = CreateFromMixins(env.CommonWidgetMixin);
+CPToolbar = CreateFromMixins(env.ConfigurableWidgetMixin);
 ---------------------------------------------------------------
 function CPToolbar:OnLoad()
     env:RegisterCallbacks(self.OnDataLoaded, self,
@@ -200,9 +200,9 @@ function CPToolbar:OnLoad()
         'Settings/enableXPBar',
         'Settings/fadeXPBar',
         'Settings/tintColor',
-        'Settings/xpBarColor',
-        'Settings/toolbarWidth'
+        'Settings/xpBarColor'
     );
+    self.snapToPixels = 16;
     self:RegisterEvent('CURSOR_CHANGED')
     self.PopoutContainer:SetParent(self:GetParent())
     self.PopoutContainer:SetFrameLevel(self:GetFrameLevel() + 10)
@@ -264,12 +264,15 @@ function CPToolbar:OnDataLoaded()
     self:SetTintColor(env:GetColorRGBA('tintColor'))
     self:ToggleXPBar(env('enableXPBar'))
     self:ToggleXPBarFade(env('enableXPBar'))
-    self:SetWidth(env('toolbarWidth'))
 end
 
 function CPToolbar:SetConfig(config)
-    self:SetCommonConfig(config)
+    self:SetDynamicConfig(config)
     self:OnDataLoaded()
+end
+
+function CPToolbar:OnConfigUpdated()
+    self:SetConfig(self.config)
 end
 
 env:AddFactory('Toolbar', function()
