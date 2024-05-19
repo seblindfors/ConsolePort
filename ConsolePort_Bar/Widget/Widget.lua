@@ -20,6 +20,7 @@ function CommonWidget:SetCommonConfig(config)
     end
     if config.pos then
         local info = config.pos;
+        self:ClearAllPoints()
         self:SetPoint(info.point, UIParent, info.relativePoint or info.point, info.x, info.y)
     end
     self.config = config;
@@ -67,3 +68,31 @@ function DynamicWidget:OnConfigChanged(key, value)
     -- Implement in child
     CPAPI.Log('Config changed '..tostring(key)..' to '..tostring(value)..' but it was not handled.');
 end
+
+---------------------------------------------------------------
+local MovableWidget = {OnConfigUpdated = DynamicWidget.OnConfigChanged};
+env.MovableWidgetMixin = MovableWidget;
+---------------------------------------------------------------
+
+function MovableWidget:OnConfigChanged(key, ...)
+    if ( key == 'OnMoveStart' ) then
+        return env:TriggerEvent('OnMoveFrame', self:GetMoveTarget(), ..., self:GetSnapSize())
+    end
+    return self:OnConfigUpdated(key, ...);
+end
+
+function MovableWidget:GetMoveTarget()
+    return self; -- Implement in child
+end
+
+function MovableWidget:GetSnapSize()
+    return self.snapToPixels or 1; -- Implement in child
+end
+
+---------------------------------------------------------------
+env.ConfigurableWidgetMixin = CreateFromMixins(
+    CommonWidget,
+    DynamicWidget,
+    MovableWidget
+);
+---------------------------------------------------------------
