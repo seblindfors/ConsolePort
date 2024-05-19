@@ -113,25 +113,53 @@ local Mutable, MutableBlueprint = { OnClick = nop }, {
 		_Type  = 'Frame';
 		_Setup = 'CPSelectionPopoutTemplate';
 		_Hide  = true;
-		_Point = {'TOP', '$parent', 'BOTTOM', 0, 0};
+		_Point = {'TOPRIGHT', -32, 0};
+		_Level = 1000;
 	};
 };
 
 local LoadDeleteButtonPool;
 do -- Button pool for mutable delete buttons
+	local PopupName, PopupData = 'ConsolePort_Mutable_Confirm_Delete', {
+		button1   = YES;
+		button2   = CANCEL;
+		showAlert = true;
+		OnAccept = function(_, data)
+			data.owner:OnDelete(data.variableID, data.target)
+			ConsolePort:SetCursorNodeIfActive(data.owner)
+		end;
+		OnHide = function(_, data)
+			data.target:UnlockHighlight()
+			data.trigger:SetButtonState('NORMAL')
+		end;
+		OnShow = function(_, data)
+			data.target:LockHighlight()
+			data.trigger:SetButtonState('PUSHED')
+		end;
+		text = db.Locale('Are you sure you want to delete %s from %s?',
+			ORANGE_FONT_COLOR:WrapTextInColorCode('%s'),
+			ORANGE_FONT_COLOR:WrapTextInColorCode('%s'));
+	};
+
 	local function OnDeleteButtonClicked(self)
-		self.parent:OnDelete(self.variableID, self:GetParent())
+		local target = self:GetParent()
+		CPAPI.Popup(PopupName, PopupData, target:GetText(), self.owner:GetText(), {
+			variableID = self.variableID;
+			owner    = self.owner;
+			target   = target;
+			trigger  = self;
+		})
 	end
 
 	local function OnDeleteButtonHide(self)
-		self.parent.deleteButtonPool:Release(self)
+		self.owner.deleteButtonPool:Release(self)
 	end
 
 	local function OnDeleteButtonInit(self)
 		self:SetSize(38, 38)
 		self.icon = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
 		self.iconSize = 18;
-		self.parent = self:GetParent()
+		self.owner = self:GetParent()
 		self.onClickHandler = OnDeleteButtonClicked;
 		self:SetScript('OnHide', OnDeleteButtonHide)
 		SquareIconButtonMixin.OnLoad(self)
@@ -367,7 +395,7 @@ function Loadout:Draw()
 end
 
 -- Draws a setting widget that handles a datapoint
-function Loadout:DrawSetting(parent, path, datapoint, layoutIndex, depth) --print(path, 'DrawSetting', datapoint[DP]:GetType())
+function Loadout:DrawSetting(parent, path, datapoint, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, datapoint[DP], layoutIndex)
 	widget:SetIndentation(depth)
 	widget:Construct(datapoint.name, path, datapoint, true, env, path, self.owner)
@@ -380,7 +408,7 @@ function Loadout:DrawSetting(parent, path, datapoint, layoutIndex, depth) --prin
 end
 
 -- Draws a container widget that has no inherent handling of a datapoint (such as a table of settings)
-function Loadout:DrawContainer(parent, path, datapoint, layoutIndex, depth) --print(path, 'DrawContainer', datapoint[DP]:GetType())
+function Loadout:DrawContainer(parent, path, datapoint, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, datapoint[DP], layoutIndex)
 	widget:SetText(datapoint.name)
 	widget:SetIndentation(depth)
@@ -390,7 +418,7 @@ function Loadout:DrawContainer(parent, path, datapoint, layoutIndex, depth) --pr
 end
 
 -- Draws an interface instance (lacks metadata)
-function Loadout:DrawInterface(parent, path, interface, layoutIndex, depth) --print(path, 'DrawInterface', interface[DP][DP]:GetType())
+function Loadout:DrawInterface(parent, path, interface, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, interface[DP][DP], layoutIndex)
 	widget:SetText(ConvertName(interface.name, path))
 	widget:SetIndentation(depth)
@@ -399,8 +427,8 @@ function Loadout:DrawInterface(parent, path, interface, layoutIndex, depth) --pr
 	return widget;
 end
 
--- Draws a toplevel interface widget
-function Loadout:DrawTopLevel(path, interface, layoutIndex, depth) --print(path)
+-- Draws a toplevel interface widget provided by env:GetConfiguration()
+function Loadout:DrawTopLevel(path, interface, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, interface.props, layoutIndex)
 	widget:SetText(interface.internal)
 	widget:SetIndentation(depth)
