@@ -1,4 +1,5 @@
-local env = LibStub('RelaTable')(...)
+local name, env = ...;
+local env = LibStub('RelaTable')(name, env, false)
 env.db        = ConsolePort:DB();
 env.UIHandler = CPAPI.CreateEventHandler({'Frame'}, {
 	-- events go here
@@ -17,6 +18,20 @@ E = env -- debug
 ---------------------------------------------------------------
 env.LIB = LibStub('ConsolePortActionButton')
 env.LAB = LibStub('LibActionButton-1.0')
+env.LBG = LibStub('LibButtonGlow-1.0')
+
+do -- LBG Hook
+	local ShowOverlayGlow, HideOverlayGlow = env.LBG.ShowOverlayGlow, env.LBG.HideOverlayGlow;
+	local OnOverlayGlow = GenerateClosure(env.TriggerEvent, env, 'OnOverlayGlow');
+	function env.LBG.ShowOverlayGlow(button)
+		OnOverlayGlow(true, button)
+		return ShowOverlayGlow(button)
+	end
+	function env.LBG.HideOverlayGlow(button)
+		OnOverlayGlow(false, button)
+		return HideOverlayGlow(button)
+	end
+end
 
 ---------------------------------------------------------------
 do -- Data handler
@@ -29,9 +44,9 @@ do -- Data handler
 		if not _G[VAR_SETTINGS] then
 			_G[VAR_SETTINGS] = {};
 		end
-		if not _G[VAR_LAYOUT] then
+		--if not _G[VAR_LAYOUT] then
 			_G[VAR_LAYOUT] = env:GetDefaultLayout()
-		end
+		--end
 
 		layout = _G[VAR_LAYOUT];
 		settings = CPAPI.Proxy(_G[VAR_SETTINGS], self.Defaults);
@@ -147,7 +162,7 @@ do -- Widget factory
 	function env:GetProps(widget)
 		local interface = self:GetInterface(widget);
 		if interface then
-			return interface():Set(widget.config);
+			return interface():Set(widget.props);
 		end
 	end
 
@@ -171,9 +186,11 @@ do -- Widget factory
 			return widgetName, {
 				children  = {};
 				desc      = props[1].desc;
-				internal  = widgetType;
-				props     = props():Set(widget.config);
-				type      = props[1].name;
+				title     = props[1].name;
+				internal  = widgetName;
+				type      = widgetType;
+				prototype = props;
+				props     = props():Set(widget.props);
 				widget    = widget;
 				signature = sig;
 			};
@@ -183,7 +200,9 @@ do -- Widget factory
 			local key, value = scaffold(widget, sig)
 			if key and value then
 				root.children[key] = value;
-				filterParent(root.children[key], widget)
+				-- TODO: probably don't need this at all, because toplevel
+				-- widgets always reference their own children
+				--filterParent(root.children[key], widget)
 			end
 		end
 
@@ -248,6 +267,9 @@ function env.GetAsset(asset, arg1, ...)
 	..(arg1 and asset:format(arg1, ...) or asset);
 end
 
+---------------------------------------------------------------
+-- Utility functions
+---------------------------------------------------------------
 function env.MakeID(name, ...)
 	return name:format(...):gsub('-', '_'):gsub('_$', '')
 end
@@ -266,6 +288,18 @@ end
 
 function env.IsModSubset(A, B)
 	return not not (B:find(A:gsub('%-', '%%-')))
+end
+
+function env.UpdateFlags(flag, flags, predicate)
+	return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
+end
+
+function env.CreateFlagClosures(flags)
+	local closures = {};
+	for flagName, flagValue in pairs(flags) do
+		closures[flagName] = GenerateClosure(env.UpdateFlags, flagValue);
+	end
+	return closures;
 end
 
 ---------------------------------------------------------------
