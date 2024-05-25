@@ -266,13 +266,14 @@ function CPToolbar:OnDataLoaded()
     self:ToggleXPBarFade(env('enableXPBar'))
 end
 
-function CPToolbar:SetConfig(config)
-    self:SetDynamicConfig(config)
+function CPToolbar:SetProps(props)
+    self:SetDynamicProps(props)
     self:OnDataLoaded()
+    self:OnSizeChanged()
 end
 
-function CPToolbar:OnConfigUpdated()
-    self:SetConfig(self.config)
+function CPToolbar:OnPropsUpdated()
+    self:SetProps(self.props)
 end
 
 env:AddFactory('Toolbar', function()
@@ -281,4 +282,4 @@ env:AddFactory('Toolbar', function()
         ConsolePortToolbar:OnLoad()
     end
     return ConsolePortToolbar;
-end, env.Types.Toolbar)
+end, env.Interface.Toolbar)

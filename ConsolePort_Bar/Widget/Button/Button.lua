@@ -22,6 +22,68 @@ local function ProxyButtonTextureProvider(buttonID)
 end
 
 ---------------------------------------------------------------
+local ProxyHotkey = {}; env.ProxyHotkey = ProxyHotkey;
+---------------------------------------------------------------
+
+function ProxyHotkey:OnLoad(buttonID, iconSize, atlasSize, point, controlID)
+	self.controlID = controlID or buttonID;
+	self.iconSize  = { iconSize, iconSize };
+	self.atlasSize = { atlasSize, atlasSize };
+	self:SetPoint(unpack(point))
+	self:SetAlpha(not controlID and 1 or 0.75)
+	self:OnIconsChanged()
+	db:RegisterCallback('OnIconsChanged', self.OnIconsChanged, self)
+end
+
+function ProxyHotkey:SetTexture(...)
+	self.icon:SetTexture(...)
+end
+
+function ProxyHotkey:SetAtlas(...)
+	self.icon:SetAtlas(...)
+end
+
+function ProxyHotkey:SetAtlasSize(size)
+    self.atlasSize = { size, size };
+    self:OnIconsChanged()
+end
+
+function ProxyHotkey:SetIconSize(size)
+    self.iconSize = { size, size };
+    self:OnIconsChanged()
+end
+
+function ProxyHotkey:OnIconsChanged()
+	self.iconID = db.UIHandle:GetUIControlBinding(self.controlID)
+	db.Gamepad.SetIconToTexture(self, self.iconID, 32, self.iconSize, self.atlasSize)
+end
+
+---------------------------------------------------------------
+local ProxyCooldown = {}; env.ProxyCooldown = ProxyCooldown;
+---------------------------------------------------------------
+
+function ProxyCooldown:OnLoad()
+	local parent = self:GetParent()
+	local onCooldownDone = GenerateClosure(parent.OnCooldownClear, parent)
+	self:HookScript('OnCooldownDone', onCooldownDone)
+end
+
+function ProxyCooldown:SetCooldown(...)
+	self:GetParent():OnCooldownSet(self, ...)
+	getmetatable(self).__index.SetCooldown(self, ...)
+end
+
+function ProxyCooldown:Clear(...)
+	self:GetParent():OnCooldownClear(self, ...)
+	getmetatable(self).__index.Clear(self, ...)
+end
+
+function ProxyCooldown:Hide()
+	self:GetParent():OnCooldownClear(self)
+	getmetatable(self).__index.Hide(self)
+end
+
+---------------------------------------------------------------
 local ProxyButton = Mixin({
 ---------------------------------------------------------------
     Env = {
@@ -99,7 +161,7 @@ function ProxyButton:RefreshBinding(state, binding)
 end
 
 function ProxyButton:SetActionBinding(state, actionID)
-	if self:ShouldOverrideActionBarBinding() then
+	if self:ShouldOverrideActionBarBinding(state, actionID) then
 		env.Manager:RegisterOverride(self, self:GetOverrideBinding(state, actionID), self:GetName())
 	end
 	return 'action', actionID;
@@ -123,7 +185,7 @@ function ProxyButton:SetEligbleForRebind(state)
 	};
 end
 
-function ProxyButton:ShouldOverrideActionBarBinding()
+function ProxyButton:ShouldOverrideActionBarBinding(state, actionID)
     return false; -- override
 end
 

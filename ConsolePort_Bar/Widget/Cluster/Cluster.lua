@@ -109,9 +109,9 @@ function Cluster:SetDirection(direction)
 	end
 end
 
-function Cluster:SetConfig(config)
-	self:SetDynamicConfig(config)
-	self:OnConfigUpdated()
+function Cluster:SetProps(props)
+	self:SetDynamicProps(props)
+	self:OnPropsUpdated()
 end
 
 function Cluster:ToggleFlyouts(enabled)
@@ -123,13 +123,13 @@ function Cluster:ToggleFlyouts(enabled)
 	end
 end
 
-function Cluster:OnConfigUpdated()
-	local config = self.config;
-	local pos = config.pos;
+function Cluster:OnPropsUpdated()
+	local props = self.props;
+	local pos = props.pos;
 	self:SetPoint(pos.point, pos.x, pos.y)
-	self:SetDirection(config.dir)
-	self:SetSize(config.size) -- TODO: flyout size is not consistent
-	self:ToggleFlyouts(not not config.showFlyouts)
+	self:SetDirection(props.dir)
+	self:SetSize(props.size) -- TODO: flyout size is not consistent
+	self:ToggleFlyouts(not not props.showFlyouts)
 end
 
 function Cluster:SetBindings(bindings)
@@ -166,38 +166,12 @@ function Shadow:Update()
 	self:SetPoint(pt, self.owner, pt, x, y)
 end
 
-
 ---------------------------------------------------------------
-local Cooldown = {};
----------------------------------------------------------------
-
-function Cooldown:OnLoad()
-	local parent = self:GetParent()
-	local onCooldownDone = GenerateClosure(parent.OnCooldownClear, parent)
-	self:HookScript('OnCooldownDone', onCooldownDone)
-end
-
-function Cooldown:SetCooldown(...)
-	self:GetParent():OnCooldownSet(self, ...)
-	getmetatable(self).__index.SetCooldown(self, ...)
-end
-
-function Cooldown:Clear(...)
-	self:GetParent():OnCooldownClear(self, ...)
-	getmetatable(self).__index.Clear(self, ...)
-end
-
-function Cooldown:Hide()
-	self:GetParent():OnCooldownClear(self)
-	getmetatable(self).__index.Hide(self)
-end
-
----------------------------------------------------------------
-local FlyoutCooldown = CreateFromMixins(Cooldown);
+local FlyoutCooldown = CreateFromMixins(env.ProxyCooldown);
 ---------------------------------------------------------------
 
 function FlyoutCooldown:OnLoad()
-	Cooldown.OnLoad(self)
+	env.ProxyCooldown.OnLoad(self)
 	self.text = self:GetRegions()
 	-- Flyout cluster buttons should have smaller CD font
 	local file, height, flags = self.text:GetFont()
@@ -236,11 +210,7 @@ end
 local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, alpha = 0, shown = 0};
 ---------------------------------------------------------------
 do  -- Alpha update closures
-	local function UpdateFlags(flag, flags, predicate)
-		return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
-	end
-
-	FlyoutButton.AlphaFlags = {
+	FlyoutButton.AlphaState = env.CreateFlagClosures({
 		AlwaysShow    = 0x01;
 		OnCooldown    = 0x02;
 		OverlayActive = 0x04;
@@ -248,27 +218,17 @@ do  -- Alpha update closures
 		ShowGrid      = 0x10;
 		Flyout        = 0x20;
 		ConfigShown   = 0x40;
-	};
-
-	FlyoutButton.AlphaState = {};
-	for flagName, flagValue in pairs(FlyoutButton.AlphaFlags) do
-		FlyoutButton.AlphaState[flagName] = GenerateClosure(UpdateFlags, flagValue);
-	end
+	});
 
 	FlyoutButton.AlphaEvents = {
 		ACTIONBAR_SHOWGRID = { FlyoutButton.AlphaState.ShowGrid, true  };
 		ACTIONBAR_HIDEGRID = { FlyoutButton.AlphaState.ShowGrid, false };
 	};
 
-	FlyoutButton.VisibilityFlags = {
+	FlyoutButton.VisibilityState = env.CreateFlagClosures({
 		NoBinding     = 0x01;
 		Disabled	  = 0x02;
-	};
-
-	FlyoutButton.VisibilityState = {};
-	for flagName, flagValue in pairs(FlyoutButton.VisibilityFlags) do
-		FlyoutButton.VisibilityState[flagName] = GenerateClosure(UpdateFlags, flagValue);
-	end
+	});
 end
 
 function FlyoutButton:OnShowAll(showAll)
@@ -385,20 +345,17 @@ function FlyoutButton:SetBindings(primary, allBindings)
 end
 
 ---------------------------------------------------------------
-local MainButton = {};
+local MainButton = { OnCooldownClear = nop };
 ---------------------------------------------------------------
 
 function MainButton:OnLoad()
 	env:RegisterCallback('Settings/clusterShowMainIcons', self.ToggleHotkeys, self)
 	self:ToggleHotkeys(env('clusterShowMainIcons'))
-	Mixin(self.cooldown, Cooldown):OnLoad()
+	Mixin(self.cooldown, env.ProxyCooldown):OnLoad()
 end
 
 function MainButton:OnCooldownSet()
 	self:Skin(false)
-end
-
-function MainButton:OnCooldownClear()
 end
 
 function MainButton:SetBindings(_, allBindings)
@@ -465,33 +422,6 @@ function Button:GetOverlayColor()
 end
 
 ---------------------------------------------------------------
-local Hotkey = {};
----------------------------------------------------------------
-
-function Hotkey:OnLoad(buttonID, iconSize, atlasSize, point, controlID)
-	self.controlID = controlID or buttonID;
-	self.iconSize  = { iconSize, iconSize };
-	self.atlasSize = { atlasSize, atlasSize };
-	self:SetPoint(unpack(point))
-	self:SetAlpha(not controlID and 1 or 0.75)
-	self:OnIconsChanged()
-	db:RegisterCallback('OnIconsChanged', self.OnIconsChanged, self)
-end
-
-function Hotkey:SetTexture(...)
-	self.icon:SetTexture(...)
-end
-
-function Hotkey:SetAtlas(...)
-	self.icon:SetAtlas(...)
-end
-
-function Hotkey:OnIconsChanged()
-	self.iconID = db.UIHandle:GetUIControlBinding(self.controlID)
-	db.Gamepad.SetIconToTexture(self, self.iconID, 32, self.iconSize, self.atlasSize)
-end
-
----------------------------------------------------------------
 CPClusterBar = CreateFromMixins(CPActionBar, env.MovableWidgetMixin);
 ---------------------------------------------------------------
 
@@ -512,13 +442,13 @@ function CPClusterBar:OnLoad()
 	]])
 end
 
-function CPClusterBar:SetConfig(config)
-	self:SetDynamicConfig(config)
-	self:UpdateClusters(config.children or {})
+function CPClusterBar:SetProps(props)
+	self:SetDynamicProps(props)
+	self:UpdateClusters(props.children or {})
 end
 
-function CPClusterBar:OnConfigUpdated()
-	self:SetConfig(self.config)
+function CPClusterBar:OnPropsUpdated()
+	self:SetProps(self.props)
 end
 
 function CPClusterBar:OnNewBindings(bindings)
@@ -545,13 +475,13 @@ end
 
 function CPClusterBar:UpdateClusters(clusters)
 	self:OnRelease()
-	for buttonID, config in pairs(clusters) do
+	for buttonID, props in pairs(clusters) do
 		local cluster = env:Acquire(CLUSTER_HANDLE, buttonID, self)
 		if ( cluster:GetParent() ~= self ) then
 			cluster:SetParent(self)
 		end
 		cluster:Show()
-		cluster:SetConfig(config)
+		cluster:SetProps(props)
 	end
 end
 
@@ -579,7 +509,7 @@ env:AddFactory(CLUSTER_BAR, function(id)
 	local frame = CreateFrame('Frame', 'ConsolePortBar'..id, env.Manager, 'CPClusterBar')
 	frame:OnLoad()
 	return frame;
-end, env.Types.Cluster)
+end, env.Interface.Cluster)
 
 env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 	local buttons = {};
@@ -592,7 +522,7 @@ env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 	end
 	cluster:OnLoad(id, parent)
 	return cluster;
-end, env.Types.ClusterHandle)
+end, env.Interface.ClusterHandle)
 
 env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutData)
 	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.ClusterConstants.LABConfig), Button)
@@ -609,7 +539,7 @@ env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutDa
 end)
 
 env:AddFactory(CLUSTER_HOTKEY, function(_, parent, layoutData)
-	local hotkey = Mixin(CreateFrame('Frame', nil, parent), Hotkey)
+	local hotkey = Mixin(CreateFrame('Frame', nil, parent), env.ProxyHotkey)
 	hotkey.icon = hotkey:CreateTexture(nil, 'OVERLAY', nil, 7)
 	hotkey.icon:SetAllPoints()
 	hotkey:OnLoad(parent.id, unpack(layoutData))

@@ -25,16 +25,16 @@ Manager.Env = {
 
 function Manager:OnDataLoaded()
     self:CreateEnvironment()
-    self:OnConfigChanged()
+    self:OnPropsChanged()
 end
 
-function Manager:OnConfigChanged()
+function Manager:OnPropsChanged()
     local layout = env.Layout;
     RegisterStateDriver(self, env.Visible, layout.visibility or 'show')
-    for id, config in pairs(layout.children or {}) do
-        local bar = env:Acquire(config.type, id)
-        if bar then
-            bar:SetConfig(config)
+    for id, props in pairs(layout.children or {}) do
+        local widget = env:Acquire(props.type, id)
+        if widget then
+            widget:SetProps(props)
         end
     end
 end

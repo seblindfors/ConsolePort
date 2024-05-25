@@ -19,12 +19,16 @@
 Model\Utils.lua
 Model\Assets.lua
 Model\Database.lua
+Model\Interface.lua
+Model\Presets.lua
 
 Widget\Widget.lua
 Widget\Watch\Watch.xml
+Widget\Divider\Divider.xml
 Widget\Button\Button.xml
 Widget\Bar\Bar.xml
 Widget\Cluster\Cluster.xml
+Widget\Group\Group.xml
 
 View\Blizzard\Retail.lua
 View\Blizzard\Classic.lua

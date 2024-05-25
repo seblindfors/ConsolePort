@@ -78,12 +78,6 @@
 		</KeyValues>
 	</Texture>
 
-	<Texture name="CPToolbarGradient" virtual="true" alphaMode="ADD" file="Interface\QuestFrame\UI-QuestLogTitleHighlight" alpha="1">
-		<KeyValues>
-			<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
-		</KeyValues>
-	</Texture>
-
 	<Frame name="CPCoverArtFrame" virtual="true">
 		<Layers>
 			<Layer level="BACKGROUND">
@@ -184,7 +178,7 @@
 						</Anchors>
 						<Layers>
 							<Layer level="BORDER">
-								<Texture parentKey="Gradient" inherits="CPToolbarGradient">
+								<Texture parentKey="Gradient" inherits="CPDividerGradient">
 									<Anchors>
 										<Anchor point="TOPLEFT" x="0" y="0"/>
 										<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
@@ -257,7 +251,7 @@
 		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="BG" inherits="CPToolbarGradient">
+				<Texture parentKey="BG" inherits="CPDividerGradient">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="16" y="60"/>
 						<Anchor point="BOTTOMRIGHT" x="-16" y="16"/>
@@ -265,9 +259,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="BORDER">
-				<Texture parentKey="BottomLine" file="Interface\LevelUp\LevelUpTex">
-					<TexCoords left="0.00195313" right="0.81835938" top="0.013671875" bottom="0.017578125"/>
-					<Size x="0" y="1"/>
+				<Texture parentKey="BottomLine" inherits="CPDividerLine">
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" x="0" y="16"/>
 						<Anchor point="BOTTOMRIGHT" x="0" y="16"/>
