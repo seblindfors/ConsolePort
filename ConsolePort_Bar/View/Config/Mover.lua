@@ -23,7 +23,7 @@ local Grid = {};
 ---------------------------------------------------------------
 function Grid:OnLoad()
 	self.linePool = CreateObjectPool(
-		function(pool) return Mixin(self:CreateLine(), GridLine) end,
+		function(_) return Mixin(self:CreateLine(), GridLine) end,
 		FramePool_HideAndClearAnchors
 	);
 
@@ -235,6 +235,7 @@ function Mover:SetFrame(frame, callback)
 	self.callback = callback;
 	assert(frame:GetNumPoints() == 1, 'Frame must have only one point')
 	self:SetSize(frame:GetSize())
+	self:SetScale(frame:GetEffectiveScale() / UIParent:GetEffectiveScale())
 	self:SetFrameStrata(frame:GetFrameStrata())
 	self:SetFrameLevel(frame:GetFrameLevel() + 100)
 	self:ClearAllPoints()
@@ -279,7 +280,7 @@ function Mover:CopyPoint(frame)
 	self:SetPoint(point, relativeTo, relativePoint, x, y)
 	self.frame, self.relativeTo = frame, relativeTo;
 	self.origPoint = { point, relativeTo, relativePoint, x, y };
-	self.snapPoint = CopyTable(self.origPoint)
+	self.snapPoint = { point, relativeTo, relativePoint, x, y };
 end
 
 function Mover:RestorePoint()
