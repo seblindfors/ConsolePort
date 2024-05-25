@@ -1,4 +1,4 @@
-local _, env, db, Widgets = ...; db = env.db;
+local _, env, db, Widgets, L = ...; db = env.db; L = db.Locale;
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
@@ -16,6 +16,32 @@ local function ConvertName(name, path)
 	end
 	return text;
 end
+
+local function DisplaySort(t, a, b)
+	local iA, iB = t[a].sort, t[b].sort;
+	if iA and not iB then
+		return true;
+	elseif iB and not iA then
+		return false;
+	elseif iA and iB then
+		return iA < iB;
+	else
+		return a < b;
+	end
+end
+
+local function LoadSquareButtonPool(self, init, config)
+	return CreateFramePool('Button', self, 'CPSquareButtonTemplate', FramePool_HideAndClearAnchors, false, function(self)
+		self:SetSize(38, 38)
+		self.owner = self:GetParent()
+		Mixin(self, config)
+		if init then
+			init(self)
+		end
+		SquareIconButtonMixin.OnLoad(self)
+	end)
+end
+
 ---------------------------------------------------------------
 local LoadoutHeader = CreateFromMixins(env.SharedConfig.Header);
 ---------------------------------------------------------------
@@ -34,7 +60,7 @@ local function ReleaseSetting(_, self)
 	if self.Reset then
 		self:Reset()
 	end
-	self.children = nil;
+	self.children, self.owner = nil, nil;
 end
 
 local function GetEndpoint(path)
@@ -90,8 +116,6 @@ local ExpandableWidgets = {
 	Mutable = true;
 };
 
---Interface\RAIDFRAME\ReadyCheck-NotReady
-
 ---------------------------------------------------------------
 local Mutable, MutableBlueprint = { OnClick = nop }, {
 ---------------------------------------------------------------
@@ -136,7 +160,7 @@ do -- Button pool for mutable delete buttons
 			data.target:LockHighlight()
 			data.trigger:SetButtonState('PUSHED')
 		end;
-		text = db.Locale('Are you sure you want to delete %s from %s?',
+		text = L('Are you sure you want to delete %s from %s?',
 			ORANGE_FONT_COLOR:WrapTextInColorCode('%s'),
 			ORANGE_FONT_COLOR:WrapTextInColorCode('%s'));
 	};
@@ -155,19 +179,25 @@ do -- Button pool for mutable delete buttons
 		self.owner.deleteButtonPool:Release(self)
 	end
 
+	local function DeleteButtonSetTarget(self, path, target)
+		self.variableID = path;
+		self:SetParent(target)
+		self:SetPoint('RIGHT', target, 'RIGHT', 0, 0)
+		self:Show()
+	end
+
 	local function OnDeleteButtonInit(self)
-		self:SetSize(38, 38)
-		self.icon = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
-		self.iconSize = 18;
-		self.owner = self:GetParent()
-		self.onClickHandler = OnDeleteButtonClicked;
+		self.SetTarget = DeleteButtonSetTarget;
 		self:SetScript('OnHide', OnDeleteButtonHide)
-		SquareIconButtonMixin.OnLoad(self)
 	end
 
 	LoadDeleteButtonPool = function(self)
 		self.deleteButtonPool = self.deleteButtonPool or
-			CreateFramePool('Button', self, 'CPSquareButtonTemplate', FramePool_HideAndClearAnchors, false, OnDeleteButtonInit)
+			LoadSquareButtonPool(self, OnDeleteButtonInit, {
+				icon = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
+				iconSize = 18;
+				onClickHandler = OnDeleteButtonClicked;
+			})
 	end
 end
 
@@ -258,10 +288,7 @@ function Mutable:ToggleDeleteButtons()
 	if self:GetChecked() and self.children then
 		for child in pairs(self.children) do
 			local button = self.deleteButtonPool:Acquire()
-			button.variableID = child.path;
-			button:SetParent(child)
-			button:SetPoint('RIGHT', child, 'RIGHT', 0, 0)
-			button:Show()
+			button:SetTarget(child.path, child)
 		end
 	end
 end
@@ -360,6 +387,56 @@ function Loadout:OnLoad(inputHandler, headerPool)
 
 	self.owner = inputHandler;
 	self.headerPool = headerPool;
+
+	LoadDeleteButtonPool(self)
+	do -- Copy button pool
+		local PopupName, PopupData = 'ConsolePort_Mutable_Confirm_Copy', {
+			button1    = YES;
+			button2    = CANCEL;
+			showAlert  = true;
+			hasEditBox = 1;
+			OnAccept = function(popup, data)
+				data.owner:OnCopy(data.variableID, popup.editBox:GetText())
+				ConsolePort:SetCursorNodeIfActive(data.owner)
+			end;
+			OnHide = function(_, data)
+				data.target:UnlockHighlight()
+				data.trigger:SetButtonState('NORMAL')
+			end;
+			OnShow = function(popup, data)
+				popup.button1:Disable()
+				data.target:LockHighlight()
+				data.trigger:SetButtonState('PUSHED')
+			end;
+			EditBoxOnTextChanged = function(editBox)
+				local parent = editBox:GetParent()
+				-- HACK: check the upvalued config table for conflicting names
+				parent.button1:SetEnabled(UserEditBoxNonEmpty(editBox) and not self.config[editBox:GetText()])
+			end;
+			text = L('Copy %s from %s:',
+				ORANGE_FONT_COLOR:WrapTextInColorCode('%s'),
+				ORANGE_FONT_COLOR:WrapTextInColorCode('%s'));
+		};
+
+		local function OnCopyButtonClicked(self)
+			local target = self:GetParent()
+			CPAPI.Popup(PopupName, PopupData, target:GetText(), self.owner:GetText(), {
+				variableID = self.variableID;
+				owner    = self.owner;
+				target   = target;
+				trigger  = self;
+			})
+		end
+
+		self.copyButtonPool = LoadSquareButtonPool(self, nil, {
+			icon = [[Interface\BUTTONS\UI-GuildButton-OfficerNote-Up]];
+			iconSize = 18;
+			onClickHandler = OnCopyButtonClicked;
+			tooltipTitle   = BLUE_FONT_COLOR:WrapTextInColorCode(L('Copy'));
+			tooltipText    = L('Copy this widget to a new name.');
+		})
+	end
+
 	CPAPI.Start(self)
 end
 
@@ -381,16 +458,34 @@ end
 
 function Loadout:Draw()
 	self.headerPool:ReleaseAll()
+
 	local layoutIndex = CreateCounter()
 	local configHeader = self:CreateHeader('Loadout')
 	configHeader.layoutIndex = layoutIndex()
 
-	if self.updated then return end;
-	self.updated = true;
+	if self.updated then return end; self.updated = true;
 
 	self:ReleaseAll()
-	for name, interface in db.table.spairs(env:GetConfiguration()) do
-		self:DrawTopLevel(PATH(BASE_PATH, name), interface, layoutIndex, 1)
+	self.deleteButtonPool:ReleaseAll()
+	self.copyButtonPool:ReleaseAll()
+
+	self.config = env:GetConfiguration()
+	for name, interface in db.table.spairs(self.config) do
+		local path = PATH(BASE_PATH, name);
+		local widget = self:DrawTopLevel(path, interface, layoutIndex, 1)
+
+		local deleteButton = self.deleteButtonPool:Acquire()
+		deleteButton:SetTarget(path, widget)
+		deleteButton:SetScript('OnHide', nil)
+
+		local isUnique = env.Toplevel[interface.type];
+		if not isUnique then
+			local copyButton = self.copyButtonPool:Acquire()
+			copyButton.variableID = path;
+			copyButton:SetParent(widget)
+			copyButton:SetPoint('RIGHT', widget, 'RIGHT', -32, 0)
+			copyButton:Show()
+		end
 	end
 end
 
@@ -427,17 +522,8 @@ function Loadout:DrawInterface(parent, path, interface, layoutIndex, depth)
 	return widget;
 end
 
--- Draws a toplevel interface widget provided by env:GetConfiguration()
-function Loadout:DrawTopLevel(path, interface, layoutIndex, depth)
-	local widget = self:AcquireSetting(path, interface.props, layoutIndex)
-	widget:SetText(interface.internal)
-	widget:SetIndentation(depth)
-	self:DrawChildren(widget, path, interface.props[DP], layoutIndex, depth)
-	return widget;
-end
-
 function Loadout:DrawChildren(parent, path, children, layoutIndex, depth)
-	for child, datapoint in db.table.spairs(children) do
+	for child, datapoint in db.table.spairs(children, DisplaySort) do
 		self:DrawChild(parent, path, child, datapoint, layoutIndex, depth)
 	end
 end
@@ -453,6 +539,16 @@ function Loadout:DrawChild(parent, path, child, datapoint, layoutIndex, depth)
 	end
 end
 
+-- Draws a toplevel interface widget provided by env:GetConfiguration()
+function Loadout:DrawTopLevel(path, interface, layoutIndex, depth)
+	local widget = self:AcquireSetting(path, interface.props, layoutIndex)
+	widget:SetText(interface.internal)
+	widget:SetIndentation(depth)
+	widget.owner = interface.widget;
+	self:DrawChildren(widget, path, interface.props[DP], layoutIndex, depth)
+	return widget;
+end
+
 function Loadout:OnCleaned()
 	if self.refreshChildren then
 		for child in pairs(self.refreshChildren) do
@@ -462,6 +558,26 @@ function Loadout:OnCleaned()
 		end
 		self.refreshChildren = nil;
 	end
+end
+
+function Loadout:GetText()
+	return db.Locale 'your current loadout';
+end
+
+function Loadout:OnDelete(path, widget)
+	local owner = widget.owner;
+	env:Release(owner)
+	self:ReleaseAll()
+	env(path, nil)
+	self:Update()
+end
+
+function Loadout:OnCopy(path, name)
+	local newPath = path:gsub(GetEndpoint(path), name);
+	local newObj = CopyTable(env(path))
+	env(newPath, newObj)
+	env.Manager:OnPropsChanged()
+	self:Update()
 end
 
 env.SharedConfig.Loadout = Loadout;
