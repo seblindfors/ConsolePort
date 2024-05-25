@@ -248,7 +248,6 @@ local Number = CreateWidget('Number', Widget, {
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_OnLoad = function(self)
 			self:SetBackdropColor(COLOR_NORMAL:GetRGBA());
-			self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1);
 			self:EnableMouseWheel(false)
 		end;
 		_OnEnter = function(self)
@@ -359,7 +358,10 @@ function Number:OnClick(button)
 end
 
 function Number:OnValueChanged(value)
-	self.Input:SetText(value)
+	value = tonumber(value)
+	if value then
+		self.Input:SetText(value)
+	end
 end
 
 ---------------------------------------------------------------
@@ -373,9 +375,6 @@ local Range = CreateWidget('Range', Number, {
 		_IgnoreNode = true;
 		_SetObeyStepOnDrag = true;
 		_OnLoad = function(self)
-			local widget = self:GetParent()
-			self:SetValueStep(widget:GetStep());
-			self:SetMinMaxValues(widget.controller:GetMinMax());
 			self:EnableMouseWheel(false)
 		end;
 		_OnMouseDown = function(self, button)
@@ -404,6 +403,13 @@ local Range = CreateWidget('Range', Number, {
 		end;
 	};
 })
+
+function Range:OnLoad(...)
+	Number.OnLoad(self, ...)
+	self.Input:SetValueStep(self:GetStep())
+	self.Input:SetMinMaxValues(self.controller:GetMinMax())
+	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+end
 
 function Range:EnableMouseWheel(enabled)
 	self.Input:EnableMouseWheel(enabled)
@@ -437,7 +443,7 @@ local Delta = CreateWidget('Delta', Range, {
 		_SetMinMaxValues = {-1, 1};
 		_OnValueChanged = function(self, value, byInput)
 			local widget = self:GetParent()
-			if byInput and self.cacheValue ~= value and  widget.controller:IsOption(value) then
+			if byInput and self.cacheValue ~= value and widget.controller:IsOption(value) then
 				widget:Set(value)
 				self.cacheValue = value;
 			end
@@ -469,8 +475,7 @@ local String = CreateWidget('String', Widget, {
 		_SetTextInsets = {8, 8, 0, 0};
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_OnLoad = function(self)
-			self:SetBackdropColor(COLOR_NORMAL:GetRGBA());
-			self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1);
+			self:SetBackdropColor(0.15, 0.15, 0.15, 1);
 		end;
 		_OnEscapePressed = function(self)
 			self:SetText(self:GetParent():Get() or '')
@@ -482,10 +487,10 @@ local String = CreateWidget('String', Widget, {
 			self:ClearFocus()
 		end;
 		_OnEditFocusLost = function(self)
-			self:GetParent():Uncheck()
+			self:SetWidth(200)
 		end;
 		_OnEditFocusGained = function(self)
-			self:GetParent():Check()
+			self:SetWidth(300)
 		end;
 	};
 })
@@ -496,6 +501,7 @@ function String:OnLoad(...)
 end
 
 function String:OnClick(button)
+	Widget.OnClick(self)
 	if (button == 'RightButton') then
 		Widget.OnClick(self)
 		self.Input:ClearFocus()
