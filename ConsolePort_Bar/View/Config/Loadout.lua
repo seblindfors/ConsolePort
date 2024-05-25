@@ -2,7 +2,9 @@ local _, env, db, Widgets, L = ...; db = env.db; L = db.Locale;
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
-local BASE_PATH = 'Layout/children'; -- TODO
+local BASE_PATH = 'Layout/children';
+local COPY      = CALENDAR_COPY_EVENT or L'Copy';
+local DELETE    = DELETE or L'Delete';
 
 local function PATH(name, child)
 	return name..'/'..child;
@@ -161,8 +163,8 @@ do -- Button pool for mutable delete buttons
 			data.trigger:SetButtonState('PUSHED')
 		end;
 		text = L('Are you sure you want to delete %s from %s?',
-			ORANGE_FONT_COLOR:WrapTextInColorCode('%s'),
-			ORANGE_FONT_COLOR:WrapTextInColorCode('%s'));
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
 	};
 
 	local function OnDeleteButtonClicked(self)
@@ -197,6 +199,8 @@ do -- Button pool for mutable delete buttons
 				icon = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
 				iconSize = 18;
 				onClickHandler = OnDeleteButtonClicked;
+				tooltipTitle   = RED_FONT_COLOR:WrapTextInColorCode(DELETE);
+				tooltipText    = L('Delete this element.');
 			})
 	end
 end
@@ -204,6 +208,7 @@ end
 function Mutable:OnLoad(...)
 	Widgets.Base.OnLoad(self, ...)
 	LoadDeleteButtonPool(self)
+	self.disableTooltipHints = true;
 end
 
 function Mutable:TogglePopout(show)
@@ -316,6 +321,7 @@ local Point, PointBlueprint = { OnClick = nop }, {
 
 function Point:OnLoad(...)
 	Widgets.Base.OnLoad(self, ...)
+	self.disableTooltipHints = true;
 end
 
 function Point:GetCallback()
@@ -335,6 +341,14 @@ function Point:OnMoveCompleted(point, _, _, x, y)
 	self.registry(self.variableID..'/point', point)
 	self.registry(self.variableID..'/x', math.floor(x)) -- get rid of rounding errors
 	self.registry(self.variableID..'/y', math.floor(y))
+end
+
+---------------------------------------------------------------
+local Table = { OnClick = nop };
+---------------------------------------------------------------
+function Table:OnLoad(...)
+	Widgets.Base.OnLoad(self, ...)
+	self.disableTooltipHints = true;
 end
 
 ---------------------------------------------------------------
@@ -382,6 +396,7 @@ function Loadout:OnLoad(inputHandler, headerPool)
 
 	Mixin(Widgets.CreateWidget('Point', Widgets.Base, PointBlueprint), Point)
 	Mixin(Widgets.CreateWidget('Mutable', Widgets.Base, MutableBlueprint), Mutable)
+	Mixin(Widgets.CreateWidget('Table', Widgets.Base), Table)
 
 	Mixin(LoadoutSetting, sharedConfig.Env.SettingMixin)
 
@@ -396,7 +411,7 @@ function Loadout:OnLoad(inputHandler, headerPool)
 			showAlert  = true;
 			hasEditBox = 1;
 			OnAccept = function(popup, data)
-				data.owner:OnCopy(data.variableID, popup.editBox:GetText())
+				data.owner:OnCopy(data.variableID, popup.editBox:GetText():trim())
 				ConsolePort:SetCursorNodeIfActive(data.owner)
 			end;
 			OnHide = function(_, data)
@@ -407,24 +422,30 @@ function Loadout:OnLoad(inputHandler, headerPool)
 				popup.button1:Disable()
 				data.target:LockHighlight()
 				data.trigger:SetButtonState('PUSHED')
+				popup.editBox:SetText(data.suggest)
 			end;
 			EditBoxOnTextChanged = function(editBox)
 				local parent = editBox:GetParent()
 				-- HACK: check the upvalued config table for conflicting names
-				parent.button1:SetEnabled(UserEditBoxNonEmpty(editBox) and not self.config[editBox:GetText()])
+				parent.button1:SetEnabled(UserEditBoxNonEmpty(editBox) and not self.config[editBox:GetText():trim()])
 			end;
 			text = L('Copy %s from %s:',
-				ORANGE_FONT_COLOR:WrapTextInColorCode('%s'),
-				ORANGE_FONT_COLOR:WrapTextInColorCode('%s'));
+				YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
+				YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
 		};
 
 		local function OnCopyButtonClicked(self)
 			local target = self:GetParent()
+			local suggestion, i = target:GetText(), CreateCounter(1)
+			while self.owner.config[suggestion] do
+				suggestion = ('%s %d'):format(target:GetText():gsub('%d', ''):trim(), i())
+			end
 			CPAPI.Popup(PopupName, PopupData, target:GetText(), self.owner:GetText(), {
 				variableID = self.variableID;
 				owner    = self.owner;
 				target   = target;
 				trigger  = self;
+				suggest  = suggestion;
 			})
 		end
 
@@ -432,8 +453,8 @@ function Loadout:OnLoad(inputHandler, headerPool)
 			icon = [[Interface\BUTTONS\UI-GuildButton-OfficerNote-Up]];
 			iconSize = 18;
 			onClickHandler = OnCopyButtonClicked;
-			tooltipTitle   = BLUE_FONT_COLOR:WrapTextInColorCode(L('Copy'));
-			tooltipText    = L('Copy this widget to a new name.');
+			tooltipTitle   = BLUE_FONT_COLOR:WrapTextInColorCode(COPY);
+			tooltipText    = L('Copy this element to a new name.');
 		})
 	end
 
@@ -472,7 +493,7 @@ function Loadout:Draw()
 	self.config = env:GetConfiguration()
 	for name, interface in db.table.spairs(self.config) do
 		local path = PATH(BASE_PATH, name);
-		local widget = self:DrawTopLevel(path, interface, layoutIndex, 1)
+		local widget = self:DrawTopLevel(name, path, interface, layoutIndex, 1)
 
 		local deleteButton = self.deleteButtonPool:Acquire()
 		deleteButton:SetTarget(path, widget)
@@ -540,11 +561,11 @@ function Loadout:DrawChild(parent, path, child, datapoint, layoutIndex, depth)
 end
 
 -- Draws a toplevel interface widget provided by env:GetConfiguration()
-function Loadout:DrawTopLevel(path, interface, layoutIndex, depth)
+function Loadout:DrawTopLevel(name, path, interface, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, interface.props, layoutIndex)
-	widget:SetText(interface.internal)
+	widget:SetText(name)
 	widget:SetIndentation(depth)
-	widget.owner = interface.widget;
+	widget:Construct(name, path, interface[DP], true, env, path, interface.widget)
 	self:DrawChildren(widget, path, interface.props[DP], layoutIndex, depth)
 	return widget;
 end
@@ -561,7 +582,7 @@ function Loadout:OnCleaned()
 end
 
 function Loadout:GetText()
-	return db.Locale 'your current loadout';
+	return L'your current loadout';
 end
 
 function Loadout:OnDelete(path, widget)

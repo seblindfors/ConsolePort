@@ -2,13 +2,22 @@ local name, env = ...;
 local env = LibStub('RelaTable')(name, env, false)
 env.db        = ConsolePort:DB();
 env.UIHandler = CPAPI.CreateEventHandler({'Frame'}, {
-	-- events go here
+	'PLAYER_REGEN_DISABLED';
+	'PLAYER_REGEN_ENABLED';
 }); local db, UIHandler = env.db, env.UIHandler;
 
 UIHandler:Hide()
 function UIHandler:OnDataLoaded()
 	self:HideBlizzard()
 	env:TriggerEvent('OnEnvLoaded')
+end
+
+function UIHandler:PLAYER_REGEN_DISABLED()
+	env:TriggerEvent('OnCombatLockdown', true)
+end
+
+function UIHandler:PLAYER_REGEN_ENABLED()
+	env:TriggerEvent('OnCombatLockdown', false)
 end
 
 E = env -- debug
@@ -174,53 +183,30 @@ do -- Widget factory
 	end
 
 	function env:GetConfiguration()
-		local hierarchy = {children = {}}
-		local activeCopy = CopyTable(ActiveWidgets)
-		local scaffold, filterProps, filterParent;
+		local hierarchy = {};
 
-		function scaffold(widget, sig)
-			activeCopy[widget] = nil;
+		local function scaffold(widget, sig)
 			local props = GetLocalProps(sig)
 			if not props then return nil end;
 			local widgetType, widgetName = self.UnpackSig(sig);
-			return widgetName, {
-				children  = {};
-				desc      = props[1].desc;
-				title     = props[1].name;
-				internal  = widgetName;
+			return widgetName, { props[1];
 				type      = widgetType;
-				prototype = props;
 				props     = props():Set(widget.props);
 				widget    = widget;
 				signature = sig;
 			};
 		end
 
-		function filterProps(root, widget, sig)
-			local key, value = scaffold(widget, sig)
-			if key and value then
-				root.children[key] = value;
-				-- TODO: probably don't need this at all, because toplevel
-				-- widgets always reference their own children
-				--filterParent(root.children[key], widget)
-			end
-		end
-
-		function filterParent(root, parent)
-			for widget, sig in pairs(activeCopy) do
-				if ( widget:GetParent() == parent ) then
-					filterProps(root, widget, sig)
+		for widget, sig in pairs(ActiveWidgets) do
+			if not ActiveWidgets[widget:GetParent()] then
+				local key, value = scaffold(widget, sig)
+				if key and value then
+					hierarchy[key] = value;
 				end
 			end
 		end
 
-		for widget, sig in pairs(activeCopy) do
-			if not activeCopy[widget:GetParent()] then
-				filterProps(hierarchy, widget, sig)
-			end
-		end
-
-		return hierarchy.children; -- skip the manager level
+		return hierarchy;
 	end
 
 end -- Widget factory

@@ -393,9 +393,9 @@ Presets.Crossbar = {
 			rescale = '75';
 			pos = { point = 'BOTTOM', y = 175 };
 			children = {
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =  0 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 50 } };
-				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', x =  0 } };
+				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0 } };
+				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x =  50 } };
+				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', x =   0 } };
 				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', x = -50 } };
 			};
 		};

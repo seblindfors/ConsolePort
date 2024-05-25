@@ -85,7 +85,6 @@ Interface.Cluster = Data.Interface {
 		height = _{
 			name = 'Height';
 			desc = 'Height of the cluster bar.';
-			vert = true;
 			Data.Number(140, 25);
 		};
 		scale = _{
@@ -132,7 +131,6 @@ Interface.Group = Data.Interface {
 		height = _{
 			name = 'Height';
 			desc = 'Height of the group.';
-			vert = true;
 			Data.Number(120, 25);
 		};
 		modifier = _{

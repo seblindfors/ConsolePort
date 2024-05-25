@@ -207,6 +207,7 @@ function Config:OnLoad()
 	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self, nil, 10))
 	Mixin(self.SettingsContainer, SettingsContainer):OnLoad()
 	CPAPI.Start(self)
+	env:RegisterCallback('OnCombatLockdown', self.OnCombatLockdown, self)
 end
 
 function Config:OnShow()
@@ -223,6 +224,16 @@ function Config:SetDefaultClosures()
 	self:ReleaseClosures()
 	self.CatchTabDecrement = self:CatchButton('PADLSHOULDER', self.SettingsContainer.CatchTabDecrement, self.SettingsContainer)
 	self.CatchTabIncrement = self:CatchButton('PADRSHOULDER', self.SettingsContainer.CatchTabIncrement, self.SettingsContainer)
+end
+
+function Config:OnCombatLockdown(isLocked)
+	if isLocked and self:IsShown() then
+		self.showAfterCombat = true;
+		return self:Hide()
+	elseif self.showAfterCombat then
+		self.showAfterCombat = nil;
+		return self:Show()
+	end
 end
 
 ---------------------------------------------------------------

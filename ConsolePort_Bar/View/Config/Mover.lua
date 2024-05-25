@@ -167,6 +167,14 @@ function Mover:OnLoad()
 	self:SetSnapPixels(10)
 end
 
+function Mover:OnShow()
+	env:RegisterCallback('OnCombatLockdown', self.RestorePoint, self)
+end
+
+function Mover:OnHide()
+	env:UnregisterCallback('OnCombatLockdown', self)
+end
+
 function Mover:SetKit(kit)
 	for anchor, layout in pairs(self.SelectionLayout) do
 		local slice = self[anchor];
@@ -209,7 +217,7 @@ function Mover:ClearAndHide()
 	if ( self.frame and type(self.callback) == 'function' ) then
 		securecallfunction(self.callback, self.frame:GetPoint())
 	end
-	self.frame, self.callback, self.relativeTo, self.isMoving, self.origPoint = nil;
+	self.frame, self.show, self.callback, self.relativeTo, self.isMoving, self.origPoint = nil;
 end
 
 function Mover:StoreCursorNode()
@@ -278,7 +286,7 @@ end
 function Mover:CopyPoint(frame)
 	local point, relativeTo, relativePoint, x, y = frame:GetPoint()
 	self:SetPoint(point, relativeTo, relativePoint, x, y)
-	self.frame, self.relativeTo = frame, relativeTo;
+	self.frame, self.relativeTo, self.show = frame, relativeTo, frame:IsShown();
 	self.origPoint = { point, relativeTo, relativePoint, x, y };
 	self.snapPoint = { point, relativeTo, relativePoint, x, y };
 end
@@ -341,7 +349,7 @@ function Mover:OnClick(button)
 end
 
 function Mover:OnUpdate()
-	if not self.frame or not self.frame:IsVisible() then self:ClearAndHide() end;
+	if not self.frame or ( self.show ~= self.frame:IsShown() ) then self:ClearAndHide() end;
 	if self.startX and self.startY then
 		local x, y = GetScaledCursorPosition()
 		local dx, dy = x - self.startX, y - self.startY;
@@ -374,6 +382,7 @@ env:RegisterSafeCallback('OnMoveFrame', function(frame, callback, snapPixels)
 	if not env.Mover then
 		env.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
 		env.Mover:OnLoad()
+		env.Mover:Hide()
 	end
 	env.Mover:SetWidget(frame, callback, snapPixels)
 end)
