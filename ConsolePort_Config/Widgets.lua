@@ -407,12 +407,16 @@ local Range = CreateWidget('Range', Number, {
 function Range:OnLoad(...)
 	Number.OnLoad(self, ...)
 	self.Input:SetValueStep(self:GetStep())
-	self.Input:SetMinMaxValues(self.controller:GetMinMax())
+	self.Input:SetMinMaxValues(self:GetMinMax())
 	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 end
 
 function Range:EnableMouseWheel(enabled)
 	self.Input:EnableMouseWheel(enabled)
+end
+
+function Range:GetMinMax()
+	return self.controller:GetMinMax()
 end
 
 function Range:SetMinMax(min, max, value)
@@ -439,8 +443,6 @@ local Delta = CreateWidget('Delta', Range, {
 		_Point = {'RIGHT', -40, -6};
 		_IgnoreNode = true;
 		_SetObeyStepOnDrag = true;
-		_SetValueStep = 2;
-		_SetMinMaxValues = {-1, 1};
 		_OnValueChanged = function(self, value, byInput)
 			local widget = self:GetParent()
 			if byInput and self.cacheValue ~= value and widget.controller:IsOption(value) then
@@ -453,6 +455,10 @@ local Delta = CreateWidget('Delta', Range, {
 
 function Delta:GetStep()
 	return 2;
+end
+
+function Delta:GetMinMax()
+	return -1, 1;
 end
 
 function Delta:OnValueChanged(value)
