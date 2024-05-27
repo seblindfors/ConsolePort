@@ -47,8 +47,22 @@ local Header = {};
 function Header:OnAcquire(parent)
 	self:SetParent(parent)
 	self:SetWidth(540)
+	self:SetIndentation(0)
 	self:SetScript('OnClick', self.OnClick)
+	self:SetScript('OnHide', self.OnHide)
 end
+
+function Header:SetIndentation(px)
+	self.Text:SetPoint('CENTER', px * 0.5, 0)
+	self.BarTexture:SetPoint('LEFT',  px > 0 and  px or 0, 0)
+	self.BarTexture:SetPoint('RIGHT', px < 0 and  px or 0, 0)
+end
+
+function Header:Release()
+	self:GetParent().headerPool:Release(self)
+end
+
+Header.OnHide = Header.Release;
 
 ---------------------------------------------------------------
 local SettingsHeader = CreateFromMixins(Header);
