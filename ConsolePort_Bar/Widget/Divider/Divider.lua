@@ -30,7 +30,8 @@ function CPDivider:OnPropsUpdated()
 end
 
 function CPDivider:SetTintColor(r, g, b, a)
-	self.Gradient:SetGradient(env:GetColorGradient(r, g, b, a))
+	local intensity = (tonumber(self.props.intensity) or 25) / 100;
+	self.Gradient:SetGradient(env:GetColorGradient(r, g, b, a, intensity))
 	self.Line:SetVertexColor(r, g, b, a)
 end
 
@@ -65,12 +66,12 @@ end
 function CPDivider:OnDriverChanged()
 	local driver = self.props.opacity;
 	if driver then
-		RegisterAttributeDriver(self, 'alpha', driver)
+		RegisterAttributeDriver(self, 'alpha', env.ConvertDriver(driver))
 	end
 
 	driver = self.props.rescale;
 	if driver then
-		RegisterAttributeDriver(self, 'scale', driver)
+		RegisterAttributeDriver(self, 'scale', env.ConvertDriver(driver))
 	end
 end
 

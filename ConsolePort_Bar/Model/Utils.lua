@@ -4,7 +4,7 @@ env.db        = ConsolePort:DB();
 env.UIHandler = CPAPI.CreateEventHandler({'Frame'}, {
 	'PLAYER_REGEN_DISABLED';
 	'PLAYER_REGEN_ENABLED';
-}); local db, UIHandler = env.db, env.UIHandler;
+}); local db, L, UIHandler = env.db, env.db.Locale, env.UIHandler;
 
 UIHandler:Hide()
 function UIHandler:OnDataLoaded()
@@ -89,7 +89,10 @@ do -- Data handler
 	end
 
 	function env:TriggerPathEvent(path, ...)
-		self:TriggerEvent(tostring(self(path)), ...)
+		local obj = self(path);
+		if obj then
+			self:TriggerEvent(tostring(obj), ...)
+		end
 	end
 
 	env:RegisterCallback('OnEnvLoaded', env.OnEnvLoaded, env)
@@ -239,9 +242,11 @@ function env:GetColorRGBA(id)
 	return color:GetRGBA();
 end
 
-function env:GetColorGradient(r, g, b, a) a = a or 1;
+function env:GetColorGradient(r, g, b, a, i)
+	a = a or 1;
+	i = i or 0.25;
 	local base, mult = 0.15, 1.2;
-	local startA, endA = 0.25 * a, 0;
+	local startA, endA = i * a, 0;
 	return -- SetGradient
 	--[[ orientation ]] 'VERTICAL',
 	--[[ minColor    ]] CreateColor((r + base) * mult, (g + base) * mult, (b + base) * mult, startA),
@@ -257,7 +262,7 @@ end
 -- Utility functions
 ---------------------------------------------------------------
 function env.MakeID(name, ...)
-	return name:format(...):gsub('-', '_'):gsub('_$', '')
+	return name:format(...):gsub('[- ]', '_'):gsub('_$', '')
 end
 
 function env.MakeSig(type, id)
@@ -286,6 +291,57 @@ function env.CreateFlagClosures(flags)
 		closures[flagName] = GenerateClosure(env.UpdateFlags, flagValue);
 	end
 	return closures;
+end
+
+do local ModReplacements = {
+		M0 = '';
+		M1 = 'SHIFT-';
+		M2 = 'CTRL-';
+		M3 = 'ALT-';
+	};
+	function env.ConvertDriver(driver)
+		for key, rep in pairs(ModReplacements) do
+			driver = driver:gsub(key, rep)
+		end
+		driver = driver:gsub('%b[]', function(capture)
+			return capture:gsub('%s', '')
+		end)
+		return (driver:gsub('%[mod:%]', '[nomod]'))
+	end
+end
+
+function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, arguments, states)
+	text = L(text);
+
+	local function MakeBulletList(topic, args, color)
+		local list = NORMAL_FONT_COLOR:WrapTextInColorCode(L(topic)..':')
+		for arg, desc in db.table.spairs(args) do
+			list = ('%s\n• %s - %s'):format(list, color:WrapTextInColorCode(arg), L(desc));
+		end
+		return list;
+	end
+
+	if condition and state then
+		text = ('%s\n\n%s\n[%s] %s; ...'):format(text,
+			NORMAL_FONT_COLOR:WrapTextInColorCode(L'Format'..':'),
+			BLUE_FONT_COLOR:WrapTextInColorCode(condition),
+			GREEN_FONT_COLOR:WrapTextInColorCode(state));
+		if simple then
+			text = ('%s %s %s'):format(text,
+				YELLOW_FONT_COLOR:WrapTextInColorCode(L'or'),
+				GREEN_FONT_COLOR:WrapTextInColorCode(state));
+		end
+	end
+	if arguments then
+		text = ('%s\n\n%s'):format(text, MakeBulletList('Arguments', arguments, BLUE_FONT_COLOR));
+	end
+	if states then
+		text = ('%s\n\n%s'):format(text, MakeBulletList('States', states, GREEN_FONT_COLOR));
+	end
+	if outcome then
+		text = ('%s\n\n%s\n%s'):format(text, NORMAL_FONT_COLOR:WrapTextInColorCode(L'Outcome'..':'), outcome);
+	end
+	return text;
 end
 
 ---------------------------------------------------------------

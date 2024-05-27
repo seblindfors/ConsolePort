@@ -78,7 +78,7 @@ Presets.CrossbarMinimal = {
 			width = 600;
 		};
 		Actionbar = Interface.Group : Render {
-			modifier = '[nomod] ; [mod:CTRL-SHIFT-] CTRL-SHIFT-; [mod:SHIFT-] SHIFT-; [mod:CTRL-] CTRL-;';
+			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
 			pos = { point = 'BOTTOM', y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
@@ -127,8 +127,8 @@ Presets.DiamondGrid = {
 			};
 		};
 		Shift = Interface.Group : Render {
-			opacity  = '[mod:CTRL-SHIFT-] 10; [mod:SHIFT-] 100; 10';
-			modifier = '[] SHIFT-;';
+			opacity  = '[mod:M2M1] 10; [mod:M1] 100; 10';
+			modifier = '[] M1;';
 			pos = { point = 'BOTTOM', y = 75 };
 			width = 700;
 			children = {
@@ -147,8 +147,8 @@ Presets.DiamondGrid = {
 			};
 		};
 		Ctrl = Interface.Group : Render {
-			opacity  = '[mod:CTRL-SHIFT-] 10; [mod:CTRL-] 100; 10';
-			modifier = '[] CTRL-;';
+			opacity  = '[mod:M2M1] 10; [mod:M2] 100; 10';
+			modifier = '[] M2;';
 			pos = { point = 'BOTTOM', y = 75 };
 			width = 700;
 			children = {
@@ -167,8 +167,8 @@ Presets.DiamondGrid = {
 			};
 		};
 		CtrlShift = Interface.Group : Render {
-			opacity  = '[mod:CTRL-SHIFT-] 100; 10';
-			modifier = '[] CTRL-SHIFT-;';
+			opacity  = '[mod:M2M1] 100; 10';
+			modifier = '[] M2M1;';
 			pos = { point = 'BOTTOM', y = 75 };
 			width = 700;
 			children = {
@@ -201,7 +201,7 @@ Presets.Grid = {
 			breadth    = 300;
 			depth      = 100;
 			transition = 150;
-			opacity    = '[mod:ALT-] 50; [mod:CTRL-SHIFT-] 100; 50';
+			opacity    = '[mod:ALT-] 50; [mod:M2M1] 100; 50';
 			pos = { point = 'BOTTOM', y = 120 };
 		};
 		DividerLeft = Interface.Divider : Render {
@@ -209,7 +209,7 @@ Presets.Grid = {
 			depth      = 150;
 			rotation   = 90;
 			transition = 150;
-			opacity  = '[mod:ALT-][mod:CTRL-SHIFT-] 50; [mod:SHIFT-] 100; 50';
+			opacity  = '[mod:ALT-][mod:M2M1] 50; [mod:M1] 100; 50';
 			pos = { point = 'BOTTOM', x = -153, y = 120 };
 		};
 		DividerRight = Interface.Divider : Render {
@@ -217,7 +217,7 @@ Presets.Grid = {
 			depth      = 150;
 			rotation   = 270;
 			transition = 150;
-			opacity  = '[mod:ALT-][mod:CTRL-SHIFT-] 50; [mod:CTRL-] 100; 50';
+			opacity  = '[mod:ALT-][mod:M2M1] 50; [mod:M2] 100; 50';
 			pos = { point = 'BOTTOM', x = 147, y = 120 };
 		};
 		Nomod = Interface.Group : Render {
@@ -242,8 +242,8 @@ Presets.Grid = {
 			};
 		};
 		Shift = Interface.Group : Render {
-			opacity  = '[mod:ALT-][mod:CTRL-SHIFT-] 10; [mod:SHIFT-] 100; 10';
-			modifier = '[] SHIFT-;';
+			opacity  = '[mod:ALT-][mod:M2M1] 10; [mod:M1] 100; 10';
+			modifier = '[] M1;';
 			pos = { point = 'BOTTOM', x = -225, y = 25 };
 			width  = 150;
 			height = 200;
@@ -263,8 +263,8 @@ Presets.Grid = {
 			};
 		};
 		Ctrl = Interface.Group : Render {
-			opacity  = '[mod:ALT-][mod:CTRL-SHIFT-] 10; [mod:CTRL-] 100; 10';
-			modifier = '[] CTRL-;';
+			opacity  = '[mod:ALT-][mod:M2M1] 10; [mod:M2] 100; 10';
+			modifier = '[] M2;';
 			pos = { point = 'BOTTOM', x = 225, y = 25 };
 			width  = 150;
 			height = 200;
@@ -284,8 +284,8 @@ Presets.Grid = {
 			};
 		};
 		CtrlShift = Interface.Group : Render {
-			opacity  = '[mod:ALT-] 10; [mod:CTRL-SHIFT-] 100; 10';
-			modifier = '[] CTRL-SHIFT-;';
+			opacity  = '[mod:ALT-] 10; [mod:M2M1] 100; 10';
+			modifier = '[] M2M1;';
 			pos = { point = 'BOTTOM', y = 125 };
 			width  = 300;
 			height = 100;
@@ -321,8 +321,8 @@ Presets.Crossbar = {
 			rotation   = 90;
 			thickness  = 4;
 			transition = 150;
-			rescale  = '[mod:CTRL-SHIFT-] 100; [mod:SHIFT-] 110; 100';
-			opacity  = '[mod:CTRL-SHIFT-] 0; [mod:SHIFT-] 100; 50';
+			rescale  = '[mod:M2M1] 100; [mod:M1] 110; 100';
+			opacity  = '[mod:M2M1] 0; [mod:M1] 100; 50';
 			pos = { point = 'BOTTOM', x = -3, y = 75 };
 		};
 		['Right Divider'] = Interface.Divider : Render {
@@ -331,15 +331,15 @@ Presets.Crossbar = {
 			rotation   = 270;
 			thickness  = 4;
 			transition = 150;
-			rescale  = '[mod:CTRL-SHIFT-] 100; [mod:CTRL-] 110; 100';
-			opacity  = '[mod:CTRL-SHIFT-] 0; [mod:CTRL-] 100; 50';
+			rescale  = '[mod:M2M1] 100; [mod:M2] 110; 100';
+			opacity  = '[mod:M2M1] 0; [mod:M2] 100; 50';
 			pos = { point = 'BOTTOM', x = 3, y = 75 };
 		};
 		Left = Interface.Group : Render {
-			modifier   = '[] SHIFT-';
+			modifier   = '[] M1';
 			width      = 300;
-			rescale    = '[mod:CTRL-SHIFT-] 100; [mod:SHIFT-] 110; 100';
-			visibility = '[mod:CTRL-SHIFT-] hide; show';
+			rescale    = '[mod:M2M1] 100; [mod:M1] 110; 100';
+			visibility = '[mod:M2M1] hide; show';
 			pos = { point = 'BOTTOM', x = -160, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
@@ -353,10 +353,10 @@ Presets.Crossbar = {
 			};
 		};
 		Right = Interface.Group : Render {
-			modifier   = '[] CTRL-';
+			modifier   = '[] M2';
 			width      = 300;
-			rescale    = '[mod:CTRL-SHIFT-] 100; [mod:CTRL-] 110; 100';
-			visibility = '[mod:CTRL-SHIFT-] hide; show';
+			rescale    = '[mod:M2M1] 100; [mod:M2] 110; 100';
+			visibility = '[mod:M2M1] hide; show';
 			pos = { point = 'BOTTOM', x = 160, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
@@ -370,10 +370,10 @@ Presets.Crossbar = {
 			};
 		};
 		Center = Interface.Group : Render {
-			modifier   = '[] CTRL-SHIFT-';
+			modifier   = '[] M2M1';
 			width      = 300;
 			rescale    = '110';
-			visibility = '[mod:CTRL-SHIFT-] show; hide';
+			visibility = '[mod:M2M1] show; hide';
 			pos = { point = 'BOTTOM', x = 0, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
@@ -387,16 +387,16 @@ Presets.Crossbar = {
 			};
 		};
 		Triggers = Interface.Group : Render {
-			modifier = '[nomod] ; [mod:CTRL-SHIFT-] CTRL-SHIFT-; [mod:SHIFT-] SHIFT-; [mod:CTRL-] CTRL-;';
+			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
 			width   = 210;
 			height  = 50;
 			rescale = '75';
-			pos = { point = 'BOTTOM', y = 175 };
+			pos = { point = 'BOTTOM', y = 200 };
 			children = {
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x =  50 } };
-				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', x =   0 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', x = -50 } };
+				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y = 0 } };
+				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x =  50, y = 0 } };
+				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', x =   0, y = 0 } };
+				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', x = -50, y = 0 } };
 			};
 		};
 	};

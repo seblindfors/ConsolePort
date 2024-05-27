@@ -126,33 +126,69 @@ Interface.Group = Data.Interface {
 		width = _{
 			name = 'Width';
 			desc = 'Width of the group.';
-			Data.Number(400, 25);
+			Data.Number(400, 10);
 		};
 		height = _{
 			name = 'Height';
 			desc = 'Height of the group.';
-			Data.Number(120, 25);
+			Data.Number(120, 10);
 		};
 		modifier = _{
 			name = 'Modifier';
-			desc = 'Modifier driver for the group.';
+			desc = env.MakeMacroDriverDesc(
+				'Modifier condition of the group. Accepts pairs of a macro condition and a modifier.',
+				'Swaps the buttons to show the applicable modifier.',
+				'condition', 'modifier', false, {
+					['M0']   = 'Shorthand for no modifiers.';
+					['M1']   = 'Shorthand for the Shift modifier.';
+					['M2']   = 'Shorthand for the Ctrl modifier.';
+					['M3']   = 'Shorthand for the Alt modifier.';
+					['[mod:...]'] = 'Prefix for matching a modifier being held.';
+					['[]']   = 'Empty condition, always true.';
+				}, {
+					['Mn']   = 'Button set to swap to, where n is the modifier number. Multiple modifiers can be combined.';
+				}
+			);
+			note = 'Modifiers can be combined. For example, M1M2 is the Shift and Ctrl modifiers held at the same time.';
 			Data.String(' ');
 		};
 		rescale = _{
 			name = 'Scale';
-			desc = 'Scale condition of the group.';
-			note = 'Expressed in percentage, where 100 is normal scale.';
+			desc = env.MakeMacroDriverDesc(
+				'Scale condition of the group. Accepts pairs of a macro condition and a scale in percentage, or a single scale value.',
+				'Scales the group to the applicable scale.',
+				'condition', 'scale', true, nil, {
+					['100'] = 'Normal scale.';
+					['200'] = 'Double scale.';
+					['50']  = 'Half scale.';
+				}
+			);
 			Data.String('100');
 		};
 		visibility = _{
 			name = 'Visibility';
-			desc = 'Visibility condition of the group.';
+			desc = env.MakeMacroDriverDesc(
+				'Visibility condition of the group. Accepts pairs of a macro condition and a visibility state, or a single visibility state.',
+				'Shows or hides the group based on the condition.',
+				'condition', 'state', true, nil, {
+					['show'] = 'Show the group.';
+					['hide'] = 'Hide the group.';
+				}
+			);
 			Data.String('show');
 		};
 		opacity = _{
 			name = 'Opacity Driver';
-			desc = 'Opacity condition of the group.';
-			note = 'Expressed in percentage, where 100 is fully visible and 0 is fully transparent.';
+			desc = env.MakeMacroDriverDesc(
+				'Opacity condition of the group. Accepts pairs of a macro condition and an opacity in percentage, or a single opacity value.',
+				'Changes the opacity of the group based on the condition.',
+				'condition', 'opacity', true, nil, {
+					['100'] = 'Fully opaque.';
+					['50']  = 'Half visible.';
+					['0	']   = 'Fully transparent.';
+				}
+			);
+			note = 'Opacity is expressed in percentage, where 100 is fully visible and 0 is fully transparent. Values outside of the 0-100 range will be clamped.';
 			Data.String('100');
 		};
 	};
@@ -200,6 +236,11 @@ Interface.Divider = Data.Interface {
 			name = 'Thickness';
 			desc = 'Thickness of the divider.';
 			Data.Range(1, 1, 1, 10)
+		};
+		intensity = _{
+			name = 'Intensity';
+			desc = 'Intensity of the gradient.';
+			Data.Range(25, 5, 0, 100);
 		};
 		rotation = _{
 			name = 'Rotation';

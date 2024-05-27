@@ -4,7 +4,6 @@ local _, env, db, Widgets, L = ...; db = env.db; L = db.Locale;
 ---------------------------------------------------------------
 local BASE_PATH = 'Layout/children';
 local COPY      = CALENDAR_COPY_EVENT or L'Copy';
-local DELETE    = DELETE or L'Delete';
 
 local function PATH(name, child)
 	return name..'/'..child;
@@ -32,16 +31,25 @@ local function DisplaySort(t, a, b)
 	end
 end
 
-local function LoadSquareButtonPool(self, init, config)
+local function LoadSquareButtonPool(self, config)
 	return CreateFramePool('Button', self, 'CPSquareButtonTemplate', FramePool_HideAndClearAnchors, false, function(self)
 		self:SetSize(38, 38)
 		self.owner = self:GetParent()
-		Mixin(self, config)
-		if init then
-			init(self)
-		end
+		if config then Mixin(self, config) end;
+		if self.Init then self:Init(config) end;
 		SquareIconButtonMixin.OnLoad(self)
 	end)
+end
+
+local function GetElementNameSuggestion(name, config, i) i = i or CreateCounter(1);
+	while config[name] do
+		name = ('%s %d'):format(name:gsub('%d', ''):trim(), i())
+	end
+	return name;
+end
+
+local function IsElementNameValid(editBox, config)
+	return UserEditBoxNonEmpty(editBox) and not config[editBox:GetText():trim()];
 end
 
 ---------------------------------------------------------------
@@ -95,20 +103,199 @@ end
 function LoadoutSetting:OnHide()
 	self:SetChecked(false)
 	self:OnExpandOrCollapse()
+	if self.isHighlighted then
+		self:OnLeaveHighlight()
+	end
+end
+
+function LoadoutSetting:OnEnterHighlight()
+	env:TriggerPathEvent(self.path, 'OnHighlight', true)
+	self.isHighlighted = true;
+end
+
+function LoadoutSetting:OnLeaveHighlight()
+	env:TriggerPathEvent(self.path, 'OnHighlight', false)
+	self.isHighlighted = false;
 end
 
 function LoadoutSetting:OnCreate()
 	env.SharedConfig.Setting.OnCreate(self)
 	self:HookScript('OnHide', self.OnHide)
+	self:HookScript('OnEnter', self.OnEnterHighlight)
+	self:HookScript('OnLeave', self.OnLeaveHighlight)
 end
 
 function LoadoutSetting:OnChildChanged(child, value)
 	env:TriggerPathEvent(self.path, GetEndpoint(child.path), value)
 end
 
-
 ---------------------------------------------------------------
 -- Widgets
+---------------------------------------------------------------
+-- Reusable widgets for manipulating the loadout.
+
+---------------------------------------------------------------
+local Popout = {};
+---------------------------------------------------------------
+
+function Popout:Init()
+	self.buttonPool = CreateFramePool('BUTTON', self, 'CPSelectionPopoutEntryTemplate')
+	self:HookScript('OnHide', self.OnPopoutHide)
+	self:SetFrameLevel(100)
+end
+
+function Popout:SetInitialAnchor(initialAnchor)
+	self.initialAnchor = initialAnchor;
+end
+
+function Popout:SetLayout(direction, stride)
+	if self.stride ~= stride then
+		self.stride = stride;
+		self.layout = AnchorUtil.CreateGridLayout(direction, stride)
+	end
+end
+
+function Popout:OnPopoutHide()
+	if not self.buttonPool then return end;
+	self.buttonPool:ReleaseAll()
+end
+
+function Popout:SetData(entries, init)
+	if not self.buttonPool then self:Init() end;
+	local buttons, counter, maxDetailsWidth = {}, CreateCounter(), 0;
+	for _, data in ipairs(entries) do
+		local button = self.buttonPool:Acquire()
+		button:SetupEntry(data, counter(), false)
+		if init then init(button) end;
+		maxDetailsWidth = math.max(maxDetailsWidth, button.SelectionDetails:GetWidth())
+		tinsert(buttons, button)
+	end
+	for _, button in ipairs(buttons) do
+		button.SelectionDetails:SetWidth(maxDetailsWidth)
+		button:Layout()
+		button:Show()
+	end
+	AnchorUtil.GridLayout(buttons, self.initialAnchor, self.layout)
+	self:Show()
+	return buttons;
+end
+
+---------------------------------------------------------------
+local DeleteButton = {
+---------------------------------------------------------------
+	icon         = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
+	iconSize     = 18;
+	tooltipTitle = RED_FONT_COLOR:WrapTextInColorCode(DELETE);
+	tooltipText  = L('Delete this element.');
+	popupName    = 'ConsolePort_Mutable_Confirm_Delete';
+	popupData    = {
+		button1   = YES;
+		button2   = CANCEL;
+		showAlert = true;
+		OnAccept = function(_, data)
+			data.owner:OnDelete(data.variableID, data.target)
+			ConsolePort:SetCursorNodeIfActive(data.owner)
+		end;
+		OnHide = function(_, data)
+			data.target:UnlockHighlight()
+			data.trigger:SetButtonState('NORMAL')
+		end;
+		OnShow = function(_, data)
+			data.target:LockHighlight()
+			data.trigger:SetButtonState('PUSHED')
+		end;
+		text = L('Are you sure you want to delete %s from %s?',
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+	};
+};
+
+function DeleteButton:Init()
+	self:SetScript('OnHide', self.OnHide)
+end
+
+function DeleteButton:SetTarget( path, target)
+	self.variableID = path;
+	self:SetParent(target)
+	self:ClearAllPoints()
+	self:SetPoint('RIGHT', target, 'RIGHT', 0, 0)
+	self:Show()
+end
+
+function DeleteButton:onClickHandler()
+	local target = self:GetParent()
+	CPAPI.Popup(self.popupName, self.popupData, target:GetText(), self.owner:GetText(), {
+		variableID = self.variableID;
+		owner    = self.owner;
+		target   = target;
+		trigger  = self;
+	})
+end
+
+local function LoadDeleteButtonPool(self) -- Helper since this is used in multiple widgets
+	self.deleteButtonPool = self.deleteButtonPool or LoadSquareButtonPool(self, DeleteButton)
+end
+
+---------------------------------------------------------------
+local CopyButton = {
+---------------------------------------------------------------
+	icon         = [[Interface\BUTTONS\UI-GuildButton-OfficerNote-Up]];
+	iconSize     = 18;
+	tooltipTitle = BLUE_FONT_COLOR:WrapTextInColorCode(COPY);
+	tooltipText  = L('Copy this element to a new name.');
+	popupName    = 'ConsolePort_Mutable_Confirm_Copy';
+	popupData    = {
+		button1    = OKAY;
+		button2    = CANCEL;
+		showAlert  = true;
+		hasEditBox = 1;
+		OnAccept = function(popup, data)
+			data.owner:OnCopy(data.variableID, popup.editBox:GetText():trim())
+			ConsolePort:SetCursorNodeIfActive(data.owner)
+		end;
+		OnHide = function(_, data)
+			data.target:UnlockHighlight()
+			data.trigger:SetButtonState('NORMAL')
+		end;
+		OnShow = function(popup, data)
+			popup.button1:Disable()
+			data.target:LockHighlight()
+			data.trigger:SetButtonState('PUSHED')
+			popup.editBox:SetText(data.suggest)
+		end;
+		EditBoxOnTextChanged = function(editBox, data)
+			local parent = editBox:GetParent()
+			parent.button1:SetEnabled(IsElementNameValid(editBox, data.owner.config))
+		end;
+		text = L('Copy %s from %s:',
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+	};
+};
+
+function CopyButton:onClickHandler()
+	local target = self:GetParent()
+	CPAPI.Popup(self.popupName, self.popupData, target:GetText(), self.owner:GetText(), {
+		variableID = self.variableID;
+		owner    = self.owner;
+		target   = target;
+		trigger  = self;
+		suggest  = GetElementNameSuggestion(target:GetText(), self.owner.config);
+	})
+end
+
+
+---------------------------------------------------------------
+local CommandButton = { ignoreInLayout = true };
+---------------------------------------------------------------
+
+function CommandButton:Setup(config)
+	Mixin(self, config)
+	SquareIconButtonMixin.OnLoad(self)
+end
+
+---------------------------------------------------------------
+-- Config widgets
 ---------------------------------------------------------------
 -- TODO: if these are ever used anywhere else, they should be
 -- moved to a more appropriate location (aka Widgets.lua)
@@ -140,105 +327,40 @@ local Mutable, MutableBlueprint = { OnClick = nop }, {
 		_Setup = 'CPSelectionPopoutTemplate';
 		_Hide  = true;
 		_Point = {'TOPRIGHT', -32, 0};
-		_Level = 1000;
 	};
 };
-
-local LoadDeleteButtonPool;
-do -- Button pool for mutable delete buttons
-	local PopupName, PopupData = 'ConsolePort_Mutable_Confirm_Delete', {
-		button1   = YES;
-		button2   = CANCEL;
-		showAlert = true;
-		OnAccept = function(_, data)
-			data.owner:OnDelete(data.variableID, data.target)
-			ConsolePort:SetCursorNodeIfActive(data.owner)
-		end;
-		OnHide = function(_, data)
-			data.target:UnlockHighlight()
-			data.trigger:SetButtonState('NORMAL')
-		end;
-		OnShow = function(_, data)
-			data.target:LockHighlight()
-			data.trigger:SetButtonState('PUSHED')
-		end;
-		text = L('Are you sure you want to delete %s from %s?',
-			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
-			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
-	};
-
-	local function OnDeleteButtonClicked(self)
-		local target = self:GetParent()
-		CPAPI.Popup(PopupName, PopupData, target:GetText(), self.owner:GetText(), {
-			variableID = self.variableID;
-			owner    = self.owner;
-			target   = target;
-			trigger  = self;
-		})
-	end
-
-	local function OnDeleteButtonHide(self)
-		self.owner.deleteButtonPool:Release(self)
-	end
-
-	local function DeleteButtonSetTarget(self, path, target)
-		self.variableID = path;
-		self:SetParent(target)
-		self:SetPoint('RIGHT', target, 'RIGHT', 0, 0)
-		self:Show()
-	end
-
-	local function OnDeleteButtonInit(self)
-		self.SetTarget = DeleteButtonSetTarget;
-		self:SetScript('OnHide', OnDeleteButtonHide)
-	end
-
-	LoadDeleteButtonPool = function(self)
-		self.deleteButtonPool = self.deleteButtonPool or
-			LoadSquareButtonPool(self, OnDeleteButtonInit, {
-				icon = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
-				iconSize = 18;
-				onClickHandler = OnDeleteButtonClicked;
-				tooltipTitle   = RED_FONT_COLOR:WrapTextInColorCode(DELETE);
-				tooltipText    = L('Delete this element.');
-			})
-	end
-end
 
 function Mutable:OnLoad(...)
 	Widgets.Base.OnLoad(self, ...)
 	LoadDeleteButtonPool(self)
 	self.disableTooltipHints = true;
+	Mixin(self.Popout, Popout)
 end
 
 function Mutable:TogglePopout(show)
-	if self.addButtonPool then self.addButtonPool:ReleaseAll() end;
 	if self.Popout:IsShown() then return self.Popout:Hide() end;
 	if not show then return end;
 
-	if not self.addButtonPool then
+	if not self.addButtonInit then
 		self.OnCancelClick = GenerateClosure(self.TogglePopout, self, false)
-		self.addButtonPool = CreateFramePool('BUTTON', self.Popout, 'CPSelectionPopoutEntryTemplate')
-		self.initialAnchor = AnchorUtil.CreateAnchor('TOPLEFT', self.Popout, 'TOPLEFT', 6, -12)
-		self.layout = AnchorUtil.CreateGridLayout(GridLayoutMixin.Direction.TopLeftToBottomRightVertical, 10)
+		self.addButtonInit = function(button)
+			button.OnCancelClick = self.OnCancelClick;
+		end;
+		self.Popout:SetInitialAnchor(AnchorUtil.CreateAnchor('TOPLEFT', self.Popout, 'TOPLEFT', 6, -12))
 	end
 
-	local buttons, counter, maxDetailsWidth = {}, CreateCounter(), 0;
+	local entries = {};
 	for key, info in db.table.spairs(self.controller:GetAvailableKeys()) do
-		local button = self.addButtonPool:Acquire()
-		local data = { name = GetBindingText(key), key = key, value = info };
-		button:SetupEntry(data, counter(), false)
-		button.OnCancelClick = self.OnCancelClick;
-		maxDetailsWidth = math.max(maxDetailsWidth, button.SelectionDetails:GetWidth())
-		tinsert(buttons, button)
+		-- HACK: GetBindingText is hardcoded, but it returns the original string if the key is not a binding
+		tinsert(entries, { name = GetBindingText(key), key = key, value = info })
 	end
-	for _, button in ipairs(buttons) do
-		button.SelectionDetails:SetWidth(maxDetailsWidth)
-		button:Layout()
-		button:Show()
-	end
-	AnchorUtil.GridLayout(buttons, self.initialAnchor, self.layout)
-	self.Popout:Show()
+	if not next(entries) then return end;
+
+	local maxColumns = 3;
+	local stride = math.ceil(#entries / maxColumns);
+	self.Popout:SetLayout(GridLayoutMixin.Direction.TopLeftToBottomRightVertical, stride)
+
+	local buttons = self.Popout:SetData(entries, self.addButtonInit)
 	ConsolePort:SetCursorNodeIfActive(buttons[1])
 end
 
@@ -270,6 +392,7 @@ function Mutable:OnAdd(key)
 	local loadout = self:GetParent()
 	local offset = DetermineLayoutOffset(CreateCounter(), rawData)
 	loadout:NudgeLayoutIndex(self.layoutIndex + 1, offset)
+
 	local widget = loadout:DrawChild(self, self.variableID, key, datapoint, CreateCounter(self.layoutIndex), self.indentation)
 	self:ToggleDeleteButtons()
 	ConsolePort:SetCursorNodeIfActive(widget:IsShown() and widget or self)
@@ -363,6 +486,10 @@ local function IsInterface(datapoint)
 	return datapoint.IsType and datapoint:IsType('Interface');
 end
 
+local function IsUniqueInterface(interface)
+	return env.Toplevel[interface.type];
+end
+
 function Loadout:AcquireSetting(path, field, layoutIndex)
 	local pool = self:GetOrCreatePool('CheckButton', self, 'CPPopupButtonTemplate', ReleaseSetting, false, field:GetType())
 	local widget, newObj = pool:Acquire()
@@ -404,63 +531,122 @@ function Loadout:OnLoad(inputHandler, headerPool)
 	self.headerPool = headerPool;
 
 	LoadDeleteButtonPool(self)
-	do -- Copy button pool
-		local PopupName, PopupData = 'ConsolePort_Mutable_Confirm_Copy', {
-			button1    = YES;
-			button2    = CANCEL;
-			showAlert  = true;
-			hasEditBox = 1;
-			OnAccept = function(popup, data)
-				data.owner:OnCopy(data.variableID, popup.editBox:GetText():trim())
-				ConsolePort:SetCursorNodeIfActive(data.owner)
-			end;
-			OnHide = function(_, data)
-				data.target:UnlockHighlight()
-				data.trigger:SetButtonState('NORMAL')
-			end;
-			OnShow = function(popup, data)
-				popup.button1:Disable()
-				data.target:LockHighlight()
-				data.trigger:SetButtonState('PUSHED')
-				popup.editBox:SetText(data.suggest)
-			end;
-			EditBoxOnTextChanged = function(editBox)
-				local parent = editBox:GetParent()
-				-- HACK: check the upvalued config table for conflicting names
-				parent.button1:SetEnabled(UserEditBoxNonEmpty(editBox) and not self.config[editBox:GetText():trim()])
-			end;
-			text = L('Copy %s from %s:',
-				YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
-				YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
-		};
+	self.copyButtonPool = LoadSquareButtonPool(self, CopyButton)
+	self.cmdButtonPool  = LoadSquareButtonPool(self, CommandButton)
 
-		local function OnCopyButtonClicked(self)
-			local target = self:GetParent()
-			local suggestion, i = target:GetText(), CreateCounter(1)
-			while self.owner.config[suggestion] do
-				suggestion = ('%s %d'):format(target:GetText():gsub('%d', ''):trim(), i())
-			end
-			CPAPI.Popup(PopupName, PopupData, target:GetText(), self.owner:GetText(), {
-				variableID = self.variableID;
-				owner    = self.owner;
-				target   = target;
-				trigger  = self;
-				suggest  = suggestion;
-			})
-		end
-
-		self.copyButtonPool = LoadSquareButtonPool(self, nil, {
-			icon = [[Interface\BUTTONS\UI-GuildButton-OfficerNote-Up]];
-			iconSize = 18;
-			onClickHandler = OnCopyButtonClicked;
-			tooltipTitle   = BLUE_FONT_COLOR:WrapTextInColorCode(COPY);
-			tooltipText    = L('Copy this element to a new name.');
-		})
-	end
+	self.factory = Mixin(CreateFrame('Frame', nil, self, 'CPSelectionPopoutTemplate'), Popout)
+	self.factory:SetPoint('TOPRIGHT', -32, 0)
+	self.factory:SetLayout(GridLayoutMixin.Direction.TopLeftToBottomRightVertical, 10)
+	self.factory:SetInitialAnchor(AnchorUtil.CreateAnchor('TOPLEFT', self.factory, 'TOPLEFT', 6, -12))
+	self.factory:Hide()
 
 	CPAPI.Start(self)
 end
 
+---------------------------------------------------------------
+-- Loadout controls
+---------------------------------------------------------------
+Loadout.LayoutControls = {
+	{
+		tooltipTitle = GREEN_FONT_COLOR:WrapTextInColorCode(ADD);
+		tooltipText  = L'Add a new element to your loadout.';
+		icon         = [[Interface\PaperDollInfoFrame\Character-Plus]];
+		iconSize     = 18;
+		onClickHandler = function(self)
+			self:GetParent():ToggleFactory(true)
+		end;
+	};
+	{
+		tooltipTitle = SAVE;
+		tooltipText  = L'Save your current loadout to the preset list.';
+		icon         = [[Interface\BUTTONS\UI-GuildButton-PublicNote-Up]];
+		iconSize     = 18;
+		onClickHandler = nop;
+	};
+};
+
+Loadout.Popups = {
+	ConsolePort_Loadout_Confirm_Add = {
+		button1   = OKAY;
+		button2   = CANCEL;
+		showAlert = true;
+		hasEditBox = 1;
+		OnAccept = function(popup, data)
+			data.owner:OnAdd(data.interface, popup.editBox:GetText():trim())
+		end;
+		OnShow = function(popup, data)
+			popup.button1:Disable()
+			popup.editBox:SetText(data.suggest)
+		end;
+		EditBoxOnTextChanged = function(editBox, data)
+			local parent = editBox:GetParent()
+			parent.button1:SetEnabled(IsElementNameValid(editBox, data.owner.config))
+		end;
+		text = L('Please provide a unique name for a new %s in %s:',
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+	};
+};
+
+function Loadout:ToggleFactory(show)
+	if self.factory:IsShown() then return self.factory:Hide() end;
+	if not show then return end;
+
+	local entries = {};
+	for key, unique in db.table.spairs(env.Toplevel) do
+		local available = not unique;
+		if not available then
+			available = true;
+			for _, interface in pairs(self.config) do
+				if ( interface.type == key ) then
+					available = false;
+					break;
+				end
+			end
+		end
+		if available then
+			tinsert(entries, { name = L(key), interface = env.Interface[key] })
+		end
+	end
+	if not next(entries) then return end;
+
+	local buttons = self.factory:SetData(entries)
+	ConsolePort:SetCursorNodeIfActive(buttons[1])
+end
+
+function Loadout:OnEntryMouseEnter(entry)
+	local interface = entry.selectionData.interface;
+	local metadata  = interface[DP];
+	GameTooltip:SetOwner(entry, 'ANCHOR_RIGHT')
+	GameTooltip:SetText(L(metadata.name))
+	GameTooltip:AddLine(L(metadata.desc), 1, 1, 1)
+	GameTooltip:Show()
+end
+
+function Loadout:OnEntryMouseLeave(entry)
+	if GameTooltip:IsOwned(entry) then
+		GameTooltip:Hide()
+	end
+end
+
+function Loadout:OnEntryClick(entryData)
+	local interface = entryData.interface;
+	local metadata  = interface[DP];
+	local popupName = 'ConsolePort_Loadout_Confirm_Add';
+	local popupData = self.Popups[popupName];
+	self.factory:Hide()
+	CPAPI.Popup(popupName, popupData, metadata.name, self:GetText(), {
+		owner     = self;
+		interface = interface;
+		suggest   = GetElementNameSuggestion(metadata.name, self.config);
+	})
+end
+
+Loadout.OnPopoutShown = nop;
+
+---------------------------------------------------------------
+-- Loadout details
+---------------------------------------------------------------
 function Loadout:Update()
 	self.updated = false;
 	self:MarkDirty()
@@ -474,15 +660,48 @@ function Loadout:OnShow()
 end
 
 function Loadout:OnHide()
+	self:ToggleFactory(false)
 	env:TriggerEvent('OnLoadoutConfigShown', false)
 end
 
 function Loadout:Draw()
-	self.headerPool:ReleaseAll()
-
+	self.cmdButtonPool:ReleaseAll()
+	-- NOTE: securecallfunction to avoid panel-wide error in case of a single widget error
+	-- Draw the layout controls
 	local layoutIndex = CreateCounter()
-	local configHeader = self:CreateHeader('Loadout')
-	configHeader.layoutIndex = layoutIndex()
+	securecallfunction(self.DrawConfiguration, self, layoutIndex)
+	-- Draw the preset controls
+	layoutIndex = CreateCounter(self:GetNumActive() + 1)
+	securecallfunction(self.DrawPresets, self, layoutIndex)
+end
+
+function Loadout:DrawPresets(layoutIndex)
+	if self.presetHeader then
+		self.presetHeader = self.presetHeader:Release()
+	end
+
+	self.presetHeader = self:CreateHeader('Presets')
+	self.presetHeader.layoutIndex = layoutIndex()
+end
+
+function Loadout:DrawConfiguration(layoutIndex)
+	if self.layoutHeader then
+		self.layoutHeader = self.layoutHeader:Release()
+	end
+
+	self.layoutHeader = self:CreateHeader('Loadout')
+	self.layoutHeader.layoutIndex = layoutIndex()
+
+	local left, right = math.huge, 0;
+	for i, control in ipairs(self.LayoutControls) do
+		local button = self.cmdButtonPool:Acquire()
+		button:SetPoint('RIGHT', self.layoutHeader, 'RIGHT', -(32 * (i - 1)), 0)
+		button:Setup(control)
+		button:SetFrameLevel(self.layoutHeader:GetFrameLevel() + 1)
+		button:Show()
+		left, right = math.min(left, button:GetLeft()), math.max(right, button:GetRight())
+	end
+	self.layoutHeader:SetIndentation(-(right - left))
 
 	if self.updated then return end; self.updated = true;
 
@@ -499,8 +718,7 @@ function Loadout:Draw()
 		deleteButton:SetTarget(path, widget)
 		deleteButton:SetScript('OnHide', nil)
 
-		local isUnique = env.Toplevel[interface.type];
-		if not isUnique then
+		if not IsUniqueInterface(interface) then
 			local copyButton = self.copyButtonPool:Acquire()
 			copyButton.variableID = path;
 			copyButton:SetParent(widget)
@@ -597,7 +815,15 @@ function Loadout:OnCopy(path, name)
 	local newPath = path:gsub(GetEndpoint(path), name);
 	local newObj = CopyTable(env(path))
 	env(newPath, newObj)
-	env.Manager:OnPropsChanged()
+	env:TriggerEvent('OnLayoutChanged', newPath, newObj)
+	self:Update()
+end
+
+function Loadout:OnAdd(interface, name)
+	local newPath = PATH(BASE_PATH, name)
+	local newObj = interface:Render()
+	env(newPath, newObj)
+	env:TriggerEvent('OnLayoutChanged', newPath, newObj)
 	self:Update()
 end
 
