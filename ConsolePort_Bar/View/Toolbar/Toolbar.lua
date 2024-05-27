@@ -270,6 +270,7 @@ function CPToolbar:SetProps(props)
     self:SetDynamicProps(props)
     self:OnDataLoaded()
     self:OnSizeChanged()
+    self:Show()
 end
 
 function CPToolbar:OnPropsUpdated()
