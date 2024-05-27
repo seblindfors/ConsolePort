@@ -83,7 +83,7 @@ function Cursor:OnClick()
 end
 
 function Cursor:OnStackChanged(hasFrames)
-	if db('UIshowOnDemand') then
+	if db('UIshowOnDemand') or not IsGamePadFreelookEnabled() then
 		return
 	end
 	return self:SetEnabled(hasFrames)
@@ -179,11 +179,14 @@ function Cursor:RefreshToFrame(frame)
 end
 
 function Cursor:SetCurrentNode(node, assertNotMouse)
-	if not db('UIenableCursor') or (db('UIshowOnDemand') and not self:IsShown()) then
+	local isGamepadActive = IsGamePadFreelookEnabled()
+	if not isGamepadActive
+	or not db('UIenableCursor')
+	or (db('UIshowOnDemand') and not self:IsShown()) then
 		return
 	end
 	local object = node and Node.ScanLocal(node)[1]
-	if object and (not assertNotMouse or IsGamePadFreelookEnabled()) then
+	if object and (not assertNotMouse or isGamepadActive) then
 		self:SetOnEnableCallback(function(self, object)
 			self:SetBasicControls()
 			self:SetFlashNextNode()
@@ -265,7 +268,7 @@ do  -- Create input proxy for basic controls
 			self.DpadControls = {
 				PADDUP    = {GenerateClosure(InputProxy, 'PADDUP'),    DpadInit, DpadClear, DpadRepeater};
 				PADDDOWN  = {GenerateClosure(InputProxy, 'PADDDOWN'),  DpadInit, DpadClear, DpadRepeater};
-				PADDLEFT  = {GenerateClosure(InputProxy, 'PADDLEFT'),  DpadInit, DpadClear, DpadRepeater}; 
+				PADDLEFT  = {GenerateClosure(InputProxy, 'PADDLEFT'),  DpadInit, DpadClear, DpadRepeater};
 				PADDRIGHT = {GenerateClosure(InputProxy, 'PADDRIGHT'), DpadInit, DpadClear, DpadRepeater};
 			};
 		end
@@ -828,7 +831,7 @@ function Cursor.ScaleInOut:ConfigureScale()
 	local cur, old = Cursor:GetCurrent(), Cursor:GetOld()
 	if (cur == old) and not self.Flash then
 		self.Shrink:SetDuration(0)
-		self.Enlarge:SetDuration(0)	
+		self.Enlarge:SetDuration(0)
 	elseif cur then
 		local scaleAmount, shrinkDuration = 1.15, 0.2
 		if self.Flash then
@@ -861,8 +864,8 @@ end
 do  -- Set up animation scripts
 	local animationGroups = {Cursor.ScaleInOut, Cursor.Mime.Scale}
 
-	local function setupScripts(w) 
-		for k, v in pairs(w) do 
+	local function setupScripts(w)
+		for k, v in pairs(w) do
 			if w:HasScript(k) then w:SetScript(k, v) end
 		end
 	end
