@@ -26,23 +26,35 @@ Manager.Env = {
 function Manager:OnDataLoaded()
     self:CreateEnvironment()
     self:OnPropsChanged()
+    self:OnNewBindings(db.Gamepad:GetBindings(true))
 end
 
-function Manager:OnPropsChanged()
+function Manager:OnPropsChanged(_, newObj)
     local layout = env.Layout;
     RegisterStateDriver(self, env.Visible, layout.visibility or 'show')
     for id, props in pairs(layout.children or {}) do
         local widget = env:Acquire(props.type, id)
         if widget then
-            widget:SetProps(props)
+            securecallfunction(widget.SetProps, widget, props)
+            if ( props == newObj and widget.OnNewBindings ) then
+                securecallfunction(widget.OnNewBindings, widget, self.bindingSnapshot)
+            end
         end
     end
 end
 
 function Manager:OnNewBindings(bindings)
+    self.bindingSnapshot = bindings;
     self:UnregisterOverrides()
     env:TriggerEvent('OnNewBindings', bindings)
     self:UpdateOverrides()
+end
+
+function Manager:GetBindings(buttonID)
+    if buttonID then
+        return self.bindingSnapshot and self.bindingSnapshot[buttonID];
+    end
+    return self.bindingSnapshot;
 end
 
 ---------------------------------------------------------------
@@ -121,3 +133,4 @@ db:RegisterCallback('OnHintsFocus', Manager.OnHintsFocus, Manager)
 db:RegisterCallback('OnHintsClear', Manager.OnHintsClear, Manager)
 db:RegisterSafeCallback('OnNewBindings', Manager.OnNewBindings, Manager)
 env:RegisterSafeCallback('OnDataLoaded', Manager.OnDataLoaded, Manager)
+env:RegisterSafeCallback('OnLayoutChanged', Manager.OnPropsChanged, Manager)
