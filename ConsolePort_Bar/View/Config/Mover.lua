@@ -142,10 +142,8 @@ function Mover:OnLoad()
 
 	self.CENTER:SetAllPoints()
 	self.CENTER:SetAlpha(0.75)
-	self:SetHighlighted()
 	self:SetMovable(true)
 	self:SetUserPlaced(false)
-	self:SetClampedToScreen(true)
 	self:RegisterForDrag('LeftButton')
 	self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 	CPAPI.Start(self)
@@ -167,6 +165,54 @@ function Mover:OnLoad()
 	self:SetSnapPixels(10)
 end
 
+function Mover:SetInputEnabled(enable)
+	self:EnableMouse(enable)
+	self:EnableMouseWheel(enable)
+	self:EnableMouseMotion(enable)
+	self:EnableGamePadStick(enable)
+	self:EnableGamePadButton(enable)
+	self:SetClampedToScreen(enable)
+	self:SetScript('OnUpdate', enable and self.OnUpdate or nil)
+	self:SetKit(enable and self.TextureKits.Highlight or self.TextureKits.Selected)
+	for text in pairs(self.StatusTexts) do
+		self[text]:SetShown(enable)
+	end
+end
+
+function Mover:MimeFrame(frame, delta)
+	assert(frame:GetNumPoints() == 1, 'Frame must have only one point')
+	self:SetSize(frame:GetSize())
+	self:SetScale(frame:GetEffectiveScale() / UIParent:GetEffectiveScale())
+	self:SetFrameStrata(frame:GetFrameStrata())
+	self:SetFrameLevel(frame:GetFrameLevel() + delta)
+	self:ClearAllPoints()
+	self:CopyPoint(frame)
+	self:Show()
+end
+
+function Mover:MoveFrame(frame, callback, snapPixels)
+	if ( self.frame == frame ) then
+		return self:ClearAndHide()
+	end
+	self.frame = frame;
+	self.callback = callback;
+	if tonumber(snapPixels) then
+		self:SetSnapPixels(snapPixels)
+	end
+	self:MimeFrame(frame, 100)
+	self:StoreCursorNode()
+	self:SetInputEnabled(true)
+end
+
+function Mover:MarkFrame(frame, show)
+	if self.frame then return end;
+	if not show and self:IsShown() then return self:Hide() end;
+	self:MimeFrame(frame, -1)
+	self:SetSnapPixels(1)
+	self:SetInputEnabled(false)
+	env.db.Alpha.FadeIn(self, 0.2, 0, 1)
+end
+
 function Mover:OnShow()
 	env:RegisterCallback('OnCombatLockdown', self.RestorePoint, self)
 end
@@ -183,14 +229,6 @@ function Mover:SetKit(kit)
 	end
 end
 
-function Mover:SetSelected()
-	self:SetKit(self.TextureKits.Selected)
-end
-
-function Mover:SetHighlighted()
-	self:SetKit(self.TextureKits.Highlight)
-end
-
 function Mover:SetSnapPixels(snapToPixels)
 	self.snapToPixels = snapToPixels;
 	self.Snap:SetText(('Snap: %dpx'):format(snapToPixels))
@@ -198,16 +236,6 @@ function Mover:SetSnapPixels(snapToPixels)
 	if self.Grid:IsShown() then
 		self.Grid:SetGridSpacing(snapToPixels)
 	end
-end
-
-function Mover:SetWidget(frame, callback, snapPixels)
-	if C_Widget.IsFrameWidget(frame) then
-		if tonumber(snapPixels) then
-			self:SetSnapPixels(snapPixels)
-		end
-		return self:SetFrame(frame, callback)
-	end
-	error('Frame is not a widget, unhandled type.')
 end
 
 function Mover:ClearAndHide()
@@ -234,22 +262,6 @@ function Mover:ResetCursorNode()
 		ConsolePort:SetCursorNode(self.cursorNode)
 		self.cursorNode = nil;
 	end
-end
-
-function Mover:SetFrame(frame, callback)
-	if ( self.frame == frame ) then
-		return self:ClearAndHide()
-	end
-	self.callback = callback;
-	assert(frame:GetNumPoints() == 1, 'Frame must have only one point')
-	self:SetSize(frame:GetSize())
-	self:SetScale(frame:GetEffectiveScale() / UIParent:GetEffectiveScale())
-	self:SetFrameStrata(frame:GetFrameStrata())
-	self:SetFrameLevel(frame:GetFrameLevel() + 100)
-	self:ClearAllPoints()
-	self:CopyPoint(frame)
-	self:Show()
-	self:StoreCursorNode()
 end
 
 function Mover:SetOmitterSize(width, height)
@@ -286,12 +298,13 @@ end
 function Mover:CopyPoint(frame)
 	local point, relativeTo, relativePoint, x, y = frame:GetPoint()
 	self:SetPoint(point, relativeTo, relativePoint, x, y)
-	self.frame, self.relativeTo, self.show = frame, relativeTo, frame:IsShown();
+	self.relativeTo, self.show = relativeTo, frame:IsShown();
 	self.origPoint = { point, relativeTo, relativePoint, x, y };
 	self.snapPoint = { point, relativeTo, relativePoint, x, y };
 end
 
 function Mover:RestorePoint()
+	if not self.frame then return end;
 	self.frame:ClearAllPoints()
 	self.frame:SetPoint(unpack(self.origPoint))
 	self:ClearAndHide()
@@ -378,11 +391,20 @@ end
 ---------------------------------------------------------------
 -- Factory
 ---------------------------------------------------------------
-env:RegisterSafeCallback('OnMoveFrame', function(frame, callback, snapPixels)
-	if not env.Mover then
-		env.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
-		env.Mover:OnLoad()
-		env.Mover:Hide()
+do local function CreateMover()
+		if not env.Mover then
+			env.Mover = Mixin(CreateFrame('Button', nil, UIParent), Mover)
+			env.Mover:OnLoad()
+			env.Mover:Hide()
+		end
+		return env.Mover;
 	end
-	env.Mover:SetWidget(frame, callback, snapPixels)
-end)
+
+	env:RegisterSafeCallback('OnMoveFrame', function(frame, callback, snapPixels)
+		CreateMover():MoveFrame(frame, callback, snapPixels)
+	end)
+
+	env:RegisterSafeCallback('OnHighlightFrame', function(frame, show)
+		CreateMover():MarkFrame(frame, show)
+	end)
+end

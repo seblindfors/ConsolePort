@@ -78,6 +78,9 @@ function MovableWidget:OnPropsChanged(key, ...)
     if ( key == 'OnMoveStart' ) then
         return env:TriggerEvent('OnMoveFrame', self:GetMoveTarget(), ..., self:GetSnapSize())
     end
+    if ( key == 'OnHighlight' ) then
+        return env:TriggerEvent('OnHighlightFrame', self:GetMoveTarget(), ...)
+    end
     return self:OnPropsUpdated(key, ...);
 end
 
