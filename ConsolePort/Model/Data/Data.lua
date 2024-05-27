@@ -360,6 +360,9 @@ function Mutable:SetKeyOptions(options)
 end
 
 function Mutable:GetKeyOptions()
+	if type(self.keyOptions) == 'function' then
+		return self.keyOptions();
+	end
 	return self.keyOptions;
 end
 
