@@ -20,7 +20,10 @@ function CPActionBar:OnLoad()
     self:EnableMouse(false)
 end
 
-function CPActionBar:RegisterDriver(type, driver, body, current) body = CPAPI.ConvertSecureBody(body)
+function CPActionBar:RegisterDriver(type, driver, body, current)
+    driver = env.ConvertDriver(driver)
+    body   = CPAPI.ConvertSecureBody(body)
+
     RegisterStateDriver(self, type, driver)
     self:SetAttribute(type, current or SecureCmdOptionParse(driver))
     self:SetAttribute(env.Driver(type), driver)
@@ -33,7 +36,7 @@ function CPActionBar:RunDriver(type) self:Run([[
 ]], self:GetAttribute(env.Driver(type)), self:GetAttribute(env.State(type))) end
 
 function CPActionBar:RunAttribute(attribute, ...) self:Run([[
-    self::%s(%q) 
+    self::%s(%q)
 ]], attribute, ...) end
 
 function CPActionBar:RegisterModifierDriver(driver, body, current)
@@ -41,6 +44,7 @@ function CPActionBar:RegisterModifierDriver(driver, body, current)
 end
 
 function CPActionBar:RegisterVisibilityDriver(driver, current)
+    driver = env.ConvertDriver(driver)
     RegisterStateDriver(self, env.Visible, driver)
     self:SetAttribute(env.Visible, current or SecureCmdOptionParse(driver))
 end
