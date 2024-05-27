@@ -144,6 +144,7 @@ function CPGroupBar:OnRelease()
 end
 
 function CPGroupBar:UpdateButtons(buttons)
+	self:OnRelease()
 	wipe(self.buttons)
 	for buttonID, props in pairs(buttons) do
 		local button = env:Acquire(GROUP_BUTTON, env.MakeID('%s_%s', self:GetName(), buttonID), buttonID, self)
@@ -166,7 +167,7 @@ function CPGroupBar:OnNewBindings(bindings)
 end
 
 function CPGroupBar:OnDriverChanged()
-	local driver = self.props.modifier;
+	local driver = env.ConvertDriver(self.props.modifier);
 	wipe(self.modifiers)
 	for condition, prefix in driver:gmatch('(%b[])([^;]+)') do
 		condition, prefix = condition:sub(2, -2), prefix:trim();
@@ -221,7 +222,7 @@ do -- Group bar factory
 ---------------------------------------------------------------
 
 env:AddFactory(GROUP, function(id)
-	local frame = CreateFrame('Frame', 'ConsolePortGroup'..id, env.Manager, 'CPGroupBar')
+	local frame = CreateFrame('Frame', env.MakeID('ConsolePortGroup%s', id), env.Manager, 'CPGroupBar')
 	frame.id = id;
 	frame:OnLoad()
 	return frame;

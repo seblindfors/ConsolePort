@@ -126,10 +126,16 @@ end
 function Cluster:OnPropsUpdated()
 	local props = self.props;
 	local pos = props.pos;
+	self:Show()
 	self:SetPoint(pos.point, pos.x, pos.y)
 	self:SetDirection(props.dir)
 	self:SetSize(props.size) -- TODO: flyout size is not consistent
 	self:ToggleFlyouts(not not props.showFlyouts)
+
+	local bindings = env.Manager:GetBindings(self.buttonID);
+	if bindings then
+		self:SetBindings(bindings)
+	end
 end
 
 function Cluster:SetBindings(bindings)
@@ -506,7 +512,7 @@ do -- Cluster bar factory
 ---------------------------------------------------------------
 
 env:AddFactory(CLUSTER_BAR, function(id)
-	local frame = CreateFrame('Frame', 'ConsolePortBar'..id, env.Manager, 'CPClusterBar')
+	local frame = CreateFrame('Frame', env.MakeID('ConsolePortBar%s', id), env.Manager, 'CPClusterBar')
 	frame:OnLoad()
 	return frame;
 end, env.Interface.Cluster)
