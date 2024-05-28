@@ -53,9 +53,9 @@ do -- Data handler
 		if not _G[VAR_SETTINGS] then
 			_G[VAR_SETTINGS] = {};
 		end
-		--if not _G[VAR_LAYOUT] then
+		if not _G[VAR_LAYOUT] then
 			_G[VAR_LAYOUT] = env:GetDefaultLayout()
-		--end
+		end
 
 		layout = _G[VAR_LAYOUT];
 		settings = CPAPI.Proxy(_G[VAR_SETTINGS], self.Defaults);
@@ -96,6 +96,7 @@ do -- Data handler
 	end
 
 	env:RegisterCallback('OnEnvLoaded', env.OnEnvLoaded, env)
+	env:RegisterCallback('Layout', env.Save, env, 'Layout', VAR_LAYOUT)
 end -- Data handler
 
 ---------------------------------------------------------------
