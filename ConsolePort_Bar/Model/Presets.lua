@@ -2,7 +2,7 @@ local _, env = ...;
 ---------------------------------------------------------------
 
 function env:GetDefaultLayout()
-	return env.Presets.Crossbar;
+	return env.Presets.Default;
 end
 
 ---------------------------------------------------------------
@@ -23,18 +23,18 @@ Presets.Default = {
 		Toolbar = Interface.Toolbar:Render();
 		Cluster = Interface.Cluster:Render {
 			children = {
-				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  176, y =  56 } };
-				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  306, y =  56 } };
-				PADDUP       = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  240, y = 100 } };
-				PADDDOWN     = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  240, y =  16 } };
-				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -176, y =  56 } };
-				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -306, y =  56 } };
-				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -240, y = 100 } };
-				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -240, y =  16 } };
-				PADLSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  456, y =  56 } };
-				PADRSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -456, y =  56 } };
-				PADLTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  396, y =  16 } };
-				PADRTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -396, y =  16 } };
+				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  176, y =  40 } };
+				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  306, y =  40 } };
+				PADDUP       = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  240, y =  84 } };
+				PADDDOWN     = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  240, y =   0 } };
+				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -176, y =  40 } };
+				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -306, y =  40 } };
+				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -240, y =  84 } };
+				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -240, y =   0 } };
+				PADLSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  456, y =  40 } };
+				PADRSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -456, y =  40 } };
+				PADLTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  396, y =   0 } };
+				PADRTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -396, y =   0 } };
 			};
 		};
 	};
@@ -77,7 +77,7 @@ Presets.CrossbarMinimal = {
 		Toolbar = Interface.Toolbar : Render {
 			width = 600;
 		};
-		Actionbar = Interface.Group : Render {
+		Crossbar = Interface.Group : Render {
 			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
 			pos = { point = 'BOTTOM', y = 25 };
 			children = {
@@ -308,8 +308,8 @@ Presets.Grid = {
 };
 
 Presets.Crossbar = {
-	name 	   = 'Minimal Crossbar';
-	desc       = 'Group buttons in a single crossbar layout, with modifier swapping.';
+	name 	   = 'Crossbar';
+	desc       = 'Group buttons in a crossbar layouts, with modifier swapping.';
 	visibility = '[petbattle][vehicleui][overridebar] hide; show';
 	children = {
 		Toolbar = Interface.Toolbar : Render {
