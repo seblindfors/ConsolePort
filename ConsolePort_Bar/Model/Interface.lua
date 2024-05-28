@@ -1,6 +1,8 @@
 local c, _, env, Data = CreateCounter(), ...; Data = env.db.Data;
 _ = function(i) i.sort = c() return i end;
 ---------------------------------------------------------------
+-- Helpers
+---------------------------------------------------------------
 
 env.Toplevel = {
 	Toolbar = true;
@@ -68,7 +70,7 @@ Interface.Cluster = Data.Interface {
 		children = _{
 			name = 'Buttons';
 			desc = 'Buttons in the cluster bar.';
-			Data.Mutable(Interface.ClusterHandle):SetKeyOptions(env.db.Gamepad.Index.Button.Binding);
+			Data.Mutable(Interface.ClusterHandle):SetKeyOptions(env.ClusterConstants.ProxyKeyOptions);
 		};
 		pos = _(Interface.SimplePoint : Implement {
 			desc = 'Position of the cluster bar.';
@@ -114,7 +116,7 @@ Interface.Group = Data.Interface {
 		children = _{
 			name = 'Buttons';
 			desc = 'Buttons in the group.';
-			Data.Mutable(Interface.GroupButton):SetKeyOptions(env.db.Gamepad.Index.Button.Binding);
+			Data.Mutable(Interface.GroupButton):SetKeyOptions(env.ClusterConstants.ProxyKeyOptions);
 		};
 		pos = _(Interface.SimplePoint : Implement {
 			desc = 'Position of the group.';
