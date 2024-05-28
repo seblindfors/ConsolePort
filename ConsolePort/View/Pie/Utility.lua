@@ -562,8 +562,8 @@ Utility.KindAndActionMap = {
 	action = function(data) return data.action end;
 	item   = function(data) return data.item end;
 	pet    = function(data) return data.action end;
-	spell  = function(data) return (data.link:match('spell:(%d+)')) or (select(7, GetSpellInfo(data.spell))) or data.spell end;
 	macro  = function(data) return data.macro end;
+	spell  = function(data) return (data.link and data.link:match('spell:(%d+)')) or (select(7, GetSpellInfo(data.spell))) or data.spell end;
 	equipmentset = function(data) return data.equipmentset end;
 }
 
