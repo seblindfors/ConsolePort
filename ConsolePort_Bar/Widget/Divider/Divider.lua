@@ -23,6 +23,7 @@ function CPDivider:SetProps(props)
 	self:OnSizeChanged()
 	self:OnRotationChanged()
 	self:OnDriverChanged()
+	self:Show()
 end
 
 function CPDivider:OnPropsUpdated()
