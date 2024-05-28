@@ -2,7 +2,7 @@ local _, env = ...;
 ---------------------------------------------------------------
 
 function env:GetDefaultLayout()
-	return env.Presets.Default;
+	return CopyTable(env.Presets.Default); -- TODO: upgrade
 end
 
 ---------------------------------------------------------------
@@ -22,6 +22,7 @@ Presets.Default = {
 	children = {
 		Toolbar = Interface.Toolbar:Render();
 		Cluster = Interface.Cluster:Render {
+			scale    = 0.9;
 			children = {
 				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  176, y =  40 } };
 				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  306, y =  40 } };
@@ -309,7 +310,7 @@ Presets.Grid = {
 
 Presets.Crossbar = {
 	name 	   = 'Crossbar';
-	desc       = 'Group buttons in a crossbar layouts, with modifier swapping.';
+	desc       = 'Group buttons in crossbar layouts, with modifier swapping.';
 	visibility = '[petbattle][vehicleui][overridebar] hide; show';
 	children = {
 		Toolbar = Interface.Toolbar : Render {

@@ -587,7 +587,7 @@ Loadout.LayoutControls = {
 		tooltipText  = L'Save your current loadout to the preset list.';
 		icon         = [[Interface\BUTTONS\UI-GuildButton-PublicNote-Up]];
 		iconSize     = 18;
-		onClickHandler = nop;
+		onClickHandler = nop; -- TODO: save function
 	};
 };
 
@@ -739,7 +739,7 @@ function Loadout:DrawPresets(layoutIndex)
 	wipe(self.presetButtons)
 
 	for id, preset in db.table.spairs(env.Presets) do
-		local widget, newObj = self:AcquireSetting('Presets/'..id, Preset, layoutIndex)
+		local widget, newObj = self:AcquireSetting(PATH('Presets', id), Preset, layoutIndex)
 		if newObj then
 			Mixin(widget, Preset):OnLoad()
 		end
