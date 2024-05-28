@@ -70,7 +70,7 @@ local SettingsHeader = CreateFromMixins(Header);
 
 function SettingsHeader:OnClick()
 	local parent = self:GetParent()
-	parent.HiddenGroups[self.groupID] = not parent.HiddenGroups[self.groupID];
+	parent.hiddenGroups[self.groupID] = not parent.hiddenGroups[self.groupID];
 	parent:ReleaseAll()
 	parent:OnShow()
 end
@@ -99,7 +99,6 @@ end
 ---------------------------------------------------------------
 local Settings = Mixin({
 ---------------------------------------------------------------
-	HiddenGroups = {};
 	DisplaySort = function(fields, a, b)
 		local iA, iB = fields[a].field.sort, fields[b].field.sort;
 		if iA and not iB then
@@ -119,6 +118,7 @@ function Settings:OnLoad(inputHandler, headerPool)
 	HeaderOwner.OnLoad(self, SettingsHeader)
 	self.owner = inputHandler;
 	self.headerPool = headerPool;
+	self.hiddenGroups = {};
 	self:CreateFramePool('CheckButton', 'CPPopupButtonTemplate', Setting, nil, self)
 	env:RegisterCallback('OnDependencyChanged', self.OnShow, self)
 	self:OnShow()
@@ -162,7 +162,7 @@ function Settings:OnShow()
 	for group, set in db.table.spairs(sortedGroups) do
 		local header = self:CreateHeader(group)
 		header.layoutIndex = layoutIndex()
-		if not self.HiddenGroups[group] then
+		if not self.hiddenGroups[group] then
 			self:DrawGroup(group, set, layoutIndex)
 		end
 	end
