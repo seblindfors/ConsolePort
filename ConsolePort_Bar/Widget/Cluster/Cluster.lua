@@ -1,7 +1,7 @@
 local _, env, db = ...; db = env.db;
 ---------------------------------------------------------------
 local NOMOD, _, _, _, ALT = env.ClusterConstants.ModNames();
-local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_HOTKEY, CLUSTER_SHADOW = env.ClusterConstants.Types();
+local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_SHADOW = env.ClusterConstants.Types();
 local ClusterLayout = env.ClusterConstants.Layout;
 ---------------------------------------------------------------
 local Cluster = CreateFromMixins(env.DynamicWidgetMixin, env.MovableWidgetMixin);
@@ -28,13 +28,13 @@ end
 
 function Cluster:Show()
 	for _, button in self:Enumerate() do
-		button:Show()
+		button:ToggleShown(true)
 	end
 end
 
 function Cluster:Hide()
 	for _, button in self:Enumerate() do
-		button:Hide()
+		button:ToggleShown(false)
 	end
 end
 
@@ -451,6 +451,7 @@ end
 function CPClusterBar:SetProps(props)
 	self:SetDynamicProps(props)
 	self:UpdateClusters(props.children or {})
+	self:Show()
 end
 
 function CPClusterBar:OnPropsUpdated()
@@ -535,21 +536,17 @@ env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutDa
 	env.LIB.SkinUtility.PreventSkinning(button)
 	for i, hotkeyData in ipairs(layoutData.Hotkey) do
 		local hotkeyID = env.MakeID('%s_%s_%d', id, modifier, i)
-		button['Hotkey'..i] = env:Acquire(CLUSTER_HOTKEY, hotkeyID, button, hotkeyData)
+		local hotkey = Mixin(CreateFrame('Frame', hotkeyID, button), env.ProxyHotkey)
+		hotkey.icon = hotkey:CreateTexture(nil, 'OVERLAY', nil, 7)
+		hotkey.icon:SetAllPoints()
+		hotkey:OnLoad(buttonID, unpack(hotkeyData))
+		button['Hotkey'..i] = hotkey;
 	end
 	if ( layoutData.Shadow ) then
 		button.Shadow = env:Acquire(CLUSTER_SHADOW, buttonID, parent, button, layoutData.Shadow)
 	end
 	button:OnLoad(modifier, layoutData)
 	return button;
-end)
-
-env:AddFactory(CLUSTER_HOTKEY, function(_, parent, layoutData)
-	local hotkey = Mixin(CreateFrame('Frame', nil, parent), env.ProxyHotkey)
-	hotkey.icon = hotkey:CreateTexture(nil, 'OVERLAY', nil, 7)
-	hotkey.icon:SetAllPoints()
-	hotkey:OnLoad(parent.id, unpack(layoutData))
-	return hotkey;
 end)
 
 env:AddFactory(CLUSTER_SHADOW, function(_, parent, owner, layoutData)

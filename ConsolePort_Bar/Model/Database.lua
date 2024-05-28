@@ -89,7 +89,7 @@ local HK_ATLAS_SIZE_L, HK_ATLAS_SIZE_S = 18, 12;
 -----------------------------------------------------------------------------------------------------------------------
 env.ClusterConstants = {
 	Directions = CPAPI.Enum('UP', 'DOWN', 'LEFT', 'RIGHT');
-	Types      = CPAPI.Enum('Cluster', 'ClusterHandle', 'ClusterButton', 'ClusterHotkey', 'ClusterShadow');
+	Types      = CPAPI.Enum('Cluster', 'ClusterHandle', 'ClusterButton', 'ClusterShadow');
 	ModNames   = CPAPI.Enum(NOMOD, SHIFT, CTRL, CTRL..SHIFT, ALT, ALT..SHIFT, ALT..CTRL, ALT..CTRL..SHIFT);
 	SnapPixels = 4;
 	PxSize     = SIZE_L;
