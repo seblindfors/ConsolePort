@@ -108,6 +108,14 @@ do -- Widget factory
 		widget:ClearAllPoints()
 	end
 
+	local function FindSignature(widget)
+		for signature, w in pairs(Widgets) do
+			if ( w == widget )  then
+				return signature;
+			end
+		end
+	end
+
 	function env:AddFactory(type, factory, props)
 		Factories[type] = factory;
 		Interface[type] = props;
@@ -138,7 +146,7 @@ do -- Widget factory
 	end
 
 	function env:GetSignature(widget)
-		return ActiveWidgets[widget];
+		return ActiveWidgets[widget] or FindSignature(widget);
 	end
 
 	function env:IsActive(widget)
@@ -151,6 +159,14 @@ do -- Widget factory
 		if widget.OnRelease then
 			widget:OnRelease();
 		end
+	end
+
+	function env:ReleaseAll()
+		repeat
+			for widget in pairs(ActiveWidgets) do
+				self:Release(widget);
+			end
+		until not next(ActiveWidgets)
 	end
 
 	-----------------------------------------------------------

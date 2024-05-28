@@ -29,17 +29,17 @@ function Manager:OnDataLoaded()
     self:OnNewBindings(db.Gamepad:GetBindings(true))
 end
 
-function Manager:OnPropsChanged(_, newObj)
+function Manager:OnPropsChanged(refreshBindings)
     local layout = env.Layout;
     RegisterStateDriver(self, env.Visible, layout.visibility or 'show')
     for id, props in pairs(layout.children or {}) do
         local widget = env:Acquire(props.type, id)
         if widget then
             securecallfunction(widget.SetProps, widget, props)
-            if ( props == newObj and widget.OnNewBindings ) then
-                securecallfunction(widget.OnNewBindings, widget, self.bindingSnapshot)
-            end
         end
+    end
+    if refreshBindings then
+        self:OnNewBindings(self.bindingSnapshot)
     end
 end
 

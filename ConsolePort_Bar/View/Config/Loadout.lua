@@ -2,12 +2,11 @@ local _, env, db, Widgets, L = ...; db = env.db; L = db.Locale;
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
-local BASE_PATH = 'Layout/children';
-local COPY      = CALENDAR_COPY_EVENT or L'Copy';
+local function PATH(name, child) return name..'/'..child end;
 
-local function PATH(name, child)
-	return name..'/'..child;
-end
+local ROOT = 'Layout';
+local BASE = PATH(ROOT, 'children');
+local COPY = CALENDAR_COPY_EVENT or L'Copy';
 
 local function ConvertName(name, path)
 	local text = name or path;
@@ -133,6 +132,7 @@ end
 -- Widgets
 ---------------------------------------------------------------
 -- Reusable widgets for manipulating the loadout.
+
 
 ---------------------------------------------------------------
 local Popout = {};
@@ -467,11 +467,31 @@ function Point:OnMoveCompleted(point, _, _, x, y)
 end
 
 ---------------------------------------------------------------
-local Table = { OnClick = nop };
+local Table = { OnClick = nop, OnShow = nop };
 ---------------------------------------------------------------
 function Table:OnLoad(...)
 	Widgets.Base.OnLoad(self, ...)
 	self.disableTooltipHints = true;
+end
+
+---------------------------------------------------------------
+local Preset = { Reset = nop };
+---------------------------------------------------------------
+
+function Preset:GetType()
+	return 'Preset';
+end
+
+function Preset:OnLoad()
+	Mixin(self, Widgets.Base)
+	self:SetScript('OnEnter', Widgets.Base.OnEnter)
+	self:SetScript('OnLeave', Widgets.Base.OnLeave)
+	self:SetScript('OnClick', self.OnPresetClick)
+	self.disableTooltipHints = true;
+end
+
+function Preset:OnPresetClick()
+	self:GetParent():OnPresetClick(self.preset, self)
 end
 
 ---------------------------------------------------------------
@@ -503,15 +523,20 @@ function Loadout:AcquireSetting(path, field, layoutIndex)
 	widget.registry = env;
 	widget.path = path;
 	widget:Show()
-	return widget;
+	return widget, newObj;
 end
 
 function Loadout:NudgeLayoutIndex(layoutIndex, rate)
-	for object in self:EnumerateActive() do
-		if object.layoutIndex >= layoutIndex then
-			object.layoutIndex = object.layoutIndex + rate;
+	local function NudgePoolObjects(pool)
+		for object in pool:EnumerateActive() do
+			if object.layoutIndex >= layoutIndex then
+				object.layoutIndex = object.layoutIndex + rate;
+			end
 		end
 	end
+	NudgePoolObjects(self)
+	NudgePoolObjects(self.headerPool)
+	self.layoutIndexOffset = self.layoutIndexOffset + rate;
 	self:MarkDirty()
 end
 
@@ -524,6 +549,7 @@ function Loadout:OnLoad(inputHandler, headerPool)
 	Mixin(Widgets.CreateWidget('Point', Widgets.Base, PointBlueprint), Point)
 	Mixin(Widgets.CreateWidget('Mutable', Widgets.Base, MutableBlueprint), Mutable)
 	Mixin(Widgets.CreateWidget('Table', Widgets.Base), Table)
+	Mixin(Widgets.CreateWidget('Preset', Widgets.Base), Preset)
 
 	Mixin(LoadoutSetting, sharedConfig.Env.SettingMixin)
 
@@ -586,6 +612,20 @@ Loadout.Popups = {
 			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
 			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
 	};
+	ConsolePort_Loadout_Confirm_Overwrite = {
+		button1   = YES;
+		button2   = CANCEL;
+		showAlert = true;
+		OnAccept = function(_, data)
+			data.owner:OnImport(data.preset)
+		end;
+		OnHide = function(_, data)
+			CPIndexButtonMixin.Uncheck(data.trigger)
+		end;
+		text = L('Are you sure you want to overwrite %s with %s?',
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
+			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+	};
 };
 
 function Loadout:ToggleFactory(show)
@@ -644,6 +684,16 @@ end
 
 Loadout.OnPopoutShown = nop;
 
+function Loadout:OnPresetClick(preset, trigger)
+	local popupName = 'ConsolePort_Loadout_Confirm_Overwrite';
+	local popupData = self.Popups[popupName];
+	CPAPI.Popup(popupName, popupData, self:GetText(), preset.name, {
+		owner   = self;
+		preset  = preset;
+		trigger = trigger;
+	})
+end
+
 ---------------------------------------------------------------
 -- Loadout details
 ---------------------------------------------------------------
@@ -665,29 +715,42 @@ function Loadout:OnHide()
 end
 
 function Loadout:Draw()
+	self.headerPool:ReleaseAll()
 	self.cmdButtonPool:ReleaseAll()
 	-- NOTE: securecallfunction to avoid panel-wide error in case of a single widget error
 	-- Draw the layout controls
 	local layoutIndex = CreateCounter()
 	securecallfunction(self.DrawConfiguration, self, layoutIndex)
 	-- Draw the preset controls
-	layoutIndex = CreateCounter(self:GetNumActive() + 1)
+	layoutIndex = CreateCounter(self.layoutIndexOffset)
 	securecallfunction(self.DrawPresets, self, layoutIndex)
 end
 
 function Loadout:DrawPresets(layoutIndex)
-	if self.presetHeader then
-		self.presetHeader = self.presetHeader:Release()
-	end
-
 	self.presetHeader = self:CreateHeader('Presets')
 	self.presetHeader.layoutIndex = layoutIndex()
+
+	self.presetButtons = self.presetButtons or {};
+	for _, preset in ipairs(self.presetButtons) do
+		if preset:IsShown() then
+			self:Release(preset)
+		end
+	end
+	wipe(self.presetButtons)
+
+	for id, preset in db.table.spairs(env.Presets) do
+		local widget, newObj = self:AcquireSetting('Presets/'..id, Preset, layoutIndex)
+		if newObj then
+			Mixin(widget, Preset):OnLoad()
+		end
+		widget:SetText(preset.name)
+		widget.tooltipText = preset.desc;
+		widget.preset = preset;
+		tinsert(self.presetButtons, widget)
+	end
 end
 
 function Loadout:DrawConfiguration(layoutIndex)
-	if self.layoutHeader then
-		self.layoutHeader = self.layoutHeader:Release()
-	end
 
 	self.layoutHeader = self:CreateHeader('Loadout')
 	self.layoutHeader.layoutIndex = layoutIndex()
@@ -711,7 +774,7 @@ function Loadout:DrawConfiguration(layoutIndex)
 
 	self.config = env:GetConfiguration()
 	for name, interface in db.table.spairs(self.config) do
-		local path = PATH(BASE_PATH, name);
+		local path = PATH(BASE, name);
 		local widget = self:DrawTopLevel(name, path, interface, layoutIndex, 1)
 
 		local deleteButton = self.deleteButtonPool:Acquire()
@@ -726,6 +789,7 @@ function Loadout:DrawConfiguration(layoutIndex)
 			copyButton:Show()
 		end
 	end
+	self.layoutIndexOffset = layoutIndex()
 end
 
 -- Draws a setting widget that handles a datapoint
@@ -815,15 +879,23 @@ function Loadout:OnCopy(path, name)
 	local newPath = path:gsub(GetEndpoint(path), name);
 	local newObj = CopyTable(env(path))
 	env(newPath, newObj)
-	env:TriggerEvent('OnLayoutChanged', newPath, newObj)
+	env:TriggerEvent('OnLayoutChanged', true)
 	self:Update()
 end
 
 function Loadout:OnAdd(interface, name)
-	local newPath = PATH(BASE_PATH, name)
+	local newPath = PATH(BASE, name)
 	local newObj = interface:Render()
 	env(newPath, newObj)
-	env:TriggerEvent('OnLayoutChanged', newPath, newObj)
+	env:TriggerEvent('OnLayoutChanged', true)
+	self:Update()
+end
+
+function Loadout:OnImport(preset)
+	self:ReleaseAll()
+	env:ReleaseAll()
+	env(ROOT, CopyTable(preset))
+	env:TriggerEvent('OnLayoutChanged', true)
 	self:Update()
 end
 

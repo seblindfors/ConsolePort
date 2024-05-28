@@ -36,6 +36,7 @@ function Setting:RegisterCallback(callbackID, callback, ...)
 end
 
 function Setting:Construct(name, varID, field, newObj, registry, callbackID, owner)
+	self:Hide()
 	if newObj then
 		self.registry = registry;
 		self:SetText(L(name))
@@ -53,7 +54,6 @@ function Setting:Construct(name, varID, field, newObj, registry, callbackID, own
 			end
 		end
 	end
-	self:Hide()
 	self:Show()
 end
 
