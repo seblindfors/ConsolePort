@@ -185,7 +185,7 @@ Interface.Group = Data.Interface {
 				'condition', 'opacity', true, nil, {
 					['100'] = 'Fully opaque.';
 					['50']  = 'Half visible.';
-					['0	']   = 'Fully transparent.';
+					['0']   = 'Fully transparent.';
 				}
 			);
 			note = 'Opacity is expressed in percentage, where 100 is fully visible and 0 is fully transparent. Values outside of the 0-100 range will be clamped.';
@@ -220,6 +220,10 @@ Interface.Divider = Data.Interface {
 		type = {hide = true; Data.String('Divider')};
 		pos = _(Interface.SimplePoint : Implement {
 			desc = 'Position of the divider.';
+			{
+				point = 'BOTTOM';
+				y     = 100;
+			};
 		});
 		breadth = _{
 			name = 'Breadth';
@@ -257,7 +261,7 @@ Interface.Divider = Data.Interface {
 			name = 'Opacity Driver';
 			desc = 'Opacity condition of the divider.';
 			note = 'Expressed in percentage, where 100 is fully visible and 0 is fully transparent.';
-			Data.String('[mod:SHIFT-] 50; 100');
+			Data.String('100');
 		};
         rescale = _{
             name = 'Scale Driver';
