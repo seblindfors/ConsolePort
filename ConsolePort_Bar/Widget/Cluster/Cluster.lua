@@ -384,7 +384,7 @@ function MainButton:GetOverrideBinding(modifier)
 end
 
 ---------------------------------------------------------------
-local Button = CreateFromMixins(env.ProxyButton);
+local Button = Mixin({ SetNormalTexture = nop }, env.ProxyButton);
 ---------------------------------------------------------------
 
 function Button:OnLoad(modifier, layoutData)
@@ -392,6 +392,11 @@ function Button:OnLoad(modifier, layoutData)
 	self:SetAttribute(CPAPI.SkipHotkeyRender, true)
 	self:SetAttribute('id', self.id)
 	self:SetAttribute('mod', modifier)
+
+	self.CheckedTexture = self.CheckedTexture or self:GetCheckedTexture()
+	self.PushedTexture  = self.PushedTexture  or self:GetPushedTexture()
+	self.NormalTexture  = self.NormalTexture  or self:GetNormalTexture()
+	self.HighlightTexture = self.HighlightTexture or self:GetHighlightTexture()
 
 	self.mod = modifier;
 	self.layoutData = layoutData;

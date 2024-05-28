@@ -55,6 +55,8 @@ local function SetTextures(self, adjustTextures, coords, texSize)
             texture:ClearAllPoints()
             texture:SetPoint('CENTER', 0, 0)
             texture:SetSize(texSize, texSize)
+        else
+            print('Texture not found:', key)
         end
     end
     GetHighlightTexture(self):SetBlendMode('ADD')
@@ -89,6 +91,7 @@ end
 
 for mod, data in pairs(env.ClusterConstants.Layout) do
     local prefix  = data.Prefix;
+    local coords  = data.Coords;
     local offset  = data.TexSize or 1;
     local adjust  = AdjustTextures[mod];
 
@@ -104,8 +107,8 @@ for mod, data in pairs(env.ClusterConstants.Layout) do
         if not force then return end;
         local size = self:GetSize()
         local mask = GetIconMask(self)
-        local coords = direction and data[direction].Coords;
-        SetTextures(self, adjust, coords, size * offset)
+        local tcoords = coords or direction and data[direction].Coords;
+        SetTextures(self, adjust, tcoords, size * offset)
         SetBackground(self, mask)
         if direction then
             SetRotatedMaskTexture(self, mask, prefix, direction)

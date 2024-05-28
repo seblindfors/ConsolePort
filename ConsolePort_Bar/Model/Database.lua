@@ -99,6 +99,7 @@ env.ClusterConstants = {
 			Shadow   = { 82 / SIZE_L, 0.3, CPAPI.GetAsset([[Textures\Button\Shadow]]), {'CENTER', 0, -6} };
 			Level    = 4;
 			Hotkey   = {{ HK_ICONS_SIZE_L, HK_ATLAS_SIZE_L, {'TOP', 0, 12}, nil }};
+			Coords   = {0, 1, 0, 1};
 			-----------------------------------------------------------------------------------------------------------------------
 		};
 		[SHIFT]      = { ----------------------------------------------------------------------------------------------------------
@@ -243,5 +244,15 @@ env.ClusterConstants.ModDriver = (function(driver, ...)
 	driver[#driver] = '[nomod]'; -- NOMOD fix
 	return table.concat(driver, '; ')..' ;';
 end)( {}, env.ClusterConstants.ModNames() )
+
+env.ClusterConstants.ProxyKeyOptions = function()
+	local keys = {};
+	for buttonID in pairs(env.db.Gamepad.Index.Button.Binding) do
+		if CPAPI.IsButtonValidForBinding(buttonID) then
+			keys[buttonID] = buttonID;
+		end
+	end
+	return keys;
+end
 
 end -- Cluster information
