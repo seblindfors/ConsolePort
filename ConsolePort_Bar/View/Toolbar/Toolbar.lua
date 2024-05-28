@@ -98,9 +98,13 @@ function PopoutFrame:Layout()
 end
 
 function PopoutFrame:MoveMicroButtons()
-    for button in pairs(self.MicroButtons) do
+    for button, index in pairs(self.MicroButtons) do
         button:SetParent(self)
+        button:ClearAllPoints()
         button:SetIgnoreParentAlpha(true)
+        if ( button.layoutIndex ~= index ) then
+            button.layoutIndex = index;
+        end
     end
     self:Layout()
 end
