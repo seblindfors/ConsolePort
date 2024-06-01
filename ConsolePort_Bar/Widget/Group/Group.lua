@@ -35,9 +35,20 @@ function Button:OnCooldownClear()
 	self:UpdateAlpha(self.AlphaState.OnCooldown, false)
 end
 
+function Button:ForceIgnoreParentAlpha(state)
+	self.forceIgnore = state;
+	self:UpdateAlpha()
+end
+
 function Button:UpdateAlpha(closure, state)
-	self.alpha = closure(self.alpha or 0, state);
-	self:SetIgnoreParentAlpha(self.alpha ~= 0)
+	if closure then
+		self.alpha = closure(self.alpha or 0, state);
+	end
+	local ignoreParentAlpha = self.alpha ~= 0;
+	if ( self.forceIgnore ~= nil  ) then
+		ignoreParentAlpha = self.forceIgnore;
+	end
+	self:SetIgnoreParentAlpha(ignoreParentAlpha)
 end
 
 function Button:OnLoad()
@@ -112,8 +123,12 @@ function CPGroupBar:OnLoad()
 	CPActionBar.OnLoad(self)
 	self.buttons   = {};
 	self.modifiers = {};
+
 	env:RegisterCallback('OnNewBindings', self.OnNewBindings, self)
 	env:RegisterCallback('OnOverlayGlow', self.OnOverlayGlow, self)
+	db:RegisterCallback('OnHintsFocus', self.OnHints, self, false)
+	db:RegisterCallback('OnHintsClear', self.OnHints, self, nil)
+
 	self:RegisterPageResponse([[
 		local newstate = ...;
 		self:ChildUpdate('actionpage', newstate)
@@ -162,7 +177,7 @@ function CPGroupBar:OnNewBindings(bindings)
 			button:SetBindings(set)
 		end
 	end
-	self:RunAttribute(env.OnPage, self:GetAttribute('actionpage'))
+	self:RunAttribute(env.Attributes.OnPage, self:GetAttribute('actionpage'))
 	self:RunDriver('modifier')
 end
 
@@ -207,6 +222,12 @@ function CPGroupBar:OnOverlayGlow(state, button)
 	end
 end
 
+function CPGroupBar:OnHints(state)
+	for _, button in pairs(self.buttons) do
+		button:ForceIgnoreParentAlpha(state)
+	end
+end
+
 function CPGroupBar:OnAlphaEvent(event)
 	local eventClosure = self.AlphaEvents[event];
 	if eventClosure then
@@ -229,7 +250,7 @@ env:AddFactory(GROUP, function(id)
 end, env.Interface.Group)
 
 env:AddFactory(GROUP_BUTTON, function(id, buttonID, parent)
-	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.ClusterConstants.LABConfig), Button) -- TODO: LABConfig?
+	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.Const.Cluster.LABConfig), Button) -- TODO: LABConfig?
 	button.Hotkey = Mixin(CreateFrame('Frame', nil, button), env.ProxyHotkey)
 	button.Hotkey.icon = button.Hotkey:CreateTexture(nil, 'OVERLAY', nil, 7)
 	button.Hotkey.icon:SetAllPoints()

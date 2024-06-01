@@ -1,8 +1,8 @@
 local _, env, db = ...; db = env.db;
 ---------------------------------------------------------------
-local NOMOD, _, _, _, ALT = env.ClusterConstants.ModNames();
-local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_SHADOW = env.ClusterConstants.Types();
-local ClusterLayout = env.ClusterConstants.Layout;
+local NOMOD, _, _, _, ALT = env.Const.Cluster.ModNames();
+local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_SHADOW = env.Const.Cluster.Types();
+local ClusterLayout = env.Const.Cluster.Layout;
 ---------------------------------------------------------------
 local Cluster = CreateFromMixins(env.DynamicWidgetMixin, env.MovableWidgetMixin);
 ---------------------------------------------------------------
@@ -145,7 +145,7 @@ function Cluster:SetBindings(bindings)
 end
 
 Cluster.GetMoveTarget = Cluster.GetMainButton;
-Cluster.GetSnapSize   = function() return env.ClusterConstants.SnapPixels end;
+Cluster.GetSnapSize   = function() return env.Const.Cluster.SnapPixels end;
 
 ---------------------------------------------------------------
 local Shadow = {};
@@ -416,7 +416,7 @@ end
 
 function Button:ToggleShown(enabled)
 	self:SetShown(enabled)
-	self:SetAttribute(env.Hidden, not enabled)
+	self:SetAttribute(env.Attributes.Hidden, not enabled)
 end
 
 function Button:UpdateLocal(force)
@@ -472,12 +472,12 @@ function CPClusterBar:OnNewBindings(bindings)
 			end
 		end)
 	end
-	self:RunAttribute(env.OnPage, self:GetAttribute('actionpage'))
+	self:RunAttribute(env.Attributes.OnPage, self:GetAttribute('actionpage'))
 	self:RunDriver('modifier')
 end
 
 function CPClusterBar:OnDriverChanged()
-	local driver = env('clusterFullStateModifier') and env.ClusterConstants.ModDriver
+	local driver = env('clusterFullStateModifier') and env.Const.Cluster.ModDriver
 		or db('Gamepad/Index/Modifier/Driver');
 	self:RegisterModifierDriver(driver, [[
 		self:SetAttribute('state', newstate)
@@ -510,7 +510,7 @@ function CPClusterBar:OnVariableChanged()
 end
 
 function CPClusterBar:GetSnapSize()
-	return env.ClusterConstants.SnapPixels * 4;
+	return env.Const.Cluster.SnapPixels * 4;
 end
 
 ---------------------------------------------------------------
@@ -537,7 +537,7 @@ env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 end, env.Interface.ClusterHandle)
 
 env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutData)
-	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.ClusterConstants.LABConfig), Button)
+	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.Const.Cluster.LABConfig), Button)
 	env.LIB.SkinUtility.PreventSkinning(button)
 	for i, hotkeyData in ipairs(layoutData.Hotkey) do
 		local hotkeyID = env.MakeID('%s_%s_%d', id, modifier, i)
@@ -561,9 +561,9 @@ env:AddFactory(CLUSTER_SHADOW, function(_, parent, owner, layoutData)
 end)
 
 env:RegisterCallbacks(function(self)
-	local style = env.ClusterConstants.BorderStyle[self('clusterBorderStyle')];
+	local style = env.Const.Cluster.BorderStyle[self('clusterBorderStyle')];
 	for key, texture in pairs(style) do
-		self.ClusterConstants.AdjustTextures[NOMOD][key] = texture;
+		self.Const.Cluster.AdjustTextures[NOMOD][key] = texture;
 	end
 	self:Map(CLUSTER_HANDLE, nil, function(cluster)
 		cluster:GetMainButton():Skin(true)

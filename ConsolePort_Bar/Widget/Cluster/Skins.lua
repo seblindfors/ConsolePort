@@ -2,12 +2,12 @@ local _, env = ...;
 ---------------------------------------------------------------
 local Skins = {}; env.LIB.Skin.ClusterBar = Skins;
 ---------------------------------------------------------------
-local NOMOD = env.ClusterConstants.ModNames();
+local NOMOD = env.Const.Cluster.ModNames();
 ---------------------------------------------------------------
-local Masks = env.ClusterConstants.Masks;
-local Swipes = env.ClusterConstants.Swipes;
-local Assets = env.ClusterConstants.Assets;
-local AdjustTextures = env.ClusterConstants.AdjustTextures;
+local Masks = env.Const.Cluster.Masks;
+local Swipes = env.Const.Cluster.Swipes;
+local Assets = env.Const.Cluster.Assets;
+local AdjustTextures = env.Const.Cluster.AdjustTextures;
 local GetIconMask = env.LIB.SkinUtility.GetIconMask;
 local GetHighlightTexture, GetPushedTexture = env.LIB.SkinUtility.GetHighlightTexture, env.LIB.SkinUtility.GetPushedTexture;
 local GetSlotBackground = env.LIB.SkinUtility.GetSlotBackground;
@@ -89,7 +89,7 @@ local function OnChargeCooldownUnset(self)
     self:SetUseCircularEdge(false)
 end
 
-for mod, data in pairs(env.ClusterConstants.Layout) do
+for mod, data in pairs(env.Const.Cluster.Layout) do
     local prefix  = data.Prefix;
     local coords  = data.Coords;
     local offset  = data.TexSize or 1;

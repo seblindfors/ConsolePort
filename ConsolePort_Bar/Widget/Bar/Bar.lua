@@ -26,14 +26,14 @@ function CPActionBar:RegisterDriver(type, driver, body, current)
 
     RegisterStateDriver(self, type, driver)
     self:SetAttribute(type, current or SecureCmdOptionParse(driver))
-    self:SetAttribute(env.Driver(type), driver)
-    self:SetAttribute(env.State(type), body)
+    self:SetAttribute(env.Attributes.Driver(type), driver)
+    self:SetAttribute(env.Attributes.State(type), body)
     self:Run([[local newstate = self:GetAttribute(%q) %s]], type, body)
 end
 
 function CPActionBar:RunDriver(type) self:Run([[
     local newstate = SecureCmdOptionParse(%q); %s
-]], self:GetAttribute(env.Driver(type)), self:GetAttribute(env.State(type))) end
+]], self:GetAttribute(env.Attributes.Driver(type)), self:GetAttribute(env.Attributes.State(type))) end
 
 function CPActionBar:RunAttribute(attribute, ...) self:Run([[
     self::%s(%q)
@@ -45,10 +45,10 @@ end
 
 function CPActionBar:RegisterVisibilityDriver(driver, current)
     driver = env.ConvertDriver(driver)
-    RegisterStateDriver(self, env.Visible, driver)
-    self:SetAttribute(env.Visible, current or SecureCmdOptionParse(driver))
+    RegisterStateDriver(self, env.Attributes.Visible, driver)
+    self:SetAttribute(env.Attributes.Visible, current or SecureCmdOptionParse(driver))
 end
 
 function CPActionBar:RegisterPageResponse(body)
-    self:SetAttribute(env.OnPage, body)
+    self:SetAttribute(env.Attributes.OnPage, body)
 end

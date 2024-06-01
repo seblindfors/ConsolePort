@@ -131,7 +131,7 @@ local ProxyButton = Mixin({
                 self:SetAttribute('pressAndHoldAction', pressAndHold)
             end
         ]];
-        [env.Update('actionpage')] = [[
+        [env.Attributes.Update('actionpage')] = [[
             self:SetAttribute('actionpage', message)
             if self:GetID() > 0 then
                 self::UpdateState(self:GetAttribute('state'))

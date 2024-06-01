@@ -38,11 +38,12 @@ env:Register('Variables', CPAPI.Callable({
 	---------------------------------------------------------------
 	enableXPBar = _{Data.Bool(true);
 		name = 'Enable Watch Bars';
-		desc = 'Show the XP bar at the bottom of the toolbar.';
+		desc = 'Show the watch bars at the bottom of the toolbar.';
+		note = 'Watch bars include XP, reputation, honor, artifact power, and azerite.';
 	};
 	fadeXPBar = _{Data.Bool(false);
 		name = 'Fade Watch Bars';
-		desc = 'Fade out the XP bar when not mousing over it.';
+		desc = 'Fade out the watch bars when not mousing over the toolbar.';
 		deps = { enableXPBar = true };
 	};
 	---------------------------------------------------------------
@@ -87,7 +88,7 @@ local OFS_MOD, OFS_MID, OFS_FIX = 38, 21, 4;
 local HK_ICONS_SIZE_L, HK_ICONS_SIZE_S = 32, 20;
 local HK_ATLAS_SIZE_L, HK_ATLAS_SIZE_S = 18, 12;
 -----------------------------------------------------------------------------------------------------------------------
-env.ClusterConstants = {
+env.Const.Cluster = {
 	Directions = CPAPI.Enum('UP', 'DOWN', 'LEFT', 'RIGHT');
 	Types      = CPAPI.Enum('Cluster', 'ClusterHandle', 'ClusterButton', 'ClusterShadow');
 	ModNames   = CPAPI.Enum(NOMOD, SHIFT, CTRL, CTRL..SHIFT, ALT, ALT..SHIFT, ALT..CTRL, ALT..CTRL..SHIFT);
@@ -219,9 +220,9 @@ env.ClusterConstants = {
 	};
 };
 
-env.ClusterConstants.Masks, env.ClusterConstants.Swipes = (function(layout, directions)
+env.Const.Cluster.Masks, env.Const.Cluster.Swipes = (function(layout, directions)
 	-- Generated masks and swipes for each prefix, e.g.:
-	-- env.ClusterConstants.Masks.M1.UP = 'MASKS\M1_UP'
+	-- env.Const.Cluster.Masks.M1.UP = 'MASKS\M1_UP'
 	local masks, swipes = {}, {};
 	for _, data in pairs(layout) do
 		local prefix = data.Prefix;
@@ -234,18 +235,20 @@ env.ClusterConstants.Masks, env.ClusterConstants.Swipes = (function(layout, dire
 		end
 	end
 	return masks, swipes;
-end)( env.ClusterConstants.Layout, env.ClusterConstants.Directions )
+end)( env.Const.Cluster.Layout, env.Const.Cluster.Directions )
 
-env.ClusterConstants.ModDriver = (function(driver, ...)
+env.Const.Cluster.ModDriver = (function(driver, ...)
 	for _, modifier in ipairs({...}) do
 		-- Insert in reverse order to prioritize most complex modifiers
 		tinsert(driver, 1, ('[mod:%s] %s'):format(modifier, modifier))
 	end
 	driver[#driver] = '[nomod]'; -- NOMOD fix
 	return table.concat(driver, '; ')..' ;';
-end)( {}, env.ClusterConstants.ModNames() )
+end)( {}, env.Const.Cluster.ModNames() )
 
-env.ClusterConstants.ProxyKeyOptions = function()
+end -- Cluster information
+
+env.Const.ProxyKeyOptions = function()
 	local keys = {};
 	for buttonID in pairs(env.db.Gamepad.Index.Button.Binding) do
 		if CPAPI.IsButtonValidForBinding(buttonID) then
@@ -255,4 +258,10 @@ env.ClusterConstants.ProxyKeyOptions = function()
 	return keys;
 end
 
-end -- Cluster information
+env.Const.DefaultPresetName = ('%s (%s)'):format(GetUnitName('player'), GetRealmName());
+env.Const.ManagerVisibility = '[petbattle][vehicleui][overridebar] hide; show';
+env.Const.ValidPoints = CPAPI.Enum(
+	'CENTER', 'TOP',      'BOTTOM',
+	'LEFT',   'TOPLEFT',  'BOTTOMLEFT',
+	'RIGHT',  'TOPRIGHT', 'BOTTOMRIGHT'
+);

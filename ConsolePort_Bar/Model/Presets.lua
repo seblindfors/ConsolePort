@@ -2,7 +2,7 @@ local _, env = ...;
 ---------------------------------------------------------------
 
 function env:GetDefaultLayout()
-	return CopyTable(env.Presets.Default); -- TODO: upgrade
+	return env.UpgradeFromV1() or CopyTable(env.Presets.Default);
 end
 
 ---------------------------------------------------------------
@@ -18,11 +18,11 @@ local Handle = Interface.ClusterHandle(); -- reuse one handle instance and warp 
 Presets.Default = {
 	name       = DEFAULT;
 	desc       = 'A cluster bar with a toolbar below it.';
-	visibility = '[petbattle][vehicleui][overridebar] hide; show';
+	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar:Render();
 		Cluster = Interface.Cluster:Render {
-			scale    = 0.9;
+			rescale  = '90';
 			children = {
 				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  176, y =  40 } };
 				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  306, y =  40 } };
@@ -44,7 +44,7 @@ Presets.Default = {
 Presets.Orthodox = {
 	name       = 'Orthodox';
 	desc       = 'A cluster bar with a toolbar below it, laid out horizontally.';
-	visibility = '[petbattle][vehicleui][overridebar] hide; show';
+	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render();
 		Cluster = Interface.Cluster : Render {
@@ -73,7 +73,7 @@ Handle = Interface.GroupButton(); -- reuse one handle instance and warp it
 Presets.CrossbarMinimal = {
 	name 	   = 'Minimal Crossbar';
 	desc       = 'Group buttons in a single crossbar layout, with modifier swapping.';
-	visibility = '[petbattle][vehicleui][overridebar] hide; show';
+	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
 			width = 600;
@@ -102,7 +102,7 @@ Presets.CrossbarMinimal = {
 Presets.DiamondGrid = {
 	name 	   = 'Diamond Grid';
 	desc       = 'Group buttons by modifier in a diamond layout.';
-	visibility = '[petbattle][vehicleui][overridebar] hide; show';
+	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
 			width = 600;
@@ -193,7 +193,7 @@ Presets.DiamondGrid = {
 Presets.Grid = {
 	name 	   = 'Grid';
 	desc       = 'Group buttons by modifier in a grid layout.';
-	visibility = '[petbattle][vehicleui][overridebar] hide; show';
+	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
 			width = 600;
@@ -311,7 +311,7 @@ Presets.Grid = {
 Presets.Crossbar = {
 	name 	   = 'Crossbar';
 	desc       = 'Group buttons in crossbar layouts, with modifier swapping.';
-	visibility = '[petbattle][vehicleui][overridebar] hide; show';
+	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
 			width = 600;

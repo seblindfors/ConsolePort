@@ -1,7 +1,9 @@
 local name, env = ...;
 local env = LibStub('RelaTable')(name, env, false)
-env.db        = ConsolePort:DB();
-env.UIHandler = CPAPI.CreateEventHandler({'Frame'}, {
+env.db         = ConsolePort:DB();
+env.Const      = {};
+env.Attributes = {};
+env.UIHandler  = CPAPI.CreateEventHandler({'Frame'}, {
 	'PLAYER_REGEN_DISABLED';
 	'PLAYER_REGEN_ENABLED';
 }); local db, L, UIHandler = env.db, env.db.Locale, env.UIHandler;
@@ -57,7 +59,7 @@ do -- Data handler
 			_G[VAR_LAYOUT] = env:GetDefaultLayout()
 		end
 
-		layout = _G[VAR_LAYOUT];
+		layout = env.UpgradeLayout(_G[VAR_LAYOUT]);
 		settings = CPAPI.Proxy(_G[VAR_SETTINGS], self.Defaults);
 
 		env:Register('Layout', layout, true)
@@ -407,10 +409,10 @@ end -- Binding data handler
 ---------------------------------------------------------------
 -- State handler helpers
 ---------------------------------------------------------------
-env.State   = GenerateClosure(format, '_onstate-%s');     -- macro conditional response
-env.Driver  = GenerateClosure(format, 'driver-%s');       -- macro conditional driver
-env.Update  = GenerateClosure(format, '_childupdate-%s'); -- child update closure
-env.OnState = 'OnStateChanged';                           -- see LibActionButton-1.0.lua
-env.OnPage  = 'ActionPageChanged';                        -- see Pager.lua
-env.Visible = 'visibility';
-env.Hidden  = 'statehidden';
+env.Attributes.State   = GenerateClosure(format, '_onstate-%s');     -- macro conditional response
+env.Attributes.Driver  = GenerateClosure(format, 'driver-%s');       -- macro conditional driver
+env.Attributes.Update  = GenerateClosure(format, '_childupdate-%s'); -- child update closure
+env.Attributes.OnState = 'OnStateChanged';                           -- see LibActionButton-1.0.lua
+env.Attributes.OnPage  = 'ActionPageChanged';                        -- see Pager.lua
+env.Attributes.Visible = 'visibility';
+env.Attributes.Hidden  = 'statehidden';

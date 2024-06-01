@@ -31,7 +31,7 @@ end
 
 function Manager:OnPropsChanged(refreshBindings)
     local layout = env.Layout;
-    RegisterStateDriver(self, env.Visible, layout.visibility or 'show')
+    RegisterStateDriver(self, env.Attributes.Visible, layout.visibility or 'show')
     for id, props in pairs(layout.children or {}) do
         local widget = env:Acquire(props.type, id)
         if widget then

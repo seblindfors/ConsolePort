@@ -587,7 +587,9 @@ Loadout.LayoutControls = {
 		tooltipText  = L'Save your current loadout to the preset list.';
 		icon         = [[Interface\BUTTONS\UI-GuildButton-PublicNote-Up]];
 		iconSize     = 18;
-		onClickHandler = nop; -- TODO: save function
+		onClickHandler = function(self)
+			self:GetParent():TogglePresetSaveFrame(true)
+		end;
 	};
 };
 
@@ -625,6 +627,20 @@ Loadout.Popups = {
 		text = L('Are you sure you want to overwrite %s with %s?',
 			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
 			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+	};
+	ConsolePort_Loadout_Confirm_Save = {
+		button1   = OKAY;
+		button2   = CANCEL;
+		text = L('Save preset from %s:', YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+		OnShow = function(popup, data)
+			local dialog = popup.insertedFrame;
+			for key, value in pairs(data) do
+				if dialog[key] then
+					dialog[key]:SetText(value)
+				end
+			end
+			dialog:Layout()
+		end;
 	};
 };
 
@@ -692,6 +708,73 @@ function Loadout:OnPresetClick(preset, trigger)
 		preset  = preset;
 		trigger = trigger;
 	})
+end
+
+---------------------------------------------------------------
+-- Preset management
+---------------------------------------------------------------
+
+function Loadout:GetPresetSaveFrame()
+	if not self.presetSaveFrame then
+
+		local frame, i = CreateFrame('Frame', nil, nil, 'VerticalLayoutFrame'), CreateCounter()
+		frame:Hide()
+		frame:SetSize(300, 300)
+		frame.spacing = 8;
+
+		local function CreateHeader(text)
+			local header = frame:CreateFontString(nil, 'ARTWORK', 'GameFontNormal')
+			header:SetText(text)
+			header.layoutIndex = i()
+			return header;
+		end
+
+		local function CreateEditBox()
+			local editBox = CreateFrame('Frame', nil, frame, 'ScrollingEditBoxTemplate')
+			editBox.BG = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
+			editBox.BG:SetBackdrop(CPAPI.Backdrops.Opaque)
+			editBox.BG:SetBackdropColor(0.15, 0.15, 0.15, 1)
+			editBox.BG:SetPoint('TOPLEFT', editBox, 'TOPLEFT', -4, 4)
+			editBox.BG:SetPoint('BOTTOMRIGHT', editBox, 'BOTTOMRIGHT', 4, 0)
+			editBox.BG:SetFrameLevel(editBox:GetFrameLevel() - 1)
+			editBox.layoutIndex = i()
+			return editBox;
+		end
+
+		frame.breaker = CreateFrame('Frame', nil, frame, 'CPPopupHeaderTemplate')
+		frame.breaker:SetSize(284, 16)
+		frame.breaker.layoutIndex = i()
+
+		frame.nameHeader = CreateHeader(NAME)
+		frame.name = CreateEditBox()
+		frame.name:SetSize(284, 20)
+
+		frame.descHeader = CreateHeader(DESCRIPTION)
+		frame.desc = CreateEditBox()
+		frame.desc:SetSize(284, 60)
+
+		frame.showHeader = CreateHeader(L'Visibility')
+		frame.visibility = CreateEditBox()
+		frame.visibility:SetSize(284, 60)
+
+		self.presetSaveFrame = frame;
+	end
+	return self.presetSaveFrame;
+end
+
+function Loadout:TogglePresetSaveFrame(show)
+	local frame = self:GetPresetSaveFrame()
+	if frame:IsShown() then return frame:Hide() end;
+	if not show then return end;
+
+	local popupName = 'ConsolePort_Loadout_Confirm_Save';
+	local popupData = self.Popups[popupName];
+	CPAPI.Popup(popupName, popupData, env.Const.DefaultPresetName, nil, {
+		owner       = self;
+		name        = ('%s - %s'):format(env(PATH(ROOT, 'name')), env.Const.DefaultPresetName);
+		desc        = env(PATH(ROOT, 'desc'));
+		visibility  = env(PATH(ROOT, 'visibility'));
+	}, frame)
 end
 
 ---------------------------------------------------------------
