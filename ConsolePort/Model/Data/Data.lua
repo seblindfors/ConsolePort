@@ -287,7 +287,7 @@ function Table:Get()
 	return result;
 end
 
-function Table:Set(tbl)
+function Table:Set(tbl, silent)
 	if not rawget(self, INIT) then
 		return Field.Set(self, tbl)
 	end
@@ -296,7 +296,7 @@ function Table:Set(tbl)
 		for child, field in pairs(tbl) do
 			if inline[child] then
 				inline[child][DATA]:Set(field)
-			else
+			elseif not silent then
 				error('Malformed table: field "'..child..'" does not exist in definition.')
 			end
 		end
@@ -317,7 +317,7 @@ function Interface:Set(tbl)
 	if not rawget(self, INIT) then
 		return Table.Set(self, tbl)
 	end
-	return Table.Set(self[DATA][DATA], tbl)
+	return Table.Set(self[DATA][DATA], tbl, true)
 end
 
 function Interface:Warp(tbl)
