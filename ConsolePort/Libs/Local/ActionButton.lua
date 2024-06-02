@@ -96,6 +96,13 @@ function Lib.SkinUtility.GetPushedTexture(self)
 	return self.PushedTexture;
 end
 
+function Lib.SkinUtility.GetCheckedTexture(self)
+	if not self.CheckedTexture then
+		self.CheckedTexture = self:GetCheckedTexture()
+	end
+	return self.CheckedTexture;
+end
+
 function Lib.SkinUtility.PreventSkinning(self)
 	self.MasqueSkinned = true;
 end

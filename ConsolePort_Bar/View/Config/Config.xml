@@ -23,7 +23,25 @@
 		<DisabledTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
 	</Button>
 
-	<Frame name="CPActionBarConfig" virtual="true" inherits="CPPopupFrameTemplate" hidden="true" movable="true" enableMouse="true">
+	<CheckButton name="CPCheckButtonTemplate" motionScriptsWhileDisabled="true" virtual="true">
+		<Size x="30" y="29"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="HoverBackground" inherits="HoverBackgroundTemplate"/>
+			</Layer>
+		</Layers>
+		<ButtonText inherits="GameFontNormal" parentKey="Text">
+			<Anchors>
+				<Anchor point="LEFT" relativePoint="RIGHT" x="4" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<NormalTexture atlas="checkbox-minimal" useAtlasSize="true"/>
+		<PushedTexture atlas="checkbox-minimal" useAtlasSize="true"/>
+		<CheckedTexture atlas="checkmark-minimal" useAtlasSize="true"/>
+		<DisabledCheckedTexture atlas="checkmark-minimal-disabled" useAtlasSize="true"/>
+	</CheckButton>
+
+	<Frame name="CPActionBarConfig" virtual="true" inherits="CPPopupFrameTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true">
 		<Size x="600" y="500"/>
 		<Frames>
 			<Button parentKey="Mover" inherits="CPSquareButtonTemplate">

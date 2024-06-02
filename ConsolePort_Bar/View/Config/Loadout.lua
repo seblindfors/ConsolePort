@@ -51,6 +51,22 @@ local function IsElementNameValid(editBox, config)
 	return UserEditBoxNonEmpty(editBox) and not config[editBox:GetText():trim()];
 end
 
+local function GetPresets()
+	local presets = {};
+	local function LoadPresets(tbl, isUserPreset)
+		for id, preset in db.table.spairs(tbl) do
+			tinsert(presets, {
+				id       = id;
+				preset   = preset;
+				readonly = not isUserPreset;
+			})
+		end
+	end
+	LoadPresets(env.Presets, true)
+	LoadPresets(getmetatable(env.Presets).__index, false)
+	return presets;
+end
+
 ---------------------------------------------------------------
 local LoadoutHeader = CreateFromMixins(env.SharedConfig.Header);
 ---------------------------------------------------------------
@@ -214,8 +230,9 @@ function DeleteButton:Init()
 	self:SetScript('OnHide', self.OnHide)
 end
 
-function DeleteButton:SetTarget( path, target)
+function DeleteButton:SetTarget(path, target, sourceName)
 	self.variableID = path;
+	self.sourceName = sourceName;
 	self:SetParent(target)
 	self:ClearAllPoints()
 	self:SetPoint('RIGHT', target, 'RIGHT', 0, 0)
@@ -224,7 +241,7 @@ end
 
 function DeleteButton:onClickHandler()
 	local target = self:GetParent()
-	CPAPI.Popup(self.popupName, self.popupData, target:GetText(), self.owner:GetText(), {
+	CPAPI.Popup(self.popupName, self.popupData, target:GetText(), self.sourceName or self.owner:GetText(), {
 		variableID = self.variableID;
 		owner    = self.owner;
 		target   = target;
@@ -639,7 +656,18 @@ Loadout.Popups = {
 					dialog[key]:SetText(value)
 				end
 			end
+			dialog.options:SetChecked(false)
 			dialog:Layout()
+		end;
+		OnAccept = function(popup, data)
+			local dialog = popup.insertedFrame;
+			local values = {};
+			for key in pairs(data) do
+				if dialog[key] then
+					values[key] = dialog[key]:GetEditBox():GetText():trim()
+				end
+			end
+			data.owner:OnSave(values, dialog.options:GetChecked())
 		end;
 	};
 };
@@ -719,7 +747,7 @@ function Loadout:GetPresetSaveFrame()
 
 		local frame, i = CreateFrame('Frame', nil, nil, 'VerticalLayoutFrame'), CreateCounter()
 		frame:Hide()
-		frame:SetSize(300, 300)
+		frame:SetSize(300, 240)
 		frame.spacing = 8;
 
 		local function CreateHeader(text)
@@ -730,15 +758,15 @@ function Loadout:GetPresetSaveFrame()
 		end
 
 		local function CreateEditBox()
-			local editBox = CreateFrame('Frame', nil, frame, 'ScrollingEditBoxTemplate')
-			editBox.BG = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
-			editBox.BG:SetBackdrop(CPAPI.Backdrops.Opaque)
-			editBox.BG:SetBackdropColor(0.15, 0.15, 0.15, 1)
-			editBox.BG:SetPoint('TOPLEFT', editBox, 'TOPLEFT', -4, 4)
-			editBox.BG:SetPoint('BOTTOMRIGHT', editBox, 'BOTTOMRIGHT', 4, 0)
-			editBox.BG:SetFrameLevel(editBox:GetFrameLevel() - 1)
-			editBox.layoutIndex = i()
-			return editBox;
+			local editor = CreateFrame('Frame', nil, frame, 'ScrollingEditBoxTemplate')
+			editor.BG = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
+			editor.BG:SetBackdrop(CPAPI.Backdrops.Opaque)
+			editor.BG:SetBackdropColor(0.15, 0.15, 0.15, 1)
+			editor.BG:SetPoint('TOPLEFT', editor, 'TOPLEFT', -4, 4)
+			editor.BG:SetPoint('BOTTOMRIGHT', editor, 'BOTTOMRIGHT', 4, 0)
+			editor.BG:SetFrameLevel(editor:GetFrameLevel() - 1)
+			editor.layoutIndex = i()
+			return editor;
 		end
 
 		frame.breaker = CreateFrame('Frame', nil, frame, 'CPPopupHeaderTemplate')
@@ -753,9 +781,14 @@ function Loadout:GetPresetSaveFrame()
 		frame.desc = CreateEditBox()
 		frame.desc:SetSize(284, 60)
 
-		frame.showHeader = CreateHeader(L'Visibility')
+		frame.showHeader = CreateHeader(L'Global Visibility')
 		frame.visibility = CreateEditBox()
 		frame.visibility:SetSize(284, 60)
+
+		frame.options = CreateFrame('CheckButton', nil, frame, 'CPCheckButtonTemplate')
+		frame.options.layoutIndex = i()
+		frame.options:SetText(L'Export current options')
+		frame.options:SetHitRectInsets(0, -frame.options:GetFontString():GetStringWidth(), 0, 0)
 
 		self.presetSaveFrame = frame;
 	end
@@ -817,24 +850,36 @@ function Loadout:DrawPresets(layoutIndex)
 	for _, preset in ipairs(self.presetButtons) do
 		if preset:IsShown() then
 			self:Release(preset)
+			if preset.deleteButton then
+				self.deleteButtonPool:Release(preset.deleteButton)
+				preset.deleteButton = nil;
+			end
 		end
 	end
 	wipe(self.presetButtons)
 
-	for id, preset in db.table.spairs(env.Presets) do
-		local widget, newObj = self:AcquireSetting(PATH('Presets', id), Preset, layoutIndex)
+	for _, data in ipairs(GetPresets()) do
+		local widget, newObj = self:AcquireSetting(PATH('Presets', data.id), Preset, layoutIndex)
 		if newObj then
 			Mixin(widget, Preset):OnLoad()
 		end
-		widget:SetText(preset.name)
-		widget.tooltipText = preset.desc;
-		widget.preset = preset;
+		widget:SetText(data.preset.name)
+		widget.tooltipText = data.preset.desc;
+		widget.preset = data.preset;
 		tinsert(self.presetButtons, widget)
+
+		if not data.readonly then
+			local deleteButton = self.deleteButtonPool:Acquire()
+			deleteButton:SetTarget(PATH('Presets', data.id), widget, L'Presets')
+			deleteButton:SetParent(widget)
+			deleteButton:SetPoint('RIGHT', widget, 'RIGHT', 0, 0)
+			deleteButton:Show()
+			widget.deleteButton = deleteButton;
+		end
 	end
 end
 
 function Loadout:DrawConfiguration(layoutIndex)
-
 	self.layoutHeader = self:CreateHeader('Loadout')
 	self.layoutHeader.layoutIndex = layoutIndex()
 
@@ -952,7 +997,9 @@ end
 
 function Loadout:OnDelete(path, widget)
 	local owner = widget.owner;
-	env:Release(owner)
+	if owner then
+		env:Release(owner)
+	end
 	self:ReleaseAll()
 	env(path, nil)
 	self:Update()
@@ -977,8 +1024,32 @@ end
 function Loadout:OnImport(preset)
 	self:ReleaseAll()
 	env:ReleaseAll()
-	env(ROOT, CopyTable(preset))
+
+	preset = CopyTable(preset)
+	if preset.settings then
+		for path, data in pairs(preset.settings) do
+			env(path, data)
+		end
+		preset.settings = nil;
+	end
+
+	env(ROOT, preset)
 	env:TriggerEvent('OnLayoutChanged', true)
+	self:Update()
+end
+
+function Loadout:OnSave(values, exportSettings)
+	self:ReleaseAll()
+
+	local preset = CopyTable(env(ROOT))
+	for key, value in pairs(values) do
+		preset[key] = value;
+	end
+	if exportSettings then
+		preset.settings = CopyTable(env('Settings'))
+	end
+	env(PATH('Presets', values.name), preset)
+
 	self:Update()
 end
 

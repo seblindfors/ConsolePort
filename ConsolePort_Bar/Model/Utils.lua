@@ -47,25 +47,24 @@ end
 ---------------------------------------------------------------
 do -- Data handler
 	-----------------------------------------------------------
-	local VAR_SETTINGS, VAR_LAYOUT = 'ConsolePort_BarDB', 'ConsolePort_BarLayout';
+	local VAR_SETTINGS, VAR_LAYOUT, VAR_PRESETS =
+		'ConsolePort_BarDB', 'ConsolePort_BarLayout', 'ConsolePort_BarPresets';
 
 	function env:UpdateDataSource()
-		local settings, layout;
-		-- TODO: Potentially add global/character setting switch
-		if not _G[VAR_SETTINGS] then
-			_G[VAR_SETTINGS] = {};
-		end
-		if not _G[VAR_LAYOUT] then
-			_G[VAR_LAYOUT] = env:GetDefaultLayout()
-		end
-
-		layout = env.UpgradeLayout(_G[VAR_LAYOUT]);
-		settings = CPAPI.Proxy(_G[VAR_SETTINGS], self.Defaults);
-
-		env:Register('Layout', layout, true)
+		if not _G[VAR_SETTINGS] then _G[VAR_SETTINGS] = {} end;
+		local settings = CPAPI.Proxy(_G[VAR_SETTINGS], self.Defaults);
 		env:Register('Settings', settings, true)
 		env:Default(settings)
 		env:Save('Settings', VAR_SETTINGS)
+
+		if not _G[VAR_PRESETS]  then _G[VAR_PRESETS] = {} end;
+		local presets  = CPAPI.Proxy(_G[VAR_PRESETS], self.Presets);
+		env:Register('Presets', presets, true)
+		env:Save('Presets', VAR_PRESETS)
+
+		if not _G[VAR_LAYOUT] then _G[VAR_LAYOUT] = env:GetDefaultLayout() end;
+		local layout = env.UpgradeLayout(_G[VAR_LAYOUT]);
+		env:Register('Layout', layout, true)
 		env:Save('Layout', VAR_LAYOUT)
 	end
 

@@ -176,6 +176,12 @@ function SettingsContainer:OnLoad()
 	local ToggleScrollEdge = function(scrollBar) self.BorderArt.ScrollEdge:SetShown(scrollBar:IsShown()) end;
 	self.ScrollBar:HookScript('OnShow', ToggleScrollEdge)
 	self.ScrollBar:HookScript('OnHide', ToggleScrollEdge)
+
+	if CPAPI.IsClassicVersion then
+		self.ScrollBar.Background:Hide()
+		self.ScrollBar:AdjustPointsOffset(-12, 0)
+	end
+
 	self.Tabs:AddButtons(self.TabButtons)
 	self.Tabs:RegisterCallback(ButtonGroupBaseMixin.Event.Selected, self.OnTabSelected, self)
 	self.Tabs:SelectAtIndex(1)
@@ -220,6 +226,9 @@ function Config:OnLoad()
 	self.Mover:SetTooltipInfo(L'Move', L'Click here to start moving the configuration window.')
 	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self, nil, 10))
 	Mixin(self.SettingsContainer, SettingsContainer):OnLoad()
+	self:RegisterForDrag('LeftButton')
+	self.OnDragStart = self.StartMoving;
+	self.OnDragStop  = self.StopMovingOrSizing;
 	CPAPI.Start(self)
 	env:RegisterCallback('OnCombatLockdown', self.OnCombatLockdown, self)
 end

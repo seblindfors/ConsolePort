@@ -57,10 +57,10 @@ Presets.Orthodox = {
 				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -330, y =  9 } };
 				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -250, y =  9 } };
 				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -165, y =  9 } };
-				PADLSHOULDER = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  405, y = 75 } };
-				PADLTRIGGER  = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  440, y =  9 } };
-				PADRSHOULDER = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -405, y = 75 } };
-				PADRTRIGGER  = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -440, y =  9 } };
+				PADLTRIGGER  = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  405, y = 75 } };
+				PADLSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  440, y =  9 } };
+				PADRTRIGGER  = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -405, y = 75 } };
+				PADRSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -440, y =  9 } };
 			};
 		};
 	};
