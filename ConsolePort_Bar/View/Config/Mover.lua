@@ -312,9 +312,7 @@ end
 
 
 local function Snap(value, bias)
-	local lower = math.floor(value / bias) * bias;
-	local upper = math.ceil(value / bias) * bias;
-	return (value - lower < upper - value) and lower or upper;
+	return Round(value / bias) * bias;
 end
 
 function Mover:ProcessPoint(point, relativeTo, relativePoint, x, y)
