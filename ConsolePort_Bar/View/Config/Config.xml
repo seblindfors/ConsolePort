@@ -3,8 +3,9 @@
 	<Script file="Mover.lua"/>
 	<Script file="Config.lua"/>
 	<Script file="Loadout.lua"/>
+	<Script file="Advanced.lua"/>
 
-	<Button name="CPSquareButtonTemplate" virtual="true" motionScriptsWhileDisabled="true" mixin="SquareIconButtonMixin" inherits="SquareIconButtonTemplate">
+	<Button name="CPSquareButtonTemplate" virtual="true" motionScriptsWhileDisabled="true" mixin="CPSquareIconButtonMixin" inherits="SquareIconButtonTemplate">
 		<Size x="48" y="48"/>
 		<HitRectInsets left="6" right="6" top="6" bottom="6"/>
 		<NormalTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
@@ -30,11 +31,13 @@
 				<Texture parentKey="HoverBackground" inherits="HoverBackgroundTemplate"/>
 			</Layer>
 		</Layers>
-		<ButtonText inherits="GameFontNormal" parentKey="Text">
+		<ButtonText parentKey="Text">
 			<Anchors>
 				<Anchor point="LEFT" relativePoint="RIGHT" x="4" y="0"/>
 			</Anchors>
 		</ButtonText>
+		<NormalFont style="GameFontNormal" />
+		<DisabledFont style="GameFontDisable" />
 		<NormalTexture atlas="checkbox-minimal" useAtlasSize="true"/>
 		<PushedTexture atlas="checkbox-minimal" useAtlasSize="true"/>
 		<CheckedTexture atlas="checkmark-minimal" useAtlasSize="true"/>
@@ -51,6 +54,16 @@
 				</Anchors>
 				<KeyValues>
 					<KeyValue key="icon" value="Interface\CURSOR\UI-Cursor-Move" type="string"/>
+					<KeyValue key="iconSize" value="24" type="number"/>
+				</KeyValues>
+			</Button>
+			<Button parentKey="Main" inherits="CPSquareButtonTemplate">
+				<Size x="48" y="48"/>
+				<Anchors>
+					<Anchor point="LEFT" relativeKey="$parent.Mover" relativePoint="RIGHT" x="-4"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="icon" value="Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb" type="string"/>
 					<KeyValue key="iconSize" value="24" type="number"/>
 				</KeyValues>
 			</Button>

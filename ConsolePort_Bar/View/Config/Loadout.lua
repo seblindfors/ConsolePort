@@ -30,16 +30,6 @@ local function DisplaySort(t, a, b)
 	end
 end
 
-local function LoadSquareButtonPool(self, config)
-	return CreateFramePool('Button', self, 'CPSquareButtonTemplate', FramePool_HideAndClearAnchors, false, function(self)
-		self:SetSize(38, 38)
-		self.owner = self:GetParent()
-		if config then Mixin(self, config) end;
-		if self.Init then self:Init(config) end;
-		SquareIconButtonMixin.OnLoad(self)
-	end)
-end
-
 local function GetElementNameSuggestion(name, config, i) i = i or CreateCounter(1);
 	while config[name] do
 		name = ('%s %d'):format(name:gsub('%d', ''):trim(), i())
@@ -49,6 +39,21 @@ end
 
 local function IsElementNameValid(editBox, config)
 	return UserEditBoxNonEmpty(editBox) and not config[editBox:GetText():trim()];
+end
+
+local function ValidatePresets(presets)
+	if type(presets) ~= 'table' then
+		return false;
+	end
+	for id, preset in pairs(presets) do
+		CPAPI.Log('Validating preset %s...', BLUE_FONT_COLOR:WrapTextInColorCode(id))
+		if not env.IsV1Layout(preset) and not env.IsV2Layout(preset) then
+			CPAPI.Log('Preset %s is not a valid layout.', ORANGE_FONT_COLOR:WrapTextInColorCode(id))
+			return false;
+		end
+	end
+	CPAPI.Log('All presets are valid.')
+	return true;
 end
 
 local function GetPresets()
@@ -65,14 +70,6 @@ local function GetPresets()
 	LoadPresets(env.Presets, true)
 	LoadPresets(getmetatable(env.Presets).__index, false)
 	return presets;
-end
-
----------------------------------------------------------------
-local LoadoutHeader = CreateFromMixins(env.SharedConfig.Header);
----------------------------------------------------------------
-
-function LoadoutHeader:OnClick()
-	print('hello')
 end
 
 ---------------------------------------------------------------
@@ -230,6 +227,10 @@ function DeleteButton:Init()
 	self:SetScript('OnHide', self.OnHide)
 end
 
+function DeleteButton:Reset()
+	self.variableID, self.sourceName = nil, nil;
+end
+
 function DeleteButton:SetTarget(path, target, sourceName)
 	self.variableID = path;
 	self.sourceName = sourceName;
@@ -237,6 +238,10 @@ function DeleteButton:SetTarget(path, target, sourceName)
 	self:ClearAllPoints()
 	self:SetPoint('RIGHT', target, 'RIGHT', 0, 0)
 	self:Show()
+end
+
+function DeleteButton:IsTargetPath(path)
+	return self.variableID == path;
 end
 
 function DeleteButton:onClickHandler()
@@ -249,8 +254,9 @@ function DeleteButton:onClickHandler()
 	})
 end
 
-local function LoadDeleteButtonPool(self) -- Helper since this is used in multiple widgets
-	self.deleteButtonPool = self.deleteButtonPool or LoadSquareButtonPool(self, DeleteButton)
+local function CreateDeleteButtonPool(self) -- Helper since this is used in multiple widgets
+	self.deleteButtonPool = self.deleteButtonPool
+		or env.SharedConfig.CreateSquareButtonPool(self, DeleteButton)
 end
 
 ---------------------------------------------------------------
@@ -301,14 +307,8 @@ function CopyButton:onClickHandler()
 	})
 end
 
-
----------------------------------------------------------------
-local CommandButton = { ignoreInLayout = true };
----------------------------------------------------------------
-
-function CommandButton:Setup(config)
-	Mixin(self, config)
-	SquareIconButtonMixin.OnLoad(self)
+function CopyButton:Reset()
+	self.variableID = nil;
 end
 
 ---------------------------------------------------------------
@@ -320,6 +320,7 @@ end
 local ExpandableWidgets = {
 	Point   = true;
 	Mutable = true;
+	Table   = true;
 };
 
 ---------------------------------------------------------------
@@ -349,7 +350,7 @@ local Mutable, MutableBlueprint = { OnClick = nop }, {
 
 function Mutable:OnLoad(...)
 	Widgets.Base.OnLoad(self, ...)
-	LoadDeleteButtonPool(self)
+	CreateDeleteButtonPool(self)
 	self.disableTooltipHints = true;
 	Mixin(self.Popout, Popout)
 end
@@ -479,8 +480,8 @@ end
 
 function Point:OnMoveCompleted(point, _, _, x, y)
 	self.registry(self.variableID..'/point', point)
-	self.registry(self.variableID..'/x', math.floor(x)) -- get rid of rounding errors
-	self.registry(self.variableID..'/y', math.floor(y))
+	self.registry(self.variableID..'/x', Round(x)) -- get rid of rounding errors
+	self.registry(self.variableID..'/y', Round(y))
 end
 
 ---------------------------------------------------------------
@@ -492,8 +493,25 @@ function Table:OnLoad(...)
 end
 
 ---------------------------------------------------------------
-local Preset = { Reset = nop };
+local Preset = {
 ---------------------------------------------------------------
+	Reset = nop;
+	Export = {
+		tooltipTitle = L'Export';
+		tooltipText  = L'Export this preset to a string that can be shared with others.';
+		icon         = CPAPI.GetAsset([[Textures\Frame\Export]]);
+		iconSize     = 18;
+		onClickHandler = function(self)
+			local parent = self:GetParent()
+			local popupName = 'ConsolePort_Loadout_Export';
+			local popupData = parent.Popups[popupName];
+			CPAPI.Popup(popupName, popupData, self.data.name, nil, {
+				owner  = parent;
+				string = env.SharedConfig.Env.Serialize({ [self.data.name] = self.data });
+			})
+		end;
+	};
+};
 
 function Preset:GetType()
 	return 'Preset';
@@ -559,7 +577,7 @@ end
 
 function Loadout:OnLoad(inputHandler, headerPool)
 	local sharedConfig = env.SharedConfig;
-	sharedConfig.HeaderOwner.OnLoad(self, LoadoutHeader)
+	sharedConfig.HeaderOwner.OnLoad(self, env.SharedConfig.Header)
 	FramePoolCollectionMixin.OnLoad(self)
 	Widgets = sharedConfig.Env.Widgets;
 
@@ -573,9 +591,9 @@ function Loadout:OnLoad(inputHandler, headerPool)
 	self.owner = inputHandler;
 	self.headerPool = headerPool;
 
-	LoadDeleteButtonPool(self)
-	self.copyButtonPool = LoadSquareButtonPool(self, CopyButton)
-	self.cmdButtonPool  = LoadSquareButtonPool(self, CommandButton)
+	CreateDeleteButtonPool(self)
+	self.copyButtonPool = sharedConfig.CreateSquareButtonPool(self, CopyButton)
+	self.cmdButtonPool  = sharedConfig.CreateSquareButtonPool(self, sharedConfig.CmdButton)
 
 	self.factory = Mixin(CreateFrame('Frame', nil, self, 'CPSelectionPopoutTemplate'), Popout)
 	self.factory:SetPoint('TOPRIGHT', -32, 0)
@@ -610,6 +628,39 @@ Loadout.LayoutControls = {
 	};
 };
 
+Loadout.PresetControls = {
+	{
+		tooltipTitle = L'Import';
+		tooltipText  = L'Import serialized preset(s) from an external source.';
+		icon         = CPAPI.GetAsset([[Textures\Frame\Import]]);
+		iconSize     = 18;
+		onClickHandler = function(self)
+			local parent = self:GetParent()
+			local popupName = 'ConsolePort_Loadout_Import';
+			local popupData = parent.Popups[popupName];
+			CPAPI.Popup(popupName, popupData, nil, nil, {
+				owner = parent;
+			})
+		end;
+	};
+	{
+		tooltipTitle = L'Export All';
+		tooltipText  = L'Export all your custom presets to a string that can be shared with others.';
+		icon         = CPAPI.GetAsset([[Textures\Frame\Export]]);
+		iconSize     = 18;
+		onClickHandler = function(self)
+			if not next(env.Presets) then return end;
+			local parent = self:GetParent()
+			local popupName = 'ConsolePort_Loadout_Export';
+			local popupData = parent.Popups[popupName];
+			CPAPI.Popup(popupName, popupData, L'Presets', nil, {
+				owner  = parent;
+				string = env.SharedConfig.Env.Serialize(CopyTable(env.Presets));
+			})
+		end;
+	};
+};
+
 Loadout.Popups = {
 	ConsolePort_Loadout_Confirm_Add = {
 		button1   = OKAY;
@@ -636,7 +687,7 @@ Loadout.Popups = {
 		button2   = CANCEL;
 		showAlert = true;
 		OnAccept = function(_, data)
-			data.owner:OnImport(data.preset)
+			data.owner:OnLoadPreset(data.preset)
 		end;
 		OnHide = function(_, data)
 			CPIndexButtonMixin.Uncheck(data.trigger)
@@ -657,6 +708,7 @@ Loadout.Popups = {
 				end
 			end
 			dialog.options:SetChecked(false)
+			dialog.pager:SetChecked(false)
 			dialog:Layout()
 		end;
 		OnAccept = function(popup, data)
@@ -667,11 +719,51 @@ Loadout.Popups = {
 					values[key] = dialog[key]:GetEditBox():GetText():trim()
 				end
 			end
-			data.owner:OnSave(values, dialog.options:GetChecked())
+			data.owner:OnSave(values,
+				dialog.options:GetChecked(),
+				dialog.pager:GetChecked()
+			);
+		end;
+	};
+	ConsolePort_Loadout_Export = {
+		button1    = OKAY;
+		hasEditBox = 1;
+		text = L('Export %s to a string:', YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+		OnShow = function(popup, data)
+			popup.editBox:SetText(data.string)
+		end;
+		EditBoxOnTextChanged = function(editBox, data)
+			if editBox:GetText() ~= data.string then
+				editBox:SetText(data.string)
+			end
+			editBox:SetCursorPosition(0)
+			editBox:HighlightText()
+		end;
+	};
+	ConsolePort_Loadout_Import = {
+		button1    = OKAY;
+		button2    = CANCEL;
+		hasEditBox = 1;
+		text = L('Import serialized preset(s):');
+		OnShow = function(popup)
+			popup.button1:Disable()
+		end;
+		OnAccept = function(popup, data)
+			local text = popup.editBox:GetText():trim()
+			data.owner:OnImport(env.SharedConfig.Env.Deserialize(text))
+		end;
+		EditBoxOnTextChanged = function(editBox)
+			local parent = editBox:GetParent()
+			local text = editBox:GetText():trim()
+			local deserialized = env.SharedConfig.Env.Deserialize(text)
+			parent.button1:SetEnabled(ValidatePresets(deserialized))
 		end;
 	};
 };
 
+---------------------------------------------------------------
+-- Element factory
+---------------------------------------------------------------
 function Loadout:ToggleFactory(show)
 	if self.factory:IsShown() then return self.factory:Hide() end;
 	if not show then return end;
@@ -726,17 +818,33 @@ function Loadout:OnEntryClick(entryData)
 	})
 end
 
-Loadout.OnPopoutShown = nop;
-
-function Loadout:OnPresetClick(preset, trigger)
-	local popupName = 'ConsolePort_Loadout_Confirm_Overwrite';
-	local popupData = self.Popups[popupName];
-	CPAPI.Popup(popupName, popupData, self:GetText(), preset.name, {
-		owner   = self;
-		preset  = preset;
-		trigger = trigger;
-	})
+function Loadout:OnDelete(path, widget)
+	local owner = widget.owner;
+	if owner then
+		env:Release(owner)
+	end
+	self:ReleaseAll()
+	env(path, nil)
+	self:Update()
 end
+
+function Loadout:OnCopy(path, name)
+	local newPath = path:gsub(GetEndpoint(path), name);
+	local newObj = CopyTable(env(path))
+	env(newPath, newObj)
+	env:TriggerEvent('OnLayoutChanged', true)
+	self:Update()
+end
+
+function Loadout:OnAdd(interface, name)
+	local newPath = PATH(BASE, name)
+	local newObj = interface:Render()
+	env(newPath, newObj)
+	env:TriggerEvent('OnLayoutChanged', true)
+	self:Update()
+end
+
+Loadout.OnPopoutShown = nop;
 
 ---------------------------------------------------------------
 -- Preset management
@@ -744,7 +852,6 @@ end
 
 function Loadout:GetPresetSaveFrame()
 	if not self.presetSaveFrame then
-
 		local frame, i = CreateFrame('Frame', nil, nil, 'VerticalLayoutFrame'), CreateCounter()
 		frame:Hide()
 		frame:SetSize(300, 240)
@@ -757,16 +864,24 @@ function Loadout:GetPresetSaveFrame()
 			return header;
 		end
 
-		local function CreateEditBox()
-			local editor = CreateFrame('Frame', nil, frame, 'ScrollingEditBoxTemplate')
-			editor.BG = CreateFrame('Frame', nil, frame, 'BackdropTemplate')
-			editor.BG:SetBackdrop(CPAPI.Backdrops.Opaque)
-			editor.BG:SetBackdropColor(0.15, 0.15, 0.15, 1)
-			editor.BG:SetPoint('TOPLEFT', editor, 'TOPLEFT', -4, 4)
-			editor.BG:SetPoint('BOTTOMRIGHT', editor, 'BOTTOMRIGHT', 4, 0)
-			editor.BG:SetFrameLevel(editor:GetFrameLevel() - 1)
+		local function CreateEditBox(height)
+			local editor = env.SharedConfig.CreateEditBox(frame)
 			editor.layoutIndex = i()
+			editor:SetSize(284, height)
 			return editor;
+		end
+
+		local function CreateCheckBox(text, tooltipText)
+			local check = CreateFrame('CheckButton', nil, frame, 'CPCheckButtonTemplate')
+			check.layoutIndex = i()
+			check:SetText(text)
+			check:SetHitRectInsets(0, -check:GetFontString():GetStringWidth(), 0, 0)
+			check.OnEnter = Widgets.Base.OnEnter;
+			check.OnLeave = Widgets.Base.OnLeave;
+			check.UpdateTooltip = Widgets.Base.UpdateTooltip;
+			check.tooltipText = tooltipText;
+			CPAPI.Start(check)
+			return check;
 		end
 
 		frame.breaker = CreateFrame('Frame', nil, frame, 'CPPopupHeaderTemplate')
@@ -774,24 +889,45 @@ function Loadout:GetPresetSaveFrame()
 		frame.breaker.layoutIndex = i()
 
 		frame.nameHeader = CreateHeader(NAME)
-		frame.name = CreateEditBox()
-		frame.name:SetSize(284, 20)
+		frame.name = CreateEditBox(20)
 
 		frame.descHeader = CreateHeader(DESCRIPTION)
-		frame.desc = CreateEditBox()
-		frame.desc:SetSize(284, 60)
+		frame.desc = CreateEditBox(60)
+
+		frame.advancedHeader = CreateHeader(ADVANCED_LABEL)
+		frame.options = CreateCheckBox(
+			L'Export current options',
+			L('Include the current options from the %s tab in the preset data.', BLUE_FONT_COLOR:WrapTextInColorCode(OPTIONS))
+		);
+
+		frame.pager = CreateCheckBox(
+			L'Export action page logic',
+			L'Include the current action page logic in the preset data.'
+		);
+		frame.pager.disableTooltipHints = true;
 
 		frame.showHeader = CreateHeader(L'Global Visibility')
-		frame.visibility = CreateEditBox()
-		frame.visibility:SetSize(284, 60)
-
-		frame.options = CreateFrame('CheckButton', nil, frame, 'CPCheckButtonTemplate')
-		frame.options.layoutIndex = i()
-		frame.options:SetText(L'Export current options')
-		frame.options:SetHitRectInsets(0, -frame.options:GetFontString():GetStringWidth(), 0, 0)
+		frame.visibility = CreateEditBox(60)
 
 		self.presetSaveFrame = frame;
 	end
+
+	local tooltipHints = ( next(env.Settings) ~= nil ) and { NORMAL_FONT_COLOR:WrapTextInColorCode(L'Modifications'..':') };
+	if tooltipHints then
+		for variableID in db.table.spairs(env.Settings) do
+			local variable = env.Variables[variableID];
+			local head, name = variable.head, variable.name;
+			tinsert(tooltipHints, ('• %s: %s'):format(
+				BLUE_FONT_COLOR:WrapTextInColorCode(L(head)),
+				GREEN_FONT_COLOR:WrapTextInColorCode(L(name))));
+		end
+	end
+	self.presetSaveFrame.options:SetEnabled(tooltipHints);
+	self.presetSaveFrame.options.tooltipHints = tooltipHints;
+	self.presetSaveFrame.options.disableTooltipHints = not tooltipHints;
+
+	self.presetSaveFrame.pager:SetEnabled(db('actionPageCondition') ~= nil or db('actionPageResponse') ~= nil);
+
 	return self.presetSaveFrame;
 end
 
@@ -810,48 +946,94 @@ function Loadout:TogglePresetSaveFrame(show)
 	}, frame)
 end
 
----------------------------------------------------------------
--- Loadout details
----------------------------------------------------------------
-function Loadout:Update()
-	self.updated = false;
-	self:MarkDirty()
-	self:Draw()
+function Loadout:OnLoadPreset(preset)
+	self:ReleaseAll()
+	env:ReleaseAll()
+
+	preset = CopyTable(preset)
+	if preset.settings then
+		for path, data in pairs(preset.settings) do
+			env(path, data)
+		end
+		preset.settings = nil;
+	end
+	if preset.pager then
+		for path, data in pairs(preset.pager) do
+			db(path, data)
+		end
+		preset.pager = nil;
+	end
+
+	env(ROOT, preset)
+	env:TriggerEvent('OnLayoutChanged', true)
+	self:Update()
 end
 
-function Loadout:OnShow()
-	self:MarkDirty()
-	self:Draw()
-	env:TriggerEvent('OnLoadoutConfigShown', true)
+function Loadout:OnImport(presets)
+	for name, preset in pairs(presets) do
+		env(PATH('Presets', name), env.UpgradeLayout(preset))
+	end
+	self:Update()
 end
 
-function Loadout:OnHide()
-	self:ToggleFactory(false)
-	env:TriggerEvent('OnLoadoutConfigShown', false)
+function Loadout:OnSave(values, exportSettings, exportPager)
+	self:ReleaseAll()
+
+	local preset = CopyTable(env(ROOT))
+	for key, value in pairs(values) do
+		preset[key] = value;
+	end
+	if exportSettings then
+		preset.settings = CopyTable(env('Settings'))
+	end
+	if exportPager then
+		preset.pager = {
+			actionPageCondition = db('actionPageCondition');
+			actionPageResponse  = db('actionPageResponse');
+		};
+	end
+	env(PATH('Presets', values.name), preset)
+
+	self:Update()
 end
 
-function Loadout:Draw()
-	self.headerPool:ReleaseAll()
-	self.cmdButtonPool:ReleaseAll()
-	-- NOTE: securecallfunction to avoid panel-wide error in case of a single widget error
-	-- Draw the layout controls
-	local layoutIndex = CreateCounter()
-	securecallfunction(self.DrawConfiguration, self, layoutIndex)
-	-- Draw the preset controls
-	layoutIndex = CreateCounter(self.layoutIndexOffset)
-	securecallfunction(self.DrawPresets, self, layoutIndex)
+function Loadout:OnPresetClick(preset, trigger)
+	local popupName = 'ConsolePort_Loadout_Confirm_Overwrite';
+	local popupData = self.Popups[popupName];
+	CPAPI.Popup(popupName, popupData, self:GetText(), preset.name, {
+		owner   = self;
+		preset  = preset;
+		trigger = trigger;
+	})
+end
+
+function Loadout:DrawHeaderControls(header, controls)
+	local left, right = math.huge, 0;
+	for i, control in ipairs(controls) do
+		local button = self.cmdButtonPool:Acquire()
+		button:SetPoint('RIGHT', header, 'RIGHT', -(32 * (i - 1)), 0)
+		button:Setup(control)
+		button:SetFrameLevel(header:GetFrameLevel() + 1)
+		button:Show()
+		left, right = math.min(left, button:GetLeft()), math.max(right, button:GetRight())
+	end
+	header:SetIndentation(-(right - left))
 end
 
 function Loadout:DrawPresets(layoutIndex)
 	self.presetHeader = self:CreateHeader('Presets')
 	self.presetHeader.layoutIndex = layoutIndex()
 
+	self:DrawHeaderControls(self.presetHeader, self.PresetControls)
+
 	self.presetButtons = self.presetButtons or {};
 	for _, preset in ipairs(self.presetButtons) do
 		if preset:IsShown() then
 			self:Release(preset)
 			if preset.deleteButton then
-				self.deleteButtonPool:Release(preset.deleteButton)
+				if preset.deleteButton:IsTargetPath(preset.path) then
+					self.deleteButtonPool:Release(preset.deleteButton)
+				end
 				preset.deleteButton = nil;
 			end
 		end
@@ -875,24 +1057,24 @@ function Loadout:DrawPresets(layoutIndex)
 			deleteButton:SetPoint('RIGHT', widget, 'RIGHT', 0, 0)
 			deleteButton:Show()
 			widget.deleteButton = deleteButton;
+
+			local exportButton = self.cmdButtonPool:Acquire()
+			exportButton:Setup(Preset.Export, data.preset)
+			exportButton:SetPoint('RIGHT', widget, 'RIGHT', -32, 0)
+			exportButton:SetFrameLevel(widget:GetFrameLevel() + 1)
+			exportButton:Show()
 		end
 	end
 end
 
+---------------------------------------------------------------
+-- Loadout management
+---------------------------------------------------------------
 function Loadout:DrawConfiguration(layoutIndex)
 	self.layoutHeader = self:CreateHeader('Loadout')
 	self.layoutHeader.layoutIndex = layoutIndex()
 
-	local left, right = math.huge, 0;
-	for i, control in ipairs(self.LayoutControls) do
-		local button = self.cmdButtonPool:Acquire()
-		button:SetPoint('RIGHT', self.layoutHeader, 'RIGHT', -(32 * (i - 1)), 0)
-		button:Setup(control)
-		button:SetFrameLevel(self.layoutHeader:GetFrameLevel() + 1)
-		button:Show()
-		left, right = math.min(left, button:GetLeft()), math.max(right, button:GetRight())
-	end
-	self.layoutHeader:SetIndentation(-(right - left))
+	self:DrawHeaderControls(self.layoutHeader, self.LayoutControls)
 
 	if self.updated then return end; self.updated = true;
 
@@ -995,62 +1177,36 @@ function Loadout:GetText()
 	return L'your current loadout';
 end
 
-function Loadout:OnDelete(path, widget)
-	local owner = widget.owner;
-	if owner then
-		env:Release(owner)
-	end
-	self:ReleaseAll()
-	env(path, nil)
-	self:Update()
+---------------------------------------------------------------
+-- Display
+---------------------------------------------------------------
+function Loadout:Update()
+	self.updated = false;
+	self:MarkDirty()
+	self:Draw()
 end
 
-function Loadout:OnCopy(path, name)
-	local newPath = path:gsub(GetEndpoint(path), name);
-	local newObj = CopyTable(env(path))
-	env(newPath, newObj)
-	env:TriggerEvent('OnLayoutChanged', true)
-	self:Update()
+function Loadout:OnShow()
+	self:MarkDirty()
+	self:Draw()
+	env:TriggerEvent('OnLoadoutConfigShown', true)
 end
 
-function Loadout:OnAdd(interface, name)
-	local newPath = PATH(BASE, name)
-	local newObj = interface:Render()
-	env(newPath, newObj)
-	env:TriggerEvent('OnLayoutChanged', true)
-	self:Update()
+function Loadout:OnHide()
+	self:ToggleFactory(false)
+	env:TriggerEvent('OnLoadoutConfigShown', false)
 end
 
-function Loadout:OnImport(preset)
-	self:ReleaseAll()
-	env:ReleaseAll()
-
-	preset = CopyTable(preset)
-	if preset.settings then
-		for path, data in pairs(preset.settings) do
-			env(path, data)
-		end
-		preset.settings = nil;
-	end
-
-	env(ROOT, preset)
-	env:TriggerEvent('OnLayoutChanged', true)
-	self:Update()
-end
-
-function Loadout:OnSave(values, exportSettings)
-	self:ReleaseAll()
-
-	local preset = CopyTable(env(ROOT))
-	for key, value in pairs(values) do
-		preset[key] = value;
-	end
-	if exportSettings then
-		preset.settings = CopyTable(env('Settings'))
-	end
-	env(PATH('Presets', values.name), preset)
-
-	self:Update()
+function Loadout:Draw()
+	self.headerPool:ReleaseAll()
+	self.cmdButtonPool:ReleaseAll()
+	-- NOTE: securecallfunction to avoid panel-wide error in case of a single widget error
+	-- Draw the layout controls
+	local layoutIndex = CreateCounter()
+	securecallfunction(self.DrawConfiguration, self, layoutIndex)
+	-- Draw the preset controls
+	layoutIndex = CreateCounter(self.layoutIndexOffset)
+	securecallfunction(self.DrawPresets, self, layoutIndex)
 end
 
 env.SharedConfig.Loadout = Loadout;

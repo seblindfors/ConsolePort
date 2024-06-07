@@ -1,4 +1,4 @@
-local _, env, db, config, L = ...; db = env.db; L = db.Locale;
+local _, env, db, L = ...; db = env.db; L = db.Locale;
 ---------------------------------------------------------------
 local Setting = {};
 ---------------------------------------------------------------
@@ -41,15 +41,23 @@ function Setting:Uncheck()
 end
 
 ---------------------------------------------------------------
-local Header = {};
+local Header = {
 ---------------------------------------------------------------
+	OnClick = nop;
+	OnEnter = UIButtonMixin.OnEnter;
+	OnLeave = UIButtonMixin.OnLeave;
+	SetTooltipInfo   = UIButtonMixin.SetTooltipInfo;
+	SetTooltipAnchor = UIButtonMixin.SetTooltipAnchor;
+};
 
 function Header:OnAcquire(parent)
 	self:SetParent(parent)
 	self:SetWidth(540)
 	self:SetIndentation(0)
-	self:SetScript('OnClick', self.OnClick)
 	self:SetScript('OnHide', self.OnHide)
+	self:SetScript('OnClick', self.OnClick)
+	self:SetScript('OnEnter', self.OnEnter)
+	self:SetScript('OnLeave', self.OnLeave)
 end
 
 function Header:SetIndentation(px)
@@ -59,6 +67,8 @@ function Header:SetIndentation(px)
 end
 
 function Header:Release()
+	self:SetTooltipInfo(nil)
+	self:SetTooltipAnchor(nil)
 	self:GetParent().headerPool:Release(self)
 end
 
@@ -188,6 +198,7 @@ function SettingsContainer:OnLoad()
 	self.headerPool = CreateFramePool('Button', self, 'CPPopupHeaderTemplate')
 	Mixin(self.ScrollChild.Options, Settings):OnLoad(self:GetParent(), self.headerPool)
 	Mixin(self.ScrollChild.Loadout, env.SharedConfig.Loadout):OnLoad(self:GetParent(), self.headerPool)
+	Mixin(self.ScrollChild.Advanced, env.SharedConfig.Advanced):OnLoad(self:GetParent(), self.headerPool)
 	CPAPI.Start(self)
 end
 
@@ -213,6 +224,40 @@ function SettingsContainer:CatchTabIncrement()
 end
 
 ---------------------------------------------------------------
+CPSquareIconButtonMixin = CreateFromMixins(SquareIconButtonMixin);
+---------------------------------------------------------------
+
+function CPSquareIconButtonMixin:OnLoad()
+	SquareIconButtonMixin.OnLoad(self)
+	self:OnMouseUp()
+end
+
+function CPSquareIconButtonMixin:OnMouseUp()
+	self.Icon:SetPoint('CENTER', 0.5, 0)
+end
+
+function CPSquareIconButtonMixin:OnMouseDown()
+	if self:IsEnabled() then
+		self.Icon:SetPoint('CENTER', 0.5, -1);
+	end
+end
+
+---------------------------------------------------------------
+local CommandButton = { ignoreInLayout = true };
+---------------------------------------------------------------
+
+function CommandButton:Setup(config, data)
+	Mixin(self, config)
+	self.data = data;
+	CPSquareIconButtonMixin.OnLoad(self)
+end
+
+function CommandButton:Reset()
+	self.data = nil;
+end
+
+
+---------------------------------------------------------------
 local Config = CreateFromMixins(CPButtonCatcherMixin);
 ---------------------------------------------------------------
 
@@ -222,9 +267,16 @@ function Config:OnLoad()
 	LoadAddOn('ConsolePort_Config');
 	env.SharedConfig.Env = ConsolePortConfig:GetEnvironment();
 	Mixin(Setting, env.SharedConfig.Env.SettingMixin) -- borrow code from the config for the settings
+
 	self.Name:SetText(L'Action Bar Configuration')
-	self.Mover:SetTooltipInfo(L'Move', L'Click here to start moving the configuration window.')
+	self.Mover:SetTooltipInfo(L'Move', L'Start moving the configuration window.')
 	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self, nil, 10))
+	self.Main:SetTooltipInfo(L'Open Main Config', L'Open the main configuration window.')
+	self.Main:SetOnClickHandler(function()
+		self:Hide()
+		ConsolePort()
+	end)
+
 	Mixin(self.SettingsContainer, SettingsContainer):OnLoad()
 	self:RegisterForDrag('LeftButton')
 	self.OnDragStart = self.StartMoving;
@@ -277,4 +329,24 @@ env.SharedConfig = {
 	Setting     = Setting;
 	Header      = Header;
 	HeaderOwner = HeaderOwner;
+	CmdButton   = CommandButton;
+	CreateEditBox = function(parent)
+		local editor = CreateFrame('Frame', nil, parent, 'ScrollingEditBoxTemplate')
+		editor.BG = CreateFrame('Frame', nil, parent, 'BackdropTemplate')
+		editor.BG:SetBackdrop(CPAPI.Backdrops.Opaque)
+		editor.BG:SetBackdropColor(0.15, 0.15, 0.15, 1)
+		editor.BG:SetPoint('TOPLEFT', editor, 'TOPLEFT', -4, 4)
+		editor.BG:SetPoint('BOTTOMRIGHT', editor, 'BOTTOMRIGHT', 4, 0)
+		editor.BG:SetFrameLevel(editor:GetFrameLevel() - 1)
+		return editor;
+	end;
+	CreateSquareButtonPool = function(parent, config)
+		return CreateFramePool('Button', parent, 'CPSquareButtonTemplate', FramePool_HideAndClearAnchorsWithReset, false, function(self)
+			self:SetSize(38, 38)
+			self.owner = self:GetParent()
+			if config then Mixin(self, config) end;
+			if self.Init then self:Init(config) end;
+			SquareIconButtonMixin.OnLoad(self)
+		end)
+	end;
 };
