@@ -457,6 +457,14 @@ function CPClusterBar:SetProps(props)
 	self:SetDynamicProps(props)
 	self:UpdateClusters(props.children or {})
 	self:Show()
+
+	local driver = self.props.rescale;
+	self:RegisterDriver('rescale', driver, [[
+		newstate = (tonumber(newstate) or 100) * 0.01;
+		if newstate > 0 then
+			self:SetScale(newstate)
+		end
+	]])
 end
 
 function CPClusterBar:OnPropsUpdated()
