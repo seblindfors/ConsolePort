@@ -7,7 +7,7 @@ do	-- Initiate frame
 	local hideMenuHook    = {hidemenu = true};
 	local PLAYER_CLASS    = select(2, UnitClass('player'))
 	local IsClassicGameVersion = CPAPI.IsClassicVersion or CPAPI.IsClassicEraVersion or nil;
-	local GameVersionHasCollections = CPAPI.IsRetailVersion or CPAPI.IsClassicVersion or nil;
+	local GameVersionHasCollections = CollectionsMicroButton or nil;
 
 	LibStub('Carpenter')(Menu, {
 		Character = {
@@ -172,15 +172,14 @@ do	-- Initiate frame
 					_Point = {'TOP', '$parent.Spellbook', 'BOTTOM', 0, 0};
 					_Text  = COLLECTIONS;
 					_RefTo = CollectionsMicroButton;
-					_Image = CPAPI.IsRetailVersion and 'MountJournalPortrait';
-					_CustomImage = CPAPI.IsClassicVersion and [[Interface\Icons\inv_misc_enggizmos_19]];
+					_CustomImage = [[Interface\Icons\inv_misc_enggizmos_19]];
 					_Attributes = hideMenuHook;
 				};
-				Keyring = IsClassicGameVersion and {
-					_ID    = CPAPI.IsClassicVersion and 6 or 5;
+				Keyring = KeyRingButton and {
+					_ID    = GameVersionHasCollections and 6 or 5;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
-					_Point = {'TOP', CPAPI.IsClassicVersion and '$parent.Collections' or '$parent.Spellbook', 'BOTTOM', 0, 0};
+					_Point = {'TOP', GameVersionHasCollections and '$parent.Collections' or '$parent.Spellbook', 'BOTTOM', 0, 0};
 					_Text  = KEYRING;
 					_RefTo = KeyRingButton;
 					_Attributes = hideMenuHook;
@@ -205,7 +204,7 @@ do	-- Initiate frame
 					_Attributes = hideMenuHook;
 					_CustomImage = IsClassicGameVersion and [[Interface\QUESTFRAME\UI-QuestLog-BookIcon]];
 				};
-				WorldMap = IsClassicGameVersion and {
+				WorldMap = MiniMapWorldMapButton and {
 					_ID    = 2;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -257,7 +256,7 @@ do	-- Initiate frame
 						};
 					};
 				};
-				Finder = {
+				Finder = (LFDMicroButton or LFGMicroButton or nil) and {
 					_ID    = 3;
 					_Type  = 'Button';
 					_Setup = baseTemplates;
@@ -285,7 +284,7 @@ do	-- Initiate frame
 					_Image = ('Achievement_PVP_%1$s_%1$s'):format(UnitFactionGroup('player'):sub(1,1));
 					_Hooks = {
 						OnClick = function()
-							PVPParentFrame:Show() -- hack because this micro button is using OnMouseDown/OnMouseUp for some reason
+							ShowUIPanel(PVPFrame or PVPParentFrame) -- hack because this micro button is using OnMouseDown/OnMouseUp for some reason
 						end;
 					};
 				};

@@ -1,7 +1,7 @@
-## Interface: 100206
-## Interface-Classic: 11501
-## Interface-BCC: 20504
+## Interface: 100207
+## Interface-Classic: 11502
 ## Interface-Wrath: 30403
+## Interface-Cata: 40400
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Action Bar|r
 ## Notes: Action bar module
