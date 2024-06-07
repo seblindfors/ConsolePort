@@ -11,7 +11,7 @@ local color  = function(v) return ('%.2x%.2x%.2x%.2x'):format(CreateColor(unpack
 function env.IsV1Layout(preset)
 	-- The format of V1 had a single layout table, while V2 has a
 	-- table of children layouts mapped in the manager.
-	return type(preset.layout) == 'table' and not preset.children;
+	return type(preset) == 'table' and type(preset.layout) == 'table' and not preset.children;
 end
 
 -- Migration: V1 -> V2
@@ -125,13 +125,32 @@ end
 ---------------------------------------------------------------
 -- V2 Upgrade
 ---------------------------------------------------------------
+function env.IsV2Layout(preset)
+	return type(preset) == 'table' and type(preset.children) == 'table';
+end
+
 function env.UpgradeLayout(layout)
 	if env.IsV1Layout(layout) then
 		layout = env.ConvertV1Layout(layout);
 	end
-	for child, data in pairs(layout.children) do
-		layout.children[child] = env.Interface[data.type]():Warp(data);
-		-- TODO: upgrade children
+
+	local function UpgradeInterface(data)
+		if data.children then
+			for child, childData in pairs(data.children) do
+				data.children[child] = UpgradeInterface(childData)
+			end
+		end
+		if data.type then
+			return env.Interface[data.type]():Warp(data)
+		end
+		return data;
 	end
+
+	if layout.children then
+		for child, data in pairs(layout.children) do
+			layout.children[child] = UpgradeInterface(data)
+		end
+	end
+
 	return layout;
 end
