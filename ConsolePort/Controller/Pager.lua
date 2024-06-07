@@ -105,6 +105,9 @@ function Pager:OnDataLoaded()
 	self:SetConditionAndResponse(driver, response)
 end
 
+db:RegisterSafeCallback('Settings/actionPageCondition', Pager.OnDataLoaded, Pager)
+db:RegisterSafeCallback('Settings/actionPageResponse', Pager.OnDataLoaded, Pager)
+
 ---------------------------------------------------------------
 -- Spell headers
 ---------------------------------------------------------------
