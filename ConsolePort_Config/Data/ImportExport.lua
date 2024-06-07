@@ -12,9 +12,9 @@ local BROWSER_FRAME_WIDTH   = 560;
 local BROWSER_FRAME_PADDING =
 	(BROWSER_FRAME_WIDTH - BROWSER_CONTENT_WIDTH) / 2;
 
-local KEYS_MARK  = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+A')
-local KEYS_COPY  = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+C')
-local KEYS_PASTE = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+V')
+local KEYS_MARK  = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+A');
+local KEYS_COPY  = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+C');
+local KEYS_PASTE = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+V');
 
 local KEYS_COPY_STRING = ('%s + %s'):format(KEYS_MARK, KEYS_COPY)
 local EXPORT_DATA_TEXT = L([[
@@ -65,7 +65,8 @@ local AliasMap = {
 		[PFX..'Configs$'] = L'Device Mappings';
 		[PFX..'Cvars$'] = L'Device Settings';
 		[PFX..'Devices$'] = L'Device Profiles';
-		[PFX..'_BarSetup$'] = L'Action Bar Setup';
+		[PFX..'_BarLayout$'] = L'Action Bar Setup';
+		[PFX..'_BarPresets$'] = L'Action Bar Presets';
 		[PFX..'_BarLoadout$'] = L'Action Bar Loadout';
 		[PFX..'_Talents$'] = TALENTS;
 		[PFX..'Bindings/(%u+%d?)/(.*)$'] = function(button, mod)
@@ -90,7 +91,7 @@ local AliasMap = {
 			if type(var) == 'table' then
 				return ('|cFF757575%s|r\n%s'):format(var.head or NOT_APPLICABLE, var.name)
 			end
-			return variable; 
+			return variable;
 		end;
 		[PFX..'Utility/([^/]+)$'] = function(setID)
 			if ( tonumber(setID) == 1 ) then
@@ -112,7 +113,7 @@ local AliasMap = {
 		['^"([%u%d]+)"$'] = function(binding)
 			env.BindingInfo:RefreshDictionary()
 			return env.BindingInfo:GetBindingName(binding) or ('%q'):format(binding)
-		end; 
+		end;
 		['^"(CLICK %w+:%w+)"$'] = function(binding)
 			local _, _, name = db.Bindings:GetDescriptionForBinding(binding)
 			return name or ('%q'):format(binding)
@@ -148,7 +149,7 @@ local ActionPickupHandlers = {
 	spell = function(id) return PickupSpell(id) end;
 	item = function(id) return PickupItem(id) end;
 	summonpet    = C_PetJournal and C_PetJournal.PickupPet;
-	equipmentset = function(id) 
+	equipmentset = function(id)
 		local setID = C_EquipmentSet.GetEquipmentSetID(id)
 		if setID then
 			return C_EquipmentSet.PickupEquipmentSet(setID)
@@ -238,7 +239,8 @@ local Aggregators = {
 		end
 		return vars;
 	end;
-	ConsolePort_BarSetup = function() return ConsolePort_BarSetup end;
+	ConsolePort_BarLayout = function() return ConsolePort_BarLayout end;
+	ConsolePort_BarPresets = function() return ConsolePort_BarPresets end;
 	ConsolePort_BarLoadout = function()
 		local actions = {};
 		for page = 1, 10 do
@@ -247,7 +249,7 @@ local Aggregators = {
 				local actionInfo = {GetActionInfo(((page - 1) * NUM_ACTIONBAR_BUTTONS) + slot)}
 				actions[page][slot] = actionInfo;
 				if (actionInfo[1] == 'macro') then
-					tAppendAll(actionInfo, {GetMacroInfo(actionInfo[2])}) 
+					tAppendAll(actionInfo, {GetMacroInfo(actionInfo[2])})
 				end
 			end
 		end
@@ -298,8 +300,12 @@ local Evaluators = {
 			C_GamePad.SetConfig(config)
 		end
 	end};
-	{'ConsolePort_BarSetup', function(setup)
-		ConsolePort_BarSetup = setup;
+	{'ConsolePort_BarLayout', function(setup)
+		ConsolePort_BarLayout = setup;
+		return true;
+	end};
+	{'ConsolePort_BarPresets', function(presets)
+		ConsolePort_BarPresets = presets;
 		return true;
 	end};
 	{'ConsolePort_BarLoadout', function(actions)

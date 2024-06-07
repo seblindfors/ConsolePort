@@ -65,7 +65,8 @@ local function Uninstall()
 		'ConsolePortShared',
 		-- Saved variables per character
 		'ConsolePortUtility',
-		'ConsolePort_BarSetup',
+		'ConsolePort_BarLayout',
+		'ConsolePort_BarSetup', -- legacy
 	}) do _G[var] = nil; end
 	ReloadUI()
 end
