@@ -48,19 +48,20 @@ Presets.Orthodox = {
 	children = {
 		Toolbar = Interface.Toolbar : Render();
 		Cluster = Interface.Cluster : Render {
+			rescale = '80';
 			children = {
-				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  330, y =  9 } };
-				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =   80, y =  9 } };
-				PADDDOWN     = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  165, y =  9 } };
-				PADDUP       = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  250, y =  9 } };
-				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x =  -80, y =  9 } };
-				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -330, y =  9 } };
-				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -250, y =  9 } };
-				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -165, y =  9 } };
-				PADLTRIGGER  = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  405, y = 75 } };
-				PADLSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  440, y =  9 } };
-				PADRTRIGGER  = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -405, y = 75 } };
-				PADRSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -440, y =  9 } };
+				PADDRIGHT    = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  320, y =  0 } };
+				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =   32, y =  0 } };
+				PADDDOWN     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  128, y =  0 } };
+				PADDUP       = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  224, y =  0 } };
+				PADLTRIGGER  = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  512, y =  0 } };
+				PADLSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  416, y =  0 } };
+				PAD1         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -224, y =  0 } };
+				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x =  -32, y =  0 } };
+				PAD3         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -320, y =  0 } };
+				PAD4         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -128, y =  0 } };
+				PADRTRIGGER  = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -512, y =  0 } };
+				PADRSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -416, y =  0 } };
 			};
 		};
 	};
@@ -76,6 +77,7 @@ Presets.CrossbarMinimal = {
 	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
+			menu = { eye = false };
 			width = 600;
 		};
 		Crossbar = Interface.Group : Render {
@@ -105,6 +107,7 @@ Presets.DiamondGrid = {
 	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
+			menu = { eye = false };
 			width = 600;
 		};
 		Nomod = Interface.Group : Render {
@@ -196,6 +199,7 @@ Presets.Grid = {
 	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
+			menu = { eye = false };
 			width = 600;
 		};
 		DividerMid = Interface.Divider : Render {
@@ -314,6 +318,7 @@ Presets.Crossbar = {
 	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
+			menu = { eye = false };
 			width = 600;
 		};
 		['Left Divider'] = Interface.Divider : Render {
