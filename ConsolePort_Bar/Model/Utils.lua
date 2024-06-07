@@ -328,11 +328,12 @@ do local ModReplacements = {
 	end
 end
 
-function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, arguments, states)
+function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, arguments, states, baseColor)
 	text = L(text);
+	baseColor = baseColor or NORMAL_FONT_COLOR;
 
 	local function MakeBulletList(topic, args, color)
-		local list = NORMAL_FONT_COLOR:WrapTextInColorCode(L(topic)..':')
+		local list = baseColor:WrapTextInColorCode(L(topic)..':')
 		for arg, desc in db.table.spairs(args) do
 			list = ('%s\n• %s - %s'):format(list, color:WrapTextInColorCode(arg), L(desc));
 		end
@@ -341,7 +342,7 @@ function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, argume
 
 	if condition and state then
 		text = ('%s\n\n%s\n[%s] %s; ...'):format(text,
-			NORMAL_FONT_COLOR:WrapTextInColorCode(L'Format'..':'),
+			baseColor:WrapTextInColorCode(L'Format'..':'),
 			BLUE_FONT_COLOR:WrapTextInColorCode(condition),
 			GREEN_FONT_COLOR:WrapTextInColorCode(state));
 		if simple then
@@ -357,7 +358,7 @@ function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, argume
 		text = ('%s\n\n%s'):format(text, MakeBulletList('States', states, GREEN_FONT_COLOR));
 	end
 	if outcome then
-		text = ('%s\n\n%s\n%s'):format(text, NORMAL_FONT_COLOR:WrapTextInColorCode(L'Outcome'..':'), outcome);
+		text = ('%s\n\n%s\n%s'):format(text, baseColor:WrapTextInColorCode(L'Outcome'..':'), L(outcome));
 	end
 	return text;
 end
