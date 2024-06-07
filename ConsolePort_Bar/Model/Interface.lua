@@ -21,7 +21,7 @@ Type.SimplePoint = Data.Interface {
 		point = _{
 			name = 'Anchor';
 			desc = 'Anchor point relative to parent action bar.';
-			Data.Select(env.Const.ValidPoints());
+			Data.Select('CENTER', env.Const.ValidPoints());
 		};
 		x = _{
 			name = 'X Offset';
@@ -106,6 +106,7 @@ Interface.ClusterHandle = Data.Interface {
 	name = 'Cluster Handle';
 	desc = 'A button cluster for all modifiers of a single button.';
 	Data.Table {
+		type = {hide = true; Data.String('ClusterHandle')};
 		pos = _(Type.SimplePoint : Implement {
 			desc = 'Position of the button cluster.';
 		});
@@ -214,6 +215,23 @@ Interface.Toolbar = Data.Interface {
 				point = 'BOTTOM';
 			};
 		});
+		menu = _{
+			name = 'Menu';
+			desc = 'Menu buttons to display on the toolbar.';
+			Data.Table {
+				eye = _{
+					name = 'Cluster Modifier Toggle';
+					desc = 'Toggle visibility of all modifier flyouts for cluster action bars.';
+					Data.Bool(true);
+				};
+				micromenu = _{
+					name = 'Micro Menu';
+					desc = 'Take ownership of, and move the micro menu buttons to the toolbar.';
+					note = 'May require /reload to fully unhook when disabled.';
+					Data.Bool(true);
+				};
+			};
+		};
 		width = _{
 			name = 'Width';
 			desc = 'Width of the toolbar.';
