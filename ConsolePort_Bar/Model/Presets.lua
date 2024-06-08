@@ -21,6 +21,7 @@ Presets.Default = {
 	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar:Render();
+		Petring = Interface.Petring:Render();
 		Cluster = Interface.Cluster:Render {
 			rescale  = '90';
 			children = {
@@ -32,8 +33,8 @@ Presets.Default = {
 				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -306, y =  40 } };
 				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -240, y =  84 } };
 				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -240, y =   0 } };
-				PADLSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  456, y =  40 } };
-				PADRSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -456, y =  40 } };
+				PADLSHOULDER = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  456, y =  40 } };
+				PADRSHOULDER = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -456, y =  40 } };
 				PADLTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  396, y =   0 } };
 				PADRTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -396, y =   0 } };
 			};

@@ -1,0 +1,87 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="Petring.lua"/>
+
+	<CheckButton name="CPPetRingButton" virtual="true" mixin="CPPetRingButton" frameLevel="4" alpha="0"
+		registerForClicks="LeftButtonUp, RightButtonUp, MiddleButtonDown, MiddleButtonUp"
+		inherits="SecureActionButtonTemplate, PetActionButtonTemplate">
+		<Size x="40" y="40"/>
+		<Attributes>
+			<Attribute name="type" value="pet"/>
+		</Attributes>
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnSizeChanged method="OnSizeChanged"/>
+		</Scripts>
+	</CheckButton>
+
+	<Button name="CPPetRing" virtual="true" mixin="CPPetRing" hidden="true"
+		inherits="SecureUnitButtonTemplate"
+		registerForClicks="LeftButtonDown, RightButtonDown">
+		<Size x="70" y="70"/>
+		<Attributes>
+			<Attribute name="type1" value="target"/>
+			<Attribute name="type2" value="togglemenu"/>
+			<Attribute name="unit" value="pet"/>
+		</Attributes>
+		<KeyValues>
+			<KeyValue key="unit" value="pet"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad inherit="append" method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnEvent method="OnEvent"/>
+		</Scripts>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Portrait">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="2" y="-2"/>
+						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Shadow" alpha="0.75"
+					file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\BigShadow">
+					<Size x="82" y="82"/>
+					<Anchors>
+						<Anchor point="CENTER" y="-5"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Border" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Ring" frameLevel="3" alpha="0">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-48" y="48"/>
+					<Anchor point="BOTTOMRIGHT" x="48" y="-48"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<MaskTexture parentKey="Mask" setAllPoints="true"
+							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\PetRingMask"/>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Border" setAllPoints="true" rotation="18"
+							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\PetRing"/>
+					</Layer>
+				</Layers>
+			</Frame>
+			<CheckButton id="1"  name="$parentButton1"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="2"  name="$parentButton2"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="3"  name="$parentButton3"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="4"  name="$parentButton4"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="5"  name="$parentButton5"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="6"  name="$parentButton6"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="7"  name="$parentButton7"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="8"  name="$parentButton8"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="9"  name="$parentButton9"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="10" name="$parentButton10" parentArray="Buttons" inherits="CPPetRingButton"/>
+		</Frames>
+	</Button>
+</Ui>

@@ -34,5 +34,6 @@ Widget\Group\Group.xml
 
 View\Blizzard\Blizzard.xml
 View\Toolbar\Toolbar.xml
+View\Pet\Pet.xml
 View\Config\Config.xml
 View\Manager\Manager.xml

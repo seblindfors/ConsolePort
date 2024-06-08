@@ -5,10 +5,11 @@ _ = function(i) i.sort = c() return i end;
 ---------------------------------------------------------------
 
 env.Toplevel = {
-	Toolbar = true;
 	Cluster = false;
 	Divider = false;
 	Group   = false;
+	Petring = true;
+	Toolbar = true;
 }; -- k: interface, v: unique
 
 ---------------------------------------------------------------
@@ -201,6 +202,31 @@ Interface.Group = Data.Interface {
 		rescale    = _(Type.Scale : Implement {});
 		visibility = _(Type.Visibility : Implement {});
 		opacity    = _(Type.Opacity : Implement {});
+	};
+};
+
+Interface.Petring = Data.Interface {
+	name = 'Pet Ring';
+	desc = 'A ring of buttons for pet commands.';
+	Data.Table {
+		type = {hide = true; Data.String('Petring')};
+		pos = _(Type.SimplePoint : Implement {
+			desc = 'Position of the pet ring.';
+			{
+				point = 'BOTTOM';
+				y     = 90;
+			};
+		});
+		fade = _{
+			name = 'Fade Buttons';
+			desc = 'Fade out the pet ring when not moused over.';
+			Data.Bool(true);
+		};
+		scale = _{
+			name = 'Scale';
+			desc = 'Scale of the pet ring.';
+			Data.Range(0.75, 0.05, 0.5, 2);
+		};
 	};
 };
 
