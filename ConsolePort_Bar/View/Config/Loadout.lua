@@ -146,7 +146,6 @@ end
 ---------------------------------------------------------------
 -- Reusable widgets for manipulating the loadout.
 
-
 ---------------------------------------------------------------
 local Popout = {};
 ---------------------------------------------------------------
@@ -521,6 +520,8 @@ function Preset:OnLoad()
 	Mixin(self, Widgets.Base)
 	self:SetScript('OnEnter', Widgets.Base.OnEnter)
 	self:SetScript('OnLeave', Widgets.Base.OnLeave)
+	self:HookScript('OnEnter', self.LockHighlight)
+	self:HookScript('OnLeave', self.UnlockHighlight)
 	self:SetScript('OnClick', self.OnPresetClick)
 	self.disableTooltipHints = true;
 end

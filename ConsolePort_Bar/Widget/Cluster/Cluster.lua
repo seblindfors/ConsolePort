@@ -569,7 +569,7 @@ env:AddFactory(CLUSTER_SHADOW, function(_, parent, owner, layoutData)
 end)
 
 env:RegisterCallbacks(function(self)
-	local style = env.Const.Cluster.BorderStyle[self('clusterBorderStyle')];
+	local style = self.Const.Cluster.BorderStyle[self('clusterBorderStyle')];
 	for key, texture in pairs(style) do
 		self.Const.Cluster.AdjustTextures[NOMOD][key] = texture;
 	end
