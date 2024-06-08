@@ -4,6 +4,7 @@
 	<Script file="Config.lua"/>
 	<Script file="Loadout.lua"/>
 	<Script file="Advanced.lua"/>
+	<Script file="Panel.lua"/>
 
 	<Button name="CPSquareButtonTemplate" virtual="true" motionScriptsWhileDisabled="true" mixin="CPSquareIconButtonMixin" inherits="SquareIconButtonTemplate">
 		<Size x="48" y="48"/>
