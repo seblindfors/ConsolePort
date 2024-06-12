@@ -31,6 +31,7 @@ Widget\Button\Button.xml
 Widget\Bar\Bar.xml
 Widget\Cluster\Cluster.xml
 Widget\Group\Group.xml
+Widget\Page\Page.xml
 
 View\Blizzard\Blizzard.xml
 View\Toolbar\Toolbar.xml
