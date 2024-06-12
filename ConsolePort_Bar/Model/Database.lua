@@ -1,5 +1,47 @@
 local _, env = ...;
 ---------------------------------------------------------------
+-- Constants
+---------------------------------------------------------------
+env.Const.ProxyKeyOptions = function()
+	local keys = {};
+	for buttonID in pairs(env.db.Gamepad.Index.Button.Binding) do
+		if CPAPI.IsButtonValidForBinding(buttonID) then
+			keys[buttonID] = buttonID;
+		end
+	end
+	return keys;
+end
+
+env.Const.DefaultPresetName = ('%s (%s)'):format(GetUnitName('player'), GetRealmName());
+env.Const.ManagerVisibility = '[petbattle] hide; show';
+env.Const.DefaultVisibility = '[vehicleui][overridebar] hide; show';
+
+env.Const.ValidFontFlags = CPAPI.Enum('OUTLINE', 'THICKOUTLINE', 'MONOCHROME');
+env.Const.ValidJustifyH  = CPAPI.Enum('LEFT', 'CENTER', 'RIGHT');
+env.Const.ValidPoints    = CPAPI.Enum(
+	'CENTER', 'TOP',      'BOTTOM',
+	'LEFT',   'TOPLEFT',  'BOTTOMLEFT',
+	'RIGHT',  'TOPRIGHT', 'BOTTOMRIGHT'
+);
+env.Const.PageDescription =  {
+	['vehicleui']   = 'Vehicle UI is active.';
+	['possessbar']  = 'Possess bar is visible, such as Mind Control or Eyes of the Beast.';
+	['overridebar'] = 'An override bar is active, used when the specific scenario does not have a vehicle UI.';
+	['shapeshift']  = 'Temporarily shapeshifted, but not forms or stances that have their own action bar.';
+	['bar:1']       = 'Selected page 1 (default)';
+	['bar:2']       = 'Selected page 2';
+	['bar:3']       = 'Selected page 3';
+	['bar:4']       = 'Selected page 4';
+	['bar:5']       = 'Selected page 5';
+	['bar:6']       = 'Selected page 6';
+	['bonusbar:1']  = 'Stance/Form 1';
+	['bonusbar:2']  = 'Stance/Form 2';
+	['bonusbar:3']  = 'Stance/Form 3';
+	['bonusbar:4']  = 'Stance/Form 4';
+	['bonusbar:5']  = 'Dragonriding';
+};
+
+---------------------------------------------------------------
 do -- Variables
 ---------------------------------------------------------------
 local classColor = CreateColor(CPAPI.NormalizeColor(CPAPI.GetClassColor()));
@@ -9,6 +51,154 @@ env:Register('Variables', CPAPI.Callable({
 	---------------------------------------------------------------
 	_'Action Bars';
 	---------------------------------------------------------------
+	showMainIcons = _{Data.Bool(true);
+		name = 'Show Main Icons';
+		desc = 'Show the icons for main buttons.';
+	};
+	showCooldownText = _{Data.Bool(GetCVarBool('countdownForCooldowns'));
+		name = 'Enable Cooldown Numbers';
+		desc = 'Show numerical cooldown text on buttons.';
+	};
+	disableDND = _{Data.Bool(false);
+		name = 'Disable Drag and Drop';
+		desc = 'Disable dragging and dropping abilities on action bars.';
+	};
+	---------------------------------------------------------------
+	_'Action Buttons';
+	---------------------------------------------------------------
+	LABclickOnDown = _{Data.Bool(true);
+		name = 'Click on Down';
+		desc = 'Trigger button actions on press instead of release.';
+	};
+	LABhideElementsMacro = _{Data.Bool(false);
+		name = 'Hide Macro Text';
+		desc = 'Hide the macro text on buttons.';
+	};
+	LABcolorsRange = _{Data.Color(CreateColor( 0.8, 0.1, 0.1 ));
+		name = 'Out of Range Color';
+		desc = 'Color of the range indicator on buttons.';
+	};
+	LABcolorsMana = _{Data.Color(CreateColor(0.5, 0.5, 1.0 ));
+		name = 'Out of Mana Color';
+		desc = 'Color of the mana indicator on buttons.';
+	};
+	LABtooltip = _{Data.Select('Enabled', 'Enabled', 'Disabled', 'NoCombat');
+		name = 'Tooltip';
+		desc = 'Show tooltips on buttons when moused over.';
+	};
+	---------------------------------------------------------------
+	_'Action Buttons | Hotkeys';
+	---------------------------------------------------------------
+	LABhotkeyColor = _{Data.Color(CreateColor( 0.75, 0.75, 0.75 ));
+		name = 'Color';
+		desc = 'Color of the hotkey text on buttons.';
+	};
+	LABhotkeyFontSize = _{Data.Number(12, 1);
+		name = 'Size';
+		desc = 'Font size of the hotkey text on buttons.';
+	};
+	LABhotkeyPositionOffsetX = _{Data.Number(-2, 1, true);
+		name = 'Offset X';
+		desc = 'Horizontal offset of the hotkey text on buttons.';
+	};
+	LABhotkeyPositionOffsetY = _{Data.Number(-4, 1, true);
+		name = 'Offset Y';
+		desc = 'Vertical offset of the hotkey text on buttons.';
+	};
+	LABhotkeyJustifyH = _{Data.Select('RIGHT', env.Const.ValidJustifyH());
+		name = 'Alignment';
+		desc = 'Alignment of the hotkey text on buttons.';
+	};
+	LABhotkeyFontFlags = _{Data.Select('OUTLINE', env.Const.ValidFontFlags());
+		name = 'Font Flags';
+		desc = 'Font flags of the hotkey text on buttons.';
+	};
+	LABhotkeyPositionAnchor = _{Data.Select('TOPRIGHT', env.Const.ValidPoints());
+		name = 'Anchor';
+		desc = 'Anchor point of the hotkey text on buttons.';
+	};
+	LABhotkeyPositionRelAnchor = _{Data.Select('TOPRIGHT', env.Const.ValidPoints());
+		name = 'Relative Anchor';
+		desc = 'Relative anchor point of the hotkey text on buttons.';
+	};
+	---------------------------------------------------------------
+	_'Action Buttons | Macro Text';
+	---------------------------------------------------------------
+	LABmacroColor = _{Data.Color(WHITE_FONT_COLOR);
+		name = 'Color';
+		desc = 'Color of the macro text on buttons.';
+		deps = { LABhideElementsMacro = false };
+	};
+	LABmacroFontSize = _{Data.Number(10, 1);
+		name = 'Size';
+		desc = 'Font size of the macro text on buttons.';
+		deps = { LABhideElementsMacro = false };
+	};
+	LABmacroPositionOffsetX = _{Data.Number(0, 1, true);
+		name = 'Offset X';
+		desc = 'Horizontal offset of the macro text on buttons.';
+		deps = { LABhideElementsMacro = false };
+	};
+	LABmacroPositionOffsetY = _{Data.Number(2, 1, true);
+		name = 'Offset Y';
+		desc = 'Vertical offset of the macro text on buttons.';
+		deps = { LABhideElementsMacro = false };
+	};
+	LABmacroJustifyH = _{Data.Select('CENTER', env.Const.ValidJustifyH());
+		name = 'Alignment';
+		desc = 'Alignment of the macro text on buttons.';
+		deps = { LABhideElementsMacro = false };
+	};
+	LABmacroFontFlags = _{Data.Select('OUTLINE', env.Const.ValidFontFlags());
+		name = 'Font Flags';
+		desc = 'Font flags of the macro text on buttons.';
+		deps = { LABhideElementsMacro = false };
+	};
+	LABmacroPositionAnchor = _{Data.Select('BOTTOM', env.Const.ValidPoints());
+		name = 'Anchor';
+		desc = 'Anchor point of the macro text on buttons.';
+		deps = { LABhideElementsMacro = false };
+	};
+	LABmacroPositionRelAnchor = _{Data.Select('BOTTOM', env.Const.ValidPoints());
+		name = 'Relative Anchor';
+		desc = 'Relative anchor point of the macro text on buttons.';
+		deps = { LABhideElementsMacro = false };
+	};
+	---------------------------------------------------------------
+	_'Action Buttons | Recharge';
+	---------------------------------------------------------------
+	LABcountColor = _{Data.Color(WHITE_FONT_COLOR);
+		name = 'Color';
+		desc = 'Color of the counter text on buttons.';
+	};
+	LABcountFontSize = _{Data.Number(16, 1);
+		name = 'Size';
+		desc = 'Font size of the counter text on buttons.';
+	};
+	LABcountPositionOffsetX = _{Data.Number(-2, 1, true);
+		name = 'Offset X';
+		desc = 'Horizontal offset of the counter text on buttons.';
+	};
+	LABcountPositionOffsetY = _{Data.Number(4, 1, true);
+		name = 'Offset Y';
+		desc = 'Vertical offset of the counter text on buttons.';
+	};
+	LABcountJustifyH = _{Data.Select('RIGHT', env.Const.ValidJustifyH());
+		name = 'Alignment';
+		desc = 'Alignment of the counter text on buttons.';
+	};
+	LABcountFontFlags = _{Data.Select('OUTLINE', env.Const.ValidFontFlags());
+		name = 'Font Flags';
+		desc = 'Font flags of the counter text on buttons.';
+	};
+	LABcountPositionAnchor = _{Data.Select('BOTTOMRIGHT', env.Const.ValidPoints());
+		name = 'Anchor';
+		desc = 'Anchor point of the counter text on buttons.';
+	};
+	LABcountPositionRelAnchor = _{Data.Select('BOTTOMRIGHT', env.Const.ValidPoints());
+		name = 'Relative Anchor';
+		desc = 'Relative anchor point of the counter text on buttons.';
+	};
 	---------------------------------------------------------------
 	_'Clusters';
 	---------------------------------------------------------------
@@ -17,10 +207,6 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Show all enabled combinations in the cluster at all times.';
 		note = 'By default, shows modifiers on mouseover and on cooldown.';
 	};
-	clusterShowMainIcons = _{Data.Bool(true);
-		name = 'Show Main Icons';
-		desc = 'Show the icons for main buttons.';
-	};
 	clusterShowFlyoutIcons = _{Data.Bool(true);
 		name = 'Show Modifier Icons';
 		desc = 'Show the icons for modifier buttons.';
@@ -28,6 +214,18 @@ env:Register('Variables', CPAPI.Callable({
 	clusterFullStateModifier = _{Data.Bool(false);
 		name = 'Full State Modifier';
 		desc = 'Enable all modifier states for the cluster, including unmapped modifiers.';
+	};
+	swipeColor = _{Data.Color(classColor);
+		name = 'Swipe Color';
+		desc = 'Color of the cooldown swipe effect on buttons.';
+	};
+	procColor = _{Data.Color(classColor);
+		name = 'Spell Proc Color';
+		desc = 'Color of the spell proc effect.';
+	};
+	borderColor = _{Data.Color(WHITE_FONT_COLOR);
+		name = 'Border Vertex Color';
+		desc = 'Color of the vertices on the border of buttons.';
 	};
 	clusterBorderStyle = _{Data.Select('Normal', 'Normal', 'Large', 'Beveled');
 		name = 'Main Button Border Style';
@@ -46,29 +244,17 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Fade out the watch bars when not mousing over the toolbar.';
 		deps = { enableXPBar = true };
 	};
-	---------------------------------------------------------------
-	_'Colors';
-	---------------------------------------------------------------
 	xpBarColor = _{Data.Color(classColor);
 		name = 'XP Bar Color';
 		desc = 'Color of the main XP bar.';
 		deps = { enableXPBar = true };
 	};
-	swipeColor = _{Data.Color(classColor);
-		name = 'Swipe Color';
-		desc = 'Color of the cooldown swipe effect on buttons.';
-	};
+	---------------------------------------------------------------
+	_(GENERAL);
+	---------------------------------------------------------------
 	tintColor = _{Data.Color(classColor);
 		name = 'Tint Color';
-		desc = 'Color of the tint effect on bars.';
-	};
-	procColor = _{Data.Color(classColor);
-		name = 'Spell Proc Color';
-		desc = 'Color of the spell proc effect.';
-	};
-	borderColor = _{Data.Color(WHITE_FONT_COLOR);
-		name = 'Border Vertex Color';
-		desc = 'Color of the vertices on the border of buttons.';
+		desc = 'Color of the tint effect on some elements.';
 	};
 }, function(self, key) return (rawget(self, key) or {})[1] end))
 ---------------------------------------------------------------
@@ -247,21 +433,3 @@ env.Const.Cluster.ModDriver = (function(driver, ...)
 end)( {}, env.Const.Cluster.ModNames() )
 
 end -- Cluster information
-
-env.Const.ProxyKeyOptions = function()
-	local keys = {};
-	for buttonID in pairs(env.db.Gamepad.Index.Button.Binding) do
-		if CPAPI.IsButtonValidForBinding(buttonID) then
-			keys[buttonID] = buttonID;
-		end
-	end
-	return keys;
-end
-
-env.Const.DefaultPresetName = ('%s (%s)'):format(GetUnitName('player'), GetRealmName());
-env.Const.ManagerVisibility = '[petbattle][vehicleui][overridebar] hide; show';
-env.Const.ValidPoints = CPAPI.Enum(
-	'CENTER', 'TOP',      'BOTTOM',
-	'LEFT',   'TOPLEFT',  'BOTTOMLEFT',
-	'RIGHT',  'TOPRIGHT', 'BOTTOMRIGHT'
-);
