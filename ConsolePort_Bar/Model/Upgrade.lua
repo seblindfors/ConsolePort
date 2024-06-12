@@ -92,18 +92,15 @@ function env.ConvertV1Layout(v1)
 		end
 	end
 
+	local v2 = CopyTable(env.Presets.Default)
+	v2.name = env.Const.DefaultPresetName;
+	v2.desc = db.Locale'Player action bar setup.';
+	v2.children.Cluster = env.Interface.Cluster:Render {
+		children = buttons;
+	};
+
 	-- Register in database to leverage pathing.
-	local v2 = env:Register('v2', {
-		name       = env.Const.DefaultPresetName;
-		desc       = db.Locale'Player action bar setup.';
-		visibility = env.Const.ManagerVisibility;
-		children = {
-			Toolbar = env.Interface.Toolbar:Render();
-			Cluster = env.Interface.Cluster:Render {
-				children = buttons;
-			};
-		};
-	});
+	env:Register('v2', v2);
 
 	-- Transfer layout settings to the new layout.
 	for deprecated, value in pairs(v1) do
