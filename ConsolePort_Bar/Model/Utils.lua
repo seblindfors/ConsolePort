@@ -132,7 +132,11 @@ do -- Widget factory
 		assert(type(id) == 'string', 'Factory widget ID must be a string')
 		local signature = self.MakeSig(frameType, id);
 		if not Widgets[signature] then
-			Widgets[signature] = Factories[frameType](id, ...);
+			local widget = Factories[frameType](id, ...);
+			Widgets[signature] = widget;
+			if ( widget.SetAttribute ) then
+				widget:SetAttribute('signature', signature);
+			end
 		end
 		ActiveWidgets[Widgets[signature]] = signature;
 		return Widgets[signature];
@@ -325,6 +329,23 @@ do local ModReplacements = {
 			return capture:gsub('%s', '')
 		end)
 		return (driver:gsub('%[mod:%]', '[nomod]'))
+	end
+end
+
+function env.MapDriver(driver)
+	local result, i = {}, 0;
+	for condition, response in driver:gmatch('(%b[])([^;]+)') do
+		tinsert(result, { ( response:trim() ), ( condition:sub(2, -2) ) });
+	end
+	for response in driver:gmatch('([^;%[%]]+)$') do
+		tinsert(result, { response:trim(), nil })
+	end
+	return function()
+		i = i + 1;
+		if result[i] then
+			return unpack(result[i]);
+		end
+		return nil;
 	end
 end
 
