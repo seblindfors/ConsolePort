@@ -39,7 +39,7 @@ function Pager:GetDefaultPageCondition()
 	local count, cond = 0, ''
 	for i, macroCondition in ipairs({
 		----------------------------------
-		'vehicleui', 'possessbar', 'overridebar', 'shapeshift',
+		'possessbar', 'overridebar', 'shapeshift',
 		'bar:2', 'bar:3', 'bar:4', 'bar:5', 'bar:6',
 		'bonusbar:1', 'bonusbar:2', 'bonusbar:3', 'bonusbar:4', 'bonusbar:5'
 		----------------------------------
