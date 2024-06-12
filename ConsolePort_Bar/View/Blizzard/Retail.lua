@@ -91,6 +91,7 @@ function env.UIHandler:HideBlizzard()
 		PossessActionBar         = true;
 		StanceBar                = true;
 		StatusTrackingBarManager = false;
+		OverrideActionBar        = true;
 	}) do
 		hideEditModeFrame(_G[frame], clearEvents)
 	end
