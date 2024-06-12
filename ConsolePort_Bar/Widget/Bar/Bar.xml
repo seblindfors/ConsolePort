@@ -2,12 +2,12 @@
 ..\FrameXML\UI.xsd">
 	<Script file="Bar.lua"/>
 
-	<Frame name="CPActionBar" virtual="true" clampedToScreen="true" movable="true" mixin="CPActionBar" inherits="SecureHandlerStateTemplate, SecureHandlerShowHideTemplate">
-		<Size x="900" y="140"/>
-		<Scripts>
-			<OnDragStart method="StartMoving"/>
-			<OnDragStop method="StopMovingOrSizing"/>
-		</Scripts>
-	</Frame>
+	<Frame name="CPActionBar" inherits="SecureHandlerStateTemplate, SecureHandlerShowHideTemplate"
+		mixin="CPActionBar" 
+		virtual="true"
+		clampedToScreen="true"
+		movable="true"
+		hidden="true"
+	/>
 
 </Ui>
