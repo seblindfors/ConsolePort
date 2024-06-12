@@ -51,23 +51,7 @@ local Advanced = Mixin({
 			text   = env.MakeMacroDriverDesc(
 				'Global condition of the action bar page. Accepts pairs of a macro condition and a page number, or a single page number.',
 				'Sends the resulting page to the response handler for post-processing.',
-				'actionbar', 'page', true, {
-					['vehicleui']   = 'Vehicle UI is active.';
-					['possessbar']  = 'Possess bar is visible, such as Mind Control or Eyes of the Beast.';
-					['overridebar'] = 'An override bar is active, used when the specific scenario does not have a vehicle UI.';
-					['shapeshift']  = 'Temporarily shapeshifted, but not forms or stances that have their own action bar.';
-					['bar:1']       = 'Selected page 1 (default)';
-					['bar:2']       = 'Selected page 2';
-					['bar:3']       = 'Selected page 3';
-					['bar:4']       = 'Selected page 4';
-					['bar:5']       = 'Selected page 5';
-					['bar:6']       = 'Selected page 6';
-					['bonusbar:1']  = 'Stance/Form 1';
-					['bonusbar:2']  = 'Stance/Form 2';
-					['bonusbar:3']  = 'Stance/Form 3';
-					['bonusbar:4']  = 'Stance/Form 4';
-					['bonusbar:5']  = 'Dragonriding';
-				}, {
+				'actionbar', 'page', true, env.Const.PageDescription, {
 					n = 'Page number to forward to the response handler.';
 					any = 'A simple value (number, string, boolean) to forward to the response handler where the real action page number is calculated.';
 				}, WHITE_FONT_COLOR);
