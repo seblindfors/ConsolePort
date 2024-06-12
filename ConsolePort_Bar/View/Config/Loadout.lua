@@ -73,7 +73,10 @@ local function GetPresets()
 end
 
 ---------------------------------------------------------------
-local LoadoutSetting, DP = CreateFromMixins(env.SharedConfig.Setting), 1;
+local LoadoutSetting, DP = Mixin({
+	LineMinColor = CreateColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 0.05);
+	LineMaxColor = NORMAL_FONT_COLOR;
+}, env.SharedConfig.Setting), 1;
 ---------------------------------------------------------------
 local function ReleaseSetting(_, self)
 	self:Hide()
@@ -103,12 +106,24 @@ function LoadoutSetting:AddChild(child)
 end
 
 function LoadoutSetting:ToggleChildren(show)
+	self.Line:SetShown(self.children and show)
 	if self.children then
 		for child in pairs(self.children) do
 			child:SetShown(show)
 		end
 		self:GetParent().refreshChildren = self.children;
 		self:GetParent():MarkDirty()
+		if show then
+			RunNextFrame(function()
+				local target = self;
+				for child in pairs(self.children) do
+					if child.layoutIndex > target.layoutIndex then
+						target = child;
+					end
+				end
+				self.Line:SetPoint('BOTTOM', target, 'BOTTOM', 0, 0)
+			end)
+		end
 	end
 end
 
@@ -135,6 +150,13 @@ function LoadoutSetting:OnCreate()
 	self:HookScript('OnHide', self.OnHide)
 	self:HookScript('OnEnter', self.OnEnterHighlight)
 	self:HookScript('OnLeave', self.OnLeaveHighlight)
+
+	self.Line = self:CreateTexture(nil, 'BACKGROUND', nil, -1)
+	self.Line:SetColorTexture(WHITE_FONT_COLOR:GetRGBA())
+	self.Line:SetGradient('VERTICAL', self.LineMinColor, self.LineMaxColor)
+	self.Line:SetPoint('TOP', self.Icon, 'CENTER', 0, 0)
+	self.Line:SetWidth(2)
+	self.Line:Hide()
 end
 
 function LoadoutSetting:OnChildChanged(child, value)
@@ -917,10 +939,12 @@ function Loadout:GetPresetSaveFrame()
 	if tooltipHints then
 		for variableID in db.table.spairs(env.Settings) do
 			local variable = env.Variables[variableID];
-			local head, name = variable.head, variable.name;
-			tinsert(tooltipHints, ('• %s: %s'):format(
-				BLUE_FONT_COLOR:WrapTextInColorCode(L(head)),
-				GREEN_FONT_COLOR:WrapTextInColorCode(L(name))));
+			if variable then
+				local head, name = variable.head, variable.name;
+				tinsert(tooltipHints, ('• %s: %s'):format(
+					BLUE_FONT_COLOR:WrapTextInColorCode(L(head)),
+					GREEN_FONT_COLOR:WrapTextInColorCode(L(name))));
+			end
 		end
 	end
 	self.presetSaveFrame.options:SetEnabled(tooltipHints);
