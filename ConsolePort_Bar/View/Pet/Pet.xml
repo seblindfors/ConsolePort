@@ -16,6 +16,15 @@
 		</Scripts>
 	</CheckButton>
 
+	<Cooldown name="CPPetRingPower" virtual="true" inherits="CooldownFrameTemplate"
+		hideCountdownNumbers="true"
+		useCircularEdge="true"
+		drawEdge="false"
+		drawBling="false"
+		rotation="180"
+		frameLevel="3"
+	/>
+
 	<Button name="CPPetRing" virtual="true" mixin="CPPetRing" hidden="true"
 		inherits="SecureUnitButtonTemplate"
 		registerForClicks="LeftButtonDown, RightButtonDown">
@@ -35,26 +44,6 @@
 			<OnLeave method="OnLeave"/>
 			<OnEvent method="OnEvent"/>
 		</Scripts>
-		<Layers>
-			<Layer level="ARTWORK">
-				<Texture parentKey="Portrait">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="2" y="-2"/>
-						<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
-					</Anchors>
-				</Texture>
-				<Texture parentKey="Shadow" alpha="0.75"
-					file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\BigShadow">
-					<Size x="82" y="82"/>
-					<Anchors>
-						<Anchor point="CENTER" y="-5"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="OVERLAY">
-				<Texture parentKey="Border" setAllPoints="true"/>
-			</Layer>
-		</Layers>
 		<Frames>
 			<Frame parentKey="Ring" frameLevel="3" alpha="0">
 				<Anchors>
@@ -72,6 +61,68 @@
 					</Layer>
 				</Layers>
 			</Frame>
+			<Frame parentKey="Background" setAllPoints="true" frameLevel="2">
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Background" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon" desaturated="true">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="-9" y="9"/>
+								<Anchor point="BOTTOMRIGHT" x="9" y="-9"/>
+							</Anchors>
+							<Color r="0.5" g="0.5" b="0.5"/>
+						</Texture>
+						<MaskTexture parentKey="CircleMask" file="Interface\Masks\CircleMaskScalable" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.Background"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Background"/>
+							</Anchors>
+							<MaskedTextures>
+								<MaskedTexture childKey="Background"/>
+							</MaskedTextures>
+						</MaskTexture>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame parentKey="Center" setAllPoints="true" frameLevel="4">
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Line parentKey="Separator" thickness="2">
+							<Color r="0.2" g="0.2" b="0.2" a="1"/>
+							<StartAnchor relativeKey="$parent" relativePoint="TOP" y="4"/>
+							<EndAnchor relativeKey="$parent" relativePoint="BOTTOM" y="-4"/>
+						</Line>
+					</Layer>
+					<Layer level="ARTWORK">
+						<Texture parentKey="Portrait">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="2" y="-2"/>
+								<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture parentKey="InnerBorder" setAllPoints="true"/>
+						<Texture parentKey="OuterBorder">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="-9" y="9"/>
+								<Anchor point="BOTTOMRIGHT" x="9" y="-9"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Cooldown parentKey="Health" inherits="CPPetRingPower" reverse="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-4" y="4"/>
+					<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
+				</Anchors>
+			</Cooldown>
+			<Cooldown parentKey="Power" inherits="CPPetRingPower">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-4" y="4"/>
+					<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
+				</Anchors>
+			</Cooldown>
 			<CheckButton id="1"  name="$parentButton1"  parentArray="Buttons" inherits="CPPetRingButton"/>
 			<CheckButton id="2"  name="$parentButton2"  parentArray="Buttons" inherits="CPPetRingButton"/>
 			<CheckButton id="3"  name="$parentButton3"  parentArray="Buttons" inherits="CPPetRingButton"/>

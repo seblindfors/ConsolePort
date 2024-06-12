@@ -215,25 +215,54 @@ function CPPetRing:OnLoad()
 	for i, button in ipairs(self.Buttons) do
 		button:Init(i)
 	end
-	env:RegisterCallback('Settings/clusterBorderStyle', self.OnPropsUpdated, self)
+
+	self.Power:SetSwipeTexture(env.Const.Cluster.BorderStyle.Large.HighlightTexture)
+	self.Health:SetSwipeTexture(env.Const.Cluster.BorderStyle.Large.HighlightTexture)
+
+	self:UpdatePower()
+	self.Health:SetSwipeColor(0, 1, 0, 1)
+
 	env:RegisterCallback('OnLoadoutConfigShown', self.OnLoadoutConfigShown, self)
+	env:RegisterCallbacks(self.OnVariableChanged, self,
+		'Settings/clusterBorderStyle',
+		'Settings/borderColor'
+	);
 end
 
 function CPPetRing:SetProps(props)
 	self:SetDynamicProps(props)
 
-	local style = env.Const.Cluster.BorderStyle[env('clusterBorderStyle')];
-	self.Border:SetTexture(style.NormalTexture)
-	RegisterStateDriver(self, 'visibility', '[pet] show; hide')
+	local showStatus = props.status;
+	local hri = showStatus and -4 or 0;
+	self:SetHitRectInsets(hri, hri, hri, hri)
+	self.Power:SetShown(showStatus)
+	self.Health:SetShown(showStatus)
+	self.Background:SetShown(showStatus)
+	self.Center.Separator:SetShown(showStatus)
+	self.Center.OuterBorder:SetShown(showStatus)
+	self:SetScript('OnUpdate', showStatus and self.OnUpdate or nil)
+
+	RegisterStateDriver(self, 'visibility', (not props.vehicle and '[vehicleui] hide; ' or '')..'[pet] show; hide')
 
 	self:Update()
 	self:UpdateCooldowns()
+	self:OnVariableChanged()
 end
 
 function CPPetRing:OnPropsUpdated()
 	self:FadeIn()
 	self:SetProps(self.props)
 	self:UpdateFade()
+end
+
+function CPPetRing:OnVariableChanged()
+	local style = env.Const.Cluster.BorderStyle[env('clusterBorderStyle')];
+	self.Center.InnerBorder:SetTexture(style.NormalTexture)
+	self.Center.OuterBorder:SetTexture(env.Const.Cluster.BorderStyle.Large.NormalTexture)
+
+	local color = env:GetColor('borderColor')
+	self.Center.InnerBorder:SetVertexColor(color:GetRGBA())
+	self.Center.OuterBorder:SetVertexColor(color:GetRGBA())
 end
 
 function CPPetRing:OnShow()
@@ -259,8 +288,36 @@ function CPPetRing:OnEvent(event, ...)
 	self:Update()
 end
 
+function CPPetRing:OnUpdate(elapsed)
+	self.elapsed = (self.elapsed or 0) + elapsed;
+	if self.elapsed > 0.1 then
+		self.elapsed = 0;
+		return;
+	end
+	local unit, powerType = self.unit, self.powerType;
+	local health = UnitHealth(unit) / UnitHealthMax(unit);
+	if ( self.health ~= health ) then
+		self.health = health;
+		self:SetHealth(health)
+	end
+	if not powerType then return end;
+	local power = UnitPower(unit, powerType) / UnitPowerMax(unit, powerType);
+	if ( self.power ~= power ) then
+		self.power = power;
+		self:SetPower(power)
+	end
+end
+
 function CPPetRing:OnRelease()
 	UnregisterStateDriver(self, 'visibility')
+end
+
+function CPPetRing:SetHealth(health)
+	CooldownFrame_SetDisplayAsPercentage(self.Health, health * 0.5)
+end
+
+function CPPetRing:SetPower(power)
+	CooldownFrame_SetDisplayAsPercentage(self.Power, 1 - power * 0.5)
 end
 
 ---------------------------------------------------------------
@@ -279,8 +336,17 @@ function CPPetRing:UpdateCooldowns()
 	end
 end
 
+function CPPetRing:UpdatePower()
+	local powerType = UnitPowerType(self.unit)
+	if not powerType then return end;
+
+	local powerColor = PowerBarColor[powerType];
+	self.powerType = powerType;
+	self.Power:SetSwipeColor(powerColor.r, powerColor.g, powerColor.b, 1)
+end
+
 function CPPetRing:UNIT_PORTRAIT_UPDATE()
-	SetPortraitTexture(self.Portrait, 'pet')
+	SetPortraitTexture(self.Center.Portrait, 'pet')
 end
 
 function CPPetRing:PET_BAR_UPDATE_COOLDOWN()
@@ -290,6 +356,7 @@ end
 function CPPetRing:UNIT_PET()
 	self:UNIT_PORTRAIT_UPDATE()
 	self:Update()
+	self:UpdatePower()
 end
 
 ---------------------------------------------------------------
