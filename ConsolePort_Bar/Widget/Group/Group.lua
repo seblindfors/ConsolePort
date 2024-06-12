@@ -61,26 +61,6 @@ function Button:OnLoad()
 
 	self:HookScript('OnEnter', self.OnMouseMotionFocus)
 	self:HookScript('OnLeave', self.OnMouseMotionClear)
-
-	if CPAPI.IsClassicVersion then
-		-- Assert assets on all client flavors
-		local skinner = env.LIB.SkinUtility;
-		skinner.GetIconMask(self)
-		skinner.GetHighlightTexture(self)
-		skinner.GetCheckedTexture(self)
-		skinner.GetPushedTexture(self)
-		skinner.GetCheckedTexture(self)
-		skinner.GetSlotBackground(self)
-		self:SetSize(45, 45)
-		self.IconMask:SetPoint('CENTER', self.icon, 'CENTER', 0, 0)
-		self.IconMask:SetSize(46, 46)
-		self.IconMask:SetTexture(
-			CPAPI.GetAsset([[Textures\Button\EmptyIcon]]),
-			'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE'
-		);
-	end
-
-	self:UpdateLocal(true)
 end
 
 function Button:SetProps(props)
@@ -124,57 +104,9 @@ function Button:GetSnapSize()
 	return 5;
 end
 
-if CPAPI.IsClassicVersion then
-	local TextureInfo = {
-		NormalTexture = {
-			atlas = 'UI-HUD-ActionBar-IconFrame-AddRow';
-			size  = {52, 51};
-		};
-		PushedTexture = {
-			atlas = 'UI-HUD-ActionBar-IconFrame-AddRow-Down';
-			size  = {52, 51};
-		};
-		HighlightTexture = {
-			atlas = 'UI-HUD-ActionBar-IconFrame-Mouseover';
-			size  = {46, 45};
-		};
-		CheckedTexture = {
-			atlas = 'UI-HUD-ActionBar-IconFrame-Mouseover';
-			size  = {46, 45};
-		};
-	};
-	function Button:UpdateLocal()
-		if self.MasqueSkinned then return end;
-		if self.config.hideElements.border then
-			self.NormalTexture:SetTexture()
-			self.PushedTexture:SetTexture()
-			self.icon:RemoveMaskTexture(self.IconMask)
-			self.HighlightTexture:SetSize(52, 51)
-			self.HighlightTexture:SetPoint('TOPLEFT', self, 'TOPLEFT', -2.5, 2.5)
-			self.CheckedTexture:SetSize(52, 51)
-			self.CheckedTexture:SetPoint('TOPLEFT', self, 'TOPLEFT', -2.5, 2.5)
-			self.cooldown:ClearAllPoints()
-			self.cooldown:SetAllPoints()
-		else
-			for key, info in pairs(TextureInfo) do
-				local texture = self[key];
-				CPAPI.SetAtlas(texture, info.atlas)
-				texture:SetSize(unpack(info.size))
-				texture:ClearAllPoints()
-				texture:SetPoint('TOPLEFT', 0, 0)
-			end
-			self.icon:SetAllPoints()
-			self.cooldown:ClearAllPoints()
-			self.cooldown:SetPoint('TOPLEFT', self, 'TOPLEFT', 3, -2)
-			self.cooldown:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -3, 3)
-		end
-	end
-end
-
 ---------------------------------------------------------------
 CPGroupBar = Mixin({
 ---------------------------------------------------------------
-	FadeIn = db.Alpha.FadeIn;
 	snapToPixels = 5;
 	AlphaEvents = {
 		ACTIONBAR_SHOWGRID = { Button.AlphaState.ShowGrid, true  };
@@ -189,10 +121,15 @@ function CPGroupBar:OnLoad()
 	self.buttons   = {};
 	self.modifiers = {};
 
-	env:RegisterCallback('OnNewBindings', self.OnNewBindings, self)
-	env:RegisterCallback('OnOverlayGlow', self.OnOverlayGlow, self)
 	db:RegisterCallback('OnHintsFocus', self.OnHints, self, false)
 	db:RegisterCallback('OnHintsClear', self.OnHints, self, nil)
+	env:RegisterCallback('OnNewBindings', self.OnNewBindings, self)
+	env:RegisterCallback('OnOverlayGlow', self.OnOverlayGlow, self)
+	env:RegisterCallbacks(self.OnVariableChanged, self,
+		'Settings/disableDND',
+		'Settings/showMainIcons',
+		'Settings/showCooldownText'
+	);
 
 	self:RegisterPageResponse([[
 		local newstate = ...;
@@ -208,7 +145,8 @@ function CPGroupBar:SetProps(props)
 	self:SetDynamicProps(props)
 	self:OnDriverChanged()
 	self:UpdateButtons(props.children or {})
-	self:RegisterVisibilityDriver(props.visibility)
+	self:OnVariableChanged()
+	CPActionBar.OnDriverChanged(self)
 end
 
 function CPGroupBar:OnPropsUpdated()
@@ -216,6 +154,7 @@ function CPGroupBar:OnPropsUpdated()
 end
 
 function CPGroupBar:OnRelease()
+	CPActionBar.OnRelease(self)
 	env:Map(GROUP_BUTTON, nil, function(button)
 		if ( button:GetParent() == self ) then
 			env:Release(button)
@@ -249,30 +188,12 @@ end
 function CPGroupBar:OnDriverChanged()
 	local driver = env.ConvertDriver(self.props.modifier);
 	wipe(self.modifiers)
-	for condition, prefix in driver:gmatch('(%b[])([^;]+)') do
-		condition, prefix = condition:sub(2, -2), prefix:trim();
-		self.modifiers[prefix] = condition;
+	for prefix, condition in env.MapDriver(driver) do
+		self.modifiers[prefix] = condition or true;
 	end
 	self:RegisterModifierDriver(driver, [[
 		self:SetAttribute('state', newstate)
 		control:ChildUpdate('state', newstate)
-	]])
-
-	driver = self.props.rescale;
-	self:RegisterDriver('rescale', driver, [[
-		newstate = (tonumber(newstate) or 100) * 0.01;
-		if newstate > 0 then
-			self:SetScale(newstate)
-		end
-	]])
-
-	driver = self.props.opacity;
-	self:RegisterDriver('opacity', driver, [[
-		newstate = (tonumber(newstate) or 100) * 0.01;
-		if newstate < 0 then newstate = 0 end;
-		if newstate > 1 then newstate = 1 end;
-		self:CallMethod('FadeIn', 0.05, ALPHA or 0, newstate)
-		ALPHA = newstate;
 	]])
 end
 
@@ -303,10 +224,18 @@ function CPGroupBar:OnAlphaEvent(event)
 	end
 end
 
----------------------------------------------------------------
-do -- Group bar factory
----------------------------------------------------------------
+function CPGroupBar:OnVariableChanged()
+	local disableDND       = env('disableDND')
+	local showMainIcons    = env('showMainIcons')
+	for _, button in pairs(self.buttons) do
+		button:DisableDragNDrop(disableDND)
+		button.Hotkey:SetShown(showMainIcons)
+	end
+end
 
+---------------------------------------------------------------
+-- Group bar factory
+---------------------------------------------------------------
 env:AddFactory(GROUP, function(id)
 	local frame = CreateFrame('Frame', env.MakeID('ConsolePortGroup%s', id), env.Manager, 'CPGroupBar')
 	frame.id = id;
@@ -315,7 +244,7 @@ env:AddFactory(GROUP, function(id)
 end, env.Interface.Group)
 
 env:AddFactory(GROUP_BUTTON, function(id, buttonID, parent)
-	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.Const.Cluster.LABConfig), Button) -- TODO: LABConfig?
+	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.Button:GetConfig()), Button)
 	button.Hotkey = Mixin(CreateFrame('Frame', nil, button), env.ProxyHotkey)
 	button.Hotkey.icon = button.Hotkey:CreateTexture(nil, 'OVERLAY', nil, 7)
 	button.Hotkey.icon:SetAllPoints()
@@ -323,5 +252,3 @@ env:AddFactory(GROUP_BUTTON, function(id, buttonID, parent)
 	button:OnLoad()
 	return button;
 end)
-
-end -- Group bar factory
