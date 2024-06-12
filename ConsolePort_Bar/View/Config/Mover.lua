@@ -181,7 +181,8 @@ end
 
 function Mover:MimeFrame(frame, delta)
 	assert(frame:GetNumPoints() == 1, 'Frame must have only one point')
-	self:SetSize(frame:GetSize())
+	local width, height = frame:GetSize()
+	self:SetSize(Round(width), Round(height))
 	self:SetScale(frame:GetEffectiveScale() / UIParent:GetEffectiveScale())
 	self:SetFrameStrata(frame:GetFrameStrata())
 	self:SetFrameLevel(frame:GetFrameLevel() + delta)
