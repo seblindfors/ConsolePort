@@ -89,10 +89,15 @@ Selector.PrivateEnv = {
 		selector::OnFlyoutHide()
 		control:CallMethod('ModifyCustomFlyout', customflyout:GetName())
 	]];
-	GetCustomBinding = [[
-		local buttonID = customflyout:GetAttribute('flyoutParentHandle'):GetAttribute('id')
-		return buttonID and buttonID:match('^PAD') and buttonID or nil;
-	]];
+	GetCustomBinding = ([[
+		local handle = customflyout:GetAttribute('flyoutParentHandle')
+		local preferred = handle:GetAttribute('%s')
+		if preferred then
+			return preferred;
+		end
+		local buttonID = handle:GetAttribute('id')
+		return buttonID and tostring(buttonID):match('^PAD') and buttonID or nil;
+	]]):format(CPAPI.UseCustomFlyout);
 	GetNumActive = [[
 		wipe(BUTTONS)
 		for i, child in ipairs(newtable(nativeflyout:GetChildren())) do

@@ -86,6 +86,7 @@ CPAPI.ActionPressAndHold = 'pressAndHoldAction';
 CPAPI.DefaultRingSetID = 1;
 
 CPAPI.SkipHotkeyRender = 'ignoregamepadhotkey';
+CPAPI.UseCustomFlyout  = 'usegamepadflyout';
 
 ---------------------------------------------------------------
 -- Internal wrappers
