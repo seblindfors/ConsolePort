@@ -11,6 +11,19 @@ local Interface = env.Interface;
 ---------------------------------------------------------------
 
 ---------------------------------------------------------------
+-- Toolbar presets
+---------------------------------------------------------------
+local DefaultVehicle = Interface.Page : Render {
+	pos        = { y = 32 };
+	slots      = 6;
+	rescale    = '120';
+	page       = 'override';
+	visibility = '[vehicleui][overridebar] show; hide';
+};
+
+local DefaultToolbar = Interface.Toolbar:Render();
+
+---------------------------------------------------------------
 -- Cluster bar presets
 ---------------------------------------------------------------
 local Handle = Interface.ClusterHandle(); -- reuse one handle instance and warp it
@@ -20,9 +33,24 @@ Presets.Default = {
 	desc       = 'A cluster bar with a toolbar below it.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar:Render();
-		Petring = Interface.Petring:Render();
-		Cluster = Interface.Cluster:Render {
+		Toolbar  = DefaultToolbar;
+		VehicleL = Interface.Page : Render {
+			pos        = { x = -126, y = 54 };
+			slots      = 3;
+			rescale    = '120';
+			page       = 'override';
+			visibility = '[vehicleui][overridebar] show; hide';
+		};
+		VehicleR = Interface.Page : Render {
+			pos        = { x = 126, y = 54 };
+			slots      = 3;
+			offset     = 4;
+			rescale    = '120';
+			page       = 'override';
+			visibility = '[vehicleui][overridebar] show; hide';
+		};
+		Petring  = Interface.Petring:Render();
+		Cluster  = Interface.Cluster:Render {
 			rescale  = '90';
 			children = {
 				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  176, y =  40 } };
@@ -47,8 +75,28 @@ Presets.Orthodox = {
 	desc       = 'A cluster bar with a toolbar below it, laid out horizontally.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar : Render();
-		Cluster = Interface.Cluster : Render {
+		Toolbar = DefaultToolbar;
+		VehicleL = Interface.Page : Render {
+			pos        = { x = -126, y = 50 };
+			slots      = 3;
+			rescale    = '110';
+			page       = 'override';
+			visibility = '[vehicleui][overridebar] show; hide';
+		};
+		VehicleR = Interface.Page : Render {
+			pos        = { x = 126, y = 50 };
+			slots      = 3;
+			offset     = 4;
+			rescale    = '110';
+			page       = 'override';
+			visibility = '[vehicleui][overridebar] show; hide';
+		};
+		Petring = Interface.Petring:Render {
+			scale = 0.7;
+			pos   = { y = 75 };
+		};
+		Cluster = Interface.Cluster:Render {
+			width   = 1325;
 			rescale = '80';
 			children = {
 				PADDRIGHT    = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  320, y =  0 } };
@@ -81,6 +129,11 @@ Presets.CrossbarMinimal = {
 			menu = { eye = false };
 			width = 600;
 		};
+		Petring = Interface.Petring:Render {
+			scale = 0.7;
+			pos   = { x = 380, y = 84 };
+		};
+		Vehicle = DefaultVehicle;
 		Crossbar = Interface.Group : Render {
 			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
 			pos = { point = 'BOTTOM', y = 25 };
@@ -102,217 +155,6 @@ Presets.CrossbarMinimal = {
 	};
 };
 
-Presets.DiamondGrid = {
-	name 	   = 'Diamond Grid';
-	desc       = 'Group buttons by modifier in a diamond layout.';
-	visibility = env.Const.ManagerVisibility;
-	children = {
-		Toolbar = Interface.Toolbar : Render {
-			menu = { eye = false };
-			width = 600;
-		};
-		Nomod = Interface.Group : Render {
-			opacity  = '[nomod] 100; 10';
-			modifier = '[nomod] ;';
-			pos = { point = 'BOTTOM', y = 75 };
-			width = 700;
-			children = {
-				PAD1         = Handle:Warp { pos = { point =  'LEFT', x = 400, y = -25 } };
-				PAD2         = Handle:Warp { pos = { point =  'LEFT', x = 450, y =   0 } };
-				PAD3         = Handle:Warp { pos = { point =  'LEFT', x = 350, y =   0 } };
-				PAD4         = Handle:Warp { pos = { point =  'LEFT', x = 400, y =  25 } };
-				PADRSHOULDER = Handle:Warp { pos = { point =  'LEFT', x = 350, y =  50 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 350, y = -50 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x = 200, y =   0 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x = 300, y =   0 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x = 250, y = -25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x = 250, y =  25 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x = 300, y =  50 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 300, y = -50 } };
-			};
-		};
-		Shift = Interface.Group : Render {
-			opacity  = '[mod:M2M1] 10; [mod:M1] 100; 10';
-			modifier = '[] M1;';
-			pos = { point = 'BOTTOM', y = 75 };
-			width = 700;
-			children = {
-				PAD1         = Handle:Warp { pos = { point =  'LEFT', x = 500, y = -75 } };
-				PAD2         = Handle:Warp { pos = { point =  'LEFT', x = 550, y = -50 } };
-				PAD3         = Handle:Warp { pos = { point =  'LEFT', x = 450, y = -50 } };
-				PAD4         = Handle:Warp { pos = { point =  'LEFT', x = 500, y = -25 } };
-				PADRSHOULDER = Handle:Warp { pos = { point =  'LEFT', x = 600, y = -75 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 400, y = -75 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x = 100, y = -50 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x = 200, y = -50 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x = 150, y = -75 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x = 150, y = -25 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =  50, y = -75 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 250, y = -75 } };
-			};
-		};
-		Ctrl = Interface.Group : Render {
-			opacity  = '[mod:M2M1] 10; [mod:M2] 100; 10';
-			modifier = '[] M2;';
-			pos = { point = 'BOTTOM', y = 75 };
-			width = 700;
-			children = {
-				PAD1         = Handle:Warp { pos = { point =  'LEFT', x = 500, y = 25 } };
-				PAD2         = Handle:Warp { pos = { point =  'LEFT', x = 550, y = 50 } };
-				PAD3         = Handle:Warp { pos = { point =  'LEFT', x = 450, y = 50 } };
-				PAD4         = Handle:Warp { pos = { point =  'LEFT', x = 500, y = 75 } };
-				PADRSHOULDER = Handle:Warp { pos = { point =  'LEFT', x = 600, y = 75 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 400, y = 75 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x = 100, y = 50 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x = 200, y = 50 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x = 150, y = 25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x = 150, y = 75 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =  50, y = 75 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 250, y = 75 } };
-			};
-		};
-		CtrlShift = Interface.Group : Render {
-			opacity  = '[mod:M2M1] 100; 10';
-			modifier = '[] M2M1;';
-			pos = { point = 'BOTTOM', y = 75 };
-			width = 700;
-			children = {
-				PAD1         = Handle:Warp { pos = { point =  'LEFT', x = 600, y = -25 } };
-				PAD2         = Handle:Warp { pos = { point =  'LEFT', x = 650, y =   0 } };
-				PAD3         = Handle:Warp { pos = { point =  'LEFT', x = 550, y =   0 } };
-				PAD4         = Handle:Warp { pos = { point =  'LEFT', x = 600, y =  25 } };
-				PADRSHOULDER = Handle:Warp { pos = { point =  'LEFT', x = 650, y =  50 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 650, y = -50 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =   0, y =   0 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x = 100, y =   0 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =  50, y = -25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =  50, y =  25 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y =  50 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x =   0, y = -50 } };
-			};
-		};
-	};
-};
-
-Presets.Grid = {
-	name 	   = 'Grid';
-	desc       = 'Group buttons by modifier in a grid layout.';
-	visibility = env.Const.ManagerVisibility;
-	children = {
-		Toolbar = Interface.Toolbar : Render {
-			menu = { eye = false };
-			width = 600;
-		};
-		DividerMid = Interface.Divider : Render {
-			breadth    = 300;
-			depth      = 100;
-			transition = 150;
-			opacity    = '[mod:ALT-] 50; [mod:M2M1] 100; 50';
-			pos = { point = 'BOTTOM', y = 120 };
-		};
-		DividerLeft = Interface.Divider : Render {
-			breadth    = 200;
-			depth      = 150;
-			rotation   = 90;
-			transition = 150;
-			opacity  = '[mod:ALT-][mod:M2M1] 50; [mod:M1] 100; 50';
-			pos = { point = 'BOTTOM', x = -153, y = 120 };
-		};
-		DividerRight = Interface.Divider : Render {
-			breadth    = 200;
-			depth      = 150;
-			rotation   = 270;
-			transition = 150;
-			opacity  = '[mod:ALT-][mod:M2M1] 50; [mod:M2] 100; 50';
-			pos = { point = 'BOTTOM', x = 147, y = 120 };
-		};
-		Nomod = Interface.Group : Render {
-			opacity  = '[nomod] 100; 10';
-			modifier = '[nomod] ;';
-			pos = { point = 'BOTTOM', y = 25 };
-			width  = 300;
-			height = 100;
-			children = {
-				PAD1         = Handle:Warp { pos = { point =  'LEFT', x = 200, y = -25 } };
-				PAD2         = Handle:Warp { pos = { point =  'LEFT', x = 250, y = -25 } };
-				PAD3         = Handle:Warp { pos = { point =  'LEFT', x = 150, y = -25 } };
-				PAD4         = Handle:Warp { pos = { point =  'LEFT', x = 200, y =  25 } };
-				PADRSHOULDER = Handle:Warp { pos = { point =  'LEFT', x = 150, y =  25 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 250, y =  25 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =   0, y = -25 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x = 100, y = -25 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =  50, y = -25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =  50, y =  25 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y =  25 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 100, y =  25 } };
-			};
-		};
-		Shift = Interface.Group : Render {
-			opacity  = '[mod:ALT-][mod:M2M1] 10; [mod:M1] 100; 10';
-			modifier = '[] M1;';
-			pos = { point = 'BOTTOM', x = -225, y = 25 };
-			width  = 150;
-			height = 200;
-			children = {
-				PAD1         = Handle:Warp { pos = { point =  'LEFT', x =  50, y = -75 } };
-				PAD2         = Handle:Warp { pos = { point =  'LEFT', x = 100, y = -75 } };
-				PAD3         = Handle:Warp { pos = { point =  'LEFT', x =   0, y = -75 } };
-				PAD4         = Handle:Warp { pos = { point =  'LEFT', x =  50, y = -25 } };
-				PADRSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y = -25 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 100, y = -25 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =   0, y =  25 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x = 100, y =  25 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =  50, y =  25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =  50, y =  75 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y =  75 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 100, y =  75 } };
-			};
-		};
-		Ctrl = Interface.Group : Render {
-			opacity  = '[mod:ALT-][mod:M2M1] 10; [mod:M2] 100; 10';
-			modifier = '[] M2;';
-			pos = { point = 'BOTTOM', x = 225, y = 25 };
-			width  = 150;
-			height = 200;
-			children = {
-				PAD1         = Handle:Warp { pos = { point =  'LEFT', x =  50, y = -75 } };
-				PAD2         = Handle:Warp { pos = { point =  'LEFT', x = 100, y = -75 } };
-				PAD3         = Handle:Warp { pos = { point =  'LEFT', x =   0, y = -75 } };
-				PAD4         = Handle:Warp { pos = { point =  'LEFT', x =  50, y = -25 } };
-				PADRSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y = -25 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 100, y = -25 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =   0, y =  25 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x = 100, y =  25 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =  50, y =  25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =  50, y =  75 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y =  75 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 100, y =  75 } };
-			};
-		};
-		CtrlShift = Interface.Group : Render {
-			opacity  = '[mod:ALT-] 10; [mod:M2M1] 100; 10';
-			modifier = '[] M2M1;';
-			pos = { point = 'BOTTOM', y = 125 };
-			width  = 300;
-			height = 100;
-			children = {
-				PAD1         = Handle:Warp { pos = { point =  'LEFT', x = 200, y = -25 } };
-				PAD2         = Handle:Warp { pos = { point =  'LEFT', x = 250, y = -25 } };
-				PAD3         = Handle:Warp { pos = { point =  'LEFT', x = 150, y = -25 } };
-				PAD4         = Handle:Warp { pos = { point =  'LEFT', x = 200, y =  25 } };
-				PADRSHOULDER = Handle:Warp { pos = { point =  'LEFT', x = 150, y =  25 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 250, y =  25 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =   0, y = -25 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x = 100, y = -25 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =  50, y = -25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =  50, y =  25 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y =  25 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x = 100, y =  25 } };
-			};
-		};
-	};
-};
-
 Presets.Crossbar = {
 	name 	   = 'Crossbar';
 	desc       = 'Group buttons in crossbar layouts, with modifier swapping.';
@@ -322,6 +164,11 @@ Presets.Crossbar = {
 			menu = { eye = false };
 			width = 600;
 		};
+		Petring = Interface.Petring:Render {
+			scale = 0.7;
+			pos   = { x = 600, y = 80 };
+		};
+		Vehicle = DefaultVehicle;
 		['Left Divider'] = Interface.Divider : Render {
 			breadth    = 100;
 			depth      = 300;
@@ -329,7 +176,7 @@ Presets.Crossbar = {
 			thickness  = 4;
 			transition = 150;
 			rescale  = '[mod:M2M1] 100; [mod:M1] 110; 100';
-			opacity  = '[mod:M2M1] 0; [mod:M1] 100; 50';
+			opacity  = '[vehicleui][overridebar] 0; [mod:M2M1] 0; [mod:M1] 100; 50';
 			pos = { point = 'BOTTOM', x = -3, y = 75 };
 		};
 		['Right Divider'] = Interface.Divider : Render {
@@ -339,14 +186,14 @@ Presets.Crossbar = {
 			thickness  = 4;
 			transition = 150;
 			rescale  = '[mod:M2M1] 100; [mod:M2] 110; 100';
-			opacity  = '[mod:M2M1] 0; [mod:M2] 100; 50';
+			opacity  = '[vehicleui][overridebar] 0; [mod:M2M1] 0; [mod:M2] 100; 50';
 			pos = { point = 'BOTTOM', x = 3, y = 75 };
 		};
 		Left = Interface.Group : Render {
 			modifier   = '[] M1';
 			width      = 300;
 			rescale    = '[mod:M2M1] 100; [mod:M1] 110; 100';
-			visibility = '[mod:M2M1] hide; show';
+			visibility = '[vehicleui][overridebar][mod:M2M1] hide; show';
 			pos = { point = 'BOTTOM', x = -160, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
@@ -363,7 +210,7 @@ Presets.Crossbar = {
 			modifier   = '[] M2';
 			width      = 300;
 			rescale    = '[mod:M2M1] 100; [mod:M2] 110; 100';
-			visibility = '[mod:M2M1] hide; show';
+			visibility = '[vehicleui][overridebar][mod:M2M1] hide; show';
 			pos = { point = 'BOTTOM', x = 160, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
@@ -380,7 +227,7 @@ Presets.Crossbar = {
 			modifier   = '[] M2M1';
 			width      = 300;
 			rescale    = '110';
-			visibility = '[mod:M2M1] show; hide';
+			visibility = '[vehicleui][overridebar] hide; [mod:M2M1] show; hide';
 			pos = { point = 'BOTTOM', x = 0, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
@@ -399,12 +246,38 @@ Presets.Crossbar = {
 			height  = 50;
 			rescale = '75';
 			pos = { point = 'BOTTOM', y = 200 };
+			visibility = '[vehicleui][overridebar] hide; show';
 			children = {
 				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y = 0 } };
 				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x =  50, y = 0 } };
 				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', x =   0, y = 0 } };
 				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', x = -50, y = 0 } };
 			};
+		};
+	};
+};
+
+Presets.Keyboard = {
+	name       = 'Keyboard';
+	desc       = 'A regular action bar.';
+	visibility = env.Const.ManagerVisibility;
+	children = {
+		Toolbar = Interface.Toolbar:Render();
+		Petring = Interface.Petring:Render {
+			scale = 0.7;
+			pos   = { x = 504, y = 100 };
+		};
+		['Bar 1'] = Interface.Page:Render {
+			visibility = 'show';
+			pos = { y = 24 };
+		};
+		['Bar 2'] = Interface.Page:Render {
+			pos = { y = 74 };
+			page = '6';
+		};
+		['Bar 3'] = Interface.Page:Render {
+			pos = { y = 124 };
+			page = '5';
 		};
 	};
 };
