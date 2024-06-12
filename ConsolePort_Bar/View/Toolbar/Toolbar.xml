@@ -166,7 +166,7 @@
 					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarSixSliceFrame" alpha="0">
 						<Size x="300" y="40"/>
 						<KeyValues>
-							<KeyValue key="childXPadding" value="2" type="number"/>
+							<KeyValue key="childXPadding" value="1" type="number"/>
 							<KeyValue key="childYPadding" value="2" type="number"/>
 							<KeyValue key="stride" value="1" type="number"/>
 							<KeyValue key="isHorizontal" value="true" type="boolean"/>
@@ -187,6 +187,13 @@
 							</Layer>
 						</Layers>
 						<Frames>
+							<Button parentKey="ExitVehicle" inherits="CPToolbarMicroButton">
+								<KeyValues>
+									<KeyValue key="layoutIndex" value="-5" type="number"/>
+									<KeyValue key="normalAtlas" value="poi-traveldirections-arrow2" type="string"/>
+									<KeyValue key="highlightAtlas" value="poi-traveldirections-arrow2" type="string"/>
+								</KeyValues>
+							</Button>
 							<Button parentKey="Eye" inherits="CPToolbarMicroButton">
 								<NormalTexture parentKey="NormalTexture" alphaMode="BLEND" alpha="1" rotation="90">
 									<Size x="32" y="16"/>
