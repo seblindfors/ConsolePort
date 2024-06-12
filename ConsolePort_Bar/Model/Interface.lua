@@ -8,6 +8,7 @@ env.Toplevel = {
 	Cluster = false;
 	Divider = false;
 	Group   = false;
+	Page    = false;
 	Petring = true;
 	Toolbar = true;
 }; -- k: interface, v: unique
@@ -48,7 +49,7 @@ Type.Visibility = Data.Interface {
 			['hide'] = 'Hide the element.';
 		}
 	);
-	Data.String('show');
+	Data.String(env.Const.DefaultVisibility);
 };
 
 Type.Opacity = Data.Interface {
@@ -98,6 +99,20 @@ Type.Modifier = Data.Interface {
 	);
 	note = 'Modifiers can be combined. For example, M1M2 is the Shift and Ctrl modifiers held at the same time.';
 	Data.String(' ');
+};
+
+Type.Page = Data.Interface {
+	name = 'Page';
+	desc = env.MakeMacroDriverDesc(
+		'Page condition of the element. Accepts pairs of a macro condition and a page identifier, or a single page number.',
+		'Swaps the buttons to the applicable page, with the formula:\nslotID = (page - 1) * slots + offset + i',
+		'condition', 'page', true, env.Const.PageDescription, {
+			['dynamic']  = 'Dynamic page number, matching the global page number.';
+			['override'] = 'Resolves to the current override or vehicle page.';
+			['n']        = 'Static page number to swap to.';
+		}
+	);
+	Data.String('dynamic');
 };
 
 ---------------------------------------------------------------
@@ -156,7 +171,9 @@ Interface.Cluster = Data.Interface {
 			desc = 'Height of the cluster bar.';
 			Data.Number(140, 25);
 		};
-		rescale = _(Type.Scale : Implement {});
+		rescale    = _(Type.Scale : Implement {});
+		visibility = _(Type.Visibility : Implement {});
+		opacity    = _(Type.Opacity : Implement {});
 	};
 };
 
@@ -205,6 +222,66 @@ Interface.Group = Data.Interface {
 	};
 };
 
+Interface.Page = Data.Interface {
+	name = 'Action Page';
+	desc = 'A page of action buttons.';
+	Data.Table {
+		type = {hide = true; Data.String('Page')};
+		pos = _(Type.SimplePoint : Implement {
+			desc = 'Position of the page.';
+			{
+				point = 'BOTTOM';
+				y     = 20;
+			};
+		});
+		hotkeys = _{
+			name = 'Show Hotkeys';
+			desc = 'Show the hotkeys on the buttons.';
+			Data.Bool(true);
+		};
+		reverse = _{
+			name = 'Reverse Order';
+			desc = 'Reverse the order of the buttons.';
+			Data.Bool(false);
+		};
+		paddingX = _{
+			name = 'Horizontal Padding';
+			desc = 'Padding between buttons horizontally.';
+			Data.Number(4, 1);
+		};
+		paddingY = _{
+			name = 'Vertical Padding';
+			desc = 'Padding between buttons vertically.';
+			vert = true;
+			Data.Number(4, 1);
+		};
+		orientation = _{
+			name = 'Orientation';
+			desc = 'Orientation of the page.';
+			Data.Select('HORIZONTAL', 'HORIZONTAL', 'VERTICAL');
+		};
+		stride = _{
+			name = 'Stride';
+			desc = 'Number of buttons per row or column.';
+			Data.Range(NUM_ACTIONBAR_BUTTONS, 1, 1, NUM_ACTIONBAR_BUTTONS);
+		};
+		slots = _{
+			name = 'Slots';
+			desc = 'Number of buttons in the page.';
+			Data.Range(NUM_ACTIONBAR_BUTTONS, 1, 1, NUM_ACTIONBAR_BUTTONS);
+		};
+		offset = _{
+			name = 'Offset';
+			desc = 'Starting point of the page.';
+			Data.Range(1, 1, 1, NUM_ACTIONBAR_BUTTONS);
+		};
+		page       = _(Type.Page : Implement {});
+		rescale    = _(Type.Scale : Implement {});
+		visibility = _(Type.Visibility : Implement {});
+		opacity    = _(Type.Opacity : Implement {});
+	};
+};
+
 Interface.Petring = Data.Interface {
 	name = 'Pet Ring';
 	desc = 'A ring of buttons for pet commands.';
@@ -220,6 +297,16 @@ Interface.Petring = Data.Interface {
 		fade = _{
 			name = 'Fade Buttons';
 			desc = 'Fade out the pet ring when not moused over.';
+			Data.Bool(true);
+		};
+		status = _{
+			name = 'Status Bar';
+			desc = 'Show the pet power and health status.';
+			Data.Bool(true);
+		};
+		vehicle = _{
+			name = 'Enable Vehicle';
+			desc = 'Show the pet ring when in a vehicle.';
 			Data.Bool(true);
 		};
 		scale = _{
