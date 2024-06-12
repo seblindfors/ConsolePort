@@ -351,7 +351,7 @@ do	-- Initiate frame
 					_Setup = baseTemplates;
 					_Point = {'TOP', '$parent', 'BOTTOM', 0, -16};
 					_Text  = FRIENDS_LIST;
-					_RefTo = CPAPI.IsRetailVersion and QuickJoinToastButton or SocialsMicroButton;
+					_RefTo = CPAPI.IsRetailVersion and QuickJoinToastButton or SocialsMicroButton or FriendsMicroButton;
 					_Attributes = hideMenuHook;
 					_OnLoad = function(self)
 						CPMenuButtonMixin.OnLoad(self)
