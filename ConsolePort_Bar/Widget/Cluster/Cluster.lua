@@ -13,13 +13,17 @@ function Cluster:OnLoad(buttonID, parent)
 	self:OnVariableChanged()
 	env:RegisterCallbacks(self.OnVariableChanged, self,
 		'Settings/swipeColor',
-		'Settings/borderColor'
+		'Settings/borderColor',
+		'Settings/disableDND'
 	);
 end
 
 function Cluster:OnVariableChanged()
 	self:SetSwipeColor(env:GetColor('swipeColor'))
 	self:SetBorderColor(env:GetColor('borderColor'))
+	for _, button in self:Enumerate() do
+		button:DisableDragNDrop(env('disableDND'))
+	end
 end
 
 function Cluster:Enumerate()
@@ -355,8 +359,8 @@ local MainButton = { OnCooldownClear = nop };
 ---------------------------------------------------------------
 
 function MainButton:OnLoad()
-	env:RegisterCallback('Settings/clusterShowMainIcons', self.ToggleHotkeys, self)
-	self:ToggleHotkeys(env('clusterShowMainIcons'))
+	env:RegisterCallback('Settings/showMainIcons', self.ToggleHotkeys, self)
+	self:ToggleHotkeys(env('showMainIcons'))
 	Mixin(self.cooldown, env.ProxyCooldown):OnLoad()
 end
 
@@ -420,7 +424,9 @@ function Button:ToggleShown(enabled)
 end
 
 function Button:UpdateLocal(force)
-	self:Skin(force)
+	if self.Skin then
+		self:Skin(force)
+	end
 end
 
 function Button:UpdateSkin()
@@ -456,15 +462,7 @@ end
 function CPClusterBar:SetProps(props)
 	self:SetDynamicProps(props)
 	self:UpdateClusters(props.children or {})
-	self:Show()
-
-	local driver = self.props.rescale;
-	self:RegisterDriver('rescale', driver, [[
-		newstate = (tonumber(newstate) or 100) * 0.01;
-		if newstate > 0 then
-			self:SetScale(newstate)
-		end
-	]])
+	CPActionBar.OnDriverChanged(self)
 end
 
 function CPClusterBar:OnPropsUpdated()
@@ -506,6 +504,7 @@ function CPClusterBar:UpdateClusters(clusters)
 end
 
 function CPClusterBar:OnRelease()
+	self:UnregisterVisibilityDriver()
 	env:Map(CLUSTER_HANDLE, nil, function(cluster)
 		if ( cluster:GetParent() == self ) then
 			env:Release(cluster)
@@ -522,7 +521,7 @@ function CPClusterBar:GetSnapSize()
 end
 
 ---------------------------------------------------------------
-do -- Cluster bar factory
+-- Cluster bar factory
 ---------------------------------------------------------------
 
 env:AddFactory(CLUSTER_BAR, function(id)
@@ -545,7 +544,7 @@ env:AddFactory(CLUSTER_HANDLE, function(id, parent)
 end, env.Interface.ClusterHandle)
 
 env:AddFactory(CLUSTER_BUTTON, function(id, buttonID, modifier, parent, layoutData)
-	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.Const.Cluster.LABConfig), Button)
+	local button = Mixin(env.LAB:CreateButton(buttonID, id, parent, env.Button:GetConfig()), Button)
 	env.LIB.SkinUtility.PreventSkinning(button)
 	for i, hotkeyData in ipairs(layoutData.Hotkey) do
 		local hotkeyID = env.MakeID('%s_%s_%d', id, modifier, i)
@@ -577,5 +576,3 @@ env:RegisterCallbacks(function(self)
 		cluster:GetMainButton():Skin(true)
 	end)
 end, env, 'OnDataLoaded', 'Settings/clusterBorderStyle')
-
-end -- Cluster bar factory
