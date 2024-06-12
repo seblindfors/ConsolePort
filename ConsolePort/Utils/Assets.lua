@@ -55,6 +55,7 @@ CPAPI.Atlas = {
 		['dragon-rostrum'] = { 32, 32, 0.2431640625, 0.2744140625, 0.9619140625, 0.9931640625, false, false };
 		['Ping_Map_Whole_Attack'] = { 32, 32, 0.6748046875, 0.7060546875, 0.2978515625, 0.3291015625, false, false };
 		['Barbershop-32x32'] = { 24, 24, 0.2431640625, 0.2744140625, 0.4970703125, 0.5283203125, false, false };
+		['poi-traveldirections-arrow2'] = { 36, 44, 0.5234375, 0.55859375, 0.1279296875, 0.1708984375, false, false };
 	};
 	[CPAPI.GetAsset([[Textures\Atlas\AnimationsMaskFiligreeActivate.png]])] = {
 		['animations-mask-filigree-activate'] = { 1612, 774, 0, 1612/2048, 0, 774/1024, false, false };
