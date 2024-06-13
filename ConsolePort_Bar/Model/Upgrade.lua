@@ -20,6 +20,7 @@ function env.UpgradeFromV1()
 	local v1 = ConsolePort_BarSetup;
 	if v1 then
 		-- ConsolePort_BarSetup = nil; -- TODO: enable when build is stable
+		CPAPI.Log('ConsolePort: upgrading action bar layout...')
 		local v2, settings = env.ConvertV1Layout(v1);
 		for path, value in pairs(settings) do
 			env(path, value);
@@ -81,7 +82,7 @@ function env.ConvertV1Layout(v1)
 			local size = data.size;
 			-- point = {[1], [2], [3]} -> pos = {point, x, y};
 			local point, x, y = unpack(data.point);
-			local pos = {point = point, x = x, y = y};
+			local pos = {point = point, relPoint = point, x = x, y = y};
 			-- convert V1 button to V2 ClusterHandle.
 			buttons[buttonID] = env.Interface.ClusterHandle():Warp {
 				pos         = pos;
@@ -95,6 +96,10 @@ function env.ConvertV1Layout(v1)
 	local v2 = CopyTable(env.Presets.Default)
 	v2.name = env.Const.DefaultPresetName;
 	v2.desc = db.Locale'Player action bar setup.';
+	-- Can't track where the pet ring was located in V1, so place it in a convenient spot
+	-- for the majority of users (those who never customized the layout in v1)
+	v2.children.Petring  = env.Interface.Petring:Render { pos = { y = 70 } };
+	-- Convert the V1 layout to a V2 Cluster layout.
 	v2.children.Cluster = env.Interface.Cluster:Render {
 		children = buttons;
 	};

@@ -53,18 +53,18 @@ Presets.Default = {
 		Cluster  = Interface.Cluster:Render {
 			rescale  = '90';
 			children = {
-				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  176, y =  40 } };
-				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', x =  306, y =  40 } };
-				PADDUP       = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  240, y =  84 } };
-				PADDDOWN     = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  240, y =   0 } };
-				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -176, y =  40 } };
-				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', x = -306, y =  40 } };
-				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -240, y =  84 } };
-				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -240, y =   0 } };
-				PADLSHOULDER = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', x =  456, y =  40 } };
-				PADRSHOULDER = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', x = -456, y =  40 } };
-				PADLTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', x =  396, y =   0 } };
-				PADRTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', x = -396, y =   0 } };
+				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  176, y =  40 } };
+				PADDRIGHT    = Handle:Warp { dir = 'RIGHT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  306, y =  40 } };
+				PADDUP       = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', relPoint =  'LEFT', x =  240, y =  84 } };
+				PADDDOWN     = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', relPoint =  'LEFT', x =  240, y =   0 } };
+				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -176, y =  40 } };
+				PAD3         = Handle:Warp { dir =  'LEFT', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -306, y =  40 } };
+				PAD4         = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -240, y =  84 } };
+				PAD1         = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -240, y =   0 } };
+				PADLSHOULDER = Handle:Warp { dir =    'UP', pos = { point =  'LEFT', relPoint =  'LEFT', x =  456, y =  40 } };
+				PADRSHOULDER = Handle:Warp { dir =    'UP', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -456, y =  40 } };
+				PADLTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point =  'LEFT', relPoint =  'LEFT', x =  396, y =   0 } };
+				PADRTRIGGER  = Handle:Warp { dir =  'DOWN', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -396, y =   0 } };
 			};
 		};
 	};
@@ -99,18 +99,18 @@ Presets.Orthodox = {
 			width   = 1325;
 			rescale = '80';
 			children = {
-				PADDRIGHT    = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  320, y =  0 } };
-				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =   32, y =  0 } };
-				PADDDOWN     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  128, y =  0 } };
-				PADDUP       = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  224, y =  0 } };
-				PADLTRIGGER  = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  512, y =  0 } };
-				PADLSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', x =  416, y =  0 } };
-				PAD1         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -224, y =  0 } };
-				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x =  -32, y =  0 } };
-				PAD3         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -320, y =  0 } };
-				PAD4         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -128, y =  0 } };
-				PADRTRIGGER  = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -512, y =  0 } };
-				PADRSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', x = -416, y =  0 } };
+				PADDRIGHT    = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  320, y =  0 } };
+				PADDLEFT     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =   32, y =  0 } };
+				PADDDOWN     = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  128, y =  0 } };
+				PADDUP       = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  224, y =  0 } };
+				PADLTRIGGER  = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  512, y =  0 } };
+				PADLSHOULDER = Handle:Warp { dir =  'LEFT', pos = { point =  'LEFT', relPoint =  'LEFT', x =  416, y =  0 } };
+				PAD1         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -224, y =  0 } };
+				PAD2         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -32, y =  0 } };
+				PAD3         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -320, y =  0 } };
+				PAD4         = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -128, y =  0 } };
+				PADRTRIGGER  = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -512, y =  0 } };
+				PADRSHOULDER = Handle:Warp { dir = 'RIGHT', pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -416, y =  0 } };
 			};
 		};
 	};
@@ -138,18 +138,18 @@ Presets.CrossbarMinimal = {
 			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
 			pos = { point = 'BOTTOM', y = 25 };
 			children = {
-				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
-				PAD2         = Handle:Warp { pos = { point = 'RIGHT', x =    0, y =   0 } };
-				PAD3         = Handle:Warp { pos = { point = 'RIGHT', x = -100, y =   0 } };
-				PAD4         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y =  25 } };
-				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', x = -150, y =  25 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', x = -150, y = -25 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =    0, y =   0 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x =  100, y =   0 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =   50, y = -25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =   50, y =  25 } };
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =  150, y =  25 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x =  150, y = -25 } };
+				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
+				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
+				PAD3         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -100, y =   0 } };
+				PAD4         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y =  25 } };
+				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -150, y =  25 } };
+				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -150, y = -25 } };
+				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =    0, y =   0 } };
+				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  100, y =   0 } };
+				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y = -25 } };
+				PADDUP       = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y =  25 } };
+				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  150, y =  25 } };
+				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  150, y = -25 } };
 			};
 		};
 	};
@@ -196,14 +196,14 @@ Presets.Crossbar = {
 			visibility = '[vehicleui][overridebar][mod:M2M1] hide; show';
 			pos = { point = 'BOTTOM', x = -160, y = 25 };
 			children = {
-				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
-				PAD2         = Handle:Warp { pos = { point = 'RIGHT', x =    0, y =   0 } };
-				PAD3         = Handle:Warp { pos = { point = 'RIGHT', x = -100, y =   0 } };
-				PAD4         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y =  25 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =    0, y =   0 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x =  100, y =   0 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =   50, y = -25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =   50, y =  25 } };
+				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
+				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
+				PAD3         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -100, y =   0 } };
+				PAD4         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y =  25 } };
+				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =    0, y =   0 } };
+				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  100, y =   0 } };
+				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y = -25 } };
+				PADDUP       = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y =  25 } };
 			};
 		};
 		Right = Interface.Group : Render {
@@ -213,14 +213,14 @@ Presets.Crossbar = {
 			visibility = '[vehicleui][overridebar][mod:M2M1] hide; show';
 			pos = { point = 'BOTTOM', x = 160, y = 25 };
 			children = {
-				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
-				PAD2         = Handle:Warp { pos = { point = 'RIGHT', x =    0, y =   0 } };
-				PAD3         = Handle:Warp { pos = { point = 'RIGHT', x = -100, y =   0 } };
-				PAD4         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y =  25 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =    0, y =   0 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x =  100, y =   0 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =   50, y = -25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =   50, y =  25 } };
+				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
+				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
+				PAD3         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -100, y =   0 } };
+				PAD4         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y =  25 } };
+				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =    0, y =   0 } };
+				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  100, y =   0 } };
+				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y = -25 } };
+				PADDUP       = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y =  25 } };
 			};
 		};
 		Center = Interface.Group : Render {
@@ -230,14 +230,14 @@ Presets.Crossbar = {
 			visibility = '[vehicleui][overridebar] hide; [mod:M2M1] show; hide';
 			pos = { point = 'BOTTOM', x = 0, y = 25 };
 			children = {
-				PAD1         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y = -25 } };
-				PAD2         = Handle:Warp { pos = { point = 'RIGHT', x =    0, y =   0 } };
-				PAD3         = Handle:Warp { pos = { point = 'RIGHT', x = -100, y =   0 } };
-				PAD4         = Handle:Warp { pos = { point = 'RIGHT', x =  -50, y =  25 } };
-				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', x =    0, y =   0 } };
-				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', x =  100, y =   0 } };
-				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', x =   50, y = -25 } };
-				PADDUP       = Handle:Warp { pos = { point =  'LEFT', x =   50, y =  25 } };
+				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
+				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
+				PAD3         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -100, y =   0 } };
+				PAD4         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y =  25 } };
+				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =    0, y =   0 } };
+				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  100, y =   0 } };
+				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y = -25 } };
+				PADDUP       = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y =  25 } };
 			};
 		};
 		Triggers = Interface.Group : Render {
@@ -248,10 +248,10 @@ Presets.Crossbar = {
 			pos = { point = 'BOTTOM', y = 200 };
 			visibility = '[vehicleui][overridebar] hide; show';
 			children = {
-				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', x =   0, y = 0 } };
-				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', x =  50, y = 0 } };
-				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', x =   0, y = 0 } };
-				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', x = -50, y = 0 } };
+				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   0, y = 0 } };
+				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  50, y = 0 } };
+				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =   0, y = 0 } };
+				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -50, y = 0 } };
 			};
 		};
 	};

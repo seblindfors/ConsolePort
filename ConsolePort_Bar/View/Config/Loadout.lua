@@ -499,8 +499,9 @@ function Point:OnMoverClicked()
 	self.registry:TriggerPathEvent(self.variableID, 'OnMoveStart', self:GetCallback())
 end
 
-function Point:OnMoveCompleted(point, _, _, x, y)
+function Point:OnMoveCompleted(point, _, relativePoint, x, y)
 	self.registry(self.variableID..'/point', point)
+	self.registry(self.variableID..'/relPoint', relativePoint)
 	self.registry(self.variableID..'/x', Round(x)) -- get rid of rounding errors
 	self.registry(self.variableID..'/y', Round(y))
 end

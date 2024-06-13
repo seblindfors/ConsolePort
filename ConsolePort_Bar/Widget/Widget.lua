@@ -21,7 +21,7 @@ function CommonWidget:SetCommonProps(props)
     if props.pos then
         local info = props.pos;
         self:ClearAllPoints()
-        self:SetPoint(info.point, UIParent, info.relativePoint or info.point, info.x, info.y)
+        self:SetPoint(info.point, UIParent, info.relPoint or info.point, info.x, info.y)
     end
     self.props = props;
 end

@@ -44,7 +44,7 @@ end
 
 function Cluster:SetPoint(...)
 	local main = self:GetMainButton();
-	local p, x, y = ...;
+	local p, _, _, x, y = ...;
 	main:ClearAllPoints()
 	if p and x and y then
 		return main:SetPoint(...)
@@ -131,7 +131,7 @@ function Cluster:OnPropsUpdated()
 	local props = self.props;
 	local pos = props.pos;
 	self:Show()
-	self:SetPoint(pos.point, pos.x, pos.y)
+	self:SetPoint(pos.point, self:GetParent(), pos.relPoint, pos.x, pos.y)
 	self:SetDirection(props.dir)
 	self:SetSize(props.size) -- TODO: flyout size is not consistent
 	self:ToggleFlyouts(not not props.showFlyouts)

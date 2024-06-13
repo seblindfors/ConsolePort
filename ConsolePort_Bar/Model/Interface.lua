@@ -22,7 +22,12 @@ Type.SimplePoint = Data.Interface {
 	Data.Point {
 		point = _{
 			name = 'Anchor';
-			desc = 'Anchor point relative to parent action bar.';
+			desc = 'Anchor point to attach.';
+			Data.Select('CENTER', env.Const.ValidPoints());
+		};
+		relPoint = _{
+			name = 'Relative Anchor';
+			desc = 'Anchor point of parent to pair with.';
 			Data.Select('CENTER', env.Const.ValidPoints());
 		};
 		x = _{
@@ -157,8 +162,9 @@ Interface.Cluster = Data.Interface {
 		pos = _(Type.SimplePoint : Implement {
 			desc = 'Position of the cluster bar.';
 			{
-				point = 'BOTTOM';
-				y     = 16;
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
+				y        = 16;
 			};
 		});
 		width = _{
@@ -201,8 +207,9 @@ Interface.Group = Data.Interface {
 		pos = _(Type.SimplePoint : Implement {
 			desc = 'Position of the group.';
 			{
-				point = 'BOTTOM';
-				y     = 16;
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
+				y        = 16;
 			};
 		});
 		width = _{
@@ -230,8 +237,9 @@ Interface.Page = Data.Interface {
 		pos = _(Type.SimplePoint : Implement {
 			desc = 'Position of the page.';
 			{
-				point = 'BOTTOM';
-				y     = 20;
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
+				y        = 20;
 			};
 		});
 		hotkeys = _{
@@ -290,8 +298,9 @@ Interface.Petring = Data.Interface {
 		pos = _(Type.SimplePoint : Implement {
 			desc = 'Position of the pet ring.';
 			{
-				point = 'BOTTOM';
-				y     = 90;
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
+				y        = 90;
 			};
 		});
 		fade = _{
@@ -325,7 +334,8 @@ Interface.Toolbar = Data.Interface {
 		pos = _(Type.SimplePoint : Implement {
 			desc = 'Position of the toolbar.';
 			{
-				point = 'BOTTOM';
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
 			};
 		});
 		menu = _{
@@ -361,8 +371,9 @@ Interface.Divider = Data.Interface {
 		pos = _(Type.SimplePoint : Implement {
 			desc = 'Position of the divider.';
 			{
-				point = 'BOTTOM';
-				y     = 100;
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
+				y        = 100;
 			};
 		});
 		breadth = _{

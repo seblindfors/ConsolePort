@@ -72,7 +72,7 @@ function Button:OnPropsUpdated()
 	local props = self.props;
 	local pos = props.pos;
 	self:ClearAllPoints()
-	self:SetPoint(pos.point, pos.x, pos.y)
+	self:SetPoint(pos.point, self:GetParent(), pos.relPoint, pos.x, pos.y)
 end
 
 function Button:SetBindings(set)
