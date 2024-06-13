@@ -469,6 +469,7 @@ end
 
 function CPButtonCatcherMixin:CatchAll(callback, ...)
 	self.catchAllCallback = GenerateClosure(callback, ...)
+	return true;
 end
 
 function CPButtonCatcherMixin:CatchButton(button, callback, ...)
