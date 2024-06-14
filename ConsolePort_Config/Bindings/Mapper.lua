@@ -26,9 +26,9 @@ end
 
 function Mapper:OnEvent(event, ...)
 	if (event == 'UPDATE_BINDINGS' or event == 'ACTIONBAR_SLOT_CHANGED') then
-		local binding = self:GetBinding()
+		local binding, transposedActionID = self:GetBinding()
 		if binding then
-			self:SetBindingInfo(binding)
+			self:SetBindingInfo(binding, transposedActionID)
 		end
 	end
 end
@@ -40,7 +40,6 @@ function Mapper:SetBindingInfo(binding, transposedActionID)
 	if binding and binding:len() > 0 then
 		self:SetVerticalScroll(0)
 		local option = self.Child.Option;
-		local name = self:GetBindingName(binding)
 		local label, texture, actionID = self:GetBindingInfo(binding, true)
 		local slug = db('Hotkeys'):GetButtonSlugsForBinding(binding, ' | ')
 		texture = actionID and GetActionTexture(transposedActionID or actionID)

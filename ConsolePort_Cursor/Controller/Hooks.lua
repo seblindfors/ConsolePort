@@ -258,11 +258,11 @@ do -- Tooltip hooking
 			end
 
 			local name, link = self:GetItem()
-			local numOwned = GetItemCount(link)
-			local isEquipped = IsEquippedItem(link)
-			local isEquippable = IsEquippableItem(link)
+			local numOwned = CPAPI.GetItemCount(link)
+			local isEquipped = CPAPI.IsEquippedItem(link)
+			local isEquippable = CPAPI.IsEquippableItem(link)
 
-			if ( GetItemSpell(link) and numOwned > 0 ) then
+			if ( CPAPI.GetItemSpell(link) and numOwned > 0 ) then
 				Hooks:SetPendingActionToUtilityRing(self, owner, {
 					type = 'item';
 					item = link;
@@ -282,7 +282,7 @@ do -- Tooltip hooking
 			if Hooks:GetSpecialClickHandler(owner) then return end;
 			
 			local name, spellID = self:GetSpell()
-			if spellID and not IsPassiveSpell(spellID) then
+			if spellID and not CPAPI.IsPassiveSpell(spellID) then
 				local isKnown = IsSpellKnownOrOverridesKnown(spellID) or IsPlayerSpell(spellID)
 				if not isKnown then
 					local mountID = CPAPI.GetMountFromSpell(spellID)

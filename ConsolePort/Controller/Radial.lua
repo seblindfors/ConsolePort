@@ -443,6 +443,8 @@ function Radial:GetAngleDistance(a1, a2)
 end
 
 function Radial:GetAngleForIndex(index, size)
+	-- TODO: division by zero bug?
+	if size < 1 then return end;
 	local step = 360 / size
 	return ((self.ANGLE_IDX_ONE + ((index - 1) * step)) % 360)
 end

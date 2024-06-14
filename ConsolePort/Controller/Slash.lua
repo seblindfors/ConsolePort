@@ -49,9 +49,9 @@ local function HandleSlashCommand(self, msg)
 	elseif ProcessVarUpdate((' '):split(msg or '')) then
 		return
 	end
-	if not IsAddOnLoaded(CONFIG_ADDON_NAME) then
-		EnableAddOn(CONFIG_ADDON_NAME)
-		LoadAddOn(CONFIG_ADDON_NAME)
+	if not C_AddOns.IsAddOnLoaded(CONFIG_ADDON_NAME) then
+		C_AddOns.EnableAddOn(CONFIG_ADDON_NAME)
+		C_AddOns.LoadAddOn(CONFIG_ADDON_NAME)
 	end
 	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
 end
@@ -315,28 +315,24 @@ RegisterNewSlashCommand(ConsolePort, 'consoleport', 'cp')
 ---------------------------------------------------------------
 -- Temp?: add a game menu button to access config
 ---------------------------------------------------------------
-LibStub('Carpenter'):BuildFrame(GameMenuFrame, {
-	[_] = {
-		_Type  = 'Button';
-		_Setup = 'InsecureActionButtonTemplate';
-		_Size  = {58, 58};
-		_Point = {'TOP', 0, 70};
-		_Macro = '/click GameMenuButtonContinue\n/consoleport';
-		_RegisterForClicks = 'AnyUp';
-		_OnLoad = function(self)
-			self:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
-			self:SetAttribute(CPAPI.ActionPressAndHold, true)
-			self:SetNormalTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
-			self:SetPushedTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
-			local pushed = self:GetPushedTexture()
-			pushed:ClearAllPoints()
-			pushed:SetSize(self:GetSize())
-			pushed:SetPoint('CENTER', 0, -2)
-			-- Protect against ElvUI shenanigans
-			self.SetNormalTexture = nop;
-			self.SetPushedTexture = nop;
-			self.GetNormalTexture = nop;
-			self.GetPushedTexture = nop;
-		end;
-	};
-})
+do local GMB = CreateFrame('Button', '$parent'.._, GameMenuFrame)
+	GMB:SetSize(58, 58)
+	GMB:SetPoint('TOP', 0, 70)
+	GMB:SetNormalTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
+	GMB:SetPushedTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
+	local pushed = GMB:GetPushedTexture()
+	pushed:ClearAllPoints()
+	pushed:SetSize(GMB:GetSize())
+	pushed:SetPoint('CENTER', 0, -2)
+	-- Protect against ElvUI shenanigans
+	GMB.SetNormalTexture = nop;
+	GMB.SetPushedTexture = nop;
+	GMB.GetNormalTexture = nop;
+	GMB.GetPushedTexture = nop;
+	GMB:SetScript('OnClick', function()
+		if not InCombatLockdown() then
+			HideUIPanel(GameMenuFrame)
+			ConsolePort()
+		end
+	end)
+end

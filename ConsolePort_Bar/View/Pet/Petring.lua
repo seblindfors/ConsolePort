@@ -5,6 +5,12 @@ CPPetRingButton = Mixin({
 ---------------------------------------------------------------
 	ActiveIconVertex   = CreateColor(1.0, 1.0, 1.0);
 	InactiveIconVertex = CreateColor(0.4, 0.4, 0.4);
+	CornerVertexOffset = {
+		[UPPER_LEFT_VERTEX]  = { -10, -4 };
+		[UPPER_RIGHT_VERTEX] = {  10, -4 };
+		[LOWER_LEFT_VERTEX]  = {   0, -4 };
+		[LOWER_RIGHT_VERTEX] = {   0, -4 };
+	};
 }, CPActionButtonMixin);
 ---------------------------------------------------------------
 
@@ -50,8 +56,16 @@ function CPPetRingButton:Init(i)
 	self.icon:SetRotation(self.textureRotation)
 	self.icon:SetAllPoints()
 
-	self.AutoCastable:SetRotation(self.textureRotation)
-	self.AutoCastable:Hide()
+	if self.AutoCastable then
+		self.AutoCastable:SetRotation(self.textureRotation)
+		self.AutoCastable:Hide()
+	elseif self.AutoCastOverlay then
+		self.AutoCastOverlay.Shine:SetRotation(self.textureRotation)
+		self.AutoCastOverlay.Corners:SetRotation(self.textureRotation)
+		for vertexIndex, offset in pairs(self.CornerVertexOffset) do
+			self.AutoCastOverlay.Corners:SetVertexOffset(vertexIndex, unpack(offset))
+		end
+	end
 
 	self.NormalTexture:SetTexture(nil)
 	self.NormalTexture:ClearAllPoints()
@@ -156,9 +170,9 @@ function CPPetRingButton:Update()
 		self:SetChecked(false)
 	end
 	if ( autoCastEnabled ) then
-		AutoCastShine_AutoCastStart(self.Shine, CPAPI.GetClassColor())
+		CPAPI.AutoCastStart(self, autoCastAllowed, CPAPI.GetClassColor())
 	else
-		AutoCastShine_AutoCastStop(self.Shine)
+		CPAPI.AutoCastStop(self, autoCastAllowed)
 	end
 	if ( texture ) then
 		local color = GetPetActionSlotUsable(i) and self.ActiveIconVertex or self.InactiveIconVertex;
@@ -288,6 +302,9 @@ function CPPetRing:OnEvent(event, ...)
 	self:Update()
 end
 
+local UnitExists, UnitHealth,   UnitHealthMax = UnitExists, UnitHealth, UnitHealthMax;
+local UnitPower,  UnitPowerMax, UnitPowerType = UnitPower, UnitPowerMax, UnitPowerType;
+
 function CPPetRing:OnUpdate(elapsed)
 	self.elapsed = (self.elapsed or 0) + elapsed;
 	if self.elapsed > 0.1 then
@@ -295,6 +312,7 @@ function CPPetRing:OnUpdate(elapsed)
 		return;
 	end
 	local unit, powerType = self.unit, self.powerType;
+	if not UnitExists(unit) then return end;
 	local health = UnitHealth(unit) / UnitHealthMax(unit);
 	if ( self.health ~= health ) then
 		self.health = health;

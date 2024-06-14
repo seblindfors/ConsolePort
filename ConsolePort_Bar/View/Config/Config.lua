@@ -69,7 +69,7 @@ end
 function Header:Release()
 	self:SetTooltipInfo(nil)
 	self:SetTooltipAnchor(nil)
-	self:GetParent().headerPool:Release(self)
+	self:GetParent().headerPool:Release(self, true)
 end
 
 Header.OnHide = Header.Release;
@@ -264,7 +264,7 @@ local Config = CreateFromMixins(CPButtonCatcherMixin);
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	self:SetUserPlaced(false)
-	LoadAddOn('ConsolePort_Config');
+	C_AddOns.LoadAddOn('ConsolePort_Config');
 	env.SharedConfig.Env = ConsolePortConfig:GetEnvironment();
 	Mixin(Setting, env.SharedConfig.Env.SettingMixin) -- borrow code from the config for the settings
 
@@ -341,7 +341,7 @@ env.SharedConfig = {
 		return editor;
 	end;
 	CreateSquareButtonPool = function(parent, config)
-		return CreateFramePool('Button', parent, 'CPSquareButtonTemplate', FramePool_HideAndClearAnchorsWithReset, false, function(self)
+		return CreateFramePool('Button', parent, 'CPSquareButtonTemplate', CPAPI.HideAndClearAnchorsWithReset, false, function(self)
 			self:SetSize(38, 38)
 			self.owner = self:GetParent()
 			if config then Mixin(self, config) end;

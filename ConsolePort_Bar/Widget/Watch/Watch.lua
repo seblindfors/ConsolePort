@@ -369,16 +369,17 @@ function CPReputationBarMixin:UpdateCurrentText()
 end
 
 function CPReputationBarMixin:ShouldBeVisible()
-	local name = GetWatchedFactionInfo()
-	return name ~= nil;
+	local watchedFactionData = CPAPI.GetWatchedFactionData()
+	return watchedFactionData and watchedFactionData.factionID ~= 0;
 end
 
 function CPReputationBarMixin:GetMaxLevel()
-	local _, _, _, _, _, factionID = GetWatchedFactionInfo()
-	if not factionID or factionID == 0 then
+	local watchedFactionData = CPAPI.GetWatchedFactionData()
+	if not watchedFactionData or watchedFactionData.factionID == 0 then
 		return nil;
 	end
 
+	local factionID = watchedFactionData.factionID;
 	if CPAPI.IsFactionParagon(factionID) then
 		return nil;
 	end
@@ -399,14 +400,15 @@ function CPReputationBarMixin:GetMaxLevel()
 end
 
 function CPReputationBarMixin:Update()
-	local name, reaction, minBar, maxBar, value, factionID = GetWatchedFactionInfo()
-	if not factionID or factionID == 0 then
+	local watchedFactionData = CPAPI.GetWatchedFactionData()
+	if not watchedFactionData or watchedFactionData.factionID == 0 then
 		return;
 	end
 
-	local colorIndex = reaction;
+	local colorIndex = watchedFactionData.reaction;
 	local overrideUseBlueBar = false;
 
+	local factionID = watchedFactionData.factionID;
 	local isShowingNewFaction = self.factionID ~= factionID;
 	if isShowingNewFaction then
 		local reputationInfo = CPAPI.GetFriendshipReputation(factionID)
@@ -418,9 +420,10 @@ function CPReputationBarMixin:Update()
 	local level;
 	local maxLevel = self:GetMaxLevel()
 
+	local minBar, maxBar, value = watchedFactionData.currentReactionThreshold, watchedFactionData.nextReactionThreshold, watchedFactionData.currentStanding;
 	if CPAPI.IsFactionParagon(factionID) then
 		local currentValue, threshold, _, hasRewardPending = CPAPI.GetFactionParagonInfo(factionID)
-		minBar, maxBar  = 0, threshold;
+		minBar, maxBar = 0, threshold;
 		value = currentValue % threshold;
 		level = maxLevel;
 		if hasRewardPending then
@@ -446,7 +449,7 @@ function CPReputationBarMixin:Update()
 		end
 		colorIndex = 5; -- Friendships always use same
 	else
-		level = reaction;
+		level = watchedFactionData.reaction;
 	end
 
 	local isCapped = (level and maxLevel) and level >= maxLevel;
@@ -461,6 +464,12 @@ function CPReputationBarMixin:Update()
 	minBar = 0;
 
 	self:SetBarValues(value, minBar, maxBar, level, maxLevel)
+
+	local name = watchedFactionData.name;
+	local needsAccountWideLabel = CPAPI.IsAccountWideReputation(factionID)
+	if needsAccountWideLabel then
+		name = name .. " " .. REPUTATION_STATUS_BAR_LABEL_ACCOUNT_WIDE;
+	end
 
 	if isCapped then
 		self:SetBarText(name)

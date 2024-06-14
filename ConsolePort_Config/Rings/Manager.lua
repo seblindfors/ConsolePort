@@ -38,7 +38,6 @@ local RING_EMPTY_DESC = L[[You do not have any abilities in this ring yet.]]
 
 
 local EXTRA_ACTION_ID = CPAPI.ExtraActionButtonID;
-local GET_SPELLID_IDX = 7;
 local FIXED_OFFSET = 8;
 ---------------------------------------------------------------
 -- Helpers
@@ -426,7 +425,7 @@ local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin, {
 			end)
 		end;
 		spell = function(self, id)
-			local spellID = (select(GET_SPELLID_IDX, GetSpellInfo(id)))
+			local spellID = CPAPI.GetSpellInfo(id).spellID;
 			if spellID then
 				Spell:CreateFromSpellID(spellID):ContinueOnSpellLoad(function()
 					self:UpdateProps()
@@ -492,9 +491,9 @@ function LoadoutButton:GetDisplayText()
 		if self:IsExtraActionButton() then
 			text = GetExtraActionButtonName()
 		elseif ( self._state_type == 'item' ) then
-			text = (GetItemInfo(self._state_action))
+			text = (CPAPI.GetItemInfo(self._state_action).itemName)
 		elseif ( self._state_type == 'spell' ) then
-			text = (GetSpellInfo(self._state_action))
+			text = (CPAPI.GetSpellInfo(self._state_action).name)
 		end
 	end
 	return text;

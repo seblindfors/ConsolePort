@@ -98,7 +98,7 @@ function env.UIHandler:HideBlizzard()
 
 	---------------------------------------------------------------
 	-- Misc
-	if IsAddOnLoaded('Blizzard_NewPlayerExperience') then
+	if C_AddOns.IsAddOnLoaded('Blizzard_NewPlayerExperience') then
 		NPE_LoadUI()
 	elseif NPE_LoadUI ~= nil then
 		hooksecurefunc('NPE_LoadUI', NPE_LoadUI)

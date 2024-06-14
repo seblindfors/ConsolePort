@@ -52,7 +52,7 @@ end
 -- Commands
 ---------------------------------------------------------------
 function SpellMenu:Pickup()
-	PickupSpell(self:GetSpellID())
+	CPAPI.PickupSpell(self:GetSpellID())
 	self:Hide()
 end
 
@@ -295,19 +295,19 @@ end
 -- API
 ---------------------------------------------------------------
 SpellMenu.GetSpellLink = SpellMenu.GetSpellLink or function(self)
-	return (GetSpellLink(self:GetSpellID()));
+	return (CPAPI.GetSpellLink(self:GetSpellID()));
 end
 
 SpellMenu.GetSpellName = SpellMenu.GetSpellName or function(self)
-	return (GetSpellName(self:GetSpellID()));
+	return (CPAPI.GetSpellName(self:GetSpellID()));
 end
 
 SpellMenu.GetSpellTexture = SpellMenu.GetSpellTexture or function(self)
-	return (GetSpellTexture(self:GetSpellID()));
+	return (CPAPI.GetSpellTexture(self:GetSpellID()));
 end
 
 function SpellMenu:GetSpellSubtext()
-	return (GetSpellSubtext(self:GetSpellID()));
+	return (CPAPI.GetSpellSubtext(self:GetSpellID()));
 end
 
 ---------------------------------------------------------------

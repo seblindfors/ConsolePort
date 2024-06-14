@@ -33,8 +33,9 @@ Widget\Cluster\Cluster.xml
 Widget\Group\Group.xml
 Widget\Page\Page.xml
 
-View\Blizzard\Blizzard.xml
 View\Toolbar\Toolbar.xml
 View\Pet\Pet.xml
 View\Config\Config.xml
-View\Manager\Manager.xml
+
+Controller\Blizzard\Blizzard.xml
+Controller\Manager\Manager.xml

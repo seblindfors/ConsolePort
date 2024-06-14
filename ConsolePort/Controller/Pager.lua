@@ -160,7 +160,10 @@ Pager.Env = {
 		if type == 'spell' then
 			local slot = self::GetActionSpellInfo(...)
 			if slot then
-				return IsHarmfulSpell(slot, 'spell')
+				return ]]..(IsHarmfulSpell
+					and ('IsHarmfulSpell(slot, "spell")')
+					 or ('IsSpellHarmful(slot, %d)'):format(Enum.SpellBookSpellBank.Player)
+				)..[[;
 			end
 		elseif type == 'item' and id then
 			return IsHarmfulItem(id)
@@ -177,7 +180,10 @@ Pager.Env = {
 		if type == 'spell' then
 			local slot = self::GetActionSpellInfo(...)
 			if slot then
-				return IsHelpfulSpell(slot, 'spell')
+				return ]]..(IsHelpfulSpell
+					and ('IsHelpfulSpell(slot, "spell")')
+					 or ('IsSpellHelpful(slot, %d)'):format(Enum.SpellBookSpellBank.Player)
+				)..[[;
 			end
 		elseif type == 'item' and id then
 			return IsHelpfulItem(id)

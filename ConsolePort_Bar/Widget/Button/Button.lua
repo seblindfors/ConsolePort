@@ -69,7 +69,7 @@ local SlotButton = Mixin({
 function SlotButton:OnLoad()
 	self:CreateEnvironment(SlotButton.Env)
 
-	if CPAPI.IsClassicVersion then
+	if not CPAPI.IsRetailVersion then
 		-- Assert assets on all client flavors
 		local skinner = env.LIB.SkinUtility;
 		skinner.GetIconMask(self)
@@ -105,7 +105,7 @@ function SlotButton:GetOverrideBinding(state, actionID)
 	return nil; -- override
 end
 
-if CPAPI.IsClassicVersion then
+if not CPAPI.IsRetailVersion then
 	local TextureInfo = {
 		NormalTexture = {
 			atlas = 'UI-HUD-ActionBar-IconFrame-AddRow';

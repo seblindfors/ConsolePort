@@ -24,7 +24,7 @@ local Grid = {};
 function Grid:OnLoad()
 	self.linePool = CreateObjectPool(
 		function(_) return Mixin(self:CreateLine(), GridLine) end,
-		FramePool_HideAndClearAnchors
+		CPAPI.HideAndClearAnchors
 	);
 
 	self:RegisterEvent('DISPLAY_SIZE_CHANGED')
@@ -376,8 +376,20 @@ function Mover:OnMouseWheel(delta)
 end
 
 function Mover:SetPoint(point, relativeTo, relativePoint, x, y)
-	self.Status:SetText(('%s: %d, %d'):format(point, x, y))
+	self.Status:SetText(('%s -> %s: %d, %d'):format(point, relativePoint, x, y))
 	getmetatable(self).__index.SetPoint(self, point, relativeTo, relativePoint, x, y)
+	for anchor in pairs(self.SelectionLayout) do
+		local slice = self[anchor];
+		if ( anchor == point and anchor == relativePoint ) then
+			slice:SetVertexColor(0, 1, 0)
+		elseif ( anchor == point ) then
+			slice:SetVertexColor(1, 0, 0)
+		elseif ( anchor == relativePoint ) then
+			slice:SetVertexColor(0, 0, 1)
+		else
+			slice:SetVertexColor(1, 1, 1)
+		end
+	end
 end
 
 function Mover:SetSize(width, height)

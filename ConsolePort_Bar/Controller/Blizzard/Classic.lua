@@ -92,6 +92,7 @@ function env.UIHandler:HideBlizzard()
 		MainMenuExpBar                 = {false,       false,    true};
 		ReputationWatchBar             = {false,       false,    true};
 		MainMenuBarMaxLevelBar         = {false,       false,    true};
+		OverrideActionBar              = {true,        false,    true};
 	}) do
 		hideHUDFrame(_G[frame], unpack(settings))
 	end
@@ -109,10 +110,10 @@ function env.UIHandler:HideBlizzard()
 
 		-- when blizzard vehicle is turned off, we need to manually fix the state since the OverrideActionBar animation wont run
 		hooksecurefunc('BeginActionBarTransition', function(bar, animIn)
-			if bar == OverrideActionBar and not self.db.profile.blizzardVehicle then
-				OverrideActionBar.slideOut:Stop()
-				MainMenuBar:Show()
-			end
+			--if bar == OverrideActionBar then --and not self.db.profile.blizzardVehicle then
+			--	OverrideActionBar.slideOut:Stop()
+			--	MainMenuBar:Show()
+			--end
 		end)
 	end
 

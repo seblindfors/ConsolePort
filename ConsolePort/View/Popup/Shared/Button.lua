@@ -152,7 +152,7 @@ function MapActionButton:OnClick(button)
 	ClearCursor()
 
 	local spellID = parent:GetSpellID()
-	PickupSpell(spellID)
+	CPAPI.PickupSpell(spellID)
 	PlaceAction(actionID)
 	self:Update()
 

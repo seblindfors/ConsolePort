@@ -172,7 +172,7 @@ end
 function CPMaskedButtonMixin:OnMouseUp(button)
 	if button == 'RightButton' and self.expandedTooltipFrame then
 		tooltipsExpanded = not tooltipsExpanded
-		if GetMouseFocus() == self then
+		if self:IsMouseMotionFocus() then
 			self:OnEnter()
 		end
 	end
@@ -389,7 +389,7 @@ end
 function CPSelectionPopoutButtonMixin:HidePopout()
 	self.Popout:Hide();
 
-	if GetMouseFocus() == self then
+	if self:IsMouseMotionFocus() then
 		CPAPI.SetAtlas(self.NormalTexture, 'customize-dropdownbox-hover');
 	else
 		CPAPI.SetAtlas(self.NormalTexture, 'customize-dropdownbox');

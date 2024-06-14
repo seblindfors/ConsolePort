@@ -23,7 +23,7 @@ function Lib:NewPool(info)
 		return frame;
 	end
 
-	local resetterFunc = FramePool_HideAndClearAnchors;
+	local resetterFunc = CPAPI.HideAndClearAnchors;
 
 	return creationFunc, resetterFunc, mixin;
 end
@@ -54,11 +54,11 @@ function Pet:GetTexture()
 end
 
 function Pet:UpdateLocal()
-	local _, _, _, isActive, _, autoCastEnabled = GetPetActionInfo(self.id)
+	local _, _, _, _, autoCastAllowed, autoCastEnabled = GetPetActionInfo(self.id)
 	if autoCastEnabled then
-		AutoCastShine_AutoCastStart(self.AutoCastShine, CPAPI.GetClassColor())
+		CPAPI.AutoCastStart(self, autoCastAllowed, CPAPI.GetClassColor())
 	else
-		AutoCastShine_AutoCastStop(self.AutoCastShine)
+		CPAPI.AutoCastStop(self, autoCastAllowed)
 	end
 end
 
@@ -204,7 +204,7 @@ do -- Lib.Skin.ColorSwatchProc
 	end
 
 	local function OnHideOverlay(self)
-		SwatchPool:Release(self.__swatch)
+		SwatchPool:Release(self.__swatch, true)
 		local overlay = self.__overlay;
 		if overlay then
 			overlay:SetLooping('NONE')
@@ -379,9 +379,11 @@ do -- Workaround for LAB's private type meta map.
 			ReferenceButton:SetState(meta, meta, dummy)
 			ReferenceButton:SetAttribute('state', meta)
 			ReferenceButton:UpdateAction(true)
-			Lib.TypeMetaMap[meta] = getmetatable(ReferenceButton)
+			self[meta] = getmetatable(ReferenceButton)
 		end
 		ReferenceButton:SetAttribute('state', 'empty')
 		return rawget(setmetatable(self, nil), k);
 	end})
 end
+
+LL = Lib

@@ -554,7 +554,7 @@ function Preset:OnPresetClick()
 end
 
 ---------------------------------------------------------------
-local Loadout = CreateFromMixins(env.SharedConfig.HeaderOwner, FramePoolCollectionMixin);
+local Loadout = CreateFromMixins(env.SharedConfig.HeaderOwner, CPFramePoolCollectionMixin);
 ---------------------------------------------------------------
 
 local function IsConfigurableType(datapoint)
@@ -602,7 +602,7 @@ end
 function Loadout:OnLoad(inputHandler, headerPool)
 	local sharedConfig = env.SharedConfig;
 	sharedConfig.HeaderOwner.OnLoad(self, env.SharedConfig.Header)
-	FramePoolCollectionMixin.OnLoad(self)
+	CPFramePoolCollectionMixin.OnLoad(self)
 	Widgets = sharedConfig.Env.Widgets;
 
 	Mixin(Widgets.CreateWidget('Point', Widgets.Base, PointBlueprint), Point)

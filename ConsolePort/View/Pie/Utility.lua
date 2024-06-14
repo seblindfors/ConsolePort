@@ -563,7 +563,7 @@ Utility.KindAndActionMap = {
 	item   = function(data) return data.item end;
 	pet    = function(data) return data.action end;
 	macro  = function(data) return data.macro end;
-	spell  = function(data) return (data.link and data.link:match('spell:(%d+)')) or (select(7, GetSpellInfo(data.spell))) or data.spell end;
+	spell  = function(data) return (data.link and data.link:match('spell:(%d+)')) or CPAPI.GetSpellInfo(data.spell).spellID or data.spell end;
 	equipmentset = function(data) return data.equipmentset end;
 }
 
@@ -579,9 +579,9 @@ Utility.LinkMap = {
 		local args = select('#', ...)
 		if (args > 1) then
 			local bookType = ...;
-			return GetSpellLink(spell, bookType)
+			return CPAPI.GetSpellBookItemLink(spell, bookType)
 		end
-		return GetSpellLink(spell)
+		return CPAPI.GetSpellLink(spell)
 	end;
 	item = function(...)
 		return select(2, ...)
@@ -606,16 +606,16 @@ Utility.SecureHandlerMap = {
 		return {type = 'item', item = itemLink or itemID, link = itemLink};
 	end;
 	spell = function(spellIndex, bookType, spellID)
-		return {type = 'spell', spell = spellID, link = GetSpellLink(spellID)};
+		return {type = 'spell', spell = spellID, link = CPAPI.GetSpellLink(spellID)};
 	end;
 	macro = function(index)
 		return {type = 'macro', macro = index};
 	end;
 	mount = function(mountID)
 		local spellID = select(2, C_MountJournal.GetMountInfoByID(mountID));
-		local spellName = spellID and GetSpellInfo(spellID)
+		local spellName = spellID and CPAPI.GetSpellInfo(spellID).name;
 		if spellName then
-			return {type = 'spell', spell = spellName, link = GetSpellLink(spellName)};
+			return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)};
 		end
 	end;
 	petaction = function(spellID, indexIsOffset)
@@ -631,7 +631,7 @@ Utility.SecureHandlerMap = {
 	end;
 	companion = function(companionID, companionType)
 		local _, spellName = GetCompanionInfo(companionType, companionID)
-		return {type = 'spell', spell = spellName, link = GetSpellLink(spellName)}
+		return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)}
 	end;
 }
 
