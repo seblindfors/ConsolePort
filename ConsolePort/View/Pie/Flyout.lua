@@ -235,7 +235,7 @@ function Selector:AddCustomButton(i, spellID, name, size)
 		desaturated     = false;
 		offSpec         = false;
 		spellID         = spellID;
-		spellName       = GetSpellInfo(spellID);
+		spellName       = CPAPI.GetSpellInfo(spellID).name;
 		owner           = _G[name];
 	})
 end
@@ -310,7 +310,7 @@ function FlyoutButtonMixin:Update()
 	SpellFlyoutButton_UpdateUsable(self);
 	SpellFlyoutButton_UpdateState(self);
 
-	self.icon:SetTexture(GetSpellTexture(self.overrideSpellID))
+	self.icon:SetTexture(CPAPI.GetSpellTexture(self.overrideSpellID))
 	self:GetNormalTexture():SetDesaturated(self.offSpec)
 	self.Name:SetText(self.spellName)
 	self:SetEnabled(not self.offSpec)
