@@ -691,6 +691,7 @@ Loadout.Popups = {
 		button2   = CANCEL;
 		showAlert = true;
 		hasEditBox = 1;
+		enterClicksFirstButton = true;
 		OnAccept = function(popup, data)
 			data.owner:OnAdd(data.interface, popup.editBox:GetText():trim())
 		end;
@@ -710,6 +711,7 @@ Loadout.Popups = {
 		button1   = YES;
 		button2   = CANCEL;
 		showAlert = true;
+		enterClicksFirstButton = true;
 		OnAccept = function(_, data)
 			data.owner:OnLoadPreset(data.preset)
 		end;
@@ -723,6 +725,7 @@ Loadout.Popups = {
 	ConsolePort_Loadout_Confirm_Save = {
 		button1   = OKAY;
 		button2   = CANCEL;
+		enterClicksFirstButton = true;
 		text = L('Save preset from %s:', YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
 		OnShow = function(popup, data)
 			local dialog = popup.insertedFrame;
@@ -753,6 +756,7 @@ Loadout.Popups = {
 		button1    = OKAY;
 		hasEditBox = 1;
 		text = L('Export %s to a string:', YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
+		enterClicksFirstButton = true;
 		OnShow = function(popup, data)
 			popup.editBox:SetText(data.string)
 		end;
@@ -768,6 +772,7 @@ Loadout.Popups = {
 		button1    = OKAY;
 		button2    = CANCEL;
 		hasEditBox = 1;
+		enterClicksFirstButton = true;
 		text = L('Import serialized preset(s):');
 		OnShow = function(popup)
 			popup.button1:Disable()
