@@ -21,7 +21,7 @@ end
 
 
 function Ability:Update()
-	self:SetIcon(GetSpellTexture(self:GetID()))
+	self:SetIcon(CPAPI.GetSpellTexture(self:GetID()))
 
 	self.tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, 50)
 	self.tooltip:SetSpellByID(self:GetID())

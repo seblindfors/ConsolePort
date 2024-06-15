@@ -106,7 +106,7 @@ end
 
 function ItemMenu:GetEquipCommand(invSlot, i, numSlots)
 	local item = GetInventoryItemID('player', invSlot)
-	local link = item and select(INDEX_INFO_ILINK, GetItemInfo(item))
+	local link = CPAPI.GetItemInfo(item).itemLink;
 	return {
 		text =  link and (REPLACE..' '..link)
 				or numSlots > 1 and EQUIPSET_EQUIP .. (' (%s/%s %s)'):format(i, numSlots, SLOT_ABBR)
@@ -211,15 +211,15 @@ end
 -- API
 ---------------------------------------------------------------
 function ItemMenu:GetSpellID()
-	return GetItemSpell(self:GetItemID())
+	return CPAPI.GetItemSpell(self:GetItemID())
 end
 
 function ItemMenu:GetLink()
-	return (select(INDEX_INFO_ILINK, GetItemInfo(self:GetItemID())))
+	return CPAPI.GetItemInfo(self:GetItemID()).itemLink;
 end
 
 function ItemMenu:GetQuality()
-	return (select(INDEX_INFO_ITEMQ, GetItemInfo(self:GetItemID())))
+	return CPAPI.GetItemInfo(self:GetItemID()).itemQuality;
 end
 
 function ItemMenu:GetCount()
@@ -227,11 +227,11 @@ function ItemMenu:GetCount()
 end
 
 function ItemMenu:GetStackCount()
-	return (select(INDEX_INFO_STACK, GetItemInfo(self:GetItemID())))
+	return CPAPI.GetItemInfo(self:GetItemID()).itemStackCount;
 end
 
 function ItemMenu:GetInventoryLocation()
-	return (select(INDEX_INFO_EQLOC, GetItemInfo(self:GetItemID())))
+	return CPAPI.GetItemInfo(self:GetItemID()).itemEquipLoc;
 end
 
 function ItemMenu:HasNoValue()
@@ -243,7 +243,7 @@ function ItemMenu:IsSplittableItem()
 end
 
 function ItemMenu:IsEquippableItem()
-	return IsEquippableItem(self:GetItemID())
+	return CPAPI.IsEquippableItem(self:GetItemID())
 end
 
 function ItemMenu:IsUsableItem()

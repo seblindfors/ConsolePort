@@ -404,7 +404,7 @@ CPAPI.GetWatchedFactionData = function(...)
 end
 
 CPAPI.CanPlayerDisenchantItem = function(itemID)
-	local spellID = select(7, GetSpellInfo('Disenchant'))
+	local spellID = CPAPI.GetSpellInfo('Disenchant').spellID;
 	if spellID and IsPlayerSpell(spellID) then
 		local info = CPAPI.GetItemInfo(itemID)
 		local class, quality = info.classID, info.itemQuality;
