@@ -394,13 +394,13 @@ do -- Binding data handler
 	end
 
 	function env.GetBindingName(binding)
-		return _G['BINDING_NAME_'..binding] or binding;
+		return _G['BINDING_NAME_'..binding] or GetBindingName(binding);
 	end
 
 	function env.GetXMLBindingInfo(binding)
 		local desc, image, name, texture = db.Bindings:GetDescriptionForBinding(binding, true, TOOLTIP_LINE_LEN)
 		local tooltip = ('%s%s%s'):format(
-			WHITE_FONT_COLOR:WrapTextInColorCode(name or binding),
+			WHITE_FONT_COLOR:WrapTextInColorCode(name or env.GetBindingName(binding)),
 			desc  and ('\n\n%s'):format(desc)  or '',
 			image and ('\n\n%s'):format(image) or ''
 		);
