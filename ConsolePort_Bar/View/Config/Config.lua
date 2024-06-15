@@ -69,7 +69,6 @@ end
 function Header:Release()
 	self:SetTooltipInfo(nil)
 	self:SetTooltipAnchor(nil)
-	self:GetParent().headerPool:Release(self, true)
 end
 
 Header.OnHide = Header.Release;
