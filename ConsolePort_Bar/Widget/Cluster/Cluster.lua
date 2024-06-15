@@ -255,10 +255,12 @@ end
 
 function FlyoutButton:OnMouseMotionFocus()
 	self:UpdateAlpha(self.AlphaState.MouseOver, true)
+	self:SetIgnoreParentAlpha(true)
 end
 
 function FlyoutButton:OnMouseMotionClear()
 	self:UpdateAlpha(self.AlphaState.MouseOver, false)
+	self:SetIgnoreParentAlpha(false)
 end
 
 function FlyoutButton:OnSpellFlyout(enabled)
@@ -361,7 +363,27 @@ local MainButton = { OnCooldownClear = nop };
 function MainButton:OnLoad()
 	env:RegisterCallback('Settings/showMainIcons', self.ToggleHotkeys, self)
 	self:ToggleHotkeys(env('showMainIcons'))
+
+	self:HookScript('OnEnter', self.OnMouseMotionFocus)
+	self:HookScript('OnLeave', self.OnMouseMotionClear)
+
 	Mixin(self.cooldown, env.ProxyCooldown):OnLoad()
+end
+
+function MainButton:OnMouseMotionFocus()
+	if self.mouseMotionTimeout then
+		self.mouseMotionTimeout = self.mouseMotionTimeout:Cancel()
+	end
+	self:SetIgnoreParentAlpha(true)
+end
+
+function MainButton:OnMouseMotionClear()
+	if self.mouseMotionTimeout then
+		self.mouseMotionTimeout = self.mouseMotionTimeout:Cancel()
+	end
+	self.mouseMotionTimeout = C_Timer.NewTimer(5, function()
+		self:SetIgnoreParentAlpha(false)
+	end)
 end
 
 function MainButton:OnCooldownSet()
