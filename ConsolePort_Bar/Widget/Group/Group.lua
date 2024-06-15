@@ -73,6 +73,11 @@ function Button:OnPropsUpdated()
 	local pos = props.pos;
 	self:ClearAllPoints()
 	self:SetPoint(pos.point, self:GetParent(), pos.relPoint, pos.x, pos.y)
+
+	local bindings = env.Manager:GetBindings(self.id);
+	if bindings then
+		self:SetBindings(bindings)
+	end
 end
 
 function Button:SetBindings(set)
