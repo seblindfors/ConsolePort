@@ -251,12 +251,15 @@ function CPPieSliceMixin:RotateLines(centerAngle)
 	local textYDelta = (endY < 1) and -1 or 1;
 	local textYOffset = self.Text:GetStringHeight();
 	local flipLines = startX > endX;
+	local textPoint = flipLines and 'RIGHT' or 'LEFT';
 
 	self.Line1:SetStartPoint('CENTER', startX, startY)
 	self.Line1:SetEndPoint('CENTER', endX, endY)
 	self.Line2:SetStartPoint('CENTER', endX, endY)
 	self.Line2:SetEndPoint('CENTER', endX + flatDirection * flatLength, endY)
-	self.Text:SetPoint('CENTER', self.Line2, 'CENTER', 0, textYDelta * textYOffset)
+	self.Text:ClearAllPoints()
+	self.Text:SetPoint(textPoint, self.Line2, textPoint, 0, textYDelta * textYOffset)
+	self.Text:SetJustifyH(textPoint)
 
 	self.Line1:SetTexCoord(0, 1, flipLines and 1 or 0, flipLines and 0 or 1)
 	self.Line2:SetTexCoord(0, 1, flipLines and 1 or 0, flipLines and 0 or 1)
