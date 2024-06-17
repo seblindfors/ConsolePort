@@ -81,7 +81,7 @@ Dispatcher:EnableGamePadStick(false)
 ---------------------------------------------------------------
 RadialMixin.Env = {
 	GetIndex = [[
-		local stickID, size = ...
+		local stickID, size = ...;
 		return radial::GetIndexForStickPosition(
 			stickID or self:GetAttribute('stick'),
 			size or UpdateSize and self::UpdateSize() or
@@ -96,6 +96,10 @@ RadialMixin.Env = {
 	]];
 	GetRadius = [[
 		return math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
+	]];
+	GetStickPosition = [[
+		local id = ...;
+		return radial::GetStickPosition(stickID or self:GetAttribute('stick'))
 	]];
 	SetDynamicRadius = ([[
 		local numItems, itemSize, padding = ...;
@@ -398,7 +402,8 @@ function Radial:OnDataLoaded()
 		self:Execute(('%s = %f;'):format(attr, val))
 		self[attr] = val
 	end
-	return self
+	SetCVar('GamePadStickAxisButtons', db('radialExtended'))
+	return self;
 end
 
 function Radial:OnActiveDeviceChanged()
@@ -443,8 +448,6 @@ function Radial:GetAngleDistance(a1, a2)
 end
 
 function Radial:GetAngleForIndex(index, size)
-	-- TODO: division by zero bug?
-	if size < 1 then return end;
 	local step = 360 / size
 	return ((self.ANGLE_IDX_ONE + ((index - 1) * step)) % 360)
 end
@@ -505,3 +508,4 @@ RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 db:RegisterSafeCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
 db:RegisterSafeCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
 db:RegisterSafeCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)
+db:RegisterSafeCallback('Settings/radialExtended', Radial.OnDataLoaded, Radial)

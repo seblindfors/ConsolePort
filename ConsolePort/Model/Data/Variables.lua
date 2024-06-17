@@ -167,6 +167,11 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Sticky Selection';
 		desc = 'Selecting an item on a ring will stick until another item is chosen.';
 	};
+	radialExtended = _{Bool(true);
+		name = 'Extended Support';
+		desc = 'Enable radial stick bindings, unlocking extended ring features.';
+		advd = true;
+	};
 	radialClearFocusTime = _{Number(0.5, 0.025);
 		name = 'Focus Timeout';
 		desc = 'Time to clear focus after intercepting stick input, in seconds.';
