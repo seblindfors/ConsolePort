@@ -231,34 +231,46 @@ do -- Lib.Skin.RingButton
 
 	Lib.Skin.RingButton = function(self)
 		assert(type(self.rotation) == 'number', 'Ring button must have a rotation value.')
-		local obj;
+		local obj, scale;
 		local r, g, b = CPPieMenuMixin.SliceColors.Accent:GetRGB()
+		local size = self:GetSize()
 		do obj = self.NormalTexture;
+			scale = 110 / 64;
 			obj:ClearAllPoints()
 			obj:SetPoint('CENTER', -1, 0)
-			obj:SetSize(110, 110)
+			obj:SetSize(scale * size, scale * size)
 			obj:SetVertexColor(r, g, b, 1)
 			CPAPI.SetAtlas(obj, 'ring-metallight')
 		end
 		do obj = self.PushedTexture or self:GetPushedTexture();
 			obj:ClearAllPoints()
 			obj:SetPoint('CENTER')
-			obj:SetSize(110, 110)
+			obj:SetSize(scale * size, scale * size)
 			obj:SetVertexColor(r, g, b, 1)
 			CPAPI.SetAtlas(obj, 'ring-metaldark')
 		end
+		do obj = self.Flash;
+			obj:ClearAllPoints()
+			obj:SetPoint('CENTER', 1, 0)
+			obj:SetSize(scale * size, scale * size)
+			obj:SetBlendMode('ADD')
+			CPAPI.SetAtlas(obj, 'ring-horde')
+			obj:SetDrawLayer('OVERLAY', 1)
+		end
 		do obj = self.CheckedTexture or self:GetCheckedTexture();
+			scale = 78 / 64;
 			obj:ClearAllPoints()
 			obj:SetPoint('CENTER', 0, 0)
-			obj:SetSize(78, 78)
+			obj:SetSize(scale * size, scale * size)
 			obj:SetDrawLayer('OVERLAY', -1)
 			obj:SetBlendMode('BLEND')
 			CPAPI.SetAtlas(obj, 'ring-select')
 		end
 		do obj = self.HighlightTexture or self:GetHighlightTexture();
+			scale = 90 / 64;
 			obj:ClearAllPoints()
 			obj:SetPoint('CENTER')
-			obj:SetSize(90, 90)
+			obj:SetSize(scale * size, scale * size)
 			obj:SetBlendMode('BLEND')
 			CPAPI.SetAtlas(obj, 'ring-select')
 		end
@@ -269,18 +281,10 @@ do -- Lib.Skin.RingButton
 			obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Mask]]), 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
 			obj:SetAllPoints()
 		end
-		do obj = self.Flash;
-			obj:ClearAllPoints()
-			obj:SetPoint('CENTER', 1, 0)
-			obj:SetSize(110, 110)
-			obj:SetBlendMode('ADD')
-			CPAPI.SetAtlas(obj, 'ring-horde')
-			obj:SetDrawLayer('OVERLAY', 1)
-		end
 		do obj = self.SlotBackground;
 			if obj then
 				obj:SetPoint('CENTER')
-				obj:SetSize(64, 64)
+				obj:SetSize(size, size)
 				obj:SetTexture(CPAPI.GetAsset([[Textures\Button\Icon_Mask64]]))
 				obj:SetRotation(self.rotation + math.pi)
 				obj:AddMaskTexture(self.IconMask)
@@ -290,7 +294,7 @@ do -- Lib.Skin.RingButton
 		do obj = self.SpellHighlightTexture;
 			obj:ClearAllPoints()
 			obj:SetPoint('CENTER', 0, 0)
-			obj:SetSize(64, 64)
+			obj:SetSize(size, size)
 			obj:SetTexture([[Interface\Buttons\IconBorder-GlowRing]])
 		end
 		do obj = self.cooldown;
