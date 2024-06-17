@@ -262,7 +262,9 @@ Presets.Keyboard = {
 	desc       = 'A regular action bar.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = Interface.Toolbar:Render();
+		Toolbar = Interface.Toolbar:Render {
+			width = 725;
+		};
 		Petring = Interface.Petring:Render {
 			scale = 0.7;
 			pos   = { x = 504, y = 100 };
@@ -272,11 +274,11 @@ Presets.Keyboard = {
 			pos = { y = 24 };
 		};
 		['Bar 2'] = Interface.Page:Render {
-			pos = { y = 74 };
+			pos  = { y = 74 };
 			page = '6';
 		};
 		['Bar 3'] = Interface.Page:Render {
-			pos = { y = 124 };
+			pos  = { y = 124 };
 			page = '5';
 		};
 	};
