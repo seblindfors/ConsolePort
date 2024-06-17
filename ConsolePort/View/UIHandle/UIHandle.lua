@@ -159,7 +159,7 @@ function Control:RemoveHint(key)
 end
 
 function Control:GetHintForKey(key)
-	local hint = self.HintBar:GetActiveHintForKey()
+	local hint = self.HintBar:GetActiveHintForKey(key)
 	if hint then
 		return hint, hint:GetText()
 	end
