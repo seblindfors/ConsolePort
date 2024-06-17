@@ -164,7 +164,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	end
 
 	function Stack:UpdateFrames(updateCursor)
-		if not isLocked then
+		if not isLocked and not isObstructed then
 			self:UpdateFrameTracker()
 			RunNextFrame(function()
 				if not isLocked then
