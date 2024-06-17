@@ -97,11 +97,11 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Size';
 		desc = 'Font size of the hotkey text on buttons.';
 	};
-	LABhotkeyPositionOffsetX = _{Data.Number(-2, 1, true);
+	LABhotkeyPositionOffsetX = _{Data.Number(4, 1, true);
 		name = 'Offset X';
 		desc = 'Horizontal offset of the hotkey text on buttons.';
 	};
-	LABhotkeyPositionOffsetY = _{Data.Number(-4, 1, true);
+	LABhotkeyPositionOffsetY = _{Data.Number(0, 1, true);
 		name = 'Offset Y';
 		desc = 'Vertical offset of the hotkey text on buttons.';
 	};
