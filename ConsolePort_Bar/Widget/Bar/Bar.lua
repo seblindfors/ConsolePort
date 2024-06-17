@@ -5,12 +5,27 @@ CPActionBar = Mixin({
 	FadeIn = db.Alpha.FadeIn;
 	Env = {
 		_onshow = [[
-			manager:SetAttribute(self:GetAttribute('signature'), true)
-			manager::RefreshBindings(true)
+			self::OnAcquire()
 		]];
 		_onhide = [[
-			manager:SetAttribute(self:GetAttribute('signature'), false)
+			self::OnRelease()
+		]];
+		OnAcquire = [[
+			manager:SetAttribute(self:GetAttribute('signature'), self::IsOverrideApplicable())
+			manager::RefreshBindings(true)
+		]];
+		OnRelease = [[
+			manager:SetAttribute(self:GetAttribute('signature'), self::IsOverrideApplicable())
 			manager::RefreshBindings(false)
+		]];
+		IsOverrideApplicable = [[
+			local override = self:GetAttribute('override')
+			if ( override == 'shown' ) then
+				return self:IsVisible()
+			elseif ( override == 'hidden' ) then
+				return not self:IsVisible()
+			end
+			return ( override == 'true' );
 		]];
 		OnLoad = [[
 			manager = self:GetFrameRef('Manager')
@@ -85,6 +100,15 @@ function CPActionBar:OnDriverChanged()
 		if newstate > 1 then newstate = 1 end;
 		self:CallMethod('FadeIn', 0.05, ALPHA or 0, newstate)
 		ALPHA = newstate;
+	]])
+
+	-- Driver: owner
+	self:RegisterDriver('override', env.ConvertDriver(self.props.override), [[
+		self:SetAttribute('override', newstate)
+		if self:IsVisible() then
+			return self::OnAcquire()
+		end
+		self::OnRelease()
 	]])
 end
 

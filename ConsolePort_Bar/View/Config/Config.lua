@@ -255,7 +255,6 @@ function CommandButton:Reset()
 	self.data = nil;
 end
 
-
 ---------------------------------------------------------------
 local Config = CreateFromMixins(CPButtonCatcherMixin);
 ---------------------------------------------------------------

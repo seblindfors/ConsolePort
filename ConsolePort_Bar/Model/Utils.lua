@@ -224,9 +224,9 @@ do -- Widget factory
 
 		for widget, sig in pairs(ActiveWidgets) do
 			if not ActiveWidgets[widget:GetParent()] then
-				local key, value = scaffold(widget, sig)
-				if key and value then
-					hierarchy[key] = value;
+				local name, config = scaffold(widget, sig)
+				if name and config then
+					hierarchy[name] = config;
 				end
 			end
 		end

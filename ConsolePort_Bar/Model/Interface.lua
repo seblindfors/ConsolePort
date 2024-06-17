@@ -86,6 +86,21 @@ Type.Scale = Data.Interface {
 	Data.String('100');
 };
 
+Type.Override = Data.Interface {
+	name = 'Override';
+	desc = env.MakeMacroDriverDesc(
+		'Binding override condition of the element. Accept pairs of a macro condition and an override state, or a single override state.',
+		'Sets or unsets applicable bindings to the element.',
+		'condition', 'override', true, nil, {
+			['true']   = 'Bindings are set to the element.';
+			['false']  = 'Bindings are removed from the element.';
+			['shown']  = 'Bindings are set to the element when it is shown.';
+			['hidden'] = 'Bindings are set to the element when it is hidden.';
+		}
+	);
+	Data.String('shown');
+};
+
 Type.Modifier = Data.Interface {
 	name = 'Modifier';
 	desc = env.MakeMacroDriverDesc(
@@ -180,6 +195,7 @@ Interface.Cluster = Data.Interface {
 		rescale    = _(Type.Scale : Implement {});
 		visibility = _(Type.Visibility : Implement {});
 		opacity    = _(Type.Opacity : Implement {});
+		override   = _(Type.Override : Implement {});
 	};
 };
 
@@ -226,6 +242,7 @@ Interface.Group = Data.Interface {
 		rescale    = _(Type.Scale : Implement {});
 		visibility = _(Type.Visibility : Implement {});
 		opacity    = _(Type.Opacity : Implement {});
+		override   = _(Type.Override : Implement {});
 	};
 };
 
@@ -287,6 +304,7 @@ Interface.Page = Data.Interface {
 		rescale    = _(Type.Scale : Implement {});
 		visibility = _(Type.Visibility : Implement {});
 		opacity    = _(Type.Opacity : Implement {});
+		override   = _(Type.Override : Implement {});
 	};
 };
 
