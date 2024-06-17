@@ -1,4 +1,4 @@
-if not CPAPI.IsRetailVersion then return end;
+if not SpellFlyout then return end;
 local _, db = ...;
 local SpellFlyout, FlyoutButtonMixin = SpellFlyout, CreateFromMixins(CPActionButton);
 local Selector = Mixin(CPAPI.EventHandler(ConsolePortSpellFlyout, {
@@ -218,7 +218,7 @@ end
 
 function Selector:SetOverride(name, enabled)
 	local frame = _G[name];
-	--frame:SetAlpha(enabled and 0 or 1)
+	frame:SetIgnoreParentAlpha(enabled)
 	local owner = frame:GetParent()
 	if owner and owner.UpdateFlyout then
 		owner:UpdateFlyout(false)
