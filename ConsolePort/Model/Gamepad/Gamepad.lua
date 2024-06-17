@@ -88,7 +88,7 @@ function GamepadAPI:SetActiveIconsFromDevice(device)
 end
 
 function GamepadAPI:GetActiveDevice()
-	return self.Active
+	return self.Active;
 end
 
 function GamepadAPI:GetActiveDeviceName()
@@ -170,10 +170,9 @@ for _, modifier in ipairs(GamepadAPI.Modsims) do
 	db:RegisterSafeCallback(('GamePadEmulate%s'):format(modifier:lower():gsub('^%l', strupper)),
 	function(self, value)
 		self:ReindexModifiers()
-		-- Wipe all active bindings for a modifier when it's set.
-		for mod in pairs(self.Index.Modifier.Active) do
-			SetBinding(mod..value, nil)
-		end
+		-- Wipe the incompatible binding for a modifier when it's set.
+		-- E.g. if you set ALT to PAD1, ALT-PAD1 will be removed.
+		SetBinding(modifier..value, nil)
 		SaveBindings(GetCurrentBindingSet())
 		db:TriggerEvent('OnModifierChanged', modifier, value)
 	end, GamepadAPI)
@@ -381,7 +380,7 @@ function GamepadAPI:ReindexIconAtlas()
 	end
 
 	-- Do indexing of the different styles
-	for style, sizes in pairs(self.Index.Atlas) do --SHP, 
+	for style, sizes in pairs(self.Index.Atlas) do --SHP,
 		for size, icons in pairs(sizes) do -- 32,64
 			local modifier = (size == 32) and 'ABBR_' or '';
 			for button in pairs(self.Index.Button.Binding) do
