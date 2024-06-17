@@ -1,0 +1,33 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+
+	<PieMenu name="ConsolePortMenuRing" parent="UIParent" registerForClicks="AnyUp" inherits="ConsolePortSecurePie, ConsolePortSlicedPie" hidden="true">
+		<Size x="500" y="500"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Frames>
+			<Button parentKey="Trigger" name="$parentTrigger" inherits="SecureHandlerBaseTemplate">
+				<Scripts>
+					<OnLoad>self:SetParent(GameMenuFrame)</OnLoad>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Background" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient.jpg" setAllPoints="true" alpha="0.75"/>
+				<MaskTexture parentKey="BackgroundMask" file="Interface\Masks\CircleMaskScalable">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="50" y="-50"/>
+						<Anchor point="BOTTOMRIGHT" x="-50" y="50"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Background"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</PieMenu>
+
+	<Script file="Menu.lua"/>
+</Ui>

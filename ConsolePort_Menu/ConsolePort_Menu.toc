@@ -14,9 +14,7 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-Core\MenuMixin.lua
-Core\ButtonMixin.lua
-Templates\Templates.xml
+Database.lua
 
-Menus\GameMenuSplash.lua
-Menus\GameMenuFrame.lua
+Model\Buttons.lua
+View\Menu.xml
