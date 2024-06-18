@@ -2,9 +2,27 @@ local _, env, db = ...; db = env.db;
 local GameMenu, GameMenuButtonMixin = GameMenuFrame, CreateFromMixins(CPActionButton);
 local Selector = Mixin(CPAPI.EventHandler(ConsolePortMenuRing), CPAPI.SecureEnvironmentMixin);
 
-local GameMenuBinding  = 'TOGGLEGAMEMENU';
+---------------------------------------------------------------
+-- Consts
+---------------------------------------------------------------
 local IsWoW11Version   = select(4, GetBuildInfo()) >= 110000; -- TODO: remove when 11.0.* is released
 local EMPTY_HINT_TEXT  = YELLOW_FONT_COLOR:WrapTextInColorCode(EMPTY);
+local PRIMARY_STICK    = 'Left';
+
+local ENABLE_MENU_STICK_INPUTS = {
+	SIDE = {
+		-- Left stick triggers the game menu to close, enabling the ring
+		L = 'TOGGLEGAMEMENU';
+		-- Right stick cancels the ring, PAD2 is the cancel button
+		R = 'CLICK '..Selector:GetName()..':PAD2';
+	};
+	DIR = {
+		UP    = true;
+		DOWN  = true;
+		LEFT  = true;
+		RIGHT = true;
+	};
+};
 
 ---------------------------------------------------------------
 -- Secure environment
@@ -28,7 +46,7 @@ Selector:Run([[
 
 Selector.PrivateEnv = {
 	-- Trigger
-	OnGameMenuShow = ([[
+	OnGameMenuShow = [[
 		enabled = selector:GetAttribute('eligible') and selector::StoreBindingsForTriggers()
 		if not enabled then return end;
 
@@ -38,10 +56,10 @@ Selector.PrivateEnv = {
 		selector:CallMethod('RestyleMenu', true)
 		selector:CallMethod('ShowHints', true)
 
-		for binding in pairs(TRIGGERS) do
-			selector:SetBinding(true, binding, %q)
+		for binding, action in pairs(TRIGGERS) do
+			selector:SetBinding(true, binding, action)
 		end
-	]]):format(GameMenuBinding);
+	]];
 	OnGameMenuHide = ([[
 		if not enabled then return end;
 		if not selector::IsTargeting() then
@@ -49,10 +67,10 @@ Selector.PrivateEnv = {
 		else
 			local emptyHintText = %q;
 			for binding, command in pairs(COMMANDS) do
-				if command then
+				if command then -- active command, set binding
 					selector:SetBindingClick(true, binding, selector:GetName(), command)
 				end
-				if ( binding == command ) then
+				if ( binding == command ) then -- extra command, show hint
 					selector:CallMethod('AddHint', binding, emptyHintText)
 				end
 			end
@@ -79,13 +97,13 @@ Selector.PrivateEnv = {
 
 		self:Hide()
 		self:ClearBindings()
+		self:CallMethod('RestyleMenu', false)
 	]]):format(CPAPI.ActionTypePress);
-	IsTargeting = [[
-		local _, _, len = self::GetStickPosition('Left')
-		if len > 0.15 then return true end;
-		_, _, len = self::GetStickPosition('Right')
-		return len > 0.15;
-	]];
+	-- NOTE: Forcing the left stick and XYAB for now
+	IsTargeting = ([[
+		local _, _, len = self::GetStickPosition(%q)
+		return len > 0.1;
+	]]):format(PRIMARY_STICK);
 	StoreBindingsForTriggers = [[
 		wipe(BINDINGS)
 
@@ -104,9 +122,14 @@ Selector.PrivateEnv = {
 		return #btns > 0;
 	]];
 	PreClick = ([[
-		self::UpdateSize()
-		local index = self::GetIndex('Left') or self::GetIndex('Right');
+		if ( button == 'PAD2' ) then -- Right stick moved, invoke the cancel action manually.
+			enabled = false; -- Set explicitly to false to prevent the menu closing from reassigning bindings
+			self::OnCommandExecuted(button) -- Reuse the command executed handler to clear the trigger keys
+			return self::ClearAndHide(true) -- Clear and hide the menu
+		end
 
+		self::UpdateSize()
+		local index = self::GetIndex(%q);
 		local item = index and BUTTONS[index];
 		if item then
 			if button:match('PAD') then
@@ -135,7 +158,7 @@ Selector.PrivateEnv = {
 		else
 			self::ClearAndHide(true)
 		end
-	]]):format(CANCEL);
+	]]):format(PRIMARY_STICK, CANCEL);
 	OnCommandExecuted = [[
 		local button = ...;
 		self:SetAttribute(button, nil)
@@ -196,7 +219,7 @@ function Selector:OnDataLoaded(...)
 				self:OnClear()
 			end
 		end, GameMenuButtonMixin)
-	local sticks = {'Left', 'Right'};
+	local sticks = { PRIMARY_STICK };
 	db.Radial:Register(self, 'GameMenu', {
 		sticks = sticks;
 		target = sticks;
@@ -208,9 +231,10 @@ function Selector:OnDataLoaded(...)
 	self:SetRadialSize(IsWoW11Version and 520 or 450)
 	self.buttonSize = IsWoW11Version and 64 or 48;
 
+	self:UpdateColorSettings()
 	self:OnAxisInversionChanged()
 	self:OnModifierChanged()
-	self:OnRadialExtendedChanged()
+	self:OnPrerequisiteChanged()
 	self.ActiveSlice:SetAlpha(0)
 
 	local numButtons = #env.Buttons;
@@ -223,11 +247,13 @@ function Selector:OnAxisInversionChanged()
 	self.axisInversion = db('radialCosineDelta')
 end
 
-function Selector:OnRadialExtendedChanged()
+function Selector:OnPrerequisiteChanged()
 	local eligible = db('radialExtended')
+	local rescale  = db('gameMenuScale')
+	self:SetScale(rescale)
 	self:SetAttribute('eligible', eligible)
 	if IsWoW11Version then -- TODO: remove when 11.0.* is released
-		GameMenu:SetScale(eligible and 0.8 or 1)
+		GameMenu:SetScale(eligible and rescale * 0.8 or 1)
 	end
 end
 
@@ -237,11 +263,13 @@ function Selector:OnModifierChanged()
 		self:ClearBindings()
 	]])
 	for modifier in db:For('Gamepad/Index/Modifier/Active') do
-		for _, stickSide in pairs({'L', 'R'}) do
-			for _, stickDir in pairs({'UP', 'DOWN', 'LEFT', 'RIGHT'}) do
-				Selector:Run([[
-					TRIGGERS['%sPAD%sSTICK%s'] = true;
-				]], modifier, stickSide, stickDir)
+		for side, binding in pairs(ENABLE_MENU_STICK_INPUTS.SIDE) do
+			for dir, enableButton in pairs(ENABLE_MENU_STICK_INPUTS.DIR) do
+				if enableButton then
+					Selector:Run([[
+						TRIGGERS['%sPAD%sSTICK%s'] = %q;
+					]], modifier, side, dir, binding)
+				end
 			end
 		end
 	end
@@ -251,6 +279,7 @@ end
 -- Frontend
 ---------------------------------------------------------------
 function Selector:OnInput(x, y, len, stick)
+	if ( stick ~= PRIMARY_STICK ) then return end;
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
 	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
 	if ( len < self:GetValidThreshold() and self.showHints ) then
@@ -382,5 +411,8 @@ function GameMenuButtonMixin:OnClear()
 end
 
 db:RegisterSafeCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
-db:RegisterSafeCallback('Settings/radialExtended', Selector.OnRadialExtendedChanged, Selector)
 db:RegisterSafeCallback('OnModifierChanged', Selector.OnModifierChanged, Selector)
+db:RegisterSafeCallbacks(Selector.OnPrerequisiteChanged, Selector,
+	'Settings/radialExtended',
+	'Settings/gameMenuScale'
+);

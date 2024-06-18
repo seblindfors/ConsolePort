@@ -112,8 +112,21 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 		local iconFile, iconTCoords = CPAPI.GetClassIcon(CPAPI.GetClassFile())
 		self.icon:SetTexture(iconFile)
 		self.icon:SetTexCoord(unpack(iconTCoords))
+		CPAPI.RegisterFrameForEvents(self, {
+			'PLAYER_ENTERING_WORLD';
+			'UPDATE_BINDINGS';
+			'NEUTRAL_FACTION_SELECT_RESULT';
+			'PLAYER_TALENT_UPDATE';
+			'PLAYER_SPECIALIZATION_CHANGED';
+			'UPDATE_BATTLEFIELD_STATUS';
+			'HONOR_LEVEL_UPDATE';
+			'PLAYER_LEVEL_CHANGED';
+		})
 	end;
-	-- TODO: EvaluateAlertVisibility
+	OnEvent = PlayerSpellsMicroButtonMixin and function(self)
+		local alert = PlayerSpellsMicroButtonMixin:GetHighestPriorityAlert()
+		self.subtitle = alert and YELLOW_FONT_COLOR:WrapTextInColorCode(alert.text);
+	end or nop; -- TODO: is there a Cataclysm version of this?
 } end;
 
 ---------------------------------------------------------------
@@ -138,6 +151,21 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	text  = COLLECTIONS;
 	img   = ICON('inv_misc_enggizmos_19');
 	ref   = CollectionsMicroButton;
+	OnLoad = function(self)
+		CPAPI.RegisterFrameForEvents(self, {
+			'COMPANION_LEARNED';
+			'PLAYER_ENTERING_WORLD';
+			'PET_JOURNAL_LIST_UPDATE';
+		})
+	end;
+	OnEvent = function(self)
+		local numMountsNeedingFanfare = C_MountJournal.GetNumMountsNeedingFanfare()
+		local numPetsNeedingFanfare = C_PetJournal.GetNumPetsNeedingFanfare()
+		local hasFanfare  = numMountsNeedingFanfare + numPetsNeedingFanfare > 0;
+		local hasFanfares = numMountsNeedingFanfare + numPetsNeedingFanfare > 1;
+		local subtitle = ( hasFanfares and COLLECTION_UNOPENED_PLURAL ) or ( hasFanfare and COLLECTION_UNOPENED_SINGULAR ) or nil;
+		self.subtitle = subtitle and YELLOW_FONT_COLOR:WrapTextInColorCode(subtitle);
+	end;
 } end;
 
 ---------------------------------------------------------------
@@ -265,9 +293,13 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 		self:RegisterEvent('PLAYER_ENTERING_WORLD')
 	end;
 	OnEvent = function(self)
-		local _, numBNetOnline = BNGetNumFriends()
+		local _, numBNetOnline, _, numBNetFavoriteOnline = BNGetNumFriends()
 		local numWoWOnline = C_FriendList.GetNumFriends()
-		self.subtitle = (numBNetOnline + numWoWOnline)
+		local counters = {};
+		if numBNetFavoriteOnline > 0 then tinsert(counters, YELLOW_FONT_COLOR:WrapTextInColorCode(numBNetFavoriteOnline)) end;
+		if numWoWOnline          > 0 then tinsert(counters, GREEN_FONT_COLOR:WrapTextInColorCode(numWoWOnline)) end;
+		if numBNetOnline         > 0 then tinsert(counters, BLUE_FONT_COLOR:WrapTextInColorCode(numBNetOnline)) end;
+		self.subtitle = (#counters > 0) and table.concat(counters, ' | ') or nil;
 	end;
 } end;
 
@@ -278,13 +310,36 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	img   = ICON('Achievement_GuildPerk_EverybodysFriend');
 	ref   = GuildMicroButton;
 	OnLoad = function(self)
-		self:RegisterEvent('GUILD_ROSTER_UPDATE')
-		self:RegisterEvent('PLAYER_ENTERING_WORLD')
+		CPAPI.RegisterFrameForEvents(self, {
+			'BN_CONNECTED';
+			'BN_DISCONNECTED';
+			'CHAT_DISABLED_CHANGE_FAILED';
+			'CHAT_DISABLED_CHANGED';
+			'CLUB_FINDER_COMMUNITY_OFFLINE_JOIN';
+			'CLUB_INVITATION_ADDED_FOR_SELF';
+			'CLUB_INVITATION_REMOVED_FOR_SELF';
+			'INITIAL_CLUBS_LOADED';
+			'NEUTRAL_FACTION_SELECT_RESULT';
+			'PLAYER_ENTERING_WORLD';
+			'PLAYER_GUILD_UPDATE';
+			'STREAM_VIEW_MARKER_UPDATED';
+		})
 	end;
 	OnEvent = function(self)
+		if CommunitiesUtil.DoesAnyCommunityHaveUnreadMessages() then
+			self.subtitle = COMMUNITIES_CHAT_FRAME_UNREAD_MESSAGES_NOTIFICATION;
+			return;
+		end
+
 		local numTotalGuildMembers, numOnlineGuildMembers = GetNumGuildMembers()
-		if numTotalGuildMembers == 0 then self.subtitle = nil end;
-		self.subtitle = ('%s / %s'):format(numTotalGuildMembers, GRAY_FONT_COLOR:WrapTextInColorCode(numOnlineGuildMembers))
+		if ( numTotalGuildMembers == 0 ) then
+			self.subtitle = nil;
+			return;
+		end
+		self.subtitle = ('%s / %s'):format(
+			GREEN_FONT_COLOR:WrapTextInColorCode(numOnlineGuildMembers),
+			GRAY_FONT_COLOR:WrapTextInColorCode(numTotalGuildMembers)
+		);
 	end;
 } end;
 
