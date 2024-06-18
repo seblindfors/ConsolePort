@@ -6,8 +6,14 @@ local Selector = Mixin(CPAPI.EventHandler(ConsolePortMenuRing), CPAPI.SecureEnvi
 -- Consts
 ---------------------------------------------------------------
 local IsWoW11Version   = select(4, GetBuildInfo()) >= 110000; -- TODO: remove when 11.0.* is released
+local GameMenuBinding  = 'TOGGLEGAMEMENU';
 local EMPTY_HINT_TEXT  = YELLOW_FONT_COLOR:WrapTextInColorCode(EMPTY);
-local PRIMARY_STICK    = 'Left';
+local STICK_BTN_DIR    = {
+	UP    = true;
+	DOWN  = true;
+	LEFT  = true;
+	RIGHT = true;
+};
 
 local ENABLE_MENU_STICK_INPUTS = {
 	SIDE = {
@@ -16,11 +22,35 @@ local ENABLE_MENU_STICK_INPUTS = {
 		-- Right stick cancels the ring, PAD2 is the cancel button
 		R = 'CLICK '..Selector:GetName()..':PAD2';
 	};
-	DIR = {
-		UP    = true;
-		DOWN  = true;
-		LEFT  = true;
-		RIGHT = true;
+};
+
+---------------------------------------------------------------
+-- Input configurations
+---------------------------------------------------------------
+Selector.Configuration = {
+	Left = {
+		Buttons = {
+			Accept = 'PAD1';
+			Cancel = 'PAD2';
+			Extra1 = 'PAD3';
+			Extra2 = 'PAD4';
+		};
+		Sticks = {
+			L = true;
+			R = false;
+		};
+	};
+	Right = {
+		Buttons = {
+			Accept = 'PADDDOWN';
+			Cancel = 'PADDRIGHT';
+			Extra1 = 'PADDLEFT';
+			Extra2 = 'PADDUP';
+		};
+		Sticks = {
+			L = false;
+			R = true;
+		};
 	};
 };
 
@@ -37,11 +67,6 @@ Selector:Run([[
 	BINDINGS = {};
 	TRIGGERS = {};
 	COMMANDS = {};
-
-	COMMANDS.PAD1 = 'LeftButton';
-	COMMANDS.PAD2 = false;
-	COMMANDS.PAD3 = 'PAD3';
-	COMMANDS.PAD4 = 'PAD4';
 ]])
 
 Selector.PrivateEnv = {
@@ -90,8 +115,8 @@ Selector.PrivateEnv = {
 			self:CallMethod('ClearInstantly')
 			self:CallMethod('ShowHints', false)
 			self:SetAttribute(%q, nil)
-			for i=1, 4 do
-				self:SetAttribute('PAD'..i, nil)
+			for button in pairs(COMMANDS) do
+				self:SetAttribute(button, nil)
 			end
 		end
 
@@ -100,10 +125,10 @@ Selector.PrivateEnv = {
 		self:CallMethod('RestyleMenu', false)
 	]]):format(CPAPI.ActionTypePress);
 	-- NOTE: Forcing the left stick and XYAB for now
-	IsTargeting = ([[
-		local _, _, len = self::GetStickPosition(%q)
+	IsTargeting = [[
+		local _, _, len = self::GetStickPosition(PRIMARY_STICK)
 		return len > 0.1;
-	]]):format(PRIMARY_STICK);
+	]];
 	StoreBindingsForTriggers = [[
 		wipe(BINDINGS)
 
@@ -122,14 +147,14 @@ Selector.PrivateEnv = {
 		return #btns > 0;
 	]];
 	PreClick = ([[
-		if ( button == 'PAD2' ) then -- Right stick moved, invoke the cancel action manually.
+		if ( button == CANCEL ) then -- Right stick moved, invoke the cancel action manually.
 			enabled = false; -- Set explicitly to false to prevent the menu closing from reassigning bindings
 			self::OnCommandExecuted(button) -- Reuse the command executed handler to clear the trigger keys
 			return self::ClearAndHide(true) -- Clear and hide the menu
 		end
 
 		self::UpdateSize()
-		local index = self::GetIndex(%q);
+		local index = self::GetIndex(PRIMARY_STICK);
 		local item = index and BUTTONS[index];
 		if item then
 			if button:match('PAD') then
@@ -137,9 +162,9 @@ Selector.PrivateEnv = {
 				return self:SetAttribute(button, item:GetName())
 			end
 
-			self:SetAttribute('PAD1', item:GetName())
-			self:SetAttribute('PAD2', trigger:GetName())
-			self:CallMethod('AddHint', 'PAD2', %q)
+			self:SetAttribute(ACCEPT, item:GetName())
+			self:SetAttribute(CANCEL, trigger:GetName())
+			self:CallMethod('AddHint', CANCEL, %q)
 
 			for button in pairs(COMMANDS) do
 				local target = self:GetAttribute(button)
@@ -158,14 +183,14 @@ Selector.PrivateEnv = {
 		else
 			self::ClearAndHide(true)
 		end
-	]]):format(PRIMARY_STICK, CANCEL);
+	]]):format(CANCEL);
 	OnCommandExecuted = [[
 		local button = ...;
 		self:SetAttribute(button, nil)
 		self:CallMethod('RemoveHint', button)
 		trigger:ClearBinding(button)
 
-		local clearAll = ( button == 'PAD2' or button == 'LeftButton' );
+		local clearAll = ( button == CANCEL or button == 'LeftButton' );
 		if not clearAll then
 			local hasActiveBindings = false;
 			for button, command in pairs(COMMANDS) do
@@ -219,10 +244,10 @@ function Selector:OnDataLoaded(...)
 				self:OnClear()
 			end
 		end, GameMenuButtonMixin)
-	local sticks = { PRIMARY_STICK };
-	db.Radial:Register(self, 'GameMenu', {
+	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	db.Radial:Register(self, 'UtilityRing', {
 		sticks = sticks;
-		target = sticks;
+		target = {sticks[1]};
 		sizer  = ([[
 			local size = %d;
 		]]):format(#env.Buttons);
@@ -233,7 +258,7 @@ function Selector:OnDataLoaded(...)
 
 	self:UpdateColorSettings()
 	self:OnAxisInversionChanged()
-	self:OnModifierChanged()
+	self:OnControlsChanged()
 	self:OnPrerequisiteChanged()
 	self.ActiveSlice:SetAlpha(0)
 
@@ -257,16 +282,43 @@ function Selector:OnPrerequisiteChanged()
 	end
 end
 
-function Selector:OnModifierChanged()
+function Selector:OnControlsChanged()
 	self:Run([[
 		wipe(TRIGGERS)
+		wipe(COMMANDS)
 		self:ClearBindings()
 	]])
+
+	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	local main = sticks[1];
+	local config = self.Configuration[main] or self.Configuration.Left;
+	local buttons = db('gameMenuCustomSet') and {
+		Accept = db('gameMenuButton1');
+		Cancel = db('gameMenuButton2');
+		Extra1 = db('gameMenuButton3');
+		Extra2 = db('gameMenuButton4');
+	} or config.Buttons;
+
+	self:SetInterrupt(sticks)
+	self:SetIntercept({main})
+
+	self:Run([[
+		ACCEPT, CANCEL, EXTRA1, EXTRA2, PRIMARY_STICK = %q, %q, %q, %q, %q;
+		COMMANDS[ACCEPT] = 'LeftButton';
+		COMMANDS[CANCEL] = false;
+		COMMANDS[EXTRA1] = EXTRA1;
+		COMMANDS[EXTRA2] = EXTRA2;
+	]], buttons.Accept, buttons.Cancel, buttons.Extra1, buttons.Extra2, main)
+
+	self.acceptButton = buttons.Accept;
+
+	local enableBinding, cancelBinding = GameMenuBinding, ('CLICK %s:%s'):format(self:GetName(), buttons.Cancel);
 	for modifier in db:For('Gamepad/Index/Modifier/Active') do
-		for side, binding in pairs(ENABLE_MENU_STICK_INPUTS.SIDE) do
-			for dir, enableButton in pairs(ENABLE_MENU_STICK_INPUTS.DIR) do
+		for side, isTrigger in pairs(config.Sticks) do
+			local binding = isTrigger and enableBinding or cancelBinding;
+			for dir, enableButton in pairs(STICK_BTN_DIR) do
 				if enableButton then
-					Selector:Run([[
+					self:Run([[
 						TRIGGERS['%sPAD%sSTICK%s'] = %q;
 					]], modifier, side, dir, binding)
 				end
@@ -279,11 +331,10 @@ end
 -- Frontend
 ---------------------------------------------------------------
 function Selector:OnInput(x, y, len, stick)
-	if ( stick ~= PRIMARY_STICK ) then return end;
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
 	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
 	if ( len < self:GetValidThreshold() and self.showHints ) then
-		self:AddHint('PAD1', CANCEL)
+		self:AddHint(self.acceptButton, CANCEL)
 	end
 end
 
@@ -388,9 +439,10 @@ function GameMenuButtonMixin:SetData(data)
 end
 
 function GameMenuButtonMixin:OnFocus()
+	local parent = self:GetParent()
 	self:LockHighlight()
-	db.UIHandle:AddHint('PAD1', self:GetHint())
-	self:GetParent():SetActiveSliceText(self:GetSliceText())
+	db.UIHandle:AddHint(parent.acceptButton, self:GetHint())
+	parent:SetActiveSliceText(self:GetSliceText())
 end
 
 function GameMenuButtonMixin:GetHint()
@@ -411,7 +463,15 @@ function GameMenuButtonMixin:OnClear()
 end
 
 db:RegisterSafeCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
-db:RegisterSafeCallback('OnModifierChanged', Selector.OnModifierChanged, Selector)
+db:RegisterSafeCallbacks(Selector.OnControlsChanged, Selector,
+	'OnModifierChanged',
+	'Settings/radialPrimaryStick',
+	'Settings/gameMenuCustomSet',
+	'Settings/gameMenuButton1',
+	'Settings/gameMenuButton2',
+	'Settings/gameMenuButton3',
+	'Settings/gameMenuButton4'
+);
 db:RegisterSafeCallbacks(Selector.OnPrerequisiteChanged, Selector,
 	'Settings/radialExtended',
 	'Settings/gameMenuScale'
