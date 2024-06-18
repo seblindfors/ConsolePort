@@ -995,7 +995,7 @@ function Loadout:OnLoadPreset(preset)
 		preset.pager = nil;
 	end
 
-	env(ROOT, preset)
+	env(ROOT, env.UpgradeLayout(preset))
 	env:TriggerEvent('OnLayoutChanged', true)
 	self:Update()
 end
