@@ -147,10 +147,10 @@ Selector.PrivateEnv = {
 		return #btns > 0;
 	]];
 	PreClick = ([[
-		if ( button == CANCEL ) then -- Right stick moved, invoke the cancel action manually.
-			enabled = false; -- Set explicitly to false to prevent the menu closing from reassigning bindings
+		if ( button == CANCEL ) then -- Opposite stick moved, invoke the cancel action manually.
+			enabled = false; -- Set explicitly to false to prevent the game menu closing from reassigning bindings
 			self::OnCommandExecuted(button) -- Reuse the command executed handler to clear the trigger keys
-			return self::ClearAndHide(true) -- Clear and hide the menu
+			return self::ClearAndHide(true) -- Clear and hide the ring menu
 		end
 
 		self::UpdateSize()
