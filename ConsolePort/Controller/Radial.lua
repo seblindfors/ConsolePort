@@ -13,7 +13,7 @@ db:Register('Radial', Radial):Execute([[
 	HEADERS = newtable() -- maintain references to headers
 	STIX    = newtable() -- track config name to stick ID
 	BTNS    = newtable() -- track config ID to bind name
-	MODS    = newtable() -- track modifiers  
+	MODS    = newtable() -- track modifiers
 	----------------------------------------------------------
 ]])
 
@@ -260,7 +260,7 @@ Radial:CreateEnvironment({
 		local a1, a2 = ...
 		return (180 - math.abs(math.abs(a1 - a2) - 180));
 	]];
-	-- @param  index : number [1,n], the index 
+	-- @param  index : number [1,n], the index
 	-- @param  size  : number [n>0], how many indices
 	-- @return angle : number [0-360], angle
 	GetAngleForIndex = [[
@@ -317,7 +317,7 @@ Radial:CreateEnvironment({
 		if not pos then return end
 		return pos.x, pos.y, pos.len
 	]];
-	-- @param  stickID : numberID or name  
+	-- @param  stickID : numberID or name
 	-- @param  size    : number, how many indices
 	-- @return index   : number, the slot on the pie
 	GetIndexForStickPosition = [[
@@ -402,7 +402,7 @@ function Radial:OnDataLoaded()
 		self:Execute(('%s = %f;'):format(attr, val))
 		self[attr] = val
 	end
-	SetCVar('GamePadStickAxisButtons', db('radialExtended'))
+	db:SetCVar('GamePadStickAxisButtons', db('radialExtended'))
 	return self;
 end
 
@@ -506,6 +506,8 @@ end
 RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 ---------------------------------------------------------------
 db:RegisterSafeCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
-db:RegisterSafeCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
-db:RegisterSafeCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)
-db:RegisterSafeCallback('Settings/radialExtended', Radial.OnDataLoaded, Radial)
+db:RegisterSafeCallbacks(Radial.OnDataLoaded, Radial,
+	'Settings/radialActionDeadzone',
+	'Settings/radialCosineDelta',
+	'Settings/radialExtended'
+);

@@ -363,9 +363,9 @@ end
 function Mouse:SetEnabled(enabled)
 	self:EnableGamePadButton(enabled)
 	if enabled then
-		SetCVar('GamePadCursorAutoEnable', 0)
-		SetCVar('CursorFreelookStartDelta', 0.001)
-		SetCVar('GamePadCursorCenteredEmulation', 0)
+		db:SetCVar('GamePadCursorAutoEnable', 0)
+		db:SetCVar('CursorFreelookStartDelta', 0.001)
+		db:SetCVar('GamePadCursorCenteredEmulation', 0)
 	end
 	(enabled and FrameUtil.RegisterFrameForEvents or FrameUtil.UnregisterFrameForEvents)(self, self.Events);
 end

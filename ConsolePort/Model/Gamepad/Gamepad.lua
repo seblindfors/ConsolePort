@@ -178,6 +178,23 @@ for _, modifier in ipairs(GamepadAPI.Modsims) do
 	end, GamepadAPI)
 end
 
+db:RegisterSafeCallback('GamePadStickAxisButtons', function(self, value)
+	if not value then return end;
+	for buttonID in pairs(self.Index.Button.Binding) do
+		if not CPAPI.IsButtonValidForBinding(buttonID) then
+			for modifier in pairs(self.Index.Modifier.Active) do
+				SetBinding(modifier..buttonID, nil)
+			end
+		end
+	end
+	SaveBindings(GetCurrentBindingSet())
+end, GamepadAPI)
+
+db:RegisterCallback('Settings/useAtlasIcons', function(self, value)
+	self.UseAtlasIcons = value;
+	db:TriggerEvent('OnIconsChanged', value)
+end, GamepadAPI)
+
 function GamepadAPI.OnNewBindings()
 	if GamepadAPI.updateBindingDispatching then
 		local newBindings = GamepadAPI:GetBindings(true)
@@ -187,11 +204,6 @@ function GamepadAPI.OnNewBindings()
 		GamepadAPI.updateBindingDispatching = nil;
 	end
 end
-
-db:RegisterCallback('Settings/useAtlasIcons', function(self, value)
-	self.UseAtlasIcons = value;
-	db:TriggerEvent('OnIconsChanged', value)
-end, GamepadAPI)
 
 ---------------------------------------------------------------
 -- Data: state
