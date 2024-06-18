@@ -87,7 +87,7 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Show tooltips on buttons when moused over.';
 	};
 	---------------------------------------------------------------
-	_'Action Buttons | Hotkeys';
+	_'Action Buttons | Page Hotkeys';
 	---------------------------------------------------------------
 	LABhotkeyColor = _{Data.Color(CreateColor( 0.75, 0.75, 0.75 ));
 		name = 'Color';
