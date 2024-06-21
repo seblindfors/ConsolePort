@@ -8,7 +8,7 @@
 		</Anchors>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="2">
-				<Texture parentKey="Gradient" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient.jpg" setAllPoints="true" alpha="0.75">
+				<Texture parentKey="Gradient" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient.jpg" setAllPoints="true" alpha="0.5">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-425" y="350"/>
 						<Anchor point="BOTTOMRIGHT" x="425" y="-350"/>
