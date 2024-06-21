@@ -73,14 +73,15 @@ function env.ConvertV1Layout(v1)
 	local buttons = {};
 	for buttonID, data in pairs(v1.layout) do
 		-- no point in converting disabled buttons, pun intended.
-		if data.point then
+		-- also, remove modifier buttons from the layout, because they were not visible in V1.
+		if data.point and not db.Gamepad.Index.Modifier.Owner[buttonID] then
 			-- dir = <hide> -> showFlyouts = false;
 			local showFlyouts = not V2ValidateDir[data.dir];
 			-- dir = lowercased -> dir = uppercased;
 			local dir  = data.dir and V2ValidateDir[data.dir] or 'DOWN';
 			-- unchanged
 			local size = data.size;
-			-- point = {[1], [2], [3]} -> pos = {point, x, y};
+			-- point = {[1], [2], [3]} -> pos = {point, relPoint, x, y};
 			local point, x, y = unpack(data.point);
 			local pos = {point = point, relPoint = point, x = x, y = y};
 			-- convert V1 button to V2 ClusterHandle.
