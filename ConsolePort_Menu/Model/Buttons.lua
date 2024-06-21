@@ -215,7 +215,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 	text  = PLAYER_V_PLAYER;
 	img   = ICON(('Achievement_PVP_%1$s_%1$s'):format(UnitFactionGroup('player'):sub(1,1)));
-	OnClick = GenerateFlatClosure(ShowUIPanel, PVPFrame or PVPParentFrame);
+	click = GenerateFlatClosure(ShowUIPanel, PVPFrame or PVPParentFrame);
 } end;
 
 ---------------------------------------------------------------
@@ -231,7 +231,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 	text  = GAMEMENU_NEW_BUTTON;
 	img   = [[Interface\Icons\INV_Misc_Note_04]];
-	OnClick = GenerateFlatClosure(C_SplashScreen.RequestLatestSplashScreen, true);
+	click = GenerateFlatClosure(C_SplashScreen.RequestLatestSplashScreen, true);
 } end;
 
 ---------------------------------------------------------------
@@ -293,7 +293,12 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 		self:RegisterEvent('PLAYER_ENTERING_WORLD')
 	end;
 	OnEvent = function(self)
-		local _, numBNetOnline, _, numBNetFavoriteOnline = BNGetNumFriends()
+		local numBNetOnline, numBNetFavoriteOnline, _;
+		if IsRetailVersion then
+			_, numBNetOnline, _, numBNetFavoriteOnline = BNGetNumFriends()
+		else
+			numBNetFavoriteOnline, _, numBNetOnline = 0, BNGetNumFriends();
+		end
 		local numWoWOnline = C_FriendList.GetNumFriends()
 		local counters = {};
 		if numBNetFavoriteOnline > 0 then tinsert(counters, YELLOW_FONT_COLOR:WrapTextInColorCode(numBNetFavoriteOnline)) end;
@@ -348,5 +353,5 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 	text  = RAID;
 	img   = [[Interface\LFGFRAME\UI-LFR-PORTRAIT]];
-	OnClick = ToggleRaidFrame;
+	click = ToggleRaidFrame;
 } end;
