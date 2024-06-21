@@ -435,7 +435,7 @@ function Radial:OnActiveDeviceChanged()
 	local modkeys = tInvert(modifiers)
 	self:Execute('wipe(BTNS)')
 	for id, set in db:For('Gamepad/Index/Button/Binding') do
-		if not id:match('STICK') then
+		if not id:match('^PAD.STICK%w+') then -- TODO: are cardinal stick buttons OK now?
 			self:Execute(([[
 				BTNS[%d] = "%s";
 				BTNS["%s"] = %d;
