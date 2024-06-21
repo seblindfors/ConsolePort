@@ -151,7 +151,7 @@ function Selector:OnDataLoaded(...)
 			end
 		end, GameMenuButtonMixin)
 	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
-	db.Radial:Register(self, 'UtilityRing', {
+	db.Radial:Register(self, 'GameMenu', {
 		sticks = sticks;
 		target = {sticks[1]};
 		sizer  = ([[
@@ -196,7 +196,12 @@ function Selector:OnControlsChanged()
 		Plural = db('gameMenuPlural');
 		Return = db('gameMenuReturn');
 		Switch = db('gameMenuSwitch');
-	} or config.Buttons;
+	} or Mixin(CopyTable(config.Buttons), {
+		Return = db.UIHandle:GetUIControlBinding('M1');
+		Switch = db.UIHandle:GetUIControlBinding('T1');
+	});
+
+	self.buttons = buttons;
 
 	self:SetInterrupt(sticks)
 	self:SetIntercept({main})
@@ -206,8 +211,6 @@ function Selector:OnControlsChanged()
 		COMMANDS[ACCEPT] = 'LeftButton';
 		COMMANDS[PLURAL] = PLURAL;
 	]], buttons.Switch, buttons.Accept, buttons.Plural, main)
-
-	self.acceptButton, self.pluralButton = buttons.Accept, buttons.Plural;
 
 	for modifier in db:For('Gamepad/Index/Modifier/Active') do
 		self:Run([[
@@ -261,10 +264,10 @@ function Selector:OnInput(x, y, len, stick)
 	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
 	if not self.showHints then return end;
 	if ( len < self:GetValidThreshold() ) then
-		self:AddHint(self.acceptButton, CLOSE)
-		self:RemoveHint(self.pluralButton)
+		self:AddHint(self.buttons.Accept, CLOSE)
+		self:RemoveHint(self.buttons.Plural)
 	else
-		self:AddHint(self.pluralButton, USE)
+		self:AddHint(self.buttons.Plural, USE)
 	end
 end
 
@@ -303,8 +306,8 @@ function Selector:ShowHints(enabled)
 	local handle = db.UIHandle;
 	if enabled then
 		handle:SetHintFocus(self, false)
-		handle:AddHint(db('gameMenuSwitch'), LOOT_NEXT_PAGE or SWITCH)
-		handle:AddHint(db('gameMenuReturn'), BACK)
+		handle:AddHint(self.buttons.Switch, LOOT_NEXT_PAGE or SWITCH)
+		handle:AddHint(self.buttons.Return, BACK)
 	else
 		if handle:IsHintFocus(self) then
 			handle:HideHintBar()
@@ -355,9 +358,16 @@ function GameMenuButtonMixin:SetData(data)
 end
 
 function GameMenuButtonMixin:OnFocus()
+	if not self.isFocused then
+		local sound = SOUNDKIT.SCROLLBAR_STEP;
+		if sound then
+			PlaySound(sound, 'SFX', true)
+		end
+		self.isFocused = true;
+	end
 	local parent = self:GetParent()
 	self:LockHighlight()
-	db.UIHandle:AddHint(parent.acceptButton, self:GetHint())
+	db.UIHandle:AddHint(parent.buttons.Accept, self:GetHint())
 	parent:SetActiveSliceText(self:GetSliceText())
 end
 
@@ -370,6 +380,7 @@ function GameMenuButtonMixin:GetSliceText()
 end
 
 function GameMenuButtonMixin:OnClear()
+	self.isFocused = nil;
 	self:UnlockHighlight()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
