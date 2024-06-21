@@ -81,7 +81,7 @@ function GamepadAPI:SetActiveIconsFromDevice(device)
 	local styler = CPAPI.Proxy({}, function(self, button)
 		return device:GetIconForButton(button, self[0])
 	end)
-	CPAPI.Proxy(db('Icons'), function(self, style)
+	CPAPI.Proxy(db('Icons'), function(_, style)
 		styler[0] = style;
 		return styler;
 	end)
@@ -116,6 +116,7 @@ function GamepadAPI:GAME_PAD_POWER_CHANGED(level)
 end
 
 function GamepadAPI:UPDATE_BINDINGS()
+	db:SetCVar('GamePadStickAxisButtons', db('radialExtended'))
 	self.updateBindingDispatching = true;
 	if self.IsMapped then
 		RunNextFrame(GamepadAPI.OnNewBindings)

@@ -1,5 +1,18 @@
 local _, db = ...
 ----------------------------------
+local function HintSort(_, a, b)
+    local priority = { PADL = 1, PADR = 3 }
+
+    local aPrefix = a:match('^PAD[LR]') or a;
+    local bPrefix = b:match('^PAD[LR]') or b;
+
+    if aPrefix ~= bPrefix then
+        return (priority[aPrefix] or 2) < (priority[bPrefix] or 2)
+    end
+
+    return a < b;
+end
+----------------------------------
 -- Hint mixin
 ----------------------------------
 CPHintMixin = {}
@@ -88,7 +101,8 @@ end
 
 function CPHintBarMixin:Update()
 	local width, previousHint = 0
-	for _, hint in pairs(self.Hints) do
+	for _, hint in db.table.spairs(self.Hints, HintSort) do
+		hint:ClearAllPoints()
 		if previousHint then
 			hint:SetPoint('LEFT', previousHint.Text, 'RIGHT', 16, 0)
 		else
@@ -161,7 +175,7 @@ end
 
 function CPHintFocusMixin:ShowHints()
 	if self.hints then
-		for key, text in db.table.spairs(self.hints) do
+		for key, text in db.table.spairs(self.hints, HintSort) do
 			self.handle:AddHint(key, text)
 		end
 	end

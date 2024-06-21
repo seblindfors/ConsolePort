@@ -216,15 +216,22 @@ end
 ---------------------------------------------------------------
 
 function Pager:OnUpdateMacros(macroInfo)
-	for id, body in pairs(macroInfo) do
-		self:SetAttribute(tostring(id), body)
+	for id, info in pairs(macroInfo) do
+		self:SetAttribute(tostring(id), info.body)
 	end
 end
 
 function Pager:UPDATE_MACROS()
 	local macroInfo = {}
 	for i=1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
-		macroInfo[i] = select(3, GetMacroInfo(i))
+		local name, icon, body = GetMacroInfo(i)
+		if name then
+			macroInfo[i] = {
+				name = name;
+				icon = icon;
+				body = body;
+			};
+		end
 	end
 	db:TriggerEvent('OnUpdateMacros', macroInfo)
 end

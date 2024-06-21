@@ -223,13 +223,13 @@ do local __tCount, __tID, __tTime = 0, 'task', '__time_';
 		self[timer] = updateTime;
 		callback(self, unpack(args))
 	end
-	local function Cancel(self, task, timer, timeout)
+	local function Cancel(self, _, timer, timeout)
 		self[timer] = GetTime() + (timeout or 1);
 	end
 
 	function CPAPI.Debounce(callback, owner, ...) __tCount = __tCount + 1;
 		local task    = __tID .. __tCount;
-		local timer   = task   .. __tTime;
+		local timer   = task  .. __tTime;
 		local handler = GenerateClosure(Handler, owner, task, timer, callback, {...})
 		local execute = GenerateClosure(Execute, owner, task, handler)
 		local cancel  = GenerateClosure(Cancel,  owner, task, timer)

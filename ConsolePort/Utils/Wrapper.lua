@@ -25,7 +25,10 @@ end
 function CPAPI.GetSpecialization()
 	-- returns specializationID on retail
 	if GetSpecialization then
-		return GetSpecialization()
+		local currentSpecialization = GetSpecialization()
+		if currentSpecialization then
+			return GetSpecializationInfo(currentSpecialization)
+		end
 	end
 	-- returns classID on classic
 	return GetClassID()

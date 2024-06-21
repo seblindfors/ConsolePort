@@ -88,6 +88,10 @@ RadialMixin.Env = {
 			self:GetAttribute('size')
 		);
 	]];
+	IsButtonHeld = [[
+		local id = ...;
+		return radial::IsButtonHeld(id)
+	]];
 	GetButtonsHeld = [[
 		return radial::GetButtonsHeld()
 	]];
@@ -200,10 +204,18 @@ function RadialMixin:IsValidThreshold(len)
 end
 
 function RadialMixin:SetRadialSize(size)
+	if self.fixedSize then return end;
 	local radius = self.radius or 1;
 	local newSize = size * radius;
 	self:SetAttribute('preferSize', newSize)
 	return self:SetSize(newSize, newSize)
+end
+
+function RadialMixin:SetFixedSize(size)
+	self.fixedSize = size;
+	if not size then return end;
+	self:SetAttribute('preferSize', size)
+	return self:SetSize(size, size)
 end
 
 function RadialMixin:SetDynamicRadius(numItems, itemSize, padding)
@@ -364,6 +376,15 @@ Radial:CreateEnvironment({
 		end
 		return unpack(result)
 	]];
+	-- @param id    : numberID or name
+	-- @return bool : whether a given button is held
+	IsButtonHeld = [[
+		local id = ...;
+		local gstate = GetGamePadState()
+		local buttons = gstate and gstate.buttons
+		if not buttons then return end
+		return buttons[ tonumber(id) or BTNS[id] ]
+	]];
 })
 
 
@@ -402,7 +423,6 @@ function Radial:OnDataLoaded()
 		self:Execute(('%s = %f;'):format(attr, val))
 		self[attr] = val
 	end
-	db:SetCVar('GamePadStickAxisButtons', db('radialExtended'))
 	return self;
 end
 
