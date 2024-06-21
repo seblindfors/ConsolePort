@@ -17,4 +17,6 @@
 Database.lua
 
 Model\Buttons.lua
+Model\Visuals.lua
+
 View\Menu.xml
