@@ -186,7 +186,7 @@ function SettingsContainer:OnLoad()
 	self.ScrollBar:HookScript('OnShow', ToggleScrollEdge)
 	self.ScrollBar:HookScript('OnHide', ToggleScrollEdge)
 
-	if CPAPI.IsClassicVersion then
+	if not CPAPI.IsRetailVersion then
 		self.ScrollBar.Background:Hide()
 		self.ScrollBar:AdjustPointsOffset(-12, 0)
 	end

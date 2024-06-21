@@ -114,5 +114,6 @@ for mod, data in pairs(env.Const.Cluster.Layout) do
             SetRotatedMaskTexture(self, mask, prefix, direction)
         end
         SkinOverlayGlow(self)
+        self.Name:SetWidth(size)
     end;
 end

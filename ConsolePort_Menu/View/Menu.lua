@@ -50,8 +50,10 @@ function Menu:ACTIVE_PLAYER_SPECIALIZATION_CHANGED()
 	local visual, isAtlas = env:GetSpecializationVisual()
 	self.Gradient:SetAlpha(isAtlas and 0.5 or 0.75)
 	if isAtlas then
+		self.Background:SetTexCoord(0, 1, 0, 1)
 		self.Background:SetAtlas(visual, true)
 	else
+		self.Background:SetTexCoord(0, 1, 0, 0.703125)
 		self.Background:SetTexture(visual)
 	end
 end

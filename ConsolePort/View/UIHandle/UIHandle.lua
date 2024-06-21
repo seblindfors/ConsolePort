@@ -26,6 +26,7 @@ Control.KeyIDToBindingMap = setmetatable({
     CENTER   = 'PADSYSTEM',
 }, {
 	__index = function(self, key)
+		if (key == nil) then return end;
 		if (key == 'M1') then
 			local var = GetCVar('GamePadEmulateShift')
 			return (var and var ~= 'none') and var;

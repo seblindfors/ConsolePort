@@ -149,6 +149,14 @@ if not CPAPI.IsRetailVersion then
 			self.cooldown:SetPoint('TOPLEFT', self, 'TOPLEFT', 3, -2)
 			self.cooldown:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -3, 3)
 		end
+		local width = self:GetWidth();
+		self.Name:SetWidth(width)
+	end
+else
+	function SlotButton:UpdateLocal()
+		if self.MasqueSkinned then return end;
+		local width = self:GetWidth();
+		self.Name:SetWidth(width)
 	end
 end
 

@@ -88,12 +88,11 @@
 				<Scripts>
 					<OnShow>
 						self:Play();
-						--PlaySound(SOUNDKIT.SOULBINDS_OPEN_UI); -- TODO: kit fits, but is way too fkn loud
+						PlaySound(SOUNDKIT.UI_POWER_AURA_GENERIC);
 					</OnShow>
 					<OnHide>
 						self:Stop();
 						self:SetAlpha(1);
-						--PlaySound(SOUNDKIT.SOULBINDS_CLOSE_UI); -- TODO: find kit
 					</OnHide>
 				</Scripts>
 			</Frame>
