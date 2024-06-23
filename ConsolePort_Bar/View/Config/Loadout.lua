@@ -456,6 +456,9 @@ function Mutable:ToggleDeleteButtons()
 		for child in pairs(self.children) do
 			local button = self.deleteButtonPool:Acquire()
 			button:SetTarget(child.path, child)
+			 -- HACK: mutable children can have lingering tooltips, because they share widget
+			 -- type with the toplevel containers. This is a workaround to prevent that, for now.
+			child.tooltipText = nil;
 		end
 	end
 end
