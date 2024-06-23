@@ -334,6 +334,7 @@ env.Const.Cluster = {
 		[NOMOD] = {
 			Border                =   env.GetAsset([[Textures\Button\Hilite]]);
 			CheckedTexture        =   env.GetAsset([[Textures\Button\Hilite]]);
+			Flash                 =   env.GetAsset([[Textures\Button\Hilite2x]]);
 			NewActionTexture      =   env.GetAsset([[Textures\Button\Hilite]]);
 			SpellHighlightTexture =   env.GetAsset([[Textures\Button\Hilite2x.png]]);
 		};
