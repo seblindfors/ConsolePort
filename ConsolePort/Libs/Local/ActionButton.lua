@@ -386,6 +386,7 @@ do -- Workaround for LAB's private type meta map.
 			self[meta] = getmetatable(ReferenceButton)
 		end
 		ReferenceButton:SetAttribute('state', 'empty')
+		ReferenceButton:UpdateAction(true)
 		return rawget(setmetatable(self, nil), k);
 	end})
 end
