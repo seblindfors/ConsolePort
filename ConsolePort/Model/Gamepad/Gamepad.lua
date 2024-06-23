@@ -116,7 +116,7 @@ function GamepadAPI:GAME_PAD_POWER_CHANGED(level)
 end
 
 function GamepadAPI:UPDATE_BINDINGS()
-	db:SetCVar('GamePadStickAxisButtons', db('radialExtended'))
+	db:SetCVar('GamePadStickAxisButtons', db('bindingAllowSticks'))
 	self.updateBindingDispatching = true;
 	if self.IsMapped then
 		RunNextFrame(GamepadAPI.OnNewBindings)

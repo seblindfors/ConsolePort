@@ -528,6 +528,5 @@ RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 db:RegisterSafeCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
 db:RegisterSafeCallbacks(Radial.OnDataLoaded, Radial,
 	'Settings/radialActionDeadzone',
-	'Settings/radialCosineDelta',
-	'Settings/radialExtended'
+	'Settings/radialCosineDelta'
 );
