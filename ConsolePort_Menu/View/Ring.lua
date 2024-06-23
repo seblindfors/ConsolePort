@@ -27,6 +27,7 @@ end)()
 ---------------------------------------------------------------
 Selector.Configuration = {
 	Left = {
+		Secondary = 'Right';
 		Buttons = {
 			Accept = 'PAD1';
 			Plural = 'PAD2';
@@ -35,6 +36,7 @@ Selector.Configuration = {
 		};
 	};
 	Right = {
+		Secondary = 'Left';
 		Buttons = {
 			Accept = 'PADDDOWN';
 			Plural = 'PADDRIGHT';
@@ -107,7 +109,7 @@ Selector.PrivateEnv = {
 		end
 
 		self::UpdateSize()
-		local index = self::GetIndex(PRIMARY_STICK);
+		local index = self::GetIndex(PRIMARY_STICK) or self::GetIndex(SECONDARY_STICK);
 		local item = index and BUTTONS[index];
 		if item then
 			item:SetAttribute(type, item:GetAttribute('command'))
@@ -150,10 +152,14 @@ function Selector:OnDataLoaded(...)
 				self:OnClear()
 			end
 		end, GameMenuButtonMixin)
-	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+
+	local sticks    = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	local primary   = sticks[1];
+	local secondary = (self.Configuration[primary] or self.Configuration.Left).Secondary;
+
 	db.Radial:Register(self, 'GameMenu', {
-		sticks = sticks;
-		target = {sticks[1]};
+		sticks = { primary, secondary };
+		target = { primary, secondary };
 		sizer  = ([[
 			local size = %d;
 		]]):format(#env.Buttons);
@@ -188,9 +194,11 @@ function Selector:OnControlsChanged()
 		self:ClearBindings()
 	]])
 
-	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
-	local main = sticks[1];
-	local config = self.Configuration[main] or self.Configuration.Left;
+	local sticks    = db.Radial:GetStickStruct(db('radialPrimaryStick'))
+	local primary   = sticks[1];
+	local config    = self.Configuration[primary] or self.Configuration.Left;
+	local secondary = config.Secondary;
+
 	local buttons = db('gameMenuCustomSet') and {
 		Accept = db('gameMenuAccept');
 		Plural = db('gameMenuPlural');
@@ -203,14 +211,14 @@ function Selector:OnControlsChanged()
 
 	self.buttons = buttons;
 
-	self:SetInterrupt(sticks)
-	self:SetIntercept({main})
+	self:SetInterrupt({ primary, secondary })
+	self:SetIntercept({ primary, secondary })
 
 	self:Run([[
-		SWITCH, ACCEPT, PLURAL, PRIMARY_STICK = %q, %q, %q, %q;
+		SWITCH, ACCEPT, PLURAL, PRIMARY_STICK, SECONDARY_STICK = %q, %q, %q, %q, %q;
 		COMMANDS[ACCEPT] = 'LeftButton';
 		COMMANDS[PLURAL] = PLURAL;
-	]], buttons.Switch, buttons.Accept, buttons.Plural, main)
+	]], buttons.Switch, buttons.Accept, buttons.Plural, primary, secondary)
 
 	for modifier in db:For('Gamepad/Index/Modifier/Active') do
 		self:Run([[
