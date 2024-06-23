@@ -496,7 +496,7 @@ local function OnConfigLoaded(localEnv, config, env)
 	end, localEnv)
 end
 
-if IsAddOnLoaded('ConsolePort_Config') then
+if C_AddOns.IsAddOnLoaded('ConsolePort_Config') then
 	OnConfigLoaded(env, ConsolePortConfig, ConsolePortConfig:GetEnvironment())
 else
 	ConsolePort:DB():RegisterCallback('OnConfigLoaded', OnConfigLoaded, env)

@@ -1,0 +1,16 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="Group.lua"/>
+
+	<Frame name="CPGroupBar" virtual="true" clampedToScreen="true" movable="true" mixin="CPGroupBar" inherits="CPActionBar">
+		<Size x="400" y="120"/>
+		<Frames>
+			<Frame parentKey="ProcAnimation" inherits="CPFlashableFiligreeTemplate">
+				<Anchors>
+					<Anchor point="CENTER" y="30"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+
+</Ui>

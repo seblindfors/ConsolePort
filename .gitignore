@@ -1,2 +1,5 @@
 ﻿.release
 .vscode
+ConsolePort/Libs/External/*
+ConsolePort/Libs/Deprecated/*
+!ConsolePort/Libs/External/__manifest.xml

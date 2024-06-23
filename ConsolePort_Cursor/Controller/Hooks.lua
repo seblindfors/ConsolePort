@@ -18,7 +18,14 @@ end
 
 
 function Hooks:ProcessInterfaceCursorEvent(button, down, node)
-	if (down == false) then
+	if down then return end;
+	if self:IsCancelClick(button) then
+		local cancelClickHandler = self:GetCancelClickHandler(node)
+		if cancelClickHandler then
+			cancelClickHandler(node, button, down)
+			return true;
+		end
+	else
 		local specialClickHandler = self:GetSpecialClickHandler(node)
 		if specialClickHandler then
 			specialClickHandler(node, button, down)
@@ -70,8 +77,16 @@ function Hooks:IsModifiedClick()
 	return next(db.Gamepad:GetModifiersHeld()) ~= nil;
 end
 
+function Hooks:IsCancelClick(button)
+	return button == db('UICursorCancel');
+end
+
 function Hooks:GetSpecialClickHandler(node)
 	return node and (node.OnSpecialClick or node:GetAttribute(env.Attributes.SpecialClick));
+end
+
+function Hooks:GetCancelClickHandler(node)
+	return node and (node.OnCancelClick or node:GetAttribute(env.Attributes.CancelClick));
 end
 
 
@@ -243,11 +258,11 @@ do -- Tooltip hooking
 			end
 
 			local name, link = self:GetItem()
-			local numOwned = GetItemCount(link)
-			local isEquipped = IsEquippedItem(link)
-			local isEquippable = IsEquippableItem(link)
+			local numOwned = CPAPI.GetItemCount(link)
+			local isEquipped = CPAPI.IsEquippedItem(link)
+			local isEquippable = CPAPI.IsEquippableItem(link)
 
-			if ( GetItemSpell(link) and numOwned > 0 ) then
+			if ( CPAPI.GetItemSpell(link) and numOwned > 0 ) then
 				Hooks:SetPendingActionToUtilityRing(self, owner, {
 					type = 'item';
 					item = link;
@@ -265,9 +280,9 @@ do -- Tooltip hooking
 		local owner = self:GetOwner()
 		if Hooks:IsPromptProcessingValid(owner) then
 			if Hooks:GetSpecialClickHandler(owner) then return end;
-			
+
 			local name, spellID = self:GetSpell()
-			if spellID and not IsPassiveSpell(spellID) then
+			if spellID and not CPAPI.IsPassiveSpell(spellID) then
 				local isKnown = IsSpellKnownOrOverridesKnown(spellID) or IsPlayerSpell(spellID)
 				if not isKnown then
 					local mountID = CPAPI.GetMountFromSpell(spellID)
@@ -288,7 +303,7 @@ do -- Tooltip hooking
 		if isKnown and spellID then
 			Hooks:SetPendingSpellMenu(self, spellID)
 		end
-	end	
+	end
 
 	local function OnTooltipSetToy(self, info)
 		local owner = self:GetOwner()

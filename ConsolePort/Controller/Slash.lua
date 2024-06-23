@@ -49,9 +49,9 @@ local function HandleSlashCommand(self, msg)
 	elseif ProcessVarUpdate((' '):split(msg or '')) then
 		return
 	end
-	if not IsAddOnLoaded(CONFIG_ADDON_NAME) then
-		EnableAddOn(CONFIG_ADDON_NAME)
-		LoadAddOn(CONFIG_ADDON_NAME)
+	if not C_AddOns.IsAddOnLoaded(CONFIG_ADDON_NAME) then
+		C_AddOns.EnableAddOn(CONFIG_ADDON_NAME)
+		C_AddOns.LoadAddOn(CONFIG_ADDON_NAME)
 	end
 	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
 end
@@ -65,7 +65,8 @@ local function Uninstall()
 		'ConsolePortShared',
 		-- Saved variables per character
 		'ConsolePortUtility',
-		'ConsolePort_BarSetup',
+		'ConsolePort_BarLayout',
+		'ConsolePort_BarSetup', -- legacy
 	}) do _G[var] = nil; end
 	ReloadUI()
 end
@@ -95,7 +96,7 @@ SLASH_FUNCTIONS = {
 	addframe = function(owner, frame)
 		if owner and frame then
 			local loadable, reason = select(4, GetAddOnInfo(owner))
-			if loadable then
+			if loadable or IsAddOnLoaded(owner) then
 				EnableAddOn(CURSOR_ADDON_NAME)
 				LoadAddOn(CURSOR_ADDON_NAME)
 				return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
@@ -114,7 +115,7 @@ SLASH_FUNCTIONS = {
 	removeframe = function(owner, frame)
 		if owner and frame then
 			local loadable, reason = select(4, GetAddOnInfo(owner))
-			if loadable then
+			if loadable or IsAddOnLoaded(owner) then
 				EnableAddOn(CURSOR_ADDON_NAME)
 				LoadAddOn(CURSOR_ADDON_NAME)
 				return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
@@ -190,10 +191,13 @@ SLASH_FUNCTIONS = {
 		local activeDevices = {};
 		for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
 			local device = C_GamePad.GetDeviceRawState(i)
+			local devicePowerLevel = C_GamePad.GetPowerLevel(i)
+			local powerLevelInfo = db.Battery:GetPowerLevelInfo(devicePowerLevel)
 			if device then
 				tinsert(activeDevices, {
 					id    = i;
 					state = device;
+					powerLevel = powerLevelInfo.color:WrapTextInColorCode(powerLevelInfo.name);
 				})
 			end
 		end
@@ -202,20 +206,23 @@ SLASH_FUNCTIONS = {
 			for _, device in ipairs(activeDevices) do
 				local vendorID  = ('%04x'):format(device.state.vendorID):upper();
 				local productID = ('%04x'):format(device.state.productID):upper();
+				local powerLevel = device.powerLevel;
 				local config = C_GamePad.GetConfig({
 					vendorID  = device.state.vendorID;
 					productID = device.state.productID;
 				});
 
 				CPAPI.Log('%d: |cFFFFFFFF%s|r', device.id, device.state.name)
-				CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s',
+				CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s, Battery Level: %s',
 					vendorID, productID,
-					config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r'
+					config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r',
+					powerLevel
 				);
 			end
 		else
 			CPAPI.Log('No connected devices found.')
 		end
+		-- TODO: show axis readings and state when device ID is provided
 	end;
 	-----------------------------------------------------------
 	-- Reset/uninstall
@@ -308,28 +315,24 @@ RegisterNewSlashCommand(ConsolePort, 'consoleport', 'cp')
 ---------------------------------------------------------------
 -- Temp?: add a game menu button to access config
 ---------------------------------------------------------------
-LibStub('Carpenter'):BuildFrame(GameMenuFrame, {
-	[_] = {
-		_Type  = 'Button';
-		_Setup = 'InsecureActionButtonTemplate';
-		_Size  = {58, 58};
-		_Point = {'TOP', 0, 70};
-		_Macro = '/click GameMenuButtonContinue\n/consoleport';
-		_RegisterForClicks = 'AnyUp';
-		_OnLoad = function(self)
-			self:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
-			self:SetAttribute('pressAndHoldAction', true)
-			self:SetNormalTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
-			self:SetPushedTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
-			local pushed = self:GetPushedTexture()
-			pushed:ClearAllPoints()
-			pushed:SetSize(self:GetSize())
-			pushed:SetPoint('CENTER', 0, -2)
-			-- Protect against ElvUI shenanigans
-			self.SetNormalTexture = nop;
-			self.SetPushedTexture = nop;
-			self.GetNormalTexture = nop;
-			self.GetPushedTexture = nop;
-		end;
-	};
-})
+do local GMB = CreateFrame('Button', '$parent'.._, GameMenuFrame)
+	GMB:SetSize(58, 58)
+	GMB:SetPoint('TOP', 0, 70)
+	GMB:SetNormalTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
+	GMB:SetPushedTexture(CPAPI.GetAsset([[Textures\Logo\CP_Thumb]]))
+	local pushed = GMB:GetPushedTexture()
+	pushed:ClearAllPoints()
+	pushed:SetSize(GMB:GetSize())
+	pushed:SetPoint('CENTER', 0, -2)
+	-- Protect against ElvUI shenanigans
+	GMB.SetNormalTexture = nop;
+	GMB.SetPushedTexture = nop;
+	GMB.GetNormalTexture = nop;
+	GMB.GetPushedTexture = nop;
+	GMB:SetScript('OnClick', function()
+		if not InCombatLockdown() then
+			HideUIPanel(GameMenuFrame)
+			ConsolePort()
+		end
+	end)
+end

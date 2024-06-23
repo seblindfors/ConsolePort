@@ -30,7 +30,7 @@
 				<Layers>
 					<Layer level="OVERLAY" textureSubLevel="7">
 						<Texture parentKey="Button">
-							<Size x="32" y="32"/>
+							<Size x="24" y="24"/>
 							<Anchors>
 								<Anchor point="CENTER" x="10" y="-10"/>
 							</Anchors>

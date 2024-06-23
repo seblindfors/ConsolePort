@@ -1,0 +1,468 @@
+local _, env, db, L = ...; db = env.db; L = db.Locale;
+---------------------------------------------------------------
+local TooltipButton = {};
+---------------------------------------------------------------
+
+function TooltipButton:OnEnter()
+	GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
+	GameTooltip_SetTitle(GameTooltip, self.title)
+	if self.instruction then GameTooltip_AddInstructionLine(GameTooltip, self.instruction) end
+	if self.error then GameTooltip_AddErrorLine(GameTooltip, self.error) end
+	GameTooltip:Show()
+	db.Alpha.Flash(self.FlashBorder, 1, 1, -1, false, 0, 0, 'microbutton')
+end
+
+function TooltipButton:OnLeave()
+	db.Alpha.Stop(self.FlashBorder)
+end
+
+---------------------------------------------------------------
+local Eye = CreateFromMixins(TooltipButton, {
+---------------------------------------------------------------
+	instruction = L'Toggle visibility of all modifier flyouts.';
+});
+
+function Eye:OnLoad()
+	env:RegisterCallback('Settings/clusterShowAll', self.OnShowAll, self)
+	self:OnShowAll(env('clusterShowAll'))
+	self:RegisterForClicks('AnyDown', 'AnyUp')
+	CPAPI.Start(self)
+end
+
+function Eye:OnShowAll(showAll)
+	local icon = showAll and env.GetAsset([[Textures\Show]]) or env.GetAsset([[Textures\Hide]]);
+	self.NormalTexture:SetTexture(icon)
+	self.PushedTexture:SetTexture(icon)
+	self.title = showAll and L'Hide Flyout Buttons' or L'Show Flyout Buttons';
+end
+
+function Eye:OnClick()
+	env('Settings/clusterShowAll', not env('clusterShowAll'))
+	self:OnEnter()
+end
+
+---------------------------------------------------------------
+local Config = CreateFromMixins(TooltipButton, {
+---------------------------------------------------------------
+	title       = L'Action Bar Configuration';
+	instruction = L'Open the configuration menu for the action bar.';
+});
+
+function Config:OnLoad()
+	self:RegisterForClicks('AnyDown', 'AnyUp')
+	self:RegisterEvent('PLAYER_REGEN_ENABLED')
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
+	CPAPI.Start(self)
+end
+
+function Config:OnEvent()
+	self:SetEnabled(not InCombatLockdown())
+	self.error = InCombatLockdown() and L'Cannot open configuration menu in combat.' or nil;
+end
+
+function Config:OnClick()
+	env:TriggerEvent('OnConfigToggle')
+end
+
+---------------------------------------------------------------
+local ExitVehicle = CreateFromMixins(TooltipButton, {
+---------------------------------------------------------------
+	title       = L'Exit Vehicle';
+	onVehicle   = L'Exit the vehicle you are currently controlling.';
+	onTaxi      = L'Request early landing from the taxi you are currently riding.';
+	Events      = {
+		'UPDATE_BONUS_ACTIONBAR';
+		'UPDATE_MULTI_CAST_ACTIONBAR';
+		'UNIT_ENTERED_VEHICLE';
+		'UNIT_EXITED_VEHICLE';
+		'VEHICLE_UPDATE';
+	};
+});
+
+function ExitVehicle:OnLoad()
+	self:RegisterForClicks('AnyDown', 'AnyUp')
+	self.NormalTexture:SetSize(24, 32)
+	self.HighlightTexture:SetSize(24, 32)
+	CPAPI.RegisterFrameForEvents(self, self.Events)
+	CPAPI.Start(self)
+	self:OnEvent()
+end
+
+function ExitVehicle:SetNormal()
+	CPMicroButton.SetNormal(self)
+	self.HighlightTexture:SetSize(24, 32)
+end
+
+function ExitVehicle:OnClick()
+	if UnitOnTaxi('player') then
+		TaxiRequestEarlyLanding()
+		self:Disable()
+		self:LockHighlight()
+	else
+		VehicleExit()
+	end
+end
+
+function ExitVehicle:OnEvent()
+	self.instruction = UnitOnTaxi('player') and self.onTaxi or self.onVehicle;
+	self:SetShown(self:CanExitVehicle())
+	if self:CanExitVehicle() then
+		self:Enable()
+	else
+		self:UnlockHighlight()
+	end
+end
+
+function ExitVehicle:CanExitVehicle()
+	if not CanExitVehicle then
+		return UnitOnTaxi('player')
+	else
+		return CanExitVehicle()
+	end
+end
+
+---------------------------------------------------------------
+CPMicroButton = {
+---------------------------------------------------------------
+	ValidateTextures = {
+		Background       = false;
+		PushedBackground = false;
+		FlashBorder      = 'Flash';
+	};
+};
+
+local LoadMicroButtonTextures, MovePortraitTextures = nop, nop;
+if not CPAPI.IsRetailVersion then
+	local TextureKit = {
+		AchievementMicroButton = 'Achievements';
+		CharacterMicroButton   = 'ButtonBG';
+		CollectionsMicroButton = 'Collections';
+		EJMicroButton          = 'AdventureGuide';
+		GuildMicroButton       = 'GuildCommunities';
+		HelpMicroButton        = 'Shop';
+		LFGMicroButton         = 'Groupfinder';
+		MainMenuMicroButton    = 'GameMenu';
+		PVPMicroButton         = 'ButtonBG';
+		QuestLogMicroButton    = 'Questlog';
+		SocialsMicroButton     = 'GuildCommunities';
+		SpellbookMicroButton   = 'SpellbookAbilities';
+		TalentMicroButton      = 'SpecTalents';
+		WorldMapMicroButton    = 'Groupfinder';
+	};
+
+	function LoadMicroButtonTextures(button)
+		local kit = TextureKit[button:GetName()];
+		local atlas = 'UI-HUD-MicroMenu-%s-%s';
+		if kit then
+			button.normalAtlas    = atlas:format(kit, 'Up');
+			button.pushedAtlas    = atlas:format(kit, 'Down');
+			button.disabledAtlas  = atlas:format(kit, 'Disabled');
+			button.highlightAtlas = atlas:format(kit, 'Mouseover');
+			button.SetNormalTexture    = nop; -- HACK: might taint?
+			button.SetPushedTexture    = nop;
+			button.SetDisabledTexture  = nop;
+			button.SetHighlightTexture = nop;
+		end
+	end
+
+	local PortraitTextures = {
+		MicroButtonPortrait   = { 0.2000, 0.8000, 0.0666, 0.9000 };
+		PVPMicroButtonTexture = { 0.1250, 0.5000, 0.0000, 0.6000 };
+	};
+
+	function MovePortraitTextures()
+		for name, coords in pairs(PortraitTextures) do
+			local portrait = _G[name];
+			if portrait then
+				portrait:ClearAllPoints()
+				portrait:SetPoint('TOPLEFT', 7, -7)
+				portrait:SetPoint('BOTTOMRIGHT', -7, 7)
+				portrait:SetTexCoord(unpack(coords))
+			end
+		end
+	end
+end
+
+function CPMicroButton:OnLoad()
+	self:SetSize(32, 40)
+
+	self.NormalTexture    = self.NormalTexture or self:GetNormalTexture()
+	self.PushedTexture    = self.PushedTexture or self:GetPushedTexture()
+	self.HighlightTexture = self.HighlightTexture or self:GetHighlightTexture()
+	self.DisabledTexture  = self.DisabledTexture or self:GetDisabledTexture()
+
+	for texture, parentKey in pairs(self.ValidateTextures) do
+		if not self[texture] then
+			local object = parentKey and self[parentKey] or self:CreateTexture(nil, 'BACKGROUND')
+			object:ClearAllPoints()
+			object:SetSize(32, 41)
+			object:SetPoint('CENTER')
+			self[texture] = object;
+		end
+	end
+
+	CPAPI.SetAtlas(self.Background, 'UI-HUD-MicroMenu-ButtonBG-Up', true)
+	CPAPI.SetAtlas(self.PushedBackground, 'UI-HUD-MicroMenu-ButtonBG-Down', true)
+	CPAPI.SetAtlas(self.FlashBorder, 'UI-HUD-MicroMenu-Highlightalert', false)
+
+	for atlas, texture in pairs({
+		normalAtlas    = self.NormalTexture;
+		pushedAtlas    = self.PushedTexture;
+		disabledAtlas  = self.DisabledTexture;
+		highlightAtlas = self.HighlightTexture;
+	}) do
+		if self[atlas] then
+			if not CPAPI.SetAtlas(texture, self[atlas], true) then
+				texture:Hide()
+			end
+		end
+	end
+end
+
+function CPMicroButton:OnEnter()
+	if self.normalAtlas then
+		self.NormalTexture:SetAlpha(0)
+	end
+end
+
+function CPMicroButton:OnLeave()
+	if self.normalAtlas then
+		self.NormalTexture:SetAlpha(1)
+	end
+end
+
+function CPMicroButton:SetPushed()
+	self.Background:Hide()
+	self.PushedBackground:Show()
+
+	self:SetButtonState('PUSHED', true)
+	if self.highlightAtlas then
+		self.HighlightTexture:SetBlendMode('ADD')
+		self.HighlightTexture:SetAlpha(0.5)
+	end
+end
+
+function CPMicroButton:SetNormal()
+	self:SetButtonState('NORMAL')
+	if self.highlightAtlas then
+		CPAPI.SetAtlas(self.HighlightTexture, self.highlightAtlas, true)
+		self.HighlightTexture:SetBlendMode('BLEND')
+		self.HighlightTexture:SetAlpha(1)
+	end
+	self.Background:Show()
+	self.PushedBackground:Hide()
+end
+
+function CPMicroButton:OnShow()
+	self:GetParent():Layout()
+end
+
+function CPMicroButton:OnHide()
+	self:GetParent():Layout()
+end
+
+function CPMicroButton:OnMouseDown()
+	if self:IsEnabled() then
+		self:SetPushed()
+	end
+end
+
+function CPMicroButton:OnMouseUp()
+	if self:IsEnabled() then
+		self:SetNormal()
+	end
+end
+
+---------------------------------------------------------------
+local PopoutFrame = {};
+---------------------------------------------------------------
+function PopoutFrame:OnLoad()
+	Mixin(self.Eye, Eye):OnLoad()
+	Mixin(self.Config, Config):OnLoad()
+	Mixin(self.ExitVehicle, ExitVehicle):OnLoad()
+
+	self.MicroButtons = {};
+	for i, name in ipairs(MICRO_BUTTONS) do
+		local button = _G[name];
+		if button then
+			self.MicroButtons[button] = CPAPI.IsRetailVersion and button.layoutIndex or i;
+		end
+	end
+
+	self:SlideOut()
+	RunNextFrame(function()
+		self:Layout()
+	end)
+
+	if OverrideMicroMenuPosition then
+		hooksecurefunc('OverrideMicroMenuPosition', GenerateClosure(self.OnOverrideMicroMenuPosition, self))
+	end
+	if UpdateMicroButtonsParent then
+		hooksecurefunc('UpdateMicroButtonsParent', GenerateClosure(self.OnUpdateMicroButtonsParent, self))
+	end
+
+	self:HookScript('OnShow', self.MoveMicroButtons)
+end
+
+function PopoutFrame:Layout()
+	local container = self:GetParent()
+	self.maximumWidth = ConsolePortToolbar:GetWidth() - 64;
+	self.stride = math.floor(self.maximumWidth / 32) - 1;
+	GridLayoutFrameMixin.Layout(self)
+	container:SetSize(self:GetWidth() + 64, self:GetHeight() + 64)
+	container.SlideIn.Translate:SetOffset(0, self:GetHeight())
+	container.SlideOut.Translate:SetOffset(0, -self:GetHeight())
+end
+
+function PopoutFrame:MoveMicroButtons()
+	self.Divider1:SetShown(self.props.micromenu)
+	if not self.props.micromenu then return end;
+	for button, index in pairs(self.MicroButtons) do
+		button:SetParent(self)
+		button:ClearAllPoints()
+		button:SetIgnoreParentAlpha(true)
+		if ( button.layoutIndex ~= index ) then
+			button.layoutIndex = index;
+			if not CPAPI.IsRetailVersion then
+				LoadMicroButtonTextures(button)
+				button:SetHitRectInsets(0, 0, 0, 0)
+				Mixin(button, CPMicroButton):OnLoad()
+			end
+		end
+	end
+	MovePortraitTextures()
+	self:Layout()
+end
+
+function PopoutFrame:SlideIn()
+	self:GetParent().SlideIn:Play()
+end
+
+function PopoutFrame:SlideOut()
+	self:GetParent().SlideOut:Play()
+end
+
+function PopoutFrame:SetActive(active)
+	self:SetPoint('BOTTOM', 0, active and 0 or -self:GetHeight())
+	for button in pairs(self.MicroButtons) do
+		-- Show help tip frames when the micro buttons are hidden by clipping,
+		-- which is why this is true when the popout is NOT active.
+		button:SetIgnoreParentAlpha(not active)
+	end
+end
+
+function PopoutFrame:SetProps(props)
+	self.props = props;
+	self.Eye:SetShown(props.eye)
+	self:MoveMicroButtons()
+	self:Layout()
+end
+
+function PopoutFrame:OnOverrideMicroMenuPosition(...)
+	if not self.props.micromenu then return end;
+	for button in pairs(self.MicroButtons) do
+		button:SetParent(MicroMenu)
+	end
+	MicroMenu:Layout()
+end
+
+function PopoutFrame:OnUpdateMicroButtonsParent(...)
+	if not self.props.micromenu then return end;
+	self:MoveMicroButtons()
+	self:MarkDirty()
+end
+
+---------------------------------------------------------------
+CPToolbar = CreateFromMixins(env.ConfigurableWidgetMixin);
+---------------------------------------------------------------
+function CPToolbar:OnLoad()
+	env:RegisterCallbacks(self.OnDataLoaded, self,
+		'OnDataLoaded',
+		'Settings/enableXPBar',
+		'Settings/fadeXPBar',
+		'Settings/tintColor',
+		'Settings/xpBarColor'
+	);
+	self.snapToPixels = 16;
+	self:RegisterEvent('CURSOR_CHANGED')
+	self.PopoutContainer:SetParent(self:GetParent())
+	self.PopoutContainer:SetFrameLevel(self:GetFrameLevel() + 10)
+	Mixin(self.PopoutContainer.PopoutFrame, PopoutFrame):OnLoad()
+end
+
+function CPToolbar:OnEnter()
+	if self:GetScript('OnUpdate') then return end;
+	self.PopoutContainer.SlideIn:Play()
+	self:SetScript('OnUpdate', self.OnUpdate)
+	self.fadeOutTimer = 0;
+end
+
+function CPToolbar:OnSizeChanged()
+	self.PopoutContainer.PopoutFrame:Layout()
+	if ( not self.XPBar ) then return end;
+	self.XPBar:SetWidth(self:GetWidth() * 0.8)
+	self.XPBar:UpdateBarsShown()
+end
+
+function CPToolbar:OnUpdate(elapsed)
+	if self.PopoutContainer:IsMouseOver() then
+		self.fadeOutTimer = 0;
+		return;
+	end
+	self.fadeOutTimer = self.fadeOutTimer + elapsed;
+	if self.fadeOutTimer > 1 then
+		self.PopoutContainer.SlideOut:Play()
+		self:SetScript('OnUpdate', nil)
+	end
+end
+
+function CPToolbar:OnEvent()
+	self.PopoutContainer:SetShown(not GetCursorInfo())
+end
+
+function CPToolbar:ToggleXPBar(enabled)
+	if ( not self.XPBar ) then
+		if not enabled then return end;
+		self.XPBar = CreateFrame('Frame', nil, self, 'CPWatchBarContainer')
+	end
+	self.XPBar:SetShown(enabled)
+	self.XPBar:SetMainBarColor(env:GetColorRGB('xpBarColor'))
+end
+
+function CPToolbar:ToggleXPBarFade(xpBarEnabled)
+	if ( not self.XPBar ) then return end;
+	if not xpBarEnabled then return end;
+	self.XPBar:OnShow() -- env('fadeXPBar') is handled by the XPBar itself
+end
+
+function CPToolbar:SetTintColor(r, g, b, a)
+	self.BG:SetGradient(env:GetColorGradient(r, g, b, a))
+	self.BottomLine:SetVertexColor(r, g, b, a)
+	self.PopoutContainer.PopoutFrame.Gradient:SetGradient(env:GetColorGradient(r, g, b, a))
+end
+
+function CPToolbar:OnDataLoaded()
+	self:SetTintColor(env:GetColorRGBA('tintColor'))
+	self:ToggleXPBar(env('enableXPBar'))
+	self:ToggleXPBarFade(env('enableXPBar'))
+end
+
+function CPToolbar:SetProps(props)
+	self:SetDynamicProps(props)
+	self:OnDataLoaded()
+	self:OnSizeChanged()
+	self:Show()
+	self.PopoutContainer.PopoutFrame:SetProps(props.menu)
+end
+
+function CPToolbar:OnPropsUpdated()
+	self:SetProps(self.props)
+end
+
+env:AddFactory('Toolbar', function()
+	if not ConsolePortToolbar then
+		ConsolePortToolbar = CreateFrame('Frame', 'ConsolePortToolbar', env.Manager, 'CPToolbar')
+		ConsolePortToolbar:OnLoad()
+	end
+	return ConsolePortToolbar;
+end, env.Interface.Toolbar)

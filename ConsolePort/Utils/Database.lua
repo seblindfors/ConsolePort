@@ -12,6 +12,21 @@ function db:GetDefault(var)
 	return varDefault
 end
 
+-- Provide a wrapper for setting cvars with callbacks
+function db:SetCVar(cvar, value)
+	local old = GetCVar(cvar)
+	if ( old == nil ) then return end; -- CVar does not exist
+	local vartype = type(value)
+	if ( vartype == 'number' ) then
+		old = tonumber(old)
+	elseif ( vartype == 'boolean' ) then
+		old = GetCVarBool(cvar)
+	end
+	if ( old == value ) then return end; -- Value is the same
+	local success = SetCVar(cvar, value)
+	return db:TriggerEvent(cvar, value, old, success)
+end
+
 ---------------------------------------------------------------
 -- Extra table functions for various uses
 ---------------------------------------------------------------

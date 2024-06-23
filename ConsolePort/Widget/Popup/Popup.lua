@@ -1,4 +1,94 @@
+local _, db = ...;
+---------------------------------------------------------------
+CPPopupFrameBaseMixin = CreateFromMixins(NineSlicePanelMixin, CPIndexPoolMixin)
+---------------------------------------------------------------
+function CPPopupFrameBaseMixin:OnLoad()
+	NineSlicePanelMixin.OnLoad(self);
+	CPIndexPoolMixin.OnLoad(self);
+	self:SetBackgroundAlpha(self.layoutAlpha)
+	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -20)
+end
+
+function CPPopupFrameBaseMixin:SetBackgroundAlpha(alpha)
+	self.layoutAlpha = alpha;
+	for region in pairs(NineSliceLayouts[self.layoutType]) do
+		if self[region] then
+			self[region]:SetAlpha(self.layoutAlpha);
+		end
+	end
+end
+
+---------------------------------------------------------------
+CPPopupFrameMixin = CreateFromMixins(CPPopupFrameBaseMixin)
+---------------------------------------------------------------
+function CPPopupFrameMixin:OnLoad()
+	CPPopupFrameBaseMixin.OnLoad(self)
+	db:RegisterCallback('OnPopupShown', self.OnPopupShown, self)
+	ConsolePort:AddInterfaceCursorFrame(self)
+end
+
+function CPPopupFrameMixin:OnPopupShown(shown, frame)
+	if ( frame == self or not shown or self.nonExclusive ) then return end;
+	self:Hide()
+end
+
+function CPPopupFrameMixin:OnShow()
+	db:TriggerEvent('OnPopupShown', true, self)
+end
+
+function CPPopupFrameMixin:OnHide()
+	self:ReturnCursor()
+	db:TriggerEvent('OnPopupShown', false, self)
+end
+
+function CPPopupFrameMixin:FixHeight()
+	local lastItem = self:GetObjectByIndex(self:GetNumActive())
+	if lastItem then
+		local height = self:GetHeight() or 0;
+		local bottom = self:GetBottom() or 0;
+		local anchor = lastItem:GetBottom() or 0;
+		self:SetTargetHeight(height + bottom - anchor + self.bottomPadding)
+	end
+end
+
+function CPPopupFrameMixin:RedirectCursor()
+	self.returnToNode = self.returnToNode or ConsolePort:GetCursorNode()
+	ConsolePort:SetCursorNode(self:GetObjectByIndex(1))
+end
+
+function CPPopupFrameMixin:ReturnCursor()
+	if self.returnToNode then
+		ConsolePort:SetCursorNode(self.returnToNode)
+		self.returnToNode = nil;
+	end
+end
+
+function CPPopupFrameMixin:SetTargetHeight(height)
+	if ( self:GetHeight() == height ) then
+		return self:SetScript('OnUpdate', nil)
+	end
+	self.targetHeight, self.adjustTimer = height, 0;
+	self:SetScript('OnUpdate', function(self, elapsed)
+		self.adjustTimer = self.adjustTimer + elapsed;
+		if self.adjustTimer > 0.01 then
+			self.adjustTimer = 0;
+			local currentHeight = self:GetHeight();
+			local targetHeight = self.targetHeight;
+			local diff = targetHeight - currentHeight;
+			local step = diff / 5;
+			if abs(step) < 1 then
+				self:SetHeight(targetHeight)
+				self:SetScript('OnUpdate', nil)
+			else
+				self:SetHeight(currentHeight + step)
+			end
+		end
+	end)
+end
+
+---------------------------------------------------------------
 CPPopupBindingCatchButtonMixin = CreateFromMixins(CPButtonCatcherMixin)
+---------------------------------------------------------------
 local TIME_UNTIL_CANCEL = 5;
 
 function CPPopupBindingCatchButtonMixin:OnLoad()

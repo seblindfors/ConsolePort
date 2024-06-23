@@ -1,5 +1,5 @@
 local _, db = ...;
-local Shared = db:Register('Shared', CPAPI.CreateEventHandler({'Frame', '$parentShared', ConsolePort}, {
+local Shared = db:Register('Shared', CPAPI.CreateEventHandler({'Frame', '$parentSharedDataHandler', ConsolePort}, {
 	'PLAYER_LOGOUT';
 }, {
 	Data = {};
@@ -66,6 +66,9 @@ function Shared:SaveData(idx, set, newData, unique)
 	self.Data[idx][set] = db.table.copy(newData);
 end
 
+function Shared:RemoveData(idx, set)
+	self.Data[idx][set] = nil;
+end
 
 function Shared:SaveBindings(bindings)
 	self:SavePlayerData('Bindings', bindings, true)

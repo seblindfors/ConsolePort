@@ -9,13 +9,14 @@ local _, db = ...; db:Register('Alpha', {})
 -- 	Flash: frame, fadeInTime, fadeOutTime, flashDuration, showWhenDone, flashInHoldTime, flashOutHoldTime, syncId
 
 local FADE = CreateFrame('Frame')
+local SetAlpha = FADE:CreateTexture().SetAlpha;
 
 function FADE:Remove(frame)
 	tDeleteItem(self, frame)
 end
 
 function FADE:Add(frame, fadeInfo)
-	frame:SetAlpha(fadeInfo.startAlpha)
+	SetAlpha(frame, fadeInfo.startAlpha)
 	frame.fadeInfo = fadeInfo
 
 	local index = 1
@@ -42,15 +43,15 @@ function FADE:Update(elapsed)
 		end
 		fadeInfo.fadeTimer = fadeInfo.fadeTimer + elapsed
 
-		-- If the fadeTimer is less then the desired fade time then set the alpha otherwise hold the fade state, call the finished function, or just finish the fade 
+		-- If the fadeTimer is less then the desired fade time then set the alpha otherwise hold the fade state, call the finished function, or just finish the fade
 		if fadeInfo.fadeTimer < fadeInfo.timeToFade then
 			if fadeInfo.mode == 'IN' then
-				frame:SetAlpha((fadeInfo.fadeTimer / fadeInfo.timeToFade) * (fadeInfo.endAlpha - fadeInfo.startAlpha) + fadeInfo.startAlpha)
+				SetAlpha(frame, (fadeInfo.fadeTimer / fadeInfo.timeToFade) * (fadeInfo.endAlpha - fadeInfo.startAlpha) + fadeInfo.startAlpha)
 			elseif fadeInfo.mode == 'OUT' then
-				frame:SetAlpha(((fadeInfo.timeToFade - fadeInfo.fadeTimer) / fadeInfo.timeToFade) * (fadeInfo.startAlpha - fadeInfo.endAlpha)  + fadeInfo.endAlpha)
+				SetAlpha(frame, ((fadeInfo.timeToFade - fadeInfo.fadeTimer) / fadeInfo.timeToFade) * (fadeInfo.startAlpha - fadeInfo.endAlpha)  + fadeInfo.endAlpha)
 			end
 		else
-			frame:SetAlpha(fadeInfo.endAlpha)
+			SetAlpha(frame, fadeInfo.endAlpha)
 			-- If there is a fadeHoldTime then wait until its passed to continue on
 			if fadeInfo.fadeHoldTime and fadeInfo.fadeHoldTime > 0  then
 				fadeInfo.fadeHoldTime = fadeInfo.fadeHoldTime - elapsed
@@ -63,10 +64,10 @@ function FADE:Update(elapsed)
 				end
 			end
 		end
-		
+
 		index = index + 1
 	end
-	
+
 	if #self == 0 then
 		self:SetScript('OnUpdate', nil)
 	end
@@ -96,17 +97,17 @@ end)
 
 -- Convenience function for localizing both faders
 db('Alpha/Fader', setmetatable({
-		In  = db('Alpha/FadeIn');
-		Out = db('Alpha/FadeOut');
-		Toggle = function(region, timeToFade, toggle)
+		In  = db.Alpha.FadeIn;
+		Out = db.Alpha.FadeOut;
+		Toggle = function(region, timeToFade, toggle, showOnFadeOut)
 			if toggle then
 				region:Show()
-				db('Alpha/FadeIn')(region, timeToFade, region:GetAlpha(), 1)
+				db.Alpha.FadeIn(region, timeToFade, region:GetAlpha(), 1)
 			else
-				db('Alpha/FadeOut')(region, timeToFade * 2, region:GetAlpha(), 0, {
+				db.Alpha.FadeOut(region, timeToFade * 2, region:GetAlpha(), 0, not showOnFadeOut and {
 					finishedFunc = region.Hide;
 					finishedArg1 = region;
-				})
+				} or nil)
 			end
 		end;
 	}, {
@@ -128,7 +129,7 @@ local FlashTimerRefCount = {}
 -- Function to stop flashing
 function FLASH:Stop(frame, alpha)
 	tDeleteItem(self, frame)
-	frame:SetAlpha(alpha or 1.0)
+	SetAlpha(frame, alpha or 1.0)
 	frame.flashTimer = nil
 	if frame.syncId then
 		FlashTimerRefCount[frame.syncId] = FlashTimerRefCount[frame.syncId]-1
@@ -149,12 +150,12 @@ end
 function FLASH:Update(elapsed)
 	local frame
 	local index = #self
-	
+
 	-- Update timers for all synced frames
 	for syncId, timer in pairs(FlashTimers) do
 		FlashTimers[syncId] = timer + elapsed
 	end
-	
+
 	while index > 0 and self[index] do
 		frame = self[index]
 		frame.flashTimer = frame.flashTimer + elapsed
@@ -164,11 +165,11 @@ function FLASH:Update(elapsed)
 		else
 			local flashTime = frame.flashTimer
 			local alpha
-			
+
 			if frame.syncId then
 				flashTime = FlashTimers[frame.syncId]
 			end
-			
+
 			flashTime = flashTime%(frame.fadeInTime+frame.fadeOutTime+(frame.flashInHoldTime or 0)+(frame.flashOutHoldTime or 0))
 			if flashTime < frame.fadeInTime then
 				alpha = flashTime/frame.fadeInTime
@@ -179,15 +180,15 @@ function FLASH:Update(elapsed)
 			else
 				alpha = 0
 			end
-			
-			frame:SetAlpha(alpha)
+
+			SetAlpha(frame, alpha)
 			frame:Show()
 		end
-		
+
 		-- Loop in reverse so that removing frames is safe
 		index = index - 1
 	end
-	
+
 	if #self == 0 then
 		self:SetScript('OnUpdate', nil)
 	end
@@ -219,7 +220,7 @@ db('Alpha/Flash', function(frame, fadeInTime, fadeOutTime, flashDuration, showWh
 		else
 			frame.syncId = nil
 		end
-		
+
 		-- Time it takes to fade in a flashing frame
 		frame.fadeInTime = fadeInTime
 		-- Time it takes to fade out a flashing frame
@@ -234,9 +235,9 @@ db('Alpha/Flash', function(frame, fadeInTime, fadeOutTime, flashDuration, showWh
 		frame.flashInHoldTime = flashInHoldTime
 		-- How long to hold the faded out state
 		frame.flashOutHoldTime = flashOutHoldTime
-		
+
 		tinsert(FLASH, frame)
-		
+
 		FLASH:SetScript('OnUpdate', FLASH.Update)
 	end
 end)

@@ -11,6 +11,7 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	CPAPI.IsRetailVersion and 'UPDATE_EXTRA_ACTIONBAR';
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
+local ActionButton = LibStub('ConsolePortActionButton')
 ---------------------------------------------------------------
 local DEFAULT_SET, EXTRA_ACTION_ID = CPAPI.DefaultRingSetID, CPAPI.ExtraActionButtonID;
 ---------------------------------------------------------------
@@ -37,8 +38,8 @@ Utility:CreateEnvironment({
 			return
 		end
 
-		local radius = math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
 		local numActive = #RING;
+		local radius = self::SetDynamicRadius(numActive)
 		local invertY = self:GetAttribute('axisInversion')
 
 		self:SetAttribute('trigger', self::GetButtonsHeld())
@@ -49,6 +50,7 @@ Utility:CreateEnvironment({
 			local x, y = radial::GetPointForIndex(i, numActive, radius)
 			local widget = self:GetFrameRef(set..':'..i)
 
+			widget:CallMethod('SetRotation', -math.atan2(x, y))
 			widget:Show()
 			widget:ClearAllPoints()
 			widget:SetPoint('CENTER', '$parent', 'CENTER', x, invertY * y)
@@ -105,6 +107,15 @@ Utility:CreateEnvironment({
 			self:ClearBindings()
 		end
 	]];
+	-----------------------------------------------------------
+	ClearStickyIndex = ([[
+		if self:GetAttribute('stickyIndex') then
+			self:SetAttribute('stickyIndex', nil)
+			self:SetAttribute('backup', nil)
+			self:SetAttribute('TYPE', nil)
+			self:CallMethod('OnStickyIndexChanged')
+		end
+	]]):gsub('TYPE', CPAPI.ActionTypeRelease);
 });
 
 ---------------------------------------------------------------
@@ -132,10 +143,20 @@ Utility:Wrap('PreClick', ([[
 		self::DrawSelectedRing(set)
 		self::SetRemoveBinding(true)
 		self:Show()
+		if stickySelect then
+			if ( set ~= self:GetAttribute('stickyState') ) then
+				self:SetAttribute('stickyIndex', nil)
+				self:SetAttribute('stickyState', set)
+			end
+		end
 	else
-		self::CopySelectedIndex(self::GetIndex())
+		local index = self::GetIndex()
+		self::CopySelectedIndex(index)
 		self:ClearBindings()
 		self:Hide()
+		if stickySelect then
+			self:SetAttribute('stickyIndex', index or self:GetAttribute('stickyIndex'))
+		end
 	end
 ]]):gsub('TYPE', CPAPI.ActionTypeRelease))
 
@@ -150,7 +171,10 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 	if set and index then
 		control:CallMethod('SafeRemoveAction', set, index)
 		control:Run(DrawSelectedRing, set)
+		control:CallMethod('OnPostShow')
+		return control:CallMethod('OnStickySelectChanged')
 	end
+	return control:Run(ClearStickyIndex)
 ]])
 
 ---------------------------------------------------------------
@@ -158,7 +182,18 @@ Utility:WrapScript(Utility.Remove, 'OnClick', [[
 ---------------------------------------------------------------
 function Utility:OnDataLoaded()
 	self:SetAttribute('size', 0)
-	self:CreateFramePool('SecureActionButtonTemplate, SecureHandlerEnterLeaveTemplate, CPUIActionButtonTemplate', Button)
+
+	self:CreateObjectPool(ActionButton:NewPool({
+		name   = self:GetName()..'Button';
+		header = self;
+		mixin  = Button;
+		config = {
+			showGrid = true;
+			hideElements = {
+				macro = true;
+			};
+		};
+	}))
 	db:Load('Utility/Data', 'ConsolePortUtility')
 
 	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))
@@ -169,7 +204,6 @@ function Utility:OnDataLoaded()
 			local size = self:GetAttribute('size');
 		]];
 	});
-	self:RefreshAll()
 	setmetatable(self.Data, {__index = function(data, key)
 		self:Parse([[
 			DATA[{ring}] = newtable();
@@ -181,9 +215,9 @@ function Utility:OnDataLoaded()
 	self:OnAxisInversionChanged()
 	self:OnStickySelectChanged()
 	if CPAPI.IsRetailVersion then
-		self.FocusOverlay.BgRunes:SetAtlas('heartofazeroth-orb-activated')
+		self.BgRunes:SetAtlas('heartofazeroth-orb-activated')
 	else
-		self.FocusOverlay.BgRunes:SetAtlas('ChallengeMode-RuneBG')
+		self.BgRunes:SetAtlas('ChallengeMode-RuneBG')
 	end
 end
 
@@ -210,11 +244,24 @@ function Utility:OnStickySelectChanged()
 	self:SetAttribute('stickySelect', db('radialStickySelect'))
 	self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 	self:SetAttribute('backup', nil)
+	self:SetAttribute('stickyIndex', nil)
+	self:SetAttribute('stickyState', nil)
+	self.StickySlice:Hide()
 end
 
 function Utility:OnSizeChanged()
 	local width, height = self:GetSize()
-	self.FocusOverlay.BgRunes:SetSize(width * 0.8, height * 0.8)
+	self.BgRunes:SetSize(width * 0.8, height * 0.8)
+	self.StickySlice:UpdateSize(width, height)
+end
+
+function Utility:OnStickyIndexChanged()
+	local hasStickySelection = self:GetAttribute('stickyIndex')
+	self.StickySlice:SetShown(hasStickySelection)
+	if hasStickySelection then
+		self.StickySlice:SetAlpha(1)
+		self.StickySlice:SetIndex(hasStickySelection)
+	end
 end
 
 db:RegisterSafeCallback('Settings/autoExtra', Utility.OnAutoAssignedChanged, Utility)
@@ -223,6 +270,7 @@ db:RegisterSafeCallback('Settings/radialRemoveButton', Utility.OnRemoveButtonCha
 db:RegisterSafeCallback('Settings/radialPrimaryStick', Utility.OnPrimaryStickChanged, Utility)
 db:RegisterSafeCallback('Settings/radialStickySelect', Utility.OnStickySelectChanged, Utility)
 Utility:SetScript('OnSizeChanged', Utility.OnSizeChanged)
+Utility:HookScript('OnShow', Utility.OnStickyIndexChanged)
 
 ---------------------------------------------------------------
 -- Widget handling
@@ -250,15 +298,20 @@ end
 function Utility:AddSecureAction(set, idx, info)
 	local button, newObj = self:TryAcquireRegistered(idx)
 	if newObj then
-		button:SetFrameLevel(idx)
+		button:SetFrameLevel(idx + 2)
 		button:SetID(idx)
 		button:OnLoad()
 		button:DisableDragNDrop(true)
+		button:SetSize(64, 64)
 		self:SetFrameRef(tostring(idx), button)
 	end
 
 	self:SetFrameRef(set..':'..idx, button)
-	button:SetState(set, self:GetKindAndAction(info))
+	local kind, action = self:GetKindAndAction(info)
+	if not kind or not action then
+		return
+	end
+	button:SetState(set, kind, action)
 
 	local args, body = { ring = tostring(set), slot = idx }, [[
 		local ring = DATA[{ring}];
@@ -286,11 +339,16 @@ db:RegisterSafeCallback('OnRingRemoved', Utility.RefreshAll, Utility)
 ---------------------------------------------------------------
 -- Frontend
 ---------------------------------------------------------------
-function Utility:OnInput(x, y, len, stick)
+function Utility:OnInput(x, y, len)
 	local size = self:GetAttribute('size')
 	local obj = self:SetFocusByIndex(self:GetIndexForPos(x, y, len, size))
-	local rot = self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
+	local valid = self:IsValidThreshold(len)
+	local rot = self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, valid)
 	self:SetAnimations(obj, rot, len)
+
+	if self:GetAttribute('stickyIndex') then
+		self.StickySlice:SetAlpha(Clamp(1 - len, 0, 1))
+	end
 end
 
 function Utility:GetSetID(rawSetID)
@@ -361,66 +419,15 @@ end
 -- Animations
 ---------------------------------------------------------------
 do
-	local map, Clamp = db.table.map, Clamp;
-
-	local function replay(group)
-		group:Stop()
-		group:Finish()
-		group:Play()
-	end
-
-	local function hide(obj) return obj:Hide() end
-	local function show(obj) return obj:Show() end
+	local Clamp = Clamp;
 
 	function Utility:SetAnimations(obj, rot, len)
-		local overlay = self.FocusOverlay;
-		local oldObj = self.oldAniObj;
 		local pulse = Clamp(len, 0.05, 0.25)
-		local glow = Clamp(len, 0, 1)
 
-		overlay.PulseAnim.PulseIn:SetFromAlpha(pulse / 2)
-		overlay.PulseAnim.PulseIn:SetToAlpha(pulse)
-		overlay.PulseAnim.PulseOut:SetToAlpha(pulse / 2)
-		overlay.PulseAnim.PulseOut:SetFromAlpha(pulse)
-
-		if oldObj == obj then
-			return
-		end
-		
-		if oldObj then
-			oldObj.Name:Show()
-		end
-
-		self.oldAniObj = obj;
-		
-		if obj then
-			obj.Name:Hide()
-
-			map(show,
-				overlay.SlotGlow,
-				overlay.RunesSmall,
-				overlay.SmallRuneGlow,
-				overlay.GlowBurstSmall
-			);
-
-			replay(overlay.RunesSmallAnim)
-
-			overlay.GlowBurstSmall:SetPoint('TOPLEFT', obj, 'TOPLEFT', -50, 50)
-			overlay.GlowBurstSmall:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 50, -50)
-
-			overlay.RunesSmall:SetPoint('TOPLEFT', obj, 'TOPLEFT', -16, 16)
-			overlay.RunesSmall:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 16, -16)
-
-			overlay.SlotGlow:SetPoint('TOPLEFT', obj, 'TOPLEFT', -8, 8)
-			overlay.SlotGlow:SetPoint('BOTTOMRIGHT', obj, 'BOTTOMRIGHT', 8, -8)
-		else
-			map(hide,
-				overlay.SlotGlow,
-				overlay.RunesSmall,
-				overlay.SmallRuneGlow,
-				overlay.GlowBurstSmall
-			);
-		end
+		self.PulseAnim.PulseIn:SetFromAlpha(pulse / 2)
+		self.PulseAnim.PulseIn:SetToAlpha(pulse)
+		self.PulseAnim.PulseOut:SetToAlpha(pulse / 2)
+		self.PulseAnim.PulseOut:SetFromAlpha(pulse)
 	end
 
 	Utility:HookScript('OnHide', function(self)
@@ -555,8 +562,8 @@ Utility.KindAndActionMap = {
 	action = function(data) return data.action end;
 	item   = function(data) return data.item end;
 	pet    = function(data) return data.action end;
-	spell  = function(data) return data.spell end;
 	macro  = function(data) return data.macro end;
+	spell  = function(data) return (data.link and data.link:match('spell:(%d+)')) or CPAPI.GetSpellInfo(data.spell).spellID or data.spell end;
 	equipmentset = function(data) return data.equipmentset end;
 }
 
@@ -572,9 +579,9 @@ Utility.LinkMap = {
 		local args = select('#', ...)
 		if (args > 1) then
 			local bookType = ...;
-			return GetSpellLink(spell, bookType)
+			return CPAPI.GetSpellBookItemLink(spell, bookType)
 		end
-		return GetSpellLink(spell)
+		return CPAPI.GetSpellLink(spell)
 	end;
 	item = function(...)
 		return select(2, ...)
@@ -599,16 +606,16 @@ Utility.SecureHandlerMap = {
 		return {type = 'item', item = itemLink or itemID, link = itemLink};
 	end;
 	spell = function(spellIndex, bookType, spellID)
-		return {type = 'spell', spell = spellID, link = GetSpellLink(spellID)};
+		return {type = 'spell', spell = spellID, link = CPAPI.GetSpellLink(spellID)};
 	end;
 	macro = function(index)
 		return {type = 'macro', macro = index};
 	end;
 	mount = function(mountID)
 		local spellID = select(2, C_MountJournal.GetMountInfoByID(mountID));
-		local spellName = spellID and GetSpellInfo(spellID)
+		local spellName = spellID and CPAPI.GetSpellInfo(spellID).name;
 		if spellName then
-			return {type = 'spell', spell = spellName, link = GetSpellLink(spellName)};
+			return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)};
 		end
 	end;
 	petaction = function(spellID, indexIsOffset)
@@ -624,7 +631,7 @@ Utility.SecureHandlerMap = {
 	end;
 	companion = function(companionID, companionType)
 		local _, spellName = GetCompanionInfo(companionType, companionID)
-		return {type = 'spell', spell = spellName, link = GetSpellLink(spellName)}
+		return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)}
 	end;
 }
 
@@ -734,7 +741,7 @@ end
 
 function Utility:ToggleExtraActionButton(enabled)
 	if not CPAPI.IsRetailVersion then return end
-	
+
 	if enabled then
 		self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
 	else
@@ -915,6 +922,7 @@ function Utility:SPELLS_CHANGED()
 	if self.autoAssignExtras then
 		db:RunSafe(self.ToggleZoneAbilities, self)
 	end
+	db:RunSafe(self.RefreshAll, self)
 end
 
 function Utility:ACTIONBAR_SLOT_CHANGED()
@@ -940,27 +948,18 @@ end
 -- Button mixin
 ---------------------------------------------------------------
 function Button:OnLoad()
+	self:SetPreventSkinning(true)
 	self:Initialize()
 	self:SetScript('OnHide', self.OnClear)
-	self:SetScript('OnShow', self.UpdateAssets)
-end
-
-function Button:UpdateAssets()
-	local bg = self.Shadow;
-	bg:ClearAllPoints()
-	if (self:GetAttribute('type') == 'action' and self:GetAttribute('action') == EXTRA_ACTION_ID) then
-		bg:SetTexture(CPAPI.GetOverrideBarSkin() or 'Interface\\ExtraButton\\Default')
-		bg:SetSize(256 * 0.8, 128 * 0.8)
-		bg:SetPoint('CENTER', -2, 0)
-	else
-		bg:SetTexture(CPAPI.GetAsset('Textures\\Button\\Shadow'))
-		bg:SetPoint('TOPLEFT', -5, 0)
-		bg:SetPoint('BOTTOMRIGHT', 5, -10)
-	end
+	self:SetScript('OnShow', self.UpdateLocal)
 end
 
 function Button:OnFocus()
-	self:SetChecked(true)
+	self:LockHighlight()
+	self:GetParent():SetActiveSliceText(self.Name:GetText())
+	if GameTooltip:IsOwned(self) then
+		return;
+	end
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	self:SetTooltip()
 	local use = Utility:GetTooltipUsePrompt()
@@ -975,8 +974,17 @@ function Button:OnFocus()
 end
 
 function Button:OnClear()
-	self:SetChecked(false)
+	self:UnlockHighlight()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
+	self:GetParent():SetActiveSliceText(nil)
+end
+
+function Button:UpdateLocal()
+	self:SetRotation(self.rotation or 0)
+	ActionButton.Skin.UtilityRingButton(self)
+	RunNextFrame(function()
+		self:GetParent():SetSliceText(self:GetID(), self.Name:GetText())
+	end)
 end

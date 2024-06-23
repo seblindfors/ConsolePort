@@ -64,7 +64,7 @@ function Binding:OnEnter()
 	end
 	if image then
 		GameTooltip:AddLine('\n')
-		GameTooltip:AddLine(CPAPI.CreateSimpleTextureMarkup(image.file, image.width, image.height))
+		GameTooltip:AddLine(image)
 	end
 	GameTooltip:Show()
 	-- Don't show this tooltip on small screens where it intersects the config

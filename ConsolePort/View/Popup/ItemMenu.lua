@@ -14,7 +14,6 @@ local INDEX_INFO_ITEMQ = 3
 local INDEX_INFO_STACK = 8
 local INDEX_INFO_EQLOC = 9
 ---------------------------------------------------------------
-local QUALITY_STANDARD = Enum.ItemQuality.Standard or Enum.ItemQuality.Common;
 local INV_EQ_LOCATIONS = {
 	INVTYPE_RANGED         = CPAPI.IsClassicVersion and {'RANGEDSLOT'};
 	INVTYPE_CLOAK          = {'BACKSLOT'};
@@ -32,6 +31,20 @@ local INV_EQ_LOCATIONS = {
 	end
 end
 ---------------------------------------------------------------
+local QUALITY_STANDARD = Enum.ItemQuality.Standard or Enum.ItemQuality.Common;
+local QUALITY_GOOD     = Enum.ItemQuality.Uncommon or Enum.ItemQuality.Good;
+local BORDER_ATLAS = CPAPI.Proxy({
+	[Enum.ItemQuality.Poor]      = 'auctionhouse-itemicon-border-gray';
+	[Enum.ItemQuality.Rare]      = 'auctionhouse-itemicon-border-blue';
+	[Enum.ItemQuality.Epic]      = 'auctionhouse-itemicon-border-purple';
+	[Enum.ItemQuality.Legendary] = 'auctionhouse-itemicon-border-orange';
+	[Enum.ItemQuality.Artifact]  = 'auctionhouse-itemicon-border-artifact';
+	[Enum.ItemQuality.Heirloom]  = 'auctionhouse-itemicon-border-account';
+	[Enum.ItemQuality.WoWToken]  = 'auctionhouse-itemicon-border-account';
+	[QUALITY_STANDARD]           = 'auctionhouse-itemicon-border-white';
+	[QUALITY_GOOD]               = 'auctionhouse-itemicon-border-green';
+}, 'auctionhouse-itemicon-border-gray')
+---------------------------------------------------------------
 local DEFAULT_BUTTON_INIT = function(self) self:SetAttribute('type', nil) end;
 
 function ItemMenu:SetItem(bagID, slotID)
@@ -42,39 +55,16 @@ function ItemMenu:SetItem(bagID, slotID)
 		return self:Hide()
 	end
 
-	local count = self:GetCount()
-	self.Count:SetText(count > 1 and ('x'..count) or '')
 	self.Icon:SetTexture(self:GetItemIcon())
 	self.Name:SetText(self:GetItemName())
 	self.Name:SetTextColor(self:GetItemQualityColor().color:GetRGB())
+	self.Border:SetAtlas(BORDER_ATLAS[self:GetQuality()])
 
 	self:SetTooltip()
 	self:SetCommands()
 	self:FixHeight()
 	self:Show()
 	self:RedirectCursor()
-end
-
-function ItemMenu:FixHeight()
-	local lastItem = self:GetObjectByIndex(self:GetNumActive())
-	if lastItem then
-		local height = self:GetHeight() or 0
-		local bottom = self:GetBottom() or 0
-		local anchor = lastItem:GetBottom() or 0
-		self:SetHeight(height + bottom - anchor + 16)
-	end
-end
-
-function ItemMenu:RedirectCursor()
-	self.returnToNode = self.returnToNode or ConsolePort:GetCursorNode()
-	ConsolePort:SetCursorNode(self:GetObjectByIndex(1))
-end
-
-function ItemMenu:ReturnCursor()
-	if self.returnToNode then
-		ConsolePort:SetCursorNode(self.returnToNode)
-		self.returnToNode = nil
-	end
 end
 
 ---------------------------------------------------------------
@@ -96,7 +86,10 @@ function ItemMenu:SetCommands()
 	end
 
 	if self:IsSplittableItem() then
-		self:AddCommand(L'Split stack', 'Split')
+		local count, stackCount = self:GetCount(), self:GetStackCount();
+		local color = count == stackCount and GREEN_FONT_COLOR or ORANGE_FONT_COLOR;
+		local countText = color:WrapTextInColorCode((' (%d / %d)'):format(count, stackCount))
+		self:AddCommand(L'Split stack' .. countText, 'Split')
 	end
 
 	if self:IsDisenchantableItem() then	
@@ -113,7 +106,7 @@ end
 
 function ItemMenu:GetEquipCommand(invSlot, i, numSlots)
 	local item = GetInventoryItemID('player', invSlot)
-	local link = item and select(INDEX_INFO_ILINK, GetItemInfo(item))
+	local link = CPAPI.GetItemInfo(item).itemLink;
 	return {
 		text =  link and (REPLACE..' '..link)
 				or numSlots > 1 and EQUIPSET_EQUIP .. (' (%s/%s %s)'):format(i, numSlots, SLOT_ABBR)
@@ -125,9 +118,11 @@ function ItemMenu:GetEquipCommand(invSlot, i, numSlots)
 				GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
 				GameTooltip:SetInventoryItem('player', invSlot)
 				GameTooltip:Show()
+				self:LockHighlight()
 			end;
 			OnLeave = function(self)
 				GameTooltip:Hide()
+				self:UnlockHighlight()
 			end;
 		};
 	}
@@ -176,11 +171,11 @@ function ItemMenu:AddCommand(text, command, data, handlers, init)
 	local anchor = self:GetObjectByIndex(self:GetNumActive() - 1)
 
 	if newObj then
-		widget:HookScript('OnClick', widget.OnClick)
+		widget:OnLoad()
 	end
 
 	widget:SetCommand(text, command, data, handlers, init or DEFAULT_BUTTON_INIT)
-	widget:SetPoint('TOPLEFT', anchor or self.Tooltip, 'BOTTOMLEFT', anchor and 0 or 8, anchor and 0 or -16)
+	widget:SetPoint('TOPLEFT', anchor or self.Tooltip, 'BOTTOMLEFT', anchor and 0 or self.buttonOffsetX, anchor and 1 or -16)
 	widget:Show()
 end
 
@@ -196,8 +191,16 @@ function ItemMenu:SetTooltip()
 	tooltip:SetBagItem(self:GetBagAndSlot())
 	tooltip:Show()
 	tooltip:ClearAllPoints()
-	tooltip:SetPoint('TOPLEFT', 80, -16)
+	tooltip:SetPoint('TOPLEFT', self.tooltipOffsetX, -16)
 	db.Alpha.FadeIn(self.Tooltip, 0.25, 0, 1)
+	if tooltip.TopOverlay and tooltip.TopOverlay:IsShown() then
+		tooltip.TopOverlay:ClearAllPoints()
+		tooltip.TopOverlay:SetPoint('BOTTOM', self, 'TOP', 0, -16)
+	end
+	if tooltip.BottomOverlay and tooltip.BottomOverlay:IsShown() then
+		tooltip.BottomOverlay:ClearAllPoints()
+		tooltip.BottomOverlay:SetPoint('TOP', self, 'BOTTOM', 0, 30)
+	end
 end
 
 function ItemMenu:ClearTooltip()
@@ -208,15 +211,15 @@ end
 -- API
 ---------------------------------------------------------------
 function ItemMenu:GetSpellID()
-	return GetItemSpell(self:GetItemID())
+	return CPAPI.GetItemSpell(self:GetItemID())
 end
 
 function ItemMenu:GetLink()
-	return (select(INDEX_INFO_ILINK, GetItemInfo(self:GetItemID())))
+	return CPAPI.GetItemInfo(self:GetItemID()).itemLink;
 end
 
 function ItemMenu:GetQuality()
-	return (select(INDEX_INFO_ITEMQ, GetItemInfo(self:GetItemID())))
+	return CPAPI.GetItemInfo(self:GetItemID()).itemQuality;
 end
 
 function ItemMenu:GetCount()
@@ -224,11 +227,11 @@ function ItemMenu:GetCount()
 end
 
 function ItemMenu:GetStackCount()
-	return select(INDEX_INFO_STACK, GetItemInfo(self:GetItemID()))
+	return CPAPI.GetItemInfo(self:GetItemID()).itemStackCount;
 end
 
 function ItemMenu:GetInventoryLocation()
-	return select(INDEX_INFO_EQLOC, GetItemInfo(self:GetItemID()))
+	return CPAPI.GetItemInfo(self:GetItemID()).itemEquipLoc;
 end
 
 function ItemMenu:HasNoValue()
@@ -240,7 +243,7 @@ function ItemMenu:IsSplittableItem()
 end
 
 function ItemMenu:IsEquippableItem()
-	return IsEquippableItem(self:GetItemID())
+	return CPAPI.IsEquippableItem(self:GetItemID())
 end
 
 function ItemMenu:IsUsableItem()
@@ -325,16 +328,20 @@ end
 ---------------------------------------------------------------
 -- Handlers and init
 ---------------------------------------------------------------
-function ItemMenu:OnHide()
-	self:ReturnCursor()
+function ItemMenu:Refresh()
+	if self:IsShown() then
+		self:SetItem(self.bagID, self.slotIndex)
+	end
 end
 
 function ItemMenu:MERCHANT_SHOW()
-	self.merchantAvailable = true
+	self.merchantAvailable = true;
+	self:Refresh()
 end
 
 function ItemMenu:MERCHANT_CLOSED()
-	self.merchantAvailable = false
+	self.merchantAvailable = false;
+	self:Refresh()
 end
 
 function ItemMenu:PLAYER_REGEN_DISABLED()
@@ -342,14 +349,9 @@ function ItemMenu:PLAYER_REGEN_DISABLED()
 end
 
 function ItemMenu:BAG_UPDATE_DELAYED()
-	if self:IsShown() then
-		self:SetItem(self.bagID, self.slotIndex)
-	end
+	self:Refresh()
 end
 
 ---------------------------------------------------------------
-ItemMenu:SetScript('OnHide', ItemMenu.OnHide)
 ItemMenu:SetAttribute('nodepass', true)
-Mixin(ItemMenu, CPIndexPoolMixin):OnLoad()
 ItemMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
-ConsolePort:AddInterfaceCursorFrame(ItemMenu)

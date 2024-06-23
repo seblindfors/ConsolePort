@@ -39,7 +39,7 @@ function Pager:GetDefaultPageCondition()
 	local count, cond = 0, ''
 	for i, macroCondition in ipairs({
 		----------------------------------
-		'vehicleui', 'possessbar', 'overridebar', 'shapeshift',
+		'possessbar', 'overridebar', 'shapeshift',
 		'bar:2', 'bar:3', 'bar:4', 'bar:5', 'bar:6',
 		'bonusbar:1', 'bonusbar:2', 'bonusbar:3', 'bonusbar:4', 'bonusbar:5'
 		----------------------------------
@@ -69,9 +69,10 @@ end
 
 function Pager:GetHeaderResponse()
 	return [[
-		for header in pairs(headers) do
+		for i = #headers, 1, -1 do
+			local header = headers[i];
 			header:SetAttribute('actionpage', newstate)
-			local snippet = header:GetAttribute('_childupdate-actionpage')
+			local snippet = header:GetAttribute('ActionPageChanged')
 			if snippet then
 				header:Run(snippet, newstate)
 			end
@@ -103,6 +104,9 @@ function Pager:OnDataLoaded()
 	response = response .. self:GetHeaderResponse()
 	self:SetConditionAndResponse(driver, response)
 end
+
+db:RegisterSafeCallback('Settings/actionPageCondition', Pager.OnDataLoaded, Pager)
+db:RegisterSafeCallback('Settings/actionPageResponse', Pager.OnDataLoaded, Pager)
 
 ---------------------------------------------------------------
 -- Spell headers
@@ -156,7 +160,10 @@ Pager.Env = {
 		if type == 'spell' then
 			local slot = self::GetActionSpellInfo(...)
 			if slot then
-				return IsHarmfulSpell(slot, 'spell')
+				return ]]..(IsHarmfulSpell
+					and ('IsHarmfulSpell(slot, "spell")')
+					 or ('IsSpellHarmful(slot, %d)'):format(Enum.SpellBookSpellBank.Player)
+				)..[[;
 			end
 		elseif type == 'item' and id then
 			return IsHarmfulItem(id)
@@ -173,7 +180,10 @@ Pager.Env = {
 		if type == 'spell' then
 			local slot = self::GetActionSpellInfo(...)
 			if slot then
-				return IsHelpfulSpell(slot, 'spell')
+				return ]]..(IsHelpfulSpell
+					and ('IsHelpfulSpell(slot, "spell")')
+					 or ('IsSpellHelpful(slot, %d)'):format(Enum.SpellBookSpellBank.Player)
+				)..[[;
 			end
 		elseif type == 'item' and id then
 			return IsHelpfulItem(id)
@@ -195,13 +205,8 @@ function Pager:RegisterHeader(header, anonymous)
 		local page = self:GetCurrentPage()
 		header:SetAttribute('actionpage', page)
 		header:SetFrameRef('pager', self)
-
-		-- add references to Blizzard frames
-		if MainMenuBarArtFrame then header:SetFrameRef('mainmenubar', MainMenuBarArtFrame) end
-		if OverrideActionBar   then header:SetFrameRef('overridebar', OverrideActionBar) end
-
 		self:SetFrameRef('header', header)
-		self:Execute('headers[self:GetFrameRef("header")] = true')
+		self:Execute('headers[#headers + 1] = self:GetFrameRef("header")')
 	end
 	return header
 end
@@ -211,15 +216,22 @@ end
 ---------------------------------------------------------------
 
 function Pager:OnUpdateMacros(macroInfo)
-	for id, body in pairs(macroInfo) do
-		self:SetAttribute(tostring(id), body)
+	for id, info in pairs(macroInfo) do
+		self:SetAttribute(tostring(id), info.body)
 	end
 end
 
 function Pager:UPDATE_MACROS()
 	local macroInfo = {}
 	for i=1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
-		macroInfo[i] = select(3, GetMacroInfo(i))
+		local name, icon, body = GetMacroInfo(i)
+		if name then
+			macroInfo[i] = {
+				name = name;
+				icon = icon;
+				body = body;
+			};
+		end
 	end
 	db:TriggerEvent('OnUpdateMacros', macroInfo)
 end

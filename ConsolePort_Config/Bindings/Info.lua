@@ -13,8 +13,8 @@ local BindingInfoMixin, BindingInfo = {}, {
 	Actionbar = {};
 	--------------------------------------------------------------
 	ActionNameHandlers = {
-		spell        = function(id) return GetSpellInfo(id) or STAT_CATEGORY_SPELL end; -- Hack fallback: 'Spell'
-		item         = function(id) return GetItemInfo(id) or HELPFRAME_ITEM_TITLE end; -- Hack fallback: 'Item'
+		spell        = function(id) return CPAPI.GetSpellInfo(id).name    or STAT_CATEGORY_SPELL  end; -- Hack fallback: 'Spell'
+		item         = function(id) return CPAPI.GetItemInfo(id).itemName or HELPFRAME_ITEM_TITLE end; -- Hack fallback: 'Item'
 		macro        = function(id) return GetMacroInfo(id) and GetMacroInfo(id) .. ' ('..MACRO..')' end;
 		mount        = function(id) return C_MountJournal.GetMountInfoByID(id) end;
 		summonmount  = function(id) return C_MountJournal.GetMountInfoByID(id) end;
@@ -295,42 +295,50 @@ end
 function BindingInfo:RefreshCollections()
 	self.Collections = self.Collections and wipe(self.Collections) or {};
 
-	-- Spells
-	do  local spellBook, flyout, flyoutName = {}, {}
-		for tab=1, GetNumSpellTabs() do
-			local tabName, _, offset, slots, _, offspecID = GetSpellTabInfo(tab)
-			-- NOTE: this means it's an active spell tab, lmao
-			if (offspecID == 0) then
+	local BOOKTYPE_PET     = BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
+	local BOOKTYPE_SPELL   = BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
+	local SKILLTYPE_PET    = Enum.SpellBookItemType and Enum.SpellBookItemType.Pet    or 'PETACTION';
+	local SKILLTYPE_SPELL  = Enum.SpellBookItemType and Enum.SpellBookItemType.Spell  or 'SPELL';
+	local SKILLTYPE_FLYOUT = Enum.SpellBookItemType and Enum.SpellBookItemType.Flyout or 'FLYOUT';
 
+	-- Spells
+	do  local spellBook, flyout, flyoutName = {}, {};
+
+		for tab=1, CPAPI.GetNumSpellTabs() do
+			local spellTabInfo = CPAPI.GetSpellTabInfo(tab)
+			-- NOTE: this means it's an active spell tab, lmao
+			if ((spellTabInfo.offSpecID == 0 or not spellTabInfo.offSpecID) and not spellTabInfo.shouldHide) then
 				local spells = {};
 				spellBook[#spellBook + 1] = spells;
 
+				local slots, offset = spellTabInfo.numSpellBookItems, spellTabInfo.itemIndexOffset;
 				for i = (offset+1), (slots+offset) do
-					if not IsPassiveSpell(i, BOOKTYPE_SPELL) then
-						local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_SPELL)
-						if (skillType == 'SPELL') then
+					local skillType, typeID = CPAPI.GetSpellBookItemType(i, BOOKTYPE_SPELL)
+					if ( skillType == SKILLTYPE_FLYOUT or not CPAPI.IsPassiveSpell(i, BOOKTYPE_SPELL) ) then
+
+						if (skillType == SKILLTYPE_SPELL) then
 							spells[#spells + 1] = i;
-						elseif (skillType == 'FLYOUT') then
+						elseif (skillType == SKILLTYPE_FLYOUT) then
 							spells[#spells + 1] = i;
 
 							local name, _, numFlyoutSlots = GetFlyoutInfo(typeID)
 							flyoutName = flyoutName and ('%s / %s'):format(flyoutName, name) or name;
-							for f=1, numFlyoutSlots do
+							for f = 1, numFlyoutSlots do
 								flyout[#flyout+1] = GetFlyoutSlotInfo(typeID, f);
 							end
 						end
 					end
 				end
-				spells.tabName = tabName;
+				spells.tabName = spellTabInfo.name;
 			end
 		end
 
 		-- Pet spells
-		local pet, numPetSpells, petToken = {}, HasPetSpells()
+		local pet, numPetSpells = {}, CPAPI.HasPetSpells()
 		if numPetSpells then
 			for i=1, numPetSpells do
-				local skillType, typeID = GetSpellBookItemInfo(i, BOOKTYPE_PET)
-				if (skillType == 'PETACTION') then
+				local skillType = CPAPI.GetSpellBookItemType(i, BOOKTYPE_PET)
+				if (skillType == SKILLTYPE_PET) then
 					pet[#pet + 1] = i;
 				end
 			end
@@ -343,9 +351,9 @@ function BindingInfo:RefreshCollections()
 			self:AddCollection(spells, {
 				name    = name;
 				match   = C_ActionBar.FindSpellActionButtons;
-				pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
+				pickup  = function(id) CPAPI.PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
 				tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
-				texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
+				texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
 			})
 		end
 
@@ -353,9 +361,9 @@ function BindingInfo:RefreshCollections()
 			self:AddCollection(flyout, {
 				name    = flyoutName;
 				match   = C_ActionBar.FindSpellActionButtons;
-				pickup  = PickupSpell;
+				pickup  = CPAPI.PickupSpell;
 				tooltip = GameTooltip.SetSpellByID;
-				texture = GetSpellTexture;
+				texture = CPAPI.GetSpellTexture;
 			})
 		end
 
@@ -363,9 +371,9 @@ function BindingInfo:RefreshCollections()
 			self:AddCollection(pet, {
 				name    = PET;
 				match   = C_ActionBar.FindPetActionButtons;
-				pickup  = function(id) PickupSpellBookItem(id, BOOKTYPE_PET) end;
+				pickup  = function(id) CPAPI.PickupSpellBookItem(id, BOOKTYPE_PET) end;
 				tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_PET) end;
-				texture = function(id) return GetSpellBookItemTexture(id, BOOKTYPE_PET) end;
+				texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_PET) end;
 			})
 		end
 	end
@@ -375,7 +383,7 @@ function BindingInfo:RefreshCollections()
 		for bag=0, NUM_BAG_SLOTS do
 			for slot=1, CPAPI.GetContainerNumSlots(bag) do
 				local itemID = CPAPI.GetContainerItemInfo(bag, slot).itemID;
-				if itemID and IsUsableItem(itemID) and not omit[itemID] then
+				if itemID and CPAPI.IsUsableItem(itemID) and not omit[itemID] then
 					items[#items + 1] = {bag, slot}
 					omit[itemID] = true;
 				end
@@ -422,7 +430,7 @@ function BindingInfo:RefreshCollections()
 
 			self:AddCollection(mounts, {
 				name    = MOUNTS;
-				pickup  = function(id) return PickupSpell(getMountSpellID(id)) end;
+				pickup  = function(id) return CPAPI.PickupSpell(getMountSpellID(id)) end;
 				tooltip = function(self, id) GameTooltip.SetSpellByID(self, getMountSpellID(id)) end;
 				texture = function(id) return (select(4, GetCompanionInfo('MOUNT', id))) end;
 			})

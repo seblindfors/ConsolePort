@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- Convenience UI modifications and hacks
 ---------------------------------------------------------------
-local name, db, L = ...; L = db.Locale;
+local _, db, L = ...; L = db.Locale;
 
 -- Remove the need to type 'DELETE' when removing rare or better quality items
 do  local DELETE_ITEM = CopyTable(StaticPopupDialogs.DELETE_ITEM);
@@ -60,7 +60,7 @@ end
 -- Use color picker frame with sticks
 if ColorPickerFrame then
 	local OkayButton   = ColorPickerOkayButton or ColorPickerFrame.Footer.OkayButton;
-	local CancelButton = ColorPickerCancelButton or ColorPickerFrame.Footer.CancelButton; 
+	local CancelButton = ColorPickerCancelButton or ColorPickerFrame.Footer.CancelButton;
 
 	local controls = {
 		PAD1 = OkayButton;
@@ -137,6 +137,7 @@ if ColorPickerFrame then
 		end
 	end)
 	ColorPickerFrame:HookScript('OnShow', function(self)
+		db.Radial:ToggleFocusFrame(self, true)
 		oldNode = ConsolePort:GetCursorNode()
 		ConsolePort:SetCursorNodeIfActive(OkayButton, true)
 
@@ -151,6 +152,7 @@ if ColorPickerFrame then
 		end
 	end)
 	ColorPickerFrame:HookScript('OnHide', function(self)
+		db.Radial:ToggleFocusFrame(self, false)
 		if oldNode then
 			ConsolePort:SetCursorNode(oldNode)
 			oldNode = nil;
@@ -165,14 +167,14 @@ end
 local OnDemandModules, TryLoadModule = {
 	ConsolePort_Keyboard = 'keyboardEnable';
 	ConsolePort_Cursor   = 'UIenableCursor';
-}; do local EnableAddOn = EnableAddOn;
-	
+}; do local RawEnableAddOn = C_AddOns.EnableAddOn;
+
 	function TryLoadModule(predicate, module)
-		if not db(predicate) or IsAddOnLoaded(module) then
+		if not db(predicate) or C_AddOns.IsAddOnLoaded(module) then
 			return
 		end
-		EnableAddOn(module)
-		local loaded, reason = LoadAddOn(module)
+		RawEnableAddOn(module)
+		local loaded, reason = C_AddOns.LoadAddOn(module)
 		if not loaded then
 			CPAPI.Log('Failed to load %s. Reason: %s\nPlease check your installation.', (module:gsub('_', ' ')), _G['ADDON_'..reason])
 		end
@@ -180,7 +182,7 @@ local OnDemandModules, TryLoadModule = {
 
 	-- Automatically load modules when they are enabled through the addon list
 	local function OnEnableAddOn(module)
-		local name = GetAddOnInfo(module)
+		local name = C_AddOns.GetAddOnInfo(module)
 		local var  = name and OnDemandModules[name];
 		if ( name and var ) then
 			db('Settings/'..var, true)
@@ -190,7 +192,7 @@ local OnDemandModules, TryLoadModule = {
 
 	-- Automatically disable predicate variable when a module is disabled through the addon list
 	local function OnDisableAddOn(module)
-		local name = GetAddOnInfo(module)
+		local name = C_AddOns.GetAddOnInfo(module)
 		local var  = name and OnDemandModules[name];
 		if ( var ) then
 			db('Settings/'..var, false)

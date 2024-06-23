@@ -80,149 +80,6 @@ function CPFrameWithTooltipMixin:OnLeave()
 	tooltip:Hide()
 end
 
-
----------------------------------------------------------------
-CPMaskedButtonMixin = CreateFromMixins(CPFrameWithTooltipMixin)
----------------------------------------------------------------
-
-function CPMaskedButtonMixin:OnLoad()
-	CPFrameWithTooltipMixin.OnLoad(self)
-
-	self.CircleMask:SetPoint('TOPLEFT', self, 'TOPLEFT', self.circleMaskSizeOffset, -self.circleMaskSizeOffset)
-	self.CircleMask:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -self.circleMaskSizeOffset, self.circleMaskSizeOffset)
-
-	local hasRingSizes = self.ringWidth and self.ringHeight
-	if hasRingSizes then
-		CPAPI.SetAtlas(self.Ring, self.ringAtlas)
-		CPAPI.SetAtlas(self.Flash.Ring, self.ringAtlas)
-		CPAPI.SetAtlas(self.Flash.Ring2, self.ringAtlas)
-		self.Ring:SetSize(self.ringWidth, self.ringHeight)
-		self.Flash.Ring:SetSize(self.ringWidth, self.ringHeight)
-		self.Flash.Ring2:SetSize(self.ringWidth, self.ringHeight)
-	else
-		CPAPI.SetAtlas(self.Ring, self.ringAtlas, true)
-		CPAPI.SetAtlas(self.Flash.Ring, self.ringAtlas, true)
-		CPAPI.SetAtlas(self.Flash.Ring2, self.ringAtlas, true)
-	end
-
-	self.NormalTexture:AddMaskTexture(self.CircleMask)
-	self.PushedTexture:AddMaskTexture(self.CircleMask)
-	self.DisabledOverlay:AddMaskTexture(self.CircleMask)
-	self.DisabledOverlay:SetAlpha(self.disabledOverlayAlpha)
-	self.CheckedTexture:SetSize(self.checkedTextureSize, self.checkedTextureSize)
-	self.Flash.Portrait:AddMaskTexture(self.CircleMask)
-
-	if self.flipTextures then
-		self.NormalTexture:SetTexCoord(1, 0, 0, 1)
-		self.PushedTexture:SetTexCoord(1, 0, 0, 1)
-		self.Flash.Portrait:SetTexCoord(1, 0, 0, 1)
-	end
-
-	if self.BlackBG then
-		self.BlackBG:AddMaskTexture(self.CircleMask)
-	end
-end
-
-function CPMaskedButtonMixin:SetIconAtlas(atlas)
-	self:SetNormalAtlas(atlas)
-	self:SetPushedAtlas(atlas)
-	self.Flash.Portrait:SetAtlas(atlas)
-end
-
-function CPMaskedButtonMixin:SetIcon(texture)
-	local default = not texture and [[Interface\AddOns\ConsolePort\Textures\Button\EmptyIcon]]
-	self:SetNormalTexture(texture or default)
-	self:SetPushedTexture(texture or default)
-	self.Flash.Portrait:SetTexture(texture or default)
-end
-
-function CPMaskedButtonMixin:StartFlash()
-	self.Flash:Show()
-	self.Flash.Anim:Play()
-end
-
-function CPMaskedButtonMixin:StopFlash()
-	self.Flash.Anim:Stop()
-	self.Flash:Hide()
-end
-
-function CPMaskedButtonMixin:SetEnabledState(enabled)
-	self:SetEnabled(enabled)
-
-	local normalTex = self:GetNormalTexture()
-	if normalTex then
-		normalTex:SetDesaturated(not enabled)
-	end
-
-	self.Ring:SetAtlas(self.ringAtlas..(enabled and '' or 'disabled'))
-
-	self.DisabledOverlay:SetShown(not enabled)
-end
-
-function CPMaskedButtonMixin:OnMouseDown(button)
-	if self:IsEnabled() then
-		self.CheckedTexture:SetPoint('CENTER', self, 'CENTER', 0, -1)
-		self.CircleMask:SetPoint('TOPLEFT', self.PushedTexture, 'TOPLEFT', self.circleMaskSizeOffset, -self.circleMaskSizeOffset)
-		self.CircleMask:SetPoint('BOTTOMRIGHT', self.PushedTexture, 'BOTTOMRIGHT', -self.circleMaskSizeOffset, self.circleMaskSizeOffset)
-		self.Ring:SetPoint('CENTER', self, 'CENTER', 0, -1)
-		self.Flash:SetPoint('CENTER', self, 'CENTER', 0, -1)
-	end
-end
-
-function CPMaskedButtonMixin:OnMouseUp(button)
-	if button == 'RightButton' and self.expandedTooltipFrame then
-		tooltipsExpanded = not tooltipsExpanded
-		if GetMouseFocus() == self then
-			self:OnEnter()
-		end
-	end
-
-	self.CheckedTexture:SetPoint('CENTER')
-	self.CircleMask:SetPoint('TOPLEFT', self.NormalTexture, 'TOPLEFT', self.circleMaskSizeOffset, -self.circleMaskSizeOffset)
-	self.CircleMask:SetPoint('BOTTOMRIGHT', self.NormalTexture, 'BOTTOMRIGHT', -self.circleMaskSizeOffset, self.circleMaskSizeOffset)
-	self.Ring:SetPoint('CENTER')
-	self.Flash:SetPoint('CENTER')
-end
-
-function CPMaskedButtonMixin:UpdateHighlightTexture()
-	if self:GetChecked() then
-		CPAPI.SetAtlas(self.HighlightTexture, 'ring-select')
-		self.HighlightTexture:SetPoint('TOPLEFT', self.CheckedTexture)
-		self.HighlightTexture:SetPoint('BOTTOMRIGHT', self.CheckedTexture)
-	else
-		CPAPI.SetAtlas(self.HighlightTexture, self.ringAtlas)
-		self.HighlightTexture:SetPoint('TOPLEFT', self.Ring)
-		self.HighlightTexture:SetPoint('BOTTOMRIGHT', self.Ring)
-	end
-end
-
-
----------------------------------------------------------------
-CPButtonMixin = CreateFromMixins(CPMaskedButtonMixin)
----------------------------------------------------------------
-
-function CPButtonMixin:OnClick()
-	PlaySound(SOUNDKIT.GS_CHARACTER_CREATION_CLASS)
-end
-
-function CPButtonMixin:SetDescription(text)
-	self.Description:SetText(text)
-end
-
-function CPButtonMixin:SetEnabledState(enabled)
-	CPMaskedButtonMixin.SetEnabledState(self, enabled)
-	self.Description:SetFontObject(enabled and 'GameFontNormalMed3' or 'GameFontDisableMed3')
-end
-
-function CPButtonMixin:OnEnter()
-	CPFrameWithTooltipMixin.OnEnter(self)
-end
-
-function CPButtonMixin:OnLeave()
-	CPFrameWithTooltipMixin.OnLeave(self)
-end
-
-
 ---------------------------------------------------------------
 CPSmoothButtonMixin = {}
 ---------------------------------------------------------------
@@ -389,7 +246,7 @@ end
 function CPSelectionPopoutButtonMixin:HidePopout()
 	self.Popout:Hide();
 
-	if GetMouseFocus() == self then
+	if self:IsMouseMotionFocus() then
 		CPAPI.SetAtlas(self.NormalTexture, 'customize-dropdownbox-hover');
 	else
 		CPAPI.SetAtlas(self.NormalTexture, 'customize-dropdownbox');
@@ -470,10 +327,9 @@ function CPSelectionPopoutButtonMixin:UpdatePopout()
 	local maxDetailsWidth = 0;
 	for index, selectionData in ipairs(self.selections) do
 		local button = self.buttonPool:Acquire();
-		local selectionInfo = self.selections[index];
 
 		local isSelected = (index == self.selectedIndex);
-		button:SetupEntry(selectionInfo, index, isSelected, numColumns > 1, hasIneligibleChoice);
+		button:SetupEntry(selectionData, index, isSelected, numColumns > 1, hasIneligibleChoice);
 		maxDetailsWidth = math.max(maxDetailsWidth, button.SelectionDetails:GetWidth());
 
 		table.insert(buttons, button);
@@ -880,4 +736,151 @@ end
 
 function CPAnimatedLootHeaderMixin:SetText(...)
 	self.Text:SetText(...)
+end
+
+---------------------------------------------------------------
+CPFlashableFiligreeMixin = {
+---------------------------------------------------------------
+	Durations = {
+		ActivationExpandFxScale     = 1.4;
+		ActivationExpandFxAlpha     = 1.4;
+		ActivationFx1Alpha          = 1.2;
+		ActivationFx2Alpha          = 1.2;
+		ActivationFx3Alpha          = 0.3;
+		ActivationFx4Alpha          = 0.5;
+		ActivationFx3Scale          = 0.3;
+		ActivationFx4Scale          = 0.5;
+	};
+	Ratios = {
+		Container                   = { x =  806 / 230, y = 300 / 230 };
+		ActivationExpandFx          = { x =  160 / 230, y = 160 / 230 };
+		ActivationExpandFxMask      = { x = 1209 / 230, y = 558 / 230 };
+		ActivationExpandFxScale     = { x =   10 / 230, y =  10 / 230 };
+		ActivationExpandFxMaskPoint = { x =  130 / 230, y = -60 / 230 };
+	};
+};
+
+function CPFlashableFiligreeMixin:OnLoad()
+    local r, g, b = CPAPI.GetClassColor()
+    CPAPI.SetAtlas(self.ActivationExpandFx, 'animations-gridburst', false)
+	self:SetVertexColor(r, g, b, 1)
+	self:SetClassEmblem()
+end
+
+function CPFlashableFiligreeMixin:Stop(...)
+	self.filigreeAnim:Stop(...)
+end
+
+function CPFlashableFiligreeMixin:Play(...)
+    self.filigreeAnim:Play(...)
+end
+
+function CPFlashableFiligreeMixin:SetLooping(loopState)
+	local anim = self.filigreeAnim;
+	if ( loopState == 'NONE' and anim:GetLoopState() == 'REVERSE' ) then
+		return anim:SetScript('OnLoop', function(group)
+			group:SetLooping(loopState)
+			group:SetScript('OnLoop', nil)
+		end)
+	end
+	anim:SetLooping(loopState)
+end
+
+function CPFlashableFiligreeMixin:SetVertexColor(r, g, b, a)
+    self.ActivationExpandFx:SetVertexColor(r, g, b, a)
+	for i, fxTexture in ipairs(self.fxTextures) do
+		fxTexture:SetVertexColor(r, g, b, a)
+	end
+end
+
+function CPFlashableFiligreeMixin:SetBackgroundColor(r, g, b, a)
+    self.ActivationExpandFx:SetVertexColor(r, g, b, a)
+end
+
+function CPFlashableFiligreeMixin:SetTexture(...)
+	for i, fxTexture in ipairs(self.fxTextures) do
+		fxTexture:SetTexture(...)
+	end
+end
+
+function CPFlashableFiligreeMixin:SetTexCoord(...)
+	for i, fxTexture in ipairs(self.fxTextures) do
+		fxTexture:SetTexCoord(...)
+	end
+end
+
+function CPFlashableFiligreeMixin:SetAtlas(...)
+	for i, fxTexture in ipairs(self.fxTextures) do
+		fxTexture:SetAtlas(...)
+	end
+end
+
+function CPFlashableFiligreeMixin:SetScale(...)
+	for i, fxTexture in ipairs(self.fxTextures) do
+		fxTexture:SetScale(...)
+	end
+end
+
+function CPFlashableFiligreeMixin:SetAnimationSpeedMultiplier(multiplier)
+	local group, durations = self.filigreeAnim, self.Durations;
+	for animation, duration in pairs(durations) do
+		group[animation]:SetDuration(duration * multiplier)
+	end
+end
+
+function CPFlashableFiligreeMixin:SetAllPoints(anchor)
+	self:SetSize(self:SetAnchor(anchor):GetSize())
+end
+
+function CPFlashableFiligreeMixin:SetAnchor(anchor) anchor = anchor or self:GetParent()
+	self:SetPoint('CENTER', anchor, 'CENTER')
+	return anchor;
+end
+
+function CPFlashableFiligreeMixin:SetSize(width, height) height = height or width;
+	local ratios = self.Ratios;
+	for i, fxTexture in ipairs(self.fxTextures) do
+		fxTexture:SetSize(width, height)
+	end
+	self:SetWidth(ratios.Container.x * width)
+	self:SetHeight(ratios.Container.y * height)
+	-- These should not change aspect ratio, so only use width
+	self.ActivationExpandFx:SetSize(
+		ratios.ActivationExpandFx.x * width,
+		ratios.ActivationExpandFx.y * width
+	);
+	self.ActivationExpandFxMask:SetSize(
+		ratios.ActivationExpandFxMask.x * width,
+		ratios.ActivationExpandFxMask.y * width
+	);
+	self.ActivationExpandFxMask:SetPoint('CENTER', self, 'CENTER',
+		ratios.ActivationExpandFxMaskPoint.x * width,
+		ratios.ActivationExpandFxMaskPoint.y * width
+	);
+	self.filigreeAnim.ActivationExpandFxScale:SetScaleTo(
+		ratios.ActivationExpandFxScale.x * width,
+		ratios.ActivationExpandFxScale.y * width
+	);
+end
+
+function CPFlashableFiligreeMixin:SetClassEmblem(classFile)
+    local classAtlas = ('animations-class-%s'):format((classFile or CPAPI.GetClassFile()):lower())
+    CPAPI.SetAtlas(self.ActivationExpandFxMask, 'animations-mask-filigree-activate', false,
+		false, false, 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
+    CPAPI.SetAtlas(self.ActivationFx1, classAtlas, false)
+    CPAPI.SetAtlas(self.ActivationFx2, classAtlas, false)
+    CPAPI.SetAtlas(self.ActivationFx3, classAtlas, false)
+    CPAPI.SetAtlas(self.ActivationFx4, classAtlas, false)
+end
+
+---------------------------------------------------------------
+CPSwatchHighlightMixin = {};
+---------------------------------------------------------------
+
+function CPSwatchHighlightMixin:SetTexture(texture)
+	self.SwatchMask:SetTexture(texture)
+end
+
+function CPSwatchHighlightMixin:SetTexCoord(...)
+	self.SwatchMask:SetTexCoord(...)
 end

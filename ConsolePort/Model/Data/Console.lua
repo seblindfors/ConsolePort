@@ -3,42 +3,43 @@ local MOTION_SICKNESS_CHARACTER_CENTERED = MOTION_SICKNESS_CHARACTER_CENTERED or
 local MOTION_SICKNESS_REDUCE_CAMERA_MOTION = MOTION_SICKNESS_REDUCE_CAMERA_MOTION or 'Reduce Camera Motion';
 local SOFT_TARGET_DEVICE_OPTS = {[0] = OFF, [1] = 'Gamepad', [2] = 'KBM', [3] = ALWAYS};
 local SOFT_TARGET_ARC_ALLOWANCE = {[0] = 'Front', [1] = 'Cone', [2] = 'Around'};
+local BLUE = GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
 local unpack, _, db = unpack, ...; local Console = {}; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 -- Blizzard console variables
 ------------------------------------------------------------------------------------------------------------
-db:Register('Console', setmetatable({
+db:Register('Console', CPAPI.Proxy({
 	--------------------------------------------------------------------------------------------------------
 	Emulation = {
 	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'GamePadEmulateShift';
 			type = Button;
 			name = 'Emulate Shift';
-			desc = 'Button that emulates the Shift key. Hold this button to swap your binding set.';
+			desc = 'Button that emulates the '..BLUE'Shift'..' key. Hold this button to swap your binding set.';
 			note = 'Recommended as first choice modifier.';
 		};
 		{	cvar = 'GamePadEmulateCtrl';
 			type = Button;
 			name = 'Emulate Ctrl';
-			desc = 'Button that emulates the Ctrl key. Hold this button to swap your binding set.';
+			desc = 'Button that emulates the '..BLUE'Ctrl'..' key. Hold this button to swap your binding set.';
 			note = 'Recommended as second choice modifier.';
 		};
 		{ 	cvar = 'GamePadEmulateAlt';
 			type = Button;
 			name = 'Emulate Alt';
-			desc = 'Button that emulates the Alt key.';
+			desc = 'Button that emulates the '..BLUE'Alt'..' key.';
 			note = 'Only recommended for super users.';
 		};
 		{	cvar = 'GamePadCursorLeftClick';
 			type = Button;
 			name = KEY_BUTTON1;
-			desc = 'Button that emulates Left Click while controlling the mouse cursor.';
+			desc = 'Button that emulates '..BLUE'Left Click'..' while controlling the mouse cursor.';
 			note = 'Frees your mouse cursor when used, if the cursor is currently center-fixed or hidden.';
 		};
 		{	cvar = 'GamePadCursorRightClick';
 			type = Button;
 			name = KEY_BUTTON2;
-			desc = 'Button that emulates Right Click while controlling the mouse cursor.';
+			desc = 'Button that emulates '..BLUE'Right Click'..' while controlling the mouse cursor.';
 			note = 'Used for interacting with the world, at a center-fixed position.';
 		};
 		{	cvar = 'GamePadEmulateTapWindowMs';
@@ -358,9 +359,7 @@ db:Register('Console', setmetatable({
 			desc = 'Taps for cursor clicks are right clicks instead of left.';
 		};
 	};
-}, {
-	__index = Console;
-}))
+}, Console))
 
 function Console:GetMetadata(key)
 	for set, cvars in pairs(self) do

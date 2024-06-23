@@ -4,8 +4,9 @@ local PanelMixin, Widgets = {}, env.Widgets;
 ---------------------------------------------------------------
 -- Addon settings
 ---------------------------------------------------------------
-local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET, OPTION_HEIGHT = 284, 700, 8, 40;
+local SHORTCUT_WIDTH, GENERAL_WIDTH, FIXED_OFFSET, DATA_POINT = 284, 700, 8, 1;
 local Setting = CreateFromMixins(CPIndexButtonMixin, env.ScaleToContentMixin)
+env.SettingMixin = Setting;
 
 function Setting:OnLoad()
 	self:SetWidth(GENERAL_WIDTH - 32)
@@ -14,23 +15,84 @@ function Setting:OnLoad()
 	self:SetScript('OnLeave', CPIndexButtonMixin.OnIndexButtonLeave)
 end
 
-function Setting:Construct(name, varID, field, newObj, callbackID)
+function Setting:SetDependencies(deps)
+	self.deps = CreateFlags(0);
+	local flags, callbacks = {}, {};
+	for dep, value in db.table.spairs(deps) do
+		tinsert(flags, dep)
+		callbacks[dep] = self:RegisterDependency(dep, value)
+	end
+	self.flags = FlagsUtil.MakeFlags(unpack(flags))
+	for dep, callback in pairs(callbacks) do
+		callback(nil, self.registry(dep))
+	end
+end
+
+function Setting:RegisterCallback(callbackID, callback, ...)
+	self.callbacks = self.callbacks or {};
+	self.registry:RegisterCallback(callbackID, callback, self, ...)
+	self.callbacks[callbackID] = callback;
+	return callback;
+end
+
+function Setting:Construct(name, varID, field, newObj, registry, callbackID, owner)
+	self:Hide()
 	if newObj then
+		self.registry = registry;
 		self:SetText(L(name))
-		local constructor = Widgets[varID] or Widgets[field[1]:GetType()];
+		local constructor = Widgets[varID] or Widgets[field[DATA_POINT]:GetType()];
 		if constructor then
-			callbackID = callbackID or 'Settings/'..varID;
-			constructor(self, varID, field, field[1], L(field.desc), L(field.note))
-			self.controller:SetCallback(function(...) db(callbackID, ...) end)
-			db:RegisterCallback(callbackID, self.OnValueChanged, self)
+			constructor(self, varID, field, field[DATA_POINT], L(field.desc), L(field.note), owner)
+
+			callbackID = callbackID or ('Settings/'..varID);
+			local callback = function(...) registry(callbackID, ...) end;
+			self:SetCallback(callback)
+			self:RegisterCallback(callbackID, self.OnValueChanged)
+
+			if (field.deps) then
+				self:SetDependencies(field.deps)
+			end
 		end
 	end
-	self:Hide()
 	self:Show()
 end
 
+function Setting:Reset()
+	if self.SetCallback then self:SetCallback(nil) end;
+	if self.registry and self.callbacks then
+		for callbackID in pairs(self.callbacks) do
+			self.registry:UnregisterCallback(callbackID, self)
+		end
+	end
+	self.registry, self.callbacks = nil, nil;
+end
+
 function Setting:Get()
-	return db(self.variableID)
+	return self.registry(self.variableID)
+end
+
+do -- Dependencies
+	local Comparator = CPAPI.Proxy({
+		['function'] = function (lhs, rhs) return not lhs(rhs) end;
+	}, function() return function(lhs, rhs) return lhs ~= rhs end end)
+
+	local TriggerDependencyChanged = CPAPI.Proxy({}, function(self, registry)
+		return rawset(self, registry, CPAPI.Debounce(
+			registry.TriggerEvent, registry, 'OnDependencyChanged'
+		))[registry];
+	end)
+
+	local function OnDependencyChanged(self, dep, depValue, _, value)
+		self.deps:SetOrClear(self.flags[dep], Comparator[type(depValue)](depValue, value))
+		self.metaData.hide = self.deps:IsAnySet();
+		TriggerDependencyChanged[self.registry](dep)
+	end
+
+	function Setting:RegisterDependency(dep, value)
+		local callbackID = dep:match('/') and dep or ('Settings/'..dep);
+		local callback = GenerateClosure(OnDependencyChanged, self, dep, value)
+		return self:RegisterCallback(callbackID, callback)
+	end
 end
 
 ---------------------------------------------------------------
@@ -170,7 +232,7 @@ function Options:DrawOptions()
 				widget:SetDrawOutline(true)
 				widget:OnLoad()
 			end
-			widget:Construct(name, data.varID, data.field, newObj)
+			widget:Construct(name, data.varID, data.field, newObj, db)
 			widget:SetPoint('TOP', prev, 'BOTTOM', 0, -FIXED_OFFSET)
 			prev = widget;
 		end
@@ -195,6 +257,7 @@ function Options:OnLoad()
 
 	db:RegisterCallback('Settings/showAdvancedSettings', self.DrawOptions, self)
 	db:RegisterCallback('OnToggleCharacterSettings', self.DrawOptions, self)
+	db:RegisterCallback('OnDependencyChanged', self.DrawOptions, self)
 	db:RegisterCallback('OnVariablesChanged', self.DrawOptions, self)
 end
 
@@ -273,7 +336,7 @@ function PanelMixin:OnFirstShow()
 		Setting.OnLoad(var)
 		Shortcut.OnLoad(var)
 		var:SetWidth(SHORTCUT_WIDTH - FIXED_OFFSET * 2)
-		var:Construct(field.name, var.meta, field, true, var.call)
+		var:Construct(field.name, var.meta, field, true, db, var.call)
 	end
 
 	local shortcuts = self:CreateScrollableColumn('Shortcuts', {

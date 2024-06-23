@@ -95,11 +95,12 @@ function DeviceSelect:Construct()
 	Widgets.Select(self, 'DeviceID', nil, db.Data.Select(1, 1):SetRawOptions(options), L'Device Information')
 	self.Popout:ClearAllPoints()
 	self.Popout:SetPoint('TOP', self, 'BOTTOM', 0, 0)
-	self.controller:SetCallback(function(value)
+	self:SetCallback(function(value)
 		self:OnValueChanged(value)
 		self:Update()
 	end)
 	self:Update()
+	self.disableTooltipHints = true;
 end
 
 function DeviceSelect:GetRawOptions()

@@ -3,10 +3,9 @@
 
 	<Script file="PieMenu.lua"/>
 
-	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin">
-		<Size x="500" y="500"/>
+	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin" frameStrata="HIGH">
 		<Layers>
-			<Layer level="BACKGROUND">
+			<Layer level="BORDER">
 				<Texture parentKey="Arrow" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Arrow.blp" alpha="0">
 					<Size x="50" y="400"/>
 					<Anchors>
@@ -15,7 +14,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
-				<Texture parentKey="BG" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_BG.blp" alpha="0">
+				<Texture parentKey="BG" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Band.blp" alpha="0">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="78" y="-78"/>
 						<Anchor point="BOTTOMRIGHT" x="-78" y="78"/>
@@ -26,8 +25,74 @@
 		<Scripts>
 			<OnLoad method="OnPreLoad" intrinsicOrder="precall"/>
 			<OnHide method="OnPostHide" intrinsicOrder="postcall"/>
+			<OnShow method="OnPostShow" intrinsicOrder="postcall"/>
 			<OnSizeChanged method="OnPostSizeChanged" intrinsicOrder="postcall"/>
 		</Scripts>
 	</Button>
-	
+
+	<Frame name="PieSlice" intrinsic="true" mixin="CPPieSliceMixin">
+		<Size x="512" y="512"/>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="-7">
+				<Texture parentKey="Slice" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Background.png">
+					<Size x="500" y="500"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="RectMask1" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Rect" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Slice"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<MaskTexture parentKey="RectMask2" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Rect" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+					<Size x="512" y="512"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Slice"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="-6">
+				<Line parentKey="Line1" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" hidden="true"/>
+				<Line parentKey="Line2" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2" hidden="true"/>
+				<Texture parentKey="Separator1" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Separator_Inactive.png" hidden="true">
+					<Size x="500" y="500"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Separator2" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Separator_Inactive.png" hidden="true">
+					<Size x="500" y="500"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Text" inherits="GameFontHighlightOutline" hidden="true"/>
+			</Layer>
+		</Layers>
+		<Animations>
+			<AnimationGroup parentKey="BgAnim" looping="REPEAT">
+				<Rotation childKey="Slice" duration="60" order="1" degrees="-360"/>
+				<Scripts>
+					<OnLoad>
+						self:Play();
+					</OnLoad>
+				</Scripts>
+			</AnimationGroup>
+		</Animations>
+		<Scripts>
+			<OnLoad method="OnPreLoad" intrinsicOrder="precall"/>
+		</Scripts>
+	</Frame>
+
 </Ui>

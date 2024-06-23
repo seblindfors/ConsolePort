@@ -11,7 +11,7 @@ local unpack, _, db = unpack, ...; _ = CPAPI.Define; db.Data();
 ------------------------------------------------------------------------------------------------------------
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
-db:Register('Variables', {
+db:Register('Variables', CPAPI.Callable({
 	showAdvancedSettings = {Bool(false);
 		name = 'All Settings';
 		desc = 'Display all available settings.';
@@ -33,27 +33,32 @@ db:Register('Variables', {
 	crosshairSizeX = _{Number(24, 1, true);
 		name = 'Width';
 		desc = 'Width of the crosshair, in scaled pixel units.';
+		deps = { crosshairEnable = true };
 		advd = true;
 	};
 	crosshairSizeY = _{Number(24, 1, true);
 		name = 'Height';
 		desc = 'Height of the crosshair, in scaled pixel units.';
+		deps = { crosshairEnable = true };
 		advd = true;
 	};
 	crosshairCenter = _{Number(0.2, 0.05, true);
 		name = 'Center Gap';
 		desc = 'Center gap, as fraction of overall crosshair size.';
+		deps = { crosshairEnable = true };
 		advd = true;
 	};
 	crosshairThickness = _{Number(2, 0.025, true);
 		name = 'Thickness';
 		desc = 'Thickness in scaled pixel units.';
 		note = 'Value below two may appear interlaced or not at all.';
+		deps = { crosshairEnable = true };
 		advd = true;
 	};
 	crosshairColor = _{Color('ff00fcff');
 		name = 'Color';
 		desc = 'Color of the crosshair.';
+		deps = { crosshairEnable = true };
 	};
 	--------------------------------------------------------------------------------------------------------
 	_'Movement';
@@ -166,16 +171,6 @@ db:Register('Variables', {
 		name = 'Focus Timeout';
 		desc = 'Time to clear focus after intercepting stick input, in seconds.';
 	};
-	radialScale = _{Number(1, 0.025, true);
-		name = 'Ring Scale';
-		desc = 'Scale of all radial menus, relative to UI scale.';
-		advd = true;
-	};
-	radialPreferredSize = _{Number(500, 25, true);
-		name = 'Ring Size';
-		desc = 'Preferred size of radial menus, in pixels.';
-		advd = true;
-	};
 	radialActionDeadzone = _{Range(0.5, 0.05, 0, 1);
 		name = 'Deadzone';
 		desc = 'Deadzone for simple point-to-select rings.';
@@ -194,6 +189,41 @@ db:Register('Variables', {
 	radialRemoveButton = _{Button('PADRSHOULDER');
 		name = 'Remove Button';
 		desc = 'Button used to remove a selected item from an editable ring.';
+	};
+	radialScale = _{Number(1, 0.025, true);
+		name = 'Ring Scale';
+		desc = 'Scale of all radial menus, relative to UI scale.';
+		advd = true;
+	};
+	radialPreferredSize = _{Number(400, 25, true);
+		name = 'Ring Size';
+		desc = 'Preferred size of radial menus, in pixels.';
+		advd = true;
+	};
+	radialNormalColor = _{Color(CPAPI.GetMutedClassColor(0.6, true));
+		name = 'Normal Color';
+		desc = 'Normal background color of pie slices.';
+		advd = true;
+	};
+	radialActiveColor = _{Color(GREEN_FONT_COLOR);
+		name = 'Active Color';
+		desc = 'Color of the active slice.';
+		advd = true;
+	};
+	radialHiliteColor = _{Color(NORMAL_FONT_COLOR);
+		name = 'Highlight Color';
+		desc = 'Color of a partially selected slice.';
+		advd = true;
+	};
+	radialStickyColor = _{Color(ORANGE_FONT_COLOR);
+		name = 'Sticky Color';
+		desc = 'Color of the sticky selection slice.';
+		advd = true;
+	};
+	radialAccentColor = _{Color(CPAPI.GetClassColorObject());
+		name = 'Accent Color';
+		desc = 'Color accent of radial menu items.';
+		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
 	_'Radial Keyboard';
@@ -222,21 +252,25 @@ db:Register('Variables', {
 	raidCursorUp = _{Button('PADDUP', true);
 		name = 'Move Up';
 		desc = 'Button to move the cursor up.';
+		deps = { raidCursorModifier = '<none>' };
 		advd = true;
 	};
 	raidCursorDown = _{Button('PADDDOWN', true);
 		name = 'Move Down';
 		desc = 'Button to move the cursor down.';
+		deps = { raidCursorModifier = '<none>' };
 		advd = true;
 	};
 	raidCursorLeft = _{Button('PADDLEFT', true);
 		name = 'Move Left';
 		desc = 'Button to move the cursor left.';
+		deps = { raidCursorModifier = '<none>' };
 		advd = true;
 	};
 	raidCursorRight = _{Button('PADDRIGHT', true);
 		name = 'Move Right';
 		desc = 'Button to move the cursor right.';
+		deps = { raidCursorModifier = '<none>' };
 		advd = true;
 	};
 	raidCursorFilter = _{String(nil);
@@ -341,21 +375,25 @@ db:Register('Variables', {
 		name = 'Combo Button 1';
 		desc = 'Button to use for combo hotkey 1.';
 		note = 'Requires '..BLUE'L[Button Set]'..' > '..BLUE'L[Custom]'..' to control each button individually.';
+		deps = { unitHotkeySet = 'Custom' };
 	};
 	unitHotkeyButton2 = _{Button('PAD2');
 		name = 'Combo Button 2';
 		desc = 'Button to use for combo hotkey 2.';
 		note = 'Requires '..BLUE'L[Button Set]'..' > '..BLUE'L[Custom]'..' to control each button individually.';
+		deps = { unitHotkeySet = 'Custom' };
 	};
 	unitHotkeyButton3 = _{Button('PAD3');
 		name = 'Combo Button 3';
 		desc = 'Button to use for combo hotkey 3.';
 		note = 'Requires '..BLUE'L[Button Set]'..' > '..BLUE'L[Custom]'..' to control each button individually.';
+		deps = { unitHotkeySet = 'Custom' };
 	};
 	unitHotkeyButton4 = _{Button('PAD4');
 		name = 'Combo Button 4';
 		desc = 'Button to use for combo hotkey 4.';
 		note = 'Requires '..BLUE'L[Button Set]'..' > '..BLUE'L[Custom]'..' to control each button individually.';
+		deps = { unitHotkeySet = 'Custom' };
 	};
 	--------------------------------------------------------------------------------------------------------
 	_( ACCESSIBILITY_LABEL ); -- Accessibility
@@ -408,12 +446,6 @@ db:Register('Variables', {
 	bindingShowExtraBars = _{Bool(false);
 		name = 'Show All Action Bars';
 		desc = 'Show bonus bar configuration for characters without stances.';
-		advd = true;
-	};
-	bindingDisableQuickAssign = _{Bool(false);
-		name = 'Disable Quick Assign';
-		desc = 'Disables quick assign for unbound combinations when using the gamepad action bar.';
-		note = 'Requires reload.';
 		advd = true;
 	};
 	bindingShowSpellMenuGrid = _{Bool(false);
@@ -478,4 +510,5 @@ db:Register('Variables', {
 		desc = 'Override class theme for interface styling.';
 		advd = true;
 	};
-})  --------------------------------------------------------------------------------------------------------
+},  --------------------------------------------------------------------------------------------------------
+function(self, key) return (rawget(self, key) or {})[1] end))

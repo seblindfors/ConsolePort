@@ -13,9 +13,16 @@ db:Register('Radial', Radial):Execute([[
 	HEADERS = newtable() -- maintain references to headers
 	STIX    = newtable() -- track config name to stick ID
 	BTNS    = newtable() -- track config ID to bind name
-	MODS    = newtable() -- track modifiers  
+	MODS    = newtable() -- track modifiers
 	----------------------------------------------------------
 ]])
+
+---------------------------------------------------------------
+-- Consts
+---------------------------------------------------------------
+local DEFAULT_ANGLE_OFFSET = 90;
+local DEFAULT_ITEM_SIZE    = 64;
+local DEFAULT_ITEM_PADDING = 32;
 
 ---------------------------------------------------------------
 -- Dispatcher
@@ -25,7 +32,7 @@ db:Register('Radial', Radial):Execute([[
 
 function Dispatcher:OnGamePadStick(stick, x, y, len)
 	local this = self.focusFrame
-	if this and this.interrupt[stick] then
+	if this and this.interrupt and this.interrupt[stick] then
 		if this.intercept[stick] and not self.disabled then
 			this:OnInput(x, y, len, stick)
 		end
@@ -35,12 +42,17 @@ end
 function Dispatcher:SetFocus(frame)
 	self.focusFrame = frame;
 	self:EnableGamePadStick(true)
+	if self.focusTimer then
+		self.focusTimer:Cancel()
+		self.focusTimer = nil;
+		self.disabled = nil;
+	end
 end
 
 function Dispatcher:ClearFocus(frame)
 	if self.focusFrame ~= frame then return end;
-	self.disabled = true
-	C_Timer.After(db('radialClearFocusTime'), self.Disable)
+	self.disabled = true;
+	self.focusTimer = C_Timer.NewTimer(db('radialClearFocusTime'), self.Disable)
 end
 
 function Dispatcher:ClearFocusInstantly(frame)
@@ -49,12 +61,13 @@ function Dispatcher:ClearFocusInstantly(frame)
 end
 
 function Dispatcher:IsDisabling()
-	return self.disabled
+	return self.disabled;
 end
 
 function Dispatcher.Disable() -- callback
 	Dispatcher.disabled = nil;
 	Dispatcher.focusFrame = nil;
+	Dispatcher.focusTimer = nil;
 	Dispatcher:EnableGamePadStick(false);
 end
 
@@ -68,12 +81,16 @@ Dispatcher:EnableGamePadStick(false)
 ---------------------------------------------------------------
 RadialMixin.Env = {
 	GetIndex = [[
-		local stickID, size = ...
+		local stickID, size = ...;
 		return radial::GetIndexForStickPosition(
 			stickID or self:GetAttribute('stick'),
 			size or UpdateSize and self::UpdateSize() or
 			self:GetAttribute('size')
 		);
+	]];
+	IsButtonHeld = [[
+		local id = ...;
+		return radial::IsButtonHeld(id)
 	]];
 	GetButtonsHeld = [[
 		return radial::GetButtonsHeld()
@@ -81,6 +98,22 @@ RadialMixin.Env = {
 	GetModifiersHeld = [[
 		return radial::GetModifiersHeld()
 	]];
+	GetRadius = [[
+		return math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
+	]];
+	GetStickPosition = [[
+		local id = ...;
+		return radial::GetStickPosition(stickID or self:GetAttribute('stick'))
+	]];
+	SetDynamicRadius = ([[
+		local numItems, itemSize, padding = ...;
+		local preferSize = self:GetAttribute('preferSize')
+		local minSize = radial::CalculateMinimumDiameter(numItems, itemSize or %d, padding or %d)
+		local size = math.max(preferSize, minSize)
+		self:SetWidth(size)
+		self:SetHeight(size)
+		return self::GetRadius()
+	]]):format(DEFAULT_ITEM_SIZE, DEFAULT_ITEM_PADDING);
 	SpaceEvenly = [[
 		local children = newtable(self:GetChildren())
 		local radius = math.sqrt(self:GetWidth() * self:GetHeight()) / 2
@@ -99,6 +132,20 @@ RadialMixin.Env = {
 	SetBindingsForTriggers = [[
 		local mods = newtable(self::GetModifiersHeld())
 		local btns = newtable(self::GetButtonsHeld())
+		table.sort(mods)
+		mods[#mods+1] = table.concat(mods)
+
+		for _, btn in ipairs(btns) do
+			self::SetBinding(btn)
+			for _, mod in ipairs(mods) do
+				self::SetBinding(btn, mod)
+			end
+		end
+		return #btns > 0;
+	]];
+	SetBindingsForButton = [[
+		local btns = newtable(...)
+		local mods = newtable(self::GetModifiersHeld())
 		table.sort(mods)
 		mods[#mods+1] = table.concat(mods)
 
@@ -133,7 +180,15 @@ function RadialMixin:SetDynamicSizeFunction(body)
 end
 
 function RadialMixin:GetPointForIndex(index, size, radius)
-	return 'CENTER', Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
+	return 'CENTER', self:GetCoordsForIndex(index, size, radius)
+end
+
+function RadialMixin:GetCoordsForIndex(index, size, radius)
+	return Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
+end
+
+function RadialMixin:GetBoundingRadiansForIndex(index, size)
+	return Radial:GetBoundingRadiansForIndex(index, size or self:GetAttribute('size'))
 end
 
 function RadialMixin:GetIndexForPos(x, y, len, size)
@@ -142,6 +197,32 @@ end
 
 function RadialMixin:GetValidThreshold()
 	return Radial.VALID_VEC_LEN or .5;
+end
+
+function RadialMixin:IsValidThreshold(len)
+	return len >= self:GetValidThreshold()
+end
+
+function RadialMixin:SetRadialSize(size)
+	if self.fixedSize then return end;
+	local radius = self.radius or 1;
+	local newSize = size * radius;
+	self:SetAttribute('preferSize', newSize)
+	return self:SetSize(newSize, newSize)
+end
+
+function RadialMixin:SetFixedSize(size)
+	self.fixedSize = size;
+	if not size then return end;
+	self:SetAttribute('preferSize', size)
+	return self:SetSize(size, size)
+end
+
+function RadialMixin:SetDynamicRadius(numItems, itemSize, padding)
+	assert(not InCombatLockdown(), 'Cannot set dynamic radius from insecure code in combat.')
+	return self:Execute(([[
+		self:RunAttribute('SetDynamicRadius', %d, %d, %d)
+	]]):format(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING))
 end
 
 function RadialMixin:OnLoad(data)
@@ -157,6 +238,7 @@ end
 
 function RadialMixin:OnShow()
 	Dispatcher:SetFocus(self)
+	db:TriggerEvent('OnRadialShown', true, self)
 end
 
 function RadialMixin:ClearInstantly()
@@ -167,6 +249,7 @@ function RadialMixin:OnHide()
 	if not Dispatcher:IsDisabling() then
 		Dispatcher:ClearFocus(self)
 	end
+	db:TriggerEvent('OnRadialShown', false, self)
 end
 
 function RadialMixin:OnInput(x, y, len, stick)
@@ -189,7 +272,7 @@ Radial:CreateEnvironment({
 		local a1, a2 = ...
 		return (180 - math.abs(math.abs(a1 - a2) - 180));
 	]];
-	-- @param  index : number [1,n], the index 
+	-- @param  index : number [1,n], the index
 	-- @param  size  : number [n>0], how many indices
 	-- @return angle : number [0-360], angle
 	GetAngleForIndex = [[
@@ -225,6 +308,14 @@ Radial:CreateEnvironment({
 		local angle, radius = ...
 		return COS_DELTA * (radius * cos(angle)), (radius * sin(angle))
 	]];
+	-- @param  items    : number, how many items
+	-- @param  size     : number, size of each item
+	-- @param  padding  : number, padding between items
+	-- @return diameter : number, minimum diameter for items
+	CalculateMinimumDiameter = [[
+        local items, size, padding = ...;
+        return (items * (size + (padding or 0))) / math.pi;
+    ]];
 	-- @param  id  : numberID or name
 	-- @return x   : number [-1,1], X-position
 	-- @return y   : number [-1,1], Y-position
@@ -238,7 +329,7 @@ Radial:CreateEnvironment({
 		if not pos then return end
 		return pos.x, pos.y, pos.len
 	]];
-	-- @param  stickID : numberID or name  
+	-- @param  stickID : numberID or name
 	-- @param  size    : number, how many indices
 	-- @return index   : number, the slot on the pie
 	GetIndexForStickPosition = [[
@@ -285,6 +376,15 @@ Radial:CreateEnvironment({
 		end
 		return unpack(result)
 	]];
+	-- @param id    : numberID or name
+	-- @return bool : whether a given button is held
+	IsButtonHeld = [[
+		local id = ...;
+		local gstate = GetGamePadState()
+		local buttons = gstate and gstate.buttons
+		if not buttons then return end
+		return buttons[ tonumber(id) or BTNS[id] ]
+	]];
 })
 
 
@@ -302,28 +402,28 @@ function Radial:Register(header, name, ...)
 	-- upvalue in case predefined methods should be mixed in post load
 	local OnInput, OnBindingSet = header.OnInput, header.OnBindingSet;
 
-	db('table/mixin')(header, RadialMixin)
+	db.table.mixin(header, RadialMixin)
 	if OnInput then header.OnInput = OnInput; end
 	if OnBindingSet then header.OnBindingSet = OnBindingSet; end;
 
 	header:SetScale(db('radialScale'))
-	header:SetSize(db('radialPreferredSize'), db('radialPreferredSize'))
+	header:SetRadialSize(db('radialPreferredSize'))
 	db:RegisterSafeCallback('Settings/radialScale', header.SetScale, header)
-	db:RegisterSafeCallback('Settings/radialPreferredSize', function(self, size) self:SetSize(size, size) end, header)
+	db:RegisterSafeCallback('Settings/radialPreferredSize', header.SetRadialSize, header)
 
 	return header:OnLoad(...)
 end
 
 function Radial:OnDataLoaded()
 	for attr, val in pairs({
-		ANGLE_IDX_ONE = 90;
-		VALID_VEC_LEN = 1 - db('Settings/radialActionDeadzone'); -- vector length for valid action
-		COS_DELTA     = -db('Settings/radialCosineDelta');       -- delta for the cosine value
+		ANGLE_IDX_ONE = DEFAULT_ANGLE_OFFSET;
+		VALID_VEC_LEN = 1 - db('radialActionDeadzone'); -- vector length for valid action
+		COS_DELTA     = -db('radialCosineDelta');       -- delta for the cosine value
 	}) do
 		self:Execute(('%s = %f;'):format(attr, val))
 		self[attr] = val
 	end
-	return self
+	return self;
 end
 
 function Radial:OnActiveDeviceChanged()
@@ -335,7 +435,7 @@ function Radial:OnActiveDeviceChanged()
 	local modkeys = tInvert(modifiers)
 	self:Execute('wipe(BTNS)')
 	for id, set in db:For('Gamepad/Index/Button/Binding') do
-		if not id:match('STICK') then
+		if not id:match('^PAD.STICK%w+') then -- TODO: are cardinal stick buttons OK now?
 			self:Execute(([[
 				BTNS[%d] = "%s";
 				BTNS["%s"] = %d;
@@ -372,15 +472,31 @@ function Radial:GetAngleForIndex(index, size)
 	return ((self.ANGLE_IDX_ONE + ((index - 1) * step)) % 360)
 end
 
+function Radial:GetBoundingRadiansForIndex(index, size)
+	local centerAngle = self:GetAngleForIndex(index, size)
+	local halfstep = -(self.COS_DELTA) * 360 / size / 2;
+	local startAngle = centerAngle - halfstep;
+	local endAngle = centerAngle + halfstep;
+	startAngle = -(math.rad(startAngle));
+	endAngle = -(math.rad(endAngle) + math.pi);
+	centerAngle = centerAngle - self.ANGLE_IDX_ONE;
+	centerAngle =  self.COS_DELTA * -math.atan2(cos(centerAngle), self.COS_DELTA * sin(centerAngle));
+
+	return startAngle, endAngle, centerAngle;
+end
+
 function Radial:GetPointForIndex(index, size, radius)
 	local angle = self:GetAngleForIndex(index, size)
 	return self.COS_DELTA * (radius * cos(angle)), (radius * sin(angle))
 end
 
-function Radial:GetIndexForStickPosition(x, y, len, size)
-	if not len or len < self.VALID_VEC_LEN then return end
+function Radial:GetNormalizedAngle(x, y)
 	local angle = math.deg(math.atan2(x, y)) + self.ANGLE_IDX_ONE
-	angle = ((angle % 360) + 360) % 360;
+	return ((angle % 360) + 360) % 360;
+end
+
+function Radial:GetIndexForStickPosition(x, y, len, size)
+	local angle = self:GetNormalizedAngle(x, y)
 
 	local offset, index = math.huge
 	for i=1, size do
@@ -389,9 +505,20 @@ function Radial:GetIndexForStickPosition(x, y, len, size)
 			offset, index = distance, i
 		end
 	end
-	return index
+	return len and len >= self.VALID_VEC_LEN and index or nil, index;
 end
 
+function Radial:CalculateMinimumDiameter(itemCount, itemSize, padding)
+	return (itemCount * (itemSize + (padding or 0))) / math.pi
+end
+
+function Radial:ToggleFocusFrame(frame, enabled)
+	if enabled then
+		Dispatcher:SetFocus(frame)
+	else
+		Dispatcher:ClearFocus(frame)
+	end
+end
 
 ---------------------------------------------------------------
 -- Set environment on handler and feed stick data
@@ -399,5 +526,7 @@ end
 RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 ---------------------------------------------------------------
 db:RegisterSafeCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
-db:RegisterSafeCallback('Settings/radialActionDeadzone', Radial.OnDataLoaded, Radial)
-db:RegisterSafeCallback('Settings/radialCosineDelta', Radial.OnDataLoaded, Radial)
+db:RegisterSafeCallbacks(Radial.OnDataLoaded, Radial,
+	'Settings/radialActionDeadzone',
+	'Settings/radialCosineDelta'
+);

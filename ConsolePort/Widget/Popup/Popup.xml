@@ -2,9 +2,38 @@
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 	<Script file="Popup.lua"/>
 
-	<!-- Generic semi-opaque popup with close button -->
-	<Frame name="CPPopupFrameTemplate" virtual="true" inherits="BackdropTemplate">
+	<Frame name="CPPopupFrameBaseTemplate" virtual="true" mixin="CPPopupFrameBaseMixin">
 		<Size x="500" y="96"/>
+		<KeyValues>
+			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
+			<KeyValue key="layoutAlpha" value="0.75" type="number"/>
+			<KeyValue key="bottomPadding" value="32" type="number"/>
+			<KeyValue key="tooltipOffsetX" value="70" type="number"/>
+			<KeyValue key="buttonOffsetX" value="-68" type="number"/>
+			<KeyValue key="nameOffsetX" value="20" type="number"/>
+			<Keyvalue key="nonExclusive" value="false" type="boolean"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
+					<Size x="300" y="22"/>
+					<Color r="1" g="0.82" b="0" a="1"/>
+				</FontString>
+				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
+						<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>
+
+	<!-- Generic semi-opaque popup with close button -->
+	<Frame name="CPPopupFrameTemplate" virtual="true" inherits="CPPopupFrameBaseTemplate" mixin="CPPopupFrameMixin">
 		<Frames>
 			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonNoScripts">
 				<Anchors>
@@ -26,12 +55,23 @@
 				</Layers>
 			</Button>
 		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPPopupPortraitFrameTemplate" virtual="true" inherits="CPPopupFrameTemplate">
+		<KeyValues>
+			<KeyValue key="nameOffsetX" value="78" type="number"/>
+		</KeyValues>
 		<Layers>
 			<Layer level="OVERLAY">
-				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Normal">
-					<Size x="64" y="64"/>
+				<Texture parentKey="Border" atlas="auctionhouse-itemicon-border-gray">
+					<Size x="92" y="92"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" x="16" y="-16"/>
+						<Anchor point="TOPLEFT" x="-16" y="16"/>
 					</Anchors>
 				</Texture>
 			</Layer>
@@ -42,49 +82,89 @@
 						<Anchor point="CENTER" relativeKey="$parent.Border"/>
 					</Anchors>
 				</Texture>
-				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
-					<Size x="300" y="22"/>
-					<Color r="1" g="0.82" b="0" a="1"/>
+				<MaskTexture parentKey="Mask" file="Interface\Masks\CircleMaskScalable">
+					<Size x="64" y="64"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Border" relativePoint="TOPRIGHT" x="8" y="-4"/>
+						<Anchor point="CENTER" relativeKey="$parent.Icon"/>
 					</Anchors>
-				</FontString>
-				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
-					</Anchors>
-				</FontString>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
 			</Layer>
 		</Layers>
-		<Scripts>
-			<OnLoad>
-				self.Icon:SetMask([[Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask]]);
-				self:SetBackdrop(CPAPI.Backdrops.Popup);
-			</OnLoad>
-		</Scripts>
 	</Frame>
 
 	<Button name="CPPopupButtonTemplate" virtual="true" inherits="InsecureActionButtonTemplate">
-		<Size x="300" y="16"/>
+		<Attributes>
+			<Attribute name="nodeignoremime" value="true" type="boolean"/>
+		</Attributes>
+		<Size x="434" y="32"/>
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture parentKey="Icon" file="Interface\QuestFrame\UI-Quest-BulletPoint">
-					<Size x="16" y="16"/>
+					<Size x="24" y="24"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" x="0" y="0"/>
+						<Anchor point="LEFT" x="48" y="0"/>
 					</Anchors>
 				</Texture>
 			</Layer>
 		</Layers>
-		<HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD"/>
-		<ButtonText>
+		<NormalTexture setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0"/>
+		<HighlightTexture alphaMode="ADD" setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0">
+			<TexCoords left="1" right="0" top="0" bottom="1"/>
+		</HighlightTexture>
+		<ButtonText parentKey="Text">
 			<Size x="275" y="0"/>
 			<Anchors>
-				<Anchor point="LEFT" x="20" y="0"/>
+				<Anchor point="LEFT" x="78" y="0"/>
 			</Anchors>
 		</ButtonText>
 		<NormalFont style="GameFontNormalLeft"/>
+		<HighlightFont style="GameFontHighlightLeft"/>
+		<Scripts>
+			<OnLoad>
+				CPAPI.SetAtlas(self:GetNormalTexture(), "perks-list-hover", false, true);
+				CPAPI.SetAtlas(self:GetHighlightTexture(), "perks-list-active", false, true);
+			</OnLoad>
+		</Scripts>
 	</Button>
+
+	<Frame name="CPPopupHeaderTemplate" virtual="true">
+		<Size x="434" y="38"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontNormalLarge">
+					<Color color="LIGHTGRAY_FONT_COLOR"/>
+					<Size x="0" y="38"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="BarTexture">
+					<Size y="3"/>
+					<Anchors>
+						<Anchor point="LEFT"/>
+						<Anchor point="RIGHT"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="BarMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\TransparentSquareMask" vWrapMode="CLAMPTOBLACK" hWrapMode="CLAMPTOBLACK">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Text" x="-5" y="0"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Text" x="5" y="0"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="BarTexture"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad>
+				CPAPI.SetAtlas(self.BarTexture, "perks-divider", false, true);
+			</OnLoad>
+		</Scripts>
+	</Frame>
 
 	<Button name="CPPopupBindingCatchButtonTemplate" virtual="true" mixin="CPPopupBindingCatchButtonMixin" hidden="true">
 		<Scripts>

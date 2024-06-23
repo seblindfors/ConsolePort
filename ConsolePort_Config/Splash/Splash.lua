@@ -194,11 +194,18 @@ local function ShowExternalLink(name, link)
 		OnHide = function(self)
 			ConsolePort:ForceKeyboardFocus(nil)
 		end;
-		OnShow = function(self)
-			self.editBox:SetText(link)
+		OnShow = function(self, data)
+			self.editBox:SetText(data)
 			ConsolePort:ForceKeyboardFocus(false)
 		end;
-	})
+		EditBoxOnTextChanged = function(editBox, data)
+			if editBox:GetText() ~= data then
+				editBox:SetText(data)
+			end
+			editBox:SetCursorPosition(0)
+			editBox:HighlightText()
+		end;
+	}, nil, nil, link)
 end
 
 function Splash:OnFirstShow()

@@ -164,7 +164,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	end
 
 	function Stack:UpdateFrames(updateCursor)
-		if not isLocked then
+		if not isLocked and not isObstructed then
 			self:UpdateFrameTracker()
 			RunNextFrame(function()
 				if not isLocked then
@@ -250,7 +250,7 @@ function Stack:OnDataLoaded()
 
 	-- Load all existing frames in the registry
 	for addon in pairs(self.Registry) do
-		if IsAddOnLoaded(addon) then
+		if C_AddOns.IsAddOnLoaded(addon) then
 			self:LoadAddonFrames(addon)
 		end
 	end
@@ -346,4 +346,4 @@ end
 ---------------------------------------------------------------
 -- On demand explicit load
 ---------------------------------------------------------------
-if IsAddOnLoaded(_) then Stack:ADDON_LOADED(_) end;
+if C_AddOns.IsAddOnLoaded(_) then Stack:ADDON_LOADED(_) end;

@@ -5,11 +5,17 @@ local Crosshair = CPAPI.DataHandler(ConsolePortCrosshair)
 -- Predicates
 ---------------------------------------------------------------
 local CVAR_CENTER    = 'GamePadCursorCentering';
+local RadialShown    = false;
+local PopupShown     = false;
 local GetCVarBool    = GetCVarBool;
 local GamePadControl = IsGamePadFreelookEnabled;
 local CursorControl  = IsGamePadCursorControlEnabled;
 function Crosshair:ShouldDraw()
-	return GamePadControl() and not CursorControl() and not GetCVarBool(CVAR_CENTER)
+	return  GamePadControl()
+		and not CursorControl()
+		and not GetCVarBool(CVAR_CENTER)
+		and not RadialShown
+		and not PopupShown;
 end
 
 ---------------------------------------------------------------
@@ -77,3 +83,5 @@ db:RegisterCallbacks(Crosshair.OnDataLoaded, Crosshair,
 	'Settings/crosshairCenter',
 	'Settings/crosshairThickness'
 );
+db:RegisterCallback('OnRadialShown', function(_, shown) RadialShown = shown end)
+db:RegisterCallback('OnPopupShown', function(_, shown) PopupShown = shown end)

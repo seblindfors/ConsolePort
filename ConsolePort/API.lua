@@ -186,6 +186,17 @@ function ConsolePort:ProcessInterfaceClickEvent(...)
 end
 
 ---------------------------------------------------------------
+-- @brief Set an obstructor for the interface cursor
+-- @param obstructor: obstructor frame (frame)
+-- @param state: obstructor state (bool)
+function ConsolePort:SetCursorObstructor(obstructor, state)
+	if db.Stack then
+		if not state then state = nil end;
+		db.Stack:SetCursorObstructor(obstructor, state)
+	end
+end
+
+---------------------------------------------------------------
 -- Directly mapped functions for manipulating the cursor
 ---------------------------------------------------------------
 do local map = function(func)

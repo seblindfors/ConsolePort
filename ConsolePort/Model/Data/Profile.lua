@@ -15,7 +15,7 @@ setfenv(__, setmetatable(db('Data'), {__index = _G}));
 ------------------------------------------------------------------------------------------------------------
 -- Gamepad API profile values
 ------------------------------------------------------------------------------------------------------------
-db:Register('Profile', {
+db:Register('Profile', CPAPI.Proxy({
 	['Movement Input'] = {
 		{	name = 'Movement Deadzone';
 			path = 'stickConfigs/<stick:Movement>/deadzone';
@@ -82,4 +82,21 @@ db:Register('Profile', {
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
 		};
 	};
-})
+}, Profile))
+
+function Profile:GetObject(path)
+	for section, fields in pairs(self) do
+		for i, field in ipairs(fields) do
+			if ( field.path == path ) then
+				return field, section, i;
+			end
+		end
+	end
+end
+
+function Profile:GetConfiguredValue(path)
+	local field = self:GetObject(path)
+	if field then
+		return field.data:Get()
+	end
+end

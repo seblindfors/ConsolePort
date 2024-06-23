@@ -14,22 +14,28 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-## SavedVariablesPerCharacter: ConsolePort_BarSetup
+## SavedVariables: ConsolePort_BarPresets
+## SavedVariablesPerCharacter: ConsolePort_BarLayout, ConsolePort_BarDB, ConsolePort_BarSetup
 
-Libs\LibUIDropDownMenu.lua
+Model\Utils.lua
+Model\Assets.lua
+Model\Database.lua
+Model\Interface.lua
+Model\Presets.lua
+Model\Upgrade.lua
 
-Frame.xml
+Widget\Widget.lua
+Widget\Watch\Watch.xml
+Widget\Divider\Divider.xml
+Widget\Button\Button.xml
+Widget\Bar\Bar.xml
+Widget\Cluster\Cluster.xml
+Widget\Group\Group.xml
+Widget\Page\Page.xml
 
-Core\Lookup.lua
-Core\Cluster.lua
-Core\Bar.lua
-Core\Config.lua
+View\Toolbar\Toolbar.xml
+View\Pet\Pet.xml
+View\Config\Config.xml
 
-Customize\Blizzard.lua
-
-Components\Pet.lua
-Components\MenuBar.lua
-Components\WatchBars.xml
-Components\ActionbarPlacer.lua
-Components\BindHelper.lua
-Components\Movers.lua
+Controller\Blizzard\Blizzard.xml
+Controller\Manager\Manager.xml

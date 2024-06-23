@@ -73,8 +73,15 @@ function CPActionButton:SetLargeButton(enabled)
 	end
 end
 
+function CPActionButton:SetRotation(rotation)
+	self.rotation = rotation;
+end
+
+function CPActionButton:SetPreventSkinning(enabled)
+	self.MasqueSkinned = enabled; -- A hack for LAB to not skin this button.
+end
+
 function CPActionButton:Initialize()
-	LibStub('CPActionButton'):InitButton(self, self.id or self:GetID())
-	self:SetAttribute('ignoregamepadhotkey', true)
+	self:SetAttribute(CPAPI.SkipHotkeyRender, true)
 	self:SetLargeButton(self:IsLargeButton())
 end

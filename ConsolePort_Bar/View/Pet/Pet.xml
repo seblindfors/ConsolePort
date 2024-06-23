@@ -1,0 +1,138 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="Petring.lua"/>
+
+	<CheckButton name="CPPetRingButton" virtual="true" mixin="CPPetRingButton" frameLevel="4" alpha="0"
+		registerForClicks="LeftButtonUp, RightButtonUp, MiddleButtonDown, MiddleButtonUp"
+		inherits="SecureActionButtonTemplate, PetActionButtonTemplate">
+		<Size x="40" y="40"/>
+		<Attributes>
+			<Attribute name="type" value="pet"/>
+		</Attributes>
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnSizeChanged method="OnSizeChanged"/>
+		</Scripts>
+	</CheckButton>
+
+	<Cooldown name="CPPetRingPower" virtual="true" inherits="CooldownFrameTemplate"
+		hideCountdownNumbers="true"
+		useCircularEdge="true"
+		drawEdge="false"
+		drawBling="false"
+		rotation="180"
+		frameLevel="3"
+	/>
+
+	<Button name="CPPetRing" virtual="true" mixin="CPPetRing" hidden="true"
+		inherits="SecureUnitButtonTemplate"
+		registerForClicks="LeftButtonDown, RightButtonDown">
+		<Size x="70" y="70"/>
+		<Attributes>
+			<Attribute name="type1" value="target"/>
+			<Attribute name="type2" value="togglemenu"/>
+			<Attribute name="unit" value="pet"/>
+		</Attributes>
+		<KeyValues>
+			<KeyValue key="unit" value="pet"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad inherit="append" method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnEvent method="OnEvent"/>
+		</Scripts>
+		<Frames>
+			<Frame parentKey="Ring" frameLevel="3" alpha="0">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-48" y="48"/>
+					<Anchor point="BOTTOMRIGHT" x="48" y="-48"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<MaskTexture parentKey="Mask" setAllPoints="true"
+							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\PetRingMask"/>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture parentKey="Border" setAllPoints="true" rotation="18"
+							file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\PetRing"/>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame parentKey="Background" setAllPoints="true" frameLevel="2">
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Background" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon" desaturated="true">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="-9" y="9"/>
+								<Anchor point="BOTTOMRIGHT" x="9" y="-9"/>
+							</Anchors>
+							<Color r="0.5" g="0.5" b="0.5"/>
+						</Texture>
+						<MaskTexture parentKey="CircleMask" file="Interface\Masks\CircleMaskScalable" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.Background"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Background"/>
+							</Anchors>
+							<MaskedTextures>
+								<MaskedTexture childKey="Background"/>
+							</MaskedTextures>
+						</MaskTexture>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame parentKey="Center" setAllPoints="true" frameLevel="4">
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Line parentKey="Separator" thickness="2">
+							<Color r="0.2" g="0.2" b="0.2" a="1"/>
+							<StartAnchor relativeKey="$parent" relativePoint="TOP" y="4"/>
+							<EndAnchor relativeKey="$parent" relativePoint="BOTTOM" y="-4"/>
+						</Line>
+					</Layer>
+					<Layer level="ARTWORK">
+						<Texture parentKey="Portrait">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="2" y="-2"/>
+								<Anchor point="BOTTOMRIGHT" x="-2" y="2"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="OVERLAY">
+						<Texture parentKey="InnerBorder" setAllPoints="true"/>
+						<Texture parentKey="OuterBorder">
+							<Anchors>
+								<Anchor point="TOPLEFT" x="-9" y="9"/>
+								<Anchor point="BOTTOMRIGHT" x="9" y="-9"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Cooldown parentKey="Health" inherits="CPPetRingPower" reverse="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-4" y="4"/>
+					<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
+				</Anchors>
+			</Cooldown>
+			<Cooldown parentKey="Power" inherits="CPPetRingPower">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-4" y="4"/>
+					<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
+				</Anchors>
+			</Cooldown>
+			<CheckButton id="1"  name="$parentButton1"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="2"  name="$parentButton2"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="3"  name="$parentButton3"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="4"  name="$parentButton4"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="5"  name="$parentButton5"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="6"  name="$parentButton6"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="7"  name="$parentButton7"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="8"  name="$parentButton8"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="9"  name="$parentButton9"  parentArray="Buttons" inherits="CPPetRingButton"/>
+			<CheckButton id="10" name="$parentButton10" parentArray="Buttons" inherits="CPPetRingButton"/>
+		</Frames>
+	</Button>
+</Ui>

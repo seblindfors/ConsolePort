@@ -7,7 +7,7 @@ local Pool = CreateObjectPool(function(self)
 	local tooltip = CreateFrame('GameTooltip', ('GamePadTooltip%d'):format(PoolCount), UIParent, 'GamepadTooltipTemplate')
 	tooltip.poolRef = self;
 	return tooltip;
-end, FramePool_HideAndClearAnchors)
+end, CPAPI.HideAndClearAnchors)
 
 ---------------------------------------------------------------
 GamepadTooltipMixin = {};

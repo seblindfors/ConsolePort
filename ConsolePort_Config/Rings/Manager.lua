@@ -1,6 +1,6 @@
 local _, env = ...;
 local db, L, Widgets = env.db, env.L, env.Widgets;
-local LoadoutTypeMetaMap = LibStub('CPActionButton').TypeMetaMap;
+local LoadoutTypeMetaMap = LibStub('ConsolePortActionButton').TypeMetaMap;
 
 ---------------------------------------------------------------
 local DEFAULT_RING_ID = CPAPI.DefaultRingSetID;
@@ -9,7 +9,7 @@ local DEFAULT_RING_BINDING = 'LeftButton';
 local BUTTON_WITH_ICON_TEXT = '     %s';
 
 local SELECTED_RING_TEXT = L[[This is your currently selected ring.
-When you press and hold your selected key binding, all your selected abilities will appear in a ring on the screen.
+When you press and hold the key binding, all your selected abilities will appear in a ring on the screen.
 
 Tilt your radial stick in the direction of the ability or item you want to use, then release the key binding to commit.]]
 local ADD_NEW_RING_TEXT = L[[|cFFFFFF00Create New Ring|r
@@ -38,7 +38,6 @@ local RING_EMPTY_DESC = L[[You do not have any abilities in this ring yet.]]
 
 
 local EXTRA_ACTION_ID = CPAPI.ExtraActionButtonID;
-local GET_SPELLID_IDX = 7;
 local FIXED_OFFSET = 8;
 ---------------------------------------------------------------
 -- Helpers
@@ -208,7 +207,7 @@ function RingSelectMixin:Construct()
 	self.tooltipAnchor = 'ANCHOR_BOTTOM';
 	self.Popout:ClearAllPoints()
 	self.Popout:SetPoint('TOPRIGHT', -2, 0)
-	self.controller:SetCallback(function(value)
+	self:SetCallback(function(value)
 		self:OnValueChanged(value)
 		self:Update()
 		db:TriggerEvent('OnRingSelectionChanged', value)
@@ -216,6 +215,7 @@ function RingSelectMixin:Construct()
 	db:RegisterCallback('OnRingAdded', self.OnRingAdded, self)
 	db:RegisterCallback('OnRingRemoved', self.OnRingRemoved, self)
 	self:SetScript('OnClick', CPIndexButtonMixin.OnIndexButtonClick)
+	self.disableTooltipHints = true;
 end
 
 ---------------------------------------------------------------
@@ -425,7 +425,7 @@ local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin, {
 			end)
 		end;
 		spell = function(self, id)
-			local spellID = (select(GET_SPELLID_IDX, GetSpellInfo(id)))
+			local spellID = CPAPI.GetSpellInfo(id).spellID;
 			if spellID then
 				Spell:CreateFromSpellID(spellID):ContinueOnSpellLoad(function()
 					self:UpdateProps()
@@ -438,6 +438,7 @@ local LoadoutButton = CreateFromMixins(CPSmoothButtonMixin, {
 
 function LoadoutButton:OnLoad()
 	self.ignoreUtilityRing = true;
+	self.MasqueSkinned = true;
 	self:SetWidth(self:GetParent():GetWidth() - 16)
 	self.Label:SetWidth(self:GetWidth() - 100)
 	self:SetScript('OnShow', self.OnShow)
@@ -486,9 +487,13 @@ end
 
 function LoadoutButton:GetDisplayText()
 	local text = self:GetActionText()
-	if not text then
+	if ( not text or text == '' ) then
 		if self:IsExtraActionButton() then
 			text = GetExtraActionButtonName()
+		elseif ( self._state_type == 'item' ) then
+			text = (CPAPI.GetItemInfo(self._state_action).itemName)
+		elseif ( self._state_type == 'spell' ) then
+			text = (CPAPI.GetSpellInfo(self._state_action).name)
 		end
 	end
 	return text;

@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- Secure unit frames targeting cursor 
+-- Secure unit frames targeting cursor
 ---------------------------------------------------------------
 -- Creates a secure cursor that is used to iterate over unit frames
 -- and select units based on where the frame is drawn on screen.
@@ -27,17 +27,15 @@ Cursor:WrapScript(Cursor.Toggle, 'PreClick', [[
 		control:RunAttribute('ToggleCursor', not enabled)
 	end
 	if control:GetAttribute('usefocus') then
+		self:SetAttribute('type', 'focus')
 		if enabled then
-			self:SetAttribute('type', 'focus')
 			self:SetAttribute('unit', control:GetAttribute('cursorunit'))
 		else
-			self:SetAttribute('type', 'macro')
-			self:SetAttribute('macrotext', '/clearfocus')
+			self:SetAttribute('unit', 'none')
 		end
 	else
 		self:SetAttribute('type', nil)
 		self:SetAttribute('unit', nil)
-		self:SetAttribute('macrotext', nil)
 	end
 ]])
 
@@ -125,7 +123,7 @@ Cursor:CreateEnvironment({
 		local reroute = self:GetAttribute('useroute')
 		if reroute then
 			for action, unit in pairs(ACTIONS) do
-				action:SetAttribute('unit', unit)
+				action:SetAttribute('unit', unit or nil)
 				if action:GetAttribute('backup-checkselfcast') ~= nil then
 					action:SetAttribute('checkselfcast', action:GetAttribute('backup-checkselfcast'))
 					action:SetAttribute('backup-checkselfcast', nil)
@@ -270,7 +268,7 @@ function Cursor:OnDataLoaded()
 	self:Execute('wipe(BUTTONS)')
 	for direction, varID in pairs(self.Directions) do
 		self:Execute(('BUTTONS[%q] = %q'):format(direction, db(varID)))
-	end 
+	end
 
 	self:RegisterEvent('ADDON_LOADED')
 	self.ADDON_LOADED = self.GROUP_ROSTER_UPDATE;
@@ -282,7 +280,7 @@ function Cursor:OnUpdateOverrides(isPriority)
 	end
 end
 
-db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor, 
+db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'Settings/raidCursorScale',
 	'Settings/raidCursorMode',
 	'Settings/raidCursorAutoFocus',
