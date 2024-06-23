@@ -107,6 +107,13 @@ function HotkeyHandler:GetButtonSlug(device, btnID, modID, split)
 	return table.concat(slug)
 end
 
+function HotkeyHandler:GetActiveButtonSlug(btnID, modID, split)
+	local device = db('Gamepad/Active')
+	if device then
+		return self:GetButtonSlug(device, btnID, modID, split)
+	end
+end
+
 do local function GetBindingSlugs(self, device, split, key, ...)
 		if key then
 			local splitSlug = {strsplit('-', key)}
@@ -122,7 +129,7 @@ do local function GetBindingSlugs(self, device, split, key, ...)
 	function HotkeyHandler:GetButtonSlugForBinding(binding, split)
 		local device = db('Gamepad/Active')
 		if not device then return end;
-		return GetBindingSlugs(self, device, split, db('Gamepad'):GetBindingKey(binding))
+		return GetBindingSlugs(self, device, split, db.Gamepad:GetBindingKey(binding))
 	end
 
 	function HotkeyHandler:GetButtonSlugsForBinding(binding, separator, limit)

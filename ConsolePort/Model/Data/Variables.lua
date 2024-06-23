@@ -453,12 +453,6 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Show bonus bar configuration for characters without stances.';
 		advd = true;
 	};
-	bindingDisableQuickAssign = _{Bool(false);
-		name = 'Disable Quick Assign';
-		desc = 'Disables quick assign for unbound combinations when using the gamepad action bar.';
-		note = 'Requires reload.';
-		advd = true;
-	};
 	bindingShowSpellMenuGrid = _{Bool(false);
 		name = 'Show Action Bar Grid on Spell Pickup';
 		desc = 'Display the action bar grid when picking up a spell on the cursor.';

@@ -127,8 +127,9 @@ function MapActionButton:UpdateBinding()
 end
 
 function MapActionButton:OnSpecialClick(...)
-	if self.bindingID then
-		self:GetParent():ReportSetBinding(self, self.bindingID, self:GetID())
+	local parent = self:GetParent()
+	if self.bindingID and not parent:HasPendingKeyChord() then
+		parent:ReportSetBinding(self, self.bindingID, self:GetID())
 	end
 end
 
@@ -142,6 +143,10 @@ function MapActionButton:OnClick(button)
 
 	local parent = self:GetParent()
 	if ( button == 'RightButton' ) then
+		if parent:HasPendingKeyChord() then
+			parent:Hide()
+			return ClearCursor()
+		end
 		if not GetActionInfo(actionID) then
 			parent:ReportClearBinding(bindingID)
 		end
@@ -155,6 +160,12 @@ function MapActionButton:OnClick(button)
 	CPAPI.PickupSpell(spellID)
 	PlaceAction(actionID)
 	self:Update()
+
+	if bindingID and parent:HasPendingKeyChord() then
+		parent:ReportSetBindingToKeyChord(bindingID)
+		isUnbound = false;
+		self:Update()
+	end
 
 	local type, _, _, cursorSpellID = GetCursorInfo()
 	if ( type == 'spell' and cursorSpellID ~= spellID ) then

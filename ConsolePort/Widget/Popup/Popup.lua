@@ -5,12 +5,17 @@ CPPopupFrameBaseMixin = CreateFromMixins(NineSlicePanelMixin, CPIndexPoolMixin)
 function CPPopupFrameBaseMixin:OnLoad()
 	NineSlicePanelMixin.OnLoad(self);
 	CPIndexPoolMixin.OnLoad(self);
+	self:SetBackgroundAlpha(self.layoutAlpha)
+	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -20)
+end
+
+function CPPopupFrameBaseMixin:SetBackgroundAlpha(alpha)
+	self.layoutAlpha = alpha;
 	for region in pairs(NineSliceLayouts[self.layoutType]) do
 		if self[region] then
 			self[region]:SetAlpha(self.layoutAlpha);
 		end
 	end
-	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -20)
 end
 
 ---------------------------------------------------------------

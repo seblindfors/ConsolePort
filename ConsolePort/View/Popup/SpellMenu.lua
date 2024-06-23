@@ -41,7 +41,7 @@ end
 ---------------------------------------------------------------
 function SpellMenu:SetCommands()
 	self:ReleaseAll()
-	self:DisplayBindings(self:GetSpellID())
+	self:DisplayBindingsForSpellID(self:GetSpellID())
 
 	self:AddCommand(L'Place on action bar', 'MapActionBar')
 	self:AddUtilityRingCommand()
@@ -90,11 +90,23 @@ function SpellMenu:RingClear(data)
 	self:Hide()
 end
 
-function SpellMenu:MapActionBar()
+function SpellMenu:MapActionBar(keyChord)
 	self:SetDisplaySpell(self:GetSpellID())
-	self:DisplayBindings(nil)
+	self:DisplayBindingsForSpellID(nil)
+
+	local keyChordSlug = keyChord and db.Hotkeys:GetActiveButtonSlug(keyChord[2], keyChord[1])
+	local description;
+	if keyChordSlug then
+		self.keyChord = keyChord;
+		description = L('Select a slot to bind %s and place this spell.', keyChordSlug);
+		self:DisplayBindingsForPending(keyChordSlug)
+	else
+		description = L'Select a slot to place this spell.';
+		keyChord = nil;
+	end
+
 	self:SetWidth(SPELL_MAP_BAR_SIZE)
-	self:SetDescription(L'Select a slot to place this spell.')
+	self:SetDescription(description)
 	self:ReleaseAll()
 	self:FixHeight()
 	self:Show()
@@ -121,7 +133,14 @@ function SpellMenu:MapActionBar()
 						db.table.mixin(widget, db.PopupMenuMapActionButton)
 					end
 					if not firstWidget and not GetActionInfo(actionID) then
-						firstWidget = widget;
+						if keyChord then
+							local binding = db('Actionbar/Action/'..actionID)
+							if not db.Gamepad:GetBindingKey(binding) then
+								firstWidget = widget;
+							end
+						else
+							firstWidget = widget;
+						end
 					end
 					if not targetWidget and actionButtonsWithSpellID[actionID] then
 						targetWidget = widget;
@@ -138,23 +157,23 @@ function SpellMenu:MapActionBar()
 			end
 		end
 	end
-	self:SetTargetHeight(drawnBars * SPELL_MAP_BAR_OFF + 80 + self.bottomPadding)
+	self:SetTargetHeight(drawnBars * SPELL_MAP_BAR_OFF + 80 + self.bottomPadding + (keyChordSlug and 16 or 0))
 	if targetWidget or firstWidget then
-		ConsolePort:SetCursorNode(targetWidget or firstWidget)
+		ConsolePort:SetCursorNodeIfActive(targetWidget or firstWidget)
 	end
 
 	local handle = db.UIHandle;
 	local leftClick, rightClick, specialClick, cancelClick =
 		db('UICursorLeftClick'), db('UICursorRightClick'), db('UICursorSpecial'), db('UICursorCancel')
 
-	handle:SetHintFocus(self, IsGamePadCursorControlEnabled())
+	handle:SetHintFocus(self, IsGamePadFreelookEnabled())
 	if leftClick then
 		handle:AddHint(leftClick, L'Place in slot')
 	end
 	if rightClick then
-		handle:AddHint(rightClick, L'Clear slot or binding')
+		handle:AddHint(rightClick, keyChord and L'Cancel and clear cursor' or L'Clear slot or binding')
 	end
-	if specialClick then
+	if specialClick and not keyChord then
 		handle:AddHint(specialClick, L'Set binding')
 	end
 	if cancelClick then
@@ -249,7 +268,7 @@ function SpellMenu:CatchBindingForSlot(slot, bindingID, text)
 	self.CatchBinding:TryCatchBinding({
 		text = text;
 		OnShow = function()
-			ConsolePort:SetCursorNode(slot)
+			ConsolePort:SetCursorNodeIfActive(slot)
 		end;
 	})
 end
@@ -262,6 +281,16 @@ function SpellMenu:ReportSetBinding(slot, bindingID, actionID)
 	self:CatchBindingForSlot(slot, bindingID, SET_BINDING_TEXT:format(_G['BINDING_NAME_'..bindingID] or bindingID))
 end
 
+function SpellMenu:ReportSetBindingToKeyChord(bindingID)
+	if self.keyChord then
+		local keyChord = table.concat(self.keyChord)
+		print(keyChord, bindingID)
+		SetBinding(keyChord, bindingID)
+		SaveBindings(GetCurrentBindingSet())
+		self.keyChord = nil;
+	end
+end
+
 function SpellMenu:ReportClearBinding(bindingID)
 	if bindingID then
 		db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
@@ -269,7 +298,11 @@ function SpellMenu:ReportClearBinding(bindingID)
 	end
 end
 
-function SpellMenu:DisplayBindings(spellID)
+function SpellMenu:HasPendingKeyChord()
+	return not not self.keyChord;
+end
+
+function SpellMenu:DisplayBindingsForSpellID(spellID)
 	if not spellID then return self.BindingHeader:Hide() end;
 	local actionButtons = C_ActionBar.FindSpellActionButtons(spellID)
 	if actionButtons then
@@ -285,10 +318,19 @@ function SpellMenu:DisplayBindings(spellID)
 			local slug = table.concat(slugs, ' | ')
 			local header = self.BindingHeader;
 			header.Text:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(slug))
+			header:ClearAllPoints()
 			header:SetPoint('TOPLEFT', self.Tooltip, 'BOTTOMLEFT', self.buttonOffsetX, -8)
 			header:Show()
 		end
 	end
+end
+
+function SpellMenu:DisplayBindingsForPending(slug)
+	local header = self.BindingHeader;
+	header.Text:SetText(GRAY_FONT_COLOR:WrapTextInColorCode(slug))
+	header:ClearAllPoints()
+	header:SetPoint('BOTTOM', 0, 20)
+	header:Show()
 end
 
 ---------------------------------------------------------------
@@ -316,6 +358,7 @@ end
 function SpellMenu:OnHide()
 	self.ActionButtons:ReleaseAll()
 	self.BindingHeader:Hide()
+	self.keyChord = nil;
 
 	local handle = db.UIHandle;
 	if handle:IsHintFocus(self) then
@@ -337,6 +380,13 @@ function SpellMenu:OnCursorChanged(isDefault, cursorType, oldCursorType)
 	end
 end
 
+function SpellMenu:OnSlotRequest(modID, btnID, kind, value, subType, spellID)
+	if ( kind == 'spell') then
+		self:SetSpell(spellID)
+		self:MapActionBar({ modID, btnID })
+	end
+end
+
 function SpellMenu:PLAYER_REGEN_DISABLED()
 	self:Hide()
 end
@@ -353,4 +403,8 @@ SpellMenu:SetAttribute('nodepass', true)
 SpellMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
 SpellMenu.ActionButtons = CreateFramePool('IndexButton', SpellMenu, 'CPIndexButtonBindingActionButtonTemplate')
 SpellMenu.ActionBarText = CreateFontStringPool(SpellMenu, 'ARTWORK', nil, 'CPSmallFont')
+---------------------------------------------------------------
 db:RegisterCallback('OnCursorChanged', SpellMenu.OnCursorChanged, SpellMenu)
+db:RegisterCallback('OnSlotRequest', SpellMenu.OnSlotRequest, SpellMenu)
+db:RegisterCallback('PlayerSpellsFrame.OpenFrame', SpellMenu.SetBackgroundAlpha, SpellMenu, 0.95)
+db:RegisterCallback('PlayerSpellsFrame.CloseFrame', SpellMenu.SetBackgroundAlpha, SpellMenu, 0.75)
