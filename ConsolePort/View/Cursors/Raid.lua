@@ -366,7 +366,7 @@ Mixin(CPAPI.EventHandler(Cursor, {
 local Fade, Flash = db.Alpha.Fader, db.Alpha.Flash;
 local PORTRAIT_TEXTURE_SIZE = 46;
 
-do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
+do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHelpful;
 	local UnitClass, UnitHealth, UnitHealthMax = UnitClass, UnitHealth, UnitHealthMax;
 	local GetClassColorObj, PlaySound, SOUNDKIT = GetClassColorObj, PlaySound, SOUNDKIT;
 	local WARNING_LOW_HEALTH = ChatTypeInfo.YELL;
@@ -458,7 +458,7 @@ do 	local IsHarmfulSpell, IsHelpfulSpell = IsHarmfulSpell, IsHelpfulSpell;
 
 	function Cursor:IsApplicableSpell(spell)
 		return self:GetAttribute('relation')
-			== (IsHarmfulSpell(spell) and 'harm' or IsHelpfulSpell(spell) and 'help');
+			== (IsSpellHarmful(spell) and 'harm' or IsSpellHelpful(spell) and 'help');
 	end
 
 	function Cursor:SetSpellTexture(texture)
@@ -661,7 +661,8 @@ do 	local UnitChannelInfo, UnitCastingInfo = UnitChannelInfo, UnitCastingInfo;
 	end
 
 	function Cursor:UNIT_SPELLCAST_SUCCEEDED(_, _, spellID)
-		local name, _, texture = GetSpellInfo(spellID)
+		local info = CPAPI.GetSpellInfo(spellID)
+		local name, texture = info.name, info.iconID;
 		if name and texture then
 			if self:IsApplicableSpell(name) then
 				self:SetSpellTexture(texture)
