@@ -258,7 +258,7 @@ Selector.Filigree:SetTexture(CPAPI.GetAsset([[Textures\Pie\Pie_Background.png]])
 Selector:HookScript('OnShow', GenerateClosure(ConsolePort.SetCursorObstructor, ConsolePort, Selector, true))
 Selector:HookScript('OnHide', GenerateClosure(ConsolePort.SetCursorObstructor, ConsolePort, Selector, false))
 
-function Selector:OnInput(x, y, len, stick)
+function Selector:OnInput(x, y, len)
 	self.Filigree:SetAlpha(Clamp(1 - len, 0, 1))
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
 	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())

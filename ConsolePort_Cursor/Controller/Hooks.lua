@@ -280,7 +280,7 @@ do -- Tooltip hooking
 		local owner = self:GetOwner()
 		if Hooks:IsPromptProcessingValid(owner) then
 			if Hooks:GetSpecialClickHandler(owner) then return end;
-			
+
 			local name, spellID = self:GetSpell()
 			if spellID and not CPAPI.IsPassiveSpell(spellID) then
 				local isKnown = IsSpellKnownOrOverridesKnown(spellID) or IsPlayerSpell(spellID)
@@ -303,7 +303,7 @@ do -- Tooltip hooking
 		if isKnown and spellID then
 			Hooks:SetPendingSpellMenu(self, spellID)
 		end
-	end	
+	end
 
 	local function OnTooltipSetToy(self, info)
 		local owner = self:GetOwner()

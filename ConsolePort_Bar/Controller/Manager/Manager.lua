@@ -117,8 +117,6 @@ end
 ---------------------------------------------------------------
 -- Initialize manager
 ---------------------------------------------------------------
-
-Manager:RegisterEvent('GAME_PAD_ACTIVE_CHANGED')
 Manager:SetFrameRef('Cursor', db.Raid)
 Manager:SetFrameRef('Mouse', db.Interact)
 Manager:SetFrameRef('Pager', db.Pager)
@@ -149,15 +147,6 @@ end
 function Manager:OnHintsClear()
 	self:FadeIn(self:GetAlpha())
 end
-
-function Manager:OnEvent(event, ...)
-	if ( event == 'GAME_PAD_ACTIVE_CHANGED' ) then
-		-- HACK: LAB doesn't update hotkeys when switching to gamepad.
-		ExecuteFrameScript(env.LAB.eventFrame, 'OnEvent', 'UPDATE_BINDINGS')
-	end
-end
-
-Manager:SetScript('OnEvent', Manager.OnEvent)
 
 ---------------------------------------------------------------
 -- Callbacks

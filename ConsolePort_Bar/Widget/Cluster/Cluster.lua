@@ -356,6 +356,10 @@ function FlyoutButton:SetBindings(primary, allBindings)
 	self:UpdateVisibility(self.VisibilityState.NoBinding, false)
 end
 
+function FlyoutButton:GetEffectiveCombination()
+	return self.mod, self.id;
+end
+
 ---------------------------------------------------------------
 local MainButton = { OnCooldownClear = nop };
 ---------------------------------------------------------------

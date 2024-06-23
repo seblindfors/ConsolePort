@@ -388,6 +388,8 @@ end
 do -- Binding data handler
 	-----------------------------------------------------------
 	local TOOLTIP_LINE_LEN = 50;
+	local NOT_BOUND_MOD = 'This button is not bound to any action.';
+	local NOT_BOUND_TAP = 'This button is not bound to any tap action.';
 
 	function env.GetBindingIcon(binding)
 		return db.Bindings.Icons[binding];
@@ -415,7 +417,8 @@ do -- Binding data handler
 	function env.GetRebindInfo(buttonID)
 		local emulation = db.Console:GetEmulationForButton(buttonID)
 		local title = emulation and emulation.name or NOT_BOUND;
-		local desc  = emulation and CPAPI.FormatLongText(emulation.desc, TOOLTIP_LINE_LEN) or 'This button is not bound to any action.';
+		local desc  = emulation and CPAPI.FormatLongText(('%s\n\n%s'):format(
+			emulation.desc, NOT_BOUND_TAP), TOOLTIP_LINE_LEN) or NOT_BOUND_MOD;
 		local tooltip = ('%s\n%s'):format(WHITE_FONT_COLOR:WrapTextInColorCode(title), desc)
 		return {
 			name    = title;

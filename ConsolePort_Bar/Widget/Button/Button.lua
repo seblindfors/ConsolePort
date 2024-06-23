@@ -67,7 +67,7 @@ local SlotButton = Mixin({
 ---------------------------------------------------------------
 
 function SlotButton:OnLoad()
-	self:CreateEnvironment(SlotButton.Env)
+	self:CreateEnvironment()
 
 	if not CPAPI.IsRetailVersion then
 		-- Assert assets on all client flavors
@@ -244,7 +244,55 @@ function ProxyCooldown:Hide()
 end
 
 ---------------------------------------------------------------
-local ProxyButton = CreateFromMixins(SlotButton); env.ProxyButton = ProxyButton;
+local ProxyButton = CreateFromMixins(SlotButton, {
+---------------------------------------------------------------
+	Env = CreateFromMixins(SlotButton.Env, {
+		OnReceiveDrag =[[
+			if self:GetAttribute('LABdisableDragNDrop') then return false end;
+			local kind, value, subtype, extra = ...;
+			if not kind or not value then return false end;
+
+			local state = self:GetAttribute('state')
+			local buttonType, buttonAction = self:GetAttribute('type'), nil;
+			if buttonType == 'custom' then
+				self:CallMethod('OnReceiveDragCustom', state, ...)
+				return false;
+			end
+
+			-- action buttons can do their magic themself
+			-- for all other buttons, we'll need to update the content now
+			if buttonType ~= 'action' and buttonType ~= 'pet' then
+				-- with 'spell' types, the 4th value contains the actual spell id
+				if kind == 'spell' then
+					if extra then
+						value = extra;
+					else
+						print('no spell id?', ...)
+					end
+				elseif kind == 'item' and value then
+					value = format('item:%d', value)
+				end
+
+				-- Get the action that was on the button before
+				if buttonType ~= 'empty' then
+					buttonAction = self:GetAttribute(self:GetAttribute('action_field'))
+				end
+
+				self:SetAttribute(format('labtype-%s', state), kind)
+				self:SetAttribute(format('labaction-%s', state), value)
+				-- update internal state
+				self::UpdateState(state)
+				-- send a notification to the insecure code
+				self:CallMethod('ButtonContentsChanged', state, kind, value)
+			else
+				-- get the action for (pet-)action buttons
+				buttonAction = self:GetAttribute('action')
+			end
+			return self::PickupButton(buttonType, buttonAction)
+		]];
+	});
+---------------------------------------------------------------
+}); env.ProxyButton = ProxyButton;
 ---------------------------------------------------------------
 
 function ProxyButton:OnLoad()
@@ -271,7 +319,7 @@ function ProxyButton:SetXMLBinding(binding)
 	return 'custom', {
 		tooltip = info.tooltip or env.GetBindingName(binding);
 		texture = info.texture or env.GetBindingIcon(binding) or ProxyButtonTextureProvider(self.id);
-		func    = function() end; -- TODO
+		func    = self.OnRebindRequest;
 	};
 end
 
@@ -280,8 +328,23 @@ function ProxyButton:SetEligbleForRebind(state)
 	return 'custom', {
 		tooltip = info.tooltip;
 		texture = ProxyButtonTextureProvider(self.id);
-		func    = print; -- TODO
+		func    = self.OnRebindRequest;
 	};
+end
+
+function ProxyButton:OnReceiveDragCustom(state, ...)
+	local modifier, button = self:GetEffectiveCombination(state)
+	self:SetChecked(false)
+	self:SetButtonState('NORMAL')
+	db:TriggerEvent('OnSlotRequest', modifier, button, ...)
+end
+
+function ProxyButton:OnRebindRequest()
+	db:TriggerEvent('OnRebindRequest', self:GetEffectiveCombination())
+end
+
+function ProxyButton:GetEffectiveCombination(state)
+	return state or self:GetAttribute('state'), self.id;
 end
 
 ---------------------------------------------------------------
@@ -298,7 +361,7 @@ end
 
 function Button:GetConfig()
 	if not self.config then
-		return self:CreateConfig();
+		return self:CreateConfig()
 	end
 	return self.config;
 end
