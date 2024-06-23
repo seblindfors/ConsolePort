@@ -138,7 +138,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Spellbook ]] if IsClassicGameVersion then _{
+--[[ Spellbook ]] if SpellbookMicroButton then _{
 ---------------------------------------------------------------
 	text  = SPELLBOOK_BUTTON;
 	img   = [[Interface\Spellbook\Spellbook-Icon]];
