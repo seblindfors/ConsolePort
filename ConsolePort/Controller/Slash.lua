@@ -15,18 +15,18 @@ local function ProcessSlash(command, ...)
 end
 
 local function Compile(...)
-	local args = table.concat({...}, ' ')
+	local args = table.concat({...}, ', ')
 	local func, errorMsg = loadstring(('return %s'):format(args))
 	if not func then
 		CPAPI.Log('Error while compiling:\n%s', errorMsg)
 		return
 	end
-	return func()
+	return func(), args;
 end
 
 local function ProcessVarUpdate(var, ...)
 	if (db(var) ~= nil) then
-		local value = Compile(...)
+		local value, args = Compile(...)
 		if (value == nil) then
 			return true;
 		end

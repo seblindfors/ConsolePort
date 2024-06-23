@@ -498,17 +498,17 @@ db:Register('Variables', CPAPI.Callable({
 	actionPageCondition = _{String(nil);
 		name = 'Action Page Condition';
 		desc = 'Macro condition to evaluate action bar page.';
-		advd = true;
+		hide = true;
 	};
 	actionPageResponse = _{String(nil);
 		name = 'Action Page Response';
 		desc = 'Response to condition for custom processing.';
-		advd = true;
+		hide = true;
 	};
 	classFileOverride = _{String(nil);
 		name = 'Override Class File';
 		desc = 'Override class theme for interface styling.';
-		advd = true;
+		hide = true;
 	};
 },  --------------------------------------------------------------------------------------------------------
 function(self, key) return (rawget(self, key) or {})[1] end))

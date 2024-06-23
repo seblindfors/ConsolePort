@@ -61,9 +61,7 @@ CPAPI.Atlas = {
 		['animations-mask-filigree-activate'] = { 1612, 774, 0, 1612/2048, 0, 774/1024, false, false };
 	};
 	[CPAPI.GetAsset([[Textures\Atlas\ClassAnimations.png]])] = {
-		['animations-activationgrid'] = { 1612, 774, 0.00048828125, 0.78759765625, 0.00048828125, 0.37841796875, false, false };
 		['animations-class-evoker'] = { 461, 461, 0.64013671875, 0.865234375, 0.37939453125, 0.6044921875, false, false };
-		['animations-particles'] = { 1308, 774, 0.00048828125, 0.63916015625, 0.37939453125, 0.75732421875, false, false };
 	};
 	[CPAPI.GetAsset([[Textures\Atlas\ClassAnimations2.png]])] = {
 		['animations-class-deathknight'] = { 461, 461, 0.50146484375, 0.7265625, 0.00048828125, 0.2255859375, false, false };
