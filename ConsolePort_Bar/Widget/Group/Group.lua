@@ -137,7 +137,6 @@ function CPGroupBar:OnLoad()
 	db:RegisterCallback('OnHintsFocus', self.OnHints, self, false)
 	db:RegisterCallback('OnHintsClear', self.OnHints, self, nil)
 	env:RegisterCallback('OnNewBindings', self.OnNewBindings, self)
-	env:RegisterCallback('OnOverlayGlow', self.OnOverlayGlow, self)
 	env:RegisterCallbacks(self.OnVariableChanged, self,
 		'Settings/disableDND',
 		'Settings/showMainIcons',
@@ -212,13 +211,6 @@ end
 
 function CPGroupBar:IsModifierActive(modifier)
 	return not not self.modifiers[modifier];
-end
-
-function CPGroupBar:OnOverlayGlow(state, button)
-	local ownedButton = self.buttons[button.id];
-	if ownedButton and ( ownedButton == button ) then
-		ownedButton:OnOverlayGlow(state)
-	end
 end
 
 function CPGroupBar:OnHints(state)

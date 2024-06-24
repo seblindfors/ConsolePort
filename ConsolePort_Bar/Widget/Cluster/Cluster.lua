@@ -245,12 +245,8 @@ function FlyoutButton:OnShowAll(showAll)
 	self:UpdateAlpha(self.AlphaState.AlwaysShow, showAll)
 end
 
-function FlyoutButton:OnShowOverlay()
-	self:UpdateAlpha(self.AlphaState.OverlayActive, true)
-end
-
-function FlyoutButton:OnHideOverlay()
-	self:UpdateAlpha(self.AlphaState.OverlayActive, false)
+function FlyoutButton:OnOverlayGlow(state)
+	self:UpdateAlpha(self.AlphaState.OverlayActive, state)
 end
 
 function FlyoutButton:OnMouseMotionFocus()
@@ -462,6 +458,14 @@ end
 
 function Button:GetOverlayColor()
 	return env:GetColorRGBA('procColor')
+end
+
+function Button:ShowOverlayGlow()
+	env.LIB.ShowOverlayGlow(self)
+end
+
+function Button:HideOverlayGlow()
+	env.LIB.HideOverlayGlow(self)
 end
 
 ---------------------------------------------------------------

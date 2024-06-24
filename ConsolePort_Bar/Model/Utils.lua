@@ -22,27 +22,11 @@ function UIHandler:PLAYER_REGEN_ENABLED()
 	env:TriggerEvent('OnCombatLockdown', false)
 end
 
-E = env -- debug
-
 ---------------------------------------------------------------
 -- Libs
 ---------------------------------------------------------------
 env.LIB = LibStub('ConsolePortActionButton')
 env.LAB = LibStub('LibActionButton-1.0')
-env.LBG = LibStub('LibButtonGlow-1.0')
-
-do -- LBG Hook
-	local ShowOverlayGlow, HideOverlayGlow = env.LBG.ShowOverlayGlow, env.LBG.HideOverlayGlow;
-	local OnOverlayGlow = GenerateClosure(env.TriggerEvent, env, 'OnOverlayGlow');
-	function env.LBG.ShowOverlayGlow(button)
-		OnOverlayGlow(true, button)
-		return ShowOverlayGlow(button)
-	end
-	function env.LBG.HideOverlayGlow(button)
-		OnOverlayGlow(false, button)
-		return HideOverlayGlow(button)
-	end
-end
 
 ---------------------------------------------------------------
 do -- Data handler
