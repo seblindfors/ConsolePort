@@ -15,6 +15,25 @@ db('Gamepad/Index/Icons', {
 		Left     = 'DPAD_LEFT';
 		Right    = 'DPAD_RIGHT';
 	};
+	N64 = {
+		Up       = 'N64_C_UP';
+		Down     = 'N64_C_DOWN';
+		Left     = 'N64_C_LEFT';
+		Right    = 'N64_C_RIGHT';
+		A        = 'N64_R_A';
+		B        = 'N64_BUTTON';
+		CUp      = 'N64_C_UP';
+		CDown    = 'N64_C_DOWN';
+		CLeft    = 'N64_C_LEFT';
+		CRight   = 'N64_C_RIGHT';
+		L        = 'N64_S_L';
+		R        = 'N64_S_R';
+		ZL       = 'N64_S_ZL';
+		ZR       = 'N64_BUTTON';
+		Start    = 'N64_BUTTON';
+		Snapshot = 'N64_BUTTON';
+		Home     = 'N64_BUTTON';
+	};
 	PlayStation = {
 		L1       = 'PS_S_L1';
 		L2       = 'PS_S_L2';
@@ -55,6 +74,7 @@ db('Gamepad/Index/Icons', {
 })
 
 db('Gamepad/Index/Splash', {
+	['Nintendo N64'] = 'N64';
 	['PlayStation 4'] = 'DS4';
 	['PlayStation 5'] = 'DS5';
 	['Steam Deck'] = 'Deck';
