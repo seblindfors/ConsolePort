@@ -245,12 +245,13 @@ CPAPI.RequestLoadQuestByID           = C_QuestLog      and C_QuestLog.RequestLoa
 CPAPI.SplitContainerItem             = C_Container     and C_Container.SplitContainerItem                or SplitContainerItem;
 CPAPI.UseContainerItem               = C_Container     and C_Container.UseContainerItem                  or UseContainerItem;
 
+CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;
+CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
+CPAPI.IsInLFGDungeon                 = IsInLFGDungeon     or nop;
 CPAPI.IsPartyLFG                     = IsPartyLFG         or nop;
 CPAPI.IsSpellOverlayed               = IsSpellOverlayed   or nop;
 CPAPI.IsXPUserDisabled               = IsXPUserDisabled   or nop;
 CPAPI.PlayerHasToy                   = PlayerHasToy       or nop;
-CPAPI.IsInLFGDungeon                 = IsInLFGDungeon     or nop;
-CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;
 
 -- Complex wrappers
 CPAPI.GetContainerItemInfo = function(...)

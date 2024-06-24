@@ -5,6 +5,7 @@ _ = function(i) i.sort = c() return i end;
 ---------------------------------------------------------------
 
 env.Toplevel = {
+	Art     = false;
 	Cluster = false;
 	Divider = false;
 	Group   = false;
@@ -425,6 +426,49 @@ Interface.Divider = Data.Interface {
 			desc = 'Transition time for opacity changes.';
 			note = 'Time in milliseconds for the opacity to change from one state to another.';
 			Data.Range(50, 25, 0, 500);
+		};
+		opacity = _(Type.Opacity : Implement {});
+		rescale = _(Type.Scale : Implement {});
+	};
+};
+
+Interface.Art = Data.Interface {
+	name = 'Art';
+	desc = 'Artwork for the interface.';
+	Data.Table {
+		type = {hide = true; Data.String('Art')};
+		pos = _(Type.SimplePoint : Implement {
+			desc = 'Position of the artwork.';
+			{
+				point    = 'BOTTOM';
+				relPoint = 'BOTTOM';
+				y        = 16;
+			};
+		});
+		width = _{
+			name = 'Width';
+			desc = 'Width of the artwork.';
+			Data.Number(768, 16);
+		};
+		height = _{
+			name = 'Height';
+			desc = 'Height of the artwork.';
+			Data.Number(192, 16);
+		};
+		style = _{
+			name = 'Style';
+			desc = 'Artwork style.';
+			Data.Select('Collage', env.Const.Art.Types());
+		};
+		flavor = _{
+			name = 'Flavor';
+			desc = 'Artwork flavor.';
+			Data.Select('Class', 'Class', unpack(env.Const.Art.Selection));
+		};
+		blend = _{
+			name = 'Blend Mode';
+			desc = 'Blend mode of the artwork.';
+			Data.Select('BLEND', env.Const.Art.Blend());
 		};
 		opacity = _(Type.Opacity : Implement {});
 		rescale = _(Type.Scale : Implement {});

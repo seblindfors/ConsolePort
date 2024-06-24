@@ -27,6 +27,7 @@ Model\Upgrade.lua
 Widget\Widget.lua
 Widget\Watch\Watch.xml
 Widget\Divider\Divider.xml
+Widget\Art\Art.xml
 Widget\Button\Button.xml
 Widget\Bar\Bar.xml
 Widget\Cluster\Cluster.xml

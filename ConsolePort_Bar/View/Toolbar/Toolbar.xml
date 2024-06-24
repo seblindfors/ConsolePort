@@ -78,33 +78,6 @@
 		</KeyValues>
 	</Texture>
 
-	<Frame name="CPCoverArtFrame" virtual="true">
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="CoverArt" atlas="Artifacts-Paladin-Header" useAtlasSize="true" scale="0.75">
-					<Anchors>
-						<Anchor point="CENTER" x="0" y="50"/>
-					</Anchors>
-				</Texture>
-				<Texture parentKey="CoverArtPulse" atlas="Artifacts-Paladin-Header" useAtlasSize="true" scale="0.75">
-					<Anchors>
-						<Anchor point="CENTER" x="0" y="50"/>
-					</Anchors>
-				</Texture>
-				<MaskTexture parentKey="CoverArtMask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\CoverArtLine.png"
-					vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE" scale="0.75">
-					<Size x="1024" y="128"/>
-					<Anchors>
-						<Anchor point="TOP" relativeKey="$parent.CoverArt" x="0" y="0"/>
-					</Anchors>
-					<MaskedTextures>
-						<MaskedTexture childKey="CoverArt"/>
-					</MaskedTextures>
-				</MaskTexture>
-			</Layer>
-		</Layers>
-	</Frame>
-
 	<Frame name="CPToolbarSixSliceFrame" virtual="true">
 		<Layers>
 			<Layer level="BACKGROUND">

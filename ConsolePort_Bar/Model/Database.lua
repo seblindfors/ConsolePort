@@ -434,3 +434,77 @@ env.Const.Cluster.ModDriver = (function(driver, ...)
 end)( {}, env.Const.Cluster.ModNames() )
 
 end -- Cluster information
+
+---------------------------------------------------------------
+do -- Artwork
+---------------------------------------------------------------
+env.Const.Art = {
+	Collage = { -- classFile = fileID, texCoordOffset
+		WARRIOR     = {1, 1};
+		PALADIN     = {1, 2};
+		DRUID       = {1, 3};
+		DEATHKNIGHT = {1, 4};
+		----------------------------
+		MAGE        = {2, 1};
+		EVOKER      = {2, 1};
+		HUNTER      = {2, 2};
+		ROGUE       = {2, 3};
+		WARLOCK     = {2, 4};
+		----------------------------
+		SHAMAN      = {3, 1};
+		PRIEST      = {3, 2};
+		DEMONHUNTER = {3, 3};
+		MONK        = {3, 4};
+		----------------------------
+		[258]       = {3, 2};
+	};
+	Artifact = { -- classFile = atlas, yOffset
+		DEATHKNIGHT = {'DeathKnightFrost', -20};
+		DEMONHUNTER = {'DemonHunter',      -20};
+		DRUID       = {'Druid',            -50};
+		EVOKER      = {'MageArcane',       -30};
+		HUNTER      = {'Hunter',             0};
+		MAGE        = {'MageArcane',       -30};
+		MONK        = {'Monk',             -30};
+		PALADIN     = {'Paladin',            0};
+		PRIEST      = {'Priest',           -20};
+		ROGUE       = {'Rogue',              0};
+		SHAMAN      = {'Shaman',           -20};
+		WARLOCK     = {'Warlock',          -10};
+		WARRIOR     = {'Warrior',           10};
+		----------------------------
+		[258]       = {'PriestShadow',     -20};
+	};
+};
+
+env.Const.Art.CollageAsset = env.GetAsset([[Covers\%s]]);
+env.Const.Art.ArtifactLine = 'Artifacts-%s-Header';
+env.Const.Art.ArtifactRune = 'Artifacts-%s-BG-rune';
+
+env.Const.Art.Types     = CPAPI.Enum('Collage', 'Artifact');
+env.Const.Art.Blend     = CPAPI.Enum('ADD', 'BLEND');
+env.Const.Art.Selection = {};
+env.Const.Art.Flavors   = {};
+
+local localeClassNames = {};
+for i = 1, 20 do
+	local class, classFile = GetClassInfo(i);
+	if classFile then
+		localeClassNames[classFile] = class;
+	end
+end
+local function GetLocaleName(classFile)
+	if (tonumber(classFile)) then
+		return select(2, CPAPI.GetSpecializationInfoByID(tonumber(classFile)))
+	end
+	return localeClassNames[classFile];
+end
+for class in env.db.table.spairs(env.Const.Art.Collage) do
+	local flavorID = GetLocaleName(class);
+	if flavorID then
+		tinsert(env.Const.Art.Selection, flavorID);
+		env.Const.Art.Flavors[flavorID] = class;
+	end
+end
+
+end -- Artwork

@@ -16,7 +16,7 @@
 		</KeyValues>
 	</Texture>
 
-	<Frame name="CPDivider" virtual="true" mixin="CPDivider">
+	<Frame name="CPDivider" virtual="true" mixin="CPDivider" useParentLevel="true">
 		<Size x="10" y="10"/>
 		<Scripts>
 			<OnLoad method="OnLoad"/>

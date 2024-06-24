@@ -1,0 +1,65 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+	<Script file="Art.lua"/>
+
+	<Frame name="CPArtifactArtTemplate" virtual="true" useParentLevel="true" setAllPoints="true">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Lines" atlas="Artifacts-Paladin-Header" useAtlasSize="true">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Rune" parentArray="Runes">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="Runes">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="Runes">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="LinesMask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\CoverArtLine.png"
+					vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOP" relativeKey="$parent.Lines" x="0" y="0"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Lines"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<MaskTexture parentKey="RunesMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask64_Reverse"
+					vWrapMode="CLAMPTOWHITE" hWrapMode="CLAMPTOWHITE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Rune" x="-8" y="8"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Rune" x="8" y="-8"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Lines"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPCollageArtTemplate" virtual="true" useParentLevel="true" setAllPoints="true">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Cover" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPCoverArt" virtual="true" mixin="CPCoverArt" useParentLevel="true">
+		<Scripts>
+			<OnAttributeChanged method="OnAttributeChanged"/>
+		</Scripts>
+	</Frame>
+
+</Ui>
