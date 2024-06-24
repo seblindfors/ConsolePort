@@ -128,22 +128,10 @@ function Lib.SkinUtility.SkinChargeCooldown(self, skin, reset)
 end
 
 do -- Lib.SkinUtility.SkinOverlayGlow
-	local function MockOverlay(self, onShow, onHide)
-		local IsPlaying, Stop = function() return true end, nop;
-		local overlay = {
-			animIn  = { IsPlaying = IsPlaying, Stop = Stop, Play = GenerateClosure(onShow, self) };
-			animOut = { IsPlaying = IsPlaying, Stop = Stop, Play = GenerateClosure(onHide, self) };
-		};
-		return overlay;
-	end
-
 	function Lib.SkinUtility.SkinOverlayGlow(self, onShow, onHide)
 		if self.__LBGoverlaySkin then return end;
-		if self:IsVisible() then
-			self.__LBGoverlay = MockOverlay(self, onShow, onHide)
-		end
-		self:HookScript('OnHide', function(self) self.__LBGoverlay = nil end)
-		self:HookScript('OnShow', function(self) self.__LBGoverlay = MockOverlay(self, onShow, onHide) end)
+		self.ShowOverlayGlow = onShow;
+		self.HideOverlayGlow = onHide;
 		self.__LBGoverlaySkin = true;
 	end
 end -- Lib.SkinUtility.SkinOverlayGlow
@@ -419,11 +407,11 @@ end
 end -- LBG hook
 
 ---------------------------------------------------------------
-do -- Round LBG replacement
+do Lib.RoundGlow = {}; -- Round LBG replacement
 ---------------------------------------------------------------
 
-Lib.unusedOverlays = Lib.unusedOverlays or {}
-Lib.numOverlays = Lib.numOverlays or 0
+Lib.RoundGlow.unusedOverlays = Lib.RoundGlow.unusedOverlays or {}
+Lib.RoundGlow.numOverlays = Lib.RoundGlow.numOverlays or 0
 
 local tinsert, tremove, tostring = table.insert, table.remove, tostring
 local AnimateTexCoords = AnimateTexCoords
@@ -432,7 +420,7 @@ local function OverlayGlowAnimOutFinished(animGroup)
 	local overlay = animGroup:GetParent()
 	local frame = overlay:GetParent()
 	overlay:Hide()
-	tinsert(Lib.unusedOverlays, overlay)
+	tinsert(Lib.RoundGlow.unusedOverlays, overlay)
 	frame.__LBGoverlay = nil
 end
 
@@ -509,10 +497,10 @@ local function AnimIn_OnFinished(group)
 end
 
 local function CreateOverlayGlow()
-	Lib.numOverlays = Lib.numOverlays + 1
+	Lib.RoundGlow.numOverlays = Lib.RoundGlow.numOverlays + 1
 
 	-- create frame and textures
-	local name = 'CPButtonGlowOverlay' .. tostring(Lib.numOverlays)
+	local name = 'CPButtonGlowOverlay' .. tostring(Lib.RoundGlow.numOverlays)
 	local overlay = CreateFrame('Frame', name, UIParent)
 
 	-- spark
@@ -578,14 +566,14 @@ local function CreateOverlayGlow()
 end
 
 local function GetOverlayGlow()
-	local overlay = tremove(Lib.unusedOverlays)
+	local overlay = tremove(Lib.RoundGlow.unusedOverlays)
 	if not overlay then
 		overlay = CreateOverlayGlow()
 	end
 	return overlay
 end
 
-function Lib.ShowOverlayGlow(frame)
+function Lib.RoundGlow.ShowOverlayGlow(frame)
 	if frame.__LBGoverlay then
 		if frame.__LBGoverlay.animOut:IsPlaying() then
 			frame.__LBGoverlay.animOut:Stop()
@@ -609,7 +597,7 @@ function Lib.ShowOverlayGlow(frame)
 	end
 end
 
-function Lib.HideOverlayGlow(frame)
+function Lib.RoundGlow.HideOverlayGlow(frame)
 	if frame.__LBGoverlay then
 		if frame.__LBGoverlay.animIn:IsPlaying() then
 			frame.__LBGoverlay.animIn:Stop()

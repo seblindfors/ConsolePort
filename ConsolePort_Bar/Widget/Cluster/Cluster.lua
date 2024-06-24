@@ -461,11 +461,11 @@ function Button:GetOverlayColor()
 end
 
 function Button:ShowOverlayGlow()
-	env.LIB.ShowOverlayGlow(self)
+	env.LIB.RoundGlow.ShowOverlayGlow(self)
 end
 
 function Button:HideOverlayGlow()
-	env.LIB.HideOverlayGlow(self)
+	env.LIB.RoundGlow.HideOverlayGlow(self)
 end
 
 ---------------------------------------------------------------

@@ -952,6 +952,8 @@ function Button:OnLoad()
 	self:Initialize()
 	self:SetScript('OnHide', self.OnClear)
 	self:SetScript('OnShow', self.UpdateLocal)
+	self:SetRotation(self.rotation or 0)
+	ActionButton.Skin.UtilityRingButton(self)
 end
 
 function Button:OnFocus()
@@ -986,5 +988,11 @@ function Button:UpdateLocal()
 	ActionButton.Skin.UtilityRingButton(self)
 	RunNextFrame(function()
 		self:GetParent():SetSliceText(self:GetID(), self.Name:GetText())
+		local spellId = self:GetSpellId()
+		if spellId and CPAPI.IsSpellOverlayed(spellId) then
+			self:ShowOverlayGlow()
+		else
+			self:HideOverlayGlow()
+		end
 	end)
 end
