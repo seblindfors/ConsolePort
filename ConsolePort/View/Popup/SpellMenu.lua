@@ -284,7 +284,6 @@ end
 function SpellMenu:ReportSetBindingToKeyChord(bindingID)
 	if self.keyChord then
 		local keyChord = table.concat(self.keyChord)
-		print(keyChord, bindingID)
 		SetBinding(keyChord, bindingID)
 		SaveBindings(GetCurrentBindingSet())
 		self.keyChord = nil;

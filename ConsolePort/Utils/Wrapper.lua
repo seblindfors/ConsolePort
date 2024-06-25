@@ -247,6 +247,7 @@ CPAPI.UseContainerItem               = C_Container     and C_Container.UseContai
 
 CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;
 CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
+CPAPI.IsInLFDBattlefield             = IsInLFDBattlefield or nop;
 CPAPI.IsInLFGDungeon                 = IsInLFGDungeon     or nop;
 CPAPI.IsPartyLFG                     = IsPartyLFG         or nop;
 CPAPI.IsSpellOverlayed               = IsSpellOverlayed   or nop;
