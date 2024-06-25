@@ -17,10 +17,10 @@ end;
 env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 -- Button definition:
----@param text  string The text displayed on the button.
----@param icon  string The path to the icon texture.
----@param ref   Button The reference to the button frame.
----@param show  string The condition to show the button.
+---@param text  string   The text displayed on the button.
+---@param icon  string   The path to the icon texture.
+---@param ref   Button   Optional reference to the button to proxy clicks to.
+---@param click function Optional function to call when the button is clicked.
 
 
 ---------------------------------------------------------------
@@ -251,14 +251,69 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Teleport ]] if not CPAPI.IsClassicEraVersion then _{
+--[[ Leave Scenarios ]] do _{
 ---------------------------------------------------------------
-	img   = ICON('Spell_Shadow_Teleport');
-	show  = 'return PlayerInGroup()';
-	click = function() LFGTeleport(IsInLFGDungeon()) end;
+	states = {
+		{
+			text      = TAXI_CANCEL;
+			subtitle  = TAXI_CANCEL_DESCRIPTION;
+			predicate = GenerateFlatClosure(UnitOnTaxi, 'player');
+			command   = TaxiRequestEarlyLanding;
+			image     = [[Interface\Vehicles\UI-Vehicles-Button-Exit-Up]];
+		};
+		{
+			text      = BINDING_NAME_VEHICLEEXIT;
+			predicate = CanExitVehicle;
+			command   = VehicleExit;
+			image     = [[Interface\Vehicles\UI-Vehicles-Button-Exit-Up]];
+		};
+		{
+			text      = TELEPORT_OUT_OF_DUNGEON;
+			predicate = IsInLFGDungeon;
+			command   = GenerateFlatClosure(LFGTeleport, true);
+			image     = ICON('Spell_Shadow_Teleport');
+		};
+		{
+			text      = TELEPORT_TO_DUNGEON;
+			predicate = IsPartyLFG;
+			command   = GenerateFlatClosure(LFGTeleport, false);
+			image     = ICON('Spell_Shadow_Teleport');
+		};
+		{
+			text      = LEAVE;
+			predicate = function() return true end;
+			command   = nop;
+			image     = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
+		};
+	};
+	OnLoad = function(self)
+		CPAPI.RegisterFrameForEvents(self, {
+			'UPDATE_BONUS_ACTIONBAR';
+			'UPDATE_MULTI_CAST_ACTIONBAR';
+			'UNIT_ENTERED_VEHICLE';
+			'UNIT_EXITED_VEHICLE';
+			'VEHICLE_UPDATE';
+		})
+		self.click = function()
+			for _, state in ipairs(self.states) do
+				if state.predicate() then
+					return state.command()
+				end
+			end
+		end
+	end;
 	OnShow = function(self)
-		local isLFG, inDungeon = IsPartyLFG(), IsInLFGDungeon()
-		self.text = (inDungeon and TELEPORT_OUT_OF_DUNGEON or isLFG and TELEPORT_TO_DUNGEON or '|cFF757575'..TELEPORT_TO_DUNGEON)
+		self:OnEvent()
+	end;
+	OnEvent = function(self)
+		for _, state in ipairs(self.states) do
+			if state.predicate() then
+				self.text     = state.text;
+				self.subtitle = state.subtitle;
+				self.img      = state.image;
+				return self.icon:SetTexture(self.img)
+			end
+		end
 	end;
 } end;
 
@@ -267,9 +322,8 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 ---------------------------------------------------------------
 	text  = PARTY;
 	img   = [[Interface\LFGFRAME\UI-LFG-PORTRAIT]];
-	show  = 'return PlayerInGroup()';
 	click = function()
-		if CPAPI.IsPartyLFG() or CPAPI.IsInLFGDungeon() then
+		if CPAPI.IsPartyLFG() or CPAPI.IsInLFGDungeon() or CPAPI.IsInLFDBattlefield() then
 			ConfirmOrLeaveLFGParty()
 		else
 			CPAPI.LeaveParty()
