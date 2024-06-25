@@ -6,7 +6,10 @@ ConsolePort:AddVariables({
 	gameMenuScale = _{Data.Range(1, 0.05, 0.5, 2);
 		name = 'Scale';
 		desc = 'Scale of the game menu and radial companion.';
-		advd = true;
+	};
+	gameMenuFontSize = _{Data.Range(12, 1, 8, 20);
+		name = 'Font Size';
+		desc = 'Font size of the ring slice buttons.';
 	};
 	gameMenuCustomSet = _{Data.Bool(false);
 		name = 'Use Custom Button Set';

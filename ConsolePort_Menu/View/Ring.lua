@@ -185,6 +185,7 @@ end
 
 function Selector:OnSizingChanged()
 	self:SetScale(db('gameMenuScale'))
+	self:SetSliceTextSize(db('gameMenuFontSize'))
 end
 
 function Selector:OnControlsChanged()
@@ -409,5 +410,6 @@ db:RegisterSafeCallbacks(Selector.OnControlsChanged, Selector,
 	'Settings/gameMenuSwitch'
 );
 db:RegisterSafeCallbacks(Selector.OnSizingChanged, Selector,
-	'Settings/gameMenuScale'
+	'Settings/gameMenuScale',
+	'Settings/gameMenuFontSize'
 );
