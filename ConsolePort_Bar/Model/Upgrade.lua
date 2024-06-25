@@ -76,7 +76,7 @@ function env.ConvertV1Layout(v1)
 		-- also, remove modifier buttons from the layout, because they were not visible in V1.
 		if data.point and not db.Gamepad.Index.Modifier.Owner[buttonID] then
 			-- dir = <hide> -> showFlyouts = false;
-			local showFlyouts = not V2ValidateDir[data.dir];
+			local showFlyouts = not not V2ValidateDir[data.dir];
 			-- dir = lowercased -> dir = uppercased;
 			local dir  = data.dir and V2ValidateDir[data.dir] or 'DOWN';
 			-- unchanged
