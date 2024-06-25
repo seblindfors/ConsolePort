@@ -219,10 +219,6 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Swipe Color';
 		desc = 'Color of the cooldown swipe effect on buttons.';
 	};
-	procColor = _{Data.Color(classColor);
-		name = 'Spell Proc Color';
-		desc = 'Color of the spell proc effect.';
-	};
 	borderColor = _{Data.Color(WHITE_FONT_COLOR);
 		name = 'Border Vertex Color';
 		desc = 'Color of the vertices on the border of buttons.';

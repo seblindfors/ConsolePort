@@ -4,13 +4,6 @@
 
 	<Frame name="CPGroupBar" virtual="true" clampedToScreen="true" movable="true" mixin="CPGroupBar" inherits="CPActionBar">
 		<Size x="400" y="120"/>
-		<Frames>
-			<Frame parentKey="ProcAnimation" inherits="CPFlashableFiligreeTemplate">
-				<Anchors>
-					<Anchor point="CENTER" y="30"/>
-				</Anchors>
-			</Frame>
-		</Frames>
 	</Frame>
 
 </Ui>

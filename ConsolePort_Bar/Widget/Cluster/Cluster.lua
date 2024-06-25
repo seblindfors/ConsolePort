@@ -478,11 +478,8 @@ function CPClusterBar:OnLoad()
 	env:RegisterSafeCallback('OnNewBindings', self.OnNewBindings, self)
 	env:RegisterSafeCallback('Settings/clusterFullStateModifier', self.OnDriverChanged, self)
 	db:RegisterSafeCallback('OnModifierChanged', self.OnDriverChanged, self)
-	self:OnDriverChanged()
 
-	env:RegisterCallback('Settings/procColor', self.OnVariableChanged, self)
-	self.ProcAnimation:SetSize(200, 200)
-	self.ProcAnimation:SetAnimationSpeedMultiplier(0.5)
+	self:OnDriverChanged()
 	self:RegisterPageResponse([[
 		local newstate = ...;
 		self:ChildUpdate('actionpage', newstate)
@@ -540,10 +537,6 @@ function CPClusterBar:OnRelease()
 			env:Release(cluster)
 		end
 	end)
-end
-
-function CPClusterBar:OnVariableChanged()
-	self.ProcAnimation:SetVertexColor(env:GetColorRGBA('procColor'))
 end
 
 function CPClusterBar:GetSnapSize()

@@ -181,10 +181,6 @@ do -- Lib.Skin.ColorSwatchProc
 			overlay:Stop()
 			overlay:Play()
 		end
-		local parentProcAnim = self:GetParent().ProcAnimation;
-		if parentProcAnim then
-			parentProcAnim:Play()
-		end
 		if self.OnOverlayGlow then
 			self:OnOverlayGlow(true, overlay, swatch)
 		end
@@ -590,10 +586,6 @@ function Lib.RoundGlow.ShowOverlayGlow(frame)
 		overlay:SetPoint('BOTTOMRIGHT', frame, 'BOTTOMRIGHT', frameWidth * 0.2, -frameHeight * 0.2)
 		overlay.animIn:Play()
 		frame.__LBGoverlay = overlay
-	end
-	local parentProcAnim = frame:GetParent().ProcAnimation;
-	if parentProcAnim then
-		parentProcAnim:Play()
 	end
 end
 
