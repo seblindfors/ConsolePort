@@ -89,7 +89,7 @@ function env.UIHandler:HideBlizzard()
 		MultiCastActionBarFrame  = false;
 		PetActionBar             = true;
 		PossessActionBar         = true;
-		StanceBar                = true;
+	--	StanceBar                = true;
 		StatusTrackingBarManager = false;
 		OverrideActionBar        = true;
 	}) do
