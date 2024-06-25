@@ -4,6 +4,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 	'GAME_PAD_CONFIGS_CHANGED';
 	'GAME_PAD_CONNECTED';
 	'GAME_PAD_DISCONNECTED';
+	'PLAYER_ENTERING_WORLD';
 	(CPAPI.IsRetailVersion or CPAPI.IsClassicVersion) and 'GAME_PAD_POWER_CHANGED';
 }, {
 	Modsims = {'ALT', 'CTRL', 'SHIFT'};
@@ -98,6 +99,10 @@ end
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
+function GamepadAPI:PLAYER_ENTERING_WORLD()
+	self.IsDispatchReady = true;
+end
+
 function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
 	CPAPI.Log('Your gamepad configuration has changed.')
 end
@@ -118,7 +123,7 @@ end
 function GamepadAPI:UPDATE_BINDINGS()
 	db:SetCVar('GamePadStickAxisButtons', db('bindingAllowSticks'))
 	self.updateBindingDispatching = true;
-	if self.IsMapped then
+	if self.IsMapped and self.IsDispatchReady then
 		RunNextFrame(GamepadAPI.OnNewBindings)
 	else
 		GamepadAPI.OnNewBindings()
