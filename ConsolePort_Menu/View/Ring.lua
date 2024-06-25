@@ -49,9 +49,10 @@ Selector.Configuration = {
 ---------------------------------------------------------------
 -- Secure environment
 ---------------------------------------------------------------
-Selector:RegisterForClicks('AnyDown')
+Selector:RegisterForClicks('AnyUp', 'AnyDown')
 Selector:SetAttribute('numbuttons', 0)
 Selector:SetAttribute(CPAPI.ActionTypePress, 'macro')
+Selector:SetAttribute(CPAPI.ActionPressAndHold, true)
 Selector:SetAttribute('macrotext', EVIL_MACRO_TEXT)
 Selector:SetFrameRef('trigger', Selector.Trigger)
 Selector:Run([[
@@ -78,6 +79,9 @@ Selector.PrivateEnv = {
 		end
 	]];
 	OnTrigger = [[
+		if selector:IsVisible() then
+			return selector::ClearAndHide(true)
+		end
 		selector::EnableRing()
 		for binding, command in pairs(COMMANDS) do
 			selector:SetBindingClick(true, binding, selector:GetName(), command)

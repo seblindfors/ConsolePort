@@ -18,6 +18,7 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		RaidCursorToggle  = click 'RaidCursorToggle';
 		UICursorToggle    = click 'Cursor';
 		UtilityRing       = click 'UtilityToggle';
+		MenuRing          = click 'MenuTrigger';
 		--FocusButton     = click 'FocusButton';
 	};
 end
@@ -126,6 +127,16 @@ do local function hold(binding) return ('%s (Hold)'):format(binding) end;
 					self:SetTexture([[Interface\ICONS\INV_Box_PetCarrier_01]])
 				end
 			end;
+		};
+		{	binding = Bindings.Custom.MenuRing;
+			name    = 'Menu Ring';
+			desc    = [[
+				A ring menu that gathers common panels and frequent actions
+				in one place for quick access.
+
+				The ring can also be accessed from the game menu without a
+				separate binding, by switching page.
+			]];
 		};
 		---------------------------------------------------------------
 		-- Pager

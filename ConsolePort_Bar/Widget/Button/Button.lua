@@ -4,7 +4,7 @@ local _, env, db = ...; db = env.db;
 ---------------------------------------------------------------
 
 env:RegisterCallback('Settings/showCooldownText', function(_, show)
-	SetCVar('countdownForCooldowns', show)
+	db:SetCVar('countdownForCooldowns', show)
 end)
 
 ---------------------------------------------------------------

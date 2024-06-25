@@ -150,6 +150,7 @@ function CPPieMenuMixin:SetSliceTextSize(size)
 	for slice in self.SlicePool:EnumerateActive() do
 		slice:SetTextSize(size)
 	end
+	self.ActiveSlice:SetTextSize(size)
 end
 
 function CPPieMenuMixin:SetActiveSliceText(text)
