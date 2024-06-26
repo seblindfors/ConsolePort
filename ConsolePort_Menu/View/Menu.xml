@@ -69,13 +69,13 @@
 		</Layers>
 	</Frame>
 
-	<PieMenu name="ConsolePortMenuRing" parent="UIParent" registerForClicks="AnyUp" inherits="ConsolePortSecurePie, ConsolePortSlicedPie" hidden="true">
+	<PieMenu name="ConsolePortMenuRing" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie, ConsolePortSlicedPie" hidden="true">
 		<Size x="500" y="500"/>
 		<Anchors>
 			<Anchor point="CENTER"/>
 		</Anchors>
 		<Frames>
-			<Button parentKey="Trigger" name="ConsolePortMenuTrigger" inherits="SecureHandlerBaseTemplate">
+			<Button parentKey="Trigger" name="ConsolePortMenuTrigger" registerForClicks="AnyDown" inherits="SecureHandlerBaseTemplate">
 				<Scripts>
 					<OnLoad>self:SetParent(GameMenuFrame)</OnLoad>
 				</Scripts>

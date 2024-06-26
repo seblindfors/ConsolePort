@@ -49,7 +49,6 @@ Selector.Configuration = {
 ---------------------------------------------------------------
 -- Secure environment
 ---------------------------------------------------------------
-Selector:RegisterForClicks('AnyUp', 'AnyDown')
 Selector:SetAttribute('numbuttons', 0)
 Selector:SetAttribute(CPAPI.ActionTypePress, 'macro')
 Selector:SetAttribute(CPAPI.ActionPressAndHold, true)
@@ -66,12 +65,14 @@ Selector:Run([[
 Selector.PrivateEnv = {
 	-- Trigger
 	OnGameMenuShow = [[
+		isMenuOpen = true;
 		selector::ClearAndHide(true)
 		for binding, action in pairs(TRIGGERS) do
 			selector:SetBinding(true, binding, action)
 		end
 	]];
 	OnGameMenuHide = [[
+		isMenuOpen = nil;
 		if not selector::IsButtonHeld(SWITCH) then
 			selector::ClearAndHide(true)
 		else
@@ -79,10 +80,13 @@ Selector.PrivateEnv = {
 		end
 	]];
 	OnTrigger = [[
-		if selector:IsVisible() then
+		if selector:IsVisible() or isMenuOpen then
 			return selector::ClearAndHide(true)
 		end
 		selector::EnableRing()
+		for binding, action in pairs(TRIGGERS) do
+			selector:SetBinding(true, binding, action)
+		end
 		for binding, command in pairs(COMMANDS) do
 			selector:SetBindingClick(true, binding, selector:GetName(), command)
 		end
