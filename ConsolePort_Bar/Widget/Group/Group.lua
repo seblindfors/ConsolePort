@@ -206,6 +206,7 @@ function CPGroupBar:OnDriverChanged()
 	self:RegisterModifierDriver(driver, [[
 		self:SetAttribute('state', newstate)
 		control:ChildUpdate('state', newstate)
+		cursor::OwnerChanged(self:GetName())
 	]])
 end
 

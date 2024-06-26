@@ -305,7 +305,7 @@ do local ModReplacements = {
 		M2 = 'CTRL-';
 		M3 = 'ALT-';
 	};
-	function env.ConvertDriver(driver)
+	function env.ConvertDriver(driver) driver = driver or '';
 		for key, rep in pairs(ModReplacements) do
 			driver = driver:gsub(key, rep)
 		end

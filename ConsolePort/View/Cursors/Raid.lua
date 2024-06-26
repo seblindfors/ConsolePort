@@ -76,10 +76,20 @@ Cursor:CreateEnvironment({
 					NODES[node] = true;
 				end
 			elseif action and tonumber(action) then
-				if ( ACTIONS[node] == nil ) then
-					ACTIONS[node] = unit or false;
+				local owner = node:GetParent():GetName() or 1;
+				self::AddOwner(owner)
+				if ( ACTIONS[owner][node] == nil ) then
+					ACTIONS[owner][node] = unit or false;
 				end
 			end
+		end
+	]];
+	AddOwner = [[
+		local owner = ...;
+		if not ACTIONS[owner] then
+			ACTIONS[owner] = newtable();
+			HELPFUL[owner] = newtable();
+			HARMFUL[owner] = newtable();
 		end
 	]];
 	UpdateNodes = [[
@@ -98,19 +108,31 @@ Cursor:CreateEnvironment({
 			self:SetBindingClick(self:GetAttribute('priorityoverride'), modifier..keyID, self, buttonID)
 		end
 	]];
-	RefreshActions = [[
-		HELPFUL = wipe(HELPFUL)
-		HARMFUL = wipe(HARMFUL)
+	RefreshOwners = [[
+		for owner in pairs(ACTIONS) do
+			self::RefreshOwner(owner)
+		end
+	]];
+	RefreshOwner = [[
+		local owner = ...;
+		local buttons, helpful, harmful = ACTIONS[owner], HELPFUL[owner], HARMFUL[owner];
 
-		for actionButton in pairs(ACTIONS) do
+		if not buttons then
+			return print('Raid cursor found no buttons for owner', owner)
+		end
+
+		wipe(helpful)
+		wipe(harmful)
+
+		for actionButton in pairs(buttons) do
 			local action = actionButton:GetAttribute('action')
 			if self::IsHelpfulAction(action) then
-				HELPFUL[actionButton] = true;
+				helpful[actionButton] = true;
 			elseif self::IsHarmfulAction(action) then
-				HARMFUL[actionButton] = true;
+				harmful[actionButton] = true;
 			else
-				HELPFUL[actionButton] = true;
-				HARMFUL[actionButton] = true;
+				helpful[actionButton] = true;
+				harmful[actionButton] = true;
 			end
 		end
 	]];
@@ -119,18 +141,21 @@ Cursor:CreateEnvironment({
 		Focus:SetAttribute('unit', nil)
 		Target:SetAttribute('unit', nil)
 	]];
+	-- TODO: PrepareReroute and RerouteUnit can be optimized to only refresh owner when OwnerChanged is called.
 	PrepareReroute = [[
 		local reroute = self:GetAttribute('useroute')
 		if reroute then
-			for action, unit in pairs(ACTIONS) do
-				action:SetAttribute('unit', unit or nil)
-				if action:GetAttribute('backup-checkselfcast') ~= nil then
-					action:SetAttribute('checkselfcast', action:GetAttribute('backup-checkselfcast'))
-					action:SetAttribute('backup-checkselfcast', nil)
-				end
-				if action:GetAttribute('backup-checkfocuscast') ~= nil then
-					action:SetAttribute('checkfocuscast', action:GetAttribute('backup-checkfocuscast'))
-					action:SetAttribute('backup-checkfocuscast', nil)
+			for _, buttons in pairs(ACTIONS) do
+				for action, unit in pairs(buttons) do
+					action:SetAttribute('unit', unit or nil)
+					if action:GetAttribute('backup-checkselfcast') ~= nil then
+						action:SetAttribute('checkselfcast', action:GetAttribute('backup-checkselfcast'))
+						action:SetAttribute('backup-checkselfcast', nil)
+					end
+					if action:GetAttribute('backup-checkfocuscast') ~= nil then
+						action:SetAttribute('checkfocuscast', action:GetAttribute('backup-checkfocuscast'))
+						action:SetAttribute('backup-checkfocuscast', nil)
+					end
 				end
 			end
 		end
@@ -147,12 +172,14 @@ Cursor:CreateEnvironment({
 			actionset = HELPFUL;
 		end
 		if actionset then
-			for action in pairs(actionset) do
-				action:SetAttribute('unit', unit)
-				action:SetAttribute('backup-checkselfcast', action:GetAttribute('checkselfcast'))
-				action:SetAttribute('backup-checkfocuscast', action:GetAttribute('checkfocuscast'))
-				action:SetAttribute('checkselfcast', nil)
-				action:SetAttribute('checkfocuscast', nil)
+			for _, buttons in pairs(actionset) do
+				for action in pairs(buttons) do
+					action:SetAttribute('unit', unit)
+					action:SetAttribute('backup-checkselfcast', action:GetAttribute('checkselfcast'))
+					action:SetAttribute('backup-checkfocuscast', action:GetAttribute('checkfocuscast'))
+					action:SetAttribute('checkselfcast', nil)
+					action:SetAttribute('checkfocuscast', nil)
+				end
 			end
 		end
 	]];
@@ -185,7 +212,7 @@ Cursor:CreateEnvironment({
 		if enabled then
 			self::SetBaseBindings(self:GetAttribute('navmodifier'))
 			self::UpdateNodes()
-			self::RefreshActions()
+			self::RefreshOwners()
 			self::SelectNewNode(0)
 			self:Show()
 		else
@@ -207,7 +234,14 @@ Cursor:CreateEnvironment({
 	]];
 	ActionPageChanged = [[
 		if enabled then
-			self::RefreshActions()
+			self::RefreshOwners()
+			self::SelectNewNode(0)
+		end
+	]];
+	OwnerChanged = [[
+		local owner = ...;
+		if enabled then
+			self::RefreshOwner(owner)
 			self::SelectNewNode(0)
 		end
 	]];
