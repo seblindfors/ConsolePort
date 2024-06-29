@@ -341,6 +341,26 @@ function Selector:RemoveHint(key)
 	db.UIHandle:RemoveHint(key)
 end
 
+function Selector:SetSliceText(...)
+	CPPieMenuMixin.SetSliceText(self, ...)
+	self:UpdateExtents()
+end
+
+Selector.UpdateExtents = CPAPI.Debounce(function(self)
+	-- HACK: Calculate extents of the text lines so that the
+	-- background can be resized to fit the text, forward to the
+	-- art frame container.
+	local fL, fR = self:GetLeft(), self:GetRight();
+	for slice in self.SlicePool:EnumerateActive() do
+		local rect = slice.Line2;
+		local sL, sR = rect:GetLeft(), rect:GetRight();
+		fL, fR = math.min(fL, sL), math.max(fR, sR)
+	end
+	local extent = (fR - fL) / 2;
+	ConsolePortMenu.Owners[self].tlX = -extent;
+	ConsolePortMenu.Owners[self].brX =  extent;
+end, Selector)
+
 ---------------------------------------------------------------
 -- Buttons
 ---------------------------------------------------------------
