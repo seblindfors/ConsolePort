@@ -54,19 +54,23 @@ end
 
 function DynamicWidget:SetDynamicProps(props)
     if self.props then
-        self:ClearDynamicCallbacks(self.props, NESTING_LEVEL)
+        self:ClearDynamicCallbacks(self.props, self:GetPropNestingLevel())
         self.props = nil;
     end
     if self.SetCommonProps then
         self:SetCommonProps(props)
     end
     self.props = props;
-    self:SetDynamicCallbacks(props, NESTING_LEVEL)
+    self:SetDynamicCallbacks(props, self:GetPropNestingLevel())
 end
 
 function DynamicWidget:OnPropsChanged(key, value)
     -- Implement in child
     CPAPI.Log('Config changed '..tostring(key)..' to '..tostring(value)..' but it was not handled.');
+end
+
+function DynamicWidget:GetPropNestingLevel()
+    return NESTING_LEVEL;
 end
 
 ---------------------------------------------------------------

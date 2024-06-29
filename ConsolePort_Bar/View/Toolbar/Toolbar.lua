@@ -384,6 +384,7 @@ function CPToolbar:OnLoad()
 		'Settings/xpBarColor'
 	);
 	self.snapToPixels = 16;
+	self.TotemBar = not CPAPI.IsRetailVersion and MultiCastActionBarFrame;
 	self:RegisterEvent('CURSOR_CHANGED')
 	self.PopoutContainer:SetParent(self:GetParent())
 	self.PopoutContainer:SetFrameLevel(self:GetFrameLevel() + 10)
@@ -441,6 +442,16 @@ function CPToolbar:SetTintColor(r, g, b, a)
 	self.PopoutContainer.PopoutFrame.Gradient:SetGradient(env:GetColorGradient(r, g, b, a))
 end
 
+function CPToolbar:SetTotemBarProps(props)
+	if not self.TotemBar or not props.enabled then return end;
+	if not self.TotemBar.SetDynamicProps then
+		Mixin(self.TotemBar, env.ConfigurableWidgetMixin)
+		self.TotemBar:SetScript('OnUpdate', nil)
+		self.TotemBar.OnPropsUpdated = function(self) self:SetDynamicProps(self.props) end;
+	end
+	self.TotemBar:SetDynamicProps(props)
+end
+
 function CPToolbar:OnDataLoaded()
 	self:SetTintColor(env:GetColorRGBA('tintColor'))
 	self:ToggleXPBar(env('enableXPBar'))
@@ -452,6 +463,7 @@ function CPToolbar:SetProps(props)
 	self:OnDataLoaded()
 	self:OnSizeChanged()
 	self:Show()
+	self:SetTotemBarProps(props.totem)
 	self.PopoutContainer.PopoutFrame:SetProps(props.menu)
 end
 

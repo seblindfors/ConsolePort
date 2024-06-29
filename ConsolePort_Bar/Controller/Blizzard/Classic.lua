@@ -86,7 +86,7 @@ function env.UIHandler:HideBlizzard()
 		MainMenuBarArtFrameBackground  = {};
 		StanceBarFrame                 = {true,        true};
 		PossessBarFrame                = {false,       true};
-		MultiCastActionBarFrame        = {false,       true};
+	--	MultiCastActionBarFrame        = {false,       true};
 		PetActionBarFrame              = {true,        true};
 		MainMenuBarPerformanceBarFrame = {false,       false,    true};
 		MainMenuExpBar                 = {false,       false,    true};

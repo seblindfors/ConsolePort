@@ -86,7 +86,7 @@ function env.UIHandler:HideBlizzard()
 	--	BagsBar                  = true;
 	--	MicroButtonAndBagsBar    = false;
 	--	MicroMenu                = true;
-		MultiCastActionBarFrame  = false;
+	--	MultiCastActionBarFrame  = false;
 		PetActionBar             = true;
 		PossessActionBar         = true;
 	--	StanceBar                = true;

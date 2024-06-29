@@ -374,6 +374,26 @@ Interface.Toolbar = Data.Interface {
 				};
 			};
 		};
+		totem = _{
+			name = 'Multicast Bar';
+			desc = 'Configure the multi-cast (totem) bar.';
+			note = CPAPI.IsRetailVersion and 'This feature is only available in Classic.';
+			Data.Table {
+				enabled = _{
+					name = 'Enable';
+					desc = 'Enable multi-cast bar ownership.';
+					Data.Bool(true);
+				};
+				pos = _(Type.SimplePoint : Implement {
+					desc = 'Position of the multi-cast bar.';
+					{
+						point    = 'BOTTOM';
+						relPoint = 'BOTTOM';
+						y        = 190;
+					};
+				});
+			};
+		};
 		width = _{
 			name = 'Width';
 			desc = 'Width of the toolbar.';
