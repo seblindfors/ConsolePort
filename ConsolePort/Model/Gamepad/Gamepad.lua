@@ -2,8 +2,6 @@ local _, db = ...;
 local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHandler({'Frame', '$parentGamePadHandler', ConsolePort}, {
 	'UPDATE_BINDINGS';
 	'GAME_PAD_CONFIGS_CHANGED';
-	'GAME_PAD_CONNECTED';
-	'GAME_PAD_DISCONNECTED';
 	'PLAYER_ENTERING_WORLD';
 	(CPAPI.IsRetailVersion or CPAPI.IsClassicVersion) and 'GAME_PAD_POWER_CHANGED';
 }, {
@@ -99,37 +97,6 @@ end
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
-function GamepadAPI:PLAYER_ENTERING_WORLD()
-	self.IsDispatchReady = true;
-end
-
-function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
-	CPAPI.Log('Your gamepad configuration has changed.')
-end
-
-function GamepadAPI:GAME_PAD_CONNECTED()
-	db:TriggerEvent('OnGamePadConnect')
-	CPAPI.Log('Gamepad connected.')
-end
-
-function GamepadAPI:GAME_PAD_DISCONNECTED()
-	CPAPI.Log('Gamepad disconnected.')
-end
-
-function GamepadAPI:GAME_PAD_POWER_CHANGED(level)
-	db:TriggerEvent('OnGamePadPowerChange', level)
-end
-
-function GamepadAPI:UPDATE_BINDINGS()
-	db:SetCVar('GamePadStickAxisButtons', db('bindingAllowSticks'))
-	self.updateBindingDispatching = true;
-	if self.IsMapped and self.IsDispatchReady then
-		RunNextFrame(GamepadAPI.OnNewBindings)
-	else
-		GamepadAPI.OnNewBindings()
-	end
-end
-
 function GamepadAPI:OnDataLoaded()
 	self:ReindexMappedState()
 	self:ReindexIconAtlas()
@@ -156,6 +123,45 @@ function GamepadAPI:OnDataLoaded()
 		ConsolePort()
 	end
 end
+
+function GamepadAPI:PLAYER_ENTERING_WORLD()
+	self.IsDispatchReady = true;
+	self:QueueOnNewBindings()
+end
+
+function GamepadAPI:GAME_PAD_CONFIGS_CHANGED()
+	CPAPI.Log('Your gamepad configuration has changed.')
+end
+
+function GamepadAPI:GAME_PAD_POWER_CHANGED(level)
+	db:TriggerEvent('OnGamePadPowerChange', level)
+end
+
+function GamepadAPI:UPDATE_BINDINGS()
+	db:SetCVar('GamePadStickAxisButtons', db('bindingAllowSticks'))
+	if self.IsMapped and self.IsDispatchReady then
+		self:QueueOnNewBindings()
+	else
+		self:OnNewBindings()
+	end
+end
+
+-- UPDATE_BINDINGS - handle two different scenarios:
+-- 1. just logged in, and bindings are dispatched immediately.
+-- 2. logged in for a while, and bindings are dispatched with debouncing.
+-- 
+-- Why?
+-- 
+-- 1. runs unnecessarily since UPDATE_BINDINGS fires somewhere
+-- around 5-10 times on login, but we need to configure action bars
+-- immediately in case we're in combat, and we can't tell which event is
+-- the one when gamepad bindings are ready to be dispatched without some
+-- table inspection gymnastics, looking for a non-empty binding.
+--
+-- 2. we use debouncing to consolidate unnecessary update cycles, with the
+-- added benefit of likely setting overrides _after_ a conflicting action
+-- bar addon has already set its bindings. Yes, some people do actually
+-- use multiple action bar addons at the same time. Isn't it crazy?
 
 ---------------------------------------------------------------
 -- Callbacks
@@ -200,16 +206,6 @@ db:RegisterCallback('Settings/useAtlasIcons', function(self, value)
 	self.UseAtlasIcons = value;
 	db:TriggerEvent('OnIconsChanged', value)
 end, GamepadAPI)
-
-function GamepadAPI.OnNewBindings()
-	if GamepadAPI.updateBindingDispatching then
-		local newBindings = GamepadAPI:GetBindings(true)
-		db:TriggerEvent('OnNewBindings', newBindings)
-		db:TriggerEvent('OnUpdateOverrides', false, newBindings)
-		db:TriggerEvent('OnUpdateOverrides', true,  newBindings)
-		GamepadAPI.updateBindingDispatching = nil;
-	end
-end
 
 ---------------------------------------------------------------
 -- Data: state
@@ -383,6 +379,15 @@ end
 function GamepadAPI:GetBindingKey(binding)
 	return unpack(tFilter({GetBindingKey(binding, true)}, IsBindingForGamePad, true))
 end
+
+function GamepadAPI:OnNewBindings()
+	local newBindings = self:GetBindings(true)
+	db:TriggerEvent('OnNewBindings', newBindings)
+	db:TriggerEvent('OnUpdateOverrides', false, newBindings)
+	db:TriggerEvent('OnUpdateOverrides', true,  newBindings)
+end
+
+GamepadAPI.QueueOnNewBindings = CPAPI.Debounce(GamepadAPI.OnNewBindings, GamepadAPI)
 
 ---------------------------------------------------------------
 -- Data: icons

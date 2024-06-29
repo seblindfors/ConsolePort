@@ -110,10 +110,6 @@ function Manager:UnregisterOverrides(owner) self:Parse([[
 	bindings[{owner}] = nil;
 ]], { owner = env:GetSignature(owner) }) end
 
-function Manager:OnOverrideSet(key)
-	db.Input:HandleConflict(self, false, key)
-end
-
 ---------------------------------------------------------------
 -- Initialize manager
 ---------------------------------------------------------------
