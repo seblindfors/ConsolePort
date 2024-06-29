@@ -369,7 +369,21 @@ Interface.Toolbar = Data.Interface {
 				micromenu = _{
 					name = 'Micro Menu';
 					desc = 'Take ownership of, and move the micro menu buttons to the toolbar.';
-					note = 'May require /reload to fully unhook when disabled.';
+					note = 'Requires /reload to fully unhook when disabled.';
+					Data.Bool(true);
+				};
+			};
+		};
+		castbar = _{
+			name = 'Casting Bar';
+			desc = 'Configure the casting bar.';
+			note = 'This feature is only available in Classic.';
+			hide = CPAPI.IsRetailVersion;
+			Data.Table {
+				enabled = _{
+					name = 'Enable';
+					desc = 'Enable casting bar ownership.';
+					note = 'Requires /reload to fully unhook when disabled.';
 					Data.Bool(true);
 				};
 			};
@@ -378,10 +392,12 @@ Interface.Toolbar = Data.Interface {
 			name = 'Multicast Bar';
 			desc = 'Configure the multi-cast (totem) bar.';
 			note = CPAPI.IsRetailVersion and 'This feature is only available in Classic.';
+			hide = CPAPI.IsRetailVersion;
 			Data.Table {
 				enabled = _{
 					name = 'Enable';
 					desc = 'Enable multi-cast bar ownership.';
+					note = 'Requires /reload to fully unhook when disabled.';
 					Data.Bool(true);
 				};
 				pos = _(Type.SimplePoint : Implement {

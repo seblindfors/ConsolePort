@@ -61,7 +61,7 @@ function Menu:ACTIVE_PLAYER_SPECIALIZATION_CHANGED()
 		self.Background:SetTexCoord(0, 1, 0, 1)
 		self.Background:SetAtlas(visual, true)
 	else
-		self.Background:SetTexCoord(0, 1, 0, 0.703125)
+		self.Background:SetTexCoord(0, 1, 0, 0.8)
 		self.Background:SetTexture(visual)
 	end
 end

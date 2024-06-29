@@ -118,6 +118,4 @@ function env.UIHandler:HideBlizzard()
 	end
 
 	ShowPetActionBar = nop;
-
-	-- TODO: classic castbar
 end

@@ -385,6 +385,7 @@ function CPToolbar:OnLoad()
 	);
 	self.snapToPixels = 16;
 	self.TotemBar = not CPAPI.IsRetailVersion and MultiCastActionBarFrame;
+	self.CastBar  = not CPAPI.IsRetailVersion and CastingBarFrame;
 	self:RegisterEvent('CURSOR_CHANGED')
 	self.PopoutContainer:SetParent(self:GetParent())
 	self.PopoutContainer:SetFrameLevel(self:GetFrameLevel() + 10)
@@ -421,6 +422,36 @@ function CPToolbar:OnEvent()
 	self.PopoutContainer:SetShown(not GetCursorInfo())
 end
 
+function CPToolbar:SetTintColor(r, g, b, a)
+	self.BG:SetGradient(env:GetColorGradient(r, g, b, a))
+	self.BottomLine:SetVertexColor(r, g, b, a)
+	self.PopoutContainer.PopoutFrame.Gradient:SetGradient(env:GetColorGradient(r, g, b, a))
+end
+
+function CPToolbar:OnDataLoaded()
+	self:SetTintColor(env:GetColorRGBA('tintColor'))
+	self:ToggleXPBar(env('enableXPBar'))
+	self:ToggleXPBarFade(env('enableXPBar'))
+end
+
+function CPToolbar:SetProps(props)
+	self:SetDynamicProps(props)
+	self:OnDataLoaded()
+	self:OnSizeChanged()
+	self:Show()
+	self:SetTotemBarProps(props.totem)
+	self:SetCastBarProps(props.castbar)
+	self.PopoutContainer.PopoutFrame:SetProps(props.menu)
+end
+
+function CPToolbar:OnPropsUpdated()
+	self:SetProps(self.props)
+end
+
+
+---------------------------------------------------------------
+-- Elements
+---------------------------------------------------------------
 function CPToolbar:ToggleXPBar(enabled)
 	if ( not self.XPBar ) then
 		if not enabled then return end;
@@ -436,12 +467,6 @@ function CPToolbar:ToggleXPBarFade(xpBarEnabled)
 	self.XPBar:OnShow() -- env('fadeXPBar') is handled by the XPBar itself
 end
 
-function CPToolbar:SetTintColor(r, g, b, a)
-	self.BG:SetGradient(env:GetColorGradient(r, g, b, a))
-	self.BottomLine:SetVertexColor(r, g, b, a)
-	self.PopoutContainer.PopoutFrame.Gradient:SetGradient(env:GetColorGradient(r, g, b, a))
-end
-
 function CPToolbar:SetTotemBarProps(props)
 	if not self.TotemBar or not props.enabled then return end;
 	if not self.TotemBar.SetDynamicProps then
@@ -452,25 +477,51 @@ function CPToolbar:SetTotemBarProps(props)
 	self.TotemBar:SetDynamicProps(props)
 end
 
-function CPToolbar:OnDataLoaded()
-	self:SetTintColor(env:GetColorRGBA('tintColor'))
-	self:ToggleXPBar(env('enableXPBar'))
-	self:ToggleXPBarFade(env('enableXPBar'))
+function CPToolbar:SetCastBarProps(props)
+	-- Classic only, hook persists until /reload
+    if not self.CastBar or not props or not props.enabled then return end;
+	if self.castBarAnchor then return end;
+
+	self.castBarAnchor = { 'BOTTOM', self, 'BOTTOM', 0, 1 };
+	-- TODO: check if this is still needed with disabled vehicle UI
+	hooksecurefunc(self.CastBar, 'SetPoint', function(bar, _, region)
+		if region ~= self then
+			bar:SetPoint(unpack(self.castBarAnchor))
+		end
+	end)
+
+	local function ModifyCastingBarFrame()
+		CastingBarFrame_SetLook(self.CastBar, 'UNITFRAME')
+		self.CastBar.Border:SetShown(false)
+		self.CastBar.Text:SetPoint('TOPLEFT', 0, 0)
+		self.CastBar.Text:SetPoint('TOPRIGHT', 0, 0)
+		self.CastBar.Flash:SetTexture([[Interface\QUESTFRAME\UI-QuestLogTitleHighlight]])
+		self.CastBar.Flash:SetAllPoints(self.CastBar)
+		self.CastBar.BorderShield:SetTexture([[Interface\CastingBar\UI-CastingBar-Arena-Shield]])
+		self.CastBar.BorderShield:SetPoint('CENTER', self.CastBar.Icon, 'CENTER', 10, 0)
+		self.CastBar.BorderShield:SetSize(49, 49)
+		local r, g, b = env:GetColorRGB('xpBarColor')
+		CastingBarFrame_SetStartCastColor(self.CastBar, r, g, b)
+	end
+
+	local function MoveCastingBarFrame()
+		ModifyCastingBarFrame()
+		self.CastBar:ClearAllPoints()
+		self.CastBar:SetPoint(unpack(self.castBarAnchor))
+		self.CastBar:SetSize(self:GetWidth() - 190, 14)
+	end
+
+	env:RegisterCallback('Settings/xpBarColor', ModifyCastingBarFrame)
+	MoveCastingBarFrame()
+
+	self:HookScript('OnSizeChanged', MoveCastingBarFrame)
+	self:HookScript('OnShow', MoveCastingBarFrame)
+	self:HookScript('OnHide', MoveCastingBarFrame)
 end
 
-function CPToolbar:SetProps(props)
-	self:SetDynamicProps(props)
-	self:OnDataLoaded()
-	self:OnSizeChanged()
-	self:Show()
-	self:SetTotemBarProps(props.totem)
-	self.PopoutContainer.PopoutFrame:SetProps(props.menu)
-end
-
-function CPToolbar:OnPropsUpdated()
-	self:SetProps(self.props)
-end
-
+---------------------------------------------------------------
+-- Factory
+---------------------------------------------------------------
 env:AddFactory('Toolbar', function()
 	if not ConsolePortToolbar then
 		ConsolePortToolbar = CreateFrame('Frame', 'ConsolePortToolbar', env.Manager, 'CPToolbar')
