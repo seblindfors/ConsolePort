@@ -14,6 +14,9 @@ Menu:SetFrameLevel(GameMenu:GetFrameLevel() - 1)
 ---------------------------------------------------------------
 function Menu:OnDataLoaded()
 	self:OnSizingChanged()
+	RunNextFrame(function()
+		self:SetPoint('CENTER', UIParent, 'BOTTOMLEFT', self:GetTargetOffsets(MenuRing))
+	end)
 end
 
 function Menu:OnSizingChanged()
@@ -22,11 +25,11 @@ end
 
 function Menu:OnFrameShown(visible, frame)
 	self.Owners[frame].visible = visible;
-	for _, config in pairs(self.Owners) do
+	for owner, config in pairs(self.Owners) do
 		if config.visible then
 			local isRing = config.isRing;
 			self.InnerMask:SetShown(isRing)
-			self:InterpolatePoints(config)
+			self:InterpolatePoints(config, owner)
 			self:UpdateMasks(isRing)
 			if config.callback then
 				config.callback(frame)
@@ -37,6 +40,12 @@ function Menu:OnFrameShown(visible, frame)
 	end
 	self:CheckVisible()
 	self:Hide()
+end
+
+function Menu:GetTargetOffsets(target)
+	local relScale = self:GetEffectiveScale() / target:GetEffectiveScale();
+	local targetX, targetY = target:GetCenter();
+	return targetX / relScale, targetY / relScale;
 end
 
 Menu.CheckVisible = CPAPI.Debounce(function(self)
@@ -64,13 +73,16 @@ Menu.PLAYER_LOGIN = Menu.ACTIVE_PLAYER_SPECIALIZATION_CHANGED;
 -- Callbacks
 ---------------------------------------------------------------
 do -- Skinning
-	local x, y, w, h = 4, 5, 1, 2;
-	function Menu:InterpolatePoints(config)
+	local x, y = 4, 5;
+	function Menu:InterpolatePoints(config, center)
+		local pF = { self:GetPoint()            };
 		local p1 = { self.Gradient:GetPoint(1)  };
 		local p2 = { self.Gradient:GetPoint(2)  };
 		local lt = { self.TopLine:GetPoint()    };
 		local lb = { self.BottomLine:GetPoint() };
 		local duration, elapsed = 1.0, 0.0;
+
+		local targetX, targetY = self:GetTargetOffsets(center)
 
 		self:SetScript("OnUpdate", function(self, dt)
 			elapsed = elapsed + dt;
@@ -78,6 +90,8 @@ do -- Skinning
 			p1[x], p1[y] = Lerp(p1[x], config.tlX, t), Lerp(p1[y], config.tlY, t)
 			p2[x], p2[y] = Lerp(p2[x], config.brX, t), Lerp(p2[y], config.brY, t)
 			lt[y], lb[y] = Lerp(lt[y], config.ltY, t), Lerp(lb[y], config.lbY, t)
+			pF[x], pF[y] = Lerp(pF[x],    targetX, t), Lerp(pF[y],    targetY, t)
+			self:SetPoint(unpack(pF))
 			self.Gradient:SetPoint(unpack(p1))
 			self.Gradient:SetPoint(unpack(p2))
 			self.TopLine:SetPoint(unpack(lt))
@@ -118,7 +132,7 @@ do -- Skinning
 			callback = SkinGameMenu;
 		};
 		[MenuRing] = {
-			tlX = -425, tlY =  350, brX =  425, brY = -350;
+			tlX = -700, tlY =  350, brX =  700, brY = -350;
 			ltY =  164, lbY = -178;
 			isRing  = true;
 			visible = false;

@@ -3,9 +3,6 @@
 
 	<Frame name="ConsolePortMenu" parent="UIParent" hidden="true">
 		<Size x="450" y="450"/>
-		<Anchors>
-			<Anchor point="CENTER"/>
-		</Anchors>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="2">
 				<Texture parentKey="Gradient" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient.jpg" setAllPoints="true" alpha="0.5">
