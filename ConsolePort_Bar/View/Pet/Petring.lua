@@ -261,12 +261,13 @@ function CPPetRing:SetProps(props)
 	self:Update()
 	self:UpdateCooldowns()
 	self:OnVariableChanged()
+	self:FadeIn()
+	self:FadeOut()
 end
 
 function CPPetRing:OnPropsUpdated()
 	self:FadeIn()
 	self:SetProps(self.props)
-	self:UpdateFade()
 end
 
 function CPPetRing:OnVariableChanged()
