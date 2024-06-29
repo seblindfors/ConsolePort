@@ -27,6 +27,14 @@ end
 ---------------------------------------------------------------
 env.LIB = LibStub('ConsolePortActionButton')
 env.LAB = LibStub('LibActionButton-1.0')
+env.MSQ = LibStub('Masque', true)
+
+EventUtil.ContinueOnAddOnLoaded('Masque', function()
+	env.MSQ = LibStub('Masque', true)
+	if env.MSQ then
+		RunNextFrame(function() env:TriggerEvent('OnMasqueLoaded', env.MSQ) end)
+	end
+end)
 
 ---------------------------------------------------------------
 do -- Data handler
@@ -71,6 +79,9 @@ do -- Data handler
 		self:OnVariablesChanged(env.Variables)
 		self:UpdateDataSource()
 		env:TriggerEvent('OnDataLoaded')
+		if env.MSQ then
+			env:TriggerEvent('OnMasqueLoaded', env.MSQ)
+		end
 	end
 
 	function env:TriggerPathEvent(path, ...)

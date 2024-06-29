@@ -137,6 +137,7 @@ function CPGroupBar:OnLoad()
 	db:RegisterCallback('OnHintsFocus', self.OnHints, self, false)
 	db:RegisterCallback('OnHintsClear', self.OnHints, self, nil)
 	env:RegisterCallback('OnNewBindings', self.OnNewBindings, self)
+	env:RegisterCallback('OnMasqueLoaded', self.OnMasqueLoaded, self)
 	env:RegisterCallbacks(self.OnVariableChanged, self,
 		'Settings/disableDND',
 		'Settings/showMainIcons',
@@ -150,6 +151,10 @@ function CPGroupBar:OnLoad()
 	self:HookScript('OnEvent', self.OnAlphaEvent)
 	for event in pairs(self.AlphaEvents) do
 		self:RegisterEvent(event)
+	end
+
+	if env.MSQ then
+		self:OnMasqueLoaded(env.MSQ)
 	end
 end
 
@@ -183,6 +188,9 @@ function CPGroupBar:UpdateButtons(buttons)
 		button:Show()
 		button:SetProps(props)
 		self.buttons[buttonID] = button;
+		if self.msqGroup then
+			self.msqGroup:AddButton(button)
+		end
 	end
 end
 
@@ -237,6 +245,14 @@ function CPGroupBar:OnVariableChanged()
 	for _, button in pairs(self.buttons) do
 		button:DisableDragNDrop(disableDND)
 		button.Hotkey:SetShown(showMainIcons)
+	end
+end
+
+function CPGroupBar:OnMasqueLoaded(msq)
+	local groupID = ('%s: %s'):format(YELLOW_FONT_COLOR:WrapTextInColorCode(GROUP), self.id)
+	self.msqGroup = msq:Group('ConsolePort', groupID)
+	for _, button in pairs(self.buttons) do
+		button:AddToMasque(self.msqGroup)
 	end
 end
 

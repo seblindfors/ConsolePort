@@ -62,6 +62,7 @@ function CPActionPage:OnLoad()
 
 	env:RegisterCallback('OnNewBindings', self.OnNewBindings, self)
 	env:RegisterCallback('OnConfigChanged', self.OnConfigChanged, self)
+	env:RegisterCallback('OnMasqueLoaded', self.OnMasqueLoaded, self)
 
 	self:RegisterPageResponse([[
 		local page = ...;
@@ -79,6 +80,10 @@ function CPActionPage:OnLoad()
 		end
 		self:ChildUpdate('actionpage', page)
 	]])
+
+	if env.MSQ then
+		self:OnMasqueLoaded(env.MSQ)
+	end
 end
 
 function CPActionPage:UpdateSlots()
@@ -94,6 +99,9 @@ function CPActionPage:UpdateSlots()
 		slot:SetProps(id, self.states)
 		slot.layoutIndex = i;
 		self.buttons[i] = slot;
+		if self.msqGroup then
+			slot:AddToMasque(self.msqGroup)
+		end
 	end
 
 	local isHorizontal, reverse = props.orientation == 'HORIZONTAL', props.reverse;
@@ -164,6 +172,14 @@ function CPActionPage:OnConfigChanged(generic)
 	config.hideElements.hotkey = not self.props.hotkeys;
 	for _, slot in ipairs(self.buttons) do
 		slot:UpdateConfig(config)
+	end
+end
+
+function CPActionPage:OnMasqueLoaded(msq)
+	local groupID = ('%s: %s'):format(YELLOW_FONT_COLOR:WrapTextInColorCode(PAGE), self.id)
+	self.msqGroup = msq:Group('ConsolePort', groupID)
+	for _, button in pairs(self.buttons) do
+		button:AddToMasque(self.msqGroup)
 	end
 end
 
