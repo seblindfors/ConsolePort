@@ -3,11 +3,11 @@ local db, Data, _, env = ConsolePort:DB(), ConsolePort:DB('Data'), ...; _, env.d
 ConsolePort:AddVariables({
 ------------------------------------------------------------------------------------------------------------
 	_(MAINMENU_BUTTON, 2);
-	gameMenuScale = _{Data.Range(1, 0.05, 0.5, 2);
+	gameMenuScale = _{Data.Range(0.85, 0.05, 0.5, 2);
 		name = 'Scale';
 		desc = 'Scale of the game menu and radial companion.';
 	};
-	gameMenuFontSize = _{Data.Range(12, 1, 8, 20);
+	gameMenuFontSize = _{Data.Range(15, 1, 8, 20);
 		name = 'Font Size';
 		desc = 'Font size of the ring slice buttons.';
 	};
