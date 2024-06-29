@@ -227,14 +227,6 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ What's New ]] if C_SplashScreen and C_SplashScreen.CanViewSplashScreen() then _{
----------------------------------------------------------------
-	text  = GAMEMENU_NEW_BUTTON;
-	img   = [[Interface\Icons\INV_Misc_Note_04]];
-	click = GenerateFlatClosure(C_SplashScreen.RequestLatestSplashScreen, true);
-} end;
-
----------------------------------------------------------------
 --[[ Shop ]] if StoreMicroButton then _{
 ---------------------------------------------------------------
 	text  = BLIZZARD_STORE;
