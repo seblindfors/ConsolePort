@@ -76,7 +76,8 @@ Cursor:CreateEnvironment({
 					NODES[node] = true;
 				end
 			elseif action and tonumber(action) then
-				local owner = node:GetParent():GetName() or 1;
+				local parent = node:GetParent()
+				local owner  = parent and parent:GetName() or 1;
 				self::AddOwner(owner)
 				if ( ACTIONS[owner][node] == nil ) then
 					ACTIONS[owner][node] = unit or false;
@@ -141,46 +142,64 @@ Cursor:CreateEnvironment({
 		Focus:SetAttribute('unit', nil)
 		Target:SetAttribute('unit', nil)
 	]];
-	-- TODO: PrepareReroute and RerouteUnit can be optimized to only refresh owner when OwnerChanged is called.
 	PrepareReroute = [[
 		local reroute = self:GetAttribute('useroute')
 		if reroute then
-			for _, buttons in pairs(ACTIONS) do
-				for action, unit in pairs(buttons) do
-					action:SetAttribute('unit', unit or nil)
-					if action:GetAttribute('backup-checkselfcast') ~= nil then
-						action:SetAttribute('checkselfcast', action:GetAttribute('backup-checkselfcast'))
-						action:SetAttribute('backup-checkselfcast', nil)
-					end
-					if action:GetAttribute('backup-checkfocuscast') ~= nil then
-						action:SetAttribute('checkfocuscast', action:GetAttribute('backup-checkfocuscast'))
-						action:SetAttribute('backup-checkfocuscast', nil)
-					end
+			if widget then
+				self::ResetOwnerReroute(widget)
+			else
+				for owner in pairs(ACTIONS) do
+					self::ResetOwnerReroute(owner)
 				end
 			end
 		end
 		return reroute;
 	]];
+	ResetOwnerReroute = [[
+		local owner = ...;
+		for action, unit in pairs(ACTIONS[owner]) do
+			action:SetAttribute('unit', unit or nil)
+			if action:GetAttribute('backup-checkselfcast') ~= nil then
+				action:SetAttribute('checkselfcast', action:GetAttribute('backup-checkselfcast'))
+				action:SetAttribute('backup-checkselfcast', nil)
+			end
+			if action:GetAttribute('backup-checkfocuscast') ~= nil then
+				action:SetAttribute('checkfocuscast', action:GetAttribute('backup-checkfocuscast'))
+				action:SetAttribute('backup-checkfocuscast', nil)
+			end
+		end
+	]];
 	RerouteUnit = [[
 		local unit = ...;
-		local actionset;
+		local relation;
+		actionset = nil;
+
 		if PlayerCanAttack(unit) then
-			self:SetAttribute('relation', 'harm')
-			actionset = HARMFUL;
+			relation, actionset = 'harm', HARMFUL;
 		elseif PlayerCanAssist(unit) then
-			self:SetAttribute('relation', 'help')
-			actionset = HELPFUL;
+			relation , actionset = 'help', HELPFUL;
 		end
+		self:SetAttribute('relation', relation)
+
 		if actionset then
-			for _, buttons in pairs(actionset) do
-				for action in pairs(buttons) do
-					action:SetAttribute('unit', unit)
-					action:SetAttribute('backup-checkselfcast', action:GetAttribute('checkselfcast'))
-					action:SetAttribute('backup-checkfocuscast', action:GetAttribute('checkfocuscast'))
-					action:SetAttribute('checkselfcast', nil)
-					action:SetAttribute('checkfocuscast', nil)
+			if widget then
+				self::RerouteOwner(widget, unit)
+			else
+				for owner in pairs(ACTIONS) do
+					self::RerouteOwner(owner, unit)
 				end
 			end
+		end
+	]];
+	RerouteOwner = [[
+		local owner, unit = ...;
+		local buttons = actionset[owner];
+		for action in pairs(buttons) do
+			action:SetAttribute('unit', unit)
+			action:SetAttribute('backup-checkselfcast', action:GetAttribute('checkselfcast'))
+			action:SetAttribute('backup-checkfocuscast', action:GetAttribute('checkfocuscast'))
+			action:SetAttribute('checkselfcast', nil)
+			action:SetAttribute('checkfocuscast', nil)
 		end
 	]];
 	PostNodeSelect = [[
@@ -239,11 +258,12 @@ Cursor:CreateEnvironment({
 		end
 	]];
 	OwnerChanged = [[
-		local owner = ...;
+		widget = ...;
 		if enabled then
-			self::RefreshOwner(owner)
-			self::SelectNewNode(0)
+			self::RefreshOwner(widget)
+			self::PostNodeSelect()
 		end
+		widget = nil;
 	]];
 	IsHelpfulMacro = [[
 		local body = ...
@@ -569,24 +589,31 @@ db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
 ---------------------------------------------------------------
 -- UI Caching
 ---------------------------------------------------------------
-local ScanUI;
+local ScanUI, ScanFrames;
 do	local EnumerateFrames, GetAttribute, IsProtected = EnumerateFrames, Cursor.GetAttribute, Cursor.IsProtected;
+	ScanFrames = function(self, node, iterator, includeAll)
+		while node do
+			if IsProtected(node) then
+				if includeAll then
+					self:CacheNode(node)
+				else
+					local unit, action = GetAttribute(node, 'unit'), GetAttribute(node, 'action')
+					if unit and not action then
+						self:CacheNode(node)
+					elseif action and tonumber(action) then
+						self:CacheNode(node)
+					end
+				end
+			end
+			node = iterator(node)
+		end
+	end;
+
 	ScanUI = CPAPI.Debounce(function(self)
 		if InCombatLockdown() then
 			return CPAPI.Log('Raid cursor scan failed due to combat lockdown. Waiting for combat to end...')
 		end
-		local node = EnumerateFrames()
-		while node do
-			if IsProtected(node) then
-				local unit, action = GetAttribute(node, 'unit'), GetAttribute(node, 'action')
-				if unit and not action then
-					self:CacheNode(node)
-				elseif action and tonumber(action) then
-					self:CacheNode(node)
-				end
-			end
-			node = EnumerateFrames(node)
-		end
+		ScanFrames(self, EnumerateFrames(), EnumerateFrames, false)
 	end, Cursor)
 end
 
@@ -604,6 +631,11 @@ function Cursor:CacheNode(node)
 		self:AddFrame(node)
 		return true;
 	end
+end
+
+function Cursor:CacheActionBar(bar)
+	local iterator = GenerateClosure(next, tInvert { bar:GetChildren() })
+	ScanFrames(self, iterator(), iterator, true)
 end
 
 do 	local FILTER_SIGNATURE, DEFAULT_NODE_PREDICATE = 'local unit = unit or ...; return %s;', 'true';

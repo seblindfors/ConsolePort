@@ -130,6 +130,7 @@ function CPActionPage:SetProps(props)
 	self:UpdateSlots()
 	self:OnConfigChanged(env.Button:GetConfig())
 	CPActionBar.OnDriverChanged(self)
+	CPActionBar.OnHierarchyChanged(self)
 end
 
 function CPActionPage:OnPropsUpdated()

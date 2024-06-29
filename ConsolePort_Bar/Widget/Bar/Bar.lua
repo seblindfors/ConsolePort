@@ -112,6 +112,10 @@ function CPActionBar:OnDriverChanged()
 	]])
 end
 
+function CPActionBar:OnHierarchyChanged()
+	db.Raid:CacheActionBar(self)
+end
+
 function CPActionBar:OnRelease()
 	self:UnregisterVisibilityDriver()
 end

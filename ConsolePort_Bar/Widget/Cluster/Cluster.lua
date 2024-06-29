@@ -490,6 +490,7 @@ function CPClusterBar:SetProps(props)
 	self:SetDynamicProps(props)
 	self:UpdateClusters(props.children or {})
 	CPActionBar.OnDriverChanged(self)
+	CPActionBar.OnHierarchyChanged(self)
 end
 
 function CPClusterBar:OnPropsUpdated()

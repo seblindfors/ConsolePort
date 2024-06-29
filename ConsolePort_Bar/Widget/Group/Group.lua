@@ -159,6 +159,7 @@ function CPGroupBar:SetProps(props)
 	self:UpdateButtons(props.children or {})
 	self:OnVariableChanged()
 	CPActionBar.OnDriverChanged(self)
+	CPActionBar.OnHierarchyChanged(self)
 end
 
 function CPGroupBar:OnPropsUpdated()
