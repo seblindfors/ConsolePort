@@ -181,3 +181,9 @@ function Control:SetHintEnabled(key)
 		self:RegisterHintForFrame(self.focus, key, hint:GetText(), true)
 	end
 end
+
+
+Control.Background = CreateFrame('Frame', nil, Control.HintBar, 'CPToolbarSixSliceFrame')
+Control.Background:SetAlpha(0.5)
+Control.Background:SetPoint('TOPLEFT', Control.HintBar, 'TOPLEFT', -32, 0)
+Control.Background:SetPoint('BOTTOMRIGHT', Control.HintBar, 'BOTTOMRIGHT', 32, 0)

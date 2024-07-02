@@ -455,7 +455,7 @@ end
 function GamepadMixin:ApplyPresetVars()
 	assert(self.Preset.Variables, ('Console variables missing from %s template.'):format(self.Name))
 	for var, val in pairs(self.Preset.Variables) do
-		SetCVar(var, val)
+		db:SetCVar(var, val)
 	end
 	self:Activate()
 end

@@ -3,11 +3,11 @@
 	<Script file="HintBar.lua"/>
 
 	<Frame name="CPHintTemplate" virtual="true" hidden="true" mixin="CPHintMixin">
-		<Size y="64"/>
+		<Size y="40"/>
 		<Layers>
 			<Layer level="ARTWORK">
 				<Texture parentKey="Icon" name="$parentIcon">
-					<Size x="40" y="40"/>
+					<Size x="32" y="32"/>
 					<Anchors>
 						<Anchor point="LEFT"/>
 					</Anchors>
@@ -27,7 +27,7 @@
 	</Frame>
 
 	<Frame name="CPHintBarTemplate" frameStrata="FULLSCREEN_DIALOG" virtual="true" hidden="true" mixin="CPHintBarMixin">
-		<Size x="0" y="72"/>
+		<Size x="0" y="52"/>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 		</Scripts>
