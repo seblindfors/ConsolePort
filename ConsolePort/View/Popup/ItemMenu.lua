@@ -106,7 +106,7 @@ end
 
 function ItemMenu:GetEquipCommand(invSlot, i, numSlots)
 	local item = GetInventoryItemID('player', invSlot)
-	local link = CPAPI.GetItemInfo(item).itemLink;
+	local link = item and CPAPI.GetItemInfo(item).itemLink;
 	return {
 		text =  link and (REPLACE..' '..link)
 				or numSlots > 1 and EQUIPSET_EQUIP .. (' (%s/%s %s)'):format(i, numSlots, SLOT_ABBR)
