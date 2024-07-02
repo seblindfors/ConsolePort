@@ -138,7 +138,6 @@ function GamepadAPI:GAME_PAD_POWER_CHANGED(level)
 end
 
 function GamepadAPI:UPDATE_BINDINGS()
-	db:SetCVar('GamePadStickAxisButtons', db('bindingAllowSticks'))
 	if self.IsMapped and self.IsDispatchReady then
 		self:QueueOnNewBindings()
 	else
@@ -200,6 +199,15 @@ db:RegisterSafeCallback('GamePadStickAxisButtons', function(self, value)
 		end
 	end
 	SaveBindings(GetCurrentBindingSet())
+end, GamepadAPI)
+
+db:RegisterSafeCallback('OnNewBindings', function(self)
+	db:SetCVar('GamePadStickAxisButtons', db('bindingAllowSticks'))
+	if ( self:GetBindingKey('INTERACTTARGET') and not GetCVarBool('SoftTargetInteract') ) then
+		-- FIX: On Classic, the interact key is not enabled by default.
+		-- If it's bound and disabled, enable it. 1 = GamePad, see Console.lua.
+		db:SetCVar('SoftTargetInteract', 1)
+	end
 end, GamepadAPI)
 
 db:RegisterCallback('Settings/useAtlasIcons', function(self, value)
