@@ -258,6 +258,8 @@ do -- Tooltip hooking
 			end
 
 			local name, link = self:GetItem()
+			if not link then return end;
+
 			local numOwned = CPAPI.GetItemCount(link)
 			local isEquipped = CPAPI.IsEquippedItem(link)
 			local isEquippable = CPAPI.IsEquippableItem(link)
