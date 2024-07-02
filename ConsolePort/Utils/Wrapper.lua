@@ -198,9 +198,11 @@ do -- API wrappers
 local function nopz() return 0  end;
 local function nopt() return {} end;
 
--- Simple wrappers
+-- Namespace wrappers
 CPAPI.ContainerIDToInventoryID       = C_Container     and C_Container.ContainerIDToInventoryID          or ContainerIDToInventoryID;
+CPAPI.EnableAddOn                    = C_AddOns        and C_AddOns.EnableAddOn                          or EnableAddOn;
 CPAPI.GetActiveZoneAbilities         = C_ZoneAbility   and C_ZoneAbility.GetActiveAbilities              or nopt;
+CPAPI.GetAddOnInfo                   = C_AddOns        and C_AddOns.GetAddOnInfo                         or GetAddOnInfo;
 CPAPI.GetBonusBarIndexForSlot        = C_ActionBar     and C_ActionBar.GetBonusBarIndexForSlot           or nop;
 CPAPI.GetCollectedDragonridingMounts = C_MountJournal  and C_MountJournal.GetCollectedDragonridingMounts or nopt;
 CPAPI.GetContainerItemID             = C_Container     and C_Container.GetContainerItemID                or GetContainerItemID;
@@ -228,6 +230,7 @@ CPAPI.GetSpellSubtext                = C_Spell         and C_Spell.GetSpellSubte
 CPAPI.GetSpellTexture                = C_Spell         and C_Spell.GetSpellTexture                       or GetSpellTexture;
 CPAPI.HasPetSpells                   = C_SpellBook     and C_SpellBook.HasPetSpells                      or HasPetSpells;
 CPAPI.IsAccountWideReputation        = C_Reputation    and C_Reputation.IsAccountWideReputation          or nop;
+CPAPI.IsAddOnLoaded                  = C_AddOns        and C_AddOns.IsAddOnLoaded                        or IsAddOnLoaded;
 CPAPI.IsEquippableItem               = C_Item          and C_Item.IsEquippableItem                       or IsEquippableItem;
 CPAPI.IsEquippedItem                 = C_Item          and C_Item.IsEquippedItem                         or IsEquippedItem;
 CPAPI.IsFactionParagon               = C_Reputation    and C_Reputation.IsFactionParagon                 or nop;
@@ -237,6 +240,7 @@ CPAPI.IsSpellHarmful                 = C_Spell         and C_Spell.IsSpellHarmfu
 CPAPI.IsSpellHelpful                 = C_Spell         and C_Spell.IsSpellHelpful                        or IsHelpfulSpell;
 CPAPI.IsUsableItem                   = C_Item          and C_Item.IsUsableItem                           or IsUsableItem;
 CPAPI.LeaveParty                     = C_PartyInfo     and C_PartyInfo.LeaveParty                        or LeaveParty;
+CPAPI.LoadAddOn                      = C_AddOns        and C_AddOns.LoadAddOn                            or LoadAddOn;
 CPAPI.PickupContainerItem            = C_Container     and C_Container.PickupContainerItem               or PickupContainerItem;
 CPAPI.PickupSpell                    = C_Spell         and C_Spell.PickupSpell                           or PickupSpell;
 CPAPI.PickupSpellBookItem            = C_SpellBook     and C_SpellBook.PickupSpellBookItem               or PickupSpellBookItem;
@@ -244,7 +248,7 @@ CPAPI.PutActionInSlot                = C_ActionBar     and C_ActionBar.PutAction
 CPAPI.RequestLoadQuestByID           = C_QuestLog      and C_QuestLog.RequestLoadQuestByID               or nop;
 CPAPI.SplitContainerItem             = C_Container     and C_Container.SplitContainerItem                or SplitContainerItem;
 CPAPI.UseContainerItem               = C_Container     and C_Container.UseContainerItem                  or UseContainerItem;
-
+-- Fallthroughs
 CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;
 CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
 CPAPI.IsInLFDBattlefield             = IsInLFDBattlefield or nop;

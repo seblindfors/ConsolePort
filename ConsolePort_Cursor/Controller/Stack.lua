@@ -250,7 +250,7 @@ function Stack:OnDataLoaded()
 
 	-- Load all existing frames in the registry
 	for addon in pairs(self.Registry) do
-		if C_AddOns.IsAddOnLoaded(addon) then
+		if CPAPI.IsAddOnLoaded(addon) then
 			self:LoadAddonFrames(addon)
 		end
 	end
@@ -346,4 +346,4 @@ end
 ---------------------------------------------------------------
 -- On demand explicit load
 ---------------------------------------------------------------
-if C_AddOns.IsAddOnLoaded(_) then Stack:ADDON_LOADED(_) end;
+if CPAPI.IsAddOnLoaded(_) then Stack:ADDON_LOADED(_) end;

@@ -167,14 +167,14 @@ end
 local OnDemandModules, TryLoadModule = {
 	ConsolePort_Keyboard = 'keyboardEnable';
 	ConsolePort_Cursor   = 'UIenableCursor';
-}; do local RawEnableAddOn = C_AddOns.EnableAddOn;
+}; do local RawEnableAddOn = CPAPI.EnableAddOn;
 
 	function TryLoadModule(predicate, module)
-		if not db(predicate) or C_AddOns.IsAddOnLoaded(module) then
+		if not db(predicate) or CPAPI.IsAddOnLoaded(module) then
 			return
 		end
 		RawEnableAddOn(module)
-		local loaded, reason = C_AddOns.LoadAddOn(module)
+		local loaded, reason = CPAPI.LoadAddOn(module)
 		if not loaded then
 			CPAPI.Log('Failed to load %s. Reason: %s\nPlease check your installation.', (module:gsub('_', ' ')), _G['ADDON_'..reason])
 		end
@@ -182,7 +182,7 @@ local OnDemandModules, TryLoadModule = {
 
 	-- Automatically load modules when they are enabled through the addon list
 	local function OnEnableAddOn(module)
-		local name = C_AddOns.GetAddOnInfo(module)
+		local name = CPAPI.GetAddOnInfo(module)
 		local var  = name and OnDemandModules[name];
 		if ( name and var ) then
 			db('Settings/'..var, true)
@@ -192,7 +192,7 @@ local OnDemandModules, TryLoadModule = {
 
 	-- Automatically disable predicate variable when a module is disabled through the addon list
 	local function OnDisableAddOn(module)
-		local name = C_AddOns.GetAddOnInfo(module)
+		local name = CPAPI.GetAddOnInfo(module)
 		local var  = name and OnDemandModules[name];
 		if ( var ) then
 			db('Settings/'..var, false)

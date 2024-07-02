@@ -49,9 +49,9 @@ local function HandleSlashCommand(self, msg)
 	elseif ProcessVarUpdate((' '):split(msg or '')) then
 		return
 	end
-	if not C_AddOns.IsAddOnLoaded(CONFIG_ADDON_NAME) then
-		C_AddOns.EnableAddOn(CONFIG_ADDON_NAME)
-		C_AddOns.LoadAddOn(CONFIG_ADDON_NAME)
+	if not CPAPI.IsAddOnLoaded(CONFIG_ADDON_NAME) then
+		CPAPI.EnableAddOn(CONFIG_ADDON_NAME)
+		CPAPI.LoadAddOn(CONFIG_ADDON_NAME)
 	end
 	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
 end

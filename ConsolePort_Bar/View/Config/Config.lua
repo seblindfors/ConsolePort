@@ -262,7 +262,7 @@ local Config = CreateFromMixins(CPButtonCatcherMixin);
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	self:SetUserPlaced(false)
-	C_AddOns.LoadAddOn('ConsolePort_Config');
+	CPAPI.LoadAddOn('ConsolePort_Config');
 	env.SharedConfig.Env = ConsolePortConfig:GetEnvironment();
 	Mixin(Setting, env.SharedConfig.Env.SettingMixin) -- borrow code from the config for the settings
 
