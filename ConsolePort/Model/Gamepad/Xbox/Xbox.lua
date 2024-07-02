@@ -98,11 +98,11 @@ select(2, ...).Gamepad:AddGamepad({
 			-- Trigger buttons
 			PADLTRIGGER = {
 				['']            = 'INTERACTTARGET';
-				['CTRL-']       = 'TARGETNEARESTFRIEND';
+				['CTRL-']       = 'TARGETPREVIOUSFRIEND';
 			};
 			PADRTRIGGER = {
 				['']            = 'TARGETNEARESTENEMY';
-				['SHIFT-']      = 'TARGETPREVIOUSFRIEND';
+				['SHIFT-']      = 'TARGETNEARESTFRIEND';
 			};
 			PADLSHOULDER = {
 				['']            = 'ACTIONBUTTON5';
