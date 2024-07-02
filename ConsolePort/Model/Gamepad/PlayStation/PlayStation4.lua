@@ -71,8 +71,8 @@ select(2, ...).Gamepad:AddGamepad({
 		Bindings = {
 			PAD1 = {
 				['']            = 'JUMP';
-				['SHIFT-']      = 'INTERACTTARGET';
-				['CTRL-']       = 'ACTIONBUTTON9';
+				['SHIFT-']      = 'ACTIONBUTTON9';
+				['CTRL-']       = 'CLICK ConsolePortMenuTrigger:LeftButton';
 				['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton';
 			};
 			PAD2 = {
@@ -94,6 +94,14 @@ select(2, ...).Gamepad:AddGamepad({
 				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON7';
 			};
 			-- Trigger buttons
+			PADLSHOULDER = {
+				['']            = 'INTERACTTARGET';
+				['CTRL-']       = 'TARGETNEARESTFRIEND';
+			};
+			PADLTRIGGER = {
+				['']            = 'TARGETNEARESTENEMY';
+				['SHIFT-']      = 'TARGETPREVIOUSFRIEND';
+			};
 			PADRSHOULDER = {
 				['']            = 'ACTIONBUTTON4';
 				['SHIFT-']      = 'TARGETSCANENEMY';
