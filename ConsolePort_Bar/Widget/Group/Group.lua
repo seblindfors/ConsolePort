@@ -112,7 +112,7 @@ end
 function Button:GetEffectiveCombination(state)
 	local emulation = db.Gamepad.Index.Modifier.Owner[self.id];
 	if emulation then
-		return env.ModComplement(state, emulation), self.id;
+		return env.ModComplement(state or self:GetAttribute('state'), emulation), self.id;
 	end
 	return state, self.id;
 end
