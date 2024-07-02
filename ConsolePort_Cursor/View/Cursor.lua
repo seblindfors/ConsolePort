@@ -178,15 +178,16 @@ function Cursor:RefreshToFrame(frame)
 	end
 end
 
-function Cursor:SetCurrentNode(node, assertNotMouse)
+function Cursor:SetCurrentNode(node, assertNotMouse, forceEnable)
 	local isGamepadActive = IsGamePadFreelookEnabled()
-	if not isGamepadActive
-	or not db('UIenableCursor')
-	or (db('UIshowOnDemand') and not self:IsShown()) then
-		return
-	end
+
+	-- Prerequisites
+	if not db('UIenableCursor') then return end;
+	if db('UIshowOnDemand') and not self:IsShown() then return end;
+	if not isGamepadActive and not forceEnable then return end;
+
 	local object = node and Node.ScanLocal(node)[1]
-	if object and (not assertNotMouse or isGamepadActive) then
+	if object and (not assertNotMouse or isGamepadActive or forceEnable) then
 		self:SetOnEnableCallback(function(self, object)
 			self:SetBasicControls()
 			self:SetFlashNextNode()

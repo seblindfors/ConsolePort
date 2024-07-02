@@ -322,7 +322,7 @@ function Number:GetStep()
 end
 
 function Number:GetControllerButtons()
-	if self.metaData.vert then
+	if self.metaData and self.metaData.vert then
 		return 'PADDDOWN', 'PADDUP';
 	end
 	return 'PADDLEFT', 'PADDRIGHT';

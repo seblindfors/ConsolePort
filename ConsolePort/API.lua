@@ -211,6 +211,8 @@ do local map = function(func)
 	-- @brief Set the cursor to a node
 	-- @param node: node to set (frame)
 	-- @param assertNotMouse: assert that node is not mouseovered (bool)
+	-- @param forceEnable: force enable cursor (bool)
+	-- @return success: true if cursor was set to the node (bool)
 	ConsolePort.SetCursorNode         = map 'SetCurrentNode'
 	-----------------------------------------------------------
 	-- @brief Check if cursor is currently on a node

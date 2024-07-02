@@ -152,6 +152,8 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 			isObstructed = ((next(obstructors) and true) or false)
 			if not isObstructed then
 				self:UpdateFrames()
+			else
+				db.Cursor:OnStackChanged(false)
 			end
 		end
 	end

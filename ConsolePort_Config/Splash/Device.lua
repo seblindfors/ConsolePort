@@ -162,13 +162,10 @@ function Devices:UpdateDevices()
 	self:SetSize(containerWidth, containerHeight + DEVICE_HEIGHT)
 
 	if (connectedDeviceWidget) then
-		local device = connectedDeviceWidget.Device;
-		ConsolePort:SetCursorNode(connectedDeviceWidget);
-
 		local activeDevice = db.Gamepad:GetActiveDevice();
 		if (not activeDevice) then
 			RunNextFrame(function()
-				connectedDeviceWidget:OnClick();
+				ConsolePort:SetCursorNode(connectedDeviceWidget, false, true);
 			end);
 		end
 	end
