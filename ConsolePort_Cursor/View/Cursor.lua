@@ -351,11 +351,25 @@ function Cursor:ReverseScanUI(node, key, target, changed)
 		Node.ScanLocal(parent)
 		target, changed = Node.NavigateToBestCandidateV2(self.Cur, key)
 		if changed then
-			return target, changed
+			return target, changed;
 		end
 		return self:ReverseScanUI(parent, key)
 	end
-	return self.Cur, false
+	return self.Cur, false;
+end
+
+function Cursor:ReverseScanStack(node, key, target, changed)
+	if node then
+		local parent = node:GetParent()
+		Node.ScanLocal(parent)
+		target, changed = Node.NavigateToBestCandidateV2(self.Cur, key)
+		if changed then
+			return target, changed;
+		end
+		self:ScanUI()
+		return Node.NavigateToBestCandidateV2(self.Cur, key)
+	end
+	return self.Cur, false;
 end
 
 function Cursor:Navigate(key)
@@ -363,8 +377,7 @@ function Cursor:Navigate(key)
 	if db('UIaccessUnlimited') then
 		target, changed = self:SetCurrent(self:ReverseScanUI(self:GetCurrentNode(), key))
 	else
-		self:ScanUI()
-		target, changed = self:SetCurrent(Node.NavigateToBestCandidateV2(self:GetCurrent(), key))
+		target, changed = self:SetCurrent(self:ReverseScanStack(self:GetCurrentNode(), key))
 	end
 	if not changed then
 		target, changed = self:SetCurrent(Node.NavigateToClosestCandidate(target, key))
