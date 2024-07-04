@@ -121,7 +121,7 @@ Presets.Orthodox = {
 ---------------------------------------------------------------
 Handle = Interface.GroupButton(); -- reuse one handle instance and warp it
 Presets.CrossbarMinimal = {
-	name 	   = 'Minimal Crossbar';
+	name 	   = 'Crossbar: Minimal';
 	desc       = 'Group buttons in a single crossbar layout, with modifier swapping.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
@@ -156,8 +156,8 @@ Presets.CrossbarMinimal = {
 };
 
 Presets.Crossbar = {
-	name 	   = 'Crossbar';
-	desc       = 'Group buttons in crossbar layouts, with modifier swapping.';
+	name 	   = 'Crossbar: Standard';
+	desc       = 'Group buttons for left and right triggers, with modifier swapping.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
@@ -228,6 +228,125 @@ Presets.Crossbar = {
 			width      = 300;
 			rescale    = '110';
 			visibility = '[vehicleui][overridebar] hide; [mod:M2M1] show; hide';
+			pos = { point = 'BOTTOM', x = 0, y = 25 };
+			children = {
+				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
+				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
+				PAD3         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -100, y =   0 } };
+				PAD4         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y =  25 } };
+				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =    0, y =   0 } };
+				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  100, y =   0 } };
+				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y = -25 } };
+				PADDUP       = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y =  25 } };
+			};
+		};
+		Triggers = Interface.Group : Render {
+			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
+			width   = 210;
+			height  = 50;
+			rescale = '75';
+			pos = { point = 'BOTTOM', y = 200 };
+			visibility = '[vehicleui][overridebar] hide; show';
+			children = {
+				PADLSHOULDER = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   0, y = 0 } };
+				PADLTRIGGER  = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  50, y = 0 } };
+				PADRSHOULDER = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =   0, y = 0 } };
+				PADRTRIGGER  = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -50, y = 0 } };
+			};
+		};
+	};
+};
+
+Presets.CrossbarTriple = {
+	name 	   = 'Crossbar: Triple';
+	desc       = 'Group buttons in three layouts, with center modifier swapping.';
+	visibility = env.Const.ManagerVisibility;
+	children = {
+		Toolbar = Interface.Toolbar : Render {
+			menu = { eye = false };
+			width = 600;
+		};
+		Petring = Interface.Petring:Render {
+			scale = 0.6;
+			pos   = { x = -276, y = 240 };
+		};
+		Vehicle = DefaultVehicle;
+		['Left Divider'] = Interface.Divider : Render {
+			breadth    = 100;
+			depth      = 300;
+			rotation   = 90;
+			thickness  = 2;
+			transition = 150;
+			rescale  = '[mod:M2M1] 100; [mod:M1] 105; 100';
+			opacity  = '[vehicleui][overridebar][mod:M2] 0; [mod:M2M1] 75; [mod:M1] 100; 50';
+			pos = { point = 'BOTTOM', x = -168, y = 75 };
+		};
+		['Right Divider'] = Interface.Divider : Render {
+			breadth    = 100;
+			depth      = 300;
+			rotation   = 270;
+			thickness  = 2;
+			transition = 150;
+			rescale  = '[mod:M2M1] 100; [mod:M2] 105; 100';
+			opacity  = '[vehicleui][overridebar][mod:M1] 0; [mod:M2M1] 75; [mod:M2] 100; 50';
+			pos = { point = 'BOTTOM', x = 168, y = 75 };
+		};
+		['Center Left Divider'] = Interface.Divider : Render {
+			breadth    = 100;
+			depth      = 300;
+			rotation   = 270;
+			thickness  = 2;
+			transition = 150;
+			rescale  = '[mod:M2M1][mod:M0] 105; 100';
+			opacity  = '[vehicleui][overridebar] 0; [mod:M0][mod:M2M1] 100; 0';
+			pos = { point = 'BOTTOM', x = -158, y = 75 };
+		};
+		['Center Right Divider'] = Interface.Divider : Render {
+			breadth    = 100;
+			depth      = 300;
+			rotation   = 90;
+			thickness  = 2;
+			transition = 150;
+			rescale  = '[mod:M2M1][mod:M0] 105; 100';
+			opacity  = '[vehicleui][overridebar] 0; [mod:M0][mod:M2M1] 100; 0';
+			pos = { point = 'BOTTOM', x = 158, y = 75 };
+		};
+		Left = Interface.Group : Render {
+			modifier   = '[] M1';
+			width      = 300;
+			rescale    = '[mod:M2M1] 100; [mod:M1] 105; 100';
+			pos = { point = 'BOTTOM', x = -325, y = 25 };
+			children = {
+				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
+				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
+				PAD3         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -100, y =   0 } };
+				PAD4         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y =  25 } };
+				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =    0, y =   0 } };
+				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  100, y =   0 } };
+				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y = -25 } };
+				PADDUP       = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y =  25 } };
+			};
+		};
+		Right = Interface.Group : Render {
+			modifier   = '[] M2';
+			width      = 300;
+			rescale    = '[mod:M2M1] 100; [mod:M2] 105; 100';
+			pos = { point = 'BOTTOM', x = 325, y = 25 };
+			children = {
+				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
+				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
+				PAD3         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x = -100, y =   0 } };
+				PAD4         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y =  25 } };
+				PADDLEFT     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =    0, y =   0 } };
+				PADDRIGHT    = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =  100, y =   0 } };
+				PADDDOWN     = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y = -25 } };
+				PADDUP       = Handle:Warp { pos = { point =  'LEFT', relPoint =  'LEFT', x =   50, y =  25 } };
+			};
+		};
+		Center = Interface.Group : Render {
+			modifier   = '[mod:M2M1] M2M1; [mod:M0] M0';
+			width      = 300;
+			rescale    = '[mod:M2M1][mod:M0] 105; 100';
 			pos = { point = 'BOTTOM', x = 0, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
