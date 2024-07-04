@@ -104,7 +104,7 @@ Cursor:CreateEnvironment({
 	]];
 	SetBaseBindings = [[
 		local modifier = ...;
-		modifier = modifier and modifier or '';
+		modifier = modifier or '';
 		for buttonID, keyID in pairs(BUTTONS) do
 			self:SetBindingClick(self:GetAttribute('priorityoverride'), modifier..keyID, self, buttonID)
 		end
@@ -119,7 +119,7 @@ Cursor:CreateEnvironment({
 		local buttons, helpful, harmful = ACTIONS[owner], HELPFUL[owner], HARMFUL[owner];
 
 		if not buttons then
-			return print('Raid cursor found no buttons for owner', owner)
+			return false;
 		end
 
 		wipe(helpful)
@@ -136,6 +136,7 @@ Cursor:CreateEnvironment({
 				harmful[actionButton] = true;
 			end
 		end
+		return true;
 	]];
 	ClearFocusUnit = [[
 		UnregisterStateDriver(self, 'unitexists')
@@ -260,8 +261,10 @@ Cursor:CreateEnvironment({
 	OwnerChanged = [[
 		widget = ...;
 		if enabled then
-			self::RefreshOwner(widget)
-			self::PostNodeSelect()
+			self::SetBaseBindings(self:GetAttribute('navmodifier'))
+			if self::RefreshOwner(widget) then
+				self::PostNodeSelect()
+			end
 		end
 		widget = nil;
 	]];

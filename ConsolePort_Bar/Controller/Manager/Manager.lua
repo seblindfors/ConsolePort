@@ -13,12 +13,12 @@ Manager.Env = {
 		cursor::ActionPageChanged()
 	]];
 	RefreshBindings = [[
-		local propagate = ...;
+		local owner = ...;
 		self:ClearBindings()
 		self::ApplyBindings()
-		if propagate then
+		if owner then
 			mouse::OnBindingsChanged()
-			cursor::ActionPageChanged()
+			cursor::OwnerChanged(owner)
 		end
 	]];
 	ApplyBindings = [[

@@ -12,11 +12,11 @@ CPActionBar = Mixin({
 		]];
 		OnAcquire = [[
 			manager:SetAttribute(self:GetAttribute('signature'), self::IsOverrideApplicable())
-			manager::RefreshBindings(true)
+			manager::RefreshBindings(self:GetName())
 		]];
 		OnRelease = [[
 			manager:SetAttribute(self:GetAttribute('signature'), self::IsOverrideApplicable())
-			manager::RefreshBindings(false)
+			manager::RefreshBindings(nil)
 		]];
 		IsOverrideApplicable = [[
 			local override = self:GetAttribute('override')
@@ -102,7 +102,7 @@ function CPActionBar:OnDriverChanged()
 		ALPHA = newstate;
 	]])
 
-	-- Driver: owner
+	-- Driver: override
 	self:RegisterDriver('override', env.ConvertDriver(self.props.override), [[
 		self:SetAttribute('override', newstate)
 		if self:IsVisible() then
