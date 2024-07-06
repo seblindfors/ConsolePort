@@ -214,8 +214,8 @@ function Selector:OnControlsChanged()
 		Return = db('gameMenuReturn');
 		Switch = db('gameMenuSwitch');
 	} or Mixin(CopyTable(config.Buttons), {
-		Return = db.UIHandle:GetUIControlBinding('M1');
-		Switch = db.UIHandle:GetUIControlBinding('T1');
+		Return = db.UIHandle:GetUIControlBinding('M1') or 'PADRSHOULDER';
+		Switch = db.UIHandle:GetUIControlBinding('T1') or 'PADLSHOULDER';
 	});
 
 	self.buttons = buttons;
