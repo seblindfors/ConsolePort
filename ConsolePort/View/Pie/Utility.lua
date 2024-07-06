@@ -3,12 +3,13 @@ local _, db = ...;
 local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	'ACTIONBAR_SLOT_CHANGED';
 	'BAG_UPDATE_DELAYED';
-	'SPELLS_CHANGED';
-	'QUEST_WATCH_UPDATE';
+	'QUEST_DATA_LOAD_RESULT';
 	'QUEST_WATCH_LIST_CHANGED';
+	'QUEST_WATCH_UPDATE';
+	'SPELLS_CHANGED';
 	'UPDATE_BINDINGS';
+	'UPDATE_EXTRA_ACTIONBAR';
 	'UPDATE_MACROS';
-	CPAPI.IsRetailVersion and 'UPDATE_EXTRA_ACTIONBAR';
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
 local ActionButton = LibStub('ConsolePortActionButton')
@@ -612,7 +613,7 @@ Utility.SecureHandlerMap = {
 		return {type = 'macro', macro = index};
 	end;
 	mount = function(mountID)
-		local spellID = select(2, C_MountJournal.GetMountInfoByID(mountID));
+		local spellID = select(2, CPAPI.GetMountInfoByID(mountID));
 		local spellName = spellID and CPAPI.GetSpellInfo(spellID).name;
 		if spellName then
 			return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)};
@@ -888,6 +889,12 @@ end
 function Utility:QUEST_WATCH_UPDATE(questID)
 	if self.autoAssignExtras then
 		self:SetObserveQuestID(questID)
+	end
+end
+
+function Utility:QUEST_DATA_LOAD_RESULT(questID, success)
+	if success and self.autoAssignExtras then
+		db:RunSafe(self.ToggleQuestWatchItemInline, self, questID)
 	end
 end
 
