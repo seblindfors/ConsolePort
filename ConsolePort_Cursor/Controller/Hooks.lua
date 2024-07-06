@@ -257,12 +257,14 @@ do -- Tooltip hooking
 				return Hooks:SetPendingBagPickup(self, bagLocation)
 			end
 
-			local name, link = self:GetItem()
+			local name, link, itemID = self:GetItem()
 			if not link then return end;
 
-			local numOwned = CPAPI.GetItemCount(link)
-			local isEquipped = CPAPI.IsEquippedItem(link)
+			local numOwned     = CPAPI.GetItemCount(link)
+			local isEquipped   = CPAPI.IsEquippedItem(link)
 			local isEquippable = CPAPI.IsEquippableItem(link)
+			local isDressable  = CPAPI.IsDressableItemByID(link)
+			local isMount      = CPAPI.GetMountFromItem(itemID)
 
 			if ( CPAPI.GetItemSpell(link) and numOwned > 0 ) then
 				Hooks:SetPendingActionToUtilityRing(self, owner, {
@@ -270,10 +272,10 @@ do -- Tooltip hooking
 					item = link;
 					link = link;
 				});
-			elseif isEquippable and not isEquipped then
-				Hooks:SetPendingDressupItem(self, link);
 			elseif isEquippable and isEquipped then
 				Hooks:SetPendingInspectItem(self, owner:GetID())
+			elseif ( isEquippable and not isEquipped ) or isDressable or isMount then
+				Hooks:SetPendingDressupItem(self, link);
 			end
 		end
 	end
