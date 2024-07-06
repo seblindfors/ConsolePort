@@ -507,8 +507,17 @@ function CPToolbar:SetStanceBarProps(props)
 		self.StanceBar:HookScript('OnEvent', self.StanceBarUpdate)
 		self.StanceBarUpdate(self.StanceBar)
 	end
-	self.StanceBar:ClearAllPoints()
-	self.StanceBar:SetPoint('CENTER', self.TotemBar, 'CENTER', 0, 0)
+	if self.TotemBar then
+		self.StanceBar:ClearAllPoints()
+		self.StanceBar:SetPoint('CENTER', self.TotemBar, 'CENTER', 0, 0)
+	else -- Classic Era (probably), no totem bar so stance bar owns the positioning
+		if not self.StanceBar.SetDynamicProps then
+			Mixin(self.StanceBar, env.ConfigurableWidgetMixin)
+			self.StanceBar.OnPropsUpdated = function(self) self:SetDynamicProps(self.props) end;
+		end
+		self.StanceBar:SetDynamicProps(props)
+		self.StanceBarUpdate(self.StanceBar)
+	end
 end
 
 function CPToolbar:SetCastBarProps(props)
