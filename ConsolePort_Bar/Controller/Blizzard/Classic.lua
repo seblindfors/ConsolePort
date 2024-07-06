@@ -84,7 +84,7 @@ function env.UIHandler:HideBlizzard()
 	for frame, settings in pairs({     -- clearEvents, reanchor, noAnchorChanges
 		MainMenuBarArtFrame            = {false,       true};
 		MainMenuBarArtFrameBackground  = {};
-		StanceBarFrame                 = {true,        true};
+	--	StanceBarFrame                 = {true,        true};
 		PossessBarFrame                = {false,       true};
 	--	MultiCastActionBarFrame        = {false,       true};
 		PetActionBarFrame              = {true,        true};

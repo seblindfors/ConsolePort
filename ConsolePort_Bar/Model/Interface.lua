@@ -347,7 +347,7 @@ Interface.Petring = Data.Interface {
 
 Interface.Toolbar = Data.Interface {
 	name = 'Toolbar';
-	desc = 'A toolbar with XP indicators, shortcuts and other information.';
+	desc = 'A toolbar with XP indicators, shortcuts, class specific bars, and miscellaneous information.';
 	Data.Table {
 		type = {hide = true; Data.String('Toolbar')};
 		pos = _(Type.SimplePoint : Implement {
@@ -389,19 +389,19 @@ Interface.Toolbar = Data.Interface {
 			};
 		};
 		totem = _{
-			name = 'Multicast Bar';
-			desc = 'Configure the multi-cast (totem) bar.';
+			name = 'Class Bar';
+			desc = 'Configure the class related bar.';
 			note = CPAPI.IsRetailVersion and 'This feature is only available in Classic.';
 			hide = CPAPI.IsRetailVersion;
 			Data.Table {
 				enabled = _{
 					name = 'Enable';
-					desc = 'Enable multi-cast bar ownership.';
+					desc = 'Enable class bar ownership.';
 					note = 'Requires /reload to fully unhook when disabled.';
 					Data.Bool(true);
 				};
 				pos = _(Type.SimplePoint : Implement {
-					desc = 'Position of the multi-cast bar.';
+					desc = 'Position of the class bar.';
 					{
 						point    = 'BOTTOM';
 						relPoint = 'BOTTOM';

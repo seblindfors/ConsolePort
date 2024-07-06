@@ -384,8 +384,9 @@ function CPToolbar:OnLoad()
 		'Settings/xpBarColor'
 	);
 	self.snapToPixels = 16;
-	self.TotemBar = not CPAPI.IsRetailVersion and MultiCastActionBarFrame;
-	self.CastBar  = not CPAPI.IsRetailVersion and CastingBarFrame;
+	self.TotemBar  = not CPAPI.IsRetailVersion and MultiCastActionBarFrame;
+	self.CastBar   = not CPAPI.IsRetailVersion and CastingBarFrame;
+	self.StanceBar = not CPAPI.IsRetailVersion and StanceBarFrame;
 	self:RegisterEvent('CURSOR_CHANGED')
 	self.PopoutContainer:SetParent(self:GetParent())
 	self.PopoutContainer:SetFrameLevel(self:GetFrameLevel() + 10)
@@ -441,6 +442,7 @@ function CPToolbar:SetProps(props)
 	self:Show()
 	self:SetTotemBarProps(props.totem)
 	self:SetCastBarProps(props.castbar)
+	self:SetStanceBarProps(props.totem)
 	self.PopoutContainer.PopoutFrame:SetProps(props.menu)
 end
 
@@ -475,6 +477,38 @@ function CPToolbar:SetTotemBarProps(props)
 		self.TotemBar.OnPropsUpdated = function(self) self:SetDynamicProps(self.props) end;
 	end
 	self.TotemBar:SetDynamicProps(props)
+end
+
+function CPToolbar:SetStanceBarProps(props)
+	if not self.StanceBar or not props.enabled then return end;
+	if not self.StanceBarUpdate then
+		local stanceButtons = self.StanceBar.StanceButtons;
+		self.StanceBarUpdate = function(stanceBar)
+			local numForms = GetNumShapeshiftForms()
+			if ( numForms == 0 ) then return end;
+			local fL, fR = math.huge, 0;
+			for i = 1, numForms do
+				local button = stanceButtons[i];
+				local left, _, width = button:GetRect()
+				fL = min(fL, left)
+				fR = max(fR, left + width)
+			end
+			env:RunSafe(stanceBar.SetWidth, stanceBar, fR - fL + 22)
+			StanceBarLeft:SetTexture(nil)
+			StanceBarMiddle:SetTexture(nil)
+			StanceBarRight:SetTexture(nil)
+		end;
+		for i = 1, NUM_STANCE_SLOTS do
+			local texture = stanceButtons[i]:GetNormalTexture()
+			texture:ClearAllPoints()
+			texture:SetPoint('TOPLEFT', -11, 11)
+			texture:SetPoint('BOTTOMRIGHT', 12, -12)
+		end
+		self.StanceBar:HookScript('OnEvent', self.StanceBarUpdate)
+		self.StanceBarUpdate(self.StanceBar)
+	end
+	self.StanceBar:ClearAllPoints()
+	self.StanceBar:SetPoint('CENTER', self.TotemBar, 'CENTER', 0, 0)
 end
 
 function CPToolbar:SetCastBarProps(props)

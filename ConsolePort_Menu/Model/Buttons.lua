@@ -301,7 +301,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 		for _, state in ipairs(self.states) do
 			if state.predicate() then
 				self.text     = state.text;
-				self.subtitle = state.subtitle;
+				self.subtitle = state.subtitle and YELLOW_FONT_COLOR:WrapTextInColorCode(state.subtitle) or nil;
 				self.img      = state.image;
 				return self.icon:SetTexture(self.img)
 			end
