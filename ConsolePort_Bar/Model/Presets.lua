@@ -21,8 +21,6 @@ local DefaultVehicle = Interface.Page : Render {
 	visibility = '[vehicleui][overridebar] show; hide';
 };
 
-local DefaultToolbar = Interface.Toolbar:Render();
-
 ---------------------------------------------------------------
 -- Cluster bar presets
 ---------------------------------------------------------------
@@ -33,7 +31,9 @@ Presets.Default = {
 	desc       = 'A cluster bar with a toolbar below it.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar  = DefaultToolbar;
+		Toolbar  = Interface.Toolbar:Render {
+			totem = { pos = { y = 18 } };
+		};
 		VehicleL = Interface.Page : Render {
 			pos        = { x = -126, y = 54 };
 			slots      = 3;
@@ -75,7 +75,9 @@ Presets.Orthodox = {
 	desc       = 'A cluster bar with a toolbar below it, laid out horizontally.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
-		Toolbar = DefaultToolbar;
+		Toolbar  = Interface.Toolbar:Render {
+			totem = { pos = { y = 116 } };
+		};
 		VehicleL = Interface.Page : Render {
 			pos        = { x = -126, y = 50 };
 			slots      = 3;

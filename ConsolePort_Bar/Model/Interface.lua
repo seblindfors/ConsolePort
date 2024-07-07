@@ -400,6 +400,11 @@ Interface.Toolbar = Data.Interface {
 					note = 'Requires /reload to fully unhook when disabled.';
 					Data.Bool(true);
 				};
+				hidden = _{
+					name = 'Hide';
+					desc = 'Hide the class bar.';
+					Data.Bool(false);
+				};
 				pos = _(Type.SimplePoint : Implement {
 					desc = 'Position of the class bar.';
 					{

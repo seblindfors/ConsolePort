@@ -383,6 +383,10 @@ function CPToolbar:OnLoad()
 		'Settings/tintColor',
 		'Settings/xpBarColor'
 	);
+
+	db:RegisterCallback('OnHintsFocus', self.OnHints, self, 0)
+	db:RegisterCallback('OnHintsClear', self.OnHints, self, 1)
+
 	self.snapToPixels = 16;
 	self.TotemBar  = not CPAPI.IsRetailVersion and MultiCastActionBarFrame;
 	self.CastBar   = not CPAPI.IsRetailVersion and CastingBarFrame;
@@ -477,6 +481,7 @@ function CPToolbar:SetTotemBarProps(props)
 		self.TotemBar.OnPropsUpdated = function(self) self:SetDynamicProps(self.props) end;
 	end
 	self.TotemBar:SetDynamicProps(props)
+	self.TotemBar:SetParent(props.hidden and env.UIHandler or UIParent)
 end
 
 function CPToolbar:SetStanceBarProps(props)
@@ -518,6 +523,7 @@ function CPToolbar:SetStanceBarProps(props)
 		self.StanceBar:SetDynamicProps(props)
 		self.StanceBarUpdate(self.StanceBar)
 	end
+	self.StanceBar:SetParent(props.hidden and env.UIHandler or UIParent)
 end
 
 function CPToolbar:SetCastBarProps(props)
@@ -560,6 +566,11 @@ function CPToolbar:SetCastBarProps(props)
 	self:HookScript('OnSizeChanged', MoveCastingBarFrame)
 	self:HookScript('OnShow', MoveCastingBarFrame)
 	self:HookScript('OnHide', MoveCastingBarFrame)
+end
+
+function CPToolbar:OnHints(alpha)
+	if self.TotemBar  then self.TotemBar:SetAlpha(alpha)  end;
+	if self.StanceBar then self.StanceBar:SetAlpha(alpha) end;
 end
 
 ---------------------------------------------------------------
