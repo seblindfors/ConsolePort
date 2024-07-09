@@ -264,7 +264,7 @@ do -- Tooltip hooking
 			local isEquipped   = CPAPI.IsEquippedItem(link)
 			local isEquippable = CPAPI.IsEquippableItem(link)
 			local isDressable  = CPAPI.IsDressableItemByID(link)
-			local isMount      = CPAPI.GetMountFromItem(itemID)
+			local isMount      = itemID and CPAPI.GetMountFromItem(itemID)
 
 			if ( CPAPI.GetItemSpell(link) and numOwned > 0 ) then
 				Hooks:SetPendingActionToUtilityRing(self, owner, {
