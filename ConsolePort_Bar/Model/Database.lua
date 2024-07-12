@@ -200,6 +200,29 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Relative anchor point of the counter text on buttons.';
 	};
 	---------------------------------------------------------------
+	_'Groups';
+	---------------------------------------------------------------
+	groupHotkeySize = _{Data.Number(20, 1);
+		name = 'Hotkey Size';
+		desc = 'Size of the hotkey icon on group buttons.';
+	};
+	groupHotkeyOffsetX = _{Data.Number(0, 1, true);
+		name = 'Hotkey Offset X';
+		desc = 'Horizontal offset of the hotkey icon on group buttons.';
+	};
+	groupHotkeyOffsetY = _{Data.Number(-2, 1, true);
+		name = 'Hotkey Offset Y';
+		desc = 'Vertical offset of the hotkey icon on group buttons.';
+	};
+	groupHotkeyAnchor = _{Data.Select('CENTER', env.Const.ValidPoints());
+		name = 'Hotkey Anchor';
+		desc = 'Anchor point of the hotkey icon on group buttons.';
+	};
+	groupHotkeyRelAnchor = _{Data.Select('TOP', env.Const.ValidPoints());
+		name = 'Hotkey Relative Anchor';
+		desc = 'Relative anchor point of the hotkey icon on group buttons.';
+	};
+	---------------------------------------------------------------
 	_'Clusters';
 	---------------------------------------------------------------
 	clusterShowAll = _{Data.Bool(false);

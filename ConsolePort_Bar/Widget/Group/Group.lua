@@ -143,6 +143,13 @@ function CPGroupBar:OnLoad()
 		'Settings/showMainIcons',
 		'Settings/showCooldownText'
 	);
+	env:RegisterCallbacks(self.OnHotkeysChanged, self,
+		'Settings/groupHotkeySize',
+		'Settings/groupHotkeyAnchor',
+		'Settings/groupHotkeyRelAnchor',
+		'Settings/groupHotkeyOffsetX',
+		'Settings/groupHotkeyOffsetY'
+	);
 
 	self:RegisterPageResponse([[
 		local newstate = ...;
@@ -248,6 +255,22 @@ function CPGroupBar:OnVariableChanged()
 	end
 end
 
+function CPGroupBar:OnHotkeysChanged()
+	local size, atlasSize = env('groupHotkeySize'), env('groupHotkeySize') * 0.6;
+	local point, relPoint, x, y =
+		env('groupHotkeyAnchor'),
+		env('groupHotkeyRelAnchor'),
+		env('groupHotkeyOffsetX'),
+		env('groupHotkeyOffsetY');
+	for _, button in pairs(self.buttons) do
+		button.Hotkey:ClearAllPoints()
+		button.Hotkey:SetPoint(point, button, relPoint, x, y)
+		button.Hotkey:SetIconSize(size)
+		button.Hotkey:SetAtlasSize(atlasSize)
+		button.Hotkey:OnIconsChanged()
+	end
+end
+
 function CPGroupBar:OnMasqueLoaded(msq)
 	local groupID = ('%s: %s'):format(YELLOW_FONT_COLOR:WrapTextInColorCode(GROUP), self.id)
 	self.msqGroup = msq:Group('ConsolePort', groupID)
@@ -271,7 +294,10 @@ env:AddFactory(GROUP_BUTTON, function(id, buttonID, parent)
 	button.Hotkey = Mixin(CreateFrame('Frame', nil, button), env.ProxyHotkey)
 	button.Hotkey.icon = button.Hotkey:CreateTexture(nil, 'OVERLAY', nil, 7)
 	button.Hotkey.icon:SetAllPoints()
-	button.Hotkey:OnLoad(buttonID, 16, 12, {'CENTER', button, 'TOP', 0, -2})
+	button.Hotkey:OnLoad(buttonID, env('groupHotkeySize'), env('groupHotkeySize') * 0.6, {
+		env('groupHotkeyAnchor'), button, env('groupHotkeyRelAnchor'),
+		env('groupHotkeyOffsetX'), env('groupHotkeyOffsetY')
+	});
 	button:OnLoad()
 	return button;
 end)
