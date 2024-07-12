@@ -401,7 +401,7 @@ function BindingInfo:RefreshCollections()
 	end
 
 	-- Mounts
-	if CPAPI.IsRetailVersion then
+	if C_MountJournal and C_MountJournal.GetNumDisplayedMounts then
 		local mounts = {};
 		for i=1, C_MountJournal.GetNumDisplayedMounts() do
 			if (select(11, C_MountJournal.GetDisplayedMountInfo(i))) then -- isCollected
@@ -409,16 +409,21 @@ function BindingInfo:RefreshCollections()
 			end
 		end
 
+		local ConvertHalfAssedCompanionAPI = not CPAPI.IsRetailVersion and function(...)
+			return db.Utility.SecureHandlerMap.spell(nil, nil, C_MountJournal.GetDisplayedMountInfo(...))
+		end;
+
 		if next(mounts) then
 			self:AddCollection(mounts, {
 				name    = MOUNTS;
 				match   = C_ActionBar.FindSpellActionButtons;
-				pickup  = C_MountJournal.Pickup;
+				pickup  = CPAPI.IsRetailVersion and C_MountJournal.Pickup;
+				append  = ConvertHalfAssedCompanionAPI;
 				tooltip = function(self, id) GameTooltip.SetSpellByID(self, (select(2, C_MountJournal.GetDisplayedMountInfo(id)))) end;
 				texture = function(id) return (select(3, C_MountJournal.GetDisplayedMountInfo(id))) end;
 			})
 		end
-	elseif CPAPI.IsClassicVersion then
+	elseif GetNumCompanions and GetNumCompanions('MOUNT') > 0 then
 		local mounts = {};
 		for i=1, GetNumCompanions('MOUNT') do
 			mounts[#mounts+1] = i;

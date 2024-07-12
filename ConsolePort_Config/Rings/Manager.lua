@@ -359,10 +359,15 @@ local CollectionMixin = CreateFromMixins(ActionMapper.CollectionMixin, {
 	rowSize = 8;
 	clickActionCallback = function(self)
 		local pickup = self.pickup;
+		local append = self.append;
+		local ringID = GetSelectedRingID()
 		if pickup then
 			pickup(self:GetValue())
-			db.Utility:CheckCursorInfo(GetSelectedRingID(), true)
+			db.Utility:CheckCursorInfo(ringID, true)
 			ClearCursor()
+		elseif append then
+			db.Utility:AddUniqueAction(ringID, nil, append(self:GetValue()))
+			db:TriggerEvent('OnRingContentChanged', ringID)
 		end
 		CPIndexButtonMixin.Uncheck(self)
 	end;

@@ -631,8 +631,13 @@ Utility.SecureHandlerMap = {
 		return {type = 'spell', spell = spellID}
 	end;
 	companion = function(companionID, companionType)
+		if ( companionType == 'MOUNT' and CPAPI.GetMountInfoByID(companionID) ) then
+			return Utility.SecureHandlerMap.mount(companionID)
+		end
 		local _, spellName = GetCompanionInfo(companionType, companionID)
-		return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)}
+		if spellName then
+			return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)}
+		end
 	end;
 }
 
