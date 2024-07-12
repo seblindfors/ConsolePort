@@ -228,7 +228,7 @@ function CPPieSliceMixin:OnPreLoad()
 end
 
 function CPPieSliceMixin:SetIndex(index, numActive)
-	if not index then return end;
+	if not index or index > ( numActive or 0 ) then return end;
 	local startAngle, endAngle, centerAngle = self:GetParent():GetBoundingRadiansForIndex(index, numActive)
 	local enableMasking = not numActive or numActive > 1;
 	self.index, self.centerAngle = index, centerAngle;
