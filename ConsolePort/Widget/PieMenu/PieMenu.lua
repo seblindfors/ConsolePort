@@ -228,9 +228,10 @@ function CPPieSliceMixin:OnPreLoad()
 end
 
 function CPPieSliceMixin:SetIndex(index, numActive)
-	if not index or index > ( numActive or 0 ) then return end;
+	if not index then return end;
 	local startAngle, endAngle, centerAngle = self:GetParent():GetBoundingRadiansForIndex(index, numActive)
 	local enableMasking = not numActive or numActive > 1;
+	if ( numActive == 0 ) then return end;
 	self.index, self.centerAngle = index, centerAngle;
 	self:RotateMasks(enableMasking, startAngle, endAngle)
 	self:RotateLines(centerAngle)
