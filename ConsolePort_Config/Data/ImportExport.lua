@@ -68,6 +68,7 @@ local AliasMap = {
 		[PFX..'_BarLayout$'] = L'Action Bar Setup';
 		[PFX..'_BarPresets$'] = L'Action Bar Presets';
 		[PFX..'_BarLoadout$'] = L'Action Bar Loadout';
+		[PFX..'_BarSetup$'] = L'Action Bar Loadout (Deprecated)';
 		[PFX..'_Talents$'] = TALENTS;
 		[PFX..'Bindings/(%u+%d?)/(.*)$'] = function(button, mod)
 			return ConsolePort:GetFormattedButtonCombination(button, mod)
@@ -146,8 +147,8 @@ local AliasMapExport = db.table.merge({
 -- Pickup handlers
 ---------------------------------------------------------------
 local ActionPickupHandlers = {
-	spell = function(id) return PickupSpell(id) end;
-	item = function(id) return PickupItem(id) end;
+	spell = function(id) return CPAPI.PickupSpell(id) end;
+	item = function(id) return CPAPI.PickupItem(id) end;
 	summonpet    = C_PetJournal and C_PetJournal.PickupPet;
 	equipmentset = function(id)
 		local setID = C_EquipmentSet.GetEquipmentSetID(id)
@@ -255,6 +256,7 @@ local Aggregators = {
 		end
 		return actions;
 	end;
+	ConsolePort_BarSetup = nop;
 }
 
 local Evaluators = {
@@ -327,6 +329,11 @@ local Evaluators = {
 			end
 		end
 	end};
+	{'ConsolePort_BarSetup', function(setup)
+		ConsolePort_BarSetup  = setup;
+		ConsolePort_BarLayout = nil;
+		return true;
+	end}; -- deprecated
 }
 ---------------------------------------------------------------
 

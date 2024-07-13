@@ -244,6 +244,7 @@ CPAPI.IsUsableItem                   = C_Item          and C_Item.IsUsableItem  
 CPAPI.LeaveParty                     = C_PartyInfo     and C_PartyInfo.LeaveParty                        or LeaveParty;
 CPAPI.LoadAddOn                      = C_AddOns        and C_AddOns.LoadAddOn                            or LoadAddOn;
 CPAPI.PickupContainerItem            = C_Container     and C_Container.PickupContainerItem               or PickupContainerItem;
+CPAPI.PickupItem                     = C_Item          and C_Item.PickupItem                             or PickupItem;
 CPAPI.PickupSpell                    = C_Spell         and C_Spell.PickupSpell                           or PickupSpell;
 CPAPI.PickupSpellBookItem            = C_SpellBook     and C_SpellBook.PickupSpellBookItem               or PickupSpellBookItem;
 CPAPI.PutActionInSlot                = C_ActionBar     and C_ActionBar.PutActionInSlot                   or PlaceAction;
