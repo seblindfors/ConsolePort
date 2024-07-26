@@ -96,7 +96,7 @@ function LootFrame:OnDataLoaded()
 
 	self.Header.Text:SetText(LOOT)
 	self.Header:SetDurationMultiplier(.5)
-	
+
 	CPAPI.DisableFrame(_G.LootFrame)
 	_G.LootFrame:UnregisterAllEvents()
 end
@@ -123,7 +123,7 @@ end
 
 function LootFrame:OnCursorHide()
 	if not self:IsShown() then return end;
-	self:SetHints() 
+	self:SetHints()
 end
 
 db:RegisterCallback('OnCursorShow', LootFrame.OnCursorShow, LootFrame)
@@ -203,7 +203,7 @@ end
 
 function LootFrame:UpdateFocus(index)
 	self.focusIndex = Clamp(index, 1, self:GetNumActive())
-	
+
 	local newObj, oldObj = self:SetFocusByIndex(self.focusIndex)
 	if oldObj then oldObj:OnLeave() end
 	if newObj then newObj:OnEnter() end

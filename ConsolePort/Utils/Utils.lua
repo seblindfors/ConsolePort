@@ -92,11 +92,12 @@ CPAPI.AdvancedSecureMixin = CreateFromMixins(CPAPI.SecureExportMixin, CPAPI.Secu
 -- Tools
 ---------------------------------------------------------------
 function CPAPI.DisableFrame(frame, ignoreAlpha)
-	frame:SetSize(0, 0)
+	frame:SetSize(1, 1)
 	frame:EnableMouse(false)
 	frame:EnableKeyboard(false)
 	frame:SetAlpha(ignoreAlpha and frame:GetAlpha() or 0)
 	frame:ClearAllPoints()
+	CPAPI.Purge(frame, 'isShownExternal')
 	ConsolePort:ForbidInterfaceCursorFrame(frame)
 end
 
