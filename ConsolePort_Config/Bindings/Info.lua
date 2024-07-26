@@ -295,8 +295,8 @@ end
 function BindingInfo:RefreshCollections()
 	self.Collections = self.Collections and wipe(self.Collections) or {};
 
-	local BOOKTYPE_PET     = BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
-	local BOOKTYPE_SPELL   = BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
+	local BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
+	local BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
 	local SKILLTYPE_PET    = Enum.SpellBookItemType and Enum.SpellBookItemType.Pet    or 'PETACTION';
 	local SKILLTYPE_SPELL  = Enum.SpellBookItemType and Enum.SpellBookItemType.Spell  or 'SPELL';
 	local SKILLTYPE_FLYOUT = Enum.SpellBookItemType and Enum.SpellBookItemType.Flyout or 'FLYOUT';
