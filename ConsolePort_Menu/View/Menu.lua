@@ -117,7 +117,7 @@ do -- Skinning
 	local SkinGameMenu = CPAPI.IsRetailVersion and function()
 			GameMenu.Border:SetShown(false)
 			GameMenu.Header:SetShown(false)
-			GameMenuFrameConsolePort:SetPoint('TOP', 0, 30)
+			GameMenuFrameConsolePort:SetPoint('TOP', 0, 20)
 		end or function()
 			GameMenuFrameHeader:SetShown(false)
 			NineSliceUtil.SetLayoutShown(GameMenu, false)
@@ -125,8 +125,8 @@ do -- Skinning
 
 	Menu.Owners = {
 		[GameMenu] = {
-			tlX = -100, tlY =  250, brX =  100, brY = -250;
-			ltY =  102, lbY = -112;
+			tlX = -100, tlY =  270, brX =  100, brY = -250;
+			ltY =  116, lbY = -112;
 			isRing   = false;
 			visible  = false;
 			callback = SkinGameMenu;
