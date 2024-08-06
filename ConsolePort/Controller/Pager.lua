@@ -162,7 +162,7 @@ Pager.Env = {
 			if slot then
 				return ]]..(IsHarmfulSpell
 					and ('IsHarmfulSpell(slot, "spell")')
-					 or ('IsSpellHarmful(slot, %d)'):format(Enum.SpellBookSpellBank.Player)
+					 or ('IsSpellHarmful(id, %d)'):format(Enum.SpellBookSpellBank.Player)
 				)..[[;
 			end
 		elseif type == 'item' and id then
@@ -182,7 +182,7 @@ Pager.Env = {
 			if slot then
 				return ]]..(IsHelpfulSpell
 					and ('IsHelpfulSpell(slot, "spell")')
-					 or ('IsSpellHelpful(slot, %d)'):format(Enum.SpellBookSpellBank.Player)
+					 or ('IsSpellHelpful(id, %d)'):format(Enum.SpellBookSpellBank.Player)
 				)..[[;
 			end
 		elseif type == 'item' and id then
