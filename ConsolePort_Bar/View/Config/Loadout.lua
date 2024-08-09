@@ -93,8 +93,16 @@ local function GetEndpoint(path)
 end
 
 function LoadoutSetting:OnExpandOrCollapse()
-	self.Icon:SetShown(self:GetChecked())
-	self:ToggleChildren(self:GetChecked())
+	local icon, hasChildren, isChecked = self.Icon, self:HasChildren(), self:GetChecked();
+	self:ToggleChildren(isChecked)
+	icon:SetShown(hasChildren)
+	if hasChildren then
+		CPAPI.SetAtlas(icon, ('Waypoint-MapPin-Minimap-%s'):format(isChecked and 'Tracked' or 'Untracked'))
+	end
+end
+
+function LoadoutSetting:HasChildren()
+	return self.children and next(self.children) ~= nil;
 end
 
 function LoadoutSetting:AddChild(child)

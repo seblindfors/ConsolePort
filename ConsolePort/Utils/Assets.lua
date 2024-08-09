@@ -50,6 +50,7 @@ CPAPI.Atlas = {
 		['poi-transmogrifier'] = { 29, 36, 0.6611328125, 0.689453125, 0.0810546875, 0.1162109375, false, false };
 		['Banker'] = { 32, 32, 0.2431640625, 0.2744140625, 0.4638671875, 0.4951171875, false, false };
 		['Waypoint-MapPin-Minimap-Tracked'] = { 32, 32, 0.5419921875, 0.5732421875, 0.4306640625, 0.4619140625, false, false };
+		['Waypoint-MapPin-Minimap-Untracked'] = { 32, 32, 0.5751953125, 0.6064453125, 0.4306640625, 0.4619140625, false, false },
 		['Warfronts-BaseMapIcons-Alliance-Workshop-Minimap'] = { 37, 35, 0.1669921875, 0.203125, 0.228515625, 0.2626953125, false, false };
 		['Warfronts-BaseMapIcons-Alliance-Workshop-Minimap-small'] = { 37, 35, 0.1669921875, 0.203125, 0.2646484375, 0.298828125, false, false };
 		['dragon-rostrum'] = { 32, 32, 0.2431640625, 0.2744140625, 0.9619140625, 0.9931640625, false, false };
