@@ -91,7 +91,7 @@ do
 			end
 		end)
 	-----------------------------------------------------------
-		_('Blizzard_ClassTalentUI', function()
+		_('Blizzard_PlayerSpells', function()
 	-----------------------------------------------------------
 			-- Talent frame customization:
 			-- Remove action bar highlights from talent buttons, since they taint the action bar controller.
@@ -99,7 +99,7 @@ do
 			-- instead of on mouseover. Finally, hook the spell menu to remove focus from the talent frame so that
 			-- pickups and bar placements from the talent frame can go smoothly.
 
-			local selectionChoiceFrame = ClassTalentFrame.TalentsTab.SelectionChoiceFrame;
+			local selectionChoiceFrame = PlayerSpellsFrame.TalentsFrame.SelectionChoiceFrame;
 			local currentBaseButton;
 
 			Scripts.OnEnter[ ClassTalentButtonSpendMixin.OnEnter ] = function(self)
@@ -145,15 +145,15 @@ do
 			end)
 
 			ConsolePortSpellMenu:HookScript('OnShow', function()
-				if ClassTalentFrame:IsShown() then
-					ClassTalentFrame:SetAlpha(0.25)
-					ClassTalentFrame:SetAttribute(env.Attributes.IgnoreNode, true)
+				if PlayerSpellsFrame:IsShown() then
+					PlayerSpellsFrame:SetAlpha(0.25)
+					PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, true)
 				end
 			end)
 			ConsolePortSpellMenu:HookScript('OnHide', function()
-				if ClassTalentFrame:GetAttribute(env.Attributes.IgnoreNode) then
-					ClassTalentFrame:SetAlpha(1)
-					ClassTalentFrame:SetAttribute(env.Attributes.IgnoreNode, nil)
+				if PlayerSpellsFrame:GetAttribute(env.Attributes.IgnoreNode) then
+					PlayerSpellsFrame:SetAlpha(1)
+					PlayerSpellsFrame:SetAttribute(env.Attributes.IgnoreNode, nil)
 				end
 			end)
 		end)
@@ -172,13 +172,12 @@ do
 	end
 	if CPAPI.IsRetailVersion then
 	-----------------------------------------------------------
-		_('Blizzard_ClassTalentUI', function()
+		_('Blizzard_PlayerSpells', function()
 	-----------------------------------------------------------
 			-- Talent frame customization:
 			-- Remove clearing of action bar highlights from talent buttons, since they taint the action bar controller.
 			-- When leaving a split choice talent popup, hide the popup if the cursor is not over a nested selection button.
-
-			local selectionChoiceFrame = ClassTalentFrame.TalentsTab.SelectionChoiceFrame;
+			local selectionChoiceFrame = PlayerSpellsFrame.TalentsFrame.SelectionChoiceFrame;
 
 			Scripts.OnLeave[ ClassTalentButtonSpendMixin.OnLeave ] = function(self)
 				selectionChoiceFrame:Hide()
