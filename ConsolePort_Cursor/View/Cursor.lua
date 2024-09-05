@@ -373,16 +373,23 @@ function Cursor:ReverseScanStack(node, key, target, changed)
 end
 
 function Cursor:Navigate(key)
-	local target, changed
+	-- Navigation algorithm (so I remember what this does):
+	-- 1. With unlimited access, scan the entire UI stack, but prioritize the current frame.
+	-- 2. With optimized algorithm, scan the current frame and its children, then the entire UI stack.
+	-- 3. With neither, scan the entire visible panel UI stack.
+	-- 4. If no target is found, navigate to the closest candidate.
+	local target, changed;
 	if db('UIaccessUnlimited') then
 		target, changed = self:SetCurrent(self:ReverseScanUI(self:GetCurrentNode(), key))
-	else
+	elseif db('UIalgoOptimize') then
 		target, changed = self:SetCurrent(self:ReverseScanStack(self:GetCurrentNode(), key))
+	else
+		target, changed = self:SetCurrent(Node.NavigateToBestCandidateV2(self:GetCurrent(), key))
 	end
 	if not changed then
 		target, changed = self:SetCurrent(Node.NavigateToClosestCandidate(target, key))
 	end
-	return target, changed
+	return target, changed;
 end
 
 function Cursor:AttemptSelectNode()

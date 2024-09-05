@@ -32,6 +32,13 @@ ConsolePort:AddVariables({
 		deps = DEPENDENCY;
 		advd = true;
 	};
+	UIalgoOptimize = _{Data.Bool(true);
+		name = 'Optimize Algorithm';
+		desc = 'Use optimized pathfinding algorithm for cursor movement.';
+		note = 'Disabling this may cause worse performance with many panels open.';
+		deps = DEPENDENCY;
+		advd = true;
+	};
 	UIshowOnDemand = _{Data.Bool(false);
 		name = 'Use On Demand';
 		desc = 'Cursor appears on demand, instead of in response to a panel showing up.';
