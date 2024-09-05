@@ -95,7 +95,7 @@ SLASH_FUNCTIONS = {
 	-----------------------------------------------------------
 	addframe = function(owner, frame)
 		if owner and frame then
-			local loadable, reason = select(4, GetAddOnInfo(owner))
+			local loadable, reason = select(4, CPAPI.GetAddOnInfo(owner))
 			if loadable or IsAddOnLoaded(owner) then
 				EnableAddOn(CURSOR_ADDON_NAME)
 				LoadAddOn(CURSOR_ADDON_NAME)
@@ -114,7 +114,7 @@ SLASH_FUNCTIONS = {
 	end;
 	removeframe = function(owner, frame)
 		if owner and frame then
-			local loadable, reason = select(4, GetAddOnInfo(owner))
+			local loadable, reason = select(4, CPAPI.GetAddOnInfo(owner))
 			if loadable or IsAddOnLoaded(owner) then
 				EnableAddOn(CURSOR_ADDON_NAME)
 				LoadAddOn(CURSOR_ADDON_NAME)
