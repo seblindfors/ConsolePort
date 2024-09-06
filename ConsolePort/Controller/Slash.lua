@@ -96,9 +96,9 @@ SLASH_FUNCTIONS = {
 	addframe = function(owner, frame)
 		if owner and frame then
 			local loadable, reason = select(4, CPAPI.GetAddOnInfo(owner))
-			if loadable or IsAddOnLoaded(owner) then
-				EnableAddOn(CURSOR_ADDON_NAME)
-				LoadAddOn(CURSOR_ADDON_NAME)
+			if loadable or CPAPI.IsAddOnLoaded(owner) then
+				CPAPI.EnableAddOn(CURSOR_ADDON_NAME)
+				CPAPI.LoadAddOn(CURSOR_ADDON_NAME)
 				return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
 					local stack = db.Stack;
 					if stack:TryRegisterFrame(owner, frame, true) then
@@ -115,9 +115,9 @@ SLASH_FUNCTIONS = {
 	removeframe = function(owner, frame)
 		if owner and frame then
 			local loadable, reason = select(4, CPAPI.GetAddOnInfo(owner))
-			if loadable or IsAddOnLoaded(owner) then
-				EnableAddOn(CURSOR_ADDON_NAME)
-				LoadAddOn(CURSOR_ADDON_NAME)
+			if loadable or CPAPI.IsAddOnLoaded(owner) then
+				CPAPI.EnableAddOn(CURSOR_ADDON_NAME)
+				CPAPI.LoadAddOn(CURSOR_ADDON_NAME)
 				return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
 					local stack = db.Stack;
 					if stack:TryRemoveFrame(owner, frame) then
@@ -258,7 +258,7 @@ SLASH_FUNCTIONS = {
 			whileDead = 1;
 			showAlert = 1;
 			OnAccept = function()
-				DisableAddOn('ConsolePort')
+				CPAPI.DisableAddOn('ConsolePort')
 				SetCVar('GamePadEnable', 0)
 				ClearPadBindings()
 				Uninstall()
