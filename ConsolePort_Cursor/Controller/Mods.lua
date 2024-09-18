@@ -15,6 +15,7 @@ do  local popups, visible, oldNode = {}, {};
 	end
 
 	for popup, previous in pairs(popups) do
+		popup:SetAttribute(env.Attributes.PassThrough, true)
 		popup:HookScript('OnShow', function(self)
 			visible[self] = true;
 			if not InCombatLockdown() then

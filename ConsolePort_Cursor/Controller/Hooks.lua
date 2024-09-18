@@ -317,7 +317,7 @@ do -- Tooltip hooking
 				local itemInfo = CPAPI.GetItemInfo(itemID)
 				Hooks:SetPendingActionToUtilityRing(self, owner, {
 					type = 'item';
-					item = itemID;
+					item = itemInfo.itemLink;
 					link = itemInfo.itemLink;
 				});
 			end
