@@ -22,7 +22,7 @@ local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMo
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
 local GetBindingAction, CreateKeyChord = GetBindingAction, CPAPI.CreateKeyChord;
-local NewTimer, UnitExists = C_Timer.NewTimer, UnitExists;
+local After, NewTimer, UnitExists = C_Timer.After, C_Timer.NewTimer, UnitExists;
 
 ---------------------------------------------------------------
 -- Consts
@@ -266,7 +266,7 @@ function Mouse:SetCursorControl(enabled)
 			self.cursorOverride = self.reticleOverride or CVar_Sticks:Get()
 		end
 		CVar_Sticks:Set(0)
-		C_Timer.After(db('mouseFreeCursorEnableTime'), function()
+		After(db('mouseFreeCursorEnableTime'), function()
 			SetGamePadCursorControl(true)
 			if (self.cursorOverride) then
 				CVar_Sticks:Set(self.cursorOverride)
