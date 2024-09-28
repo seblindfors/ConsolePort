@@ -297,9 +297,9 @@ function BindingInfo:RefreshCollections()
 
 	local BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
 	local BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
-	local SKILLTYPE_PET    = Enum.SpellBookItemType and Enum.SpellBookItemType.Pet    or 'PETACTION';
-	local SKILLTYPE_SPELL  = Enum.SpellBookItemType and Enum.SpellBookItemType.Spell  or 'SPELL';
-	local SKILLTYPE_FLYOUT = Enum.SpellBookItemType and Enum.SpellBookItemType.Flyout or 'FLYOUT';
+	local SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
+	local SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
+	local SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
 
 	-- Spells
 	do  local spellBook, flyout, flyoutName = {}, {};
