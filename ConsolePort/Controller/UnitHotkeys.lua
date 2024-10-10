@@ -344,6 +344,16 @@ db:RegisterCallbacks(UH.OnDisplaySettingsChanged, UH,
 ---------------------------------------------------------------
 -- Frontend frame tracking
 ---------------------------------------------------------------
+
+local GetModifiedUnit, GetModifiedAttribute = SecureButton_GetModifiedUnit, SecureButton_GetModifiedAttribute;
+
+local function GetUnitForFrame(frame)
+	if ( GetModifiedAttribute(frame, 'type', 'LeftButton') ~= 'target' ) then
+		return nil;
+	end
+	return GetModifiedUnit(frame)
+end
+
 function UH:AssignUnit(binding, unitID)
 	self.UnitDrivers[unitID] = binding;
 	self:QueueUnitFrameRefresh()
@@ -354,11 +364,12 @@ function UH:RefreshUnitFrames(current)
 	if not current then
 		stack = {self:GetParent():GetChildren()}
 	elseif current:IsVisible() then
-		local unitID = current:GetAttribute('unit')
+		local unitID = GetUnitForFrame(current)
 		if unitID and self.UnitDrivers[unitID] then
 			self:AddTrackedUnitFrame(unitID, current)
+		else
+			stack = {current:GetChildren()}
 		end
-		stack = {current:GetChildren()}
 	end
 	if stack then
 		for i, frame in pairs(stack) do
