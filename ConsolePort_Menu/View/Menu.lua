@@ -51,7 +51,7 @@ function Menu:GetTargetOffsets(target)
 end
 
 Menu.CheckVisible = CPAPI.Debounce(function(self)
-	MenuRing:ShowHints(self:IsVisible())
+	MenuRing:ShowHints(self:IsVisible(), GameMenu:IsVisible())
 end, Menu)
 
 ---------------------------------------------------------------

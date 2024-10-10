@@ -318,12 +318,12 @@ function Selector:UpdateButtons()
 	end
 end
 
-function Selector:ShowHints(enabled)
+function Selector:ShowHints(enabled, isMenuOpen)
 	self.showHints = enabled;
 	local handle = db.UIHandle;
 	if enabled then
 		handle:SetHintFocus(self, false)
-		handle:AddHint(self.buttons.Switch, LOOT_NEXT_PAGE or SWITCH)
+		handle:AddHint(self.buttons.Switch, isMenuOpen and INTERFACE_LABEL or MAINMENU_BUTTON)
 		handle:AddHint(self.buttons.Return, BACK)
 	else
 		if handle:IsHintFocus(self) then
