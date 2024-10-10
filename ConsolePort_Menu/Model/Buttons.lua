@@ -202,12 +202,12 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Finder ]] if LFDMicroButton or LFGMicroButton then _{
+--[[ Finder ]] if not CPAPI.IsClassicEraVersion and ( LFDMicroButton or LFGMicroButton ) then _{
 ---------------------------------------------------------------
 	text  = DUNGEONS_BUTTON;
 	img   = [[Interface\LFGFRAME\UI-LFG-PORTRAIT]];
 	ref   = LFDMicroButton or LFGMicroButton;
-	click = IsClassicGameVersion and GenerateFlatClosure(PVEFrame_ToggleFrame);
+	click = CPAPI.IsClassicVersion and GenerateFlatClosure(PVEFrame_ToggleFrame);
 } end;
 
 ---------------------------------------------------------------
