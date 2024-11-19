@@ -1,4 +1,5 @@
 local _, env, db, L = ...; db = env.db; L = db.Locale;
+local TOOLBAR_WATCH_UNIT = 16;
 ---------------------------------------------------------------
 local TooltipButton = {};
 ---------------------------------------------------------------
@@ -304,14 +305,58 @@ function PopoutFrame:OnLoad()
 	self:HookScript('OnShow', self.MoveMicroButtons)
 end
 
+function PopoutFrame:ToggleSlices(invert)
+    local tLeft  = self.TopLeftCorner;
+    local tRight = self.TopRightCorner;
+	local bLeft  = self.BottomLeftCorner;
+	local bRight = self.BottomRightCorner;
+	local left   = self.LeftEdge;
+	local right  = self.RightEdge;
+
+	tLeft:SetShown(not invert)
+	tRight:SetShown(not invert)
+	bLeft:SetShown(invert)
+	bRight:SetShown(invert)
+
+	self.TopEdge:SetShown(not invert)
+	self.BottomEdge:SetShown(invert)
+
+	left:ClearAllPoints()
+	right:ClearAllPoints()
+
+	if not invert then
+		left:SetPoint('TOPLEFT', tLeft, 'BOTTOMLEFT', 0, 0)
+		left:SetPoint('BOTTOMLEFT', 0, 0)
+		right:SetPoint('TOPRIGHT', tRight, 'BOTTOMRIGHT', 0, 0)
+		right:SetPoint('BOTTOMRIGHT', 0, 0)
+	else
+		left:SetPoint('TOPLEFT', -34, 0)
+		left:SetPoint('BOTTOMRIGHT', bLeft, 'TOPRIGHT', 0, 0)
+		right:SetPoint('TOPRIGHT', 34, 0)
+		right:SetPoint('BOTTOMLEFT', bRight, 'TOPLEFT', 0, 0)
+	end
+end
+
 function PopoutFrame:Layout()
 	local container = self:GetParent()
-	self.maximumWidth = ConsolePortToolbar:GetWidth() - 64;
+	local toolbar = ConsolePortToolbar;
+	local delta = self.inverted and -1 or 1;
+	local orientation = self.inverted and 'TOP' or 'BOTTOM';
+
+	self:ToggleSlices(self.inverted)
+
+	self.maximumWidth = toolbar:GetWidth() - 64;
 	self.stride = math.floor(self.maximumWidth / 32) - 1;
+
+	container:ClearAllPoints()
+	container:SetPoint(orientation, toolbar, orientation, 0, delta * (TOOLBAR_WATCH_UNIT + 1))
+	self:ClearAllPoints()
+	self:SetPoint(orientation)
+
 	GridLayoutFrameMixin.Layout(self)
 	container:SetSize(self:GetWidth() + 64, self:GetHeight() + 64)
-	container.SlideIn.Translate:SetOffset(0, self:GetHeight())
-	container.SlideOut.Translate:SetOffset(0, -self:GetHeight())
+	container.SlideIn.Translate:SetOffset(0,   delta * self:GetHeight())
+	container.SlideOut.Translate:SetOffset(0, -delta * self:GetHeight())
 end
 
 function PopoutFrame:MoveMicroButtons()
@@ -343,7 +388,9 @@ function PopoutFrame:SlideOut()
 end
 
 function PopoutFrame:SetActive(active)
-	self:SetPoint('BOTTOM', 0, active and 0 or -self:GetHeight())
+	local anchor = self.inverted and 'TOP' or 'BOTTOM';
+	local delta = self.inverted and -1 or 1;
+	self:SetPoint(anchor, 0, active and 0 or -delta * self:GetHeight())
 	for button in pairs(self.MicroButtons) do
 		-- Show help tip frames when the micro buttons are hidden by clipping,
 		-- which is why this is true when the popout is NOT active.
@@ -351,7 +398,8 @@ function PopoutFrame:SetActive(active)
 	end
 end
 
-function PopoutFrame:SetProps(props)
+function PopoutFrame:SetProps(props, inverted)
+	self.inverted = inverted;
 	self.props = props;
 	self.Eye:SetShown(props.eye)
 	self:MoveMicroButtons()
@@ -375,6 +423,7 @@ end
 ---------------------------------------------------------------
 CPToolbar = CreateFromMixins(env.ConfigurableWidgetMixin);
 ---------------------------------------------------------------
+
 function CPToolbar:OnLoad()
 	env:RegisterCallbacks(self.OnDataLoaded, self,
 		'OnDataLoaded',
@@ -428,9 +477,10 @@ function CPToolbar:OnEvent()
 end
 
 function CPToolbar:SetTintColor(r, g, b, a)
-	self.BG:SetGradient(env:GetColorGradient(r, g, b, a))
-	self.BottomLine:SetVertexColor(r, g, b, a)
-	self.PopoutContainer.PopoutFrame.Gradient:SetGradient(env:GetColorGradient(r, g, b, a))
+	local orientation, minColor, maxColor = env:GetColorGradient(r, g, b, a, .25, self.inverted)
+	self.BG:SetGradient(orientation, minColor, maxColor)
+	self.DividerLine:SetVertexColor(r, g, b, a)
+	self.PopoutContainer.PopoutFrame.Gradient:SetGradient(orientation, minColor, maxColor)
 end
 
 function CPToolbar:OnDataLoaded()
@@ -440,14 +490,36 @@ function CPToolbar:OnDataLoaded()
 end
 
 function CPToolbar:SetProps(props)
-	self:SetDynamicProps(props)
 	self:OnDataLoaded()
+	self:UpdateInversion(props)
+	self:SetDynamicProps(props)
 	self:OnSizeChanged()
 	self:Show()
 	self:SetTotemBarProps(props.totem)
 	self:SetCastBarProps(props.castbar)
 	self:SetStanceBarProps(props.totem)
-	self.PopoutContainer.PopoutFrame:SetProps(props.menu)
+	self.PopoutContainer.PopoutFrame:SetProps(props.menu, self.inverted)
+end
+
+function CPToolbar:UpdateInversion(props)
+	self.inverted = not not props.pos.point:match('^TOP');
+
+	local delta = self.inverted and -1 or 1;
+	local orientation = self.inverted and 'TOP' or 'BOTTOM';
+
+	self.DividerLine:ClearAllPoints()
+	self.DividerLine:SetPoint(orientation..'LEFT', 0, TOOLBAR_WATCH_UNIT * delta)
+	self.DividerLine:SetPoint(orientation..'RIGHT', 0, TOOLBAR_WATCH_UNIT * delta)
+
+	local bgOffsetTop = self.inverted and -16 or 60;
+	local bgOffsetBot = self.inverted and -60 or 16;
+	self.BG:SetPoint('TOPLEFT', TOOLBAR_WATCH_UNIT, bgOffsetTop)
+	self.BG:SetPoint('BOTTOMRIGHT', -TOOLBAR_WATCH_UNIT, bgOffsetBot)
+
+	if ( not self.XPBar ) then return end;
+	self.XPBar:ClearAllPoints()
+	self.XPBar:SetPoint(orientation)
+	self.XPBar:SetInversion(self.inverted)
 end
 
 function CPToolbar:OnPropsUpdated()
@@ -526,15 +598,27 @@ function CPToolbar:SetStanceBarProps(props)
 	self.StanceBar:SetParent(props.hidden and env.UIHandler or UIParent)
 end
 
+local MoveCastingBarFrame;
 function CPToolbar:SetCastBarProps(props)
 	-- Classic only, hook persists until /reload
     if not self.CastBar or not props or not props.enabled then return end;
-	if self.castBarAnchor then return end;
 
-	self.castBarAnchor = { 'BOTTOM', self, 'BOTTOM', 0, 1 };
+	local inverted = self.inverted;
+	local delta = inverted and -1 or 1;
+	local point = inverted and 'TOP' or 'BOTTOM';
+
+	if self.castBarAnchor then
+		self.castBarAnchor[1] = point;
+		self.castBarAnchor[3] = point;
+		self.castBarAnchor[5] = delta;
+		return MoveCastingBarFrame()
+	end
+
+	self.castBarAnchor = { point, self, point, 0, delta };
 	-- TODO: check if this is still needed with disabled vehicle UI
 	hooksecurefunc(self.CastBar, 'SetPoint', function(bar, _, region)
 		if region ~= self then
+			bar:ClearAllPoints()
 			bar:SetPoint(unpack(self.castBarAnchor))
 		end
 	end)
@@ -553,7 +637,7 @@ function CPToolbar:SetCastBarProps(props)
 		CastingBarFrame_SetStartCastColor(self.CastBar, r, g, b)
 	end
 
-	local function MoveCastingBarFrame()
+	function MoveCastingBarFrame()
 		ModifyCastingBarFrame()
 		self.CastBar:ClearAllPoints()
 		self.CastBar:SetPoint(unpack(self.castBarAnchor))

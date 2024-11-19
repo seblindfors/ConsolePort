@@ -715,18 +715,23 @@ function CPWatchBarContainerMixin:LayoutBar(bar, barWidth, isTopBar, isDouble)
 	bar:Show()
 	bar:ClearAllPoints()
 
+	local normalTexture = self.inverted and XP_BAR_TEXTURE_INVERTED or XP_BAR_TEXTURE_NORMAL;
+	local invertTexture = self.inverted and XP_BAR_TEXTURE_NORMAL or XP_BAR_TEXTURE_INVERTED;
+	local anchor = self.inverted and 'TOP' or 'BOTTOM';
+	local offset = self.inverted and -18 or 18;
+
 	if ( isDouble ) then
 		if ( isTopBar ) then
-			bar:SetPoint('BOTTOM', self:GetParent(), 0, 18)
-			bar.StatusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_INVERTED)
+			bar:SetPoint(anchor, self:GetParent(), 0, offset)
+			bar.StatusBar.BarTexture:SetTexture(invertTexture)
 		else
-			bar:SetPoint('BOTTOM', self:GetParent(), 0, 0)
-			bar.StatusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_NORMAL)
+			bar:SetPoint(anchor, self:GetParent(), 0, 0)
+			bar.StatusBar.BarTexture:SetTexture(normalTexture)
 		end
 		self:SetDoubleBarSize(bar, barWidth)
 	else
-		bar:SetPoint('BOTTOM', self:GetParent(), 0, 0)
-		bar.StatusBar.BarTexture:SetTexture(XP_BAR_TEXTURE_NORMAL)
+		bar:SetPoint(anchor, self:GetParent(), 0, 0)
+		bar.StatusBar.BarTexture:SetTexture(normalTexture)
 		self:SetSingleBarSize(bar, barWidth)
 	end
 end
@@ -741,15 +746,20 @@ function CPWatchBarContainerMixin:LayoutBars(visBars)
 	local width = self:GetWidth()
 	self:HideStatusBars()
 
-	local TOP_BAR, IS_DOUBLE = true, true;
+	local SECONDARY, IS_DOUBLE = true, true;
 	if ( #visBars > 1 ) then
-		self:LayoutBar(visBars[1], width, not TOP_BAR, IS_DOUBLE)
-		self:LayoutBar(visBars[2], width, TOP_BAR, IS_DOUBLE)
+		self:LayoutBar(visBars[1], width, not SECONDARY, IS_DOUBLE)
+		self:LayoutBar(visBars[2], width, SECONDARY, IS_DOUBLE)
 	elseif( #visBars == 1 ) then
-		self:LayoutBar(visBars[1], width, TOP_BAR, not IS_DOUBLE)
+		self:LayoutBar(visBars[1], width, SECONDARY, not IS_DOUBLE)
 	end
 	self.mainBar = visBars and visBars[1];
 	self:UpdateBarTicks()
+end
+
+function CPWatchBarContainerMixin:SetInversion(inverted)
+	self.inverted = inverted;
+	self:UpdateBarsShown()
 end
 
 function CPWatchBarContainerMixin:GetEndCapWidth()

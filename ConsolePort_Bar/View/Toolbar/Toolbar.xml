@@ -89,7 +89,7 @@
 					<Anchor point="BOTTOM" y="17"/>
 				</Anchors>
 				<Frames>
-					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarSixSliceFrame" alpha="0">
+					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarNineSliceFrame" alpha="0">
 						<Size x="300" y="40"/>
 						<KeyValues>
 							<KeyValue key="childXPadding" value="1" type="number"/>
@@ -192,7 +192,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="BORDER">
-				<Texture parentKey="BottomLine" inherits="CPDividerLine">
+				<Texture parentKey="DividerLine" inherits="CPDividerLine">
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" x="0" y="16"/>
 						<Anchor point="BOTTOMRIGHT" x="0" y="16"/>

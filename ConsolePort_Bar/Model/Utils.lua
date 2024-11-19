@@ -259,15 +259,17 @@ function env:GetColorRGBA(id)
 	return color:GetRGBA();
 end
 
-function env:GetColorGradient(r, g, b, a, i)
+function env:GetColorGradient(r, g, b, a, i, invert)
 	a = a or 1;
 	i = i or 0.25;
 	local base, mult = 0.15, 1.2;
 	local startA, endA = i * a, 0;
+	local minColor = CreateColor((r + base) * mult, (g + base) * mult, (b + base) * mult, startA);
+	local maxColor = CreateColor(1 - (r + base) * mult, 1 - (g + base) * mult, 1 - (b + base) * mult, endA);
 	return -- SetGradient
 	--[[ orientation ]] 'VERTICAL',
-	--[[ minColor    ]] CreateColor((r + base) * mult, (g + base) * mult, (b + base) * mult, startA),
-	--[[ maxColor    ]] CreateColor(1 - (r + base) * mult, 1 - (g + base) * mult, 1 - (b + base) * mult, endA);
+	--[[ minColor    ]] invert and maxColor or minColor,
+	--[[ maxColor    ]] invert and minColor or maxColor;
 end
 
 function env.GetAsset(asset, arg1, ...)

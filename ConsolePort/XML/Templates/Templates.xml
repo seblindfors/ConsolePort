@@ -570,4 +570,27 @@
 		</Layers>
 	</Frame>
 
+	<Frame name="CPToolbarNineSliceFrame" virtual="true" inherits="CPToolbarSixSliceFrame">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentArray="SixSlice" parentKey="BottomLeftCorner" atlas="CharacterCreateDropdown-NineSlice-CornerBottomLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" x="-34" y="-46"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="SixSlice" parentKey="BottomRightCorner" atlas="CharacterCreateDropdown-NineSlice-CornerBottomRight" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" x="34" y="-46"/>
+					</Anchors>
+				</Texture>
+				<Texture parentArray="SixSlice" parentKey="BottomEdge" atlas="_CharacterCreateDropdown-NineSlice-EdgeBottom" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent.BottomLeftCorner" relativePoint="BOTTOMRIGHT"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.BottomRightCorner" relativePoint="BOTTOMLEFT"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
 </Ui>
