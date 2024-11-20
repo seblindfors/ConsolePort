@@ -12,6 +12,10 @@ local function ConvertName(name, path)
 	local text = name or path;
 	local button = text:match('/(PAD%w+)$');
 	if button then
+		local activeDevice = db('Gamepad/Active');
+		if activeDevice then
+			return activeDevice:GetHotkeyStringForButton(button);
+		end
 		return GetBindingText(button)
 	end
 	return text;
