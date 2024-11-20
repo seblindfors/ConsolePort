@@ -185,11 +185,11 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ World Map ]] if MiniMapWorldMapButton then _{
+--[[ World Map ]] if MiniMapWorldMapButton or WorldMapMicroButton then _{
 ---------------------------------------------------------------
 	text  = WORLD_MAP;
 	img   = [[Interface\WorldMap\WorldMap-Icon]];
-	ref   = MiniMapWorldMapButton;
+	ref   = MiniMapWorldMapButton or WorldMapMicroButton;
 } end;
 
 ---------------------------------------------------------------
