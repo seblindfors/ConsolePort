@@ -350,8 +350,7 @@ function PopoutFrame:Layout()
 
 	container:ClearAllPoints()
 	container:SetPoint(orientation, toolbar, orientation, 0, delta * (TOOLBAR_WATCH_UNIT + 1))
-	self:ClearAllPoints()
-	self:SetPoint(orientation)
+	self:UpdatePoint(self.isActive)
 
 	GridLayoutFrameMixin.Layout(self)
 	container:SetSize(self:GetWidth() + 64, self:GetHeight() + 64)
@@ -387,10 +386,17 @@ function PopoutFrame:SlideOut()
 	self:GetParent().SlideOut:Play()
 end
 
-function PopoutFrame:SetActive(active)
+function PopoutFrame:UpdatePoint(active)
 	local anchor = self.inverted and 'TOP' or 'BOTTOM';
-	local delta = self.inverted and -1 or 1;
+	local delta  = self.inverted and -1 or 1;
+	self:ClearAllPoints()
 	self:SetPoint(anchor, 0, active and 0 or -delta * self:GetHeight())
+end
+
+function PopoutFrame:SetActive(active)
+	self:UpdatePoint(active)
+	self.isActive = active;
+	if not self.MicroButtons then return end;
 	for button in pairs(self.MicroButtons) do
 		-- Show help tip frames when the micro buttons are hidden by clipping,
 		-- which is why this is true when the popout is NOT active.
