@@ -98,6 +98,12 @@ end
 -- Events
 ---------------------------------------------------------------
 function GamepadAPI:OnDataLoaded()
+	-- TODO: remove if/when atlas icons get added to Classic Era.
+	-- Added as a workaround for players importing settings from Retail.
+	if CPAPI.IsClassicEraVersion and db('useAtlasIcons') then
+		db('Settings/useAtlasIcons', false)
+	end
+
 	self:ReindexMappedState()
 	self:ReindexIconAtlas()
 	-- Load preset devices
@@ -148,9 +154,9 @@ end
 -- UPDATE_BINDINGS - handle two different scenarios:
 -- 1. just logged in, and bindings are dispatched immediately.
 -- 2. logged in for a while, and bindings are dispatched with debouncing.
--- 
+--
 -- Why?
--- 
+--
 -- 1. runs unnecessarily since UPDATE_BINDINGS fires somewhere
 -- around 5-10 times on login, but we need to configure action bars
 -- immediately in case we're in combat, and we can't tell which event is
