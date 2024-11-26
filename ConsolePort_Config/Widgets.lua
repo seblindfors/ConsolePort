@@ -245,6 +245,7 @@ local Number = CreateWidget('Number', Widget, {
 		_SetAutoFocus = false;
 		_SetFontObject = ChatFontNormal;
 		_SetTextInsets = {8, 8, 0, 0};
+		_SetJustifyH = 'RIGHT';
 		_Backdrop = CPAPI.Backdrops.Opaque;
 		_OnLoad = function(self)
 			self:SetBackdropColor(COLOR_NORMAL:GetRGBA());
