@@ -211,7 +211,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ PvP ]] if IsClassicGameVersion then _{
+--[[ PvP ]] if IsClassicGameVersion and (PVPFrame or PVPParentFrame) then _{
 ---------------------------------------------------------------
 	text  = PLAYER_V_PLAYER;
 	img   = ICON(('Achievement_PVP_%1$s_%1$s'):format(UnitFactionGroup('player'):sub(1,1)));
@@ -235,7 +235,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Calendar ]] if GameTimeFrame:IsObjectType('Button') then _{
+--[[ Calendar ]] if GameTimeFrame and GameTimeFrame:IsObjectType('Button') then _{
 ---------------------------------------------------------------
 	text  = EVENTS_LABEL;
 	img   = [[Interface\Calendar\MeetingIcon]];
