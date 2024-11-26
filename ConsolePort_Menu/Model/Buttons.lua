@@ -85,20 +85,16 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 		self:RegisterEvent('BAG_UPDATE_DELAYED')
 	end;
 	OnEvent = function(self)
-		local totalFree, numSlots, freeSlots, bagFamily = 0, 0;
-		for i = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
-			freeSlots, bagFamily = CPAPI.GetContainerNumFreeSlots(i)
-			if ( bagFamily == 0 ) then
-				totalFree = totalFree + freeSlots
-				numSlots = numSlots + CPAPI.GetContainerNumSlots(i)
-			end
-		end
-		local percentageFree = totalFree / numSlots;
+		local totalFree, totalSlots = CPAPI.GetContainerTotalSlots()
+		local percentageFree = totalFree / totalSlots;
 		local color = percentageFree > .5 and GREEN_FONT_COLOR
 			or percentageFree > .25 and YELLOW_FONT_COLOR
 			or percentageFree > .10 and ORANGE_FONT_COLOR
 			or RED_FONT_COLOR;
-		self.subtitle = ('%s / %s'):format(color:WrapTextInColorCode(totalFree), GRAY_FONT_COLOR:WrapTextInColorCode(numSlots))
+		self.subtitle = ('%s / %s'):format(
+			color:WrapTextInColorCode(totalFree),
+			GRAY_FONT_COLOR:WrapTextInColorCode(totalSlots)
+		);
 		self:Update()
 	end;
 } end;
@@ -202,12 +198,20 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Finder ]] if not CPAPI.IsClassicEraVersion and ( LFDMicroButton or LFGMicroButton ) then _{
+--[[ Finder ]] do _{
 ---------------------------------------------------------------
 	text  = DUNGEONS_BUTTON;
 	img   = [[Interface\LFGFRAME\UI-LFG-PORTRAIT]];
 	ref   = LFDMicroButton or LFGMicroButton;
 	click = CPAPI.IsClassicVersion and GenerateFlatClosure(PVEFrame_ToggleFrame);
+	OnLoad = CPAPI.IsClassicEraVersion and function(self)
+		self.OnLoad = nil;
+		EventUtil.ContinueOnAddOnLoaded('Blizzard_GroupFinder_VanillaStyle', function()
+			env.db:RunSafe(function()
+				self:SetData({ ref = LFGMinimapFrame });
+			end);
+		end)
+	end;
 } end;
 
 ---------------------------------------------------------------

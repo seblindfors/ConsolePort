@@ -75,6 +75,18 @@ function CPAPI.GetAverageItemLevel(...)
 	return MAX_PLAYER_LEVEL
 end
 
+function CPAPI.GetContainerTotalSlots()
+	local totalFree, totalSlots, freeSlots, bagFamily = 0, 0;
+	for i = BACKPACK_CONTAINER, NUM_BAG_SLOTS do
+		freeSlots, bagFamily = CPAPI.GetContainerNumFreeSlots(i)
+		if ( bagFamily == 0 ) then
+			totalFree  = totalFree + freeSlots;
+			totalSlots = totalSlots + CPAPI.GetContainerNumSlots(i)
+		end
+	end
+	return totalFree, totalSlots;
+end
+
 ---------------------------------------------------------------
 -- Button constants
 ---------------------------------------------------------------
