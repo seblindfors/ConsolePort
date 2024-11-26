@@ -239,7 +239,7 @@ function Selector:OnControlsChanged()
 end
 
 function Selector:OnTerribleWorkaround(macroInfo)
-	if RunMacroText or self.macroEditMutex then return end;
+	if CPAPI.RunMacroText or self.macroEditMutex then return end;
 	self.macroEditMutex = true;
 	local macroID;
 	for i, info in pairs(macroInfo) do

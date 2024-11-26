@@ -252,6 +252,7 @@ CPAPI.PickupSpell                    = C_Spell         and C_Spell.PickupSpell  
 CPAPI.PickupSpellBookItem            = C_SpellBook     and C_SpellBook.PickupSpellBookItem               or PickupSpellBookItem;
 CPAPI.PutActionInSlot                = C_ActionBar     and C_ActionBar.PutActionInSlot                   or PlaceAction;
 CPAPI.RequestLoadQuestByID           = C_QuestLog      and C_QuestLog.RequestLoadQuestByID               or nop;
+CPAPI.RunMacroText                   = C_Macro         and C_Macro.RunMacroText                          or RunMacroText;
 CPAPI.SplitContainerItem             = C_Container     and C_Container.SplitContainerItem                or SplitContainerItem;
 CPAPI.UseContainerItem               = C_Container     and C_Container.UseContainerItem                  or UseContainerItem;
 -- Fallthroughs
