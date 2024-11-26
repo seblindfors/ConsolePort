@@ -403,8 +403,13 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Automatically add tracked quest items and extra spells to main utility ring.';
 	};
 	autoSellJunk = _{Bool(true);
-		name = 'Automatically Sell Junk';
+		name = 'Auto-Sell Junk';
 		desc = 'Automatically sell junk when interacting with a merchant.';
+	};
+	autoSellJunkLevelLimit = _{Number(10, 1, true);
+		name = 'Auto-Sell Gear Level Limit';
+		desc = 'Equippable items of poor quality will not be sold while your character is below this level.';
+		advd = true;
 	};
 	UIscale = _{Number(1, 0.025, true);
 		name = 'Global Scale';
