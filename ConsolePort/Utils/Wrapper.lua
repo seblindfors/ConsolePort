@@ -256,6 +256,7 @@ CPAPI.RunMacroText                   = C_Macro         and C_Macro.RunMacroText 
 CPAPI.SplitContainerItem             = C_Container     and C_Container.SplitContainerItem                or SplitContainerItem;
 CPAPI.UseContainerItem               = C_Container     and C_Container.UseContainerItem                  or UseContainerItem;
 -- Fallthroughs
+CPAPI.ClearCursor                    = ClearCursor        or nop;
 CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;
 CPAPI.GetSpecializationInfoByID      = GetSpecializationInfoByID or nop;
 CPAPI.IsInLFDBattlefield             = IsInLFDBattlefield or nop;
