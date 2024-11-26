@@ -64,6 +64,12 @@ do local NUM_GROUP_LOOT_FRAMES = NUM_GROUP_LOOT_FRAMES or 4;
 	end
 end
 
+-- Classic Spellbook:
+-- Handle the spellbook frame using an unreferenced and hardcoded close button name.
+if (SpellBookFrame and SpellBookCloseButton) then
+	SpellBookFrame.CloseButton = SpellBookCloseButton;
+end
+
 -- PVP match results:
 -- The PvP match results frame has a scroll box with a data provider that is recreated on every
 -- rendered frame. If the cursor focuses a line in the scroll box, it will flicker around the

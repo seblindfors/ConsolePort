@@ -554,6 +554,7 @@ function Cursor:Select(node, object, super, triggerOnEnter, automatic)
 	end
 
 	self:SetScrollButtonsForNode(node, super)
+	self:SetCancelButtonForNode(node)
 	self:SetClickButtonsForNode(node,
 		self:GetMacroReplacement(node),
 		self:IsClickableNode(node, object)
@@ -613,6 +614,31 @@ function Cursor:AttemptDragStart()
 		end
 	end
 end
+
+do local function GetCloseButton(node)
+		if node.CloseButton then
+			return node.CloseButton;
+		end
+		local nodeName = node:GetName();
+		if nodeName then
+			return _G[nodeName..'CloseButton'];
+		end
+	end
+
+	local function FindCloseButton(node)
+		if not node then return end;
+		return GetCloseButton(node) or FindCloseButton(node:GetParent())
+	end
+
+	function Cursor:SetCancelButtonForNode(node)
+		local cancelButton = db('Settings/UICursorCancel')
+		local closeButton = FindCloseButton(node)
+		if C_Widget.IsFrameWidget(closeButton) and cancelButton then
+			Input:SetButton(cancelButton, self, closeButton, true, 'LeftButton')
+		end
+	end
+end
+
 
 ---------------------------------------------------------------
 -- Cursor textures and animations
