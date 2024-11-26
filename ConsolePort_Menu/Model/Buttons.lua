@@ -235,7 +235,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Calendar ]] do _{
+--[[ Calendar ]] if GameTimeFrame:IsObjectType('Button') then _{
 ---------------------------------------------------------------
 	text  = EVENTS_LABEL;
 	img   = [[Interface\Calendar\MeetingIcon]];
