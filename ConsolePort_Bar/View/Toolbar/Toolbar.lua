@@ -132,7 +132,7 @@ CPMicroButton = {
 	};
 };
 
-local LoadMicroButtonTextures, MovePortraitTextures = nop, nop;
+local LoadMicroButtonTextures, MovePortraitTextures, MovePerformanceBar = nop, nop, nop;
 if not CPAPI.IsRetailVersion then
 	local TextureKit = {
 		AchievementMicroButton = 'Achievements';
@@ -181,6 +181,20 @@ if not CPAPI.IsRetailVersion then
 				portrait:SetTexCoord(unpack(coords))
 			end
 		end
+	end
+
+	function MovePerformanceBar(self)
+		local frame  = MainMenuBarPerformanceBarFrame;
+		local status = MainMenuBarPerformanceBar;
+		if not frame or not self.props.micromenu then return end;
+		frame:Show()
+		frame:SetParent(self)
+		frame:SetAllPoints(self.Divider1)
+		frame:SetFrameStrata(self.Divider1:GetFrameStrata())
+		frame:SetFrameLevel(self.Divider1:GetFrameLevel() + 1)
+		frame.ignoreInLayout = true;
+		if not status then return end;
+		status:SetAllPoints(frame)
 	end
 end
 
@@ -374,6 +388,7 @@ function PopoutFrame:MoveMicroButtons()
 			end
 		end
 	end
+	MovePerformanceBar(self)
 	MovePortraitTextures()
 	self:Layout()
 end
