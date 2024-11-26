@@ -331,7 +331,7 @@ do  local specialFrames, poolFrames, watchers = {}, {}, {};
 		end
 	end
 
-	if CPAPI.IsRetailVersion and _G.Menu then
+	if (_G.Menu and _G.Menu.GetManager) then
 		local menu = _G.Menu; -- Blizzard's menu manager
 		local mgr  = menu.GetManager();
 		local function CatchOpenMenu()
