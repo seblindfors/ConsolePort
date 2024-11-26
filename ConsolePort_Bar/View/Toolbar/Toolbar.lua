@@ -192,9 +192,12 @@ if not CPAPI.IsRetailVersion then
 		frame:SetAllPoints(self.Divider1)
 		frame:SetFrameStrata(self.Divider1:GetFrameStrata())
 		frame:SetFrameLevel(self.Divider1:GetFrameLevel() + 1)
+		CPAPI.LockPoints(frame)
 		frame.ignoreInLayout = true;
 		if not status then return end;
+		status:SetParent(frame)
 		status:SetAllPoints(frame)
+		CPAPI.LockPoints(status)
 	end
 end
 

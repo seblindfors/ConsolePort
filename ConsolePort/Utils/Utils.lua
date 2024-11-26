@@ -101,6 +101,14 @@ function CPAPI.DisableFrame(frame, ignoreAlpha)
 	ConsolePort:ForbidInterfaceCursorFrame(frame)
 end
 
+function CPAPI.LockPoints(frame)
+	frame.SetPoint,
+	frame.SetAllPoints,
+	frame.ClearAllPoints,
+	frame.SetParent
+	= nop, nop, nop, nop;
+end
+
 function CPAPI.CreateDataHandler(...)
 	local handler = CreateFromMixins(...)
 	return CPAPI.DataHandler(handler)
