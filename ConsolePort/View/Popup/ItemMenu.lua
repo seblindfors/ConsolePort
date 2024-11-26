@@ -355,3 +355,5 @@ end
 ---------------------------------------------------------------
 ItemMenu:SetAttribute('nodepass', true)
 ItemMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
+---------------------------------------------------------------
+GameMenuFrame:HookScript('OnShow', GenerateClosure(ItemMenu.Hide, ItemMenu))

@@ -403,6 +403,8 @@ SpellMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
 SpellMenu.ActionButtons = CreateFramePool('IndexButton', SpellMenu, 'CPIndexButtonBindingActionButtonTemplate')
 SpellMenu.ActionBarText = CreateFontStringPool(SpellMenu, 'ARTWORK', nil, 'CPSmallFont')
 ---------------------------------------------------------------
+GameMenuFrame:HookScript('OnShow', GenerateClosure(SpellMenu.Hide, SpellMenu))
+---------------------------------------------------------------
 db:RegisterCallback('OnCursorChanged', SpellMenu.OnCursorChanged, SpellMenu)
 db:RegisterCallback('OnSlotRequest', SpellMenu.OnSlotRequest, SpellMenu)
 db:RegisterCallback('PlayerSpellsFrame.OpenFrame', SpellMenu.SetBackgroundAlpha, SpellMenu, 0.95)
