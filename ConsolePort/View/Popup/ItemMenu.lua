@@ -270,10 +270,17 @@ end
 function ItemMenu:Delete()
 	CPAPI.PickupContainerItem(self:GetBagAndSlot())
 	local link, quality, hasSpellID = self:GetLink(), self:GetQuality(), self:GetSpellID();
+	local returnToNode = self.returnToNode;
 	self:Hide()
 	-- show confirm popup for good+ and usable items
 	if hasSpellID or ( quality > QUALITY_STANDARD ) then
-		StaticPopup_Show('DELETE_ITEM', link)
+		-- HACK: set returnToNode to trick the cursor into returning to the
+		-- item trigger itself, instead of the delete button on the popup.
+		ConsolePort:SetCursorNode(returnToNode, false, true)
+		local popup = StaticPopup_Show('DELETE_ITEM', link)
+		if popup then
+			ConsolePort:SetCursorNode(popup.button1, false, true)
+		end
 	else
 		DeleteCursorItem()
 	end

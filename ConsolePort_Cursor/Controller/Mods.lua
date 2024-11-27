@@ -26,14 +26,15 @@ do  local popups, visible, oldNode = {}, {};
 					if current and not popups[current:GetParent()] then
 						oldNode = current;
 					end
-					env.Cursor:SetCurrentNode(self.button1)
+					env.Cursor:SetCurrentNodeIfActive(self.button1)
 				end
 			end
 		end)
 		popup:HookScript('OnHide', function(self)
 			visible[self] = nil;
 			if not next(visible) and not InCombatLockdown() and oldNode then
-				env.Cursor:SetCurrentNode(oldNode)
+				env.Cursor:SetCurrentNodeIfActive(oldNode)
+				oldNode = nil;
 			end
 		end)
 	end
