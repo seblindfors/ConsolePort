@@ -198,15 +198,15 @@ do local FreeCursorOnPickup = {
 	};
 
 	function Mouse:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
-		if not db('mouseAutoControlPickup') then return end
-		
+		if not db('mouseAutoControlPickup') then return end;
+
 		if isDefault then
-			if ( oldCursorType == self.hasCursorItem ) then
+			if ( oldCursorType == self.cursorItemType ) and CursorControl() then
 				self:SetCameraControl()
 			end
-			self.hasCursorItem = nil;
-		elseif FreeCursorOnPickup[cursorType] then
-			self.hasCursorItem = cursorType;
+			self.cursorItemType = nil;
+		elseif FreeCursorOnPickup[cursorType] and GamePadControl() then
+			self.cursorItemType = cursorType;
 			self:SetFreeCursor()
 		end
 
