@@ -366,10 +366,14 @@ function Cursor:ReverseScanStack(node, key, target, changed)
 		if changed then
 			return target, changed;
 		end
-		self:ScanUI()
-		return Node.NavigateToBestCandidateV2(self.Cur, key)
+		return self:FlatScanStack(key)
 	end
 	return self.Cur, false;
+end
+
+function Cursor:FlatScanStack(key)
+	self:ScanUI()
+	return Node.NavigateToBestCandidateV2(self.Cur, key)
 end
 
 function Cursor:Navigate(key)
@@ -384,7 +388,7 @@ function Cursor:Navigate(key)
 	elseif db('UIalgoOptimize') then
 		target, changed = self:SetCurrent(self:ReverseScanStack(self:GetCurrentNode(), key))
 	else
-		target, changed = self:SetCurrent(Node.NavigateToBestCandidateV2(self:GetCurrent(), key))
+		target, changed = self:SetCurrent(self:FlatScanStack(key))
 	end
 	if not changed then
 		target, changed = self:SetCurrent(Node.NavigateToClosestCandidate(target, key))
