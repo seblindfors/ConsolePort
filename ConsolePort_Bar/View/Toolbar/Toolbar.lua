@@ -182,7 +182,9 @@ if not CPAPI.IsRetailVersion then
 			end
 		end
 	end
+end
 
+if CPAPI.IsClassicEraVersion then
 	function MovePerformanceBar(self)
 		local frame  = MainMenuBarPerformanceBarFrame;
 		local status = MainMenuBarPerformanceBar;
@@ -318,6 +320,9 @@ function PopoutFrame:OnLoad()
 	if UpdateMicroButtonsParent then
 		hooksecurefunc('UpdateMicroButtonsParent', GenerateClosure(self.OnUpdateMicroButtonsParent, self))
 	end
+	if UpdateMicroButtons then
+		hooksecurefunc('UpdateMicroButtons', GenerateClosure(self.OnUpdateMicroButtonsParent, self))
+	end
 
 	self:HookScript('OnShow', self.MoveMicroButtons)
 end
@@ -384,11 +389,11 @@ function PopoutFrame:MoveMicroButtons()
 		button:SetIgnoreParentAlpha(true)
 		if ( button.layoutIndex ~= index ) then
 			button.layoutIndex = index;
-			if not CPAPI.IsRetailVersion then
-				LoadMicroButtonTextures(button)
-				button:SetHitRectInsets(0, 0, 0, 0)
-				Mixin(button, CPMicroButton):OnLoad()
-			end
+		end
+		if not CPAPI.IsRetailVersion and not button.ValidateTextures then
+			LoadMicroButtonTextures(button)
+			button:SetHitRectInsets(0, 0, 0, 0)
+			Mixin(button, CPMicroButton):OnLoad()
 		end
 	end
 	MovePerformanceBar(self)
@@ -687,7 +692,6 @@ end
 env:AddFactory('Toolbar', function()
 	if not ConsolePortToolbar then
 		ConsolePortToolbar = CreateFrame('Frame', 'ConsolePortToolbar', env.Manager, 'CPToolbar')
-		ConsolePortToolbar:OnLoad()
 	end
 	return ConsolePortToolbar;
 end, env.Interface.Toolbar)
