@@ -19,6 +19,15 @@ local Stack = db:Register('Stack', CPAPI.CreateEventHandler({'Frame', '$parentUI
 local GetPoint, IsVisible = Stack.GetPoint, Stack.IsVisible;
 
 ---------------------------------------------------------------
+local function GetFrameWidget(frame)
+	if C_Widget.IsFrameWidget(frame) then
+		return frame;
+	elseif type(frame) == 'string' and C_Widget.IsFrameWidget(_G[frame]) then
+		return _G[frame];
+	end
+end
+
+---------------------------------------------------------------
 -- Externals:
 ---------------------------------------------------------------
 function Stack:LockCore(...)        isLocked = ...      end
@@ -92,8 +101,8 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	-- Most frames will use the same standard Show/Hide, but addons 
 	-- may use custom metatables, which should still work with this approach.
 	function Stack:AddFrame(frame)
-		local widget = (type(frame) == 'string' and _G[frame]) or (type(frame) == 'table' and frame)
-		if C_Widget.IsFrameWidget(widget) then
+		local widget = GetFrameWidget(frame)
+		if widget then
 			if ( not forbidden[widget] ) then
 				-- assert the frame isn't hooked twice
 				if ( not frames[widget] ) then
@@ -101,10 +110,10 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 					addHook(widget, 'Hide', hideHook)
 				end
 
-				frames[widget] = true
+				frames[widget] = true;
 				updateVisible(widget)
 			end
-			return true
+			return true;
 		else
 			self:AddFrameWatcher(frame)
 		end
@@ -113,27 +122,27 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	function Stack:LoadAddonFrames(name)
 		local frames = db('Stack/Registry/'..name)
 		if (type(frames) == 'table') then
-			for k, v in pairs(frames) do
-				if (type(k) == 'string') then
-					self:AddFrame(k)
-				elseif (type(v) == 'string') then
-					self:AddFrame(v)
+			for frame, enabled in pairs(frames) do
+				if enabled then
+					self:AddFrame(frame)
 				end
 			end
 		end
 	end
 
 	function Stack:RemoveFrame(frame)
-		if frame then
-			visible[frame] = nil;
-			frames[frame]  = nil;
+		local widget = GetFrameWidget(frame)
+		if widget then
+			visible[widget] = nil;
+			frames[widget]  = nil;
 		end
 	end
 
 	function Stack:ForbidFrame(frame)
-		if frames[frame] then
-			forbidden[frame] = true;
-			self:RemoveFrame(frame)
+		local widget = GetFrameWidget(frame)
+		if frames[widget] then
+			forbidden[widget] = true;
+			self:RemoveFrame(widget)
 		end
 	end
 
@@ -223,17 +232,23 @@ function Stack:TryRegisterFrame(set, name, state)
 
 	local stack = self:GetRegistrySet(set)
 	if (stack[name] == nil) then
-		stack[name] = (state == nil and true) or state;
-		return true;
+		stack[name] = (state == nil) or state;
+	elseif (state ~= nil) then
+		stack[name] = state;
 	end
+	return stack[name];
 end
 
-function Stack:TryRemoveFrame(set, name)
+function Stack:TryUnregisterFrame(set, name, wipe)
 	if not name then return end
 
 	local stack = self:GetRegistrySet(set)
 	if (stack[name] ~= nil) then
-		stack[name] = nil;
+		if wipe then
+			stack[name] = nil;
+		else
+			stack[name] = false;
+		end
 		return true;
 	end
 end
@@ -243,7 +258,7 @@ function Stack:OnDataLoaded()
 
 	-- Load standalone frame stack
 	for i, frame in ipairs(env.StandaloneFrameStack) do
-		self:TryRegisterFrame(_, frame, true)
+		self:TryRegisterFrame(_, frame)
 	end
 
 	-- Toggle the stack core
@@ -277,12 +292,15 @@ end
 do  local specialFrames, poolFrames, watchers = {}, {}, {};
 
 	local function TryAddSpecialFrame(self, frame)
-		if not specialFrames[frame] then
-			-- low-prio todo: save some memory here by not cloning
-			-- the frame into the watchers table. 
+		if specialFrames[frame] then return end;
+		-- If the frame is not in the stack, try to add it.
+		if self:TryRegisterFrame(_, frame) then
 			if self:AddFrame(frame) then
 				specialFrames[frame] = true;
 			end
+		-- The frame exists, but should not be added.
+		elseif GetFrameWidget(frame) then
+			specialFrames[frame] = true;
 		end
 	end
 
@@ -301,9 +319,10 @@ do  local specialFrames, poolFrames, watchers = {}, {}, {};
 	end
 
 	local function CatchNewFrame(frame)
-		if C_Widget.IsFrameWidget(frame) and not Stack:IsFrameVisibleToCursor(frame) then
-			if Stack:TryRegisterFrame(_, frame:GetName(), true) then
-				Stack:AddFrame(frame)
+		local widget = GetFrameWidget(frame)
+		if widget and not Stack:IsFrameVisibleToCursor(widget) then
+			if Stack:TryRegisterFrame(_, widget:GetName()) then
+				Stack:AddFrame(widget)
 				Stack:UpdateFrames()
 			end
 		end
@@ -349,6 +368,7 @@ do  local specialFrames, poolFrames, watchers = {}, {}, {};
 	end
 
 	function Stack:UpdateFrameTracker()
+		if self.OnDataLoaded then return end;
 		CheckSpecialFrames(self)
 		for frame in pairs(watchers) do
 			if self:AddFrame(frame) then
@@ -365,4 +385,4 @@ end
 ---------------------------------------------------------------
 -- On demand explicit load
 ---------------------------------------------------------------
-if CPAPI.IsAddOnLoaded(_) then Stack:ADDON_LOADED(_) end;
+--if CPAPI.IsAddOnLoaded(_) then Stack:ADDON_LOADED(_) end;
