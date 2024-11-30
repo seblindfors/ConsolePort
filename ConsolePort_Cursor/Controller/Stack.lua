@@ -381,8 +381,3 @@ do  local specialFrames, poolFrames, watchers = {}, {}, {};
 		watchers[frame] = true;
 	end
 end
-
----------------------------------------------------------------
--- On demand explicit load
----------------------------------------------------------------
---if CPAPI.IsAddOnLoaded(_) then Stack:ADDON_LOADED(_) end;
