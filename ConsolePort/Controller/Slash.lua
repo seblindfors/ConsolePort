@@ -13,10 +13,6 @@ local function ProcessSlash(command, ...)
 			SLASH_FUNCTIONS.help[1](command)
 		end
 		return true;
-	elseif command and command:trim():len() > 0 then
-		CPAPI.Log('Unknown command |cFF00FFFF%s|r.', command)
-		SLASH_FUNCTIONS.help[1]()
-		return true;
 	end
 end
 
@@ -50,10 +46,15 @@ local function ProcessVarUpdate(var, ...)
 end
 
 local function HandleSlashCommand(self, msg)
-	if ProcessSlash((' '):split(msg or '')) then
+	local args = {(' '):split(msg or '')};
+	if ProcessSlash(unpack(args)) then
 		return
-	elseif ProcessVarUpdate((' '):split(msg or '')) then
+	elseif ProcessVarUpdate(unpack(args)) then
 		return
+	elseif ( #args > 0 and args[1]:trim():len() > 0 ) then
+		CPAPI.Log('Unknown command |cFF00FFFF%s|r.', args[1])
+		SLASH_FUNCTIONS.help[1]()
+		return true;
 	end
 	if not CPAPI.IsAddOnLoaded(CONFIG_ADDON_NAME) then
 		CPAPI.EnableAddOn(CONFIG_ADDON_NAME)
