@@ -98,6 +98,9 @@ RadialMixin.Env = {
 	GetModifiersHeld = [[
 		return radial::GetModifiersHeld()
 	]];
+	GetActiveModifiers = [[
+		return radial::GetActiveModifiers()
+	]];
 	GetRadius = [[
 		return math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
 	]];
@@ -115,7 +118,7 @@ RadialMixin.Env = {
 		return self::GetRadius()
 	]]):format(DEFAULT_ITEM_SIZE, DEFAULT_ITEM_PADDING);
 	SpaceEvenly = [[
-		local children = newtable(self:GetChildren())
+		local children = { self:GetChildren() };
 		local radius = math.sqrt(self:GetWidth() * self:GetHeight()) / 2
 		local count = #children
 		self:SetAttribute('size', count)
@@ -130,10 +133,8 @@ RadialMixin.Env = {
 		self:CallMethod('OnBindingSet', btn, mod)
 	]];
 	SetBindingsForTriggers = [[
-		local mods = newtable(self::GetModifiersHeld())
-		local btns = newtable(self::GetButtonsHeld())
-		table.sort(mods)
-		mods[#mods+1] = table.concat(mods)
+		local btns = { self::GetButtonsHeld() };
+		local mods = { self::GetActiveModifiers() };
 
 		for _, btn in ipairs(btns) do
 			self::SetBinding(btn)
@@ -144,10 +145,8 @@ RadialMixin.Env = {
 		return #btns > 0;
 	]];
 	SetBindingsForButton = [[
-		local btns = newtable(...)
-		local mods = newtable(self::GetModifiersHeld())
-		table.sort(mods)
-		mods[#mods+1] = table.concat(mods)
+		local btns = { ... };
+		local mods = { self::GetActiveModifiers() };
 
 		for _, btn in ipairs(btns) do
 			self::SetBinding(btn)
@@ -355,7 +354,7 @@ Radial:CreateEnvironment({
 		local gstate = GetGamePadState()
 		local buttons = gstate and gstate.buttons
 		if not buttons then return end
-		local result = newtable()
+		local result = {};
 		for id, held in ipairs(buttons) do
 			if held and BTNS[id] and not MODS[ BTNS[id] ] then
 				result[#result+1] = BTNS[id]
@@ -368,13 +367,22 @@ Radial:CreateEnvironment({
 		local gstate = GetGamePadState()
 		local buttons = gstate and gstate.buttons
 		if not buttons then return end
-		local result = newtable()
+		local result = {};
 		for id, held in ipairs(buttons) do
 			if held and BTNS[id] then
 				result[#result+1] = MODS[ BTNS[id] ]
 			end
 		end
 		return unpack(result)
+	]];
+	-- @return modifiers : list of active modifiers (sorted, with suffix)
+	GetActiveModifiers = [[
+		local mods = { self::GetModifiersHeld() };
+		if #mods > 1 then
+			table.sort(mods)
+			mods[#mods+1] = table.concat(mods)
+		end
+		return unpack(mods)
 	]];
 	-- @param id    : numberID or name
 	-- @return bool : whether a given button is held

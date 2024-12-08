@@ -87,8 +87,15 @@ Selector.PrivateEnv = {
 		for binding, action in pairs(TRIGGERS) do
 			selector:SetBinding(true, binding, action)
 		end
+
+		local mods = { self::GetActiveModifiers() };
+		local name = selector:GetName();
+
 		for binding, command in pairs(COMMANDS) do
-			selector:SetBindingClick(true, binding, selector:GetName(), command)
+			selector:SetBindingClick(true, binding, name, command)
+			for _, mod in ipairs(mods) do
+				selector:SetBindingClick(true, mod..binding, name, command)
+			end
 		end
 	]];
 	-- Selector
