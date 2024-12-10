@@ -72,7 +72,7 @@
 			<Anchor point="CENTER"/>
 		</Anchors>
 		<Frames>
-			<Button parentKey="Trigger" name="ConsolePortMenuTrigger" registerForClicks="AnyDown" inherits="SecureHandlerBaseTemplate">
+			<Button parentKey="Trigger" name="ConsolePortMenuTrigger" registerForClicks="AnyUp" inherits="SecureHandlerBaseTemplate">
 				<Scripts>
 					<OnLoad>self:SetParent(GameMenuFrame)</OnLoad>
 				</Scripts>

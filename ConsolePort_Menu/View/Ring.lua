@@ -88,7 +88,7 @@ Selector.PrivateEnv = {
 			selector:SetBinding(true, binding, action)
 		end
 
-		local mods = { self::GetActiveModifiers() };
+		local mods = { selector::GetActiveModifiers() };
 		local name = selector:GetName();
 
 		for binding, command in pairs(COMMANDS) do
