@@ -112,7 +112,25 @@ function SpellMenu:MapActionBar(keyChord)
 	self:Show()
 
 	self.ActionButtons:ReleaseAll()
-	local drawnBars, actionButtonsWithSpellID, firstWidget, targetWidget = 0, tInvert(C_ActionBar.FindSpellActionButtons(self:GetSpellID()) or {})
+
+	local drawnBars, actionButtonsWithSpellID = 0, tInvert(C_ActionBar.FindSpellActionButtons(self:GetSpellID()) or {})
+	local currentPage = db.Pager:GetCurrentPage()
+	local targetSlot, freeSlot, pageSlot;
+
+	local function GetPrioritySlot(target, candidate, actionID, targetKey, predicate)
+		if target then return target end;
+		if predicate then
+			if targetKey then
+				local binding = db('Actionbar/Action/'..actionID)
+				if not db.Gamepad:GetBindingKey(binding) then
+					return candidate;
+				end
+			else
+				return candidate;
+			end
+		end
+	end
+
 	for _, data in ipairs(SPELL_MAP_BAR_IDS) do
 		local shouldDrawBars = data();
 		if shouldDrawBars then
@@ -120,31 +138,34 @@ function SpellMenu:MapActionBar(keyChord)
 				drawnBars = drawnBars + 1;
 
 				local text = self.ActionBarText:Acquire()
-				text:SetText(db('Actionbar/Names/'..barID))
+				local name = db('Actionbar/Names/'..barID)
+
+				local isCurrentPage = barID == currentPage;
+				local isPagedMain   = ( barID == 1 and currentPage ~= 1 );
+				local overrideColor = isPagedMain and GRAY_FONT_COLOR or isCurrentPage and GREEN_FONT_COLOR;
+
+				text:SetText(overrideColor and overrideColor:WrapTextInColorCode(name) or name)
 				text:SetWidth(50)
 				text:SetJustifyH('LEFT')
 				text:Show()
+
 				for i=1, NUM_ACTIONBAR_BUTTONS do
 					local actionID = (barID - 1) * NUM_ACTIONBAR_BUTTONS + i;
+					local isFreeSlot = not GetActionInfo(actionID);
 					local widget, newObj = self.ActionButtons:Acquire()
 					if newObj then
 						widget:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 						widget:SetDrawOutline(true)
 						db.table.mixin(widget, db.PopupMenuMapActionButton)
 					end
-					if not firstWidget and not GetActionInfo(actionID) then
-						if keyChord then
-							local binding = db('Actionbar/Action/'..actionID)
-							if not db.Gamepad:GetBindingKey(binding) then
-								firstWidget = widget;
-							end
-						else
-							firstWidget = widget;
-						end
+
+					pageSlot = GetPrioritySlot(pageSlot, widget, actionID, keyChord, isFreeSlot and isCurrentPage)
+					freeSlot = GetPrioritySlot(freeSlot, widget, actionID, keyChord, isFreeSlot)
+
+					if not targetSlot and actionButtonsWithSpellID[actionID] then
+						targetSlot = widget;
 					end
-					if not targetWidget and actionButtonsWithSpellID[actionID] then
-						targetWidget = widget;
-					end
+
 					widget:SetID(actionID)
 					widget:SetSize(44, 44)
 					widget:SetPoint('TOPLEFT', (i-1) * SPELL_MAP_BAR_OFF + 64, -((drawnBars + 1) * SPELL_MAP_BAR_OFF - 24))
@@ -158,8 +179,8 @@ function SpellMenu:MapActionBar(keyChord)
 		end
 	end
 	self:SetTargetHeight(drawnBars * SPELL_MAP_BAR_OFF + 80 + self.bottomPadding + (keyChordSlug and 16 or 0))
-	if targetWidget or firstWidget then
-		ConsolePort:SetCursorNodeIfActive(targetWidget or firstWidget)
+	if targetSlot or freeSlot or pageSlot then
+		ConsolePort:SetCursorNodeIfActive(targetSlot or pageSlot or freeSlot)
 	end
 
 	local handle = db.UIHandle;
@@ -233,14 +254,14 @@ end
 SpellMenu.CatchBinding = CreateFrame('Button', nil, SpellMenu,
 	(CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate') .. ',CPPopupBindingCatchButtonTemplate')
 
-local NO_BINDING_TEXT, SET_BINDING_TEXT = [[ 
+local NO_BINDING_TEXT, SET_BINDING_TEXT = [[
 |cFFFFFF00Set Binding|r
 
 %s in %s, does not have a binding assigned to it.
 
 Press a button combination to select a new binding for this slot.
 
-]], [[ 
+]], [[
 |cFFFFFF00Set Binding|r
 
 Press a button combination to select a new binding for %s.
