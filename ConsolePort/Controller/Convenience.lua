@@ -163,7 +163,7 @@ if ColorPickerFrame then
 	end)
 end
 
--- Loads and disables extra modules
+-- Loads extra modules
 local OnDemandModules, TryLoadModule = {
 	ConsolePort_Keyboard = 'keyboardEnable';
 	ConsolePort_Cursor   = 'UIenableCursor';
@@ -190,19 +190,16 @@ local OnDemandModules, TryLoadModule = {
 		end
 	end
 
-	-- Automatically disable predicate variable when a module is disabled through the addon list
-	local function OnDisableAddOn(module)
-		local name = CPAPI.GetAddOnInfo(module)
-		local var  = name and OnDemandModules[name];
-		if ( var ) then
-			db('Settings/'..var, false)
-		end
+	-- NOTE: Hook enable but NOT disable. People will commonly disable all
+	-- modules one by one when they really want to turn the main addon off,
+	-- and this gets picked up and falsely interpreted as them wanting to
+	-- disable a specific module. It is what it is.
+	if C_AddOns and C_AddOns.EnableAddOn then
+		hooksecurefunc(C_AddOns, 'EnableAddOn', OnEnableAddOn)
 	end
-
-	if C_AddOns and C_AddOns.EnableAddOn  then hooksecurefunc(C_AddOns, 'EnableAddOn',  OnEnableAddOn)  end
-	if C_AddOns and C_AddOns.DisableAddOn then hooksecurefunc(C_AddOns, 'DisableAddOn', OnDisableAddOn) end
-	if EnableAddOn  then hooksecurefunc('EnableAddOn',  OnEnableAddOn)  end
-	if DisableAddOn then hooksecurefunc('DisableAddOn', OnDisableAddOn) end
+	if EnableAddOn then
+		hooksecurefunc('EnableAddOn', OnEnableAddOn)
+	end
 end
 
 ---------------------------------------------------------------
