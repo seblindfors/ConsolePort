@@ -1,6 +1,34 @@
 local _, db = ...;
 
 ---------------------------------------------------------------
+CPAtlasMixin = {};
+---------------------------------------------------------------
+
+function CPAtlasMixin:OnLoad()
+	if self.atlas then
+		self:ApplyAtlas()
+	end
+end
+
+function CPAtlasMixin:SetAtlas(atlas, useAtlasSize, flipHorz, flipVert, hWrapMode, vWrapMode)
+	self.atlas, self.useAtlasSize, self.flipHorz, self.flipVert, self.hWrapMode, self.vWrapMode
+		= atlas, useAtlasSize, flipHorz, flipVert, hWrapMode, vWrapMode;
+	self:ApplyAtlas()
+end
+
+function CPAtlasMixin:ApplyAtlas()
+	CPAPI.SetAtlas(self,
+		self.atlas,
+		self.useAtlasSize,
+		self.flipHorz,
+		self.flipVert,
+		self.hWrapMode,
+		self.vWrapMode
+	);
+end
+
+
+---------------------------------------------------------------
 CPFrameWithTooltipMixin = {}
 ---------------------------------------------------------------
 

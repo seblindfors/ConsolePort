@@ -513,24 +513,32 @@ end
 -- Atlas tools
 ---------------------------------------------------------------
 
-function CPAPI.SetAtlas(object, id, useAtlasSize, flipHoriz, flipVert, ...)
+function CPAPI.SetAtlas(object, id, useAtlasSize, flipHorz, flipVert, ...)
 	for file, atlasData in pairs(CPAPI.Atlas) do
 		local atlasInfo = atlasData[id];
 		if atlasInfo then
 			local width, height, leftTX, rightTX, topTX, bottomTX,
-				tilesHorizontally, tilesVertically = unpack(atlasInfo)
+				tilesHorizontally, tilesVertically,
+				leftSM, rightSM, topSM, bottomSM, sliceMode = unpack(atlasInfo)
 			if useAtlasSize then
 				object:SetSize(width, height)
 			end
 			object:SetTexture(file, ...)
 			object:SetTexCoord(
-				flipHoriz and rightTX or leftTX,
-				flipHoriz and leftTX or rightTX,
+				flipHorz and rightTX or leftTX,
+				flipHorz and leftTX or rightTX,
 				flipVert and bottomTX or topTX,
 				flipVert and topTX or bottomTX
 			);
 			object:SetHorizTile(tilesHorizontally)
 			object:SetVertTile(tilesVertically)
+			object:SetTextureSliceMargins(
+				leftSM or 0,
+				rightSM or 0,
+				topSM or 0,
+				bottomSM or 0
+			);
+			object:SetTextureSliceMode(sliceMode or 0)
 			return true;
 		end
 	end

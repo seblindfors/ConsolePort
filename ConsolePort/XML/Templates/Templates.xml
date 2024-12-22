@@ -3,6 +3,12 @@
 
 	<Script file="Templates.lua"/>
 
+	<Texture name="CPAtlas" virtual="true" mixin="CPAtlasMixin">
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Texture>
+
 	<GameTooltip name="CPTooltipTemplate" inherits="SharedTooltipTemplate, DefaultScaleFrame" ignoreParentScale="true" virtual="true">
 		<KeyValues>
 			<KeyValue key="maxScale" value="CHAR_CUSTOMIZE_MAX_SCALE" type="global"/>
@@ -46,7 +52,7 @@
 			<OnLeave method="OnLeave"/>
 		</Scripts>
 	</Frame>
-	
+
 	<Button name="CPSmoothRectangleButtonTemplate" virtual="true" mixin="CPSmoothButtonMixin" inherits="BackdropTemplate">
 		<Size x="230" y="60"/>
 		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">
@@ -250,7 +256,7 @@
 			<OnMouseWheel function="nop"/>
 		</Scripts>
 	</Frame>
-	
+
 	<Button name="CPSelectionPopoutButtonTemplate" mixin="CPSelectionPopoutButtonMixin" virtual="true">
 		<Size x="150" y="38"/>
 		<NormalTexture parentKey="NormalTexture"/>
@@ -461,7 +467,7 @@
 						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
 						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
 					</Anchors>
-				</Texture>		
+				</Texture>
 				<MaskTexture parentKey="ActivationFxMask" atlas="CircleMaskScalable" vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE">
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
@@ -473,7 +479,7 @@
 						<MaskedTexture childKey="ActivationFx3"/>
 						<MaskedTexture childKey="ActivationFx4"/>
 					</MaskedTextures>
-				</MaskTexture>	
+				</MaskTexture>
 			</Layer>
 		</Layers>
 		<Animations>

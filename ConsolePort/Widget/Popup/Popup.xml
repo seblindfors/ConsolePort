@@ -110,9 +110,20 @@
 				</Texture>
 			</Layer>
 		</Layers>
-		<NormalTexture setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0"/>
-		<HighlightTexture alphaMode="ADD" setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0">
+		<NormalTexture setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0" inherits="CPAtlas">
+			<KeyValues>
+				<KeyValue key="atlas" value="perks-list-hover" type="string"/>
+				<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+				<KeyValue key="flipHorz" value="true" type="boolean"/>
+			</KeyValues>
+		</NormalTexture>
+		<HighlightTexture alphaMode="ADD" setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0" inherits="CPAtlas">
 			<TexCoords left="1" right="0" top="0" bottom="1"/>
+			<KeyValues>
+				<KeyValue key="atlas" value="perks-list-active" type="string"/>
+				<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+				<KeyValue key="flipHorz" value="true" type="boolean"/>
+			</KeyValues>
 		</HighlightTexture>
 		<ButtonText parentKey="Text">
 			<Size x="275" y="0"/>
@@ -122,12 +133,6 @@
 		</ButtonText>
 		<NormalFont style="GameFontNormalLeft"/>
 		<HighlightFont style="GameFontHighlightLeft"/>
-		<Scripts>
-			<OnLoad>
-				CPAPI.SetAtlas(self:GetNormalTexture(), "perks-list-hover", false, true);
-				CPAPI.SetAtlas(self:GetHighlightTexture(), "perks-list-active", false, true);
-			</OnLoad>
-		</Scripts>
 	</Button>
 
 	<Frame name="CPPopupHeaderTemplate" virtual="true">
