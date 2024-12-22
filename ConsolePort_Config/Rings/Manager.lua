@@ -4,39 +4,7 @@ local LoadoutTypeMetaMap = LibStub('ConsolePortActionButton').TypeMetaMap;
 
 ---------------------------------------------------------------
 local DEFAULT_RING_ID = CPAPI.DefaultRingSetID;
-local DEFAULT_RING_BINDING = 'LeftButton';
-
 local BUTTON_WITH_ICON_TEXT = '     %s';
-
-local SELECTED_RING_TEXT = L[[This is your currently selected ring.
-When you press and hold the key binding, all your selected abilities will appear in a ring on the screen.
-
-Tilt your radial stick in the direction of the ability or item you want to use, then release the key binding to commit.]]
-local ADD_NEW_RING_TEXT = L[[|cFFFFFF00Create New Ring|r
-Please choose a name for your new ring:]]
-local REMOVE_RING_TEXT = L[[|cFFFFFF00Remove Ring|r
-Are you sure you want to remove the current ring?]]
-local CLEAR_RING_TEXT = L[[|cFFFFFF00Clear Utility Ring|r
-Are you sure you want to clear your utility ring?]]
-local SET_BINDING_TEXT = L[[ 
-|cFFFFFF00Set Binding|r
-
-Press a button combination to select a new binding for this ring.
-
-]]
-local RING_MENU_DESC = L(([[
-Create your own ring menus where you can add your items, spells, macros and mounts that you do not want to sacrifice action bar space for.
-
-To use, hold the selected binding down, tilt your stick in the direction of the item you want to select, then release the binding.
-
-The default ring, or the |CFF00FF00Utility Ring|r, has special properties to alleviate questing and world interaction, and is not static. It will automatically add and remove items as necessary.
-
-If you want to create a ring to use in your rotation and not just for utility, it's highly recommended to use a custom ring for this purpose.
-]]):trim())
-
-local RING_EMPTY_DESC = L[[You do not have any abilities in this ring yet.]]
-
-
 local EXTRA_ACTION_ID = CPAPI.ExtraActionButtonID;
 local FIXED_OFFSET = 8;
 ---------------------------------------------------------------
@@ -59,7 +27,7 @@ local function GetRingNameSuggestion()
 end
 
 local function GetRingDisplayName(name)
-	return name and (tonumber(name) and ('Ring |cFF00FFFF%s|r'):format(name) or name)
+	return name and (tonumber(name) and L.FORMAT_RING_NUMERICAL:format(name) or name)
 end
 
 local function GetRingDisplayNameForIndex(index)
@@ -202,7 +170,7 @@ function RingSelectMixin:OnRingRemoved(ringID)
 end
 
 function RingSelectMixin:Construct()
-	Widgets.Select(self, 'RingID', nil, db.Data.Select(1, 1):SetRawOptions(GetRingOptions()), SELECTED_RING_TEXT)
+	Widgets.Select(self, 'RingID', nil, db.Data.Select(1, 1):SetRawOptions(GetRingOptions()), L.SELECTED_RING_TEXT)
 	self:SetDrawOutline(true)
 	self.tooltipAnchor = 'ANCHOR_BOTTOM';
 	self.Popout:ClearAllPoints()
@@ -254,7 +222,7 @@ end
 
 function AddRingButton:OnClick()
 	return CPAPI.Popup('ConsolePort_Rings_Add_Ring', {
-		text = ADD_NEW_RING_TEXT;
+		text = L.ADD_NEW_RING_TEXT;
 		button1 = BATTLETAG_CREATE;
 		button2 = CANCEL;
 		hasEditBox = 1;
@@ -292,7 +260,7 @@ end
 function RemoveRingButton:OnClick()
 	local ringID = GetSelectedRingID()
 	return CPAPI.Popup('ConsolePort_Rings_Remove_Ring', {
-		text = ringID == DEFAULT_RING_ID and CLEAR_RING_TEXT or REMOVE_RING_TEXT;
+		text = ringID == DEFAULT_RING_ID and L.CLEAR_RING_TEXT or L.REMOVE_RING_TEXT;
 		button1 = REMOVE;
 		button2 = CANCEL;
 		OnAccept = function(self)
@@ -324,7 +292,7 @@ function BindingButton:OnClick(button)
 		return self:Uncheck()
 	end
 	self.Catch:TryCatchBinding({
-		text = SET_BINDING_TEXT;
+		text = L.SET_RING_BINDING_TEXT;
 		OnHide = function()
 			self:UpdateBinding()
 			self:Uncheck()
@@ -664,7 +632,7 @@ function RingsManager:OnFirstShow()
 									HelpText = {
 										_Type = 'FontString';
 										_Setup = {'ARTWORK', 'GameTooltipText'};
-										_Text = RING_MENU_DESC;
+										_Text = L.RING_MENU_DESC;
 										_Points = {
 											{'TOPLEFT', FIXED_OFFSET, 0};
 											{'BOTTOMRIGHT', -FIXED_OFFSET, FIXED_OFFSET};
@@ -778,7 +746,7 @@ function RingsManager:OnFirstShow()
 				_Type = 'FontString';
 				_Setup = {'ARTWORK', 'Fancy22Font'};
 				_Point = {'CENTER', 0, 0};
-				_Text  = RING_EMPTY_DESC;
+				_Text  = L.RING_EMPTY_DESC;
 			};
 		};
 	})

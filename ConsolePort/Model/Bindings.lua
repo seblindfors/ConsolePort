@@ -1,4 +1,4 @@
-local Bindings, _, db = CPAPI.CreateDataHandler(), ...; db:Register('Bindings', Bindings)
+local Bindings, _, db, L = CPAPI.CreateDataHandler(), ...; L = db.Locale; db:Register('Bindings', Bindings)
 local function client(id) return [[Interface\Icons\]]..id end;
 ---------------------------------------------------------------
 -- Binding handler
@@ -26,30 +26,15 @@ end
 ---------------------------------------------------------------
 -- Special bindings provider
 ---------------------------------------------------------------
-do local function hold(binding) return ('%s (Hold)'):format(binding) end;
+do local function hold(binding) return L.FORMAT_HOLD_BINDING:format(binding) end;
 
 	Bindings.Special = {
 		---------------------------------------------------------------
 		-- Targeting
 		---------------------------------------------------------------
 		{	binding = Bindings.Custom.EasyMotion;
-			name    = hold'Target Unit Frames';
-			desc    = [[
-				Generates unit hotkeys for your on-screen unit frames,
-				allowing you to swap between friendly targets quickly.
-
-				To use, hold the binding down, then tap the prompted
-				keys you see on your target of choice, then release 
-				the binding to change your target.
-
-				This binding is highly recommended for healers in 5-man
-				game content, as it provides an extremely fast method of
-				targeting in smaller groups.
-
-				In raids, the complexity of necessary input
-				to single out your preferred target can be daunting.
-				See Toggle Raid Cursor for a different choice.
-			]];
+			name    = L.NAME_EASY_MOTION;
+			desc    = L.DESC_EASY_MOTION;
 			image = {
 				file  = CPAPI.GetAsset([[Tutorial\UnitHotkey]]);
 				width = 256;
@@ -57,23 +42,8 @@ do local function hold(binding) return ('%s (Hold)'):format(binding) end;
 			};
 		};
 		{	binding = Bindings.Custom.RaidCursorToggle;
-			name    = 'Toggle Raid Cursor';
-			desc    = [[
-				Toggles a cursor that clamps to your on-screen
-				unit frames, allowing you to heal friendly players
-				while maintaining another target.
-
-				The raid cursor can also be set to target directly,
-				where moving the cursor will swap your current target.
-
-				While in use, the raid cursor occupies one set of
-				directional pad combinations to control the cursor position.
-
-				When in routing mode, the cursor does not re-route macros or 
-				ambiguous spells, such as a priest's Penance.
-
-				See Target Unit Frames for a different choice.
-			]];
+			name    = L.NAME_RAID_CURSOR_TOGGLE;
+			desc    = L.DESC_RAID_CURSOR;
 			image = {
 				file  = CPAPI.GetAsset([[Tutorial\RaidCursor]]);
 				width = 256;
@@ -81,10 +51,10 @@ do local function hold(binding) return ('%s (Hold)'):format(binding) end;
 			};
 		};
 		{	binding = Bindings.Custom.RaidCursorFocus;
-			name    = 'Focus Raid Cursor';
+			name    = L.NAME_RAID_CURSOR_FOCUS;
 		};
 		{	binding = Bindings.Custom.RaidCursorTarget;
-			name    = 'Target Raid Cursor';
+			name    = L.NAME_RAID_CURSOR_TARGET;
 		};
 		--[[{	name    = hold(FOCUS_CAST_KEY_TEXT);
 			binding = Bindings.Custom.FocusButton;
@@ -93,45 +63,21 @@ do local function hold(binding) return ('%s (Hold)'):format(binding) end;
 		-- Utility
 		---------------------------------------------------------------
 		{	binding = Bindings.Custom.UICursorToggle;
-			name    = 'Toggle Interface Cursor';
+			name    = L.NAME_UI_CURSOR_TOGGLE;
 		};
 		{	binding = Bindings.Custom.UtilityRing;
-			name    = 'Utility Ring';
-			desc    = [[
-				A ring menu where you can add your items, spells, macros and
-				mounts that you do not want to sacrifice action bar space for.
-
-				To use, hold the binding down, tilt your stick in the direction
-				of the item you want to select, then release the binding.
-
-				To add items to the ring, follow the prompt from the interface
-				cursor, or alternatively, pick something up on your mouse cursor,
-				and press the binding to drop it in the ring.
-
-				To remove items from the ring, follow the tooltip prompt when you
-				have the item in question focused.
-
-				The utility ring automatically adds quest items and temporary
-				abilities that you have not placed on your action bar.
-			]];
+			name    = L.NAME_RING_UTILITY;
+			desc    = L.DESC_RING_UTILITY;
 		};
 		{	binding = Bindings.Custom.PetRing;
-			name    = 'Pet Ring';
+			name    = L.NAME_RING_PET;
 			unit    = 'pet';
-			desc    = [[
-				A ring menu that lets you control your current pet.
-			]];
+			desc    = L.DESC_RING_PET;
 			texture = [[Interface\ICONS\INV_Box_PetCarrier_01]];
 		};
 		{	binding = Bindings.Custom.MenuRing;
-			name    = 'Menu Ring';
-			desc    = [[
-				A ring menu that gathers common panels and frequent actions
-				in one place for quick access.
-
-				The ring can also be accessed from the game menu without a
-				separate binding, by switching page.
-			]];
+			name    = L.NAME_RING_MENU;
+			desc    = L.DESC_RING_MENU;
 		};
 		---------------------------------------------------------------
 		-- Pager
@@ -178,53 +124,22 @@ Bindings.Primary = {
 	---------------------------------------------------------------
 	{	binding = Bindings.Proxied.LeftMouseButton;
 		name    = KEY_BUTTON1;
-		desc    = [[
-			Used to toggle free cursor, allowing you to use your camera stick as a mouse pointer.
-
-			While one of your buttons is set to emulate left click, this binding cannot be changed.
-		]];
+		desc    = L.DESC_KEY_BUTTON1;
 		readonly = function() return GetCVar('GamePadCursorLeftClick') ~= 'none' end;
 	};
 	{	binding = Bindings.Proxied.RightMouseButton;
 		name    = KEY_BUTTON2;
-		desc    = [[
-			Used to toggle center cursor, allowing you to interact with objects and characters
-			in the game world, at a center-fixed mouse position.
-
-			While one of your buttons is set to emulate right click, this binding cannot be changed.
-		]];
+		desc    = L.DESC_KEY_BUTTON2;
 		readonly = function() return GetCVar('GamePadCursorRightClick') ~= 'none' end;
 	};
 	---------------------------------------------------------------
 	-- Targeting
 	---------------------------------------------------------------
 	{	binding = Bindings.Proxied.InteractTarget;
-		desc    = [[
-			Allows you to interact with NPCs and objects in the game world.
-
-			Has the same capability as center cursor, but does not require you to
-			aim the cursor or crosshair directly on the target.
-
-			Interactables are highlighted when in range.
-		]];
+		desc    = L.DESC_INTERACTTARGET;
 	};
 	{	binding = Bindings.Proxied.TargetScan;
-		desc    = [[
-			Scans for enemies in a narrow cone in front of you.
-			Hold down to highlight targets before making the decision
-			to switch targets.
-
-			Especially useful for quickly switching targets
-			while in combat with high precision.
-
-			The target priority is aim biased, meaning that the
-			target closest to the center of the cone will be
-			selected first. This may result in prioritizing a
-			distant target over a closer one, if the distant
-			target is closer to the center of the cone.
-
-			Recommended as main targeting binding for most players.
-		]];
+		desc    = L.DESC_TARGETSCANENEMY;
 		image = {
 			file  = CPAPI.GetAsset([[Tutorial\TargetScan]]);
 			width = 512 * 0.65;
@@ -232,20 +147,7 @@ Bindings.Primary = {
 		};
 	};
 	{	binding = Bindings.Proxied.TargetNearest;
-		desc    = [[
-			Switch between the nearest enemy targets in front of you.
-			Without a current target, the centermost enemy will be selected.
-			Otherwise it will cycle through the nearest targets.
-
-			Hold down to highlight targets before making the decision
-			to switch targets.
-
-			Recommended for use as a secondary targeting binding,
-			or as main targeting binding in casual gameplay or if
-			target scan requires too much precision to be comfortable.
-
-			Not recommended for dungeons or other high precision scenarios.
-		]];
+		desc    = L.DESC_TARGETNEARESTENEMY;
 		image = {
 			file  = CPAPI.GetAsset([[Tutorial\TargetNearest]]);
 			width = 512 * 0.65;
@@ -256,82 +158,38 @@ Bindings.Primary = {
 	-- Movement keys
 	---------------------------------------------------------------
 	{	binding = Bindings.Proxied.Jump;
-		desc    = [[
-			Can also be used to swim up while under water, ascend with
-			flying mounts, and lift off or flap upward while dragonriding.
-
-			Jump is useful to bridge gaps in movement while doing a left-handed
-			action that requires your thumb.
-
-			In a regular setup, the left stick controls your movement.
-			If you need to press a directional pad combo while on the move,
-			jump can be used to maintain your forward momentum, while briefly
-			taking your thumb off the stick.
-		]];
+		desc    = L.DESC_JUMP;
 	};
 	{ 	binding = Bindings.Proxied.ToggleAutoRun;
-		desc    = [[
-			Autorun will cause your character to continue moving
-			in the direction you're facing without any input from you.
-
-			Autorun is useful to alleviate thumb strain from long
-			periods of movement, or to free up your thumb to do other
-			things while you're on the move.
-		]];
+		desc    = L.DESC_TOGGLEAUTORUN;
 	};
 	---------------------------------------------------------------
 	-- Interface
 	---------------------------------------------------------------
 	{	binding = Bindings.Proxied.ToggleGameMenu;
-		desc    = [[
-			The menu binding handles all functionality which occurs by pressing
-			the Escape key on a keyboard. It handles different actions based
-			on the current state of the game.
-
-			If there are any ongoing actions related to spells or targeting,
-			they will be cancelled. Pressing the binding with an active target
-			will clear it. Pressing the binding while casting a spell will
-			interrupt the spell cast.
-
-			The binding also handles various other cases depending on what
-			is currently displayed on the screen. For example, if any panel
-			is open, such as the spellbook, the binding will perform the
-			necessary action to close or hide it.
-
-			If none of the above cases apply, the game menu will open or
-			close when pressed.
-		]];
+		desc    = L.DESC_TOGGLEGAMEMENU;
 	};
 	{	binding = Bindings.Proxied.ToggleAllBags;
-		desc    = 'Opens and closes all bags.';
+		desc    = L.DESC_OPENALLBAGS;
 	};
 	{	binding = Bindings.Proxied.ToggleWorldMap;
-		desc = CPAPI.IsRetailVersion and 'Toggles the combined world map and quest log.' or 'Toggles the world map.';
+		desc = CPAPI.IsRetailVersion and L.DESC_TOGGLEWORLDMAP_RETAIL or L.DESC_TOGGLEWORLDMAP_CLASSIC;
 	};
 	---------------------------------------------------------------
 	-- Camera
 	---------------------------------------------------------------
 	{	binding = 'CAMERAZOOMIN';
-		desc    = 'Zooms the camera in. Hold for continuous zoom.';
+		desc    = L.DESC_CAMERAZOOMIN;
 	};
 	{	binding = 'CAMERAZOOMOUT';
-		desc    = 'Zooms the camera out. Hold for continuous zoom.';
+		desc    = DESC_CAMERAZOOMOUT;
 	};
 	---------------------------------------------------------------
 	-- Misc
 	---------------------------------------------------------------
 	{	binding = Bindings.Proxied.ExtraActionButton;
 		name    = BINDING_NAME_EXTRAACTIONBUTTON1:gsub('%d', ''):trim();
-		desc    = [[
-			The extra action button houses a temporary ability used in
-			various quests, scenarios and boss encounters.
-
-			When this binding is unset, the extra action button is always
-			available on the utility ring.
-
-			This button appears on your gamepad action bar as a normal
-			action button, but you cannot change its content.
-		]];
+		desc    = L.DESC_EXTRAACTIONBUTTON1;
 	};
 };
 
@@ -351,7 +209,7 @@ for i=1, (MAX_PARTY_MEMBERS or 4) do tinsert(Bindings.Dynamic,
 	}
 ) end;
 
-for i, set in ipairs(Bindings.Dynamic) do
+for _, set in ipairs(Bindings.Dynamic) do
 	set.name = set.name or GetBindingName(set.binding)
 end
 
@@ -359,16 +217,6 @@ end
 -- Get description for custom bindings
 ---------------------------------------------------------------
 do -- Handle custom rings
-	local CUSTOM_RING_DESC = [[
-		A ring menu where you can add your items, spells, macros and
-		mounts that you do not want to sacrifice action bar space for.
-
-		To use, hold the binding down, tilt your stick in the direction
-		of the item you want to select, then release the binding.
-
-		To remove items from the ring, follow the tooltip prompt when you
-		have the item in question focused.
-	]]
 	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring]]
 
 	local function FindBindingInCollection(binding, collection)
@@ -411,7 +259,7 @@ do -- Handle custom rings
 
 		local customRingName = db.Utility:ConvertBindingToDisplayName(binding)
 		if customRingName then
-			return CUSTOM_RING_DESC, nil, customRingName, self:GetIcon(binding) or CUSTOM_RING_ICON, customRingName;
+			return L.DESC_RING_CUSTOM, nil, customRingName, self:GetIcon(binding) or CUSTOM_RING_ICON, customRingName;
 		end
 	end
 end

@@ -17,28 +17,10 @@ local KEYS_COPY  = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+C');
 local KEYS_PASTE = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+V');
 
 local KEYS_COPY_STRING = ('%s + %s'):format(KEYS_MARK, KEYS_COPY)
-local EXPORT_DATA_TEXT = L([[
+local EXPORT_DATA_TEXT = L('EXPORT_DATA_TEXT', KEYS_COPY_STRING)
 
-|cFFFFFF00Export|r
-
-Select which data you want to export. A string will be generated below, which you can then paste into another client, or share with others.
-
-Use %s to copy the string.
-]], KEYS_COPY_STRING)
-
-local IMPORT_DATA_TEXT = L([[
-
-|cFFFFFF00Import|r
-
-Paste an exported string below, then load and select the data you want to import. Imported data will overwrite your current data when applicable.
-
-Use %s to copy the string from the source, and %s to paste the string below.
-]], KEYS_COPY_STRING, KEYS_PASTE)
-local IMPORT_FAILED_TEXT = L([[
-
-|cFFFFFF00Import|r
-
-Import failed:]])
+local IMPORT_DATA_TEXT = L('IMPORT_DATA_TEXT', KEYS_COPY_STRING, KEYS_PASTE)
+local IMPORT_FAILED_TEXT = L('IMPORT_FAILED_TEXT');
 
 local PFX = '^ConsolePort'; -- alias path pattern prefix
 
@@ -422,7 +404,7 @@ local function EvaluateImportData(data)
 			return CPAPI.Popup('ConsolePort_Import_Failed', {
 				button1 = OKAY;
 				showAlert = 1;
-				text = IMPORT_FAILED_TEXT..'\n%s';
+				text = IMPORT_FAILED_TEXT..'%s';
 			}, result)
 		elseif result then
 			reloadWhenDone = true;
