@@ -182,18 +182,6 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Synchronize Macros';
 			desc = 'Whether client macros should be saved to the server.';
 		};
-		{	cvar = 'GamePadUseWinRTForXbox';
-			type = Bool(true);
-			name = 'Use WinRT Gamepad Mapping (Xbox)';
-			desc = 'Uses a Microsoft API to map Xbox controllers to the game.';
-			note = 'Disable if you are experiencing movement and binding issues.';
-		};
-		{	cvar = 'GamePadEmulateEsc';
-			type = Button;
-			name = 'Emulate Esc';
-			desc = 'Button that emulates the Esc key.';
-			note = 'This key can be replaced by binding Toggle Game Menu. This emulation is not necessary with ConsolePort.';
-		};
 		{	cvar = 'GamePadOverlapMouseMs';
 			type = Number(2000, 100);
 			name = 'Combined Input Overlap Time';
@@ -388,7 +376,6 @@ end
 
 	GamePadCursorCenteredEmulation = "When cursor is centered for GamePad movement, also emulate mouse clicks",
 	GamePadTankTurnSpeed = "If non-zero, character turns like a tank from GamePad movement",
-	GamePadForceXInput = "Force game to use XInput, rather than a newer, more advanced api",
 	GamePadSingleActiveID = "ID of single GamePad device to use. 0 = Use all devices' combined input",
 	GamePadAbbreviatedBindingReverse = "Display main binding button first so it's visible even if truncated on action bar",
 	GamePadListDevices = "List all connected GamePad devices in the console",
