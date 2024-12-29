@@ -1,7 +1,7 @@
 local _, db = ...;
 
 ---------------------------------------------------------------
-CPAtlasMixin = {};
+CPAtlasMixin = { useAtlasSize = true };
 ---------------------------------------------------------------
 
 function CPAtlasMixin:OnLoad()
@@ -11,8 +11,9 @@ function CPAtlasMixin:OnLoad()
 end
 
 function CPAtlasMixin:SetAtlas(atlas, useAtlasSize, flipHorz, flipVert, hWrapMode, vWrapMode)
-	self.atlas, self.useAtlasSize, self.flipHorz, self.flipVert, self.hWrapMode, self.vWrapMode
-		= atlas, useAtlasSize, flipHorz, flipVert, hWrapMode, vWrapMode;
+	self.atlas,  self.useAtlasSize = atlas, useAtlasSize;
+	self.flipHorz,   self.flipVert = flipHorz, flipVert;
+	self.hWrapMode, self.vWrapMode = hWrapMode, vWrapMode;
 	self:ApplyAtlas()
 end
 

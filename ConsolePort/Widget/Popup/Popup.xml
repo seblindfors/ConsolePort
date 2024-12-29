@@ -146,12 +146,17 @@
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</FontString>
-				<Texture parentKey="BarTexture">
+				<Texture parentKey="BarTexture" inherits="CPAtlas">
 					<Size y="3"/>
 					<Anchors>
 						<Anchor point="LEFT"/>
 						<Anchor point="RIGHT"/>
 					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="perks-divider" type="string"/>
+						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+						<KeyValue key="flipHorz" value="true" type="boolean"/>
+					</KeyValues>
 				</Texture>
 				<MaskTexture parentKey="BarMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\TransparentSquareMask" vWrapMode="CLAMPTOBLACK" hWrapMode="CLAMPTOBLACK">
 					<Anchors>
@@ -164,11 +169,6 @@
 				</MaskTexture>
 			</Layer>
 		</Layers>
-		<Scripts>
-			<OnLoad>
-				CPAPI.SetAtlas(self.BarTexture, "perks-divider", false, true);
-			</OnLoad>
-		</Scripts>
 	</Frame>
 
 	<Button name="CPPopupBindingCatchButtonTemplate" virtual="true" mixin="CPPopupBindingCatchButtonMixin" hidden="true">
