@@ -58,6 +58,12 @@ db:Register('Console', CPAPI.Proxy({
 			desc = OPTION_TOOLTIP_INTERACT_ON_LEFT_CLICK;
 			note = 'Affects both mouse and gamepad.';
 		};
+		{	cvar = 'HardwareCursor';
+			type = Bool(true);
+			name = 'Use Hardware Mouse Cursor';
+			desc = 'Use the hardware cursor provided by the operating system.';
+			note = 'Disable if your mouse cursor is invisible.';
+		};
 		{	cvar = 'GamePadCursorAutoDisableJump';
 			type = Bool(true);
 			name = 'Hide Cursor on Jump';
