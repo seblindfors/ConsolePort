@@ -38,7 +38,7 @@ function Movement:OnDataLoaded()
 	self:UpdateTurnWithCamera()
 	self:UpdateConditionals()
 	self:UnregisterAllEvents()
-	FrameUtil.RegisterFrameForUnitEvents(self, self.Events, 'player')
+	CPAPI.RegisterFrameForUnitEvents(self, self.Events, 'player')
 end
 
 ---------------------------------------------------------------
