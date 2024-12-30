@@ -27,6 +27,21 @@ function db:SetCVar(cvar, value)
 	return db:TriggerEvent(cvar, value, old, success)
 end
 
+-- Provide a wrapper for getting cvars with type conversion and fallback
+function db:GetCVar(cvar, value)
+	local vartype = type(value)
+	if ( vartype == 'number' ) then
+		return tonumber(GetCVar(cvar)) or value;
+	elseif ( vartype == 'boolean' ) then
+		local bool = GetCVarBool(cvar)
+		if ( bool == nil ) then return value end;
+		return bool;
+	end
+	local varg = GetCVar(cvar)
+	if ( varg == nil ) then return value end;
+	return varg;
+end
+
 ---------------------------------------------------------------
 -- Extra table functions for various uses
 ---------------------------------------------------------------

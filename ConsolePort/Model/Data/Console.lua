@@ -236,69 +236,12 @@ db:Register('Console', CPAPI.Proxy({
 		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	Targeting = {
-	--------------------------------------------------------------------------------------------------------
-		{	cvar = 'SoftTargetEnemy';
-			type = Map(0, SOFT_TARGET_DEVICE_OPTS);
-			name = 'Enable Soft Enemy Targeting';
-			desc = 'Target enemies automatically by looking at them.';
-			note = 'Use a targeting binding to turn a soft target into a hard target.';
-		};
-		{	cvar = 'SoftTargetFriend';
-			type = Map(0, SOFT_TARGET_DEVICE_OPTS);
-			name = 'Enable Soft Friend Targeting';
-			desc = 'Target friends automatically by looking at them.';
-			note = 'A friendly soft target can be acquired while having an enemy hard target.';
-		};
-		{	cvar = 'SoftTargetForce';
-			type = Map(0, {[0] = OFF, [1] = ENEMY, [2] = FRIEND});
-			name = 'Force Hard Target';
-			desc = 'Auto-set target to match soft target.';
-		};
-		{	cvar = 'SoftTargetMatchLocked';
-			type = Map(0, {[0] = OFF, [1] = 'Explicit', [2] = 'Implicit'});
-			name = 'Target Match Lock';
-			desc = 'Match appropriate soft target to locked target.';
-			note = 'Explicit only matches hard locked targets, while implicit matches targets you attack.';
-		};
-		{	cvar = 'SoftTargetNameplateEnemy';
-			type = Bool(true);
-			name = 'Show Soft Target Enemy Nameplate';
-			desc = 'Always show nameplate for soft enemy target.';
-		};
-		{	cvar = 'SoftTargetNameplateFriend';
-			type = Bool(false);
-			name = 'Show Soft Target Friendly Nameplate';
-			desc = 'Always show nameplate for soft friendly target.';
-		};
-		{	cvar = 'SoftTargetIconEnemy';
-			type = Bool(false);
-			name = 'Show Enemy Target Icon';
-			desc = 'Show icon above the current enemy soft target.';
-		};
-		{	cvar = 'SoftTargetIconFriend';
-			type = Bool(false);
-			name = 'Show Friendly Target Icon';
-			desc = 'Show icon above the current friendly soft target.';
-		};
-		{	cvar = 'SoftTargetTooltipEnemy';
-			type = Bool(false);
-			name = 'Show Enemy Tooltip';
-			desc = 'Show tooltip for enemy soft target.';
-		};
-		{	cvar = 'SoftTargetTooltipFriend';
-			type = Bool(false);
-			name = 'Show Friendly Tooltip';
-			desc = 'Show tooltip for friendly soft target.';
-		};
-	};
-	--------------------------------------------------------------------------------------------------------
 	Tooltips = {
 	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'SoftTargetTooltipDurationMs';
 			type = Number(2000, 250, true);
 			name = 'Automatic Tooltip Duration';
-			desc = 'Duration under which a tooltip is displayed for an automatically acquired target, in milliseconds.';
+			desc = 'Duration under which a tooltip is displayed for an acquired target or interactable, in milliseconds.';
 		};
 		{	cvar = 'SoftTargetTooltipLocked';
 			type = Bool(false);

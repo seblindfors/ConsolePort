@@ -8,6 +8,7 @@
 	<Script file="Radial.lua"/>
 	<Script file="Mouse.lua"/>
 	<Script file="Movement.lua"/>
+	<Script file="Targeting.lua"/>
 	<Script file="Slash.lua"/>
 	<Script file="Paddles.lua"/>
 	<Script file="Convenience.lua"/>
