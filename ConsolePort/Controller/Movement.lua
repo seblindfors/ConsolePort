@@ -9,6 +9,8 @@ local Movement = db:Register('Movement', CPAPI.CreateEventHandler({'Frame', '$pa
 	'UNIT_EXITING_VEHICLE';
 	'UNIT_SPELLCAST_CHANNEL_START';
 	'UNIT_SPELLCAST_CHANNEL_STOP';
+	'UNIT_SPELLCAST_EMPOWER_START';
+	'UNIT_SPELLCAST_EMPOWER_STOP';
 	'UNIT_SPELLCAST_START';
 	'UNIT_SPELLCAST_STOP';
 }, {
@@ -36,7 +38,7 @@ function Movement:OnDataLoaded()
 	self:UpdateTurnWithCamera()
 	self:UpdateConditionals()
 	self:UnregisterAllEvents()
-	FrameUtil.RegisterFrameForUnitEvents(self, self.Events, 'player')
+	CPAPI.RegisterFrameForUnitEvents(self, self.Events, 'player')
 end
 
 ---------------------------------------------------------------
@@ -140,3 +142,5 @@ end
 
 Movement.UNIT_SPELLCAST_CHANNEL_START = Movement.UNIT_SPELLCAST_START;
 Movement.UNIT_SPELLCAST_CHANNEL_STOP  = Movement.UNIT_SPELLCAST_STOP;
+Movement.UNIT_SPELLCAST_EMPOWER_START = Movement.UNIT_SPELLCAST_START;
+Movement.UNIT_SPELLCAST_EMPOWER_STOP  = Movement.UNIT_SPELLCAST_STOP;

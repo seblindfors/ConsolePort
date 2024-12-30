@@ -2,6 +2,7 @@
 local STICK_SELECT = {'Movement', 'Camera', 'Gyro'};
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
+local STARGET_OPTS = {[0] = OFF, [1] = 'Gamepad', [2] = 'KBM', [3] = ALWAYS};
 local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
 local BINDINGS_OPT = KEY_BINDINGS_MAC or 'Bindings';
 
@@ -68,21 +69,21 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Movement is analog, translated from your movement stick angle.';
 		note = 'Disable to use discrete legacy movement controls.';
 	};
-	mvmtStrafeAngleTravel = _{Range(tonumber(GetCVar('GamePadFaceMovementMaxAngle')) or 115, 5, 0, 180);
+	mvmtStrafeAngleTravel = _{Range(db:GetCVar('GamePadFaceMovementMaxAngle', 115), 5, 0, 180);
 		name = 'Strafe Angle Threshold (Travel)';
 		desc = 'Controls when your character transitions from strafing to facing your movement stick direction. Expressed in degrees, from looking straight forward.';
 		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
 	};
-	mvmtStrafeAngleCombat = _{Range(tonumber(GetCVar('GamePadFaceMovementMaxAngleCombat')) or 115, 5, 0, 180);
+	mvmtStrafeAngleCombat = _{Range(db:GetCVar('GamePadFaceMovementMaxAngleCombat', 115), 5, 0, 180);
 		name = 'Strafe Angle Threshold (Combat)';
 		desc = 'Controls when your character transitions from strafing to facing your movement stick direction while in combat. Expressed in degrees, from looking straight forward.';
 		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
 	};
-	mvmtRunThreshold = _{Range(tonumber(GetCVar('GamePadRunThreshold')) or 0.5, 0.05, 0, 1);
+	mvmtRunThreshold = _{Range(db:GetCVar('GamePadRunThreshold', 0.5), 0.05, 0, 1);
 		name = 'Run / Walk Threshold';
 		desc = 'Controls when your character starts running. Expressed as a fraction of your total movement stick radius.';
 	};
-	mvmtTurnWithCamera = _{Map(tonumber(GetCVar('GamePadTurnWithCamera')) or 2, {[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
+	mvmtTurnWithCamera = _{Map(db:GetCVar('GamePadTurnWithCamera', 2), {[0] = NEVER, [1] = 'In Combat', [2] = ALWAYS});
 		name = 'Turn Character With Camera';
 		desc = 'Turn your character facing when you turn your camera angle.';
 	};
@@ -101,6 +102,62 @@ db:Register('Variables', CPAPI.Callable({
 			.. BLUE'[condition] angle; nil'
 			.. '\n...where each condition/angle is separated by a semicolon, and "nil" clears the override.';
 		advd = true;
+	};
+	--------------------------------------------------------------------------------------------------------
+	_'Targeting';
+	--------------------------------------------------------------------------------------------------------
+	trgtEnemy = _{Map(db:GetCVar('SoftTargetEnemy', 0), STARGET_OPTS);
+		name = 'Enemy Soft Targeting';
+		desc = 'Target enemies automatically by looking at them.';
+		note = 'Use a targeting binding to turn a soft target into a hard target.';
+	};
+	trgtFriend = _{Map(db:GetCVar('SoftTargetFriend', 0), STARGET_OPTS);
+		name = 'Friend Soft Targeting';
+		desc = 'Target friends automatically by looking at them.';
+		note = 'A friendly soft target can be acquired while having an enemy hard target.';
+	};
+	trgtEnemyTooltip = _{Bool(db:GetCVar('SoftTargetTooltipEnemy', false));
+		name = 'Show Enemy Tooltip';
+		desc = 'Show tooltip for enemy target.';
+	};
+	trgtFriendTooltip = _{Bool(db:GetCVar('SoftTargetTooltipFriend', false));
+		name = 'Show Friendly Tooltip';
+		desc = 'Show tooltip for friendly target.';
+	};
+	trgtEnemyIcon = _{Bool(db:GetCVar('SoftTargetIconEnemy', false));
+		name = 'Show Enemy Target Icon';
+		desc = 'Show icon above the current enemy soft target.';
+		deps = { trgtEnemy = function(value) return value > 0 end };
+	};
+	trgtFriendIcon = _{Bool(db:GetCVar('SoftTargetIconFriend', false));
+		name = 'Show Friendly Target Icon';
+		desc = 'Show icon above the current friendly soft target.';
+		deps = { trgtFriend = function(value) return value > 0 end };
+	};
+	trgtEnemyNameplate = _{Bool(db:GetCVar('SoftTargetNameplateEnemy', true));
+		name = 'Show Enemy Nameplate';
+		desc = 'Always show nameplate for soft enemy target.';
+		deps = { trgtEnemy = function (value) return value > 0 end };
+	};
+	trgtFriendNameplate = _{Bool(db:GetCVar('SoftTargetNameplateFriend', false));
+		name = 'Show Friendly Nameplate';
+		desc = 'Always show nameplate for soft friendly target.';
+		deps = { trgtFriend = function (value) return value > 0 end };
+	};
+	trgtForce = _{Map(db:GetCVar('SoftTargetForce', 0), {[0] = OFF, [1] = ENEMY, [2] = FRIEND});
+		name = 'Force Hard Target';
+		desc = 'Auto-set target to match soft target.';
+		advd = true;
+	};
+	trgtMatchLocked = _{Map(db:GetCVar('SoftTargetMatchLocked', 0), {[0] = OFF, [1] = 'Explicit', [2] = 'Implicit'});
+		name = 'Target Match Lock';
+		desc = 'Match appropriate soft target to locked target.';
+		note = 'Explicit only matches hard locked targets through using a targeting binding, while implicit matches targets you attack.';
+		advd = true;
+	};
+	trgtShowInteractHint = _{Bool(true);
+		name = 'Show Interact Hint';
+		desc = 'Show interact binding hint on interactables.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	_( MOUSE_LABEL ); -- Mouse

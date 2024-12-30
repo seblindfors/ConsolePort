@@ -61,8 +61,12 @@ db:RegisterCallback('Gamepad/Active', HotkeyHandler.OnActiveDeviceChanged, Hotke
 ---------------------------------------------------------------
 -- API
 ---------------------------------------------------------------
-HotkeyHandler.IconFormat = ('|T%s:0:0:0:0:32:32:8:24:8:24|t')
-HotkeyHandler.AtlasFormat = ('|A:%s:14:14|a')
+HotkeyHandler.Format = {
+	Atlas = ('|A:%s:14:14|a');
+	Large = ('|A:%s:24:24|a');
+	[32]  = ('|T%s:0:0:0:0:32:32:8:24:8:24|t');
+	[64]  = ('|T%s:24:24:0:0:64:64:0:64:0:64|t');
+};
 
 function HotkeyHandler:GetIconsForModifier(modifiers, device, style)
 	for i, modifier in ipairs(modifiers) do
@@ -83,24 +87,28 @@ function HotkeyHandler:FormatIconSlug(iconData, iconFormat, atlasFormat)
 	local icon, isAtlas = unpack(iconData)
 	if not icon then return end;
 	if isAtlas then
-		return (atlasFormat or self.AtlasFormat):format(icon), icon, true;
+		return (atlasFormat or self.Format.Atlas):format(icon), icon, true;
 	end
-	return (iconFormat or self.IconFormat):format(icon), icon, false;
+	return (iconFormat or self.Format[32]):format(icon), icon, false;
 end
 
-function HotkeyHandler:GetButtonSlug(device, btnID, modID, split)
-	local data = self:GetHotkeyData(device, btnID, modID, split and 64 or 32, 32)
+function HotkeyHandler:GetButtonSlug(device, btnID, modID, split, large)
+	local atlasFormat = large and self.Format.Large or self.Format.Atlas;
+	local iconFormat  = large and self.Format[64] or self.Format[32];
+	local styleFormat = large and 64 or 32;
+
+	local data = self:GetHotkeyData(device, btnID, modID, split and 64 or styleFormat, styleFormat)
 	local slug = {};
 
 	for i, modData in db.table.ripairs(data.modifier) do
-		slug[#slug + 1] = self:FormatIconSlug(modData, self.IconFormat, self.AtlasFormat)
+		slug[#slug + 1] = self:FormatIconSlug(modData, iconFormat, atlasFormat)
 	end
 
 	if split then
 		return slug, data;
 	end
 
-	slug[#slug + 1] = self:FormatIconSlug(data.button, self.IconFormat, self.AtlasFormat)
+	slug[#slug + 1] = self:FormatIconSlug(data.button, iconFormat, atlasFormat)
 		or _G[('KEY_ABBR_%s'):format(btnID)]
 		or btnID:gsub('^PAD', '')
 
@@ -114,22 +122,22 @@ function HotkeyHandler:GetActiveButtonSlug(btnID, modID, split)
 	end
 end
 
-do local function GetBindingSlugs(self, device, split, key, ...)
+do local function GetBindingSlugs(self, device, split, large, key, ...)
 		if key then
 			local splitSlug = {strsplit('-', key)}
 			local btnID = tremove(splitSlug)
-			local slug, data = self:GetButtonSlug(device, btnID, table.concat(splitSlug, '-'), split)
+			local slug, data = self:GetButtonSlug(device, btnID, table.concat(splitSlug, '-'), split, large)
 			if split then
-				return slug, data, GetBindingSlugs(self, device, split, ...)
+				return slug, data, GetBindingSlugs(self, device, split, large, ...)
 			end
-			return slug, GetBindingSlugs(self, device, split, ...)
+			return slug, GetBindingSlugs(self, device, split, large, ...)
 		end
 	end
 
-	function HotkeyHandler:GetButtonSlugForBinding(binding, split)
+	function HotkeyHandler:GetButtonSlugForBinding(binding, split, large)
 		local device = db('Gamepad/Active')
 		if not device then return end;
-		return GetBindingSlugs(self, device, split, db.Gamepad:GetBindingKey(binding))
+		return GetBindingSlugs(self, device, split, large, db.Gamepad:GetBindingKey(binding))
 	end
 
 	function HotkeyHandler:GetButtonSlugsForBinding(binding, separator, limit)

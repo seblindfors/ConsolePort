@@ -290,6 +290,14 @@ end)()
 	end
 end
 
+function CPAPI.RegisterFrameForUnitEvents(frame, events, ...)
+	for _, event in pairs(events) do
+		if CPAPI.IsEventValid(event) then
+			frame:RegisterUnitEvent(event, ...)
+		end
+	end
+end
+
 ---------------------------------------------------------------
 -- Secure environment translation
 ---------------------------------------------------------------
