@@ -1,4 +1,4 @@
-local _, db, L = ...; L = db.Locale;
+local L = select(2, ...).Locale:GetLocale('zhTW'); if not L then return end;
 ---------------------------------------------------------------
 -- zhCN 繁體中文 simplified Chinese
 ---------------------------------------------------------------
