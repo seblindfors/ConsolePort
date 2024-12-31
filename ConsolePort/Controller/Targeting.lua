@@ -25,11 +25,30 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 -- Tooltip handling
 ---------------------------------------------------------------
 local GameTooltip, UIParent, After, UnitGUID = GameTooltip, UIParent, C_Timer.After, UnitGUID;
-local SetDefaultAnchor, plate = GameTooltip_SetDefaultAnchor;
+local SetDefaultAnchor, GetNamePlateForUnit, anchor = GenerateClosure(GameTooltip_SetDefaultAnchor, GameTooltip, UIParent), C_NamePlate.GetNamePlateForUnit;
+
+local function GetSoftTargetIcon(nameplate)
+	return  nameplate
+		and nameplate.UnitFrame
+		and nameplate.UnitFrame.SoftTargetFrame
+		and nameplate.UnitFrame.SoftTargetFrame.Icon;
+end
+
+local function GetUnitNameFrame(nameplate)
+	return  nameplate
+		and nameplate.UnitFrame
+		and nameplate.UnitFrame.name;
+end
+
+local function GetHealthBarContainers(nameplate)
+	return  nameplate
+		and nameplate.UnitFrame
+		and nameplate.UnitFrame.HealthBarsContainer;
+end
 
 local function IsTooltipAvailable()
 	return not ConsolePort:IsCursorActive()
-		and (( GameTooltip:IsOwned(UIParent) or plate and GameTooltip:IsOwned(plate) )
+		and (( GameTooltip:IsOwned(UIParent) or anchor and GameTooltip:IsOwned(anchor) )
 		or not GameTooltip:IsVisible()
 		or GameTooltip:GetAlpha() < 1);
 end
@@ -48,28 +67,48 @@ local function AddResetUnitTooltipCallback(unit, guid)
 end
 
 local function SetTooltipToUnit(unit)
-	SetDefaultAnchor(GameTooltip, UIParent)
+	SetDefaultAnchor()
+	return GameTooltip:SetUnit(unit)
+end
+
+local SetTooltipPosition;
+if CPAPI.IsRetailVersion then
+	function SetTooltipPosition(unit, offsetX)
+		local nameplate = GetNamePlateForUnit(unit)
+		anchor = GetSoftTargetIcon(nameplate)
+		if anchor then
+			local nameframe = GetUnitNameFrame(nameplate)
+			if nameframe then
+				nameframe:Hide()
+			end
+			local healthbars = GetHealthBarContainers(nameplate)
+			if healthbars then
+				healthbars:Hide()
+			end
+			GameTooltip:SetOwner(anchor, 'ANCHOR_NONE')
+			GameTooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
+			if GameTooltip.NineSlice then
+				GameTooltip.NineSlice:Hide()
+			end
+		else
+			SetDefaultAnchor()
+		end
+	end
+else
+	function SetTooltipPosition()
+		SetDefaultAnchor()
+	end
+end
+
+local function SetTooltipToInteractUnit(unit)
+	SetTooltipPosition(unit, 10)
 	return GameTooltip:SetUnit(unit)
 end
 
 local function SetTooltipToUnitName(unit)
 	local name = UnitName(unit)
 	if not name then return false end;
-	plate = C_NamePlate.GetNamePlateForUnit(unit)
-	if plate then
-		if db('trgtShowInteractHint') then
-			GameTooltip:SetOwner(plate, 'ANCHOR_NONE')
-			GameTooltip:SetPoint('BOTTOMLEFT', plate, 'CENTER', 20, 10)
-		else
-			GameTooltip:SetOwner(plate, 'ANCHOR_NONE')
-			GameTooltip:SetPoint('CENTER', plate, 'CENTER', 0, 0)
-		end
-		if GameTooltip.NineSlice then
-			GameTooltip.NineSlice:Hide()
-		end
-	else
-		SetDefaultAnchor(GameTooltip, UIParent)
-	end
+	SetTooltipPosition(unit, 0)
 	GameTooltip:SetText(name, NORMAL_FONT_COLOR:GetRGB())
 	GameTooltip:Show()
 	return true;
@@ -106,6 +145,8 @@ end
 Targeting.PLAYER_SOFT_ENEMY_CHANGED  = GenerateClosure(TrySetUnitTooltip, 'trgtEnemyTooltip',  'softenemy')
 Targeting.PLAYER_SOFT_FRIEND_CHANGED = GenerateClosure(TrySetUnitTooltip, 'trgtFriendTooltip', 'softfriend')
 
+local InteractNamePlate = db.Data.Cvar('SoftTargetNameplateInteract')
+
 local function CanInteractWithObject(guid)
 	if not guid then return end;
 	if guid:match('GameObject') then
@@ -118,10 +159,15 @@ local function CanInteractWithObject(guid)
 end
 
 function Targeting:PLAYER_SOFT_INTERACT_CHANGED(_, guid)
-	if not CanInteractWithObject(guid) then return end;
+	if not CanInteractWithObject(guid) then
+		return CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') and InteractNamePlate:Set(false)
+	end
 	if ( db:GetCVar('SoftTargetTooltipInteract', false) and IsTooltipAvailable() ) then
 		self.tooltipGUID = guid;
-		if not SetTooltipToUnit('anyinteract') and not SetTooltipToUnitName('anyinteract') then
+		if CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') then
+			InteractNamePlate:Set(true)
+		end
+		if not SetTooltipToInteractUnit('anyinteract') and not SetTooltipToUnitName('anyinteract') then
 			return;
 		end
 		AddResetUnitTooltipCallback('anyinteract', guid)
