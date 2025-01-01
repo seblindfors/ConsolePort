@@ -8,6 +8,7 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 	'PLAYER_SOFT_ENEMY_CHANGED';
 	'PLAYER_SOFT_FRIEND_CHANGED';
 	'PLAYER_SOFT_INTERACT_CHANGED';
+	'NAME_PLATE_UNIT_ADDED';
 }, {
 	Proxy = {
 		trgtEnemy           = db.Data.Cvar('SoftTargetEnemy');
@@ -87,9 +88,6 @@ if CPAPI.IsRetailVersion then
 			end
 			GameTooltip:SetOwner(anchor, 'ANCHOR_NONE')
 			GameTooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
-			if GameTooltip.NineSlice then
-				GameTooltip.NineSlice:Hide()
-			end
 		else
 			SetDefaultAnchor()
 		end
@@ -181,5 +179,11 @@ function Targeting:PLAYER_SOFT_INTERACT_CHANGED(_, guid)
 		local hint = ('%s %s'):format(slug, UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
 		GameTooltip:AddLine(hint, WHITE_FONT_COLOR:GetRGB())
 		GameTooltip:Show()
+	end
+end
+
+function Targeting:NAME_PLATE_UNIT_ADDED(unitID)
+	if UnitIsUnit(unitID, 'anyinteract') then
+		self:PLAYER_SOFT_INTERACT_CHANGED(nil, UnitGUID(unitID))
 	end
 end
