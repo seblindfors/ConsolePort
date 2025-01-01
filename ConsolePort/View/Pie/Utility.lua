@@ -205,12 +205,12 @@ function Utility:OnDataLoaded()
 			local size = self:GetAttribute('size');
 		]];
 	});
-	setmetatable(self.Data, {__index = function(data, key)
+	CPAPI.Proxy(self.Data, function(data, key)
 		self:Parse([[
 			DATA[{ring}] = newtable();
 		]], {ring = tostring(key)})
 		return rawset(data, key, {})[key];
-	end})
+	end)
 	self:OnAutoAssignedChanged()
 	self:OnRemoveButtonChanged()
 	self:OnAxisInversionChanged()
@@ -279,7 +279,7 @@ Utility:HookScript('OnShow', Utility.OnStickyIndexChanged)
 function Utility:RefreshAll()
 	self:ClearAllActions()
 	local numButtons = 0;
-	for setID, set in pairs(self.Data) do
+	for setID, set in pairs(self:ValidateData()) do
 		for i, action in ipairs(set) do
 			self:AddSecureAction(setID, i, action)
 		end
@@ -557,14 +557,76 @@ function Utility:AnnounceRemoval(link, set)
 end
 
 ---------------------------------------------------------------
+-- Data validation
+---------------------------------------------------------------
+Utility.ValidationMap = {
+	macro = function(data)
+		local macroID = data.macro;
+		local info = CPAPI.GetMacroInfo(macroID)
+		if not data.body and info then
+			return CreateFromMixins(data, info)
+		elseif ( not info or ( data.body ~= info.body) ) then
+			local bestMatchID, bestMatchScore = nil, math.huge;
+			local test = { body = data.body, name = data.name, icon = data.icon }
+
+			for id, other in pairs(CPAPI.GetAllMacroInfo()) do
+				local score = 0;
+				if other.body and test.body then
+					score = score + CPAPI.MinEditDistance(other.body, test.body)
+				end
+				if other.name and test.name then
+					score = score + CPAPI.MinEditDistance(other.name, test.name)
+				end
+				if other.icon == test.icon then
+					score = score - 1 -- Matching icon reduces the score
+				end
+				if score < bestMatchScore then
+					bestMatchScore, bestMatchID = score, id;
+				end
+			end
+
+			if bestMatchID then
+				return CreateFromMixins(data, CPAPI.GetMacroInfo(bestMatchID), {
+					macro = bestMatchID;
+				})
+			end
+		end
+		return data;
+	end;
+};
+
+function Utility:ValidateAction(action)
+	if not action then return end;
+	local validator = self.ValidationMap[action.type];
+	if validator then
+		return validator(action);
+	end
+	return action;
+end
+
+function Utility:ValidateData()
+	for setID, set in pairs(self.Data) do
+		for i = 1, #set do
+			set[i] = self:ValidateAction(set[i])
+		end
+	end
+	return self.Data;
+end
+
+---------------------------------------------------------------
 -- Mapping from type to usable attributes
 ---------------------------------------------------------------
+local function GetUsableSpellID(data)
+	return ( data.link and data.link:match('spell:(%d+)') )
+		or CPAPI.GetSpellInfo(data.spell).spellID or data.spell;
+end
+
 Utility.KindAndActionMap = {
 	action = function(data) return data.action end;
 	item   = function(data) return data.item end;
 	pet    = function(data) return data.action end;
 	macro  = function(data) return data.macro end;
-	spell  = function(data) return (data.link and data.link:match('spell:(%d+)')) or CPAPI.GetSpellInfo(data.spell).spellID or data.spell end;
+	spell  = function(data) return GetUsableSpellID(data) end;
 	equipmentset = function(data) return data.equipmentset end;
 }
 
@@ -610,7 +672,9 @@ Utility.SecureHandlerMap = {
 		return {type = 'spell', spell = spellID, link = CPAPI.GetSpellLink(spellID)};
 	end;
 	macro = function(index)
-		return {type = 'macro', macro = index};
+		local info = CPAPI.GetMacroInfo(index)
+		info.type, info.macro = 'macro', index;
+		return info;
 	end;
 	mount = function(mountID)
 		local spellID = select(2, CPAPI.GetMountInfoByID(mountID));
@@ -954,6 +1018,7 @@ function Utility:UPDATE_MACROS()
 	for button in self:EnumerateActive() do
 		button:UpdateAction(true)
 	end
+	db:RunSafe(self.RefreshAll, self)
 end
 
 ---------------------------------------------------------------
