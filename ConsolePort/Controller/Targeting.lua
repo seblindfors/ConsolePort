@@ -10,7 +10,7 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 	'PLAYER_SOFT_INTERACT_CHANGED';
 	'NAME_PLATE_UNIT_ADDED';
 }, {
-	Proxy = {
+	DirectProxy = {
 		trgtEnemy           = db.Data.Cvar('SoftTargetEnemy');
 		trgtEnemyIcon       = db.Data.Cvar('SoftTargetIconEnemy');
 		trgtEnemyPlate      = db.Data.Cvar('SoftTargetNameplateEnemy');
@@ -26,7 +26,8 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 -- Tooltip handling
 ---------------------------------------------------------------
 local GameTooltip, UIParent, After, UnitGUID = GameTooltip, UIParent, C_Timer.After, UnitGUID;
-local SetDefaultAnchor, GetNamePlateForUnit, anchor = GenerateClosure(GameTooltip_SetDefaultAnchor, GameTooltip, UIParent), C_NamePlate.GetNamePlateForUnit;
+local SetDefaultAnchor = GenerateClosure(GameTooltip_SetDefaultAnchor, GameTooltip, UIParent);
+local GetNamePlateForUnit, anchor = C_NamePlate.GetNamePlateForUnit;
 
 local function GetSoftTargetIcon(nameplate)
 	return  nameplate
@@ -88,10 +89,23 @@ if CPAPI.IsRetailVersion then
 			end
 			GameTooltip:SetOwner(anchor, 'ANCHOR_NONE')
 			GameTooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
+			if db('trgtShowMinimalInteractNamePlate') and GameTooltip.NineSlice then
+				GameTooltip.NineSlice:Hide()
+			end
 		else
 			SetDefaultAnchor()
 		end
 	end
+
+	GameTooltip:HookScript('OnShow', function(self)
+		-- NOTE: Setting the tooltip to a nameplate means anchoring to a restricted region,
+		-- which inherently removes clamping to screen. Need to re-enable it once the
+		-- tooltip is being used by something else.
+		if anchor and not self:IsAnchoringRestricted() then
+			self:SetClampedToScreen(true)
+			anchor = nil;
+		end
+	end)
 else
 	function SetTooltipPosition()
 		SetDefaultAnchor()
@@ -122,9 +136,9 @@ local function TrySetUnitTooltip(option, unit, self)
 end
 
 ---------------------------------------------------------------
--- Proxy updates
+-- Direct proxy updates
 ---------------------------------------------------------------
-for varID, proxy in pairs(Targeting.Proxy) do
+for varID, proxy in pairs(Targeting.DirectProxy) do
 	db:RegisterCallback('Settings/'..varID, function(_, ...) proxy:Set(...) end, Targeting)
 end
 
@@ -132,7 +146,7 @@ end
 -- Data loading
 ---------------------------------------------------------------
 function Targeting:OnDataLoaded()
-	for varID, proxy in pairs(self.Proxy) do
+	for varID, proxy in pairs(self.DirectProxy) do
 		proxy:Set(db(varID))
 	end
 end
