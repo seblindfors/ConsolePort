@@ -318,6 +318,18 @@ SLASH_FUNCTIONS = {
 		end;
 	};
 	-----------------------------------------------------------
+	-- Utils
+	-----------------------------------------------------------
+	unitmenu = {
+		desc = 'Open the unit menu for the target unit.';
+		usage = {
+			{'[unit]', 'string', 'Unit to open the menu for.'};
+		};
+		function(unit)
+			return db.UnitMenu:SetUnit(unit or 'target')
+		end;
+	};
+	-----------------------------------------------------------
 	-- Help
 	-----------------------------------------------------------
 	help = {

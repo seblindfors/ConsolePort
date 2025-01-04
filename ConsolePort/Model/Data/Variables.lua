@@ -159,6 +159,18 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Show Interact Hint';
 		desc = 'Show interact binding hint on interactables.';
 	};
+	trgtShowInteractNameplate = _{Bool(true);
+		name = 'Use Interact Nameplate Tooltip';
+		desc = 'Show interact tooltip on nameplates, when applicable.';
+		hide = not CPAPI.IsRetailVersion;
+	};
+	trgtShowMinimalInteractNamePlate = _{Bool(false);
+		name = 'Minimal Interact Nameplate Tooltip';
+		desc = 'Removes the tooltip background for a minimalistic look.';
+		hide = not CPAPI.IsRetailVersion;
+		deps = { trgtShowInteractNameplate = true };
+		advd = true;
+	};
 	--------------------------------------------------------------------------------------------------------
 	_( MOUSE_LABEL ); -- Mouse
 	--------------------------------------------------------------------------------------------------------

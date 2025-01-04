@@ -216,9 +216,8 @@ function Pager:RegisterHeader(header, anonymous)
 end
 
 ---------------------------------------------------------------
--- Macro boxy indexing
+-- Macro body indexing
 ---------------------------------------------------------------
-
 function Pager:OnUpdateMacros(macroInfo)
 	for id, info in pairs(macroInfo) do
 		self:SetAttribute(tostring(id), info.body)
@@ -226,18 +225,7 @@ function Pager:OnUpdateMacros(macroInfo)
 end
 
 function Pager:UPDATE_MACROS()
-	local macroInfo = {}
-	for i=1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
-		local name, icon, body = GetMacroInfo(i)
-		if name then
-			macroInfo[i] = {
-				name = name;
-				icon = icon;
-				body = body;
-			};
-		end
-	end
-	db:TriggerEvent('OnUpdateMacros', macroInfo)
+	db:TriggerEvent('OnUpdateMacros', CPAPI.GetAllMacroInfo())
 end
 
 db:RegisterSafeCallback('OnUpdateMacros', Pager.OnUpdateMacros, Pager)

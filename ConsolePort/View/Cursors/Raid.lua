@@ -29,7 +29,7 @@ Cursor:WrapScript(Cursor.Toggle, 'PreClick', [[
 	if control:GetAttribute('usefocus') then
 		self:SetAttribute('type', 'focus')
 		if enabled then
-			self:SetAttribute('unit', control:GetAttribute('cursorunit'))
+			self:SetAttribute('unit', control:GetAttribute(CURSOR_UNIT))
 		else
 			self:SetAttribute('unit', 'none')
 		end
@@ -43,13 +43,13 @@ Cursor:Wrap('PreClick', [[
 	self::UpdateNodes()
 	self::SelectNewNode(button)
 	if self:GetAttribute('usefocus') or not self:GetAttribute('useroute') then
-		self:SetAttribute('unit', self:GetAttribute('cursorunit'))
+		self:SetAttribute('unit', self:GetAttribute(CURSOR_UNIT))
 	else
 		self:SetAttribute('unit', nil)
 	end
 ]])
 
-Cursor:Execute([[
+Cursor:Execute(([[
 	---------------------------------------
 	ACTIONS = newtable();
 	HELPFUL = newtable();
@@ -60,7 +60,8 @@ Cursor:Execute([[
 	Target = self:GetFrameRef('SetTarget')
 	---------------------------------------
 	CACHE[self] = nil;
-]])
+	CURSOR_UNIT = %q;
+]]):format(CPAPI.RaidCursorUnit))
 
 ---------------------------------------------------------------
 -- Environment
@@ -217,7 +218,7 @@ Cursor:CreateEnvironment({
 			self:ClearAllPoints()
 			self:SetPoint('CENTER', curnode, 'CENTER', 0, 0)
 			self:SetAttribute('node', curnode)
-			self:SetAttribute('cursorunit', unit)
+			self:SetAttribute(CURSOR_UNIT, unit)
 
 			if reroute then
 				self::RerouteUnit(unit)
@@ -239,7 +240,7 @@ Cursor:CreateEnvironment({
 			self::ClearFocusUnit()
 			self::PrepareReroute()
 			self:SetAttribute('node', nil)
-			self:SetAttribute('cursorunit', nil)
+			self:SetAttribute(CURSOR_UNIT, nil)
 			self:ClearBindings()
 			self:Hide()
 		end
@@ -366,7 +367,7 @@ function Cursor:OnShow()
 end
 
 function Cursor:OnAttributeChanged(attribute, value)
-	if (attribute == 'cursorunit') and value then
+	if (attribute == CPAPI.RaidCursorUnit) and value then
 		self:UpdateUnit(value)
 	elseif (attribute == 'node') then
 		self:UpdateNode(value)

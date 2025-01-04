@@ -22,6 +22,8 @@
 			<Frame name="$parentInteract" inherits="SecureHandlerStateTemplate"/>
 			<!-- Controllers\Paddles.lua -->
 			<Frame name="$parentPaddles" inherits="SecureHandlerBaseTemplate"/>
+			<!-- Controllers\UnitMenu.lua -->
+			<Button name="$parentUnit" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate"/>
 		</Frames>
 	</Frame>
 

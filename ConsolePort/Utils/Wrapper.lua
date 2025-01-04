@@ -102,6 +102,8 @@ CPAPI.DefaultRingSetID = 1;
 CPAPI.SkipHotkeyRender = 'ignoregamepadhotkey';
 CPAPI.UseCustomFlyout  = 'usegamepadflyout';
 
+CPAPI.RaidCursorUnit   = 'cursorunit';
+
 ---------------------------------------------------------------
 -- Internal wrappers
 ---------------------------------------------------------------
@@ -166,6 +168,29 @@ CPAPI.CreateKeyChord = CreateKeyChordStringUsingMetaKeyState or (function()
 		return CreateKeyChordStringFromTable(chord, preventSort)
 	end
 end)()
+
+CPAPI.MinEditDistance = CalculateStringEditDistance or function(str1, str2)
+	-- Wagner–Fischer algorithm
+	local len1, len2, min, byte = #str1, #str2, math.min, string.byte;
+	local matrix = {}
+	for i = 0, len1 do
+		matrix[i] = { [0] = i };
+	end
+	for j = 0, len2 do
+		matrix[0][j] = j;
+	end
+	for i = 1, len1 do
+		for j = 1, len2 do
+			local cost = (byte(str1, i) == byte(str2, j)) and 0 or 1;
+			matrix[i][j] = min(
+				matrix[i-1][j] + 1,
+				matrix[i][j-1] + 1,
+				matrix[i-1][j-1] + cost
+			);
+		end
+	end
+	return matrix[len1][len2];
+end
 
 CPAPI.IteratePlayerInventory = ContainerFrameUtil_IteratePlayerInventory or function(callback)
 	local MAX_CONTAINER_ITEMS = MAX_CONTAINER_ITEMS or 36;
@@ -384,6 +409,25 @@ CPAPI.GetItemInfoInstant = function(...)
 	return {};
 end
 
+CPAPI.GetLootSlotInfo = function(...)
+	local lootIcon, lootName, lootQuantity, currencyID, lootQuality,
+	locked, isQuestItem, questID, isActive = GetLootSlotInfo(...)
+
+	return {
+		--[[ LootSlotInfo ]]
+		--[[ string           ]] lootIcon = lootIcon;
+		--[[ string           ]] lootName = lootName;
+		--[[ number           ]] lootQuantity = lootQuantity;
+		--[[ number           ]] currencyID = currencyID;
+		--[[ Enum.ItemQuality ]] lootQuality = lootQuality;
+		--[[ boolean          ]] locked = locked;
+		--[[ boolean          ]] isQuestItem = isQuestItem;
+		--[[ number           ]] questID = questID;
+		--[[ boolean          ]] isActive = isActive;
+		--[[ itemLink         ]] lootLink = GetLootSlotLink(...);
+	}
+end
+
 CPAPI.GetQuestInfo = function(...)
 	if C_QuestLog and C_QuestLog.GetInfo then
 		return C_QuestLog.GetInfo(...) or {};
@@ -447,6 +491,26 @@ CPAPI.CanPlayerDisenchantItem = function(itemID)
 		end
 	end
 	return false;
+end
+
+CPAPI.GetMacroInfo = function(macroID)
+	local name, icon, body = GetMacroInfo(macroID)
+	if name then
+		return {
+			--[[ MacroInfo ]]
+			--[[ string    ]] name = name;
+			--[[ FileID    ]] icon = icon;
+			--[[ string    ]] body = body;
+		};
+	end
+end
+
+CPAPI.GetAllMacroInfo = function()
+	local info = {};
+	for i = 1, MAX_ACCOUNT_MACROS + MAX_CHARACTER_MACROS do
+		info[i] = CPAPI.GetMacroInfo(i);
+	end
+	return info;
 end
 
 end -- API wrappers
