@@ -2,6 +2,24 @@
 ..\FrameXML\UI.xsd">
 	<Script file="HintBar.lua"/>
 
+	<Cooldown name="CPHintTimerTemplate" virtual="true"
+		hideCountdownNumbers="true"
+		useCircularEdge="true"
+		drawEdge="true"
+		reverse="true"
+		rotation="180">
+		<Size x="42" y="42"/>
+		<SwipeTexture file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe">
+			<Color r="0" g="0.75" b="0.95" a="1"/>
+		</SwipeTexture>
+		<EdgeTexture file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe">
+			<Color r="0" g="0.75" b="0.95" a="1"/>
+		</EdgeTexture>
+		<BlingTexture file="Interface\AddOns\ConsolePort\Assets\Textures\Cooldown\Bling">
+			<Color r="0.3" g="0.6" b="1" a="0.8"/>
+		</BlingTexture>
+	</Cooldown>
+
 	<Frame name="CPHintTemplate" virtual="true" hidden="true" mixin="CPHintMixin">
 		<Size y="40"/>
 		<Layers>

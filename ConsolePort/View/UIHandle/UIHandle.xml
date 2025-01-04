@@ -4,7 +4,7 @@
 	<Button name="ConsolePortUIHandle" inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate">
 		<Frames>
 			<!-- Displays button hints at the bottom of the screen -->
-			<Frame parentKey="HintBar" hidden="true" inherits="CPHintBarTemplate" scale="0.75">
+			<Frame name="$parentHintBar" parentKey="HintBar" hidden="true" inherits="CPHintBarTemplate" scale="0.75">
 				<Anchors>
 					<Anchor point="BOTTOM" relativeTo="UIParent" x="0" y="0"/>
 				</Anchors>
