@@ -1,6 +1,5 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
-
 	<Script file="Templates.lua"/>
 
 	<Texture name="CPAtlas" virtual="true" mixin="CPAtlasMixin">
@@ -8,6 +7,17 @@
 			<OnLoad method="OnLoad"/>
 		</Scripts>
 	</Texture>
+
+	<Frame name="CPFrameTemplate" virtual="true" mixin="CPFrameMixin">
+		<KeyValues>
+			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
+			<KeyValue key="layoutAlpha" value="0.75" type="number"/>
+			<KeyValue key="bottomPadding" value="32" type="number"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>
 
 	<GameTooltip name="CPTooltipTemplate" inherits="SharedTooltipTemplate, DefaultScaleFrame" ignoreParentScale="true" virtual="true">
 		<KeyValues>

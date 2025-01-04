@@ -78,9 +78,10 @@
 					<KeyValue key="fixedWidth" value="470" type="number"/>
 					<KeyValue key="fixedHeight" value="325" type="number"/>
 					<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
-					<KeyValue key="scrollBarX" value="-4" type="number"/>
-					<KeyValue key="scrollBarTopY" value="-4" type="number"/>
-					<KeyValue key="scrollBarBottomY" value="4" type="number"/>
+					<KeyValue key="scrollBarX" value="-2" type="number"/>
+					<KeyValue key="scrollBarTopY" value="-3" type="number"/>
+					<KeyValue key="scrollBarBottomY" value="2" type="number"/>
+					<KeyValue key="scrollBarTemplate" value="MinimalScrollBar" type="string"/>
 				</KeyValues>
 				<Frames>
 					<Frame parentKey="BorderArt" inherits="NineSliceCodeTemplate">
@@ -96,7 +97,7 @@
 							<Layer level="OVERLAY">
 								<Texture parentKey="ScrollEdge" atlas="!CharacterCreateDropdown-NineSlice-EdgeLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
 									<Anchors>
-										<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-50" y="-6"/>
+										<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-44" y="-6"/>
 										<Anchor point="BOTTOMRIGHT" x="-8" y="26"/>
 									</Anchors>
 								</Texture>

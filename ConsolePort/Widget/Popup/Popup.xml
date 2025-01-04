@@ -2,12 +2,9 @@
 	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
 	<Script file="Popup.lua"/>
 
-	<Frame name="CPPopupFrameBaseTemplate" virtual="true" mixin="CPPopupFrameBaseMixin">
+	<Frame name="CPPopupFrameBaseTemplate" virtual="true" inherits="CPFrameTemplate" mixin="CPPopupFrameBaseMixin">
 		<Size x="500" y="96"/>
 		<KeyValues>
-			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
-			<KeyValue key="layoutAlpha" value="0.75" type="number"/>
-			<KeyValue key="bottomPadding" value="32" type="number"/>
 			<KeyValue key="tooltipOffsetX" value="70" type="number"/>
 			<KeyValue key="buttonOffsetX" value="-68" type="number"/>
 			<KeyValue key="nameOffsetX" value="20" type="number"/>
