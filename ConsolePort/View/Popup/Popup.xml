@@ -46,8 +46,28 @@
 		</Frames>
 	</Frame>
 
+	<!-- Unit menu -->
+	<Frame name="ConsolePortUnitMenu"
+		clampedToScreen="true"
+		movable="true"
+		enableMouse="true"
+		hidden="true"
+		parent="UIParent"
+		inherits="CPPopupPortraitFrameTemplate"
+		frameStrata="DIALOG">
+		<Size x="440" y="130"/>
+		<Anchors>
+			<Anchor point="CENTER" x="400" y="0"/>
+		</Anchors>
+		<Scripts>
+			<OnMouseDown method="StartMoving"/>
+			<OnMouseUp method="StopMovingOrSizing"/>
+		</Scripts>
+	</Frame>
+
 	<Script file="Shared\Tooltip.lua"/>
 	<Script file="Shared\Button.lua"/>
 	<Script file="ItemMenu.lua"/>
 	<Script file="SpellMenu.lua"/>
+	<Script file="UnitMenu.lua"/>
 </Ui>

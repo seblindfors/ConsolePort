@@ -102,6 +102,8 @@ CPAPI.DefaultRingSetID = 1;
 CPAPI.SkipHotkeyRender = 'ignoregamepadhotkey';
 CPAPI.UseCustomFlyout  = 'usegamepadflyout';
 
+CPAPI.RaidCursorUnit   = 'cursorunit';
+
 ---------------------------------------------------------------
 -- Internal wrappers
 ---------------------------------------------------------------

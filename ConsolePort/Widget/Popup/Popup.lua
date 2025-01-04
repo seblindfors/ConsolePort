@@ -75,7 +75,7 @@ function CPPopupFrameMixin:SetTargetHeight(height)
 			local currentHeight = self:GetHeight();
 			local targetHeight = self.targetHeight;
 			local diff = targetHeight - currentHeight;
-			local step = diff / 5;
+			local step = diff / 3;
 			if abs(step) < 1 then
 				self:SetHeight(targetHeight)
 				self:SetScript('OnUpdate', nil)

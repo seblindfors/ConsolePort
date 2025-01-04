@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- Item.lua: Popup menu for managing container items
+-- ItemMenu.lua: Popup menu for managing container items
 ---------------------------------------------------------------
 local _, db, L = ...; L = db.Locale;
 local ItemMenu = db:Register('ItemMenu', CPAPI.EventHandler(ConsolePortItemMenu, {

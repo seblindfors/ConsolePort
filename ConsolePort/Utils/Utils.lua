@@ -48,14 +48,17 @@ CPAPI.SecureExportMixin = {
 }
 
 CPAPI.SecureEnvironmentMixin = {
-	CreateEnvironment = function(self, newEnv)
+	CreateEnvironment = function(self, newEnv, skipUpvalues)
 		if newEnv then
 			self.Env = CreateFromMixins(self.Env or {}, newEnv)
 		end
+		local useUpvalues = not skipUpvalues and self.Execute;
 		for func, body in pairs(self.Env) do
 			body = CPAPI.ConvertSecureBody(body);
 			self:SetAttribute(func, body)
-			if self.Execute then self:Execute(('%s = self:GetAttribute("%s")'):format(func, func)) end;
+			if useUpvalues then
+				self:Execute(('%s = self:GetAttribute("%s")'):format(func, func))
+			end
 		end
 	end;
 	Run = function(self, body, ...)
@@ -430,10 +433,10 @@ function CPAPI.GetClassColorObject(classFile)
 	return CreateColor(r, g, b)
 end
 
-function CPAPI.GetPlayerName(classColored)
-	local name = UnitName('player')
+function CPAPI.GetPlayerName(classColored, unit) unit = unit or 'player';
+	local name = UnitName(unit)
 	if classColored then
-		return GetClassColorObj(select(2, UnitClass('player'))):WrapTextInColorCode(name)
+		return GetClassColorObj(select(2, UnitClass(unit))):WrapTextInColorCode(name)
 	end
 	return name;
 end

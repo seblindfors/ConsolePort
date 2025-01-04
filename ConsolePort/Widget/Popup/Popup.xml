@@ -95,6 +95,10 @@
 		</Layers>
 	</Frame>
 
+	<Frame name="CPPopupSubFrameTemplate" virtual="true">
+		<Size x="434" y="40"/>
+	</Frame>
+
 	<Button name="CPPopupButtonTemplate" virtual="true" inherits="InsecureActionButtonTemplate">
 		<Attributes>
 			<Attribute name="nodeignoremime" value="true" type="boolean"/>
@@ -133,6 +137,7 @@
 		</ButtonText>
 		<NormalFont style="GameFontNormalLeft"/>
 		<HighlightFont style="GameFontHighlightLeft"/>
+		<DisabledFont style="GameFontDisableLeft"/>
 	</Button>
 
 	<Frame name="CPPopupHeaderTemplate" virtual="true">

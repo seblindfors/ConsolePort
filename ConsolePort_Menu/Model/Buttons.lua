@@ -314,20 +314,31 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Party ]] do _{
+--[[ Player Options ]] do _{
 ---------------------------------------------------------------
-	text  = PARTY;
-	img   = [[Interface\LFGFRAME\UI-LFG-PORTRAIT]];
-	click = function()
-		if CPAPI.IsPartyLFG() or CPAPI.IsInLFGDungeon() or CPAPI.IsInLFDBattlefield() then
-			ConfirmOrLeaveLFGParty()
-		else
-			CPAPI.LeaveParty()
+	text  = PLAYER_OPTIONS_LABEL;
+	ref   = env.db.UnitMenuSecure;
+	OnEvent = function(self, event, ...)
+		if event == 'UNIT_PORTRAIT_UPDATE' then
+			SetPortraitTexture(self.icon, ...)
+		elseif event == 'PLAYER_TARGET_CHANGED' then
+			self:UpdateUnit()
 		end
 	end;
 	OnShow = function(self)
-		local color = IsInRaid() and YELLOW_FONT_COLOR or IsInGroup() and WHITE_FONT_COLOR or GRAY_FONT_COLOR;
-		self.text = color:WrapTextInColorCode(CPAPI.IsPartyLFG() and INSTANCE_PARTY_LEAVE or PARTY_LEAVE)
+		self:RegisterUnitEvent('UNIT_PORTRAIT_UPDATE', self.unit)
+		self:RegisterEvent('PLAYER_TARGET_CHANGED')
+		self:UpdateUnit()
+	end;
+	OnHide = function(self)
+		self:UnregisterAllEvents()
+	end;
+	UpdateUnit = function(self)
+		self.unit = env.db.UnitMenuSecure:GetPreferredUnit()
+		self.text = UnitIsPlayer(self.unit) and PLAYER_OPTIONS_LABEL or TARGET;
+		self.subtitle = CPAPI.GetPlayerName(true, self.unit)
+		self:OnEvent('UNIT_PORTRAIT_UPDATE', self.unit)
+		self:Update()
 	end;
 } end;
 

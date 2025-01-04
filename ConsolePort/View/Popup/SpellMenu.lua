@@ -1,5 +1,5 @@
 ---------------------------------------------------------------
--- Spell.lua: Popup menu for managing spells
+-- SpellMenu.lua: Popup menu for managing spells
 ---------------------------------------------------------------
 local _, db, L = ...; L = db.Locale;
 local SpellMenu = db:Register('SpellMenu', CPAPI.EventHandler(ConsolePortSpellMenu, {
