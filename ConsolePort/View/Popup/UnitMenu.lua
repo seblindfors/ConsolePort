@@ -269,7 +269,7 @@ function UnitMenu:Layout()
 		end
 		height = height + frame:GetHeight() + 8;
 	end
-	self:SetTargetHeight(self:GetTop() - self.LayoutFrames[#self.LayoutFrames]:GetBottom() + 32)
+	self:SetTargetHeight(self:GetTop() - self.LayoutFrames[#self.LayoutFrames]:GetBottom() + self.bottomPadding)
 end
 
 function UnitMenu:GetLayoutIndex()
@@ -746,43 +746,43 @@ end
 -- Icons
 ---------------------------------------------------------------
 local Icons = UnitMenu.ReplaceIcons;
-CPAPI.Inject(Icons, function(self, mixin, icon)
-	mixin = UnitMenu:GetMixin(mixin)
+CPAPI.Callable(Icons, function(self, mixin, icon)
 	if not mixin then return end;
+	mixin = UnitMenu:GetMixin(mixin)
 	rawset(self, mixin, icon)
 end)
 
-Icons[UnitPopupAchievementButtonMixin]              = {'poi-transmogrifier'};
-Icons[UnitPopupAddBtagFriendButtonMixin]            = {'Battlenet-ClientIcon-App', true};
-Icons[UnitPopupAddCharacterFriendButtonMixin]       = {'Battlenet-ClientIcon-WoW', true};
-Icons[UnitPopupAddFriendMenuButtonMixin]            = {'Battlenet-ClientIcon-App', true};
-Icons[UnitPopupClearFocusButtonMixin]               = {'Ping_Map_Whole_Threat'};
-Icons[UnitPopupConvertToRaidButtonMixin]            = {'poi-transmogrifier'};
-Icons[UnitPopupDuelButtonMixin]                     = {'VignetteEventElite'};
-Icons[UnitPopupDungeonDifficulty1ButtonMixin]       = {'GM-icon-difficulty-normal-hover', true, true};
-Icons[UnitPopupDungeonDifficulty2ButtonMixin]       = {'GM-icon-difficulty-heroic-hover', true, true};
-Icons[UnitPopupDungeonDifficulty3ButtonMixin]       = {'GM-icon-difficulty-mythic-hover', true, true};
-Icons[UnitPopupDungeonDifficultyButtonMixin]        = {'MagePortalAlliance'};
-Icons[UnitPopupFollowButtonMixin]                   = {'MiniMap-QuestArrow'};
-Icons[UnitPopupInspectButtonMixin]                  = {'None'};
-Icons[UnitPopupInviteButtonMixin]                   = {'GreenCross'};
-Icons[UnitPopupLegacyRaidDifficulty1ButtonMixin]    = {'MagePortalAlliance'};
-Icons[UnitPopupLegacyRaidDifficulty2ButtonMixin]    = {'MagePortalHorde'};
-Icons[UnitPopupPartyLeaveButtonMixin]               = {'XMarksTheSpot'};
-Icons[UnitPopupPartyInstanceLeaveButtonMixin]       = {'poi-door-down'};
-Icons[UnitPopupPetBattleDuelButtonMixin]            = {'WildBattlePet'};
-Icons[UnitPopupPetDismissButtonMixin]               = {'XMarksTheSpot'};
-Icons[UnitPopupPvpFlagButtonMixin]                  = {(UnitFactionGroup('player'))..'Symbol'};
-Icons[UnitPopupRaidDifficulty1ButtonMixin]          = {'GM-icon-difficulty-normal-hover', true, true};
-Icons[UnitPopupRaidDifficulty2ButtonMixin]          = {'GM-icon-difficulty-heroic-hover', true, true};
-Icons[UnitPopupRaidDifficulty3ButtonMixin]          = {'GM-icon-difficulty-mythic-hover', true, true};
-Icons[UnitPopupRaidDifficultyButtonMixin]           = {'MagePortalHorde'};
-Icons[UnitPopupRaidTargetButtonMixin]               = {'Ping_Map_Whole_OnMyWay'};
-Icons[UnitPopupRequestInviteButtonMixin]            = {'GreenCross'};
-Icons[UnitPopupResetInstancesButtonMixin]           = {'common-icon-undo', true};
-Icons[UnitPopupSelectLootSpecializationButtonMixin] = {'Banker'};
-Icons[UnitPopupSelfHighlightSelectButtonMixin]      = {'Ping_Map_Whole_NonThreat'};
-Icons[UnitPopupSetFocusButtonMixin]                 = {'Ping_Map_Whole_Threat'};
-Icons[UnitPopupSuggestInviteButtonMixin]            = {'GreenCross'};
-Icons[UnitPopupTradeButtonMixin]                    = {'Auctioneer'};
-Icons[UnitPopupWhisperButtonMixin]                  = {'Mailbox'};
+Icons(UnitPopupAchievementButtonMixin,              {'poi-transmogrifier'});
+Icons(UnitPopupAddBtagFriendButtonMixin,            {'Battlenet-ClientIcon-App', true});
+Icons(UnitPopupAddCharacterFriendButtonMixin,       {'Battlenet-ClientIcon-WoW', true});
+Icons(UnitPopupAddFriendMenuButtonMixin,            {'Battlenet-ClientIcon-App', true});
+Icons(UnitPopupClearFocusButtonMixin,               {'Ping_Map_Whole_Threat'});
+Icons(UnitPopupConvertToRaidButtonMixin,            {'poi-transmogrifier'});
+Icons(UnitPopupDuelButtonMixin,                     {'VignetteEventElite'});
+Icons(UnitPopupDungeonDifficulty1ButtonMixin,       {'GM-icon-difficulty-normal-hover', true, true});
+Icons(UnitPopupDungeonDifficulty2ButtonMixin,       {'GM-icon-difficulty-heroic-hover', true, true});
+Icons(UnitPopupDungeonDifficulty3ButtonMixin,       {'GM-icon-difficulty-mythic-hover', true, true});
+Icons(UnitPopupDungeonDifficultyButtonMixin,        {'MagePortalAlliance'});
+Icons(UnitPopupFollowButtonMixin,                   {'MiniMap-QuestArrow'});
+Icons(UnitPopupInspectButtonMixin,                  {'None'});
+Icons(UnitPopupInviteButtonMixin,                   {'GreenCross'});
+Icons(UnitPopupLegacyRaidDifficulty1ButtonMixin,    {'MagePortalAlliance'});
+Icons(UnitPopupLegacyRaidDifficulty2ButtonMixin,    {'MagePortalHorde'});
+Icons(UnitPopupPartyLeaveButtonMixin,               {'XMarksTheSpot'});
+Icons(UnitPopupPartyInstanceLeaveButtonMixin,       {'poi-door-down'});
+Icons(UnitPopupPetBattleDuelButtonMixin,            {'WildBattlePet'});
+Icons(UnitPopupPetDismissButtonMixin,               {'XMarksTheSpot'});
+Icons(UnitPopupPvpFlagButtonMixin,                  {(UnitFactionGroup('player'))..'Symbol'});
+Icons(UnitPopupRaidDifficulty1ButtonMixin,          {'GM-icon-difficulty-normal-hover', true, true});
+Icons(UnitPopupRaidDifficulty2ButtonMixin,          {'GM-icon-difficulty-heroic-hover', true, true});
+Icons(UnitPopupRaidDifficulty3ButtonMixin,          {'GM-icon-difficulty-mythic-hover', true, true});
+Icons(UnitPopupRaidDifficultyButtonMixin,           {'MagePortalHorde'});
+Icons(UnitPopupRaidTargetButtonMixin,               {'Ping_Map_Whole_OnMyWay'});
+Icons(UnitPopupRequestInviteButtonMixin,            {'GreenCross'});
+Icons(UnitPopupResetInstancesButtonMixin,           {'common-icon-undo', true});
+Icons(UnitPopupSelectLootSpecializationButtonMixin, {'Banker'});
+Icons(UnitPopupSelfHighlightSelectButtonMixin,      {'Ping_Map_Whole_NonThreat'});
+Icons(UnitPopupSetFocusButtonMixin,                 {'Ping_Map_Whole_Threat'});
+Icons(UnitPopupSuggestInviteButtonMixin,            {'GreenCross'});
+Icons(UnitPopupTradeButtonMixin,                    {'Auctioneer'});
+Icons(UnitPopupWhisperButtonMixin,                  {'Mailbox'});
