@@ -10,7 +10,7 @@ function Setting:OnCreate()
 	self:HookScript('OnLeave', self.UnlockHighlight)
 	self:HookScript('OnClick', self.OnExpandOrCollapse)
 	self:SetIndentation(1)
-	self:SetSize(540, 40)
+	self:SetSize(542, 40)
 	self:GetNormalTexture():SetPoint('BOTTOMRIGHT', 8, 0)
 	CPAPI.SetAtlas(self.Icon, 'Waypoint-MapPin-Minimap-Tracked')
 	self.Icon:Hide()
@@ -185,11 +185,6 @@ function SettingsContainer:OnLoad()
 	local ToggleScrollEdge = function(scrollBar) self.BorderArt.ScrollEdge:SetShown(scrollBar:IsShown()) end;
 	self.ScrollBar:HookScript('OnShow', ToggleScrollEdge)
 	self.ScrollBar:HookScript('OnHide', ToggleScrollEdge)
-
-	if not CPAPI.IsRetailVersion then
-		self.ScrollBar.Background:Hide()
-		self.ScrollBar:AdjustPointsOffset(-12, 0)
-	end
 
 	self.Tabs:AddButtons(self.TabButtons)
 	self.Tabs:RegisterCallback(ButtonGroupBaseMixin.Event.Selected, self.OnTabSelected, self)
