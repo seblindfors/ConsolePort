@@ -189,11 +189,11 @@ end
 function UnitMenu:CustomizeEntry(widget, entry, contextData)
 	local data = self.ReplaceIcons[entry];
 	if data then
-		local atlas, isNative = unpack(data)
+		local atlas, isNative, keepSize = unpack(data)
 		local object = widget:AttachTexture()
 		if isNative then
 			object:SetTexCoord(0, 1, 0, 1)
-			object:SetAtlas(atlas)
+			object:SetAtlas(atlas, keepSize)
 		else
 			CPAPI.SetAtlas(object, atlas)
 		end
@@ -411,6 +411,23 @@ function UnitMenu:CreateFrame()
 end
 
 ---------------------------------------------------------------
+local UnitMenuButtonIcon = { SetPoint = nop };
+---------------------------------------------------------------
+
+function UnitMenuButtonIcon:OnLoad()
+	self:SetSize(26, 26)
+	self:ClearAllPoints()
+	getmetatable(self).__index.SetPoint(self, 'CENTER', self:GetParent(), 'LEFT', 56, 0)
+end
+
+function UnitMenuButtonIcon:SetSize(width, height)
+	getmetatable(self).__index.SetSize(self,
+		Clamp(width, 20, 26),
+		Clamp(height, 20, 26)
+	);
+end
+
+---------------------------------------------------------------
 local UnitMenuButton = CreateFromMixins(db.PopupMenuButton)
 ---------------------------------------------------------------
 function UnitMenuButton:OnLoad()
@@ -448,7 +465,8 @@ function UnitMenuButton:ExecuteClick()
 end
 
 function UnitMenuButton:AttachTexture()
-	self.Icon.SetPoint = nop;
+	Mixin(self.Icon, UnitMenuButtonIcon)
+	UnitMenuButtonIcon.OnLoad(self.Icon)
 	return self.Icon;
 end
 
@@ -596,6 +614,76 @@ UnitMenu.SecureProxy:SetAttribute(CPAPI.ActionPressAndHold, true)
 UnitMenu.SecureProxy:HookScript('OnClick', GenerateClosure(UnitMenu.ACCEPT, UnitMenu))
 
 ---------------------------------------------------------------
+do -- Emote list
+---------------------------------------------------------------
+	UnitMenu.Emotes       = CreateFromMixins(UnitPopupButtonBaseMixin)
+	local EmoteMenuBase   = CreateFromMixins(UnitPopupButtonBaseMixin)
+	local EmoteButtonBase = CreateFromMixins(UnitPopupButtonBaseMixin)
+
+	local MAXEMOTEINDEX = MAXEMOTEINDEX or 627;
+
+	local function MakeEmoteText(value)
+		local i = 1;
+		local token = _G['EMOTE'..i..'_TOKEN'];
+		while ( i < MAXEMOTEINDEX ) do
+			if ( token == value ) then
+				break;
+			end
+			i = i + 1;
+			token = _G['EMOTE'..i..'_TOKEN'];
+		end
+		return  _G['EMOTE'..i..'_CMD1'] or value;
+	end
+
+	function EmoteMenuBase:GetEntries()
+		local entries = {};
+		for i = self.start, self.stop do
+			local emote = self.list[i];
+			tinsert(entries, CreateFromMixins(EmoteButtonBase, {
+				text = MakeEmoteText(emote),
+				emote = emote,
+			}))
+		end
+		return entries;
+	end
+
+	function EmoteMenuBase:GetText()
+		return ('%s [%d-%d]'):format(self.name,
+			self.start,
+			self.stop
+		);
+	end
+
+	function EmoteButtonBase:GetText()
+		return self.text;
+	end
+
+	function EmoteButtonBase:OnClick(contextData)
+		DoEmote(self.emote, UnitIsPlayer(contextData.unit) and contextData.unit or nil);
+	end
+
+	function UnitMenu.Emotes:GetText()
+		return EMOTE_MESSAGE;
+	end
+
+	function UnitMenu.Emotes:GetEntries()
+		local entries = {};
+		local function createMenus(list, name)
+			local half = ceil(#list / 2)
+			return {
+				CreateFromMixins(EmoteMenuBase, { list = list, start = 1, stop = half, name = name }),
+				CreateFromMixins(EmoteMenuBase, { list = list, start = half + 1, stop = #list, name = name })
+			}
+		end
+
+		tAppendAll(entries, createMenus(EmoteList, EMOTE_MESSAGE))
+		tAppendAll(entries, createMenus(TextEmoteSpeechList, VOICEMACRO_LABEL))
+
+		return entries;
+	end
+end
+
+---------------------------------------------------------------
 -- Replacements
 ---------------------------------------------------------------
 CPAPI.Inject(UnitMenu.ReplaceMixins, function(self, mixin, replacement)
@@ -669,14 +757,25 @@ Icons[UnitPopupAddBtagFriendButtonMixin]            = {'Battlenet-ClientIcon-App
 Icons[UnitPopupAddCharacterFriendButtonMixin]       = {'Battlenet-ClientIcon-WoW', true};
 Icons[UnitPopupAddFriendMenuButtonMixin]            = {'Battlenet-ClientIcon-App', true};
 Icons[UnitPopupClearFocusButtonMixin]               = {'Ping_Map_Whole_Threat'};
+Icons[UnitPopupConvertToRaidButtonMixin]            = {'poi-transmogrifier'};
 Icons[UnitPopupDuelButtonMixin]                     = {'VignetteEventElite'};
+Icons[UnitPopupDungeonDifficulty1ButtonMixin]       = {'GM-icon-difficulty-normal-hover', true, true};
+Icons[UnitPopupDungeonDifficulty2ButtonMixin]       = {'GM-icon-difficulty-heroic-hover', true, true};
+Icons[UnitPopupDungeonDifficulty3ButtonMixin]       = {'GM-icon-difficulty-mythic-hover', true, true};
 Icons[UnitPopupDungeonDifficultyButtonMixin]        = {'MagePortalAlliance'};
 Icons[UnitPopupFollowButtonMixin]                   = {'MiniMap-QuestArrow'};
 Icons[UnitPopupInspectButtonMixin]                  = {'None'};
 Icons[UnitPopupInviteButtonMixin]                   = {'GreenCross'};
+Icons[UnitPopupLegacyRaidDifficulty1ButtonMixin]    = {'MagePortalAlliance'};
+Icons[UnitPopupLegacyRaidDifficulty2ButtonMixin]    = {'MagePortalHorde'};
+Icons[UnitPopupPartyLeaveButtonMixin]               = {'XMarksTheSpot'};
+Icons[UnitPopupPartyInstanceLeaveButtonMixin]       = {'poi-door-down'};
 Icons[UnitPopupPetBattleDuelButtonMixin]            = {'WildBattlePet'};
 Icons[UnitPopupPetDismissButtonMixin]               = {'XMarksTheSpot'};
 Icons[UnitPopupPvpFlagButtonMixin]                  = {(UnitFactionGroup('player'))..'Symbol'};
+Icons[UnitPopupRaidDifficulty1ButtonMixin]          = {'GM-icon-difficulty-normal-hover', true, true};
+Icons[UnitPopupRaidDifficulty2ButtonMixin]          = {'GM-icon-difficulty-heroic-hover', true, true};
+Icons[UnitPopupRaidDifficulty3ButtonMixin]          = {'GM-icon-difficulty-mythic-hover', true, true};
 Icons[UnitPopupRaidDifficultyButtonMixin]           = {'MagePortalHorde'};
 Icons[UnitPopupRaidTargetButtonMixin]               = {'Ping_Map_Whole_OnMyWay'};
 Icons[UnitPopupRequestInviteButtonMixin]            = {'GreenCross'};
@@ -687,73 +786,3 @@ Icons[UnitPopupSetFocusButtonMixin]                 = {'Ping_Map_Whole_Threat'};
 Icons[UnitPopupSuggestInviteButtonMixin]            = {'GreenCross'};
 Icons[UnitPopupTradeButtonMixin]                    = {'Auctioneer'};
 Icons[UnitPopupWhisperButtonMixin]                  = {'Mailbox'};
-
----------------------------------------------------------------
-do -- Emote list
----------------------------------------------------------------
-	UnitMenu.Emotes       = CreateFromMixins(UnitPopupButtonBaseMixin)
-	local EmoteMenuBase   = CreateFromMixins(UnitPopupButtonBaseMixin)
-	local EmoteButtonBase = CreateFromMixins(UnitPopupButtonBaseMixin)
-
-	local MAXEMOTEINDEX = MAXEMOTEINDEX or 627;
-
-	local function MakeEmoteText(value)
-		local i = 1;
-		local token = _G['EMOTE'..i..'_TOKEN'];
-		while ( i < MAXEMOTEINDEX ) do
-			if ( token == value ) then
-				break;
-			end
-			i = i + 1;
-			token = _G['EMOTE'..i..'_TOKEN'];
-		end
-		return  _G['EMOTE'..i..'_CMD1'] or value;
-	end
-
-	function EmoteMenuBase:GetEntries()
-		local entries = {};
-		for i = self.start, self.stop do
-			local emote = self.list[i];
-			tinsert(entries, CreateFromMixins(EmoteButtonBase, {
-				text = MakeEmoteText(emote),
-				emote = emote,
-			}))
-		end
-		return entries;
-	end
-
-	function EmoteMenuBase:GetText()
-		return ('%s [%d-%d]'):format(self.name,
-			self.start,
-			self.stop
-		);
-	end
-
-	function EmoteButtonBase:GetText()
-		return self.text;
-	end
-
-	function EmoteButtonBase:OnClick(contextData)
-		DoEmote(self.emote, UnitIsPlayer(contextData.unit) and contextData.unit or nil);
-	end
-
-	function UnitMenu.Emotes:GetText()
-		return EMOTE_MESSAGE;
-	end
-
-	function UnitMenu.Emotes:GetEntries()
-		local entries = {};
-		local function createMenus(list, name)
-			local half = ceil(#list / 2)
-			return {
-				CreateFromMixins(EmoteMenuBase, { list = list, start = 1, stop = half, name = name }),
-				CreateFromMixins(EmoteMenuBase, { list = list, start = half + 1, stop = #list, name = name })
-			}
-		end
-
-		tAppendAll(entries, createMenus(EmoteList, EMOTE_MESSAGE))
-		tAppendAll(entries, createMenus(TextEmoteSpeechList, VOICEMACRO_LABEL))
-
-		return entries;
-	end
-end
