@@ -88,6 +88,7 @@ if CPAPI.IsRetailVersion then
 				healthbars:Hide()
 			end
 			GameTooltip:SetOwner(anchor, 'ANCHOR_NONE')
+			GameTooltip:SetFrameStrata('BACKGROUND')
 			GameTooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
 			if db('trgtShowMinimalInteractNamePlate') and GameTooltip.NineSlice then
 				GameTooltip.NineSlice:Hide()
@@ -103,6 +104,7 @@ if CPAPI.IsRetailVersion then
 		-- tooltip is being used by something else.
 		if anchor and not self:IsAnchoringRestricted() then
 			self:SetClampedToScreen(true)
+			self:SetFrameStrata('TOOLTIP')
 			anchor = nil;
 		end
 	end)
