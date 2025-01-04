@@ -122,7 +122,7 @@ function UnitMenu:CreateEntries(root, entry, contextData, parent)
 		if entries then
 			child.refreshOnClick = false;
 			child.onClickHandler = function()
-				self.BackButton:Acquire(parent, entries)
+				self.BackButton:Acquire(parent, entries, self.index)
 
 				local header = CreateFromMixins(UnitPopupSubsectionTitleMixin)
 				header.GetText = GenerateClosure(entry.GetText, entry)
@@ -543,9 +543,11 @@ do -- Create pools
 end
 
 ---------------------------------------------------------------
-UnitMenu.BackButton = CreateFromMixins(UnitPopupButtonBaseMixin)
+UnitMenu.BackButton = CreateFromMixins(UnitPopupButtonBaseMixin, {
 ---------------------------------------------------------------
-UnitMenu.BackButton.Backtrace = {};
+	EntryTrace = {};
+	IndexTrace = {};
+})
 
 function UnitMenu.BackButton:CreateMenuDescription(rootDescription, contextData)
 	local element = rootDescription:CreateButton(BACK, function()
@@ -558,20 +560,22 @@ function UnitMenu.BackButton:CreateMenuDescription(rootDescription, contextData)
 end
 
 function UnitMenu.BackButton:Return(rootDescription, contextData)
-	rootDescription:RenderEntries(tremove(self.Backtrace), contextData)
+	rootDescription:RenderEntries(tremove(self.EntryTrace), contextData)
 	if contextData.isSecure then
-		rootDescription:SetFocusByIndex(1)
+		rootDescription:SetFocusByIndex(tremove(self.IndexTrace))
 	end
 end
 
-function UnitMenu.BackButton:Acquire(parent, entries)
-	tinsert(self.Backtrace, parent)
+function UnitMenu.BackButton:Acquire(parent, entries, restoreIndex)
+	tinsert(self.EntryTrace, parent)
+	tinsert(self.IndexTrace, restoreIndex)
 	tinsert(entries, 1, self)
 	return self;
 end
 
 function UnitMenu.BackButton:Reset()
-	wipe(self.Backtrace)
+	wipe(self.EntryTrace)
+	wipe(self.IndexTrace)
 end
 
 ---------------------------------------------------------------
