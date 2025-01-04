@@ -560,9 +560,10 @@ function UnitMenu.BackButton:CreateMenuDescription(rootDescription, contextData)
 end
 
 function UnitMenu.BackButton:Return(rootDescription, contextData)
-	rootDescription:RenderEntries(tremove(self.EntryTrace), contextData)
+	local entries, index = self:Pop()
+	rootDescription:RenderEntries(entries, contextData)
 	if contextData.isSecure then
-		rootDescription:SetFocusByIndex(tremove(self.IndexTrace))
+		rootDescription:SetFocusByIndex(index)
 	end
 end
 
@@ -571,6 +572,11 @@ function UnitMenu.BackButton:Acquire(parent, entries, restoreIndex)
 	tinsert(self.IndexTrace, restoreIndex)
 	tinsert(entries, 1, self)
 	return self;
+end
+
+function UnitMenu.BackButton:Pop() return
+	tremove(self.EntryTrace),
+	tremove(self.IndexTrace);
 end
 
 function UnitMenu.BackButton:Reset()
