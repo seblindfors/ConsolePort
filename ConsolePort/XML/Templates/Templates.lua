@@ -28,6 +28,23 @@ function CPAtlasMixin:ApplyAtlas()
 	);
 end
 
+---------------------------------------------------------------
+CPFrameMixin = CreateFromMixins(NineSlicePanelMixin)
+---------------------------------------------------------------
+
+function CPFrameMixin:OnLoad()
+	NineSlicePanelMixin.OnLoad(self);
+	self:SetBackgroundAlpha(self.layoutAlpha)
+end
+
+function CPFrameMixin:SetBackgroundAlpha(alpha)
+	self.layoutAlpha = alpha;
+	for region in pairs(NineSliceLayouts[self.layoutType]) do
+		if self[region] then
+			self[region]:SetAlpha(self.layoutAlpha);
+		end
+	end
+end
 
 ---------------------------------------------------------------
 CPFrameWithTooltipMixin = {}
