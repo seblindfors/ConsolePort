@@ -276,7 +276,13 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 			image     = ICON('Spell_Shadow_Teleport');
 		};
 		{
-			text      = LEAVE;
+			text      = PARTY_LEAVE;
+			predicate = IsInGroup;
+			command   = CPAPI.LeaveParty;
+			image     = ICON('Spell_Shadow_Teleport');
+		};
+		{
+			text      = LEAVE_ALL;
 			predicate = function() return true end;
 			command   = nop;
 			image     = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
