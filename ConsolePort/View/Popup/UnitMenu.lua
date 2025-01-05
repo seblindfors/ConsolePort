@@ -96,19 +96,8 @@ end
 function UnitMenu:CreateEntries(root, entry, contextData, parent)
 	if not entry:CanShow(contextData) then return end;
 
-	if entry:IsTitle() then
-		local header = self.TitlePool:Acquire(self:GetLayoutIndex())
-		header.Text:SetText(entry:GetText())
-		header.Text:SetTextColor(entry:GetColor())
-		header:SetHeight(32)
-		header:Show()
-		return tinsert(self.LayoutFrames, header)
-	elseif entry:IsDivider() then
-		local header = self.TitlePool:Acquire(self:GetLayoutIndex())
-		header.Text:SetText('')
-		header:SetHeight(16)
-		header:Show()
-		return tinsert(self.LayoutFrames, header)
+	if ( entry:IsTitle() or entry:IsDivider() ) then
+		return self:CreateTitle(entry)
 	else
 		local child = entry:CreateMenuDescription(root, contextData)
 		local entries = entry:GetEntries()
@@ -251,7 +240,7 @@ end
 
 function UnitMenu:Layout()
 	local height = 0;
-	local lastFrame = self.LayoutFrames[#self.LayoutFrames];
+	local lastFrame = self:GetLastFrame()
 	if lastFrame:IsTitle() then
 		-- Remove the last frame if it's a title,
 		-- since nothing interesting is going to be below it.
@@ -274,6 +263,10 @@ end
 
 function UnitMenu:GetLayoutIndex()
 	return #self.LayoutFrames + 1;
+end
+
+function UnitMenu:GetLastFrame()
+	return self.LayoutFrames[#self.LayoutFrames];
 end
 
 function UnitMenu:RenderEntries(entries, contextData)
@@ -410,6 +403,20 @@ function UnitMenu:CreateFrame()
 	return widget;
 end
 
+function UnitMenu:CreateTitle(entry)
+	local title = self:GetLastFrame()
+	if not (title and title:IsTitle()) then
+		title = self.TitlePool:Acquire(self:GetLayoutIndex())
+		tinsert(self.LayoutFrames, title)
+	end
+	local isHeader = entry:IsTitle()
+	title.Text:SetText(isHeader and entry:GetText() or '')
+	title.Text:SetTextColor(entry:GetColor())
+	title:SetHeight(isHeader and 32 or 16)
+	title:Show()
+	return title;
+end
+
 ---------------------------------------------------------------
 local UnitMenuButtonIcon = { SetPoint = nop };
 ---------------------------------------------------------------
@@ -438,10 +445,12 @@ end
 
 function UnitMenuButton:OnEnter()
 	db.PopupMenuButton.OnEnter(self)
+	self.Icon:SetIgnoreParentAlpha(true)
 end
 
 function UnitMenuButton:OnLeave()
 	db.PopupMenuButton.OnLeave(self)
+	self.Icon:SetIgnoreParentAlpha(false)
 end
 
 function UnitMenuButton:AddInitializer(initializer)
@@ -686,11 +695,14 @@ end
 ---------------------------------------------------------------
 -- Replacements
 ---------------------------------------------------------------
-CPAPI.Inject(UnitMenu.ReplaceMixins, function(self, mixin, replacement)
+local Replace = UnitMenu.ReplaceMixins;
+
+CPAPI.Callable(Replace, function(self, mixin, replacement)
+	if not mixin then return end;
 	rawset(self, mixin, CreateFromMixins(mixin, replacement))
 end)
 
-CPAPI.Proxy(UnitMenu.ReplaceMixins, function(_, mixin)
+CPAPI.Proxy(Replace, function(_, mixin)
 	return mixin;
 end)
 
@@ -713,7 +725,7 @@ do -- Focus handling
 		return not InCombatLockdown()
 	end
 
-	UnitMenu.ReplaceMixins[UnitPopupSetFocusButtonMixin] = {
+	Replace(UnitPopupSetFocusButtonMixin, {
 		OnClick = nop;
 		IsEnabled = IsEnabled;
 		CreateMenuDescription = function(self, rootDescription, contextData)
@@ -723,9 +735,9 @@ do -- Focus handling
 			SetOrClearFocus(description, not replaceWithClear and contextData.unit or nil)
 			return description;
 		end;
-	};
+	});
 
-	UnitMenu.ReplaceMixins[UnitPopupClearFocusButtonMixin] = {
+	Replace(UnitPopupClearFocusButtonMixin, {
 		OnClick = nop;
 		IsEnabled = IsEnabled;
 		CreateMenuDescription = function(self, rootDescription, contextData)
@@ -733,19 +745,20 @@ do -- Focus handling
 			SetOrClearFocus(description, nil)
 			return description;
 		end;
-	};
+	});
 end
 
 -- Hide buttons which carry taint or don't make sense in the context.
 do local hideButton = { CanShow = nop };
-	UnitMenu.ReplaceMixins[UnitPopupEnterEditModeMixin] = hideButton;
-	UnitMenu.ReplaceMixins[UnitPopupCopyCharacterNameButtonMixin] = hideButton;
+	Replace(UnitPopupEnterEditModeMixin, hideButton);
+	Replace(UnitPopupCopyCharacterNameButtonMixin, hideButton);
 end
 
 ---------------------------------------------------------------
 -- Icons
 ---------------------------------------------------------------
 local Icons = UnitMenu.ReplaceIcons;
+
 CPAPI.Callable(Icons, function(self, mixin, icon)
 	if not mixin then return end;
 	mixin = UnitMenu:GetMixin(mixin)
@@ -768,8 +781,9 @@ Icons(UnitPopupInspectButtonMixin,                  {'None'});
 Icons(UnitPopupInviteButtonMixin,                   {'GreenCross'});
 Icons(UnitPopupLegacyRaidDifficulty1ButtonMixin,    {'MagePortalAlliance'});
 Icons(UnitPopupLegacyRaidDifficulty2ButtonMixin,    {'MagePortalHorde'});
-Icons(UnitPopupPartyLeaveButtonMixin,               {'XMarksTheSpot'});
+Icons(UnitPopupOptOutLootTitleMixin,                {'Banker'});
 Icons(UnitPopupPartyInstanceLeaveButtonMixin,       {'poi-door-down'});
+Icons(UnitPopupPartyLeaveButtonMixin,               {'XMarksTheSpot'});
 Icons(UnitPopupPetBattleDuelButtonMixin,            {'WildBattlePet'});
 Icons(UnitPopupPetDismissButtonMixin,               {'XMarksTheSpot'});
 Icons(UnitPopupPvpFlagButtonMixin,                  {(UnitFactionGroup('player'))..'Symbol'});
