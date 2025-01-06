@@ -3,6 +3,7 @@ local _, db = ...;
 local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 	'ACTIONBAR_SLOT_CHANGED';
 	'BAG_UPDATE_DELAYED';
+	'PLAYER_ENTERING_WORLD';
 	'QUEST_DATA_LOAD_RESULT';
 	'QUEST_WATCH_LIST_CHANGED';
 	'QUEST_WATCH_UPDATE';
@@ -276,6 +277,12 @@ Utility:HookScript('OnShow', Utility.OnStickyIndexChanged)
 ---------------------------------------------------------------
 -- Widget handling
 ---------------------------------------------------------------
+function Utility:QueueRefresh()
+	if self.isDataReady then
+		db:RunSafe(self.RefreshAll, self)
+	end
+end
+
 function Utility:RefreshAll()
 	self:ClearAllActions()
 	local numButtons = 0;
@@ -310,7 +317,7 @@ function Utility:AddSecureAction(set, idx, info)
 	self:SetFrameRef(set..':'..idx, button)
 	local kind, action = self:GetKindAndAction(info)
 	if not kind or not action then
-		return
+		return -- TODO: not good, we end up with missing indices.
 	end
 	button:SetState(set, kind, action)
 
@@ -593,22 +600,78 @@ Utility.ValidationMap = {
 		end
 		return data;
 	end;
+	item = function(data, setID, idx)
+		local item = data.item;
+		local link = data.link;
+		if not item and not link then
+			return CPAPI.Log('Invalid item removed from %s in slot %d.',
+				Utility:ConvertSetIDToDisplayName(setID),
+				idx
+			);
+		end
+		if ( type(item) == 'number' ) then
+			item = CPAPI.GetItemInfo(item).itemLink;
+			link = item;
+		end
+		if not item then
+			item = link;
+		end
+		if not tostring(item):match('item:%d+') then
+			-- NOTE: This check is to make sure LAB:getItemId receives a valid item link.
+			return CPAPI.Log('Invalid item removed from %s:\nID: %s\nLink: %s',
+				Utility:ConvertSetIDToDisplayName(setID),
+				tostring(item),
+				tostring(link)
+			);
+		end
+		return CreateFromMixins(data, { item = item, link = link });
+	end;
+	spell = function(data, setID, idx)
+		local spell = data.spell;
+		local link  = data.link;
+		if not spell and not link then
+			return CPAPI.Log('Invalid spell removed from %s in slot %d.',
+				Utility:ConvertSetIDToDisplayName(setID),
+				idx
+			);
+		end
+		if not spell then
+			spell = link;
+		end
+		local info = CPAPI.GetSpellInfo(spell)
+		if not info.spellID then
+			-- NOTE: if the spellID is not found, the spell is invalid,
+			-- at least for the current character.
+			return CPAPI.Log('Invalid spell removed from %s:\nID: %s\nLink: %s',
+				Utility:ConvertSetIDToDisplayName(setID),
+				tostring(spell),
+				tostring(link)
+			);
+		end
+		return data;
+	end;
 };
 
-function Utility:ValidateAction(action)
+function Utility:ValidateAction(action, setID, idx)
 	if not action then return end;
 	local validator = self.ValidationMap[action.type];
 	if validator then
-		return validator(action);
+		return validator(action, setID, idx);
 	end
 	return action;
 end
 
 function Utility:ValidateData()
 	for setID, set in pairs(self.Data) do
+		local validSet = {};
 		for i = 1, #set do
-			set[i] = self:ValidateAction(set[i])
+			local validAction = self:ValidateAction(set[i], setID, i);
+			if validAction then
+				tinsert(validSet, validAction)
+			end
 		end
+		wipe(set)
+		tAppendAll(set, validSet)
 	end
 	return self.Data;
 end
@@ -998,7 +1061,7 @@ function Utility:SPELLS_CHANGED()
 	if self.autoAssignExtras then
 		db:RunSafe(self.ToggleZoneAbilities, self)
 	end
-	db:RunSafe(self.RefreshAll, self)
+	self:QueueRefresh()
 end
 
 function Utility:ACTIONBAR_SLOT_CHANGED()
@@ -1018,7 +1081,15 @@ function Utility:UPDATE_MACROS()
 	for button in self:EnumerateActive() do
 		button:UpdateAction(true)
 	end
-	db:RunSafe(self.RefreshAll, self)
+	self:QueueRefresh()
+end
+
+function Utility:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
+	if isInitialLogin or isReloadingUi then
+		self.isDataReady = true;
+		self:QueueRefresh()
+		self:UnregisterEvent('PLAYER_ENTERING_WORLD')
+	end
 end
 
 ---------------------------------------------------------------

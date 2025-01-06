@@ -1,20 +1,10 @@
-local Clamp, tonumber, _, env = Clamp, tonumber, ...;
+local _, env = ...;
 ---------------------------------------------------------------
-CPDivider = Mixin({FadeIn = env.db.Alpha.FadeIn }, env.ConfigurableWidgetMixin);
+CPDivider = CreateFromMixins(env.ConfigurableWidgetMixin, env.AnimatedWidgetMixin);
 ---------------------------------------------------------------
 
 function CPDivider:OnLoad()
 	env:RegisterCallbacks(self.OnDataLoaded, self, 'OnDataLoaded', 'Settings/tintColor')
-end
-
-function CPDivider:OnAttributeChanged(attribute, value)
-	if ( attribute == 'alpha' ) then
-		local time = (self.props.transition or 50) * 0.001;
-		local target = (tonumber(value) or 100) * 0.01;
-		self:FadeIn(time, self:GetAlpha(), Clamp(target, 0, 1))
-	elseif ( attribute == 'scale' ) then
-		self:SetScale((tonumber(value) or 100) * 0.01)
-	end
 end
 
 function CPDivider:SetProps(props)
@@ -62,18 +52,6 @@ function CPDivider:OnRotationChanged()
 	self.Line:SetRotation(rotation)
 	self.Gradient:SetRotation(rotation)
 	self.Gradient:SetPoint('CENTER', rotatedOffsetX, rotatedOffsetY)
-end
-
-function CPDivider:OnDriverChanged()
-	local driver = self.props.opacity;
-	if driver then
-		RegisterAttributeDriver(self, 'alpha', env.ConvertDriver(driver))
-	end
-
-	driver = self.props.rescale;
-	if driver then
-		RegisterAttributeDriver(self, 'scale', env.ConvertDriver(driver))
-	end
 end
 
 do local dividerCounter = CreateCounter()

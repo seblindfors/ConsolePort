@@ -25,26 +25,41 @@ local DEFAULT_ITEM_SIZE    = 64;
 local DEFAULT_ITEM_PADDING = 32;
 
 ---------------------------------------------------------------
--- Dispatcher
+Dispatcher.tracker = {};
 ---------------------------------------------------------------
 -- This frame is necessary to intercept the stick input, and
 -- needs to be insecure to propagate input based on stickID.
 
 function Dispatcher:OnGamePadStick(stick, x, y, len)
-	local this = self.focusFrame
+	local this = self.focusFrame;
 	if this and this.interrupt and this.interrupt[stick] then
-		if this.intercept[stick] and not self.disabled then
+		if self.disabled then
+			if self:CheckDeadzone(stick, len) then
+				return self:ClearFocusInstantly(this)
+			end
+		elseif this.intercept[stick] then
 			this:OnInput(x, y, len, stick)
 		end
 	end
 end
 
+function Dispatcher:CheckDeadzone(stick, len)
+	if not self.enableDeadzone then return end;
+	self.tracker[stick] = len;
+	local canDisable = true;
+	for _, len in pairs(self.tracker) do
+		if len > self.deadzone then
+			canDisable = false;
+			break;
+		end
+	end
+	return canDisable;
+end
+
 function Dispatcher:SetFocus(frame)
 	self.focusFrame = frame;
 	self:EnableGamePadStick(true)
-	if self.focusTimer then
-		self.focusTimer:Cancel()
-		self.focusTimer = nil;
+	if self:ClearTimer() then
 		self.disabled = nil;
 	end
 end
@@ -52,11 +67,26 @@ end
 function Dispatcher:ClearFocus(frame)
 	if self.focusFrame ~= frame then return end;
 	self.disabled = true;
-	self.focusTimer = C_Timer.NewTimer(db('radialClearFocusTime'), self.Disable)
+	self:SetTimer()
+end
+
+function Dispatcher:ClearTimer()
+	if self.focusTimer then
+		self.focusTimer:Cancel()
+		self.focusTimer = nil;
+		return true;
+	end
+end
+
+function Dispatcher:SetTimer()
+	self:ClearTimer()
+	if not self.enableTimeout then return end;
+	self.focusTimer = C_Timer.NewTimer(self.timeout, self.Disable)
 end
 
 function Dispatcher:ClearFocusInstantly(frame)
 	if self.focusFrame ~= frame then return end;
+	self:ClearTimer()
 	self.Disable()
 end
 
@@ -65,6 +95,7 @@ function Dispatcher:IsDisabling()
 end
 
 function Dispatcher.Disable() -- callback
+	wipe(Dispatcher.tracker)
 	Dispatcher.disabled = nil;
 	Dispatcher.focusFrame = nil;
 	Dispatcher.focusTimer = nil;
@@ -431,6 +462,14 @@ function Radial:OnDataLoaded()
 		self:Execute(('%s = %f;'):format(attr, val))
 		self[attr] = val
 	end
+
+	for setting, value in pairs({
+		enableDeadzone = db('radialClearFocusMode') ~= 2;
+		enableTimeout  = db('radialClearFocusMode') ~= 3;
+		deadzone       = db('radialClearFocusDeadzone');
+		timeout        = db('radialClearFocusTime');
+	}) do Dispatcher[setting] = value; end
+
 	return self;
 end
 
@@ -536,5 +575,8 @@ RadialMixin.CreateEnvironment = Radial.CreateEnvironment;
 db:RegisterSafeCallback('Gamepad/Active', Radial.OnActiveDeviceChanged, Radial)
 db:RegisterSafeCallbacks(Radial.OnDataLoaded, Radial,
 	'Settings/radialActionDeadzone',
-	'Settings/radialCosineDelta'
+	'Settings/radialCosineDelta',
+	'Settings/radialClearFocusMode',
+	'Settings/radialClearFocusTime',
+	'Settings/radialClearFocusDeadzone'
 );

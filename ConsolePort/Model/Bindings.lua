@@ -19,6 +19,7 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		UICursorToggle    = click 'Cursor';
 		UtilityRing       = click 'UtilityToggle';
 		MenuRing          = click 'MenuTrigger';
+		UnitMenu          = click 'Unit';
 		--FocusButton     = click 'FocusButton';
 	};
 end
@@ -55,6 +56,11 @@ do local function hold(binding) return L.FORMAT_HOLD_BINDING:format(binding) end
 		};
 		{	binding = Bindings.Custom.RaidCursorTarget;
 			name    = L.NAME_RAID_CURSOR_TARGET;
+		};
+		{	binding = Bindings.Custom.UnitMenu;
+			name    = PLAYER_OPTIONS_LABEL;
+			unit    = function() return db.UnitMenuSecure:GetPreferredUnit() end;
+			texture = [[Interface\TARGETINGFRAME\targetdead]];
 		};
 		--[[{	name    = hold(FOCUS_CAST_KEY_TEXT);
 			binding = Bindings.Custom.FocusButton;
@@ -246,12 +252,14 @@ do -- Handle custom rings
 			end
 			if ( unit and type(texture) ~= 'function' ) then
 				local default = texture;
+				local get = type(unit) == 'function' and unit or function() return unit end;
 				texture = function(self)
-					if UnitExists(unit) then
-						return SetPortraitTexture(self, unit)
+					local unitID = get()
+					if UnitExists(unitID) then
+						return SetPortraitTexture(self, unitID)
 					end
 					self:SetTexture(default)
-				end
+				end;
 				set.texture = texture;
 			end
 			return desc, image, set.name, texture;
