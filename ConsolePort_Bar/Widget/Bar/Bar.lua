@@ -81,6 +81,12 @@ function CPActionBar:RegisterPageResponse(body)
 	self:SetAttribute(env.Attributes.OnPage, body)
 end
 
+function CPActionBar:SetPoint(point, relFrame, relPoint, x, y)
+	self:SetAttribute('x', x)
+	self:SetAttribute('y', y)
+	getmetatable(self).__index.SetPoint(self, point, relFrame, relPoint, x, y)
+end
+
 function CPActionBar:OnDriverChanged()
 	-- Driver: visibility
 	self:RegisterVisibilityDriver(self.props.visibility)
@@ -89,6 +95,11 @@ function CPActionBar:OnDriverChanged()
 	self:RegisterDriver('rescale', env.ConvertDriver(self.props.rescale), [[
 		newstate = (tonumber(newstate) or 100) * 0.01;
 		if newstate > 0 then
+			if self:GetAttribute('offsetscale') then
+				local relScale = 1 / newstate;
+				local point, relFrame, relPoint = self:GetPoint()
+				self:SetPoint(point, relFrame, relPoint, self:GetAttribute('x') * relScale, self:GetAttribute('y') * relScale)
+			end
 			self:SetScale(newstate)
 		end
 	]])

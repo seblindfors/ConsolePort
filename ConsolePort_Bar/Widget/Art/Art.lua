@@ -62,12 +62,11 @@ end
 ---------------------------------------------------------------
 CPCoverArt = Mixin({
 ---------------------------------------------------------------
-	FadeIn = env.db.Alpha.FadeIn;
 	Styles = {
 		[TYPE_COLLAGE]  = { template = 'CPCollageArtTemplate',  mixin = Collage  };
 		[TYPE_ARTIFACT] = { template = 'CPArtifactArtTemplate', mixin = Artifact };
 	};
-}, env.ConfigurableWidgetMixin);
+}, env.ConfigurableWidgetMixin, env.AnimatedWidgetMixin);
 
 function CPCoverArt:SetProps(props)
 	self:SetDynamicProps(props)
@@ -92,28 +91,6 @@ function CPCoverArt:TogglePiece(piece, data, show)
 		self[piece]:Show()
 	elseif self[piece] then
 		self[piece]:Hide()
-	end
-end
-
-function CPCoverArt:OnDriverChanged()
-	local driver = self.props.opacity;
-	if driver then
-		RegisterAttributeDriver(self, 'alpha', env.ConvertDriver(driver))
-	end
-
-	driver = self.props.rescale;
-	if driver then
-		RegisterAttributeDriver(self, 'scale', env.ConvertDriver(driver))
-	end
-end
-
-function CPCoverArt:OnAttributeChanged(attribute, value)
-	if ( attribute == 'alpha' ) then
-		local time = (self.props.transition or 50) * 0.001;
-		local target = (tonumber(value) or 100) * 0.01;
-		self:FadeIn(time, self:GetAlpha(), Clamp(target, 0, 1))
-	elseif ( attribute == 'scale' ) then
-		self:SetScale((tonumber(value) or 100) * 0.01)
 	end
 end
 

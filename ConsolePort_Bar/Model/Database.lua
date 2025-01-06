@@ -18,6 +18,7 @@ env.Const.DefaultVisibility = '[vehicleui][overridebar] hide; show';
 
 env.Const.ValidFontFlags = CPAPI.Enum('OUTLINE', 'THICKOUTLINE', 'MONOCHROME');
 env.Const.ValidJustifyH  = CPAPI.Enum('LEFT', 'CENTER', 'RIGHT');
+env.Const.ValidStratas   = CPAPI.Enum('BACKGROUND', 'LOW', 'MEDIUM', 'HIGH', 'DIALOG');
 env.Const.ValidPoints    = CPAPI.Enum(
 	'CENTER', 'TOP',      'BOTTOM',
 	'LEFT',   'TOPLEFT',  'BOTTOMLEFT',
