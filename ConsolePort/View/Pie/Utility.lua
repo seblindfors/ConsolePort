@@ -639,7 +639,7 @@ Utility.ValidationMap = {
 			spell = link;
 		end
 		local info = CPAPI.GetSpellInfo(spell)
-		if not info.spellID then
+		if not info.spellID and not CPAPI.GetSpellLink(spell) then
 			-- NOTE: if the spellID is not found, the spell is invalid,
 			-- at least for the current character.
 			return CPAPI.Log('Invalid spell removed from %s:\nID: %s\nLink: %s',

@@ -286,7 +286,7 @@ end
 
 function FlyoutButtonMixin:OnDragStart()
 	if (self.spellID) and not InCombatLockdown() then
-		PickupSpell(self.spellID);
+		CPAPI.PickupSpell(self.spellID);
 		self:RegisterEvent('CURSOR_CHANGED')
 	end
 end
