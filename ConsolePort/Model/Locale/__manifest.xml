@@ -2,6 +2,6 @@
 ..\FrameXML\UI.xsd">
 	<!-- Model -->
 	<Script file="Locale.lua"/>
-	<!-- Locale -->
+	<!-- Locale files are located at root\Locale -->
 	<Include file="..\..\Locale\__manifest.xml"/>
 </Ui>

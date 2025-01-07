@@ -2,6 +2,8 @@ local db, _, env = ConsolePort:GetData(), ...; env.db, env.L = db, db.Locale;
 ---------------------------------------------------------------
 -- Binding helpers
 ---------------------------------------------------------------
+env.BindingInfo, env.BindingInfoMixin = db.Loadout, db.LoadoutMixin;
+
 function env:GetActiveDeviceAndMap()
 	-- using ID to get the buttons in WinRT API order (NOTE: zero-indexed)
 	return db('Gamepad/Active'), db('Gamepad/Index/Button/ID')

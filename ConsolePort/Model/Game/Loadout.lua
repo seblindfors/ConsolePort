@@ -1,16 +1,16 @@
-local _, env = ...; local db, L = env.db, env.L;
-local BindingInfoMixin, BindingInfo = {}, {
+local _, db, L = ...; L = db.Locale;
+local LoadoutMixin, LoadoutInfo = db:Register('LoadoutMixin', {}), db:Register('Loadout', {
 	--------------------------------------------------------------
 	BindingPrefix = 'BINDING_NAME_%s';
 	HeaderPrefix  = 'BINDING_%s';
 	NotBoundColor = '|cFF757575%s|r';
 	DisplayFormat = '%s\n|cFF757575%s|r';
 	--------------------------------------------------------------
-	DictCounter = 0;
-	Custom    = {};
-	Bindings  = {};
-	Headers   = {};
-	Actionbar = {};
+	DictCounter   = 0;
+	Custom        = {};
+	Bindings      = {};
+	Headers       = {};
+	Actionbar     = {};
 	--------------------------------------------------------------
 	ActionNameHandlers = {
 		spell        = function(id) return CPAPI.GetSpellInfo(id).name    or STAT_CATEGORY_SPELL  end; -- Hack fallback: 'Spell'
@@ -25,16 +25,16 @@ local BindingInfoMixin, BindingInfo = {}, {
 
 	};
 	--------------------------------------------------------------
-}; env.BindingInfo, env.BindingInfoMixin = BindingInfo, BindingInfoMixin;
+});
 
 ---------------------------------------------------------------
 -- Action bar handling
 ---------------------------------------------------------------
-function BindingInfo:GetActionButtonID(binding)
+function LoadoutInfo:GetActionButtonID(binding)
 	return db(('Actionbar/Binding/%s'):format(binding))
 end
 
-function BindingInfo:GetActionInfo(actionID)
+function LoadoutInfo:GetActionInfo(actionID)
 	local kind, kindID = GetActionInfo(actionID)
 	local getinfo = self.ActionNameHandlers[kind]
 
@@ -43,24 +43,24 @@ function BindingInfo:GetActionInfo(actionID)
 	end
 end
 
-function BindingInfo:GetActionbarBindings()
+function LoadoutInfo:GetActionbarBindings()
 	self:RefreshDictionary()
 	return self.Actionbar;
 end
 
-function BindingInfo:AddActionbarBinding(name, bindingID, actionID)
+function LoadoutInfo:AddActionbarBinding(name, bindingID, actionID)
 	self.Actionbar[actionID] = {name = name, binding = bindingID};
 end
 
 do local customHeader = ' |TInterface\\Store\\category-icon-featured:18:18:0:0:64:64:18:46:18:46|t  ' .. SPECIAL;
 	_G[customHeader] = customHeader;
-	function BindingInfo:AddCustomBinding(name, bindingID, readonly)
+	function LoadoutInfo:AddCustomBinding(name, bindingID, readonly)
 		self:AddBindingToCategory(L(name), bindingID, customHeader, readonly)
 		self.Custom[bindingID] = name;
 		self.Headers[bindingID] = customHeader;
 	end
 
-	function BindingInfo:IsReadonlyBinding(bindingID)
+	function LoadoutInfo:IsReadonlyBinding(bindingID)
 		if self.Custom[bindingID] then
 			local info = db.Bindings:GetCustomBindingInfo(bindingID)
 			return info and info.readonly and info.readonly();
@@ -69,7 +69,7 @@ do local customHeader = ' |TInterface\\Store\\category-icon-featured:18:18:0:0:6
 end
 
 do local primaryHeader = '  |TInterface\\Store\\category-icon-wow:18:18:0:0:64:64:18:46:18:46|t  ' .. PRIMARY;
-	function BindingInfo:AddPrimaryBinding(name, bindingID, readonly)
+	function LoadoutInfo:AddPrimaryBinding(name, bindingID, readonly)
 		self:AddBindingToCategory(name, bindingID, primaryHeader, readonly)
 		self.Custom[bindingID] = name;
 		self.Headers[bindingID] = customHeader;
@@ -80,7 +80,7 @@ end
 ---------------------------------------------------------------
 -- Dictionary
 ---------------------------------------------------------------
-function BindingInfo:IsBindingMissingHeader(id)
+function LoadoutInfo:IsBindingMissingHeader(id)
 	-- called for bindings where header could not be found, so check...
 	return (id:match('^HEADER') and       -- (1) is it a header?
 		not id:match('^HEADER_BLANK') and -- (2) ...that isn't blank?
@@ -88,20 +88,20 @@ function BindingInfo:IsBindingMissingHeader(id)
 		not id:match('^HEADER')           -- (4) or is it not a header?
 end
 
-function BindingInfo:AddBindingToCategory(name, id, category, readonly)
+function LoadoutInfo:AddBindingToCategory(name, id, category, readonly)
 	local bindings = self.Bindings;
 	bindings[category] = bindings[category] or {};
-	
+
 	local category = bindings[category];
 	category[#category+1] = {name = name, binding = id, readonly = readonly};
 	return category;
 end
 
-function BindingInfo:GetBindingName(binding)
+function LoadoutInfo:GetBindingName(binding)
 	return self.Custom[binding] or _G[self.BindingPrefix:format(binding)]
 end
 
-function BindingInfo:GetCategoryName(header)
+function LoadoutInfo:GetCategoryName(header)
 	if not header then return end
 	local name = _G[header];
 	if type(name) ~= 'string' then
@@ -110,7 +110,7 @@ function BindingInfo:GetCategoryName(header)
 	return name;
 end
 
-function BindingInfo:RefreshDictionary()
+function LoadoutInfo:RefreshDictionary()
 	local numBindings = GetNumBindings()
 	local isUpdatedDict = ( numBindings ~= self.DictCounter )
 	-- only run refresh when bindings have been added
@@ -169,7 +169,7 @@ end
 ---------------------------------------------------------------
 -- Hacks
 ---------------------------------------------------------------
-function BindingInfo:AssertBindings(bindings)
+function LoadoutInfo:AssertBindings(bindings)
 	-- HACK: trash any tables that don't have actual bindings, handling
 	-- the quirk of the game's binding system listing separators
 	-- in the UI as actual, legit bindings.
@@ -182,12 +182,12 @@ function BindingInfo:AssertBindings(bindings)
 		end
 		if gc then
 			bindings[category] = nil;
-			category = nil;	
+			category = nil;
 		end
 	end
 end
 
-function BindingInfo:RenameActionbarCategory(bindings)
+function LoadoutInfo:RenameActionbarCategory(bindings)
 	-- HACK: rename misc action bar to "Action Bar (Miscellaneous)",
 	-- so action bar can be handled separately in the binding manager.
 	local newName = ('%s (%s)'):format(BINDING_HEADER_ACTIONBAR, MISCELLANEOUS)
@@ -195,7 +195,7 @@ function BindingInfo:RenameActionbarCategory(bindings)
 	bindings[BINDING_HEADER_ACTIONBAR] = nil;
 end
 
-function BindingInfo:ConvertTextToBonusBar(text, page, actionID)
+function LoadoutInfo:ConvertTextToBonusBar(text, page, actionID)
 	if (CPAPI.GetBonusBarIndexForSlot(actionID) == page) then
 		for i=1, GetNumShapeshiftForms() do
 			local _, isActive, _, spellID = GetShapeshiftFormInfo(i)
@@ -210,16 +210,16 @@ end
 ---------------------------------------------------------------
 -- Mixin for things that need formatted binding info
 ---------------------------------------------------------------
-function BindingInfoMixin:GetBindingName(binding)
-	return BindingInfo:GetBindingName(binding)
+function LoadoutMixin:GetBindingName(binding)
+	return LoadoutInfo:GetBindingName(binding)
 end
 
-function BindingInfoMixin:GetActionInfo(actionID)
-	return BindingInfo:GetActionInfo(actionID)
+function LoadoutMixin:GetActionInfo(actionID)
+	return LoadoutInfo:GetActionInfo(actionID)
 end
 
-function BindingInfoMixin:IsReadonlyBinding(binding)
-	return BindingInfo:IsReadonlyBinding(binding)
+function LoadoutMixin:IsReadonlyBinding(binding)
+	return LoadoutInfo:IsReadonlyBinding(binding)
 end
 
 -- @param binding        : bindingID
@@ -227,15 +227,15 @@ end
 -- @return name          : internal name of the binding
 -- @return texture       : binding or action texture
 -- @return actionID      : formatted action ID
-function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
-	if (not binding or binding == '') then return BindingInfo.NotBoundColor:format(NOT_BOUND) end;
-	local bindings, headers = BindingInfo:RefreshDictionary()
+function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
+	if (not binding or binding == '') then return LoadoutInfo.NotBoundColor:format(NOT_BOUND) end;
+	local bindings, headers = LoadoutInfo:RefreshDictionary()
 
-	local text, name = BindingInfo:GetBindingName(binding)
+	local text, name = LoadoutInfo:GetBindingName(binding)
 	local header = headers[binding];
 
 	-- check if this is an action bar binding
-	local actionID = BindingInfo:GetActionButtonID(binding)
+	local actionID = LoadoutInfo:GetActionButtonID(binding)
 	if actionID and not skipActionInfo then
 		-- swap the info for current bar if offset
 		local page = db.Pager:GetCurrentPage()
@@ -249,21 +249,21 @@ function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
 		if name then
 			-- if action has a name, suffix the binding, omit the header,
 			-- return the concatenated string and the action texture
-			text = BindingInfo:ConvertTextToBonusBar(text, page, actionID)
-			return BindingInfo.DisplayFormat:format(name, text), texture, actionID;
+			text = LoadoutInfo:ConvertTextToBonusBar(text, page, actionID)
+			return LoadoutInfo.DisplayFormat:format(name, text), texture, actionID;
 		elseif texture then
 			-- no name found, but there's a texture.
 			if text then
 				name = header and _G[header]
-				name = name and BindingInfo.DisplayFormat:format(text, name) or text;
+				name = name and LoadoutInfo.DisplayFormat:format(text, name) or text;
 			end
 			return name, texture, actionID;
 		end
 	end
 	if text then
 		-- this binding may have an action ID, but the slot is empty, or it's just a normal binding.
-		name = BindingInfo:GetCategoryName(header)
-		name = name and BindingInfo.DisplayFormat:format(text, name) or text;
+		name = LoadoutInfo:GetCategoryName(header)
+		name = name and LoadoutInfo.DisplayFormat:format(text, name) or text;
 		return name, db.Bindings:GetIcon(binding), actionID;
 	end
 
@@ -278,21 +278,21 @@ function BindingInfoMixin:GetBindingInfo(binding, skipActionInfo)
 	return name, db.Bindings:GetIcon(binding), actionID;
 end
 
-function BindingInfoMixin:WrapAsNotBound(text)
-	return BindingInfo.NotBoundColor:format(text)
+function LoadoutMixin:WrapAsNotBound(text)
+	return LoadoutInfo.NotBoundColor:format(text)
 end
 
 ---------------------------------------------------------------
 -- Collections
 ---------------------------------------------------------------
-function BindingInfo:AddCollection(collection, configuration)
+function LoadoutInfo:AddCollection(collection, configuration)
 	local collections = self.Collections;
 	collections[#collections + 1] = configuration;
 	configuration.items = collection;
 	return configuration, collections;
 end
 
-function BindingInfo:RefreshCollections()
+function LoadoutInfo:RefreshCollections()
 	self.Collections = self.Collections and wipe(self.Collections) or {};
 
 	local BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
@@ -302,7 +302,7 @@ function BindingInfo:RefreshCollections()
 	local SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
 
 	-- Spells
-	do  local spellBook, flyout, flyoutName = {}, {};
+	do  local spellBook, flyouts, flyoutNames = {}, {}, {};
 
 		for tab=1, CPAPI.GetNumSpellTabs() do
 			local spellTabInfo = CPAPI.GetSpellTabInfo(tab)
@@ -322,7 +322,9 @@ function BindingInfo:RefreshCollections()
 							spells[#spells + 1] = i;
 
 							local name, _, numFlyoutSlots = GetFlyoutInfo(typeID)
-							flyoutName = flyoutName and ('%s / %s'):format(flyoutName, name) or name;
+							local flyout, flyoutID = {}, #flyouts + 1;
+							flyouts[flyoutID] = flyout;
+							flyoutNames[flyoutID] = name;
 							for f = 1, numFlyoutSlots do
 								flyout[#flyout+1] = GetFlyoutSlotInfo(typeID, f);
 							end
@@ -357,14 +359,17 @@ function BindingInfo:RefreshCollections()
 			})
 		end
 
-		if next(flyout) then
-			self:AddCollection(flyout, {
-				name    = flyoutName;
-				match   = C_ActionBar.FindSpellActionButtons;
-				pickup  = CPAPI.PickupSpell;
-				tooltip = GameTooltip.SetSpellByID;
-				texture = CPAPI.GetSpellTexture;
-			})
+		if next(flyouts) then
+			for i, flyout in ipairs(flyouts) do
+				local name = flyoutNames[i];
+				self:AddCollection(flyout, {
+					name    = name;
+					match   = C_ActionBar.FindSpellActionButtons;
+					pickup  = CPAPI.PickupSpell;
+					tooltip = GameTooltip.SetSpellByID;
+					texture = CPAPI.GetSpellTexture;
+				})
+			end
 		end
 
 		if next(pet) then
@@ -491,6 +496,6 @@ function BindingInfo:RefreshCollections()
 	return self.Collections;
 end
 
-function BindingInfoMixin:GetCollections()
-	return BindingInfo:RefreshCollections()
+function LoadoutMixin:GetCollections()
+	return LoadoutInfo:RefreshCollections()
 end

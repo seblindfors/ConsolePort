@@ -18,7 +18,6 @@
 Helpers.lua
 Widgets.lua
 Config.xml
-Bindings\Info.lua
 
 Data\Serializer.lua
 Data\ImportExport.lua
