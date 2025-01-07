@@ -626,7 +626,7 @@ Utility.ValidationMap = {
 		end
 		return CreateFromMixins(data, { item = item, link = link });
 	end;
-	spell = function(data, setID, idx)
+	--[[spell = function(data, setID, idx)
 		local spell = data.spell;
 		local link  = data.link;
 		if not spell and not link then
@@ -649,7 +649,7 @@ Utility.ValidationMap = {
 			);
 		end
 		return data;
-	end;
+	end;]]
 };
 
 function Utility:ValidateAction(action, setID, idx)
