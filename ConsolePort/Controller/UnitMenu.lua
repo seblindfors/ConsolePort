@@ -18,8 +18,29 @@ local UnitMenuSecure = db:Register('UnitMenuSecure', Mixin(CPAPI.DataHandler(Con
 		CANCEL = BACK;
 		CLOSE  = CLOSE;
 	};
+	Bindings = {
+		Next = {
+			macrotext = '/targetfriend 0';
+			binding   = 'TARGETNEARESTFRIEND';
+		};
+		Prev = {
+			macrotext = '/targetfriend 1';
+			binding   = 'TARGETPREVIOUSFRIEND';
+		};
+		NextPlayer = {
+			macrotext = '/targetfriendplayer 0';
+			binding   = 'TARGETNEARESTFRIENDPLAYER';
+		};
+		PrevPlayer = {
+			macrotext = '/targetfriendplayer 1';
+			binding   = 'TARGETPREVIOUSFRIENDPLAYER';
+		};
+	};
 }))
 
+---------------------------------------------------------------
+-- Inscure
+---------------------------------------------------------------
 function UnitMenuSecure:SetUnit(unit)
 	self:Run([[
 		self::SetUnit(%q)
@@ -37,19 +58,26 @@ function UnitMenuSecure:ToggleMenu(unit)
 	local insecureMenu = db.UnitMenu;
 	insecureMenu:SetUnit(unit, true)
 
-	local handle = db.UIHandle;
+	local handle = self:ToggleHintFocus(unit)
 	if unit then
-		handle:ResetHintBar()
-		handle:SetHintFocus(insecureMenu)
 		for cmd, hint in pairs(self.Hints) do
 			handle:AddHint(self.Buttons[cmd], hint)
 		end
+	end
+end
+
+function UnitMenuSecure:ToggleHintFocus(enabled)
+	local handle, insecureMenu = db.UIHandle, db.UnitMenu;
+	if enabled then
+		handle:ResetHintBar()
+		handle:SetHintFocus(insecureMenu)
 	else
 		if handle:IsHintFocus(insecureMenu) then
 			handle:HideHintBar()
 		end
 		handle:ClearHintsForFrame(insecureMenu)
 	end
+	return handle;
 end
 
 function UnitMenuSecure:ForwardCommand(command)
@@ -62,6 +90,9 @@ function UnitMenuSecure:OnDataLoaded()
 	self:Execute([[cursor = self:GetFrameRef('Cursor')]])
 end
 
+---------------------------------------------------------------
+-- Secure
+---------------------------------------------------------------
 UnitMenuSecure:RegisterForClicks('AnyDown')
 UnitMenuSecure:Execute([[
 	UNIT_DRIVER = '[@%s,exists] %s; nil';
@@ -139,6 +170,58 @@ UnitMenuSecure:Wrap('PreClick', ([[
 	self::SetUnit(unitOrButton)
 ]]):format(CPAPI.ActionTypePress))
 
+---------------------------------------------------------------
+local UnitMenuTrigger = {
+---------------------------------------------------------------
+	TimeUntilHints   = 0.25;
+	TimeUntilTrigger = 1.5;
+};
+
+function UnitMenuTrigger:OnLoad()
+	self:SetAttribute(CPAPI.ActionTypePress, 'macro')
+	self:SetAttribute(CPAPI.ActionPressAndHold, true)
+	self:SetAttribute('macrotext', self.macrotext)
+	self:SetAttribute('binding', self.binding)
+	self:RegisterForClicks('AnyDown', 'AnyUp')
+	self:HookScript('OnClick', self.OnContext)
+	self.secure = UnitMenuSecure;
+end
+
+function UnitMenuTrigger:SetOverride(key)
+	SetOverrideBindingClick(self, false, key, self:GetName(), key:match('[^-]+$'))
+end
+
+function UnitMenuTrigger:ClearOverrides()
+	ClearOverrideBindings(self)
+end
+
+function UnitMenuTrigger:OnContext(button, enable)
+	if self.display then
+		self.secure:ToggleHintFocus(false)
+	end
+	self.timer, self.display, self.button = 0, false, enable and button or nil;
+	self:SetScript('OnUpdate', enable and self.OnContextUpdate or nil)
+end
+
+function UnitMenuTrigger:OnContextUpdate(elapsed)
+	if InCombatLockdown() or not UnitExists('target') then
+		return self:OnContext(self.button, false)
+	end
+	self.timer = self.timer + elapsed;
+	if self.timer > self.TimeUntilTrigger then
+		self:OnContext(self.button, false)
+		self.secure:Run([[ self::SetUnit('target') ]])
+	elseif not self.display and self.timer > self.TimeUntilHints then
+		self.display = true;
+		local handle = self.secure:ToggleHintFocus(true)
+		local hint = handle:AddHint(self.button, OPTIONS_MENU)
+		hint:SetTimer(self.TimeUntilTrigger - self.timer)
+	end
+end
+
+---------------------------------------------------------------
+-- Secure bindings
+---------------------------------------------------------------
 db:RegisterSafeCallback('OnNewBindings', function(self)
 	local function GetEscape(key, ...)
 		if not key then return end;
@@ -150,4 +233,21 @@ db:RegisterSafeCallback('OnNewBindings', function(self)
 	tAppendAll(escapeBindings, { GetEscape(GetBindingKey(db.Bindings.Proxied.ToggleGameMenu)) })
 	tAppendAll(escapeBindings, { GetEscape(GetBindingKey(db.Bindings.Custom.MenuRing)) })
 	self:Execute(table.concat(escapeBindings, '\n'))
+
+	local function AcquireTargetButton(cmd, info)
+		local button = info.button;
+		if not button then
+			button = CreateFrame('Button', '$parent'..cmd, UnitMenuSecure, 'SecureActionButtonTemplate')
+			FrameUtil.SpecializeFrameWithMixins(button, UnitMenuTrigger, info)
+			info.button = button;
+		end
+		return button;
+	end
+
+	for cmd, info in pairs(self.Bindings) do
+		if info.button then info.button:ClearOverrides() end;
+		for key in db.Gamepad:EnumerateBindingKeys(info.binding) do
+			AcquireTargetButton(cmd, info):SetOverride(key)
+		end
+	end
 end, UnitMenuSecure)
