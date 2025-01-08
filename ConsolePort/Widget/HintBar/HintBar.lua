@@ -57,6 +57,7 @@ function CPHintMixin:SetData(icon, text)
 	self.Text:SetText(text)
 	self:SetWidth(self.Text:GetStringWidth() + self.Icon:GetWidth() + 18)
 	self:UpdateParentWidth()
+	self:ClearTimer()
 end
 
 function CPHintMixin:SetTimer(duration)

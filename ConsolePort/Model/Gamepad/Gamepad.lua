@@ -46,11 +46,6 @@ function GamepadAPI:AddGamepad(data, mergeDefault)
 	self.Devices[data.Name] = CPAPI.Proxy(gamepadData, GamepadMixin):OnLoad()
 end
 
-function GamepadAPI:CreateGamepadFromPreset(name, preset)
-	assert(self.Devices[preset], 'Preset ID does not exist in registry.')
-	-- TODO: allow copies of presets
-end
-
 function GamepadAPI:GetDevices()
 	local devices = {};
 	for device in db.table.spairs(self.Devices) do
@@ -390,8 +385,19 @@ function GamepadAPI:GetBindings(getInactive)
 	return bindings;
 end
 
-function GamepadAPI:GetBindingKey(binding)
-	return unpack(tFilter({GetBindingKey(binding, true)}, IsBindingForGamePad, true))
+function GamepadAPI:GetBindingKey(binding, asTable)
+	local keys = tFilter({GetBindingKey(binding, true)}, IsBindingForGamePad, true)
+	if asTable then return keys end;
+	return unpack(keys)
+end
+
+function GamepadAPI:EnumerateBindingKeys(binding)
+	local keys = self:GetBindingKey(binding, true)
+	local i = 0;
+	return function()
+		i = i + 1;
+		return keys[i];
+	end
 end
 
 function GamepadAPI:OnNewBindings()
