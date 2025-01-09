@@ -2,6 +2,7 @@
 ..\FrameXML\UI.xsd">
 	<!-- Utils -->
 	<Script file="Database.lua"/>
+	<Script file="Const.lua"/>
 	<Script file="Wrapper.lua"/>
 	<Script file="Assets.lua"/>
 	<Script file="Color.lua"/>
