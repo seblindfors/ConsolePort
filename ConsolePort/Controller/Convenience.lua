@@ -210,6 +210,8 @@ local Handler = CPAPI.CreateEventHandler({'Frame', '$parentConvenienceHandler', 
 	'MERCHANT_CLOSED';
 	'BAG_UPDATE_DELAYED';
 	'QUEST_AUTOCOMPLETE';
+	'TRADE_SHOW';
+	'TRADE_CLOSED';
 })
 
 Handler.SellJunkHelper = function(item)
@@ -232,6 +234,14 @@ function Handler:MERCHANT_SHOW()
 		self.autoSellUnlimited = UnitLevel('player') >= db('autoSellJunkLevelLimit');
 		CPAPI.IteratePlayerInventory(self.SellJunkHelper)
 	end
+end
+
+function Handler:TRADE_SHOW()
+	CPAPI.IsTradeAvailable = true;
+end
+
+function Handler:TRADE_CLOSED()
+	CPAPI.IsTradeAvailable = nil;
 end
 
 function Handler:BAG_UPDATE_DELAYED()

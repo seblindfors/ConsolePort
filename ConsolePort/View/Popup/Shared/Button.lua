@@ -7,6 +7,7 @@ local MenuButton = db:Register('PopupMenuButton', {})
 local COMMAND_OPT_ICON = CPAPI.Proxy({
 	Sell       = 'Auctioneer';
 	Split      = 'Banker';
+	Trade      = 'Auctioneer';
 	Equip      = 'poi-transmogrifier';
 	Pickup     = 'MiniMap-QuestArrow';
 	Delete     = 'XMarksTheSpot';
@@ -52,12 +53,13 @@ function MenuButton:OnLeave()
 end
 
 function MenuButton:SetCommand(text, command, data, handlers, init)
-	self.data = data
-	self.command = command
+	self.data, self.command = data, command;
 	CPAPI.SetAtlas(self.Icon, COMMAND_OPT_ICON[command])
 	self:SetAttribute('nohooks', true)
-	self:SetScript('OnEnter', handlers and handlers.OnEnter or self.OnEnter)
-	self:SetScript('OnLeave', handlers and handlers.OnLeave or self.OnLeave)
+	self:SetEnabled(true)
+	self:SetScript('OnEnter',  handlers and handlers.OnEnter or self.OnEnter)
+	self:SetScript('OnLeave',  handlers and handlers.OnLeave or self.OnLeave)
+	self:SetScript('OnUpdate', handlers and handlers.OnUpdate or nil)
 	self:SetText(text)
 	if init then
 		init(self)
