@@ -3,10 +3,13 @@
 ---------------------------------------------------------------
 local _, db, L = ...; L = db.Locale;
 local ItemMenu = db:Register('ItemMenu', CPAPI.EventHandler(ConsolePortItemMenu, {
-	'MERCHANT_SHOW';
-	'MERCHANT_CLOSED';
 	'BAG_UPDATE_DELAYED';
+	'MERCHANT_CLOSED';
+	'MERCHANT_SHOW';
 	'PLAYER_REGEN_DISABLED';
+	'PLAYER_TARGET_CHANGED';
+	'TRADE_CLOSED';
+	'TRADE_SHOW';
 }))
 ---------------------------------------------------------------
 local INV_EQ_LOCATIONS = {
@@ -81,6 +84,22 @@ function ItemMenu:SetCommands()
 		self:AddCommand(L'Sell', 'Sell')
 	end
 
+	if self:IsTradeInitAvailable() then
+		self:AddCommand(TRADE, 'Trade', { timer = 0, throttle = 0.2 }, {
+			OnUpdate = function(self, elapsed)
+				self.data.timer = self.data.timer + elapsed;
+				if self.data.timer > self.data.throttle then
+					self.data.timer = 0;
+					local canTrade = CheckInteractDistance('target', 2)
+					self:SetEnabled(canTrade)
+					if canTrade then
+						self:SetText(TRADE_WITH_QUESTION:format(UnitName('target')))
+					end
+				end
+			end;
+		})
+	end
+
 	if self:IsSplittableItem() then
 		local count, stackCount = self:GetCount(), self:GetStackCount();
 		local color = count == stackCount and GREEN_FONT_COLOR or ORANGE_FONT_COLOR;
@@ -88,7 +107,7 @@ function ItemMenu:SetCommands()
 		self:AddCommand(L'Split stack' .. countText, 'Split')
 	end
 
-	if self:IsDisenchantableItem() then	
+	if self:IsDisenchantableItem() then
 		self:AddCommand(L'Disenchant', 'Disenchant', {self:GetBagAndSlot()}, nil, function(self)
 			local bagID, slotID = unpack(self.data)
 			self:SetAttribute('type', 'macro')
@@ -247,7 +266,14 @@ function ItemMenu:IsUsableItem()
 end
 
 function ItemMenu:IsSellableItem()
-	return self.merchantAvailable and not self:HasNoValue()
+	return CPAPI.IsMerchantAvailable and not self:HasNoValue()
+end
+
+function ItemMenu:IsTradeInitAvailable()
+	local contextData = { unit = 'target' };
+	return UnitPopupSharedUtil.CanCooperate(contextData)
+		and UnitPopupSharedUtil.IsPlayer(contextData)
+		and not CPAPI.IsTradeAvailable; -- trade window is not open
 end
 
 function ItemMenu:IsDisenchantableItem()
@@ -302,6 +328,12 @@ function ItemMenu:Sell()
 	self:Hide()
 end
 
+function ItemMenu:Trade()
+	CPAPI.PickupContainerItem(self:GetBagAndSlot())
+	InitiateTrade('target')
+	self:Hide()
+end
+
 function ItemMenu:Split()
 	CPAPI.OpenStackSplitFrame(self:GetCount(), self, 'TOP', 'BOTTOM')
 end
@@ -332,34 +364,36 @@ end
 -- Handlers and init
 ---------------------------------------------------------------
 function ItemMenu:Refresh()
-	if self:IsShown() then
-		self:SetItem(self.bagID, self.slotIndex)
-	end
+	self:SetItem(self.bagID, self.slotIndex)
+end
+
+function ItemMenu:OnShow()
+	CPAPI.RegisterFrameForEvents(self, self.Events)
+end
+
+function ItemMenu:OnHide()
+	self:UnregisterAllEvents()
 end
 
 function ItemMenu:ClearPickup()
 	CPAPI.ClearCursor()
 end
 
-function ItemMenu:MERCHANT_SHOW()
-	self.merchantAvailable = true;
-	self:Refresh()
-end
-
-function ItemMenu:MERCHANT_CLOSED()
-	self.merchantAvailable = false;
-	self:Refresh()
-end
-
 function ItemMenu:PLAYER_REGEN_DISABLED()
 	self:Hide()
 end
 
-function ItemMenu:BAG_UPDATE_DELAYED()
-	self:Refresh()
-end
+ItemMenu.BAG_UPDATE_DELAYED    = ItemMenu.Refresh;
+ItemMenu.MERCHANT_CLOSED       = ItemMenu.Refresh;
+ItemMenu.MERCHANT_SHOW         = ItemMenu.Refresh;
+ItemMenu.PLAYER_TARGET_CHANGED = ItemMenu.Refresh;
+ItemMenu.TRADE_CLOSED          = ItemMenu.Refresh;
+ItemMenu.TRADE_SHOW            = ItemMenu.Refresh;
 
 ---------------------------------------------------------------
+ItemMenu:UnregisterAllEvents()
+ItemMenu:HookScript('OnHide', ItemMenu.OnHide)
+ItemMenu:HookScript('OnShow', ItemMenu.OnShow)
 ItemMenu:SetAttribute('nodepass', true)
 ItemMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
 ---------------------------------------------------------------
