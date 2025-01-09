@@ -15,10 +15,11 @@ externals:
 move-folders:
   ConsolePort/ConsolePort: ConsolePort
   ConsolePort/ConsolePort_Bar: ConsolePort_Bar
-  ConsolePort/ConsolePort_Cursor: ConsolePort_Cursor
   ConsolePort/ConsolePort_Config: ConsolePort_Config
+  ConsolePort/ConsolePort_Cursor: ConsolePort_Cursor
   ConsolePort/ConsolePort_Keyboard: ConsolePort_Keyboard
   ConsolePort/ConsolePort_Menu: ConsolePort_Menu
+  ConsolePort/ConsolePort_Rings: ConsolePort_Rings
   ConsolePort/ConsolePort_World: ConsolePort_World
 
 ignore:
