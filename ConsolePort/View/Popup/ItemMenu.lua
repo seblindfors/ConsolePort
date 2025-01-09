@@ -331,6 +331,7 @@ end
 function ItemMenu:Trade()
 	CPAPI.PickupContainerItem(self:GetBagAndSlot())
 	InitiateTrade('target')
+	self:Hide()
 end
 
 function ItemMenu:Split()
