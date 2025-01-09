@@ -25,6 +25,49 @@ local LoadoutMixin, LoadoutInfo = db:Register('LoadoutMixin', {}), db:Register('
 
 	};
 	--------------------------------------------------------------
+	SecureHandlerMap = {
+		action = function(action)
+			return {type = 'action', action = action};
+		end;
+		item = function(itemID, itemLink)
+			return {type = 'item', item = itemLink or itemID, link = itemLink};
+		end;
+		spell = function(spellIndex, bookType, spellID)
+			return {type = 'spell', spell = spellID, link = CPAPI.GetSpellLink(spellID)};
+		end;
+		macro = function(index)
+			local info = CPAPI.GetMacroInfo(index)
+			info.type, info.macro = 'macro', index;
+			return info;
+		end;
+		mount = function(mountID)
+			local spellID = select(2, CPAPI.GetMountInfoByID(mountID));
+			local spellName = spellID and CPAPI.GetSpellInfo(spellID).name;
+			if spellName then
+				return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)};
+			end
+		end;
+		petaction = function(spellID, indexIsOffset)
+			if indexIsOffset then
+				return {type = 'spell', spell = spellID};
+			end
+		end;
+		equipmentset = function(name)
+			return {type = 'equipmentset', equipmentset = name};
+		end;
+		spellID = function(spellID)
+			return {type = 'spell', spell = spellID}
+		end;
+		companion = function(companionID, companionType)
+			if ( companionType == 'MOUNT' and CPAPI.GetMountInfoByID(companionID) ) then
+				return db.Loadout.SecureHandlerMap.mount(companionID)
+			end
+			local _, spellName = GetCompanionInfo(companionType, companionID)
+			if spellName then
+				return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)}
+			end
+		end;
+	};
 });
 
 ---------------------------------------------------------------
@@ -268,7 +311,7 @@ function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
 	end
 
 	-- check if this is a ring binding
-	name = db.Utility:ConvertBindingToDisplayName(binding)
+	name = db.Bindings:ConvertRingBindingToDisplayName(binding)
 	if name then
 		return name, db.Bindings:GetIcon(binding), actionID;
 	end
@@ -415,7 +458,7 @@ function LoadoutInfo:RefreshCollections()
 		end
 
 		local ConvertHalfAssedCompanionAPI = not CPAPI.IsRetailVersion and function(...)
-			return db.Utility.SecureHandlerMap.spell(nil, nil, C_MountJournal.GetDisplayedMountInfo(...))
+			return self.SecureHandlerMap.spell(nil, nil, C_MountJournal.GetDisplayedMountInfo(...))
 		end;
 
 		if next(mounts) then

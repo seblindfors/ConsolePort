@@ -20,6 +20,7 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		UtilityRing       = click 'UtilityToggle';
 		MenuRing          = click 'MenuTrigger';
 		UnitMenu          = click 'Unit';
+		CustomRing        = click ('UtilityToggle', '(.*)');
 		--FocusButton     = click 'FocusButton';
 	};
 end
@@ -225,6 +226,20 @@ end
 do -- Handle custom rings
 	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring]]
 
+	function Bindings:ConvertRingBindingToDisplayName(binding)
+		if ( type(binding) == 'string' ) then
+			local name = binding:gsub(self.Custom.CustomRing, '%1')
+			return ( name ~= binding ) and
+				((tonumber(name) and L.FORMAT_RING_NUMERICAL:format(name) or name)) or nil;
+		end
+	end
+
+	function Bindings:ConvertRingSetIDToDisplayName(setID)
+		return (setID == CPAPI.DefaultRingSetID and L.NAME_RING_UTILITY)
+			or (tonumber(setID) and L.FORMAT_RING_NUMERICAL:format(setID))
+			or (tostring(setID));
+	end
+
 	local function FindBindingInCollection(binding, collection)
 		for i, set in ipairs(collection) do
 			if (set.binding == binding) then
@@ -265,7 +280,7 @@ do -- Handle custom rings
 			return desc, image, set.name, texture;
 		end
 
-		local customRingName = db.Utility:ConvertBindingToDisplayName(binding)
+		local customRingName = self:ConvertRingBindingToDisplayName(binding)
 		if customRingName then
 			return L.DESC_RING_CUSTOM, nil, customRingName, self:GetIcon(binding) or CUSTOM_RING_ICON, customRingName;
 		end

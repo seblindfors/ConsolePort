@@ -48,8 +48,8 @@ function Hooks:ProcessInterfaceCursorEvent(button, down, node)
 			PickupBagFromSlot(self.bagLocation)
 		elseif self.spellID then
 			db.SpellMenu:SetSpell(self.spellID)
-		elseif db.Utility:HasPendingAction() then
-			return db.Utility:PostPendingAction()
+		elseif ConsolePort:HasPendingRingAction() then
+			return ConsolePort:PostPendingRingAction()
 		end
 	end
 end
@@ -189,7 +189,7 @@ function Hooks:SetPendingActionToUtilityRing(tooltip, owner, action)
 	end
 
 	self.pendingAction = action;
-	if db.Utility:SetPendingAction(1, action) then
+	if ConsolePort:SetPendingRingAction(1, action) then
 		if tooltip then
 			local prompt = self:GetSpecialActionPrompt('Add to Utility Ring')
 			if prompt then
@@ -198,9 +198,9 @@ function Hooks:SetPendingActionToUtilityRing(tooltip, owner, action)
 			end
 		end
 	else
-		local _, existingIndex = db.Utility:IsUniqueAction(1, action)
+		local _, existingIndex = ConsolePort:IsUniqueRingAction(1, action)
 		if existingIndex then
-			db.Utility:SetPendingRemove(1, action)
+			ConsolePort:SetPendingRingRemove(1, action)
 			if tooltip then
 				local prompt = self:GetSpecialActionPrompt('Remove from Utility Ring')
 				if prompt then
@@ -348,7 +348,7 @@ do -- Tooltip hooking
 
 	GameTooltip:HookScript('OnHide', function()
 		if Hooks.pendingAction then
-			db.Utility:ClearPendingAction()
+			ConsolePort:ClearPendingRingAction()
 			Hooks.pendingAction = nil;
 		end
 	end)

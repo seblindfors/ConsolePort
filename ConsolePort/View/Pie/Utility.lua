@@ -14,6 +14,7 @@ local Utility = Mixin(CPAPI.EventHandler(ConsolePortUtilityToggle, {
 }), CPAPI.AdvancedSecureMixin)
 local Button = CreateFromMixins(CPActionButton);
 local ActionButton = LibStub('ConsolePortActionButton')
+local SecureHandlerMap = db.Loadout.SecureHandlerMap;
 ---------------------------------------------------------------
 local DEFAULT_SET, EXTRA_ACTION_ID = CPAPI.DefaultRingSetID, CPAPI.ExtraActionButtonID;
 ---------------------------------------------------------------
@@ -363,21 +364,6 @@ function Utility:GetSetID(rawSetID)
 	return tonumber(rawSetID) or rawSetID;
 end
 
-function Utility:ConvertBindingToDisplayName(binding)
-	if ( type(binding) == 'string' ) then
-		local name = binding:gsub('CLICK ConsolePortUtilityToggle:(.*)', '%1')
-		return ( name ~= binding ) and
-			((tonumber(name) and ('Ring |cFF00FFFF%s|r'):format(name) or name)) or nil;
-	end
-end
-
-function Utility:ConvertSetIDToDisplayName(setID)
-	local L = db.Locale;
-	return (setID == DEFAULT_SET and L'Utility Ring')
-		or (tonumber(setID) and L('Ring |cFF00FFFF%s|r', setID))
-		or (tostring(setID));
-end
-
 function Utility:GetBindingForSet(setID)
 	return ('CLICK ConsolePortUtilityToggle:%s'):format(self:GetBindingSuffixForSet(setID));
 end
@@ -391,7 +377,7 @@ function Utility:GetButtonSlugForSet(setID)
 end
 
 function Utility:GetBindingDisplayNameForSet(setID)
-	return self:ConvertBindingToDisplayName(self:GetBindingForSet(setID));
+	return db.Bindings:ConvertRingBindingToDisplayName(self:GetBindingForSet(setID));
 end
 
 function Utility:GetTooltipRemovePrompt()
@@ -605,7 +591,7 @@ Utility.ValidationMap = {
 		local link = data.link;
 		if not item and not link then
 			return CPAPI.Log('Invalid item removed from %s in slot %d.',
-				Utility:ConvertSetIDToDisplayName(setID),
+				db.Bindings:ConvertRingSetIDToDisplayName(setID),
 				idx
 			);
 		end
@@ -619,7 +605,7 @@ Utility.ValidationMap = {
 		if not tostring(item):match('item:%d+') then
 			-- NOTE: This check is to make sure LAB:getItemId receives a valid item link.
 			return CPAPI.Log('Invalid item removed from %s:\nID: %s\nLink: %s',
-				Utility:ConvertSetIDToDisplayName(setID),
+				db.Bindings:ConvertRingSetIDToDisplayName(setID),
 				tostring(item),
 				tostring(link)
 			);
@@ -631,7 +617,7 @@ Utility.ValidationMap = {
 		local link  = data.link;
 		if not spell and not link then
 			return CPAPI.Log('Invalid spell removed from %s in slot %d.',
-				Utility:ConvertSetIDToDisplayName(setID),
+				db.Bindings:ConvertRingSetIDToDisplayName(setID),
 				idx
 			);
 		end
@@ -643,7 +629,7 @@ Utility.ValidationMap = {
 			-- NOTE: if the spellID is not found, the spell is invalid,
 			-- at least for the current character.
 			return CPAPI.Log('Invalid spell removed from %s:\nID: %s\nLink: %s',
-				Utility:ConvertSetIDToDisplayName(setID),
+				db.Bindings:ConvertRingSetIDToDisplayName(setID),
 				tostring(spell),
 				tostring(link)
 			);
@@ -724,52 +710,8 @@ end
 ---------------------------------------------------------------
 -- Mapping from cursor info
 ---------------------------------------------------------------
-Utility.SecureHandlerMap = {
-	action = function(action)
-		return {type = 'action', action = action};
-	end;
-	item = function(itemID, itemLink)
-		return {type = 'item', item = itemLink or itemID, link = itemLink};
-	end;
-	spell = function(spellIndex, bookType, spellID)
-		return {type = 'spell', spell = spellID, link = CPAPI.GetSpellLink(spellID)};
-	end;
-	macro = function(index)
-		local info = CPAPI.GetMacroInfo(index)
-		info.type, info.macro = 'macro', index;
-		return info;
-	end;
-	mount = function(mountID)
-		local spellID = select(2, CPAPI.GetMountInfoByID(mountID));
-		local spellName = spellID and CPAPI.GetSpellInfo(spellID).name;
-		if spellName then
-			return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)};
-		end
-	end;
-	petaction = function(spellID, indexIsOffset)
-		if indexIsOffset then
-			return {type = 'spell', spell = spellID};
-		end
-	end;
-	equipmentset = function(name)
-		return {type = 'equipmentset', equipmentset = name};
-	end;
-	spellID = function(spellID)
-		return {type = 'spell', spell = spellID}
-	end;
-	companion = function(companionID, companionType)
-		if ( companionType == 'MOUNT' and CPAPI.GetMountInfoByID(companionID) ) then
-			return Utility.SecureHandlerMap.mount(companionID)
-		end
-		local _, spellName = GetCompanionInfo(companionType, companionID)
-		if spellName then
-			return {type = 'spell', spell = spellName, link = CPAPI.GetSpellLink(spellName)}
-		end
-	end;
-}
-
 function Utility:AddActionFromInfo(setID, idx, infoType, ...)
-	local infoHandler = self.SecureHandlerMap[infoType]
+	local infoHandler = SecureHandlerMap[infoType]
 	if infoHandler then
 		local info = infoHandler(...)
 		if info then
@@ -804,7 +746,7 @@ end
 function Utility:AddQuestWatchItem(questID)
 	local item = self:GetItemForQuestID(questID)
 	if item then
-		local info = self.SecureHandlerMap.item(item)
+		local info = SecureHandlerMap.item(item)
 		info.questID = questID;
 
 		local wasAdded = self:AutoAssignAction(info)
@@ -833,7 +775,7 @@ end
 function Utility:ToggleQuestWatchItemInline(questID)
 	local item = self:GetItemForQuestID(questID)
 	if item then
-		local info = self.SecureHandlerMap.item(item)
+		local info = SecureHandlerMap.item(item)
 		info.questID = questID;
 
 		local wasAdded = self:AutoAssignAction(info)
@@ -876,7 +818,7 @@ function Utility:ToggleExtraActionButton(enabled)
 	if not CPAPI.IsRetailVersion then return end
 
 	if enabled then
-		self:AutoAssignAction(self.SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
+		self:AutoAssignAction(SecureHandlerMap.action(EXTRA_ACTION_ID), 1)
 	else
 		self:ClearActionByAttribute(DEFAULT_SET, 'action', EXTRA_ACTION_ID)
 	end
@@ -891,7 +833,7 @@ function Utility:ToggleZoneAbilities()
 	for i, zoneAbility in ipairs(zoneAbilities) do
 		local spellID = zoneAbility.spellID;
 		if not C_ActionBar.FindSpellActionButtons(spellID) then
-			local wasAdded = self:AutoAssignAction(self.SecureHandlerMap.spellID(spellID))
+			local wasAdded = self:AutoAssignAction(SecureHandlerMap.spellID(spellID))
 			if wasAdded then
 				self:AnnounceAddition((CPAPI.GetSpellLink(spellID)))
 			end
@@ -928,7 +870,7 @@ function Utility:ToggleInventoryQuestItems(hideAnnouncement)
 		local link = CPAPI.GetContainerItemInfo(item:GetBagAndSlot()).hyperlink;
 		local isQuestItem = link and select(6, GetItemInfoInstant(link)) == LE_ITEM_CLASS_QUESTITEM;
 		if isQuestItem and IsUsableItem(link) and not exists[getItemID(link)] then
-			local info = self.SecureHandlerMap.item(link)
+			local info = SecureHandlerMap.item(link)
 			info.autoqitem = true;
 
 			local wasAdded = self:AutoAssignAction(info)
