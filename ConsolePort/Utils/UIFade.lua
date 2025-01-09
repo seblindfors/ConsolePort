@@ -74,7 +74,7 @@ function FADE:Update(elapsed)
 end
 
 -- Convenience function for simple fade in
-db('Alpha/FadeIn', function (frame, timeToFade, startAlpha, endAlpha, info)
+db.Alpha.FadeIn = function (frame, timeToFade, startAlpha, endAlpha, info)
 	if not frame then return end
 	local fadeInfo = info or {}
 	fadeInfo.mode = 'IN'
@@ -82,10 +82,10 @@ db('Alpha/FadeIn', function (frame, timeToFade, startAlpha, endAlpha, info)
 	fadeInfo.startAlpha = startAlpha or 0.0
 	fadeInfo.endAlpha = endAlpha or 1.0
 	FADE:Add(frame, fadeInfo)
-end)
+end;
 
 -- Convenience function for simple fade out
-db('Alpha/FadeOut', function (frame, timeToFade, startAlpha, endAlpha, info)
+db.Alpha.FadeOut = function (frame, timeToFade, startAlpha, endAlpha, info)
 	if not frame then return end
 	local fadeInfo = info or {}
 	fadeInfo.mode = 'OUT'
@@ -93,10 +93,10 @@ db('Alpha/FadeOut', function (frame, timeToFade, startAlpha, endAlpha, info)
 	fadeInfo.startAlpha = startAlpha or 1.0
 	fadeInfo.endAlpha = endAlpha or 0.0
 	FADE:Add(frame, fadeInfo)
-end)
+end;
 
 -- Convenience function for localizing both faders
-db('Alpha/Fader', setmetatable({
+db.Alpha.Fader = setmetatable({
 		In  = db.Alpha.FadeIn;
 		Out = db.Alpha.FadeOut;
 		Toggle = function(region, timeToFade, toggle, showOnFadeOut)
@@ -115,7 +115,7 @@ db('Alpha/Fader', setmetatable({
 		local func = type == 'in' and self.In or type == 'out' and self.Out
 		return func(...)
 	end;
-}))
+});
 
 
 ---------------------------------------------------------------
@@ -194,12 +194,12 @@ function FLASH:Update(elapsed)
 	end
 end
 
-db('Alpha/Stop', function(frame, alpha)
+db.Alpha.Stop = function(frame, alpha)
 	FLASH:Stop(frame, alpha)
-end)
+end;
 
 -- Function to start a frame flashing
-db('Alpha/Flash', function(frame, fadeInTime, fadeOutTime, flashDuration, showWhenDone, flashInHoldTime, flashOutHoldTime, syncId)
+db.Alpha.Flash = function(frame, fadeInTime, fadeOutTime, flashDuration, showWhenDone, flashInHoldTime, flashOutHoldTime, syncId)
 	if frame then
 		local index = 1
 		-- If frame is already set to flash then return
@@ -240,4 +240,4 @@ db('Alpha/Flash', function(frame, fadeInTime, fadeOutTime, flashDuration, showWh
 
 		FLASH:SetScript('OnUpdate', FLASH.Update)
 	end
-end)
+end;

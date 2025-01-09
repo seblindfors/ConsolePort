@@ -5,6 +5,15 @@ function CPAPI.GetAsset(path)
 	return ([[Interface\AddOns\ConsolePort\Assets\%s]]):format(path)
 end
 
+function CPAPI.GetClassIcon(class)
+	-- returns concatenated icons file with slicing coords
+	return [[Interface\TargetingFrame\UI-Classes-Circles]], CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
+end
+
+function CPAPI.GetWebClassIcon(class)
+	return CPAPI.GetAsset([[Art\Class\Web_Class_Icons_Grid]]), CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
+end
+
 ---------------------------------------------------------------
 -- Asset atlas
 ---------------------------------------------------------------
@@ -129,3 +138,53 @@ CPAPI.Backdrops = {
 		insets   = {left = 1, right = 1, top = 1, bottom = 1};
 	};
 }
+
+---------------------------------------------------------------
+-- Atlas tools
+---------------------------------------------------------------
+
+function CPAPI.SetAtlas(object, id, useAtlasSize, flipHorz, flipVert, ...)
+	for file, atlasData in pairs(CPAPI.Atlas) do
+		local atlasInfo = atlasData[id];
+		if atlasInfo then
+			local width, height, leftTX, rightTX, topTX, bottomTX,
+				tilesHorizontally, tilesVertically,
+				leftSM, rightSM, topSM, bottomSM, sliceMode = unpack(atlasInfo)
+			if useAtlasSize then
+				object:SetSize(width, height)
+			end
+			object:SetTexture(file, ...)
+			object:SetTexCoord(
+				flipHorz and rightTX or leftTX,
+				flipHorz and leftTX or rightTX,
+				flipVert and bottomTX or topTX,
+				flipVert and topTX or bottomTX
+			);
+			object:SetHorizTile(tilesHorizontally)
+			object:SetVertTile(tilesVertically)
+			object:SetTextureSliceMargins(
+				leftSM or 0,
+				rightSM or 0,
+				topSM or 0,
+				bottomSM or 0
+			);
+			object:SetTextureSliceMode(sliceMode or 0)
+			return true;
+		end
+	end
+end
+
+function CPAPI.SetTextureOrAtlas(object, info, sizeTexture, sizeAtlas)
+	local textureOrAtlas, isAtlas, useAtlasSize = unpack(info)
+	if isAtlas then
+		object:SetAtlas(textureOrAtlas, useAtlasSize)
+		if sizeAtlas then
+			object:SetSize(unpack(sizeAtlas))
+		end
+		return
+	end
+	object:SetTexture(textureOrAtlas)
+	if sizeTexture then
+		object:SetSize(unpack(sizeTexture))
+	end
+end
