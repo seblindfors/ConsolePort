@@ -175,16 +175,20 @@ local UnitMenuTrigger = {
 ---------------------------------------------------------------
 	TimeUntilHints   = 0.25;
 	TimeUntilTrigger = 1.5;
+	PreClickHandler = ([[
+		local type = %q;
+		self:SetAttribute(type, down and 'macro' or nil)
+	]]):format(CPAPI.ActionTypePress);
 };
 
 function UnitMenuTrigger:OnLoad()
-	self:SetAttribute(CPAPI.ActionTypePress, 'macro')
 	self:SetAttribute(CPAPI.ActionPressAndHold, true)
 	self:SetAttribute('macrotext', self.macrotext)
 	self:SetAttribute('binding', self.binding)
 	self:RegisterForClicks('AnyDown', 'AnyUp')
 	self:HookScript('OnClick', self.OnContext)
 	self.secure = UnitMenuSecure;
+	self.secure:WrapScript(self, 'PreClick', self.PreClickHandler)
 end
 
 function UnitMenuTrigger:SetOverride(key)
