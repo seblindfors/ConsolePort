@@ -11,36 +11,11 @@ function CPActionButtonMixin:SetIcon(file)
 	end
 end
 
-function CPActionButtonMixin:ClearIcon()
-	local icon = self.icon or self.Icon
-	if icon then
-		icon:SetDesaturated(false)
-		icon:SetTexture(nil)
-	end
-end
-
 function CPActionButtonMixin:SetVertexColor(...)
 	local icon = self.icon or self.Icon
 	local font = self:GetFontString()
 	if icon then icon:SetVertexColor(...) end
 	if font then font:SetVertexColor(...) end
-end
-
-function CPActionButtonMixin:ClearVertexColor()
-	local icon = self.icon or self.Icon
-	local font = self:GetFontString()
-	if icon then icon:SetVertexColor(1, 1, 1) end
-	if font then icon:SetVertexColor(1, 1, 1) end
-end
-
-function CPActionButtonMixin:ToggleShadow(enabled)
-	local shadow = self.shadow or self.Shadow
-	if shadow then
-		if enabled == nil then
-			enabled = not shadow:IsShown()
-		end
-		shadow:SetShown(enabled)
-	end
 end
 
 function CPActionButtonMixin:SetCount(val, forceShow)

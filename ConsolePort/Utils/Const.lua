@@ -9,8 +9,7 @@ CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
 ---------------------------------------------------------------
 -- Button constants
 ---------------------------------------------------------------
-CPAPI.ExtraActionButtonID = ExtraActionButton1 and ExtraActionButton1.action or
-	CPAPI.IsRetailVersion and 217 or 169;
+CPAPI.ExtraActionButtonID = (ExtraActionButton1 or {}).action or CPAPI.IsRetailVersion and 217 or 169;
 
 CPAPI.ActionTypeRelease   = CPAPI.IsRetailVersion and 'typerelease' or 'type';
 CPAPI.ActionTypePress     = 'type';
