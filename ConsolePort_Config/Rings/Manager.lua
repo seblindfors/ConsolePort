@@ -12,7 +12,7 @@ local FIXED_OFFSET = 8;
 ---------------------------------------------------------------
 local function GetRingOptions()
 	local options = {};
-	for key in db.table.spairs(db.Utility.Data) do
+	for key in db.table.spairs(db.Rings.Data) do
 		tinsert(options, key == DEFAULT_RING_ID and DEFAULT or tostring(key))
 	end
 	return options;
@@ -20,7 +20,7 @@ end
 
 local function GetRingNameSuggestion()
 	local suggestion = #GetRingOptions() + 1;
-	while rawget(db.Utility.Data, suggestion) do
+	while rawget(db.Rings.Data, suggestion) do
 		suggestion = suggestion + 1;
 	end
 	return tostring(suggestion)
@@ -37,7 +37,7 @@ end
 local function ProcessRingName(name)
 	local purifiedName = tostring(name):gsub('[^A-Za-z0-9]', '');
 	local processedName = tonumber(purifiedName) or purifiedName;
-	if processedName ~= DEFAULT and not rawget(db.Utility.Data, processedName) then
+	if processedName ~= DEFAULT and not rawget(db.Rings.Data, processedName) then
 		return processedName;
 	end
 end
@@ -51,7 +51,7 @@ local function GetSelectedRingID()
 end
 
 local function GetKindAndAction(info)
-	return db.Utility:GetKindAndAction(info)
+	return db.Rings:GetKindAndAction(info)
 end
 
 local function IsExtraActionButton(kind, action)
@@ -70,7 +70,7 @@ end
 local function TrySetBinding(button)
 	if CPAPI.IsButtonValidForBinding(button) then
 		local keychord = CPAPI.CreateKeyChord(button)
-		local binding = db.Utility:GetBindingForSet(GetSelectedRingID())
+		local binding = db.Rings:GetBindingForSet(GetSelectedRingID())
 		db.table.map(SetBinding, db.Gamepad:GetBindingKey(binding))
 		if SetBinding(keychord, binding) then
 			SaveBindings(GetCurrentBindingSet())
@@ -80,7 +80,7 @@ local function TrySetBinding(button)
 end
 
 local function RemoveBinding(ringID)
-	local binding = db.Utility:GetBindingForSet(ringID)
+	local binding = db.Rings:GetBindingForSet(ringID)
 	for i, key in ipairs({GetBindingKey(binding)}) do
 		SetBinding(key, nil)
 	end
@@ -91,20 +91,20 @@ end
 local function AddRing(rawName)
 	local name = ProcessRingName(rawName)
 	if name then
-		db.Utility.Data[name] = {};
-		db:TriggerEvent('OnRingAdded', name, db.Utility.Data[name])
+		db.Rings.Data[name] = {};
+		db:TriggerEvent('OnRingAdded', name, db.Rings.Data[name])
 		return true;
 	end
 end
 
 local function RemoveRing(ringID)
 	if ( ringID == DEFAULT_RING_ID ) then
-		wipe(db.Utility.Data[ringID])
+		wipe(db.Rings.Data[ringID])
 		db:TriggerEvent('OnRingCleared', ringID)
 		return false;
 	end
-	if rawget(db.Utility.Data, ringID) then
-		rawset(db.Utility.Data, ringID, nil)
+	if rawget(db.Rings.Data, ringID) then
+		rawset(db.Rings.Data, ringID, nil)
 		db:TriggerEvent('OnRingRemoved', ringID)
 		RemoveBinding(ringID)
 		return true;
@@ -310,7 +310,7 @@ function BindingButton:OnShow()
 end
 
 function BindingButton:UpdateBinding()
-	self.Slug:SetText(db.Utility:GetButtonSlugForSet(GetSelectedRingID()) or WrapTextInColorCode(NOT_BOUND, 'FF757575'))
+	self.Slug:SetText(db.Rings:GetButtonSlugForSet(GetSelectedRingID()) or WrapTextInColorCode(NOT_BOUND, 'FF757575'))
 end
 
 function BindingCatcher:OnBindingCaught(...)
@@ -331,10 +331,10 @@ local CollectionMixin = CreateFromMixins(ActionMapper.CollectionMixin, {
 		local ringID = GetSelectedRingID()
 		if pickup then
 			pickup(self:GetValue())
-			db.Utility:CheckCursorInfo(ringID, true)
+			db.Rings:CheckCursorInfo(ringID, true)
 			ClearCursor()
 		elseif append then
-			db.Utility:AddUniqueAction(ringID, nil, append(self:GetValue()))
+			db.Rings:AddUniqueAction(ringID, nil, append(self:GetValue()))
 			db:TriggerEvent('OnRingContentChanged', ringID)
 		end
 		CPIndexButtonMixin.Uncheck(self)
@@ -347,7 +347,7 @@ function Mapper:OnShow()
 end
 
 function Mapper:OnRingSelectionChanged(value)
-	local bindingID = db.Utility:GetBindingForSet(GetSelectedRingID())
+	local bindingID = db.Rings:GetBindingForSet(GetSelectedRingID())
 	if bindingID then
 		self.IconMapper:SetBinding(bindingID, true)
 	end
@@ -450,11 +450,11 @@ function LoadoutButton:OnDeltaChanged(delta)
 	local data = tremove(self.set, id)
 	tinsert(self.set, id + delta, data)
 	db:TriggerEvent('OnRingContentChanged', self.setID)
-	db.Utility:RefreshAll()
+	db.Rings:RefreshAll()
 end
 
 function LoadoutButton:Remove()
-	db.Utility:RemoveAction(self.setID, self:GetID())
+	db.Rings:RemoveAction(self.setID, self:GetID())
 	db:TriggerEvent('OnRingContentChanged', self.setID)
 end
 
@@ -533,7 +533,7 @@ function Loadout:Update(animate)
 	self:ReleaseAll()
 
 	local ringID = GetSelectedRingID()
-	local set = rawget(db.Utility.Data, ringID)
+	local set = rawget(db.Rings.Data, ringID)
 
 	self.EmptyText:SetShown(not set or #set == 0)
 

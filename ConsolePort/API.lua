@@ -240,8 +240,8 @@ end
 -- Rings API
 ---------------------------------------------------------------
 function ConsolePort:GetRingsData()
-	if not db.Utility then return {} end;
-	return db.Utility.Data;
+	if not db.Rings then return {} end;
+	return db.Rings.Data;
 end
 
 ---------------------------------------------------------------
@@ -249,8 +249,8 @@ end
 ---------------------------------------------------------------
 do local map = function(func)
 		return function(_, ...)
-			if not db.Utility then return end;
-			return db.Utility[func](db.Utility, ...)
+			if not db.Rings then return end;
+			return db.Rings[func](db.Rings, ...)
 		end
 	end
 

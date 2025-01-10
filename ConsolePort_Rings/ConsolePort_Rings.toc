@@ -13,3 +13,16 @@
 ## X-Curse-Project-ID: 91376
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
+
+## SavedVariablesPerCharacter: ConsolePortUtility
+
+Database.lua
+View\Ring.xml
+
+Model\Map.lua
+Model\Container.lua
+
+Controller\Secure.lua
+Controller\Auto.lua
+Controller\Events.lua
+Controller\Observer.lua
