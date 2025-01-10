@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local GROUP, GROUP_BUTTON = 'Group', 'GroupButton';
 

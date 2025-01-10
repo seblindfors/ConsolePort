@@ -1,4 +1,4 @@
-local db, Data, _, env = ConsolePort:DB(), ConsolePort:DB('Data'), ...; _, env.db = CPAPI.Define, db;
+local _, Data, env = CPAPI.LinkEnv(...)
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local DEPENDENCY = { UIenableCursor = true };
 

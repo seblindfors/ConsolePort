@@ -210,6 +210,16 @@ do local sort, head = 0;
 			return value;
 		end
 	end
+
+	function CPAPI.GetEnv(name, env)
+		assert(env.db, 'Environment not linked.')
+		return env, env.db, name;
+	end
+
+	function CPAPI.LinkEnv(name, env)
+		env.db = db;
+		return CPAPI.Define, db.Data, CPAPI.GetEnv(name, env);
+	end
 end
 
 function CPAPI.OnAddonLoaded(addOn, script)
@@ -291,6 +301,7 @@ end)()
 			frame:RegisterEvent(event)
 		end
 	end
+	return frame;
 end
 
 function CPAPI.RegisterFrameForUnitEvents(frame, events, ...)
@@ -299,6 +310,7 @@ function CPAPI.RegisterFrameForUnitEvents(frame, events, ...)
 			frame:RegisterUnitEvent(event, ...)
 		end
 	end
+	return frame;
 end
 
 ---------------------------------------------------------------

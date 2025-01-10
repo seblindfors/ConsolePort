@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 local FadeIn, FadeOut = db.Alpha.FadeIn, db.Alpha.FadeOut;
 ---------------------------------------------------------------
 CPPetRingButton = Mixin({

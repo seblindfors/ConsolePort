@@ -4,7 +4,7 @@
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. See Cursor.lua.
 
-local _, env, db = ...; db = env.db;
+local env, db, _ = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local After = C_Timer.After;
 local pairs, next, unravel = pairs, next, db.table.unravel;

@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local NOMOD, _, _, _, ALT = env.Const.Cluster.ModNames();
 local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_SHADOW = env.Const.Cluster.Types();

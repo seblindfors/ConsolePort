@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 local GameMenuButtonMixin = CreateFromMixins(CPActionButton);
 local Selector = Mixin(CPAPI.EventHandler(ConsolePortMenuRing), CPAPI.SecureEnvironmentMixin);
 

@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 local Menu = CPAPI.EventHandler(ConsolePortMenu, {
 	'ACTIVE_PLAYER_SPECIALIZATION_CHANGED';
 	'PLAYER_LOGIN';
