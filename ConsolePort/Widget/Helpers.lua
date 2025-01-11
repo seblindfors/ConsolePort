@@ -364,6 +364,74 @@ function CPPropagationMixin:SetPropagation(enabled)
 end
 
 ---------------------------------------------------------------
+-- Timed button context
+---------------------------------------------------------------
+CPTimedButtonContextMixin = {
+	TimeUntilHints   = 0.25;
+	TimeUntilTrigger = 1.5;
+};
+
+function CPTimedButtonContextMixin:OnLoad()
+	-- optional: timed context can be started manually.
+	self:HookScript('OnClick', self.OnTimedContext)
+end
+
+function CPTimedButtonContextMixin:OnTimedContext(button, enable)
+	if self.displayHints then
+		self:OnTimedHintsDisplay(false, 0, button)
+	end
+	self.displayHints  = nil;
+	self.contextTimer  = enable and 0 or nil;
+	self.contextButton = enable and button or nil;
+	if enable then
+		self.prevOnUpdate = self:GetScript('OnUpdate')
+		self:SetScript('OnUpdate', self.OnTimedContextUpdate)
+	else
+		self:SetScript('OnUpdate', self.prevOnUpdate)
+		self.prevOnUpdate = nil;
+	end
+end
+
+function CPTimedButtonContextMixin:OnTimedContextUpdate(elapsed)
+	if self.prevOnUpdate then
+		self.prevOnUpdate(self, elapsed)
+	end
+	if not self:IsTimedContextValid(elapsed) then
+		return self:OnTimedContext(self.contextButton, false)
+	end
+	self.contextTimer = self.contextTimer + elapsed;
+
+	local button, timeUntilTrigger = self.contextButton, self:GetTimeUntilTrigger();
+	if self.contextTimer > timeUntilTrigger then
+		self:OnTimedContext(button, false)
+		self:OnTimedContextTrigger(button)
+	elseif not self.displayHints and self.contextTimer > self:GetTimeUntilHints() then
+		self.displayHints = true;
+		self:OnTimedHintsDisplay(true, timeUntilTrigger - self.contextTimer, button)
+	end
+end
+
+function CPTimedButtonContextMixin:IsTimedContextValid(elapsed)
+	return true; -- override: return false to cancel the context
+end
+
+function CPTimedButtonContextMixin:GetTimeUntilHints()
+	return 0.25; -- override: display hints after this time
+end
+
+function CPTimedButtonContextMixin:GetTimeUntilTrigger()
+	return 1.5; -- override: trigger the context after this time
+end
+
+function CPTimedButtonContextMixin:OnTimedHintsDisplay(enabled, remaining, button)
+	-- override: display any hints
+end
+
+function CPTimedButtonContextMixin:OnTimedContextTrigger(button)
+	-- override: trigger the context
+end
+
+---------------------------------------------------------------
 -- Pools
 ---------------------------------------------------------------
 local CreateFramePool, CreateObjectPool = CreateFramePool, CreateObjectPool;

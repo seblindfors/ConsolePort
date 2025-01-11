@@ -3,7 +3,7 @@ local env, db, Container = CPAPI.GetEnv(...); Container = env.Frame;
 local DEFAULT_SET = CPAPI.DefaultRingSetID;
 local BINDING_FMT = ('CLICK %s:%s'):format(Container:GetName(), '%s');
 ---------------------------------------------------------------
-Container.Data = { [DEFAULT_SET] = {} };
+Container.Data = { [DEFAULT_SET] = {} }; env.BindingFormat = BINDING_FMT;
 ---------------------------------------------------------------
 db:Register('Rings', Container)
 db:Save('Rings/Data', 'ConsolePortUtility')
@@ -30,6 +30,14 @@ end
 
 function Container:GetBindingDisplayNameForSet(setID)
 	return db.Bindings:ConvertRingBindingToDisplayName(self:GetBindingForSet(setID));
+end
+
+function Container:GetBindingDisplayNameForSetID(setID)
+	return db.Bindings:ConvertRingSetIDToDisplayName(setID);
+end
+
+function Container:GetRingLink(setID)
+	return env:GetRingLink(self:GetBindingSuffixForSet(setID), self:GetBindingDisplayNameForSetID(setID));
 end
 
 ---------------------------------------------------------------
@@ -80,6 +88,42 @@ end
 function Container:AddUniqueAction(setID, preferredIndex, info)
 	if self:IsUniqueAction(setID, info) then
 		return self:AddAction(setID, preferredIndex, info)
+	end
+end
+
+---------------------------------------------------------------
+-- Metadata
+---------------------------------------------------------------
+function Container:GetMetadata(setID)
+	local set = rawget(self.Data, self:GetSetID(setID));
+	return set and set[env.Attributes.MetadataIndex] or nil;
+end
+
+function Container:GetMetadataValue(setID, key)
+	local data = self:GetMetadata(setID);
+	if data then
+		return data[key];
+	end
+end
+
+function Container:SafeSetMetadata(setID, key, value)
+	local data = self:GetMetadata(setID);
+	if data then
+		data[key] = value;
+		return true;
+	end
+	return false;
+end
+
+function Container:GetCurrentMetadata()
+	local set = self:GetAttribute('state')
+	return self:GetMetadata(set)
+end
+
+function Container:GetCurrentMetadataValue(key)
+	local data = self:GetCurrentMetadata();
+	if data then
+		return data[key];
 	end
 end
 

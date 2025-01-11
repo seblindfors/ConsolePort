@@ -17,7 +17,10 @@
 ## SavedVariablesPerCharacter: ConsolePortUtility
 
 Database.lua
-View\Ring.xml
+Upgrade.lua
+
+View\Ring\Ring.xml
+View\Nested\Nested.xml
 
 Model\Map.lua
 Model\Container.lua
@@ -26,3 +29,4 @@ Controller\Secure.lua
 Controller\Auto.lua
 Controller\Events.lua
 Controller\Observer.lua
+Controller\Context.lua

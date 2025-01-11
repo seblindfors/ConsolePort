@@ -224,7 +224,7 @@ end
 -- Get description for custom bindings
 ---------------------------------------------------------------
 do -- Handle custom rings
-	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring]]
+	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring]];
 
 	function Bindings:ConvertRingBindingToDisplayName(binding)
 		if ( type(binding) == 'string' ) then
@@ -235,7 +235,7 @@ do -- Handle custom rings
 	end
 
 	function Bindings:ConvertRingSetIDToDisplayName(setID)
-		return (setID == CPAPI.DefaultRingSetID and L.NAME_RING_UTILITY)
+		return (tonumber(setID) == CPAPI.DefaultRingSetID and L.NAME_RING_UTILITY)
 			or (tonumber(setID) and L.FORMAT_RING_NUMERICAL:format(setID))
 			or (tostring(setID));
 	end
@@ -282,7 +282,8 @@ do -- Handle custom rings
 
 		local customRingName = self:ConvertRingBindingToDisplayName(binding)
 		if customRingName then
-			return L.DESC_RING_CUSTOM, nil, customRingName, self:GetIcon(binding) or CUSTOM_RING_ICON, customRingName;
+			local desc = useTooltipFormat and CPAPI.FormatLongText(L.DESC_RING_CUSTOM, tooltipLineLength) or L.DESC_RING_CUSTOM;
+			return desc, nil, customRingName, self:GetIcon(binding) or CUSTOM_RING_ICON, customRingName;
 		end
 	end
 end

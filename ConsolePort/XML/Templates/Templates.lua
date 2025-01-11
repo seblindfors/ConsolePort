@@ -195,19 +195,21 @@ end
 
 
 ---------------------------------------------------------------
-CPSelectionPopoutWithButtonsAndLabelMixin = {};
+CPSelectionPopoutWithButtonsAndLabelMixin = {
 ---------------------------------------------------------------
+	OnEnter            = nop;
+	OnLeave            = nop;
+	OnPopoutShown      = nop;
+	OnEntryMouseEnter  = nop; -- (entry)
+	OnEntryMouseLeave  = nop; -- (entry)
+	OnEntryClick       = nop; -- (entryData)
+	GetMaxPopoutHeight = nop;
+};
 
 function CPSelectionPopoutWithButtonsAndLabelMixin:SetupSelections(selections, selectedIndex, label)
 	self.SelectionPopoutButton:SetupSelections(selections, selectedIndex);
 	self.Label:SetText(label);
 	self:UpdateButtons();
-end
-
-function CPSelectionPopoutWithButtonsAndLabelMixin:OnEnter()
-end
-
-function CPSelectionPopoutWithButtonsAndLabelMixin:OnLeave()
 end
 
 function CPSelectionPopoutWithButtonsAndLabelMixin:Increment()
@@ -216,9 +218,6 @@ end
 
 function CPSelectionPopoutWithButtonsAndLabelMixin:Decrement()
 	self.SelectionPopoutButton:Decrement();
-end
-
-function CPSelectionPopoutWithButtonsAndLabelMixin:OnPopoutShown()
 end
 
 function CPSelectionPopoutWithButtonsAndLabelMixin:HidePopout()
@@ -230,15 +229,6 @@ end
 
 function CPSelectionPopoutWithButtonsAndLabelMixin:GetTooltipText()
 	return self.SelectionPopoutButton:GetTooltipText();
-end
-
-function CPSelectionPopoutWithButtonsAndLabelMixin:OnEntryMouseEnter(entry)
-end
-
-function CPSelectionPopoutWithButtonsAndLabelMixin:OnEntryMouseLeave(entry)
-end
-
-function CPSelectionPopoutWithButtonsAndLabelMixin:GetMaxPopoutHeight()
 end
 
 function CPSelectionPopoutWithButtonsAndLabelMixin:UpdateButtons()

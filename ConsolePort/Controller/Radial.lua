@@ -33,8 +33,9 @@ Dispatcher.tracker = {};
 function Dispatcher:OnGamePadStick(stick, x, y, len)
 	local this = self.focusFrame;
 	if this and this.interrupt and this.interrupt[stick] then
+		local canDisable = self:CheckDeadzone(stick, len)
 		if self.disabled then
-			if self:CheckDeadzone(stick, len) then
+			if canDisable then
 				return self:ClearFocusInstantly(this)
 			end
 		elseif this.intercept[stick] then
@@ -45,7 +46,9 @@ end
 
 function Dispatcher:CheckDeadzone(stick, len)
 	if not self.enableDeadzone then return end;
-	self.tracker[stick] = len;
+	if stick and len then
+		self.tracker[stick] = len;
+	end
 	local canDisable = true;
 	for _, len in pairs(self.tracker) do
 		if len > self.deadzone then
@@ -68,6 +71,9 @@ function Dispatcher:ClearFocus(frame)
 	if self.focusFrame ~= frame then return end;
 	self.disabled = true;
 	self:SetTimer()
+	if self.enableDeadzone and self:CheckDeadzone() then
+		self:ClearFocusInstantly(frame)
+	end
 end
 
 function Dispatcher:ClearTimer()
@@ -186,6 +192,14 @@ RadialMixin.Env = {
 			end
 		end
 		return #btns > 0;
+	]];
+	GetBindingsForButton = [[
+		local btn  = ...;
+		local mods = { self::GetActiveModifiers() };
+		for i=1, #mods do
+			mods[i] = mods[i]..btn;
+		end
+		return btn, unpack(mods);
 	]];
 }
 

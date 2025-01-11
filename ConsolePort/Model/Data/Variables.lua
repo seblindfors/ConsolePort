@@ -232,10 +232,6 @@ db:Register('Variables', CPAPI.Callable({
 	--------------------------------------------------------------------------------------------------------
 	_'Radial Menus';
 	--------------------------------------------------------------------------------------------------------
-	radialStickySelect = _{Bool(false);
-		name = 'Sticky Selection';
-		desc = 'Selecting an item on a ring will stick until another item is chosen.';
-	};
 	radialClearFocusMode = _{Map(1, {[1] = 'Either', [2] = 'Timeout', [3] = 'Deadzone'});
 		name = 'Clear Focus Mode';
 		desc = 'How to clear focus after intercepting stick input.';
@@ -265,10 +261,6 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Primary Stick';
 		desc = 'Stick to use for main radial actions.';
 		note = 'Make sure your choice does not conflict with your bindings.';
-	};
-	radialRemoveButton = _{Button('PADRSHOULDER');
-		name = 'Remove Button';
-		desc = 'Button used to remove a selected item from an editable ring.';
 	};
 	radialScale = _{Number(1, 0.025, true);
 		name = 'Ring Scale';

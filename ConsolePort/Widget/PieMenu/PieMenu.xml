@@ -1,5 +1,4 @@
 <Ui>
-
 	<Script file="PieMenu.lua"/>
 
 	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin" frameStrata="HIGH">

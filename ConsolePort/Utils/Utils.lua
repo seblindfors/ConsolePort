@@ -316,11 +316,21 @@ end
 ---------------------------------------------------------------
 -- Secure environment translation
 ---------------------------------------------------------------
-do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
+do	local ConvertSecureBody, GetSecureBodySignature, GetCallMethodSignature, GetNewtableSignature;
+	local function FormatArgs(args)
+		return args:trim():len() > 0 and ', ' or '', args;
+	end
+
 	function GetSecureBodySignature(obj, func, args)
 		return ConvertSecureBody(
-			('%s:RunAttribute(\'%s\'%s%s)'):format(
-				obj, func, args:trim():len() > 0 and ', ' or '', args));
+			('%s:RunAttribute(\'%s\'%s%s)'):format(obj, func, FormatArgs(args))
+		);
+	end
+
+	function GetCallMethodSignature(obj, func, args)
+		return ConvertSecureBody(
+			('%s:CallMethod(\'%s\'%s%s)'):format(obj, func, FormatArgs(args))
+		);
 	end
 
 	function GetNewtableSignature(contents)
@@ -329,6 +339,7 @@ do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
 
 	function ConvertSecureBody(body)
 		return (body
+			:gsub('(%w+):::(%w+)%((.-)%)', GetCallMethodSignature)
 			:gsub('(%w+)::(%w+)%((.-)%)', GetSecureBodySignature)
 			:gsub('%b{}', GetNewtableSignature)
 		);

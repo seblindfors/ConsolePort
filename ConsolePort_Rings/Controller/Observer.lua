@@ -1,4 +1,4 @@
-local env, db, Observer = CPAPI.GetEnv(...); Observer = env.Frame;
+local env, db, this, Observer = CPAPI.GetEnv(...); Observer = env.Frame;
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
@@ -24,7 +24,7 @@ end
 function Observer:AddFromCursorInfo(setID, idx)
 	local info = CreateCursorInfoAction(GetCursorInfo())
 	if info then
-		return self:AddUniqueAction(setID, idx, info)
+		return self:AddUniqueAction(setID, idx, info), info;
 	end
 end
 
@@ -32,11 +32,11 @@ function Observer:CheckCursorInfo(setID, silent)
 	if not InCombatLockdown() then
 		setID = self:GetSetID(setID);
 		if GetCursorInfo() then
-			if self:AddFromCursorInfo(setID) then
+			local wasAdded, info = self:AddFromCursorInfo(setID)
+			if wasAdded then
 				if not silent then
-					-- TODO: map returns to links
 					self:AnnounceAddition(
-						GetCursorInfo():gsub('^%l', strupper),
+						info.link or info.type:gsub('^%l', strupper),
 						self:GetBindingSuffixForSet(setID), true
 					);
 				end
@@ -85,3 +85,13 @@ function Observer:PostPendingAction(preferredIndex)
 		self.pendingAction = nil;
 	end
 end
+
+---------------------------------------------------------------
+-- Hyperlink handling
+---------------------------------------------------------------
+EventRegistry:RegisterCallback('SetItemRef', function(_, link, ...)
+    local linkType, addonName, binding = strsplit(':', link)
+    if not ( linkType == 'addon' and addonName == this ) then return end;
+	-- TODO: Handle ring links
+	print('Ring link clicked:', binding, ...)
+end)

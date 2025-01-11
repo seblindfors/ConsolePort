@@ -1,5 +1,4 @@
 <Ui>
-
 	<PieMenu name="ConsolePortSecurePie" virtual="true" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate">
 		<Attributes>
 			<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>

@@ -9,18 +9,28 @@ function Ring:OnSizeChanged()
 	self.StickySlice:UpdateSize(width, height)
 end
 
+function Ring:OnDisplay()
+	self.maxInputLen = 0;
+	self:OnStickyIndexChanged()
+end
+
 function Ring:OnStickyIndexChanged()
-	local hasStickySelection = self:GetAttribute('stickyIndex')
-	self.StickySlice:SetShown(hasStickySelection)
-	if hasStickySelection then
+	self.stickyIndex = self:GetCurrentMetadataValue(env.Attributes.Sticky)
+	local enableStickySlice = self.stickySelect and self.stickyIndex;
+	self.StickySlice:SetShown(enableStickySlice)
+	if enableStickySlice then
 		self.StickySlice:SetAlpha(1)
-		self.StickySlice:SetIndex(hasStickySelection)
+		self.StickySlice:SetIndex(self.stickyIndex, self:GetAttribute('size'))
 	end
 end
 
 Ring:SetScript('OnSizeChanged', Ring.OnSizeChanged)
-Ring:HookScript('OnShow', Ring.OnStickyIndexChanged)
+Ring:HookScript('OnShow', Ring.OnDisplay)
 env:AddLoader(function(self)
+	self.maxInputLen = 0;
+	self.StickySlice:Hide()
+	self:RegisterColorCallbacks()
+	self:UpdateColorSettings()
 	if CPAPI.IsRetailVersion then
 		self.BgRunes:SetAtlas('heartofazeroth-orb-activated')
 	else
@@ -40,18 +50,25 @@ function Ring:OnInput(x, y, len)
 	local rot   = self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, valid)
 	self:SetAnimations(obj, rot, len)
 
-	if self:GetAttribute('stickyIndex') then
+	self.maxInputLen = max(self.maxInputLen, len)
+	if self.stickyIndex then
 		self.StickySlice:SetAlpha(Clamp(1 - len, 0, 1))
 	end
 end
 
 function Ring:GetTooltipRemovePrompt()
-	if self:GetAttribute('removeButtonBlocked') then return end;
-	return env:GetTooltipPrompt(REMOVE, self:GetAttribute('removeButton'));
+	if self:GetAttribute(env.Attributes.RemoveBlocked) then return end;
+	return env:GetTooltipPrompt(REMOVE, self:GetAttribute(env.Attributes.RemoveButton));
 end
 
 function Ring:GetTooltipUsePrompt()
-	return env:GetTooltipPrompt(USE, self:GetAttribute('trigger'))
+	return env:GetTooltipPrompt(USE, self:GetValidAcceptButton());
+end
+
+function Ring:GetValidAcceptButton()
+	return   self:GetAttribute(env.Attributes.TriggerButton)
+	or ( not self:GetAttribute(env.Attributes.AcceptBlocked)
+	     and self:GetAttribute(env.Attributes.AcceptButton) );
 end
 
 function Ring:OnSelection(running)
@@ -81,6 +98,7 @@ end
 
 Ring:HookScript('OnHide', function(self)
 	self:SetAnimations(nil, 0, 0)
+	self:SetSliceTextAlpha(1)
 end)
 
 ---------------------------------------------------------------
@@ -113,3 +131,23 @@ function Ring:AnnounceRemoval(link, set)
 		MessageCount = MessageCount - 1;
 	end
 end
+
+---------------------------------------------------------------
+-- Callbacks
+---------------------------------------------------------------
+env:RegisterCallback('OnButtonFocus', function(self, button, focused)
+	if focused then
+		if button:IsCustomType() then
+			self:SetSliceTextAlpha(0)
+		else
+			self:SetActiveSliceText(button:GetActiveText())
+		end
+	else
+		self:SetActiveSliceText(nil)
+		self:SetSliceTextAlpha(1)
+	end
+end, Ring)
+
+env:RegisterCallback('OnButtonUpdated', function(self, button)
+	self:SetSliceText(button:GetID(), button:GetActiveText())
+end, Ring)

@@ -68,12 +68,28 @@ local function GetUsableSpellID(data)
 		or CPAPI.GetSpellInfo(data.spell).spellID or data.spell;
 end
 
+local function GetCustomAction(data)
+	if data.ring then
+		local _, _, name, texture = env:GetDescriptionFromRingLink(data.link)
+		return { -- LAB data
+			func = function(...) print('Custom action:', ...) end;
+			text = name;
+			texture = texture;
+			tooltip = name;
+		}, { -- Secure data
+			type = env.Attributes.NestedRing;
+			ring = tostring(data.ring);
+		};
+	end
+end
+
 env.KindAndActionMap = {
-	action = function(data) return data.action end;
-	item   = function(data) return data.item end;
-	pet    = function(data) return data.action end;
-	macro  = function(data) return data.macro end;
-	spell  = function(data) return GetUsableSpellID(data) end;
+	custom       = function(data) return GetCustomAction(data) end;
+	spell        = function(data) return GetUsableSpellID(data) end;
+	action       = function(data) return data.action end;
+	item         = function(data) return data.item end;
+	pet          = function(data) return data.action end;
+	macro        = function(data) return data.macro end;
 	equipmentset = function(data) return data.equipmentset end;
 }
 
@@ -106,9 +122,9 @@ function env:GetLinkFromActionInfo(type, ...)
 end
 
 ---------------------------------------------------------------
--- Data validation
+-- Action data validation
 ---------------------------------------------------------------
-env.ValidationMap = {
+env.ActionValidationMap = {
 	macro = function(data)
 		local macroID = data.macro;
 		local info = CPAPI.GetMacroInfo(macroID)
@@ -196,24 +212,55 @@ env.ValidationMap = {
 
 function env:ValidateAction(action, setID, idx)
 	if not action then return end;
-	local validator = self.ValidationMap[action.type];
+	local validator = self.ActionValidationMap[action.type];
 	if validator then
 		return validator(action, setID, idx);
 	end
 	return action;
 end
 
+---------------------------------------------------------------
+-- Meta data validation
+---------------------------------------------------------------
+env.MetaValidationMap = {
+	sticky = function(set, value)
+		return Clamp(value, 1, #set);
+	end;
+};
+
+function env:ValidateMeta(set, meta)
+	local validMeta = {};
+	for key, value in pairs(meta) do
+		local validator = self.MetaValidationMap[key];
+		if validator then
+			value = validator(set, value);
+		end
+		validMeta[key] = value;
+	end
+	return validMeta;
+end
+
+---------------------------------------------------------------
+-- Validator
+---------------------------------------------------------------
+function env:ValidateSet(setID, set)
+	local validSet = {};
+	local meta = set[env.Attributes.MetadataIndex] or {};
+	for i = 1, #set do
+		local validAction = self:ValidateAction(set[i], setID, i);
+		if validAction then
+			tinsert(validSet, validAction)
+		end
+	end
+	wipe(set)
+	tAppendAll(set, validSet)
+	set[env.Attributes.MetadataIndex] = self:ValidateMeta(set, meta)
+	return set;
+end
+
 function env:ValidateData(data)
 	for setID, set in pairs(data) do
-		local validSet = {};
-		for i = 1, #set do
-			local validAction = self:ValidateAction(set[i], setID, i);
-			if validAction then
-				tinsert(validSet, validAction)
-			end
-		end
-		wipe(set)
-		tAppendAll(set, validSet)
+		self:ValidateSet(setID, set);
 	end
 	return data;
 end
