@@ -44,6 +44,13 @@ env.Attributes = {
 	NestedRing     = 'nested';
 };
 
+env.LABConfig = {
+	showGrid = true;
+	hideElements = {
+		macro = true;
+	};
+};
+
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------

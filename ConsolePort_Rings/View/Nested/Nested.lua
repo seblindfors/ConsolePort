@@ -1,48 +1,10 @@
 local env, db, Container = CPAPI.GetEnv(...); Container = env.Frame;
 ---------------------------------------------------------------
-local TypeMetaMap = env.ActionButton:GetTypeMetaMap()
----------------------------------------------------------------
-local Button = CreateFromMixins(env.DisplayButton, {
----------------------------------------------------------------
-	GetHotkey = nop;
-	config = {
-		showGrid = true;
-		hideElements = {
-			macro = true;
-		};
-	};
-})
-
-function Button:SetData(data)
-	-- Coerce LAB into displaying the information we want
-	local kind, action = Container:GetKindAndAction(data)
-	setmetatable(self, TypeMetaMap[kind] or TypeMetaMap.empty)
-	local state = tostring(0)
-	self:SetStateFromHandlerInsecure(state, kind, action)
-	self._state_type   = self.state_types[state];
-	self._state_action = self.state_actions[state];
-	self:UpdateConfig(self.config)
-	self:ButtonContentsChanged(state, self._state_type, self._state_action)
-	env.ActionButton.Skin.UtilityRingButton(self)
-	RunNextFrame(function()
-		self:GetParent():SetSliceText(self:GetID(), self:GetActiveText())
-	end)
-end
-
-function Button:OnLoad()
-	env.DisplayButton.OnLoad(self)
-	self:SetSize(64, 64)
-	self:SetAttribute('state', 0)
-	self.state_types   = {};
-	self.state_actions = {};
-end
-
----------------------------------------------------------------
-local Ring = CreateFromMixins(db.Radial.CalcMixin, {
+local Ring = {
 ---------------------------------------------------------------
 	relScale = 1 / .75;
 	offScale = .75;
-})
+};
 
 local function HideContainer(enabled, instant)
 	db.Alpha.FadeOut(Container, instant and 0 or 0.1, Container:GetAlpha(), enabled and 0 or 1)
@@ -51,10 +13,8 @@ local function HideContainer(enabled, instant)
 end
 
 function Ring:OnLoad()
-	self:CreateFramePool('ActionButtonTemplate', Button)
 	self:SetFrameLevel(100)
 	self:SetIgnoreParentAlpha(true)
-	self.ActiveSlice:Hide() -- TODO: maybe allow multi-stick selection?
 	env:RegisterCallback('OnSelectionChanged', self.OnSelectionChanged, self)
 end
 
@@ -137,18 +97,10 @@ function Ring:SetData(owner, data)
 	if not data then return self:Hide() end;
 	local size = self:GetParent():GetSize();
 	self:SetSize(size, size)
-	for idx, action in ipairs(data) do
-		local button, newObj = self:TryAcquireRegistered(idx)
-		if newObj then
-			button:SetFrameLevel(idx + 101)
-			button:SetID(idx)
-			button:OnLoad()
-		end
-		button:SetPoint('CENTER', db.Radial:GetPointForIndex(idx, #data, self:GetWidth() / 2))
-		button:SetData(action)
-		button:Show()
+	if self:Mock(data) then
+		self:ClearOwner()
+		self:SetOwner(owner)
 	end
-	self:SetOwner(owner)
 end
 
 ---------------------------------------------------------------
@@ -162,7 +114,7 @@ env:RegisterCallback('OnButtonFocus', function(_, button, focused)
 		if ( data.type ~= env.Attributes.NestedRing ) then return end;
 
 		if not env.NestedRing then
-			env.NestedRing = CreateFrame('PieMenu', '$parentNested', env.Frame, 'ConsolePortSlicedPie')
+			env.NestedRing = env:CreateMockRing('$parentNested', env.Frame)
 			FrameUtil.SpecializeFrameWithMixins(env.NestedRing, Ring)
 		end
 		env.NestedRing:SetData(button, Container.Data[Container:GetSetForBindingSuffix(data.ring)]);

@@ -425,12 +425,7 @@ env:AddLoader(function(self, container)
 		name   = self:GetName()..'Button';
 		header = self;
 		mixin  = env.DisplayButton;
-		config = {
-			showGrid = true;
-			hideElements = {
-				macro = true;
-			};
-		};
+		config = env.LABConfig;
 	}))
 
 	local sticks = db.Radial:GetStickStruct(db('radialPrimaryStick'))

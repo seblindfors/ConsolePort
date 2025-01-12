@@ -40,4 +40,5 @@
 
 	<Script file="Button.lua"/>
 	<Script file="Ring.lua"/>
+	<Script file="Mock.lua"/>
 </Ui>
