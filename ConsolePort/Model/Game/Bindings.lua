@@ -224,7 +224,7 @@ end
 -- Get description for custom bindings
 ---------------------------------------------------------------
 do -- Handle custom rings
-	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring]];
+	local CUSTOM_RING_ICON = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring.png]];
 
 	function Bindings:ConvertRingBindingToDisplayName(binding)
 		if ( type(binding) == 'string' ) then
@@ -277,7 +277,7 @@ do -- Handle custom rings
 				end;
 				set.texture = texture;
 			end
-			return desc, image, set.name, texture;
+			return desc, image, set.name, texture or self:GetIcon(binding);
 		end
 
 		local customRingName = self:ConvertRingBindingToDisplayName(binding)

@@ -14,12 +14,15 @@ local Button = CreateFromMixins(env.DisplayButton, {
 })
 
 function Button:SetData(data)
+	-- Coerce LAB into displaying the information we want
 	local kind, action = Container:GetKindAndAction(data)
-	self._state_type = kind;
-	self._state_action = action;
 	setmetatable(self, TypeMetaMap[kind] or TypeMetaMap.empty)
+	local state = tostring(0)
+	self:SetStateFromHandlerInsecure(state, kind, action)
+	self._state_type   = self.state_types[state];
+	self._state_action = self.state_actions[state];
 	self:UpdateConfig(self.config)
-	self:ButtonContentsChanged(0, kind, action)
+	self:ButtonContentsChanged(state, self._state_type, self._state_action)
 	env.ActionButton.Skin.UtilityRingButton(self)
 	RunNextFrame(function()
 		self:GetParent():SetSliceText(self:GetID(), self:GetActiveText())
@@ -52,29 +55,25 @@ function Ring:OnLoad()
 	self:SetFrameLevel(100)
 	self:SetIgnoreParentAlpha(true)
 	self.ActiveSlice:Hide() -- TODO: maybe allow multi-stick selection?
+	env:RegisterCallback('OnSelectionChanged', self.OnSelectionChanged, self)
 end
 
 function Ring:OnHide()
 	self:SetScript('OnUpdate', nil)
 	self:ReleaseAll()
 	self:ClearAllPoints()
+	self:ClearOwner()
 	HideContainer(false)
-	env:UnregisterCallback('OnSelectionChanged', self)
-	if self.owner then
-		self.owner:SetIgnoreParentAlpha(false)
-		self.owner = nil;
-	end
 end
 
 function Ring:OnShow()
 	self:SetScale(self.offScale)
 	self:SetSliceTextSize(self.relScale * Container:GetSliceTextSize())
-	env:RegisterCallback('OnSelectionChanged', self.OnSelectionChanged, self)
 	HideContainer(true)
 end
 
 function Ring:OnSelectionChanged(reportData)
-    if not reportData.ring then return end;
+    if not self:IsShown() or not reportData.ring then return end;
 	local _, _, _, x, y = self:GetPoint()
 	self.curScale, self.tarScale = self:GetScale(), Container:GetScale()
 	self.curSize, self.tarSize = self:GetSliceTextSize(), Container:GetSliceTextSize()
@@ -102,13 +101,7 @@ function Ring:OnRingTransition(elapsed)
 	end
 end
 
-function Ring:TryHide()
-	if self:GetScript('OnUpdate') then return end;
-	self:Hide()
-end
-
 function Ring:SetOwner(owner)
-	self.owner = owner;
 	local pX, pY = Container:GetCenter()
 	local oX, oY = owner:GetCenter()
 	owner:SetIgnoreParentAlpha(true)
@@ -120,6 +113,24 @@ function Ring:SetOwner(owner)
 		(oY - pY) * self.relScale
 	);
 	self:Show()
+	self.owner = owner;
+	self.ticker = C_Timer.NewTicker(0, function()
+		if self:GetScript('OnUpdate') then return end; -- in transition
+		if ( not self.owner or Container:GetFocusWidget() ~= self.owner ) then
+			self:Hide()
+		end
+	end)
+end
+
+function Ring:ClearOwner()
+	if self.owner then
+		self.owner:SetIgnoreParentAlpha(false)
+		self.owner = nil;
+	end
+	if self.ticker then
+		self.ticker:Cancel()
+		self.ticker = nil;
+	end
 end
 
 function Ring:SetData(owner, data)
@@ -155,7 +166,5 @@ env:RegisterCallback('OnButtonFocus', function(_, button, focused)
 			FrameUtil.SpecializeFrameWithMixins(env.NestedRing, Ring)
 		end
 		env.NestedRing:SetData(button, Container.Data[Container:GetSetForBindingSuffix(data.ring)]);
-	elseif env.NestedRing then
-		env.NestedRing:TryHide()
 	end
 end)
