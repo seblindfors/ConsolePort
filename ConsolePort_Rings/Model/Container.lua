@@ -24,6 +24,10 @@ function Container:GetBindingSuffixForSet(setID)
 	return (tonumber(setID) == DEFAULT_SET and 'LeftButton' or tostring(setID));
 end
 
+function Container:GetSetForBindingSuffix(suffix)
+	return (suffix == 'LeftButton' and DEFAULT_SET or tonumber(suffix) or tostring(suffix));
+end
+
 function Container:GetButtonSlugForSet(setID)
 	return db.Hotkeys:GetButtonSlugForBinding(self:GetBindingForSet(setID));
 end

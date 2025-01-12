@@ -33,8 +33,8 @@ function Button:IsCustomType()
 	return not not self.RunCustom; -- see LAB
 end
 
-function Button:GetTypeAndAction()
-	return self:GetStateType(), self:GetStateAction();
+function Button:IsOwned(parent)
+	return self:GetParent() == parent;
 end
 
 ---------------------------------------------------------------

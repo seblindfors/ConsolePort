@@ -52,12 +52,16 @@ Secure:CreateEnvironment({
 			return self:::ClearInstantly()
 		end
 
+		self:::OnSelection(true)
+		self:::OnSelectionAttributeAdded('index', index)
+
 		local slot = RING[index];
 		if slot.ring then
-			return self::SwitchRing(slot.ring)
+			self::SwitchRing(slot.ring)
+			self:::OnSelection(false)
+			return true;
 		end
 
-		self:::OnSelection(true)
 		for attribute, value in pairs(slot) do
 			local convertedAttribute = self::ConvertAttribute(attribute)
 			self:SetAttribute(convertedAttribute, value)
@@ -101,12 +105,11 @@ Secure:CreateEnvironment({
 
 		self::SetContextAttribute('state', set)
 		self::SetContextAttribute(pressAndHold, false)
+		self:::OnSelectionAttributeAdded('ring', set)
 
 		self::DrawSelectedRing(set)
 		self:::OnStickyIndexChanged()
 		self:::OnPostShow()
-
-		return true;
 	]]):format(env.Attributes.TriggerButton, env.Attributes.PressAndHold);
 	GetContextAttribute = [[
 		local attribute, preventDefault = ...;

@@ -203,6 +203,37 @@ RadialMixin.Env = {
 	]];
 }
 
+---------------------------------------------------------------
+local RadialCalc = {};
+---------------------------------------------------------------
+function RadialCalc:GetPointForIndex(index, size, radius)
+	return 'CENTER', self:GetCoordsForIndex(index, size, radius)
+end
+
+function RadialCalc:GetCoordsForIndex(index, size, radius)
+	return Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
+end
+
+function RadialCalc:GetBoundingRadiansForIndex(index, size)
+	return Radial:GetBoundingRadiansForIndex(index, size or self:GetAttribute('size'))
+end
+
+function RadialCalc:GetIndexForPos(x, y, len, size)
+	return Radial:GetIndexForStickPosition(x, y, len, size or self:GetAttribute('size'))
+end
+
+function RadialCalc:GetValidThreshold()
+	return Radial.VALID_VEC_LEN or .5;
+end
+
+function RadialCalc:IsValidThreshold(len)
+	return len >= self:GetValidThreshold()
+end
+
+---------------------------------------------------------------
+Mixin(RadialMixin, RadialCalc); Radial.CalcMixin = RadialCalc;
+---------------------------------------------------------------
+
 function RadialMixin:SetInterrupt(sticks)
 	-- sets the sticks that should be interrupted
 	self.interrupt = sticks and tInvert(sticks) or {}
@@ -221,30 +252,6 @@ function RadialMixin:SetDynamicSizeFunction(body)
 		return size;
 	]])
 	self:Execute('UpdateSize = self:GetAttribute("UpdateSize")')
-end
-
-function RadialMixin:GetPointForIndex(index, size, radius)
-	return 'CENTER', self:GetCoordsForIndex(index, size, radius)
-end
-
-function RadialMixin:GetCoordsForIndex(index, size, radius)
-	return Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
-end
-
-function RadialMixin:GetBoundingRadiansForIndex(index, size)
-	return Radial:GetBoundingRadiansForIndex(index, size or self:GetAttribute('size'))
-end
-
-function RadialMixin:GetIndexForPos(x, y, len, size)
-	return Radial:GetIndexForStickPosition(x, y, len, size or self:GetAttribute('size'))
-end
-
-function RadialMixin:GetValidThreshold()
-	return Radial.VALID_VEC_LEN or .5;
-end
-
-function RadialMixin:IsValidThreshold(len)
-	return len >= self:GetValidThreshold()
 end
 
 function RadialMixin:SetRadialSize(size)

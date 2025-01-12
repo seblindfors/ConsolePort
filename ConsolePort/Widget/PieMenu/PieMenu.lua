@@ -138,6 +138,10 @@ function CPPieMenuMixin:GetSlice(index)
 	end
 end
 
+function CPPieMenuMixin:GetSliceTextSize()
+	return self.sliceTextSize or select(2, self.ActiveSlice.Text:GetFont())
+end
+
 function CPPieMenuMixin:SetSliceText(index, text)
 	local slice = self:GetSlice(index)
 	if slice then

@@ -373,6 +373,11 @@ do -- Workaround for LAB's private type meta map.
 		ReferenceButton:UpdateAction(true)
 		return rawget(setmetatable(self, nil), k);
 	end})
+
+	function Lib:GetTypeMetaMap()
+		local dummy = self.TypeMetaMap.empty; -- force creation
+		return self.TypeMetaMap;
+	end
 end
 
 ---------------------------------------------------------------

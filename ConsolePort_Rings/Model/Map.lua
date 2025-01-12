@@ -58,6 +58,8 @@ env.SecureHandlerMap = {
 		spell = spellID;
 		link  = CPAPI.GetSpellLink(spellID)
 	} end;
+	-- Custom types -----------------------------------------------
+	-- TODO: nested ring type
 };
 
 ---------------------------------------------------------------
@@ -71,15 +73,16 @@ end
 local function GetCustomAction(data)
 	if data.ring then
 		local _, _, name, texture = env:GetDescriptionFromRingLink(data.link)
-		return { -- LAB data
-			func = function(...) print('Custom action:', ...) end;
-			text = name;
-			texture = texture;
-			tooltip = name;
-		}, { -- Secure data
+		local secureEnvData = {
 			type = env.Attributes.NestedRing;
 			ring = tostring(data.ring);
 		};
+		return { -- LAB data
+			func = function() return secureEnvData end;
+			text = name;
+			texture = texture;
+			tooltip = name;
+		}, secureEnvData;
 	end
 end
 
@@ -184,7 +187,17 @@ env.ActionValidationMap = {
 		end
 		return CreateFromMixins(data, { item = item, link = link });
 	end;
-	--[[spell = function(data, setID, idx)
+	-- TODO: Add validation to remove nested rings that no longer exist.
+	--
+	-- BUG: This can randomly remove spells for some users, probably due to
+	-- SPELLS_CHANGED firing after PLAYER_ENTERING_WORLD. In most cases
+	-- spells are already loaded by PLAYER_ENTERING_WORLD, but apparently
+	-- not for everyone.
+	--
+	-- We also cannot wait for SPELLS_CHANGED, because it fires after
+	-- PLAYER_REGEN_DISABLED, so we're in lockdown and can't run validation.
+	--[[
+	spell = function(data, setID, idx)
 		local spell = data.spell;
 		local link  = data.link;
 		if not spell and not link then

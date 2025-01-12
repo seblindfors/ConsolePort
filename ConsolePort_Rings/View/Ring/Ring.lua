@@ -75,7 +75,7 @@ function Ring:OnSelection(running)
 	if running then
 		self.ReportData = {};
 	else
-		db:TriggerEvent('OnUtilityRingSelectionChanged', self.ReportData)
+		env:TriggerEvent('OnSelectionChanged', self.ReportData)
 		self.ReportData = nil;
 	end
 end
@@ -136,6 +136,7 @@ end
 -- Callbacks
 ---------------------------------------------------------------
 env:RegisterCallback('OnButtonFocus', function(self, button, focused)
+	if not button:IsOwned(self) then return end;
 	if focused then
 		if button:IsCustomType() then
 			self:SetSliceTextAlpha(0)
@@ -149,5 +150,6 @@ env:RegisterCallback('OnButtonFocus', function(self, button, focused)
 end, Ring)
 
 env:RegisterCallback('OnButtonUpdated', function(self, button)
+	if not button:IsOwned(self) then return end;
 	self:SetSliceText(button:GetID(), button:GetActiveText())
 end, Ring)
