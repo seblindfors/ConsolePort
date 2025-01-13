@@ -1,6 +1,7 @@
 local env, db, Container = CPAPI.GetEnv(...); Container = env.Frame;
 ---------------------------------------------------------------
 local DEFAULT_SET = CPAPI.DefaultRingSetID;
+local DEFAULT_BTN = env.Attributes.DefaultSetBtn;
 local BINDING_FMT = ('CLICK %s:%s'):format(Container:GetName(), '%s');
 ---------------------------------------------------------------
 Container.Data = { [DEFAULT_SET] = {} }; env.BindingFormat = BINDING_FMT;
@@ -21,11 +22,11 @@ function Container:GetBindingForSet(setID)
 end
 
 function Container:GetBindingSuffixForSet(setID)
-	return (tonumber(setID) == DEFAULT_SET and 'LeftButton' or tostring(setID));
+	return (tonumber(setID) == DEFAULT_SET and DEFAULT_BTN or tostring(setID));
 end
 
 function Container:GetSetForBindingSuffix(suffix)
-	return (suffix == 'LeftButton' and DEFAULT_SET or tonumber(suffix) or tostring(suffix));
+	return (suffix == DEFAULT_BTN and DEFAULT_SET or tonumber(suffix) or tostring(suffix));
 end
 
 function Container:GetButtonSlugForSet(setID)

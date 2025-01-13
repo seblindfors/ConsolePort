@@ -42,6 +42,7 @@ env.Attributes = {
 	RemoveBlocked  = 'removeButtonBlocked';
 	TriggerButton  = 'trigger';
 	NestedRing     = 'nested';
+	DefaultSetBtn  = 'LeftButton';
 };
 
 env.LABConfig = {

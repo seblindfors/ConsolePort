@@ -40,15 +40,6 @@
 						self:GetParent():Hide()
 					</OnClick>
 				</Scripts>
-				<Layers>
-					<Layer level="ARTWORK">
-						<FontString parentKey="Binding" inherits="GameFontNormal">
-							<Anchors>
-								<Anchor point="RIGHT" x="4" relativePoint="LEFT"/>
-							</Anchors>
-						</FontString>
-					</Layer>
-				</Layers>
 			</Button>
 		</Frames>
 		<Scripts>

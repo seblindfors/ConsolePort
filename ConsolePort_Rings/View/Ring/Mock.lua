@@ -15,7 +15,7 @@ function MockButton:SetData(data)
 	self._state_action = self.state_actions[state];
 	self:UpdateConfig(env.LABConfig)
 	self:ButtonContentsChanged(state, self._state_type, self._state_action)
-	env.ActionButton.Skin.UtilityRingButton(self)
+	self:Skin()
 	RunNextFrame(function()
 		self:GetParent():SetSliceText(self:GetID(), self:GetActiveText())
 	end)
@@ -48,10 +48,10 @@ function MockRing:Mock(data)
 	for idx, action in ipairs(data) do
 		local button, newObj = self:TryAcquireRegistered(idx)
 		if newObj then
-			button:SetFrameLevel(self:GetFrameLevel() + idx + 1)
 			button:SetID(idx)
 			button:OnLoad()
 		end
+		button:SetFrameLevel(self:GetFrameLevel() + idx + 1)
 		button:SetPoint('CENTER', db.Radial:GetPointForIndex(idx, #data, self:GetWidth() / 2))
 		button:SetData(action)
 		button:Show()

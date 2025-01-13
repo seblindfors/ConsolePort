@@ -419,7 +419,7 @@ function Secure:IsPressAndHold() return self.pressAndHold end;
 ---------------------------------------------------------------
 -- Load the secure environment
 ---------------------------------------------------------------
-env:AddLoader(function(self, container)
+env:AddLoader(function(self)
 	self:SetAttribute('size', 0)
 	self:CreateObjectPool(env.ActionButton:NewPool({
 		name   = self:GetName()..'Button';
@@ -436,15 +436,6 @@ env:AddLoader(function(self, container)
 			local size = self:GetAttribute('size');
 		]];
 	});
-
-	-- Set up a proxy so all new rings are automatically
-	-- created in the secure environment.
-	CPAPI.Proxy(container, function(data, key)
-		self:Parse([[
-			DATA[{ring}] = newtable();
-		]], {ring = tostring(key)})
-		return rawset(data, key, {})[key];
-	end)
 
 	self:OnAcceptButtonChanged()
 	self:OnRemoveButtonChanged()

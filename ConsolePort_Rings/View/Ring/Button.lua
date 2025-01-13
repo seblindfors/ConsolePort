@@ -10,7 +10,7 @@ function Button:OnLoad()
 	self:SetScript('OnHide', self.OnClear)
 	self:SetScript('OnShow', self.UpdateLocal)
 	self:SetRotation(self.rotation or 0)
-	ActionButton.Skin.UtilityRingButton(self)
+	self:Skin()
 end
 
 function Button:SetFocused(focused)
@@ -40,6 +40,8 @@ end
 ---------------------------------------------------------------
 -- Button events
 ---------------------------------------------------------------
+Button.Skin = ActionButton.Skin.UtilityRingButton;
+
 function Button:OnFocus()
 	self:LockHighlight()
 	if not self:IsFocused() then
@@ -67,7 +69,7 @@ end
 function Button:UpdateLocal()
 	self:SetFocused(false)
 	self:SetRotation(self.rotation or 0)
-	ActionButton.Skin.UtilityRingButton(self)
+	self:Skin()
 	RunNextFrame(function()
 		env:TriggerEvent('OnButtonUpdated', self)
 		local spellId = self:GetSpellId()

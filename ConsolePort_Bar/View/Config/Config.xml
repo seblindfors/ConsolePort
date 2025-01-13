@@ -67,56 +67,12 @@
 					<KeyValue key="iconSize" value="24" type="number"/>
 				</KeyValues>
 			</Button>
-			<ScrollFrame parentKey="SettingsContainer" inherits="ResizeLayoutFrame, ScrollFrameTemplate">
+			<ScrollFrame parentKey="SettingsContainer" inherits="CPScrollFrameTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="16" y="-90"/>
 					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
 				</Anchors>
-				<KeyValues>
-					<KeyValue key="layoutIndex" value="1" type="number"/>
-					<KeyValue key="fixedWidth" value="470" type="number"/>
-					<KeyValue key="fixedHeight" value="325" type="number"/>
-					<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
-					<KeyValue key="scrollBarX" value="-2" type="number"/>
-					<KeyValue key="scrollBarTopY" value="-3" type="number"/>
-					<KeyValue key="scrollBarBottomY" value="2" type="number"/>
-					<KeyValue key="scrollBarTemplate" value="MinimalScrollBar" type="string"/>
-				</KeyValues>
 				<Frames>
-					<Frame parentKey="BorderArt" inherits="NineSliceCodeTemplate">
-						<KeyValues>
-							<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
-							<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
-						</KeyValues>
-						<Anchors>
-							<Anchor point="TOPLEFT" x="-6" y="4"/>
-							<Anchor point="BOTTOMRIGHT" x="16" y="-24"/>
-						</Anchors>
-						<Layers>
-							<Layer level="OVERLAY">
-								<Texture parentKey="ScrollEdge" atlas="!CharacterCreateDropdown-NineSlice-EdgeLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
-									<Anchors>
-										<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-44" y="-6"/>
-										<Anchor point="BOTTOMRIGHT" x="-8" y="26"/>
-									</Anchors>
-								</Texture>
-								<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\InnerFrame.png" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
-									<Anchors>
-										<Anchor point="TOPLEFT" x="-20"/>
-										<Anchor point="BOTTOMRIGHT" x="20"/>
-									</Anchors>
-								</MaskTexture>
-							</Layer>
-						</Layers>
-						<Scripts>
-							<OnLoad inherit="append">
-								NineSlicePanelMixin.OnLoad(self);
-								for slice in pairs(NineSliceLayouts[self.layoutType]) do
-									self[slice]:AddMaskTexture(self.Mask);
-								end
-							</OnLoad>
-						</Scripts>
-					</Frame>
 					<Button parentKey="OptionsTab" parentArray="TabButtons" inherits="MinimalTabTemplate" scale="1.2">
 						<Size y="37"/>
 						<KeyValues>
