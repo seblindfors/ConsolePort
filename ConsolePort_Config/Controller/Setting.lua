@@ -1,6 +1,6 @@
 local env, db, L = CPAPI.GetEnv(...); L = db.Locale;
 ---------------------------------------------------------------
-local Setting, Widgets = {}, env.Widgets; env.Setting = Setting;
+local Setting = {}; env.Setting = Setting;
 ---------------------------------------------------------------
 local DP, Path = 1, function(...) return table.concat({...}, '/') end;
 ---------------------------------------------------------------
@@ -31,7 +31,7 @@ local function MountDatapoint(self, dp)
 
 		self.registry, self.pathID = registry, pathID;
 		self:SetText(L(name))
-		local initializer = Widgets[varID] or Widgets[dataObj:GetType()];
+		local initializer = env:GetWidgetInitializer(dataObj:GetType(), varID)
 		if initializer then
 			initializer(self, varID, field, dataObj, L(field.desc), L(field.note), owner)
 
