@@ -55,6 +55,11 @@ function Scroll:To(node, super, prev, force)
 			}
 
 			self:SetScript('OnUpdate', self.OnUpdate)
+		elseif self:IsValidScrollBox(super) then
+			local index = self:GetScrollBoxElementDataIndex(super, node)
+			if index then
+				return super:ScrollToElementDataIndex(index)
+			end
 		end
 	end
 end
@@ -68,6 +73,25 @@ function Scroll:IsValidScrollFrame(super)
 	-- HACK: make sure this isn't a hybrid scroll frame
 	return super:IsObjectType('ScrollFrame') and
 		super:GetScript('OnLoad') ~= HybridScrollFrame_OnLoad;
+end
+
+function Scroll:IsValidScrollBox(super)
+	return rawget(super, 'ScrollToElementDataIndex')
+end
+
+function Scroll:GetImmediateScrollTargetNode(super, node)
+	local scrollTarget = super:GetScrollTarget()
+	while ( node and node:GetParent() ~= scrollTarget ) do
+		node = node:GetParent()
+	end
+	return node;
+end
+
+function Scroll:GetScrollBoxElementDataIndex(super, node)
+	node = self:GetImmediateScrollTargetNode(super, node)
+	if node and rawget(node, 'GetElementDataIndex') then
+		return node:GetElementDataIndex()
+	end
 end
 
 ---------------------------------------------------------------
