@@ -122,6 +122,21 @@ function CPAPI.DataHandler(handler)
 	return handler;
 end
 
+function CPAPI.CreateConfigFrame(arg1, ...)
+	assert(CPAPI.LoadAddOn(CPAPI.ConfigAddOn), 'Config addon could not be loaded.')
+	local env = ConsolePortConfig:GetEnvironment();
+	if ( type(arg1) == 'table' ) then
+		return Mixin(CreateFrame(...), arg1), env;
+	end
+	return CreateFrame(arg1, ...), env;
+end
+
+function CPAPI.InitConfigFrame(mixin, ...)
+	local frame, env = CPAPI.CreateConfigFrame(...)
+	FrameUtil.SpecializeFrameWithMixins(frame, mixin)
+	return frame, env;
+end
+
 function CPAPI.Start(handler)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then

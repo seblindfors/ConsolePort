@@ -1,8 +1,6 @@
 local _, db = ...;
 local HELP_STRING, SLASH_FUNCTIONS = 'Usage: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r';
 local DOCU_STRING = '  |cFF00FFFF%s|r |cFF00FF00%s|r \n- |cFFFFFFFF%s|r';
-local CONFIG_ADDON_NAME = 'ConsolePort_Config';
-local CURSOR_ADDON_NAME = 'ConsolePort_Cursor';
 ---------------------------------------------------------------
 -- Process slash command
 ---------------------------------------------------------------
@@ -56,9 +54,9 @@ local function HandleSlashCommand(self, msg)
 		SLASH_FUNCTIONS.help[1]()
 		return true;
 	end
-	if not CPAPI.IsAddOnLoaded(CONFIG_ADDON_NAME) then
-		CPAPI.EnableAddOn(CONFIG_ADDON_NAME)
-		CPAPI.LoadAddOn(CONFIG_ADDON_NAME)
+	if not CPAPI.IsAddOnLoaded(CPAPI.ConfigAddOn) then
+		CPAPI.EnableAddOn(CPAPI.ConfigAddOn)
+		CPAPI.LoadAddOn(CPAPI.ConfigAddOn)
 	end
 	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
 end
@@ -109,13 +107,13 @@ SLASH_FUNCTIONS = {
 			{'[addonName]', 'string', 'Optional name of the addon that owns the frame.'};
 		};
 		function(action, frame, owner)
-			if not owner then owner = CURSOR_ADDON_NAME end;
+			if not owner then owner = CPAPI.CursorAddOn end;
 			if action and frame then
 				local loadable, reason = select(4, CPAPI.GetAddOnInfo(owner))
 				if loadable or CPAPI.IsAddOnLoaded(owner) then
-					CPAPI.EnableAddOn(CURSOR_ADDON_NAME)
-					CPAPI.LoadAddOn(CURSOR_ADDON_NAME)
-					return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
+					CPAPI.EnableAddOn(CPAPI.CursorAddOn)
+					CPAPI.LoadAddOn(CPAPI.CursorAddOn)
+					return EventUtil.ContinueOnAddOnLoaded(CPAPI.CursorAddOn, function()
 						local stack = db.Stack;
 						if ( action == 'add' ) then
 							if stack:TryRegisterFrame(owner, frame, true) then

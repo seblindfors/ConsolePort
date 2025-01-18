@@ -264,7 +264,6 @@ local Config = CreateFromMixins(CPButtonCatcherMixin);
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	self:SetUserPlaced(false)
-	env.SharedConfig.Env = ConsolePortConfig:GetEnvironment();
 	Mixin(Setting, env.SharedConfig.Env.Setting) -- borrow code from the config for the settings
 
 	self.Name:SetText(L'Action Bar Configuration')
@@ -316,7 +315,7 @@ end
 env:RegisterSafeCallback('OnConfigToggle', function()
 	if not env.Config then
 		CPAPI.LoadAddOn('ConsolePort_Config');
-		env.Config = Mixin(CreateFrame('Frame', 'ConsolePortActionBarConfig', UIParent, 'CPActionBarConfig'), Config)
+		env.Config, env.SharedConfig.Env = CPAPI.CreateConfigFrame(Config, 'Frame', 'ConsolePortActionBarConfig', UIParent, 'CPActionBarConfig')
 		if ( env.Config:GetNumPoints() == 0 ) then
 			env.Config:SetPoint('LEFT', (UIParent:GetWidth() - env.Config:GetWidth()) * 0.25, 0)
 		end
