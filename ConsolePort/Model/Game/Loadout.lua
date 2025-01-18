@@ -21,7 +21,7 @@ local LoadoutMixin, LoadoutInfo = db:Register('LoadoutMixin', {}), db:Register('
 		summonpet    = function(id) return (C_PetJournal.GetPetInfoTableByPetID(id) or {}).name or TOOLTIP_BATTLE_PET end;
 		flyout       = function(id) return GetFlyoutInfo(id) end;
 		equipmentset = function(id) return tostring(id)..' ('..BAG_FILTER_EQUIPMENT..')' end;
-		companion    = function() return COMPANIONS end; -- low-prio todo: get some info on whatever this is
+		companion    = CPAPI.Static(COMPANIONS); -- low-prio todo: get some info on whatever this is
 
 	};
 });

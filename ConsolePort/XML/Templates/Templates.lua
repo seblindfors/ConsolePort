@@ -29,20 +29,68 @@ function CPAtlasMixin:ApplyAtlas()
 end
 
 ---------------------------------------------------------------
-CPFrameMixin = CreateFromMixins(NineSlicePanelMixin)
+CPFrameMixin = {};
 ---------------------------------------------------------------
 
 function CPFrameMixin:OnLoad()
-	NineSlicePanelMixin.OnLoad(self);
+	if self.layoutAtlas then
+		self.Center = self:CreateTexture(nil, 'BACKGROUND', nil, -7)
+		self.Center:SetAllPoints()
+		CPAPI.SetAtlas(self.Center, self.layoutAtlas)
+		self.layoutRegions = { Center = self.Center };
+		if self.layoutScale then
+			self.Center:SetScale(self.layoutScale)
+		end
+	end
+	if self.layoutType then
+		FrameUtil.SpecializeFrameWithMixins(self, NineSlicePanelMixin)
+		if C_Widget.IsRenderableWidget(self.BgMask) then
+			self:SetBackgroundMask(self.BgMask)
+		end
+	end
 	self:SetBackgroundAlpha(self.layoutAlpha)
+end
+
+function CPFrameMixin:GetBackgroundRegions()
+	return self.layoutAtlas and self.layoutRegions or NineSliceLayouts[self.layoutType];
 end
 
 function CPFrameMixin:SetBackgroundAlpha(alpha)
 	self.layoutAlpha = alpha;
-	for region in pairs(NineSliceLayouts[self.layoutType]) do
+	local regions = self:GetBackgroundRegions()
+	if not regions then return end;
+	for region in pairs(regions) do
 		if self[region] then
 			self[region]:SetAlpha(self.layoutAlpha);
 		end
+	end
+end
+
+function CPFrameMixin:SetBackgroundMask(mask)
+	local regions = self:GetBackgroundRegions()
+	if not regions then return end;
+	for region in pairs(regions) do
+		if self[region] then
+			self[region]:AddMaskTexture(mask);
+		end
+	end
+end
+
+---------------------------------------------------------------
+CPInnerFrameMixin = CreateFromMixins(CPFrameMixin);
+---------------------------------------------------------------
+
+function CPInnerFrameMixin:OnLoad()
+	CPFrameMixin.OnLoad(self)
+	if self.layoutAtlas then
+		self.layoutRegions.InnerBackground = self.InnerBackground;
+		self.InnerBackground:SetPoint('TOPLEFT', self.Center, 'TOPLEFT', 0, 0)
+		self.InnerBackground:SetPoint('BOTTOMRIGHT', self.Center, 'BOTTOMRIGHT', 0, self.bottomPadding)
+		self.InnerBackgroundEdge:SetAllPoints(self.Center)
+		CPAPI.SetAtlas(self.InnerBackgroundEdge, self.layoutAtlas)
+	end
+	if self.layoutScale then
+		self.InnerBackgroundEdge:SetScale(self.layoutScale)
 	end
 end
 

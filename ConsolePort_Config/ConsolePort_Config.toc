@@ -15,26 +15,7 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-Helpers.lua
-Widgets.lua
-Config.xml
+Database.lua
 
-Data\Serializer.lua
-Data\ImportExport.lua
-
-Splash\Cvars.lua
-Splash\Device.lua
-Splash\Overview.lua
-Splash\Splash.lua
-
-Bindings\Shortcut.lua
-Bindings\Combo.lua
-Bindings\Mapper.lua
-Bindings\Manager.lua
-Bindings\Import.lua
-Bindings\Bindings.lua
-
-Settings\Variables.lua
-Settings\Console.lua
-
-Rings\Manager.lua
+View\Widgets.xml
+Controller\Setting.lua

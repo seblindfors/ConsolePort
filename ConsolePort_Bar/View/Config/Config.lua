@@ -105,6 +105,10 @@ function HeaderOwner:CreateHeader(name, groupID)
 	return header;
 end
 
+function HeaderOwner:ReleaseHeaders()
+	self.headerPool:ReleaseAll()
+end
+
 ---------------------------------------------------------------
 local Settings = Mixin({
 ---------------------------------------------------------------
@@ -140,14 +144,21 @@ function Settings:DrawGroup(group, set, layoutIndex)
 		if newObj then
 			widget:OnCreate()
 		end
-		widget:Construct(name, data.varID, data.field, newObj, env, nil, self.owner)
+		widget:Mount({
+			name     = name;
+			varID    = data.varID;
+			field    = data.field;
+			newObj   = newObj;
+			owner    = self.owner;
+			registry = env;
+		})
 		widget.layoutIndex = layoutIndex()
 		widget:Show()
 	end
 end
 
 function Settings:OnShow()
-	self.headerPool:ReleaseAll()
+	self:ReleaseHeaders()
 	self:MarkDirty()
 
 	local sortedGroups, layoutIndex = {}, CreateCounter();
@@ -182,10 +193,6 @@ local SettingsContainer = { Tabs = CreateRadioButtonGroup() };
 ---------------------------------------------------------------
 
 function SettingsContainer:OnLoad()
-	local ToggleScrollEdge = function(scrollBar) self.BorderArt.ScrollEdge:SetShown(scrollBar:IsShown()) end;
-	self.ScrollBar:HookScript('OnShow', ToggleScrollEdge)
-	self.ScrollBar:HookScript('OnHide', ToggleScrollEdge)
-
 	self.Tabs:AddButtons(self.TabButtons)
 	self.Tabs:RegisterCallback(ButtonGroupBaseMixin.Event.Selected, self.OnTabSelected, self)
 	self.Tabs:SelectAtIndex(1)
@@ -259,7 +266,7 @@ function Config:OnLoad()
 	self:SetUserPlaced(false)
 	CPAPI.LoadAddOn('ConsolePort_Config');
 	env.SharedConfig.Env = ConsolePortConfig:GetEnvironment();
-	Mixin(Setting, env.SharedConfig.Env.SettingMixin) -- borrow code from the config for the settings
+	Mixin(Setting, env.SharedConfig.Env.Setting) -- borrow code from the config for the settings
 
 	self.Name:SetText(L'Action Bar Configuration')
 	self.Mover:SetTooltipInfo(L'Move', L'Start moving the configuration window.')

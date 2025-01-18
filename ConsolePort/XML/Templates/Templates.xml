@@ -9,66 +9,54 @@
 
 	<Frame name="CPFrameTemplate" virtual="true" mixin="CPFrameMixin">
 		<KeyValues>
-			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
+			<KeyValue key="layoutAtlas" value="glues-gamemode-bg" type="string"/>
+			<KeyValue key="layoutScale" value="0.5" type="number"/>
 			<KeyValue key="layoutAlpha" value="0.75" type="number"/>
-			<KeyValue key="bottomPadding" value="32" type="number"/>
+			<KeyValue key="bottomPadding" value="8" type="number"/>
 		</KeyValues>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 		</Scripts>
 	</Frame>
 
-	<Frame name="CPInnerFrameTemplate" virtual="true" inherits="NineSliceCodeTemplate">
-		<KeyValues>
-			<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
-			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
-		</KeyValues>
+	<Frame name="CPInnerFrameTemplate" virtual="true" inherits="CPFrameTemplate" mixin="CPInnerFrameMixin">
 		<Layers>
-			<Layer level="OVERLAY">
-				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\InnerFrame.png" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="-20"/>
-						<Anchor point="BOTTOMRIGHT" x="20"/>
-					</Anchors>
+			<Layer level="BACKGROUND" textureSubLevel="-6">
+				<Texture parentKey="InnerBackground" alpha="0.75" setAllPoints="true"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient"/>
+				<Texture parentKey="InnerBackgroundEdge" alpha="1" setAllPoints="true"/>
+				<MaskTexture parentKey="BgMask" setAllPoints="true" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\InnerFrameMask" scale="0.5">
+					<TextureSliceMargins left="8" right="8" top="8" bottom="8"/>
+					<MaskedTextures>
+						<MaskedTexture childKey="InnerBackground"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<MaskTexture parentKey="BgMaskEdge" setAllPoints="true" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\InnerFrameMaskEdge" scale="0.5">
+					<TextureSliceMargins left="8" right="8" top="8" bottom="8"/>
+					<MaskedTextures>
+						<MaskedTexture childKey="InnerBackgroundEdge"/>
+					</MaskedTextures>
 				</MaskTexture>
 			</Layer>
 		</Layers>
-		<Scripts>
-			<OnLoad inherit="append">
-				NineSlicePanelMixin.OnLoad(self);
-				for slice in pairs(NineSliceLayouts[self.layoutType]) do
-					self[slice]:AddMaskTexture(self.Mask);
-				end
-			</OnLoad>
-		</Scripts>
 	</Frame>
 
 	<ScrollFrame name="CPScrollFrameTemplate" virtual="true" inherits="ScrollFrameTemplate">
 		<KeyValues>
-			<KeyValue key="fixedWidth" value="470" type="number"/>
-			<KeyValue key="fixedHeight" value="325" type="number"/>
 			<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
-			<KeyValue key="scrollBarX" value="-2" type="number"/>
+			<KeyValue key="scrollBarX" value="-4" type="number"/>
 			<KeyValue key="scrollBarTopY" value="-3" type="number"/>
-			<KeyValue key="scrollBarBottomY" value="2" type="number"/>
+			<KeyValue key="scrollBarBottomY" value="0" type="number"/>
 			<KeyValue key="scrollBarTemplate" value="MinimalScrollBar" type="string"/>
 		</KeyValues>
 		<Frames>
-			<Frame inherits="CPInnerFrameTemplate" parentKey="BorderArt">
+			<Frame parentKey="BorderArt" inherits="CPInnerFrameTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="-6" y="4"/>
-					<Anchor point="BOTTOMRIGHT" x="16" y="-24"/>
+					<Anchor point="BOTTOMRIGHT" x="16" y="-8"/>
 				</Anchors>
-				<Layers>
-					<Layer level="OVERLAY">
-						<Texture parentKey="ScrollEdge" atlas="!CharacterCreateDropdown-NineSlice-EdgeLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
-							<Anchors>
-								<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-44" y="-6"/>
-								<Anchor point="BOTTOMRIGHT" x="-8" y="26"/>
-							</Anchors>
-						</Texture>
-					</Layer>
-				</Layers>
 			</Frame>
 		</Frames>
 	</ScrollFrame>

@@ -180,8 +180,8 @@ end
 -- Action bar page map (and evaluator whether pages are shown)
 ---------------------------------------------------------------
 ActionBarAPI.Pages = {
-	CPAPI.Callable({01, 06, 05, 03, 04}, function() return true end);
-	CPAPI.Callable({13, 14, 15        }, function() return CPAPI.IsRetailVersion end);
+	CPAPI.Callable({01, 06, 05, 03, 04}, CPAPI.Static(true));
+	CPAPI.Callable({13, 14, 15        }, CPAPI.Static(CPAPI.IsRetailVersion));
 	CPAPI.Callable({07, 08, 09, 10    }, function() return GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars') end);
 	CPAPI.Callable({11                }, function() return not not next(CPAPI.GetCollectedDragonridingMounts()) end);
 	CPAPI.Callable({02                }, function()

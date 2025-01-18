@@ -1,0 +1,26 @@
+<Ui>
+	<Slider name="CPConfigSliderTemplate" inherits="CPHorizontalSliderTemplate" virtual="true">
+		<Size x="144" y="17"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontHighlight">
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="TOP"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Low" inherits="GameFontHighlightSmall" text="LOW">
+					<Anchors>
+						<Anchor point="RIGHT" relativePoint="LEFT" x="-4"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="High" inherits="GameFontHighlightSmall" text="HIGH">
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" x="4"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Slider>
+
+	<Script file="Widgets.lua"/>
+</Ui>

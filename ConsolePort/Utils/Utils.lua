@@ -156,6 +156,9 @@ function CPAPI.Popup(id, settings, ...)
 	end
 end
 
+---------------------------------------------------------------
+-- Table tools
+---------------------------------------------------------------
 do local function ModifyMetatable(owner, key, value)
 		local mt = getmetatable(owner) or {};
 		mt[key] = value;
@@ -171,7 +174,7 @@ do local function ModifyMetatable(owner, key, value)
 
 	function CPAPI.Proxy(owner, proxy)
 		if (type(proxy) ~= 'table' and type(proxy) ~= 'function') then
-			proxy = function() return proxy end;
+			proxy = CPAPI.Static(proxy);
 		end
 		return ModifyMetatable(owner, '__index', proxy)
 	end
@@ -198,6 +201,54 @@ function CPAPI.Purge(t, k)
 	until issecurevariable(t, k)
 end
 
+function CPAPI.Static(value)
+	return function() return value end;
+end
+
+---------------------------------------------------------------
+-- Flags
+---------------------------------------------------------------
+do local function UpdateFlags(flag, flags, predicate)
+		return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
+	end
+
+	local function GetMapState(self, inputs, options)
+		local state, option = 0;
+		for flag, predicate in pairs(inputs) do
+			assert(self.Flags[flag], ('Invalid flag: %s'):format(flag))
+			state = self.Flags[flag](state, predicate)
+		end
+		option = options[state];
+		return ( option == nil ) and options[1] or option, state;
+	end
+
+	function CPAPI.CreateFlagClosures(flags)
+		local closures = {};
+		if (  #flags > 0 ) then
+			for i, flag in ipairs(flags) do
+				closures[flag] = GenerateClosure(UpdateFlags, bit.lshift(1, i));
+			end
+		else
+			for flagName, flagValue in pairs(flags) do
+				closures[flagName] = GenerateClosure(UpdateFlags, flagValue);
+			end
+		end
+		return closures;
+	end
+
+	function CPAPI.CreateFlags(...)
+		local closures = CPAPI.CreateFlagClosures({...});
+		local map = { Flags = closures };
+		for flag, closure in pairs(closures) do
+			map[flag] = closure(0, true);
+		end
+		return CPAPI.Callable(map, GetMapState)
+	end
+end
+
+---------------------------------------------------------------
+-- Environment
+---------------------------------------------------------------
 do local sort, head = 0;
 	function CPAPI.Define(value, startIndex)
 		if ( type(value) == 'string' ) then
@@ -217,7 +268,7 @@ do local sort, head = 0;
 	end
 
 	function CPAPI.LinkEnv(name, env)
-		env.db = db;
+		env.db, env.L = db, db.Locale;
 		return CPAPI.Define, db.Data, CPAPI.GetEnv(name, env);
 	end
 end

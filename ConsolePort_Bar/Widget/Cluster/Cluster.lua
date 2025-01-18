@@ -149,7 +149,7 @@ function Cluster:SetBindings(bindings)
 end
 
 Cluster.GetMoveTarget = Cluster.GetMainButton;
-Cluster.GetSnapSize   = function() return env.Const.Cluster.SnapPixels end;
+Cluster.GetSnapSize   = CPAPI.Static(env.Const.Cluster.SnapPixels);
 
 ---------------------------------------------------------------
 local Shadow = {};
@@ -220,7 +220,7 @@ end
 local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, alpha = 0, shown = 0};
 ---------------------------------------------------------------
 do  -- Alpha update closures
-	FlyoutButton.AlphaState = env.CreateFlagClosures({
+	FlyoutButton.AlphaState = CPAPI.CreateFlagClosures({
 		AlwaysShow    = 0x01;
 		OnCooldown    = 0x02;
 		OverlayActive = 0x04;
@@ -235,7 +235,7 @@ do  -- Alpha update closures
 		ACTIONBAR_HIDEGRID = { FlyoutButton.AlphaState.ShowGrid, false };
 	};
 
-	FlyoutButton.VisibilityState = env.CreateFlagClosures({
+	FlyoutButton.VisibilityState = CPAPI.CreateFlagClosures({
 		NoBinding     = 0x01;
 		Disabled	  = 0x02;
 	});

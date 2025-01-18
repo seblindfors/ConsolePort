@@ -15,9 +15,9 @@ PowerLevel.Levels = CPAPI.Proxy({
 	{fill = 3, color = GREEN_FONT_COLOR,  atlas = 'ui-frame-bar-fill-green',  name = L'High'};
 	{fill = 3, color = BLUE_FONT_COLOR,   atlas = 'ui-frame-bar-fill-blue',   name = L'Charging', animation = 'Charging'};
 	{fill = 0, color = WHITE_FONT_COLOR,  atlas = 'ui-frame-bar-fill-white',  name = L'Disconnected'};
-}, function() return
+}, CPAPI.Static(
 	{fill = 3, color = WHITE_FONT_COLOR,  atlas = 'ui-frame-bar-fill-white',  name = UNKNOWN}
-end)
+));
 
 function PowerLevel:GetPowerLevelInfo(level)
 	return self.Levels[level + 1];

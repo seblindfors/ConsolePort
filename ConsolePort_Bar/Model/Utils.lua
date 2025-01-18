@@ -300,18 +300,6 @@ function env.IsModSubset(A, B)
 	return not not (B:find(A:gsub('%-', '%%-')))
 end
 
-function env.UpdateFlags(flag, flags, predicate)
-	return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
-end
-
-function env.CreateFlagClosures(flags)
-	local closures = {};
-	for flagName, flagValue in pairs(flags) do
-		closures[flagName] = GenerateClosure(env.UpdateFlags, flagValue);
-	end
-	return closures;
-end
-
 do local ModReplacements = {
 		M0 = '';
 		M1 = 'SHIFT-';

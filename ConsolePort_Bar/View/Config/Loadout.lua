@@ -625,7 +625,7 @@ function Loadout:OnLoad(inputHandler, headerPool)
 	Mixin(Widgets.CreateWidget('Table', Widgets.Base), Table)
 	Mixin(Widgets.CreateWidget('Preset', Widgets.Base), Preset)
 
-	Mixin(LoadoutSetting, sharedConfig.Env.SettingMixin)
+	Mixin(LoadoutSetting, sharedConfig.Env.Setting)
 
 	self.owner = inputHandler;
 	self.headerPool = headerPool;
@@ -1152,7 +1152,7 @@ end
 function Loadout:DrawSetting(parent, path, datapoint, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, datapoint[DP], layoutIndex)
 	widget:SetIndentation(depth)
-	widget:Construct(datapoint.name, path, datapoint, true, env, path, self.owner)
+	widget:Mount(datapoint.name, path, datapoint, true, env, path, self.owner)
 	parent:RegisterCallback(path, widget.OnChildChanged, widget)
 	parent:AddChild(widget)
 	if ExpandableWidgets[datapoint[DP]:GetType()] then
@@ -1203,7 +1203,7 @@ function Loadout:DrawTopLevel(name, path, interface, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, interface.props, layoutIndex)
 	widget:SetText(name)
 	widget:SetIndentation(depth)
-	widget:Construct(name, path, interface[DP], true, env, path, interface.widget)
+	widget:Mount(name, path, interface[DP], true, env, path, interface.widget)
 	self:DrawChildren(widget, path, interface.props[DP], layoutIndex, depth)
 	return widget;
 end
@@ -1244,7 +1244,7 @@ function Loadout:OnHide()
 end
 
 function Loadout:Draw()
-	self.headerPool:ReleaseAll()
+	self:ReleaseHeaders()
 	self.cmdButtonPool:ReleaseAll()
 	-- NOTE: securecallfunction to avoid panel-wide error in case of a single widget error
 	-- Draw the layout controls

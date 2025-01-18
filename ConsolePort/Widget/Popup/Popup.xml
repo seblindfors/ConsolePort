@@ -8,6 +8,9 @@
 			<KeyValue key="buttonOffsetX" value="-68" type="number"/>
 			<KeyValue key="nameOffsetX" value="20" type="number"/>
 			<Keyvalue key="nonExclusive" value="false" type="boolean"/>
+			<KeyValue key="layoutAtlas" value="false" type="boolean"/>
+			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
+			<KeyValue key="bottomPadding" value="32" type="number"/>
 		</KeyValues>
 		<Layers>
 			<Layer level="ARTWORK">

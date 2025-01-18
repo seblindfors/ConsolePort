@@ -70,7 +70,7 @@
 			<ScrollFrame parentKey="SettingsContainer" inherits="CPScrollFrameTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="16" y="-90"/>
-					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
+					<Anchor point="BOTTOMRIGHT" x="-24" y="36"/>
 				</Anchors>
 				<Frames>
 					<Button parentKey="OptionsTab" parentArray="TabButtons" inherits="MinimalTabTemplate" scale="1.2">

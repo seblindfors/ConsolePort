@@ -1,0 +1,40 @@
+## Interface: 110007
+## Interface-Classic: 11505
+## Interface-Wrath: 30403
+## Interface-Cata: 40401
+## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
+## Title: Console Port |cff69ccf0Config|r
+## Notes: Configuration module
+## RequiredDeps: ConsolePort
+## LoadOnDemand: 1
+
+## Author: Sebastian Lindfors
+## X-Website: https://github.com/seblindfors/ConsolePort
+## X-Feedback: https://discord.gg/AWeHd48
+## X-Curse-Project-ID: 91376
+## X-WoWI-ID: 23536
+## X-Wago-ID: LvNAYjNo
+
+Helpers.lua
+Widgets.lua
+Config.xml
+
+Data\Serializer.lua
+Data\ImportExport.lua
+
+Splash\Cvars.lua
+Splash\Device.lua
+Splash\Overview.lua
+Splash\Splash.lua
+
+Bindings\Shortcut.lua
+Bindings\Combo.lua
+Bindings\Mapper.lua
+Bindings\Manager.lua
+Bindings\Import.lua
+Bindings\Bindings.lua
+
+Settings\Variables.lua
+Settings\Console.lua
+
+Rings\Manager.lua

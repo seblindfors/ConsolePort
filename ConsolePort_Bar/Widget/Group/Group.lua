@@ -6,7 +6,7 @@ local GROUP, GROUP_BUTTON = 'Group', 'GroupButton';
 local Button = CreateFromMixins(env.ProxyButton, env.ConfigurableWidgetMixin);
 ---------------------------------------------------------------
 do  -- Alpha update closures
-	Button.AlphaState = env.CreateFlagClosures({
+	Button.AlphaState = CPAPI.CreateFlagClosures({
 		OnCooldown    = 0x02;
 		OverlayActive = 0x04;
 		MouseOver     = 0x08;

@@ -612,6 +612,19 @@ function UnitMenu.BackButton:Reset()
 end
 
 ---------------------------------------------------------------
+UnitMenu.RollButton = CreateFromMixins(UnitPopupButtonBaseMixin)
+---------------------------------------------------------------
+function UnitMenu.RollButton:CreateMenuDescription(rootDescription, contextData)
+	local element = rootDescription:CreateButton(ROLL, function()
+		RandomRoll(1, 100)
+	end)
+	element:AddInitializer(function(self)
+		self.Icon:SetTexCoord(0, 1, 0, 1)
+		self.Icon:SetTexture([[Interface\Buttons\UI-GroupLoot-Dice-Up]])
+	end)
+end
+
+---------------------------------------------------------------
 -- Mount
 ---------------------------------------------------------------
 UnitMenu:HookScript('OnHide', UnitMenu.OnHide)
@@ -676,7 +689,7 @@ do -- Emote list
 	end
 
 	function UnitMenu.Emotes:GetEntries()
-		local entries = {};
+		local entries = { UnitMenu.RollButton };
 		local function createMenus(list, name)
 			local half = ceil(#list / 2)
 			return {
