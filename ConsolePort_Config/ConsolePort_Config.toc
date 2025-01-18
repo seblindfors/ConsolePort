@@ -16,6 +16,7 @@
 ## X-Wago-ID: LvNAYjNo
 
 Database.lua
-
-View\Widgets.xml
 Controller\Setting.lua
+
+View\Widgets\Widgets.xml
+View\Templates\Templates.xml

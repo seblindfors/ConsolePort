@@ -19,48 +19,6 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CPInnerFrameTemplate" virtual="true" inherits="CPFrameTemplate" mixin="CPInnerFrameMixin">
-		<Layers>
-			<Layer level="BACKGROUND" textureSubLevel="-6">
-				<Texture parentKey="InnerBackground" alpha="0.75" setAllPoints="true"
-					file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient"/>
-				<Texture parentKey="InnerBackgroundEdge" alpha="1" setAllPoints="true"/>
-				<MaskTexture parentKey="BgMask" setAllPoints="true" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE"
-					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\InnerFrameMask" scale="0.5">
-					<TextureSliceMargins left="8" right="8" top="8" bottom="8"/>
-					<MaskedTextures>
-						<MaskedTexture childKey="InnerBackground"/>
-					</MaskedTextures>
-				</MaskTexture>
-				<MaskTexture parentKey="BgMaskEdge" setAllPoints="true" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE"
-					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\InnerFrameMaskEdge" scale="0.5">
-					<TextureSliceMargins left="8" right="8" top="8" bottom="8"/>
-					<MaskedTextures>
-						<MaskedTexture childKey="InnerBackgroundEdge"/>
-					</MaskedTextures>
-				</MaskTexture>
-			</Layer>
-		</Layers>
-	</Frame>
-
-	<ScrollFrame name="CPScrollFrameTemplate" virtual="true" inherits="ScrollFrameTemplate">
-		<KeyValues>
-			<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
-			<KeyValue key="scrollBarX" value="-4" type="number"/>
-			<KeyValue key="scrollBarTopY" value="-3" type="number"/>
-			<KeyValue key="scrollBarBottomY" value="0" type="number"/>
-			<KeyValue key="scrollBarTemplate" value="MinimalScrollBar" type="string"/>
-		</KeyValues>
-		<Frames>
-			<Frame parentKey="BorderArt" inherits="CPInnerFrameTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT" x="-6" y="4"/>
-					<Anchor point="BOTTOMRIGHT" x="16" y="-8"/>
-				</Anchors>
-			</Frame>
-		</Frames>
-	</ScrollFrame>
-
 	<GameTooltip name="CPTooltipTemplate" inherits="SharedTooltipTemplate, DefaultScaleFrame" ignoreParentScale="true" virtual="true">
 		<KeyValues>
 			<KeyValue key="maxScale" value="CHAR_CUSTOMIZE_MAX_SCALE" type="global"/>

@@ -1,0 +1,28 @@
+<Ui>
+    <Script file="Templates.lua"/>
+	<Frame name="CPInnerFrameTemplate" virtual="true" inherits="CPFrameTemplate" mixin="CPInnerFrameMixin">
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="-6">
+				<Texture parentKey="InnerBackground" alpha="0.75" setAllPoints="true"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient"/>
+				<Texture parentKey="InnerBackgroundEdge" alpha="1" setAllPoints="true"/>
+				<MaskTexture parentKey="BgMask" setAllPoints="true" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\InnerFrameMask" scale="0.5">
+					<TextureSliceMargins left="8" right="8" top="8" bottom="8"/>
+					<MaskedTextures>
+						<MaskedTexture childKey="InnerBackground"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<MaskTexture parentKey="BgMaskEdge" setAllPoints="true" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\InnerFrameMaskEdge" scale="0.5">
+					<TextureSliceMargins left="8" right="8" top="8" bottom="8"/>
+					<MaskedTextures>
+						<MaskedTexture childKey="InnerBackgroundEdge"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</Frame>
+    
+	<Include file="Scroll.xml"/>
+</Ui>
