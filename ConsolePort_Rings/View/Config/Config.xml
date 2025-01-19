@@ -1,0 +1,38 @@
+<Ui>
+	<Script file="Config.lua"/>
+
+	<Frame name="CPRingsConfig" virtual="true" inherits="CPPopupPanelTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="HIGH">
+		<Size x="1060" y="770"/>
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
+		<Frames>
+			<ScrollFrame parentKey="Display" inherits="CPScrollFrameTemplate">
+				<Size x="680" y="680"/>
+				<KeyValues>
+					<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" x="14" y="34"/>
+				</Anchors>
+			</ScrollFrame>
+			<Frame parentKey="Sets" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate">
+				<Size x="320" y="680"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
+				</Anchors>
+			</Frame>
+			<EditBox parentKey="Search" inherits="SearchBoxTemplate">
+				<Size x="280" y="24"/>
+				<Anchors>
+					<Anchor point="BOTTOM" relativeKey="$parent.Sets" relativePoint="TOP" x="0" y="8"/>
+				</Anchors>
+			</EditBox>
+			<Frame parentKey="Tabs" inherits="CPTabGroupTemplate" scale="1.2">
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" relativeKey="$parent.Display" x="-32" y="2"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+</Ui>

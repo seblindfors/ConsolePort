@@ -1063,7 +1063,13 @@ function Loadout:DrawHeaderControls(header, controls)
 		button:Show()
 		left, right = math.min(left, button:GetLeft()), math.max(right, button:GetRight())
 	end
-	header:SetIndentation(-(right - left))
+	local indentation = -(right - left);
+	if ( indentation == math.huge ) then
+		header:SetIndentation(self.lastIndentation)
+	else
+		header:SetIndentation(indentation)
+		self.lastIndentation = indentation;
+	end
 end
 
 function Loadout:DrawPresets(layoutIndex)

@@ -1,7 +1,7 @@
 <Ui>
 	<Script file="Scroll.lua"/>
 
-	<ScrollFrame name="CPScrollFrameTemplate" virtual="true" inherits="ScrollFrameTemplate">
+	<Frame name="CPScrollFrameArtTemplate" virtual="true">
 		<KeyValues>
 			<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
 			<KeyValue key="scrollBarX" value="-4" type="number"/>
@@ -10,12 +10,36 @@
 			<KeyValue key="scrollBarTemplate" value="MinimalScrollBar" type="string"/>
 		</KeyValues>
 		<Frames>
-			<Frame parentKey="BorderArt" inherits="CPInnerFrameTemplate">
+			<Frame parentKey="BorderArt" inherits="CPInnerFrameTemplate" useParentLevel="true">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="-6" y="4"/>
 					<Anchor point="BOTTOMRIGHT" x="16" y="-8"/>
 				</Anchors>
 			</Frame>
 		</Frames>
-	</ScrollFrame>
+	</Frame>
+
+	<Frame name="CPScrollBox" virtual="true" mixin="CPScrollBox">
+		<Frames>
+			<Frame parentKey="ScrollBox" inherits="WowScrollBoxList">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="-0"/>
+					<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+				</Anchors>
+			</Frame>
+			<EventFrame parentKey="ScrollBar" inherits="MinimalScrollBar">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="0" y="0"/>
+					<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+				</Anchors>
+			</EventFrame>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPScrollBoxTree" virtual="true" mixin="CPScrollBoxTree" inherits="CPScrollBox"/>
+
+	<ScrollFrame name="CPScrollFrameTemplate" virtual="true" inherits="ScrollFrameTemplate, CPScrollFrameArtTemplate"/>
 </Ui>

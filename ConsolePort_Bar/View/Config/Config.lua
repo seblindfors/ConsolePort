@@ -1,6 +1,6 @@
 local _, env, db, L = ...; db = env.db; L = db.Locale;
 ---------------------------------------------------------------
-local Setting = {};
+local Setting, ROW_WIDTH = {}, 542;
 ---------------------------------------------------------------
 
 function Setting:OnCreate()
@@ -10,7 +10,7 @@ function Setting:OnCreate()
 	self:HookScript('OnLeave', self.UnlockHighlight)
 	self:HookScript('OnClick', self.OnExpandOrCollapse)
 	self:SetIndentation(1)
-	self:SetSize(542, 40)
+	self:SetSize(ROW_WIDTH, 40)
 	self:GetNormalTexture():SetPoint('BOTTOMRIGHT', 8, 0)
 	CPAPI.SetAtlas(self.Icon, 'Waypoint-MapPin-Minimap-Tracked')
 	self.Icon:Hide()
@@ -52,7 +52,7 @@ local Header = {
 
 function Header:OnAcquire(parent)
 	self:SetParent(parent)
-	self:SetWidth(540)
+	self:SetWidth(ROW_WIDTH)
 	self:SetIndentation(0)
 	self:SetScript('OnHide', self.OnHide)
 	self:SetScript('OnClick', self.OnClick)
@@ -61,9 +61,11 @@ function Header:OnAcquire(parent)
 end
 
 function Header:SetIndentation(px)
+	if not px or px == math.huge then px = 0 end;
 	self.Text:SetPoint('CENTER', px * 0.5, 0)
 	self.BarTexture:SetPoint('LEFT',  px > 0 and  px or 0, 0)
 	self.BarTexture:SetPoint('RIGHT', px < 0 and  px or 0, 0)
+	self.indentation = px;
 end
 
 function Header:Release()
@@ -189,11 +191,15 @@ function Settings:OnShow()
 end
 
 ---------------------------------------------------------------
-local SettingsContainer = { Tabs = CreateRadioButtonGroup() };
+local SettingsContainer = {};
 ---------------------------------------------------------------
 
 function SettingsContainer:OnLoad()
-	self.Tabs:AddButtons(self.TabButtons)
+	self.Tabs:AddTabs({
+		{ text = OPTIONS,        data = 'Options' },
+		{ text = L'Layout',      data = 'Loadout' },
+		{ text = ADVANCED_LABEL, data = 'Advanced' },
+	})
 	self.Tabs:RegisterCallback(ButtonGroupBaseMixin.Event.Selected, self.OnTabSelected, self)
 	self.Tabs:SelectAtIndex(1)
 	self.headerPool = CreateFramePool('Button', self, 'CPPopupHeaderTemplate')
@@ -203,17 +209,12 @@ function SettingsContainer:OnLoad()
 	CPAPI.Start(self)
 end
 
-function SettingsContainer:OnShow()
-	db.Gamepad.SetIconToTexture(self.TabDecrementIcon, 'PADLSHOULDER', 32, {24, 24}, {18, 18})
-	db.Gamepad.SetIconToTexture(self.TabIncrementIcon, 'PADRSHOULDER', 32, {24, 24}, {18, 18})
-end
-
 function SettingsContainer:OnTabSelected(button, tabIndex)
 	for _, child in ipairs({self.ScrollChild:GetChildren()}) do
 		child:Hide()
 	end
 	self.tabIndex = tabIndex;
-	self.ScrollChild[button.categoryKey]:Show()
+	self.ScrollChild[button.data]:Show()
 end
 
 function SettingsContainer:CatchTabDecrement()
@@ -222,25 +223,6 @@ end
 
 function SettingsContainer:CatchTabIncrement()
 	self.Tabs:SelectAtIndex(self.tabIndex + 1)
-end
-
----------------------------------------------------------------
-CPSquareIconButtonMixin = CreateFromMixins(SquareIconButtonMixin);
----------------------------------------------------------------
-
-function CPSquareIconButtonMixin:OnLoad()
-	SquareIconButtonMixin.OnLoad(self)
-	self:OnMouseUp()
-end
-
-function CPSquareIconButtonMixin:OnMouseUp()
-	self.Icon:SetPoint('CENTER', 0.5, 0)
-end
-
-function CPSquareIconButtonMixin:OnMouseDown()
-	if self:IsEnabled() then
-		self.Icon:SetPoint('CENTER', 0.5, -1);
-	end
 end
 
 ---------------------------------------------------------------

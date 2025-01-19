@@ -30,3 +30,5 @@ Controller\Auto.lua
 Controller\Events.lua
 Controller\Observer.lua
 Controller\Context.lua
+
+View\Config\Config.xml

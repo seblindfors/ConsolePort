@@ -15,7 +15,7 @@
 		<Layers>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
-					<Size x="300" y="22"/>
+					<Size y="22"/>
 					<Color r="1" g="0.82" b="0" a="1"/>
 				</FontString>
 				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">

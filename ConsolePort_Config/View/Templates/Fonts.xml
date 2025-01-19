@@ -1,0 +1,34 @@
+<Ui>
+	<FontFamily name="CPFont_Outline_Med2" virtual="true">
+		<Member alphabet="roman">
+			<Font font="Fonts\FRIZQT__.TTF" height="15" outline="NORMAL"/>
+		</Member>
+		<Member alphabet="korean">
+			<Font font="Fonts\2002.TTF" height="16" outline="NORMAL"/>
+		</Member>
+		<Member alphabet="simplifiedchinese">
+			<Font font="Fonts\ARKai_T.ttf" height="16" outline="THICK"/>
+		</Member>
+		<Member alphabet="traditionalchinese">
+			<Font font="Fonts\BLEI00D.TTF" height="16" outline="THICK"/>
+		</Member>
+		<Member alphabet="russian">
+			<Font font="Fonts\FRIZQT___CYR.TTF" height="15" outline="NORMAL"/>
+		</Member>
+	</FontFamily>
+	<Font name="CPGlueFontNormal" inherits="CPFont_Outline_Med2" virtual="true">
+		<Shadow>
+			<Offset>
+				<AbsDimension x="1" y="-1"/>
+			</Offset>
+			<Color r="0" g="0" b="0"/>
+		</Shadow>
+		<Color r="1.0" g="0.78" b="0"/>
+	</Font>
+	<Font name="CPGlueFontYellow" inherits="CPGlueFontNormal" virtual="true">
+		<Color color="YELLOW_FONT_COLOR"/>
+	</Font>
+	<Font name="CPGlueFontDisable" inherits="CPGlueFontNormal" virtual="true">
+		<Color r="0.5" g="0.5" b="0.5"/>
+	</Font>
+</Ui>
