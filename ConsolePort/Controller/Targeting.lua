@@ -75,6 +75,18 @@ end
 
 local SetTooltipPosition;
 if CPAPI.IsRetailVersion then
+	-- NOTE: Setting the tooltip to a nameplate means anchoring to a restricted region,
+	-- which inherently removes clamping to screen. Need to re-enable it and restore
+	-- strata override once tooltip is being used by something else.
+	local isStrataOverride;
+	local function SetOverrideStrata(enabled)
+		isStrataOverride = enabled;
+		GameTooltip:SetFrameStrata(enabled and 'BACKGROUND' or 'TOOLTIP')
+		if not enabled then
+			GameTooltip:SetClampedToScreen(true)
+		end
+	end
+
 	function SetTooltipPosition(unit, offsetX)
 		local nameplate = GetNamePlateForUnit(unit)
 		anchor = GetSoftTargetIcon(nameplate)
@@ -88,7 +100,7 @@ if CPAPI.IsRetailVersion then
 				healthbars:Hide()
 			end
 			GameTooltip:SetOwner(anchor, 'ANCHOR_NONE')
-			GameTooltip:SetFrameStrata('BACKGROUND')
+			SetOverrideStrata(true)
 			GameTooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
 			if db('trgtShowMinimalInteractNamePlate') and GameTooltip.NineSlice then
 				GameTooltip.NineSlice:Hide()
@@ -99,12 +111,8 @@ if CPAPI.IsRetailVersion then
 	end
 
 	GameTooltip:HookScript('OnShow', function(self)
-		-- NOTE: Setting the tooltip to a nameplate means anchoring to a restricted region,
-		-- which inherently removes clamping to screen. Need to re-enable it once the
-		-- tooltip is being used by something else.
-		if anchor and not self:IsAnchoringRestricted() then
-			self:SetClampedToScreen(true)
-			self:SetFrameStrata('TOOLTIP')
+		if isStrataOverride and not self:IsAnchoringRestricted() and not self:IsClampedToScreen() then
+			SetOverrideStrata(false)
 			anchor = nil;
 		end
 	end)
