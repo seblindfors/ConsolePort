@@ -167,7 +167,7 @@ end
 -- Binding catch, set, clear olds
 ---------------------------------------------------------------
 function Mapper:ClearBinding()
-	db.table.map(SetBinding, db.Gamepad:GetBindingKey(self:GetBinding()))
+	db.table.map(SetBinding, db.Gamepad:GetBindingKey((self:GetBinding())))
 end
 
 function Mapper:SetBinding(keychord)
