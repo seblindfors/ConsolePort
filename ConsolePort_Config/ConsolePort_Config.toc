@@ -18,5 +18,8 @@
 Database.lua
 Controller\Setting.lua
 
-View\Widgets\Widgets.xml
-View\Templates\Templates.xml
+Widget\Settings\Settings.xml
+Widget\Templates\Templates.xml
+
+Widget\Button\Button.xml
+Widget\Scroll\Scroll.xml

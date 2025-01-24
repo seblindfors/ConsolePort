@@ -45,6 +45,10 @@ function Container:GetRingLink(setID)
 	return env:GetRingLink(self:GetBindingSuffixForSet(setID), self:GetBindingDisplayNameForSetID(setID));
 end
 
+function Container:GetSetIcon(setID)
+	return db.Bindings:GetIcon(self:GetBindingForSet(setID));
+end
+
 ---------------------------------------------------------------
 -- Set manager
 ---------------------------------------------------------------

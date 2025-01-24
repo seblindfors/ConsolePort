@@ -261,36 +261,64 @@ CPAPI.Backdrops = {
 ---------------------------------------------------------------
 -- Atlas tools
 ---------------------------------------------------------------
-
-function CPAPI.SetAtlas(object, id, useAtlasSize, flipHorz, flipVert, ...)
-	for file, atlasData in pairs(CPAPI.Atlas) do
-		local atlasInfo = atlasData[id];
-		if atlasInfo then
-			local width, height, leftTX, rightTX, topTX, bottomTX,
-				tilesHorizontally, tilesVertically,
-				sliceMode, leftSM, rightSM, topSM, bottomSM = unpack(atlasInfo)
-			if useAtlasSize then
-				object:SetSize(width, height)
-			end
-			object:SetTexture(file, ...)
-			object:SetTexCoord(
-				flipHorz and rightTX or leftTX,
-				flipHorz and leftTX or rightTX,
-				flipVert and bottomTX or topTX,
-				flipVert and topTX or bottomTX
-			);
-			object:SetHorizTile(tilesHorizontally)
-			object:SetVertTile(tilesVertically)
-			object:SetTextureSliceMargins(
-				leftSM or 0,
-				topSM or 0,
-				rightSM or 0,
-				bottomSM or 0
-			);
-			object:SetTextureSliceMode(sliceMode or 0)
-			return true;
-		end
+do local function InfoToAtlas(f, i)
+		local atlas = { file = f,
+			width             = i[1], leftTexCoord      = i[3],
+			height            = i[2], rightTexCoord     = i[4],
+			tilesHorizontally = i[7], topTexCoord       = i[5],
+			tilesVertically   = i[8], bottomTexCoord    = i[6],
+		};
+		if i[9] then atlas.sliceData = {
+			sliceMode  = i[9],
+			marginLeft = i[10], marginRight  = i[11],
+			marginTop  = i[12], marginBottom = i[13],
+		} end
+		return atlas;
 	end
+
+	function CPAPI.GetAtlasInfo(id)
+		for file, atlasData in pairs(CPAPI.Atlas) do
+			local atlasInfo = atlasData[id];
+			if atlasInfo then
+				return InfoToAtlas(file, atlasInfo), true;
+			end
+		end
+		return C_Texture.GetAtlasInfo(id), false;
+	end
+end
+
+function CPAPI.SetAtlas(object, id, useAtlasSize, flipHorz, flipVert, hWrapMode, vWrapMode, sData)
+	---@class AtlasInfo
+	local info, isCustom = CPAPI.GetAtlasInfo(id);
+	if not info then
+		return false, false;
+	end
+	if not ( isCustom or flipHorz or flipVert or hWrapMode or vWrapMode or sData ) then
+		object:SetAtlas(id, useAtlasSize);
+		return true, false;
+	end
+	if useAtlasSize then
+		object:SetSize(info.width, info.height);
+	end
+	object:SetTexture(info.file or info.filename, hWrapMode, vWrapMode);
+	object:SetTexCoord(
+		flipHorz and info.rightTexCoord or info.leftTexCoord,
+		flipHorz and info.leftTexCoord or info.rightTexCoord,
+		flipVert and info.bottomTexCoord or info.topTexCoord,
+		flipVert and info.topTexCoord or info.bottomTexCoord
+	);
+	object:SetHorizTile(info.tilesHorizontally);
+	object:SetVertTile(info.tilesVertically);
+	---@class UITextureSliceData
+	sData = sData or info.sliceData or {};
+	object:SetTextureSliceMargins(
+		sData.marginLeft   or 0,
+		sData.marginTop    or 0,
+		sData.marginRight  or 0,
+		sData.marginBottom or 0
+	);
+	object:SetTextureSliceMode(sData.sliceMode or 0);
+	return true, true;
 end
 
 function CPAPI.SetTextureOrAtlas(object, info, sizeTexture, sizeAtlas)

@@ -137,11 +137,11 @@ function CPAPI.InitConfigFrame(mixin, ...)
 	return frame, env;
 end
 
-function CPAPI.Start(handler)
+function CPAPI.Start(handler, noHooks)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then
 			local currentScript = handler:GetScript(k)
-			if ( currentScript and currentScript ~= v ) then
+			if not noHooks and ( currentScript and currentScript ~= v ) then
 				handler:HookScript(k, v)
 			else
 				handler:SetScript(k, v)

@@ -1,4 +1,13 @@
 ---------------------------------------------------------------
+CPStateButtonMixin = CreateFromMixins(ButtonStateBehaviorMixin);
+---------------------------------------------------------------
+
+function CPStateButtonMixin:SetChecked(checked)
+	getmetatable(self).__index.SetChecked(self, checked)
+	self:OnButtonStateChanged()
+end
+
+---------------------------------------------------------------
 CPSquareIconButtonMixin = CreateFromMixins(SquareIconButtonMixin);
 ---------------------------------------------------------------
 
@@ -18,9 +27,8 @@ function CPSquareIconButtonMixin:OnMouseDown()
 end
 
 ---------------------------------------------------------------
-CPHeader = CreateFromMixins(ButtonStateBehaviorMixin); do
+CPHeader = CreateFromMixins(CPStateButtonMixin); do
 ---------------------------------------------------------------
-	-- Define flags for button states
 	local Flags = CPAPI.CreateFlags('Disabled', 'Down', 'Over', 'Collapsed')
 	local Decor = {
 		[Flags.Disabled + Flags.Collapsed] = {
@@ -77,29 +85,18 @@ function CPHeader:OnLeave()
 end
 
 function CPHeader:OnClick()
---[[	local parentGroup = self:GetParent();
-	local parentGroupElementData = parentGroup:GetElementData();
-	parentGroupElementData.collapsed = not parentGroupElementData.collapsed;
-
-	parentGroup:OnExpandedChanged();]]
-	self.collapsed = not self.collapsed;
 	self:OnButtonStateChanged()
 end
 
 function CPHeader:OnButtonStateChanged()
-	local stateData, state = self.Flags({
-		Disabled = not self:IsEnabled(),
-		Down = self:IsDown(),
-		Over = self:IsOver(),
-		Collapsed = self.collapsed,
+	local state = self.Flags({
+		Disabled  = not self:IsEnabled(),
+		Down      = self:IsDown(),
+		Over      = self:IsOver(),
+		Collapsed = self:GetChecked(),
 	}, self.Decor)
-
-	atlas = stateData.atlas
-	textColor = stateData.color
-	print('State:', atlas, state)
-
-	self.Text:SetTextColor(textColor:GetRGBA())
-	CPAPI.SetAtlas(self.Icon, atlas, TextureKitConstants.UseAtlasSize)
+	self.Text:SetTextColor(state.color:GetRGBA())
+	CPAPI.SetAtlas(self.Icon, state.atlas, TextureKitConstants.UseAtlasSize)
 end
 
 ---------------------------------------------------------------

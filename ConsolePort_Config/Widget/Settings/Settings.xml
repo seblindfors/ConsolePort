@@ -22,5 +22,5 @@
 		</Layers>
 	</Slider>
 
-	<Script file="Widgets.lua"/>
+	<Script file="Settings.lua"/>
 </Ui>

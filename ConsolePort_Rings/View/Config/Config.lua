@@ -1,25 +1,22 @@
 local env, db, Container, L = CPAPI.GetEnv(...); Container, L = env.Frame, env.L;
 ---------------------------------------------------------------
-local Config = {};
+local Config = {}; env.SharedConfig = {};
 ---------------------------------------------------------------
--- test
+
 function Config:OnLoad()
 	self.Ring = env:CreateMockRing('$parentRing', self)
 	self.Ring:SetPoint('CENTER', self.Display, 'CENTER', 0, 0)
 	self.Ring:SetSize(400, 400)
 	self.Ring:SetFrameLevel(5)
-	self.Name:SetText('Ring Manager')
 
 	FrameUtil.SpecializeFrameWithMixins(self.Display, CPBackgroundMixin)
 	self.Display:SetBackgroundInsets(4, -4, 4, 4)
 	self.Display:AddBackgroundMaskTexture(self.Display.BorderArt.BgMask)
 	self.Display:SetBackgroundAlpha(0.25)
 
-	local button = CreateFrame('Button', nil, self.Sets, 'CPHeader')
-	button:SetPoint('TOPLEFT', 4, -8)
-	button:SetSize(300, 34)
-	button.Text:SetText('General')
+	print('self.display', self.Display:DoesClipChildren())
 
+	FrameUtil.SpecializeFrameWithMixins(self.Sets, env.SharedConfig.Sets)
 
 	self.Tabs:AddTabs({
 		{ text = L'Rings',   data = 'Rings'   },
@@ -28,21 +25,40 @@ function Config:OnLoad()
 	})
 	self.Tabs:RegisterCallback(ButtonGroupBaseMixin.Event.Selected, self.OnTabSelected, self)
 	self.Tabs:SelectAtIndex(1)
+
+	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
+	env:RegisterCallback('OnAddNew', self.OnAddNew, self)
 end
 
 function Config:OnTabSelected(button, tabIndex)
-	print('Selected', button, tabIndex)
+	print('Selected tab', button, tabIndex)
 end
 
-
-env:RegisterCallback('ToggleConfig', function(_, setID)
-	if not env.Config then
-		env.Config = CPAPI.InitConfigFrame(Config, 'Frame', 'ConsolePortRingsConfig', UIParent, 'CPRingsConfig');
+function Config:OnSelectSet(setID, isSelected)
+	self.Name:SetText(isSelected and Container:GetBindingDisplayNameForSetID(setID) or L'Ring Manager')
+	self.Ring:SetShown(isSelected)
+	if isSelected then
+		self.Ring:Mock(Container.Data[setID])
 	end
-	env.Config:Show()
-	env.Config.Ring:Mock(Container.Data[setID])
-	env.Config.Ring:Show()
-end)
+end
+
+function Config:OnAddNew(container, node)
+	self.Ring:SetShown(false)
+end
+
+function Config:SelectSet(setID)
+	self.Sets:SetData(Container.Data, {}, setID)
+	self:OnSelectSet(setID, true)
+end
+
+env:RegisterCallback('ToggleConfig', function(self, setID)
+	if not self.Config then
+		self.Config, env.SharedConfig.Env = CPAPI.InitConfigFrame(
+			Config, 'Frame', 'ConsolePortRingsConfig', UIParent, 'CPRingsConfig');
+	end
+	self.Config:Show()
+	self.Config:SelectSet(setID)
+end, env)
 
 
 

@@ -31,7 +31,7 @@ local function MountDatapoint(self, dp)
 
 		self.registry, self.pathID = registry, pathID;
 		self:SetText(L(name))
-		local initializer = env:GetWidgetInitializer(dataObj:GetType(), varID)
+		local initializer = env:GetSettingInitializer(dataObj:GetType(), varID)
 		if initializer then
 			initializer(self, varID, field, dataObj, L(field.desc), L(field.note), owner)
 

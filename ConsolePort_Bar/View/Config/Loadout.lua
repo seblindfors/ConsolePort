@@ -618,7 +618,7 @@ function Loadout:OnLoad(inputHandler, headerPool)
 	local sharedConfig = env.SharedConfig;
 	sharedConfig.HeaderOwner.OnLoad(self, env.SharedConfig.Header)
 	CPFramePoolCollectionMixin.OnLoad(self)
-	Widgets = sharedConfig.Env.Widgets;
+	Widgets = sharedConfig.Env.Settings;
 
 	Mixin(Widgets.CreateWidget('Point', Widgets.Base, PointBlueprint), Point)
 	Mixin(Widgets.CreateWidget('Mutable', Widgets.Base, MutableBlueprint), Mutable)

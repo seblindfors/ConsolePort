@@ -5,7 +5,7 @@ CPPopupFrameBaseMixin = CreateFromMixins(CPFrameMixin, CPIndexPoolMixin)
 function CPPopupFrameBaseMixin:OnLoad()
 	CPFrameMixin.OnLoad(self)
 	CPIndexPoolMixin.OnLoad(self);
-	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -20)
+	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -16)
 end
 
 ---------------------------------------------------------------

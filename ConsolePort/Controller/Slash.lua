@@ -68,6 +68,7 @@ local function Uninstall()
 		'ConsolePortDevices',
 		'ConsolePortUIStack',
 		'ConsolePortShared',
+		'ConsolePortUtilityShared',
 		-- Saved variables per character
 		'ConsolePortUtility',
 		'ConsolePort_BarDB',

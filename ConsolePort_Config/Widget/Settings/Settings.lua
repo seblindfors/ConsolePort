@@ -1,7 +1,7 @@
 local Carpenter, env, db = LibStub:GetLibrary('Carpenter'), CPAPI.GetEnv(...);
-local Widgets = {}; env.Widgets = Widgets;
+local Settings = {}; env.Settings = Settings;
 ---------------------------------------------------------------
--- Widgets
+-- Settings
 ---------------------------------------------------------------
 -- Convert to or inherit a data handler widget design to work
 -- with the data interface. Calling a widget will construct the
@@ -30,8 +30,8 @@ local function CreateWidget(name, inherit, blueprint)
 	local widget = CreateFromMixins(inherit)
 	widget.blueprint = blueprint;
 
-	Widgets[name] = function(self, ...)
-		if not Widgets.Registry[self] then
+	Settings[name] = function(self, ...)
+		if not Settings.Registry[self] then
 			db.table.mixin(self, widget)
 		end
 		self:OnLoad(...)
@@ -41,13 +41,13 @@ local function CreateWidget(name, inherit, blueprint)
 	return widget;
 end
 
-Widgets.CreateWidget = CreateWidget;
-Widgets.Registry     = {};
+Settings.CreateWidget = CreateWidget;
+Settings.Registry     = {};
 
 ---------------------------------------------------------------
 -- Base widget object
 ---------------------------------------------------------------
-local Widget = {}; Widgets.Base = Widget;
+local Widget = {}; Settings.Base = Widget;
 
 function Widget:OnLoad(varID, metaData, controller, desc, note, owner)
 	self.metaData    = metaData;
@@ -57,8 +57,8 @@ function Widget:OnLoad(varID, metaData, controller, desc, note, owner)
 	self.tooltipNote = note;
 	self.owner       = owner or env.Config;
 
-	if self.blueprint and not Widgets.Registry[self] then
-		Widgets.Registry[Carpenter:BuildFrame(self, self.blueprint, false, true)] = true;
+	if self.blueprint and not Settings.Registry[self] then
+		Settings.Registry[Carpenter:BuildFrame(self, self.blueprint, false, true)] = true;
 	end
 end
 

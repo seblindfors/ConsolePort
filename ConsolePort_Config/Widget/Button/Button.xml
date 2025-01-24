@@ -40,10 +40,9 @@
 		<DisabledCheckedTexture atlas="checkmark-minimal-disabled" useAtlasSize="true"/>
 	</CheckButton>
 
-	<Button name="CPHeader" virtual="true" mixin="CPHeader">
+	<CheckButton name="CPHeader" virtual="true" mixin="CPHeader">
 		<Layers>
 			<Layer level="OVERLAY" textureSubLevel="1">
-				<!-- Not using HighlightTexture so we can layer behind button contents. -->
 				<Texture parentKey="Highlight" inherits="CPAtlas" hidden="true">
 					<KeyValues>
 						<KeyValue key="atlas" value="glues-characterselect-button-collapseexpand-hover" type="string"/>
@@ -94,7 +93,7 @@
 				<KeyValue key="atlas" value="glues-characterselect-button-collapseexpand-disabled" type="string"/>
 			</KeyValues>
 		</DisabledTexture>
-	</Button>
+	</CheckButton>
 
 	<Button name="CPNavBarButton" mixin="CPNavBarButton" virtual="true">
 		<Size y="51"/>
@@ -149,4 +148,5 @@
 		<DisabledFont style="CPGlueFontDisable"/>
 	</Button>
 
+	<Include file="Card.xml"/>
 </Ui>

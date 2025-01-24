@@ -30,7 +30,7 @@
 		<Layers>
 			<Layer level="ARTWORK">
 				<Texture parentKey="NameHighlight" inherits="CPAtlas">
-					<Size y="51"/>
+					<Size y="46"/>
 					<KeyValues>
 						<KeyValue key="atlas" value="glues-characterselect-namebg" type="string"/>
 						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
@@ -140,7 +140,4 @@
 			<OnMouseWheel method="OnMouseWheel"/>
 		</Scripts>
 	</ScrollFrame>
-
-	<Include file="Scroll.xml"/>
-	<Include file="Button.xml"/>
 </Ui>

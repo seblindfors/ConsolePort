@@ -1,8 +1,9 @@
 <Ui>
 	<Script file="Config.lua"/>
+	<Include file="Sets.xml"/>
 
 	<Frame name="CPRingsConfig" virtual="true" inherits="CPPopupPanelTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="HIGH">
-		<Size x="1060" y="770"/>
+		<Size x="1060" y="766"/>
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>

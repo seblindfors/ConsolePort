@@ -10,10 +10,16 @@ function CPAtlasMixin:OnLoad()
 	end
 end
 
-function CPAtlasMixin:SetAtlas(atlas, useAtlasSize, flipHorz, flipVert, hWrapMode, vWrapMode)
-	self.atlas,  self.useAtlasSize = atlas, useAtlasSize;
+function CPAtlasMixin:SetAtlas(atlas, useAtlasSize, flipHorz, flipVert, hWrapMode, vWrapMode, sm) sm = sm or {};
 	self.flipHorz,   self.flipVert = flipHorz, flipVert;
 	self.hWrapMode, self.vWrapMode = hWrapMode, vWrapMode;
+	self.sliceMode, self.sliceLeft, self.sliceRight, self.sliceTop, self.sliceBottom
+	= sm.sliceMode,   sm.sliceLeft,   sm.sliceRight,   sm.sliceTop,   sm.sliceBottom;
+	self:SwapAtlas(atlas, useAtlasSize);
+end
+
+function CPAtlasMixin:SwapAtlas(atlas, useAtlasSize)
+	self.atlas, self.useAtlasSize = atlas, useAtlasSize;
 	self:ApplyAtlas()
 end
 
@@ -24,7 +30,14 @@ function CPAtlasMixin:ApplyAtlas()
 		self.flipHorz,
 		self.flipVert,
 		self.hWrapMode,
-		self.vWrapMode
+		self.vWrapMode,
+		self.sliceMode and {
+			sliceMode    = self.sliceMode;
+			marginLeft   = self.sliceLeft;
+			marginRight  = self.sliceRight;
+			marginTop    = self.sliceTop;
+			marginBottom = self.sliceBottom;
+		}
 	);
 end
 

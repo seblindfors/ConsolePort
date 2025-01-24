@@ -53,5 +53,12 @@ function CPScrollBoxTree:CreateDataProvider()
 end
 
 function CPScrollBoxTree:CreateScrollView()
-	return CreateScrollBoxListTreeListView();
+	return CreateScrollBoxListTreeListView(
+		self.indent or 6,
+		self.paddingTop or 8,
+		self.paddingBottom or 8,
+		self.paddingLeft or 6,
+		self.paddingRight or 12,
+		self.spacing or 8
+	);
 end

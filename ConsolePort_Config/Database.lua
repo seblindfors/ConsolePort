@@ -49,8 +49,8 @@ end
 ---------------------------------------------------------------
 -- Interface
 ---------------------------------------------------------------
-function env:GetWidgetInitializer(widgetType, widgetID)
-	return env.Widgets[widgetID] or env.Widgets[widgetType];
+function env:GetSettingInitializer(widgetType, widgetID)
+	return env.Settings[widgetID] or env.Settings[widgetType];
 end
 
 

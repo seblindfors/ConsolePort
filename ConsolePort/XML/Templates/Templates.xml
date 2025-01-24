@@ -3,7 +3,7 @@
 
 	<Texture name="CPAtlas" virtual="true" mixin="CPAtlasMixin">
 		<Scripts>
-			<OnLoad method="OnLoad"/>
+			<OnLoad method="OnLoad" inherit="prepend"/>
 		</Scripts>
 	</Texture>
 
