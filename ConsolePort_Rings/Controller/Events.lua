@@ -47,7 +47,7 @@ end
 
 function Events:UPDATE_EXTRA_ACTIONBAR()
 	if self:HasExtraActionButton() and HasExtraActionBar() then
-		local link = env:GetLinkFromActionInfo(GetActionInfo(EXTRA_ACTION_ID))
+		local link = env:GetLinkFromActionInfo(GetActionInfo(CPAPI.ExtraActionButtonID))
 		self:AnnounceAddition(link or BINDING_NAME_EXTRAACTIONBUTTON1, nil, true)
 	end
 end
