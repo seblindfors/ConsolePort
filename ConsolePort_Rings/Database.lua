@@ -53,6 +53,19 @@ env.LABConfig = {
 };
 
 ---------------------------------------------------------------
+-- States
+---------------------------------------------------------------
+---@brief
+--- 'IsDataReady' is set to true when rings are ready to
+--- be loaded. This is usually after PLAYER_ENTERING_WORLD.
+env.IsDataReady = false;
+---@brief
+--- 'IsSpellValidationReady' is set to true when the spells
+--- are ready to be validated. This is after SPELLS_CHANGED,
+--- which can fire after PLAYER_ENTERING_WORLD on login.
+env.IsSpellValidationReady = false;
+
+---------------------------------------------------------------
 -- Ring data
 ---------------------------------------------------------------
 function env:GetData()

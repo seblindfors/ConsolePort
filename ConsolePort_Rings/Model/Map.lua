@@ -188,16 +188,10 @@ env.ActionValidationMap = {
 		return CreateFromMixins(data, { item = item, link = link });
 	end;
 	-- TODO: Add validation to remove nested rings that no longer exist.
-	--
-	-- BUG: This can randomly remove spells for some users, probably due to
-	-- SPELLS_CHANGED firing after PLAYER_ENTERING_WORLD. In most cases
-	-- spells are already loaded by PLAYER_ENTERING_WORLD, but apparently
-	-- not for everyone.
-	--
-	-- We also cannot wait for SPELLS_CHANGED, because it fires after
-	-- PLAYER_REGEN_DISABLED, so we're in lockdown and can't run validation.
-	--[[
 	spell = function(data, setID, idx)
+		if not env.IsSpellValidationReady then
+			return data;
+		end
 		local spell = data.spell;
 		local link  = data.link;
 		if not spell and not link then
@@ -220,7 +214,7 @@ env.ActionValidationMap = {
 			);
 		end
 		return data;
-	end;]]
+	end;
 };
 
 function env:ValidateAction(action, setID, idx)

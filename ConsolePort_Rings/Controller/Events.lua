@@ -62,6 +62,7 @@ function Events:UNIT_QUEST_LOG_CHANGED()
 end
 
 function Events:SPELLS_CHANGED()
+	env.IsSpellValidationReady = true;
 	if self:IsAutoEnabled() then
 		db:RunSafe(self.ToggleZoneAbilities, self)
 	end
@@ -88,7 +89,7 @@ end
 
 function Events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
 	if isInitialLogin or isReloadingUi then
-		self.isDataReady = true;
+		env.IsDataReady = true;
 		self:QueueRefresh()
 		self:UnregisterEvent('PLAYER_ENTERING_WORLD')
 	end
