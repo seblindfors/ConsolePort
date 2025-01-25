@@ -53,6 +53,21 @@ env.LABConfig = {
 };
 
 ---------------------------------------------------------------
+-- Ring data
+---------------------------------------------------------------
+function env:GetData()
+	return self:ValidateData(self.Frame.Data);
+end
+
+function env:GetShared()
+	return self:ValidateData(self.Frame.Shared);
+end
+
+function env:GetSet(setID)
+	return self:GetData()[setID] or self:GetShared()[setID];
+end
+
+---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
 local HYPERLINK_FORMAT = ('|c%s|Haddon:%s:%s|h[%s]|h|r')
@@ -64,10 +79,10 @@ function env:AddLoader(loader)
 	tinsert(self.Loaders, loader);
 end
 
-function env:LoadModules(data)
+function env:LoadModules()
 	if self.Loaders then
 		for _, loader in ipairs(self.Loaders) do
-			loader(self.Frame, data);
+			loader(self.Frame, ConsolePortRings, ConsolePortRingsShared);
 		end
 	end
 	self.Loaders, self.LoadModules, self.AddLoader = nil;
