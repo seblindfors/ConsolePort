@@ -290,7 +290,7 @@ Secure:Hook(Secure.Remove, 'OnClick', [[
 -- Widget handling
 ---------------------------------------------------------------
 function Secure:QueueRefresh()
-	if self.isDataReady then
+	if env.IsDataReady then
 		db:RunSafe(self.RefreshAll, self)
 	end
 end
