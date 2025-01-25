@@ -93,7 +93,10 @@ function CPCardAddMixin:OnLoad()
 	}) do
 		self.InnerContent[texture]:SwapAtlas(newAtlas)
 	end
-	self.InnerContent.SelectedHighlight:SetAllPoints(self.InnerContent)
+	self.InnerContent.Selected:SetPoint('TOPLEFT', -16, 16)
+	self.InnerContent.Selected:SetPoint('BOTTOMRIGHT', 16, -16)
+	self.InnerContent.SelectedHighlight:SetPoint('TOPLEFT', 16, -16)
+	self.InnerContent.SelectedHighlight:SetPoint('BOTTOMRIGHT', -16, 16)
 	self:SetDisplacedRegions(0, -1, self.AddBackground, self.AddHighlight, self.AddIcon)
 end
 

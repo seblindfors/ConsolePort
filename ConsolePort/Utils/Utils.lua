@@ -229,9 +229,10 @@ do local function UpdateFlags(flag, flags, predicate)
 
 	local function GetMapState(self, inputs, options)
 		local state, option = 0;
+		local flags = getmetatable(self).__index;
 		for flag, predicate in pairs(inputs) do
-			assert(self.Flags[flag], ('Invalid flag: %s'):format(flag))
-			state = self.Flags[flag](state, predicate)
+			assert(flags[flag], ('Invalid flag: %s'):format(flag))
+			state = flags[flag](state, predicate)
 		end
 		option = options[state];
 		return ( option == nil ) and options[1] or option, state;
@@ -253,11 +254,11 @@ do local function UpdateFlags(flag, flags, predicate)
 
 	function CPAPI.CreateFlags(...)
 		local closures = CPAPI.CreateFlagClosures({...});
-		local map = { Flags = closures };
+		local map = {};
 		for flag, closure in pairs(closures) do
 			map[flag] = closure(0, true);
 		end
-		return CPAPI.Callable(map, GetMapState)
+		return CPAPI.Proxy(CPAPI.Callable(map, GetMapState), closures);
 	end
 end
 

@@ -14,8 +14,8 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-## SavedVariables: ConsolePortUtilityShared
-## SavedVariablesPerCharacter: ConsolePortUtility
+## SavedVariables: ConsolePortRingsShared
+## SavedVariablesPerCharacter: ConsolePortRings
 
 Database.lua
 Upgrade.lua

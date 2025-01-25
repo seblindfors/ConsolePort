@@ -1,51 +1,11 @@
 local env, db, Container, L = CPAPI.GetEnv(...); Container, L = env.Frame, env.L;
 ---------------------------------------------------------------
-local Header = { Template = 'CPHeader', Size = CreateVector2D(304, 40) };
----------------------------------------------------------------
-function Header:OnClick()
-	self:OnButtonStateChanged()
-	self:GetElementData():SetCollapsed(self:GetChecked())
-end
-
-function Header:Init(elementData)
-	local data = elementData:GetData()
-	self.Text:SetText(data.text)
-	self:SetSize(self.Size:GetXY())
-	self:SetScript('OnClick', Header.OnClick)
-	RunNextFrame(function()
-		self:SetChecked(elementData:IsCollapsed())
-	end)
-end
-
-function Header:OnAcquire(new)
-	if new then
-		Mixin(self, Header)
-	end
-end
-
-function Header:OnRelease()
-	self:SetChecked(false)
-end
-
-function Header.New(text)
-	return {
-		text     = text;
-		template = Header.Template;
-		factory  = Header.Init;
-		acquire  = Header.OnAcquire;
-		release  = Header.OnRelease;
-		extent   = Header.Size.y;
-	};
-end
-
----------------------------------------------------------------
 local Set = { Template = 'CPRingSetCard', Size = CreateVector2D(292, 95) };
 ---------------------------------------------------------------
 
 function Set:Init(elementData)
 	local info = elementData:GetData()
 	local setID, data = info.setID, info.data;
-	print(GetTime(), 'Set:Init', setID, data)
 
 	local ringName = Container:GetBindingDisplayNameForSetID(setID);
 	local statusText  = WHITE_FONT_COLOR:WrapTextInColorCode(ITEMS_VARIABLE_QUANTITY:format(#data));
@@ -57,6 +17,7 @@ function Set:Init(elementData)
 	self.Icon:SetTexture(icon)
 	self.Binding.Status:SetText(bindingText)
 	self:SetChecked(info.selected)
+	self:SetEnabled(not info.disabled)
 	self:SetSize(self.Size:GetXY())
 end
 
@@ -64,7 +25,7 @@ function Set:OnClick()
 	local elementData = self:GetElementData()
 	local setID = elementData:GetData().setID;
 	self:OnButtonStateChanged()
-	env:TriggerEvent('OnSelectSet', setID, self:GetChecked(), elementData)
+	env:TriggerEvent('OnSelectSet', elementData, setID, self:GetChecked())
 end
 
 function Set:OnAcquire(new)
@@ -78,12 +39,12 @@ function Set:OnRelease()
 	self:SetChecked(false)
 end
 
-function Set.New(setID, data, selected, isShared)
+function Set.New(setID, data, selected, disabled)
 	return {
 		setID    = setID;
 		data     = data;
-		selected = selected;
-		isShared = isShared;
+		selected = not disabled and selected;
+		disabled = disabled;
 		template = Set.Template;
 		factory  = Set.Init;
 		acquire  = Set.OnAcquire;
@@ -118,7 +79,7 @@ function Add:OnClick()
 	local data = elementData:GetData()
 	data.isAdding = not data.isAdding;
 	self:OnButtonStateChanged()
-	env:TriggerEvent('OnAddNew', elementData, data.container)
+	env:TriggerEvent('OnAddNewSet', elementData, data.container, data.isAdding)
 end
 
 function Add.New()
@@ -159,17 +120,17 @@ function Sets:OnLoad()
 		factory(info.template, info.factory)
 	end)
 	scrollView:SetElementStretchDisabled(true)
-	scrollView:RegisterCallback(ScrollBoxListViewMixin.Event.OnAcquiredFrame, self.OnAcquiredFrame, self)
-	scrollView:RegisterCallback(ScrollBoxListViewMixin.Event.OnReleasedFrame, self.OnReleasedFrame, self)
+	scrollView:RegisterCallback(scrollView.Event.OnAcquiredFrame, self.OnAcquiredFrame, self)
+	scrollView:RegisterCallback(scrollView.Event.OnReleasedFrame, self.OnReleasedFrame, self)
 
-	self.playerSets = dataProvider:Insert(Header.New(CPAPI.GetPlayerName(true)))
-	self.sharedSets = dataProvider:Insert(Header.New(MANAGE_ACCOUNT))
+	self.playerSets = dataProvider:Insert(env.SharedConfig.Header.New(CPAPI.GetPlayerName(true)))
+	self.sharedSets = dataProvider:Insert(env.SharedConfig.Header.New(MANAGE_ACCOUNT))
 
 	self.addPlayerSet = Add.New()
 	self.addSharedSet = Add.New()
 
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
-	env:RegisterCallback('OnAddNew', self.OnAddNew, self)
+	env:RegisterCallback('OnAddNewSet', self.OnAddNewSet, self)
 end
 
 function Sets:OnAcquiredFrame(frame, elementData, new)
@@ -192,7 +153,7 @@ function Sets:ForEach(func, excludeCollapsed)
 	self:GetScrollView():ReinitializeFrames()
 end
 
-function Sets:OnAddNew(addElementData, container)
+function Sets:OnAddNewSet(addElementData)
 	self:ForEach(function(elementData)
 		if elementData == addElementData then return end;
 		local data = elementData:GetData();
@@ -201,13 +162,18 @@ function Sets:OnAddNew(addElementData, container)
 	end, false)
 end
 
-function Sets:OnSelectSet(setID, isSelected, setElementData)
+function Sets:OnSelectSet(setElementData, setID, isSelected)
 	self:ForEach(function(elementData)
-		if elementData == setElementData then
-			elementData:GetData().selected = isSelected;
+		local data = elementData:GetData();
+		if setElementData then
+			if elementData == setElementData then
+				data.selected = isSelected;
+				return;
+			end
+		elseif ( setID == data.setID ) then
+			data.selected = isSelected;
 			return;
 		end
-		local data = elementData:GetData();
 		data.selected = nil;
 		data.isAdding = nil;
 	end, false)
@@ -225,7 +191,8 @@ function Sets:SetData(data, sharedData, selectedSetID)
 	self.playerSets:Insert( Divider.New() )
 
 	for setID, set in db.table.spairs(sharedData) do
-		self.sharedSets:Insert( Set.New(setID, set, setID == selectedSetID, true) )
+		-- For shared sets, they should be disabled if they conflict with player sets.
+		self.sharedSets:Insert( Set.New(setID, set, setID == selectedSetID, not not data[setID]) )
 	end
 	self.addSharedSet.container = sharedData;
 	self.sharedSets:Insert( self.addSharedSet )

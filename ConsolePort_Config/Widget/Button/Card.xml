@@ -13,8 +13,8 @@
 
 	<Texture name="CPCardHiliteTexture" inherits="CPAtlas" virtual="true" scale="0.25">
 		<Anchors>
-			<Anchor point="TOPLEFT" x="-24" y="24"/>
-			<Anchor point="BOTTOMRIGHT" x="24" y="-24"/>
+			<Anchor point="TOPLEFT" x="-12" y="12"/>
+			<Anchor point="BOTTOMRIGHT" x="12" y="-12"/>
 		</Anchors>
 		<KeyValues>
 			<KeyValue key="sliceMode" type="number" value="0"/>

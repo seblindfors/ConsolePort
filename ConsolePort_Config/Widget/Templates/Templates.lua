@@ -61,9 +61,15 @@ function CPTabGroupMixin:AddTab(text, data, controlCallback)
 end
 
 function CPTabGroupMixin:AddTabs(tabs)
-	for _, tab in ipairs(tabs) do
-		self:AddTab(tab.text, tab.data, tab.func)
+	local buttons = {};
+	for i, tab in ipairs(tabs) do
+		buttons[i] = self:AddTab(tab.text, tab.data, tab.func)
 	end
+	return buttons;
+end
+
+function CPTabGroupMixin:SetEnabled(index, enabled)
+	return self:GetAtIndex(index):SetEnabled(enabled)
 end
 
 ---------------------------------------------------------------

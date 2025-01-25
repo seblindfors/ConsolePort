@@ -15,4 +15,8 @@ env:AddLoader(function()
 			db('Settings/'..newVariable, oldValue);
 		end
 	end
+
+	if ConsolePortUtility then
+		ConsolePortRings = ConsolePortUtility;
+	end
 end)

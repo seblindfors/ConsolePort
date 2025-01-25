@@ -1,6 +1,8 @@
 <Ui>
 	<Script file="Config.lua"/>
 	<Include file="Sets.xml"/>
+	<Include file="Display.xml"/>
+	<Include file="Loadout.xml"/>
 
 	<Frame name="CPRingsConfig" virtual="true" inherits="CPPopupPanelTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="HIGH">
 		<Size x="1060" y="766"/>
@@ -16,8 +18,18 @@
 				<Anchors>
 					<Anchor point="BOTTOMLEFT" x="14" y="34"/>
 				</Anchors>
+				<ScrollChild>
+					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame" frameLevel="10">
+					</Frame>
+				</ScrollChild>
 			</ScrollFrame>
-			<Frame parentKey="Sets" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate">
+			<Frame parentKey="Sets" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate" hidden="true">
+				<Size x="320" y="680"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="Loadout" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate" hidden="true">
 				<Size x="320" y="680"/>
 				<Anchors>
 					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
@@ -26,7 +38,7 @@
 			<EditBox parentKey="Search" inherits="SearchBoxTemplate">
 				<Size x="280" y="24"/>
 				<Anchors>
-					<Anchor point="BOTTOM" relativeKey="$parent.Sets" relativePoint="TOP" x="0" y="8"/>
+					<Anchor point="BOTTOM" relativeKey="$parent.Loadout" relativePoint="TOP" x="0" y="8"/>
 				</Anchors>
 			</EditBox>
 			<Frame parentKey="Tabs" inherits="CPTabGroupTemplate" scale="1.2">

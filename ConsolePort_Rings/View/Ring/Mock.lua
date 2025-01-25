@@ -2,9 +2,8 @@ local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local TypeMetaMap = env.ActionButton:GetTypeMetaMap()
 ---------------------------------------------------------------
-local MockButton = CreateFromMixins(env.DisplayButton)
+local MockButton = {}; env.MockButton = MockButton;
 ---------------------------------------------------------------
-
 function MockButton:SetData(data)
 	-- Coerce LAB into displaying the information we want
 	local kind, action = env:GetKindAndAction(data)
@@ -15,13 +14,19 @@ function MockButton:SetData(data)
 	self._state_action = self.state_actions[state];
 	self:UpdateConfig(env.LABConfig)
 	self:ButtonContentsChanged(state, self._state_type, self._state_action)
-	self:Skin()
+end
+
+---------------------------------------------------------------
+local MockRingButton = CreateFromMixins(env.DisplayButton, MockButton)
+---------------------------------------------------------------
+function MockRingButton:SetData(data)
+	MockButton.SetData(self, data)
 	RunNextFrame(function()
 		self:GetParent():SetSliceText(self:GetID(), self:GetActiveText())
 	end)
 end
 
-function MockButton:OnLoad()
+function MockRingButton:OnLoad()
 	env.DisplayButton.OnLoad(self)
 	self:SetSize(64, 64)
 	self:SetAttribute('state', 0)
@@ -34,7 +39,7 @@ end
 local MockRing = CreateFromMixins(db.Radial.CalcMixin)
 ---------------------------------------------------------------
 function MockRing:OnLoad()
-	self:CreateFramePool('ActionButtonTemplate', MockButton)
+	self:CreateFramePool('ActionButtonTemplate', MockRingButton)
 	self.ActiveSlice:Hide()
 end
 

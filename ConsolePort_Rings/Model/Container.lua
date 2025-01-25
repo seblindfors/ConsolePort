@@ -4,14 +4,17 @@ local DEFAULT_SET = CPAPI.DefaultRingSetID;
 local DEFAULT_BTN = env.Attributes.DefaultSetBtn;
 local BINDING_FMT = ('CLICK %s:%s'):format(Container:GetName(), '%s');
 ---------------------------------------------------------------
-Container.Data = { [DEFAULT_SET] = {} }; env.BindingFormat = BINDING_FMT;
+Container.Data, Container.Shared = { [DEFAULT_SET] = {} }, {};
+env.BindingFormat = BINDING_FMT;
 ---------------------------------------------------------------
 db:Register('Rings', Container)
-db:Save('Rings/Data', 'ConsolePortUtility')
+db:Save('Rings/Data', 'ConsolePortRings')
+db:Save('Rings/Shared', 'ConsolePortRingsShared')
 
 function Container:OnDataLoaded()
-	db:Load('Rings/Data', 'ConsolePortUtility')
-	env:LoadModules(self.Data)
+	env:LoadModules()
+	db:Load('Rings/Data', 'ConsolePortRings')
+	db:Load('Rings/Shared', 'ConsolePortRingsShared')
 end
 
 ---------------------------------------------------------------

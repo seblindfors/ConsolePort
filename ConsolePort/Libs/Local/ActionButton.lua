@@ -349,6 +349,90 @@ do Lib.Skin.UtilityRingButton = function(self)
 end;
 end -- Lib.Skin.UtilityRingButton
 
+do -- Lib.Skin.SlotButton
+	local UpdateLocal;
+	local function MakeSkin()
+		if not CPAPI.IsRetailVersion then
+			local TextureInfo = {
+				NormalTexture = {
+					atlas = 'UI-HUD-ActionBar-IconFrame-AddRow';
+					size  = {52, 51};
+				};
+				PushedTexture = {
+					atlas = 'UI-HUD-ActionBar-IconFrame-AddRow-Down';
+					size  = {52, 51};
+				};
+				HighlightTexture = {
+					atlas = 'UI-HUD-ActionBar-IconFrame-Mouseover';
+					size  = {46, 45};
+				};
+				CheckedTexture = {
+					atlas = 'UI-HUD-ActionBar-IconFrame-Mouseover';
+					size  = {46, 45};
+				};
+			};
+			function UpdateLocal(self)
+				if self.MasqueSkinned then return end;
+				if self.config.hideElements.border then
+					self.NormalTexture:SetTexture()
+					self.PushedTexture:SetTexture()
+					self.icon:RemoveMaskTexture(self.IconMask)
+					self.HighlightTexture:SetSize(52, 51)
+					self.HighlightTexture:SetPoint('TOPLEFT', self, 'TOPLEFT', -2.5, 2.5)
+					self.CheckedTexture:SetSize(52, 51)
+					self.CheckedTexture:SetPoint('TOPLEFT', self, 'TOPLEFT', -2.5, 2.5)
+					self.cooldown:ClearAllPoints()
+					self.cooldown:SetAllPoints()
+				else
+					for key, info in pairs(TextureInfo) do
+						local texture = self[key];
+						CPAPI.SetAtlas(texture, info.atlas)
+						texture:SetSize(unpack(info.size))
+						texture:ClearAllPoints()
+						texture:SetPoint('TOPLEFT', 0, 0)
+					end
+					self.icon:SetAllPoints()
+					self.cooldown:ClearAllPoints()
+					self.cooldown:SetPoint('TOPLEFT', self, 'TOPLEFT', 3, -2)
+					self.cooldown:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -3, 3)
+				end
+				local width = self:GetWidth();
+				self.Name:SetWidth(width)
+			end
+		else
+			function UpdateLocal(self)
+				if self.MasqueSkinned then return end;
+				local width = self:GetWidth();
+				self.Name:SetWidth(width)
+			end
+		end
+		MakeSkin = nil;
+		return UpdateLocal;
+	end
+
+	Lib.Skin.SlotButton = function(self)
+		self.UpdateLocal = UpdateLocal or MakeSkin()
+		if not CPAPI.IsRetailVersion then
+			-- Assert assets on all client flavors
+			local skinner = Lib.SkinUtility;
+			skinner.GetIconMask(self)
+			skinner.GetHighlightTexture(self)
+			skinner.GetCheckedTexture(self)
+			skinner.GetPushedTexture(self)
+			skinner.GetCheckedTexture(self)
+			skinner.GetSlotBackground(self)
+			self:SetSize(45, 45)
+			self.IconMask:SetPoint('CENTER', self.icon, 'CENTER', 0, 0)
+			self.IconMask:SetSize(46, 46)
+			self.IconMask:SetTexture(
+				CPAPI.GetAsset([[Textures\Button\EmptyIcon]]),
+				'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE'
+			);
+		end
+		self:UpdateLocal()
+	end;
+end -- Lib.Skin.SlotButton
+
 ---------------------------------------------------------------
 Lib.TypeMetaMap = {};
 ---------------------------------------------------------------

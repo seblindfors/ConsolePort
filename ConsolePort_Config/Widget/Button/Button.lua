@@ -40,7 +40,7 @@ CPHeader = CreateFromMixins(CPStateButtonMixin); do
 			color = DISABLED_FONT_COLOR;
 		};
 		[Flags.Down + Flags.Collapsed] = {
-			atlas = 'glues-characterselect-icon-plus-pressed';
+			atlas = 'glues-characterselect-plus-pressed';
 			color = HIGHLIGHT_FONT_COLOR;
 		};
 		[Flags.Over + Flags.Collapsed] = {
