@@ -105,6 +105,10 @@
 		</Frames>
 	</CheckButton>
 
+	<CheckButton name="CPCardSmallTemplate" virtual="true" mixin="CPCardSmallMixin" inherits="CPCardBaseTemplate">
+		<Size x="340" y="48"/>
+	</CheckButton>
+
 	<CheckButton name="CPCardIconTemplate" virtual="true" mixin="CPCardIconMixin" inherits="CPCardBaseTemplate">
 		<Layers>
 			<Layer level="OVERLAY">
@@ -135,6 +139,7 @@
 		</Layers>
 	</CheckButton>
 
+	<!-- TODO: remove if not used -->
 	<CheckButton name="CPCardDragTemplate" mixin="CPCardDragMixin" virtual="true" inherits="CPCardCodeTemplate">
 		<Size x="347" y="95"/>
 		<Frames>

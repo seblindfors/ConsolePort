@@ -34,6 +34,9 @@
 				<Anchors>
 					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
 				</Anchors>
+				<KeyValues>
+					<KeyValue key="spacing" value="4" type="number"/>
+				</KeyValues>
 			</Frame>
 			<EditBox parentKey="Search" inherits="SearchBoxTemplate">
 				<Size x="280" y="24"/>

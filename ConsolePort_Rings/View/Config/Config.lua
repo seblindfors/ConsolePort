@@ -5,7 +5,7 @@ local Header = { Template = 'CPHeader', Size = CreateVector2D(304, 40) };
 
 function Header:OnClick()
 	self:OnButtonStateChanged()
-	self:GetElementData():SetCollapsed(self:GetChecked())
+	self:Synchronize(self:GetElementData(), self:GetChecked())
 end
 
 function Header:Init(elementData)
@@ -13,9 +13,20 @@ function Header:Init(elementData)
 	self.Text:SetText(data.text)
 	self:SetSize(self.Size:GetXY())
 	self:SetScript('OnClick', Header.OnClick)
-	RunNextFrame(function()
-		self:SetChecked(elementData:IsCollapsed())
-	end)
+	self:Synchronize(elementData)
+end
+
+function Header:Synchronize(elementData, newstate)
+	local data = elementData:GetData()
+	local collapsed;
+	if ( newstate == nil ) then
+		collapsed = data.collapsed;
+	else
+		collapsed = newstate;
+	end
+	self:SetChecked(collapsed)
+	data.collapsed = collapsed;
+	elementData:SetCollapsed(collapsed)
 end
 
 function Header:OnAcquire(new)
@@ -28,15 +39,69 @@ function Header:OnRelease()
 	self:SetChecked(false)
 end
 
-function Header.New(text)
+function Header.New(text, collapsed)
 	return {
-		text     = text;
-		template = Header.Template;
-		factory  = Header.Init;
-		acquire  = Header.OnAcquire;
-		release  = Header.OnRelease;
-		extent   = Header.Size.y;
+		text      = text;
+		collapsed = collapsed;
+		template  = Header.Template;
+		factory   = Header.Init;
+		acquire   = Header.OnAcquire;
+		release   = Header.OnRelease;
+		extent    = Header.Size.y;
 	};
+end
+
+---------------------------------------------------------------
+local Search = {};
+---------------------------------------------------------------
+
+function Search:OnLoad()
+	self:SetScript('OnTextChanged', Search.OnTextChanged)
+	self:SetScript('OnEnterPressed', Search.OnEnterPressed)
+	env:RegisterCallback('OnTabSelected', self.OnTabSelected, self)
+end
+
+function Search:Debounce()
+	self:Cancel()
+	self.timer = C_Timer.NewTimer(0.5, function()
+		local text = self:GetText()
+		if text:len() >= MIN_CHARACTER_SEARCH then
+			env:TriggerEvent('OnSearch', text)
+		end
+	end)
+end
+
+function Search:Cancel(dispatch)
+	if self.timer then
+		self.timer:Cancel()
+		self.timer = nil;
+		if dispatch then
+			env:TriggerEvent('OnSearch', nil)
+		end
+	end
+end
+
+function Search:OnEnterPressed()
+	EditBox_ClearFocus(self)
+	if self.timer then
+		self.timer:Invoke()
+		self.timer:Cancel()
+		self.timer = nil;
+	end
+end
+
+function Search:OnTextChanged(userInput)
+	SearchBoxTemplate_OnTextChanged(self)
+	local text = self:GetText()
+	if not userInput or text:len() < MIN_CHARACTER_SEARCH then
+		return self:Cancel(true)
+	end
+	self:Debounce()
+end
+
+function Search:OnTabSelected(tabIndex, panels)
+	self:SetText('')
+	self:SetEnabled(tabIndex == panels.Loadout)
 end
 
 ---------------------------------------------------------------
@@ -46,10 +111,10 @@ local Config = {}; env.SharedConfig = { Header = Header };
 function Config:OnLoad()
 	self.DefaultTitle = L'Ring Manager';
 
-	Container.Config = self; -- debug
 	FrameUtil.SpecializeFrameWithMixins(self.Display, env.SharedConfig.Display)
 	FrameUtil.SpecializeFrameWithMixins(self.Sets, env.SharedConfig.Sets)
 	FrameUtil.SpecializeFrameWithMixins(self.Loadout, env.SharedConfig.Loadout)
+	FrameUtil.SpecializeFrameWithMixins(self.Search, Search)
 
 	self.Panels = EnumUtil.MakeEnum('Rings', 'Loadout', 'Options');
 	self.Tabs:AddTabs({
@@ -105,6 +170,6 @@ end, env)
 
 
 
-function cfg()
+function cfg() -- debug
 	env:TriggerEvent('ToggleConfig', 1)
 end

@@ -22,12 +22,18 @@
 	<Frame name="CPScrollBox" virtual="true" mixin="CPScrollBox">
 		<Frames>
 			<Frame parentKey="ScrollBox" inherits="WowScrollBoxList">
+				<KeyValues>
+					<KeyValue key="canInterpolateScroll" value="true" type="boolean"/>
+				</KeyValues>
 				<Anchors>
 					<Anchor point="TOPLEFT" x="0" y="-0"/>
 					<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
 				</Anchors>
 			</Frame>
 			<EventFrame parentKey="ScrollBar" inherits="MinimalScrollBar">
+				<KeyValues>
+					<KeyValue key="canInterpolateScroll" value="true" type="boolean"/>
+				</KeyValues>
 				<Anchors>
 					<Anchor point="TOPLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="0" y="0"/>
 					<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="BOTTOMRIGHT" x="0" y="0"/>

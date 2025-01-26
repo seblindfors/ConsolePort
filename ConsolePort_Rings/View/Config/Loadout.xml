@@ -1,3 +1,42 @@
 <Ui>
 	<Script file="Loadout.lua"/>
+
+	<CheckButton name="CPRingLoadoutCard" virtual="true" inherits="CPCardSmallTemplate">
+		<Size x="290" y="48"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="5">
+				<Texture parentKey="Icon" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon">
+					<Size x="36" y="36"/>
+					<Anchors>
+						<Anchor point="LEFT" x="8"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="6">
+				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="IconMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="GameFontHighlight" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="8" y="0"/>
+						<Anchor point="RIGHT" x="-4" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
 </Ui>

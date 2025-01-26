@@ -239,6 +239,7 @@ CPAPI.GetNumSpellTabs                = C_SpellBook     and C_SpellBook.GetNumSpe
 CPAPI.GetQuestLogIndexForQuestID     = C_QuestLog      and C_QuestLog.GetLogIndexForQuestID              or nop;
 CPAPI.GetRenownLevels                = C_MajorFactions and C_MajorFactions.GetRenownLevels               or nop;
 CPAPI.GetSpellBookItemLink           = C_SpellBook     and C_SpellBook.GetSpellBookItemLink              or GetSpellLink;
+CPAPI.GetSpellBookItemName           = C_SpellBook     and C_SpellBook.GetSpellBookItemName              or GetSpellBookItemName;
 CPAPI.GetSpellBookItemTexture        = C_SpellBook     and C_SpellBook.GetSpellBookItemTexture           or GetSpellBookItemTexture;
 CPAPI.GetSpellBookItemType           = C_SpellBook     and C_SpellBook.GetSpellBookItemType              or GetSpellBookItemInfo;
 CPAPI.GetSpellLink                   = C_Spell         and C_Spell.GetSpellLink                          or GetSpellLink;
@@ -332,6 +333,23 @@ CPAPI.GetItemInfo = function(...)
 	};
 end
 
+CPAPI.GetItemInfoInstant = function(...)
+	if GetItemInfoInstant then
+		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(...)
+		return {
+			--[[ ItemInfo ]]
+			--[[ number           ]] itemID = itemID;
+			--[[ ItemType         ]] itemType = itemType;
+			--[[ ItemType         ]] itemSubType = itemSubType;
+			--[[ ItemEquipLoc     ]] itemEquipLoc = itemEquipLoc;
+			--[[ FileID           ]] icon = icon;
+			--[[ ItemType         ]] classID = classID;
+			--[[ ItemType         ]] subclassID = subclassID;
+		};
+	end
+	return {};
+end
+
 CPAPI.GetSpellInfo = function(...)
 	if GetSpellInfo then
 		local name, rank, icon, castTime, minRange, maxRange, spellID, originalIcon = GetSpellInfo(...)
@@ -368,21 +386,29 @@ CPAPI.GetSpellTabInfo = function(...)
 	return C_SpellBook.GetSpellBookSkillLineInfo(...) or {};
 end
 
-CPAPI.GetItemInfoInstant = function(...)
-	if GetItemInfoInstant then
-		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(...)
+CPAPI.GetSpellBookItemInfo = function(...)
+	if GetSpellBookItemInfo then
+		local itemType, id = GetSpellBookItemInfo(...)
+		local iconID = GetSpellBookItemTexture(...)
+		local name = GetSpellBookItemName(...)
+		local isPassive = IsPassiveSpell(...)
+		local spellID;
+		if (itemType == 'SPELL' or itemType == 'FUTURESPELL') then
+			spellID = select(7, GetSpellInfo(...))
+		elseif (itemType == 'PETACTION') then
+			spellID = bit.band(0xFFFFFF, id)
+		end
 		return {
-			--[[ ItemInfo ]]
-			--[[ number           ]] itemID = itemID;
-			--[[ ItemType         ]] itemType = itemType;
-			--[[ ItemType         ]] itemSubType = itemSubType;
-			--[[ ItemEquipLoc     ]] itemEquipLoc = itemEquipLoc;
-			--[[ FileID           ]] icon = icon;
-			--[[ ItemType         ]] classID = classID;
-			--[[ ItemType         ]] subclassID = subclassID;
-		};
+			--[[ SpellBookItemInfo  ]]
+			--[[ Enum.SpellBookType ]] itemType = itemType;
+			--[[ number             ]] actionID = spellID or id;
+			--[[ number             ]] spellID = spellID;
+			--[[ string             ]] name = name;
+			--[[ FileID             ]] iconID = iconID;
+			--[[ boolean            ]] isPassive = isPassive;
+		}
 	end
-	return {};
+	return C_SpellBook.GetSpellBookItemInfo(...) or {};
 end
 
 CPAPI.GetLootSlotInfo = function(...)

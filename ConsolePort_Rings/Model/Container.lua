@@ -61,14 +61,14 @@ end
 
 function Container:AddSavedVar(setID, idx, info)
 	setID = setID or DEFAULT_SET;
-	local set = self.Data[setID];
+	local set = env:GetSet(setID, true)
 	local maxIndex = #set + 1;
 	idx = Clamp(idx or maxIndex, 1, maxIndex)
 	tinsert(set, idx, info)
 end
 
 function Container:RemoveSavedVar(setID, idx)
-	return tremove(self.Data[setID], idx)
+	return tremove(env:GetSet(setID, true), idx)
 end
 
 function Container:AddAction(setID, idx, info)
@@ -107,7 +107,7 @@ end
 -- Metadata
 ---------------------------------------------------------------
 function Container:GetMetadata(setID)
-	local set = rawget(self.Data, self:GetSetID(setID));
+	local set = rawget(env:GetSet(setID, true), self:GetSetID(setID));
 	return set and set[env.Attributes.MetadataIndex] or nil;
 end
 
@@ -160,8 +160,15 @@ function Container:ClearActionByKey(setID, key)
 	end
 end
 
+function Container:ClearActionByCompare(setID, info)
+	local index = self:SearchActionByCompare(setID, info)
+	if index then
+		return self:RemoveAction(setID, index)
+	end
+end
+
 function Container:SearchActionByAttribute(setID, key, value)
-	local set = self.Data[setID];
+	local set = env:GetSet(setID, true)
 	for i, action in ipairs(set) do
 		for attribute, content in pairs(action) do
 			if (attribute == key and content == value) then
@@ -172,7 +179,7 @@ function Container:SearchActionByAttribute(setID, key, value)
 end
 
 function Container:SearchActionByKey(setID, key)
-	local set = self.Data[setID];
+	local set = env:GetSet(setID, true)
 	for i, action in ipairs(set) do
 		for attribute in pairs(action) do
 			if (attribute == key) then
@@ -182,14 +189,17 @@ function Container:SearchActionByKey(setID, key)
 	end
 end
 
-function Container:IsUniqueAction(setID, info)
-	local set = self.Data[setID];
+function Container:SearchActionByCompare(setID, info)
+	local set = env:GetSet(setID, true)
 	local cmp = db.table.compare;
-	-- check if already existing on ring
 	for i, action in ipairs(set) do
 		if cmp(action, info) then
-			return false, i;
+			return i, set;
 		end
 	end
-	return true;
+end
+
+function Container:IsUniqueAction(setID, info)
+	local i, set = self:SearchActionByCompare(setID, info)
+	return not i, i, set;
 end

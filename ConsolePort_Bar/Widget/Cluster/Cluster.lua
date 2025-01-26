@@ -452,6 +452,7 @@ function Button:UpdateLocal(force)
 end
 
 function Button:UpdateSkin()
+	self.UpdateLocal = Button.UpdateLocal;
 	self.Skin = env.LIB.Skin.ClusterBar[self.mod] or nop; -- Skins.lua
 	self:Skin(true)
 end

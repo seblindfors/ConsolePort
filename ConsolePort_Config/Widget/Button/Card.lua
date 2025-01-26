@@ -62,6 +62,19 @@ function CPCardBaseMixin:OnButtonStateChanged()
 end
 
 ---------------------------------------------------------------
+CPCardSmallMixin = CreateFromMixins(CPCardBaseMixin);
+---------------------------------------------------------------
+
+function CPCardSmallMixin:OnLoad()
+	CPCardBaseMixin.OnLoad(self)
+	for _, region in ipairs({self.InnerContent:GetRegions()}) do
+		if ( region.sliceMode ) then
+			region:SetScale(.25)
+		end
+	end
+end
+
+---------------------------------------------------------------
 CPCardIconMixin = CreateFromMixins(CPCardBaseMixin); do
 ---------------------------------------------------------------
 	local Flags = CPCardBaseMixin.Flags;

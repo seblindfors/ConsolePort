@@ -298,7 +298,7 @@ end
 function Secure:RefreshAll()
 	self:ClearAllActions()
 	local numButtons = 0;
-	for setID, set in pairs(env:ValidateData(self.Data)) do
+	for setID, set in pairs(env:GetData()) do
 		self:AddSecureMetadata(setID, set[env.Attributes.MetadataIndex])
 		for i, action in ipairs(set) do
 			self:AddSecureAction(setID, i, action)

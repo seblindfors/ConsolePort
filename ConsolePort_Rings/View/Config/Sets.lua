@@ -110,7 +110,7 @@ local Sets = {}; env.SharedConfig.Sets = Sets;
 ---------------------------------------------------------------
 
 function Sets:OnLoad()
-	local scrollView, dataProvider = self:GetScrollView(), self:GetDataProvider()
+	local scrollView, dataProvider = self:Init()
 	scrollView:SetElementExtentCalculator(function(_, elementData)
 		local info = elementData:GetData()
 		return info.extent;
@@ -120,8 +120,6 @@ function Sets:OnLoad()
 		factory(info.template, info.factory)
 	end)
 	scrollView:SetElementStretchDisabled(true)
-	scrollView:RegisterCallback(scrollView.Event.OnAcquiredFrame, self.OnAcquiredFrame, self)
-	scrollView:RegisterCallback(scrollView.Event.OnReleasedFrame, self.OnReleasedFrame, self)
 
 	self.playerSets = dataProvider:Insert(env.SharedConfig.Header.New(CPAPI.GetPlayerName(true)))
 	self.sharedSets = dataProvider:Insert(env.SharedConfig.Header.New(MANAGE_ACCOUNT))
@@ -131,20 +129,6 @@ function Sets:OnLoad()
 
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
 	env:RegisterCallback('OnAddNewSet', self.OnAddNewSet, self)
-end
-
-function Sets:OnAcquiredFrame(frame, elementData, new)
-	local info = elementData:GetData()
-	if info.acquire then
-		info.acquire(frame, new)
-	end
-end
-
-function Sets:OnReleasedFrame(frame, elementData)
-	local info = elementData:GetData()
-	if info.release then
-		info.release(frame)
-	end
 end
 
 function Sets:ForEach(func, excludeCollapsed)

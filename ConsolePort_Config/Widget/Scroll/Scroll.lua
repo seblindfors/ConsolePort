@@ -1,4 +1,3 @@
-
 --------------------------------------------------------------
 CPScrollBox = {};
 ---------------------------------------------------------------
@@ -44,6 +43,10 @@ function CPScrollBox:UpdateScrollBar()
 	self.ScrollBar:Update()
 end
 
+function CPScrollBox:Init()
+	return self:GetScrollView(), self:GetDataProvider();
+end
+
 ---------------------------------------------------------------
 CPScrollBoxTree = CreateFromMixins(CPScrollBox);
 ---------------------------------------------------------------
@@ -61,4 +64,25 @@ function CPScrollBoxTree:CreateScrollView()
 		self.paddingRight or 12,
 		self.spacing or 8
 	);
+end
+
+function CPScrollBoxTree:Init()
+	local scrollView, dataProvider = CPScrollBox.Init(self);
+	scrollView:RegisterCallback(scrollView.Event.OnAcquiredFrame, self.OnAcquiredFrame, self)
+	scrollView:RegisterCallback(scrollView.Event.OnReleasedFrame, self.OnReleasedFrame, self)
+	return scrollView, dataProvider;
+end
+
+function CPScrollBoxTree:OnAcquiredFrame(frame, elementData, new)
+	local info = elementData:GetData()
+	if info.acquire then
+		info.acquire(frame, new)
+	end
+end
+
+function CPScrollBoxTree:OnReleasedFrame(frame, elementData)
+	local info = elementData:GetData()
+	if info.release then
+		info.release(frame)
+	end
 end

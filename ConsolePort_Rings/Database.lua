@@ -68,16 +68,22 @@ env.IsSpellValidationReady = false;
 ---------------------------------------------------------------
 -- Ring data
 ---------------------------------------------------------------
-function env:GetData()
+function env:GetData(skipValidation)
+	if skipValidation then
+		return self.Frame.Data;
+	end
 	return self:ValidateData(self.Frame.Data);
 end
 
-function env:GetShared()
+function env:GetShared(skipValidation)
+	if skipValidation then
+		return self.Frame.Shared;
+	end
 	return self:ValidateData(self.Frame.Shared);
 end
 
-function env:GetSet(setID)
-	return self:GetData()[setID] or self:GetShared()[setID];
+function env:GetSet(setID, skipValidation)
+	return self:GetData(skipValidation)[setID] or self:GetShared(skipValidation)[setID];
 end
 
 ---------------------------------------------------------------

@@ -17,6 +17,7 @@ function Display:OnLoad()
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
 	env:RegisterCallback('OnAddNewSet', self.OnAddNewSet, self)
 	env:RegisterCallback('OnTabSelected', self.OnTabSelected, self)
+	env:RegisterCallback('OnSetChanged', self.OnSetChanged, self)
 end
 
 function Display:OnSelectSet(elementData, setID, isSelected)
@@ -36,5 +37,11 @@ function Display:OnTabSelected(tabIndex, panels)
 		return self.Ring:Hide()
 	elseif self.currentSetID then
 		self:OnSelectSet(nil, self.currentSetID, true)
+	end
+end
+
+function Display:OnSetChanged(setID)
+	if ( setID == self.currentSetID ) then
+		self.Ring:Mock(env:GetSet(setID))
 	end
 end
