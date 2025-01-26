@@ -284,25 +284,11 @@ end
 ---------------------------------------------------------------
 -- Collections
 ---------------------------------------------------------------
-function LoadoutInfo:AddCollection(collection, configuration)
-	local collections = self.Collections;
-	collections[#collections + 1] = configuration;
-	configuration.items = collection;
-	return configuration, collections;
-end
-
-function LoadoutInfo:RefreshCollections()
-	self.Collections = self.Collections and wipe(self.Collections) or {};
-
-	local BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
-	local BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
-	local SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
-	local SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
-	local SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
-
-	-- Spells
-	do  local spellBook, flyouts, flyoutNames = {}, {}, {};
-
+LoadoutInfo.Collectors = {
+	-----------------------------------------------------------
+	SpellBook = function(flatten, BOOKTYPE_SPELL, SKILLTYPE_SPELL, SKILLTYPE_FLYOUT)
+	-----------------------------------------------------------
+		local spellBook, flyouts, flyoutNames = {}, {}, {};
 		for tab=1, CPAPI.GetNumSpellTabs() do
 			local spellTabInfo = CPAPI.GetSpellTabInfo(tab)
 			-- NOTE: this means it's an active spell tab, lmao
@@ -318,7 +304,9 @@ function LoadoutInfo:RefreshCollections()
 						if (skillType == SKILLTYPE_SPELL) then
 							spells[#spells + 1] = i;
 						elseif (skillType == SKILLTYPE_FLYOUT) then
-							spells[#spells + 1] = i;
+							if not flatten then
+								spells[#spells + 1] = i;
+							end
 
 							local name, _, numFlyoutSlots = GetFlyoutInfo(typeID)
 							local flyout, flyoutID = {}, #flyouts + 1;
@@ -333,8 +321,11 @@ function LoadoutInfo:RefreshCollections()
 				spells.tabName = spellTabInfo.name;
 			end
 		end
-
-		-- Pet spells
+		return spellBook, flyouts, flyoutNames;
+	end;
+	-----------------------------------------------------------
+	PetSpells = function(BOOKTYPE_PET, SKILLTYPE_PET)
+	-----------------------------------------------------------
 		local pet, numPetSpells = {}, CPAPI.HasPetSpells()
 		if numPetSpells then
 			for i=1, numPetSpells do
@@ -344,46 +335,12 @@ function LoadoutInfo:RefreshCollections()
 				end
 			end
 		end
-
-		for _, spells in ipairs(spellBook) do
-			local name = spells.tabName;
-			spells.tabName = nil;
-
-			self:AddCollection(spells, {
-				name    = name;
-				match   = C_ActionBar.FindSpellActionButtons;
-				pickup  = function(id) CPAPI.PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
-				tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
-				texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
-			})
-		end
-
-		if next(flyouts) then
-			for i, flyout in ipairs(flyouts) do
-				local name = flyoutNames[i];
-				self:AddCollection(flyout, {
-					name    = name;
-					match   = C_ActionBar.FindSpellActionButtons;
-					pickup  = CPAPI.PickupSpell;
-					tooltip = GameTooltip.SetSpellByID;
-					texture = CPAPI.GetSpellTexture;
-				})
-			end
-		end
-
-		if next(pet) then
-			self:AddCollection(pet, {
-				name    = PET;
-				match   = C_ActionBar.FindPetActionButtons;
-				pickup  = function(id) CPAPI.PickupSpellBookItem(id, BOOKTYPE_PET) end;
-				tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_PET) end;
-				texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_PET) end;
-			})
-		end
-	end
-
-	-- Bags
-	do  local items, omit = {}, {};
+		return pet;
+	end;
+	-----------------------------------------------------------
+	Bags = function(NUM_BAG_SLOTS)
+	-----------------------------------------------------------
+		local items, omit = {}, {};
 		for bag=0, NUM_BAG_SLOTS do
 			for slot=1, CPAPI.GetContainerNumSlots(bag) do
 				local itemID = CPAPI.GetContainerItemInfo(bag, slot).itemID;
@@ -393,87 +350,44 @@ function LoadoutInfo:RefreshCollections()
 				end
 			end
 		end
-
-		if next(items) then
-			self:AddCollection(items, {
-				name    = ITEMS;
-				pickup  = CPAPI.PickupContainerItem;
-				tooltip = GameTooltip.SetBagItem;
-				texture = function(...) return CPAPI.GetContainerItemInfo(...).iconFileID end;
-			})
-		end
-	end
-
-	-- Mounts
-	if C_MountJournal and C_MountJournal.GetNumDisplayedMounts then
+		return items;
+	end;
+	-----------------------------------------------------------
+	Mounts = C_MountJournal and C_MountJournal.GetNumDisplayedMounts and (function()
+	-----------------------------------------------------------
 		local mounts = {};
 		for i=1, C_MountJournal.GetNumDisplayedMounts() do
 			if (select(11, C_MountJournal.GetDisplayedMountInfo(i))) then -- isCollected
 				mounts[#mounts+1] = i;
 			end
 		end
-
-		local ConvertHalfAssedCompanionAPI = not CPAPI.IsRetailVersion and function(...)
-			return self.SecureHandlerMap.spell(nil, nil, C_MountJournal.GetDisplayedMountInfo(...))
-		end;
-
-		if next(mounts) then
-			self:AddCollection(mounts, {
-				name    = MOUNTS;
-				match   = C_ActionBar.FindSpellActionButtons;
-				pickup  = CPAPI.IsRetailVersion and C_MountJournal.Pickup;
-				append  = ConvertHalfAssedCompanionAPI;
-				tooltip = function(self, id) GameTooltip.SetSpellByID(self, (select(2, C_MountJournal.GetDisplayedMountInfo(id)))) end;
-				texture = function(id) return (select(3, C_MountJournal.GetDisplayedMountInfo(id))) end;
-			})
-		end
-	elseif GetNumCompanions and GetNumCompanions('MOUNT') > 0 then
-		local mounts = {};
-		for i=1, GetNumCompanions('MOUNT') do
-			mounts[#mounts+1] = i;
-		end
-		if next(mounts) then
-			local getMountSpellID = function(id)
-				return (select(3, GetCompanionInfo('MOUNT', id)))
+		return mounts, true;
+	end) or (function(COMPANION_MOUNT)
+		if GetNumCompanions and GetNumCompanions(COMPANION_MOUNT) > 0 then
+			local mounts = {};
+			for i=1, GetNumCompanions(COMPANION_MOUNT) do
+				mounts[#mounts+1] = i;
 			end
-
-			self:AddCollection(mounts, {
-				name    = MOUNTS;
-				pickup  = function(id) return CPAPI.PickupSpell(getMountSpellID(id)) end;
-				tooltip = function(self, id) GameTooltip.SetSpellByID(self, getMountSpellID(id)) end;
-				texture = function(id) return (select(4, GetCompanionInfo('MOUNT', id))) end;
-			})
+			return mounts, false;
 		end
-	end
-
-	-- Macros
-	do  local macros, numMacros, numCharMacros = {}, GetNumMacros()
+	end);
+	-----------------------------------------------------------
+	Macros = function()
+	-----------------------------------------------------------
+		local macros, numMacros, numCharMacros = {{}, {}}, GetNumMacros()
+		-- Character macros
 		for i=MAX_ACCOUNT_MACROS + 1, MAX_ACCOUNT_MACROS + numCharMacros do
-			macros[#macros+1] = i;
+			macros[1][#macros[1]+1] = i;
 		end
+		-- Account macros
 		for i=1, numMacros do
-			macros[#macros+1] = i;
+			macros[2][#macros[2]+1] = i;
 		end
-
-		if next(macros) then
-			local tooltipFunc = function(self, id)
-				local name, texture, text = GetMacroInfo(id)
-				self:SetText(('%s'):format(name:trim():len()>0 and name or NOT_APPLICABLE))
-				self:AddLine(text, 1, 1, 1)
-			end
-
-			self:AddCollection(macros, {
-				name    = MACROS;
-				text    = GetMacroInfo;
-				pickup  = PickupMacro;
-				tooltip = tooltipFunc;
-				texture = function(id) return select(2, GetMacroInfo(id)) end;
-			})
-		end
-	end
-
-	-- Toys
-	if CPAPI.IsRetailVersion then
+		return macros;
+	end;
+	-----------------------------------------------------------
+	Toys = C_ToyBox and C_ToyBox.GetNumToys and (function()
+	-----------------------------------------------------------
 		local toys = {};
 		for i=1, C_ToyBox.GetNumToys() do
 			local itemID = C_ToyBox.GetToyInfo(C_ToyBox.GetToyFromIndex(i))
@@ -481,20 +395,184 @@ function LoadoutInfo:RefreshCollections()
 				toys[#toys+1] = itemID;
 			end
 		end
+		return toys;
+	end) or nop;
+};
 
-		if next(toys) then
-			self:AddCollection(toys, {
-				name    = TOY_BOX;
-				pickup  = C_ToyBox.PickupToyBoxItem;
-				tooltip = function(self, id) GameTooltip.SetToyByItemID(self, id) end;
-				texture = function(id) return select(3, C_ToyBox.GetToyInfo(id)) end;
+function LoadoutInfo:RefreshCollections(flatten)
+	-- securecall wrapper, so if one of the collectors fails, the rest can still run
+	local collections, collect = {}, securecallfunction;
+
+	local function AddCollection(collection, configuration)
+		collections[#collections + 1] = configuration;
+		configuration.items = collection;
+		return configuration, collections;
+	end
+
+	local function IsDataValid(data)
+		-- check if data is a table and has at least one entry
+		return (data and next(data) ~= nil);
+	end
+
+	local BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
+	local BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
+	local SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
+	local SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
+	local SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
+	local COMPANION_MOUNT  = 'MOUNT';
+
+	-- Spells
+	do  local spellBook, flyouts, flyoutNames = collect(self.Collectors.SpellBook,
+			flatten, BOOKTYPE_SPELL, SKILLTYPE_SPELL, SKILLTYPE_FLYOUT
+		);
+
+		if IsDataValid(spellBook) then
+			for _, spells in ipairs(spellBook) do
+				local name = spells.tabName;
+				spells.tabName = nil;
+
+				AddCollection(spells, {
+					name    = name;
+					match   = C_ActionBar.FindSpellActionButtons;
+					pickup  = function(id) CPAPI.PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
+					tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
+					texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
+					title   = function(id) return CPAPI.GetSpellBookItemName(id, BOOKTYPE_SPELL) end;
+					map     = function(map, id) return map.spellID(CPAPI.GetSpellBookItemInfo(id, BOOKTYPE_SPELL).name) end;
+				})
+			end
+		end
+
+		if IsDataValid(flyouts) then
+			for i, flyout in ipairs(flyouts) do
+				local name = flyoutNames[i];
+				AddCollection(flyout, {
+					name    = name;
+					match   = C_ActionBar.FindSpellActionButtons;
+					pickup  = CPAPI.PickupSpell;
+					tooltip = GameTooltip.SetSpellByID;
+					texture = CPAPI.GetSpellTexture;
+					title   = CPAPI.GetSpellName;
+					map     = function(map, id) return map.spellID(id) end;
+				})
+			end
+		end
+	end
+
+	-- Pet spells
+	do  local pet = collect(self.Collectors.PetSpells, BOOKTYPE_PET, SKILLTYPE_PET)
+		if IsDataValid(pet) then
+			AddCollection(pet, {
+				name    = PET;
+				match   = C_ActionBar.FindPetActionButtons;
+				pickup  = function(id) CPAPI.PickupSpellBookItem(id, BOOKTYPE_PET) end;
+				tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_PET) end;
+				texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_PET) end;
+				title   = function(id) return CPAPI.GetSpellBookItemName(id, BOOKTYPE_PET) end;
+				map     = function(map, id) return map.spellID(CPAPI.GetSpellBookItemInfo(id, BOOKTYPE_PET)) end;
 			})
 		end
 	end
 
+	-- Bags
+	do  local items = collect(self.Collectors.Bags, NUM_BAG_SLOTS or 4)
+		if IsDataValid(items) then
+			AddCollection(items, {
+				name    = ITEMS;
+				pickup  = CPAPI.PickupContainerItem;
+				tooltip = GameTooltip.SetBagItem;
+				texture = function(...) return CPAPI.GetContainerItemInfo(...).iconFileID end;
+				title   = function(...) return CPAPI.GetContainerItemInfo(...).hyperlink end;
+				map     = function(map, ...) return map.item(nil, CPAPI.GetContainerItemInfo(...).hyperlink) end;
+			})
+		end
+	end
+
+	-- Mounts
+	do  local mounts, isNewAPI = collect(self.Collectors.Mounts, COMPANION_MOUNT)
+		if IsDataValid(mounts) then
+			if isNewAPI then
+				local ConvertHalfAssedCompanionAPI = not CPAPI.IsRetailVersion and function(...)
+					return self.SecureHandlerMap.spell(nil, nil, C_MountJournal.GetDisplayedMountInfo(...))
+				end;
+
+				AddCollection(mounts, {
+					name    = MOUNTS;
+					match   = C_ActionBar.FindSpellActionButtons;
+					pickup  = CPAPI.IsRetailVersion and C_MountJournal.Pickup;
+					append  = ConvertHalfAssedCompanionAPI;
+					tooltip = function(self, id) GameTooltip.SetSpellByID(self, (select(2, C_MountJournal.GetDisplayedMountInfo(id)))) end;
+					texture = function(id) return (select(3, C_MountJournal.GetDisplayedMountInfo(id))) end;
+					title   = function(id) return (select(1, C_MountJournal.GetDisplayedMountInfo(id))) end;
+					map     = function(map, id) return map.spellID(C_MountJournal.GetDisplayedMountInfo(id)) end;
+				})
+			else
+				local getMountSpellID = function(id)
+					return (select(3, GetCompanionInfo(COMPANION_MOUNT, id)))
+				end;
+
+				AddCollection(mounts, {
+					name    = MOUNTS;
+					pickup  = function(id) return CPAPI.PickupSpell(getMountSpellID(id)) end;
+					tooltip = function(self, id) GameTooltip.SetSpellByID(self, getMountSpellID(id)) end;
+					texture = function(id) return (select(4, GetCompanionInfo(COMPANION_MOUNT, id))) end;
+					title   = function(id) return (select(2, GetCompanionInfo(COMPANION_MOUNT, id))) end;
+					map     = function(map, id) return map.spellID(getMountSpellID(id)) end;
+				})
+			end
+		end
+	end
+
+	-- Macros
+	do local macros = collect(self.Collectors.Macros)
+		if IsDataValid(macros) then
+			for i, macroSet in ipairs(macros) do
+				if IsDataValid(macroSet) then
+					local tooltipFunc = function(self, id)
+						local name, texture, text = GetMacroInfo(id)
+						self:SetText(('%s'):format(name:trim():len()>0 and name or NOT_APPLICABLE))
+						self:AddLine(text, 1, 1, 1)
+						self:Show()
+					end
+
+					AddCollection(macroSet, {
+						name    = i == 2 and MACROS or CHARACTER_SPECIFIC_MACROS:format(UnitName('player'));
+						text    = GetMacroInfo;
+						pickup  = PickupMacro;
+						tooltip = tooltipFunc;
+						texture = function(id) return select(2, GetMacroInfo(id)) end;
+						title   = function(id) return select(1, GetMacroInfo(id)) end;
+						map     = function(map, id) return map.macro(id) end;
+					})
+				end
+			end
+		end
+	end
+
+	-- Toys
+	do local toys = collect(self.Collectors.Toys)
+		if IsDataValid(toys) then
+			AddCollection(toys, {
+				name    = TOY_BOX;
+				pickup  = C_ToyBox.PickupToyBoxItem;
+				tooltip = function(self, id) GameTooltip.SetToyByItemID(self, id) end;
+				texture = function(id) return select(3, C_ToyBox.GetToyInfo(id)) end;
+				title   = function(id) return select(2, C_ToyBox.GetToyInfo(id)) end;
+				map     = function(map, id) return map.item(nil, CPAPI.GetItemInfo(id).itemLink) end;
+			})
+		end
+	end
+
+	return collections;
+end
+
+function LoadoutMixin:GetCollections(flatten)
+	if not self.Collections then
+		self.Collections = LoadoutInfo:RefreshCollections(flatten);
+	end
 	return self.Collections;
 end
 
-function LoadoutMixin:GetCollections()
-	return LoadoutInfo:RefreshCollections()
+function LoadoutMixin:ClearCollections()
+	self.Collections = nil;
 end
