@@ -86,6 +86,14 @@ function env:GetSet(setID, skipValidation)
 	return self:GetData(skipValidation)[setID] or self:GetShared(skipValidation)[setID];
 end
 
+function env:GetSetIcon(setID)
+	if setID then
+		local icon = self.Frame:GetSetIcon(setID)
+		if icon then return icon end;
+	end
+	return [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring.png]];
+end
+
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------

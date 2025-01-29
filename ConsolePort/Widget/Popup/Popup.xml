@@ -52,17 +52,19 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CPPopupPortraitFrameTemplate" virtual="true" inherits="CPPopupFrameTemplate">
-		<KeyValues>
-			<KeyValue key="nameOffsetX" value="78" type="number"/>
-		</KeyValues>
+	<Frame name="CPPopupPortraitTemplate" virtual="true" mixin="CPPopupPortraitMixin">
+		<Size x="92" y="92"/>
 		<Layers>
 			<Layer level="OVERLAY">
-				<Texture parentKey="Border" atlas="auctionhouse-itemicon-border-gray">
-					<Size x="92" y="92"/>
-					<Anchors>
-						<Anchor point="TOPLEFT" x="-16" y="16"/>
-					</Anchors>
+				<Texture parentKey="Border" atlas="auctionhouse-itemicon-border-gray" setAllPoints="true">
+					<Animations>
+						<AnimationGroup parentKey="Anim">
+							<Rotation order="1" degrees="-360" duration="2" smoothing="OUT"/>
+							<Scripts>
+								<OnLoad method="Play"/>
+							</Scripts>
+						</AnimationGroup>
+					</Animations>
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
@@ -82,7 +84,69 @@
 					</MaskedTextures>
 				</MaskTexture>
 			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="3">
+				<Texture parentKey="BorderSheen" alpha="1" alphaMode="ADD" texelSnappingBias="0.0" snapToPixelGrid="false"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Diagonal_Sheen.png">
+					<Size x="174" y="276"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent.Border" relativePoint="LEFT" x="0"/>
+					</Anchors>
+					<Animations>
+						<AnimationGroup parentKey="Anim">
+							<Translation offsetX="462" order="1" duration="4.5" />
+							<Scripts>
+								<OnLoad method="Play"/>
+							</Scripts>
+						</AnimationGroup>
+					</Animations>
+				</Texture>
+				<MaskTexture parentKey="BorderSheenMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE"
+					file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-9"/>
+						<Anchor point="BOTTOMRIGHT" x="-10" y="11"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="BorderSheen"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<Texture parentKey="BorderBling"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Cooldown\Bling" alpha="0" alphaMode="ADD">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.BorderSheenMask" relativePoint="TOPLEFT" x="10" y="-10"/>
+					</Anchors>
+					<Animations>
+						<AnimationGroup parentKey="Anim" setToFinalAlpha="true">
+							<Alpha order="1" fromAlpha="0" toAlpha="0" duration="0.75"/>
+							<Alpha order="2" fromAlpha="0" toAlpha="1" duration="0.25"/>
+							<Alpha order="3" fromAlpha="1" toAlpha="0" duration="0.5"/>
+							<Rotation order="2" duration="0.25" degrees="90"/>
+							<Rotation order="3" duration="0.5" degrees="90" smoothing="OUT"/>
+							<Scripts>
+								<OnLoad method="Play"/>
+							</Scripts>
+						</AnimationGroup>
+					</Animations>
+				</Texture>
+			</Layer>
 		</Layers>
+		<Scripts>
+			<OnShow method="OnShow"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPPopupPortraitFrameTemplate" virtual="true" inherits="CPPopupFrameTemplate">
+		<KeyValues>
+			<KeyValue key="nameOffsetX" value="78" type="number"/>
+		</KeyValues>
+		<Frames>
+			<Frame parentKey="Portrait" frameLevel="5" inherits="CPPopupPortraitTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-16" y="16"/>
+				</Anchors>
+			</Frame>
+		</Frames>
 	</Frame>
 
 	<Frame name="CPPopupSubFrameTemplate" virtual="true">

@@ -32,6 +32,7 @@ CPCardBaseMixin = CreateFromMixins(CPStateButtonMixin); do
 	};
 	CPCardBaseMixin.Flags, CPCardBaseMixin.Decor = Flags, Decor;
 	CPCardBaseMixin:DesaturateIfDisabled()
+	CPCardBaseMixin.textureFadeIn = 0.1;
 end
 
 local ToggleVisible = db.Alpha.Fader.Toggle;
@@ -57,13 +58,14 @@ function CPCardBaseMixin:OnButtonStateChanged()
 		Selected = self:GetChecked(),
 	}, self.Decor)
 	for texture, show in pairs(state) do
-		ToggleVisible(self.InnerContent[texture], 0.1, show)
+		ToggleVisible(self.InnerContent[texture], self.textureFadeIn, show)
 	end
 end
 
 ---------------------------------------------------------------
 CPCardSmallMixin = CreateFromMixins(CPCardBaseMixin);
 ---------------------------------------------------------------
+CPCardSmallMixin.textureFadeIn = 0.05;
 
 function CPCardSmallMixin:OnLoad()
 	CPCardBaseMixin.OnLoad(self)
@@ -72,6 +74,10 @@ function CPCardSmallMixin:OnLoad()
 			region:SetScale(.25)
 		end
 	end
+	self.InnerContent.Selected:SetPoint('TOPLEFT', -18, 20)
+	self.InnerContent.Selected:SetPoint('BOTTOMRIGHT', 18, -20)
+	self.InnerContent.SelectedHighlight:SetPoint('TOPLEFT', 18, -20)
+	self.InnerContent.SelectedHighlight:SetPoint('BOTTOMRIGHT', -18, 20)
 end
 
 ---------------------------------------------------------------

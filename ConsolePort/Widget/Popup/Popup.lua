@@ -5,7 +5,7 @@ CPPopupFrameBaseMixin = CreateFromMixins(CPFrameMixin, CPIndexPoolMixin)
 function CPPopupFrameBaseMixin:OnLoad()
 	CPFrameMixin.OnLoad(self)
 	CPIndexPoolMixin.OnLoad(self);
-	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -16)
+	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, self.nameOffsetY or -12)
 end
 
 ---------------------------------------------------------------
@@ -74,6 +74,22 @@ function CPPopupFrameMixin:SetTargetHeight(height)
 			end
 		end
 	end)
+end
+
+---------------------------------------------------------------
+CPPopupPortraitMixin = {};
+---------------------------------------------------------------
+
+function CPPopupPortraitMixin:OnShow()
+	self.Border.Anim:Restart(false, 0.5)
+	self.BorderSheen.Anim:Restart(false, 0.5)
+	self.BorderBling.Anim:Restart(false, 0.5)
+end
+
+function CPPopupPortraitMixin:Play(reverse)
+	self.Border.Anim:Restart(reverse)
+	self.BorderSheen.Anim:Restart(reverse)
+	self.BorderBling.Anim:Restart(reverse)
 end
 
 ---------------------------------------------------------------

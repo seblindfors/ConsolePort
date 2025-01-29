@@ -4,6 +4,13 @@ local TypeMetaMap = env.ActionButton:GetTypeMetaMap()
 ---------------------------------------------------------------
 local MockButton = {}; env.MockButton = MockButton;
 ---------------------------------------------------------------
+function MockButton:OnLoad()
+	self:SetAttribute('state', 0)
+	self.GetHotkey     = nop;
+	self.state_types   = {};
+	self.state_actions = {};
+end
+
 function MockButton:SetData(data)
 	-- Coerce LAB into displaying the information we want
 	local kind, action = env:GetKindAndAction(data)
@@ -21,26 +28,33 @@ local MockRingButton = CreateFromMixins(env.DisplayButton, MockButton)
 ---------------------------------------------------------------
 function MockRingButton:SetData(data)
 	MockButton.SetData(self, data)
+	self:UpdateText()
+end
+
+function MockRingButton:OnLoad()
+	env.DisplayButton.OnLoad(self)
+	MockButton.OnLoad(self)
+	self:SetSize(64, 64)
+end
+
+function MockRingButton:UpdateText()
 	RunNextFrame(function()
 		self:GetParent():SetSliceText(self:GetID(), self:GetActiveText())
 	end)
 end
 
-function MockRingButton:OnLoad()
-	env.DisplayButton.OnLoad(self)
-	self:SetSize(64, 64)
-	self:SetAttribute('state', 0)
-	self.GetHotkey     = nop;
-	self.state_types   = {};
-	self.state_actions = {};
-end
+---------------------------------------------------------------
+local MockRing = Mixin({
+---------------------------------------------------------------
+	buttonTemplate = 'ActionButtonTemplate';
+	buttonMixin    = MockRingButton;
+}, db.Radial.CalcMixin)
 
----------------------------------------------------------------
-local MockRing = CreateFromMixins(db.Radial.CalcMixin)
----------------------------------------------------------------
 function MockRing:OnLoad()
-	self:CreateFramePool('ActionButtonTemplate', MockRingButton)
+	self:CreateFramePool(self.buttonTemplate, self.buttonMixin)
 	self.ActiveSlice:Hide()
+	self:SetRadialSize(db('radialPreferredSize'))
+	db:RegisterSafeCallback('Settings/radialPreferredSize', self.SetRadialSize, self)
 end
 
 function MockRing:OnHide()
@@ -50,14 +64,15 @@ end
 function MockRing:Mock(data)
 	if not data then return end;
 	self:ReleaseAll()
+	self.radius = self:SetDynamicRadius(#data)
 	for idx, action in ipairs(data) do
 		local button, newObj = self:TryAcquireRegistered(idx)
 		if newObj then
-			button:SetID(idx)
 			button:OnLoad()
 		end
+		button:SetID(idx)
 		button:SetFrameLevel(self:GetFrameLevel() + idx + 1)
-		button:SetPoint('CENTER', db.Radial:GetPointForIndex(idx, #data, self:GetWidth() / 2))
+		button:SetPoint('CENTER', db.Radial:GetPointForIndex(idx, #data, self.radius))
 		button:SetData(action)
 		button:Show()
 	end
@@ -65,8 +80,14 @@ function MockRing:Mock(data)
 	return true;
 end
 
-function env:CreateMockRing(name, parent)
+env.MockRingMixins = {
+	MockRing       = MockRing;
+	MockButton     = MockButton;
+	MockRingButton = MockRingButton;
+};
+
+function env:CreateMockRing(name, parent, mixin)
 	local ring = CreateFrame('PieMenu', name, parent, 'ConsolePortSlicedPie')
-	FrameUtil.SpecializeFrameWithMixins(ring, MockRing)
+	FrameUtil.SpecializeFrameWithMixins(ring, mixin or MockRing)
 	return ring;
 end

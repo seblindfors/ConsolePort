@@ -299,7 +299,7 @@ LoadoutInfo.Collectors = {
 				local slots, offset = spellTabInfo.numSpellBookItems, spellTabInfo.itemIndexOffset;
 				for i = (offset+1), (slots+offset) do
 					local skillType, typeID = CPAPI.GetSpellBookItemType(i, BOOKTYPE_SPELL)
-					if ( skillType == SKILLTYPE_FLYOUT or not CPAPI.IsPassiveSpell(i, BOOKTYPE_SPELL) ) then
+					if ( skillType == SKILLTYPE_FLYOUT or not CPAPI.IsSpellBookItemPassive(i, BOOKTYPE_SPELL) ) then
 
 						if (skillType == SKILLTYPE_SPELL) then
 							spells[#spells + 1] = i;
@@ -438,13 +438,16 @@ function LoadoutInfo:RefreshCollections(flatten)
 					tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
 					texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
 					title   = function(id) return CPAPI.GetSpellBookItemName(id, BOOKTYPE_SPELL) end;
-					map     = function(map, id) return map.spellID(CPAPI.GetSpellBookItemInfo(id, BOOKTYPE_SPELL).name) end;
+					map     = function(map, id) return map.spellID(CPAPI.GetSpellBookItemInfo(id, BOOKTYPE_SPELL).spellID) end;
+					header  = ABILITIES;
 				})
 			end
 		end
 
 		if IsDataValid(flyouts) then
-			for i, flyout in ipairs(flyouts) do
+			-- Use reverse because class tabs are enumerated after the general tab, and usually class spells
+			-- are more important than general flyout spells (e.g. rogue poisons vs. skyriding)
+			for i, flyout in ipairs_reverse(flyouts) do
 				local name = flyoutNames[i];
 				AddCollection(flyout, {
 					name    = name;
@@ -454,6 +457,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 					texture = CPAPI.GetSpellTexture;
 					title   = CPAPI.GetSpellName;
 					map     = function(map, id) return map.spellID(id) end;
+					header  = ABILITIES;
 				})
 			end
 		end
@@ -469,7 +473,8 @@ function LoadoutInfo:RefreshCollections(flatten)
 				tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_PET) end;
 				texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_PET) end;
 				title   = function(id) return CPAPI.GetSpellBookItemName(id, BOOKTYPE_PET) end;
-				map     = function(map, id) return map.spellID(CPAPI.GetSpellBookItemInfo(id, BOOKTYPE_PET)) end;
+				map     = function(map, id) return map.spellID(CPAPI.GetSpellBookItemInfo(id, BOOKTYPE_PET).spellID) end;
+				header  = ABILITIES;
 			})
 		end
 	end
@@ -478,12 +483,13 @@ function LoadoutInfo:RefreshCollections(flatten)
 	do  local items = collect(self.Collectors.Bags, NUM_BAG_SLOTS or 4)
 		if IsDataValid(items) then
 			AddCollection(items, {
-				name    = ITEMS;
+				name    = BAG_NAME_BACKPACK;
 				pickup  = CPAPI.PickupContainerItem;
 				tooltip = GameTooltip.SetBagItem;
 				texture = function(...) return CPAPI.GetContainerItemInfo(...).iconFileID end;
 				title   = function(...) return CPAPI.GetContainerItemInfo(...).hyperlink end;
 				map     = function(map, ...) return map.item(nil, CPAPI.GetContainerItemInfo(...).hyperlink) end;
+				header  = ITEMS;
 			})
 		end
 	end
@@ -505,6 +511,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 					texture = function(id) return (select(3, C_MountJournal.GetDisplayedMountInfo(id))) end;
 					title   = function(id) return (select(1, C_MountJournal.GetDisplayedMountInfo(id))) end;
 					map     = function(map, id) return map.spellID(C_MountJournal.GetDisplayedMountInfo(id)) end;
+					header  = ITEMS;
 				})
 			else
 				local getMountSpellID = function(id)
@@ -518,6 +525,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 					texture = function(id) return (select(4, GetCompanionInfo(COMPANION_MOUNT, id))) end;
 					title   = function(id) return (select(2, GetCompanionInfo(COMPANION_MOUNT, id))) end;
 					map     = function(map, id) return map.spellID(getMountSpellID(id)) end;
+					header  = ITEMS;
 				})
 			end
 		end
@@ -533,16 +541,23 @@ function LoadoutInfo:RefreshCollections(flatten)
 						self:SetText(('%s'):format(name:trim():len()>0 and name or NOT_APPLICABLE))
 						self:AddLine(text, 1, 1, 1)
 						self:Show()
-					end
+					end;
+
+					local titleFunc = function(id)
+						local name = GetMacroInfo(id)
+						return name:trim():len()>0 and name
+							or GRAY_FONT_COLOR:WrapTextInColorCode(('%s %d'):format(MACRO, id))
+					end;
 
 					AddCollection(macroSet, {
-						name    = i == 2 and MACROS or CHARACTER_SPECIFIC_MACROS:format(UnitName('player'));
+						name    = i == 2 and GENERAL_MACROS or CHARACTER_SPECIFIC_MACROS:format(UnitName('player'));
 						text    = GetMacroInfo;
 						pickup  = PickupMacro;
 						tooltip = tooltipFunc;
 						texture = function(id) return select(2, GetMacroInfo(id)) end;
-						title   = function(id) return select(1, GetMacroInfo(id)) end;
+						title   = titleFunc;
 						map     = function(map, id) return map.macro(id) end;
+						header  = MACROS;
 					})
 				end
 			end
@@ -559,6 +574,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 				texture = function(id) return select(3, C_ToyBox.GetToyInfo(id)) end;
 				title   = function(id) return select(2, C_ToyBox.GetToyInfo(id)) end;
 				map     = function(map, id) return map.item(nil, CPAPI.GetItemInfo(id).itemLink) end;
+				header  = ITEMS;
 			})
 		end
 	end

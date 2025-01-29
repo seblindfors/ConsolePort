@@ -10,7 +10,7 @@ function Set:Init(elementData)
 	local ringName = Container:GetBindingDisplayNameForSetID(setID);
 	local statusText  = WHITE_FONT_COLOR:WrapTextInColorCode(ITEMS_VARIABLE_QUANTITY:format(#data));
 	local bindingText = Container:GetButtonSlugForSet(setID) or NOT_BOUND;
-	local icon = Container:GetSetIcon(setID) or [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring.png]];
+	local icon = env:GetSetIcon(setID);
 
 	self.Name:SetText(ringName)
 	self.Info:SetText(statusText)
@@ -94,18 +94,6 @@ function Add.New()
 end
 
 ---------------------------------------------------------------
-local Divider = { Template = 'CPRingSetDivider' };
----------------------------------------------------------------
-
-function Divider.New(extent)
-	return {
-		extent   = extent or 10;
-		template = Divider.Template;
-		factory  = nop;
-	};
-end
-
----------------------------------------------------------------
 local Sets = {}; env.SharedConfig.Sets = Sets;
 ---------------------------------------------------------------
 
@@ -172,7 +160,7 @@ function Sets:SetData(data, sharedData, selectedSetID)
 	end
 	self.addPlayerSet.container = data;
 	self.playerSets:Insert( self.addPlayerSet )
-	self.playerSets:Insert( Divider.New() )
+	self.playerSets:Insert( env.SharedConfig.Divider.New() )
 
 	for setID, set in db.table.spairs(sharedData) do
 		-- For shared sets, they should be disabled if they conflict with player sets.

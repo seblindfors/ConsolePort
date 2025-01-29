@@ -265,13 +265,13 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 		};
 		{
 			text      = TELEPORT_OUT_OF_DUNGEON;
-			predicate = IsInLFGDungeon;
+			predicate = function() return IsInLFGDungeon() and not IsLFGComplete() end;
 			command   = GenerateFlatClosure(LFGTeleport, true);
 			image     = ICON('Spell_Shadow_Teleport');
 		};
 		{
 			text      = TELEPORT_TO_DUNGEON;
-			predicate = IsPartyLFG;
+			predicate = function() return IsPartyLFG() and not IsLFGComplete() end;
 			command   = GenerateFlatClosure(LFGTeleport, false);
 			image     = ICON('Spell_Shadow_Teleport');
 		};

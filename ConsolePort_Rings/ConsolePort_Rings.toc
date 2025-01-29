@@ -25,6 +25,7 @@ View\Nested\Nested.xml
 
 Model\Map.lua
 Model\Container.lua
+Model\Collection.lua
 
 Controller\Secure.lua
 Controller\Auto.lua

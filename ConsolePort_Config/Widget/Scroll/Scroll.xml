@@ -1,7 +1,7 @@
 <Ui>
 	<Script file="Scroll.lua"/>
 
-	<Frame name="CPScrollFrameArtTemplate" virtual="true">
+	<Frame name="CPScrollFrameSettingsTemplate" virtual="true">
 		<KeyValues>
 			<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
 			<KeyValue key="scrollBarX" value="-4" type="number"/>
@@ -9,6 +9,9 @@
 			<KeyValue key="scrollBarBottomY" value="0" type="number"/>
 			<KeyValue key="scrollBarTemplate" value="MinimalScrollBar" type="string"/>
 		</KeyValues>
+	</Frame>
+
+	<Frame name="CPScrollFrameArtTemplate" virtual="true" inherits="CPScrollFrameSettingsTemplate">
 		<Frames>
 			<Frame parentKey="BorderArt" inherits="CPInnerFrameTemplate" useParentLevel="true">
 				<Anchors>

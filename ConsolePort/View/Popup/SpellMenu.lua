@@ -32,7 +32,7 @@ function SpellMenu:SetDisplaySpell(spellID)
 	end
 	local name, subtext = self:GetSpellName(), self:GetSpellSubtext();
 	local hasSubtext = subtext and subtext ~= '';
-	self.Icon:SetTexture(self:GetSpellTexture())
+	self.Portrait.Icon:SetTexture(self:GetSpellTexture())
 	self.Name:SetText(hasSubtext and ('%s: %s'):format(name, WHITE_FONT_COLOR:WrapTextInColorCode(subtext)) or name)
 end
 

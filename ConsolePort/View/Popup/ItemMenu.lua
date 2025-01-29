@@ -53,10 +53,10 @@ function ItemMenu:SetItem(bagID, slotID)
 		return self:Hide()
 	end
 
-	self.Icon:SetTexture(self:GetItemIcon())
 	self.Name:SetText(self:GetItemName())
 	self.Name:SetTextColor(self:GetItemQualityColor().color:GetRGB())
-	self.Border:SetAtlas(BORDER_ATLAS[self:GetQuality()])
+	self.Portrait.Icon:SetTexture(self:GetItemIcon())
+	self.Portrait.Border:SetAtlas(BORDER_ATLAS[self:GetQuality()])
 
 	self:ClearPickup()
 	self:SetTooltip()

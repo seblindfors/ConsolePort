@@ -13,10 +13,13 @@
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="6">
-				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
+				<Texture parentKey="Border" inherits="CPAtlas">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-icon-notify-bg" type="string"/>
+					</KeyValues>
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="-3" y="1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="3" y="-4"/>
 					</Anchors>
 				</Texture>
 				<MaskTexture parentKey="IconMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask">
@@ -26,6 +29,15 @@
 					</Anchors>
 					<MaskedTextures>
 						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<MaskTexture parentKey="BorderMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask64_Reverse" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="3" y="-3"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="-3" y="3"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Border"/>
 					</MaskedTextures>
 				</MaskTexture>
 			</Layer>

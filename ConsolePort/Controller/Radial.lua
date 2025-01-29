@@ -230,6 +230,45 @@ function RadialCalc:IsValidThreshold(len)
 	return len >= self:GetValidThreshold()
 end
 
+function RadialCalc:SetRadialSize(size)
+	if self.fixedSize then return end;
+	local radius = self.radius or 1;
+	local newSize = size * radius;
+	self:SetAttribute('preferSize', newSize)
+	return self:SetSize(newSize, newSize)
+end
+
+function RadialCalc:SetFixedSize(size)
+	self.fixedSize = size;
+	if not size then return end;
+	self:SetAttribute('preferSize', size)
+	return self:SetSize(size, size)
+end
+
+function RadialCalc:SetDynamicRadius(numItems, itemSize, padding)
+	if self:IsProtected() then
+		assert(not InCombatLockdown(), 'Cannot set dynamic radius from insecure code in combat.')
+		return self:Execute(([[
+			self:RunAttribute('SetDynamicRadius', %d, %d, %d)
+		]]):format(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING))
+	end
+
+	local preferSize = self:GetAttribute('preferSize')
+	assert(preferSize, 'Prefer size not set.')
+	local minSize = Radial:CalculateMinimumDiameter(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING)
+	local size = math.max(preferSize, minSize)
+	self:SetSize(size, size)
+	return self:GetRadius()
+end
+
+function RadialCalc:GetRadius()
+	return math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
+end
+
+function RadialCalc:GetNormalizedAngle(x, y)
+	return Radial:GetNormalizedAngle(x, y)
+end
+
 ---------------------------------------------------------------
 Mixin(RadialMixin, RadialCalc); Radial.CalcMixin = RadialCalc;
 ---------------------------------------------------------------
@@ -252,28 +291,6 @@ function RadialMixin:SetDynamicSizeFunction(body)
 		return size;
 	]])
 	self:Execute('UpdateSize = self:GetAttribute("UpdateSize")')
-end
-
-function RadialMixin:SetRadialSize(size)
-	if self.fixedSize then return end;
-	local radius = self.radius or 1;
-	local newSize = size * radius;
-	self:SetAttribute('preferSize', newSize)
-	return self:SetSize(newSize, newSize)
-end
-
-function RadialMixin:SetFixedSize(size)
-	self.fixedSize = size;
-	if not size then return end;
-	self:SetAttribute('preferSize', size)
-	return self:SetSize(size, size)
-end
-
-function RadialMixin:SetDynamicRadius(numItems, itemSize, padding)
-	assert(not InCombatLockdown(), 'Cannot set dynamic radius from insecure code in combat.')
-	return self:Execute(([[
-		self:RunAttribute('SetDynamicRadius', %d, %d, %d)
-	]]):format(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING))
 end
 
 function RadialMixin:OnLoad(data)

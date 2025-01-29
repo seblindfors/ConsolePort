@@ -249,6 +249,7 @@ function Config:OnLoad()
 	Mixin(Setting, env.SharedConfig.Env.Setting) -- borrow code from the config for the settings
 
 	self.Name:SetText(L'Action Bar Configuration')
+	self.Portrait.Icon:SetTexture(env.GetAsset([[Textures\Icons\Unbound]]))
 	self.Mover:SetTooltipInfo(L'Move', L'Start moving the configuration window.')
 	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self, nil, 10))
 	self.Main:SetTooltipInfo(L'Open Main Config', L'Open the main configuration window.')

@@ -609,7 +609,7 @@ function Cursor:AttemptDragStart()
 	local script = node and node:GetScript('OnDragStart')
 	if script then
 		local widget = Input:GetActiveWidget(db('Settings/UICursorLeftClick'), self)
-		local click = widget:HasClickButton()
+		local click = widget and widget:HasClickButton()
 		if widget and widget.state and click then
 			widget:ClearClickButton()
 			widget:EmulateFrontend(click, 'NORMAL', 'OnMouseUp')

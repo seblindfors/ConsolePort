@@ -12,7 +12,6 @@ function Header:Init(elementData)
 	local data = elementData:GetData()
 	self.Text:SetText(data.text)
 	self:SetSize(self.Size:GetXY())
-	self:SetScript('OnClick', Header.OnClick)
 	self:Synchronize(elementData)
 end
 
@@ -32,6 +31,7 @@ end
 function Header:OnAcquire(new)
 	if new then
 		Mixin(self, Header)
+		self:SetScript('OnClick', Header.OnClick)
 	end
 end
 
@@ -48,6 +48,18 @@ function Header.New(text, collapsed)
 		acquire   = Header.OnAcquire;
 		release   = Header.OnRelease;
 		extent    = Header.Size.y;
+	};
+end
+
+---------------------------------------------------------------
+local Divider = { Template = 'CPRingSetDivider' };
+---------------------------------------------------------------
+
+function Divider.New(extent)
+	return {
+		extent   = extent or 10;
+		template = Divider.Template;
+		factory  = nop;
 	};
 end
 
@@ -105,8 +117,11 @@ function Search:OnTabSelected(tabIndex, panels)
 end
 
 ---------------------------------------------------------------
-local Config = {}; env.SharedConfig = { Header = Header };
+local Config = {}; env.SharedConfig = {
 ---------------------------------------------------------------
+	Header  = Header;
+	Divider = Divider;
+};
 
 function Config:OnLoad()
 	self.DefaultTitle = L'Ring Manager';
@@ -141,6 +156,8 @@ function Config:OnSelectTab(tabIndex)
 end
 
 function Config:OnSelectSet(elementData, setID, isSelected)
+	self.Portrait.Icon:SetTexture(env:GetSetIcon(isSelected and setID))
+	self.Portrait:Play()
 	self.Name:SetText(isSelected and Container:GetBindingDisplayNameForSetID(setID) or self.DefaultTitle)
 	self.Tabs:SetEnabled(self.Panels.Loadout, isSelected)
 	self.Tabs:SetEnabled(self.Panels.Rings, true)
@@ -148,6 +165,7 @@ function Config:OnSelectSet(elementData, setID, isSelected)
 end
 
 function Config:OnAddNewSet(container, node, isAdding)
+	self.Portrait.Icon:SetTexture(env:GetSetIcon(nil))
 	self.Name:SetText(isAdding and PAPERDOLL_NEWEQUIPMENTSET or self.DefaultTitle)
 	self.Tabs:SetEnabled(self.Panels.Loadout, false)
 	self.Tabs:SetEnabled(self.Panels.Rings, not isAdding)

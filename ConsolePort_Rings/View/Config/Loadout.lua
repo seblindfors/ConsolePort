@@ -15,7 +15,7 @@ local function MapToAction(info)
 	return info.funcs.map(env.SecureHandlerMap, UnpackEntryID(info.id));
 end
 
-local function IsEntryPartOfCurrentSet(info)
+local function GetCurrentSetEntry(info)
 	local action = MapToAction(info);
 	return Container:SearchActionByCompare(CurrentSetID, action);
 end
@@ -39,14 +39,38 @@ function Entry:Init(elementData)
 	local id, funcs = info.id, info.funcs;
 	self.Name:SetText(funcs.title(UnpackEntryID(id)))
 	self.Icon:SetTexture(funcs.texture(UnpackEntryID(id)))
-	self:SetChecked(IsEntryPartOfCurrentSet(info))
+	self:SetChecked(GetCurrentSetEntry(info))
+end
+
+function Entry:ShowTooltip(tooltipFunc, ...)
+	local tooltip = GameTooltip;
+	tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, self.Size.y)
+	NineSliceUtil.ApplyLayoutByName(
+		tooltip.NineSlice,
+		'CharacterCreateDropdown',
+		tooltip.NineSlice:GetFrameLayoutTextureKit()
+	);
+
+	tooltipFunc(tooltip, ...)
+	RunNextFrame(function()
+		tooltip:AddLine('\n\n')
+		tooltip:Show()
+		tooltip:SetSize(
+			math.max(tooltip:GetWidth(), 90),
+			math.max(tooltip:GetHeight(), 90)
+		);
+	end)
+	return tooltip;
 end
 
 function Entry:OnEnter()
 	local info = self:GetElementData():GetData()
 	CPCardSmallMixin.OnEnter(self)
-	GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-	info.funcs.tooltip(GameTooltip, UnpackEntryID(info.id))
+	self:ShowTooltip(info.funcs.tooltip, UnpackEntryID(info.id))
+	local index = GetCurrentSetEntry(info)
+	if index then
+		env:TriggerEvent('OnIndexHighlight', index)
+	end
 end
 
 function Entry:OnLeave()
@@ -54,6 +78,7 @@ function Entry:OnLeave()
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
+	env:TriggerEvent('OnIndexHighlight', nil)
 end
 
 function Entry:OnClick()
@@ -76,12 +101,20 @@ function Entry:OnDragStop()
 	CPCardSmallMixin.OnMouseUp(self)
 end
 
+function Entry:OnButtonStateChanged()
+	CPCardSmallMixin.OnButtonStateChanged(self)
+	self.Border:SetAtlas(self:GetChecked()
+		and 'glues-characterselect-icon-notify-bg-hover'
+		or 'glues-characterselect-icon-notify-bg')
+end
+
 function Entry:OnAcquire(new)
 	if new then
 		FrameUtil.SpecializeFrameWithMixins(self, Entry)
 		self:OnLoad()
 		self:RegisterForDrag('LeftButton')
 		self:SetScript('OnDragStop', self.OnDragStop)
+		self.InnerContent.SelectedHighlight:SetPoint('TOPLEFT', 50, -20)
 	end
 end
 
@@ -102,6 +135,26 @@ function Entry.New(id, funcs)
 end
 
 ---------------------------------------------------------------
+local Results = { Template = 'SettingsListSectionHeaderTemplate', Size = CreateVector2D(292, 45) };
+---------------------------------------------------------------
+
+function Results:Init(elementData)
+	local info = elementData:GetData()
+	self.Title:SetText(info.text)
+	self.Title:SetPoint('TOPRIGHT', -7, -16)
+	self:SetSize(self.Size:GetXY())
+end
+
+function Results.New(text)
+	return {
+		text     = text;
+		template = Results.Template;
+		factory  = Results.Init;
+		extent   = Results.Size.y;
+	};
+end
+
+---------------------------------------------------------------
 local Loadout = CreateFromMixins(db.LoadoutMixin); env.SharedConfig.Loadout = Loadout;
 ---------------------------------------------------------------
 
@@ -118,10 +171,23 @@ function Loadout:OnLoad()
 
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
+	env:RegisterCallback('OnSetChanged', self.OnSetChanged, self)
+
+	self.HeaderIcons = {
+		[ABILITIES] = 'category-icon-book';
+		[ITEMS]     = 'category-icon-misc';
+		[MACROS]    = 'category-icon-enchantscroll';
+	};
 end
 
 function Loadout:OnSelectSet(elementData, setID, isSelected)
 	CurrentSetID = isSelected and setID or nil;
+end
+
+function Loadout:OnSetChanged(setID)
+	if ( setID == CurrentSetID ) then
+		self:GetScrollView():ReinitializeFrames()
+	end
 end
 
 function Loadout:OnSearch(text)
@@ -143,14 +209,30 @@ function Loadout:OnShow()
 	dataProvider:Flush()
 
 	local MinEditDistance = CPAPI.MinEditDistance;
-	local activeCategories, searchTerm = {}, self.searchTerm;
+	local cats, searchTerm = {}, self.searchTerm;
 	local isSearchActive = searchTerm and searchTerm ~= '';
 
-	local function GetCollectionEntry(i, data, collapsed)
-		if not activeCategories[i] then
-			activeCategories[i] = dataProvider:Insert(Header.New(data.name, collapsed));
+	local function MakeHeaderName(name)
+		local icon = self.HeaderIcons[name];
+		if icon then
+			return ([[|TInterface\Store\%s:20:20:0:0:64:64:18:46:18:46|t %s]]):format(icon, name);
 		end
-		return activeCategories[i];
+		return name;
+	end
+
+	local function MakeCategory(data, collapsed)
+		if not cats[data.name] then
+			local provider = dataProvider;
+			if data.header then
+				local main = data.header..0;
+				if not cats[main] then
+					cats[main] = dataProvider:Insert(Header.New(MakeHeaderName(data.header), collapsed));
+				end
+				provider = cats[main];
+			end
+			cats[data.name] = provider:Insert(Header.New(data.name, collapsed));
+		end
+		return cats[data.name];
 	end
 
 	local function FilterLoadoutEntry(entry, data)
@@ -168,10 +250,20 @@ function Loadout:OnShow()
 	end
 
 	for i, data in ipairs(collections) do
+		local hasItems = false;
 		for _, entry in ipairs(data.items) do
 			if FilterLoadoutEntry(entry, data) then
-				GetCollectionEntry(i, data, not isSearchActive):Insert(Entry.New(entry, data));
+				local category = MakeCategory(data, not isSearchActive);
+				category:SetCollapsed(not isSearchActive);
+				category:Insert(Entry.New(entry, data));
+				hasItems = true;
 			end
 		end
+		if hasItems then
+			MakeCategory(data, not isSearchActive):Insert(env.SharedConfig.Divider.New(4));
+		end
+	end
+	if isSearchActive and dataProvider:IsEmpty() then
+		dataProvider:Insert(Results.New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
 	end
 end

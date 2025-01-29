@@ -213,6 +213,10 @@ env.ActionValidationMap = {
 				tostring(link)
 			);
 		end
+		-- NOTE: No inline replacement is safe here, since some spells are not
+		-- usable by their IDs. Ideally we'd replace all strings with spellIDs here,
+		-- but e.g. mounts (which are mapped as spells) do not work unless invoked
+		-- by their spell name.
 		return data;
 	end;
 };

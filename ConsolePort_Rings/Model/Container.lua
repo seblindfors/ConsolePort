@@ -107,7 +107,7 @@ end
 -- Metadata
 ---------------------------------------------------------------
 function Container:GetMetadata(setID)
-	local set = rawget(env:GetSet(setID, true), self:GetSetID(setID));
+	local set = env:GetSet(self:GetSetID(setID), true)
 	return set and set[env.Attributes.MetadataIndex] or nil;
 end
 

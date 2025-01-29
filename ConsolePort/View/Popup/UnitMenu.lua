@@ -168,7 +168,7 @@ function UnitMenu:ModifyAppearance(contextData)
 	self.CloseButton:SetShown(not contextData.isSecure)
 
 	local color = self:GetTitleColor(contextData.unit);
-	SetPortraitTexture(self.Icon, contextData.unit)
+	SetPortraitTexture(self.Portrait.Icon, contextData.unit)
 	self.Name:SetText(contextData.name)
 	self.Name:SetTextColor(color:GetRGB())
 	self.Desc:SetText(contextData.server)

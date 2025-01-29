@@ -5,12 +5,12 @@
 	<Include file="Loadout.xml"/>
 
 	<Frame name="CPRingsConfig" virtual="true" inherits="CPPopupPanelTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="HIGH">
-		<Size x="1060" y="766"/>
+		<Size x="1060" y="762"/>
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>
 		<Frames>
-			<ScrollFrame parentKey="Display" inherits="CPScrollFrameTemplate">
+			<Frame parentKey="Display" inherits="CPScrollFrameArtTemplate">
 				<Size x="680" y="680"/>
 				<KeyValues>
 					<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
@@ -18,11 +18,11 @@
 				<Anchors>
 					<Anchor point="BOTTOMLEFT" x="14" y="34"/>
 				</Anchors>
-				<ScrollChild>
-					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame" frameLevel="10">
-					</Frame>
-				</ScrollChild>
-			</ScrollFrame>
+				<Frames>
+					<Frame parentKey="RingContainer" clipChildren="true" hidden="true" setAllPoints="true"/>
+					<Frame parentKey="Options" inherits="CPScrollBoxTree, CPScrollFrameSettingsTemplate" hidden="true" setAllPoints="true"/>
+				</Frames>
+			</Frame>
 			<Frame parentKey="Sets" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate" hidden="true">
 				<Size x="320" y="680"/>
 				<Anchors>
