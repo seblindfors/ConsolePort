@@ -86,12 +86,43 @@ function env:GetSet(setID, skipValidation)
 	return self:GetData(skipValidation)[setID] or self:GetShared(skipValidation)[setID];
 end
 
+function env:CreateSet(rawName, container)
+	local setID = self:ValidateSetID(rawName);
+	if not setID then return end;
+	container[setID] = env:ValidateSet(setID, {});
+	return setID;
+end
+
 function env:GetSetIcon(setID)
 	if setID then
 		local icon = self.Frame:GetSetIcon(setID)
 		if icon then return icon end;
 	end
 	return [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring.png]];
+end
+
+function env:SetIconForSet(setID, icon)
+	self.Frame:SetIconForSet(setID, icon);
+end
+
+function env:GetRingNameSuggestion()
+	local data = self:GetData(true)
+	local shared = self:GetShared(true)
+
+	local suggestion = max(1, #data, #shared) + 1; -- atleast 2
+	while rawget(data, suggestion) or rawget(shared, suggestion) do
+		suggestion = suggestion + 1;
+	end
+
+	return tostring(suggestion);
+end
+
+function env:ValidateSetID(rawName)
+	local purifiedName  = tostring(rawName):gsub('[^A-Za-z0-9]', '');
+	local processedName = tonumber(purifiedName) or purifiedName;
+	if processedName ~= DEFAULT and not self:GetSet(processedName, true) then
+		return processedName;
+	end
 end
 
 ---------------------------------------------------------------

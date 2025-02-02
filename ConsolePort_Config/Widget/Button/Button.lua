@@ -213,3 +213,34 @@ end
 function CPNavBarButton:SetFormatButtonTextCallback(formatButtonTextCallback)
 	self.formatButtonTextCallback = formatButtonTextCallback;
 end
+
+---------------------------------------------------------------
+CPIconSelectorButton = CreateFromMixins(SelectorButtonMixin)
+---------------------------------------------------------------
+
+function CPIconSelectorButton:OnLoad()
+	self.Icon:AddMaskTexture(self.Mask)
+end
+
+function CPIconSelectorButton:OnEnter()
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	GameTooltip:SetText(ID)
+	GameTooltip:AddLine(self:GetFileID(), 1, 1, 1)
+	GameTooltip:Show()
+end
+
+function CPIconSelectorButton:OnLeave()
+	GameTooltip:Hide()
+end
+
+function CPIconSelectorButton:SetIconTexture(iconTexture)
+	SelectorButtonMixin.SetIconTexture(self, iconTexture)
+	self.iconTexture = iconTexture;
+end
+
+function CPIconSelectorButton:GetFileID()
+	if tonumber(self.iconTexture) then
+		return tonumber(self.iconTexture)
+	end
+	return (self.iconTexture:match('([^\\]+)$'));
+end

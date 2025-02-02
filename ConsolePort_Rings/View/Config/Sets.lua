@@ -5,10 +5,10 @@ local Set = { Template = 'CPRingSetCard', Size = CreateVector2D(292, 95) };
 
 function Set:Init(elementData)
 	local info = elementData:GetData()
-	local setID, data = info.setID, info.data;
+	local setID, set = info.setID, info.set;
 
 	local ringName = Container:GetBindingDisplayNameForSetID(setID);
-	local statusText  = WHITE_FONT_COLOR:WrapTextInColorCode(ITEMS_VARIABLE_QUANTITY:format(#data));
+	local statusText  = WHITE_FONT_COLOR:WrapTextInColorCode(ITEMS_VARIABLE_QUANTITY:format(#set));
 	local bindingText = Container:GetButtonSlugForSet(setID) or NOT_BOUND;
 	local icon = env:GetSetIcon(setID);
 
@@ -21,9 +21,16 @@ function Set:Init(elementData)
 	self:SetSize(self.Size:GetXY())
 end
 
-function Set:OnClick()
+function Set:OnClick(button)
 	local elementData = self:GetElementData()
-	local setID = elementData:GetData().setID;
+	local info = elementData:GetData()
+	local setID = info.setID;
+
+	if ( button == 'RightButton' ) then
+		self:SetChecked(true)
+		env:TriggerEvent('OnRequestWipe', setID, info.set, info.owner)
+	end
+
 	self:OnButtonStateChanged()
 	env:TriggerEvent('OnSelectSet', elementData, setID, self:GetChecked())
 end
@@ -32,6 +39,7 @@ function Set:OnAcquire(new)
 	if new then
 		Mixin(self, Set)
 		self:SetScript('OnClick', self.OnClick)
+		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 	end
 end
 
@@ -39,10 +47,11 @@ function Set:OnRelease()
 	self:SetChecked(false)
 end
 
-function Set.New(setID, data, selected, disabled)
+function Set.New(setID, set, owner, selected, disabled)
 	return {
 		setID    = setID;
-		data     = data;
+		set      = set;
+		owner    = owner;
 		selected = not disabled and selected;
 		disabled = disabled;
 		template = Set.Template;
@@ -117,6 +126,11 @@ function Sets:OnLoad()
 
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
 	env:RegisterCallback('OnAddNewSet', self.OnAddNewSet, self)
+	env:RegisterCallback('OnSetUpdate', self.OnSetUpdate, self)
+end
+
+function Sets:OnShow()
+	self:GetScrollView():ReinitializeFrames()
 end
 
 function Sets:ForEach(func, excludeCollapsed)
@@ -151,12 +165,18 @@ function Sets:OnSelectSet(setElementData, setID, isSelected)
 	end, false)
 end
 
+function Sets:OnSetUpdate()
+	if not self:IsVisible() then return end;
+	self:GetScrollView():ReinitializeFrames()
+end
+
+
 function Sets:SetData(data, sharedData, selectedSetID)
 	self.playerSets:Flush()
 	self.sharedSets:Flush()
 
 	for setID, set in db.table.spairs(data) do
-		self.playerSets:Insert( Set.New(setID, set, setID == selectedSetID) )
+		self.playerSets:Insert( Set.New(setID, set, data, setID == selectedSetID) )
 	end
 	self.addPlayerSet.container = data;
 	self.playerSets:Insert( self.addPlayerSet )
@@ -164,7 +184,7 @@ function Sets:SetData(data, sharedData, selectedSetID)
 
 	for setID, set in db.table.spairs(sharedData) do
 		-- For shared sets, they should be disabled if they conflict with player sets.
-		self.sharedSets:Insert( Set.New(setID, set, setID == selectedSetID, not not data[setID]) )
+		self.sharedSets:Insert( Set.New(setID, set, sharedData, setID == selectedSetID, not not data[setID]) )
 	end
 	self.addSharedSet.container = sharedData;
 	self.sharedSets:Insert( self.addSharedSet )

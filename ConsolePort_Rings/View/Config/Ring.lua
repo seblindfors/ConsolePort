@@ -90,8 +90,10 @@ function Ring:OnLoad()
 	self:SetPoint('CENTER', self:GetParent(), 'CENTER', 0, 0)
 	self:SetFrameLevel(5)
 
+	self.EmptyText = self:GetParent().EmptyText;
+	self.EmptyText:SetText(env.L.RING_EMPTY_DESC)
+
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
-	env:RegisterCallback('OnAddNewSet', self.OnAddNewSet, self)
 	env:RegisterCallback('OnTabSelected', self.OnTabSelected, self)
 	env:RegisterCallback('OnSetChanged', self.OnSetChanged, self)
 	env:RegisterCallback('OnIndexHighlight', self.OnIndexHighlight, self)
@@ -99,20 +101,16 @@ end
 
 function Ring:OnSelectSet(elementData, setID, isSelected)
 	self:SetShown(isSelected)
-	self:GetParent():SetShown(isSelected)
+	self.EmptyText:Hide()
 	self.currentSetID = isSelected and setID or nil;
 	if isSelected then
 		self:Mock(env:GetSet(setID))
 	end
 end
 
-function Ring:OnAddNewSet(container, node, isAdding)
-	self.currentSetID = nil;
-end
-
 function Ring:OnTabSelected(tabIndex, panels)
+	self:GetParent():SetShown(tabIndex ~= panels.Options)
 	if ( tabIndex == panels.Options ) then
-		self:GetParent():Hide()
 		return self:Hide()
 	elseif self.currentSetID then
 		self:OnSelectSet(nil, self.currentSetID, true)
@@ -147,6 +145,7 @@ function Ring:Mock(data)
 	MockRing.Mock(self, data)
 	self.currentData = data;
 	self:SetScale(390 / self:GetWidth())
+	self.EmptyText:SetShown(not data or #data == 0)
 end
 
 function Ring:GetCurrentRadius()

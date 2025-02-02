@@ -11,4 +11,5 @@ function Display:OnLoad()
 	self:SetBackgroundAlpha(0.25)
 
 	self.Ring = env:CreateMockRing('$parentRing', self.RingContainer, env.SharedConfig.Ring)
+	FrameUtil.SpecializeFrameWithMixins(self.Details, env.SharedConfig.Details)
 end

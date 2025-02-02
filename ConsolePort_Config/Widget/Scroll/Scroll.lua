@@ -1,3 +1,4 @@
+local env, db = CPAPI.GetEnv(...);
 --------------------------------------------------------------
 CPScrollBox = {};
 ---------------------------------------------------------------
@@ -25,11 +26,11 @@ function CPScrollBox:GetScrollView()
 end
 
 function CPScrollBox:CreateDataProvider()
-	error("CPScrollBox:CreateDataProvider must be overridden");
+	error('CPScrollBox:CreateDataProvider must be overridden');
 end
 
 function CPScrollBox:CreateScrollView()
-	error("CPScrollBoxMixin:CreateScrollView must be overridden");
+	error('CPScrollBoxMixin:CreateScrollView must be overridden');
 end
 
 function CPScrollBox:UpdateScrollBar()
@@ -85,4 +86,36 @@ function CPScrollBoxTree:OnReleasedFrame(frame, elementData)
 	if info.release then
 		info.release(frame)
 	end
+end
+
+---------------------------------------------------------------
+CPIconSelector = CreateFromMixins(ScrollBoxSelectorMixin)
+---------------------------------------------------------------
+
+function CPIconSelector:OnLoad()
+	local function IconButtonInitializer(button, selectionIndex, icon)
+		button:SetIconTexture(icon);
+	end
+	self:SetSetupCallback(IconButtonInitializer);
+	CPScrollBox.UpdateScrollBar(self);
+end
+
+function CPIconSelector:OnShow()
+	ScrollBoxSelectorMixin.OnShow(self);
+
+	self.iconDataProvider = db.Bindings:GetIconProvider();
+
+	local initialIndex = 1;
+	local getSelection = GenerateClosure(self.iconDataProvider.GetIconByIndex, self.iconDataProvider);
+	local getNumSelections = GenerateClosure(self.iconDataProvider.GetNumIcons, self.iconDataProvider);
+
+	self:SetSelectedIndex(initialIndex);
+	self:SetSelectionsDataProvider(getSelection, getNumSelections);
+	self:UpdateSelections()
+	self:ScrollToSelectedIndex();
+end
+
+function CPIconSelector:OnHide()
+	self.iconDataProvider = nil;
+	db.Bindings:ReleaseIconProvider();
 end

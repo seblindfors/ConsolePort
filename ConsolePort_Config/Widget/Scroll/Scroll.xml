@@ -50,5 +50,19 @@
 
 	<Frame name="CPScrollBoxTree" virtual="true" mixin="CPScrollBoxTree" inherits="CPScrollBox"/>
 
+	<Frame name="CPIconSelector" virtual="true" mixin="CPIconSelector" inherits="CPScrollBox, CPScrollFrameArtTemplate, SelectorTemplate">
+		<KeyValues>
+			<KeyValue key="retainScrollPosition" value="false" type="boolean"/>
+			<KeyValue key="customStride" value="14" type="number"/>
+			<KeyValue key="templateType" value="BUTTON" type="string"/>
+			<KeyValue key="buttonTemplate" value="CPIconSelectorButton" type="string"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</Frame>
+
 	<ScrollFrame name="CPScrollFrameTemplate" virtual="true" inherits="ScrollFrameTemplate, CPScrollFrameArtTemplate"/>
 </Ui>

@@ -74,7 +74,7 @@
 			<OnLoad method="OnLoad"/>
 			<OnEnter method="OnEnter"/>
 			<OnLeave method="OnLeave"/>
-			<OnMouseDown method="OnMouseDown"/> 
+			<OnMouseDown method="OnMouseDown"/>
 			<OnMouseUp method="OnMouseUp"/>
 			<OnClick method="OnClick"/>
 		</Scripts>
@@ -146,6 +146,63 @@
 		<NormalFont style="CPGlueFontNormal"/>
 		<HighlightFont style="CPGlueFontYellow"/>
 		<DisabledFont style="CPGlueFontDisable"/>
+	</Button>
+
+	<Button name="CPIconSelectorButton" virtual="true" mixin="CPIconSelectorButton">
+		<Size x="36" y="36"/>
+		<NormalTexture parentKey="Icon">
+			<Size x="40" y="40"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</NormalTexture>
+		<HighlightTexture parentKey="Highlight" alphaMode="ADD" inherits="CPAtlas">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-3" y="3"/>
+				<Anchor point="BOTTOMRIGHT" x="4" y="-3"/>
+			</Anchors>
+			<KeyValues>
+				<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Mouseover" type="string"/>
+			</KeyValues>
+		</HighlightTexture>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture inherits="CPAtlas">
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame" type="string"/>
+						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-3" y="3"/>
+						<Anchor point="BOTTOMRIGHT" x="5" y="-4"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon"
+					hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="1" y="-1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="-1" y="1"/>
+					</Anchors>
+				</MaskTexture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="SelectedTexture"  hidden="true" inherits="CPAtlas">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-3" y="3"/>
+						<Anchor point="BOTTOMRIGHT" x="4" y="-3"/>
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Down" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnClick method="OnClick"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
 	</Button>
 
 	<Include file="Card.xml"/>

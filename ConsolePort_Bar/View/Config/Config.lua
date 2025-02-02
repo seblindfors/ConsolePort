@@ -95,10 +95,7 @@ function HeaderOwner:OnLoad(headerMixin)
 end
 
 function HeaderOwner:CreateHeader(name, groupID)
-	local header, newObj = self.headerPool:Acquire()
-	if newObj then
-		header.Text:SetTextColor(WHITE_FONT_COLOR:GetRGBA())
-	end
+	local header = self.headerPool:Acquire()
 	header.groupID = groupID or name;
 	header.Text:SetText(L(name))
 	Mixin(header, self.headerMixin)

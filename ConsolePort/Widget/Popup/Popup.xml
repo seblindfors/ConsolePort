@@ -199,7 +199,7 @@
 		<Layers>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Text" inherits="GameFontNormalLarge">
-					<Color color="LIGHTGRAY_FONT_COLOR"/>
+					<Color color="WHITE_FONT_COLOR"/>
 					<Size x="0" y="38"/>
 					<Anchors>
 						<Anchor point="CENTER"/>

@@ -113,7 +113,7 @@ end
 
 function Search:OnTabSelected(tabIndex, panels)
 	self:SetText('')
-	self:SetEnabled(tabIndex == panels.Loadout)
+	self:SetEnabled(tabIndex ~= panels.Rings)
 end
 
 ---------------------------------------------------------------
@@ -143,6 +143,8 @@ function Config:OnLoad()
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
 	env:RegisterCallback('OnAddNewSet', self.OnAddNewSet, self)
 	env:RegisterCallback('OnSelectTab', self.OnSelectTab, self)
+	env:RegisterCallback('OnSetUpdate', self.OnSetUpdate, self)
+	env:RegisterCallback('OnRequestWipe', self.OnRequestWipe, self)
 end
 
 function Config:OnTabSelected(button, tabIndex)
@@ -156,37 +158,118 @@ function Config:OnSelectTab(tabIndex)
 end
 
 function Config:OnSelectSet(elementData, setID, isSelected)
-	self.Portrait.Icon:SetTexture(env:GetSetIcon(isSelected and setID))
-	self.Portrait:Play()
-	self.Name:SetText(isSelected and Container:GetBindingDisplayNameForSetID(setID) or self.DefaultTitle)
+	self:OnSetUpdate(setID, isSelected)
 	self.Tabs:SetEnabled(self.Panels.Loadout, isSelected)
 	self.Tabs:SetEnabled(self.Panels.Rings, true)
-	env:TriggerEvent('OnSelectTab', self.Panels.Rings)
 end
 
-function Config:OnAddNewSet(container, node, isAdding)
-	self.Portrait.Icon:SetTexture(env:GetSetIcon(nil))
-	self.Name:SetText(isAdding and PAPERDOLL_NEWEQUIPMENTSET or self.DefaultTitle)
-	self.Tabs:SetEnabled(self.Panels.Loadout, false)
-	self.Tabs:SetEnabled(self.Panels.Rings, not isAdding)
-	env:TriggerEvent('OnSelectTab', isAdding and self.Panels.Options or self.Panels.Rings)
+function Config:OnSetUpdate(setID, isSelected)
+	self.Portrait.Icon:SetTexture(env:GetSetIcon(isSelected and setID))
+	self.Portrait:Play()
+	self.Name:SetText(
+		isSelected and Container:GetBindingDisplayNameForSetID(setID)
+		or self.DefaultTitle
+	);
 end
 
-function Config:SelectSet(setID)
+function Config:SelectSet(setID, isSelected)
 	self.Sets:SetData(env:GetData(), env:GetShared(), setID)
-	env:TriggerEvent('OnSelectSet', nil, setID, true)
+	env:TriggerEvent('OnSelectSet', nil, setID, isSelected)
 end
 
+---------------------------------------------------------------
+-- Popups
+---------------------------------------------------------------
+function Config:OnAddNewSet(elementData, container, isAdding)
+	if not isAdding then return end;
+	local this = self;
+
+	local function OnButtonReset()
+		-- Skip passing the elementData so the add button resets
+		env:TriggerEvent('OnAddNewSet', nil, container, false)
+	end
+
+	return CPAPI.Popup('ConsolePort_Rings_Add_Ring', {
+		text = GEARSETS_POPUP_TEXT;
+		button1 = BATTLETAG_CREATE;
+		button2 = CANCEL;
+		hasEditBox = 1;
+		maxLetters = 16;
+		OnShow = function(self)
+			self.editBox:SetText(env:GetRingNameSuggestion())
+			self.editBox:SetFocus()
+		end;
+		OnAccept = function(self)
+			local setID = env:CreateSet(self.editBox:GetText(), container)
+			if not setID then
+				return CPAPI.Log('Failed to add new ring with name %s, because it already exists.', setID)
+			end
+			OnButtonReset()
+			this:SelectSet(setID, true)
+		end;
+		OnCancel = OnButtonReset;
+		EditBoxOnTextChanged = function(self)
+			local setID = env:ValidateSetID(self:GetText())
+			if setID then
+				self:SetText(setID)
+				self:GetParent().button1:Enable();
+			else
+				self:GetParent().button1:Disable();
+			end
+		end;
+		EditBoxOnEnterPressed = function(self)
+			if self:GetParent().button1:IsEnabled() then
+				StaticPopup_OnClick(self:GetParent(), 1)
+			end
+		end;
+	})
+end
+
+function Config:OnRequestWipe(setID, set, container)
+	local showClear  = #set > 0;
+	local canDelete  = setID ~= CPAPI.DefaultRingSetID;
+	local showDelete = not showClear and canDelete;
+
+	local function DeleteSet()
+		container[setID] = nil;
+		self:SelectSet(nil, false)
+	end
+
+	local function ClearSet()
+		wipe(set)
+		self:SelectSet(setID, true)
+	end
+
+	if showDelete then
+		return CPAPI.Popup('ConsolePort_Rings_Delete_Ring', {
+			text     = L.REMOVE_RING_TEXT;
+			button1  = REMOVE;
+			button2  = CANCEL;
+			OnAccept = DeleteSet;
+		}, Container:GetBindingDisplayNameForSetID(setID))
+	elseif showClear then
+		return CPAPI.Popup('ConsolePort_Rings_Clear_Ring', {
+			text     = L.CLEAR_RING_TEXT;
+			button1  = RESET;
+			button2  = CANCEL;
+			button3  = canDelete and REMOVE or nil;
+			OnAccept = ClearSet;
+			OnAlt    = canDelete and DeleteSet or nil;
+		}, Container:GetBindingDisplayNameForSetID(setID))
+	end
+end
+
+---------------------------------------------------------------
+-- Trigger
+---------------------------------------------------------------
 env:RegisterCallback('ToggleConfig', function(self, setID)
 	if not self.Config then
 		self.Config, env.SharedConfig.Env = CPAPI.InitConfigFrame(
 			Config, 'Frame', 'ConsolePortRingsConfig', UIParent, 'CPRingsConfig');
 	end
 	self.Config:Show()
-	self.Config:SelectSet(setID)
+	self.Config:SelectSet(setID, not not setID)
 end, env)
-
-
 
 function cfg() -- debug
 	env:TriggerEvent('ToggleConfig', 1)

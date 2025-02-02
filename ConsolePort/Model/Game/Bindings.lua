@@ -368,13 +368,14 @@ end
 
 function Bindings:GetIconProvider()
 	if not self.IconProvider then
-		self.IconProvider = self:RefreshIconDataProvider()
+		self.IconProvider = self:CreateIconDataProvider()
 	end
 	return self.IconProvider;
 end
 
 function Bindings:ReleaseIconProvider()
 	if self.IconProvider then
+		self.IconProvider:Release();
 		self.IconProvider = nil;
 		collectgarbage()
 	end
@@ -383,103 +384,77 @@ end
 ---------------------------------------------------------------
 do -- Icon provider (see FrameXML\IconDataProvider.lua)
 ---------------------------------------------------------------
-	local QuestionMarkIconFileDataID = 134400;
-
-	local function FillOutExtraIconsMapWithSpells(extraIconsMap)
-		for i = 1, GetNumSpellTabs() do
-			local tab, tabTex, offset, numSpells = GetSpellTabInfo(i);
-			offset = offset + 1;
-			local tabEnd = offset + numSpells;
-			for j = offset, tabEnd - 1 do
-				local spellType, ID = GetSpellBookItemInfo(j, 'player');
-				if spellType ~= 'FUTURESPELL' then
-					local fileID = GetSpellBookItemTexture(j, 'player');
-					if fileID ~= nil then
-						extraIconsMap[fileID] = true;
-					end
-				end
-
-				if spellType == 'FLYOUT' then
-					local _, _, numSlots, isKnown = GetFlyoutInfo(ID);
-					if isKnown and (numSlots > 0) then
-						for k = 1, numSlots do
-							local spellID, overrideSpellID, isSlotKnown = GetFlyoutSlotInfo(ID, k)
-							if isSlotKnown then
-								local fileID = GetSpellTexture(spellID);
-								if fileID ~= nil then
-									extraIconsMap[fileID] = true;
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-
-	local function FillOutExtraIconsMapWithTalents(extraIconsMap)
-		local isInspect = false;
-		for specIndex = 1, GetNumSpecGroups(isInspect) do
-			for tier = 1, MAX_TALENT_TIERS do
-				for column = 1, NUM_TALENT_COLUMNS do
-					local icon = select(3, GetTalentInfo(tier, column, specIndex));
-					if icon ~= nil then
-						extraIconsMap[icon] = true;
-					end
-				end
-			end
-		end
-
-		for pvpTalentSlot = 1, 3 do
-			local slotInfo = C_SpecializationInfo.GetPvpTalentSlotInfo(pvpTalentSlot);
-			if slotInfo ~= nil then
-				for i, pvpTalentID in ipairs(slotInfo.availableTalentIDs) do
-					local icon = select(3, GetPvpTalentInfoByID(pvpTalentID));
-					if icon ~= nil then
-						extraIconsMap[icon] = true;
-					end
-				end
-			end
-		end
-	end
-
-	local function FillOutExtraIconsMapWithEquipment(extraIconsMap)
-		for i = INVSLOT_FIRST_EQUIPPED, INVSLOT_LAST_EQUIPPED do
-			local itemTexture = GetInventoryItemTexture('player', i)
-			if itemTexture ~= nil then
-				extraIconsMap[itemTexture] = true;
-			end
-		end
-	end
+	local IconDataProvider = CreateFromMixins(IconDataProviderMixin);
 
 	local function FillOutExtraIconsWithCustomIcons(extraIcons)
 		for _, customTexture in db.table.spairs(Bindings.CustomIcons) do
 			tinsert(extraIcons, customTexture)
 		end
+		return extraIcons;
 	end
 
-	function Bindings:RefreshIconDataProvider()
-		local extraIconsMap = {};
-		pcall(FillOutExtraIconsMapWithSpells, extraIconsMap)
-		pcall(FillOutExtraIconsMapWithTalents, extraIconsMap)
-		pcall(FillOutExtraIconsMapWithEquipment, extraIconsMap)
+	function IconDataProvider:Init(type, extraIconsOnly, requestedIconTypes)
+		type = type or IconDataProviderExtraType.None;
 
-		local extraIcons = GetKeysArray(extraIconsMap)
-		pcall(FillOutExtraIconsWithCustomIcons, extraIcons)
+		local extraSpells = {}; IconDataProviderMixin.Init(extraSpells, IconDataProviderExtraType.Spellbook, true, true)
+		local extraItems  = {}; IconDataProviderMixin.Init(extraItems,  IconDataProviderExtraType.Equipment, true, true)
+		local extraAll    = FillOutExtraIconsWithCustomIcons({});
+		tAppendAll(extraAll, extraSpells.extraIcons)
+		tAppendAll(extraAll, extraItems.extraIcons)
 
-		local provider = {QuestionMarkIconFileDataID, unpack(extraIcons)};
-		pcall(GetLooseMacroIcons, provider)
-		pcall(GetLooseMacroItemIcons, provider)
-		pcall(GetMacroIcons, provider)
-		pcall(GetMacroItemIcons, provider)
+		self.extraIconsExt = {
+			[IconDataProviderIconType.Spell] = extraSpells.extraIcons;
+			[IconDataProviderIconType.Item]  = extraItems.extraIcons;
+			[IconDataProviderIconType.Spell + IconDataProviderIconType.Item] = extraAll;
+		};
 
-		local customIconsRef = tInvert(Bindings.CustomIcons)
-		for i, iconID in ipairs(provider) do
-			if not tonumber(iconID) and not customIconsRef[iconID] then
-				provider[i] = client(iconID)
+		IconDataProviderMixin.Init(self, type, extraIconsOnly, requestedIconTypes)
+		self:SetIconTypes(self.requestedIconTypes)
+	end
+
+	function IconDataProvider:ShouldShowExtraIcons()
+		return self.extraIconType == IconDataProviderExtraType.None
+			or IconDataProviderMixin.ShouldShowExtraIcons(self)
+	end
+
+	function IconDataProvider:SetIconTypes(iconTypes)
+		IconDataProviderMixin.SetIconTypes(self, iconTypes)
+		self.extraIcons = self.extraIconsExt[Accumulate(self.requestedIconTypes)]
+	end
+
+	function IconDataProvider:SetSearchQuery(query)
+		self.searchQuery = query and tostring(query):lower() or nil;
+		self.searchCache = {};
+	end
+
+	function IconDataProvider:GetNumIcons()
+		local numIcons = IconDataProviderMixin.GetNumIcons(self)
+		if not self.searchQuery then
+			return numIcons;
+		end
+		return #self:GetSearchCache(numIcons);
+	end
+
+	function IconDataProvider:GetSearchCache(numIcons)
+		if not next(self.searchCache) then
+			for i = 1, numIcons do
+				local icon = tostring(IconDataProviderMixin.GetIconByIndex(self, i))
+				if icon:lower():find(self.searchQuery, 1, true) then
+					tinsert(self.searchCache, icon)
+				end
 			end
 		end
+		return self.searchCache;
+	end
 
-		return provider;
+	function IconDataProvider:GetIconByIndex(index)
+		if self.searchQuery then
+			return self:GetSearchCache(self:GetNumIcons())[index];
+		end
+		return IconDataProviderMixin.GetIconByIndex(self, index);
+	end
+
+	function Bindings:CreateIconDataProvider(...)
+		return CreateAndInitFromMixin(IconDataProvider, ...);
 	end
 end

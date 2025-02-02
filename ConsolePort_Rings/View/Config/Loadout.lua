@@ -180,7 +180,7 @@ function Loadout:OnLoad()
 	};
 end
 
-function Loadout:OnSelectSet(elementData, setID, isSelected)
+function Loadout:OnSelectSet(_, setID, isSelected)
 	CurrentSetID = isSelected and setID or nil;
 end
 

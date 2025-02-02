@@ -238,7 +238,7 @@ The default ring, or the |CFF00FF00Utility Ring|r, has special properties to all
 
 If you want to create a ring to use in your rotation and not just for utility, it's highly recommended to use a custom ring for this purpose.]];
 L.RING_EMPTY_DESC = [[You do not have any abilities in this ring yet.]];
-L.CLEAR_RING_TEXT = [[|cFFFFFF00Clear Utility Ring|r
-Are you sure you want to clear your utility ring?]];
-L.REMOVE_RING_TEXT = L[[|cFFFFFF00Remove Ring|r
-Are you sure you want to remove the current ring?]];
+L.CLEAR_RING_TEXT = [[|cFFFFFF00Clear %s|r
+Are you sure you want to clear the ring?]];
+L.REMOVE_RING_TEXT = [[|cFFFFFF00Remove %s|r
+Are you sure you want to remove the ring?]];

@@ -210,7 +210,3 @@ L.RING_MENU_DESC = [[创建你自己的环形菜单，你可以在其中添加�
 
 如果你想创建一个在输出循环中用到的环，强烈建议使用自定义环而不是工具环。]];
 L.RING_EMPTY_DESC = [[你在此环中尚未放置任何能力。]];
-L.CLEAR_RING_TEXT = [[|cFFFFFF00清除工具环|r
-你确定要清除你的工具环吗？]];
-L.REMOVE_RING_TEXT = L[[|cFFFFFF00移除环|r
-你确定要移除当前环吗？]];

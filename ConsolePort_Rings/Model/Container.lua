@@ -103,6 +103,10 @@ function Container:AddUniqueAction(setID, preferredIndex, info)
 	end
 end
 
+function Container:SetIconForSet(setID, icon)
+	db.Bindings:SetIcon(self:GetBindingForSet(setID), icon);
+end
+
 ---------------------------------------------------------------
 -- Metadata
 ---------------------------------------------------------------

@@ -19,8 +19,52 @@
 					<Anchor point="BOTTOMLEFT" x="14" y="34"/>
 				</Anchors>
 				<Frames>
-					<Frame parentKey="RingContainer" clipChildren="true" hidden="true" setAllPoints="true"/>
-					<Frame parentKey="Options" inherits="CPScrollBoxTree, CPScrollFrameSettingsTemplate" hidden="true" setAllPoints="true"/>
+					<Frame parentKey="RingContainer" clipChildren="true" hidden="true" setAllPoints="true">
+						<Layers>
+							<Layer level="ARTWORK">
+								<FontString parentKey="EmptyText" inherits="Fancy22Font" hidden="true">
+									<Anchors>
+										<Anchor point="CENTER"/>
+									</Anchors>
+								</FontString>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="Details" setAllPoints="true" hidden="false">
+						<Frames>
+							<Frame parentKey="IconSelector" inherits="CPIconSelector" frameStrata="HIGH">
+								<Size y="400"/>
+								<Anchors>
+									<Anchor point="BOTTOMLEFT" x="14" y="8"/>
+									<Anchor point="BOTTOMRIGHT" x="-14" y="8"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="OptionsHeader" inherits="CPPopupHeaderTemplate">
+								<Size x="680" y="38"/>
+								<Anchors>
+									<Anchor point="TOPLEFT" x="0" y="-8"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="IconHeader" inherits="CPPopupHeaderTemplate">
+								<Size x="680" y="38"/>
+								<Anchors>
+									<Anchor point="BOTTOM" relativeKey="$parent.IconSelector" relativePoint="TOP" x="0" y="8"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="IconType" inherits="DropdownWithSteppersTemplate" mixin="DropdownWithSteppersMixin">
+								<Anchors>
+									<Anchor point="RIGHT" relativeKey="$parent.IconHeader" />
+								</Anchors>
+								<Frames>
+									<DropdownButton parentKey="Dropdown" inherits="WowStyle2DropdownTemplate">
+										<Anchors>
+											<Anchor point="CENTER"/>
+										</Anchors>
+									</DropdownButton>
+								</Frames>
+							</Frame>
+						</Frames>
+					</Frame>
 				</Frames>
 			</Frame>
 			<Frame parentKey="Sets" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate" hidden="true">
