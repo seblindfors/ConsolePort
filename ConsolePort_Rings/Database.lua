@@ -105,6 +105,10 @@ function env:IsSharedSet(setID)
 	return (self:GetShared(true)[setID] and not self:GetData(true)[setID]);
 end
 
+function env:GetSetContainers(setID)
+	return self:GetSet(setID, true), self:IsSharedSet(setID) and self:GetShared(true) or self:GetData(true);
+end
+
 function env:EnumerateAvailableSets(skipValidation)
 	return db.table.spairs(self:GetAvailableSets(skipValidation))
 end

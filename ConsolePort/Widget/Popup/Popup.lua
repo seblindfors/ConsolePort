@@ -97,6 +97,11 @@ CPPopupBindingCatchButtonMixin = CreateFromMixins(CPButtonCatcherMixin)
 ---------------------------------------------------------------
 local TIME_UNTIL_CANCEL = 5;
 
+CPPopupBindingCatchButtonMixin.Template = (CPAPI.IsRetailVersion
+	and 'SharedButtonLargeTemplate'
+	or  'UIPanelButtonTemplate')
+	..  ',CPPopupBindingCatchButtonTemplate';
+
 function CPPopupBindingCatchButtonMixin:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	self.timeUntilCancel = TIME_UNTIL_CANCEL;
@@ -126,16 +131,16 @@ function CPPopupBindingCatchButtonMixin:OnClick()
 	self:GetParent():Hide()
 end
 
-function CPPopupBindingCatchButtonMixin:CatchClosure(...)
-	if self:OnBindingCaught(...) then
+function CPPopupBindingCatchButtonMixin:CatchClosure(button)
+	if self:OnBindingCaught(button, self:GetParent().data) then
 		self:GetParent():Hide()
 	end
 end
 
-function CPPopupBindingCatchButtonMixin:TryCatchBinding(popupInfo)
-	CPAPI.Popup('ConsolePort_Popup_Change_Binding', popupInfo, nil, nil, nil, self)
+function CPPopupBindingCatchButtonMixin:TryCatchBinding(popupInfo, t1, t2, d)
+	CPAPI.Popup('ConsolePort_Popup_Change_Binding', popupInfo, t1, t2, d, self)
 end
 
-function CPPopupBindingCatchButtonMixin:OnBindingCaught(...)
+function CPPopupBindingCatchButtonMixin:OnBindingCaught(button, data)
 	-- override, return true to close the popup
 end

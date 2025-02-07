@@ -87,7 +87,10 @@ function Entry:OnLeave()
 	env:TriggerEvent('OnIndexHighlight', nil)
 end
 
-function Entry:OnClick()
+function Entry:OnClick(button)
+	if ( button == 'RightButton' ) then
+		return self:CollapseToParent()
+	end
 	local info = self:GetElementData():GetData()
 	if self:GetChecked() then
 		local operation = env.ReplaceID and ReplaceAction or AppendAction;
@@ -123,6 +126,21 @@ function Entry:OnAcquire(new)
 		self:SetScript('OnDragStop', self.OnDragStop)
 		self:SetAttribute('nohooks', true)
 		self.InnerContent.SelectedHighlight:SetPoint('TOPLEFT', 50, -20)
+	end
+end
+
+function Entry:CollapseToParent()
+	self:SetChecked(false)
+
+	local parentElementData = self:GetElementData().parent;
+	local scrollBox = self:GetParent():GetParent();
+	scrollBox:ScrollToElementData(parentElementData, ScrollBoxConstants.AlignCenter, 0, true)
+
+	local scrollView = scrollBox:GetParent():GetScrollView()
+	local header = scrollView:FindFrame(parentElementData);
+	if header then
+		header:Click()
+		ConsolePort:SetCursorNodeIfActive(header)
 	end
 end
 

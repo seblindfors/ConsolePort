@@ -15,10 +15,15 @@ function Command:OnLoad()
 	self:SetHighlightFontObject(GameFontHighlightMed2)
 	self:SetDisabledFontObject(GameFontDisableMed2)
 	self.Icon:SetAtlas(self.icon)
+
+	local base = env.SharedConfig.Env.Settings.Base;
+	self:HookScript('OnEnter', base.OnEnter)
+	self:HookScript('OnLeave', base.OnLeave)
+	self.UpdateTooltip = base.UpdateTooltip;
 end
 
 function Command:OnClick(button)
-	env:TriggerEvent(self.event, self:GetParent().currentSetID, button == 'RightButton')
+	env:TriggerEvent(self.event, self, self:GetParent().currentSetID, button == 'RightButton')
 end
 
 ---------------------------------------------------------------
@@ -26,25 +31,31 @@ local Details = {}; env.SharedConfig.Details = Details;
 ---------------------------------------------------------------
 
 function Details:OnLoad()
-	local prev = self.OptionsHeader;
+	local prev, L = self.OptionsHeader, env.L;
 	for key, option in env.table.spairs({
 		Bind = {
 			text    = KEY_BINDING;
 			icon    = 'common-icon-forwardarrow';
-			tooltip = 'Bind this set to a key.';
 			event   = 'OnBindSet';
+			tooltipText = L'Assign or clear bindings for this set.';
+			tooltipHints  = {
+				env.SharedConfig.Env:GetTooltipPromptForClick('LeftClick', EDIT),
+				env.SharedConfig.Env:GetTooltipPromptForClick('RightClick', REMOVE),
+			};
 		};
 		Clear = {
-			text    = RESET;
+			text    = CLEAR_ALL;
 			icon    = 'common-icon-undo';
-			tooltip = 'Reset to default.';
-			event   = 'OnResetSet';
+			event   = 'OnClearSet';
+			tooltipText = L'Clear all items from this set.';
+			disableTooltipHints = true;
 		};
 		Delete = {
 			text    = DELETE;
 			icon    = 'common-icon-redx';
-			tooltip = 'Remove this set.';
 			event   = 'OnDeleteSet';
+			tooltipText = L'Remove this set. This action cannot be undone.';
+			disableTooltipHints = true;
 		};
 	}) do
 		local button = CreateFrame('Button', nil, self, 'CPPopupButtonTemplate');

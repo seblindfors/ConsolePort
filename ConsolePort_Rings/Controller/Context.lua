@@ -12,7 +12,8 @@ function Context:OnTimedHintsDisplay(enabled, remaining)
 end
 
 function Context:OnTimedContextTrigger(button)
-	env:TriggerEvent('ToggleConfig', self:GetSetForBindingSuffix(button))
+	env:TriggerEvent('ToggleConfig', self:GetSetID(self:GetAttribute('state')))
+	env:TriggerEvent('OnSelectTab', 2) -- Loadout
 	self:Run([[ self::Disable() ]])
 end
 

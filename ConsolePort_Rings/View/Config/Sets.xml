@@ -20,7 +20,7 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Button parentKey="Binding">
+			<Button parentKey="Binding" registerForClicks="LeftButtonUp, RightButtonUp">
                 <Attributes>
                     <Attribute name="nodeignore" value="true" type="boolean"/>
                 </Attributes>

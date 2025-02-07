@@ -105,6 +105,27 @@ function Search:OnTabSelected(tabIndex, panels)
 end
 
 ---------------------------------------------------------------
+local BindingCatcher = {};
+---------------------------------------------------------------
+
+function BindingCatcher:OnBindingCaught(button, data)
+	if not CPAPI.IsButtonValidForBinding(button) then return end;
+
+	local bindingID = data.bindingID;
+	local clearPrev = data.clearPrev;
+	local keychord  = CPAPI.CreateKeyChord(button)
+
+	if not db('bindingOverlapEnable') then
+		clearPrev()
+	end
+
+	if SetBinding(keychord, bindingID) then
+		SaveBindings(GetCurrentBindingSet())
+		return true;
+	end
+end
+
+---------------------------------------------------------------
 local Config = CreateFromMixins(CPButtonCatcherMixin); env.SharedConfig = {
 ---------------------------------------------------------------
 	Header  = Header;
@@ -130,6 +151,9 @@ function Config:OnLoad()
 	self.Tabs:RegisterCallback(self.Tabs.Event.Selected, self.OnTabSelected, self)
 	self.Tabs:SelectAtIndex(self.Panels.Rings)
 
+	env:RegisterCallback('OnBindSet',   self.OnBindSet, self)
+	env:RegisterCallback('OnClearSet',  self.OnClearSet, self)
+	env:RegisterCallback('OnDeleteSet', self.OnDeleteSet, self)
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
 	env:RegisterCallback('OnAddNewSet', self.OnAddNewSet, self)
 	env:RegisterCallback('OnSelectTab', self.OnSelectTab, self)
@@ -138,6 +162,9 @@ function Config:OnLoad()
 	env:RegisterCallback('OnAcquireControlButton', self.CatchButton, self)
 	env:RegisterCallback('OnReleaseControlButton', self.FreeButton, self)
 
+	self.Catcher = CreateFrame('Button', nil, self, CPPopupBindingCatchButtonMixin.Template)
+	FrameUtil.SpecializeFrameWithMixins(self.Catcher, BindingCatcher)
+
 	CPAPI.Start(self)
 end
 
@@ -145,11 +172,23 @@ function Config:OnShow()
 	FrameUtil.UpdateScaleForFit(self, 40, 80)
 	self:SetDefaultClosures()
 	env:TriggerEvent('OnConfigShown', true)
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
 end
 
 function Config:OnHide()
 	self:ReleaseClosures()
 	env:TriggerEvent('OnConfigShown', false)
+	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
+end
+
+function Config:OnEvent(event)
+	if event == 'PLAYER_REGEN_DISABLED' then
+		self:RegisterEvent('PLAYER_REGEN_ENABLED')
+		self:Hide()
+	elseif event == 'PLAYER_REGEN_ENABLED' then
+		self:UnregisterEvent('PLAYER_REGEN_ENABLED')
+		self:Show()
+	end
 end
 
 function Config:SetDefaultClosures()
@@ -158,6 +197,9 @@ function Config:SetDefaultClosures()
 	self:CatchButton('PADRSHOULDER', self.Tabs.Increment, self.Tabs)
 end
 
+---------------------------------------------------------------
+-- Callbacks
+---------------------------------------------------------------
 function Config:OnTabSelected(button, tabIndex)
 	self.Sets:SetShown(tabIndex ~= self.Panels.Loadout)
 	self.Loadout:SetShown(tabIndex == self.Panels.Loadout)
@@ -172,7 +214,11 @@ function Config:OnSelectSet(elementData, setID, isSelected)
 	self.currentSetID = isSelected and setID or nil;
 	self:OnSetUpdate(setID, isSelected)
 	self.Tabs:SetEnabled(self.Panels.Loadout, isSelected)
+	self.Tabs:SetEnabled(self.Panels.Options, isSelected)
 	self.Tabs:SetEnabled(self.Panels.Rings, true)
+	if not isSelected then
+		self.Tabs:SelectAtIndex(self.Panels.Rings)
+	end
 end
 
 function Config:OnSetUpdate(setID, isSelected)
@@ -242,10 +288,10 @@ function Config:OnAddNewSet(elementData, container, isAdding)
 	})
 end
 
-function Config:OnRequestWipe(setID, set, container)
-	local showClear  = #set > 0;
+function Config:OnRequestWipe(setID, set, container, forceClear, forceDelete)
 	local canDelete  = setID ~= CPAPI.DefaultRingSetID;
-	local showDelete = not showClear and canDelete;
+	local showClear  = forceClear or #set > 0;
+	local showDelete = canDelete and (forceDelete or not showClear);
 
 	local function DeleteSet()
 		container[setID] = nil;
@@ -274,6 +320,40 @@ function Config:OnRequestWipe(setID, set, container)
 			OnAlt    = canDelete and DeleteSet or nil;
 		}, Container:GetBindingDisplayNameForSetID(setID))
 	end
+end
+
+function Config:OnBindSet(owner, setID, clearBinding)
+	local bindingID = Container:GetBindingForSet(setID)
+
+	local function ClearPreviousBindings()
+		db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
+	end
+
+	if clearBinding then return ClearPreviousBindings() end;
+
+	self.Catcher:TryCatchBinding({
+		text = L.SLOT_SET_BINDING;
+		OnShow = function()
+			self:PauseCatcher()
+			ConsolePort:SetCursorNodeIfActive(owner)
+		end;
+		OnHide = function()
+			self:ResumeCatcher()
+		end;
+	}, Container:GetBindingDisplayNameForSetID(setID), nil, {
+		bindingID = bindingID;
+		clearPrev = ClearPreviousBindings;
+	})
+end
+
+function Config:OnClearSet(_, setID)
+	local set, container = env:GetSetContainers(setID)
+	env:TriggerEvent('OnRequestWipe', setID, set, container, true, false)
+end
+
+function Config:OnDeleteSet(_, setID)
+	local set, container = env:GetSetContainers(setID)
+	env:TriggerEvent('OnRequestWipe', setID, set, container, false, true)
 end
 
 ---------------------------------------------------------------

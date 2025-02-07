@@ -5,7 +5,7 @@
 	<Include file="Loadout.xml"/>
 
 	<Frame name="CPRingsConfig" virtual="true" inherits="CPPopupPanelTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="HIGH">
-		<Size x="1060" y="762"/>
+		<Size x="1056" y="762"/>
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>
@@ -16,7 +16,7 @@
 					<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
 				</KeyValues>
 				<Anchors>
-					<Anchor point="BOTTOMLEFT" x="14" y="34"/>
+					<Anchor point="BOTTOMLEFT" x="12" y="34"/>
 				</Anchors>
 				<Frames>
 					<Frame parentKey="RingContainer" clipChildren="true" hidden="true" setAllPoints="true">
@@ -76,13 +76,13 @@
 			<Frame parentKey="Sets" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate" hidden="true">
 				<Size x="320" y="680"/>
 				<Anchors>
-					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
+					<Anchor point="BOTTOMRIGHT" x="-22" y="34"/>
 				</Anchors>
 			</Frame>
 			<Frame parentKey="Loadout" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate" hidden="true">
 				<Size x="320" y="680"/>
 				<Anchors>
-					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
+					<Anchor point="BOTTOMRIGHT" x="-22" y="34"/>
 				</Anchors>
 				<KeyValues>
 					<KeyValue key="spacing" value="4" type="number"/>

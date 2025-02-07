@@ -251,8 +251,7 @@ end
 ---------------------------------------------------------------
 -- Catcher
 ---------------------------------------------------------------
-SpellMenu.CatchBinding = CreateFrame('Button', nil, SpellMenu,
-	(CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate') .. ',CPPopupBindingCatchButtonTemplate')
+SpellMenu.CatchBinding = CreateFrame('Button', nil, SpellMenu, CPPopupBindingCatchButtonMixin.Template)
 
 function SpellMenu.CatchBinding:OnBindingCaught(button)
 	local bindingID = self.bindingID;

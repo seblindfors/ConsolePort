@@ -1,5 +1,13 @@
 local env, db, Container, L = CPAPI.GetEnv(...); Container, L = env.Frame, env.L;
 ---------------------------------------------------------------
+local Binding = {};
+---------------------------------------------------------------
+
+function Binding:OnClick(button)
+	self:GetParent():OnBindingClick(button == 'RightButton')
+end
+
+---------------------------------------------------------------
 local Set = CPAPI.CreateElement('CPRingSetCard', 292, 95);
 ---------------------------------------------------------------
 
@@ -31,14 +39,45 @@ function Set:OnClick(button)
 	end
 
 	self:OnButtonStateChanged()
+	self:OnEnter()
 	env:TriggerEvent('OnSelectSet', elementData, setID, self:GetChecked())
+end
+
+function Set:OnEnter()
+	RunNextFrame(function()
+		if ConsolePort:IsCursorNode(self) and not self:IsMouseOver() then
+			local elementData = self:GetElementData()
+			local info = elementData:GetData()
+			local canDelete = #info.set == 0 and info.setID ~= CPAPI.DefaultRingSetID;
+
+			self.handle = ConsolePort:ToggleHintFocus(self, true)
+			self.handle:AddHint(db('UICursorLeftClick'), info.selected and CLOSE or EDIT)
+			self.handle:AddHint(db('UICursorRightClick'), canDelete and DELETE or CLEAR_ALL)
+			self.handle:AddHint(db('UICursorSpecial'), KEY_BINDING)
+		end
+	end)
+end
+
+function Set:OnLeave()
+	if self.handle then
+		self.handle:ToggleHintFocus(self, false)
+		self.handle = nil;
+	end
+end
+
+function Set:OnSpecialClick(_, down)
+	if down then return end;
+	self:OnBindingClick(false)
 end
 
 function Set:OnAcquire(new)
 	if new then
 		Mixin(self, Set)
 		self:SetScript('OnClick', self.OnClick)
+		self:HookScript('OnEnter', self.OnEnter)
+		self:HookScript('OnLeave', self.OnLeave)
 		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+		FrameUtil.SpecializeFrameWithMixins(self.Binding, Binding)
 	end
 	RunNextFrame(function()
 		if self:GetChecked() then
@@ -49,6 +88,10 @@ end
 
 function Set:OnRelease()
 	self:SetChecked(false, true)
+end
+
+function Set:OnBindingClick(clearBindings)
+	env:TriggerEvent('OnBindSet', self, self:GetElementData():GetData().setID, clearBindings)
 end
 
 function Set:Data(setID, set, owner, selected, disabled)
