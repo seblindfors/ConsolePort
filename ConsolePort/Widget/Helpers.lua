@@ -334,6 +334,39 @@ function CPTimedButtonContextMixin:OnTimedContextTrigger(button)
 end
 
 ---------------------------------------------------------------
+-- Self-handling binding slug
+---------------------------------------------------------------
+CPSlugMixin = {
+	limit     = 3;         -- limit the amount of slugs displayed
+	separator = ' | ';     -- separator between slugs
+	notBound  = NOT_BOUND; -- text to display when not bound
+};
+
+function CPSlugMixin:OnShow()
+	db:RegisterCallback('OnNewBindings', self.OnBindingChanged, self)
+	self:OnBindingChanged()
+end
+
+function CPSlugMixin:OnHide()
+	db:UnregisterCallback('OnNewBindings', self)
+end
+
+function CPSlugMixin:SetBinding(binding)
+	self.binding = binding;
+	self:OnBindingChanged()
+end
+
+function CPSlugMixin:GetBinding()
+	return self.binding;
+end
+
+function CPSlugMixin:OnBindingChanged()
+	if not self.binding then return self:SetText(NOT_APPLICABLE) end;
+	local slug = db.Hotkeys:GetButtonSlugsForBinding(self.binding, self.separator, self.limit)
+	self:SetText((slug:len() > 0 and slug) or self.notBound)
+end
+
+---------------------------------------------------------------
 -- Pools
 ---------------------------------------------------------------
 local CreateFramePool, CreateObjectPool = CreateFramePool, CreateObjectPool;

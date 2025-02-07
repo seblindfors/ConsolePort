@@ -82,8 +82,31 @@ function env:GetShared(skipValidation)
 	return self:ValidateData(self.Frame.Shared);
 end
 
+function env:GetAvailableSets(skipValidation)
+	local data = self:GetData(skipValidation);
+	local shared = self:GetShared(skipValidation);
+	local sets = {};
+
+	-- Add shared sets first, because they have lower priority.
+	for setID, set in pairs(shared) do
+		sets[setID] = set;
+	end
+	for setID, set in pairs(data) do
+		sets[setID] = set;
+	end
+	return sets;
+end
+
 function env:GetSet(setID, skipValidation)
 	return self:GetData(skipValidation)[setID] or self:GetShared(skipValidation)[setID];
+end
+
+function env:IsSharedSet(setID)
+	return (self:GetShared(true)[setID] and not self:GetData(true)[setID]);
+end
+
+function env:EnumerateAvailableSets(skipValidation)
+	return db.table.spairs(self:GetAvailableSets(skipValidation))
 end
 
 function env:CreateSet(rawName, container)
@@ -93,6 +116,17 @@ function env:CreateSet(rawName, container)
 	return setID;
 end
 
+function env:ValidateSetID(rawName)
+	local purifiedName  = tostring(rawName):gsub('[^A-Za-z0-9]', '');
+	local processedName = tonumber(purifiedName) or purifiedName;
+	if processedName ~= DEFAULT and not self:GetSet(processedName, true) then
+		return processedName;
+	end
+end
+
+---------------------------------------------------------------
+-- Display data
+---------------------------------------------------------------
 function env:GetSetIcon(setID)
 	if setID then
 		local icon = self.Frame:GetSetIcon(setID)
@@ -115,14 +149,6 @@ function env:GetRingNameSuggestion()
 	end
 
 	return tostring(suggestion);
-end
-
-function env:ValidateSetID(rawName)
-	local purifiedName  = tostring(rawName):gsub('[^A-Za-z0-9]', '');
-	local processedName = tonumber(purifiedName) or purifiedName;
-	if processedName ~= DEFAULT and not self:GetSet(processedName, true) then
-		return processedName;
-	end
 end
 
 ---------------------------------------------------------------

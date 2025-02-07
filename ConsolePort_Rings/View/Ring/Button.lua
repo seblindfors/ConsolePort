@@ -90,6 +90,8 @@ function Button:SetFocusTooltip()
 	end
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	self:SetTooltip()
+	if self.disableHints then return end;
+
 	local use = env.Frame:GetTooltipUsePrompt()
 	local remove = env.Frame:GetTooltipRemovePrompt()
 	if use then

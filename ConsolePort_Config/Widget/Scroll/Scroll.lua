@@ -74,6 +74,19 @@ function CPScrollBoxTree:Init()
 	return scrollView, dataProvider;
 end
 
+function CPScrollBoxTree:InitDefault()
+	local scrollView, dataProvider = self:Init()
+	scrollView:SetElementExtentCalculator(function(_, elementData)
+		local info = elementData:GetData()
+		return info.extent;
+	end)
+	scrollView:SetElementFactory(function(factory, elementData)
+		local info = elementData:GetData()
+		factory(info.xml, info.init)
+	end)
+	return scrollView, dataProvider;
+end
+
 function CPScrollBoxTree:OnAcquiredFrame(frame, elementData, new)
 	local info = elementData:GetData()
 	if info.acquire then

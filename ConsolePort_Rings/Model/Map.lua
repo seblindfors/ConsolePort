@@ -59,7 +59,11 @@ env.SecureHandlerMap = {
 		link  = CPAPI.GetSpellLink(spellID)
 	} end;
 	-- Custom types -----------------------------------------------
-	-- TODO: nested ring type
+	ring = function(setID) return {
+		type = 'custom';
+		ring = setID;
+		link = env.Frame:GetRingLink(setID);
+	} end;
 };
 
 ---------------------------------------------------------------

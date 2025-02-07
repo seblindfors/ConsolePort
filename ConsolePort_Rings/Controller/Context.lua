@@ -13,6 +13,7 @@ end
 
 function Context:OnTimedContextTrigger(button)
 	env:TriggerEvent('ToggleConfig', self:GetSetForBindingSuffix(button))
+	self:Run([[ self::Disable() ]])
 end
 
 function Context:IsTimedContextValid()

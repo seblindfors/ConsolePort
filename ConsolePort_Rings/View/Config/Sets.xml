@@ -30,10 +30,14 @@
 				</Anchors>
 				<Layers>
 					<Layer level="OVERLAY">
-						<FontString parentKey="Status" inherits="CPGlueFontDisableLarge" justifyH="LEFT" text="NOT_BOUND">
+						<FontString parentKey="Status" inherits="CPGlueFontDisableLarge" justifyH="LEFT" text="NOT_BOUND" mixin="CPSlugMixin">
 							<Anchors>
 								<Anchor point="LEFT" x="0" y="0"/>
 							</Anchors>
+							<Scripts>
+								<OnShow method="OnShow"/>
+								<OnHide method="OnHide"/>
+							</Scripts>
 						</FontString>
 					</Layer>
 				</Layers>

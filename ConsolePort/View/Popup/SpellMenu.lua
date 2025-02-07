@@ -254,20 +254,6 @@ end
 SpellMenu.CatchBinding = CreateFrame('Button', nil, SpellMenu,
 	(CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate') .. ',CPPopupBindingCatchButtonTemplate')
 
-local NO_BINDING_TEXT, SET_BINDING_TEXT = [[
-|cFFFFFF00Set Binding|r
-
-%s in %s, does not have a binding assigned to it.
-
-Press a button combination to select a new binding for this slot.
-
-]], [[
-|cFFFFFF00Set Binding|r
-
-Press a button combination to select a new binding for %s.
-
-]]
-
 function SpellMenu.CatchBinding:OnBindingCaught(button)
 	local bindingID = self.bindingID;
 	if not bindingID then return end;
@@ -295,11 +281,11 @@ function SpellMenu:CatchBindingForSlot(slot, bindingID, text)
 end
 
 function SpellMenu:ReportNoBinding(slot, bindingID)
-	self:CatchBindingForSlot(slot, bindingID, NO_BINDING_TEXT:format(self:GetSpellLink(), _G['BINDING_NAME_'..bindingID] or bindingID))
+	self:CatchBindingForSlot(slot, bindingID, L.SLOT_NO_BINDING:format(self:GetSpellLink(), _G['BINDING_NAME_'..bindingID] or bindingID))
 end
 
 function SpellMenu:ReportSetBinding(slot, bindingID, actionID)
-	self:CatchBindingForSlot(slot, bindingID, SET_BINDING_TEXT:format(_G['BINDING_NAME_'..bindingID] or bindingID))
+	self:CatchBindingForSlot(slot, bindingID, L.SLOT_SET_BINDING:format(_G['BINDING_NAME_'..bindingID] or bindingID))
 end
 
 function SpellMenu:ReportSetBindingToKeyChord(bindingID)

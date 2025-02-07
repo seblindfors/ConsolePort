@@ -35,6 +35,7 @@ function MockRingButton:OnLoad()
 	env.DisplayButton.OnLoad(self)
 	MockButton.OnLoad(self)
 	self:SetSize(64, 64)
+	self.disableHints = true;
 end
 
 function MockRingButton:UpdateText()

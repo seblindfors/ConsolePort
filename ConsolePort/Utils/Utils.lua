@@ -137,6 +137,26 @@ function CPAPI.InitConfigFrame(mixin, ...)
 	return frame, env;
 end
 
+do -- Compatible with CPScrollBoxTree
+	local function NewElementData(self, ...)
+		return db.table.merge({
+			xml      = self.xml;
+			extent   = self.size.y;
+			init     = self.Init or nop;
+			acquire  = self.OnAcquire;
+			release  = self.OnRelease;
+		}, self.Data and self:Data(...) or {})
+	end
+
+	function CPAPI.CreateElement(template, width, height)
+		return {
+			New  = NewElementData;
+			size = CreateVector2D(width, height);
+			xml  = template;
+		};
+	end
+end
+
 function CPAPI.Start(handler, noHooks)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then

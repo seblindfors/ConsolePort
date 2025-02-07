@@ -137,5 +137,5 @@ function CPPopupBindingCatchButtonMixin:TryCatchBinding(popupInfo)
 end
 
 function CPPopupBindingCatchButtonMixin:OnBindingCaught(...)
-	-- override
+	-- override, return true to close the popup
 end

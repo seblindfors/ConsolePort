@@ -218,6 +218,11 @@ Secure:CreateEnvironment({
 			self::SetAcceptBinding(true)
 		end
 	]];
+	Disable = [[
+		self::ClearContext()
+		self:ClearBindings()
+		self:Hide()
+	]];
 	Commit = [[
 		local stickySelect, pressAndHold = ...;
 		local index = self::GetIndex()
@@ -225,9 +230,7 @@ Secure:CreateEnvironment({
 			index = self::InjectStickyIndex(index)
 		end
 		if not self::CommitAction(index) then
-			self::ClearContext()
-			self:ClearBindings()
-			self:Hide()
+			self::Disable()
 		end
 	]];
 	-----------------------------------------------------------
@@ -298,7 +301,7 @@ end
 function Secure:RefreshAll()
 	self:ClearAllActions()
 	local numButtons = 0;
-	for setID, set in pairs(env:GetData()) do
+	for setID, set in env:EnumerateAvailableSets() do
 		self:AddSecureMetadata(setID, set[env.Attributes.MetadataIndex])
 		for i, action in ipairs(set) do
 			self:AddSecureAction(setID, i, action)

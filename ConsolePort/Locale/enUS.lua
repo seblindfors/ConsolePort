@@ -196,6 +196,20 @@ L.DESC_RING_MENU = [[
 	The ring can also be accessed from the game menu without a
 	separate binding, by switching page.
 ]];
+L.SLOT_NO_BINDING = [[
+|cFFFFFF00Set Binding|r
+
+%s in %s, does not have a binding assigned to it.
+
+Press a button combination to select a new binding for this slot.
+
+]];
+L.SLOT_SET_BINDING = [[
+|cFFFFFF00Set Binding|r
+
+Press a button combination to select a new binding for %s.
+
+]];
 L.IMPORT_DATA_TEXT = [[
 
 |cFFFFFF00Import|r

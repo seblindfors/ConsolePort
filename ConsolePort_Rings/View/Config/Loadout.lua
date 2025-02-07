@@ -25,13 +25,20 @@ local function AppendAction(info)
 	return Container:AddUniqueAction(CurrentSetID, nil, action);
 end
 
+local function ReplaceAction(info, index)
+	env.ReplaceID = nil;
+	local action = MapToAction(info);
+	Container:RemoveAction(CurrentSetID, index);
+	return Container:AddUniqueAction(CurrentSetID, index, action);
+end
+
 local function RemoveAction(info)
 	local action = MapToAction(info);
 	return not Container:ClearActionByCompare(CurrentSetID, action);
 end
 
 ---------------------------------------------------------------
-local Entry = { Template = 'CPRingLoadoutCard', Size = CreateVector2D(292, 48) };
+local Entry = CPAPI.CreateElement('CPRingLoadoutCard', 292, 48);
 ---------------------------------------------------------------
 
 function Entry:Init(elementData)
@@ -44,7 +51,7 @@ end
 
 function Entry:ShowTooltip(tooltipFunc, ...)
 	local tooltip = GameTooltip;
-	tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, self.Size.y)
+	tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, self.size.y)
 	NineSliceUtil.ApplyLayoutByName(
 		tooltip.NineSlice,
 		'CharacterCreateDropdown',
@@ -53,8 +60,7 @@ function Entry:ShowTooltip(tooltipFunc, ...)
 
 	tooltipFunc(tooltip, ...)
 	RunNextFrame(function()
-		tooltip:AddLine('\n\n')
-		tooltip:Show()
+		tooltip:SetHeight(tooltip:GetHeight() + 24)
 		tooltip:SetSize(
 			math.max(tooltip:GetWidth(), 90),
 			math.max(tooltip:GetHeight(), 90)
@@ -84,7 +90,8 @@ end
 function Entry:OnClick()
 	local info = self:GetElementData():GetData()
 	if self:GetChecked() then
-		self:SetChecked(AppendAction(info))
+		local operation = env.ReplaceID and ReplaceAction or AppendAction;
+		self:SetChecked(operation(info, env.ReplaceID))
 	else
 		self:SetChecked(RemoveAction(info))
 	end
@@ -114,6 +121,7 @@ function Entry:OnAcquire(new)
 		self:OnLoad()
 		self:RegisterForDrag('LeftButton')
 		self:SetScript('OnDragStop', self.OnDragStop)
+		self:SetAttribute('nohooks', true)
 		self.InnerContent.SelectedHighlight:SetPoint('TOPLEFT', 50, -20)
 	end
 end
@@ -122,20 +130,12 @@ function Entry:OnRelease()
 	self:SetChecked(false)
 end
 
-function Entry.New(id, funcs)
-	return {
-		id       = id;
-		funcs    = funcs;
-		template = Entry.Template;
-		factory  = Entry.Init;
-		acquire  = Entry.OnAcquire;
-		release  = Entry.OnRelease;
-		extent   = Entry.Size.y;
-	};
+function Entry:Data(id, funcs)
+	return { id = id, funcs = funcs };
 end
 
 ---------------------------------------------------------------
-local Results = { Template = 'SettingsListSectionHeaderTemplate', Size = CreateVector2D(292, 45) };
+local Results = CPAPI.CreateElement('SettingsListSectionHeaderTemplate', 292, 45);
 ---------------------------------------------------------------
 
 function Results:Init(elementData)
@@ -145,13 +145,8 @@ function Results:Init(elementData)
 	self:SetSize(self.Size:GetXY())
 end
 
-function Results.New(text)
-	return {
-		text     = text;
-		template = Results.Template;
-		factory  = Results.Init;
-		extent   = Results.Size.y;
-	};
+function Results:Data(text)
+	return { text = text };
 end
 
 ---------------------------------------------------------------
@@ -159,24 +154,18 @@ local Loadout = CreateFromMixins(db.LoadoutMixin); env.SharedConfig.Loadout = Lo
 ---------------------------------------------------------------
 
 function Loadout:OnLoad()
-	local scrollView = self:Init()
-	scrollView:SetElementExtentCalculator(function(_, elementData)
-		local info = elementData:GetData()
-		return info.extent;
-	end)
-	scrollView:SetElementFactory(function(factory, elementData)
-		local info = elementData:GetData()
-		factory(info.template, info.factory)
-	end)
+	self:InitDefault()
 
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
 	env:RegisterCallback('OnSetChanged', self.OnSetChanged, self)
+	env:RegisterCallback('OnConfigShown', self.OnConfigShown, self)
 
 	self.HeaderIcons = {
-		[ABILITIES] = 'category-icon-book';
-		[ITEMS]     = 'category-icon-misc';
-		[MACROS]    = 'category-icon-enchantscroll';
+		[ABILITIES] = 'book';
+		[ITEMS]     = 'misc';
+		[MACROS]    = 'enchantscroll';
+		[SPECIAL]   = 'featured';
 	};
 end
 
@@ -193,15 +182,36 @@ end
 function Loadout:OnSearch(text)
 	self.searchTerm = text;
 	if self:IsVisible() then
-		self:OnShow()
+		self:UpdateCollections()
 	end
 end
 
-function Loadout:OnHide()
-	self:ClearCollections()
+function Loadout:OnConfigShown(shown)
+	if not shown then
+		self:ClearCollections()
+	end
 end
 
 function Loadout:OnShow()
+	self:RefreshCollections()
+end
+
+function Loadout:GetCollections(...)
+	if not self.Collections then
+		db.LoadoutMixin.GetCollections(self, ...);
+		tAppendAll(self.Collections, env:GetCollections(CurrentSetID, env:IsSharedSet(CurrentSetID)));
+	end
+	return self.Collections;
+end
+
+function Loadout:RefreshCollections()
+	if not self.Collections then
+		return self:UpdateCollections()
+	end
+	self:GetScrollView():ReinitializeFrames()
+end
+
+function Loadout:UpdateCollections()
 	local Header = env.SharedConfig.Header;
 	local dataProvider = self:GetDataProvider();
 	local collections = self:GetCollections(true);
@@ -215,7 +225,7 @@ function Loadout:OnShow()
 	local function MakeHeaderName(name)
 		local icon = self.HeaderIcons[name];
 		if icon then
-			return ([[|TInterface\Store\%s:20:20:0:0:64:64:18:46:18:46|t %s]]):format(icon, name);
+			return ([[|TInterface\Store\category-icon-%s:20:20:0:0:64:64:18:46:18:46|t %s]]):format(icon, name);
 		end
 		return name;
 	end
@@ -226,11 +236,11 @@ function Loadout:OnShow()
 			if data.header then
 				local main = data.header..0;
 				if not cats[main] then
-					cats[main] = dataProvider:Insert(Header.New(MakeHeaderName(data.header), collapsed));
+					cats[main] = dataProvider:Insert(Header:New(MakeHeaderName(data.header), collapsed));
 				end
 				provider = cats[main];
 			end
-			cats[data.name] = provider:Insert(Header.New(data.name, collapsed));
+			cats[data.name] = provider:Insert(Header:New(data.name, collapsed));
 		end
 		return cats[data.name];
 	end
@@ -255,15 +265,15 @@ function Loadout:OnShow()
 			if FilterLoadoutEntry(entry, data) then
 				local category = MakeCategory(data, not isSearchActive);
 				category:SetCollapsed(not isSearchActive);
-				category:Insert(Entry.New(entry, data));
+				category:Insert(Entry:New(entry, data));
 				hasItems = true;
 			end
 		end
 		if hasItems then
-			MakeCategory(data, not isSearchActive):Insert(env.SharedConfig.Divider.New(4));
+			MakeCategory(data, not isSearchActive):Insert(env.SharedConfig.Divider:New(4));
 		end
 	end
 	if isSearchActive and dataProvider:IsEmpty() then
-		dataProvider:Insert(Results.New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+		dataProvider:Insert(Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
 	end
 end

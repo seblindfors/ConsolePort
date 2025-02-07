@@ -206,20 +206,11 @@ function SettingsContainer:OnLoad()
 	CPAPI.Start(self)
 end
 
-function SettingsContainer:OnTabSelected(button, tabIndex)
+function SettingsContainer:OnTabSelected(button)
 	for _, child in ipairs({self.ScrollChild:GetChildren()}) do
 		child:Hide()
 	end
-	self.tabIndex = tabIndex;
 	self.ScrollChild[button.data]:Show()
-end
-
-function SettingsContainer:CatchTabDecrement()
-	self.Tabs:SelectAtIndex(self.tabIndex - 1)
-end
-
-function SettingsContainer:CatchTabIncrement()
-	self.Tabs:SelectAtIndex(self.tabIndex + 1)
 end
 
 ---------------------------------------------------------------
@@ -275,8 +266,8 @@ end
 
 function Config:SetDefaultClosures()
 	self:ReleaseClosures()
-	self.CatchTabDecrement = self:CatchButton('PADLSHOULDER', self.SettingsContainer.CatchTabDecrement, self.SettingsContainer)
-	self.CatchTabIncrement = self:CatchButton('PADRSHOULDER', self.SettingsContainer.CatchTabIncrement, self.SettingsContainer)
+	self:CatchButton('PADLSHOULDER', self.SettingsContainer.Tabs.Decrement, self.SettingsContainer.Tabs)
+	self:CatchButton('PADRSHOULDER', self.SettingsContainer.Tabs.Increment, self.SettingsContainer.Tabs)
 end
 
 function Config:OnCombatLockdown(isLocked)

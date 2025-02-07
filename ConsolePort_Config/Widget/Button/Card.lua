@@ -51,14 +51,18 @@ function CPCardBaseMixin:OnMouseUp()
 	ToggleVisible(self.InnerContent.Glow, 0.25, false)
 end
 
-function CPCardBaseMixin:OnButtonStateChanged()
+function CPCardBaseMixin:OnButtonStateChanged(noAnimation)
 	local state = self.Flags({
 		Disabled = not self:IsEnabled(),
 		Over     = self:IsOver(),
 		Selected = self:GetChecked(),
 	}, self.Decor)
 	for texture, show in pairs(state) do
-		ToggleVisible(self.InnerContent[texture], self.textureFadeIn, show)
+		if noAnimation then
+			self.InnerContent[texture]:SetShown(show)
+		else
+			ToggleVisible(self.InnerContent[texture], self.textureFadeIn, show)
+		end
 	end
 end
 

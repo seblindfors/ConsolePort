@@ -39,6 +39,7 @@ function CPTabGroupMixin:OnLoad()
 	end
 
 	self:SetButtonSetup(TabButtonSetup)
+	self:SetAttribute('nodeignore', true)
 end
 
 function CPTabGroupMixin:OnShow()
@@ -70,6 +71,33 @@ end
 
 function CPTabGroupMixin:SetEnabled(index, enabled)
 	return self:GetAtIndex(index):SetEnabled(enabled)
+end
+
+function CPTabGroupMixin:SelectAtIndex(index)
+	self.tabIndex = index;
+	RadioButtonGroupMixin.SelectAtIndex(self, index)
+end
+
+function CPTabGroupMixin:Decrement()
+	local limit = 1;
+	local delta = max(limit, self.tabIndex - 1);
+	while delta >= limit and not self:GetAtIndex(delta):IsEnabled() do
+		delta = delta - 1;
+	end
+	if self:GetAtIndex(delta):IsEnabled() then
+		self:SelectAtIndex(delta)
+	end
+end
+
+function CPTabGroupMixin:Increment()
+	local limit = #self.buttons;
+	local delta = min(limit, self.tabIndex + 1);
+	while delta <= limit and not self:GetAtIndex(delta):IsEnabled() do
+		delta = delta + 1;
+	end
+	if self:GetAtIndex(delta):IsEnabled() then
+		self:SelectAtIndex(delta)
+	end
 end
 
 ---------------------------------------------------------------

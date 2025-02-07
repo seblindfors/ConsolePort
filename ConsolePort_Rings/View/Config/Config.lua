@@ -1,6 +1,6 @@
 local env, db, Container, L = CPAPI.GetEnv(...); Container, L = env.Frame, env.L;
 ---------------------------------------------------------------
-local Header = { Template = 'CPHeader', Size = CreateVector2D(304, 40) };
+local Header = CPAPI.CreateElement('CPHeader', 304, 40);
 ---------------------------------------------------------------
 
 function Header:OnClick()
@@ -11,7 +11,7 @@ end
 function Header:Init(elementData)
 	local data = elementData:GetData()
 	self.Text:SetText(data.text)
-	self:SetSize(self.Size:GetXY())
+	self:SetSize(self.size:GetXY())
 	self:Synchronize(elementData)
 end
 
@@ -39,28 +39,16 @@ function Header:OnRelease()
 	self:SetChecked(false)
 end
 
-function Header.New(text, collapsed)
-	return {
-		text      = text;
-		collapsed = collapsed;
-		template  = Header.Template;
-		factory   = Header.Init;
-		acquire   = Header.OnAcquire;
-		release   = Header.OnRelease;
-		extent    = Header.Size.y;
-	};
+function Header:Data(text, collapsed)
+	return { text = text, collapsed = collapsed };
 end
 
 ---------------------------------------------------------------
-local Divider = { Template = 'CPRingSetDivider' };
+local Divider = CPAPI.CreateElement('CPRingSetDivider', 0, 10)
 ---------------------------------------------------------------
 
-function Divider.New(extent)
-	return {
-		extent   = extent or 10;
-		template = Divider.Template;
-		factory  = nop;
-	};
+function Divider:Data(extent)
+	return { extent = extent };
 end
 
 ---------------------------------------------------------------
@@ -94,7 +82,7 @@ function Search:Cancel(dispatch)
 end
 
 function Search:OnEnterPressed()
-	EditBox_ClearFocus(self)
+	self:ClearFocus()
 	if self.timer then
 		self.timer:Invoke()
 		self.timer:Cancel()
@@ -117,13 +105,15 @@ function Search:OnTabSelected(tabIndex, panels)
 end
 
 ---------------------------------------------------------------
-local Config = {}; env.SharedConfig = {
+local Config = CreateFromMixins(CPButtonCatcherMixin); env.SharedConfig = {
 ---------------------------------------------------------------
 	Header  = Header;
 	Divider = Divider;
 };
 
 function Config:OnLoad()
+	CPButtonCatcherMixin.OnLoad(self)
+	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
 	self.DefaultTitle = L'Ring Manager';
 
 	FrameUtil.SpecializeFrameWithMixins(self.Display, env.SharedConfig.Display)
@@ -145,6 +135,27 @@ function Config:OnLoad()
 	env:RegisterCallback('OnSelectTab', self.OnSelectTab, self)
 	env:RegisterCallback('OnSetUpdate', self.OnSetUpdate, self)
 	env:RegisterCallback('OnRequestWipe', self.OnRequestWipe, self)
+	env:RegisterCallback('OnAcquireControlButton', self.CatchButton, self)
+	env:RegisterCallback('OnReleaseControlButton', self.FreeButton, self)
+
+	CPAPI.Start(self)
+end
+
+function Config:OnShow()
+	FrameUtil.UpdateScaleForFit(self, 40, 80)
+	self:SetDefaultClosures()
+	env:TriggerEvent('OnConfigShown', true)
+end
+
+function Config:OnHide()
+	self:ReleaseClosures()
+	env:TriggerEvent('OnConfigShown', false)
+end
+
+function Config:SetDefaultClosures()
+	self:ReleaseClosures()
+	self:CatchButton('PADLSHOULDER', self.Tabs.Decrement, self.Tabs)
+	self:CatchButton('PADRSHOULDER', self.Tabs.Increment, self.Tabs)
 end
 
 function Config:OnTabSelected(button, tabIndex)
@@ -158,6 +169,7 @@ function Config:OnSelectTab(tabIndex)
 end
 
 function Config:OnSelectSet(elementData, setID, isSelected)
+	self.currentSetID = isSelected and setID or nil;
 	self:OnSetUpdate(setID, isSelected)
 	self.Tabs:SetEnabled(self.Panels.Loadout, isSelected)
 	self.Tabs:SetEnabled(self.Panels.Rings, true)
@@ -207,7 +219,12 @@ function Config:OnAddNewSet(elementData, container, isAdding)
 			OnButtonReset()
 			this:SelectSet(setID, true)
 		end;
-		OnCancel = OnButtonReset;
+		OnCancel = function(self)
+			OnButtonReset()
+			if this.currentSetID then
+				this:SelectSet(this.currentSetID, true)
+			end
+		end;
 		EditBoxOnTextChanged = function(self)
 			local setID = env:ValidateSetID(self:GetText())
 			if setID then
@@ -264,8 +281,9 @@ end
 ---------------------------------------------------------------
 env:RegisterCallback('ToggleConfig', function(self, setID)
 	if not self.Config then
-		self.Config, env.SharedConfig.Env = CPAPI.InitConfigFrame(
+		self.Config, env.SharedConfig.Env = CPAPI.CreateConfigFrame(
 			Config, 'Frame', 'ConsolePortRingsConfig', UIParent, 'CPRingsConfig');
+		self.Config:OnLoad()
 	end
 	self.Config:Show()
 	self.Config:SelectSet(setID, not not setID)

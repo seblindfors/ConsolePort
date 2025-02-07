@@ -33,16 +33,22 @@
 					<Frame parentKey="Details" setAllPoints="true" hidden="false">
 						<Frames>
 							<Frame parentKey="IconSelector" inherits="CPIconSelector" frameStrata="HIGH">
-								<Size y="400"/>
+								<Size y="444"/>
 								<Anchors>
 									<Anchor point="BOTTOMLEFT" x="14" y="8"/>
 									<Anchor point="BOTTOMRIGHT" x="-14" y="8"/>
 								</Anchors>
+								<KeyValues>
+									<KeyValue key="customButtonHeight" value="50" type="number"/>
+									<KeyValue key="horizontalSpacing" value="14" type="number"/>
+									<KeyValue key="verticalSpacing" value="14" type="number"/>
+									<KeyValue key="buttonTemplate" value="CPIconSelectorLargeButton" type="string"/>
+								</KeyValues>
 							</Frame>
 							<Frame parentKey="OptionsHeader" inherits="CPPopupHeaderTemplate">
 								<Size x="680" y="38"/>
 								<Anchors>
-									<Anchor point="TOPLEFT" x="0" y="-8"/>
+									<Anchor point="TOPLEFT" x="0" y="-6"/>
 								</Anchors>
 							</Frame>
 							<Frame parentKey="IconHeader" inherits="CPPopupHeaderTemplate">

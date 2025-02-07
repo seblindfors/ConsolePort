@@ -118,6 +118,15 @@ function ConsolePort:GetKeyboardFocus()
 end
 
 ---------------------------------------------------------------
+-- @brief Set the focus frame for the hint bar
+-- @param frame: frame to focus (frame)
+-- @param enabled: enable or disable the hint bar (bool)
+-- @return handle: hint bar handle (see View\UIhandle)
+function ConsolePort:ToggleHintFocus(frame, enabled)
+	return db.UIHandle:ToggleHintFocus(frame, enabled)
+end
+
+---------------------------------------------------------------
 -- Interface cursor API
 ---------------------------------------------------------------
 -- The interface cursor has three major components:

@@ -2,9 +2,9 @@
 CPStateButtonMixin = CreateFromMixins(ButtonStateBehaviorMixin);
 ---------------------------------------------------------------
 
-function CPStateButtonMixin:SetChecked(checked)
+function CPStateButtonMixin:SetChecked(checked, noAnimation)
 	getmetatable(self).__index.SetChecked(self, checked)
-	self:OnButtonStateChanged()
+	self:OnButtonStateChanged(noAnimation)
 end
 
 ---------------------------------------------------------------

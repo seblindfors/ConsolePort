@@ -196,6 +196,7 @@ env.Attributes = {
 	SpecialClick = 'nodespecialclick';
 	CancelClick  = 'nodecancelclick';
 	IgnoreMime   = 'nodeignoremime';
+	DisableHooks = 'nohooks';
 };
 
 ---------------------------------------------------------------

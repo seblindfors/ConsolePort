@@ -313,7 +313,10 @@ LoadoutInfo.Collectors = {
 							flyouts[flyoutID] = flyout;
 							flyoutNames[flyoutID] = name;
 							for f = 1, numFlyoutSlots do
-								flyout[#flyout+1] = GetFlyoutSlotInfo(typeID, f);
+								local _, overrideSpellID, isKnown = GetFlyoutSlotInfo(typeID, f)
+								if isKnown and not CPAPI.IsPassiveSpell(overrideSpellID) then
+									flyout[#flyout+1] = overrideSpellID;
+								end
 							end
 						end
 					end

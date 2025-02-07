@@ -205,5 +205,62 @@
 		</Scripts>
 	</Button>
 
+	<Button name="CPIconSelectorLargeButton" virtual="true" mixin="CPIconSelectorButton">
+		<Size x="50.4" y="50.4"/> <!-- 36 * 1.4 -->
+		<NormalTexture parentKey="Icon">
+			<Size x="56" y="56"/> <!-- 40 * 1.4 -->
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</NormalTexture>
+		<HighlightTexture parentKey="Highlight" alphaMode="ADD" inherits="CPAtlas">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-4.2" y="4.2"/> <!-- -3 * 1.4, 3 * 1.4 -->
+				<Anchor point="BOTTOMRIGHT" x="5.6" y="-4.2"/> <!-- 4 * 1.4, -3 * 1.4 -->
+			</Anchors>
+			<KeyValues>
+				<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Mouseover" type="string"/>
+			</KeyValues>
+		</HighlightTexture>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture inherits="CPAtlas">
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame" type="string"/>
+						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-4.2" y="4.2"/> <!-- -3 * 1.4, 3 * 1.4 -->
+						<Anchor point="BOTTOMRIGHT" x="7" y="-5.6"/> <!-- 5 * 1.4, -4 * 1.4 -->
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon"
+					hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="1.4" y="-1.4"/> <!-- 1 * 1.4, -1 * 1.4 -->
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="-1.4" y="1.4"/> <!-- -1 * 1.4, 1 * 1.4 -->
+					</Anchors>
+				</MaskTexture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="SelectedTexture" hidden="true" inherits="CPAtlas">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-4.2" y="4.2"/> <!-- -3 * 1.4, 3 * 1.4 -->
+						<Anchor point="BOTTOMRIGHT" x="5.6" y="-4.2"/> <!-- 4 * 1.4, -3 * 1.4 -->
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Down" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnClick method="OnClick"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+
 	<Include file="Card.xml"/>
 </Ui>

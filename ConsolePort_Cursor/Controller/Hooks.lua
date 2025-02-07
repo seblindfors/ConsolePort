@@ -124,7 +124,9 @@ end
 -- Prompts
 ---------------------------------------------------------------
 function Hooks:IsPromptProcessingValid(node)
-	return not InCombatLockdown() and db.Cursor:IsCurrentNode(node) and not node:GetAttribute('nohooks')
+	return not InCombatLockdown()
+		and db.Cursor:IsCurrentNode(node)
+		and not node:GetAttribute(env.Attributes.DisableHooks)
 end
 
 function Hooks:GetSpecialActionPrompt(text)
