@@ -149,4 +149,7 @@
 	<Font name="CPGlueFontNormalHuge" inherits="CPFont_Shadow_Outline_Huge" virtual="true">
 		<Color r="1.0" g="0.78" b="0"/>
 	</Font>
+	<Font name="CPGameFontDisableMed2" inherits="GameFontNormalMed2" virtual="true">
+		<Color r="0.5" g="0.5" b="0.5"/>
+	</Font>
 </Ui>

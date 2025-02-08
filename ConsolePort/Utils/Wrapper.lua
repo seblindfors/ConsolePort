@@ -393,12 +393,7 @@ CPAPI.GetSpellBookItemInfo = function(...)
 		local iconID = GetSpellBookItemTexture(...)
 		local name = GetSpellBookItemName(...)
 		local isPassive = IsPassiveSpell(...)
-		local spellID;
-		if (itemType == 'SPELL' or itemType == 'FUTURESPELL') then
-			spellID = select(7, GetSpellInfo(...))
-		elseif (itemType == 'PETACTION') then
-			spellID = bit.band(0xFFFFFF, id)
-		end
+		local spellID = select(7, GetSpellInfo(...))
 		return {
 			--[[ SpellBookItemInfo  ]]
 			--[[ Enum.SpellBookType ]] itemType = itemType;

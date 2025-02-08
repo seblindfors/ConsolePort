@@ -13,7 +13,7 @@ function Command:OnLoad()
 	self:SetSize(self:GetParent():GetWidth() + 8, 40)
 	self:SetNormalFontObject(GameFontNormalMed2)
 	self:SetHighlightFontObject(GameFontHighlightMed2)
-	self:SetDisabledFontObject(GameFontDisableMed2)
+	self:SetDisabledFontObject(CPGameFontDisableMed2)
 	self.Icon:SetAtlas(self.icon)
 
 	local base = env.SharedConfig.Env.Settings.Base;
@@ -72,7 +72,7 @@ function Details:OnLoad()
 	self.IconHeader.Text:ClearAllPoints()
 	self.IconHeader.Text:SetPoint('LEFT', 40, 0)
 
-	self.BindingText = self.Bind:CreateFontString(nil, 'ARTWORK', 'GameFontDisableMed2')
+	self.BindingText = self.Bind:CreateFontString(nil, 'ARTWORK', 'CPGameFontDisableMed2')
 	self.BindingText:SetPoint('RIGHT', -8, 0)
 	FrameUtil.SpecializeFrameWithMixins(self.BindingText, CPSlugMixin)
 

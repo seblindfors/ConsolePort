@@ -486,7 +486,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 	do  local items = collect(self.Collectors.Bags, NUM_BAG_SLOTS or 4)
 		if IsDataValid(items) then
 			AddCollection(items, {
-				name    = BAG_NAME_BACKPACK;
+				name    = BAG_NAME_BACKPACK or INVENTORY_TOOLTIP;
 				pickup  = CPAPI.PickupContainerItem;
 				tooltip = GameTooltip.SetBagItem;
 				texture = function(...) return CPAPI.GetContainerItemInfo(...).iconFileID end;

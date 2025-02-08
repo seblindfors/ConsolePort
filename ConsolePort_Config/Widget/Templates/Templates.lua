@@ -84,7 +84,8 @@ function CPTabGroupMixin:Decrement()
 	while delta >= limit and not self:GetAtIndex(delta):IsEnabled() do
 		delta = delta - 1;
 	end
-	if self:GetAtIndex(delta):IsEnabled() then
+	local target = self:GetAtIndex(delta)
+	if target and target:IsEnabled() then
 		self:SelectAtIndex(delta)
 	end
 end
@@ -95,7 +96,8 @@ function CPTabGroupMixin:Increment()
 	while delta <= limit and not self:GetAtIndex(delta):IsEnabled() do
 		delta = delta + 1;
 	end
-	if self:GetAtIndex(delta):IsEnabled() then
+	local target = self:GetAtIndex(delta)
+	if target and target:IsEnabled() then
 		self:SelectAtIndex(delta)
 	end
 end
