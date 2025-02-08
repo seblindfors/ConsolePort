@@ -332,8 +332,8 @@ LoadoutInfo.Collectors = {
 		local pet, numPetSpells = {}, CPAPI.HasPetSpells()
 		if numPetSpells then
 			for i=1, numPetSpells do
-				local skillType = CPAPI.GetSpellBookItemType(i, BOOKTYPE_PET)
-				if (skillType == SKILLTYPE_PET) then
+				local skillType, _, spellID = CPAPI.GetSpellBookItemType(i, BOOKTYPE_PET)
+				if (skillType == SKILLTYPE_PET) or spellID and not CPAPI.IsSpellBookItemPassive(i, BOOKTYPE_PET) then
 					pet[#pet + 1] = i;
 				end
 			end
@@ -419,7 +419,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 
 	local BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
 	local BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
-	local SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
+	local SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or nil;
 	local SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
 	local SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
 	local COMPANION_MOUNT  = 'MOUNT';
