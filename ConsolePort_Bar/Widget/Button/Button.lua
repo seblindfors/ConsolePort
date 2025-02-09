@@ -87,15 +87,8 @@ function SlotButton:GetOverrideBinding(state, actionID)
 end
 
 ---------------------------------------------------------------
-local ProxyIcon = {}; -- LAB custom type dynamic icon textures
+-- LAB custom type dynamic icon textures
 ---------------------------------------------------------------
-
-function ProxyIcon:SetTexture(texture, ...)
-	if (type(texture) == 'function') then
-		return texture(self, self:GetParent(), ...)
-	end
-	return getmetatable(self).__index.SetTexture(self, texture, ...)
-end
 
 local function ProxyButtonTextureProvider(buttonID)
 	local texture = db('Icons/64/'..buttonID)
@@ -224,7 +217,7 @@ local ProxyButton = CreateFromMixins(SlotButton, {
 function ProxyButton:OnLoad()
 	SlotButton.OnLoad(self)
 	env:RegisterCallback('OnConfigChanged', self.UpdateConfig, self)
-	Mixin(self.icon, ProxyIcon)
+	self.icon.SetTexture = env.LIB.SkinUtility.SetTexture;
 end
 
 function ProxyButton:RefreshBinding(state, binding)

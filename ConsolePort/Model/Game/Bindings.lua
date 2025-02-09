@@ -20,8 +20,21 @@ do local function click(id, btn) return ('CLICK %s%s:%s'):format(_, id, btn or '
 		UtilityRing       = click 'UtilityToggle';
 		MenuRing          = click 'MenuTrigger';
 		UnitMenu          = click 'Unit';
+		UnitMenuPlayer    = click ('Unit', 'player');
+		UnitMenuTarget    = click ('Unit', 'target');
 		CustomRing        = click ('UtilityToggle', '(.*)');
 		--FocusButton     = click 'FocusButton';
+	};
+
+	Bindings.Macroable = { -- enumID, inheritDesc
+		MenuRing          = true;
+		RaidCursorFocus   = true;
+		RaidCursorTarget  = true;
+		RaidCursorToggle  = true;
+		UICursorToggle    = true;
+		UnitMenu          = true;
+		UnitMenuPlayer    = true;
+		UnitMenuTarget    = true;
 	};
 end
 
@@ -59,8 +72,18 @@ do local function hold(binding) return L.FORMAT_HOLD_BINDING:format(binding) end
 			name    = L.NAME_RAID_CURSOR_TARGET;
 		};
 		{	binding = Bindings.Custom.UnitMenu;
-			name    = PLAYER_OPTIONS_LABEL;
+			name    = ('%s: %s'):format(PLAYER_OPTIONS_LABEL, DYNAMIC);
 			unit    = function() return db.UnitMenuSecure:GetPreferredUnit() end;
+			texture = [[Interface\TARGETINGFRAME\targetdead]];
+		};
+		{	binding = Bindings.Custom.UnitMenuPlayer;
+			name    = ('%s: %s'):format(PLAYER_OPTIONS_LABEL, PLAYER);
+			unit    = function() return 'player' end;
+			texture = [[Interface\TARGETINGFRAME\targetdead]];
+		};
+		{	binding = Bindings.Custom.UnitMenuTarget;
+			name    = ('%s: %s'):format(PLAYER_OPTIONS_LABEL, TARGET);
+			unit    = function() return 'target' end;
 			texture = [[Interface\TARGETINGFRAME\targetdead]];
 		};
 		--[[{	name    = hold(FOCUS_CAST_KEY_TEXT);
@@ -267,13 +290,19 @@ do -- Handle custom rings
 			end
 			if ( unit and type(texture) ~= 'function' ) then
 				local default = texture;
-				local get = type(unit) == 'function' and unit or function() return unit end;
 				texture = function(self)
-					local unitID = get()
-					if UnitExists(unitID) then
-						return SetPortraitTexture(self, unitID)
-					end
-					self:SetTexture(default)
+					local getUnit = type(unit) == 'function' and unit or CPAPI.Static(unit);
+					local timer   = C_Timer.NewTicker(0.25, function()
+						local unitID = getUnit()
+						if UnitExists(unitID) then
+							return SetPortraitTexture(self, unitID)
+						end
+						getmetatable(self).__index.SetTexture(self, default)
+					end)
+					timer:Invoke()
+					return function()
+						timer:Cancel()
+					end;
 				end;
 				set.texture = texture;
 			end
@@ -347,6 +376,7 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		[Bindings.Custom.RaidCursorTarget] = CustomIcons.Group;
 		[Bindings.Custom.UtilityRing]      = CustomIcons.Ring;
 		[Bindings.Custom.MenuRing]         = CustomIcons.Menu;
+		[Bindings.Custom.UICursorToggle]   = CustomIcons.Menu;
 		--[Bindings.Custom.FocusButton]    = client 'VAS_RaceChange';
 		---------------------------------------------------------------
 	};

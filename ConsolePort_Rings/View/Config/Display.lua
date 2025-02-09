@@ -97,6 +97,9 @@ function Display:RestoreState()
 	self.Ring.ActiveSlice:Hide()
 end
 
+---------------------------------------------------------------
+-- Tutorial
+---------------------------------------------------------------
 function Display:CreateTutorials()
 	local function CreateHeader()
 		return CreateFrame('Frame', nil, self.Tutorial, 'CPPopupHeaderTemplate')
@@ -109,7 +112,7 @@ function Display:CreateTutorials()
 		return text;
 	end
 
-	-- Create tutorials
+	-- Create tutorial texts
 	local texts, layoutIndex = {
 		{ text = DESCRIPTION, element = CreateHeader() },
 		{ text = L.RING_MENU_DESC, element = CreateText() },
@@ -140,16 +143,20 @@ function Display:CreateTutorials()
 	-- Create animations
 	local animations = CPAPI.CreateAnimationQueue()
 
-	local CubicFadeIn = animations:CreateAnimation(1, 'SetAlpha', animations.Fraction, EasingUtil.InOutCubic)
+	local CubicFadeIn = animations:CreateAnimation(1, 'SetAlpha',
+		animations.Fraction, EasingUtil.InOutCubic)
 
 	local SetupRingAndMockData = animations:CreateCallback(1, 0, function(self, data)
 		self:Show()
 		self:Mock(data)
-	end, { -- Create some mock ring data
-		env.SecureHandlerMap.action(1),     -- Action Button 1
-		env.SecureHandlerMap.action(2),     -- Action Button 2
-		env.SecureHandlerMap.action(3),     -- Action Button 3
-		env.SecureHandlerMap.action(4),     -- Action Button 4
+	end, { -- Create some mock ring data for demonstration purposes
+		-- AB 1/2 are always visible because they are most likely to have some stuff on them.
+		-- AB 3/4 are mostly out of view, but still visible during the animation. Auto-attack
+		-- and Hearthstone should hopefully be available, and these are the primary focus.
+		env.SecureHandlerMap.action(2),     -- Action Button 2 (top action)
+		env.SecureHandlerMap.action(4),     -- Action Button 4 (mostly out of view)
+		env.SecureHandlerMap.action(3),     -- Action Button 3 (mostly out of view)
+		env.SecureHandlerMap.action(1),     -- Action Button 1 (bottom action)
 		env.SecureHandlerMap.spellID(6603), -- Auto Attack
 		env.SecureHandlerMap.item(6948),    -- Hearthstone
 	})

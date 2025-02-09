@@ -66,6 +66,17 @@ end
 Lib.Skin, Lib.SkinUtility = {}, {};
 ---------------------------------------------------------------
 
+function Lib.SkinUtility.SetTexture(self, texture, ...)
+	if self.unmount then
+		self.unmount = self.unmount(self, self:GetParent(), ...)
+	end
+	if (type(texture) == 'function') then
+		self.unmount = texture(self, self:GetParent(), ...)
+		return true;
+	end
+	return getmetatable(self).__index.SetTexture(self, texture, ...)
+end
+
 function Lib.SkinUtility.GetIconMask(self)
 	if self.IconMask then
 		return self.IconMask;

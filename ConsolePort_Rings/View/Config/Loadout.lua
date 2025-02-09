@@ -44,9 +44,10 @@ local Entry = CPAPI.CreateElement('CPRingLoadoutCard', 292, 48);
 function Entry:Init(elementData)
 	local info = elementData:GetData()
 	local id, funcs = info.id, info.funcs;
+	local texture = funcs.texture(UnpackEntryID(id))
 	self.Name:SetText(funcs.title(UnpackEntryID(id)))
-	self.Icon:SetTexture(funcs.texture(UnpackEntryID(id)))
 	self:SetChecked(GetCurrentSetEntry(info))
+	self.Icon:SetTexture(texture)
 end
 
 function Entry:ShowTooltip(tooltipFunc, ...)
@@ -63,7 +64,7 @@ function Entry:ShowTooltip(tooltipFunc, ...)
 		tooltip:SetHeight(tooltip:GetHeight() + 24)
 		tooltip:SetSize(
 			math.max(tooltip:GetWidth(), 90),
-			math.max(tooltip:GetHeight(), 90)
+			math.max(tooltip:GetHeight(), 70)
 		);
 	end)
 	return tooltip;
@@ -125,6 +126,7 @@ function Entry:OnAcquire(new)
 		self:RegisterForDrag('LeftButton')
 		self:SetScript('OnDragStop', self.OnDragStop)
 		self:SetAttribute('nohooks', true)
+		self.Icon.SetTexture = env.ActionButton.SkinUtility.SetTexture;
 		self.InnerContent.SelectedHighlight:SetPoint('TOPLEFT', 50, -20)
 	end
 end

@@ -64,6 +64,11 @@ env.SecureHandlerMap = {
 		ring = setID;
 		link = env.Frame:GetRingLink(setID);
 	} end;
+	---------------------------------------------------------------
+	binding = function(bindingID) return {
+		type    = 'custom';
+		binding = bindingID;
+	} end;
 };
 
 ---------------------------------------------------------------
@@ -80,6 +85,19 @@ local function GetCustomAction(data)
 		local secureEnvData = {
 			type = env.Attributes.NestedRing;
 			ring = tostring(data.ring);
+		};
+		return { -- LAB data
+			func = function() return secureEnvData end;
+			text = name;
+			texture = texture;
+			tooltip = name;
+		}, secureEnvData;
+	end
+	if data.binding then
+		local desc, _, name, texture = db.Bindings:GetDescriptionForBinding(data.binding)
+		local secureEnvData = {
+			type = 'macro';
+			macrotext = data.binding:gsub('CLICK', '/click'):gsub(':', ' ')
 		};
 		return { -- LAB data
 			func = function() return secureEnvData end;

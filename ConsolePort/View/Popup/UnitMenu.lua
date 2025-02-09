@@ -193,6 +193,7 @@ end
 -- Scripts
 ---------------------------------------------------------------
 function UnitMenu:OnHide()
+	ConsolePort:SetCursorObstructor(self, false)
 	self:UnregisterAllEvents()
 	self:ResetAll()
 	if self.updateTicker then
@@ -205,6 +206,7 @@ function UnitMenu:OnHide()
 end
 
 function UnitMenu:OnShow()
+	ConsolePort:SetCursorObstructor(self, true)
 	CPAPI.RegisterFrameForEvents(self, self.Events)
 	self.updateTicker = C_Timer.NewTicker(0.1, function()
 		if not self.contextData.isSecure and not UnitExists(self.contextData.unit) then

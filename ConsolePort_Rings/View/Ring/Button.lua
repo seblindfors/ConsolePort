@@ -10,6 +10,7 @@ function Button:OnLoad()
 	self:SetScript('OnHide', self.OnClear)
 	self:SetScript('OnShow', self.UpdateLocal)
 	self:SetRotation(self.rotation or 0)
+	self.icon.SetTexture = ActionButton.SkinUtility.SetTexture;
 	self:Skin()
 end
 

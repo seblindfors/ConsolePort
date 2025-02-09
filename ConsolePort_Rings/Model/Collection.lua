@@ -39,6 +39,14 @@ function env:GetCollections(currentSetID, isSharedSet)
 		return otherRings;
 	end)
 
+	local bindings = collect(function()
+		local bindings = {};
+		for bindingID in env.table.spairs(db.Bindings.Macroable) do
+			tinsert(bindings, db.Bindings.Custom[bindingID]);
+		end
+		return bindings;
+	end)
+
 	if IsDataValid(nestedRings) then
 		AddCollection(nestedRings, {
 			name    = L'Nested Rings';
@@ -51,6 +59,28 @@ function env:GetCollections(currentSetID, isSharedSet)
 				tooltip:Show()
 			end;
 			texture = function(id) return env:GetSetIcon(id) end;
+		});
+	end
+
+	if IsDataValid(bindings) then
+		AddCollection(bindings, {
+			name    = KEY_BINDINGS;
+			header  = SPECIAL;
+			map = function(map, id)
+				return map.binding(id)
+			end;
+			title = function(id)
+				return select(3, db.Bindings:GetDescriptionForBinding(id))
+			end;
+			tooltip = function(tooltip, id)
+				local desc, _, name = db.Bindings:GetDescriptionForBinding(id, true, 50);
+				tooltip:SetText(name, 1, 1, 1);
+				tooltip:AddLine(desc or SPECIAL);
+				tooltip:Show()
+			end;
+			texture = function(id)
+				return (select(4, db.Bindings:GetDescriptionForBinding(id)))
+			end;
 		});
 	end
 
