@@ -7,4 +7,5 @@
 	<Script file="Color.lua"/>
 	<Script file="Utils.lua"/>
 	<Script file="UIFade.lua"/>
+	<Script file="Animation.lua"/>
 </Ui>

@@ -157,6 +157,10 @@ do -- Compatible with CPScrollBoxTree
 	end
 end
 
+function CPAPI.CreateAnimationQueue()
+	return CreateAndInitFromMixin(db.AnimationQueue)
+end
+
 function CPAPI.Start(handler, noHooks)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then
