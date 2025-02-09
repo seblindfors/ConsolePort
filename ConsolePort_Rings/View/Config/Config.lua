@@ -368,7 +368,3 @@ env:RegisterCallback('ToggleConfig', function(self, setID)
 	self.Config:Show()
 	self.Config:SelectSet(setID, not not setID)
 end, env)
-
-function cfg() -- debug
-	env:TriggerEvent('ToggleConfig', 1)
-end

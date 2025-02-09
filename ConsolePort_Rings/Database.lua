@@ -26,7 +26,7 @@ env.Variables = {
 };
 
 ConsolePort:AddVariables(env.Variables)
-t = env.Variables
+
 ---------------------------------------------------------------
 -- The basics
 ---------------------------------------------------------------
