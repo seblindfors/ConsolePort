@@ -31,6 +31,7 @@ function TutorialSetting:SetData(varID, data)
 		owner    = env.Config;
 		registry = db;
 	})
+	self:PostMount()
 end
 
 function TutorialSetting:UpdateTooltipAndBackground(...)
@@ -97,8 +98,6 @@ function Display:RestoreState()
 end
 
 function Display:CreateTutorials()
-	local animations = CPAPI.CreateAnimationQueue()
-
 	local function CreateHeader()
 		return CreateFrame('Frame', nil, self.Tutorial, 'CPPopupHeaderTemplate')
 	end
@@ -134,44 +133,38 @@ function Display:CreateTutorials()
 		Mixin(widget, env.SharedConfig.Env.Setting, TutorialSetting)
 		widget.layoutIndex = layoutIndex();
 		widget:SetData(varID, data)
-		widget:PostMount()
 		widget:Show()
 	end
 	self.Tutorial:Layout()
 
-	-- Create some mock ring data
-	local ringMockData = {
-		env.SecureHandlerMap.action(1), -- Action Button 1
-		env.SecureHandlerMap.action(2), -- Action Button 2
-		env.SecureHandlerMap.action(3), -- Action Button 3
-		env.SecureHandlerMap.action(4), -- Action Button 4
-		env.SecureHandlerMap.spellID(6603), -- Auto Attack
-		env.SecureHandlerMap.item(6948), -- Hearthstone
-	};
-
 	-- Create animations
-	local CubicFadeIn = animations:CreateAnimation(1, 'SetAlpha', function(self, elapsed)
-		return elapsed;
-	end, EasingUtil.InOutCubic)
+	local animations = CPAPI.CreateAnimationQueue()
 
-	local SetupRingAndMockData = animations:CreateCallback(1, 0, function(self)
+	local CubicFadeIn = animations:CreateAnimation(1, 'SetAlpha', animations.Fraction, EasingUtil.InOutCubic)
+
+	local SetupRingAndMockData = animations:CreateCallback(1, 0, function(self, data)
 		self:Show()
-		self:Mock(ringMockData)
-	end)
+		self:Mock(data)
+	end, { -- Create some mock ring data
+		env.SecureHandlerMap.action(1),     -- Action Button 1
+		env.SecureHandlerMap.action(2),     -- Action Button 2
+		env.SecureHandlerMap.action(3),     -- Action Button 3
+		env.SecureHandlerMap.action(4),     -- Action Button 4
+		env.SecureHandlerMap.spellID(6603), -- Auto Attack
+		env.SecureHandlerMap.item(6948),    -- Hearthstone
+	})
 
 	local MoveRingToTheRight = animations:CreateAnimation(1, function(self, fraction)
 		self:Show()
 		self:SetPoint('CENTER', 280 * fraction, 0)
-	end, function(self, elapsed)
-		return elapsed;
-	end, EasingUtil.InOutCubic)
+	end, animations.Fraction, EasingUtil.InOutCubic)
 
 	local PointAtFifthSlice = animations:CreateAnimation(1, function(self, x, y, len)
 		local isValid = len > 0.5;
 		self.ActiveSlice:SetShown(true)
 		self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
 		self:Reflect(x, y, len, isValid)
-	end, function(self, elapsed)
+	end, function(_, elapsed)
 		local eased = EasingUtil.InOutCubic(elapsed)
 		local angle = 2 * math.pi  + (math.pi * 0.85)
 		return math.cos(angle), math.sin(angle), eased;
@@ -181,7 +174,7 @@ function Display:CreateTutorials()
 		local len, isValid = 1, true;
 		self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
 		self:Reflect(x, y, len, isValid)
-	end, function(self, fraction)
+	end, function(_, fraction)
 		local angle = 2 * math.pi * EasingUtil.InOutCubic(fraction) + (math.pi * 0.85)
 		return math.cos(angle), math.sin(angle);
 	end)

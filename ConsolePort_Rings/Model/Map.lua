@@ -191,7 +191,6 @@ env.ActionValidationMap = {
 		end
 		return CreateFromMixins(data, { item = item, link = link });
 	end;
-	-- TODO: Add validation to remove nested rings that no longer exist.
 	spell = function(data, setID, idx)
 		if not env.IsSpellValidationReady then
 			return data;
@@ -221,6 +220,16 @@ env.ActionValidationMap = {
 		-- usable by their IDs. Ideally we'd replace all strings with spellIDs here,
 		-- but e.g. mounts (which are mapped as spells) do not work unless invoked
 		-- by their spell name.
+		return data;
+	end;
+	custom = function(data, setID)
+		if data.ring then
+			if not env:GetSet(data.ring, true) then
+				return CPAPI.Log('Expired ring %s removed from %s.',
+					data.link, db.Bindings:ConvertRingSetIDToDisplayName(setID)
+				);
+			end
+		end
 		return data;
 	end;
 };

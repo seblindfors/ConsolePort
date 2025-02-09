@@ -2,7 +2,9 @@ local _, db = ...;
 ---------------------------------------------------------------
 -- Animation queue (see AnimationSystem.lua)
 ---------------------------------------------------------------
-local AnimationQueue = {}; db.AnimationQueue = AnimationQueue;
+local AnimationQueue = {
+	Fraction = function(_, elapsed) return elapsed end;
+}; db.AnimationQueue = AnimationQueue;
 
 function AnimationQueue:Init()
 	self.queue, self.currentIndex = {}, 1;
@@ -53,7 +55,7 @@ function AnimationQueue:CreateAnimation(totalTime, updateFunc, getPosFunc, easin
 	updateFunc = updateFunc;
 	getPosFunc = easingFunc and function(self, elapsedFraction)
 		return easingFunc(getPosFunc(self, elapsedFraction));
-	end or getPosFunc;
+	end or getPosFunc or self.Fraction;
 	resetFunc  = function(self)
 		self.updateFunc = updateFunc;
 	end;
