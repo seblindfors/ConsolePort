@@ -18,6 +18,7 @@ env.SecureHandlerMap = {
 	macro = function(index) return CreateFromMixins(CPAPI.GetMacroInfo(index), {
 		type  = 'macro';
 		macro = index;
+		macrotext = false;
 	}) end;
 	---------------------------------------------------------------
 	equipmentset = function(name) return {
@@ -97,6 +98,7 @@ local function GetCustomAction(data)
 		local desc, _, name, texture = db.Bindings:GetDescriptionForBinding(data.binding)
 		local secureEnvData = {
 			type = 'macro';
+			macro = false;
 			macrotext = data.binding:gsub('CLICK', '/click'):gsub(':', ' ')
 		};
 		return { -- LAB data
@@ -153,6 +155,7 @@ env.ActionValidationMap = {
 	macro = function(data)
 		local macroID = data.macro;
 		local info = CPAPI.GetMacroInfo(macroID)
+		data.macrotext = false;
 		if not data.body and info then
 			return CreateFromMixins(data, info)
 		elseif ( not info or ( data.body ~= info.body) ) then
