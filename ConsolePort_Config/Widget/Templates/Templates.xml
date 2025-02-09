@@ -1,6 +1,7 @@
 <Ui>
 	<Script file="Templates.lua"/>
 	<Include file="Fonts.xml"/>
+	<Include file="Compat.xml"/>
 
 	<Frame name="CPInnerFrameTemplate" virtual="true" inherits="CPFrameTemplate" mixin="CPInnerFrameMixin">
 		<Layers>
