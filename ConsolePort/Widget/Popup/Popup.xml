@@ -153,21 +153,11 @@
 		<Size x="434" y="40"/>
 	</Frame>
 
-	<Button name="CPPopupButtonTemplate" virtual="true" inherits="InsecureActionButtonTemplate">
+	<Button name="CPPopupButtonBaseTemplate" virtual="true">
 		<Attributes>
 			<Attribute name="nodeignoremime" value="true" type="boolean"/>
 		</Attributes>
 		<Size x="434" y="32"/>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="Icon" file="Interface\QuestFrame\UI-Quest-BulletPoint">
-					<Size x="24" y="24"/>
-					<Anchors>
-						<Anchor point="LEFT" x="48" y="0"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
 		<NormalTexture setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0" inherits="CPAtlas">
 			<KeyValues>
 				<KeyValue key="atlas" value="perks-list-hover" type="string"/>
@@ -192,6 +182,19 @@
 		<NormalFont style="GameFontNormalLeft"/>
 		<HighlightFont style="GameFontHighlightLeft"/>
 		<DisabledFont style="GameFontDisableLeft"/>
+	</Button>
+
+	<Button name="CPPopupButtonTemplate" virtual="true" inherits="InsecureActionButtonTemplate, CPPopupButtonBaseTemplate">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Icon" file="Interface\QuestFrame\UI-Quest-BulletPoint">
+					<Size x="24" y="24"/>
+					<Anchors>
+						<Anchor point="LEFT" x="48" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
 	</Button>
 
 	<Frame name="CPPopupHeaderTemplate" virtual="true">

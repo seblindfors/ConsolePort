@@ -189,6 +189,7 @@ end
 
 function Loadout:OnSelectSet(_, setID, isSelected)
 	CurrentSetID = isSelected and setID or nil;
+	self:ClearCollections()
 end
 
 function Loadout:OnSetChanged(setID)

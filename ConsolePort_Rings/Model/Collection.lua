@@ -17,9 +17,14 @@ function env:GetCollections(currentSetID, isSharedSet)
 
 	local function EnumerateSets()
 		-- NOTE: using nested rings is a one-way street; you should
-		-- not be able to nest a personal ring inside a shared ring.
+		-- not be able to nest a personal ring inside a shared ring,
+		-- (except for the default ring which is always personal but
+		-- can be shared because it can't be deleted).
 		if isSharedSet then
-			return pairs(env:GetShared(true));
+			local sets = CopyTable(env:GetShared(true))
+			local defaultSet = env:GetData(true)[CPAPI.DefaultRingSetID];
+			tinsert(sets, 1, defaultSet);
+			return pairs(sets);
 		end
 		return self:EnumerateAvailableSets(true);
 	end

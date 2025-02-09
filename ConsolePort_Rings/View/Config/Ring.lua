@@ -318,8 +318,12 @@ end
 function Ring:OnInput(x, y, len)
 	local isValid =  len > self:GetValidThreshold();
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
-	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, isValid)
+	self:Reflect(x, y, len, isValid)
 	self:SetManagementControls(isValid)
+end
+
+function Ring:Reflect(x, y, len, isValid)
+	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, isValid)
 end
 
 function Ring:SetManagementControls(enabled)

@@ -4,7 +4,7 @@ LibStub('RelaTable')(name, env, false);
 ---------------------------------------------------------------
 -- Add variables to config
 ---------------------------------------------------------------
-ConsolePort:AddVariables({
+env.Variables = {
 	_'Rings';
 	ringPressAndHold = _{Data.Bool(true);
 		name = 'Press and Hold';
@@ -23,8 +23,10 @@ ConsolePort:AddVariables({
 		name = 'Remove Button';
 		desc = 'Button used to remove a selected item from an editable ring.';
 	};
-})
+};
 
+ConsolePort:AddVariables(env.Variables)
+t = env.Variables
 ---------------------------------------------------------------
 -- The basics
 ---------------------------------------------------------------
