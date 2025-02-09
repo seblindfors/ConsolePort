@@ -4,7 +4,7 @@ local DEFAULT_SET = CPAPI.DefaultRingSetID;
 local DEFAULT_BTN = env.Attributes.DefaultSetBtn;
 local BINDING_FMT = ('CLICK %s:%s'):format(Container:GetName(), '%s');
 ---------------------------------------------------------------
-Container.Data, Container.Shared = { [DEFAULT_SET] = {} }, {};
+Container.Data, Container.Shared = { [DEFAULT_SET] = env:GetStarterSet() }, {};
 env.BindingFormat = BINDING_FMT;
 ---------------------------------------------------------------
 db:Register('Rings', Container)

@@ -130,6 +130,13 @@ function env:ValidateSetID(rawName)
 	end
 end
 
+function env:GetStarterSet()
+	return {
+		env.SecureHandlerMap.binding(db.Bindings.Custom.UnitMenu);
+		env.SecureHandlerMap.binding(db.Bindings.Custom.MenuRing);
+	}
+end
+
 ---------------------------------------------------------------
 -- Display data
 ---------------------------------------------------------------
