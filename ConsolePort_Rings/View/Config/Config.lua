@@ -296,11 +296,13 @@ function Config:OnRequestWipe(setID, set, container, forceClear, forceDelete)
 	local function DeleteSet()
 		container[setID] = nil;
 		self:SelectSet(nil, false)
+		Container:RefreshAll()
 	end
 
 	local function ClearSet()
 		wipe(set)
 		self:SelectSet(setID, true)
+		Container:RefreshAll()
 	end
 
 	if showDelete then
