@@ -106,8 +106,8 @@ end
 CPNavBarMixin = {
 ---------------------------------------------------------------
 	ButtonWidthBuffer = 70;
-	fadedLeftButton   = true;
-	fadedRightButton  = false;
+	fadedLeftButton   = false;
+	fadedRightButton  = true;
 };
 
 function CPNavBarMixin:OnLoad()

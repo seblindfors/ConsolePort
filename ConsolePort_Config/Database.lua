@@ -53,7 +53,18 @@ function env:GetSettingInitializer(widgetType, widgetID)
 	return env.Settings[widgetID] or env.Settings[widgetType];
 end
 
+---------------------------------------------------------------
+ConsolePortConfig = {
+---------------------------------------------------------------
+    GetEnvironment = CPAPI.Static(env);
+}; -- dummy until loaded.
 
--- dummy
-ConsolePortConfig = {};
-function ConsolePortConfig:GetEnvironment() return env end;
+function ConsolePortConfig:Load()
+    env.Frame = CreateFrame('Frame', 'ConsolePortConfig', UIParent, 'CPConfig');
+    ConsolePortConfig = env.Frame;
+    FrameUtil.SpecializeFrameWithMixins(env.Frame, env.Config, {
+        Load = CPAPI.Static(env.Frame);
+        GetEnvironment = self.GetEnvironment;
+    });
+    return env.Frame;
+end

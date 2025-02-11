@@ -1,11 +1,11 @@
 <Ui>
 	<Script file="Config.lua"/>
-	<Include file="Sets.xml"/>
-	<Include file="Display.xml"/>
-	<Include file="Loadout.xml"/>
+	<Include file="Sets\Sets.xml"/>
+	<Include file="Display\Display.xml"/>
+	<Include file="Loadout\Loadout.xml"/>
 
 	<Frame name="CPRingsConfig" virtual="true" inherits="CPPopupPanelTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="HIGH">
-		<Size x="1056" y="762"/>
+		<Size x="1054" y="762"/>
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>

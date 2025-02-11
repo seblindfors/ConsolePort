@@ -23,3 +23,5 @@ Widget\Templates\Templates.xml
 
 Widget\Button\Button.xml
 Widget\Scroll\Scroll.xml
+
+View\Config\Config.xml

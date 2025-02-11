@@ -4,28 +4,11 @@
 	<Frame name="CPPopupFrameBaseTemplate" virtual="true" inherits="CPFrameTemplate" mixin="CPPopupFrameBaseMixin">
 		<Size x="500" y="96"/>
 		<KeyValues>
-			<KeyValue key="tooltipOffsetX" value="70" type="number"/>
-			<KeyValue key="buttonOffsetX" value="-68" type="number"/>
-			<KeyValue key="nameOffsetX" value="20" type="number"/>
 			<Keyvalue key="nonExclusive" value="false" type="boolean"/>
 			<KeyValue key="layoutAtlas" value="false" type="boolean"/>
 			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
 			<KeyValue key="bottomPadding" value="32" type="number"/>
 		</KeyValues>
-		<Layers>
-			<Layer level="ARTWORK">
-				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
-					<Size y="22"/>
-					<Color r="1" g="0.82" b="0" a="1"/>
-				</FontString>
-				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
-						<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT"/>
-					</Anchors>
-				</FontString>
-			</Layer>
-		</Layers>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 		</Scripts>
@@ -136,10 +119,26 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="CPPopupPortraitFrameTemplate" virtual="true" inherits="CPPopupFrameTemplate">
+	<Frame name="CPPopupPortraitFrameTemplate" virtual="true" inherits="CPPopupFrameTemplate" mixin="CPPopupPortraitFrameMixin">
 		<KeyValues>
 			<KeyValue key="nameOffsetX" value="78" type="number"/>
+			<KeyValue key="tooltipOffsetX" value="70" type="number"/>
+			<KeyValue key="buttonOffsetX" value="-68" type="number"/>
 		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
+					<Size y="22"/>
+					<Color r="1" g="0.82" b="0" a="1"/>
+				</FontString>
+				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
+						<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
 		<Frames>
 			<Frame parentKey="Portrait" frameLevel="5" inherits="CPPopupPortraitTemplate">
 				<Anchors>

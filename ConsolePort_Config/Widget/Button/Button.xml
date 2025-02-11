@@ -96,7 +96,7 @@
 	</CheckButton>
 
 	<Button name="CPNavBarButton" mixin="CPNavBarButton" virtual="true">
-		<Size y="51"/>
+		<Size y="40"/>
 		<Layers>
 			<Layer level="BACKGROUND">
 				<Texture parentKey="NormalTexture" inherits="CPAtlas" setAllPoints="true"/>

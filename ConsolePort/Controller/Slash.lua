@@ -58,7 +58,8 @@ local function HandleSlashCommand(self, msg)
 		CPAPI.EnableAddOn(CPAPI.ConfigAddOn)
 		CPAPI.LoadAddOn(CPAPI.ConfigAddOn)
 	end
-	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
+	local config = ConsolePortConfig:Load()
+	config:SetShown(not config:IsShown())
 end
 
 local function Uninstall()
