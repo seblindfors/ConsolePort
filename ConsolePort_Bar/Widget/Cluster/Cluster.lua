@@ -287,7 +287,10 @@ function FlyoutButton:OnLoad()
 	self:OnShowFlyoutIcons(env('clusterShowFlyoutIcons'))
 
 	Mixin(self.cooldown, FlyoutCooldown):OnLoad()
-	Mixin(self.FlyoutArrowContainer or self.FlyoutArrow, FlyoutArrow)
+	local flyoutArrow = self.FlyoutArrowContainer or self.FlyoutArrow or self.Arrow;
+	if flyoutArrow then
+		Mixin(flyoutArrow, FlyoutArrow)
+	end
 
 	self:HookScript('OnEnter', self.OnMouseMotionFocus)
 	self:HookScript('OnLeave', self.OnMouseMotionClear)

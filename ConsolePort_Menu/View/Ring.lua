@@ -158,7 +158,7 @@ function Selector:OnDataLoaded(...)
 		return CreateFrame(
 			'CheckButton',
 			EVIL_BUTTON_NAME(counter()),
-			self, 'SecureActionButtonTemplate, ActionButtonTemplate')
+			self, 'ActionButtonTemplate, SecureActionButtonTemplate')
 		end,
 		function(_, self)
 			self:Hide()
@@ -383,6 +383,7 @@ function GameMenuButtonMixin:Update()
 end
 
 function GameMenuButtonMixin:SetData(data)
+	self.OnClick = nil; -- make sure to retain secure OnClick when specializing
 	FrameUtil.SpecializeFrameWithMixins(self, data)
 	if self.ref then
 		self:SetAttribute(CPAPI.ActionTypeRelease, 'click')
