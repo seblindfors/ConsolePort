@@ -303,29 +303,34 @@ function FlyoutButtonMixin:SetData(data)
 	self:Update()
 end
 
-function FlyoutButtonMixin:Update()
-	if not self.spellID then return end;
-	SpellFlyoutButton_UpdateCooldown(self);
-	SpellFlyoutButton_UpdateCount(self);
-	SpellFlyoutButton_UpdateUsable(self);
-	SpellFlyoutButton_UpdateState(self);
+do 	local SpellFlyoutButton_UpdateCooldown = SpellFlyoutButton_UpdateCooldown or SpellFlyoutPopupButtonMixin.UpdateCooldown;
+	local SpellFlyoutButton_UpdateCount    = SpellFlyoutButton_UpdateCount    or SpellFlyoutPopupButtonMixin.UpdateCount;
+	local SpellFlyoutButton_UpdateUsable   = SpellFlyoutButton_UpdateUsable   or SpellFlyoutPopupButtonMixin.UpdateUsable;
+	local SpellFlyoutButton_UpdateState    = SpellFlyoutButton_UpdateState    or SpellFlyoutPopupButtonMixin.UpdateState;
 
-	self.icon:SetTexture(CPAPI.GetSpellTexture(self.overrideSpellID))
-	self:GetNormalTexture():SetDesaturated(self.offSpec)
-	self.Name:SetText(self.spellName)
-	self:SetEnabled(not self.offSpec)
-	ActionButton.Skin.RingButton(self)
-	RunNextFrame(function()
-		self:GetParent():SetSliceText(self:GetID(), self.Name:GetText())
-	end)
+	function FlyoutButtonMixin:Update()
+		if not self.spellID then return end;
+		SpellFlyoutButton_UpdateCooldown(self);
+		SpellFlyoutButton_UpdateCount(self);
+		SpellFlyoutButton_UpdateUsable(self);
+		SpellFlyoutButton_UpdateState(self);
+
+		self.icon:SetTexture(CPAPI.GetSpellTexture(self.overrideSpellID))
+		self:GetNormalTexture():SetDesaturated(self.offSpec)
+		self.Name:SetText(self.spellName)
+		self:SetEnabled(not self.offSpec)
+		ActionButton.Skin.RingButton(self)
+		RunNextFrame(function()
+			self:GetParent():SetSliceText(self:GetID(), self.Name:GetText())
+		end)
+	end
 end
 
 ---------------------------------------------------------------
 -- Hook
 ---------------------------------------------------------------
 
--- signature: (self, flyoutID, parent, direction, distance, isActionBar, specID, showFullTooltip, reason)
-hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActionBar, specID, _, reason)
+local function ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
 	local self = Selector; self:ReleaseAll();
 	if not flyout:IsShown() then return end
 
@@ -360,7 +365,17 @@ hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActi
 		button:SetData(data)
 	end
 	self:UpdatePieSlices(true, #active)
-end)
+end
+
+if CPAPI.IsRetailVersion then -- signature: (self, flyoutButton, flyoutID, isActionBar, specID, showFullTooltip, reason)
+	hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, _, flyoutID, isActionBar, specID, _, reason)
+		ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
+	end)
+else -- signature: (self, flyoutID, parent, direction, distance, isActionBar, specID, showFullTooltip, reason)
+	hooksecurefunc(SpellFlyout, 'Toggle', function(flyout, flyoutID, _, _, _, isActionBar, specID, _, reason)
+		ToggleSpellFlyout(flyout, flyoutID, isActionBar, specID, reason)
+	end)
+end
 
 do local LAB, hookedLAB = LibStub('LibActionButton-1.0'), false;
 	LAB:RegisterCallback('OnFlyoutButtonCreated', function(_, button)

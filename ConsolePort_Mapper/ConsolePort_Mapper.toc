@@ -1,7 +1,7 @@
-## Interface: 110007
-## Interface-Classic: 11505
+## Interface: 110100
+## Interface-Classic: 11506
 ## Interface-Wrath: 30403
-## Interface-Cata: 40401
+## Interface-Cata: 40402
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Mapper|r
 ## Notes: Configuration module for raw controller state

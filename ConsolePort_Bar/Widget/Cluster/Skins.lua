@@ -11,7 +11,6 @@ local AdjustTextures = env.Const.Cluster.AdjustTextures;
 local GetIconMask = env.LIB.SkinUtility.GetIconMask;
 local GetHighlightTexture, GetPushedTexture = env.LIB.SkinUtility.GetHighlightTexture, env.LIB.SkinUtility.GetPushedTexture;
 local GetSlotBackground = env.LIB.SkinUtility.GetSlotBackground;
-local SkinOverlayGlow = env.LIB.Skin.ColorSwatchProc;
 local SkinChargeCooldown = env.LIB.SkinUtility.SkinChargeCooldown;
 ---------------------------------------------------------------
 
@@ -63,6 +62,9 @@ local function SetTextures(self, adjustTextures, coords, texSize)
 	GetPushedTexture(self):SetBlendMode('ADD')
 	if self.borderColor then
 		self.NormalTexture:SetVertexColor(self.borderColor:GetRGBA())
+	end
+	if self.BorderShadow then
+		self.BorderShadow:SetTexture(nil)
 	end
 end
 
