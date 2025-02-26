@@ -97,6 +97,7 @@ function Setting:RegisterCallback(callbackID, callback, ...)
 end
 
 function Setting:Get()
+	if not self.registry then return end;
 	return self.registry(self.variableID)
 end
 

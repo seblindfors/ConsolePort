@@ -49,6 +49,8 @@ end
 ---------------------------------------------------------------
 -- Interface
 ---------------------------------------------------------------
+env.Elements = {};
+
 function env:GetSettingInitializer(widgetType, widgetID)
 	return env.Settings[widgetID] or env.Settings[widgetType];
 end
@@ -56,15 +58,17 @@ end
 ---------------------------------------------------------------
 ConsolePortConfig = {
 ---------------------------------------------------------------
-    GetEnvironment = CPAPI.Static(env);
+	GetEnvironment = CPAPI.Static(env);
+	CreatePanel    = function(_, ...) return env:CreatePanel(...) end;
 }; -- dummy until loaded.
 
 function ConsolePortConfig:Load()
-    env.Frame = CreateFrame('Frame', 'ConsolePortConfig', UIParent, 'CPConfig');
-    ConsolePortConfig = env.Frame;
-    FrameUtil.SpecializeFrameWithMixins(env.Frame, env.Config, {
-        Load = CPAPI.Static(env.Frame);
-        GetEnvironment = self.GetEnvironment;
-    });
-    return env.Frame;
+	env.Frame = CreateFrame('Frame', 'ConsolePortConfig', UIParent, 'CPConfig');
+	ConsolePortConfig = env.Frame;
+	FrameUtil.SpecializeFrameWithMixins(env.Frame, env.Config, {
+		Load           = CPAPI.Static(env.Frame);
+		GetEnvironment = self.GetEnvironment;
+		CreatePanel    = self.CreatePanel;
+	});
+	return env.Frame;
 end

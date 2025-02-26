@@ -1,5 +1,6 @@
 <Ui>
 	<Script file="Templates.lua"/>
+	<Script file="Elements.lua"/>
 	<Include file="Fonts.xml"/>
 	<Include file="Compat.xml"/>
 
@@ -112,28 +113,28 @@
 		<Layers>
 			<Layer level="OVERLAY">
 				<Texture parentKey="LeftNotch" inherits="CPAtlas" hidden="false" scale="0.64">
-					<Size x="34" y="86"/>
+					<Size x="34" y="70"/>
 					<KeyValues>
 						<KeyValue key="atlas" value="glues-characterselect-icon-restorecharacter-pointer" type="string"/>
 					</KeyValues>
 					<Anchors>
-						<Anchor point="CENTER" relativePoint="LEFT" x="-4" y="2"/>
+						<Anchor point="CENTER" relativePoint="LEFT" x="-4"/>
 					</Anchors>
 				</Texture>
 				<Texture parentKey="RightNotch" inherits="CPAtlas" hidden="false" scale="0.64">
-					<Size x="34" y="86"/>
+					<Size x="34" y="70"/>
 					<KeyValues>
 						<KeyValue key="atlas" value="glues-characterselect-icon-restorecharacter-pointer" type="string"/>
 						<KeyValue key="flipHorz" value="true" type="boolean"/>
 					</KeyValues>
 					<Anchors>
-						<Anchor point="CENTER" relativePoint="RIGHT" x="4" y="2"/>
+						<Anchor point="CENTER" relativePoint="RIGHT" x="4"/>
 					</Anchors>
 				</Texture>
 			</Layer>
 		</Layers>
 		<ScrollChild>
-			<Frame parentKey="NavBar" inherits="CPNavBarTemplate" useParentLevel="true"/>
+			<Frame parentKey="Bar" inherits="CPNavBarTemplate" useParentLevel="true"/>
 		</ScrollChild>
 		<Scripts>
 			<OnLoad method="OnLoad"/>

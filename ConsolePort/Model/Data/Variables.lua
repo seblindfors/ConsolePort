@@ -23,8 +23,23 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Use character specific settings for this character.';
 		hide = true;
 	};
+	actionPageCondition = _{String(nil);
+		name = 'Action Page Condition';
+		desc = 'Macro condition to evaluate action bar page.';
+		hide = true;
+	};
+	actionPageResponse = _{String(nil);
+		name = 'Action Page Response';
+		desc = 'Response to condition for custom processing.';
+		hide = true;
+	};
+	classFileOverride = _{String(nil);
+		name = 'Override Class File';
+		desc = 'Override class theme for interface styling.';
+		hide = true;
+	};
 	--------------------------------------------------------------------------------------------------------
-	_'Crosshair';
+	_('Crosshair', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	crosshairEnable = _{Bool(true);
 		name = 'Enable';
@@ -62,7 +77,7 @@ db:Register('Variables', CPAPI.Callable({
 		deps = { crosshairEnable = true };
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Movement';
+	_('Movement', CONTROLS_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	mvmtAnalog = _{Bool(true);
 		name = 'Analog Movement';
@@ -104,7 +119,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Targeting';
+	_(BINDING_HEADER_TARGETING, BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
 	trgtEnemy = _{Map(db:GetCVar('SoftTargetEnemy', 0), STARGET_OPTS);
 		name = 'Enemy Soft Targeting';
@@ -172,7 +187,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_( MOUSE_LABEL ); -- Mouse
+	_(MOUSE_LABEL, CONTROLS_LABEL); -- Mouse
 	--------------------------------------------------------------------------------------------------------
 	mouseHandlingEnabled = _{Bool(true);
 		name = 'Enable Mouse Handling';
@@ -230,7 +245,7 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Which modifier to use to toggle the mouse cursor when double-tapped.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Radial Menus';
+	_('Radial Menus', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	radialClearFocusMode = _{Map(1, {[1] = 'Either', [2] = 'Timeout', [3] = 'Deadzone'});
 		name = 'Clear Focus Mode';
@@ -298,14 +313,14 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Radial Keyboard';
+	_('Radial Keyboard', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	keyboardEnable = _{Bool(false);
 		name = 'Enable';
 		desc = 'Enables a radial on-screen keyboard that can be used to type messages.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Raid Cursor';
+	_('Raid Cursor', BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
 	raidCursorScale = _{Number(1, 0.1);
 		name = 'Scale';
@@ -384,7 +399,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Interface Cursor';
+	_('Interface Cursor', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	UIenableCursor = _{Bool(true);
 		name = ENABLE;
@@ -396,7 +411,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Unit Hotkeys';
+	_('Unit Hotkeys', BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
 	unitHotkeyFocusMode = _{Bool(false);
 		name = 'Use Focus Mode';
@@ -468,7 +483,7 @@ db:Register('Variables', CPAPI.Callable({
 		deps = { unitHotkeySet = 'Custom' };
 	};
 	--------------------------------------------------------------------------------------------------------
-	_( ACCESSIBILITY_LABEL ); -- Accessibility
+	_(ACCESSIBILITY_LABEL, INTERFACE_LABEL); -- Accessibility
 	--------------------------------------------------------------------------------------------------------
 	autoExtra = _{Bool(true);
 		name = 'Automatically Bind Extra Items';
@@ -490,7 +505,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Power Level';
+	_('Power Level', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	powerLevelShow = _{Bool(false);
 		name = 'Show Gauge';
@@ -508,7 +523,7 @@ db:Register('Variables', CPAPI.Callable({
 		note = 'Critical, Low, Medium, High, Wired/Charging, or Unknown/Disconnected.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	_( BINDINGS_OPT ); -- Bindings
+	_( BINDINGS_OPT, CONTROLS_LABEL ); -- Bindings
 	--------------------------------------------------------------------------------------------------------
 	bindingOverlapEnable = _{Bool(false);
 		name = 'Allow Binding Overlap';
@@ -568,24 +583,6 @@ db:Register('Variables', CPAPI.Callable({
 			.. BLUE'[condition] bindingID; nil'
 			.. '\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.';
 		advd = true;
-	};
-	--------------------------------------------------------------------------------------------------------
-	_( ADVANCED_OPT ); -- Advanced
-	--------------------------------------------------------------------------------------------------------
-	actionPageCondition = _{String(nil);
-		name = 'Action Page Condition';
-		desc = 'Macro condition to evaluate action bar page.';
-		hide = true;
-	};
-	actionPageResponse = _{String(nil);
-		name = 'Action Page Response';
-		desc = 'Response to condition for custom processing.';
-		hide = true;
-	};
-	classFileOverride = _{String(nil);
-		name = 'Override Class File';
-		desc = 'Override class theme for interface styling.';
-		hide = true;
 	};
 },  --------------------------------------------------------------------------------------------------------
 function(self, key) return (rawget(self, key) or {})[1] end))

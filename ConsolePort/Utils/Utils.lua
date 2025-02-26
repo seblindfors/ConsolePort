@@ -289,16 +289,17 @@ end
 ---------------------------------------------------------------
 -- Environment
 ---------------------------------------------------------------
-do local sort, head = 0;
-	function CPAPI.Define(value, startIndex)
-		if ( type(value) == 'string' ) then
-			head, sort = value, startIndex or 0;
+do local sort, head, main = 0;
+	function CPAPI.Define(v1, v2, startIndex)
+		if ( type(v1) == 'string' ) then
+			head, main, sort = v1, v2, startIndex or 0;
 		else
-			assert(type(value) == 'table', 'Invalid value type.')
+			assert(type(v1) == 'table', 'Invalid value type.')
 			sort = sort + 1;
-			value.sort = sort;
-			value.head = head;
-			return value;
+			v1.sort = sort;
+			v1.head = head;
+			v1.main = main;
+			return v1;
 		end
 	end
 

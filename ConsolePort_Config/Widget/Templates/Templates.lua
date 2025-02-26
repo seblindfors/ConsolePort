@@ -171,7 +171,8 @@ CPNavBarWrapperMixin = CreateInterpolator(InterpolatorUtil.InterpolateEaseOut);
 
 function CPNavBarWrapperMixin:OnLoad()
 	self.Setter = GenerateClosure(self.UpdateScroll, self)
-	self.NavBar.OnCleaned = function(navBar)
+	self.GetVerticalScrollRange = CPAPI.Static(0);
+	self.Bar.OnCleaned = function(navBar)
 
 	end;
 end
@@ -181,7 +182,7 @@ function CPNavBarWrapperMixin:OnShow()
 end
 
 function CPNavBarWrapperMixin:AddButton(label, controlCallback, ...)
-	return self.NavBar:AddButton(label, controlCallback, ...)
+	return self.Bar:AddButton(label, controlCallback, ...)
 end
 
 function CPNavBarWrapperMixin:GetRange()
@@ -196,8 +197,8 @@ end
 function CPNavBarWrapperMixin:UpdateScroll(target)
 	local min, max = self:GetRange()
 	self:SetHorizontalScroll(target)
-	self.LeftNotch:SetShown(not self.NavBar.fadedLeftButton or target > min)
-	self.RightNotch:SetShown(not self.NavBar.fadedRightButton or target < max)
+	self.LeftNotch:SetShown(target > min)
+	self.RightNotch:SetShown(target < max)
 end
 
 ---------------------------------------------------------------

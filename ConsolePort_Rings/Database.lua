@@ -5,7 +5,7 @@ LibStub('RelaTable')(name, env, false);
 -- Add variables to config
 ---------------------------------------------------------------
 env.Variables = {
-	_'Rings';
+	_('Rings', INTERFACE_LABEL);
 	ringPressAndHold = _{Data.Bool(true);
 		name = 'Press and Hold';
 		desc = 'Use press and hold to navigate and use rings. Press, point, release.';

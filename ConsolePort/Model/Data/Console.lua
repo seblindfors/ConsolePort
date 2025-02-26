@@ -10,7 +10,7 @@ local unpack, _, db = unpack, ...; local Console = {}; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 db:Register('Console', CPAPI.Proxy({
 	--------------------------------------------------------------------------------------------------------
-	Emulation = {
+	Bindings = {
 	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'GamePadEmulateShift';
 			type = Button;
@@ -48,9 +48,14 @@ db:Register('Console', CPAPI.Proxy({
 			desc = 'Buttons emulating modifiers will instead trigger bindings when pressed and released within the time span.';
 			note = 'Expressed in milliseconds. Pressing any combination of modifier and button will cancel the effect.';
 		};
+		{	cvar = 'GamePadOverlapMouseMs';
+			type = Number(2000, 100);
+			name = 'Combined Input Overlap Time';
+			desc = 'Duration after using gamepad and mouse at the same time before switching to just one or the other, in milliseconds.';
+		};
 	};
 	--------------------------------------------------------------------------------------------------------
-	Cursor = {
+	Mouse = {
 	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'interactOnLeftClick';
 			type = Bool(false);
@@ -188,11 +193,6 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Synchronize Macros';
 			desc = 'Whether client macros should be saved to the server.';
 		};
-		{	cvar = 'GamePadOverlapMouseMs';
-			type = Number(2000, 100);
-			name = 'Combined Input Overlap Time';
-			desc = 'Duration after using gamepad and mouse at the same time before switching to just one or the other, in milliseconds.';
-		};
 	};
 	--------------------------------------------------------------------------------------------------------
 	Interact = {
@@ -310,7 +310,7 @@ end
 
 function Console:GetEmulationForButton(button)
 	if (button == 'none') then return end
-	for i, data in ipairs(self.Emulation) do
+	for i, data in ipairs(self.Bindings) do
 		if (GetCVar(data.cvar) == button) then
 			return data;
 		end

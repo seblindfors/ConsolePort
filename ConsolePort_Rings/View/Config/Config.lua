@@ -1,57 +1,5 @@
 local env, db, Container, L = CPAPI.GetEnv(...); Container, L = env.Frame, env.L;
 ---------------------------------------------------------------
-local Header = CPAPI.CreateElement('CPHeader', 304, 40);
----------------------------------------------------------------
-
-function Header:OnClick()
-	self:OnButtonStateChanged()
-	self:Synchronize(self:GetElementData(), self:GetChecked())
-end
-
-function Header:Init(elementData)
-	local data = elementData:GetData()
-	self.Text:SetText(data.text)
-	self:SetSize(self.size:GetXY())
-	self:Synchronize(elementData)
-end
-
-function Header:Synchronize(elementData, newstate)
-	local data = elementData:GetData()
-	local collapsed;
-	if ( newstate == nil ) then
-		collapsed = data.collapsed;
-	else
-		collapsed = newstate;
-	end
-	self:SetChecked(collapsed)
-	data.collapsed = collapsed;
-	elementData:SetCollapsed(collapsed)
-end
-
-function Header:OnAcquire(new)
-	if new then
-		Mixin(self, Header)
-		self:SetScript('OnClick', Header.OnClick)
-	end
-end
-
-function Header:OnRelease()
-	self:SetChecked(false)
-end
-
-function Header:Data(text, collapsed)
-	return { text = text, collapsed = collapsed };
-end
-
----------------------------------------------------------------
-local Divider = CPAPI.CreateElement('CPRingSetDivider', 0, 10)
----------------------------------------------------------------
-
-function Divider:Data(extent)
-	return { extent = extent };
-end
-
----------------------------------------------------------------
 local Search = {};
 ---------------------------------------------------------------
 
@@ -126,11 +74,8 @@ function BindingCatcher:OnBindingCaught(button, data)
 end
 
 ---------------------------------------------------------------
-local Config = CreateFromMixins(CPButtonCatcherMixin); env.SharedConfig = {
+local Config = CreateFromMixins(CPButtonCatcherMixin); env.SharedConfig = {};
 ---------------------------------------------------------------
-	Header  = Header;
-	Divider = Divider;
-};
 
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
@@ -365,6 +310,7 @@ env:RegisterCallback('ToggleConfig', function(self, setID)
 	if not self.Config then
 		self.Config, env.SharedConfig.Env = CPAPI.CreateConfigFrame(
 			Config, 'Frame', 'ConsolePortRingsConfig', UIParent, 'CPRingsConfig');
+			Mixin(env.SharedConfig, env.SharedConfig.Env.Elements)
 		self.Config:OnLoad()
 	end
 	self.Config:Show()

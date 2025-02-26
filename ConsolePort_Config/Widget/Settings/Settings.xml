@@ -22,5 +22,35 @@
 		</Layers>
 	</Slider>
 
+	<CheckButton name="CPSetting" virtual="true">
+		<Attributes>
+			<Attribute name="nodeignoremime" value="true" type="boolean"/>
+		</Attributes>
+		<Size x="434" y="32"/>
+		<NormalTexture setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0" inherits="CPAtlas">
+			<KeyValues>
+				<KeyValue key="atlas" value="perks-list-hover" type="string"/>
+				<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+				<KeyValue key="flipHorz" value="true" type="boolean"/>
+			</KeyValues>
+		</NormalTexture>
+		<HighlightTexture alphaMode="ADD" setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0" inherits="CPAtlas">
+			<TexCoords left="1" right="0" top="0" bottom="1"/>
+			<KeyValues>
+				<KeyValue key="atlas" value="perks-list-active" type="string"/>
+				<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+				<KeyValue key="flipHorz" value="false" type="boolean"/>
+			</KeyValues>
+		</HighlightTexture>
+		<ButtonText parentKey="Text" justifyH="LEFT">
+			<Anchors>
+				<Anchor point="LEFT" x="40" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<NormalFont style="GameFontHighlightMed2"/>
+		<HighlightFont style="GameFontNormalMed2"/>
+		<DisabledFont style="CPGameFontDisableMed2"/>
+	</CheckButton>
+
 	<Script file="Settings.lua"/>
 </Ui>

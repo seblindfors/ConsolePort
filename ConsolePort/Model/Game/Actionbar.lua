@@ -1,4 +1,5 @@
-local _, db = ...; local ActionBarAPI = {
+local ActionBarAPI, _, db = {
+---------------------------------------------------------------
 	Binding = {};
 	Action = {
 		['3']   = 'MULTIACTIONBAR3BUTTON%d';
@@ -41,12 +42,12 @@ local _, db = ...; local ActionBarAPI = {
 	Lookup = {
 		Buttons = {};
 		Ignore = {};
-		Types = {	
+		Types = {
 			Button = true;
 			CheckButton = true;
 		};
 	};
-};
+}, ...;
 db:Register('Actionbar', ActionBarAPI)
 
 ---------------------------------------------------------------

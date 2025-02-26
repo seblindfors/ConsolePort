@@ -64,4 +64,8 @@
 	</Frame>
 
 	<ScrollFrame name="CPScrollFrameTemplate" virtual="true" inherits="ScrollFrameTemplate, CPScrollFrameArtTemplate"/>
+
+	<Frame name="CPScrollDivider" virtual="true">
+		<Size x="290"/>
+	</Frame>
 </Ui>

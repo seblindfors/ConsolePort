@@ -262,5 +262,20 @@
 		</Scripts>
 	</Button>
 
+	<CheckButton name="CPCategoryListButtonTemplate" virtual="true">
+		<Size x="300" y="32"/>
+		<ButtonText parentKey="Text">
+			<Anchors>
+				<Anchor point="LEFT" x="16" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<NormalFont style="GameFontHighlightMed2"/>
+		<HighlightFont style="GameFontNormalMed2"/>
+		<DisabledFont style="CPGameFontDisableMed2"/>
+		<NormalTexture atlas="Options_List_Hover" useAtlasSize="false" setAllPoints="true" alpha="0.25"/>
+		<CheckedTexture atlas="Options_List_Active" useAtlasSize="false" setAllPoints="true"/>
+		<HighlightTexture atlas="Options_List_Hover" useAtlasSize="false" setAllPoints="true"/>
+	</CheckButton>
+
 	<Include file="Card.xml"/>
 </Ui>

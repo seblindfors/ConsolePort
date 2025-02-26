@@ -21,17 +21,55 @@
 					</Anchors>
 				</PushedTexture>
 			</Button>
-			<Frame parentKey="NavBar" inherits="CPNavBarTemplate">
+			<ScrollFrame parentKey="Nav" inherits="CPNavBarWrapper">
 				<Anchors>
-					<Anchor point="TOPLEFT" x="52" y="-4"/>
+					<Anchor point="TOPLEFT" x="52" y="-5"/>
+					<Anchor point="TOPRIGHT" relativePoint="TOP" x="200" y="-4"/>
 				</Anchors>
-			</Frame>
-			<Frame parentKey="Container" inherits="CPScrollFrameArtTemplate">
+			</ScrollFrame>
+			<Frame parentKey="Container" inherits="CPScrollFrameArtTemplate" frameLevel="3">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="10" y="-48"/>
 					<Anchor point="BOTTOMRIGHT" x="-20" y="32"/>
 				</Anchors>
+				<Frames>
+					<Frame parentKey="Left" inherits="CPScrollBoxTree" hidden="true">
+						<Size x="320"/>
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="-2"/>
+							<Anchor point="BOTTOMLEFT" y="0"/>
+						</Anchors>
+						<KeyValues>
+							<KeyValue key="spacing" value="2" type="number"/>
+							<KeyValue key="scrollBarTopY" value="-4" type="number"/>
+							<KeyValue key="scrollBarBottomY" value="4" type="number"/>
+						</KeyValues>
+					</Frame>
+					<Frame parentKey="Right" inherits="CPScrollBoxTree" hidden="true">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.Left" relativePoint="TOPRIGHT" x="20"/>
+							<Anchor point="BOTTOMRIGHT" x="-12"/>
+						</Anchors>
+						<KeyValues>
+							<KeyValue key="spacing" value="2" type="number"/>
+							<KeyValue key="scrollBarTopY" value="-4" type="number"/>
+							<KeyValue key="scrollBarBottomY" value="4" type="number"/>
+						</KeyValues>
+					</Frame>
+					<Frame parentKey="Canvas" clipChildren="true" hidden="true">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="0"/>
+							<Anchor point="BOTTOMRIGHT" x="10" y="0"/>
+						</Anchors>
+					</Frame>
+				</Frames>
 			</Frame>
+			<EditBox parentKey="Search" inherits="SearchBoxTemplate">
+				<Size x="280" y="24"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Container" relativePoint="TOPRIGHT" x="-20" y="8"/>
+				</Anchors>
+			</EditBox>
 		</Frames>
 	</Frame>
 </Ui>

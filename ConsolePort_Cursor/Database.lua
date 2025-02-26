@@ -6,7 +6,7 @@ local DEPENDENCY = { UIenableCursor = true };
 -- Add variables to config
 ---------------------------------------------------------------
 ConsolePort:AddVariables({
-	_('Interface Cursor', 2);
+	_('Interface Cursor', INTERFACE_LABEL, 2);
 	UIpointerAnimation = _{Data.Bool(true);
 		name = 'Enable Animation';
 		desc = 'Pointer arrow rotates in the direction of travel.';

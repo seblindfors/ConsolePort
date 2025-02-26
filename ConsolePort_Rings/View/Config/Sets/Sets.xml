@@ -53,8 +53,4 @@
 			</Button>
 		</Frames>
 	</CheckButton>
-
-	<Frame name="CPRingSetDivider" virtual="true">
-		<Size x="290"/>
-	</Frame>
 </Ui>
