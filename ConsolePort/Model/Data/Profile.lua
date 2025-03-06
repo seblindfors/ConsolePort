@@ -16,7 +16,7 @@ setfenv(__, setmetatable(db('Data'), {__index = _G}));
 -- Gamepad API profile values
 ------------------------------------------------------------------------------------------------------------
 db:Register('Profile', CPAPI.Proxy({
-	['Movement Input'] = {
+	Movement = {
 		{	name = 'Movement Deadzone';
 			path = 'stickConfigs/<stick:Movement>/deadzone';
 			data = Range(0.25, 0.05, 0, 0.95);
@@ -36,7 +36,7 @@ db:Register('Profile', CPAPI.Proxy({
 			desc = 'The analog input for forward/back movement.';
 		};
 	};
-	['Camera Input'] = {
+	Camera = {
 		{	name = 'Camera Yaw-Only Deadzone';
 			path = 'stickConfigs/<stick:Camera>/deadzoneX';
 			data = Range(0.05, 0.05, 0, 0.95);

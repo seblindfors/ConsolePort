@@ -234,6 +234,7 @@ end
 ConsolePort:AddVariables({
 	showAbilityBriefing = {db.Data.Bool(true);
 		head = ACCESSIBILITY_LABEL;
+		main = INTERFACE_LABEL;
 		sort = 4;
 		name = 'Show Ability Briefings';
 		desc = 'Displays a briefing for newly acquired abilities.';

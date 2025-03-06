@@ -143,10 +143,20 @@ function Setting:OnAcquire(new)
 		self:HookScript('OnEnter', self.LockHighlight)
 		self:HookScript('OnLeave', self.UnlockHighlight)
 	end
+	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 end
 
 function Setting:OnRelease()
 	self:Reset()
+	db:UnregisterCallback('OnDependencyChanged', self)
+end
+
+function Setting:OnDependencyChanged()
+	local isShown = not self.metaData.hide;
+	local newExtent = isShown and self.size.y or 0;
+	self:GetElementData():GetData().extent = newExtent;
+	self:SetHeight(newExtent)
+	self:SetShown(isShown)
 end
 
 function Setting:Data(datapoint)
@@ -154,5 +164,106 @@ function Setting:Data(datapoint)
 		varID = datapoint.varID;
 		field = datapoint.field;
 		type  = datapoint.field[1]:GetType();
+	};
+end
+
+---------------------------------------------------------------
+local Cvar = CreateFromMixins(Setting);
+---------------------------------------------------------------
+Elements.Cvar = Cvar;
+
+function Cvar:Init(elementData)
+	local data = elementData:GetData()
+	xpcall(self.Mount, geterrorhandler(), self, {
+		name       = data.field.name;
+		varID      = data.varID;
+		field      = data.field;
+		owner      = ConsolePortConfig;
+		registry   = db;
+		newObj     = true;
+		callbackID = data.varID;
+		callbackFn = function(value)
+			self:SetRaw(self.variableID, value, self.variableID)
+			self:OnValueChanged(value)
+			local device = db('Gamepad/Active')
+			if device then
+				device.Preset.Variables[self.variableID] = value;
+				device:Activate()
+			end
+			db:TriggerEvent(self.variableID, value)
+		end;
+	})
+end
+
+function Cvar:OnAcquire(new)
+	if new then
+		Mixin(self, env.Setting, Cvar)
+		self:HookScript('OnEnter', self.LockHighlight)
+		self:HookScript('OnLeave', self.UnlockHighlight)
+	end
+	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
+end
+
+function Cvar:Get()
+	local controller = self.controller;
+	if controller:IsType('Bool') then
+		return self:GetRawBool(self.variableID)
+	elseif controller:IsType('Number') or controller:IsType('Range') then
+		return tonumber(self:GetRaw(self.variableID))
+	end
+	return self:GetRaw(self.variableID)
+end
+
+function Cvar:SetRaw(...)
+	return SetCVar(...)
+end
+
+function Cvar:GetRaw(...)
+	return GetCVar(...)
+end
+
+function Cvar:GetRawBool(...)
+	return GetCVarBool(...)
+end
+
+function Cvar:Data(datapoint)
+	return {
+		varID = datapoint.varID;
+		field = datapoint.field;
+		type  = 'Cvar'..datapoint.field[1]:GetType();
+	};
+end
+
+---------------------------------------------------------------
+local Mapper = CreateFromMixins(Cvar);
+---------------------------------------------------------------
+Elements.Mapper = Mapper;
+
+function Mapper:OnAcquire(new)
+	if new then
+		Mixin(self, env.Setting, Mapper)
+		self:HookScript('OnEnter', self.LockHighlight)
+		self:HookScript('OnLeave', self.UnlockHighlight)
+	end
+	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
+end
+
+function Mapper:SetRaw(_, ...)
+	return db.Mapper:SetValue(self.variableID, ...)
+end
+
+function Mapper:GetRaw(...)
+	return db.Mapper:GetValue(self.variableID, self.controller:Get())
+end
+
+function Mapper:GetRawBool(...)
+	return db.Mapper:GetValue(self.variableID, self.controller:Get())
+end
+
+function Mapper:Data(datapoint)
+	return {
+		varID = datapoint.varID;
+		field = datapoint.field;
+		type  = 'Mapper'..datapoint.field[1]:GetType();
 	};
 end

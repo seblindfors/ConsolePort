@@ -979,8 +979,10 @@ function Color:IsHex()
 	return self.controller:IsHex()
 end
 
-function Color:OnValueChanged(...)
-	self.Color:SetColorTexture(self:GetRGBA(...))
+function Color:OnValueChanged(value, valueExists)
+	if ( valueExists ~= false ) then
+		self.Color:SetColorTexture(self:GetRGBA(value))
+	end
 end
 
 ColorPickerFrame:HookScript('OnHide', function(self) self.owner = nil; end)

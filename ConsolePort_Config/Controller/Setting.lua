@@ -27,6 +27,7 @@ local function MountDatapoint(self, dp)
 		local registry   = assert(dp.registry, 'Setting must have a registry object.')
 		local dataObj    = assert(field[DP],   'Setting must have a data object.')
 		local pathID     = dp.pathID or 'Settings';
+		local callbackFn = dp.callbackFn;
 		local callbackID = dp.callbackID;
 
 		self.registry, self.pathID = registry, pathID;
@@ -36,8 +37,9 @@ local function MountDatapoint(self, dp)
 			initializer(self, varID, field, dataObj, L(field.desc), L(field.note), owner)
 
 			callbackID = callbackID or Path(pathID, varID);
-			local callback = function(...) registry(callbackID, ...) end;
-			self:SetDataCallback(callback)
+			callbackFn = callbackFn or function(...) registry(callbackID, ...) end;
+
+			self:SetDataCallback(callbackFn)
 			self:RegisterCallback(callbackID, self.OnValueChanged)
 
 			if (field.deps) then

@@ -51,7 +51,7 @@
 							<Anchor point="BOTTOMRIGHT" x="-12"/>
 						</Anchors>
 						<KeyValues>
-							<KeyValue key="spacing" value="2" type="number"/>
+							<KeyValue key="spacing" value="0" type="number"/>
 							<KeyValue key="scrollBarTopY" value="-4" type="number"/>
 							<KeyValue key="scrollBarBottomY" value="4" type="number"/>
 						</KeyValues>

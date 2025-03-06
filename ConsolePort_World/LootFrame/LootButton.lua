@@ -138,6 +138,7 @@ end
 ConsolePort:AddVariables({
 	useGlobalLootTooltip = {db.Data.Bool(false);
 		head = ACCESSIBILITY_LABEL;
+		main = INTERFACE_LABEL;
 		sort = 4;
 		name = 'Use Global Loot Tooltip';
 		desc = 'Use global game tooltip for loot information, allowing other addons to add information to lootable items.';
