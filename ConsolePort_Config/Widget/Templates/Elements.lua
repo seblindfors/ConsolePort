@@ -246,6 +246,17 @@ function Mapper:OnAcquire(new)
 		self:HookScript('OnLeave', self.UnlockHighlight)
 	end
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
+	db:RegisterCallback('OnMapperConfigLoaded', self.OnMapperConfigLoaded, self)
+end
+
+function Mapper:OnRelease()
+	self:Reset()
+	db:UnregisterCallback('OnDependencyChanged', self)
+	db:UnregisterCallback('OnMapperConfigLoaded', self)
+end
+
+function Mapper:OnMapperConfigLoaded()
+	self:OnValueChanged(self:GetRaw())
 end
 
 function Mapper:SetRaw(_, ...)

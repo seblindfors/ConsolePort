@@ -462,9 +462,11 @@ function Delta:GetMinMax()
 	return -1, 1;
 end
 
-function Delta:OnValueChanged(value)
-	self.Input:SetValue(value)
-	self.Input.Text:SetText(value == 1 and '+' or value == -1 and '-')
+function Delta:OnValueChanged(value, valueExists)
+	if ( valueExists ~= false ) then
+		self.Input:SetValue(value)
+		self.Input.Text:SetText(value == 1 and '+' or value == -1 and '-')
+	end
 end
 
 ---------------------------------------------------------------

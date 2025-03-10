@@ -203,6 +203,7 @@ end
 
 function CPButtonCatcherMixin:CatchAll(callback, ...)
 	self.catchAllCallback = GenerateClosure(callback, ...)
+	self:ToggleInputs(true)
 	return true;
 end
 

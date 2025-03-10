@@ -89,6 +89,10 @@ local Config = CreateFromMixins(CPButtonCatcherMixin); env.Config = Config;
 
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
+	FrameUtil.SpecializeFrameWithMixins(self.Container, Container)
+	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
+	self:SetScript('OnKeyDown', self.OnKeyDown)
+
 	env:RegisterCallback('OnPanelShow', self.OnPanelShow, self)
 	env:TriggerEvent('OnConfigLoad', self)
 end
@@ -100,9 +104,13 @@ function Config:OnPanelShow(id)
 	end
 end
 
+function Config:SetDefaultClosures()
+	self:ReleaseClosures()
+end
+
 function Config:OnShow()
 	FrameUtil.UpdateScaleForFit(self, 40, 80)
-	FrameUtil.SpecializeFrameWithMixins(self.Container, Container)
+	self:SetDefaultClosures()
 end
 
 do  local panelIDGen = CreateCounter();

@@ -25,4 +25,4 @@ Widget\Button\Button.xml
 Widget\Scroll\Scroll.xml
 
 View\Config\Config.xml
-View\Settings\Settings.lua
+View\Settings\Settings.xml

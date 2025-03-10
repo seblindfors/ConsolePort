@@ -1,4 +1,4 @@
-local DP, env, db = 1, CPAPI.GetEnv(...);
+local DP, env, db, L = 1, CPAPI.GetEnv(...); L = env.L;
 ---------------------------------------------------------------
 
 local function MakeDivider()
@@ -6,7 +6,7 @@ local function MakeDivider()
 end
 
 local function MakeHeader(text, collapsed)
-	return env.Elements.Header:New(text, collapsed)
+	return env.Elements.Header:New(L(text), collapsed)
 end
 
 ---------------------------------------------------------------
@@ -53,7 +53,7 @@ function Settings:RenderSettings()
 
 	settings:Insert(env.Elements.Title:New(self.activeText))
 
-	-- Sort settings into categories
+	-- Sort settings into types of elements
 	local base, advd, cvar, path = {}, {}, {}, {};
 	for _, data in ipairs(self.activeData) do
 		local target = base;
@@ -75,33 +75,38 @@ function Settings:RenderSettings()
 		return activeHeaders[name];
 	end
 
+	local function _list(default, setting, collapsed)
+		if setting.field.advd then collapsed = true end;
+		return GetHeader(setting.field.list or default, collapsed)
+	end
+
 	-- Insert settings into the scrollbox under headers
+	if next(path) then
+		settings:Insert(env.Elements.DeviceSelect:New())
+		settings:Insert(MakeDivider())
+	end
 	if next(base) then
-		local header = GetHeader(SETTINGS, false)
 		for i, dp in ipairs(base) do
-			header:Insert(env.Elements.Setting:New(dp))
+			_list(GENERAL, dp, false):Insert(env.Elements.Setting:New(dp))
 		end
-		header:Insert(MakeDivider())
 	end
 	if next(path) then
-		local header = GetHeader(SYSTEM, false)
 		for i, dp in ipairs(path) do
-			header:Insert(env.Elements.Mapper:New(dp))
+			_list(SYSTEM, dp, false):Insert(env.Elements.Mapper:New(dp))
 		end
-		header:Insert(MakeDivider())
 	end
 	if next(cvar) then
-		local header = GetHeader(SYSTEM, false)
 		for i, dp in ipairs(cvar) do
-			header:Insert(env.Elements.Cvar:New(dp))
+			_list(SYSTEM, dp, false):Insert(env.Elements.Cvar:New(dp))
 		end
-		header:Insert(MakeDivider())
 	end
 	if next(advd) then
-		local header = settings:Insert(env.Elements.Header:New(ADVANCED_LABEL, true))
 		for i, dp in ipairs(advd) do
-			header:Insert(env.Elements.Setting:New(dp))
+			_list(ADVANCED_LABEL, dp, true):Insert(env.Elements.Setting:New(dp))
 		end
+	end
+	for _, header in pairs(activeHeaders) do
+		header:Insert(MakeDivider())
 	end
 end
 
@@ -112,7 +117,7 @@ function Settings:RenderCategories()
 	categories:Flush()
 
 	for main, group in env.table.spairs(self.index) do
-		local header = categories:Insert(env.Elements.Header:New(main, true))
+		local header = categories:Insert(MakeHeader(main, false))
 		for head, data in env.table.spairs(group) do
 			header:Insert(env.Elements.Subcat:New(head, data == self.activeData, data))
 		end
