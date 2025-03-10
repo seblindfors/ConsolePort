@@ -21,6 +21,12 @@ function Settings:OnLoad()
 	self:Reindex()
 	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
+	db:RegisterCallback('OnVariablesChanged', self.OnVariablesChanged, self)
+end
+
+function Settings:OnShow()
+	self:RenderCategories()
+	self:RenderSettings()
 end
 
 function Settings:OnDependencyChanged(...)
@@ -28,6 +34,31 @@ function Settings:OnDependencyChanged(...)
 	RunNextFrame(function()
 		right:GetScrollView():Layout()
 	end)
+end
+
+function Settings:OnVariablesChanged()
+	self:Reindex()
+
+	local Refresh = self:IsVisible() and function()
+		self:RenderCategories()
+		self:RenderSettings()
+	end or nop;
+
+	if self.activeText then
+		-- The data set has been regenerated, so our old references
+		-- are no longer valid. We need to find the new data set, or
+		-- clear the active data if it no longer exists.
+		for _, group in env.table.spairs(self.index) do
+			for head, data in env.table.spairs(group) do
+				if ( head == self.activeText ) then
+					self.activeData = data;
+					return Refresh();
+				end
+			end
+		end
+		self.activeText, self.activeData = nil, nil;
+	end
+	Refresh()
 end
 
 function Settings:OnSubcatClicked(text, set)
@@ -53,7 +84,8 @@ function Settings:RenderSettings()
 
 	settings:Insert(env.Elements.Title:New(self.activeText))
 
-	-- Sort settings into types of elements
+	-- Sort settings into types of elements, which determines
+	-- the widget type used to display them.
 	local base, advd, cvar, path = {}, {}, {}, {};
 	for _, data in ipairs(self.activeData) do
 		local target = base;
@@ -123,11 +155,6 @@ function Settings:RenderCategories()
 		end
 		header:Insert(MakeDivider())
 	end
-end
-
-function Settings:OnShow()
-	self:RenderCategories()
-	self:RenderSettings()
 end
 
 function Settings:Reindex()
