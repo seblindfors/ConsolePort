@@ -106,17 +106,17 @@ end
 ---------------------------------------------------------------
 -- Observer
 ---------------------------------------------------------------
-env:RegisterCallback('OnButtonFocus', function(_, button, focused)
-	if button:IsOwned(env.NestedRing) then return end;
+env:RegisterCallback('OnButtonFocus', function(self, button, focused)
+	if button:IsOwned(self.NestedRing) then return end;
 	if focused then
 		if not button:IsCustomType() then return end;
 		local data = button:RunCustom()
-		if ( data.type ~= env.Attributes.NestedRing ) then return end;
+		if ( data.type ~= self.Attributes.NestedRing ) then return end;
 
-		if not env.NestedRing then
-			env.NestedRing = env:CreateMockRing('$parentNested', env.Frame)
-			FrameUtil.SpecializeFrameWithMixins(env.NestedRing, Ring)
+		if not self.NestedRing then
+			self.NestedRing = env:CreateMockRing('$parentNested', self.Frame)
+			FrameUtil.SpecializeFrameWithMixins(self.NestedRing, Ring)
 		end
-		env.NestedRing:SetData(button, Container.Data[Container:GetSetForBindingSuffix(data.ring)]);
+		self.NestedRing:SetData(button, self:GetSet(Container:GetSetForBindingSuffix(data.ring)));
 	end
-end)
+end, env)
