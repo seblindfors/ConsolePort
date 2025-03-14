@@ -35,6 +35,10 @@ function Panel:OnPanelShow(id)
 	self:Show()
 end
 
+function Panel:OnSearch(text, dataProvider)
+	-- query string, dataprovider to add results to
+end
+
 ---------------------------------------------------------------
 local Container = {};
 ---------------------------------------------------------------
@@ -84,16 +88,31 @@ function Container:GetCanvas()
 end
 
 ---------------------------------------------------------------
+local Search = {};
+---------------------------------------------------------------
+
+function Search:OnLoad()
+	env.Search.OnLoad(self)
+	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
+end
+
+function Search:OnSubcatClicked()
+	self:SetText('')
+end
+
+---------------------------------------------------------------
 local Config = CreateFromMixins(CPButtonCatcherMixin); env.Config = Config;
 ---------------------------------------------------------------
 
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	FrameUtil.SpecializeFrameWithMixins(self.Container, Container)
+	FrameUtil.SpecializeFrameWithMixins(self.Search, env.Search, Search)
 	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
 	self:SetScript('OnKeyDown', self.OnKeyDown)
 
 	env:RegisterCallback('OnPanelShow', self.OnPanelShow, self)
+	env:RegisterCallback('OnSearch', self.OnSearch, self)
 	env:TriggerEvent('OnConfigLoad', self)
 end
 
@@ -101,6 +120,20 @@ function Config:OnPanelShow(id)
 	if not self:GetAttribute(id) then
 		self:SetAttribute(id, true)
 		env:TriggerEvent('OnPanelLoad', id)
+	end
+	self.currentPanelID = id;
+end
+
+function Config:OnSearch(text)
+	if text then
+		local _, right = self.Container:GetLists()
+		local results = right:GetDataProvider()
+		results:Flush()
+		for _, panel in env:EnumeratePanels() do
+			panel:OnSearch(text, results)
+		end
+	elseif self.currentPanelID then
+		ExecuteFrameScript(env:GetPanelByID(self.currentPanelID), 'OnShow')
 	end
 end
 
@@ -113,7 +146,7 @@ function Config:OnShow()
 	self:SetDefaultClosures()
 end
 
-do  local panelIDGen = CreateCounter();
+do  local panelIDGen, panels = CreateCounter(), {};
 	local function NavButtonOnClick(self, navBar, id)
 		env:TriggerEvent('OnPanelShow', id)
 	end
@@ -134,11 +167,20 @@ do  local panelIDGen = CreateCounter();
 		local panelID = panelIDGen()
 		local panel = Mixin(CreateFrame('Frame'), Panel)
 		panel:Hide()
+		panels[panelID] = panel;
 		if self.Frame then
 			PanelInitializer(panel, panelID, info, self.Frame)
 		else
 			env:RegisterCallback('OnConfigLoad', PanelInitializer, panel, panelID, info)
 		end
 		return panel, Panel;
+	end
+
+	function env:EnumeratePanels()
+		return ipairs(panels)
+	end
+
+	function env:GetPanelByID(id)
+		return panels[id];
 	end
 end

@@ -162,7 +162,7 @@ function Results:Init(elementData)
 	local info = elementData:GetData()
 	self.Title:SetText(info.text)
 	self.Title:SetPoint('TOPRIGHT', -7, -16)
-	self:SetSize(self.Size:GetXY())
+	self:SetSize(Results.size:GetXY())
 end
 
 function Results:Data(text)

@@ -1,0 +1,4 @@
+<Ui>
+	<Script file="Setting.lua"/>
+	<Script file="Search.lua"/>
+</Ui>

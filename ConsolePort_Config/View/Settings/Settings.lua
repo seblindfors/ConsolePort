@@ -1,5 +1,6 @@
 local DP, env, db, L = 1, CPAPI.GetEnv(...); L = env.L;
 ---------------------------------------------------------------
+local SEP = GRAY_FONT_COLOR:WrapTextInColorCode(' | ');
 
 local function MakeDivider()
 	return env.Elements.Divider:New(8)
@@ -7,6 +8,10 @@ end
 
 local function MakeHeader(text, collapsed)
 	return env.Elements.Header:New(L(text), collapsed)
+end
+
+local function MakeTitle(text)
+	return env.Elements.Title:New(L(text))
 end
 
 ---------------------------------------------------------------
@@ -39,13 +44,10 @@ end
 function Settings:OnVariablesChanged()
 	self:Reindex()
 
-	local Refresh = self:IsVisible() and function()
-		self:RenderCategories()
-		self:RenderSettings()
-	end or nop;
+	local Refresh = self:IsVisible() and self.OnShow or nop;
 
 	if self.activeText then
-		-- The data set has been regenerated, so our old references
+		-- The data set has been regenerated, so the old references
 		-- are no longer valid. We need to find the new data set, or
 		-- clear the active data if it no longer exists.
 		for _, group in env.table.spairs(self.index) do
@@ -62,7 +64,7 @@ function Settings:OnVariablesChanged()
 end
 
 function Settings:OnSubcatClicked(text, set)
-	local left, right = self:GetLists()
+	local left = self:GetLists()
 	left:GetDataProvider():ForEach(function(elementData)
 		local data = elementData:GetData()
 		data.checked = data.childData == set or nil;
@@ -73,21 +75,15 @@ function Settings:OnSubcatClicked(text, set)
 	self:RenderSettings()
 end
 
-function Settings:RenderSettings()
-	if not self.activeData then
-		self.renderMutex = nil;
-		return;
+function Settings:Render(provider, title, data, preferCollapsed, useDeviceSelect, flattened)
+	if not flattened then
+		provider:Insert(MakeTitle(title))
 	end
-	local _, right = self:GetLists()
-	local settings = right:GetDataProvider()
-	settings:Flush()
-
-	settings:Insert(env.Elements.Title:New(self.activeText))
 
 	-- Sort settings into types of elements, which determines
 	-- the widget type used to display them.
 	local base, advd, cvar, path = {}, {}, {}, {};
-	for _, data in ipairs(self.activeData) do
+	for _, data in ipairs(data) do
 		local target = base;
 		if data.field.advd then
 			target = advd;
@@ -102,27 +98,34 @@ function Settings:RenderSettings()
 	local activeHeaders = {};
 	local function GetHeader(name, collapsed)
 		if not activeHeaders[name] then
-			 activeHeaders[name] = settings:Insert(MakeHeader(name, collapsed))
+			 activeHeaders[name] = provider:Insert(MakeHeader(name, collapsed))
 		end
 		return activeHeaders[name];
 	end
 
-	local function _list(default, setting, collapsed)
-		if setting.field.advd then collapsed = true end;
+	local _list = flattened and function(_, setting)
+		local list = setting.field.list;
+		if list then
+			return GetHeader(title..SEP..list, false)
+		end
+		return GetHeader(title, false)
+	end or function(default, setting, collapsed)
+		if setting.field.advd then collapsed = preferCollapsed end;
 		return GetHeader(setting.field.list or default, collapsed)
 	end
 
-	-- Insert settings into the scrollbox under headers
-	if next(path) then
-		settings:Insert(env.Elements.DeviceSelect:New())
-		settings:Insert(MakeDivider())
+	local hasDeviceSettings = not not next(path);
+	-- Render this first so it appears at the top of the list, below the title.
+	if useDeviceSelect and hasDeviceSettings then
+		provider:Insert(env.Elements.DeviceSelect:New())
+		provider:Insert(MakeDivider())
 	end
 	if next(base) then
 		for i, dp in ipairs(base) do
 			_list(GENERAL, dp, false):Insert(env.Elements.Setting:New(dp))
 		end
 	end
-	if next(path) then
+	if hasDeviceSettings then
 		for i, dp in ipairs(path) do
 			_list(SYSTEM, dp, false):Insert(env.Elements.Mapper:New(dp))
 		end
@@ -134,12 +137,26 @@ function Settings:RenderSettings()
 	end
 	if next(advd) then
 		for i, dp in ipairs(advd) do
-			_list(ADVANCED_LABEL, dp, true):Insert(env.Elements.Setting:New(dp))
+			_list(ADVANCED_LABEL, dp, preferCollapsed):Insert(env.Elements.Setting:New(dp))
 		end
 	end
 	for _, header in pairs(activeHeaders) do
 		header:Insert(MakeDivider())
 	end
+
+	-- Return true if a device select is necessary, but has not been added.
+	return hasDeviceSettings and not useDeviceSelect;
+end
+
+function Settings:RenderSettings()
+	if not self.activeData then
+		self.renderMutex = nil;
+		return;
+	end
+	local _, right = self:GetLists()
+	local settings = right:GetDataProvider()
+	settings:Flush()
+	self:Render(settings, self.activeText, self.activeData, true, true)
 end
 
 function Settings:RenderCategories()
@@ -148,6 +165,7 @@ function Settings:RenderCategories()
 	local categories = left:GetDataProvider()
 	categories:Flush()
 
+	categories:Insert(MakeTitle(CATEGORIES))
 	for main, group in env.table.spairs(self.index) do
 		local header = categories:Insert(MakeHeader(main, false))
 		for head, data in env.table.spairs(group) do
@@ -244,5 +262,53 @@ function Settings:Reindex()
 	end
 
 	self.index = interface;
-	dbg = interface -- debug
+end
+
+function Settings:OnSearch(text, provider) text = text:lower();
+	local MinEditDistance = CPAPI.MinEditDistance;
+
+	local results = {};
+	local function AddResult(main, head, data)
+		local key = main..SEP..head;
+		if not results[key] then
+			results[key] = {};
+		end
+		tinsert(results[key], data);
+	end
+
+	local function TestString(str)
+		return str and str:lower():find(text);
+	end
+
+	local function FilterDatapoint(dp)
+		local field = dp.field;
+		local name = field.name;
+		return ( name and MinEditDistance(name:lower(), text) < 3 ) or TestString(name)
+			or TestString(field.desc) or TestString(field.note) or TestString(field.list);
+	end
+
+	for main, group in env.table.spairs(self.index) do
+		for head, data in env.table.spairs(group) do
+			for _, dp in ipairs(data) do
+				if FilterDatapoint(dp) then
+					AddResult(main, head, dp);
+				end
+			end
+		end
+	end
+
+	local needsDeviceSelect = false;
+	for main, group in env.table.spairs(results) do
+		if self:Render(provider, main, group, false, false, true) then
+			needsDeviceSelect = true;
+		end
+	end
+
+	if needsDeviceSelect then
+		provider:InsertAtIndex(MakeDivider(), 1)
+		provider:InsertAtIndex(env.Elements.DeviceSelect:New(), 1)
+	end
+	if next(results) then
+		provider:InsertAtIndex(MakeTitle(SETTINGS), 1)
+	end
 end

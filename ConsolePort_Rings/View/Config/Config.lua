@@ -4,47 +4,9 @@ local Search = {};
 ---------------------------------------------------------------
 
 function Search:OnLoad()
-	self:SetScript('OnTextChanged', Search.OnTextChanged)
-	self:SetScript('OnEnterPressed', Search.OnEnterPressed)
+	env.SharedConfig.Env.Search.OnLoad(self)
 	env:RegisterCallback('OnTabSelected', self.OnTabSelected, self)
-end
-
-function Search:Debounce()
-	self:Cancel()
-	self.timer = C_Timer.NewTimer(0.5, function()
-		local text = self:GetText()
-		if text:len() >= MIN_CHARACTER_SEARCH then
-			env:TriggerEvent('OnSearch', text)
-		end
-	end)
-end
-
-function Search:Cancel(dispatch)
-	if self.timer then
-		self.timer:Cancel()
-		self.timer = nil;
-		if dispatch then
-			env:TriggerEvent('OnSearch', nil)
-		end
-	end
-end
-
-function Search:OnEnterPressed()
-	self:ClearFocus()
-	if self.timer then
-		self.timer:Invoke()
-		self.timer:Cancel()
-		self.timer = nil;
-	end
-end
-
-function Search:OnTextChanged(userInput)
-	SearchBoxTemplate_OnTextChanged(self)
-	local text = self:GetText()
-	if not userInput or text:len() < MIN_CHARACTER_SEARCH then
-		return self:Cancel(true)
-	end
-	self:Debounce()
+	self.registry = env;
 end
 
 function Search:OnTabSelected(tabIndex, panels)
@@ -85,7 +47,7 @@ function Config:OnLoad()
 	FrameUtil.SpecializeFrameWithMixins(self.Display, env.SharedConfig.Display)
 	FrameUtil.SpecializeFrameWithMixins(self.Sets, env.SharedConfig.Sets)
 	FrameUtil.SpecializeFrameWithMixins(self.Loadout, env.SharedConfig.Loadout)
-	FrameUtil.SpecializeFrameWithMixins(self.Search, Search)
+	FrameUtil.SpecializeFrameWithMixins(self.Search, env.SharedConfig.Env.Search, Search)
 
 	self.Panels = EnumUtil.MakeEnum('Rings', 'Loadout', 'Options');
 	self.Tabs:AddTabs({
