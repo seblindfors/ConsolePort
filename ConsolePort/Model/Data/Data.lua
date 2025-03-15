@@ -32,6 +32,9 @@ end
 
 function DataAPI:OnToggleCharacterSettings(enabled)
 	local overrides = ConsolePortCharacterSettings;
+	-- Invert the value for the data source we're switching away from
+	db('Settings/useCharacterSettings', not enabled)
+	-- Switch data source
 	ConsolePortCharacterSettings = enabled and {} or nil;
 	self:UpdateDataSource()
 	-- Since data source was switched, dispatch to update callbacks
