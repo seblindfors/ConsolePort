@@ -4,7 +4,7 @@ local Search = {}; env.Search = Search;
 ---------------------------------------------------------------
 
 function Search:OnLoad()
-    self.registry = env;
+	self.registry = env;
 	self:SetScript('OnTextChanged', Search.OnTextChanged)
 	self:SetScript('OnEnterPressed', Search.OnEnterPressed)
 end
