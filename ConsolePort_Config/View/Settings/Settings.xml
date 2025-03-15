@@ -1,4 +1,4 @@
 <Ui>
-	<Script file="DeviceSelect.lua"/>
+	<Script file="Elements.lua"/>
 	<Script file="Settings.lua"/>
 </Ui>

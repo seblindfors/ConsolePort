@@ -13,15 +13,11 @@ local unpack, _, db = unpack, ...; _ = CPAPI.Define; db.Data();
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', CPAPI.Callable({
-	showAdvancedSettings = {Bool(false);
-		name = 'All Settings';
-		desc = 'Display all available settings.';
-		hide = true;
-	};
-	useCharacterSettings = {Bool(false);
+	_(SYSTEM, CONTROLS_LABEL);
+	useCharacterSettings = _{Bool(false);
 		name = 'Character Specific';
-		desc = 'Use character specific settings for this character.';
-		hide = true;
+		desc = 'Use character specific addon settings for this character.';
+		list = 'ConsolePort';
 	};
 	actionPageCondition = _{String(nil);
 		name = 'Action Page Condition';

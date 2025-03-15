@@ -27,6 +27,7 @@ function Settings:OnLoad()
 	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 	db:RegisterCallback('OnVariablesChanged', self.OnVariablesChanged, self)
+	db:RegisterCallback('Settings/useCharacterSettings', self.OnToggleCharacterSettings, self)
 end
 
 function Settings:OnShow()
@@ -39,6 +40,13 @@ function Settings:OnDependencyChanged(...)
 	RunNextFrame(function()
 		right:GetScrollView():Layout()
 	end)
+end
+
+function Settings:OnToggleCharacterSettings(value)
+	if self.toggleSettingsMutex then return end;
+	self.toggleSettingsMutex = true;
+	db:TriggerEvent('OnToggleCharacterSettings', value)
+	self.toggleSettingsMutex = nil;
 end
 
 function Settings:OnVariablesChanged()
@@ -75,7 +83,7 @@ function Settings:OnSubcatClicked(text, set)
 	self:RenderSettings()
 end
 
-function Settings:Render(provider, title, data, preferCollapsed, useDeviceSelect, flattened)
+function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, flattened)
 	if not flattened then
 		provider:Insert(MakeTitle(title))
 	end
@@ -115,29 +123,31 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceSelect
 	end
 
 	local hasDeviceSettings = not not next(path);
-	-- Render this first so it appears at the top of the list, below the title.
-	if useDeviceSelect and hasDeviceSettings then
-		provider:Insert(env.Elements.DeviceSelect:New())
+	local renderDeviceEdit  = useDeviceEdit and hasDeviceSettings;
+
+	if renderDeviceEdit then
+		provider:Insert(env.Elements.DeviceEdit:New())
 		provider:Insert(MakeDivider())
 	end
+
 	if next(base) then
 		for i, dp in ipairs(base) do
-			_list(GENERAL, dp, false):Insert(env.Elements.Setting:New(dp))
+			_list(GENERAL, dp, false):Insert(dp.type:New(dp))
 		end
 	end
 	if hasDeviceSettings then
 		for i, dp in ipairs(path) do
-			_list(SYSTEM, dp, false):Insert(env.Elements.Mapper:New(dp))
+			_list(SYSTEM, dp, false):Insert(dp.type:New(dp))
 		end
 	end
 	if next(cvar) then
 		for i, dp in ipairs(cvar) do
-			_list(SYSTEM, dp, false):Insert(env.Elements.Cvar:New(dp))
+			_list(SYSTEM, dp, false):Insert(dp.type:New(dp))
 		end
 	end
 	if next(advd) then
 		for i, dp in ipairs(advd) do
-			_list(ADVANCED_LABEL, dp, preferCollapsed):Insert(env.Elements.Setting:New(dp))
+			_list(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
 		end
 	end
 	for _, header in pairs(activeHeaders) do
@@ -145,7 +155,7 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceSelect
 	end
 
 	-- Return true if a device select is necessary, but has not been added.
-	return hasDeviceSettings and not useDeviceSelect;
+	return hasDeviceSettings and not useDeviceEdit;
 end
 
 function Settings:RenderSettings()
@@ -160,15 +170,26 @@ function Settings:RenderSettings()
 end
 
 function Settings:RenderCategories()
-	local left = self:GetLists()
-
-	local categories = left:GetDataProvider()
+	local categories = self:GetLists():GetDataProvider()
 	categories:Flush()
-
 	categories:Insert(MakeTitle(CATEGORIES))
+
+	local function CategorySort(t, a, b)
+		local iA, iB = t[a].sort, t[b].sort;
+		if iA and not iB then
+			return true;
+		elseif iB and not iA then
+			return false;
+		elseif iA and iB then
+			return iA < iB;
+		else
+			return a < b;
+		end
+	end
+
 	for main, group in env.table.spairs(self.index) do
 		local header = categories:Insert(MakeHeader(main, false))
-		for head, data in env.table.spairs(group) do
+		for head, data in env.table.spairs(group, CategorySort) do
 			header:Insert(env.Elements.Subcat:New(head, data == self.activeData, data))
 		end
 		header:Insert(MakeDivider())
@@ -204,6 +225,7 @@ function Settings:Reindex()
 			varID = var;
 			field = data;
 			sort  = data.sort;
+			type  = env.Elements.Setting;
 		});
 	end)
 
@@ -214,7 +236,7 @@ function Settings:Reindex()
 		Touchpad  = CONTROLS_LABEL;
 		Interact  = BINDING_HEADER_TARGETING;
 		Tooltips  = BINDING_HEADER_TARGETING;
-		System    = INTERFACE_LABEL;
+		System    = CONTROLS_LABEL;
 	};
 
 	for head, group in pairs(db.Console) do
@@ -230,6 +252,7 @@ function Settings:Reindex()
 					varID = data.cvar;
 					field = data;
 					sort  = sort + i;
+					type  = env.Elements.Cvar;
 				});
 			end
 		end
@@ -249,6 +272,7 @@ function Settings:Reindex()
 				varID = data.path;
 				field = data;
 				sort  = sort + i;
+				type  = env.Elements.Mapper;
 			});
 		end
 	end
@@ -261,10 +285,27 @@ function Settings:Reindex()
 		end
 	end
 
+	-- This should be the first category, sort the rest alphabetically.
+	interface[CONTROLS_LABEL][SYSTEM].sort = 1;
+
+	-- Add custom device select setting.
+	local deviceSelect = env.Elements.DeviceSelect;
+	local deviceSelectData = deviceSelect:Data()
+	AddSetting(CONTROLS_LABEL, SYSTEM, {
+		varID = deviceSelectData.varID;
+		field = deviceSelectData.field;
+		type  = deviceSelect;
+		sort  = 0;
+	})
+
 	self.index = interface;
 end
 
 function Settings:OnSearch(text, provider) text = text:lower();
+	if not self.index then
+		self:Reindex();
+	end
+
 	local MinEditDistance = CPAPI.MinEditDistance;
 
 	local results = {};
@@ -297,16 +338,16 @@ function Settings:OnSearch(text, provider) text = text:lower();
 		end
 	end
 
-	local needsDeviceSelect = false;
+	local needsDeviceEdit = false;
 	for main, group in env.table.spairs(results) do
 		if self:Render(provider, main, group, false, false, true) then
-			needsDeviceSelect = true;
+			needsDeviceEdit = true;
 		end
 	end
 
-	if needsDeviceSelect then
+	if needsDeviceEdit then
 		provider:InsertAtIndex(MakeDivider(), 1)
-		provider:InsertAtIndex(env.Elements.DeviceSelect:New(), 1)
+		provider:InsertAtIndex(env.Elements.DeviceEdit:New(), 1)
 	end
 	if next(results) then
 		provider:InsertAtIndex(MakeTitle(SETTINGS), 1)

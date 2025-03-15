@@ -111,9 +111,19 @@ function Config:OnLoad()
 	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
 	self:SetScript('OnKeyDown', self.OnKeyDown)
 
+	db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)
+
 	env:RegisterCallback('OnPanelShow', self.OnPanelShow, self)
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
 	env:TriggerEvent('OnConfigLoad', self)
+end
+
+function Config:OnActiveDeviceChanged()
+	self.hasActiveDevice = not not db.Gamepad.Active;
+	if self.hasActiveDevice and not self.isClosableByEsc then
+		tinsert(UISpecialFrames, self:GetName())
+		self.isClosableByEsc = true;
+	end
 end
 
 function Config:OnPanelShow(id)
@@ -144,6 +154,7 @@ end
 function Config:OnShow()
 	FrameUtil.UpdateScaleForFit(self, 40, 80)
 	self:SetDefaultClosures()
+	self:OnActiveDeviceChanged()
 end
 
 do  local panelIDGen, panels = CreateCounter(), {};

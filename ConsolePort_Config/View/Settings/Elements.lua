@@ -3,9 +3,9 @@ local DP, env, db, L = 1, CPAPI.GetEnv(...); L = env.L;
 -- Device selection
 ----------------------------------------------------------------
 -- Renders real devices in a list for individual mapping.
-local function GetRealDevices()
+local function GetRealDevices(defaultDeviceName)
 	local realDevices = {{
-		name = DEFAULT;
+		name = defaultDeviceName or DEFAULT;
 		productID = 0x0;
 		vendorID  = 0x0;
 	}};
@@ -29,26 +29,12 @@ local function GetRealDeviceIDs()
 	return realDeviceIDs;
 end
 
-local function GetRawOptions()
+local function GetRawOptions(defaultDeviceName)
 	local options = {};
-	for i, device in ipairs(GetRealDevices()) do
+	for i, device in ipairs(GetRealDevices(defaultDeviceName)) do
 		tinsert(options, device.name)
 	end
 	return options;
-end
-
-local DeviceSelectDatapoint;
-local function GetDatapoint()
-	if not DeviceSelectDatapoint then
-		DeviceSelectDatapoint = {
-			name = L'Device Information';
-			desc = L'Select the device you want to configure.';
-			note = L'Click here to reset your device profile.';
-			[DP] = db.Data.Select(1, 1);
-		};
-	end
-	DeviceSelectDatapoint[DP]:SetRawOptions(GetRawOptions())
-	return DeviceSelectDatapoint;
 end
 
 local function ConvertToHex(number)
@@ -58,8 +44,26 @@ end
 
 ---------------------------------------------------------------
 local DeviceSelect = CreateFromMixins(env.Elements.Setting);
+local DeviceSelectVariable = 'GamePadSingleActiveID';
+local DeviceSelectDatapoint;
 ---------------------------------------------------------------
 env.Elements.DeviceSelect = DeviceSelect;
+
+local function GetSelectDatapoint()
+	if not DeviceSelectDatapoint then
+		DeviceSelectDatapoint = {
+			name = L'Device Selection';
+			desc = L'Select the device you want to use.';
+			note = L'All combines all connected devices into one.';
+			list = SYSTEM;
+			[DP] = db.Data.Select(1, 1);
+		};
+	end
+	DeviceSelectDatapoint[DP]
+		:SetRawOptions(GetRawOptions(ALL))
+		:Set(GetCVarNumberOrDefault(DeviceSelectVariable) + 1)
+	return DeviceSelectDatapoint;
+end
 
 function DeviceSelect:Init(elementData)
 	local data = elementData:GetData()
@@ -75,7 +79,6 @@ function DeviceSelect:Init(elementData)
 			self:Update()
 		end;
 	})
-	self:SetScript('OnClick', self.OnResetClick)
 	self:Update()
 end
 
@@ -85,19 +88,6 @@ function DeviceSelect:OnAcquire(new)
 		self:HookScript('OnEnter', self.LockHighlight)
 		self:HookScript('OnLeave', self.UnlockHighlight)
 	end
-	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
-end
-
-function DeviceSelect:Data()
-	return {
-		varID = 'DeviceID';
-		field = GetDatapoint();
-		type  = 'DeviceSelect';
-	};
-end
-
-function DeviceSelect:Get()
-	return self.controller:Get()
 end
 
 function DeviceSelect:GetCurrentDevice()
@@ -118,10 +108,78 @@ function DeviceSelect:GetHexSlug(vendorID, productID)
 	);
 end
 
+function DeviceSelect:Get()
+	return self.controller:Get()
+end
+
+function DeviceSelect:Data()
+	return {
+		varID = DeviceSelectVariable;
+		field = GetSelectDatapoint();
+		type  = 'DeviceSelect';
+	};
+end
+
 function DeviceSelect:Update()
 	local device = self:GetCurrentDevice()
 	if device then
-		self:SetText(('%s: %s %s'):format(L'Device', device.name, self:GetHexSlug(device.vendorID, device.productID)))
+		self:SetText(('%s: %s %s'):format(L'Active Device', device.name, self:GetHexSlug(device.vendorID, device.productID)))
+		self.tooltipText = ('Name: %s\nVendor ID: |cFF00FFFF%s|r / |cFF00FF00%s|r\nProduct ID: |cFF00FFFF%s|r / |cFF00FF00%s|r'):format(
+			device.name,
+			device.vendorID,  ConvertToHex(device.vendorID),
+			device.productID, ConvertToHex(device.productID)
+		);
+		self.disableTooltipHints = true;
+	else
+		self:SetText(L'Unknown device selected.')
+	end
+	SetCVar(self.variableID, self:Get() - 1)
+end
+
+---------------------------------------------------------------
+local DeviceEdit = CreateFromMixins(DeviceSelect);
+local DeviceEditDatapoint;
+---------------------------------------------------------------
+env.Elements.DeviceEdit = DeviceEdit;
+
+local function GetEditDatapoint()
+	if not DeviceEditDatapoint then
+		DeviceEditDatapoint = {
+			name = L'Device Information';
+			desc = L'Select the device you want to configure.';
+			note = L'Click here to reset your device profile.';
+			[DP] = db.Data.Select(1, 1);
+		};
+	end
+	DeviceEditDatapoint[DP]:SetRawOptions(GetRawOptions())
+	return DeviceEditDatapoint;
+end
+
+function DeviceEdit:Init(elementData)
+	DeviceSelect.Init(self, elementData)
+	self:SetScript('OnClick', self.OnResetClick)
+end
+
+function DeviceEdit:OnAcquire(new)
+	if new then
+		Mixin(self, env.Setting, DeviceEdit)
+		self:HookScript('OnEnter', self.LockHighlight)
+		self:HookScript('OnLeave', self.UnlockHighlight)
+	end
+end
+
+function DeviceEdit:Data()
+	return {
+		varID = 'DeviceEditID';
+		field = GetEditDatapoint();
+		type  = 'DeviceEdit';
+	};
+end
+
+function DeviceEdit:Update()
+	local device = self:GetCurrentDevice()
+	if device then
+		self:SetText(('%s: %s %s'):format(EDIT, device.name, self:GetHexSlug(device.vendorID, device.productID)))
 		self.tooltipText = ('Name: %s\nVendor ID: |cFF00FFFF%s|r / |cFF00FF00%s|r\nProduct ID: |cFF00FFFF%s|r / |cFF00FF00%s|r'):format(
 			device.name,
 			device.vendorID,  ConvertToHex(device.vendorID),
@@ -134,7 +192,7 @@ function DeviceSelect:Update()
 	db:TriggerEvent('OnMapperDeviceChanged', device, self:GetCurrentDeviceID())
 end
 
-function DeviceSelect:OnResetClick()
+function DeviceEdit:OnResetClick()
 	local device = self:GetCurrentDevice()
 	if device then
 		local disclaimer = '\n\n'..L'This will not affect your bindings, interface settings or system-wide settings.';
@@ -179,3 +237,4 @@ function DeviceSelect:OnResetClick()
 		end
 	end
 end
+
