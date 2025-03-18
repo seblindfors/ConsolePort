@@ -238,3 +238,75 @@ function DeviceEdit:OnResetClick()
 	end
 end
 
+---------------------------------------------------------------
+local DeviceProfile = CreateFromMixins(env.Elements.Setting);
+local DeviceProfileDatapoints;
+---------------------------------------------------------------
+env.Elements.DeviceProfile = DeviceProfile;
+
+local function GetDeviceProfileDatapoint(device)
+	if not DeviceProfileDatapoints then
+		DeviceProfileDatapoints = {};
+	end
+	if not DeviceProfileDatapoints[device] then
+		DeviceProfileDatapoints[device] = {
+			name = device.Name;
+			desc = GRAPHICS_LABEL;
+			list = GRAPHICS_LABEL;
+			note = L'Click here to activate this profile.';
+			[DP] = db.Data.Bool(false);
+		};
+	end
+	DeviceProfileDatapoints[device][DP]:Set(not not device.Active)
+	return DeviceProfileDatapoints[device];
+end
+
+function DeviceProfile:Data(datapoint)
+	local device = datapoint.device;
+	return {
+		varID  = datapoint.varID;
+		type   = 'DeviceProfile';
+		field  = GetDeviceProfileDatapoint(device);
+		device = device;
+	};
+end
+
+function DeviceProfile:Get()
+	return not not self:GetElementData():GetData().device.Active;
+end
+
+function DeviceProfile:Init(elementData)
+	local data = elementData:GetData()
+	xpcall(self.Mount, geterrorhandler(), self, {
+		name      = data.field.name;
+		varID     = data.varID;
+		field     = data.field;
+		owner     = ConsolePortConfig;
+		registry  = db;
+		newObj    = true;
+		callbackFn = function(value)
+			if value then
+				data.device:Activate()
+			end
+			self:OnActiveChanged()
+		end;
+	})
+end
+
+function DeviceProfile:OnAcquire(new)
+	if new then
+		Mixin(self, env.Setting, DeviceProfile)
+		self:HookScript('OnEnter', self.LockHighlight)
+		self:HookScript('OnLeave', self.UnlockHighlight)
+	end
+	db:RegisterCallback('Gamepad/Active', self.OnActiveChanged, self)
+end
+
+function DeviceProfile:OnRelease()
+	db:UnregisterCallback('Gamepad/Active', self)
+end
+
+function DeviceProfile:OnActiveChanged()
+	if not self.GetElementData then return end;
+	self:OnValueChanged(self:GetElementData():GetData().device.Active)
+end

@@ -76,7 +76,7 @@ function Settings:OnSubcatClicked(text, set)
 	left:GetDataProvider():ForEach(function(elementData)
 		local data = elementData:GetData()
 		data.checked = data.childData == set or nil;
-	end, true)
+	end, false)
 	left:GetScrollView():ReinitializeFrames()
 	self.activeText = text;
 	self.activeData = set;
@@ -89,7 +89,7 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	end
 
 	-- Sort settings into types of elements, which determines
-	-- the widget type used to display them.
+	-- the default category they are placed in.
 	local base, advd, cvar, path = {}, {}, {}, {};
 	for _, data in ipairs(data) do
 		local target = base;
@@ -104,22 +104,24 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	end
 
 	local activeHeaders = {};
-	local function GetHeader(name, collapsed)
+	-- Returns a pointer to a shared header, creating it if it does not exist.
+	local function _header(name, collapsed)
 		if not activeHeaders[name] then
 			 activeHeaders[name] = provider:Insert(MakeHeader(name, collapsed))
 		end
 		return activeHeaders[name];
 	end
 
+	-- Returns a pointer to the header for the current setting.
 	local _list = flattened and function(_, setting)
 		local list = setting.field.list;
 		if list then
-			return GetHeader(title..SEP..list, false)
+			return _header(title..SEP..list, false)
 		end
-		return GetHeader(title, false)
+		return _header(title, false)
 	end or function(default, setting, collapsed)
 		if setting.field.advd then collapsed = preferCollapsed end;
-		return GetHeader(setting.field.list or default, collapsed)
+		return _header(setting.field.list or default, collapsed)
 	end
 
 	local hasDeviceSettings = not not next(path);
@@ -196,111 +198,6 @@ function Settings:RenderCategories()
 	end
 end
 
-function Settings:Reindex()
-	local interface, sortIndex = {}, {};
-
-	local function GetSortIndex(main, head, index)
-		return max(sortIndex[main][head] or 0, index or 0);
-	end
-
-	local function AddSetting(main, head, data)
-		if not interface[main] then
-			interface[main], sortIndex[main] = {}, {};
-		end
-		if not interface[main][head] then
-			interface[main][head] = {};
-			sortIndex[main][head] = 0;
-		end
-		tinsert(interface[main][head], data);
-		sortIndex[main][head] = GetSortIndex(main, head, data.sort);
-	end
-
-	foreach(db.Variables, function(var, data)
-		local head = data.head or MISCELLANEOUS;
-		local main = data.main or SETTINGS;
-		if data.hide then
-			return;
-		end
-		AddSetting(main, head, {
-			varID = var;
-			field = data;
-			sort  = data.sort;
-			type  = env.Elements.Setting;
-		});
-	end)
-
-	local ConsoleToSettingsMap = {
-		Mouse     = CONTROLS_LABEL;
-		Camera    = CONTROLS_LABEL;
-		Bindings  = CONTROLS_LABEL;
-		Touchpad  = CONTROLS_LABEL;
-		Interact  = BINDING_HEADER_TARGETING;
-		Tooltips  = BINDING_HEADER_TARGETING;
-		System    = CONTROLS_LABEL;
-	};
-
-	for head, group in pairs(db.Console) do
-		local main = ConsoleToSettingsMap[head] or SETTINGS;
-		local sort = GetSortIndex(main, head);
-		for i, data in ipairs(group) do
-			-- Sanity check: if the cvar is nil, it does not exist in
-			-- the current game version. Skip it.
-			local value = GetCVar(data.cvar);
-			if ( value ~= nil ) then
-				data[DP] = (data[DP] or data.type()):Set(value);
-				AddSetting(main, head, {
-					varID = data.cvar;
-					field = data;
-					sort  = sort + i;
-					type  = env.Elements.Cvar;
-				});
-			end
-		end
-	end
-
-	local ProfileToSettingsMap = {
-		Movement = CONTROLS_LABEL;
-		Camera   = CONTROLS_LABEL;
-	};
-
-	for head, group in pairs(db.Profile) do
-		local main = ProfileToSettingsMap[head] or SETTINGS;
-		local sort = GetSortIndex(main, head);
-		for i, data in ipairs(group) do
-			data[DP] = (data[DP] or data.data())
-			AddSetting(main, head, {
-				varID = data.path;
-				field = data;
-				sort  = sort + i;
-				type  = env.Elements.Mapper;
-			});
-		end
-	end
-
-	for _, group in pairs(interface) do
-		for _, data in pairs(group) do
-			table.sort(data, function(a, b)
-				return a.sort < b.sort;
-			end)
-		end
-	end
-
-	-- This should be the first category, sort the rest alphabetically.
-	interface[CONTROLS_LABEL][SYSTEM].sort = 1;
-
-	-- Add custom device select setting.
-	local deviceSelect = env.Elements.DeviceSelect;
-	local deviceSelectData = deviceSelect:Data()
-	AddSetting(CONTROLS_LABEL, SYSTEM, {
-		varID = deviceSelectData.varID;
-		field = deviceSelectData.field;
-		type  = deviceSelect;
-		sort  = 0;
-	})
-
-	self.index = interface;
-end
-
 function Settings:OnSearch(text, provider) text = text:lower();
 	if not self.index then
 		self:Reindex();
@@ -352,4 +249,140 @@ function Settings:OnSearch(text, provider) text = text:lower();
 	if next(results) then
 		provider:InsertAtIndex(MakeTitle(SETTINGS), 1)
 	end
+end
+
+function Settings:Reindex()
+	local interface, sortIndex = {}, {};
+	self.index = interface;
+
+	local function GetSortIndex(main, head, index)
+		return max(sortIndex[main][head] or 0, index or 0);
+	end
+
+	local function AddSetting(main, head, data)
+		if not interface[main] then
+			interface[main], sortIndex[main] = {}, {};
+		end
+		if not interface[main][head] then
+			interface[main][head] = {};
+			sortIndex[main][head] = 0;
+		end
+		tinsert(interface[main][head], data);
+		sortIndex[main][head] = GetSortIndex(main, head, data.sort);
+	end
+
+	-----------------------------------------------------------
+	-- Addon settings
+	-----------------------------------------------------------
+	foreach(db.Variables, function(var, data)
+		local head = data.head or MISCELLANEOUS;
+		local main = data.main or SETTINGS;
+		if data.hide then
+			return;
+		end
+		AddSetting(main, head, {
+			varID = var;
+			field = data;
+			sort  = data.sort;
+			type  = env.Elements.Setting;
+		});
+	end)
+
+	-----------------------------------------------------------
+	-- Device profiles
+	-----------------------------------------------------------
+	do local numAddedDevices = 0;
+		local deviceProfile = env.Elements.DeviceProfile;
+		for name, device in db:For('Gamepad/Devices', true) do
+			if device.Theme then
+				local sort = GetSortIndex(CONTROLS_LABEL, SYSTEM);
+				local data = deviceProfile:Data({
+					device = device;
+					varID  = ('Gamepad/Devices/%s'):format(name);
+				});
+				numAddedDevices = numAddedDevices + 1;
+				data.type = deviceProfile;
+				data.sort = sort + numAddedDevices;
+				AddSetting(CONTROLS_LABEL, SYSTEM, data);
+			end
+		end
+	end
+
+	-----------------------------------------------------------
+	-- Console settings (game native)
+	-----------------------------------------------------------
+	local ConsoleToSettingsMap = {
+		Mouse     = CONTROLS_LABEL;
+		Camera    = CONTROLS_LABEL;
+		Bindings  = CONTROLS_LABEL;
+		Touchpad  = CONTROLS_LABEL;
+		Interact  = BINDING_HEADER_TARGETING;
+		Tooltips  = BINDING_HEADER_TARGETING;
+		System    = CONTROLS_LABEL;
+	};
+
+	for head, group in pairs(db.Console) do
+		local main = ConsoleToSettingsMap[head] or SETTINGS;
+		local sort = GetSortIndex(main, head);
+		for i, data in ipairs(group) do
+			-- Sanity check: if the cvar is nil, it does not exist in
+			-- the current game version. Skip it.
+			local value = GetCVar(data.cvar);
+			if ( value ~= nil ) then
+				data[DP] = (data[DP] or data.type()):Set(value);
+				AddSetting(main, head, {
+					varID = data.cvar;
+					field = data;
+					sort  = sort + i;
+					type  = env.Elements.Cvar;
+				});
+			end
+		end
+	end
+
+	-----------------------------------------------------------
+	-- Mapper profile settings (game native)
+	-----------------------------------------------------------
+	local ProfileToSettingsMap = {
+		Movement = CONTROLS_LABEL;
+		Camera   = CONTROLS_LABEL;
+	};
+
+	for head, group in pairs(db.Profile) do
+		local main = ProfileToSettingsMap[head] or SETTINGS;
+		local sort = GetSortIndex(main, head);
+		for i, data in ipairs(group) do
+			data[DP] = (data[DP] or data.data())
+			AddSetting(main, head, {
+				varID = data.path;
+				field = data;
+				sort  = sort + i;
+				type  = env.Elements.Mapper;
+			});
+		end
+	end
+
+	-----------------------------------------------------------
+	-- Customization
+	-----------------------------------------------------------
+	for _, group in pairs(interface) do
+		for _, data in pairs(group) do
+			table.sort(data, function(a, b)
+				return a.sort < b.sort;
+			end)
+		end
+	end
+
+	-- This should be the first category, sort the rest alphabetically.
+	interface[CONTROLS_LABEL][SYSTEM].sort = 1;
+
+	-- Add custom device select setting.
+	local deviceSelect = env.Elements.DeviceSelect;
+	local deviceSelectData = deviceSelect:Data()
+	AddSetting(CONTROLS_LABEL, SYSTEM, {
+		varID = deviceSelectData.varID;
+		field = deviceSelectData.field;
+		type  = deviceSelect;
+		sort  = 0;
+	})
 end

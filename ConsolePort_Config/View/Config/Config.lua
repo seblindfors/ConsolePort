@@ -111,7 +111,7 @@ function Config:OnLoad()
 	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
 	self:SetScript('OnKeyDown', self.OnKeyDown)
 
-	db:RegisterCallback('Gamepad/Active', Config.OnActiveDeviceChanged, Config)
+	db:RegisterCallback('Gamepad/Active', self.OnActiveDeviceChanged, self)
 
 	env:RegisterCallback('OnPanelShow', self.OnPanelShow, self)
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
