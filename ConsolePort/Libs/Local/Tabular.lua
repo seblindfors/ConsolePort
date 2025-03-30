@@ -340,6 +340,9 @@ function DataRow:OnLoad()
 end
 
 function DataRow:OnClick()
+	if self.Check:IsMouseOver() then
+		return self.Check:Click()
+	end
 	if self:IsExpandible() then
 		self.Expander:Click()
 	else

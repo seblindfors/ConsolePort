@@ -14,8 +14,16 @@
 		</Scripts>
 	</Frame>
 
+	<Frame name="CPPopupFrameScriptTemplate" virtual="true" inherits="CPPopupFrameBaseTemplate" mixin="CPPopupFrameMixin">
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</Frame>
+
 	<!-- Generic semi-opaque popup with close button -->
-	<Frame name="CPPopupFrameTemplate" virtual="true" inherits="CPPopupFrameBaseTemplate" mixin="CPPopupFrameMixin">
+	<Frame name="CPPopupFrameTemplate" virtual="true" inherits="CPPopupFrameScriptTemplate">
 		<Frames>
 			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonNoScripts">
 				<Anchors>
@@ -28,11 +36,6 @@
 				</Scripts>
 			</Button>
 		</Frames>
-		<Scripts>
-			<OnLoad method="OnLoad"/>
-			<OnShow method="OnShow"/>
-			<OnHide method="OnHide"/>
-		</Scripts>
 	</Frame>
 
 	<Frame name="CPPopupPortraitTemplate" virtual="true" mixin="CPPopupPortraitMixin">

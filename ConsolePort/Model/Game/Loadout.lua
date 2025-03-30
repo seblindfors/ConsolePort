@@ -417,11 +417,11 @@ function LoadoutInfo:RefreshCollections(flatten)
 		return (data and next(data) ~= nil);
 	end
 
-	local BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
-	local BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
-	local SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or nil;
-	local SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
-	local SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
+	local BOOKTYPE_PET     = CPAPI.BOOKTYPE_PET;
+	local BOOKTYPE_SPELL   = CPAPI.BOOKTYPE_SPELL;
+	local SKILLTYPE_PET    = CPAPI.SKILLTYPE_PET;
+	local SKILLTYPE_SPELL  = CPAPI.SKILLTYPE_SPELL;
+	local SKILLTYPE_FLYOUT = CPAPI.SKILLTYPE_FLYOUT;
 	local COMPANION_MOUNT  = 'MOUNT';
 
 	-- Spells

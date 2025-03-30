@@ -25,6 +25,5 @@ CPAPI.RaidCursorUnit      = 'cursorunit';
 ---------------------------------------------------------------
 -- Addon
 ---------------------------------------------------------------
-
 CPAPI.ConfigAddOn         = 'ConsolePort_Config';
 CPAPI.CursorAddOn         = 'ConsolePort_Cursor';

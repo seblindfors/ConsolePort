@@ -253,7 +253,6 @@ local function GetDeviceProfileDatapoint(device)
 			name = device.Name;
 			desc = GRAPHICS_LABEL;
 			list = GRAPHICS_LABEL;
-			note = L'Click here to activate this profile.';
 			[DP] = db.Data.Bool(false);
 		};
 	end
@@ -284,13 +283,14 @@ function DeviceProfile:Init(elementData)
 		owner     = ConsolePortConfig;
 		registry  = db;
 		newObj    = true;
-		callbackFn = function(value)
-			if value then
-				data.device:Activate()
-			end
+		callbackFn = function()
 			self:OnActiveChanged()
+			self:Update()
 		end;
 	})
+	self.disableTooltipHints = true;
+	self:SetScript('OnClick', self.OnActivate)
+	self:Update()
 end
 
 function DeviceProfile:OnAcquire(new)
@@ -302,11 +302,94 @@ function DeviceProfile:OnAcquire(new)
 	db:RegisterCallback('Gamepad/Active', self.OnActiveChanged, self)
 end
 
+function DeviceProfile:GetDevice()
+	if not self.GetElementData then return end;
+	return self:GetElementData():GetData().device;
+end
+
 function DeviceProfile:OnRelease()
 	db:UnregisterCallback('Gamepad/Active', self)
 end
 
 function DeviceProfile:OnActiveChanged()
-	if not self.GetElementData then return end;
-	self:OnValueChanged(self:GetElementData():GetData().device.Active)
+	local device = self:GetDevice()
+	if device then
+		self:OnValueChanged(device.Active)
+	end
+end
+
+function DeviceProfile:Update()
+	local device = self:GetDevice()
+	if not device then
+		self.tooltipText = UNKNOWN;
+		return;
+	end
+	self.tooltipText = GRAPHICS_LABEL;
+
+	local splashID = db('Gamepad/Index/Splash/'..device.Name);
+	local splashTx = splashID and CPAPI.GetAsset('Splash\\Gamepad\\'..splashID);
+	local splash = splashTx and ('|T%s:200:200:0|t'):format(splashTx);
+
+	if splash then
+		self.tooltipText = self.tooltipText..'\n'..splash;
+	end
+end
+
+function DeviceProfile:OnActivate()
+	local device = self:GetDevice()
+	if not device then return end;
+	if not IsModifierKeyDown() then
+		return device:Activate()
+	end
+	CPAPI.Popup('ConsolePort_Apply_Preset', {
+		text = L('Do you want to load settings for %s?'
+			.. '\n\n'
+			.. 'This will configure your modifiers, mouse emulation buttons, and previously saved device settings (if any).', device.Name);
+		button1 = YES;
+		button2 = NO;
+		timeout = 0;
+		whileDead = 1;
+		showAlert = 1;
+		fullScreenCover = 1;
+		OnAccept = function()
+			device:ApplyPresetVars()
+		end;
+		OnCancel = function()
+			device:Activate()
+		end;
+		OnHide = function()
+			CPAPI.Popup('ConsolePort_Reset_Keybindings', {
+				text = ('%s\n\n%s'):format(CONFIRM_RESET_KEYBINDINGS, L'This only affects gamepad bindings.');
+				button1 = YES;
+				button2 = NO;
+				timeout = 0;
+				whileDead = 1;
+				showAlert = 1;
+				fullScreenCover = 1;
+				OnAccept = function()
+					device:ApplyPresetBindings(GetCurrentBindingSet())
+				end;
+				OnHide = function()
+					if device:ConfigHasBluetoothHandling() then
+						CPAPI.Popup('ConsolePort_Apply_Config', {
+							text = L('Your %s device has separate handling for Bluetooth and wired connection.\nWhich one are you using?', device.Name);
+							button1 = L'Wired';
+							button2 = CANCEL;
+							button3 = L'Bluetooth';
+							timeout = 0;
+							whileDead = 1;
+							showAlert = 1;
+							fullScreenCover = 1;
+							OnAccept = function()
+								device:ApplyConfig(false)
+							end;
+							OnAlt = function()
+								device:ApplyConfig(true)
+							end;
+						})
+					end
+				end;
+			})
+		end;
+	})
 end

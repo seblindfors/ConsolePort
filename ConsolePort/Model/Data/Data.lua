@@ -40,10 +40,7 @@ function DataAPI:OnToggleCharacterSettings(enabled)
 	-- Since data source was switched, dispatch to update callbacks
 	db('Settings/useCharacterSettings', enabled)
 	if overrides then
-		-- Trigger updates for all the variables that had overrides
-		for id in pairs(overrides) do
-			db('Settings/'..id, db(id))
-		end
+		self:TriggerVariableUpdates(overrides)
 	end
 end
 
@@ -53,6 +50,21 @@ function DataAPI:OnVariablesChanged(variables)
 	end
 end
 
+function DataAPI:OnVariablesReset()
+	-- ConsolePortSettings or ConsolePortCharacterSettings
+	local source = db('Settings')
+	local changed = CopyTable(source)
+	wipe(source)
+	self:TriggerVariableUpdates(changed)
+end
+
+function DataAPI:TriggerVariableUpdates(variables)
+	for varID in pairs(variables) do
+		db:TriggerEvent('Settings/'..varID, db(varID))
+	end
+end
+
+db:RegisterCallback('OnVariablesReset', DataAPI.OnVariablesReset, DataAPI)
 db:RegisterCallback('OnVariablesChanged', DataAPI.OnVariablesChanged, DataAPI)
 db:RegisterCallback('OnToggleCharacterSettings', DataAPI.OnToggleCharacterSettings, DataAPI)
 

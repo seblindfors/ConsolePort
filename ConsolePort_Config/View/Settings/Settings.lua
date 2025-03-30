@@ -24,6 +24,7 @@ local Settings = env:CreatePanel({
 function Settings:OnLoad()
 	CPAPI.Start(self)
 	self:Reindex()
+	self:SetActiveCategory(SYSTEM, self.index[CONTROLS_LABEL][SYSTEM])
 	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 	db:RegisterCallback('OnVariablesChanged', self.OnVariablesChanged, self)
@@ -33,6 +34,11 @@ end
 function Settings:OnShow()
 	self:RenderCategories()
 	self:RenderSettings()
+end
+
+function Settings:OnDefaults()
+	db:TriggerEvent('OnVariablesReset')
+	CPAPI.Log('Settings have been reset to default.')
 end
 
 function Settings:OnDependencyChanged(...)
@@ -78,8 +84,12 @@ function Settings:OnSubcatClicked(text, set)
 		data.checked = data.childData == set or nil;
 	end, false)
 	left:GetScrollView():ReinitializeFrames()
+	self:SetActiveCategory(text, set)
+end
+
+function Settings:SetActiveCategory(text, data)
 	self.activeText = text;
-	self.activeData = set;
+	self.activeData = data;
 	self:RenderSettings()
 end
 
@@ -222,7 +232,9 @@ function Settings:OnSearch(text, provider) text = text:lower();
 		local field = dp.field;
 		local name = field.name;
 		return ( name and MinEditDistance(name:lower(), text) < 3 ) or TestString(name)
-			or TestString(field.desc) or TestString(field.note) or TestString(field.list);
+			or TestString(field.desc)
+			or TestString(field.note)
+			or TestString(field.list);
 	end
 
 	for main, group in env.table.spairs(self.index) do

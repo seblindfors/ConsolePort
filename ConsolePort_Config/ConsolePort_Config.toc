@@ -15,7 +15,7 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-Database.lua
+Model\Model.xml
 Controller\Controller.xml
 
 Widget\Settings\Settings.xml

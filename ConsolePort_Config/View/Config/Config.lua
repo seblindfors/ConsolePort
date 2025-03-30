@@ -39,6 +39,10 @@ function Panel:OnSearch(text, dataProvider)
 	-- query string, dataprovider to add results to
 end
 
+function Panel:OnDefaults()
+	-- reset to defaults
+end
+
 ---------------------------------------------------------------
 local Container = {};
 ---------------------------------------------------------------
@@ -101,6 +105,21 @@ function Search:OnSubcatClicked()
 end
 
 ---------------------------------------------------------------
+local Results = CPAPI.CreateElement('SettingsListSectionHeaderTemplate', 292, 45);
+---------------------------------------------------------------
+
+function Results:Init(elementData)
+	local info = elementData:GetData()
+	self.Title:SetText(info.text)
+	self.Title:SetPoint('TOPRIGHT', -7, -16)
+	self:SetSize(Results.size:GetXY())
+end
+
+function Results:Data(text)
+	return { text = text };
+end
+
+---------------------------------------------------------------
 local Config = CreateFromMixins(CPButtonCatcherMixin); env.Config = Config;
 ---------------------------------------------------------------
 
@@ -108,6 +127,7 @@ function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	FrameUtil.SpecializeFrameWithMixins(self.Container, Container)
 	FrameUtil.SpecializeFrameWithMixins(self.Search, env.Search, Search)
+
 	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
 	self:SetScript('OnKeyDown', self.OnKeyDown)
 
@@ -116,6 +136,42 @@ function Config:OnLoad()
 	env:RegisterCallback('OnPanelShow', self.OnPanelShow, self)
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
 	env:TriggerEvent('OnConfigLoad', self)
+
+	-- Nav bar buttons
+	local L = env.L;
+	self.CloseButton:SetTooltipInfo(SETTINGS_CLOSE, L(
+		'The configuration is accessible by the chat command %s or from the game menu.',
+		GREEN_FONT_COLOR:WrapTextInColorCode('/consoleport')
+	))
+	self.Defaults:SetTooltipInfo(SETTINGS_DEFAULTS, L(
+		'Apply default settings to the current category or all settings.'
+	))
+	self.Import:SetTooltipInfo(L'Import', L(
+		'Import serialized settings from an external source.'
+	))
+	self.Export:SetTooltipInfo(L'Export', L(
+		'Export serialized settings for sharing or backup.'
+	))
+
+	self.CloseButton:SetOnClickHandler(GenerateClosure(self.Hide, self))
+	self.Defaults:SetOnClickHandler(GenerateClosure(CPAPI.Popup, 'ConsolePort_Defaults_Config', {
+		text            = CONFIRM_RESET_INTERFACE_SETTINGS;
+		button1         = ALL_SETTINGS;
+		button3         = CURRENT_SETTINGS;
+		button2         = CANCEL;
+		hideOnEscape    = 1;
+		showAlert       = 1;
+		fullScreenCover = true;
+		OnCancel        = nop;
+		OnAccept = function(self)
+			--SettingsPanel:SetAllSettingsToDefaults();
+		end;
+		OnAlt = function()
+			self:GetCurrentPanel():OnDefaults()
+		end;
+	}))
+	self.Import:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnImportButtonClicked'))
+	self.Export:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnExportButtonClicked'))
 end
 
 function Config:OnActiveDeviceChanged()
@@ -142,13 +198,24 @@ function Config:OnSearch(text)
 		for _, panel in env:EnumeratePanels() do
 			panel:OnSearch(text, results)
 		end
-	elseif self.currentPanelID then
-		ExecuteFrameScript(env:GetPanelByID(self.currentPanelID), 'OnShow')
+		if results:IsEmpty() then
+			results:Insert(env.Elements.Title:New(SEARCH))
+			results:Insert(Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+		end
+		return;
+	end
+	local currentPanel = self:GetCurrentPanel()
+	if currentPanel then
+		ExecuteFrameScript(currentPanel, 'OnShow')
 	end
 end
 
 function Config:SetDefaultClosures()
 	self:ReleaseClosures()
+end
+
+function Config:GetCurrentPanel()
+	return env:GetPanelByID(self.currentPanelID)
 end
 
 function Config:OnShow()
