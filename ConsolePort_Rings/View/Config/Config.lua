@@ -73,6 +73,7 @@ function Config:OnLoad()
 	FrameUtil.SpecializeFrameWithMixins(self.Catcher, BindingCatcher)
 
 	CPAPI.Start(self)
+	tinsert(UISpecialFrames, self:GetName())
 end
 
 function Config:OnShow()
