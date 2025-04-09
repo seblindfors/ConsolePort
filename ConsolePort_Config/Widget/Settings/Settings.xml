@@ -52,5 +52,21 @@
 		<DisabledFont style="CPGameFontDisableMed2"/>
 	</CheckButton>
 
+	<CheckButton name="CPBinding" virtual="true" inherits="CPSetting">
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Slug" inherits="CPGameFontDisableMed2" mixin="CPSlugMixin" text="NOT_BOUND">
+					<Anchors>
+						<Anchor point="RIGHT" x="-8"/>
+					</Anchors>
+					<Scripts>
+						<OnShow method="OnShow"/>
+						<OnHide method="OnHide"/>
+					</Scripts>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
 	<Script file="Settings.lua"/>
 </Ui>

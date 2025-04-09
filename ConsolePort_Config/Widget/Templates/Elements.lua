@@ -1,5 +1,13 @@
 local env, db, Elements = CPAPI.GetEnv(...); Elements = env.Elements;
 ---------------------------------------------------------------
+
+local function InitializeSetting(self, ...)
+	Mixin(self, ...)
+	self:HookScript('OnEnter', self.LockHighlight)
+	self:HookScript('OnLeave', self.UnlockHighlight)
+end
+
+---------------------------------------------------------------
 local Header = CPAPI.CreateElement('CPHeader', 304, 40);
 ---------------------------------------------------------------
 Elements.Header = Header;
@@ -139,9 +147,7 @@ end
 
 function Setting:OnAcquire(new)
 	if new then
-		Mixin(self, env.Setting, Setting)
-		self:HookScript('OnEnter', self.LockHighlight)
-		self:HookScript('OnLeave', self.UnlockHighlight)
+		InitializeSetting(self, env.Setting, Setting)
 	end
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 end
@@ -197,9 +203,7 @@ end
 
 function Cvar:OnAcquire(new)
 	if new then
-		Mixin(self, env.Setting, Cvar)
-		self:HookScript('OnEnter', self.LockHighlight)
-		self:HookScript('OnLeave', self.UnlockHighlight)
+		InitializeSetting(self, env.Setting, Cvar)
 	end
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 end
@@ -241,9 +245,7 @@ Elements.Mapper = Mapper;
 
 function Mapper:OnAcquire(new)
 	if new then
-		Mixin(self, env.Setting, Mapper)
-		self:HookScript('OnEnter', self.LockHighlight)
-		self:HookScript('OnLeave', self.UnlockHighlight)
+		InitializeSetting(self, env.Setting, Mapper)
 	end
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 	db:RegisterCallback('OnMapperConfigLoaded', self.OnMapperConfigLoaded, self)
@@ -277,4 +279,29 @@ function Mapper:Data(datapoint)
 		field = datapoint.field;
 		type  = 'Mapper'..datapoint.field[1]:GetType();
 	};
+end
+
+---------------------------------------------------------------
+local Binding = CPAPI.CreateElement('CPBinding', 0, 32)
+---------------------------------------------------------------
+Elements.Binding = Binding;
+
+function Binding:Init(elementData)
+	local data = elementData:GetData()
+	self:SetText(data.name)
+	self.Slug:SetBinding(data.bindingID)
+end
+
+function Binding:OnAcquire(new)
+	if new then
+		InitializeSetting(self, Binding)
+	end
+end
+
+function Binding:Data(name, bindingID, readonly)
+	return {
+		name      = name;
+		bindingID = bindingID;
+		readonly  = readonly;
+	}
 end

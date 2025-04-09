@@ -25,4 +25,5 @@ Widget\Button\Button.xml
 Widget\Scroll\Scroll.xml
 
 View\Config\Config.xml
+View\Bindings\Bindings.xml
 View\Settings\Settings.xml
