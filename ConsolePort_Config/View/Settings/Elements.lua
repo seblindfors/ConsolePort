@@ -393,3 +393,85 @@ function DeviceProfile:OnActivate()
 		end;
 	})
 end
+
+---------------------------------------------------------------
+local CharacterBindings = CreateFromMixins(env.Elements.Setting);
+local CharacterBindingsDatapoint;
+---------------------------------------------------------------
+env.Elements.CharacterBindings = CharacterBindings;
+
+local function AreCharacterBindingsEnabled()
+	return GetCurrentBindingSet() == Enum.BindingSet.Character;
+end
+
+local function SetCharacterBindings(enabled)
+	if enabled then
+		Settings.SelectCharacterBindings()
+	else
+		Settings.SelectAccountBindings()
+	end
+end
+
+local function GetCharacterBindingsDatapoint()
+	if not CharacterBindingsDatapoint then
+		CharacterBindingsDatapoint = {
+			name = CHARACTER_SPECIFIC_KEYBINDINGS;
+			desc = CHARACTER_SPECIFIC_KEYBINDING_TOOLTIP;
+			[DP] = db.Data.Bool(false);
+		};
+	end
+	CharacterBindingsDatapoint[DP]:Set(AreCharacterBindingsEnabled())
+	return CharacterBindingsDatapoint;
+end
+
+function CharacterBindings:Init(elementData)
+	local data = elementData:GetData()
+	xpcall(self.Mount, geterrorhandler(), self, {
+		name       = data.field.name;
+		varID      = data.varID;
+		field      = data.field;
+		owner      = ConsolePortConfig;
+		registry   = db;
+		newObj     = true;
+		callbackFn = function(enabled)
+			-- Changing from character to account bindings requires confirmation
+			-- since it overwrites character with account bindings.
+			if not enabled then
+				return CPAPI.Popup('ConsolePort_Confirm_Account_Bindings', {
+					text     = CONFIRM_DELETING_CHARACTER_SPECIFIC_BINDINGS,
+					button1  = OKAY,
+					button2  = CANCEL,
+					OnCancel = nop;
+					OnAccept = function()
+						SetCharacterBindings(enabled)
+					end;
+					OnHide = function()
+						self:OnValueChanged(AreCharacterBindingsEnabled())
+					end;
+					timeout   = 0;
+					showAlert = 1;
+				})
+			end
+			SetCharacterBindings(enabled)
+			self:OnValueChanged(AreCharacterBindingsEnabled())
+		end;
+	})
+end
+
+function CharacterBindings:OnAcquire(new)
+	if new then
+		Mixin(self, env.Setting, CharacterBindings)
+		self.Get = AreCharacterBindingsEnabled;
+		self:HookScript('OnEnter', self.LockHighlight)
+		self:HookScript('OnLeave', self.UnlockHighlight)
+		self.disableTooltipHints = true;
+	end
+end
+
+function CharacterBindings:Data()
+	return {
+		varID = 'CharacterBindingsID';
+		field = GetCharacterBindingsDatapoint();
+		type  = 'CharacterBindings';
+	};
+end

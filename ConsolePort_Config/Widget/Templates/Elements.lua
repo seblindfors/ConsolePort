@@ -110,7 +110,8 @@ function Title:OnAcquire(new)
 	end
 end
 
-function Title:Data(text)
+function Title:Data(dpOrText)
+	local text = type(dpOrText) == 'string' and dpOrText or dpOrText.text;
 	return { text = text };
 end
 
@@ -286,6 +287,9 @@ local Binding = CPAPI.CreateElement('CPBinding', 0, 32)
 ---------------------------------------------------------------
 Elements.Binding = Binding;
 
+function Binding:OnClick(button)
+end
+
 function Binding:Init(elementData)
 	local data = elementData:GetData()
 	self:SetText(data.name)
@@ -295,13 +299,15 @@ end
 function Binding:OnAcquire(new)
 	if new then
 		InitializeSetting(self, Binding)
+		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+		self:SetScript('OnClick', Binding.OnClick)
 	end
 end
 
-function Binding:Data(name, bindingID, readonly)
+function Binding:Data(datapoint)
 	return {
-		name      = name;
-		bindingID = bindingID;
-		readonly  = readonly;
+		name      = datapoint.name;
+		bindingID = datapoint.binding;
+		readonly  = datapoint.readonly;
 	}
 end

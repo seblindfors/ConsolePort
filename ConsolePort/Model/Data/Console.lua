@@ -14,19 +14,19 @@ db:Register('Console', CPAPI.Proxy({
 	--------------------------------------------------------------------------------------------------------
 		{	cvar = 'GamePadEmulateShift';
 			type = Button;
-			name = 'Emulate Shift';
+			name = 'Modifier 1: Shift';
 			desc = 'Button that emulates the '..BLUE'Shift'..' key. Hold this button to swap your binding set.';
 			note = 'Recommended as first choice modifier.';
 		};
 		{	cvar = 'GamePadEmulateCtrl';
 			type = Button;
-			name = 'Emulate Ctrl';
+			name = 'Modifier 2: Ctrl';
 			desc = 'Button that emulates the '..BLUE'Ctrl'..' key. Hold this button to swap your binding set.';
 			note = 'Recommended as second choice modifier.';
 		};
 		{ 	cvar = 'GamePadEmulateAlt';
 			type = Button;
-			name = 'Emulate Alt';
+			name = 'Modifier 3: Alt';
 			desc = 'Button that emulates the '..BLUE'Alt'..' key.';
 			note = 'Only recommended for super users.';
 		};
@@ -47,11 +47,13 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Emulated Modifier Tap Window';
 			desc = 'Buttons emulating modifiers will instead trigger bindings when pressed and released within the time span.';
 			note = 'Expressed in milliseconds. Pressing any combination of modifier and button will cancel the effect.';
+			advd = true;
 		};
 		{	cvar = 'GamePadOverlapMouseMs';
 			type = Number(2000, 100);
 			name = 'Combined Input Overlap Time';
 			desc = 'Duration after using gamepad and mouse at the same time before switching to just one or the other, in milliseconds.';
+			advd = true;
 		};
 	};
 	--------------------------------------------------------------------------------------------------------

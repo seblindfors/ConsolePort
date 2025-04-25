@@ -21,6 +21,18 @@ local Settings = env:CreatePanel({
 	name = SETTINGS;
 })
 
+function Settings:AddProvider(provider)
+	self.providers = self.providers or {};
+	tinsert(self.providers, provider)
+end
+
+function Settings:AddMutator(mutator)
+	-- Mutators are called after the providers, so they can modify the
+	-- data set after it has been created.
+	self.mutators = self.mutators or {};
+	tinsert(self.mutators, mutator)
+end
+
 function Settings:OnLoad()
 	CPAPI.Start(self)
 	self:Reindex()
@@ -100,7 +112,7 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 
 	-- Sort settings into types of elements, which determines
 	-- the default category they are placed in.
-	local base, advd, cvar, path = {}, {}, {}, {};
+	local base, advd, cvar, path, after, before, xtra = {}, {}, {}, {}, {}, {}, {};
 	for _, data in ipairs(data) do
 		local target = base;
 		if data.field.advd then
@@ -109,6 +121,12 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 			target = cvar;
 		elseif data.field.path then
 			target = path;
+		elseif data.field.after then
+			target = after;
+		elseif data.field.before then
+			target = before;
+		elseif data.field.xtra then
+			target = xtra;
 		end
 		tinsert(target, data)
 	end
@@ -118,6 +136,7 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	local function _header(name, collapsed)
 		if not activeHeaders[name] then
 			 activeHeaders[name] = provider:Insert(MakeHeader(name, collapsed))
+			 activeHeaders[name]:SetCollapsed(collapsed)
 		end
 		return activeHeaders[name];
 	end
@@ -142,6 +161,12 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 		provider:Insert(MakeDivider())
 	end
 
+	if not flattened and next(before) then
+		for i, dp in ipairs(before) do
+			provider:Insert(dp.type:New(dp))
+		end
+		provider:Insert(MakeDivider())
+	end
 	if next(base) then
 		for i, dp in ipairs(base) do
 			_list(GENERAL, dp, false):Insert(dp.type:New(dp))
@@ -159,6 +184,16 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	end
 	if next(advd) then
 		for i, dp in ipairs(advd) do
+			_list(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
+		end
+	end
+	if not flattened and next(after) then
+		for i, dp in ipairs(after) do
+			provider:Insert(dp.type:New(dp))
+		end
+	end
+	if next(xtra) then
+		for i, dp in ipairs(xtra) do
 			_list(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
 		end
 	end
@@ -283,9 +318,27 @@ function Settings:Reindex()
 		sortIndex[main][head] = GetSortIndex(main, head, data.sort);
 	end
 
-	-----------------------------------------------------------
-	-- Addon settings
-	-----------------------------------------------------------
+	for i, provider in ipairs(self.providers) do
+		provider(AddSetting, GetSortIndex, interface, i)
+	end
+
+	for _, group in pairs(interface) do
+		for _, data in pairs(group) do
+			table.sort(data, function(a, b)
+				return a.sort < b.sort;
+			end)
+		end
+	end
+
+	for i, mutator in ipairs(self.mutators) do
+		mutator(AddSetting, GetSortIndex, interface, i)
+	end
+end
+
+-----------------------------------------------------------
+-- Addon settings
+-----------------------------------------------------------
+Settings:AddProvider(function(AddSetting)
 	foreach(db.Variables, function(var, data)
 		local head = data.head or MISCELLANEOUS;
 		local main = data.main or SETTINGS;
@@ -299,30 +352,33 @@ function Settings:Reindex()
 			type  = env.Elements.Setting;
 		});
 	end)
+end)
 
-	-----------------------------------------------------------
-	-- Device profiles
-	-----------------------------------------------------------
-	do local numAddedDevices = 0;
-		local deviceProfile = env.Elements.DeviceProfile;
-		for name, device in db:For('Gamepad/Devices', true) do
-			if device.Theme then
-				local sort = GetSortIndex(CONTROLS_LABEL, SYSTEM);
-				local data = deviceProfile:Data({
-					device = device;
-					varID  = ('Gamepad/Devices/%s'):format(name);
-				});
-				numAddedDevices = numAddedDevices + 1;
-				data.type = deviceProfile;
-				data.sort = sort + numAddedDevices;
-				AddSetting(CONTROLS_LABEL, SYSTEM, data);
-			end
+-----------------------------------------------------------
+-- Device profiles
+-----------------------------------------------------------
+Settings:AddProvider(function(AddSetting, GetSortIndex)
+	local numAddedDevices = 0;
+	local deviceProfile = env.Elements.DeviceProfile;
+	for name, device in db:For('Gamepad/Devices', true) do
+		if device.Theme then
+			local sort = GetSortIndex(CONTROLS_LABEL, SYSTEM);
+			local data = deviceProfile:Data({
+				device = device;
+				varID  = ('Gamepad/Devices/%s'):format(name);
+			});
+			numAddedDevices = numAddedDevices + 1;
+			data.type = deviceProfile;
+			data.sort = sort + numAddedDevices;
+			AddSetting(CONTROLS_LABEL, SYSTEM, data);
 		end
 	end
+end)
 
-	-----------------------------------------------------------
-	-- Console settings (game native)
-	-----------------------------------------------------------
+-----------------------------------------------------------
+-- Console settings (game native)
+-----------------------------------------------------------
+Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local ConsoleToSettingsMap = {
 		Mouse     = CONTROLS_LABEL;
 		Camera    = CONTROLS_LABEL;
@@ -351,10 +407,12 @@ function Settings:Reindex()
 			end
 		end
 	end
+end)
 
-	-----------------------------------------------------------
-	-- Mapper profile settings (game native)
-	-----------------------------------------------------------
+-----------------------------------------------------------
+-- Mapper profile settings (game native)
+-----------------------------------------------------------
+Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local ProfileToSettingsMap = {
 		Movement = CONTROLS_LABEL;
 		Camera   = CONTROLS_LABEL;
@@ -373,18 +431,52 @@ function Settings:Reindex()
 			});
 		end
 	end
+end)
 
-	-----------------------------------------------------------
-	-- Customization
-	-----------------------------------------------------------
-	for _, group in pairs(interface) do
-		for _, data in pairs(group) do
-			table.sort(data, function(a, b)
-				return a.sort < b.sort;
-			end)
+-----------------------------------------------------------
+-- Bindings
+-----------------------------------------------------------
+Settings:AddProvider(function(AddSetting, GetSortIndex)
+	local bindings = env.BindingInfo:RefreshDictionary()
+	local main, head = CONTROLS_LABEL, KEY_BINDINGS_MAC;
+	local sort = GetSortIndex(main, head);
+
+	AddSetting(main, head, {
+		sort  = 0;
+		type  = env.Elements.CharacterBindings;
+		field = { before = true };
+	})
+
+	AddSetting(main, head, {
+		sort  = sort + 1;
+		type  = env.Elements.Title;
+		text  = CATEGORIES;
+		field = { after = true };
+	})
+
+	for category, set in env.table.spairs(bindings) do
+		local list = category:trim();
+		sort = GetSortIndex(main, head);
+		for i, info in ipairs(set) do
+			AddSetting(main, head, {
+				sort     = sort + i;
+				type     = env.Elements.Binding;
+				name     = info.name;
+				binding  = info.binding;
+				readonly = info.readonly;
+				field = {
+					list = list;
+					xtra = true;
+				};
+			})
 		end
 	end
+end)
 
+-----------------------------------------------------------
+-- Base customizations to data sets/provider
+-----------------------------------------------------------
+Settings:AddMutator(function(AddSetting, _, interface)
 	-- This should be the first category, sort the rest alphabetically.
 	interface[CONTROLS_LABEL][SYSTEM].sort = 1;
 
@@ -397,4 +489,4 @@ function Settings:Reindex()
 		type  = deviceSelect;
 		sort  = 0;
 	})
-end
+end)

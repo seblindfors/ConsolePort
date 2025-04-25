@@ -532,6 +532,7 @@ db:Register('Variables', CPAPI.Callable({
 	bindingOverlapEnable = _{Bool(false);
 		name = 'Allow Binding Overlap';
 		desc = 'Allow binding multiple combos to the same binding.';
+		advd = true;
 	};
 	bindingAllowSticks = _{Bool(false);
 		name = 'Allow Radial Bindings';
@@ -546,10 +547,11 @@ db:Register('Variables', CPAPI.Callable({
 	bindingShowSpellMenuGrid = _{Bool(false);
 		name = 'Show Action Bar Grid on Spell Pickup';
 		desc = 'Display the action bar grid when picking up a spell on the cursor.';
+		advd = true;
 	};
 	disableHotkeyRendering = _{Bool(false);
 		name = 'Disable Hotkey Rendering';
-		desc = 'Disables customization to hotkeys on regular action bar.';
+		desc = 'Disables customization to hotkeys on regular action bars.';
 		advd = true;
 	};
 	useAtlasIcons = _{Bool(not CPAPI.IsClassicEraVersion);
@@ -557,6 +559,7 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Uses the default hotkey icons instead of the custom icons provided by ConsolePort.';
 		note = 'Requires reload.';
 		hide = CPAPI.IsClassicEraVersion;
+		advd = true;
 	};
 	emulatePADPADDLE1 = _{Pseudokey('none');
 		name = 'Emulate '..(KEY_PADPADDLE1 or 'Paddle 1');
