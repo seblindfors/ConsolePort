@@ -288,11 +288,20 @@ local Binding = CPAPI.CreateElement('CPBinding', 0, 32)
 Elements.Binding = Binding;
 
 function Binding:OnClick(button)
+	local data = self:GetElementData():GetData()
+	local isClearEvent = button == 'RightButton';
+	env:TriggerEvent('OnBindingClicked',
+		data.bindingID, -- the bindingID to be set or cleared
+		data.readonly,  -- if the binding is readonly
+		isClearEvent,   -- if the binding is to be cleared
+		self            -- the element that was clicked
+	);
 end
 
 function Binding:Init(elementData)
 	local data = elementData:GetData()
 	self:SetText(data.name)
+	self.Icon:SetTexture(db.Bindings:GetIcon(data.bindingID))
 	self.Slug:SetBinding(data.bindingID)
 end
 
@@ -301,12 +310,34 @@ function Binding:OnAcquire(new)
 		InitializeSetting(self, Binding)
 		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 		self:SetScript('OnClick', Binding.OnClick)
+		self:HookScript('OnEnter', self.UpdateInfo)
+
+		local base = env.Settings.Base;
+		self:HookScript('OnEnter', base.OnEnter)
+		self:HookScript('OnLeave', base.OnLeave)
+		self.UpdateTooltip = base.UpdateTooltip;
 	end
+end
+
+function Binding:UpdateInfo()
+	local data = self:GetElementData():GetData()
+	local desc, image, name, texture = db.Bindings:GetDescriptionForBinding(data.bindingID, true)
+	self.disableTooltipHints = data.readonly();
+	self.tooltipText = ('%s%s'):format(
+		data.list,
+		desc  and ('\n\n'..desc) or ''
+	);
+	self.tooltipImage = image;
+	self.tooltipHints = not self.disableTooltipHints and {
+		env:GetTooltipPromptForClick('LeftClick', EDIT),
+		env:GetTooltipPromptForClick('RightClick', REMOVE),
+	};
 end
 
 function Binding:Data(datapoint)
 	return {
 		name      = datapoint.name;
+		list      = datapoint.field.list;
 		bindingID = datapoint.binding;
 		readonly  = datapoint.readonly;
 	}

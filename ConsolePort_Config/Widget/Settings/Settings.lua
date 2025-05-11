@@ -93,7 +93,8 @@ function Widget:UpdateTooltip(text, note, hints)
 			env:GetTooltipPromptForClick('RightClick', DEFAULT);
 		};
 	end
-	if text or note or hints then
+	local hasTextToDisplay = text or note or hints;
+	if hasTextToDisplay then
 		GameTooltip:SetOwner(self, self.tooltipAnchor or 'ANCHOR_TOP')
 		GameTooltip:SetText(self:GetText())
 		if text then
@@ -115,6 +116,21 @@ function Widget:UpdateTooltip(text, note, hints)
 		end
 		GameTooltip:Show()
 	end
+	local image = self.tooltipImage;
+	if image then
+		local owner  = hasTextToDisplay and GameTooltip or self;
+		local anchor = hasTextToDisplay and 'ANCHOR_NONE' or 'ANCHOR_TOP';
+		local frame  = hasTextToDisplay and GameTooltip.shoppingTooltips[1] or GameTooltip;
+		if frame then
+			frame:SetOwner(owner, anchor)
+			if hasTextToDisplay then
+				frame:SetPoint('LEFT', GameTooltip, 'RIGHT', 0, 0)
+			end
+			frame:SetText(image)
+			frame:Show()
+			self.extraTooltip = frame;
+		end
+	end
 end
 
 function Widget:IsUserInput()
@@ -128,6 +144,10 @@ end
 
 function Widget:OnLeave()
 	self.isTooltipOwned = nil;
+	if self.extraTooltip then
+		self.extraTooltip:Hide()
+		self.extraTooltip = nil;
+	end
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end

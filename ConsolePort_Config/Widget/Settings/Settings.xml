@@ -54,6 +54,14 @@
 
 	<CheckButton name="CPBinding" virtual="true" inherits="CPSetting">
 		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Icon" file="Interface\QuestFrame\UI-Quest-BulletPoint">
+					<Size x="24" y="24"/>
+					<Anchors>
+						<Anchor point="LEFT" x="8" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Slug" inherits="CPGameFontDisableMed2" mixin="CPSlugMixin" text="NOT_BOUND">
 					<Anchors>

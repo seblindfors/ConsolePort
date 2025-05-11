@@ -463,7 +463,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 				type     = env.Elements.Binding;
 				name     = info.name;
 				binding  = info.binding;
-				readonly = info.readonly;
+				readonly = info.readonly or nop;
 				field = {
 					list = list;
 					xtra = true;
