@@ -120,6 +120,50 @@ function Results:Data(text)
 end
 
 ---------------------------------------------------------------
+local IconSelector = {};
+---------------------------------------------------------------
+
+function IconSelector:OnLoad()
+	self.activeIconFilter = IconSelectorPopupFrameIconFilterTypes.All;
+	self.IconHeader.Text:ClearAllPoints()
+	self.IconHeader.Text:SetPoint('LEFT', 40, 0)
+	self.IconHeader.Text:SetFontObject(GameFontNormalMed1)
+	self:SetSize(508, 500)
+	self:Update()
+end
+
+function IconSelector:Update()
+	local function IconFilterToIconTypes(filter)
+		if ( filter == IconSelectorPopupFrameIconFilterTypes.All ) then
+			return IconDataProvider_GetAllIconTypes();
+		elseif (filter == IconSelectorPopupFrameIconFilterTypes.Spell) then
+			return { IconDataProviderIconType.Spell };
+		elseif (filter == IconSelectorPopupFrameIconFilterTypes.Item) then
+			return { IconDataProviderIconType.Item };
+		end
+		return nil;
+	end
+
+	local function IsSelected(filterType)
+		return self.activeIconFilter == filterType;
+	end
+
+	local function SetSelected(filterType)
+		self.activeIconFilter = filterType;
+		self.IconSelector.iconDataProvider:SetIconTypes(IconFilterToIconTypes(filterType));
+		self.IconSelector:UpdateSelections()
+		self:Update()
+	end
+
+	self.IconType.Dropdown:SetupMenu(function(dropdown, rootDescription)
+		for key, filterType in pairs(IconSelectorPopupFrameIconFilterTypes) do
+			local text = _G['ICON_FILTER_' .. strupper(key)];
+			rootDescription:CreateRadio(text, IsSelected, SetSelected, filterType);
+		end
+	end)
+end
+
+---------------------------------------------------------------
 local Config = CreateFromMixins(CPButtonCatcherMixin); env.Config = Config;
 ---------------------------------------------------------------
 
@@ -135,6 +179,9 @@ function Config:OnLoad()
 
 	env:RegisterCallback('OnPanelShow', self.OnPanelShow, self)
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
+	env:RegisterCallback('OnBindingClicked', self.OnBindingClicked, self)
+	env:RegisterCallback('OnBindingIconClicked', self.OnBindingIconClicked, self)
+
 	env:TriggerEvent('OnConfigLoad', self)
 
 	-- Nav bar buttons
@@ -164,7 +211,7 @@ function Config:OnLoad()
 		fullScreenCover = true;
 		OnCancel        = nop;
 		OnAccept = function(self)
-			--SettingsPanel:SetAllSettingsToDefaults();
+			-- TODO: SettingsPanel:SetAllSettingsToDefaults();
 		end;
 		OnAlt = function()
 			self:GetCurrentPanel():OnDefaults()
@@ -174,20 +221,47 @@ function Config:OnLoad()
 	self.Export:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnExportButtonClicked'))
 end
 
+---------------------------------------------------------------
+-- Components
+---------------------------------------------------------------
+
+function Config:GetCatcher()
+	if not self.Catcher then
+		self.Catcher = CreateFrame('Button', nil, self, CPBindingCatcherMixin.Template)
+		self.Catcher.promptText = L.SLOT_SET_BINDING;
+		FrameUtil.SpecializeFrameWithMixins(self.Catcher, CPBindingCatcherMixin)
+	end
+	return self.Catcher;
+end
+
+function Config:GetIconSelector()
+	if not self.IconSelector then
+		self.IconSelector = CreateFrame('Frame', nil, self, 'CPConfigIconSelector')
+		FrameUtil.SpecializeFrameWithMixins(self.IconSelector, IconSelector)
+	end
+	return self.IconSelector;
+end
+
+---------------------------------------------------------------
+-- Callbacks
+---------------------------------------------------------------
+
+function Config:OnShow()
+	FrameUtil.UpdateScaleForFit(self, 40, 80)
+	self:SetDefaultClosures()
+	self:OnActiveDeviceChanged()
+end
+
+function Config:SetDefaultClosures()
+	self:ReleaseClosures()
+end
+
 function Config:OnActiveDeviceChanged()
 	self.hasActiveDevice = not not db.Gamepad.Active;
 	if self.hasActiveDevice and not self.isClosableByEsc then
 		tinsert(UISpecialFrames, self:GetName())
 		self.isClosableByEsc = true;
 	end
-end
-
-function Config:OnPanelShow(id)
-	if not self:GetAttribute(id) then
-		self:SetAttribute(id, true)
-		env:TriggerEvent('OnPanelLoad', id)
-	end
-	self.currentPanelID = id;
 end
 
 function Config:OnSearch(text)
@@ -210,18 +284,86 @@ function Config:OnSearch(text)
 	end
 end
 
-function Config:SetDefaultClosures()
-	self:ReleaseClosures()
+function Config:OnBindingClicked(bindingID, isClearEvent, readonly, element)
+	if readonly then
+		return;
+	end
+
+	local catcher = self:GetCatcher()
+
+	if isClearEvent then
+		catcher:ClearBindingsForID(bindingID)
+		return SaveBindings(GetCurrentBindingSet())
+	end
+
+	catcher:TryCatchBinding({
+		text = catcher.promptText;
+		OnShow = function()
+			self:PauseCatcher()
+			ConsolePort:SetCursorNodeIfActive(element)
+			RunNextFrame(function()
+				-- Workaround for the tooltip overlapping the binding catcher,
+				-- and presenting button prompts that are disabled while
+				-- the binding catcher is active.
+				GameTooltip:Hide()
+				GameTooltip_HideShoppingTooltips(GameTooltip)
+			end)
+		end;
+		OnHide = function()
+			self:ResumeCatcher()
+			ConsolePort:SetCursorNodeIfActive(element)
+		end;
+	}, BLUE_FONT_COLOR:WrapTextInColorCode(env:GetBindingName(bindingID)), nil, {
+		bindingID = bindingID;
+	})
+end
+
+function Config:OnBindingIconClicked(bindingID, isClearEvent, element, callback)
+	local container   = self:GetIconSelector()
+	local selector    = container.IconSelector;
+	local bindingName = env:GetBindingName(bindingID)
+
+	if isClearEvent then
+		db.Bindings:SetIcon(bindingID, nil)
+		return callback(element, db.Bindings:GetIcon(bindingID))
+	end
+
+	CPAPI.Popup('ConsolePort_IconSelector_Binding', {
+		text = ''; -- HACK: text is required for the popup.
+		button1 = ACCEPT;
+		button2 = CANCEL;
+		hideOnEscape = true;
+		enterClicksFirstButton = true;
+		OnShow = function(_, data)
+			local index = selector.iconDataProvider:GetIndexOfIcon(data);
+			selector:SetSelectedIndex(index);
+			selector:ScrollToSelectedIndex();
+		end;
+		OnAccept = function()
+			local icon = selector.iconDataProvider:GetIconByIndex(selector:GetSelectedIndex());
+			if icon then
+				db.Bindings:SetIcon(bindingID, icon)
+				callback(element, icon)
+			end
+		end;
+	}, bindingName, nil, db.Bindings:GetIcon(bindingID), container)
+	container.IconHeader.Text:SetText(bindingName)
+end
+
+---------------------------------------------------------------
+-- Panels
+---------------------------------------------------------------
+
+function Config:OnPanelShow(id)
+	if not self:GetAttribute(id) then
+		self:SetAttribute(id, true)
+		env:TriggerEvent('OnPanelLoad', id)
+	end
+	self.currentPanelID = id;
 end
 
 function Config:GetCurrentPanel()
 	return env:GetPanelByID(self.currentPanelID)
-end
-
-function Config:OnShow()
-	FrameUtil.UpdateScaleForFit(self, 40, 80)
-	self:SetDefaultClosures()
-	self:OnActiveDeviceChanged()
 end
 
 do  local panelIDGen, panels = CreateCounter(), {};

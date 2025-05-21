@@ -379,7 +379,7 @@ end)
 -- Console settings (game native)
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)
-	local ConsoleToSettingsMap = {
+	local ConsoleCategoryMap = {
 		Mouse     = CONTROLS_LABEL;
 		Camera    = CONTROLS_LABEL;
 		Bindings  = CONTROLS_LABEL;
@@ -389,16 +389,24 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 		System    = CONTROLS_LABEL;
 	};
 
+	local ConsoleListMap = {
+		Bindings = KEY_BINDINGS_MAC;
+		Mouse    = MOUSE_LABEL;
+		Camera   = CAMERA_LABEL;
+		System   = SYSTEM;
+	};
+
 	for head, group in pairs(db.Console) do
-		local main = ConsoleToSettingsMap[head] or SETTINGS;
-		local sort = GetSortIndex(main, head);
+		local main = ConsoleCategoryMap[head] or SETTINGS;
+		local list = ConsoleListMap[head] or head;
+		local sort = GetSortIndex(main, list);
 		for i, data in ipairs(group) do
 			-- Sanity check: if the cvar is nil, it does not exist in
 			-- the current game version. Skip it.
 			local value = GetCVar(data.cvar);
 			if ( value ~= nil ) then
 				data[DP] = (data[DP] or data.type()):Set(value);
-				AddSetting(main, head, {
+				AddSetting(main, list, {
 					varID = data.cvar;
 					field = data;
 					sort  = sort + i;
@@ -413,17 +421,22 @@ end)
 -- Mapper profile settings (game native)
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)
-	local ProfileToSettingsMap = {
+	local ProfileCategoryMap = {
 		Movement = CONTROLS_LABEL;
 		Camera   = CONTROLS_LABEL;
 	};
 
+	local ProfileListMap = {
+		Camera = CAMERA_LABEL;
+	};
+
 	for head, group in pairs(db.Profile) do
-		local main = ProfileToSettingsMap[head] or SETTINGS;
-		local sort = GetSortIndex(main, head);
+		local main = ProfileCategoryMap[head] or SETTINGS;
+		local list = ProfileListMap[head] or head;
+		local sort = GetSortIndex(main, list);
 		for i, data in ipairs(group) do
 			data[DP] = (data[DP] or data.data())
-			AddSetting(main, head, {
+			AddSetting(main, list, {
 				varID = data.path;
 				field = data;
 				sort  = sort + i;
@@ -465,6 +478,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 				binding  = info.binding;
 				readonly = info.readonly or nop;
 				field = {
+					name = info.name;
 					list = list;
 					xtra = true;
 				};

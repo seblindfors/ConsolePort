@@ -88,9 +88,10 @@ function Widget:UpdateTooltip(text, note, hints)
 	note = note or self.tooltipNote;
 	hints = hints or self.tooltipHints;
 	if not hints and not self.disableTooltipHints then
+		local useMouseHints = not ConsolePort:IsCursorNode(self);
 		hints = {
-			env:GetTooltipPromptForClick('LeftClick', EDIT);
-			env:GetTooltipPromptForClick('RightClick', DEFAULT);
+			env:GetTooltipPromptForClick('LeftClick',  self.leftClickHint or EDIT, useMouseHints);
+			env:GetTooltipPromptForClick('RightClick', self.rightClickHint or DEFAULT, useMouseHints);
 		};
 	end
 	local hasTextToDisplay = text or note or hints;
@@ -185,6 +186,16 @@ function Widget:ToggleClosure(button, enabled, callback, ...)
             self.closures = nil;
         end
     end
+end
+
+function Widget:SetTooltipHints(arg1, arg2)
+	if type(arg1) == 'table' then
+		self.tooltipHints = arg1;
+		return;
+	end
+	self.tooltipHints   = nil;
+	self.leftClickHint  = arg1;
+	self.rightClickHint = arg2;
 end
 
 function Widget:OnValueChanged(...)
@@ -366,15 +377,15 @@ function Number:OnClick(button)
 	if self:GetChecked() then
 		self:ToggleClosure(decrement, true, self.OnDecrement, self)
 		self:ToggleClosure(increment, true, self.OnIncrement, self)
-		self.tooltipHints = {
+		self:SetTooltipHints({
 			env:GetTooltipPromptForClick('LeftClick', APPLY);
 			env:GetTooltipPrompt(decrement, env.L'Decrease');
 			env:GetTooltipPrompt(increment, env.L'Increase');
-		};
+		});
 	else
 		self:ToggleClosure(decrement, false)
 		self:ToggleClosure(increment, false)
-		self.tooltipHints = nil;
+		self:SetTooltipHints(nil)
 	end
 end
 
@@ -638,9 +649,9 @@ function Button:OnClick(button)
 			self:Set(NONE, true)
 		end
 	elseif self:GetChecked() then
-		self.tooltipHints = {
+		self:SetTooltipHints({
 			YELLOW_FONT_COLOR:WrapTextInColorCode(BIND_KEY_TO_COMMAND:format(BLUE_FONT_COLOR:WrapTextInColorCode(self:GetText())));
-		};
+		});
 		self:UpdateTooltip()
 		return self:ToggleClosure(nil, true, self.OnGamePadButtonDown, self)
 	end
@@ -653,13 +664,11 @@ function Button:OnValueChanged(value)
 	self.widgetText = nil;
 	if (isNotBound) then
 		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
-	end 
+	end
 	self.Input.Clear:SetShown(not isNotBound)
 	self.Input:SetText(display)
-	self.tooltipHints = {
-		env:GetTooltipPromptForClick('LeftClick', CHOOSE);
-		env:GetTooltipPromptForClick('RightClick', isNotBound and DEFAULT or REMOVE);
-	};
+
+	self:SetTooltipHints(CHOOSE, isNotBound and DEFAULT or REMOVE)
 end
 
 ---------------------------------------------------------------
@@ -755,15 +764,14 @@ function Pseudokey:OnClick(button)
 			self:Set(NONE, true)
 		end
 	elseif self:GetChecked() then
-		self.tooltipHints = {
+		self:SetTooltipHints({
 			YELLOW_FONT_COLOR:WrapTextInColorCode(BIND_KEY_TO_COMMAND:format(BLUE_FONT_COLOR:WrapTextInColorCode(self:GetText())));
-		};
+		});
 		return self:EnableKeyboard(true)
 	end
-	self.tooltipHints = {
-		env:GetTooltipPromptForClick('LeftClick', CHOOSE);
-		env:GetTooltipPromptForClick('RightClick', REMOVE);
-	};
+
+	self:SetTooltipHints(CHOOSE, REMOVE)
+
 	self:UpdateTooltip()
 	self:EnableKeyboard(false)
 end
@@ -774,10 +782,7 @@ function Pseudokey:OnValueChanged(value)
 	if (isNotBound) then
 		display = env.BindingInfo.NotBoundColor:format(NOT_BOUND)
 	end
-	self.tooltipHints = {
-		env:GetTooltipPromptForClick('LeftClick', CHOOSE);
-		env:GetTooltipPromptForClick('RightClick', isNotBound and DEFAULT or REMOVE);
-	};
+	self:SetTooltipHints(CHOOSE, isNotBound and DEFAULT or REMOVE)
 	self.Input.Clear:SetShown(not isNotBound)
 	self.Input:SetText(display)
 end
@@ -875,15 +880,15 @@ function Select:OnClick(button)
 	if self:GetChecked() then
 		self:ToggleClosure('PADDLEFT', true, self.OnLeftButton, self)
 		self:ToggleClosure('PADDRIGHT', true, self.OnRightButton, self)
-		self.tooltipHints = {
+		self:SetTooltipHints({
 			env:GetTooltipPromptForClick('LeftClick', APPLY);
 			env:GetTooltipPrompt('PADDLEFT', PREVIOUS);
 			env:GetTooltipPrompt('PADDRIGHT', NEXT);
-		};
+		});
 	else
 		self:ToggleClosure('PADDLEFT', false)
 		self:ToggleClosure('PADDRIGHT', false)
-		self.tooltipHints = nil;
+		self:SetTooltipHints(nil)
 	end
 end
 

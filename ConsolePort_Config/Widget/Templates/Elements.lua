@@ -287,22 +287,37 @@ local Binding = CPAPI.CreateElement('CPBinding', 0, 32)
 ---------------------------------------------------------------
 Elements.Binding = Binding;
 
+local function OnIconChangedCallback(self, result)
+	self.NormalTexture:SetAlpha(not result and 0.25 or 1)
+	self.NormalTexture:SetTexture(result or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
+end
+
+local function OnIconClick(self, button)
+	local isClearEvent = button == 'RightButton';
+	env:TriggerEvent('OnBindingIconClicked',
+		self:GetParent():GetElementData():GetData().bindingID,
+		isClearEvent,
+		self,
+		OnIconChangedCallback
+	);
+end
+
 function Binding:OnClick(button)
 	local data = self:GetElementData():GetData()
 	local isClearEvent = button == 'RightButton';
 	env:TriggerEvent('OnBindingClicked',
-		data.bindingID, -- the bindingID to be set or cleared
-		data.readonly,  -- if the binding is readonly
-		isClearEvent,   -- if the binding is to be cleared
-		self            -- the element that was clicked
+		data.bindingID,  -- the bindingID to be set or cleared
+		isClearEvent,    -- if the binding is to be cleared
+		data.readonly(), -- if the binding is readonly
+		self             -- the element that was clicked
 	);
 end
 
 function Binding:Init(elementData)
 	local data = elementData:GetData()
 	self:SetText(data.name)
-	self.Icon:SetTexture(db.Bindings:GetIcon(data.bindingID))
 	self.Slug:SetBinding(data.bindingID)
+	OnIconChangedCallback(self.Icon, db.Bindings:GetIcon(data.bindingID))
 end
 
 function Binding:OnAcquire(new)
@@ -311,6 +326,9 @@ function Binding:OnAcquire(new)
 		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 		self:SetScript('OnClick', Binding.OnClick)
 		self:HookScript('OnEnter', self.UpdateInfo)
+
+		self.Icon:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+		self.Icon:SetScript('OnClick', OnIconClick)
 
 		local base = env.Settings.Base;
 		self:HookScript('OnEnter', base.OnEnter)
@@ -321,16 +339,25 @@ end
 
 function Binding:UpdateInfo()
 	local data = self:GetElementData():GetData()
-	local desc, image, name, texture = db.Bindings:GetDescriptionForBinding(data.bindingID, true)
-	self.disableTooltipHints = data.readonly();
-	self.tooltipText = ('%s%s'):format(
-		data.list,
-		desc  and ('\n\n'..desc) or ''
-	);
+	local desc, image = db.Bindings:GetDescriptionForBinding(data.bindingID, true)
+	local readOnlyText = data.readonly();
+	self.disableTooltipHints = not not readOnlyText;
+
+	local lines = { data.list };
+	if desc then
+		tinsert(lines, desc);
+	end
+	if readOnlyText then
+		tinsert(lines, RED_FONT_COLOR:WrapTextInColorCode(readOnlyText:trim()));
+	end
+
+	local useMouseHints = not ConsolePort:IsCursorNode(self);
+
+	self.tooltipText = table.concat(lines, '\n\n');
 	self.tooltipImage = image;
 	self.tooltipHints = not self.disableTooltipHints and {
-		env:GetTooltipPromptForClick('LeftClick', EDIT),
-		env:GetTooltipPromptForClick('RightClick', REMOVE),
+		env:GetTooltipPromptForClick('LeftClick', EDIT, useMouseHints),
+		env:GetTooltipPromptForClick('RightClick', REMOVE, useMouseHints),
 	};
 end
 

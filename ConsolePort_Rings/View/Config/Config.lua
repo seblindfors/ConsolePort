@@ -15,27 +15,6 @@ function Search:OnTabSelected(tabIndex, panels)
 end
 
 ---------------------------------------------------------------
-local BindingCatcher = {};
----------------------------------------------------------------
-
-function BindingCatcher:OnBindingCaught(button, data)
-	if not CPAPI.IsButtonValidForBinding(button) then return end;
-
-	local bindingID = data.bindingID;
-	local clearPrev = data.clearPrev;
-	local keychord  = CPAPI.CreateKeyChord(button)
-
-	if not db('bindingOverlapEnable') then
-		clearPrev()
-	end
-
-	if SetBinding(keychord, bindingID) then
-		SaveBindings(GetCurrentBindingSet())
-		return true;
-	end
-end
-
----------------------------------------------------------------
 local Config = CreateFromMixins(CPButtonCatcherMixin); env.SharedConfig = {};
 ---------------------------------------------------------------
 
@@ -69,8 +48,8 @@ function Config:OnLoad()
 	env:RegisterCallback('OnAcquireControlButton', self.CatchButton, self)
 	env:RegisterCallback('OnReleaseControlButton', self.FreeButton, self)
 
-	self.Catcher = CreateFrame('Button', nil, self, CPPopupBindingCatchButtonMixin.Template)
-	FrameUtil.SpecializeFrameWithMixins(self.Catcher, BindingCatcher)
+	self.Catcher = CreateFrame('Button', nil, self, CPBindingCatcherMixin.Template)
+	FrameUtil.SpecializeFrameWithMixins(self.Catcher, CPBindingCatcherMixin)
 
 	CPAPI.Start(self)
 	tinsert(UISpecialFrames, self:GetName())
@@ -235,11 +214,10 @@ end
 function Config:OnBindSet(owner, setID, clearBinding)
 	local bindingID = Container:GetBindingForSet(setID)
 
-	local function ClearPreviousBindings()
-		db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
+	if clearBinding then
+		self.Catcher:ClearBindingsForID(bindingID)
+		return SaveBindings(GetCurrentBindingSet())
 	end
-
-	if clearBinding then return ClearPreviousBindings() end;
 
 	self.Catcher:TryCatchBinding({
 		text = L.SLOT_SET_BINDING;
@@ -252,7 +230,6 @@ function Config:OnBindSet(owner, setID, clearBinding)
 		end;
 	}, Container:GetBindingDisplayNameForSetID(setID), nil, {
 		bindingID = bindingID;
-		clearPrev = ClearPreviousBindings;
 	})
 end
 

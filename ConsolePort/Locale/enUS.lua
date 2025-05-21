@@ -32,13 +32,15 @@ L.FORMAT_RING_NUMERICAL       = 'Ring |cFF00FFFF%s|r';
 ---------------------------------------------------------------
 L.DESC_KEY_BUTTON1 = [[
 	Used to toggle free cursor, allowing you to use your camera stick as a mouse pointer.
-
+]];
+L.DISC_KEY_BUTTON1 = [[
 	While one of your buttons is set to emulate left click, this binding cannot be changed.
 ]];
 L.DESC_KEY_BUTTON2 = [[
 	Used to toggle center cursor, allowing you to interact with objects and characters
 	in the game world, at a center-fixed mouse position.
-
+]];
+L.DISC_KEY_BUTTON2 = [[
 	While one of your buttons is set to emulate right click, this binding cannot be changed.
 ]];
 L.DESC_INTERACTTARGET = [[

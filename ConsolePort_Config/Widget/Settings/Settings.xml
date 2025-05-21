@@ -54,14 +54,6 @@
 
 	<CheckButton name="CPBinding" virtual="true" inherits="CPSetting">
 		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="Icon" file="Interface\QuestFrame\UI-Quest-BulletPoint">
-					<Size x="24" y="24"/>
-					<Anchors>
-						<Anchor point="LEFT" x="8" y="0"/>
-					</Anchors>
-				</Texture>
-			</Layer>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Slug" inherits="CPGameFontDisableMed2" mixin="CPSlugMixin" text="NOT_BOUND">
 					<Anchors>
@@ -74,6 +66,21 @@
 				</FontString>
 			</Layer>
 		</Layers>
+		<Frames>
+			<Button parentKey="Icon">
+				<Size x="24" y="24"/>
+				<Anchors>
+					<Anchor point="LEFT" x="8" y="0"/>
+				</Anchors>
+				<NormalTexture parentKey="NormalTexture" file="Interface\QuestFrame\UI-Quest-BulletPoint"/>
+				<HighlightTexture parentKey="HighlightTexture" file="Interface\Buttons\UI-OptionsButton">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="8" y="8"/>
+					</Anchors>
+				</HighlightTexture>
+			</Button>
+		</Frames>
 	</CheckButton>
 
 	<Script file="Settings.lua"/>

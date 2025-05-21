@@ -145,6 +145,36 @@
 		</Frames>
 	</Frame>
 
+	<Frame name="CPConfigIconSelector" virtual="true">
+		<Frames>
+			<Frame parentKey="IconHeader" inherits="CPPopupHeaderTemplate">
+				<Size y="38"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="8" y="8"/>
+					<Anchor point="TOPRIGHT" x="-8" y="8"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="IconSelector" inherits="CPIconSelector" frameStrata="HIGH">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="14" y="-32"/>
+					<Anchor point="BOTTOMRIGHT" x="-24" y="8"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="IconType" inherits="DropdownWithSteppersTemplate" mixin="DropdownWithSteppersMixin">
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.IconHeader" />
+				</Anchors>
+				<Frames>
+					<DropdownButton parentKey="Dropdown" inherits="WowStyle2DropdownTemplate">
+						<Anchors>
+							<Anchor point="CENTER"/>
+						</Anchors>
+					</DropdownButton>
+				</Frames>
+			</Frame>
+		</Frames>
+	</Frame>
+
 	<Script file="Config.lua"/>
 	<Script file="ImportExport.lua"/>
 </Ui>

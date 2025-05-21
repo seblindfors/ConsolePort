@@ -34,7 +34,12 @@ function env:GetTooltipPrompt(btnID, text)
 	end
 end
 
-function env:GetTooltipPromptForClick(clickID, text)
+function env:GetTooltipPromptForClick(clickID, text, useMouse)
+	if useMouse then
+		return ('%s %s'):format(
+			CreateAtlasMarkup(('NPE_%s'):format(clickID), 28, 28), text)
+	end
+
 	local device = db.Gamepad.Active;
 	local btnID = db('UICursor'..clickID)
 	if device and btnID then
@@ -44,6 +49,18 @@ end
 
 function env:GetBindings()
 	return db.Gamepad:GetBindings()
+end
+
+function env:GetBindingName(bindingID)
+	local info = db.Bindings:GetCustomBindingInfo(bindingID)
+	if info and info.name then
+		return info.name;
+	end
+	info = db.Bindings:ConvertRingBindingToDisplayName(bindingID)
+	if info then
+		return info;
+	end
+	return GetBindingName(bindingID);
 end
 
 ---------------------------------------------------------------

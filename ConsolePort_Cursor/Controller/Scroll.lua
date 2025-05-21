@@ -78,7 +78,9 @@ function Scroll:Interpolate(super, current, target, setter)
 	end
 	local interpolator = self.Interpolators:Acquire()
 	interpolator:Interpolate(current, target, .11, setter, function()
-		active[super] = interpolators:Release(interpolator)
+		if interpolators:Release(interpolator) then
+			active[super] = nil;
+		end
 	end)
 	active[super] = interpolator;
 end

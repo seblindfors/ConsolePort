@@ -309,3 +309,27 @@ function CPBackgroundMixin:AddBackgroundMaskTexture(mask)
 	self.Background:AddMaskTexture(mask)
 	self.Rollover:AddMaskTexture(mask)
 end
+
+---------------------------------------------------------------
+CPBindingCatcherMixin = CreateFromMixins(CPPopupBindingCatchButtonMixin)
+---------------------------------------------------------------
+
+function CPBindingCatcherMixin:OnBindingCaught(button, data)
+	if not CPAPI.IsButtonValidForBinding(button) then return end;
+
+	local bindingID = data.bindingID;
+	local keychord  = CPAPI.CreateKeyChord(button)
+
+	if not db('bindingOverlapEnable') then
+		self:ClearBindingsForID(bindingID)
+	end
+
+	if SetBinding(keychord, bindingID) then
+		SaveBindings(GetCurrentBindingSet())
+		return true;
+	end
+end
+
+function CPBindingCatcherMixin:ClearBindingsForID(bindingID)
+	db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
+end
