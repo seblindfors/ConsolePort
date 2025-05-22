@@ -1,4 +1,4 @@
-local env, db = CPAPI.GetEnv(...);
+local env, db, _, L = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local Panel = {};
 ---------------------------------------------------------------
@@ -160,6 +160,17 @@ function IconSelector:Update()
 			local text = _G['ICON_FILTER_' .. strupper(key)];
 			rootDescription:CreateRadio(text, IsSelected, SetSelected, filterType);
 		end
+	end)
+
+	self.IconSelector:SetSelectedCallback(function(index)
+		-- HACK: If we're clicking with the interface cursor,
+		-- skip the need to hit accept and just set the icon.
+		RunNextFrame(function()
+			local cursorNode = ConsolePort:GetCursorNode()
+			if self.popup and ( cursorNode and cursorNode.selectionIndex == index ) then
+				StaticPopup_OnClick(self.popup, 1) -- accept
+			end
+		end)
 	end)
 end
 
@@ -334,17 +345,27 @@ function Config:OnBindingIconClicked(bindingID, isClearEvent, element, callback)
 		button2 = CANCEL;
 		hideOnEscape = true;
 		enterClicksFirstButton = true;
-		OnShow = function(_, data)
+		selectCallbackByIndex = true;
+		OnShow = function(popup, data)
 			local index = selector.iconDataProvider:GetIndexOfIcon(data);
 			selector:SetSelectedIndex(index);
 			selector:ScrollToSelectedIndex();
+			container.popup = popup;
+			ConsolePort:RemoveInterfaceCursorFrame(self)
 		end;
 		OnAccept = function()
-			local icon = selector.iconDataProvider:GetIconByIndex(selector:GetSelectedIndex());
+			local index = selector:GetSelectedIndex()
+			local icon = selector.iconDataProvider:GetIconByIndex(index);
 			if icon then
 				db.Bindings:SetIcon(bindingID, icon)
 				callback(element, icon)
 			end
+		end;
+		OnCancel = nop;
+		OnHide = function()
+			ConsolePort:AddInterfaceCursorFrame(self)
+			ConsolePort:SetCursorNodeIfActive(element)
+			container.popup = nil;
 		end;
 	}, bindingName, nil, db.Bindings:GetIcon(bindingID), container)
 	container.IconHeader.Text:SetText(bindingName)
@@ -402,5 +423,9 @@ do  local panelIDGen, panels = CreateCounter(), {};
 
 	function env:GetPanelByID(id)
 		return panels[id];
+	end
+
+	function env:GetContextPanel()
+		return panels[#panels];
 	end
 end

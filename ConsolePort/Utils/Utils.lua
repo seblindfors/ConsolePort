@@ -305,7 +305,7 @@ do local sort, head, main = 0;
 
 	function CPAPI.GetEnv(name, env)
 		assert(env.db, 'Environment not linked.')
-		return env, env.db, name;
+		return env, env.db, name, env.L;
 	end
 
 	function CPAPI.LinkEnv(name, env)

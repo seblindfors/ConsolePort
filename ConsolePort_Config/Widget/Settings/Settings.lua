@@ -96,7 +96,8 @@ function Widget:UpdateTooltip(text, note, hints)
 	end
 	local hasTextToDisplay = text or note or hints;
 	if hasTextToDisplay then
-		GameTooltip:SetOwner(self, self.tooltipAnchor or 'ANCHOR_TOP')
+		local setOwner = self.useDefaultTooltipAnchor and GameTooltip_SetDefaultAnchor or GameTooltip.SetOwner;
+		setOwner(GameTooltip, self, self.tooltipAnchor or 'ANCHOR_TOP');
 		GameTooltip:SetText(self:GetText())
 		if text then
 			GameTooltip:AddLine(text, 1, 1, 1, 1)

@@ -475,3 +475,23 @@ function CharacterBindings:Data()
 		type  = 'CharacterBindings';
 	};
 end
+
+---------------------------------------------------------------
+local BindingPreset = CPAPI.CreateElement('CPSetting', 0, 40)
+---------------------------------------------------------------
+env.Elements.BindingPreset = BindingPreset;
+
+
+function BindingPreset:OnAcquire(new)
+	if new then
+		InitializeSetting(self, Binding)
+		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
+		self:SetScript('OnClick', BindingPreset.OnClick)
+		self:HookScript('OnEnter', self.UpdateInfo)
+
+		local base = env.Settings.Base;
+		self:HookScript('OnEnter', base.OnEnter)
+		self:HookScript('OnLeave', base.OnLeave)
+		self.UpdateTooltip = base.UpdateTooltip;
+	end
+end

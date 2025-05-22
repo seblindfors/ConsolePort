@@ -1,4 +1,5 @@
 <Ui>
 	<Script file="Elements.lua"/>
 	<Script file="Settings.lua"/>
+	<Script file="DataProvider.lua"/>
 </Ui>

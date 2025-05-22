@@ -317,20 +317,25 @@ function Binding:Init(elementData)
 	local data = elementData:GetData()
 	self:SetText(data.name)
 	self.Slug:SetBinding(data.bindingID)
+	self.Icon.tooltipText = ('%s | %s'):format(data.list, data.name)
 	OnIconChangedCallback(self.Icon, db.Bindings:GetIcon(data.bindingID))
 end
 
 function Binding:OnAcquire(new)
 	if new then
 		InitializeSetting(self, Binding)
-		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 		self:SetScript('OnClick', Binding.OnClick)
 		self:HookScript('OnEnter', self.UpdateInfo)
 
-		self.Icon:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
-		self.Icon:SetScript('OnClick', OnIconClick)
-
 		local base = env.Settings.Base;
+
+		self.Icon:SetScript('OnClick', OnIconClick)
+		self.Icon:HookScript('OnEnter', base.OnEnter)
+		self.Icon:HookScript('OnLeave', base.OnLeave)
+		self.Icon.UpdateTooltip = base.UpdateTooltip;
+		self.Icon.GetText = CPAPI.Static(EMBLEM_SYMBOL);
+		self.Icon.useDefaultTooltipAnchor = true;
+
 		self:HookScript('OnEnter', base.OnEnter)
 		self:HookScript('OnLeave', base.OnLeave)
 		self.UpdateTooltip = base.UpdateTooltip;
