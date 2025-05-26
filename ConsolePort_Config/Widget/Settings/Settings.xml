@@ -52,20 +52,7 @@
 		<DisabledFont style="CPGameFontDisableMed2"/>
 	</CheckButton>
 
-	<CheckButton name="CPBinding" virtual="true" inherits="CPSetting" registerForClicks="LeftButtonUp, RightButtonUp">
-		<Layers>
-			<Layer level="ARTWORK">
-				<FontString parentKey="Slug" inherits="CPGameFontDisableMed2" mixin="CPSlugMixin" text="NOT_BOUND">
-					<Anchors>
-						<Anchor point="RIGHT" x="-8"/>
-					</Anchors>
-					<Scripts>
-						<OnShow method="OnShow"/>
-						<OnHide method="OnHide"/>
-					</Scripts>
-				</FontString>
-			</Layer>
-		</Layers>
+	<CheckButton name="CPIconSetting" inherits="CPSetting" virtual="true">
 		<Frames>
 			<Button parentKey="Icon" registerForClicks="LeftButtonUp, RightButtonUp">
 				<Size x="24" y="24"/>
@@ -81,6 +68,22 @@
 				</HighlightTexture>
 			</Button>
 		</Frames>
+	</CheckButton>
+
+	<CheckButton name="CPBinding" virtual="true" inherits="CPIconSetting" registerForClicks="LeftButtonUp, RightButtonUp">
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Slug" inherits="CPGameFontDisableMed2" mixin="CPSlugMixin" text="NOT_BOUND">
+					<Anchors>
+						<Anchor point="RIGHT" x="-8"/>
+					</Anchors>
+					<Scripts>
+						<OnShow method="OnShow"/>
+						<OnHide method="OnHide"/>
+					</Scripts>
+				</FontString>
+			</Layer>
+		</Layers>
 	</CheckButton>
 
 	<Script file="Settings.lua"/>

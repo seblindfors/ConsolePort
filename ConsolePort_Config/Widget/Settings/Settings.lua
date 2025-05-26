@@ -82,10 +82,11 @@ function Widget:SetDataCallback(callback)
 	self.controller:SetCallback(callback)
 end
 
-function Widget:UpdateTooltip(text, note, hints)
+function Widget:UpdateTooltip(text, note, hints, dbls)
 	if not self.isTooltipOwned then return end;
 	text = text or self.tooltipText;
 	note = note or self.tooltipNote;
+	dbls = dbls or self.tooltipDoubles;
 	hints = hints or self.tooltipHints;
 	if not hints and not self.disableTooltipHints then
 		local useMouseHints = not ConsolePort:IsCursorNode(self);
@@ -108,8 +109,13 @@ function Widget:UpdateTooltip(text, note, hints)
 			end
 			GameTooltip:AddLine(note, 1, 1, 1, 1)
 		end
+		if dbls then
+			for _, line in ipairs(dbls) do
+				GameTooltip:AddDoubleLine(unpack(line))
+			end
+		end
 		if hints then
-			if text or note then
+			if text or note or dbls then
 				GameTooltip:AddLine('\n')
 			end
 			for _, line in ipairs(hints) do

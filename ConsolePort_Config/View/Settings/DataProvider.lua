@@ -1,4 +1,4 @@
-local DP, env, db = 1, CPAPI.GetEnv(...);
+local DP, env, db, _, L = 1, CPAPI.GetEnv(...);
 local Settings = env:GetContextPanel();
 
 -----------------------------------------------------------
@@ -23,7 +23,7 @@ do local GroupOrder = {
 		end
 	end
 
-    function Settings.CategorySort(t, a, b)
+	function Settings.CategorySort(t, a, b)
 		local iA, iB = t[a].sort, t[b].sort;
 		if iA and not iB then
 			return true;
@@ -149,18 +149,101 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 end)
 
 -----------------------------------------------------------
--- Bindings
+-- Binding presets and meta configuration
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)
-	local bindings = env.BindingInfo:RefreshDictionary()
 	local main, head = CONTROLS_LABEL, KEY_BINDINGS_MAC;
 	local sort = GetSortIndex(main, head);
+	local list = L'Presets';
 
+	-- Toggle character bindings on/off
 	AddSetting(main, head, {
 		sort  = 0;
 		type  = env.Elements.CharacterBindings;
 		field = { before = true };
 	})
+
+	-- Presets
+	local function AddPreset(meta, preset, readonly, key)
+		sort = GetSortIndex(main, head);
+		local datapoint = {
+			sort     = sort + 1;
+			type     = env.Elements.BindingPreset;
+			meta     = meta;
+			preset   = preset;
+			readonly = readonly;
+			key      = key;
+			field    = {
+				name = meta.Name;
+				list = list;
+				advd = true;
+			};
+		};
+		return datapoint, AddSetting(main, head, datapoint)
+	end
+
+	-- The empty preset overwrites all bindings, so we're using it as a base
+	-- for other presets, to wipe out residual bindings.
+	local table, emptyPreset = db.table, (function()
+		local bindings = db.Gamepad:GetBindings(true)
+		for btn, set in pairs(bindings) do
+			for mod, _ in pairs(set) do
+				bindings[btn][mod] = '';
+			end
+		end
+		return bindings;
+	end)()
+
+	local function MakePreset(bindings)
+		return table.merge(table.copy(emptyPreset), table.copy(bindings))
+	end
+
+	-- Add the "Add Preset" button
+	AddSetting(main, head, {
+		sort  = GetSortIndex(main, head) + 1;
+		type  = env.Elements.BindingPresetAdd;
+		add   = AddPreset;
+		make  = MakePreset;
+		field = {
+			name = ADD;
+			list = list;
+			advd = true;
+		};
+	})
+
+	-- Add the empty preset
+	AddPreset({ Name = EMPTY }, emptyPreset, true);
+
+	-- Presets for each gamepad device
+	for name, device in db:For('Gamepad/Devices', true) do
+		local bindings = device.Preset and device.Preset.Bindings;
+		if bindings then
+			local asset = db('Gamepad/Index/Splash/'..name)
+			local icon = asset and CPAPI.GetAsset([[Splash\Gamepad\]]..asset)
+			AddPreset({
+				Name = name;
+				Icon = icon;
+			}, MakePreset(bindings), true);
+		end
+	end
+
+	-- Presets from saved character data
+	for key, settings in db:For('Shared/Data', true) do
+		if settings.Bindings then
+			local datapoint, store = AddPreset(settings.Meta, MakePreset(settings.Bindings), false, key);
+			datapoint.index = #store;
+			datapoint.store = store;
+		end
+	end
+end)
+
+-----------------------------------------------------------
+-- Bindings
+-----------------------------------------------------------
+Settings:AddProvider(function(AddSetting, GetSortIndex)
+	local main, head = CONTROLS_LABEL, KEY_BINDINGS_MAC;
+	local sort = GetSortIndex(main, head);
+	local bindings = env.BindingInfo:RefreshDictionary()
 
 	AddSetting(main, head, {
 		sort  = sort + 1;

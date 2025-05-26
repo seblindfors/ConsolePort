@@ -549,6 +549,12 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Display the action bar grid when picking up a spell on the cursor.';
 		advd = true;
 	};
+	bindingAutomaticBackup = _{Bool(true);
+		name = 'Automatic Binding Backups';
+		desc = 'Automatically backup your bindings when you change them, for import and export.';
+		list = 'Presets';
+		advd = true;
+	};
 	disableHotkeyRendering = _{Bool(false);
 		name = 'Disable Hotkey Rendering';
 		desc = 'Disables customization to hotkeys on regular action bars.';

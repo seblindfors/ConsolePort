@@ -7,6 +7,8 @@ local function InitializeSetting(self, ...)
 	self:HookScript('OnLeave', self.UnlockHighlight)
 end
 
+Elements.InitializeSetting = InitializeSetting;
+
 ---------------------------------------------------------------
 local Header = CPAPI.CreateElement('CPHeader', 304, 40);
 ---------------------------------------------------------------
@@ -287,18 +289,29 @@ local Binding = CPAPI.CreateElement('CPBinding', 0, 32)
 ---------------------------------------------------------------
 Elements.Binding = Binding;
 
-local function OnIconChangedCallback(self, result)
+local BindingIcon = {
+	UpdateTooltip = env.Settings.Base.UpdateTooltip;
+	OnEnter = env.Settings.Base.OnEnter;
+	OnLeave = env.Settings.Base.OnLeave;
+	GetText = CPAPI.Static(EMBLEM_SYMBOL);
+	useDefaultTooltipAnchor = true;
+}; Elements.BindingIcon = BindingIcon;
+
+function BindingIcon:OnIconChanged(result, saveResult)
 	self.NormalTexture:SetAlpha(not result and 0.25 or 1)
 	self.NormalTexture:SetTexture(result or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
+	if saveResult then
+		db.Bindings:SetIcon(self:GetParent():GetElementData():GetData().bindingID, result)
+	end
 end
 
-local function OnIconClick(self, button)
+function BindingIcon:OnClick(button)
 	local isClearEvent = button == 'RightButton';
 	env:TriggerEvent('OnBindingIconClicked',
 		self:GetParent():GetElementData():GetData().bindingID,
 		isClearEvent,
 		self,
-		OnIconChangedCallback
+		self.OnIconChanged
 	);
 end
 
@@ -318,7 +331,7 @@ function Binding:Init(elementData)
 	self:SetText(data.name)
 	self.Slug:SetBinding(data.bindingID)
 	self.Icon.tooltipText = ('%s | %s'):format(data.list, data.name)
-	OnIconChangedCallback(self.Icon, db.Bindings:GetIcon(data.bindingID))
+	self.Icon:OnIconChanged(db.Bindings:GetIcon(data.bindingID), false)
 end
 
 function Binding:OnAcquire(new)
@@ -327,15 +340,9 @@ function Binding:OnAcquire(new)
 		self:SetScript('OnClick', Binding.OnClick)
 		self:HookScript('OnEnter', self.UpdateInfo)
 
+		FrameUtil.SpecializeFrameWithMixins(self.Icon, BindingIcon)
+
 		local base = env.Settings.Base;
-
-		self.Icon:SetScript('OnClick', OnIconClick)
-		self.Icon:HookScript('OnEnter', base.OnEnter)
-		self.Icon:HookScript('OnLeave', base.OnLeave)
-		self.Icon.UpdateTooltip = base.UpdateTooltip;
-		self.Icon.GetText = CPAPI.Static(EMBLEM_SYMBOL);
-		self.Icon.useDefaultTooltipAnchor = true;
-
 		self:HookScript('OnEnter', base.OnEnter)
 		self:HookScript('OnLeave', base.OnLeave)
 		self.UpdateTooltip = base.UpdateTooltip;
@@ -372,5 +379,5 @@ function Binding:Data(datapoint)
 		list      = datapoint.field.list;
 		bindingID = datapoint.binding;
 		readonly  = datapoint.readonly;
-	}
+	};
 end

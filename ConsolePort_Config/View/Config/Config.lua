@@ -166,8 +166,11 @@ function IconSelector:Update()
 		-- HACK: If we're clicking with the interface cursor,
 		-- skip the need to hit accept and just set the icon.
 		RunNextFrame(function()
+			if not self.popup then return end;
+			self.popup.button1:Enable();
+			if self.popup.editBox:IsShown() then return end;
 			local cursorNode = ConsolePort:GetCursorNode()
-			if self.popup and ( cursorNode and cursorNode.selectionIndex == index ) then
+			if ( cursorNode and cursorNode.selectionIndex == index ) then
 				StaticPopup_OnClick(self.popup, 1) -- accept
 			end
 		end)
@@ -192,6 +195,8 @@ function Config:OnLoad()
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
 	env:RegisterCallback('OnBindingClicked', self.OnBindingClicked, self)
 	env:RegisterCallback('OnBindingIconClicked', self.OnBindingIconClicked, self)
+	env:RegisterCallback('OnBindingPresetAddClicked', self.OnBindingPresetAddClicked, self)
+	env:RegisterCallback('OnBindingPresetIconClicked', self.OnBindingPresetIconClicked, self)
 
 	env:TriggerEvent('OnConfigLoad', self)
 
@@ -330,45 +335,78 @@ function Config:OnBindingClicked(bindingID, isClearEvent, readonly, element)
 end
 
 function Config:OnBindingIconClicked(bindingID, isClearEvent, element, callback)
-	local container   = self:GetIconSelector()
-	local selector    = container.IconSelector;
-	local bindingName = env:GetBindingName(bindingID)
-
 	if isClearEvent then
 		db.Bindings:SetIcon(bindingID, nil)
 		return callback(element, db.Bindings:GetIcon(bindingID))
 	end
 
-	CPAPI.Popup('ConsolePort_IconSelector_Binding', {
+	self:ShowIconSelector({
+		name  = env:GetBindingName(bindingID);
+		icon  = db.Bindings:GetIcon(bindingID);
+		call  = callback;
+		owner = element;
+	});
+end
+
+function Config:OnBindingPresetIconClicked(name, icon, element, callback)
+	self:ShowIconSelector({
+		name  = name;
+		icon  = icon;
+		call  = callback;
+		owner = element
+	})
+end
+
+function Config:OnBindingPresetAddClicked(element, callback)
+	self:ShowIconSelector({
+		name  = L'Create Binding Preset';
+		call  = callback;
+		owner = element;
+		button1 = SAVE;
+		hasEditBox = true;
+		initialText = DEFAULT;
+	})
+end
+
+function Config:ShowIconSelector(info)
+	local container = self:GetIconSelector()
+	local selector  = container.IconSelector;
+	local popup = CPAPI.Popup('ConsolePort_IconSelector', {
 		text = ''; -- HACK: text is required for the popup.
-		button1 = ACCEPT;
-		button2 = CANCEL;
+		button1 = info.button1 or ACCEPT;
+		button2 = info.button2 or CANCEL;
+		hasEditBox = info.hasEditBox;
 		hideOnEscape = true;
 		enterClicksFirstButton = true;
 		selectCallbackByIndex = true;
 		OnShow = function(popup, data)
-			local index = selector.iconDataProvider:GetIndexOfIcon(data);
+			local index = selector.iconDataProvider:GetIndexOfIcon(data.icon);
 			selector:SetSelectedIndex(index);
 			selector:ScrollToSelectedIndex();
 			container.popup = popup;
 			ConsolePort:RemoveInterfaceCursorFrame(self)
+
+			popup.button1:SetEnabled(not not index)
+			if data.hasEditBox and data.initialText then
+				popup.editBox:SetText(data.initialText)
+			end
 		end;
-		OnAccept = function()
+		OnAccept = function(popup, data)
 			local index = selector:GetSelectedIndex()
-			local icon = selector.iconDataProvider:GetIconByIndex(index);
+			local icon = index and selector.iconDataProvider:GetIconByIndex(index);
 			if icon then
-				db.Bindings:SetIcon(bindingID, icon)
-				callback(element, icon)
+				data.call(data.owner, icon, true, data.hasEditBox and popup.editBox:GetText() or nil)
 			end
 		end;
 		OnCancel = nop;
-		OnHide = function()
+		OnHide = function(_, data)
 			ConsolePort:AddInterfaceCursorFrame(self)
-			ConsolePort:SetCursorNodeIfActive(element)
+			ConsolePort:SetCursorNodeIfActive(data.owner)
 			container.popup = nil;
 		end;
-	}, bindingName, nil, db.Bindings:GetIcon(bindingID), container)
-	container.IconHeader.Text:SetText(bindingName)
+	}, info.name, nil, info, container)
+	container.IconHeader.Text:SetText(info.name)
+	return popup;
 end
 
 ---------------------------------------------------------------

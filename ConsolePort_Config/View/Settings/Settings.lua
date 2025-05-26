@@ -38,6 +38,7 @@ function Settings:OnLoad()
 	self:Reindex()
 	self:SetActiveCategory(SYSTEM, self.index[CONTROLS_LABEL][SYSTEM])
 	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
+	env:RegisterCallback('OnSettingsDirty', self.OnSettingsDirty, self)
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 	db:RegisterCallback('OnVariablesChanged', self.OnVariablesChanged, self)
 	db:RegisterCallback('Settings/useCharacterSettings', self.OnToggleCharacterSettings, self)
@@ -97,6 +98,12 @@ function Settings:OnSubcatClicked(text, set)
 	end, false)
 	left:GetScrollView():ReinitializeFrames()
 	self:SetActiveCategory(text, set)
+end
+
+function Settings:OnSettingsDirty()
+	if self.activeData then
+		self:RenderSettings()
+	end
 end
 
 function Settings:SetActiveCategory(text, data)
@@ -301,12 +308,14 @@ function Settings:Reindex()
 			interface[main][head] = {};
 			sortIndex[main][head] = 0;
 		end
-		tinsert(interface[main][head], data);
+		local store = interface[main][head];
+		tinsert(store, data);
 		sortIndex[main][head] = GetSortIndex(main, head, data.sort);
+		return store;
 	end
 
 	for i, provider in ipairs(self.providers) do
-		provider(AddSetting, GetSortIndex, interface, i)
+		securecallfunction(provider, AddSetting, GetSortIndex, interface, i)
 	end
 
 	for _, group in pairs(interface) do
@@ -318,6 +327,6 @@ function Settings:Reindex()
 	end
 
 	for i, mutator in ipairs(self.mutators) do
-		mutator(AddSetting, GetSortIndex, interface, i)
+		securecallfunction(mutator, AddSetting, GetSortIndex, interface, i)
 	end
 end
