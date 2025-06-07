@@ -258,3 +258,23 @@ L.CLEAR_RING_TEXT = [[|cFFFFFF00Clear %s|r
 Are you sure you want to clear the ring?]];
 L.REMOVE_RING_TEXT = [[|cFFFFFF00Remove %s|r
 Are you sure you want to remove the ring?]];
+L.ACTIONBAR_MAIN_DESC = [[The main action bar is your primary location for rotation abilities and other frequently used actions.
+
+This bar is dynamic and can automatically change to different pages depending on your current situation.
+
+For example, the main action bar will switch to a special set of abilities when you enter a vehicle, participate in a pet battle, shapeshift into a different form, enter a combat stance, or take control of another unit.
+
+This allows you to access context-specific abilities without needing to manually change your action bar setup.
+
+Whenever your character's state changes—such as mounting a vehicle, transforming, or engaging in unique encounters—the main action bar updates to display the relevant abilities for that context.
+
+When you return to your normal state, your regular abilities will reappear on the bar.]]
+L.ACTIONBAR_FORM_DESC = [[Activating this form will automatically switch your main action bar to display the abilities associated with this form.
+
+The form shares bindings with your main action bar, allowing you to use your regular combos to access the abilities in this form.
+
+When you exit this form, your main action bar will revert to its previous state, displaying your regular abilities.]];
+L.ACTIONBAR_FORM_ACTIVE_DESC = [[This form is currently active, and your main action bar is displaying the abilities associated with it.]];
+L.ACTIONBAR_PAGE_MISMATCH_DESC = [[The actual page number of an action bar does not always match the displayed name, due to how the action bar system was originally designed.
+
+This discrepancy can be ignored if you're not using a custom action page solution. Both are shown for reference.]];

@@ -70,17 +70,20 @@
 		</Frames>
 	</CheckButton>
 
+	<FontString name="CPSlug" virtual="true" inherits="CPGameFontDisableMed2" mixin="CPSlugMixin" text="NOT_BOUND" justifyH="RIGHT">
+		<Scripts>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</FontString>
+
 	<CheckButton name="CPBinding" virtual="true" inherits="CPIconSetting" registerForClicks="LeftButtonUp, RightButtonUp">
 		<Layers>
 			<Layer level="ARTWORK">
-				<FontString parentKey="Slug" inherits="CPGameFontDisableMed2" mixin="CPSlugMixin" text="NOT_BOUND">
+				<FontString parentKey="Slug" inherits="CPSlug">
 					<Anchors>
 						<Anchor point="RIGHT" x="-8"/>
 					</Anchors>
-					<Scripts>
-						<OnShow method="OnShow"/>
-						<OnHide method="OnHide"/>
-					</Scripts>
 				</FontString>
 			</Layer>
 		</Layers>

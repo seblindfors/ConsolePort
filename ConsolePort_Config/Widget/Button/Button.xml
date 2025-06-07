@@ -167,7 +167,7 @@
 		</HighlightTexture>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture inherits="CPAtlas">
+				<Texture parentKey="Border" inherits="CPAtlas">
 					<KeyValues>
 						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame" type="string"/>
 						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
@@ -260,6 +260,22 @@
 			<OnEnter method="OnEnter"/>
 			<OnLeave method="OnLeave"/>
 		</Scripts>
+	</Button>
+
+	<Button name="CPActionConfigButton" inherits="CPIconSelectorButton" virtual="true" mixin="CPActionConfigButton">
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Slug" inherits="CPSlug">
+					<KeyValues>
+						<KeyValue key="separator" value="\n" type="string"/>
+						<KeyValue key="notBound" value="" type="string"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
 	</Button>
 
 	<CheckButton name="CPCategoryListButtonTemplate" virtual="true">

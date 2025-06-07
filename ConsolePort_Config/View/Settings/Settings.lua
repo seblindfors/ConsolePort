@@ -36,7 +36,7 @@ end
 function Settings:OnLoad()
 	CPAPI.Start(self)
 	self:Reindex()
-	self:SetActiveCategory(SYSTEM, self.index[CONTROLS_LABEL][SYSTEM])
+	self:SetActiveCategory(GENERAL, self.index[SETTING_GROUP_SYSTEM][GENERAL])
 	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
 	env:RegisterCallback('OnSettingsDirty', self.OnSettingsDirty, self)
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
@@ -157,6 +157,7 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 		return _header(title, false)
 	end or function(default, setting, collapsed)
 		if setting.field.advd then collapsed = preferCollapsed end;
+		if setting.field.expd then collapsed = false end;
 		return _header(setting.field.list or default, collapsed)
 	end
 
@@ -297,7 +298,7 @@ function Settings:Reindex()
 	self.index = interface;
 
 	local function GetSortIndex(main, head, index)
-		return max(sortIndex[main][head] or 0, index or 0);
+		return max(sortIndex[main] and sortIndex[main][head] or 0, index or 0);
 	end
 
 	local function AddSetting(main, head, data)

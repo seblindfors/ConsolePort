@@ -54,6 +54,11 @@ function Shared:SaveData(idx, set, newData, unique)
 	self.Data[idx][set] = db.table.copy(newData);
 end
 
+function Shared:GetData(idx, set)
+	if not rawget(self.Data, idx) then return end;
+	return db.table.copy(self.Data[idx][set]);
+end
+
 function Shared:RemoveData(idx, set)
 	if not self.Data[idx] then return end;
 	self.Data[idx][set] = nil;
@@ -109,7 +114,7 @@ function Shared:OnDataLoaded()
 	db:Load('Shared/Data', 'ConsolePortShared')
 	db:RegisterCallback('OnNewBindings', self.SaveBindings, self)
 	CPAPI.Proxy(self.Data, function(data, key)
-		if self[key] then
+		if ( key ~= 0 and self[key] ) then
 			local k, v = self[key]()
 			rawset(data, k, rawget(self, k) or v)
 			return rawget(data, k);

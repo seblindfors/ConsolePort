@@ -5,9 +5,10 @@ local Settings = env:GetContextPanel();
 -- Sorting
 -----------------------------------------------------------
 do local GroupOrder = {
-		[CONTROLS_LABEL]           = 1;
-		[INTERFACE_LABEL]          = 2;
+		[SETTING_GROUP_GAMEPLAY]   = 1;
+		[SETTING_GROUP_SYSTEM]     = 2;
 		[BINDING_HEADER_TARGETING] = 3;
+		[INTERFACE_LABEL]          = 4;
 	};
 
 	function Settings.GroupSort(_, a, b)
@@ -64,7 +65,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local deviceProfile = env.Elements.DeviceProfile;
 	for name, device in db:For('Gamepad/Devices', true) do
 		if device.Theme then
-			local sort = GetSortIndex(CONTROLS_LABEL, SYSTEM);
+			local sort = GetSortIndex(SETTING_GROUP_SYSTEM, GENERAL);
 			local data = deviceProfile:Data({
 				device = device;
 				varID  = ('Gamepad/Devices/%s'):format(name);
@@ -72,7 +73,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 			numAddedDevices = numAddedDevices + 1;
 			data.type = deviceProfile;
 			data.sort = sort + numAddedDevices;
-			AddSetting(CONTROLS_LABEL, SYSTEM, data);
+			AddSetting(SETTING_GROUP_SYSTEM, GENERAL, data);
 		end
 	end
 end)
@@ -82,20 +83,20 @@ end)
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local ConsoleCategoryMap = {
-		Mouse     = CONTROLS_LABEL;
-		Camera    = CONTROLS_LABEL;
-		Bindings  = CONTROLS_LABEL;
-		Touchpad  = CONTROLS_LABEL;
+		Mouse     = SETTING_GROUP_SYSTEM;
+		Camera    = SETTING_GROUP_SYSTEM;
+		Bindings  = SETTING_GROUP_GAMEPLAY;
+		Touchpad  = SETTING_GROUP_SYSTEM;
 		Interact  = BINDING_HEADER_TARGETING;
 		Tooltips  = BINDING_HEADER_TARGETING;
-		System    = CONTROLS_LABEL;
+		System    = SETTING_GROUP_SYSTEM;
 	};
 
 	local ConsoleListMap = {
 		Bindings = KEY_BINDINGS_MAC;
 		Mouse    = MOUSE_LABEL;
 		Camera   = CAMERA_LABEL;
-		System   = SYSTEM;
+		System   = GENERAL;
 	};
 
 	for head, group in pairs(db.Console) do
@@ -124,8 +125,8 @@ end)
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local ProfileCategoryMap = {
-		Movement = CONTROLS_LABEL;
-		Camera   = CONTROLS_LABEL;
+		Movement = SETTING_GROUP_SYSTEM;
+		Camera   = SETTING_GROUP_SYSTEM;
 	};
 
 	local ProfileListMap = {
@@ -152,7 +153,7 @@ end)
 -- Binding presets and meta configuration
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)
-	local main, head = CONTROLS_LABEL, KEY_BINDINGS_MAC;
+	local main, head = SETTING_GROUP_GAMEPLAY, KEY_BINDINGS_MAC;
 	local sort = GetSortIndex(main, head);
 	local list = L'Presets';
 
@@ -212,7 +213,10 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 	})
 
 	-- Add the empty preset
-	AddPreset({ Name = EMPTY }, emptyPreset, true);
+	AddPreset({
+		Name = EMPTY;
+		Icon = CPAPI.GetAsset([[Icons\64\xbox_c_options]]);
+	}, emptyPreset, true);
 
 	-- Presets for each gamepad device
 	for name, device in db:For('Gamepad/Devices', true) do
@@ -241,7 +245,7 @@ end)
 -- Bindings
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)
-	local main, head = CONTROLS_LABEL, KEY_BINDINGS_MAC;
+	local main, head = SETTING_GROUP_GAMEPLAY, KEY_BINDINGS_MAC;
 	local sort = GetSortIndex(main, head);
 	local bindings = env.BindingInfo:RefreshDictionary()
 
@@ -259,7 +263,6 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 			AddSetting(main, head, {
 				sort     = sort + i;
 				type     = env.Elements.Binding;
-				name     = info.name;
 				binding  = info.binding;
 				readonly = info.readonly or nop;
 				field = {
@@ -273,17 +276,67 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 end)
 
 -----------------------------------------------------------
+-- Action bars
+-----------------------------------------------------------
+Settings:AddProvider(function(AddSetting, GetSortIndex)
+	local main, head = SETTING_GROUP_GAMEPLAY, ACTIONBARS_LABEL;
+	local sort = GetSortIndex(main, head);
+
+	-- Toggle character bindings on/off
+	AddSetting(main, head, {
+		sort  = 0;
+		type  = env.Elements.CharacterBindings;
+		field = { before = true };
+	})
+
+	for groupID, container in db:For('Actionbar/Pages') do
+		local shouldDrawBars = container();
+		if shouldDrawBars then
+			for barIndex, barID in ipairs(container) do
+				local list, name, icon, prio;
+
+				local stanceBarInfo = db.Actionbar.Lookup.Stances[barID];
+				if stanceBarInfo and stanceBarInfo.name then
+					list = PRIMARY;
+					icon = stanceBarInfo.iconID;
+					name = stanceBarInfo.name;
+					prio = 10;
+				else
+					list = db.Actionbar.Names[container];
+					name = db.Actionbar.Names[barID];
+					prio = 100;
+				end
+
+				AddSetting(main, head, {
+					type = env.Elements.ActionbarMapper;
+					sort = sort + groupID * prio + barIndex;
+					bar  = barID;
+					field = {
+						name = name;
+						list = list;
+						icon = icon;
+						xtra = true;
+						expd = list == PRIMARY;
+						info = stanceBarInfo;
+					};
+				})
+			end
+		end
+	end
+end)
+
+-----------------------------------------------------------
 -- Base customizations to data sets/provider
 -----------------------------------------------------------
 Settings:AddMutator(function(AddSetting, _, interface)
 	-- Enforce the sort order of the main categories.
-	interface[CONTROLS_LABEL][SYSTEM].sort = 1;
-	interface[CONTROLS_LABEL][KEY_BINDINGS_MAC].sort = 2;
+	interface[SETTING_GROUP_SYSTEM][GENERAL].sort = 1;
+	interface[SETTING_GROUP_GAMEPLAY][KEY_BINDINGS_MAC].sort = 1;
 
 	-- Add custom device select setting.
 	local deviceSelect = env.Elements.DeviceSelect;
 	local deviceSelectData = deviceSelect:Data()
-	AddSetting(CONTROLS_LABEL, SYSTEM, {
+	AddSetting(SETTING_GROUP_SYSTEM, GENERAL, {
 		varID = deviceSelectData.varID;
 		field = deviceSelectData.field;
 		type  = deviceSelect;

@@ -41,8 +41,9 @@ local ActionBarAPI, _, db = {
 	};
 	Lookup = {
 		Buttons = {};
-		Ignore = {};
-		Types = {
+		Ignore  = {};
+		Stances = {};
+		Types   = {
 			Button = true;
 			CheckButton = true;
 		};
@@ -178,6 +179,33 @@ do
 end
 
 ---------------------------------------------------------------
+-- Stance bar info caching
+---------------------------------------------------------------
+-- Since there is no API to reliably map bonus bar indices to
+-- shapeshift forms, we cache the spell IDs of the forms when
+-- they are active, and use that to look them up later.
+do
+	local function MakeStanceCacheKey(bonusBarIndex, specOrClassID)
+		-- Shift bonusBarIndex 16 bits left, then OR with specOrClassID (assuming both are <= 0xFFFF)
+		return bit.lshift(bonusBarIndex or 0, 16) + (specOrClassID or 0)
+	end
+
+	CPAPI.Proxy(ActionBarAPI.Lookup.Stances, function(_, bonusBarIndex)
+		bonusBarIndex = bonusBarIndex == 0 and GetBonusBarIndex() or bonusBarIndex;
+		local key = MakeStanceCacheKey(bonusBarIndex, CPAPI.GetSpecialization())
+		local spellID = db.Shared:GetData(0, key)
+		if spellID and spellID > 0 then
+			return CPAPI.GetSpellInfo(spellID)
+		end
+	end)
+
+	db:RegisterCallback('OnUpdateShapeshiftForm', function(_, spellID, bonusBarIndex)
+		if not spellID or bonusBarIndex == 0 then return end;
+		db.Shared:SaveData(0, MakeStanceCacheKey(bonusBarIndex, CPAPI.GetSpecialization()), spellID)
+	end, ActionBarAPI)
+end
+
+---------------------------------------------------------------
 -- Action bar page map (and evaluator whether pages are shown)
 ---------------------------------------------------------------
 ActionBarAPI.Pages = {
@@ -196,11 +224,11 @@ ActionBarAPI.Pages = {
 
 ActionBarAPI.Names = {
 	-- Sets
-	[ActionBarAPI.Pages[1]] = ACTIONBARS_LABEL or 'Action Bars';
-	[ActionBarAPI.Pages[2]] = BINDING_HEADER_MULTIACTIONBAR or 'Extra Action Bars';
-	[ActionBarAPI.Pages[3]] = ('%s | %s'):format(TUTORIAL_TITLE61_WARRIOR or 'Combat Stances', TUTORIAL_TITLE61_DRUID or 'Shapeshifting');
+	[ActionBarAPI.Pages[1]] = PRIMARY;
+	[ActionBarAPI.Pages[2]] = BINDING_HEADER_MULTIACTIONBAR;
+	[ActionBarAPI.Pages[3]] = BINDING_HEADER_MULTIACTIONBAR;
 	[ActionBarAPI.Pages[4]] = MOUNT_JOURNAL_FILTER_DRAGONRIDING or 'Dragonriding';
-	[ActionBarAPI.Pages[5]] = BINDING_NAME_ACTIONPAGE2 or 'Action Page 2';
+	[ActionBarAPI.Pages[5]] = BINDING_HEADER_MULTIACTIONBAR;
 	-- Individual pages
 	Pages = {
 		[02] = 'Page 2';
@@ -213,9 +241,13 @@ ActionBarAPI.Names = {
 }
 
 CPAPI.Proxy(ActionBarAPI.Names, function(self, id)
-	if self.Pages[id] then
-		return db.Locale(self.Pages[id]);
-	end
+	-- Check for stance name first
+	local data = ActionBarAPI.Lookup.Stances[id];
+	if data then return data.name end;
+	-- Check for defined page name
+	data = self.Pages[id];
+	if data then return db.Locale(data) end;
+	-- Arbitrary page name
 	local displayID = 0;
 	for _, pages in ipairs(ActionBarAPI.Pages) do
 		if pages() then

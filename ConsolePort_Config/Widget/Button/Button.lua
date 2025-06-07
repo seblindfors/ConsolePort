@@ -244,3 +244,44 @@ function CPIconSelectorButton:GetFileID()
 	end
 	return (self.iconTexture:match('([^\\]+)$'));
 end
+
+---------------------------------------------------------------
+CPActionConfigButton = { GetBinding = nop };
+---------------------------------------------------------------
+
+function CPActionConfigButton:OnLoad()
+	self.Icon:AddMaskTexture(self.Mask)
+	self.Border:SetVertexColor(0.5, 0.5, 0.5)
+end
+
+function CPActionConfigButton:SetID(actionID)
+	getmetatable(self).__index.SetID(self, actionID)
+	self:Update()
+end
+
+function CPActionConfigButton:Update()
+	local binding, actionID = self:GetBinding()
+	local texture = GetActionTexture(actionID)
+	local vertexc = texture and 1 or 0.25;
+	self.Icon:SetTexture(texture or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
+	self.Icon:SetVertexColor(vertexc, vertexc, vertexc)
+	self.Slug:SetBinding(binding)
+end
+
+function CPActionConfigButton:OnEnter()
+	self:LockHighlight()
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	GameTooltip:SetAction(self:GetID())
+	GameTooltip:AddLine(('%s: %s'):format(
+		KEY_BINDING,
+		(self.Slug:GetText() or ''):gsub('\n', ' | ')),
+		GameFontGreen:GetTextColor())
+	GameTooltip:Show()
+end
+
+function CPActionConfigButton:OnLeave()
+	self:UnlockHighlight()
+	if ( GameTooltip:IsOwned(self) ) then
+		GameTooltip:Hide()
+	end
+end

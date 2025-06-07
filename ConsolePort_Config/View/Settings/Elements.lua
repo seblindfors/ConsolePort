@@ -708,3 +708,150 @@ function BindingPresetAdd:Data(datapoint)
 		make  = datapoint.make;
 	};
 end
+
+---------------------------------------------------------------
+local ActionbarMapper = CPAPI.CreateElement('CPActionbarMapper', 300, 60)
+local ActionbarMapperButtonPool;
+---------------------------------------------------------------
+env.Elements.ActionbarMapper = ActionbarMapper;
+
+local function GetActionButtonBinding(button)
+	local actionID = button:GetID()
+	return db('Actionbar/Action/'..actionID), actionID;
+end
+
+local function ActionButtonInit(button)
+	button:SetScale(1.2)
+	button:SetFrameLevel(10)
+	button.Slug:SetScale(0.75)
+end
+
+local function GetActionbarMapperButton(owner)
+	if not ActionbarMapperButtonPool then
+		ActionbarMapperButtonPool = CreateFramePool('CheckButton', owner, 'CPActionConfigButton')
+	end
+	local button, new = ActionbarMapperButtonPool:Acquire()
+	button.GetBinding = GetActionButtonBinding;
+	button:SetParent(owner)
+	return button, new;
+end
+
+local function ReleaseActionbarMapperButton(button)
+	if ActionbarMapperButtonPool then
+		ActionbarMapperButtonPool:Release(button)
+	end
+end
+
+local function IsMainActionBar(value)
+	if type(value) == 'number' then
+		return value == 1;
+	end
+	if C_Widget.IsFrameWidget(value) then
+		return value:GetElementData():GetData().bar == 1;
+	end
+	if type(value) == 'table' then
+		return value.bar == 1;
+	end
+end
+
+function ActionbarMapper:Init(elementData)
+	local data = elementData:GetData()
+	self:UpdateInfo(data)
+	self:UpdateActivePage(db.Pager:GetCurrentPage())
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button = self[i];
+		if button then
+			button:SetID(((data.bar - 1) * NUM_ACTIONBAR_BUTTONS) + i)
+		end
+	end
+end
+
+function ActionbarMapper:UpdateActivePage(activePage)
+	local data = self:GetElementData():GetData()
+	self.isActivePage = activePage == data.bar;
+	self.InnerContent.Highlight:SetShown(self.isActivePage)
+end
+
+function ActionbarMapper:UpdateInfo(data)
+	self.Name:SetText(data.name)
+	self.Page:SetText(data.bar)
+	if data.icon then
+		self.Icon:SetTexCoord(0, 1, 0, 1)
+		self.Icon:SetTexture(data.icon)
+	elseif IsMainActionBar(data.bar) then
+		self.Icon:SetTexCoord(0.2, 0.8, 0.2, 0.8)
+		self.Icon:SetTexture([[Interface\Common\help-i]])
+	else
+		self.Icon:SetTexCoord(0, 1, 0, 1)
+		self.Icon:SetTexture([[Interface\Spellbook\UI-Glyph-Rune-]]..(1 + data.bar % 10))
+	end
+end
+
+function ActionbarMapper:OnAcquire(new)
+	if new then
+		Mixin(self, ActionbarMapper)
+		self:EnableMouse(false)
+	end
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button, newObj = GetActionbarMapperButton(self)
+		if newObj then
+			ActionButtonInit(button)
+		end
+		button:SetPoint('RIGHT', -((NUM_ACTIONBAR_BUTTONS - i) * 46) - 10, 0)
+		button:Show()
+		button.Slug:SetText(i)
+		self[i] = button;
+	end
+	db:RegisterCallback('OnActionPageChanged', self.UpdateActivePage, self)
+end
+
+function ActionbarMapper:OnRelease()
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button = self[i];
+		if button then
+			ReleaseActionbarMapperButton(button)
+			self[i] = nil;
+		end
+	end
+	db:UnregisterCallback('OnActionPageChanged', self)
+end
+
+function ActionbarMapper:OnInfoEnter()
+	self.Border:SetAtlas('glues-characterselect-icon-notify-bg-hover')
+
+	local data = self:GetElementData():GetData()
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	if data.info then -- stance bar
+		GameTooltip:SetSpellByID(data.info.spellID)
+		GameTooltip:AddLine('\n'..NOTE_COLON, ORANGE_FONT_COLOR:GetRGB())
+		GameTooltip:AddLine(CPAPI.FormatLongText(L.ACTIONBAR_FORM_DESC, 50), WHITE_FONT_COLOR:GetRGB())
+		if self.isActivePage then
+			GameTooltip:AddLine('\n'..CPAPI.FormatLongText(L.ACTIONBAR_FORM_ACTIVE_DESC, 50), GREEN_FONT_COLOR:GetRGB())
+		end
+	elseif IsMainActionBar(data) then
+		GameTooltip:SetText(BINDING_HEADER_ACTIONBAR)
+		GameTooltip:AddLine(CPAPI.FormatLongText(L.ACTIONBAR_MAIN_DESC, 50), WHITE_FONT_COLOR:GetRGB())
+	else
+		GameTooltip:SetText(db.Actionbar.Names[data.bar] or data.bar)
+		GameTooltip:AddLine(PAGE_NUMBER:format(data.bar), WHITE_FONT_COLOR:GetRGB())
+		GameTooltip:AddLine('\n'..NOTE_COLON, ORANGE_FONT_COLOR:GetRGB())
+		GameTooltip:AddLine(CPAPI.FormatLongText(L.ACTIONBAR_PAGE_MISMATCH_DESC, 50), WHITE_FONT_COLOR:GetRGB())
+	end
+	GameTooltip:Show()
+end
+
+function ActionbarMapper:OnInfoLeave()
+	self.Border:SetAtlas('glues-characterselect-icon-notify-bg')
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
+function ActionbarMapper:Data(datapoint)
+	return {
+		bar  = datapoint.bar;
+		name = datapoint.field.name;
+		icon = datapoint.field.icon;
+		info = datapoint.field.info;
+	};
+end

@@ -251,16 +251,18 @@ function Mapper:OnAcquire(new)
 		InitializeSetting(self, env.Setting, Mapper)
 	end
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
-	db:RegisterCallback('OnMapperConfigLoaded', self.OnMapperConfigLoaded, self)
+	db:RegisterCallback('OnMapperConfigLoaded', self.OnMapperValueChanged, self)
+	db:RegisterCallback('OnMapperDeviceChanged', self.OnMapperValueChanged, self)
 end
 
 function Mapper:OnRelease()
 	self:Reset()
 	db:UnregisterCallback('OnDependencyChanged', self)
 	db:UnregisterCallback('OnMapperConfigLoaded', self)
+	db:UnregisterCallback('OnMapperDeviceChanged', self)
 end
 
-function Mapper:OnMapperConfigLoaded()
+function Mapper:OnMapperValueChanged()
 	self:OnValueChanged(self:GetRaw())
 end
 
@@ -375,7 +377,7 @@ end
 
 function Binding:Data(datapoint)
 	return {
-		name      = datapoint.name;
+		name      = datapoint.field.name;
 		list      = datapoint.field.list;
 		bindingID = datapoint.binding;
 		readonly  = datapoint.readonly;

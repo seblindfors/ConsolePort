@@ -13,7 +13,7 @@ local unpack, _, db = unpack, ...; _ = CPAPI.Define; db.Data();
 -- Default cvar data (global)
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', CPAPI.Callable({
-	_(SYSTEM, CONTROLS_LABEL);
+	_(GENERAL, SETTING_GROUP_SYSTEM);
 	useCharacterSettings = _{Bool(false);
 		name = 'Character Specific';
 		desc = 'Use character specific addon settings for this character.';
@@ -73,7 +73,7 @@ db:Register('Variables', CPAPI.Callable({
 		deps = { crosshairEnable = true };
 	};
 	--------------------------------------------------------------------------------------------------------
-	_('Movement', CONTROLS_LABEL);
+	_('Movement', SETTING_GROUP_SYSTEM);
 	--------------------------------------------------------------------------------------------------------
 	mvmtAnalog = _{Bool(true);
 		name = 'Analog Movement';
@@ -183,7 +183,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_(MOUSE_LABEL, CONTROLS_LABEL); -- Mouse
+	_(MOUSE_LABEL, SETTING_GROUP_SYSTEM); -- Mouse
 	--------------------------------------------------------------------------------------------------------
 	mouseHandlingEnabled = _{Bool(true);
 		name = 'Enable Mouse Handling';
@@ -527,18 +527,8 @@ db:Register('Variables', CPAPI.Callable({
 		note = 'Critical, Low, Medium, High, Wired/Charging, or Unknown/Disconnected.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	_( BINDINGS_OPT, CONTROLS_LABEL ); -- Bindings
+	_( ACTIONBARS_LABEL, SETTING_GROUP_GAMEPLAY ); -- Action Bars
 	--------------------------------------------------------------------------------------------------------
-	bindingOverlapEnable = _{Bool(false);
-		name = 'Allow Binding Overlap';
-		desc = 'Allow binding multiple combos to the same binding.';
-		advd = true;
-	};
-	bindingAllowSticks = _{Bool(false);
-		name = 'Allow Radial Bindings';
-		desc = 'Allow binding discrete radial stick inputs.';
-		advd = true;
-	};
 	bindingShowExtraBars = _{Bool(false);
 		name = 'Show All Action Bars';
 		desc = 'Show bonus bar configuration for characters without stances.';
@@ -547,12 +537,6 @@ db:Register('Variables', CPAPI.Callable({
 	bindingShowSpellMenuGrid = _{Bool(false);
 		name = 'Show Action Bar Grid on Spell Pickup';
 		desc = 'Display the action bar grid when picking up a spell on the cursor.';
-		advd = true;
-	};
-	bindingAutomaticBackup = _{Bool(true);
-		name = 'Automatic Binding Backups';
-		desc = 'Automatically backup your bindings when you change them, for import and export.';
-		list = 'Presets';
 		advd = true;
 	};
 	disableHotkeyRendering = _{Bool(false);
@@ -565,6 +549,25 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Uses the default hotkey icons instead of the custom icons provided by ConsolePort.';
 		note = 'Requires reload.';
 		hide = CPAPI.IsClassicEraVersion;
+		advd = true;
+	};
+	--------------------------------------------------------------------------------------------------------
+	_( BINDINGS_OPT, SETTING_GROUP_GAMEPLAY ); -- Bindings
+	--------------------------------------------------------------------------------------------------------
+	bindingOverlapEnable = _{Bool(false);
+		name = 'Allow Binding Overlap';
+		desc = 'Allow binding multiple combos to the same binding.';
+		advd = true;
+	};
+	bindingAllowSticks = _{Bool(false);
+		name = 'Allow Radial Bindings';
+		desc = 'Allow binding discrete radial stick inputs.';
+		advd = true;
+	};
+	bindingAutomaticBackup = _{Bool(true);
+		name = 'Automatic Binding Backups';
+		desc = 'Automatically backup your bindings when you change them, for import and export.';
+		list = 'Presets';
 		advd = true;
 	};
 	emulatePADPADDLE1 = _{Pseudokey('none');

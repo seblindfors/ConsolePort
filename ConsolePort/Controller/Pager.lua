@@ -8,7 +8,7 @@
 --   Settings/actionPageCondition : macro condition
 --   Settings/actionPageResponse  : response to condition
 
-local Pager, _, db = CPAPI.EventHandler(ConsolePortPager, {'UPDATE_MACROS'}), ...;
+local Pager, _, db = CPAPI.EventHandler(ConsolePortPager, {'UPDATE_MACROS', 'UPDATE_BONUS_ACTIONBAR'}), ...;
 db:Register('Pager', Pager)
 Pager:Execute('headers = newtable()')
 
@@ -77,6 +77,7 @@ function Pager:GetHeaderResponse()
 				header:Run(snippet, newstate)
 			end
 		end
+		self:CallMethod('OnActionPageChanged', newstate)
 	]]
 end
 
@@ -229,3 +230,20 @@ function Pager:UPDATE_MACROS()
 end
 
 db:RegisterSafeCallback('OnUpdateMacros', Pager.OnUpdateMacros, Pager)
+
+---------------------------------------------------------------
+-- Cache information dispatch
+---------------------------------------------------------------
+function Pager:UPDATE_BONUS_ACTIONBAR()
+	for i = 1, GetNumShapeshiftForms() do
+		local _, isActive, _, spellID = GetShapeshiftFormInfo(i);
+		if isActive then
+			return db:TriggerEvent('OnUpdateShapeshiftForm', spellID, GetBonusBarIndex(), i)
+		end
+	end
+	return db:TriggerEvent('OnUpdateShapeshiftForm', nil)
+end
+
+function Pager:OnActionPageChanged(newstate)
+	db:TriggerEvent('OnActionPageChanged', newstate)
+end

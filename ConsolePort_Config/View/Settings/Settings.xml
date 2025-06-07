@@ -1,6 +1,33 @@
 <Ui>
 	<CheckButton name="CPBindingPreset" inherits="CPIconSetting" virtual="true"/>
 	<CheckButton name="CPBindingPresetAdd" inherits="CPIconSetting" virtual="true"/>
+	<CheckButton name="CPActionBarMapper" virtual="true" inherits="CPCardLoadoutTemplate">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="7">
+				<FontString parentKey="Page" inherits="GameFontNormalTiny" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" relativePoint="BOTTOMRIGHT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Info">
+				<Anchors>
+					<Anchor point="TOPLEFT"/>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT" x="200"/>
+				</Anchors>
+				<Scripts>
+					<OnEnter>
+						self:GetParent():OnInfoEnter();
+					</OnEnter>
+					<OnLeave>
+						self:GetParent():OnInfoLeave();
+					</OnLeave>
+				</Scripts>
+			</Frame>
+		</Frames>
+	</CheckButton>
 
 	<Script file="Elements.lua"/>
 	<Script file="Settings.lua"/>
