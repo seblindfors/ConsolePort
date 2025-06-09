@@ -82,65 +82,6 @@ function Widget:SetDataCallback(callback)
 	self.controller:SetCallback(callback)
 end
 
-function Widget:UpdateTooltip(text, note, hints, dbls)
-	if not self.isTooltipOwned then return end;
-	text = text or self.tooltipText;
-	note = note or self.tooltipNote;
-	dbls = dbls or self.tooltipDoubles;
-	hints = hints or self.tooltipHints;
-	if not hints and not self.disableTooltipHints then
-		local useMouseHints = not ConsolePort:IsCursorNode(self);
-		hints = {
-			env:GetTooltipPromptForClick('LeftClick',  self.leftClickHint or EDIT, useMouseHints);
-			env:GetTooltipPromptForClick('RightClick', self.rightClickHint or DEFAULT, useMouseHints);
-		};
-	end
-	local hasTextToDisplay = text or note or hints;
-	if hasTextToDisplay then
-		local setOwner = self.useDefaultTooltipAnchor and GameTooltip_SetDefaultAnchor or GameTooltip.SetOwner;
-		setOwner(GameTooltip, self, self.tooltipAnchor or 'ANCHOR_TOP');
-		GameTooltip:SetText(self:GetText())
-		if text then
-			GameTooltip:AddLine(text, 1, 1, 1, 1)
-		end
-		if note then
-			if text then
-				GameTooltip:AddLine('\n'..NOTE_COLON)
-			end
-			GameTooltip:AddLine(note, 1, 1, 1, 1)
-		end
-		if dbls then
-			for _, line in ipairs(dbls) do
-				GameTooltip:AddDoubleLine(unpack(line))
-			end
-		end
-		if hints then
-			if text or note or dbls then
-				GameTooltip:AddLine('\n')
-			end
-			for _, line in ipairs(hints) do
-				GameTooltip:AddLine(line)
-			end
-		end
-		GameTooltip:Show()
-	end
-	local image = self.tooltipImage;
-	if image then
-		local owner  = hasTextToDisplay and GameTooltip or self;
-		local anchor = hasTextToDisplay and 'ANCHOR_NONE' or 'ANCHOR_TOP';
-		local frame  = hasTextToDisplay and GameTooltip.shoppingTooltips[1] or GameTooltip;
-		if frame then
-			frame:SetOwner(owner, anchor)
-			if hasTextToDisplay then
-				frame:SetPoint('LEFT', GameTooltip, 'RIGHT', 0, 0)
-			end
-			frame:SetText(image)
-			frame:Show()
-			self.extraTooltip = frame;
-		end
-	end
-end
-
 function Widget:IsUserInput()
 	return self.userInput;
 end
@@ -211,6 +152,88 @@ end
 
 -- default to just ignoring checked state
 Widget.OnClick = CPIndexButtonMixin.Uncheck;
+
+---------------------------------------------------------------
+-- Widget:UpdateTooltip
+-- Updates the tooltip for the widget, displaying various information.
+-- Arguments:
+--   text  : (string) Main tooltip text, shown at the top.
+--   note  : (string) Additional note, shown below the main text.
+--   hints : (table)  List of hint strings, typically usage instructions or keybinds.
+--   dbls  : (table)  List of double-line entries, each as a table {left, right}.
+-- Key value pairs:
+--   self.tooltipText             : Default text if 'text' not provided.
+--   self.tooltipNote             : Default note if 'note' not provided.
+--   self.tooltipDoubles          : Default double-line hints if 'dbls' not provided.
+--   self.tooltipHints            : Default hints if 'hints' not provided.
+--   self.leftClickHint           : Custom left click hint text.
+--   self.rightClickHint          : Custom right click hint text.
+--   self.tooltipImage            : If set, shows an image in a secondary tooltip.
+--   self.tooltipAnchor           : Custom anchor for tooltip.
+--   self.disableTooltipInit      : If set, omits default tooltip handling.
+--   self.disableTooltipHints     : If true, disables automatic hint generation.
+--   self.useDefaultTooltipAnchor : If true, uses default anchor for tooltip.
+---------------------------------------------------------------
+function Widget:UpdateTooltip(text, note, hints, dbls)
+	if not self.isTooltipOwned then return end;
+	text = text or self.tooltipText;
+	note = note or self.tooltipNote;
+	dbls = dbls or self.tooltipDoubles;
+	hints = hints or self.tooltipHints;
+	if not hints and not self.disableTooltipHints then
+		local useMouseHints = not ConsolePort:IsCursorNode(self);
+		hints = {
+			env:GetTooltipPromptForClick('LeftClick',  self.leftClickHint or EDIT, useMouseHints);
+			env:GetTooltipPromptForClick('RightClick', self.rightClickHint or DEFAULT, useMouseHints);
+		};
+	end
+	local hasTextToDisplay = text or note or hints;
+	if hasTextToDisplay then
+		if not self.disableTooltipInit then
+			local setOwner = self.useDefaultTooltipAnchor and GameTooltip_SetDefaultAnchor or GameTooltip.SetOwner;
+			setOwner(GameTooltip, self, self.tooltipAnchor or 'ANCHOR_TOP');
+			GameTooltip:SetText(self:GetText())
+		end
+		if text then
+			GameTooltip:AddLine(text, 1, 1, 1, 1)
+		end
+		if note then
+			if text then
+				GameTooltip:AddLine('\n'..NOTE_COLON)
+			end
+			GameTooltip:AddLine(note, 1, 1, 1, 1)
+		end
+		if dbls then
+			for _, line in ipairs(dbls) do
+				GameTooltip:AddDoubleLine(unpack(line))
+			end
+		end
+		if hints then
+			if text or note or dbls then
+				GameTooltip:AddLine('\n')
+			end
+			for _, line in ipairs(hints) do
+				GameTooltip:AddLine(line)
+			end
+		end
+		GameTooltip:Show()
+	end
+	local image = self.tooltipImage;
+	if image then
+		local owner  = hasTextToDisplay and GameTooltip or self;
+		local anchor = hasTextToDisplay and 'ANCHOR_NONE' or 'ANCHOR_TOP';
+		local frame  = hasTextToDisplay and GameTooltip.shoppingTooltips[1] or GameTooltip;
+		if frame then
+			frame:SetOwner(owner, anchor)
+			if hasTextToDisplay then
+				frame:SetPoint('LEFT', GameTooltip, 'RIGHT', 0, 0)
+			end
+			frame:SetText(image)
+			frame:Show()
+			self.extraTooltip = frame;
+		end
+	end
+end
 
 ---------------------------------------------------------------
 -- Boolean switch

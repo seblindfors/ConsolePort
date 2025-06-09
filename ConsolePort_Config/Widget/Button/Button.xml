@@ -262,7 +262,12 @@
 		</Scripts>
 	</Button>
 
-	<Button name="CPActionConfigButton" inherits="CPIconSelectorButton" virtual="true" mixin="CPActionConfigButton">
+	<Button name="CPActionConfigButton" inherits="CPIconSelectorButton" virtual="true" mixin="CPActionConfigButton"
+		registerForDrag="LeftButton"
+		registerForClicks="AnyUp">
+		<Attributes>
+			<Attribute name="nohooks" type="boolean" value="true"/>
+		</Attributes>
 		<Layers>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Slug" inherits="CPSlug">
@@ -276,6 +281,11 @@
 				</FontString>
 			</Layer>
 		</Layers>
+		<Scripts>
+			<OnDoubleClick method="OnDoubleClick"/>
+			<OnDragStart method="OnDragStart"/>
+			<OnReceiveDrag method="OnReceiveDrag"/>
+		</Scripts>
 	</Button>
 
 	<CheckButton name="CPCategoryListButtonTemplate" virtual="true">

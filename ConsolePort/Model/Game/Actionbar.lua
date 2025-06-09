@@ -201,7 +201,10 @@ do
 
 	db:RegisterCallback('OnUpdateShapeshiftForm', function(_, spellID, bonusBarIndex)
 		if not spellID or bonusBarIndex == 0 then return end;
-		db.Shared:SaveData(0, MakeStanceCacheKey(bonusBarIndex, CPAPI.GetSpecialization()), spellID)
+		local key = MakeStanceCacheKey(bonusBarIndex, CPAPI.GetSpecialization())
+		if db.Shared:GetData(0, key) == spellID then return end;
+		db.Shared:SaveData(0, key, spellID)
+		db:TriggerEvent('OnShapeshiftFormInfoChanged', bonusBarIndex, spellID)
 	end, ActionBarAPI)
 end
 

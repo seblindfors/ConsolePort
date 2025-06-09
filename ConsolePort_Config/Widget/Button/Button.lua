@@ -1,3 +1,4 @@
+local env, _, _, L = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 CPStateButtonMixin = CreateFromMixins(ButtonStateBehaviorMixin);
 ---------------------------------------------------------------
@@ -260,22 +261,41 @@ function CPActionConfigButton:SetID(actionID)
 end
 
 function CPActionConfigButton:Update()
-	local binding, actionID = self:GetBinding()
+	local bindingID, actionID = self:GetBinding()
 	local texture = GetActionTexture(actionID)
 	local vertexc = texture and 1 or 0.25;
 	self.Icon:SetTexture(texture or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
 	self.Icon:SetVertexColor(vertexc, vertexc, vertexc)
-	self.Slug:SetBinding(binding)
+	self.Slug:SetBinding(bindingID)
+end
+
+function CPActionConfigButton:UpdatePrompts()
+	local useMouseHints    = not ConsolePort:IsCursorNode(self);
+	local specialClickID   = useMouseHints and 'LeftClick' or 'Special';
+	local specialClickText = useMouseHints and L'Double-click to Edit Slot' or L'Edit Slot';
+	local cancelClickID    = useMouseHints and 'RightClick' or 'Cancel';
+	local cancelClickText  = useMouseHints and L'Double-right-click to Clear Slot' or L'Clear Slot';
+
+	self.tooltipHints = {
+		env:GetTooltipPromptForClick('LeftClick',    L'Edit Binding',   useMouseHints);
+		env:GetTooltipPromptForClick('RightClick',   L'Remove Binding', useMouseHints);
+		env:GetTooltipPromptForClick(specialClickID, specialClickText,  useMouseHints);
+		env:GetTooltipPromptForClick(cancelClickID,  cancelClickText,   useMouseHints);
+	};
+	return self.tooltipHints;
 end
 
 function CPActionConfigButton:OnEnter()
 	self:LockHighlight()
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 	GameTooltip:SetAction(self:GetID())
-	GameTooltip:AddLine(('%s: %s'):format(
+	GameTooltip:AddLine(('%s: %s\n'):format(
 		KEY_BINDING,
 		(self.Slug:GetText() or ''):gsub('\n', ' | ')),
 		GameFontGreen:GetTextColor())
+	for _, line in ipairs(self:UpdatePrompts()) do
+		GameTooltip:AddLine(line)
+	end
 	GameTooltip:Show()
 end
 
@@ -284,4 +304,55 @@ function CPActionConfigButton:OnLeave()
 	if ( GameTooltip:IsOwned(self) ) then
 		GameTooltip:Hide()
 	end
+end
+
+function CPActionConfigButton:OnClick(button)
+	if self.clickHandler then return end;
+	if GetCursorInfo() then
+		return PlaceAction(self:GetID())
+	end
+	local callback = function()
+		local isClearEvent = button == 'RightButton';
+		env:TriggerEvent('OnBindingClicked',
+			self:GetBinding(), -- the bindingID to be set or cleared
+			isClearEvent,      -- if the binding is to be cleared
+			false,             -- if the binding is readonly
+			self               -- the element that was clicked
+		);
+		self.clickHandler = nil;
+	end;
+	if ConsolePort:IsCursorNode(self) then
+		return callback();
+	end
+	self.clickHandler = C_Timer.NewTimer(0.25, callback)
+end
+
+function CPActionConfigButton:OnDoubleClick(button)
+	if self.clickHandler then
+		self.clickHandler = self.clickHandler:Cancel()
+	end
+	if button == 'RightButton' then
+		return self:OnCancelClick()
+	end
+	self:OnSpecialClick()
+end
+
+function CPActionConfigButton:OnSpecialClick(_, down)
+	if down == false then return end;
+end
+
+function CPActionConfigButton:OnCancelClick(_, down)
+	if down == false then return end;
+end
+
+function CPActionConfigButton:OnDragStart()
+	local actionID = self:GetID()
+	if not actionID then return end;
+	PickupAction(actionID)
+end
+
+function CPActionConfigButton:OnReceiveDrag()
+	local actionID = self:GetID()
+	if not actionID then return end;
+	PlaceAction(actionID)
 end

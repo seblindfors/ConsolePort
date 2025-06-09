@@ -444,7 +444,7 @@ do  local panelIDGen, panels = CreateCounter(), {};
 
 	function env:CreatePanel(info)
 		local panelID = panelIDGen()
-		local panel = Mixin(CreateFrame('Frame'), Panel)
+		local panel = Mixin(CreateFrame('Frame'), Panel, info)
 		panel:Hide()
 		panels[panelID] = panel;
 		if self.Frame then

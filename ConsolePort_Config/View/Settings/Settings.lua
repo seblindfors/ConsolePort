@@ -18,18 +18,19 @@ end
 -- Settings Panel
 ---------------------------------------------------------------
 local Settings = env:CreatePanel({
-	name = SETTINGS;
+	name      = SETTINGS;
+	providers = {};
+	mutators  = {};
+	callbacks = {};
 })
 
 function Settings:AddProvider(provider)
-	self.providers = self.providers or {};
 	tinsert(self.providers, provider)
 end
 
 function Settings:AddMutator(mutator)
 	-- Mutators are called after the providers, so they can modify the
 	-- data set after it has been created.
-	self.mutators = self.mutators or {};
 	tinsert(self.mutators, mutator)
 end
 
@@ -81,13 +82,13 @@ function Settings:OnVariablesChanged()
 			for head, data in env.table.spairs(group) do
 				if ( head == self.activeText ) then
 					self.activeData = data;
-					return Refresh();
+					return Refresh(self);
 				end
 			end
 		end
 		self.activeText, self.activeData = nil, nil;
 	end
-	Refresh()
+	Refresh(self)
 end
 
 function Settings:OnSubcatClicked(text, set)
@@ -140,7 +141,7 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 
 	local activeHeaders = {};
 	-- Returns a pointer to a shared header, creating it if it does not exist.
-	local function _header(name, collapsed)
+	local function GetHeader(name, collapsed)
 		if not activeHeaders[name] then
 			 activeHeaders[name] = provider:Insert(MakeHeader(name, collapsed))
 			 activeHeaders[name]:SetCollapsed(collapsed)
@@ -148,17 +149,17 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 		return activeHeaders[name];
 	end
 
-	-- Returns a pointer to the header for the current setting.
-	local _list = flattened and function(_, setting)
+	-- Returns a pointer to the list for the current setting.
+	local __ = flattened and function(_, setting)
 		local list = setting.field.list;
 		if list then
-			return _header(title..SEP..list, false)
+			return GetHeader(title..SEP..list, false)
 		end
-		return _header(title, false)
+		return GetHeader(title, false)
 	end or function(default, setting, collapsed)
 		if setting.field.advd then collapsed = preferCollapsed end;
 		if setting.field.expd then collapsed = false end;
-		return _header(setting.field.list or default, collapsed)
+		return GetHeader(setting.field.list or default, collapsed)
 	end
 
 	local hasDeviceSettings = not not next(path);
@@ -177,22 +178,22 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	end
 	if next(base) then
 		for i, dp in ipairs(base) do
-			_list(GENERAL, dp, false):Insert(dp.type:New(dp))
+			__(GENERAL, dp, false):Insert(dp.type:New(dp))
 		end
 	end
 	if hasDeviceSettings then
 		for i, dp in ipairs(path) do
-			_list(SYSTEM, dp, false):Insert(dp.type:New(dp))
+			__(SYSTEM, dp, false):Insert(dp.type:New(dp))
 		end
 	end
 	if next(cvar) then
 		for i, dp in ipairs(cvar) do
-			_list(SYSTEM, dp, false):Insert(dp.type:New(dp))
+			__(SYSTEM, dp, false):Insert(dp.type:New(dp))
 		end
 	end
 	if next(advd) then
 		for i, dp in ipairs(advd) do
-			_list(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
+			__(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
 		end
 	end
 	if not flattened and next(after) then
@@ -202,7 +203,7 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	end
 	if next(xtra) then
 		for i, dp in ipairs(xtra) do
-			_list(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
+			__(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
 		end
 	end
 	for _, header in pairs(activeHeaders) do
@@ -297,6 +298,13 @@ function Settings:Reindex()
 	local interface, sortIndex = {}, {};
 	self.index = interface;
 
+	for provider, callbacks in pairs(self.callbacks) do
+		for event in pairs(callbacks) do
+			db:UnregisterCallback(event, provider);
+		end
+	end
+	wipe(self.callbacks);
+
 	local function GetSortIndex(main, head, index)
 		return max(sortIndex[main] and sortIndex[main][head] or 0, index or 0);
 	end
@@ -316,7 +324,14 @@ function Settings:Reindex()
 	end
 
 	for i, provider in ipairs(self.providers) do
-		securecallfunction(provider, AddSetting, GetSortIndex, interface, i)
+		local callbacks = { securecallfunction(provider, AddSetting, GetSortIndex, interface, i) };
+		if next(callbacks) then
+			for _, event in ipairs(callbacks) do
+				db:RegisterCallback(event, GenerateClosure(self.OnVariablesChanged, self), provider);
+				self.callbacks[provider] = self.callbacks[provider] or {};
+				self.callbacks[provider][event] = true;
+			end
+		end
 	end
 
 	for _, group in pairs(interface) do

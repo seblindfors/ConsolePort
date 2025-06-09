@@ -756,6 +756,8 @@ end
 
 function ActionbarMapper:Init(elementData)
 	local data = elementData:GetData()
+	self.rangeMin = (data.bar - 1) * NUM_ACTIONBAR_BUTTONS + 1;
+	self.rangeMax = self.rangeMin + NUM_ACTIONBAR_BUTTONS - 1;
 	self:UpdateInfo(data)
 	self:UpdateActivePage(db.Pager:GetCurrentPage())
 	for i = 1, NUM_ACTIONBAR_BUTTONS do
@@ -772,24 +774,34 @@ function ActionbarMapper:UpdateActivePage(activePage)
 	self.InnerContent.Highlight:SetShown(self.isActivePage)
 end
 
-function ActionbarMapper:UpdateInfo(data)
-	self.Name:SetText(data.name)
-	self.Page:SetText(data.bar)
-	if data.icon then
-		self.Icon:SetTexCoord(0, 1, 0, 1)
-		self.Icon:SetTexture(data.icon)
-	elseif IsMainActionBar(data.bar) then
-		self.Icon:SetTexCoord(0.2, 0.8, 0.2, 0.8)
-		self.Icon:SetTexture([[Interface\Common\help-i]])
-	else
-		self.Icon:SetTexCoord(0, 1, 0, 1)
-		self.Icon:SetTexture([[Interface\Spellbook\UI-Glyph-Rune-]]..(1 + data.bar % 10))
+do	-- Placeholder icon function for action bars that do not have an icon.
+	-- Reusing the PaperDollInfoFrame slots to give the non-iconed action bars some flavor. 
+	local prefix = [[Interface\PaperDoll\UI-PaperDoll-Slot-]];
+	local icons  = { 'Head', 'Trinket', 'Finger', 'Relic', 'Ammo', 'SecondaryHand', 'MainHand' };
+	local function GetPlaceHolderIcon(data)
+		return prefix..icons[data.bar % #icons + 1];
+	end
+
+	function ActionbarMapper:UpdateInfo(data)
+		self.Name:SetText(data.name)
+		self.Page:SetText(data.bar)
+		if data.icon then
+			self.Icon:SetTexCoord(0, 1, 0, 1)
+			self.Icon:SetTexture(data.icon)
+		elseif IsMainActionBar(data.bar) then
+			self.Icon:SetTexCoord(0.2, 0.8, 0.2, 0.8)
+			self.Icon:SetTexture([[Interface\Common\help-i]])
+		else
+			self.Icon:SetTexCoord(0, 1, 0, 1)
+			self.Icon:SetTexture(GetPlaceHolderIcon(data))
+		end
 	end
 end
 
 function ActionbarMapper:OnAcquire(new)
 	if new then
 		Mixin(self, ActionbarMapper)
+		self:SetScript('OnEvent', CPAPI.EventMixin.OnEvent)
 		self:EnableMouse(false)
 	end
 	for i = 1, NUM_ACTIONBAR_BUTTONS do
@@ -803,6 +815,7 @@ function ActionbarMapper:OnAcquire(new)
 		self[i] = button;
 	end
 	db:RegisterCallback('OnActionPageChanged', self.UpdateActivePage, self)
+	self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
 end
 
 function ActionbarMapper:OnRelease()
@@ -814,6 +827,7 @@ function ActionbarMapper:OnRelease()
 		end
 	end
 	db:UnregisterCallback('OnActionPageChanged', self)
+	self:UnregisterEvent('ACTIONBAR_SLOT_CHANGED')
 end
 
 function ActionbarMapper:OnInfoEnter()
@@ -844,6 +858,15 @@ function ActionbarMapper:OnInfoLeave()
 	self.Border:SetAtlas('glues-characterselect-icon-notify-bg')
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
+	end
+end
+
+function ActionbarMapper:ACTIONBAR_SLOT_CHANGED(actionID)
+	if actionID >= self.rangeMin and actionID <= self.rangeMax then
+		local button = self[actionID - self.rangeMin + 1]
+		if button then
+			button:Update()
+		end
 	end
 end
 

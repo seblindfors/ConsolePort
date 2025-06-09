@@ -323,6 +323,8 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 			end
 		end
 	end
+
+	return 'OnShapeshiftFormInfoChanged', 'Settings/bindingShowExtraBars';
 end)
 
 -----------------------------------------------------------
