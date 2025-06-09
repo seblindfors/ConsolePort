@@ -326,11 +326,21 @@ do -- Tooltip hooking
 		end
 	end
 
+	local function OnTooltipSetItemLine(self, line)
+		local owner = self:GetOwner()
+		if Hooks:IsPromptProcessingValid(owner) then
+			if (line.leftText or ''):match('^<') then
+				line.leftText = Hooks:GetRightActionPrompt(line.leftText) or line.leftText;
+			end
+		end
+	end
+
 	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Mount, OnTooltipSetMount)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
+		TooltipDataProcessor.AddLinePreCall(Enum.TooltipDataType.Item, OnTooltipSetItemLine)
 	end
 	if not CPAPI.IsRetailVersion then -- TooltipDataProcessor exists on Cata but is not used
 		GameTooltip:HookScript('OnTooltipSetItem', OnTooltipSetItem)

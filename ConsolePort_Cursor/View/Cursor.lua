@@ -293,14 +293,26 @@ do  -- Create input proxy for basic controls
 		return self.BasicControls;
 	end
 
+	local SetDirectUIControl = function(self, button, settings)
+		Input:SetCommand(button, self, true, 'LeftButton', 'UIControl', unpack(settings));
+	end
+
 	function Cursor:IsDynamicControl(key)
 		return self.DynamicControls and tContains(self.DynamicControls, key)
 	end
 
 	function Cursor:SetBasicControls()
+		Input:Release(self)
 		local controls = self:GetBasicControls()
 		for button, settings in pairs(controls) do
-			Input:SetCommand(button, self, true, 'LeftButton', 'UIControl', unpack(settings));
+			SetDirectUIControl(self, button, settings);
+		end
+	end
+
+	function Cursor:SetBasicControl(button)
+		local settings = self:GetBasicControls()[button];
+		if settings then
+			SetDirectUIControl(self, button, settings);
 		end
 	end
 
@@ -349,7 +361,7 @@ function Cursor:ReverseScanUI(node, key, target, changed)
 	if node then
 		local parent = node:GetParent()
 		Node.ScanLocal(parent)
-		target, changed = Node.NavigateToBestCandidateV2(self.Cur, key)
+		target, changed = Node.NavigateToBestCandidateV3(self.Cur, key)
 		if changed then
 			return target, changed;
 		end
@@ -373,7 +385,7 @@ end
 
 function Cursor:FlatScanStack(key)
 	self:ScanUI()
-	return Node.NavigateToBestCandidateV2(self.Cur, key)
+	return Node.NavigateToBestCandidateV3(self.Cur, key)
 end
 
 function Cursor:Navigate(key)
@@ -620,7 +632,7 @@ function Cursor:AttemptDragStart()
 end
 
 do local function GetCloseButton(node)
-		if node.CloseButton then
+		if rawget(node, 'CloseButton') then
 			return node.CloseButton;
 		end
 		local nodeName = node:GetName();
@@ -636,10 +648,22 @@ do local function GetCloseButton(node)
 
 	function Cursor:SetCancelButtonForNode(node)
 		local cancelButton = db('Settings/UICursorCancel')
-		local closeButton = FindCloseButton(node)
-		if C_Widget.IsFrameWidget(closeButton) and cancelButton then
-			Input:SetButton(cancelButton, self, closeButton, true, 'LeftButton')
+		if not cancelButton then return end;
+
+		if Hooks:GetCancelClickHandler(node) then
+			return self:SetBasicControl(cancelButton)
 		end
+
+		local closeButton = FindCloseButton(node)
+		if C_Widget.IsFrameWidget(closeButton) then RunNextFrame(function()
+			-- A cancel action can trigger the current node to disappear,
+			-- for example by closing a dialog. If the cursor then jumps to
+			-- another node that has a related close button, the script order
+			-- will result in both things happening in one frame. Therefore,
+			-- the cancel button needs to be mounted in the next frame instead.
+			if self:InCombat() then return end;
+			Input:SetButton(cancelButton, self, closeButton, true, 'LeftButton')
+		end) end;
 	end
 end
 
