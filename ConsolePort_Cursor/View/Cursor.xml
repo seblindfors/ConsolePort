@@ -74,4 +74,6 @@
 		</Animations>
 	</Button>
 	
+	<Script file="Cursor.lua"/>
+	<Script file="Effects.lua"/>
 </Ui>

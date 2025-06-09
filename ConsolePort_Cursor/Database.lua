@@ -175,6 +175,8 @@ env.FramePipelines = { -- global ref, bool or method
 ---------------------------------------------------------------
 -- Node management resources
 ---------------------------------------------------------------
+env.Node = LibStub('ConsolePortNode');
+
 env.IsClickableType = {
 	Button      = true;
 	CheckButton = true;

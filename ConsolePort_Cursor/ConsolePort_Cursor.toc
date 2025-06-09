@@ -26,4 +26,3 @@ Controller\Scripts.lua
 Controller\Scroll.lua
 
 View\Cursor.xml
-View\Cursor.lua

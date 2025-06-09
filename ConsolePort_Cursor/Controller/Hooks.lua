@@ -3,8 +3,7 @@
 ---------------------------------------------------------------
 -- Hooks for the interface cursor to do magic things.
 
-local env, db = CPAPI.GetEnv(...)
-local L = db.Locale;
+local env, db, _, L = CPAPI.GetEnv(...)
 local Hooks = db:Register('Hooks', {}, true); env.Hooks = Hooks;
 local Hooknode = {};
 
