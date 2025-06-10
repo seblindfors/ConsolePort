@@ -52,7 +52,9 @@ function Container:OnLoad()
 	self:SetBackgroundInsets(4, -4, 4, 4)
 	self:AddBackgroundMaskTexture(self.BorderArt.BgMask)
 	self:SetBackgroundAlpha(0.25)
+
 	self.Left:InitDefault()
+	self.Left.ScrollBar.Track:SetAttribute('nodeignore', true)
 
 	local XML_SETTING_TEMPLATE = 'CPSetting';
 
