@@ -604,5 +604,22 @@ db:Register('Variables', CPAPI.Callable({
 			.. '\n...where each condition/binding is separated by a semicolon, and "nil" clears the override.';
 		advd = true;
 	};
+	--------------------------------------------------------------------------------------------------------
+	_('Touchpad', SETTING_GROUP_SYSTEM);
+	--------------------------------------------------------------------------------------------------------
+	LEDMode = _{Map(1, {[1] = FACTION, [2] = TARGET, [3] = PLAYER, [4] = 'RGB', [5] = CUSTOM, [6] = OFF});
+		name = 'LED Color Type';
+		desc = 'Type of LED color to use for the touchpad.';
+		note = 'Requires a touchpad with LED support.';
+		hide = not C_GamePad.SetLedColor;
+		list = COLOR;
+	};
+	LEDColor = _{Color('ff00fcff');
+		name = 'LED Custom Color';
+		desc = 'Custom color to use for the touchpad LED.';
+		hide = not C_GamePad.SetLedColor;
+		deps = { LEDMode = 5 };
+		list = COLOR;
+	};
 },  --------------------------------------------------------------------------------------------------------
 function(self, key) return (rawget(self, key) or {})[1] end))

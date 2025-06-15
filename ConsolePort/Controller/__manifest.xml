@@ -12,4 +12,5 @@
 	<Script file="Slash.lua"/>
 	<Script file="Paddles.lua"/>
 	<Script file="Convenience.lua"/>
+	<Script file="LED.lua"/>
 </Ui>
