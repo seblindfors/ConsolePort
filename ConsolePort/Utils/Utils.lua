@@ -142,6 +142,7 @@ do -- Compatible with CPScrollBoxTree
 		return db.table.merge({
 			xml      = self.xml;
 			extent   = self.size.y;
+			indent   = self.indent;
 			init     = self.Init or nop;
 			acquire  = self.OnAcquire;
 			release  = self.OnRelease;

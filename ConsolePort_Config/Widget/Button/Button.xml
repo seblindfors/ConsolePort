@@ -272,7 +272,6 @@
 			<Layer level="ARTWORK">
 				<FontString parentKey="Slug" inherits="CPSlug">
 					<KeyValues>
-						<KeyValue key="separator" value="\n" type="string"/>
 						<KeyValue key="notBound" value="" type="string"/>
 					</KeyValues>
 					<Anchors>

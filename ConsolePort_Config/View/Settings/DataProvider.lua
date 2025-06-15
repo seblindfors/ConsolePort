@@ -258,6 +258,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 
 	for category, set in env.table.spairs(bindings) do
 		local list = category:trim();
+		head = list == KEY_BINDINGS_MAC and ACTIONBARS_LABEL or KEY_BINDINGS_MAC;
 		sort = GetSortIndex(main, head);
 		for i, info in ipairs(set) do
 			AddSetting(main, head, {
@@ -315,7 +316,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 						name = name;
 						list = list;
 						icon = icon;
-						xtra = true;
+						advd = true;
 						expd = list == PRIMARY;
 						info = stanceBarInfo;
 					};

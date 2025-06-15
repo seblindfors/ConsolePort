@@ -99,84 +99,11 @@ local Search = {};
 
 function Search:OnLoad()
 	env.Search.OnLoad(self)
-	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
+	env:RegisterCallback('OnSubcatClicked', self.ClearQuery, self)
 end
 
-function Search:OnSubcatClicked()
+function Search:ClearQuery()
 	self:SetText('')
-end
-
----------------------------------------------------------------
-local Results = CPAPI.CreateElement('SettingsListSectionHeaderTemplate', 292, 45);
----------------------------------------------------------------
-
-function Results:Init(elementData)
-	local info = elementData:GetData()
-	self.Title:SetText(info.text)
-	self.Title:SetPoint('TOPRIGHT', -7, -16)
-	self:SetSize(Results.size:GetXY())
-end
-
-function Results:Data(text)
-	return { text = text };
-end
-
----------------------------------------------------------------
-local IconSelector = {};
----------------------------------------------------------------
-
-function IconSelector:OnLoad()
-	self.activeIconFilter = IconSelectorPopupFrameIconFilterTypes.All;
-	self.IconHeader.Text:ClearAllPoints()
-	self.IconHeader.Text:SetPoint('LEFT', 40, 0)
-	self.IconHeader.Text:SetFontObject(GameFontNormalMed1)
-	self:SetSize(508, 500)
-	self:Update()
-end
-
-function IconSelector:Update()
-	local function IconFilterToIconTypes(filter)
-		if ( filter == IconSelectorPopupFrameIconFilterTypes.All ) then
-			return IconDataProvider_GetAllIconTypes();
-		elseif (filter == IconSelectorPopupFrameIconFilterTypes.Spell) then
-			return { IconDataProviderIconType.Spell };
-		elseif (filter == IconSelectorPopupFrameIconFilterTypes.Item) then
-			return { IconDataProviderIconType.Item };
-		end
-		return nil;
-	end
-
-	local function IsSelected(filterType)
-		return self.activeIconFilter == filterType;
-	end
-
-	local function SetSelected(filterType)
-		self.activeIconFilter = filterType;
-		self.IconSelector.iconDataProvider:SetIconTypes(IconFilterToIconTypes(filterType));
-		self.IconSelector:UpdateSelections()
-		self:Update()
-	end
-
-	self.IconType.Dropdown:SetupMenu(function(dropdown, rootDescription)
-		for key, filterType in pairs(IconSelectorPopupFrameIconFilterTypes) do
-			local text = _G['ICON_FILTER_' .. strupper(key)];
-			rootDescription:CreateRadio(text, IsSelected, SetSelected, filterType);
-		end
-	end)
-
-	self.IconSelector:SetSelectedCallback(function(index)
-		-- HACK: If we're clicking with the interface cursor,
-		-- skip the need to hit accept and just set the icon.
-		RunNextFrame(function()
-			if not self.popup then return end;
-			self.popup.button1:Enable();
-			if self.popup.editBox:IsShown() then return end;
-			local cursorNode = ConsolePort:GetCursorNode()
-			if ( cursorNode and cursorNode.selectionIndex == index ) then
-				StaticPopup_OnClick(self.popup, 1) -- accept
-			end
-		end)
-	end)
 end
 
 ---------------------------------------------------------------
@@ -196,6 +123,7 @@ function Config:OnLoad()
 	env:RegisterCallback('OnPanelShow', self.OnPanelShow, self)
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
 	env:RegisterCallback('OnBindingClicked', self.OnBindingClicked, self)
+	env:RegisterCallback('OnActionSlotEdit', self.OnActionSlotEdit, self)
 	env:RegisterCallback('OnBindingIconClicked', self.OnBindingIconClicked, self)
 	env:RegisterCallback('OnBindingPresetAddClicked', self.OnBindingPresetAddClicked, self)
 	env:RegisterCallback('OnBindingPresetIconClicked', self.OnBindingPresetIconClicked, self)
@@ -254,10 +182,17 @@ end
 
 function Config:GetIconSelector()
 	if not self.IconSelector then
-		self.IconSelector = CreateFrame('Frame', nil, self, 'CPConfigIconSelector')
-		FrameUtil.SpecializeFrameWithMixins(self.IconSelector, IconSelector)
+		self.IconSelector = CreateFrame('Frame', nil, self, env.IconSelector.Template)
+		FrameUtil.SpecializeFrameWithMixins(self.IconSelector, env.IconSelector)
 	end
 	return self.IconSelector;
+end
+
+function Config:GetLoadoutSelector()
+	if not self.LoadoutSelector then
+		self.LoadoutSelector = CreateAndInitFromMixin(env.LoadoutSelector)
+	end
+	return self.LoadoutSelector;
 end
 
 ---------------------------------------------------------------
@@ -292,7 +227,7 @@ function Config:OnSearch(text)
 		end
 		if results:IsEmpty() then
 			results:Insert(env.Elements.Title:New(SEARCH))
-			results:Insert(Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+			results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
 		end
 		return;
 	end
@@ -371,44 +306,11 @@ function Config:OnBindingPresetAddClicked(element, callback)
 end
 
 function Config:ShowIconSelector(info)
-	local container = self:GetIconSelector()
-	local selector  = container.IconSelector;
-	local popup = CPAPI.Popup('ConsolePort_IconSelector', {
-		text = ''; -- HACK: text is required for the popup.
-		button1 = info.button1 or ACCEPT;
-		button2 = info.button2 or CANCEL;
-		hasEditBox = info.hasEditBox;
-		hideOnEscape = true;
-		enterClicksFirstButton = true;
-		selectCallbackByIndex = true;
-		OnShow = function(popup, data)
-			local index = selector.iconDataProvider:GetIndexOfIcon(data.icon);
-			selector:SetSelectedIndex(index);
-			selector:ScrollToSelectedIndex();
-			container.popup = popup;
-			ConsolePort:RemoveInterfaceCursorFrame(self)
+	return self:GetIconSelector():SetDataAndShow(info)
+end
 
-			popup.button1:SetEnabled(not not index)
-			if data.hasEditBox and data.initialText then
-				popup.editBox:SetText(data.initialText)
-			end
-		end;
-		OnAccept = function(popup, data)
-			local index = selector:GetSelectedIndex()
-			local icon = index and selector.iconDataProvider:GetIconByIndex(index);
-			if icon then
-				data.call(data.owner, icon, true, data.hasEditBox and popup.editBox:GetText() or nil)
-			end
-		end;
-		OnCancel = nop;
-		OnHide = function(_, data)
-			ConsolePort:AddInterfaceCursorFrame(self)
-			ConsolePort:SetCursorNodeIfActive(data.owner)
-			container.popup = nil;
-		end;
-	}, info.name, nil, info, container)
-	container.IconHeader.Text:SetText(info.name)
-	return popup;
+function Config:OnActionSlotEdit(actionID, bindingID, element)
+	return self:GetLoadoutSelector():EditAction(actionID, bindingID, element)
 end
 
 ---------------------------------------------------------------

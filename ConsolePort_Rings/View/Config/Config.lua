@@ -25,7 +25,7 @@ function Config:OnLoad()
 
 	FrameUtil.SpecializeFrameWithMixins(self.Display, env.SharedConfig.Display)
 	FrameUtil.SpecializeFrameWithMixins(self.Sets, env.SharedConfig.Sets)
-	FrameUtil.SpecializeFrameWithMixins(self.Loadout, env.SharedConfig.Loadout)
+	FrameUtil.SpecializeFrameWithMixins(self.Loadout, CPLoadoutContainerMixin, env.SharedConfig.Loadout)
 	FrameUtil.SpecializeFrameWithMixins(self.Search, env.SharedConfig.Env.Search, Search)
 
 	self.Panels = EnumUtil.MakeEnum('Rings', 'Loadout', 'Options');

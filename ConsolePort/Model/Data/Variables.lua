@@ -3,14 +3,14 @@ local STICK_SELECT = {'Movement', 'Camera', 'Gyro'};
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local STARGET_OPTS = {[0] = OFF, [1] = 'Gamepad', [2] = 'KBM', [3] = ALWAYS};
-local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
 local BINDINGS_OPT = KEY_BINDINGS_MAC or 'Bindings';
 
 -- Helpers
 local BLUE = GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
 local unpack, _, db = unpack, ...; _ = CPAPI.Define; db.Data();
+
 ------------------------------------------------------------------------------------------------------------
--- Default cvar data (global)
+-- Variables
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', CPAPI.Callable({
 	_(GENERAL, SETTING_GROUP_SYSTEM);

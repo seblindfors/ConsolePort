@@ -1,4 +1,4 @@
-local env, db, L = CPAPI.GetEnv(...); L = env.L;
+local env, db, _, L = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 
 function env:GetCollections(currentSetID, isSharedSet)

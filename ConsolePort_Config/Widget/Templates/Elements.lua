@@ -118,6 +118,89 @@ function Title:Data(dpOrText)
 end
 
 ---------------------------------------------------------------
+local Results = CPAPI.CreateElement('SettingsListSectionHeaderTemplate', 292, 45);
+---------------------------------------------------------------
+Elements.Results = Results;
+
+function Results:Init(elementData)
+	local info = elementData:GetData()
+	self.Title:SetText(info.text)
+	self.Title:SetPoint('TOPRIGHT', -7, -16)
+	self:SetSize(Results.size:GetXY())
+end
+
+function Results:Data(text)
+	return { text = text };
+end
+
+---------------------------------------------------------------
+local Search = CPAPI.CreateElement('SearchBoxTemplate', 260, 24);
+---------------------------------------------------------------
+Elements.Search = Search; Search.indent = 6;
+
+function Search:Init(elementData)
+	local data = elementData:GetData()
+	if data.dispatch then
+		self:SetText(data.initText)
+	end
+end
+
+function Search:OnAcquire(new)
+	if new then
+		FrameUtil.SpecializeFrameWithMixins(self, env.Search, Search)
+	end
+end
+
+function Search:OnDispatch(text)
+	local data = self:GetElementData():GetData()
+	data.callback(text)
+end
+
+function Search:Data(setup)
+	return {
+		initText = setup.text or '';
+		callback = setup.callback or nop;
+		dispatch = setup.dispatch;
+	};
+end
+
+---------------------------------------------------------------
+local Back = CPAPI.CreateElement('CPPopupButtonTemplate', 300, 32)
+---------------------------------------------------------------
+Elements.Back = Back;
+
+function Back:Init(elementData)
+	local data = elementData:GetData()
+	self.Text:SetText(data.text)
+	self.Icon:SetTexCoord(0, 1, 0, 1)
+	self.Icon:SetAtlas('common-icon-undo')
+end
+
+function Back:OnClick()
+	local data = self:GetElementData():GetData()
+	if data.callback then
+		return data.callback()
+	end
+end
+
+function Back:OnAcquire(new)
+	if new then
+		FrameUtil.SpecializeFrameWithMixins(self, Back)
+		self.Icon:SetPoint('LEFT', 16, 0)
+		self.Text:SetPoint('LEFT', self.Icon, 'RIGHT', 8, 0)
+		self:HookScript('OnEnter', self.LockHighlight)
+		self:HookScript('OnLeave', self.UnlockHighlight)
+	end
+end
+
+function Back:Data(setup)
+	return {
+		text     = setup.text or BACK;
+		callback = setup.callback or nop;
+	};
+end
+
+---------------------------------------------------------------
 local Setting = CPAPI.CreateElement('CPSetting', 0, 40)
 ---------------------------------------------------------------
 Elements.Setting = Setting;
@@ -382,4 +465,120 @@ function Binding:Data(datapoint)
 		bindingID = datapoint.binding;
 		readonly  = datapoint.readonly;
 	};
+end
+
+---------------------------------------------------------------
+local LoadoutEntry = CPAPI.CreateElement('CPCardLoadoutTemplate', 292, 48);
+---------------------------------------------------------------
+Elements.LoadoutEntry = LoadoutEntry;
+-- Needs to be implemented:
+--  OnSelected, ShouldBeChecked, OnLeaveEntry, OnFocusEntry
+
+function LoadoutEntry.UnpackID(id)
+	if type(id) == 'table' then
+		return unpack(id)
+	end
+	return id;
+end
+
+function LoadoutEntry:OnAcquire(new)
+	if new then
+		FrameUtil.SpecializeFrameWithMixins(self, LoadoutEntry)
+		self:OnLoad()
+		self:RegisterForDrag('LeftButton')
+		self:SetScript('OnDragStop', self.OnDragStop)
+		self:SetAttribute('nohooks', true)
+		self.InnerContent.SelectedHighlight:SetPoint('TOPLEFT', 50, -20)
+	end
+end
+
+function LoadoutEntry:Init(elementData)
+	local info = elementData:GetData()
+	local id, funcs = info.id, info.funcs;
+	local texture = funcs.texture(self.UnpackID(id))
+	self.Name:SetText(funcs.title(self.UnpackID(id)))
+	self.Icon:SetTexture(texture)
+	self:SetChecked(self:ShouldBeChecked(info))
+end
+
+function LoadoutEntry:ShowTooltip(tooltipFunc, ...)
+	local tooltip = GameTooltip;
+	tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, self.size.y)
+	NineSliceUtil.ApplyLayoutByName(
+		tooltip.NineSlice,
+		'CharacterCreateDropdown',
+		tooltip.NineSlice:GetFrameLayoutTextureKit()
+	);
+
+	tooltipFunc(tooltip, ...)
+	RunNextFrame(function()
+		tooltip:SetHeight(tooltip:GetHeight() + 24)
+		tooltip:SetSize(
+			math.max(tooltip:GetWidth(), 90),
+			math.max(tooltip:GetHeight(), 70)
+		);
+	end)
+	return tooltip;
+end
+
+function LoadoutEntry:OnEnter()
+	local info = self:GetElementData():GetData()
+	CPCardSmallMixin.OnEnter(self)
+	self:ShowTooltip(info.funcs.tooltip, self.UnpackID(info.id))
+	self:OnFocusEntry(info)
+end
+
+function LoadoutEntry:OnLeave()
+	CPCardSmallMixin.OnLeave(self)
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+	-- This may have been released already, check if element data exists.
+	self:OnLeaveEntry(self.GetElementData and self:GetElementData():GetData())
+end
+
+function LoadoutEntry:OnClick(button)
+	if ( button == 'RightButton' ) then
+		return self:CollapseToParent()
+	end
+	self:OnSelected(self:GetElementData():GetData())
+end
+
+function LoadoutEntry:OnDragStart()
+	local info = self:GetElementData():GetData()
+	info.funcs.pickup(self.UnpackID(info.id))
+end
+
+function LoadoutEntry:OnDragStop()
+	CPCardSmallMixin.OnMouseUp(self)
+end
+
+function LoadoutEntry:OnButtonStateChanged()
+	CPCardSmallMixin.OnButtonStateChanged(self)
+	self.Border:SetAtlas(self:GetChecked()
+		and 'glues-characterselect-icon-notify-bg-hover'
+		or 'glues-characterselect-icon-notify-bg')
+end
+
+function LoadoutEntry:CollapseToParent()
+	self:SetChecked(false)
+
+	local parentElementData = self:GetElementData().parent;
+	local scrollBox = self:GetParent():GetParent();
+	scrollBox:ScrollToElementData(parentElementData, ScrollBoxConstants.AlignCenter, 0, true)
+
+	local scrollView = scrollBox:GetParent():GetScrollView()
+	local header = scrollView:FindFrame(parentElementData);
+	if header then
+		header:Click()
+		ConsolePort:SetCursorNodeIfActive(header)
+	end
+end
+
+function LoadoutEntry:OnRelease()
+	self:SetChecked(false)
+end
+
+function LoadoutEntry:Data(id, funcs)
+	return { id = id, funcs = funcs };
 end

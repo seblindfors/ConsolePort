@@ -253,6 +253,8 @@ CPActionConfigButton = { GetBinding = nop };
 function CPActionConfigButton:OnLoad()
 	self.Icon:AddMaskTexture(self.Mask)
 	self.Border:SetVertexColor(0.5, 0.5, 0.5)
+	self.SelectedTexture:SetDrawLayer('BACKGROUND')
+	self.Slug.separator = '\n';
 end
 
 function CPActionConfigButton:SetID(actionID)
@@ -288,7 +290,12 @@ end
 function CPActionConfigButton:OnEnter()
 	self:LockHighlight()
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
-	GameTooltip:SetAction(self:GetID())
+	local bindingID, actionID = self:GetBinding()
+	if GetActionInfo(actionID) then
+		GameTooltip:SetAction(actionID)
+	else
+		GameTooltip:SetText(env:GetBindingName(bindingID), WHITE_FONT_COLOR:GetRGB())
+	end
 	GameTooltip:AddLine(('%s: %s\n'):format(
 		KEY_BINDING,
 		(self.Slug:GetText() or ''):gsub('\n', ' | ')),
@@ -339,10 +346,18 @@ end
 
 function CPActionConfigButton:OnSpecialClick(_, down)
 	if down == false then return end;
+	local bindingID, actionID = self:GetBinding()
+	env:TriggerEvent('OnActionSlotEdit',
+		actionID,  -- the actionID to be changed
+		bindingID, -- the bindingID that owns the slot
+		self      -- the element that was clicked
+	)
 end
 
 function CPActionConfigButton:OnCancelClick(_, down)
 	if down == false then return end;
+	self:OnDragStart()
+	ClearCursor()
 end
 
 function CPActionConfigButton:OnDragStart()

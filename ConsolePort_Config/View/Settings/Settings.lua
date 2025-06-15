@@ -40,6 +40,7 @@ function Settings:OnLoad()
 	self:SetActiveCategory(GENERAL, self.index[SETTING_GROUP_SYSTEM][GENERAL])
 	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
 	env:RegisterCallback('OnSettingsDirty', self.OnSettingsDirty, self)
+	env:RegisterCallback('OnFlushLeft', self.OnFlushLeft, self)
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 	db:RegisterCallback('OnVariablesChanged', self.OnVariablesChanged, self)
 	db:RegisterCallback('Settings/useCharacterSettings', self.OnToggleCharacterSettings, self)
@@ -104,6 +105,14 @@ end
 function Settings:OnSettingsDirty()
 	if self.activeData then
 		self:RenderSettings()
+	end
+end
+
+function Settings:OnFlushLeft()
+	-- This is called when the left panel is flushed,
+	-- so we need to re-render the categories.
+	if self:IsVisible() then
+		self:RenderCategories()
 	end
 end
 

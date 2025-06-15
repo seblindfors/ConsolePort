@@ -1,4 +1,4 @@
-local Tabular, env, db, L = LibStub('Tabular'), CPAPI.GetEnv(...); L = env.L;
+local Tabular, env, db, _, L = LibStub('Tabular'), CPAPI.GetEnv(...);
 local CreateDataContainer;
 
 ---------------------------------------------------------------

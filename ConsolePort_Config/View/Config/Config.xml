@@ -177,4 +177,6 @@
 
 	<Script file="Config.lua"/>
 	<Script file="ImportExport.lua"/>
+	<Script file="IconSelector.lua"/>
+	<Script file="LoadoutSelector.lua"/>
 </Ui>

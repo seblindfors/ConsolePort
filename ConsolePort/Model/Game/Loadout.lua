@@ -22,7 +22,6 @@ local LoadoutMixin, LoadoutInfo = db:Register('LoadoutMixin', {}), db:Register('
 		flyout       = function(id) return GetFlyoutInfo(id) end;
 		equipmentset = function(id) return tostring(id)..' ('..BAG_FILTER_EQUIPMENT..')' end;
 		companion    = CPAPI.Static(COMPANIONS); -- low-prio todo: get some info on whatever this is
-
 	};
 });
 
@@ -187,10 +186,9 @@ function LoadoutInfo:AssertBindings(bindings)
 end
 
 function LoadoutInfo:RenameActionbarCategory(bindings)
-	-- HACK: rename misc action bar to "Action Bar (Miscellaneous)",
+	-- HACK: rename misc action bar to "Bindings",
 	-- so action bar can be handled separately in the binding manager.
-	local newName = ('%s (%s)'):format(BINDING_HEADER_ACTIONBAR, MISCELLANEOUS)
-	bindings[newName] = bindings[BINDING_HEADER_ACTIONBAR];
+	bindings[KEY_BINDINGS_MAC] = bindings[BINDING_HEADER_ACTIONBAR];
 	bindings[BINDING_HEADER_ACTIONBAR] = nil;
 end
 
@@ -283,6 +281,66 @@ end
 
 ---------------------------------------------------------------
 -- Collections
+---------------------------------------------------------------
+LoadoutInfo.SecureHandlerMap = {
+	-- Simple types -------------------------------------------
+	action = function(action) return {
+		type   = 'action';
+		action = action;
+	} end;
+	-----------------------------------------------------------
+	item = function(itemID, itemLink) return {
+		type = 'item';
+		item = itemLink or itemID;
+		link = itemLink;
+	} end;
+	-----------------------------------------------------------
+	macro = function(index) return CreateFromMixins(CPAPI.GetMacroInfo(index), {
+		type  = 'macro';
+		macro = index;
+		macrotext = false;
+	}) end;
+	-----------------------------------------------------------
+	equipmentset = function(name) return {
+		type         = 'equipmentset';
+		equipmentset = name;
+	} end;
+	-- Spell conversion ---------------------------------------
+	spell = function(spellIndex, bookType, spellID)
+		return LoadoutInfo.SecureHandlerMap.spellID(spellID)
+	end;
+	-----------------------------------------------------------
+	mount = function(mountID)
+		local spellID = select(2, CPAPI.GetMountInfoByID(mountID));
+		local spellName = spellID and CPAPI.GetSpellInfo(spellID).name;
+		if spellName then
+			return LoadoutInfo.SecureHandlerMap.spellID(spellName)
+		end
+	end;
+	-----------------------------------------------------------
+	petaction = function(spellID, index)
+		if index then
+			return LoadoutInfo.SecureHandlerMap.spellID(spellID)
+		end
+	end;
+	---------------------------------------------------------------
+	companion = function(companionID, companionType)
+		if ( companionType == 'MOUNT' and CPAPI.GetMountInfoByID(companionID) ) then
+			return LoadoutInfo.SecureHandlerMap.mount(companionID)
+		end
+		local _, spellName = GetCompanionInfo(companionType, companionID)
+		if spellName then
+			return LoadoutInfo.SecureHandlerMap.spellID(spellName)
+		end
+	end;
+	---------------------------------------------------------------
+	spellID = function(spellID) return {
+		type  = 'spell';
+		spell = spellID;
+		link  = CPAPI.GetSpellLink(spellID)
+	} end;
+};
+
 ---------------------------------------------------------------
 LoadoutInfo.Collectors = {
 	-----------------------------------------------------------
@@ -434,9 +492,13 @@ function LoadoutInfo:RefreshCollections(flatten)
 				local name = spells.tabName;
 				spells.tabName = nil;
 
+				local FindSpellBookActionButtons = C_ActionBar.FindSpellActionButtons and function(id)
+					return C_ActionBar.FindSpellActionButtons(CPAPI.GetSpellBookItemInfo(id, BOOKTYPE_SPELL).spellID or -1)
+				end;
+
 				AddCollection(spells, {
 					name    = name;
-					match   = C_ActionBar.FindSpellActionButtons;
+					match   = FindSpellBookActionButtons;
 					pickup  = function(id) CPAPI.PickupSpellBookItem(id, BOOKTYPE_SPELL) end;
 					tooltip = function(tooltip, id) tooltip:SetSpellBookItem(id, BOOKTYPE_SPELL) end;
 					texture = function(id) return CPAPI.GetSpellBookItemTexture(id, BOOKTYPE_SPELL) end;
@@ -540,7 +602,7 @@ function LoadoutInfo:RefreshCollections(flatten)
 			for i, macroSet in ipairs(macros) do
 				if IsDataValid(macroSet) then
 					local tooltipFunc = function(self, id)
-						local name, texture, text = GetMacroInfo(id)
+						local name, _, text = GetMacroInfo(id)
 						self:SetText(('%s'):format(name:trim():len()>0 and name or NOT_APPLICABLE))
 						self:AddLine(text, 1, 1, 1)
 						self:Show()

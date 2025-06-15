@@ -80,6 +80,14 @@ function CPScrollBoxTree:InitDefault()
 		local info = elementData:GetData()
 		return info.extent;
 	end)
+	scrollView:SetElementIndentCalculator(function(elementData)
+		local indent = (elementData:GetDepth() - 1) * scrollView:GetElementIndent();
+		local info = elementData:GetData()
+		if info.indent then
+			return indent + info.indent;
+		end
+		return indent;
+	end)
 	scrollView:SetElementFactory(function(factory, elementData)
 		local info = elementData:GetData()
 		factory(info.xml, info.init)
@@ -131,4 +139,108 @@ end
 function CPIconSelector:OnHide()
 	self.iconDataProvider = nil;
 	db.Bindings:ReleaseIconProvider();
+end
+
+---------------------------------------------------------------
+CPLoadoutContainerMixin = CreateFromMixins(db.LoadoutMixin, {
+---------------------------------------------------------------
+	HeaderIcons = {
+		[ABILITIES] = 'book';
+		[ITEMS]     = 'misc';
+		[MACROS]    = 'enchantscroll';
+		[SPECIAL]   = 'featured';
+	};
+	-- Needs to be implemented:
+	--  GetDataProvider, GetScrollView
+});
+
+function CPLoadoutContainerMixin:OnSearch(text)
+	self.searchTerm = text;
+	if self:IsVisible() then
+		self:UpdateCollections()
+	end
+end
+
+function CPLoadoutContainerMixin:RefreshCollections()
+	if not self.Collections then
+		return self:UpdateCollections()
+	end
+	self:GetScrollView():ReinitializeFrames()
+end
+
+function CPLoadoutContainerMixin:GetElements()
+	local elements = env.Elements;
+	return -- elements.LoadoutEntry,
+			  elements.Header,
+			  elements.Divider,
+			  elements.Results;
+end
+
+function CPLoadoutContainerMixin:UpdateCollections()
+	local Entry, Header, Divider, Results = self:GetElements()
+	local dataProvider = self:GetDataProvider()
+	local collections = self:GetCollections(true)
+
+	dataProvider:Flush()
+
+	local MinEditDistance = CPAPI.MinEditDistance;
+	local cats, searchTerm = {}, self.searchTerm;
+	local isSearchActive = env.Search:Validate(searchTerm) ~= nil;
+
+	local function MakeHeaderName(name)
+		local icon = self.HeaderIcons[name];
+		if icon then
+			return ([[|TInterface\Store\category-icon-%s:20:20:0:0:64:64:18:46:18:46|t %s]]):format(icon, name);
+		end
+		return name;
+	end
+
+	local function MakeCategory(data, collapsed)
+		if not cats[data.name] then
+			local provider = dataProvider;
+			if data.header then
+				local main = data.header..0;
+				if not cats[main] then
+					cats[main] = dataProvider:Insert(Header:New(MakeHeaderName(data.header), collapsed));
+				end
+				provider = cats[main];
+			end
+			cats[data.name] = provider:Insert(Header:New(data.name, collapsed));
+		end
+		return cats[data.name];
+	end
+
+	local function FilterLoadoutEntry(entry, data)
+		if not isSearchActive then
+			return true;
+		end
+		local title = data.title(Entry.UnpackID(entry));
+		if not title then
+			return false;
+		end
+		if title:lower():find(searchTerm:lower()) then
+			return true;
+		end
+		return MinEditDistance(title, searchTerm) < 3;
+	end
+
+	for i, data in ipairs(collections) do
+		local hasItems = false;
+		for _, entry in ipairs(data.items) do
+			if FilterLoadoutEntry(entry, data) then
+				local category = MakeCategory(data, not isSearchActive);
+				category:SetCollapsed(not isSearchActive);
+				category:Insert(Entry:New(entry, data));
+				hasItems = true;
+			end
+		end
+		if hasItems then
+			MakeCategory(data, not isSearchActive):Insert(Divider:New(4));
+		end
+	end
+	if isSearchActive and dataProvider:IsEmpty() then
+		dataProvider:Insert(Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+	end
+
+	return dataProvider;
 end

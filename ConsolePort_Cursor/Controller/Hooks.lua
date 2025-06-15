@@ -327,7 +327,7 @@ do -- Tooltip hooking
 
 	local function OnTooltipSetItemLine(self, line)
 		local owner = self:GetOwner()
-		if Hooks:IsPromptProcessingValid(owner) then
+		if Hooks:IsPromptProcessingValid(owner) and Hooks:GetBagLocationFromNode(owner) then
 			if (line.leftText or ''):match('^<') then
 				line.leftText = Hooks:GetRightActionPrompt(line.leftText) or line.leftText;
 			end

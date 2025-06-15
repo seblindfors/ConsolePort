@@ -733,6 +733,7 @@ local function GetActionbarMapperButton(owner)
 	local button, new = ActionbarMapperButtonPool:Acquire()
 	button.GetBinding = GetActionButtonBinding;
 	button:SetParent(owner)
+	button.SelectedTexture:Hide()
 	return button, new;
 end
 
@@ -756,10 +757,24 @@ end
 
 function ActionbarMapper:Init(elementData)
 	local data = elementData:GetData()
-	self.rangeMin = (data.bar - 1) * NUM_ACTIONBAR_BUTTONS + 1;
-	self.rangeMax = self.rangeMin + NUM_ACTIONBAR_BUTTONS - 1;
+	self:SetMinMaxRange(data)
 	self:UpdateInfo(data)
 	self:UpdateActivePage(db.Pager:GetCurrentPage())
+	self:UpdateButtons(data)
+end
+
+function ActionbarMapper:SetMinMaxRange(data)
+	self.rangeMin = (data.bar - 1) * NUM_ACTIONBAR_BUTTONS + 1;
+	self.rangeMax = self.rangeMin + NUM_ACTIONBAR_BUTTONS - 1;
+end
+
+function ActionbarMapper:UpdateActivePage(activePage)
+	local data = self:GetElementData():GetData()
+	self.isActivePage = activePage == data.bar;
+	self.InnerContent.Highlight:SetShown(self.isActivePage)
+end
+
+function ActionbarMapper:UpdateButtons(data)
 	for i = 1, NUM_ACTIONBAR_BUTTONS do
 		local button = self[i];
 		if button then
@@ -768,10 +783,36 @@ function ActionbarMapper:Init(elementData)
 	end
 end
 
-function ActionbarMapper:UpdateActivePage(activePage)
-	local data = self:GetElementData():GetData()
-	self.isActivePage = activePage == data.bar;
-	self.InnerContent.Highlight:SetShown(self.isActivePage)
+function ActionbarMapper:GetButtonForActionID(actionID)
+	if actionID < self.rangeMin or actionID > self.rangeMax then
+		return nil;
+	end
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button = self[i];
+		if ( button and button:GetID() == actionID ) then
+			return button;
+		end
+	end
+	return nil;
+end
+
+function ActionbarMapper:UpdateSlotHighlight(actionID, highlight)
+	local button = self:GetButtonForActionID(actionID)
+	if not button then return end;
+	if highlight then
+		button:LockHighlight()
+	else
+		button:UnlockHighlight()
+	end
+end
+
+function ActionbarMapper:UpdateSlotSelection(actionID)
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button = self[i];
+		if button then
+			button.SelectedTexture:SetShown(button:GetID() == actionID)
+		end
+	end
 end
 
 do	-- Placeholder icon function for action bars that do not have an icon.
@@ -784,7 +825,7 @@ do	-- Placeholder icon function for action bars that do not have an icon.
 
 	function ActionbarMapper:UpdateInfo(data)
 		self.Name:SetText(data.name)
-		self.Page:SetText(data.bar)
+		self.Page:SetText(data.page or data.bar)
 		if data.icon then
 			self.Icon:SetTexCoord(0, 1, 0, 1)
 			self.Icon:SetTexture(data.icon)
@@ -798,12 +839,7 @@ do	-- Placeholder icon function for action bars that do not have an icon.
 	end
 end
 
-function ActionbarMapper:OnAcquire(new)
-	if new then
-		Mixin(self, ActionbarMapper)
-		self:SetScript('OnEvent', CPAPI.EventMixin.OnEvent)
-		self:EnableMouse(false)
-	end
+function ActionbarMapper:InitButtons()
 	for i = 1, NUM_ACTIONBAR_BUTTONS do
 		local button, newObj = GetActionbarMapperButton(self)
 		if newObj then
@@ -814,7 +850,18 @@ function ActionbarMapper:OnAcquire(new)
 		button.Slug:SetText(i)
 		self[i] = button;
 	end
+end
+
+function ActionbarMapper:OnAcquire(new)
+	if new then
+		Mixin(self, ActionbarMapper)
+		self:SetScript('OnEvent', CPAPI.EventMixin.OnEvent)
+		self:EnableMouse(false)
+	end
+	self:InitButtons()
 	db:RegisterCallback('OnActionPageChanged', self.UpdateActivePage, self)
+	env:RegisterCallback('OnActionSlotHighlight', self.UpdateSlotHighlight, self)
+	env:RegisterCallback('OnActionSlotEdit', self.UpdateSlotSelection, self)
 	self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
 end
 
@@ -822,11 +869,13 @@ function ActionbarMapper:OnRelease()
 	for i = 1, NUM_ACTIONBAR_BUTTONS do
 		local button = self[i];
 		if button then
+			button:UnlockHighlight()
 			ReleaseActionbarMapperButton(button)
 			self[i] = nil;
 		end
 	end
 	db:UnregisterCallback('OnActionPageChanged', self)
+	env:UnregisterCallback('OnActionSlotHighlight', self)
 	self:UnregisterEvent('ACTIONBAR_SLOT_CHANGED')
 end
 
@@ -863,7 +912,7 @@ end
 
 function ActionbarMapper:ACTIONBAR_SLOT_CHANGED(actionID)
 	if actionID >= self.rangeMin and actionID <= self.rangeMax then
-		local button = self[actionID - self.rangeMin + 1]
+		local button = self[actionID - self.rangeMin + 1];
 		if button then
 			button:Update()
 		end
@@ -878,3 +927,7 @@ function ActionbarMapper:Data(datapoint)
 		info = datapoint.field.info;
 	};
 end
+
+ActionbarMapper.ActionButtonInit = ActionButtonInit;
+ActionbarMapper.GetActionbarMapperButton = GetActionbarMapperButton;
+ActionbarMapper.ReleaseActionbarMapperButton = ReleaseActionbarMapperButton;

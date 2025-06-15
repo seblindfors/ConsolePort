@@ -4,7 +4,7 @@ LibStub('RelaTable')(name, env, false);
 ---------------------------------------------------------------
 -- Binding helpers
 ---------------------------------------------------------------
-env.BindingInfo, env.BindingInfoMixin = db.Loadout, db.LoadoutMixin;
+env.BindingInfo = db.Loadout;
 
 function env:GetActiveDeviceAndMap()
 	-- using ID to get the buttons in WinRT API order (NOTE: zero-indexed)
