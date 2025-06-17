@@ -335,8 +335,9 @@ function Settings:Reindex()
 	for i, provider in ipairs(self.providers) do
 		local callbacks = { securecallfunction(provider, AddSetting, GetSortIndex, interface, i) };
 		if next(callbacks) then
+			local callback = GenerateClosure(self.OnVariablesChanged, self)
 			for _, event in ipairs(callbacks) do
-				db:RegisterCallback(event, GenerateClosure(self.OnVariablesChanged, self), provider);
+				db:RegisterCallback(event, callback, provider);
 				self.callbacks[provider] = self.callbacks[provider] or {};
 				self.callbacks[provider][event] = true;
 			end

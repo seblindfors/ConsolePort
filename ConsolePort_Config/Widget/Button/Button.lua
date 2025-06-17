@@ -269,6 +269,7 @@ function CPActionConfigButton:Update()
 	self.Icon:SetTexture(texture or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
 	self.Icon:SetVertexColor(vertexc, vertexc, vertexc)
 	self.Slug:SetBinding(bindingID)
+	self.Name:SetText(GetActionText(actionID))
 end
 
 function CPActionConfigButton:UpdatePrompts()

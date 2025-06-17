@@ -32,8 +32,8 @@ function Entry:OnSelected(info)
 		PickupAction(CurrentActionID)
 		ClearCursor()
 	end
-	env:TriggerEvent('OnActionEntrySelected', info, self)
 end
+
 function Entry:OnLeaveEntry()
 	if self.highlightedSlots then
 		for _, actionID in ipairs(self.highlightedSlots) do
@@ -131,7 +131,6 @@ function LoadoutSelector:Init()
 	ActionSlotter = CreateFromMixins(env.Elements.ActionbarMapper, ActionSlotter)
 	env:RegisterCallback('OnPanelShow', self.Release, self)
 	env:RegisterCallback('OnSearch', self.Release, self)
-	env:RegisterCallback('OnActionEntrySelected', self.RefreshCollections, self)
 	env.Frame:HookScript('OnHide', GenerateClosure(self.Release, self))
 end
 
@@ -143,14 +142,37 @@ function LoadoutSelector:Release()
 	CurrentActionID = nil;
 	self:OnSearch(nil)
 	self:ClearCollections()
+	if self.returnToNode then
+		ConsolePort:SetCursorNodeIfActive(self.returnToNode)
+		self.returnToNode = nil;
+	end
+	if self.slotChangedCallback then
+		self.slotChangedCallback = self.slotChangedCallback:Unregister()
+	end
 end
 
+---------------------------------------------------------------
+-- Helpers
+---------------------------------------------------------------
 function LoadoutSelector:GetDataProvider()
 	return env.Frame.Container.Left:GetDataProvider()
 end
 
 function LoadoutSelector:GetScrollView()
 	return env.Frame.Container.Left:GetScrollView()
+end
+
+function LoadoutSelector:FindFirstOfType(type)
+	return self:GetScrollView():FindElementDataByPredicate(function(elementData)
+		return elementData:GetData().xml == type.xml;
+	end)
+end
+
+function LoadoutSelector:RefreshSlotter(newData)
+	local elementData = self:FindFirstOfType(ActionSlotter)
+	if elementData then
+		db.table.merge(elementData:GetData(), ActionSlotter:Data(newData))
+	end
 end
 
 function LoadoutSelector:EditAction(actionID, bindingID, element)
@@ -160,22 +182,33 @@ function LoadoutSelector:EditAction(actionID, bindingID, element)
 	CurrentActionID = actionID;
 	self:RefreshSlotter(self:GetSlotterData(actionID))
 	self:RefreshCollections()
-end
 
-function LoadoutSelector:RefreshSlotter(newData)
-	local elementData = self:GetScrollView():FindElementDataByPredicate(function(elementData)
-		return elementData:GetData().xml == ActionSlotter.xml;
-	end)
+	if not self.slotChangedCallback then
+		self.slotChangedCallback = EventRegistry:RegisterFrameEventAndCallbackWithHandle(
+			'ACTIONBAR_SLOT_CHANGED',
+			self.ACTIONBAR_SLOT_CHANGED,
+			self
+		);
+	end
+
+	local elementData, target = self:FindFirstOfType(env.Elements.Back)
 	if elementData then
-		db.table.merge(elementData:GetData(), ActionSlotter:Data(newData))
+		target = self:GetScrollView():FindFrame(elementData)
+	end
+	if target then
+		self.returnToNode = element;
+		return ConsolePort:SetCursorNodeIfActive(target)
 	end
 end
 
+---------------------------------------------------------------
+-- Collection
+---------------------------------------------------------------
 function LoadoutSelector:UpdateCollections()
 	local dataProvider = CPLoadoutContainerMixin.UpdateCollections(self)
 
 	for i, element in ipairs({
-		env.Elements.Divider:New(4);
+		env.Elements.Title:New(EDIT);
 		ActionSlotter:New(self:GetSlotterData(CurrentActionID));
 		env.Elements.Divider:New(4);
 		env.Elements.Back:New({
@@ -219,4 +252,10 @@ end
 
 function LoadoutSelector:GetElements()
 	return Entry, CPLoadoutContainerMixin.GetElements(self);
+end
+
+function LoadoutSelector:ACTIONBAR_SLOT_CHANGED(slot)
+	if slot == CurrentActionID then
+		self:RefreshCollections()
+	end
 end

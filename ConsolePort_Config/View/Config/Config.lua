@@ -222,7 +222,7 @@ function Config:OnSearch(text)
 		local _, right = self.Container:GetLists()
 		local results = right:GetDataProvider()
 		results:Flush()
-		for _, panel in env:EnumeratePanels() do
+		for _, panel in env:EnumeratePanels() do -- TODO: should this be ipairs_reverse?
 			panel:OnSearch(text, results)
 		end
 		if results:IsEmpty() then

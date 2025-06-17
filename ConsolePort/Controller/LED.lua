@@ -88,6 +88,7 @@ end;
 function LED:OnDataLoaded()
 	self:SetScript('OnUpdate', nil)
 	self:UnregisterAllEvents()
+	self:RegisterEvent('GAME_PAD_CONNECTED')
 
 	local mode = self[db('LEDMode')];
 	if not mode then
@@ -97,6 +98,7 @@ function LED:OnDataLoaded()
 	securecallfunction(mode, self);
 end
 
+LED.GAME_PAD_CONNECTED = LED.OnDataLoaded;
 db:RegisterCallbacks(LED.OnDataLoaded, LED,
 	'Settings/LEDMode',
 	'Settings/LEDColor'

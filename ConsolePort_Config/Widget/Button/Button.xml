@@ -269,13 +269,21 @@
 			<Attribute name="nohooks" type="boolean" value="true"/>
 		</Attributes>
 		<Layers>
-			<Layer level="ARTWORK">
+			<Layer level="OVERLAY">
 				<FontString parentKey="Slug" inherits="CPSlug">
 					<KeyValues>
 						<KeyValue key="notBound" value="" type="string"/>
 					</KeyValues>
 					<Anchors>
 						<Anchor point="TOPRIGHT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="GameFontHighlightSmallOutline">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
 					</Anchors>
 				</FontString>
 			</Layer>
