@@ -9,12 +9,12 @@ local Cursor, Fade, Node = db.Cursor, db.Alpha.Fader, env.Node;
 -- Anchoring and movement
 ---------------------------------------------------------------
 function Cursor:SetAnchor(node)
-	self.hasCustomAnchor = node.customCursorAnchor
-	self.anchor = self.hasCustomAnchor or {'TOPLEFT', node, 'CENTER', Node.GetCenterPos(node)}
+	self.customAnchor = node.customCursorAnchor;
+	self.anchor = self.customAnchor or {'TOPLEFT', node, 'CENTER', Node.GetCenterPos(node)};
 end
 
 function Cursor:GetCustomAnchor()
-	return self.hasCustomAnchor
+	return self.customAnchor;
 end
 
 function Cursor:GetAnchor()

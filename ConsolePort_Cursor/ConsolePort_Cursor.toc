@@ -24,5 +24,6 @@ Controller\Hooks.lua
 Controller\Mods.lua
 Controller\Scripts.lua
 Controller\Scroll.lua
+Controller\Nudge.lua
 
 View\Cursor.xml

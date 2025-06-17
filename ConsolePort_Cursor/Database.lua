@@ -111,9 +111,16 @@ ConsolePort:AddVariables({
 		deps = DEPENDENCY;
 	};
 	UImodifierCommands = _{Data.Select('SHIFT', unpack(MODID_SELECT));
-		name = 'Modifier';
+		name = 'Command Modifier';
 		desc = 'Which modifier to use for modified commands.';
 		note = 'The modifier can be used to scroll together with the directional pad.';
+		opts = MODID_SELECT;
+		deps = DEPENDENCY;
+	};
+	UImodifierNudge = _{Data.Select('CTRL', unpack(MODID_SELECT));
+		name = 'Nudge Modifier';
+		desc = 'Which modifier to use for nudging the cursor.';
+		note = 'The modifier can be used to nudge the cursor position with the directional pad.';
 		opts = MODID_SELECT;
 		deps = DEPENDENCY;
 	};
