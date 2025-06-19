@@ -110,12 +110,17 @@ function Nudge:UpdatePosition()
 		nY = Lerp(self.y, nY, .075);
 		self:SetXY(nX, nY)
 
-		local d = self:GetDelta()
+		local delta  = self:GetDelta()
 		local cX, cY = Node.GetCenter(cursor)
+		local tX, tY = cX + (nX * delta), cY + (nY * delta);
 
-		cursor.customAnchor = {'CENTER', UIParent, 'BOTTOMLEFT', cX + (nX * d), cY + (nY * d)};
-		cursor:ClearAllPoints();
-		cursor:SetPoint(unpack(cursor.customAnchor));
+		local customAnchor, forceAnchor = cursor:GetCustomAnchor()
+		if not customAnchor or not forceAnchor then
+			customAnchor = {'CENTER', UIParent, 'BOTTOMLEFT', tX, tY};
+		else
+			customAnchor[4], customAnchor[5] = tX, tY;
+		end
+		cursor:SetCustomAnchor(customAnchor, true)
 	end
 end
 
@@ -138,11 +143,11 @@ function Nudge:MODIFIER_STATE_CHANGED()
 	if isActive then return end;
 
 	local cursor = self.Cursor;
-	if not cursor.customAnchor then return end;
+	if not cursor:GetCustomAnchor() then return end;
 
 	local cX, cY = Node.GetCenter(cursor)
 	cursor:ScanUI()
-	cursor.customAnchor = nil;
+	cursor:SetCustomAnchor(nil)
 
 	local target = Node.NavigateToArbitraryCandidate(nil, nil, cX, cY, true)
 	if target then

@@ -8,17 +8,21 @@ local Cursor, Fade, Node = db.Cursor, db.Alpha.Fader, env.Node;
 ---------------------------------------------------------------
 -- Anchoring and movement
 ---------------------------------------------------------------
-function Cursor:SetAnchor(node)
-	self.customAnchor = node.customCursorAnchor;
-	self.anchor = self.customAnchor or {'TOPLEFT', node, 'CENTER', Node.GetCenterPos(node)};
+function Cursor:SetAnchorForNode(node)
+	self:SetCustomAnchor(node.customCursorAnchor, false);
+end
+
+function Cursor:SetCustomAnchor(anchor, force)
+	self.customAnchor = anchor;
+	self.forceAnchor  = force;
+	if anchor then
+		self:ClearAllPoints();
+		self:SetPoint(unpack(anchor));
+	end
 end
 
 function Cursor:GetCustomAnchor()
-	return self.customAnchor;
-end
-
-function Cursor:GetAnchor()
-	return self.anchor
+	return self.customAnchor, self.forceAnchor;
 end
 
 function Cursor:RefreshAnchor()
@@ -31,7 +35,7 @@ end
 
 function Cursor:SetPosition(node)
 	self:SetTexture()
-	self:SetAnchor(node)
+	self:SetAnchorForNode(node)
 	self:Show()
 	self:Move()
 end
