@@ -54,6 +54,7 @@ local SlotButton = Mixin({
 				end
 				self:SetAttribute('pressAndHoldAction', pressAndHold)
 			end
+			self:CallMethod('OnTypeChanged', type == 'action')
 		]];
 		[env.Attributes.Update('actionpage')] = [[
 			self:SetAttribute('actionpage', message)
@@ -68,6 +69,7 @@ local SlotButton = Mixin({
 
 function SlotButton:OnLoad()
 	self:CreateEnvironment()
+	self:SetAttribute(env.Attributes.UUID, true)
 
 	if not CPAPI.IsRetailVersion then
 		-- Assert assets on all client flavors
@@ -88,6 +90,10 @@ function SlotButton:OnLoad()
 	end
 
 	self:UpdateLocal(true)
+end
+
+function SlotButton:OnTypeChanged(isAction)
+	env:TriggerEvent(isAction and 'ActionButton.OnActionChanged' or 'ActionButton.OnTypeChanged', self)
 end
 
 function SlotButton:SetActionBinding(state, actionID)

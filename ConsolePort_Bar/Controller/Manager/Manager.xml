@@ -2,4 +2,5 @@
 ..\FrameXML\UI.xsd">
 	<Frame name="ConsolePortBarManager" parent="UIParent" clampedToScreen="true" movable="true" inherits="SecureHandlerStateTemplate, SecureHandlerShowHideTemplate"/>
 	<Script file="Manager.lua"/>
+	<Script file="AssistedCombat.lua"/>
 </Ui>

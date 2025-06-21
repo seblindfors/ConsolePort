@@ -587,6 +587,9 @@ function Lib.RoundGlow.ShowOverlayGlow(frame)
 		overlay.animIn:Play()
 		frame.__LBGoverlay = overlay
 	end
+	if frame.OnOverlayGlow then
+		frame:OnOverlayGlow(true)
+	end
 end
 
 function Lib.RoundGlow.HideOverlayGlow(frame)
@@ -599,6 +602,9 @@ function Lib.RoundGlow.HideOverlayGlow(frame)
 		else
 			OverlayGlowAnimOutFinished(frame.__LBGoverlay.animOut)
 		end
+	end
+	if frame.OnOverlayGlow then
+		frame:OnOverlayGlow(false)
 	end
 end
 

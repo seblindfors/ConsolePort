@@ -1,4 +1,4 @@
-## Interface: 110105
+## Interface: 110107
 ## Interface-Classic: 11507
 ## Interface-Wrath: 30403
 ## Interface-Cata: 40402
@@ -6,7 +6,7 @@
 ## Title: Console Port
 ## Notes: Game controller addon
 ## AddonCompartmentFunc: ConsolePort
-## Version: 2.9.65
+## Version: 2.9.66
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
