@@ -116,7 +116,7 @@ function ActionSlotter:InitButtons()
 	if newObj then
 		env.Elements.ActionbarMapper.ActionButtonInit(button)
 	end
-	button:SetPoint('RIGHT', -6, 0)
+	button:SetPoint('RIGHT', -8, 0)
 	button:Show()
 	button.Slug:SetText('')
 	self[1] = button;

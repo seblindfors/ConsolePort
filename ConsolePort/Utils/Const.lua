@@ -14,6 +14,7 @@ CPAPI.ExtraActionButtonID = (ExtraActionButton1 or {}).action or CPAPI.IsRetailV
 CPAPI.ActionTypeRelease   = CPAPI.IsRetailVersion and 'typerelease' or 'type';
 CPAPI.ActionTypePress     = 'type';
 CPAPI.ActionPressAndHold  = 'pressAndHoldAction';
+CPAPI.ActionUseOnKeyDown  = 'useOnKeyDown';
 
 CPAPI.DefaultRingSetID    = 1;
 

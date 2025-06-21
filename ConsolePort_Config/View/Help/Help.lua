@@ -1,4 +1,4 @@
-local env, db, L = CPAPI.GetEnv(...); L = env.L;
+local env, db, _, L = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 
 local function MakeTitle(text)
@@ -18,23 +18,23 @@ local function MakeDivider()
 end
 
 ---------------------------------------------------------------
--- Bindings Panel
+-- Help Panel
 ---------------------------------------------------------------
-local Bindings = env:CreatePanel({
-	name = KEY_BINDINGS_MAC;
+local Help = env:CreatePanel({
+	name = HELP_LABEL;
 })
 
-function Bindings:OnLoad()
+function Help:OnLoad()
 	CPAPI.Start(self)
 end
 
-function Bindings:OnShow()
+function Help:OnShow()
 	print('Hello world')
-	self:RenderBindings()
+	self:RenderHelp()
 end
 
-function Bindings:RenderBindings()
-	local bindings = env.BindingInfo:RefreshDictionary()
+function Help:RenderHelp()
+	--[[local bindings = env.BindingInfo:RefreshDictionary()
 	local _, right = self:GetLists()
 	local settings = right:GetDataProvider()
 	settings:Flush()
@@ -42,11 +42,11 @@ function Bindings:RenderBindings()
 	settings:Insert(MakeTitle(KEY_BINDINGS_MAC))
 	for header, set in env.table.spairs(bindings) do
 		self:Render(settings, header:trim(), set, true)
-	end
+	end]]
 end
 
-function Bindings:Render(provider, title, data, preferCollapsed)
-	local header = provider:Insert(MakeHeader(title, preferCollapsed))
+function Help:Render(provider, title, data, preferCollapsed)
+	--[[local header = provider:Insert(MakeHeader(title, preferCollapsed))
 	for _, binding in ipairs(data) do
 		header:Insert(MakeBinding(
 			binding.name,
@@ -56,5 +56,5 @@ function Bindings:Render(provider, title, data, preferCollapsed)
 	end
 	if next(data) then
 		header:Insert(MakeDivider())
-	end
+	end]]
 end

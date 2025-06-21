@@ -269,9 +269,9 @@ local Evaluators = {
 		for setID, set in pairs(data) do
 			local ring = {};
 			for _, buttonData in db.table.spairs(set) do
-				tinsert(ring, buttonData)
+				tinsert(ring, buttonData) -- TODO: this doesn't work with the meta field
 			end
-			db('Utility/Data/'..setID, ring)
+			db('Utility/Data/'..setID, ring) -- TODO: ring data isn't stored here anymore
 		end
 		return true;
 	end};

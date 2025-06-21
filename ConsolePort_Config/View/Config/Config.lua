@@ -16,8 +16,8 @@ function Panel:GetLists()
 	return self.container:GetLists();
 end
 
-function Panel:GetCanvas()
-	return self.container:GetCanvas();
+function Panel:GetCanvas(reset)
+	return self.container:GetCanvas():GetContainer(self, reset)
 end
 
 function Panel:OnPanelLoad(id)
@@ -44,11 +44,36 @@ function Panel:OnDefaults()
 end
 
 ---------------------------------------------------------------
+local Canvas = CreateFromMixins(CPIndexPoolMixin)
+---------------------------------------------------------------
+
+function Canvas:OnLoad()
+	CPIndexPoolMixin.OnLoad(self)
+	self:CreateFramePool('Frame')
+end
+
+function Canvas:Flush()
+	self.framePool:ReleaseAll()
+end
+
+function Canvas:GetContainer(panel, reset)
+	local canvasPanel, newObj = self:TryAcquireRegistered(panel.id)
+	if newObj or reset then
+		canvasPanel:ClearAllPoints()
+		canvasPanel:SetPoint('CENTER', 0, 0)
+		canvasPanel:SetSize(self:GetSize())
+	end
+	return canvasPanel, newObj;
+end
+
+---------------------------------------------------------------
 local Container = {};
 ---------------------------------------------------------------
 
 function Container:OnLoad()
 	FrameUtil.SpecializeFrameWithMixins(self, CPBackgroundMixin)
+	FrameUtil.SpecializeFrameWithMixins(self.Canvas, Canvas)
+
 	self:SetBackgroundInsets(4, -4, 4, 4)
 	self:AddBackgroundMaskTexture(self.BorderArt.BgMask)
 	self:SetBackgroundAlpha(0.25)
@@ -131,7 +156,6 @@ function Config:OnLoad()
 	env:TriggerEvent('OnConfigLoad', self)
 
 	-- Nav bar buttons
-	local L = env.L;
 	self.CloseButton:SetTooltipInfo(SETTINGS_CLOSE, L(
 		'The configuration is accessible by the chat command %s or from the game menu.',
 		GREEN_FONT_COLOR:WrapTextInColorCode('/consoleport')
@@ -341,6 +365,7 @@ do  local panelIDGen, panels = CreateCounter(), {};
 	local function PanelInitializer(panel, panelID, info, config)
 		local navButton = config.Nav:AddButton(info.name, NavButtonOnClick, panelID)
 		navButton:SetID(panelID)
+		navButton.layoutIndex = panelID;
 		env:RegisterCallback('OnPanelShow', NavButtonOnPanelShow, navButton)
 		env:UnregisterCallback('OnConfigLoad', panel)
 		panel:Init(panelID, config.Container, navButton)

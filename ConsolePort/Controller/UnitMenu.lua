@@ -84,6 +84,7 @@ end
 -- Secure
 ---------------------------------------------------------------
 UnitMenuSecure:RegisterForClicks('AnyDown')
+UnitMenuSecure:SetAttribute(CPAPI.ActionUseOnKeyDown, true)
 UnitMenuSecure:Execute([[
 	UNIT_DRIVER = '[@%s,exists] %s; nil';
 	BUTTONS = newtable();

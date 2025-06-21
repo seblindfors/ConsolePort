@@ -369,10 +369,10 @@ end
 -- Node
 ---------------------------------------------------------------
 local function WrappedExecute(func, execEnv, ...)
-	local env = getfenv(func)
-	setfenv(func, setmetatable(execEnv, {__index = env}))
+	local fenv = getfenv(func)
+	setfenv(func, setmetatable(execEnv, {__index = fenv}))
 	func(...)
-	setfenv(func, env)
+	setfenv(func, fenv)
 end
 
 function Hooknode:OnContainerButtonModifiedClick(...)

@@ -1,5 +1,6 @@
 <Ui>
 	<Script file="Helpers.lua"/>
+	<Script file="Pools.lua"/>
 	<Include file="Fonts.xml"/>
 	<!-- Intrinsics -->
 	<Include file="IndexButton\IndexButton.xml"/>
