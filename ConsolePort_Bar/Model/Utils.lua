@@ -2,7 +2,7 @@ local name, env = ...;
 local env = LibStub('RelaTable')(name, env, false)
 env.db         = ConsolePort:DB();
 env.Const      = {};
-env.Attributes = {};
+env.Attributes = { UUID = random((select(4,GetBuildInfo()))) };
 env.UIHandler  = CPAPI.CreateEventHandler({'Frame'}, {
 	'PLAYER_REGEN_DISABLED';
 	'PLAYER_REGEN_ENABLED';
