@@ -76,6 +76,19 @@ function CPAPI.HSV2RGB(h, s, v)
 	return r + m, g + m, b + m;
 end
 
+function CPAPI.RGB2HSV(r, g, b)
+    local max, min = math.max(r, g, b), math.min(r, g, b)
+    local delta, h, s, v = max - min, 0, 0, max;
+    if delta ~= 0 then
+        h = max == r and (g - b) / delta
+		or max == g and 2 + (b - r) / delta
+		or 4 + (r - g) / delta;
+        h = (h * 60 + 360) % 360;
+        s = delta / max;
+    end
+    return h, s, v;
+end
+
 function CPAPI.GetMixColorGradient(dir, r, g, b, a, base, multi)
 	local add = base or 0.3
 	local mul = multi or 1.1

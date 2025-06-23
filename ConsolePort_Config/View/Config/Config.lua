@@ -17,7 +17,7 @@ function Panel:GetLists()
 end
 
 function Panel:GetCanvas(reset)
-	return self.container:GetCanvas():GetContainer(self, reset)
+	return self.container:GetCanvas():Flush():GetContainer(self, reset)
 end
 
 function Panel:OnPanelLoad(id)
@@ -53,7 +53,10 @@ function Canvas:OnLoad()
 end
 
 function Canvas:Flush()
-	self.framePool:ReleaseAll()
+	for canvasPanel in self:EnumerateActive() do
+		canvasPanel:Hide()
+	end
+	return self;
 end
 
 function Canvas:GetContainer(panel, reset)

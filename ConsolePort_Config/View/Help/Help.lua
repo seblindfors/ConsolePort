@@ -30,11 +30,25 @@ end
 
 function Help:OnShow()
 	print('Hello world')
-	self:RenderHelp()
+	self:Render()
 end
 
-function Help:RenderHelp()
-	--[[local bindings = env.BindingInfo:RefreshDictionary()
+function Help:InitCanvas(canvas)
+	local t = canvas:CreateTexture(nil, 'BACKGROUND')
+	t:SetAllPoints()
+	t:SetColorTexture(1, 0, 0, 0.5)
+end
+
+function Help:Render()
+	local canvas, newObj = self:GetCanvas(true)
+	if newObj then
+		self:InitCanvas(canvas)
+	end
+	canvas:Show()
+end
+
+--[[function Help:RenderHelp()
+	local bindings = env.BindingInfo:RefreshDictionary()
 	local _, right = self:GetLists()
 	local settings = right:GetDataProvider()
 	settings:Flush()
@@ -42,11 +56,11 @@ function Help:RenderHelp()
 	settings:Insert(MakeTitle(KEY_BINDINGS_MAC))
 	for header, set in env.table.spairs(bindings) do
 		self:Render(settings, header:trim(), set, true)
-	end]]
+	end
 end
 
 function Help:Render(provider, title, data, preferCollapsed)
-	--[[local header = provider:Insert(MakeHeader(title, preferCollapsed))
+	local header = provider:Insert(MakeHeader(title, preferCollapsed))
 	for _, binding in ipairs(data) do
 		header:Insert(MakeBinding(
 			binding.name,
@@ -56,5 +70,5 @@ function Help:Render(provider, title, data, preferCollapsed)
 	end
 	if next(data) then
 		header:Insert(MakeDivider())
-	end]]
-end
+	end
+end]]

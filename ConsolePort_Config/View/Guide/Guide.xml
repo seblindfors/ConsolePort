@@ -1,3 +1,4 @@
 <Ui>
 	<Script file="Guide.lua"/>
+	<Include file="Overview.xml"/>
 </Ui>

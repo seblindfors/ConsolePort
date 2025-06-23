@@ -108,10 +108,12 @@ function GamepadAPI:OnDataLoaded()
 	for id, device in pairs(presets) do
 		-- (1) fill in new presets that have been added,
 		-- (2) overwrite existing if version has been bumped
+		-- (3) always update the theme to the latest.
 		if  ( not self.Devices[id] or device.Version and
 			( self.Devices[id].Version < device.Version )) then
 			self.Devices[id] = device;
 		end
+		self.Devices[id].Theme = device.Theme;
 	end
 	for id, device in pairs(self.Devices) do
 		CPAPI.Proxy(device, GamepadMixin):OnLoad()

@@ -249,10 +249,13 @@ end
 -- Flags
 ---------------------------------------------------------------
 do local function UpdateFlags(flag, flags, predicate)
+		if ( type(predicate) == 'number' ) then
+			return UpdateFlags(flag, flags, bit.band(predicate, flag) == flag)
+		end
 		return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
 	end
 
-	local function GetMapState(self, inputs, options)
+	local function GetMapState(self, inputs, options) options = options or tInvert(self);
 		local state, option = 0;
 		local flags = getmetatable(self).__index;
 		for flag, predicate in pairs(inputs) do
@@ -265,7 +268,7 @@ do local function UpdateFlags(flag, flags, predicate)
 
 	function CPAPI.CreateFlagClosures(flags)
 		local closures = {};
-		if (  #flags > 0 ) then
+		if (  #flags > 0 and assert(#flags < 32, 'Overflow: too many flags.')) then
 			for i, flag in ipairs(flags) do
 				closures[flag] = GenerateClosure(UpdateFlags, bit.lshift(1, i));
 			end

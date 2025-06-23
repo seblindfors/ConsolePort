@@ -5,7 +5,8 @@ local env, db, _, L = CPAPI.GetEnv(...);
 -- Guide Panel
 ---------------------------------------------------------------
 local Guide = env:CreatePanel({
-	name = GUIDE;
+	name    = GUIDE;
+	content = {};
 })
 
 function Guide:OnLoad()
@@ -17,9 +18,6 @@ function Guide:OnShow()
 end
 
 function Guide:InitCanvas(canvas)
-	local t = canvas:CreateTexture(nil, 'BACKGROUND')
-	t:SetAllPoints()
-	t:SetColorTexture(0, 1, 0, 0.5)
 end
 
 function Guide:Render()
@@ -28,4 +26,23 @@ function Guide:Render()
 		self:InitCanvas(canvas)
 	end
 	canvas:Show()
+	self:AutoSelectContent(canvas)
+end
+
+function Guide:AutoSelectContent(canvas)
+	for _, content in ipairs(self.content) do
+		if content.predicate() then
+			content.initializer(canvas)
+			return true;
+		end
+	end
+	return false;
+end
+
+function Guide:AddContent(predicate, initializer, resetter)
+	tinsert(self.content, {
+		initializer = initializer;
+		predicate   = predicate;
+		resetter    = resetter or nop;
+	})
 end

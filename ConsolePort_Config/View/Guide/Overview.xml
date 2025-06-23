@@ -1,0 +1,68 @@
+<Ui>
+	<Line name="CPOverviewLine" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" virtual="true"/>
+	<Frame name="CPOverviewActionDisplay" virtual="true">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<FontString parentKey="Modifier" inherits="Game15Font">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="6" y="-2"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="ActionIcon" alpha="0">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="RIGHT" x="-8"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="3">
+				<Texture parentKey="Mask" alpha="0" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ActionIcon" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActionIcon" x="1" y="-1"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="MaskAlpha"
+					file="Interface\CharacterFrame\TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.ActionIcon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActionIcon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="ActionIcon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPOverviewMapperHeader" virtual="true">
+		<Size x="360" y="60"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<FontString parentKey="Label" inherits="CPSmallFont" justifyH="CENTER" height="12" spacing="2">
+					<Anchors>
+						<Anchor point="LEFT"/>
+						<Anchor point="RIGHT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPOverviewBindingDisplay" inherits="CPOverviewActionDisplay, CPOverviewMapperHeader" virtual="true"/>
+	<Button name="CPOverviewBindingSplashDisplay" inherits="CPOverviewBindingDisplay" virtual="true">
+		<Size x="200" y="48"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Line parentKey="Bottom" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="32" y="32"/>
+				</Texture>
+			</Layer>
+		</Layers>	
+	</Button>
+	<Script file="Overview.lua"/>
+</Ui>
