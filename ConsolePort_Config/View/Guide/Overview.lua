@@ -12,7 +12,7 @@ local ButtonLayout = {
 		buttonPoint = {'LEFT', 0, 0};
 		startAnchor = {'BOTTOMRIGHT', 0, 0};
 		endAnchor   = {'BOTTOMLEFT', 0, 0};
-		lineCoords  = {0, 1, 1, 0};
+		lineCoords  = CPSplineLineMixin.lineBaseCoord.LEFT;
 	};
 	RIGHT = {
 		iconPoint   = {'LEFT', 'RIGHT', 4, 0};
@@ -20,21 +20,9 @@ local ButtonLayout = {
 		buttonPoint = {'RIGHT', 0, 0};
 		startAnchor = {'BOTTOMLEFT', 0, 0};
 		endAnchor   = {'BOTTOMRIGHT', 0, 0};
-		lineCoords  = {0, 1, 0, 1};
+		lineCoords  = CPSplineLineMixin.lineBaseCoord.RIGHT;
 	};
 };
-
-local function CreateLinePool(ownerFrame, template)
-	return CreateObjectPool(
-		function(_)
-			return ownerFrame:CreateLine(nil, 'ARTWORK', template);
-		end,
-		function(_, line)
-			line:Hide();
-			line:ClearAllPoints();
-		end
-	);
-end
 
 ---------------------------------------------------------------
 local Button = CreateFromMixins(env.BindingInfoMixin);
@@ -138,7 +126,7 @@ function Button:GetChordBinding(mod)
 end
 
 function Button:GetBinding()
-	return GetBindingAction(CPAPI.CreateKeyChord(self.baseBinding));
+	return GetBindingAction(self.mod .. self.baseBinding);
 end
 
 function Button:GetBaseBinding()
@@ -156,6 +144,7 @@ end
 function Button:UpdateState(currentModifier)
 	local reserved = self.reservedData;
 	local isClickOverride = (self:IsClickReserved(reserved) and currentModifier ~= '')
+	self.mod = currentModifier or '';
 	if not isClickOverride and reserved then
 		self:SetActionIcon(nil)
 		self:SetText(WHITE_FONT_COLOR:WrapTextInColorCode(L(reserved.name)))
@@ -168,41 +157,39 @@ function Button:UpdateState(currentModifier)
 end
 
 ---------------------------------------------------------------
-local MainButton = CreateFromMixins(Button);
+local MainButton = CreateFromMixins(Button, CPSplineLineMixin)
 ---------------------------------------------------------------
 
 function MainButton:OnLoad()
 	Button.OnLoad(self)
-	self.lines  = CreateLinePool(self.Container, 'CPOverviewLine')
-	self.spline = CreateCatmullRomSpline(2)
+	CPSplineLineMixin.OnLoad(self)
+	self:SetLineOrigin('CENTER', self.Container)
 end
 
 function MainButton:OnEnter()
 	Button.OnEnter(self)
-	self:SetLineAlpha(1.0)
+	self:SetLineAlpha(1.0, true)
 end
 
 function MainButton:OnLeave()
 	Button.OnLeave(self)
-	self:SetLineAlpha(nil)
+	self:SetLineAlpha(nil, false)
 end
 
-function MainButton:SetLineAlpha(alpha)
+function MainButton:SetLineAlpha(alpha, reverse)
 	self.Bottom:SetAlpha(alpha or 1.0)
-	for line in self.lines:EnumerateActive() do
-		line:SetAlpha(alpha or line.finalAlpha)
-	end
+	self:PlayLineEffect(0.25, function(bit)
+		bit:SetAlpha(alpha or bit.finalAlpha)
+	end, reverse)
 end
 
 function MainButton:SetData(index, total, data, isLeft)
-	self.lines:ReleaseAll()
-	self.spline:ClearPoints()
+	self:ClearLinePoints()
 
 	self.index  = index;
 	self.data   = data;
 
-    -- Create the final point for the button, which is based
-    -- on the index, the total, and the size of the container.
+    -- Calculate position and constraints
     local w, h = self.Container:GetWidth()
 
     local entryHeight = 54; -- Height required for each entry
@@ -218,44 +205,31 @@ function MainButton:SetData(index, total, data, isLeft)
 	local lastX = x + (isLeft and w / 2 or -w / 2) + (isLeft and -3 or 3);
 	local lastY = y - (h / 2);
 
-	-- Add the final point to the data, calculate the spline
-	tinsert(self.data.points, { lastX, lastY })
-	print('Adding points for button:', self.data.button, 'at', lastX, lastY)
+	-- Add points, join the spline points with the edge of the button.
 	for _, point in ipairs(self.data.points) do
-		self.spline:AddPoint(unpack(point))
+		self:AddLinePoint(unpack(point))
 	end
+	self:AddLinePoint(lastX, lastY)
 
+	self:SetLineDrawLayer('ARTWORK', data.level)
 	self:SetupRegions(isLeft and 'LEFT' or 'RIGHT')
 	self:SetBinding(data.button)
 	self:UpdateLines()
 end
 
 function MainButton:UpdateLines()
-	local numSegments, level, coords = 50, self.data.level, self.lineCoords;
-	local lines, spline = self.lines, self.spline;
-
 	local r, g, b = self.Container:GetColor()
 	local h, s, v = CPAPI.RGB2HSV(r, g, b)
 	self.Bottom:SetVertexColor(r, g, b)
 	self.Bottom:SetAlpha(1.0)
 
 	local e = (h + 180) % 360;
-	for i = 1, numSegments do
-		local section = i / numSegments;
-		local line = lines:Acquire();
-
-		line:SetStartPoint('CENTER', spline:CalculatePointOnGlobalCurve(section - (2 / numSegments)))
-		line:SetEndPoint('CENTER',   spline:CalculatePointOnGlobalCurve(section))
-
+	self:DrawLine(function(bit, section)
 		local hue = Lerp(e, h, section);
-		line.finalAlpha = EasingUtil.InCubic(Lerp(0, 1.0, section));
-		line:SetVertexColor(CPAPI.HSV2RGB(hue, s, v))
-		line:SetDrawLayer('ARTWORK', level)
-		line:SetTexCoord(unpack(coords))
-		line:SetAlpha(line.finalAlpha)
-
-		line:Show()
-	end
+		bit.finalAlpha = EasingUtil.InCubic(Lerp(0, 1.0, section));
+		bit:SetVertexColor(CPAPI.HSV2RGB(hue, s, v))
+		bit:SetAlpha(bit.finalAlpha)
+	end)
 end
 
 ---------------------------------------------------------------
@@ -284,6 +258,11 @@ function Overview:Acquire()
 end
 
 function Overview:OnShow()
+	self.currentMods = {
+		ALT   = false;
+		CTRL  = false;
+		SHIFT = false;
+	};
 	self:SetDevice(env:GetActiveDeviceAndMap())
 	self:RegisterEvent('MODIFIER_STATE_CHANGED')
 end
@@ -294,6 +273,7 @@ function Overview:OnHide()
 	self.Splash:SetTexture(nil)
 	self.Device = nil;
 	self.baseColor = nil;
+	self.currentMods = nil;
 end
 
 function Overview:GetColor()
@@ -303,8 +283,28 @@ function Overview:GetColor()
 	return self.baseColor:GetRGB()
 end
 
-function Overview:OnEvent()
-	local currentModifier = CPAPI.CreateKeyChord('');
+function Overview:OnEvent(_, modifier, state)
+	if (state ~= 0) then return end; -- isUp
+	self:UpdateModifier(self:ToggleModifier(modifier))
+end
+
+function Overview:ToggleModifier(modifier)
+	for tracked in pairs(self.currentMods) do
+		if modifier:match(tracked) then
+			self.currentMods[tracked] = not self.currentMods[tracked];
+			break;
+		end
+	end
+	self.mod = '';
+	for mod, isDown in db.table.spairs(self.currentMods) do
+		if isDown then
+			self.mod = self.mod .. mod .. '-';
+		end
+	end
+	return self.mod;
+end
+
+function Overview:UpdateModifier(currentModifier)
 	for button in self.buttonPool:EnumerateActive() do
 		button:UpdateState(currentModifier)
 	end
