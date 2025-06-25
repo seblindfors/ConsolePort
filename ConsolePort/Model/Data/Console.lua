@@ -338,6 +338,14 @@ function Console:GetEmulationForButton(button)
 	end
 end
 
+function Console:GetEmulationForModifier(modifier)
+	for i, data in ipairs(self.Bindings) do
+		if (data.cvar == modifier) then
+			return data;
+		end
+	end
+end
+
 --[[ unhandled:
 	
 	GamePadCursorCentering = "When using GamePad, center the cursor",

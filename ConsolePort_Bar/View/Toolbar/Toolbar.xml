@@ -88,7 +88,7 @@
 					<Anchor point="BOTTOM" y="17"/>
 				</Anchors>
 				<Frames>
-					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarNineSliceFrame" alpha="0">
+					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarSixSliceInverterFrame" alpha="0">
 						<Size x="300" y="40"/>
 						<KeyValues>
 							<KeyValue key="childXPadding" value="1" type="number"/>

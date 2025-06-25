@@ -114,6 +114,7 @@ end
 
 function Button:SetReserved(reservedData)
 	self.reservedData = reservedData;
+	return reservedData;
 end
 
 function Button:IsClickReserved(override)
@@ -126,7 +127,11 @@ function Button:GetChordBinding(mod)
 end
 
 function Button:GetBinding()
-	return GetBindingAction(self.mod .. self.baseBinding);
+	return GetBindingAction(self:GetKeyChord());
+end
+
+function Button:GetKeyChord()
+	return self.mod .. self.baseBinding;
 end
 
 function Button:GetBaseBinding()
@@ -141,10 +146,10 @@ function Button:SetActionIcon(texture)
 	self.Mask:SetAlpha(texture and 1 or 0)
 end
 
-function Button:UpdateState(currentModifier)
-	local reserved = self.reservedData;
+function Button:UpdateState(currentModifier) self.mod = currentModifier or '';
+	local reserved = self:SetReserved(env:GetCombinationBlocker(self:GetKeyChord()))
 	local isClickOverride = (self:IsClickReserved(reserved) and currentModifier ~= '')
-	self.mod = currentModifier or '';
+
 	if not isClickOverride and reserved then
 		self:SetActionIcon(nil)
 		self:SetText(WHITE_FONT_COLOR:WrapTextInColorCode(L(reserved.name)))
@@ -233,9 +238,28 @@ function MainButton:UpdateLines()
 end
 
 ---------------------------------------------------------------
-local Overview = {};
+local ModifierTrayButton = {};
 ---------------------------------------------------------------
 
+function ModifierTrayButton:Init(buttonID, controlCallback, modID)
+	Mixin(self, ModifierTrayButton)
+	local data = env:GetHotkeyData(buttonID, '', 64, 32)
+	self:ToggleInversion(true)
+	self:SetSelected(false)
+	self:SetAttribute('nodeignore', true)
+	self:SetScript('OnClick', controlCallback)
+	self.buttonID = buttonID;
+	self.modID = modID;
+	CPAPI.SetTextureOrAtlas(self.Icon, data.button)
+end
+
+function ModifierTrayButton:SetSelected(selected)
+	self:SetHeight(selected and 50 or 40)
+end
+
+---------------------------------------------------------------
+local Overview = {};
+---------------------------------------------------------------
 function Overview:OnLoad()
 	local canvas = self:GetCanvas()
 	self:SetSize(canvas:GetSize())
@@ -245,10 +269,16 @@ function Overview:OnLoad()
 	self.Splash:SetSize(450, 450)
 	self.Splash:SetPoint('CENTER', 0, 0)
 
+	self.modTapInHibitor = db.Data.Cvar('GamePadEmulateTapWindowMs')
+	self.ModifierTray = CreateFrame('Frame', nil, self, 'CPOverviewModifierTray')
+	self.ModifierTray:SetPoint('TOP', 0, 0)
+	self.ModifierTray.ReleaseAll = GenerateClosure(self.ModifierTray.buttonPool.ReleaseAll, self.ModifierTray.buttonPool)
+	self.ModifierTray:SetButtonSetup(ModifierTrayButton.Init)
+
 	self.buttonPool = CreateFramePool('Button', self, 'CPOverviewBindingSplashDisplay')
 end
 
-function Overview:Acquire()
+function Overview:AcquireMainButton()
 	local button, newObj = self.buttonPool:Acquire()
 	if newObj then
 		button.Container = self;
@@ -258,22 +288,22 @@ function Overview:Acquire()
 end
 
 function Overview:OnShow()
-	self.currentMods = {
-		ALT   = false;
-		CTRL  = false;
-		SHIFT = false;
-	};
+	self:ReindexModifiers()
 	self:SetDevice(env:GetActiveDeviceAndMap())
 	self:RegisterEvent('MODIFIER_STATE_CHANGED')
+	self.tapBindingValue = self.modTapInHibitor:Get()
+	self.modTapInHibitor:Set(0) -- Disable tap bindings while visible
 end
 
 function Overview:OnHide()
 	self:UnregisterEvent('MODIFIER_STATE_CHANGED')
+	self.modTapInHibitor:Set(self.tapBindingValue)
 	self.buttonPool:ReleaseAll()
 	self.Splash:SetTexture(nil)
 	self.Device = nil;
 	self.baseColor = nil;
 	self.currentMods = nil;
+	self.tapBindingValue = nil;
 end
 
 function Overview:GetColor()
@@ -285,6 +315,22 @@ end
 
 function Overview:OnEvent(_, modifier, state)
 	if (state ~= 0) then return end; -- isUp
+	self:UpdateModifier(self:ToggleModifier(modifier))
+end
+
+---------------------------------------------------------------
+-- Device and modifiers
+---------------------------------------------------------------
+function Overview:ReindexModifiers()
+	self.currentMods = {};
+	self.ModifierTray:ReleaseAll()
+	for modID, buttonID in db:For('Gamepad/Index/Modifier/Key', true) do
+		self.currentMods[modID] = false; -- Initialize active modifiers to false
+		self.ModifierTray:AddControl(buttonID, GenerateClosure(self.ToggleAndUpdateModifier, self, modID), modID);
+	end
+end
+
+function Overview:ToggleAndUpdateModifier(modifier)
 	self:UpdateModifier(self:ToggleModifier(modifier))
 end
 
@@ -307,6 +353,9 @@ end
 function Overview:UpdateModifier(currentModifier)
 	for button in self.buttonPool:EnumerateActive() do
 		button:UpdateState(currentModifier)
+	end
+	for button in self.ModifierTray:EnumerateControls() do
+		button:SetSelected(self.currentMods[button.modID])
 	end
 end
 
@@ -360,7 +409,7 @@ end
 function Overview:DrawButtons(buttons, isLeft)
 	local numButtons = #buttons;
 	for i, data in ipairs(buttons) do
-		local button = self:Acquire()
+		local button = self:AcquireMainButton()
 		button:SetData(i, numButtons, data, isLeft)
 		button:Show()
 	end

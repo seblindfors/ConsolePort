@@ -64,5 +64,32 @@
 			</Layer>
 		</Layers>	
 	</Button>
+
+	<Button name="CPOverviewModifierIndicator" inherits="CPToolbarSixSliceInverterFrame" virtual="true">
+		<Size x="56" y="40"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Button>
+	
+	<Frame name="CPOverviewModifierTray" inherits="HorizontalButtonTrayTemplate" virtual="true">
+		<Size x="1" y="1"/>
+		<KeyValues>
+			<KeyValue key="expand" value="true" type="boolean"/>
+			<KeyValue key="widthPadding" value="4" type="number"/>
+			<KeyValue key="spacing" value="4" type="number"/>
+			<KeyValue key="templateType" value="BUTTON" type="string"/>
+			<KeyValue key="childLayoutDirection" value="rightToLeft" type="string"/>
+			<KeyValue key="buttonTemplate" value="CPOverviewModifierIndicator" type="string"/>
+		</KeyValues>
+	</Frame>
+
 	<Script file="Overview.lua"/>
 </Ui>

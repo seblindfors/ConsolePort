@@ -22,6 +22,8 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 			Prefix  = {}; -- modifier string -> button
 			Active  = {}; -- all possible modifier combinations
 			Owner   = {}; -- button -> modifier string
+			Blocked = {}; -- combos that are blocked by their own buttons
+			Cvars   = {};
 			Driver  = ''; -- state driver for all active modifiers
 		};
 		Atlas = {
@@ -181,12 +183,15 @@ db:RegisterSafeCallback('GamePadCursorRightClick', function(self, value)
 end, GamepadAPI)
 
 for _, modifier in ipairs(GamepadAPI.Modsims) do
-	db:RegisterSafeCallback(('GamePadEmulate%s'):format(modifier:lower():gsub('^%l', strupper)),
-	function(self, value)
+	local cvar = ('GamePadEmulate%s'):format(modifier:lower():gsub('^%l', strupper))
+	GamepadAPI.Index.Modifier.Cvars[modifier] = cvar;
+	db:RegisterSafeCallback(cvar, function(self, value)
 		self:ReindexModifiers()
-		-- Wipe the incompatible binding for a modifier when it's set.
+		-- Wipe the incompatible bindings for a modifier when it's set.
 		-- E.g. if you set ALT to PAD1, ALT-PAD1 will be removed.
-		SetBinding(modifier..value, nil)
+		for combination in pairs(self.Index.Modifier.Blocked) do
+			SetBinding(combination, nil)
+		end
 		SaveBindings(GetCurrentBindingSet())
 		db:TriggerEvent('OnModifierChanged', modifier, value)
 	end, GamepadAPI)
@@ -273,7 +278,7 @@ end
 
 function GamepadAPI:ReindexModifiers()
 	local map = self.Index.Modifier;
-	wipe(map.Key); wipe(map.Prefix); wipe(map.Owner);
+	wipe(map.Key); wipe(map.Prefix); wipe(map.Owner); wipe(map.Blocked);
 
 	for _, mod in ipairs(self.Modsims) do
 		local btn = GetCVar('GamePadEmulate'..mod)
@@ -285,6 +290,17 @@ function GamepadAPI:ReindexModifiers()
 		end
 	end
 	map.Active, map.Driver = self:GetActiveModifiers()
+
+	for mod, btn in pairs(map.Key) do
+		for active, inputs in pairs(map.Active) do
+			-- If the active button combination contains both
+			-- the modifier and the button, then it is impossible
+			-- to use, so we block it.
+			if tostring(inputs):match(btn) then
+				map.Blocked[active..btn] = mod;
+			end
+		end
+	end
 end
 
 function GamepadAPI:GetActiveModifiers()

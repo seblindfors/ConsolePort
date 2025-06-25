@@ -63,6 +63,15 @@ function env:GetBindingName(bindingID)
 	return GetBindingName(bindingID);
 end
 
+function env:GetCombinationBlocker(combination)
+	local blockedModifier = db.Gamepad.Index.Modifier.Blocked[tostring(combination)];
+	if not blockedModifier then return end;
+
+	local modifierCvar = db.Gamepad.Index.Modifier.Cvars[blockedModifier];
+	local variableData = db.Console:GetEmulationForModifier(modifierCvar);
+	return variableData, blockedModifier;
+end
+
 ---------------------------------------------------------------
 -- Interface
 ---------------------------------------------------------------

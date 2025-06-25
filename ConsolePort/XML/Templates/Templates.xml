@@ -356,4 +356,5 @@
 		</Layers>
 	</Frame>
 
+	<Frame name="CPToolbarSixSliceInverterFrame" virtual="true" mixin="CPToolbarSixSliceInverterMixin" inherits="CPToolbarNineSliceFrame"/>
 </Ui>
