@@ -1,5 +1,5 @@
 <Ui>
-	<Line name="CPOverviewLine" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" virtual="true"/>
+	<Line name="CPOverviewLine" thickness="10" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
 	<Frame name="CPOverviewActionDisplay" virtual="true">
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="2">
@@ -55,7 +55,7 @@
 		<Size x="200" y="48"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Line parentKey="Bottom" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
+				<Line parentKey="Bottom" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="1">
 				<Texture parentKey="Icon">

@@ -17,7 +17,12 @@ function Guide:OnShow()
 	self:Render()
 end
 
+function Guide:OnHide()
+	self:ClearContent()
+end
+
 function Guide:InitCanvas(canvas)
+	self.canvas = canvas;
 end
 
 function Guide:Render()
@@ -26,17 +31,29 @@ function Guide:Render()
 		self:InitCanvas(canvas)
 	end
 	canvas:Show()
-	self:AutoSelectContent(canvas)
+	self:AutoSelectContent()
 end
 
-function Guide:AutoSelectContent(canvas)
+function Guide:AutoSelectContent()
 	for _, content in ipairs(self.content) do
 		if content.predicate() then
-			content.initializer(canvas)
-			return true;
+			return self:SetContent(content)
 		end
 	end
 	return false;
+end
+
+function Guide:SetContent(content)
+	self.resetter = content.resetter;
+	content.initializer(self.canvas)
+	return true;
+end
+
+function Guide:ClearContent()
+	if self.resetter then
+		self.resetter(self.canvas);
+		self.resetter = nil;
+	end
 end
 
 function Guide:AddContent(predicate, initializer, resetter)

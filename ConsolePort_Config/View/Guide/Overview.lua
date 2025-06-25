@@ -52,7 +52,8 @@ function Button:OnEnter()
 	local tooltip = GameTooltip;
 	local override = self.reservedData;
 	local isClickOverride = self:IsClickReserved(override)
-	tooltip:SetOwner(self, 'ANCHOR_BOTTOM')
+	tooltip:SetOwner(self, 'ANCHOR_NONE')
+	tooltip:SetPoint('BOTTOM', self.Container, 'BOTTOM', 0, 0)
 
 	if override then
 		tooltip:SetText(override.name)
@@ -187,7 +188,7 @@ function MainButton:OnLeave()
 end
 
 function MainButton:SetLineAlpha(alpha)
-	self.Bottom:SetAlpha(alpha or 0.5)
+	self.Bottom:SetAlpha(alpha or 1.0)
 	for line in self.lines:EnumerateActive() do
 		line:SetAlpha(alpha or line.finalAlpha)
 	end
@@ -204,19 +205,17 @@ function MainButton:SetData(index, total, data, isLeft)
     -- on the index, the total, and the size of the container.
     local w, h = self.Container:GetWidth()
 
-    -- Calculate the total height required for all buttons
-    local entryHeight = 54 -- Height required for each entry
+    local entryHeight = 54; -- Height required for each entry
     local totalHeight = entryHeight * total;
-
-    -- Calculate the starting Y position (centered vertically)
     local startY = -totalHeight / 2 + entryHeight / 2;
-    local y = startY + (index - 1) * entryHeight;
-    local x = isLeft and -w * 0.34 or w * 0.34;
+
+    local y = PixelUtil.ConvertPixelsToUIForRegion(startY + (index - 1) * entryHeight, self)
+    local x = PixelUtil.ConvertPixelsToUIForRegion(isLeft and -w * 0.28 or w * 0.28, self)
 
 	w, h = self:GetSize()
 
 	self:SetPoint('CENTER', x, y)
-	local lastX = x + (isLeft and w / 2 or -w / 2);
+	local lastX = x + (isLeft and w / 2 or -w / 2) + (isLeft and -3 or 3);
 	local lastY = y - (h / 2);
 
 	-- Add the final point to the data, calculate the spline
@@ -232,33 +231,30 @@ function MainButton:SetData(index, total, data, isLeft)
 end
 
 function MainButton:UpdateLines()
-	local numSegments, level = 40, self.data.level;
-	local prevX, prevY = self.spline:CalculatePointOnGlobalCurve(0.0)
+	local numSegments, level, coords = 50, self.data.level, self.lineCoords;
+	local lines, spline = self.lines, self.spline;
 
 	local r, g, b = self.Container:GetColor()
 	local h, s, v = CPAPI.RGB2HSV(r, g, b)
 	self.Bottom:SetVertexColor(r, g, b)
-	self.Bottom:SetAlpha(0.5)
+	self.Bottom:SetAlpha(1.0)
 
 	local e = (h + 180) % 360;
 	for i = 1, numSegments do
 		local section = i / numSegments;
-		local nextX, nextY = self.spline:CalculatePointOnGlobalCurve(section)
+		local line = lines:Acquire();
 
-		local line = self.lines:Acquire();
-		line:SetStartPoint('CENTER', prevX, prevY);
-		line:SetEndPoint('CENTER', nextX, nextY);
+		line:SetStartPoint('CENTER', spline:CalculatePointOnGlobalCurve(section - (2 / numSegments)))
+		line:SetEndPoint('CENTER',   spline:CalculatePointOnGlobalCurve(section))
 
 		local hue = Lerp(e, h, section);
-		line.finalAlpha = Lerp(0, 0.5, section);
+		line.finalAlpha = EasingUtil.InCubic(Lerp(0, 1.0, section));
 		line:SetVertexColor(CPAPI.HSV2RGB(hue, s, v))
 		line:SetDrawLayer('ARTWORK', level)
-		line:SetTexCoord(unpack(self.lineCoords))
+		line:SetTexCoord(unpack(coords))
 		line:SetAlpha(line.finalAlpha)
 
 		line:Show()
-
-		prevX, prevY = nextX, nextY;
 	end
 end
 
