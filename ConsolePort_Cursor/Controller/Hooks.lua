@@ -17,7 +17,7 @@ end
 
 
 function Hooks:ProcessInterfaceCursorEvent(button, down, node)
-	if down then return end;
+	if down ~= false then return end;
 	if self:IsCancelClick(button) then
 		local cancelClickHandler = self:GetCancelClickHandler(node)
 		if cancelClickHandler then
