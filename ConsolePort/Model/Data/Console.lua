@@ -29,7 +29,7 @@ db:Register('Console', CPAPI.Proxy({
 		{ 	cvar = 'GamePadEmulateAlt';
 			type = Button;
 			name = 'Modifier 3: Alt';
-			desc = 'Button that emulates the '..BLUE'Alt'..' key.';
+			desc = 'Button that emulates the '..BLUE'Alt'..' key. Hold this button to swap all your binding sets.';
 			note = 'Only recommended for super users.';
 			list = SETTINGS;
 		};
@@ -333,6 +333,15 @@ function Console:GetEmulationForButton(button)
 	if (button == 'none') then return end
 	for i, data in ipairs(self.Bindings) do
 		if (GetCVar(data.cvar) == button) then
+			return data;
+		end
+	end
+end
+
+function Console:GetEmulationForCursor(buttonID)
+	if (buttonID == 'none') then return end
+	for i, data in ipairs(self.Bindings) do
+		if (data.cvar:match('Cursor') and GetCVar(data.cvar) == buttonID) then
 			return data;
 		end
 	end

@@ -345,8 +345,7 @@ function CPActionConfigButton:OnDoubleClick(button)
 	self:OnSpecialClick()
 end
 
-function CPActionConfigButton:OnSpecialClick(_, down)
-	if down == false then return end;
+function CPActionConfigButton:OnSpecialClick()
 	local bindingID, actionID = self:GetBinding()
 	env:TriggerEvent('OnActionSlotEdit',
 		actionID,  -- the actionID to be changed
@@ -355,8 +354,7 @@ function CPActionConfigButton:OnSpecialClick(_, down)
 	)
 end
 
-function CPActionConfigButton:OnCancelClick(_, down)
-	if down == false then return end;
+function CPActionConfigButton:OnCancelClick()
 	self:OnDragStart()
 	ClearCursor()
 end

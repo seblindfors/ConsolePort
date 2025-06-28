@@ -23,7 +23,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 			Active  = {}; -- all possible modifier combinations
 			Owner   = {}; -- button -> modifier string
 			Blocked = {}; -- combos that are blocked by their own buttons
-			Cvars   = {};
+			Cvars   = {}; -- modsim -> cvar name
 			Driver  = ''; -- state driver for all active modifiers
 		};
 		Atlas = {

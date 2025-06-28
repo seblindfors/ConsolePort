@@ -12,7 +12,7 @@ function env:GetActiveDeviceAndMap()
 end
 
 function env:GetActiveModifiers()
-	return db('Gamepad/Index/Modifier/Active')
+	return db.Gamepad.Index.Modifier.Active;
 end
 
 function env:GetActiveModifier(button)
@@ -63,13 +63,33 @@ function env:GetBindingName(bindingID)
 	return GetBindingName(bindingID);
 end
 
-function env:GetCombinationBlocker(combination)
-	local blockedModifier = db.Gamepad.Index.Modifier.Blocked[tostring(combination)];
-	if not blockedModifier then return end;
+function env:GetEmulationForButton(buttonID)
+	return db.Console:GetEmulationForButton(buttonID);
+end
 
-	local modifierCvar = db.Gamepad.Index.Modifier.Cvars[blockedModifier];
-	local variableData = db.Console:GetEmulationForModifier(modifierCvar);
-	return variableData, blockedModifier;
+function env:GetEmulationForCursor(buttonID)
+	return db.Console:GetEmulationForCursor(buttonID);
+end
+
+function env:GetEmulationForModifier(modifier)
+	if not modifier then return end;
+	local modifierData = db.Gamepad.Index.Modifier.Cvars[modifier];
+	if not modifierData then return end;
+
+	local variableData = db.Console:GetEmulationForModifier(modifierData);
+	if not variableData then return end;
+
+	return variableData, modifierData;
+end
+
+function env:GetBlockedCombination(combination)
+	return db.Gamepad.Index.Modifier.Blocked[tostring(combination)];
+end
+
+function env:GetCombinationBlockerInfo(combination)
+	local blockedModifier = self:GetBlockedCombination(combination);
+	if not blockedModifier then return end;
+	return self:GetEmulationForModifier(blockedModifier);
 end
 
 ---------------------------------------------------------------

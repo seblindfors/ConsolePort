@@ -5,13 +5,15 @@ local Guide = env:GetContextPanel();
 -- Helpers
 ---------------------------------------------------------------
 local WHITE_FONT_COLOR = WHITE_FONT_COLOR or CreateColor(1, 1, 1)
+local ALT_MATCH = 'ALT%-';
+local ANI_DURATION = 0.15;
 local ButtonLayout = {
 	LEFT = {
 		iconPoint   = {'RIGHT', 'LEFT', -4, 0};
 		textPoint   = {'LEFT', 'LEFT', 40, 0};
 		buttonPoint = {'LEFT', 0, 0};
 		startAnchor = {'BOTTOMRIGHT', 0, 0};
-		endAnchor   = {'BOTTOMLEFT', 0, 0};
+		endAnchor   = {'BOTTOMLEFT', -160, 0};
 		lineCoords  = CPSplineLineMixin.lineBaseCoord.LEFT;
 	};
 	RIGHT = {
@@ -19,37 +21,81 @@ local ButtonLayout = {
 		textPoint   = {'RIGHT', 'RIGHT', -40, 0};
 		buttonPoint = {'RIGHT', 0, 0};
 		startAnchor = {'BOTTOMLEFT', 0, 0};
-		endAnchor   = {'BOTTOMRIGHT', 0, 0};
+		endAnchor   = {'BOTTOMRIGHT', 160, 0};
 		lineCoords  = CPSplineLineMixin.lineBaseCoord.RIGHT;
 	};
 };
 
----------------------------------------------------------------
-local Button = CreateFromMixins(env.BindingInfoMixin);
----------------------------------------------------------------
+local function SetCvarTooltip(tooltip, cvarData, showNote)
+	-- Anchor/show separately
+	tooltip:SetText(cvarData.name)
+	tooltip:AddLine(cvarData.desc, 1, 1, 1, 1)
+	if showNote and cvarData.note then
+		tooltip:AddLine('\n'..NOTE_COLON)
+		tooltip:AddLine(cvarData.note, 1, 1, 1, 1)
+	end
+end
 
+---------------------------------------------------------------
+local Binding = CreateFromMixins(env.BindingInfoMixin);
+---------------------------------------------------------------
+function Binding:GetChordBinding(mod)
+	return GetBindingAction(mod..self.baseBinding)
+end
+
+function Binding:GetBinding()
+	return GetBindingAction(self:GetKeyChord());
+end
+
+function Binding:GetModifier()
+	return self.mod or '';
+end
+
+function Binding:GetKeyChord()
+	return self.mod .. self.baseBinding;
+end
+
+function Binding:GetBaseBinding()
+	return self.baseBinding;
+end
+
+function Binding:SetBaseBinding(binding)
+	self.baseBinding = binding;
+end
+
+function Binding:SetModifier(modifier)
+	self.mod = modifier or '';
+end
+
+function Binding:GetModifierSlug(modifier)
+	return db.Gamepad.Index.Modifier.Active[modifier or self.mod];
+end
+
+function Binding:GetButtonSequence()
+	local slug = self:GetModifierSlug()
+	local combo = { self:GetBaseBinding() };
+	if type(slug) == 'string' then
+		tinsert(combo, 1, slug)
+	end
+	return table.concat(combo, '-'), self:GetModifier()
+end
+
+---------------------------------------------------------------
+local Button = CreateFromMixins(Binding)
+---------------------------------------------------------------
 function Button:OnLoad()
 	self:SetFontString(self.Label)
 end
 
-function Button:OnShow()
-	self:UpdateState(CPAPI.CreateKeyChord(''))
-end
-
 function Button:OnEnter()
-	local tooltip = GameTooltip;
+--[[	local tooltip = GameTooltip;
 	local override = self.reservedData;
 	local isClickOverride = self:IsClickReserved(override)
 	tooltip:SetOwner(self, 'ANCHOR_NONE')
 	tooltip:SetPoint('BOTTOM', self.Container, 'BOTTOM', 0, 0)
 
 	if override then
-		tooltip:SetText(override.name)
-		tooltip:AddLine(override.desc, 1, 1, 1, 1)
-		if override.note then
-			tooltip:AddLine('\n'..NOTE_COLON)
-			tooltip:AddLine(override.note, 1, 1, 1, 1)
-		end
+		SetCvarTooltip(tooltip, override, true)
 		if isClickOverride then
 			tooltip:AddLine('\n'..KEY_BINDINGS_MAC)
 		end
@@ -57,7 +103,6 @@ function Button:OnEnter()
 		tooltip:SetText(('|cFFFFFFFF%s|r'):format(KEY_BINDINGS_MAC))
 	end
 
-	local handler = db('Hotkeys')
 	local base = self:GetBaseBinding()
 	local mods = env:GetActiveModifiers()
 
@@ -66,7 +111,7 @@ function Button:OnEnter()
 			local name, texture, actionID = self:GetBindingInfo(self:GetChordBinding(mod))
 			local slug = env:GetButtonSlug(base, mod)
 			if actionID then
-				texture = texture or [[Interface\Buttons\ButtonHilight-Square]]
+				texture = texture or 'Interface\\Buttons\\ButtonHilight-Square'
 				name = name:gsub('\n', '\n|T:12:32:0:0|t ') -- offset 2nd line
 				tooltip:AddDoubleLine(('|T%s:32:32:0:-12|t %s\n '):format(texture, name), slug)
 			else
@@ -74,7 +119,7 @@ function Button:OnEnter()
 			end
 		end
 	end
-	tooltip:Show()
+	tooltip:Show()]]
 end
 
 function Button:OnLeave()
@@ -91,10 +136,6 @@ function Button:SetupRegions(anchor)
 	self.Label:ClearAllPoints()
 	self.Label:SetPoint(point, self, relativePoint, xOffset, yOffset)
 
-	point, relativePoint, xOffset, yOffset = unpack(set.iconPoint)
-	self.ActionIcon:ClearAllPoints()
-	self.ActionIcon:SetPoint(point, self, relativePoint, xOffset, yOffset)
-
 	point, xOffset, yOffset = unpack(set.buttonPoint)
 	self.Icon:ClearAllPoints()
 	self.Icon:SetPoint(point, xOffset, yOffset)
@@ -104,17 +145,22 @@ function Button:SetupRegions(anchor)
 	self.Bottom:SetTexCoord(unpack(set.lineCoords))
 
 	self.lineCoords = set.lineCoords;
+
+	if self.ActionIcon then
+		point, relativePoint, xOffset, yOffset = unpack(set.iconPoint)
+		self.ActionIcon:ClearAllPoints()
+		self.ActionIcon:SetPoint(point, self, relativePoint, xOffset, yOffset)
+	end
 end
 
-function Button:SetBinding(binding)
+function Button:SetBaseBinding(binding)
 	local data = env:GetHotkeyData(binding, '', 64, 32)
-	self.baseBinding = binding;
+	Binding.SetBaseBinding(self, binding)
 	CPAPI.SetTextureOrAtlas(self.Icon, data.button)
 end
 
 function Button:SetReserved(reservedData)
 	self.reservedData = reservedData;
-	return reservedData;
 end
 
 function Button:IsClickReserved(override)
@@ -122,23 +168,9 @@ function Button:IsClickReserved(override)
 	return reserved and reserved.cvar:match('Cursor');
 end
 
-function Button:GetChordBinding(mod)
-	return GetBindingAction(mod..self.baseBinding)
-end
-
-function Button:GetBinding()
-	return GetBindingAction(self:GetKeyChord());
-end
-
-function Button:GetKeyChord()
-	return self.mod .. self.baseBinding;
-end
-
-function Button:GetBaseBinding()
-	return self.baseBinding;
-end
-
-function Button:SetActionIcon(texture)
+function Button:UpdateInfo(name, texture, actionID)
+	self:SetText(name)
+	if not self.ActionIcon then return end;
 	self.ActionIcon:SetTexture(texture)
 	self.ActionIcon:SetShown(texture)
 	self.ActionIcon:SetAlpha(texture and 1 or 0)
@@ -146,67 +178,216 @@ function Button:SetActionIcon(texture)
 	self.Mask:SetAlpha(texture and 1 or 0)
 end
 
-function Button:UpdateState(currentModifier) self.mod = currentModifier or '';
-	local reserved = self:SetReserved(env:GetCombinationBlocker(self:GetKeyChord()))
-	local isClickOverride = (self:IsClickReserved(reserved) and currentModifier ~= '')
+function Button:UpdateState(currentModifier)
+	self:SetModifier(currentModifier)
 
+	local reserved = env:GetCombinationBlockerInfo(self:GetKeyChord())
+		          or env:GetEmulationForCursor(self:GetBaseBinding())
+	self:SetReserved(reserved)
+
+	local isClickOverride = (self:IsClickReserved(reserved) and currentModifier ~= '')
 	if not isClickOverride and reserved then
-		self:SetActionIcon(nil)
-		self:SetText(WHITE_FONT_COLOR:WrapTextInColorCode(L(reserved.name)))
-		return
+		return self:UpdateInfo(WHITE_FONT_COLOR:WrapTextInColorCode(L(reserved.name)))
 	end
 
-	local name, texture, actionID = self:GetBindingInfo(self:GetBinding())
-	self:SetText(name)
-	self:SetActionIcon(texture)
+	self:UpdateInfo(self:GetBindingInfo(self:GetBinding()))
 end
 
 ---------------------------------------------------------------
-local MainButton = CreateFromMixins(Button, CPSplineLineMixin)
+local Action = CreateFromMixins(Binding)
 ---------------------------------------------------------------
 
-function MainButton:OnLoad()
+function Action:UpdateInfo(name, texture, actionID, binding)
+	--print('Action:UpdateInfo', name, texture, actionID, binding)
+	self.name = name or '';
+
+	if ( not texture and not actionID and not binding ) then
+		local blocker = env:GetBlockedCombination(self:GetKeyChord())
+		if blocker then
+			texture = db.Bindings.CustomIcons[blocker];
+		end
+	end
+
+	local c = (texture or (not actionID and binding)) and 1 or 0.5;
+	local a = (texture or actionID or binding) and 1 or 0.25;
+	self.Border:SetAlpha(a * 0.5)
+	self.Icon:SetVertexColor(c, c, c, a);
+	self.Icon:SetTexture(texture
+		or actionID and CPAPI.GetAsset([[Textures\Button\EmptyIcon]])
+		or binding and [[Interface\MacroFrame\MacroFrame-Icon]]
+		or CPAPI.GetAsset([[Textures\Button\NotBound]])
+	);
+end
+
+function Action:SetChord(modifierID, buttonID, isAlt)
+	if isAlt then
+		self.altModifier = modifierID;
+		return;
+	end
+	self.baseModifier = modifierID;
+	self:SetBaseBinding(buttonID)
+	self:UpdateModifier(modifierID)
+end
+
+function Action:UpdateModifier(modifier)
+	self:SetModifier(modifier)
+	self:UpdateInfo(self:GetBindingInfo(self:GetBinding()))
+end
+
+function Action:SetCurrentModifier(modifier, isAlt)
+	local modifierID = isAlt and self.altModifier or self.baseModifier;
+	local isActive = modifier == modifierID;
+	if ( self.mod ~= modifierID ) then
+		self:UpdateModifier(modifierID)
+		if self.isMouseOver then
+			self:OnEnter()
+		end
+	end
+	self.Border:SetShown(isActive);
+end
+
+function Action:OnEnter()
+	self.isMouseOver = true;
+	env:TriggerEvent('OnOverviewHighlightButtons', self:GetButtonSequence())
+end
+
+function Action:OnLeave()
+	self.isMouseOver = false;
+	env:TriggerEvent('OnOverviewHighlightButtons', nil)
+end
+
+---------------------------------------------------------------
+local ComboButton = CreateFromMixins(Button, CPSplineLineMixin, ColorMixin)
+---------------------------------------------------------------
+
+function ComboButton:OnLoad()
 	Button.OnLoad(self)
 	CPSplineLineMixin.OnLoad(self)
 	self:SetLineOrigin('CENTER', self.Container)
+
+	-- Actions based on the active modifiers.
+	self.actions = CreateFramePool('Button', self, 'CPOverviewActionDisplay')
+
+	-- Proxy object to update both lines at once.
+	self.Bottom = CPAPI.Proxy({
+		FadeIn = function(_, ...)
+			db.Alpha.FadeIn(self.Bottom1, ...)
+			db.Alpha.FadeIn(self.Bottom2, ...)
+		end;
+	}, function(_, key)
+		return function(_, ...)
+			self.Bottom2[key](self.Bottom2, ...)
+			return self.Bottom1[key](self.Bottom1, ...)
+		end
+	end)
 end
 
-function MainButton:OnEnter()
+function ComboButton:AcquireAction()
+	local button, newObj = self.actions:Acquire()
+	if newObj then
+		FrameUtil.SpecializeFrameWithMixins(button, Action)
+	end
+	button.BorderHilite:SetVertexColor(self:GetRGB())
+	return button;
+end
+
+function ComboButton:ClearActions()
+	self.actions:ReleaseAll()
+end
+
+function ComboButton:EnumerateActions()
+	return self.actions:EnumerateActive()
+end
+
+function ComboButton:ReleaseAll()
+	self:ClearActions()
+	self:ClearLinePoints()
+end
+
+function ComboButton:OnEnter()
+	self.isMouseOver = true;
 	Button.OnEnter(self)
-	self:SetLineAlpha(1.0, true)
+	env:TriggerEvent('OnOverviewHighlightButtons', (self:GetButtonSequence()))
 end
 
-function MainButton:OnLeave()
+function ComboButton:OnLeave()
+	self.isMouseOver = false;
 	Button.OnLeave(self)
-	self:SetLineAlpha(nil, false)
+	env:TriggerEvent('OnOverviewHighlightButtons', nil)
 end
 
-function MainButton:SetLineAlpha(alpha, reverse)
-	self.Bottom:SetAlpha(alpha or 1.0)
-	self:PlayLineEffect(0.25, function(bit)
-		bit:SetAlpha(alpha or bit.finalAlpha)
+function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration or ANI_DURATION;
+	local delta    = alpha or 1.0;
+	local isOpaque = alpha and alpha >= 1.0;
+	local bitAlpha = isOpaque and 1.0 or nil;
+	local cutoff   = self:GetLineSegments();
+	self:PlayLineEffect(duration, function(bit, i)
+		 -- Hide the last bit so that alpha merges correctly with the bottom lines.
+		if ( not isOpaque and i >= cutoff ) then
+			bit:SetAlpha(0)
+		else
+			bit:SetAlpha(Saturate(bitAlpha or delta * bit.finalAlpha))
+		end
+		if i == cutoff then
+			self.Bottom:FadeIn(duration, self.Bottom:GetAlpha(), Saturate(delta * 1.0))
+		end
 	end, reverse)
 end
 
-function MainButton:SetData(index, total, data, isLeft)
-	self:ClearLinePoints()
+function ComboButton:SetData(index, numButtons, data, isLeft, activeMods)
+	self.index = index;
+	self.data  = data;
+	self:ReleaseAll()
+	self:RenderActions(data, isLeft, activeMods)
+	self:RenderPositionAndLines(numButtons, isLeft)
+	self:SetBaseBinding(data.button)
+end
 
-	self.index  = index;
-	self.data   = data;
+function ComboButton:SetColor(r, g, b)
+	self:SetRGB(r, g, b)
+	self.Bottom:SetVertexColor(r, g, b)
+	self.h, self.s, self.v = CPAPI.RGB2HSV(r, g, b)
+end
 
+function ComboButton:GetHSV()
+	return self.h, self.s, self.v;
+end
+
+function ComboButton:RenderActions(data, isLeft, activeMods)
+	local baseButton, index = data.button, 1;
+	local anchor    = isLeft and 'RIGHT' or 'LEFT';
+	local relAnchor = isLeft and 'LEFT' or 'RIGHT';
+	local delta     = isLeft and -1 or 1;
+
+	local active = {};
+	for mod in db.table.mpairs(activeMods) do
+		local isAlt  = mod:match(ALT_MATCH);
+		local base   = mod:gsub(ALT_MATCH, '');
+		local action = active[base] or self:AcquireAction()
+		action:SetChord(mod, baseButton, isAlt)
+		if not isAlt then
+			action:SetPoint(anchor, self, relAnchor, ((index - 1) * 40 * delta) + (delta * 12), 0)
+			action:Show()
+			active[mod] = action;
+			index = index + 1;
+		end
+	end
+end
+
+function ComboButton:RenderPositionAndLines(numButtons, isLeft)
     -- Calculate position and constraints
     local w, h = self.Container:GetWidth()
-
     local entryHeight = 54; -- Height required for each entry
-    local totalHeight = entryHeight * total;
+    local totalHeight = entryHeight * numButtons;
     local startY = -totalHeight / 2 + entryHeight / 2;
 
-    local y = PixelUtil.ConvertPixelsToUIForRegion(startY + (index - 1) * entryHeight, self)
+    local y = PixelUtil.ConvertPixelsToUIForRegion(startY + (self.index - 1) * entryHeight, self)
     local x = PixelUtil.ConvertPixelsToUIForRegion(isLeft and -w * 0.28 or w * 0.28, self)
 
 	w, h = self:GetSize()
-
 	self:SetPoint('CENTER', x, y)
+
+	-- Calculate the connecting points for the spline line.
 	local lastX = x + (isLeft and w / 2 or -w / 2) + (isLeft and -3 or 3);
 	local lastY = y - (h / 2);
 
@@ -216,16 +397,13 @@ function MainButton:SetData(index, total, data, isLeft)
 	end
 	self:AddLinePoint(lastX, lastY)
 
-	self:SetLineDrawLayer('ARTWORK', data.level)
+	self:SetLineDrawLayer('ARTWORK', self.data.level)
 	self:SetupRegions(isLeft and 'LEFT' or 'RIGHT')
-	self:SetBinding(data.button)
 	self:UpdateLines()
 end
 
-function MainButton:UpdateLines()
-	local r, g, b = self.Container:GetColor()
-	local h, s, v = CPAPI.RGB2HSV(r, g, b)
-	self.Bottom:SetVertexColor(r, g, b)
+function ComboButton:UpdateLines()
+	local h, s, v = self:GetHSV()
 	self.Bottom:SetAlpha(1.0)
 
 	local e = (h + 180) % 360;
@@ -235,19 +413,44 @@ function MainButton:UpdateLines()
 		bit:SetVertexColor(CPAPI.HSV2RGB(hue, s, v))
 		bit:SetAlpha(bit.finalAlpha)
 	end)
+
+	-- Connect the bottom lines to the spline line, with perfect overlap.
+	local numSegments, relTo, point = self:GetLineSegments(), self:GetLineOrigin();
+	self.Bottom1:SetStartPoint(point, relTo, self:CalculatePoint((numSegments - 1) / numSegments))
+	self.Bottom2:SetStartPoint(point, relTo, self:CalculatePoint((numSegments - 2) / numSegments))
+end
+
+function ComboButton:UpdateState(currentModifier)
+	local isAlt = currentModifier:match(ALT_MATCH);
+	Button.UpdateState(self, currentModifier)
+	for action in self:EnumerateActions() do
+		action:SetCurrentModifier(currentModifier, isAlt)
+	end
+	if self.isMouseOver then
+		self:OnEnter()
+	end
+end
+
+function ComboButton:ForceUpdateState(currentModifier)
+	local wasMouseOver = self.isMouseOver;
+	self.isMouseOver = nil;
+	self:UpdateState(currentModifier)
+	self.isMouseOver = wasMouseOver;
 end
 
 ---------------------------------------------------------------
 local ModifierTrayButton = {};
 ---------------------------------------------------------------
 
-function ModifierTrayButton:Init(buttonID, controlCallback, modID)
+function ModifierTrayButton:Init(buttonID, modID, controlCallback)
 	Mixin(self, ModifierTrayButton)
 	local data = env:GetHotkeyData(buttonID, '', 64, 32)
 	self:ToggleInversion(true)
 	self:SetSelected(false)
 	self:SetAttribute('nodeignore', true)
 	self:SetScript('OnClick', controlCallback)
+	self:SetScript('OnEnter', self.OnEnter)
+	self:SetScript('OnLeave', self.OnLeave)
 	self.buttonID = buttonID;
 	self.modID = modID;
 	CPAPI.SetTextureOrAtlas(self.Icon, data.button)
@@ -255,6 +458,21 @@ end
 
 function ModifierTrayButton:SetSelected(selected)
 	self:SetHeight(selected and 50 or 40)
+end
+
+function ModifierTrayButton:OnEnter()
+	local cvarData = env:GetEmulationForModifier(env:GetActiveModifier(self.buttonID))
+	if not cvarData then return end;
+	local tooltip = GameTooltip;
+	tooltip:SetOwner(self, 'ANCHOR_BOTTOM', 0, -10)
+	SetCvarTooltip(tooltip, cvarData, false)
+	tooltip:Show()
+end
+
+function ModifierTrayButton:OnLeave()
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
 end
 
 ---------------------------------------------------------------
@@ -269,41 +487,26 @@ function Overview:OnLoad()
 	self.Splash:SetSize(450, 450)
 	self.Splash:SetPoint('CENTER', 0, 0)
 
-	self.modTapInHibitor = db.Data.Cvar('GamePadEmulateTapWindowMs')
 	self.ModifierTray = CreateFrame('Frame', nil, self, 'CPOverviewModifierTray')
 	self.ModifierTray:SetPoint('TOP', 0, 0)
 	self.ModifierTray.ReleaseAll = GenerateClosure(self.ModifierTray.buttonPool.ReleaseAll, self.ModifierTray.buttonPool)
 	self.ModifierTray:SetButtonSetup(ModifierTrayButton.Init)
 
 	self.buttonPool = CreateFramePool('Button', self, 'CPOverviewBindingSplashDisplay')
+
+	env:RegisterCallback('OnOverviewHighlightButtons', self.OnOverviewHighlightButtons, self)
+
+	-- TODO: handle tap bindings since we want to toggle modifiers without
+	-- triggering the tap binding.
 end
 
-function Overview:AcquireMainButton()
+function Overview:AcquireComboButton()
 	local button, newObj = self.buttonPool:Acquire()
 	if newObj then
 		button.Container = self;
-		FrameUtil.SpecializeFrameWithMixins(button, MainButton)
+		FrameUtil.SpecializeFrameWithMixins(button, ComboButton)
 	end
 	return button, newObj;
-end
-
-function Overview:OnShow()
-	self:ReindexModifiers()
-	self:SetDevice(env:GetActiveDeviceAndMap())
-	self:RegisterEvent('MODIFIER_STATE_CHANGED')
-	self.tapBindingValue = self.modTapInHibitor:Get()
-	self.modTapInHibitor:Set(0) -- Disable tap bindings while visible
-end
-
-function Overview:OnHide()
-	self:UnregisterEvent('MODIFIER_STATE_CHANGED')
-	self.modTapInHibitor:Set(self.tapBindingValue)
-	self.buttonPool:ReleaseAll()
-	self.Splash:SetTexture(nil)
-	self.Device = nil;
-	self.baseColor = nil;
-	self.currentMods = nil;
-	self.tapBindingValue = nil;
 end
 
 function Overview:GetColor()
@@ -313,9 +516,61 @@ function Overview:GetColor()
 	return self.baseColor:GetRGB()
 end
 
+---------------------------------------------------------------
+-- Handlers
+---------------------------------------------------------------
+function Overview:OnShow()
+	self:ReindexModifiers()
+	self:SetDevice(env:GetActiveDeviceAndMap())
+	self:RegisterEvent('MODIFIER_STATE_CHANGED')
+	self:ToggleAndUpdateModifier('')
+end
+
+function Overview:OnHide()
+	self:UnregisterEvent('MODIFIER_STATE_CHANGED')
+	self.buttonPool:ReleaseAll()
+	self.Splash:SetTexture(nil)
+	self.Device = nil;
+	self.baseColor = nil;
+	self.currentMods = nil;
+end
+
 function Overview:OnEvent(_, modifier, state)
 	if (state ~= 0) then return end; -- isUp
 	self:UpdateModifier(self:ToggleModifier(modifier))
+end
+
+function Overview:OnOverviewHighlightButtons(sequence, overrideModifiers)
+	if self.updateStateTimer then
+		self.updateStateTimer:Cancel()
+		self.updateStateTimer = nil;
+	end
+	self.updateStateTimer = C_Timer.NewTimer(ANI_DURATION, function()
+		if not sequence then
+			for button in self.buttonPool:EnumerateActive() do
+				button:SetLineAlpha(nil, false, 1.0)
+				button:ForceUpdateState(self.mod)
+			end
+			return;
+		end
+
+		sequence = { ('-'):split(sequence) };
+		local numButtons, matches = #sequence, {};
+		for i, buttonID in ipairs(sequence) do
+			for button in self.buttonPool:EnumerateActive() do
+				if not matches[button] then
+					if button:GetBaseBinding() == buttonID then
+						button:SetLineAlpha(1.0, true, ANI_DURATION * (numButtons - i + 1))
+						button:ForceUpdateState(overrideModifiers or self.mod)
+						matches[button] = true;
+					else
+						button:ForceUpdateState(self.mod)
+						button:SetLineAlpha(0.1, false, ANI_DURATION)
+					end
+				end
+			end
+		end
+	end)
 end
 
 ---------------------------------------------------------------
@@ -326,7 +581,7 @@ function Overview:ReindexModifiers()
 	self.ModifierTray:ReleaseAll()
 	for modID, buttonID in db:For('Gamepad/Index/Modifier/Key', true) do
 		self.currentMods[modID] = false; -- Initialize active modifiers to false
-		self.ModifierTray:AddControl(buttonID, GenerateClosure(self.ToggleAndUpdateModifier, self, modID), modID);
+		self.ModifierTray:AddControl(buttonID, modID, GenerateClosure(self.ToggleAndUpdateModifier, self, modID));
 	end
 end
 
@@ -402,15 +657,17 @@ function Overview:SetDevice(device)
 	table.sort(left, SortEntriesByLastY)
 	table.sort(right, SortEntriesByLastY)
 
-	self:DrawButtons(left, true)
-	self:DrawButtons(right, false)
+	local activeModifiers = env:GetActiveModifiers()
+	self:DrawButtons(left, true, activeModifiers)
+	self:DrawButtons(right, false, activeModifiers)
 end
 
-function Overview:DrawButtons(buttons, isLeft)
+function Overview:DrawButtons(buttons, isLeft, activeMods)
 	local numButtons = #buttons;
 	for i, data in ipairs(buttons) do
-		local button = self:AcquireMainButton()
-		button:SetData(i, numButtons, data, isLeft)
+		local button = self:AcquireComboButton(data.button)
+		button:SetColor(self:GetColor())
+		button:SetData(i, numButtons, data, isLeft, activeMods)
 		button:Show()
 	end
 end

@@ -58,6 +58,11 @@ function Entry:OnAcquire(new)
 	end
 end
 
+function Entry:OnCancelClick(_, down)
+	if down then return end;
+	env:TriggerEvent('OnLoadoutClose')
+end
+
 ---------------------------------------------------------------
 local ActionSlotter = {};
 ---------------------------------------------------------------
@@ -131,7 +136,14 @@ function LoadoutSelector:Init()
 	ActionSlotter = CreateFromMixins(env.Elements.ActionbarMapper, ActionSlotter)
 	env:RegisterCallback('OnPanelShow', self.Release, self)
 	env:RegisterCallback('OnSearch', self.Release, self)
+	env:RegisterCallback('OnLoadoutClose', self.OnLoadoutClose, self)
 	env.Frame:HookScript('OnHide', GenerateClosure(self.Release, self))
+end
+
+function LoadoutSelector:OnLoadoutClose()
+	self:Release()
+	env:TriggerEvent('OnActionSlotEdit', nil)
+	env:TriggerEvent('OnFlushLeft')
 end
 
 function LoadoutSelector:IsVisible()
@@ -176,9 +188,11 @@ function LoadoutSelector:RefreshSlotter(newData)
 end
 
 function LoadoutSelector:EditAction(actionID, bindingID, element)
-	if not actionID or CurrentActionID == actionID then
-		return;
+	if not actionID then return end;
+	if CurrentActionID == actionID then
+		return env:TriggerEvent('OnLoadoutClose')
 	end
+
 	CurrentActionID = actionID;
 	self:RefreshSlotter(self:GetSlotterData(actionID))
 	self:RefreshCollections()
@@ -212,11 +226,7 @@ function LoadoutSelector:UpdateCollections()
 		ActionSlotter:New(self:GetSlotterData(CurrentActionID));
 		env.Elements.Divider:New(4);
 		env.Elements.Back:New({
-			callback = function()
-				self:Release()
-				env:TriggerEvent('OnActionSlotEdit', nil)
-				env:TriggerEvent('OnFlushLeft')
-			end;
+			callback = GenerateClosure(env.TriggerEvent, env, 'OnLoadoutClose');
 		});
 		env.Elements.Divider:New(2);
 		env.Elements.Search:New({

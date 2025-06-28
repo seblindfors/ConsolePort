@@ -261,7 +261,7 @@ function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
 		-- this binding may have an action ID, but the slot is empty, or it's just a normal binding.
 		name = LoadoutInfo:GetCategoryName(header)
 		name = name and LoadoutInfo.DisplayFormat:format(text, name) or text;
-		return name, db.Bindings:GetIcon(binding), actionID;
+		return name, db.Bindings:GetIcon(binding), actionID, binding;
 	end
 
 	-- check if this is a ring binding

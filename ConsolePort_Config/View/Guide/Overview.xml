@@ -1,6 +1,7 @@
 <Ui>
 	<Line name="CPOverviewLine" thickness="10" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
 	<Frame name="CPOverviewActionDisplay" virtual="true">
+		<Size x="32" y="32"/>
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="2">
 				<FontString parentKey="Modifier" inherits="Game15Font">
@@ -8,59 +9,62 @@
 						<Anchor point="TOPLEFT" x="6" y="-2"/>
 					</Anchors>
 				</FontString>
-				<Texture parentKey="ActionIcon" alpha="0">
-					<Size x="32" y="32"/>
-					<Anchors>
-						<Anchor point="RIGHT" x="-8"/>
-					</Anchors>
-				</Texture>
+				<Texture parentKey="Icon" setAllPoints="true"/>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="3">
-				<Texture parentKey="Mask" alpha="0" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
+				<Texture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.ActionIcon" x="-1" y="1"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActionIcon" x="1" y="-1"/>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="1" y="-1"/>
 					</Anchors>
 				</Texture>
 				<MaskTexture parentKey="MaskAlpha"
 					file="Interface\CharacterFrame\TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.ActionIcon"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActionIcon"/>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
 					</Anchors>
 					<MaskedTextures>
-						<MaskedTexture childKey="ActionIcon"/>
+						<MaskedTexture childKey="Icon"/>
 					</MaskedTextures>
 				</MaskTexture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="4">
+				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alpha="0.5" alphaMode="ADD"> 
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="-2" y="2"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="2" y="-2"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="HIGHLIGHT">
+				<Texture parentKey="BorderHilite" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alphaMode="ADD"> 
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="-2" y="2"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="2" y="-2"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
 	</Frame>
 
-	<Frame name="CPOverviewMapperHeader" virtual="true">
-		<Size x="360" y="60"/>
+	<Button name="CPOverviewBindingSplashDisplay" virtual="true">
+		<Size x="200" y="48"/>
 		<Layers>
+			<Layer level="BACKGROUND">
+				<Line parentKey="Bottom1" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
+				<Line parentKey="Bottom2" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
+			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="32" y="32"/>
+				</Texture>
 				<FontString parentKey="Label" inherits="CPSmallFont" justifyH="CENTER" height="12" spacing="2">
 					<Anchors>
 						<Anchor point="LEFT"/>
 						<Anchor point="RIGHT"/>
 					</Anchors>
 				</FontString>
-			</Layer>
-		</Layers>
-	</Frame>
-
-	<Frame name="CPOverviewBindingDisplay" inherits="CPOverviewActionDisplay, CPOverviewMapperHeader" virtual="true"/>
-	<Button name="CPOverviewBindingSplashDisplay" inherits="CPOverviewBindingDisplay" virtual="true">
-		<Size x="200" y="48"/>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Line parentKey="Bottom" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
-			</Layer>
-			<Layer level="ARTWORK" textureSubLevel="1">
-				<Texture parentKey="Icon">
-					<Size x="32" y="32"/>
-				</Texture>
 			</Layer>
 		</Layers>	
 	</Button>

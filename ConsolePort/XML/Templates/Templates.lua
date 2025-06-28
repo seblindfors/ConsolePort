@@ -198,8 +198,8 @@ CPFlashableFiligreeMixin = {
 };
 
 function CPFlashableFiligreeMixin:OnLoad()
-    local r, g, b = CPAPI.GetClassColor()
-    CPAPI.SetAtlas(self.ActivationExpandFx, 'animations-gridburst', false)
+	local r, g, b = CPAPI.GetClassColor()
+	CPAPI.SetAtlas(self.ActivationExpandFx, 'animations-gridburst', false)
 	self:SetVertexColor(r, g, b, 1)
 	self:SetClassEmblem()
 end
@@ -209,7 +209,7 @@ function CPFlashableFiligreeMixin:Stop(...)
 end
 
 function CPFlashableFiligreeMixin:Play(...)
-    self.filigreeAnim:Play(...)
+	self.filigreeAnim:Play(...)
 end
 
 function CPFlashableFiligreeMixin:SetLooping(loopState)
@@ -224,14 +224,14 @@ function CPFlashableFiligreeMixin:SetLooping(loopState)
 end
 
 function CPFlashableFiligreeMixin:SetVertexColor(r, g, b, a)
-    self.ActivationExpandFx:SetVertexColor(r, g, b, a)
+	self.ActivationExpandFx:SetVertexColor(r, g, b, a)
 	for i, fxTexture in ipairs(self.fxTextures) do
 		fxTexture:SetVertexColor(r, g, b, a)
 	end
 end
 
 function CPFlashableFiligreeMixin:SetBackgroundColor(r, g, b, a)
-    self.ActivationExpandFx:SetVertexColor(r, g, b, a)
+	self.ActivationExpandFx:SetVertexColor(r, g, b, a)
 end
 
 function CPFlashableFiligreeMixin:SetTexture(...)
@@ -301,13 +301,13 @@ function CPFlashableFiligreeMixin:SetSize(width, height) height = height or widt
 end
 
 function CPFlashableFiligreeMixin:SetClassEmblem(classFile)
-    local classAtlas = ('animations-class-%s'):format((classFile or CPAPI.GetClassFile()):lower())
-    CPAPI.SetAtlas(self.ActivationExpandFxMask, 'animations-mask-filigree-activate', false,
+	local classAtlas = ('animations-class-%s'):format((classFile or CPAPI.GetClassFile()):lower())
+	CPAPI.SetAtlas(self.ActivationExpandFxMask, 'animations-mask-filigree-activate', false,
 		false, false, 'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE')
-    CPAPI.SetAtlas(self.ActivationFx1, classAtlas, false)
-    CPAPI.SetAtlas(self.ActivationFx2, classAtlas, false)
-    CPAPI.SetAtlas(self.ActivationFx3, classAtlas, false)
-    CPAPI.SetAtlas(self.ActivationFx4, classAtlas, false)
+	CPAPI.SetAtlas(self.ActivationFx1, classAtlas, false)
+	CPAPI.SetAtlas(self.ActivationFx2, classAtlas, false)
+	CPAPI.SetAtlas(self.ActivationFx3, classAtlas, false)
+	CPAPI.SetAtlas(self.ActivationFx4, classAtlas, false)
 end
 
 ---------------------------------------------------------------
@@ -327,8 +327,8 @@ CPToolbarSixSliceInverterMixin = {};
 ---------------------------------------------------------------
 
 function CPToolbarSixSliceInverterMixin:ToggleInversion(invert)
-    local tLeft  = self.TopLeftCorner;
-    local tRight = self.TopRightCorner;
+	local tLeft  = self.TopLeftCorner;
+	local tRight = self.TopRightCorner;
 	local bLeft  = self.BottomLeftCorner;
 	local bRight = self.BottomRightCorner;
 	local left   = self.LeftEdge;

@@ -60,8 +60,7 @@ function CPSplineLineMixin:GetLineCoord()
 	if self.lineCoord then
 		return self.lineCoord;
 	end
-	local numPoints = self.spline:GetNumPoints()
-	local startX, endX = self.spline:GetPoint(1), self.spline:GetPoint(numPoints);
+	local startX, endX = self:CalculatePoint(0), self:CalculatePoint(1);
 	return self.lineBaseCoord[startX > endX and 'LEFT' or 'RIGHT'];
 end
 
