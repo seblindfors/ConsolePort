@@ -332,9 +332,12 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 
 	local CustomIcons = {
 		Bags      = custom 'Bags.png';
+		Chat      = custom 'Chat.blp';
 		Group     = custom 'Group.png';
 		Jump      = custom 'Jump.png';
 		Map       = custom 'Map.png';
+		MBLeft    = custom 'LMB.blp';
+		MBRight   = custom 'RMB.blp';
 		Menu      = custom 'Menu.png';
 		Ring      = custom 'Ring.png';
 		Run       = custom 'Run.png';
@@ -344,9 +347,20 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		TWEnemy   = custom 'Target_Wide_Enemy.png';
 		TWFriend  = custom 'Target_Wide_Friend.png';
 		TWNeutral = custom 'Target_Wide_Neutral.png';
+		ZoomIn    = custom 'ZoomIn.blp';
+		ZoomOut   = custom 'ZoomOut.blp';
+		SHIFT     = custom 'M1.blp';
+		CTRL      = custom 'M2.blp';
+		ALT       = custom 'M3.blp';
 	}; Bindings.CustomIcons = CustomIcons;
 
 	Bindings.DefaultIcons = {
+		---------------------------------------------------------------
+		CAMERAORSELECTORMOVE               = CustomIcons.MBLeft;
+		TURNORACTION                       = CustomIcons.MBRight;
+		CAMERAZOOMIN                       = CustomIcons.ZoomIn;
+		CAMERAZOOMOUT                      = CustomIcons.ZoomOut;
+		OPENCHAT                           = CustomIcons.Chat;
 		---------------------------------------------------------------
 		JUMP                               = CustomIcons.Jump;
 		TOGGLERUN                          = CustomIcons.Run;
@@ -377,6 +391,9 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		STARTATTACK                        = client 'Ability_SteelMelee';
 		PETATTACK                          = client 'ABILITY_HUNTER_INVIGERATION';
 		FOCUSTARGET                        = client 'Ability_Hunter_MasterMarksman';
+		TOGGLECHARACTER0                   = client 'Ability_Warrior_DefensiveStance';
+		TOGGLETALENTS                      = client 'INV_Misc_Book_07';
+		TOGGLESPELLBOOK                    = [[Interface\SPELLBOOK\Spellbook-Icon]];
 		---------------------------------------------------------------
 		[Bindings.Custom.EasyMotion]       = CustomIcons.Group;
 		[Bindings.Custom.RaidCursorToggle] = CustomIcons.Group;
