@@ -197,15 +197,16 @@ env.DropdownReplacementMacro = {
 };
 
 env.Attributes = {
-	IgnoreNode   = 'nodeignore';
-	IgnoreScroll = 'nodeignorescroll';
-	PassThrough  = 'nodepass';
-	Priority     = 'nodepriority';
-	Singleton    = 'nodesingleton';
-	SpecialClick = 'nodespecialclick';
-	CancelClick  = 'nodecancelclick';
-	IgnoreMime   = 'nodeignoremime';
-	DisableHooks = 'nohooks';
+	IgnoreNode   = 'nodeignore';       -- Bool, ignore this node completely.
+	IgnoreDrag   = 'nodeignoredrag';   -- Bool, ignore dragging simulation.
+	IgnoreMime   = 'nodeignoremime';   -- Bool, ignore miming of this node.
+	IgnoreScroll = 'nodeignorescroll'; -- Bool, ignore super scrolling.
+	PassThrough  = 'nodepass';         -- Bool, pass through the node, consider children.
+	Singleton    = 'nodesingleton';    -- Bool, include node, ignore children.
+	Priority     = 'nodepriority';     -- Number, priority in arbitrary selection.
+	SpecialClick = 'nodespecialclick'; -- Function, special click handler.
+	CancelClick  = 'nodecancelclick';  -- Function, cancel click handler.
+	DisableHooks = 'nohooks';          -- Bool, disable hooks for this node.
 };
 
 ---------------------------------------------------------------

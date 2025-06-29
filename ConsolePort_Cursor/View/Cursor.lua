@@ -618,7 +618,8 @@ end
 
 function Cursor:AttemptDragStart()
 	local node = self:GetCurrentNode()
-	local script = node and node:GetScript('OnDragStart')
+	local script = node and not node:GetAttribute(env.Attributes.IgnoreDrag)
+		and node:GetScript('OnDragStart');
 	if script then
 		local widget = Input:GetActiveWidget(db('Settings/UICursorLeftClick'), self)
 		local click = widget and widget:HasClickButton()

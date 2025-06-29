@@ -219,14 +219,15 @@ function LoadoutMixin:IsReadonlyBinding(binding)
 	return LoadoutInfo:IsReadonlyBinding(binding)
 end
 
--- @param binding        : bindingID
+-- @param binding        : binding ID
 -- @param skipActionInfo : format action as binding ID
 -- @return name          : internal name of the binding
 -- @return texture       : binding or action texture
 -- @return actionID      : formatted action ID
+-- @return bindingID     : binding ID
 function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
 	if (not binding or binding == '') then return LoadoutInfo.NotBoundColor:format(NOT_BOUND) end;
-	local bindings, headers = LoadoutInfo:RefreshDictionary()
+	local _, headers = LoadoutInfo:RefreshDictionary()
 
 	local text, name = LoadoutInfo:GetBindingName(binding)
 	local header = headers[binding];
@@ -247,14 +248,14 @@ function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
 			-- if action has a name, suffix the binding, omit the header,
 			-- return the concatenated string and the action texture
 			text = LoadoutInfo:ConvertTextToBonusBar(text, page, actionID)
-			return LoadoutInfo.DisplayFormat:format(name, text), texture, actionID;
+			return LoadoutInfo.DisplayFormat:format(name, text), texture, actionID, binding;
 		elseif texture then
 			-- no name found, but there's a texture.
 			if text then
 				name = header and _G[header]
 				name = name and LoadoutInfo.DisplayFormat:format(text, name) or text;
 			end
-			return name, texture, actionID;
+			return name, texture, actionID, binding;
 		end
 	end
 	if text then
@@ -267,12 +268,12 @@ function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
 	-- check if this is a ring binding
 	name = db.Bindings:ConvertRingBindingToDisplayName(binding)
 	if name then
-		return name, db.Bindings:GetIcon(binding), actionID;
+		return name, db.Bindings:GetIcon(binding), actionID, binding;
 	end
 	-- at this point, this is not an usual binding. this is most likely a click binding.
 	name = gsub(binding, '(.* ([^:]+).*)', '%2') -- upvalue so it doesn't return more than 1 arg
 	name = name or self:WrapAsNotBound(NOT_BOUND);
-	return name, db.Bindings:GetIcon(binding), actionID;
+	return name, db.Bindings:GetIcon(binding), actionID, binding;
 end
 
 function LoadoutMixin:WrapAsNotBound(text)

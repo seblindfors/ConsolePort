@@ -135,9 +135,15 @@ do local function GetBindingSlugs(self, device, split, large, key, ...)
 	end
 
 	function HotkeyHandler:GetButtonSlugForBinding(binding, split, large)
-		local device = db('Gamepad/Active')
+		local device = db.Gamepad.Active;
 		if not device then return end;
 		return GetBindingSlugs(self, device, split, large, db.Gamepad:GetBindingKey(binding))
+	end
+
+	function HotkeyHandler:GetButtonSlugForChord(chord, split, large)
+		local device = db.Gamepad.Active;
+		if not device then return end;
+		return GetBindingSlugs(self, device, split, large, chord)
 	end
 
 	function HotkeyHandler:GetButtonSlugsForBinding(binding, separator, limit)
@@ -235,7 +241,7 @@ function HotkeyMixin:SetData(data, owner)
 	self:SetOwner(owner)
 
 	-- TODO: allow more templates
-	local signature = 'return function(self, button, modifier, owner)\n%s\nend' 
+	local signature = 'return function(self, button, modifier, owner)\n%s\nend'
 	local render, msg = loadstring(signature:format(self.Templates[self.template]))
 	if render then
 		return render()(self, data.button, data.modifier, owner)

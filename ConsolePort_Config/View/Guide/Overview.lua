@@ -47,12 +47,16 @@ function Binding:GetBinding()
 	return GetBindingAction(self:GetKeyChord());
 end
 
+function Binding:SetBinding(bindingID)
+	return SetBinding(self:GetKeyChord(), bindingID, GetCurrentBindingSet())
+end
+
 function Binding:GetModifier()
 	return self.mod or '';
 end
 
 function Binding:GetKeyChord()
-	return self.mod .. self.baseBinding;
+	return self:GetModifier() .. self:GetBaseBinding();
 end
 
 function Binding:GetBaseBinding()
@@ -78,6 +82,15 @@ function Binding:GetButtonSequence()
 		tinsert(combo, 1, slug)
 	end
 	return table.concat(combo, '-'), self:GetModifier()
+end
+
+function Binding:SetReserved(reservedData)
+	self.reservedData = reservedData;
+end
+
+function Binding:IsClickReserved(override)
+	local reserved = override or self.reservedData;
+	return reserved and reserved.cvar:match('Cursor');
 end
 
 ---------------------------------------------------------------
@@ -159,15 +172,6 @@ function Button:SetBaseBinding(binding)
 	CPAPI.SetTextureOrAtlas(self.Icon, data.button)
 end
 
-function Button:SetReserved(reservedData)
-	self.reservedData = reservedData;
-end
-
-function Button:IsClickReserved(override)
-	local reserved = override or self.reservedData;
-	return reserved and reserved.cvar:match('Cursor');
-end
-
 function Button:UpdateInfo(name, texture, actionID)
 	self:SetText(name)
 	if not self.ActionIcon then return end;
@@ -194,27 +198,204 @@ function Button:UpdateState(currentModifier)
 end
 
 ---------------------------------------------------------------
-local Action = CreateFromMixins(Binding)
+local Action, ActionHitRectPool = CreateFromMixins(Binding)
 ---------------------------------------------------------------
 
-function Action:UpdateInfo(name, texture, actionID, binding)
-	--print('Action:UpdateInfo', name, texture, actionID, binding)
-	self.name = name or '';
+function Action:OnLoad()
+	self:SetMovable(true)
+	self:RegisterForDrag('LeftButton')
+	self:SetScript('OnDragStop', self.OnDragStop)
+end
 
-	if ( not texture and not actionID and not binding ) then
+function Action:OnShow()
+	env:RegisterCallback('OnOverviewDragBinding', self.OnDragBinding, self)
+end
+
+function Action:OnHide()
+	env:UnregisterCallback('OnOverviewDragBinding', self)
+	self:CommitHitRect()
+end
+
+function Action:OnEnter()
+	self.isMouseOver = true;
+	env:TriggerEvent('OnOverviewHighlightButtons', self:GetButtonSequence())
+
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+
+	local name, _, actionID = self:GetBindingInfo(self:GetBinding(), true)
+	local reserved = env:GetCombinationBlockerInfo(self:GetKeyChord())
+	if reserved then
+		SetCvarTooltip(GameTooltip, reserved, true)
+	elseif ( actionID and GameTooltip:SetAction(actionID) ) then
+		GameTooltip:AddLine('\n'..name)
+	else
+		-- SetAction failed, so re-anchoring is required.
+		if actionID then
+			GameTooltip_SetDefaultAnchor(GameTooltip, self)
+		end
+		GameTooltip:SetText(name)
+	end
+
+	local slug = not reserved and db.Hotkeys:GetButtonSlugForChord(self:GetKeyChord())
+	if slug then
+		GameTooltip:AddLine(('%s: %s'):format(KEY_BINDING, slug), GameFontGreen:GetTextColor())
+	end
+	GameTooltip:Show()
+end
+
+function Action:OnLeave()
+	self.isMouseOver = false;
+	env:TriggerEvent('OnOverviewHighlightButtons', nil)
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
+---------------------------------------------------------------
+-- Drag and drop types
+---------------------------------------------------------------
+function Action:OnDragBinding(isDragging, action, data)
+	if action == self then return end;
+	if isDragging then
+		self:EnableDragTarget(action, data)
+	else
+		local isMouseOver, targetAction, targetData = self:CommitDragTarget()
+		if not isMouseOver then return end;
+		local targetBinding = targetAction:GetBinding()
+		targetAction:SetBinding(self:GetBinding())
+		targetAction:UpdateCurrentInfo()
+		self:SetBinding(targetBinding)
+		self:UpdateCurrentInfo()
+	end
+end
+
+---------------------------------------------------------------
+-- Drag and drop tracking
+---------------------------------------------------------------
+local function ActionUpdateMouseOver(action, hitRect)
+	local isMouseOver = hitRect:IsMouseOver();
+	local isUpdated = action.isDragOverRect == isMouseOver;
+	action.isDragOverRect = isMouseOver;
+	action:UpdateDragAction(isMouseOver, isUpdated)
+end
+
+function Action:OnDragStart()
+	local data = self:GetData()
+	data.origin = self:AcquireOrigin()
+
+	self:StartMoving()
+	self:SetFrameLevel(self:GetFrameLevel() + 10)
+	env:TriggerEvent('OnOverviewDragBinding', true, self, data)
+end
+
+function Action:OnDragStop()
+	local data = self:GetData()
+	data.origin = self:ReleaseOrigin()
+
+	self:StopMovingOrSizing()
+	self:SetFrameLevel(self:GetFrameLevel() - 10)
+	env:TriggerEvent('OnOverviewDragBinding', false, self, data)
+end
+
+function Action:UpdateDragAction(isMouseOver, isUpdated)
+	if not isUpdated then return end;
+	self:ClearAllPoints()
+	self:SetPoint(unpack(isMouseOver and self:GetTargetOrigin() or self:AcquireOrigin()))
+end
+
+function Action:EnableDragTarget(action, data)
+	self.targetAction, self.targetData = action, data;
+	self:AcquireOrigin()
+	self:AcquireHitRect()
+end
+
+function Action:CommitDragTarget()
+	local isMouseOver = self:CommitHitRect()
+	local targetAction, targetData = self.targetAction, self.targetData;
+	self:ReleaseOrigin()
+	self.targetAction, self.targetData = nil, nil;
+	return isMouseOver, targetAction, targetData;
+end
+
+function Action:GetTargetOrigin()
+	return self.targetData and self.targetData.origin or nil;
+end
+
+function Action:AcquireHitRect()
+	if self.hitRect then
+		return self.hitRect;
+	end
+	if not ActionHitRectPool then
+		ActionHitRectPool = CreateFramePool('Frame', nil, nil, function(_, hitRect)
+			hitRect:Hide()
+			hitRect:ClearAllPoints()
+			if hitRect.ticker then
+				hitRect.ticker:Cancel()
+				hitRect.ticker = nil;
+			end
+		end)
+	end
+	local hitRect, newObj = ActionHitRectPool:Acquire()
+	if newObj then
+		hitRect:SetSize(self:GetSize())
+		hitRect:SetFrameLevel(self:GetFrameLevel() + 1)
+	end
+	hitRect:SetParent(self)
+	hitRect:SetPoint(self:GetPoint())
+	hitRect:Show()
+	hitRect.ticker = C_Timer.NewTicker(0.1, GenerateClosure(ActionUpdateMouseOver, self, hitRect))
+	self.hitRect = hitRect;
+	return hitRect;
+end
+
+function Action:CommitHitRect()
+	if not self.hitRect then return end;
+	local isDragOverRect = self.isDragOverRect;
+	ActionHitRectPool:Release(self.hitRect)
+	self.hitRect, self.isDragOverRect = nil, nil;
+	return isDragOverRect;
+end
+
+function Action:AcquireOrigin()
+	if not self.origin then
+		self.origin = { self:GetPoint() };
+	end
+	return self.origin;
+end
+
+function Action:ReleaseOrigin()
+	local origin = self.origin;
+	if origin then
+		self:ClearAllPoints()
+		self:SetPoint(unpack(origin))
+		self.origin = nil;
+	end
+	return origin;
+end
+
+---------------------------------------------------------------
+-- Action information
+---------------------------------------------------------------
+function Action:UpdateInfo(name, texture, actionID, bindingID)
+	--print('Action:UpdateInfo', name, texture, actionID, bindingID)
+	self.name = name or '';
+	self.cvar = nil;
+
+	if ( not texture and not actionID and not bindingID ) then
 		local blocker = env:GetBlockedCombination(self:GetKeyChord())
 		if blocker then
 			texture = db.Bindings.CustomIcons[blocker];
+			self.cvar = db.Gamepad.Index.Modifier.Cvars[blocker];
 		end
 	end
 
-	local c = (texture or (not actionID and binding)) and 1 or 0.5;
-	local a = (texture or actionID or binding) and 1 or 0.25;
+	local c = (texture or (not actionID and bindingID)) and 1 or 0.5;
+	local a = (texture or actionID or bindingID) and 1 or 0.25;
 	self.Border:SetAlpha(a * 0.5)
 	self.Icon:SetVertexColor(c, c, c, a);
 	self.Icon:SetTexture(texture
 		or actionID and CPAPI.GetAsset([[Textures\Button\EmptyIcon]])
-		or binding and [[Interface\MacroFrame\MacroFrame-Icon]]
+		or bindingID and [[Interface\MacroFrame\MacroFrame-Icon]]
 		or CPAPI.GetAsset([[Textures\Button\NotBound]])
 	);
 end
@@ -231,6 +412,10 @@ end
 
 function Action:UpdateModifier(modifier)
 	self:SetModifier(modifier)
+	self:UpdateCurrentInfo()
+end
+
+function Action:UpdateCurrentInfo()
 	self:UpdateInfo(self:GetBindingInfo(self:GetBinding()))
 end
 
@@ -246,14 +431,18 @@ function Action:SetCurrentModifier(modifier, isAlt)
 	self.Border:SetShown(isActive);
 end
 
-function Action:OnEnter()
-	self.isMouseOver = true;
-	env:TriggerEvent('OnOverviewHighlightButtons', self:GetButtonSequence())
-end
-
-function Action:OnLeave()
-	self.isMouseOver = false;
-	env:TriggerEvent('OnOverviewHighlightButtons', nil)
+function Action:GetData()
+	local name, texture, actionID, bindingID = self:GetBindingInfo(self:GetBinding())
+	return {
+		name      = name;
+		texture   = texture;
+		actionID  = actionID;
+		bindingID = bindingID;
+		cvar      = self.cvar;
+		chord     = self:GetKeyChord();
+		modifier  = self:GetModifier();
+		button    = self:GetBaseBinding();
+	};
 end
 
 ---------------------------------------------------------------
@@ -376,7 +565,7 @@ end
 
 function ComboButton:RenderPositionAndLines(numButtons, isLeft)
     -- Calculate position and constraints
-    local w, h = self.Container:GetWidth()
+    local w, h = self.Container:GetSize()
     local entryHeight = 54; -- Height required for each entry
     local totalHeight = entryHeight * numButtons;
     local startY = -totalHeight / 2 + entryHeight / 2;

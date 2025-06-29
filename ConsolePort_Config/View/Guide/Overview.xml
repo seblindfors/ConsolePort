@@ -1,7 +1,10 @@
 <Ui>
-	<Line name="CPOverviewLine" thickness="10" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
+	<Line name="CPOverviewLine" thickness="4" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
 	<Frame name="CPOverviewActionDisplay" virtual="true">
 		<Size x="32" y="32"/>
+		<Attributes>
+			<Attribute name="nodeignoredrag" type="boolean" value="true"/>
+		</Attributes>
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="2">
 				<FontString parentKey="Modifier" inherits="Game15Font">
@@ -9,20 +12,25 @@
 						<Anchor point="TOPLEFT" x="6" y="-2"/>
 					</Anchors>
 				</FontString>
-				<Texture parentKey="Icon" setAllPoints="true"/>
+				<Texture parentKey="Icon" setAllPoints="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="3">
-				<Texture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32">
+				<Texture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32" alpha="0.65">
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="-1" y="1"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="1" y="-1"/>
+						<Anchor point="TOPLEFT" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
 					</Anchors>
 				</Texture>
 				<MaskTexture parentKey="MaskAlpha"
 					file="Interface\CharacterFrame\TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+						<Anchor point="TOPLEFT"/>
+						<Anchor point="BOTTOMRIGHT"/>
 					</Anchors>
 					<MaskedTextures>
 						<MaskedTexture childKey="Icon"/>
@@ -30,18 +38,27 @@
 				</MaskTexture>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="4">
-				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alpha="0.5" alphaMode="ADD"> 
+				<Texture parentKey="MaskBorder" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png">
+					<Color r="0.15" g="0.15" b="0.15"/>
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="-2" y="2"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="2" y="-2"/>
+						<Anchor point="TOPLEFT" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="5">
+				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alpha="0.5" alphaMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-2" y="2"/>
+						<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
 					</Anchors>
 				</Texture>
 			</Layer>
 			<Layer level="HIGHLIGHT">
-				<Texture parentKey="BorderHilite" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alphaMode="ADD"> 
+				<Texture parentKey="BorderHilite" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alphaMode="ADD">
 					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="-2" y="2"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="2" y="-2"/>
+						<Anchor point="TOPLEFT" x="-2" y="2"/>
+						<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
 					</Anchors>
 				</Texture>
 			</Layer>
@@ -52,8 +69,8 @@
 		<Size x="200" y="48"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Line parentKey="Bottom1" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
-				<Line parentKey="Bottom2" thickness="10" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
+				<Line parentKey="Bottom1" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
+				<Line parentKey="Bottom2" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
 			</Layer>
 			<Layer level="ARTWORK" textureSubLevel="1">
 				<Texture parentKey="Icon">
@@ -66,7 +83,7 @@
 					</Anchors>
 				</FontString>
 			</Layer>
-		</Layers>	
+		</Layers>
 	</Button>
 
 	<Button name="CPOverviewModifierIndicator" inherits="CPToolbarSixSliceInverterFrame" virtual="true">
@@ -82,7 +99,7 @@
 			</Layer>
 		</Layers>
 	</Button>
-	
+
 	<Frame name="CPOverviewModifierTray" inherits="HorizontalButtonTrayTemplate" virtual="true">
 		<Size x="1" y="1"/>
 		<KeyValues>

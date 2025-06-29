@@ -1,10 +1,16 @@
 ---------------------------------------------------------------
 -- Scroll management
 ---------------------------------------------------------------
-local Scroll, Node, Clamp, _, env, db =
+-- Handles centered, interpolated and manual scrolling
+-- of scroll frames and scroll boxes. The keyword "super" is
+-- used to refer to a candidate scroll frame or scroll box that
+-- is above the node in the hierarchy by one or more levels.
+
+local Scroll, Node, Clamp, env, db =
 	CreateFrame('Frame', '$parentUIScrollHandler', ConsolePort),
 	LibStub('ConsolePortNode'),
-	Clamp, ...; db = env.db;
+	Clamp, CPAPI.GetEnv(...);
+
 ---------------------------------------------------------------
 -- Auto-scrolling
 ---------------------------------------------------------------
