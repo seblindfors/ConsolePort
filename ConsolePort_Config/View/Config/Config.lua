@@ -127,7 +127,7 @@ local Search = {};
 
 function Search:OnLoad()
 	env.Search.OnLoad(self)
-	env:RegisterCallback('OnSubcatClicked', self.ClearQuery, self)
+	env:RegisterCallback('Settings.OnSubcatClicked', self.ClearQuery, self)
 end
 
 function Search:ClearQuery()

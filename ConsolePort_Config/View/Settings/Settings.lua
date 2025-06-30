@@ -38,8 +38,8 @@ function Settings:OnLoad()
 	CPAPI.Start(self)
 	self:Reindex()
 	self:SetActiveCategory(GENERAL, self.index[SETTING_GROUP_SYSTEM][GENERAL])
-	env:RegisterCallback('OnSubcatClicked', self.OnSubcatClicked, self)
-	env:RegisterCallback('OnSettingsDirty', self.OnSettingsDirty, self)
+	env:RegisterCallback('Settings.OnSubcatClicked', self.OnSubcatClicked, self)
+	env:RegisterCallback('Settings.OnDirty', self.OnDirty, self)
 	env:RegisterCallback('OnFlushLeft', self.OnFlushLeft, self)
 	db:RegisterCallback('OnDependencyChanged', self.OnDependencyChanged, self)
 	db:RegisterCallback('OnVariablesChanged', self.OnVariablesChanged, self)
@@ -102,7 +102,7 @@ function Settings:OnSubcatClicked(text, set)
 	self:SetActiveCategory(text, set)
 end
 
-function Settings:OnSettingsDirty()
+function Settings:OnDirty()
 	if self.activeData then
 		self:RenderSettings()
 	end

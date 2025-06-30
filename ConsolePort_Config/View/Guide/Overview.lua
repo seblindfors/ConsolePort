@@ -208,17 +208,17 @@ function Action:OnLoad()
 end
 
 function Action:OnShow()
-	env:RegisterCallback('OnOverviewDragBinding', self.OnDragBinding, self)
+	env:RegisterCallback('Overview.OnDragBinding', self.OnDragBinding, self)
 end
 
 function Action:OnHide()
-	env:UnregisterCallback('OnOverviewDragBinding', self)
+	env:UnregisterCallback('Overview.OnDragBinding', self)
 	self:CommitHitRect()
 end
 
 function Action:OnEnter()
 	self.isMouseOver = true;
-	env:TriggerEvent('OnOverviewHighlightButtons', self:GetButtonSequence())
+	env:TriggerEvent('Overview.OnHighlightButtons', self:GetButtonSequence())
 
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 
@@ -245,7 +245,7 @@ end
 
 function Action:OnLeave()
 	self.isMouseOver = false;
-	env:TriggerEvent('OnOverviewHighlightButtons', nil)
+	env:TriggerEvent('Overview.OnHighlightButtons', nil)
 	if GameTooltip:IsOwned(self) then
 		GameTooltip:Hide()
 	end
@@ -285,7 +285,7 @@ function Action:OnDragStart()
 
 	self:StartMoving()
 	self:SetFrameLevel(self:GetFrameLevel() + 10)
-	env:TriggerEvent('OnOverviewDragBinding', true, self, data)
+	env:TriggerEvent('Overview.OnDragBinding', true, self, data)
 end
 
 function Action:OnDragStop()
@@ -294,7 +294,7 @@ function Action:OnDragStop()
 
 	self:StopMovingOrSizing()
 	self:SetFrameLevel(self:GetFrameLevel() - 10)
-	env:TriggerEvent('OnOverviewDragBinding', false, self, data)
+	env:TriggerEvent('Overview.OnDragBinding', false, self, data)
 end
 
 function Action:UpdateDragAction(isMouseOver, isUpdated)
@@ -496,13 +496,13 @@ end
 function ComboButton:OnEnter()
 	self.isMouseOver = true;
 	Button.OnEnter(self)
-	env:TriggerEvent('OnOverviewHighlightButtons', (self:GetButtonSequence()))
+	env:TriggerEvent('Overview.OnHighlightButtons', (self:GetButtonSequence()))
 end
 
 function ComboButton:OnLeave()
 	self.isMouseOver = false;
 	Button.OnLeave(self)
-	env:TriggerEvent('OnOverviewHighlightButtons', nil)
+	env:TriggerEvent('Overview.OnHighlightButtons', nil)
 end
 
 function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration or ANI_DURATION;
@@ -683,7 +683,7 @@ function Overview:OnLoad()
 
 	self.buttonPool = CreateFramePool('Button', self, 'CPOverviewBindingSplashDisplay')
 
-	env:RegisterCallback('OnOverviewHighlightButtons', self.OnOverviewHighlightButtons, self)
+	env:RegisterCallback('Overview.OnHighlightButtons', self.OnHighlightButtons, self)
 
 	-- TODO: handle tap bindings since we want to toggle modifiers without
 	-- triggering the tap binding.
@@ -729,7 +729,7 @@ function Overview:OnEvent(_, modifier, state)
 	self:UpdateModifier(self:ToggleModifier(modifier))
 end
 
-function Overview:OnOverviewHighlightButtons(sequence, overrideModifiers)
+function Overview:OnHighlightButtons(sequence, overrideModifiers)
 	if self.updateStateTimer then
 		self.updateStateTimer:Cancel()
 		self.updateStateTimer = nil;
@@ -753,10 +753,15 @@ function Overview:OnOverviewHighlightButtons(sequence, overrideModifiers)
 						button:ForceUpdateState(overrideModifiers or self.mod)
 						matches[button] = true;
 					else
-						button:ForceUpdateState(self.mod)
-						button:SetLineAlpha(0.1, false, ANI_DURATION)
+						matches[button] = false;
 					end
 				end
+			end
+		end
+		for button, isMatched in pairs(matches) do
+			if not isMatched then
+				button:ForceUpdateState(self.mod)
+				button:SetLineAlpha(0.1, false, ANI_DURATION)
 			end
 		end
 	end)

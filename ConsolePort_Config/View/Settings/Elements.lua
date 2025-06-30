@@ -609,7 +609,7 @@ function BindingPreset:Rename(old, new, data)
 	local object = data.store[data.index];
 	object.key, object.meta = new, meta;
 
-	env:TriggerEvent('OnSettingsDirty')
+	env:TriggerEvent('Settings.OnDirty')
 end
 
 function BindingPreset:Delete(data)
@@ -620,7 +620,7 @@ function BindingPreset:Delete(data)
 		CPAPI.Log('Preset %s has been deleted.', data.meta.Name)
 		tremove(data.store, data.index)
 		db.Shared:CollectCharacterGarbage()
-		env:TriggerEvent('OnSettingsDirty')
+		env:TriggerEvent('Settings.OnDirty')
 	end
 end
 
@@ -698,7 +698,7 @@ function BindingPresetAdd:OnAdded(icon, _, name)
 	dp.index = #store;
 	dp.store = store;
 
-	env:TriggerEvent('OnSettingsDirty')
+	env:TriggerEvent('Settings.OnDirty')
 	CPAPI.Log('Preset %s has been created.', name)
 end
 

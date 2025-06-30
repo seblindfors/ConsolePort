@@ -78,7 +78,7 @@ end
 
 function Subcat:OnClick()
 	local data = self:GetElementData():GetData()
-	env:TriggerEvent('OnSubcatClicked', data.text, data.childData)
+	env:TriggerEvent('Settings.OnSubcatClicked', data.text, data.childData)
 end
 
 function Subcat:Data(text, checked, childData)
