@@ -5,16 +5,19 @@ end
 local AssistedCombatManager, _, env = tFilter(AssistedCombatManager, function(v) return type(v) == 'function' end), ...;
 -- These should not be shared with the original.
 AssistedCombatManager.rotationSpells = {};
+AssistedCombatManager.autoRotationActionButtons = {};
 AssistedCombatManager.assistedHighlightCandidateActionButtons = {};
 AssistedCombatManager.spellDataLoadedCancelCallback = nil;
 
 function AssistedCombatManager:Init()
-	self.init = true;
+	CVarCallbackRegistry:RegisterCallback('assistedCombatIconUpdateRate', self.ProcessCVars, self);
+	CVarCallbackRegistry:RegisterCallback('assistedCombatHighlight', self.ProcessCVars, self);
 
-	CVarCallbackRegistry:RegisterCallback('assistedCombatIconUpdateRate', AssistedCombatManager.ProcessCVars, AssistedCombatManager);
-	CVarCallbackRegistry:RegisterCallback('assistedCombatHighlight', AssistedCombatManager.ProcessCVars, AssistedCombatManager);
+	env:RegisterCallback('ActionButton.OnActionChanged', self.OnActionButtonActionChanged, self);
+	env:RegisterCallback('ActionButton.OnTypeChanged', self.OnActionButtonTypeChanged, self);
 
-	AssistedCombatManager:ProcessCVars();
+	self:ProcessCVars();
+	self.Init = nil;
 end
 
 function AssistedCombatManager:OnSpellsChanged()
@@ -31,7 +34,7 @@ function AssistedCombatManager:OnSpellsChanged()
 	self.hasShapeshiftForms = GetNumShapeshiftForms() > 0;
 
 	-- OnSpellsChanged will fire after VARIABLES_LOADED and PLAYER_ENTERING_WORLD
-	if not self.init then
+	if self.Init then
 		self:Init();
 	elseif self:IsAssistedHighlightActive() then
 		self:UpdateAssistedHighlightCandidateActionButtonsList()
@@ -110,31 +113,47 @@ function AssistedCombatManager:OnActionButtonActionChanged(actionButton)
 	local actionID = actionButton:GetAttribute('action');
 	local retainCandidate = true;
 	local isAssistedCombatAction = C_ActionBar.IsAssistedCombatAction(actionID);
-	self:OnActionButtonTypeChanged(actionButton, retainCandidate)
 
-	if isAssistedCombatAction then
-		actionButton.autoRotationSpellID = self.lastNextCastSpellID;
-		actionButton.autoRotationTicker = C_Timer.NewTicker(self:GetUpdateRate(), function()
-			if actionButton.autoRotationSpellID ~= self.lastNextCastSpellID then
-				actionButton.autoRotationSpellID = self.lastNextCastSpellID;
-				actionButton:UpdateAction(true);
-			end
-		end);
-	end
+	self:OnActionButtonTypeChanged(actionButton, retainCandidate);
+	self:ToggleAutoRotationTracking(actionButton, isAssistedCombatAction);
 
 	if self.hasShapeshiftForms then
 		self:ForceUpdateAtEndOfFrame();
 	end
 end
 
-function AssistedCombatManager:OnActionButtonTypeChanged(actionButton, retainCandidate)
-	if not retainCandidate then
-		self.assistedHighlightCandidateActionButtons[actionButton] = nil;
+function AssistedCombatManager:ToggleAutoRotationTracking(actionButton, on)
+	self.autoRotationActionButtons[actionButton] = on or nil; -- remove if falsy
+	if on then
+		self:AddRotationTicker(actionButton);
+	else
+		self:ClearRotationTicker(actionButton);
 	end
+	self:ToggleNextSpellCastTracking(nil, next(self.autoRotationActionButtons) ~= nil);
+end
+
+function AssistedCombatManager:AddRotationTicker(actionButton)
+	actionButton.autoRotationSpellID = self.lastNextCastSpellID;
+	actionButton.autoRotationTicker = C_Timer.NewTicker(self:GetUpdateRate(), function()
+		if actionButton.autoRotationSpellID ~= self.lastNextCastSpellID then
+			actionButton.autoRotationSpellID = self.lastNextCastSpellID;
+			actionButton:UpdateAction(true);
+		end
+	end);
+end
+
+function AssistedCombatManager:ClearRotationTicker(actionButton)
 	if not actionButton.autoRotationTicker then return end;
 	actionButton.autoRotationTicker:Cancel();
 	actionButton.autoRotationTicker = nil;
 	actionButton.autoRotationSpellID = nil;
+end
+
+function AssistedCombatManager:OnActionButtonTypeChanged(actionButton, retainCandidate)
+	if not retainCandidate then
+		self.assistedHighlightCandidateActionButtons[actionButton] = nil;
+	end
+	self:ClearRotationTicker(actionButton);
 end
 
 -- Will return a spellID for an actionButton that holds a rotation spell (ignoring AssistedRotation button)
@@ -196,11 +215,9 @@ function AssistedCombatManager:SetAssistedHighlightFrameShown(actionButton, show
 end
 
 function AssistedCombatManager:UpdateAllAssistedHighlightFramesForSpell(spellID)
-	if self.assistedHighlightCandidateActionButtons then
-		for actionButton, actionSpellID in pairs(self.assistedHighlightCandidateActionButtons) do
-			local show = actionSpellID == spellID;
-			self:SetAssistedHighlightFrameShown(actionButton, show);
-		end
+	for actionButton, actionSpellID in pairs(self.assistedHighlightCandidateActionButtons) do
+		local show = actionSpellID == spellID;
+		self:SetAssistedHighlightFrameShown(actionButton, show);
 	end
 end
 
@@ -217,29 +234,21 @@ function AssistedCombatManager:BuildAssistedHighlightCandidateActionButtonsList(
 end
 
 function AssistedCombatManager:UpdateAssistedHighlightCandidateActionButtonsList()
-	if self.assistedHighlightCandidateActionButtons then
-		for actionButton in pairs(self.assistedHighlightCandidateActionButtons) do
-			local spellID = self:GetActionButtonSpellForAssistedHighlight(actionButton);
-			self.assistedHighlightCandidateActionButtons[actionButton] = spellID;
-		end
+	for actionButton in pairs(self.assistedHighlightCandidateActionButtons) do
+		local spellID = self:GetActionButtonSpellForAssistedHighlight(actionButton);
+		self.assistedHighlightCandidateActionButtons[actionButton] = spellID;
 	end
 end
 
 function AssistedCombatManager:UpdateAssistedHighlightState(wasActive)
 	local isActive = self:IsAssistedHighlightActive();
 	if isActive then
-		if not self.updateFrame then
-			self.updateFrame = CreateFrame('FRAME');
-		end
 		if not wasActive then
 			self:BuildAssistedHighlightCandidateActionButtonsList();
 
 			self.lastNextCastSpellID = nil;
-			self.updateTimeLeft = 0;
-			self.updateFrame:SetScript('OnUpdate', function(_frame, elapsed) self:OnUpdate(elapsed); end);
+			self:ToggleNextSpellCastTracking(true, nil);
 
-			env:RegisterCallback('ActionButton.OnActionChanged', self.OnActionButtonActionChanged, self);
-			env:RegisterCallback('ActionButton.OnTypeChanged', self.OnActionButtonTypeChanged, self);
 			EventRegistry:RegisterFrameEventAndCallback('PLAYER_REGEN_ENABLED', self.OnPlayerRegenChanged, self);
 			EventRegistry:RegisterFrameEventAndCallback('PLAYER_REGEN_DISABLED', self.OnPlayerRegenChanged, self);
 		end
@@ -250,9 +259,8 @@ function AssistedCombatManager:UpdateAssistedHighlightState(wasActive)
 		wipe(self.assistedHighlightCandidateActionButtons);
 
 		self.lastNextCastSpellID = nil;
-		self.updateFrame:SetScript('OnUpdate', nil);
+		self:ToggleNextSpellCastTracking(false, nil);
 
-		env:UnregisterCallback('ActionButton.OnActionChanged', self);
 		EventRegistry:UnregisterFrameEventAndCallback('PLAYER_REGEN_ENABLED', self);
 		EventRegistry:UnregisterFrameEventAndCallback('PLAYER_REGEN_DISABLED', self);
 	end
@@ -267,6 +275,27 @@ function AssistedCombatManager:ForceUpdateAtEndOfFrame()
 	self.lastNextCastSpellID = nil;
 end
 
+function AssistedCombatManager:ToggleNextSpellCastTracking(assistedCombat, autoRotation)
+	if assistedCombat ~= nil then self.trackAssistedCombat = assistedCombat end;
+	if autoRotation   ~= nil then self.trackAutoRotation   = autoRotation end;
+
+	local trackNextSpellCast = self.trackAssistedCombat or self.trackAutoRotation;
+	if ( trackNextSpellCast == self.trackNextSpellCast ) then
+		return;  -- no change
+	end
+	self.trackNextSpellCast = trackNextSpellCast;
+
+	if trackNextSpellCast then
+		if not self.updateFrame then
+			self.updateFrame = CreateFrame('FRAME');
+		end
+		self.updateTimeLeft = 0;
+		self.updateFrame:SetScript('OnUpdate', function(_, elapsed) self:OnUpdate(elapsed); end);
+	elseif self.updateFrame then
+		self.updateFrame:SetScript('OnUpdate', nil);
+	end
+end
+
 function AssistedCombatManager:OnUpdate(elapsed)
 	self.updateTimeLeft = self.updateTimeLeft - elapsed;
 	if self.updateTimeLeft <= 0 then
@@ -277,7 +306,9 @@ function AssistedCombatManager:OnUpdate(elapsed)
 
 		if spellID ~= self.lastNextCastSpellID then
 			self.lastNextCastSpellID = spellID;
-			self:UpdateAllAssistedHighlightFramesForSpell(spellID);
+			if self.trackAssistedCombat then
+				self:UpdateAllAssistedHighlightFramesForSpell(spellID);
+			end
 		end
 	end
 end
