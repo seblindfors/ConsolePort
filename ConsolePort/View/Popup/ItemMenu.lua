@@ -13,7 +13,7 @@ local ItemMenu = db:Register('ItemMenu', CPAPI.EventHandler(ConsolePortItemMenu,
 }))
 ---------------------------------------------------------------
 local INV_EQ_LOCATIONS = {
-	INVTYPE_RANGED         = CPAPI.IsClassicVersion and {'RANGEDSLOT'};
+	INVTYPE_RANGED         = CPAPI.IsClassicEraVersion and {'RANGEDSLOT'};
 	INVTYPE_CLOAK          = {'BACKSLOT'};
 	INVTYPE_FINGER         = {'FINGER0SLOT',  'FINGER1SLOT'};
 	INVTYPE_TRINKET        = {'TRINKET0SLOT', 'TRINKET1SLOT'};

@@ -303,10 +303,11 @@ function FlyoutButtonMixin:SetData(data)
 	self:Update()
 end
 
-do 	local SpellFlyoutButton_UpdateCooldown = SpellFlyoutButton_UpdateCooldown or SpellFlyoutPopupButtonMixin.UpdateCooldown;
-	local SpellFlyoutButton_UpdateCount    = SpellFlyoutButton_UpdateCount    or SpellFlyoutPopupButtonMixin.UpdateCount;
-	local SpellFlyoutButton_UpdateUsable   = SpellFlyoutButton_UpdateUsable   or SpellFlyoutPopupButtonMixin.UpdateUsable;
-	local SpellFlyoutButton_UpdateState    = SpellFlyoutButton_UpdateState    or SpellFlyoutPopupButtonMixin.UpdateState;
+do  local SpellFlyoutButtonMixin = SpellFlyoutButtonMixin or SpellFlyoutPopupButtonMixin;
+	local SpellFlyoutButton_UpdateCooldown = SpellFlyoutButton_UpdateCooldown or SpellFlyoutButtonMixin.UpdateCooldown;
+	local SpellFlyoutButton_UpdateCount    = SpellFlyoutButton_UpdateCount    or SpellFlyoutButtonMixin.UpdateCount;
+	local SpellFlyoutButton_UpdateUsable   = SpellFlyoutButton_UpdateUsable   or SpellFlyoutButtonMixin.UpdateUsable;
+	local SpellFlyoutButton_UpdateState    = SpellFlyoutButton_UpdateState    or SpellFlyoutButtonMixin.UpdateState;
 
 	function FlyoutButtonMixin:Update()
 		if not self.spellID then return end;

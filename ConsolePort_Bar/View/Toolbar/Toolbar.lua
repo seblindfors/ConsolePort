@@ -147,6 +147,7 @@ if not CPAPI.IsRetailVersion then
 		QuestLogMicroButton    = 'Questlog';
 		SocialsMicroButton     = 'GuildCommunities';
 		SpellbookMicroButton   = 'SpellbookAbilities';
+		StoreMicroButton       = 'Shop';
 		TalentMicroButton      = 'SpecTalents';
 		WorldMapMicroButton    = 'Groupfinder';
 	};
@@ -437,6 +438,7 @@ end
 
 function PopoutFrame:OnOverrideMicroMenuPosition(...)
 	if not self.props.micromenu then return end;
+	if not MicroMenu then return end;
 	for button in pairs(self.MicroButtons) do
 		button:SetParent(MicroMenu)
 	end

@@ -165,7 +165,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Keyring ]] if KeyRingButton then _{
+--[[ Keyring ]] if CPAPI.IsClassicEraVersion and KeyRingButton then _{
 ---------------------------------------------------------------
 	text  = KEYRING;
 	img   = [[Interface\ContainerFrame\KeyRing-Bag-Icon]];
