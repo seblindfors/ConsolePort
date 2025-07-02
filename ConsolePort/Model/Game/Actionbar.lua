@@ -54,9 +54,12 @@ db:Register('Actionbar', ActionBarAPI)
 ---------------------------------------------------------------
 -- Action buttons, IDs, and bindings
 ---------------------------------------------------------------
-function ActionBarAPI:GetFormattedIDs(id)
+function ActionBarAPI:GetFormattedIDs(id, transpose)
 	local barID = math.ceil(id / NUM_ACTIONBAR_BUTTONS)
 	local modID = id % NUM_ACTIONBAR_BUTTONS
+	if ( barID == 1 ) and transpose then
+		barID = db.Pager:GetCurrentPage()
+	end
 	return barID, (modID == 0 and NUM_ACTIONBAR_BUTTONS) or modID
 end
 

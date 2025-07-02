@@ -337,7 +337,11 @@ function Config:ShowIconSelector(info)
 end
 
 function Config:OnActionSlotEdit(actionID, bindingID, element)
-	return self:GetLoadoutSelector():EditAction(actionID, bindingID, element)
+	local left = self.Container.Left;
+	return self:GetLoadoutSelector()
+		:SetDataProvider(left:GetDataProvider())
+		:SetScrollView(left:GetScrollView())
+		:EditAction(actionID, bindingID, element)
 end
 
 ---------------------------------------------------------------

@@ -409,6 +409,13 @@ function CPAPI.RegisterFrameForUnitEvents(frame, events, ...)
 	return frame;
 end
 
+function CPAPI.ToggleEvent(frame, event, enabled, unit1, ...)
+	local method = not enabled and frame.UnregisterEvent
+		or unit1 and frame.RegisterUnitEvent
+		or frame.RegisterEvent;
+	return method(frame, event, unit1, ...);
+end
+
 ---------------------------------------------------------------
 -- Secure environment translation
 ---------------------------------------------------------------

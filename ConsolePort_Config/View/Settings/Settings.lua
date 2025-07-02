@@ -130,22 +130,22 @@ function Settings:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	-- Sort settings into types of elements, which determines
 	-- the default category they are placed in.
 	local base, advd, cvar, path, after, before, xtra = {}, {}, {}, {}, {}, {}, {};
-	for _, data in ipairs(data) do
+	for _, dp in ipairs(data) do
 		local target = base;
-		if data.field.advd then
+		if dp.field.advd then
 			target = advd;
-		elseif data.field.cvar then
+		elseif dp.field.cvar then
 			target = cvar;
-		elseif data.field.path then
+		elseif dp.field.path then
 			target = path;
-		elseif data.field.after then
+		elseif dp.field.after then
 			target = after;
-		elseif data.field.before then
+		elseif dp.field.before then
 			target = before;
-		elseif data.field.xtra then
+		elseif dp.field.xtra then
 			target = xtra;
 		end
-		tinsert(target, data)
+		tinsert(target, dp)
 	end
 
 	local activeHeaders = {};

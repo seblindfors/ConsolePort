@@ -220,7 +220,7 @@ Bindings.Primary = {
 		desc    = L.DESC_CAMERAZOOMIN;
 	};
 	{	binding = 'CAMERAZOOMOUT';
-		desc    = DESC_CAMERAZOOMOUT;
+		desc    = L.DESC_CAMERAZOOMOUT;
 	};
 	---------------------------------------------------------------
 	-- Misc

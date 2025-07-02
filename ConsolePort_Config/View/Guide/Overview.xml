@@ -7,11 +7,6 @@
 		</Attributes>
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="2">
-				<FontString parentKey="Modifier" inherits="Game15Font">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="6" y="-2"/>
-					</Anchors>
-				</FontString>
 				<Texture parentKey="Icon" setAllPoints="true">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-1" y="1"/>
@@ -53,6 +48,7 @@
 						<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
 					</Anchors>
 				</Texture>
+				<FontString parentKey="Note" inherits="GameFontDisableTiny"/>
 			</Layer>
 			<Layer level="HIGHLIGHT">
 				<Texture parentKey="BorderHilite" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alphaMode="ADD">

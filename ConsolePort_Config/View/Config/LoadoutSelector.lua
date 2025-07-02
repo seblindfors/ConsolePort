@@ -167,11 +167,21 @@ end
 -- Helpers
 ---------------------------------------------------------------
 function LoadoutSelector:GetDataProvider()
-	return env.Frame.Container.Left:GetDataProvider()
+	return self.dataProvider;
 end
 
 function LoadoutSelector:GetScrollView()
-	return env.Frame.Container.Left:GetScrollView()
+	return self.scrollView;
+end
+
+function LoadoutSelector:SetDataProvider(dataProvider)
+	self.dataProvider = dataProvider;
+	return self;
+end
+
+function LoadoutSelector:SetScrollView(scrollView)
+	self.scrollView = scrollView;
+	return self;
 end
 
 function LoadoutSelector:FindFirstOfType(type)
