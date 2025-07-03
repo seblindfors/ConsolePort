@@ -75,50 +75,55 @@ local Container = {};
 
 function Container:OnLoad()
 	FrameUtil.SpecializeFrameWithMixins(self, CPBackgroundMixin)
-	FrameUtil.SpecializeFrameWithMixins(self.Canvas, Canvas)
 
 	self:SetBackgroundInsets(4, -4, 4, 4)
 	self:AddBackgroundMaskTexture(self.BorderArt.BgMask)
 	self:SetBackgroundAlpha(0.25)
-
-	self.Left:InitDefault()
-	self.Left.ScrollBar.Track:SetAttribute('nodeignore', true)
-
-	local XML_SETTING_TEMPLATE = 'CPSetting';
-
-	local function SettingFactory(self, info)
-		local pool = self.frameFactory.poolCollection:GetOrCreatePool('CheckButton',
-			self:GetScrollTarget(), info.xml, self.frameFactoryResetter, nil, info.type)
-		local frame, new = pool:Acquire()
-		self.initializers[frame] = info.init;
-		self.factoryFrame = frame;
-		self.factoryFrameIsNew = new;
-	end
-
-	local scrollView = self.Right:InitDefault()
-	scrollView:SetElementFactory(function(factory, elementData)
-		local info = elementData:GetData()
-		if ( info.xml ~= XML_SETTING_TEMPLATE ) then
-			return factory(info.xml, info.init)
-		end
-		SettingFactory(scrollView, info)
-	end)
 end
 
 function Container:ToggleLayout(canvasEnabled)
-	self.Left:SetShown(not canvasEnabled)
-	self.Right:SetShown(not canvasEnabled)
-	self.Canvas:SetShown(canvasEnabled)
+	if self.Left   then self.Left:SetShown(not canvasEnabled) end;
+	if self.Right  then self.Right:SetShown(not canvasEnabled) end;
+	if self.Canvas then self.Canvas:SetShown(canvasEnabled) end;
 end
 
 function Container:GetLists()
 	self:ToggleLayout(false)
-	return self.Left, self.Right;
+	return self:GetLeftScrollBox(), self:GetRightScrollBox();
 end
 
 function Container:GetCanvas()
 	self:ToggleLayout(true)
+	if not self.Canvas then
+		self.Canvas = CreateFrame('Frame', nil, self)
+		self.Canvas:SetPoint('TOPLEFT')
+		self.Canvas:SetPoint('BOTTOMRIGHT', 10, 0)
+		self.Canvas:SetClipsChildren(true)
+		FrameUtil.SpecializeFrameWithMixins(self.Canvas, Canvas)
+	end
 	return self.Canvas;
+end
+
+function Container:GetLeftScrollBox()
+	if not self.Left then
+		self.Left = CreateFrame('Frame', nil, self, 'CPConfigScrollBox')
+		self.Left:SetPoint('TOPLEFT', 0, -2)
+		self.Left:SetPoint('BOTTOMRIGHT', self, 'BOTTOMLEFT', 320, 0)
+
+		self.Left:InitDefault()
+		self.Left.ScrollBar.Track:SetAttribute('nodeignore', true)
+	end
+	return self.Left;
+end
+
+function Container:GetRightScrollBox()
+	if not self.Right then
+		self.Right = CreateFrame('Frame', nil, self, 'CPConfigScrollBox')
+		self.Right:SetPoint('TOPLEFT', 340, -2)
+		self.Right:SetPoint('BOTTOMRIGHT', -12, 0)
+		CPScrollBoxSettingsTree.InitDefault(self.Right)
+	end
+	return self.Right;
 end
 
 ---------------------------------------------------------------
@@ -217,7 +222,7 @@ end
 
 function Config:GetLoadoutSelector()
 	if not self.LoadoutSelector then
-		self.LoadoutSelector = CreateAndInitFromMixin(env.LoadoutSelector)
+		self.LoadoutSelector = CreateAndInitFromMixin(env.LoadoutSelector, self.Container)
 	end
 	return self.LoadoutSelector;
 end
@@ -337,7 +342,8 @@ function Config:ShowIconSelector(info)
 end
 
 function Config:OnActionSlotEdit(actionID, bindingID, element)
-	local left = self.Container.Left;
+	if not actionID then return end;
+	local left = self.Container:GetLeftScrollBox();
 	return self:GetLoadoutSelector()
 		:SetDataProvider(left:GetDataProvider())
 		:SetScrollView(left:GetScrollView())

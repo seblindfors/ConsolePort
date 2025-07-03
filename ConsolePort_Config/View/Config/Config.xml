@@ -30,37 +30,6 @@
 					<Anchor point="TOPLEFT" x="10" y="-48"/>
 					<Anchor point="BOTTOMRIGHT" x="-20" y="32"/>
 				</Anchors>
-				<Frames>
-					<Frame parentKey="Left" inherits="CPScrollBoxTree" hidden="true">
-						<Size x="320"/>
-						<Anchors>
-							<Anchor point="TOPLEFT" x="0" y="-2"/>
-							<Anchor point="BOTTOMLEFT" y="0"/>
-						</Anchors>
-						<KeyValues>
-							<KeyValue key="spacing" value="2" type="number"/>
-							<KeyValue key="scrollBarTopY" value="-4" type="number"/>
-							<KeyValue key="scrollBarBottomY" value="4" type="number"/>
-						</KeyValues>
-					</Frame>
-					<Frame parentKey="Right" inherits="CPScrollBoxTree" hidden="true">
-						<Anchors>
-							<Anchor point="TOPLEFT" relativeKey="$parent.Left" relativePoint="TOPRIGHT" x="20"/>
-							<Anchor point="BOTTOMRIGHT" x="-12"/>
-						</Anchors>
-						<KeyValues>
-							<KeyValue key="spacing" value="2" type="number"/>
-							<KeyValue key="scrollBarTopY" value="-4" type="number"/>
-							<KeyValue key="scrollBarBottomY" value="4" type="number"/>
-						</KeyValues>
-					</Frame>
-					<Frame parentKey="Canvas" clipChildren="true" hidden="true">
-						<Anchors>
-							<Anchor point="TOPLEFT" x="0" y="0"/>
-							<Anchor point="BOTTOMRIGHT" x="10" y="0"/>
-						</Anchors>
-					</Frame>
-				</Frames>
 			</Frame>
 			<Button parentKey="CloseButton" inherits="CPSquareButtonTemplate">
 				<Size x="42" y="42"/>
@@ -109,6 +78,14 @@
 				</Anchors>
 			</EditBox>
 		</Frames>
+	</Frame>
+
+	<Frame name="CPConfigScrollBox" virtual="true" inherits="CPScrollBoxTree">
+		<KeyValues>
+			<KeyValue key="spacing" value="2" type="number"/>
+			<KeyValue key="scrollBarTopY" value="-4" type="number"/>
+			<KeyValue key="scrollBarBottomY" value="4" type="number"/>
+		</KeyValues>
 	</Frame>
 
 	<Frame name="CPConfigDataContainer" virtual="true" frameLevel="100">

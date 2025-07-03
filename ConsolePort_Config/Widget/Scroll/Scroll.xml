@@ -50,6 +50,18 @@
 
 	<Frame name="CPScrollBoxTree" virtual="true" mixin="CPScrollBoxTree" inherits="CPScrollBox"/>
 
+	<Frame name="CPScrollBoxLip" virtual="true" enableMouse="true" mixin="CPScrollBoxLip" inherits="CPScrollBoxTree, CPToolbarSixSliceInverterFrame">
+		<KeyValues>
+			<KeyValue key="paddingBottom" value="0" type="number"/>
+			<KeyValue key="paddingLeft" value="8" type="number"/>
+			<KeyValue key="paddingRight" value="10" type="number"/>
+			<KeyValue key="scrollBarBottomY" value="4" type="number"/>
+			<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
+			<KeyValue key="scrollBarTopY" value="-4" type="number"/>
+			<KeyValue key="spacing" value="2" type="number"/>
+		</KeyValues>
+	</Frame>
+
 	<Frame name="CPIconSelector" virtual="true" mixin="CPIconSelector" inherits="CPScrollBox, CPScrollFrameArtTemplate, SelectorTemplate">
 		<KeyValues>
 			<KeyValue key="retainScrollPosition" value="false" type="boolean"/>

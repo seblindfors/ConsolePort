@@ -110,6 +110,85 @@ function CPScrollBoxTree:OnReleasedFrame(frame, elementData)
 end
 
 ---------------------------------------------------------------
+CPScrollBoxSettingsTree = CreateFromMixins(CPScrollBoxTree);
+---------------------------------------------------------------
+
+function CPScrollBoxSettingsTree:InitDefault()
+	local XML_SETTING_TEMPLATE = 'CPSetting';
+
+	local function SettingFactory(self, info)
+		local pool = self.frameFactory.poolCollection:GetOrCreatePool('CheckButton',
+			self:GetScrollTarget(), info.xml, self.frameFactoryResetter, nil, info.type)
+		local frame, new = pool:Acquire()
+		self.initializers[frame] = info.init;
+		self.factoryFrame = frame;
+		self.factoryFrameIsNew = new;
+	end
+
+	local scrollView = CPScrollBoxTree.InitDefault(self)
+	scrollView:SetElementFactory(function(factory, elementData)
+		local info = elementData:GetData()
+		if ( info.xml ~= XML_SETTING_TEMPLATE ) then
+			return factory(info.xml, info.init)
+		end
+		SettingFactory(scrollView, info)
+	end)
+end
+
+---------------------------------------------------------------
+CPScrollBoxLip = CreateFromMixins(CPScrollBoxTree);
+---------------------------------------------------------------
+
+function CPScrollBoxLip:OnLoad()
+	CPScrollBoxTree.OnLoad(self)
+	self:ToggleInversion(true)
+
+	for piece in pairs(NineSliceLayouts.CharacterCreateDropdown) do
+		if self[piece] then
+			self[piece]:SetAlpha(0.9)
+		end
+	end
+end
+
+function CPScrollBoxLip:SetOwner(scrollView)
+	self:Release(scrollView)
+	self.owner = scrollView;
+
+	local padding = scrollView:GetPadding()
+	padding.oldTop = padding:GetTop()
+	padding:SetTop(self:GetHeight() + padding.oldTop)
+
+	local scrollBox = scrollView:GetScrollBox()
+
+	self:Show()
+	self:ClearAllPoints()
+	self:SetFrameLevel(scrollBox:GetFrameLevel() + 1)
+	self:SetPoint('TOPLEFT', scrollBox, 'TOPLEFT', 8, 0)
+	self:SetPoint('TOPRIGHT', scrollBox, 'TOPRIGHT', -4, 0)
+	return self;
+end
+
+function CPScrollBoxLip:Release()
+	if self.owner then
+		local padding = self.owner:GetPadding()
+		local oldTop = padding.oldTop;
+		if oldTop then
+			padding.oldTop = nil;
+			padding:SetTop(oldTop)
+		end
+		self.owner = nil;
+	end
+end
+
+function CPScrollBoxLip:OnHide()
+	self:Release()
+end
+
+function CPScrollBoxLip:OnShow()
+	db.Alpha.FadeIn(self, 0.5, 0, 1)
+end
+
+---------------------------------------------------------------
 CPIconSelector = CreateFromMixins(ScrollBoxSelectorMixin)
 ---------------------------------------------------------------
 

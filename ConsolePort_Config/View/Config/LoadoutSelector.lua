@@ -11,7 +11,8 @@ function Entry:GetSlotMatches(info)
 end
 
 function Entry:ShouldBeChecked(info)
-	local matches = self:GetSlotMatches(info)
+	local matches, triedMatch = self:GetSlotMatches(info)
+	self.InnerContent.Glow:SetShown(triedMatch and not matches)
 	if not matches then return false end;
 
 	for _, actionID in ipairs(matches) do
@@ -128,16 +129,29 @@ function ActionSlotter:InitButtons()
 end
 
 ---------------------------------------------------------------
+local LoadoutLip = CreateFromMixins(CPScrollBoxLip)
+---------------------------------------------------------------
+local LIP_HEIGHT = 184;
+
+function LoadoutLip:OnLoad()
+	self:SetHeight(LIP_HEIGHT)
+	self:InitDefault()
+end
+
+---------------------------------------------------------------
 local LoadoutSelector = CreateFromMixins(CPLoadoutContainerMixin)
 ---------------------------------------------------------------
 env.LoadoutSelector = LoadoutSelector;
 
-function LoadoutSelector:Init()
+function LoadoutSelector:Init(container)
 	ActionSlotter = CreateFromMixins(env.Elements.ActionbarMapper, ActionSlotter)
 	env:RegisterCallback('OnPanelShow', self.Release, self)
 	env:RegisterCallback('OnSearch', self.Release, self)
 	env:RegisterCallback('OnLoadoutClose', self.OnLoadoutClose, self)
 	env.Frame:HookScript('OnHide', GenerateClosure(self.Release, self))
+
+	self.Lip = CreateFrame('Frame', nil, container, 'CPScrollBoxLip')
+	FrameUtil.SpecializeFrameWithMixins(self.Lip, LoadoutLip)
 end
 
 function LoadoutSelector:OnLoadoutClose()
@@ -154,6 +168,7 @@ function LoadoutSelector:Release()
 	CurrentActionID = nil;
 	self:OnSearch(nil)
 	self:ClearCollections()
+	self.Lip:Hide()
 	if self.returnToNode then
 		ConsolePort:SetCursorNodeIfActive(self.returnToNode)
 		self.returnToNode = nil;
@@ -181,19 +196,25 @@ end
 
 function LoadoutSelector:SetScrollView(scrollView)
 	self.scrollView = scrollView;
+	self.Lip:SetOwner(scrollView)
 	return self;
 end
 
-function LoadoutSelector:FindFirstOfType(type)
-	return self:GetScrollView():FindElementDataByPredicate(function(elementData)
+function LoadoutSelector:FindFirstOfType(type, scrollView)
+	return (scrollView or self:GetScrollView()):FindElementDataByPredicate(function(elementData)
 		return elementData:GetData().xml == type.xml;
 	end)
 end
 
+---------------------------------------------------------------
+-- Action edits
+---------------------------------------------------------------
 function LoadoutSelector:RefreshSlotter(newData)
-	local elementData = self:FindFirstOfType(ActionSlotter)
+	local scrollView = self.Lip:GetScrollView()
+	local elementData = self:FindFirstOfType(ActionSlotter, scrollView)
 	if elementData then
 		db.table.merge(elementData:GetData(), ActionSlotter:Data(newData))
+		scrollView:ReinitializeFrames()
 	end
 end
 
@@ -215,9 +236,9 @@ function LoadoutSelector:EditAction(actionID, bindingID, element)
 		);
 	end
 
-	local elementData, target = self:FindFirstOfType(env.Elements.Back)
+	local elementData, target = self:FindFirstOfType(env.Elements.Back, self.Lip:GetScrollView())
 	if elementData then
-		target = self:GetScrollView():FindFrame(elementData)
+		target = self.Lip:GetScrollView():FindFrame(elementData)
 	end
 	if target then
 		self.returnToNode = element;
@@ -230,6 +251,8 @@ end
 ---------------------------------------------------------------
 function LoadoutSelector:UpdateCollections()
 	local dataProvider = CPLoadoutContainerMixin.UpdateCollections(self)
+	local lipProvider = self.Lip:GetDataProvider()
+	lipProvider:Flush()
 
 	for i, element in ipairs({
 		env.Elements.Title:New(EDIT);
@@ -245,6 +268,11 @@ function LoadoutSelector:UpdateCollections()
 				self:OnSearch(text)
 			end
 		});
+	}) do
+		lipProvider:InsertAtIndex(element, i)
+	end
+
+	for i, element in ipairs({
 		env.Elements.Divider:New(4);
 	}) do
 		dataProvider:InsertAtIndex(element, i)
