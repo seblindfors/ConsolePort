@@ -142,7 +142,7 @@ UH:CreateEnvironment({
 
 	AssignUnits = [[
 		lookup = wipe(lookup)
-		for i, unit in pairs(sorted) do
+		for i, unit in ipairs(sorted) do
 			local binding = sequence[i];
 			if binding then
 				lookup[binding] = unit;
