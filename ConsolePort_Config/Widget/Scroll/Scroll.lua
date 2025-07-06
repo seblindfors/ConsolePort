@@ -1,6 +1,6 @@
 local env, db = CPAPI.GetEnv(...);
 --------------------------------------------------------------
-CPScrollBox = {};
+CPScrollBox = CreateFromMixins(env.Mixin.ScrollBoxHelper)
 ---------------------------------------------------------------
 
 function CPScrollBox:OnLoad()
@@ -162,6 +162,8 @@ function CPScrollBoxLip:SetOwner(scrollView)
 	self:SetPoint('TOPLEFT', scrollBox, 'TOPLEFT', padding:GetLeft(), 0)
 	self:SetPoint('TOPRIGHT', scrollBox, 'TOPRIGHT', 4-padding:GetRight(), 0)
 
+	scrollView:TriggerEvent(ScrollBoxListViewMixin.Event.OnDataChanged)
+
 	return self;
 end
 
@@ -222,8 +224,9 @@ function CPIconSelector:OnHide()
 end
 
 ---------------------------------------------------------------
-CPLoadoutContainerMixin = CreateFromMixins(db.LoadoutMixin, {
+CPLoadoutContainerMixin = CreateFromMixins(db.LoadoutMixin, env.Mixin.ScrollBoxHelper, {
 ---------------------------------------------------------------
+	IsFlat = CPAPI.Static(true); -- Unravel flyouts to regular spell depth.
 	HeaderIcons = {
 		[ABILITIES] = 'book';
 		[ITEMS]     = 'misc';
@@ -259,7 +262,7 @@ end
 function CPLoadoutContainerMixin:UpdateCollections()
 	local Entry, Header, Divider, Results = self:GetElements()
 	local dataProvider = self:GetDataProvider()
-	local collections = self:GetCollections(true)
+	local collections = self:GetCollections(self:IsFlat())
 
 	dataProvider:Flush()
 

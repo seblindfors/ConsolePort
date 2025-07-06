@@ -1,6 +1,17 @@
 local env = CPAPI.GetEnv(...); env.Mixin = {};
 
 ---------------------------------------------------------------
+local ScrollBoxHelper = {};
+---------------------------------------------------------------
+env.Mixin.ScrollBoxHelper = ScrollBoxHelper;
+
+function ScrollBoxHelper:FindFirstOfType(type, scrollView)
+	return (scrollView or self:GetScrollView()):FindElementDataByPredicate(function(elementData)
+		return elementData:GetData().xml == type.xml;
+	end)
+end
+
+---------------------------------------------------------------
 local Background = CreateFromMixins(BackdropTemplateMixin);
 ---------------------------------------------------------------
 env.Mixin.Background = Background;
@@ -140,18 +151,11 @@ function BindingCatcher:OnBindingCaught(button, data)
 	if not CPAPI.IsButtonValidForBinding(button) then return end;
 
 	local bindingID = data.bindingID;
-	local keychord  = CPAPI.CreateKeyChord(button)
+	local keyChord  = CPAPI.CreateKeyChord(button)
 
-	if not db('bindingOverlapEnable') then
-		self:ClearBindingsForID(bindingID)
-	end
-
-	if SetBinding(keychord, bindingID) then
-		SaveBindings(GetCurrentBindingSet())
-		return true;
-	end
+	return env:SetBinding(keyChord, bindingID)
 end
 
 function BindingCatcher:ClearBindingsForID(bindingID)
-	db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
+	env:ClearBindingsForID(bindingID, true)
 end

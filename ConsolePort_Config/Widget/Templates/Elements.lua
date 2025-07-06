@@ -1,4 +1,4 @@
-local env, db, Elements = CPAPI.GetEnv(...); Elements = env.Elements;
+local env, db, Elements, L = CPAPI.GetEnv(...); Elements = env.Elements;
 ---------------------------------------------------------------
 
 local function InitializeSetting(self, ...)
@@ -165,27 +165,27 @@ function Search:Data(setup)
 end
 
 ---------------------------------------------------------------
-local Back = CPAPI.CreateElement('CPPopupButtonTemplate', 300, 32)
+local Button = CPAPI.CreateElement('CPPopupButtonTemplate', 300, 32)
 ---------------------------------------------------------------
-Elements.Back = Back;
+Elements.Button = Button;
 
-function Back:Init(elementData)
+function Button:Init(elementData)
 	local data = elementData:GetData()
 	self.Text:SetText(data.text)
 	self.Icon:SetTexCoord(0, 1, 0, 1)
-	self.Icon:SetAtlas('common-icon-undo')
+	self.Icon:SetAtlas(data.atlas)
 end
 
-function Back:OnClick()
+function Button:OnClick()
 	local data = self:GetElementData():GetData()
 	if data.callback then
 		return data.callback()
 	end
 end
 
-function Back:OnAcquire(new)
+function Button:OnAcquire(new)
 	if new then
-		FrameUtil.SpecializeFrameWithMixins(self, Back)
+		FrameUtil.SpecializeFrameWithMixins(self, Button)
 		self.Icon:SetPoint('LEFT', 16, 0)
 		self.Text:SetPoint('LEFT', self.Icon, 'RIGHT', 8, 0)
 		self:HookScript('OnEnter', self.LockHighlight)
@@ -193,11 +193,23 @@ function Back:OnAcquire(new)
 	end
 end
 
-function Back:Data(setup)
+function Button:Data(setup)
 	return {
 		text     = setup.text or BACK;
 		callback = setup.callback or nop;
+		atlas    = setup.atlas;
 	};
+end
+
+---------------------------------------------------------------
+local Back = CreateFromMixins(Button);
+---------------------------------------------------------------
+Elements.Back = Back;
+
+function Back:Data(setup)
+	local data = Button.Data(self, setup)
+	data.atlas = 'common-icon-undo';
+	return data;
 end
 
 ---------------------------------------------------------------
@@ -591,3 +603,237 @@ end
 function LoadoutEntry:Data(id, funcs)
 	return { id = id, funcs = funcs };
 end
+
+---------------------------------------------------------------
+local ActionbarMapper = CPAPI.CreateElement('CPActionBarMapper', 300, 60)
+local ActionbarMapperButtonPool;
+---------------------------------------------------------------
+Elements.ActionbarMapper = ActionbarMapper;
+
+local function GetActionButtonBinding(button)
+	local actionID = button:GetID()
+	return db('Actionbar/Action/'..actionID), actionID;
+end
+
+local function ActionButtonInit(button)
+	button:SetScale(1.2)
+	button.Slug:SetScale(0.75)
+end
+
+local function GetActionbarMapperButton(owner)
+	if not ActionbarMapperButtonPool then
+		ActionbarMapperButtonPool = CreateFramePool('CheckButton', owner, 'CPActionConfigButton')
+	end
+	local button, new = ActionbarMapperButtonPool:Acquire()
+	button.GetBinding = GetActionButtonBinding;
+	button:SetParent(owner)
+	button:SetFrameLevel(owner:GetFrameLevel() + 1)
+	button.SelectedTexture:Hide()
+	return button, new;
+end
+
+local function ReleaseActionbarMapperButton(button)
+	if ActionbarMapperButtonPool then
+		ActionbarMapperButtonPool:Release(button)
+	end
+end
+
+local function IsMainActionBar(value)
+	if type(value) == 'number' then
+		return value == 1;
+	end
+	if C_Widget.IsFrameWidget(value) then
+		return value:GetElementData():GetData().bar == 1;
+	end
+	if type(value) == 'table' then
+		return value.bar == 1;
+	end
+end
+
+function ActionbarMapper:Init(elementData)
+	local data = elementData:GetData()
+	self:SetMinMaxRange(data)
+	self:UpdateInfo(data)
+	self:UpdateActivePage(db.Pager:GetCurrentPage())
+	self:UpdateChildren(data)
+end
+
+function ActionbarMapper:SetMinMaxRange(data)
+	self.rangeMin = (data.bar - 1) * NUM_ACTIONBAR_BUTTONS + 1;
+	self.rangeMax = self.rangeMin + NUM_ACTIONBAR_BUTTONS - 1;
+end
+
+function ActionbarMapper:UpdateActivePage(activePage)
+	local data = self:GetElementData():GetData()
+	self.isActivePage = activePage == data.bar;
+	self.InnerContent.Highlight:SetShown(self.isActivePage)
+end
+
+function ActionbarMapper:UpdateChildren(data)
+	local pair    = data.pair;
+	local event   = data.event;
+	local offset  = pair and 44 or 46;
+	local padding = pair and 8 or 10;
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button = self[i];
+		if button then
+			button:SetID(((data.bar - 1) * NUM_ACTIONBAR_BUTTONS) + i)
+			button:SetPoint('RIGHT', -((NUM_ACTIONBAR_BUTTONS - i) * offset) - padding, 0)
+			button:SetOnClickEvent(event)
+			button:SetPairMode(pair)
+			button:SetEditMode(false)
+			button:SetPairText(nil)
+		end
+	end
+end
+
+function ActionbarMapper:GetButtonForActionID(actionID)
+	if actionID < self.rangeMin or actionID > self.rangeMax then
+		return nil;
+	end
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button = self[i];
+		if ( button and button:GetID() == actionID ) then
+			return button;
+		end
+	end
+	return nil;
+end
+
+function ActionbarMapper:UpdateSlotHighlight(actionID, highlight)
+	local button = self:GetButtonForActionID(actionID)
+	if not button then return end;
+	if highlight then
+		button:LockHighlight()
+	else
+		button:UnlockHighlight()
+	end
+end
+
+function ActionbarMapper:UpdateSlotSelection(actionID)
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button = self[i];
+		if button then
+			button.SelectedTexture:SetShown(button:GetID() == actionID)
+		end
+	end
+end
+
+do	-- Placeholder icon function for action bars that do not have an icon.
+	-- Reusing the PaperDollInfoFrame slots to give the non-iconed action bars some flavor. 
+	local prefix = [[Interface\PaperDoll\UI-PaperDoll-Slot-]];
+	local icons  = { 'Head', 'Trinket', 'Finger', 'Relic', 'Ammo', 'SecondaryHand', 'MainHand' };
+	local function GetPlaceHolderIcon(data)
+		return prefix..icons[data.bar % #icons + 1];
+	end
+
+	function ActionbarMapper:UpdateInfo(data)
+		local page = data.page or data.bar;
+		self.Name:SetText(data.name)
+		self.Page:SetText(page ~= 0 and page or '')
+		if data.icon then
+			self.Icon:SetTexCoord(0, 1, 0, 1)
+			self.Icon:SetTexture(data.icon)
+		elseif IsMainActionBar(data.bar) then
+			self.Icon:SetTexCoord(0.2, 0.8, 0.2, 0.8)
+			self.Icon:SetTexture([[Interface\Common\help-i]])
+		else
+			self.Icon:SetTexCoord(0, 1, 0, 1)
+			self.Icon:SetTexture(GetPlaceHolderIcon(data))
+		end
+	end
+end
+
+function ActionbarMapper:InitButtons()
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button, newObj = GetActionbarMapperButton(self)
+		if newObj then
+			ActionButtonInit(button)
+		end
+		button:Show()
+		self[i] = button;
+	end
+end
+
+function ActionbarMapper:OnAcquire(new)
+	if new then
+		Mixin(self, ActionbarMapper)
+		self:SetScript('OnEvent', CPAPI.EventMixin.OnEvent)
+		self:EnableMouse(false)
+	end
+	self:InitButtons()
+	self.Info:SetPoint('BOTTOMRIGHT', self[1], 'BOTTOMLEFT', -4, 0)
+	db:RegisterCallback('OnActionPageChanged', self.UpdateActivePage, self)
+	env:RegisterCallback('OnActionSlotHighlight', self.UpdateSlotHighlight, self)
+	env:RegisterCallback('OnActionSlotEdit', self.UpdateSlotSelection, self)
+	self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
+end
+
+function ActionbarMapper:OnRelease()
+	for i = 1, NUM_ACTIONBAR_BUTTONS do
+		local button = self[i];
+		if button then
+			button:UnlockHighlight()
+			ReleaseActionbarMapperButton(button)
+			self[i] = nil;
+		end
+	end
+	db:UnregisterCallback('OnActionPageChanged', self)
+	env:UnregisterCallback('OnActionSlotHighlight', self)
+	self:UnregisterEvent('ACTIONBAR_SLOT_CHANGED')
+end
+
+function ActionbarMapper:OnInfoEnter()
+	self.Border:SetAtlas('glues-characterselect-icon-notify-bg-hover')
+
+	local data = self:GetElementData():GetData()
+	GameTooltip_SetDefaultAnchor(GameTooltip, self)
+	if data.info then -- stance bar
+		GameTooltip:SetSpellByID(data.info.spellID)
+		GameTooltip:AddLine('\n'..NOTE_COLON, ORANGE_FONT_COLOR:GetRGB())
+		GameTooltip:AddLine(CPAPI.FormatLongText(L.ACTIONBAR_FORM_DESC, 50), WHITE_FONT_COLOR:GetRGB())
+		if self.isActivePage then
+			GameTooltip:AddLine('\n'..CPAPI.FormatLongText(L.ACTIONBAR_FORM_ACTIVE_DESC, 50), GREEN_FONT_COLOR:GetRGB())
+		end
+	elseif IsMainActionBar(data) then
+		GameTooltip:SetText(BINDING_HEADER_ACTIONBAR)
+		GameTooltip:AddLine(CPAPI.FormatLongText(L.ACTIONBAR_MAIN_DESC, 50), WHITE_FONT_COLOR:GetRGB())
+	else
+		GameTooltip:SetText(db.Actionbar.Names[data.bar] or data.bar)
+		GameTooltip:AddLine(PAGE_NUMBER:format(data.bar), WHITE_FONT_COLOR:GetRGB())
+		GameTooltip:AddLine('\n'..NOTE_COLON, ORANGE_FONT_COLOR:GetRGB())
+		GameTooltip:AddLine(CPAPI.FormatLongText(L.ACTIONBAR_PAGE_MISMATCH_DESC, 50), WHITE_FONT_COLOR:GetRGB())
+	end
+	GameTooltip:Show()
+end
+
+function ActionbarMapper:OnInfoLeave()
+	self.Border:SetAtlas('glues-characterselect-icon-notify-bg')
+	if GameTooltip:IsOwned(self) then
+		GameTooltip:Hide()
+	end
+end
+
+function ActionbarMapper:ACTIONBAR_SLOT_CHANGED(actionID)
+	if actionID >= self.rangeMin and actionID <= self.rangeMax then
+		local button = self[actionID - self.rangeMin + 1];
+		if button then
+			button:Update()
+		end
+	end
+end
+
+function ActionbarMapper:Data(datapoint)
+	return {
+		bar   = datapoint.bar;
+		name  = datapoint.field.name;
+		icon  = datapoint.field.icon;
+		info  = datapoint.field.info;
+		pair  = datapoint.pair;
+		event = datapoint.event or 'OnBindingClicked';
+	};
+end
+
+ActionbarMapper.ActionButtonInit = ActionButtonInit;
+ActionbarMapper.GetActionbarMapperButton = GetActionbarMapperButton;
+ActionbarMapper.ReleaseActionbarMapperButton = ReleaseActionbarMapperButton;

@@ -5,6 +5,8 @@ local Guide = env:GetContextPanel();
 -- Helpers
 ---------------------------------------------------------------
 local EditType = EnumUtil.MakeEnum('Binding', 'Action')
+local EDIT_AB = ('%s: %s'):format(EDIT, BINDING_NAME_ACTIONBUTTON1:gsub('%d', ''))
+local EDIT_KB = ('%s: %s'):format(EDIT, KEY_BINDING)
 
 ---------------------------------------------------------------
 local EditorLip = CreateFromMixins(CPScrollBoxLip)
@@ -19,6 +21,98 @@ function EditorLip:GetLipHeight()
 end
 
 ---------------------------------------------------------------
+local BindingIcon = CreateFromMixins(env.Elements.BindingIcon)
+---------------------------------------------------------------
+
+function BindingIcon:OnIconChanged(result, saveResult)
+	local parent     = self:GetParent()
+	local parentData = parent:GetElementData():GetData()
+	local bindingID  = parentData.bindingID;
+	parent.Icon:SetTexture(parentData.element:DetermineIcon(result, nil, bindingID))
+	if saveResult then
+		db.Bindings:SetIcon(bindingID, result)
+	end
+end
+
+---------------------------------------------------------------
+local BindingSlotter = CreateFromMixins(env.Elements.ActionSlotter)
+---------------------------------------------------------------
+BindingSlotter.xml = 'CPOverviewBindingMapper';
+
+function BindingSlotter:Data(datapoint)
+	local data = env.Elements.ActionSlotter.Data(self, datapoint)
+	data.bindingID = datapoint.binding;
+	data.chord     = datapoint.chord;
+	data.element   = datapoint.element;
+	return data;
+end
+
+function BindingSlotter:OnAcquire(new)
+	if new then
+		Mixin(self, BindingSlotter)
+		self:SetScript('OnEvent', CPAPI.EventMixin.OnEvent)
+		self:EnableMouse(false)
+		self.InnerContent:SetScale(0.5) -- correct the background scale
+		FrameUtil.SpecializeFrameWithMixins(self.BindingIcon, BindingIcon)
+	end
+	self:InitButtons()
+	self.Info:SetPoint('TOPLEFT', 46, 0)
+	self.Info:SetPoint('BOTTOMRIGHT', self[1], 'BOTTOMLEFT', -4, 0)
+	db:RegisterCallback('OnActionPageChanged', self.UpdateActivePage, self)
+	env:RegisterCallback('OnActionSlotHighlight', self.UpdateSlotHighlight, self)
+	self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
+	if new then
+		ConsolePort:SetCursorNodeIfActive(self[1])
+	end
+end
+
+function BindingSlotter:OnRelease()
+	local button = self[1];
+	if button then
+		button:UnlockHighlight()
+		env.Elements.ActionbarMapper.ReleaseActionbarMapperButton(button)
+		self[1] = nil;
+	end
+	db:UnregisterCallback('OnActionPageChanged', self)
+	env:UnregisterCallback('OnActionSlotHighlight', self)
+	self:UnregisterEvent('ACTIONBAR_SLOT_CHANGED')
+end
+
+function BindingSlotter:UpdateChildren(data)
+	local button = self[1];
+	local hasAction = data.slot > 0;
+	button:SetID(data.slot)
+	button:SetShown(hasAction)
+	button:SetOnClickEvent('Overview.OnActionClicked')
+	button:SetPairMode(true)
+	button:SetEditMode(true)
+	button:SetPairText(EDIT_AB)
+
+	local binding = self.Binding;
+	binding:SetShown(not hasAction)
+	binding:SetText(hasAction and '' or db.Hotkeys:GetButtonSlugForChord(data.chord, false, true, ' '))
+
+	local bindingIcon = self.BindingIcon;
+	bindingIcon:SetShown(not hasAction and data.bindingID)
+end
+
+function BindingSlotter:OnInfoEnter()
+	local data = self:GetElementData():GetData()
+	if ( data.slot ~= 0 ) then
+		return env.Elements.ActionbarMapper.OnInfoEnter(self)
+	end
+	return ExecuteFrameScript(data.element, 'OnEnter')
+end
+
+function BindingSlotter:OnInfoLeave()
+	local data = self:GetElementData():GetData()
+	if ( data.slot ~= 0 ) then
+		return env.Elements.ActionbarMapper.OnInfoLeave(self)
+	end
+	return ExecuteFrameScript(data.element, 'OnLeave')
+end
+
+---------------------------------------------------------------
 local Editor = {};
 ---------------------------------------------------------------
 Editor.GetSearchTitle = CPAPI.Static(SETTINGS_SEARCH_RESULTS);
@@ -30,15 +124,22 @@ function Editor:OnLoad()
 	FrameUtil.SpecializeFrameWithMixins(self.Lip, EditorLip)
 	CPScrollBoxSettingsTree.InitDefault(self.Settings)
 	RunNextFrame(GenerateClosure(env.RegisterCallback, env, 'Overview.EditInput', self.EditInput, self))
+
+	env:RegisterCallback('Overview.OnActionClicked', self.OnActionClicked, self)
+	env:RegisterCallback('Overview.OnBindingClicked', self.OnBindingClicked, self)
 end
 
 function Editor:OnShow()
 end
 
 function Editor:OnHide()
-	self:SetTargetAction(nil)
+	self:SetTargetChord(nil)
 	self:SetShown(false)
 	env:TriggerEvent('Overview.EditorClosed', self)
+	if self.returnToNode then
+		ConsolePort:SetCursorNodeIfActive(self.returnToNode)
+		self.returnToNode = nil;
+	end
 end
 
 function Editor:FadeIn()
@@ -50,35 +151,51 @@ function Editor:FadeOut()
 end
 
 function Editor:OnIndexChanged()
-	print('Editor:OnIndexChanged')
+	self:SetEditType(nil)
+	self:Reindex()
+	self:EditBinding(self.chord:GetData())
+end
+
+function Editor:OnActionClicked()
+	self:EditAction(self.chord:GetData())
+end
+
+function Editor:OnBindingClicked(bindingID, _, readOnlyText)
+	if readOnlyText then
+		return UIErrorsFrame:AddMessage(readOnlyText:trim(), 1.0, 0.1, 0.1, 1.0);
+	end
+	if self.chord:SetBinding(bindingID) then
+		self:EditBinding(self.chord:GetData())
+	end
 end
 
 ---------------------------------------------------------------
 -- Edit types
 ---------------------------------------------------------------
-function Editor:SetTargetAction(action)
-	if self.action then
-		self.action:UnlockHighlight()
+function Editor:SetTargetChord(chord)
+	if self.chord then
+		self.chord:UnlockHighlight()
 	end
-	self.action = action;
-	if action then
-		action:LockHighlight()
+	self.chord = chord;
+	if chord then
+		chord:LockHighlight()
 		return true;
 	end
 	return false;
 end
 
-function Editor:EditInput(action)
+function Editor:EditInput(chord)
 	self:FadeIn()
 	self:SetShown(true)
-	if not self:SetTargetAction(action) then
+	self.returnToNode = nil;
+	if not self:SetTargetChord(chord) then
 		return;
 	end
 
-	local data = action:GetData()
-	if data.actionID then
-		return self:EditAction(data)
-	end
+	local data = chord:GetData()
+--	if data.cvar then
+--		return self:EditEmulation(data)
+--	end
 	return self:EditBinding(data)
 end
 
@@ -92,6 +209,52 @@ function Editor:EditBinding(data)
 		self:Render(dataProvider, ACTIONBARS_LABEL, bindings[ACTIONBARS_LABEL], true)
 		self:Render(dataProvider, KEY_BINDINGS_MAC, bindings[KEY_BINDINGS_MAC], true)
 	end
+
+	local lipProvider = self.Lip:GetDataProvider()
+	lipProvider:Flush()
+
+	local Elements = env.Elements;
+	for i, element in ipairs({
+		Elements.Title:New(EDIT_KB);
+		BindingSlotter:New(self:GetSlotterData(data));
+		Elements.Divider:New(1);
+		Elements.Back:New({
+			callback = GenerateClosure(self.Hide, self);
+		});
+		Elements.Button:New({
+			text  = REMOVE;
+			atlas = 'common-icon-redx';
+			callback = function()
+				env:SetBinding(data.chord, nil)
+				self:EditBinding(self.chord:GetData())
+			end;
+		});
+		Elements.Search:New({
+			dispatch = false;
+			callback = function(text)
+				--dataProvider:Flush()
+				--self:OnSearch(text, dataProvider)
+			end
+		});
+	}) do
+		lipProvider:InsertAtIndex(element, i)
+	end
+	self.Lip:SetOwner(self.Settings:GetScrollView())
+
+	-- Set focus to the back button.
+	RunNextFrame(function()
+		local lipScrollView = self.Lip:GetScrollView()
+		local elementData, target = self.Lip:FindFirstOfType(env.Elements.Back, lipScrollView)
+		if elementData then
+			target = lipScrollView:FindFrame(elementData)
+		end
+		if target then
+			if not self.returnToNode then
+				self.returnToNode = self.chord;
+			end
+			return ConsolePort:SetCursorNodeIfActive(target)
+		end
+	end)
 end
 
 function Editor:EditAction(data)
@@ -103,10 +266,13 @@ function Editor:EditAction(data)
 	end
 
 	env.Frame:GetLoadoutSelector()
+		:SetAlternateTitle(EDIT_AB)
 		:SetExternalLip(self.Lip)
 		:SetDataProvider(dataProvider)
 		:SetScrollView(scrollView)
-		:SetCloseCallback(GenerateClosure(self.Hide, self))
+		:SetCloseCallback(function()
+			self:EditBinding(self.chord:GetData())
+		end)
 		:SetToggleByID(false)
 		:EditAction(data.actionID, data.bindingID, self.action)
 end
@@ -118,6 +284,20 @@ function Editor:SetEditType(newType)
 end
 
 ---------------------------------------------------------------
+
+function Editor:GetSlotterData(data)
+	local slotter = env.LoadoutSelector.GetSlotterData(self, data.actionID or 0)
+	slotter.binding = data.bindingID;
+	slotter.chord   = data.chord;
+	slotter.element = self.chord;
+	if not data.actionID then
+		slotter.field.icon = data.texture;
+		slotter.field.name = data.name;
+	end
+	return slotter;
+end
+
+---------------------------------------------------------------
 do -- Initializer
 ---------------------------------------------------------------
 	local function BindingsProvider(AddSetting, GetSortIndex)
@@ -125,11 +305,11 @@ do -- Initializer
 		local sort = GetSortIndex(main, head);
 		local bindings = env.BindingInfo:RefreshDictionary()
 
+		-- Toggle character bindings on/off
 		AddSetting(main, head, {
-			sort  = sort + 1;
-			type  = env.Elements.Title;
-			text  = CATEGORIES;
-			field = { after = true };
+			sort  = 0;
+			type  = env.Elements.CharacterBindings;
+			field = { before = true };
 		})
 
 		for category, set in env.table.spairs(bindings) do
@@ -157,13 +337,6 @@ do -- Initializer
 	local function ActionBarProvider(AddSetting, GetSortIndex)
 		local main, head = SETTING_GROUP_GAMEPLAY, ACTIONBARS_LABEL;
 		local sort = GetSortIndex(main, head);
-
-		-- Toggle character bindings on/off
-		AddSetting(main, head, {
-			sort  = 0;
-			type  = env.Elements.CharacterBindings;
-			field = { before = true };
-		})
 
 		for groupID, container in db:For('Actionbar/Pages') do
 			local shouldDrawBars = container();

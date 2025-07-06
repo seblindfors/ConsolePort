@@ -48,7 +48,7 @@ function Binding:GetBinding()
 end
 
 function Binding:SetBinding(bindingID)
-	return SetBinding(self:GetKeyChord(), bindingID, GetCurrentBindingSet())
+	return env:SetBinding(self:GetKeyChord(), bindingID)
 end
 
 function Binding:GetModifier()
@@ -141,25 +141,29 @@ function Button:UpdateState(currentModifier)
 end
 
 ---------------------------------------------------------------
-local Action, ActionHitRects = CreateFromMixins(Binding, CPAPI.EventMixin)
+local Chord, ChordHitRects = CreateFromMixins(Binding, CPAPI.EventMixin)
 ---------------------------------------------------------------
 
-function Action:OnLoad()
+function Chord:OnLoad()
 	self:SetMovable(true)
 	self:RegisterForDrag('LeftButton')
 	self:SetScript('OnDragStop', self.OnDragStop)
 end
 
-function Action:OnShow()
+function Chord:OnShow()
 	env:RegisterCallback('Overview.OnDragBinding', self.OnDragBinding, self)
+	env:RegisterCallback('OnBindingChanged', self.OnBindingChanged, self)
+	db:RegisterCallback('OnBindingIconChanged', self.OnIconChanged, self)
 end
 
-function Action:OnHide()
+function Chord:OnHide()
 	env:UnregisterCallback('Overview.OnDragBinding', self)
+	env:UnregisterCallback('OnBindingChanged', self)
+	db:UnregisterCallback('OnBindingIconChanged', self)
 	self:CommitHitRect()
 end
 
-function Action:OnEnter()
+function Chord:OnEnter()
 	self.isMouseOver = true;
 	env:TriggerEvent('Overview.HighlightButtons', self:GetButtonSequence())
 
@@ -214,7 +218,7 @@ function Action:OnEnter()
 	GameTooltip:Show()
 end
 
-function Action:OnLeave()
+function Chord:OnLeave()
 	self.isMouseOver = false;
 	env:TriggerEvent('Overview.HighlightButtons', nil)
 	if GameTooltip:IsOwned(self) then
@@ -222,24 +226,35 @@ function Action:OnLeave()
 	end
 end
 
-function Action:OnClick()
-	env:TriggerEvent('Overview.OnActionClick', self)
+function Chord:OnClick()
+	if GetCursorInfo() and self.actionID then
+		return PlaceAction(self.actionID);
+	end
+	env:TriggerEvent('Overview.OnChordClick', self)
+end
+
+function Chord:OnReceiveDrag()
+	if not self.actionID or not GetCursorInfo() then
+		return;
+	end
+	PlaceAction(self.actionID)
+	self:UpdateCurrentInfo()
 end
 
 ---------------------------------------------------------------
 -- Drag and drop types
 ---------------------------------------------------------------
-function Action:OnDragBinding(isDragging, action, data)
+function Chord:OnDragBinding(isDragging, action, data)
 	if action == self then return end;
 	if isDragging then
 		if self.cvar then return end;
 		self:EnableDragTarget(action, data)
 	else
-		local isMouseOver, targetAction, targetData = self:CommitDragTarget()
+		local isMouseOver, targetChord, targetData = self:CommitDragTarget()
 		if not isMouseOver then return end;
-		local targetBinding = targetAction:GetBinding()
-		targetAction:SetBinding(self:GetBinding())
-		targetAction:UpdateCurrentInfo()
+		local targetBinding = targetChord:GetBinding()
+		targetChord:SetBinding(self:GetBinding())
+		targetChord:UpdateCurrentInfo()
 		self:SetBinding(targetBinding)
 		self:UpdateCurrentInfo()
 	end
@@ -248,15 +263,20 @@ end
 ---------------------------------------------------------------
 -- Drag and drop tracking
 ---------------------------------------------------------------
-local function ActionUpdateMouseOver(action, hitRect)
+local function ChordUpdateMouseOver(chord, hitRect)
 	local isMouseOver = hitRect:IsMouseOver();
-	local isUpdated = action.isDragOverRect == isMouseOver;
-	action.isDragOverRect = isMouseOver;
-	action:UpdateDragAction(isMouseOver, isUpdated)
+	local isUpdated = chord.isDragOverRect == isMouseOver;
+	chord.isDragOverRect = isMouseOver;
+	chord:UpdateDragAction(isMouseOver, isUpdated)
 end
 
-function Action:OnDragStart()
+function Chord:OnDragStart()
 	if self.cvar then return end; -- Do not allow dragging if this is a reserved action.
+	if self.actionID and IsShiftKeyDown() then
+		self.nullifyDrag = true;
+		return PickupAction(self.actionID);
+	end
+
 	local data = self:GetData()
 	data.origin = self:AcquireOrigin()
 
@@ -265,7 +285,12 @@ function Action:OnDragStart()
 	env:TriggerEvent('Overview.OnDragBinding', true, self, data)
 end
 
-function Action:OnDragStop()
+function Chord:OnDragStop()
+	if self.nullifyDrag then
+		self.nullifyDrag = nil;
+		return;
+	end
+
 	local data = self:GetData()
 	data.origin = self:ReleaseOrigin()
 
@@ -274,19 +299,19 @@ function Action:OnDragStop()
 	env:TriggerEvent('Overview.OnDragBinding', false, self, data)
 end
 
-function Action:UpdateDragAction(isMouseOver, isUpdated)
+function Chord:UpdateDragAction(isMouseOver, isUpdated)
 	if not isUpdated then return end;
 	self:ClearAllPoints()
 	self:SetPoint(unpack(isMouseOver and self:GetTargetOrigin() or self:AcquireOrigin()))
 end
 
-function Action:EnableDragTarget(action, data)
+function Chord:EnableDragTarget(action, data)
 	self.targetAction, self.targetData = action, data;
 	self:AcquireOrigin()
 	self:AcquireHitRect()
 end
 
-function Action:CommitDragTarget()
+function Chord:CommitDragTarget()
 	local isMouseOver = self:CommitHitRect()
 	local targetAction, targetData = self.targetAction, self.targetData;
 	self:ReleaseOrigin()
@@ -294,16 +319,16 @@ function Action:CommitDragTarget()
 	return isMouseOver, targetAction, targetData;
 end
 
-function Action:GetTargetOrigin()
+function Chord:GetTargetOrigin()
 	return self.targetData and self.targetData.origin or nil;
 end
 
-function Action:AcquireHitRect()
+function Chord:AcquireHitRect()
 	if self.hitRect then
 		return self.hitRect;
 	end
-	if not ActionHitRects then
-		ActionHitRects = CreateFramePool('Frame', nil, nil, function(_, hitRect)
+	if not ChordHitRects then
+		ChordHitRects = CreateFramePool('Frame', nil, nil, function(_, hitRect)
 			hitRect:Hide()
 			hitRect:ClearAllPoints()
 			if hitRect.ticker then
@@ -312,7 +337,7 @@ function Action:AcquireHitRect()
 			end
 		end)
 	end
-	local hitRect, newObj = ActionHitRects:Acquire()
+	local hitRect, newObj = ChordHitRects:Acquire()
 	if newObj then
 		hitRect:SetSize(self:GetSize())
 		hitRect:SetFrameLevel(self:GetFrameLevel() + 1)
@@ -320,27 +345,27 @@ function Action:AcquireHitRect()
 	hitRect:SetParent(self)
 	hitRect:SetPoint(self:GetPoint())
 	hitRect:Show()
-	hitRect.ticker = C_Timer.NewTicker(0.1, GenerateClosure(ActionUpdateMouseOver, self, hitRect))
+	hitRect.ticker = C_Timer.NewTicker(0.1, GenerateClosure(ChordUpdateMouseOver, self, hitRect))
 	self.hitRect = hitRect;
 	return hitRect;
 end
 
-function Action:CommitHitRect()
+function Chord:CommitHitRect()
 	if not self.hitRect then return end;
 	local isDragOverRect = self.isDragOverRect;
-	ActionHitRects:Release(self.hitRect)
+	ChordHitRects:Release(self.hitRect)
 	self.hitRect, self.isDragOverRect = nil, nil;
 	return isDragOverRect;
 end
 
-function Action:AcquireOrigin()
+function Chord:AcquireOrigin()
 	if not self.origin then
 		self.origin = { self:GetPoint() };
 	end
 	return self.origin;
 end
 
-function Action:ReleaseOrigin()
+function Chord:ReleaseOrigin()
 	local origin = self.origin;
 	if origin then
 		self:ClearAllPoints()
@@ -351,12 +376,21 @@ function Action:ReleaseOrigin()
 end
 
 ---------------------------------------------------------------
--- Action information
+-- Chord information
 ---------------------------------------------------------------
-function Action:UpdateInfo(name, texture, actionID, bindingID)
+function Chord:DetermineIcon(texture, actionID, bindingID)
+	return texture
+		or actionID and CPAPI.GetAsset([[Textures\Button\EmptyIcon]])
+		or bindingID and [[Interface\MacroFrame\MacroFrame-Icon]]
+		or CPAPI.GetAsset([[Textures\Button\NotBound]])
+end
+
+function Chord:UpdateInfo(name, texture, actionID, bindingID)
 	self.name = name or '';
 	self.cvar = nil;
-	self.actionID = actionID;
+
+	self.actionID  = actionID;
+	self.bindingID = bindingID;
 
 	if ( not texture and not actionID and not bindingID ) then
 		local blocker = env:GetBlockedCombination(self:GetKeyChord())
@@ -373,14 +407,10 @@ function Action:UpdateInfo(name, texture, actionID, bindingID)
 	local a = (texture or actionID or bindingID) and 1 or 0.25;
 	self.Border:SetAlpha(a * 0.5)
 	self.Icon:SetVertexColor(c, c, c, a);
-	self.Icon:SetTexture(texture
-		or actionID and CPAPI.GetAsset([[Textures\Button\EmptyIcon]])
-		or bindingID and [[Interface\MacroFrame\MacroFrame-Icon]]
-		or CPAPI.GetAsset([[Textures\Button\NotBound]])
-	);
+	self.Icon:SetTexture(self:DetermineIcon(texture, actionID, bindingID));
 end
 
-function Action:SetChord(modifierID, buttonID, isAlt)
+function Chord:SetChord(modifierID, buttonID, isAlt)
 	if isAlt then
 		self.altModifier = modifierID;
 		return;
@@ -390,16 +420,16 @@ function Action:SetChord(modifierID, buttonID, isAlt)
 	self:UpdateModifier(modifierID)
 end
 
-function Action:UpdateModifier(modifier)
+function Chord:UpdateModifier(modifier)
 	self:SetModifier(modifier)
 	self:UpdateCurrentInfo()
 end
 
-function Action:UpdateCurrentInfo()
+function Chord:UpdateCurrentInfo()
 	self:UpdateInfo(self:GetBindingInfo(self:GetBinding()))
 end
 
-function Action:SetCurrentModifier(modifier, isAlt)
+function Chord:SetCurrentModifier(modifier, isAlt)
 	local modifierID = isAlt and self.altModifier or self.baseModifier;
 	self.isActive = modifier == modifierID;
 	if ( self.mod ~= modifierID ) then
@@ -411,15 +441,15 @@ function Action:SetCurrentModifier(modifier, isAlt)
 	self.Border:SetShown(self.isActive);
 end
 
-function Action:IsActive()
+function Chord:IsActive()
 	return self.isActive;
 end
 
-function Action:GetData()
+function Chord:GetData()
 	local name, texture, actionID, bindingID = self:GetBindingInfo(self:GetBinding())
 	return {
 		name      = name;
-		texture   = texture;
+		texture   = self:DetermineIcon(texture, actionID, bindingID);
 		actionID  = actionID;
 		bindingID = bindingID;
 		cvar      = self.cvar;
@@ -429,19 +459,34 @@ function Action:GetData()
 	};
 end
 
-function Action:RefreshActionSlot()
+function Chord:RefreshActionSlot()
 	local parent = self:GetParent()
 	self:UpdateCurrentInfo()
 	parent:UpdateState(parent:GetModifier())
 end
 
-function Action:UPDATE_BONUS_ACTIONBAR()
+function Chord:UPDATE_BONUS_ACTIONBAR()
 	self:RefreshActionSlot()
 end
 
-function Action:ACTIONBAR_SLOT_CHANGED(actionID)
+function Chord:ACTIONBAR_SLOT_CHANGED(actionID)
 	if actionID == self.actionID then
 		self:RefreshActionSlot()
+	end
+end
+
+function Chord:OnIconChanged(bindingID)
+	if bindingID == self.bindingID then
+		self:UpdateCurrentInfo()
+	end
+end
+
+function Chord:OnBindingChanged(keyChord)
+	if keyChord == self:GetKeyChord() then
+		self:UpdateCurrentInfo()
+		if self.isMouseOver then
+			self:OnEnter()
+		end
 	end
 end
 
@@ -471,10 +516,10 @@ function ComboButton:OnLoad()
 	end)
 end
 
-function ComboButton:AcquireAction(anchor)
+function ComboButton:AcquireChord(anchor)
 	local button, newObj = self.actions:Acquire()
 	if newObj then
-		FrameUtil.SpecializeFrameWithMixins(button, Action)
+		FrameUtil.SpecializeFrameWithMixins(button, Chord)
 	end
 	local set = ButtonLayout[anchor];
 	local point, relativePoint, xOffset, yOffset = unpack(set.notePoint);
@@ -493,10 +538,10 @@ function ComboButton:EnumerateActions()
 	return self.actions:EnumerateActive()
 end
 
-function ComboButton:GetActiveAction()
-	for action in self:EnumerateActions() do
-		if action:IsActive() then
-			return action;
+function ComboButton:GetActiveChord()
+	for chord in self:EnumerateActions() do
+		if chord:IsActive() then
+			return chord;
 		end
 	end
 	return nil;
@@ -509,16 +554,16 @@ end
 
 function ComboButton:OnEnter()
 	self.isMouseOver = true;
-	self:GetActiveAction():OnEnter()
+	self:GetActiveChord():OnEnter()
 end
 
 function ComboButton:OnLeave()
 	self.isMouseOver = false;
-	self:GetActiveAction():OnLeave()
+	self:GetActiveChord():OnLeave()
 end
 
 function ComboButton:OnClick(...)
-	self:GetActiveAction():OnClick(...)
+	self:GetActiveChord():OnClick(...)
 end
 
 function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration or ANI_DURATION;
@@ -543,7 +588,7 @@ function ComboButton:SetData(index, numButtons, data, isLeft, activeMods)
 	self.index = index;
 	self.data  = data;
 	self:ReleaseAll()
-	self:RenderActions(data, isLeft, activeMods)
+	self:RenderChords(data, isLeft, activeMods)
 	self:RenderPositionAndLines(numButtons, isLeft)
 	self:SetBaseBinding(data.button)
 end
@@ -558,7 +603,7 @@ function ComboButton:GetHSV()
 	return self.h, self.s, self.v;
 end
 
-function ComboButton:RenderActions(data, isLeft, activeMods)
+function ComboButton:RenderChords(data, isLeft, activeMods)
 	local baseButton, index = data.button, 1;
 	local anchor    = isLeft and 'RIGHT' or 'LEFT';
 	local relAnchor = isLeft and 'LEFT' or 'RIGHT';
@@ -568,12 +613,12 @@ function ComboButton:RenderActions(data, isLeft, activeMods)
 	for mod in db.table.mpairs(activeMods) do
 		local isAlt  = mod:match(ALT_MATCH);
 		local base   = mod:gsub(ALT_MATCH, '');
-		local action = active[base] or self:AcquireAction(relAnchor)
-		action:SetChord(mod, baseButton, isAlt)
+		local chord = active[base] or self:AcquireChord(relAnchor)
+		chord:SetChord(mod, baseButton, isAlt)
 		if not isAlt then
-			action:SetPoint(anchor, self, relAnchor, ((index - 1) * 40 * delta) + (delta * 12), 0)
-			action:Show()
-			active[mod] = action;
+			chord:SetPoint(anchor, self, relAnchor, ((index - 1) * 40 * delta) + (delta * 12), 0)
+			chord:Show()
+			active[mod] = chord;
 			index = index + 1;
 		end
 	end
@@ -725,7 +770,7 @@ function Overview:OnLoad()
 	self.buttonPool = CreateFramePool('Button', self, 'CPOverviewBindingSplashDisplay')
 
 	env:RegisterCallback('Overview.HighlightButtons', self.HighlightButtons, self)
-	env:RegisterCallback('Overview.OnActionClick', self.OnActionClick, self)
+	env:RegisterCallback('Overview.OnChordClick', self.OnChordClick, self)
 	env:RegisterCallback('Overview.EditorClosed', self.OnEditorClosed, self)
 
 	-- TODO: handle tap bindings since we want to toggle modifiers without
@@ -824,9 +869,9 @@ function Overview:SetSplashHidden(hidden)
 	end
 end
 
-function Overview:OnActionClick(action)
+function Overview:OnChordClick(chord)
 	self:SetSplashHidden(true)
-	env:TriggerEvent('Overview.EditInput', action, self)
+	env:TriggerEvent('Overview.EditInput', chord, self)
 end
 
 function Overview:OnEditorClosed()

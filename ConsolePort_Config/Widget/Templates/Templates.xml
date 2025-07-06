@@ -146,5 +146,4 @@
 	</ScrollFrame>
 
 	<Line name="CPSplineLine" thickness="10" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
-
 </Ui>

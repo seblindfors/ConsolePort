@@ -260,7 +260,7 @@ local Evaluators = {
 		local bindingSetID = GetCurrentBindingSet()
 		for btn, set in pairs(bindings) do
 			for mod, binding in pairs(set) do
-				SetBinding(mod..btn, binding)
+				env:SetBinding(mod..btn, binding)
 			end
 		end
 		SaveBindings(bindingSetID)

@@ -249,8 +249,12 @@ end
 ---------------------------------------------------------------
 CPActionConfigButton = { GetBinding = nop };
 ---------------------------------------------------------------
-CPAPI.Prop(CPActionConfigButton, 'OnClickEvent', 'OnBindingClicked')
-CPAPI.Bool(CPActionConfigButton, 'PairMode', false)
+CPAPI.Props(CPActionConfigButton)
+	.Prop('OnClickEvent', 'OnBindingClicked')
+	.Prop('SpecialClickEvent', 'OnActionSlotEdit')
+	.Prop('PairText', CHOOSE)
+	.Bool('PairMode', false)
+	.Bool('EditMode', false)
 
 function CPActionConfigButton:OnLoad()
 	self.Icon:AddMaskTexture(self.Mask)
@@ -275,17 +279,36 @@ function CPActionConfigButton:Update()
 end
 
 function CPActionConfigButton:UpdatePrompts()
+	if self:IsPairMode() then
+		return self:UpdatePairModePrompts()
+	end
+	return self:UpdateEditPrompts()
+end
+
+function CPActionConfigButton:UpdateEditPrompts()
 	local useMouseHints    = not ConsolePort:IsCursorNode(self);
 	local specialClickID   = useMouseHints and 'LeftClick' or 'Special';
 	local specialClickText = useMouseHints and L'Double-click to Edit Slot' or L'Edit Slot';
 	local cancelClickID    = useMouseHints and 'RightClick' or 'Cancel';
 	local cancelClickText  = useMouseHints and L'Double-right-click to Clear Slot' or L'Clear Slot';
 
-	self.tooltipHints = {
+	local hints = {
 		env:GetTooltipPromptForClick('LeftClick',    L'Edit Binding',   useMouseHints);
 		env:GetTooltipPromptForClick('RightClick',   L'Remove Binding', useMouseHints);
-		env:GetTooltipPromptForClick(specialClickID, specialClickText,  useMouseHints);
-		env:GetTooltipPromptForClick(cancelClickID,  cancelClickText,   useMouseHints);
+	};
+	if not self:IsEditMode() then
+		tinsert(hints, env:GetTooltipPromptForClick(specialClickID, specialClickText, useMouseHints));
+	end
+	tinsert(hints, env:GetTooltipPromptForClick(cancelClickID, cancelClickText, useMouseHints));
+
+	self.tooltipHints = hints;
+	return hints;
+end
+
+function CPActionConfigButton:UpdatePairModePrompts()
+	local useMouseHints = not ConsolePort:IsCursorNode(self);
+	self.tooltipHints = {
+		env:GetTooltipPromptForClick('LeftClick', self:GetPairText(), useMouseHints);
 	};
 	return self.tooltipHints;
 end
@@ -323,11 +346,12 @@ function CPActionConfigButton:OnClick(button)
 	end
 	local callback = function()
 		local isClearEvent = button == 'RightButton';
+		local bindingID, actionID = self:GetBinding()
 		env:TriggerEvent(self:GetOnClickEvent(),
-			self:GetBinding(), -- the bindingID to be set or cleared
-			isClearEvent,      -- if the binding is to be cleared
-			false,             -- if the binding is readonly
-			self               -- the element that was clicked
+			bindingID,    -- the bindingID to be set or cleared
+			isClearEvent, -- if the binding is to be cleared
+			false,        -- if the binding is readonly
+			self          -- the element that was clicked
 		);
 		self.clickHandler = nil;
 	end;
@@ -348,15 +372,17 @@ function CPActionConfigButton:OnDoubleClick(button)
 end
 
 function CPActionConfigButton:OnSpecialClick()
+	if self:IsPairMode() or self:IsEditMode() then return end;
 	local bindingID, actionID = self:GetBinding()
-	env:TriggerEvent('OnActionSlotEdit',
+	env:TriggerEvent(self:GetSpecialClickEvent(),
 		actionID,  -- the actionID to be changed
 		bindingID, -- the bindingID that owns the slot
-		self      -- the element that was clicked
+		self       -- the element that was clicked
 	)
 end
 
 function CPActionConfigButton:OnCancelClick()
+	if self:IsPairMode() then return end;
 	self:OnDragStart()
 	ClearCursor()
 end

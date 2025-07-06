@@ -274,14 +274,11 @@ function Config:OnBindingClicked(bindingID, isClearEvent, readonly, element)
 		return;
 	end
 
-	local catcher = self:GetCatcher()
-
 	if isClearEvent then
-		catcher:ClearBindingsForID(bindingID)
-		return SaveBindings(GetCurrentBindingSet())
+		return env:ClearBindingsForID(bindingID, true)
 	end
 
-	catcher:TryCatchBinding({
+	self:GetCatcher():TryCatchBinding({
 		text = catcher.promptText;
 		OnShow = function()
 			self:PauseCatcher()
@@ -346,6 +343,7 @@ function Config:OnActionSlotEdit(actionID, bindingID, element)
 	local left = self.Container:GetLeftScrollBox()
 	return self:GetLoadoutSelector()
 		:SetExternalLip(nil)
+		:SetAlternateTitle(nil)
 		:SetDataProvider(left:GetDataProvider())
 		:SetScrollView(left:GetScrollView())
 		:SetCloseCallback(GenerateClosure(env.TriggerEvent, env, 'OnFlushLeft'))

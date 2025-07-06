@@ -111,6 +111,33 @@
 		</KeyValues>
 	</Frame>
 
+	
+	<CheckButton name="CPOverviewBindingMapper" virtual="true" inherits="CPActionBarMapper">
+		<Frames>
+			<Button parentKey="BindingIcon">
+				<Anchors>
+					<Anchor point="TOPLEFT"/>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT" x="46"/>
+				</Anchors>
+				<HighlightTexture parentKey="HighlightTexture" file="Interface\Buttons\UI-OptionsButton">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="TOPRIGHT" relativeKey="$parent.$parent.Icon" x="8" y="8"/>
+					</Anchors>
+				</HighlightTexture>
+			</Button>
+		</Frames>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Binding" inherits="CPHeaderFont" justifyH="RIGHT" hidden="true">
+					<Anchors>
+						<Anchor point="RIGHT" x="-8"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
 	<Frame name="CPOverviewEditor" enableMouse="true" virtual="true">
 		<Size x="820"/>
 		<Frames>

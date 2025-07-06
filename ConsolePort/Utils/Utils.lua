@@ -244,17 +244,31 @@ end
 ---------------------------------------------------------------
 -- Properties
 ---------------------------------------------------------------
-do local function Prop(get, set, owner, key, def)
+do local PropTypes = {
+		Prop = { 'Get', 'Set' };
+		Bool = { 'Is',  'Set' };
+	};
+
+	local function Prop(get, set, owner, key, def)
 		local l, u = key:gsub('^%u', key.lower), key:gsub('^%l', key.upper)
-		owner[l] = def;
-		owner[get..u] = function(self) return self[l] end;
-		owner[set..u] = function(self, value) self[l] = value return self end;
+		owner[u] = def;
+		owner[get..u] = function(s) local v=s[l] if v==nil then v=s[u] end return v end;
+		owner[set..u] = function(s, v) s[l]=v return s end;
 		return owner;
 	end
 
-	CPAPI.Prop   = function(...) return Prop('Get', 'Set', ...) end;
-	CPAPI.Bool   = function(...) return Prop('Is',  'Set', ...) end;
+	for p, m in pairs(PropTypes) do
+		CPAPI[p] = function(...) return Prop(m[1], m[2], ...) end;
+	end
+
 	CPAPI.Static = function(val) return function() return val end end;
+	CPAPI.Props  = function(owner)
+		local env = {};
+		for p, m in pairs(PropTypes) do
+			env[p] = function(...) Prop(m[1], m[2], owner, ...) return env end;
+		end
+		return env;
+	end
 end
 
 ---------------------------------------------------------------

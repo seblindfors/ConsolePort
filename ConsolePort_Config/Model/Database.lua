@@ -6,6 +6,31 @@ LibStub('RelaTable')(name, env, false);
 ---------------------------------------------------------------
 env.BindingInfo, env.BindingInfoMixin = db.Loadout, db.LoadoutMixin;
 
+function env:SetTempBinding(...)
+	if SetBinding(...) then
+		self:TriggerEvent('OnBindingChanged', ...)
+		return true;
+	end
+end
+
+function env:SetBinding(keyChord, bindingID, ...)
+	if bindingID and not db('bindingOverlapEnable') then
+		self:ClearBindingsForID(bindingID)
+	end
+	if self:SetTempBinding(keyChord, bindingID, ...) then
+		SaveBindings(GetCurrentBindingSet())
+		return true;
+	end
+end
+
+function env:ClearBindingsForID(bindingID, saveAfter)
+	local iterator = GenerateClosure(env.SetTempBinding, env)
+	db.table.map(iterator, db.Gamepad:GetBindingKey(bindingID))
+	if saveAfter then
+		SaveBindings(GetCurrentBindingSet())
+	end
+end
+
 function env:GetActiveDeviceAndMap()
 	-- using ID to get the buttons in WinRT API order (NOTE: zero-indexed)
 	return db.Gamepad.Active, db('Gamepad/Index/Button/ID')

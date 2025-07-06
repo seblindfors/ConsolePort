@@ -65,8 +65,9 @@ function Entry:OnCancelClick(_, down)
 end
 
 ---------------------------------------------------------------
-local ActionSlotter = {};
+local ActionSlotter = CreateFromMixins(env.Elements.ActionbarMapper)
 ---------------------------------------------------------------
+env.Elements.ActionSlotter = ActionSlotter;
 
 function ActionSlotter:Data(datapoint)
 	return {
@@ -92,6 +93,7 @@ function ActionSlotter:OnAcquire(new)
 		self.InnerContent:SetScale(0.5) -- correct the background scale
 	end
 	self:InitButtons()
+	self.Info:SetPoint('BOTTOMRIGHT', self[1], 'BOTTOMLEFT', -4, 0)
 	db:RegisterCallback('OnActionPageChanged', self.UpdateActivePage, self)
 	env:RegisterCallback('OnActionSlotHighlight', self.UpdateSlotHighlight, self)
 	self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
@@ -112,11 +114,12 @@ function ActionSlotter:OnRelease()
 	self:UnregisterEvent('ACTIONBAR_SLOT_CHANGED')
 end
 
-function ActionSlotter:UpdateButtons(data)
+function ActionSlotter:UpdateChildren(data)
 	local button = self[1];
 	button:SetID(data.slot)
 	button:SetOnClickEvent('OnBindingClicked')
 	button:SetPairMode(false)
+	button:SetEditMode(true)
 end
 
 function ActionSlotter:InitButtons()
@@ -144,8 +147,9 @@ local LoadoutSelector = CreateFromMixins(CPLoadoutContainerMixin)
 ---------------------------------------------------------------
 env.LoadoutSelector = LoadoutSelector;
 
+LoadoutSelector.IsFlat = CPAPI.Static(false);
+
 function LoadoutSelector:Init(container)
-	ActionSlotter = CreateFromMixins(env.Elements.ActionbarMapper, ActionSlotter)
 	env:RegisterCallback('OnPanelShow', self.Release, self)
 	env:RegisterCallback('OnSearch', self.Release, self)
 	env:RegisterCallback('OnLoadoutClose', self.OnLoadoutClose, self)
@@ -183,11 +187,13 @@ end
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
-CPAPI.Prop(LoadoutSelector, 'CloseCallback')
-CPAPI.Prop(LoadoutSelector, 'DataProvider')
-CPAPI.Prop(LoadoutSelector, 'ExternalLip')
-CPAPI.Prop(LoadoutSelector, 'ScrollView')
-CPAPI.Bool(LoadoutSelector, 'ToggleByID', true)
+CPAPI.Props(LoadoutSelector)
+	.Prop 'AlternateTitle'      -- Set an alternate top title
+	.Prop 'CloseCallback'       -- Callback to run when the selector is closed
+	.Prop 'DataProvider'        -- Data provider for the scroll view
+	.Prop 'ExternalLip'         -- External lip frame to use instead of the default
+	.Prop 'ScrollView'          -- Scroll view to use
+	.Bool('ToggleByID', true)   -- If true, the selector will close when action is reselected
 
 function LoadoutSelector:GetLip()
 	if self.externalLip then
@@ -200,10 +206,11 @@ function LoadoutSelector:GetLip()
 	return self.Lip;
 end
 
-function LoadoutSelector:FindFirstOfType(type, scrollView)
-	return (scrollView or self:GetScrollView()):FindElementDataByPredicate(function(elementData)
-		return elementData:GetData().xml == type.xml;
-	end)
+function LoadoutSelector:GetTitle()
+	if self.alternateTitle then
+		return self.alternateTitle;
+	end
+	return EDIT;
 end
 
 ---------------------------------------------------------------
@@ -260,7 +267,7 @@ function LoadoutSelector:UpdateCollections()
 	lipProvider:Flush()
 
 	for i, element in ipairs({
-		env.Elements.Title:New(EDIT);
+		env.Elements.Title:New(self:GetTitle());
 		ActionSlotter:New(self:GetSlotterData(CurrentActionID));
 		env.Elements.Divider:New(1);
 		env.Elements.Back:New({
