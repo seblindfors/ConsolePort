@@ -181,9 +181,9 @@ end
 
 function AssistedCombatManager:SetAssistedHighlightFrameShown(actionButton, shown)
 	if actionButton.ShowOverlayGlow and shown then
-		return actionButton:ShowOverlayGlow();
+		return actionButton:LockHighlight()
 	elseif actionButton.HideOverlayGlow then
-		return actionButton:HideOverlayGlow();
+		return actionButton:UnlockHighlight()
 	end
 
 	local highlightFrame = actionButton.AssistedCombatHighlightFrame;
