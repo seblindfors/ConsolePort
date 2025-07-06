@@ -115,6 +115,8 @@ end
 function ActionSlotter:UpdateButtons(data)
 	local button = self[1];
 	button:SetID(data.slot)
+	button:SetOnClickEvent('OnBindingClicked')
+	button:SetPairMode(false)
 end
 
 function ActionSlotter:InitButtons()
@@ -124,14 +126,13 @@ function ActionSlotter:InitButtons()
 	end
 	button:SetPoint('RIGHT', -8, 0)
 	button:Show()
-	button.Slug:SetText('')
 	self[1] = button;
 end
 
 ---------------------------------------------------------------
 local LoadoutLip = CreateFromMixins(CPScrollBoxLip)
 ---------------------------------------------------------------
-local LIP_HEIGHT = 184;
+local LIP_HEIGHT = 176;
 
 function LoadoutLip:OnLoad()
 	self:SetHeight(LIP_HEIGHT)
@@ -149,15 +150,16 @@ function LoadoutSelector:Init(container)
 	env:RegisterCallback('OnSearch', self.Release, self)
 	env:RegisterCallback('OnLoadoutClose', self.OnLoadoutClose, self)
 	env.Frame:HookScript('OnHide', GenerateClosure(self.Release, self))
-
-	self.Lip = CreateFrame('Frame', nil, container, 'CPScrollBoxLip')
-	FrameUtil.SpecializeFrameWithMixins(self.Lip, LoadoutLip)
+	self.container = container;
 end
 
 function LoadoutSelector:OnLoadoutClose()
 	self:Release()
 	env:TriggerEvent('OnActionSlotEdit', nil)
-	env:TriggerEvent('OnFlushLeft')
+	if self.closeCallback then
+		self.closeCallback()
+		self.closeCallback = nil;
+	end
 end
 
 function LoadoutSelector:IsVisible()
@@ -168,7 +170,7 @@ function LoadoutSelector:Release()
 	CurrentActionID = nil;
 	self:OnSearch(nil)
 	self:ClearCollections()
-	self.Lip:Hide()
+	self:GetLip():Hide()
 	if self.returnToNode then
 		ConsolePort:SetCursorNodeIfActive(self.returnToNode)
 		self.returnToNode = nil;
@@ -181,23 +183,21 @@ end
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
-function LoadoutSelector:GetDataProvider()
-	return self.dataProvider;
-end
+CPAPI.Prop(LoadoutSelector, 'CloseCallback')
+CPAPI.Prop(LoadoutSelector, 'DataProvider')
+CPAPI.Prop(LoadoutSelector, 'ExternalLip')
+CPAPI.Prop(LoadoutSelector, 'ScrollView')
+CPAPI.Bool(LoadoutSelector, 'ToggleByID', true)
 
-function LoadoutSelector:GetScrollView()
-	return self.scrollView;
-end
-
-function LoadoutSelector:SetDataProvider(dataProvider)
-	self.dataProvider = dataProvider;
-	return self;
-end
-
-function LoadoutSelector:SetScrollView(scrollView)
-	self.scrollView = scrollView;
-	self.Lip:SetOwner(scrollView)
-	return self;
+function LoadoutSelector:GetLip()
+	if self.externalLip then
+		return self.externalLip;
+	end
+	if not self.Lip then
+		self.Lip = CreateFrame('Frame', nil, self.container, 'CPScrollBoxLip')
+		FrameUtil.SpecializeFrameWithMixins(self.Lip, LoadoutLip)
+	end
+	return self.Lip;
 end
 
 function LoadoutSelector:FindFirstOfType(type, scrollView)
@@ -210,7 +210,7 @@ end
 -- Action edits
 ---------------------------------------------------------------
 function LoadoutSelector:RefreshSlotter(newData)
-	local scrollView = self.Lip:GetScrollView()
+	local scrollView = self:GetLip():GetScrollView()
 	local elementData = self:FindFirstOfType(ActionSlotter, scrollView)
 	if elementData then
 		db.table.merge(elementData:GetData(), ActionSlotter:Data(newData))
@@ -220,7 +220,10 @@ end
 
 function LoadoutSelector:EditAction(actionID, bindingID, element)
 	if not actionID then return end;
-	if CurrentActionID == actionID then
+	local isCurrentActionID = actionID == CurrentActionID;
+	local isToggleByID = self:IsToggleByID();
+
+	if isCurrentActionID and isToggleByID then
 		return env:TriggerEvent('OnLoadoutClose')
 	end
 
@@ -236,9 +239,10 @@ function LoadoutSelector:EditAction(actionID, bindingID, element)
 		);
 	end
 
-	local elementData, target = self:FindFirstOfType(env.Elements.Back, self.Lip:GetScrollView())
+	local lipScrollView = self:GetLip():GetScrollView()
+	local elementData, target = self:FindFirstOfType(env.Elements.Back, lipScrollView)
 	if elementData then
-		target = self.Lip:GetScrollView():FindFrame(elementData)
+		target = lipScrollView:FindFrame(elementData)
 	end
 	if target then
 		self.returnToNode = element;
@@ -250,18 +254,18 @@ end
 -- Collection
 ---------------------------------------------------------------
 function LoadoutSelector:UpdateCollections()
+	local lip = self:GetLip()
 	local dataProvider = CPLoadoutContainerMixin.UpdateCollections(self)
-	local lipProvider = self.Lip:GetDataProvider()
+	local lipProvider = lip:GetDataProvider()
 	lipProvider:Flush()
 
 	for i, element in ipairs({
 		env.Elements.Title:New(EDIT);
 		ActionSlotter:New(self:GetSlotterData(CurrentActionID));
-		env.Elements.Divider:New(4);
+		env.Elements.Divider:New(1);
 		env.Elements.Back:New({
 			callback = GenerateClosure(env.TriggerEvent, env, 'OnLoadoutClose');
 		});
-		env.Elements.Divider:New(2);
 		env.Elements.Search:New({
 			dispatch = false;
 			callback = function(text)
@@ -271,6 +275,8 @@ function LoadoutSelector:UpdateCollections()
 	}) do
 		lipProvider:InsertAtIndex(element, i)
 	end
+
+	lip:SetOwner(self:GetScrollView())
 
 	for i, element in ipairs({
 		env.Elements.Divider:New(4);

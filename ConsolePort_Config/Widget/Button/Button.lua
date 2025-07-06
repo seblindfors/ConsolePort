@@ -249,6 +249,8 @@ end
 ---------------------------------------------------------------
 CPActionConfigButton = { GetBinding = nop };
 ---------------------------------------------------------------
+CPAPI.Prop(CPActionConfigButton, 'OnClickEvent', 'OnBindingClicked')
+CPAPI.Bool(CPActionConfigButton, 'PairMode', false)
 
 function CPActionConfigButton:OnLoad()
 	self.Icon:AddMaskTexture(self.Mask)
@@ -321,7 +323,7 @@ function CPActionConfigButton:OnClick(button)
 	end
 	local callback = function()
 		local isClearEvent = button == 'RightButton';
-		env:TriggerEvent('OnBindingClicked',
+		env:TriggerEvent(self:GetOnClickEvent(),
 			self:GetBinding(), -- the bindingID to be set or cleared
 			isClearEvent,      -- if the binding is to be cleared
 			false,             -- if the binding is readonly

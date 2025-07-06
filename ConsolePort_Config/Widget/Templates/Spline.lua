@@ -1,5 +1,6 @@
+local _, env = ...;
 ---------------------------------------------------------------
-CPSplineLineMixin = {
+local SplineLine = {
 ---------------------------------------------------------------
 	lineTemplate  = 'CPSplineLine';
 	lineSegments  = 50;
@@ -7,9 +8,9 @@ CPSplineLineMixin = {
 		LEFT  = { 0, 1, 1, 0 };
 		RIGHT = { 0, 1, 0, 1 };
 	};
-};
+}; env.Mixin.SplineLine = SplineLine;
 
-function CPSplineLineMixin:OnLoad()
+function SplineLine:OnLoad()
 	self.spline = CreateCatmullRomSpline(2);
 	self.spbits = CreateObjectPool(GenerateClosure(function(self)
 		local drawLayer, subLayer = self:GetLineDrawLayer()
@@ -24,12 +25,12 @@ end
 ---------------------------------------------------------------
 -- Setters
 ---------------------------------------------------------------
-function CPSplineLineMixin:SetLineOrigin(point, relTo)
+function SplineLine:SetLineOrigin(point, relTo)
 	self.lineRelTo = relTo or self;
 	self.linePoint = point;
 end
 
-function CPSplineLineMixin:SetLineDrawLayer(drawLayer, subLayer)
+function SplineLine:SetLineDrawLayer(drawLayer, subLayer)
 	self.lineDrawLayer = drawLayer;
 	self.lineSubLayer  = tonumber(subLayer) or 0;
 	for bit in self.spbits:EnumerateActive() do
@@ -37,26 +38,26 @@ function CPSplineLineMixin:SetLineDrawLayer(drawLayer, subLayer)
 	end
 end
 
-function CPSplineLineMixin:SetLineSegments(segments)
+function SplineLine:SetLineSegments(segments)
 	self.lineSegments = segments;
 end
 
-function CPSplineLineMixin:SetLineCoord(lineCoord)
+function SplineLine:SetLineCoord(lineCoord)
 	self.lineCoord = lineCoord;
 end
 
 ---------------------------------------------------------------
 -- Getters
 ---------------------------------------------------------------
-function CPSplineLineMixin:GetLineSegments()
+function SplineLine:GetLineSegments()
 	return self.lineSegments;
 end
 
-function CPSplineLineMixin:GetLineOrigin()
+function SplineLine:GetLineOrigin()
 	return self.lineRelTo, self.linePoint or 'CENTER';
 end
 
-function CPSplineLineMixin:GetLineCoord()
+function SplineLine:GetLineCoord()
 	if self.lineCoord then
 		return self.lineCoord;
 	end
@@ -64,11 +65,11 @@ function CPSplineLineMixin:GetLineCoord()
 	return self.lineBaseCoord[startX > endX and 'LEFT' or 'RIGHT'];
 end
 
-function CPSplineLineMixin:GetLineDrawLayer()
+function SplineLine:GetLineDrawLayer()
 	return self.lineDrawLayer, self.lineSubLayer;
 end
 
-function CPSplineLineMixin:GetLineBits()
+function SplineLine:GetLineBits()
 	local bits = {};
 	for bit in self.spbits:EnumerateActive() do
 		bits[bit.index] = bit;
@@ -76,37 +77,42 @@ function CPSplineLineMixin:GetLineBits()
 	return bits;
 end
 
-function CPSplineLineMixin:EnumerateLineBits()
+function SplineLine:EnumerateLineBits()
 	return ipairs(self:GetLineBits())
+end
+
+function SplineLine:IsLineDrawn()
+	return self.lineIsDrawn;
 end
 
 ---------------------------------------------------------------
 -- Points
 ---------------------------------------------------------------
-function CPSplineLineMixin:AddLinePoint(x, y)
+function SplineLine:AddLinePoint(x, y)
 	return self.spline:AddPoint(x, y)
 end
 
-function CPSplineLineMixin:ClearLinePoints()
+function SplineLine:ClearLinePoints()
 	self.spline:ClearPoints()
 	self:ReleaseLine()
 end
 
-function CPSplineLineMixin:CalculatePoint(t) -- 0.0 to 1.0
+function SplineLine:CalculatePoint(t) -- 0.0 to 1.0
 	return self.spline:CalculatePointOnGlobalCurve(t)
 end
 
 ---------------------------------------------------------------
 -- Controls
 ---------------------------------------------------------------
-function CPSplineLineMixin:ReleaseLine()
+function SplineLine:ReleaseLine()
 	local bits = self.spbits;
 	self:StopLineEffect()
+	self.lineIsDrawn = false;
 	bits:ReleaseAll()
 	return bits;
 end
 
-function CPSplineLineMixin:DrawLine(postProcess) postProcess = postProcess or nop;
+function SplineLine:DrawLine(postProcess) postProcess = postProcess or nop;
 	local numSegments  = self:GetLineSegments()
 	local bits, spline = self:ReleaseLine(), self.spline;
 	local layer, level = self:GetLineDrawLayer()
@@ -130,16 +136,19 @@ function CPSplineLineMixin:DrawLine(postProcess) postProcess = postProcess or no
 
 		postProcess(bit, section, i, numSegments)
 	end
+	self.lineIsDrawn = true;
 end
 
-function CPSplineLineMixin:StopLineEffect()
+function SplineLine:StopLineEffect()
 	if self.lineEffect then
 		self.lineEffect:Cancel()
 		self.lineEffect = nil;
 	end
 end
 
-function CPSplineLineMixin:PlayLineEffect(time, effect, reverse)
+function SplineLine:PlayLineEffect(time, effect, reverse)
+	if not self:IsLineDrawn() then return false end;
+
 	self:StopLineEffect()
 	local bits      = self:GetLineBits();
 	local numBits   = #bits;
@@ -164,4 +173,5 @@ function CPSplineLineMixin:PlayLineEffect(time, effect, reverse)
 			i = i + delta;
 		end
 	end)
+	return true;
 end

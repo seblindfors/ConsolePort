@@ -14,7 +14,7 @@ local ButtonLayout = {
 		buttonPoint = {'LEFT', 0, 0};
 		startAnchor = {'BOTTOMRIGHT', 0, 0};
 		endAnchor   = {'BOTTOMLEFT', -160, 0};
-		lineCoords  = CPSplineLineMixin.lineBaseCoord.LEFT;
+		lineCoords  = env.Mixin.SplineLine.lineBaseCoord.LEFT;
 	};
 	RIGHT = {
 		textPoint   = {'RIGHT', 'RIGHT', -40, 0};
@@ -22,7 +22,7 @@ local ButtonLayout = {
 		buttonPoint = {'RIGHT', 0, 0};
 		startAnchor = {'BOTTOMLEFT', 0, 0};
 		endAnchor   = {'BOTTOMRIGHT', 160, 0};
-		lineCoords  = CPSplineLineMixin.lineBaseCoord.RIGHT;
+		lineCoords  = env.Mixin.SplineLine.lineBaseCoord.RIGHT;
 	};
 };
 
@@ -222,12 +222,17 @@ function Action:OnLeave()
 	end
 end
 
+function Action:OnClick()
+	env:TriggerEvent('Overview.OnActionClick', self)
+end
+
 ---------------------------------------------------------------
 -- Drag and drop types
 ---------------------------------------------------------------
 function Action:OnDragBinding(isDragging, action, data)
 	if action == self then return end;
 	if isDragging then
+		if self.cvar then return end;
 		self:EnableDragTarget(action, data)
 	else
 		local isMouseOver, targetAction, targetData = self:CommitDragTarget()
@@ -251,6 +256,7 @@ local function ActionUpdateMouseOver(action, hitRect)
 end
 
 function Action:OnDragStart()
+	if self.cvar then return end; -- Do not allow dragging if this is a reserved action.
 	local data = self:GetData()
 	data.origin = self:AcquireOrigin()
 
@@ -350,6 +356,7 @@ end
 function Action:UpdateInfo(name, texture, actionID, bindingID)
 	self.name = name or '';
 	self.cvar = nil;
+	self.actionID = actionID;
 
 	if ( not texture and not actionID and not bindingID ) then
 		local blocker = env:GetBlockedCombination(self:GetKeyChord())
@@ -360,6 +367,7 @@ function Action:UpdateInfo(name, texture, actionID, bindingID)
 	end
 
 	CPAPI.ToggleEvent(self, 'UPDATE_BONUS_ACTIONBAR', actionID)
+	CPAPI.ToggleEvent(self, 'ACTIONBAR_SLOT_CHANGED', actionID)
 
 	local c = (texture or (not actionID and bindingID)) and 1 or 0.5;
 	local a = (texture or actionID or bindingID) and 1 or 0.25;
@@ -393,14 +401,18 @@ end
 
 function Action:SetCurrentModifier(modifier, isAlt)
 	local modifierID = isAlt and self.altModifier or self.baseModifier;
-	local isActive = modifier == modifierID;
+	self.isActive = modifier == modifierID;
 	if ( self.mod ~= modifierID ) then
 		self:UpdateModifier(modifierID)
 		if self.isMouseOver then
 			self:OnEnter()
 		end
 	end
-	self.Border:SetShown(isActive);
+	self.Border:SetShown(self.isActive);
+end
+
+function Action:IsActive()
+	return self.isActive;
 end
 
 function Action:GetData()
@@ -417,19 +429,29 @@ function Action:GetData()
 	};
 end
 
-function Action:UPDATE_BONUS_ACTIONBAR()
+function Action:RefreshActionSlot()
 	local parent = self:GetParent()
 	self:UpdateCurrentInfo()
 	parent:UpdateState(parent:GetModifier())
 end
 
+function Action:UPDATE_BONUS_ACTIONBAR()
+	self:RefreshActionSlot()
+end
+
+function Action:ACTIONBAR_SLOT_CHANGED(actionID)
+	if actionID == self.actionID then
+		self:RefreshActionSlot()
+	end
+end
+
 ---------------------------------------------------------------
-local ComboButton = CreateFromMixins(Button, CPSplineLineMixin, ColorMixin)
+local ComboButton = CreateFromMixins(Button, env.Mixin.SplineLine, ColorMixin)
 ---------------------------------------------------------------
 
 function ComboButton:OnLoad()
 	Button.OnLoad(self)
-	CPSplineLineMixin.OnLoad(self)
+	env.Mixin.SplineLine.OnLoad(self)
 	self:SetLineOrigin('CENTER', self.Container)
 
 	-- Actions based on the active modifiers.
@@ -471,6 +493,15 @@ function ComboButton:EnumerateActions()
 	return self.actions:EnumerateActive()
 end
 
+function ComboButton:GetActiveAction()
+	for action in self:EnumerateActions() do
+		if action:IsActive() then
+			return action;
+		end
+	end
+	return nil;
+end
+
 function ComboButton:ReleaseAll()
 	self:ClearActions()
 	self:ClearLinePoints()
@@ -478,12 +509,16 @@ end
 
 function ComboButton:OnEnter()
 	self.isMouseOver = true;
-	env:TriggerEvent('Overview.HighlightButtons', (self:GetButtonSequence()))
+	self:GetActiveAction():OnEnter()
 end
 
 function ComboButton:OnLeave()
 	self.isMouseOver = false;
-	env:TriggerEvent('Overview.HighlightButtons', nil)
+	self:GetActiveAction():OnLeave()
+end
+
+function ComboButton:OnClick(...)
+	self:GetActiveAction():OnClick(...)
 end
 
 function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration or ANI_DURATION;
@@ -552,13 +587,13 @@ function ComboButton:RenderPositionAndLines(numButtons, isLeft)
     local startY = -totalHeight / 2 + entryHeight / 2;
 
     local y = PixelUtil.ConvertPixelsToUIForRegion(startY + (self.index - 1) * entryHeight, self)
-    local x = PixelUtil.ConvertPixelsToUIForRegion(isLeft and -w * 0.28 or w * 0.28, self)
+    local x = PixelUtil.ConvertPixelsToUIForRegion(isLeft and -w * 0.36 or w * 0.36, self)
 
 	w, h = self:GetSize()
-	self:SetPoint('CENTER', x, y)
+	self:SetPoint(isLeft and 'LEFT' or 'RIGHT', self.Container, 'CENTER', x, y)
 
 	-- Calculate the connecting points for the spline line.
-	local lastX = x + (isLeft and w / 2 or -w / 2) + (isLeft and -3 or 3);
+	local lastX = x + (isLeft and w or -w) + (isLeft and -3 or 3);
 	local lastY = y - (h / 2);
 
 	-- Add points, join the spline points with the edge of the button.
@@ -608,6 +643,21 @@ function ComboButton:ForceUpdateState(currentModifier)
 	self.isMouseOver = wasMouseOver;
 end
 
+function ComboButton:SetGuidesVisible(visible)
+	self:SetWidth(visible and 200 or 32)
+	self.Bottom:SetShown(visible)
+	self.Label:SetShown(visible)
+	if not visible then
+		if self:IsLineDrawn() then
+			self:ReleaseLine()
+		end
+	else
+		if not self:IsLineDrawn() then
+			self:UpdateLines()
+		end
+	end
+end
+
 ---------------------------------------------------------------
 local ModifierTrayButton = {};
 ---------------------------------------------------------------
@@ -615,7 +665,7 @@ local ModifierTrayButton = {};
 function ModifierTrayButton:Init(buttonID, modID, controlCallback)
 	Mixin(self, ModifierTrayButton)
 	local data = env:GetHotkeyData(buttonID, '', 64, 32)
-	self:ToggleInversion(true)
+	self:ToggleInversion(false)
 	self:SetSelected(false)
 	self:SetAttribute('nodeignore', true)
 	self:SetScript('OnClick', controlCallback)
@@ -645,26 +695,38 @@ function ModifierTrayButton:OnLeave()
 	end
 end
 
+function ModifierTrayButton:SetPoint(point, ...)
+	-- Workaround for a typo in LayoutFrame.lua:410.
+	if point == 'BOTTOMRIGH' then
+		point = 'BOTTOMRIGHT';
+	end
+	return getmetatable(self).__index.SetPoint(self, point, ...);
+end
+
 ---------------------------------------------------------------
-local Overview = {};
+local Overview = CreateFromMixins(env.Mixin.UpdateStateTimer)
 ---------------------------------------------------------------
 function Overview:OnLoad()
 	local canvas = self:GetCanvas()
 	self:SetSize(canvas:GetSize())
 	self:SetPoint('CENTER', 0, 0)
+	self:SetUpdateStateDuration(ANI_DURATION)
 
 	self.Splash = self:CreateTexture(nil, 'ARTWORK')
 	self.Splash:SetSize(450, 450)
 	self.Splash:SetPoint('CENTER', 0, 0)
 
 	self.ModifierTray = CreateFrame('Frame', nil, self, 'CPOverviewModifierTray')
-	self.ModifierTray:SetPoint('TOP', 0, 0)
+	self.ModifierTray:SetPoint('BOTTOM', 0, 0)
+	self.ModifierTray:SetFrameLevel(self:GetFrameLevel() + 2)
 	self.ModifierTray.ReleaseAll = GenerateClosure(self.ModifierTray.buttonPool.ReleaseAll, self.ModifierTray.buttonPool)
 	self.ModifierTray:SetButtonSetup(ModifierTrayButton.Init)
 
 	self.buttonPool = CreateFramePool('Button', self, 'CPOverviewBindingSplashDisplay')
 
 	env:RegisterCallback('Overview.HighlightButtons', self.HighlightButtons, self)
+	env:RegisterCallback('Overview.OnActionClick', self.OnActionClick, self)
+	env:RegisterCallback('Overview.EditorClosed', self.OnEditorClosed, self)
 
 	-- TODO: handle tap bindings since we want to toggle modifiers without
 	-- triggering the tap binding.
@@ -677,6 +739,10 @@ function Overview:AcquireComboButton()
 		FrameUtil.SpecializeFrameWithMixins(button, ComboButton)
 	end
 	return button, newObj;
+end
+
+function Overview:EnumerateComboButtons()
+	return self.buttonPool:EnumerateActive()
 end
 
 function Overview:GetColor()
@@ -711,27 +777,27 @@ function Overview:OnEvent(_, modifier, state)
 end
 
 function Overview:HighlightButtons(sequence, overrideModifiers)
-	if self.updateStateTimer then
-		self.updateStateTimer:Cancel()
-		self.updateStateTimer = nil;
-	end
-	self.updateStateTimer = C_Timer.NewTimer(ANI_DURATION, function()
+	self:SetUpdateStateTimer(function()
+		if self.splashHidden then return end;
+
 		if not sequence then
-			for button in self.buttonPool:EnumerateActive() do
-				button:SetLineAlpha(nil, false, 1.0)
+			for button in self:EnumerateComboButtons() do
+				button:SetGuidesVisible(not self.splashHidden)
 				button:ForceUpdateState(self.mod)
+				button:SetLineAlpha(nil, false, 1.0)
 			end
-			return;
+			return self.Splash:SetShown(not self.splashHidden)
 		end
 
 		sequence = { ('-'):split(sequence) };
 		local numButtons, matches = #sequence, {};
 		for i, buttonID in ipairs(sequence) do
-			for button in self.buttonPool:EnumerateActive() do
+			for button in self:EnumerateComboButtons() do
 				if not matches[button] then
 					if button:GetBaseBinding() == buttonID then
-						button:SetLineAlpha(1.0, true, ANI_DURATION * (numButtons - i + 1))
+						button:SetGuidesVisible(true)
 						button:ForceUpdateState(overrideModifiers or self.mod)
+						button:SetLineAlpha(1.0, true, ANI_DURATION * (numButtons - i + 1))
 						matches[button] = true;
 					else
 						matches[button] = false;
@@ -741,11 +807,30 @@ function Overview:HighlightButtons(sequence, overrideModifiers)
 		end
 		for button, isMatched in pairs(matches) do
 			if not isMatched then
+				button:SetGuidesVisible(true)
 				button:ForceUpdateState(self.mod)
 				button:SetLineAlpha(0.1, false, ANI_DURATION)
 			end
 		end
+		self.Splash:Show()
 	end)
+end
+
+function Overview:SetSplashHidden(hidden)
+	self.splashHidden = hidden;
+	self.Splash:SetShown(not hidden)
+	for button in self:EnumerateComboButtons() do
+		button:SetGuidesVisible(not hidden)
+	end
+end
+
+function Overview:OnActionClick(action)
+	self:SetSplashHidden(true)
+	env:TriggerEvent('Overview.EditInput', action, self)
+end
+
+function Overview:OnEditorClosed()
+	self:SetSplashHidden(false)
 end
 
 ---------------------------------------------------------------

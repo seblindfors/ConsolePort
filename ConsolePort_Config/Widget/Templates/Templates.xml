@@ -1,6 +1,7 @@
 <Ui>
 	<Script file="Templates.lua"/>
 	<Script file="Elements.lua"/>
+	<Script file="Mixins.lua"/>
 	<Script file="Spline.lua"/>
 	<Include file="Fonts.xml"/>
 	<Include file="Compat.xml"/>

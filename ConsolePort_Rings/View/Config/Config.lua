@@ -48,8 +48,9 @@ function Config:OnLoad()
 	env:RegisterCallback('OnAcquireControlButton', self.CatchButton, self)
 	env:RegisterCallback('OnReleaseControlButton', self.FreeButton, self)
 
-	self.Catcher = CreateFrame('Button', nil, self, CPBindingCatcherMixin.Template)
-	FrameUtil.SpecializeFrameWithMixins(self.Catcher, CPBindingCatcherMixin)
+	local BindingCatcher = env.SharedConfig.Env.Mixin.BindingCatcher;
+	self.Catcher = CreateFrame('Button', nil, self, BindingCatcher.Template)
+	FrameUtil.SpecializeFrameWithMixins(self.Catcher, BindingCatcher)
 
 	CPAPI.Start(self)
 	tinsert(UISpecialFrames, self:GetName())

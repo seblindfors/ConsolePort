@@ -142,29 +142,26 @@ CPScrollBoxLip = CreateFromMixins(CPScrollBoxTree);
 function CPScrollBoxLip:OnLoad()
 	CPScrollBoxTree.OnLoad(self)
 	self:ToggleInversion(true)
-
-	for piece in pairs(NineSliceLayouts.CharacterCreateDropdown) do
-		if self[piece] then
-			self[piece]:SetAlpha(0.9)
-		end
-	end
+	self:SetBackgroundAlpha(0.9)
 end
 
 function CPScrollBoxLip:SetOwner(scrollView)
 	self:Release(scrollView)
+	self:SetHeight(self:GetLipHeight())
 	self.owner = scrollView;
 
 	local padding = scrollView:GetPadding()
 	padding.oldTop = padding:GetTop()
-	padding:SetTop(self:GetHeight() + padding.oldTop)
+	padding:SetTop(self:GetLipHeight() + padding.oldTop)
 
 	local scrollBox = scrollView:GetScrollBox()
 
 	self:Show()
 	self:ClearAllPoints()
 	self:SetFrameLevel(scrollBox:GetFrameLevel() + 1)
-	self:SetPoint('TOPLEFT', scrollBox, 'TOPLEFT', 8, 0)
-	self:SetPoint('TOPRIGHT', scrollBox, 'TOPRIGHT', -4, 0)
+	self:SetPoint('TOPLEFT', scrollBox, 'TOPLEFT', padding:GetLeft(), 0)
+	self:SetPoint('TOPRIGHT', scrollBox, 'TOPRIGHT', 4-padding:GetRight(), 0)
+
 	return self;
 end
 
@@ -178,6 +175,10 @@ function CPScrollBoxLip:Release()
 		end
 		self.owner = nil;
 	end
+end
+
+function CPScrollBoxLip:GetLipHeight()
+	return self:GetHeight() or 0;
 end
 
 function CPScrollBoxLip:OnHide()
@@ -241,7 +242,7 @@ function CPLoadoutContainerMixin:OnSearch(text)
 end
 
 function CPLoadoutContainerMixin:RefreshCollections()
-	if not self.Collections then
+	if not self.Collections or self:GetDataProvider():IsEmpty() then
 		return self:UpdateCollections()
 	end
 	self:GetScrollView():ReinitializeFrames()

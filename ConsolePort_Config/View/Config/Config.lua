@@ -3,7 +3,7 @@ local env, db, _, L = CPAPI.GetEnv(...);
 local Panel = {};
 ---------------------------------------------------------------
 
-function Panel:Init(id, container, navButton)
+function Panel:InitPanel(id, container, navButton)
 	self.id = id;
 	self.container = container;
 	self.navButton = navButton;
@@ -74,7 +74,7 @@ local Container = {};
 ---------------------------------------------------------------
 
 function Container:OnLoad()
-	FrameUtil.SpecializeFrameWithMixins(self, CPBackgroundMixin)
+	FrameUtil.SpecializeFrameWithMixins(self, env.Mixin.Background)
 
 	self:SetBackgroundInsets(4, -4, 4, 4)
 	self:AddBackgroundMaskTexture(self.BorderArt.BgMask)
@@ -205,9 +205,9 @@ end
 
 function Config:GetCatcher()
 	if not self.Catcher then
-		self.Catcher = CreateFrame('Button', nil, self, CPBindingCatcherMixin.Template)
+		self.Catcher = CreateFrame('Button', nil, self, env.Mixin.BindingCatcher.Template)
 		self.Catcher.promptText = L.SLOT_SET_BINDING;
-		FrameUtil.SpecializeFrameWithMixins(self.Catcher, CPBindingCatcherMixin)
+		FrameUtil.SpecializeFrameWithMixins(self.Catcher, env.Mixin.BindingCatcher)
 	end
 	return self.Catcher;
 end
@@ -343,10 +343,13 @@ end
 
 function Config:OnActionSlotEdit(actionID, bindingID, element)
 	if not actionID then return end;
-	local left = self.Container:GetLeftScrollBox();
+	local left = self.Container:GetLeftScrollBox()
 	return self:GetLoadoutSelector()
+		:SetExternalLip(nil)
 		:SetDataProvider(left:GetDataProvider())
 		:SetScrollView(left:GetScrollView())
+		:SetCloseCallback(GenerateClosure(env.TriggerEvent, env, 'OnFlushLeft'))
+		:SetToggleByID(true)
 		:EditAction(actionID, bindingID, element)
 end
 
@@ -381,7 +384,7 @@ do  local panelIDGen, panels = CreateCounter(), {};
 		navButton.layoutIndex = panelID;
 		env:RegisterCallback('OnPanelShow', NavButtonOnPanelShow, navButton)
 		env:UnregisterCallback('OnConfigLoad', panel)
-		panel:Init(panelID, config.Container, navButton)
+		panel:InitPanel(panelID, config.Container, navButton)
 	end
 
 	function env:CreatePanel(info)

@@ -357,3 +357,11 @@ function CPToolbarSixSliceInverterMixin:ToggleInversion(invert)
 		right:SetPoint('BOTTOMLEFT', bRight, 'TOPLEFT', 0, 0)
 	end
 end
+
+function CPToolbarSixSliceInverterMixin:SetBackgroundAlpha(alpha)
+	for piece in pairs(NineSliceLayouts.CharacterCreateDropdown) do
+		if self[piece] then
+			self[piece]:SetAlpha(alpha)
+		end
+	end
+end

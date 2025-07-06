@@ -15,7 +15,6 @@
 			<Frame parentKey="Info">
 				<Anchors>
 					<Anchor point="TOPLEFT"/>
-					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT" x="200"/>
 				</Anchors>
 				<Scripts>
 					<OnEnter>
@@ -31,5 +30,6 @@
 
 	<Script file="Elements.lua"/>
 	<Script file="Settings.lua"/>
+	<Script file="Renderer.lua"/>
 	<Script file="DataProvider.lua"/>
 </Ui>

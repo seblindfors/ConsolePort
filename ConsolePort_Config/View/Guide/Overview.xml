@@ -84,6 +84,9 @@
 
 	<Button name="CPOverviewModifierIndicator" inherits="CPToolbarSixSliceInverterFrame" virtual="true">
 		<Size x="56" y="40"/>
+		<KeyValues>
+			<KeyValue key="align" value="bottom" type="string"/>
+		</KeyValues>
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="1">
 				<Texture parentKey="Icon">
@@ -108,5 +111,27 @@
 		</KeyValues>
 	</Frame>
 
-	<Script file="Overview.lua"/>
+	<Frame name="CPOverviewEditor" enableMouse="true" virtual="true">
+		<Size x="820"/>
+		<Frames>
+			<Frame parentKey="Lip" inherits="CPScrollBoxLip">
+				<KeyValues>
+					<KeyValue key="paddingTop" value="0" type="number"/>
+				</KeyValues>
+			</Frame>
+			<Frame parentKey="Settings" inherits="CPConfigScrollBox">
+				<KeyValues>
+					<KeyValue key="paddingBottom" value="60" type="number"/>
+					<KeyValue key="scrollBarX" value="0" type="number"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="-2"/>
+					<Anchor point="BOTTOMRIGHT" x="-12" y="0"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Script file="OverviewSplash.lua"/>
+	<Script file="OverviewEditor.lua"/>
 </Ui>

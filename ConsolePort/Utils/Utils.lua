@@ -241,8 +241,20 @@ function CPAPI.Purge(t, k)
 	until issecurevariable(t, k)
 end
 
-function CPAPI.Static(value)
-	return function() return value end;
+---------------------------------------------------------------
+-- Properties
+---------------------------------------------------------------
+do local function Prop(get, set, owner, key, def)
+		local l, u = key:gsub('^%u', key.lower), key:gsub('^%l', key.upper)
+		owner[l] = def;
+		owner[get..u] = function(self) return self[l] end;
+		owner[set..u] = function(self, value) self[l] = value return self end;
+		return owner;
+	end
+
+	CPAPI.Prop   = function(...) return Prop('Get', 'Set', ...) end;
+	CPAPI.Bool   = function(...) return Prop('Is',  'Set', ...) end;
+	CPAPI.Static = function(val) return function() return val end end;
 end
 
 ---------------------------------------------------------------
@@ -469,7 +481,7 @@ function CPAPI.FormatLongText(text, linelength) text = text
 	:gsub('\n', ' ')    -- (3) replace newline with space
 	:gsub('\t', '\n\n') -- (4) replace tab with double newline
 
-    return linelength and CPAPI.FormatLineLength(text, linelength) or text;
+	return linelength and CPAPI.FormatLineLength(text, linelength) or text;
 end
 
 function CPAPI.FormatLineLength(text, linelength)

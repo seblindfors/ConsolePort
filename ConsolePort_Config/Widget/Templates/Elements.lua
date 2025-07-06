@@ -95,7 +95,7 @@ function Divider:Data(extent)
 end
 
 ---------------------------------------------------------------
-local Title = CPAPI.CreateElement('CPPopupHeaderTemplate', 300, 38)
+local Title = CPAPI.CreateElement('CPPopupHeaderTemplate', 300, 36)
 ---------------------------------------------------------------
 Elements.Title = Title;
 
@@ -403,7 +403,7 @@ end
 function Binding:OnClick(button)
 	local data = self:GetElementData():GetData()
 	local isClearEvent = button == 'RightButton';
-	env:TriggerEvent('OnBindingClicked',
+	env:TriggerEvent(data.event,
 		data.bindingID,  -- the bindingID to be set or cleared
 		isClearEvent,    -- if the binding is to be cleared
 		data.readonly(), -- if the binding is readonly
@@ -422,7 +422,7 @@ end
 function Binding:OnAcquire(new)
 	if new then
 		InitializeSetting(self, Binding)
-		self:SetScript('OnClick', Binding.OnClick)
+		self:SetScript('OnClick', self.OnClick)
 		self:HookScript('OnEnter', self.UpdateInfo)
 
 		FrameUtil.SpecializeFrameWithMixins(self.Icon, BindingIcon)
@@ -436,9 +436,11 @@ end
 
 function Binding:UpdateInfo()
 	local data = self:GetElementData():GetData()
-	local desc, image = db.Bindings:GetDescriptionForBinding(data.bindingID, true)
+
+	local desc, image  = db.Bindings:GetDescriptionForBinding(data.bindingID, true)
 	local readOnlyText = data.readonly();
-	self.disableTooltipHints = not not readOnlyText;
+	local isPairMode   = data.pair;
+	local disableHints = not not readOnlyText;
 
 	local lines = { data.list };
 	if desc then
@@ -448,14 +450,19 @@ function Binding:UpdateInfo()
 		tinsert(lines, RED_FONT_COLOR:WrapTextInColorCode(readOnlyText:trim()));
 	end
 
-	local useMouseHints = not ConsolePort:IsCursorNode(self);
-
 	self.tooltipText = table.concat(lines, '\n\n');
 	self.tooltipImage = image;
-	self.tooltipHints = not self.disableTooltipHints and {
+	self.disableTooltipHints = disableHints;
+
+	local useMouseHints = not ConsolePort:IsCursorNode(self);
+	if disableHints then
+		self.tooltipHints = nil;
+	elseif isPairMode then self.tooltipHints = {
+		env:GetTooltipPromptForClick('LeftClick', CHOOSE, useMouseHints),
+	} else self.tooltipHints = {
 		env:GetTooltipPromptForClick('LeftClick', EDIT, useMouseHints),
 		env:GetTooltipPromptForClick('RightClick', REMOVE, useMouseHints),
-	};
+	} end
 end
 
 function Binding:Data(datapoint)
@@ -464,6 +471,8 @@ function Binding:Data(datapoint)
 		list      = datapoint.field.list;
 		bindingID = datapoint.binding;
 		readonly  = datapoint.readonly;
+		event     = datapoint.event or 'OnBindingClicked';
+		pair      = datapoint.pair;
 	};
 end
 

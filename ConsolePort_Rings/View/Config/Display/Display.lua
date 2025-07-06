@@ -51,7 +51,7 @@ local Display = {}; env.SharedConfig.Display = Display;
 ---------------------------------------------------------------
 
 function Display:OnLoad()
-	FrameUtil.SpecializeFrameWithMixins(self, CPBackgroundMixin)
+	FrameUtil.SpecializeFrameWithMixins(self,  env.SharedConfig.Env.Mixin.Background)
 	self:SetBackgroundInsets(4, -4, 4, 4)
 	self:AddBackgroundMaskTexture(self.BorderArt.BgMask)
 	self:SetBackgroundAlpha(0.25)

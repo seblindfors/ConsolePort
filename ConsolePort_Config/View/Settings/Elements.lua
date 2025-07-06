@@ -722,7 +722,6 @@ end
 
 local function ActionButtonInit(button)
 	button:SetScale(1.2)
-	button:SetFrameLevel(10)
 	button.Slug:SetScale(0.75)
 end
 
@@ -733,6 +732,7 @@ local function GetActionbarMapperButton(owner)
 	local button, new = ActionbarMapperButtonPool:Acquire()
 	button.GetBinding = GetActionButtonBinding;
 	button:SetParent(owner)
+	button:SetFrameLevel(owner:GetFrameLevel() + 1)
 	button.SelectedTexture:Hide()
 	return button, new;
 end
@@ -775,10 +775,17 @@ function ActionbarMapper:UpdateActivePage(activePage)
 end
 
 function ActionbarMapper:UpdateButtons(data)
+	local pair    = data.pair;
+	local event   = data.event;
+	local offset  = pair and 44 or 46;
+	local padding = pair and 8 or 10;
 	for i = 1, NUM_ACTIONBAR_BUTTONS do
 		local button = self[i];
 		if button then
 			button:SetID(((data.bar - 1) * NUM_ACTIONBAR_BUTTONS) + i)
+			button:SetPoint('RIGHT', -((NUM_ACTIONBAR_BUTTONS - i) * offset) - padding, 0)
+			button:SetOnClickEvent(event)
+			button:SetPairMode(pair)
 		end
 	end
 end
@@ -845,9 +852,7 @@ function ActionbarMapper:InitButtons()
 		if newObj then
 			ActionButtonInit(button)
 		end
-		button:SetPoint('RIGHT', -((NUM_ACTIONBAR_BUTTONS - i) * 46) - 10, 0)
 		button:Show()
-		button.Slug:SetText(i)
 		self[i] = button;
 	end
 end
@@ -859,6 +864,7 @@ function ActionbarMapper:OnAcquire(new)
 		self:EnableMouse(false)
 	end
 	self:InitButtons()
+	self.Info:SetPoint('BOTTOMRIGHT', self[1], 'BOTTOMLEFT', -4, 0)
 	db:RegisterCallback('OnActionPageChanged', self.UpdateActivePage, self)
 	env:RegisterCallback('OnActionSlotHighlight', self.UpdateSlotHighlight, self)
 	env:RegisterCallback('OnActionSlotEdit', self.UpdateSlotSelection, self)
@@ -921,10 +927,12 @@ end
 
 function ActionbarMapper:Data(datapoint)
 	return {
-		bar  = datapoint.bar;
-		name = datapoint.field.name;
-		icon = datapoint.field.icon;
-		info = datapoint.field.info;
+		bar   = datapoint.bar;
+		name  = datapoint.field.name;
+		icon  = datapoint.field.icon;
+		info  = datapoint.field.info;
+		pair  = datapoint.pair;
+		event = datapoint.event or 'OnBindingClicked';
 	};
 end
 
