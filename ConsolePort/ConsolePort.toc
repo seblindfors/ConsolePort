@@ -5,7 +5,7 @@
 ## Title: Console Port
 ## Notes: Game controller addon
 ## AddonCompartmentFunc: ConsolePort
-## Version: 2.9.68
+## Version: 2.9.69
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort

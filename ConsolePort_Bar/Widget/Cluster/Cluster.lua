@@ -228,6 +228,7 @@ do  -- Alpha update closures
 		ShowGrid      = 0x10;
 		Flyout        = 0x20;
 		ConfigShown   = 0x40;
+		LockHighlight = 0x80;
 	});
 
 	FlyoutButton.AlphaEvents = {
@@ -265,6 +266,16 @@ end
 
 function FlyoutButton:OnConfigShown(shown)
 	self:UpdateAlpha(self.AlphaState.ConfigShown, shown)
+end
+
+function FlyoutButton:LockHighlight()
+	self:UpdateAlpha(self.AlphaState.LockHighlight, true)
+	getmetatable(self).__index.LockHighlight(self)
+end
+
+function FlyoutButton:UnlockHighlight()
+	self:UpdateAlpha(self.AlphaState.LockHighlight, false)
+	getmetatable(self).__index.UnlockHighlight(self)
 end
 
 function FlyoutButton:OnEnabledChanged(enabled)
