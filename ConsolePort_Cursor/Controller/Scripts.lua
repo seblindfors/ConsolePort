@@ -77,6 +77,14 @@ do
 			GameTooltip:Show()
 		end
 	end
+	-----------------------------------------------------------
+	_('Blizzard_HelpPlate', function()
+	-----------------------------------------------------------
+		Scripts.OnEnter[ HelpPlateButtonMixin.OnEnter ] = function(self)
+			ExecuteFrameScript(self:GetParent(), 'OnEnter')
+		end;
+	end)
+	-----------------------------------------------------------
 	if CPAPI.IsRetailVersion then
 	-----------------------------------------------------------
 		_('Blizzard_Collections', function()
@@ -170,6 +178,7 @@ do
 			GameTooltip:Hide()
 		end
 	end
+
 	if CPAPI.IsRetailVersion then
 	-----------------------------------------------------------
 		_('Blizzard_PlayerSpells', function()

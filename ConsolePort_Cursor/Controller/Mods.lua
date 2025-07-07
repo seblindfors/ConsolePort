@@ -3,7 +3,7 @@
 ---------------------------------------------------------------
 -- Modifications to the UI to support better cursor behavior.
 
-local _, env = ...; _ = CPAPI.OnAddonLoaded;
+local env, db, _ = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
 
 -- Popups:
 -- Since popups normally appear in response to an event or
@@ -80,6 +80,34 @@ end
 _('Blizzard_PVPMatch', function()
 	if (PVPMatchResults and PVPMatchResults.content and PVPMatchResults.content.scrollBox) then
 		PVPMatchResults.content.scrollBox:SetAttribute(env.Attributes.IgnoreNode, true)
+	end
+end)
+
+-- Help plates:
+-- Help plates are bound to a canvas frame that is not part of the regular cursor stack.
+-- First step is adding the canvas so that the cursor can see the plates, but the plates
+-- also need to be passthrough so that the anchor point is the (i) button on the plate,
+-- rather than the center of the plate itself, since it often covers other UI elements.
+-- Finally, handle the OnEnter/OnLeave scripts by propagating it from the button to the
+-- plate, where OnLeave is handled here (because the button has no OnLeave script), and
+-- OnEnter is handled in Scripts.lua with a replacement script.
+_('Blizzard_HelpPlate', function()
+	if HelpPlateCanvas then
+		db.Stack:AddFrame(HelpPlateCanvas)
+		HelpPlateCanvas:HookScript('OnShow', function(self)
+			for _, child in ipairs({self:GetChildren()}) do
+				child:SetAttribute(env.Attributes.PassThrough, true)
+			end
+		end)
+	end
+	if HelpPlateButtonMixin then
+		hooksecurefunc(HelpPlateButtonMixin, 'OnLoad', function(self)
+			self:HookScript('OnLeave', function(self)
+				if env.Cursor:GetOldNode() == self then
+					ExecuteFrameScript(self:GetParent(), 'OnLeave')
+				end
+			end)
+		end)
 	end
 end)
 
