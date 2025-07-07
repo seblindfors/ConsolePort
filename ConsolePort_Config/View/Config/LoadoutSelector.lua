@@ -28,6 +28,7 @@ function Entry:OnSelected(info)
 		if pickup then
 			pickup(self.UnpackID(info.id))
 			PlaceAction(CurrentActionID)
+			ClearCursor()
 		end
 	else
 		PickupAction(CurrentActionID)

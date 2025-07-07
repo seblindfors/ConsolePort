@@ -812,24 +812,23 @@ function Overview:OnShow()
 	env:RegisterCallback('Settings.OnCharacterBindingsChanged', self.OnCharacterBindingsChanged, self)
 	self:ReindexModifiers()
 	self:SetDevice(env:GetActiveDeviceAndMap())
-	self:RegisterEvent('MODIFIER_STATE_CHANGED')
 	self:ToggleAndUpdateModifier('')
 end
 
 function Overview:OnHide()
 	env:UnregisterCallback('Settings.OnCharacterBindingsChanged', self)
-	self:UnregisterEvent('MODIFIER_STATE_CHANGED')
 	self.buttonPool:ReleaseAll()
 	self.Splash:SetTexture(nil)
 	self.Device = nil;
 	self.baseColor = nil;
 	self.currentMods = nil;
+	if self.modClosures then
+		for buttonID, closure in pairs(self.modClosures) do
+			env.Frame:FreeButton(buttonID, closure)
+		end
+		self.modClosures = nil;
+	end
 	env:TriggerEvent('Overview.OnHide')
-end
-
-function Overview:OnEvent(_, modifier, state)
-	if (state ~= 0) then return end; -- isUp
-	self:UpdateModifier(self:ToggleModifier(modifier))
 end
 
 function Overview:HighlightButtons(sequence, overrideModifiers)
@@ -903,10 +902,12 @@ end
 ---------------------------------------------------------------
 function Overview:ReindexModifiers()
 	self.currentMods = {};
+	self.modClosures = {};
 	self.ModifierTray:ReleaseAll()
 	for modID, buttonID in db:For('Gamepad/Index/Modifier/Key', true) do
 		self.currentMods[modID] = false; -- Initialize active modifiers to false
 		self.ModifierTray:AddControl(buttonID, modID, GenerateClosure(self.ToggleAndUpdateModifier, self, modID));
+		self.modClosures[buttonID] = env.Frame:CatchButton(buttonID, self.ToggleAndUpdateModifier, self, modID);
 	end
 end
 

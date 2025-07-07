@@ -131,9 +131,6 @@ function Editor:OnLoad()
 	env:RegisterCallback('Overview.OnHide', self.ReleaseIndex, self)
 end
 
-function Editor:OnShow()
-end
-
 function Editor:OnHide()
 	self:SetTargetChord(nil)
 	self:SetShown(false)
@@ -191,14 +188,9 @@ function Editor:EditInput(chord)
 	self:SetShown(true)
 	self.returnToNode = nil;
 	if not self:SetTargetChord(chord) then
-		return;
+		return error('OverviewEditor:EditInput called with no chord.')
 	end
-
-	local data = chord:GetData()
---	if data.cvar then
---		return self:EditEmulation(data)
---	end
-	return self:EditBinding(data)
+	return self:EditBinding(chord:GetData())
 end
 
 function Editor:EditBinding(data)
