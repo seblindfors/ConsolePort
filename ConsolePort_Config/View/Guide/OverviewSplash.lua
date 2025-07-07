@@ -227,9 +227,17 @@ function Chord:OnLeave()
 end
 
 function Chord:OnClick()
+	if self.cvar then return end;
+
+	local readOnlyText = db.Bindings:IsReadOnlyBinding(self.bindingID)
+	if readOnlyText then
+		return UIErrorsFrame:AddMessage(readOnlyText:trim(), 1.0, 0.1, 0.1, 1.0);
+	end
+
 	if GetCursorInfo() and self.actionID then
 		return PlaceAction(self.actionID);
 	end
+
 	env:TriggerEvent('Overview.OnChordClick', self)
 end
 
@@ -801,6 +809,7 @@ end
 -- Handlers
 ---------------------------------------------------------------
 function Overview:OnShow()
+	env:RegisterCallback('Settings.OnCharacterBindingsChanged', self.OnCharacterBindingsChanged, self)
 	self:ReindexModifiers()
 	self:SetDevice(env:GetActiveDeviceAndMap())
 	self:RegisterEvent('MODIFIER_STATE_CHANGED')
@@ -808,12 +817,14 @@ function Overview:OnShow()
 end
 
 function Overview:OnHide()
+	env:UnregisterCallback('Settings.OnCharacterBindingsChanged', self)
 	self:UnregisterEvent('MODIFIER_STATE_CHANGED')
 	self.buttonPool:ReleaseAll()
 	self.Splash:SetTexture(nil)
 	self.Device = nil;
 	self.baseColor = nil;
 	self.currentMods = nil;
+	env:TriggerEvent('Overview.OnHide')
 end
 
 function Overview:OnEvent(_, modifier, state)
@@ -876,6 +887,15 @@ end
 
 function Overview:OnEditorClosed()
 	self:SetSplashHidden(false)
+end
+
+function Overview:OnCharacterBindingsChanged()
+	for button in self:EnumerateComboButtons() do
+		Button.UpdateState(button, button:GetModifier())
+		for action in button:EnumerateActions() do
+			action:UpdateCurrentInfo()
+		end
+	end
 end
 
 ---------------------------------------------------------------

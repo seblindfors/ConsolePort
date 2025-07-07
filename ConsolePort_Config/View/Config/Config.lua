@@ -278,7 +278,8 @@ function Config:OnBindingClicked(bindingID, isClearEvent, readonly, element)
 		return env:ClearBindingsForID(bindingID, true)
 	end
 
-	self:GetCatcher():TryCatchBinding({
+	local catcher = self:GetCatcher()
+	catcher:TryCatchBinding({
 		text = catcher.promptText;
 		OnShow = function()
 			self:PauseCatcher()

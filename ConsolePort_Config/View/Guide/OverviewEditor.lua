@@ -44,6 +44,7 @@ function BindingSlotter:Data(datapoint)
 	data.bindingID = datapoint.binding;
 	data.chord     = datapoint.chord;
 	data.element   = datapoint.element;
+	data.hasAction = datapoint.slot > 0 and datapoint.slot ~= CPAPI.ExtraActionButtonID;
 	return data;
 end
 
@@ -80,7 +81,7 @@ end
 
 function BindingSlotter:UpdateChildren(data)
 	local button = self[1];
-	local hasAction = data.slot > 0;
+	local hasAction = data.hasAction;
 	button:SetID(data.slot)
 	button:SetShown(hasAction)
 	button:SetOnClickEvent('Overview.OnActionClicked')
@@ -98,7 +99,7 @@ end
 
 function BindingSlotter:OnInfoEnter()
 	local data = self:GetElementData():GetData()
-	if ( data.slot ~= 0 ) then
+	if ( data.hasAction ) then
 		return env.Elements.ActionbarMapper.OnInfoEnter(self)
 	end
 	return ExecuteFrameScript(data.element, 'OnEnter')
@@ -106,7 +107,7 @@ end
 
 function BindingSlotter:OnInfoLeave()
 	local data = self:GetElementData():GetData()
-	if ( data.slot ~= 0 ) then
+	if ( data.hasAction ) then
 		return env.Elements.ActionbarMapper.OnInfoLeave(self)
 	end
 	return ExecuteFrameScript(data.element, 'OnLeave')
@@ -127,6 +128,7 @@ function Editor:OnLoad()
 
 	env:RegisterCallback('Overview.OnActionClicked', self.OnActionClicked, self)
 	env:RegisterCallback('Overview.OnBindingClicked', self.OnBindingClicked, self)
+	env:RegisterCallback('Overview.OnHide', self.ReleaseIndex, self)
 end
 
 function Editor:OnShow()
@@ -206,6 +208,7 @@ function Editor:EditBinding(data)
 
 	if self:SetEditType(EditType.Binding) then
 		dataProvider:Flush()
+		self:Render(dataProvider, GENERAL, bindings[GENERAL], false, false, true, true)
 		self:Render(dataProvider, ACTIONBARS_LABEL, bindings[ACTIONBARS_LABEL], true)
 		self:Render(dataProvider, KEY_BINDINGS_MAC, bindings[KEY_BINDINGS_MAC], true)
 	end
@@ -232,8 +235,7 @@ function Editor:EditBinding(data)
 		Elements.Search:New({
 			dispatch = false;
 			callback = function(text)
-				--dataProvider:Flush()
-				--self:OnSearch(text, dataProvider)
+				self:HandleBindingSearch(text, dataProvider)
 			end
 		});
 	}) do
@@ -284,6 +286,8 @@ function Editor:SetEditType(newType)
 end
 
 ---------------------------------------------------------------
+-- Bindings handling
+---------------------------------------------------------------
 
 function Editor:GetSlotterData(data)
 	local slotter = env.LoadoutSelector.GetSlotterData(self, data.actionID or 0)
@@ -297,20 +301,38 @@ function Editor:GetSlotterData(data)
 	return slotter;
 end
 
+function Editor:HandleBindingSearch(text, results)
+	if text then
+		results:Flush()
+		self:OnSearch(text, results)
+		if results:IsEmpty() then
+			results:Insert(env.Elements.Title:New(SEARCH))
+			results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+		end
+		return;
+	end
+	self:SetEditType(nil)
+	self:EditBinding(self.chord:GetData())
+end
+
 ---------------------------------------------------------------
 do -- Initializer
 ---------------------------------------------------------------
+	local function GeneralSettingsProvider(AddSetting, GetSortIndex)
+		local main, head = SETTING_GROUP_GAMEPLAY, GENERAL;
+
+		-- Toggle character bindings on/off
+		AddSetting(main, head, {
+			sort  = GetSortIndex(main, head);
+			type  = env.Elements.CharacterBindings;
+			field = { after = true };
+		})
+	end
+
 	local function BindingsProvider(AddSetting, GetSortIndex)
 		local main, head = SETTING_GROUP_GAMEPLAY, KEY_BINDINGS_MAC;
 		local sort = GetSortIndex(main, head);
 		local bindings = env.BindingInfo:RefreshDictionary()
-
-		-- Toggle character bindings on/off
-		AddSetting(main, head, {
-			sort  = 0;
-			type  = env.Elements.CharacterBindings;
-			field = { before = true };
-		})
 
 		for category, set in env.table.spairs(bindings) do
 			local list = category:trim();
@@ -382,6 +404,7 @@ do -- Initializer
 		local editor = CreateFrame('Frame', nil, container, 'CPOverviewEditor')
 		FrameUtil.SpecializeFrameWithMixins(editor, Editor, env.SettingsRenderer)
 
+		editor:AddProvider(GeneralSettingsProvider)
 		editor:AddProvider(ActionBarProvider)
 		editor:AddProvider(BindingsProvider)
 

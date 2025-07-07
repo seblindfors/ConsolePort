@@ -285,6 +285,14 @@ do -- Handle custom rings
 			or FindBindingInCollection(binding, self.Dynamic)
 	end
 
+	function Bindings:IsReadOnlyBinding(binding)
+		local set = self:GetCustomBindingInfo(binding)
+		if set and set.readonly then
+			return set.readonly()
+		end
+		return false;
+	end
+
 	function Bindings:GetDescriptionForBinding(binding, useTooltipFormat, tooltipLineLength)
 		local set = self:GetCustomBindingInfo(binding)
 

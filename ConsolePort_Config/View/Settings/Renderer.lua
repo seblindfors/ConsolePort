@@ -58,10 +58,17 @@ function Renderer:ReleaseCallbacks()
 	wipe(self.callbacks);
 end
 
+function Renderer:ReleaseIndex()
+	if self.index then
+		self:ReleaseCallbacks()
+		self.index = nil;
+	end
+end
+
 ---------------------------------------------------------------
 -- Rendering
 ---------------------------------------------------------------
-function Renderer:Render(provider, title, data, preferCollapsed, useDeviceEdit, flattened)
+function Renderer:Render(provider, title, data, preferCollapsed, useDeviceEdit, flattened, headless)
 	if not flattened then
 		provider:Insert(self.MakeTitle(title))
 	end
@@ -118,7 +125,8 @@ function Renderer:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 		provider:Insert(self.MakeDivider())
 	end
 
-	if not flattened and next(before) then
+	local allowHeadless = not flattened or headless;
+	if allowHeadless and next(before) then
 		for i, dp in ipairs(before) do
 			provider:Insert(dp.type:New(dp))
 		end
@@ -144,7 +152,7 @@ function Renderer:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 			__(ADVANCED_LABEL, dp, preferCollapsed):Insert(dp.type:New(dp))
 		end
 	end
-	if not flattened and next(after) then
+	if allowHeadless and next(after) then
 		for i, dp in ipairs(after) do
 			provider:Insert(dp.type:New(dp))
 		end

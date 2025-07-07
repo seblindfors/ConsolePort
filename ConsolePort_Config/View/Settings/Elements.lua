@@ -1,5 +1,24 @@
 local DP, env, db, L = 1, CPAPI.GetEnv(...); L = env.L;
 ----------------------------------------------------------------
+-- Helpers
+----------------------------------------------------------------
+local function Shared(datapoint)
+	-- Needs to be used for any datapoint where it's possible
+	-- for more than one widget at a time to be mounted to it.
+	datapoint.node = datapoint.node or {};
+	function datapoint:Register(node)
+		self.node[node] = true;
+	end
+	function datapoint:Unregister(node)
+		self.node[node] = nil;
+	end
+	function datapoint:Enumerate()
+		return pairs(self.node);
+	end
+	return datapoint;
+end
+
+----------------------------------------------------------------
 -- Device selection
 ----------------------------------------------------------------
 -- Renders real devices in a list for individual mapping.
@@ -408,14 +427,22 @@ local function SetCharacterBindings(enabled)
 	end
 end
 
+local function UpdateCharacterBindings(value)
+	for node in CharacterBindingsDatapoint:Enumerate() do
+		node:OnValueChanged(value)
+	end
+	env:TriggerEvent('Settings.OnCharacterBindingsChanged', value)
+end
+
 local function GetCharacterBindingsDatapoint()
 	if not CharacterBindingsDatapoint then
-		CharacterBindingsDatapoint = {
+		CharacterBindingsDatapoint = Shared({
 			name = CHARACTER_SPECIFIC_KEYBINDINGS;
 			desc = CHARACTER_SPECIFIC_KEYBINDING_TOOLTIP;
 			[DP] = db.Data.Bool(false);
-		};
+		});
 	end
+	CharacterBindingsDatapoint[DP]:SetCallback(nil)
 	CharacterBindingsDatapoint[DP]:Set(AreCharacterBindingsEnabled())
 	return CharacterBindingsDatapoint;
 end
@@ -442,14 +469,14 @@ function CharacterBindings:Init(elementData)
 						SetCharacterBindings(enabled)
 					end;
 					OnHide = function()
-						self:OnValueChanged(AreCharacterBindingsEnabled())
+						UpdateCharacterBindings(AreCharacterBindingsEnabled())
 					end;
 					timeout   = 0;
 					showAlert = 1;
 				})
 			end
 			SetCharacterBindings(enabled)
-			self:OnValueChanged(AreCharacterBindingsEnabled())
+			UpdateCharacterBindings(AreCharacterBindingsEnabled())
 		end;
 	})
 end
@@ -460,6 +487,11 @@ function CharacterBindings:OnAcquire(new)
 		self.Get = AreCharacterBindingsEnabled;
 		self.disableTooltipHints = true;
 	end
+	CharacterBindingsDatapoint:Register(self);
+end
+
+function CharacterBindings:OnRelease()
+	CharacterBindingsDatapoint:Unregister(self);
 end
 
 function CharacterBindings:Data()
