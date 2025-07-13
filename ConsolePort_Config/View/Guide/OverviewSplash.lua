@@ -509,6 +509,7 @@ function ComboButton:OnLoad()
 
 	-- Actions based on the active modifiers.
 	self.actions = CreateFramePool('Button', self, 'CPOverviewActionDisplay')
+	self.lineState = {};
 
 	-- Proxy object to update both lines at once.
 	self.Bottom = CPAPI.Proxy({
@@ -579,6 +580,10 @@ function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration 
 	local isOpaque = alpha and alpha >= 1.0;
 	local bitAlpha = isOpaque and 1.0 or nil;
 	local cutoff   = self:GetLineSegments();
+	if not self:IsLineUpdateRequired(delta, isOpaque, bitAlpha, cutoff) then
+		return; -- No need to update the line.
+	end
+	self:UpdateLineState(delta, isOpaque, bitAlpha, cutoff, duration)
 	self:PlayLineEffect(duration, function(bit, i)
 		 -- Hide the last bit so that alpha merges correctly with the bottom lines.
 		if ( not isOpaque and i >= cutoff ) then
@@ -590,6 +595,23 @@ function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration 
 			self.Bottom:FadeIn(duration, self.Bottom:GetAlpha(), Saturate(delta * 1.0))
 		end
 	end, reverse)
+end
+
+function ComboButton:IsLineUpdateRequired(d, o, b, c, t)
+	local s = self.lineState;
+	if s[1] ~= d or s[2] ~= o or s[3] ~= b or s[4] ~= c or s[5] ~= t then
+		return true;
+	end
+	return false;
+end
+
+function ComboButton:UpdateLineState(d, o, b, c, t)
+	local s = self.lineState;
+	s[1] = d; -- delta
+	s[2] = o; -- isOpaque
+	s[3] = b; -- bitAlpha
+	s[4] = c; -- cutoff
+	s[5] = t; -- duration
 end
 
 function ComboButton:SetData(index, numButtons, data, isLeft, activeMods)
@@ -702,6 +724,7 @@ function ComboButton:SetGuidesVisible(visible)
 	self.Label:SetShown(visible)
 	if not visible then
 		if self:IsLineDrawn() then
+			self:UpdateLineState(nil)
 			self:ReleaseLine()
 		end
 	else
@@ -753,7 +776,7 @@ function ModifierTrayButton:SetPoint(point, ...)
 	if point == 'BOTTOMRIGH' then
 		point = 'BOTTOMRIGHT';
 	end
-	return getmetatable(self).__index.SetPoint(self, point, ...);
+	return CPAPI.Index(self).SetPoint(self, point, ...);
 end
 
 ---------------------------------------------------------------

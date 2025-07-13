@@ -62,9 +62,6 @@ function BindingSlotter:OnAcquire(new)
 	db:RegisterCallback('OnActionPageChanged', self.UpdateActivePage, self)
 	env:RegisterCallback('OnActionSlotHighlight', self.UpdateSlotHighlight, self)
 	self:RegisterEvent('ACTIONBAR_SLOT_CHANGED')
-	if new then
-		ConsolePort:SetCursorNodeIfActive(self[1])
-	end
 end
 
 function BindingSlotter:OnRelease()
