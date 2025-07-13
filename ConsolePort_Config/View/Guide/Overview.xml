@@ -4,6 +4,7 @@
 		<Size x="32" y="32"/>
 		<Attributes>
 			<Attribute name="nodeignoredrag" type="boolean" value="true"/>
+			<Attribute name="nohooks" type="boolean" value="true"/>
 		</Attributes>
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="2">

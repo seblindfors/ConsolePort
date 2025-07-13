@@ -134,7 +134,7 @@ function Mapbutton:OnLeave()
 end
 
 function Mapbutton:SetID(id)
-	getmetatable(self).__index.SetID(self, id)
+	CPAPI.Index(self).SetID(self, id)
 	local glyph = GetBindingText(C_GamePad.ButtonIndexToBinding(id - 1))
 	if glyph then
 		self.Text:SetText(glyph)

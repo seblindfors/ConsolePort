@@ -4,7 +4,7 @@ CPStateButtonMixin = CreateFromMixins(ButtonStateBehaviorMixin);
 ---------------------------------------------------------------
 
 function CPStateButtonMixin:SetChecked(checked, noAnimation)
-	getmetatable(self).__index.SetChecked(self, checked)
+	CPAPI.Index(self).SetChecked(self, checked)
 	self:OnButtonStateChanged(noAnimation)
 end
 
@@ -264,7 +264,7 @@ function CPActionConfigButton:OnLoad()
 end
 
 function CPActionConfigButton:SetID(actionID)
-	getmetatable(self).__index.SetID(self, actionID)
+	CPAPI.Index(self).SetID(self, actionID)
 	self:Update()
 end
 

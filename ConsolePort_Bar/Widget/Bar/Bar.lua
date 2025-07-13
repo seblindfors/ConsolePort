@@ -84,7 +84,7 @@ end
 function CPActionBar:SetPoint(point, relFrame, relPoint, x, y)
 	self:SetAttribute('x', x)
 	self:SetAttribute('y', y)
-	getmetatable(self).__index.SetPoint(self, point, relFrame, relPoint, x, y)
+	CPAPI.Index(self).SetPoint(self, point, relFrame, relPoint, x, y)
 end
 
 function CPActionBar:OnDriverChanged()

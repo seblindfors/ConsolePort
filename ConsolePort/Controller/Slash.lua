@@ -372,7 +372,7 @@ SLASH_FUNCTIONS = {
 -- Set up slash handler
 ---------------------------------------------------------------
 setmetatable(ConsolePort, {
-	__index = getmetatable(ConsolePort).__index;
+	__index = CPAPI.Index(ConsolePort);
 	__call  = HandleSlashCommand;
 })
 

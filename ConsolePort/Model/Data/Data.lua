@@ -77,7 +77,7 @@ local Field = setmetatable({[TYPE] = 'Field'}, {
 	__index = {};
 	__newindex = function(self, key, value)
 		if (type(value) == 'function') then
-			getmetatable(self).__index[key] = value;
+			CPAPI.Index(self)[key] = value;
 			return
 		end
 		rawset(self, key, value);

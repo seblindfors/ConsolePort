@@ -72,7 +72,7 @@ local function GetPresets()
 		end
 	end
 	LoadPresets(env.Presets, true)
-	LoadPresets(getmetatable(env.Presets).__index, false)
+	LoadPresets(CPAPI.Index(env.Presets), false)
 	return presets;
 end
 

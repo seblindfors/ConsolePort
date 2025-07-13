@@ -93,8 +93,8 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 
 	-- Cache default methods so that frames with unaltered
 	-- metatables use hook scripts instead of a secure hook.
-	hooks[getmetatable(UIParent).__index.Show] = true
-	hooks[getmetatable(UIParent).__index.Hide] = true
+	hooks[CPAPI.Index(UIParent).Show] = true
+	hooks[CPAPI.Index(UIParent).Hide] = true
 
 	-- When adding a new frame:
 	-- Store metatable functions for hooking show/hide scripts.

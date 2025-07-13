@@ -426,11 +426,11 @@ local UnitMenuButtonIcon = { SetPoint = nop };
 function UnitMenuButtonIcon:OnLoad()
 	self:SetSize(26, 26)
 	self:ClearAllPoints()
-	getmetatable(self).__index.SetPoint(self, 'CENTER', self:GetParent(), 'LEFT', 56, 0)
+	CPAPI.Index(self).SetPoint(self, 'CENTER', self:GetParent(), 'LEFT', 56, 0)
 end
 
 function UnitMenuButtonIcon:SetSize(width, height)
-	getmetatable(self).__index.SetSize(self,
+	CPAPI.Index(self).SetSize(self,
 		Clamp(width, 20, 26),
 		Clamp(height, 20, 26)
 	);

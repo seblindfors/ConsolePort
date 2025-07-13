@@ -189,7 +189,7 @@ function FlyoutCooldown:OnLoad()
 end
 
 function FlyoutCooldown:SetDrawBling(enabled, force)
-	if force then return getmetatable(self).__index.SetDrawBling(self, enabled) end
+	if force then return CPAPI.Index(self).SetDrawBling(self, enabled) end
 end
 
 
@@ -207,12 +207,12 @@ do -- Flyout arrow owner check, report to parent
 	function FlyoutArrow:Show()
 		local parent = self:GetParent()
 		parent:OnSpellFlyout(CheckSpellFlyoutOwnership(parent))
-		return getmetatable(self).__index.Show(self)
+		return CPAPI.Index(self).Show(self)
 	end
 
 	function FlyoutArrow:Hide()
 		self:GetParent():OnSpellFlyout(false)
-		return getmetatable(self).__index.Hide(self)
+		return CPAPI.Index(self).Hide(self)
 	end
 end
 
@@ -270,12 +270,12 @@ end
 
 function FlyoutButton:LockHighlight()
 	self:UpdateAlpha(self.AlphaState.LockHighlight, true)
-	getmetatable(self).__index.LockHighlight(self)
+	CPAPI.Index(self).LockHighlight(self)
 end
 
 function FlyoutButton:UnlockHighlight()
 	self:UpdateAlpha(self.AlphaState.LockHighlight, false)
-	getmetatable(self).__index.UnlockHighlight(self)
+	CPAPI.Index(self).UnlockHighlight(self)
 end
 
 function FlyoutButton:OnEnabledChanged(enabled)
@@ -331,7 +331,7 @@ function FlyoutButton:OnShowFlyoutIcons(enabled)
 end
 
 function FlyoutButton:SetAlpha(alpha, force)
-	if force then return getmetatable(self).__index.SetAlpha(self, alpha) end
+	if force then return CPAPI.Index(self).SetAlpha(self, alpha) end
 end
 
 function FlyoutButton:UpdateAlpha(closure, state)

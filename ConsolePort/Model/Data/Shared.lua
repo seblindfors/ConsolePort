@@ -44,7 +44,7 @@ end
 function Shared:SaveData(idx, set, newData, unique)
 	if unique then
 		local cmp = db.table.compare;
-		for owner, data in pairs(self.Data) do
+		for _, data in pairs(self.Data) do
 			if data[set] and cmp(data[set], newData) then
 				return false;
 			end

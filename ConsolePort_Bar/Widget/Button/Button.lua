@@ -155,17 +155,17 @@ end
 
 function ProxyCooldown:SetCooldown(...)
 	self:GetParent():OnCooldownSet(self, ...)
-	getmetatable(self).__index.SetCooldown(self, ...)
+	CPAPI.Index(self).SetCooldown(self, ...)
 end
 
 function ProxyCooldown:Clear(...)
 	self:GetParent():OnCooldownClear(self, ...)
-	getmetatable(self).__index.Clear(self, ...)
+	CPAPI.Index(self).Clear(self, ...)
 end
 
 function ProxyCooldown:Hide()
 	self:GetParent():OnCooldownClear(self)
-	getmetatable(self).__index.Hide(self)
+	CPAPI.Index(self).Hide(self)
 end
 
 ---------------------------------------------------------------

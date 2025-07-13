@@ -1,4 +1,5 @@
 local _, db = ...;
+local getmetatable, setmetatable = getmetatable, setmetatable;
 ---------------------------------------------------------------
 -- Mixins
 ---------------------------------------------------------------
@@ -158,10 +159,6 @@ do -- Compatible with CPScrollBoxTree
 	end
 end
 
-function CPAPI.CreateAnimationQueue()
-	return CreateAndInitFromMixin(db.AnimationQueue)
-end
-
 function CPAPI.Start(handler, noHooks)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then
@@ -227,6 +224,10 @@ do local function ModifyMetatable(owner, key, value)
 		return ModifyMetatable(owner, '__call', func)
 	end
 
+	function CPAPI.Index(owner)
+		return getmetatable(owner).__index;
+	end
+
 	function CPAPI.Enum(...)
 		return CPAPI.Callable(EnumUtil.MakeEnum(...), Enumerator)
 	end
@@ -283,7 +284,7 @@ do local function UpdateFlags(flag, flags, predicate)
 
 	local function GetMapState(self, inputs, options) options = options or tInvert(self);
 		local state, option = 0;
-		local flags = getmetatable(self).__index;
+		local flags = CPAPI.Index(self);
 		for flag, predicate in pairs(inputs) do
 			assert(flags[flag], ('Invalid flag: %s'):format(flag))
 			state = flags[flag](state, predicate)

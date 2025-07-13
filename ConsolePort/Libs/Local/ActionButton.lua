@@ -74,7 +74,7 @@ function Lib.SkinUtility.SetTexture(self, texture, ...)
 		self.unmount = texture(self, self:GetParent(), ...)
 		return true;
 	end
-	return getmetatable(self).__index.SetTexture(self, texture, ...)
+	return CPAPI.Index(self).SetTexture(self, texture, ...)
 end
 
 function Lib.SkinUtility.GetIconMask(self)

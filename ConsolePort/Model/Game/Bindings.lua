@@ -313,7 +313,7 @@ do -- Handle custom rings
 						if UnitExists(unitID) then
 							return SetPortraitTexture(self, unitID)
 						end
-						getmetatable(self).__index.SetTexture(self, default)
+						CPAPI.Index(self).SetTexture(self, default)
 					end)
 					timer:Invoke()
 					return function()

@@ -1,11 +1,11 @@
 <Ui>
 	<!-- Utils -->
 	<Script file="Database.lua"/>
+	<Script file="Utils.lua"/>
 	<Script file="Const.lua"/>
 	<Script file="Wrapper.lua"/>
 	<Script file="Assets.lua"/>
 	<Script file="Color.lua"/>
-	<Script file="Utils.lua"/>
 	<Script file="UIFade.lua"/>
 	<Script file="Animation.lua"/>
 </Ui>

@@ -1,10 +1,13 @@
-local _, db = ...;
 ---------------------------------------------------------------
 -- Animation queue (see AnimationSystem.lua)
 ---------------------------------------------------------------
 local AnimationQueue = {
 	Fraction = function(_, elapsed) return elapsed end;
-}; db.AnimationQueue = AnimationQueue;
+};
+
+function CPAPI.CreateAnimationQueue()
+	return CreateAndInitFromMixin(AnimationQueue)
+end
 
 function AnimationQueue:Init()
 	self.queue, self.currentIndex = {}, 1;
