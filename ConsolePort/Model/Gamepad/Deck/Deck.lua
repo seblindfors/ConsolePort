@@ -1,80 +1,6 @@
-select(2, ...).Gamepad:AddGamepad({
+local _, db = ...; db.Gamepad:AddGamepad({
 	Name = 'Steam Deck';
-	LabelStyle = 'Letters';
 	Version = 1;
-	Theme = {
-		Label = 'LTR';
-		Colors = {
-			PADDUP    = 'FFE74F';
-			PADDLEFT  = '00A2FF';
-			PADDRIGHT = 'FA4451';
-			PADDDOWN  = '52C14E';
-		};
-		Icons = {
-			PADDUP       = 'All/Up';
-			PADDRIGHT    = 'All/Right';
-			PADDDOWN     = 'All/Down';
-			PADDLEFT     = 'All/Left';
-			PAD1         = 'Xbox/A';
-			PAD2         = 'Xbox/B';
-			PAD3         = 'Xbox/X';
-			PAD4         = 'Xbox/Y';
-			--PAD5
-			--PAD6
-			PADLSTICK    = 'Xbox/LSB';
-			PADRSTICK    = 'Xbox/RSB';
-			PADLSHOULDER = 'Xbox/LB';
-			PADRSHOULDER = 'Xbox/RB';
-			PADLTRIGGER  = 'Xbox/LT';
-			PADRTRIGGER  = 'Xbox/RT';
-			--PADLSTICKUP
-			--PADLSTICKRIGHT
-			--PADLSTICKDOWN
-			--PADLSTICKLEFT
-			--PADRSTICKUP
-			--PADRSTICKRIGHT
-			--PADRSTICKDOWN
-			--PADRSTICKLEFT
-			PADPADDLE1  = 'PlayStation/L1';
-			PADPADDLE2  = 'PlayStation/L2';
-			PADPADDLE3  = 'PlayStation/R1';
-			PADPADDLE4  = 'PlayStation/R2';
-			PADFORWARD  = 'Xbox/Options';
-			PADBACK     = 'Xbox/Share';
-			--PADSYSTEM
-			--PADSOCIAL
-		};
-		Layout = {
-			PADLTRIGGER  = 0x10;
-			PADLSHOULDER = 0x11;
-			PADLSTICK    = 0x12;
-			--------------------
-			PADDUP		 = 0x13;
-			PADDLEFT	 = 0x14;
-			PADDDOWN	 = 0x15;
-			PADDRIGHT	 = 0x16;
-			--------------------
-			PADBACK      = 0x17;
-			--------------------
-			PADPADDLE1   = 0x18;
-			PADPADDLE2   = 0x19;
-			--------------------
-			PADRTRIGGER	 = 0x20;
-			PADRSHOULDER = 0x21;
-			PADRSTICK    = 0x22;
-			--------------------
-			PAD1         = 0x23;
-			PAD2         = 0x24;
-			PAD3         = 0x25;
-			PAD4		 = 0x26;
-			--------------------
-			PADFORWARD   = 0x27;
-			--------------------
-			PADPADDLE3   = 0x28;
-			PADPADDLE4   = 0x29;
-
-		};
-	};
 	Preset = {
 		Variables = {
 			synchronizeSettings     = 0;
@@ -182,5 +108,115 @@ select(2, ...).Gamepad:AddGamepad({
 				[''] = 'TURNORACTION';
 			};
 		};
+	};
+}, { -- metaData
+	Label = 'LTR';
+	LabelStyle = 'Letters';
+	Description = db.Locale.DEVICE_DESC_STEAMDECK;
+	Colors = {
+		PADDUP    = 'FFE74F';
+		PADDLEFT  = '00A2FF';
+		PADDRIGHT = 'FA4451';
+		PADDDOWN  = '52C14E';
+	};
+	Assets = {
+		PADDUP       = 'All/Up';
+		PADDRIGHT    = 'All/Right';
+		PADDDOWN     = 'All/Down';
+		PADDLEFT     = 'All/Left';
+		PAD1         = 'Xbox/A';
+		PAD2         = 'Xbox/B';
+		PAD3         = 'Xbox/X';
+		PAD4         = 'Xbox/Y';
+		--PAD5
+		--PAD6
+		PADLSTICK    = 'Xbox/LSB';
+		PADRSTICK    = 'Xbox/RSB';
+		PADLSHOULDER = 'Xbox/LB';
+		PADRSHOULDER = 'Xbox/RB';
+		PADLTRIGGER  = 'Xbox/LT';
+		PADRTRIGGER  = 'Xbox/RT';
+		--PADLSTICKUP
+		--PADLSTICKRIGHT
+		--PADLSTICKDOWN
+		--PADLSTICKLEFT
+		--PADRSTICKUP
+		--PADRSTICKRIGHT
+		--PADRSTICKDOWN
+		--PADRSTICKLEFT
+		PADPADDLE1  = 'PlayStation/L1';
+		PADPADDLE2  = 'PlayStation/L2';
+		PADPADDLE3  = 'PlayStation/R1';
+		PADPADDLE4  = 'PlayStation/R2';
+		PADFORWARD  = 'Xbox/Options';
+		PADBACK     = 'Xbox/Share';
+		--PADSYSTEM
+		--PADSOCIAL
+	};
+	Layout = {
+	--	PADLTRIGGER  = 0x10;
+	--	PADLSHOULDER = 0x11;
+	--	PADLSTICK    = 0x12;
+		--------------------
+	--	PADDUP		 = 0x13;
+	--	PADDLEFT	 = 0x14;
+	--	PADDDOWN	 = 0x15;
+	--	PADDRIGHT	 = 0x16;
+		--------------------
+	--	PADBACK      = 0x17;
+		--------------------
+	--	PADPADDLE1   = 0x18;
+	--	PADPADDLE2   = 0x19;
+		--------------------
+	--	PADRTRIGGER	 = 0x20;
+	--	PADRSHOULDER = 0x21;
+	--	PADRSTICK    = 0x22;
+		--------------------
+	--	PAD1         = 0x23;
+	--	PAD2         = 0x24;
+	--	PAD3         = 0x25;
+	--	PAD4		 = 0x26;
+		--------------------
+	--	PADFORWARD   = 0x27;
+		--------------------
+	--	PADPADDLE3   = 0x28;
+	--	PADPADDLE4   = 0x29;
+	-- format: delta (-1 or 1), drawLayer, x1, y1, ..., xN, yN
+		--------------------
+		PADBACK      = {-1,  1, 50, 70, 100, 260};
+		PADSOCIAL    = {-1,  1, 96, 96, 120, 220};
+		--------------------
+		PADLSHOULDER = {-1,  1, 125, 110, 150, 180};
+		PADLTRIGGER  = {-1, -1, 150, 100, 170, 120};
+		--------------------
+		PADDUP		 = {-1,  1, 125, 66};
+		PADDLEFT	 = {-1,  1, 150, 40, 200, 10};
+		PADDDOWN	 = {-1,  1, 125, 18, 200, -40};
+		PADDRIGHT	 = {-1,  1, 100, 40, 120, -10, 200, -92};
+		--------------------
+		PADLSTICK    = {-1,  1, 84, -30, 140, -100, 200, -150};
+		--------------------
+		PADPADDLE2   = {-1, -1, 90, -40, 160, -194};
+		PADPADDLE4   = {-1,  1, 70, -60, 140, -250};
+		--------------------
+		PADSYSTEM    = {-1,  1, 0, -10, 40, -60, 120, -300};
+		--------------------
+		PAD6         = {1,  1, 50, 70, 100, 260};
+		PADFORWARD   = {1,  1, 96, 96, 120, 220};
+		--------------------
+		PADRSHOULDER = {1,  1, 125, 110, 150, 180};
+		PADRTRIGGER	 = {1, -1, 150, 100, 170, 120};
+		--------------------
+		PAD4		 = {1,  1, 142, 72};
+		PAD2         = {1,  1, 160, 34, 200, 10};
+		PAD1         = {1,  1, 136, 2, 200, -40};
+		PAD3         = {1,  1, 100, 30, 120, -10, 200, -92};
+		--------------------
+		PADRSTICK    = {1,  1, 84, -30, 140, -100, 200, -150};
+		--------------------
+		PAD5         = {1,  1, 2, -40, 40, -100, 120, -300};
+		--------------------
+		PADPADDLE1   = {1, -1, 90, -40, 160, -194};
+		PADPADDLE3   = {1,  1, 70, -60, 140, -250};
 	};
 })

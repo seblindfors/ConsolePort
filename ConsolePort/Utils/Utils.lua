@@ -293,6 +293,16 @@ do local function UpdateFlags(flag, flags, predicate)
 		return ( option == nil ) and options[1] or option, state;
 	end
 
+	local FlagsMixin = {};
+
+	function FlagsMixin:IsFlagSet(flag, input)
+		return bit.band(input or 0, self[flag]) == self[flag];
+	end
+
+	function FlagsMixin:Combine(flag, input, state)
+		return CPAPI.Index(self)[flag](input or 0, state == nil and true or state)
+	end
+
 	function CPAPI.CreateFlagClosures(flags)
 		local closures = {};
 		if (  #flags > 0 and assert(#flags < 32, 'Overflow: too many flags.')) then
@@ -313,7 +323,10 @@ do local function UpdateFlags(flag, flags, predicate)
 		for flag, closure in pairs(closures) do
 			map[flag] = closure(0, true);
 		end
-		return CPAPI.Proxy(CPAPI.Callable(map, GetMapState), closures);
+		return CPAPI.Proxy(
+			CPAPI.Callable(map, GetMapState),
+			CPAPI.Proxy(closures, FlagsMixin)
+		);
 	end
 end
 
@@ -382,6 +395,13 @@ do local __tCount, __tID, __tTime = 0, 'task', '__time_';
 			Execute = execute;
 			Cancel  = cancel;
 		}, {__call = execute})
+	end
+
+	function CPAPI.Next(callback, ...)
+		if select('#', ...) == 0 then
+			return RunNextFrame(callback)
+		end
+		return RunNextFrame(GenerateClosure(callback, ...))
 	end
 end
 

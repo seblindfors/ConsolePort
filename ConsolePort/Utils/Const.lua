@@ -28,3 +28,13 @@ CPAPI.RaidCursorUnit      = 'cursorunit';
 ---------------------------------------------------------------
 CPAPI.ConfigAddOn         = 'ConsolePort_Config';
 CPAPI.CursorAddOn         = 'ConsolePort_Cursor';
+
+---------------------------------------------------------------
+-- Tutorial
+---------------------------------------------------------------
+CPAPI.Tutorial = CPAPI.CreateFlags(
+	'GamepadGraphics',
+	'ControlScheme',
+	'ModuleSelection',
+	'ExternalSupport'
+);

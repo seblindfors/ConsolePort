@@ -13,7 +13,7 @@ CPPopupFrameMixin = CreateFromMixins(CPPopupFrameBaseMixin)
 function CPPopupFrameMixin:OnLoad()
 	CPPopupFrameBaseMixin.OnLoad(self)
 	db:RegisterCallback('OnPopupShown', self.OnPopupShown, self)
-	ConsolePort:AddInterfaceCursorFrame(self)
+	CPAPI.Next(ConsolePort.AddInterfaceCursorFrame, ConsolePort, self)
 end
 
 function CPPopupFrameMixin:OnPopupShown(shown, frame)

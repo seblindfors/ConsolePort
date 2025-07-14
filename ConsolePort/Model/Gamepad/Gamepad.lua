@@ -5,8 +5,9 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 	'PLAYER_ENTERING_WORLD';
 	(CPAPI.IsRetailVersion or CPAPI.IsClassicVersion) and 'GAME_PAD_POWER_CHANGED';
 }, {
-	Modsims = {'ALT', 'CTRL', 'SHIFT'};
-	Devices = {};
+	Modsims  = {'ALT', 'CTRL', 'SHIFT'};
+	Devices  = {};
+	Metadata = {};
 	Index = {
 		Stick  = {
 			ID      = {}; -- index -> config name
@@ -42,10 +43,14 @@ db:Save('Gamepad/Devices', 'ConsolePortDevices')
 ---------------------------------------------------------------
 -- API
 ---------------------------------------------------------------
-function GamepadAPI:AddGamepad(data, mergeDefault)
-	local defaultData = db.table.copy(self.Devices.Default)
-	local gamepadData = mergeDefault and db.table.merge(defaultData, data) or data
-	self.Devices[data.Name] = CPAPI.Proxy(gamepadData, GamepadMixin):OnLoad()
+function GamepadAPI:AddGamepad(data, metaData)
+	self.Metadata[data.Name] = metaData or {};
+	self.Devices[data.Name]  = self:InitiateDevice(data);
+end
+
+function GamepadAPI:InitiateDevice(data)
+	self.Metadata[data.Name] = self.Metadata[data.Name] or {};
+	return CPAPI.Proxy(data, CPAPI.Proxy(self.Metadata[data.Name], GamepadMixin)):OnLoad()
 end
 
 function GamepadAPI:GetDevices()
@@ -115,17 +120,26 @@ function GamepadAPI:OnDataLoaded()
 			( self.Devices[id].Version < device.Version )) then
 			self.Devices[id] = device;
 		end
-		self.Devices[id].Theme = device.Theme;
 	end
 	for id, device in pairs(self.Devices) do
-		CPAPI.Proxy(device, GamepadMixin):OnLoad()
+		self:InitiateDevice(device)
 		if device.Active then
 			self:SetActiveDevice(id)
 		end
 	end
 	if not self.Active then
-		-- open the config, no active device found.
+		-- (1) open the config, no active device found.
 		ConsolePort()
+		if not ConsolePortConfig then return end;
+		-- (2) set the config to the Guide panel.
+		ConsolePortConfig:SetCurrentPanel(GUIDE)
+		if not ConsolePortCursor then return end;
+		-- (3) enable the cursor so that newbies can see it exists.
+		CPAPI.Next(function(config, cursor)
+			if config:IsVisible() then
+				cursor:SetEnabled(true)
+			end
+		end, ConsolePortConfig, ConsolePortCursor)
 	end
 end
 
@@ -555,9 +569,9 @@ function GamepadMixin:ApplyPresetBindings(setID)
 end
 
 function GamepadMixin:ApplyHotkeyStrings()
-	local label, hotkey = self.Theme.Label;
+	local label, hotkey = self.Label;
 	assert(label, ('Gamepad device %s does not have a button label type.'):format(self.Name))
-	for button in pairs(self.Theme.Icons) do
+	for button in pairs(self.Assets) do
 		hotkey = self:GetHotkeyStringForButton(button)
 		_G[('KEY_ABBR_%s'):format(button)] = hotkey;
 		_G[('KEY_ABBR_%s_%s'):format(button, label)] = hotkey;
@@ -565,20 +579,20 @@ function GamepadMixin:ApplyHotkeyStrings()
 end
 
 function GamepadMixin:IsButtonValidForBinding(button)
-	return not GamepadAPI:GetActiveModifier(button) and self.Theme.Icons[button]
+	return not GamepadAPI:GetActiveModifier(button) and self.Assets[button]
 end
 
 ---------------------------------------------------------------
 -- Icon queries
 ---------------------------------------------------------------
 function GamepadMixin:GetIconAtlasForButton(button, style)
-	return db(('Gamepad/Index/Atlas/%s/%s/%s'):format(self.Theme.Label, style or 64, button)),
+	return db(('Gamepad/Index/Atlas/%s/%s/%s'):format(self.Label, style or 64, button)),
 		GamepadAPI.UseAtlasIcons;
 end
 
 function GamepadMixin:GetIconIDForButton(button)
 	assert(button, 'Button is not defined.')
-	return self.Theme.Icons[button]
+	return self.Assets[button]
 end
 
 function GamepadMixin:GetIconForButton(button, style)
@@ -597,7 +611,7 @@ function GamepadMixin:GetIconForButton(button, style)
 end
 
 function GamepadMixin:GetTooltipButtonPrompt(button, prompt, style)
-	local color = self.Theme.Colors[button] or 'FFFFFF';
+	local color = self.Colors[button] or 'FFFFFF';
 	local icon, isAtlas = self:GetIconForButton(button, style)
 	if icon and isAtlas then
 		return ('|A:%s:24:24|a |cFF%s%s|r'):format(icon, color, prompt)

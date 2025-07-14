@@ -117,6 +117,12 @@ function env:GetCombinationBlockerInfo(combination)
 	return self:GetEmulationForModifier(blockedModifier);
 end
 
+function env:GetSplashTexture(device)
+	if not device then return end;
+	local splashID = db('Gamepad/Index/Splash/'..device.Name);
+	return splashID and CPAPI.GetAsset('Splash\\Gamepad\\'..splashID);
+end
+
 ---------------------------------------------------------------
 -- Interface
 ---------------------------------------------------------------

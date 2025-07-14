@@ -456,7 +456,7 @@ function Cursor:GetCurrentNode()
 end
 
 function Cursor:IsCurrentNode(node, uniqueTriggered)
-	return (node and node == self:GetCurrentNode())
+	return self:IsShown() and (node and node == self:GetCurrentNode())
 		and (not uniqueTriggered or not node:IsMouseOver())
 end
 

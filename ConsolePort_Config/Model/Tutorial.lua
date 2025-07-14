@@ -1,9 +1,10 @@
 local env, db, _, L = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 
--- NOTE: Do not change the order of these flags.
-env.TutorialState = CPAPI.CreateFlags(
-	'ControlSchemePreference',
-	'ModuleSelection',
-	'ExternalSupport'
-);
+function env.TutorialPredicate(tutorialID)
+    return function() return not CPAPI.IsTutorialComplete(tutorialID) end;
+end
+
+function env.HasActiveDevice()
+    return function() return not not env:GetActiveDeviceAndMap() end;
+end

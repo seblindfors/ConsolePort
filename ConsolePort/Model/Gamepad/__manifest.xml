@@ -3,7 +3,6 @@
 	<Script file="Gamepad.lua"/>
 	<Script file="Mapper.lua"/>
 	<!-- Assets -->
-	<Script file="Default.lua"/>
 	<Script file="Atlas.lua"/>
 	<!-- Controller presets -->
 	<Script file="Xbox\Xbox.lua"/>

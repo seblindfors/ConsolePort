@@ -341,8 +341,7 @@ function DeviceProfile:Update()
 	end
 	self.tooltipText = GRAPHICS_LABEL;
 
-	local splashID = db('Gamepad/Index/Splash/'..device.Name);
-	local splashTx = splashID and CPAPI.GetAsset('Splash\\Gamepad\\'..splashID);
+	local splashTx = env:GetSplashTexture(device)
 	local splash = splashTx and ('|T%s:200:200:0|t'):format(splashTx);
 
 	if splash then

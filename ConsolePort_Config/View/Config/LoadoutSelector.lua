@@ -143,6 +143,24 @@ function LoadoutLip:OnLoad()
 	self:InitDefault()
 end
 
+function LoadoutLip:OnSearch(text)
+	if not text then
+		return self:Hide()
+	end
+end
+
+function LoadoutLip:OnShow()
+	CPScrollBoxLip.OnShow(self)
+	env:RegisterCallback('OnFlushLeft', self.Hide, self)
+	env:RegisterCallback('OnSearch', self.OnSearch, self)
+end
+
+function LoadoutLip:OnHide()
+	CPScrollBoxLip.OnHide(self)
+	env:UnregisterCallback('OnFlushLeft', self)
+	env:UnregisterCallback('OnSearch', self)
+end
+
 ---------------------------------------------------------------
 local LoadoutSelector = CreateFromMixins(CPLoadoutContainerMixin)
 ---------------------------------------------------------------
@@ -152,7 +170,6 @@ LoadoutSelector.IsFlat = CPAPI.Static(false);
 
 function LoadoutSelector:Init(container)
 	env:RegisterCallback('OnPanelShow', self.Release, self)
-	env:RegisterCallback('OnSearch', self.Release, self)
 	env:RegisterCallback('OnLoadoutClose', self.OnLoadoutClose, self)
 	env.Frame:HookScript('OnHide', GenerateClosure(self.Release, self))
 	self.container = container;

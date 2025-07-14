@@ -1,5 +1,4 @@
 <Ui>
-	<Line name="CPOverviewLine" thickness="4" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
 	<Frame name="CPOverviewActionDisplay" virtual="true">
 		<Size x="32" y="32"/>
 		<Attributes>

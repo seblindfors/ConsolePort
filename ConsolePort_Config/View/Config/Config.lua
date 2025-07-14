@@ -9,7 +9,9 @@ function Panel:InitPanel(id, container, navButton)
 	self.navButton = navButton;
 	self:SetParent(container)
 	env:RegisterCallback('OnPanelLoad', self.OnPanelLoad, self)
-	return self;
+	if self.OnInit then
+		self:OnInit(id, container, navButton)
+	end
 end
 
 function Panel:GetLists()
@@ -232,9 +234,14 @@ end
 ---------------------------------------------------------------
 
 function Config:OnShow()
-	FrameUtil.UpdateScaleForFit(self, 40, 80)
 	self:SetDefaultClosures()
 	self:OnActiveDeviceChanged()
+	RunNextFrame(function()
+		FrameUtil.UpdateScaleForFit(self, 40, 80)
+		if not self.currentPanelID then
+			self:SetCurrentPanel(SETTINGS)
+		end
+	end)
 end
 
 function Config:SetDefaultClosures()
@@ -246,26 +253,6 @@ function Config:OnActiveDeviceChanged()
 	if self.hasActiveDevice and not self.isClosableByEsc then
 		tinsert(UISpecialFrames, self:GetName())
 		self.isClosableByEsc = true;
-	end
-end
-
-function Config:OnSearch(text)
-	if text then
-		local _, right = self.Container:GetLists()
-		local results = right:GetDataProvider()
-		results:Flush()
-		for _, panel in env:EnumeratePanels() do -- TODO: should this be ipairs_reverse?
-			panel:OnSearch(text, results)
-		end
-		if results:IsEmpty() then
-			results:Insert(env.Elements.Title:New(SEARCH))
-			results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
-		end
-		return;
-	end
-	local currentPanel = self:GetCurrentPanel()
-	if currentPanel then
-		ExecuteFrameScript(currentPanel, 'OnShow')
 	end
 end
 
@@ -353,6 +340,46 @@ function Config:OnActionSlotEdit(actionID, bindingID, element)
 end
 
 ---------------------------------------------------------------
+-- Search
+---------------------------------------------------------------
+
+function Config:SetSearchOwner(searchOwner)
+	self.searchOwner = searchOwner;
+end
+
+function Config:ClearSearchOwner(searchOwner)
+	if self.searchOwner == searchOwner then
+		self.searchOwner = nil;
+	end
+end
+
+function Config:OnSearch(text)
+	if self.searchOwner then
+		if self.searchOwner.OnSearch then
+			return self.searchOwner:OnSearch(text)
+		end
+		return; -- search owner handled the search
+	end
+	if text then
+		local _, right = self.Container:GetLists()
+		local results = right:GetDataProvider()
+		results:Flush()
+		for _, panel in env:EnumeratePanels() do -- TODO: should this be ipairs_reverse?
+			panel:OnSearch(text, results)
+		end
+		if results:IsEmpty() then
+			results:Insert(env.Elements.Title:New(SEARCH))
+			results:Insert(env.Elements.Results:New(SETTINGS_SEARCH_NOTHING_FOUND:gsub('%. ', '.\n')))
+		end
+		return;
+	end
+	local currentPanel = self:GetCurrentPanel()
+	if currentPanel then
+		ExecuteFrameScript(currentPanel, 'OnShow')
+	end
+end
+
+---------------------------------------------------------------
 -- Panels
 ---------------------------------------------------------------
 
@@ -366,6 +393,19 @@ end
 
 function Config:GetCurrentPanel()
 	return env:GetPanelByID(self.currentPanelID)
+end
+
+function Config:SetCurrentPanelByID(id)
+	assert(env:GetPanelByID(id), 'Panel does not exist: ' .. tostring(id))
+	env:TriggerEvent('OnPanelShow', id)
+end
+
+function Config:SetCurrentPanel(name)
+	for id, panel in env:EnumeratePanels() do
+		if panel.name == name then
+			return self:SetCurrentPanelByID(id)
+		end
+	end
 end
 
 do  local panelIDGen, panels = CreateCounter(), {};

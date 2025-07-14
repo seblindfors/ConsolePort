@@ -1,63 +1,6 @@
-select(2, ...).Gamepad:AddGamepad({
+local _, db = ...; db.Gamepad:AddGamepad({
 	Name = 'PlayStation 4';
-	LabelStyle = 'Shapes';
 	Version = 5;
-	Theme = {
-		Label = 'SHP';
-		Colors = {
-			PAD1 = '6882A1';
-			PAD2 = 'D84E58';
-			PAD3 = 'D35280';
-			PAD4 = '62BBB2';
-		};
-		Icons = {
-			PADDUP       = 'All/Up';
-			PADDRIGHT    = 'All/Right';
-			PADDDOWN     = 'All/Down';
-			PADDLEFT     = 'All/Left';
-			PAD1         = 'PlayStation/Cross';
-			PAD2         = 'PlayStation/Circle';
-			PAD3         = 'PlayStation/Square';
-			PAD4         = 'PlayStation/Triangle';
-			--PAD5
-			PADLSTICK    = 'PlayStation/L3';
-			PADRSTICK    = 'PlayStation/R3';
-			PADLSHOULDER = 'PlayStation/L1';
-			PADRSHOULDER = 'PlayStation/R1';
-			PADLTRIGGER  = 'PlayStation/L2';
-			PADRTRIGGER  = 'PlayStation/R2';
-			PADFORWARD  = 'PlayStation/Options';
-			PADBACK     = 'PlayStation/Back';
-			PADSYSTEM   = 'PlayStation/System';
-			PADSOCIAL   = 'PlayStation/Share';
-		};
-		Layout = {
-			PADLSHOULDER = 0x11;
-			PADLTRIGGER  = 0x12;
-			--------------------
-			PADDUP		 = 0x13;
-			PADDLEFT	 = 0x14;
-			PADDDOWN	 = 0x15;
-			PADDRIGHT	 = 0x16;
-			--------------------
-			PADSOCIAL    = 0x17;
-			PADLSTICK    = 0x18;
-			--------------------
-			PADRSHOULDER = 0x21;
-			PADRTRIGGER	 = 0x22;
-			--------------------
-			PAD4		 = 0x23;
-			PAD2         = 0x24;
-			PAD1         = 0x25;
-			PAD3         = 0x26;
-			--------------------
-			PADFORWARD   = 0x27;
-			PADRSTICK    = 0x28;
-			--------------------
-			PADSYSTEM    = 0x32;
-			PADBACK      = 0x43;
-		};
-	};
 	Preset = {
 		Variables = {
 			GamePadEmulateShift     = 'PADLSHOULDER';
@@ -165,5 +108,99 @@ select(2, ...).Gamepad:AddGamepad({
 				[''] = 'TURNORACTION';
 			};
 		};
+	};
+}, { -- metaData
+	Label = 'SHP';
+	LabelStyle = 'Shapes';
+	Description = db.Locale.DEVICE_DESC_PLAYSTATION4;
+	Colors = {
+		PAD1 = '6882A1';
+		PAD2 = 'D84E58';
+		PAD3 = 'D35280';
+		PAD4 = '62BBB2';
+	};
+	Assets = {
+		PADDUP       = 'All/Up';
+		PADDRIGHT    = 'All/Right';
+		PADDDOWN     = 'All/Down';
+		PADDLEFT     = 'All/Left';
+		PAD1         = 'PlayStation/Cross';
+		PAD2         = 'PlayStation/Circle';
+		PAD3         = 'PlayStation/Square';
+		PAD4         = 'PlayStation/Triangle';
+		--PAD5
+		PADLSTICK    = 'PlayStation/L3';
+		PADRSTICK    = 'PlayStation/R3';
+		PADLSHOULDER = 'PlayStation/L1';
+		PADRSHOULDER = 'PlayStation/R1';
+		PADLTRIGGER  = 'PlayStation/L2';
+		PADRTRIGGER  = 'PlayStation/R2';
+		PADFORWARD   = 'PlayStation/Options';
+		PADBACK      = 'PlayStation/Back';
+		PADSYSTEM    = 'PlayStation/System';
+		PADSOCIAL    = 'PlayStation/Share';
+	};
+	Layout = {
+	--	PADLSHOULDER = 0x11;
+	--	PADLTRIGGER  = 0x12;
+		--------------------
+	--	PADDUP		 = 0x13;
+	--	PADDLEFT	 = 0x14;
+	--	PADDDOWN	 = 0x15;
+	--	PADDRIGHT	 = 0x16;
+		--------------------
+	--	PADSOCIAL    = 0x17;
+	--	PADLSTICK    = 0x18;
+		--------------------
+	--	PADRSHOULDER = 0x21;
+	--	PADRTRIGGER	 = 0x22;
+		--------------------
+	--	PAD4		 = 0x23;
+	--	PAD2         = 0x24;
+	--	PAD1         = 0x25;
+	--	PAD3         = 0x26;
+		--------------------
+	--	PADFORWARD   = 0x27;
+	--	PADRSTICK    = 0x28;
+		--------------------
+	--	PADSYSTEM    = 0x32;
+	--	PADBACK      = 0x43;
+	-- format: delta (-1 or 1), drawLayer, x1, y1, ..., xN, yN
+		--------------------
+		PADBACK      = {-1,  1, 50, 70, 100, 260};
+		PADSOCIAL    = {-1,  1, 96, 96, 120, 220};
+		--------------------
+		PADLSHOULDER = {-1,  1, 125, 110, 150, 180};
+		PADLTRIGGER  = {-1, -1, 150, 100, 170, 120};
+		--------------------
+		PADDUP		 = {-1,  1, 125, 66};
+		PADDLEFT	 = {-1,  1, 150, 40, 200, 10};
+		PADDDOWN	 = {-1,  1, 125, 18, 200, -40};
+		PADDRIGHT	 = {-1,  1, 100, 40, 120, -10, 200, -92};
+		--------------------
+		PADLSTICK    = {-1,  1, 84, -30, 140, -100, 200, -150};
+		--------------------
+		PADPADDLE2   = {-1, -1, 90, -40, 160, -194};
+		PADPADDLE4   = {-1,  1, 70, -60, 140, -250};
+		--------------------
+		PADSYSTEM    = {-1,  1, 0, -10, 40, -60, 120, -300};
+		--------------------
+		PAD6         = {1,  1, 50, 70, 100, 260};
+		PADFORWARD   = {1,  1, 96, 96, 120, 220};
+		--------------------
+		PADRSHOULDER = {1,  1, 125, 110, 150, 180};
+		PADRTRIGGER	 = {1, -1, 150, 100, 170, 120};
+		--------------------
+		PAD4		 = {1,  1, 142, 72};
+		PAD2         = {1,  1, 160, 34, 200, 10};
+		PAD1         = {1,  1, 136, 2, 200, -40};
+		PAD3         = {1,  1, 100, 30, 120, -10, 200, -92};
+		--------------------
+		PADRSTICK    = {1,  1, 84, -30, 140, -100, 200, -150};
+		--------------------
+		PAD5         = {1,  1, 2, -40, 40, -100, 120, -300};
+		--------------------
+		PADPADDLE1   = {1, -1, 90, -40, 160, -194};
+		PADPADDLE3   = {1,  1, 70, -60, 140, -250};
 	};
 })

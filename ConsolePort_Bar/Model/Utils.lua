@@ -32,7 +32,7 @@ env.MSQ = LibStub('Masque', true)
 EventUtil.ContinueOnAddOnLoaded('Masque', function()
 	env.MSQ = LibStub('Masque', true)
 	if env.MSQ then
-		RunNextFrame(function() env:TriggerEvent('OnMasqueLoaded', env.MSQ) end)
+		CPAPI.Next(env.TriggerEvent, env, 'OnMasqueLoaded', env.MSQ)
 	end
 end)
 

@@ -1,81 +1,6 @@
-select(2, ...).Gamepad:AddGamepad({
+local _, db = ...; db.Gamepad:AddGamepad({
 	Name = 'PlayStation 5';
-	LabelStyle = 'Shapes';
-	StyleNameSubStrs = { 'PS5', 'DS5', 'DualShock 5', 'PlayStation 5' };
 	Version = 5;
-	Theme = {
-		Label = 'SHP';
-		Colors = {
-			PAD1 = '6882A1';
-			PAD2 = 'D84E58';
-			PAD3 = 'D35280';
-			PAD4 = '62BBB2';
-		};
-		Icons = {
-			PADDUP       = 'All/Up';
-			PADDRIGHT    = 'All/Right';
-			PADDDOWN     = 'All/Down';
-			PADDLEFT     = 'All/Left';
-			PAD1         = 'PlayStation/Cross';
-			PAD2         = 'PlayStation/Circle';
-			PAD3         = 'PlayStation/Square';
-			PAD4         = 'PlayStation/Triangle';
-			PAD5         = 'Xbox/Options';
-			PADLSTICK    = 'PlayStation/L3';
-			PADRSTICK    = 'PlayStation/R3';
-			PADLSHOULDER = 'PlayStation/L1';
-			PADRSHOULDER = 'PlayStation/R1';
-			PADLTRIGGER  = 'PlayStation/L2';
-			PADRTRIGGER  = 'PlayStation/R2';
-			PADFORWARD   = 'PlayStation/Options';
-			PADBACK      = 'PlayStation/Back';
-			PAD6         = 'PlayStation/Back2';
-			PADSYSTEM    = 'PlayStation/System';
-			PADSOCIAL    = 'PlayStation/Share';
-			PADPADDLE1   = 'Xbox/LB';
-			PADPADDLE2   = 'All/LG';
-			PADPADDLE3   = 'Xbox/RB';
-			PADPADDLE4   = 'All/RG';
-		};
-		Layout = { -- format: delta (-1 or 1), drawLayer, x1, y1, ..., xN, yN
-			--------------------
-			PADBACK      = {-1,  1, 50, 70, 100, 260};
-			PADSOCIAL    = {-1,  1, 96, 96, 120, 220};
-			--------------------
-			PADLSHOULDER = {-1,  1, 125, 110, 150, 180};
-			PADLTRIGGER  = {-1, -1, 150, 100, 170, 120};
-			--------------------
-			PADDUP		 = {-1,  1, 125, 66};
-			PADDLEFT	 = {-1,  1, 150, 40, 200, 10};
-			PADDDOWN	 = {-1,  1, 125, 18, 200, -40};
-			PADDRIGHT	 = {-1,  1, 100, 40, 120, -10, 200, -92};
-			--------------------
-			PADLSTICK    = {-1,  1, 84, -30, 140, -100, 200, -150};
-			--------------------
-			PADPADDLE2   = {-1, -1, 90, -40, 160, -194};
-			PADPADDLE4   = {-1,  1, 70, -60, 140, -250};
-			--------------------
-			PADSYSTEM    = {-1,  1, 0, -10, 40, -60, 120, -300};
-			--------------------
-			PAD6         = {1,  1, 50, 70, 100, 260};
-			PADFORWARD   = {1,  1, 96, 96, 120, 220};
-			--------------------
-			PADRSHOULDER = {1,  1, 125, 110, 150, 180};
-			PADRTRIGGER	 = {1, -1, 150, 100, 170, 120};
-			--------------------
-			PAD4		 = {1,  1, 142, 72};
-			PAD2         = {1,  1, 160, 34, 200, 10};
-			PAD1         = {1,  1, 136, 2, 200, -40};
-			PAD3         = {1,  1, 100, 30, 120, -10, 200, -92};
-			--------------------
-			PADRSTICK    = {1,  1, 84, -30, 140, -100, 200, -150};
-			--------------------
-			PAD5         = {1,  1, 2, -40, 40, -100, 120, -300};
-			--------------------
-			PADPADDLE1   = {1, -1, 90, -40, 160, -194};
-			PADPADDLE3   = {1,  1, 70, -60, 140, -250};
-		};
-	};
 	Preset = {
 		Variables = {
 			GamePadEmulateShift     = 'PADLSHOULDER';
@@ -183,5 +108,80 @@ select(2, ...).Gamepad:AddGamepad({
 				[''] = 'TURNORACTION';
 			};
 		};
+	};
+}, { -- metaData
+	Label = 'SHP';
+	LabelStyle = 'Shapes';
+	StyleNameSubStrs = { 'PS5', 'DS5', 'DualShock 5', 'PlayStation 5', 'DualSense' };
+	Description = db.Locale.DEVICE_DESC_PLAYSTATION5;
+	Colors = {
+		PAD1 = '6882A1';
+		PAD2 = 'D84E58';
+		PAD3 = 'D35280';
+		PAD4 = '62BBB2';
+	};
+	Assets = {
+		PADDUP       = 'All/Up';
+		PADDRIGHT    = 'All/Right';
+		PADDDOWN     = 'All/Down';
+		PADDLEFT     = 'All/Left';
+		PAD1         = 'PlayStation/Cross';
+		PAD2         = 'PlayStation/Circle';
+		PAD3         = 'PlayStation/Square';
+		PAD4         = 'PlayStation/Triangle';
+		PAD5         = 'Xbox/Options';
+		PADLSTICK    = 'PlayStation/L3';
+		PADRSTICK    = 'PlayStation/R3';
+		PADLSHOULDER = 'PlayStation/L1';
+		PADRSHOULDER = 'PlayStation/R1';
+		PADLTRIGGER  = 'PlayStation/L2';
+		PADRTRIGGER  = 'PlayStation/R2';
+		PADFORWARD   = 'PlayStation/Options';
+		PADBACK      = 'PlayStation/Back';
+		PAD6         = 'PlayStation/Back2';
+		PADSYSTEM    = 'PlayStation/System';
+		PADSOCIAL    = 'PlayStation/Share';
+		PADPADDLE1   = 'Xbox/LB';
+		PADPADDLE2   = 'All/LG';
+		PADPADDLE3   = 'Xbox/RB';
+		PADPADDLE4   = 'All/RG';
+	};
+	Layout = { -- format: delta (-1 or 1), drawLayer, x1, y1, ..., xN, yN
+		--------------------
+		PADBACK      = {-1,  1, 50, 70, 100, 260};
+		PADSOCIAL    = {-1,  1, 96, 96, 120, 220};
+		--------------------
+		PADLSHOULDER = {-1,  1, 125, 110, 150, 180};
+		PADLTRIGGER  = {-1, -1, 150, 100, 170, 120};
+		--------------------
+		PADDUP		 = {-1,  1, 125, 66};
+		PADDLEFT	 = {-1,  1, 150, 40, 200, 10};
+		PADDDOWN	 = {-1,  1, 125, 18, 200, -40};
+		PADDRIGHT	 = {-1,  1, 100, 40, 120, -10, 200, -92};
+		--------------------
+		PADLSTICK    = {-1,  1, 84, -30, 140, -100, 200, -150};
+		--------------------
+		PADPADDLE2   = {-1, -1, 90, -40, 160, -194};
+		PADPADDLE4   = {-1,  1, 70, -60, 140, -250};
+		--------------------
+		PADSYSTEM    = {-1,  1, 0, -10, 40, -60, 120, -300};
+		--------------------
+		PAD6         = {1,  1, 50, 70, 100, 260};
+		PADFORWARD   = {1,  1, 96, 96, 120, 220};
+		--------------------
+		PADRSHOULDER = {1,  1, 125, 110, 150, 180};
+		PADRTRIGGER	 = {1, -1, 150, 100, 170, 120};
+		--------------------
+		PAD4		 = {1,  1, 142, 72};
+		PAD2         = {1,  1, 160, 34, 200, 10};
+		PAD1         = {1,  1, 136, 2, 200, -40};
+		PAD3         = {1,  1, 100, 30, 120, -10, 200, -92};
+		--------------------
+		PADRSTICK    = {1,  1, 84, -30, 140, -100, 200, -150};
+		--------------------
+		PAD5         = {1,  1, 2, -40, 40, -100, 120, -300};
+		--------------------
+		PADPADDLE1   = {1, -1, 90, -40, 160, -194};
+		PADPADDLE3   = {1,  1, 70, -60, 140, -250};
 	};
 })

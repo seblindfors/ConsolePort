@@ -93,6 +93,14 @@ function CPAPI.GetKeyChordParts(keyChord)
 	--[[modifier]] (keyChord:gsub('PAD.+', ''));
 end
 
+function CPAPI.IsTutorialComplete(tutorialID)
+	return CPAPI.Tutorial:IsFlagSet(tutorialID, db('tutorialState'));
+end
+
+function CPAPI.SetTutorialComplete(tutorialID, state)
+	return db('Settings/tutorialState', CPAPI.Tutorial:Combine(tutorialID, db('tutorialState'), state));
+end
+
 ---------------------------------------------------------------
 -- Lua wrappers
 ---------------------------------------------------------------

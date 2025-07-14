@@ -964,12 +964,11 @@ function Overview:UpdateModifier(currentModifier)
 end
 
 function Overview:SetDevice(device)
-	local asset = device.Name and db('Gamepad/Index/Splash/'..device.Name)
-	self.Splash:SetTexture(CPAPI.GetAsset('Splash\\Gamepad\\'..asset))
+	self.Splash:SetTexture(env:GetSplashTexture(device))
 	self.Device = device;
 	self.buttonPool:ReleaseAll()
 
-	if not device.Theme or not device.Theme.Layout then
+	if not device.Layout then
 		return error('Device theme or layout not found for: ' .. (device.Name or 'Unknown Device'))
 	end
 
@@ -993,7 +992,7 @@ function Overview:SetDevice(device)
 		return a.points[#a.points][2] < b.points[#b.points][2];
 	end
 
-	for button, position in pairs(device.Theme.Layout) do
+	for button, position in pairs(device.Layout) do
 		assert(#position % 2 == 0, 'Invalid position format for button: ' .. button)
 		local target, level = ExtractTargetAndLevel(position)
 		tinsert(target, {
@@ -1024,14 +1023,14 @@ end
 ---------------------------------------------------------------
 -- Add overview to guide content
 ---------------------------------------------------------------
-Guide:AddContent(CPAPI.Static(true), function(canvas)
+Guide:AddContent('Overview', env.HasActiveDevice(), function(canvas, GetCanvas)
 	if not canvas.Overview then
-		canvas.Overview = CreateFrame('Frame', nil, canvas);
-		canvas.Overview.GetCanvas = CPAPI.Static(canvas);
+		canvas.Overview = CreateFrame('Frame', nil, canvas)
+		canvas.Overview.GetCanvas = GetCanvas;
 		FrameUtil.SpecializeFrameWithMixins(canvas.Overview, Overview)
 	end
 	canvas.Overview:Show()
 end, function(canvas)
 	if not canvas.Overview then return end;
 	canvas.Overview:Hide()
-end)
+end, env.HasActiveDevice())

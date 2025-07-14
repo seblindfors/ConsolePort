@@ -1,0 +1,331 @@
+local env, db, _, L = CPAPI.GetEnv(...);
+local Guide = env:GetContextPanel();
+
+---------------------------------------------------------------
+-- Helpers
+---------------------------------------------------------------
+local SWITCH_SPLASH_TIME = 0.5;
+local SPLASH_DEVICE_SIZE = 450;
+local SPLASH_DEVICE_NONE = 128;
+local LAYOUT_FRAME_WIDTH = 325;
+
+local function CreateHeader(parent)
+	local header = CreateFrame('Frame', nil, parent, 'CPPopupHeaderTemplate')
+	header.Text:SetTextColor(NORMAL_FONT_COLOR:GetRGBA())
+	return header;
+end
+
+local function CreateText(parent)
+	local text = parent:CreateFontString(nil, 'ARTWORK', 'GameFontNormalMed1')
+	text:SetJustifyH('LEFT')
+	text:SetTextColor(WHITE_FONT_COLOR:GetRGBA())
+	return text;
+end
+
+local function GetFirstDeviceStyle()
+	for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
+		local state = C_GamePad.GetDeviceMappedState(i)
+		if (state and state.labelStyle and state.labelStyle ~= 'Generic') then
+			return state.labelStyle, state.name;
+		end
+	end
+end
+
+---------------------------------------------------------------
+local DeviceProfile = {};
+---------------------------------------------------------------
+
+function DeviceProfile:OnAcquire(new)
+	if new then
+		Mixin(self, env.Setting, DeviceProfile)
+		self:SetScript('OnEnter', self.OnEnter)
+		self:SetScript('OnLeave', self.OnLeave)
+		self:HookScript('OnEnter', self.LockHighlight)
+		self:HookScript('OnLeave', self.UnlockHighlight)
+	end
+	db:RegisterCallback('Gamepad/Active', self.OnActiveChanged, self)
+end
+
+function DeviceProfile:OnEnter()
+	local device = self:GetDevice()
+	if not device then return end;
+	env:TriggerEvent('Graphics.FocusDevice', device)
+end
+
+function DeviceProfile:OnLeave()
+	env:TriggerEvent('Graphics.FocusDevice', nil)
+end
+
+function DeviceProfile:Update()
+	local device = self:GetDevice()
+	if not device then return end;
+	self:SetText(device.Name)
+	if not device.StyleNameSubStrs then return end;
+
+	local connectedStyle, connectedName = GetFirstDeviceStyle()
+	if not connectedStyle or device.LabelStyle ~= connectedStyle then return end;
+
+	local isRecommended = not device.StyleNameSubStrs;
+	if not isRecommended then
+		for _, subStr in ipairs(device.StyleNameSubStrs) do
+			if connectedName:find(subStr) then
+				isRecommended = true;
+				break
+			end
+		end
+	end
+	if not isRecommended then return end;
+	self:SetText(('%s |cFF757575(%s)|r'):format(device.Name, RECOMMENDED))
+end
+
+---------------------------------------------------------------
+local DeviceInfo = {};
+---------------------------------------------------------------
+
+function DeviceInfo:OnLoad()
+	self.Header = CreateHeader(self)
+	self.Header.layoutIndex = 1;
+	self.Header:SetWidth(LAYOUT_FRAME_WIDTH)
+
+	self.Body = CreateText(self)
+	self.Body.layoutIndex = 2;
+	self.Body:SetWidth(LAYOUT_FRAME_WIDTH)
+end
+
+function DeviceInfo:SetDevice(device)
+	if not device or not device.Description then
+		return self:Hide()
+	end
+	self.Header.Text:SetText(device.Name)
+	self.Body:SetText(CPAPI.FormatLongText(device.Description))
+	self:Show()
+	self:Layout()
+end
+
+---------------------------------------------------------------
+local Icons = {};
+---------------------------------------------------------------
+
+function Icons:OnLoad()
+	self.Header = CreateHeader(self)
+	self.Header.Text:SetText(self.text)
+	self.Header.layoutIndex = 1;
+	self.Header:SetWidth(LAYOUT_FRAME_WIDTH)
+	self.iconPool = CreateTexturePool(self.Grid, 'ARTWORK')
+	self.Grid.stride = self.stride;
+end
+
+function Icons:SetDevice(device)
+	self.iconPool:ReleaseAll()
+	if not device then return self:Hide() end;
+
+	local layoutIndex = CreateCounter()
+	for btnID in env.table.spairs(device.Assets) do
+		local path, isAtlas = device:GetIconForButton(btnID, self.iconStyle)
+		if path then
+			local icon = self.iconPool:Acquire()
+			if isAtlas then
+				icon:SetAtlas(path, true)
+			else
+				icon:SetTexture(path)
+			end
+			icon:SetSize(self.iconSize, self.iconSize)
+			icon.layoutIndex = layoutIndex();
+			icon:Show()
+			icon:SetPoint('TOPLEFT', self.Grid, 'TOPLEFT', 0, 0)
+		end
+	end
+	self.Grid:Layout()
+	self:Layout()
+	self:Show()
+end
+
+---------------------------------------------------------------
+local Continue = {};
+---------------------------------------------------------------
+
+function Continue:OnShow()
+	db:RegisterCallback('Gamepad/Active', self.OnActiveDeviceChanged, self)
+	self:OnActiveDeviceChanged()
+end
+
+function Continue:OnHide()
+	db:UnregisterCallback('Gamepad/Active', self)
+end
+
+function Continue:OnActiveDeviceChanged()
+	local hasActiveDevice = not not db.Gamepad.Active;
+	self:SetEnabled(hasActiveDevice)
+	if hasActiveDevice then
+		ConsolePort:SetCursorNodeIfActive(self)
+	end
+end
+
+function Continue:OnClick()
+	self:SetChecked(false)
+	CPAPI.SetTutorialComplete('GamepadGraphics')
+	Guide:AutoSelectContent()
+end
+
+---------------------------------------------------------------
+local Graphics = CreateFromMixins(env.Mixin.UpdateStateTimer)
+---------------------------------------------------------------
+
+function Graphics:OnLoad()
+	local canvas = self:GetCanvas();
+
+	self:SetAllPoints(canvas)
+	self:SetUpdateStateDuration(SWITCH_SPLASH_TIME)
+
+	self.Settings:Show()
+	self.Settings:InitDefault()
+	DeviceProfile = CreateFromMixins(env.Elements.DeviceProfile, DeviceProfile);
+
+	env:RegisterCallback('Graphics.FocusDevice', self.OnFocusDevice, self)
+
+	FrameUtil.SpecializeFrameWithMixins(self.DeviceInfo, DeviceInfo)
+	FrameUtil.SpecializeFrameWithMixins(self.SmallIcons, Icons)
+	FrameUtil.SpecializeFrameWithMixins(self.LargeIcons, Icons)
+	FrameUtil.SpecializeFrameWithMixins(self.Continue, Continue)
+
+	self.deviceFocusedAnim  = CPAPI.CreateAnimationQueue()
+	self.noDeviceActiveAnim = CPAPI.CreateAnimationQueue()
+
+	local MoveInfoToLeft = self.deviceFocusedAnim:CreateAnimation(0.5, function(self, fraction)
+		-- Start position <Anchor point="TOPLEFT" x="468" y="-200"/>
+		-- Target position <Anchor point="TOPLEFT" x="20" y="-50"/>
+		self:SetPoint('TOPLEFT', 20 + (448 * (1 - fraction)), -50 + (-150 * (1 - fraction)))
+	end, self.deviceFocusedAnim.Fraction, EasingUtil.OutCubic)
+
+	local MoveSplashDown = self.deviceFocusedAnim:CreateAnimation(1, function(self, fraction)
+		-- Start position <Anchor point="CENTER" x="0" y="250"/>
+		-- Target position <Anchor point="CENTER" x="0" y="150"/>
+		self:SetPoint('CENTER', 0, 150 + (100 * (1 - fraction)))
+	end, self.deviceFocusedAnim.Fraction, EasingUtil.OutCubic)
+
+	local MoveInfoToCenter = self.noDeviceActiveAnim:CreateAnimation(0.5, function(self, fraction)
+		-- Start position <Anchor point="TOPLEFT" x="20" y="-50"/>
+		-- Target position <Anchor point="TOPLEFT" x="468" y="-200"/>
+		self:SetPoint('TOPLEFT', 20 + (448 * fraction), -50 + (-150 * fraction))
+	end, self.noDeviceActiveAnim.Fraction, EasingUtil.OutCubic)
+
+	local MoveSplashUp = self.noDeviceActiveAnim:CreateAnimation(1, function(self, fraction)
+		-- Start position <Anchor point="CENTER" x="0" y="150"/>
+		-- Target position <Anchor point="CENTER" x="0" y="250"/>
+		self:SetPoint('CENTER', 0, 150 + (100 * fraction))
+	end, self.noDeviceActiveAnim.Fraction, EasingUtil.OutCubic)
+
+	self.deviceFocusedAnim:AddAnimations(
+		{self.GeneralInfo, MoveInfoToLeft},
+		{self.Splash, MoveSplashDown}
+	);
+	self.noDeviceActiveAnim:AddAnimations(
+		{self.GeneralInfo, MoveInfoToCenter},
+		{self.Splash, MoveSplashUp}
+	);
+end
+
+function Graphics:OnShow()
+	self:ShowTutorials()
+	self:OnFocusDevice(nil)
+
+	local dataProvider = self.Settings:GetDataProvider()
+	dataProvider:Flush()
+	dataProvider:Insert(env.Elements.Title:New(GRAPHICS_LABEL))
+
+	local numAddedDevices = 0;
+	for name, device in db:For('Gamepad/Devices', true) do
+		if device.Layout then
+			numAddedDevices = numAddedDevices + 1;
+			dataProvider:Insert(DeviceProfile:New({
+				device = device;
+				varID  = ('Gamepad/Devices/%s'):format(name);
+			}));
+		end
+	end
+end
+
+function Graphics:SetCurrentAnimation(animToPlay, animToStop)
+	if self.animToPlay == animToPlay then return end;
+	self.animToPlay = animToPlay;
+	animToStop:Cancel()
+	animToPlay:Play()
+end
+
+function Graphics:OnFocusDevice(device)
+	device = device or db.Gamepad.Active;
+	if self.currentDevice == device then return end;
+
+	db.Alpha.FadeOut(self.Splash, SWITCH_SPLASH_TIME, self.Splash:GetAlpha(), 0)
+	self:SetUpdateStateTimer(function()
+		db.Alpha.FadeIn(self.Splash, SWITCH_SPLASH_TIME, self.Splash:GetAlpha(), 1)
+
+		self.DeviceInfo:SetDevice(device)
+		self.SmallIcons:SetDevice(device)
+		self.LargeIcons:SetDevice(device)
+
+		local animToPlay = device and self.deviceFocusedAnim or self.noDeviceActiveAnim;
+		local animToStop = device and self.noDeviceActiveAnim or self.deviceFocusedAnim;
+		self:SetCurrentAnimation(animToPlay, animToStop)
+
+		if not device then
+			self.Splash:SetSize(SPLASH_DEVICE_NONE, SPLASH_DEVICE_NONE)
+			return self.Splash:SetTexture(CPAPI.GetAsset([[Textures\Logo\CP]]))
+		end
+		self.Splash:SetSize(SPLASH_DEVICE_SIZE, SPLASH_DEVICE_SIZE)
+		self.Splash:SetTexture(env:GetSplashTexture(device))
+	end)
+	self.currentDevice = device;
+end
+
+function Graphics:OnActiveDeviceChanged()
+	local hasActiveDevice = not not db.Gamepad.Active;
+	self.Continue:SetEnabled(hasActiveDevice)
+	if hasActiveDevice then
+		ConsolePort:SetCursorNodeIfActive(self.Continue)
+	end
+end
+
+function Graphics:ShowTutorials()
+	-- Create tutorials
+	local parent = self.GeneralInfo;
+	local texts, layoutIndex = {
+		{ text = ('%s %s'):format(CreateTextureMarkup([[Interface\common\help-i]], 64, 64, 20, 20, 0.2, 0.8, 0.2, 0.8), INFO), element = CreateHeader(parent) },
+		{ text = CPAPI.FormatLongText(L.DEVICE_SELECT_GFX_DECS), element = CreateText(parent) },
+	}, CreateCounter();
+
+	for _, setup in ipairs(texts) do
+		local element = setup.element;
+		local string = element.Text or element;
+		element:Show()
+		element:SetWidth(LAYOUT_FRAME_WIDTH)
+		element.layoutIndex = layoutIndex();
+		string:SetText(setup.text)
+	end
+
+	parent:Layout()
+	self.ShowTutorials = nop;
+end
+
+---------------------------------------------------------------
+-- Add graphics to guide content
+---------------------------------------------------------------
+do local TutorialIncomplete, HasActiveDevice = env.TutorialPredicate('GamepadGraphics'), env.HasActiveDevice();
+
+	local function ShowGraphicsPredicate()
+		return not HasActiveDevice() or TutorialIncomplete();
+	end
+
+	Guide:AddContent('Graphics', ShowGraphicsPredicate,
+	function(canvas, GetCanvas)
+		if not canvas.Graphics then
+			canvas.Graphics = CreateFrame('Frame', nil, canvas, 'CPGraphicsSelector')
+			canvas.Graphics.GetCanvas = GetCanvas;
+			FrameUtil.SpecializeFrameWithMixins(canvas.Graphics, Graphics)
+		end
+		canvas.Graphics:Show()
+	end, function(canvas)
+		if not canvas.Graphics then return end;
+		canvas.Graphics:Hide()
+	end)
+end

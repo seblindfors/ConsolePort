@@ -7,6 +7,18 @@ local Settings = env:CreatePanel({
 	name = SETTINGS;
 })
 
+function Settings:OnInit(_, _, navButton)
+	if not env:GetActiveDeviceAndMap() then
+		navButton:SetEnabled(false)
+		db:RegisterCallback('Gamepad/Active', function(self)
+			navButton:SetEnabled(true)
+			RunNextFrame(function()
+				db:UnregisterCallback('Gamepad/Active', self)
+			end)
+		end, self)
+	end
+end
+
 function Settings:OnLoad()
 	CPAPI.Start(self)
 	self:Reindex()

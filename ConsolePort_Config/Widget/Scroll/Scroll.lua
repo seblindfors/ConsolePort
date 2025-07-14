@@ -175,6 +175,7 @@ function CPScrollBoxLip:Release()
 			padding.oldTop = nil;
 			padding:SetTop(oldTop)
 		end
+		self.owner:TriggerEvent(ScrollBoxListViewMixin.Event.OnDataChanged)
 		self.owner = nil;
 	end
 end

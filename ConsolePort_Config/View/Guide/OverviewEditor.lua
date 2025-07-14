@@ -1,4 +1,4 @@
-local env, db, _, L = CPAPI.GetEnv(...);
+local env, db = CPAPI.GetEnv(...);
 local Guide = env:GetContextPanel();
 
 ---------------------------------------------------------------
@@ -121,7 +121,7 @@ function Editor:OnLoad()
 	self:SetPoint('BOTTOM', 0, 0)
 	FrameUtil.SpecializeFrameWithMixins(self.Lip, EditorLip)
 	CPScrollBoxSettingsTree.InitDefault(self.Settings)
-	RunNextFrame(GenerateClosure(env.RegisterCallback, env, 'Overview.EditInput', self.EditInput, self))
+	CPAPI.Next(env.RegisterCallback, env, 'Overview.EditInput', self.EditInput, self)
 
 	env:RegisterCallback('Overview.OnActionClicked', self.OnActionClicked, self)
 	env:RegisterCallback('Overview.OnBindingClicked', self.OnBindingClicked, self)
@@ -400,6 +400,6 @@ do -- Initializer
 		editor:EditInput(input, container)
 		container.Editor = editor;
 		-- Unregister on next frame since the registry is currently iterating callbacks.
-		RunNextFrame(GenerateClosure(env.UnregisterCallback, env, 'Overview.EditInput', self))
+		CPAPI.Next(env.UnregisterCallback, env, 'Overview.EditInput', self)
 	end, Guide)
 end

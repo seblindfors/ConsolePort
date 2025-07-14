@@ -240,7 +240,7 @@ When you press and hold the key binding, all your selected abilities will appear
 Tilt your radial stick in the direction of the ability or item you want to use, then release the key binding to commit.]];
 L.ADD_NEW_RING_TEXT = [[|cFFFFFF00Create New Ring|r
 Please choose a name for your new ring:]];
-L.SET_RING_BINDING_TEXT = [[ 
+L.SET_RING_BINDING_TEXT = [[
 |cFFFFFF00Set Binding|r
 
 Press a button combination to select a new binding for this ring.
@@ -278,3 +278,50 @@ L.ACTIONBAR_FORM_ACTIVE_DESC = [[This form is currently active, and your main ac
 L.ACTIONBAR_PAGE_MISMATCH_DESC = [[The actual page number of an action bar does not always match the displayed name, due to how the action bar system was originally designed.
 
 This discrepancy can be ignored if you're not using a custom action page solution. Both are shown for reference.]];
+L.DEVICE_SELECT_GFX_DECS = [[
+	Select the gamepad graphics that are closest to your gamepad's appearance.
+
+	Choosing graphics does not change how your gamepad works, it only changes the appearance of the gamepad graphics in the interface.
+
+	Graphics are used to show you which buttons are currently bound to which actions, and to provide a visual reference for your gamepad's layout.
+]];
+L.DEVICE_DESC_PLAYSTATION4 = [[
+	PlayStation 4 controller, also known as DualShock 4, is the previous generation gamepad from Sony.
+
+	It is a feature-rich gamepad with a touchpad, motion controls, and support for all its buttons in the game.
+
+	To take advantage of all the features, you may need to install PlayStation Accessories (Windows).
+]];
+L.DEVICE_DESC_PLAYSTATION5 = [[
+	PlayStation 5 controller, also known as DualSense, is currently the best gamepad for World of Warcraft.
+
+	It is the most feature-complete gamepad available, with motion controls, touchpad, and in the case of the Edge variant, native back paddles.
+
+	Unlike most other controllers, every single button on the DualSense can be used in the game, providing the largest number of bindings available.
+
+	To take advantage of all the features, you may need to install PlayStation Accessories (Windows).
+]];
+L.DEVICE_DESC_STEAMDECK = [[
+	Steam Decks typically run World of Warcraft through Proton via the Steam client.
+
+	When using Steam Input, the device needs to use a suitable preset to ensure that the gamepad buttons are mapped correctly.
+
+	The simplest preset to use is Gamepad with Mouse Trackpad, which provides a solid foundation.
+
+	Steam Decks cannot use their paddles natively in World of Warcraft, as Steam Input reduces the device to an Xbox 360 controller.
+	However, the paddles can be mapped using emulation, or choosing keyboard bindings in the Steam Input settings.
+
+	The in-game Steam Deck preset may also be suitable for other handheld devices, due to the similar control layout.
+]];
+L.DEVICE_DESC_XBOX = [[
+	Xbox controllers are the most widely used gamepads, and all variants are supported by World of Warcraft.
+
+	This may also be the most suitable preset for Steam Input users, as it is consistent with the Xbox 360 controller that Steam Input emulates.
+
+	The Xbox Elite controller cannot use its paddles natively in the game, but they can be used to simulate other gamepad buttons,
+	using the Xbox Accessories app (Windows).
+
+	With external software, such as Steam or reWASD, the paddles can be mapped to keyboard bindings, allowing use in game.
+
+	The center button is reserved for the Xbox Guide, and cannot be used in the game.
+]];
