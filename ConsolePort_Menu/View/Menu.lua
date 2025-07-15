@@ -17,6 +17,7 @@ function Menu:OnDataLoaded()
 	RunNextFrame(function()
 		self:SetPoint('CENTER', UIParent, 'BOTTOMLEFT', self:GetTargetOffsets(MenuRing))
 	end)
+	return CPAPI.BurnAfterReading;
 end
 
 function Menu:OnSizingChanged()

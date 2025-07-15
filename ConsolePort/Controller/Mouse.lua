@@ -373,6 +373,7 @@ end
 function Mouse:OnDataLoaded()
 	self:SetEnabled(db('mouseHandlingEnabled'))
 	self:OnVariableChanged()
+	return CPAPI.BurnAfterReading;
 end
 
 function Mouse:OnVariableChanged()

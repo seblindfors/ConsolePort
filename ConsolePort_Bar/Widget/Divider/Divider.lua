@@ -28,6 +28,7 @@ end
 
 function CPDivider:OnDataLoaded()
 	self:SetTintColor(env:GetColorRGBA('tintColor'))
+	return CPAPI.KeepMeForLater;
 end
 
 function CPDivider:OnSizeChanged()

@@ -190,6 +190,7 @@ function Selector:OnDataLoaded(...)
 	for i, data in ipairs(env.Buttons) do
 		self:AddButton(i, data, numButtons)
 	end
+	return CPAPI.BurnAfterReading;
 end
 
 function Selector:OnAxisInversionChanged()

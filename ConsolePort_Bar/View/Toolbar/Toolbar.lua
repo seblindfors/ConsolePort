@@ -486,6 +486,7 @@ function CPToolbar:OnDataLoaded()
 	self:SetTintColor(env:GetColorRGBA('tintColor'))
 	self:ToggleXPBar(env('enableXPBar'))
 	self:ToggleXPBarFade(env('enableXPBar'))
+	return CPAPI.KeepMeForLater;
 end
 
 function CPToolbar:SetProps(props)

@@ -64,7 +64,7 @@ function PowerLevel:OnDataLoaded()
 
 	self.Text:SetShown(showText)
 	self.Icon:SetShown(showIcon)
-	
+
 	if showIcon then
 		db.Gamepad.SetIconToTexture(self.Icon, 'PADSYSTEM')
 	end
@@ -72,6 +72,7 @@ function PowerLevel:OnDataLoaded()
 	if CPAPI.IsRetailVersion then
 		self.Background:SetAtlas('jailerstower-wayfinder-rewardbackground-disable')
 	end
+	return CPAPI.KeepMeForLater;
 end
 
 db:RegisterCallback('OnGamePadPowerChange', PowerLevel.SetPowerLevel, PowerLevel)

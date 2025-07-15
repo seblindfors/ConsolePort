@@ -15,7 +15,9 @@ CPAPI.EventMixin = {
 			self:UnregisterEvent('ADDON_LOADED')
 		end
 		if self.OnDataLoaded then
-			self:OnDataLoaded(...)
+			if self:OnDataLoaded(...) == CPAPI.BurnAfterReading then
+				self.OnDataLoaded = nil;
+			end
 		end
 	end;
 }

@@ -330,6 +330,7 @@ function Cursor:OnDataLoaded()
 
 	self:RegisterEvent('ADDON_LOADED')
 	self.ADDON_LOADED = self.GROUP_ROSTER_UPDATE;
+	return CPAPI.KeepMeForLater;
 end
 
 function Cursor:OnUpdateOverrides(isPriority)

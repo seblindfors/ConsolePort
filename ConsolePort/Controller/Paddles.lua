@@ -40,6 +40,7 @@ end
 
 function Paddles:OnDataLoaded()
 	self:OnPaddlesChanged()
+	return CPAPI.BurnAfterReading;
 end
 
 function Paddles:OnPaddlesChanged()

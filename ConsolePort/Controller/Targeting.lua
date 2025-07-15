@@ -159,6 +159,7 @@ function Targeting:OnDataLoaded()
 	for varID, proxy in pairs(self.DirectProxy) do
 		proxy:Set(db(varID))
 	end
+	return CPAPI.BurnAfterReading;
 end
 
 ---------------------------------------------------------------

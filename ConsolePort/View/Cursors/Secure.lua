@@ -82,6 +82,7 @@ Cursor:Wrap('PreClick', [[
 
 function Cursor:OnDataLoaded()
 	self:SetAttribute('wrapDisable', db('UIWrapDisable'))
+	return CPAPI.KeepMeForLater;
 end
 
 db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,

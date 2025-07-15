@@ -141,6 +141,7 @@ function GamepadAPI:OnDataLoaded()
 			end
 		end, ConsolePortConfig, ConsolePortCursor)
 	end
+	return CPAPI.BurnAfterReading;
 end
 
 function GamepadAPI:PLAYER_ENTERING_WORLD()

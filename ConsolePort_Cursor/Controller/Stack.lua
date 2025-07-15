@@ -98,7 +98,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 
 	-- When adding a new frame:
 	-- Store metatable functions for hooking show/hide scripts.
-	-- Most frames will use the same standard Show/Hide, but addons 
+	-- Most frames will use the same standard Show/Hide, but addons
 	-- may use custom metatables, which should still work with this approach.
 	function Stack:AddFrame(frame)
 		local widget = GetFrameWidget(frame)
@@ -271,7 +271,6 @@ function Stack:OnDataLoaded()
 		end
 	end
 
-	self.OnDataLoaded = nil;
 	self:RegisterEvent('ADDON_LOADED')
 	self.ADDON_LOADED = function(self, name)
 		self:LoadAddonFrames(name)
@@ -280,6 +279,8 @@ function Stack:OnDataLoaded()
 
 	db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
 	db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
+
+	return CPAPI.BurnAfterReading;
 end
 
 ---------------------------------------------------------------

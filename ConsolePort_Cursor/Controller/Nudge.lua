@@ -40,6 +40,7 @@ function Nudge:OnDataLoaded()
 	self:SetScript('OnGamePadButtonUp',   self.OnGamePadButtonUp)
 	self:OnCursorHide()
 	self:OnVariablesChanged()
+	return CPAPI.BurnAfterReading;
 end
 
 function Nudge:OnVariablesChanged()

@@ -104,6 +104,7 @@ function Pager:OnDataLoaded()
 	local driver, response = self:GetPageCondition(), self:GetPageResponse()
 	response = response .. self:GetHeaderResponse()
 	self:SetConditionAndResponse(driver, response)
+	return CPAPI.KeepMeForLater;
 end
 
 db:RegisterSafeCallback('Settings/actionPageCondition', Pager.OnDataLoaded, Pager)

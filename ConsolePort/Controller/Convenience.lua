@@ -260,6 +260,7 @@ function Handler:OnDataLoaded()
 	for module, predicate in pairs(OnDemandModules) do
 		TryLoadModule(predicate, module)
 	end
+	return CPAPI.BurnAfterReading;
 end
 
 db:RegisterCallback('Settings/keyboardEnable', GenerateClosure(TryLoadModule, 'keyboardEnable', 'ConsolePort_Keyboard'))

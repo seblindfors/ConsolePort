@@ -15,6 +15,7 @@ function Container:OnDataLoaded()
 	env:LoadModules()
 	db:Load('Rings/Data', 'ConsolePortRings')
 	db:Load('Rings/Shared', 'ConsolePortRingsShared')
+	return CPAPI.BurnAfterReading;
 end
 
 ---------------------------------------------------------------

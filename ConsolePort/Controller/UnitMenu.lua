@@ -78,6 +78,7 @@ function UnitMenuSecure:OnDataLoaded()
 	self:SetAttribute('clickbutton', db.UnitMenu.SecureProxy)
 	self:SetFrameRef('Cursor', db.Raid)
 	self:Execute([[cursor = self:GetFrameRef('Cursor')]])
+	return CPAPI.BurnAfterReading;
 end
 
 ---------------------------------------------------------------

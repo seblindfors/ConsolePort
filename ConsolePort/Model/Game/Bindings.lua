@@ -418,6 +418,7 @@ end
 function Bindings:OnDataLoaded()
 	self.Icons = CPAPI.Proxy(ConsolePortBindingIcons or {}, self.DefaultIcons)
 	db:Save('Bindings/Icons', 'ConsolePortBindingIcons')
+	return CPAPI.BurnAfterReading;
 end
 
 function Bindings:GetIcon(bindingID)

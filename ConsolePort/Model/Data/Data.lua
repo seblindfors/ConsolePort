@@ -6,6 +6,7 @@ function DataAPI:OnDataLoaded()
 	self:OnVariablesChanged(db.Variables)
 	self:UpdateDataSource()
 	db:TriggerEvent('OnDataLoaded')
+	return CPAPI.BurnAfterReading;
 end
 
 function DataAPI:UpdateDataSource()

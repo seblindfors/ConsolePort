@@ -102,7 +102,7 @@ function Keyboard:Erase()
 		local text, offset = (self.focusFrame:GetText())
 		-- TODO: handle markers
 
-		local newText = 
+		local newText =
 			utf8.sub(text, 0, offset and pos - offset or pos - 1) .. -- prefix
 			utf8.sub(text, pos + 1, utf8.len(text) - pos);           -- suffix
 		self.focusFrame:SetText(newText)
@@ -188,6 +188,8 @@ function Keyboard:OnDataLoaded(...)
 
 	env:ToggleObserver(true)
 	self:OnLayoutChanged()
+
+	return CPAPI.BurnAfterReading;
 end
 
 function Keyboard:OnLayoutChanged()

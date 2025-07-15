@@ -508,7 +508,7 @@ function Radial:OnDataLoaded()
 		timeout        = db('radialClearFocusTime');
 	}) do Dispatcher[setting] = value; end
 
-	return self;
+	return CPAPI.KeepMeForLater;
 end
 
 function Radial:OnActiveDeviceChanged()
@@ -533,7 +533,6 @@ function Radial:OnActiveDeviceChanged()
 			self:Execute(('MODS["%s"] = "%s"'):format(key, modifier));
 		end
 	end
-	return self
 end
 
 function Radial:GetStickStruct(type)

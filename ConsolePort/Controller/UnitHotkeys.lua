@@ -212,6 +212,7 @@ UH:WrapScript(Input, 'OnClick', [[
 function UH:OnDataLoaded()
 	self:OnDisplaySettingsChanged()
 	self:OnTargetSettingsChanged()
+	return CPAPI.BurnAfterReading;
 end
 
 function UH:PLAYER_ENTERING_WORLD()

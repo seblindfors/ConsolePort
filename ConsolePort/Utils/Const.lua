@@ -30,6 +30,12 @@ CPAPI.ConfigAddOn         = 'ConsolePort_Config';
 CPAPI.CursorAddOn         = 'ConsolePort_Cursor';
 
 ---------------------------------------------------------------
+-- For use with OnDataLoaded.
+---------------------------------------------------------------
+CPAPI.BurnAfterReading    = random(0001, 1337); -- Mark as garbage.
+CPAPI.KeepMeForLater      = random(1338, 1992); -- Will be used again.
+
+---------------------------------------------------------------
 -- Tutorial
 ---------------------------------------------------------------
 CPAPI.Tutorial = CPAPI.CreateFlags(

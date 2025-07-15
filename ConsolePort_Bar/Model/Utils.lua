@@ -12,6 +12,7 @@ UIHandler:Hide()
 function UIHandler:OnDataLoaded()
 	self:HideBlizzard()
 	env:TriggerEvent('OnEnvLoaded')
+	return CPAPI.BurnAfterReading;
 end
 
 function UIHandler:PLAYER_REGEN_DISABLED()

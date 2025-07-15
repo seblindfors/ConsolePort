@@ -99,6 +99,7 @@ function LootFrame:OnDataLoaded()
 
 	CPAPI.DisableFrame(_G.LootFrame)
 	_G.LootFrame:UnregisterAllEvents()
+	return CPAPI.BurnAfterReading;
 end
 
 function LootFrame:SetHints()

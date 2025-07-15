@@ -25,13 +25,13 @@ function Interact:OnDataLoaded()
 	self:SetAttribute('slug', button)
 	ClearOverrideBindings(self)
 	UnregisterStateDriver(self, 'override')
-	
-	local isEnabled = false;
+
 	if IsBindingForGamePad(button) then
 		RegisterStateDriver(self, 'override', condition)
 		self:Execute([[self:RunAttribute('OnBindingsChanged')]])
-		isEnabled = true;
 	end
+
+	return CPAPI.KeepMeForLater;
 end
 
 db:RegisterSafeCallback('Settings/interactButton', Interact.OnDataLoaded, Interact)

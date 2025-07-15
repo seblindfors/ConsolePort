@@ -15,6 +15,7 @@ local LED, Modes = CPAPI.CreateEventHandler({'Frame', '$parentLEDHandler', Conso
 -- Helpers
 ---------------------------------------------------------------
 local SetLedColor = C_GamePad.SetLedColor or nop;
+local ClearLedColor = C_GamePad.ClearLedColor or nop;
 local select, UnitClass, GetClassColor = select, UnitClass, C_ClassColor.GetClassColor or GetClassColorObj;
 local BLACK = BLACK_FONT_COLOR or CreateColor(0, 0, 0, 1);
 
@@ -32,7 +33,7 @@ end
 
 LED[Modes.Faction] = function()
 	-- The default mode is Faction, which is handled by the gamepad API.
-	C_GamePad.ClearLedColor()
+	ClearLedColor()
 end;
 
 LED[Modes.Target] = function(self)
@@ -96,6 +97,7 @@ function LED:OnDataLoaded()
 		mode = self[Modes.Faction];
 	end
 	securecallfunction(mode, self);
+	return CPAPI.KeepMeForLater;
 end
 
 LED.GAME_PAD_CONNECTED = LED.OnDataLoaded;

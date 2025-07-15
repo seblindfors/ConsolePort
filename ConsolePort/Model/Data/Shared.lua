@@ -121,4 +121,5 @@ function Shared:OnDataLoaded()
 		end
 		return rawget(data, key);
 	end)
+	return CPAPI.BurnAfterReading;
 end
