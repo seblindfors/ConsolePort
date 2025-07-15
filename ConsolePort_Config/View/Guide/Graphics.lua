@@ -183,10 +183,10 @@ function Graphics:OnLoad()
 
 	env:RegisterCallback('Graphics.FocusDevice', self.OnFocusDevice, self)
 
-	FrameUtil.SpecializeFrameWithMixins(self.DeviceInfo, DeviceInfo)
-	FrameUtil.SpecializeFrameWithMixins(self.SmallIcons, Icons)
-	FrameUtil.SpecializeFrameWithMixins(self.LargeIcons, Icons)
-	FrameUtil.SpecializeFrameWithMixins(self.Continue, Continue)
+	CPAPI.SpecializeOnce(self.DeviceInfo, DeviceInfo)
+	CPAPI.SpecializeOnce(self.Continue, Continue)
+	CPAPI.Specialize(self.SmallIcons, Icons)
+	CPAPI.Specialize(self.LargeIcons, Icons)
 
 	-- Setup animations
 	self.deviceFocusedAnim  = CPAPI.CreateAnimationQueue()
@@ -327,7 +327,7 @@ do local TutorialIncomplete, HasActiveDevice = env.TutorialPredicate('GamepadGra
 		if not canvas.Graphics then
 			canvas.Graphics = CreateFrame('Frame', nil, canvas, 'CPGraphicsSelector')
 			canvas.Graphics.GetCanvas = GetCanvas;
-			FrameUtil.SpecializeFrameWithMixins(canvas.Graphics, Graphics)
+			CPAPI.SpecializeOnce(canvas.Graphics, Graphics)
 		end
 		canvas.Graphics:Show()
 	end, function(canvas)

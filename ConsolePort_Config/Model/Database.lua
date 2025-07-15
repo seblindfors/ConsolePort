@@ -142,7 +142,7 @@ ConsolePortConfig = {
 function ConsolePortConfig:Load()
 	env.Frame = CreateFrame('Frame', 'ConsolePortConfig', UIParent, 'CPConfig');
 	ConsolePortConfig = env.Frame;
-	FrameUtil.SpecializeFrameWithMixins(env.Frame, env.Config, {
+	CPAPI.SpecializeOnce(env.Frame, env.Config, {
 		Load           = CPAPI.Static(env.Frame);
 		GetEnvironment = self.GetEnvironment;
 		CreatePanel    = self.CreatePanel;

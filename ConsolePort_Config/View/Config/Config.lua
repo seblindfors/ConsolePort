@@ -76,7 +76,7 @@ local Container = {};
 ---------------------------------------------------------------
 
 function Container:OnLoad()
-	FrameUtil.SpecializeFrameWithMixins(self, env.Mixin.Background)
+	CPAPI.Specialize(self, env.Mixin.Background)
 
 	self:SetBackgroundInsets(4, -4, 4, 4)
 	self:AddBackgroundMaskTexture(self.BorderArt.BgMask)
@@ -101,7 +101,7 @@ function Container:GetCanvas()
 		self.Canvas:SetPoint('TOPLEFT')
 		self.Canvas:SetPoint('BOTTOMRIGHT', 10, 0)
 		self.Canvas:SetClipsChildren(true)
-		FrameUtil.SpecializeFrameWithMixins(self.Canvas, Canvas)
+		CPAPI.SpecializeOnce(self.Canvas, Canvas)
 	end
 	return self.Canvas;
 end
@@ -147,8 +147,8 @@ local Config = CreateFromMixins(CPButtonCatcherMixin); env.Config = Config;
 
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
-	FrameUtil.SpecializeFrameWithMixins(self.Container, Container)
-	FrameUtil.SpecializeFrameWithMixins(self.Search, env.Search, Search)
+	CPAPI.SpecializeOnce(self.Container, Container)
+	CPAPI.Specialize(self.Search, env.Search, Search)
 
 	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
 	self:SetScript('OnKeyDown', self.OnKeyDown)
@@ -209,7 +209,7 @@ function Config:GetCatcher()
 	if not self.Catcher then
 		self.Catcher = CreateFrame('Button', nil, self, env.Mixin.BindingCatcher.Template)
 		self.Catcher.promptText = L.SLOT_SET_BINDING;
-		FrameUtil.SpecializeFrameWithMixins(self.Catcher, env.Mixin.BindingCatcher)
+		CPAPI.Specialize(self.Catcher, env.Mixin.BindingCatcher)
 	end
 	return self.Catcher;
 end
@@ -217,7 +217,7 @@ end
 function Config:GetIconSelector()
 	if not self.IconSelector then
 		self.IconSelector = CreateFrame('Frame', nil, self, env.IconSelector.Template)
-		FrameUtil.SpecializeFrameWithMixins(self.IconSelector, env.IconSelector)
+		CPAPI.Specialize(self.IconSelector, env.IconSelector)
 	end
 	return self.IconSelector;
 end

@@ -89,6 +89,6 @@ env.MockRingMixins = {
 
 function env:CreateMockRing(name, parent, mixin)
 	local ring = CreateFrame('PieMenu', name, parent, 'ConsolePortSlicedPie')
-	FrameUtil.SpecializeFrameWithMixins(ring, mixin or MockRing)
+	CPAPI.Specialize(ring, mixin or MockRing)
 	return ring;
 end

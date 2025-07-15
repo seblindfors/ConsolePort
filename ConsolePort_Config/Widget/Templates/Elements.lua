@@ -147,7 +147,7 @@ end
 
 function Search:OnAcquire(new)
 	if new then
-		FrameUtil.SpecializeFrameWithMixins(self, env.Search, Search)
+		CPAPI.Specialize(self, env.Search, Search)
 	end
 end
 
@@ -185,7 +185,7 @@ end
 
 function Button:OnAcquire(new)
 	if new then
-		FrameUtil.SpecializeFrameWithMixins(self, Button)
+		CPAPI.Specialize(self, Button)
 		self.Icon:SetPoint('LEFT', 16, 0)
 		self.Text:SetPoint('LEFT', self.Icon, 'RIGHT', 8, 0)
 		self:HookScript('OnEnter', self.LockHighlight)
@@ -437,7 +437,7 @@ function Binding:OnAcquire(new)
 		self:SetScript('OnClick', self.OnClick)
 		self:HookScript('OnEnter', self.UpdateInfo)
 
-		FrameUtil.SpecializeFrameWithMixins(self.Icon, BindingIcon)
+		CPAPI.Specialize(self.Icon, BindingIcon)
 
 		local base = env.Settings.Base;
 		self:HookScript('OnEnter', base.OnEnter)
@@ -504,7 +504,7 @@ end
 
 function LoadoutEntry:OnAcquire(new)
 	if new then
-		FrameUtil.SpecializeFrameWithMixins(self, LoadoutEntry)
+		CPAPI.Specialize(self, LoadoutEntry)
 		self:OnLoad()
 		self:RegisterForDrag('LeftButton')
 		self:SetScript('OnDragStop', self.OnDragStop)

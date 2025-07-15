@@ -115,7 +115,7 @@ env:RegisterCallback('OnButtonFocus', function(self, button, focused)
 
 		if not self.NestedRing then
 			self.NestedRing = env:CreateMockRing('$parentNested', self.Frame)
-			FrameUtil.SpecializeFrameWithMixins(self.NestedRing, Ring)
+			CPAPI.SpecializeOnce(self.NestedRing, Ring)
 		end
 		self.NestedRing:SetData(button, self:GetSet(Container:GetSetForBindingSuffix(data.ring)));
 	end

@@ -1,4 +1,4 @@
-local _, db = ...;
+local CPAPI, _, db = CPAPI, ...;
 local getmetatable, setmetatable = getmetatable, setmetatable;
 ---------------------------------------------------------------
 -- Mixins
@@ -136,7 +136,7 @@ end
 
 function CPAPI.InitConfigFrame(mixin, ...)
 	local frame, env = CPAPI.CreateConfigFrame(...)
-	FrameUtil.SpecializeFrameWithMixins(frame, mixin)
+	CPAPI.Specialize(frame, mixin)
 	return frame, env;
 end
 
@@ -171,6 +171,14 @@ function CPAPI.Start(handler, noHooks)
 				handler:SetScript(k, v)
 			end
 		end
+	end
+end
+
+CPAPI.Specialize = FrameUtil.SpecializeFrameWithMixins;
+CPAPI.SpecializeOnce = function(...)
+	CPAPI.Specialize(...)
+	for i = 1, select('#', ...) do
+		select(i, ...).OnLoad = nil;
 	end
 end
 

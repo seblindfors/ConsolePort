@@ -51,13 +51,13 @@ local Display = {}; env.SharedConfig.Display = Display;
 ---------------------------------------------------------------
 
 function Display:OnLoad()
-	FrameUtil.SpecializeFrameWithMixins(self,  env.SharedConfig.Env.Mixin.Background)
+	CPAPI.Specialize(self, env.SharedConfig.Env.Mixin.Background)
 	self:SetBackgroundInsets(4, -4, 4, 4)
 	self:AddBackgroundMaskTexture(self.BorderArt.BgMask)
 	self:SetBackgroundAlpha(0.25)
 
 	self.Ring = env:CreateMockRing('$parentRing', self.RingContainer, env.SharedConfig.Ring)
-	FrameUtil.SpecializeFrameWithMixins(self.Details, env.SharedConfig.Details)
+	CPAPI.SpecializeOnce(self.Details, env.SharedConfig.Details)
 
 	env:RegisterCallback('OnTabSelected', self.OnTabSelected, self)
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)

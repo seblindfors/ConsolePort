@@ -56,7 +56,7 @@ function CPFrameMixin:OnLoad()
 		end
 	end
 	if self.layoutType then
-		FrameUtil.SpecializeFrameWithMixins(self, NineSlicePanelMixin)
+		CPAPI.Specialize(self, NineSlicePanelMixin)
 		if C_Widget.IsRenderableWidget(self.BgMask) then
 			self:SetBackgroundMask(self.BgMask)
 		end

@@ -545,7 +545,7 @@ function BindingPreset:OnAcquire(new)
 		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
 		self:SetScript('OnClick', BindingPreset.OnClick)
 
-		FrameUtil.SpecializeFrameWithMixins(self.Icon, BindingPresetIcon)
+		CPAPI.Specialize(self.Icon, BindingPresetIcon)
 
 		local base = env.Settings.Base;
 		self:HookScript('OnEnter', base.OnEnter)

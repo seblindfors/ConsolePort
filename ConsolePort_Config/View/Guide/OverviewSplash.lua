@@ -528,7 +528,7 @@ end
 function ComboButton:AcquireChord(anchor)
 	local button, newObj = self.actions:Acquire()
 	if newObj then
-		FrameUtil.SpecializeFrameWithMixins(button, Chord)
+		CPAPI.Specialize(button, Chord)
 	end
 	local set = ButtonLayout[anchor];
 	local point, relativePoint, xOffset, yOffset = unpack(set.notePoint);
@@ -803,16 +803,13 @@ function Overview:OnLoad()
 	env:RegisterCallback('Overview.HighlightButtons', self.HighlightButtons, self)
 	env:RegisterCallback('Overview.OnChordClick', self.OnChordClick, self)
 	env:RegisterCallback('Overview.EditorClosed', self.OnEditorClosed, self)
-
-	-- TODO: handle tap bindings since we want to toggle modifiers without
-	-- triggering the tap binding.
 end
 
 function Overview:AcquireComboButton()
 	local button, newObj = self.buttonPool:Acquire()
 	if newObj then
 		button.Container = self;
-		FrameUtil.SpecializeFrameWithMixins(button, ComboButton)
+		CPAPI.Specialize(button, ComboButton)
 	end
 	return button, newObj;
 end
@@ -1027,7 +1024,7 @@ Guide:AddContent('Overview', env.HasActiveDevice(), function(canvas, GetCanvas)
 	if not canvas.Overview then
 		canvas.Overview = CreateFrame('Frame', nil, canvas)
 		canvas.Overview.GetCanvas = GetCanvas;
-		FrameUtil.SpecializeFrameWithMixins(canvas.Overview, Overview)
+		CPAPI.SpecializeOnce(canvas.Overview, Overview)
 	end
 	canvas.Overview:Show()
 end, function(canvas)

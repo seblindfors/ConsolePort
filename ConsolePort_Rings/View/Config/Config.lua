@@ -23,10 +23,10 @@ function Config:OnLoad()
 	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
 	self.DefaultTitle = L'Ring Manager';
 
-	FrameUtil.SpecializeFrameWithMixins(self.Display, env.SharedConfig.Display)
-	FrameUtil.SpecializeFrameWithMixins(self.Sets, env.SharedConfig.Sets)
-	FrameUtil.SpecializeFrameWithMixins(self.Loadout, CPLoadoutContainerMixin, env.SharedConfig.Loadout)
-	FrameUtil.SpecializeFrameWithMixins(self.Search, env.SharedConfig.Env.Search, Search)
+	CPAPI.SpecializeOnce(self.Display, env.SharedConfig.Display)
+	CPAPI.SpecializeOnce(self.Sets, env.SharedConfig.Sets)
+	CPAPI.Specialize(self.Loadout, CPLoadoutContainerMixin, env.SharedConfig.Loadout)
+	CPAPI.Specialize(self.Search, env.SharedConfig.Env.Search, Search)
 
 	self.Panels = EnumUtil.MakeEnum('Rings', 'Loadout', 'Options');
 	self.Tabs:AddTabs({
@@ -50,7 +50,7 @@ function Config:OnLoad()
 
 	local BindingCatcher = env.SharedConfig.Env.Mixin.BindingCatcher;
 	self.Catcher = CreateFrame('Button', nil, self, BindingCatcher.Template)
-	FrameUtil.SpecializeFrameWithMixins(self.Catcher, BindingCatcher)
+	CPAPI.Specialize(self.Catcher, BindingCatcher)
 
 	CPAPI.Start(self)
 	tinsert(UISpecialFrames, self:GetName())

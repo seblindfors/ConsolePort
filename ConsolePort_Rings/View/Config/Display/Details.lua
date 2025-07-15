@@ -59,7 +59,7 @@ function Details:OnLoad()
 		};
 	}) do
 		local button = CreateFrame('Button', nil, self, 'CPPopupButtonTemplate');
-		FrameUtil.SpecializeFrameWithMixins(button, Command, option)
+		CPAPI.Specialize(button, Command, option)
 		button:SetPoint('TOPLEFT', prev, 'BOTTOMLEFT', 0, -4);
 		self[key], prev = button, button;
 	end
@@ -74,7 +74,7 @@ function Details:OnLoad()
 
 	self.BindingText = self.Bind:CreateFontString(nil, 'ARTWORK', 'CPGameFontDisableMed2')
 	self.BindingText:SetPoint('RIGHT', -8, 0)
-	FrameUtil.SpecializeFrameWithMixins(self.BindingText, CPSlugMixin)
+	CPAPI.Specialize(self.BindingText, CPSlugMixin)
 
 	self.activeIconFilter = IconSelectorPopupFrameIconFilterTypes.All;
 	self:UpdateIconDropdown()

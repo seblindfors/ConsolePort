@@ -223,7 +223,7 @@ db:RegisterSafeCallback('OnNewBindings', function(self)
 		local button = info.button;
 		if not button then
 			button = CreateFrame('Button', '$parent'..cmd, UnitMenuSecure, 'SecureActionButtonTemplate')
-			FrameUtil.SpecializeFrameWithMixins(button, CPTimedButtonContextMixin, UnitMenuTrigger, info)
+			CPAPI.Specialize(button, CPTimedButtonContextMixin, UnitMenuTrigger, info)
 			info.button = button;
 		end
 		return button;

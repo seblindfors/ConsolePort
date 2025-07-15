@@ -1,6 +1,6 @@
 local env, db, Context = CPAPI.GetEnv(...); Context = env.Frame;
 ---------------------------------------------------------------
-FrameUtil.SpecializeFrameWithMixins(Context, CPTimedButtonContextMixin)
+CPAPI.Specialize(Context, CPTimedButtonContextMixin)
 ---------------------------------------------------------------
 
 function Context:OnTimedHintsDisplay(enabled, remaining)

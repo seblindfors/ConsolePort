@@ -77,7 +77,7 @@ function Set:OnAcquire(new)
 		self:HookScript('OnEnter', self.OnEnter)
 		self:HookScript('OnLeave', self.OnLeave)
 		self:RegisterForClicks('LeftButtonUp', 'RightButtonUp')
-		FrameUtil.SpecializeFrameWithMixins(self.Binding, Binding)
+		CPAPI.Specialize(self.Binding, Binding)
 	end
 	RunNextFrame(function()
 		if self:GetChecked() then

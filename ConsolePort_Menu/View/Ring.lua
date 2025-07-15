@@ -358,7 +358,7 @@ end
 
 function GameMenuButtonMixin:SetData(data)
 	self.OnClick = nil; -- make sure to retain secure OnClick when specializing
-	FrameUtil.SpecializeFrameWithMixins(self, data)
+	CPAPI.Specialize(self, data)
 	if self.ref then
 		self:SetAttribute(CPAPI.ActionTypeRelease, 'click')
 		self:SetAttribute('command', 'click')

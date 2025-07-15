@@ -54,7 +54,7 @@ function BindingSlotter:OnAcquire(new)
 		self:SetScript('OnEvent', CPAPI.EventMixin.OnEvent)
 		self:EnableMouse(false)
 		self.InnerContent:SetScale(0.5) -- correct the background scale
-		FrameUtil.SpecializeFrameWithMixins(self.BindingIcon, BindingIcon)
+		CPAPI.Specialize(self.BindingIcon, BindingIcon)
 	end
 	self:InitButtons()
 	self.Info:SetPoint('TOPLEFT', 46, 0)
@@ -119,7 +119,7 @@ function Editor:OnLoad()
 	env.SettingsRenderer.Init(self)
 	self:SetPoint('TOP')
 	self:SetPoint('BOTTOM', 0, 0)
-	FrameUtil.SpecializeFrameWithMixins(self.Lip, EditorLip)
+	CPAPI.SpecializeOnce(self.Lip, EditorLip)
 	CPScrollBoxSettingsTree.InitDefault(self.Settings)
 	CPAPI.Next(env.RegisterCallback, env, 'Overview.EditInput', self.EditInput, self)
 
@@ -391,7 +391,7 @@ do -- Initializer
 
 	env:RegisterCallback('Overview.EditInput', function(self, input, container)
 		local editor = CreateFrame('Frame', nil, container, 'CPOverviewEditor')
-		FrameUtil.SpecializeFrameWithMixins(editor, Editor, env.SettingsRenderer)
+		CPAPI.Specialize(editor, Editor, env.SettingsRenderer)
 
 		editor:AddProvider(GeneralSettingsProvider)
 		editor:AddProvider(ActionBarProvider)

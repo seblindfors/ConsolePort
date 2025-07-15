@@ -54,7 +54,7 @@ function Guide:OnLoad()
 	CPAPI.Start(self)
 	self.MenuFlyout = CreateFrame('DropdownButton', nil, self, 'CPGuideMenuFlyout')
 	self.MenuFlyout:SetPoint('TOP', self.navButton, 'BOTTOM', 0, -4)
-	FrameUtil.SpecializeFrameWithMixins(self.MenuFlyout, MenuFlyout)
+	CPAPI.SpecializeOnce(self.MenuFlyout, MenuFlyout)
 end
 
 function Guide:OnShow()

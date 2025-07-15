@@ -63,7 +63,7 @@ end
 function Entry:OnAcquire(new)
 	if new then
 		env.SharedConfig.LoadoutEntry.OnAcquire(self, new)
-		FrameUtil.SpecializeFrameWithMixins(self, Entry)
+		CPAPI.Specialize(self, Entry)
 		self.Icon.SetTexture = env.ActionButton.SkinUtility.SetTexture;
 	end
 end

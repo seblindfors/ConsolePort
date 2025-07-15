@@ -56,7 +56,7 @@ end
 function Entry:OnAcquire(new)
 	if new then
 		env.Elements.LoadoutEntry.OnAcquire(self, new)
-		FrameUtil.SpecializeFrameWithMixins(self, Entry)
+		CPAPI.Specialize(self, Entry)
 	end
 end
 
@@ -219,7 +219,7 @@ function LoadoutSelector:GetLip()
 	end
 	if not self.Lip then
 		self.Lip = CreateFrame('Frame', nil, self.container, 'CPScrollBoxLip')
-		FrameUtil.SpecializeFrameWithMixins(self.Lip, LoadoutLip)
+		CPAPI.SpecializeOnce(self.Lip, LoadoutLip)
 	end
 	return self.Lip;
 end

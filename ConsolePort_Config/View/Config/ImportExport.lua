@@ -518,7 +518,7 @@ function CreateDataContainer()
 		local container = CreateFrame('Frame', nil, nil, 'CPConfigDataContainer')
 		container:SetSize(BROWSER_FRAME_WIDTH, BROWSER_HEIGHT)
 		container.Browser:SetSize(container:GetSize())
-		FrameUtil.SpecializeFrameWithMixins(container.Browser, Browser)
+		CPAPI.SpecializeOnce(container.Browser, Browser)
 		env.DataContainer = container;
 	end
 	return env.DataContainer;
