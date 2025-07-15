@@ -64,7 +64,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local numAddedDevices = 0;
 	local deviceProfile = env.Elements.DeviceProfile;
 	for name, device in db:For('Gamepad/Devices', true) do
-		if device.Theme then
+		if device.Layout then
 			local sort = GetSortIndex(SETTING_GROUP_SYSTEM, GENERAL);
 			local data = deviceProfile:Data({
 				device = device;
