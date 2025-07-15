@@ -155,13 +155,13 @@ function SplineLine:PlayLineEffect(time, effect, reverse)
 	local i, delta  = reverse and numBits or 1, reverse and -1 or 1;
 	local iteration = time / self:GetLineSegments();
 
-	local startTime, GetTime, floor = GetTime(), GetTime, math.floor;
+	local startTime, GetTime, floor, max = GetTime(), GetTime, math.floor, math.max;
 	self.lineEffect = C_Timer.NewTicker(iteration, function()
 		local currentTime = GetTime()
 		local elapsedTime = currentTime - startTime;
 
 		-- Calculate how many bits should be updated based on elapsed time
-		local bitsToUpdate = floor(elapsedTime / iteration)
+		local bitsToUpdate = max(1, floor(elapsedTime / iteration))
 		startTime = currentTime;
 
 		for _ = 1, bitsToUpdate do
