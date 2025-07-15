@@ -191,28 +191,29 @@ function Graphics:OnLoad()
 	self.deviceFocusedAnim  = CPAPI.CreateAnimationQueue()
 	self.noDeviceActiveAnim = CPAPI.CreateAnimationQueue()
 
+	local GeneralInfoSpline = CreateCatmullRomSpline(2)
+	GeneralInfoSpline:AddPoint(20, -50)
+	GeneralInfoSpline:AddPoint(150, -150)
+	GeneralInfoSpline:AddPoint(468, -200)
+
+	local SplashSpline = CreateCatmullRomSpline(2)
+	SplashSpline:AddPoint(0, 150)
+	SplashSpline:AddPoint(0, 250)
+
 	local MoveInfoToLeft = self.deviceFocusedAnim:CreateAnimation(0.5, function(self, fraction)
-		-- Start position <Anchor point="TOPLEFT" x="468" y="-200"/>
-		-- Target position <Anchor point="TOPLEFT" x="20" y="-50"/>
-		self:SetPoint('TOPLEFT', 20 + (448 * (1 - fraction)), -50 + (-150 * (1 - fraction)))
+		self:SetPoint('TOPLEFT', GeneralInfoSpline:CalculatePointOnGlobalCurve(1 - fraction))
 	end, self.deviceFocusedAnim.Fraction, EasingUtil.OutCubic)
 
 	local MoveSplashDown = self.deviceFocusedAnim:CreateAnimation(1, function(self, fraction)
-		-- Start position <Anchor point="CENTER" x="0" y="250"/>
-		-- Target position <Anchor point="CENTER" x="0" y="150"/>
-		self:SetPoint('CENTER', 0, 150 + (100 * (1 - fraction)))
+		self:SetPoint('CENTER', SplashSpline:CalculatePointOnGlobalCurve(1 - fraction))
 	end, self.deviceFocusedAnim.Fraction, EasingUtil.OutCubic)
 
 	local MoveInfoToCenter = self.noDeviceActiveAnim:CreateAnimation(0.5, function(self, fraction)
-		-- Start position <Anchor point="TOPLEFT" x="20" y="-50"/>
-		-- Target position <Anchor point="TOPLEFT" x="468" y="-200"/>
-		self:SetPoint('TOPLEFT', 20 + (448 * fraction), -50 + (-150 * fraction))
+		self:SetPoint('TOPLEFT', GeneralInfoSpline:CalculatePointOnGlobalCurve(fraction))
 	end, self.noDeviceActiveAnim.Fraction, EasingUtil.OutCubic)
 
 	local MoveSplashUp = self.noDeviceActiveAnim:CreateAnimation(1, function(self, fraction)
-		-- Start position <Anchor point="CENTER" x="0" y="150"/>
-		-- Target position <Anchor point="CENTER" x="0" y="250"/>
-		self:SetPoint('CENTER', 0, 150 + (100 * fraction))
+		self:SetPoint('CENTER', SplashSpline:CalculatePointOnGlobalCurve(fraction))
 	end, self.noDeviceActiveAnim.Fraction, EasingUtil.OutCubic)
 
 	self.deviceFocusedAnim:AddAnimations(
@@ -290,8 +291,17 @@ function Graphics:ShowTutorials()
 	-- Create tutorials
 	local parent = self.GeneralInfo;
 	local texts, layoutIndex = {
-		{ text = ('%s %s'):format(CreateTextureMarkup([[Interface\common\help-i]], 64, 64, 20, 20, 0.2, 0.8, 0.2, 0.8), INFO), element = CreateHeader(parent) },
-		{ text = CPAPI.FormatLongText(L.DEVICE_SELECT_GFX_DECS), element = CreateText(parent) },
+		{
+			text = ('%s %s'):format(
+				CreateTextureMarkup([[Interface\common\help-i]], 64, 64, 20, 20, 0.2, 0.8, 0.2, 0.8),
+				INFO
+			);
+			element = CreateHeader(parent);
+		};
+		{
+			text = CPAPI.FormatLongText(L.DEVICE_SELECT_GFX_DECS);
+			element = CreateText(parent);
+		};
 	}, CreateCounter();
 
 	for _, setup in ipairs(texts) do
