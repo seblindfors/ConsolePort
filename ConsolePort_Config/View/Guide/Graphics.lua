@@ -188,6 +188,7 @@ function Graphics:OnLoad()
 	FrameUtil.SpecializeFrameWithMixins(self.LargeIcons, Icons)
 	FrameUtil.SpecializeFrameWithMixins(self.Continue, Continue)
 
+	-- Setup animations
 	self.deviceFocusedAnim  = CPAPI.CreateAnimationQueue()
 	self.noDeviceActiveAnim = CPAPI.CreateAnimationQueue()
 
@@ -224,10 +225,35 @@ function Graphics:OnLoad()
 		{self.GeneralInfo, MoveInfoToCenter},
 		{self.Splash, MoveSplashUp}
 	);
+
+	-- Setup general info
+	local info = self.GeneralInfo;
+	local texts, layoutIndex = {
+		{
+			text = ('%s %s'):format(
+				CreateTextureMarkup([[Interface\common\help-i]], 64, 64, 20, 20, 0.2, 0.8, 0.2, 0.8),
+				INFO
+			);
+			element = CreateHeader(info);
+		};
+		{
+			text = CPAPI.FormatLongText(L.DEVICE_SELECT_GFX_DECS);
+			element = CreateText(info);
+		};
+	}, CreateCounter();
+
+	for _, setup in ipairs(texts) do
+		local element = setup.element;
+		local string = element.Text or element;
+		element:Show()
+		element:SetWidth(LAYOUT_FRAME_WIDTH)
+		element.layoutIndex = layoutIndex();
+		string:SetText(setup.text)
+	end
+	info:Layout()
 end
 
 function Graphics:OnShow()
-	self:ShowTutorials()
 	self:OnFocusDevice(nil)
 
 	local dataProvider = self.Settings:GetDataProvider()
@@ -285,36 +311,6 @@ function Graphics:OnActiveDeviceChanged()
 	if hasActiveDevice then
 		ConsolePort:SetCursorNodeIfActive(self.Continue)
 	end
-end
-
-function Graphics:ShowTutorials()
-	-- Create tutorials
-	local parent = self.GeneralInfo;
-	local texts, layoutIndex = {
-		{
-			text = ('%s %s'):format(
-				CreateTextureMarkup([[Interface\common\help-i]], 64, 64, 20, 20, 0.2, 0.8, 0.2, 0.8),
-				INFO
-			);
-			element = CreateHeader(parent);
-		};
-		{
-			text = CPAPI.FormatLongText(L.DEVICE_SELECT_GFX_DECS);
-			element = CreateText(parent);
-		};
-	}, CreateCounter();
-
-	for _, setup in ipairs(texts) do
-		local element = setup.element;
-		local string = element.Text or element;
-		element:Show()
-		element:SetWidth(LAYOUT_FRAME_WIDTH)
-		element.layoutIndex = layoutIndex();
-		string:SetText(setup.text)
-	end
-
-	parent:Layout()
-	self.ShowTutorials = nop;
 end
 
 ---------------------------------------------------------------
