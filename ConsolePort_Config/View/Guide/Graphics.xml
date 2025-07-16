@@ -21,7 +21,7 @@
 		</Frames>
 	</Frame>
 
-	<Frame name="CPGraphicsSelector" enableMouse="true" virtual="true" hidden="true">
+	<Frame name="CPGraphicsPanel" enableMouse="true" virtual="true" hidden="true">
 		<Frames>
 			<Frame parentKey="Settings" inherits="CPConfigScrollBox, CPScrollFrameArtTemplate">
 				<Size x="500" y="220"/>

@@ -325,7 +325,7 @@ do local TutorialIncomplete, HasActiveDevice = env.TutorialPredicate('GamepadGra
 	Guide:AddContent('Graphics', ShowGraphicsPredicate,
 	function(canvas, GetCanvas)
 		if not canvas.Graphics then
-			canvas.Graphics = CreateFrame('Frame', nil, canvas, 'CPGraphicsSelector')
+			canvas.Graphics = CreateFrame('Frame', nil, canvas, 'CPGraphicsPanel')
 			canvas.Graphics.GetCanvas = GetCanvas;
 			CPAPI.SpecializeOnce(canvas.Graphics, Graphics)
 		end

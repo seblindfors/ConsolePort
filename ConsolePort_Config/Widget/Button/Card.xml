@@ -139,14 +139,6 @@
 		</Layers>
 	</CheckButton>
 
-	<!-- TODO: remove if not used -->
-	<CheckButton name="CPCardDragTemplate" mixin="CPCardDragMixin" virtual="true" inherits="CPCardCodeTemplate">
-		<Size x="347" y="95"/>
-		<Frames>
-			<Frame parentKey="InnerContent" inherits="CPCardInnerDragTemplate" setAllPoints="true"/>
-		</Frames>
-	</CheckButton>
-
 	<CheckButton name="CPCardAddTemplate" virtual="true" mixin="CPCardAddMixin" inherits="CPCardBaseTemplate">
 		<Layers>
 			<Layer level="ARTWORK" textureSubLevel="2">

@@ -49,7 +49,7 @@ db:Register('Console', CPAPI.Proxy({
 		};
 		{	cvar = 'GamePadEmulateTapWindowMs';
 			type = Number(350, 25);
-			name = 'Emulated Modifier Tap Window';
+			name = 'Modifier Tap Window';
 			desc = 'Buttons emulating modifiers will instead trigger bindings when pressed and released within the time span.';
 			note = 'Expressed in milliseconds. Pressing any combination of modifier and button will cancel the effect.';
 			advd = true;

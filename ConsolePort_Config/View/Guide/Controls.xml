@@ -1,3 +1,34 @@
 <Ui>
+	<CheckButton name="CPControlSchemeButton" virtual="true" inherits="CPCardSmallTemplate">
+		<Size x="150" y="100"/>
+		<ButtonText parentKey="Text" inherits="CPWhiteFont" justifyH="CENTER">
+			<Anchors>
+				<Anchor point="BOTTOM" y="12"/>
+			</Anchors>
+		</ButtonText>
+	</CheckButton>
+
+	<Frame name="CPControlsPanel" virtual="true">
+		<Frames>
+			<ScrollFrame parentKey="Browser" inherits="ScrollFrameTemplate, CPScrollFrameSettingsTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="20" y="-30"/>
+					<Anchor point="BOTTOMRIGHT" x="-30" y="30"/>
+				</Anchors>
+				<ScrollChild>
+					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame"/>
+				</ScrollChild>
+			</ScrollFrame>
+			<CheckButton parentKey="Continue" inherits="CPGuideContinueButton">
+				<Attributes>
+					<Attribute name="nodepriority" type="number" value="1"/>
+				</Attributes>
+				<Anchors>
+					<Anchor point="BOTTOM" y="10"/>
+				</Anchors>
+			</CheckButton>
+		</Frames>
+	</Frame>
+
 	<Script file="Controls.lua"/>
 </Ui>

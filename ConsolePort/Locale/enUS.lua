@@ -297,7 +297,7 @@ L.DEVICE_DESC_PLAYSTATION5 = [[
 
 	It is the most feature-complete gamepad available, with motion controls, touchpad, and in the case of the Edge variant, native back paddles.
 
-	Unlike most other controllers, every single button on the DualSense can be used in the game, providing the largest number of bindings available.
+	Unlike most other devices, every single button on the DualSense can be used in the game, providing the largest number of bindings available.
 
 	To take advantage of all the features, you may need to install PlayStation Accessories (Windows).
 ]];

@@ -1,6 +1,6 @@
 <Ui>
-	<Button name="CPGuideMenuFlyout" inherits="CPToolbarSixSliceInverterFrame" virtual="true" scale="0.75">
-		<Size x="50" y="40"/>
+	<Button name="CPGuideMenuFlyout" inherits="CPToolbarSixSliceInverterFrame" virtual="true" scale="0.7">
+		<Size x="56" y="44"/>
 		<KeyValues>
 			<KeyValue key="align" value="bottom" type="string"/>
 		</KeyValues>
