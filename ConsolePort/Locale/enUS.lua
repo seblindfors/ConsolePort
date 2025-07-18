@@ -278,7 +278,7 @@ L.ACTIONBAR_FORM_ACTIVE_DESC = [[This form is currently active, and your main ac
 L.ACTIONBAR_PAGE_MISMATCH_DESC = [[The actual page number of an action bar does not always match the displayed name, due to how the action bar system was originally designed.
 
 This discrepancy can be ignored if you're not using a custom action page solution. Both are shown for reference.]];
-L.DEVICE_SELECT_GFX_DECS = [[
+L.GFX_GENERAL_INFO = [[
 	Select the gamepad graphics that are closest to your gamepad's appearance.
 
 	Choosing graphics does not change how your gamepad works, it only changes the appearance of the gamepad graphics in the interface.
@@ -324,4 +324,69 @@ L.DEVICE_DESC_XBOX = [[
 	With external software, such as Steam or reWASD, the paddles can be mapped to keyboard bindings, allowing use in game.
 
 	The center button is reserved for the Xbox Guide, and cannot be used in the game.
+]];
+L.CONTROLS_GENERAL_INFO = [[
+	Select your preferred control scheme.
+]];
+L.CONTROLS_MODIFIERS_DESC = [[
+	Modifiers swap between binding sets, and also emulate keyboard control keys (Shift, Ctrl, Alt).
+
+	Holding a modifier will temporarily swap your bindings to an alternate set, expanding your available actions.
+
+	Modifiers can be tapped - pressed and released quickly - to perform regular bindings.
+
+	They can also be combined with each other; using two modifiers gives you a total of four sets of bindings to access,
+	and three modifiers give you eight sets of bindings.
+
+	Two modifiers is enough for most players to have a comfortable set of bindings,
+	without adding too much complexity.
+]];
+L.CONTROLS_MODIFIERS_LEFT = [[
+	Use left handed modifiers to keep movement and binding set swapping on the left side of the gamepad.
+
+	Having separate roles for the left and right hands may help with ergonomics and coordination.
+]];
+L.CONTROLS_MODIFIERS_TRIGGERS = [[
+	Use both triggers as modifiers to split your bindings between the left and right side.
+
+	This may be beneficial if you are transitioning from FFXIV, or if you prefer the crossbar mental model.
+]];
+L.CONTROLS_MODIFIERS_CUSTOM = [[
+	Use custom modifier settings.
+
+	It is recommended to set modifiers to the shoulders or triggers, as they are the most accessible buttons on the gamepad.
+]];
+L.CONTROLS_MOUSE_BUTTONS_DESC = [[
+	Mouse buttons can be emulated to provide mouse-like functionality.
+
+	These bindings are useful in some cases, such as confirming spell placements on the ground,
+	precise targeting in a crowd, and niche interface actions.
+
+	They can be combined with modifiers to further replicate the functionality of a mouse.
+
+	These buttons are also used to toggle the cursor, where it can have three different states:
+
+	- Free; you can use your gamepad to move the cursor around the screen.
+
+	- Centered; the cursor is fixed around the center of the screen, to aim at objects and characters
+	and to place spells on the ground.
+
+	- Hidden; the cursor is still centered, but not visible on the screen. Its position is indicated by a crosshair.
+]];
+L.CONTROLS_MOUSE_INVERTED = [[
+	Use inverted mouse button bindings.
+
+	Use the left stick to toggle between the centered and hidden cursor mode, and to right click.
+
+	Use the right stick to toggle the free cursor mode, and to left click.
+]];
+L.CONTROLS_MOUSE_REGULAR = [[
+	Use regular mouse button bindings.
+
+	Use the left stick to toggle the free cursor mode, and to left click.
+
+	Use the right stick to toggle between the centered and hidden cursor mode, and to right click.
+]];
+L.CONTROLS_MOUSE_CUSTOM = [[
+	Use custom mouse button bindings.
 ]];

@@ -1,12 +1,5 @@
 <Ui>
-	<Frame name="CPGraphicsInfoFrame" inherits="VerticalLayoutFrame" virtual="true" hidden="true">
-		<Size x="325"/>
-		<KeyValues>
-			<KeyValue key="spacing" value="4" type="number"/>
-		</KeyValues>
-	</Frame>
-
-	<Frame name="CPGraphicsIconFrame" inherits="CPGraphicsInfoFrame" virtual="true">
+	<Frame name="CPGraphicsIconFrame" inherits="CPGuideInfoFrame" virtual="true">
 		<Frames>
 			<Frame parentKey="Grid" inherits="GridLayoutFrame">
 				<KeyValues>
@@ -33,12 +26,12 @@
 					<Anchor point="BOTTOM" x="-4" y="70"/>
 				</Anchors>
 			</Frame>
-			<Frame parentKey="GeneralInfo" inherits="CPGraphicsInfoFrame" hidden="false">
+			<Frame parentKey="GeneralInfo" inherits="CPGuideInfoFrame" hidden="false">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="468" y="-200"/>
 				</Anchors>
 			</Frame>
-			<Frame parentKey="DeviceInfo" inherits="CPGraphicsInfoFrame">
+			<Frame parentKey="DeviceInfo" inherits="CPGuideInfoFrame">
 				<Anchors>
 					<Anchor point="TOPRIGHT" x="-20" y="-50"/>
 				</Anchors>

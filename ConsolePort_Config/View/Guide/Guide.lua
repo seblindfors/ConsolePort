@@ -112,3 +112,41 @@ function Guide:AddContent(name, predicate, initializer, resetter, canShow)
 		canShow     = canShow or CPAPI.Static(true);
 	})
 end
+
+---------------------------------------------------------------
+-- Common
+---------------------------------------------------------------
+function Guide.CreateHeader(parent, width)
+	local header = CreateFrame('Frame', nil, parent, 'CPPopupHeaderTemplate')
+	header.Text:SetTextColor(NORMAL_FONT_COLOR:GetRGBA())
+	header.SetText = function(self, text) return self.Text:SetText(text) end;
+	header:SetWidth(width)
+	return header;
+end
+
+function Guide.CreateText(parent, width)
+	local text = parent:CreateFontString(nil, 'ARTWORK', 'GameFontNormalMed1')
+	text:SetJustifyH('LEFT')
+	text:SetTextColor(WHITE_FONT_COLOR:GetRGBA())
+	text:SetWidth(width)
+	return text;
+end
+
+function Guide.CreateInfoMarkup(text)
+	return ('%s %s'):format(
+		CreateTextureMarkup(
+		[[Interface\common\help-i]],
+		64, 64, 20, 20, 0.2, 0.8, 0.2, 0.8), text)
+end
+
+function Guide.CreateRecommendMarkup(text)
+	return ('%s %s'):format(
+		CreateAtlasMarkup('common-icon-checkmark', 20, 20),
+		GREEN_FONT_COLOR:WrapTextInColorCode(text))
+end
+
+function Guide.CreateAdvancedMarkup(text)
+	return ('%s %s'):format(
+		CreateAtlasMarkup('common-icon-forwardarrow', 20, 20),
+		ORANGE_FONT_COLOR:WrapTextInColorCode(text))
+end

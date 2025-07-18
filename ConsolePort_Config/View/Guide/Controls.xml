@@ -12,14 +12,33 @@
 		<Frames>
 			<ScrollFrame parentKey="Browser" inherits="ScrollFrameTemplate, CPScrollFrameSettingsTemplate">
 				<Anchors>
-					<Anchor point="TOPLEFT" x="20" y="-30"/>
-					<Anchor point="BOTTOMRIGHT" x="-30" y="30"/>
+					<Anchor point="TOPLEFT" x="12" y="-3"/>
+					<Anchor point="BOTTOMRIGHT" x="-12" y="4"/>
 				</Anchors>
 				<ScrollChild>
-					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame"/>
+					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame">
+						<Frames>
+							<Frame parentKey="RowInfo" inherits="CPGuideInfoFrame" hidden="false">
+								<KeyValues>
+									<KeyValue key="pntAnchor" value="TOPRIGHT" type="string"/>
+									<KeyValue key="relAnchor" value="TOPLEFT" type="string"/>
+									<KeyValue key="xOffset" value="-20" type="number"/>
+									<KeyValue key="yOffset" value="0" type="number"/>
+								</KeyValues>
+							</Frame>
+							<Frame parentKey="ColInfo" inherits="CPGuideInfoFrame" hidden="false">
+								<KeyValues>
+									<KeyValue key="pntAnchor" value="TOPLEFT" type="string"/>
+									<KeyValue key="relAnchor" value="TOPRIGHT" type="string"/>
+									<KeyValue key="xOffset" value="20" type="number"/>
+									<KeyValue key="yOffset" value="0" type="number"/>
+								</KeyValues>
+							</Frame>
+						</Frames>
+					</Frame>
 				</ScrollChild>
 			</ScrollFrame>
-			<CheckButton parentKey="Continue" inherits="CPGuideContinueButton">
+			<CheckButton parentKey="Continue" inherits="CPGuideContinueButton" frameLevel="10">
 				<Attributes>
 					<Attribute name="nodepriority" type="number" value="1"/>
 				</Attributes>

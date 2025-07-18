@@ -9,19 +9,6 @@ local SPLASH_DEVICE_SIZE = 450;
 local SPLASH_DEVICE_NONE = 128;
 local LAYOUT_FRAME_WIDTH = 325;
 
-local function CreateHeader(parent)
-	local header = CreateFrame('Frame', nil, parent, 'CPPopupHeaderTemplate')
-	header.Text:SetTextColor(NORMAL_FONT_COLOR:GetRGBA())
-	return header;
-end
-
-local function CreateText(parent)
-	local text = parent:CreateFontString(nil, 'ARTWORK', 'GameFontNormalMed1')
-	text:SetJustifyH('LEFT')
-	text:SetTextColor(WHITE_FONT_COLOR:GetRGBA())
-	return text;
-end
-
 local function GetFirstDeviceStyle()
 	for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
 		local state = C_GamePad.GetDeviceMappedState(i)
@@ -83,13 +70,11 @@ local DeviceInfo = {};
 ---------------------------------------------------------------
 
 function DeviceInfo:OnLoad()
-	self.Header = CreateHeader(self)
+	self.Header = Guide.CreateHeader(self, LAYOUT_FRAME_WIDTH)
 	self.Header.layoutIndex = 1;
-	self.Header:SetWidth(LAYOUT_FRAME_WIDTH)
 
-	self.Body = CreateText(self)
+	self.Body = Guide.CreateText(self, LAYOUT_FRAME_WIDTH)
 	self.Body.layoutIndex = 2;
-	self.Body:SetWidth(LAYOUT_FRAME_WIDTH)
 end
 
 function DeviceInfo:SetDevice(device)
@@ -107,10 +92,9 @@ local Icons = {};
 ---------------------------------------------------------------
 
 function Icons:OnLoad()
-	self.Header = CreateHeader(self)
+	self.Header = Guide.CreateHeader(self, LAYOUT_FRAME_WIDTH)
 	self.Header.Text:SetText(self.text)
 	self.Header.layoutIndex = 1;
-	self.Header:SetWidth(LAYOUT_FRAME_WIDTH)
 	self.iconPool = CreateTexturePool(self.Grid, 'ARTWORK')
 	self.Grid.stride = self.stride;
 end
@@ -230,15 +214,12 @@ function Graphics:OnLoad()
 	local info = self.GeneralInfo;
 	local texts, layoutIndex = {
 		{
-			text = ('%s %s'):format(
-				CreateTextureMarkup([[Interface\common\help-i]], 64, 64, 20, 20, 0.2, 0.8, 0.2, 0.8),
-				INFO
-			);
-			element = CreateHeader(info);
+			text = Guide.CreateInfoMarkup(INFO);
+			element = Guide.CreateHeader(info, LAYOUT_FRAME_WIDTH);
 		};
 		{
-			text = CPAPI.FormatLongText(L.DEVICE_SELECT_GFX_DECS);
-			element = CreateText(info);
+			text = CPAPI.FormatLongText(L.GFX_GENERAL_INFO);
+			element = Guide.CreateText(info, LAYOUT_FRAME_WIDTH);
 		};
 	}, CreateCounter();
 
@@ -246,7 +227,6 @@ function Graphics:OnLoad()
 		local element = setup.element;
 		local string = element.Text or element;
 		element:Show()
-		element:SetWidth(LAYOUT_FRAME_WIDTH)
 		element.layoutIndex = layoutIndex();
 		string:SetText(setup.text)
 	end
