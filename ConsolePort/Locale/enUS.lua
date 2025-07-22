@@ -388,5 +388,36 @@ L.CONTROLS_MOUSE_REGULAR = [[
 	Use the right stick to toggle between the centered and hidden cursor mode, and to right click.
 ]];
 L.CONTROLS_MOUSE_CUSTOM = [[
-	Use custom mouse button bindings.
+	Use custom mouse button settings.
+
+	World of Warcraft treats mouse buttons in two separate, mostly hidden ways.
+
+	- When you click on the game's interface (like buttons or menus), it's handled by the interface,
+	which can be emulated by a gamepad.
+
+	- When you click on things in the game world (like targeting or interacting), it uses regular bindings.
+
+	Normally, you don't notice this with a mouse, but with a gamepad, you can choose to keep these actions
+	together or split them up for more control.
+]];
+L.CONTROLS_GAMEPAD_TESTER_DESC = [[
+	Use the testing tool to verify that your gamepad is working correctly.
+
+	The test will ask you to press buttons and move axes on your gamepad,
+	to ensure that all buttons and sensors are functioning as expected.
+
+	Troubleshooting:
+
+	- Ensure that your gamepad is connected and recognized by the operating system.
+
+	- Check for any conflicting software that may interfere with your device,
+	such as Steam running in the background on Windows.
+
+	- If using a handheld computer, ensure that the device is set to game mode
+	in the control center. Desktop mode will not work correctly.
+
+	- Update drivers and install any necessary software for your gamepad.
+]];
+L.CONTROLS_GAMEPAD_TESTER_ACTION = [[
+	The tests will automatically expire after a few seconds if no input is detected.
 ]];

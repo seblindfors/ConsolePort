@@ -271,13 +271,13 @@ function Config:OnBindingClicked(bindingID, isClearEvent, readonly, element)
 		OnShow = function()
 			self:PauseCatcher()
 			ConsolePort:SetCursorNodeIfActive(element)
-			RunNextFrame(function()
+			CPAPI.Next(function(tooltip)
 				-- Workaround for the tooltip overlapping the binding catcher,
 				-- and presenting button prompts that are disabled while
 				-- the binding catcher is active.
-				GameTooltip:Hide()
-				GameTooltip_HideShoppingTooltips(GameTooltip)
-			end)
+				tooltip:Hide()
+				GameTooltip_HideShoppingTooltips(tooltip)
+			end, GameTooltip)
 		end;
 		OnHide = function()
 			self:ResumeCatcher()

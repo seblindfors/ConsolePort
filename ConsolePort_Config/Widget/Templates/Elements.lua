@@ -482,7 +482,7 @@ function Binding:Data(datapoint)
 		name      = datapoint.field.name;
 		list      = datapoint.field.list;
 		bindingID = datapoint.binding;
-		readonly  = datapoint.readonly;
+		readonly  = datapoint.readonly or nop;
 		event     = datapoint.event or 'OnBindingClicked';
 		pair      = datapoint.pair;
 	};

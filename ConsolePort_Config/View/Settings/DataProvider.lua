@@ -265,7 +265,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 				sort     = sort + i;
 				type     = env.Elements.Binding;
 				binding  = info.binding;
-				readonly = info.readonly or nop;
+				readonly = info.readonly;
 				field = {
 					name = info.name;
 					list = list;
