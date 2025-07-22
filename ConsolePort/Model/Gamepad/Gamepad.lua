@@ -96,6 +96,30 @@ function GamepadAPI:GetActiveDeviceName()
 	return self.Active and self.Active.Name;
 end
 
+function GamepadAPI:GetConnectedDevices()
+	local connected = {};
+	for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
+		local rawState   = C_GamePad.GetDeviceRawState(i)
+		local powerLevel = C_GamePad.GetPowerLevel(i)
+		local powerInfo  = db.Battery:GetPowerLevelInfo(powerLevel)
+		if rawState then
+			local vendorID  = ('%04x'):format(rawState.vendorID):upper();
+			local productID = ('%04x'):format(rawState.productID):upper();
+			local config    = C_GamePad.GetConfig(rawState);
+			tinsert(connected, {
+				id        = i;
+				name      = rawState.name;
+				state     = rawState;
+				vendorID  = vendorID;
+				productID = productID;
+				config    = config;
+				power     = powerInfo.color:WrapTextInColorCode(powerInfo.name);
+			})
+		end
+	end
+	return connected;
+end
+
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------

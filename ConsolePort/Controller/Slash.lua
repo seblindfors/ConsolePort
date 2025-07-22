@@ -155,35 +155,15 @@ SLASH_FUNCTIONS = {
 			{'[deviceID]', 'number', 'Optional device ID to show axis readings and state.'};
 		};
 		function(deviceID)
-			local activeDevices = {};
-			for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
-				local device = C_GamePad.GetDeviceRawState(i)
-				local devicePowerLevel = C_GamePad.GetPowerLevel(i)
-				local powerLevelInfo = db.Battery:GetPowerLevelInfo(devicePowerLevel)
-				if device then
-					tinsert(activeDevices, {
-						id    = i;
-						state = device;
-						powerLevel = powerLevelInfo.color:WrapTextInColorCode(powerLevelInfo.name);
-					})
-				end
-			end
+			local activeDevices = db.Gamepad:GetConnectedDevices()
 			if next(activeDevices) then
 				CPAPI.Log('Connected devices:')
 				for _, device in ipairs(activeDevices) do
-					local vendorID  = ('%04x'):format(device.state.vendorID):upper();
-					local productID = ('%04x'):format(device.state.productID):upper();
-					local powerLevel = device.powerLevel;
-					local config = C_GamePad.GetConfig({
-						vendorID  = device.state.vendorID;
-						productID = device.state.productID;
-					});
-
 					CPAPI.Log('%d: |cFFFFFFFF%s|r', device.id, device.state.name)
 					CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s, Battery Level: %s',
-						vendorID, productID,
-						config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r',
-						powerLevel
+						device.vendorID, device.productID,
+						device.config and ('|cFF00FF00%s|r'):format(device.config.name or 'custom') or '|cFFFFFFFFgeneric|r',
+						device.power
 					);
 				end
 			else
