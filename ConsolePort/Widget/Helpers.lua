@@ -36,132 +36,6 @@ function CPGradientMixin:GetFadeGradient(...)
 end
 
 ---------------------------------------------------------------
--- Smooth scroll
----------------------------------------------------------------
-do local Scroller, Clamp = CreateFrame('Frame'), Clamp; Scroller.Frames = {};
-	function Scroller:OnUpdate(elapsed)
-		local current, delta, target, range;
-		for frame, data in pairs(self.Frames) do
-			range = frame:GetRange()
-			current = frame:GetScroll()
-			if abs(current - data.targetPos) < 1 then
-				frame:SetScroll(data.targetPos)
-				self:RemoveFrame(frame)
-			else
-				delta = current > data.targetPos and -1 or 1;
-				target = current +
-					(delta * abs(current - data.targetPos) / data.stepSize * 8)
-				frame:SetScroll(Clamp(target, 0, range));
-			end
-		end
-	end
-
-	function Scroller:AddFrame(frame, targetPos, stepSize)
-		self.Frames[frame] = {
-			targetPos = targetPos;
-			stepSize  = stepSize;
-		};
-		self:SetScript('OnUpdate', self.OnUpdate)
-	end
-
-	function Scroller:RemoveFrame(frame)
-		self.Frames[frame] = nil;
-		if not next(self.Frames) then
-			self:SetScript('OnUpdate', nil)
-		end
-		return frame.OnScrollFinished and frame:OnScrollFinished()
-	end
-
-	-----------------------------------------------------------
-	-- Mixin
-	-----------------------------------------------------------
-	CPSmoothScrollMixin = {
-		MouseWheelDelta = 100;
-		Horizontal = {
-			GetRange  = 'GetHorizontalScrollRange';
-			GetScroll = 'GetHorizontalScroll';
-			SetScroll = 'SetHorizontalScroll';
-			GetAnchor = 'GetLeft';
-			GetElementOffsetFromAnchor = 'GetElementOffsetFromLeftAnchor';
-		};
-		Vertical = {
-			GetRange  = 'GetVerticalScrollRange';
-			GetScroll = 'GetVerticalScroll';
-			SetScroll = 'SetVerticalScroll';
-			GetAnchor = 'GetTop';
-			GetElementOffsetFromAnchor = 'GetElementOffsetFromTopAnchor';
-		};
-	}
-
-	function CPSmoothScrollMixin:SetScrollOrientation(orient)
-		assert(self[orient], 'Orientation must be either Horizontal or Vertical.')
-		self.ScrollOrientationSet = true;
-		for alias, metaname in pairs(self[orient]) do
-			self[alias] = self[metaname]
-		end
-	end
-
-	function CPSmoothScrollMixin:SetDelta(delta)
-		self.MouseWheelDelta = delta;
-	end
-
-	function CPSmoothScrollMixin:OnScrollMouseWheel(delta)
-		local range = self:GetRange()
-		local current = self.targetPos or self:GetScroll()
-		local new = current - delta * self.MouseWheelDelta;
-
-		Scroller:AddFrame(self, Clamp(new, 0, range), self.MouseWheelDelta)
-	end
-
-	function CPSmoothScrollMixin:ScrollTo(frac, steps)
-		local range = self:GetRange()
-		local step = range / steps;
-		local new = frac <= 0 and 0 or frac >= steps and range or step * (frac - 1);
-		local target = Clamp(new, 0, range)
-
-		Scroller:AddFrame(self, target, step)
-		if range > 0 then
-			return target / range;
-		end
-	end
-
-	function CPSmoothScrollMixin:GetElementPosition(element)
-		local wrapper = self:GetScrollChild();
-		return ClampedPercentageBetween(select(2, element:GetCenter()), wrapper:GetTop(), wrapper:GetBottom())
-	end
-
-	function CPSmoothScrollMixin:GetElementOffsetFromTopAnchor(element, padding)
-		local getAnchor = self.GetAnchor;
-		return getAnchor(self) - getAnchor(element) + self:GetScroll() + (padding or 0);
-	end
-
-	function CPSmoothScrollMixin:GetElementOffsetFromLeftAnchor(element, padding)
-		local getAnchor = self.GetAnchor;
-		return getAnchor(element) - getAnchor(self) + self:GetScroll() + (padding or 0);
-	end
-
-	function CPSmoothScrollMixin:ScrollToOffset(offset)
-		Scroller:AddFrame(self, offset * self:GetRange(), self.MouseWheelDelta)
-	end
-
-	function CPSmoothScrollMixin:ScrollToPosition(position)
-		Scroller:AddFrame(self, position, self.MouseWheelDelta)
-	end
-
-	function CPSmoothScrollMixin:ScrollToElement(element, padding)
-		Scroller:AddFrame(self, Clamp(self:GetElementOffsetFromAnchor(element, padding), 0, self:GetRange()), self.MouseWheelDelta)
-	end
-
-	function CPSmoothScrollMixin:OnScrollSizeChanged(...)
-		if not self.ScrollOrientationSet then return end;
-		if (self:GetScroll() > self:GetRange()) then
-			self:SetScroll(self:GetRange())
-		end
-	end
-end
-
-
----------------------------------------------------------------
 -- Specific button catcher with callbacks
 ---------------------------------------------------------------
 CPButtonCatcherMixin = {};
@@ -184,7 +58,7 @@ function CPButtonCatcherMixin:OnGamePadButtonDown(button)
 end
 
 function CPButtonCatcherMixin:OnKeyDown(button)
-	local emulatedButton = db.Paddles:GetEmulatedButton(button)
+	local emulatedButton = self:GetButtonEmulation(button)
 	if emulatedButton and not self.catcherPaused then
 		if self.catchAllCallback and self:IsButtonValid(emulatedButton) then
 			self.catchAllCallback(emulatedButton)
@@ -249,6 +123,10 @@ end
 function CPButtonCatcherMixin:ToggleInputs(enabled)
 	self:EnableGamePadButton(enabled)
 	self:EnableKeyboard(enabled)
+end
+
+function CPButtonCatcherMixin:GetButtonEmulation(button)
+	return db.Paddles:GetEmulatedButton(button)
 end
 
 function CPButtonCatcherMixin:IsButtonValid(button)
