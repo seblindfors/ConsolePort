@@ -193,6 +193,31 @@ function CPScrollBoxLip:OnShow()
 end
 
 ---------------------------------------------------------------
+CPSmoothScroll = {}; -- ScrollFrame with interpolated scrolling.
+---------------------------------------------------------------
+
+function CPSmoothScroll:OnLoad()
+	ScrollFrame_OnLoad(self)
+
+	local interpolator = CreateInterpolator(InterpolatorUtil.InterpolateEaseOut)
+	local setScroll    = GenerateClosure(self.SetVerticalScroll, self)
+	local scrollBar    = self.ScrollBar;
+	local timeToKill   = 0.075;
+
+	local onMouseWheel = function(scrollFrame, delta)
+		local panExtentPercentage = scrollBar:GetPanExtentPercentage()
+		local currentScrollValue  = scrollFrame:GetVerticalScroll()
+		local verticalScrollRange = scrollFrame:GetVerticalScrollRange()
+
+		local target = interpolator:GetInterpolateTo() or currentScrollValue;
+		target = Clamp(target - (delta * panExtentPercentage * verticalScrollRange), 0, verticalScrollRange);
+		interpolator:Interpolate(currentScrollValue, target, timeToKill, setScroll)
+	end
+
+	self:SetScript('OnMouseWheel', onMouseWheel)
+end
+
+---------------------------------------------------------------
 CPIconSelector = CreateFromMixins(ScrollBoxSelectorMixin)
 ---------------------------------------------------------------
 

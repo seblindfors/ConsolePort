@@ -76,6 +76,11 @@
 	</Frame>
 
 	<ScrollFrame name="CPScrollFrameTemplate" virtual="true" inherits="ScrollFrameTemplate, CPScrollFrameArtTemplate"/>
+	<ScrollFrame name="CPSmoothScrollTemplate" virtual="true" inherits="ScrollFrameTemplate" mixin="CPSmoothScroll">
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</ScrollFrame>
 
 	<Frame name="CPScrollDivider" virtual="true">
 		<Size x="290"/>
