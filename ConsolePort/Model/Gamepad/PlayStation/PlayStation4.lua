@@ -9,7 +9,6 @@ local _, db = ...; db.Gamepad:AddGamepad({
 			GamePadEmulateEsc       = 'none';
 			GamePadCursorLeftClick  = 'PADLSTICK';
 			GamePadCursorRightClick = 'PADRSTICK';
-			GamePadAbbreviatedBindingReverse = 0;
 		};
 		Bindings = {
 			PAD1 = {

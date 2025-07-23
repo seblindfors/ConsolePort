@@ -356,7 +356,7 @@ function Console:GetEmulationForModifier(modifier)
 end
 
 --[[ unhandled:
-	
+
 	GamePadCursorCentering = "When using GamePad, center the cursor",
 	GamePadCursorOnLogin = "Enable GamePad cursor control on login and character screens",
 	GamePadCursorAutoEnable = "",
@@ -364,6 +364,5 @@ end
 	GamePadCursorCenteredEmulation = "When cursor is centered for GamePad movement, also emulate mouse clicks",
 	GamePadTankTurnSpeed = "If non-zero, character turns like a tank from GamePad movement",
 	GamePadSingleActiveID = "ID of single GamePad device to use. 0 = Use all devices' combined input",
-	GamePadAbbreviatedBindingReverse = "Display main binding button first so it's visible even if truncated on action bar",
 	GamePadListDevices = "List all connected GamePad devices in the console",
 ]]--
