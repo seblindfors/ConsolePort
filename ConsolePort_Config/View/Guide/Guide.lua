@@ -132,21 +132,25 @@ function Guide.CreateText(parent, width)
 	return text;
 end
 
-function Guide.CreateInfoMarkup(text)
+function Guide.CreateAtlasMarkup(text, atlas, color, size)
+	size = size or 20;
+	return ('%s %s'):format(
+		CreateAtlasMarkup(atlas, size, size),
+		color:WrapTextInColorCode(text))
+end
+
+function Guide.CreateInfoMarkup(text, size)
+	size = size or 20;
 	return ('%s %s'):format(
 		CreateTextureMarkup(
 		[[Interface\common\help-i]],
-		64, 64, 20, 20, 0.2, 0.8, 0.2, 0.8), text)
+		64, 64, size, size, 0.2, 0.8, 0.2, 0.8), text)
 end
 
-function Guide.CreateRecommendMarkup(text)
-	return ('%s %s'):format(
-		CreateAtlasMarkup('common-icon-checkmark', 20, 20),
-		GREEN_FONT_COLOR:WrapTextInColorCode(text))
+function Guide.CreateCheckmarkMarkup(text, size)
+	return Guide.CreateAtlasMarkup(text, 'common-icon-checkmark', GREEN_FONT_COLOR, size)
 end
 
-function Guide.CreateAdvancedMarkup(text)
-	return ('%s %s'):format(
-		CreateAtlasMarkup('common-icon-forwardarrow', 20, 20),
-		ORANGE_FONT_COLOR:WrapTextInColorCode(text))
+function Guide.CreateAdvancedMarkup(text, size)
+	return Guide.CreateAtlasMarkup(text, 'common-icon-forwardarrow', ORANGE_FONT_COLOR, size)
 end

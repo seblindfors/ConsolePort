@@ -50,15 +50,11 @@ end
 function Test:SetTimer(duration)
 	local startTime = GetTime();
 	CooldownFrame_Set(self.timer, startTime, duration, 1, false)
-	return startTime, startTime + duration;
+	return startTime;
 end
 
 function Test:ClearTimer()
 	CooldownFrame_Clear(self.timer)
-end
-
-function Test:Ping()
-	return self:SetTimer(self.testDuration or 5)
 end
 
 function Test:SetDuration(duration)
@@ -67,7 +63,7 @@ end
 
 function Test:StartTimeout()
 	if not self.timeout then
-		self.timeout = self:Ping()
+		self.timeout = self:SetTimer(self.testDuration or 5)
 	end
 end
 
@@ -144,7 +140,7 @@ function AxisTracker:IsIdle()
 end
 
 ---------------------------------------------------------------
-local AxisTest = CreateFromMixins(Test)
+local AxisTest = CreateFromMixins(Test, env.Mixin.UpdateStateTimer)
 ---------------------------------------------------------------
 
 function AxisTest:OnLoad()
@@ -153,6 +149,7 @@ function AxisTest:OnLoad()
 	self.texts    = CreateFontStringPool(self, 'ARTWORK', 3, 'GameFontNormalSmall')
 	self.trackers = {};
 	self:SetScript('OnGamePadStick', self.OnGamePadStick)
+	self:SetUpdateStateDuration(1)
 
 	self.Text:SetText(('%s\n\n• %s\n• %s'):format(
 		L'No axis input detected yet.',
@@ -219,19 +216,23 @@ end
 function AxisTest:OnShow()
 	db.Alpha.FadeIn(self, 0.5, 0, 1)
 	self:ToggleNoInputDetected(true)
-	self:StartTimeout()
 	self:SetScript('OnGamePadStick', self.OnGamePadStick)
 end
 
 function AxisTest:OnHide()
 	self.dots:ReleaseAll()
 	self.texts:ReleaseAll()
+	self:CancelUpdateStateTimer()
 	wipe(self.trackers)
 	Test.OnHide(self)
 end
 
 function AxisTest:ToggleNoInputDetected(show)
 	self:SetDuration(show and 15 or 5)
+	self:SetUpdateStateTimer(function()
+		self:StopTimeout()
+		self:StartTimeout()
+	end)
 	self.Text:SetShown(show)
 end
 
@@ -239,11 +240,17 @@ function AxisTest:CompleteReport()
 	local report  = Test.CompleteReport(self);
 	if #report.inputs > 0 then
 		local separator = '\n• ';
-		local message = L'The following sensors were detected:' .. separator;
-		message = message .. table.concat(report.inputs, separator);
-		report.message = message;
+		report.message = table.concat({
+			Guide.CreateCheckmarkMarkup(L'Sensors', 14), '\n',
+			L('Detected %d out of 8 possible sensors.', #report.inputs),
+			separator,
+			table.concat(report.inputs, separator)
+		})
 	else
-		report.message = L'No sensors were detected.';
+		report.message = ('%s\n%s'):format(
+			Guide.CreateAtlasMarkup(L'Sensors', 'common-icon-redx', RED_FONT_COLOR, 14),
+			L'No sensors were detected.'
+		);
 	end
 	return report;
 end
@@ -381,15 +388,36 @@ end
 function ButtonTest:CompleteReport()
 	local report = Test.CompleteReport(self);
 	local separator = '\n• ';
-	if #report.errors > 0 then
-		local message = L'The test detected unmapped keyboard inputs:' .. separator;
-		message = message .. table.concat(report.errors, separator);
-		report.message = message;
-	elseif #report.inputs > 0 then
-		report.message = L('The test detected %d valid buttons.', #report.inputs);
-	else
-		report.message = L'No buttons were detected during the test.';
+
+	local hasValid   = #report.inputs > 0;
+	local hasInvalid = #report.errors > 0;
+
+	local color = RED_FONT_COLOR;
+	local atlas = 'common-icon-redx';
+
+	if hasValid and not hasInvalid then
+		color = GREEN_FONT_COLOR;
+		atlas = 'common-icon-checkmark';
+	elseif hasValid and hasInvalid then
+		color = ORANGE_FONT_COLOR;
+		atlas = 'common-icon-checkmark-yellow';
 	end
+
+	local content = { Guide.CreateAtlasMarkup(L'Buttons', atlas, color, 14), '\n' };
+	if hasValid then
+		tinsert(content, L('Detected %d valid button(s).', #report.inputs))
+		if hasInvalid then tinsert(content, '\n') end;
+	end
+	if hasInvalid then
+		tinsert(content, L('Unmapped keyboard key(s) detected:'))
+		tinsert(content, separator)
+		tinsert(content, table.concat(report.errors, separator))
+	end
+	if not hasValid and not hasInvalid then
+		tinsert(content, L'No buttons were detected during the test.')
+	end
+
+	report.message = table.concat(content)
 	return report;
 end
 

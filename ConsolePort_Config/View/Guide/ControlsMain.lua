@@ -297,7 +297,7 @@ function OptionsContainer:SetData(data, ref, shouldShow)
 		desc = desc()
 	end
 	if data.recommend then
-		desc = ('%s\n\n%s'):format(desc, Guide.CreateRecommendMarkup(RECOMMENDED))
+		desc = ('%s\n\n%s'):format(desc, Guide.CreateCheckmarkMarkup(RECOMMENDED))
 	elseif data.advanced then
 		desc = ('%s\n\n%s'):format(desc, Guide.CreateAdvancedMarkup(ADVANCED_LABEL))
 	end
@@ -576,8 +576,16 @@ local SchemeContent = {}; do
 				end
 
 				desc = desc .. '\n\n' .. L'Connected device(s):'
+				local uniques = {};
 				for _, device in ipairs(connected) do
-					desc = desc .. '\n\n • ' .. YELLOW_FONT_COLOR:WrapTextInColorCode(device.name);
+					uniques[device.name] = (uniques[device.name] or 0) + 1;
+				end
+				for name, count in env.table.spairs(uniques) do
+					local label = name;
+					if count > 1 then
+						label = label .. ORANGE_FONT_COLOR:WrapTextInColorCode((' (%dx)'):format(count))
+					end
+					desc = desc .. '\n\n • ' .. YELLOW_FONT_COLOR:WrapTextInColorCode(label)
 				end
 				return desc;
 			end;
@@ -635,7 +643,7 @@ function Controls:OnLoad()
 			button:SetData(data, row, col)
 			button:SetPoint('TOP', header, 'BOTTOM', CalculateButtonOffset(col, numColumns))
 			button:Show()
-			-- setup the buttons
+			data.object = button;
 		end
 		topOffset = topOffset - 200;
 	end
@@ -654,6 +662,13 @@ end
 function Controls:OnShow()
 	env:RegisterCallback('Controls.ShowInformation', self.ShowInformation, self)
 	env:RegisterCallback('Controls.ShowVariables', self.ShowVariables, self)
+	for _, rows in ipairs(SchemeContent) do
+		for _, col in ipairs(rows) do
+			if col.recommend and col.predicate and not col.predicate() then
+				return ConsolePort:SetCursorNodeIfActive(col.object)
+			end
+		end
+	end
 end
 
 function Controls:OnHide()
