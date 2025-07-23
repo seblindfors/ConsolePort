@@ -311,7 +311,7 @@ L.DEVICE_DESC_STEAMDECK = [[
 	Steam Decks cannot use their paddles natively in World of Warcraft, as Steam Input reduces the device to an Xbox 360 controller.
 	However, the paddles can be mapped using emulation, or choosing keyboard bindings in the Steam Input settings.
 
-	The in-game Steam Deck preset may also be suitable for other handheld devices, due to the similar control layout.
+	The in-game Steam Deck preset may also be suitable for other handheld computers, due to the similar control layout.
 ]];
 L.DEVICE_DESC_XBOX = [[
 	Xbox controllers are the most widely used gamepads, and all variants are supported by World of Warcraft.
