@@ -16,7 +16,7 @@ local Stack = db:Register('Stack', CPAPI.CreateEventHandler({'Frame', '$parentUI
 }, {
 	Registry = {};
 }), true);
-local GetPoint, IsVisible = Stack.GetPoint, Stack.IsVisible;
+local GetPoint, IsAnchoringRestricted, IsVisible = Stack.GetPoint, Stack.IsAnchoringRestricted, Stack.IsVisible;
 
 ---------------------------------------------------------------
 local function GetFrameWidget(frame)
@@ -42,7 +42,11 @@ function Stack:IsCursorObstructed() return isObstructed end
 do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}, {}, {};
 
 	local function updateVisible(self)
-		visible[self] = GetPoint(self) and IsVisible(self) and true or nil;
+		visible[self] = (
+			not IsAnchoringRestricted(self)
+			and GetPoint(self)
+			and IsVisible(self)
+		) or nil;
 	end
 
 	local function updateBuffer(self, flag)
