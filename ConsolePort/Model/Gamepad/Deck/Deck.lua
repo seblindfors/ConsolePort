@@ -1,21 +1,67 @@
 local _, db = ...; db.Gamepad:AddGamepad({
 	Name = 'Steam Deck';
 	Version = 1;
-	Preset = {
-		Variables = {
-			synchronizeSettings     = 0;
-			synchronizeBindings     = 0;
-			synchronizeConfig       = 0;
-			synchronizeMacros       = 1;
-			HardwareCursor          = 0;
-			GamePadEmulateShift     = 'PADLTRIGGER';
-			GamePadEmulateCtrl      = 'PADRTRIGGER';
-			GamePadEmulateAlt       = 'none';
-			GamePadEmulateEsc       = 'none';
-			GamePadCursorLeftClick  = 'PADLSTICK';
-			GamePadCursorRightClick = 'PADRSTICK';
+	Environment = {
+		Console = {
+			synchronizeBindings = 0;
+			synchronizeConfig   = 0;
+			HardwareCursor      = 0;
 		};
-		Bindings = {
+		Settings = {
+			gameMenuScale       = 0.75;
+			gameMenuFontSize    = 16;
+			emulatePADPADDLE1   = 'F1';
+			emulatePADPADDLE2   = 'F2';
+			emulatePADPADDLE3   = 'F3';
+			emulatePADPADDLE4   = 'F4';
+		};
+	};
+	Generator = {
+		LeftHand = {
+			PADLSHOULDER = {
+				['']            = 'INTERACTTARGET';
+				['CTRL-']       = 'TARGETPREVIOUSFRIEND';
+			};
+			PADLTRIGGER = {
+				['']            = 'TARGETNEARESTENEMY';
+				['SHIFT-']      = 'TARGETNEARESTFRIEND';
+			};
+			PADRSHOULDER = {
+				['']            = 'ACTIONBUTTON1';
+				['SHIFT-']      = 'TARGETSCANENEMY';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON1';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON11';
+			};
+			PADRTRIGGER = {
+				['']            = 'ACTIONBUTTON2';
+				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON2';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON10';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON12';
+			};
+		};
+		Triggers = {
+			PADLTRIGGER = {
+				['']            = 'INTERACTTARGET';
+				['CTRL-']       = 'TARGETPREVIOUSFRIEND';
+			};
+			PADRTRIGGER = {
+				['']            = 'TARGETNEARESTENEMY';
+				['SHIFT-']      = 'TARGETNEARESTFRIEND';
+			};
+			PADLSHOULDER = {
+				['']            = 'ACTIONBUTTON2';
+				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON2';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON10';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON12';
+			};
+			PADRSHOULDER = {
+				['']            = 'ACTIONBUTTON1';
+				['SHIFT-']      = 'TARGETSCANENEMY';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON1';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON11';
+			};
+		};
+		Face = {
 			PAD1 = {
 				['']            = 'JUMP';
 				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON9';
@@ -40,28 +86,6 @@ local _, db = ...; db.Gamepad:AddGamepad({
 				['CTRL-']       = 'MULTIACTIONBAR1BUTTON4';
 				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON7';
 			};
-			-- Trigger buttons
-			PADLTRIGGER = {
-				['']            = 'INTERACTTARGET';
-				['CTRL-']       = 'TARGETPREVIOUSFRIEND';
-			};
-			PADRTRIGGER = {
-				['']            = 'TARGETNEARESTENEMY';
-				['SHIFT-']      = 'TARGETNEARESTFRIEND';
-			};
-			PADLSHOULDER = {
-				['']            = 'ACTIONBUTTON2';
-				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON2';
-				['CTRL-']       = 'MULTIACTIONBAR1BUTTON10';
-				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON12';
-			};
-			PADRSHOULDER = {
-				['']            = 'ACTIONBUTTON1';
-				['SHIFT-']      = 'TARGETSCANENEMY';
-				['CTRL-']       = 'MULTIACTIONBAR1BUTTON1';
-				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON11';
-			};
-			-- D-Pad
 			PADDUP = {
 				['']            = 'ACTIONBUTTON10';
 				['SHIFT-']      = 'MULTIACTIONBAR2BUTTON2';
@@ -86,7 +110,8 @@ local _, db = ...; db.Gamepad:AddGamepad({
 				['CTRL-']       = 'MULTIACTIONBAR2BUTTON7';
 				['CTRL-SHIFT-'] = 'MULTIACTIONBAR2BUTTON11';
 			};
-			-- Center buttons
+		};
+		Center = {
 			PADBACK = {
 				-- EmulateEsc
 				['SHIFT-']      = 'OPENALLBAGS';
@@ -98,13 +123,6 @@ local _, db = ...; db.Gamepad:AddGamepad({
 				['SHIFT-']      = 'CLICK ConsolePortRaidCursorToggle:LeftButton';
 				['CTRL-']       = 'CAMERAZOOMOUT';
 				['CTRL-SHIFT-'] = 'CAMERAZOOMIN';
-			};
-			-- Sticks
-			PADLSTICK = {
-				[''] = 'CAMERAORSELECTORMOVE';
-			};
-			PADRSTICK = {
-				[''] = 'TURNORACTION';
 			};
 		};
 	};

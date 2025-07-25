@@ -63,12 +63,12 @@ end)
 Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local numAddedDevices = 0;
 	local deviceProfile = env.Elements.DeviceProfile;
-	for name, device in db:For('Gamepad/Devices', true) do
+	for name, device in db.Gamepad:EnumerateDevices() do
 		if device.Layout then
 			local sort = GetSortIndex(SETTING_GROUP_SYSTEM, GENERAL);
 			local data = deviceProfile:Data({
 				device = device;
-				varID  = ('Gamepad/Devices/%s'):format(name);
+				varID  = ('Gamepad/Template/Gamepads/%s'):format(name);
 			});
 			numAddedDevices = numAddedDevices + 1;
 			data.type = deviceProfile;
@@ -219,7 +219,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 	}, emptyPreset, true);
 
 	-- Presets for each gamepad device
-	for name, device in db:For('Gamepad/Devices', true) do
+	for name, device in db.Gamepad:EnumerateDevices() do
 		local bindings = device.Preset and device.Preset.Bindings;
 		if bindings then
 			local asset = db('Gamepad/Index/Splash/'..name)

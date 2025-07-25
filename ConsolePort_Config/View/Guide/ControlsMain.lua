@@ -129,7 +129,7 @@ function ControlsReport:OnLoad()
 	for i, label in ipairs({
 		L'Sensors';
 		L'Buttons';
-		L'Validation';
+		L'Interference';
 	}) do
 		self.Reports[i].Text:SetText(label)
 	end

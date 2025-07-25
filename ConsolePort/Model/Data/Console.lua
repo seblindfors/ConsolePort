@@ -70,12 +70,6 @@ db:Register('Console', CPAPI.Proxy({
 			desc = OPTION_TOOLTIP_INTERACT_ON_LEFT_CLICK;
 			note = 'Affects both mouse and gamepad.';
 		};
-		{	cvar = 'HardwareCursor';
-			type = Bool(true);
-			name = 'Use Hardware Mouse Cursor';
-			desc = 'Use the hardware cursor provided by the operating system.';
-			note = 'Disable if your mouse cursor is invisible.';
-		};
 		{	cvar = 'GamePadCursorAutoDisableJump';
 			type = Bool(true);
 			name = 'Hide Cursor on Jump';
@@ -193,12 +187,6 @@ db:Register('Console', CPAPI.Proxy({
 	--------------------------------------------------------------------------------------------------------
 	System = {
 	--------------------------------------------------------------------------------------------------------
-		{	cvar = 'synchronizeSettings';
-			type = Bool(true);
-			name = 'Synchronize Settings';
-			desc = 'Whether client settings should be saved to the server.';
-			note = 'Master setting for Synchronize Bindings, Synchronize Config and Synchronize Macros.';
-		};
 		{	cvar = 'synchronizeBindings';
 			type = Bool(true);
 			name = 'Synchronize Bindings';
@@ -209,10 +197,11 @@ db:Register('Console', CPAPI.Proxy({
 			name = 'Synchronize Config';
 			desc = 'Whether to save character- and account-scoped variables to the server.';
 		};
-		{	cvar = 'synchronizeMacros';
+		{	cvar = 'HardwareCursor';
 			type = Bool(true);
-			name = 'Synchronize Macros';
-			desc = 'Whether client macros should be saved to the server.';
+			name = 'Use Hardware Mouse Cursor';
+			desc = 'Use the hardware cursor provided by the operating system.';
+			note = 'Disable if your mouse cursor is invisible.';
 		};
 	};
 	--------------------------------------------------------------------------------------------------------

@@ -1,16 +1,52 @@
 local _, db = ...; db.Gamepad:AddGamepad({
 	Name = 'PlayStation 4';
 	Version = 5;
-	Preset = {
-		Variables = {
-			GamePadEmulateShift     = 'PADLSHOULDER';
-			GamePadEmulateCtrl      = 'PADLTRIGGER';
-			GamePadEmulateAlt       = 'none';
-			GamePadEmulateEsc       = 'none';
-			GamePadCursorLeftClick  = 'PADLSTICK';
-			GamePadCursorRightClick = 'PADRSTICK';
+	Generator = {
+		LeftHand = {
+			PADLSHOULDER = {
+				['']            = 'INTERACTTARGET';
+				['CTRL-']       = 'TARGETNEARESTFRIEND';
+			};
+			PADLTRIGGER = {
+				['']            = 'TARGETNEARESTENEMY';
+				['SHIFT-']      = 'TARGETPREVIOUSFRIEND';
+			};
+			PADRSHOULDER = {
+				['']            = 'ACTIONBUTTON1';
+				['SHIFT-']      = 'TARGETSCANENEMY';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON9';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON11';
+			};
+			PADRTRIGGER = {
+				['']            = 'ACTIONBUTTON2';
+				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON2';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON10';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON12';
+			};
 		};
-		Bindings = {
+		Triggers = {
+			PADLTRIGGER = {
+				['']            = 'INTERACTTARGET';
+				['CTRL-']       = 'TARGETPREVIOUSFRIEND';
+			};
+			PADRTRIGGER = {
+				['']            = 'TARGETNEARESTENEMY';
+				['SHIFT-']      = 'TARGETNEARESTFRIEND';
+			};
+			PADLSHOULDER = {
+				['']            = 'ACTIONBUTTON2';
+				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON2';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON10';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON12';
+			};
+			PADRSHOULDER = {
+				['']            = 'ACTIONBUTTON1';
+				['SHIFT-']      = 'TARGETSCANENEMY';
+				['CTRL-']       = 'MULTIACTIONBAR1BUTTON9';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON11';
+			};
+		};
+		Face = {
 			PAD1 = {
 				['']            = 'JUMP';
 				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON1';
@@ -35,40 +71,6 @@ local _, db = ...; db.Gamepad:AddGamepad({
 				['CTRL-']       = 'MULTIACTIONBAR1BUTTON4';
 				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON7';
 			};
-			-- Trigger buttons
-			PADLSHOULDER = {
-				['']            = 'INTERACTTARGET';
-				['CTRL-']       = 'TARGETNEARESTFRIEND';
-			};
-			PADLTRIGGER = {
-				['']            = 'TARGETNEARESTENEMY';
-				['SHIFT-']      = 'TARGETPREVIOUSFRIEND';
-			};
-			PADRSHOULDER = {
-				['']            = 'ACTIONBUTTON1';
-				['SHIFT-']      = 'TARGETSCANENEMY';
-				['CTRL-']       = 'MULTIACTIONBAR1BUTTON9';
-				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON11';
-			};
-			PADRTRIGGER = {
-				['']            = 'ACTIONBUTTON2';
-				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON2';
-				['CTRL-']       = 'MULTIACTIONBAR1BUTTON10';
-				['CTRL-SHIFT-'] = 'MULTIACTIONBAR1BUTTON12';
-			};
-			-- D-Pad
-			PADDUP = {
-				['']            = 'ACTIONBUTTON10';
-				['SHIFT-']      = 'MULTIACTIONBAR2BUTTON2';
-				['CTRL-']       = 'MULTIACTIONBAR2BUTTON6';
-				['CTRL-SHIFT-'] = 'MULTIACTIONBAR2BUTTON10';
-			};
-			PADDDOWN = {
-				['']            = 'ACTIONBUTTON12';
-				['SHIFT-']      = 'MULTIACTIONBAR2BUTTON4';
-				['CTRL-']       = 'MULTIACTIONBAR2BUTTON8';
-				['CTRL-SHIFT-']	= 'MULTIACTIONBAR2BUTTON12';
-			};
 			PADDLEFT = {
 				['']            = 'ACTIONBUTTON9';
 				['SHIFT-']      = 'MULTIACTIONBAR2BUTTON1';
@@ -81,7 +83,20 @@ local _, db = ...; db.Gamepad:AddGamepad({
 				['CTRL-']       = 'MULTIACTIONBAR2BUTTON7';
 				['CTRL-SHIFT-'] = 'MULTIACTIONBAR2BUTTON11';
 			};
-			-- Center buttons
+			PADDUP = {
+				['']            = 'ACTIONBUTTON10';
+				['SHIFT-']      = 'MULTIACTIONBAR2BUTTON2';
+				['CTRL-']       = 'MULTIACTIONBAR2BUTTON6';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR2BUTTON10';
+			};
+			PADDDOWN = {
+				['']            = 'ACTIONBUTTON12';
+				['SHIFT-']      = 'MULTIACTIONBAR2BUTTON4';
+				['CTRL-']       = 'MULTIACTIONBAR2BUTTON8';
+				['CTRL-SHIFT-']	= 'MULTIACTIONBAR2BUTTON12';
+			};
+		};
+		Center = {
 			PADSOCIAL = {
 				['']            = 'OPENALLBAGS';
 				['SHIFT-']      = 'TOGGLECHARACTER0';
@@ -98,13 +113,6 @@ local _, db = ...; db.Gamepad:AddGamepad({
 				['']            = 'TOGGLEWORLDMAP';
 				['SHIFT-']      = 'CAMERAZOOMOUT';
 				['CTRL-']       = 'CAMERAZOOMIN';
-			};
-			-- Sticks
-			PADLSTICK = {
-				[''] = 'CAMERAORSELECTORMOVE';
-			};
-			PADRSTICK = {
-				[''] = 'TURNORACTION';
 			};
 		};
 	};

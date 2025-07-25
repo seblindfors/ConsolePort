@@ -241,12 +241,12 @@ function Graphics:OnShow()
 	dataProvider:Insert(env.Elements.Title:New(GRAPHICS_LABEL))
 
 	local numAddedDevices = 0;
-	for name, device in db:For('Gamepad/Devices', true) do
+	for name, device in db.Gamepad:EnumerateDevices() do
 		if device.Layout then
 			numAddedDevices = numAddedDevices + 1;
 			dataProvider:Insert(DeviceProfile:New({
 				device = device;
-				varID  = ('Gamepad/Devices/%s'):format(name);
+				varID  = ('Gamepad/Template/Gamepads/%s'):format(name);
 			}));
 		end
 	end
