@@ -210,7 +210,7 @@ Interface.ClusterHandle = Data.Interface {
 
 Interface.Cluster = Data.Interface {
 	name = 'Cluster Action Bar';
-	desc = 'A cluster action bar.';
+	desc = 'Groups button combinations in circular clusters which switch between different actions when modifiers are used.';
 	Data.Table {
 		type = {hide = true; Data.String('Cluster')};
 		children = _{
@@ -256,7 +256,7 @@ Interface.GroupButton = Data.Interface {
 
 Interface.Group = Data.Interface {
 	name = 'Action Button Group';
-	desc = 'A group of action buttons.';
+	desc = 'Looks like a regular action bar, but shows the button combination rather than the action slot.';
 	Data.Table {
 		type = {hide = true; Data.String('Group')};
 		children = _{
@@ -292,7 +292,7 @@ Interface.Group = Data.Interface {
 
 Interface.Page = Data.Interface {
 	name = 'Action Page';
-	desc = 'A page of action buttons.';
+	desc = 'Works like a regular action bar, which displays the action slots of a specified action page.';
 	Data.Table {
 		type = {hide = true; Data.String('Page')};
 		pos = _(Type.ComplexPoint : Implement {
