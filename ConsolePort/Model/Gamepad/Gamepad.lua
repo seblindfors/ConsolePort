@@ -38,11 +38,11 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 	};
 	Modsims = {'ALT', 'CTRL', 'SHIFT'};
 	Mouse   = {
-		Cvars   = {
+		Cvars   = { -- Cvars for mouse button emulation.
 			LeftClick  = 'GamePadCursorLeftClick';
 			RightClick = 'GamePadCursorRightClick';
 		};
-		Binding = {
+		Binding = { -- Bindings IDs for mouse buttons under the hood.
 			LeftClick  = 'CAMERAORSELECTORMOVE';
 			RightClick = 'TURNORACTION';
 		};
@@ -51,7 +51,7 @@ local C_GamePad, GamepadMixin, GamepadAPI = C_GamePad, {}, CPAPI.CreateEventHand
 ---------------------------------------------------------------
 db:Register('Icons', {})
 db:Register('Gamepad', GamepadAPI)
-db:Save('Gamepad/Template/Devices', 'ConsolePortDevices')
+db:Save('Gamepad/Template/Gamepads', 'ConsolePortDevices')
 
 ---------------------------------------------------------------
 -- API
@@ -496,6 +496,16 @@ function GamepadAPI:EnumerateBindingKeys(binding)
 	end
 end
 
+function GamepadAPI:FlattenBindings(bindings)
+	local flat = {};
+	for btn, set in pairs(bindings) do
+		for mod, binding in pairs(set) do
+			flat[mod..btn] = binding;
+		end
+	end
+	return flat;
+end
+
 function GamepadAPI:OnNewBindings()
 	local newBindings = self:GetBindings(true)
 	db:TriggerEvent('OnNewBindings', newBindings)
@@ -620,12 +630,25 @@ function GamepadMixin:GetPresetBindings()
 	local generator = self.Generator;
 	assert(generator, ('Preset bindings missing from %s template.'):format(self.Name))
 
-	local template = GamepadAPI:GetBindingsTemplate()
-	local bindings = db.table.merge(template, generator.Face, generator.Center,
-		(function(cmp, actual, leftHand, triggers) -- generate bindings for the shoulder section.
-			if cmp(actual, leftHand) then
+	-- Steps:
+	-- (1) merge an empty bindings template (has all combinations) with
+	--  a. face buttons, these are likely to be the same for all devices
+	--  b. center buttons, these will differ between devices
+	--  c. left hand OR trigger based modifiers, OR if no match then pull in
+	--     active bindings, resulting in a noop if we're not in safe terrirtory.
+	-- (2) iterate over the merged bindings and convert them to a flat table.
+	-- (3) merge mouse bindings, when they match emulations, to match the functions
+	--     of an actual mouse, i.e. left click, right click on both UI and world.
+	-- (4) remove blocked combinations, e.g. SHIFT-PAD1 when SHIFT == PAD1,
+	--     since they are impossible to use.
+
+	local preset = db.table.merge(
+		GamepadAPI:GetBindingsTemplate(), -- (1)
+		generator.Face, generator.Center, -- (1) a, b
+		(function(cmp, cur, lh, tr)       -- (1) c
+			if cmp(cur, lh) then
 				return generator.LeftHand;
-			elseif cmp(actual, triggers) then
+			elseif cmp(cur, tr) then
 				return generator.Triggers;
 			else
 				local active = GamepadAPI:GetBindings(true)
@@ -636,35 +659,40 @@ function GamepadMixin:GetPresetBindings()
 					PADRTRIGGER  = active.PADRTRIGGER;
 				}
 			end
-		end)(db.table.compare, GamepadAPI.Index.Modifier.Key, -- actual
-			{ SHIFT = 'PADLSHOULDER', CTRL = 'PADLTRIGGER' }, -- leftHand
-			{ SHIFT = 'PADLTRIGGER',  CTRL = 'PADRTRIGGER' }) -- triggers
+		end)(db.table.compare, GamepadAPI.Index.Modifier.Key, -- current
+			{ SHIFT = 'PADLSHOULDER', CTRL = 'PADLTRIGGER' }, -- LeftHand
+			{ SHIFT = 'PADLTRIGGER',  CTRL = 'PADRTRIGGER' }) -- Triggers
 		)
 
-	local mouse = GamepadAPI.Mouse;
+	local bindings = GamepadAPI:FlattenBindings(preset) -- (2)
+	local mouse = GamepadAPI.Mouse; -- (3)
 	for key, cvar in pairs(mouse.Cvars) do
 		local buttonID = db:GetCVar(cvar, NM):match('^PAD.*')
 		if buttonID then
-			bindings[buttonID][NM] = mouse.Binding[key];
+			bindings[buttonID] = mouse.Binding[key];
 		end
 	end
-
+	for combination in pairs(GamepadAPI.Index.Modifier.Blocked) do
+		bindings[combination] = NM; -- (4)
+	end
 	return bindings;
 end
 
 function GamepadMixin:ApplyPresetBindings(setID)
 	local clearOverlap, map = not db('bindingOverlapEnable'), db.table.map;
-	for btn, set in pairs(self:GetPresetBindings()) do
-		for mod, binding in pairs(set) do
-			if clearOverlap then
-				map(SetBinding, GamepadAPI:GetBindingKey(binding))
-			end
-			SetBinding(mod..btn, binding)
+	local result = {};
+	for combination, binding in pairs(self:GetPresetBindings()) do
+		if clearOverlap then
+			map(SetBinding, GamepadAPI:GetBindingKey(binding))
+		end
+		if SetBinding(combination, binding) then
+			result[combination] = binding;
 		end
 	end
 	if setID then
 		SaveBindings(setID)
 	end
+	return result;
 end
 
 function GamepadMixin:ApplyHotkeyStrings()

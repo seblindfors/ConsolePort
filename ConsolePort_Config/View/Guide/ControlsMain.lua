@@ -64,11 +64,10 @@ function SchemeSelect:SetData(data, row, col)
 	SchemeButton.SetData(self, data, row, col)
 	self.init = self.init or nop;
 	self:OnShow()
-	self:Update()
 end
 
 function SchemeSelect:OnShow()
-	self:init()
+	self:init(self:Update())
 	if self.subscribe then
 		for _, event in ipairs(self.subscribe) do
 			db:RegisterCallback(event, self.Update, self)
@@ -95,7 +94,9 @@ function SchemeSelect:OnClick()
 end
 
 function SchemeSelect:Update()
-	self:SetChecked(self.predicate())
+	local state = self.predicate()
+	self:SetChecked(state)
+	return state;
 end
 
 function SchemeSelect:AcquireTexture()
@@ -105,6 +106,8 @@ function SchemeSelect:AcquireTexture()
 	texture:SetParent(self)
 	texture:SetDrawLayer('ARTWORK', 1)
 	texture:SetDesaturated(false)
+	texture:SetTexCoord(0, 1, 0, 1)
+	texture:SetAlpha(1)
 	texture:Show()
 	return texture;
 end
@@ -294,7 +297,7 @@ function OptionsContainer:SetData(data, ref, shouldShow)
 
 	local desc = data.desc;
 	if type(desc) == 'function' then
-		desc = desc()
+		desc = desc(self)
 	end
 	if data.recommend then
 		desc = ('%s\n\n%s'):format(desc, Guide.CreateCheckmarkMarkup(RECOMMENDED))
@@ -352,9 +355,9 @@ function OptionsContainer:InsertBinding(dataProvider, variable, layoutIndex)
 end
 
 function OptionsContainer:InsertSetting(dataProvider, variable, layoutIndex)
-	dataProvider:Insert(env.Elements.Setting:New({
-		varID = variable.varID;
-		field = variable;
+	dataProvider:Insert(Setting:New({
+		varID = variable[2];
+		field = variable[DP];
 		sort  = layoutIndex;
 	}))
 end
@@ -449,6 +452,13 @@ local SchemeContent = {}; do
 				for i, cvar in ipairs(variables) do
 					variables[i] = db.Console:GetMetadata(cvar);
 				end
+				tAppendAll(variables, {
+					env.Elements.Title:New(SETTINGS);
+					{ db.Variables.emulatePADPADDLE1, 'emulatePADPADDLE1' };
+					{ db.Variables.emulatePADPADDLE2, 'emulatePADPADDLE2' };
+					{ db.Variables.emulatePADPADDLE3, 'emulatePADPADDLE3' };
+					{ db.Variables.emulatePADPADDLE4, 'emulatePADPADDLE4' };
+				})
 				env:TriggerEvent('Controls.ShowVariables', variables, self.row);
 			end;
 			init = function(self)
@@ -554,6 +564,10 @@ local SchemeContent = {}; do
 		};
 	})
 
+	local function MakeBulletPoint(color, text)
+		return '\n\n • ' .. color:WrapTextInColorCode(text);
+	end
+
 	tinsert(SchemeContent, {
 		-- Row 3: Gamepad tester
 		text = L'Test Device';
@@ -585,14 +599,219 @@ local SchemeContent = {}; do
 					if count > 1 then
 						label = label .. ORANGE_FONT_COLOR:WrapTextInColorCode((' (%dx)'):format(count))
 					end
-					desc = desc .. '\n\n • ' .. YELLOW_FONT_COLOR:WrapTextInColorCode(label)
+					desc = desc .. MakeBulletPoint(YELLOW_FONT_COLOR, label);
 				end
 				return desc;
 			end;
 			recommend = true;
 		};
 	});
+
+	local function MakeValuePoint(color, head, text, value)
+		return MakeBulletPoint(color, head .. ' | ' .. text) .. ' > ' .. tostring(value);
+	end
+
+	local function AddSplash(self)
+		local splash = self:AcquireTexture();
+		splash:SetPoint('TOPLEFT', 2, -2)
+		splash:SetPoint('BOTTOMRIGHT', -2, 2)
+
+		local device = Gamepad.Active;
+		splash:SetTexture(CPAPI.GetAsset('Splash\\Gamepad\\'..db('Gamepad/Index/Splash/'..device.Name)))
+
+		local texW, texH = 1024, 1024;
+		local cropX, cropY = 700, 250;
+		local zoomFactor = 2;
+		local cropW, cropH = self:GetWidth() * zoomFactor, self:GetHeight() * zoomFactor;
+
+		local function rotate(x, y, cx, cy)
+			local dx, dy = x - cx, y - cy;
+			local angle = math.rad(-30)
+			local rx = dx * math.cos(angle) - dy * math.sin(angle)
+			local ry = dx * math.sin(angle) + dy * math.cos(angle)
+			return cx + rx, cy + ry;
+		end
+
+		local cx, cy = cropX + cropW/2, cropY + cropH/2;
+		local corners = {
+			{cropX, cropY}, -- UL
+			{cropX, cropY + cropH}, -- LL
+			{cropX + cropW, cropY}, -- UR
+			{cropX + cropW, cropY + cropH}, -- LR
+		}
+
+		local coords = {}
+		for i, corner in ipairs(corners) do
+			local x, y = rotate(corner[1], corner[2], cx, cy)
+			coords[i*2-1] = x / texW;
+			coords[i*2]   = y / texH;
+		end
+		splash:SetTexCoord(unpack(coords))
+		splash:SetAlpha(0.05)
+	end
+
+	local function FinalButtonInit(self)
+		self:SetHeight(300)
+		AddSplash(self)
+		local icon = self:AcquireTexture();
+		icon:SetPoint('CENTER')
+		icon:SetSize(64, 64)
+		icon:SetDrawLayer('ARTWORK', 3)
+		return icon;
+	end
+
+	local function GetGamepadEnvironment()
+		local device = Gamepad.Active;
+		local environment = device and device.Environment;
+		if not environment then return device, false end;
+		return device, true, environment.Console, environment.Settings;
+	end
+
+	local function GetBindingsTemplate()
+		return Gamepad:FlattenBindings(Gamepad:GetBindingsTemplate())
+	end
+
+	local function GetCurrentBindings()
+		return Gamepad:FlattenBindings(Gamepad:GetBindings(true))
+	end
+
+	local function GetPresetBindings()
+		return Gamepad.Active:GetPresetBindings() -- already flattened
+	end
+
+	local cmp = env.table.compare;
+	tinsert(SchemeContent, {
+		-- Row 4: Defaults
+		text = DEFAULTS;
+		desc = L.DEFAULTS_GENERAL_INFO;
+		type = SchemeSelect;
+		{ -- 4.1 Import settings
+			text = SETTINGS;
+			desc = function()
+				local device, hasEnvironment, console, settings = GetGamepadEnvironment();
+				if not hasEnvironment then
+					return L.DEFAULTS_SETTINGS_NOTWEAK:format(device.Name);
+				end
+				local desc = L.DEFAULTS_SETTINGS_DESC:format(device.Name):trim();
+				if console then
+					for varID, value in env.table.spairs(console) do
+						local metadata, head = db.Console:GetMetadata(varID);
+						if metadata then
+							desc = desc .. MakeValuePoint(YELLOW_FONT_COLOR,
+								L[head], L[metadata.name], value == 0 and OFF or value == 1 and ENABLE or value);
+						end
+					end
+				end
+				if settings then
+					for varID, value in env.table.spairs(settings) do
+						local metadata = db.Variables[varID];
+						if metadata then
+							desc = desc .. MakeValuePoint(YELLOW_FONT_COLOR,
+								L[metadata.head], L[metadata.name], value);
+						end
+					end
+				end
+				return desc;
+			end;
+			predicate = function()
+				local _, hasEnvironment, console, settings = GetGamepadEnvironment();
+				if not hasEnvironment then return false end;
+				local matchesSettings = true;
+				if console then
+					for varID, value in pairs(console) do
+						local metadata = db.Console:GetMetadata(varID);
+						if metadata and db:GetCVar(varID, value) ~= value then
+							matchesSettings = false;
+							break;
+						end
+					end
+				end
+				if settings then
+					for varID, value in pairs(settings) do
+						if value ~= db('Settings/'..varID) then
+							matchesSettings = false;
+							break;
+						end
+					end
+				end
+				return matchesSettings;
+			end;
+			execute = function(self)
+				local device, hasEnvironment, console, settings = GetGamepadEnvironment();
+				if not hasEnvironment then
+					self:SetChecked(false)
+					return CPAPI.Log(L.DEFAULTS_SETTINGS_NOTWEAK:format(device.Name):trim());
+				end
+				if console then
+					for varID, value in env.table.spairs(console) do
+						db:SetCVar(varID, value);
+					end
+				end
+				if settings then
+					for varID, value in env.table.spairs(settings) do
+						db('Settings/'..varID, value)
+					end
+				end
+				CPAPI.Log(L.DEFAULTS_SETTINGS_APPLIED:format(device.Name):trim());
+				self:Update()
+			end;
+			init = function(self)
+				local icon = FinalButtonInit(self)
+				local _, hasEnvironment = GetGamepadEnvironment()
+				icon:SetTexture([[Interface\AddOns\ConsolePort_Config\Assets\Controls_Settings.png]])
+				icon:SetDesaturated(not hasEnvironment)
+			end;
+		};
+		{ -- 4.2 Import bindings
+			text = KEY_BINDINGS_MAC;
+			desc = L.DEFAULTS_BINDINGS_PRESET_DESC;
+			recommend = true;
+			subscribe = { 'Config.Controls.OnBindingsImported' };
+			predicate = function()
+				return cmp(GetCurrentBindings(), GetPresetBindings())
+			end;
+			execute = function(self)
+				for combination, binding in pairs(GetPresetBindings()) do
+					env:SetBinding(combination, binding)
+				end
+				db:TriggerEvent('Config.Controls.OnBindingsImported')
+			end;
+			init = function(self)
+				local icon = FinalButtonInit(self)
+				icon:SetTexture([[Interface\AddOns\ConsolePort_Config\Assets\Controls_Bindings.png]])
+			end;
+		};
+		{ -- 4.3 Empty bindings
+			text = EMPTY;
+			desc = L.DEFAULTS_BINDINGS_EMPTY_DESC;
+			advanced = true;
+			subscribe = { 'Config.Controls.OnBindingsImported' };
+			predicate = function()
+				return cmp(GetCurrentBindings(), GetBindingsTemplate())
+			end;
+			execute = function(self)
+				for combination, binding in pairs(GetBindingsTemplate()) do
+					env:SetBinding(combination, binding)
+				end
+				db:TriggerEvent('Config.Controls.OnBindingsImported')
+			end;
+			init = function(self)
+				local icon = FinalButtonInit(self)
+				icon:SetTexture([[Interface\AddOns\ConsolePort_Config\Assets\Controls_Empty.png]])
+			end;
+		}
+	})
 end -- SchemeContent
+
+---------------------------------------------------------------
+local Continue = {};
+---------------------------------------------------------------
+
+function Continue:OnClick()
+	self:SetChecked(false)
+	CPAPI.SetTutorialComplete('ControlScheme')
+	Guide:AutoSelectContent()
+end
 
 ---------------------------------------------------------------
 local Controls = {};
@@ -608,8 +827,9 @@ function Controls:OnLoad()
 	self.buttonPool = CreateFramePool('CheckButton', scrollChild, 'CPControlSchemeButton')
 	self.txPool     = CreateTexturePool(scrollChild, 'ARTWORK')
 
-	CPAPI.Specialize(self.RowInfo, InfoContainer)
-	CPAPI.Specialize(self.ColInfo, OptionsContainer)
+	CPAPI.Specialize(self.RowInfo,  InfoContainer)
+	CPAPI.Specialize(self.ColInfo,  OptionsContainer)
+	CPAPI.Specialize(self.Continue, Continue)
 
 	-- Position scheme buttons
 	local function CalculateButtonOffset(col, numColumns)
@@ -649,8 +869,8 @@ function Controls:OnLoad()
 	end
 
 	local spacer = CreateFrame('Frame', nil, scrollChild)
-	spacer:SetSize(CONTENT_WIDTH, 200)
-	spacer:SetPoint('TOP', 0, topOffset)
+	spacer:SetSize(CONTENT_WIDTH, 100)
+	spacer:SetPoint('TOP', 0, topOffset - 200)
 
 	CPAPI.Next(function()
 		scrollChild:SetMinimumWidth(self.Browser:GetWidth())

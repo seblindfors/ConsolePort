@@ -289,11 +289,6 @@ function Cvar:Init(elementData)
 		callbackFn = function(value)
 			self:SetRaw(self.variableID, value, self.variableID)
 			self:OnValueChanged(value)
-			local device = db('Gamepad/Active')
-			if device then
-				device.Preset.Variables[self.variableID] = value;
-				device:Activate()
-			end
 			db:TriggerEvent(self.variableID, value)
 		end;
 	})

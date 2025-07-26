@@ -134,11 +134,11 @@ end
 -- Primary bindings provider
 ---------------------------------------------------------------
 Bindings.Proxied = {
+	LeftMouseButton   = db.Gamepad.Mouse.Binding.LeftClick;
+	RightMouseButton  = db.Gamepad.Mouse.Binding.RightClick;
 	ExtraActionButton = 'EXTRAACTIONBUTTON1';
 	InteractTarget    = 'INTERACTTARGET';
 	Jump              = 'JUMP';
-	LeftMouseButton   = 'CAMERAORSELECTORMOVE';
-	RightMouseButton  = 'TURNORACTION';
 	TargetNearest     = 'TARGETNEARESTENEMY';
 	TargetPrevious    = 'TARGETPREVIOUSENEMY';
 	TargetScan		  = 'TARGETSCANENEMY';

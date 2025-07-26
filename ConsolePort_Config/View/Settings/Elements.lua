@@ -668,12 +668,18 @@ function BindingPreset:Apply()
 		showAlert = 1;
 		fullScreenCover = 1;
 		OnAccept = function(_, data)
-			for button, set in pairs(data.preset) do
-				for modifier, binding in pairs(set) do
-					env:SetBinding(modifier..button, binding)
+			if data.device then
+				for combination, binding in pairs(data.device:ApplyPresetBindings(GetCurrentBindingSet())) do
+					env:TriggerEvent('OnBindingChanged', combination, binding)
 				end
+			else
+				for button, set in pairs(data.preset) do
+					for modifier, binding in pairs(set) do
+						env:SetBinding(modifier..button, binding)
+					end
+				end
+				SaveBindings(GetCurrentBindingSet())
 			end
-			SaveBindings(GetCurrentBindingSet())
 			CPAPI.Log('Preset %s has been applied.', data.meta.Name)
 		end;
 	}, data.meta.Name, nil, data)
@@ -687,6 +693,7 @@ function BindingPreset:Data(datapoint)
 		readonly = datapoint.readonly;
 		store    = datapoint.store;
 		index    = datapoint.index;
+		device   = datapoint.device;
 	};
 end
 

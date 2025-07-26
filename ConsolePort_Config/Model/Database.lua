@@ -11,6 +11,11 @@ function env:SetTempBinding(...)
 		self:TriggerEvent('OnBindingChanged', ...)
 		return true;
 	end
+	local combination, bindingID = ...;
+	---@see https://github.com/Stanzilla/WoWUIBugs/issues/752
+	CPAPI.Log('Failed to set binding %s to %s. Report this bug to Blizzard.',
+		tostring(combination),
+		GetBindingName(tostring(bindingID)))
 end
 
 function env:SetBinding(keyChord, bindingID, ...)
@@ -23,11 +28,12 @@ function env:SetBinding(keyChord, bindingID, ...)
 	end
 end
 
-function env:ClearBindingsForID(bindingID, saveAfter)
-	local iterator = GenerateClosure(env.SetTempBinding, env)
-	db.table.map(iterator, db.Gamepad:GetBindingKey(bindingID))
-	if saveAfter then
-		SaveBindings(GetCurrentBindingSet())
+do  local cleaner = GenerateClosure(env.SetTempBinding, env)
+	function env:ClearBindingsForID(bindingID, saveAfter)
+		db.table.map(cleaner, db.Gamepad:GetBindingKey(bindingID))
+		if saveAfter then
+			SaveBindings(GetCurrentBindingSet())
+		end
 	end
 end
 

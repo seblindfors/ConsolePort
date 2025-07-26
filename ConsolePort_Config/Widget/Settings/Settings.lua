@@ -118,6 +118,15 @@ function Widget:OnShow()
 	end
 end
 
+function Widget:OnHide()
+	if self.closures then
+		for button, closure in pairs(self.closures) do
+			self.owner:FreeButton(button, closure)
+		end
+		self.closures = nil;
+	end
+end
+
 function Widget:ToggleClosure(button, enabled, callback, ...)
     if not button then
         self.closures = nil;
@@ -385,9 +394,13 @@ end
 
 function Number:GetControllerButtons()
 	if self.metaData and self.metaData.vert then
-		return 'PADDDOWN', 'PADDUP';
+		return 'PADDDOWN', 'PADDUP', 'PADDLEFT', 'PADDRIGHT';
 	end
-	return 'PADDLEFT', 'PADDRIGHT';
+	return 'PADDLEFT', 'PADDRIGHT', 'PADDDOWN', 'PADDUP';
+end
+
+function Number:GetListeners()
+	return self.OnDecrement, self.OnIncrement, nop, nop;
 end
 
 function Number:OnDecrement()
@@ -403,18 +416,23 @@ function Number:OnClick(button)
 		Widget.OnClick(self)
 		return self:SetDefault()
 	end
-	local decrement, increment = self:GetControllerButtons()
+	local listeners = { self:GetListeners() };
+	local controls = { self:GetControllerButtons() };
+	local decrement, increment = unpack(controls);
 	if self:GetChecked() then
-		self:ToggleClosure(decrement, true, self.OnDecrement, self)
-		self:ToggleClosure(increment, true, self.OnIncrement, self)
+		for i, control in ipairs(controls) do
+			local listener = listeners[i];
+			self:ToggleClosure(control, true, listener, self)
+		end
 		self:SetTooltipHints({
 			env:GetTooltipPromptForClick('LeftClick', APPLY);
 			env:GetTooltipPrompt(decrement, env.L'Decrease');
 			env:GetTooltipPrompt(increment, env.L'Increase');
 		});
 	else
-		self:ToggleClosure(decrement, false)
-		self:ToggleClosure(increment, false)
+		for _, control in ipairs(controls) do
+			self:ToggleClosure(control, false)
+		end
 		self:SetTooltipHints(nil)
 	end
 end

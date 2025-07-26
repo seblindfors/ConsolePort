@@ -284,6 +284,8 @@ L.GFX_GENERAL_INFO = [[
 	Choosing graphics does not change how your gamepad works, it only changes the appearance of the gamepad graphics in the interface.
 
 	Graphics are used to show you which buttons are currently bound to which actions, and to provide a visual reference for your gamepad's layout.
+
+	Some optional settings recommendations are provided based on your choice.
 ]];
 L.DEVICE_DESC_PLAYSTATION4 = [[
 	PlayStation 4 controller, also known as DualShock 4, is the previous generation gamepad from Sony.
@@ -306,7 +308,7 @@ L.DEVICE_DESC_STEAMDECK = [[
 
 	When using Steam Input, the device needs to use a suitable preset to ensure that the gamepad buttons are mapped correctly.
 
-	The simplest preset to use is Gamepad with Mouse Trackpad, which provides a solid foundation.
+	Gamepad with Mouse Trackpad provides a solid foundation.
 
 	Steam Decks cannot use their paddles natively in World of Warcraft, as Steam Input reduces the device to an Xbox 360 controller.
 	However, the paddles can be mapped using emulation, or choosing keyboard bindings in the Steam Input settings.
@@ -359,7 +361,7 @@ L.CONTROLS_MODIFIERS_CUSTOM = [[
 L.CONTROLS_MOUSE_BUTTONS_DESC = [[
 	Mouse buttons can be emulated to provide mouse-like functionality.
 
-	These bindings are useful in some cases, such as confirming spell placements on the ground,
+	These bindings are vital in some cases, such as confirming spell placements on the ground,
 	precise targeting in a crowd, and niche interface actions.
 
 	They can be combined with modifiers to further replicate the functionality of a mouse.
@@ -392,13 +394,12 @@ L.CONTROLS_MOUSE_CUSTOM = [[
 
 	World of Warcraft treats mouse buttons in two separate, mostly hidden ways.
 
-	- When you click on the game's interface (like buttons or menus), it's handled by the interface,
-	which can be emulated by a gamepad.
+	- When you click on the game's interface (like buttons or menus), the interface only reacts
+	to mouse clicks, which can be emulated by a gamepad.
 
 	- When you click on things in the game world (like targeting or interacting), it uses regular bindings.
 
-	Normally, you don't notice this with a mouse, but with a gamepad, you can choose to keep these actions
-	together or split them up for more control.
+	It's highly recommended to keep these actions together to fill the same role as a mouse.
 ]];
 L.CONTROLS_GAMEPAD_TESTER_DESC = [[
 	Use the testing tool to verify that your gamepad is working correctly.
@@ -420,4 +421,40 @@ L.CONTROLS_GAMEPAD_TESTER_DESC = [[
 ]];
 L.CONTROLS_GAMEPAD_TESTER_ACTION = [[
 	The tests will automatically expire after a few seconds if no input is detected.
+]];
+L.DEFAULTS_GENERAL_INFO = [[
+	Finalize the setup by applying recommended settings and bindings for your gamepad.
+]];
+L.DEFAULTS_SETTINGS_NOTWEAK = [[
+	Your gamepad type (%s) does not have any recommended settings to apply.
+]];
+L.DEFAULTS_SETTINGS_DESC = [[
+	Apply recommended settings for your gamepad type (%s):
+]];
+L.DEFAULTS_SETTINGS_APPLIED = [[
+	Recommended settings for your gamepad type (%s) have been applied.
+]];
+L.DEFAULTS_BINDINGS_PRESET_DESC = [[
+	Apply recommended bindings.
+
+	These bindings are based on your previous choices, and should give you a good starting point
+	for your gamepad setup. You can always change them later.
+
+	This action does not overwrite or interfere with any existing keyboard bindings,
+	but keep in mind that action bars are shared between them.
+
+	If you plan to switch between keyboard and gamepad, it's recommended to change your
+	gamepad bindings rather than moving abilities around on your action bars, when adjusting your setup.
+]];
+L.DEFAULTS_BINDINGS_EMPTY_DESC = [[
+	Start from a blank slate.
+
+	This action will clear all your current gamepad bindings, including the Blizzard defaults,
+	to allow you to set up your bindings from scratch.
+
+	This action does not overwrite or interfere with any existing keyboard bindings,
+	but keep in mind that action bars are shared between them.
+
+	If you plan to switch between keyboard and gamepad, it's recommended to change your
+	gamepad bindings rather than moving abilities around on your action bars, when adjusting your setup.
 ]];

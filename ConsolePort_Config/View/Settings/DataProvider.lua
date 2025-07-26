@@ -165,7 +165,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 	})
 
 	-- Presets
-	local function AddPreset(meta, preset, readonly, key)
+	local function AddPreset(meta, preset, readonly, key, device)
 		sort = GetSortIndex(main, head);
 		local datapoint = {
 			sort     = sort + 1;
@@ -174,6 +174,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 			preset   = preset;
 			readonly = readonly;
 			key      = key;
+			device   = device;
 			field    = {
 				name = meta.Name;
 				list = list;
@@ -185,15 +186,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 
 	-- The empty preset overwrites all bindings, so we're using it as a base
 	-- for other presets, to wipe out residual bindings.
-	local table, emptyPreset = db.table, (function()
-		local bindings = db.Gamepad:GetBindings(true)
-		for btn, set in pairs(bindings) do
-			for mod, _ in pairs(set) do
-				bindings[btn][mod] = '';
-			end
-		end
-		return bindings;
-	end)()
+	local table, emptyPreset = db.table, db.Gamepad:GetBindingsTemplate();
 
 	local function MakePreset(bindings)
 		return table.merge(table.copy(emptyPreset), table.copy(bindings))
@@ -220,15 +213,12 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 
 	-- Presets for each gamepad device
 	for name, device in db.Gamepad:EnumerateDevices() do
-		local bindings = device.Preset and device.Preset.Bindings;
-		if bindings then
-			local asset = db('Gamepad/Index/Splash/'..name)
-			local icon = asset and CPAPI.GetAsset([[Splash\Gamepad\]]..asset)
-			AddPreset({
-				Name = name;
-				Icon = icon;
-			}, MakePreset(bindings), true);
-		end
+		local asset = db('Gamepad/Index/Splash/'..name)
+		local icon = asset and CPAPI.GetAsset([[Splash\Gamepad\]]..asset)
+		AddPreset({
+			Name = name;
+			Icon = icon;
+		}, nil, true, name, device);
 	end
 
 	-- Presets from saved character data

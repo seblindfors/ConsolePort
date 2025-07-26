@@ -310,9 +310,9 @@ db:Register('Console', CPAPI.Proxy({
 
 function Console:GetMetadata(key)
 	for set, cvars in pairs(self) do
-		for i, data in ipairs(cvars) do
+		for _, data in ipairs(cvars) do
 			if (data.cvar == key) then
-				return data;
+				return data, set;
 			end
 		end
 	end
