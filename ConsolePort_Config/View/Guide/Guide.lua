@@ -8,6 +8,7 @@ function MenuFlyout:OnLoad()
 	self:ToggleInversion(true)
 	self:OnLeave()
 	self:SetScript('OnMouseDown', nil)
+	self:SetFrameLevel(10)
 end
 
 function MenuFlyout:OnEnter()

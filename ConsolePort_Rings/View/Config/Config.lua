@@ -1,4 +1,4 @@
-local env, db, Container, L = CPAPI.GetEnv(...); Container, L = env.Frame, env.L;
+local env, _, Container, L = CPAPI.GetEnv(...); Container, L = env.Frame, env.L;
 ---------------------------------------------------------------
 local Search = {};
 ---------------------------------------------------------------
@@ -17,11 +17,13 @@ end
 ---------------------------------------------------------------
 local Config = CreateFromMixins(CPButtonCatcherMixin); env.SharedConfig = {};
 ---------------------------------------------------------------
+CPAPI.Props(Config)
+	.Prop('DefaultTitle', L'Ring Manager')
+	.Bool('Embedded',     false)
 
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
-	self.DefaultTitle = L'Ring Manager';
 
 	CPAPI.SpecializeOnce(self.Display, env.SharedConfig.Display)
 	CPAPI.SpecializeOnce(self.Sets, env.SharedConfig.Sets)
@@ -57,7 +59,11 @@ function Config:OnLoad()
 end
 
 function Config:OnShow()
-	FrameUtil.UpdateScaleForFit(self, 40, 80)
+	if self:IsEmbedded() then
+		self:SetScale(1)
+	else
+		FrameUtil.UpdateScaleForFit(self, 40, 80)
+	end
 	self:SetDefaultClosures()
 	env:TriggerEvent('OnConfigShown', true)
 	self:RegisterEvent('PLAYER_REGEN_DISABLED')
@@ -114,7 +120,7 @@ function Config:OnSetUpdate(setID, isSelected)
 	self.Portrait:Play()
 	self.Name:SetText(
 		isSelected and Container:GetBindingDisplayNameForSetID(setID)
-		or self.DefaultTitle
+		or self:GetDefaultTitle()
 	);
 end
 
@@ -247,13 +253,14 @@ end
 ---------------------------------------------------------------
 -- Trigger
 ---------------------------------------------------------------
-env:RegisterCallback('ToggleConfig', function(self, setID)
+env:RegisterCallback('ToggleConfig', function(self, setID, embed)
 	if not self.Config then
 		self.Config, env.SharedConfig.Env = CPAPI.CreateConfigFrame(
 			Config, 'Frame', 'ConsolePortRingsConfig', UIParent, 'CPRingsConfig');
 			Mixin(env.SharedConfig, env.SharedConfig.Env.Elements)
 		self.Config:OnLoad()
 	end
+	self.Config:SetEmbedded(embed)
 	self.Config:Show()
 	self.Config:SelectSet(setID, not not setID)
 end, env)

@@ -6,6 +6,7 @@ local env, db = CPAPI.GetEnv(...)
 env:AddLoader(function()
 	for oldVariable, newVariable in pairs({
 		-------------------------------------------------------
+		autoExtra          = 'ringAutoExtra';
 		radialStickySelect = 'ringStickySelect';
 		radialRemoveButton = 'ringRemoveButton';
 		-------------------------------------------------------
@@ -16,7 +17,7 @@ env:AddLoader(function()
 		end
 	end
 
-	if ConsolePortUtility then
-		ConsolePortRings = ConsolePortUtility;
+	if ConsolePortUtility and not ConsolePortRings then
+		ConsolePortRings = CopyTable(ConsolePortUtility);
 	end
 end)

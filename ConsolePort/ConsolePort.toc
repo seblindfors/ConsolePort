@@ -15,7 +15,7 @@
 ## X-Wago-ID: LvNAYjNo
 
 ## SavedVariables: ConsolePortSettings, ConsolePortDevices, ConsolePortShared, ConsolePortBindingIcons
-## SavedVariablesPerCharacter: ConsolePortCharacterSettings
+## SavedVariablesPerCharacter: ConsolePortCharacterSettings, ConsolePortUtility
 
 #@do-not-package@
 ## OptionalDeps: ConsolePort_Debug

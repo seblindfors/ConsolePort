@@ -489,10 +489,6 @@ db:Register('Variables', CPAPI.Callable({
 	--------------------------------------------------------------------------------------------------------
 	_(ACCESSIBILITY_LABEL, INTERFACE_LABEL); -- Accessibility
 	--------------------------------------------------------------------------------------------------------
-	autoExtra = _{Bool(true);
-		name = 'Automatically Bind Extra Items';
-		desc = 'Automatically add tracked quest items and extra spells to main utility ring.';
-	};
 	autoSellJunk = _{Bool(true);
 		name = 'Auto-Sell Junk';
 		desc = 'Automatically sell junk when interacting with a merchant.';

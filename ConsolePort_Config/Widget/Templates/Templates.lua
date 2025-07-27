@@ -105,7 +105,7 @@ end
 ---------------------------------------------------------------
 CPNavBarMixin = {
 ---------------------------------------------------------------
-	ButtonWidthBuffer = 70;
+	ButtonWidthBuffer = 60;
 	fadedLeftButton   = false;
 	fadedRightButton  = true;
 };

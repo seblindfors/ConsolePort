@@ -199,6 +199,8 @@ function Config:OnLoad()
 	}))
 	self.Import:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnImportButtonClicked'))
 	self.Export:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnExportButtonClicked'))
+
+	db:TriggerEvent('OnConfigLoaded', env, self)
 end
 
 ---------------------------------------------------------------

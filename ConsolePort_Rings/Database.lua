@@ -6,6 +6,10 @@ LibStub('RelaTable')(name, env, false);
 ---------------------------------------------------------------
 env.Variables = {
 	_('Rings', INTERFACE_LABEL);
+	ringAutoExtra = _{Data.Bool(true);
+		name = 'Automatically Bind Extra Items';
+		desc = 'Automatically add tracked quest items and extra spells to main utility ring.';
+	};
 	ringPressAndHold = _{Data.Bool(true);
 		name = 'Press and Hold';
 		desc = 'Use press and hold to navigate and use rings. Press, point, release.';

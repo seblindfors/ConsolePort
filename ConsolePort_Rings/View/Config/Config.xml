@@ -1,5 +1,6 @@
 <Ui>
 	<Script file="Config.lua"/>
+	<Script file="Panel.lua"/>
 	<Include file="Sets\Sets.xml"/>
 	<Include file="Display\Display.xml"/>
 	<Include file="Loadout\Loadout.xml"/>
@@ -81,7 +82,7 @@
 							<Frame parentKey="OptionsHeader" inherits="CPPopupHeaderTemplate">
 								<Size x="680" y="38"/>
 								<Anchors>
-									<Anchor point="TOPLEFT" x="0" y="-6"/>
+									<Anchor point="TOP" x="0" y="-6"/>
 								</Anchors>
 							</Frame>
 							<Frame parentKey="IconHeader" inherits="CPPopupHeaderTemplate">

@@ -5,6 +5,9 @@
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>
+		<KeyValues>
+			<KeyValue key="nonExclusive" value="true" type="boolean"/>
+		</KeyValues>
 		<Frames>
 			<Button parentKey="Credits" frameLevel="10">
 				<Size x="72" y="72"/>
