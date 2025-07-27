@@ -5,8 +5,9 @@ local Guide = env:GetContextPanel();
 -- Helpers
 ---------------------------------------------------------------
 local WHITE_FONT_COLOR = WHITE_FONT_COLOR or CreateColor(1, 1, 1)
-local ALT_MATCH = 'ALT%-';
-local ANI_DURATION = 0.15;
+local ALT_MATCH        = 'ALT%-';
+local ANI_DURATION     = 0.15;
+local LINE_ALPHA       = 0.25;
 local ButtonLayout = {
 	LEFT = {
 		textPoint   = {'LEFT', 'LEFT', 40, 0};
@@ -576,7 +577,7 @@ function ComboButton:OnClick(...)
 end
 
 function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration or ANI_DURATION;
-	local delta    = alpha or 1.0;
+	local delta    = alpha or LINE_ALPHA;
 	local isOpaque = alpha and alpha >= 1.0;
 	local bitAlpha = isOpaque and 1.0 or nil;
 	local cutoff   = self:GetLineSegments();
@@ -585,12 +586,7 @@ function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration 
 	end
 	self:UpdateLineState(delta, isOpaque, bitAlpha, cutoff, duration)
 	self:PlayLineEffect(duration, function(bit, i)
-		 -- Hide the last bit so that alpha merges correctly with the bottom lines.
-		if ( not isOpaque and i >= cutoff ) then
-			bit:SetAlpha(0)
-		else
-			bit:SetAlpha(Saturate(bitAlpha or delta * bit.finalAlpha))
-		end
+		bit:SetAlpha(Saturate(bitAlpha or delta * bit.finalAlpha))
 		if i == cutoff then
 			self.Bottom:FadeIn(duration, self.Bottom:GetAlpha(), Saturate(delta * 1.0))
 		end
@@ -684,14 +680,15 @@ end
 
 function ComboButton:UpdateLines()
 	local h, s, v = self:GetHSV()
-	self.Bottom:SetAlpha(1.0)
-
+	local alpha = LINE_ALPHA;
+	self.Bottom:SetAlpha(alpha)
 	local e = (h + 180) % 360;
-	self:DrawLine(function(bit, section)
+	self:DrawLine(function(bit, section, i, numSegments)
 		local hue = Lerp(e, h, section);
-		bit.finalAlpha = EasingUtil.InCubic(Lerp(0, 1.0, section));
+		 -- Hide the last bit so that alpha merges correctly with the bottom lines.
+		bit.finalAlpha = i == numSegments and 0.0 or EasingUtil.InCubic(Lerp(0, 1.0, section));
 		bit:SetVertexColor(CPAPI.HSV2RGB(hue, s, v))
-		bit:SetAlpha(bit.finalAlpha)
+		bit:SetAlpha(bit.finalAlpha * alpha)
 	end)
 
 	-- Connect the bottom lines to the spline line, with perfect overlap.

@@ -737,20 +737,10 @@ local SchemeContent = {}; do
 				return matchesSettings;
 			end;
 			execute = function(self)
-				local device, hasEnvironment, console, settings = GetGamepadEnvironment();
-				if not hasEnvironment then
+				local device = GetGamepadEnvironment();
+				if not device:ApplyPresetVars() then
 					self:SetChecked(false)
 					return CPAPI.Log(L.DEFAULTS_SETTINGS_NOTWEAK:format(device.Name):trim());
-				end
-				if console then
-					for varID, value in env.table.spairs(console) do
-						db:SetCVar(varID, value);
-					end
-				end
-				if settings then
-					for varID, value in env.table.spairs(settings) do
-						db('Settings/'..varID, value)
-					end
 				end
 				CPAPI.Log(L.DEFAULTS_SETTINGS_APPLIED:format(device.Name):trim());
 				self:Update()
@@ -770,7 +760,7 @@ local SchemeContent = {}; do
 			predicate = function()
 				return cmp(GetCurrentBindings(), GetPresetBindings())
 			end;
-			execute = function(self)
+			execute = function()
 				for combination, binding in pairs(GetPresetBindings()) do
 					env:SetBinding(combination, binding)
 				end

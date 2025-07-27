@@ -579,12 +579,27 @@ function GamepadMixin:Activate()
 	GamepadAPI:SetActiveDevice(self.Name)
 end
 
-function GamepadMixin:ApplyPresetVars()
-	assert(self.Preset.Variables, ('Console variables missing from %s template.'):format(self.Name))
-	for var, val in pairs(self.Preset.Variables) do
-		db:SetCVar(var, val)
+function GamepadMixin:ApplyPresetVars(activateOnFinish)
+	local environment = self.Environment;
+	if not environment then
+		return false;
 	end
-	self:Activate()
+	local console = environment.Console;
+	if console then
+		for var, val in pairs(console) do
+			db:SetCVar(var, val)
+		end
+	end
+	local settings = environment.Settings;
+	if settings then
+		for var, val in pairs(settings) do
+			db('Settings/'..var, val)
+		end
+	end
+	if activateOnFinish then
+		self:Activate()
+	end
+	return true;
 end
 
 function GamepadMixin:ConfigHasBluetoothHandling()
