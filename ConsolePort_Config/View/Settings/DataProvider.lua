@@ -23,19 +23,6 @@ do local GroupOrder = {
 			return a < b;
 		end
 	end
-
-	function Settings.CategorySort(t, a, b)
-		local iA, iB = t[a].sort, t[b].sort;
-		if iA and not iB then
-			return true;
-		elseif iB and not iA then
-			return false;
-		elseif iA and iB then
-			return iA < iB;
-		else
-			return a < b;
-		end
-	end
 end
 
 -----------------------------------------------------------
@@ -269,8 +256,7 @@ end)
 -----------------------------------------------------------
 -- Action bars
 -----------------------------------------------------------
-Settings:AddProvider(function(AddSetting, GetSortIndex)
-	local main, head = SETTING_GROUP_GAMEPLAY, ACTIONBARS_LABEL;
+env.ActionBarsProvider = (function(main, head, excludeSearch, AddSetting, GetSortIndex)
 	local sort = GetSortIndex(main, head);
 
 	-- Toggle character bindings on/off
@@ -309,6 +295,7 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 						advd = true;
 						expd = list == PRIMARY;
 						info = stanceBarInfo;
+						excludeSearch = excludeSearch;
 					};
 				})
 			end
@@ -316,7 +303,11 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 	end
 
 	return 'OnShapeshiftFormInfoChanged', 'Settings/bindingShowExtraBars';
-end)
+end); Settings:AddProvider(GenerateClosure(env.ActionBarsProvider,
+	SETTING_GROUP_GAMEPLAY, -- main
+	ACTIONBARS_LABEL,       -- head
+	false                   -- excludeSearch
+));
 
 -----------------------------------------------------------
 -- Base customizations to data sets/provider

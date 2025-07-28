@@ -830,6 +830,7 @@ function Overview:OnShow()
 	self:ReindexModifiers()
 	self:SetDevice(env:GetActiveDeviceAndMap())
 	self:ToggleAndUpdateModifier('')
+	ConsolePort:SetCursorNodeIfActive(Guide.MenuFlyout)
 end
 
 function Overview:OnHide()

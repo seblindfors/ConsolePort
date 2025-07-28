@@ -1,4 +1,4 @@
-local _, env = ...;
+local _, Data, env = CPAPI.LinkEnv(...)
 ---------------------------------------------------------------
 -- Constants
 ---------------------------------------------------------------
@@ -46,11 +46,10 @@ env.Const.PageDescription =  {
 do -- Variables
 ---------------------------------------------------------------
 local classColor = CreateColor(CPAPI.NormalizeColor(CPAPI.GetClassColor()));
-local Data, _ = env.db.Data, CPAPI.Define;
 
 env:Register('Variables', CPAPI.Callable({
 	---------------------------------------------------------------
-	_'Action Bars';
+	_(GENERAL, ACTIONBARS_LABEL);
 	---------------------------------------------------------------
 	showMainIcons = _{Data.Bool(true);
 		name = 'Show Main Icons';
@@ -64,12 +63,10 @@ env:Register('Variables', CPAPI.Callable({
 		name = 'Disable Drag and Drop';
 		desc = 'Disable dragging and dropping abilities on action bars.';
 	};
-	---------------------------------------------------------------
-	_'Action Buttons';
-	---------------------------------------------------------------
 	LABclickOnDown = _{Data.Bool(true);
 		name = 'Click on Down';
 		desc = 'Trigger button actions on press instead of release.';
+		advd = true;
 	};
 	LABhideElementsMacro = _{Data.Bool(false);
 		name = 'Hide Macro Text';
@@ -86,9 +83,10 @@ env:Register('Variables', CPAPI.Callable({
 	LABtooltip = _{Data.Select('Enabled', 'Enabled', 'Disabled', 'NoCombat');
 		name = 'Tooltip';
 		desc = 'Show tooltips on buttons when moused over.';
+		advd = true;
 	};
 	---------------------------------------------------------------
-	_'Action Buttons | Page Hotkeys';
+	_('Page Hotkeys', 'Action Buttons');
 	---------------------------------------------------------------
 	LABhotkeyColor = _{Data.Color(CreateColor( 0.75, 0.75, 0.75 ));
 		name = 'Color';
@@ -123,7 +121,7 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Relative anchor point of the hotkey text on buttons.';
 	};
 	---------------------------------------------------------------
-	_'Action Buttons | Macro Text';
+	_('Macro Text', 'Action Buttons');
 	---------------------------------------------------------------
 	LABmacroColor = _{Data.Color(WHITE_FONT_COLOR);
 		name = 'Color';
@@ -166,7 +164,7 @@ env:Register('Variables', CPAPI.Callable({
 		deps = { LABhideElementsMacro = false };
 	};
 	---------------------------------------------------------------
-	_'Action Buttons | Recharge';
+	_('Recharge', 'Action Buttons');
 	---------------------------------------------------------------
 	LABcountColor = _{Data.Color(WHITE_FONT_COLOR);
 		name = 'Color';
@@ -201,7 +199,7 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Relative anchor point of the counter text on buttons.';
 	};
 	---------------------------------------------------------------
-	_'Groups';
+	_('Groups', ACTIONBARS_LABEL);
 	---------------------------------------------------------------
 	groupHotkeySize = _{Data.Number(20, 1);
 		name = 'Hotkey Size';
@@ -224,7 +222,7 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Relative anchor point of the hotkey icon on group buttons.';
 	};
 	---------------------------------------------------------------
-	_'Clusters';
+	_('Clusters', ACTIONBARS_LABEL);
 	---------------------------------------------------------------
 	clusterShowAll = _{Data.Bool(false);
 		name = 'Always Show All Buttons';
@@ -238,6 +236,7 @@ env:Register('Variables', CPAPI.Callable({
 	clusterFullStateModifier = _{Data.Bool(false);
 		name = 'Full State Modifier';
 		desc = 'Enable all modifier states for the cluster, including unmapped modifiers.';
+		advd = true;
 	};
 	swipeColor = _{Data.Color(classColor);
 		name = 'Swipe Color';
@@ -252,7 +251,7 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Style of the border around main buttons.';
 	};
 	---------------------------------------------------------------
-	_'Toolbar';
+	_('Toolbar', ACTIONBARS_LABEL);
 	---------------------------------------------------------------
 	enableXPBar = _{Data.Bool(true);
 		name = 'Enable Watch Bars';
@@ -269,12 +268,9 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Color of the main XP bar.';
 		deps = { enableXPBar = true };
 	};
-	---------------------------------------------------------------
-	_(GENERAL);
-	---------------------------------------------------------------
 	tintColor = _{Data.Color(classColor);
 		name = 'Tint Color';
-		desc = 'Color of the tint effect on some elements.';
+		desc = 'Color of the tint effect on the toolbar and dividers.';
 	};
 }, function(self, key) return (rawget(self, key) or {})[1] end))
 ---------------------------------------------------------------

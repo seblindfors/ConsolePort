@@ -224,7 +224,7 @@ function Setting:Init(elementData)
 		varID = data.varID;
 		field = data.field;
 		owner = ConsolePortConfig;
-		registry = db;
+		registry = data.db;
 		newObj = true;
 	})
 end
@@ -268,6 +268,7 @@ function Setting:Data(datapoint)
 		varID = datapoint.varID;
 		field = datapoint.field;
 		type  = datapoint.field[1]:GetType();
+		db    = datapoint.registry or db;
 	};
 end
 

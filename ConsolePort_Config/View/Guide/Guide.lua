@@ -9,6 +9,11 @@ function MenuFlyout:OnLoad()
 	self:OnLeave()
 	self:SetScript('OnMouseDown', nil)
 	self:SetFrameLevel(10)
+	env:RegisterCallback('OnSearch', self.OnSearch, self)
+end
+
+function MenuFlyout:OnSearch(text)
+	self:SetShown(not text)
 end
 
 function MenuFlyout:OnEnter()
@@ -61,6 +66,7 @@ end
 function Guide:OnShow()
 	self:Render()
 	self.MenuFlyout:Populate(self.content)
+	self.MenuFlyout:Show()
 end
 
 function Guide:OnHide()

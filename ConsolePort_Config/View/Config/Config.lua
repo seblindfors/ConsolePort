@@ -201,8 +201,8 @@ function Config:OnLoad()
 		showAlert       = 1;
 		fullScreenCover = true;
 		OnCancel        = nop;
-		OnAccept = function(self)
-			-- TODO: SettingsPanel:SetAllSettingsToDefaults();
+		OnAccept = function()
+			ConsolePort 'resetall';
 		end;
 		OnAlt = function()
 			self:GetCurrentPanel():OnDefaults()
@@ -448,6 +448,7 @@ function Config:SetPanelByDelta(delta)
 	local newPanelID = Clamp(self.currentPanelID + delta, 1, env:GetNumPanels())
 	if newPanelID ~= self.currentPanelID then
 		self:SetCurrentPanelByID(newPanelID)
+		ConsolePort:SetCursorNodeIfActive(self:GetCurrentPanel().navButton)
 	end
 end
 

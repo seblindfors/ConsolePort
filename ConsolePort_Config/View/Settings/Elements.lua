@@ -288,6 +288,9 @@ function DeviceProfile:Data(datapoint)
 end
 
 function DeviceProfile:Get()
+	if not self.GetElementData then
+		return false; -- not mounted.
+	end
 	return not not self:GetElementData():GetData().device.Active;
 end
 
@@ -356,9 +359,7 @@ function DeviceProfile:OnActivate()
 		return device:Activate()
 	end
 	CPAPI.Popup('ConsolePort_Apply_Preset', {
-		text = L('Do you want to load settings for %s?'
-			.. '\n\n'
-			.. 'This will configure your modifiers, mouse emulation buttons, and previously saved device settings (if any).', device.Name);
+		text = L('Do you want to load settings for %s?', device.Name);
 		button1 = YES;
 		button2 = NO;
 		timeout = 0;

@@ -162,7 +162,7 @@ function Settings:OnShow()
 
 	local sortedGroups, layoutIndex = {}, CreateCounter();
 	foreach(env.Variables, function(var, data)
-		local group = data.head or MISCELLANEOUS;
+		local group = ('%s | %s'):format(data.main or SETTINGS, data.head or MISCELLANEOUS);
 
 		if data.hide then
 			local widget = self:GetObjectByIndex(group..':'..data.name)

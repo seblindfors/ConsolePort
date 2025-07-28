@@ -189,11 +189,14 @@ function Renderer:OnSearch(text, provider) text = text:lower();
 
 	local function FilterDatapoint(dp)
 		local field = dp.field;
-		local name = field.name;
-		return ( name and MinEditDistance(name:lower(), text) < 3 ) or TestString(name)
+		local name  = field.name;
+		local excl  = field.excludeSearch;
+
+		return not excl and (( name and MinEditDistance(name:lower(), text) < 3 )
+			or TestString(name)
 			or TestString(field.desc)
 			or TestString(field.note)
-			or TestString(field.list);
+			or TestString(field.list));
 	end
 
 	for main, group in env.table.spairs(interface) do

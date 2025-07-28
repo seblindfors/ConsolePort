@@ -4,6 +4,7 @@
 
 	<Script file="Elements.lua"/>
 	<Script file="Settings.lua"/>
+	<Script file="Panel.lua"/>
 	<Script file="Renderer.lua"/>
 	<Script file="DataProvider.lua"/>
 </Ui>
