@@ -50,6 +50,13 @@ function CPCardBaseMixin:OnMouseUp()
 	ToggleVisible(self.InnerContent.Glow, 0.25, false)
 end
 
+function CPCardBaseMixin:Flash()
+	ToggleVisible(self.InnerContent.Glow, 0.25, true)
+	C_Timer.After(0.25, function()
+		ToggleVisible(self.InnerContent.Glow, 0.25, false)
+	end)
+end
+
 function CPCardBaseMixin:OnButtonStateChanged(noAnimation)
 	local state = self.Flags({
 		Disabled = not self:IsEnabled(),

@@ -271,3 +271,15 @@ do local map = function(func)
 	ConsolePort.PostPendingRingAction  = map 'PostPendingAction';
 	ConsolePort.ClearPendingRingAction = map 'ClearPendingAction';
 end
+
+---------------------------------------------------------------
+-- Config API
+---------------------------------------------------------------
+
+function ConsolePort:RegisterConfigCallback(callback, owner, ...)
+	local function Closure(...)
+		callback(...)
+		CPAPI.Next(db.UnregisterCallback, db, 'OnConfigLoaded', owner)
+	end
+	db:RegisterCallback('OnConfigLoaded', Closure, owner, ...)
+end

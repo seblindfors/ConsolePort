@@ -12,12 +12,12 @@ function Panel:OnShow()
 	ConsolePort:SetCursorNodeIfActive(env.Config.Main)
 end
 
-env.db:RegisterCallback('OnConfigLoaded', function(localEnv, config, configEnv)
-	Panel.window = config;
-	configEnv.Bars = config:CreatePanel({
-		name = BINDING_HEADER_ACTIONBAR;
-		mixin = Panel;
-		scaleToParent = true;
-		forbidRecursiveScale = true;
-	})
-end, env)
+--env.db:RegisterCallback('OnConfigLoaded', function(localEnv, config, configEnv)
+--	Panel.window = config;
+--	configEnv.Bars = config:CreatePanel({
+--		name = BINDING_HEADER_ACTIONBAR;
+--		mixin = Panel;
+--		scaleToParent = true;
+--		forbidRecursiveScale = true;
+--	})
+--end, env)

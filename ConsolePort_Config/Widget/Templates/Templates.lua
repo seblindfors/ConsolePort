@@ -74,8 +74,10 @@ function CPTabGroupMixin:SetEnabled(index, enabled)
 end
 
 function CPTabGroupMixin:SelectAtIndex(index)
+	local isNewIndex = index ~= self.tabIndex;
 	self.tabIndex = index;
 	RadioButtonGroupMixin.SelectAtIndex(self, index)
+	return isNewIndex;
 end
 
 function CPTabGroupMixin:Decrement()
@@ -86,7 +88,7 @@ function CPTabGroupMixin:Decrement()
 	end
 	local target = self:GetAtIndex(delta)
 	if target and target:IsEnabled() then
-		self:SelectAtIndex(delta)
+		return self:SelectAtIndex(delta)
 	end
 end
 
@@ -98,8 +100,12 @@ function CPTabGroupMixin:Increment()
 	end
 	local target = self:GetAtIndex(delta)
 	if target and target:IsEnabled() then
-		self:SelectAtIndex(delta)
+		return self:SelectAtIndex(delta)
 	end
+end
+
+function CPTabGroupMixin:GetActiveTabIndex()
+	return self.tabIndex or 1;
 end
 
 ---------------------------------------------------------------

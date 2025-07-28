@@ -5,6 +5,7 @@ local Panel = {};
 
 function Panel:InitPanel(id, container, navButton)
 	self.id = id;
+	self.isEnabled = true;
 	self.container = container;
 	self.navButton = navButton;
 	self:SetParent(container)
@@ -35,6 +36,15 @@ function Panel:OnPanelShow(id)
 		return self:Hide()
 	end
 	self:Show()
+end
+
+function Panel:IsEnabled()
+	return self.isEnabled;
+end
+
+function Panel:SetEnabled(enabled)
+	self.isEnabled = not not enabled;
+	self.navButton:SetEnabled(enabled)
 end
 
 function Panel:OnSearch(text, dataProvider)
@@ -142,8 +152,9 @@ function Search:ClearQuery()
 end
 
 ---------------------------------------------------------------
-local Config = CreateFromMixins(CPButtonCatcherMixin); env.Config = Config;
+local Config = CreateFromMixins(CPButtonCatcherMixin, CPCombatHideMixin)
 ---------------------------------------------------------------
+env.Config = Config;
 
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
@@ -200,7 +211,10 @@ function Config:OnLoad()
 	self.Import:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnImportButtonClicked'))
 	self.Export:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnExportButtonClicked'))
 
-	db:TriggerEvent('OnConfigLoaded', env, self)
+	self.PanelSelectDelta = {
+		PADLSHOULDER = -1;
+		PADRSHOULDER =  1;
+	};
 end
 
 ---------------------------------------------------------------
@@ -236,18 +250,35 @@ end
 ---------------------------------------------------------------
 
 function Config:OnShow()
+	CPCombatHideMixin.OnShow(self)
 	self:SetDefaultClosures()
 	self:OnActiveDeviceChanged()
-	RunNextFrame(function()
-		FrameUtil.UpdateScaleForFit(self, 40, 80)
-		if not self.currentPanelID then
-			self:SetCurrentPanel(SETTINGS)
-		end
-	end)
+	CPAPI.Next(self.OnShowDelayed, self)
+end
+
+function Config:OnShowDelayed()
+	FrameUtil.UpdateScaleForFit(self, 40, 80)
+	if not self.currentPanelID then
+		self:SetCurrentPanel(SETTINGS)
+	end
 end
 
 function Config:SetDefaultClosures()
 	self:ReleaseClosures()
+	for button, delta in pairs(self.PanelSelectDelta) do
+		self:CatchButton(button, self.SetPanelByDelta, self, delta)
+	end
+end
+
+function Config:FreeButton(button, closure)
+	if not CPButtonCatcherMixin.FreeButton(self, button, closure) then
+		return false;
+	end
+	local panelSelectDelta = self.PanelSelectDelta[button];
+	if panelSelectDelta then
+		self:CatchButton(button, self.SetPanelByDelta, self, panelSelectDelta)
+	end
+	return true;
 end
 
 function Config:OnActiveDeviceChanged()
@@ -398,7 +429,9 @@ function Config:GetCurrentPanel()
 end
 
 function Config:SetCurrentPanelByID(id)
-	assert(env:GetPanelByID(id), 'Panel does not exist: ' .. tostring(id))
+	local panel = env:GetPanelByID(id)
+	assert(panel, 'Panel does not exist: ' .. tostring(id))
+	if not panel:IsEnabled() then return end;
 	env:TriggerEvent('OnPanelShow', id)
 end
 
@@ -407,6 +440,14 @@ function Config:SetCurrentPanel(name)
 		if panel.name == name then
 			return self:SetCurrentPanelByID(id)
 		end
+	end
+end
+
+function Config:SetPanelByDelta(delta)
+	if not self.currentPanelID then return end;
+	local newPanelID = Clamp(self.currentPanelID + delta, 1, env:GetNumPanels())
+	if newPanelID ~= self.currentPanelID then
+		self:SetCurrentPanelByID(newPanelID)
 	end
 end
 
@@ -451,5 +492,9 @@ do  local panelIDGen, panels = CreateCounter(), {};
 
 	function env:GetContextPanel()
 		return panels[#panels];
+	end
+
+	function env:GetNumPanels()
+		return #panels;
 	end
 end

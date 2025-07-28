@@ -15,7 +15,7 @@ function Search:OnTabSelected(tabIndex, panels)
 end
 
 ---------------------------------------------------------------
-local Config = CreateFromMixins(CPButtonCatcherMixin); env.SharedConfig = {};
+local Config = CreateFromMixins(CPButtonCatcherMixin, CPCombatHideMixin);
 ---------------------------------------------------------------
 CPAPI.Props(Config)
 	.Prop('DefaultTitle', L'Ring Manager')
@@ -66,29 +66,37 @@ function Config:OnShow()
 	end
 	self:SetDefaultClosures()
 	env:TriggerEvent('OnConfigShown', true)
-	self:RegisterEvent('PLAYER_REGEN_DISABLED')
+	CPCombatHideMixin.OnShow(self)
 end
 
 function Config:OnHide()
 	self:ReleaseClosures()
 	env:TriggerEvent('OnConfigShown', false)
-	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
-end
-
-function Config:OnEvent(event)
-	if event == 'PLAYER_REGEN_DISABLED' then
-		self:RegisterEvent('PLAYER_REGEN_ENABLED')
-		self:Hide()
-	elseif event == 'PLAYER_REGEN_ENABLED' then
-		self:UnregisterEvent('PLAYER_REGEN_ENABLED')
-		self:Show()
-	end
+	CPCombatHideMixin.OnHide(self)
 end
 
 function Config:SetDefaultClosures()
 	self:ReleaseClosures()
-	self:CatchButton('PADLSHOULDER', self.Tabs.Decrement, self.Tabs)
-	self:CatchButton('PADRSHOULDER', self.Tabs.Increment, self.Tabs)
+	self:CatchButton('PADLSHOULDER', self.OnTabDecrement, self)
+	self:CatchButton('PADRSHOULDER', self.OnTabIncrement, self)
+end
+
+function Config:OnTabDecrement()
+	if self.Tabs:Decrement() then return end;
+	if self:IsEmbedded() then
+		return env:TriggerEvent('OnHideEmbedded', -1)
+	end
+end
+
+function Config:OnTabIncrement()
+	if self.Tabs:Increment() then return end;
+	local noSetSelected = self.Tabs:GetActiveTabIndex() == self.Panels.Rings;
+	if noSetSelected then
+		return env:TriggerEvent('OnFlashSets')
+	end
+	if self:IsEmbedded() then
+		return env:TriggerEvent('OnHideEmbedded', 1)
+	end
 end
 
 ---------------------------------------------------------------

@@ -154,6 +154,7 @@ function Sets:OnLoad()
 	env:RegisterCallback('OnSelectSet', self.OnSelectSet, self)
 	env:RegisterCallback('OnAddNewSet', self.OnAddNewSet, self)
 	env:RegisterCallback('OnSetUpdate', self.OnSetUpdate, self)
+	env:RegisterCallback('OnFlashSets', self.OnFlashSets, self)
 end
 
 function Sets:OnShow()
@@ -197,6 +198,13 @@ function Sets:OnSetUpdate()
 	self:GetScrollView():ReinitializeFrames()
 end
 
+function Sets:OnFlashSets()
+	self:GetScrollView():ForEachFrame(function(frame, elementData)
+		if elementData:GetData().xml == 'CPRingSetCard' then
+			frame:Flash()
+		end
+	end)
+end
 
 function Sets:SetData(data, sharedData, selectedSetID)
 	self.playerSets:Flush()

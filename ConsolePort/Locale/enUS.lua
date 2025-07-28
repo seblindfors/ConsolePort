@@ -266,8 +266,6 @@ For example, the main action bar will switch to a special set of abilities when 
 
 This allows you to access context-specific abilities without needing to manually change your action bar setup.
 
-Whenever your character's state changes—such as mounting a vehicle, transforming, or engaging in unique encounters—the main action bar updates to display the relevant abilities for that context.
-
 When you return to your normal state, your regular abilities will reappear on the bar.]]
 L.ACTIONBAR_FORM_DESC = [[Activating this form will automatically switch your main action bar to display the abilities associated with this form.
 
@@ -281,7 +279,7 @@ This discrepancy can be ignored if you're not using a custom action page solutio
 L.GFX_GENERAL_INFO = [[
 	Select the gamepad graphics that are closest to your gamepad's appearance.
 
-	Choosing graphics does not change how your gamepad works, it only changes the appearance of the gamepad graphics in the interface.
+	Choosing graphics does not change how your gamepad works, it only changes the appearance of the interface.
 
 	Graphics are used to show you which buttons are currently bound to which actions, and to provide a visual reference for your gamepad's layout.
 

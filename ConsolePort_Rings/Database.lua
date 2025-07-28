@@ -36,6 +36,7 @@ ConsolePort:AddVariables(env.Variables)
 ---------------------------------------------------------------
 env.ActionButton  = LibStub('ConsolePortActionButton');
 env.DisplayButton = CreateFromMixins(CPActionButton);
+env.SharedConfig  = {};
 
 env.Attributes = {
 	MetadataIndex  = 0;

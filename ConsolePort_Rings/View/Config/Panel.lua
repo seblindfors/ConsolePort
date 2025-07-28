@@ -5,6 +5,7 @@ local Panel = { name = L'Rings' };
 
 function Panel:OnLoad()
 	CPAPI.Start(self)
+	env:RegisterCallback('OnHideEmbedded', self.OnHideEmbedded, self)
 end
 
 function Panel:OnShow()
@@ -16,6 +17,10 @@ end
 
 function Panel:OnHide()
 	self:SetEmbedded(false)
+end
+
+function Panel:OnHideEmbedded(delta)
+	env.SharedConfig.Env.Frame:SetPanelByDelta(delta)
 end
 
 function Panel:InitCanvas(canvas)
@@ -34,7 +39,6 @@ function Panel:SetEmbedded(embed)
 	local config = self:InitConfig(embed and self.canvas or UIParent)
 
 	foreach({
-		config.Portrait,
 		config.CloseButton,
 		config.Name,
 		config.NameHighlight,
@@ -67,19 +71,22 @@ function Panel:SetEmbedded(embed)
 	config.Display.Details.IconSelector.customStride = embed and 13 or nil;
 
 	if embed then
+		config.Portrait:SetParent(self)
+		config.Portrait:SetPoint('TOPLEFT', window, 'TOPLEFT', -20, 20)
 		config.Tabs:SetParent(self)
 		config.Tabs:SetPoint('BOTTOMRIGHT', self.canvas, 'TOPRIGHT', -140, 2)
 	else
+		config.Portrait:SetParent(config)
+		config.Portrait:SetPoint('TOPLEFT', config, 'TOPLEFT', -16, 16)
 		config.Tabs:SetParent(config)
 		config.Tabs:SetPoint('BOTTOMRIGHT', config.Display, 'TOPRIGHT', -32, 2)
 	end
 
+	window.Credits:SetShown(not embed)
 	window.Search:SetShown(not embed)
 	config:SetShown(embed)
 end
 
-db:RegisterCallback('OnConfigLoaded', function(self, configEnv)
+ConsolePort:RegisterConfigCallback(function(_, configEnv)
 	configEnv:CreatePanel(Panel)
-	-- Unregister on next frame since the registry is currently iterating callbacks.
-	CPAPI.Next(env.UnregisterCallback, env, 'OnConfigLoaded', self)
 end, env)

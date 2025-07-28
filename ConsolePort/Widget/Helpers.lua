@@ -145,6 +145,37 @@ function CPPropagationMixin:SetPropagation(enabled)
 end
 
 ---------------------------------------------------------------
+-- Combat hide mixin
+---------------------------------------------------------------
+CPCombatHideMixin = {};
+
+function CPCombatHideMixin:OnLoad()
+	self:SetScript('OnEvent', CPCombatHideMixin.OnEvent)
+end
+
+function CPCombatHideMixin:OnShow()
+	self:RegisterEvent('PLAYER_REGEN_DISABLED')
+	if InCombatLockdown() then
+		CPCombatHideMixin.OnEvent(self, 'PLAYER_REGEN_DISABLED')
+	end
+end
+
+function CPCombatHideMixin:OnHide()
+	self:UnregisterEvent('PLAYER_REGEN_DISABLED')
+end
+
+function CPCombatHideMixin:OnEvent(event)
+	if event == 'PLAYER_REGEN_DISABLED' then
+		self:RegisterEvent('PLAYER_REGEN_ENABLED')
+		self:Hide()
+	elseif event == 'PLAYER_REGEN_ENABLED' then
+		self:UnregisterEvent('PLAYER_REGEN_ENABLED')
+		self:Show()
+	end
+end
+
+
+---------------------------------------------------------------
 -- Timed button context
 ---------------------------------------------------------------
 CPTimedButtonContextMixin = {

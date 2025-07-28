@@ -28,7 +28,7 @@
 			</Frame>
 			<Frame parentKey="GeneralInfo" inherits="CPGuideInfoFrame" hidden="false">
 				<Anchors>
-					<Anchor point="TOPLEFT" x="468" y="-200"/>
+					<Anchor point="TOPLEFT" x="468" y="-160"/>
 				</Anchors>
 			</Frame>
 			<Frame parentKey="DeviceInfo" inherits="CPGuideInfoFrame">

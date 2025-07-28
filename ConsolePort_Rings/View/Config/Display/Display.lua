@@ -81,6 +81,7 @@ function Display:UpdateTutorial()
 		if self.CreateTutorials then
 			self:CreateTutorials()
 		end
+		self.Animations:Cancel()
 		self.Animations:Play()
 	elseif self.Animations then
 		self.Animations:Cancel()

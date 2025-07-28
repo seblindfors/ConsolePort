@@ -22,10 +22,10 @@ function Auto:HasExtraActionButton()
 end
 
 function Auto:OnAutoAssignedChanged()
-	self.autoAssignExtras = db('autoExtra')
+	self.autoAssignExtras = db('ringAutoExtra')
 end
 
-db:RegisterCallback('Settings/autoExtra', Auto.OnAutoAssignedChanged, Auto)
+db:RegisterCallback('Settings/ringAutoExtra', Auto.OnAutoAssignedChanged, Auto)
 env:AddLoader(Auto.OnAutoAssignedChanged)
 
 ---------------------------------------------------------------

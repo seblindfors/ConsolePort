@@ -153,5 +153,10 @@ function ConsolePortConfig:Load()
 		GetEnvironment = self.GetEnvironment;
 		CreatePanel    = self.CreatePanel;
 	});
+	CPAPI.Next(function()
+		db:TriggerEvent('OnConfigLoaded', env, env.Frame)
+		env.Frame.Nav:Hide() -- Since we may have added new panels,
+		env.Frame.Nav:Show() -- force the nav to update on first load.
+	end)
 	return env.Frame;
 end

@@ -399,7 +399,6 @@ do -- Initializer
 
 		editor:EditInput(input, container)
 		container.Editor = editor;
-		-- Unregister on next frame since the registry is currently iterating callbacks.
 		CPAPI.Next(env.UnregisterCallback, env, 'Overview.EditInput', self)
 	end, Guide)
 end

@@ -179,7 +179,7 @@ function Graphics:OnLoad()
 	local GeneralInfoSpline = CreateCatmullRomSpline(2)
 	GeneralInfoSpline:AddPoint(20, -50)
 	GeneralInfoSpline:AddPoint(150, -150)
-	GeneralInfoSpline:AddPoint(468, -200)
+	GeneralInfoSpline:AddPoint(468, -160)
 
 	local SplashSpline = CreateCatmullRomSpline(2)
 	SplashSpline:AddPoint(0, 150)
