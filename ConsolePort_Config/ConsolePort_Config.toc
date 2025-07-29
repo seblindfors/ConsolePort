@@ -1,6 +1,4 @@
-## Interface: 110107
-## Interface-Classic: 11507
-## Interface-Mists: 50500
+## Interface: 110107, 50500, 11507
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Config|r
 ## Notes: Configuration module
