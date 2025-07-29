@@ -366,8 +366,11 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		---------------------------------------------------------------
 		CAMERAORSELECTORMOVE               = CustomIcons.MBLeft;
 		TURNORACTION                       = CustomIcons.MBRight;
+		---------------------------------------------------------------
 		CAMERAZOOMIN                       = CustomIcons.ZoomIn;
 		CAMERAZOOMOUT                      = CustomIcons.ZoomOut;
+		MINIMAPZOOMIN                      = CustomIcons.ZoomIn;
+		MINIMAPZOOMOUT                     = CustomIcons.ZoomOut;
 		OPENCHAT                           = CustomIcons.Chat;
 		---------------------------------------------------------------
 		JUMP                               = CustomIcons.Jump;

@@ -564,16 +564,29 @@ end
 
 function ComboButton:OnEnter()
 	self.isMouseOver = true;
-	self:GetActiveChord():OnEnter()
+	local active = self:GetActiveChord()
+	if active then
+		active:OnEnter()
+	end
 end
 
 function ComboButton:OnLeave()
 	self.isMouseOver = false;
-	self:GetActiveChord():OnLeave()
+	local active = self:GetActiveChord()
+	if active then
+		active:OnLeave()
+	end
+end
+
+function ComboButton:OnHide()
+	self:ReleaseAll()
 end
 
 function ComboButton:OnClick(...)
-	self:GetActiveChord():OnClick(...)
+	local active = self:GetActiveChord()
+	if active then
+		return active:OnClick(...)
+	end
 end
 
 function ComboButton:SetLineAlpha(alpha, reverse, duration) duration = duration or ANI_DURATION;

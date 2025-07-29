@@ -98,8 +98,8 @@ local _, db = ...; db.Gamepad:AddGamepad({
 		};
 		Center = {
 			PADBACK = {
-				-- EmulateEsc
-				['SHIFT-']      = 'OPENALLBAGS';
+				['']            = 'OPENALLBAGS';
+				['SHIFT-']      = 'TOGGLECHARACTER0';
 				['CTRL-']       = 'TOGGLEWORLDMAP';
 				['CTRL-SHIFT-'] = 'TOGGLEAUTORUN';
 			};
@@ -116,10 +116,10 @@ local _, db = ...; db.Gamepad:AddGamepad({
 	LabelStyle = 'Letters';
 	Description = db.Locale.DEVICE_DESC_XBOX;
 	Colors = {
-		PADDUP    = 'FFE74F';
-		PADDLEFT  = '00A2FF';
-		PADDRIGHT = 'FA4451';
-		PADDDOWN  = '52C14E';
+		PAD1 = '52C14E';
+		PAD2 = 'FA4451';
+		PAD3 = '00A2FF';
+		PAD4 = 'FFE74F';
 	};
 	Assets = {
 		PADDUP       = 'All/Up';
@@ -145,67 +145,36 @@ local _, db = ...; db.Gamepad:AddGamepad({
 		PADSYSTEM    = 'Xbox/System';
 		PADSOCIAL    = 'Xbox/Share';
 	};
-	Layout = {
-	--	PADLTRIGGER  = 0x11;
-	--	PADLSHOULDER = 0x12;
-	--	PADLSTICK    = 0x13;
+	Layout = {-- format: delta (-1 or 1), drawLayer, x1, y1, ..., xN, yN
 		--------------------
-	--	PADDUP		 = 0x14;
-	--	PADDLEFT	 = 0x15;
-	--	PADDDOWN	 = 0x16;
-	--	PADDRIGHT	 = 0x17;
+		PADBACK      = {-1, 01, 0036, 0054, 0080, 0220};
 		--------------------
-	--	PADBACK      = 0x18;
+		PADLSHOULDER = {-1, 01, 0110, 0116, 0150, 0180};
+		PADLTRIGGER  = {-1, -1, 0130, 0100, 0170, 0120};
 		--------------------
-	--	PADRTRIGGER	 = 0x21;
-	--	PADRSHOULDER = 0x22;
+		PADDUP       = {-1, 01, 0060, -004};
+		PADDLEFT     = {-1, 01, 0080, -028, 0160, -044};
+		PADDDOWN     = {-1, 01, 0060, -054, 0160, -100};
+		PADDRIGHT    = {-1, 01, 0040, -028, 0050, -076, 0110, -092, 0160, -150};
 		--------------------
-	--	PAD4		 = 0x23;
-	--	PAD2         = 0x24;
-	--	PAD1         = 0x25;
-	--	PAD3         = 0x26;
+		PADLSTICK    = {-1, 01, 0114, 0046, 0190, 0060};
 		--------------------
-	--	PADRSTICK    = 0x27;
-	--	PADFORWARD   = 0x28;
+		PADPADDLE2   = {-1, -1, 0090, -040, 0160, -194};
+		PADPADDLE4   = {-1, -1, 0070, -060, 0140, -250};
 		--------------------
-	--	PADSYSTEM    = 0x32;
-
-	-- format: delta (-1 or 1), drawLayer, x1, y1, ..., xN, yN
+		PADFORWARD   = {01, 01, 0036, 0054, 0080, 0220};
 		--------------------
-		PADBACK      = {-1,  1, 50, 70, 100, 260};
-		PADSOCIAL    = {-1,  1, 96, 96, 120, 220};
+		PADRSHOULDER = {01, 01, 0110, 0116, 0150, 0180};
+		PADRTRIGGER  = {01, -1, 0130, 0100, 0170, 0120};
 		--------------------
-		PADLSHOULDER = {-1,  1, 125, 110, 150, 180};
-		PADLTRIGGER  = {-1, -1, 150, 100, 170, 120};
+		PAD4         = {01, 01, 0130, 0072};
+		PAD2         = {01, 01, 0158, 0032, 0200, 0010};
+		PAD1         = {01, 01, 0126, 0002, 0200, -040};
+		PAD3         = {01, 01, 0084, 0026, 0104, -010, 0200, -092};
 		--------------------
-		PADDUP		 = {-1,  1, 125, 66};
-		PADDLEFT	 = {-1,  1, 150, 40, 200, 10};
-		PADDDOWN	 = {-1,  1, 125, 18, 200, -40};
-		PADDRIGHT	 = {-1,  1, 100, 40, 120, -10, 200, -92};
+		PADRSTICK    = {01, 01, 0060, -024, 0130, -100, 0200, -150};
 		--------------------
-		PADLSTICK    = {-1,  1, 84, -30, 140, -100, 200, -150};
-		--------------------
-		PADPADDLE2   = {-1, -1, 90, -40, 160, -194};
-		PADPADDLE4   = {-1,  1, 70, -60, 140, -250};
-		--------------------
-		PADSYSTEM    = {-1,  1, 0, -10, 40, -60, 120, -300};
-		--------------------
-		PAD6         = {1,  1, 50, 70, 100, 260};
-		PADFORWARD   = {1,  1, 96, 96, 120, 220};
-		--------------------
-		PADRSHOULDER = {1,  1, 125, 110, 150, 180};
-		PADRTRIGGER	 = {1, -1, 150, 100, 170, 120};
-		--------------------
-		PAD4		 = {1,  1, 142, 72};
-		PAD2         = {1,  1, 160, 34, 200, 10};
-		PAD1         = {1,  1, 136, 2, 200, -40};
-		PAD3         = {1,  1, 100, 30, 120, -10, 200, -92};
-		--------------------
-		PADRSTICK    = {1,  1, 84, -30, 140, -100, 200, -150};
-		--------------------
-		PAD5         = {1,  1, 2, -40, 40, -100, 120, -300};
-		--------------------
-		PADPADDLE1   = {1, -1, 90, -40, 160, -194};
-		PADPADDLE3   = {1,  1, 70, -60, 140, -250};
+		PADPADDLE1   = {01, -1, 0090, -040, 0160, -194};
+		PADPADDLE3   = {01, -1, 0070, -060, 0140, -250};
 	};
 })

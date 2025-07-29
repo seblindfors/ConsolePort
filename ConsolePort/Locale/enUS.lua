@@ -325,6 +325,11 @@ L.DEVICE_DESC_XBOX = [[
 
 	The center button is reserved for the Xbox Guide, and cannot be used in the game.
 ]];
+L.DEVICE_DESC_SWITCHPRO = [[
+	Nintendo Switch Pro controller has a similar layout to the Xbox controller, but with inverted button labels.
+
+	The Pro controller has four center buttons, giving it a slight edge over a standard Xbox controller.
+]];
 L.CONTROLS_GENERAL_INFO = [[
 	Select your preferred control scheme.
 ]];

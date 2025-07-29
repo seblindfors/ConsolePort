@@ -1,4 +1,7 @@
 local _, env = ...;
+--@do-not-package@
+local SplineLineDebug;
+--@end-do-not-package@
 ---------------------------------------------------------------
 local SplineLine = {
 ---------------------------------------------------------------
@@ -121,6 +124,9 @@ function SplineLine:DrawLine(postProcess) postProcess = postProcess or nop;
 	local lineCoord = self:GetLineCoord();
 	local l, r, t, b = unpack(lineCoord);
 
+	--@do-not-package@
+	--SplineLineDebug(self, spline, point, relTo)
+	--@end-do-not-package@
 	for i = 1, numSegments do
 		local section = i / numSegments;
 		local bit = bits:Acquire();
@@ -175,3 +181,23 @@ function SplineLine:PlayLineEffect(time, effect, reverse)
 	end)
 	return true;
 end
+
+--@do-not-package@
+function SplineLineDebug(self, spline, point, relTo)
+	local dr, dg, db = random(), random(), random();
+	if not self.debug then self.debug = {
+		CreateTexturePool(UIParent, 'ARTWORK', 6),
+		CreateFontStringPool(UIParent, 'ARTWORK', 7, 'GameFontNormalTiny')
+	} end
+	foreach(self.debug, function(_, pool) pool:ReleaseAll() end)
+	for i=1, spline:GetNumPoints() - 1 do
+		local x, y, dot = spline:GetPoint(i)
+		foreach(self.debug, function(t, pool)
+			dot = pool:Acquire(); dot:SetParent(relTo); dot:Show()
+			dot:SetPoint(point, x + (t == 2 and 4 or 0), y - (t == 2 and 4 or 0))
+			if t == 1 then dot:SetSize(4, 4) dot:SetColorTexture(dr, dg, db, 0.5) end;
+			if t == 2 then dot:SetText(i + 1) end;
+		end)
+	end
+end
+--@end-do-not-package@

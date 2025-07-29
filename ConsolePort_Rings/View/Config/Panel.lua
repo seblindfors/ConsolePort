@@ -68,7 +68,8 @@ function Panel:SetEmbedded(embed)
 	config.CloseButton:SetEnabled(not embed)
 	config.Display.BorderArt:SetShown(not embed)
 	config.Display.Tutorial:SetPoint('LEFT', embed and 100 or 20, 0)
-	config.Display.Details.IconSelector.customStride = embed and 13 or nil;
+	config.Display.Details.IconSelector:SetCustomStride(embed and 13 or nil)
+	config.Display.Details.IconSelector:Init()
 
 	if embed then
 		config.Portrait:SetParent(self)

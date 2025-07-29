@@ -123,7 +123,7 @@ function Container:GetLeftScrollBox()
 		self.Left:SetPoint('BOTTOMRIGHT', self, 'BOTTOMLEFT', 320, 0)
 
 		self.Left:InitDefault()
-		self.Left.ScrollBar.Track:SetAttribute('nodeignore', true)
+		self.Left.ScrollBar:SetAttribute('nodeignore', true)
 	end
 	return self.Left;
 end
