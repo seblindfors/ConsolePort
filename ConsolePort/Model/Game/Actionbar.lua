@@ -39,6 +39,7 @@ local ActionBarAPI, _, db = {
 			[CPAPI.ExtraActionButtonID] = 'ExtraActionButton1';
 		};
 	};
+	PageExt = { 13, 14, 15 };
 	Lookup = {
 		Buttons = {};
 		Ignore  = {};
@@ -93,7 +94,6 @@ for i=CPAPI.ExtraActionButtonID, 1, -1 do
 		button:SetAttribute('action', i)
 	end
 end
-
 
 ---------------------------------------------------------------
 -- Action button / action bar caching
@@ -216,7 +216,7 @@ end
 ---------------------------------------------------------------
 ActionBarAPI.Pages = {
 	CPAPI.Callable({01, 06, 05, 03, 04}, CPAPI.Static(true));
-	CPAPI.Callable({13, 14, 15        }, CPAPI.Static(CPAPI.IsRetailVersion));
+	CPAPI.Callable(ActionBarAPI.PageExt, CPAPI.Static(true));
 	CPAPI.Callable({07, 08, 09, 10    }, function() return GetNumShapeshiftForms() > 0 or db('bindingShowExtraBars') end);
 	CPAPI.Callable({11                }, function() return not not next(CPAPI.GetCollectedDragonridingMounts()) end);
 	CPAPI.Callable({02                }, function()

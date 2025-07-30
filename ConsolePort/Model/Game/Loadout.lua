@@ -248,7 +248,7 @@ function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
 			-- if action has a name, suffix the binding, omit the header,
 			-- return the concatenated string and the action texture
 			text = LoadoutInfo:ConvertTextToBonusBar(text, page, actionID)
-			return LoadoutInfo.DisplayFormat:format(name, text), texture, actionID, binding;
+			return LoadoutInfo.DisplayFormat:format(name, text or ''), texture, actionID, binding;
 		elseif texture then
 			-- no name found, but there's a texture.
 			if text then
