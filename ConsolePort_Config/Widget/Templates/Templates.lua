@@ -122,7 +122,7 @@ function CPNavBarMixin:OnLoad()
 		button:SetText(label)
 		button:SetWidth(button:GetTextWidth() + CPNavBarMixin.ButtonWidthBuffer)
 		button:SetScript('OnClick', function()
-			PlaySound(SOUNDKIT.GS_TITLE_OPTIONS);
+			PlaySound(SOUNDKIT.GS_TITLE_OPTION_OK);
 			controlCallback(button, self, unpack(args))
 		end)
 	end

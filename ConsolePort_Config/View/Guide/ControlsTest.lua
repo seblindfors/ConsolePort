@@ -13,7 +13,7 @@ end
 local function GetRandomColor(index)
 	local classFile = (C_CreatureInfo.GetClassInfo(index) or {}).classFile;
 	if classFile then
-		return C_ClassColor.GetClassColor(classFile):GetRGB()
+		return CPAPI.GetClassColorObject(classFile):GetRGB()
 	end
 	return GetRandomColorValue(), GetRandomColorValue(), GetRandomColorValue();
 end
