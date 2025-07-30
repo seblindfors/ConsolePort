@@ -76,22 +76,6 @@
 					<OnLoad>self:SetParent(GameMenuFrame)</OnLoad>
 				</Scripts>
 			</Button>
-			<Frame parentKey="Filigree" inherits="CPFlashableFiligreeTemplate" useParentLevel="true">
-				<Size x="900" y="400"/>
-				<Anchors>
-					<Anchor point="CENTER"/>
-				</Anchors>
-				<Scripts>
-					<OnShow>
-						self:Play();
-						PlaySound(SOUNDKIT.UI_POWER_AURA_GENERIC);
-					</OnShow>
-					<OnHide>
-						self:Stop();
-						self:SetAlpha(1);
-					</OnHide>
-				</Scripts>
-			</Frame>
 		</Frames>
 	</PieMenu>
 

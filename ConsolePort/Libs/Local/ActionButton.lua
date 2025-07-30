@@ -153,34 +153,10 @@ end -- Lib.SkinUtility.SkinOverlayGlow
 
 do -- Lib.Skin.ColorSwatchProc
 	local SkinOverlayGlow = Lib.SkinUtility.SkinOverlayGlow;
-	local OverlayPool = CreateFramePool('Frame', UIParent, 'CPFlashableFiligreeTemplate')
 	local SwatchPool = CreateFramePool('Frame', UIParent, 'CPSwatchHighlightTemplate')
 
-	local function OnOverlayFinished(self)
-		OverlayPool:Release(self:GetParent())
-	end
-
 	local function OnShowOverlay(self)
-		local overlay, swatch, newObj = self.__overlay, self.__swatch;
-		if not overlay and not self.__procNoFlash then
-			overlay, newObj = OverlayPool:Acquire()
-			overlay:SetParent(self:GetParent())
-			overlay:SetAnchor(self)
-			overlay:SetSize(self:GetSize() * 2)
-			overlay:SetScale(self.__procSize)
-			overlay:SetTexture(self.SpellHighlightTexture:GetTexture())
-			overlay:SetTexCoord(self.SpellHighlightTexture:GetTexCoord())
-			overlay:SetLooping('BOUNCE')
-			if self.GetOverlayColor then
-				overlay:SetVertexColor(self:GetOverlayColor())
-			end
-			if newObj then
-				overlay:SetFrameLevel(2)
-				overlay:SetAnimationSpeedMultiplier(0.75)
-				overlay.filigreeAnim:SetScript('OnFinished', OnOverlayFinished)
-			end
-			overlay:Show()
-		end
+		local swatch = self.__swatch;
 		if not swatch and not self.__procNoSwatch then
 			swatch = SwatchPool:Acquire()
 			swatch:SetParent(self)
@@ -188,33 +164,24 @@ do -- Lib.Skin.ColorSwatchProc
 			swatch:SetTexture(self.__procText)
 			swatch:Show()
 		end
-		if overlay then
-			overlay:Stop()
-			overlay:Play()
-		end
 		if self.OnOverlayGlow then
-			self:OnOverlayGlow(true, overlay, swatch)
+			self:OnOverlayGlow(true, swatch)
 		end
-		self.__overlay, self.__swatch = overlay, swatch;
+		self.__swatch = swatch;
 	end
 
 	local function OnHideOverlay(self)
 		SwatchPool:Release(self.__swatch, true)
-		local overlay = self.__overlay;
-		if overlay then
-			overlay:SetLooping('NONE')
-		end
 		if self.OnOverlayGlow then
-			self:OnOverlayGlow(false, self.__overlay, self.__swatch)
+			self:OnOverlayGlow(false, self.__swatch)
 		end
-		self.__overlay, self.__swatch = nil, nil;
+		self.__swatch = nil;
 	end
 
 	Lib.Skin.ColorSwatchProc = function(self, config) config = config or {};
 		self.__procSize     = config.procSize or self.__procSize or 0.6;
 		self.__procText     = config.procText or self.__procText;
 		self.__procNoSwatch = config.noSwatch or self.__procNoSwatch;
-		self.__procNoFlash  = config.noFlash  or self.__procNoFlash;
 		SkinOverlayGlow(self, OnShowOverlay, OnHideOverlay)
 	end;
 end -- Lib.Skin.ColorSwatchProc
