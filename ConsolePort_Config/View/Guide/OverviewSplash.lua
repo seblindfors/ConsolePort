@@ -738,7 +738,7 @@ function ComboButton:SetGuidesVisible(visible)
 			self:ReleaseLine()
 		end
 	else
-		if not self:IsLineDrawn() then
+		if not self:IsLineDrawn() and self:IsVisible() then
 			self:UpdateLines()
 		end
 	end

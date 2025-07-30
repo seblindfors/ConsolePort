@@ -179,7 +179,6 @@ do -- Lib.Skin.ColorSwatchProc
 	end
 
 	Lib.Skin.ColorSwatchProc = function(self, config) config = config or {};
-		self.__procSize     = config.procSize or self.__procSize or 0.6;
 		self.__procText     = config.procText or self.__procText;
 		self.__procNoSwatch = config.noSwatch or self.__procNoSwatch;
 		SkinOverlayGlow(self, OnShowOverlay, OnHideOverlay)
@@ -271,8 +270,6 @@ do -- Lib.Skin.RingButton
 			cd:SetUseCircularEdge(false)
 		end)
 		SkinOverlayGlow(self, {
-			procSize = 0.62;
-			noFlash  = true;
 			procText = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe]];
 		})
 		if not self.RingMasked then

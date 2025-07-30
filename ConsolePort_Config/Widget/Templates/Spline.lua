@@ -121,6 +121,10 @@ function SplineLine:DrawLine(postProcess) postProcess = postProcess or nop;
 	local layer, level = self:GetLineDrawLayer()
 	local relTo, point = self:GetLineOrigin()
 
+	if spline:GetNumPoints() < 2 then
+		return false; -- Not enough points to draw a line
+	end
+
 	local lineCoord = self:GetLineCoord();
 	local l, r, t, b = unpack(lineCoord);
 
@@ -143,6 +147,7 @@ function SplineLine:DrawLine(postProcess) postProcess = postProcess or nop;
 		postProcess(bit, section, i, numSegments)
 	end
 	self.lineIsDrawn = true;
+	return true;
 end
 
 function SplineLine:StopLineEffect()
