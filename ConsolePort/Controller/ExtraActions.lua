@@ -15,12 +15,12 @@ local function CalculateActionID(pageID, slotID)
 	return ((pageID - 1) * NUM_ACTIONBAR_BUTTONS) + slotID;
 end
 
-local function CreateActionSlotHandler(pageID, slotID)
+local function CreateActionSlotHandler(pageID, slotID, actionID)
 	local name   = WIDGET_FORMAT:format('$parent', pageID, slotID)
 	local sabt   = 'SecureActionButtonTemplate';
-	local button = CreateFrame('Button', name, ConsolePort, sabt);
+	local button = CreateFrame('Button', name, _G[an], sabt);
 	button:SetAttribute(CPAPI.ActionTypePress, 'action')
-	button:SetAttribute('action', CalculateActionID(pageID, slotID))
+	button:SetAttribute('action', actionID)
 	button:RegisterForClicks('AnyDown')
 	return button;
 end
@@ -33,7 +33,7 @@ db:RegisterSafeCallback('OnNewBindings', function(self, bindings)
 				pageID, slotID = tonumber(pageID), tonumber(slotID);
 				local actionID = CalculateActionID(pageID, slotID);
 				if self[actionID] then return end;
-				self[actionID] = CreateActionSlotHandler(pageID, slotID);
+				self[actionID] = CreateActionSlotHandler(pageID, slotID, actionID);
 			end
 		end
 	end
