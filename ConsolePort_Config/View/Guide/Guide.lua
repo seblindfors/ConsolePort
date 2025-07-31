@@ -73,6 +73,10 @@ function Guide:OnHide()
 	self:ClearContent()
 end
 
+function Guide:OnDefaults()
+	self.onDefaults(self.canvas)
+end
+
 function Guide:InitCanvas(canvas)
 	self.canvas = canvas;
 	self.canvasGetter = CPAPI.Static(canvas);
@@ -98,7 +102,8 @@ end
 
 function Guide:SetContent(content)
 	self:ClearContent()
-	self.resetter = content.resetter;
+	self.resetter   = content.resetter;
+	self.onDefaults = content.onDefaults;
 	content.initializer(self.canvas, self.canvasGetter);
 	return true;
 end
@@ -110,13 +115,14 @@ function Guide:ClearContent()
 	end
 end
 
-function Guide:AddContent(name, predicate, initializer, resetter, canShow)
+function Guide:AddContent(name, predicate, initializer, resetter, canShow, onDefaults)
 	tinsert(self.content, {
 		name        = L(name);
 		initializer = initializer;
 		predicate   = predicate;
 		resetter    = resetter or nop;
 		canShow     = canShow or CPAPI.Static(true);
+		onDefaults  = onDefaults or nop;
 	})
 end
 

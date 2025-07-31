@@ -1029,16 +1029,33 @@ function Overview:DrawButtons(buttons, isLeft, activeMods)
 end
 
 ---------------------------------------------------------------
--- Add overview to guide content
+do -- Add overview to guide content
 ---------------------------------------------------------------
-Guide:AddContent('Overview', env.HasActiveDevice(), function(canvas, GetCanvas)
-	if not canvas.Overview then
-		canvas.Overview = CreateFrame('Frame', nil, canvas)
-		canvas.Overview.GetCanvas = GetCanvas;
-		CPAPI.SpecializeOnce(canvas.Overview, Overview)
+	local function Initialize(canvas, GetCanvas)
+		if not canvas.Overview then
+			canvas.Overview = CreateFrame('Frame', nil, canvas)
+			canvas.Overview.GetCanvas = GetCanvas;
+			CPAPI.SpecializeOnce(canvas.Overview, Overview)
+		end
+		canvas.Overview:Show()
 	end
-	canvas.Overview:Show()
-end, function(canvas)
-	if not canvas.Overview then return end;
-	canvas.Overview:Hide()
-end, env.HasActiveDevice())
+
+	local function Reset(canvas)
+		if not canvas.Overview then return end;
+		canvas.Overview:Hide()
+	end
+
+	local function OnDefaults()
+		local activeDevice = env:GetActiveDeviceAndMap()
+		if not activeDevice then return end;
+		for combination, binding in pairs(activeDevice:GetPresetBindings()) do
+			env:SetBinding(combination, binding)
+		end
+		CPAPI.Log('Preset %s has been applied.', activeDevice.Name)
+	end
+
+	local Predicate = env.HasActiveDevice();
+
+	Guide:AddContent('Overview',
+		Predicate, Initialize, Reset, Predicate, OnDefaults)
+end

@@ -901,24 +901,38 @@ function Controls:ShowVariables(variables, row)
 end
 
 ---------------------------------------------------------------
--- Add controls to guide content
+do -- Add controls to guide content
 ---------------------------------------------------------------
-do local TutorialIncomplete, HasActiveDevice = env.TutorialPredicate('ControlScheme'), env.HasActiveDevice();
+	local TutorialIncomplete, HasActiveDevice = env.TutorialPredicate('ControlScheme'), env.HasActiveDevice();
 
 	local function ShowControlsPredicate()
 		return not HasActiveDevice() or TutorialIncomplete();
 	end
 
-	Guide:AddContent('Controls', ShowControlsPredicate,
-	function(canvas, GetCanvas)
+	local function Initialize(canvas, GetCanvas)
 		if not canvas.Controls then
 			canvas.Controls = CreateFrame('Frame', nil, canvas, 'CPControlsPanel')
 			canvas.Controls.GetCanvas = GetCanvas;
 			CPAPI.SpecializeOnce(canvas.Controls, Controls)
 		end
 		canvas.Controls:Show()
-	end, function(canvas)
+	end
+
+	local function Reset(canvas)
 		if not canvas.Controls then return end;
 		canvas.Controls:Hide()
-	end, env.HasActiveDevice())
+	end
+
+	local function OnDefaults()
+		for _, dataRows in ipairs(SchemeContent) do
+			for _, data in ipairs(dataRows) do
+				if data.recommend and data.execute then
+					data.execute(data.object)
+				end
+			end
+		end
+	end
+
+	Guide:AddContent('Controls',
+		ShowControlsPredicate, Initialize, Reset, HasActiveDevice, OnDefaults)
 end
