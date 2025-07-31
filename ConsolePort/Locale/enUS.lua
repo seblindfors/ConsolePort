@@ -314,7 +314,7 @@ L.DEVICE_DESC_STEAMDECK = [[
 	The in-game Steam Deck preset may also be suitable for other handheld computers, due to the similar control layout.
 ]];
 L.DEVICE_DESC_XBOX = [[
-	Xbox controllers are the most widely used gamepads, and all variants of World of Warcraft support them.
+	Xbox controllers are the most widely used gamepads, and all variants are supported by World of Warcraft.
 
 	This may also be the most suitable preset for Steam Input users, as it is consistent with the Xbox 360 controller that Steam Input emulates.
 
@@ -423,7 +423,7 @@ L.CONTROLS_GAMEPAD_TESTER_DESC = [[
 	- Update drivers and install any necessary software for your gamepad.
 ]];
 L.CONTROLS_GAMEPAD_TESTER_ACTION = [[
-	The tests will automatically end after a few seconds if no input is detected.
+	The tests will automatically expire after a few seconds if no input is detected.
 ]];
 L.DEFAULTS_GENERAL_INFO = [[
 	Finalize the setup by applying recommended settings and bindings for your gamepad.

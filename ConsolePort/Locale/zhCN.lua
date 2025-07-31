@@ -286,7 +286,7 @@ L.DEVICE_DESC_STEAMDECK = [[
 	游戏内的 Steam Deck 预设也可能适用于其他掌机，因为控制布局相似。
 ]];
 L.DEVICE_DESC_XBOX = [[
-	Xbox 手柄是最受欢迎的游戏手柄，魔兽世界的所有版本都支持。
+	Xbox 手柄是最泛用的手柄，Xbox 手柄全系都可以用来玩魔兽世界。
 
 	对于 Steam Input 用户，这也可能是最合适的预设，因为它与 Steam Input 模拟的 Xbox 360 控制器一致。
 
