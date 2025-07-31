@@ -308,6 +308,11 @@ Interface.Page = Data.Interface {
 			desc = 'Show the hotkeys on the buttons.';
 			Data.Bool(true);
 		};
+		showGrid = _{
+			name = 'Show Grid';
+			desc = 'Show the empty buttons in the page.';
+			Data.Bool(true);
+		};
 		reverse = _{
 			name = 'Reverse Order';
 			desc = 'Reverse the order of the buttons.';

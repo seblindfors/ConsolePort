@@ -169,6 +169,7 @@ end
 
 function CPActionPage:OnConfigChanged(generic)
 	local config = CopyTable(generic)
+	config.showGrid = self.props.showGrid;
 	config.hideElements.hotkey = not self.props.hotkeys;
 	for _, slot in ipairs(self.buttons) do
 		slot:UpdateConfig(config)

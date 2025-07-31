@@ -52,7 +52,7 @@ end
 -- Guide Panel
 ---------------------------------------------------------------
 local Guide = env:CreatePanel({
-	name    = GUIDE;
+	name    = L'Guide';
 	content = {};
 })
 

@@ -199,9 +199,14 @@ function Sets:OnSetUpdate()
 end
 
 function Sets:OnFlashSets()
+	local hasMovedCursor = false;
 	self:GetScrollView():ForEachFrame(function(frame, elementData)
 		if elementData:GetData().xml == 'CPRingSetCard' then
 			frame:Flash()
+			if not hasMovedCursor then
+				ConsolePort:SetCursorNodeIfActive(frame)
+				hasMovedCursor = true;
+			end
 		end
 	end)
 end
