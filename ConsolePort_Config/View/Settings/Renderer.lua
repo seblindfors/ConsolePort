@@ -170,7 +170,7 @@ function Renderer:Render(provider, title, data, preferCollapsed, useDeviceEdit, 
 	return hasDeviceSettings and not useDeviceEdit;
 end
 
-function Renderer:OnSearch(text, provider) text = text:lower();
+function Renderer:OnSearch(text, provider, startIndex) text = text:lower();
 	local interface = self:GetIndex()
 	local MinEditDistance = CPAPI.MinEditDistance;
 
@@ -217,11 +217,11 @@ function Renderer:OnSearch(text, provider) text = text:lower();
 	end
 
 	if needsDeviceEdit then
-		provider:InsertAtIndex(self.MakeDivider(), 1)
-		provider:InsertAtIndex(env.Elements.DeviceEdit:New(), 1)
+		provider:InsertAtIndex(self.MakeDivider(), startIndex)
+		provider:InsertAtIndex(env.Elements.DeviceEdit:New(), startIndex)
 	end
 	if next(results) then
-		provider:InsertAtIndex(self.MakeTitle(self:GetSearchTitle()), 1)
+		provider:InsertAtIndex(self.MakeTitle(self:GetSearchTitle()), startIndex)
 	end
 end
 

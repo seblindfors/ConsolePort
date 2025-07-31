@@ -397,8 +397,8 @@ function Config:OnSearch(text)
 		local _, right = self.Container:GetLists()
 		local results = right:GetDataProvider()
 		results:Flush()
-		for _, panel in env:EnumeratePanels() do -- TODO: should this be ipairs_reverse?
-			panel:OnSearch(text, results)
+		for _, panel in env:EnumeratePanels() do
+			panel:OnSearch(text, results, results.node:GetSize() + 1)
 		end
 		if results:IsEmpty() then
 			results:Insert(env.Elements.Title:New(SEARCH))
