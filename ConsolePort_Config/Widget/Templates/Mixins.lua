@@ -11,6 +11,13 @@ function ScrollBoxHelper:FindFirstOfType(type, scrollView)
 	end)
 end
 
+function ScrollBoxHelper:FindFirstFrameOfType(type, scrollView)
+	scrollView = scrollView or self:GetScrollView()
+	local elementData = self:FindFirstOfType(type, scrollView)
+	if not elementData then return end;
+	return scrollView:FindFrame(elementData)
+end
+
 ---------------------------------------------------------------
 local Background = CreateFromMixins(BackdropTemplateMixin);
 ---------------------------------------------------------------

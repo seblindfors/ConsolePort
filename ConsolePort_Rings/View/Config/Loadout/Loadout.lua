@@ -103,7 +103,13 @@ function Loadout:OnConfigShown(shown)
 end
 
 function Loadout:OnShow()
+	local shouldMoveCursor = not self.Collections;
 	self:RefreshCollections()
+	if not shouldMoveCursor then return end;
+	local firstHeader = self:FindFirstFrameOfType(select(2, self:GetElements()), self:GetScrollView())
+	if firstHeader then
+		ConsolePort:SetCursorNodeIfActive(firstHeader)
+	end
 end
 
 function Loadout:GetCollections(...)

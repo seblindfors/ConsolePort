@@ -296,34 +296,33 @@ L.DEVICE_DESC_PLAYSTATION5 = [[
 	PlayStation 5 controller, also known as DualSense, is currently the best gamepad for World of Warcraft.
 
 	It is the most feature-complete gamepad available, with motion controls, touchpad, and in the case of the Edge variant, native back paddles.
-
-	Unlike most other devices, every single button on the DualSense can be used in the game, providing the largest number of bindings available.
+	All buttons on the gamepad can be used in the game.
 
 	To take advantage of all the features, you may need to install PlayStation Accessories (Windows).
 ]];
 L.DEVICE_DESC_STEAMDECK = [[
 	Steam Decks typically run World of Warcraft through Proton via the Steam client.
 
-	When using Steam Input, the device needs to use a suitable preset to ensure that the gamepad buttons are mapped correctly.
+	When playing through Steam, the device should use a game profile that covers at least a standard Xbox layout.
 
 	Gamepad with Mouse Trackpad provides a solid foundation.
 
-	Steam Decks cannot use their paddles natively in World of Warcraft, as Steam Input reduces the device to an Xbox 360 controller.
-	However, the paddles can be mapped using emulation, or choosing keyboard bindings in the Steam Input settings.
+	Steam Decks cannot use their paddles natively in World of Warcraft.
+	The paddles can be mapped using emulation, or with keyboard keys in the Steam Input settings.
 
 	The in-game Steam Deck preset may also be suitable for other handheld computers, due to the similar control layout.
 ]];
 L.DEVICE_DESC_XBOX = [[
-	Xbox controllers are the most widely used gamepads, and all variants are supported by World of Warcraft.
-
-	This may also be the most suitable preset for Steam Input users, as it is consistent with the Xbox 360 controller that Steam Input emulates.
+	Xbox variants are the most common gamepads, and are well-supported by World of Warcraft.
 
 	The Xbox Elite controller cannot use its paddles natively in the game, but they can be used to simulate other gamepad buttons,
 	using the Xbox Accessories app (Windows).
 
-	With external software, such as Steam or reWASD, the paddles can be mapped to keyboard bindings, allowing use in game.
+	With external software, such as Steam or reWASD, the paddles can be mapped to keyboard keys, allowing use in game.
 
 	The center button is reserved for the Xbox Guide, and cannot be used in the game.
+
+	Also recommended for Steam Input, consistent with the Xbox 360 controller it emulates.
 ]];
 L.DEVICE_DESC_SWITCHPRO = [[
 	Nintendo Switch Pro controller has a similar layout to the Xbox controller, but with inverted button labels.

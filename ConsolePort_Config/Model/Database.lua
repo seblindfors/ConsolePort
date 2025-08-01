@@ -143,6 +143,7 @@ ConsolePortConfig = {
 ---------------------------------------------------------------
 	GetEnvironment = CPAPI.Static(env);
 	CreatePanel    = function(_, ...) return env:CreatePanel(...) end;
+	Show = nop, Hide = nop;
 }; -- dummy until loaded.
 
 function ConsolePortConfig:Load()

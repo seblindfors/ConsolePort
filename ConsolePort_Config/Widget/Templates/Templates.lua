@@ -70,7 +70,9 @@ function CPTabGroupMixin:AddTabs(tabs)
 end
 
 function CPTabGroupMixin:SetEnabled(index, enabled)
-	return self:GetAtIndex(index):SetEnabled(enabled)
+	local button = self:GetAtIndex(index)
+	button.Text:SetTextColor((enabled and GameFontNormal or GameFontDisable):GetTextColor())
+	return button:SetEnabled(enabled)
 end
 
 function CPTabGroupMixin:SelectAtIndex(index)

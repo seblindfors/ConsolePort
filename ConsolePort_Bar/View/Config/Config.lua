@@ -255,6 +255,7 @@ function Config:OnLoad()
 end
 
 function Config:OnShow()
+	ConsolePortConfig:Hide()
 	self:SetDefaultClosures()
 	env:TriggerEvent('OnConfigShown', true, self)
 end

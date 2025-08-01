@@ -189,7 +189,7 @@ function GamepadAPI:OnDataLoaded()
 		ConsolePort()
 		if not ConsolePortConfig then return end;
 		-- (2) set the config to the Guide panel.
-		ConsolePortConfig:SetCurrentPanel(L'Guide')
+		ConsolePortConfig:SetCurrentPanelByID(1)
 		if not ConsolePortCursor then return end;
 		-- (3) enable the cursor so that newbies can see it exists.
 		CPAPI.Next(function(config, cursor)

@@ -97,8 +97,13 @@ local function GetEndpoint(path)
 end
 
 function LoadoutSetting:OnExpandOrCollapse()
-	local icon, hasChildren, isChecked = self.Icon, self:HasChildren(), self:GetChecked();
+	local isChecked = self:GetChecked();
 	self:ToggleChildren(isChecked)
+	self:UpdateIcon(isChecked)
+end
+
+function LoadoutSetting:UpdateIcon(isChecked)
+	local icon, hasChildren = self.Icon, self:HasChildren();
 	icon:SetShown(hasChildren)
 	if hasChildren then
 		CPAPI.SetAtlas(icon, ('Waypoint-MapPin-Minimap-%s'):format(isChecked and 'Tracked' or 'Untracked'))
@@ -1191,6 +1196,7 @@ function Loadout:DrawChildren(parent, path, children, layoutIndex, depth)
 	for child, datapoint in db.table.spairs(children, DisplaySort) do
 		self:DrawChild(parent, path, child, datapoint, layoutIndex, depth)
 	end
+	parent:UpdateIcon(parent:GetChecked())
 end
 
 function Loadout:DrawChild(parent, path, child, datapoint, layoutIndex, depth)
