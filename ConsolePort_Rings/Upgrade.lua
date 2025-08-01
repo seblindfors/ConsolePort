@@ -17,7 +17,8 @@ env:AddLoader(function()
 		end
 	end
 
-	if ConsolePortUtility and not ConsolePortRings then
+	if ConsolePortUtility and not ConsolePortUtilityDeprecated then
 		ConsolePortRings = CopyTable(ConsolePortUtility);
+		ConsolePortUtilityDeprecated = true;
 	end
 end)
