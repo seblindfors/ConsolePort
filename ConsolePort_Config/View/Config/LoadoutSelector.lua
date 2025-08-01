@@ -281,6 +281,21 @@ end
 function LoadoutSelector:UpdateCollections()
 	local lip = self:GetLip()
 	local dataProvider = CPLoadoutContainerMixin.UpdateCollections(self)
+	local scrollView = self:GetScrollView()
+
+	if not lip:IsOwned(scrollView) then
+		self:UpdateLip(lip)
+		lip:SetOwner(scrollView)
+	end
+
+	for i, element in ipairs({
+		env.Elements.Divider:New(4);
+	}) do
+		dataProvider:InsertAtIndex(element, i)
+	end
+end
+
+function LoadoutSelector:UpdateLip(lip) lip = lip or self:GetLip();
 	local lipProvider = lip:GetDataProvider()
 	lipProvider:Flush()
 
@@ -299,14 +314,6 @@ function LoadoutSelector:UpdateCollections()
 		});
 	}) do
 		lipProvider:InsertAtIndex(element, i)
-	end
-
-	lip:SetOwner(self:GetScrollView())
-
-	for i, element in ipairs({
-		env.Elements.Divider:New(4);
-	}) do
-		dataProvider:InsertAtIndex(element, i)
 	end
 end
 

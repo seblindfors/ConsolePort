@@ -149,6 +149,7 @@ function CPScrollBoxLip:SetOwner(scrollView)
 	self:Release(scrollView)
 	self:SetHeight(self:GetLipHeight())
 	self.owner = scrollView;
+	self.validated = true;
 
 	local padding = scrollView:GetPadding()
 	padding.oldTop = padding:GetTop()
@@ -167,6 +168,15 @@ function CPScrollBoxLip:SetOwner(scrollView)
 	return self;
 end
 
+function CPScrollBoxLip:IsOwned(owner)
+	return self.owner == owner and owner ~= nil and self.validated;
+end
+
+function CPScrollBoxLip:Invalidate()
+	self.validated = false;
+	return self;
+end
+
 function CPScrollBoxLip:Release()
 	if self.owner then
 		local padding = self.owner:GetPadding()
@@ -176,7 +186,7 @@ function CPScrollBoxLip:Release()
 			padding:SetTop(oldTop)
 		end
 		self.owner:TriggerEvent(ScrollBoxListViewMixin.Event.OnDataChanged)
-		self.owner = nil;
+		self.owner, self.validated = nil, false;
 	end
 end
 

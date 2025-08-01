@@ -233,7 +233,7 @@ function Editor:EditBinding(data)
 	self.Lip:SetOwner(self.Settings:GetScrollView())
 
 	-- Set focus to the back button.
-	RunNextFrame(function()
+	CPAPI.Next(function()
 		local lipScrollView = self.Lip:GetScrollView()
 		local elementData, target = self.Lip:FindFirstOfType(env.Elements.Back, lipScrollView)
 		if elementData then
@@ -251,6 +251,7 @@ end
 function Editor:EditAction(data)
 	local dataProvider = self.Settings:GetDataProvider()
 	local scrollView = self.Settings:GetScrollView()
+	local lip = self.Lip:Invalidate()
 
 	if self:SetEditType(EditType.Action) then
 		dataProvider:Flush()
@@ -258,7 +259,7 @@ function Editor:EditAction(data)
 
 	env.Frame:GetLoadoutSelector()
 		:SetAlternateTitle(EDIT_AB)
-		:SetExternalLip(self.Lip)
+		:SetExternalLip(lip)
 		:SetDataProvider(dataProvider)
 		:SetScrollView(scrollView)
 		:SetCloseCallback(function()
