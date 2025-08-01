@@ -19,6 +19,21 @@ function Panel:OnHide()
 	self:SetEmbedded(false)
 end
 
+function Panel:OnDefaults()
+	local source  = db('Settings')
+	local changed = {};
+	for varID in pairs(env.Variables) do
+		if source[varID] ~= nil then
+			source[varID]  = nil;
+			changed[varID] = true;
+		end
+	end
+	for varID in pairs(changed) do
+		db:TriggerEvent('Settings/'..varID, db(varID))
+	end
+	CPAPI.Log('Rings settings have been reset to default.')
+end
+
 function Panel:OnHideEmbedded(delta)
 	env.SharedConfig.Env.Frame:SetPanelByDelta(delta)
 end
@@ -65,9 +80,9 @@ function Panel:SetEmbedded(embed)
 	config:SetPoint('CENTER', 0, embed and -12 or 0)
 	config:SetBackgroundAlpha(embed and 0 or 1)
 	config:SetFrameStrata('HIGH')
+	config.Tabs:SetAttribute('nodeignore', not embed)
 	config.CloseButton:SetEnabled(not embed)
 	config.Display.BorderArt:SetShown(not embed)
-	config.Tabs:SetAttribute('nodeignore', not embed)
 	config.Display.Tutorial:SetPoint('LEFT', embed and 100 or 20, 0)
 	config.Display.Details.IconSelector:SetCustomStride(embed and 13 or nil)
 	config.Display.Details.IconSelector:Init()

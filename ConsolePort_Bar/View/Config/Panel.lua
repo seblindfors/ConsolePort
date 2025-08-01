@@ -10,6 +10,16 @@ function Panel:OnLoad()
 	self:SetActiveCategory(GENERAL, self.index[ACTIONBARS_LABEL][GENERAL])
 end
 
+function Panel:OnDefaults()
+	local source  = env('Settings')
+	local changed = CopyTable(source)
+	wipe(source)
+	for varID in pairs(changed) do
+		env:TriggerEvent('Settings/'..varID, env(varID))
+	end
+	CPAPI.Log('Action bar settings have been reset to default.')
+end
+
 function Panel:RenderSettings()
 	local settings = RenderSettings(self)
 	if not settings then return end;
@@ -57,10 +67,13 @@ ConsolePort:RegisterConfigCallback(function(self, configEnv)
 		end)
 	end)
 
+	-- Exclude action bar mapping from search, because they
+	-- are already included in the main settings panel.
+	local excludeSearch = true;
 	Settings:AddProvider(GenerateClosure(configEnv.ActionBarsProvider,
 		ACTIONBARS_LABEL,
 		KEY_BINDINGS_MAC,
-		true -- excludeSearch
+		excludeSearch
 	));
 
 	Settings:AddMutator(function(_, _, interface)
