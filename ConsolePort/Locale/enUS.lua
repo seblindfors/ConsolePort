@@ -460,3 +460,30 @@ L.DEFAULTS_BINDINGS_EMPTY_DESC = [[
 	If you plan to switch between keyboard and gamepad, it's recommended to change your
 	gamepad bindings rather than moving abilities around on your action bars, when adjusting your setup.
 ]];
+L.LINK_DISCORD_TEXT = [[
+	The community where you can find support, discuss gameplay, share ideas, and find like-minded players.
+
+	Click here to join the server.
+]];
+L.LINK_PATREON_TEXT = [[
+	The development and maintenance of this addon takes a lot of time and effort,
+	but ConsolePort will always be completely free to use.
+
+	Become a supporter on Patreon to unlock your Discord flair, and in turn support the future of the project.
+
+	Click here to become a patron.
+]];
+L.LINK_PAYPAL_TEXT = [[
+	Donations are invested right back into the development and maintenance of the addon.
+
+	Any contribution, big or small, is highly appreciated.
+
+	Click here to donate via PayPal.
+]];
+L.LINK_COPY = [[
+	Link to %s.
+	
+	Ctrl+A to select and Ctrl+C to copy.
+	
+	Paste (Ctrl+V) the link in your web browser.
+]];

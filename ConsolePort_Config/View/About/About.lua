@@ -47,26 +47,42 @@ local function __(str, a1, ...)
 end
 
 ---------------------------------------------------------------
-local Credits = {};
+local Credits = CreateFromMixins(env.Mixin.UpdateStateTimer);
 ---------------------------------------------------------------
 
 function Credits:OnLoad()
 	self:SetPoint('CENTER', 0, 100)
+	self:SetUpdateStateDuration(0.25)
 	self.Slot:SetIgnoreParentAlpha(true)
 end
 
-function Credits:Update()
-	self:SetOwner(self.canvas, 'ANCHOR_NONE')
-	self:SetPoint('CENTER', 0, 100)
-	pcall(self.AddSillyTooltip, self)
-	self:Show()
-	db.Alpha.FadeIn(self, 1, 0, 1)
-	NineSliceUtil.ApplyLayoutByName(
-		self.NineSlice,
-		self.layoutType,
-		self.NineSlice:GetFrameLayoutTextureKit()
-	);
-	self:SetPadding(4, 24, 4, 4)
+function Credits:Update(callback)
+	self:SetUpdateStateTimer(function()
+		callback = callback or self.AddSillyTooltip;
+		self:SetOwner(self.canvas, 'ANCHOR_NONE')
+		self:SetPoint('CENTER', self.canvas, 'CENTER', 0, 90)
+		pcall(callback, self)
+		self:Show()
+
+		local slot = self.Slot;
+		local pointer = slot.Point;
+		local isSillyTooltip = callback == self.AddSillyTooltip;
+
+		slot:ClearAllPoints()
+		if isSillyTooltip then
+			slot:SetPoint('TOPRIGHT', self, 'TOPLEFT', 4, 0)
+		else
+			slot:SetPoint('BOTTOM', self, 'TOP', 0, -4)
+		end
+
+		db.Alpha.FadeIn(pointer, 0.5, pointer:GetAlpha(), isSillyTooltip and 1 or 0)
+		NineSliceUtil.ApplyLayoutByName(
+			self.NineSlice,
+			self.layoutType,
+			self.NineSlice:GetFrameLayoutTextureKit()
+		);
+		self:SetPadding(4, 24, 4, 4)
+	end)
 end
 
 function Credits:AddSillyTooltip()
@@ -83,12 +99,19 @@ function Credits:AddSillyTooltip()
 
 	local add, sub = 43, 45;
 
+	local quotes = {
+		VOICEMACRO_19_Dw_2,
+		VOICEMACRO_19_Gn_3,
+		VOICEMACRO_19_Ta_5,
+		VOICEMACRO_20_Hu_1_FEMALE,
+	};
+
 	for _, texts in ipairs({
 		{ __(NORMAL_FONT_COLOR, ITEM_LEVEL, GetAddOnVersion():gsub('%.', '')) };
 		{ __(ITEM_BIND_ON_PICKUP) };
 		{ __(ITEM_UNIQUE) };
 		{ __(INVTYPE_2HWEAPON), __(INVTYPE_RELIC) };
-		{ __(DAMAGE_TEMPLATE, year:sub(1, 2), year:sub(3, 4)), __('%s 0.%d', STAT_SPEED, patch) };
+		{ __(DAMAGE_TEMPLATE, year:sub(1, 2), year:sub(3, 4)), __('%s 1.%02d', STAT_SPEED, patch) };
 		{ __(DPS_TEMPLATE, ('%d.%d'):format(major, minor)) };
 		{ __(ITEM_MOD_INTELLECT, add, random(60, 99)) };
 		{ __(ITEM_MOD_STAMINA,   add, random(70, 99)) };
@@ -102,9 +125,9 @@ function Credits:AddSillyTooltip()
 		)))};
 		{ __(GREEN_FONT_COLOR, __('%s %s',
 			ITEM_SPELL_TRIGGER_ONUSE,
-			VOICEMACRO_19_Dw_2
+			VOICEMACRO_18_Tr_2
 		)), true};
-		{ __(NORMAL_FONT_COLOR, __('"%s"', VOICEMACRO_19_Gn_3)) };
+		{ __(NORMAL_FONT_COLOR, __('"%s"', quotes[random(1, #quotes)])), true };
 		{ __(ITEM_CREATED_BY, GetAuthor()) };
 	}) do
 		local left, right = unpack(texts)
@@ -114,6 +137,66 @@ function Credits:AddSillyTooltip()
 			self:AddLine(left, 1, 1, 1, right)
 		end
 	end
+end
+
+---------------------------------------------------------------
+local Link = CreateFromMixins(CPCardSmallMixin)
+---------------------------------------------------------------
+local ActivePopup;
+
+function Link:Init(data, tooltip)
+	CPAPI.Specialize(self, Link, data)
+
+	self.NormalTexture:SetTexture(data.icon)
+	self.HighlightTexture:SetTexture(data.icon)
+	self.PushedTexture:SetTexture(data.icon)
+	self:SetText(data.text)
+	self.Text:SetTextColor(1, 1, 1)
+
+	self.tooltip = tooltip;
+end
+
+function Link:OnEnter()
+	CPCardSmallMixin.OnEnter(self)
+
+	self.tooltip:Update(function(tooltip)
+		local art = BAG_ITEM_QUALITY_COLORS[Enum.ItemQuality.Artifact];
+		tooltip:SetText(self.hint, art.r, art.g, art.b)
+		tooltip:AddLine(CPAPI.FormatLongText(self.desc), 1, 1, 1, true)
+	end)
+end
+
+function Link:OnLeave()
+	CPCardSmallMixin.OnLeave(self)
+	self.tooltip:Update()
+end
+
+function Link:OnClick()
+	self:SetChecked(false)
+	if ActivePopup then
+		ActivePopup:Hide()
+	end
+	ActivePopup = CPAPI.Popup('ConsolePort_External_Link', {
+		text = CPAPI.FormatLongText(L('LINK_COPY', self.text));
+		hasEditBox = 1;
+		maxLetters = 0;
+		button1 = DONE;
+		EditBoxOnEscapePressed = function(editBox) editBox:GetParent():Hide() end;
+		EditBoxOnEnterPressed  = function(editBox) editBox:GetParent():Hide() end;
+		EditBoxOnTextChanged   = function(editBox)
+			if ( editBox:GetText() ~= self.link ) then
+				editBox:SetText(self.link)
+			end
+			editBox:SetCursorPosition(0)
+			editBox:HighlightText()
+		end;
+		OnHide = function()
+			ActivePopup = nil;
+		end;
+		OnShow = function(popup)
+			popup.editBox:SetText(self.link)
+		end;
+	})
 end
 
 ---------------------------------------------------------------
@@ -136,6 +219,36 @@ function About:InitCanvas(canvas)
 	self.Credits = CreateFrame('GameTooltip', 'ConsolePortCredits', canvas, 'CPCredits')
 	self.Credits.canvas = canvas;
 	CPAPI.SpecializeOnce(self.Credits, Credits)
+
+	self.Links = CreateFrame('Frame', nil, canvas, 'CPAboutLinkTray')
+	self.Links:SetPoint('BOTTOM', 0, 70)
+	self.Links:SetButtonSetup(Link.Init)
+
+	for _, data in ipairs({
+		{
+			text = L'Discord';
+			hint = L'Join Discord';
+			desc = L.LINK_DISCORD_TEXT;
+			icon = CPAPI.GetAsset [[Textures\Logo\Discord]];
+			link = 'https://discord.gg/AWeHd48';
+		};
+		{
+			text = L'Patreon';
+			hint = L'Support on Patreon';
+			desc = L.LINK_PATREON_TEXT;
+			icon = CPAPI.GetAsset [[Textures\Logo\Patreon]];
+			link = 'https://www.patreon.com/ConsolePort';
+		};
+		{
+			text = L'PayPal';
+			hint = L'Donate via PayPal';
+			desc = L.LINK_PAYPAL_TEXT;
+			icon = CPAPI.GetAsset [[Textures\Logo\PayPal]];
+			link = 'https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5ADQW5L2FE4XC';
+		};
+	}) do
+		self.Links:AddControl(data, self.Credits)
+	end
 end
 
 function About:Render()
@@ -145,4 +258,5 @@ function About:Render()
 	end
 	canvas:Show()
 	self.Credits:Update()
+	db.Alpha.FadeIn(self.Credits, 1, 0, 1)
 end

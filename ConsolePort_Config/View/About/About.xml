@@ -61,13 +61,42 @@
 	</GameTooltip>
 
 	<CheckButton name="CPAboutLinkButton" virtual="true" inherits="CPCardSmallTemplate">
-		<Size x="150" y="100"/>
-		<ButtonText parentKey="Text" inherits="CPWhiteFont" justifyH="CENTER">
+		<Size x="200" y="180"/>
+		<ButtonText parentKey="Text" inherits="CPHeaderFont" justifyH="CENTER">
 			<Anchors>
-				<Anchor point="BOTTOM" y="12"/>
+				<Anchor point="BOTTOM" y="24"/>
 			</Anchors>
 		</ButtonText>
+		<NormalTexture parentKey="NormalTexture">
+			<Size x="100" y="100"/>
+			<Anchors>
+				<Anchor point="CENTER" y="8"/>
+			</Anchors>
+		</NormalTexture>
+		<HighlightTexture parentKey="HighlightTexture">
+			<Size x="100" y="100"/>
+			<Anchors>
+				<Anchor point="CENTER" y="8"/>
+			</Anchors>
+		</HighlightTexture>
+		<PushedTexture parentKey="PushedTexture">
+			<Size x="100" y="100"/>
+			<Anchors>
+				<Anchor point="CENTER" y="6"/>
+			</Anchors>
+		</PushedTexture>
 	</CheckButton>
+
+	<Frame name="CPAboutLinkTray" inherits="HorizontalButtonTrayTemplate" virtual="true">
+		<Size x="1" y="1"/>
+		<KeyValues>
+			<KeyValue key="expand" value="true" type="boolean"/>
+			<KeyValue key="widthPadding" value="4" type="number"/>
+			<KeyValue key="spacing" value="20" type="number"/>
+			<KeyValue key="templateType" value="CheckButton" type="string"/>
+			<KeyValue key="buttonTemplate" value="CPAboutLinkButton" type="string"/>
+		</KeyValues>
+	</Frame>
 
 	<Script file="About.lua"/>
 </Ui>
