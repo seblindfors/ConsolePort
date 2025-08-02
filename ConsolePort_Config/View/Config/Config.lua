@@ -210,6 +210,7 @@ function Config:OnLoad()
 	}))
 	self.Import:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnImportButtonClicked'))
 	self.Export:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnExportButtonClicked'))
+	self.Credits:SetScript('OnClick', GenerateClosure(env.TriggerEvent, env, 'OnPanelShow', 0))
 
 	self.PanelSelectDelta = {
 		PADLSHOULDER = -1;
@@ -452,7 +453,7 @@ function Config:SetPanelByDelta(delta)
 	end
 end
 
-do  local panelIDGen, panels = CreateCounter(), {};
+do  local panelIDGen, panels = CreateCounter(-1), {};
 	local function NavButtonOnClick(self, navBar, id)
 		env:TriggerEvent('OnPanelShow', id)
 	end
@@ -462,10 +463,13 @@ do  local panelIDGen, panels = CreateCounter(), {};
 	end
 
 	local function PanelInitializer(panel, panelID, info, config)
-		local navButton = config.Nav:AddButton(info.name, NavButtonOnClick, panelID)
-		navButton:SetID(panelID)
-		navButton.layoutIndex = panelID;
-		env:RegisterCallback('OnPanelShow', NavButtonOnPanelShow, navButton)
+		local navButton;
+		if info.nav ~= false then
+			navButton = config.Nav:AddButton(info.name, NavButtonOnClick, panelID)
+			navButton:SetID(panelID)
+			navButton.layoutIndex = panelID;
+			env:RegisterCallback('OnPanelShow', NavButtonOnPanelShow, navButton)
+		end
 		env:UnregisterCallback('OnConfigLoad', panel)
 		panel:InitPanel(panelID, config.Container, navButton)
 	end
