@@ -71,7 +71,7 @@ function SlotButton:OnLoad()
 	self:CreateEnvironment()
 	self:SetAttribute(env.Attributes.UUID, true)
 	env.LIB.Skin.SlotButton(self)
-	self.AssistedCombatRotationFrame = { UpdateState = nop }; -- Negate LAB:UpdateAssistedCombatRotationFrame.
+	env.LIB.SkinUtility.NegateAssistedCombat(self)
 end
 
 function SlotButton:OnTypeChanged(isAction)

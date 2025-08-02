@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 -- LibActionButton-1.0 and LibButtonGlow-1.0 wrapper for CP
 ----------------------------------------------------------------
-local Lib = LibStub:NewLibrary('ConsolePortActionButton', 1) -- TODO: rename the lib?
+local Lib = LibStub:NewLibrary('ConsolePortActionButton', 1)
 if not Lib then return end
 local LAB = LibStub('LibActionButton-1.0')
 local LBG = LibStub('LibButtonGlow-1.0')
@@ -138,6 +138,11 @@ function Lib.SkinUtility.SkinChargeCooldown(self, skin, reset)
 	end)
 end
 
+function Lib.SkinUtility.NegateAssistedCombat(self)
+	-- Negate LAB:UpdateAssistedCombatRotationFrame.
+	self.AssistedCombatRotationFrame = { UpdateState = nop };
+end
+
 do -- Lib.SkinUtility.SkinOverlayGlow
 	function Lib.SkinUtility.SkinOverlayGlow(self, onShow, onHide)
 		if self.__LBGoverlaySkin then return end;
@@ -195,6 +200,7 @@ do -- Lib.Skin.RingButton
 		local obj, scale;
 		local r, g, b = CPPieMenuMixin.SliceColors.Accent:GetRGB()
 		local size = self:GetSize()
+		Lib.SkinUtility.NegateAssistedCombat(self)
 		do obj = self.NormalTexture;
 			scale = 110 / 64;
 			obj:ClearAllPoints()
@@ -415,6 +421,7 @@ do -- Workaround for LAB's private type meta map.
 	setmetatable(Lib.TypeMetaMap, {__index = function(self, k)
 		local ReferenceHeader = CreateFrame('Frame', 'ConsolePortABRefHeader', nil, 'SecureHandlerStateTemplate')
 		local ReferenceButton = LAB:CreateButton('ref', '$parentButton', ReferenceHeader)
+		Lib.SkinUtility.NegateAssistedCombat(ReferenceButton)
 		for meta, dummy in pairs({
 			empty  = 0;
 			action = 1;
