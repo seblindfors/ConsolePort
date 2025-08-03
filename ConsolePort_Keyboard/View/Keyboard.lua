@@ -192,6 +192,14 @@ function Keyboard:MoveToCursor()
 	self:ClearAllPoints()
 	self:SetPoint('BOTTOMLEFT', UIParent, 'BOTTOMLEFT',
 		x - self:GetWidth() * 0.5, y - self:GetHeight() * 0.5)
+	-- Move the WordSuggester to the side of the keyboard based
+	-- on whether the keyboard is to the left or right of UIParent
+	self.WordSuggester:ClearAllPoints()
+	if x < UIParent:GetWidth() * 0.5 then
+		self.WordSuggester:SetPoint('LEFT', self, 'RIGHT', 40, 0)
+	else
+		self.WordSuggester:SetPoint('RIGHT', self, 'LEFT', -40, 0)
+	end
 end
 
 ---------------------------------------------------------------
@@ -227,17 +235,17 @@ function Keyboard:OnDataLoaded(...)
 
 	self:SetScript('OnDragStart', self.StartMoving)
 	self:SetScript('OnDragStop', self.StopMovingOrSizing)
-	self:SetScript('OnClick', self.OnClick)
 
 	return CPAPI.BurnAfterReading;
 end
 
 function Keyboard:OnShow()
-	if IsGamePadFreelookEnabled() then
-		SetCursorControl(true)
-		self:MoveToCursor()
-		SetCursorControl(false)
+	if not IsGamePadFreelookEnabled() then
+		return self:OnFocusChanged(nil)
 	end
+	SetCursorControl(true)  -- to snapshot the cursor position,
+	self:MoveToCursor()     -- move to the cursor position,
+	SetCursorControl(false) -- now we can disable it.
 	self.Controls:SetHighlight(true)
 end
 
@@ -302,10 +310,12 @@ end
 ---------------------------------------------------------------
 -- Init
 ---------------------------------------------------------------
+Keyboard.WordSuggester.Fill:SetVertexColor(0.12, 0.12, 0.12, .75)
 Keyboard.Fill:SetVertexColor(0.12, 0.12, 0.12, .75)
 Keyboard.Edge:SetVertexColor(0.35, 0.35, 0.35, .75)
 Keyboard.Donut:SetVertexColor(0.35, 0.35, 0.35, .75)
 Keyboard:EnableGamePadStick(true)
+Keyboard:SetClampRectInsets(-70, 70, 70, -70)
 CPAPI.Start(Keyboard)
 CPAPI.Specialize(Keyboard.Controls, env.CharsetMixin)
 CPFocusPoolMixin.CreateFramePool(Keyboard, 'PieMenu', 'CPKeyboardSet', env.CharsetMixin)

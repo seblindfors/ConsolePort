@@ -1,13 +1,22 @@
 <Ui>
-	<Texture name="CPKeyboardPalette" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask" virtual="true" />
-	<Texture name="CPKeyboardMask" file="Interface\AddOns\ConsolePort_Keyboard\Assets\PaletteMask" virtual="true" />
+	<Texture name="CPKeyboardFill" virtual="true"
+		file="Interface\AddOns\ConsolePort_Keyboard\Assets\Palette"/>
+	<Texture name="CPKeyboardRounded" virtual="true"
+		file="Interface\AddOns\ConsolePort_Keyboard\Assets\Char" />
+
+	<Texture name="CPKeyboardRingMask" virtual="true"
+		file="Interface\AddOns\ConsolePort_Keyboard\Assets\PaletteMask" 
+		hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE"/>
+	<Texture name="CPKeyboardCharMask" virtual="true"
+		file="Interface\AddOns\ConsolePort_Keyboard\Assets\CharMask" 
+		hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE"/>
 
 	<!-- Templates -->
 	<CheckButton name="CPKeyboardChar" virtual="true" registerForClicks="AnyUp">
 		<Size x="24" y="24"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Background" file="Interface\AddOns\ConsolePort_Keyboard\Assets\Char">
+				<Texture parentKey="Background" inherits="CPKeyboardRounded">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-4" y="4"/>
 						<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
@@ -16,13 +25,13 @@
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString inherits="GameFontHighlightLarge" justifyH="CENTER" parentKey="Text" setAllPoints="true"/>
-				<Texture parentKey="Ring" file="Interface\AddOns\ConsolePort_Keyboard\Assets\Char" alpha="0.75" hidden="true">
+				<Texture parentKey="Ring" inherits="CPKeyboardRounded" alpha="0.75" hidden="true">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-4" y="4"/>
 						<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
 					</Anchors>
 				</Texture>
-				<MaskTexture parentKey="RingMask" file="Interface\AddOns\ConsolePort_Keyboard\Assets\CharMask" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+				<MaskTexture parentKey="RingMask" inherits="CPKeyboardCharMask" >
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.Ring" x="1" y="-1"/>
 						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Ring" x="-1" y="1"/>
@@ -157,28 +166,15 @@
 		<Anchors>
 			<Anchor point="CENTER" x="250"/>
 		</Anchors>
-		<Frames>
-			<Frame parentKey="WordSuggester" frameLevel="1">
-				<Size x="180" y="20"/>
-				<Anchors>
-					<Anchor point="CENTER"/>
-				</Anchors>
-			</Frame>
-			<Frame parentKey="Controls" frameLevel="1" inherits="CPKeyboardSet">
-				<Anchors>
-					<Anchor point="CENTER"/>
-				</Anchors>
-			</Frame>
-		</Frames>
 		<Layers>
 			<Layer level="BACKGROUND" textureSubLevel="1">
-				<Texture parentKey="Fill" file="Interface\AddOns\ConsolePort_Keyboard\Assets\Palette" alpha="0.5">
+				<Texture parentKey="Fill" inherits="CPKeyboardFill" alpha="0.5">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-64" y="64"/>
 						<Anchor point="BOTTOMRIGHT" x="64" y="-64"/>
 					</Anchors>
 				</Texture>
-				<MaskTexture parentKey="FillMask" inherits="CPKeyboardMask" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+				<MaskTexture parentKey="FillMask" inherits="CPKeyboardRingMask">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="30" y="-30"/>
 						<Anchor point="BOTTOMRIGHT" x="-30" y="30"/>
@@ -189,13 +185,13 @@
 				</MaskTexture>
 			</Layer>
 			<Layer level="BACKGROUND" textureSubLevel="2">
-				<Texture parentKey="Edge" file="Interface\AddOns\ConsolePort_Keyboard\Assets\Palette" alpha="0.5">
+				<Texture parentKey="Edge" inherits="CPKeyboardFill" alpha="0.5">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-64" y="64"/>
 						<Anchor point="BOTTOMRIGHT" x="64" y="-64"/>
 					</Anchors>
 				</Texture>
-				<MaskTexture parentKey="EdgeMask" inherits="CPKeyboardMask" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+				<MaskTexture parentKey="EdgeMask" inherits="CPKeyboardRingMask">
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.Edge" x="1" y="-1"/>
 						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Edge" x="-1" y="1"/>
@@ -204,13 +200,13 @@
 						<MaskedTexture childKey="Edge"/>
 					</MaskedTextures>
 				</MaskTexture>
-				<Texture parentKey="Donut" file="Interface\AddOns\ConsolePort_Keyboard\Assets\Palette" alpha="0.5">
+				<Texture parentKey="Donut" inherits="CPKeyboardFill" alpha="0.5">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="30" y="-30"/>
 						<Anchor point="BOTTOMRIGHT" x="-30" y="30"/>
 					</Anchors>
 				</Texture>
-				<MaskTexture parentKey="DonutMask" inherits="CPKeyboardMask" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+				<MaskTexture parentKey="DonutMask" inherits="CPKeyboardRingMask">
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.Donut" x="1" y="-1"/>
 						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Donut" x="-1" y="1"/>
@@ -221,5 +217,34 @@
 				</MaskTexture>
 			</Layer>
 		</Layers>
+		<Frames>
+			<Frame parentKey="WordSuggester" frameLevel="1">
+				<Size x="150" y="200"/>
+				<Anchors>
+					<Anchor point="LEFT" relativePoint="RIGHT" x="40"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Fill" inherits="CPKeyboardRounded" setAllPoints="true" scale="0.5" rotation="180">
+							<TextureSliceMargins left="32" right="32" top="32" bottom="32"/>
+						</Texture>
+						<MaskTexture parentKey="FillMask" inherits="CPKeyboardRingMask">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.$parent" x="-70" y="70"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent" x="70" y="-70"/>
+							</Anchors>
+							<MaskedTextures>
+								<MaskedTexture childKey="Fill"/>
+							</MaskedTextures>
+						</MaskTexture>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame parentKey="Controls" frameLevel="1" inherits="CPKeyboardSet">
+				<Anchors>
+					<Anchor point="CENTER"/>
+				</Anchors>
+			</Frame>
+		</Frames>
 	</PieMenu>
 </Ui>
