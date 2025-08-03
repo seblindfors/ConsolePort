@@ -17,7 +17,7 @@
 View\Keyboard.xml
 
 Components\Charset.lua
-Components\Config.lua
+#Components\Config.lua
 Components\Suggester.lua
 
 Core\UTF8.lua

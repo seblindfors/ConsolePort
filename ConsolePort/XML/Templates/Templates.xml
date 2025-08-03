@@ -34,18 +34,6 @@
 		</KeyValues>
 	</GameTooltip>
 
-	<!-- charactercreate-ring-select -->
-	<Texture name="CPRingSelectTexture" virtual="true" file="interface\AddOns\ConsolePort\Assets\Textures\Atlas\General_Atlas">
-		<Size x="236" y="236"/>
-		<TexCoords left="0.27392578125" right="0.38916015625" top="0.5185546875" bottom="0.7490234375"/>
-	</Texture>
-
-	<!-- charactercreate-ring-metaldark -->
-	<Texture name="CPRingMetalDarkTexture" virtual="true" file="interface\AddOns\ConsolePort\Assets\Textures\Atlas\General_Atlas">
-		<Size x="236" y="236"/>
-		<TexCoords left="0.13720703125" right="0.27294921875" top="0.2763671875" bottom="0.5498046875"/>
-	</Texture>
-
 	<Button name="CPSmoothRectangleButtonTemplate" virtual="true" mixin="CPSmoothButtonMixin" inherits="BackdropTemplate">
 		<Size x="230" y="60"/>
 		<HighlightTexture parentKey="HighlightTexture" file="Interface\PVPFrame\PvPMegaQueue" alphaMode="ADD">

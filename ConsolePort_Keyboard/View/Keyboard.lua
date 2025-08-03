@@ -2,9 +2,15 @@ local Keyboard, Radial, db = CPAPI.EventHandler(ConsolePortKeyboard, {'PLAYER_LO
 local L, _, env = db.Locale, ...;
 local VALID_VEC_LEN, VALID_DSP_LEN = 0.5, 0.15;
 
+local function SetCursorControl(enabled)
+	SetGamePadCursorControl(enabled)
+	SetCursor(enabled and 'Interface/Cursor/UI-Cursor-SizeLeft.crosshair' or nil)
+end
+
 ---------------------------------------------------------------
 -- Hardware events
 ---------------------------------------------------------------
+Mixin(Keyboard, CPPropagationMixin)
 
 function Keyboard:Left(x, y, len)
 	self:ReflectStickPosition(x, y, len, len > VALID_VEC_LEN)
@@ -14,18 +20,26 @@ function Keyboard:Left(x, y, len)
 		self.Registry[Radial:GetIndexForStickPosition(x, y, len, self.numSets)]
 
 	local isNewFocusSet = oldFocusSet ~= self.focusSet;
+	local hasFocusset   = not not self.focusSet;
+
 	if oldFocusSet and isNewFocusSet then
 		oldFocusSet:OnStickChanged(0, 0, 0, false)
 		oldFocusSet:SetHighlight(false)
 	end
-	if isNewFocusSet and self.focusSet then
+	if isNewFocusSet and hasFocusset then
 		self.focusSet:SetHighlight(true)
+		SetCursorControl(false)
 	end
+	self.Controls:SetHighlight(not hasFocusset)
+
+	return false;
 end
 
 function Keyboard:Right(x, y, len)
 	if self.focusSet then
 		self.focusSet:OnStickChanged(x, y, len, len > VALID_DSP_LEN)
+	else
+		SetCursorControl(true)
 	end
 	if not self.inputLock and len > VALID_VEC_LEN then
 		self.inputLock = true;
@@ -33,22 +47,31 @@ function Keyboard:Right(x, y, len)
 	elseif len <= VALID_VEC_LEN then
 		self.inputLock = false;
 	end
+
+	return false;
+end
+
+function Keyboard:Cursor()
+	if self.focusSet then return true end;
+	self:MoveToCursor()
+	return true;
 end
 
 function Keyboard:OnGamePadStick(stick, x, y, len)
+	local propagate = false;
 	if self[stick] then
-		self[stick](self, x, y, len)
+		propagate = self[stick](self, x, y, len)
 	end
-	self:SetPropagateKeyboardInput(false)
+	self:SetPropagation(propagate)
 end
 
 function Keyboard:OnGamePadButtonDown(button)
 	local callback = self.commands[button];
 	if callback then
 		callback(self, button)
-		return self:SetPropagateKeyboardInput(false)
+		return self:SetPropagation(false)
 	end
-	self:SetPropagateKeyboardInput(true)
+	self:SetPropagation(true)
 end
 
 function Keyboard:OnFocusChanged(frame)
@@ -66,37 +89,60 @@ function Keyboard:SetState(state)
 	end
 end
 
-function Keyboard:OnShow()
-	ConsolePortUIHandle:SetHintFocus(self)
-	for _, data in ipairs(self.hints) do
-		local text, key = unpack(data)
-		if text and key then
-			ConsolePortUIHandle:AddHint(key, text)
-		end
-	end
-end
-
-function Keyboard:OnHide()
-	if ConsolePortUIHandle:IsHintFocus(self) then
-		ConsolePortUIHandle:HideHintBar()
-	end
-	ConsolePortUIHandle:ClearHintsForFrame(self)
-end
-
 ---------------------------------------------------------------
 -- Input scripts
 ---------------------------------------------------------------
 local utf8 = env.utf8;
 
-function Keyboard:Insert()
-	local key = self.focusSet and self.focusSet.focusKey;
+function Keyboard:GetFocusKey(index)
+	if not self.focusSet then return end;
+	return self.focusSet:GetKeyByIndex(index);
+end
+
+function Keyboard:Stroke(index)
+	local key = self:GetFocusKey(index);
+	if not key then
+		self.Controls:GetKeyByIndex(index):Flash()
+		return false;
+	end
+	key:Flash()
+	self:Insert(key)
+	return true;
+end
+
+function Keyboard:Insert(key)
+	key = key or self.focusSet and self.focusSet.focusKey;
 	if key then
 		self.focusFrame:Insert(key:GetText())
-		key:Flash()
 	end
 end
 
+function Keyboard:Escape()
+	if self:Stroke(1) then return end;
+	ExecuteFrameScript(self.focusFrame, 'OnEscapePressed')
+	self:OnFocusChanged(nil)
+end
+
+function Keyboard:Enter()
+	if self:Stroke(2) then return end;
+	ExecuteFrameScript(self.focusFrame, 'OnEnterPressed')
+	if self.cachedFocusText then
+		env.DictHandler:Update(env.Dictionary, self.cachedFocusText)
+		self.cachedFocusText = nil;
+	end
+end
+
+function Keyboard:Space()
+	if self:Stroke(3) then return end;
+	ExecuteFrameScript(self.focusFrame, 'OnSpacePressed')
+	self.focusFrame:Insert(' ')
+end
+
 function Keyboard:Erase()
+	if self:Stroke(4) then return end;
+	if IsControlKeyDown() then
+		return self.focusFrame:SetText('')
+	end
 	local pos = self.focusFrame:GetUTF8CursorPosition()
 	if pos ~= 0 then
 		local text, offset = (self.focusFrame:GetText())
@@ -108,24 +154,6 @@ function Keyboard:Erase()
 		self.focusFrame:SetText(newText)
 		self.focusFrame:SetCursorPosition(utf8.pos(newText, offset and pos - offset or pos - 1))
 	end
-end
-
-function Keyboard:Enter()
-	ExecuteFrameScript(self.focusFrame, 'OnEnterPressed')
-	if self.cachedFocusText then
-		env.DictHandler:Update(env.Dictionary, self.cachedFocusText)
-		self.cachedFocusText = nil;
-	end
-end
-
-function Keyboard:Space()
-	ExecuteFrameScript(self.focusFrame, 'OnSpacePressed')
-	self.focusFrame:Insert(' ')
-end
-
-function Keyboard:Escape()
-	ExecuteFrameScript(self.focusFrame, 'OnEscapePressed')
-	self:OnFocusChanged(nil)
 end
 
 function Keyboard:MoveLeft()
@@ -159,37 +187,62 @@ function Keyboard:SpellCorrect()
 	end
 end
 
+function Keyboard:MoveToCursor()
+	local x, y = GetScaledCursorPosition()
+	self:ClearAllPoints()
+	self:SetPoint('BOTTOMLEFT', UIParent, 'BOTTOMLEFT',
+		x - self:GetWidth() * 0.5, y - self:GetHeight() * 0.5)
+end
+
 ---------------------------------------------------------------
 -- Data handling
 ---------------------------------------------------------------
 
 function Keyboard:OnTextChanged(text, pos)
 	local word = utf8.getword(text, pos);
-	self.WordSuggester:OnWordChanged(word)
+	--self.WordSuggester:OnWordChanged(word)
 	self.cachedFocusText = text; -- cache for dictionary
 end
 
 function Keyboard:OnDataLoaded(...)
-	self:OnVariableChanged()
-
-	if not ConsolePort_KeyboardLayout then
-		ConsolePort_KeyboardLayout = CopyTable(env.DefaultLayout)
+	local defaultLayout = env:GetDefaultLayout()
+	if not ConsolePort_KeyboardLayout
+	or not env:ValidateLayout(ConsolePort_KeyboardLayout, defaultLayout) then
+		ConsolePort_KeyboardLayout = defaultLayout;
 	end
 	if not ConsolePort_KeyboardMarkers then
-		ConsolePort_KeyboardMarkers = CopyTable(env.DefaultMarkers)
+		ConsolePort_KeyboardMarkers = {};
 	end
 	if not ConsolePort_KeyboardDictionary then
 		ConsolePort_KeyboardDictionary = env.DictHandler:Generate()
 	end
 
 	env.Layout     = ConsolePort_KeyboardLayout;
-	env.Markers    = ConsolePort_KeyboardMarkers;
+	env.Markers    = CPAPI.Proxy(ConsolePort_KeyboardMarkers, env.DefaultMarkers);
 	env.Dictionary = ConsolePort_KeyboardDictionary;
 
 	env:ToggleObserver(true)
+	self:OnVariableChanged()
 	self:OnLayoutChanged()
 
+	self:SetScript('OnDragStart', self.StartMoving)
+	self:SetScript('OnDragStop', self.StopMovingOrSizing)
+	self:SetScript('OnClick', self.OnClick)
+
 	return CPAPI.BurnAfterReading;
+end
+
+function Keyboard:OnShow()
+	if IsGamePadFreelookEnabled() then
+		SetCursorControl(true)
+		self:MoveToCursor()
+		SetCursorControl(false)
+	end
+	self.Controls:SetHighlight(true)
+end
+
+function Keyboard:OnClick()
+	self:OnFocusChanged(nil)
 end
 
 function Keyboard:OnLayoutChanged()
@@ -199,8 +252,9 @@ function Keyboard:OnLayoutChanged()
 		local widget, newObj = self:Acquire(i)
 		if newObj then
 			widget:OnLoad()
+			widget:SetFrameStrata(self:GetFrameStrata())
 		end
-		widget:SetPoint('CENTER', Radial:GetPointForIndex(i, self.numSets, self:GetSize()/1.75))
+		widget:SetPoint('CENTER', Radial:GetPointForIndex(i, self.numSets, self:GetSize() * 0.62))
 		widget:SetData(set)
 		widget:Show()
 	end
@@ -218,13 +272,13 @@ function Keyboard:OnVariableChanged()
 		[db('keyboardPrevWordButton')]  = self.PrevWord;
 		[db('keyboardAutoCorrButton')]  = self.SpellCorrect;
 	};
-	self.hints = {
-		{L'Enter',   db('keyboardEnterButton')};
-		{L'Erase',   db('keyboardEraseButton')};
-		{L'Space',   db('keyboardSpaceButton')};
-		{L'Escape',  db('keyboardEscapeButton')};
-		{L'Insert',  db('keyboardAutoCorrButton')};
-	};
+	self.Controls:SetData({
+		{ env.Cmd.Escape, };
+		{ env.Cmd.Enter,  };
+		{ env.Cmd.Space,  };
+		{ env.Cmd.Erase,  };
+	})
+	self.Controls:SetState(1)
 	-- update dictionary settings
 	env.DictMatchPattern  = db('keyboardDictPattern');
 	env.DictMatchAlphabet = db('keyboardDictAlphabet');
@@ -248,11 +302,10 @@ end
 ---------------------------------------------------------------
 -- Init
 ---------------------------------------------------------------
+Keyboard.Fill:SetVertexColor(0.12, 0.12, 0.12, .75)
+Keyboard.Edge:SetVertexColor(0.35, 0.35, 0.35, .75)
+Keyboard.Donut:SetVertexColor(0.35, 0.35, 0.35, .75)
 Keyboard:EnableGamePadStick(true)
-Keyboard.Arrow:SetSize(50*0.71, 400*0.71)
-Keyboard:SetScript('OnShow', Keyboard.OnShow)
-Keyboard:SetScript('OnHide', Keyboard.OnHide)
-Keyboard:SetScript('OnUpdate', Keyboard.OnUpdate)
-Keyboard:SetScript('OnGamePadStick', Keyboard.OnGamePadStick)
-Keyboard:SetScript('OnGamePadButtonDown', Keyboard.OnGamePadButtonDown)
-CPFocusPoolMixin.CreateFramePool(Keyboard, 'PieMenu', 'ConsolePortKeyboardSet', env.CharsetMixin)
+CPAPI.Start(Keyboard)
+CPAPI.Specialize(Keyboard.Controls, env.CharsetMixin)
+CPFocusPoolMixin.CreateFramePool(Keyboard, 'PieMenu', 'CPKeyboardSet', env.CharsetMixin)

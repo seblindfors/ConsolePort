@@ -11,7 +11,7 @@ function LayoutSet:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
 	self:SetWidth(LAYOUT_SET_WIDTH - FIXED_OFFSET * 2)
 	self:SetDrawOutline(true)
-	self:CreateFramePool('IndexButton', 'ConsolePortKeyboardLayoutRow', LayoutRow)
+	self:CreateFramePool('IndexButton', 'CPKeyboardLayoutRow', LayoutRow)
 
 	self.Remove:AddTooltipLine(L'Remove ring set')
 	self.Remove:AddTooltipLine(L(
@@ -71,7 +71,7 @@ function LayoutRow:OnLoad()
 	self:SetDrawOutline(true)
 	local prev;
 	for i=1, NUM_FIELDS do
-		local field = CreateFrame('EditBox', nil, self, 'ConsolePortKeyboardLayoutField')
+		local field = CreateFrame('EditBox', nil, self, 'CPKeyboardLayoutField')
 		Mixin(field, LayoutField)
 		CPAPI.Start(field)
 		field:SetID(i)
