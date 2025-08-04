@@ -3,6 +3,7 @@ local L, _, env = db.Locale, ...;
 local VALID_VEC_LEN, VALID_DSP_LEN = 0.5, 0.15;
 
 local function SetCursorControl(enabled)
+	SetGamePadFreeLook(not enabled)
 	SetGamePadCursorControl(enabled)
 	SetCursor(enabled and 'Interface/Cursor/UI-Cursor-SizeLeft.crosshair' or nil)
 end
@@ -77,6 +78,7 @@ end
 function Keyboard:OnFocusChanged(frame)
 	self:SetShown(frame)
 	self.focusFrame = frame;
+	self:UpdateSpline()
 end
 
 function Keyboard:SetState(state)
@@ -192,6 +194,15 @@ function Keyboard:MoveToCursor()
 	self:ClearAllPoints()
 	self:SetPoint('BOTTOMLEFT', UIParent, 'BOTTOMLEFT',
 		x - self:GetWidth() * 0.5, y - self:GetHeight() * 0.5)
+	self:OnMoveComplete(x, y)
+end
+
+function Keyboard:StopMoving()
+	self:StopMovingOrSizing()
+	self:OnMoveComplete(GetScaledCursorPosition())
+end
+
+function Keyboard:OnMoveComplete(x)
 	-- Move the WordSuggester to the side of the keyboard based
 	-- on whether the keyboard is to the left or right of UIParent
 	self.WordSuggester:ClearAllPoints()
@@ -200,15 +211,44 @@ function Keyboard:MoveToCursor()
 	else
 		self.WordSuggester:SetPoint('RIGHT', self, 'LEFT', -40, 0)
 	end
+	self:UpdateSpline()
+end
+
+---------------------------------------------------------------
+-- Spline line effects
+---------------------------------------------------------------
+Mixin(Keyboard, db.SplineLine)
+db.SplineLine.OnLoad(Keyboard)
+Keyboard:SetLineOrigin('BOTTOMLEFT', UIParent)
+Keyboard:SetLineDrawLayer('BACKGROUND', 0)
+Keyboard:SetLineSegments(100)
+Keyboard:SetLineOwner(Keyboard)
+
+function Keyboard:UpdateSpline()
+    self:ClearLinePoints()
+    if not self.focusFrame then return end;
+
+    local kX, kY = self:GetCenter()
+    local tX, tY = self.focusFrame:GetCenter()
+    local midY = Lerp(kY, tY, 0.5)
+    self:AddLinePoint(kX, kY)
+    self:AddLinePoint(Lerp(kX, tX, 1/3), midY)
+    self:AddLinePoint(Lerp(kX, tX, 2/3), midY)
+    self:AddLinePoint(tX, tY)
+    self:DrawLine(function(bit, _, i, numSegments)
+		local t = (i - 1) / (numSegments - 1)
+    	local alpha = EasingUtil.InQuadratic(0 + 0.5 * math.sin(math.pi * t))
+    	bit:SetAlpha(alpha)
+	end)
 end
 
 ---------------------------------------------------------------
 -- Data handling
 ---------------------------------------------------------------
 
-function Keyboard:OnTextChanged(text, pos)
+function Keyboard:OnTextChanged(text, pos, focus)
 	local word = utf8.getword(text, pos);
-	--self.WordSuggester:OnWordChanged(word)
+	self.WordSuggester:OnWordChanged(word, focus)
 	self.cachedFocusText = text; -- cache for dictionary
 end
 
@@ -234,7 +274,7 @@ function Keyboard:OnDataLoaded(...)
 	self:OnLayoutChanged()
 
 	self:SetScript('OnDragStart', self.StartMoving)
-	self:SetScript('OnDragStop', self.StopMovingOrSizing)
+	self:SetScript('OnDragStop', self.StopMoving)
 
 	return CPAPI.BurnAfterReading;
 end
@@ -290,7 +330,6 @@ function Keyboard:OnVariableChanged()
 	-- update dictionary settings
 	env.DictMatchPattern  = db('keyboardDictPattern');
 	env.DictMatchAlphabet = db('keyboardDictAlphabet');
-	env.DictYieldRate     = db('keyboardDictYieldRate');
 end
 
 db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
@@ -299,8 +338,7 @@ db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
 	'Settings/keyboardSpaceButton',
 	'Settings/keyboardEscapeButton',
 	'Settings/keyboardDictPattern',
-	'Settings/keyboardDictAlphabet',
-	'Settings/keyboardDictYieldRate'
+	'Settings/keyboardDictAlphabet'
 );
 
 function Keyboard:PLAYER_LOGOUT()
@@ -310,10 +348,10 @@ end
 ---------------------------------------------------------------
 -- Init
 ---------------------------------------------------------------
-Keyboard.WordSuggester.Fill:SetVertexColor(0.12, 0.12, 0.12, .75)
 Keyboard.Fill:SetVertexColor(0.12, 0.12, 0.12, .75)
 Keyboard.Edge:SetVertexColor(0.35, 0.35, 0.35, .75)
 Keyboard.Donut:SetVertexColor(0.35, 0.35, 0.35, .75)
+
 Keyboard:EnableGamePadStick(true)
 Keyboard:SetClampRectInsets(-70, 70, 70, -70)
 CPAPI.Start(Keyboard)

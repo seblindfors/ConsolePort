@@ -15,7 +15,7 @@ local ButtonLayout = {
 		buttonPoint = {'LEFT', 0, 0};
 		startAnchor = {'BOTTOMRIGHT', 0, 0};
 		endAnchor   = {'BOTTOMLEFT', -160, 0};
-		lineCoords  = env.Mixin.SplineLine.lineBaseCoord.LEFT;
+		lineCoords  = db.SplineLine.lineBaseCoord.LEFT;
 	};
 	RIGHT = {
 		textPoint   = {'RIGHT', 'RIGHT', -40, 0};
@@ -23,7 +23,7 @@ local ButtonLayout = {
 		buttonPoint = {'RIGHT', 0, 0};
 		startAnchor = {'BOTTOMLEFT', 0, 0};
 		endAnchor   = {'BOTTOMRIGHT', 160, 0};
-		lineCoords  = env.Mixin.SplineLine.lineBaseCoord.RIGHT;
+		lineCoords  = db.SplineLine.lineBaseCoord.RIGHT;
 	};
 };
 
@@ -500,12 +500,12 @@ function Chord:OnBindingChanged(keyChord)
 end
 
 ---------------------------------------------------------------
-local ComboButton = CreateFromMixins(Button, env.Mixin.SplineLine, ColorMixin)
+local ComboButton = CreateFromMixins(Button, db.SplineLine, ColorMixin)
 ---------------------------------------------------------------
 
 function ComboButton:OnLoad()
 	Button.OnLoad(self)
-	env.Mixin.SplineLine.OnLoad(self)
+	db.SplineLine.OnLoad(self)
 	self:SetLineOrigin('CENTER', self.Container)
 
 	-- Actions based on the active modifiers.

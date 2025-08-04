@@ -8,4 +8,5 @@
 	<Script file="Color.lua"/>
 	<Script file="UIFade.lua"/>
 	<Script file="Animation.lua"/>
+	<Script file="Spline.lua"/>
 </Ui>

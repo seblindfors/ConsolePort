@@ -63,13 +63,6 @@ ConsolePort:AddVariables({
 		advd = true;
 		deps = DEPENDENCY;
 	};
-	keyboardDictYieldRate = _{Data.Number(4000, 500, true);
-		name = 'Autocorrect Yield Rate';
-		desc = 'Amount of spell correction mutations to yield per frame.';
-		note = 'A higher rate will yield suggestions faster, but may cause stuttering.';
-		advd = true;
-		deps = DEPENDENCY;
-	};
 })
 
 ---------------------------------------------------------------

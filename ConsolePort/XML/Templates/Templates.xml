@@ -7,6 +7,8 @@
 		</Scripts>
 	</Texture>
 
+	<Line name="CPSplineLine" thickness="8" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
+
 	<Frame name="CPFrameTemplate" virtual="true" mixin="CPFrameMixin">
 		<KeyValues>
 			<KeyValue key="layoutAtlas" value="glues-gamemode-bg" type="string"/>

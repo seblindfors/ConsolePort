@@ -1,4 +1,4 @@
-local _, env = ...;
+local _, db = ...;
 --@do-not-package@
 local SplineLineDebug;
 --@end-do-not-package@
@@ -11,13 +11,13 @@ local SplineLine = {
 		LEFT  = { 0, 1, 1, 0 };
 		RIGHT = { 0, 1, 0, 1 };
 	};
-}; env.Mixin.SplineLine = SplineLine;
+}; db.SplineLine = SplineLine;
 
 function SplineLine:OnLoad()
 	self.spline = CreateCatmullRomSpline(2);
 	self.spbits = CreateObjectPool(GenerateClosure(function(self)
 		local drawLayer, subLayer = self:GetLineDrawLayer()
-		return self:GetLineOrigin():CreateLine(nil, drawLayer, self.lineTemplate, subLayer)
+		return self:GetLineOwner():CreateLine(nil, drawLayer, self.lineTemplate, subLayer)
 	end, self), function(_, bit)
 		bit:Hide()
 		bit:SetParent(self)
@@ -31,6 +31,10 @@ end
 function SplineLine:SetLineOrigin(point, relTo)
 	self.lineRelTo = relTo or self;
 	self.linePoint = point;
+end
+
+function SplineLine:SetLineOwner(owner)
+	self.lineOwner = owner;
 end
 
 function SplineLine:SetLineDrawLayer(drawLayer, subLayer)
@@ -54,6 +58,10 @@ end
 ---------------------------------------------------------------
 function SplineLine:GetLineSegments()
 	return self.lineSegments;
+end
+
+function SplineLine:GetLineOwner()
+	return self.lineOwner or self.lineRelTo;
 end
 
 function SplineLine:GetLineOrigin()
@@ -120,6 +128,7 @@ function SplineLine:DrawLine(postProcess) postProcess = postProcess or nop;
 	local bits, spline = self:ReleaseLine(), self.spline;
 	local layer, level = self:GetLineDrawLayer()
 	local relTo, point = self:GetLineOrigin()
+	local lineOwner    = self:GetLineOwner()
 
 	if spline:GetNumPoints() < 2 then
 		return false; -- Not enough points to draw a line
@@ -135,13 +144,13 @@ function SplineLine:DrawLine(postProcess) postProcess = postProcess or nop;
 		local section = i / numSegments;
 		local bit = bits:Acquire();
 
-		bit:SetParent(relTo)
+		bit:SetParent(lineOwner)
 		bit:SetDrawLayer(layer, level)
 		bit:SetTexCoord(l, r, t, b)
 		bit.index, bit.section = i, section;
 
-		bit:SetStartPoint(point, spline:CalculatePointOnGlobalCurve(section - (2 / numSegments)))
-		bit:SetEndPoint(point,   spline:CalculatePointOnGlobalCurve(section))
+		bit:SetStartPoint(point, relTo, spline:CalculatePointOnGlobalCurve(section - (2 / numSegments)))
+		bit:SetEndPoint(point,   relTo, spline:CalculatePointOnGlobalCurve(section))
 		bit:Show()
 
 		postProcess(bit, section, i, numSegments)

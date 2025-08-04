@@ -22,7 +22,8 @@ Components\Suggester.lua
 
 Core\UTF8.lua
 Core\Dictionary.lua
-Core\Spellcorrect.lua
+Core\Autocorrect.lua
+#Core\Spellcorrect.lua
 
 Database.lua
 View\Keyboard.lua

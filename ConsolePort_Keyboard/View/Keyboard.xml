@@ -45,13 +45,13 @@
 	</CheckButton>
 
 	<Frame name="CPKeyboardWordButton" virtual="true">
-		<Size x="180" y="20"/>
+		<Size x="140" y="20"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Hilite" file="Interface\QuestFrame\UI-QuestTitleHighlight" setAllPoints="true" alphaMode="ADD" alpha="0"/>
+				<Texture parentKey="Hilite" file="Interface\QuestFrame\UI-QuestTitleHighlight" setAllPoints="true" alphaMode="ADD"/>
 			</Layer>
 			<Layer level="ARTWORK">
-				<FontString parentKey="Text" inherits="GameFontHighlightLarge" justifyH="CENTER" setAllPoints="true"/>
+				<FontString parentKey="Text" inherits="ChatFontNormal" justifyH="CENTER" setAllPoints="true"/>
 			</Layer>
 		</Layers>
 	</Frame>
@@ -239,6 +239,66 @@
 						</MaskTexture>
 					</Layer>
 				</Layers>
+				<Frames>
+					<Frame parentKey="Mime" clipChildren="true">
+						<Size y="20"/>
+						<Anchors>
+							<Anchor point="TOPLEFT" x="16" y="-6"/>
+							<Anchor point="TOPRIGHT" x="-16" y="-6"/>
+						</Anchors>
+						<Layers>
+							<Layer level="ARTWORK">	
+								<Texture parentKey="Cursor">
+									<Anchors>
+										<Anchor point="CENTER"/>
+									</Anchors>
+									<Size x="1" y="10"/>
+									<Color r="1" g="1" b="1" a="1"/>
+									<Animations>
+										<AnimationGroup parentKey="FlashAnim" setToFinalAlpha="true" looping="REPEAT">
+											<Alpha parentKey="FadeIn" duration="0.25" fromAlpha="0" toAlpha="1" order="1"/>
+											<Alpha parentKey="FadeOut" duration="0.25" fromAlpha="1" toAlpha="0" order="2"/>
+											<Scripts>
+												<OnLoad>
+													self:Play();
+												</OnLoad>
+											</Scripts>
+										</AnimationGroup>
+									</Animations>
+								</Texture>
+								<FontString parentKey="Text" inherits="ChatFontNormal"/>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="Background" useParentLevel="true">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.Mime" x="-12" y="2"/>
+							<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Mime" x="12" y="-2"/>
+						</Anchors>
+						<Layers>
+							<Layer level="BACKGROUND">
+								<Texture parentKey="Box" inherits="CPAtlas" scale="0.8">
+									<KeyValues>
+										<KeyValue key="atlas" value="glues-gamemode-bg" type="string"/>
+									</KeyValues>
+									<Anchors>
+										<Anchor point="TOPLEFT" x="0" y="0"/>
+										<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+									</Anchors>
+								</Texture>
+								<MaskTexture parentKey="FillMask" inherits="CPKeyboardRingMask">
+									<Anchors>
+										<Anchor point="TOPLEFT" relativeKey="$parent.$parent.$parent" x="-80" y="80"/>
+										<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent.$parent" x="80" y="-80"/>
+									</Anchors>
+									<MaskedTextures>
+										<MaskedTexture childKey="Box"/>
+									</MaskedTextures>
+								</MaskTexture>
+							</Layer>
+						</Layers>
+					</Frame>
+				</Frames>
 			</Frame>
 			<Frame parentKey="Controls" frameLevel="1" inherits="CPKeyboardSet">
 				<Anchors>

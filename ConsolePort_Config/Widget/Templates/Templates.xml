@@ -2,7 +2,6 @@
 	<Script file="Templates.lua"/>
 	<Script file="Elements.lua"/>
 	<Script file="Mixins.lua"/>
-	<Script file="Spline.lua"/>
 	<Include file="Fonts.xml"/>
 	<Include file="Compat.xml"/>
 
@@ -144,6 +143,4 @@
 			<OnMouseWheel method="OnMouseWheel"/>
 		</Scripts>
 	</ScrollFrame>
-
-	<Line name="CPSplineLine" thickness="8" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
 </Ui>
