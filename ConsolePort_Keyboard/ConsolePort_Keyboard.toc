@@ -14,17 +14,16 @@
 
 ## SavedVariables: ConsolePort_KeyboardLayout, ConsolePort_KeyboardDictionary, ConsolePort_KeyboardMarkers
 
+Database.lua
 View\Keyboard.xml
 
 Components\Charset.lua
-#Components\Config.lua
+Components\Config.lua
 Components\Suggester.lua
 
 Core\UTF8.lua
 Core\Dictionary.lua
 Core\Autocorrect.lua
-#Core\Spellcorrect.lua
 
-Database.lua
 View\Keyboard.lua
 Core\Observer.lua

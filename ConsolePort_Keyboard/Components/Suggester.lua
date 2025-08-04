@@ -36,7 +36,7 @@ end
 
 function Suggester:OnWordChanged(word, focus)
 	widgetPool:ReleaseAll()
-	env:GetSpellCorrectSuggestions(word, env.Dictionary, OnSuggestionsUpdatedCallback)
+	env:GetAutoCorrectSuggestions(word, OnSuggestionsUpdatedCallback, MAX_DISPLAY_ENTRIES)
 	self.Mime:SetFocus(focus)
 end
 

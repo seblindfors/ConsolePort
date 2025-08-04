@@ -79,14 +79,14 @@ end
 function Scheduler:StartSearch()
 	assert(self.workingCoroutine == nil);
 	self.workingCoroutine = coroutine.create(function()
-		local text = self.text;
+		local text = self.searchTerm;
 		self:StepAutoCompleteSearchCoroutine(text)
 	end)
 	self.bestResults = {};
 end
 
 function Scheduler:StepAutoCompleteSearchCoroutine(searchText)
-	local dict = self.dict;
+	local dict = env.Dictionary;
 
 	local lowerSearchText, len = searchText:lower(), #searchText;
 	local gravity = len > 0 and WEIGHT_DEF_GRAVITY or 0.1;
@@ -148,17 +148,14 @@ local function IterateResults(results)
 end
 
 function Scheduler:DisplayResults()
-	if self.text == 'hedl' then
-	DEBUG = CopyTable(self.bestResults)
-	end
 	self.callback(self.bestResults, IterateResults);
 	self:Hide()
 end
 
-function Scheduler:Init(word, dict, callback)
-	self.text = word;
-	self.dict = dict;
-	self.callback = callback;
+function Scheduler:Init(word, callback, maxResults)
+	self.searchTerm = word;
+	self.callback   = callback;
+	self.maxResults = maxResults;
 	self:MarkDirty();
 	self:Show();
 end
@@ -166,14 +163,13 @@ end
 ---------------------------------------------------------------
 -- Scheduler setup
 ---------------------------------------------------------------
-Scheduler.maxResults = 8;
 Scheduler:Hide();
 Scheduler:SetScript('OnUpdate', Scheduler.OnUpdate);
 
 ---------------------------------------------------------------
 -- Get word suggestions
 ---------------------------------------------------------------
-function env:GetSpellCorrectSuggestions(word, dict, callback)
+function env:GetAutoCorrectSuggestions(word, callback, maxResults)
 	word = word:lower();
-	Scheduler:Init(word, dict, callback);
+	Scheduler:Init(word, callback, maxResults);
 end

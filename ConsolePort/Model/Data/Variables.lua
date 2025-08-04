@@ -317,7 +317,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_('Radial Keyboard', INTERFACE_LABEL);
+	_('Keyboard', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	keyboardEnable = _{Bool(false);
 		name = 'Enable';

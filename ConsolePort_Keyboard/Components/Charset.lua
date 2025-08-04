@@ -1,18 +1,19 @@
-local Radial, _, env = ConsolePortRadial, ...;
-local Key, Charset = {}, CreateFromMixins(CPFocusPoolMixin); env.CharsetMixin = Charset;
+local env, db = CPAPI.GetEnv(...);
+local Key, Set = {}, CreateFromMixins(CPFocusPoolMixin, db.Radial.CalcMixin);
+env.CharsetMixin = Set;
 
 ---------------------------------------------------------------
 -- Sets of keys
 ---------------------------------------------------------------
 
-function Charset:OnLoad()
+function Set:OnLoad()
 	CPFocusPoolMixin.OnLoad(self)
 	if self.Arrow then self.Arrow:Hide() end;
 	if self.BG then self.BG:Hide() end;
 	self:CreateFramePool('CheckButton', 'CPKeyboardChar', Key)
 end
 
-function Charset:SetData(data)
+function Set:SetData(data)
 	self.numSets = #data;
 	self:ReleaseAll()
 	for i, set in ipairs(data) do
@@ -20,8 +21,8 @@ function Charset:SetData(data)
 		if newObj then
 			widget:OnLoad()
 		end
-		local x, y  = Radial:GetPointForIndex(i, self.numSets, 24)
-		local angle = Radial:GetNormalizedAngle(x, y)
+		local x, y  = self:GetCoordsForIndex(i, self.numSets, 24)
+		local angle = self:GetNormalizedAngle(x, y)
 		local rot   = -rad(angle - 45) -- offset the texture 45 degrees.
 		widget:SetData(set)
 		widget:SetPoint('CENTER', x, y)
@@ -32,11 +33,11 @@ function Charset:SetData(data)
 	end
 end
 
-function Charset:OnStickChanged(x, y, len, valid)
+function Set:OnStickChanged(x, y, len, valid)
 	self:ReflectStickPosition(x, y, len, valid)
 
 	local oldFocusKey = self.focusKey;
-	self.focusKey = valid and self.Registry[Radial:GetIndexForStickPosition(x, y, .5, self.numSets)]
+	self.focusKey = valid and self.Registry[self:GetIndexForPos(x, y, .5, self.numSets)]
 	if oldFocusKey and oldFocusKey ~= self.focusKey then
 		oldFocusKey:SetFocus(false, true)
 	end
@@ -45,19 +46,19 @@ function Charset:OnStickChanged(x, y, len, valid)
 	end
 end
 
-function Charset:SetState(state)
+function Set:SetState(state)
 	for widget in self:EnumerateActive() do
 		widget:SetState(state)
 	end
 end
 
-function Charset:SetHighlight(enabled)
+function Set:SetHighlight(enabled)
 	for widget in self:EnumerateActive() do
 		widget.Ring:SetShown(enabled)
 	end
 end
 
-function Charset:GetKeyByIndex(index)
+function Set:GetKeyByIndex(index)
 	return self.Registry[index];
 end
 

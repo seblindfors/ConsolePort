@@ -1,7 +1,7 @@
 local utf8, _, env = {len = strlenutf8}, ...; env.utf8 = utf8;
 
 function utf8.size(char)
-	return not char and 0 or 
+	return not char and 0 or
 		char > 240 and 4 or
 		char > 225 and 3 or
 		char > 192 and 2 or 1;
@@ -14,9 +14,9 @@ function utf8.sub(str, startChar, numChars)
 		startIndex = startIndex + utf8.size(char)
 		startChar = startChar - 1;
 	end
- 
+
 	local currentIndex = startIndex;
- 
+
 	while numChars > 0 and currentIndex <= #str do
 		local char = string.byte(str, currentIndex)
 		currentIndex = currentIndex + utf8.size(char)

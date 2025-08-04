@@ -1,6 +1,5 @@
-local Keyboard, Radial, db = CPAPI.EventHandler(ConsolePortKeyboard, {'PLAYER_LOGOUT'}), ConsolePortRadial, ConsolePort:DB();
-local L, _, env = db.Locale, ...;
-local VALID_VEC_LEN, VALID_DSP_LEN = 0.5, 0.15;
+local Keyboard, env, db = CPAPI.EventHandler(ConsolePortKeyboard, {'PLAYER_LOGOUT'}), CPAPI.GetEnv(...);
+Mixin(Keyboard, CPPropagationMixin, db.Radial.CalcMixin)
 
 local function SetCursorControl(enabled)
 	SetGamePadFreeLook(not enabled)
@@ -11,14 +10,14 @@ end
 ---------------------------------------------------------------
 -- Hardware events
 ---------------------------------------------------------------
-Mixin(Keyboard, CPPropagationMixin)
+local VALID_VEC_LEN, VALID_DSP_LEN = 0.5, 0.15;
 
 function Keyboard:Left(x, y, len)
 	self:ReflectStickPosition(x, y, len, len > VALID_VEC_LEN)
 
 	local oldFocusSet = self.focusSet;
 	self.focusSet = len > VALID_VEC_LEN and
-		self.Registry[Radial:GetIndexForStickPosition(x, y, len, self.numSets)]
+		self.Registry[self:GetIndexForPos(x, y, len, self.numSets)]
 
 	local isNewFocusSet = oldFocusSet ~= self.focusSet;
 	local hasFocusset   = not not self.focusSet;
@@ -178,7 +177,7 @@ function Keyboard:NextWord()
 	self.WordSuggester:SetDelta(1)
 end
 
-function Keyboard:SpellCorrect()
+function Keyboard:AutoCorrect()
 	local word = self.WordSuggester:GetSuggestion()
 	if word then
 		local text = self.focusFrame:GetText()
@@ -303,7 +302,7 @@ function Keyboard:OnLayoutChanged()
 			widget:OnLoad()
 			widget:SetFrameStrata(self:GetFrameStrata())
 		end
-		widget:SetPoint('CENTER', Radial:GetPointForIndex(i, self.numSets, self:GetSize() * 0.62))
+		widget:SetPoint(self:GetPointForIndex(i, self.numSets, self:GetSize() * 0.62))
 		widget:SetData(set)
 		widget:Show()
 	end
@@ -319,7 +318,7 @@ function Keyboard:OnVariableChanged()
 		[db('keyboardMoveRightButton')] = self.MoveRight;
 		[db('keyboardNextWordButton')]  = self.NextWord;
 		[db('keyboardPrevWordButton')]  = self.PrevWord;
-		[db('keyboardAutoCorrButton')]  = self.SpellCorrect;
+		[db('keyboardAutoCorrButton')]  = self.AutoCorrect;
 	};
 	self.Controls:SetData({
 		{ env.Cmd.Escape, };

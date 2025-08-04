@@ -1,11 +1,21 @@
 local _, Data, env = CPAPI.LinkEnv(...)
 
 ---------------------------------------------------------------
+-- Attributes
+---------------------------------------------------------------
+
+env.Attributes = {
+	HideKeyboard = 'hidekeyboard';    -- The keyboard does not show for this frame.
+	ModuleName   = 'Keyboard';        -- The name of the module in the listing (unlocalized).
+	HeaderName   = INTERFACE_LABEL;   -- The name of the header in the listing (localized).
+};
+
+---------------------------------------------------------------
 -- Variables
 ---------------------------------------------------------------
 local DEPENDENCY = { keyboardEnable = true };
 ConsolePort:AddVariables({
-	_('Radial Keyboard', INTERFACE_LABEL, 2);
+	_(env.Attributes.ModuleName, env.Attributes.HeaderName, 2);
 	keyboardSpaceButton = _{Data.Button('PAD1');
 		name = 'Space';
 		desc = 'Button to use to trigger the space command.';

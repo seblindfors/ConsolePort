@@ -188,8 +188,22 @@ function Button:OnAcquire(new)
 		CPAPI.Specialize(self, Button)
 		self.Icon:SetPoint('LEFT', 16, 0)
 		self.Text:SetPoint('LEFT', self.Icon, 'RIGHT', 8, 0)
-		self:HookScript('OnEnter', self.LockHighlight)
-		self:HookScript('OnLeave', self.UnlockHighlight)
+	end
+end
+
+function Button:OnEnter()
+	self:LockHighlight()
+	local data = self:GetElementData():GetData()
+	if data.onenter then
+		data.onenter(self)
+	end
+end
+
+function Button:OnLeave()
+	self:UnlockHighlight()
+	local data = self:GetElementData():GetData()
+	if data.onleave then
+		data.onleave(self)
 	end
 end
 
@@ -198,6 +212,8 @@ function Button:Data(setup)
 		text     = setup.text or BACK;
 		callback = setup.callback or nop;
 		atlas    = setup.atlas;
+		onenter  = setup.onEnter;
+		onleave  = setup.onLeave;
 	};
 end
 

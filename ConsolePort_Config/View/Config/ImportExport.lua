@@ -1,13 +1,8 @@
-local Tabular, env, db, _, L = LibStub('Tabular'), CPAPI.GetEnv(...);
-local CreateDataContainer;
+local env, db, _, L = CPAPI.GetEnv(...);
 
 ---------------------------------------------------------------
 -- Consts
 ---------------------------------------------------------------
-local BROWSER_HEIGHT        = 500;
-local BROWSER_CONTENT_WIDTH = 500;
-local BROWSER_FRAME_WIDTH   = 560;
-
 local KEYS_MARK  = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+A');
 local KEYS_COPY  = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+C');
 local KEYS_PASTE = BLUE_FONT_COLOR:WrapTextInColorCode(CTRL_KEY_TEXT ..'+V');
@@ -317,57 +312,8 @@ local Evaluators = {
 		return true;
 	end}; ---@deprecated
 }
----------------------------------------------------------------
-local Browser = {};
-
-function Browser:OnShow()
-	self:SetVerticalScroll(0)
-	self.LoadingSpinner:Show()
-end
-
-function Browser:OnEnter()
-	self:Raise()
-end
-
-function Browser:OnHide()
-	if self.release then
-		self.release()
-		self.compile, self.release = nil, nil;
-	end
-end
-
-function Browser:SetData(args, data)
-	self:OnHide()
-	args.parent = self.ScrollChild;
-	args.width  = BROWSER_CONTENT_WIDTH;
-	args.state  = false;
-	self.compile, self.release = Tabular(args, data)
-	self.ScrollChild:Layout()
-	self.LoadingSpinner:Hide()
-	return self.compile, self.release;
-end
-
-function Browser:Compile()
-	if self.compile then
-		return self.compile()
-	end
-end
-
 
 ---------------------------------------------------------------
-local function AdjustBrowserSize(popup, container, browser)
-	RunNextFrame(function()
-		local offset = -popup:GetBottom()
-		if offset < 0 then
-			container:SetHeight(BROWSER_HEIGHT)
-			return browser:SetHeight(BROWSER_HEIGHT)
-		end
-		container:SetHeight(BROWSER_HEIGHT - offset)
-		browser:SetHeight(BROWSER_HEIGHT - offset)
-		popup:SetHeight(popup:GetHeight() - offset)
-	end)
-end
-
 local function GenerateExportData()
 	local data = {};
 	for key, aggregator in pairs(Aggregators) do
@@ -426,7 +372,7 @@ local ActivePopup;
 env:RegisterCallback('OnImportButtonClicked', function(self)
 	if ActivePopup then return end;
 
-	local dataBin = CreateDataContainer()
+	local dataBin = env.CreateDataContainer()
 	local alias = AliasMap;
 
 	local onLoadData = function(popup, editBox, text)
@@ -438,7 +384,7 @@ env:RegisterCallback('OnImportButtonClicked', function(self)
 		editBox:SetText('')
 	end;
 
-	ActivePopup = CPAPI.Popup('ConsolePort_Import_Data', {
+	ActivePopup = dataBin:Popup('ConsolePort_Import_Data', {
 		text = IMPORT_DATA_TEXT;
 		hasEditBox = 1;
 		maxLetters = 0;
@@ -455,24 +401,26 @@ env:RegisterCallback('OnImportButtonClicked', function(self)
 		end;
 		OnHide = function(popup)
 			ActivePopup = nil;
+			popup.editBox:SetAttribute('hidekeyboard', nil)
 		end;
 		OnAlt = function(self)
 			onLoadData(self, self.editBox, self.editBox:GetText())
 		end;
 		OnShow = function(self)
 			self.button3:SetEnabled(false)
-			AdjustBrowserSize(self, dataBin, dataBin.Browser)
+			dataBin:AdjustSize(self)
+			self.editBox:SetAttribute('hidekeyboard', true)
 		end;
 		OnAccept = function(popup)
 			db:RunSafe(EvaluateImportData, dataBin.Browser:Compile())
 		end;
-	}, nil, nil, nil, dataBin)
+	})
 end, env)
 
 env:RegisterCallback('OnExportButtonClicked', function(self)
 	if ActivePopup then return end;
 
-	local dataBin = CreateDataContainer()
+	local dataBin = env.CreateDataContainer()
 
 	local alias = AliasMapExport;
 	local data  = GenerateExportData()
@@ -487,7 +435,7 @@ env:RegisterCallback('OnExportButtonClicked', function(self)
 		end
 	end)
 
-	ActivePopup = CPAPI.Popup('ConsolePort_Export_Data', {
+	ActivePopup = dataBin:Popup('ConsolePort_Export_Data', {
 		text = EXPORT_DATA_TEXT;
 		hasEditBox = 1;
 		maxLetters = 0;
@@ -504,22 +452,13 @@ env:RegisterCallback('OnExportButtonClicked', function(self)
 		end;
 		OnHide = function(popup)
 			ActivePopup, self.output = nil, nil;
+			popup.editBox:SetAttribute('hidekeyboard', nil)
 		end;
 		OnShow = function(self, data)
 			local browser = dataBin.Browser;
-			AdjustBrowserSize(self, dataBin, browser)
+			dataBin:AdjustSize(self)
 			browser:SetData({callback = callback, alias = alias}, data)
+			self.editBox:SetAttribute('hidekeyboard', true)
 		end;
-	}, nil, nil, data, dataBin)
+	}, data)
 end, env)
-
-function CreateDataContainer()
-	if not env.DataContainer then
-		local container = CreateFrame('Frame', nil, nil, 'CPConfigDataContainer')
-		container:SetSize(BROWSER_FRAME_WIDTH, BROWSER_HEIGHT)
-		container.Browser:SetSize(container:GetSize())
-		CPAPI.SpecializeOnce(container.Browser, Browser)
-		env.DataContainer = container;
-	end
-	return env.DataContainer;
-end

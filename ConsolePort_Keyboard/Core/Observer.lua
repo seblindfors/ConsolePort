@@ -11,7 +11,7 @@ function Observer:UpdateFocus()
 	local valid = focus
 		and not focus:IsForbidden()
 		and not focus:IsAnchoringRestricted()
-		and not focus:GetAttribute('hidekeyboard');
+		and not focus:GetAttribute(env.Attributes.HideKeyboard);
 	local changed = focus ~= self.focusFrame;
 	if changed then
 		self.focusFrame = focus;
