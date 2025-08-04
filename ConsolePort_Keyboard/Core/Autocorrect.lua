@@ -5,22 +5,22 @@ local coroutine, assert, GetTimePreciseSec = coroutine, assert, GetTimePreciseSe
 ---------------------------------------------------------------
 -- Scoring
 ---------------------------------------------------------------
-local function ScoreStrings(searchText, otherString)
+local function ScoreStrings(searchText, otherString, weight, len)
 	-- lower is better
 
-	local subStringStartIndex, subStringEndIndex = otherString:find(searchText, 1, true);
-	local hasSubString = not not subStringStartIndex;
+	local subStringStartIndex = otherString:find(searchText, 1, true);
+	local hasSubString  = not not subStringStartIndex;
 
 	local editDistance = MinEditDistance(searchText, otherString);
-	if not hasSubString and editDistance == max(#searchText, #otherString) then
+	if not hasSubString and editDistance == max(len, #otherString) then
 		return 100; -- not even close
 	end
 
-	local subStringScore = hasSubString and -#searchText * 10 or 0;
+	local subStringScore = hasSubString and -len * 10 or 0;
 	local startOfMatchScore = hasSubString
-		and ClampedPercentageBetween(subStringStartIndex, 15, 1) * -2 * #searchText or 0;
+		and ClampedPercentageBetween(subStringStartIndex, 15, 1) * -2 * len or 0;
 
-	return editDistance + subStringScore + startOfMatchScore;
+	return editDistance + subStringScore + startOfMatchScore - weight;
 end
 
 local function BinaryInsert(t, value)
@@ -48,6 +48,7 @@ end
 -- Scheduler
 ---------------------------------------------------------------
 local TIME_PER_FRAME_SEC = 0.015;
+local WEIGHT_DEF_GRAVITY = 0.005;
 
 function Scheduler:ResumeWork()
 	self.workEndTime = GetTimePreciseSec() + TIME_PER_FRAME_SEC;
@@ -86,18 +87,20 @@ end
 
 function Scheduler:StepAutoCompleteSearchCoroutine(searchText)
 	local dict = self.dict;
-	local lowerSearchText = searchText:lower();
+
+	local lowerSearchText, len = searchText:lower(), #searchText;
+	local gravity = len > 0 and WEIGHT_DEF_GRAVITY or 0.1;
 
 	local candidates = {};
 	for word, weight in pairs(dict) do
 		self:CheckYield();
 		tinsert(candidates, {
 			word  = word;
-			score = ScoreStrings(lowerSearchText, word) - weight * 0.1;
+			score = ScoreStrings(lowerSearchText, word, weight * gravity, len);
 		})
 	end
 
-	local criteria = #searchText / 2;
+	local criteria = len / 2;
 	for _, candidate in ipairs(candidates) do
 		self:CheckYield();
 
@@ -145,6 +148,9 @@ local function IterateResults(results)
 end
 
 function Scheduler:DisplayResults()
+	if self.text == 'hedl' then
+	DEBUG = CopyTable(self.bestResults)
+	end
 	self.callback(self.bestResults, IterateResults);
 	self:Hide()
 end

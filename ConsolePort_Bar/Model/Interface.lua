@@ -161,7 +161,7 @@ Type.Modifier = Data.Interface {
 			['Mn']   = 'Button set to swap to, where n is the modifier number. Multiple modifiers can be combined.';
 		}
 	);
-	note = 'Modifiers can be combined. For example, M1M2 is the Shift and Ctrl modifiers held at the same time.';
+	note = 'Modifiers should be in descending order. M2M1, for example, is the Ctrl and Shift modifiers held at the same time.';
 	Data.String(' ');
 };
 

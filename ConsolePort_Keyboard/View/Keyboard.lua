@@ -185,6 +185,7 @@ function Keyboard:SpellCorrect()
 		local _, startPos, endPos = utf8.getword(text, self.focusFrame:GetUTF8CursorPosition())
 		if text and word and startPos and endPos then
 			self.focusFrame:SetText(text:sub(0, startPos - 1) .. word .. text:sub(endPos + 1))
+			CPAPI.Next(ExecuteFrameScript, self.focusFrame, 'OnTextChanged', true)
 		end
 	end
 end

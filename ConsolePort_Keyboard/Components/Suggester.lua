@@ -47,7 +47,10 @@ end
 
 function Suggester:SetDelta(delta)
 	if self.curIndex and self.maxIndex then
-		self:SetIndex(Clamp(self.curIndex + delta, 1, self.maxIndex))
+		local newIndex = self.curIndex + delta;
+		if newIndex < 1 then return self:SetIndex(self.maxIndex) end;
+		if newIndex > self.maxIndex then return self:SetIndex(1) end;
+		self:SetIndex(Clamp(newIndex, 1, self.maxIndex))
 	end
 end
 
