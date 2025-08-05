@@ -264,10 +264,11 @@ CPLoadoutContainerMixin = CreateFromMixins(db.LoadoutMixin, env.Mixin.ScrollBoxH
 ---------------------------------------------------------------
 	IsFlat = CPAPI.Static(true); -- Unravel flyouts to regular spell depth.
 	HeaderIcons = {
-		[ABILITIES] = 'book';
-		[ITEMS]     = 'misc';
-		[MACROS]    = 'enchantscroll';
-		[SPECIAL]   = 'featured';
+		[ABILITIES]        = 'book';
+		[ACTIONBARS_LABEL] = 'weapons';
+		[ITEMS]            = 'misc';
+		[MACROS]           = 'enchantscroll';
+		[SPECIAL]          = 'featured';
 	};
 	-- Needs to be implemented:
 	--  GetDataProvider, GetScrollView

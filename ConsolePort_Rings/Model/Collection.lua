@@ -84,5 +84,59 @@ function env:GetCollections(currentSetID, isSharedSet)
 		});
 	end
 
+	collect(function() -- Action bar slots
+		local function GetActionSlotName(id)
+			return BINDING_NAME_ACTIONBUTTON1:gsub('%d', id);
+		end
+
+		local configuration = {
+			header  = ACTIONBARS_LABEL;
+			map     = function(map, id) return map.action(id) end;
+			texture = function(id)
+				local texture = GetActionTexture(id);
+				if texture then
+					return texture;
+				end
+				return CPAPI.GetAsset([[Textures\Button\NotBound]])
+			end;
+			title   = function(id)
+				local name = db.Loadout:GetActionInfo(id) or EMPTY;
+				return ('%s |cFF757575(%d)|r'):format(name, id);
+			end;
+			tooltip = function(tooltip, id)
+				tooltip:SetAction(id);
+				tooltip:AddLine(GetActionSlotName(id), 1, 1, 1);
+				tooltip:Show()
+			end;
+		};
+
+		local bars = {};
+		for groupID, container in db:For('Actionbar/Pages') do
+			for barIndex, barID in ipairs(container) do
+				local stanceBarInfo = db.Actionbar.Lookup.Stances[barID];
+				local stanceBarName = stanceBarInfo and stanceBarInfo.name;
+
+				local items = {};
+				local pageOffset = (barID - 1) * NUM_ACTIONBAR_BUTTONS;
+				for i = 1, NUM_ACTIONBAR_BUTTONS do
+					tinsert(items, pageOffset + i);
+				end
+				local barConfig = CPAPI.Proxy({
+					name     = stanceBarName or db.Actionbar.Names[barID];
+					priority = (stanceBarName and 0 or groupID) * 100 + barIndex;
+				}, configuration)
+				bars[barConfig] = items;
+			end
+		end
+
+		local function SortBarsByPriority(_, a, b)
+			return a.priority < b.priority;
+		end
+
+		for barConfig, items in env.table.spairs(bars, SortBarsByPriority) do
+			AddCollection(items, barConfig);
+		end
+	end) -- Action bar slots
+
 	return collections;
 end

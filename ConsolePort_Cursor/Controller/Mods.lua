@@ -115,6 +115,12 @@ _('Blizzard_HelpPlate', function()
 	end
 end)
 
+_('Blizzard_PlayerSpells', function()
+	if HeroTalentsSelectionDialog then
+		ConsolePort:AddInterfaceCursorFrame(HeroTalentsSelectionDialog)
+	end
+end)
+
 -- Taint error callback:
 -- Replace popup messages for forbidden actions which cannot be fixed by the addon.
 function env.HandleTaintError(action)

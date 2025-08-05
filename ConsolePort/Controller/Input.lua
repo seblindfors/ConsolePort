@@ -261,7 +261,7 @@ function InputMixin:OnMouseUp()
 	self.state = false;
 
 	if self:IsSecureAction(func, click) then
-		return self:EmulateFrontend(click, 'NORMAL', 'OnMouseUp')
+		return self:EmulateFrontend(click, 'NORMAL', 'OnMouseUp', true)
 	end
 	return self:CallFunc(func)
 end
@@ -270,13 +270,13 @@ function InputMixin:IsSecureAction(func, click)
 	return (func == 'click' or func == 'action') and click;
 end
 
-function InputMixin:EmulateFrontend(click, state, script)
+function InputMixin:EmulateFrontend(click, state, script, ...)
 	if click:IsEnabled() then
 		if ConsolePort:ProcessInterfaceClickEvent(script, click, state) then
 			self.postreset = self:GetAttribute(CPAPI.ActionTypeRelease)
 			self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 		end
-		ExecuteFrameScript(click, script)
+		ExecuteFrameScript(click, script, ...)
 		return click:SetButtonState(state)
 	end
 end

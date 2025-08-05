@@ -358,6 +358,11 @@ setmetatable(ConsolePort, {
 
 RegisterNewSlashCommand(ConsolePort, 'consoleport', 'cp')
 
+function ConsolePort:AddSlashCommand(command, data)
+	assert(SLASH_FUNCTIONS[command] == nil, 'Slash sub-command already exists: '..command)
+	SLASH_FUNCTIONS[command] = data;
+end
+
 ---------------------------------------------------------------
 -- Temp?: add a game menu button to access config
 ---------------------------------------------------------------

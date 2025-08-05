@@ -417,6 +417,28 @@ end -- Binding data handler
 
 
 ---------------------------------------------------------------
+-- Slash command handler
+---------------------------------------------------------------
+ConsolePort:AddSlashCommand('layout', {
+	desc = 'Swap to a specified action bar layout.';
+	usage = {
+		{'layout', 'string', 'The name of the layout to switch to.'};
+	};
+	function(...)
+		local layoutName = table.concat({...}, ' ');
+		local layout = env.Presets[layoutName];
+		if not layout then
+			return CPAPI.Log('Layout "%s" does not exist.', layoutName);
+		end
+		env:RunSafe(function(e, newLayout)
+			e:ReleaseAll()
+			e('Layout', newLayout)
+			e:TriggerEvent('OnLayoutChanged', true)
+		end, env, layout);
+	end
+})
+
+---------------------------------------------------------------
 -- State handler helpers
 ---------------------------------------------------------------
 env.Attributes.State   = GenerateClosure(format, '_onstate-%s');     -- macro conditional response
