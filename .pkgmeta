@@ -23,6 +23,5 @@ move-folders:
 ignore:
   - Artwork
   - Wiki
-  - ConsolePort_Mapper
   - GamepadTool
   - README.md
