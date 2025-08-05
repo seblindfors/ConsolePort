@@ -26,4 +26,3 @@ View\Config\Config.xml
 View\About\About.xml
 View\Guide\Guide.xml
 View\Settings\Settings.xml
-#View\Help\Help.xml
