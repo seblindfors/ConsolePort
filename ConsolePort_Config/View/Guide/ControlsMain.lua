@@ -335,6 +335,7 @@ function OptionsContainer:SetVariables(variables, ref)
 end
 
 function OptionsContainer:InsertCvar(dataProvider, variable, layoutIndex)
+	variable[DP] = (variable[DP] or variable.type()):Set(GetCVar(variable.cvar));
 	dataProvider:Insert(Cvar:New({
 		varID = variable.cvar;
 		field = variable;
