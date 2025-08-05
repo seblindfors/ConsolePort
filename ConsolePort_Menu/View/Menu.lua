@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 local Menu = CPAPI.EventHandler(ConsolePortMenu, {
 	'ACTIVE_PLAYER_SPECIALIZATION_CHANGED';
 	'PLAYER_LOGIN';
@@ -17,6 +17,7 @@ function Menu:OnDataLoaded()
 	RunNextFrame(function()
 		self:SetPoint('CENTER', UIParent, 'BOTTOMLEFT', self:GetTargetOffsets(MenuRing))
 	end)
+	return CPAPI.BurnAfterReading;
 end
 
 function Menu:OnSizingChanged()

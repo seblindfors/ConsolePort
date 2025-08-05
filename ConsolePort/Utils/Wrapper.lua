@@ -1,11 +1,4 @@
-local _, db = ...; CPAPI = {};
----------------------------------------------------------------
--- General
----------------------------------------------------------------
--- return true or nil (nil for dynamic table insertions)
-CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC or nil;
-CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
-CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
+local _, db = ...;
 
 function CPAPI.Log(...)
 	local cc = ChatTypeInfo.SYSTEM;
@@ -88,23 +81,6 @@ function CPAPI.GetContainerTotalSlots()
 end
 
 ---------------------------------------------------------------
--- Button constants
----------------------------------------------------------------
-CPAPI.ExtraActionButtonID = ExtraActionButton1 and ExtraActionButton1.action or
-	CPAPI.IsRetailVersion and 217 or 169;
-
-CPAPI.ActionTypeRelease  = CPAPI.IsRetailVersion and 'typerelease' or 'type';
-CPAPI.ActionTypePress    = 'type';
-CPAPI.ActionPressAndHold = 'pressAndHoldAction';
-
-CPAPI.DefaultRingSetID = 1;
-
-CPAPI.SkipHotkeyRender = 'ignoregamepadhotkey';
-CPAPI.UseCustomFlyout  = 'usegamepadflyout';
-
-CPAPI.RaidCursorUnit   = 'cursorunit';
-
----------------------------------------------------------------
 -- Internal wrappers
 ---------------------------------------------------------------
 function CPAPI.IsButtonValidForBinding(button)
@@ -115,6 +91,14 @@ function CPAPI.GetKeyChordParts(keyChord)
 	return
 	--[[buttonID]] (keyChord:match('PAD.+')),
 	--[[modifier]] (keyChord:gsub('PAD.+', ''));
+end
+
+function CPAPI.IsTutorialComplete(tutorialID)
+	return CPAPI.Tutorial:IsFlagSet(tutorialID, db('tutorialState'));
+end
+
+function CPAPI.SetTutorialComplete(tutorialID, state)
+	return db('Settings/tutorialState', CPAPI.Tutorial:Combine(tutorialID, db('tutorialState'), state));
 end
 
 ---------------------------------------------------------------
@@ -263,6 +247,7 @@ CPAPI.GetNumSpellTabs                = C_SpellBook     and C_SpellBook.GetNumSpe
 CPAPI.GetQuestLogIndexForQuestID     = C_QuestLog      and C_QuestLog.GetLogIndexForQuestID              or nop;
 CPAPI.GetRenownLevels                = C_MajorFactions and C_MajorFactions.GetRenownLevels               or nop;
 CPAPI.GetSpellBookItemLink           = C_SpellBook     and C_SpellBook.GetSpellBookItemLink              or GetSpellLink;
+CPAPI.GetSpellBookItemName           = C_SpellBook     and C_SpellBook.GetSpellBookItemName              or GetSpellBookItemName;
 CPAPI.GetSpellBookItemTexture        = C_SpellBook     and C_SpellBook.GetSpellBookItemTexture           or GetSpellBookItemTexture;
 CPAPI.GetSpellBookItemType           = C_SpellBook     and C_SpellBook.GetSpellBookItemType              or GetSpellBookItemInfo;
 CPAPI.GetSpellLink                   = C_Spell         and C_Spell.GetSpellLink                          or GetSpellLink;
@@ -278,6 +263,7 @@ CPAPI.IsEquippedItem                 = C_Item          and C_Item.IsEquippedItem
 CPAPI.IsFactionParagon               = C_Reputation    and C_Reputation.IsFactionParagon                 or nop;
 CPAPI.IsMajorFaction                 = C_Reputation    and C_Reputation.IsMajorFaction                   or nop;
 CPAPI.IsPassiveSpell                 = C_Spell         and C_Spell.IsSpellPassive                        or IsPassiveSpell;
+CPAPI.IsSpellBookItemPassive         = C_SpellBook     and C_SpellBook.IsSpellBookItemPassive            or IsPassiveSpell;
 CPAPI.IsSpellHarmful                 = C_Spell         and C_Spell.IsSpellHarmful                        or IsHarmfulSpell;
 CPAPI.IsSpellHelpful                 = C_Spell         and C_Spell.IsSpellHelpful                        or IsHelpfulSpell;
 CPAPI.IsUsableItem                   = C_Item          and C_Item.IsUsableItem                           or IsUsableItem;
@@ -356,6 +342,23 @@ CPAPI.GetItemInfo = function(...)
 	};
 end
 
+CPAPI.GetItemInfoInstant = function(...)
+	if GetItemInfoInstant then
+		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(...)
+		return {
+			--[[ ItemInfo ]]
+			--[[ number           ]] itemID = itemID;
+			--[[ ItemType         ]] itemType = itemType;
+			--[[ ItemType         ]] itemSubType = itemSubType;
+			--[[ ItemEquipLoc     ]] itemEquipLoc = itemEquipLoc;
+			--[[ FileID           ]] icon = icon;
+			--[[ ItemType         ]] classID = classID;
+			--[[ ItemType         ]] subclassID = subclassID;
+		};
+	end
+	return {};
+end
+
 CPAPI.GetSpellInfo = function(...)
 	if GetSpellInfo then
 		local name, rank, icon, castTime, minRange, maxRange, spellID, originalIcon = GetSpellInfo(...)
@@ -392,21 +395,24 @@ CPAPI.GetSpellTabInfo = function(...)
 	return C_SpellBook.GetSpellBookSkillLineInfo(...) or {};
 end
 
-CPAPI.GetItemInfoInstant = function(...)
-	if GetItemInfoInstant then
-		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(...)
+CPAPI.GetSpellBookItemInfo = function(...)
+	if GetSpellBookItemInfo then
+		local itemType, id = GetSpellBookItemInfo(...)
+		local iconID = GetSpellBookItemTexture(...)
+		local name = GetSpellBookItemName(...)
+		local isPassive = IsPassiveSpell(...)
+		local spellID = select(7, GetSpellInfo(...))
 		return {
-			--[[ ItemInfo ]]
-			--[[ number           ]] itemID = itemID;
-			--[[ ItemType         ]] itemType = itemType;
-			--[[ ItemType         ]] itemSubType = itemSubType;
-			--[[ ItemEquipLoc     ]] itemEquipLoc = itemEquipLoc;
-			--[[ FileID           ]] icon = icon;
-			--[[ ItemType         ]] classID = classID;
-			--[[ ItemType         ]] subclassID = subclassID;
-		};
+			--[[ SpellBookItemInfo  ]]
+			--[[ Enum.SpellBookType ]] itemType = itemType;
+			--[[ number             ]] actionID = spellID or id;
+			--[[ number             ]] spellID = spellID;
+			--[[ string             ]] name = name;
+			--[[ FileID             ]] iconID = iconID;
+			--[[ boolean            ]] isPassive = isPassive;
+		}
 	end
-	return {};
+	return C_SpellBook.GetSpellBookItemInfo(...) or {};
 end
 
 CPAPI.GetLootSlotInfo = function(...)
@@ -514,6 +520,15 @@ CPAPI.GetAllMacroInfo = function()
 end
 
 end -- API wrappers
+
+---------------------------------------------------------------
+-- Enum wrappers
+---------------------------------------------------------------
+CPAPI.BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
+CPAPI.BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
+CPAPI.SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or nil;
+CPAPI.SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
+CPAPI.SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
 
 ---------------------------------------------------------------
 -- Widget wrappers

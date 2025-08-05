@@ -1,0 +1,207 @@
+<Ui>
+	<CheckButton name="CPControlSchemeButton" virtual="true" inherits="CPCardSmallTemplate">
+		<Size x="140" y="100"/>
+		<ButtonText parentKey="Text" inherits="CPWhiteFont" justifyH="CENTER">
+			<Anchors>
+				<Anchor point="BOTTOM" y="12"/>
+			</Anchors>
+		</ButtonText>
+	</CheckButton>
+
+	<Texture name="CPControlsTestAxis" virtual="true" file="Interface\Masks\CircleMask">
+		<Size x="6" y="6"/>
+	</Texture>
+
+	<Frame name="CPControlsBaseTest" virtual="true" setAllPoints="true" hidden="true">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="BG" file="Interface\Masks\CircleMask">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="LEFT" x="24"/>
+					</Anchors>
+					<Color r="0.2" g="0.2" b="0.2" a="0.5"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Target" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Normal2x.png">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.BG" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.BG" x="1" y="-1"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPControlsReport" virtual="true">
+		<Size x="50" y="50"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="BG" file="Interface\Masks\CircleMask" setAllPoints="true">
+					<Color r="0.2" g="0.2" b="0.2" a="0.5"/>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Target" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Normal2x.png">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.BG" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.BG" x="1" y="-1"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="Status" atlas="common-icon-undo" useAtlasSize="true">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.BG"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Text" inherits="CPWhiteFont" justifyH="CENTER">
+					<Anchors>
+						<Anchor point="TOP" relativePoint="BOTTOM" y="-6"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPControlsTest" virtual="true" inherits="CPControlsBaseTest">
+		<Frames>
+			<Frame parentKey="BorderArt" inherits="CPInnerFrameTemplate" useParentLevel="true" scale="0.5">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="12" y="-14"/>
+					<Anchor point="BOTTOMRIGHT" x="-12" y="10"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<FontString parentKey="Text" inherits="CPWhiteFont" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.BG" relativePoint="RIGHT" x="20"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPControlsTestSuite" virtual="true">
+		<Size x="450" y="100"/>
+		<Frames>
+			<Frame parentKey="Report" inherits="CPControlsBaseTest">
+				<Layers>
+					<Layer level="ARTWORK" textureSubLevel="2">
+						<Texture parentKey="Status">
+							<Size x="32" y="32"/>
+							<Anchors>
+								<Anchor point="CENTER" relativeKey="$parent.BG"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Frames>
+					<Frame parentKey="Sensors" parentArray="Reports" inherits="CPControlsReport">
+						<Anchors>
+							<Anchor point="LEFT" x="150" y="6"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="Buttons" parentArray="Reports" inherits="CPControlsReport">
+						<Anchors>
+							<Anchor point="LEFT" x="240" y="6"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="Validation" parentArray="Reports" inherits="CPControlsReport">
+						<Anchors>
+							<Anchor point="LEFT" x="330" y="6"/>
+						</Anchors>
+					</Frame>
+				</Frames>
+			</Frame>
+			<Frame parentKey="AxisTest" parentArray="Tests" inherits="CPControlsTest">
+				<Layers>
+					<Layer level="ARTWORK" textureSubLevel="2">
+						<Texture parentKey="Center" inherits="CPControlsTestAxis">
+							<Anchors>
+								<Anchor point="CENTER" relativeKey="$parent.BG"/>
+							</Anchors>
+							<Color r="0.2" g="0.2" b="0.2" a="1"/>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+			<Frame parentKey="ButtonTest" parentArray="Tests" inherits="CPControlsTest">
+				<Layers>
+					<Layer level="ARTWORK" textureSubLevel="2">
+						<Texture parentKey="Icon">
+							<Size x="32" y="32"/>
+							<Anchors>
+								<Anchor point="CENTER" relativeKey="$parent.BG"/>
+							</Anchors>
+						</Texture>
+						<FontString parentKey="Key" inherits="CPHeaderFont" justifyH="CENTER">
+							<Anchors>
+								<Anchor point="CENTER" relativeKey="$parent.BG"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<CheckButton name="CPControlsGamepadTester" virtual="true" inherits="CPControlSchemeButton, CPControlsTestSuite"/>
+
+	<Frame name="CPControlsPanel" virtual="true">
+		<Frames>
+			<ScrollFrame parentKey="Browser" inherits="CPSmoothScrollTemplate, CPScrollFrameSettingsTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="12" y="-3"/>
+					<Anchor point="BOTTOMRIGHT" x="-12" y="4"/>
+				</Anchors>
+				<ScrollChild>
+					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame">
+						<Frames>
+							<Frame parentKey="RowInfo" inherits="CPGuideInfoFrame" hidden="false">
+								<KeyValues>
+									<KeyValue key="pntAnchor" value="TOPRIGHT" type="string"/>
+									<KeyValue key="relAnchor" value="TOPLEFT" type="string"/>
+									<KeyValue key="xOffset" value="-20" type="number"/>
+									<KeyValue key="yOffset" value="0" type="number"/>
+								</KeyValues>
+							</Frame>
+							<Frame parentKey="ColInfo" inherits="CPGuideInfoFrame" hidden="false">
+								<KeyValues>
+									<KeyValue key="pntAnchor" value="TOPLEFT" type="string"/>
+									<KeyValue key="relAnchor" value="TOPRIGHT" type="string"/>
+									<KeyValue key="xOffset" value="20" type="number"/>
+									<KeyValue key="yOffset" value="0" type="number"/>
+								</KeyValues>
+								<Frames>
+									<Frame parentKey="Settings" inherits="CPConfigScrollBox">
+										<Size x="325" y="325"/>
+										<KeyValues>
+											<KeyValue key="layoutIndex" value="2" type="number"/>
+											<KeyValue key="paddingLeft" value="0" type="number"/>
+											<KeyValue key="paddingBottom" value="0" type="number"/>
+											<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
+										</KeyValues>
+									</Frame>
+								</Frames>
+							</Frame>
+						</Frames>
+					</Frame>
+				</ScrollChild>
+			</ScrollFrame>
+			<CheckButton parentKey="Continue" inherits="CPGuideContinueButton" frameLevel="10">
+				<Attributes>
+					<Attribute name="nodepriority" type="number" value="1"/>
+				</Attributes>
+				<Anchors>
+					<Anchor point="BOTTOM" y="10"/>
+				</Anchors>
+			</CheckButton>
+		</Frames>
+	</Frame>
+
+	<Script file="ControlsTest.lua"/>
+	<Script file="ControlsMain.lua"/>
+</Ui>

@@ -1,0 +1,163 @@
+<Ui>
+	<Frame name="CPConfig" virtual="true" inherits="CPPopupFrameScriptTemplate"
+		hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="HIGH">
+		<Size x="1280" y="800"/>
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
+		<KeyValues>
+			<KeyValue key="nonExclusive" value="true" type="boolean"/>
+		</KeyValues>
+		<Frames>
+			<Button parentKey="Credits" frameLevel="10">
+				<Size x="72" y="72"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-12" y="8"/>
+				</Anchors>
+				<NormalTexture file="Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP"/>
+				<PushedTexture file="Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP">
+					<Size x="72" y="72"/>
+					<Anchors>
+						<Anchor point="CENTER" y="-2"/>
+					</Anchors>
+				</PushedTexture>
+			</Button>
+			<ScrollFrame parentKey="Nav" inherits="CPNavBarWrapper">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="52" y="-5"/>
+					<Anchor point="TOPRIGHT" relativePoint="TOP" x="200" y="-4"/>
+				</Anchors>
+			</ScrollFrame>
+			<Frame parentKey="Container" inherits="CPScrollFrameArtTemplate" frameLevel="3">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="10" y="-48"/>
+					<Anchor point="BOTTOMRIGHT" x="-20" y="32"/>
+				</Anchors>
+			</Frame>
+			<Button parentKey="CloseButton" inherits="CPSquareButtonTemplate">
+				<Size x="42" y="42"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Container" relativePoint="TOPRIGHT" x="16"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="iconAtlas" value="common-icon-redx" type="string"/>
+					<KeyValue key="iconSize" value="24" type="number"/>
+				</KeyValues>
+			</Button>
+			<Button parentKey="Defaults" inherits="CPSquareButtonTemplate">
+				<Size x="42" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.CloseButton" relativePoint="LEFT" x="10"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="iconAtlas" value="common-icon-undo" type="string"/>
+					<KeyValue key="iconSize" value="24" type="number"/>
+				</KeyValues>
+			</Button>
+			<Button parentKey="Export" inherits="CPSquareButtonTemplate">
+				<Size x="42" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.Defaults" relativePoint="LEFT" x="10"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="icon" value="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Export" type="string"/>
+					<KeyValue key="iconSize" value="24" type="number"/>
+				</KeyValues>
+			</Button>
+			<Button parentKey="Import" inherits="CPSquareButtonTemplate">
+				<Size x="42" y="42"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.Export" relativePoint="LEFT" x="10"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="icon" value="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Import" type="string"/>
+					<KeyValue key="iconSize" value="24" type="number"/>
+				</KeyValues>
+			</Button>
+			<EditBox parentKey="Search" inherits="SearchBoxTemplate">
+				<Size x="260" y="24"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.Import" relativePoint="LEFT" x="0" y="0"/>
+				</Anchors>
+			</EditBox>
+		</Frames>
+	</Frame>
+
+	<Frame name="CPConfigScrollBox" virtual="true" inherits="CPScrollBoxTree">
+		<KeyValues>
+			<KeyValue key="spacing" value="2" type="number"/>
+			<KeyValue key="scrollBarTopY" value="-4" type="number"/>
+			<KeyValue key="scrollBarBottomY" value="4" type="number"/>
+		</KeyValues>
+	</Frame>
+
+	<Frame name="CPConfigDataContainer" virtual="true" frameLevel="100">
+		<Frames>
+			<ScrollFrame parentKey="Browser" inherits="CPScrollFrameTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="20" y="-30"/>
+					<Anchor point="BOTTOMRIGHT" x="-30" y="30"/>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<Texture parentKey="LoadingSpinner" atlas="auctionhouse-ui-loadingspinner">
+							<Size x="146" y="146"/>
+							<Anchors>
+								<Anchor point="CENTER" x="0" y="0"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Animations>
+					<AnimationGroup parentKey="LoadingAnimation" looping="REPEAT">
+						<Rotation childKey="LoadingSpinner" duration="1" degrees="-360" order="1"/>
+						<Scripts>
+							<OnLoad>
+								self:Play()
+							</OnLoad>
+						</Scripts>
+					</AnimationGroup>
+				</Animations>
+				<ScrollChild>
+					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame"/>
+				</ScrollChild>
+			</ScrollFrame>
+		</Frames>
+	</Frame>
+
+	<Frame name="CPConfigIconSelector" virtual="true">
+		<Frames>
+			<Frame parentKey="IconHeader" inherits="CPPopupHeaderTemplate">
+				<Size y="38"/>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="8" y="8"/>
+					<Anchor point="TOPRIGHT" x="-8" y="8"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="IconSelector" inherits="CPIconSelector" frameStrata="HIGH">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="16" y="-32"/>
+					<Anchor point="BOTTOMRIGHT" x="-26" y="8"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="IconType" inherits="DropdownWithSteppersTemplate" mixin="DropdownWithSteppersMixin">
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.IconHeader" />
+				</Anchors>
+				<Frames>
+					<DropdownButton parentKey="Dropdown" inherits="WowStyle2DropdownTemplate">
+						<Anchors>
+							<Anchor point="CENTER"/>
+						</Anchors>
+					</DropdownButton>
+				</Frames>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Script file="Config.lua"/>
+	<Script file="ImportExport.lua"/>
+	<Script file="DataBrowser.lua"/>
+	<Script file="IconSelector.lua"/>
+	<Script file="LoadoutSelector.lua"/>
+</Ui>

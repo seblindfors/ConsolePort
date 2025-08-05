@@ -1,0 +1,138 @@
+<Ui>
+	<Script file="Config.lua"/>
+	<Script file="Panel.lua"/>
+	<Include file="Sets\Sets.xml"/>
+	<Include file="Display\Display.xml"/>
+	<Include file="Loadout\Loadout.xml"/>
+
+	<Frame name="CPRingsConfig" virtual="true" inherits="CPPopupPanelTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true" frameStrata="HIGH">
+		<Size x="1054" y="762"/>
+		<Anchors>
+			<Anchor point="CENTER" x="0" y="0"/>
+		</Anchors>
+		<Frames>
+			<Frame parentKey="Display" inherits="CPScrollFrameArtTemplate">
+				<Size x="680" y="680"/>
+				<KeyValues>
+					<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" x="12" y="34"/>
+				</Anchors>
+				<Frames>
+					<Frame parentKey="RingContainer" clipChildren="true" hidden="true" frameLevel="3">
+						<Anchors>
+							<Anchor point="TOPLEFT" x="0" y="0"/>
+							<Anchor point="BOTTOMRIGHT" x="10" y="0"/>
+						</Anchors>
+						<Layers>
+							<Layer level="ARTWORK">
+								<FontString parentKey="EmptyText" inherits="Fancy22Font" hidden="true">
+									<Anchors>
+										<Anchor point="CENTER"/>
+									</Anchors>
+								</FontString>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="RingBlocker" hidden="true" enableMouse="true" frameLevel="4">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.RingContainer" x="0" y="0"/>
+							<Anchor point="BOTTOMRIGHT" relativeKey="$parent.RingContainer" x="0" y="0"/>
+						</Anchors>
+					</Frame>
+					<Frame parentKey="Tutorial" hidden="true" inherits="VerticalLayoutFrame" frameLevel="5">
+						<Size x="320"/>
+						<Anchors>
+							<Anchor point="LEFT" x="20" y="0"/>
+						</Anchors>
+						<KeyValues>
+							<KeyValue key="spacing" value="4" type="number"/>
+						</KeyValues>
+						<Layers>
+							<Layer level="BACKGROUND">
+								<Texture parentKey="Background" inherits="CPCardNormalTexture" alpha="0.5">
+									<Anchors>
+										<Anchor point="TOPLEFT" x="-20" y="20"/>
+										<Anchor point="BOTTOMRIGHT" x="20" y="-20"/>
+									</Anchors>
+									<KeyValues>
+										<KeyValue key="atlas" value="glues-characterselect-card-drag" type="string"/>
+										<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
+									</KeyValues>
+								</Texture>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="Details" setAllPoints="true" hidden="false">
+						<Frames>
+							<Frame parentKey="IconSelector" inherits="CPIconSelector" frameStrata="HIGH">
+								<Size y="444"/>
+								<Anchors>
+									<Anchor point="BOTTOMLEFT" x="14" y="8"/>
+									<Anchor point="BOTTOMRIGHT" x="-14" y="8"/>
+								</Anchors>
+								<KeyValues>
+									<KeyValue key="customButtonHeight" value="50" type="number"/>
+									<KeyValue key="horizontalSpacing" value="14" type="number"/>
+									<KeyValue key="verticalSpacing" value="14" type="number"/>
+									<KeyValue key="buttonTemplate" value="CPIconSelectorLargeButton" type="string"/>
+								</KeyValues>
+							</Frame>
+							<Frame parentKey="OptionsHeader" inherits="CPPopupHeaderTemplate">
+								<Size x="680" y="38"/>
+								<Anchors>
+									<Anchor point="TOP" x="0" y="-6"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="IconHeader" inherits="CPPopupHeaderTemplate">
+								<Size x="680" y="38"/>
+								<Anchors>
+									<Anchor point="BOTTOM" relativeKey="$parent.IconSelector" relativePoint="TOP" x="0" y="8"/>
+								</Anchors>
+							</Frame>
+							<Frame parentKey="IconType" inherits="DropdownWithSteppersTemplate" mixin="DropdownWithSteppersMixin">
+								<Anchors>
+									<Anchor point="RIGHT" relativeKey="$parent.IconHeader" />
+								</Anchors>
+								<Frames>
+									<DropdownButton parentKey="Dropdown" inherits="WowStyle2DropdownTemplate">
+										<Anchors>
+											<Anchor point="CENTER"/>
+										</Anchors>
+									</DropdownButton>
+								</Frames>
+							</Frame>
+						</Frames>
+					</Frame>
+				</Frames>
+			</Frame>
+			<Frame parentKey="Sets" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate" hidden="true">
+				<Size x="320" y="680"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="-22" y="34"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="Loadout" inherits="CPScrollBoxTree, CPScrollFrameArtTemplate" hidden="true">
+				<Size x="320" y="680"/>
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" x="-22" y="34"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="spacing" value="4" type="number"/>
+				</KeyValues>
+			</Frame>
+			<EditBox parentKey="Search" inherits="SearchBoxTemplate">
+				<Size x="280" y="24"/>
+				<Anchors>
+					<Anchor point="BOTTOM" relativeKey="$parent.Loadout" relativePoint="TOP" x="0" y="8"/>
+				</Anchors>
+			</EditBox>
+			<Frame parentKey="Tabs" inherits="CPTabGroupTemplate" scale="1.2">
+				<Anchors>
+					<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" relativeKey="$parent.Display" x="-32" y="2"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+</Ui>

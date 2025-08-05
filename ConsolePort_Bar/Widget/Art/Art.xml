@@ -1,5 +1,4 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
 	<Script file="Art.lua"/>
 
 	<Frame name="CPArtifactArtTemplate" virtual="true" useParentLevel="true" setAllPoints="true">
@@ -44,6 +43,13 @@
 						<MaskedTexture childKey="Lines"/>
 					</MaskedTextures>
 				</MaskTexture>
+			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="-1">
+				<Texture parentArray="Runes">
+					<Anchors>
+						<Anchor point="CENTER" y="-1"/>
+					</Anchors>
+				</Texture>
 			</Layer>
 		</Layers>
 	</Frame>

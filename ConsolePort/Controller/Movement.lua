@@ -39,6 +39,7 @@ function Movement:OnDataLoaded()
 	self:UpdateConditionals()
 	self:UnregisterAllEvents()
 	CPAPI.RegisterFrameForUnitEvents(self, self.Events, 'player')
+	return CPAPI.BurnAfterReading;
 end
 
 ---------------------------------------------------------------

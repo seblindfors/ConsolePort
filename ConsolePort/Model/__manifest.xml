@@ -1,11 +1,7 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
 	<!-- Models -->
-	<Include file="Locale\Locale.xml"/>
-	<Include file="Data\Data.xml"/>
-	<Include file="Gamepad\Gamepad.xml"/>
-	<!-- Single file models -->
-	<Script file="Actionbar.lua"/>
-	<Script file="Bindings.lua"/>
-	<Script file="Mapper.lua"/>
+	<Include file="Locale\__manifest.xml"/>
+	<Include file="Data\__manifest.xml"/>
+	<Include file="Gamepad\__manifest.xml"/>
+	<Include file="Game\__manifest.xml"/>
 </Ui>

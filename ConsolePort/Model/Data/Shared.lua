@@ -6,20 +6,6 @@ local Shared = db:Register('Shared', CPAPI.CreateEventHandler({'Frame', '$parent
 	Data = {};
 }))
 db:Save('Shared/Data', 'ConsolePortShared')
----------------------------------------------------------------
--- Shared metatable
----------------------------------------------------------------
-local sharedMeta = {
-	__index = function(self, key)
-		if Shared[key] then
-			local k, v = Shared[key]()
-			rawset(self, k, setmetatable(rawget(self, k) or v, getmetatable(self)))
-			return rawget(self, k);
-		end
-		rawset(self, key, setmetatable({}, getmetatable(self)))
-		return rawget(self, key);
-	end;
-};
 
 ---------------------------------------------------------------
 -- Entry generation
@@ -58,21 +44,30 @@ end
 function Shared:SaveData(idx, set, newData, unique)
 	if unique then
 		local cmp = db.table.compare;
-		for owner, data in pairs(self.Data) do
+		for _, data in pairs(self.Data) do
 			if data[set] and cmp(data[set], newData) then
 				return false;
 			end
 		end
 	end
+	self.Data[idx] = self.Data[idx] or {};
 	self.Data[idx][set] = db.table.copy(newData);
 end
 
+function Shared:GetData(idx, set)
+	if not rawget(self.Data, idx) then return end;
+	return db.table.copy(self.Data[idx][set]);
+end
+
 function Shared:RemoveData(idx, set)
+	if not self.Data[idx] then return end;
 	self.Data[idx][set] = nil;
+	return true;
 end
 
 function Shared:SaveBindings(bindings)
 	if not self.metaDataAvailable then return end;
+	if not db('bindingAutomaticBackup') then return end;
 	self:SavePlayerData('Bindings', bindings, true)
 end
 
@@ -118,5 +113,13 @@ end
 function Shared:OnDataLoaded()
 	db:Load('Shared/Data', 'ConsolePortShared')
 	db:RegisterCallback('OnNewBindings', self.SaveBindings, self)
-	setmetatable(self.Data, sharedMeta)
+	CPAPI.Proxy(self.Data, function(data, key)
+		if ( key ~= 0 and self[key] ) then
+			local k, v = self[key]()
+			rawset(data, k, rawget(self, k) or v)
+			return rawget(data, k);
+		end
+		return rawget(data, key);
+	end)
+	return CPAPI.BurnAfterReading;
 end

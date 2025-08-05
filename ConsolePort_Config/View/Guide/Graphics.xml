@@ -1,0 +1,83 @@
+<Ui>
+	<Frame name="CPGraphicsIconFrame" inherits="CPGuideInfoFrame" virtual="true">
+		<Frames>
+			<Frame parentKey="Grid" inherits="GridLayoutFrame">
+				<KeyValues>
+					<KeyValue key="layoutIndex" value="2" type="number"/>
+					<KeyValue key="childXPadding" value="4" type="number"/>
+					<KeyValue key="childYPadding" value="4" type="number"/>
+					<KeyValue key="isHorizontal" value="true" type="boolean"/>
+					<KeyValue key="alwaysUpdateLayout" value="true" type="boolean"/>
+					<KeyValue key="layoutFramesGoingRight" value="true" type="boolean"/>
+				</KeyValues>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Frame name="CPGraphicsPanel" enableMouse="true" virtual="true" hidden="true">
+		<Frames>
+			<Frame parentKey="Settings" inherits="CPConfigScrollBox, CPScrollFrameArtTemplate">
+				<Size x="500" y="220"/>
+				<KeyValues>
+					<KeyValue key="paddingLeft" value="0" type="number"/>
+					<KeyValue key="paddingBottom" value="0" type="number"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="BOTTOM" x="-4" y="70"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="GeneralInfo" inherits="CPGuideInfoFrame" hidden="false">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="468" y="-160"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="DeviceInfo" inherits="CPGuideInfoFrame">
+				<Anchors>
+					<Anchor point="TOPRIGHT" x="-20" y="-50"/>
+				</Anchors>
+			</Frame>
+			<Frame parentKey="LargeIcons" inherits="CPGraphicsIconFrame">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativePoint="LEFT" x="20" y="-50"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="iconSize" value="50" type="number"/>
+					<KeyValue key="iconStyle" value="64" type="number"/>
+					<KeyValue key="stride" value="6" type="number"/>
+					<KeyValue key="text" value="LARGE" type="global"/>
+				</KeyValues>
+			</Frame>
+			<Frame parentKey="SmallIcons" inherits="CPGraphicsIconFrame">
+				<Anchors>
+					<Anchor point="TOPRIGHT" relativePoint="RIGHT" x="-20" y="-50"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="iconSize" value="28" type="number"/>
+					<KeyValue key="iconStyle" value="32" type="number"/>
+					<KeyValue key="stride" value="10" type="number"/>
+					<KeyValue key="text" value="SMALL" type="global"/>
+				</KeyValues>
+			</Frame>
+			<CheckButton parentKey="Continue" inherits="CPGuideContinueButton">
+				<Attributes>
+					<Attribute name="nodepriority" type="number" value="1"/>
+				</Attributes>
+				<Anchors>
+					<Anchor point="BOTTOM" y="10"/>
+				</Anchors>
+			</CheckButton>
+		</Frames>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Splash" file="Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP" virtual="true">
+					<Size x="128" y="128"/>
+					<Anchors>
+						<Anchor point="CENTER" y="250"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Script file="Graphics.lua"/>
+</Ui>

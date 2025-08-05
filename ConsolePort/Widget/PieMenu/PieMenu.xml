@@ -1,9 +1,7 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
-
+<Ui>
 	<Script file="PieMenu.lua"/>
 
-	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin" frameStrata="HIGH">
+	<Button name="PieMenu" intrinsic="true" mixin="CPPieMenuMixin" frameStrata="HIGH" hidden="true">
 		<Layers>
 			<Layer level="BORDER">
 				<Texture parentKey="Arrow" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Arrow.blp" alpha="0">

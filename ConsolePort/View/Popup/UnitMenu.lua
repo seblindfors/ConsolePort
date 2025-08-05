@@ -168,7 +168,7 @@ function UnitMenu:ModifyAppearance(contextData)
 	self.CloseButton:SetShown(not contextData.isSecure)
 
 	local color = self:GetTitleColor(contextData.unit);
-	SetPortraitTexture(self.Icon, contextData.unit)
+	SetPortraitTexture(self.Portrait.Icon, contextData.unit)
 	self.Name:SetText(contextData.name)
 	self.Name:SetTextColor(color:GetRGB())
 	self.Desc:SetText(contextData.server)
@@ -193,6 +193,7 @@ end
 -- Scripts
 ---------------------------------------------------------------
 function UnitMenu:OnHide()
+	ConsolePort:SetCursorObstructor(self, false)
 	self:UnregisterAllEvents()
 	self:ResetAll()
 	if self.updateTicker then
@@ -205,6 +206,7 @@ function UnitMenu:OnHide()
 end
 
 function UnitMenu:OnShow()
+	ConsolePort:SetCursorObstructor(self, true)
 	CPAPI.RegisterFrameForEvents(self, self.Events)
 	self.updateTicker = C_Timer.NewTicker(0.1, function()
 		if not self.contextData.isSecure and not UnitExists(self.contextData.unit) then
@@ -424,11 +426,11 @@ local UnitMenuButtonIcon = { SetPoint = nop };
 function UnitMenuButtonIcon:OnLoad()
 	self:SetSize(26, 26)
 	self:ClearAllPoints()
-	getmetatable(self).__index.SetPoint(self, 'CENTER', self:GetParent(), 'LEFT', 56, 0)
+	CPAPI.Index(self).SetPoint(self, 'CENTER', self:GetParent(), 'LEFT', 56, 0)
 end
 
 function UnitMenuButtonIcon:SetSize(width, height)
-	getmetatable(self).__index.SetSize(self,
+	CPAPI.Index(self).SetSize(self,
 		Clamp(width, 20, 26),
 		Clamp(height, 20, 26)
 	);
@@ -612,6 +614,19 @@ function UnitMenu.BackButton:Reset()
 end
 
 ---------------------------------------------------------------
+UnitMenu.RollButton = CreateFromMixins(UnitPopupButtonBaseMixin)
+---------------------------------------------------------------
+function UnitMenu.RollButton:CreateMenuDescription(rootDescription, contextData)
+	local element = rootDescription:CreateButton(ROLL, function()
+		RandomRoll(1, 100)
+	end)
+	element:AddInitializer(function(self)
+		self.Icon:SetTexCoord(0, 1, 0, 1)
+		self.Icon:SetTexture([[Interface\Buttons\UI-GroupLoot-Dice-Up]])
+	end)
+end
+
+---------------------------------------------------------------
 -- Mount
 ---------------------------------------------------------------
 UnitMenu:HookScript('OnHide', UnitMenu.OnHide)
@@ -676,7 +691,7 @@ do -- Emote list
 	end
 
 	function UnitMenu.Emotes:GetEntries()
-		local entries = {};
+		local entries = { UnitMenu.RollButton };
 		local function createMenus(list, name)
 			local half = ceil(#list / 2)
 			return {

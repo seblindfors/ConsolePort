@@ -1,5 +1,4 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
 	<Script file="Toolbar.lua"/>
 
 	<Button name="CPToolbarMicroButton" mixin="CPMicroButton" motionScriptsWhileDisabled="true" virtual="true">
@@ -89,7 +88,7 @@
 					<Anchor point="BOTTOM" y="17"/>
 				</Anchors>
 				<Frames>
-					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarNineSliceFrame" alpha="0">
+					<Frame parentKey="PopoutFrame" inherits="GridLayoutFrame, CPToolbarSixSliceInverterFrame" alpha="0">
 						<Size x="300" y="40"/>
 						<KeyValues>
 							<KeyValue key="childXPadding" value="1" type="number"/>

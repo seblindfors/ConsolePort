@@ -6,6 +6,7 @@ function DataAPI:OnDataLoaded()
 	self:OnVariablesChanged(db.Variables)
 	self:UpdateDataSource()
 	db:TriggerEvent('OnDataLoaded')
+	return CPAPI.BurnAfterReading;
 end
 
 function DataAPI:UpdateDataSource()
@@ -32,15 +33,15 @@ end
 
 function DataAPI:OnToggleCharacterSettings(enabled)
 	local overrides = ConsolePortCharacterSettings;
+	-- Invert the value for the data source we're switching away from
+	db('Settings/useCharacterSettings', not enabled)
+	-- Switch data source
 	ConsolePortCharacterSettings = enabled and {} or nil;
 	self:UpdateDataSource()
 	-- Since data source was switched, dispatch to update callbacks
 	db('Settings/useCharacterSettings', enabled)
 	if overrides then
-		-- Trigger updates for all the variables that had overrides
-		for id in pairs(overrides) do
-			db('Settings/'..id, db(id))
-		end
+		self:TriggerVariableUpdates(overrides)
 	end
 end
 
@@ -50,6 +51,21 @@ function DataAPI:OnVariablesChanged(variables)
 	end
 end
 
+function DataAPI:OnVariablesReset()
+	-- ConsolePortSettings or ConsolePortCharacterSettings
+	local source = db('Settings')
+	local changed = CopyTable(source)
+	wipe(source)
+	self:TriggerVariableUpdates(changed)
+end
+
+function DataAPI:TriggerVariableUpdates(variables)
+	for varID in pairs(variables) do
+		db:TriggerEvent('Settings/'..varID, db(varID))
+	end
+end
+
+db:RegisterCallback('OnVariablesReset', DataAPI.OnVariablesReset, DataAPI)
 db:RegisterCallback('OnVariablesChanged', DataAPI.OnVariablesChanged, DataAPI)
 db:RegisterCallback('OnToggleCharacterSettings', DataAPI.OnToggleCharacterSettings, DataAPI)
 
@@ -62,7 +78,7 @@ local Field = setmetatable({[TYPE] = 'Field'}, {
 	__index = {};
 	__newindex = function(self, key, value)
 		if (type(value) == 'function') then
-			getmetatable(self).__index[key] = value;
+			CPAPI.Index(self)[key] = value;
 			return
 		end
 		rawset(self, key, value);
@@ -420,8 +436,7 @@ end
 ---------------------------------------------------------------
 local Point = Table('Point');
 ---------------------------------------------------------------
-
----------------------------------------------------------------
+-- Defined to differentiate from the generic Table type.
 
 ---------------------------------------------------------------
 -- Data interface (call obj to enter data definition env)

@@ -92,7 +92,7 @@ function HotkeyHandler:FormatIconSlug(iconData, iconFormat, atlasFormat)
 	return (iconFormat or self.Format[32]):format(icon), icon, false;
 end
 
-function HotkeyHandler:GetButtonSlug(device, btnID, modID, split, large)
+function HotkeyHandler:GetButtonSlug(device, btnID, modID, split, large, separator)
 	local atlasFormat = large and self.Format.Large or self.Format.Atlas;
 	local iconFormat  = large and self.Format[64] or self.Format[32];
 	local styleFormat = large and 64 or 32;
@@ -112,7 +112,7 @@ function HotkeyHandler:GetButtonSlug(device, btnID, modID, split, large)
 		or _G[('KEY_ABBR_%s'):format(btnID)]
 		or btnID:gsub('^PAD', '')
 
-	return table.concat(slug)
+	return table.concat(slug, separator or '')
 end
 
 function HotkeyHandler:GetActiveButtonSlug(btnID, modID, split)
@@ -122,22 +122,28 @@ function HotkeyHandler:GetActiveButtonSlug(btnID, modID, split)
 	end
 end
 
-do local function GetBindingSlugs(self, device, split, large, key, ...)
+do local function GetBindingSlugs(self, device, split, large, separator, key, ...)
 		if key then
 			local splitSlug = {strsplit('-', key)}
 			local btnID = tremove(splitSlug)
-			local slug, data = self:GetButtonSlug(device, btnID, table.concat(splitSlug, '-'), split, large)
+			local slug, data = self:GetButtonSlug(device, btnID, table.concat(splitSlug, '-'), split, large, separator)
 			if split then
-				return slug, data, GetBindingSlugs(self, device, split, large, ...)
+				return slug, data, GetBindingSlugs(self, device, split, large, separator, ...)
 			end
-			return slug, GetBindingSlugs(self, device, split, large, ...)
+			return slug, GetBindingSlugs(self, device, split, large, separator, ...)
 		end
 	end
 
-	function HotkeyHandler:GetButtonSlugForBinding(binding, split, large)
-		local device = db('Gamepad/Active')
+	function HotkeyHandler:GetButtonSlugForBinding(binding, split, large, separator)
+		local device = db.Gamepad.Active;
 		if not device then return end;
-		return GetBindingSlugs(self, device, split, large, db.Gamepad:GetBindingKey(binding))
+		return GetBindingSlugs(self, device, split, large, separator, db.Gamepad:GetBindingKey(binding))
+	end
+
+	function HotkeyHandler:GetButtonSlugForChord(chord, split, large, separator)
+		local device = db.Gamepad.Active;
+		if not device then return end;
+		return GetBindingSlugs(self, device, split, large, separator, chord)
 	end
 
 	function HotkeyHandler:GetButtonSlugsForBinding(binding, separator, limit)
@@ -235,7 +241,7 @@ function HotkeyMixin:SetData(data, owner)
 	self:SetOwner(owner)
 
 	-- TODO: allow more templates
-	local signature = 'return function(self, button, modifier, owner)\n%s\nend' 
+	local signature = 'return function(self, button, modifier, owner)\n%s\nend'
 	local render, msg = loadstring(signature:format(self.Templates[self.template]))
 	if render then
 		return render()(self, data.button, data.modifier, owner)

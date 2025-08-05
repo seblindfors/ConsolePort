@@ -377,7 +377,7 @@ end
 
 function Mover:SetPoint(point, relativeTo, relativePoint, x, y)
 	self.Status:SetText(('%s -> %s: %d, %d'):format(point, relativePoint, x, y))
-	getmetatable(self).__index.SetPoint(self, point, relativeTo, relativePoint, x, y)
+	CPAPI.Index(self).SetPoint(self, point, relativeTo, relativePoint, x, y)
 	for anchor in pairs(self.SelectionLayout) do
 		local slice = self[anchor];
 		if ( anchor == point and anchor == relativePoint ) then
@@ -396,7 +396,7 @@ function Mover:SetSize(width, height)
 	self:SetOmitterSize(width, height)
 	self.Width:SetText(('Width: %d'):format(width))
 	self.Height:SetText(('Height: %d'):format(height))
-	getmetatable(self).__index.SetSize(self, width, height)
+	CPAPI.Index(self).SetSize(self, width, height)
 end
 
 ---------------------------------------------------------------

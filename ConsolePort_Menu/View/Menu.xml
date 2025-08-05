@@ -1,5 +1,4 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
 
 	<Frame name="ConsolePortMenu" parent="UIParent" hidden="true">
 		<Size x="450" y="450"/>
@@ -77,22 +76,6 @@
 					<OnLoad>self:SetParent(GameMenuFrame)</OnLoad>
 				</Scripts>
 			</Button>
-			<Frame parentKey="Filigree" inherits="CPFlashableFiligreeTemplate" useParentLevel="true">
-				<Size x="900" y="400"/>
-				<Anchors>
-					<Anchor point="CENTER"/>
-				</Anchors>
-				<Scripts>
-					<OnShow>
-						self:Play();
-						PlaySound(SOUNDKIT.UI_POWER_AURA_GENERIC);
-					</OnShow>
-					<OnHide>
-						self:Stop();
-						self:SetAlpha(1);
-					</OnHide>
-				</Scripts>
-			</Frame>
 		</Frames>
 	</PieMenu>
 

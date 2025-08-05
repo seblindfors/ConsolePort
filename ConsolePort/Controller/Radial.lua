@@ -33,8 +33,9 @@ Dispatcher.tracker = {};
 function Dispatcher:OnGamePadStick(stick, x, y, len)
 	local this = self.focusFrame;
 	if this and this.interrupt and this.interrupt[stick] then
+		local canDisable = self:CheckDeadzone(stick, len)
 		if self.disabled then
-			if self:CheckDeadzone(stick, len) then
+			if canDisable then
 				return self:ClearFocusInstantly(this)
 			end
 		elseif this.intercept[stick] then
@@ -45,7 +46,9 @@ end
 
 function Dispatcher:CheckDeadzone(stick, len)
 	if not self.enableDeadzone then return end;
-	self.tracker[stick] = len;
+	if stick and len then
+		self.tracker[stick] = len;
+	end
 	local canDisable = true;
 	for _, len in pairs(self.tracker) do
 		if len > self.deadzone then
@@ -68,6 +71,9 @@ function Dispatcher:ClearFocus(frame)
 	if self.focusFrame ~= frame then return end;
 	self.disabled = true;
 	self:SetTimer()
+	if self.enableDeadzone and self:CheckDeadzone() then
+		self:ClearFocusInstantly(frame)
+	end
 end
 
 function Dispatcher:ClearTimer()
@@ -187,7 +193,85 @@ RadialMixin.Env = {
 		end
 		return #btns > 0;
 	]];
+	GetBindingsForButton = [[
+		local btn  = ...;
+		local mods = { self::GetActiveModifiers() };
+		for i=1, #mods do
+			mods[i] = mods[i]..btn;
+		end
+		return btn, unpack(mods);
+	]];
 }
+
+---------------------------------------------------------------
+local RadialCalc = {};
+---------------------------------------------------------------
+function RadialCalc:GetPointForIndex(index, size, radius)
+	return 'CENTER', self:GetCoordsForIndex(index, size, radius)
+end
+
+function RadialCalc:GetCoordsForIndex(index, size, radius)
+	return Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
+end
+
+function RadialCalc:GetBoundingRadiansForIndex(index, size)
+	return Radial:GetBoundingRadiansForIndex(index, size or self:GetAttribute('size'))
+end
+
+function RadialCalc:GetIndexForPos(x, y, len, size)
+	return Radial:GetIndexForStickPosition(x, y, len, size or self:GetAttribute('size'))
+end
+
+function RadialCalc:GetValidThreshold()
+	return Radial.VALID_VEC_LEN or .5;
+end
+
+function RadialCalc:IsValidThreshold(len)
+	return len >= self:GetValidThreshold()
+end
+
+function RadialCalc:SetRadialSize(size)
+	if self.fixedSize then return end;
+	local radius = self.radius or 1;
+	local newSize = size * radius;
+	self:SetAttribute('preferSize', newSize)
+	return self:SetSize(newSize, newSize)
+end
+
+function RadialCalc:SetFixedSize(size)
+	self.fixedSize = size;
+	if not size then return end;
+	self:SetAttribute('preferSize', size)
+	return self:SetSize(size, size)
+end
+
+function RadialCalc:SetDynamicRadius(numItems, itemSize, padding)
+	if self:IsProtected() then
+		assert(not InCombatLockdown(), 'Cannot set dynamic radius from insecure code in combat.')
+		return self:Execute(([[
+			self:RunAttribute('SetDynamicRadius', %d, %d, %d)
+		]]):format(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING))
+	end
+
+	local preferSize = self:GetAttribute('preferSize')
+	assert(preferSize, 'Prefer size not set.')
+	local minSize = Radial:CalculateMinimumDiameter(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING)
+	local size = math.max(preferSize, minSize)
+	self:SetSize(size, size)
+	return self:GetRadius()
+end
+
+function RadialCalc:GetRadius()
+	return math.sqrt(self:GetWidth() * self:GetHeight()) / 2;
+end
+
+function RadialCalc:GetNormalizedAngle(x, y)
+	return Radial:GetNormalizedAngle(x, y)
+end
+
+---------------------------------------------------------------
+Mixin(RadialMixin, RadialCalc); Radial.CalcMixin = RadialCalc;
+---------------------------------------------------------------
 
 function RadialMixin:SetInterrupt(sticks)
 	-- sets the sticks that should be interrupted
@@ -207,52 +291,6 @@ function RadialMixin:SetDynamicSizeFunction(body)
 		return size;
 	]])
 	self:Execute('UpdateSize = self:GetAttribute("UpdateSize")')
-end
-
-function RadialMixin:GetPointForIndex(index, size, radius)
-	return 'CENTER', self:GetCoordsForIndex(index, size, radius)
-end
-
-function RadialMixin:GetCoordsForIndex(index, size, radius)
-	return Radial:GetPointForIndex(index, size or self:GetAttribute('size'), radius or (self:GetWidth() / 2))
-end
-
-function RadialMixin:GetBoundingRadiansForIndex(index, size)
-	return Radial:GetBoundingRadiansForIndex(index, size or self:GetAttribute('size'))
-end
-
-function RadialMixin:GetIndexForPos(x, y, len, size)
-	return Radial:GetIndexForStickPosition(x, y, len, size or self:GetAttribute('size'))
-end
-
-function RadialMixin:GetValidThreshold()
-	return Radial.VALID_VEC_LEN or .5;
-end
-
-function RadialMixin:IsValidThreshold(len)
-	return len >= self:GetValidThreshold()
-end
-
-function RadialMixin:SetRadialSize(size)
-	if self.fixedSize then return end;
-	local radius = self.radius or 1;
-	local newSize = size * radius;
-	self:SetAttribute('preferSize', newSize)
-	return self:SetSize(newSize, newSize)
-end
-
-function RadialMixin:SetFixedSize(size)
-	self.fixedSize = size;
-	if not size then return end;
-	self:SetAttribute('preferSize', size)
-	return self:SetSize(size, size)
-end
-
-function RadialMixin:SetDynamicRadius(numItems, itemSize, padding)
-	assert(not InCombatLockdown(), 'Cannot set dynamic radius from insecure code in combat.')
-	return self:Execute(([[
-		self:RunAttribute('SetDynamicRadius', %d, %d, %d)
-	]]):format(numItems, itemSize or DEFAULT_ITEM_SIZE, padding or DEFAULT_ITEM_PADDING))
 end
 
 function RadialMixin:OnLoad(data)
@@ -470,7 +508,7 @@ function Radial:OnDataLoaded()
 		timeout        = db('radialClearFocusTime');
 	}) do Dispatcher[setting] = value; end
 
-	return self;
+	return CPAPI.KeepMeForLater;
 end
 
 function Radial:OnActiveDeviceChanged()
@@ -495,7 +533,6 @@ function Radial:OnActiveDeviceChanged()
 			self:Execute(('MODS["%s"] = "%s"'):format(key, modifier));
 		end
 	end
-	return self
 end
 
 function Radial:GetStickStruct(type)

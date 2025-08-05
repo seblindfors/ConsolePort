@@ -104,19 +104,26 @@ end
 -- @brief Force focus the keyboard (nil to clear, false to disable kb)
 -- @param frame: frame to focus, false to disable (frame or bool)
 function ConsolePort:ForceKeyboardFocus(frame)
-	if ConsolePortKeyboard then
-		ConsolePortKeyboard:ForceFocus(frame)
-		return true;
-	end
+	if not ConsolePortKeyboard then return end;
+	ConsolePortKeyboard:ForceFocus(frame)
+	return true;
 end
 
 ---------------------------------------------------------------
 -- @brief Get the current keyboard focus
 -- @return frame: frame that has focus (frame)
 function ConsolePort:GetKeyboardFocus()
-	if ConsolePortKeyboard then
-		return ConsolePortKeyboard:GetForceFocus()
-	end
+	if not ConsolePortKeyboard then return end;
+	return ConsolePortKeyboard:GetForceFocus()
+end
+
+---------------------------------------------------------------
+-- @brief Set the focus frame for the hint bar
+-- @param frame: frame to focus (frame)
+-- @param enabled: enable or disable the hint bar (bool)
+-- @return handle: hint bar handle (see View\UIhandle)
+function ConsolePort:ToggleHintFocus(frame, enabled)
+	return db.UIHandle:ToggleHintFocus(frame, enabled)
 end
 
 ---------------------------------------------------------------
@@ -180,9 +187,8 @@ end
 -- @param node: node that was clicked (frame)
 -- @return success: true if node click was processed somehow
 function ConsolePort:ProcessInterfaceClickEvent(...)
-	if db.Hooks then
-		return db.Hooks:ProcessInterfaceClickEvent(...)
-	end
+	if not db.Hooks then return end;
+	return db.Hooks:ProcessInterfaceClickEvent(...)
 end
 
 ---------------------------------------------------------------
@@ -190,20 +196,18 @@ end
 -- @param obstructor: obstructor frame (frame)
 -- @param state: obstructor state (bool)
 function ConsolePort:SetCursorObstructor(obstructor, state)
-	if db.Stack then
-		if not state then state = nil end;
-		db.Stack:SetCursorObstructor(obstructor, state)
-	end
+	if not db.Stack then return end;
+	if not state then state = nil end;
+	db.Stack:SetCursorObstructor(obstructor, state)
 end
 
 ---------------------------------------------------------------
--- Directly mapped functions for manipulating the cursor
+-- Interface cursor functions
 ---------------------------------------------------------------
 do local map = function(func)
 		return function(_, ...)
-			if db.Cursor then
-				return db.Cursor[func](db.Cursor, ...)
-			end
+			if not db.Cursor then return end;
+			return db.Cursor[func](db.Cursor, ...)
 		end
 	end
 
@@ -239,4 +243,47 @@ do local map = function(func)
 	-- @brief Check if the cursor is currently active
 	-- @return isActive: true if cursor is active (bool)
 	ConsolePort.IsCursorActive        = map 'IsShown'
+end
+
+---------------------------------------------------------------
+-- Rings API
+---------------------------------------------------------------
+function ConsolePort:GetRingsData()
+	if not db.Rings then return {} end;
+	return db.Rings.Data;
+end
+
+---------------------------------------------------------------
+-- Rings functions
+---------------------------------------------------------------
+do local map = function(func)
+		return function(_, ...)
+			if not db.Rings then return end;
+			return db.Rings[func](db.Rings, ...)
+		end
+	end
+
+	-----------------------------------------------------------
+	ConsolePort.IsUniqueRingAction     = map 'IsUniqueAction';
+	ConsolePort.SetPendingRingAction   = map 'SetPendingAction';
+	ConsolePort.SetPendingRingRemove   = map 'SetPendingRemove';
+	ConsolePort.HasPendingRingAction   = map 'HasPendingAction';
+	ConsolePort.PostPendingRingAction  = map 'PostPendingAction';
+	ConsolePort.ClearPendingRingAction = map 'ClearPendingAction';
+end
+
+---------------------------------------------------------------
+-- Config API
+---------------------------------------------------------------
+
+function ConsolePort:RegisterConfigCallback(callback, owner, ...)
+	local config = ConsolePortConfig;
+	if config and config:IsLoaded() then
+		return callback(owner, config:GetEnvironment(), config, ...)
+	end
+	local function Closure(...)
+		callback(...)
+		CPAPI.Next(db.UnregisterCallback, db, 'OnConfigLoaded', owner)
+	end
+	db:RegisterCallback('OnConfigLoaded', Closure, owner, ...)
 end

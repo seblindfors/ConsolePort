@@ -6,7 +6,7 @@
 -- because they modify properties of protected objects, either
 -- directly or indirectly by execution path.
 
-local _, env, L = ...; L = env.db.Locale; _ = CPAPI.OnAddonLoaded;
+local env, _, _, L = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
 local xpcall, CallErrorHandler = xpcall, CallErrorHandler;
 local Scripts = CPAPI.Proxy({}, function(self, key) return rawget(rawset(self, key, {}), key) end);
 
@@ -77,6 +77,14 @@ do
 			GameTooltip:Show()
 		end
 	end
+	-----------------------------------------------------------
+	_('Blizzard_HelpPlate', function()
+	-----------------------------------------------------------
+		Scripts.OnEnter[ HelpPlateButtonMixin.OnEnter ] = function(self)
+			ExecuteFrameScript(self:GetParent(), 'OnEnter')
+		end;
+	end)
+	-----------------------------------------------------------
 	if CPAPI.IsRetailVersion then
 	-----------------------------------------------------------
 		_('Blizzard_Collections', function()
@@ -170,6 +178,7 @@ do
 			GameTooltip:Hide()
 		end
 	end
+
 	if CPAPI.IsRetailVersion then
 	-----------------------------------------------------------
 		_('Blizzard_PlayerSpells', function()

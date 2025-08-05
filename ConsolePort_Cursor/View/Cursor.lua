@@ -4,16 +4,16 @@
 -- Creates a cursor used to manage the interface with D-pad.
 -- Operates recursively on frames and calculates appropriate
 -- actions based on node priority and position on screen.
--- Leverages Controller\UINode.lua for interface scans.
+-- Leverages ConsolePortNode for interface scans.
 
-local name, env, db = ...; db = env.db;
+local env, db, name = CPAPI.GetEnv(...);
 local Cursor, Node, Input, Stack, Scroll, Fade, Hooks =
 	CPAPI.EventHandler(ConsolePortCursor, {
 		'PLAYER_REGEN_ENABLED';
 		'PLAYER_REGEN_DISABLED';
 		'ADDON_ACTION_FORBIDDEN';
 	}),
-	LibStub('ConsolePortNode'),
+	env.Node,
 	ConsolePortInputHandler,
 	ConsolePortUIStackHandler,
 	ConsolePortUIScrollHandler,
@@ -293,14 +293,26 @@ do  -- Create input proxy for basic controls
 		return self.BasicControls;
 	end
 
+	local SetDirectUIControl = function(self, button, settings)
+		Input:SetCommand(button, self, true, 'LeftButton', 'UIControl', unpack(settings));
+	end
+
 	function Cursor:IsDynamicControl(key)
 		return self.DynamicControls and tContains(self.DynamicControls, key)
 	end
 
 	function Cursor:SetBasicControls()
+		Input:Release(self)
 		local controls = self:GetBasicControls()
 		for button, settings in pairs(controls) do
-			Input:SetCommand(button, self, true, 'LeftButton', 'UIControl', unpack(settings));
+			SetDirectUIControl(self, button, settings);
+		end
+	end
+
+	function Cursor:SetBasicControl(button)
+		local settings = self:GetBasicControls()[button];
+		if settings then
+			SetDirectUIControl(self, button, settings);
 		end
 	end
 
@@ -349,7 +361,7 @@ function Cursor:ReverseScanUI(node, key, target, changed)
 	if node then
 		local parent = node:GetParent()
 		Node.ScanLocal(parent)
-		target, changed = Node.NavigateToBestCandidateV2(self.Cur, key)
+		target, changed = Node.NavigateToBestCandidateV3(self.Cur, key)
 		if changed then
 			return target, changed;
 		end
@@ -373,7 +385,7 @@ end
 
 function Cursor:FlatScanStack(key)
 	self:ScanUI()
-	return Node.NavigateToBestCandidateV2(self.Cur, key)
+	return Node.NavigateToBestCandidateV3(self.Cur, key)
 end
 
 function Cursor:Navigate(key)
@@ -444,7 +456,7 @@ function Cursor:GetCurrentNode()
 end
 
 function Cursor:IsCurrentNode(node, uniqueTriggered)
-	return (node and node == self:GetCurrentNode())
+	return self:IsShown() and (node and node == self:GetCurrentNode())
 		and (not uniqueTriggered or not node:IsMouseOver())
 end
 
@@ -606,10 +618,11 @@ end
 
 function Cursor:AttemptDragStart()
 	local node = self:GetCurrentNode()
-	local script = node and node:GetScript('OnDragStart')
+	local script = node and not node:GetAttribute(env.Attributes.IgnoreDrag)
+		and node:GetScript('OnDragStart');
 	if script then
 		local widget = Input:GetActiveWidget(db('Settings/UICursorLeftClick'), self)
-		local click = widget:HasClickButton()
+		local click = widget and widget:HasClickButton()
 		if widget and widget.state and click then
 			widget:ClearClickButton()
 			widget:EmulateFrontend(click, 'NORMAL', 'OnMouseUp')
@@ -620,7 +633,7 @@ function Cursor:AttemptDragStart()
 end
 
 do local function GetCloseButton(node)
-		if node.CloseButton then
+		if rawget(node, 'CloseButton') then
 			return node.CloseButton;
 		end
 		local nodeName = node:GetName();
@@ -636,305 +649,26 @@ do local function GetCloseButton(node)
 
 	function Cursor:SetCancelButtonForNode(node)
 		local cancelButton = db('Settings/UICursorCancel')
+		if not cancelButton then return end;
+
+		if Hooks:GetCancelClickHandler(node) then
+			return self:SetBasicControl(cancelButton)
+		end
+
 		local closeButton = FindCloseButton(node)
-		if C_Widget.IsFrameWidget(closeButton) and cancelButton then
+		if C_Widget.IsFrameWidget(closeButton) then RunNextFrame(function()
+			-- A cancel action can trigger the current node to disappear,
+			-- for example by closing a dialog. If the cursor then jumps to
+			-- another node that has a related close button, the script order
+			-- will result in both things happening in one frame. Therefore,
+			-- the cancel button needs to be mounted in the next frame instead.
+			if self:InCombat() then return end;
 			Input:SetButton(cancelButton, self, closeButton, true, 'LeftButton')
-		end
+		end) end;
 	end
-end
-
-
----------------------------------------------------------------
--- Cursor textures and animations
----------------------------------------------------------------
-do	local f, path = format, 'Gamepad/Active/Icons/%s-64';
-	-- lambdas to handle texture swapping without caching icons
-	local function left  () return db('UIpointerDefaultIcon') and db(f(path, db('UICursorLeftClick'))) end
-	local function mod   () return db(f(path, db('Gamepad/Index/Modifier/Key/' .. db('UImodifierCommands')) or '')) end
-	local function opt   () return db(f(path, db('UICursorSpecial'))) end
-	local function right () return db(f(path, db('UICursorRightClick'))) end
-
-	Cursor.Textures = CPAPI.Proxy({
-		Right    = right;
-		Modifier = mod;
-		-- object cases
-		EditBox  = opt;
-		Slider   = nop;
-		Frame    = nop;
-	}, function() return left end)
-	-- remove texture evaluator so cursor refreshes on next movement
-	local function ResetTexture(self)
-		self.textureEvaluator = nil;
-		self.useAtlasIcons = db('useAtlasIcons')
-	end
-	db:RegisterCallbacks(ResetTexture, Cursor,
-		'Gamepad/Active',
-		'Settings/UIpointerDefaultIcon',
-		'Settings/useAtlasIcons'
-	);
-	ResetTexture(Cursor)
-end
-
-function Cursor:SetTexture(texture)
-	local object = texture or self:GetCurrentObjectType()
-	local evaluator = self.Textures[object]
-	if ( evaluator ~= self.textureEvaluator ) then
-		local node = self:GetCurrentNode()
-		if self.useAtlasIcons then
-			local atlas = evaluator(node)
-			if atlas then
-				self.Display.Button:SetAtlas(atlas)
-			else
-				self.Display.Button:SetTexture(nil)
-			end
-		else
-			self.Display.Button:SetTexture(evaluator(node))
-		end
-	end
-	self.textureEvaluator = evaluator;
-end
-
-function Cursor:ToggleScrollIndicator(enabled)
-	self.Display.Scroller:SetPoint('LEFT', self.Display.Button, 'RIGHT', self.Display.Button:GetTexture() and 2 or -16, 0)
-	if self.isScrollingActive == enabled then return end;
-	local evaluator = self.Textures.Modifier;
-	local texture   = evaluator and evaluator() or nil;
-	local newAlpha  = ( enabled and texture and 1 ) or 0;
-	Fade.In(self.Display.ScrollUp,   0.2, self.Display.ScrollUp:GetAlpha(),   newAlpha)
-	Fade.In(self.Display.ScrollDown, 0.2, self.Display.ScrollDown:GetAlpha(), newAlpha)
-	Fade.In(self.Display.Scroller,   0.2, self.Display.Scroller:GetAlpha(),   newAlpha)
-	if enabled then
-		if self.useAtlasIcons then
-			if texture then
-				self.Display.Scroller:SetAtlas(texture)
-			else
-				self.Display.Scroller:SetTexture(nil)
-			end
-		else
-			self.Display.Scroller:SetTexture(texture)
-		end
-	end
-	self.isScrollingActive = enabled;
-end
-
-function Cursor:SetAnchor(node)
-	self.hasCustomAnchor = node.customCursorAnchor
-	self.anchor = self.hasCustomAnchor or {'TOPLEFT', node, 'CENTER', Node.GetCenterPos(node)}
-end
-
-function Cursor:GetCustomAnchor()
-	return self.hasCustomAnchor
-end
-
-function Cursor:GetAnchor()
-	return self.anchor
-end
-
-function Cursor:RefreshAnchor()
-	if not self:GetCustomAnchor() then
-		local node = self:GetCurrentNode()
-		self:ClearAllPoints()
-		self:SetPoint('CENTER', node, 'CENTER', Node.GetCenterPos(node))
-	end
-end
-
-function Cursor:SetPosition(node)
-	self:SetTexture()
-	self:SetAnchor(node)
-	self:Show()
-	self:Move()
-end
-
-function Cursor:Move()
-	local node = self:GetCurrentNode()
-	if node then
-		self:ClearHighlight()
-		local newX, newY = Node.GetCenter(node)
-		local oldX, oldY = self:GetCenter()
-		if oldX and oldY and newX and newY and self:IsVisible() then
-			self.Enlarge:SetStartDelay(0.05)
-			self.ScaleInOut:ConfigureScale()
-			self:Chime()
-		else
-			self.Enlarge:SetStartDelay(0)
-		end
-		self:SetHighlight(node)
-	end
-end
-
-function Cursor:Chime()
-	if not self.enableSound then return end;
-	PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON, 'Master', false, false)
-end
-
-function Cursor:UpdatePointer()
-	self.Display:SetSize(db('UIpointerSize'))
-	self.Display:SetOffset(db('UIpointerOffset'))
-	self.Display:SetRotationEnabled(db('UIpointerAnimation'))
-	self.Display.animationSpeed = db('UItravelTime');
-	self.enableSound = db('UIpointerSound')
-end
-
-db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
-	'Settings/UItravelTime',
-	'Settings/UIpointerSize',
-	'Settings/UIpointerOffset',
-	'Settings/UIpointerAnimation',
-	'Settings/UIpointerSound'
-);
-
--- Highlight mime
----------------------------------------------------------------
-function Cursor:ClearHighlight()
-	self.Mime:Clear()
-end
-
-
-function Cursor:SetHighlight(node)
-	if node and (not node.IsEnabled or node:IsEnabled()) and not node:GetAttribute(env.Attributes.IgnoreMime) then
-		self.Mime:SetNode(node)
-	else
-		self:ClearHighlight()
-	end
-end
-
-function Cursor.Mime:SetFontString(region)
-	if region:IsShown() and region:GetFont() then
-		local obj = self.Fonts:Acquire()
-		obj:SetFont(obj.GetFont(region))
-		obj:SetText(obj.GetText(region))
-		obj:SetTextColor(obj.GetTextColor(region))
-		obj:SetJustifyH(obj.GetJustifyH(region))
-		obj:SetJustifyV(obj.GetJustifyV(region))
-		obj:SetSize(obj.GetSize(region))
-		for i=1, obj.GetNumPoints(region) do
-			obj:SetPoint(obj.GetPoint(region, i))
-		end
-		obj:Show()
-	end
-end
-
-function Cursor.Mime:SetTexture(region)
-	if region:IsShown() then
-		local obj = self.Textures:Acquire()
-		if obj.GetAtlas(region) then
-			obj:SetAtlas(obj.GetAtlas(region))
-		else
-			local texture = obj.GetTexture(region)
-			-- DEPRECATED: returns File Data ID <num> in 9.0
-			if (type(texture) == 'string') and texture:find('^[Cc]olor-') then
-				obj:SetColorTexture(CPAPI.Hex2RGB(texture:sub(7), true))
-			else
-				obj:SetTexture(texture)
-			end
-		end
-		obj:SetBlendMode(obj.GetBlendMode(region))
-		obj:SetTexCoord(obj.GetTexCoord(region))
-		obj:SetVertexColor(obj.GetVertexColor(region))
-		obj:SetSize(obj.GetSize(region))
-		obj:SetRotation(obj.GetRotation(region))
-		for i=1, obj.GetNumPoints(region) do
-			obj:SetPoint(obj.GetPoint(region, i))
-		end
-		obj:Show()
-	end
-end
-
-function Cursor.Mime:SetNode(node)
-	self:MimeRegions(node:GetRegions())
-	self:ClearAllPoints()
-	self:SetSize(node:GetSize())
-	self:SetScale(node:GetEffectiveScale() / Cursor:GetEffectiveScale())
-	self:Show()
-	for i=1, node:GetNumPoints() do
-		self:SetPoint(node:GetPoint(i))
-	end
-	self.Scale:Stop()
-	self.Scale:Play()
-end
-
-function Cursor.Mime:Clear()
-	self.Fonts:ReleaseAll()
-	self.Textures:ReleaseAll()
-	self:Hide()
-end
-
-function Cursor.Mime:MimeRegions(region, ...)
-	if region then
-		if (region:GetDrawLayer() == 'HIGHLIGHT') then
-			if (region:GetObjectType() == 'Texture') then
-				self:SetTexture(region)
-			elseif (region:GetObjectType() == 'FontString') then
-				self:SetFontString(region)
-			end
-		end
-		self:MimeRegions(...)
-	end
-end
-
--- Animation scripts
----------------------------------------------------------------
-function Cursor:SetFlashNextNode()
-	self.ScaleInOut.Flash = true;
-end
-
-function Cursor.ScaleInOut:ConfigureScale()
-	local cur, old = Cursor:GetCurrent(), Cursor:GetOld()
-	if (cur == old) and not self.Flash then
-		self.Shrink:SetDuration(0)
-		self.Enlarge:SetDuration(0)
-	elseif cur then
-		local scaleAmount, shrinkDuration = 1.15, 0.2
-		if self.Flash then
-			scaleAmount = 1.75
-			shrinkDuration = 0.5
-		end
-		self.Flash = nil
-		self.Enlarge:SetScale(scaleAmount, scaleAmount)
-		self.Shrink:SetScale(1/scaleAmount, 1/scaleAmount)
-		self.Shrink:SetDuration(shrinkDuration)
-		self.Enlarge:SetDuration(.1)
-	end
-end
-
-function Cursor.Mime.Scale:OnPlay()
-	self.Enlarge:SetScale(Cursor.ScaleInOut.Enlarge:GetScale())
-	self.Shrink:SetScale(Cursor.ScaleInOut.Shrink:GetScale())
-
-	self.Enlarge:SetDuration(Cursor.ScaleInOut.Enlarge:GetDuration())
-	self.Shrink:SetDuration(Cursor.ScaleInOut.Shrink:GetDuration())
-
-	self.Enlarge:SetStartDelay(Cursor.ScaleInOut.Enlarge:GetStartDelay())
-	self.Shrink:SetStartDelay(Cursor.ScaleInOut.Shrink:GetStartDelay())
-end
-
-function Cursor.ScaleInOut:OnPlay()
-	Cursor.Mime:SetParent(Cursor:GetCurrentNode() or Cursor)
-end
-
-do  -- Set up animation scripts
-	local animationGroups = {Cursor.ScaleInOut, Cursor.Mime.Scale}
-
-	local function setupScripts(w)
-		for k, v in pairs(w) do
-			if w:HasScript(k) then w:SetScript(k, v) end
-		end
-	end
-
-	for _, group in pairs(animationGroups) do
-		setupScripts(group)
-		for _, animation in pairs({group:GetAnimations()}) do
-			setupScripts(animation)
-		end
-	end
-
-	-- Convenience references to animations
-	Cursor.Enlarge = Cursor.ScaleInOut.Enlarge;
-	Cursor.Shrink  = Cursor.ScaleInOut.Shrink;
 end
 
 ---------------------------------------------------------------
 -- Initialize the cursor
 ---------------------------------------------------------------
 CPAPI.Start(Cursor)
-Cursor:UpdatePointer()

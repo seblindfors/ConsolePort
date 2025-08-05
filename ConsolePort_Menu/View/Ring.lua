@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 local GameMenuButtonMixin = CreateFromMixins(CPActionButton);
 local Selector = Mixin(CPAPI.EventHandler(ConsolePortMenuRing), CPAPI.SecureEnvironmentMixin);
 
@@ -12,14 +12,12 @@ local BTN_NAME_PREFIX  = 'CPM%s';
 -- ¯\_(ツ)_/¯
 ---------------------------------------------------------------
 local EVIL_BUTTON_NAME = GenerateClosure(function(s, i) return s:format(string.char(96+i)) end, BTN_NAME_PREFIX)
-local EVIL_MACRO_ICON  = 136243;
-local EVIL_MACRO_NAME  = _;
 local EVIL_MACRO_TEXT  = (function()
-	local forcedMyhand = {};
+	local macroString = {};
 	for i=1, #env.Buttons do
-		forcedMyhand[i] = ('/click %s'):format(EVIL_BUTTON_NAME(i));
+		macroString[i] = ('/click %s'):format(EVIL_BUTTON_NAME(i));
 	end
-	return table.concat(forcedMyhand, '\n')
+	return table.concat(macroString, '\n')
 end)()
 
 ---------------------------------------------------------------
@@ -192,6 +190,7 @@ function Selector:OnDataLoaded(...)
 	for i, data in ipairs(env.Buttons) do
 		self:AddButton(i, data, numButtons)
 	end
+	return CPAPI.BurnAfterReading;
 end
 
 function Selector:OnAxisInversionChanged()
@@ -245,45 +244,16 @@ function Selector:OnControlsChanged()
 	end
 end
 
-function Selector:OnTerribleWorkaround(macroInfo)
-	if CPAPI.RunMacroText or self.macroEditMutex then return end;
-	self.macroEditMutex = true;
-	local macroID;
-	for i, info in pairs(macroInfo) do
-		if ( info.name == EVIL_MACRO_NAME ) then
-			macroID = i;
-			break;
-		end
-	end
-	if not macroID then
-		-- Assert we have macro space available
-		local global, perChar = GetNumMacros()
-		if global >= MAX_ACCOUNT_MACROS and perChar >= MAX_CHARACTER_MACROS then
-			self.macroEditMutex = nil;
-			return CPAPI.Log('No macro space available for ConsolePort Menu. Please delete one of your macros.')
-		end
-		local usePerChar = global >= MAX_ACCOUNT_MACROS;
-		macroID = CreateMacro(EVIL_MACRO_NAME, EVIL_MACRO_ICON, EVIL_MACRO_TEXT, usePerChar)
-	end
-	EditMacro(macroID, EVIL_MACRO_NAME, EVIL_MACRO_ICON, EVIL_MACRO_TEXT)
-	self:SetAttribute('macro', macroID)
-	self.macroEditMutex = nil;
-end
-
 ---------------------------------------------------------------
 -- Frontend
 ---------------------------------------------------------------
 Selector:SetFrameStrata(GameMenuFrame:GetFrameStrata())
 Selector:SetFrameLevel(GameMenuFrame:GetFrameLevel())
-Selector.Filigree:SetScale(3.1)
-Selector.Filigree:SetTexCoord(0, 1, 0, 1)
-Selector.Filigree:SetTexture(CPAPI.GetAsset([[Textures\Pie\Pie_Background.png]]))
 
 Selector:HookScript('OnShow', GenerateClosure(ConsolePort.SetCursorObstructor, ConsolePort, Selector, true))
 Selector:HookScript('OnHide', GenerateClosure(ConsolePort.SetCursorObstructor, ConsolePort, Selector, false))
 
 function Selector:OnInput(x, y, len)
-	self.Filigree:SetAlpha(Clamp(1 - len, 0, 1))
 	self:SetFocusByIndex(self:GetIndexForPos(x, y, len, self:GetNumActive()))
 	self:ReflectStickPosition(self.axisInversion * x, self.axisInversion * y, len, len > self:GetValidThreshold())
 	if not self.showHints then return end;
@@ -384,7 +354,7 @@ end
 
 function GameMenuButtonMixin:SetData(data)
 	self.OnClick = nil; -- make sure to retain secure OnClick when specializing
-	FrameUtil.SpecializeFrameWithMixins(self, data)
+	CPAPI.Specialize(self, data)
 	if self.ref then
 		self:SetAttribute(CPAPI.ActionTypeRelease, 'click')
 		self:SetAttribute('command', 'click')
@@ -434,7 +404,6 @@ function GameMenuButtonMixin:OnClear()
 	self:GetParent():SetActiveSliceText(nil)
 end
 
-db:RegisterSafeCallback('OnUpdateMacros', Selector.OnTerribleWorkaround, Selector)
 db:RegisterSafeCallback('Settings/radialCosineDelta', Selector.OnAxisInversionChanged, Selector)
 db:RegisterSafeCallbacks(Selector.OnControlsChanged, Selector,
 	'OnModifierChanged',

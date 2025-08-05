@@ -1,21 +1,19 @@
-local Radial, Fader, _, env = ConsolePortRadial, ConsolePort:DB('Alpha/Fader'), ...;
-local Key, Charset = {}, {}; env.CharsetMixin = Charset;
+local env, db = CPAPI.GetEnv(...);
+local Key, Set = {}, CreateFromMixins(CPFocusPoolMixin, db.Radial.CalcMixin);
+env.CharsetMixin = Set;
 
 ---------------------------------------------------------------
---
+-- Sets of keys
 ---------------------------------------------------------------
 
-function Charset:OnLoad()
-	self.BG:ClearAllPoints()
-	self.BG:SetPoint('TOPLEFT', -10, 10)
-	self.BG:SetPoint('BOTTOMRIGHT', 10, -10)
-	self.Arrow:SetSize(50*0.52, 400*0.52)
-	self.Arrow:SetDrawLayer('ARTWORK')
-	self.Background:SetVertexColor(0, 0, 0, .25)
-	self:CreateFramePool('ConsolePortKeyboardChar', Key)
+function Set:OnLoad()
+	CPFocusPoolMixin.OnLoad(self)
+	if self.Arrow then self.Arrow:Hide() end;
+	if self.BG then self.BG:Hide() end;
+	self:CreateFramePool('CheckButton', 'CPKeyboardChar', Key)
 end
 
-function Charset:SetData(data)
+function Set:SetData(data)
 	self.numSets = #data;
 	self:ReleaseAll()
 	for i, set in ipairs(data) do
@@ -23,37 +21,49 @@ function Charset:SetData(data)
 		if newObj then
 			widget:OnLoad()
 		end
+		local x, y  = self:GetCoordsForIndex(i, self.numSets, 24)
+		local angle = self:GetNormalizedAngle(x, y)
+		local rot   = -rad(angle - 45) -- offset the texture 45 degrees.
 		widget:SetData(set)
-		widget:SetPoint('CENTER', Radial:GetPointForIndex(i, self.numSets, 40))
+		widget:SetPoint('CENTER', x, y)
+		widget.Background:SetRotation(rot)
+		widget.Ring:SetRotation(rot)
+		widget.RingMask:SetRotation(rot)
 		widget:Show()
 	end
 end
 
-function Charset:OnStickChanged(x, y, len, valid)
+function Set:OnStickChanged(x, y, len, valid)
 	self:ReflectStickPosition(x, y, len, valid)
 
 	local oldFocusKey = self.focusKey;
-	self.focusKey = valid and self.Registry[Radial:GetIndexForStickPosition(x, y, .5, self.numSets)]
+	self.focusKey = valid and self.Registry[self:GetIndexForPos(x, y, .5, self.numSets)]
 	if oldFocusKey and oldFocusKey ~= self.focusKey then
-		oldFocusKey:SetFocus(false)
+		oldFocusKey:SetFocus(false, true)
 	end
 	if self.focusKey then
-		self.focusKey:SetFocus(len)
+		self.focusKey:SetFocus(len, true)
 	end
 end
 
-function Charset:SetState(state)
+function Set:SetState(state)
 	for widget in self:EnumerateActive() do
 		widget:SetState(state)
 	end
 end
 
-function Charset:SetHighlight(enabled)
-	Fader.Toggle(self.Ring, .05, enabled)
+function Set:SetHighlight(enabled)
+	for widget in self:EnumerateActive() do
+		widget.Ring:SetShown(enabled)
+	end
+end
+
+function Set:GetKeyByIndex(index)
+	return self.Registry[index];
 end
 
 ---------------------------------------------------------------
---
+-- Individual flyout keys
 ---------------------------------------------------------------
 
 function Key:OnLoad()
@@ -73,10 +83,22 @@ function Key:SetState(state)
 	self.Text:SetText(env:GetText(self.content))
 end
 
-function Key:SetFocus(enabled)
-	self.Background:SetVertexColor(0, enabled or 0, 0, 0.75)
+function Key:SetFocus(factor, cancelFlash)
+	if cancelFlash then
+		self:SetScript('OnUpdate', nil)
+	end
+	self.Background:SetVertexColor(0, factor or 0, 0, 0.75)
+	self:SetScale(1 + (factor or 0) * 0.05)
 end
 
 function Key:Flash()
-	Fader.Out(self.Ring, .35, 1, 0)
+	local factor, focus = 1, 1;
+	self:SetScript('OnUpdate', function(self, elapsed)
+		factor = Clamp(factor - elapsed, 0, 1)
+		focus  = EasingUtil.InCubic(factor)
+		self:SetFocus(focus, false)
+		if focus <= 0 then
+			self:SetFocus(false, true)
+		end
+	end)
 end

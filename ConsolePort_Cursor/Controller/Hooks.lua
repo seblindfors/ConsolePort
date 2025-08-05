@@ -3,8 +3,7 @@
 ---------------------------------------------------------------
 -- Hooks for the interface cursor to do magic things.
 
-local _, env, db = ...; db = env.db;
-local L = db.Locale;
+local env, db, _, L = CPAPI.GetEnv(...)
 local Hooks = db:Register('Hooks', {}, true); env.Hooks = Hooks;
 local Hooknode = {};
 
@@ -18,7 +17,7 @@ end
 
 
 function Hooks:ProcessInterfaceCursorEvent(button, down, node)
-	if down then return end;
+	if down ~= false then return end;
 	if self:IsCancelClick(button) then
 		local cancelClickHandler = self:GetCancelClickHandler(node)
 		if cancelClickHandler then
@@ -48,8 +47,8 @@ function Hooks:ProcessInterfaceCursorEvent(button, down, node)
 			PickupBagFromSlot(self.bagLocation)
 		elseif self.spellID then
 			db.SpellMenu:SetSpell(self.spellID)
-		elseif db.Utility:HasPendingAction() then
-			return db.Utility:PostPendingAction()
+		elseif ConsolePort:HasPendingRingAction() then
+			return ConsolePort:PostPendingRingAction()
 		end
 	end
 end
@@ -124,7 +123,9 @@ end
 -- Prompts
 ---------------------------------------------------------------
 function Hooks:IsPromptProcessingValid(node)
-	return not InCombatLockdown() and db.Cursor:IsCurrentNode(node) and not node:GetAttribute('nohooks')
+	return not InCombatLockdown()
+		and db.Cursor:IsCurrentNode(node)
+		and not node:GetAttribute(env.Attributes.DisableHooks)
 end
 
 function Hooks:GetSpecialActionPrompt(text)
@@ -189,7 +190,7 @@ function Hooks:SetPendingActionToUtilityRing(tooltip, owner, action)
 	end
 
 	self.pendingAction = action;
-	if db.Utility:SetPendingAction(1, action) then
+	if ConsolePort:SetPendingRingAction(1, action) then
 		if tooltip then
 			local prompt = self:GetSpecialActionPrompt('Add to Utility Ring')
 			if prompt then
@@ -198,9 +199,9 @@ function Hooks:SetPendingActionToUtilityRing(tooltip, owner, action)
 			end
 		end
 	else
-		local _, existingIndex = db.Utility:IsUniqueAction(1, action)
+		local _, existingIndex = ConsolePort:IsUniqueRingAction(1, action)
 		if existingIndex then
-			db.Utility:SetPendingRemove(1, action)
+			ConsolePort:SetPendingRingRemove(1, action)
 			if tooltip then
 				local prompt = self:GetSpecialActionPrompt('Remove from Utility Ring')
 				if prompt then
@@ -302,10 +303,13 @@ do -- Tooltip hooking
 	end
 
 	local function OnTooltipSetMount(self, info)
-		local spellID = select(2, CPAPI.GetMountInfoByID(info.id))
-		local isKnown = select(11, CPAPI.GetMountInfoByID(info.id))
-		if isKnown and spellID then
-			Hooks:SetPendingSpellMenu(self, spellID)
+		local owner = self:GetOwner()
+		if Hooks:IsPromptProcessingValid(owner) then
+			local spellID = select(2, CPAPI.GetMountInfoByID(info.id))
+			local isKnown = select(11, CPAPI.GetMountInfoByID(info.id))
+			if isKnown and spellID then
+				Hooks:SetPendingSpellMenu(self, spellID)
+			end
 		end
 	end
 
@@ -324,11 +328,21 @@ do -- Tooltip hooking
 		end
 	end
 
+	local function OnTooltipSetItemLine(self, line)
+		local owner = self:GetOwner()
+		if Hooks:IsPromptProcessingValid(owner) and Hooks:GetBagLocationFromNode(owner) then
+			if (line.leftText or ''):match('^<') then
+				line.leftText = Hooks:GetRightActionPrompt(line.leftText) or line.leftText;
+			end
+		end
+	end
+
 	if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall then
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, OnTooltipSetItem)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Mount, OnTooltipSetMount)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Spell, OnTooltipSetSpell)
 		TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Toy, OnTooltipSetToy)
+		TooltipDataProcessor.AddLinePreCall(Enum.TooltipDataType.Item, OnTooltipSetItemLine)
 	end
 	if not CPAPI.IsRetailVersion then -- TooltipDataProcessor exists on Cata but is not used
 		GameTooltip:HookScript('OnTooltipSetItem', OnTooltipSetItem)
@@ -348,7 +362,7 @@ do -- Tooltip hooking
 
 	GameTooltip:HookScript('OnHide', function()
 		if Hooks.pendingAction then
-			db.Utility:ClearPendingAction()
+			ConsolePort:ClearPendingRingAction()
 			Hooks.pendingAction = nil;
 		end
 	end)
@@ -358,10 +372,10 @@ end
 -- Node
 ---------------------------------------------------------------
 local function WrappedExecute(func, execEnv, ...)
-	local env = getfenv(func)
-	setfenv(func, setmetatable(execEnv, {__index = env}))
+	local fenv = getfenv(func)
+	setfenv(func, setmetatable(execEnv, {__index = fenv}))
 	func(...)
-	setfenv(func, env)
+	setfenv(func, fenv)
 end
 
 function Hooknode:OnContainerButtonModifiedClick(...)

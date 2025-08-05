@@ -1,0 +1,45 @@
+<Ui>
+	<Button name="CPGuideMenuFlyout" inherits="CPToolbarSixSliceInverterFrame" virtual="true" scale="0.7">
+		<Size x="56" y="44"/>
+		<KeyValues>
+			<KeyValue key="align" value="bottom" type="string"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Line parentArray="Hamburger" inherits="CPSplineLine" thickness="10">
+					<StartAnchor point="TOPLEFT" x="10" y="-12"/>
+					<EndAnchor point="TOPRIGHT" x="-10" y="-12"/>
+				</Line>
+				<Line parentArray="Hamburger" inherits="CPSplineLine" thickness="10">
+					<StartAnchor point="LEFT" x="10" y="0"/>
+					<EndAnchor point="RIGHT" x="-10" y="0"/>
+				</Line>
+				<Line parentArray="Hamburger" inherits="CPSplineLine" thickness="10">
+					<StartAnchor point="BOTTOMLEFT" x="10" y="12"/>
+					<EndAnchor point="BOTTOMRIGHT" x="-10" y="12"/>
+				</Line>
+			</Layer>
+		</Layers>
+	</Button>
+
+	<Frame name="CPGuideInfoFrame" inherits="VerticalLayoutFrame" virtual="true" hidden="true">
+		<Size x="325"/>
+		<KeyValues>
+			<KeyValue key="spacing" value="4" type="number"/>
+		</KeyValues>
+	</Frame>
+
+	<CheckButton name="CPGuideContinueButton" virtual="true" inherits="CPCardSmallTemplate">
+		<ButtonText parentKey="Text" text="CONTINUE" inherits="CPSubtitleFont" justifyH="CENTER">
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</ButtonText>
+	</CheckButton>
+
+	<Script file="Guide.lua"/>
+	<!-- The order matters -->
+	<Include file="Graphics.xml"/>
+	<Include file="Controls.xml"/>
+	<Include file="Overview.xml"/>
+</Ui>

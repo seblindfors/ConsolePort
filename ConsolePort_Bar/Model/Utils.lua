@@ -12,6 +12,7 @@ UIHandler:Hide()
 function UIHandler:OnDataLoaded()
 	self:HideBlizzard()
 	env:TriggerEvent('OnEnvLoaded')
+	return CPAPI.BurnAfterReading;
 end
 
 function UIHandler:PLAYER_REGEN_DISABLED()
@@ -32,7 +33,7 @@ env.MSQ = LibStub('Masque', true)
 EventUtil.ContinueOnAddOnLoaded('Masque', function()
 	env.MSQ = LibStub('Masque', true)
 	if env.MSQ then
-		RunNextFrame(function() env:TriggerEvent('OnMasqueLoaded', env.MSQ) end)
+		CPAPI.Next(env.TriggerEvent, env, 'OnMasqueLoaded', env.MSQ)
 	end
 end)
 
@@ -298,18 +299,6 @@ end
 
 function env.IsModSubset(A, B)
 	return not not (B:find(A:gsub('%-', '%%-')))
-end
-
-function env.UpdateFlags(flag, flags, predicate)
-	return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
-end
-
-function env.CreateFlagClosures(flags)
-	local closures = {};
-	for flagName, flagValue in pairs(flags) do
-		closures[flagName] = GenerateClosure(env.UpdateFlags, flagValue);
-	end
-	return closures;
 end
 
 do local ModReplacements = {

@@ -1,6 +1,4 @@
-## Interface: 110107
-## Interface-Classic: 11507
-## Interface-Mists: 50500
+## Interface: 110200, 50500, 11507
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Keyboard|r
 ## Notes: Virtual keyboard module
@@ -16,6 +14,7 @@
 
 ## SavedVariables: ConsolePort_KeyboardLayout, ConsolePort_KeyboardDictionary, ConsolePort_KeyboardMarkers
 
+Database.lua
 View\Keyboard.xml
 
 Components\Charset.lua
@@ -24,8 +23,7 @@ Components\Suggester.lua
 
 Core\UTF8.lua
 Core\Dictionary.lua
-Core\Spellcorrect.lua
+Core\Autocorrect.lua
 
-Database.lua
 View\Keyboard.lua
 Core\Observer.lua

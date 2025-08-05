@@ -1,170 +1,45 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
 	<Script file="Mover.lua"/>
 	<Script file="Config.lua"/>
 	<Script file="Loadout.lua"/>
 	<Script file="Advanced.lua"/>
 	<Script file="Panel.lua"/>
 
-	<Button name="CPSquareButtonTemplate" virtual="true" motionScriptsWhileDisabled="true" mixin="CPSquareIconButtonMixin" inherits="SquareIconButtonTemplate">
-		<Size x="48" y="48"/>
-		<HitRectInsets left="6" right="6" top="6" bottom="6"/>
-		<NormalTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
-		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" alpha="0.4">
-			<Anchors>
-				<Anchor point="TOPLEFT" relativeKey="$parent.Icon" relativePoint="TOPLEFT"/>
-				<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" relativePoint="BOTTOMRIGHT"/>
-			</Anchors>
-		</HighlightTexture>
-		<PushedTexture parentKey="PushedTexture" atlas="common-button-square-gray-down">
-			<Anchors>
-				<Anchor point="TOPLEFT" x="1" y="-1"/>
-				<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
-			</Anchors>
-		</PushedTexture>
-		<DisabledTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
-	</Button>
-
-	<CheckButton name="CPCheckButtonTemplate" motionScriptsWhileDisabled="true" virtual="true">
-		<Size x="30" y="29"/>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="HoverBackground" inherits="HoverBackgroundTemplate"/>
-			</Layer>
-		</Layers>
-		<ButtonText parentKey="Text">
-			<Anchors>
-				<Anchor point="LEFT" relativePoint="RIGHT" x="4" y="0"/>
-			</Anchors>
-		</ButtonText>
-		<NormalFont style="GameFontNormal" />
-		<DisabledFont style="GameFontDisable" />
-		<NormalTexture atlas="checkbox-minimal" useAtlasSize="true"/>
-		<PushedTexture atlas="checkbox-minimal" useAtlasSize="true"/>
-		<CheckedTexture atlas="checkmark-minimal" useAtlasSize="true"/>
-		<DisabledCheckedTexture atlas="checkmark-minimal-disabled" useAtlasSize="true"/>
-	</CheckButton>
-
-	<Frame name="CPActionBarConfig" virtual="true" inherits="CPPopupFrameTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true">
+	<Frame name="CPActionBarConfig" virtual="true" inherits="CPPopupPanelTemplate" hidden="true" clampedToScreen="true" movable="true" enableMouse="true">
 		<Size x="600" y="500"/>
 		<Frames>
-			<Button parentKey="Mover" inherits="CPSquareButtonTemplate">
-				<Size x="48" y="48"/>
-				<Anchors>
-					<Anchor point="LEFT" relativeKey="$parent.Name" relativePoint="RIGHT" x="4"/>
-				</Anchors>
-				<KeyValues>
-					<KeyValue key="icon" value="Interface\CURSOR\UI-Cursor-Move" type="string"/>
-					<KeyValue key="iconSize" value="24" type="number"/>
-				</KeyValues>
-			</Button>
 			<Button parentKey="Main" inherits="CPSquareButtonTemplate">
 				<Size x="48" y="48"/>
 				<Anchors>
-					<Anchor point="LEFT" relativeKey="$parent.Mover" relativePoint="RIGHT" x="-4"/>
+					<Anchor point="TOPRIGHT" relativeKey="$parent.CloseButton" relativePoint="TOPLEFT" y="6"/>
 				</Anchors>
 				<KeyValues>
 					<KeyValue key="icon" value="Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb" type="string"/>
 					<KeyValue key="iconSize" value="24" type="number"/>
 				</KeyValues>
 			</Button>
-			<ScrollFrame parentKey="SettingsContainer" inherits="ResizeLayoutFrame, ScrollFrameTemplate">
+			<Button parentKey="Mover" inherits="CPSquareButtonTemplate">
+				<Size x="48" y="48"/>
 				<Anchors>
-					<Anchor point="TOPLEFT" x="16" y="-90"/>
-					<Anchor point="BOTTOMRIGHT" x="-24" y="34"/>
+					<Anchor point="RIGHT" relativeKey="$parent.Main" relativePoint="LEFT" x="6"/>
 				</Anchors>
 				<KeyValues>
-					<KeyValue key="layoutIndex" value="1" type="number"/>
-					<KeyValue key="fixedWidth" value="470" type="number"/>
-					<KeyValue key="fixedHeight" value="325" type="number"/>
-					<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
-					<KeyValue key="scrollBarX" value="-2" type="number"/>
-					<KeyValue key="scrollBarTopY" value="-3" type="number"/>
-					<KeyValue key="scrollBarBottomY" value="2" type="number"/>
-					<KeyValue key="scrollBarTemplate" value="MinimalScrollBar" type="string"/>
+					<KeyValue key="icon" value="Interface\CURSOR\UI-Cursor-Move" type="string"/>
+					<KeyValue key="iconSize" value="24" type="number"/>
 				</KeyValues>
+			</Button>
+			<ScrollFrame parentKey="SettingsContainer" inherits="CPScrollFrameTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="16" y="-80"/>
+					<Anchor point="BOTTOMRIGHT" x="-24" y="36"/>
+				</Anchors>
 				<Frames>
-					<Frame parentKey="BorderArt" inherits="NineSliceCodeTemplate">
-						<KeyValues>
-							<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
-							<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
-						</KeyValues>
+					<Frame parentKey="Tabs" inherits="CPTabGroupTemplate" scale="1.2">
 						<Anchors>
-							<Anchor point="TOPLEFT" x="-6" y="4"/>
-							<Anchor point="BOTTOMRIGHT" x="16" y="-24"/>
+							<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="64" y="2"/>
 						</Anchors>
-						<Layers>
-							<Layer level="OVERLAY">
-								<Texture parentKey="ScrollEdge" atlas="!CharacterCreateDropdown-NineSlice-EdgeLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
-									<Anchors>
-										<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-44" y="-6"/>
-										<Anchor point="BOTTOMRIGHT" x="-8" y="26"/>
-									</Anchors>
-								</Texture>
-								<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\InnerFrame.png" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
-									<Anchors>
-										<Anchor point="TOPLEFT" x="-20"/>
-										<Anchor point="BOTTOMRIGHT" x="20"/>
-									</Anchors>
-								</MaskTexture>
-							</Layer>
-						</Layers>
-						<Scripts>
-							<OnLoad inherit="append">
-								NineSlicePanelMixin.OnLoad(self);
-								for slice in pairs(NineSliceLayouts[self.layoutType]) do
-									self[slice]:AddMaskTexture(self.Mask);
-								end
-							</OnLoad>
-						</Scripts>
 					</Frame>
-					<Button parentKey="OptionsTab" parentArray="TabButtons" inherits="MinimalTabTemplate" scale="1.2">
-						<Size y="37"/>
-						<KeyValues>
-							<KeyValue key="tabText" value="OPTIONS" type="global"/>
-							<KeyValue key="categoryKey" value="Options" type="string"/>
-						</KeyValues>
-						<Anchors>
-							<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" x="32" y="2"/>
-						</Anchors>
-					</Button>
-					<Button parentKey="LoadoutTab" parentArray="TabButtons" inherits="MinimalTabTemplate" scale="1.2">
-						<Size y="37"/>
-						<KeyValues>
-							<KeyValue key="tabText" value="Layout" type="string"/>
-							<KeyValue key="categoryKey" value="Loadout" type="string"/>
-						</KeyValues>
-						<Anchors>
-							<Anchor point="TOPLEFT" relativeKey="$parent.OptionsTab" relativePoint="TOPRIGHT" x="5"/>
-						</Anchors>
-					</Button>
-					<Button parentKey="AdvancedTab" parentArray="TabButtons" inherits="MinimalTabTemplate" scale="1.2">
-						<Size y="37"/>
-						<KeyValues>
-							<KeyValue key="tabText" value="ADVANCED_LABEL" type="global"/>
-							<KeyValue key="categoryKey" value="Advanced" type="string"/>
-						</KeyValues>
-						<Anchors>
-							<Anchor point="TOPLEFT" relativeKey="$parent.LoadoutTab" relativePoint="TOPRIGHT" x="5"/>
-						</Anchors>
-					</Button>
 				</Frames>
-				<Layers>
-					<Layer level="ARTWORK">
-						<Texture parentKey="TabDecrementIcon">
-							<Size x="32" y="32"/>
-							<Anchors>
-								<Anchor point="RIGHT" relativeKey="$parent.OptionsTab" relativePoint="LEFT" x="-8" y="-6"/>
-							</Anchors>
-						</Texture>
-						<Texture parentKey="TabIncrementIcon">
-							<Size x="32" y="32"/>
-							<Anchors>
-								<Anchor point="LEFT" relativeKey="$parent.AdvancedTab" relativePoint="RIGHT" x="8" y="-6"/>
-							</Anchors>
-						</Texture>
-					</Layer>
-				</Layers>
 				<ScrollChild>
 					<Frame parentKey="ScrollChild" inherits="ResizeLayoutFrame" frameLevel="10">
 						<Frames>

@@ -8,7 +8,10 @@ function Observer:UpdateFocus()
 		focus = GetCurrentKeyBoardFocus()
 	end
 
-	local valid = focus and not focus:GetAttribute('hidekeyboard');
+	local valid = focus
+		and not focus:IsForbidden()
+		and not focus:IsAnchoringRestricted()
+		and not focus:GetAttribute(env.Attributes.HideKeyboard);
 	local changed = focus ~= self.focusFrame;
 	if changed then
 		self.focusFrame = focus;
@@ -31,7 +34,7 @@ function Observer:OnUpdate(elapsed)
 	local text, pos = focus:GetText(), focus:GetUTF8CursorPosition()
 	if text ~= self.focusText or pos ~= self.focusPos then
 		self.focusText, self.focusPos = text, pos;
-		Keyboard:OnTextChanged(text, pos)
+		Keyboard:OnTextChanged(text, pos, focus)
 	end
 end
 

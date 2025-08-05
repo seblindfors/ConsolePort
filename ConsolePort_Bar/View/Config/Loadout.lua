@@ -72,7 +72,7 @@ local function GetPresets()
 		end
 	end
 	LoadPresets(env.Presets, true)
-	LoadPresets(getmetatable(env.Presets).__index, false)
+	LoadPresets(CPAPI.Index(env.Presets), false)
 	return presets;
 end
 
@@ -97,8 +97,13 @@ local function GetEndpoint(path)
 end
 
 function LoadoutSetting:OnExpandOrCollapse()
-	local icon, hasChildren, isChecked = self.Icon, self:HasChildren(), self:GetChecked();
+	local isChecked = self:GetChecked();
 	self:ToggleChildren(isChecked)
+	self:UpdateIcon(isChecked)
+end
+
+function LoadoutSetting:UpdateIcon(isChecked)
+	local icon, hasChildren = self.Icon, self:HasChildren();
 	icon:SetShown(hasChildren)
 	if hasChildren then
 		CPAPI.SetAtlas(icon, ('Waypoint-MapPin-Minimap-%s'):format(isChecked and 'Tracked' or 'Untracked'))
@@ -306,7 +311,8 @@ local CopyButton = {
 		showAlert  = true;
 		hasEditBox = 1;
 		OnAccept = function(popup, data)
-			data.owner:OnCopy(data.variableID, popup.editBox:GetText():trim())
+			local editBox = popup.editBox or popup:GetEditBox();
+			data.owner:OnCopy(data.variableID, editBox:GetText():trim())
 			ConsolePort:SetCursorNodeIfActive(data.owner)
 		end;
 		OnHide = function(_, data)
@@ -314,14 +320,17 @@ local CopyButton = {
 			data.trigger:SetButtonState('NORMAL')
 		end;
 		OnShow = function(popup, data)
-			popup.button1:Disable()
+			local button1 = popup.button1 or popup:GetButton1();
+			local editBox = popup.editBox or popup:GetEditBox();
+			button1:Disable()
 			data.target:LockHighlight()
 			data.trigger:SetButtonState('PUSHED')
-			popup.editBox:SetText(data.suggest)
+			editBox:SetText(data.suggest)
 		end;
 		EditBoxOnTextChanged = function(editBox, data)
-			local parent = editBox:GetParent()
-			parent.button1:SetEnabled(IsElementNameValid(editBox, data.owner.config))
+			local parent  = editBox:GetParent()
+			local button1 = parent.button1 or parent:GetButton1()
+			button1:SetEnabled(IsElementNameValid(editBox, data.owner.config))
 		end;
 		text = L('Copy %s from %s:',
 			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
@@ -618,14 +627,14 @@ function Loadout:OnLoad(inputHandler, headerPool)
 	local sharedConfig = env.SharedConfig;
 	sharedConfig.HeaderOwner.OnLoad(self, env.SharedConfig.Header)
 	CPFramePoolCollectionMixin.OnLoad(self)
-	Widgets = sharedConfig.Env.Widgets;
+	Widgets = sharedConfig.Env.Settings;
 
 	Mixin(Widgets.CreateWidget('Point', Widgets.Base, PointBlueprint), Point)
 	Mixin(Widgets.CreateWidget('Mutable', Widgets.Base, MutableBlueprint), Mutable)
 	Mixin(Widgets.CreateWidget('Table', Widgets.Base), Table)
 	Mixin(Widgets.CreateWidget('Preset', Widgets.Base), Preset)
 
-	Mixin(LoadoutSetting, sharedConfig.Env.SettingMixin)
+	Mixin(LoadoutSetting, sharedConfig.Env.Setting)
 
 	self.owner = inputHandler;
 	self.headerPool = headerPool;
@@ -708,15 +717,19 @@ Loadout.Popups = {
 		hasEditBox = 1;
 		enterClicksFirstButton = true;
 		OnAccept = function(popup, data)
-			data.owner:OnAdd(data.interface, popup.editBox:GetText():trim())
+			local editBox = popup.editBox;
+			data.owner:OnAdd(data.interface, editBox:GetText():trim())
 		end;
 		OnShow = function(popup, data)
-			popup.button1:Disable()
-			popup.editBox:SetText(data.suggest)
+			local button1 = popup.button1 or popup:GetButton1();
+			local editBox = popup.editBox or popup:GetEditBox();
+			button1:Disable()
+			editBox:SetText(data.suggest)
 		end;
 		EditBoxOnTextChanged = function(editBox, data)
-			local parent = editBox:GetParent()
-			parent.button1:SetEnabled(IsElementNameValid(editBox, data.owner.config))
+			local parent  = editBox:GetParent()
+			local button1 = parent.button1 or parent:GetButton1()
+			button1:SetEnabled(IsElementNameValid(editBox, data.owner.config))
 		end;
 		text = L('Please provide a unique name for a new %s in %s:',
 			YELLOW_FONT_COLOR:WrapTextInColorCode('%s'),
@@ -744,14 +757,6 @@ Loadout.Popups = {
 		text = L('Save preset from %s:', YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
 		OnShow = function(popup, data)
 			local dialog = popup.insertedFrame;
-			for key, value in pairs(data) do
-				if dialog[key] then
-					dialog[key]:SetText(value)
-				end
-			end
-			dialog.options:SetChecked(false)
-			dialog.pager:SetChecked(false)
-			dialog:Layout()
 		end;
 		OnAccept = function(popup, data)
 			local dialog = popup.insertedFrame;
@@ -773,7 +778,8 @@ Loadout.Popups = {
 		text = L('Export %s to a string:', YELLOW_FONT_COLOR:WrapTextInColorCode('%s'));
 		enterClicksFirstButton = true;
 		OnShow = function(popup, data)
-			popup.editBox:SetText(data.string)
+			local editBox = popup.editBox or popup:GetEditBox();
+			editBox:SetText(data.string)
 		end;
 		EditBoxOnTextChanged = function(editBox, data)
 			if editBox:GetText() ~= data.string then
@@ -790,17 +796,20 @@ Loadout.Popups = {
 		enterClicksFirstButton = true;
 		text = L('Import serialized preset(s):');
 		OnShow = function(popup)
-			popup.button1:Disable()
+			local button1 = popup.button1 or popup:GetButton1();
+			button1:Disable()
 		end;
 		OnAccept = function(popup, data)
-			local text = popup.editBox:GetText():trim()
+			local editBox = popup.editBox or popup:GetEditBox();
+			local text = editBox:GetText():trim()
 			data.owner:OnImport(env.SharedConfig.Env.Deserialize(text))
 		end;
 		EditBoxOnTextChanged = function(editBox)
-			local parent = editBox:GetParent()
-			local text = editBox:GetText():trim()
+			local parent  = editBox:GetParent()
+			local text    = editBox:GetText():trim()
+			local button1 = parent.button1 or parent:GetButton1()
 			local deserialized = env.SharedConfig.Env.Deserialize(text)
-			parent.button1:SetEnabled(ValidatePresets(deserialized))
+			button1:SetEnabled(ValidatePresets(deserialized))
 		end;
 	};
 };
@@ -982,14 +991,27 @@ function Loadout:TogglePresetSaveFrame(show)
 	if frame:IsShown() then return frame:Hide() end;
 	if not show then return end;
 
-	local popupName = 'ConsolePort_Loadout_Confirm_Save';
-	local popupData = self.Popups[popupName];
-	CPAPI.Popup(popupName, popupData, env.Const.DefaultPresetName, nil, {
-		owner       = self;
-		name        = ('%s - %s'):format(env(PATH(ROOT, 'name')), env.Const.DefaultPresetName);
-		desc        = env(PATH(ROOT, 'desc'));
-		visibility  = env(PATH(ROOT, 'visibility'));
-	}, frame)
+	local popupName  = 'ConsolePort_Loadout_Confirm_Save';
+	local popupData  = self.Popups[popupName];
+	local exportData = {
+		owner        = self;
+		name         = ('%s - %s'):format(env(PATH(ROOT, 'name')), env.Const.DefaultPresetName);
+		desc         = env(PATH(ROOT, 'desc'));
+		visibility   = env(PATH(ROOT, 'visibility'));
+	};
+
+	for key, value in pairs(exportData) do
+		if frame[key] then
+			frame[key]:SetText(value)
+		end
+	end
+
+	frame.options:SetChecked(false)
+	frame.pager:SetChecked(false)
+	frame:Show()
+	frame:Layout()
+
+	CPAPI.Popup(popupName, popupData, env.Const.DefaultPresetName, nil, exportData, frame)
 end
 
 function Loadout:OnLoadPreset(preset)
@@ -1063,7 +1085,13 @@ function Loadout:DrawHeaderControls(header, controls)
 		button:Show()
 		left, right = math.min(left, button:GetLeft()), math.max(right, button:GetRight())
 	end
-	header:SetIndentation(-(right - left))
+	local indentation = -(right - left);
+	if ( indentation == math.huge ) then
+		header:SetIndentation(self.lastIndentation)
+	else
+		header:SetIndentation(indentation)
+		self.lastIndentation = indentation;
+	end
 end
 
 function Loadout:DrawPresets(layoutIndex)
@@ -1152,7 +1180,7 @@ end
 function Loadout:DrawSetting(parent, path, datapoint, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, datapoint[DP], layoutIndex)
 	widget:SetIndentation(depth)
-	widget:Construct(datapoint.name, path, datapoint, true, env, path, self.owner)
+	widget:Mount(datapoint.name, path, datapoint, true, env, path, self.owner)
 	parent:RegisterCallback(path, widget.OnChildChanged, widget)
 	parent:AddChild(widget)
 	if ExpandableWidgets[datapoint[DP]:GetType()] then
@@ -1185,6 +1213,7 @@ function Loadout:DrawChildren(parent, path, children, layoutIndex, depth)
 	for child, datapoint in db.table.spairs(children, DisplaySort) do
 		self:DrawChild(parent, path, child, datapoint, layoutIndex, depth)
 	end
+	parent:UpdateIcon(parent:GetChecked())
 end
 
 function Loadout:DrawChild(parent, path, child, datapoint, layoutIndex, depth)
@@ -1203,7 +1232,7 @@ function Loadout:DrawTopLevel(name, path, interface, layoutIndex, depth)
 	local widget = self:AcquireSetting(path, interface.props, layoutIndex)
 	widget:SetText(name)
 	widget:SetIndentation(depth)
-	widget:Construct(name, path, interface[DP], true, env, path, interface.widget)
+	widget:Mount(name, path, interface[DP], true, env, path, interface.widget)
 	self:DrawChildren(widget, path, interface.props[DP], layoutIndex, depth)
 	return widget;
 end
@@ -1244,7 +1273,7 @@ function Loadout:OnHide()
 end
 
 function Loadout:Draw()
-	self.headerPool:ReleaseAll()
+	self:ReleaseHeaders()
 	self.cmdButtonPool:ReleaseAll()
 	-- NOTE: securecallfunction to avoid panel-wide error in case of a single widget error
 	-- Draw the layout controls

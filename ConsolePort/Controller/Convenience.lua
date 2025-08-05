@@ -168,7 +168,6 @@ local OnDemandModules, TryLoadModule = {
 	ConsolePort_Keyboard = 'keyboardEnable';
 	ConsolePort_Cursor   = 'UIenableCursor';
 }; do local RawEnableAddOn = CPAPI.EnableAddOn;
-
 	function TryLoadModule(predicate, module)
 		if not db(predicate) or CPAPI.IsAddOnLoaded(module) then
 			return
@@ -178,27 +177,6 @@ local OnDemandModules, TryLoadModule = {
 		if not loaded then
 			CPAPI.Log('Failed to load %s. Reason: %s\nPlease check your installation.', (module:gsub('_', ' ')), _G['ADDON_'..reason])
 		end
-	end
-
-	-- Automatically load modules when they are enabled through the addon list
-	local function OnEnableAddOn(module)
-		local name = CPAPI.GetAddOnInfo(module)
-		local var  = name and OnDemandModules[name];
-		if ( name and var ) then
-			db('Settings/'..var, true)
-			TryLoadModule(var, name)
-		end
-	end
-
-	-- NOTE: Hook enable but NOT disable. People will commonly disable all
-	-- modules one by one when they really want to turn the main addon off,
-	-- and this gets picked up and falsely interpreted as them wanting to
-	-- disable a specific module. It is what it is.
-	if C_AddOns and C_AddOns.EnableAddOn then
-		hooksecurefunc(C_AddOns, 'EnableAddOn', OnEnableAddOn)
-	end
-	if EnableAddOn then
-		hooksecurefunc('EnableAddOn', OnEnableAddOn)
 	end
 end
 
@@ -260,6 +238,7 @@ function Handler:OnDataLoaded()
 	for module, predicate in pairs(OnDemandModules) do
 		TryLoadModule(predicate, module)
 	end
+	return CPAPI.BurnAfterReading;
 end
 
 db:RegisterCallback('Settings/keyboardEnable', GenerateClosure(TryLoadModule, 'keyboardEnable', 'ConsolePort_Keyboard'))

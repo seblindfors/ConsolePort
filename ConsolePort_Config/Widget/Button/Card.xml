@@ -1,0 +1,261 @@
+<Ui>
+	<Script file="Card.lua"/>
+
+	<Texture name="CPCardNormalTexture" inherits="CPAtlas" virtual="true" scale="0.5" setAllPoints="true">
+		<KeyValues>
+			<KeyValue key="sliceMode" type="number" value="0"/>
+			<KeyValue key="sliceLeft" type="number" value="16"/>
+			<KeyValue key="sliceRight" type="number" value="16"/>
+			<KeyValue key="sliceTop" type="number" value="16"/>
+			<KeyValue key="sliceBottom" type="number" value="16"/>
+		</KeyValues>
+	</Texture>
+
+	<Texture name="CPCardHiliteTexture" inherits="CPAtlas" virtual="true" scale="0.25">
+		<Anchors>
+			<Anchor point="TOPLEFT" x="-12" y="12"/>
+			<Anchor point="BOTTOMRIGHT" x="12" y="-12"/>
+		</Anchors>
+		<KeyValues>
+			<KeyValue key="sliceMode" type="number" value="0"/>
+			<KeyValue key="sliceLeft" type="number" value="40"/>
+			<KeyValue key="sliceRight" type="number" value="40"/>
+			<KeyValue key="sliceTop" type="number" value="40"/>
+			<KeyValue key="sliceBottom" type="number" value="40"/>
+		</KeyValues>
+	</Texture>
+
+	<CheckButton name="CPCardCodeTemplate" virtual="true">
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnClick method="OnClick"/>
+			<OnEnable method="OnEnable"/>
+			<OnDisable method="OnDisable"/>
+			<OnMouseUp method="OnMouseUp"/>
+			<OnMouseDown method="OnMouseDown"/>
+		</Scripts>
+	</CheckButton>
+
+	<Frame name="CPCardInnerBaseTemplate" virtual="true" useParentLevel="true">
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="1">
+				<Texture parentKey="Backdrop" inherits="CPCardNormalTexture">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-card-camp" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="2">
+				<Texture parentKey="Highlight" inherits="CPCardNormalTexture" hidden="true">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-card-camp-hover" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Selected" inherits="CPCardHiliteTexture" hidden="true">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-card-selected" type="string"/>
+					</KeyValues>
+				</Texture>
+				<Texture parentKey="SelectedHighlight" inherits="CPCardHiliteTexture" hidden="true">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-card-selected-hover" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Glow" inherits="CPCardHiliteTexture" hidden="true" alpha="0.65">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-12" y="12"/>
+						<Anchor point="BOTTOMRIGHT" x="12" y="-12"/>
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-card-glow" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPCardInnerDragTemplate" virtual="true" inherits="CPCardInnerBaseTemplate">
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="1">
+				<Texture parentKey="BackdropEmpty" inherits="CPCardNormalTexture">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-card-empty" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="2">
+				<Texture parentKey="Drag" inherits="CPCardNormalTexture">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-card-drag" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<CheckButton name="CPCardBaseTemplate" virtual="true" mixin="CPCardBaseMixin" inherits="CPCardCodeTemplate">
+		<Size x="347" y="95"/>
+		<Frames>
+			<Frame parentKey="InnerContent" inherits="CPCardInnerBaseTemplate" setAllPoints="true"/>
+		</Frames>
+	</CheckButton>
+
+	<CheckButton name="CPCardSmallTemplate" virtual="true" mixin="CPCardSmallMixin" inherits="CPCardBaseTemplate">
+		<Size x="340" y="48"/>
+	</CheckButton>
+
+	<CheckButton name="CPCardIconTemplate" virtual="true" mixin="CPCardIconMixin" inherits="CPCardBaseTemplate">
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Border" atlas="auctionhouse-itemicon-border-gray">
+					<Size x="92" y="92"/>
+					<Anchors>
+						<Anchor point="RIGHT" x="-8" y="-2"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="3">
+				<Texture parentKey="Icon" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Ring.png">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Border"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="Mask" file="Interface\Masks\CircleMaskScalable">
+					<Size x="64" y="64"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.Icon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<CheckButton name="CPCardAddTemplate" virtual="true" mixin="CPCardAddMixin" inherits="CPCardBaseTemplate">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="AddBackground" inherits="CPAtlas">
+					<Size x="78" y="78"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-icon-addcard" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="3">
+				<Texture parentKey="AddHighlight" inherits="CPAtlas">
+					<Size x="78" y="78"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-icon-addcard-glow" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="4">
+				<Texture parentKey="AddIcon" inherits="CPAtlas" alpha="0.5">
+					<Size x="125" y="125"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-icon-fx-plus" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnSizeChanged method="OnSizeChanged"/>
+		</Scripts>
+	</CheckButton>
+
+	<CheckButton name="CPCardLoadoutTemplate" virtual="true" inherits="CPCardSmallTemplate">
+		<Size x="290" y="48"/>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="5">
+				<Texture parentKey="Icon" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon">
+					<Size x="36" y="36"/>
+					<Anchors>
+						<Anchor point="LEFT" x="8"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="6">
+				<Texture parentKey="Border" inherits="CPAtlas">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-icon-notify-bg" type="string"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="-3" y="1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="3" y="-4"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="IconMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Mask">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<MaskTexture parentKey="BorderMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask64_Reverse" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="3" y="-3"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="-3" y="3"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Border"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="GameFontHighlight" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="LEFT" relativeKey="$parent.Icon" relativePoint="RIGHT" x="8" y="0"/>
+						<Anchor point="RIGHT" x="-4" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<CheckButton name="CPActionBarMapper" virtual="true" inherits="CPCardLoadoutTemplate">
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="7">
+				<FontString parentKey="Page" inherits="GameFontNormalTiny" justifyH="RIGHT">
+					<Anchors>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" relativePoint="BOTTOMRIGHT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Info">
+				<Anchors>
+					<Anchor point="TOPLEFT"/>
+				</Anchors>
+				<Scripts>
+					<OnEnter>
+						self:GetParent():OnInfoEnter();
+					</OnEnter>
+					<OnLeave>
+						self:GetParent():OnInfoLeave();
+					</OnLeave>
+				</Scripts>
+			</Frame>
+		</Frames>
+	</CheckButton>
+</Ui>

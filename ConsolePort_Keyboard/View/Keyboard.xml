@@ -1,35 +1,22 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
+	<Texture name="CPKeyboardFill" virtual="true"
+		file="Interface\AddOns\ConsolePort_Keyboard\Assets\Palette"/>
+	<Texture name="CPKeyboardRounded" virtual="true"
+		file="Interface\AddOns\ConsolePort_Keyboard\Assets\Char" />
 
-	<!-- Keyboard frame -->
-	<PieMenu name="ConsolePortKeyboard" parent="UIParent" hidden="true" frameStrata="TOOLTIP">
-		<Size x="400" y="400"/>
-		<Anchors>
-			<Anchor point="CENTER"/>
-		</Anchors>
-		<Frames>
-			<Frame parentKey="WordSuggester" frameLevel="1">
-				<Size x="180" y="20"/>
-				<Anchors>
-					<Anchor point="CENTER"/>
-				</Anchors>
-			</Frame>
-			<Button parentKey="Close" setAllPoints="true" frameLevel="10000">
-				<Scripts>
-					<OnClick>
-						self:GetParent():OnFocusChanged(nil);
-					</OnClick>
-				</Scripts>
-			</Button>
-		</Frames>
-	</PieMenu>
+	<Texture name="CPKeyboardRingMask" virtual="true"
+		file="Interface\AddOns\ConsolePort_Keyboard\Assets\PaletteMask" 
+		hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE"/>
+	<Texture name="CPKeyboardCharMask" virtual="true"
+		file="Interface\AddOns\ConsolePort_Keyboard\Assets\CharMask" 
+		hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE"/>
 
 	<!-- Templates -->
-	<CheckButton name="ConsolePortKeyboardChar" virtual="true" registerForClicks="AnyUp">
-		<Size x="32" y="32"/>
+	<CheckButton name="CPKeyboardChar" virtual="true" registerForClicks="AnyUp">
+		<Size x="24" y="24"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Background" file="Interface\CHARACTERFRAME\TempPortraitAlphaMaskSmall">
+				<Texture parentKey="Background" inherits="CPKeyboardRounded">
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-4" y="4"/>
 						<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
@@ -38,142 +25,186 @@
 			</Layer>
 			<Layer level="ARTWORK">
 				<FontString inherits="GameFontHighlightLarge" justifyH="CENTER" parentKey="Text" setAllPoints="true"/>
-				<Texture parentKey="Ring" inherits="CPRingSelectTexture" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
+				<Texture parentKey="Ring" inherits="CPKeyboardRounded" alpha="0.75" hidden="true">
 					<Anchors>
-						<Anchor point="TOPLEFT" x="-16" y="16"/>
-						<Anchor point="BOTTOMRIGHT" x="16" y="-16"/>
+						<Anchor point="TOPLEFT" x="-4" y="4"/>
+						<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
 					</Anchors>
 				</Texture>
+				<MaskTexture parentKey="RingMask" inherits="CPKeyboardCharMask" >
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Ring" x="1" y="-1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Ring" x="-1" y="1"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Ring"/>
+					</MaskedTextures>
+				</MaskTexture>
 			</Layer>
 		</Layers>
 	</CheckButton>
 
-	<Frame name="ConsolePortKeyboardWordButton" virtual="true">
-		<Size x="180" y="20"/>
+	<Frame name="CPKeyboardWordButton" virtual="true">
+		<Size x="140" y="20"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentKey="Hilite" file="Interface\QuestFrame\UI-QuestTitleHighlight" setAllPoints="true" alphaMode="ADD" alpha="0"/>
+				<Texture parentKey="Hilite" file="Interface\QuestFrame\UI-QuestTitleHighlight" setAllPoints="true" alphaMode="ADD"/>
 			</Layer>
 			<Layer level="ARTWORK">
-				<FontString parentKey="Text" inherits="GameFontHighlightLarge" justifyH="CENTER" setAllPoints="true"/>
+				<FontString parentKey="Text" inherits="ChatFontNormal" justifyH="CENTER" setAllPoints="true"/>
 			</Layer>
 		</Layers>
 	</Frame>
 
-	<PieMenu name="ConsolePortKeyboardSet" virtual="true" registerForClicks="AnyUp">
-		<Size x="160" y="160"/>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="Background" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask" setAllPoints="true"/>
-			</Layer>
-			<Layer level="ARTWORK">
-				<Texture parentKey="Ring" inherits="CPRingSelectTexture" texelSnappingBias="0.0" snapToPixelGrid="false" alpha="0">
-					<Anchors>
-						<Anchor point="TOPLEFT" x="-32" y="32"/>
-						<Anchor point="BOTTOMRIGHT" x="32" y="-32"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
+	<PieMenu name="CPKeyboardSet" virtual="true" registerForClicks="AnyUp">
+		<Size x="90" y="90"/>
 	</PieMenu>
 
-
-	<!-- Config templates -->
-	<EditBox name="ConsolePortKeyboardLayoutField" virtual="true" inherits="BackdropTemplate">
-		<Size x="60" y="26"/>
-		<Scripts>
-			<OnLoad>
-				BackdropTemplateMixin.OnBackdropLoaded(self);
-				self:SetScript('OnSizeChanged', BackdropTemplateMixin.OnBackdropSizeChanged);
-				self:SetAutoFocus(false);
-				self:SetFontObject(ChatFontNormal);
-				self:SetTextInsets(8, 8, 0, 0);
-				self:SetBackdrop(CPAPI.Backdrops.Opaque);
-				self:SetBackdropColor(CPIndexButtonMixin.IndexColors.Normal:GetRGBA());
-				self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1);
-				self:EnableMouseWheel(false);
-			</OnLoad>
-		</Scripts>
-	</EditBox>
-
-	<IndexButton name="ConsolePortKeyboardLayoutRow" virtual="true">
+	<!-- Keyboard frame -->
+	<PieMenu name="ConsolePortKeyboard" parent="UIParent" hidden="true" frameStrata="TOOLTIP" clampedToScreen="true" movable="true" registerForDrag="LeftButton">
+		<Size x="160" y="160"/>
+		<Anchors>
+			<Anchor point="CENTER" x="250"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="1">
+				<Texture parentKey="Fill" inherits="CPKeyboardFill" alpha="0.5">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-64" y="64"/>
+						<Anchor point="BOTTOMRIGHT" x="64" y="-64"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="FillMask" inherits="CPKeyboardRingMask">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="30" y="-30"/>
+						<Anchor point="BOTTOMRIGHT" x="-30" y="30"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Fill"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="2">
+				<Texture parentKey="Edge" inherits="CPKeyboardFill" alpha="0.5">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-64" y="64"/>
+						<Anchor point="BOTTOMRIGHT" x="64" y="-64"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="EdgeMask" inherits="CPKeyboardRingMask">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Edge" x="1" y="-1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Edge" x="-1" y="1"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Edge"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<Texture parentKey="Donut" inherits="CPKeyboardFill" alpha="0.5">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="30" y="-30"/>
+						<Anchor point="BOTTOMRIGHT" x="-30" y="30"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="DonutMask" inherits="CPKeyboardRingMask">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Donut" x="1" y="-1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Donut" x="-1" y="1"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Donut"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
 		<Frames>
-			<Button parentKey="Remove" inherits="CPFrameWithTooltipTemplate">
-				<Size x="32" y="20"/>
-				<NormalTexture file="Interface\Buttons\CancelButton-Up"/>
-				<PushedTexture file="Interface\Buttons\CancelButton-Down"/>
-				<DisabledTexture file="Interface\Buttons\CancelButton-Disabled"/>
-				<HighlightTexture file="Interface\Buttons\CancelButton-Highlight" alphaMode="ADD"/>
+			<Frame parentKey="WordSuggester" frameLevel="1">
+				<Size x="150" y="200"/>
 				<Anchors>
-					<Anchor point="TOPRIGHT" x="0" y="-8"/>
+					<Anchor point="LEFT" relativePoint="RIGHT" x="40"/>
 				</Anchors>
-				<Scripts>
-					<OnLoad>
-						for _, texture in ipairs({ 
-							self:GetNormalTexture(),
-							self:GetPushedTexture(),
-							self:GetDisabledTexture(),
-							self:GetHighlightTexture()
-						}) do
-							texture:ClearAllPoints();
-							texture:SetTexCoord(0, 1, 0.2, 0.8);
-							texture:SetPoint('CENTER');
-							texture:SetSize(32, 20);
-						end
-					</OnLoad>
-					<OnClick>
-						self:GetParent():RemoveData();
-					</OnClick>
-				</Scripts>
-			</Button>
-			<Button parentKey="MoveUp">
-				<Size x="16" y="16"/>
-				<NormalTexture file="Interface\Buttons\Arrow-Up-Up"/>
-				<PushedTexture file="Interface\Buttons\Arrow-Up-Down"/>
-				<DisabledTexture file="Interface\Buttons\Arrow-Up-Disabled"/>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Fill" inherits="CPKeyboardRounded" setAllPoints="true" scale="0.5" rotation="180">
+							<TextureSliceMargins left="32" right="32" top="32" bottom="32"/>
+						</Texture>
+						<MaskTexture parentKey="FillMask" inherits="CPKeyboardRingMask">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.$parent" x="-70" y="70"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent" x="70" y="-70"/>
+							</Anchors>
+							<MaskedTextures>
+								<MaskedTexture childKey="Fill"/>
+							</MaskedTextures>
+						</MaskTexture>
+					</Layer>
+				</Layers>
+				<Frames>
+					<Frame parentKey="Mime" clipChildren="true">
+						<Size y="20"/>
+						<Anchors>
+							<Anchor point="TOPLEFT" x="16" y="-6"/>
+							<Anchor point="TOPRIGHT" x="-16" y="-6"/>
+						</Anchors>
+						<Layers>
+							<Layer level="ARTWORK">	
+								<Texture parentKey="Cursor">
+									<Anchors>
+										<Anchor point="CENTER"/>
+									</Anchors>
+									<Size x="1" y="10"/>
+									<Color r="1" g="1" b="1" a="1"/>
+									<Animations>
+										<AnimationGroup parentKey="FlashAnim" setToFinalAlpha="true" looping="REPEAT">
+											<Alpha parentKey="FadeIn" duration="0.25" fromAlpha="0" toAlpha="1" order="1"/>
+											<Alpha parentKey="FadeOut" duration="0.25" fromAlpha="1" toAlpha="0" order="2"/>
+											<Scripts>
+												<OnLoad>
+													self:Play();
+												</OnLoad>
+											</Scripts>
+										</AnimationGroup>
+									</Animations>
+								</Texture>
+								<FontString parentKey="Text" inherits="ChatFontNormal"/>
+							</Layer>
+						</Layers>
+					</Frame>
+					<Frame parentKey="Background" useParentLevel="true">
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeKey="$parent.Mime" x="-12" y="2"/>
+							<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Mime" x="12" y="-2"/>
+						</Anchors>
+						<Layers>
+							<Layer level="BACKGROUND">
+								<Texture parentKey="Box" inherits="CPAtlas" scale="0.8">
+									<KeyValues>
+										<KeyValue key="atlas" value="glues-gamemode-bg" type="string"/>
+									</KeyValues>
+									<Anchors>
+										<Anchor point="TOPLEFT" x="0" y="0"/>
+										<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+									</Anchors>
+								</Texture>
+								<MaskTexture parentKey="FillMask" inherits="CPKeyboardRingMask">
+									<Anchors>
+										<Anchor point="TOPLEFT" relativeKey="$parent.$parent.$parent" x="-80" y="80"/>
+										<Anchor point="BOTTOMRIGHT" relativeKey="$parent.$parent.$parent" x="80" y="-80"/>
+									</Anchors>
+									<MaskedTextures>
+										<MaskedTexture childKey="Box"/>
+									</MaskedTextures>
+								</MaskTexture>
+							</Layer>
+						</Layers>
+					</Frame>
+				</Frames>
+			</Frame>
+			<Frame parentKey="Controls" frameLevel="1" inherits="CPKeyboardSet">
 				<Anchors>
-					<Anchor point="TOPLEFT" x="8" y="-4"/>
+					<Anchor point="CENTER"/>
 				</Anchors>
-				<Scripts>
-					<OnClick>
-						self:GetParent():MoveData(-1);
-					</OnClick>
-				</Scripts>
-			</Button>
-			<Button parentKey="MoveDown">
-				<Size x="16" y="16"/>
-				<NormalTexture file="Interface\Buttons\Arrow-Down-Up"/>
-				<PushedTexture file="Interface\Buttons\Arrow-Down-Down"/>
-				<DisabledTexture file="Interface\Buttons\Arrow-Down-Disabled"/>
-				<Anchors>
-					<Anchor relativeKey="$parent.MoveUp" relativePoint="BOTTOM" point="TOP" y="-4"/>
-				</Anchors>
-				<Scripts>
-					<OnClick>
-						self:GetParent():MoveData(1);
-					</OnClick>
-				</Scripts>
-			</Button>
+			</Frame>
 		</Frames>
-	</IndexButton>
-
-	<IndexButton name="ConsolePortKeyboardLayoutSet" virtual="true" inherits="ConsolePortKeyboardLayoutRow">
-		<Frames>
-			<Button parentKey="Add" inherits="CPFrameWithTooltipTemplate">
-				<Size x="20" y="20"/>
-				<NormalTexture file="Interface\Buttons\UI-PlusButton-Up"/>
-				<PushedTexture file="Interface\Buttons\UI-PlusButton-Down"/>
-				<DisabledTexture file="Interface\Buttons\UI-PlusButton-Disabled"/>
-				<HighlightTexture file="Interface\Buttons\UI-PlusButton-Hilight" alphaMode="ADD"/>
-				<Anchors>
-					<Anchor point="TOP" relativeKey="$parent.Remove" relativePoint="BOTTOM" x="2"/>
-				</Anchors>
-				<Scripts>
-					<OnClick>
-						self:GetParent():AddData({});
-					</OnClick>
-				</Scripts>
-			</Button>
-		</Frames>
-	</IndexButton>
+	</PieMenu>
 </Ui>

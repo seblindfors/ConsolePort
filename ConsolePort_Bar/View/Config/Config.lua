@@ -1,6 +1,6 @@
 local _, env, db, L = ...; db = env.db; L = db.Locale;
 ---------------------------------------------------------------
-local Setting = {};
+local Setting, ROW_WIDTH = {}, 542;
 ---------------------------------------------------------------
 
 function Setting:OnCreate()
@@ -10,7 +10,7 @@ function Setting:OnCreate()
 	self:HookScript('OnLeave', self.UnlockHighlight)
 	self:HookScript('OnClick', self.OnExpandOrCollapse)
 	self:SetIndentation(1)
-	self:SetSize(542, 40)
+	self:SetSize(ROW_WIDTH, 40)
 	self:GetNormalTexture():SetPoint('BOTTOMRIGHT', 8, 0)
 	CPAPI.SetAtlas(self.Icon, 'Waypoint-MapPin-Minimap-Tracked')
 	self.Icon:Hide()
@@ -52,7 +52,7 @@ local Header = {
 
 function Header:OnAcquire(parent)
 	self:SetParent(parent)
-	self:SetWidth(540)
+	self:SetWidth(ROW_WIDTH)
 	self:SetIndentation(0)
 	self:SetScript('OnHide', self.OnHide)
 	self:SetScript('OnClick', self.OnClick)
@@ -61,9 +61,11 @@ function Header:OnAcquire(parent)
 end
 
 function Header:SetIndentation(px)
+	if not px or px == math.huge then px = 0 end;
 	self.Text:SetPoint('CENTER', px * 0.5, 0)
 	self.BarTexture:SetPoint('LEFT',  px > 0 and  px or 0, 0)
 	self.BarTexture:SetPoint('RIGHT', px < 0 and  px or 0, 0)
+	self.indentation = px;
 end
 
 function Header:Release()
@@ -93,16 +95,17 @@ function HeaderOwner:OnLoad(headerMixin)
 end
 
 function HeaderOwner:CreateHeader(name, groupID)
-	local header, newObj = self.headerPool:Acquire()
-	if newObj then
-		header.Text:SetTextColor(WHITE_FONT_COLOR:GetRGBA())
-	end
+	local header = self.headerPool:Acquire()
 	header.groupID = groupID or name;
 	header.Text:SetText(L(name))
 	Mixin(header, self.headerMixin)
 	header:OnAcquire(self)
 	header:Show()
 	return header;
+end
+
+function HeaderOwner:ReleaseHeaders()
+	self.headerPool:ReleaseAll()
 end
 
 ---------------------------------------------------------------
@@ -140,19 +143,26 @@ function Settings:DrawGroup(group, set, layoutIndex)
 		if newObj then
 			widget:OnCreate()
 		end
-		widget:Construct(name, data.varID, data.field, newObj, env, nil, self.owner)
+		widget:Mount({
+			name     = name;
+			varID    = data.varID;
+			field    = data.field;
+			newObj   = newObj;
+			owner    = self.owner;
+			registry = env;
+		})
 		widget.layoutIndex = layoutIndex()
 		widget:Show()
 	end
 end
 
 function Settings:OnShow()
-	self.headerPool:ReleaseAll()
+	self:ReleaseHeaders()
 	self:MarkDirty()
 
 	local sortedGroups, layoutIndex = {}, CreateCounter();
 	foreach(env.Variables, function(var, data)
-		local group = data.head or MISCELLANEOUS;
+		local group = ('%s | %s'):format(data.main or SETTINGS, data.head or MISCELLANEOUS);
 
 		if data.hide then
 			local widget = self:GetObjectByIndex(group..':'..data.name)
@@ -178,15 +188,15 @@ function Settings:OnShow()
 end
 
 ---------------------------------------------------------------
-local SettingsContainer = { Tabs = CreateRadioButtonGroup() };
+local SettingsContainer = {};
 ---------------------------------------------------------------
 
 function SettingsContainer:OnLoad()
-	local ToggleScrollEdge = function(scrollBar) self.BorderArt.ScrollEdge:SetShown(scrollBar:IsShown()) end;
-	self.ScrollBar:HookScript('OnShow', ToggleScrollEdge)
-	self.ScrollBar:HookScript('OnHide', ToggleScrollEdge)
-
-	self.Tabs:AddButtons(self.TabButtons)
+	self.Tabs:AddTabs({
+		{ text = OPTIONS,        data = 'Options' },
+		{ text = L'Layout',      data = 'Loadout' },
+		{ text = ADVANCED_LABEL, data = 'Advanced' },
+	})
 	self.Tabs:RegisterCallback(ButtonGroupBaseMixin.Event.Selected, self.OnTabSelected, self)
 	self.Tabs:SelectAtIndex(1)
 	self.headerPool = CreateFramePool('Button', self, 'CPPopupHeaderTemplate')
@@ -196,44 +206,11 @@ function SettingsContainer:OnLoad()
 	CPAPI.Start(self)
 end
 
-function SettingsContainer:OnShow()
-	db.Gamepad.SetIconToTexture(self.TabDecrementIcon, 'PADLSHOULDER', 32, {24, 24}, {18, 18})
-	db.Gamepad.SetIconToTexture(self.TabIncrementIcon, 'PADRSHOULDER', 32, {24, 24}, {18, 18})
-end
-
-function SettingsContainer:OnTabSelected(button, tabIndex)
+function SettingsContainer:OnTabSelected(button)
 	for _, child in ipairs({self.ScrollChild:GetChildren()}) do
 		child:Hide()
 	end
-	self.tabIndex = tabIndex;
-	self.ScrollChild[button.categoryKey]:Show()
-end
-
-function SettingsContainer:CatchTabDecrement()
-	self.Tabs:SelectAtIndex(self.tabIndex - 1)
-end
-
-function SettingsContainer:CatchTabIncrement()
-	self.Tabs:SelectAtIndex(self.tabIndex + 1)
-end
-
----------------------------------------------------------------
-CPSquareIconButtonMixin = CreateFromMixins(SquareIconButtonMixin);
----------------------------------------------------------------
-
-function CPSquareIconButtonMixin:OnLoad()
-	SquareIconButtonMixin.OnLoad(self)
-	self:OnMouseUp()
-end
-
-function CPSquareIconButtonMixin:OnMouseUp()
-	self.Icon:SetPoint('CENTER', 0.5, 0)
-end
-
-function CPSquareIconButtonMixin:OnMouseDown()
-	if self:IsEnabled() then
-		self.Icon:SetPoint('CENTER', 0.5, -1);
-	end
+	self.ScrollChild[button.data]:Show()
 end
 
 ---------------------------------------------------------------
@@ -257,11 +234,10 @@ local Config = CreateFromMixins(CPButtonCatcherMixin);
 function Config:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
 	self:SetUserPlaced(false)
-	CPAPI.LoadAddOn('ConsolePort_Config');
-	env.SharedConfig.Env = ConsolePortConfig:GetEnvironment();
-	Mixin(Setting, env.SharedConfig.Env.SettingMixin) -- borrow code from the config for the settings
+	Mixin(Setting, env.SharedConfig.Env.Setting) -- borrow code from the config for the settings
 
 	self.Name:SetText(L'Action Bar Configuration')
+	self.Portrait.Icon:SetTexture(env.GetAsset([[Textures\Icons\Unbound]]))
 	self.Mover:SetTooltipInfo(L'Move', L'Start moving the configuration window.')
 	self.Mover:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnMoveFrame', self, nil, 10))
 	self.Main:SetTooltipInfo(L'Open Main Config', L'Open the main configuration window.')
@@ -279,6 +255,7 @@ function Config:OnLoad()
 end
 
 function Config:OnShow()
+	ConsolePortConfig:Hide()
 	self:SetDefaultClosures()
 	env:TriggerEvent('OnConfigShown', true, self)
 end
@@ -290,8 +267,8 @@ end
 
 function Config:SetDefaultClosures()
 	self:ReleaseClosures()
-	self.CatchTabDecrement = self:CatchButton('PADLSHOULDER', self.SettingsContainer.CatchTabDecrement, self.SettingsContainer)
-	self.CatchTabIncrement = self:CatchButton('PADRSHOULDER', self.SettingsContainer.CatchTabIncrement, self.SettingsContainer)
+	self:CatchButton('PADLSHOULDER', self.SettingsContainer.Tabs.Decrement, self.SettingsContainer.Tabs)
+	self:CatchButton('PADRSHOULDER', self.SettingsContainer.Tabs.Increment, self.SettingsContainer.Tabs)
 end
 
 function Config:OnCombatLockdown(isLocked)
@@ -309,7 +286,8 @@ end
 ---------------------------------------------------------------
 env:RegisterSafeCallback('OnConfigToggle', function()
 	if not env.Config then
-		env.Config = Mixin(CreateFrame('Frame', 'ConsolePortActionBarConfig', UIParent, 'CPActionBarConfig'), Config)
+		CPAPI.LoadAddOn('ConsolePort_Config');
+		env.Config, env.SharedConfig.Env = CPAPI.CreateConfigFrame(Config, 'Frame', 'ConsolePortActionBarConfig', UIParent, 'CPActionBarConfig')
 		if ( env.Config:GetNumPoints() == 0 ) then
 			env.Config:SetPoint('LEFT', (UIParent:GetWidth() - env.Config:GetWidth()) * 0.25, 0)
 		end

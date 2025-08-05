@@ -161,7 +161,7 @@ Type.Modifier = Data.Interface {
 			['Mn']   = 'Button set to swap to, where n is the modifier number. Multiple modifiers can be combined.';
 		}
 	);
-	note = 'Modifiers can be combined. For example, M1M2 is the Shift and Ctrl modifiers held at the same time.';
+	note = 'Modifiers should be in descending order. M2M1, for example, is the Ctrl and Shift modifiers held at the same time.';
 	Data.String(' ');
 };
 
@@ -210,7 +210,7 @@ Interface.ClusterHandle = Data.Interface {
 
 Interface.Cluster = Data.Interface {
 	name = 'Cluster Action Bar';
-	desc = 'A cluster action bar.';
+	desc = 'Groups button combinations in circular clusters which switch between different actions when modifiers are used.';
 	Data.Table {
 		type = {hide = true; Data.String('Cluster')};
 		children = _{
@@ -256,7 +256,7 @@ Interface.GroupButton = Data.Interface {
 
 Interface.Group = Data.Interface {
 	name = 'Action Button Group';
-	desc = 'A group of action buttons.';
+	desc = 'Looks like a regular action bar, but shows the button combination rather than the action slot.';
 	Data.Table {
 		type = {hide = true; Data.String('Group')};
 		children = _{
@@ -292,7 +292,7 @@ Interface.Group = Data.Interface {
 
 Interface.Page = Data.Interface {
 	name = 'Action Page';
-	desc = 'A page of action buttons.';
+	desc = 'Works like a regular action bar, which displays the action slots of a specified action page.';
 	Data.Table {
 		type = {hide = true; Data.String('Page')};
 		pos = _(Type.ComplexPoint : Implement {
@@ -306,6 +306,11 @@ Interface.Page = Data.Interface {
 		hotkeys = _{
 			name = 'Show Hotkeys';
 			desc = 'Show the hotkeys on the buttons.';
+			Data.Bool(true);
+		};
+		showGrid = _{
+			name = 'Show Grid';
+			desc = 'Show the empty buttons in the page.';
 			Data.Bool(true);
 		};
 		reverse = _{

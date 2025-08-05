@@ -1,19 +1,10 @@
 ----------------------------------------------------------------
 -- Carpenter
 ----------------------------------------------------------------
--- 
+--
 -- Author:  Sebastian Lindfors (Munk / MunkDev)
 -- Website: https://github.com/seblindfors
 -- Licence: GPL version 2 (General Public License)
---
--- Description:
---  Carpenter is a dynamic markup language processor, that provides a simple syntax to create frames.
---  Lua and XML are bridged by allowing dynamic inserts, such as local variables, and merging several
---  templates into one to create inheritance. WoW XML is too rigid to handle dynamic frame creation,
---  and implementing frames in pure Lua is messy, without clear hierarchy. This dynamic markup language
---  works well in any code editor, to expand/collapse items of interest during development.
---  Recursive "blueprints" automatically set name tags on items, and adds keys to the parent.
---  See example at the bottom.
 --
 -- Usage:
 --  Carpenter(type, name, parent, inheritXML, blueprint) -> return Carpenter:CreateFrame(...)
@@ -25,7 +16,7 @@
 local Lib = LibStub:NewLibrary('Carpenter', 3)
 if not Lib then return end
 --------------------------------------------------------------------------
-local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch = 
+local   assert, pairs, ipairs, type, unpack, wipe, tconcat, strmatch =
         assert, pairs, ipairs, type, unpack, wipe, table.concat, strmatch
 --------------------------------------------------------------------------
 local   Create, IsWidget = CreateFrame, C_Widget.IsWidget
@@ -35,7 +26,6 @@ local   anchor, onload, constructor, call, callMethodsOnWidget, -- build
 --------------------------------------------------------------------------
 local   SPECIAL, API, RESERVED
 local   ANCHOR, ONLOAD = {}, {}
-
 
 --------------------------------------------------------------------------
 API = { -- Syntax: _CallID = value or {value1, ..., valueN};
@@ -77,13 +67,6 @@ API = { -- Syntax: _CallID = value or {value1, ..., valueN};
     Size       = function(widget, ...)  widget:SetSize(...)           end;
     Scale      = function(widget, ...)  widget:SetScale(...)          end;
     Width      = function(widget, ...)  widget:SetWidth(...)          end;
-    --- Button -----------------------------------------------------------
-    Click      = function(button, ...)  button:SetAttribute('type', 'click')  button:SetAttribute('clickbutton', ...) end;
-    Macro      = function(button, ...)  button:SetAttribute('type', 'macro')  button:SetAttribute('macrotext', ...) end;
-    Action     = function(button, ...)  button:SetAttribute('type', 'action') button:SetAttribute('action', ...) end;
-    Spell      = function(button, ...)  button:SetAttribute('type', 'spell')  button:SetAttribute('spell', ...) end;
-    Unit       = function(button, ...)  button:SetAttribute('type', 'target') button:SetAttribute('unit', ...) end;
-    Item       = function(button, ...)  button:SetAttribute('type', 'item')   button:SetAttribute('item', ...) end;
     --- Constructor ------------------------------------------------------
     OnLoad     = function(widget, ...)  packtbl(ONLOAD, widget, ...)  end;
     --- Points -----------------------------------------------------------
@@ -128,17 +111,6 @@ SPECIAL = { -- Special constructors
             return parent:CreateTexture(name, unpack(setup))
         end
         return parent:CreateTexture(name)
-    end;
-    ---
-    ScrollFrame = function(parent, key, setup, anon)
-        local frame = Create('ScrollFrame', not anon and '$parent'..key or nil, parent, setup and not IsWidget(setup) and unpack(setup))
-        local child = IsWidget(setup) and setup or Create('Frame', not anon and '$parentChild' or nil, frame)
-        frame.Child = child
-        child:SetParent(frame)
-        child:SetAllPoints()
-        frame:SetScrollChild(child)
-        frame:SetToplevel(true)
-        return frame
     end;
     ---
     Global = function(parent, key, region, anon)
@@ -291,7 +263,7 @@ end
 
 function Lib:SetBackdrop(frame, ...)
     if BackdropTemplateMixin then
-        if not frame.OnBackdropLoaded then 
+        if not frame.OnBackdropLoaded then
             Mixin(frame, BackdropTemplateMixin)
             frame:HookScript('OnSizeChanged', frame.OnBackdropSizeChanged)
         end
@@ -304,7 +276,7 @@ end
 function Lib:SetGradient(texture, orientation, ...)
     local isOldFormat = (select('#', ...) == 8)
     if texture.SetGradientAlpha then
-        if isOldFormat then 
+        if isOldFormat then
             return texture:SetGradientAlpha(orientation, ...)
         end
         local min, max = ...;
@@ -350,7 +322,7 @@ function call(widget, method, data)
             widget:HookScript(method, data)
         else
             widget:SetScript(method, data)
-        end 
+        end
     else
         widget[method] = data
     end
@@ -385,9 +357,9 @@ function callMethodsOnWidget(widget, methods)
 end
 
 function getrelative(region, query)
-    if IsWidget(query) then 
+    if IsWidget(query) then
         return query
-    elseif type(query) == 'string' then 
+    elseif type(query) == 'string' then
         local relative
         for key in query:gmatch('%w+') do
             if ( key == 'parent' ) then
@@ -443,7 +415,7 @@ function onload()
     wipe(ONLOAD)
 end
 
-function getbuildinfo(bp) return 
+function getbuildinfo(bp) return
     bp._Type,
     type(bp._Type),
     bp._Setup,

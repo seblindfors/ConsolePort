@@ -119,7 +119,7 @@ function AnimatedWidgetMixin:OnAttributeChanged(attribute, value)
 		if self.useOffsetScale then
 			local relScale = 1 / scale;
 			local point, relFrame, relPoint = self:GetPoint()
-			getmetatable(self).__index.SetPoint(self,
+			CPAPI.Index(self).SetPoint(self,
 				point, relFrame, relPoint,
 				self.x * relScale, self.y * relScale
 			);
@@ -144,7 +144,7 @@ end
 
 function AnimatedWidgetMixin:SetPoint(point, relFrame, relPoint, x, y)
 	self.x, self.y = x, y;
-	getmetatable(self).__index.SetPoint(self, point, relFrame, relPoint, x, y)
+	CPAPI.Index(self).SetPoint(self, point, relFrame, relPoint, x, y)
 end
 
 ---------------------------------------------------------------

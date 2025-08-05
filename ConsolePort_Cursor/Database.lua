@@ -1,4 +1,4 @@
-local db, Data, _, env = ConsolePort:DB(), ConsolePort:DB('Data'), ...; _, env.db = CPAPI.Define, db;
+local _, Data, env = CPAPI.LinkEnv(...)
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local DEPENDENCY = { UIenableCursor = true };
 
@@ -6,7 +6,7 @@ local DEPENDENCY = { UIenableCursor = true };
 -- Add variables to config
 ---------------------------------------------------------------
 ConsolePort:AddVariables({
-	_('Interface Cursor', 2);
+	_('Interface Cursor', INTERFACE_LABEL, 2);
 	UIpointerAnimation = _{Data.Bool(true);
 		name = 'Enable Animation';
 		desc = 'Pointer arrow rotates in the direction of travel.';
@@ -111,9 +111,16 @@ ConsolePort:AddVariables({
 		deps = DEPENDENCY;
 	};
 	UImodifierCommands = _{Data.Select('SHIFT', unpack(MODID_SELECT));
-		name = 'Modifier';
+		name = 'Command Modifier';
 		desc = 'Which modifier to use for modified commands.';
 		note = 'The modifier can be used to scroll together with the directional pad.';
+		opts = MODID_SELECT;
+		deps = DEPENDENCY;
+	};
+	UImodifierNudge = _{Data.Select('CTRL', unpack(MODID_SELECT));
+		name = 'Nudge Modifier';
+		desc = 'Which modifier to use for nudging the cursor.';
+		note = 'The modifier can be used to nudge the cursor position with the directional pad.';
 		opts = MODID_SELECT;
 		deps = DEPENDENCY;
 	};
@@ -175,6 +182,8 @@ env.FramePipelines = { -- global ref, bool or method
 ---------------------------------------------------------------
 -- Node management resources
 ---------------------------------------------------------------
+env.Node = LibStub('ConsolePortNode');
+
 env.IsClickableType = {
 	Button      = true;
 	CheckButton = true;
@@ -188,14 +197,16 @@ env.DropdownReplacementMacro = {
 };
 
 env.Attributes = {
-	IgnoreNode   = 'nodeignore';
-	IgnoreScroll = 'nodeignorescroll';
-	PassThrough  = 'nodepass';
-	Priority     = 'nodepriority';
-	Singleton    = 'nodesingleton';
-	SpecialClick = 'nodespecialclick';
-	CancelClick  = 'nodecancelclick';
-	IgnoreMime   = 'nodeignoremime';
+	IgnoreNode   = 'nodeignore';       -- Bool, ignore this node completely.
+	IgnoreDrag   = 'nodeignoredrag';   -- Bool, ignore dragging simulation.
+	IgnoreMime   = 'nodeignoremime';   -- Bool, ignore miming of this node.
+	IgnoreScroll = 'nodeignorescroll'; -- Bool, ignore super scrolling.
+	PassThrough  = 'nodepass';         -- Bool, pass through the node, consider children.
+	Singleton    = 'nodesingleton';    -- Bool, include node, ignore children.
+	Priority     = 'nodepriority';     -- Number, priority in arbitrary selection.
+	SpecialClick = 'nodespecialclick'; -- Function, special click handler.
+	CancelClick  = 'nodecancelclick';  -- Function, cancel click handler.
+	DisableHooks = 'nohooks';          -- Bool, disable hooks for this node.
 };
 
 ---------------------------------------------------------------

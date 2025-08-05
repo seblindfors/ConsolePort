@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local Editor = CreateFromMixins(ScrollingEditBoxMixin);
 ---------------------------------------------------------------
@@ -128,7 +128,13 @@ function Advanced:OnShow()
 			button:Show()
 			left, right = math.min(left, button:GetLeft()), math.max(right, button:GetRight())
 		end
-		header:SetIndentation(-(right - left))
+		local indentation = -(right - left);
+		if ( indentation == math.huge ) then
+			header:SetIndentation(self.lastIndentation)
+		else
+			header:SetIndentation(indentation)
+			self.lastIndentation = indentation;
+		end
 	end
 
 	DrawEditor(self.Headers.Visibility)

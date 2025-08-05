@@ -115,6 +115,7 @@ function CPPieMenuMixin:UpdatePieSlices(isShown, numSlices)
 		if newObj then
 			slice:SynchronizeAnimation(self.ActiveSlice)
 			slice:SetTextSize(self.sliceTextSize)
+			slice:SetTextAlpha(self.sliceTextAlpha)
 		end
 	end
 end
@@ -137,6 +138,10 @@ function CPPieMenuMixin:GetSlice(index)
 	end
 end
 
+function CPPieMenuMixin:GetSliceTextSize()
+	return self.sliceTextSize or select(2, self.ActiveSlice.Text:GetFont())
+end
+
 function CPPieMenuMixin:SetSliceText(index, text)
 	local slice = self:GetSlice(index)
 	if slice then
@@ -151,6 +156,14 @@ function CPPieMenuMixin:SetSliceTextSize(size)
 		slice:SetTextSize(size)
 	end
 	self.ActiveSlice:SetTextSize(size)
+end
+
+function CPPieMenuMixin:SetSliceTextAlpha(a)
+	self.sliceTextAlpha = a;
+	for slice in self.SlicePool:EnumerateActive() do
+		slice:SetTextAlpha(a)
+	end
+	self.ActiveSlice:SetTextAlpha(a)
 end
 
 function CPPieMenuMixin:SetActiveSliceText(text)
@@ -328,6 +341,13 @@ function CPPieSliceMixin:SetText(text)
 	if isTextEnabled then
 		self:RotateLines(self.centerAngle)
 	end
+end
+
+function CPPieSliceMixin:SetTextAlpha(a)
+	if not a then return end;
+	self.Text:SetAlpha(a)
+	self.Line1:SetAlpha(a)
+	self.Line2:SetAlpha(a)
 end
 
 function CPPieSliceMixin:SetTextSize(size)

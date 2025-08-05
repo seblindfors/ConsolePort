@@ -1,0 +1,4 @@
+<Ui>
+	<Script file="Loadout.lua"/>
+	<CheckButton name="CPRingLoadoutCard" virtual="true" inherits="CPCardLoadoutTemplate"/>
+</Ui>

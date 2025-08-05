@@ -1,0 +1,88 @@
+<Ui>
+	<Script file="Scroll.lua"/>
+
+	<Frame name="CPScrollFrameSettingsTemplate" virtual="true">
+		<KeyValues>
+			<KeyValue key="scrollBarHideIfUnscrollable" value="false" type="boolean"/>
+			<KeyValue key="scrollBarX" value="-4" type="number"/>
+			<KeyValue key="scrollBarTopY" value="-3" type="number"/>
+			<KeyValue key="scrollBarBottomY" value="0" type="number"/>
+			<KeyValue key="scrollBarTemplate" value="MinimalScrollBar" type="string"/>
+		</KeyValues>
+	</Frame>
+
+	<Frame name="CPScrollFrameArtTemplate" virtual="true" inherits="CPScrollFrameSettingsTemplate">
+		<Frames>
+			<Frame parentKey="BorderArt" inherits="CPInnerFrameTemplate" useParentLevel="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-6" y="4"/>
+					<Anchor point="BOTTOMRIGHT" x="16" y="-8"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Frame name="CPScrollBox" virtual="true" mixin="CPScrollBox">
+		<Frames>
+			<Frame parentKey="ScrollBox" inherits="WowScrollBoxList">
+				<KeyValues>
+					<KeyValue key="canInterpolateScroll" value="true" type="boolean"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="-0"/>
+					<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
+				</Anchors>
+			</Frame>
+			<EventFrame parentKey="ScrollBar" inherits="MinimalScrollBar">
+				<KeyValues>
+					<KeyValue key="canInterpolateScroll" value="true" type="boolean"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent.ScrollBox" relativePoint="TOPRIGHT" x="0" y="0"/>
+					<Anchor point="BOTTOMLEFT" relativeKey="$parent.ScrollBox" relativePoint="BOTTOMRIGHT" x="0" y="0"/>
+				</Anchors>
+			</EventFrame>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPScrollBoxTree" virtual="true" mixin="CPScrollBoxTree" inherits="CPScrollBox"/>
+
+	<Frame name="CPScrollBoxLip" virtual="true" enableMouse="true" mixin="CPScrollBoxLip" inherits="CPScrollBoxTree, CPToolbarSixSliceInverterFrame">
+		<KeyValues>
+			<KeyValue key="paddingBottom" value="0" type="number"/>
+			<KeyValue key="paddingLeft" value="8" type="number"/>
+			<KeyValue key="paddingRight" value="10" type="number"/>
+			<KeyValue key="scrollBarBottomY" value="4" type="number"/>
+			<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
+			<KeyValue key="scrollBarTopY" value="-4" type="number"/>
+			<KeyValue key="spacing" value="2" type="number"/>
+		</KeyValues>
+	</Frame>
+
+	<Frame name="CPIconSelector" virtual="true" mixin="CPIconSelector" inherits="CPScrollBox, CPScrollFrameArtTemplate, SelectorTemplate">
+		<KeyValues>
+			<KeyValue key="retainScrollPosition" value="false" type="boolean"/>
+			<KeyValue key="templateType" value="BUTTON" type="string"/>
+			<KeyValue key="buttonTemplate" value="CPIconSelectorButton" type="string"/>
+		</KeyValues>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</Frame>
+
+	<ScrollFrame name="CPScrollFrameTemplate" virtual="true" inherits="ScrollFrameTemplate, CPScrollFrameArtTemplate"/>
+	<ScrollFrame name="CPSmoothScrollTemplate" virtual="true" inherits="ScrollFrameTemplate" mixin="CPSmoothScroll">
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+		</Scripts>
+	</ScrollFrame>
+
+	<Frame name="CPScrollDivider" virtual="true">
+		<Size x="290"/>
+	</Frame>
+</Ui>

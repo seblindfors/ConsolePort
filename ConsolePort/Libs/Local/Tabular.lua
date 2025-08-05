@@ -1,7 +1,7 @@
 ---------------------------------------------------------------
 -- Tabular
 ---------------------------------------------------------------
--- 
+--
 -- Author:  Sebastian Lindfors (Munk / MunkDev)
 -- Website: https://github.com/seblindfors
 -- Licence: GPL version 2 (General Public License)
@@ -38,7 +38,7 @@
 --
 ---------------------------------------------------------------
 
-local Tabular = LibStub:NewLibrary('Tabular', 2)
+local Tabular = LibStub:NewLibrary('Tabular', 3)
 if not Tabular then return end
 
 ---------------------------------------------------------------
@@ -90,7 +90,7 @@ end
 
 local function ksort(k1, k2)
 	if tonumber(k1) and tonumber(k2) then
-		return k1 < k2;
+		return tonumber(k1) < tonumber(k2);
 	end
 	return tostring(k1) < tostring(k2)
 end
@@ -340,9 +340,12 @@ function DataRow:OnLoad()
 end
 
 function DataRow:OnClick()
+	if self.Check:IsMouseOver() then
+		return self.Check:Click()
+	end
 	if self:IsExpandible() then
 		self.Expander:Click()
-	else
+	elseif self.Check:IsShown() then
 		self:SetChecked(not self:GetChecked())
 	end
 end
@@ -433,6 +436,13 @@ function DataRow:SetExpandible(enabled)
 	self.Expander:SetShown(enabled)
 end
 
+function DataRow:SetCheckable(enabled)
+	self.Check:SetShown(enabled)
+	for i, child in ipairs(self.Children) do
+		child.Check:SetShown(enabled)
+	end
+end
+
 function DataRow:SetCallback(callback)
 	self.callback = callback;
 end
@@ -482,9 +492,14 @@ function DataRow:IsExpanded()
 	return self.Expander:GetChecked()
 end
 
+function DataRow:IsCheckable()
+	return self.Check:IsShown()
+end
+
 function DataRow:ShowChildren()
 	if not next(self.Children) then
 		local width, prev = self:GetWidth() - ROW_PADDING;
+		local checkable = self.Check:IsShown()
 		for key, value in spairs(self.value) do
 			local obj = self:Acquire()
 			obj.Check:SetChecked(self:GetChecked())
@@ -492,6 +507,7 @@ function DataRow:ShowChildren()
 			obj:SetAliasHandler(self.alias)
 			obj:SetData(key, value, ('%s/%s'):format(self.path, key))
 			obj:SetCallback(self.callback)
+			obj:SetCheckable(checkable)
 			if prev then
 				obj:SetPoint('TOPLEFT', prev, 'BOTTOMLEFT', 0, 0)
 				obj:SetPoint('TOPRIGHT', prev, 'BOTTOMRIGHT', 0, 0)
@@ -556,7 +572,7 @@ function DataRow:OnExpandCollapse(expanded)
 end
 
 function DataRow:Compile()
-	if not self:GetChecked() then
+	if self:IsCheckable() and not self:GetChecked() then
 		return nil, nil;
 	end
 	if self:IsExpandible() and next(self.Children) then
@@ -623,6 +639,7 @@ setmetatable(Tabular, {
 		local state    = not not args.state;
 		local readOnly = not not args.readOnly;
 		local inline   = not not args.inline;
+		local fixed    = not not args.fixed;
 
 		if alias then
 			for set, patterns in pairs(args.alias) do
@@ -645,6 +662,7 @@ setmetatable(Tabular, {
 			obj:SetChecked(state)
 			obj:SetCallback(callback)
 			obj:SetReadOnly(readOnly)
+			obj:SetCheckable(not fixed)
 			if prev then
 				obj:SetPoint('TOP', prev, 'BOTTOM', 0, 0)
 			else

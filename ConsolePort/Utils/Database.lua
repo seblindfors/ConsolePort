@@ -58,13 +58,13 @@ local mIndex = setmetatable({
 	['ALT-CTRL-SHIFT-'] = 8;
 }, {__index = function() return 9 end})
 
-db('table/mpairs', function(t)
+db.table.mpairs = function(t)
 	return db.table.spairs(t, function(t, a, b)
 		return mIndex[a] < mIndex[b];
 	end)
-end)
+end;
 
-db('table/ripairs', ripairs or function(t)
+db.table.ripairs = ripairs or function(t)
 	local function ripairsiter(t, index)
 		index = index - 1;
 		if index > 0 then
@@ -72,9 +72,9 @@ db('table/ripairs', ripairs or function(t)
 		end
 	end
 	return ripairsiter, t, #t + 1;
-end)
+end;
 
-db('table/mixin', function(obj, ...)
+db.table.mixin = function(obj, ...)
 	local scriptHandler = (type(obj.HasScript) == 'function')
 	for i = 1, select('#', ...) do
 		local mixin = select(i, ...)
@@ -91,7 +91,7 @@ db('table/mixin', function(obj, ...)
 		end
 	end
 	return obj
-end)
+end;
 
 ---------------------------------------------------------------
 -- Plug-in access to addon data

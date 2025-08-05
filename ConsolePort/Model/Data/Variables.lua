@@ -3,28 +3,39 @@ local STICK_SELECT = {'Movement', 'Camera', 'Gyro'};
 local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
 local MODID_EXTEND = {'SHIFT', 'CTRL', 'ALT', 'CTRL-SHIFT', 'ALT-SHIFT', 'ALT-CTRL'};
 local STARGET_OPTS = {[0] = OFF, [1] = 'Gamepad', [2] = 'KBM', [3] = ALWAYS};
-local ADVANCED_OPT = RED_FONT_COLOR:WrapTextInColorCode(ADVANCED_OPTIONS);
 local BINDINGS_OPT = KEY_BINDINGS_MAC or 'Bindings';
 
 -- Helpers
 local BLUE = GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
 local unpack, _, db = unpack, ...; _ = CPAPI.Define; db.Data();
+
 ------------------------------------------------------------------------------------------------------------
--- Default cvar data (global)
+-- Variables
 ------------------------------------------------------------------------------------------------------------
 db:Register('Variables', CPAPI.Callable({
-	showAdvancedSettings = {Bool(false);
-		name = 'All Settings';
-		desc = 'Display all available settings.';
+	_(GENERAL, SETTING_GROUP_SYSTEM);
+	useCharacterSettings = _{Bool(false);
+		name = 'Character Specific';
+		desc = 'Use character specific addon settings for this character.';
+		list = 'ConsolePort';
+	};
+	actionPageCondition = _{String(nil);
+		name = 'Action Page Condition';
+		desc = 'Macro condition to evaluate action bar page.';
 		hide = true;
 	};
-	useCharacterSettings = {Bool(false);
-		name = 'Character Specific';
-		desc = 'Use character specific settings for this character.';
+	actionPageResponse = _{String(nil);
+		name = 'Action Page Response';
+		desc = 'Response to condition for custom processing.';
+		hide = true;
+	};
+	classFileOverride = _{String(nil);
+		name = 'Override Class File';
+		desc = 'Override class theme for interface styling.';
 		hide = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Crosshair';
+	_('Crosshair', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	crosshairEnable = _{Bool(true);
 		name = 'Enable';
@@ -62,19 +73,19 @@ db:Register('Variables', CPAPI.Callable({
 		deps = { crosshairEnable = true };
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Movement';
+	_('Movement', SETTING_GROUP_SYSTEM);
 	--------------------------------------------------------------------------------------------------------
 	mvmtAnalog = _{Bool(true);
 		name = 'Analog Movement';
 		desc = 'Movement is analog, translated from your movement stick angle.';
 		note = 'Disable to use discrete legacy movement controls.';
 	};
-	mvmtStrafeAngleTravel = _{Range(db:GetCVar('GamePadFaceMovementMaxAngle', 115), 5, 0, 180);
+	mvmtStrafeAngleTravel = _{Range(115, 5, 0, 180);
 		name = 'Strafe Angle Threshold (Travel)';
 		desc = 'Controls when your character transitions from strafing to facing your movement stick direction. Expressed in degrees, from looking straight forward.';
 		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
 	};
-	mvmtStrafeAngleCombat = _{Range(db:GetCVar('GamePadFaceMovementMaxAngleCombat', 115), 5, 0, 180);
+	mvmtStrafeAngleCombat = _{Range(115, 5, 0, 180);
 		name = 'Strafe Angle Threshold (Combat)';
 		desc = 'Controls when your character transitions from strafing to facing your movement stick direction while in combat. Expressed in degrees, from looking straight forward.';
 		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
@@ -104,7 +115,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Targeting';
+	_(BINDING_HEADER_TARGETING, BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
 	trgtEnemy = _{Map(db:GetCVar('SoftTargetEnemy', 0), STARGET_OPTS);
 		name = 'Enemy Soft Targeting';
@@ -172,7 +183,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_( MOUSE_LABEL ); -- Mouse
+	_(MOUSE_LABEL, SETTING_GROUP_SYSTEM); -- Mouse
 	--------------------------------------------------------------------------------------------------------
 	mouseHandlingEnabled = _{Bool(true);
 		name = 'Enable Mouse Handling';
@@ -193,11 +204,13 @@ db:Register('Variables', CPAPI.Callable({
 	};
 	mouseHideCursorOnMovement = _{Bool(false);
 		name = 'Hide Cursor On Movement';
+		list = 'Visibility';
 		desc = 'Cursor hides when you start moving, if free of obstacles.';
 		note = 'Requires Settings > Hide Cursor on Stick Input set to None.';
 	};
 	mouseAlwaysCentered = _{Bool(false);
 		name = 'Always Show Mouse Cursor';
+		list = 'Visibility';
 		desc = 'Always keep cursor centered and visible when controlling camera.';
 	};
 	mouseShowCenterTooltip = _{Bool(true);
@@ -227,15 +240,12 @@ db:Register('Variables', CPAPI.Callable({
 	};
 	doubleTapModifier = _{Select('<none>', '<none>', unpack(MODID_SELECT));
 		name = 'Double Tap Modifier';
+		list = 'Visibility';
 		desc = 'Which modifier to use to toggle the mouse cursor when double-tapped.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Radial Menus';
+	_('Radial Menus', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
-	radialStickySelect = _{Bool(false);
-		name = 'Sticky Selection';
-		desc = 'Selecting an item on a ring will stick until another item is chosen.';
-	};
 	radialClearFocusMode = _{Map(1, {[1] = 'Either', [2] = 'Timeout', [3] = 'Deadzone'});
 		name = 'Clear Focus Mode';
 		desc = 'How to clear focus after intercepting stick input.';
@@ -266,10 +276,6 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Stick to use for main radial actions.';
 		note = 'Make sure your choice does not conflict with your bindings.';
 	};
-	radialRemoveButton = _{Button('PADRSHOULDER');
-		name = 'Remove Button';
-		desc = 'Button used to remove a selected item from an editable ring.';
-	};
 	radialScale = _{Number(1, 0.025, true);
 		name = 'Ring Scale';
 		desc = 'Scale of all radial menus, relative to UI scale.';
@@ -282,38 +288,43 @@ db:Register('Variables', CPAPI.Callable({
 	};
 	radialNormalColor = _{Color(CPAPI.GetMutedClassColor(0.6, true));
 		name = 'Normal Color';
+		list = COLORS;
 		desc = 'Normal background color of pie slices.';
 		advd = true;
 	};
 	radialActiveColor = _{Color(GREEN_FONT_COLOR);
 		name = 'Active Color';
+		list = COLORS;
 		desc = 'Color of the active slice.';
 		advd = true;
 	};
 	radialHiliteColor = _{Color(NORMAL_FONT_COLOR);
 		name = 'Highlight Color';
+		list = COLORS;
 		desc = 'Color of a partially selected slice.';
 		advd = true;
 	};
 	radialStickyColor = _{Color(ORANGE_FONT_COLOR);
 		name = 'Sticky Color';
+		list = COLORS;
 		desc = 'Color of the sticky selection slice.';
 		advd = true;
 	};
 	radialAccentColor = _{Color(CPAPI.GetClassColorObject());
 		name = 'Accent Color';
+		list = COLORS;
 		desc = 'Color accent of radial menu items.';
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Radial Keyboard';
+	_('Keyboard', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	keyboardEnable = _{Bool(false);
 		name = 'Enable';
 		desc = 'Enables a radial on-screen keyboard that can be used to type messages.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Raid Cursor';
+	_('Raid Cursor', BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
 	raidCursorScale = _{Number(1, 0.1);
 		name = 'Scale';
@@ -392,7 +403,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Interface Cursor';
+	_('Interface Cursor', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	UIenableCursor = _{Bool(true);
 		name = ENABLE;
@@ -404,7 +415,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Unit Hotkeys';
+	_('Unit Hotkeys', BINDING_HEADER_TARGETING);
 	--------------------------------------------------------------------------------------------------------
 	unitHotkeyFocusMode = _{Bool(false);
 		name = 'Use Focus Mode';
@@ -476,12 +487,8 @@ db:Register('Variables', CPAPI.Callable({
 		deps = { unitHotkeySet = 'Custom' };
 	};
 	--------------------------------------------------------------------------------------------------------
-	_( ACCESSIBILITY_LABEL ); -- Accessibility
+	_(ACCESSIBILITY_LABEL, INTERFACE_LABEL); -- Accessibility
 	--------------------------------------------------------------------------------------------------------
-	autoExtra = _{Bool(true);
-		name = 'Automatically Bind Extra Items';
-		desc = 'Automatically add tracked quest items and extra spells to main utility ring.';
-	};
 	autoSellJunk = _{Bool(true);
 		name = 'Auto-Sell Junk';
 		desc = 'Automatically sell junk when interacting with a merchant.';
@@ -498,7 +505,7 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_'Power Level';
+	_('Power Level', INTERFACE_LABEL);
 	--------------------------------------------------------------------------------------------------------
 	powerLevelShow = _{Bool(false);
 		name = 'Show Gauge';
@@ -516,7 +523,32 @@ db:Register('Variables', CPAPI.Callable({
 		note = 'Critical, Low, Medium, High, Wired/Charging, or Unknown/Disconnected.';
 	};
 	--------------------------------------------------------------------------------------------------------
-	_( BINDINGS_OPT ); -- Bindings
+	_( ACTIONBARS_LABEL, SETTING_GROUP_GAMEPLAY ); -- Action Bars
+	--------------------------------------------------------------------------------------------------------
+	bindingShowExtraBars = _{Bool(false);
+		name = 'Show All Action Bars';
+		desc = 'Show bonus bar configuration for characters without stances.';
+		advd = true;
+	};
+	bindingShowSpellMenuGrid = _{Bool(false);
+		name = 'Show Action Bar Grid on Spell Pickup';
+		desc = 'Display the action bar grid when picking up a spell on the cursor.';
+		advd = true;
+	};
+	disableHotkeyRendering = _{Bool(false);
+		name = 'Disable Hotkey Rendering';
+		desc = 'Disables customization to hotkeys on regular action bars.';
+		advd = true;
+	};
+	useAtlasIcons = _{Bool(not CPAPI.IsClassicEraVersion);
+		name = 'Use Default Hotkey Icons';
+		desc = 'Uses the default hotkey icons instead of the custom icons provided by ConsolePort.';
+		note = 'Requires reload.';
+		hide = CPAPI.IsClassicEraVersion;
+		advd = true;
+	};
+	--------------------------------------------------------------------------------------------------------
+	_( BINDINGS_OPT, SETTING_GROUP_GAMEPLAY ); -- Bindings
 	--------------------------------------------------------------------------------------------------------
 	bindingOverlapEnable = _{Bool(false);
 		name = 'Allow Binding Overlap';
@@ -528,46 +560,37 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Allow binding discrete radial stick inputs.';
 		advd = true;
 	};
-	bindingShowExtraBars = _{Bool(false);
-		name = 'Show All Action Bars';
-		desc = 'Show bonus bar configuration for characters without stances.';
+	bindingAutomaticBackup = _{Bool(true);
+		name = 'Automatic Binding Backups';
+		desc = 'Automatically backup your bindings when you change them, for import and export.';
+		list = 'Presets';
 		advd = true;
-	};
-	bindingShowSpellMenuGrid = _{Bool(false);
-		name = 'Show Action Bar Grid on Spell Pickup';
-		desc = 'Display the action bar grid when picking up a spell on the cursor.';
-	};
-	disableHotkeyRendering = _{Bool(false);
-		name = 'Disable Hotkey Rendering';
-		desc = 'Disables customization to hotkeys on regular action bar.';
-		advd = true;
-	};
-	useAtlasIcons = _{Bool(not CPAPI.IsClassicEraVersion);
-		name = 'Use Default Hotkey Icons';
-		desc = 'Uses the default hotkey icons instead of the custom icons provided by ConsolePort.';
-		note = 'Requires reload.';
-		hide = CPAPI.IsClassicEraVersion;
 	};
 	emulatePADPADDLE1 = _{Pseudokey('none');
-		name = 'Emulate '..(KEY_PADPADDLE1 or 'Paddle 1');
+		name = 'Emulate P1 '..(KEY_PADPADDLE1 or '');
 		desc = 'Keyboard button to emulate the paddle 1 button.';
+		advd = true;
 	};
 	emulatePADPADDLE2 = _{Pseudokey('none');
-		name = 'Emulate '..(KEY_PADPADDLE2 or 'Paddle 2');
+		name = 'Emulate P2 '..(KEY_PADPADDLE2 or '');
 		desc = 'Keyboard button to emulate the paddle 2 button.';
+		advd = true;
 	};
 	emulatePADPADDLE3 = _{Pseudokey('none');
-		name = 'Emulate '..(KEY_PADPADDLE3 or 'Paddle 3');
+		name = 'Emulate P3 '..(KEY_PADPADDLE3 or '');
 		desc = 'Keyboard button to emulate the paddle 3 button.';
+		advd = true;
 	};
 	emulatePADPADDLE4 = _{Pseudokey('none');
-		name = 'Emulate '..(KEY_PADPADDLE4 or 'Paddle 4');
+		name = 'Emulate P4 '..(KEY_PADPADDLE4 or '');
 		desc = 'Keyboard button to emulate the paddle 4 button.';
+		advd = true;
 	};
 	interactButton = _{Button('PAD1', true):Set('none', true);
 		name = 'Click Override Button';
 		desc = 'Button or combination used to click when a given condition applies, but act as a normal binding otherwise.';
 		note = 'Use a shoulder button combined with crosshair for smooth and precise interactions. The click is performed at crosshair or cursor location.';
+		advd = true;
 	};
 	interactCondition = _{String('[vehicleui] nil; [@target,noharm][@target,noexists][@target,harm,dead] TURNORACTION; nil');
 		name = 'Click Override Condition';
@@ -578,22 +601,21 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	--------------------------------------------------------------------------------------------------------
-	_( ADVANCED_OPT ); -- Advanced
+	_('Touchpad', SETTING_GROUP_SYSTEM);
 	--------------------------------------------------------------------------------------------------------
-	actionPageCondition = _{String(nil);
-		name = 'Action Page Condition';
-		desc = 'Macro condition to evaluate action bar page.';
-		hide = true;
+	LEDMode = _{Map(1, {[1] = FACTION, [2] = TARGET, [3] = PLAYER, [4] = 'RGB', [5] = CUSTOM, [6] = OFF});
+		name = 'LED Color Type';
+		desc = 'Type of LED color to use for the touchpad.';
+		note = 'Requires a touchpad with LED support.';
+		hide = not C_GamePad.SetLedColor;
+		list = COLOR;
 	};
-	actionPageResponse = _{String(nil);
-		name = 'Action Page Response';
-		desc = 'Response to condition for custom processing.';
-		hide = true;
-	};
-	classFileOverride = _{String(nil);
-		name = 'Override Class File';
-		desc = 'Override class theme for interface styling.';
-		hide = true;
+	LEDColor = _{Color('ff00fcff');
+		name = 'LED Custom Color';
+		desc = 'Custom color to use for the touchpad LED.';
+		hide = not C_GamePad.SetLedColor;
+		deps = { LEDMode = 5 };
+		list = COLOR;
 	};
 },  --------------------------------------------------------------------------------------------------------
 function(self, key) return (rawget(self, key) or {})[1] end))

@@ -295,7 +295,7 @@ function CPMicroButton:OnMouseUp()
 end
 
 ---------------------------------------------------------------
-local PopoutFrame = {};
+local PopoutFrame = CreateFromMixins(CPToolbarSixSliceInverterMixin)
 ---------------------------------------------------------------
 function PopoutFrame:OnLoad()
 	Mixin(self.Eye, Eye):OnLoad()
@@ -328,45 +328,13 @@ function PopoutFrame:OnLoad()
 	self:HookScript('OnShow', self.MoveMicroButtons)
 end
 
-function PopoutFrame:ToggleSlices(invert)
-    local tLeft  = self.TopLeftCorner;
-    local tRight = self.TopRightCorner;
-	local bLeft  = self.BottomLeftCorner;
-	local bRight = self.BottomRightCorner;
-	local left   = self.LeftEdge;
-	local right  = self.RightEdge;
-
-	tLeft:SetShown(not invert)
-	tRight:SetShown(not invert)
-	bLeft:SetShown(invert)
-	bRight:SetShown(invert)
-
-	self.TopEdge:SetShown(not invert)
-	self.BottomEdge:SetShown(invert)
-
-	left:ClearAllPoints()
-	right:ClearAllPoints()
-
-	if not invert then
-		left:SetPoint('TOPLEFT', tLeft, 'BOTTOMLEFT', 0, 0)
-		left:SetPoint('BOTTOMLEFT', 0, 0)
-		right:SetPoint('TOPRIGHT', tRight, 'BOTTOMRIGHT', 0, 0)
-		right:SetPoint('BOTTOMRIGHT', 0, 0)
-	else
-		left:SetPoint('TOPLEFT', -34, 0)
-		left:SetPoint('BOTTOMRIGHT', bLeft, 'TOPRIGHT', 0, 0)
-		right:SetPoint('TOPRIGHT', 34, 0)
-		right:SetPoint('BOTTOMLEFT', bRight, 'TOPLEFT', 0, 0)
-	end
-end
-
 function PopoutFrame:Layout()
 	local container = self:GetParent()
 	local toolbar = ConsolePortToolbar;
 	local delta = self.inverted and -1 or 1;
 	local orientation = self.inverted and 'TOP' or 'BOTTOM';
 
-	self:ToggleSlices(self.inverted)
+	self:ToggleInversion(self.inverted)
 
 	self.maximumWidth = toolbar:GetWidth() - 64;
 	self.stride = math.floor(self.maximumWidth / 32) - 1;
@@ -518,6 +486,7 @@ function CPToolbar:OnDataLoaded()
 	self:SetTintColor(env:GetColorRGBA('tintColor'))
 	self:ToggleXPBar(env('enableXPBar'))
 	self:ToggleXPBarFade(env('enableXPBar'))
+	return CPAPI.KeepMeForLater;
 end
 
 function CPToolbar:SetProps(props)

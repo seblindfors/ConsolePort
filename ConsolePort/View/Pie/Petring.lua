@@ -55,6 +55,7 @@ function Petring:OnDataLoaded()
 	}))
 	self:UpdateButtons()
 	self:SetAttribute('size', NUM_PET_ACTION_SLOTS)
+	return CPAPI.BurnAfterReading;
 end
 
 function Petring:OnAxisInversionChanged()

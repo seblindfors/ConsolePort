@@ -1,0 +1,33 @@
+## Interface: 110200, 50500, 11507
+## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
+## Title: Console Port |cff69ccf0Rings|r
+## Notes: Rings module
+## RequiredDeps: ConsolePort
+
+## Author: Sebastian Lindfors
+## X-Website: https://github.com/seblindfors/ConsolePort
+## X-Feedback: https://discord.gg/AWeHd48
+## X-Curse-Project-ID: 91376
+## X-WoWI-ID: 23536
+## X-Wago-ID: LvNAYjNo
+
+## SavedVariables: ConsolePortRingsShared
+## SavedVariablesPerCharacter: ConsolePortRings
+
+Database.lua
+Upgrade.lua
+
+View\Ring\Ring.xml
+View\Nested\Nested.xml
+
+Model\Map.lua
+Model\Container.lua
+Model\Collection.lua
+
+Controller\Secure.lua
+Controller\Auto.lua
+Controller\Events.lua
+Controller\Observer.lua
+Controller\Context.lua
+
+View\Config\Config.xml

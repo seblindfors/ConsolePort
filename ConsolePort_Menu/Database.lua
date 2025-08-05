@@ -1,8 +1,8 @@
-local db, Data, _, env = ConsolePort:DB(), ConsolePort:DB('Data'), ...; _, env.db = CPAPI.Define, db;
+local _, Data = CPAPI.LinkEnv(...)
 ------------------------------------------------------------------------------------------------------------
 ConsolePort:AddVariables({
 ------------------------------------------------------------------------------------------------------------
-	_(MAINMENU_BUTTON, 2);
+	_(MAINMENU_BUTTON, INTERFACE_LABEL);
 	gameMenuScale = _{Data.Range(0.85, 0.05, 0.5, 2);
 		name = 'Scale';
 		desc = 'Scale of the game menu and radial companion.';

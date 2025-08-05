@@ -1,0 +1,93 @@
+<Ui>
+	<Slider name="CPConfigSliderTemplate" inherits="CPHorizontalSliderTemplate" virtual="true">
+		<Size x="144" y="17"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontHighlight">
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="TOP"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Low" inherits="GameFontHighlightSmall" text="LOW">
+					<Anchors>
+						<Anchor point="RIGHT" relativePoint="LEFT" x="-4"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="High" inherits="GameFontHighlightSmall" text="HIGH">
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" x="4"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Slider>
+
+	<CheckButton name="CPSetting" virtual="true">
+		<Attributes>
+			<Attribute name="nodeignoremime" value="true" type="boolean"/>
+		</Attributes>
+		<Size x="434" y="32"/>
+		<NormalTexture setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0" inherits="CPAtlas">
+			<KeyValues>
+				<KeyValue key="atlas" value="perks-list-hover" type="string"/>
+				<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+				<KeyValue key="flipHorz" value="true" type="boolean"/>
+			</KeyValues>
+		</NormalTexture>
+		<HighlightTexture alphaMode="ADD" setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0" inherits="CPAtlas">
+			<TexCoords left="1" right="0" top="0" bottom="1"/>
+			<KeyValues>
+				<KeyValue key="atlas" value="perks-list-active" type="string"/>
+				<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+				<KeyValue key="flipHorz" value="false" type="boolean"/>
+			</KeyValues>
+		</HighlightTexture>
+		<ButtonText parentKey="Text" justifyH="LEFT">
+			<Anchors>
+				<Anchor point="LEFT" x="40" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<NormalFont style="GameFontHighlightMed2"/>
+		<HighlightFont style="GameFontNormalMed2"/>
+		<DisabledFont style="CPGameFontDisableMed2"/>
+	</CheckButton>
+
+	<CheckButton name="CPIconSetting" inherits="CPSetting" virtual="true">
+		<Frames>
+			<Button parentKey="Icon" registerForClicks="LeftButtonUp, RightButtonUp">
+				<Size x="24" y="24"/>
+				<Anchors>
+					<Anchor point="LEFT" x="8" y="0"/>
+				</Anchors>
+				<NormalTexture parentKey="NormalTexture" file="Interface\QuestFrame\UI-Quest-BulletPoint"/>
+				<HighlightTexture parentKey="HighlightTexture" file="Interface\Buttons\UI-OptionsButton">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="8" y="8"/>
+					</Anchors>
+				</HighlightTexture>
+			</Button>
+		</Frames>
+	</CheckButton>
+
+	<FontString name="CPSlug" virtual="true" inherits="CPGameFontDisableMed2" mixin="CPSlugMixin" text="NOT_BOUND" justifyH="RIGHT">
+		<Scripts>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</FontString>
+
+	<CheckButton name="CPBinding" virtual="true" inherits="CPIconSetting" registerForClicks="LeftButtonUp, RightButtonUp">
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Slug" inherits="CPSlug">
+					<Anchors>
+						<Anchor point="RIGHT" x="-8"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<Script file="Settings.lua"/>
+</Ui>

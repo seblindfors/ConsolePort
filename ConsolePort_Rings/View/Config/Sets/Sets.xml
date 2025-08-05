@@ -1,0 +1,56 @@
+<Ui>
+	<Script file="Sets.lua"/>
+
+	<CheckButton name="CPRingSetCard" virtual="true" inherits="CPCardIconTemplate">
+		<Size x="290" y="95"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="CPGlueFontNormalHuge" justifyH="LEFT" text="DEFAULT">
+					<Size x="270" y="22"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="14" y="-14"/>
+					</Anchors>
+				</FontString>
+				<FontString parentKey="Info" inherits="CPGlueFontNormalLarge" justifyH="LEFT" text="8 items">
+					<Size x="270" y="18"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT" x="0" y="-2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button parentKey="Binding" registerForClicks="LeftButtonUp, RightButtonUp">
+                <Attributes>
+                    <Attribute name="nodeignore" value="true" type="boolean"/>
+                </Attributes>
+				<Size x="100" y="18"/>
+				<Anchors>
+					<Anchor point="BOTTOMLEFT" x="14" y="16"/>
+				</Anchors>
+				<Layers>
+					<Layer level="OVERLAY">
+						<FontString parentKey="Status" inherits="CPGlueFontDisableLarge" justifyH="LEFT" text="NOT_BOUND" mixin="CPSlugMixin">
+							<Anchors>
+								<Anchor point="LEFT" x="0" y="0"/>
+							</Anchors>
+							<Scripts>
+								<OnShow method="OnShow"/>
+								<OnHide method="OnHide"/>
+							</Scripts>
+						</FontString>
+					</Layer>
+				</Layers>
+				<HighlightTexture parentKey="Highlight" inherits="CPAtlas" alphaMode="ADD" alpha="0.75">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Status" relativePoint="TOPLEFT" x="-8" y="0"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Status" relativePoint="BOTTOMRIGHT" x="8" y="-12"/>
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-gamemode-txtbg" type="string"/>
+					</KeyValues>
+				</HighlightTexture>
+			</Button>
+		</Frames>
+	</CheckButton>
+</Ui>

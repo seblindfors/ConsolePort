@@ -28,8 +28,8 @@ local After, NewTimer, UnitExists = C_Timer.After, C_Timer.NewTimer, UnitExists;
 -- Consts
 ---------------------------------------------------------------
 local MOUSEOVER_THROTTLE = 0.1;
-local LCLICK_BINDING     = 'CAMERAORSELECTORMOVE';
-local RCLICK_BINDING     = 'TURNORACTION';
+local LCLICK_BINDING     = db.Gamepad.Mouse.Binding.LeftClick;
+local RCLICK_BINDING     = db.Gamepad.Mouse.Binding.RightClick;
 
 
 ---------------------------------------------------------------
@@ -373,6 +373,7 @@ end
 function Mouse:OnDataLoaded()
 	self:SetEnabled(db('mouseHandlingEnabled'))
 	self:OnVariableChanged()
+	return CPAPI.BurnAfterReading;
 end
 
 function Mouse:OnVariableChanged()

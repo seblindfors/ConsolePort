@@ -67,17 +67,7 @@ function UnitMenuSecure:ToggleMenu(unit)
 end
 
 function UnitMenuSecure:ToggleHintFocus(enabled)
-	local handle, insecureMenu = db.UIHandle, db.UnitMenu;
-	if enabled then
-		handle:ResetHintBar()
-		handle:SetHintFocus(insecureMenu)
-	else
-		if handle:IsHintFocus(insecureMenu) then
-			handle:HideHintBar()
-		end
-		handle:ClearHintsForFrame(insecureMenu)
-	end
-	return handle;
+	return db.UIHandle:ToggleHintFocus(db.UnitMenu, enabled)
 end
 
 function UnitMenuSecure:ForwardCommand(command)
@@ -88,12 +78,14 @@ function UnitMenuSecure:OnDataLoaded()
 	self:SetAttribute('clickbutton', db.UnitMenu.SecureProxy)
 	self:SetFrameRef('Cursor', db.Raid)
 	self:Execute([[cursor = self:GetFrameRef('Cursor')]])
+	return CPAPI.BurnAfterReading;
 end
 
 ---------------------------------------------------------------
 -- Secure
 ---------------------------------------------------------------
 UnitMenuSecure:RegisterForClicks('AnyDown')
+UnitMenuSecure:SetAttribute(CPAPI.ActionUseOnKeyDown, true)
 UnitMenuSecure:Execute([[
 	UNIT_DRIVER = '[@%s,exists] %s; nil';
 	BUTTONS = newtable();
@@ -173,8 +165,6 @@ UnitMenuSecure:Wrap('PreClick', ([[
 ---------------------------------------------------------------
 local UnitMenuTrigger = {
 ---------------------------------------------------------------
-	TimeUntilHints   = 0.25;
-	TimeUntilTrigger = 1.5;
 	PreClickHandler = ([[
 		local type = %q;
 		self:SetAttribute(type, down and 'macro' or nil)
@@ -182,11 +172,11 @@ local UnitMenuTrigger = {
 };
 
 function UnitMenuTrigger:OnLoad()
+	CPTimedButtonContextMixin.OnLoad(self)
 	self:SetAttribute(CPAPI.ActionPressAndHold, true)
 	self:SetAttribute('macrotext', self.macrotext)
 	self:SetAttribute('binding', self.binding)
 	self:RegisterForClicks('AnyDown', 'AnyUp')
-	self:HookScript('OnClick', self.OnContext)
 	self.secure = UnitMenuSecure;
 	self.secure:WrapScript(self, 'PreClick', self.PreClickHandler)
 end
@@ -199,28 +189,19 @@ function UnitMenuTrigger:ClearOverrides()
 	ClearOverrideBindings(self)
 end
 
-function UnitMenuTrigger:OnContext(button, enable)
-	if self.display then
-		self.secure:ToggleHintFocus(false)
-	end
-	self.timer, self.display, self.button = 0, false, enable and button or nil;
-	self:SetScript('OnUpdate', enable and self.OnContextUpdate or nil)
+function UnitMenuTrigger:IsTimedContextValid()
+	return not InCombatLockdown() and UnitExists('target')
 end
 
-function UnitMenuTrigger:OnContextUpdate(elapsed)
-	if InCombatLockdown() or not UnitExists('target') then
-		return self:OnContext(self.button, false)
-	end
-	self.timer = self.timer + elapsed;
-	if self.timer > self.TimeUntilTrigger then
-		self:OnContext(self.button, false)
-		self.secure:Run([[ self::SetUnit('target') ]])
-	elseif not self.display and self.timer > self.TimeUntilHints then
-		self.display = true;
-		local handle = self.secure:ToggleHintFocus(true)
-		local hint = handle:AddHint(self.button, OPTIONS_MENU)
-		hint:SetTimer(self.TimeUntilTrigger - self.timer)
-	end
+function UnitMenuTrigger:OnTimedHintsDisplay(enabled, remaining, button)
+	local handle = self.secure:ToggleHintFocus(enabled)
+	if not enabled then return end;
+	local hint = handle:AddHint(button, OPTIONS_MENU)
+	hint:SetTimer(remaining)
+end
+
+function UnitMenuTrigger:OnTimedContextTrigger()
+	self.secure:Run([[ self::SetUnit('target') ]])
 end
 
 ---------------------------------------------------------------
@@ -242,7 +223,7 @@ db:RegisterSafeCallback('OnNewBindings', function(self)
 		local button = info.button;
 		if not button then
 			button = CreateFrame('Button', '$parent'..cmd, UnitMenuSecure, 'SecureActionButtonTemplate')
-			FrameUtil.SpecializeFrameWithMixins(button, UnitMenuTrigger, info)
+			CPAPI.Specialize(button, CPTimedButtonContextMixin, UnitMenuTrigger, info)
 			info.button = button;
 		end
 		return button;

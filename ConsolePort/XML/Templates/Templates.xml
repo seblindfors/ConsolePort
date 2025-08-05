@@ -1,18 +1,20 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
 	<Script file="Templates.lua"/>
 
 	<Texture name="CPAtlas" virtual="true" mixin="CPAtlasMixin">
 		<Scripts>
-			<OnLoad method="OnLoad"/>
+			<OnLoad method="OnLoad" inherit="prepend"/>
 		</Scripts>
 	</Texture>
 
+	<Line name="CPSplineLine" thickness="8" virtual="true" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1" />
+
 	<Frame name="CPFrameTemplate" virtual="true" mixin="CPFrameMixin">
 		<KeyValues>
-			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
+			<KeyValue key="layoutAtlas" value="glues-gamemode-bg" type="string"/>
+			<KeyValue key="layoutScale" value="0.5" type="number"/>
 			<KeyValue key="layoutAlpha" value="0.75" type="number"/>
-			<KeyValue key="bottomPadding" value="32" type="number"/>
+			<KeyValue key="bottomPadding" value="8" type="number"/>
 		</KeyValues>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
@@ -33,35 +35,6 @@
 			<KeyValue key="textRight2Font" value="GameFontNormalMed3" type="string"/>
 		</KeyValues>
 	</GameTooltip>
-
-	<!-- charactercreate-ring-select -->
-	<Texture name="CPRingSelectTexture" virtual="true" file="interface\AddOns\ConsolePort\Assets\Textures\Atlas\General_Atlas">
-		<Size x="236" y="236"/>
-		<TexCoords left="0.27392578125" right="0.38916015625" top="0.5185546875" bottom="0.7490234375"/>
-	</Texture>
-
-	<!-- charactercreate-ring-metaldark -->
-	<Texture name="CPRingMetalDarkTexture" virtual="true" file="interface\AddOns\ConsolePort\Assets\Textures\Atlas\General_Atlas">
-		<Size x="236" y="236"/>
-		<TexCoords left="0.13720703125" right="0.27294921875" top="0.2763671875" bottom="0.5498046875"/>
-	</Texture>
-
-
-	<!-- CharCustomizeFrameWithTooltipMixin -->
-	<Frame name="CPFrameWithTooltipTemplate" mixin="CPFrameWithTooltipMixin" virtual="true">
-		<KeyValues>
-			<KeyValue key="tooltipAnchor" value="ANCHOR_TOPRIGHT" type="string"/>
-			<KeyValue key="tooltipXOffset" value="10" type="number"/>
-			<KeyValue key="tooltipYOffset" value="0" type="number"/>
-			<KeyValue key="tooltipMinWidth" value="300" type="number"/>
-			<KeyValue key="tooltipPadding" value="5" type="number"/>
-		</KeyValues>
-		<Scripts>
-			<OnLoad method="OnLoad"/>
-			<OnEnter method="OnEnter"/>
-			<OnLeave method="OnLeave"/>
-		</Scripts>
-	</Frame>
 
 	<Button name="CPSmoothRectangleButtonTemplate" virtual="true" mixin="CPSmoothButtonMixin" inherits="BackdropTemplate">
 		<Size x="230" y="60"/>
@@ -124,242 +97,6 @@
 			<OnLeave method="OnLeave"/>
 		</Scripts>
 	</Button>
-
-	<Frame name="CPResizeLayoutFrame" mixin="CPResizeLayoutMixin" virtual="true">
-		<!--
-		<KeyValues>
-			Use fixedWidth/fixedHeight if you want a fixed size; otherwise size will be dynamically
-			calculated based on the sizes of child frames
-			<KeyValue key="fixedWidth" value="300" type="number"/>
-			<KeyValue key="fixedHeight" value="300" type="number"/>
-			<KeyValue key="minimumWidth" value="300" type="number"/>
-			<KeyValue key="minimumHeight" value="300" type="number"/>
-			<KeyValue key="maximumWidth" value="300" type="number"/>
-			<KeyValue key="maximumHeight" value="300" type="number"/>
-			<KeyValue key="widthPadding" value="300" type="number"/>
-			<KeyValue key="heightPadding" value="300" type="number"/>
-		</KeyValues>
-		-->
-		<Scripts>
-			<OnShow method="Layout"/>
-			<OnUpdate method="OnUpdate"/>
-		</Scripts>
-	</Frame>
-
-	<Frame name="CPSelectionPopoutDetails" mixin="CPSelectionPopoutDetailsMixin" virtual="true">
-		<Layers>
-			<Layer level="ARTWORK" textureSubLevel="1">
-				<FontString parentKey="SelectionNumber" font="GameFontNormal" justifyH="LEFT">
-					<Size x="25" y="20"/>
-					<Anchors>
-						<Anchor point="LEFT"/>
-					</Anchors>
-				</FontString>
-				<FontString parentKey="SelectionName" font="GameFontNormal" justifyH="LEFT"  maxLines="1" hidden="true">
-					<Size x="25" y="20"/>
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.SelectionNumber" relativePoint="RIGHT"/>
-					</Anchors>
-				</FontString>
-				<Texture parentKey="ColorSwatch1" hidden="true">
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.SelectionNumber" relativePoint="RIGHT"/>
-					</Anchors>
-				</Texture>
-				<Texture parentKey="ColorSwatch2" hidden="true">
-					<Size x="36" y="8"/>
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.SelectionNumber" relativePoint="RIGHT" x="18" y="-2"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="ARTWORK" textureSubLevel="2">
-				<Texture parentKey="ColorSwatch1Glow" alphaMode="ADD" hidden="true">
-					<Anchors>
-						<Anchor point="CENTER" relativeKey="$parent.ColorSwatch1" relativePoint="CENTER"/>
-					</Anchors>
-				</Texture>
-				<Texture parentKey="ColorSwatch2Glow" alphaMode="ADD" hidden="true">
-					<Size x="36" y="8"/>
-					<Anchors>
-						<Anchor point="CENTER" relativeKey="$parent.ColorSwatch2" relativePoint="CENTER"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-			<Layer level="ARTWORK" textureSubLevel="3">
-				<Texture parentKey="ColorSelected" hidden="true">
-					<Anchors>
-						<Anchor point="LEFT" relativeKey="$parent.ColorSwatch1" relativePoint="LEFT" x="-4"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
-		<Scripts>
-			<OnLoad method="OnLoad"/>
-		</Scripts>
-	</Frame>
-
-	<Button name="CPSelectionPopoutEntryTemplate" inherits="CPResizeLayoutFrame" mixin="CPSelectionPopoutEntryMixin" virtual="true">
-		<Size x="1" y="1"/>
-		<ButtonText parentKey="ButtonText" setAllPoints="true"/>
-		<KeyValues>
-			<KeyValue key="widthPadding" value="14" type="number"/>
-		</KeyValues>
-		<Frames>
-			<Frame parentKey="SelectionDetails" inherits="CPSelectionPopoutDetails">
-				<Size x="144" y="20"/>
-			</Frame>
-			<Frame parentKey="HighlightBGTex" alpha="0" setAllPoints="true">
-				<KeyValues>
-					<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
-				</KeyValues>
-				<Layers>
-					<Layer level="BACKGROUND">
-						<Texture parentKey="Left">
-							<Anchors>
-								<Anchor point="TOPLEFT"/>
-								<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT" x="12"/>
-							</Anchors>
-						</Texture>
-						<Texture parentKey="Right">
-							<TexCoords left="1" right="0" top="0" bottom="1"/>
-							<Anchors>
-								<Anchor point="BOTTOMRIGHT"/>
-								<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" x="-12"/>
-							</Anchors>
-						</Texture>
-						<Texture parentKey="Middle">
-							<Anchors>
-								<Anchor point="TOPLEFT" relativeKey="$parent.Left" relativePoint="TOPRIGHT"/>
-								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Right" relativePoint="BOTTOMLEFT"/>
-							</Anchors>
-						</Texture>
-					</Layer>
-				</Layers>
-			</Frame>
-		</Frames>
-		<Scripts>
-			<OnLoad method="OnLoad"/>
-			<OnClick method="OnClick"/>
-			<OnEnter method="OnEnter"/>
-			<OnLeave method="OnLeave"/>
-		</Scripts>
-	</Button>
-
-	<Frame name="CPSelectionPopoutTemplate" inherits="CPResizeLayoutFrame" mixin="CPSelectionPopoutMixin" virtual="true">
-		<Size x="1" y="1"/>
-		<KeyValues>
-			<KeyValue key="widthPadding" value="6" type="number"/>
-			<KeyValue key="heightPadding" value="32" type="number"/>
-		</KeyValues>
-
-		<Frames>
-			<Frame parentKey="Border" useParentLevel="true" inherits="NineSlicePanelTemplate">
-				<KeyValues>
-					<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
-				</KeyValues>
-			</Frame>
-		</Frames>
-
-		<Scripts>
-			<OnShow method="OnShow"/>
-			<OnMouseWheel function="nop"/>
-		</Scripts>
-	</Frame>
-
-	<Button name="CPSelectionPopoutButtonTemplate" mixin="CPSelectionPopoutButtonMixin" virtual="true">
-		<Size x="150" y="38"/>
-		<NormalTexture parentKey="NormalTexture"/>
-		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" alpha="0"/>
-		<PushedTextOffset x="2" y="-2"/>
-		<ButtonText parentKey="ButtonText">
-			<Anchors>
-				<Anchor point="TOPLEFT" x="10" y="-10"/>
-				<Anchor point="BOTTOMRIGHT" x="-10" y="10"/>
-			</Anchors>
-		</ButtonText>
-		<Frames>
-			<Frame parentKey="SelectionDetails" inherits="CPSelectionPopoutDetails, CPResizeLayoutFrame" useParentLevel="true">
-				<Size x="1" y="1"/>
-			</Frame>
-			<Frame parentKey="Popout" inherits="CPSelectionPopoutTemplate" hidden="true">
-				<Anchors>
-					<Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" x="3" y="11"/>
-				</Anchors>
-			</Frame>
-		</Frames>
-		<Scripts>
-			<OnLoad method="OnLoad"/>
-			<OnHide method="OnHide"/>
-			<OnClick method="OnClick"/>
-			<OnMouseWheel method="OnMouseWheel"/>
-			<OnEnter method="OnEnter"/>
-			<OnLeave method="OnLeave"/>
-		</Scripts>
-	</Button>
-
-	<Frame name="CPSelectionPopoutWithButtonsAndLabelTemplate" mixin="CPSelectionPopoutWithButtonsAndLabelMixin" virtual="true">
-		<Size x="223" y="38"/>
-		<Layers>
-			<Layer level="ARTWORK">
-				<FontString parentKey="Label" font="GameFontHighlightMed2">
-					<Anchors>
-						<Anchor point="RIGHT" relativeKey="$parent.DecrementButton" relativePoint="LEFT" x="-34"/>
-					</Anchors>
-				</FontString>
-			</Layer>
-		</Layers>
-		<Frames>
-			<Button parentKey="SelectionPopoutButton" inherits="CPSelectionPopoutButtonTemplate">
-				<Size x="150" y="38"/>
-				<Anchors>
-					<Anchor point="CENTER"/>
-				</Anchors>
-			</Button>
-			<Button parentKey="IncrementButton" motionScriptsWhileDisabled="true">
-				<Size x="32" y="32"/>
-				<Anchors>
-					<Anchor point="LEFT" relativeKey="$parent.SelectionPopoutButton" relativePoint="RIGHT" x="4"/>
-				</Anchors>
-				<Scripts>
-					<OnClick>
-						self:GetParent():Increment();
-					</OnClick>
-				</Scripts>
-				<NormalTexture file="Interface\Buttons\UI-SpellbookIcon-NextPage-Up"/>
-				<PushedTexture file="Interface\Buttons\UI-SpellbookIcon-NextPage-Down"/>
-				<DisabledTexture file="Interface\Buttons\UI-SpellbookIcon-NextPage-Disabled"/>
-				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
-			</Button>
-			<Button parentKey="DecrementButton" motionScriptsWhileDisabled="true">
-				<Size x="32" y="32"/>
-				<Anchors>
-					<Anchor point="RIGHT" relativeKey="$parent.SelectionPopoutButton" relativePoint="LEFT" x="-5"/>
-				</Anchors>
-				<Scripts>
-					<OnClick>
-						self:GetParent():Decrement();
-					</OnClick>
-				</Scripts>
-				<NormalTexture file="Interface\Buttons\UI-SpellbookIcon-PrevPage-Up"/>
-				<PushedTexture file="Interface\Buttons\UI-SpellbookIcon-PrevPage-Down"/>
-				<DisabledTexture file="Interface\Buttons\UI-SpellbookIcon-PrevPage-Disabled"/>
-				<HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD"/>
-			</Button>
-		</Frames>
-	</Frame>
-
-	<Slider name="CPHorizontalSliderTemplate" orientation="HORIZONTAL" enableMouse="true" virtual="true" inherits="BackdropTemplate">
-		<HitRectInsets>
-			<AbsInset left="0" right="0" top="-10" bottom="-10"/>
-		</HitRectInsets>
-		<KeyValues>
-			<KeyValue key="backdropInfo" value="BACKDROP_SLIDER_8_8" type="global"/>
-		</KeyValues>
-		<ThumbTexture parentKey="Thumb" name="$parentThumb" file="Interface\Buttons\UI-SliderBar-Button-Horizontal">
-			<Size x="32" y="32"/>
-		</ThumbTexture>
-	</Slider>
 
 	<Frame name="CPAnimatedLootHeaderTemplate" virtual="true" mixin="CPAnimatedLootHeaderMixin">
 		<Size x="235" y="25"/>
@@ -434,80 +171,6 @@
 		<Scale parentKey="Enlarge" scaleX="1.35" scaleY="1.35" duration="0.1" smoothing="OUT" />
 		<Alpha parentKey="Alpha" fromAlpha="1" toAlpha="0.5" duration="0.1" startDelay="0.1"/>
 	</AnimationGroup>
-
-	<Frame name="CPFlashableFiligreeTemplate" mixin="CPFlashableFiligreeMixin" virtual="true">
-		<Size x="806" y="300"/>
-		<Layers>
-			<Layer level="BACKGROUND" textureSubLevel="3">
-				<Texture parentKey="ActivationExpandFx" alpha="1" alphaMode="ADD">
-					<Size x="160" y="160"/>
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</Texture>
-				<MaskTexture parentKey="ActivationExpandFxMask" vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE">
-					<Size x="1209" y="558"/>
-					<Anchors>
-						<Anchor point="CENTER" x="130" y="-60"/>
-					</Anchors>
-					<MaskedTextures>
-						<MaskedTexture childKey="ActivationExpandFx"/>
-					</MaskedTextures>
-				</MaskTexture>
-				<Texture parentKey="ActivationFx1" parentArray="fxTextures" alpha="1" alphaMode="ADD">
-					<Size x="230" y="230"/>
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</Texture>
-				<Texture parentKey="ActivationFx2" parentArray="fxTextures" alpha="1" alphaMode="ADD">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
-					</Anchors>
-				</Texture>
-				<Texture parentKey="ActivationFx3" parentArray="fxTextures" alpha="1" alphaMode="ADD">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
-					</Anchors>
-				</Texture>
-				<Texture parentKey="ActivationFx4" parentArray="fxTextures" alpha="1" alphaMode="ADD">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
-					</Anchors>
-				</Texture>
-				<MaskTexture parentKey="ActivationFxMask" atlas="CircleMaskScalable" vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.ActivationFx1"/>
-						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.ActivationFx1"/>
-					</Anchors>
-					<MaskedTextures>
-						<MaskedTexture childKey="ActivationFx1"/>
-						<MaskedTexture childKey="ActivationFx2"/>
-						<MaskedTexture childKey="ActivationFx3"/>
-						<MaskedTexture childKey="ActivationFx4"/>
-					</MaskedTextures>
-				</MaskTexture>
-			</Layer>
-		</Layers>
-		<Animations>
-			<AnimationGroup parentKey="filigreeAnim" setToFinalAlpha="true" inherits="TargetsVisibleWhilePlayingAnimGroupTemplate">
-				<Scale childKey="ActivationExpandFx" parentKey="ActivationExpandFxScale" smoothing="IN" duration="1.4" fromScaleX="1" fromScaleY="1" toScaleX="10" toScaleY="10"/>
-				<Alpha childKey="ActivationExpandFx" parentKey="ActivationExpandFxAlpha" smoothing="IN" duration="1.4" fromAlpha="1" toAlpha="0"/>
-				<Alpha childKey="ActivationFx1" parentKey="ActivationFx1Alpha" smoothing="OUT" duration="1.2" fromAlpha="1" toAlpha="0"/>
-				<Alpha childKey="ActivationFx2" parentKey="ActivationFx2Alpha" smoothing="OUT" duration="1.2" fromAlpha="1" toAlpha="0"/>
-				<Alpha childKey="ActivationFx3" parentKey="ActivationFx3Alpha" smoothing="OUT" duration=".3" fromAlpha=".3" toAlpha="0"/>
-				<Alpha childKey="ActivationFx4" parentKey="ActivationFx4Alpha" smoothing="OUT" duration=".5" fromAlpha=".2" toAlpha="0"/>
-				<Scale childKey="ActivationFx3" parentKey="ActivationFx3Scale" duration=".3" fromScaleX="1" fromScaleY="1" toScaleX="1.5" toScaleY="1.5"/>
-				<Scale childKey="ActivationFx4" parentKey="ActivationFx4Scale" duration=".5" fromScaleX="1" fromScaleY="1" toScaleX="1.5" toScaleY="1.5"/>
-			</AnimationGroup>
-		</Animations>
-		<Scripts>
-			<OnLoad method="OnLoad"/>
-		</Scripts>
-	</Frame>
 
 	<Frame name="CPSwatchHighlightTemplate" virtual="true" mixin="CPSwatchHighlightMixin">
 		<Size x="64" y="64"/>
@@ -609,4 +272,5 @@
 		</Layers>
 	</Frame>
 
+	<Frame name="CPToolbarSixSliceInverterFrame" virtual="true" mixin="CPToolbarSixSliceInverterMixin" inherits="CPToolbarNineSliceFrame"/>
 </Ui>

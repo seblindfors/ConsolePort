@@ -1,0 +1,102 @@
+<Ui>
+	<GameTooltip name="CPCredits" virtual="true" inherits="SharedTooltipTemplate" scale="1.25">
+		<KeyValues>
+			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
+		</KeyValues>
+		<Frames>
+			<Frame parentKey="Slot">
+				<Size x="68" y="68"/>
+				<Anchors>
+					<Anchor point="TOPRIGHT" relativePoint="TOPLEFT" x="4" y="0"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND" textureSubLevel="1">
+						<Texture parentKey="Border" inherits="CPAtlas" setAllPoints="true">
+							<KeyValues>
+								<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-AddRow" type="string"/>
+								<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+							</KeyValues>
+						</Texture>
+					</Layer>
+					<Layer level="BACKGROUND" textureSubLevel="2">
+						<Texture parentKey="Hilite" inherits="CPAtlas">
+							<KeyValues>
+								<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Mouseover" type="string"/>
+								<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+							</KeyValues>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.Border" x="1" y="-1"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Border" x="-8" y="9"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+					<Layer level="BACKGROUND" textureSubLevel="3">
+						<Texture parentKey="Logo" file="Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP">
+							<Size x="64" y="64"/>
+							<Anchors>
+								<Anchor point="CENTER" relativeKey="$parent.Border" x="-4" y="2"/>
+							</Anchors>
+						</Texture>
+						<MaskTexture parentKey="LogoMask" file="Interface\Masks\CircleMaskScalable">
+							<Size x="64" y="64"/>
+							<Anchors>
+								<Anchor point="CENTER" relativeKey="$parent.Logo" x="0" y="2"/>
+							</Anchors>
+							<MaskedTextures>
+								<MaskedTexture childKey="Logo"/>
+							</MaskedTextures>
+						</MaskTexture>
+					</Layer>
+					<Layer level="BACKGROUND" textureSubLevel="4">
+						<Texture parentKey="Point" file="Interface\AddOns\ConsolePort_Config\Assets\Cursor_Point_96.png">
+							<Size x="42" y="42"/>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativePoint="CENTER" relativeKey="$parent.Logo" x="-4" y="4"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+	</GameTooltip>
+
+	<CheckButton name="CPAboutLinkButton" virtual="true" inherits="CPCardSmallTemplate">
+		<Size x="200" y="180"/>
+		<ButtonText parentKey="Text" inherits="CPHeaderFont" justifyH="CENTER">
+			<Anchors>
+				<Anchor point="BOTTOM" y="24"/>
+			</Anchors>
+		</ButtonText>
+		<NormalTexture parentKey="NormalTexture">
+			<Size x="100" y="100"/>
+			<Anchors>
+				<Anchor point="CENTER" y="8"/>
+			</Anchors>
+		</NormalTexture>
+		<HighlightTexture parentKey="HighlightTexture">
+			<Size x="100" y="100"/>
+			<Anchors>
+				<Anchor point="CENTER" y="8"/>
+			</Anchors>
+		</HighlightTexture>
+		<PushedTexture parentKey="PushedTexture">
+			<Size x="100" y="100"/>
+			<Anchors>
+				<Anchor point="CENTER" y="6"/>
+			</Anchors>
+		</PushedTexture>
+	</CheckButton>
+
+	<Frame name="CPAboutLinkTray" inherits="HorizontalButtonTrayTemplate" virtual="true">
+		<Size x="1" y="1"/>
+		<KeyValues>
+			<KeyValue key="expand" value="true" type="boolean"/>
+			<KeyValue key="widthPadding" value="4" type="number"/>
+			<KeyValue key="spacing" value="20" type="number"/>
+			<KeyValue key="templateType" value="CheckButton" type="string"/>
+			<KeyValue key="buttonTemplate" value="CPAboutLinkButton" type="string"/>
+		</KeyValues>
+	</Frame>
+
+	<Script file="About.lua"/>
+</Ui>

@@ -1,7 +1,7 @@
 ----------------------------------------------------------------
 -- LibActionButton-1.0 and LibButtonGlow-1.0 wrapper for CP
 ----------------------------------------------------------------
-local Lib = LibStub:NewLibrary('ConsolePortActionButton', 1) -- TODO: rename the lib?
+local Lib = LibStub:NewLibrary('ConsolePortActionButton', 1)
 if not Lib then return end
 local LAB = LibStub('LibActionButton-1.0')
 local LBG = LibStub('LibButtonGlow-1.0')
@@ -66,6 +66,17 @@ end
 Lib.Skin, Lib.SkinUtility = {}, {};
 ---------------------------------------------------------------
 
+function Lib.SkinUtility.SetTexture(self, texture, ...)
+	if self.unmount then
+		self.unmount = self.unmount(self, self:GetParent(), ...)
+	end
+	if (type(texture) == 'function') then
+		self.unmount = texture(self, self:GetParent(), ...)
+		return true;
+	end
+	return CPAPI.Index(self).SetTexture(self, texture, ...)
+end
+
 function Lib.SkinUtility.GetIconMask(self)
 	if self.IconMask then
 		return self.IconMask;
@@ -127,6 +138,11 @@ function Lib.SkinUtility.SkinChargeCooldown(self, skin, reset)
 	end)
 end
 
+function Lib.SkinUtility.NegateAssistedCombat(self)
+	-- Negate LAB:UpdateAssistedCombatRotationFrame.
+	self.AssistedCombatRotationFrame = { UpdateState = nop };
+end
+
 do -- Lib.SkinUtility.SkinOverlayGlow
 	function Lib.SkinUtility.SkinOverlayGlow(self, onShow, onHide)
 		if self.__LBGoverlaySkin then return end;
@@ -142,34 +158,10 @@ end -- Lib.SkinUtility.SkinOverlayGlow
 
 do -- Lib.Skin.ColorSwatchProc
 	local SkinOverlayGlow = Lib.SkinUtility.SkinOverlayGlow;
-	local OverlayPool = CreateFramePool('Frame', UIParent, 'CPFlashableFiligreeTemplate')
 	local SwatchPool = CreateFramePool('Frame', UIParent, 'CPSwatchHighlightTemplate')
 
-	local function OnOverlayFinished(self)
-		OverlayPool:Release(self:GetParent())
-	end
-
 	local function OnShowOverlay(self)
-		local overlay, swatch, newObj = self.__overlay, self.__swatch;
-		if not overlay and not self.__procNoFlash then
-			overlay, newObj = OverlayPool:Acquire()
-			overlay:SetParent(self:GetParent())
-			overlay:SetAnchor(self)
-			overlay:SetSize(self:GetSize() * 2)
-			overlay:SetScale(self.__procSize)
-			overlay:SetTexture(self.SpellHighlightTexture:GetTexture())
-			overlay:SetTexCoord(self.SpellHighlightTexture:GetTexCoord())
-			overlay:SetLooping('BOUNCE')
-			if self.GetOverlayColor then
-				overlay:SetVertexColor(self:GetOverlayColor())
-			end
-			if newObj then
-				overlay:SetFrameLevel(2)
-				overlay:SetAnimationSpeedMultiplier(0.75)
-				overlay.filigreeAnim:SetScript('OnFinished', OnOverlayFinished)
-			end
-			overlay:Show()
-		end
+		local swatch = self.__swatch;
 		if not swatch and not self.__procNoSwatch then
 			swatch = SwatchPool:Acquire()
 			swatch:SetParent(self)
@@ -177,33 +169,23 @@ do -- Lib.Skin.ColorSwatchProc
 			swatch:SetTexture(self.__procText)
 			swatch:Show()
 		end
-		if overlay then
-			overlay:Stop()
-			overlay:Play()
-		end
 		if self.OnOverlayGlow then
-			self:OnOverlayGlow(true, overlay, swatch)
+			self:OnOverlayGlow(true, swatch)
 		end
-		self.__overlay, self.__swatch = overlay, swatch;
+		self.__swatch = swatch;
 	end
 
 	local function OnHideOverlay(self)
 		SwatchPool:Release(self.__swatch, true)
-		local overlay = self.__overlay;
-		if overlay then
-			overlay:SetLooping('NONE')
-		end
 		if self.OnOverlayGlow then
-			self:OnOverlayGlow(false, self.__overlay, self.__swatch)
+			self:OnOverlayGlow(false, self.__swatch)
 		end
-		self.__overlay, self.__swatch = nil, nil;
+		self.__swatch = nil;
 	end
 
 	Lib.Skin.ColorSwatchProc = function(self, config) config = config or {};
-		self.__procSize     = config.procSize or self.__procSize or 0.6;
 		self.__procText     = config.procText or self.__procText;
 		self.__procNoSwatch = config.noSwatch or self.__procNoSwatch;
-		self.__procNoFlash  = config.noFlash  or self.__procNoFlash;
 		SkinOverlayGlow(self, OnShowOverlay, OnHideOverlay)
 	end;
 end -- Lib.Skin.ColorSwatchProc
@@ -218,6 +200,7 @@ do -- Lib.Skin.RingButton
 		local obj, scale;
 		local r, g, b = CPPieMenuMixin.SliceColors.Accent:GetRGB()
 		local size = self:GetSize()
+		Lib.SkinUtility.NegateAssistedCombat(self)
 		do obj = self.NormalTexture;
 			scale = 110 / 64;
 			obj:ClearAllPoints()
@@ -293,8 +276,6 @@ do -- Lib.Skin.RingButton
 			cd:SetUseCircularEdge(false)
 		end)
 		SkinOverlayGlow(self, {
-			procSize = 0.62;
-			noFlash  = true;
 			procText = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Cooldown\Swipe]];
 		})
 		if not self.RingMasked then
@@ -349,6 +330,90 @@ do Lib.Skin.UtilityRingButton = function(self)
 end;
 end -- Lib.Skin.UtilityRingButton
 
+do -- Lib.Skin.SlotButton
+	local UpdateLocal;
+	local function MakeSkin()
+		if not CPAPI.IsRetailVersion then
+			local TextureInfo = {
+				NormalTexture = {
+					atlas = 'UI-HUD-ActionBar-IconFrame-AddRow';
+					size  = {52, 51};
+				};
+				PushedTexture = {
+					atlas = 'UI-HUD-ActionBar-IconFrame-AddRow-Down';
+					size  = {52, 51};
+				};
+				HighlightTexture = {
+					atlas = 'UI-HUD-ActionBar-IconFrame-Mouseover';
+					size  = {46, 45};
+				};
+				CheckedTexture = {
+					atlas = 'UI-HUD-ActionBar-IconFrame-Mouseover';
+					size  = {46, 45};
+				};
+			};
+			function UpdateLocal(self)
+				if self.MasqueSkinned then return end;
+				if self.config.hideElements.border then
+					self.NormalTexture:SetTexture()
+					self.PushedTexture:SetTexture()
+					self.icon:RemoveMaskTexture(self.IconMask)
+					self.HighlightTexture:SetSize(52, 51)
+					self.HighlightTexture:SetPoint('TOPLEFT', self, 'TOPLEFT', -2.5, 2.5)
+					self.CheckedTexture:SetSize(52, 51)
+					self.CheckedTexture:SetPoint('TOPLEFT', self, 'TOPLEFT', -2.5, 2.5)
+					self.cooldown:ClearAllPoints()
+					self.cooldown:SetAllPoints()
+				else
+					for key, info in pairs(TextureInfo) do
+						local texture = self[key];
+						CPAPI.SetAtlas(texture, info.atlas)
+						texture:SetSize(unpack(info.size))
+						texture:ClearAllPoints()
+						texture:SetPoint('TOPLEFT', 0, 0)
+					end
+					self.icon:SetAllPoints()
+					self.cooldown:ClearAllPoints()
+					self.cooldown:SetPoint('TOPLEFT', self, 'TOPLEFT', 3, -2)
+					self.cooldown:SetPoint('BOTTOMRIGHT', self, 'BOTTOMRIGHT', -3, 3)
+				end
+				local width = self:GetWidth();
+				self.Name:SetWidth(width)
+			end
+		else
+			function UpdateLocal(self)
+				if self.MasqueSkinned then return end;
+				local width = self:GetWidth();
+				self.Name:SetWidth(width)
+			end
+		end
+		MakeSkin = nil;
+		return UpdateLocal;
+	end
+
+	Lib.Skin.SlotButton = function(self)
+		self.UpdateLocal = UpdateLocal or MakeSkin()
+		if not CPAPI.IsRetailVersion then
+			-- Assert assets on all client flavors
+			local skinner = Lib.SkinUtility;
+			skinner.GetIconMask(self)
+			skinner.GetHighlightTexture(self)
+			skinner.GetCheckedTexture(self)
+			skinner.GetPushedTexture(self)
+			skinner.GetCheckedTexture(self)
+			skinner.GetSlotBackground(self)
+			self:SetSize(45, 45)
+			self.IconMask:SetPoint('CENTER', self.icon, 'CENTER', 0, 0)
+			self.IconMask:SetSize(46, 46)
+			self.IconMask:SetTexture(
+				CPAPI.GetAsset([[Textures\Button\EmptyIcon]]),
+				'CLAMPTOBLACKADDITIVE', 'CLAMPTOBLACKADDITIVE'
+			);
+		end
+		self:UpdateLocal()
+	end;
+end -- Lib.Skin.SlotButton
+
 ---------------------------------------------------------------
 Lib.TypeMetaMap = {};
 ---------------------------------------------------------------
@@ -356,6 +421,7 @@ do -- Workaround for LAB's private type meta map.
 	setmetatable(Lib.TypeMetaMap, {__index = function(self, k)
 		local ReferenceHeader = CreateFrame('Frame', 'ConsolePortABRefHeader', nil, 'SecureHandlerStateTemplate')
 		local ReferenceButton = LAB:CreateButton('ref', '$parentButton', ReferenceHeader)
+		Lib.SkinUtility.NegateAssistedCombat(ReferenceButton)
 		for meta, dummy in pairs({
 			empty  = 0;
 			action = 1;
@@ -373,6 +439,11 @@ do -- Workaround for LAB's private type meta map.
 		ReferenceButton:UpdateAction(true)
 		return rawget(setmetatable(self, nil), k);
 	end})
+
+	function Lib:GetTypeMetaMap()
+		local dummy = self.TypeMetaMap.empty; -- force creation
+		return self.TypeMetaMap;
+	end
 end
 
 ---------------------------------------------------------------

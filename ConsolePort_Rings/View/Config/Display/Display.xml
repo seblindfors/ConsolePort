@@ -1,0 +1,5 @@
+<Ui>
+	<Script file="Ring.lua"/>
+	<Script file="Details.lua"/>
+	<Script file="Display.lua"/>
+</Ui>

@@ -27,6 +27,7 @@ end
 -- Dictionary operations
 ---------------------------------------------------------------
 function Dictionary:Generate()
+	if not env.DictMatchPattern then return end;
 	-- generates a localized game-oriented dictionary (5000+ words on enUS clients)
 	-- scan the global environment for strings
 	local genv = getfenv(0)

@@ -1,6 +1,4 @@
-## Interface: 110107
-## Interface-Classic: 11507
-## Interface-Mists: 50500
+## Interface: 110200, 50500, 11507
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Config|r
 ## Notes: Configuration module
@@ -14,27 +12,17 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-Helpers.lua
-Widgets.lua
-Config.xml
-Bindings\Info.lua
+Model\Model.xml
+Controller\Controller.xml
 
-Data\Serializer.lua
-Data\ImportExport.lua
+Widget\Settings\Settings.xml
+Widget\Templates\Templates.xml
 
-Splash\Cvars.lua
-Splash\Device.lua
-Splash\Overview.lua
-Splash\Splash.lua
+Widget\Button\Button.xml
+Widget\Scroll\Scroll.xml
 
-Bindings\Shortcut.lua
-Bindings\Combo.lua
-Bindings\Mapper.lua
-Bindings\Manager.lua
-Bindings\Import.lua
-Bindings\Bindings.lua
+View\Config\Config.xml
 
-Settings\Variables.lua
-Settings\Console.lua
-
-Rings\Manager.lua
+View\About\About.xml
+View\Guide\Guide.xml
+View\Settings\Settings.xml

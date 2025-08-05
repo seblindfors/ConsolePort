@@ -1,0 +1,164 @@
+<Ui>
+	<Frame name="CPOverviewActionDisplay" virtual="true">
+		<Size x="32" y="32"/>
+		<Attributes>
+			<Attribute name="nodeignoredrag" type="boolean" value="true"/>
+			<Attribute name="nohooks" type="boolean" value="true"/>
+		</Attributes>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="2">
+				<Texture parentKey="Icon" setAllPoints="true">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="3">
+				<Texture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\Icon_Mask32" alpha="0.65">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="MaskAlpha"
+					file="Interface\CharacterFrame\TempPortraitAlphaMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT"/>
+						<Anchor point="BOTTOMRIGHT"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Icon"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="4">
+				<Texture parentKey="MaskBorder" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png">
+					<Color r="0.15" g="0.15" b="0.15"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-1" y="1"/>
+						<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="5">
+				<Texture parentKey="Border" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alpha="0.5" alphaMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-2" y="2"/>
+						<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Note" inherits="GameFontDisableTiny"/>
+			</Layer>
+			<Layer level="HIGHLIGHT">
+				<Texture parentKey="BorderHilite" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png" alphaMode="ADD">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-2" y="2"/>
+						<Anchor point="BOTTOMRIGHT" x="2" y="-2"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Button name="CPOverviewBindingSplashDisplay" virtual="true">
+		<Size x="200" y="48"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Line parentKey="Bottom1" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
+				<Line parentKey="Bottom2" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2"/>
+			</Layer>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="32" y="32"/>
+				</Texture>
+				<FontString parentKey="Label" inherits="CPSmallFont" justifyH="CENTER" height="12" spacing="2">
+					<Anchors>
+						<Anchor point="LEFT"/>
+						<Anchor point="RIGHT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Button>
+
+	<Button name="CPOverviewModifierIndicator" inherits="CPToolbarSixSliceInverterFrame" virtual="true">
+		<Size x="56" y="40"/>
+		<KeyValues>
+			<KeyValue key="align" value="bottom" type="string"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK" textureSubLevel="1">
+				<Texture parentKey="Icon">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" x="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Button>
+
+	<Frame name="CPOverviewModifierTray" inherits="HorizontalButtonTrayTemplate" virtual="true">
+		<Size x="1" y="1"/>
+		<KeyValues>
+			<KeyValue key="expand" value="true" type="boolean"/>
+			<KeyValue key="widthPadding" value="4" type="number"/>
+			<KeyValue key="spacing" value="4" type="number"/>
+			<KeyValue key="templateType" value="BUTTON" type="string"/>
+			<KeyValue key="childLayoutDirection" value="rightToLeft" type="string"/>
+			<KeyValue key="buttonTemplate" value="CPOverviewModifierIndicator" type="string"/>
+		</KeyValues>
+	</Frame>
+
+	
+	<CheckButton name="CPOverviewBindingMapper" virtual="true" inherits="CPActionBarMapper">
+		<Frames>
+			<Button parentKey="BindingIcon">
+				<Anchors>
+					<Anchor point="TOPLEFT"/>
+					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMLEFT" x="46"/>
+				</Anchors>
+				<HighlightTexture parentKey="HighlightTexture" file="Interface\Buttons\UI-OptionsButton">
+					<Size x="16" y="16"/>
+					<Anchors>
+						<Anchor point="TOPRIGHT" relativeKey="$parent.$parent.Icon" x="8" y="8"/>
+					</Anchors>
+				</HighlightTexture>
+			</Button>
+		</Frames>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Binding" inherits="CPHeaderFont" justifyH="RIGHT" hidden="true">
+					<Anchors>
+						<Anchor point="RIGHT" x="-8"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</CheckButton>
+
+	<Frame name="CPOverviewEditor" enableMouse="true" virtual="true">
+		<Size x="820"/>
+		<Frames>
+			<Frame parentKey="Lip" inherits="CPScrollBoxLip">
+				<KeyValues>
+					<KeyValue key="paddingTop" value="0" type="number"/>
+				</KeyValues>
+			</Frame>
+			<Frame parentKey="Settings" inherits="CPConfigScrollBox">
+				<KeyValues>
+					<KeyValue key="paddingBottom" value="60" type="number"/>
+					<KeyValue key="scrollBarX" value="0" type="number"/>
+				</KeyValues>
+				<Anchors>
+					<Anchor point="TOPLEFT" x="0" y="-2"/>
+					<Anchor point="BOTTOMRIGHT" x="-12" y="0"/>
+				</Anchors>
+			</Frame>
+		</Frames>
+	</Frame>
+
+	<Script file="OverviewSplash.lua"/>
+	<Script file="OverviewEditor.lua"/>
+</Ui>

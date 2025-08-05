@@ -63,6 +63,12 @@ function Manager:OnNewBindings(bindings)
 	self:UpdateOverrides()
 end
 
+function Manager:OnBindingIconChanged()
+	-- Don't expect this to happen very often, but there are
+	-- obviously better ways to handle this than a full refresh.
+	self:OnNewBindings(db.Gamepad:GetBindings(true))
+end
+
 function Manager:GetBindings(buttonID)
 	if buttonID then
 		return self.bindingSnapshot and self.bindingSnapshot[buttonID];
@@ -90,7 +96,7 @@ function Manager:UpdateOverrides() self:Run([[
 function Manager:RegisterOverride(owner, ref, ...)
 	for i = 1, select('#', ...) do
 		self:Parse([[
-			bindings[{owner}]        = bindings[{owner}] or newtable();
+			bindings[{owner}] = bindings[{owner}] or newtable();
 			bindings[{owner}][{key}] = {ref};
 		]], {
 			owner = env:GetSignature(owner);
@@ -150,5 +156,6 @@ end
 db:RegisterCallback('OnHintsFocus', Manager.OnHintsFocus, Manager)
 db:RegisterCallback('OnHintsClear', Manager.OnHintsClear, Manager)
 db:RegisterSafeCallback('OnNewBindings', Manager.OnNewBindings, Manager)
+db:RegisterSafeCallback('OnBindingIconChanged', Manager.OnBindingIconChanged, Manager)
 env:RegisterSafeCallback('OnDataLoaded', Manager.OnDataLoaded, Manager)
 env:RegisterSafeCallback('OnLayoutChanged', Manager.OnPropsChanged, Manager)

@@ -1,8 +1,6 @@
 local _, db = ...;
 local HELP_STRING, SLASH_FUNCTIONS = 'Usage: |cFFFFFFFF/consoleport|r |cFF00FFFF%s|r |cFF00FF00%s|r';
 local DOCU_STRING = '  |cFF00FFFF%s|r |cFF00FF00%s|r \n- |cFFFFFFFF%s|r';
-local CONFIG_ADDON_NAME = 'ConsolePort_Config';
-local CURSOR_ADDON_NAME = 'ConsolePort_Cursor';
 ---------------------------------------------------------------
 -- Process slash command
 ---------------------------------------------------------------
@@ -56,11 +54,12 @@ local function HandleSlashCommand(self, msg)
 		SLASH_FUNCTIONS.help[1]()
 		return true;
 	end
-	if not CPAPI.IsAddOnLoaded(CONFIG_ADDON_NAME) then
-		CPAPI.EnableAddOn(CONFIG_ADDON_NAME)
-		CPAPI.LoadAddOn(CONFIG_ADDON_NAME)
+	if not CPAPI.IsAddOnLoaded(CPAPI.ConfigAddOn) then
+		CPAPI.EnableAddOn(CPAPI.ConfigAddOn)
+		CPAPI.LoadAddOn(CPAPI.ConfigAddOn)
 	end
-	ConsolePortConfig:SetShown(not ConsolePortConfig:IsShown())
+	local config = ConsolePortConfig:Load()
+	config:SetShown(not config:IsShown())
 end
 
 local function Uninstall()
@@ -70,8 +69,9 @@ local function Uninstall()
 		'ConsolePortDevices',
 		'ConsolePortUIStack',
 		'ConsolePortShared',
+		'ConsolePortRingsShared',
 		-- Saved variables per character
-		'ConsolePortUtility',
+		'ConsolePortUtility', 'ConsolePortRings',
 		'ConsolePort_BarDB',
 		'ConsolePort_BarLayout',
 		'ConsolePort_BarSetup', -- legacy
@@ -109,13 +109,13 @@ SLASH_FUNCTIONS = {
 			{'[addonName]', 'string', 'Optional name of the addon that owns the frame.'};
 		};
 		function(action, frame, owner)
-			if not owner then owner = CURSOR_ADDON_NAME end;
+			if not owner then owner = CPAPI.CursorAddOn end;
 			if action and frame then
 				local loadable, reason = select(4, CPAPI.GetAddOnInfo(owner))
 				if loadable or CPAPI.IsAddOnLoaded(owner) then
-					CPAPI.EnableAddOn(CURSOR_ADDON_NAME)
-					CPAPI.LoadAddOn(CURSOR_ADDON_NAME)
-					return EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
+					CPAPI.EnableAddOn(CPAPI.CursorAddOn)
+					CPAPI.LoadAddOn(CPAPI.CursorAddOn)
+					return EventUtil.ContinueOnAddOnLoaded(CPAPI.CursorAddOn, function()
 						local stack = db.Stack;
 						if ( action == 'add' ) then
 							if stack:TryRegisterFrame(owner, frame, true) then
@@ -155,35 +155,15 @@ SLASH_FUNCTIONS = {
 			{'[deviceID]', 'number', 'Optional device ID to show axis readings and state.'};
 		};
 		function(deviceID)
-			local activeDevices = {};
-			for _, i in ipairs(C_GamePad.GetAllDeviceIDs()) do
-				local device = C_GamePad.GetDeviceRawState(i)
-				local devicePowerLevel = C_GamePad.GetPowerLevel(i)
-				local powerLevelInfo = db.Battery:GetPowerLevelInfo(devicePowerLevel)
-				if device then
-					tinsert(activeDevices, {
-						id    = i;
-						state = device;
-						powerLevel = powerLevelInfo.color:WrapTextInColorCode(powerLevelInfo.name);
-					})
-				end
-			end
+			local activeDevices = db.Gamepad:GetConnectedDevices()
 			if next(activeDevices) then
 				CPAPI.Log('Connected devices:')
 				for _, device in ipairs(activeDevices) do
-					local vendorID  = ('%04x'):format(device.state.vendorID):upper();
-					local productID = ('%04x'):format(device.state.productID):upper();
-					local powerLevel = device.powerLevel;
-					local config = C_GamePad.GetConfig({
-						vendorID  = device.state.vendorID;
-						productID = device.state.productID;
-					});
-
 					CPAPI.Log('%d: |cFFFFFFFF%s|r', device.id, device.state.name)
 					CPAPI.Log('   Vendor: |cFF00FFFF%s|r, Product: |cFF00FFFF%s|r, Config: %s, Battery Level: %s',
-						vendorID, productID,
-						config and ('|cFF00FF00%s|r'):format(config.name or 'custom') or '|cFFFFFFFFgeneric|r',
-						powerLevel
+						device.vendorID, device.productID,
+						device.config and ('|cFF00FF00%s|r'):format(device.config.name or 'custom') or '|cFFFFFFFFgeneric|r',
+						device.power
 					);
 				end
 			else
@@ -372,7 +352,7 @@ SLASH_FUNCTIONS = {
 -- Set up slash handler
 ---------------------------------------------------------------
 setmetatable(ConsolePort, {
-	__index = getmetatable(ConsolePort).__index;
+	__index = CPAPI.Index(ConsolePort);
 	__call  = HandleSlashCommand;
 })
 

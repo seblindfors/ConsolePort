@@ -49,7 +49,8 @@ end
 function Crosshair:OnDataLoaded()
 	local enabled = db('crosshairEnable')
 	if not enabled then
-		return self:Hide()
+		self:Hide()
+		return CPAPI.KeepMeForLater;
 	end
 
 	local w, h = db('crosshairSizeX'), db('crosshairSizeY')
@@ -73,6 +74,7 @@ function Crosshair:OnDataLoaded()
 
 	self:SetScript('OnUpdate', self.OnUpdate)
 	self:Show()
+	return CPAPI.KeepMeForLater;
 end
 
 db:RegisterCallbacks(Crosshair.OnDataLoaded, Crosshair,

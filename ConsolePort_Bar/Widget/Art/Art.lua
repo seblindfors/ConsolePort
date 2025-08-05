@@ -57,6 +57,7 @@ function Artifact:SetProps(props)
 		runeTexture:SetSize(rune.width * runeScale, rune.height * runeScale)
 		runeTexture:SetBlendMode(props.blend)
 	end
+	self.Runes[#self.Runes]:SetVertexColor(0, 0, 0, 1)
 end
 
 ---------------------------------------------------------------

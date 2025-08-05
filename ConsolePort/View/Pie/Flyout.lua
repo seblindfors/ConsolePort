@@ -178,6 +178,7 @@ function Selector:OnDataLoaded(...)
 		]];
 	});
 	self:OnAxisInversionChanged()
+	return CPAPI.BurnAfterReading;
 end
 
 function Selector:OnAxisInversionChanged()

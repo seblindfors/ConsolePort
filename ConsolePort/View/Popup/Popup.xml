@@ -1,5 +1,4 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
 
 	<GameTooltip frameStrata="MEDIUM" name="ConsolePortPopupMenuTooltip" parentKey="Tooltip" inherits="GameTooltipTemplate"/>
 
@@ -17,6 +16,9 @@
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>
+		<KeyValues>
+			<KeyValue key="nameOffsetY" value="-16" type="number"/>
+		</KeyValues>
 		<Scripts>
 			<OnMouseDown method="StartMoving"/>
 			<OnMouseUp method="StopMovingOrSizing"/>
@@ -37,6 +39,9 @@
 		<Anchors>
 			<Anchor point="CENTER" x="0" y="0"/>
 		</Anchors>
+		<KeyValues>
+			<KeyValue key="nameOffsetY" value="-16" type="number"/>
+		</KeyValues>
 		<Scripts>
 			<OnMouseDown method="StartMoving"/>
 			<OnMouseUp method="StopMovingOrSizing"/>

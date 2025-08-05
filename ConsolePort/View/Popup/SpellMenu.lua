@@ -32,7 +32,7 @@ function SpellMenu:SetDisplaySpell(spellID)
 	end
 	local name, subtext = self:GetSpellName(), self:GetSpellSubtext();
 	local hasSubtext = subtext and subtext ~= '';
-	self.Icon:SetTexture(self:GetSpellTexture())
+	self.Portrait.Icon:SetTexture(self:GetSpellTexture())
 	self.Name:SetText(hasSubtext and ('%s: %s'):format(name, WHITE_FONT_COLOR:WrapTextInColorCode(subtext)) or name)
 end
 
@@ -64,28 +64,28 @@ function SpellMenu:AddUtilityRingCommand()
 		link  = link;
 	};
 
-	for key in db.table.spairs(db.Utility.Data) do
-		local isUniqueAction, existingIndex = db.Utility:IsUniqueAction(key, action)
+	for key in db.table.spairs(ConsolePort:GetRingsData()) do
+		local isUniqueAction, existingIndex = ConsolePort:IsUniqueRingAction(key, action)
 		if isUniqueAction then
-			self:AddCommand(L('Add to %s', db.Utility:ConvertSetIDToDisplayName(key)), 'RingBind', {key, action})
+			self:AddCommand(L('Add to %s', db.Bindings:ConvertRingSetIDToDisplayName(key)), 'RingBind', {key, action})
 		elseif existingIndex then
-			self:AddCommand(L('Remove from %s', db.Utility:ConvertSetIDToDisplayName(key)), 'RingClear', {key, action})
+			self:AddCommand(L('Remove from %s', db.Bindings:ConvertRingSetIDToDisplayName(key)), 'RingClear', {key, action})
 		end
 	end
 end
 
 function SpellMenu:RingBind(data)
 	local setID, action = unpack(data)
-	if db.Utility:SetPendingAction(setID, action) then
-		db.Utility:PostPendingAction()
+	if ConsolePort:SetPendingRingAction(setID, action) then
+		ConsolePort:PostPendingRingAction()
 	end
 	self:Hide()
 end
 
 function SpellMenu:RingClear(data)
 	local setID, action = unpack(data)
-	if db.Utility:SetPendingRemove(setID, action) then
-		db.Utility:PostPendingAction()
+	if ConsolePort:SetPendingRingRemove(setID, action) then
+		ConsolePort:PostPendingRingAction()
 	end
 	self:Hide()
 end
@@ -251,22 +251,7 @@ end
 ---------------------------------------------------------------
 -- Catcher
 ---------------------------------------------------------------
-SpellMenu.CatchBinding = CreateFrame('Button', nil, SpellMenu,
-	(CPAPI.IsRetailVersion and 'SharedButtonLargeTemplate' or 'UIPanelButtonTemplate') .. ',CPPopupBindingCatchButtonTemplate')
-
-local NO_BINDING_TEXT, SET_BINDING_TEXT = [[
-|cFFFFFF00Set Binding|r
-
-%s in %s, does not have a binding assigned to it.
-
-Press a button combination to select a new binding for this slot.
-
-]], [[
-|cFFFFFF00Set Binding|r
-
-Press a button combination to select a new binding for %s.
-
-]]
+SpellMenu.CatchBinding = CreateFrame('Button', nil, SpellMenu, CPPopupBindingCatchButtonMixin.Template)
 
 function SpellMenu.CatchBinding:OnBindingCaught(button)
 	local bindingID = self.bindingID;
@@ -295,11 +280,11 @@ function SpellMenu:CatchBindingForSlot(slot, bindingID, text)
 end
 
 function SpellMenu:ReportNoBinding(slot, bindingID)
-	self:CatchBindingForSlot(slot, bindingID, NO_BINDING_TEXT:format(self:GetSpellLink(), _G['BINDING_NAME_'..bindingID] or bindingID))
+	self:CatchBindingForSlot(slot, bindingID, L.SLOT_NO_BINDING:format(self:GetSpellLink(), _G['BINDING_NAME_'..bindingID] or bindingID))
 end
 
 function SpellMenu:ReportSetBinding(slot, bindingID, actionID)
-	self:CatchBindingForSlot(slot, bindingID, SET_BINDING_TEXT:format(_G['BINDING_NAME_'..bindingID] or bindingID))
+	self:CatchBindingForSlot(slot, bindingID, L.SLOT_SET_BINDING:format(_G['BINDING_NAME_'..bindingID] or bindingID))
 end
 
 function SpellMenu:ReportSetBindingToKeyChord(bindingID)

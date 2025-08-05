@@ -1,6 +1,4 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
-
+<Ui>
 	<PieMenu name="ConsolePortSecurePie" virtual="true" inherits="SecureHandlerStateTemplate, SecureActionButtonTemplate">
 		<Attributes>
 			<Attribute name="ignoregamepadhotkey" type="boolean" value="true"/>
@@ -52,47 +50,7 @@
 		</KeyValues>
 	</PieMenu>
 
-	<PieMenu name="ConsolePortUtilityToggle" parent="UIParent" registerForClicks="AnyUp, AnyDown" inherits="ConsolePortSecurePie, ConsolePortSlicedStickyPie" hidden="true">
-		<Size x="500" y="500"/>
-		<Anchors>
-			<Anchor point="CENTER"/>
-		</Anchors>
-		<Frames>
-			<Button parentKey="Remove" name="$parentRemove" registerForClicks="AnyDown" inherits="SecureActionButtonTemplate"/>
-		</Frames>
-		<Layers>
-			<Layer level="ARTWORK" textureSubLevel="1">
-				<Texture parentKey="BgRunes" hidden="false" alpha="0.05" alphaMode="ADD">
-					<Size x="400" y="400" />
-					<Anchors>
-						<Anchor point="CENTER" x="0" y="0"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
-		<Animations>
-			<AnimationGroup parentKey="PulseAnim" setToFinalAlpha="true" looping="REPEAT">
-				<Alpha parentKey="PulseIn" childKey="BgRunes" duration="1.5" order="1" fromAlpha="0" toAlpha="0"/>
-				<Alpha parentKey="PulseOut" childKey="BgRunes" startDelay="1.5" duration="1.5" order="1" fromAlpha="0" toAlpha="0"/>
-				<Scripts>
-					<OnLoad>
-						self:Play();
-					</OnLoad>
-				</Scripts>
-			</AnimationGroup>
-			<AnimationGroup parentKey="PulseRotateAnim" looping="REPEAT">
-				<Rotation childKey="BgRunes" duration="30" order="1" degrees="-360"/>
-				<Scripts>
-					<OnLoad>
-						self:Play();
-					</OnLoad>
-				</Scripts>
-			</AnimationGroup>
-		</Animations>
-	</PieMenu>
-
 	<!-- Single file views -->
 	<Script file="Flyout.lua"/>
 	<Script file="Petring.lua"/>
-	<Script file="Utility.lua"/>
 </Ui>

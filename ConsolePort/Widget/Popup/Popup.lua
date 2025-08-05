@@ -5,7 +5,6 @@ CPPopupFrameBaseMixin = CreateFromMixins(CPFrameMixin, CPIndexPoolMixin)
 function CPPopupFrameBaseMixin:OnLoad()
 	CPFrameMixin.OnLoad(self)
 	CPIndexPoolMixin.OnLoad(self);
-	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, -20)
 end
 
 ---------------------------------------------------------------
@@ -14,7 +13,7 @@ CPPopupFrameMixin = CreateFromMixins(CPPopupFrameBaseMixin)
 function CPPopupFrameMixin:OnLoad()
 	CPPopupFrameBaseMixin.OnLoad(self)
 	db:RegisterCallback('OnPopupShown', self.OnPopupShown, self)
-	ConsolePort:AddInterfaceCursorFrame(self)
+	CPAPI.Next(ConsolePort.AddInterfaceCursorFrame, ConsolePort, self)
 end
 
 function CPPopupFrameMixin:OnPopupShown(shown, frame)
@@ -77,9 +76,39 @@ function CPPopupFrameMixin:SetTargetHeight(height)
 end
 
 ---------------------------------------------------------------
+CPPopupPortraitFrameMixin = CreateFromMixins(CPPopupFrameMixin)
+---------------------------------------------------------------
+
+function CPPopupPortraitFrameMixin:OnLoad()
+	CPPopupFrameMixin.OnLoad(self)
+	self.Name:SetPoint('TOPLEFT', self.nameOffsetX, self.nameOffsetY or -12)
+end
+
+---------------------------------------------------------------
+CPPopupPortraitMixin = {};
+---------------------------------------------------------------
+
+function CPPopupPortraitMixin:OnShow()
+	self.Border.Anim:Restart(false, 0.5)
+	self.BorderSheen.Anim:Restart(false, 0.5)
+	self.BorderBling.Anim:Restart(false, 0.5)
+end
+
+function CPPopupPortraitMixin:Play(reverse)
+	self.Border.Anim:Restart(reverse)
+	self.BorderSheen.Anim:Restart(reverse)
+	self.BorderBling.Anim:Restart(reverse)
+end
+
+---------------------------------------------------------------
 CPPopupBindingCatchButtonMixin = CreateFromMixins(CPButtonCatcherMixin)
 ---------------------------------------------------------------
 local TIME_UNTIL_CANCEL = 5;
+
+CPPopupBindingCatchButtonMixin.Template = (CPAPI.IsRetailVersion
+	and 'SharedButtonLargeTemplate'
+	or  'UIPanelButtonTemplate')
+	..  ',CPPopupBindingCatchButtonTemplate';
 
 function CPPopupBindingCatchButtonMixin:OnLoad()
 	CPButtonCatcherMixin.OnLoad(self)
@@ -110,16 +139,17 @@ function CPPopupBindingCatchButtonMixin:OnClick()
 	self:GetParent():Hide()
 end
 
-function CPPopupBindingCatchButtonMixin:CatchClosure(...)
-	if self:OnBindingCaught(...) then
+function CPPopupBindingCatchButtonMixin:CatchClosure(button)
+	if self:OnBindingCaught(button, self:GetParent().data) then
 		self:GetParent():Hide()
 	end
 end
 
-function CPPopupBindingCatchButtonMixin:TryCatchBinding(popupInfo)
-	CPAPI.Popup('ConsolePort_Popup_Change_Binding', popupInfo, nil, nil, nil, self)
+function CPPopupBindingCatchButtonMixin:TryCatchBinding(popupInfo, t1, t2, d)
+	self:Show()
+	CPAPI.Popup('ConsolePort_Popup_Change_Binding', popupInfo, t1, t2, d, self)
 end
 
-function CPPopupBindingCatchButtonMixin:OnBindingCaught(...)
-	-- override
+function CPPopupBindingCatchButtonMixin:OnBindingCaught(button, data)
+	-- override, return true to close the popup
 end

@@ -4,7 +4,7 @@
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. See Cursor.lua.
 
-local _, env, db = ...; db = env.db;
+local env, db, _ = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local After = C_Timer.After;
 local pairs, next, unravel = pairs, next, db.table.unravel;
@@ -16,7 +16,7 @@ local Stack = db:Register('Stack', CPAPI.CreateEventHandler({'Frame', '$parentUI
 }, {
 	Registry = {};
 }), true);
-local GetPoint, IsVisible = Stack.GetPoint, Stack.IsVisible;
+local GetPoint, IsAnchoringRestricted, IsVisible = Stack.GetPoint, Stack.IsAnchoringRestricted, Stack.IsVisible;
 
 ---------------------------------------------------------------
 local function GetFrameWidget(frame)
@@ -42,7 +42,11 @@ function Stack:IsCursorObstructed() return isObstructed end
 do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}, {}, {};
 
 	local function updateVisible(self)
-		visible[self] = GetPoint(self) and IsVisible(self) and true or nil;
+		visible[self] = (
+			not IsAnchoringRestricted(self)
+			and GetPoint(self)
+			and IsVisible(self)
+		) or nil;
 	end
 
 	local function updateBuffer(self, flag)
@@ -93,12 +97,12 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 
 	-- Cache default methods so that frames with unaltered
 	-- metatables use hook scripts instead of a secure hook.
-	hooks[getmetatable(UIParent).__index.Show] = true
-	hooks[getmetatable(UIParent).__index.Hide] = true
+	hooks[CPAPI.Index(UIParent).Show] = true
+	hooks[CPAPI.Index(UIParent).Hide] = true
 
 	-- When adding a new frame:
 	-- Store metatable functions for hooking show/hide scripts.
-	-- Most frames will use the same standard Show/Hide, but addons 
+	-- Most frames will use the same standard Show/Hide, but addons
 	-- may use custom metatables, which should still work with this approach.
 	function Stack:AddFrame(frame)
 		local widget = GetFrameWidget(frame)
@@ -271,7 +275,6 @@ function Stack:OnDataLoaded()
 		end
 	end
 
-	self.OnDataLoaded = nil;
 	self:RegisterEvent('ADDON_LOADED')
 	self.ADDON_LOADED = function(self, name)
 		self:LoadAddonFrames(name)
@@ -280,6 +283,8 @@ function Stack:OnDataLoaded()
 
 	db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
 	db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
+
+	return CPAPI.BurnAfterReading;
 end
 
 ---------------------------------------------------------------

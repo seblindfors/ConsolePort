@@ -1,4 +1,4 @@
-local _, env, db = ...; db = env.db;
+local env, db = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local NOMOD, _, _, _, ALT = env.Const.Cluster.ModNames();
 local CLUSTER_BAR, CLUSTER_HANDLE, CLUSTER_BUTTON, CLUSTER_SHADOW = env.Const.Cluster.Types();
@@ -149,7 +149,7 @@ function Cluster:SetBindings(bindings)
 end
 
 Cluster.GetMoveTarget = Cluster.GetMainButton;
-Cluster.GetSnapSize   = function() return env.Const.Cluster.SnapPixels end;
+Cluster.GetSnapSize   = CPAPI.Static(env.Const.Cluster.SnapPixels);
 
 ---------------------------------------------------------------
 local Shadow = {};
@@ -189,7 +189,7 @@ function FlyoutCooldown:OnLoad()
 end
 
 function FlyoutCooldown:SetDrawBling(enabled, force)
-	if force then return getmetatable(self).__index.SetDrawBling(self, enabled) end
+	if force then return CPAPI.Index(self).SetDrawBling(self, enabled) end
 end
 
 
@@ -207,12 +207,12 @@ do -- Flyout arrow owner check, report to parent
 	function FlyoutArrow:Show()
 		local parent = self:GetParent()
 		parent:OnSpellFlyout(CheckSpellFlyoutOwnership(parent))
-		return getmetatable(self).__index.Show(self)
+		return CPAPI.Index(self).Show(self)
 	end
 
 	function FlyoutArrow:Hide()
 		self:GetParent():OnSpellFlyout(false)
-		return getmetatable(self).__index.Hide(self)
+		return CPAPI.Index(self).Hide(self)
 	end
 end
 
@@ -220,7 +220,7 @@ end
 local FlyoutButton = { FadeIn = db.Alpha.FadeIn, FadeOut = db.Alpha.FadeOut, alpha = 0, shown = 0};
 ---------------------------------------------------------------
 do  -- Alpha update closures
-	FlyoutButton.AlphaState = env.CreateFlagClosures({
+	FlyoutButton.AlphaState = CPAPI.CreateFlagClosures({
 		AlwaysShow    = 0x01;
 		OnCooldown    = 0x02;
 		OverlayActive = 0x04;
@@ -236,7 +236,7 @@ do  -- Alpha update closures
 		ACTIONBAR_HIDEGRID = { FlyoutButton.AlphaState.ShowGrid, false };
 	};
 
-	FlyoutButton.VisibilityState = env.CreateFlagClosures({
+	FlyoutButton.VisibilityState = CPAPI.CreateFlagClosures({
 		NoBinding     = 0x01;
 		Disabled	  = 0x02;
 	});
@@ -270,12 +270,12 @@ end
 
 function FlyoutButton:LockHighlight()
 	self:UpdateAlpha(self.AlphaState.LockHighlight, true)
-	getmetatable(self).__index.LockHighlight(self)
+	CPAPI.Index(self).LockHighlight(self)
 end
 
 function FlyoutButton:UnlockHighlight()
 	self:UpdateAlpha(self.AlphaState.LockHighlight, false)
-	getmetatable(self).__index.UnlockHighlight(self)
+	CPAPI.Index(self).UnlockHighlight(self)
 end
 
 function FlyoutButton:OnEnabledChanged(enabled)
@@ -331,7 +331,7 @@ function FlyoutButton:OnShowFlyoutIcons(enabled)
 end
 
 function FlyoutButton:SetAlpha(alpha, force)
-	if force then return getmetatable(self).__index.SetAlpha(self, alpha) end
+	if force then return CPAPI.Index(self).SetAlpha(self, alpha) end
 end
 
 function FlyoutButton:UpdateAlpha(closure, state)
@@ -466,6 +466,7 @@ function Button:UpdateLocal(force)
 end
 
 function Button:UpdateSkin()
+	self.UpdateLocal = Button.UpdateLocal;
 	self.Skin = env.LIB.Skin.ClusterBar[self.mod] or nop; -- Skins.lua
 	self:Skin(true)
 end

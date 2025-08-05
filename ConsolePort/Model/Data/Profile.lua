@@ -16,7 +16,7 @@ setfenv(__, setmetatable(db('Data'), {__index = _G}));
 -- Gamepad API profile values
 ------------------------------------------------------------------------------------------------------------
 db:Register('Profile', CPAPI.Proxy({
-	['Movement Input'] = {
+	Movement = {
 		{	name = 'Movement Deadzone';
 			path = 'stickConfigs/<stick:Movement>/deadzone';
 			data = Range(0.25, 0.05, 0, 0.95);
@@ -36,7 +36,7 @@ db:Register('Profile', CPAPI.Proxy({
 			desc = 'The analog input for forward/back movement.';
 		};
 	};
-	['Camera Input'] = {
+	Camera = {
 		{	name = 'Camera Yaw-Only Deadzone';
 			path = 'stickConfigs/<stick:Camera>/deadzoneX';
 			data = Range(0.05, 0.05, 0, 0.95);
@@ -68,14 +68,16 @@ db:Register('Profile', CPAPI.Proxy({
 			desc = 'The analog input for up/down Camera Pitch.';
 		};
 		{
-			name = 'Camera Look Yaw Axis';
+			list = 'Camera Look';
+			name = 'Yaw Axis';
 			path = 'stickConfigs/<stick:Look>/axisX';
 			data = Map('GStickX', kSelectAxisOptions);
 			desc = 'The analog input for left/right Camera Yaw "look" feature.';
 			note = 'Camera Look is a temporary turn of the camera based on the current analog input.';
 		};
 		{
-			name = 'Camera Look Pitch Axis';
+			list = 'Camera Look';
+			name = 'Pitch Axis';
 			path = 'stickConfigs/<stick:Look>/axisY';
 			data = Map('GStickY', kSelectAxisOptions);
 			desc = 'The analog input for up/down Camera Pitch "look" feature.';

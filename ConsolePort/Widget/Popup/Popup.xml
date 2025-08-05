@@ -1,36 +1,29 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.blizzard.com/wow/ui/">
+<Ui>
 	<Script file="Popup.lua"/>
 
 	<Frame name="CPPopupFrameBaseTemplate" virtual="true" inherits="CPFrameTemplate" mixin="CPPopupFrameBaseMixin">
 		<Size x="500" y="96"/>
 		<KeyValues>
-			<KeyValue key="tooltipOffsetX" value="70" type="number"/>
-			<KeyValue key="buttonOffsetX" value="-68" type="number"/>
-			<KeyValue key="nameOffsetX" value="20" type="number"/>
 			<Keyvalue key="nonExclusive" value="false" type="boolean"/>
+			<KeyValue key="layoutAtlas" value="false" type="boolean"/>
+			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
+			<KeyValue key="bottomPadding" value="32" type="number"/>
 		</KeyValues>
-		<Layers>
-			<Layer level="ARTWORK">
-				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
-					<Size x="300" y="22"/>
-					<Color r="1" g="0.82" b="0" a="1"/>
-				</FontString>
-				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
-					<Anchors>
-						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
-						<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT"/>
-					</Anchors>
-				</FontString>
-			</Layer>
-		</Layers>
 		<Scripts>
 			<OnLoad method="OnLoad"/>
 		</Scripts>
 	</Frame>
 
+	<Frame name="CPPopupFrameScriptTemplate" virtual="true" inherits="CPPopupFrameBaseTemplate" mixin="CPPopupFrameMixin">
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnHide method="OnHide"/>
+		</Scripts>
+	</Frame>
+
 	<!-- Generic semi-opaque popup with close button -->
-	<Frame name="CPPopupFrameTemplate" virtual="true" inherits="CPPopupFrameBaseTemplate" mixin="CPPopupFrameMixin">
+	<Frame name="CPPopupFrameTemplate" virtual="true" inherits="CPPopupFrameScriptTemplate">
 		<Frames>
 			<Button parentKey="CloseButton" inherits="UIPanelCloseButtonNoScripts">
 				<Anchors>
@@ -41,35 +34,23 @@
 						self:GetParent():Hide()
 					</OnClick>
 				</Scripts>
-				<Layers>
-					<Layer level="ARTWORK">
-						<FontString parentKey="Binding" inherits="GameFontNormal">
-							<Anchors>
-								<Anchor point="RIGHT" x="4" relativePoint="LEFT"/>
-							</Anchors>
-						</FontString>
-					</Layer>
-				</Layers>
 			</Button>
 		</Frames>
-		<Scripts>
-			<OnLoad method="OnLoad"/>
-			<OnShow method="OnShow"/>
-			<OnHide method="OnHide"/>
-		</Scripts>
 	</Frame>
 
-	<Frame name="CPPopupPortraitFrameTemplate" virtual="true" inherits="CPPopupFrameTemplate">
-		<KeyValues>
-			<KeyValue key="nameOffsetX" value="78" type="number"/>
-		</KeyValues>
+	<Frame name="CPPopupPortraitTemplate" virtual="true" mixin="CPPopupPortraitMixin">
+		<Size x="92" y="92"/>
 		<Layers>
 			<Layer level="OVERLAY">
-				<Texture parentKey="Border" atlas="auctionhouse-itemicon-border-gray">
-					<Size x="92" y="92"/>
-					<Anchors>
-						<Anchor point="TOPLEFT" x="-16" y="16"/>
-					</Anchors>
+				<Texture parentKey="Border" atlas="auctionhouse-itemicon-border-gray" setAllPoints="true">
+					<Animations>
+						<AnimationGroup parentKey="Anim">
+							<Rotation order="1" degrees="-360" duration="2" smoothing="OUT"/>
+							<Scripts>
+								<OnLoad method="Play"/>
+							</Scripts>
+						</AnimationGroup>
+					</Animations>
 				</Texture>
 			</Layer>
 			<Layer level="ARTWORK">
@@ -89,28 +70,96 @@
 					</MaskedTextures>
 				</MaskTexture>
 			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="3">
+				<Texture parentKey="BorderSheen" alpha="1" alphaMode="ADD" texelSnappingBias="0.0" snapToPixelGrid="false"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\Diagonal_Sheen.png">
+					<Size x="174" y="276"/>
+					<Anchors>
+						<Anchor point="RIGHT" relativeKey="$parent.Border" relativePoint="LEFT" x="0"/>
+					</Anchors>
+					<Animations>
+						<AnimationGroup parentKey="Anim">
+							<Translation offsetX="462" order="1" duration="4.5" />
+							<Scripts>
+								<OnLoad method="Play"/>
+							</Scripts>
+						</AnimationGroup>
+					</Animations>
+				</Texture>
+				<MaskTexture parentKey="BorderSheenMask" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE"
+					file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Button\Hilite2x.png">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="10" y="-9"/>
+						<Anchor point="BOTTOMRIGHT" x="-10" y="11"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="BorderSheen"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<Texture parentKey="BorderBling"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Cooldown\Bling" alpha="0" alphaMode="ADD">
+					<Size x="32" y="32"/>
+					<Anchors>
+						<Anchor point="CENTER" relativeKey="$parent.BorderSheenMask" relativePoint="TOPLEFT" x="10" y="-10"/>
+					</Anchors>
+					<Animations>
+						<AnimationGroup parentKey="Anim" setToFinalAlpha="true">
+							<Alpha order="1" fromAlpha="0" toAlpha="0" duration="0.75"/>
+							<Alpha order="2" fromAlpha="0" toAlpha="1" duration="0.25"/>
+							<Alpha order="3" fromAlpha="1" toAlpha="0" duration="0.5"/>
+							<Rotation order="2" duration="0.25" degrees="90"/>
+							<Rotation order="3" duration="0.5" degrees="90" smoothing="OUT"/>
+							<Scripts>
+								<OnLoad method="Play"/>
+							</Scripts>
+						</AnimationGroup>
+					</Animations>
+				</Texture>
+			</Layer>
 		</Layers>
+		<Scripts>
+			<OnShow method="OnShow"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPPopupPortraitFrameTemplate" virtual="true" inherits="CPPopupFrameTemplate" mixin="CPPopupPortraitFrameMixin">
+		<KeyValues>
+			<KeyValue key="nameOffsetX" value="78" type="number"/>
+			<KeyValue key="tooltipOffsetX" value="70" type="number"/>
+			<KeyValue key="buttonOffsetX" value="-68" type="number"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="Fancy22Font" justifyH="LEFT">
+					<Size y="22"/>
+					<Color r="1" g="0.82" b="0" a="1"/>
+				</FontString>
+				<FontString parentKey="Desc" inherits="DialogButtonHighlightText" justifyH="LEFT">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Name" relativePoint="BOTTOMLEFT"/>
+						<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Portrait" frameLevel="5" inherits="CPPopupPortraitTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT" x="-16" y="16"/>
+				</Anchors>
+			</Frame>
+		</Frames>
 	</Frame>
 
 	<Frame name="CPPopupSubFrameTemplate" virtual="true">
 		<Size x="434" y="40"/>
 	</Frame>
 
-	<Button name="CPPopupButtonTemplate" virtual="true" inherits="InsecureActionButtonTemplate">
+	<Button name="CPPopupButtonBaseTemplate" virtual="true">
 		<Attributes>
 			<Attribute name="nodeignoremime" value="true" type="boolean"/>
 		</Attributes>
 		<Size x="434" y="32"/>
-		<Layers>
-			<Layer level="BACKGROUND">
-				<Texture parentKey="Icon" file="Interface\QuestFrame\UI-Quest-BulletPoint">
-					<Size x="24" y="24"/>
-					<Anchors>
-						<Anchor point="LEFT" x="48" y="0"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
 		<NormalTexture setAllPoints="true" snapToPixelGrid="true" texelSnappingBias="0.0" inherits="CPAtlas">
 			<KeyValues>
 				<KeyValue key="atlas" value="perks-list-hover" type="string"/>
@@ -137,12 +186,25 @@
 		<DisabledFont style="GameFontDisableLeft"/>
 	</Button>
 
+	<Button name="CPPopupButtonTemplate" virtual="true" inherits="InsecureActionButtonTemplate, CPPopupButtonBaseTemplate">
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Icon" file="Interface\QuestFrame\UI-Quest-BulletPoint">
+					<Size x="24" y="24"/>
+					<Anchors>
+						<Anchor point="LEFT" x="48" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Button>
+
 	<Frame name="CPPopupHeaderTemplate" virtual="true">
 		<Size x="434" y="38"/>
 		<Layers>
 			<Layer level="ARTWORK">
 				<FontString parentKey="Text" inherits="GameFontNormalLarge">
-					<Color color="LIGHTGRAY_FONT_COLOR"/>
+					<Color color="WHITE_FONT_COLOR"/>
 					<Size x="0" y="38"/>
 					<Anchors>
 						<Anchor point="CENTER"/>

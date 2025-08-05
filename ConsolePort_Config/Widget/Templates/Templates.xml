@@ -1,0 +1,146 @@
+<Ui>
+	<Script file="Templates.lua"/>
+	<Script file="Elements.lua"/>
+	<Script file="Mixins.lua"/>
+	<Include file="Fonts.xml"/>
+	<Include file="Compat.xml"/>
+
+	<Frame name="CPInnerFrameTemplate" virtual="true" inherits="CPFrameTemplate" mixin="CPInnerFrameMixin">
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="-6">
+				<Texture parentKey="InnerBackground" alpha="0.75" setAllPoints="true"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient"/>
+				<Texture parentKey="InnerBackgroundEdge" alpha="1" setAllPoints="true"/>
+				<MaskTexture parentKey="BgMask" setAllPoints="true" hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\InnerFrameMask" scale="0.5">
+					<TextureSliceMargins left="8" right="8" top="8" bottom="8"/>
+					<MaskedTextures>
+						<MaskedTexture childKey="InnerBackground"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<MaskTexture parentKey="BgMaskEdge" setAllPoints="true" hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE"
+					file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\InnerFrameMaskEdge" scale="0.5">
+					<TextureSliceMargins left="8" right="8" top="8" bottom="8"/>
+					<MaskedTextures>
+						<MaskedTexture childKey="InnerBackgroundEdge"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPPopupPanelTemplate" virtual="true" inherits="CPPopupPortraitFrameTemplate">
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="NameHighlight" inherits="CPAtlas">
+					<Size y="46"/>
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-namebg" type="string"/>
+						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="BOTTOMLEFT" relativeKey="$parent.Name" y="-10"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Name" y="-10"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPTabGroupTemplate" mixin="CPTabGroupMixin" virtual="true" inherits="HorizontalButtonTrayTemplate">
+		<Size y="37"/>
+		<KeyValues>
+			<KeyValue key="expand" value="true" type="boolean"/>
+			<KeyValue key="widthPadding" value="4" type="number"/>
+			<KeyValue key="spacing" value="5" type="number"/>
+			<KeyValue key="templateType" value="BUTTON" type="string"/>
+			<KeyValue key="buttonTemplate" value="MinimalTabTemplate" type="string"/>
+			<KeyValue key="showTabKeys" value="true" type="boolean"/>
+		</KeyValues>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="TabDecrementIcon" hidden="true">
+					<Size x="32" y="32"/>
+					<KeyValues>
+						<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="RIGHT" relativePoint="LEFT" x="-8" y="-6"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="TabIncrementIcon" hidden="true">
+					<Size x="32" y="32"/>
+					<KeyValues>
+						<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="LEFT" relativePoint="RIGHT" x="8" y="-6"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+		</Scripts>
+	</Frame>
+
+	<Frame name="CPNavBarTemplate" mixin="CPNavBarMixin" virtual="true" inherits="CallbackRegistrantTemplate, HorizontalLayoutFrame">
+		<Size y="40"/>
+		<Frames>
+			<Frame parentKey="ButtonTray" inherits="HorizontalButtonTrayTemplate">
+				<Size x="1" y="1"/>
+				<Anchors>
+					<Anchor point="TOP"/>
+					<Anchor point="BOTTOM"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="expand" value="true" type="boolean"/>
+					<KeyValue key="widthPadding" value="4" type="number"/>
+					<KeyValue key="spacing" value="0" type="number"/>
+					<KeyValue key="templateType" value="BUTTON" type="string"/>
+					<KeyValue key="buttonTemplate" value="CPNavBarButton" type="string"/>
+				</KeyValues>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+		</Scripts>
+	</Frame>
+
+	<ScrollFrame name="CPNavBarWrapper" mixin="CPNavBarWrapperMixin" virtual="true">
+		<Size y="40"/>
+		<Layers>
+			<Layer level="OVERLAY">
+				<Texture parentKey="LeftNotch" inherits="CPAtlas" hidden="false" scale="0.64">
+					<Size x="34" y="70"/>
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-icon-restorecharacter-pointer" type="string"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="CENTER" relativePoint="LEFT" x="-4"/>
+					</Anchors>
+				</Texture>
+				<Texture parentKey="RightNotch" inherits="CPAtlas" hidden="false" scale="0.64">
+					<Size x="34" y="70"/>
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-icon-restorecharacter-pointer" type="string"/>
+						<KeyValue key="flipHorz" value="true" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="CENTER" relativePoint="RIGHT" x="4"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<ScrollChild>
+			<Frame parentKey="Bar" inherits="CPNavBarTemplate" useParentLevel="true"/>
+		</ScrollChild>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnShow method="OnShow"/>
+			<OnMouseWheel method="OnMouseWheel"/>
+		</Scripts>
+	</ScrollFrame>
+</Ui>

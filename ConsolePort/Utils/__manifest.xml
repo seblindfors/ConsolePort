@@ -1,9 +1,12 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
-..\FrameXML\UI.xsd">
+<Ui>
 	<!-- Utils -->
 	<Script file="Database.lua"/>
+	<Script file="Utils.lua"/>
+	<Script file="Const.lua"/>
 	<Script file="Wrapper.lua"/>
 	<Script file="Assets.lua"/>
-	<Script file="Utils.lua"/>
+	<Script file="Color.lua"/>
 	<Script file="UIFade.lua"/>
+	<Script file="Animation.lua"/>
+	<Script file="Spline.lua"/>
 </Ui>

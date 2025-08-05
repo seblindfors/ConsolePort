@@ -97,7 +97,7 @@ function TempAbility:UPDATE_BONUS_ACTIONBAR()
 			if spellID and spellID > 0 then
 				self:AddSpell(spellID)
 			end
-		end 
+		end
 	end
 end
 
@@ -143,6 +143,7 @@ function TempAbility:OnDataLoaded()
 
 	self.Header:SetDurationMultiplier(.5)
 	self:RegisterUnitEvent('UNIT_ENTERED_VEHICLE', 'player')
+	return CPAPI.BurnAfterReading;
 end
 
 function TempAbility:OnUpdate(elapsed)
@@ -234,6 +235,7 @@ end
 ConsolePort:AddVariables({
 	showAbilityBriefing = {db.Data.Bool(true);
 		head = ACCESSIBILITY_LABEL;
+		main = INTERFACE_LABEL;
 		sort = 4;
 		name = 'Show Ability Briefings';
 		desc = 'Displays a briefing for newly acquired abilities.';

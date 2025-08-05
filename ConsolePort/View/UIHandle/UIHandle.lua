@@ -127,6 +127,19 @@ function Control:ResetHintBar()
 	self.HintBar:Reset()
 end
 
+function Control:ToggleHintFocus(frame, enabled)
+	if enabled then
+		self:ResetHintBar()
+		self:SetHintFocus(frame)
+	else
+		if self:IsHintFocus(frame) then
+			self:HideHintBar()
+		end
+		self:ClearHintsForFrame(frame)
+	end
+	return self;
+end
+
 function Control:RegisterHintForFrame(frame, key, text, enabled)
 	self.StoredHints[frame] = self.StoredHints[frame] or {}
 	self.StoredHints[frame][key] = {text = text, enabled = enabled}

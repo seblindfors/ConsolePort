@@ -1,0 +1,314 @@
+<Ui>
+	<Script file="Button.lua"/>
+
+	<Button name="CPSquareButtonTemplate" virtual="true" motionScriptsWhileDisabled="true" mixin="CPSquareIconButtonMixin" inherits="SquareIconButtonTemplate">
+		<Size x="48" y="48"/>
+		<HitRectInsets left="6" right="6" top="6" bottom="6"/>
+		<NormalTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
+		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" alpha="0.4">
+			<Anchors>
+				<Anchor point="TOPLEFT" relativeKey="$parent.Icon" relativePoint="TOPLEFT"/>
+				<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" relativePoint="BOTTOMRIGHT"/>
+			</Anchors>
+		</HighlightTexture>
+		<PushedTexture parentKey="PushedTexture" atlas="common-button-square-gray-down">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="1" y="-1"/>
+				<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
+			</Anchors>
+		</PushedTexture>
+		<DisabledTexture parentKey="NormalTexture" atlas="common-button-square-gray-up"/>
+	</Button>
+
+	<CheckButton name="CPCheckButtonTemplate" motionScriptsWhileDisabled="true" virtual="true">
+		<Size x="30" y="29"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="HoverBackground" inherits="HoverBackgroundTemplate"/>
+			</Layer>
+		</Layers>
+		<ButtonText parentKey="Text">
+			<Anchors>
+				<Anchor point="LEFT" relativePoint="RIGHT" x="4" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<NormalFont style="GameFontNormal" />
+		<DisabledFont style="GameFontDisable" />
+		<NormalTexture atlas="checkbox-minimal" useAtlasSize="true"/>
+		<PushedTexture atlas="checkbox-minimal" useAtlasSize="true"/>
+		<CheckedTexture atlas="checkmark-minimal" useAtlasSize="true"/>
+		<DisabledCheckedTexture atlas="checkmark-minimal-disabled" useAtlasSize="true"/>
+	</CheckButton>
+
+	<CheckButton name="CPHeader" virtual="true" mixin="CPHeader">
+		<Layers>
+			<Layer level="OVERLAY" textureSubLevel="1">
+				<Texture parentKey="Highlight" inherits="CPAtlas" hidden="true">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-button-collapseexpand-hover" type="string"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="2" y="0"/>
+						<Anchor point="BOTTOMRIGHT" x="-2" y="0"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+			<Layer level="OVERLAY" textureSubLevel="2">
+				<FontString parentKey="Text" inherits="GameFontHighlightMedium">
+					<Anchors>
+						<Anchor point="LEFT" x="14" y="3"/>
+					</Anchors>
+				</FontString>
+				<Texture parentKey="Icon" inherits="CPAtlas">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-icon-minus" type="string"/>
+						<KeyValue key="useAtlasSize" value="true" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="RIGHT" x="-3" y="1"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnMouseDown method="OnMouseDown"/>
+			<OnMouseUp method="OnMouseUp"/>
+			<OnClick method="OnClick"/>
+		</Scripts>
+		<NormalTexture parentKey="NormalTexture" inherits="CPAtlas">
+			<KeyValues>
+				<KeyValue key="atlas" value="glues-characterselect-button-collapseexpand" type="string"/>
+			</KeyValues>
+		</NormalTexture>
+		<PushedTexture parentKey="PushedTexture" inherits="CPAtlas">
+			<KeyValues>
+				<KeyValue key="atlas" value="glues-characterselect-button-collapseexpand-pressed" type="string"/>
+			</KeyValues>
+		</PushedTexture>
+		<DisabledTexture parentKey="DisabledTexture" inherits="CPAtlas">
+			<KeyValues>
+				<KeyValue key="atlas" value="glues-characterselect-button-collapseexpand-disabled" type="string"/>
+			</KeyValues>
+		</DisabledTexture>
+	</CheckButton>
+
+	<Button name="CPNavBarButton" mixin="CPNavBarButton" virtual="true">
+		<Size y="40"/>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="NormalTexture" inherits="CPAtlas" setAllPoints="true"/>
+				<Texture parentKey="DisabledTexture" inherits="CPAtlas" setAllPoints="true" hidden="true"/>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="Bar" inherits="CPAtlas" useAtlasSize="true">
+					<KeyValues>
+						<KeyValue key="atlas" value="glues-characterselect-tophud-bg-divider" type="string"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="RIGHT"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Frame parentKey="Highlight" hidden="true" useParentLevel="true">
+				<Anchors>
+					<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT"/>
+					<Anchor point="BOTTOMRIGHT" relativeKey="$parent" relativePoint="BOTTOMRIGHT"/>
+				</Anchors>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture parentKey="Backdrop" inherits="CPAtlas" setAllPoints="true">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent" relativePoint="TOPLEFT" x="-2"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent" relativePoint="BOTTOMRIGHT" y="4"/>
+							</Anchors>
+						</Texture>
+						<Texture parentKey="Line" inherits="CPAtlas" setAllPoints="true">
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeKey="$parent.Backdrop" relativePoint="TOPLEFT" y="-1"/>
+								<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Backdrop" relativePoint="TOPRIGHT" y="3"/>
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+			<OnEnable method="OnEnable"/>
+			<OnDisable method="OnDisable"/>
+		</Scripts>
+		<NormalFont style="CPGlueFontNormal"/>
+		<HighlightFont style="CPGlueFontYellow"/>
+		<DisabledFont style="CPGlueFontDisable"/>
+	</Button>
+
+	<Button name="CPIconSelectorButton" virtual="true" mixin="CPIconSelectorButton">
+		<Size x="36" y="36"/>
+		<NormalTexture parentKey="Icon">
+			<Size x="40" y="40"/>
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</NormalTexture>
+		<HighlightTexture parentKey="Highlight" alphaMode="ADD" inherits="CPAtlas">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-3" y="3"/>
+				<Anchor point="BOTTOMRIGHT" x="4" y="-3"/>
+			</Anchors>
+			<KeyValues>
+				<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Mouseover" type="string"/>
+			</KeyValues>
+		</HighlightTexture>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture parentKey="Border" inherits="CPAtlas">
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame" type="string"/>
+						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-3" y="3"/>
+						<Anchor point="BOTTOMRIGHT" x="5" y="-4"/>
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon"
+					hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="1" y="-1"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="-1" y="1"/>
+					</Anchors>
+				</MaskTexture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="SelectedTexture"  hidden="true" inherits="CPAtlas">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-3" y="3"/>
+						<Anchor point="BOTTOMRIGHT" x="4" y="-3"/>
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Down" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnClick method="OnClick"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+
+	<Button name="CPIconSelectorLargeButton" virtual="true" mixin="CPIconSelectorButton">
+		<Size x="50.4" y="50.4"/> <!-- 36 * 1.4 -->
+		<NormalTexture parentKey="Icon">
+			<Size x="56" y="56"/> <!-- 40 * 1.4 -->
+			<Anchors>
+				<Anchor point="CENTER"/>
+			</Anchors>
+		</NormalTexture>
+		<HighlightTexture parentKey="Highlight" alphaMode="ADD" inherits="CPAtlas">
+			<Anchors>
+				<Anchor point="TOPLEFT" x="-4.2" y="4.2"/> <!-- -3 * 1.4, 3 * 1.4 -->
+				<Anchor point="BOTTOMRIGHT" x="5.6" y="-4.2"/> <!-- 4 * 1.4, -3 * 1.4 -->
+			</Anchors>
+			<KeyValues>
+				<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Mouseover" type="string"/>
+			</KeyValues>
+		</HighlightTexture>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture inherits="CPAtlas">
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame" type="string"/>
+						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-4.2" y="4.2"/> <!-- -3 * 1.4, 3 * 1.4 -->
+						<Anchor point="BOTTOMRIGHT" x="7" y="-5.6"/> <!-- 5 * 1.4, -4 * 1.4 -->
+					</Anchors>
+				</Texture>
+				<MaskTexture parentKey="Mask" file="Interface\AddOns\ConsolePort\Assets\Textures\Button\EmptyIcon"
+					hWrapMode="CLAMPTOBLACKADDITIVE" vWrapMode="CLAMPTOBLACKADDITIVE">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Icon" x="1.4" y="-1.4"/> <!-- 1 * 1.4, -1 * 1.4 -->
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Icon" x="-1.4" y="1.4"/> <!-- -1 * 1.4, 1 * 1.4 -->
+					</Anchors>
+				</MaskTexture>
+			</Layer>
+			<Layer level="OVERLAY">
+				<Texture parentKey="SelectedTexture" hidden="true" inherits="CPAtlas">
+					<Anchors>
+						<Anchor point="TOPLEFT" x="-4.2" y="4.2"/> <!-- -3 * 1.4, 3 * 1.4 -->
+						<Anchor point="BOTTOMRIGHT" x="5.6" y="-4.2"/> <!-- 4 * 1.4, -3 * 1.4 -->
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-IconFrame-Down" type="string"/>
+					</KeyValues>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnLoad method="OnLoad"/>
+			<OnClick method="OnClick"/>
+			<OnEnter method="OnEnter"/>
+			<OnLeave method="OnLeave"/>
+		</Scripts>
+	</Button>
+
+	<Button name="CPActionConfigButton" inherits="CPIconSelectorButton" virtual="true" mixin="CPActionConfigButton"
+		registerForDrag="LeftButton"
+		registerForClicks="AnyUp">
+		<Attributes>
+			<Attribute name="nohooks" type="boolean" value="true"/>
+		</Attributes>
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString parentKey="Slug" inherits="CPSlug">
+					<KeyValues>
+						<KeyValue key="notBound" value="" type="string"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="TOPRIGHT" x="0" y="0"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Name" inherits="GameFontHighlightSmallOutline">
+					<Size x="36" y="10"/>
+					<Anchors>
+						<Anchor point="BOTTOM" x="0" y="2"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnDoubleClick method="OnDoubleClick"/>
+			<OnDragStart method="OnDragStart"/>
+			<OnReceiveDrag method="OnReceiveDrag"/>
+		</Scripts>
+	</Button>
+
+	<CheckButton name="CPCategoryListButtonTemplate" virtual="true">
+		<Size x="300" y="32"/>
+		<ButtonText parentKey="Text">
+			<Anchors>
+				<Anchor point="LEFT" x="16" y="0"/>
+			</Anchors>
+		</ButtonText>
+		<NormalFont style="GameFontHighlightMed2"/>
+		<HighlightFont style="GameFontNormalMed2"/>
+		<DisabledFont style="CPGameFontDisableMed2"/>
+		<NormalTexture atlas="Options_List_Hover" useAtlasSize="false" setAllPoints="true" alpha="0.25"/>
+		<CheckedTexture atlas="Options_List_Active" useAtlasSize="false" setAllPoints="true"/>
+		<HighlightTexture atlas="Options_List_Hover" useAtlasSize="false" setAllPoints="true"/>
+	</CheckButton>
+
+	<Include file="Card.xml"/>
+</Ui>

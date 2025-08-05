@@ -52,11 +52,18 @@ db('Gamepad/Index/Icons', {
 		Options  = 'XBOX_C_OPTIONS';
 		Forward  = 'XBOX_C_FORWARD';
 	};
+	Switch = {
+		Back     = 'SWITCH_C_BACK';
+		Forward  = 'SWITCH_C_FORWARD';
+		Share    = 'SWITCH_C_SHARE';
+		System   = 'SWITCH_C_SYSTEM';
+	};
 })
 
 db('Gamepad/Index/Splash', {
-	['PlayStation 4'] = 'DS4';
-	['PlayStation 5'] = 'DS5';
-	['Steam Deck'] = 'Deck';
-	['Xbox'] = 'Xbox';
+	['Nintendo Switch Pro'] = 'Switch';
+	['PlayStation 4']       = 'DS4';
+	['PlayStation 5']       = 'DS5';
+	['Steam Deck']          = 'Deck';
+	['Xbox']                = 'Xbox';
 })

@@ -1,4 +1,5 @@
-local _, db = ...;
+local CPAPI, _, db = CPAPI, ...;
+local getmetatable, setmetatable = getmetatable, setmetatable;
 ---------------------------------------------------------------
 -- Mixins
 ---------------------------------------------------------------
@@ -14,7 +15,9 @@ CPAPI.EventMixin = {
 			self:UnregisterEvent('ADDON_LOADED')
 		end
 		if self.OnDataLoaded then
-			self:OnDataLoaded(...)
+			if self:OnDataLoaded(...) == CPAPI.BurnAfterReading then
+				self.OnDataLoaded = nil;
+			end
 		end
 	end;
 }
@@ -122,16 +125,60 @@ function CPAPI.DataHandler(handler)
 	return handler;
 end
 
-function CPAPI.Start(handler)
+function CPAPI.CreateConfigFrame(arg1, ...)
+	assert(CPAPI.LoadAddOn(CPAPI.ConfigAddOn), 'Config addon could not be loaded.')
+	local env = ConsolePortConfig:GetEnvironment();
+	if ( type(arg1) == 'table' ) then
+		return Mixin(CreateFrame(...), arg1), env;
+	end
+	return CreateFrame(arg1, ...), env;
+end
+
+function CPAPI.InitConfigFrame(mixin, ...)
+	local frame, env = CPAPI.CreateConfigFrame(...)
+	CPAPI.Specialize(frame, mixin)
+	return frame, env;
+end
+
+do -- Compatible with CPScrollBoxTree
+	local function NewElementData(self, ...)
+		return db.table.merge({
+			xml      = self.xml;
+			extent   = self.size.y;
+			indent   = self.indent;
+			init     = self.Init or nop;
+			acquire  = self.OnAcquire;
+			release  = self.OnRelease;
+		}, self.Data and self:Data(...) or {})
+	end
+
+	function CPAPI.CreateElement(template, width, height)
+		return {
+			New  = NewElementData;
+			size = CreateVector2D(width, height);
+			xml  = template;
+		};
+	end
+end
+
+function CPAPI.Start(handler, noHooks)
 	for k, v in pairs(handler) do
 		if handler:HasScript(k) then
 			local currentScript = handler:GetScript(k)
-			if ( currentScript and currentScript ~= v ) then
+			if not noHooks and ( currentScript and currentScript ~= v ) then
 				handler:HookScript(k, v)
 			else
 				handler:SetScript(k, v)
 			end
 		end
+	end
+end
+
+CPAPI.Specialize = FrameUtil.SpecializeFrameWithMixins;
+CPAPI.SpecializeOnce = function(...)
+	CPAPI.Specialize(...)
+	for i = 1, select('#', ...) do
+		select(i, ...).OnLoad = nil;
 	end
 end
 
@@ -142,20 +189,25 @@ function CPAPI.Popup(id, settings, ...)
 	StaticPopupDialogs[id:upper()] = settings;
 	local dialog = StaticPopup_Show(id:upper(), ...)
 	if dialog then
-		local icon = _G[dialog:GetName() .. 'AlertIcon']
-		local original = icon:GetTexture()
-		local onHide = settings.OnHide;
-		icon:SetTexture(CPAPI.GetAsset('Textures\\Logo\\CP'))
-		settings.OnHide = function(...)
-			icon:SetTexture(original)
-			if onHide then
-				return onHide(...)
-			end
-		end;
+		local icon = dialog.AlertIcon or _G[dialog:GetName() .. 'AlertIcon'];
+		if icon then
+			local original = icon:GetTexture()
+			local onHide = settings.OnHide;
+			icon:SetTexture(CPAPI.GetAsset('Textures\\Logo\\CP'))
+			settings.OnHide = function(...)
+				if icon then icon:SetTexture(original) end;
+				if onHide then
+					return onHide(...)
+				end
+			end;
+		end
 		return dialog;
 	end
 end
 
+---------------------------------------------------------------
+-- Table tools
+---------------------------------------------------------------
 do local function ModifyMetatable(owner, key, value)
 		local mt = getmetatable(owner) or {};
 		mt[key] = value;
@@ -171,7 +223,7 @@ do local function ModifyMetatable(owner, key, value)
 
 	function CPAPI.Proxy(owner, proxy)
 		if (type(proxy) ~= 'table' and type(proxy) ~= 'function') then
-			proxy = function() return proxy end;
+			proxy = CPAPI.Static(proxy);
 		end
 		return ModifyMetatable(owner, '__index', proxy)
 	end
@@ -182,6 +234,10 @@ do local function ModifyMetatable(owner, key, value)
 
 	function CPAPI.Callable(owner, func)
 		return ModifyMetatable(owner, '__call', func)
+	end
+
+	function CPAPI.Index(owner)
+		return getmetatable(owner).__index;
 	end
 
 	function CPAPI.Enum(...)
@@ -198,17 +254,119 @@ function CPAPI.Purge(t, k)
 	until issecurevariable(t, k)
 end
 
-do local sort, head = 0;
-	function CPAPI.Define(value, startIndex)
-		if ( type(value) == 'string' ) then
-			head, sort = value, startIndex or 0;
-		else
-			assert(type(value) == 'table', 'Invalid value type.')
-			sort = sort + 1;
-			value.sort = sort;
-			value.head = head;
-			return value;
+---------------------------------------------------------------
+-- Properties
+---------------------------------------------------------------
+do local PropTypes = {
+		Prop = { 'Get', 'Set' };
+		Bool = { 'Is',  'Set' };
+	};
+
+	local function Prop(get, set, owner, key, def)
+		local l, u = key:gsub('^%u', key.lower), key:gsub('^%l', key.upper)
+		owner[u] = def;
+		owner[get..u] = function(s) local v=s[l] if v==nil then v=s[u] end return v end;
+		owner[set..u] = function(s, v) s[l]=v return s end;
+		return owner;
+	end
+
+	for p, m in pairs(PropTypes) do
+		CPAPI[p] = function(...) return Prop(m[1], m[2], ...) end;
+	end
+
+	CPAPI.Static = function(val) return function() return val end end;
+	CPAPI.Props  = function(owner)
+		local env = {};
+		for p, m in pairs(PropTypes) do
+			env[p] = function(...) Prop(m[1], m[2], owner, ...) return env end;
 		end
+		return env;
+	end
+end
+
+---------------------------------------------------------------
+-- Flags
+---------------------------------------------------------------
+do local function UpdateFlags(flag, flags, predicate)
+		if ( type(predicate) == 'number' ) then
+			return UpdateFlags(flag, flags, bit.band(predicate, flag) == flag)
+		end
+		return predicate and bit.bor(flags, flag) or bit.band(flags, bit.bnot(flag))
+	end
+
+	local function GetMapState(self, inputs, options) options = options or tInvert(self);
+		local state, option = 0;
+		local flags = CPAPI.Index(self);
+		for flag, predicate in pairs(inputs) do
+			assert(flags[flag], ('Invalid flag: %s'):format(flag))
+			state = flags[flag](state, predicate)
+		end
+		option = options[state];
+		return ( option == nil ) and options[1] or option, state;
+	end
+
+	local FlagsMixin = {};
+
+	function FlagsMixin:IsFlagSet(flag, input)
+		return bit.band(input or 0, self[flag]) == self[flag];
+	end
+
+	function FlagsMixin:Combine(flag, input, state)
+		return CPAPI.Index(self)[flag](input or 0, state == nil and true or state)
+	end
+
+	function CPAPI.CreateFlagClosures(flags)
+		local closures = {};
+		if (  #flags > 0 and assert(#flags < 32, 'Overflow: too many flags.')) then
+			for i, flag in ipairs(flags) do
+				closures[flag] = GenerateClosure(UpdateFlags, bit.lshift(1, i));
+			end
+		else
+			for flagName, flagValue in pairs(flags) do
+				closures[flagName] = GenerateClosure(UpdateFlags, flagValue);
+			end
+		end
+		return closures;
+	end
+
+	function CPAPI.CreateFlags(...)
+		local closures = CPAPI.CreateFlagClosures({...});
+		local map = {};
+		for flag, closure in pairs(closures) do
+			map[flag] = closure(0, true);
+		end
+		return CPAPI.Proxy(
+			CPAPI.Callable(map, GetMapState),
+			CPAPI.Proxy(closures, FlagsMixin)
+		);
+	end
+end
+
+---------------------------------------------------------------
+-- Environment
+---------------------------------------------------------------
+do local sort, head, main = 0;
+	function CPAPI.Define(v1, v2, startIndex)
+		if ( type(v1) == 'string' ) then
+			head, main, sort = v1, v2, startIndex or 0;
+		else
+			assert(type(v1) == 'table', 'Invalid value type.')
+			sort = sort + 1;
+			v1.sort = sort;
+			v1.head = head;
+			v1.main = main;
+			return v1;
+		end
+	end
+
+	function CPAPI.GetEnv(name, env)
+		assert(env.db, 'Environment not linked.')
+		return env, env.db, name, env.L;
+	end
+
+	function CPAPI.LinkEnv(name, env)
+		env.db, env.L = db, db.Locale;
+		return CPAPI.Define, db.Data, CPAPI.GetEnv(name, env);
 	end
 end
 
@@ -249,6 +407,13 @@ do local __tCount, __tID, __tTime = 0, 'task', '__time_';
 			Execute = execute;
 			Cancel  = cancel;
 		}, {__call = execute})
+	end
+
+	function CPAPI.Next(callback, ...)
+		if select('#', ...) == 0 then
+			return RunNextFrame(callback)
+		end
+		return RunNextFrame(GenerateClosure(callback, ...))
 	end
 end
 
@@ -291,6 +456,7 @@ end)()
 			frame:RegisterEvent(event)
 		end
 	end
+	return frame;
 end
 
 function CPAPI.RegisterFrameForUnitEvents(frame, events, ...)
@@ -299,16 +465,34 @@ function CPAPI.RegisterFrameForUnitEvents(frame, events, ...)
 			frame:RegisterUnitEvent(event, ...)
 		end
 	end
+	return frame;
+end
+
+function CPAPI.ToggleEvent(frame, event, enabled, unit1, ...)
+	local method = not enabled and frame.UnregisterEvent
+		or unit1 and frame.RegisterUnitEvent
+		or frame.RegisterEvent;
+	return method(frame, event, unit1, ...);
 end
 
 ---------------------------------------------------------------
 -- Secure environment translation
 ---------------------------------------------------------------
-do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
+do	local ConvertSecureBody, GetSecureBodySignature, GetCallMethodSignature, GetNewtableSignature;
+	local function FormatArgs(args)
+		return args:trim():len() > 0 and ', ' or '', args;
+	end
+
 	function GetSecureBodySignature(obj, func, args)
 		return ConvertSecureBody(
-			('%s:RunAttribute(\'%s\'%s%s)'):format(
-				obj, func, args:trim():len() > 0 and ', ' or '', args));
+			('%s:RunAttribute(\'%s\'%s%s)'):format(obj, func, FormatArgs(args))
+		);
+	end
+
+	function GetCallMethodSignature(obj, func, args)
+		return ConvertSecureBody(
+			('%s:CallMethod(\'%s\'%s%s)'):format(obj, func, FormatArgs(args))
+		);
 	end
 
 	function GetNewtableSignature(contents)
@@ -317,6 +501,7 @@ do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
 
 	function ConvertSecureBody(body)
 		return (body
+			:gsub('(%w+):::(%w+)%((.-)%)', GetCallMethodSignature)
 			:gsub('(%w+)::(%w+)%((.-)%)', GetSecureBodySignature)
 			:gsub('%b{}', GetNewtableSignature)
 		);
@@ -335,22 +520,6 @@ do	local ConvertSecureBody, GetSecureBodySignature, GetNewtableSignature;
 end
 
 ---------------------------------------------------------------
--- Assets
----------------------------------------------------------------
-function CPAPI.GetAsset(path)
-	return ([[Interface\AddOns\ConsolePort\Assets\%s]]):format(path)
-end
-
-function CPAPI.GetClassIcon(class)
-	-- returns concatenated icons file with slicing coords
-	return [[Interface\TargetingFrame\UI-Classes-Circles]], CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
-end
-
-function CPAPI.GetWebClassIcon(class)
-	return CPAPI.GetAsset([[Art\Class\Web_Class_Icons_Grid]]), CLASS_ICON_TCOORDS[class or CPAPI.GetClassFile()]
-end
-
----------------------------------------------------------------
 -- Text
 ---------------------------------------------------------------
 function CPAPI.FormatLongText(text, linelength) text = text
@@ -359,7 +528,7 @@ function CPAPI.FormatLongText(text, linelength) text = text
 	:gsub('\n', ' ')    -- (3) replace newline with space
 	:gsub('\t', '\n\n') -- (4) replace tab with double newline
 
-    return linelength and CPAPI.FormatLineLength(text, linelength) or text;
+	return linelength and CPAPI.FormatLineLength(text, linelength) or text;
 end
 
 function CPAPI.FormatLineLength(text, linelength)
@@ -388,184 +557,4 @@ function CPAPI.FormatLineLength(text, linelength)
 		end
 	end
 	return table.concat(lines, '')
-end
-
----------------------------------------------------------------
--- Colors
----------------------------------------------------------------
-CPAPI.WebColors = {
-	DEATHKNIGHT =  '05131c';
-	DEMONHUNTER =  '141c0d';
-	DRUID       =  '0f1a16';
-	EVOKER      =  '2d1420';
-	HUNTER      =  '061510';
-	MAGE        =  '140e1a';
-	MONK        =  '0e1003';
-	PALADIN     =  '140613';
-	PRIEST      =  '171b27';
-	ROGUE       =  '0d0c12';
-	SHAMAN      =  '01000e';
-	WARLOCK     =  '1c0905';
-	WARRIOR     =  '221411';
-};
-
-function CPAPI.GetWebColor(classFile, addAlpha)
-	return CreateColor(CPAPI.Hex2RGB(CPAPI.WebColors[classFile]..(addAlpha or ''), true))
-end
-
-function CPAPI.GetClassColor(classFile)
-	return GetClassColor(classFile or CPAPI.GetClassFile())
-end
-
-function CPAPI.GetMutedClassColor(factor, asObject, classFile)
-	local r, g, b = CPAPI.GetMutedColor(factor, CPAPI.GetClassColor(classFile))
-	if asObject then
-		return CreateColor(r, g, b)
-	end
-	return r, g, b, 1;
-end
-
-function CPAPI.GetClassColorObject(classFile)
-	if C_ClassColor then
-		return C_ClassColor.GetClassColor(classFile or CPAPI.GetClassFile())
-	end
-	local r, g, b = CPAPI.GetClassColor(classFile)
-	return CreateColor(r, g, b)
-end
-
-function CPAPI.GetPlayerName(classColored, unit) unit = unit or 'player';
-	local name = UnitName(unit)
-	if classColored then
-		return GetClassColorObj(select(2, UnitClass(unit))):WrapTextInColorCode(name)
-	end
-	return name;
-end
-
-function CPAPI.Hex2RGB(hex, fractal)
-    hex = hex:gsub('#','')
-    local div = fractal and 255 or 1
-    return 	( (tonumber(hex:sub(1,2), 16) or div) / div ), -- R
-    		( (tonumber(hex:sub(3,4), 16) or div) / div ), -- G
-    		( (tonumber(hex:sub(5,6), 16) or div) / div ), -- B
-    		( (tonumber(hex:sub(7,8), 16) or div) / div ); -- A
-end
-
-function CPAPI.HSV2RGB(h, s, v)
-	local chroma = v * s;
-	local hue = h / 60;
-	local x = chroma * (1 - math.abs(hue % 2 - 1));
-	local r, g, b = 0, 0, 0;
-	if
-		hue < 1 then r, g, b = chroma, x, 0; elseif
-		hue < 2 then r, g, b = x, chroma, 0; elseif
-		hue < 3 then r, g, b = 0, chroma, x; elseif
-		hue < 4 then r, g, b = 0, x, chroma; elseif
-		hue < 5 then r, g, b = x, 0, chroma;
-		else         r, g, b = chroma, 0, x;
-	end
-
-	local m = v - chroma;
-	return r + m, g + m, b + m;
-end
-
-function CPAPI.GetMixColorGradient(dir, r, g, b, a, base, multi)
-	local add = base or 0.3
-	local mul = multi or 1.1
-	local alp = a or 1
-
-	return dir,
-		0 + (r + add) * mul, 0 + (g + add) * mul, 0 + (b + add) * mul, alp,
-		1 - (r - add) * mul, 1 - (g - add) * mul, 1 - (b - add) * mul, alp;
-end
-
-function CPAPI.GetReverseMixColorGradient(dir, r, g, b, a, base, multi)
-	local add = base or 0.3
-	local mul = multi or 1.1
-	local alp = a or 1
-
-	return dir,
-		1 - (r - add) * mul, 1 - (g - add) * mul, 1 - (b - add) * mul, alp,
-		0 + (r + add) * mul, 0 + (g + add) * mul, 0 + (b + add) * mul, alp;
-end
-
-function CPAPI.InvertColor(r, g, b)
-	return 1-r, 1-g, 1-b;
-end
-
-function CPAPI.NormalizeColor(...)
-	local high, c = 0
-	for i=1, 3 do
-		c = select(i, ...)
-		if c > high then
-			high = c
-		end
-	end
-	local diff = (1 - high)
-	local r, g, b, a = ...
-	return r + diff, g + diff, b + diff, tonumber(a) and a or 1;
-end
-
-function CPAPI.GetMutedColor(factor, ...)
-	local r, g, b, a = CPAPI.NormalizeColor(...)
-	return r * factor, g * factor, b * factor, a;
-end
-
-function CPAPI.XY2Polar(x, y)
-	local r = math.sqrt(x*x + y*y)
-	local theta = math.atan2(y, x)
-	return r, theta;
-end
-
-function CPAPI.Rad2Deg(rad)
-    return ((rad + math.pi) / (2 * math.pi)) * 360;
-end
-
----------------------------------------------------------------
--- Atlas tools
----------------------------------------------------------------
-
-function CPAPI.SetAtlas(object, id, useAtlasSize, flipHorz, flipVert, ...)
-	for file, atlasData in pairs(CPAPI.Atlas) do
-		local atlasInfo = atlasData[id];
-		if atlasInfo then
-			local width, height, leftTX, rightTX, topTX, bottomTX,
-				tilesHorizontally, tilesVertically,
-				leftSM, rightSM, topSM, bottomSM, sliceMode = unpack(atlasInfo)
-			if useAtlasSize then
-				object:SetSize(width, height)
-			end
-			object:SetTexture(file, ...)
-			object:SetTexCoord(
-				flipHorz and rightTX or leftTX,
-				flipHorz and leftTX or rightTX,
-				flipVert and bottomTX or topTX,
-				flipVert and topTX or bottomTX
-			);
-			object:SetHorizTile(tilesHorizontally)
-			object:SetVertTile(tilesVertically)
-			object:SetTextureSliceMargins(
-				leftSM or 0,
-				rightSM or 0,
-				topSM or 0,
-				bottomSM or 0
-			);
-			object:SetTextureSliceMode(sliceMode or 0)
-			return true;
-		end
-	end
-end
-
-function CPAPI.SetTextureOrAtlas(object, info, sizeTexture, sizeAtlas)
-	local textureOrAtlas, isAtlas, useAtlasSize = unpack(info)
-	if isAtlas then
-		object:SetAtlas(textureOrAtlas, useAtlasSize)
-		if sizeAtlas then
-			object:SetSize(unpack(sizeAtlas))
-		end
-		return
-	end
-	object:SetTexture(textureOrAtlas)
-	if sizeTexture then
-		object:SetSize(unpack(sizeTexture))
-	end
 end
