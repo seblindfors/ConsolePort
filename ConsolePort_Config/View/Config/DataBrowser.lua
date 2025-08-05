@@ -25,6 +25,7 @@ function Container:AdjustSize(owner)
 end
 
 function Container:Popup(popupName, popupData, binData)
+	self:Show()
 	return CPAPI.Popup(popupName, popupData, nil, nil, binData, self)
 end
 

@@ -338,7 +338,7 @@ function OptionsContainer:InsertCvar(dataProvider, variable, layoutIndex)
 	dataProvider:Insert(Cvar:New({
 		varID = variable.cvar;
 		field = variable;
-		sort = layoutIndex;
+		sort  = layoutIndex;
 	}))
 end
 

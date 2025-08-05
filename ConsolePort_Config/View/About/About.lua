@@ -194,7 +194,8 @@ function Link:OnClick()
 			ActivePopup = nil;
 		end;
 		OnShow = function(popup)
-			popup.editBox:SetText(self.link)
+			local editBox = popup.editBox or popup:GetEditBox();
+			editBox:SetText(self.link)
 		end;
 	})
 end

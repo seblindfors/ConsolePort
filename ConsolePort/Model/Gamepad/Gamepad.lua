@@ -244,7 +244,8 @@ end
 ---------------------------------------------------------------
 for key, cvar in pairs(GamepadAPI.Mouse.Cvars) do
 	db:RegisterSafeCallback(cvar, function(self, binding, value)
-		db.table.map(SetBinding, self:GetBindingKey(binding))
+		-- Temporarily disabled: https://github.com/Stanzilla/WoWUIBugs/issues/752
+		-- db.table.map(SetBinding, self:GetBindingKey(binding))
 		SetBinding(value, binding)
 		SaveBindings(GetCurrentBindingSet())
 	end, GamepadAPI, GamepadAPI.Mouse.Binding[key])

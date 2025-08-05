@@ -156,11 +156,13 @@ function Config:OnAddNewSet(elementData, container, isAdding)
 		hasEditBox = 1;
 		maxLetters = 16;
 		OnShow = function(self)
-			self.editBox:SetText(env:GetRingNameSuggestion())
-			self.editBox:SetFocus()
+			local editBox = self.editBox or self:GetEditBox();
+			editBox:SetText(env:GetRingNameSuggestion())
+			editBox:SetFocus()
 		end;
 		OnAccept = function(self)
-			local setID = env:CreateSet(self.editBox:GetText(), container)
+			local editBox = self.editBox or self:GetEditBox();
+			local setID   = env:CreateSet(editBox:GetText(), container)
 			if not setID then
 				return CPAPI.Log('Failed to add new ring with name %s, because it already exists.', setID)
 			end
@@ -174,17 +176,21 @@ function Config:OnAddNewSet(elementData, container, isAdding)
 			end
 		end;
 		EditBoxOnTextChanged = function(self)
-			local setID = env:ValidateSetID(self:GetText())
+			local setID   = env:ValidateSetID(self:GetText())
+			local parent  = self:GetParent()
+			local button1 = parent.button1 or parent:GetButton1();
 			if setID then
 				self:SetText(setID)
-				self:GetParent().button1:Enable();
+				button1:Enable();
 			else
-				self:GetParent().button1:Disable();
+				button1:Disable();
 			end
 		end;
 		EditBoxOnEnterPressed = function(self)
-			if self:GetParent().button1:IsEnabled() then
-				StaticPopup_OnClick(self:GetParent(), 1)
+			local parent  = self:GetParent()
+			local button1 = parent.button1 or parent:GetButton1();
+			if button1:IsEnabled() then
+				StaticPopup_OnClick(parent, 1) -- accept
 			end
 		end;
 	})

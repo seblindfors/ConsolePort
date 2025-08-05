@@ -277,6 +277,10 @@ end
 ---------------------------------------------------------------
 
 function ConsolePort:RegisterConfigCallback(callback, owner, ...)
+	local config = ConsolePortConfig;
+	if config and config:IsLoaded() then
+		return callback(owner, config:GetEnvironment(), config, ...)
+	end
 	local function Closure(...)
 		callback(...)
 		CPAPI.Next(db.UnregisterCallback, db, 'OnConfigLoaded', owner)

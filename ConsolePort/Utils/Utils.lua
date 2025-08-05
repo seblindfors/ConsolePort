@@ -189,16 +189,18 @@ function CPAPI.Popup(id, settings, ...)
 	StaticPopupDialogs[id:upper()] = settings;
 	local dialog = StaticPopup_Show(id:upper(), ...)
 	if dialog then
-		local icon = _G[dialog:GetName() .. 'AlertIcon']
-		local original = icon:GetTexture()
-		local onHide = settings.OnHide;
-		icon:SetTexture(CPAPI.GetAsset('Textures\\Logo\\CP'))
-		settings.OnHide = function(...)
-			icon:SetTexture(original)
-			if onHide then
-				return onHide(...)
-			end
-		end;
+		local icon = dialog.AlertIcon or _G[dialog:GetName() .. 'AlertIcon'];
+		if icon then
+			local original = icon:GetTexture()
+			local onHide = settings.OnHide;
+			icon:SetTexture(CPAPI.GetAsset('Textures\\Logo\\CP'))
+			settings.OnHide = function(...)
+				if icon then icon:SetTexture(original) end;
+				if onHide then
+					return onHide(...)
+				end
+			end;
+		end
 		return dialog;
 	end
 end

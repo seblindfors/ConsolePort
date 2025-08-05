@@ -174,4 +174,6 @@ ConsolePort:RegisterConfigCallback(function(self, configEnv)
 			}))
 		end
 	end)
+
+	Settings:OnIndexChanged()
 end, env)

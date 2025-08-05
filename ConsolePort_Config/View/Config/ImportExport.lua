@@ -394,22 +394,29 @@ env:RegisterCallback('OnImportButtonClicked', function(self)
 		noCloseOnAlt = true;
 		EditBoxOnEscapePressed = function(self) self:GetParent():Hide() end;
 		EditBoxOnTextChanged = function(self)
-			self:GetParent().button3:SetEnabled(self:GetText():len() > 0)
+			local parent  = self:GetParent();
+			local button3 = parent.button3 or parent:GetButton3();
+			button3:SetEnabled(self:GetText():len() > 0)
 		end;
 		EditBoxOnEnterPressed = function(self)
 			onLoadData(self:GetParent(), self, self:GetText())
 		end;
 		OnHide = function(popup)
+			local editBox = popup.editBox or popup:GetEditBox();
 			ActivePopup = nil;
-			popup.editBox:SetAttribute('hidekeyboard', nil)
+			editBox:SetAttribute('hidekeyboard', nil)
 		end;
-		OnAlt = function(self)
-			onLoadData(self, self.editBox, self.editBox:GetText())
+		OnAlt = function(popup)
+			local editBox = popup.editBox or popup:GetEditBox();
+			onLoadData(popup, editBox, editBox:GetText())
 		end;
-		OnShow = function(self)
-			self.button3:SetEnabled(false)
-			dataBin:AdjustSize(self)
-			self.editBox:SetAttribute('hidekeyboard', true)
+		OnShow = function(popup)
+			local editBox = popup.editBox or popup:GetEditBox();
+			local button3 = popup.button3 or popup:GetButton3();
+
+			button3:SetEnabled(false)
+			dataBin:AdjustSize(popup)
+			editBox:SetAttribute('hidekeyboard', true)
 		end;
 		OnAccept = function(popup)
 			db:RunSafe(EvaluateImportData, dataBin.Browser:Compile())
@@ -426,12 +433,13 @@ env:RegisterCallback('OnExportButtonClicked', function(self)
 	local data  = GenerateExportData()
 	local callback = CreateAsyncCallback(function()
 		local data = dataBin.Browser:Compile()
+		local editBox = ActivePopup.editBox or ActivePopup:GetEditBox()
 		if next(data) then
 			self.output = env.Serialize(data)
-			ActivePopup.editBox:SetText(self.output)
+			editBox:SetText(self.output)
 		else
 			self.output = nil;
-			ActivePopup.editBox:SetText('')
+			editBox:SetText('')
 		end
 	end)
 
@@ -451,14 +459,16 @@ env:RegisterCallback('OnExportButtonClicked', function(self)
 			editBox:HighlightText()
 		end;
 		OnHide = function(popup)
+			local editBox = popup.editBox or popup:GetEditBox();
 			ActivePopup, self.output = nil, nil;
-			popup.editBox:SetAttribute('hidekeyboard', nil)
+			editBox:SetAttribute('hidekeyboard', nil)
 		end;
-		OnShow = function(self, data)
+		OnShow = function(popup, data)
 			local browser = dataBin.Browser;
-			dataBin:AdjustSize(self)
+			local editBox = popup.editBox or popup:GetEditBox();
+			dataBin:AdjustSize(popup)
 			browser:SetData({callback = callback, alias = alias}, data)
-			self.editBox:SetAttribute('hidekeyboard', true)
+			editBox:SetAttribute('hidekeyboard', true)
 		end;
 	}, data)
 end, env)

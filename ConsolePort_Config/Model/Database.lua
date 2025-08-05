@@ -143,6 +143,7 @@ ConsolePortConfig = {
 ---------------------------------------------------------------
 	GetEnvironment = CPAPI.Static(env);
 	CreatePanel    = function(_, ...) return env:CreatePanel(...) end;
+	IsLoaded       = CPAPI.Static(false);
 	Show = nop, Hide = nop;
 }; -- dummy until loaded.
 
@@ -153,6 +154,7 @@ function ConsolePortConfig:Load()
 		Load           = CPAPI.Static(env.Frame);
 		GetEnvironment = self.GetEnvironment;
 		CreatePanel    = self.CreatePanel;
+		IsLoaded       = CPAPI.Static(true);
 	});
 	CPAPI.Next(function()
 		db:TriggerEvent('OnConfigLoaded', env, env.Frame)

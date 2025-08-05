@@ -606,8 +606,9 @@ function BindingPreset:Edit()
 			self.editBox:SetText(data.key)
 		end;
 		OnAccept = function(popup, data)
-			local newKey = popup.editBox:GetText():trim()
-			local oldKey = data.key;
+			local editBox = popup.editBox or popup:GetEditBox();
+			local newKey  = editBox:GetText():trim()
+			local oldKey  = data.key;
 			if ( newKey == '' ) then
 				return CPAPI.Log('Preset key cannot be empty.')
 			end

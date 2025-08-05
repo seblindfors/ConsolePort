@@ -61,8 +61,10 @@ function IconSelector:Update()
 		-- skip the need to hit accept and just set the icon.
 		RunNextFrame(function()
 			if not self.popup then return end;
-			self.popup.button1:Enable();
-			if self.popup.editBox:IsShown() then return end;
+			local button1 = self.popup.button1 or self.popup:GetButton1();
+			local editBox = self.popup.editBox or self.popup:GetEditBox();
+			button1:Enable();
+			if editBox:IsShown() then return end;
 			local cursorNode = ConsolePort:GetCursorNode()
 			if ( cursorNode and cursorNode.selectionIndex == index ) then
 				StaticPopup_OnClick(self.popup, 1) -- accept
@@ -76,11 +78,12 @@ end
 ---@return Frame popup The popup object.
 function IconSelector:SetDataAndShow(info)
 	local selector  = self.IconSelector;
+	self:Show()
 	local popup = CPAPI.Popup('ConsolePort_IconSelector', {
-		text = ''; -- HACK: text is required for the popup.
-		button1 = info.button1 or ACCEPT;
-		button2 = info.button2 or CANCEL;
-		hasEditBox = info.hasEditBox;
+		text         = ''; -- HACK: text is required for the popup.
+		button1      = info.button1 or ACCEPT;
+		button2      = info.button2 or CANCEL;
+		hasEditBox   = info.hasEditBox;
 		hideOnEscape = true;
 		enterClicksFirstButton = true;
 		selectCallbackByIndex = true;
@@ -91,16 +94,19 @@ function IconSelector:SetDataAndShow(info)
 			self.popup = popup;
 			ConsolePort:RemoveInterfaceCursorFrame(self:GetFrame())
 
-			popup.button1:SetEnabled(not not index)
-			if data.hasEditBox and data.initialText then
-				popup.editBox:SetText(data.initialText)
+			local button1 = popup.button1 or popup:GetButton1();
+			button1:SetEnabled(not not index)
+			if info.hasEditBox and data.initialText then
+				local editBox = popup.editBox or popup:GetEditBox();
+				editBox:SetText(data.initialText)
 			end
 		end;
 		OnAccept = function(popup, data)
 			local index = selector:GetSelectedIndex()
 			local icon = index and selector.iconDataProvider:GetIconByIndex(index);
 			if icon then
-				data.call(data.owner, icon, true, data.hasEditBox and popup.editBox:GetText() or nil)
+				local editBox = popup.editBox or popup:GetEditBox();
+				data.call(data.owner, icon, true, info.hasEditBox and editBox:GetText() or nil)
 			end
 		end;
 		OnCancel = nop;
@@ -109,7 +115,7 @@ function IconSelector:SetDataAndShow(info)
 			ConsolePort:SetCursorNodeIfActive(data.owner)
 			self.popup = nil;
 		end;
-	}, info.name, nil, info, self)
+	}, nil, nil, info, self)
 	self.IconHeader.Text:SetText(info.name)
 	return popup;
 end

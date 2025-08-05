@@ -10,7 +10,7 @@ local env, db, _ = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
 -- crucial action, the UI cursor will automatically move to
 -- a popup when it is shown. StaticPopup1 has first priority.
 do  local popups, visible, oldNode = {}, {};
-	for i=1, STATICPOPUP_NUMDIALOGS do
+	for i=1, STATICPOPUP_NUMDIALOGS or 4 do
 		popups[_G['StaticPopup'..i]] = _G['StaticPopup'..(i-1)] or false;
 	end
 
@@ -26,7 +26,11 @@ do  local popups, visible, oldNode = {}, {};
 					if current and not popups[current:GetParent()] then
 						oldNode = current;
 					end
-					env.Cursor:SetCurrentNodeIfActive(self.button1)
+					local button = self.button1;
+					if self.GetButton1 then
+						button = self:GetButton1();
+					end
+					env.Cursor:SetCurrentNodeIfActive(button)
 				end
 			end
 		end)

@@ -35,6 +35,12 @@ end
 function Panel:OpenDesigner()
 	ConsolePortConfig:Hide()
 	env:TriggerEvent('OnConfigToggle')
+
+	C_Timer.After(0.1, function()
+		-- HACK: Switch to layout tab, but we have to wait
+		-- for the config to clear dirty state.
+		env.Config.SettingsContainer.Tabs:SelectAtIndex(2)
+	end)
 end
 
 ConsolePort:RegisterConfigCallback(function(self, configEnv)

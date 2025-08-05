@@ -146,6 +146,7 @@ function CPPopupBindingCatchButtonMixin:CatchClosure(button)
 end
 
 function CPPopupBindingCatchButtonMixin:TryCatchBinding(popupInfo, t1, t2, d)
+	self:Show()
 	CPAPI.Popup('ConsolePort_Popup_Change_Binding', popupInfo, t1, t2, d, self)
 end
 
