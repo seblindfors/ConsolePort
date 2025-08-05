@@ -8,12 +8,13 @@ local _, db = ...; db.Gamepad:AddGamepad({
 			HardwareCursor      = 0;
 		};
 		Settings = {
-			gameMenuScale       = 0.75;
-			gameMenuFontSize    = 16;
 			emulatePADPADDLE1   = 'F1';
 			emulatePADPADDLE2   = 'F2';
 			emulatePADPADDLE3   = 'F3';
 			emulatePADPADDLE4   = 'F4';
+			gameMenuFontSize    = 16;
+			gameMenuScale       = 0.75;
+			keyboardEnable      = true;
 		};
 	};
 	Generator = {
