@@ -1,4 +1,4 @@
-## Interface: 110107, 50500, 11507
+## Interface: 110200, 50500, 11507
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0World|r
 ## Notes: World augmentation module: custom loot frame, new ability prompts
