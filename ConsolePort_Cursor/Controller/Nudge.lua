@@ -45,8 +45,20 @@ end
 
 function Nudge:OnVariablesChanged()
 	local modifier = db('UImodifierNudge');
+	local criteria, isActive = {}, false;
+	for modID, func in pairs(self.Predicates) do
+		if ( modID == modifier ) then
+			isActive = true;
+			tinsert(criteria, 1, func);
+		else
+			tinsert(criteria, func);
+		end
+	end
+
 	self.IsEnabled = CPAPI.Static(db('UImodifierCommands') ~= modifier);
-	self.IsActive  = self.Predicates[modifier] or CPAPI.Static(false);
+	self.IsActive  = isActive and GenerateClosure(function(mod1, mod2, mod3)
+		return mod1() and not mod2() and not mod3();
+	end, unpack(criteria)) or CPAPI.Static(false);
 end
 
 db:RegisterCallbacks(Nudge.OnVariablesChanged, Nudge,
