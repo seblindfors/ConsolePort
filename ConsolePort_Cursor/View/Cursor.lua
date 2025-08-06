@@ -662,7 +662,7 @@ do local function GetCloseButton(node)
 			-- another node that has a related close button, the script order
 			-- will result in both things happening in one frame. Therefore,
 			-- the cancel button needs to be mounted in the next frame instead.
-			if self:InCombat() then return end;
+			if self:InCombat() or not self:IsShown() then return end;
 			Input:SetButton(cancelButton, self, closeButton, true, 'LeftButton')
 		end) end;
 	end

@@ -81,12 +81,12 @@ db:Register('Variables', CPAPI.Callable({
 		note = 'Disable to use discrete legacy movement controls.';
 	};
 	mvmtStrafeAngleTravel = _{Range(0, 5, 0, 180);
-		name = 'Strafe Angle Threshold (Travel)';
+		name = 'Strafe Angle (Travel)';
 		desc = 'Controls when your character transitions from strafing to facing your movement stick direction. Expressed in degrees, from looking straight forward.';
 		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
 	};
 	mvmtStrafeAngleCombat = _{Range(180, 5, 0, 180);
-		name = 'Strafe Angle Threshold (Combat)';
+		name = 'Strafe Angle (Combat)';
 		desc = 'Controls when your character transitions from strafing to facing your movement stick direction while in combat. Expressed in degrees, from looking straight forward.';
 		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
 	};

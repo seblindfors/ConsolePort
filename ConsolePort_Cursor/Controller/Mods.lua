@@ -115,10 +115,11 @@ _('Blizzard_HelpPlate', function()
 	end
 end)
 
+-- Hero talents selection dialog:
+-- The Hero talents selection dialog is not piped through the cursor stack,
+-- so it needs to be manually added to the stack.
 _('Blizzard_PlayerSpells', function()
-	if HeroTalentsSelectionDialog then
-		ConsolePort:AddInterfaceCursorFrame(HeroTalentsSelectionDialog)
-	end
+	db.Stack:AddFrame(HeroTalentsSelectionDialog)
 end)
 
 -- Taint error callback:

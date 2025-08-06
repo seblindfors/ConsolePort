@@ -131,14 +131,13 @@ do
 				currentBaseButton = self;
 
 				GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
-				local selectTalentText = L'Select talent';
 				local spellID = self:GetSpellID()
 				if spellID then
 					GameTooltip:SetSpellByID(spellID)
-					GameTooltip:AddLine(env.Hooks:GetSpecialActionPrompt(selectTalentText))
+					GameTooltip:AddLine(env.Hooks:GetSpecialActionPrompt(INSPECT_TALENTS_BUTTON))
 					GameTooltip:Show()
 				else
-					GameTooltip:SetText(env.Hooks:GetSpecialActionPrompt(selectTalentText))
+					GameTooltip:SetText(env.Hooks:GetSpecialActionPrompt(INSPECT_TALENTS_BUTTON))
 					GameTooltip:Show()
 				end
 			end;
