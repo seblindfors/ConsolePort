@@ -224,7 +224,7 @@ end
 function AssistedCombatManager:BuildAssistedHighlightCandidateActionButtonsList()
 	wipe(self.assistedHighlightCandidateActionButtons);
 	for actionButton in next, env.LAB.actionButtons do
-		if actionButton:GetAttribute(env.Attributes.UUID) then
+		if actionButton:GetAttribute(env.Attributes.GUID) then
 			local spellID = self:GetActionButtonSpellForAssistedHighlight(actionButton);
 			if spellID then
 				self.assistedHighlightCandidateActionButtons[actionButton] = spellID;

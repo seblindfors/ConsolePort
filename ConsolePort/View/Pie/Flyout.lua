@@ -85,10 +85,14 @@ Selector.PrivateEnv = {
 			control:CallMethod('UpdatePieSlices', true, numActiveButtons)
 		end
 	]];
-	OnCustomFlyoutHide = [[
+	OnCustomFlyoutHide = ([[
+		local guid, handle = %s, customflyout:GetAttribute('flyoutParentHandle')
+		if handle and handle:GetAttribute(guid) then
+			handle::UpdateState(handle:GetParent():GetAttribute('state'))
+		end
 		selector::OnFlyoutHide()
 		control:CallMethod('ModifyCustomFlyout', customflyout:GetName())
-	]];
+	]]):format(CPAPI.ActionButtonGUID);
 	GetCustomBinding = ([[
 		local handle = customflyout:GetAttribute('flyoutParentHandle')
 		local preferred = handle:GetAttribute('%s')

@@ -12,6 +12,8 @@ local SlotButton = Mixin({
 ---------------------------------------------------------------
 	Env = {
 		UpdateState = [[
+			if self::IsFlyoutActive() then return end;
+
 			local state = ...; self:SetAttribute('state', state)
 			if not state then return end;
 			local typeof, numBarButtons = type, ]]..NUM_ACTIONBAR_BUTTONS..[[;
@@ -56,6 +58,16 @@ local SlotButton = Mixin({
 			end
 			self:CallMethod('OnTypeChanged', type == 'action')
 		]];
+		IsFlyoutActive = [[
+			if not self:GetAttribute('LABUseCustomFlyout')
+			or self:GetAttribute('type') ~= 'action' then return end;
+
+			local type = GetActionInfo(self:GetAttribute('action'))
+			if type ~= 'flyout' then return end;
+
+			local flyoutHandler = self:GetParent():GetFrameRef('flyoutHandler');
+			return flyoutHandler:IsVisible() and flyoutHandler:GetParent() == self;
+		]];
 		[env.Attributes.Update('actionpage')] = [[
 			self:SetAttribute('actionpage', message)
 			if self:GetID() > 0 then
@@ -69,7 +81,7 @@ local SlotButton = Mixin({
 
 function SlotButton:OnLoad()
 	self:CreateEnvironment()
-	self:SetAttribute(env.Attributes.UUID, true)
+	self:SetAttribute(env.Attributes.GUID, true)
 	env.LIB.Skin.SlotButton(self)
 	env.LIB.SkinUtility.NegateAssistedCombat(self)
 end

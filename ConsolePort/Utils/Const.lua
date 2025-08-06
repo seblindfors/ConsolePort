@@ -22,6 +22,7 @@ CPAPI.SkipHotkeyRender    = 'ignoregamepadhotkey';
 CPAPI.UseCustomFlyout     = 'usegamepadflyout';
 
 CPAPI.RaidCursorUnit      = 'cursorunit';
+CPAPI.ActionButtonGUID    = tostring(random((select(4, GetBuildInfo()))));
 
 ---------------------------------------------------------------
 -- Addon
