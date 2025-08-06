@@ -1,5 +1,5 @@
 local _, Data, env = CPAPI.LinkEnv(...)
-local MODID_SELECT = {'SHIFT', 'CTRL', 'ALT'};
+local MODID_SELECT = { SHIFT = SHIFT_KEY_TEXT, CTRL = CTRL_KEY_TEXT, ALT = ALT_KEY_TEXT, [0] = NONE };
 local DEPENDENCY = { UIenableCursor = true };
 
 ---------------------------------------------------------------
@@ -110,18 +110,16 @@ ConsolePort:AddVariables({
 		desc = 'Button to handle cancel actions, such as exiting menus.';
 		deps = DEPENDENCY;
 	};
-	UImodifierCommands = _{Data.Select('SHIFT', unpack(MODID_SELECT));
+	UImodifierCommands = _{Data.Map('SHIFT', MODID_SELECT);
 		name = 'Command Modifier';
 		desc = 'Which modifier to use for modified commands.';
 		note = 'The modifier can be used to scroll together with the directional pad.';
-		opts = MODID_SELECT;
 		deps = DEPENDENCY;
 	};
-	UImodifierNudge = _{Data.Select('CTRL', unpack(MODID_SELECT));
+	UImodifierNudge = _{Data.Map('CTRL', MODID_SELECT);
 		name = 'Nudge Modifier';
 		desc = 'Which modifier to use for nudging the cursor.';
 		note = 'The modifier can be used to nudge the cursor position with the directional pad.';
-		opts = MODID_SELECT;
 		deps = DEPENDENCY;
 	};
 })
