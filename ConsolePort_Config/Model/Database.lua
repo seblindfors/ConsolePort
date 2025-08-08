@@ -6,16 +6,30 @@ LibStub('RelaTable')(name, env, false);
 ---------------------------------------------------------------
 env.BindingInfo, env.BindingInfoMixin = db.Loadout, db.LoadoutMixin;
 
+local function ReportBindingError(combination, bindingID)
+	---@see https://github.com/Stanzilla/WoWUIBugs/issues/752
+	local set = GetCurrentBindingSet();
+	CPAPI.Log(table.concat({
+			'Failed to set binding %s to %s.';
+			'Please report this bug using in-game customer support.';
+			'Steps to resolve for now:';
+			'1. Backup bindings.';
+			'2. Exit the game completely.';
+			'3. Remove WTF/Account/%s/bindings-cache.wtf.';
+			'4. Restart the game and restore bindings from backup.';
+		}, '\n'),
+		BLUE_FONT_COLOR:WrapTextInColorCode(tostring(combination)),
+		BLUE_FONT_COLOR:WrapTextInColorCode(GetBindingName(tostring(bindingID))),
+		set == Enum.BindingSet.Character and ('<AccountName>/%s/%s'):format(GetRealmName(), UnitName('player')) or
+		set == Enum.BindingSet.Account   and '<AccountName>' or '*')
+end
+
 function env:SetTempBinding(...)
 	if SetBinding(...) then
 		self:TriggerEvent('OnBindingChanged', ...)
 		return true;
 	end
-	local combination, bindingID = ...;
-	---@see https://github.com/Stanzilla/WoWUIBugs/issues/752
-	CPAPI.Log('Failed to set binding %s to %s. Report this bug to Blizzard.',
-		tostring(combination),
-		GetBindingName(tostring(bindingID)))
+	ReportBindingError(...);
 end
 
 function env:SetBinding(keyChord, bindingID, ...)
