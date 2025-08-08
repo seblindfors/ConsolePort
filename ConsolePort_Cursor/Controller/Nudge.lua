@@ -4,11 +4,11 @@
 -- Nudges the cursor position using a combination of a modifier
 -- and the directional pad.
 
-local Nudge, Node, Lerp, sqrt, band, env, db =
-	CPAPI.CreateEventHandler({'Frame', '$parentUINudgeHandler', ConsolePort}),
+local env, db = CPAPI.GetEnv(...);
+local Nudge, Node, Lerp, sqrt, band =
+	CPAPI.CreateEventHandler({'Frame', '$parentNudgeHandler', env.Cursor}),
 	LibStub('ConsolePortNode'),
-	FrameDeltaLerp, sqrt, bit.band,
-	CPAPI.GetEnv(...);
+	FrameDeltaLerp, sqrt, bit.band;
 
 ---------------------------------------------------------------
 -- Controls
@@ -33,12 +33,8 @@ Nudge.Flags = CPAPI.CreateFlagClosures(Nudge.Direction);
 ---------------------------------------------------------------
 function Nudge:OnDataLoaded()
 	Mixin(self, Vector2DMixin)
-	self.Cursor = env.Cursor;
-	self.Cursor:HookScript('OnHide', GenerateClosure(self.OnCursorHide, self))
-	self.Cursor:HookScript('OnShow', GenerateClosure(self.OnCursorShow, self))
-	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
-	self:SetScript('OnGamePadButtonUp',   self.OnGamePadButtonUp)
-	self:OnCursorHide()
+	CPAPI.Start(self, true)
+	self:OnHide()
 	self:OnVariablesChanged()
 	return CPAPI.BurnAfterReading;
 end
@@ -69,13 +65,13 @@ db:RegisterCallbacks(Nudge.OnVariablesChanged, Nudge,
 ---------------------------------------------------------------
 -- Handlers
 ---------------------------------------------------------------
-function Nudge:OnCursorShow()
+function Nudge:OnShow()
 	if self:IsEnabled() then
 		self:RegisterEvent('MODIFIER_STATE_CHANGED')
 	end
 end
 
-function Nudge:OnCursorHide()
+function Nudge:OnHide()
 	self:UnregisterAllEvents()
 	self:EnableGamePadButton(false)
 	self:Reset()
@@ -116,7 +112,7 @@ function Nudge:UpdateInput(direction, isDown)
 end
 
 function Nudge:UpdatePosition()
-	local cursor = self.Cursor;
+	local cursor = env.Cursor;
 	if self:IsAnyButtonDown() and cursor:IsVisible() then
 		local nX, nY = self:GetDirectionVector(self.input)
 		nX = Lerp(self.x, nX, .075);
@@ -155,7 +151,7 @@ function Nudge:MODIFIER_STATE_CHANGED()
 
 	if isActive then return end;
 
-	local cursor = self.Cursor;
+	local cursor = env.Cursor;
 	if not cursor:GetCustomAnchor() then return end;
 
 	local cX, cY = Node.GetCenter(cursor)
