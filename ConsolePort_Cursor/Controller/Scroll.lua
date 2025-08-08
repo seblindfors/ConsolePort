@@ -79,7 +79,7 @@ end
 ---------------------------------------------------------------
 function Scroll:Interpolate(super, current, target, setter)
 	local active, interpolators = self:GetPools()
-	if active[super] then
+	if active[super] and interpolators:IsActive(active[super]) then
 		interpolators:Release(active[super])
 	end
 	local interpolator = self.Interpolators:Acquire()
