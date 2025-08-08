@@ -69,6 +69,17 @@ do local NUM_GROUP_LOOT_FRAMES = NUM_GROUP_LOOT_FRAMES or 4;
 	end
 end
 
+-- High priority frames:
+for _, frame in ipairs({
+	QuestFrameAcceptButton,
+	QuestFrameCompleteButton,
+	QuestFrameCompleteQuestButton,
+}) do
+	if frame then
+		frame:SetAttribute(env.Attributes.Priority, 1)
+	end
+end
+
 -- Classic Spellbook:
 -- Handle the spellbook frame using an unreferenced and hardcoded close button name.
 if (SpellBookFrame and SpellBookCloseButton) then
