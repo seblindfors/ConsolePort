@@ -281,9 +281,15 @@ function ConsolePort:RegisterConfigCallback(callback, owner, ...)
 	if config and config:IsLoaded() then
 		return callback(owner, config:GetEnvironment(), config, ...)
 	end
-	local function Closure(...)
-		callback(...)
-		CPAPI.Next(db.UnregisterCallback, db, 'OnConfigLoaded', owner)
+	if not self.configLoaders then
+		self.configLoaders = {};
+		db:RegisterCallback('OnConfigLoaded', function(main, ...)
+			for _, loader in ipairs(main.configLoaders) do
+				loader(...)
+			end
+			main.configLoaders = nil;
+			CPAPI.Next(db.UnregisterCallback, db, 'OnConfigLoaded', main)
+		end, self)
 	end
-	db:RegisterCallback('OnConfigLoaded', Closure, owner, ...)
+	tinsert(self.configLoaders, GenerateClosure(callback, owner, ...))
 end

@@ -133,7 +133,9 @@ function Container:GetRightScrollBox()
 		self.Right = CreateFrame('Frame', nil, self, 'CPConfigScrollBox')
 		self.Right:SetPoint('TOPLEFT', 340, -2)
 		self.Right:SetPoint('BOTTOMRIGHT', -12, 0)
+
 		CPScrollBoxSettingsTree.InitDefault(self.Right)
+		self.Right.ScrollBar:SetAttribute('nodeignore', true)
 	end
 	return self.Right;
 end
