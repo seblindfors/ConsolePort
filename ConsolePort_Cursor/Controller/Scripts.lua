@@ -21,7 +21,7 @@ local function ExecuteFrameScript(frame, scriptName, ...)
 end
 
 function env.ExecuteScript(node, scriptType, ...)
-	local script, ok, err = Scripts[scriptType][node:GetScript(scriptType)];
+	local script, ok, err = Scripts[scriptType][node:GetScript(scriptType) or node];
 	if script then
 		ok, err = pcall(script, node, ...)
 	else
@@ -250,7 +250,7 @@ do -- Scripts: MapCanvasPinMixin
 					wipe(cachedPins);
 				end
 
-				hooksecurefunc(WorldMapFrame, 'AcquirePin', function(map, pinTemplate)
+				local function PinTemplateDefaultHandler(map, pinTemplate)
 					for pin in map:EnumeratePinsByTemplate(pinTemplate) do
 						if worldMapTainted then
 							FixPinTaint(pin);
@@ -266,6 +266,19 @@ do -- Scripts: MapCanvasPinMixin
 							end;
 						end
 					end
+				end
+
+				local PinTemplateHandlers = CPAPI.Proxy({
+					DungeonEntrancePinTemplate = function(map, pinTemplate)
+						-- Invoking EncounterJournal_OpenJournal used to taint the UI
+						-- panel manager, but this does not seem to be the case anymore.
+						-- Leaving this here in case the issue resurfaces.
+						PinTemplateDefaultHandler(map, pinTemplate)
+					end;
+				}, CPAPI.Static(PinTemplateDefaultHandler));
+
+				hooksecurefunc(WorldMapFrame, 'AcquirePin', function(map, pinTemplate)
+					PinTemplateHandlers[pinTemplate](map, pinTemplate)
 				end)
 			end)
 		end)
