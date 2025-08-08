@@ -236,6 +236,7 @@ CPAPI.GetFriendshipReputation        = C_GossipInfo    and C_GossipInfo.GetFrien
 CPAPI.GetFriendshipReputationRanks   = C_GossipInfo    and C_GossipInfo.GetFriendshipReputationRanks     or nop;
 CPAPI.GetItemCount                   = C_Item          and C_Item.GetItemCount                           or GetItemCount;
 CPAPI.GetItemLink                    = C_Item          and C_Item.GetItemLink                            or nop;
+CPAPI.GetItemNumSockets              = C_Item          and C_Item.GetItemNumSockets                      or nopz;
 CPAPI.GetItemQuality                 = C_Item          and C_Item.GetItemQuality                         or nop;
 CPAPI.GetItemSpell                   = C_Item          and C_Item.GetItemSpell                           or GetItemSpell;
 CPAPI.GetMajorFactionData            = C_MajorFactions and C_MajorFactions.GetMajorFactionData           or nop;
@@ -278,6 +279,7 @@ CPAPI.RequestLoadQuestByID           = C_QuestLog      and C_QuestLog.RequestLoa
 CPAPI.RunMacroText                   = C_Macro         and C_Macro.RunMacroText                          or RunMacroText;
 CPAPI.SplitContainerItem             = C_Container     and C_Container.SplitContainerItem                or SplitContainerItem;
 CPAPI.UseContainerItem               = C_Container     and C_Container.UseContainerItem                  or UseContainerItem;
+CPAPI.SocketContainerItem            = C_Container     and C_Container.SocketContainerItem               or SocketContainerItem;
 -- Fallthroughs
 CPAPI.ClearCursor                    = ClearCursor        or nop;
 CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;

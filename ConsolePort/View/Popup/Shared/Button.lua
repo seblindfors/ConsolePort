@@ -14,6 +14,7 @@ local COMMAND_OPT_ICON = CPAPI.Proxy({
 	RingBind   = 'GreenCross';
 	RingClear  = 'Islands-MarkedArea';
 	Disenchant = 'UpgradeItem-32x32';
+	ShowSocket = 'AzeriteReady';
 	MapActionBar = 'TorghastDoor-ArrowDown-32x32';
 }, 'Waypoint-MapPin-Minimap-Tracked')
 ---------------------------------------------------------------

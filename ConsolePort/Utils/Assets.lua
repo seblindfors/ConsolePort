@@ -51,6 +51,7 @@ CPAPI.Atlas = {
 	[CPAPI.GetAsset([[Textures\Atlas\ObjectIcons_Atlas.png]])] = {
 		['AllianceSymbol'] = { 32, 32, 0.129883, 0.161133, 0.889648, 0.920898, false, false };
 		['Auctioneer'] = { 32, 32, 0.2431640625, 0.2744140625, 0.3642578125, 0.3955078125, false, false };
+		["AzeriteReady"] = { 32, 32, 0.243164, 0.274414, 0.397461, 0.428711, false, false };
 		['Banker'] = { 32, 32, 0.2431640625, 0.2744140625, 0.4638671875, 0.4951171875, false, false };
 		['Barbershop-32x32'] = { 24, 24, 0.2431640625, 0.2744140625, 0.4970703125, 0.5283203125, false, false };
 		['dragon-rostrum'] = { 32, 32, 0.2431640625, 0.2744140625, 0.9619140625, 0.9931640625, false, false };

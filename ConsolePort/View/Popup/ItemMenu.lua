@@ -108,11 +108,15 @@ function ItemMenu:SetCommands()
 	end
 
 	if self:IsDisenchantableItem() then
-		self:AddCommand(L'Disenchant', 'Disenchant', {self:GetBagAndSlot()}, nil, function(self)
+		self:AddCommand(ROLL_DISENCHANT or L'Disenchant', 'Disenchant', {self:GetBagAndSlot()}, nil, function(self)
 			local bagID, slotID = unpack(self.data)
 			self:SetAttribute('type', 'macro')
 			self:SetAttribute('macrotext', '/cast Disenchant\n/use '..bagID..' '..slotID)
 		end)
+	end
+
+	if self:HasSockets() then
+		self:AddCommand(ITEM_SOCKETING, 'ShowSocket')
 	end
 
 	self:AddCommand(L'Pick up', 'Pickup')
@@ -253,6 +257,10 @@ function ItemMenu:HasNoValue()
 	return CPAPI.GetContainerItemInfo(self:GetBagAndSlot()).hasNoValue;
 end
 
+function ItemMenu:HasSockets()
+	return CPAPI.GetItemNumSockets(self:GetItemID()) > 0;
+end
+
 function ItemMenu:IsSplittableItem()
 	return self:GetStackCount() > 1 and self:GetCount() > 1
 end
@@ -341,6 +349,11 @@ end
 function ItemMenu:SplitStack(count)
 	local bagID, slotID = self:GetBagAndSlot()
 	CPAPI.SplitContainerItem(bagID, slotID, count)
+	self:Hide()
+end
+
+function ItemMenu:ShowSocket()
+	CPAPI.SocketContainerItem(self:GetBagAndSlot())
 	self:Hide()
 end
 
