@@ -336,9 +336,6 @@ do  -- Create input proxy for basic controls
 			if script then
 				env.ExecuteScript(node, script, emubtn, true)
 			end
-			if (down and node.OnClick) then
-				env.ExecuteMethod(node, 'OnClick', emubtn)
-			end
 		end
 	end
 
