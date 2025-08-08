@@ -6,7 +6,7 @@
 -- because they modify properties of protected objects, either
 -- directly or indirectly by execution path.
 
-local env, _, _, L = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
+local env, db, _, L = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
 local xpcall, CallErrorHandler = xpcall, CallErrorHandler;
 local Scripts = CPAPI.Proxy({}, function(self, key) return rawget(rawset(self, key, {}), key) end);
 
@@ -213,35 +213,57 @@ do
 end
 
 ---------------------------------------------------------------
--- Scripts: OnMouseDown/OnMouseUp
+do -- Scripts: MapCanvasPinMixin
 ---------------------------------------------------------------
-do
 	if CPAPI.IsRetailVersion then
 	-----------------------------------------------------------
 		_('Blizzard_MapCanvas', function()
 			_('Blizzard_SharedMapDataProviders', function()
 	-----------------------------------------------------------
-				-- Problematic map pins:
-				-- Map pins use faux OnClick handlers to trigger different actions depending on the type of pin.
-				-- Since we can't simulate these OnClick handlers in a safe way, we have to inject our own handler
-				-- to prevent unsafe calls that spread taint in the UI.
-				local OnPinClick;
-				-- Unfortunately the faux pin click handler is private, so we have to hook into the pin creation process
-				-- to get a reference to it. This is done by hooking into the AcquirePin method of the world map frame.
-				hooksecurefunc(WorldMapFrame, 'AcquirePin', function(self, pinTemplate)
-					if OnPinClick then return end;
-					if ( pinTemplate == 'DungeonEntrancePinTemplate' ) then
-						for pin in self:EnumeratePinsByTemplate(pinTemplate) do
-							OnPinClick = pin.OnClick;
-							Scripts.OnClick[ OnPinClick ] = function(self, ...)
-								if ( self.OnMouseClickAction == DungeonEntrancePinMixin.OnMouseClickAction ) then
-									-- We don't want to taint the UI panel controller by opening the dungeon journal
-									-- when clicking on a dungeon entrance pin, so we just do nothing.
-									return;
-								end
-								return OnPinClick(self, ...)
-							end
-							return;
+				-- Map pins OnEnter/OnLeave scripts propagate to basically everywhere on the map,
+				-- resulting in widespread taint. Because it's too ardous to figure out which taint
+				-- is caused by which pin type, we just apply a safe mixin to all pins that
+				-- overrides the problematic methods, so that they are not allowed to execute in
+				-- combat. This is a bad solution, but it works for now.
+				--
+				-- Wouldn't it be nice if we could execute OnEnter/OnLeave securely out of combat?
+
+				local SafePinMixin = {};
+				function SafePinMixin:SetPassThroughButtons(...)
+					db:RunSafe(GenerateClosure(CPAPI.Index(self).SetPassThroughButtons, self), ...)
+				end
+
+				function SafePinMixin:SetPropagateMouseClicks(...)
+					db:RunSafe(GenerateClosure(CPAPI.Index(self).SetPropagateMouseClicks, self), ...)
+				end
+
+				local function FixPinTaint(pin)
+					Mixin(pin, SafePinMixin);
+				end
+
+				local cachedPins, worldMapTainted = {}, false;
+				local function FixCachedPinTaint()
+					worldMapTainted = true;
+					for pin in pairs(cachedPins) do
+						FixPinTaint(pin);
+					end
+					wipe(cachedPins);
+				end
+
+				hooksecurefunc(WorldMapFrame, 'AcquirePin', function(map, pinTemplate)
+					for pin in map:EnumeratePinsByTemplate(pinTemplate) do
+						if worldMapTainted then
+							FixPinTaint(pin);
+						elseif not cachedPins[pin] then
+							cachedPins[pin] = true;
+							Scripts.OnEnter[ pin.OnMouseEnter ] = function(self)
+								FixCachedPinTaint()
+								return self:OnMouseEnter()
+							end;
+							Scripts.OnLeave[ pin.OnMouseLeave ] = function(self)
+								FixCachedPinTaint()
+								return self:OnMouseLeave()
+							end;
 						end
 					end
 				end)
