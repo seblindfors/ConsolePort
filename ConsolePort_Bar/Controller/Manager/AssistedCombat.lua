@@ -179,38 +179,60 @@ function AssistedCombatManager:GetActionButtonSpellForAssistedHighlight(actionBu
 	return nil;
 end
 
-function AssistedCombatManager:SetAssistedHighlightFrameShown(actionButton, shown)
-	if actionButton.ShowOverlayGlow and shown then
-		return actionButton:LockHighlight()
-	elseif actionButton.HideOverlayGlow then
-		return actionButton:UnlockHighlight()
-	end
+-- This is to counteract LAB messing with our highlight frame.
+do local key = CPAPI.ActionButtonGUID;
+	local function HighlightFrameShow(self, token) if token == key then
+		return CPAPI.Index(self).Show(self);
+	end end
 
-	local highlightFrame = actionButton.AssistedCombatHighlightFrame;
-	if shown then
-		if not highlightFrame then
-			highlightFrame = CreateFrame('FRAME', nil, actionButton, 'ActionBarButtonAssistedCombatHighlightTemplate');
-			actionButton.AssistedCombatHighlightFrame = highlightFrame;
-			highlightFrame:SetPoint('CENTER');
-			highlightFrame:SetUsingParentLevel(true);
-			highlightFrame.Flipbook:SetDrawLayer('OVERLAY', 7);
+	local function HighlightFrameHide(self, token) if token == key then
+		return CPAPI.Index(self).Hide(self);
+	end end
 
-			-- have to do this to get a single frame of the flipbook instead of the whole texture
-			highlightFrame.Flipbook.Anim:Play();
-			highlightFrame.Flipbook.Anim:Stop();
-			-- stance buttons are smaller
-			if not actionButton:GetAttribute('action') then
-				highlightFrame.Flipbook:SetSize(48, 48);
+	local function FlipBookAnimPlay(self, token) if token == key then
+		return CPAPI.Index(self).Play(self);
+	end end
+
+	local function FlipBookAnimStop(self, token) if token == key then
+		return CPAPI.Index(self).Stop(self);
+	end end
+
+	function AssistedCombatManager:SetAssistedHighlightFrameShown(actionButton, shown)
+		if actionButton.ShowOverlayGlow and shown then
+			return actionButton:LockHighlight()
+		elseif actionButton.HideOverlayGlow then
+			return actionButton:UnlockHighlight()
+		end
+
+		local highlightFrame = actionButton.AssistedCombatHighlightFrame;
+		if shown then
+			if not highlightFrame then
+				highlightFrame = CreateFrame('FRAME', nil, actionButton, 'ActionBarButtonAssistedCombatHighlightTemplate');
+				actionButton.AssistedCombatHighlightFrame = highlightFrame;
+				highlightFrame:SetPoint('CENTER');
+				highlightFrame:SetUsingParentLevel(true);
+				highlightFrame.Flipbook:SetDrawLayer('OVERLAY', 7);
+				highlightFrame.Hide = HighlightFrameHide;
+				highlightFrame.Show = HighlightFrameShow;
+
+				highlightFrame.Flipbook.Anim.Play = FlipBookAnimPlay;
+				highlightFrame.Flipbook.Anim.Stop = FlipBookAnimStop;
+				highlightFrame.Flipbook.Anim:Play(key);
+				highlightFrame.Flipbook.Anim:Stop(key);
+				-- stance buttons are smaller
+				if not actionButton:GetAttribute('action') then
+					highlightFrame.Flipbook:SetSize(48, 48);
+				end
 			end
+			highlightFrame:Show(key);
+			if self.affectingCombat then
+				highlightFrame.Flipbook.Anim:Play(key);
+			else
+				highlightFrame.Flipbook.Anim:Stop(key);
+			end
+		elseif highlightFrame then
+			highlightFrame:Hide(key);
 		end
-		highlightFrame:Show();
-		if self.affectingCombat then
-			highlightFrame.Flipbook.Anim:Play();
-		else
-			highlightFrame.Flipbook.Anim:Stop();
-		end
-	elseif highlightFrame then
-		highlightFrame:Hide();
 	end
 end
 
