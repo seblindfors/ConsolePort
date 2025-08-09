@@ -327,3 +327,24 @@ Settings:AddMutator(function(AddSetting, _, interface)
 		sort  = 0;
 	})
 end)
+
+Settings:AddMutator(function(_, _, interface)
+	-- Sort Gameplay/Bindings/Settings to appear before other categories.
+	-- This is to force emulations to be shown first, but in an "advanced"
+	-- category and therefore collapsed. Without the sort, it would first
+	-- process the addon variables, which would put advanced first.
+	--
+	-- The reasoning behind this is to prevent accidental changes to the
+	-- core settings by having them immediately visible when you open
+	-- settings (touchscreens are especially prone to this).
+	local core = SETTINGS;
+	local data = interface[SETTING_GROUP_GAMEPLAY][KEY_BINDINGS_MAC];
+	table.sort(data, function(a, b)
+		if a.field.list == core and b.field.list ~= core then
+			return true;
+		elseif a.field.list ~= core and b.field.list == core then
+			return false;
+		end
+		return a.sort < b.sort;
+	end)
+end)

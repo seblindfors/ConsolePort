@@ -18,6 +18,7 @@ db:Register('Console', CPAPI.Proxy({
 			desc = 'Button that emulates the '..BLUE'Shift'..' key. Hold this button to swap your binding set.';
 			note = 'Recommended as first choice modifier.';
 			list = SETTINGS;
+			advd = true;
 		};
 		{	cvar = 'GamePadEmulateCtrl';
 			type = Button;
@@ -25,6 +26,7 @@ db:Register('Console', CPAPI.Proxy({
 			desc = 'Button that emulates the '..BLUE'Ctrl'..' key. Hold this button to swap your binding set.';
 			note = 'Recommended as second choice modifier.';
 			list = SETTINGS;
+			advd = true;
 		};
 		{ 	cvar = 'GamePadEmulateAlt';
 			type = Button;
@@ -32,6 +34,7 @@ db:Register('Console', CPAPI.Proxy({
 			desc = 'Button that emulates the '..BLUE'Alt'..' key. Hold this button to swap all your binding sets.';
 			note = 'Only recommended for super users.';
 			list = SETTINGS;
+			advd = true;
 		};
 		{	cvar = 'GamePadCursorLeftClick';
 			type = Button;
@@ -39,6 +42,7 @@ db:Register('Console', CPAPI.Proxy({
 			desc = 'Button that emulates '..BLUE'Left Click'..' while controlling the mouse cursor.';
 			note = 'Frees your mouse cursor when used, if the cursor is currently center-fixed or hidden.';
 			list = SETTINGS;
+			advd = true;
 		};
 		{	cvar = 'GamePadCursorRightClick';
 			type = Button;
@@ -46,6 +50,7 @@ db:Register('Console', CPAPI.Proxy({
 			desc = 'Button that emulates '..BLUE'Right Click'..' while controlling the mouse cursor.';
 			note = 'Used for interacting with the world, at a center-fixed position.';
 			list = SETTINGS;
+			advd = true;
 		};
 		{	cvar = 'GamePadEmulateTapWindowMs';
 			type = Number(350, 25);
