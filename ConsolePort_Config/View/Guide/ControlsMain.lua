@@ -216,6 +216,64 @@ function ControlsTest:ToggleReport(enabled, reports)
 end
 
 ---------------------------------------------------------------
+local TrialButton = CreateFromMixins(SchemeSelect);
+---------------------------------------------------------------
+
+function TrialButton:OnLoad()
+	SchemeSelect.OnLoad(self)
+end
+
+function TrialButton:OnHide()
+	SchemeSelect.OnHide(self)
+	self:ToggleObserver(false)
+	self:ToggleActive(false)
+end
+
+function TrialButton:OnEnter()
+	SchemeSelect.OnEnter(self)
+	self:ToggleObserver(true)
+end
+
+function TrialButton:OnLeave()
+	SchemeSelect.OnLeave(self)
+	self:ToggleObserver(false)
+	self:ToggleActive(false)
+end
+
+function TrialButton:ToggleObserver(enabled)
+	self:SetIgnoreParentAlpha(enabled)
+	self:SetPropagateKeyboardInput(enabled)
+	self:EnableGamePadStick(enabled)
+	self:SetScript('OnGamePadStick', enabled and self.OnGamePadStick or nil)
+end
+
+function TrialButton:ToggleActive(active)
+	self.isActive = active;
+	db.Alpha.FadeOut(self, 0.1, self:GetAlpha(), active and 0.5 or 1)
+	db.Alpha.FadeOut(env.Frame, 0.1, env.Frame:GetAlpha(), active and 0.05 or 1)
+	if active then
+		self.backup = self.enable();
+		return self:SetChecked(true)
+	elseif self.backup then
+		self.disable(self.backup)
+		self.backup = nil;
+	end
+	self:Update()
+end
+
+function TrialButton:OnGamePadStick(stick, _, _, len)
+	if stick ~= self.stick then return end;
+	local isActive = len > 0.1;
+	if self.isActive == isActive then return end;
+	self:ToggleActive(isActive);
+end
+
+function TrialButton:Update()
+	if self.isActive then return end;
+	return SchemeSelect.Update(self)
+end
+
+---------------------------------------------------------------
 local Cvar = CreateFromMixins(env.Elements.Cvar);
 ---------------------------------------------------------------
 
@@ -379,9 +437,24 @@ local SchemeContent = {}; do
 		return true;
 	end
 
+	local function HasVars(vars, cmp)
+		for i, varID in ipairs(vars) do
+			if db(varID) ~= cmp[i] then
+				return false;
+			end
+		end
+		return true;
+	end
+
 	local function SetCVars(cvars, values)
 		for i, cvar in ipairs(cvars) do
 			db:SetCVar(cvar, values[i]);
+		end
+	end
+
+	local function SetVars(vars, values)
+		for i, varID in ipairs(vars) do
+			db('Settings/'..varID, values[i]);
 		end
 	end
 
@@ -608,6 +681,98 @@ local SchemeContent = {}; do
 		};
 	});
 
+	local function GetMovementVars()
+		return { 'mvmtAnalog', 'mvmtStrafeAngleTravel', 'mvmtStrafeAngleCombat' };
+	end
+
+	local HasMovement = GenerateClosure(HasVars, GetMovementVars());
+	local SetMovement = GenerateClosure(SetVars, GetMovementVars());
+
+	local function EnableMovementTrial(data)
+		local values = GetMovementVars()
+		for i, varID in ipairs(values) do
+			values[i] = db(varID);
+			db('Settings/'..varID, data[i]);
+		end
+		return values;
+	end
+
+	local function DisableMovementTrial(values)
+		local vars = GetMovementVars()
+		for i, value in ipairs(values) do
+			db('Settings/'..vars[i], value);
+		end
+	end
+
+	local function GetMovementSubs()
+		local vars = GetMovementVars()
+		for i, varID in ipairs(vars) do
+			vars[i] = 'Settings/'..varID;
+		end
+		return vars;
+	end
+
+	local TankMvmt   = { true,   0, 180 };
+	local TankTrial  = { true, 180, 180 };
+	local BlncMvmt   = { true, 115, 115 };
+	local FollowMvmt = { true,   0,   0 };
+
+	tinsert(SchemeContent, {
+		-- Row 4: Movement
+		text = TUTORIAL_TITLE2 or L'Movement';
+		desc = L.CONTROLS_MOVEMENT_DESC;
+		type = TrialButton;
+		{ -- 4.1 Tank movement
+			text      = TANK or L'Tank';
+			desc      = L.CONTROLS_MOVEMENT_TANK_DESC;
+			stick     = 'Movement';
+			subscribe = GetMovementSubs();
+			predicate = GenerateClosure(HasMovement, TankMvmt);
+			execute   = GenerateClosure(SetMovement, TankMvmt);
+			enable    = GenerateClosure(EnableMovementTrial, TankTrial);
+			disable   = DisableMovementTrial;
+			init      = function(self)
+				local icon = self:AcquireTexture();
+				icon:SetPoint('CENTER', 0, 4)
+				icon:SetSize(60, 60)
+				icon:SetTexture([[Interface\AddOns\ConsolePort_Config\Assets\Movement_Tank.png]])
+			end;
+		};
+		{ -- 4.2 Balanced movement
+			text      = BALANCE or L'Balance';
+			desc      = L.CONTROLS_MOVEMENT_BALANCED_DESC;
+			stick     = 'Movement';
+			recommend = true;
+			subscribe = GetMovementSubs();
+			predicate = GenerateClosure(HasMovement, BlncMvmt);
+			execute   = GenerateClosure(SetMovement, BlncMvmt);
+			enable    = GenerateClosure(EnableMovementTrial, BlncMvmt);
+			disable   = DisableMovementTrial;
+			init      = function(self)
+				local icon = self:AcquireTexture();
+				icon:SetPoint('CENTER', 0, 4)
+				icon:SetSize(60, 60)
+				icon:SetTexture([[Interface\AddOns\ConsolePort_Config\Assets\Movement_Balanced.png]])
+			end;
+		};
+		{ -- 4.3 Follow stick
+			text      = FOLLOW or 'Follow';
+			desc      = L.CONTROLS_MOVEMENT_FOLLOW_DESC;
+			stick     = 'Movement';
+			subscribe = GetMovementSubs();
+			predicate = GenerateClosure(HasMovement, FollowMvmt);
+			execute   = GenerateClosure(SetMovement, FollowMvmt);
+			enable    = GenerateClosure(EnableMovementTrial, FollowMvmt);
+			disable   = DisableMovementTrial;
+			init      = function(self)
+				local icon = self:AcquireTexture();
+				icon:SetPoint('CENTER', 0, 4)
+				icon:SetSize(60, 60)
+				icon:SetTexture([[Interface\AddOns\ConsolePort_Config\Assets\Movement_Follow.png]])
+			end;
+		};
+	})
+
 	local function MakeValuePoint(color, head, text, value)
 		return MakeBulletPoint(color, head .. ' | ' .. text) .. ' > ' .. tostring(value);
 	end
@@ -682,11 +847,11 @@ local SchemeContent = {}; do
 
 	local cmp = env.table.compare;
 	tinsert(SchemeContent, {
-		-- Row 4: Defaults
+		-- Row 5: Defaults
 		text = DEFAULTS;
 		desc = L.DEFAULTS_GENERAL_INFO;
 		type = SchemeSelect;
-		{ -- 4.1 Import settings
+		{ -- 5.1 Import settings
 			text = SETTINGS;
 			desc = function()
 				local device, hasEnvironment, console, settings = GetGamepadEnvironment();
@@ -753,7 +918,7 @@ local SchemeContent = {}; do
 				icon:SetDesaturated(not hasEnvironment)
 			end;
 		};
-		{ -- 4.2 Import bindings
+		{ -- 5.2 Import bindings
 			text = KEY_BINDINGS_MAC;
 			desc = L.DEFAULTS_BINDINGS_PRESET_DESC;
 			recommend = true;
@@ -772,7 +937,7 @@ local SchemeContent = {}; do
 				icon:SetTexture([[Interface\AddOns\ConsolePort_Config\Assets\Controls_Bindings.png]])
 			end;
 		};
-		{ -- 4.3 Empty bindings
+		{ -- 5.3 Empty bindings
 			text = EMPTY;
 			desc = L.DEFAULTS_BINDINGS_EMPTY_DESC;
 			advanced = true;
@@ -856,7 +1021,7 @@ function Controls:OnLoad()
 			button:Show()
 			data.object = button;
 		end
-		topOffset = topOffset - 200;
+		topOffset = topOffset - 160;
 	end
 
 	local spacer = CreateFrame('Frame', nil, scrollChild)

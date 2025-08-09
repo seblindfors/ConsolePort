@@ -482,8 +482,49 @@ L.LINK_PAYPAL_TEXT = [[
 ]];
 L.LINK_COPY = [[
 	Link to %s.
-	
+
 	Ctrl+A to select and Ctrl+C to copy.
-	
+
 	Paste (Ctrl+V) the link in your web browser.
+]];
+L.CONTROLS_MOVEMENT_DESC = [[
+	Movement controls can be customized to fit your playstyle.
+
+	Gamepads use analog movement, which means you can run in any direction,
+	and walk by varying the pressure you apply to the stick.
+
+	The game relies heavily on strafing as a mechanic,
+	where you move sideways while facing a different direction.
+
+	You can customize when your character transitions between
+	strafing and turning to face the direction you're moving.
+
+	Highlight one of the configurations and move your left stick
+	to test it.
+]];
+L.CONTROLS_MOVEMENT_TANK_DESC = [[
+	Tank movement is focused on maintaining a forward-facing position while moving in combat.
+
+	In combat, this configuration will always strafe, and walk backwards to stay focused forward.
+
+	During travel, this configuration will always follow the movement direction.
+]];
+L.CONTROLS_MOVEMENT_BALANCED_DESC = [[
+	Balanced movement is a compromise between tank and follow movement.
+
+	In both combat and travel, this configuration will strafe up to 115 degrees in each direction,
+	meaning you are still facing forward while moving sideways.
+
+	If you move your stick further down, your character will transition to follow your movement direction.
+	Look at your character's head to see in which direction they are facing.
+
+	115 degrees is the sweet spot to provide maximum coverage without losing any movement speed.
+]];
+L.CONTROLS_MOVEMENT_FOLLOW_DESC = [[
+	Follow movement is focused on following the direction you're moving in.
+
+	In both combat and travel, this configuration will never strafe,
+	and never walk backwards.
+
+	This may be useful for players who often or always play with a single stick configuration.
 ]];
