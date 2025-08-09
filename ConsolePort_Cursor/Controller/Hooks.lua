@@ -153,6 +153,14 @@ function Hooks:SetPendingItemMenu(tooltip, itemLocation)
 	end
 end
 
+function Hooks:SetUseItemPrompt(tooltip, text)
+	local prompt = self:GetRightActionPrompt(text)
+	if prompt then
+		tooltip:AddLine(prompt)
+		tooltip:Show()
+	end
+end
+
 function Hooks:SetSellItemPrompt(tooltip, itemLocation)
 	local bagID, slotID = itemLocation:GetBagAndSlot()
 	if bagID and slotID then
@@ -246,9 +254,15 @@ do -- Tooltip hooking
 			if Hooks:GetSpecialClickHandler(owner) then return end;
 
 			local itemLocation = Hooks:GetItemLocationFromNode(owner)
+			local _, link, itemID = self:GetItem()
+
 			if itemLocation then
 				if CPAPI.IsMerchantAvailable then
 					Hooks:SetSellItemPrompt(self, itemLocation)
+				elseif itemID and CPAPI.IsEquippableItem(itemID) then
+					Hooks:SetUseItemPrompt(self, EQUIPSET_EQUIP or USE)
+				elseif itemID and CPAPI.IsUsableItem(itemID) then
+					Hooks:SetUseItemPrompt(self, USE)
 				end
 				return Hooks:SetPendingItemMenu(self, itemLocation)
 			end
@@ -258,9 +272,7 @@ do -- Tooltip hooking
 				return Hooks:SetPendingBagPickup(self, bagLocation)
 			end
 
-			local name, link, itemID = self:GetItem()
 			if not link then return end;
-
 			local numOwned     = CPAPI.GetItemCount(link)
 			local isEquipped   = CPAPI.IsEquippedItem(link)
 			local isEquippable = CPAPI.IsEquippableItem(link)
