@@ -3,7 +3,7 @@
 ## Title: Console Port
 ## Notes: Gamepad addon suite
 ## AddonCompartmentFunc: ConsolePort
-## Version: 3.0.5
+## Version: 3.0.6
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
