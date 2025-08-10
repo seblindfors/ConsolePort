@@ -717,7 +717,7 @@ Loadout.Popups = {
 		hasEditBox = 1;
 		enterClicksFirstButton = true;
 		OnAccept = function(popup, data)
-			local editBox = popup.editBox;
+			local editBox = popup.editBox or popup:GetEditBox();
 			data.owner:OnAdd(data.interface, editBox:GetText():trim())
 		end;
 		OnShow = function(popup, data)
