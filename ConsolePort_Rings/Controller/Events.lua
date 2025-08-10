@@ -1,4 +1,5 @@
-local env, db = CPAPI.GetEnv(...)
+local env, db, _ = CPAPI.GetEnv(...)
+_ = function(...) CPAPI.Next(db.RunSafe, db, ...) end;
 ---------------------------------------------------------------
 local Events = CPAPI.EventHandler(env.Frame, {
 ---------------------------------------------------------------
@@ -20,9 +21,9 @@ local Events = CPAPI.EventHandler(env.Frame, {
 function Events:QUEST_WATCH_LIST_CHANGED(questID, added)
 	if self:IsAutoEnabled() then
 		if questID then
-			db:RunSafe(self.ToggleQuestWatchItem, self, questID, added)
+			_(self.ToggleQuestWatchItem, self, questID, added)
 		else
-			db:RunSafe(self.RefreshQuestWatchItems, self)
+			_(self.RefreshQuestWatchItems, self)
 		end
 	end
 end
@@ -34,14 +35,14 @@ end
 
 function Events:QUEST_DATA_LOAD_RESULT(questID, success)
 	if not success or not self:IsAutoEnabled() then return end;
-	db:RunSafe(self.ToggleQuestWatchItemInline, self, questID)
+	_(self.ToggleQuestWatchItemInline, self, questID)
 end
 
 function Events:UPDATE_BINDINGS()
 	if self:IsAutoEnabled() and not db.Gamepad:GetBindingKey('EXTRAACTIONBUTTON1') then
-		db:RunSafe(self.ToggleExtraActionButton, self, true)
+		_(self.ToggleExtraActionButton, self, true)
 	else
-		db:RunSafe(self.ToggleExtraActionButton, self, false)
+		_(self.ToggleExtraActionButton, self, false)
 	end
 end
 
@@ -57,26 +58,27 @@ end
 Events:RegisterUnitEvent('UNIT_QUEST_LOG_CHANGED', 'player')
 function Events:UNIT_QUEST_LOG_CHANGED()
 	if not self:IsAutoEnabled() then return end;
-	db:RunSafe(self.ParseObservedQuestIDs, self)
-	db:RunSafe(self.RefreshQuestWatchItems, self)
+	_(self.ParseObservedQuestIDs, self)
+	_(self.RefreshQuestWatchItems, self)
 end
 
 function Events:SPELLS_CHANGED()
 	env.IsSpellValidationReady = true;
 	if self:IsAutoEnabled() then
-		db:RunSafe(self.ToggleZoneAbilities, self)
+		_(self.ToggleZoneAbilities, self)
 	end
 	self:QueueRefresh()
 end
 
 function Events:ACTIONBAR_SLOT_CHANGED()
 	if not self:IsAutoEnabled() then return end;
-	db:RunSafe(self.ToggleZoneAbilities, self)
+	_(self.ToggleZoneAbilities, self)
 end
 
 function Events:BAG_UPDATE_DELAYED()
 	if not self:IsAutoEnabled() then return end;
-	db:RunSafe(self.ToggleInventoryQuestItems, self, not self.announcedBagAdditions)
+	_(self.ToggleInventoryQuestItems, self, not self.announcedBagAdditions)
+	_(self.AddAllQuestWatchItems, self)
 	self.announcedBagAdditions = true; -- Only announce once per session
 end
 
