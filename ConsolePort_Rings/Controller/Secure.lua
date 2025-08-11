@@ -208,7 +208,9 @@ Secure:CreateEnvironment({
 	Enable = [[
 		local button, stickySelect, pressAndHold = ...;
 		local set = self::GetRingSetFromButton(button)
+		LAST = button;
 
+		if self:IsShown() then self:Hide() end;
 		self:::CheckCursorInfo(set)
 		self::DrawSelectedRing(set)
 		self::SetRemoveBinding(true)
@@ -224,7 +226,9 @@ Secure:CreateEnvironment({
 		self:Hide()
 	]];
 	Commit = [[
-		local stickySelect, pressAndHold = ...;
+		local button, stickySelect, pressAndHold = ...;
+		if LAST ~= button then return end;
+
 		local index = self::GetIndex()
 		if stickySelect then
 			index = self::InjectStickyIndex(index)
@@ -241,14 +245,14 @@ Secure:CreateEnvironment({
 		if down then
 			self::Enable(button, stickySelect, pressAndHold)
 		else
-			self::Commit(stickySelect, pressAndHold)
+			self::Commit(button, stickySelect, pressAndHold)
 		end
 	]];
 	Toggle = [[
 		local button, down, stickySelect, pressAndHold = ...;
 		if down then return end;
 		if self:IsShown() then
-			self::Commit(stickySelect, pressAndHold)
+			self::Commit(button, stickySelect, pressAndHold)
 		else
 			self::Enable(button, stickySelect, pressAndHold)
 		end
