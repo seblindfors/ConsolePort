@@ -60,6 +60,7 @@ function Dictionary:GenerateTree(dictionary)
 end
 
 function Dictionary:Update(dictionary, src)
+	if not dictionary or not src then return end;
 	-- store new words from the current input and update frequency of others
 	for word in src:gmatch(env.DictMatchPattern) do
 		word = word:lower()
