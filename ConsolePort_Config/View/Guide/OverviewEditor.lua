@@ -30,7 +30,9 @@ function BindingIcon:OnIconChanged(result, saveResult)
 	local bindingID  = parentData.bindingID;
 	parent.Icon:SetTexture(parentData.element:DetermineIcon(result, nil, bindingID))
 	if saveResult then
+		self:OnHide()
 		db.Bindings:SetIcon(bindingID, result)
+		self:OnShow()
 	end
 end
 

@@ -410,8 +410,25 @@ function BindingIcon:OnIconChanged(result, saveResult)
 	self.NormalTexture:SetAlpha(not result and 0.25 or 1)
 	self.NormalTexture:SetTexture(result or CPAPI.GetAsset([[Textures\Button\EmptyIcon]]))
 	if saveResult then
+		self:OnHide()
 		db.Bindings:SetIcon(self:GetParent():GetElementData():GetData().bindingID, result)
+		self:OnShow()
 	end
+end
+
+function BindingIcon:OnExternalChange(bindingID, icon)
+	local parentData = self:GetParent():GetElementData():GetData()
+	if parentData.bindingID == bindingID then
+		self:OnIconChanged(icon, false)
+	end
+end
+
+function BindingIcon:OnShow()
+	db:RegisterCallback('OnBindingIconChanged', self.OnExternalChange, self)
+end
+
+function BindingIcon:OnHide()
+	db:UnregisterCallback('OnBindingIconChanged', self)
 end
 
 function BindingIcon:OnClick(button)
