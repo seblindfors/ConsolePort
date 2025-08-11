@@ -10,7 +10,6 @@ local Events = CPAPI.EventHandler(env.Frame, {
 	'QUEST_WATCH_LIST_CHANGED';
 	'QUEST_WATCH_UPDATE';
 	'SPELLS_CHANGED';
-	'UPDATE_BINDINGS';
 	'UPDATE_EXTRA_ACTIONBAR';
 	'UPDATE_MACROS';
 });
@@ -45,6 +44,7 @@ function Events:UPDATE_BINDINGS()
 		_(self.ToggleExtraActionButton, self, false)
 	end
 end
+db:RegisterCallback('OnNewBindings', Events.UPDATE_BINDINGS, Events)
 
 function Events:UPDATE_EXTRA_ACTIONBAR()
 	if self:HasExtraActionButton() and HasExtraActionBar() then
