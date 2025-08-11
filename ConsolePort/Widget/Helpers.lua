@@ -196,7 +196,8 @@ function CPTimedButtonContextMixin:OnTimedContext(button, enable)
 	self.contextTimer  = enable and 0 or nil;
 	self.contextButton = enable and button or nil;
 	if enable then
-		self.prevOnUpdate = self:GetScript('OnUpdate')
+		local prevOnUpdate = self:GetScript('OnUpdate')
+		self.prevOnUpdate = prevOnUpdate ~= self.OnTimedContextUpdate and prevOnUpdate or nil;
 		self:SetScript('OnUpdate', self.OnTimedContextUpdate)
 	else
 		self:SetScript('OnUpdate', self.prevOnUpdate)
