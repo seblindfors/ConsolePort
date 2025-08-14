@@ -146,11 +146,12 @@ env.ActionValidationMap = {
 		if not item then
 			item = link;
 		end
-		if not tostring(item):match('item:%d+') then
-			-- NOTE: This check is to make sure LAB:getItemId receives a valid item link.
+		item = tostring(item);
+		---@see LibActionButton: Generic:SetStateFromHandlerInsecure/Item.GetCooldown
+		if not tonumber(item) and not item:match('^|c[^|]+|H(item[%d:]+)|h%[') then
 			return CPAPI.Log('Invalid item removed from %s:\nID: %s\nLink: %s',
 				db.Bindings:ConvertRingSetIDToDisplayName(setID),
-				tostring(item),
+				item,
 				tostring(link)
 			);
 		end
