@@ -7,7 +7,7 @@
 
 local _, db = ...
 ---------------------------------------------------------------
-local NUM_COMBO_BUTTONS    = 4;
+local NUM_COMBO_BUTTONS    = 8;
 local UNIT_DRIVER_FORMAT   = '[@%s,exists] true; nil';
 local UNIT_DRIVER_UPDATE   = 'units[%q][%q] = newstate; self:RunAttribute("RefreshUnits")';
 local UNIT_DRIVER_CLLBCK   = '_onstate-%s';
@@ -35,11 +35,17 @@ SetEvaluator.Right = function() return {
 	'PAD4';
 } end
 SetEvaluator.Custom = function()
-	local set = {};
+	local set, colors = {}, {};
 	for i=1, NUM_COMBO_BUTTONS do
-		set[i] = db('unitHotkeyButton'..i)
+		local buttonID = db('unitHotkeyButton'..i)
+		if buttonID and buttonID:match('^PAD') then
+			local index = #set + 1;
+			set[index] = buttonID;
+			local color = db('unitHotkeyColor'..i)
+			colors[tostring(index)] = CPAPI.CreateColorFromHexString(color);
+		end
 	end
-	return set;
+	return set, colors;
 end
 SetEvaluator.Dynamic = function()
 	local left   = SetEvaluator.Left()
@@ -66,27 +72,8 @@ local Input = ConsolePortEasyMotionInput;
 UH.GetNamePlateForUnit, UH.UnitDrivers, UH.UnitFrames = C_NamePlate.GetNamePlateForUnit, {}, {};
 
 UH:Run([[bindRef = %q;
-
 	-- Unit and binding tables
 	units, sorted, lookup = newtable(), newtable(), newtable()
-	
-	-- Sequences used to assign units to bindings (cap 84)
-	local keys = {4, 3, 2, 1};
-	sequence = newtable();
-	local current = 1;
-	for _, k1 in ipairs(keys) do
-		sequence[current] = tonumber(k1)
-		current = current + 1
-		for _, k2 in ipairs(keys) do
-			sequence[current] = tonumber(k2 .. k1)
-			current = current + 1
-			for _, k3 in ipairs(keys) do
-				sequence[current] = tonumber(k3 .. k2 .. k1)
-				current = current + 1
-			end
-		end
-	end
-	table.sort(sequence)
 ]], ConsolePortEasyMotionInput:GetName())
 
 UH:CreateEnvironment({
@@ -96,6 +83,29 @@ UH:CreateEnvironment({
 		key = ...;
 		input = input and tonumber( input .. key ) or tonumber(key);
 		self:CallMethod('Filter', tostring(input))
+	]];
+
+	GenerateSequences = [[
+		-- Sequences used to assign units to bindings (cap at 3 keys)
+		local keys = {};
+		for i = self:GetAttribute('numkeys'), 1, -1 do
+			tinsert(keys, i)
+		end
+		sequence = newtable();
+		local current = 1;
+		for _, k1 in ipairs(keys) do
+			sequence[current] = tonumber(k1)
+			current = current + 1
+			for _, k2 in ipairs(keys) do
+				sequence[current] = tonumber(k2 .. k1)
+				current = current + 1
+				for _, k3 in ipairs(keys) do
+					sequence[current] = tonumber(k3 .. k2 .. k1)
+					current = current + 1
+				end
+			end
+		end
+		table.sort(sequence)
 	]];
 
 	RefreshUnits = [[
@@ -178,15 +188,15 @@ UH:CreateEnvironment({
 		input = nil;
 	]];
 
-	SetBindings = ([[
+	SetBindings = [[
 		local modifier = self:GetAttribute('modifier')
-		for i=1, %d do
+		for i=1, self:GetAttribute('numkeys') do
 			local binding = self:GetAttribute(tostring(i))
 			if binding then
 				self:SetBindingClick(true, modifier..binding, bindRef, tostring(i))
 			end
 		end
-	]]):format(NUM_COMBO_BUTTONS);
+	]];
 })
 
 UH:Wrap('PreClick', [[
@@ -257,13 +267,16 @@ function UH:OnUnitPoolChanged()
 	-- Reparse the hotkey set and rebuild the hotkey buttons
 	local evaluator = SetEvaluator[db('unitHotkeySet')]
 	assert(evaluator, 'Invalid hotkey set: '..tostring(db('unitHotkeySet')))
-	local keys = evaluator()
+	local keys, colors = evaluator()
 	for i, key in ipairs(keys) do
 		self:SetAttribute(tostring(i), key)
 	end
+	self.colors = colors or {};
+	self:SetAttribute('numkeys', #keys)
 
 	-- Refresh active units
 	self:Run([[
+		self::GenerateSequences()
 		self::RefreshUnits()
 	]])
 end
@@ -327,6 +340,7 @@ db:RegisterSafeCallbacks(UH.OnUnitPoolChanged, UH,
 		local res = {};
 		for i=1, n do
 			res[#res+1] = 'Settings/unitHotkeyButton'..i
+			res[#res+1] = 'Settings/unitHotkeyColor'..i
 		end
 		return unpack(res)
 	end)(NUM_COMBO_BUTTONS)
@@ -533,6 +547,7 @@ function HotkeyMixin:ReleaseTextures()
 	wipe(self.textures)
 end
 
+local SetIconToTexture = db.Gamepad.SetIconToTexture;
 function HotkeyMixin:AcquireTexture(id, size)
 	local texture = UH.Textures:Acquire()
 	tinsert(self.textures, texture)
@@ -541,7 +556,14 @@ function HotkeyMixin:AcquireTexture(id, size)
 	texture:SetAlpha(1)
 	texture:SetParent(self)
 	texture:SetSize(size, size)
-	db.Gamepad.SetIconToTexture(texture, UH:GetAttribute(id), 32, {size, size}, {size * 0.75, size * 0.75})
+	SetIconToTexture(texture, UH:GetAttribute(id), 32, {size, size}, {size * 0.75, size * 0.75})
+
+	local color = UH.colors[id];
+	if color then
+		texture:SetVertexColor(color:GetRGB())
+	else
+		texture:SetVertexColor(1, 1, 1)
+	end
 	return texture;
 end
 
