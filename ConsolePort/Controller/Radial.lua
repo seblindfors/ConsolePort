@@ -552,11 +552,13 @@ function Radial:GetAngleDistance(a1, a2)
 end
 
 function Radial:GetAngleForIndex(index, size)
-	local step = 360 / size
+	if not size or size < 1 then return self.ANGLE_IDX_ONE end;
+	local step = 360 / size;
 	return ((self.ANGLE_IDX_ONE + ((index - 1) * step)) % 360)
 end
 
 function Radial:GetBoundingRadiansForIndex(index, size)
+	if not size or size < 1 then return 0, 360, self.ANGLE_IDX_ONE end;
 	local centerAngle = self:GetAngleForIndex(index, size)
 	local halfstep = -(self.COS_DELTA) * 360 / size / 2;
 	local startAngle = centerAngle - halfstep;
