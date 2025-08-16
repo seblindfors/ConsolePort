@@ -320,7 +320,9 @@ function CPPetRing:OnUpdate(elapsed)
 		self:SetHealth(health)
 	end
 	if not powerType then return end;
-	local power = UnitPower(unit, powerType) / UnitPowerMax(unit, powerType);
+	local maxPower = UnitPowerMax(unit, powerType)
+	local curPower = UnitPower(unit, powerType);
+	local power = maxPower > 0 and curPower / maxPower or 1;
 	if ( self.power ~= power ) then
 		self.power = power;
 		self:SetPower(power)

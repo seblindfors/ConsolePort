@@ -178,6 +178,7 @@ Secure:CreateEnvironment({
 		self:::OnStickyIndexChanged()
 	]];
 	GetStickyIndex = ([[
+		if not RING then return 1 end;
 		local key = %q;
 		local index = INFO[key];
 		if index and index > #RING then
