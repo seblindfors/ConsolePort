@@ -12,6 +12,8 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
+Libs\Libs.xml
+
 Model\Model.xml
 Controller\Controller.xml
 

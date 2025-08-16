@@ -1,4 +1,5 @@
 local env, db, _, L = CPAPI.GetEnv(...);
+local QR = LibStub('LibWoWQRCode')
 ---------------------------------------------------------------
 -- Helpers
 ---------------------------------------------------------------
@@ -176,8 +177,9 @@ function Link:OnClick()
 	if ActivePopup then
 		ActivePopup:Hide()
 	end
+	local QRCode = QR(self.link, 150)
 	ActivePopup = CPAPI.Popup('ConsolePort_External_Link', {
-		text = CPAPI.FormatLongText(L('LINK_COPY', self.text));
+		text = CPAPI.FormatLongText(L('LINK_COPY', self.text) .. '\n');
 		hasEditBox = 1;
 		maxLetters = 0;
 		button1 = DONE;
@@ -192,12 +194,13 @@ function Link:OnClick()
 		end;
 		OnHide = function()
 			ActivePopup = nil;
+			QRCode:Release()
 		end;
 		OnShow = function(popup)
 			local editBox = popup.editBox or popup:GetEditBox();
 			editBox:SetText(self.link)
 		end;
-	})
+	}, nil, nil, nil, QRCode)
 end
 
 ---------------------------------------------------------------

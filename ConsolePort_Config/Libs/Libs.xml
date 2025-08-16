@@ -1,0 +1,5 @@
+<Ui>
+	<Script file="AceSerializer-3.0\AceSerializer-3.0.lua"/>
+	<Script file="LibCompress\LibCompress.lua"/>
+	<Script file="LibWoWQRCode\LibWoWQRCode.lua"/>
+</Ui>
