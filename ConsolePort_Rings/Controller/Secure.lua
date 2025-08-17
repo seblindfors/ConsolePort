@@ -95,13 +95,14 @@ Secure:CreateEnvironment({
 
 		local button = ...;
 		local set = self::GetRingSetFromButton(button)
+		LAST = button;
 
 		local trigger = %q;
 		local pressAndHold = %q;
 
 		self:SetAttribute(trigger, nil)
 		self::SetRemoveBinding(true)
-		self::SetAcceptBinding(true)
+		self::SetAcceptBinding(true, button)
 
 		self::SetContextAttribute('state', set)
 		self::SetContextAttribute(pressAndHold, false)
