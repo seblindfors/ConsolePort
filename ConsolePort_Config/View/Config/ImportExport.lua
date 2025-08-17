@@ -328,12 +328,15 @@ end
 
 local function ValidateImportData(data)
 	if type(data) ~= 'table' then return end;
+	local result, dataLoss = {}, false;
 	for k in pairs(data) do
 		if not Aggregators[k] then
-			return
+			dataLoss = true;
+		else
+			result[k] = data[k];
 		end
 	end
-	return data;
+	return result, dataLoss;
 end
 
 local function EvaluateImportData(data)
@@ -380,10 +383,15 @@ env:RegisterCallback('OnImportButtonClicked', function(self)
 	local alias = AliasMap;
 
 	local onLoadData = function(popup, editBox, text)
-		local data = ValidateImportData(env.Deserialize(text))
-		if data then
+		local data, dataLoss = ValidateImportData(env.Deserialize(text))
+		if data and next(data) then
 			dataBin.Browser:SetData({alias = alias}, data)
 			editBox:ClearFocus()
+			if dataLoss then
+				CPAPI.Log('The import data contains some outdated content. It will not be imported.')
+			end
+		else
+			CPAPI.Log('The import data is invalid.')
 		end
 		editBox:SetText('')
 	end;
