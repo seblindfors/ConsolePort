@@ -35,7 +35,8 @@ local AliasMap = {
 	path = {
 		[P'Bindings']    = KEY_BINDINGS_MAC;
 		[P'Settings']    = INTERFACE_OPTIONS;
-		[P'Utility']     = L'Rings';
+		[P'Utility1']    = L'Rings (Character)';
+		[P'Utility2']    = L'Rings (Account)';
 		[P'Configs']     = L'Device Mappings';
 		[P'Cvars']       = L'Device Settings';
 		[P'Devices']     = L'Device Profiles';
@@ -68,13 +69,13 @@ local AliasMap = {
 			end
 			return variable;
 		end;
-		[P'Utility/([^/]+)'] = function(setID)
+		[P'Utility%d/([^/]+)'] = function(setID)
 			if ( tonumber(setID) == 1 ) then
 				return BLUE_FONT_COLOR:WrapTextInColorCode(DEFAULT);
 			end
 			return db.Rings:GetBindingDisplayNameForSet(setID)
 		end;
-		[P'Utility/%w+/(%d+)'] = function(buttonID)
+		[P'Utility%d/%w+/(%d+)'] = function(buttonID)
 			return L('Button |cFF00FFFF%s|r', buttonID)
 		end;
 	};
@@ -188,7 +189,8 @@ local ActionPickupHandlers = {
 -- Generate content for the browser
 ---------------------------------------------------------------
 local Aggregators = {
-	ConsolePortUtility  = function() return db.Rings.Data end;
+	ConsolePortUtility1 = function() return db.Rings.Data end;
+	ConsolePortUtility2 = function() return db.Rings.Shared end;
 	ConsolePortBindings = function() return db.Gamepad:GetBindings(true) end;
 	ConsolePortDevices  = function() return db.Gamepad.Devices end;
 	ConsolePortSettings = function()
@@ -260,13 +262,15 @@ local Evaluators = {
 		end
 		SaveBindings(bindingSetID)
 	end};
-	{'ConsolePortUtility', function(data)
+	{'ConsolePortUtility1', function(data)
 		for setID, set in pairs(data) do
-			local ring = {};
-			for _, buttonData in db.table.spairs(set) do
-				tinsert(ring, buttonData) -- TODO: this doesn't work with the meta field
-			end
-			db('Utility/Data/'..setID, ring) -- TODO: ring data isn't stored here anymore
+			db('Rings/Data/'..setID, set)
+		end
+		return true;
+	end};
+	{'ConsolePortUtility2', function(data)
+		for setID, set in pairs(data) do
+			db('Rings/Shared/'..setID, set)
 		end
 		return true;
 	end};
