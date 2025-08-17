@@ -154,7 +154,7 @@ Secure:CreateEnvironment({
 		end
 	]]):format(env.Attributes.RemoveButton, env.Attributes.RemoveBlocked);
 	SetAcceptBinding = ([[
-		local enabled = ...;
+		local enabled, clickID = ...;
 		local button = self:GetAttribute('acceptButton')
 		local bindings = { self::GetBindingsForButton(button) };
 		local isInConflict = self::IsControlBindingInConflict(button)
@@ -162,7 +162,7 @@ Secure:CreateEnvironment({
 
 		if enabled and not isInConflict then
 			for _, binding in ipairs(bindings) do
-				self:SetBindingClick(true, binding, self)
+				self:SetBindingClick(true, binding, self, clickID)
 			end
 		else
 			for _, binding in ipairs(bindings) do
@@ -178,7 +178,7 @@ Secure:CreateEnvironment({
 		self:::OnStickyIndexChanged()
 	]];
 	GetStickyIndex = ([[
-		if not RING then return 1 end;
+		if not RING then return end;
 		local key = %q;
 		local index = INFO[key];
 		if index and index > #RING then
@@ -218,7 +218,7 @@ Secure:CreateEnvironment({
 		self:Show()
 
 		if not pressAndHold then
-			self::SetAcceptBinding(true)
+			self::SetAcceptBinding(true, button)
 		end
 	]];
 	Disable = [[
