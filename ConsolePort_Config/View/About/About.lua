@@ -192,12 +192,15 @@ function Link:OnClick()
 			editBox:SetCursorPosition(0)
 			editBox:HighlightText()
 		end;
-		OnHide = function()
+		OnHide = function(popup)
+			local editBox = popup.editBox or popup:GetEditBox();
+			editBox:SetAttribute('hidekeyboard', nil)
 			ActivePopup = nil;
 			QRCode:Release()
 		end;
 		OnShow = function(popup)
 			local editBox = popup.editBox or popup:GetEditBox();
+			editBox:SetAttribute('hidekeyboard', true)
 			editBox:SetText(self.link)
 		end;
 	}, nil, nil, nil, QRCode)
