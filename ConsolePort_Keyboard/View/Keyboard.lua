@@ -190,7 +190,7 @@ function Keyboard:AutoCorrect()
 end
 
 function Keyboard:MoveToCursor()
-	local x, y = GetScaledCursorPositionForFrame(self)
+	local x, y = CPAPI.GetScaledCursorPositionForFrame(self)
 	self:ClearAllPoints()
 	self:SetPoint('BOTTOMLEFT', UIParent, 'BOTTOMLEFT',
 		x - self:GetWidth() * 0.5, y - self:GetHeight() * 0.5)

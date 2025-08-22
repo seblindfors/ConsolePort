@@ -253,6 +253,12 @@ CPAPI.OpenStackSplitFrame = OpenStackSplitFrame or function(...)
 	return StackSplitFrame:OpenStackSplitFrame(...)
 end
 
+CPAPI.GetScaledCursorPositionForFrame = GetScaledCursorPositionForFrame or function(frame)
+	local uiScale = frame:GetEffectiveScale();
+	local x, y = GetCursorPosition();
+	return x / uiScale, y / uiScale;
+end
+
 CPAPI.CreateSimpleTextureMarkup = CreateSimpleTextureMarkup or function(file, width, height)
 	return ("|T%s:%d:%d|t"):format(
 		  file
