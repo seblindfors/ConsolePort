@@ -190,7 +190,7 @@ function Keyboard:AutoCorrect()
 end
 
 function Keyboard:MoveToCursor()
-	local x, y = GetScaledCursorPosition()
+	local x, y = GetScaledCursorPositionForFrame(self)
 	self:ClearAllPoints()
 	self:SetPoint('BOTTOMLEFT', UIParent, 'BOTTOMLEFT',
 		x - self:GetWidth() * 0.5, y - self:GetHeight() * 0.5)
@@ -309,6 +309,7 @@ end
 
 function Keyboard:OnVariableChanged()
 	env:ToggleObserver(db('keyboardEnable'))
+	self:SetScale(db('keyboardScale'))
 	self.commands = {
 		[db('keyboardEnterButton')]     = self.Enter;
 		[db('keyboardEraseButton')]     = self.Erase;
@@ -334,6 +335,7 @@ end
 
 db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
 	'Settings/keyboardEnable',
+	'Settings/keyboardScale',
 	'Settings/keyboardEraseButton',
 	'Settings/keyboardEnterButton',
 	'Settings/keyboardSpaceButton',

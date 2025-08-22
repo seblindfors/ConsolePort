@@ -16,6 +16,11 @@ env.Attributes = {
 local DEPENDENCY = { keyboardEnable = true };
 ConsolePort:AddVariables({
 	_(env.Attributes.ModuleName, env.Attributes.HeaderName, 2);
+	keyboardScale = _{Data.Range(1, 0.05, 0.5, 2);
+		name = 'Scale';
+		desc = 'Scale of the keyboard.';
+		deps = DEPENDENCY;
+	};
 	keyboardSpaceButton = _{Data.Button('PAD1');
 		name = 'Space';
 		desc = 'Button to use to trigger the space command.';
