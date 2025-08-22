@@ -38,7 +38,8 @@ local function SetCvarTooltip(tooltip, cvarData, showNote)
 end
 
 ---------------------------------------------------------------
-local Binding = CreateFromMixins(env.BindingInfoMixin);
+local Base    = env.BindingInfoMixin;
+local Binding = CreateFromMixins(Base);
 ---------------------------------------------------------------
 function Binding:GetChordBinding(mod)
 	return GetBindingAction(mod..self.baseBinding)
@@ -94,6 +95,15 @@ function Binding:IsClickReserved(override)
 	return reserved and reserved.cvar:match('Cursor');
 end
 
+function Binding:GetBindingInfo(skipActionInfo, skipTranspose, overrideActionID)
+	return Base.GetBindingInfo(self,
+		self:GetBinding(),
+		skipActionInfo,
+		skipTranspose,
+		overrideActionID
+	);
+end
+
 ---------------------------------------------------------------
 local Button = CreateFromMixins(Binding)
 ---------------------------------------------------------------
@@ -138,7 +148,7 @@ function Button:UpdateState(currentModifier)
 		return self:SetText(WHITE_FONT_COLOR:WrapTextInColorCode(L(reserved.name)))
 	end
 
-	self:SetText(self:GetBindingInfo(self:GetBinding()))
+	self:SetText(self:GetBindingInfo())
 end
 
 ---------------------------------------------------------------
@@ -170,7 +180,7 @@ function Chord:OnEnter()
 
 	GameTooltip_SetDefaultAnchor(GameTooltip, self)
 
-	local name, _, actionID, bindingID = self:GetBindingInfo(self:GetBinding(), true)
+	local name, _, actionID, bindingID = self:GetBindingInfo(true, true, self.actionID)
 	local reserved = env:GetCombinationBlockerInfo(self:GetKeyChord())
 	local lineColor = (function(font)
 		local r, g, b = font:GetTextColor()
@@ -435,7 +445,7 @@ function Chord:UpdateModifier(modifier)
 end
 
 function Chord:UpdateCurrentInfo()
-	self:UpdateInfo(self:GetBindingInfo(self:GetBinding()))
+	self:UpdateInfo(self:GetBindingInfo())
 end
 
 function Chord:SetCurrentModifier(modifier, isAlt)
@@ -455,7 +465,7 @@ function Chord:IsActive()
 end
 
 function Chord:GetData()
-	local name, texture, actionID, bindingID = self:GetBindingInfo(self:GetBinding())
+	local name, texture, actionID, bindingID = self:GetBindingInfo()
 	return {
 		name      = name;
 		texture   = self:DetermineIcon(texture, actionID, bindingID);
