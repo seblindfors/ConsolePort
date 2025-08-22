@@ -2,8 +2,8 @@
 -- UnitHotkeys.lua: Combo shortcuts for targeting
 ---------------------------------------------------------------
 -- Creates a set of combinations for different pools of units,
--- in order to alleviate targeting. A healer's delight. 
--- Thanks to Yoki for original concept! :) 
+-- in order to alleviate targeting. A healer's delight.
+-- Thanks to Yoki for original concept! :)
 
 local _, db = ...
 ---------------------------------------------------------------
@@ -82,7 +82,10 @@ UH:CreateEnvironment({
 	Input = [[
 		key = ...;
 		input = input and tonumber( input .. key ) or tonumber(key);
-		self:CallMethod('Filter', tostring(input))
+		self:::Filter(tostring(input))
+		if useInstant then
+			return self::GetCommand()
+		end
 	]];
 
 	GenerateSequences = [[
@@ -113,7 +116,7 @@ UH:CreateEnvironment({
 		self::AssignUnits()
 		if isActive then
 			self::ClearInput()
-			self:CallMethod('SecureRefreshDisplayBindings')
+			self:::SecureRefreshDisplayBindings()
 		end
 	]];
 
@@ -156,26 +159,30 @@ UH:CreateEnvironment({
 			local binding = sequence[i];
 			if binding then
 				lookup[binding] = unit;
-				self:CallMethod('AssignUnit', binding, unit)
+				self:::AssignUnit(binding, unit)
 			end
 		end
 	]];
 
-	SetTarget = [[
-		local unit = lookup[input]
-		local useFocus = self:GetAttribute('useFocus')
-		local defaultToTab = self:GetAttribute('defaultToTab')
-
+	GetCommand = [[
+		local unit, macrotext = lookup[input];
 		if unit then
 			local prefix = useFocus and '/focus' or '/target';
-			self:SetAttribute('macrotext', prefix..' '..unit)
+			macrotext = prefix..' '..unit;
 		elseif defaultToTab then
-			self:SetAttribute('macrotext', '/targetenemy')
+			macrotext = '/targetenemy';
 		else
-			self:SetAttribute('macrotext', useFocus and '/clearfocus' or nil)
+			macrotext = useFocus and '/clearfocus' or nil;
 		end
-		self:CallMethod('FinalizeBindings', unit)
+		return macrotext, unit;
+	]];
 
+	SetTarget = [[
+		local macrotext, unit = self::GetCommand()
+		if not useInstant then
+			self:SetAttribute('macrotext', macrotext)
+		end
+		self:::FinalizeBindings(unit)
 		self::Clear()
 	]];
 
@@ -207,12 +214,16 @@ UH:Wrap('PreClick', [[
 	end
 
 	self::SetBindings()
-	self:CallMethod('DisplayBindings')
+	self:::DisplayBindings()
 ]])
 
-UH:WrapScript(Input, 'OnClick', [[
+UH:Hook(Input, 'PreClick', [[
+	self:SetAttribute('macrotext', nil)
 	if down then
-		owner:RunAttribute('Input', button)
+		local command = owner::Input(button)
+		if command then
+			self:SetAttribute('macrotext', command)
+		end
 	end
 ]])
 
@@ -250,8 +261,14 @@ function UH:OnModifiersChanged()
 end
 
 function UH:OnTargetSettingsChanged()
-	self:SetAttribute('useFocus', db('unitHotkeyFocusMode'))
-	self:SetAttribute('defaultToTab', db('unitHotkeyDefaultMode'))
+	for key, varID in pairs({
+		useFocus     = 'unitHotkeyFocusMode';
+		useInstant   = 'unitHotkeyInstantMode';
+		defaultToTab = 'unitHotkeyDefaultMode';
+	}) do
+		self:SetAttribute(key, db(varID))
+		self:Run([[%s = self:GetAttribute(%q)]], key, key)
+	end
 end
 
 function UH:OnUnitPoolChanged()
@@ -326,7 +343,8 @@ end
 ---------------------------------------------------------------
 db:RegisterSafeCallbacks(UH.OnTargetSettingsChanged, UH,
 	'Settings/unitHotkeyFocusMode',
-	'Settings/unitHotkeyDefaultMode'
+	'Settings/unitHotkeyDefaultMode',
+	'Settings/unitHotkeyInstantMode'
 );
 db:RegisterSafeCallbacks(UH.OnModifiersChanged, UH,
 	'Gamepad/Active',

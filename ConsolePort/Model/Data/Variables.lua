@@ -421,6 +421,10 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Use Focus Mode';
 		desc = 'Hotkeys control your focus target instead of your current target.';
 	};
+	unitHotkeyInstantMode = _{Bool(false);
+		name = 'Use Instant Mode';
+		desc = 'Hotkeys activate their target immediately.';
+	};
 	unitHotkeyDefaultMode = _{Bool(false);
 		name = 'Default to '..BLUE(GetBindingName('TARGETNEARESTENEMY'));
 		desc = 'Hotkeys use '..BLUE(GetBindingName('TARGETNEARESTENEMY'))..' when no target is selected.';

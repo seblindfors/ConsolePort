@@ -34,7 +34,12 @@
 			<Attribute name="pressAndHoldAction" type="boolean" value="true"/>
 		</Attributes>
 		<Frames> <!-- Need a separate input feeder so the targeting button (parent) doesn't process a release event prematurely -->
-			<Button name="ConsolePortEasyMotionInput" inherits="SecureHandlerBaseTemplate" hidden="true" registerForClicks="AnyUp, AnyDown"/>
+			<Button name="ConsolePortEasyMotionInput" inherits="SecureActionButtonTemplate" hidden="true" registerForClicks="AnyUp, AnyDown">
+				<Attributes>
+					<Attribute name="type" type="string" value="macro"/>
+					<Attribute name="useOnKeyDown" type="boolean" value="true"/>
+				</Attributes>
+			</Button>
 		</Frames>
 	</Button>
 </Ui>
