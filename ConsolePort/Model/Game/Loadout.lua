@@ -221,11 +221,12 @@ end
 
 -- @param binding        : binding ID
 -- @param skipActionInfo : format action as binding ID
+-- @param skipTranspose  : skip transposing the action ID
 -- @return name          : internal name of the binding
 -- @return texture       : binding or action texture
 -- @return actionID      : formatted action ID
 -- @return bindingID     : binding ID
-function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
+function LoadoutMixin:GetBindingInfo(binding, skipActionInfo, skipTranspose, overrideActionID)
 	if (not binding or binding == '') then return LoadoutInfo.NotBoundColor:format(NOT_BOUND) end;
 	local _, headers = LoadoutInfo:RefreshDictionary()
 
@@ -233,12 +234,14 @@ function LoadoutMixin:GetBindingInfo(binding, skipActionInfo)
 	local header = headers[binding];
 
 	-- check if this is an action bar binding
-	local actionID = LoadoutInfo:GetActionButtonID(binding)
+	local actionID = overrideActionID or LoadoutInfo:GetActionButtonID(binding)
 	if actionID and not skipActionInfo then
 		-- swap the info for current bar if offset
 		local page = db.Pager:GetCurrentPage()
-		actionID = actionID <= NUM_ACTIONBAR_BUTTONS and
-			actionID + ((page - 1) * 12) or actionID;
+		if not skipTranspose then
+			actionID = actionID <= NUM_ACTIONBAR_BUTTONS and
+				actionID + ((page - 1) * 12) or actionID;
+		end
 
 		local texture = GetActionTexture(actionID)
 
