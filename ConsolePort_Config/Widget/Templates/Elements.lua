@@ -201,6 +201,7 @@ end
 
 function Button:OnLeave()
 	self:UnlockHighlight()
+	if not self.GetElementData then return end;
 	local data = self:GetElementData():GetData()
 	if data.onleave then
 		data.onleave(self)
