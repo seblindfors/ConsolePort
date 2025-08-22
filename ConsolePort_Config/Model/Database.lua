@@ -6,49 +6,15 @@ LibStub('RelaTable')(name, env, false);
 ---------------------------------------------------------------
 env.BindingInfo, env.BindingInfoMixin = db.Loadout, db.LoadoutMixin;
 
-local function ReportBindingError(combination, bindingID)
-	---@see https://github.com/Stanzilla/WoWUIBugs/issues/752
-	local set = GetCurrentBindingSet();
-	CPAPI.Log(table.concat({
-			'Failed to set binding %s to %s.';
-			'Please report this bug using in-game customer support.';
-			'Steps to resolve for now:';
-			'1. Backup bindings.';
-			'2. Exit the game completely.';
-			'3. Remove WTF/Account/%s/bindings-cache.wtf.';
-			'4. Restart the game and restore bindings from backup.';
-		}, '\n'),
-		BLUE_FONT_COLOR:WrapTextInColorCode(tostring(combination)),
-		BLUE_FONT_COLOR:WrapTextInColorCode(GetBindingName(tostring(bindingID))),
-		set == Enum.BindingSet.Character and ('<AccountName>/%s/%s'):format(GetRealmName(), UnitName('player')) or
-		set == Enum.BindingSet.Account   and '<AccountName>' or '*')
-end
-
-function env:SetTempBinding(...)
-	if SetBinding(...) then
-		self:TriggerEvent('OnBindingChanged', ...)
-		return true;
-	end
-	ReportBindingError(...);
-end
-
-function env:SetBinding(keyChord, bindingID, ...)
-	if bindingID and not db('bindingOverlapEnable') then
-		self:ClearBindingsForID(bindingID)
-	end
-	if self:SetTempBinding(keyChord, bindingID, ...) then
-		SaveBindings(GetCurrentBindingSet())
+function env:SetBinding(keyChord, bindingID, skipSave)
+	if CPAPI.SetBinding(keyChord, bindingID, not skipSave) then
+		self:TriggerEvent('OnBindingChanged', keyChord, bindingID)
 		return true;
 	end
 end
 
-do  local cleaner = GenerateClosure(env.SetTempBinding, env)
-	function env:ClearBindingsForID(bindingID, saveAfter)
-		db.table.map(cleaner, db.Gamepad:GetBindingKey(bindingID))
-		if saveAfter then
-			SaveBindings(GetCurrentBindingSet())
-		end
-	end
+function env:ClearBindingsForID(bindingID, saveAfter)
+	return CPAPI.ClearBindingsForID(bindingID, saveAfter)
 end
 
 function env:GetActiveDeviceAndMap()

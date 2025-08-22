@@ -677,7 +677,7 @@ function BindingPreset:Apply()
 			else
 				for button, set in pairs(data.preset) do
 					for modifier, binding in pairs(set) do
-						env:SetBinding(modifier..button, binding)
+						env:SetBinding(modifier..button, binding, true)
 					end
 				end
 				SaveBindings(GetCurrentBindingSet())

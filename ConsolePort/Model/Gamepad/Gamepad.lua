@@ -244,10 +244,7 @@ end
 ---------------------------------------------------------------
 for key, cvar in pairs(GamepadAPI.Mouse.Cvars) do
 	db:RegisterSafeCallback(cvar, function(self, binding, value)
-		-- Temporarily disabled: https://github.com/Stanzilla/WoWUIBugs/issues/752
-		-- db.table.map(SetBinding, self:GetBindingKey(binding))
-		SetBinding(value, binding)
-		SaveBindings(GetCurrentBindingSet())
+		CPAPI.SetBinding(value, binding, true)
 	end, GamepadAPI, GamepadAPI.Mouse.Binding[key])
 end
 
@@ -259,7 +256,7 @@ for _, modifier in ipairs(GamepadAPI.Modsims) do
 		-- Wipe the incompatible bindings for a modifier when it's set.
 		-- E.g. if you set ALT to PAD1, ALT-PAD1 will be removed.
 		for combination in pairs(self.Index.Modifier.Blocked) do
-			SetBinding(combination, nil)
+			CPAPI.SetBinding(combination, nil)
 		end
 		SaveBindings(GetCurrentBindingSet())
 		db:TriggerEvent('OnModifierChanged', modifier, value)
@@ -271,7 +268,7 @@ db:RegisterSafeCallback('GamePadStickAxisButtons', function(self, value)
 	for buttonID in pairs(self.Index.Button.Binding) do
 		if not CPAPI.IsButtonValidForBinding(buttonID) then
 			for modifier in pairs(self.Index.Modifier.Active) do
-				SetBinding(modifier..buttonID, nil)
+				CPAPI.SetBinding(modifier..buttonID, nil)
 			end
 		end
 	end

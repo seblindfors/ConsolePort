@@ -83,7 +83,7 @@ function ClearPadBindings()
 	local function ClearPadBinding(binding, key, ...)
 		if key then
 			if IsBindingForGamePad(key) then
-				SetBinding(key, nil)
+				CPAPI.SetBinding(key, nil)
 			end
 			ClearPadBinding(binding, ...)
 		end
@@ -92,6 +92,7 @@ function ClearPadBindings()
 	for i=1, GetNumBindings() do
 		ClearPadBinding(GetBinding(i))
 	end
+	SaveBindings(GetCurrentBindingSet())
 end
 
 ---------------------------------------------------------------

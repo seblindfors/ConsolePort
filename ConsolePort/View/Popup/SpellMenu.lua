@@ -259,13 +259,7 @@ function SpellMenu.CatchBinding:OnBindingCaught(button)
 
 	if CPAPI.IsButtonValidForBinding(button) then
 		local keychord = CPAPI.CreateKeyChord(button)
-		if not db('bindingOverlapEnable') then
-			db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
-		end
-		if SetBinding(keychord, bindingID) then
-			SaveBindings(GetCurrentBindingSet())
-			return true;
-		end
+		return CPAPI.SetBinding(keychord, bindingID, true)
 	end
 end
 
@@ -290,16 +284,14 @@ end
 function SpellMenu:ReportSetBindingToKeyChord(bindingID)
 	if self.keyChord then
 		local keyChord = table.concat(self.keyChord)
-		SetBinding(keyChord, bindingID)
-		SaveBindings(GetCurrentBindingSet())
+		CPAPI.SetBinding(keyChord, bindingID, true)
 		self.keyChord = nil;
 	end
 end
 
 function SpellMenu:ReportClearBinding(bindingID)
 	if bindingID then
-		db.table.map(SetBinding, db.Gamepad:GetBindingKey(bindingID))
-		SaveBindings(GetCurrentBindingSet())
+		CPAPI.ClearBindingsForID(bindingID, true)
 	end
 end
 

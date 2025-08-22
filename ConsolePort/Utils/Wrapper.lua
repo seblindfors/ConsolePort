@@ -81,6 +81,65 @@ function CPAPI.GetContainerTotalSlots()
 end
 
 ---------------------------------------------------------------
+-- Binding wrappers
+---------------------------------------------------------------
+do local FORBIDDEN_TO_CLEAR_BINDINGS = {
+		TURNORACTION = true;
+		CAMERAORSELECTORMOVE = true;
+	};
+
+	local function ReportBindingError(keyChord, bindingID)
+		---@see https://github.com/Stanzilla/WoWUIBugs/issues/752
+		local set = GetCurrentBindingSet();
+		CPAPI.Log(table.concat({
+				'Failed to set binding %s to %s.';
+				'Please report this bug using in-game customer support.';
+				'Steps to resolve for now:';
+				'1. Backup bindings.';
+				'2. Exit the game completely.';
+				'3. Remove WTF/Account/%s/bindings-cache.wtf.';
+				'4. Restart the game and restore bindings from backup.';
+			}, '\n'),
+			BLUE_FONT_COLOR:WrapTextInColorCode(tostring(keyChord)),
+			BLUE_FONT_COLOR:WrapTextInColorCode(GetBindingName(tostring(bindingID))),
+			set == Enum.BindingSet.Character and
+				('<AccountName>/%s/%s'):format(GetRealmName(), UnitName('player')) or
+			set == Enum.BindingSet.Account and
+				'<AccountName>' or '*'
+		);
+	end
+
+	local function TrySetBinding(keyChord, bindingID, saveAfter)
+		if SetBinding(keyChord, bindingID) then
+			return saveAfter;
+		end
+		ReportBindingError(keyChord, bindingID);
+	end
+
+	function CPAPI.SetBinding(keyChord, bindingID, saveAfter)
+		if bindingID and not db('bindingOverlapEnable') then
+			CPAPI.ClearBindingsForID(bindingID, false)
+		end
+		if TrySetBinding(keyChord, bindingID, saveAfter) then
+			SaveBindings(GetCurrentBindingSet())
+			return true;
+		end
+		return false;
+	end
+
+	function CPAPI.ClearBindingsForID(bindingID, saveAfter)
+		if FORBIDDEN_TO_CLEAR_BINDINGS[bindingID] then
+			return false;
+		end
+		db.table.map(TrySetBinding, db.Gamepad:GetBindingKey(bindingID))
+		if saveAfter then
+			SaveBindings(GetCurrentBindingSet())
+		end
+		return true;
+	end
+end
+
+---------------------------------------------------------------
 -- Internal wrappers
 ---------------------------------------------------------------
 function CPAPI.IsButtonValidForBinding(button)
