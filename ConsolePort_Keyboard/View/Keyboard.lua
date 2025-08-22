@@ -269,7 +269,6 @@ function Keyboard:OnDataLoaded(...)
 	env.Markers    = CPAPI.Proxy(ConsolePort_KeyboardMarkers, env.DefaultMarkers);
 	env.Dictionary = ConsolePort_KeyboardDictionary;
 
-	env:ToggleObserver(true)
 	self:OnVariableChanged()
 	self:OnLayoutChanged()
 
@@ -309,6 +308,7 @@ function Keyboard:OnLayoutChanged()
 end
 
 function Keyboard:OnVariableChanged()
+	env:ToggleObserver(db('keyboardEnable'))
 	self.commands = {
 		[db('keyboardEnterButton')]     = self.Enter;
 		[db('keyboardEraseButton')]     = self.Erase;
@@ -333,6 +333,7 @@ function Keyboard:OnVariableChanged()
 end
 
 db:RegisterCallbacks(Keyboard.OnVariableChanged, Keyboard,
+	'Settings/keyboardEnable',
 	'Settings/keyboardEraseButton',
 	'Settings/keyboardEnterButton',
 	'Settings/keyboardSpaceButton',
