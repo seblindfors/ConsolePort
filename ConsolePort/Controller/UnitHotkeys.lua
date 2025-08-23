@@ -221,8 +221,8 @@ UH:Wrap('PreClick', [[
 UH:Hook(Input, 'PreClick', [[
 	self:SetAttribute('macrotext', nil)
 	if down then
-		local command = owner::Input(button)
-		if command then
+		local command, _, runAnyway = owner::Input(button)
+		if command and not runAnyway then
 			self:SetAttribute('macrotext', command)
 		end
 	end
