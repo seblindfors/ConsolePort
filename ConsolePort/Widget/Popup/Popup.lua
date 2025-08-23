@@ -117,11 +117,13 @@ function CPPopupBindingCatchButtonMixin:OnLoad()
 end
 
 function CPPopupBindingCatchButtonMixin:OnShow()
+	db:TriggerEvent('OnBindingCatcherShown', true, self)
 	self:CatchAll(self.CatchClosure, self)
 	self:ToggleInputs(true)
 end
 
 function CPPopupBindingCatchButtonMixin:OnHide()
+	db:TriggerEvent('OnBindingCatcherShown', false, self)
 	self.timeUntilCancel = TIME_UNTIL_CANCEL;
 	self:ToggleInputs(false)
 end

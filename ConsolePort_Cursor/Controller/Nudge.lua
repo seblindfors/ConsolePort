@@ -104,6 +104,12 @@ function Nudge:Reset()
 	self:SetScript('OnUpdate', nil)
 end
 
+function Nudge:OnBindingCatcherShown(isCatcherShown)
+	self:SetShown(not isCatcherShown)
+end
+
+db:RegisterCallback('OnBindingCatcherShown', Nudge.OnBindingCatcherShown, Nudge)
+
 ---------------------------------------------------------------
 -- Movement
 ---------------------------------------------------------------
