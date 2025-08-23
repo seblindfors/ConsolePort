@@ -81,7 +81,7 @@ UH:CreateEnvironment({
 	-- Parse the input
 	Input = [[
 		key = ...;
-		input = input and tonumber( input .. key ) or tonumber(key);
+		input = math.min(0xFFFF, input and tonumber( input .. key ) or tonumber(key));
 		self:::Filter(tostring(input))
 		if useInstant then
 			return self::GetCommand()
