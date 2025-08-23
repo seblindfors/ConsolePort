@@ -107,6 +107,30 @@ end
 ---------------------------------------------------------------
 -- Content handling
 ---------------------------------------------------------------
+local ParseMoney;
+do local MoneyFormatters = {};
+	for matchString, textureString in pairs({
+		[GOLD_AMOUNT]   = GOLD_AMOUNT_TEXTURE;
+		[SILVER_AMOUNT] = SILVER_AMOUNT_TEXTURE;
+		[COPPER_AMOUNT] = COPPER_AMOUNT_TEXTURE;
+	}) do
+		local amountString = matchString:format(0):gsub('0', '(%%d+)')
+		local resultString = textureString:format(0, 0, 0):gsub('0', '%%1', 1)
+		MoneyFormatters[amountString] = resultString;
+	end
+
+	function ParseMoney(str)
+		local new = str;
+		for pattern, texture in pairs(MoneyFormatters) do
+			new = new:gsub(pattern, texture);
+		end
+		if (new ~= str) then
+			new = new:gsub('\n', ' ');
+		end
+		return new;
+	end
+end
+
 function LootButton:SetQuality(itemQuality)
 	local colors = ITEM_QUALITY_COLORS[itemQuality];
 	if colors then
@@ -129,6 +153,6 @@ function LootButton:Update()
 	self:SetIcon(texture)
 	self:SetCount(quantity)
 	self:SetQuality(quality)
-	self:SetText(name)
+	self:SetText(ParseMoney(name))
 	self:SetQuestItem(isQuestItem)
 end

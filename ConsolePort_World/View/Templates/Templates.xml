@@ -118,7 +118,7 @@
 					<TexCoords left="0.001953125" right="0.818359375" bottom="0.6660" top="0.794921875"/>
 				</Texture>
 				<FontString name="$parentText" parentKey="Text" inherits="GameTooltipHeaderText" justifyH="LEFT">
-					<Size x="200" y="38"/>
+					<Size x="300" y="38"/>
 					<Anchors>
 						<Anchor point="LEFT" relativePoint="RIGHT" x="8" y="0"/>
 					</Anchors>
