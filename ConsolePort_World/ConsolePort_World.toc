@@ -11,5 +11,8 @@
 ## X-WoWI-ID: 23536
 ## X-Wago-ID: LvNAYjNo
 
-LootFrame\LootFrame.xml
-TempAbility\TempAbility.xml
+Database.lua
+
+View\Templates\Templates.xml
+View\LootFrame\LootFrame.xml
+View\TempAbility\TempAbility.xml

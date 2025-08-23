@@ -1,0 +1,11 @@
+<Ui>
+	<Frame name="ConsolePortLootFrame" inherits="CPWorldContainerTemplate" frameStrata="HIGH" parent="UIParent" hidden="true" movable="true">
+		<Size x="200" y="0"/>
+		<Anchors>
+			<Anchor point="CENTER" x="200" y="0"/>
+		</Anchors>
+	</Frame>
+
+	<Script file="LootButton.lua"/>
+	<Script file="LootFrame.lua"/>
+</Ui>

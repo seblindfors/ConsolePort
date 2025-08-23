@@ -98,6 +98,16 @@ CPAPI.AdvancedSecureMixin = CreateFromMixins(CPAPI.SecureExportMixin, CPAPI.Secu
 -- Tools
 ---------------------------------------------------------------
 function CPAPI.DisableFrame(frame, ignoreAlpha)
+	local snapshot = {
+		originalSize   = { frame:GetSize() };
+		originalAlpha  = frame:GetAlpha();
+		originalPoints = {};
+		enableMouse    = frame:IsMouseEnabled();
+		enableKeyboard = frame:IsKeyboardEnabled();
+	};
+	for i = 1, frame:GetNumPoints() do
+		tinsert(snapshot.originalPoints, { frame:GetPoint(i) });
+	end
 	frame:SetSize(1, 1)
 	frame:EnableMouse(false)
 	frame:EnableKeyboard(false)
@@ -105,6 +115,7 @@ function CPAPI.DisableFrame(frame, ignoreAlpha)
 	frame:ClearAllPoints()
 	CPAPI.Purge(frame, 'isShownExternal')
 	ConsolePort:ForbidInterfaceCursorFrame(frame)
+	return snapshot;
 end
 
 function CPAPI.LockPoints(frame)

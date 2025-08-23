@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...;
+local env, db = CPAPI.GetEnv(...)
 local UIHandle, Input, FadeIn = db.UIHandle, db.Input, db.Alpha.FadeIn;
 local LootFrame = Mixin(CPAPI.EventHandler(ConsolePortLootFrame, {
 	'LOOT_OPENED';
@@ -88,7 +88,7 @@ end
 
 function LootFrame:OnDataLoaded()
 	CPFocusPoolMixin.OnLoad(self)
-	self:CreateFramePool('Button', 'CPUISimpleLootButtonTemplate', env.LootButtonMixin)
+	self:CreateFramePool('Button', 'CPWorldButtonTemplate', env.LootButtonMixin)
 	self:SetScript('OnHide', self.OnHide)
 	self:SetScript('OnShow', self.OnShow)
 	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)

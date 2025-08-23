@@ -251,29 +251,14 @@ CPAPI.Atlas = {
 -- Backdrops
 ---------------------------------------------------------------
 CPAPI.Backdrops = {
-	Header = {
-		bgFile   = CPAPI.GetAsset([[Textures\Frame\Gradient_Alpha_Horizontal]]);
-	--	edgeFile = CPAPI.GetAsset([[Textures\Edgefile\EdgeFile_Simple_White_4x32]]);
-		edgeSize = 4;
-		insets   = {left = 1, right = 1, top = 1, bottom = 1};
-	};
 	Opaque = {
 		bgFile   = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_Noise]]);
-	--	edgeFile = CPAPI.GetAsset([[Textures\Edgefile\EdgeFile_Simple_White_4x32]]);
 		edgeSize = 4;
 		tile     = true;
 		insets   = {left = 1, right = 1, top = 1, bottom = 1};
 	};
-	Frame = {
-		bgFile   = CPAPI.GetAsset([[Textures\Frame\Backdrop_Vertex_White]]);
-		edgeFile = CPAPI.GetAsset([[Textures\Edgefile\Edgefile.blp]]);
-		edgeSize = 8;
-		tile     = true;
-		insets   = {left = 8, right = 8, top = 8, bottom = 8};
-	};
 	Simple = {
-	--	bgFile   = CPAPI.GetAsset([[Textures\Frame\Gradient_Alpha_Horizontal]]);
-		edgeFile = CPAPI.GetAsset([[Textures\Edgefile\EdgeFile_Simple_White_4x32]]);
+		edgeFile = CPAPI.GetAsset([[Textures\Frame\EdgeFile_Simple_White_4x32]]);
 		edgeSize = 4;
 		insets   = {left = 1, right = 1, top = 1, bottom = 1};
 	};

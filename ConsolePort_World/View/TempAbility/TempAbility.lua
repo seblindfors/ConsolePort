@@ -1,4 +1,4 @@
-local db, _, env = ConsolePort:DB(), ...;
+local _, db = CPAPI.GetEnv(...);
 local Fader, spairs = db.Alpha.Fader, db.table.spairs;
 local TempAbility = Mixin(CPAPI.EventHandler(ConsolePortTempAbilityFrame, {
 	'ACTIONBAR_SLOT_CHANGED';
@@ -18,7 +18,6 @@ local function CreateTooltip(self)
 	TempAbility.TooltipCount = (TempAbility.TooltipCount or 0) + 1;
 	return CreateFrame('GameTooltip', 'ConsolePortTempAbilityTooltip'..TempAbility.TooltipCount, self, 'GameTooltipTemplate')
 end
-
 
 function Ability:Update()
 	self:SetIcon(CPAPI.GetSpellTexture(self:GetID()))
@@ -136,7 +135,7 @@ end
 
 function TempAbility:OnDataLoaded()
 	CPFocusPoolMixin.OnLoad(self)
-	self:CreateFramePool('Button', 'CPUISimpleLootButtonTemplate', Ability)
+	self:CreateFramePool('Button', 'CPWorldButtonTemplate', Ability)
 	self:SetScript('OnHide', self.OnHide)
 	self:SetScript('OnShow', self.OnShow)
 	self:SetScript('OnUpdate', self.OnUpdate)
@@ -228,17 +227,3 @@ function TempAbility:UpdateItems()
 	self:AdjustHeight()
 	Fader.Toggle(self, 0.1, true)
 end
-
----------------------------------------------------------------
--- Add to config
----------------------------------------------------------------
-ConsolePort:AddVariables({
-	showAbilityBriefing = {db.Data.Bool(true);
-		head = ACCESSIBILITY_LABEL;
-		main = INTERFACE_LABEL;
-		sort = 4;
-		name = 'Show Ability Briefings';
-		desc = 'Displays a briefing for newly acquired abilities.';
-		note = 'Requires ConsolePort World.';
-	};
-})

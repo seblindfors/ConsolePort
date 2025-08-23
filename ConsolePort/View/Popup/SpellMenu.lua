@@ -398,7 +398,7 @@ end
 SpellMenu:HookScript('OnHide', SpellMenu.OnHide)
 SpellMenu:SetAttribute('nodepass', true)
 SpellMenu:CreateFramePool('Button', 'CPPopupButtonTemplate', db.PopupMenuButton)
-SpellMenu.ActionButtons = CreateFramePool('IndexButton', SpellMenu, 'CPIndexButtonBindingActionButtonTemplate')
+SpellMenu.ActionButtons = CreateFramePool('IndexButton', SpellMenu, 'CPPopupActionSlotTemplate')
 SpellMenu.ActionBarText = CreateFontStringPool(SpellMenu, 'ARTWORK', nil, 'CPSmallFont')
 ---------------------------------------------------------------
 GameMenuFrame:HookScript('OnShow', GenerateClosure(SpellMenu.Hide, SpellMenu))

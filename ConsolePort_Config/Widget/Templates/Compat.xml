@@ -236,20 +236,4 @@
 			</Button>
 		</Frames>
 	</Frame>
-
-	<Frame name="CPFrameWithTooltipTemplate" mixin="CPFrameWithTooltipMixin" virtual="true">
-		<KeyValues>
-			<KeyValue key="tooltipAnchor" value="ANCHOR_TOPRIGHT" type="string"/>
-			<KeyValue key="tooltipXOffset" value="10" type="number"/>
-			<KeyValue key="tooltipYOffset" value="0" type="number"/>
-			<KeyValue key="tooltipMinWidth" value="300" type="number"/>
-			<KeyValue key="tooltipPadding" value="5" type="number"/>
-		</KeyValues>
-		<Scripts>
-			<OnLoad method="OnLoad"/>
-			<OnEnter method="OnEnter"/>
-			<OnLeave method="OnLeave"/>
-		</Scripts>
-	</Frame>
-
 </Ui>

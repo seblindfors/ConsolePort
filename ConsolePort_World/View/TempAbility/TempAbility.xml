@@ -1,6 +1,5 @@
 <Ui>
-
-	<Frame name="ConsolePortTempAbilityFrame" inherits="CPUILootFrameTemplate" frameStrata="HIGH" parent="UIParent" hidden="true" movable="true">
+	<Frame name="ConsolePortTempAbilityFrame" inherits="CPWorldContainerTemplate" frameStrata="HIGH" parent="UIParent" hidden="true" movable="true">
 		<Size x="200" y="0"/>
 		<Anchors>
 			<Anchor point="CENTER" x="-500" y="0"/>
