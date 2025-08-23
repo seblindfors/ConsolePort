@@ -355,6 +355,7 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		TWEnemy   = custom 'Target_Wide_Enemy.png';
 		TWFriend  = custom 'Target_Wide_Friend.png';
 		TWNeutral = custom 'Target_Wide_Neutral.png';
+		TWNScan   = custom 'Target_Narrow_Enemy_Wide_Friend.png';
 		ZoomIn    = custom 'ZoomIn.blp';
 		ZoomOut   = custom 'ZoomOut.blp';
 		SHIFT     = custom 'M1.blp';
@@ -406,7 +407,7 @@ do local function custom(id) return ([[Interface\AddOns\ConsolePort_Bar\Assets\T
 		TOGGLETALENTS                      = client 'INV_Misc_Book_07';
 		TOGGLESPELLBOOK                    = [[Interface\SPELLBOOK\Spellbook-Icon]];
 		---------------------------------------------------------------
-		[Bindings.Custom.EasyMotion]       = CustomIcons.Group;
+		[Bindings.Custom.EasyMotion]       = CustomIcons.TWNScan;
 		[Bindings.Custom.RaidCursorToggle] = CustomIcons.Group;
 		[Bindings.Custom.RaidCursorFocus]  = CustomIcons.Group;
 		[Bindings.Custom.RaidCursorTarget] = CustomIcons.Group;

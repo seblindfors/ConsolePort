@@ -165,22 +165,21 @@ UH:CreateEnvironment({
 	]];
 
 	GetCommand = [[
-		local unit, macrotext, runAnyway = lookup[input];
+		local unit, macrotext = lookup[input];
 		if unit then
 			local prefix = useFocus and '/focus' or '/target';
 			macrotext = prefix..' '..unit;
-		elseif defaultToTab then
+		elseif defaultToScan then
 			macrotext = '/targetenemy';
-			runAnyway = true;
 		else
 			macrotext = useFocus and '/clearfocus' or nil;
 		end
-		return macrotext, unit, runAnyway;
+		return macrotext, unit;
 	]];
 
 	SetTarget = [[
-		local macrotext, unit, runAnyway = self::GetCommand()
-		if not useInstant or runAnyway then
+		local macrotext, unit = self::GetCommand()
+		if not useInstant then
 			self:SetAttribute('macrotext', macrotext)
 		end
 		self:::FinalizeBindings(unit)
@@ -211,7 +210,13 @@ UH:Wrap('PreClick', [[
 	isActive = down;
 	self:SetAttribute('macrotext', nil)
 	if not down then
+		if defaultToScan then
+			self:::EndTargetScan()
+		end
 		return self::SetTarget()
+	elseif defaultToScan then
+		self:::StartTargetScan()
+		self:SetAttribute('macrotext', '/targetenemy')
 	end
 
 	self::SetBindings()
@@ -221,12 +226,23 @@ UH:Wrap('PreClick', [[
 UH:Hook(Input, 'PreClick', [[
 	self:SetAttribute('macrotext', nil)
 	if down then
-		local command, _, runAnyway = owner::Input(button)
-		if command and not runAnyway then
+		local command = owner::Input(button)
+		if command then
 			self:SetAttribute('macrotext', command)
 		end
 	end
 ]])
+
+---------------------------------------------------------------
+-- Target scanning
+---------------------------------------------------------------
+function UH:StartTargetScan()
+	TargetPriorityHighlightStart(false)
+end
+
+function UH:EndTargetScan()
+	TargetPriorityHighlightEnd()
+end
 
 ---------------------------------------------------------------
 -- Data handling
@@ -263,9 +279,9 @@ end
 
 function UH:OnTargetSettingsChanged()
 	for key, varID in pairs({
-		useFocus     = 'unitHotkeyFocusMode';
-		useInstant   = 'unitHotkeyInstantMode';
-		defaultToTab = 'unitHotkeyDefaultMode';
+		useFocus      = 'unitHotkeyFocusMode';
+		useInstant    = 'unitHotkeyInstantMode';
+		defaultToScan = 'unitHotkeyDefaultMode';
 	}) do
 		self:SetAttribute(key, db(varID))
 		self:Run([[%s = self:GetAttribute(%q)]], key, key)
