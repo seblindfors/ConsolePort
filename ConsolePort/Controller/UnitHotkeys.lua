@@ -165,21 +165,22 @@ UH:CreateEnvironment({
 	]];
 
 	GetCommand = [[
-		local unit, macrotext = lookup[input];
+		local unit, macrotext, runAnyway = lookup[input];
 		if unit then
 			local prefix = useFocus and '/focus' or '/target';
 			macrotext = prefix..' '..unit;
 		elseif defaultToTab then
 			macrotext = '/targetenemy';
+			runAnyway = true;
 		else
 			macrotext = useFocus and '/clearfocus' or nil;
 		end
-		return macrotext, unit;
+		return macrotext, unit, runAnyway;
 	]];
 
 	SetTarget = [[
-		local macrotext, unit = self::GetCommand()
-		if not useInstant then
+		local macrotext, unit, runAnyway = self::GetCommand()
+		if not useInstant or runAnyway then
 			self:SetAttribute('macrotext', macrotext)
 		end
 		self:::FinalizeBindings(unit)
