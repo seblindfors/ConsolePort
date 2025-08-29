@@ -142,7 +142,7 @@ function LoadoutInfo:RefreshDictionary()
 				-- GetBindingName() can't be verified since it returns the
 				-- original string if it doesn't find a match.
 				local global = self:GetBindingName(id)
-				local name   = global or _G[self.HeaderPrefix:format(id)]
+				local name   = tostring(global or _G[self.HeaderPrefix:format(id)] or id);
 				local action = self:GetActionButtonID(id)
 
 				if action then
