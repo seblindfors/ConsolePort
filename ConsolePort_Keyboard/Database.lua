@@ -61,7 +61,7 @@ ConsolePort:AddVariables({
 		desc = 'Button to select previous suggested word.';
 		deps = DEPENDENCY;
 	};
-	keyboardAutoCorrButton = _{Data.Button('PADRTRIGGER');
+	keyboardAutoCorrButton = _{Data.Button('PADRSHOULDER');
 		name = 'Insert Suggestion';
 		desc = 'Button to insert suggested word.';
 		deps = DEPENDENCY;

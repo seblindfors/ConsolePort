@@ -77,26 +77,27 @@ end
 ---------------------------------------------------------------
 local Mime = Suggester.Mime;
 ---------------------------------------------------------------
+local function ExtractCaretAndVisibleText(editBox)
+	local regions, text, cursor = { editBox:GetRegions() };
+	for i = 1, 2 do -- text and cursor should be the first two.
+		local region = regions[i];
+		if region:IsObjectType('FontString') then
+			text = region;
+		elseif region:IsObjectType('Texture') then
+			cursor = region;
+		end
+		if text and cursor then
+			return text, cursor;
+		end
+	end
+end
 
 function Mime:SetFocus(focus)
 	local isNewFocus = self.focus ~= focus;
 	self.focus = focus;
 	if not focus or not isNewFocus then return end;
 
-	self.focusText, self.focusCursor = (function(editBox)
-		local regions, text, cursor = { editBox:GetRegions() };
-		for i = 1, 2 do -- text and cursor should be the first two.
-			local region = regions[i];
-			if region:IsObjectType('FontString') then
-				text = region;
-			elseif region:IsObjectType('Texture') then
-				cursor = region;
-			end
-			if text and cursor then
-				return text, cursor;
-			end
-		end
-	end)(focus)
+	self.focusText, self.focusCursor = ExtractCaretAndVisibleText(focus)
 
 	local isValid = not not (self.focusText and self.focusCursor);
 	if not isValid then return self:SetScript('OnUpdate', nil) end;
