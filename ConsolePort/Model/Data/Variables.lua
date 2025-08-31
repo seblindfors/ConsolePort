@@ -425,6 +425,10 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Use Instant Mode';
 		desc = 'Hotkeys activate their target immediately.';
 	};
+	unitHotkeyStaticMode = _{Bool(false);
+		name = 'Use Static Mode';
+		desc = 'Hotkeys always target the same unit.';
+	};
 	unitHotkeyDefaultMode = _{Bool(true);
 		name = 'Default to '..BLUE(GetBindingName('TARGETSCANENEMY'));
 		desc = 'Hotkeys use '..BLUE(GetBindingName('TARGETSCANENEMY'))..' when no target is selected.';

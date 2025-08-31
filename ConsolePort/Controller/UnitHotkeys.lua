@@ -8,7 +8,7 @@
 local _, db = ...
 ---------------------------------------------------------------
 local NUM_COMBO_BUTTONS    = 8;
-local UNIT_DRIVER_FORMAT   = '[@%s,exists] true; nil';
+local UNIT_DRIVER_FORMAT   = '[@%s,exists] 1; %s';
 local UNIT_DRIVER_UPDATE   = 'units[%q][%q] = newstate; self:RunAttribute("RefreshUnits")';
 local UNIT_DRIVER_CLLBCK   = '_onstate-%s';
 local UNIT_POOL_DELIMITER  = '[^;]+';
@@ -159,7 +159,9 @@ UH:CreateEnvironment({
 			local binding = sequence[i];
 			if binding then
 				lookup[binding] = unit;
-				self:::AssignUnit(binding, unit)
+				if UnitExists(unit) then
+					self:::AssignUnit(binding, unit)
+				end
 			end
 		end
 	]];
@@ -289,11 +291,15 @@ function UH:OnTargetSettingsChanged()
 end
 
 function UH:OnUnitPoolChanged()
-	-- Reparse the unit pool and rebuild the unit drivers
 	self:ClearWatchedUnits()
+
+	-- Reparse the unit pool and rebuild the unit drivers
 	local tokens = db('unitHotkeyTokens')
-	self:Execute('units = wipe(units)')
+	local static = db('unitHotkeyStaticMode')
+	self.driverFallback = static and '0' or 'nil';
 	self:SetAttribute('unitpool', tokens)
+	self:SetAttribute('useStatic', static)
+	self:Execute('units = wipe(units)')
 	for token in tokens:gmatch(UNIT_POOL_DELIMITER) do
 		self:ParseToken(token, token)
 	end
@@ -338,18 +344,17 @@ function UH:ClearWatchedUnits()
 	wipe(self.UnitDrivers)
 end
 
-function UH:AddUnitToWatch(unitID, group)
+function UH:AddUnitToWatch(unitID, group) unitID = unitID:trim();
 	if self.UnitDrivers[unitID] then
 		return false;
 	end
-	local driver = UNIT_DRIVER_FORMAT:format(unitID)
+	local driver = UNIT_DRIVER_FORMAT:format(unitID, self.driverFallback)
 	self.UnitDrivers[unitID] = true;
 	self:Run([[
-		local group, driver = %q, %q;
-		units[group] = units[group] or {}
-		local newstate, unitID = SecureCmdOptionParse(driver)
-		if unitID then units[group][unitID] = newstate end;
-	]], group, driver)
+		local unitID, group, driver = %q, %q, %q;
+		units[group] = units[group] or {};
+		units[group][unitID] = tonumber((SecureCmdOptionParse(driver)));
+	]], unitID, group, driver)
 	RegisterStateDriver(self, unitID, driver)
 	self:SetAttribute(UNIT_DRIVER_CLLBCK:format(unitID), UNIT_DRIVER_UPDATE:format(group, unitID))
 	return true;
@@ -371,6 +376,7 @@ db:RegisterSafeCallbacks(UH.OnUnitPoolChanged, UH,
 	'OnNewBindings',
 	'Settings/unitHotkeySet',
 	'Settings/unitHotkeyTokens',
+	'Settings/unitHotkeyStaticMode',
 	(function(n)
 		local res = {};
 		for i=1, n do
