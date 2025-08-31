@@ -101,6 +101,7 @@ if CPAPI.IsRetailVersion then
 			end
 			GameTooltip:SetOwner(anchor, 'ANCHOR_NONE')
 			SetOverrideStrata(true)
+			GameTooltip:ClearAllPoints()
 			GameTooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
 			if db('trgtShowMinimalInteractNamePlate') and GameTooltip.NineSlice then
 				GameTooltip.NineSlice:Hide()
