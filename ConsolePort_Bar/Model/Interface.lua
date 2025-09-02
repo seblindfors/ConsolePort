@@ -484,6 +484,12 @@ Interface.Divider = Data.Interface {
 				y        = 100;
 			};
 		});
+		color = _{
+			name = 'Color';
+			desc = 'Color of the divider.';
+			note = 'Uses global tint color when transparent.';
+			Data.Color('00ffffff');
+		};
 		breadth = _{
 			name = 'Breadth';
 			desc = 'Breadth of the divider.';

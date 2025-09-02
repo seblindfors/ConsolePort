@@ -27,7 +27,12 @@ function CPDivider:SetTintColor(r, g, b, a)
 end
 
 function CPDivider:OnDataLoaded()
-	self:SetTintColor(env:GetColorRGBA('tintColor'))
+	local color = self.props and self.props.color and CPAPI.CreateColorFromHexString(self.props.color)
+	if color and color.a > 0 then
+		self:SetTintColor(color:GetRGBA())
+	else
+		self:SetTintColor(env:GetColorRGBA('tintColor'))
+	end
 	return CPAPI.KeepMeForLater;
 end
 

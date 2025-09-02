@@ -320,6 +320,7 @@ function Cursor:OnDataLoaded()
 
 	self:SetFilter(db('raidCursorFilter'))
 	self:SetAttribute('wrapDisable', db('raidCursorWrapDisable'))
+	self:SetAttribute('priorityoverride', db('raidCursorPriorityOverride'))
 	self:SetScale(db('raidCursorScale'))
 	self:UpdatePointer()
 
@@ -350,7 +351,8 @@ db:RegisterSafeCallbacks(Cursor.OnDataLoaded, Cursor,
 	'Settings/raidCursorDown',
 	'Settings/raidCursorLeft',
 	'Settings/raidCursorRight',
-	'Settings/raidCursorWrapDisable'
+	'Settings/raidCursorWrapDisable',
+	'Settings/raidCursorPriorityOverride'
 );
 db:RegisterSafeCallback('OnUpdateOverrides', Cursor.OnUpdateOverrides, Cursor)
 
