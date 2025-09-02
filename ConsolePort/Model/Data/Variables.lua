@@ -371,6 +371,11 @@ db:Register('Variables', CPAPI.Callable({
 			.. BLUE'unit' .. ' is the current unit ID for the frame.';
 		advd = true;
 	};
+	raidCursorPriorityOverride = _{Bool(false);
+		name = 'Priority Override';
+		desc = 'Prioritize raid cursor bindings over other override bindings.';
+		advd = true;
+	};
 	raidCursorWrapDisable = _{Bool(false);
 		name = 'Disable Wrapping';
 		desc = 'Prevent the cursor from wrapping when navigating.';
