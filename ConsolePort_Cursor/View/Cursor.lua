@@ -50,6 +50,10 @@ function Cursor:PLAYER_REGEN_ENABLED()
 			self.onEnableCallback = nil;
 		end
 
+		-- The delay is doubled if the player is dead, to prevent
+		-- accidental spirit release by button spam (and slow reaction time).
+		local delay = db('UIleaveCombatDelay') * (UnitIsDead('player') and 2 or 1)
+
 		if self.showAfterCombat then
 			self.onEnableCallback = self.onEnableCallback or function()
 				Fade.In(self, 0.2, self:GetAlpha(), 1)
@@ -58,13 +62,13 @@ function Cursor:PLAYER_REGEN_ENABLED()
 					self:Refresh()
 				end
 			end
-			C_Timer.After(db('UIleaveCombatDelay'), function()
+			C_Timer.After(delay, function()
 				self.onEnableCallback()
 				self.showAfterCombat = nil;
 				clearLockedState()
 			end)
 		else -- do nothing but clear the locked state
-			C_Timer.After(db('UIleaveCombatDelay'), clearLockedState)
+			C_Timer.After(delay, clearLockedState)
 		end
 	end
 end

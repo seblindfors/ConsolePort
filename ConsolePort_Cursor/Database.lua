@@ -66,6 +66,7 @@ ConsolePort:AddVariables({
 	UIleaveCombatDelay = _{Data.Number(0.5, 0.1);
 		name = 'Reactivation Delay';
 		desc = 'Delay before reactivating interface cursor after leaving combat, in seconds.';
+		note = 'Delay is doubled if you are dead.';
 		deps = DEPENDENCY;
 		advd = true;
 	};
