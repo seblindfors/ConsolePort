@@ -340,11 +340,11 @@ function Interface:Warp(tbl)
 	return self:Set(tbl):Get()
 end
 
-function Interface:Implement(props)
+function Interface:Implement(props, raw)
 	local instance = Field.Get(self)
 	if props then
 		local overrides = props[DATA];
-		if overrides then
+		if overrides and not raw then
 			Table.Set(instance[DATA], overrides)
 			props[DATA] = nil;
 		end

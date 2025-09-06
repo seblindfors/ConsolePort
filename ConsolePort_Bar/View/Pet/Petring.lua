@@ -256,7 +256,7 @@ function CPPetRing:SetProps(props)
 	self.Center.OuterBorder:SetShown(showStatus)
 	self:SetScript('OnUpdate', showStatus and self.OnUpdate or nil)
 
-	RegisterStateDriver(self, 'visibility', (not props.vehicle and '[vehicleui] hide; ' or '')..'[pet] show; hide')
+	RegisterStateDriver(self, 'visibility', (not props.vehicle and '[vehicleui] hide; ' or '') .. props.visibility);
 
 	self:Update()
 	self:UpdateCooldowns()

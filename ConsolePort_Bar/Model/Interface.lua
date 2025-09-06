@@ -390,6 +390,9 @@ Interface.Petring = Data.Interface {
 			desc = 'Scale of the pet ring.';
 			Data.Range(0.75, 0.05, 0.5, 2);
 		};
+		visibility = _(Type.Visibility : Implement ({
+			Data.String('[pet] show; hide');
+		}, true));
 	};
 };
 
