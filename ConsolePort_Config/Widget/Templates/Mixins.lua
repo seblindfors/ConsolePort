@@ -159,6 +159,12 @@ function BindingCatcher:OnBindingCaught(button, data)
 
 	local bindingID = data.bindingID;
 	local keyChord  = CPAPI.CreateKeyChord(button)
+	local curAction = GetBindingAction(keyChord)
+
+	if ( curAction ~= '' and curAction ~= bindingID ) then
+		CPAPI.Next(env.TriggerEvent, env, 'OnBindingConflict', keyChord, bindingID, curAction)
+		return true; -- return true anyway to close the catcher.
+	end
 
 	return env:SetBinding(keyChord, bindingID)
 end

@@ -171,6 +171,7 @@ function Config:OnLoad()
 	env:RegisterCallback('OnPanelShow', self.OnPanelShow, self)
 	env:RegisterCallback('OnSearch', self.OnSearch, self)
 	env:RegisterCallback('OnBindingClicked', self.OnBindingClicked, self)
+	env:RegisterCallback('OnBindingConflict', self.OnBindingConflict, self)
 	env:RegisterCallback('OnActionSlotEdit', self.OnActionSlotEdit, self)
 	env:RegisterCallback('OnBindingIconClicked', self.OnBindingIconClicked, self)
 	env:RegisterCallback('OnBindingPresetAddClicked', self.OnBindingPresetAddClicked, self)
@@ -321,6 +322,22 @@ function Config:OnBindingClicked(bindingID, isClearEvent, readonly, element)
 		end;
 	}, BLUE_FONT_COLOR:WrapTextInColorCode(env:GetBindingName(bindingID)), nil, {
 		bindingID = bindingID;
+	})
+end
+
+function Config:OnBindingConflict(keyChord, bindingID, curAction)
+	CPAPI.Popup('ConsolePort_Binding_Conflict', {
+		text = L(
+			'%s is already bound to\n%s\n\nDo you want to change it to\n%s?',
+			db.Hotkeys:GetButtonSlugForChord(keyChord, false, true),
+			GREEN_FONT_COLOR:WrapTextInColorCode(env:GetBindingName(curAction)),
+			BLUE_FONT_COLOR:WrapTextInColorCode(env:GetBindingName(bindingID))
+		);
+		button1  = YES;
+		button2  = NO;
+		OnAccept = function()
+			env:RunSafe(env.SetBinding, env, keyChord, bindingID)
+		end;
 	})
 end
 
