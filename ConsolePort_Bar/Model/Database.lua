@@ -258,6 +258,10 @@ env:Register('Variables', CPAPI.Callable({
 		desc = 'Show the watch bars at the bottom of the toolbar.';
 		note = 'Watch bars include XP, reputation, honor, artifact power, and azerite.';
 	};
+	tintEnable = _{Data.Bool(true);
+		name = 'Enable Tint';
+		desc = 'Show a color tint on the toolbar.';
+	};
 	fadeXPBar = _{Data.Bool(false);
 		name = 'Fade Watch Bars';
 		desc = 'Fade out the watch bars when not mousing over the toolbar.';
@@ -270,7 +274,7 @@ env:Register('Variables', CPAPI.Callable({
 	};
 	tintColor = _{Data.Color(classColor);
 		name = 'Tint Color';
-		desc = 'Color of the tint effect on the toolbar and dividers.';
+		desc = 'Global color of the tint effect on the toolbar and dividers.';
 	};
 }, function(self, key) return (rawget(self, key) or {})[1] end))
 ---------------------------------------------------------------

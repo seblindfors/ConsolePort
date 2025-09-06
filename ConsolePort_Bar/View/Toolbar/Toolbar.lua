@@ -428,6 +428,7 @@ function CPToolbar:OnLoad()
 		'OnDataLoaded',
 		'Settings/enableXPBar',
 		'Settings/fadeXPBar',
+		'Settings/tintEnable',
 		'Settings/tintColor',
 		'Settings/xpBarColor'
 	);
@@ -483,9 +484,12 @@ function CPToolbar:SetTintColor(r, g, b, a)
 end
 
 function CPToolbar:OnDataLoaded()
+	local enableTint, enableXP = env('tintEnable'), env('enableXPBar');
+	self.BG:SetShown(enableTint)
+	self.DividerLine:SetShown(enableTint)
 	self:SetTintColor(env:GetColorRGBA('tintColor'))
-	self:ToggleXPBar(env('enableXPBar'))
-	self:ToggleXPBarFade(env('enableXPBar'))
+	self:ToggleXPBar(enableXP)
+	self:ToggleXPBarFade(enableXP)
 	return CPAPI.KeepMeForLater;
 end
 
