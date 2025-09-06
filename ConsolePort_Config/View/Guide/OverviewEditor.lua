@@ -83,7 +83,7 @@ function BindingSlotter:UpdateChildren(data)
 	local hasAction = data.hasAction;
 	button:SetID(data.slot)
 	button:SetShown(hasAction)
-	button:SetOnClickEvent('Overview.OnActionClicked')
+	button:SetSlotEvent('Overview.OnActionClicked')
 	button:SetPairMode(true)
 	button:SetEditMode(true)
 	button:SetPairText(EDIT_AB)

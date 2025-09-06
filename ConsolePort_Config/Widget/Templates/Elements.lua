@@ -709,7 +709,7 @@ function ActionbarMapper:UpdateChildren(data)
 		if button then
 			button:SetID(((data.bar - 1) * NUM_ACTIONBAR_BUTTONS) + i)
 			button:SetPoint('RIGHT', -((NUM_ACTIONBAR_BUTTONS - i) * offset) - padding, 0)
-			button:SetOnClickEvent(event)
+			button:SetBindingEvent(event)
 			button:SetPairMode(pair)
 			button:SetEditMode(false)
 			button:SetPairText(nil)

@@ -289,7 +289,6 @@
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnDoubleClick method="OnDoubleClick"/>
 			<OnDragStart method="OnDragStart"/>
 			<OnReceiveDrag method="OnReceiveDrag"/>
 		</Scripts>

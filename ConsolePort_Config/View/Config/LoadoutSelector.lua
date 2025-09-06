@@ -118,7 +118,7 @@ end
 function ActionSlotter:UpdateChildren(data)
 	local button = self[1];
 	button:SetID(data.slot)
-	button:SetOnClickEvent('OnBindingClicked')
+	button:SetBindingEvent('OnBindingClicked')
 	button:SetPairMode(false)
 	button:SetEditMode(true)
 end

@@ -250,8 +250,8 @@ end
 CPActionConfigButton = { GetBinding = nop };
 ---------------------------------------------------------------
 CPAPI.Props(CPActionConfigButton)
-	.Prop('OnClickEvent', 'OnBindingClicked')
-	.Prop('SpecialClickEvent', 'OnActionSlotEdit')
+	.Prop('BindingEvent', 'OnBindingClicked')
+	.Prop('SlotEvent',    'OnActionSlotEdit')
 	.Prop('PairText', CHOOSE)
 	.Bool('PairMode', false)
 	.Bool('EditMode', false)
@@ -287,19 +287,18 @@ end
 
 function CPActionConfigButton:UpdateEditPrompts()
 	local useMouseHints    = not ConsolePort:IsCursorNode(self);
+	local leftClickText    = self:IsEditMode() and CLOSE or L'Edit Slot';
 	local specialClickID   = useMouseHints and 'LeftClick' or 'Special';
-	local specialClickText = useMouseHints and L'Double-click to Edit Slot' or L'Edit Slot';
+	local specialClickText = useMouseHints and L'Shift-click to Edit Binding' or L'Edit Binding';
 	local cancelClickID    = useMouseHints and 'RightClick' or 'Cancel';
-	local cancelClickText  = useMouseHints and L'Double-right-click to Clear Slot' or L'Clear Slot';
+	local cancelClickText  = useMouseHints and L'Shift-right-click to Clear Binding' or L'Clear Binding';
 
 	local hints = {
-		env:GetTooltipPromptForClick('LeftClick',    L'Edit Binding',   useMouseHints);
-		env:GetTooltipPromptForClick('RightClick',   L'Remove Binding', useMouseHints);
+		env:GetTooltipPromptForClick('LeftClick',    leftClickText,    useMouseHints);
+		env:GetTooltipPromptForClick('RightClick',   L'Clear Slot',    useMouseHints);
+		env:GetTooltipPromptForClick(specialClickID, specialClickText, useMouseHints);
+		env:GetTooltipPromptForClick(cancelClickID,  cancelClickText,  useMouseHints);
 	};
-	if not self:IsEditMode() then
-		tinsert(hints, env:GetTooltipPromptForClick(specialClickID, specialClickText, useMouseHints));
-	end
-	tinsert(hints, env:GetTooltipPromptForClick(cancelClickID, cancelClickText, useMouseHints));
 
 	self.tooltipHints = hints;
 	return hints;
@@ -340,51 +339,53 @@ function CPActionConfigButton:OnLeave()
 end
 
 function CPActionConfigButton:OnClick(button)
-	if self.clickHandler then return end;
 	if GetCursorInfo() then
 		return PlaceAction(self:GetID())
 	end
-	local callback = function()
-		local isClearEvent = button == 'RightButton';
-		local bindingID, actionID = self:GetBinding()
-		env:TriggerEvent(self:GetOnClickEvent(),
-			bindingID,    -- the bindingID to be set or cleared
-			isClearEvent, -- if the binding is to be cleared
-			false,        -- if the binding is readonly
-			self          -- the element that was clicked
-		);
-		self.clickHandler = nil;
-	end;
-	if ConsolePort:IsCursorNode(self) then
-		return callback();
+	local isMouseClick = not ConsolePort:IsCursorNode(self) or self:IsMouseOver()
+	local isShiftClick = isMouseClick and IsShiftKeyDown()
+	local isClearEvent = button == 'RightButton'
+
+	if self:IsPairMode() and not self:IsEditMode() then
+		return self:ChangeBinding(isClearEvent)
+	elseif isShiftClick then
+		return self:ChangeBinding(isClearEvent)
+	elseif isMouseClick then
+		return self:ChangeSlot(isClearEvent)
 	end
-	self.clickHandler = C_Timer.NewTimer(0.25, callback)
+	self:ChangeSlot(isClearEvent)
 end
 
-function CPActionConfigButton:OnDoubleClick(button)
-	if self.clickHandler then
-		self.clickHandler = self.clickHandler:Cancel()
-	end
-	if button == 'RightButton' then
-		return self:OnCancelClick()
-	end
-	self:OnSpecialClick()
+function CPActionConfigButton:ChangeBinding(isClearEvent)
+	local bindingID = self:GetBinding()
+	env:TriggerEvent(self:GetBindingEvent(),
+		bindingID,    -- the bindingID to be set or cleared
+		isClearEvent, -- if the binding is to be cleared
+		false,        -- if the binding is readonly
+		self          -- the element that was clicked
+	);
 end
 
-function CPActionConfigButton:OnSpecialClick()
-	if self:IsPairMode() or self:IsEditMode() then return end;
+function CPActionConfigButton:ChangeSlot(isClearEvent)
+	if isClearEvent then
+		if self:IsPairMode() then return end;
+		self:OnDragStart()
+		return ClearCursor()
+	end
 	local bindingID, actionID = self:GetBinding()
-	env:TriggerEvent(self:GetSpecialClickEvent(),
+	env:TriggerEvent(self:GetSlotEvent(),
 		actionID,  -- the actionID to be changed
 		bindingID, -- the bindingID that owns the slot
 		self       -- the element that was clicked
-	)
+	);
+end
+
+function CPActionConfigButton:OnSpecialClick()
+	self:ChangeBinding(false)
 end
 
 function CPActionConfigButton:OnCancelClick()
-	if self:IsPairMode() then return end;
-	self:OnDragStart()
-	ClearCursor()
+	self:ChangeBinding(true)
 end
 
 function CPActionConfigButton:OnDragStart()
