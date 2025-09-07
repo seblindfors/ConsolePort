@@ -1,6 +1,6 @@
 
 local _, db = ...;
-local Cursor = db:Register('Secure', db.Securenav(ConsolePortSecureCursor));
+local Cursor = db:Register('Secure', db.Nav(ConsolePortSecureCursor));
 
 ---------------------------------------------------------------
 -- Registration of a secure cursor user frame

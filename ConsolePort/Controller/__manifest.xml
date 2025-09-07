@@ -1,5 +1,6 @@
 <Ui>
 	<Script file="Securenav.lua"/>
+	<Script file="Securescan.lua"/>
 	<Script file="UnitMenu.lua"/>
 	<Script file="UnitHotkeys.lua"/>
 	<Script file="Interact.lua"/>

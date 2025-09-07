@@ -1,6 +1,6 @@
 local _, db = ...;
 ---------------------------------------------------------------
-db:Register('Securenav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {Env = {
+db:Register('Nav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {Env = {
 	-----------------------------------------------------------
 	-- Default filters
 	-----------------------------------------------------------

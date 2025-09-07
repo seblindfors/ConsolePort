@@ -5,7 +5,7 @@
 -- in order to alleviate targeting. A healer's delight.
 -- Thanks to Yoki for original concept! :)
 
-local _, db = ...
+local _, db = ...;
 ---------------------------------------------------------------
 local NUM_COMBO_BUTTONS    = 8;
 local UNIT_DRIVER_FORMAT   = '[@%s,exists] 1; %s';
@@ -67,7 +67,8 @@ end
 ---------------------------------------------------------------
 -- Secure environment
 ---------------------------------------------------------------
-local UH = Mixin(CPAPI.EventHandler(ConsolePortEasyMotionButton, {'PLAYER_ENTERING_WORLD'}), CPAPI.SecureEnvironmentMixin)
+local UH    = Mixin(CPAPI.EventHandler(ConsolePortEasyMotionButton, {'PLAYER_ENTERING_WORLD'}), CPAPI.SecureEnvironmentMixin)
+local Scan  = db.Scan;
 local Input = ConsolePortEasyMotionInput;
 UH.GetNamePlateForUnit, UH.UnitDrivers, UH.UnitFrames = C_NamePlate.GetNamePlateForUnit, {}, {};
 
@@ -400,41 +401,16 @@ db:RegisterCallbacks(UH.OnDisplaySettingsChanged, UH,
 ---------------------------------------------------------------
 -- Frontend frame tracking
 ---------------------------------------------------------------
-
-local GetModifiedUnit, GetModifiedAttribute = SecureButton_GetModifiedUnit, SecureButton_GetModifiedAttribute;
-
-local function GetUnitForFrame(frame)
-	if ( GetModifiedAttribute(frame, 'type', 'LeftButton') ~= 'target' ) then
-		return nil;
-	end
-	return GetModifiedUnit(frame)
-end
-
 function UH:AssignUnit(binding, unitID)
 	self.UnitDrivers[unitID] = binding;
 	self:QueueUnitFrameRefresh()
 end
 
-function UH:RefreshUnitFrames(current)
-	local stack;
-	if not current then
-		stack = {self:GetParent():GetChildren()}
-	elseif current:IsVisible() then
-		local unitID = GetUnitForFrame(current)
-		if unitID and self.UnitDrivers[unitID] then
-			self:AddTrackedUnitFrame(unitID, current)
-		else
-			stack = {current:GetChildren()}
-		end
-	end
-	if stack then
-		for i, frame in pairs(stack) do
-			if not frame:IsForbidden() then
-				local isProtected, isImplicitlyProtected = frame:IsProtected()
-				if isProtected or isImplicitlyProtected then
-					self:RefreshUnitFrames(frame)
-				end
-			end
+function UH:RefreshUnitFrames()
+	local cache = Scan:GetCache(Scan.UnitFrames)
+	for frame, unitID in pairs(cache) do
+		if self.UnitDrivers[unitID] then
+			self:AddTrackedUnitFrame(unitID, frame)
 		end
 	end
 end
@@ -479,6 +455,12 @@ end
 ---------------------------------------------------------------
 -- Frontend display
 ---------------------------------------------------------------
+function UH:RefreshAll()
+	self:ClearUnitFrames()
+	self:RefreshUnitFrames()
+	self:RedrawBindings()
+end
+
 function UH:DisplayBindings()
 	for unitID, binding in self:GetActiveUnitIDs() do
 		self:TryAddNamePlateForUnit(unitID)
@@ -536,11 +518,8 @@ end
 -- Frontend async updates
 ---------------------------------------------------------------
 UH.QueueDisplayBindings = CPAPI.Debounce(UH.DisplayBindings, UH)
-UH.QueueUnitFrameRefresh = CPAPI.Debounce(function(self)
-	self:ClearUnitFrames()
-	self:RefreshUnitFrames()
-	self:RedrawBindings()
-end, UH)
+UH.QueueUnitFrameRefresh = CPAPI.Debounce(UH.RefreshAll, UH)
+db:RegisterCallback('OnScanUpdate', UH.RefreshAll, UH)
 
 function UH:SecureRefreshDisplayBindings()
 	self:QueueDisplayBindings()

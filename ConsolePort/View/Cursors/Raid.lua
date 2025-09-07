@@ -6,8 +6,9 @@
 -- Gathers all nodes by recursively scanning UIParent for
 -- secure frames with the 'unit' attribute assigned.
 
-local _, db = ...;
-local Cursor = db:Register('Raid', db.Pager:RegisterHeader(db.Securenav(ConsolePortRaidCursor)))
+local _, db  = ...;
+local Scan   = db.Scan;
+local Cursor = db:Register('Raid', db.Pager:RegisterHeader(db.Nav(ConsolePortRaidCursor)))
 
 ---------------------------------------------------------------
 -- Frame refs, init scripts, click handlers
@@ -596,33 +597,15 @@ db:RegisterCallbacks(Cursor.UpdatePointer, Cursor,
 ---------------------------------------------------------------
 -- UI Caching
 ---------------------------------------------------------------
-local ScanUI, ScanFrames;
-do	local EnumerateFrames, GetAttribute, IsProtected = EnumerateFrames, Cursor.GetAttribute, Cursor.IsProtected;
-	ScanFrames = function(self, node, iterator, includeAll)
-		while node do
-			if IsProtected(node) then
-				if includeAll then
-					self:CacheNode(node)
-				else
-					local unit, action = GetAttribute(node, 'unit'), GetAttribute(node, 'action')
-					if unit and not action then
-						self:CacheNode(node)
-					elseif action and tonumber(action) then
-						self:CacheNode(node)
-					end
-				end
-			end
-			node = iterator(node)
-		end
-	end;
-
-	ScanUI = CPAPI.Debounce(function(self)
-		if InCombatLockdown() then
-			return CPAPI.Log('Raid cursor scan failed due to combat lockdown. Waiting for combat to end...')
-		end
-		ScanFrames(self, EnumerateFrames(), EnumerateFrames, false)
-	end, Cursor)
+local CachedFrames = {[Cursor] = true; [Cursor.Toggle] = true};
+local function CursorCacheNode(node)
+	if not CachedFrames[node] then
+		CachedFrames[node] = true;
+		Cursor:AddFrame(node)
+		return true;
+	end
 end
+Scan:RegisterCallback(Scan.Any, CursorCacheNode)
 
 function Cursor:AddFrame(frame)
 	self:SetFrameRef('cachenode', frame)
@@ -631,18 +614,9 @@ function Cursor:AddFrame(frame)
 	]])
 end
 
-Cursor.CachedFrames = {[Cursor] = true; [Cursor.Toggle] = true};
-function Cursor:CacheNode(node)
-	if not self.CachedFrames[node] then
-		self.CachedFrames[node] = true;
-		self:AddFrame(node)
-		return true;
-	end
-end
-
 function Cursor:CacheActionBar(bar)
 	local iterator = GenerateClosure(next, tInvert { bar:GetChildren() })
-	ScanFrames(self, iterator(), iterator, true)
+	Scan.Execute(CursorCacheNode, iterator(), iterator, true)
 end
 
 do 	local FILTER_SIGNATURE, DEFAULT_NODE_PREDICATE = 'local unit = unit or ...; return %s;', 'true';
@@ -687,19 +661,6 @@ end
 ---------------------------------------------------------------
 -- Events
 ---------------------------------------------------------------
-function Cursor:GROUP_ROSTER_UPDATE()
-	if not InCombatLockdown() then
-		ScanUI()
-	end
-end
-
-function Cursor:PLAYER_REGEN_DISABLED()
-	ScanUI.Cancel()
-end
-
-Cursor.PLAYER_REGEN_ENABLED  = Cursor.GROUP_ROSTER_UPDATE;
-Cursor.PLAYER_ENTERING_WORLD = Cursor.GROUP_ROSTER_UPDATE;
-
 function Cursor:UNIT_HEALTH(unit)
 	self:UpdateHealthForUnit(unit)
 end
