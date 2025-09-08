@@ -341,6 +341,7 @@ do -- Tooltip hooking
 	end
 
 	local function OnTooltipSetItemLine(self, line)
+		if self:IsForbidden() then return end;
 		local owner = self:GetOwner()
 		if Hooks:IsPromptProcessingValid(owner) and Hooks:GetBagLocationFromNode(owner) then
 			if (line.leftText or ''):match('^<') then
