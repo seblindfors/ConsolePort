@@ -313,7 +313,7 @@ function ItemMenu:Delete()
 		ConsolePort:SetCursorNode(returnToNode, false, true)
 		local popup = StaticPopup_Show('DELETE_ITEM', link)
 		if popup then
-			ConsolePort:SetCursorNode(popup.button1, false, true)
+			ConsolePort:SetCursorNode(popup.button1 or popup:GetButton1(), false, true)
 		end
 	else
 		DeleteCursorItem()
