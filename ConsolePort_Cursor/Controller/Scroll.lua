@@ -44,7 +44,10 @@ end
 
 function Scroll:GetScrollTarget(curr, scrollPos, nodePos, prevPos, force)
 	local new = curr + (scrollPos - nodePos)
-	return force and new or (new > curr) == (nodePos > prevPos) and curr or new;
+	if force or not tonumber(prevPos) or (new > curr) ~= (nodePos > prevPos) then
+		return new;
+	end
+	return curr;
 end
 
 function Scroll:IsValidScrollFrame(super)
