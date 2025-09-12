@@ -959,6 +959,27 @@ function Loadout:GetPresetSaveFrame()
 		);
 		frame.pager.disableTooltipHints = true;
 
+		frame.default = CreateCheckBox(
+			L'Save as default',
+			L'Make this preset the default layout for all new characters.'
+		);
+
+		-- Add some convenience logic for the default checkbox
+		frame.default:HookScript('OnClick', function(checkbox)
+			local useDefault = checkbox:GetChecked()
+			frame.name:SetEnabled(not useDefault)
+			if useDefault then
+				self.oldName = frame.name:GetText()
+				frame.name:SetText('Default')
+			elseif self.oldName then
+				frame.name:SetText(self.oldName)
+				self.oldName = nil;
+			end
+		end)
+		frame.default:HookScript('OnHide', function(checkbox)
+			self.oldName = nil;
+		end)
+
 		frame.showHeader = CreateHeader(L'Global Visibility')
 		frame.visibility = CreateEditBox(60)
 
@@ -1007,7 +1028,9 @@ function Loadout:TogglePresetSaveFrame(show)
 	end
 
 	frame.options:SetChecked(false)
+	frame.default:SetChecked(false)
 	frame.pager:SetChecked(false)
+	frame.name:SetEnabled(true)
 	frame:Show()
 	frame:Layout()
 
