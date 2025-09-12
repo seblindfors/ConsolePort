@@ -6,7 +6,10 @@
 
 local env, db = CPAPI.GetEnv(...);
 local Nudge, Node, Lerp, sqrt, band =
-	CPAPI.CreateEventHandler({'Frame', '$parentNudgeHandler', env.Cursor}),
+	CPAPI.CreateEventHandler({'Frame', '$parentNudgeHandler', env.Cursor}, {
+		'PLAYER_REGEN_DISABLED';
+		'PLAYER_REGEN_ENABLED';
+	}),
 	LibStub('ConsolePortNode'),
 	FrameDeltaLerp, sqrt, bit.band;
 
@@ -171,3 +174,6 @@ function Nudge:MODIFIER_STATE_CHANGED()
 	end
 	self:Reset()
 end
+
+Nudge.PLAYER_REGEN_DISABLED = Nudge.Hide;
+Nudge.PLAYER_REGEN_ENABLED  = Nudge.Show;
