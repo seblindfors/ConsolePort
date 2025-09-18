@@ -268,6 +268,7 @@ function UH:OnDisplaySettingsChanged()
 		offsetY = db('unitHotkeyOffsetY')    or 0;
 		redraw  = db('unitHotkeyGhostMode')  or false;
 		size    = db('unitHotkeySize')       or 32;
+		level   = db('unitHotkeyOffsetFL')   or 10;
 		plates  = db('unitHotkeyNamePlates') or false;
 	};
 	for hotkey in self.Hotkeys:EnumerateActive() do
@@ -392,6 +393,7 @@ db:RegisterCallbacks(UH.OnDisplaySettingsChanged, UH,
 	'Settings/unitHotkeySize',
 	'Settings/unitHotkeyOffsetX',
 	'Settings/unitHotkeyOffsetY',
+	'Settings/unitHotkeyOffsetFL',
 	'Settings/unitHotkeyAnchor',
 	'Settings/unitHotkeyGhostMode',
 	'Settings/unitHotkeyGhostAlpha',
@@ -610,7 +612,8 @@ function HotkeyMixin:SetUnitFrame(frame)
 	if frame and frame:IsVisible() then
 		self:SetParent(UIParent)
 		self:SetPoint(UH.display.anchor, frame, UH.display.anchor, UH.display.offsetX, UH.display.offsetY)
-		self:SetFrameLevel(frame:GetFrameLevel() + 10)
+		self:SetFrameStrata(frame:GetFrameStrata())
+		self:SetFrameLevel(Clamp(frame:GetFrameLevel() + UH.display.level, 0, 10000))
 		self:SetScale(1)
 		self:Show()
 	end

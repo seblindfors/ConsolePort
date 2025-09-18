@@ -17,22 +17,36 @@ end
 ---------------------------------------------------------------
 -- UI Caching
 ---------------------------------------------------------------
-local GetRaw, GetAttribute, GetModifiedUnit, GetModifiedAttribute =
-	Scan.GetAttribute, SecureButton_GetAttribute, SecureButton_GetModifiedUnit, SecureButton_GetModifiedAttribute;
+local GetUnitForFrame, GetActionForFrame;
+do	local HasScript, GetScript = Scan.HasScript, Scan.GetScript;
+	local GetRaw, SecureUnitButton_OnClick, SecureActionButton_OnClick =
+		Scan.GetAttribute, SecureUnitButton_OnClick, SecureActionButton_OnClick;
+	local GetAttribute, GetModifiedUnit, GetModifiedAttribute =
+		SecureButton_GetAttribute, SecureButton_GetModifiedUnit, SecureButton_GetModifiedAttribute;
 
-local function GetUnitForFrame(frame)
-	if ( GetModifiedAttribute(frame, 'type', 'LeftButton') ~= 'target' )
-	or ( not GetRaw(frame, 'unit') ) then
-		return nil;
+	local function IsUnitButton(frame)
+		return HasScript(frame, 'OnClick') and GetScript(frame, 'OnClick') == SecureUnitButton_OnClick;
 	end
-	return GetModifiedUnit(frame)
-end
 
-local function GetActionForFrame(frame)
-	if ( GetModifiedAttribute(frame, 'type', 'LeftButton') ~= 'action' ) then
-		return nil;
+	local function IsActionButton(frame)
+		return HasScript(frame, 'OnClick') and GetScript(frame, 'OnClick') == SecureActionButton_OnClick;
 	end
-	return tonumber(GetAttribute(frame, 'action'))
+
+	local function IsClickType(frame, clickType)
+		return GetModifiedAttribute(frame, 'type', 'LeftButton') == clickType;
+	end
+
+	function GetUnitForFrame(frame)
+		if (( IsUnitButton(frame) or IsClickType(frame, 'target')) and GetRaw(frame, 'unit')) then
+			return GetModifiedUnit(frame)
+		end
+	end
+
+	function GetActionForFrame(frame)
+		if ( IsActionButton(frame) or IsClickType(frame, 'action')) then
+			return tonumber(GetAttribute(frame, 'action'))
+		end
+	end
 end
 
 local ScanGlobal, ScanFrames;

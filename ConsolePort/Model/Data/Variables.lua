@@ -464,6 +464,12 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Vertical offset of the hotkey prompt position, in pixels.';
 		advd = true;
 	};
+	unitHotkeyOffsetFL = _{Number(10, 1, true);
+		name = 'Frame Level Offset';
+		desc = 'Frame level offset of the hotkey prompt, relative to the unit frame.';
+		note = 'Higher values appear on top of lower values. Valid range 0-10000.';
+		advd = true;
+	};
 	unitHotkeyTokens = _{String('raid1-9; raid10-40; party1-4; player; boss1-4; arena1-5; party1-4pet; raid1-40target');
 		name = 'Unit Pool';
 		desc = 'Match criteria for unit pool, each type separated by semicolon.';

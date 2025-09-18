@@ -179,13 +179,13 @@ db:Register('Console', CPAPI.Proxy({
 		{	cvar = 'GamePadCameraYawSpeed';
 			type = Range(1, 0.25, -4.0, 4.0);
 			name = 'Camera Yaw Speed';
-			desc = 'Yaw speed of camera - turning left/right.';
+			desc = 'Camera speed for yaw - turning left/right.';
 			note = 'Choose a negative value to invert the axis.';
 		};
 		{	cvar = 'GamePadCameraPitchSpeed';
 			type = Range(1, 0.25, -4.0, 4.0);
 			name = 'Camera Pitch Speed';
-			desc = 'Pitch speed of camera - moving up/down.';
+			desc = 'Camera speed for pitch - moving up/down.';
 			note = 'Choose a negative value to invert the axis.';
 		};
 	};
