@@ -120,6 +120,7 @@ function ItemMenu:SetCommands()
 	end
 
 	self:AddCommand(L'Pick up', 'Pickup')
+	self:AddCommand(INSPECT, 'Inspect')
 	self:AddCommand(DELETE, 'Delete')
 end
 
@@ -294,6 +295,19 @@ end
 function ItemMenu:Pickup()
 	CPAPI.PickupContainerItem(self:GetBagAndSlot())
 	self:Hide()
+end
+
+function ItemMenu:Inspect()
+	local link = self:GetLink()
+	if CPAPI.IsRetailVersion then
+		if DressUpItemLocation(self) or DressUpLink(link) then
+			return self:Hide()
+		end
+	else
+		if DressUpItemLink(link) or DressUpBattlePetLink(link) or DressUpMountLink(link) then
+			return self:Hide()
+		end
+	end
 end
 
 function ItemMenu:Disenchant()

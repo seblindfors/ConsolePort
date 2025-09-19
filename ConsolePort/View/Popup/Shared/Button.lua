@@ -11,6 +11,7 @@ local COMMAND_OPT_ICON = CPAPI.Proxy({
 	Equip      = 'poi-transmogrifier';
 	Pickup     = 'MiniMap-QuestArrow';
 	Delete     = 'XMarksTheSpot';
+	Inspect    = 'None';
 	RingBind   = 'GreenCross';
 	RingClear  = 'Islands-MarkedArea';
 	Disenchant = 'UpgradeItem-32x32';
