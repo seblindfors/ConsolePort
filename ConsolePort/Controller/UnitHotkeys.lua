@@ -608,14 +608,27 @@ function HotkeyMixin:DrawIconsForBinding(binding)
 	self:Adjust()
 end
 
-function HotkeyMixin:SetUnitFrame(frame)
-	if frame and frame:IsVisible() then
-		self:SetParent(UIParent)
-		self:SetPoint(UH.display.anchor, frame, UH.display.anchor, UH.display.offsetX, UH.display.offsetY)
-		self:SetFrameStrata(frame:GetFrameStrata())
-		self:SetFrameLevel(Clamp(frame:GetFrameLevel() + UH.display.level, 0, 10000))
-		self:SetScale(1)
-		self:Show()
+do	-- Need this strata translation to ensure hotkeys are always above the unit frame,
+	-- which in the case of compact unit frames requires to be a strata above.
+	local strataMap = CPAPI.Enum(
+		'BACKGROUND', 'LOW', 'MEDIUM', 'HIGH', 'DIALOG',
+		'FULLSCREEN', 'FULLSCREEN_DIALOG', 'TOOLTIP'
+	);
+	local strataIndex = CPAPI.Proxy({strataMap()}, CPAPI.Static('TOOLTIP'));
+
+	local function GetHigherStrata(strata)
+		return strataIndex[strataMap[strata] + 1];
+	end
+
+	function HotkeyMixin:SetUnitFrame(frame)
+		if frame and frame:IsVisible() then
+			self:SetParent(UIParent)
+			self:SetPoint(UH.display.anchor, frame, UH.display.anchor, UH.display.offsetX, UH.display.offsetY)
+			self:SetFrameStrata(GetHigherStrata(frame:GetFrameStrata()))
+			self:SetFrameLevel(Clamp(frame:GetFrameLevel() + UH.display.level, 0, 10000))
+			self:SetScale(1)
+			self:Show()
+		end
 	end
 end
 
