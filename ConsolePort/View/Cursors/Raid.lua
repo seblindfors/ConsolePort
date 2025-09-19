@@ -48,6 +48,7 @@ Cursor:Wrap('PreClick', [[
 	else
 		self:SetAttribute('unit', nil)
 	end
+	self:::Pulse()
 ]])
 
 Cursor:Execute(([[
@@ -479,6 +480,13 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 		end
 	end
 
+	function Cursor:Pulse()
+		if self.animationEnabled then
+			self.Group:Stop()
+			self.Group:Play()
+		end
+	end
+
 	function Cursor:UpdateNode(node)
 		if node then
 			local name = node:GetName()
@@ -489,10 +497,7 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 					self.animateOnShow = false;
 					PlaySound(SOUNDKIT.ACHIEVEMENT_MENU_OPEN)
 				end
-				if self.animationEnabled then
-					self.Group:Stop()
-					self.Group:Play()
-				end
+				self:Pulse()
 				self:SetAlpha(1)
 			end
 		else
