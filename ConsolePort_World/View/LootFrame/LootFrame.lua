@@ -53,7 +53,7 @@ function LootFrame:LOOT_CLOSED()
 end
 
 function LootFrame:OPEN_MASTER_LOOT_LIST()
-	ToggleDropDownMenu(1, nil, GroupLootDropDown, self:GetFocusWidget(), 0, 0)
+	MasterLooterFrame_Show(self.focusIndex)
 end
 
 function LootFrame:UPDATE_MASTER_LOOT_LIST()
@@ -67,6 +67,15 @@ end
 ---------------------------------------------------------------
 -- Script handlers
 ---------------------------------------------------------------
+function LootFrame:OnLoad()
+	CPFocusPoolMixin.OnLoad(self)
+	self:CreateFramePool('Button', 'CPWorldButtonTemplate', env.LootButtonMixin)
+	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
+
+	self.Header.Text:SetText(LOOT)
+	self.Header:SetDurationMultiplier(.5)
+end
+
 function LootFrame:OnShow()
 	self.Header.HeaderOpenAnim:Stop()
 	self.Header.HeaderOpenAnim:Play()
@@ -87,19 +96,14 @@ function LootFrame:OnHide()
 end
 
 function LootFrame:OnDataLoaded()
-	CPFocusPoolMixin.OnLoad(self)
-	self:CreateFramePool('Button', 'CPWorldButtonTemplate', env.LootButtonMixin)
-	self:SetScript('OnHide', self.OnHide)
-	self:SetScript('OnShow', self.OnShow)
-	self:SetScript('OnGamePadButtonDown', self.OnGamePadButtonDown)
-	self.focusIndex = 1;
-
-	self.Header.Text:SetText(LOOT)
-	self.Header:SetDurationMultiplier(.5)
-
-	CPAPI.DisableFrame(_G.LootFrame)
-	_G.LootFrame:UnregisterAllEvents()
-	return CPAPI.BurnAfterReading;
+	if db('useCustomLootFrame') then
+		CPAPI.DisableFrame(_G.LootFrame, true)
+		CPAPI.RegisterFrameForEvents(self, self.Events)
+	else
+		CPAPI.EnableFrame(_G.LootFrame, self.Events)
+		self:UnregisterAllEvents()
+	end
+	return CPAPI.KeepMeForLater;
 end
 
 function LootFrame:SetHints()
@@ -127,18 +131,6 @@ function LootFrame:OnCursorHide()
 	self:SetHints()
 end
 
-db:RegisterCallback('OnCursorShow', LootFrame.OnCursorShow, LootFrame)
-db:RegisterCallback('OnCursorHide', LootFrame.OnCursorHide, LootFrame)
-
-LootFrame.CloseOnButton = {
-	PAD3 = true;
-	PAD4 = true;
-	PADBACK = true;
-	PADSYSTEM = true;
-	PADSOCIAL = true;
-	PADFORWARD = true;
-}
-
 function LootFrame:OnGamePadButtonDown(button)
 	if Input:IsOverrideActive(CPAPI.CreateKeyChord(button)) then
 		return self:SetPropagation(true)
@@ -160,6 +152,22 @@ function LootFrame:OnGamePadButtonDown(button)
 		CloseLoot()
 	end
 end
+
+CPAPI.Specialize(LootFrame, {
+	focusIndex = 1;
+	CloseOnButton = {
+		PAD3 = true;
+		PAD4 = true;
+		PADBACK = true;
+		PADSYSTEM = true;
+		PADSOCIAL = true;
+		PADFORWARD = true;
+	};
+})
+
+db:RegisterCallback('OnCursorShow', LootFrame.OnCursorShow, LootFrame)
+db:RegisterCallback('OnCursorHide', LootFrame.OnCursorHide, LootFrame)
+db:RegisterCallback('Settings/useCustomLootFrame', LootFrame.OnDataLoaded, LootFrame)
 
 ---------------------------------------------------------------
 -- Content handling

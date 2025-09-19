@@ -97,25 +97,31 @@ CPAPI.AdvancedSecureMixin = CreateFromMixins(CPAPI.SecureExportMixin, CPAPI.Secu
 ---------------------------------------------------------------
 -- Tools
 ---------------------------------------------------------------
-function CPAPI.DisableFrame(frame, ignoreAlpha)
-	local snapshot = {
-		originalSize   = { frame:GetSize() };
-		originalAlpha  = frame:GetAlpha();
-		originalPoints = {};
-		enableMouse    = frame:IsMouseEnabled();
-		enableKeyboard = frame:IsKeyboardEnabled();
-	};
-	for i = 1, frame:GetNumPoints() do
-		tinsert(snapshot.originalPoints, { frame:GetPoint(i) });
+do local UIHider;
+	function CPAPI.DisableFrame(frame, clearEvents)
+		if UIHider and UIHider[frame] then return end;
+		if not UIHider then
+			UIHider = CreateFrame('Frame')
+			UIHider:Hide()
+		end
+		UIHider[frame] = frame:GetParent()
+		frame:SetParent(UIHider)
+		frame:Hide()
+		frame.SetParent = nop;
+		if clearEvents and frame.UnregisterAllEvents then
+			frame:UnregisterAllEvents()
+		end
 	end
-	frame:SetSize(1, 1)
-	frame:EnableMouse(false)
-	frame:EnableKeyboard(false)
-	frame:SetAlpha(ignoreAlpha and frame:GetAlpha() or 0)
-	frame:ClearAllPoints()
-	CPAPI.Purge(frame, 'isShownExternal')
-	ConsolePort:ForbidInterfaceCursorFrame(frame)
-	return snapshot;
+
+	function CPAPI.EnableFrame(frame, events)
+		if not UIHider or not UIHider[frame] then return end;
+		CPAPI.Purge(frame, 'SetParent')
+		frame:SetParent(UIHider[frame])
+		UIHider[frame] = nil;
+		if events then
+			CPAPI.RegisterFrameForEvents(frame, events)
+		end
+	end
 end
 
 function CPAPI.LockPoints(frame)
