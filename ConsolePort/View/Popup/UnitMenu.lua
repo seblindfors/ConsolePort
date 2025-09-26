@@ -66,6 +66,13 @@ end
 ---------------------------------------------------------------
 -- Context data
 ---------------------------------------------------------------
+local function SafeIsEntryEnabled(contextData, entry)
+	if not entry:GetInteractDistance() or not InCombatLockdown() then
+		return UnitPopupSharedUtil.IsEnabled(contextData, entry)
+	end
+	return true;
+end
+
 function UnitMenu:CreateInitialContextData(unit, isSecure)
 	---@see SecureTemplates.lua:SECURE_ACTIONS.togglemenu
 	if not unit then return end;
@@ -104,7 +111,7 @@ function UnitMenu:CreateEntries(root, entry, contextData, parent)
 
 		if child then
 			child.refreshOnClick = true;
-			child.IsEnabled = GenerateClosure(UnitPopupSharedUtil.IsEnabled, contextData, entry)
+			child.IsEnabled = GenerateClosure(SafeIsEntryEnabled, contextData, entry)
 			self:CustomizeEntry(child, entry, contextData)
 		end
 
