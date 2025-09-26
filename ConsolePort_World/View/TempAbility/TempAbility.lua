@@ -26,7 +26,7 @@ function Ability:Update()
 	self.tooltip:SetSpellByID(self:GetID())
 	self.tooltip.NineSlice:Hide()
 
-	for _, slot in ipairs(C_ActionBar.FindSpellActionButtons(self:GetID()) or {}) do
+	for _, slot in ipairs(C_ActionBar.FindSpellActionButtons(self:GetID()) or { self.actionID }) do
 		local binding = db.Actionbar.Action[slot];
 		local slug = binding and db.Hotkeys:GetButtonSlugForBinding(binding)
 		if slug then
@@ -74,34 +74,38 @@ end
 ---------------------------------------------------------------
 function TempAbility:UPDATE_EXTRA_ACTIONBAR()
 	if HasExtraActionBar() then
-		local spellID = select(2, GetActionInfo(CPAPI.ExtraActionButtonID))
+		local actionID = CPAPI.ExtraActionButtonID;
+		local spellID  = select(2, GetActionInfo(actionID))
 		if spellID and spellID > 0 then
-			self:AddSpell(spellID)
+			self:AddSpell(spellID, actionID)
 		end
 	end
 end
 
-local HasVehicleActionBar = HasVehicleActionBar or nop;
-local HasOverrideActionBar = HasOverrideActionBar or nop;
-local HasTempShapeshiftActionBar = HasTempShapeshiftActionBar or nop;
-function TempAbility:UPDATE_BONUS_ACTIONBAR()
-	local barIndex =
-		HasVehicleActionBar() and GetVehicleBarIndex() or
-		HasOverrideActionBar() and GetOverrideBarIndex() or
-		HasTempShapeshiftActionBar() and GetTempShapeshiftBarIndex()
-	if barIndex then
-		local offset = (barIndex - 1) * NUM_ACTIONBAR_BUTTONS;
-		for i = offset + 1, offset + NUM_ACTIONBAR_BUTTONS do
-			local spellID = select(2, GetActionInfo(i))
-			if spellID and spellID > 0 then
-				self:AddSpell(spellID)
+do -- Vehicle and override bars
+	local HasVehicleActionBar        = HasVehicleActionBar or nop;
+	local HasOverrideActionBar       = HasOverrideActionBar or nop;
+	local HasTempShapeshiftActionBar = HasTempShapeshiftActionBar or nop;
+
+	function TempAbility:UPDATE_BONUS_ACTIONBAR()
+		local barIndex =
+			HasVehicleActionBar()        and GetVehicleBarIndex() or
+			HasOverrideActionBar()       and GetOverrideBarIndex() or
+			HasTempShapeshiftActionBar() and GetTempShapeshiftBarIndex()
+		if barIndex then
+			local offset = (barIndex - 1) * NUM_ACTIONBAR_BUTTONS;
+			for i = offset + 1, offset + NUM_ACTIONBAR_BUTTONS do
+				local spellID = select(2, GetActionInfo(i))
+				if spellID and spellID > 0 then
+					self:AddSpell(spellID, i)
+				end
 			end
 		end
 	end
 end
 
-TempAbility.UNIT_ENTERED_VEHICLE = TempAbility.UPDATE_BONUS_ACTIONBAR;
-TempAbility.UPDATE_VEHICLE_ACTIONBAR = TempAbility.UPDATE_BONUS_ACTIONBAR;
+TempAbility.UNIT_ENTERED_VEHICLE      = TempAbility.UPDATE_BONUS_ACTIONBAR;
+TempAbility.UPDATE_VEHICLE_ACTIONBAR  = TempAbility.UPDATE_BONUS_ACTIONBAR;
 TempAbility.UPDATE_OVERRIDE_ACTIONBAR = TempAbility.UPDATE_BONUS_ACTIONBAR;
 
 function TempAbility:SPELLS_CHANGED()
@@ -121,7 +125,7 @@ end
 ---------------------------------------------------------------
 -- Temporary ability briefing frame
 ---------------------------------------------------------------
-TempAbility.Info, TempAbility.Shown = {}, {};
+TempAbility.activeSpells, TempAbility.alreadyShown = {}, {};
 
 function TempAbility:OnShow()
 	self.Header.HeaderOpenAnim:Stop()
@@ -130,7 +134,8 @@ end
 
 function TempAbility:OnHide()
 	self.Header.HeaderOpenAnim:Finish()
-	wipe(self.Info)
+	self:ReleaseAll()
+	wipe(self.activeSpells)
 end
 
 function TempAbility:OnDataLoaded()
@@ -146,71 +151,69 @@ function TempAbility:OnDataLoaded()
 end
 
 function TempAbility:OnUpdate(elapsed)
-	if self.targetHeight then
-		local height, newHeight = self:GetHeight() or 0, self.targetHeight;
-		local diff = newHeight - height;
-		if abs(newHeight - height) < 0.5 then
-			self:SetHeight(newHeight)
-			self.targetHeight = nil;
-		else
-			self:SetHeight(height + ( diff / 5 ) )
+	self:SetHeight(FrameDeltaLerp(self:GetTargetHeight(), self:GetHeight() or 0, 2))
+
+	if not next(self.activeSpells) then return end;
+
+	local count = #self.activeSpells;
+	for i, activeSpell in ipairs_reverse(self.activeSpells) do
+		activeSpell.showTime = activeSpell.showTime - elapsed;
+		if activeSpell.showTime <= 0 then
+			tremove(self.activeSpells, i)
 		end
 	end
-	if not next(self.Info) then
+
+	if not next(self.activeSpells) and self.fadeInfo.mode ~= 'OUT' then
 		Fader.Toggle(self, 0.1, false)
-	else
-		local spellID, timer = next(self.Info)
-		while spellID do
-			timer = timer - elapsed;
-			if timer < 0 then
-				self:RemoveSpell(spellID)
-				spellID, timer = next(self.Info)
-			else
-				self.Info[spellID] = timer;
-				spellID, timer = next(self.Info, spellID)
-			end
-		end
+	elseif ( count ~= #self.activeSpells ) then
+		self:UpdateItems()
 	end
 end
 
-function TempAbility:AdjustHeight()
+function TempAbility:GetTargetHeight()
 	local newHeight = 0;
 	for spell in self:EnumerateActive() do
 		newHeight = newHeight + spell.NameFrame:GetHeight()
 	end
-	self.targetHeight = newHeight;
+	return newHeight;
 end
 
-function TempAbility:AddSpell(spellID)
-	if not self.Shown[spellID] and db('showAbilityBriefing') then
-		local spell = Spell:CreateFromSpellID(spellID)
-		spell:ContinueOnSpellLoad(function()
-			local showTime = 0;
-			for spellID, timer in pairs(self.Info) do
-				showTime = showTime + timer;
-			end
-			self.Info[spellID] = self.Info[spellID] or Clamp(showTime, 10, showTime);
-			self:UpdateItems()
-		end)
-	end
+function TempAbility:AddSpell(spellID, actionID)
+	if self.alreadyShown[spellID] or not db('showAbilityBriefing') then return end
+	self.alreadyShown[spellID] = true;
+
+	local spell = Spell:CreateFromSpellID(spellID)
+	spell:ContinueOnSpellLoad(function()
+		tinsert(self.activeSpells, {
+			spellID  = spellID;
+			actionID = actionID;
+			showTime = 10 * (#self.activeSpells + 1);
+		})
+		self:UpdateItems()
+	end)
 end
 
 function TempAbility:RemoveSpell(spellID)
-	self.Info[spellID]  = nil;
-	self.Shown[spellID] = true;
+	for i, activeSpell in pairs(self.activeSpells) do
+		if ( activeSpell.spellID == spellID ) then
+			tremove(self.activeSpells, i)
+			break
+		end
+	end
 	self:UpdateItems()
 end
 
 function TempAbility:UpdateItems()
 	self:ReleaseAll()
-	local idx, prev = 1;
-	for spellID, timer in spairs(self.Info) do
-		local spell, newObj = self:Acquire(spellID)
+	local prev;
+	for i, activeSpell in ipairs(self.activeSpells) do
+		local spell, newObj = self:Acquire(i)
 		if newObj then
-			spell:OnLoad(idx)
+			spell:OnLoad(i)
 		end
 
-		spell:SetID(spellID)
+		spell.actionID = activeSpell.actionID;
+		spell:SetID(activeSpell.spellID)
 		spell:Show()
 		spell:Update()
 
@@ -219,11 +222,10 @@ function TempAbility:UpdateItems()
 		else
 			spell:SetPoint('TOPLEFT', 0, -8)
 		end
-		prev, idx = spell, idx + 1;
+		prev = spell;
 	end
 
 	local numActive = self:GetNumActive()
 	self.Header.Text:SetText(numActive > 1 and ABILITIES or LEVEL_UP_ABILITY)
-	self:AdjustHeight()
 	Fader.Toggle(self, 0.1, true)
 end
