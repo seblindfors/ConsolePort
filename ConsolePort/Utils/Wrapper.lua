@@ -235,7 +235,7 @@ CPAPI.MinEditDistance = CalculateStringEditDistance or function(str1, str2)
 	return matrix[len1][len2];
 end
 
-CPAPI.IteratePlayerInventory = ContainerFrameUtil_IteratePlayerInventory or function(callback)
+CPAPI.IteratePlayerInventory = ItemUtil and ItemUtil.IteratePlayerInventory or function(callback)
 	local MAX_CONTAINER_ITEMS = MAX_CONTAINER_ITEMS or 36;
 	local NUM_BAG_FRAMES = NUM_BAG_FRAMES or 4;
 
@@ -410,6 +410,7 @@ CPAPI.GetItemInfo = function(...)
 end
 
 CPAPI.GetItemInfoInstant = function(...)
+	local GetItemInfoInstant = C_Item and C_Item.GetItemInfoInstant or GetItemInfoInstant;
 	if GetItemInfoInstant then
 		local itemID, itemType, itemSubType, itemEquipLoc, icon, classID, subclassID = GetItemInfoInstant(...)
 		return {

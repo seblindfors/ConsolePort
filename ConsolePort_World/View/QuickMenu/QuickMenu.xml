@@ -1,0 +1,94 @@
+<Ui>
+	<Button name="ConsolePortQuickMenu" parent="UIParent" frameStrata="HIGH" hidden="true"
+		inherits="SecureHandlerBaseTemplate, SecureActionButtonTemplate">
+		<Size x="24" y="200"/>
+		<Anchors>
+			<Anchor point="CENTER" x="-500" y="0"/>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND" textureSubLevel="0">
+				<Line parentKey="LineTop" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line1">
+					<Color r="0.5" g="0.5" b="0.5" a="1"/>
+					<EndAnchor relativeKey="$parent" relativePoint="TOP"/>
+					<StartAnchor relativeKey="$parent" relativePoint="BOTTOM" y="52"/>
+				</Line>
+				<Line parentKey="Line" thickness="8" file="Interface\AddOns\ConsolePort\Assets\Textures\Pie\Pie_Line2">
+					<Color r="0.5" g="0.5" b="0.5" a="1"/>
+					<TexCoords left="0" right="1" top="1" bottom="0"/>
+					<StartAnchor relativeKey="$parent" relativePoint="BOTTOM" y="52"/>
+					<EndAnchor relativeKey="$parent" relativePoint="BOTTOM" y="-16"/>
+				</Line>
+				<Texture parentKey="Background" file="Interface\AddOns\ConsolePort\Assets\Textures\Menu\Gradient.jpg">
+					<Size x="500"/>
+					<Anchors>
+						<Anchor point="TOPLEFT" x="13" y="4"/>
+						<Anchor point="BOTTOMLEFT" x="13" y="0"/>
+					</Anchors>
+					<Gradient orientation="HORIZONTAL">
+						<MaxColor r="1" g="1" b="1" a="0" />
+						<MinColor r="1" g="1" b="1" a="1" />
+					</Gradient>
+				</Texture>
+			</Layer>
+			<Layer level="BACKGROUND" textureSubLevel="1">
+				<Texture parentKey="Arrow" inherits="CPAtlas">
+					<Size x="20" y="20"/>
+					<KeyValues>
+						<KeyValue key="atlas" value="UI-HUD-ActionBar-PageDownArrow-Mouseover" type="string"/>
+						<KeyValue key="useAtlasSize" value="false" type="boolean"/>
+					</KeyValues>
+					<Anchors>
+						<Anchor point="CENTER" relativePoint="TOP" x="1"/>
+					</Anchors>
+				</Texture>
+				<FontString parentKey="Slug" inherits="GameFontNormalLarge" justifyH="CENTER">
+					<Color color="WHITE_FONT_COLOR"/>
+					<Size x="0" y="38"/>
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="TOP" y="2"/>
+					</Anchors>
+					<KeyValues>
+						<KeyValue key="notBound" value="" type="string"/>
+					</KeyValues>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Button>
+
+	<Button name="CPQMenuAura" inherits="SecureHandlerShowHideTemplate, CPWorldSecureButtonBaseTemplate" registerForClicks="AnyDown" virtual="true">
+		<Attributes>
+			<Attribute name="type2" value="cancelaura"/>
+			<Attribute name="_onshow" type="string"
+				value="local h = self:GetParent(); h:GetParent():RunAttribute('OnAurasChanged', h:GetAttribute('filter'), 01)"/>
+			<Attribute name="_onhide" type="string"
+				value="local h = self:GetParent(); h:GetParent():RunAttribute('OnAurasChanged', h:GetAttribute('filter'), -1)"/>
+		</Attributes>
+	</Button>
+
+	<Frame name="QMenuRowAttributes" virtual="true">
+		<Attributes>
+			<Attribute name="minHeight" value="52" type="number"/>
+			<Attribute name="minWidth" value="1" type="number"/>
+			<Attribute name="point" value="TOPLEFT" type="string"/>
+			<Attribute name="wrapAfter" value="10" type="number"/>
+			<Attribute name="wrapYOffset" value="-52" type="number"/>
+			<Attribute name="xOffset" value="52" type="number"/>
+		</Attributes>
+	</Frame>
+
+	<Frame name="QMenuRow" inherits="QMenuRowAttributes, SecureHandlerBaseTemplate" virtual="true">
+		<Size y="52"/>
+	</Frame>
+
+	<Frame name="CPQMenuAuraHeader" inherits="QMenuRowAttributes, SecureAuraHeaderTemplate" hidden="false" virtual="true">
+		<Attributes>
+			<Attribute name="skipHeightCalc" value="true" type="boolean"/>
+			<Attribute name="sortDirection" value="+" type="string"/>
+			<Attribute name="sortMethod" value="INDEX" type="string"/>
+			<Attribute name="template" value="CPQMenuAura" type="string"/>
+			<Attribute name="unit" value="player" type="string"/>
+		</Attributes>
+	</Frame>
+
+	<Script file="QuickMenu.lua"/>
+</Ui>

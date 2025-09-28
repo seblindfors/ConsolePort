@@ -22,6 +22,7 @@ L.NAME_RING_MENU              = 'Menu Ring';
 L.NAME_RING_PET               = 'Pet Ring';
 L.NAME_RING_UTILITY           = 'Utility Ring';
 L.NAME_UI_CURSOR_TOGGLE       = 'Toggle Interface Cursor';
+L.NAME_QUICK_MENU             = 'Quick Menu';
 ---------------------------------------------------------------
 -- Formats
 ---------------------------------------------------------------
@@ -197,6 +198,11 @@ L.DESC_RING_MENU = [[
 
 	The ring can also be accessed from the game menu without a
 	separate binding, by switching page.
+]];
+L.DESC_QUICK_MENU = [[
+	A quick access menu that gathers common actions performed
+	during gameplay, such as rolling on group loot, cancelling
+	buffs, or using an item from the bags.
 ]];
 L.SLOT_NO_BINDING = [[
 |cFFFFFF00Set Binding|r
