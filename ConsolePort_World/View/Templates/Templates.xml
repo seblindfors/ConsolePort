@@ -61,13 +61,13 @@
 			</Layer>
 		</Layers>
 		<Frames>
-			<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate">
+			<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate" >
 				<Size x="36" y="36"/>
 				<Anchors>
 					<Anchor point="CENTER" x="0" y="-1"/>
 				</Anchors>
-				<SwipeTexture>
-					<Color r="1" g="1" b="1" a="0.8"/>
+				<SwipeTexture file="Interface\AddOns\ConsolePort_World\Assets\CooldownEdge">
+					<Color color="NORMAL_FONT_COLOR"/>
 				</SwipeTexture>
 			</Cooldown>
 		</Frames>
@@ -87,7 +87,7 @@
 		</NormalTexture>
 		<HighlightTexture parentKey="HighlightTexture" alphaMode="ADD" inherits="CPAtlas">
 			<Anchors>
-				<Anchor point="TOPLEFT" x="-1" y="1"/>
+				<Anchor point="TOPLEFT" x="0" y="0"/>
 				<Anchor point="BOTTOMRIGHT" x="1" y="-1"/>
 			</Anchors>
 			<KeyValues>
@@ -95,6 +95,8 @@
 			</KeyValues>
 		</HighlightTexture>
 	</Button>
+
+	<Button name="CPWorldSecureButtonBaseTemplate" inherits="CPWorldButtonBaseTemplate, SecureActionButtonTemplate" virtual="true"/>
 
 	<Button name="CPWorldButtonTemplate" inherits="CPWorldButtonBaseTemplate" virtual="true">
 		<HitRectInsets>

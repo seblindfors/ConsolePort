@@ -4,9 +4,7 @@ CPScrollBox = CreateFromMixins(env.Mixin.ScrollBoxHelper)
 ---------------------------------------------------------------
 
 function CPScrollBox:OnLoad()
-	local dataProvider = self:GetDataProvider();
 	local scrollView = self:GetScrollView();
-	scrollView:SetDataProvider(dataProvider);
 	ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, scrollView);
 	self:UpdateScrollBar()
 end
@@ -92,6 +90,7 @@ function CPScrollBoxTree:InitDefault()
 		local info = elementData:GetData()
 		factory(info.xml, info.init)
 	end)
+	scrollView:SetDataProvider(dataProvider);
 	return scrollView, dataProvider;
 end
 

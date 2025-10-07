@@ -49,23 +49,40 @@ Cursor:CreateEnvironment({
 			self:Hide()
 		end
 	]];
+	ToggleClickBindings = [[
+		local enabled = ...;
+
+		local user = self:GetParent()
+		if enabled and curnode then
+			local prioritize = owner:GetAttribute('priorityoverride')
+			for clickID, buttonID in pairs(CLICKS) do
+				local button = user:GetAttribute(clickID) or buttonID;
+				self:SetBindingClick(prioritize, button, curnode, clickID)
+			end
+		else
+			for clickID, buttonID in pairs(CLICKS) do
+				local button = user:GetAttribute(clickID) or buttonID;
+				self:ClearBinding(button)
+			end
+		end
+	]];
 	PostNodeSelect = [[
 		if curnode then
 			self:ClearAllPoints()
 			self:SetPoint('TOPLEFT', curnode, 'CENTER', 0, 0)
-			self:SetBindingClick(owner:GetAttribute('priorityoverride'), 'PAD1', curnode)
-			self:CallMethod('CallScript', 'OnEnter', curnode:GetName())
+			self::ToggleClickBindings(true)
+			self:::CallScript('OnEnter', curnode:GetName())
 			local secureOnEnterScript = curnode:GetAttribute('OnEnter')
 			if secureOnEnterScript then
 				self:RunFor(curnode, secureOnEnterScript)
 			end
 		else
-			self:ClearBinding('PAD1')
+			self::ToggleClickBindings(false)
 		end
 	]];
 	ClearHighlight = [[
 		if curnode then
-			self:CallMethod('CallScript', 'OnLeave', curnode:GetName())
+			self:::CallScript('OnLeave', curnode:GetName())
 			local secureOnLeaveScript = curnode:GetAttribute('OnLeave')
 			if secureOnLeaveScript then
 				self:RunFor(curnode, secureOnLeaveScript)
@@ -78,6 +95,13 @@ Cursor:Wrap('PreClick', [[
 	self::ClearHighlight()
 	self::SelectNewNode(button)
 	self:CallMethod('Chime')
+]])
+
+Cursor:Run([[
+	CLICKS = {};
+	CLICKS.LeftButton   = 'PAD1';
+	CLICKS.RightButton  = 'PAD2';
+	CLICKS.MiddleButton = 'PAD4';
 ]])
 
 function Cursor:OnDataLoaded()

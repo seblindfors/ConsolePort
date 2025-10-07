@@ -7,14 +7,16 @@ db:Register('Nav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {
 	-- @param node : current node in iteration
 	FilterNode = [[
 		if self::IsDrawn(node:GetRect()) then
-			CACHE[node] = true
-			NODES[node] = true
+			CACHE[node] = true;
+			if not node:GetAttribute('nodepass') then
+				NODES[node] = true;
+			end
 		end
 	]];
 	-----------------------------------------------------------
 	-- @param child : current child in iteration
 	FilterChild = [[
-		return child and not child:GetAttribute('ignoreNode')
+		return child and not child:GetAttribute('nodeignore')
 	]];
 	-----------------------------------------------------------
 	-- @param oldnode : last focused node
