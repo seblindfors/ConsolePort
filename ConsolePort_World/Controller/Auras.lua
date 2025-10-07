@@ -10,8 +10,10 @@ local SetTimer, ClearTimer = CooldownFrame_Set, CooldownFrame_Clear;
 
 function Aura:OnLoad()
 	self.cooldown:SetReverse(true)
-	self.cooldown:SetUseAuraDisplayTime(true)
 	self.cooldown:SetRotation(math.rad(180))
+	if self.cooldown.SetUseAuraDisplayTime then
+		self.cooldown:SetUseAuraDisplayTime(true)
+	end
 end
 
 function Aura:GetFilter()
