@@ -15,7 +15,6 @@ Database.lua
 
 Controller\Auras.lua
 Controller\Items.lua
-Controller\GroupLoot.lua
 
 View\Templates\Templates.xml
 View\QuickMenu\QuickMenu.xml

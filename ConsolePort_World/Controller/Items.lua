@@ -4,7 +4,6 @@ local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
 local Item = {};
 ---------------------------------------------------------------
-
 function Item:OnLoad()
 	self.Icon = self.icon; -- since "icon" is mixed in by CPAPI.GetItemInfoInstant.
 	self:SetAttribute(CPAPI.ActionTypePress, 'item')
@@ -13,6 +12,11 @@ function Item:OnLoad()
 
 	-- LAB API hack
 	setmetatable(self, env.ActionButton:GetTypeMetaMap().item)
+	env.QMenu:Hook(self, 'PostClick', [[
+		if button == 'LeftButton' then
+			owner::Disable()
+		end
+	]])
 end
 
 function Item:SetData(data)
@@ -54,9 +58,16 @@ end
 function Item:UpdateTooltip()
 	GameTooltip:SetBagItem(self:GetBagAndSlot())
 	if self:IsUsable() then
-		local text = env:GetTooltipPromptForClick('LeftButton', USE)
+		local hasAddedLine, text = false, env:GetTooltipPromptForClick('LeftButton', ('%s + %s'):format(USE_ITEM or USE, CLOSE))
+		if text then
+			hasAddedLine = true;
+			GameTooltip:AddLine(text, 1, 1, 1)
+		end
+		text = env:GetTooltipPromptForClick('RightButton', USE_ITEM or USE)
 		if text then
 			GameTooltip:AddLine(text, 1, 1, 1)
+		end
+		if hasAddedLine then
 			GameTooltip:Show()
 		end
 	end
@@ -92,9 +103,13 @@ function ItemManager:BAG_UPDATE_DELAYED()
 	self:RenderItems()
 end
 
+ItemManager.PLAYER_ALIVE   = ItemManager.BAG_UPDATE_DELAYED;
+ItemManager.PLAYER_UNGHOST = ItemManager.BAG_UPDATE_DELAYED;
+
 function ItemManager:PLAYER_REGEN_ENABLED()
-	if not self.dirty then return end;
-	self.dirty = self:BAG_UPDATE_DELAYED()
+	if self.dirty then
+		self.dirty = self:BAG_UPDATE_DELAYED()
+	end
 end
 
 function ItemManager:SPELL_UPDATE_COOLDOWN()
@@ -189,8 +204,10 @@ end
 ---------------------------------------------------------------
 env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
 	local manager = CPAPI.CreateEventHandler({'Frame', '$parentItems', QMenu}, {
-		'PLAYER_REGEN_ENABLED';
 		'BAG_UPDATE_DELAYED';
+		'PLAYER_ALIVE';
+		'PLAYER_REGEN_ENABLED';
+		'PLAYER_UNGHOST';
 		'SPELL_UPDATE_COOLDOWN';
 	});
 	CPAPI.Specialize(manager, ItemManager);

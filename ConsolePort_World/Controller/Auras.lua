@@ -112,19 +112,23 @@ env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
 		return frame;
 	end
 
-	local Helpful = CreateHeader(BUFF_CANCEL_ROW_INDEX, AuraUtil.AuraFilters.Helpful, BUFFOPTIONS_LABEL);
-	local Harmful = CreateHeader(DEBUFF_INFO_ROW_INDEX, AuraUtil.AuraFilters.Harmful, BUFFOPTIONS_LABEL);
+	local Helpful = CreateHeader(BUFF_CANCEL_ROW_INDEX, 'HELPFUL', BUFFOPTIONS_LABEL);
+	local Harmful = CreateHeader(DEBUFF_INFO_ROW_INDEX, 'HARMFUL', BUFFOPTIONS_LABEL);
 
 	function Helpful:OnVariablesChanged()
 		self:SetShown(db('QMenuCollectionBuffs'))
-		self:SetAttribute('paddingBottom', db('QMenuCollectionDebuffs') and 8 or nil);
-		self:SetAttribute('minHeight', db('QMenuCollectionDebuffs') and 1 or 52);
+		self:SetAttribute('paddingBottom', db('QMenuCollectionDebuffs') and 8 or 20);
+		if not self:IsShown() then
+			env.QMenu:Run([[ self::OnAurasChanged(%q, -math.huge)]], self:GetAttribute('filter'))
+		end
 	end
 
 	function Harmful:OnVariablesChanged()
 		self:SetShown(db('QMenuCollectionDebuffs'))
 		self:SetTitle(db('QMenuCollectionBuffs') and '' or BUFFOPTIONS_LABEL)
-		self:SetAttribute('minHeight', db('QMenuCollectionBuffs') and 1 or 52);
+		if not self:IsShown() then
+			env.QMenu:Run([[ self::OnAurasChanged(%q, -math.huge)]], self:GetAttribute('filter'))
+		end
 	end
 
 	db:RegisterSafeCallbacks(Helpful.OnVariablesChanged, Helpful,

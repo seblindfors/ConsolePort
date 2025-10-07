@@ -10,10 +10,6 @@ CPAPI.Props(QMenuRow)
 	.Prop('Items') -- List of items to display (data provider)
 	.Prop('Pool')  -- Button pool to acquire buttons from
 
-function QMenuRow:OnLoad()
-	self:SetAttribute('nodepass', true)
-end
-
 function QMenuRow:LayoutItems()
 	local point       = self:GetAttribute('point') or 'TOPLEFT';
 	local xOffset     = tonumber(self:GetAttribute('xOffset')) or 0;
@@ -76,7 +72,6 @@ end
 ---------------------------------------------------------------
 db.Secure:RegisterUser(QMenu) -- Secure
 ---------------------------------------------------------------
-QMenu:RegisterForClicks('AnyDown')
 QMenu:SetAttribute(CPAPI.ActionUseOnKeyDown, true)
 QMenu:SetAttribute(CPAPI.SkipHotkeyRender, true)
 QMenu:Run([[
@@ -86,45 +81,49 @@ QMenu:Run([[
 
 QMenu:CreateEnvironment({
 	UpdateLayout = [[
-		local padding, newHeight, frame, skipCalc = 16, 0;
+		local padding, height, isFirst, frame, prev, skipCalc = self:GetAttribute('padding'), 0, true;
 		for i = 1, FCOUNT do
 			frame = FRAMES[i];
 			if frame and frame:IsShown() then
 				self:::DecorateFrame(i);
 				frame:ClearAllPoints();
-				if i == 1 then
-					frame:SetPoint('TOPLEFT', self, 'TOPRIGHT', 0, -16);
-				else
-					local prev = FRAMES[i - 1];
-					if prev then
-						frame:SetPoint('TOPLEFT', prev, 'BOTTOMLEFT', 0, -(prev:GetAttribute('paddingBottom') or padding));
-					end
-				end
 
-				-- Calculate total height, skip frames that don't want to be counted,
-				-- but still include the spacing around them.
-				skipCalc  = frame:GetAttribute('skipHeightCalc');
-				newHeight = newHeight + padding + (skipCalc and 0 or frame:GetHeight());
+				local framePadding = prev and prev:GetAttribute('paddingBottom') or padding;
+				if isFirst then
+					isFirst = false;
+					frame:SetPoint('TOPLEFT', self, 'TOPRIGHT', 0, -framePadding)
+				else
+					frame:SetPoint('TOPLEFT', prev, 'BOTTOMLEFT', 0, -framePadding)
+				end
+				height = height + framePadding + (frame:GetAttribute('skipHeightCalc') and 0 or frame:GetHeight());
+				prev = frame;
 			end
 		end
-
-		-- Add space for auras if any are shown
-		newHeight = newHeight + AHEIGHT;
-		self:SetHeight(newHeight);
+		self:SetHeight(height + AHEIGHT + padding * 0.5)
 	]];
 	OnAurasChanged = [[
 		local filter, delta = ...;
-		AURAS[filter] = AURAS[filter] + delta;
+		AURAS[filter] = math.max(0, AURAS[filter] + delta);
 
 		AHEIGHT = 0;
-		local wrapAfter, wrapYOffset, numRows = self:GetAttribute('wrapAfter'), self:GetAttribute('wrapYOffset');
+		local padding, spacing, numRows = self:GetAttribute('padding'), 4;
+		local wrapAfter, wrapYOffset = self:GetAttribute('wrapAfter'), self:GetAttribute('wrapYOffset') - spacing;
 		for f, count in pairs(AURAS) do
 			if count > 0 then
 				numRows = math.max(1, math.ceil(count / wrapAfter));
-				AHEIGHT = AHEIGHT + (numRows * math.abs(wrapYOffset));
+				AHEIGHT = AHEIGHT + (numRows * math.abs(wrapYOffset)) + (numRows - 1) * spacing;
 			end
 		end
 		self::UpdateLayout();
+	]];
+	Enable = [[
+		self:Show()
+		self:SetBindingClick(true, self:GetAttribute('cancelButton'), self, 'LeftButton')
+		self::UpdateLayout()
+	]];
+	Disable = [[
+		self:Hide()
+		self:ClearBindings()
 	]];
 })
 
@@ -132,12 +131,9 @@ QMenu:Wrap('PreClick', ([[
 	local genericClick = button == 'LeftButton';
 
 	if self:IsShown() then
-		self:Hide()
-		self:ClearBindings()
+		self::Disable()
 	else
-		self:Show()
-		self:SetBindingClick(true, self:GetAttribute('cancelButton'), self, 'LeftButton')
-		self::UpdateLayout()
+		self::Enable()
 	end
 ]]):format(CPAPI.ActionTypePress))
 

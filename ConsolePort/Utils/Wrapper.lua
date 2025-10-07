@@ -235,7 +235,7 @@ CPAPI.MinEditDistance = CalculateStringEditDistance or function(str1, str2)
 	return matrix[len1][len2];
 end
 
-CPAPI.IteratePlayerInventory = ItemUtil and ItemUtil.IteratePlayerInventory or function(callback)
+CPAPI.IteratePlayerInventory = CPAPI.IsRetailVersion and ItemUtil.IteratePlayerInventory or function(callback)
 	local MAX_CONTAINER_ITEMS = MAX_CONTAINER_ITEMS or 36;
 	local NUM_BAG_FRAMES = NUM_BAG_FRAMES or 4;
 
@@ -304,6 +304,7 @@ CPAPI.GetItemLink                    = C_Item          and C_Item.GetItemLink   
 CPAPI.GetItemNumSockets              = C_Item          and C_Item.GetItemNumSockets                      or nopz;
 CPAPI.GetItemQuality                 = C_Item          and C_Item.GetItemQuality                         or nop;
 CPAPI.GetItemSpell                   = C_Item          and C_Item.GetItemSpell                           or GetItemSpell;
+CPAPI.GetLootMethod                  = C_PartyInfo     and C_PartyInfo.GetLootMethod                     or GetLootMethod;
 CPAPI.GetMajorFactionData            = C_MajorFactions and C_MajorFactions.GetMajorFactionData           or nop;
 CPAPI.GetMountFromItem               = C_MountJournal  and C_MountJournal.GetMountFromItem               or nop;
 CPAPI.GetMountFromSpell              = C_MountJournal  and C_MountJournal.GetMountFromSpell              or nop;
@@ -342,9 +343,9 @@ CPAPI.PickupSpellBookItem            = C_SpellBook     and C_SpellBook.PickupSpe
 CPAPI.PutActionInSlot                = C_ActionBar     and C_ActionBar.PutActionInSlot                   or PlaceAction;
 CPAPI.RequestLoadQuestByID           = C_QuestLog      and C_QuestLog.RequestLoadQuestByID               or nop;
 CPAPI.RunMacroText                   = C_Macro         and C_Macro.RunMacroText                          or RunMacroText;
+CPAPI.SocketContainerItem            = C_Container     and C_Container.SocketContainerItem               or SocketContainerItem;
 CPAPI.SplitContainerItem             = C_Container     and C_Container.SplitContainerItem                or SplitContainerItem;
 CPAPI.UseContainerItem               = C_Container     and C_Container.UseContainerItem                  or UseContainerItem;
-CPAPI.SocketContainerItem            = C_Container     and C_Container.SocketContainerItem               or SocketContainerItem;
 -- Fallthroughs
 CPAPI.ClearCursor                    = ClearCursor        or nop;
 CPAPI.GetOverrideBarSkin             = GetOverrideBarSkin or nop;
@@ -586,6 +587,16 @@ CPAPI.GetAllMacroInfo = function()
 	end
 	return info;
 end
+
+CPAPI.Scrub = issecretvalue and function(value, ...)
+	if issecretvalue(value) then
+		return nil, CPAPI.Scrub(...);
+	end
+	if select('#', ...) == 0 then
+		return value;
+	end
+	return value, CPAPI.Scrub(...);
+end or function(...) return ... end;
 
 end -- API wrappers
 
