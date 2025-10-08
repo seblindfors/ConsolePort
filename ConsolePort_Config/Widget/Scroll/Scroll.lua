@@ -115,6 +115,9 @@ CPScrollBoxSettingsTree = CreateFromMixins(CPScrollBoxTree);
 function CPScrollBoxSettingsTree:InitDefault()
 	local XML_SETTING_TEMPLATE = 'CPSetting';
 
+	-- Hacky frame pooling for settings, so frames can be pooled on their
+	-- data type (Bool, Number, Select, etc) rather than the generic XML
+	-- template that all settings inherit from.
 	local function SettingFactory(self, info)
 		local pool = self.frameFactory.poolCollection:GetOrCreatePool('CheckButton',
 			self:GetScrollTarget(), info.xml, self.frameFactoryResetter, nil, info.type)
@@ -132,6 +135,18 @@ function CPScrollBoxSettingsTree:InitDefault()
 		end
 		SettingFactory(scrollView, info)
 	end)
+
+	-- Not entirely sure why this override is necessary, but without
+	-- it, the scroll view tries to call :GetElementData on frames which
+	-- are not mounted (UnassignAccessors has been called on them).
+	-- This is only applicable to settings trees, and is possibly related
+	-- to the hacky frame pooling above.
+	local InvokeInitializer = self.scrollView.InvokeInitializer;
+	function scrollView:InvokeInitializer(frame, initializer)
+		if frame.GetElementData then
+			return InvokeInitializer(self, frame, initializer);
+		end
+	end
 end
 
 ---------------------------------------------------------------
