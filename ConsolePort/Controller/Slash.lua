@@ -43,6 +43,15 @@ local function ProcessVarUpdate(var, ...)
 	end
 end
 
+local function ToggleConfig()
+	if not CPAPI.IsAddOnLoaded(CPAPI.ConfigAddOn) then
+		CPAPI.EnableAddOn(CPAPI.ConfigAddOn)
+		CPAPI.LoadAddOn(CPAPI.ConfigAddOn)
+	end
+	local config = ConsolePortConfig:Load()
+	config:SetShown(not config:IsShown())
+end
+
 local function HandleSlashCommand(self, msg)
 	local args = {(' '):split(msg or '')};
 	if ProcessSlash(unpack(args)) then
@@ -54,12 +63,7 @@ local function HandleSlashCommand(self, msg)
 		SLASH_FUNCTIONS.help[1]()
 		return true;
 	end
-	if not CPAPI.IsAddOnLoaded(CPAPI.ConfigAddOn) then
-		CPAPI.EnableAddOn(CPAPI.ConfigAddOn)
-		CPAPI.LoadAddOn(CPAPI.ConfigAddOn)
-	end
-	local config = ConsolePortConfig:Load()
-	config:SetShown(not config:IsShown())
+	ToggleConfig()
 end
 
 local function Uninstall()
@@ -99,6 +103,8 @@ end
 -- Slash functions
 ---------------------------------------------------------------
 SLASH_FUNCTIONS = {
+	-----------------------------------------------------------
+	ConsolePort = { ToggleConfig };
 	-----------------------------------------------------------
 	-- Stack handling
 	-----------------------------------------------------------
@@ -341,12 +347,14 @@ SLASH_FUNCTIONS = {
 			else
 				CPAPI.Log(HELP_STRING, 'command', '[args]')
 				CPAPI.Log(DOCU_STRING, '<empty>', '', 'Open configuration interface.')
-				for func, data in db.table.spairs(SLASH_FUNCTIONS) do
-					CPAPI.Log(DOCU_STRING, func, GenerateUsage(data), data.desc)
+				for func, info in db.table.spairs(SLASH_FUNCTIONS) do
+					if info.desc then
+						CPAPI.Log(DOCU_STRING, func, GenerateUsage(info), info.desc)
+					end
 				end
 			end
 		end;
-	}
+	};
 };
 
 ---------------------------------------------------------------
