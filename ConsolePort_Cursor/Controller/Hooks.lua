@@ -236,7 +236,7 @@ function Hooks:SetPendingInspectItem(tooltip, item)
 	if tonumber(item) then
 		self.inventorySlotID = item;
 		if tooltip then
-			local prompt = self:GetSpecialActionPrompt(('%s / %s'):format(INSPECT, SOCKET_GEMS))
+			local prompt = self:GetSpecialActionPrompt(('%s / %s'):format(INSPECT, ARTIFACTS_PERK_TAB or SOCKET_GEMS))
 			if prompt then
 				tooltip:AddLine(prompt)
 				tooltip:Show()
@@ -420,7 +420,11 @@ function Hooknode:OnInventoryButtonModifiedClick()
 			end
 		end;
 	}, self)
-	if not GetSocketItemInfo() then
+
+	local isArtifact = GetInventoryItemQuality('player', self:GetID()) == Enum.ItemQuality.Artifact;
+	local isSocketUI = GetSocketItemInfo();
+
+	if not isSocketUI and not isArtifact then
 		WrappedExecute(HandleModifiedItemClick, {
 			IsModifiedClick = function(action)
 				if (action == 'CHATLINK') then
