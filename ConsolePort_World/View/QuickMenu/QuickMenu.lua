@@ -118,7 +118,14 @@ QMenu:CreateEnvironment({
 	]];
 	Enable = [[
 		self:Show()
+
+		-- Cancel bindings
 		self:SetBindingClick(true, self:GetAttribute('cancelButton'), self, 'LeftButton')
+		for _, key in ipairs({ GetBindingKey('TOGGLEGAMEMENU') }) do
+			self:SetBindingClick(true, key, self, 'LeftButton')
+		end
+
+		-- Force layout update
 		self::UpdateLayout()
 	]];
 	Disable = [[
@@ -181,5 +188,8 @@ function QMenu:OnDataLoaded()
 
 	CPAPI.Specialize(self.Slug, CPSlugMixin)
 	self.Slug:SetBinding(db.Bindings.Custom.QuickMenu)
+
+	self:HookScript('OnShow', env:Signal('QMenu.Show', true));
+	self:HookScript('OnHide', env:Signal('QMenu.Show', false));
 	return CPAPI.BurnAfterReading;
 end
