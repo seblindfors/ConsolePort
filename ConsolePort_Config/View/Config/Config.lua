@@ -211,9 +211,9 @@ function Config:OnLoad()
 			self:GetCurrentPanel():OnDefaults()
 		end;
 	}))
-	self.Import:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnImportButtonClicked'))
-	self.Export:SetOnClickHandler(GenerateClosure(env.TriggerEvent, env, 'OnExportButtonClicked'))
-	self.Credits:SetScript('OnClick', GenerateClosure(env.TriggerEvent, env, 'OnPanelShow', 0))
+	self.Import:SetOnClickHandler(env:Signal('OnImportButtonClicked'))
+	self.Export:SetOnClickHandler(env:Signal('OnExportButtonClicked'))
+	self.Credits:SetScript('OnClick', env:Signal('OnPanelShow', 0))
 
 	self.PanelSelectDelta = {
 		PADLSHOULDER = -1;
@@ -387,7 +387,7 @@ function Config:OnActionSlotEdit(actionID, bindingID, element)
 		:SetAlternateTitle(nil)
 		:SetDataProvider(left:GetDataProvider())
 		:SetScrollView(left:GetScrollView())
-		:SetCloseCallback(GenerateClosure(env.TriggerEvent, env, 'OnFlushLeft'))
+		:SetCloseCallback(env:Signal('OnFlushLeft'))
 		:SetToggleByID(true)
 		:EditAction(actionID, bindingID, element)
 end

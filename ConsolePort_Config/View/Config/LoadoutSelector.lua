@@ -304,7 +304,7 @@ function LoadoutSelector:UpdateLip(lip) lip = lip or self:GetLip();
 		ActionSlotter:New(self:GetSlotterData(CurrentActionID));
 		env.Elements.Divider:New(1);
 		env.Elements.Back:New({
-			callback = GenerateClosure(env.TriggerEvent, env, 'OnLoadoutClose');
+			callback = env:Signal('OnLoadoutClose');
 		});
 		env.Elements.Search:New({
 			dispatch = false;
