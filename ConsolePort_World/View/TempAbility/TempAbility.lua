@@ -1,5 +1,5 @@
-local _, db = CPAPI.GetEnv(...);
-local Fader, spairs = db.Alpha.Fader, db.table.spairs;
+local env, db = CPAPI.GetEnv(...);
+local Fader = db.Alpha.Fader;
 local TempAbility = Mixin(CPAPI.EventHandler(ConsolePortTempAbilityFrame, {
 	'ACTIONBAR_SLOT_CHANGED';
 	'SPELLS_CHANGED';
@@ -229,3 +229,9 @@ function TempAbility:UpdateItems()
 	self.Header.Text:SetText(numActive > 1 and ABILITIES or LEVEL_UP_ABILITY)
 	Fader.Toggle(self, 0.1, true)
 end
+
+env:RegisterCallback('QMenu.Show', function(self, isVisible)
+	if isVisible and self:IsShown() then
+		self:Hide();
+	end
+end, TempAbility);
