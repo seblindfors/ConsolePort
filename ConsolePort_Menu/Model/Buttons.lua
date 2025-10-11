@@ -109,15 +109,18 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 		self.icon:SetTexture(iconFile)
 		self.icon:SetTexCoord(unpack(iconTCoords))
 		CPAPI.RegisterFrameForEvents(self, {
-			'PLAYER_ENTERING_WORLD';
-			'UPDATE_BINDINGS';
-			'NEUTRAL_FACTION_SELECT_RESULT';
-			'PLAYER_TALENT_UPDATE';
-			'PLAYER_SPECIALIZATION_CHANGED';
-			'UPDATE_BATTLEFIELD_STATUS';
 			'HONOR_LEVEL_UPDATE';
+			'NEUTRAL_FACTION_SELECT_RESULT';
+			'PLAYER_ENTERING_WORLD';
 			'PLAYER_LEVEL_CHANGED';
+			'PLAYER_SPECIALIZATION_CHANGED';
+			'PLAYER_TALENT_UPDATE';
+			'UPDATE_BATTLEFIELD_STATUS';
+			'UPDATE_BINDINGS';
 		})
+	end;
+	OnShow = function(self)
+		self:OnEvent()
 	end;
 	OnEvent = PlayerSpellsMicroButtonMixin and function(self)
 		local alert = PlayerSpellsMicroButtonMixin:GetHighestPriorityAlert()
