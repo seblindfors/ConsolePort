@@ -197,6 +197,12 @@ do local FreeCursorOnPickup = {
 		[Enum.UICursorType.Toy]      = true;
 	};
 
+	local function ShouldTriggerCursorControl(cursorType)
+		return FreeCursorOnPickup[cursorType] -- Only trigger on certain cursor types
+		and GamePadControl()                  -- Only trigger if gamepad is controlling the camera
+		and not ConsolePort:IsCursorActive()  -- Only trigger if interface cursor is not active
+	end
+
 	function Mouse:CURSOR_CHANGED(isDefault, cursorType, oldCursorType)
 		if not db('mouseAutoControlPickup') then return end;
 
@@ -205,7 +211,7 @@ do local FreeCursorOnPickup = {
 				self:SetCameraControl()
 			end
 			self.cursorItemType = nil;
-		elseif FreeCursorOnPickup[cursorType] and GamePadControl() then
+		elseif ShouldTriggerCursorControl(cursorType) then
 			self.cursorItemType = cursorType;
 			self:SetFreeCursor()
 		end
@@ -329,11 +335,11 @@ function Mouse:OnGamePadButtonDown(button)
 	if self:ShouldSetFreeCursor(button) then
 		return self:SetFreeCursor()
 	end
-	if self:ShouldSetCenteredCursor(button) then
-		return self:SetCenteredCursor()
-	end
 	if self:ShouldSetCameraControl(button) then
 		return self:SetCameraControl()
+	end
+	if self:ShouldSetCenteredCursor(button) then
+		return self:SetCenteredCursor()
 	end
 	return self
 end
@@ -422,3 +428,30 @@ Mouse:SetScript('OnGamePadButtonDown', Mouse.OnGamePadButtonDown)
 Mouse:SetScript('OnUpdate', Mouse.OnUpdate)
 Mouse:EnableGamePadButton(false)
 Mouse:SetPropagateKeyboardInput(true)
+
+---------------------------------------------------------------
+do -- Cursor reset workaround (button script not triggered)
+---------------------------------------------------------------
+	local ButtonListeners = { -- { button = { [reverseHandling] = CVar } }
+		LeftButton = {
+			[true]  = CVar_RClick;
+			[false] = CVar_LClick;
+		};
+		RightButton = {
+			[true]  = CVar_LClick;
+			[false] = CVar_RClick;
+		};
+	};
+
+	WorldFrame:HookScript('OnMouseUp', function(_, button)
+		if not CursorControl() or not db('mouseHandlingEnabled') then return end;
+
+		local key  = ButtonListeners[button];
+		local cvar = key and key[reverseMouseHandling];
+		local btn  = cvar and cvar:Get();
+
+		if is(btn, RightClick) and isnt(btn, WorldObjFocus) then
+			Mouse:SetCameraControl()
+		end
+	end)
+end
