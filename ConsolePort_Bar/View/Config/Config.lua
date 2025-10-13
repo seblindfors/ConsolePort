@@ -48,6 +48,7 @@ local Header = {
 	OnLeave = UIButtonMixin.OnLeave;
 	SetTooltipInfo   = UIButtonMixin.SetTooltipInfo;
 	SetTooltipAnchor = UIButtonMixin.SetTooltipAnchor;
+	RunCustomTextFormatter = UIButtonMixin.RunCustomTextFormatter;
 };
 
 function Header:OnAcquire(parent)
