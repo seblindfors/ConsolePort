@@ -1,9 +1,9 @@
-## Interface: 110205, 50501, 11507
+## Interface: 110205, 50501, 11508
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port
 ## Notes: Gamepad addon suite
 ## AddonCompartmentFunc: ConsolePort
-## Version: 3.1.5
+## Version: 3.1.6
 
 ## Author: Sebastian Lindfors
 ## X-Website: https://github.com/seblindfors/ConsolePort
