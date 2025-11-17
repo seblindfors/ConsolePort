@@ -19,17 +19,17 @@ end
 ---------------------------------------------------------------
 local GetUnitForFrame, GetActionForFrame;
 do	local HasScript, GetScript = Scan.HasScript, Scan.GetScript;
-	local GetRaw, SecureUnitButton_OnClick, SecureActionButton_OnClick =
-		Scan.GetAttribute, SecureUnitButton_OnClick, SecureActionButton_OnClick;
+	local Scrub, GetRaw, SecureUnitButton_OnClick, SecureActionButton_OnClick =
+		CPAPI.Scrub, Scan.GetAttribute, SecureUnitButton_OnClick, SecureActionButton_OnClick;
 	local GetAttribute, GetModifiedUnit, GetModifiedAttribute =
 		SecureButton_GetAttribute, SecureButton_GetModifiedUnit, SecureButton_GetModifiedAttribute;
 
 	local function IsUnitButton(frame)
-		return HasScript(frame, 'OnClick') and GetScript(frame, 'OnClick') == SecureUnitButton_OnClick;
+		return Scrub(HasScript(frame, 'OnClick')) and Scrub(GetScript(frame, 'OnClick')) == SecureUnitButton_OnClick;
 	end
 
 	local function IsActionButton(frame)
-		return HasScript(frame, 'OnClick') and GetScript(frame, 'OnClick') == SecureActionButton_OnClick;
+		return Scrub(HasScript(frame, 'OnClick')) and Scrub(GetScript(frame, 'OnClick')) == SecureActionButton_OnClick;
 	end
 
 	local function IsClickType(frame, clickType)
