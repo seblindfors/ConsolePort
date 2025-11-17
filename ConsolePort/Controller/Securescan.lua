@@ -50,10 +50,10 @@ do	local HasScript, GetScript = Scan.HasScript, Scan.GetScript;
 end
 
 local ScanGlobal, ScanFrames;
-do	local EnumerateFrames, IsProtected = EnumerateFrames, Scan.IsProtected;
+do	local EnumerateFrames, Scrub, IsProtected = EnumerateFrames, CPAPI.Scrub, Scan.IsProtected;
 	ScanFrames = function(collect, node, iterator, includeAll)
 		while node do
-			if IsProtected(node) then
+			if Scrub(IsProtected(node)) then
 				if includeAll then
 					collect(node)
 				else

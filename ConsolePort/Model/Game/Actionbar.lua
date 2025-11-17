@@ -113,7 +113,11 @@ do
 	end
 
 	local function ValidateActionID(this)
-		return this:IsProtected() and VALID_BUTTON_TYPE[this:GetObjectType()] and this:GetAttribute('action')
+		local isProtected, type, action = CPAPI.Scrub(
+			this:IsProtected(),
+			this:GetObjectType(),
+			this:GetAttribute('action'))
+		return (isProtected and type and VALID_BUTTON_TYPE[type]) and action;
 	end
 
 	local function IsActionButton(this, action)
