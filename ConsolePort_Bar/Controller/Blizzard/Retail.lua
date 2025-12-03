@@ -49,18 +49,18 @@ end
 function env.UIHandler:HideBlizzard()
 	---------------------------------------------------------------
 	-- Main action bar
-	hideEditModeFrame(MainMenuBar, false)
+	hideEditModeFrame(MainActionBar, false)
 	for i = 1, 12 do
 		hideActionButton(_G['ActionButton' .. i])
 	end
-	-- these events drive visibility, we want the MainMenuBar to remain invisible
+	-- these events drive visibility, we want the MainActionBar to remain invisible
 	for _, event in ipairs({
 		'PLAYER_REGEN_ENABLED';
 		'PLAYER_REGEN_DISABLED';
 		'ACTIONBAR_SHOWGRID';
 		'ACTIONBAR_HIDEGRID';
 	}) do
-		MainMenuBar:UnregisterEvent(event)
+		MainActionBar:UnregisterEvent(event)
 	end
 
 	---------------------------------------------------------------

@@ -1,4 +1,4 @@
-## Interface: 110205, 50501, 11508
+## Interface: 110207, 50501, 38000, 11508
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Keyboard|r
 ## Notes: Virtual keyboard module
