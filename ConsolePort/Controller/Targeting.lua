@@ -75,16 +75,11 @@ end
 
 local SetTooltipPosition;
 if CPAPI.IsRetailVersion then
-	-- NOTE: Setting the tooltip to a nameplate means anchoring to a restricted region,
-	-- which inherently removes clamping to screen. Need to re-enable it and restore
-	-- strata override once tooltip is being used by something else.
+	-- NOTE: Need to restore strata override once tooltip is being used by something else.
 	local isStrataOverride;
 	local function SetOverrideStrata(enabled)
 		isStrataOverride = enabled;
 		GameTooltip:SetFrameStrata(enabled and 'BACKGROUND' or 'TOOLTIP')
-		if not enabled then
-			GameTooltip:SetClampedToScreen(true)
-		end
 	end
 
 	function SetTooltipPosition(unit, offsetX)
@@ -112,7 +107,7 @@ if CPAPI.IsRetailVersion then
 	end
 
 	GameTooltip:HookScript('OnShow', function(self)
-		if isStrataOverride and not self:IsAnchoringRestricted() and not self:IsClampedToScreen() then
+		if isStrataOverride and not self:IsAnchoringRestricted() then
 			SetOverrideStrata(false)
 			anchor = nil;
 		end
