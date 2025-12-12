@@ -234,14 +234,6 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Shop ]] if StoreMicroButton then _{
----------------------------------------------------------------
-	text  = BLIZZARD_STORE;
-	img   = IsRetailVersion and ICON('WoW_Store') or [[Interface\MERCHANTFRAME\UI-BuyBack-Icon]];
-	ref   = StoreMicroButton;
-} end;
-
----------------------------------------------------------------
 --[[ Calendar ]] if GameTimeFrame and GameTimeFrame:IsObjectType('Button') then _{
 ---------------------------------------------------------------
 	text  = EVENTS_LABEL;
