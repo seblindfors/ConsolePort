@@ -1,4 +1,4 @@
-## Interface: 110207, 50501, 38000, 11508
+## Interface: 110207, 50503, 38000, 11508
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0Menu|r
 ## Notes: Game menu module
