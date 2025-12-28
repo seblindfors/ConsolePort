@@ -334,6 +334,9 @@ L.DEVICE_DESC_SWITCHPRO = [[
 	Nintendo Switch Pro controller has a similar layout to the Xbox controller, but with inverted button labels.
 
 	The Pro controller has four center buttons, giving it a slight edge over a standard Xbox controller.
+
+	The Nintendo Switch 2 Pro controller cannot use its paddles or C button natively in the game.
+	With external software, such as Steam or reWASD, they can be mapped to keyboard keys, allowing use in game.
 ]];
 L.CONTROLS_GENERAL_INFO = [[
 	Select your preferred control scheme.
