@@ -555,9 +555,9 @@ end
 function LoadoutEntry:ShowTooltip(tooltipFunc, ...)
 	local tooltip = GameTooltip;
 	tooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT', 0, self.size.y)
-	NineSliceUtil.ApplyLayoutByName(
+	CPAPI.ApplyNineSlice(
 		tooltip.NineSlice,
-		'CharacterCreateDropdown',
+		CPAPI.Backdrops.Dropdown,
 		tooltip.NineSlice:GetFrameLayoutTextureKit()
 	);
 

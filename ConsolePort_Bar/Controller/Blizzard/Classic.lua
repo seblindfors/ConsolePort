@@ -1,36 +1,26 @@
--- Credit: https://github.com/Nevcairiel/Bartender4/blob/master/HideBlizzardClassic.lua
-if CPAPI.IsRetailVersion then return end;
+-- Credit: https://github.com/Nevcairiel/Bartender4/blob/master/HideBlizzard.lua
+if not CPAPI.IsAnniVersion then return end;
 local _, env = ...;
 
-local function reparent(frame)
-	if frame then
-		frame:SetParent(env.UIHandler)
-	end
-end
-
-local function hideHUDFrame(frame, clearEvents, reanchor, noAnchorChanges)
+local function hideEditModeFrame(frame, clearEvents)
 	if frame then
 		if clearEvents then
 			frame:UnregisterAllEvents()
 		end
 
-		frame:Hide()
-		reparent(frame)
-
-		-- setup faux anchors so the frame position data returns valid
-		if reanchor and not noAnchorChanges then
-			local left, right, top, bottom = frame:GetLeft(), frame:GetRight(), frame:GetTop(), frame:GetBottom()
-			frame:ClearAllPoints()
-			if left and right and top and bottom then
-				frame:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', left, top)
-				frame:SetPoint('BOTTOMRIGHT', UIParent, 'BOTTOMLEFT', right, bottom)
-			else
-				frame:SetPoint('TOPLEFT', UIParent, 'BOTTOMLEFT', 10, 10)
-				frame:SetPoint('BOTTOMRIGHT', UIParent, 'BOTTOMLEFT', 20, 20)
-			end
-		elseif not noAnchorChanges then
-			frame:ClearAllPoints()
+		-- remove some EditMode hooks
+		if frame.system then
+			-- purge the show state to avoid any taint concerns
+			CPAPI.Purge(frame, 'isShownExternal')
 		end
+
+		-- EditMode overrides the Hide function, avoid calling it as it can taint
+		if frame.HideBase then
+			frame:HideBase()
+		else
+			frame:Hide()
+		end
+		frame:SetParent(env.UIHandler)
 	end
 end
 
@@ -41,81 +31,78 @@ local function hideActionButton(button)
 	button:SetAttribute('statehidden', true)
 end
 
+local function NPE_LoadUI()
+	if not (Tutorials and Tutorials.AddSpellToActionBar) then return end
+
+	-- Action Bar drag tutorials
+	Tutorials.AddSpellToActionBar:Disable()
+	Tutorials.AddClassSpellToActionBar:Disable()
+
+	-- these tutorials rely on finding valid action bar buttons, and error otherwise
+	Tutorials.Intro_CombatTactics:Disable()
+
+	-- enable spell pushing because the drag tutorial is turned off
+	Tutorials.AutoPushSpellWatcher:Complete()
+end
+
+
 function env.UIHandler:HideBlizzard()
 	---------------------------------------------------------------
 	-- Main action bar
-	MainMenuBar:EnableMouse(false)
-	MainMenuBar:UnregisterEvent('DISPLAY_SIZE_CHANGED')
-	MainMenuBar:UnregisterEvent('UI_SCALE_CHANGED')
-
+	hideEditModeFrame(MainActionBar, false)
 	for i = 1, 12 do
 		hideActionButton(_G['ActionButton' .. i])
+	end
+	-- these events drive visibility, we want the MainActionBar to remain invisible
+	for _, event in ipairs({
+		'PLAYER_REGEN_ENABLED';
+		'PLAYER_REGEN_DISABLED';
+		'ACTIONBAR_SHOWGRID';
+		'ACTIONBAR_HIDEGRID';
+	}) do
+		MainActionBar:UnregisterEvent(event)
 	end
 
 	---------------------------------------------------------------
 	-- Action bars
-	for bar in pairs({	
-		MultiBarBottomLeft = true;
+	for bar, clearEvents in pairs({
+		MultiBarBottomLeft  = true;
 		MultiBarBottomRight = true;
-	--	MultiBarLeft = true;
-	--	MultiBarRight = true;
+	--	MultiBarLeft        = true;
+	--	MultiBarRight       = true;
+	--	MultiBar5           = true;
+	--	MultiBar6           = true;
+	--	MultiBar7           = true;
 	}) do
-		reparent(_G[bar])
-		for i = 1, 12 do -- Hide MultiBar Buttons, but keep the bars alive
+		hideEditModeFrame(_G[bar], clearEvents)
+		for i = 1, 12 do -- Hide MultiBar Buttons
 			hideActionButton(_G[bar .. 'Button' .. i])
 		end
 	end
 
 	---------------------------------------------------------------
-	-- Managed frame positions (prevent re-anchoring/re-enabling)
-	for frame in pairs({
-		MainMenuBar             = true;
-		StanceBarFrame          = true;
-		PossessBarFrame         = true;
-		MultiCastActionBarFrame = true;
-		PETACTIONBAR_YPOS       = true;
-		ExtraAbilityContainer   = true;
-	}) do
-		CPAPI.Purge(UIPARENT_MANAGED_FRAME_POSITIONS, frame)
-	end
-
-	---------------------------------------------------------------
 	-- HUD frames
-	for frame, settings in pairs({     -- clearEvents, reanchor, noAnchorChanges
-		MainMenuBarArtFrame            = {false,       true};
-		MainMenuBarArtFrameBackground  = {};
-	--	StanceBarFrame                 = {true,        true};
-		PossessBarFrame                = {false,       true};
-	--	MultiCastActionBarFrame        = {false,       true};
-		PetActionBarFrame              = {true,        true};
-		MainMenuBarPerformanceBarFrame = {false,       false,    true};
-		MainMenuExpBar                 = {false,       false,    true};
-		ReputationWatchBar             = {false,       false,    true};
-		MainMenuBarMaxLevelBar         = {false,       false,    true};
-		OverrideActionBar              = {true,        false,    true};
+	for frame, clearEvents in pairs({
+		BagsBar                  = true;
+		MainMenuBar              = true;
+		MainMenuBarArtFrame      = false;
+	--	MicroButtonAndBagsBar    = false;
+	--	MicroMenu                = true;
+	--	MultiCastActionBarFrame  = false;
+		PetActionBar             = true;
+		PossessActionBar         = true;
+	--	StanceBar                = true;
+		StatusTrackingBarManager = false;
+		OverrideActionBar        = true;
 	}) do
-		hideHUDFrame(_G[frame], unpack(settings))
+		hideEditModeFrame(_G[frame], clearEvents)
 	end
 
 	---------------------------------------------------------------
 	-- Misc
-
-	-- when blizzard vehicle is turned off, we need to manually fix the state since the OverrideActionBar animation wont run
-	local animations = {MainMenuBar.slideOut:GetAnimations()}
-	animations[1]:SetOffset(0,0)
-
-	if OverrideActionBar then -- classic doesn't have this
-		animations = {OverrideActionBar.slideOut:GetAnimations()}
-		animations[1]:SetOffset(0,0)
-
-		-- when blizzard vehicle is turned off, we need to manually fix the state since the OverrideActionBar animation wont run
-		hooksecurefunc('BeginActionBarTransition', function(bar, animIn)
-			--if bar == OverrideActionBar then --and not self.db.profile.blizzardVehicle then
-			--	OverrideActionBar.slideOut:Stop()
-			--	MainMenuBar:Show()
-			--end
-		end)
+	if CPAPI.IsAddOnLoaded('Blizzard_NewPlayerExperience') then
+		NPE_LoadUI()
+	elseif _G.NPE_LoadUI ~= nil then
+		hooksecurefunc('NPE_LoadUI', NPE_LoadUI)
 	end
-
-	ShowPetActionBar = nop;
 end

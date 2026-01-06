@@ -226,6 +226,7 @@ function About:InitCanvas(canvas)
 	self.Credits = CreateFrame('GameTooltip', 'ConsolePortCredits', canvas, 'CPCredits')
 	self.Credits.canvas = canvas;
 	CPAPI.SpecializeOnce(self.Credits, Credits)
+	CPAPI.ApplyNineSlice(self.Credits.NineSlice, CPAPI.Backdrops.Dropdown)
 
 	self.Links = CreateFrame('Frame', nil, canvas, 'CPAboutLinkTray')
 	self.Links:SetPoint('BOTTOM', 0, 70)

@@ -117,14 +117,17 @@ do -- Skinning
 		self.useSquareMask = useSquareMask;
 	end
 
-	local SkinGameMenu = CPAPI.IsRetailVersion and function()
+	local SkinGameMenu = GameMenu and GameMenu.Border and GameMenu.Header and function()
 			GameMenu.Border:SetShown(false)
 			GameMenu.Header:SetShown(false)
 			GameMenuFrameConsolePort:SetPoint('TOP', 0, 20)
-		end or function()
+		end or GameMenuFrame and GameMenuFrame.Header and GameMenuFrame.Border and function()
+			GameMenuFrame.Header:SetShown(false)
+			NineSliceUtil.SetLayoutShown(GameMenuFrame.Border, false)
+		end or GameMenuFrameHeader and GameMenu and function()
 			GameMenuFrameHeader:SetShown(false)
 			NineSliceUtil.SetLayoutShown(GameMenu, false)
-		end;
+		end or nop;
 
 	Menu.Owners = {
 		[GameMenu] = {

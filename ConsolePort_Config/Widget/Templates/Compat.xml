@@ -140,17 +140,12 @@
 			<KeyValue key="widthPadding" value="6" type="number"/>
 			<KeyValue key="heightPadding" value="32" type="number"/>
 		</KeyValues>
-
 		<Frames>
-			<Frame parentKey="Border" useParentLevel="true" inherits="NineSlicePanelTemplate">
-				<KeyValues>
-					<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
-				</KeyValues>
-			</Frame>
+			<Frame parentKey="Border" useParentLevel="true" inherits="NineSlicePanelTemplate"/>
 		</Frames>
-
 		<Scripts>
 			<OnShow method="OnShow"/>
+			<OnLoad method="OnLoad"/>
 			<OnMouseWheel function="nop"/>
 		</Scripts>
 	</Frame>

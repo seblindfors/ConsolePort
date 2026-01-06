@@ -2,7 +2,7 @@ local _, env = ...;
 ---------------------------------------------------------------
 local ICON = GenerateClosure(format, [[Interface\ICONS\%s]]);
 local IsRetailVersion      = CPAPI.IsRetailVersion or nil;
-local IsClassicGameVersion = CPAPI.IsClassicVersion or CPAPI.IsClassicEraVersion or nil;
+local IsClassicGameVersion = CPAPI.IsClassicVersion or CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion or nil;
 
 local GenerateFlatClosure = GenerateFlatClosure or function(...)
 	local closure = GenerateClosure(...)
@@ -168,7 +168,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Keyring ]] if CPAPI.IsClassicEraVersion and KeyRingButton then _{
+--[[ Keyring ]] if CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion and KeyRingButton then _{
 ---------------------------------------------------------------
 	text  = KEYRING;
 	img   = [[Interface\ContainerFrame\KeyRing-Bag-Icon]];
@@ -207,18 +207,18 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	img   = [[Interface\LFGFRAME\UI-LFG-PORTRAIT]];
 	ref   = LFDMicroButton or LFGMicroButton;
 	click = CPAPI.IsClassicVersion and GenerateFlatClosure(PVEFrame_ToggleFrame);
-	OnLoad = CPAPI.IsClassicEraVersion and function(self)
+	OnLoad = (CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion) and function(self)
 		self.OnLoad = nil;
 		EventUtil.ContinueOnAddOnLoaded('Blizzard_GroupFinder_VanillaStyle', function()
 			env.db:RunSafe(function()
 				self:SetData({ ref = LFGMinimapFrame });
 			end);
 		end)
-	end;
+	end or nil;
 } end;
 
 ---------------------------------------------------------------
---[[ PvP ]] if IsClassicGameVersion and (PVPFrame or PVPParentFrame) then _{
+--[[ PvP ]] if IsClassicGameVersion and not CPAPI.IsAnniVersion and (PVPFrame or PVPParentFrame) then _{
 ---------------------------------------------------------------
 	text  = PLAYER_V_PLAYER;
 	img   = ICON(('Achievement_PVP_%1$s_%1$s'):format(UnitFactionGroup('player'):sub(1,1)));

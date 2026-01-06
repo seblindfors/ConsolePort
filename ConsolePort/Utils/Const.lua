@@ -2,16 +2,17 @@
 -- General
 ---------------------------------------------------------------
 -- return true or nil (nil for dynamic table insertions)
+CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
 CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC or nil;
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
-CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
+CPAPI.IsAnniVersion       = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or nil;
 
 ---------------------------------------------------------------
 -- Button
 ---------------------------------------------------------------
 CPAPI.ExtraActionButtonID = (ExtraActionButton1 or {}).action or CPAPI.IsRetailVersion and 217 or 169;
 
-CPAPI.ActionTypeRelease   = CPAPI.IsRetailVersion and 'typerelease' or 'type';
+CPAPI.ActionTypeRelease   = (CPAPI.IsRetailVersion or CPAPI.IsAnniVersion) and 'typerelease' or 'type';
 CPAPI.ActionTypePress     = 'type';
 CPAPI.ActionPressAndHold  = 'pressAndHoldAction';
 CPAPI.ActionUseOnKeyDown  = 'useOnKeyDown';

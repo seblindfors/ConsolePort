@@ -60,7 +60,9 @@ function CPPetRingButton:Init(i)
 		self.AutoCastable:SetRotation(self.textureRotation)
 		self.AutoCastable:Hide()
 	elseif self.AutoCastOverlay then
-		self.AutoCastOverlay.Shine:SetRotation(self.textureRotation)
+		if self.AutoCastOverlay.Shine then
+			self.AutoCastOverlay.Shine:SetRotation(self.textureRotation)
+		end
 		self.AutoCastOverlay.Corners:SetRotation(self.textureRotation)
 		for vertexIndex, offset in pairs(self.CornerVertexOffset) do
 			self.AutoCastOverlay.Corners:SetVertexOffset(vertexIndex, unpack(offset))

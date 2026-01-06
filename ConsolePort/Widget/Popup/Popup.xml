@@ -6,7 +6,7 @@
 		<KeyValues>
 			<Keyvalue key="nonExclusive" value="false" type="boolean"/>
 			<KeyValue key="layoutAtlas" value="false" type="boolean"/>
-			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
+			<KeyValue key="backdropType" value="Dropdown" type="string"/>
 			<KeyValue key="bottomPadding" value="32" type="number"/>
 		</KeyValues>
 		<Scripts>

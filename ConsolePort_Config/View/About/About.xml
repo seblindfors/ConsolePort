@@ -1,8 +1,5 @@
 <Ui>
 	<GameTooltip name="CPCredits" virtual="true" inherits="SharedTooltipTemplate" scale="1.25">
-		<KeyValues>
-			<KeyValue key="layoutType" value="CharacterCreateDropdown" type="string"/>
-		</KeyValues>
 		<Frames>
 			<Frame parentKey="Slot">
 				<Size x="68" y="68"/>

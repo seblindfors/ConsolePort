@@ -245,6 +245,17 @@ CPAPI.Atlas = {
 		['glues-characterselect-card-fx-spreadb']={312,91,0.61572265625,0.92041015625,0.33740234375,0.42626953125,false,false},
 		['glues-characterselect-iconshop-hover']={23,23,0.15380859375,0.17626953125,0.97216796875,0.99462890625,false,false}
 	};
+	[CPAPI.GetAsset([[Textures\Atlas\Dropdown]])]={
+		['Dropdown-NineSlice-Center']={1,1,0.0009765625,0.001953125,0.779296875,0.78125,false,false},
+		['Dropdown-NineSlice-CornerTopRight']={62,52,0.7939453125,0.9150390625,0.001953125,0.205078125,false,false},
+		['!Dropdown-NineSlice-EdgeRight']={62,204,0.1240234375,0.2451171875,0.001953125,0.798828125,false,false},
+		['!Dropdown-NineSlice-EdgeLeft']={62,204,0.2470703125,0.3681640625,0.001953125,0.798828125,false,false},
+		['Dropdown-NineSlice-CornerTopLeft']={62,52,0.0009765625,0.1220703125,0.287109375,0.490234375,false,false},
+		['Dropdown-NineSlice-CornerBottomLeft']={62,72,0.0009765625,0.1220703125,0.001953125,0.283203125,false,false},
+		['Dropdown-NineSlice-CornerBottomRight']={62,72,0.0009765625,0.1220703125,0.494140625,0.775390625,false,false},
+		['_Dropdown-NineSlice-EdgeTop']={216,52,0.3701171875,0.7919921875,0.287109375,0.490234375,false,false},
+		['_Dropdown-NineSlice-EdgeBottom']={216,72,0.3701171875,0.7919921875,0.001953125,0.283203125,false,false}
+	};
 };
 
 ---------------------------------------------------------------
@@ -261,6 +272,17 @@ CPAPI.Backdrops = {
 		edgeFile = CPAPI.GetAsset([[Textures\Frame\EdgeFile_Simple_White_4x32]]);
 		edgeSize = 4;
 		insets   = {left = 1, right = 1, top = 1, bottom = 1};
+	};
+	Dropdown = {
+		BottomEdge        = { atlas = '_Dropdown-NineSlice-EdgeBottom'};
+		BottomLeftCorner  = { atlas = 'Dropdown-NineSlice-CornerBottomLeft', x=-30, y=-20 };
+		BottomRightCorner = { atlas = 'Dropdown-NineSlice-CornerBottomRight', x=30, y=-20 };
+		Center            = { atlas = 'Dropdown-NineSlice-Center'};
+		LeftEdge          = { atlas = '!Dropdown-NineSlice-EdgeLeft'};
+		RightEdge         = { atlas = '!Dropdown-NineSlice-EdgeRight'};
+		TopEdge           = { atlas = '_Dropdown-NineSlice-EdgeTop'};
+		TopLeftCorner     = { atlas = 'Dropdown-NineSlice-CornerTopLeft', x=-30, y=20 };
+		TopRightCorner    = { atlas = 'Dropdown-NineSlice-CornerTopRight', x=30, y=20 };
 	};
 }
 
@@ -339,5 +361,18 @@ function CPAPI.SetTextureOrAtlas(object, info, sizeTexture, sizeAtlas)
 	object:SetTexture(textureOrAtlas)
 	if sizeTexture then
 		object:SetSize(unpack(sizeTexture))
+	end
+end
+
+function CPAPI.ApplyNineSlice(container, userLayout, textureKit, isNative)
+	NineSliceUtil.ApplyLayout(container, userLayout, textureKit)
+	if isNative then return end;
+	for pieceName, info in pairs(userLayout) do
+		if info.atlas then
+			local piece = container[pieceName];
+			if piece then
+				CPAPI.SetAtlas(piece, info.atlas, true)
+			end
+		end
 	end
 end

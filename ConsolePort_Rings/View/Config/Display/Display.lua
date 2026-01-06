@@ -37,9 +37,9 @@ end
 function TutorialSetting:UpdateTooltipAndBackground(...)
 	self.BaseUpdateTooltip(self, ...)
 	if GameTooltip:IsOwned(self) then
-		NineSliceUtil.ApplyLayoutByName(
+		CPAPI.ApplyNineSlice(
 			GameTooltip.NineSlice,
-			'CharacterCreateDropdown',
+			CPAPI.Backdrops.Dropdown,
 			GameTooltip.NineSlice:GetFrameLayoutTextureKit()
 		);
 		GameTooltip:SetHeight(GameTooltip:GetHeight() + 20)

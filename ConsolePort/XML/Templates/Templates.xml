@@ -66,8 +66,9 @@
 		</Animations>
 	</Frame>
 
-	<Texture name="CPToolbarPopoutSixSlice" virtual="true" alpha="0.65">
+	<Texture name="CPToolbarPopoutSixSlice" virtual="true" alpha="0.65" inherits="CPAtlas">
 		<KeyValues>
+			<KeyValue key="useAtlasSize" value="true" type="boolean"/>
 			<KeyValue key="ignoreInLayout" value="true" type="boolean"/>
 		</KeyValues>
 	</Texture>
@@ -75,35 +76,53 @@
 	<Frame name="CPToolbarSixSliceFrame" virtual="true">
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentArray="SixSlice" parentKey="TopLeftCorner" atlas="CharacterCreateDropdown-NineSlice-CornerTopLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="TopLeftCorner" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="Dropdown-NineSlice-CornerTopLeft" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="TOPLEFT" x="-34" y="24"/>
 					</Anchors>
 				</Texture>
-				<Texture parentArray="SixSlice" parentKey="TopRightCorner" atlas="CharacterCreateDropdown-NineSlice-CornerTopRight" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="TopRightCorner" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="Dropdown-NineSlice-CornerTopRight" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="TOPRIGHT" x="34" y="24"/>
 					</Anchors>
 				</Texture>
-				<Texture parentArray="SixSlice" parentKey="TopEdge" atlas="_CharacterCreateDropdown-NineSlice-EdgeTop" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="TopEdge" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="_Dropdown-NineSlice-EdgeTop" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.TopLeftCorner" relativePoint="TOPRIGHT"/>
 						<Anchor point="TOPRIGHT" relativeKey="$parent.TopRightCorner" relativePoint="TOPLEFT"/>
 					</Anchors>
 				</Texture>
-				<Texture parentArray="SixSlice" parentKey="LeftEdge" atlas="!CharacterCreateDropdown-NineSlice-EdgeLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="LeftEdge" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="!Dropdown-NineSlice-EdgeLeft" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.TopLeftCorner" relativePoint="BOTTOMLEFT"/>
 						<Anchor point="BOTTOMLEFT" x="0" y="0"/>
 					</Anchors>
 				</Texture>
-				<Texture parentArray="SixSlice" parentKey="RightEdge" atlas="!CharacterCreateDropdown-NineSlice-EdgeRight" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="RightEdge" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="!Dropdown-NineSlice-EdgeRight" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="TOPRIGHT" relativeKey="$parent.TopRightCorner" relativePoint="BOTTOMRIGHT"/>
 						<Anchor point="BOTTOMRIGHT" x="0" y="0"/>
 					</Anchors>
 				</Texture>
-				<Texture parentArray="SixSlice" parentKey="Center" atlas="CharacterCreateDropdown-NineSlice-Center" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="Center" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="Dropdown-NineSlice-Center" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.LeftEdge" relativePoint="TOPRIGHT"/>
 						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.RightEdge" relativePoint="BOTTOMLEFT"/>
@@ -116,17 +135,26 @@
 	<Frame name="CPToolbarNineSliceFrame" virtual="true" inherits="CPToolbarSixSliceFrame">
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture parentArray="SixSlice" parentKey="BottomLeftCorner" atlas="CharacterCreateDropdown-NineSlice-CornerBottomLeft" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="BottomLeftCorner" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="Dropdown-NineSlice-CornerBottomLeft" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" x="-34" y="-46"/>
 					</Anchors>
 				</Texture>
-				<Texture parentArray="SixSlice" parentKey="BottomRightCorner" atlas="CharacterCreateDropdown-NineSlice-CornerBottomRight" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="BottomRightCorner" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="Dropdown-NineSlice-CornerBottomRight" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="BOTTOMRIGHT" x="34" y="-46"/>
 					</Anchors>
 				</Texture>
-				<Texture parentArray="SixSlice" parentKey="BottomEdge" atlas="_CharacterCreateDropdown-NineSlice-EdgeBottom" useAtlasSize="true" inherits="CPToolbarPopoutSixSlice">
+				<Texture parentArray="SixSlice" parentKey="BottomEdge" inherits="CPToolbarPopoutSixSlice">
+					<KeyValues>
+						<KeyValue key="atlas" value="_Dropdown-NineSlice-EdgeBottom" type="string"/>
+					</KeyValues>
 					<Anchors>
 						<Anchor point="BOTTOMLEFT" relativeKey="$parent.BottomLeftCorner" relativePoint="BOTTOMRIGHT"/>
 						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.BottomRightCorner" relativePoint="BOTTOMLEFT"/>

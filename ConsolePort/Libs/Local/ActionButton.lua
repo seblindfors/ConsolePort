@@ -432,7 +432,7 @@ do -- Workaround for LAB's private type meta map.
 		}) do
 			ReferenceButton:SetState(meta, meta, dummy)
 			ReferenceButton:SetAttribute('state', meta)
-			ReferenceButton:UpdateAction(true)
+			pcall(ReferenceButton.UpdateAction, ReferenceButton, true)
 			self[meta] = getmetatable(ReferenceButton)
 		end
 		ReferenceButton:SetAttribute('state', 'empty')

@@ -55,10 +55,13 @@ function CPFrameMixin:OnLoad()
 			self.Center:SetScale(self.layoutScale)
 		end
 	end
-	if self.layoutType then
+	if self.layoutType or self.backdropType then
 		CPAPI.Specialize(self, NineSlicePanelMixin)
 		if C_Widget.IsRenderableWidget(self.BgMask) then
 			self:SetBackgroundMask(self.BgMask)
+		end
+		if self.backdropType then
+			CPAPI.ApplyNineSlice(self, CPAPI.Backdrops[self.backdropType])
 		end
 	end
 	self:SetBackgroundAlpha(self.layoutAlpha)
@@ -138,7 +141,7 @@ function CPToolbarSixSliceInverterMixin:ToggleInversion(invert)
 end
 
 function CPToolbarSixSliceInverterMixin:SetBackgroundAlpha(alpha)
-	for piece in pairs(NineSliceLayouts.CharacterCreateDropdown) do
+	for piece in pairs(CPAPI.Backdrops.Dropdown) do
 		if self[piece] then
 			self[piece]:SetAlpha(alpha)
 		end

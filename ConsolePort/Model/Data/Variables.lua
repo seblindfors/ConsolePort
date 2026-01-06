@@ -641,7 +641,7 @@ db:Register('Variables', CPAPI.Callable({
 		desc = 'Disables customization to hotkeys on regular action bars.';
 		advd = true;
 	};
-	useAtlasIcons = _{Bool(not CPAPI.IsClassicEraVersion);
+	useAtlasIcons = _{Bool(not CPAPI.IsClassicEraVersion and not CPAPI.IsAnniVersion);
 		name = 'Use Default Hotkey Icons';
 		desc = 'Uses the default hotkey icons instead of the custom icons provided by ConsolePort.';
 		note = 'Requires reload.';

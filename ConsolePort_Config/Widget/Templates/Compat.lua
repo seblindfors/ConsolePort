@@ -403,6 +403,10 @@ end
 CPSelectionPopoutMixin = {};
 ---------------------------------------------------------------
 
+function CPSelectionPopoutMixin:OnLoad()
+	CPAPI.ApplyNineSlice(self.Border, CPAPI.Backdrops.Dropdown)
+end
+
 function CPSelectionPopoutMixin:OnShow()
 	if not CPAPI.IsRetailVersion then
 		self.Border.layoutType = 'ChatBubble';

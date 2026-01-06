@@ -1,5 +1,6 @@
 <Ui>
 	<Script file="Retail.lua"/>
 	<Script file="Classic.lua"/>
+	<Script file="ClassicEra.lua"/>
 	<Script file="GridLayoutUtil.lua"/>
 </Ui>
