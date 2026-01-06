@@ -138,26 +138,11 @@ function Lib.SkinUtility.SkinChargeCooldown(self, skin, reset)
 	end)
 end
 
-function Lib.SkinUtility.NegateAssistedCombat(self)
-	-- Negate LAB:UpdateAssistedCombatRotationFrame.
-	self.AssistedCombatRotationFrame = { UpdateState = nop };
-end
-
-do -- Lib.SkinUtility.SkinOverlayGlow
-	function Lib.SkinUtility.SkinOverlayGlow(self, onShow, onHide)
-		if self.__LBGoverlaySkin then return end;
-		self.ShowOverlayGlow = onShow;
-		self.HideOverlayGlow = onHide;
-		self.__LBGoverlaySkin = true;
-	end
-end -- Lib.SkinUtility.SkinOverlayGlow
-
 ---------------------------------------------------------------
 -- Skins
 ---------------------------------------------------------------
 
 do -- Lib.Skin.ColorSwatchProc
-	local SkinOverlayGlow = Lib.SkinUtility.SkinOverlayGlow;
 	local SwatchPool = CreateFramePool('Frame', UIParent, 'CPSwatchHighlightTemplate')
 
 	local function OnShowOverlay(self)
@@ -186,7 +171,7 @@ do -- Lib.Skin.ColorSwatchProc
 	Lib.Skin.ColorSwatchProc = function(self, config) config = config or {};
 		self.__procText     = config.procText or self.__procText;
 		self.__procNoSwatch = config.noSwatch or self.__procNoSwatch;
-		SkinOverlayGlow(self, OnShowOverlay, OnHideOverlay)
+		Lib.SkinUtility.SkinOverlayGlow(self, OnShowOverlay, OnHideOverlay)
 	end;
 end -- Lib.Skin.ColorSwatchProc
 
@@ -200,7 +185,7 @@ do -- Lib.Skin.RingButton
 		local obj, scale;
 		local r, g, b = CPPieMenuMixin.SliceColors.Accent:GetRGB()
 		local size = self:GetSize()
-		Lib.SkinUtility.NegateAssistedCombat(self)
+		Lib.SkinUtility.SkinRotationHelper(self)
 		do obj = self.NormalTexture;
 			scale = 110 / 64;
 			obj:ClearAllPoints()
@@ -421,7 +406,7 @@ do -- Workaround for LAB's private type meta map.
 	setmetatable(Lib.TypeMetaMap, {__index = function(self, k)
 		local ReferenceHeader = CreateFrame('Frame', 'ConsolePortABRefHeader', nil, 'SecureHandlerStateTemplate')
 		local ReferenceButton = LAB:CreateButton('ref', '$parentButton', ReferenceHeader)
-		Lib.SkinUtility.NegateAssistedCombat(ReferenceButton)
+		Lib.SkinUtility.SkinRotationHelper(ReferenceButton)
 		for meta, dummy in pairs({
 			empty  = 0;
 			action = 1;
@@ -469,6 +454,48 @@ function LBG.HideOverlayGlow(button)
 		return button:HideOverlayGlow(LBG)
 	end
 	return HideOverlayGlow(button)
+end
+
+local AlertFrameDummy = {
+	Show = nop; Hide = nop;
+	Play = nop; Stop = nop;
+	SetAtlas = nop;
+};
+
+local function OnAlertFrameShown(self)
+	LBG.ShowOverlayGlow(self:GetParent())
+end
+
+local function OnAlertFrameHidden(self)
+	LBG.HideOverlayGlow(self:GetParent())
+end
+
+function Lib.SkinUtility.SkinRotationHelper(self)
+	-- Negate ActionButtonSpellAlertManager
+	local alert = CreateFrame('Frame', nil, self)
+
+	alert:Hide()
+	alert.ProcStartFlipbook = AlertFrameDummy;
+	alert.ProcLoopFlipbook  = AlertFrameDummy;
+	alert.ProcAltGlow       = AlertFrameDummy;
+	alert.ProcStartAnim     = AlertFrameDummy;
+	alert:SetScript('OnShow', OnAlertFrameShown)
+	alert:SetScript('OnHide', OnAlertFrameHidden)
+
+	self.SpellActivationAlert = alert;
+
+	-- Negate LAB:UpdateAssistedCombatRotationFrame.
+	local frame = CreateFrame('Frame', nil, self)
+	frame.UpdateState = nop;
+	frame.SpellActivationAlert = self.SpellActivationAlert;
+	self.AssistedCombatRotationFrame = frame;
+end
+
+function Lib.SkinUtility.SkinOverlayGlow(self, onShow, onHide)
+	if self.__LBGoverlaySkin then return end;
+	self.ShowOverlayGlow = onShow;
+	self.HideOverlayGlow = onHide;
+	self.__LBGoverlaySkin = true;
 end
 
 end -- LBG hook
