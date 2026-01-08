@@ -429,6 +429,7 @@ local Button = Mixin({ SetNormalTexture = nop }, env.ProxyButton);
 
 function Button:OnLoad(modifier, layoutData)
 	env.ProxyButton.OnLoad(self)
+	env.LIB.SkinUtility.SkinRotationHelper(self)
 	self:SetAttribute(CPAPI.SkipHotkeyRender, true)
 	self:SetAttribute('id', self.id)
 	self:SetAttribute('mod', modifier)

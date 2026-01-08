@@ -456,11 +456,7 @@ function LBG.HideOverlayGlow(button)
 	return HideOverlayGlow(button)
 end
 
-local AlertFrameDummy = {
-	Show = nop; Hide = nop;
-	Play = nop; Stop = nop;
-	SetAtlas = nop;
-};
+local AlertFrameDummy = setmetatable({}, {__index = function() return nop end})
 
 local function OnAlertFrameShown(self)
 	LBG.ShowOverlayGlow(self:GetParent())

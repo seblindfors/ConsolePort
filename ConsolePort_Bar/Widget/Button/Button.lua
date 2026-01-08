@@ -83,7 +83,6 @@ function SlotButton:OnLoad()
 	self:CreateEnvironment()
 	self:SetAttribute(env.Attributes.GUID, true)
 	env.LIB.Skin.SlotButton(self)
-	env.LIB.SkinUtility.SkinRotationHelper(self)
 end
 
 function SlotButton:OnTypeChanged(isAction)
