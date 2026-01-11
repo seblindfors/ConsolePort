@@ -4,6 +4,7 @@
 -- return true or nil (nil for dynamic table insertions)
 CPAPI.IsClassicEraVersion = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC or nil;
 CPAPI.IsClassicVersion    = WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC or nil;
+CPAPI.IsWrathVersion      = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC or nil;
 CPAPI.IsRetailVersion     = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or nil;
 CPAPI.IsAnniVersion       = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC or nil;
 
