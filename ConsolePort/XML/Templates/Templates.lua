@@ -57,18 +57,20 @@ function CPFrameMixin:OnLoad()
 	end
 	if self.layoutType or self.backdropType then
 		CPAPI.Specialize(self, NineSlicePanelMixin)
-		if C_Widget.IsRenderableWidget(self.BgMask) then
-			self:SetBackgroundMask(self.BgMask)
-		end
 		if self.backdropType then
 			CPAPI.ApplyNineSlice(self, CPAPI.Backdrops[self.backdropType])
+		end
+		if C_Widget.IsRenderableWidget(self.BgMask) then
+			self:SetBackgroundMask(self.BgMask)
 		end
 	end
 	self:SetBackgroundAlpha(self.layoutAlpha)
 end
 
 function CPFrameMixin:GetBackgroundRegions()
-	return self.layoutAtlas and self.layoutRegions or NineSliceLayouts[self.layoutType];
+	return self.layoutAtlas and self.layoutRegions
+		or NineSliceLayouts[self.layoutType]
+		or CPAPI.Backdrops[self.backdropType];
 end
 
 function CPFrameMixin:SetBackgroundAlpha(alpha)
