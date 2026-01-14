@@ -2,7 +2,7 @@ local _, env = ...;
 ---------------------------------------------------------------
 local ICON = GenerateClosure(format, [[Interface\ICONS\%s]]);
 local IsRetailVersion      = CPAPI.IsRetailVersion or nil;
-local IsClassicGameVersion = CPAPI.IsClassicVersion or CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion or nil;
+local IsClassicGameVersion = CPAPI.IsClassicVersion or CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion or CPAPI.IsWrathVersion or nil;
 
 local GenerateFlatClosure = GenerateFlatClosure or function(...)
 	local closure = GenerateClosure(...)
@@ -167,10 +167,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	end;
 } end;
 
----------------------------------------------------------------
---[[ Keyring ]] if CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion and KeyRingButton then _{
----------------------------------------------------------------
-	text  = KEYRING;
+	--[[ Keyring ]] if (CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion or CPAPI.IsWrathVersion) and KeyRingButton then _{
 	img   = [[Interface\ContainerFrame\KeyRing-Bag-Icon]];
 	ref   = KeyRingButton;
 } end;
@@ -207,7 +204,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	img   = [[Interface\LFGFRAME\UI-LFG-PORTRAIT]];
 	ref   = LFDMicroButton or LFGMicroButton;
 	click = CPAPI.IsClassicVersion and GenerateFlatClosure(PVEFrame_ToggleFrame);
-	OnLoad = (CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion) and function(self)
+	OnLoad = (CPAPI.IsClassicEraVersion or CPAPI.IsAnniVersion or CPAPI.IsWrathVersion) and function(self)
 		self.OnLoad = nil;
 		EventUtil.ContinueOnAddOnLoaded('Blizzard_GroupFinder_VanillaStyle', function()
 			env.db:RunSafe(function()

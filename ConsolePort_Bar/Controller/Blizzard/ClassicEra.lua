@@ -1,5 +1,5 @@
 -- Credit: https://github.com/Nevcairiel/Bartender4/blob/master/HideBlizzardClassic.lua
-if not CPAPI.IsClassicEraVersion and not CPAPI.IsClassicVersion then return end;
+if not CPAPI.IsClassicEraVersion and not CPAPI.IsClassicVersion and not CPAPI.IsWrathVersion then return end;
 local _, env = ...;
 
 local function reparent(frame)
