@@ -152,6 +152,9 @@ local _, db = ...; db.Gamepad:AddGamepad({
 		PADBACK      = 'Switch/Back';
 		PADSYSTEM    = 'Switch/System';
 		PADSOCIAL    = 'Switch/Share';
+		PADPADDLE1   = 'All/RG';
+		PADPADDLE2   = 'All/LG';
+		PADPADDLE3   = 'Xbox/Share';
 	};
 	Layout = {-- format: delta (-1 or 1), drawLayer, x1, y1, ..., xN, yN
 		--------------------
@@ -161,6 +164,8 @@ local _, db = ...; db.Gamepad:AddGamepad({
 		PADBACK      = {-1, 01, 0062, 0074, 0120, 0100};
 		--------------------
 		PADLSTICK    = {-1, 01, 0114, 0038};
+		--------------------
+		PADPADDLE2   = {-1, -1, 0090, -040, 0160, -194};
 		--------------------
 		PADDUP       = {-1, 01, 0064, 0000, 0200, -020};
 		PADDLEFT     = {-1, 01, 0086, -022, 0160, -066};
@@ -181,5 +186,8 @@ local _, db = ...; db.Gamepad:AddGamepad({
 		--------------------
 		PADRSTICK    = {01, 01, 0054, -024, 0150, -170};
 		PADSYSTEM    = {01, 01, 0024, 0026, 0016, -050, 0130, -220};
+		--------------------
+		PADPADDLE1   = {01, -1, 0090, -040, 0160, -194};
+		PADPADDLE3   = {01, 01, 0002, -050, 0040, -100, 0120, -300};
 	};
 })
