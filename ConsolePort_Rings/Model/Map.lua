@@ -76,7 +76,6 @@ local function GetCustomAction(data)
 					self:SetTexCoord(0, 1, 0, 1)
 				end
 			end;
-			--texture = [[Interface\AddOns\ConsolePort_Rings\Assets\decor-controls-decoratemode-pressed.png]];
 		}, secureEnvData;
 	end
 end
