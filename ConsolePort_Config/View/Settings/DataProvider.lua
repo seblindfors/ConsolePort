@@ -238,17 +238,29 @@ Settings:AddProvider(function(AddSetting, GetSortIndex)
 		head = list == KEY_BINDINGS_MAC and ACTIONBARS_LABEL or KEY_BINDINGS_MAC;
 		sort = GetSortIndex(main, head);
 		for i, info in ipairs(set) do
-			AddSetting(main, head, {
-				sort     = sort + i;
-				type     = env.Elements.Binding;
-				binding  = info.binding;
-				readonly = info.readonly;
-				field = {
-					name = info.name;
-					list = list;
-					xtra = true;
-				};
-			})
+			if info.name:match('^PREFACE') then
+				AddSetting(main, head, {
+					sort  = sort + i;
+					type  = env.Elements.Subtitle;
+					text  = _G[info.name] or info.name;
+					field = {
+						list = list;
+						xtra = true;
+					};
+				})
+			else
+				AddSetting(main, head, {
+					sort     = sort + i;
+					type     = env.Elements.Binding;
+					binding  = info.binding;
+					readonly = info.readonly;
+					field = {
+						name = info.name;
+						list = list;
+						xtra = true;
+					};
+				})
+			end
 		end
 	end
 end)

@@ -109,8 +109,9 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 		);
 	end
 
-	local function TrySetBinding(keyChord, bindingID, saveAfter)
-		if SetBinding(keyChord, bindingID) then
+	local function TrySetBinding(keyChord, bindingID, saveAfter, context)
+		context = context or (bindingID and CPAPI.GetBindingContextForAction(bindingID))
+		if SetBinding(keyChord, bindingID, context) then
 			return saveAfter;
 		end
 		ReportBindingError(keyChord, bindingID);
@@ -131,11 +132,24 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 		if FORBIDDEN_TO_CLEAR_BINDINGS[bindingID] then
 			return false;
 		end
-		db.table.map(TrySetBinding, db.Gamepad:GetBindingKey(bindingID))
+		local context = CPAPI.GetBindingContextForAction(bindingID)
+		for _, binding in ipairs(db.Gamepad:GetBindingKey(bindingID, true)) do
+			TrySetBinding(binding, nil, false, context)
+		end
 		if saveAfter then
 			SaveBindings(GetCurrentBindingSet())
 		end
 		return true;
+	end
+
+	if CPAPI.IsRetailVersion then
+		function CPAPI.GetBindingAction(keyChord, checkOverride, context)
+			return GetBindingAction(keyChord, checkOverride, context)
+		end
+	else
+		function CPAPI.GetBindingAction(keyChord, checkOverride)
+			return GetBindingAction(keyChord, checkOverride)
+		end
 	end
 end
 
@@ -290,6 +304,7 @@ CPAPI.DisableAddOn                   = C_AddOns        and C_AddOns.DisableAddOn
 CPAPI.EnableAddOn                    = C_AddOns        and C_AddOns.EnableAddOn                          or EnableAddOn;
 CPAPI.GetActiveZoneAbilities         = C_ZoneAbility   and C_ZoneAbility.GetActiveAbilities              or nopt;
 CPAPI.GetAddOnInfo                   = C_AddOns        and C_AddOns.GetAddOnInfo                         or GetAddOnInfo;
+CPAPI.GetBindingContextForAction     = C_KeyBindings   and C_KeyBindings.GetBindingContextForAction      or nop;
 CPAPI.GetBonusBarIndexForSlot        = C_ActionBar     and C_ActionBar.GetBonusBarIndexForSlot           or nop;
 CPAPI.GetCollectedDragonridingMounts = C_MountJournal  and C_MountJournal.GetCollectedDragonridingMounts or nopt;
 CPAPI.GetContainerItemID             = C_Container     and C_Container.GetContainerItemID                or GetContainerItemID;

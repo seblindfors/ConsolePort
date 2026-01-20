@@ -21,7 +21,7 @@ local Mouse = db:Register('Mouse', CPAPI.CreateEventHandler({'Frame', '$parentMo
 -- Upvalues since these will be called/checked frequently
 ---------------------------------------------------------------
 local GameTooltip, UIParent, WorldFrame = GameTooltip, UIParent, WorldFrame;
-local GetBindingAction, CreateKeyChord = GetBindingAction, CPAPI.CreateKeyChord;
+local GetBindingAction, CreateKeyChord = CPAPI.GetBindingAction, CPAPI.CreateKeyChord;
 local After, NewTimer, UnitExists = C_Timer.After, C_Timer.NewTimer, UnitExists;
 
 ---------------------------------------------------------------

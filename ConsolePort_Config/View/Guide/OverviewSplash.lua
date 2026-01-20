@@ -42,11 +42,11 @@ local Base    = env.BindingInfoMixin;
 local Binding = CreateFromMixins(Base);
 ---------------------------------------------------------------
 function Binding:GetChordBinding(mod)
-	return GetBindingAction(mod..self.baseBinding)
+	return CPAPI.GetBindingAction(mod..self.baseBinding)
 end
 
 function Binding:GetBinding()
-	return GetBindingAction(self:GetKeyChord());
+	return CPAPI.GetBindingAction(self:GetKeyChord());
 end
 
 function Binding:SetBinding(bindingID)

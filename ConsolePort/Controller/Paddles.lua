@@ -71,7 +71,7 @@ function Paddles:UpdatePaddleBindings(id)
 		-- Set new bindings
 		self[id] = {};
 		for modifier in pairs(db.Gamepad.Index.Modifier.Active) do
-			local action = GetBindingAction(modifier..button)
+			local action = CPAPI.GetBindingAction(modifier..button)
 			local activeMapping = modifier..mapping;
 			self[id][activeMapping] = action;
 			SetOverrideBinding(self, false, activeMapping, action)

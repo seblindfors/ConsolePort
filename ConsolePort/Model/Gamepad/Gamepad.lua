@@ -459,7 +459,7 @@ function GamepadAPI:GetBindings(getInactive)
 	local bindings = {};
 	for btn in pairs(btns) do
 		for mod in pairs(mods) do
-			local binding = GetBindingAction(mod..btn)
+			local binding = CPAPI.GetBindingAction(mod..btn)
 			if getInactive or binding:len() > 0 then
 				bindings[btn] = bindings[btn] or {};
 				bindings[btn][mod] = binding;
@@ -480,7 +480,8 @@ function GamepadAPI:GetBindingsTemplate()
 end
 
 function GamepadAPI:GetBindingKey(binding, asTable)
-	local keys = tFilter({GetBindingKey(binding, true)}, IsBindingForGamePad, true)
+	local context = CPAPI.GetBindingContextForAction(binding)
+	local keys = tFilter({GetBindingKey(binding, true, context)}, IsBindingForGamePad, true)
 	if asTable then return keys end;
 	return unpack(keys)
 end

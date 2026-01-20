@@ -118,6 +118,11 @@ function Title:Data(dpOrText)
 end
 
 ---------------------------------------------------------------
+local Subtitle = CreateFromMixins(Title, {xml = 'CPPopupSmallHeaderTemplate'});
+---------------------------------------------------------------
+Elements.Subtitle = Subtitle;
+
+---------------------------------------------------------------
 local Results = CPAPI.CreateElement('SettingsListSectionHeaderTemplate', 292, 45);
 ---------------------------------------------------------------
 Elements.Results = Results;

@@ -199,17 +199,10 @@
 		</Layers>
 	</Button>
 
-	<Frame name="CPPopupHeaderTemplate" virtual="true">
+	<Frame name="CPPopupHeaderBaseTemplate" virtual="true">
 		<Size x="434" y="38"/>
 		<Layers>
 			<Layer level="ARTWORK">
-				<FontString parentKey="Text" inherits="GameFontNormalLarge">
-					<Color color="WHITE_FONT_COLOR"/>
-					<Size x="0" y="38"/>
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</FontString>
 				<Texture parentKey="BarTexture" inherits="CPAtlas">
 					<Size y="3"/>
 					<Anchors>
@@ -222,6 +215,45 @@
 						<KeyValue key="flipHorz" value="true" type="boolean"/>
 					</KeyValues>
 				</Texture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPPopupHeaderTemplate" inherits="CPPopupHeaderBaseTemplate" virtual="true">
+		<Size x="434" y="38"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontNormalLarge">
+					<Color color="WHITE_FONT_COLOR"/>
+					<Size x="0" y="38"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+				<MaskTexture parentKey="BarMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\TransparentSquareMask" vWrapMode="CLAMPTOBLACK" hWrapMode="CLAMPTOBLACK">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeKey="$parent.Text" x="-5" y="0"/>
+						<Anchor point="BOTTOMRIGHT" relativeKey="$parent.Text" x="5" y="0"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="BarTexture"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="CPPopupSmallHeaderTemplate" inherits="CPPopupHeaderBaseTemplate" virtual="true">
+		<Size x="434" y="38"/>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString parentKey="Text" inherits="GameFontNormal">
+					<Color color="WHITE_FONT_COLOR"/>
+					<Size x="0" y="38"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
 				<MaskTexture parentKey="BarMask" file="Interface\AddOns\ConsolePort\Assets\Textures\Frame\TransparentSquareMask" vWrapMode="CLAMPTOBLACK" hWrapMode="CLAMPTOBLACK">
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeKey="$parent.Text" x="-5" y="0"/>

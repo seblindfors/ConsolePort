@@ -158,8 +158,9 @@ function BindingCatcher:OnBindingCaught(button, data)
 	if not CPAPI.IsButtonValidForBinding(button) then return end;
 
 	local bindingID = data.bindingID;
+	local context   = CPAPI.GetBindingContextForAction(bindingID)
 	local keyChord  = CPAPI.CreateKeyChord(button)
-	local curAction = GetBindingAction(keyChord)
+	local curAction = CPAPI.GetBindingAction(keyChord, nil, context)
 
 	if ( curAction ~= '' and curAction ~= bindingID ) then
 		CPAPI.Next(env.TriggerEvent, env, 'OnBindingConflict', keyChord, bindingID, curAction)
