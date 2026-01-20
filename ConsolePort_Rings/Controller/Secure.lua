@@ -60,6 +60,9 @@ Secure:CreateEnvironment({
 			self::SwitchRing(slot.ring)
 			self:::OnSelection(false)
 			return true;
+		elseif slot.func then
+			self:::CallCustom(index, slot.func)
+			return false;
 		end
 
 		for attribute, value in pairs(slot) do
@@ -301,6 +304,13 @@ Secure:Hook(Secure.Remove, 'OnClick', [[
 function Secure:QueueRefresh()
 	if env.IsDataReady then
 		db:RunSafe(self.RefreshAll, self)
+	end
+end
+
+function Secure:CallCustom(index, func)
+	local widget = self:GetObjectByIndex(index)
+	if widget and widget.RunCustom then
+		widget:RunCustom(func)
 	end
 end
 

@@ -5,6 +5,8 @@ local Events = CPAPI.EventHandler(env.Frame, {
 ---------------------------------------------------------------
 	'ACTIONBAR_SLOT_CHANGED';
 	'BAG_UPDATE_DELAYED';
+	'HOUSE_PLOT_ENTERED';
+	'HOUSE_PLOT_EXITED';
 	'PLAYER_ENTERING_WORLD';
 	'QUEST_DATA_LOAD_RESULT';
 	'QUEST_WATCH_LIST_CHANGED';
@@ -95,4 +97,14 @@ function Events:PLAYER_ENTERING_WORLD(isInitialLogin, isReloadingUi)
 		self:QueueRefresh()
 		self:UnregisterEvent('PLAYER_ENTERING_WORLD')
 	end
+end
+
+function Events:HOUSE_PLOT_ENTERED()
+	if self:IsAutoEnabled() and not db.Gamepad:GetBindingKey('HOUSING_TOGGLEEDITOR') then
+		_(self.ToggleHouseEditorButton, self, true)
+	end
+end
+
+function Events:HOUSE_PLOT_EXITED()
+	_(self.ToggleHouseEditorButton, self, false)
 end

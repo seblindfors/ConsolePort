@@ -179,3 +179,12 @@ function Auto:ToggleInventoryQuestItems(hideAnnouncement)
 		end
 	end)
 end
+
+function Auto:ToggleHouseEditorButton(enabled)
+	if enabled then
+		self:AssignAction(SecureHandlerMap.house('toggle'), 1)
+		self:AnnounceAddition(BINDING_NAME_HOUSING_TOGGLEEDITOR)
+	else
+		self:ClearActionByAttribute(DEFAULT_SET, 'house', 'toggle')
+	end
+end

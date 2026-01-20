@@ -110,8 +110,8 @@ env:RegisterCallback('OnButtonFocus', function(self, button, focused)
 	if button:IsOwned(self.NestedRing) then return end;
 	if focused then
 		if not button:IsCustomType() then return end;
-		local data = button:RunCustom()
-		if ( data.type ~= self.Attributes.NestedRing ) then return end;
+		local data = button:RunCustom('focus')
+		if not data or ( data.type ~= self.Attributes.NestedRing ) then return end;
 
 		if not self.NestedRing then
 			self.NestedRing = env:CreateMockRing('$parentNested', self.Frame)

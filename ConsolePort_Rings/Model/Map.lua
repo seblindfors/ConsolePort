@@ -14,6 +14,11 @@ env.SecureHandlerMap = CreateFromMixins(db.Loadout.SecureHandlerMap, {
 		type    = 'custom';
 		binding = bindingID;
 	} end;
+	---------------------------------------------------------------
+	house = function(command) return {
+		type  = 'custom';
+		house = command;
+	} end;
 });
 
 ---------------------------------------------------------------
@@ -32,7 +37,7 @@ local function GetCustomAction(data)
 			ring = tostring(data.ring);
 		};
 		return { -- LAB data
-			func = function() return secureEnvData end;
+			func = CPAPI.Static(secureEnvData);
 			text = name;
 			texture = texture;
 			tooltip = name;
@@ -46,10 +51,32 @@ local function GetCustomAction(data)
 			macrotext = data.binding:gsub('CLICK', '/click'):gsub(':', ' ')
 		};
 		return { -- LAB data
-			func = function() return secureEnvData end;
+			func = CPAPI.Static(secureEnvData);
 			text = name;
 			texture = texture;
 			tooltip = name;
+		}, secureEnvData;
+	end
+	if data.house then
+		local secureEnvData = {
+			type = env.Attributes.Function;
+			func = data.house;
+		}
+		return {
+			func = function(_, context)
+				if context == 'toggle' then
+					return HousingFramesUtil.ToggleHouseEditor();
+				end
+			end;
+			text = BINDING_NAME_HOUSING_TOGGLEEDITOR;
+			tooltip = HOUSING_CONTROLS_EDITOR_BUTTON_ENTER;
+			texture = function(self)
+				self:SetAtlas('decor-controls-decoratemode-pressed', false)
+				return function()
+					self:SetTexCoord(0, 1, 0, 1)
+				end
+			end;
+			--texture = [[Interface\AddOns\ConsolePort_Rings\Assets\decor-controls-decoratemode-pressed.png]];
 		}, secureEnvData;
 	end
 end
