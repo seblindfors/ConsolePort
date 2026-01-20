@@ -13,6 +13,10 @@ function Aura:OnLoad()
 	if self.cooldown.SetUseAuraDisplayTime then
 		self.cooldown:SetUseAuraDisplayTime(true)
 	end
+	if CPAPI.IsRetailVersion then
+		self.cooldown:SetHideCountdownNumbers(true)
+		self.cooldown:SetDrawEdge(false)
+	end
 end
 
 function Aura:GetFilter()
@@ -31,26 +35,57 @@ function Aura:GetData(unit)
 	return self.getData(self:GetArguments(unit));
 end
 
+if C_UnitAuras and C_UnitAuras.GetAuraApplicationDisplayCount then
+	function Aura:GetCount(data)
+		return C_UnitAuras.GetAuraApplicationDisplayCount(data.sourceUnit, data.auraInstanceID)
+	end
+else
+	function Aura:GetCount(data)
+		return data and data.applications or '';
+	end
+end
+
+if CPAPI.IsRetailVersion then
+	function Aura:GetColor()
+		return self.isHelpful and NORMAL_FONT_COLOR
+		    or self.isHarmful and RED_FONT_COLOR
+		    or BLUE_FONT_COLOR;
+	end
+
+	function Aura:SetCooldown(data)
+		local duration = C_UnitAuras.GetAuraDuration(data.sourceUnit, data.auraInstanceID)
+		self.cooldown:SetSwipeColor(self:GetColor(data):GetRGBA())
+		if duration then
+			self.cooldown:SetCooldownFromDurationObject(duration)
+		else
+			ClearTimer(self.cooldown)
+		end
+	end
+else
+	function Aura:GetColor(data)
+		return (data and data.isHelpful) and NORMAL_FONT_COLOR
+		    or (data and data.isHarmful) and RED_FONT_COLOR
+		    or BLUE_FONT_COLOR;
+	end
+
+	function Aura:SetCooldown(data)
+		self.cooldown:SetSwipeColor(self:GetColor(data):GetRGBA())
+		if data.duration > 0 then
+			self.cooldown:SetHideCountdownNumbers(data.duration > 60)
+			SetTimer(self.cooldown, data.expirationTime - data.duration, data.duration, true)
+		else
+			ClearTimer(self.cooldown)
+		end
+	end
+end
+
 function Aura:Update(unit)
 	local data = self:GetData(unit);
 	if not data then return self:SetIcon(nil) end;
 
 	self:SetIcon(data.icon)
-	self:SetCount(data.applications)
-
-	local color = BLUE_FONT_COLOR;
-	if data.isHelpful then
-		color = NORMAL_FONT_COLOR;
-	elseif data.isHarmful then
-		color = RED_FONT_COLOR;
-	end
-	self.cooldown:SetSwipeColor(color:GetRGBA())
-	if data.duration > 0 then
-		self.cooldown:SetHideCountdownNumbers(data.duration > 60)
-		SetTimer(self.cooldown, data.expirationTime - data.duration, data.duration, true)
-	else
-		ClearTimer(self.cooldown)
-	end
+	self:SetCount(self:GetCount(data), true, true)
+	self:SetCooldown(data)
 end
 
 function Aura:OnEnter()
@@ -60,10 +95,18 @@ function Aura:OnEnter()
 end
 
 function Aura:UpdateTooltip()
-	GameTooltip:SetUnitAura(self:GetArguments())
 	local data = self:GetData();
-	if not data or not data.isHelpful then return end;
+	if not data then return end;
+	if CPAPI.IsRetailVersion then
+		if InCombatLockdown() then
+			return -- TODO: Figure out how to show tooltips in combat in retail
+		end
+		GameTooltip:SetUnitAuraByAuraInstanceID(data.sourceUnit, data.auraInstanceID, self:GetFilter())
+	else
+		GameTooltip:SetUnitAura(self:GetArguments())
+	end
 
+	if not self.isHelpful then return end;
 	local text = env:GetTooltipPromptForClick('RightButton', CANCEL)
 	if text then
 		GameTooltip:AddLine(text, 1, 1, 1)
@@ -95,6 +138,8 @@ function Header:Update()
 		if not aura or not aura:IsShown() then break end;
 		if not aura.Update then
 			CPAPI.Specialize(aura, Aura)
+			aura.isHelpful = self:IsHelpful();
+			aura.isHarmful = not aura.isHelpful;
 		end
 		aura:Update(unit)
 	until false;
@@ -109,6 +154,7 @@ env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
 		frame:SetAttribute('filter', filter)
 		CPAPI.Specialize(frame, Header)
 		frame:SetTitle(title);
+		frame:SetHelpful(filter == 'HELPFUL');
 		QMenu:AddFrame(frame, index)
 		return frame;
 	end

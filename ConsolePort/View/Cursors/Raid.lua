@@ -454,6 +454,7 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 	end
 
 	function Cursor:UpdateHealthForUnit(unit)
+		if CPAPI.IsRetailVersion then return end; -- TODO: Implement a secret safe way to do this in Retail
 		local fraction = UnitHealth(unit) / UnitHealthMax(unit);
 		self.Health:SetTexCoord(0, 1, abs(1 - fraction), 1)
 		self.Health:SetHeight(54 * fraction)
@@ -588,6 +589,10 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 		self.Display:SetAnimationSpeed(db('raidCursorTravelTime'))
 		self.Display.UnitInformation:SetShown(db('raidCursorPortraitShow'))
 		self.animationEnabled = animationEnabled;
+		if CPAPI.IsRetailVersion then
+			self.Display.UnitInformation:SetPoint('TOPLEFT', 4, -4)
+			self.Display.UnitInformation:SetScale(.75)
+		end
 	end
 end
 

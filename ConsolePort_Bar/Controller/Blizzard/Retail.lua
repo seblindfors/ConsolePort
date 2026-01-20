@@ -68,11 +68,11 @@ function env.UIHandler:HideBlizzard()
 	for bar, clearEvents in pairs({
 		MultiBarBottomLeft  = true;
 		MultiBarBottomRight = true;
-	--	MultiBarLeft        = true;
-	--	MultiBarRight       = true;
-	--	MultiBar5           = true;
-	--	MultiBar6           = true;
-	--	MultiBar7           = true;
+		MultiBarLeft        = true;
+		MultiBarRight       = true;
+		MultiBar5           = true;
+		MultiBar6           = true;
+		MultiBar7           = true;
 	}) do
 		hideEditModeFrame(_G[bar], clearEvents)
 		for i = 1, 12 do -- Hide MultiBar Buttons

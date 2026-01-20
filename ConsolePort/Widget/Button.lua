@@ -18,10 +18,13 @@ function CPActionButtonMixin:SetVertexColor(...)
 	if font then font:SetVertexColor(...) end
 end
 
-function CPActionButtonMixin:SetCount(val, forceShow)
+function CPActionButtonMixin:SetCount(val, forceShow, raw)
 	local count = self.count or self.Count
 	if count then
 		val = tonumber(val)
+		if raw then
+			return count:SetText(val)
+		end
 		count:SetText(((val and val >  1) or forceShow) and val or '')
 	end
 end

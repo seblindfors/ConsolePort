@@ -519,10 +519,12 @@ local function OverlayGlow_OnUpdate(self, elapsed)
 	local cooldown = self:GetParent().cooldown
 	-- we need some threshold to avoid dimming the glow during the gdc
 	-- (using 1500 exactly seems risky, what if casting speed is slowed or something?)
-	if(cooldown and cooldown:IsShown() and cooldown:GetCooldownDuration() > 3000) then
-		self:SetAlpha(0.5)
-	else
-		self:SetAlpha(1.0)
+	if not CPAPI.IsRetailVersion then
+		if(cooldown and cooldown:IsShown() and cooldown:GetCooldownDuration() > 3000) then
+			self:SetAlpha(0.5)
+		else
+			self:SetAlpha(1.0)
+		end
 	end
 end
 
