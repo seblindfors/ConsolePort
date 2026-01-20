@@ -108,6 +108,16 @@ if CPAPI.IsRetailVersion then -- Misc retail addon fixes
 			end
 		end
 	end)
+	_('Blizzard_HousingTemplates', function()
+		Scripts.OnEnter[ BaseHousingActionButtonMixin.OnEnter ] = function(self)
+			self.IsMouseMotionFocus = CPAPI.Static(true);
+			return BaseHousingActionButtonMixin.OnEnter(self)
+		end;
+		Scripts.OnLeave[ BaseHousingActionButtonMixin.OnLeave ] = function(self)
+			CPAPI.Purge(self, 'IsMouseMotionFocus')
+			return BaseHousingActionButtonMixin.OnLeave(self)
+		end;
+	end)
 end
 
 -----------------------------------------------------------

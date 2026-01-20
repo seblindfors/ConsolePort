@@ -149,3 +149,10 @@ function env.HandleTaintError(action)
 		end)
 	end
 end
+
+_('Blizzard_HouseEditor', function()
+	db.Stack:AddFrame(HouseEditorFrame)
+	if GeneralDockManager then
+		GeneralDockManager:SetAttribute(env.Attributes.IgnoreNode, true)
+	end
+end)
