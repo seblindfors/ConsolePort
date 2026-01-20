@@ -437,6 +437,7 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 	for _, region in ipairs({Cursor.Display.UnitInformation:GetRegions()}) do
 		Cursor[region:GetParentKey()] = region;
 	end
+	Cursor.Health = Cursor.Display.UnitInformation.Health;
 	Cursor.UnitPortrait.SetPortrait  = SetPortraitTexture;
 
 	function Cursor:UpdateUnit(unit)
@@ -453,25 +454,36 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 		end
 	end
 
-	function Cursor:UpdateHealthForUnit(unit)
-		if CPAPI.IsRetailVersion then return end; -- TODO: Implement a secret safe way to do this in Retail
-		local fraction = UnitHealth(unit) / UnitHealthMax(unit);
-		self.Health:SetTexCoord(0, 1, abs(1 - fraction), 1)
-		self.Health:SetHeight(54 * fraction)
-		if (fraction < 0.35) then
-			local color = WARNING_LOW_HEALTH;
-			self.Border:SetVertexColor(color.r, color.g, color.b)
-		else
-			self.Border:SetVertexColor(1, 1, 1)
+	if CPAPI.IsRetailVersion then
+		local healthCurve = C_CurveUtil.CreateColorCurve();
+		healthCurve:SetType(Enum.LuaCurveType.Step);
+		healthCurve:AddPoint(0.0, CreateColor(1, 0.25, 0.25, 1));
+		healthCurve:AddPoint(0.3, CreateColor(1, 1, 0.25, 1));
+		healthCurve:AddPoint(0.7, CreateColor(1, 1, 1, 1));
+
+		function Cursor:UpdateHealthForUnit(unit)
+			local usePredicted  = false;
+			self.Health:SetValue(UnitHealthPercent(unit, usePredicted, CurveConstants.ScaleTo100))
+			self.Border:SetVertexColor(UnitHealthPercent(unit, usePredicted, healthCurve):GetRGB())
+		end
+	else
+		function Cursor:UpdateHealthForUnit(unit)
+			self.Health:SetValue(UnitHealth(unit) / UnitHealthMax(unit) * 100)
+			if (fraction < 0.35) then
+				local color = WARNING_LOW_HEALTH;
+				self.Border:SetVertexColor(color.r, color.g, color.b)
+			else
+				self.Border:SetVertexColor(1, 1, 1)
+			end
 		end
 	end
 
 	function Cursor:UpdateColor(colorObj)
 		self.color = colorObj;
 		if colorObj then
-			self.Health:SetVertexColor(colorObj.r, colorObj.g, colorObj.b)
+			self.Health:SetStatusBarColor(colorObj.r, colorObj.g, colorObj.b)
 		else
-			self.Health:SetVertexColor(.5, .5, .5)
+			self.Health:SetStatusBarColor(.5, .5, .5)
 		end
 	end
 
@@ -589,10 +601,6 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 		self.Display:SetAnimationSpeed(db('raidCursorTravelTime'))
 		self.Display.UnitInformation:SetShown(db('raidCursorPortraitShow'))
 		self.animationEnabled = animationEnabled;
-		if CPAPI.IsRetailVersion then
-			self.Display.UnitInformation:SetPoint('TOPLEFT', 4, -4)
-			self.Display.UnitInformation:SetScale(.75)
-		end
 	end
 end
 

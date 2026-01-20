@@ -74,15 +74,16 @@
 									</Anchors>
 								</Texture>
 							</Layer>
-							<Layer level="OVERLAY" textureSubLevel="3">
-								<Texture parentKey="Health" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\RoundBorderHighlight">
-									<Size x="54" y="54"/>
-									<Anchors>
-										<Anchor point="BOTTOM" relativeKey="$parent.Border"/>
-									</Anchors>
-								</Texture>
-							</Layer>
 						</Layers>
+						<Frames>
+							<StatusBar parentKey="Health" orientation="VERTICAL" minValue="0" maxValue="100">
+								<Size x="54" y="54"/>
+								<Anchors>
+									<Anchor point="BOTTOM" relativeKey="$parent.Border"/>
+								</Anchors>
+								<BarTexture parentKey="BarTexture" file="Interface\AddOns\ConsolePort\Assets\Textures\Cursor\RoundBorderHighlight"/>
+							</StatusBar>
+						</Frames>
 					</Frame>
 				</Frames>
 			</Frame>

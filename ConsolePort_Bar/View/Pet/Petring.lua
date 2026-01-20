@@ -235,7 +235,7 @@ function CPPetRing:OnLoad()
 	self.Power:SetSwipeTexture(env.Const.Cluster.BorderStyle.Large.HighlightTexture)
 	self.Health:SetSwipeTexture(env.Const.Cluster.BorderStyle.Large.HighlightTexture)
 
-	self:UpdatePower()
+	self:UpdatePowerType()
 	self.Health:SetSwipeColor(0, 1, 0, 1)
 
 	env:RegisterCallback('OnLoadoutConfigShown', self.OnLoadoutConfigShown, self)
@@ -305,42 +305,73 @@ function CPPetRing:OnEvent(event, ...)
 	self:Update()
 end
 
-local UnitExists, UnitHealth,   UnitHealthMax = UnitExists, UnitHealth, UnitHealthMax;
-local UnitPower,  UnitPowerMax, UnitPowerType = UnitPower, UnitPowerMax, UnitPowerType;
+do local UnitExists = UnitExists;
+	function CPPetRing:OnUpdate(elapsed)
+		self.elapsed = (self.elapsed or 0) + elapsed;
+		if self.elapsed > 0.1 then
+			self.elapsed = 0;
+			return;
+		end
+		local unit, powerType = self.unit, self.powerType;
+		if not UnitExists(unit) then return end;
+		self:UpdateHealth(unit)
+		if not powerType then return end;
+		self:UpdatePower(unit, powerType)
+	end
+end
 
-function CPPetRing:OnUpdate(elapsed)
-	self.elapsed = (self.elapsed or 0) + elapsed;
-	if self.elapsed > 0.1 then
-		self.elapsed = 0;
-		return;
+if CPAPI.IsRetailVersion then
+	local UnitHealthPercent, UnitPowerPercent = UnitHealthPercent, UnitPowerPercent;
+
+	local saturation = 100;
+	local valueCurve = C_CurveUtil.CreateCurve();
+	valueCurve:SetType(Enum.LuaCurveType.Linear);
+
+	function CPPetRing:UpdateHealth(unit)
+		valueCurve:ClearPoints()
+		valueCurve:AddPoint(0.0, GetTime() - saturation);
+		valueCurve:AddPoint(1.0, GetTime() - saturation / 2);
+
+		local usePredicted = false;
+		local health = UnitHealthPercent(unit, usePredicted, valueCurve)
+
+		self.Health:Pause()
+		self.Health:SetCooldown(health, saturation)
 	end
-	local unit, powerType = self.unit, self.powerType;
-	if not UnitExists(unit) then return end;
-	local health = UnitHealth(unit) / UnitHealthMax(unit);
-	if ( self.health ~= health ) then
-		self.health = health;
-		self:SetHealth(health)
+
+	function CPPetRing:UpdatePower(unit, powerType)
+		-- valueCurve is already up to date from health update.
+		local unmodified = false;
+		local power = UnitPowerPercent(unit, powerType, unmodified, valueCurve)
+
+		self.Power:Pause()
+		self.Power:SetCooldown(power, saturation)
 	end
-	if not powerType then return end;
-	local maxPower = UnitPowerMax(unit, powerType)
-	local curPower = UnitPower(unit, powerType);
-	local power = maxPower > 0 and curPower / maxPower or 1;
-	if ( self.power ~= power ) then
-		self.power = power;
-		self:SetPower(power)
+else
+	local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax;
+	local UnitPower,  UnitPowerMax  = UnitPower, UnitPowerMax;
+
+	function CPPetRing:UpdateHealth(unit)
+		local health = UnitHealth(unit) / UnitHealthMax(unit);
+		if ( self.health ~= health ) then
+			self.health = health;
+			CooldownFrame_SetDisplayAsPercentage(self.Health, health * 0.5)
+		end
+	end
+
+	function CPPetRing:UpdatePower(unit, powerType)
+		local maxPower = UnitPowerMax(unit, powerType)
+		local curPower = UnitPower(unit, powerType);
+		local power = maxPower > 0 and curPower / maxPower or 1;
+		if ( self.power ~= power ) then
+			self.power = power;
+			CooldownFrame_SetDisplayAsPercentage(self.Power, 1 - power * 0.5)
+		end
 	end
 end
 
 function CPPetRing:OnRelease()
 	UnregisterStateDriver(self, 'visibility')
-end
-
-function CPPetRing:SetHealth(health)
-	CooldownFrame_SetDisplayAsPercentage(self.Health, health * 0.5)
-end
-
-function CPPetRing:SetPower(power)
-	CooldownFrame_SetDisplayAsPercentage(self.Power, 1 - power * 0.5)
 end
 
 ---------------------------------------------------------------
@@ -359,7 +390,7 @@ function CPPetRing:UpdateCooldowns()
 	end
 end
 
-function CPPetRing:UpdatePower()
+function CPPetRing:UpdatePowerType()
 	local powerType = UnitPowerType(self.unit)
 	if not powerType then return end;
 
@@ -379,7 +410,7 @@ end
 function CPPetRing:UNIT_PET()
 	self:UNIT_PORTRAIT_UPDATE()
 	self:Update()
-	self:UpdatePower()
+	self:UpdatePowerType()
 end
 
 ---------------------------------------------------------------
