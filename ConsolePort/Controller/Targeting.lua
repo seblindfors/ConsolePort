@@ -204,7 +204,7 @@ function Targeting:PLAYER_SOFT_INTERACT_CHANGED(_, guid)
 end
 
 function Targeting:NAME_PLATE_UNIT_ADDED(unitID)
-	if UnitIsUnit(unitID, 'anyinteract') then
+	if CPAPI.Scrub(UnitIsUnit(unitID, 'anyinteract')) then
 		self:PLAYER_SOFT_INTERACT_CHANGED(nil, UnitGUID(unitID))
 	end
 end
