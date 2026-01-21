@@ -82,6 +82,7 @@ if CPAPI.IsRetailVersion then
 		GameTooltip:SetFrameStrata(enabled and 'BACKGROUND' or 'TOOLTIP')
 	end
 
+	-- TODO: This feature seems to not work since 12.0.0.
 	function SetTooltipPosition(unit, offsetX)
 		local nameplate = GetNamePlateForUnit(unit)
 		anchor = GetSoftTargetIcon(nameplate)
