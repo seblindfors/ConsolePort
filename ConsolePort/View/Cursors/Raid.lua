@@ -468,7 +468,8 @@ do 	local IsSpellHarmful, IsSpellHelpful = CPAPI.IsSpellHarmful, CPAPI.IsSpellHe
 		end
 	else
 		function Cursor:UpdateHealthForUnit(unit)
-			self.Health:SetValue(UnitHealth(unit) / UnitHealthMax(unit) * 100)
+			local fraction = UnitHealth(unit) / UnitHealthMax(unit);
+			self.Health:SetValue(fraction * 100)
 			if (fraction < 0.35) then
 				local color = WARNING_LOW_HEALTH;
 				self.Border:SetVertexColor(color.r, color.g, color.b)
