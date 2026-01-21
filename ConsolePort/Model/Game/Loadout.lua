@@ -386,6 +386,12 @@ LoadoutInfo.Collectors = {
 				spells.tabName = spellTabInfo.name;
 			end
 		end
+		local sbaSpellID = AssistedCombatManager and AssistedCombatManager:GetActionSpellID()
+		if sbaSpellID then
+			local flyout, flyoutID = { sbaSpellID }, #flyouts + 1;
+			flyouts[flyoutID] = flyout;
+			flyoutNames[flyoutID] = ASSISTED_COMBAT_LABEL;
+		end
 		return spellBook, flyouts, flyoutNames;
 	end;
 	-----------------------------------------------------------
