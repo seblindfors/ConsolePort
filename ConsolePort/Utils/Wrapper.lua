@@ -371,6 +371,7 @@ CPAPI.IsPartyLFG                     = IsPartyLFG         or nop;
 CPAPI.IsSpellOverlayed               = IsSpellOverlayed   or nop;
 CPAPI.IsXPUserDisabled               = IsXPUserDisabled   or nop;
 CPAPI.PlayerHasToy                   = PlayerHasToy       or nop;
+CPAPI.Scrub                          = scrubsecretvalues  or function(...)return...end;
 
 -- Complex wrappers
 CPAPI.GetContainerItemInfo = function(...)
@@ -602,16 +603,6 @@ CPAPI.GetAllMacroInfo = function()
 	end
 	return info;
 end
-
-CPAPI.Scrub = issecretvalue and function(value, ...)
-	if issecretvalue(value) then
-		return nil, CPAPI.Scrub(...);
-	end
-	if select('#', ...) == 0 then
-		return value;
-	end
-	return value, CPAPI.Scrub(...);
-end or function(...) return ... end;
 
 end -- API wrappers
 

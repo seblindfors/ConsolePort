@@ -56,7 +56,9 @@ local function IsTooltipAvailable()
 end
 
 local function IsTooltipOwned(unit, guid)
-	return GameTooltip:IsOwned(UIParent) and GameTooltip:GetUnit() == unit and UnitGUID(unit) == guid;
+	return GameTooltip:IsOwned(UIParent)
+		and CPAPI.Scrub(GameTooltip:GetUnit()) == unit
+		and CPAPI.Scrub(UnitGUID(unit)) == guid;
 end
 
 local function AddResetUnitTooltipCallback(unit, guid)
@@ -134,8 +136,8 @@ local function SetTooltipToUnitName(unit)
 end
 
 local function TrySetUnitTooltip(option, unit, self)
-	local guid = UnitGUID(unit)
-	if ( self.tooltipGUID ~= guid and db(option) and IsTooltipAvailable() ) then
+	local guid = CPAPI.Scrub(UnitGUID(unit))
+	if ( guide and self.tooltipGUID ~= guid and db(option) and IsTooltipAvailable() ) then
 		self.tooltipGUID = guid;
 		SetTooltipToUnit(unit)
 		AddResetUnitTooltipCallback(unit, guid)

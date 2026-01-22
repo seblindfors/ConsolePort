@@ -357,7 +357,7 @@ function Mouse:OnUpdate(elapsed)
 			GameTooltip_SetDefaultAnchor(GameTooltip, self)
 			GameTooltip:SetUnit('mouseover')
 		end
-	elseif CPAPI.Scrub(GameTooltip:IsOwned(self)) then
+	elseif GameTooltip:IsOwned(self) then
 		self.mouseOverGUID = nil;
 		GameTooltip:Hide()
 	end
