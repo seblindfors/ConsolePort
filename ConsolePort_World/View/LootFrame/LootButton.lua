@@ -83,9 +83,9 @@ end
 
 function LootButton:OnUpdate()
 	local tooltip = GetTooltip()
-	local isOwned = tooltip:IsOwned(self)
-	local width   = (isOwned and tooltip:GetWidth() or 330) + 50;
-	local height  = (isOwned and tooltip:GetHeight() or 50);
+	local isOwned = CPAPI.Scrub(tooltip:IsOwned(self))
+	local width   = (isOwned and CPAPI.Scrub(tooltip:GetWidth()) or 330) + 50;
+	local height  = (isOwned and CPAPI.Scrub(tooltip:GetHeight()) or 50);
 	self:SetClampedSize(width, height)
 	if self.hasTooltipFocus and not isOwned then
 		self:OnLeave()
