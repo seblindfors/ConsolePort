@@ -437,7 +437,7 @@ Radial:CreateEnvironment({
 		local buttons = gstate and gstate.buttons
 		if not buttons then return end
 		local result = {};
-		for id, held in ipairs(buttons) do
+		for id, held in pairs(buttons) do
 			if held and BTNS[id] then
 				result[#result+1] = MODS[ BTNS[id] ]
 			end
