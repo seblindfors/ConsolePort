@@ -351,13 +351,13 @@ function Mouse:OnUpdate(elapsed)
 		return
 	end
 	if showMouseOverTooltip and is(_, IsMouseOver, CursorCentered) then
-		local guid = UnitGUID('mouseover')
-		if ( self.mouseOverGUID ~= guid ) then
+		local guid = CPAPI.Scrub(UnitGUID('mouseover'))
+		if guid and self.mouseOverGUID ~= guid then
 			self.mouseOverGUID = guid;
 			GameTooltip_SetDefaultAnchor(GameTooltip, self)
 			GameTooltip:SetUnit('mouseover')
 		end
-	elseif GameTooltip:IsOwned(self) then
+	elseif CPAPI.Scrub(GameTooltip:IsOwned(self)) then
 		self.mouseOverGUID = nil;
 		GameTooltip:Hide()
 	end
