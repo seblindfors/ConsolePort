@@ -179,7 +179,7 @@
 									<Frame parentKey="Settings" inherits="CPConfigScrollBox">
 										<Size x="325" y="325"/>
 										<KeyValues>
-											<KeyValue key="layoutIndex" value="2" type="number"/>
+											<KeyValue key="layoutIndex" value="3" type="number"/>
 											<KeyValue key="paddingLeft" value="0" type="number"/>
 											<KeyValue key="paddingBottom" value="0" type="number"/>
 											<KeyValue key="scrollBarHideIfUnscrollable" value="true" type="boolean"/>
