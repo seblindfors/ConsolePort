@@ -487,7 +487,6 @@ function CPToolbar:OnDataLoaded()
 	local enableTint, enableXP = env('tintEnable'), env('enableXPBar');
 	self.BG:SetShown(enableTint)
 	self.DividerLine:SetShown(enableTint)
-	self:SetTintColor(env:GetColorRGBA('tintColor'))
 	self:ToggleXPBar(enableXP)
 	self:ToggleXPBarFade(enableXP)
 	return CPAPI.KeepMeForLater;
@@ -496,6 +495,7 @@ end
 function CPToolbar:SetProps(props)
 	self:OnDataLoaded()
 	self:UpdateInversion(props)
+	self:SetTintColor(env:GetColorRGBA('tintColor'))
 	self:SetDynamicProps(props)
 	self:OnSizeChanged()
 	self:Show()
