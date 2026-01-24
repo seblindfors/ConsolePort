@@ -19,6 +19,7 @@ env.Const.DefaultVisibility = '[vehicleui][overridebar] hide; show';
 env.Const.ValidFontFlags = CPAPI.Enum('OUTLINE', 'THICKOUTLINE', 'MONOCHROME');
 env.Const.ValidJustifyH  = CPAPI.Enum('LEFT', 'CENTER', 'RIGHT');
 env.Const.ValidStratas   = CPAPI.Enum('BACKGROUND', 'LOW', 'MEDIUM', 'HIGH', 'DIALOG');
+env.Const.ValidFlyouts   = CPAPI.Enum('UP', 'DOWN', 'LEFT', 'RIGHT');
 env.Const.ValidPoints    = CPAPI.Enum(
 	'CENTER', 'TOP',      'BOTTOM',
 	'LEFT',   'TOPLEFT',  'BOTTOMLEFT',
@@ -295,7 +296,7 @@ local HK_ICONS_SIZE_L, HK_ICONS_SIZE_S = 32, 20;
 local HK_ATLAS_SIZE_L, HK_ATLAS_SIZE_S = 18, 12;
 -----------------------------------------------------------------------------------------------------------------------
 env.Const.Cluster = {
-	Directions = CPAPI.Enum('UP', 'DOWN', 'LEFT', 'RIGHT');
+	Directions = env.Const.ValidFlyouts;
 	Types      = CPAPI.Enum('Cluster', 'ClusterHandle', 'ClusterButton', 'ClusterShadow');
 	ModNames   = CPAPI.Enum(NOMOD, SHIFT, CTRL, CTRL..SHIFT, ALT, ALT..SHIFT, ALT..CTRL, ALT..CTRL..SHIFT);
 	SnapPixels = 4;

@@ -334,6 +334,11 @@ Interface.Page = Data.Interface {
 			desc = 'Orientation of the page.';
 			Data.Select('HORIZONTAL', 'HORIZONTAL', 'VERTICAL');
 		};
+		flyoutDirection = _{
+			name = 'Flyout Direction';
+			desc = 'Direction for flyout buttons, such as portals, poisons, and pet utilities.';
+			Data.Select('UP', env.Const.ValidFlyouts());
+		};
 		stride = _{
 			name = 'Stride';
 			desc = 'Number of buttons per row or column.';
