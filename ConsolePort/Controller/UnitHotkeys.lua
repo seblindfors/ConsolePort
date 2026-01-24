@@ -441,7 +441,7 @@ function UH:TryAddNamePlateForUnit(unitID)
 
 	local plate = self.GetNamePlateForUnit(unitID)
 	local frame = plate and plate.UnitFrame;
-	if frame and UnitIsUnit(frame:GetAttribute('unit'), unitID) then
+	if frame and CPAPI.Scrub(UnitIsUnit(frame:GetAttribute('unit'), unitID)) then
 		self:AddTrackedUnitFrame(unitID, frame)
 	end
 end
