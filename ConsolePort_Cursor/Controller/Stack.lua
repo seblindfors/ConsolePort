@@ -123,6 +123,15 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 		end
 	end
 
+	function Stack:Flush(frame)
+		if not frames[frame] then return end;
+		local wasVisible = visible[frame];
+		updateVisible(frame)
+		if wasVisible ~= visible[frame] then
+			self:UpdateFrames()
+		end
+	end
+
 	function Stack:LoadAddonFrames(name)
 		local frames = db('Stack/Registry/'..name)
 		if (type(frames) == 'table') then
@@ -359,13 +368,16 @@ do  local specialFrames, poolFrames, watchers = {}, {}, {};
 		local menu = _G.Menu; -- Blizzard's menu manager
 		local mgr  = menu.GetManager();
 		local function CatchOpenMenu()
-			if CatchPoolFrame(mgr:GetOpenMenu()) then
+			local openMenu = mgr:GetOpenMenu()
+			if CatchPoolFrame(openMenu) then
 				-- EXPERIMENTAL: catch submenus, if the menu is tagged
 				for _, tag in ipairs(menu.GetOpenMenuTags()) do
 					menu.ModifyMenu(tag, function(_, description)
 						description:AddMenuAcquiredCallback(CatchPoolFrame)
 					end)
 				end
+			elseif openMenu then
+				Stack:Flush(openMenu)
 			end
 		end
 		hooksecurefunc(mgr, 'OpenMenu', CatchOpenMenu)
