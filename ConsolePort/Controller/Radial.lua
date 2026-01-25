@@ -173,9 +173,9 @@ RadialMixin.Env = {
 		local btns = { self::GetButtonsHeld() };
 		local mods = { self::GetActiveModifiers() };
 
-		for _, btn in ipairs(btns) do
+		for _, btn in pairs(btns) do
 			self::SetBinding(btn)
-			for _, mod in ipairs(mods) do
+			for _, mod in pairs(mods) do
 				self::SetBinding(btn, mod)
 			end
 		end
@@ -185,9 +185,9 @@ RadialMixin.Env = {
 		local btns = { ... };
 		local mods = { self::GetActiveModifiers() };
 
-		for _, btn in ipairs(btns) do
+		for _, btn in pairs(btns) do
 			self::SetBinding(btn)
-			for _, mod in ipairs(mods) do
+			for _, mod in pairs(mods) do
 				self::SetBinding(btn, mod)
 			end
 		end
@@ -424,7 +424,7 @@ Radial:CreateEnvironment({
 		local buttons = gstate and gstate.buttons
 		if not buttons then return end
 		local result = {};
-		for id, held in ipairs(buttons) do
+		for id, held in pairs(buttons) do
 			if held and BTNS[id] and not MODS[ BTNS[id] ] then
 				result[#result+1] = BTNS[id]
 			end
