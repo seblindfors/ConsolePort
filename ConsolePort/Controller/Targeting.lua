@@ -11,14 +11,15 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 	'NAME_PLATE_UNIT_ADDED';
 }, {
 	DirectProxy = {
-		trgtEnemy           = db.Data.Cvar('SoftTargetEnemy');
-		trgtEnemyIcon       = db.Data.Cvar('SoftTargetIconEnemy');
-		trgtEnemyPlate      = db.Data.Cvar('SoftTargetNameplateEnemy');
-		trgtEnemyTooltip    = db.Data.Cvar('SoftTargetTooltipEnemy');
-		trgtFriend          = db.Data.Cvar('SoftTargetFriend');
-		trgtFriendIcon      = db.Data.Cvar('SoftTargetIconFriend');
-		trgtFriendPlate     = db.Data.Cvar('SoftTargetNameplateFriend');
-		trgtFriendTooltip   = db.Data.Cvar('SoftTargetTooltipFriend');
+		trgtEnemy                 = db.Data.Cvar('SoftTargetEnemy');
+		trgtEnemyIcon             = db.Data.Cvar('SoftTargetIconEnemy');
+		trgtEnemyPlate            = db.Data.Cvar('SoftTargetNameplateEnemy');
+		trgtEnemyTooltip          = db.Data.Cvar('SoftTargetTooltipEnemy');
+		trgtFriend                = db.Data.Cvar('SoftTargetFriend');
+		trgtFriendIcon            = db.Data.Cvar('SoftTargetIconFriend');
+		trgtFriendPlate           = db.Data.Cvar('SoftTargetNameplateFriend');
+		trgtFriendTooltip         = db.Data.Cvar('SoftTargetTooltipFriend');
+		trgtShowInteractNameplate = db.Data.Cvar('SoftTargetNameplateInteract');
 	};
 }))
 
@@ -35,7 +36,6 @@ local function GetSoftTargetIcon(nameplate)
 		and nameplate.UnitFrame.SoftTargetFrame
 		and nameplate.UnitFrame.SoftTargetFrame.Icon;
 end
-
 local function GetUnitNameFrame(nameplate)
 	return  nameplate
 		and nameplate.UnitFrame
@@ -75,28 +75,38 @@ local function SetTooltipToUnit(unit)
 	return GameTooltip:SetUnit(unit)
 end
 
-local SetTooltipPosition;
+local SetTooltipPosition, RestoreNameplate;
 if CPAPI.IsRetailVersion then
 	-- NOTE: Need to restore strata override once tooltip is being used by something else.
-	local isStrataOverride;
+	local isStrataOverride, currentNamePlate;
 	local function SetOverrideStrata(enabled)
 		isStrataOverride = enabled;
 		GameTooltip:SetFrameStrata(enabled and 'BACKGROUND' or 'TOOLTIP')
 	end
 
-	-- TODO: This feature seems to not work since 12.0.0.
+	local function ToggleTooltipElements(nameplate, show)
+		currentNamePlate = not show and nameplate or nil;
+		local nameframe = GetUnitNameFrame(nameplate)
+		if nameframe then
+			nameframe:SetShown(show)
+		end
+		local healthbars = GetHealthBarContainers(nameplate)
+		if healthbars then
+			healthbars:SetShown(show)
+		end
+	end
+
+	function RestoreNameplate()
+		if currentNamePlate then
+			ToggleTooltipElements(currentNamePlate, true)
+		end
+	end
+
 	function SetTooltipPosition(unit, offsetX)
 		local nameplate = GetNamePlateForUnit(unit)
 		anchor = GetSoftTargetIcon(nameplate)
 		if anchor then
-			local nameframe = GetUnitNameFrame(nameplate)
-			if nameframe then
-				nameframe:Hide()
-			end
-			local healthbars = GetHealthBarContainers(nameplate)
-			if healthbars then
-				healthbars:Hide()
-			end
+			ToggleTooltipElements(nameplate, false)
 			GameTooltip:SetOwner(anchor, 'ANCHOR_NONE')
 			SetOverrideStrata(true)
 			GameTooltip:ClearAllPoints()
@@ -116,6 +126,7 @@ if CPAPI.IsRetailVersion then
 		end
 	end)
 else
+	RestoreNameplate = nop;
 	function SetTooltipPosition()
 		SetDefaultAnchor()
 	end
@@ -167,10 +178,8 @@ end
 Targeting.PLAYER_SOFT_ENEMY_CHANGED  = GenerateClosure(TrySetUnitTooltip, 'trgtEnemyTooltip',  'softenemy')
 Targeting.PLAYER_SOFT_FRIEND_CHANGED = GenerateClosure(TrySetUnitTooltip, 'trgtFriendTooltip', 'softfriend')
 
-local InteractNamePlate = db.Data.Cvar('SoftTargetNameplateInteract')
-
 local function CanInteractWithObject(guid)
-	if not guid then return end;
+	if not CPAPI.Scrub(guid) then return end;
 	if guid:match('GameObject') then
 		-- Can't determine interaction range for objects,
 		-- so we just assume it's in range.
@@ -181,14 +190,10 @@ local function CanInteractWithObject(guid)
 end
 
 function Targeting:PLAYER_SOFT_INTERACT_CHANGED(_, guid)
-	if not CanInteractWithObject(guid) then
-		return CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') and InteractNamePlate:Set(false)
-	end
+	RestoreNameplate()
+	if not CanInteractWithObject(guid) then return end;
 	if ( db:GetCVar('SoftTargetTooltipInteract', false) and IsTooltipAvailable() ) then
 		self.tooltipGUID = guid;
-		if CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') then
-			InteractNamePlate:Set(true)
-		end
 		if not SetTooltipToInteractUnit('anyinteract') and not SetTooltipToUnitName('anyinteract') then
 			return;
 		end
