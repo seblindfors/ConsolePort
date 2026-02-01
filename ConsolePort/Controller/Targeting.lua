@@ -148,7 +148,7 @@ end
 
 local function TrySetUnitTooltip(option, unit, self)
 	local guid = CPAPI.Scrub(UnitGUID(unit))
-	if ( guide and self.tooltipGUID ~= guid and db(option) and IsTooltipAvailable() ) then
+	if ( guid and self.tooltipGUID ~= guid and db(option) and IsTooltipAvailable() ) then
 		self.tooltipGUID = guid;
 		SetTooltipToUnit(unit)
 		AddResetUnitTooltipCallback(unit, guid)
