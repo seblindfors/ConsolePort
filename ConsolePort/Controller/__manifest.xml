@@ -11,7 +11,7 @@
 	<Script file="Movement.lua"/>
 	<Script file="Targeting.lua"/>
 	<Script file="Slash.lua"/>
-	<Script file="Paddles.lua"/>
+	<Script file="ButtonEmulation.lua"/>
 	<Script file="Convenience.lua"/>
 	<Script file="LED.lua"/>
 	<Script file="ExtraActions.lua"/>
