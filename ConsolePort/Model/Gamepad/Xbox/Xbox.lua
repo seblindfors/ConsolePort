@@ -110,6 +110,60 @@ local _, db = ...; db.Gamepad:AddGamepad({
 				['CTRL-SHIFT-'] = 'CAMERAZOOMIN';
 			};
 		};
+		Extra = {
+		-- Paddle buttons (Elite controllers have physical, standard need emulation)
+			PADPADDLE1 = {
+				['']            = 'MULTIACTIONBAR3BUTTON1';
+				['SHIFT-']      = 'MULTIACTIONBAR3BUTTON2';
+				['CTRL-']       = 'MULTIACTIONBAR3BUTTON3';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR3BUTTON4';
+			};
+			PADPADDLE2 = {
+				['']            = 'MULTIACTIONBAR3BUTTON5';
+				['SHIFT-']      = 'MULTIACTIONBAR3BUTTON6';
+				['CTRL-']       = 'MULTIACTIONBAR3BUTTON7';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR3BUTTON8';
+			};
+			PADPADDLE3 = {
+				['']            = 'MULTIACTIONBAR3BUTTON9';
+				['SHIFT-']      = 'MULTIACTIONBAR3BUTTON10';
+				['CTRL-']       = 'MULTIACTIONBAR3BUTTON11';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR3BUTTON12';
+			};
+			PADPADDLE4 = {
+				['']            = 'MULTIACTIONBAR4BUTTON1';
+				['SHIFT-']      = 'MULTIACTIONBAR4BUTTON2';
+				['CTRL-']       = 'MULTIACTIONBAR4BUTTON3';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR4BUTTON4';
+			};
+			-- Extra face buttons (not on standard Xbox controllers)
+			PAD5 = {
+				['']            = 'MULTIACTIONBAR4BUTTON5';
+				['SHIFT-']      = 'MULTIACTIONBAR4BUTTON6';
+				['CTRL-']       = 'MULTIACTIONBAR4BUTTON7';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR4BUTTON8';
+			};
+			PAD6 = {
+				['']            = 'MULTIACTIONBAR4BUTTON9';
+				['SHIFT-']      = 'MULTIACTIONBAR4BUTTON10';
+				['CTRL-']       = 'MULTIACTIONBAR4BUTTON11';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR4BUTTON12';
+			};
+			-- PlayStation-style system buttons (not on Xbox)
+			PADSYSTEM = {
+				['']            = 'MULTIACTIONBAR5BUTTON1';
+				['SHIFT-']      = 'MULTIACTIONBAR5BUTTON2';
+				['CTRL-']       = 'MULTIACTIONBAR5BUTTON3';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR5BUTTON4';
+			};
+			PADSOCIAL = {
+				['']            = 'MULTIACTIONBAR5BUTTON5';
+				['SHIFT-']      = 'MULTIACTIONBAR5BUTTON6';
+				['CTRL-']       = 'MULTIACTIONBAR5BUTTON7';
+				['CTRL-SHIFT-'] = 'MULTIACTIONBAR5BUTTON8';
+			};
+			-- Xbox has physical PADBACK and PADFORWARD, so DON'T include them here
+		};
 	};
 }, { -- metaData
 	Label = 'LTR';
@@ -140,6 +194,8 @@ local _, db = ...; db.Gamepad:AddGamepad({
 		PADPADDLE2   = 'PlayStation/L2';
 		PADPADDLE3   = 'PlayStation/R1';
 		PADPADDLE4   = 'PlayStation/R2';
+		PAD5         = 'PlayStation/L3';
+		PAD6         = 'PlayStation/R3';
 		PADFORWARD   = 'Xbox/Forward';
 		PADBACK      = 'Xbox/Back';
 		PADSYSTEM    = 'Xbox/System';
