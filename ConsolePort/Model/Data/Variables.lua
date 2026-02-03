@@ -668,52 +668,52 @@ db:Register('Variables', CPAPI.Callable({
 		advd = true;
 	};
 	emulatePADPADDLE1 = _{Pseudokey('none');
-		name = 'Emulate P1 '..(KEY_PADPADDLE1 or '');
+		name = 'Emulate Paddle1 '..(_G.KEY_PADPADDLE1 or '');
 		desc = 'Keyboard button to emulate the paddle 1 button.';
 		advd = true;
 	};
 	emulatePADPADDLE2 = _{Pseudokey('none');
-		name = 'Emulate P2 '..(KEY_PADPADDLE2 or '');
+		name = 'Emulate Paddle2 '..(KEY_ABBR_PADPADDLE2 or '');
 		desc = 'Keyboard button to emulate the paddle 2 button.';
 		advd = true;
 	};
 	emulatePADPADDLE3 = _{Pseudokey('none');
-		name = 'Emulate P3 '..(KEY_PADPADDLE3 or '');
+		name = 'Emulate Paddle3 '..(KEY_ABBR_PADPADDLE3 or '');
 		desc = 'Keyboard button to emulate the paddle 3 button.';
 		advd = true;
 	};
 	emulatePADPADDLE4 = _{Pseudokey('none');
-		name = 'Emulate P4 '..(KEY_PADPADDLE4 or '');
+		name = 'Emulate Paddle4 '..(KEY_ABBR_PADPADDLE4 or '');
 		desc = 'Keyboard button to emulate the paddle 4 button.';
 		advd = true;
 	};
 	emulatePAD5 = _{Pseudokey('none');
-		name = 'Emulate Pad5'..(KEY_PAD5 or '');
+		name = 'Emulate Pad5 '..(KEY_ABBR_PAD5 or '');
 		desc = 'Keyboard button to emulate Pad5 button.';
 		advd = true;
 	};
 	emulatePAD6 = _{Pseudokey('none');
-		name = 'Emulate Pad6'..(KEY_PAD6 or '');
+		name = 'Emulate Pad6 '..(KEY_ABBR_PAD6 or '');
 		desc = 'Keyboard button to emulate Pad6 button.';
 		advd = true;
 	};
 	emulatePADBACK = _{Pseudokey('none');
-		name = 'Emulate Back'..(KEY_PADBACK or '');
+		name = 'Emulate Back '..(KEY_ABBR_PADBACK or '');
 		desc = 'Keyboard button to emulate back button.';
 		advd = true;
 	};
 	emulatePADFORWARD = _{Pseudokey('none');
-		name = 'Emulate Forward'..(KEY_PADFORWARD or '');
+		name = 'Emulate Forward '..(KEY_ABBR_PADFORWARD or '');
 		desc = 'Keyboard button to emulate forward button.';
 		advd = true;
 	};
 	emulatePADSYSTEM = _{Pseudokey('none');
-		name = 'Emulate System'..(KEY_PADSYSTEM or '');
+		name = 'Emulate System '..(KEY_ABBR_PADSYSTEM or '');
 		desc = 'Keyboard button to emulate system/menu button.';
 		advd = true;
 	};
 	emulatePADSOCIAL = _{Pseudokey('none');
-		name = 'Emulate Social'..(KEY_PADSOCIAL or '');
+		name = 'Emulate Social '..(KEY_ABBR_PADSOCIAL or '');
 		desc = 'Keyboard button to emulate social/share button.';
 		advd = true;
 	};
@@ -750,3 +750,46 @@ db:Register('Variables', CPAPI.Callable({
 	};
 },  --------------------------------------------------------------------------------------------------------
 function(self, key) return (rawget(self, key) or {})[1] end))
+
+-- ------------------------------------------------------------
+-- Refresh emulation labels once KEY_ABBR_* becomes available
+-- ------------------------------------------------------------
+local EMU_LABELS = {
+	emulatePADPADDLE1 = {'Emulate Paddle1', 'KEY_ABBR_PADPADDLE1'},
+	emulatePADPADDLE2 = {'Emulate Paddle2', 'KEY_ABBR_PADPADDLE2'},
+	emulatePADPADDLE3 = {'Emulate Paddle3', 'KEY_ABBR_PADPADDLE3'},
+	emulatePADPADDLE4 = {'Emulate Paddle4', 'KEY_ABBR_PADPADDLE4'},
+
+	emulatePAD5       = {'Emulate Pad5',    'KEY_ABBR_PAD5'},
+	emulatePAD6       = {'Emulate Pad6',    'KEY_ABBR_PAD6'},
+	emulatePADBACK    = {'Emulate Back',    'KEY_ABBR_PADBACK'},
+	emulatePADFORWARD = {'Emulate Forward', 'KEY_ABBR_PADFORWARD'},
+	emulatePADSYSTEM  = {'Emulate System',  'KEY_ABBR_PADSYSTEM'},
+	emulatePADSOCIAL  = {'Emulate Social',  'KEY_ABBR_PADSOCIAL'},
+}
+
+local function UpdateEmulationOptionLabels()
+	local vars = db('Variables')
+	if type(vars) ~= 'table' then return end
+
+	for key, spec in pairs(EMU_LABELS) do
+		local base, g = spec[1], spec[2]
+		local v = vars[key]
+		if type(v) == 'table' then
+			v.name = base .. ' ' .. (_G[g] or '')
+		end
+	end
+
+	-- Best-effort UI refresh (depends on your config frame implementation)
+	if ConsolePortConfig then
+		if type(ConsolePortConfig.Refresh) == 'function' then
+			ConsolePortConfig:Refresh()
+		elseif type(ConsolePortConfig.RefreshCurrentPanel) == 'function' then
+			ConsolePortConfig:RefreshCurrentPanel()
+		end
+	end
+end
+
+-- Run once after init and whenever icons change (device switch / atlas toggle)
+CPAPI.Next(UpdateEmulationOptionLabels)
+db:RegisterCallback('OnIconsChanged', UpdateEmulationOptionLabels)

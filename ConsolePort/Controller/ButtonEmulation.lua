@@ -6,7 +6,7 @@
 -- Allows keyboard keys to emulate these buttons.
 
 local _, db = ...
-local ButtonEmulation = db:Register('ButtonEmulation', CPAPI.EventHandler(ConsolePortPaddles, { 'UPDATE_BINDINGS' }))
+local ButtonEmulation = db:Register('ButtonEmulation', CPAPI.EventHandler(CreateFrame('Frame', 'ConsolePortButtonEmulation'), { 'UPDATE_BINDINGS' }))
 local NOT_BOUND = 'none';
 
 -- Emulated button configurations

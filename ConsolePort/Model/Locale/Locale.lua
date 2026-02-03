@@ -6,12 +6,6 @@ local Locale = select(2, ...):Register('Locale', setmetatable({}, {
 		return k;
 	end;
 	__call = function(self, str, ...)
-		--@do-not-package@
-		if str and not rawget(self, str) then
-			ConsolePortLocale = ConsolePortLocale or {};
-			ConsolePortLocale[str] = true;
-		end
-		--@end-do-not-package@
 		return str and self[str]:format(...):gsub(INNER_LOCALE_CAPTURE, InnerLocaleLookup) or str;
 	end;
 }))

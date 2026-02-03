@@ -163,6 +163,7 @@ local _, db = ...; db.Gamepad:AddGamepad({
 				['CTRL-SHIFT-'] = 'MULTIACTIONBAR5BUTTON8';
 			};
 			-- Xbox has physical PADBACK and PADFORWARD, so DON'T include them here
+			
 		};
 	};
 }, { -- metaData
@@ -196,14 +197,13 @@ local _, db = ...; db.Gamepad:AddGamepad({
 		PADPADDLE4   = 'PlayStation/R2';
 		PAD5         = 'PlayStation/L3';
 		PAD6         = 'PlayStation/R3';
-		PADFORWARD   = 'Xbox/Forward';
-		PADBACK      = 'Xbox/Back';
 		PADSYSTEM    = 'Xbox/System';
 		PADSOCIAL    = 'Xbox/Share';
 	};
 	Layout = {-- format: delta (-1 or 1), drawLayer, x1, y1, ..., xN, yN
 		--------------------
 		PADBACK      = {-1, 01, 0036, 0054, 0080, 0220};
+		PADFORWARD   = {01, 01, 0036, 0054, 0080, 0220};
 		--------------------
 		PADLSHOULDER = {-1, 01, 0110, 0116, 0150, 0180};
 		PADLTRIGGER  = {-1, -1, 0130, 0100, 0170, 0120};
@@ -217,8 +217,6 @@ local _, db = ...; db.Gamepad:AddGamepad({
 		--------------------
 		PADPADDLE2   = {-1, -1, 0090, -040, 0160, -194};
 		PADPADDLE4   = {-1, -1, 0070, -060, 0140, -250};
-		--------------------
-		PADFORWARD   = {01, 01, 0036, 0054, 0080, 0220};
 		--------------------
 		PADRSHOULDER = {01, 01, 0110, 0116, 0150, 0180};
 		PADRTRIGGER  = {01, -1, 0130, 0100, 0170, 0120};
