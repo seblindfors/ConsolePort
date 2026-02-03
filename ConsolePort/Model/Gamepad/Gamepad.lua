@@ -658,7 +658,7 @@ function GamepadMixin:GetPresetBindings()
 
 	local preset = db.table.merge(
 		GamepadAPI:GetBindingsTemplate(), -- (1)
-		generator.Face, generator.Center, -- (1) a, b
+		generator.Face, generator.Center, generator.Extra, -- (1) a, b
 		(function(cmp, cur, lh, tr)       -- (1) c
 			if cmp(cur, lh) then
 				return generator.LeftHand;
@@ -716,6 +716,7 @@ function GamepadMixin:ApplyHotkeyStrings()
 		hotkey = self:GetHotkeyStringForButton(button)
 		_G[('KEY_ABBR_%s'):format(button)] = hotkey;
 		_G[('KEY_ABBR_%s_%s'):format(button, label)] = hotkey;
+		_G[('KEY_%s'):format(button)] = hotkey;
 	end
 end
 

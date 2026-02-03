@@ -66,4 +66,5 @@ db('Gamepad/Index/Splash', {
 	['PlayStation 5']       = 'DS5';
 	['Steam Deck']          = 'Deck';
 	['Xbox']                = 'Xbox';
+	['Razer']               = 'Razer';
 })
