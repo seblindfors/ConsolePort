@@ -324,7 +324,7 @@ function Button:CreateConfig()
 				color         = { env:GetColorRGBA('LABhotkeyColor') };
 				justifyH      = env('LABhotkeyJustifyH');
 				font          = {
-					size      = env('LABhotkeyFontSize');
+					size      = math.max(env('LABhotkeyFontSize'), 1);
 					flags     = env('LABhotkeyFontFlags');
 				};
 				position      = {
@@ -338,7 +338,7 @@ function Button:CreateConfig()
 				color         = { env:GetColorRGBA('LABcountColor') };
 				justifyH      = env('LABcountJustifyH');
 				font          = {
-					size      = env('LABcountFontSize');
+					size      = math.max(env('LABcountFontSize'), 1);
 					flags     = env('LABcountFontFlags');
 				};
 				position      = {
@@ -352,7 +352,7 @@ function Button:CreateConfig()
 				color         = { env:GetColorRGBA('LABmacroColor') };
 				justifyH      = env('LABmacroJustifyH');
 				font          = {
-					size      = env('LABmacroFontSize');
+					size      = math.max(env('LABmacroFontSize'), 1);
 					flags     = env('LABmacroFontFlags');
 				};
 				position      = {
