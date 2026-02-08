@@ -160,7 +160,7 @@ local ActionPickupHandlers = {
 	end;
 	macro = function(id, name, icon, body)
 		local function IsEquivalentMacro(mName, mIcon, mBody)
-			return ( mName == name and icon == icon and body == body )
+			return ( mName == name and mIcon == icon and mBody == body )
 		end
 		-- Try to find equivalent macro
 		if IsEquivalentMacro(GetMacroInfo(id)) then
@@ -326,17 +326,33 @@ local function GenerateExportData()
 	return data;
 end
 
-local function ValidateImportData(data)
-	if type(data) ~= 'table' then return end;
-	local result, dataLoss = {}, false;
-	for k in pairs(data) do
-		if not Aggregators[k] then
-			dataLoss = true;
+local function SanitizeImportData(moduleKey, moduleData, allData)
+	if Aggregators[moduleKey] then return moduleKey, moduleData end;
+	if type(moduleData) ~= 'table' then return end;
+	-- Handle import of action bar layout data in the wrong place.
+	-- Users sometimes thinks the global import is where they should import the
+	-- action bar layout they found online, so we support this silly behavior.
+	if moduleData.children and moduleData.visibility then
+		if CountTable(allData) == 1 then
+			return 'ConsolePort_BarLayout', moduleData;
 		else
-			result[k] = data[k];
+			return 'ConsolePort_BarPresets', {[moduleKey] = moduleData};
 		end
 	end
-	return result, dataLoss;
+end
+
+local function ValidateImportData(data)
+	if type(data) ~= 'table' then return end;
+	local result, partialDataLoss = {}, false;
+	for k, v in pairs(data) do
+		local resultKey, resultData = SanitizeImportData(k, v, data)
+		if not resultKey then
+			partialDataLoss = true;
+		else
+			result[resultKey] = db.table.merge(resultData, result[resultKey]);
+		end
+	end
+	return result, partialDataLoss;
 end
 
 local function EvaluateImportData(data)
