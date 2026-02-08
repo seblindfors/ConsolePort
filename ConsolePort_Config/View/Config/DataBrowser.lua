@@ -44,6 +44,7 @@ local Browser = {};
 function Browser:OnShow()
 	self:SetVerticalScroll(0)
 	self.LoadingSpinner:Show()
+	self.LoadingArrow:Show()
 end
 
 function Browser:OnEnter()
@@ -65,6 +66,7 @@ function Browser:SetData(args, data)
 	self.compile, self.release = Tabular(args, data)
 	self.ScrollChild:Layout()
 	self.LoadingSpinner:Hide()
+	self.LoadingArrow:Hide()
 	return self.compile, self.release;
 end
 

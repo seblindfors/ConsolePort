@@ -106,11 +106,20 @@
 								<Anchor point="CENTER" x="0" y="0"/>
 							</Anchors>
 						</Texture>
+						<Texture parentKey="LoadingArrow" atlas="shop-header-arrow" rotation="90">
+							<Size x="32" y="32"/>
+							<Anchors>
+								<Anchor point="BOTTOM" x="0" y="-24"/>
+							</Anchors>
+						</Texture>
 					</Layer>
 				</Layers>
 				<Animations>
 					<AnimationGroup parentKey="LoadingAnimation" looping="REPEAT">
-						<Rotation childKey="LoadingSpinner" duration="1" degrees="-360" order="1"/>
+						<Rotation childKey="LoadingSpinner" duration="0.5" degrees="-180" order="1"/>
+						<Rotation childKey="LoadingSpinner" duration="0.5" degrees="-180" order="2"/>
+						<Translation childKey="LoadingArrow" duration="0.5" offsetY="-20" order="1"/>
+						<Translation childKey="LoadingArrow" duration="0.5" offsetY="20" order="2"/>
 						<Scripts>
 							<OnLoad>
 								self:Play()
