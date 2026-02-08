@@ -170,7 +170,7 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Show Interact Hint';
 		desc = 'Show interact binding hint on interactables.';
 	};
-	trgtShowInteractNameplate = _{Bool(true);
+	trgtShowInteractNameplate = _{Bool(not not CPAPI.IsRetailVersion);
 		name = 'Use Interact Nameplate Tooltip';
 		desc = 'Show interact tooltip on nameplates, when applicable.';
 		hide = not CPAPI.IsRetailVersion;
