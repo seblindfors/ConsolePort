@@ -411,8 +411,7 @@ function Mutable:TogglePopout(show)
 
 	local entries = {};
 	for key, info in db.table.spairs(self.controller:GetAvailableKeys()) do
-		-- HACK: GetBindingText is hardcoded, but it returns the original string if the key is not a binding
-		tinsert(entries, { name = GetBindingText(key), key = key, value = info })
+		tinsert(entries, { name = ConvertName('/'..key), key = key, value = info })
 	end
 	if not next(entries) then return end;
 
