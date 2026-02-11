@@ -70,7 +70,7 @@ end
 local UH    = Mixin(CPAPI.EventHandler(ConsolePortEasyMotionButton, {'PLAYER_ENTERING_WORLD'}), CPAPI.SecureEnvironmentMixin)
 local Scan  = db.Scan;
 local Input = ConsolePortEasyMotionInput;
-UH.GetNamePlateForUnit, UH.UnitDrivers, UH.UnitFrames = C_NamePlate.GetNamePlateForUnit, {}, {};
+UH.UnitDrivers, UH.UnitFrames = {}, {};
 
 UH:Run([[bindRef = %q;
 	-- Unit and binding tables
@@ -439,7 +439,7 @@ end
 function UH:TryAddNamePlateForUnit(unitID)
 	if not self.display.plates then return end;
 
-	local plate = self.GetNamePlateForUnit(unitID)
+	local plate = self:GetNamePlateForUnit(unitID)
 	local frame = plate and plate.UnitFrame;
 	if frame and CPAPI.Scrub(UnitIsUnit(frame:GetAttribute('unit'), unitID)) then
 		self:AddTrackedUnitFrame(unitID, frame)
@@ -452,6 +452,13 @@ end
 
 function UH:GetActiveUnitIDs()
 	return pairs(tFilter(self.UnitDrivers, tonumber))
+end
+
+function UH:GetNamePlateForUnit(unitID)
+	local retOK, plate = pcall(C_NamePlate.GetNamePlateForUnit, unitID)
+	if retOK then
+		return plate;
+	end
 end
 
 ---------------------------------------------------------------
