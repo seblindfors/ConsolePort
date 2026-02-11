@@ -19,7 +19,7 @@ end
 function env.UpgradeFromV1()
 	local v1 = ConsolePort_BarSetup;
 	if v1 then
-		-- ConsolePort_BarSetup = nil; -- TODO: enable when build is stable
+		ConsolePort_BarSetup = nil;
 		CPAPI.Log('ConsolePort: upgrading action bar layout...')
 		local v2, settings = env.ConvertV1Layout(v1);
 		for path, value in pairs(settings) do

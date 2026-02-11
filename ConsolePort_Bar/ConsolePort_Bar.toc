@@ -12,7 +12,7 @@
 ## X-Wago-ID: LvNAYjNo
 
 ## SavedVariables: ConsolePort_BarPresets
-## SavedVariablesPerCharacter: ConsolePort_BarLayout, ConsolePort_BarDB, ConsolePort_BarSetup
+## SavedVariablesPerCharacter: ConsolePort_BarLayout, ConsolePort_BarDB
 
 Model\Utils.lua
 Model\Assets.lua

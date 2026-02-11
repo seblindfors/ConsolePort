@@ -78,7 +78,6 @@ local function Uninstall()
 		'ConsolePortUtility', 'ConsolePortRings',
 		'ConsolePort_BarDB',
 		'ConsolePort_BarLayout',
-		'ConsolePort_BarSetup', -- legacy
 	}) do _G[var] = nil; end
 	ReloadUI()
 end
