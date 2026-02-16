@@ -40,7 +40,7 @@ function Events:QUEST_DATA_LOAD_RESULT(questID, success)
 end
 
 function Events:UPDATE_BINDINGS()
-	if self:IsAutoEnabled() and not db.Gamepad:GetBindingKey('EXTRAACTIONBUTTON1') then
+	if self:IsAutoEnabled() and not db.Gamepad:GetBindingKey(db.Bindings.Proxied.ExtraActionButton) then
 		_(self.ToggleExtraActionButton, self, true)
 	else
 		_(self.ToggleExtraActionButton, self, false)
