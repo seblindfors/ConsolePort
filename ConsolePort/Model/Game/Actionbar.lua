@@ -103,25 +103,26 @@ end
 -- on handlers for later manipulation.
 do
 	local VALID_BUTTON_TYPE = ActionBarAPI.Lookup.Types;
-	local IGNORE_FRAMES = ActionBarAPI.Lookup.Ignore;
-	local IsFrameWidget = C_Widget.IsFrameWidget;
+	local IGNORE_FRAMES     = ActionBarAPI.Lookup.Ignore;
+	local IsFrameWidget     = C_Widget.IsFrameWidget;
+	local Frame             = GetFrameMetatable().__index;
 
 	-- Helpers:
 	local function GetContainer(this)
-		local parent = this:GetParent()
+		local parent = Frame.GetParent(this)
 		return (not parent or parent == UIParent) and this or GetContainer(parent)
 	end
 
 	local function ValidateActionID(this)
 		local isProtected, type, action = CPAPI.Scrub(
-			this:IsProtected(),
-			this:GetObjectType(),
-			this:GetAttribute('action'))
+			Frame.IsProtected(this),
+			Frame.GetObjectType(this),
+			Frame.GetAttribute(this, 'action'))
 		return (isProtected and type and VALID_BUTTON_TYPE[type]) and action;
 	end
 
 	local function IsActionButton(this, action)
-		return action and tonumber(action) and this:GetAttribute('type') == 'action'
+		return action and tonumber(action) and Frame.GetAttribute(this, 'type') == 'action'
 	end
 
 	-- Callbacks:
@@ -130,22 +131,22 @@ do
 		return false -- continue when found
 	end
 
-	local function CacheActionBar(cache, this, action)
-		local container = GetContainer(this)
-		cache[container] = container:GetName() or tostring(container)
+	local function CacheActionBar(cache, this)
+		local container  = GetContainer(this)
+		cache[container] = Frame.GetDebugName(container)
 		return true -- break when found
 	end
 
 	-- Scanner:
 	local function FindActionButtons(callback, cache, this, sibling, ...)
 		if sibling then FindActionButtons(callback, cache, sibling, ...) end
-		if not IsFrameWidget(this) or this:IsForbidden() or IGNORE_FRAMES[this] then return cache end
+		if not IsFrameWidget(this) or Frame.IsForbidden(this) or IGNORE_FRAMES[this] then return cache end
 		-------------------------------------
 		local action = ValidateActionID(this)
 		if IsActionButton(this, action) and callback(cache, this, action) then
 			return cache
 		end
-		FindActionButtons(callback, cache, this:GetChildren())
+		FindActionButtons(callback, cache, Frame.GetChildren(this))
 		return cache
 	end
 
