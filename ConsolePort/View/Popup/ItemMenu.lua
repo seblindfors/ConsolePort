@@ -43,7 +43,7 @@ local BORDER_ATLAS = CPAPI.Proxy({
 	[QUALITY_GOOD]               = 'auctionhouse-itemicon-border-green';
 }, 'auctionhouse-itemicon-border-gray')
 ---------------------------------------------------------------
-local DEFAULT_BUTTON_INIT = function(self) self:SetAttribute('type', nil) end;
+local DEFAULT_BUTTON_INIT = function(self) self:SetAttribute(CPAPI.ActionTypeRelease, nil) end;
 
 function ItemMenu:SetItem(bagID, slotID)
 	self:SetBagAndSlot(bagID, slotID)
@@ -110,7 +110,8 @@ function ItemMenu:SetCommands()
 	if self:IsDisenchantableItem() then
 		self:AddCommand(ROLL_DISENCHANT or L'Disenchant', 'Disenchant', {self:GetBagAndSlot()}, nil, function(self)
 			local bagID, slotID = unpack(self.data)
-			self:SetAttribute('type', 'macro')
+			self:SetAttribute(CPAPI.ActionTypeRelease, 'macro')
+			self:SetAttribute(CPAPI.ActionPressAndHold, true)
 			self:SetAttribute('macrotext', '/cast Disenchant\n/use '..bagID..' '..slotID)
 		end)
 	end
