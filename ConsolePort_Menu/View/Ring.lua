@@ -347,7 +347,12 @@ function GameMenuButtonMixin:Update()
 	ActionButton.Skin.RingButton(self)
 	RunNextFrame(function()
 		self.Name:SetText(self.text)
-		if self.img then self.icon:SetTexture(self.img) end;
+		if self.atlas then
+			self.icon:SetAtlas(self.atlas)
+		elseif self.img then
+			self.icon:SetTexCoord(0, 1, 0, 1)
+			self.icon:SetTexture(self.img)
+		end
 		self:GetParent():SetSliceText(self:GetID(), self:GetSliceText())
 	end)
 end

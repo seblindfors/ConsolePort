@@ -239,7 +239,7 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
---[[ Leave Scenarios ]] do _{
+--[[ Scenarios ]] do _{
 ---------------------------------------------------------------
 	states = {
 		{
@@ -274,6 +274,12 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 			image     = ICON('Spell_Shadow_Teleport');
 		};
 		{
+			text      = BINDING_NAME_HOUSING_TOGGLEEDITOR;
+			predicate = C_Housing and C_Housing.IsInsidePlot or nop;
+			command   = HousingFramesUtil and HousingFramesUtil.ToggleHouseEditor or nop;
+			atlas     = 'decor-controls-decoratemode-pressed';
+		};
+		{
 			text      = LEAVE_ALL;
 			predicate = function() return true end;
 			command   = nop;
@@ -282,10 +288,12 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	};
 	OnLoad = function(self)
 		CPAPI.RegisterFrameForEvents(self, {
-			'UPDATE_BONUS_ACTIONBAR';
-			'UPDATE_MULTI_CAST_ACTIONBAR';
+			'HOUSE_PLOT_ENTERED';
+			'HOUSE_PLOT_EXITED';
 			'UNIT_ENTERED_VEHICLE';
 			'UNIT_EXITED_VEHICLE';
+			'UPDATE_BONUS_ACTIONBAR';
+			'UPDATE_MULTI_CAST_ACTIONBAR';
 			'VEHICLE_UPDATE';
 		})
 		self.click = function()
@@ -305,7 +313,13 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 				self.text     = state.text;
 				self.subtitle = state.subtitle and YELLOW_FONT_COLOR:WrapTextInColorCode(state.subtitle) or nil;
 				self.img      = state.image;
-				return self.icon:SetTexture(self.img)
+				self.atlas    = state.atlas;
+				if self.atlas then
+					return self.icon:SetAtlas(self.atlas)
+				elseif self.img then
+					self.icon:SetTexCoord(0, 1, 0, 1)
+					return self.icon:SetTexture(self.img)
+				end
 			end
 		end
 	end;
