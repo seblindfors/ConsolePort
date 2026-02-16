@@ -4,7 +4,7 @@ local MOTION_SICKNESS_REDUCE_CAMERA_MOTION = MOTION_SICKNESS_REDUCE_CAMERA_MOTIO
 local SOFT_TARGET_DEVICE_OPTS = {[0] = OFF, [1] = 'Gamepad', [2] = 'KBM', [3] = ALWAYS};
 local SOFT_TARGET_ARC_ALLOWANCE = {[0] = 'Front', [1] = 'Cone', [2] = 'Around'};
 local BLUE = GenerateClosure(ColorMixin.WrapTextInColorCode, BLUE_FONT_COLOR)
-local unpack, _, db = unpack, ...; local Console = {}; db('Data')();
+local unpack, name, db = unpack, ...; local Console = {}; db('Data')();
 ------------------------------------------------------------------------------------------------------------
 -- Blizzard console variables
 ------------------------------------------------------------------------------------------------------------
@@ -133,6 +133,7 @@ db:Register('Console', CPAPI.Proxy({
 			list = CAMERA_FOLLOWING_STYLE;
 			desc = 'Pitches the camera upwards as you zoom out.';
 			note = ('Incompatible with %s.'):format(MOTION_SICKNESS_CHARACTER_CENTERED);
+			save = true;
 		};
 		{	cvar = 'test_cameraOverShoulder';
 			type = Range(0, 0.5, -1.0, 1.0);
@@ -140,6 +141,7 @@ db:Register('Console', CPAPI.Proxy({
 			list = CAMERA_FOLLOWING_STYLE;
 			desc = 'Offsets the camera horizontally from your character, for a more cinematic view.';
 			note = ('Incompatible with %s.'):format(MOTION_SICKNESS_CHARACTER_CENTERED);
+			save = true;
 		};
 		{	cvar = 'CameraFollowOnStick';
 			type = Bool(false);
@@ -346,6 +348,36 @@ function Console:GetEmulationForModifier(modifier)
 		if (data.cvar == modifier) then
 			return data;
 		end
+	end
+end
+
+do local persisted;
+	-- Persist resetting certain CVars on change through the config, by saving them to the
+	-- settings database and reapplying them on load. Hopefully nobody complains about this.
+	for _, cvars in pairs(db.Console) do
+		for _, data in pairs(cvars) do
+			if (data.save) then
+				persisted = persisted or {};
+				persisted[data.cvar] = true;
+			end
+		end
+	end
+	if (persisted) then
+		for cvar in pairs(persisted) do
+			db:RegisterCallback(cvar, function(_, value)
+				db('Settings/'..cvar, value);
+			end, Console);
+		end
+		EventUtil.ContinueOnAddOnLoaded(name, function()
+			CPAPI.Next(function()
+				for cvar in pairs(persisted) do
+					local value = db('Settings/'..cvar);
+					if (value ~= nil) then
+						SetCVar(cvar, value);
+					end
+				end
+			end)
+		end)
 	end
 end
 
