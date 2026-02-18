@@ -9,7 +9,9 @@ local _, db = ...; db:Register('Alpha', {})
 -- 	Flash: frame, fadeInTime, fadeOutTime, flashDuration, showWhenDone, flashInHoldTime, flashOutHoldTime, syncId
 
 local FADE = CreateFrame('Frame')
-local SetAlpha = FADE:CreateTexture().SetAlpha;
+local function SetAlpha(frame, alpha)
+	getmetatable(frame).__index.SetAlpha(frame, alpha)
+end
 
 function FADE:Remove(frame)
 	tDeleteItem(self, frame)
