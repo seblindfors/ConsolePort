@@ -3,8 +3,8 @@
 <img src="https://raw.githubusercontent.com/seblindfors/ConsolePort/master/Wiki/header.png"/>
 
 <h2>What is ConsolePort?</h2>
-ConsolePort is an interface add-on for World of Warcraft that will give you a handful of nifty features
-in order to let you play the game on a controller - without inconvenience.
+ConsolePort is an interface add-on for World of Warcraft that provides features and solutions to common UX problems
+in order to let you play the game on a controller - with less inconvenience.
 <br/><br/>
 Consisting of several independent modules, ConsolePort is a fully-fledged solution to handling all the quirks in a game where gamepad support was not intended,
 including interface navigation, custom-tailored UI elements to assist in gameplay, and easy-to-use targeting systems
