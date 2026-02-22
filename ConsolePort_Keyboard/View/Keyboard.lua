@@ -253,24 +253,29 @@ function Keyboard:OnTextChanged(text, pos, focus)
 end
 
 function Keyboard:OnDataLoaded(...)
+	-- Keyboard layout
 	local defaultLayout = env:GetDefaultLayout()
 	if not ConsolePort_KeyboardLayout
 	or not env:ValidateLayout(ConsolePort_KeyboardLayout, defaultLayout) then
 		ConsolePort_KeyboardLayout = defaultLayout;
 	end
+	env.Layout = ConsolePort_KeyboardLayout;
+	self:OnLayoutChanged()
+
+	-- Replacement markers
 	if not ConsolePort_KeyboardMarkers then
 		ConsolePort_KeyboardMarkers = {};
 	end
+	env.Markers = CPAPI.Proxy(ConsolePort_KeyboardMarkers, env.DefaultMarkers);
+
+	-- Load variables early to use them in dictionary generation
+	self:OnVariableChanged()
+
+	-- Dictionary
 	if not ConsolePort_KeyboardDictionary then
 		ConsolePort_KeyboardDictionary = env.DictHandler:Generate()
 	end
-
-	env.Layout     = ConsolePort_KeyboardLayout;
-	env.Markers    = CPAPI.Proxy(ConsolePort_KeyboardMarkers, env.DefaultMarkers);
 	env.Dictionary = ConsolePort_KeyboardDictionary;
-
-	self:OnVariableChanged()
-	self:OnLayoutChanged()
 
 	self:SetScript('OnDragStart', self.StartMoving)
 	self:SetScript('OnDragStop', self.StopMoving)
@@ -294,8 +299,8 @@ end
 
 function Keyboard:OnLayoutChanged()
 	self:ReleaseAll()
-	self.numSets = #ConsolePort_KeyboardLayout;
-	for i, set in ipairs(ConsolePort_KeyboardLayout) do
+	self.numSets = #env.Layout;
+	for i, set in ipairs(env.Layout) do
 		local widget, newObj = self:Acquire(i)
 		if newObj then
 			widget:OnLoad()
