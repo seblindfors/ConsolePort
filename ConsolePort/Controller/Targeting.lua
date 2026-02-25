@@ -19,7 +19,6 @@ local Targeting = db:Register('Targeting', CPAPI.CreateEventHandler({'Frame', '$
 		trgtFriendIcon            = db.Data.Cvar('SoftTargetIconFriend');
 		trgtFriendPlate           = db.Data.Cvar('SoftTargetNameplateFriend');
 		trgtFriendTooltip         = db.Data.Cvar('SoftTargetTooltipFriend');
-		trgtShowInteractNameplate = db.Data.Cvar('SoftTargetNameplateInteract');
 	};
 }))
 
@@ -35,17 +34,6 @@ local function GetSoftTargetIcon(nameplate)
 		and nameplate.UnitFrame
 		and nameplate.UnitFrame.SoftTargetFrame
 		and nameplate.UnitFrame.SoftTargetFrame.Icon;
-end
-local function GetUnitNameFrame(nameplate)
-	return  nameplate
-		and nameplate.UnitFrame
-		and nameplate.UnitFrame.name;
-end
-
-local function GetHealthBarContainers(nameplate)
-	return  nameplate
-		and nameplate.UnitFrame
-		and nameplate.UnitFrame.HealthBarsContainer;
 end
 
 local function IsTooltipAvailable()
@@ -75,61 +63,66 @@ local function SetTooltipToUnit(unit)
 	return GameTooltip:SetUnit(unit)
 end
 
-local SetTooltipPosition, RestoreNameplate;
-if CPAPI.IsRetailVersion then
-	-- NOTE: Need to restore strata override once tooltip is being used by something else.
-	local isStrataOverride, currentNamePlate;
-	local function SetOverrideStrata(enabled)
-		isStrataOverride = enabled;
-		GameTooltip:SetFrameStrata(enabled and 'BACKGROUND' or 'TOOLTIP')
+local SetTooltipPosition, TooltipDismount;
+if CPAPI.IsRetailVersion then -- interact tooltip nameplate mount
+	local GET, SET, UNSET, modifiedFrames, framesToModify = 1, 2, 3, {}, {
+		{ -- Hide name text
+			function(np, _) return np.UnitFrame and np.UnitFrame.name end;
+			function(f) f:Hide() end;
+			function(f) f:Show() end;
+		};
+		{ -- Hide health bar container
+			function(np, _) return np.UnitFrame and np.UnitFrame.HealthBarsContainer end;
+			function(f) f:Hide() end;
+			function(f) f:Show() end;
+		};
+		{ -- Hide background on tooltip with minimal nameplate style
+			function(_, gt) return db('trgtShowMinimalInteractNamePlate') and gt.NineSlice end;
+			function(f) f:Hide() end;
+			function(f) f:Show() end;
+		};
+		{ -- Change tooltip strata to match with world frame
+			function(_, gt) return gt end;
+			function(f) f:SetFrameStrata('BACKGROUND') end;
+			function(f) f:SetFrameStrata('TOOLTIP') end;
+		};
+	};
+
+	function TooltipDismount()
+		for i = #modifiedFrames, 1, -1 do
+			local frame = modifiedFrames[i];
+			if frame then framesToModify[i][UNSET](frame) end;
+			modifiedFrames[i] = nil;
+		end
 	end
 
-	local function ToggleTooltipElements(nameplate, show)
-		currentNamePlate = not show and nameplate or nil;
-		local nameframe = GetUnitNameFrame(nameplate)
-		if nameframe then
-			nameframe:SetShown(show)
-		end
-		local healthbars = GetHealthBarContainers(nameplate)
-		if healthbars then
-			healthbars:SetShown(show)
-		end
-	end
-
-	function RestoreNameplate()
-		if currentNamePlate then
-			ToggleTooltipElements(currentNamePlate, true)
+	local function TooltipMount(nameplate, tooltip)
+		TooltipDismount()
+		for i, element in ipairs(framesToModify) do
+			local frame = element[GET](nameplate, tooltip)
+			if frame then
+				element[SET](frame)
+				modifiedFrames[i] = frame;
+			end
 		end
 	end
 
 	function SetTooltipPosition(unit, offsetX)
-		local nameplate = GetNamePlateForUnit(unit)
+		local nameplate, tooltip = GetNamePlateForUnit(unit), GameTooltip;
 		anchor = GetSoftTargetIcon(nameplate)
 		if anchor then
-			ToggleTooltipElements(nameplate, false)
-			GameTooltip:SetOwner(anchor, 'ANCHOR_NONE')
-			SetOverrideStrata(true)
-			GameTooltip:ClearAllPoints()
-			GameTooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
-			if db('trgtShowMinimalInteractNamePlate') and GameTooltip.NineSlice then
-				GameTooltip.NineSlice:Hide()
-			end
+			tooltip:SetOwner(anchor, 'ANCHOR_NONE')
+			tooltip:ClearAllPoints()
+			tooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
+			TooltipMount(nameplate, tooltip)
 		else
 			SetDefaultAnchor()
 		end
 	end
 
-	GameTooltip:HookScript('OnShow', function(self)
-		if isStrataOverride and not self:IsAnchoringRestricted() then
-			SetOverrideStrata(false)
-			anchor = nil;
-		end
-	end)
+	GameTooltip:HookScript('OnHide', TooltipDismount)
 else
-	RestoreNameplate = nop;
-	function SetTooltipPosition()
-		SetDefaultAnchor()
-	end
+	TooltipDismount, SetTooltipPosition = nop, SetDefaultAnchor;
 end
 
 local function SetTooltipToInteractUnit(unit)
@@ -178,41 +171,58 @@ end
 Targeting.PLAYER_SOFT_ENEMY_CHANGED  = GenerateClosure(TrySetUnitTooltip, 'trgtEnemyTooltip',  'softenemy')
 Targeting.PLAYER_SOFT_FRIEND_CHANGED = GenerateClosure(TrySetUnitTooltip, 'trgtFriendTooltip', 'softfriend')
 
-local function CanInteractWithObject(guid)
-	if not CPAPI.Scrub(guid) then return end;
-	if guid:match('GameObject') then
-		-- Can't determine interaction range for objects,
-		-- so we just assume it's in range.
-		return true;
-	end
-	-- HACK: CanLootUnit returns whether interaction is in range for all NPCs.
-	return select(2, CanLootUnit(guid))
-end
+---------------------------------------------------------------
+do -- Interact tooltip and nameplate handling
+---------------------------------------------------------------
+	local InteractNamePlate, currentGUID = (db.Data.Cvar('SoftTargetNameplateInteract'))
 
-function Targeting:PLAYER_SOFT_INTERACT_CHANGED(_, guid)
-	RestoreNameplate()
-	if not CanInteractWithObject(guid) then return end;
-	if ( db:GetCVar('SoftTargetTooltipInteract', false) and IsTooltipAvailable() ) then
-		self.tooltipGUID = guid;
-		if not SetTooltipToInteractUnit('anyinteract') and not SetTooltipToUnitName('anyinteract') then
-			return;
+	local function CanInteractWithObject(guid)
+		if not CPAPI.Scrub(guid) then return end;
+		if guid:match('GameObject') then
+			-- Can't determine interaction range for objects,
+			-- so we just assume it's in range.
+			return true;
 		end
-		AddResetUnitTooltipCallback('anyinteract', guid)
-
-		-- Show interact hint
-		if not db('trgtShowInteractHint') then return end;
-
-		local slug = db.Hotkeys:GetButtonSlugForBinding('INTERACTTARGET', false, true)
-		if not slug then return end;
-
-		local hint = ('%s %s'):format(slug, UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
-		GameTooltip:AddLine(hint, WHITE_FONT_COLOR:GetRGB())
-		GameTooltip:Show()
+		-- HACK: CanLootUnit returns whether interaction is in range for all NPCs.
+		return select(2, CanLootUnit(guid))
 	end
-end
 
-function Targeting:NAME_PLATE_UNIT_ADDED(unitID)
-	if CPAPI.Scrub(UnitIsUnit(unitID, 'anyinteract')) then
-		self:PLAYER_SOFT_INTERACT_CHANGED(nil, UnitGUID(unitID))
+	Targeting.UpdateInteractTooltip = CPAPI.Debounce(function(self)
+		TooltipDismount()
+		if not CanInteractWithObject(currentGUID) then
+			return CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') and InteractNamePlate:Set(false)
+		end
+		if ( db:GetCVar('SoftTargetTooltipInteract', false) and IsTooltipAvailable() ) then
+			self.tooltipGUID = currentGUID;
+			if CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') then
+				InteractNamePlate:Set(true)
+			end
+			if not UnitIsPlayer('anyinteract') and not SetTooltipToInteractUnit('anyinteract') and not SetTooltipToUnitName('anyinteract') then
+				return;
+			end
+			AddResetUnitTooltipCallback('anyinteract', currentGUID)
+
+			-- Show interact hint
+			if not db('trgtShowInteractHint') then return end;
+
+			local slug = db.Hotkeys:GetButtonSlugForBinding('INTERACTTARGET', false, true)
+			if not slug then return end;
+
+			local hint = ('%s %s'):format(slug, UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT)
+			GameTooltip:AddLine(hint, WHITE_FONT_COLOR:GetRGB())
+			GameTooltip:Show()
+		end
+	end, Targeting)
+
+	function Targeting:PLAYER_SOFT_INTERACT_CHANGED(_, guid)
+		currentGUID = CPAPI.Scrub(guid)
+		self:UpdateInteractTooltip()
+	end
+
+	function Targeting:NAME_PLATE_UNIT_ADDED(unitID)
+		if CPAPI.Scrub(UnitIsUnit(unitID, 'anyinteract')) then
+			currentGUID = UnitGUID(unitID)
+			self:UpdateInteractTooltip()
+		end
 	end
 end
