@@ -770,6 +770,46 @@ do -- Focus handling
 	});
 end
 
+if CPAPI.IsRetailVersion then -- Raid target marker handling
+	local function SetRaidTarget(description, unit, marker)
+		description:SetAttribute(CPAPI.ActionTypeRelease, 'raidtarget')
+		description:SetAttribute('unit', unit)
+		description:SetAttribute('marker', marker)
+		description:SetAttribute('action', marker == 0 and 'clear' or 'toggle')
+	end
+
+	local function IsEnabled()
+		return not InCombatLockdown()
+	end
+
+	local RaidTargetMarkerButton = {
+		OnClick = nop;
+		IsEnabled = IsEnabled;
+		CreateMenuDescription = function(self, rootDescription, contextData)
+			local description = UnitPopupButtonBaseMixin.CreateMenuDescription(self, rootDescription, contextData)
+			description:AddInitializer(function(button)
+				local index = self:GetRaidTargetIndex()
+				if index <= 0 then return end;
+				local icon = button:AttachTexture()
+				icon:SetTexture([[Interface\TargetingFrame\UI-RaidTargetingIcons]])
+				icon:SetSpriteSheetCell(index, RAID_TARGET_TEXTURE_ROWS, RAID_TARGET_TEXTURE_COLUMNS)
+			end)
+			SetRaidTarget(description, contextData.unit, self:GetRaidTargetIndex())
+			return description;
+		end;
+	};
+
+	Replace(UnitPopupRaidTarget1ButtonMixin, RaidTargetMarkerButton);
+	Replace(UnitPopupRaidTarget2ButtonMixin, RaidTargetMarkerButton);
+	Replace(UnitPopupRaidTarget3ButtonMixin, RaidTargetMarkerButton);
+	Replace(UnitPopupRaidTarget4ButtonMixin, RaidTargetMarkerButton);
+	Replace(UnitPopupRaidTarget5ButtonMixin, RaidTargetMarkerButton);
+	Replace(UnitPopupRaidTarget6ButtonMixin, RaidTargetMarkerButton);
+	Replace(UnitPopupRaidTarget7ButtonMixin, RaidTargetMarkerButton);
+	Replace(UnitPopupRaidTarget8ButtonMixin, RaidTargetMarkerButton);
+	Replace(UnitPopupRaidTargetNoneButtonMixin, RaidTargetMarkerButton);
+end
+
 -- Hide buttons which carry taint or don't make sense in the context.
 do local hideButton = { CanShow = nop };
 	Replace(UnitPopupEnterEditModeMixin, hideButton);
