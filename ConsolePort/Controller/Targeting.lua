@@ -108,16 +108,16 @@ if CPAPI.IsRetailVersion then -- interact tooltip nameplate mount
 	end
 
 	function SetTooltipPosition(unit, offsetX)
+		if UnitCanAttack('player', unit) then return SetDefaultAnchor() end;
 		local nameplate, tooltip = GetNamePlateForUnit(unit), GameTooltip;
 		anchor = GetSoftTargetIcon(nameplate)
 		if anchor then
 			tooltip:SetOwner(anchor, 'ANCHOR_NONE')
 			tooltip:ClearAllPoints()
 			tooltip:SetPoint('LEFT', anchor, 'RIGHT', offsetX, 0)
-			TooltipMount(nameplate, tooltip)
-		else
-			SetDefaultAnchor()
+			return TooltipMount(nameplate, tooltip)
 		end
+		SetDefaultAnchor()
 	end
 
 	GameTooltip:HookScript('OnHide', TooltipDismount)
@@ -174,7 +174,7 @@ Targeting.PLAYER_SOFT_FRIEND_CHANGED = GenerateClosure(TrySetUnitTooltip, 'trgtF
 ---------------------------------------------------------------
 do -- Interact tooltip and nameplate handling
 ---------------------------------------------------------------
-	local InteractNamePlate, currentGUID = (db.Data.Cvar('SoftTargetNameplateInteract'))
+	local InteractNamePlate, interactID, currentGUID = db.Data.Cvar('SoftTargetNameplateInteract'), 'anyinteract';
 
 	local function CanInteractWithObject(guid)
 		if not CPAPI.Scrub(guid) then return end;
@@ -197,13 +197,13 @@ do -- Interact tooltip and nameplate handling
 			if CPAPI.IsRetailVersion and db('trgtShowInteractNameplate') then
 				InteractNamePlate:Set(true)
 			end
-			if not UnitIsPlayer('anyinteract') and not SetTooltipToInteractUnit('anyinteract') and not SetTooltipToUnitName('anyinteract') then
+			if not UnitIsPlayer(interactID) and not SetTooltipToInteractUnit(interactID) and not SetTooltipToUnitName(interactID) then
 				return;
 			end
-			AddResetUnitTooltipCallback('anyinteract', currentGUID)
+			AddResetUnitTooltipCallback(interactID, currentGUID)
 
 			-- Show interact hint
-			if not db('trgtShowInteractHint') then return end;
+			if not db('trgtShowInteractHint') or UnitCanAttack('player', interactID) then return end;
 
 			local slug = db.Hotkeys:GetButtonSlugForBinding('INTERACTTARGET', false, true)
 			if not slug then return end;
@@ -220,7 +220,7 @@ do -- Interact tooltip and nameplate handling
 	end
 
 	function Targeting:NAME_PLATE_UNIT_ADDED(unitID)
-		if CPAPI.Scrub(UnitIsUnit(unitID, 'anyinteract')) then
+		if CPAPI.Scrub(UnitIsUnit(unitID, interactID)) then
 			currentGUID = UnitGUID(unitID)
 			self:UpdateInteractTooltip()
 		end
