@@ -236,3 +236,16 @@ db:RegisterSafeCallback('OnNewBindings', function(self)
 		end
 	end
 end, UnitMenuSecure)
+
+---------------------------------------------------------------
+-- Interact hook
+---------------------------------------------------------------
+if C_PlayerInteractionManager and C_PlayerInteractionManager.InteractUnit then
+	hooksecurefunc(C_PlayerInteractionManager, 'InteractUnit', function(unit)
+		if not InCombatLockdown() and IsGamePadFreelookEnabled()
+		and CPAPI.Scrub(UnitExists(unit)) and CPAPI.Scrub(UnitIsPlayer(unit))
+		and db('trgtEnablePlayerInteract') then
+			UnitMenuSecure:Run([[ self::SetUnit(%q) ]], unit)
+		end
+	end)
+end

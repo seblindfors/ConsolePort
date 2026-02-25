@@ -166,6 +166,9 @@ db:Register('Variables', CPAPI.Callable({
 		note = 'Explicit only matches hard locked targets through using a targeting binding, while implicit matches targets you attack.';
 		advd = true;
 	};
+	--------------------------------------------------------------------------------------------------------
+	_(UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT, BINDING_HEADER_TARGETING);
+	--------------------------------------------------------------------------------------------------------
 	trgtShowInteractHint = _{Bool(true);
 		name = 'Show Interact Hint';
 		desc = 'Show interact binding hint on interactables.';
@@ -181,6 +184,10 @@ db:Register('Variables', CPAPI.Callable({
 		hide = not CPAPI.IsRetailVersion;
 		deps = { trgtShowInteractNameplate = true };
 		advd = true;
+	};
+	trgtEnablePlayerInteract = _{Bool(true);
+		name = 'Enable Player Interact';
+		desc = 'Open unit menu when interacting with other players.';
 	};
 	--------------------------------------------------------------------------------------------------------
 	_(MOUSE_LABEL, SETTING_GROUP_SYSTEM); -- Mouse

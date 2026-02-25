@@ -70,19 +70,20 @@ end)
 -----------------------------------------------------------
 Settings:AddProvider(function(AddSetting, GetSortIndex)
 	local ConsoleCategoryMap = {
-		Mouse     = SETTING_GROUP_SYSTEM;
-		Camera    = SETTING_GROUP_SYSTEM;
 		Bindings  = SETTING_GROUP_GAMEPLAY;
-		Touchpad  = SETTING_GROUP_SYSTEM;
+		Camera    = SETTING_GROUP_SYSTEM;
 		Interact  = BINDING_HEADER_TARGETING;
-		Tooltips  = BINDING_HEADER_TARGETING;
+		Mouse     = SETTING_GROUP_SYSTEM;
 		System    = SETTING_GROUP_SYSTEM;
+		Tooltips  = BINDING_HEADER_TARGETING;
+		Touchpad  = SETTING_GROUP_SYSTEM;
 	};
 
 	local ConsoleListMap = {
 		Bindings = KEY_BINDINGS_MAC;
-		Mouse    = MOUSE_LABEL;
 		Camera   = CAMERA_LABEL;
+		Interact = UNIT_FRAME_DROPDOWN_SUBSECTION_TITLE_INTERACT;
+		Mouse    = MOUSE_LABEL;
 		System   = GENERAL;
 	};
 
