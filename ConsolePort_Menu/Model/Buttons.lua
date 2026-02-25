@@ -239,6 +239,14 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 } end;
 
 ---------------------------------------------------------------
+--[[ Housing Dashboard ]] if HousingMicroButton then _{
+---------------------------------------------------------------
+	text  = BINDING_NAME_TOGGLEHOUSINGDASHBOARD;
+	atlas = 'housing-dashboard-homestone-icon';
+	click = HousingFramesUtil.ToggleHousingDashboard;
+} end;
+
+---------------------------------------------------------------
 --[[ Scenarios ]] do _{
 ---------------------------------------------------------------
 	states = {
@@ -280,10 +288,10 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 			atlas     = 'decor-controls-decoratemode-pressed';
 		};
 		{
-			text      = LEAVE_ALL;
-			predicate = function() return true end;
+			text      = BINDING_HEADER_MISC;
+			predicate = CPAPI.Static(true);
 			command   = nop;
-			image     = [[Interface\RAIDFRAME\ReadyCheck-NotReady]];
+			image     = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Menu.png]];
 		};
 	};
 	OnLoad = function(self)
@@ -322,35 +330,6 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 				end
 			end
 		end
-	end;
-} end;
-
----------------------------------------------------------------
---[[ Player Options ]] do _{
----------------------------------------------------------------
-	text  = PLAYER_OPTIONS_LABEL;
-	ref   = env.db.UnitMenuSecure;
-	OnEvent = function(self, event, ...)
-		if event == 'UNIT_PORTRAIT_UPDATE' then
-			SetPortraitTexture(self.icon, ...)
-		elseif event == 'PLAYER_TARGET_CHANGED' then
-			self:UpdateUnit()
-		end
-	end;
-	OnShow = function(self)
-		self:RegisterUnitEvent('UNIT_PORTRAIT_UPDATE', self.unit)
-		self:RegisterEvent('PLAYER_TARGET_CHANGED')
-		self:UpdateUnit()
-	end;
-	OnHide = function(self)
-		self:UnregisterAllEvents()
-	end;
-	UpdateUnit = function(self)
-		self.unit = env.db.UnitMenuSecure:GetPreferredUnit()
-		self.text = UnitIsPlayer(self.unit) and PLAYER_OPTIONS_LABEL or TARGET;
-		self.subtitle = CPAPI.GetPlayerName(true, self.unit)
-		self:OnEvent('UNIT_PORTRAIT_UPDATE', self.unit)
-		self:Update()
 	end;
 } end;
 
@@ -427,4 +406,33 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 	text  = RAID;
 	img   = [[Interface\LFGFRAME\UI-LFR-PORTRAIT]];
 	click = ToggleRaidFrame;
+} end;
+
+---------------------------------------------------------------
+--[[ Player Options ]] do _{
+---------------------------------------------------------------
+	text  = PLAYER_OPTIONS_LABEL;
+	ref   = env.db.UnitMenuSecure;
+	OnEvent = function(self, event, ...)
+		if event == 'UNIT_PORTRAIT_UPDATE' then
+			SetPortraitTexture(self.icon, ...)
+		elseif event == 'PLAYER_TARGET_CHANGED' then
+			self:UpdateUnit()
+		end
+	end;
+	OnShow = function(self)
+		self:RegisterUnitEvent('UNIT_PORTRAIT_UPDATE', self.unit)
+		self:RegisterEvent('PLAYER_TARGET_CHANGED')
+		self:UpdateUnit()
+	end;
+	OnHide = function(self)
+		self:UnregisterAllEvents()
+	end;
+	UpdateUnit = function(self)
+		self.unit = env.db.UnitMenuSecure:GetPreferredUnit()
+		self.text = UnitIsPlayer(self.unit) and PLAYER_OPTIONS_LABEL or TARGET;
+		self.subtitle = CPAPI.GetPlayerName(true, self.unit)
+		self:OnEvent('UNIT_PORTRAIT_UPDATE', self.unit)
+		self:Update()
+	end;
 } end;
