@@ -4,31 +4,45 @@ local _, env = ...;
 
 local function hideEditModeFrame(frame, clearEvents)
 	if frame then
-		if clearEvents then
-			frame:UnregisterAllEvents()
+		local function doHide()
+			if clearEvents then
+				frame:UnregisterAllEvents()
+			end
+
+			-- remove some EditMode hooks
+			if frame.system then
+				-- purge the show state to avoid any taint concerns
+				CPAPI.Purge(frame, 'isShownExternal')
+			end
+
+			-- EditMode overrides the Hide function, avoid calling it as it can taint
+			if frame.HideBase then
+				frame:HideBase()
+			else
+				frame:Hide()
+			end
+			frame:SetParent(env.UIHandler)
 		end
 
-		-- remove some EditMode hooks
-		if frame.system then
-			-- purge the show state to avoid any taint concerns
-			CPAPI.Purge(frame, 'isShownExternal')
-		end
-
-		-- EditMode overrides the Hide function, avoid calling it as it can taint
-		if frame.HideBase then
-			frame:HideBase()
+		if InCombatLockdown() then
+			EventUtil.RegisterOnceFrameEventAndCallback('PLAYER_REGEN_ENABLED', doHide)
 		else
-			frame:Hide()
+			doHide()
 		end
-		frame:SetParent(env.UIHandler)
 	end
 end
 
 local function hideActionButton(button)
 	if not button then return end
-	button:Hide()
-	button:UnregisterAllEvents()
-	button:SetAttribute('statehidden', true)
+	local function doHide()
+		button:SetAttribute('statehidden', true)
+	end
+
+	if InCombatLockdown() then
+		EventUtil.RegisterOnceFrameEventAndCallback('PLAYER_REGEN_ENABLED', doHide)
+	else
+		doHide()
+	end
 end
 
 local function NPE_LoadUI()
@@ -95,6 +109,13 @@ function env.UIHandler:HideBlizzard()
 	}) do
 		hideEditModeFrame(_G[frame], clearEvents)
 	end
+
+	-- Hide OverrideActionBar buttons manually to avoid UpdatePressAndHoldAction taint (see Issue #163)
+	for i = 1, 6 do
+		hideActionButton(_G['OverrideActionBarButton' .. i])
+	end
+	hideActionButton(OverrideActionBarLeaveFrameLeaveButton)
+
 
 	---------------------------------------------------------------
 	-- Misc

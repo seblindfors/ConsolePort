@@ -137,7 +137,17 @@ function AssistedCombatManager:AddRotationTicker(actionButton)
 	actionButton.autoRotationTicker = C_Timer.NewTicker(self:GetUpdateRate(), function()
 		if actionButton.autoRotationSpellID ~= self.lastNextCastSpellID then
 			actionButton.autoRotationSpellID = self.lastNextCastSpellID;
-			actionButton:UpdateAction(true);
+			if InCombatLockdown() then
+				local action = actionButton:GetAttribute('action') or actionButton.action;
+				if action and actionButton.icon then
+					local texture = GetActionTexture(action);
+					if texture then
+						actionButton.icon:SetTexture(texture);
+					end
+				end
+			else
+				actionButton:UpdateAction(true);
+			end
 		end
 	end);
 end

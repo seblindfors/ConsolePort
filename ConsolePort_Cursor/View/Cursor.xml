@@ -10,6 +10,7 @@
 			<Frame parentKey="Mime" frameStrata="FULLSCREEN_DIALOG" hidden="true">
 				<Scripts>
 					<OnLoad>
+						self.ignoreInLayout = true;
 						self.Fonts = CreateFontStringPool(self, 'OVERLAY');
 						self.Textures = CreateTexturePool(self, 'OVERLAY');
 					</OnLoad>
