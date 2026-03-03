@@ -95,6 +95,10 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 		end
 	end
 
+	local function togglePassThrough(widget, state)
+		db:RunSafe(widget.SetAttribute, widget, env.Attributes.PassThrough, state)
+	end
+
 	-- Cache default methods so that frames with unaltered
 	-- metatables use hook scripts instead of a secure hook.
 	hooks[CPAPI.Index(UIParent).Show] = true
@@ -115,6 +119,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 				end
 
 				frames[widget] = true;
+				togglePassThrough(widget, true)
 				updateVisible(widget)
 			end
 			return true;
@@ -148,6 +153,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 		if widget then
 			visible[widget] = nil;
 			frames[widget]  = nil;
+			togglePassThrough(widget, nil)
 		end
 	end
 
