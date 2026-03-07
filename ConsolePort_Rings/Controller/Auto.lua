@@ -157,7 +157,7 @@ function Auto:ToggleInventoryQuestItems(hideAnnouncement)
 		local info = set[i];
 		if info.autoqitem then
 			local itemID = getItemID(info.item);
-			if GetItemCount(info.item) < 1 or exists[itemID] then
+			if C_Item.GetItemCount(info.item) < 1 or exists[itemID] then
 				self:RemoveAction(DEFAULT_SET, i)
 			else
 				exists[itemID] = true;
@@ -165,10 +165,11 @@ function Auto:ToggleInventoryQuestItems(hideAnnouncement)
 		end
 	end
 
+	local LE_ITEM_CLASS_QUESTITEM = LE_ITEM_CLASS_QUESTITEM or Enum.ItemClass.Questitem;
 	CPAPI.IteratePlayerInventory(function(item)
 		local link = CPAPI.GetContainerItemInfo(item:GetBagAndSlot()).hyperlink;
-		local isQuestItem = link and select(6, GetItemInfoInstant(link)) == LE_ITEM_CLASS_QUESTITEM;
-		if isQuestItem and IsUsableItem(link) and not exists[getItemID(link)] then
+		local isQuestItem = link and select(6, C_Item.GetItemInfoInstant(link)) == LE_ITEM_CLASS_QUESTITEM;
+		if isQuestItem and C_Item.IsUsableItem(link) and not exists[getItemID(link)] then
 			local info = SecureHandlerMap.item(link)
 			info.autoqitem = true;
 
