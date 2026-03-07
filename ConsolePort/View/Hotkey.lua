@@ -109,7 +109,7 @@ function HotkeyHandler:GetButtonSlug(device, btnID, modID, split, large, separat
 	end
 
 	slug[#slug + 1] = self:FormatIconSlug(data.button, iconFormat, atlasFormat)
-		or _G[('KEY_ABBR_%s'):format(btnID)]
+		or GetBindingText(btnID, 'KEY_', true)
 		or btnID:gsub('^PAD', '')
 
 	return table.concat(slug, separator or '')

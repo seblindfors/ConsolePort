@@ -90,21 +90,26 @@ end
 -- Mapper handler
 ---------------------------------------------------------------
 function Mapper:OnDeviceChanged(device, deviceID)
+	self.config = self:GenerateConfig(device)
+	db:TriggerEvent('OnMapperConfigLoaded', self.config)
+end
+
+function Mapper:GenerateConfig(device)
+	device = device or { name = DEFAULT };
 	local configID = {
-		vendorID  = device.vendorID;
-		productID = device.productID;
+		vendorID  = device.vendorID  or 0x0;
+		productID = device.productID or 0x0;
 	};
 	local config = C_GamePad.GetConfig(configID) or {
 		name = device.name;
 		configID = configID;
 	};
 
-	self.config = ApplyMetatable(FillGroups(config));
-	db:TriggerEvent('OnMapperConfigLoaded', self.config)
+	return ApplyMetatable(FillGroups(config));
 end
 
 function Mapper:OnValueChanged(path, value)
-	local config = self:GetConfig()
+	local config = self:GetRawConfig()
 	if config then
 		C_GamePad.SetConfig(config)
 		C_GamePad.ApplyConfigs()
@@ -130,11 +135,15 @@ function Mapper:SetValue(path, value)
 	end
 end
 
-function Mapper:GetConfig()
-	local rawConfig = self.config;
-	if rawConfig then
-		return FillGroups(Scrub(ClearMetatable(CopyTable(rawConfig))));
+function Mapper:GetRawConfig()
+	local activeConfig = self.config;
+	if activeConfig then
+		return FillGroups(Scrub(ClearMetatable(CopyTable(activeConfig))));
 	end
+end
+
+function Mapper:GetConfig(device)
+	return FillGroups(Scrub(ClearMetatable(CopyTable(self:GenerateConfig(device)))));
 end
 
 db:RegisterCallback('OnMapperValueChanged', Mapper.OnValueChanged, Mapper)

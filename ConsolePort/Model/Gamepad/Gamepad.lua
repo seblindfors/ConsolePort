@@ -103,7 +103,11 @@ function GamepadAPI:SetActiveDevice(name)
 		data.Active = nil;
 	end
 	self:SetActiveIconsFromDevice(activeDevice)
-	activeDevice:ApplyHotkeyStrings()
+	if self.UseAtlasIcons then
+		activeDevice:ApplyLabelStyle()
+	else
+		activeDevice:ApplyHotkeyStrings()
+	end
 	db(('Gamepad/Template/Gamepads/%s/Active'):format(name), true)
 	db('Gamepad/Active', activeDevice)
 	db:TriggerEvent('OnIconsChanged', db('useAtlasIcons'))
@@ -717,6 +721,15 @@ function GamepadMixin:ApplyHotkeyStrings()
 		_G[('KEY_ABBR_%s'):format(button)] = hotkey;
 		_G[('KEY_ABBR_%s_%s'):format(button, label)] = hotkey;
 	end
+end
+
+function GamepadMixin:ApplyLabelStyle()
+	local style = self.LabelStyle;
+	if not style then return end;
+	local config = db.Mapper:GetConfig({ vendorID = 0x0, productID = 0x0 })
+	config.labelStyle = style;
+	C_GamePad.SetConfig(config)
+	C_GamePad.ApplyConfigs()
 end
 
 function GamepadMixin:IsButtonValidForBinding(button)

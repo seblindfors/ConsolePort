@@ -91,7 +91,7 @@ for i=CPAPI.ExtraActionButtonID, 1, -1 do
 	local button = ActionBarAPI.Widget[i]
 	if button then
 		ActionBarAPI.Binding[ActionBarAPI.Action[i]] = i
-		button:SetAttribute('action', i)
+		button:SetAttributeNoHandler('action', i)
 	end
 end
 
