@@ -198,6 +198,8 @@ do local key = CPAPI.ActionButtonGUID;
 	end end
 
 	function AssistedCombatManager:SetAssistedHighlightFrameShown(actionButton, shown)
+		-- If the button supports overlay glows (e.g. cluster bars), they will not look
+		-- good with the assisted combat glow, so use the button highlight texture instead.
 		if actionButton.ShowOverlayGlow and shown then
 			return actionButton:LockHighlight()
 		elseif actionButton.HideOverlayGlow then
