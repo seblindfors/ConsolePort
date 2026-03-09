@@ -116,18 +116,19 @@ QMenu:CreateEnvironment({
 		end
 		self::UpdateLayout();
 	]];
-	Enable = [[
+	Enable = ([[
 		self:Show()
 
 		-- Cancel bindings
+		local cancelBinding = %q;
 		self:SetBindingClick(true, self:GetAttribute('cancelButton'), self, 'LeftButton')
-		for _, key in ipairs({ GetBindingKey('TOGGLEGAMEMENU') }) do
+		for _, key in ipairs({ GetBindingKey(cancelBinding) }) do
 			self:SetBindingClick(true, key, self, 'LeftButton')
 		end
 
 		-- Force layout update
 		self::UpdateLayout()
-	]];
+	]]):format(db.Bindings.Proxied.ToggleGameMenu);
 	Disable = [[
 		self:Hide()
 		self:ClearBindings()
@@ -182,14 +183,28 @@ function QMenu:DecorateFrame(index)
 end
 
 function QMenu:OnDataLoaded()
-	env:TriggerEvent('QMenu.Loaded', self);
-	self:SetAttribute('cancelButton', 'PAD3');
+	env:TriggerEvent('QMenu.Loaded', self)
+	self:OnVariableChanged()
 	self:Run([[ self::UpdateLayout() ]])
 
 	CPAPI.Specialize(self.Slug, CPSlugMixin)
 	self.Slug:SetBinding(db.Bindings.Custom.QuickMenu)
 
-	self:HookScript('OnShow', env:Signal('QMenu.Show', true));
-	self:HookScript('OnHide', env:Signal('QMenu.Show', false));
+	self:HookScript('OnShow', env:Signal('QMenu.Show', true))
+	self:HookScript('OnHide', env:Signal('QMenu.Show', false))
 	return CPAPI.BurnAfterReading;
 end
+
+function QMenu:OnVariableChanged()
+	self:SetAttribute('cancelButton', db('QMenuCancelButton'))
+	self:SetAttribute('LeftButton',   db('QMenuLeftButton'))
+	self:SetAttribute('RightButton',  db('QMenuRightButton'))
+	self:SetAttribute('MiddleButton', db('QMenuMiddleButton'))
+end
+
+db:RegisterSafeCallbacks(QMenu.OnVariableChanged, QMenu,
+	'Settings/QMenuCancelButton',
+	'Settings/QMenuLeftButton',
+	'Settings/QMenuRightButton',
+	'Settings/QMenuMiddleButton'
+);
