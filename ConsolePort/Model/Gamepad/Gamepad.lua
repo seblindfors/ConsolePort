@@ -297,6 +297,20 @@ db:RegisterSafeCallback('Settings/bindingAllowSticks', function(self, value)
 	db:SetCVar('GamePadStickAxisButtons', value)
 end, GamepadAPI)
 
+do local emulations = tInvert(CreateFromMixins(GamepadAPI.Index.Modifier.Cvars, GamepadAPI.Mouse.Cvars))
+	-- Handle emulation conflicts; we do not allow overlapping emulations since they can cause
+	-- unintended consequences, and only serve to confuse users.
+	for emulation in pairs(emulations) do
+		db:RegisterSafeCallback(emulation, function(this, value)
+			for other in pairs(emulations) do
+				if other ~= this and db:GetCVar(other) == value then
+					db:SetCVar(other, 'none')
+				end
+			end
+		end, emulation)
+	end
+end
+
 ---------------------------------------------------------------
 -- Data: state
 ---------------------------------------------------------------
