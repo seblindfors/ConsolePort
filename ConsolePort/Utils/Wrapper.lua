@@ -89,6 +89,7 @@ do local FORBIDDEN_TO_CLEAR_BINDINGS = {
 	};
 
 	local function ReportBindingError(keyChord, bindingID)
+		if not keyChord or not keyChord:match('PAD.+') then return end;
 		---@see https://github.com/Stanzilla/WoWUIBugs/issues/752
 		local set = GetCurrentBindingSet();
 		CPAPI.Log(table.concat({
