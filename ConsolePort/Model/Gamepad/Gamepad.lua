@@ -293,6 +293,10 @@ db:RegisterCallback('Settings/useAtlasIcons', function(self, value)
 	db:TriggerEvent('OnIconsChanged', value)
 end, GamepadAPI)
 
+db:RegisterSafeCallback('Settings/bindingAllowSticks', function(self, value)
+	db:SetCVar('GamePadStickAxisButtons', value)
+end, GamepadAPI)
+
 ---------------------------------------------------------------
 -- Data: state
 ---------------------------------------------------------------
