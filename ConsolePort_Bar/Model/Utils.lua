@@ -1,5 +1,5 @@
 local name, env = ...;
-local env = LibStub('RelaTable')(name, env, false)
+env            = LibStub('RelaTable')(name, env, false);
 env.db         = ConsolePort:DB();
 env.Const      = {};
 env.Attributes = { GUID = CPAPI.ActionButtonGUID };
@@ -56,7 +56,7 @@ do -- Data handler
 		env:Save('Presets', VAR_PRESETS)
 
 		if not _G[VAR_LAYOUT] then _G[VAR_LAYOUT] = env:GetDefaultLayout() end;
-		local layout = env.UpgradeLayout(_G[VAR_LAYOUT]);
+		local layout = env.BuildLayout(_G[VAR_LAYOUT]);
 		env:Register('Layout', layout, true)
 		env:Save('Layout', VAR_LAYOUT)
 	end
@@ -368,6 +368,30 @@ function env.MakeMacroDriverDesc(text, outcome, condition, state, simple, argume
 		text = ('%s\n\n%s\n%s'):format(text, baseColor:WrapTextInColorCode(L'Outcome'..':'), L(outcome));
 	end
 	return text;
+end
+
+---------------------------------------------------------------
+-- Runtime evaluation
+---------------------------------------------------------------
+function env.RunTimeFilter(conditions)
+	-- Accepts: { { condtional, response, cond1, ..., condN }, ... }
+	-- Returns: closure that evaluates the conditions and returns the appropriate response.
+	return GenerateClosure(function(mods)
+		local result = {};
+		for _, mod in ipairs(mods) do
+			local insert = true;
+			for i = 3, #mod do
+				if not mod[i]() then
+					 insert = false;
+					 break;
+				end
+			end
+			if insert then
+				tinsert(result, ('[%s] %s'):format(mod[1], mod[2]));
+			end
+		end
+		return table.concat(result, '; ');
+	end, conditions);
 end
 
 ---------------------------------------------------------------

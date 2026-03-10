@@ -1054,14 +1054,14 @@ function Loadout:OnLoadPreset(preset)
 		preset.pager = nil;
 	end
 
-	env(ROOT, env.UpgradeLayout(preset))
+	env(ROOT, env.BuildLayout(preset))
 	env:TriggerEvent('OnLayoutChanged', true)
 	self:Update()
 end
 
 function Loadout:OnImport(presets)
 	for name, preset in pairs(presets) do
-		env(PATH('Presets', name), env.UpgradeLayout(preset))
+		env(PATH('Presets', name), env.BuildLayout(preset))
 	end
 	self:Update()
 end

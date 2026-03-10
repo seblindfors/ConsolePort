@@ -126,16 +126,32 @@ function env.ConvertV1Layout(v1)
 end
 
 ---------------------------------------------------------------
--- V2 Upgrade
+-- V2 upgrade, dynamic options evaluation, interface upgrades
 ---------------------------------------------------------------
 function env.IsV2Layout(preset)
 	return type(preset) == 'table' and type(preset.children) == 'table';
 end
 
-function env.UpgradeLayout(layout)
+function env.BuildLayout(layout)
 	if env.IsV1Layout(layout) then
 		layout = env.ConvertV1Layout(layout);
 	end
+
+	local function EvaluateDynamicOptions(data)
+		if data.children then
+			for child, childData in pairs(data.children) do
+				data.children[child] = EvaluateDynamicOptions(childData)
+			end
+		end
+		for key, value in pairs(data) do
+			if type(value) == 'function' then
+				data[key] = value(key);
+			end
+		end
+		return data;
+	end
+
+	layout = EvaluateDynamicOptions(layout);
 
 	local function UpgradeInterface(data)
 		if data.children then
