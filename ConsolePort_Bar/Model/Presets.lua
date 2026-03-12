@@ -22,6 +22,24 @@ local DefaultVehicle = Interface.Page : Render {
 };
 
 ---------------------------------------------------------------
+-- Condition presets
+---------------------------------------------------------------
+local function M1() return not not GetCVar('GamePadEmulateShift'):match('^PAD') end;
+local function M2() return not not GetCVar('GamePadEmulateCtrl'):match('^PAD') end;
+local function M3() return not not GetCVar('GamePadEmulateAlt'):match('^PAD') end;
+
+local AllModifiers = env.RunTimeFilter({
+	{ 'nomod', ' ' };
+	{ 'mod:M3M2M1', 'M3M2M1', M3, M2, M1 };
+	{ 'mod:M3M2',   'M3M2',   M3, M2 };
+	{ 'mod:M3M1',   'M3M1',   M3, M1 };
+	{ 'mod:M2M1',   'M2M1',   M2, M1 };
+	{ 'mod:M3',     'M3',     M3 };
+	{ 'mod:M2',     'M2',     M2 };
+	{ 'mod:M1',     'M1',     M1 };
+});
+
+---------------------------------------------------------------
 -- Cluster bar presets
 ---------------------------------------------------------------
 local Handle = Interface.ClusterHandle(); -- reuse one handle instance and warp it
@@ -137,7 +155,7 @@ Presets.CrossbarMinimal = {
 		};
 		Vehicle = DefaultVehicle;
 		Crossbar = Interface.Group : Render {
-			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
+			modifier = AllModifiers;
 			pos = { point = 'BOTTOM', y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
@@ -158,7 +176,7 @@ Presets.CrossbarMinimal = {
 };
 
 Presets.Crossbar = {
-	name 	   = 'Crossbar: Standard';
+	name 	   = 'Crossbar: Triggers';
 	desc       = 'Group buttons for left and right triggers, with modifier swapping.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
@@ -243,10 +261,10 @@ Presets.Crossbar = {
 			};
 		};
 		Triggers = Interface.Group : Render {
-			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
-			width   = 210;
-			height  = 50;
-			rescale = '75';
+			modifier = AllModifiers;
+			width    = 210;
+			height   = 50;
+			rescale  = '75';
 			pos = { point = 'BOTTOM', y = 200 };
 			visibility = '[vehicleui][overridebar] hide; show';
 			children = {
@@ -261,7 +279,7 @@ Presets.Crossbar = {
 
 Presets.CrossbarTriple = {
 	name 	   = 'Crossbar: Triple';
-	desc       = 'Group buttons in three layouts, with center modifier swapping.';
+	desc       = 'Group buttons in three layouts, with modifier swapping.';
 	visibility = env.Const.ManagerVisibility;
 	children = {
 		Toolbar = Interface.Toolbar : Render {
@@ -314,10 +332,19 @@ Presets.CrossbarTriple = {
 			pos = { point = 'BOTTOM', x = 158, y = 75 };
 		};
 		Left = Interface.Group : Render {
-			modifier   = '[] M1';
-			width      = 300;
-			rescale    = '[mod:M2M1] 100; [mod:M1] 105; 100';
-			pos = { point = 'BOTTOM', x = -325, y = 25 };
+			modifier = env.RunTimeFilter({
+				{ 'mod:M3M2M1', 'M1', M3, M2, M1 };
+				{ 'mod:M2M1', 'M2M1', M2, M1 };
+				{ 'mod:M3M1', 'M3M1', M3, M1 };
+				{ '', 'M1', M1 };
+			});
+			rescale = env.RunTimeFilter({
+				{ 'mod:M3M1', 105, M3, M1 };
+				{ 'mod:M2', 100, M2 };
+				{ 'mod:M1', 105, M1 };
+			}, 100);
+			width    = 300;
+			pos      = { point = 'BOTTOM', x = -325, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
 				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
@@ -330,10 +357,18 @@ Presets.CrossbarTriple = {
 			};
 		};
 		Right = Interface.Group : Render {
-			modifier   = '[] M2';
-			width      = 300;
-			rescale    = '[mod:M2M1] 100; [mod:M2] 105; 100';
-			pos = { point = 'BOTTOM', x = 325, y = 25 };
+			modifier = env.RunTimeFilter({
+				{ 'mod:M3M2M1', 'M2', M3, M2, M1 };
+				{ 'mod:M3M2', 'M3M2', M3, M2 };
+				{ '', 'M2', M2 };
+			});
+			rescale = env.RunTimeFilter({
+				{ 'mod:M3M2', 105, M3, M2 };
+				{ 'mod:M1', 100, M1 };
+				{ 'mod:M2', 105, M2 };
+			}, 100);
+			width    = 300;
+			pos      = { point = 'BOTTOM', x = 325, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
 				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
@@ -346,10 +381,20 @@ Presets.CrossbarTriple = {
 			};
 		};
 		Center = Interface.Group : Render {
-			modifier   = '[mod:M2M1] M2M1; [mod:M0] M0';
-			width      = 300;
-			rescale    = '[mod:M2M1][mod:M0] 105; 100';
-			pos = { point = 'BOTTOM', x = 0, y = 25 };
+			modifier = env.RunTimeFilter({
+				{ 'mod:M3M2M1', 'M3M2M1', M3, M2, M1 };
+				{ 'mod:M2M1', 'M2M1', M2, M1 };
+				{ 'mod:M3', 'M3', M3 };
+				{ 'mod:M0', 'M0' };
+			});
+			rescale = env.RunTimeFilter({
+				{ 'mod:M3M2M1', 105, M3, M2, M1 };
+				{ 'mod:M2M1', 105, M2, M1 };
+				{ 'mod:M3', 105, M3 };
+				{ 'mod:M0', 105 };
+			}, 100);
+			width    = 300;
+			pos      = { point = 'BOTTOM', x = 0, y = 25 };
 			children = {
 				PAD1         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =  -50, y = -25 } };
 				PAD2         = Handle:Warp { pos = { point = 'RIGHT', relPoint = 'RIGHT', x =    0, y =   0 } };
@@ -362,10 +407,10 @@ Presets.CrossbarTriple = {
 			};
 		};
 		Triggers = Interface.Group : Render {
-			modifier = '[nomod] ; [mod:M2M1] M2M1; [mod:M1] M1; [mod:M2] M2;';
-			width   = 210;
-			height  = 50;
-			rescale = '75';
+			modifier = AllModifiers;
+			width    = 210;
+			height   = 50;
+			rescale  = '75';
 			pos = { point = 'BOTTOM', y = 200 };
 			visibility = '[vehicleui][overridebar] hide; show';
 			children = {

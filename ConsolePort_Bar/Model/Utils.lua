@@ -373,25 +373,28 @@ end
 ---------------------------------------------------------------
 -- Runtime evaluation
 ---------------------------------------------------------------
-function env.RunTimeFilter(conditions)
+function env.RunTimeFilter(conditions, default)
 	-- Accepts: { { condtional, response, cond1, ..., condN }, ... }
 	-- Returns: closure that evaluates the conditions and returns the appropriate response.
-	return GenerateClosure(function(mods)
+	return function()
 		local result = {};
-		for _, mod in ipairs(mods) do
+		for _, cond in ipairs(conditions) do
 			local insert = true;
-			for i = 3, #mod do
-				if not mod[i]() then
+			for i = 3, #cond do
+				if not cond[i]() then
 					 insert = false;
 					 break;
 				end
 			end
 			if insert then
-				tinsert(result, ('[%s] %s'):format(mod[1], mod[2]));
+				tinsert(result, ('[%s] %s'):format(cond[1], cond[2]))
 			end
 		end
-		return table.concat(result, '; ');
-	end, conditions);
+		if default then
+			tinsert(result, default)
+		end
+		return table.concat(result, '; ')
+	end;
 end
 
 ---------------------------------------------------------------
