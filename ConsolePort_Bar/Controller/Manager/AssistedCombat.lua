@@ -328,7 +328,9 @@ function AssistedCombatManager:OnUpdate(elapsed)
 		local checkForVisibleButton = false;
 		local spellID = C_AssistedCombat.GetNextCastSpell(checkForVisibleButton);
 
-		if spellID ~= self.lastNextCastSpellID then
+		-- As of Midnight, spellID is intermittently nil, so we only track updates
+		-- when the assisted highlight spell changes to an actual spellID.
+		if spellID and spellID ~= self.lastNextCastSpellID then
 			self.lastNextCastSpellID = spellID;
 			if self.trackAssistedCombat then
 				self:UpdateAllAssistedHighlightFramesForSpell(spellID);
