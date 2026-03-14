@@ -4,6 +4,7 @@ local Widgets, Cache, Owners = EnumUtil.MakeEnum('Any', 'UnitFrames', 'ActionBar
 local Scan = db:Register('Scan', CPAPI.CreateEventHandler({'Frame', '$parentScanHandler', ConsolePort}, {
 ---------------------------------------------------------------
 	'GROUP_ROSTER_UPDATE';
+	'CINEMATIC_STOP';
 	'PLAYER_ENTERING_WORLD';
 	'PLAYER_REGEN_DISABLED';
 	'PLAYER_REGEN_ENABLED';
@@ -110,6 +111,7 @@ end
 
 Scan.PLAYER_REGEN_ENABLED  = Scan.GROUP_ROSTER_UPDATE;
 Scan.PLAYER_ENTERING_WORLD = Scan.GROUP_ROSTER_UPDATE;
+Scan.CINEMATIC_STOP        = Scan.GROUP_ROSTER_UPDATE;
 
 ---------------------------------------------------------------
 -- API
