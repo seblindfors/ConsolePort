@@ -118,6 +118,44 @@ if CPAPI.IsRetailVersion then -- Misc retail addon fixes
 			return BaseHousingActionButtonMixin.OnLeave(self)
 		end;
 	end)
+	_('Blizzard_DelvesCompanionConfiguration', function()
+		-- CheckToggleAllowed() calls ClosestUnitPosition() which returns secret values.
+		-- Skip the check on hover; and skip the check in OnMouseDown.
+		Scripts.OnEnter[ CompanionConfigSlotTemplateMixin.OnEnter ] = function(self)
+			if self:HasSelectionAndInfo() then
+				local selection = self.selectionNodeOptions[self.selectionNodeInfo.activeEntry.entryID];
+				GameTooltip:SetOwner(self, 'ANCHOR_RIGHT', -5, -30)
+				local spellID = selection.overriddenSpellID or selection.spellID;
+				if spellID then
+					GameTooltip:SetSpellByID(spellID, false)
+				elseif selection.name and selection.description then
+					GameTooltip_SetTitle(GameTooltip, selection.name)
+					GameTooltip_AddNormalLine(GameTooltip, selection.description)
+				end
+				GameTooltip:Show()
+			end
+			self.HighlightTexture:Show()
+			self.BorderHighlight:Show()
+		end
+		Scripts.OnMouseDown[ CompanionConfigSlotTemplateMixin.OnMouseDown ] = function(self)
+			if not self:IsEnabled() then
+				return;
+			end
+			if not self.toggleNotAllowed then
+				if self.OptionsList:IsShown() then
+					self.OptionsList:Hide();
+
+					if self.NewLabel:IsShown() then
+						self.NewLabel:Hide();
+						self.NewGlowHighlight:Hide();
+					end
+				else
+					self.OptionsList:Show();
+					self:SetSeenCurios();
+				end
+			end
+		end;
+	end)
 end
 
 -----------------------------------------------------------
