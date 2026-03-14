@@ -22,10 +22,10 @@ local INV_EQ_LOCATIONS = {
 	INVTYPE_2HWEAPON       = {'MAINHANDSLOT'};
 	INVTYPE_WEAPONOFFHAND  = {'SECONDARYHANDSLOT'};
 	INVTYPE_SHIELD         = {'SECONDARYHANDSLOT'};
-	INVTYPE_BAG            = {'BAG0SLOT', 'BAG1SLOT', 'BAG2SLOT', 'BAG3SLOT'};
+	INVTYPE_BAG            = {'BAG0SLOT', 'BAG1SLOT', 'BAG2SLOT', 'BAG3SLOT', CPAPI.IsRetailVersion and Enum.BagIndex.ReagentBag};
 }; for _, slots in pairs(INV_EQ_LOCATIONS) do
 	for i, slot in ipairs(slots) do
-		slots[i] = GetInventorySlotInfo(slot);
+		slots[i] = tonumber(slot) and C_Container.ContainerIDToInventoryID(slot) or GetInventorySlotInfo(slot);
 	end
 end
 ---------------------------------------------------------------
