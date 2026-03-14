@@ -28,7 +28,7 @@ local function hideActionButton(button)
 	if not button then return end
 	button:Hide()
 	button:UnregisterAllEvents()
-	button:SetAttribute('statehidden', true)
+	button:SetAttributeNoHandler('statehidden', true)
 end
 
 local function NPE_LoadUI()
