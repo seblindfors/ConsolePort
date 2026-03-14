@@ -1,5 +1,5 @@
 local name, env = ...;
-env            = LibStub('RelaTable')(name, env, false);
+env            = LibStub('RelaTable')(name, env);
 env.db         = ConsolePort:DB();
 env.Const      = {};
 env.Attributes = { GUID = CPAPI.ActionButtonGUID };
