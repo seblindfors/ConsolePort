@@ -37,7 +37,7 @@ end
 
 if C_UnitAuras and C_UnitAuras.GetAuraApplicationDisplayCount then
 	function Aura:GetCount(data)
-		return C_UnitAuras.GetAuraApplicationDisplayCount(data.sourceUnit, data.auraInstanceID)
+		return C_UnitAuras.GetAuraApplicationDisplayCount(self:GetUnit(), data.auraInstanceID)
 	end
 else
 	function Aura:GetCount(data)
@@ -53,7 +53,7 @@ if CPAPI.IsRetailVersion then
 	end
 
 	function Aura:SetCooldown(data)
-		local duration = C_UnitAuras.GetAuraDuration(data.sourceUnit, data.auraInstanceID)
+		local duration = C_UnitAuras.GetAuraDuration(self:GetUnit(), data.auraInstanceID)
 		self.cooldown:SetSwipeColor(self:GetColor(data):GetRGBA())
 		if duration then
 			self.cooldown:SetCooldownFromDurationObject(duration)
@@ -98,10 +98,7 @@ function Aura:UpdateTooltip()
 	local data = self:GetData();
 	if not data then return end;
 	if CPAPI.IsRetailVersion then
-		if InCombatLockdown() then
-			return -- TODO: Figure out how to show tooltips in combat in retail
-		end
-		GameTooltip:SetUnitAuraByAuraInstanceID(data.sourceUnit, data.auraInstanceID, self:GetFilter())
+		GameTooltip:SetUnitAuraByAuraInstanceID(self:GetUnit(), data.auraInstanceID, self:GetFilter())
 	else
 		GameTooltip:SetUnitAura(self:GetArguments())
 	end
