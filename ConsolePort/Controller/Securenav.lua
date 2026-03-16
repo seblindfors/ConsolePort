@@ -186,10 +186,10 @@ db:Register('Nav', setmetatable(CreateFromMixins(CPAPI.SecureEnvironmentMixin, {
 		end
 	]];
 	-----------------------------------------------------------
-	PADDUP_WRAP    = [[ local cX, cY, nX, nY = ... return nX == cX and nY < cY ]];
-	PADDDOWN_WRAP  = [[ local cX, cY, nX, nY = ... return nX == cX and nY > cY ]];
-	PADDLEFT_WRAP  = [[ local cX, cY, nX, nY = ... return nY == cY and nX > cX ]];
-	PADDRIGHT_WRAP = [[ local cX, cY, nX, nY = ... return nY == cY and nX < cX ]];
+	PADDUP_WRAP    = [[ local cX, cY, nX, nY = ... return floor(nX) == floor(cX) and nY < cY ]];
+	PADDDOWN_WRAP  = [[ local cX, cY, nX, nY = ... return floor(nX) == floor(cX) and nY > cY ]];
+	PADDLEFT_WRAP  = [[ local cX, cY, nX, nY = ... return floor(nY) == floor(cY) and nX > cX ]];
+	PADDRIGHT_WRAP = [[ local cX, cY, nX, nY = ... return floor(nY) == floor(cY) and nX < cX ]];
 	-----------------------------------------------------------
 	SetWrapAroundNode = [[
 		local key, tX, tY = ...
