@@ -15,6 +15,7 @@ local _, db = ...; db.Gamepad:AddGamepad({
 			gameMenuFontSize    = 16;
 			gameMenuScale       = 0.75;
 			keyboardEnable      = true;
+			keyboardAlwaysShow  = true;
 		};
 	};
 	Generator = {

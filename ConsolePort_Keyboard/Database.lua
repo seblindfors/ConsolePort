@@ -16,6 +16,11 @@ env.Attributes = {
 local DEPENDENCY = { keyboardEnable = true };
 ConsolePort:AddVariables({
 	_(env.Attributes.ModuleName, env.Attributes.HeaderName, 2);
+	keyboardAlwaysShow = _{Data.Bool(false);
+		name = 'Always Show';
+		desc = 'Whether the keyboard should always be shown or only when a gamepad is active.';
+		deps = DEPENDENCY;
+	};
 	keyboardScale = _{Data.Range(1, 0.05, 0.5, 2);
 		name = 'Scale';
 		desc = 'Scale of the keyboard.';

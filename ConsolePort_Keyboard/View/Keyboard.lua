@@ -284,7 +284,7 @@ function Keyboard:OnDataLoaded(...)
 end
 
 function Keyboard:OnShow()
-	if not IsGamePadFreelookEnabled() then
+	if not IsGamePadFreelookEnabled() and not db('keyboardAlwaysShow') then
 		return self:OnFocusChanged(nil)
 	end
 	SetCursorControl(true)  -- to snapshot the cursor position,
