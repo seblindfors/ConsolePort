@@ -361,7 +361,8 @@ function CPReputationBarMixin:GetPriority()
 end
 
 function CPReputationBarMixin:UpdateCurrentText()
-	if ( self.isCapped ) then
+	local maxLevel = self:GetMaxLevel();
+	if maxLevel and self.StatusBar.level and self.StatusBar.level >= maxLevel then
 		self:SetBarText(self.name)
 	else
 		self:SetBarText(self.name:format(self.value, self.max))
@@ -423,8 +424,10 @@ function CPReputationBarMixin:Update()
 	local minBar, maxBar, value = watchedFactionData.currentReactionThreshold, watchedFactionData.nextReactionThreshold, watchedFactionData.currentStanding;
 	if CPAPI.IsFactionParagon(factionID) then
 		local currentValue, threshold, _, hasRewardPending = CPAPI.GetFactionParagonInfo(factionID)
-		minBar, maxBar = 0, threshold;
-		value = currentValue % threshold;
+		minBar, maxBar  = 0, threshold;
+		if currentValue and threshold then
+			value = currentValue % threshold;
+		end
 		level = maxLevel;
 		if hasRewardPending then
 			value = value + threshold;
