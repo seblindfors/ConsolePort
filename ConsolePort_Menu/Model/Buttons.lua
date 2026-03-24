@@ -288,9 +288,9 @@ env.Buttons = {}; _ = function(data) tinsert(env.Buttons, data) end;
 			atlas     = 'decor-controls-decoratemode-pressed';
 		};
 		{
-			text      = BINDING_HEADER_MISC;
+			text      = RELOADUI;
 			predicate = CPAPI.Static(true);
-			command   = nop;
+			command   = ReloadUI;
 			image     = [[Interface\AddOns\ConsolePort_Bar\Assets\Textures\Icons\Menu.png]];
 		};
 	};
