@@ -347,6 +347,10 @@ if CPAPI.IsRetailVersion then
 		self.Power:Pause()
 		self.Power:SetCooldown(power, saturation)
 	end
+
+	-- TEMP:
+	CPPetRing.UpdateHealth = nop;
+	CPPetRing.UpdatePower = nop;
 else
 	local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax;
 	local UnitPower,  UnitPowerMax  = UnitPower, UnitPowerMax;
