@@ -28,6 +28,18 @@
 					<KeyValue key="iconSize" value="24" type="number"/>
 				</KeyValues>
 			</Button>
+			<Button parentKey="EditMode" inherits="CPSquareButtonTemplate, InsecureActionButtonTemplate">
+				<Size x="48" y="48"/>
+				<Anchors>
+					<Anchor point="RIGHT" relativeKey="$parent.Mover" relativePoint="LEFT" x="6"/>
+				</Anchors>
+				<KeyValues>
+					<KeyValue key="icon" value="Interface\CHATFRAME\UI-CHATICON-BLIZZ" type="string"/>
+					<KeyValue key="iconSize" value="false" type="boolean"/>
+					<KeyValue key="iconWidth" value="32" type="number"/>
+					<KeyValue key="iconHeight" value="12" type="number"/>
+				</KeyValues>
+			</Button>
 			<ScrollFrame parentKey="SettingsContainer" inherits="CPScrollFrameTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="16" y="-80"/>
