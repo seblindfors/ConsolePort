@@ -58,7 +58,7 @@ end
 function Item:UpdateTooltip()
 	GameTooltip:SetBagItem(self:GetBagAndSlot())
 	if self:IsUsable() then
-		local hasAddedLine, text = false, env:GetTooltipPromptForClick('LeftButton', ('%s + %s'):format(USE_ITEM or USE, CLOSE))
+		local hasAddedLine, text = false, env:GetTooltipPromptForClick('LeftButton', ('%s & %s'):format(USE_ITEM or USE, CLOSE))
 		if text then
 			hasAddedLine = true;
 			GameTooltip:AddLine(text, 1, 1, 1)
@@ -79,7 +79,7 @@ function Item:OnLeave()
 end
 
 ---------------------------------------------------------------
-local ItemManager = { query = {}, items = {} };
+local ItemManager = { query = {}, items = {}, types = {} };
 ---------------------------------------------------------------
 
 function ItemManager:OnLoad()
@@ -94,41 +94,41 @@ function ItemManager:OnLoad()
 	self.buttonPool = CreateObjectPool(function()
 		return CreateFrame('Button', '$parentItemSlot'..self.numButtons(), QMenu, 'CPWorldSecureButtonBaseTemplate')
 	end, Pool_HideAndClearAnchors)
+
+	for _, settingID in pairs(self.types) do
+		db:RegisterSafeCallback('Settings/'..settingID, self.UpdateAllItems, self)
+	end
 end
 
-function ItemManager:BAG_UPDATE_DELAYED()
+function ItemManager:UpdateAllItems()
 	if InCombatLockdown() then self.dirty = true return end;
 	CPAPI.IteratePlayerInventory(self.InventoryIterator)
 	self:ProcessResults()
 	self:RenderItems()
 end
 
-ItemManager.PLAYER_ALIVE   = ItemManager.BAG_UPDATE_DELAYED;
-ItemManager.PLAYER_UNGHOST = ItemManager.BAG_UPDATE_DELAYED;
-
-function ItemManager:PLAYER_REGEN_ENABLED()
-	if self.dirty then
-		self.dirty = self:BAG_UPDATE_DELAYED()
-	end
-end
-
-function ItemManager:SPELL_UPDATE_COOLDOWN()
-	for button in self.buttonPool:EnumerateActive() do
-		button:UpdateCooldown()
-	end
-end
-
 function ItemManager:ProcessResults()
 	local query = self.query;
 	local items = wipe(self.items);
+	local types = (function(rawTypes)
+		local activeTypes = {};
+		for classID, settingID in pairs(rawTypes) do
+			if db(settingID) then
+				activeTypes[classID] = true;
+			end
+		end
+		return activeTypes;
+	end)(self.types)
 
 	-- Filter unique items into categories.
 	local unique = {};
 	for _, item in ipairs(query) do
 		if not unique[item.itemID] then
 			local category = item.classID == Enum.ItemClass.Consumable and item.itemSubType or item.itemType;
-			items[category] = items[category] or {};
-			tinsert(items[category], item);
+			if types[item.classID] then
+				items[category] = items[category] or {};
+				tinsert(items[category], item);
+			end
 			unique[item.itemID] = true;
 		end
 	end
@@ -170,7 +170,7 @@ function ItemManager:RenderItems()
 		local header = self:AcquireHeader(index());
 		header:SetTitle(category)
 		header:SetItems(itemList)
-		header:LayoutItems()
+		header:Layout()
 		header:Show()
 	end
 end
@@ -197,6 +197,46 @@ function ItemManager:AcquireHeader(i)
 		self[i] = header;
 	end
 	return header;
+end
+
+---------------------------------------------------------------
+-- Filters
+---------------------------------------------------------------
+do local _, Data = CPAPI.Define, db.Data;
+	local itemCollectionSettings = {_('Quick Menu', INTERFACE_LABEL)};
+	for i = 0, Enum.ItemClassMeta.NumValues-1 do
+		local name = C_Item.GetItemClassInfo(i)
+		if name and not name:match('%b()') then -- exclude (OBSOLETE)
+			local settingID = 'QMenuCollectionItemType'..i;
+			itemCollectionSettings[settingID] = _{Data.Bool(true);
+				name = name;
+				desc = 'Show item type in the quick menu.';
+				list = ITEMS;
+				advd = true;
+			};
+			ItemManager.types[i] = settingID;
+		end
+	end
+	ConsolePort:AddVariables(itemCollectionSettings)
+end
+
+---------------------------------------------------------------
+-- Events
+---------------------------------------------------------------
+ItemManager.BAG_UPDATE_DELAYED = ItemManager.UpdateAllItems;
+ItemManager.PLAYER_ALIVE       = ItemManager.UpdateAllItems;
+ItemManager.PLAYER_UNGHOST     = ItemManager.UpdateAllItems;
+
+function ItemManager:PLAYER_REGEN_ENABLED()
+	if self.dirty then
+		self.dirty = self:UpdateAllItems()
+	end
+end
+
+function ItemManager:SPELL_UPDATE_COOLDOWN()
+	for button in self.buttonPool:EnumerateActive() do
+		button:UpdateCooldown()
+	end
 end
 
 ---------------------------------------------------------------
