@@ -10,14 +10,37 @@ CPAPI.Props(QMenuRow)
 	.Prop('Items') -- List of items to display (data provider)
 	.Prop('Pool')  -- Button pool to acquire buttons from
 
+function QMenuRow:Layout()
+	local minWidth  = tonumber(self:GetAttribute('minWidth')) or 0;
+	local minHeight = tonumber(self:GetAttribute('minHeight')) or 0;
+
+	local btns = self:LayoutItems()
+
+	-- Compute bounding box similar to configureAuras
+	local left, right, top, bottom = math.huge, -math.huge, -math.huge, math.huge;
+	for i = 1, #btns do
+		local b = btns[i];
+		left   = math.min(left,   b:GetLeft()   or left)
+		right  = math.max(right,  b:GetRight()  or right)
+		top    = math.max(top,    b:GetTop()    or top)
+		bottom = math.min(bottom, b:GetBottom() or bottom)
+	end
+
+	if #btns > 0 and left < math.huge and right > -math.huge then
+		self:SetWidth(math.max(right - left, minWidth))
+		self:SetHeight(math.max(top - bottom, minHeight))
+	else
+		self:SetWidth(minWidth)
+		self:SetHeight(minHeight)
+	end
+end
+
 function QMenuRow:LayoutItems()
 	local point       = self:GetAttribute('point') or 'TOPLEFT';
 	local xOffset     = tonumber(self:GetAttribute('xOffset')) or 0;
 	local yOffset     = tonumber(self:GetAttribute('yOffset')) or 0;
 	local wrapXOffset = tonumber(self:GetAttribute('wrapXOffset')) or 0;
 	local wrapYOffset = tonumber(self:GetAttribute('wrapYOffset')) or 0;
-	local minWidth    = tonumber(self:GetAttribute('minWidth')) or 0;
-	local minHeight   = tonumber(self:GetAttribute('minHeight')) or 0;
 	local wrapAfter   = tonumber(self:GetAttribute('wrapAfter')) or 10;
 
 	local btns = {};
@@ -49,24 +72,7 @@ function QMenuRow:LayoutItems()
 			end
 		end
 	end
-
-	-- Compute bounding box similar to configureAuras
-	local left, right, top, bottom = math.huge, -math.huge, -math.huge, math.huge;
-	for i = 1, #btns do
-		local b = btns[i];
-		left   = math.min(left,   b:GetLeft()   or left)
-		right  = math.max(right,  b:GetRight()  or right)
-		top    = math.max(top,    b:GetTop()    or top)
-		bottom = math.min(bottom, b:GetBottom() or bottom)
-	end
-
-	if #btns > 0 and left < math.huge and right > -math.huge then
-		self:SetWidth(math.max(right - left, minWidth))
-		self:SetHeight(math.max(top - bottom, minHeight))
-	else
-		self:SetWidth(minWidth)
-		self:SetHeight(minHeight)
-	end
+	return btns;
 end
 
 ---------------------------------------------------------------
@@ -81,6 +87,7 @@ QMenu:Run([[
 
 QMenu:CreateEnvironment({
 	UpdateLayout = [[
+		if not self:IsShown() then return end;
 		local padding, height, isFirst, frame, prev, skipCalc = self:GetAttribute('padding'), 0, true;
 		for i = 1, FCOUNT do
 			frame = FRAMES[i];

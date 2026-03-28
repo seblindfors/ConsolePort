@@ -51,13 +51,18 @@ ConsolePort:AddVariables({
 		note = 'The quick menu binding can be used to close the menu as well.';
 	};
 	QMenuCollectionBuffs = _{Data.Bool(true);
-		name = 'Show Buffs';
+		name = SHOW_BUFFS or 'Show Buffs';
 		desc = 'Show active buffs in the quick menu.';
-		list = INTERFACE_LABEL;
+		list = SETTING_GROUP_GAMEPLAY;
 	};
 	QMenuCollectionDebuffs = _{Data.Bool(true);
-		name = 'Show Debuffs';
+		name = SHOW_DEBUFFS or 'Show Debuffs';
 		desc = 'Show active debuffs in the quick menu.';
-		list = INTERFACE_LABEL;
+		list = SETTING_GROUP_GAMEPLAY;
+	};
+	QMenuCollectionPet = _{Data.Bool(true);
+		name = PET;
+		desc = 'Show pet action bar in the quick menu.';
+		list = SETTING_GROUP_GAMEPLAY;
 	};
 })
