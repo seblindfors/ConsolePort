@@ -306,7 +306,7 @@ PetRow.UNIT_PET                      = PetRow.UpdateButtons;
 ---------------------------------------------------------------
 -- Initializer
 ---------------------------------------------------------------
-env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
+env:AddQMenuFactory('QMenuCollectionPet', function(QMenu)
 	local header = CreateFrame('Frame', '$parentPet', QMenu, 'QMenuRow, SecureHandlerStateTemplate')
 	CPAPI.Specialize(CPAPI.EventHandler(header), env.QMenuRow, PetRow)
 	QMenu:AddFrame(header, PET_ROW_INDEX)

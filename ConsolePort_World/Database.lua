@@ -14,6 +14,18 @@ function env:GetTooltipPromptForClick(clickID, text)
 	end
 end
 
+function env:AddQMenuFactory(collectionID, factory)
+	self:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
+		if db(collectionID) then return factory(QMenu) end
+		db:RegisterSafeCallback('Settings/'..collectionID, function()
+			if db(collectionID) then
+				db:UnregisterCallback('Settings/'..collectionID, self)
+				factory(QMenu)
+			end
+		end, self)
+	end)
+end
+
 ---------------------------------------------------------------
 ConsolePort:AddVariables({
 ---------------------------------------------------------------
@@ -64,5 +76,11 @@ ConsolePort:AddVariables({
 		name = PET;
 		desc = 'Show pet action bar in the quick menu.';
 		list = SETTING_GROUP_GAMEPLAY;
+	};
+	QMenuCollectionPing = _{Data.Bool(true);
+		name = PING_SYSTEM_LABEL or 'Ping';
+		desc = 'Show ping commands in the quick menu.';
+		list = SETTING_GROUP_GAMEPLAY;
+		hide = not CPAPI.IsRetailVersion;
 	};
 })

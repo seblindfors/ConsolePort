@@ -1,7 +1,7 @@
 ## Interface: 120001, 120000, 50503, 38000, 20505, 11508
 ## IconTexture: Interface\AddOns\ConsolePort\Assets\Textures\Logo\CP_Thumb
 ## Title: Console Port |cff69ccf0World|r
-## Notes: World augmentation module: custom loot frame, new ability prompts
+## Notes: World augmentation: quick menu, custom loot frame, ability prompts
 ## RequiredDeps: ConsolePort
 
 ## Author: Sebastian Lindfors
@@ -16,6 +16,7 @@ Database.lua
 Controller\Auras.lua
 Controller\Items.lua
 Controller\Pet.lua
+Controller\Ping.lua
 
 View\Templates\Templates.xml
 View\QuickMenu\QuickMenu.xml
