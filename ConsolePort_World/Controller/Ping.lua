@@ -131,15 +131,40 @@ function PingRow:OnLoad()
 	end
 
 	self:SetTitle(PING_SYSTEM_LABEL)
+	self:UpdateState()
+	db:RegisterSafeCallback('Settings/QMenuCollectionPing', self.UpdateState, self)
 end
 
 function PingRow:LayoutItems()
 	return self.buttons;
 end
 
+function PingRow:UpdateState()
+	if not db('QMenuCollectionPing') then
+		self:UnregisterAllEvents()
+		return self:Hide()
+	end
+	self:RegisterEvent('PING_SYSTEM_ERROR')
+	self:Show()
+end
+
 function PingRow:OnShow()
 	for _, button in ipairs(self.buttons) do
 		button:Init()
+	end
+end
+
+function PingRow:PING_SYSTEM_ERROR()
+	local cooldown = C_Ping.GetCooldownInfo()
+	if cooldown and cooldown.startTimeMs and cooldown.endTimeMs then
+		for _, button in ipairs(self.buttons) do
+			button.cooldown:SetDrawBling(false)
+			CooldownFrame_Set(button.cooldown,
+				cooldown.startTimeMs / 1000,
+				(cooldown.endTimeMs - cooldown.startTimeMs) / 1000,
+				true
+			);
+		end
 	end
 end
 
