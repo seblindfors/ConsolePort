@@ -1,6 +1,6 @@
 local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
-
+local ITEMS_ROW_INDEX = env.QMenuID();
 ---------------------------------------------------------------
 local Item = {};
 ---------------------------------------------------------------
@@ -81,6 +81,13 @@ end
 ---------------------------------------------------------------
 local ItemManager = { query = {}, items = {}, types = {} };
 ---------------------------------------------------------------
+-- Layout constants
+local BUTTON_SIZE   = 48;
+local BUTTON_STRIDE = 52;
+local ROW_STRIDE    = 52;
+local TITLE_HEIGHT  = 20;
+local BUTTON_GAP    = BUTTON_STRIDE - BUTTON_SIZE;
+local WRAP_AFTER    = 10;
 
 function ItemManager:OnLoad()
 	function self.InventoryIterator(item)
@@ -94,6 +101,10 @@ function ItemManager:OnLoad()
 	self.buttonPool = CreateObjectPool(function()
 		return CreateFrame('Button', '$parentItemSlot'..self.numButtons(), QMenu, 'CPWorldSecureButtonBaseTemplate')
 	end, Pool_HideAndClearAnchors)
+
+	self:SetAttribute('nodepass', true)
+	self:Hide()
+	QMenu:AddFrame(self, ITEMS_ROW_INDEX, true)
 
 	for _, settingID in pairs(self.types) do
 		db:RegisterSafeCallback('Settings/'..settingID, self.UpdateAllItems, self)
@@ -120,7 +131,7 @@ function ItemManager:ProcessResults()
 		return activeTypes;
 	end)(self.types)
 
-	-- Filter unique items into categories.
+	-- Sort unique items into categories.
 	local unique = {};
 	for _, item in ipairs(query) do
 		if not unique[item.itemID] then
@@ -133,11 +144,24 @@ function ItemManager:ProcessResults()
 		end
 	end
 
-	-- Consolidate categories with only one item.
+	-- Consolidate categories into "Items" to reduce clutter.
 	local variousName, variousItems = {}, {};
 	for category, itemList in env.table.spairs(items) do
-		if #itemList == 1 then
-			tinsert(variousItems, itemList[1]);
+		-- Single items get consolidated by default.
+		if ( #itemList == 1 ) then
+			local item = itemList[1];
+			-- Quest items should always be distinguished, so
+			-- only consolidate non-quest items with unique categories.
+			if item.classID ~= Enum.ItemClass.Questitem then
+				tinsert(variousItems, item);
+				tinsert(variousName, category);
+			end
+		-- "Other" consumables and "Miscellaneous" items are not
+		-- meaningfully distinguished, so consolidate them by default.
+		elseif ( category == MISCELLANEOUS or category == OTHER ) then
+			for _, item in ipairs(itemList) do
+				tinsert(variousItems, item);
+			end
 			tinsert(variousName, category);
 		end
 	end
@@ -145,8 +169,7 @@ function ItemManager:ProcessResults()
 		items[name] = nil;
 	end
 	if #variousItems > 0 then
-		variousName = #variousName > 4 and INVENTORY_TOOLTIP or table.concat(variousName, ' | ');
-		items[variousName] = variousItems;
+		items[ITEMS] = variousItems;
 	end
 
 	-- Sort items by bag and slot index.
@@ -162,17 +185,128 @@ function ItemManager:ProcessResults()
 	wipe(query);
 end
 
+function ItemManager:PackRows(categoryList)
+	-- Sort categories largest-first for better bin packing
+	table.sort(categoryList, function(a, b) return #a.items > #b.items end);
+
+	-- Compute target width from total item count to approximate a square
+	local totalItems = 0;
+	for _, cat in ipairs(categoryList) do
+		totalItems = totalItems + #cat.items;
+	end
+	local targetWidth = math.min(math.ceil(math.sqrt(totalItems)), WRAP_AFTER);
+
+	-- Compute natural dimensions for each category against targetWidth
+	for _, cat in ipairs(categoryList) do
+		local n = #cat.items;
+		if n > targetWidth then
+			local numRows = math.ceil(n / targetWidth);
+			cat.wrapAfter = math.ceil(n / numRows);
+		else
+			cat.wrapAfter = n;
+		end
+		cat.numRows = math.ceil(n / cat.wrapAfter);
+	end
+
+	-- First-fit-decreasing bin packing: prefer targetWidth, allow up to WRAP_AFTER
+	local rows = {};
+	for _, cat in ipairs(categoryList) do
+		local placed = false;
+		-- First pass: try to fit within targetWidth
+		for _, row in ipairs(rows) do
+			if row.usedWidth + cat.wrapAfter <= targetWidth then
+				tinsert(row.categories, cat);
+				row.usedWidth = row.usedWidth + cat.wrapAfter;
+				row.maxNumRows = math.max(row.maxNumRows, cat.numRows);
+				placed = true;
+				break;
+			end
+		end
+		-- Second pass: allow overflow up to WRAP_AFTER
+		if not placed then
+			for _, row in ipairs(rows) do
+				if row.usedWidth + cat.wrapAfter <= WRAP_AFTER then
+					tinsert(row.categories, cat);
+					row.usedWidth = row.usedWidth + cat.wrapAfter;
+					row.maxNumRows = math.max(row.maxNumRows, cat.numRows);
+					placed = true;
+					break;
+				end
+			end
+		end
+		if not placed then
+			tinsert(rows, {
+				categories = { cat },
+				usedWidth  = cat.wrapAfter,
+				maxNumRows = cat.numRows,
+			});
+		end
+	end
+
+	-- Reshape categories to match their row's height for grid-like fill
+	for _, row in ipairs(rows) do
+		for _, cat in ipairs(row.categories) do
+			if cat.numRows < row.maxNumRows and #cat.items > 1 then
+				local newWrap = math.max(1, math.ceil(#cat.items / row.maxNumRows));
+				cat.wrapAfter = newWrap;
+				cat.numRows = math.ceil(#cat.items / cat.wrapAfter);
+			end
+		end
+	end
+
+	return rows;
+end
+
 function ItemManager:RenderItems()
 	self:ReleaseAll()
 
-	local items, index = self.items, CreateCounter();
+	local items = self.items;
+	local categoryList = {};
+
 	for category, itemList in env.table.spairs(items) do
-		local header = self:AcquireHeader(index());
-		header:SetTitle(category)
-		header:SetItems(itemList)
-		header:Layout()
-		header:Show()
+		tinsert(categoryList, {
+			category = category,
+			items    = itemList,
+		});
 	end
+
+	if #categoryList == 0 then
+		self:Hide()
+		return;
+	end
+
+	local rows = self:PackRows(categoryList);
+
+	local yCursor, maxRowWidth, count = -TITLE_HEIGHT, 0, CreateCounter();
+	for _, row in ipairs(rows) do
+		local xCursor = 0;
+		local rowPixelHeight = BUTTON_SIZE + (row.maxNumRows - 1) * ROW_STRIDE;
+
+		for _, cat in ipairs(row.categories) do
+			local header = self:AcquireHeader(count());
+			header:SetTitle(cat.category)
+			header:SetItems(cat.items)
+			header.titleText:SetText(cat.category)
+
+			local catWidth  = (cat.wrapAfter - 1) * BUTTON_STRIDE + BUTTON_SIZE;
+			local catHeight = BUTTON_SIZE + (cat.numRows - 1) * ROW_STRIDE;
+
+			header:SetAttribute('wrapAfter', cat.wrapAfter)
+			header:ClearAllPoints()
+			header:SetPoint('TOPLEFT', self, 'TOPLEFT', xCursor, -(yCursor + TITLE_HEIGHT))
+			header:SetSize(catWidth, catHeight)
+			header:LayoutItems()
+			header:Show()
+
+			xCursor = xCursor + catWidth + BUTTON_GAP;
+		end
+
+		maxRowWidth = math.max(maxRowWidth, xCursor - BUTTON_GAP);
+		yCursor = yCursor + TITLE_HEIGHT + rowPixelHeight + BUTTON_GAP;
+	end
+
+	self:SetSize(math.max(1, maxRowWidth), math.max(1, yCursor - BUTTON_GAP))
+	self:Show()
 end
 
 ---------------------------------------------------------------
@@ -188,12 +322,14 @@ end
 function ItemManager:AcquireHeader(i)
 	local header = self[i];
 	if not header then
-		local QMenu = self:GetParent();
-		header = CreateFrame('Frame', '$parentItems'..i, QMenu, 'QMenuRow')
+		header = CreateFrame('Frame', '$parentItemsGroup'..i, self, 'QMenuRowAttributes')
 		CPAPI.Specialize(header, env.QMenuRow)
 		header:SetPool(self.buttonPool)
 		header:SetMixin(Item)
-		QMenu:AddFrame(header, env.QMenuID())
+
+		local title = env.QMenu:CreateTitle(header)
+		title:SetPoint('BOTTOMRIGHT', header, 'TOPRIGHT', 0, 4)
+
 		self[i] = header;
 	end
 	return header;
@@ -243,7 +379,7 @@ end
 -- Initializer
 ---------------------------------------------------------------
 env:RegisterSafeCallback('QMenu.Loaded', function(QMenu)
-	local manager = CPAPI.CreateEventHandler({'Frame', '$parentItems', QMenu}, {
+	local manager = CPAPI.CreateEventHandler({'Frame', '$parentItems', QMenu, 'SecureHandlerBaseTemplate'}, {
 		'BAG_UPDATE_DELAYED';
 		'PLAYER_ALIVE';
 		'PLAYER_REGEN_ENABLED';

@@ -155,14 +155,14 @@ QMenu:Wrap('PreClick', ([[
 ---------------------------------------------------------------
 -- Handlers
 ---------------------------------------------------------------
-function QMenu:AddFrame(frame, layoutIndex)
+function QMenu:AddFrame(frame, layoutIndex, noTitle)
 	frame:SetAttribute('layoutIndex', layoutIndex);
 	self:SetAttribute(layoutIndex, frame);
 	self:SetFrameRef(tostring(layoutIndex), frame);
 
-	frame.titleText = frame:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
-	frame.titleText:SetPoint('BOTTOMLEFT', frame, 'TOPLEFT', 0, 4);
-	frame.titleText:SetJustifyH('LEFT');
+	if not noTitle then
+		self:CreateTitle(frame)
+	end
 
 	self:Run([[
 		local index = %d;
@@ -185,8 +185,15 @@ end
 
 function QMenu:DecorateFrame(index)
 	local frame = self:GetAttribute(index);
-	if not frame then return end;
+	if not frame or not frame.titleText then return end;
 	frame.titleText:SetText(frame:GetTitle());
+end
+
+function QMenu:CreateTitle(frame)
+	frame.titleText = frame:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
+	frame.titleText:SetPoint('BOTTOMLEFT', frame, 'TOPLEFT', 0, 4)
+	frame.titleText:SetJustifyH('LEFT')
+	return frame.titleText;
 end
 
 function QMenu:OnDataLoaded()

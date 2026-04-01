@@ -14,8 +14,8 @@
 Database.lua
 
 Controller\Auras.lua
-Controller\Items.lua
 Controller\Pet.lua
+Controller\Items.lua
 Controller\Ping.lua
 
 View\Templates\Templates.xml

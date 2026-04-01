@@ -1,7 +1,7 @@
 if not CPAPI.IsRetailVersion then return end;
 local env, db = CPAPI.GetEnv(...);
 ---------------------------------------------------------------
-local PING_ROW_INDEX = 100;
+local PING_ROW_INDEX = env.QMenuID();
 ---------------------------------------------------------------
 -- Ping data: enum value (0-indexed), slash arg (1-indexed), atlas, label
 ---------------------------------------------------------------
