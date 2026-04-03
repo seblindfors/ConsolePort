@@ -98,6 +98,18 @@ db:Register('Variables', CPAPI.Callable({
 		name = 'Turn Character With Camera';
 		desc = 'Turn your character facing when you turn your camera angle.';
 	};
+	mvmtStrafeAngleJumpEnable = _{Bool(false);
+		name = 'Enable Strafe Angle (Jump)';
+		desc = 'Enable separate strafe angle threshold for when your character is in the air.';
+		advd = true;
+	};
+	mvmtStrafeAngleJump = _{Range(0, 5, 0, 180);
+		name = 'Strafe Angle (Jump)';
+		desc = 'Controls when your character transitions from strafing to facing your movement stick direction while in the air. Expressed in degrees, from looking straight forward.';
+		note = 'When set to zero, always face your movement stick direction.\nWhen set to max, never face your movement stick direction.';
+		advd = true;
+		deps = { mvmtStrafeAngleJumpEnable = true };
+	};
 	mvmtStrafeAngleTravelMacro = _{String(nil);
 		name = 'Strafe Angle Macro Condition (Travel)';
 		desc = 'Macro condition to override the strafe angle threshold for travel.';

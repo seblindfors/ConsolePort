@@ -34,6 +34,7 @@ function Movement:OnDataLoaded()
 	self:UpdateAnalogMovement()
 	self:UpdateStrafeAngleTravel()
 	self:UpdateStrafeAngleCombat()
+	self:UpdateStrafeAngleJump()
 	self:UpdateRunWalkThreshold()
 	self:UpdateTurnWithCamera()
 	self:UpdateConditionals()
@@ -93,7 +94,7 @@ db:RegisterSafeCallback('Settings/mvmtStrafeAngleTravelMacro', Movement.UpdateCo
 db:RegisterSafeCallback('Settings/mvmtStrafeAngleCombatMacro', Movement.UpdateConditionals, Movement)
 
 function Movement:OnAttributeChanged(attribute, value)
-	local value = tonumber(value)
+	value = tonumber(value)
 	if ( attribute == self.Attributes.Travel ) then
 		return self:UpdateStrafeAngleTravel(value)
 	elseif ( attribute == self.Attributes.Combat ) then
@@ -102,6 +103,42 @@ function Movement:OnAttributeChanged(attribute, value)
 end
 
 Movement:HookScript('OnAttributeChanged', Movement.OnAttributeChanged)
+
+---------------------------------------------------------------
+-- Overrides
+---------------------------------------------------------------
+
+function Movement:UpdateStrafeAngleJump()
+	self.enableStrafeAngleJump = db('mvmtStrafeAngleJumpEnable')
+	if self.strafeAngleJumpTicker then
+		self.strafeAngleJumpTicker:Cancel()
+		self.strafeAngleJumpTicker = nil;
+	end
+	if not self.enableStrafeAngleJump then return end;
+	if not self.strafeAngleJumpStart then
+		function self.strafeAngleJumpStop()
+			if IsFalling('player') then return end;
+			self.strafeAngleJumpTicker:Cancel()
+			self.strafeAngleJumpTicker = nil;
+			self:UpdateStrafeAngleTravel(tonumber(self:GetAttribute(self.Attributes.Travel)))
+			self:UpdateStrafeAngleCombat(tonumber(self:GetAttribute(self.Attributes.Combat)))
+		end
+		function self.strafeAngleJumpStart()
+			if not IsFalling('player') then return end;
+			local jumpAngle = db('mvmtStrafeAngleJump')
+			self:UpdateStrafeAngleTravel(jumpAngle)
+			self:UpdateStrafeAngleCombat(jumpAngle)
+			self.strafeAngleJumpTicker = C_Timer.NewTicker(0.1, self.strafeAngleJumpStop)
+		end
+		hooksecurefunc('JumpOrAscendStart', function()
+			if not self.enableStrafeAngleJump then return end;
+			if self.strafeAngleJumpTicker then return end;
+			RunNextFrame(self.strafeAngleJumpStart)
+		end)
+	end
+end
+
+db:RegisterCallback('Settings/mvmtStrafeAngleJumpEnable', Movement.UpdateStrafeAngleJump, Movement)
 
 ---------------------------------------------------------------
 -- Cast events
