@@ -67,7 +67,7 @@ local _, db = ...; db.Gamepad:AddGamepad({
 			PAD1 = {
 				['']            = 'JUMP';
 				['SHIFT-']      = 'MULTIACTIONBAR1BUTTON9';
-				['CTRL-']       = 'CLICK ConsolePortMenuTrigger:LeftButton';
+				['CTRL-']       = 'CLICK ConsolePortQuickMenu:LeftButton';
 				['CTRL-SHIFT-'] = 'CLICK ConsolePortUtilityToggle:LeftButton';
 			};
 			PAD2 = {
