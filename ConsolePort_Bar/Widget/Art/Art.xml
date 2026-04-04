@@ -24,7 +24,7 @@
 						<Anchor point="CENTER"/>
 					</Anchors>
 				</Texture>
-				<MaskTexture parentKey="LinesMask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\CoverArtLine.png"
+				<MaskTexture parentKey="LinesMask" file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\CoverArtLine"
 					vWrapMode="CLAMPTOBLACKADDITIVE" hWrapMode="CLAMPTOBLACKADDITIVE">
 					<Anchors>
 						<Anchor point="TOP" relativeKey="$parent.Lines" x="0" y="0"/>

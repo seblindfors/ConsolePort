@@ -15,14 +15,33 @@
 		</Scripts>
 	</CheckButton>
 
-	<Cooldown name="CPPetRingPower" virtual="true" inherits="CooldownFrameTemplate"
-		hideCountdownNumbers="true"
-		useCircularEdge="true"
-		drawEdge="false"
-		drawBling="false"
-		rotation="180"
-		frameLevel="3"
-	/>
+	<Frame name="CPPetRingPower" virtual="true" mixin="CPPetRingPower" frameLevel="3">
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Fill" setAllPoints="true"/>
+				<MaskTexture parentKey="HalfMask"
+					file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\PetPowerMask"
+					hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Fill"/>
+					</MaskedTextures>
+				</MaskTexture>
+				<MaskTexture parentKey="FillMask"
+					file="Interface\AddOns\ConsolePort_Bar\Assets\Textures\Masks\PetPowerMask"
+					hWrapMode="CLAMPTOWHITE" vWrapMode="CLAMPTOWHITE">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+					<MaskedTextures>
+						<MaskedTexture childKey="Fill"/>
+					</MaskedTextures>
+				</MaskTexture>
+			</Layer>
+		</Layers>
+	</Frame>
 
 	<Button name="CPPetRing" virtual="true" mixin="CPPetRing" hidden="true"
 		inherits="SecureUnitButtonTemplate"
@@ -110,18 +129,18 @@
 					</Layer>
 				</Layers>
 			</Frame>
-			<Cooldown parentKey="Health" inherits="CPPetRingPower" reverse="true">
+			<Frame parentKey="Health" inherits="CPPetRingPower">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="-4" y="4"/>
 					<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
 				</Anchors>
-			</Cooldown>
-			<Cooldown parentKey="Power" inherits="CPPetRingPower">
+			</Frame>
+			<Frame parentKey="Power" inherits="CPPetRingPower">
 				<Anchors>
 					<Anchor point="TOPLEFT" x="-4" y="4"/>
 					<Anchor point="BOTTOMRIGHT" x="4" y="-4"/>
 				</Anchors>
-			</Cooldown>
+			</Frame>
 			<CheckButton id="1"  name="$parentButton1"  parentArray="Buttons" inherits="CPPetRingButton"/>
 			<CheckButton id="2"  name="$parentButton2"  parentArray="Buttons" inherits="CPPetRingButton"/>
 			<CheckButton id="3"  name="$parentButton3"  parentArray="Buttons" inherits="CPPetRingButton"/>

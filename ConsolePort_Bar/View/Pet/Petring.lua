@@ -197,6 +197,33 @@ function CPPetRingButton:UpdateCooldown(time) time = time or GetTime();
 end
 
 ---------------------------------------------------------------
+CPPetRingPower = {};
+---------------------------------------------------------------
+local SQRT2 = 2 ^ 0.5;
+local PI    = math.pi;
+local HALF  = PI / 2;
+
+function CPPetRingPower:SetFillTexture(texture)
+	self.Fill:SetTexture(texture)
+	local width, height = self:GetSize()
+	local maskSize = math.max(width, height) * SQRT2;
+	self.HalfMask:SetSize(maskSize, maskSize)
+	self.FillMask:SetSize(maskSize, maskSize)
+end
+
+function CPPetRingPower:SetHalfRotation(rotation)
+	self.HalfMask:SetRotation(rotation)
+end
+
+function CPPetRingPower:SetFillColor(r, g, b, a)
+	self.Fill:SetVertexColor(r, g, b, a or 1)
+end
+
+function CPPetRingPower:SetValue(rotation)
+	self.FillMask:SetRotation(rotation)
+end
+
+---------------------------------------------------------------
 CPPetRing = Mixin({
 ---------------------------------------------------------------
 	Events  = {
@@ -232,11 +259,14 @@ function CPPetRing:OnLoad()
 		button:Init(i)
 	end
 
-	self.Power:SetSwipeTexture(env.Const.Cluster.BorderStyle.Large.HighlightTexture)
-	self.Health:SetSwipeTexture(env.Const.Cluster.BorderStyle.Large.HighlightTexture)
+	self.Power:SetFillTexture(env.Const.Cluster.BorderStyle.Large.HighlightTexture)
+	self.Health:SetFillTexture(env.Const.Cluster.BorderStyle.Large.HighlightTexture)
+
+	self.Health:SetHalfRotation(HALF)
+	self.Power:SetHalfRotation(-HALF)
 
 	self:UpdatePowerType()
-	self.Health:SetSwipeColor(0, 1, 0, 1)
+	self.Health:SetFillColor(0, 1, 0, 1)
 
 	env:RegisterCallback('OnLoadoutConfigShown', self.OnLoadoutConfigShown, self)
 	env:RegisterCallbacks(self.OnVariableChanged, self,
@@ -323,34 +353,27 @@ end
 if CPAPI.IsRetailVersion then
 	local UnitHealthPercent, UnitPowerPercent = UnitHealthPercent, UnitPowerPercent;
 
-	local saturation = 100;
-	local valueCurve = C_CurveUtil.CreateCurve();
-	valueCurve:SetType(Enum.LuaCurveType.Linear);
+	local healthCurve = C_CurveUtil.CreateCurve();
+	healthCurve:SetType(Enum.LuaCurveType.Linear);
+	healthCurve:AddPoint(0.0, PI + HALF);
+	healthCurve:AddPoint(1.0, HALF);
+
+	local powerCurve = C_CurveUtil.CreateCurve();
+	powerCurve:SetType(Enum.LuaCurveType.Linear);
+	powerCurve:AddPoint(0.0, -PI - HALF);
+	powerCurve:AddPoint(1.0, -HALF);
 
 	function CPPetRing:UpdateHealth(unit)
-		valueCurve:ClearPoints()
-		valueCurve:AddPoint(0.0, GetTime() - saturation);
-		valueCurve:AddPoint(1.0, GetTime() - saturation / 2);
-
 		local usePredicted = false;
-		local health = UnitHealthPercent(unit, usePredicted, valueCurve)
-
-		self.Health:Pause()
-		self.Health:SetCooldown(health, saturation)
+		local health = UnitHealthPercent(unit, usePredicted, healthCurve)
+		self.Health:SetValue(health)
 	end
 
 	function CPPetRing:UpdatePower(unit, powerType)
-		-- valueCurve is already up to date from health update.
 		local unmodified = false;
-		local power = UnitPowerPercent(unit, powerType, unmodified, valueCurve)
-
-		self.Power:Pause()
-		self.Power:SetCooldown(power, saturation)
+		local power = UnitPowerPercent(unit, powerType, unmodified, powerCurve)
+		self.Power:SetValue(power)
 	end
-
-	-- TEMP:
-	CPPetRing.UpdateHealth = nop;
-	CPPetRing.UpdatePower = nop;
 else
 	local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax;
 	local UnitPower,  UnitPowerMax  = UnitPower, UnitPowerMax;
@@ -359,7 +382,7 @@ else
 		local health = UnitHealth(unit) / UnitHealthMax(unit);
 		if ( self.health ~= health ) then
 			self.health = health;
-			CooldownFrame_SetDisplayAsPercentage(self.Health, health * 0.5)
+			self.Health:SetValue(HALF + PI * (1 - health))
 		end
 	end
 
@@ -369,7 +392,7 @@ else
 		local power = maxPower > 0 and curPower / maxPower or 1;
 		if ( self.power ~= power ) then
 			self.power = power;
-			CooldownFrame_SetDisplayAsPercentage(self.Power, 1 - power * 0.5)
+			self.Power:SetValue(-HALF - PI * (1 - power))
 		end
 	end
 end
@@ -400,7 +423,7 @@ function CPPetRing:UpdatePowerType()
 
 	local powerColor = PowerBarColor[powerType];
 	self.powerType = powerType;
-	self.Power:SetSwipeColor(powerColor.r, powerColor.g, powerColor.b, 1)
+	self.Power:SetFillColor(powerColor.r, powerColor.g, powerColor.b, 1)
 end
 
 function CPPetRing:UNIT_PORTRAIT_UPDATE()
