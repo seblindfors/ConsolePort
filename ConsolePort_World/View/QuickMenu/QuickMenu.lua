@@ -14,6 +14,12 @@ function QMenuRow:Layout()
 	local minWidth  = tonumber(self:GetAttribute('minWidth')) or 0;
 	local minHeight = tonumber(self:GetAttribute('minHeight')) or 0;
 
+	self:SetSize(1, 1)
+	local hadNoAnchors = (self:GetNumPoints() == 0)
+	if hadNoAnchors then
+		self:SetPoint('TOPLEFT', UIParent, 'TOPLEFT', 0, 0);
+	end
+
 	local btns = self:LayoutItems()
 
 	-- Compute bounding box similar to configureAuras
@@ -32,6 +38,10 @@ function QMenuRow:Layout()
 	else
 		self:SetWidth(minWidth)
 		self:SetHeight(minHeight)
+	end
+
+	if hadNoAnchors then
+		self:ClearAllPoints()
 	end
 end
 
