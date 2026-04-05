@@ -114,28 +114,26 @@ function Movement:UpdateStrafeAngleJump()
 		self.strafeAngleJumpTicker:Cancel()
 		self.strafeAngleJumpTicker = nil;
 	end
-	if not self.enableStrafeAngleJump then return end;
-	if not self.strafeAngleJumpStart then
-		function self.strafeAngleJumpStop()
-			if IsFalling('player') then return end;
-			self.strafeAngleJumpTicker:Cancel()
-			self.strafeAngleJumpTicker = nil;
-			self:UpdateStrafeAngleTravel(tonumber(self:GetAttribute(self.Attributes.Travel)))
-			self:UpdateStrafeAngleCombat(tonumber(self:GetAttribute(self.Attributes.Combat)))
-		end
-		function self.strafeAngleJumpStart()
-			if not IsFalling('player') then return end;
-			local jumpAngle = db('mvmtStrafeAngleJump')
-			self:UpdateStrafeAngleTravel(jumpAngle)
-			self:UpdateStrafeAngleCombat(jumpAngle)
-			self.strafeAngleJumpTicker = C_Timer.NewTicker(0.1, self.strafeAngleJumpStop)
-		end
-		hooksecurefunc('JumpOrAscendStart', function()
-			if not self.enableStrafeAngleJump then return end;
-			if self.strafeAngleJumpTicker then return end;
-			RunNextFrame(self.strafeAngleJumpStart)
-		end)
+	-- Setup the jump hook
+	if not self.enableStrafeAngleJump or self.strafeAngleJumpStart then return end;
+	function self.strafeAngleJumpStop()
+		if IsFalling('player') then return end;
+		self.strafeAngleJumpTicker:Cancel()
+		self.strafeAngleJumpTicker = nil;
+		self:UpdateStrafeAngleTravel(tonumber(self:GetAttribute(self.Attributes.Travel)))
+		self:UpdateStrafeAngleCombat(tonumber(self:GetAttribute(self.Attributes.Combat)))
 	end
+	function self.strafeAngleJumpStart()
+		if not IsFalling('player') then return end;
+		local jumpAngle = db('mvmtStrafeAngleJump')
+		self:UpdateStrafeAngleTravel(jumpAngle)
+		self:UpdateStrafeAngleCombat(jumpAngle)
+		self.strafeAngleJumpTicker = C_Timer.NewTicker(0.1, self.strafeAngleJumpStop)
+	end
+	hooksecurefunc('JumpOrAscendStart', function()
+		if not self.enableStrafeAngleJump or self.strafeAngleJumpTicker then return end;
+		RunNextFrame(self.strafeAngleJumpStart)
+	end)
 end
 
 db:RegisterCallback('Settings/mvmtStrafeAngleJumpEnable', Movement.UpdateStrafeAngleJump, Movement)

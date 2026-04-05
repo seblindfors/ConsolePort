@@ -612,7 +612,7 @@ end -- API wrappers
 ---------------------------------------------------------------
 CPAPI.BOOKTYPE_PET     = not CPAPI.IsRetailVersion and BOOKTYPE_PET   or Enum.SpellBookSpellBank.Pet;
 CPAPI.BOOKTYPE_SPELL   = not CPAPI.IsRetailVersion and BOOKTYPE_SPELL or Enum.SpellBookSpellBank.Player;
-CPAPI.SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or nil;
+CPAPI.SKILLTYPE_PET    = not CPAPI.IsRetailVersion and 'PETACTION'    or Enum.SpellBookItemType.Pet;
 CPAPI.SKILLTYPE_SPELL  = not CPAPI.IsRetailVersion and 'SPELL'        or Enum.SpellBookItemType.Spell;
 CPAPI.SKILLTYPE_FLYOUT = not CPAPI.IsRetailVersion and 'FLYOUT'       or Enum.SpellBookItemType.Flyout;
 
