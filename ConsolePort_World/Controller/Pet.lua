@@ -160,23 +160,32 @@ function PetAction:UpdateTooltip()
 	if not self.tooltipName then return end;
 	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT')
 	GameTooltip:SetPetAction(self:GetID())
-	local leftLabel = self.spellID and ('%s & %s'):format(USE, CLOSE)
+	-- Add keybinding hints to tooltip
+	local lines = {};
+	local label = self.spellID and ('%s & %s'):format(USE, CLOSE)
 		or self.isActive and CLOSE
 		or ('%s & %s'):format(ACTIVATE, CLOSE);
-	local hasAddedLine, text = false, env:GetTooltipPromptForClick('LeftButton', leftLabel)
+	local text = env:GetTooltipPromptForClick('LeftButton', label)
 	if text then
-		hasAddedLine = true;
-		GameTooltip:AddLine(text, 1, 1, 1)
+		tinsert(lines, text)
 	end
 	if self.autoCastAllowed then
-		local label = self.autoCastEnabled and DISABLE or ACTIVATE;
+		label = self.autoCastEnabled and DISABLE or ACTIVATE;
 		text = env:GetTooltipPromptForClick('RightButton', label)
 		if text then
-			hasAddedLine = true;
-			GameTooltip:AddLine(text, 1, 1, 1)
+			tinsert(lines, text)
 		end
 	end
-	if hasAddedLine then
+	if not InCombatLockdown() then
+		text = env:GetTooltipPromptForClick('MiddleButton', EDIT)
+		if text then
+			tinsert(lines, text)
+		end
+	end
+	if #lines > 0 then
+		for _, line in ipairs(lines) do
+			GameTooltip:AddLine(line, 1, 1, 1)
+		end
 		GameTooltip:Show()
 	end
 end
@@ -193,9 +202,50 @@ function PetAction:OnHide()
 end
 
 function PetAction:PostClick(button)
+	if button == 'MiddleButton' then
+		self:GetParent():ToggleEditRow(self:GetID());
+		return;
+	end
 	if GetPetActionInfo(self:GetID()) == 'PET_ACTION_MOVE_TO' then
 		db.Mouse:SetFreeCursor()
 	end
+end
+
+---------------------------------------------------------------
+local PetEditButton = Mixin({}, CPActionButtonMixin);
+---------------------------------------------------------------
+
+function PetEditButton:Setup(spellIndex, targetSlot, petRow, info)
+	self.spellIndex = spellIndex;
+	self.targetSlot = targetSlot;
+	self.petRow = petRow;
+	self.info = info;
+
+	self:SetIcon(info.iconID or CPAPI.GetSpellBookItemTexture(spellIndex, CPAPI.BOOKTYPE_PET));
+	self.icon:SetDesaturated(false);
+end
+
+function PetEditButton:OnClick()
+	if InCombatLockdown() then return end;
+	local petRow = self.petRow;
+	CPAPI.PickupSpellBookItem(self.spellIndex, CPAPI.BOOKTYPE_PET);
+	PickupPetAction(self.targetSlot);
+	ClearCursor();
+	petRow:UpdateButtons();
+	petRow:HideEditRow();
+	db.Secure:Run([[ self::SetNodeByName(%q) ]], petRow:GetName()..'Slot'..self.targetSlot)
+end
+
+function PetEditButton:OnEnter()
+	GameTooltip:SetOwner(self, 'ANCHOR_BOTTOMRIGHT');
+	GameTooltip:SetSpellBookItem(self.spellIndex, CPAPI.BOOKTYPE_PET);
+	GameTooltip:Show();
+	self:LockHighlight();
+end
+
+function PetEditButton:OnLeave()
+	GameTooltip:Hide();
+	self:UnlockHighlight();
 end
 
 ---------------------------------------------------------------
@@ -219,13 +269,16 @@ local PetRow = {
 };
 
 function PetRow:OnLoad()
-	local xOffset = tonumber(self:GetAttribute('xOffset')) or 0;
+	local xOffset = tonumber(self:GetAttribute('xOffset')) or 52;
 	local point   = self:GetAttribute('point') or 'TOPLEFT';
+
+	self.xOffset = xOffset;
+	self.point   = point;
 
 	-- Pre-create all 10 buttons so they exist before combat.
 	self.buttons = {};
 	for i = 1, NUM_PET_ACTION_SLOTS or 10 do
-		local button = CreateFrame('CheckButton', '$parentPetSlot'..i, self, 'PetActionButtonTemplate')
+		local button = CreateFrame('CheckButton', '$parentSlot'..i, self, 'PetActionButtonTemplate')
 		CPAPI.Specialize(button, PetAction)
 		button:SetID(i)
 		if i == 1 then
@@ -264,6 +317,129 @@ function PetRow:LayoutItems()
 	return self.buttons;
 end
 
+function PetRow:Layout()
+	env.QMenuRow.Layout(self);
+	if self.editRow and self.editRow:IsShown() then
+		self:SetHeight(self:GetHeight() + 24 + self.editRow:GetHeight());
+	end
+end
+
+function PetRow:CreateEditRow()
+	local editRow = CreateFrame('Frame', '$parentEditRow', self);
+	editRow:SetAttribute('nodepass', true);
+	editRow:SetPoint('TOPLEFT', self.buttons[1], 'BOTTOMLEFT', 0, -20);
+	editRow:Hide();
+
+	local numButtons = CreateCounter();
+	editRow.buttonPool = CreateObjectPool(function()
+		local btn = CreateFrame('Button', '$parentEdit'..numButtons(), editRow, 'CPWorldSecureButtonBaseTemplate');
+		CPAPI.Specialize(btn, PetEditButton)
+		return btn;
+	end, Pool_HideAndClearAnchors);
+
+	local background = CreateFrame('Frame', nil, editRow, 'CPFrameTemplate')
+	background:SetUsingParentLevel(true)
+	background:SetPoint('TOPLEFT', -9, 8)
+	background:SetPoint('BOTTOMRIGHT', 5, -6)
+
+	local arrow = editRow:CreateTexture(nil, 'OVERLAY', 'CPAtlas');
+	arrow:SetSize(70, 32);
+	arrow:SetAtlas('glues-gameMode-selectArrow', false, false, true);
+	editRow.arrow = arrow;
+
+	local petRow = self;
+	editRow:RegisterEvent('PLAYER_REGEN_DISABLED');
+	editRow:SetScript('OnEvent', function(row)
+		if row:IsShown() then
+			petRow:HideEditRow();
+		end
+	end);
+
+	return editRow;
+end
+
+function PetRow:ToggleEditRow(slotID)
+	if InCombatLockdown() then return end;
+
+	if not self.editRow then
+		self.editRow = self:CreateEditRow();
+	end
+
+	local editRow = self.editRow;
+
+	-- Toggle off if same slot
+	if editRow:IsShown() and editRow.slotID == slotID then
+		self:HideEditRow();
+		return;
+	end
+
+	editRow.slotID = slotID;
+
+	-- Query pet spellbook
+	local numPetSpells = CPAPI.HasPetSpells();
+	if not numPetSpells then
+		self:HideEditRow();
+		return;
+	end
+
+	local xOffset, point = self.xOffset, self.point;
+	local wrapAfter = tonumber(self:GetAttribute('wrapAfter')) or 10;
+
+	editRow.buttonPool:ReleaseAll();
+	local btns, count = {}, 0;
+
+	for i = 1, numPetSpells do
+		local info = CPAPI.GetSpellBookItemInfo(i, CPAPI.BOOKTYPE_PET);
+		if info and not info.isPassive then
+			count = count + 1;
+			local btn = editRow.buttonPool:Acquire();
+			btns[count] = btn;
+
+			if count == 1 then
+				btn:SetPoint(point, editRow, point, 0, 0);
+			elseif (count - 1) % wrapAfter == 0 then
+				btn:SetPoint(point, btns[count - wrapAfter], point, 0, -xOffset);
+			else
+				btn:SetPoint(point, btns[count - 1], point, xOffset, 0);
+			end
+
+			btn:Setup(i, slotID, self, info);
+			btn:Show();
+		end
+	end
+
+	if count == 0 then
+		self:HideEditRow();
+		return;
+	end
+
+	-- Size the edit row
+	local numRows = math.max(1, math.ceil(count / wrapAfter));
+	local numCols = math.min(count, wrapAfter);
+	editRow:SetSize(numCols * xOffset, numRows * xOffset);
+	-- Position arrow to point at the target slot
+	local targetButton = self.buttons[slotID];
+	if targetButton and editRow.arrow then
+		editRow.arrow:ClearAllPoints();
+		editRow.arrow:SetPoint('CENTER', targetButton, 'BOTTOM', 0, -10);
+	end
+
+	editRow:Show();
+
+	self:Layout();
+	env.QMenu:Run([[ self::UpdateLayout() ]]);
+	db.Secure:Run([[ self::UpdateNodes() ]]);
+end
+
+function PetRow:HideEditRow()
+	if InCombatLockdown()
+	or not self.editRow
+	or not self.editRow:IsShown() then return end;
+	self.editRow:Hide();
+	self:Layout();
+	env.QMenu:Run([[ self::UpdateLayout() ]]);
+end
+
 function PetRow:UpdateButtons()
 	for _, button in ipairs(self.buttons) do
 		button:Update()
@@ -286,7 +462,8 @@ function PetRow:OnShow()
 end
 
 function PetRow:OnHide()
-    self:UnregisterAllEvents()
+	self:HideEditRow();
+	self:UnregisterAllEvents()
 end
 
 ---------------------------------------------------------------

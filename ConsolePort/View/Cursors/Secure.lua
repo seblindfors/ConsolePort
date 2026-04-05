@@ -89,6 +89,17 @@ Cursor:CreateEnvironment({
 			end
 		end
 	]];
+	SetNodeByName = [[
+		local name = ...
+		self::UpdateNodes()
+		for node in pairs(NODES) do
+			if node:GetName() == name then
+				curnode = node;
+				self::SelectNewNode(0)
+				return;
+			end
+		end
+	]];
 })
 
 Cursor:Wrap('PreClick', [[

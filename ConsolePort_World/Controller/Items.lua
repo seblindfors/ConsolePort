@@ -86,8 +86,8 @@ local BUTTON_SIZE   = 48;
 local BUTTON_STRIDE = 52;
 local ROW_STRIDE    = 52;
 local TITLE_HEIGHT  = 20;
-local BUTTON_GAP    = BUTTON_STRIDE - BUTTON_SIZE;
 local WRAP_AFTER    = 10;
+local BUTTON_GAP    = BUTTON_STRIDE - BUTTON_SIZE;
 
 function ItemManager:OnLoad()
 	function self.InventoryIterator(item)
