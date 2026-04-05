@@ -26,3 +26,4 @@ ignore:
   - Wiki
   - GamepadTool
   - README.md
+  - CLAUDE.md
