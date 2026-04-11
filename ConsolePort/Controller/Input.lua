@@ -167,6 +167,7 @@ end
 ---------------------------------------------------------------
 function InputMixin:SetOverride(data)
 	self[data.isPriority and 1 or 2] = data
+	self:SetAttribute('emubutton', data.button or 'LeftButton')
 	if data.attributes then
 		for attribute, value in pairs(data.attributes) do
 			self:SetAttribute(attribute, value)
@@ -230,7 +231,7 @@ end
 InputMixin.timer = 0;
 
 function InputMixin:OnLoad(id)
-	if CPAPI.IsRetailVersion or CPAPI.IsAnniVersion then
+	if CPAPI.IsRetailVersion or CPAPI.IsAnniVersion or CPAPI.IsWrathVersion then
 		self:RegisterForClicks('AnyUp', 'AnyDown')
 		self:SetAttribute(CPAPI.ActionPressAndHold, true)
 	end
@@ -272,11 +273,12 @@ end
 
 function InputMixin:EmulateFrontend(click, state, script, ...)
 	if click:IsEnabled() then
-		if ConsolePort:ProcessInterfaceClickEvent(script, click, state) then
+		local emubutton = self:GetAttribute('emubutton') or 'LeftButton';
+		if ConsolePort:ProcessInterfaceClickEvent(script, click, state, emubutton) then
 			self.postreset = self:GetAttribute(CPAPI.ActionTypeRelease)
 			self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 		end
-		ExecuteFrameScript(click, script, ...)
+		ExecuteFrameScript(click, script, emubutton, ...)
 		return click:SetButtonState(state)
 	end
 end

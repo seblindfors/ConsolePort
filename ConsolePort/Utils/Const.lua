@@ -13,7 +13,7 @@ CPAPI.IsAnniVersion       = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSI
 ---------------------------------------------------------------
 CPAPI.ExtraActionButtonID = (ExtraActionButton1 or {}).action or CPAPI.IsRetailVersion and 217 or 169;
 
-CPAPI.ActionTypeRelease   = (CPAPI.IsRetailVersion or CPAPI.IsAnniVersion) and 'typerelease' or 'type';
+CPAPI.ActionTypeRelease   = (CPAPI.IsRetailVersion or CPAPI.IsAnniVersion or CPAPI.IsWrathVersion or CPAPI.IsClassicVersion) and 'typerelease' or 'type';
 CPAPI.ActionTypePress     = 'type';
 CPAPI.ActionPressAndHold  = 'pressAndHoldAction';
 CPAPI.ActionUseOnKeyDown  = 'useOnKeyDown';

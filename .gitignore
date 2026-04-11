@@ -4,3 +4,4 @@ ConsolePort/Libs/External/*
 ConsolePort_Config/Libs/*
 !ConsolePort/Libs/External/__manifest.xml
 !ConsolePort_Config/Libs/Libs.xml
+wow-ui-source
