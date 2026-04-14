@@ -17,6 +17,7 @@ Controller\Auras.lua
 Controller\Pet.lua
 Controller\Items.lua
 Controller\Ping.lua
+Controller\GroupLoot.lua
 
 View\Templates\Templates.xml
 View\QuickMenu\QuickMenu.xml

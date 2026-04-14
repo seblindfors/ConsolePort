@@ -8,6 +8,7 @@ local PetAction = Mixin({}, CPActionButtonMixin);
 function PetAction:OnLoad()
 	self:RegisterForClicks('AnyDown')
 	self:SetSize(48, 48)
+	self:SetFrameStrata('HIGH')
 
 	env.QMenu:Hook(self, 'PostClick', [[
 		if button == 'LeftButton' then

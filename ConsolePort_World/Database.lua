@@ -72,6 +72,12 @@ ConsolePort:AddVariables({
 		desc = 'Show active debuffs in the quick menu.';
 		list = SETTING_GROUP_GAMEPLAY;
 	};
+	QMenuCollectionGroupLoot = _{Data.Bool(true);
+		name = LOOT;
+		desc = 'Show group loot rolls in the quick menu, allowing you to roll on items using gamepad buttons while in combat.';
+		list = SETTING_GROUP_GAMEPLAY;
+		hide = CPAPI.IsRetailVersion;
+	};
 	QMenuCollectionPet = _{Data.Bool(true);
 		name = PET;
 		desc = 'Show pet action bar in the quick menu.';
