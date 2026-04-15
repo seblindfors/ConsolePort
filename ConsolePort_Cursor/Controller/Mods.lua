@@ -10,37 +10,41 @@ local env, db, _ = CPAPI.GetEnv(...); _ = CPAPI.OnAddonLoaded;
 -- crucial action, the UI cursor will automatically move to
 -- a popup when it is shown. StaticPopup1 has first priority.
 do  local popups, visible, oldNode = {}, {};
-	for i=1, STATICPOPUP_NUMDIALOGS or 4 do
-		popups[_G['StaticPopup'..i]] = _G['StaticPopup'..(i-1)] or false;
+	for i, popup in ipairs(env.StaticPopupStack) do
+		popups[_G[popup]] = _G[env.StaticPopupStack[i-1]] or false;
 	end
 
-	for popup, previous in pairs(popups) do
-		popup:SetAttribute(env.Attributes.PassThrough, true)
-		popup:HookScript('OnShow', function(self)
-			visible[self] = true;
-			if not InCombatLockdown() then
-				local prio = popups[previous];
-				if not prio or ( not prio:IsVisible() ) then
-					local current = env.Cursor:GetCurrentNode()
-					-- assert not caching a return-to node on a popup
-					if current and not popups[current:GetParent()] then
-						oldNode = current;
-					end
-					local button = self.button1;
-					if self.GetButton1 then
-						button = self:GetButton1();
-					end
-					env.Cursor:SetCurrentNodeIfActive(button)
-				end
-			end
-		end)
-		popup:HookScript('OnHide', function(self)
-			visible[self] = nil;
-			if not next(visible) and not InCombatLockdown() and oldNode then
-				env.Cursor:SetCurrentNodeIfActive(oldNode)
-				oldNode = nil;
-			end
-		end)
+	local function PopupOnShow(self)
+		visible[self] = true;
+		if InCombatLockdown() or not db('UIenablePopups') then return end;
+
+		local prio = popups[self];
+		if prio and prio:IsVisible() then return end;
+
+		local current = env.Cursor:GetCurrentNode()
+		-- assert not caching a return-to node on a popup
+		if current and not popups[current:GetParent()] then
+			oldNode = current;
+		end
+		local button = self.button1;
+		if self.GetButton1 then
+			button = self:GetButton1();
+		end
+		env.Cursor:SetCurrentNodeIfActive(button)
+	end
+
+	local function PopupOnHide(self)
+		visible[self] = nil;
+		if InCombatLockdown() or not db('UIenablePopups') then return end;
+		if not next(visible) and oldNode then
+			env.Cursor:SetCurrentNodeIfActive(oldNode)
+			oldNode = nil;
+		end
+	end
+
+	for popup in pairs(popups) do
+		popup:HookScript('OnShow', PopupOnShow)
+		popup:HookScript('OnHide', PopupOnHide)
 	end
 end
 
@@ -108,7 +112,7 @@ end)
 -- OnEnter is handled in Scripts.lua with a replacement script.
 _('Blizzard_HelpPlate', function()
 	if HelpPlateCanvas then
-		db.Stack:AddFrame(HelpPlateCanvas)
+		db.Stack:SetFrame(HelpPlateCanvas, true)
 		HelpPlateCanvas:HookScript('OnShow', function(self)
 			for _, child in ipairs({self:GetChildren()}) do
 				child:SetAttribute(env.Attributes.PassThrough, true)
@@ -130,7 +134,7 @@ end)
 -- The Hero talents selection dialog is not piped through the cursor stack,
 -- so it needs to be manually added to the stack.
 _('Blizzard_PlayerSpells', function()
-	db.Stack:AddFrame(HeroTalentsSelectionDialog)
+	db.Stack:SetFrame(HeroTalentsSelectionDialog, true)
 end)
 
 -- Taint error callback:
@@ -151,7 +155,7 @@ function env.HandleTaintError(action)
 end
 
 _('Blizzard_HouseEditor', function()
-	db.Stack:AddFrame(HouseEditorFrame)
+	db.Stack:SetFrame(HouseEditorFrame, true)
 	if GeneralDockManager then
 		GeneralDockManager:SetAttribute(env.Attributes.IgnoreNode, true)
 	end

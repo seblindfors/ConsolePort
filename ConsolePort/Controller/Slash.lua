@@ -122,28 +122,17 @@ SLASH_FUNCTIONS = {
 					CPAPI.EnableAddOn(CPAPI.CursorAddOn)
 					CPAPI.LoadAddOn(CPAPI.CursorAddOn)
 					return EventUtil.ContinueOnAddOnLoaded(CPAPI.CursorAddOn, function()
-						local stack = db.Stack;
 						if ( action == 'add' ) then
-							if stack:TryRegisterFrame(owner, frame, true) then
-								if stack:AddFrame(frame) then
-									stack:UpdateFrames()
-									return CPAPI.Log('Frame %s was added under %s.', frame, owner)
-								end
-								return CPAPI.Log('Frame %s was registered to %s, but does not exist yet.', frame, owner)
+							if db.Stack:SetFrame(frame, true, owner) then
+								return CPAPI.Log('Frame %s was added under %s.', frame, owner)
 							end
+							return CPAPI.Log('Frame %s was registered to %s, but does not exist yet.', frame, owner)
 						elseif ( action == 'remove' ) then
-							if stack:TryUnregisterFrame(owner, frame) then
-								stack:RemoveFrame(frame)
-								stack:UpdateFrames()
-								return CPAPI.Log('Frame %s was removed from %s.', frame, owner)
-							end
-							return CPAPI.Log('Frame %s was not found in %s. Command ignored.', frame, owner)
+							db.Stack:SetFrame(frame, false, owner)
+							return CPAPI.Log('Frame %s was removed from %s.', frame, owner)
 						elseif ( action == 'reset' ) then
-							if stack:TryUnregisterFrame(owner, frame, true) then
-								stack:UpdateFrames()
-								return CPAPI.Log('Frame %s was reset.', frame)
-							end
-							return CPAPI.Log('Frame %s was not found in %s. Nothing to reset.', frame, owner)
+							db.Stack:SetFrame(frame, nil, owner)
+							return CPAPI.Log('Frame %s was reset.', frame)
 						end
 					end)
 				end

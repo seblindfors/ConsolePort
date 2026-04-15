@@ -7,6 +7,18 @@ local DEPENDENCY = { UIenableCursor = true };
 ---------------------------------------------------------------
 ConsolePort:AddVariables({
 	_('Interface Cursor', INTERFACE_LABEL, 2);
+	UIenablePopups = _{Data.Bool(true);
+		name = 'Enable Popups';
+		desc = 'Allow cursor to interact with and show preference for popups and static dialogs.';
+		deps = DEPENDENCY;
+		advd = true;
+	};
+	UIenableGroupLoot = _{Data.Bool(true);
+		name = 'Enable Group Loot';
+		desc = 'Allow cursor to interact with and show preference for group loot frames.';
+		deps = DEPENDENCY;
+		advd = true;
+	};
 	UIpointerAnimation = _{Data.Bool(true);
 		name = 'Enable Animation';
 		desc = 'Pointer arrow rotates in the direction of travel.';
@@ -136,6 +148,7 @@ env.StandaloneFrameStack = {
 	'ContainerFrameCombinedBags';
 	'CovenantPreviewFrame';
 	'EngravingFrame';
+	'EquipmentFlyoutFrame';
 	'LFGDungeonReadyPopup';
 	'OpenMailFrame';
 	'PetBattleFrame';
@@ -144,9 +157,6 @@ env.StandaloneFrameStack = {
 	'StackSplitFrame';
 	'UIWidgetCenterDisplayFrame';
 };
-for i=1, (NUM_CONTAINER_FRAMES   or 13) do tinsert(env.StandaloneFrameStack, 'ContainerFrame'..i) end
-for i=1, (NUM_GROUP_LOOT_FRAMES  or 4)  do tinsert(env.StandaloneFrameStack, 'GroupLootFrame'..i) end
-for i=1, (STATICPOPUP_NUMDIALOGS or 4)  do tinsert(env.StandaloneFrameStack, 'StaticPopup'..i)    end
 
 env.UnlimitedFrameStack = {
 	UIParent;
@@ -154,6 +164,12 @@ env.UnlimitedFrameStack = {
 	DropDownList2;
 };
 
+env.StaticPopupStack = {};
+env.GroupLootStack   = {};
+
+for i=1, (NUM_CONTAINER_FRAMES   or 13) do tinsert(env.StandaloneFrameStack, 'ContainerFrame'..i) end
+for i=1, (NUM_GROUP_LOOT_FRAMES  or 4)  do tinsert(env.GroupLootStack,       'GroupLootFrame'..i) end
+for i=1, (STATICPOPUP_NUMDIALOGS or 4)  do tinsert(env.StaticPopupStack,     'StaticPopup'..i)    end
 
 ---------------------------------------------------------------
 -- Frame management resources
@@ -173,8 +189,8 @@ env.FrameManagers = { -- table, isAssociative
 -- Global references are hooked by name, and methods are hooked
 -- by name and method name.
 env.FramePipelines = { -- global ref, bool or method
-	ShowUIPanel             = true;
-	StaticPopupSpecial_Show = true;
+	ShowUIPanel             = false;
+	StaticPopupSpecial_Show = false;
 	HelpTipTemplateMixin    = 'Init';
 };
 

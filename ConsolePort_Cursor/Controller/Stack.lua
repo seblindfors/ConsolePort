@@ -4,7 +4,7 @@
 -- Keeps a stack of frames to control with the D-pad when they
 -- are visible on screen. See Cursor.lua.
 
-local env, db, _ = CPAPI.GetEnv(...)
+local env, db, name = CPAPI.GetEnv(...)
 ---------------------------------------------------------------
 local After = C_Timer.After;
 local pairs, next, unravel = pairs, next, db.table.unravel;
@@ -28,36 +28,26 @@ local function GetFrameWidget(frame)
 end
 
 ---------------------------------------------------------------
--- Externals:
+-- Core state management
 ---------------------------------------------------------------
-function Stack:LockCore(...)        isLocked = ...      end
-function Stack:IsCoreLocked()       return isLocked     end
-function Stack:IsCursorObstructed() return isObstructed end
+do local tracked, visible, buffer, hooks, watchers, obstructors = {}, {}, {}, {}, {}, {};
 
----------------------------------------------------------------
--- Update state on visibility change.
----------------------------------------------------------------
-
--- Stacks: all frames, visible frames, show/hide hooks
-do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}, {}, {};
-
-	local function updateVisible(self)
-		visible[self] = (
-			not IsAnchoringRestricted(self)
-			and GetPoint(self)
-			and IsVisible(self)
+	---------------------------------------------------------------
+	-- Visibility tracking
+	---------------------------------------------------------------
+	local function checkVisible(widget)
+		visible[widget] = (
+			not IsAnchoringRestricted(widget)
+			and GetPoint(widget)
+			and IsVisible(widget)
 		) or nil;
 	end
 
-	local function updateBuffer(self, flag)
-		buffer[self] = flag;
-	end
-
-	local function updateOnBuffer(self)
-		updateBuffer(self, true)
+	local function scheduleVisibilityUpdate(widget)
+		buffer[widget] = true;
 		After(0, function()
-			updateVisible(self)
-			updateBuffer(self, nil)
+			checkVisible(widget)
+			buffer[widget] = nil;
 			if not next(buffer) then
 				Stack:UpdateFrames()
 			end
@@ -68,8 +58,8 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	-- Use C_Timer.After to circumvent omitting frames that set their points on show.
 	-- Check for point because frames can be visible but not drawn.
 	local function showHook(self)
-		if isEnabled and frames[self] then
-			updateOnBuffer(self)
+		if isEnabled and tracked[self] then
+			scheduleVisibilityUpdate(self)
 		end
 	end
 
@@ -78,11 +68,14 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	-- which leads to the cursor ending up in an unexpected place on re-show.
 	-- E.g. close 5 bags, cursor was in 1st bag, ends up in 5th bag on re-show.
 	local function hideHook(self, force)
-		if isEnabled and frames[self] and (force or visible[self]) then
-			updateOnBuffer(self)
+		if isEnabled and tracked[self] and (force or visible[self]) then
+			scheduleVisibilityUpdate(self)
 		end
 	end
 
+	---------------------------------------------------------------
+	-- Hook management
+	---------------------------------------------------------------
 	local function addHook(widget, script, hook)
 		local mt = getmetatable(widget)
 		local ix = mt and mt.__index;
@@ -95,7 +88,7 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 		end
 	end
 
-	local function togglePassThrough(widget, state)
+	local function setPassThrough(widget, state)
 		db:RunSafe(widget.SetAttribute, widget, env.Attributes.PassThrough, state)
 	end
 
@@ -104,79 +97,98 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 	hooks[CPAPI.Index(UIParent).Show] = true
 	hooks[CPAPI.Index(UIParent).Hide] = true
 
-	-- When adding a new frame:
-	-- Store metatable functions for hooking show/hide scripts.
-	-- Most frames will use the same standard Show/Hide, but addons
-	-- may use custom metatables, which should still work with this approach.
-	function Stack:AddFrame(frame)
-		local widget = GetFrameWidget(frame)
-		if widget then
-			if ( not forbidden[widget] ) then
-				-- assert the frame isn't hooked twice
-				if ( not frames[widget] ) then
-					addHook(widget, 'Show', showHook)
-					addHook(widget, 'Hide', hideHook)
-				end
+	---------------------------------------------------------------
+	-- Track / untrack a resolved widget
+	---------------------------------------------------------------
+	local function trackWidget(widget)
+		if not tracked[widget] then
+			addHook(widget, 'Show', showHook)
+			addHook(widget, 'Hide', hideHook)
+		end
+		tracked[widget] = true;
+		setPassThrough(widget, true)
+		checkVisible(widget)
+	end
 
-				frames[widget] = true;
-				togglePassThrough(widget, true)
-				updateVisible(widget)
-			end
-			return true;
-		else
-			self:AddFrameWatcher(frame)
+	local function untrackWidget(widget)
+		if tracked[widget] then
+			visible[widget] = nil;
+			tracked[widget] = nil;
+			setPassThrough(widget, nil)
 		end
 	end
 
+	---------------------------------------------------------------
+	-- SetFrame: unified frame state management
+	---------------------------------------------------------------
+	-- @param frame : frame reference (string or widget)
+	-- @param state : true (enabled), false (disabled), or nil (reset)
+	-- @param owner : registry set key (defaults to addon name)
+	function Stack:SetFrame(frame, state, owner)
+		local fname;
+		if type(frame) == 'string' then
+			fname = frame;
+		elseif C_Widget.IsFrameWidget(frame) then
+			fname = frame:GetDebugName();
+			-- Reject anonymous frames whose debug name contains the object pointer,
+			-- since they cannot be reliably tracked across sessions.
+			local ptr = tostring(frame):match('%x+$');
+			if ptr and fname:lower():find(ptr:lower():gsub('^0+', ''), 1, true) then
+				return
+			end
+		end
+		if not fname then return end;
+
+		-- Update registry
+		local key = owner or name;
+		self.Registry[key] = self.Registry[key] or {};
+		self.Registry[key][fname] = state;
+
+		-- Update runtime tracking
+		local widget = GetFrameWidget(frame)
+		if widget then
+			if state then
+				trackWidget(widget)
+			else
+				untrackWidget(widget)
+			end
+			return true;
+		elseif state then
+			watchers[fname] = true;
+		end
+	end
+
+	---------------------------------------------------------------
+	-- Flush: re-check visibility of a single tracked frame
+	---------------------------------------------------------------
 	function Stack:Flush(frame)
-		if not frames[frame] then return end;
+		if not tracked[frame] then return end;
 		local wasVisible = visible[frame];
-		updateVisible(frame)
+		checkVisible(frame)
 		if wasVisible ~= visible[frame] then
 			self:UpdateFrames()
 		end
 	end
 
-	function Stack:LoadAddonFrames(name)
-		local frames = db('Stack/Registry/'..name)
-		if (type(frames) == 'table') then
-			for frame, enabled in pairs(frames) do
-				if enabled then
-					self:AddFrame(frame)
-				end
+	---------------------------------------------------------------
+	-- LoadAddonFrames: load tracked frames for a given addon
+	---------------------------------------------------------------
+	function Stack:LoadAddonFrames(addonName)
+		local frames = db('Stack/Registry/'..addonName)
+		if ( type(frames) == 'table' ) then
+			for frame, state in pairs(frames) do
+				self:SetFrame(frame, state, addonName)
 			end
 		end
 	end
 
-	function Stack:RemoveFrame(frame)
-		local widget = GetFrameWidget(frame)
-		if widget then
-			visible[widget] = nil;
-			frames[widget]  = nil;
-			togglePassThrough(widget, nil)
-		end
-	end
-
-	function Stack:ForbidFrame(frame)
-		local widget = GetFrameWidget(frame)
-		if frames[widget] then
-			forbidden[widget] = true;
-			self:RemoveFrame(widget)
-		end
-	end
-
-	function Stack:UnforbidFrame(frame)
-		if forbidden[frame] then
-			self:AddFrame(frame)
-			forbidden[frame] = nil
-		end
-	end
-
+	---------------------------------------------------------------
+	-- Obstructor management
+	---------------------------------------------------------------
 	function Stack:SetCursorObstructor(idx, state)
 		if idx then
-			if not state then state = nil end
-			obstructors[idx] = state;
-			isObstructed = ((next(obstructors) and true) or false)
+			obstructors[idx] = state or nil;
+			isObstructed = not not next(obstructors)
 			if not isObstructed then
 				self:UpdateFrames()
 			else
@@ -185,6 +197,9 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 		end
 	end
 
+	---------------------------------------------------------------
+	-- Core toggle
+	---------------------------------------------------------------
 	function Stack:ToggleCore()
 		isEnabled = db('UIenableCursor');
 		if not isEnabled then
@@ -192,7 +207,22 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 		end
 	end
 
-	function Stack:UpdateFrames(updateCursor)
+	---------------------------------------------------------------
+	-- ToggleGroup: enable/disable a group of frames
+	---------------------------------------------------------------
+	function Stack:ToggleGroup(group, enabled, skipUpdate)
+		for _, frame in ipairs(group) do
+			self:SetFrame(frame, not not enabled)
+		end
+		if not skipUpdate then
+			self:UpdateFrames()
+		end
+	end
+
+	---------------------------------------------------------------
+	-- UpdateFrames: notify cursor of visible frame changes
+	---------------------------------------------------------------
+	function Stack:UpdateFrames()
 		if not isLocked and not isObstructed then
 			self:UpdateFrameTracker()
 			RunNextFrame(function()
@@ -203,180 +233,73 @@ do local frames, visible, buffer, hooks, forbidden, obstructors = {}, {}, {}, {}
 		end
 	end
 
-	-- Returns a stack of visible frames.
-	function Stack:IterateVisibleCursorFrames()
-		return pairs(visible)
-	end
-
+	---------------------------------------------------------------
+	-- Visible frame queries
+	---------------------------------------------------------------
 	function Stack:GetVisibleCursorFrames()
 		return unravel(visible)
 	end
 
-	function Stack:IsFrameVisibleToCursor(frame, ...)
-		if frame then
-			return visible[frame] or false, self:IsFrameVisibleToCursor(...)
-		end
-	end
-end
+	---------------------------------------------------------------
+	-- Frame discovery
+	---------------------------------------------------------------
+	-- Scans frame managers (UIPanelWindows, UISpecialFrames, etc.)
+	-- and adds newly discovered frames to the stack.
 
----------------------------------------------------------------
--- Events
----------------------------------------------------------------
-function Stack:PLAYER_REGEN_ENABLED()
-	After(db('UIleaveCombatDelay'), function()
-		if not InCombatLockdown() then
-			self:LockCore(false)
-			self:UpdateFrames()
-		end
-	end)
-end
-
-function Stack:PLAYER_REGEN_DISABLED()
-	db.Cursor:OnStackChanged(false)
-	self:LockCore(true)
-end
-
----------------------------------------------------------------
--- Stack management over sessions
----------------------------------------------------------------
-db:Save('Stack/Registry', 'ConsolePortUIStack')
-
-function Stack:GetRegistrySet(name)
-	self.Registry[name] = self.Registry[name] or {};
-	return self.Registry[name];
-end
-
-function Stack:TryRegisterFrame(set, name, state)
-	if not name then return end
-
-	local stack = self:GetRegistrySet(set)
-	if (stack[name] == nil) then
-		stack[name] = (state == nil) or state;
-	elseif (state ~= nil) then
-		stack[name] = state;
-	end
-	return stack[name];
-end
-
-function Stack:TryUnregisterFrame(set, name, wipe)
-	if not name then return end
-
-	local stack = self:GetRegistrySet(set)
-	if (stack[name] ~= nil) then
-		if wipe then
-			stack[name] = nil;
-		else
-			stack[name] = false;
-		end
+	local function TryDiscoverFrame(self, frame)
+		local widget = GetFrameWidget(frame)
+		if tracked[widget] then return end;
+		local set = self.Registry[name];
+		if set and set[frame] == false then return end;
+		self:SetFrame(frame, true)
 		return true;
-	end
-end
-
-function Stack:OnDataLoaded()
-	db:Load('Stack/Registry', 'ConsolePortUIStack')
-
-	-- Load standalone frame stack
-	for i, frame in ipairs(env.StandaloneFrameStack) do
-		self:TryRegisterFrame(_, frame)
-	end
-
-	-- Toggle the stack core
-	self:ToggleCore()
-
-	-- Load all existing frames in the registry
-	for addon in pairs(self.Registry) do
-		if CPAPI.IsAddOnLoaded(addon) then
-			self:LoadAddonFrames(addon)
-		end
-	end
-
-	self:RegisterEvent('ADDON_LOADED')
-	self.ADDON_LOADED = function(self, name)
-		self:LoadAddonFrames(name)
-		self:UpdateFrames()
-	end;
-
-	db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
-	db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
-
-	return CPAPI.BurnAfterReading;
-end
-
----------------------------------------------------------------
--- Frame watching
----------------------------------------------------------------
--- Used to track and bind additional frames to the UI cursor.
--- Necessary since all frames do not exist when the game loads.
--- Automatically adds all special frames and managed panels.
-
-do  local specialFrames, poolFrames, watchers = {}, {}, {};
-
-	local function TryAddSpecialFrame(self, frame)
-		if specialFrames[frame] then return end;
-		-- If the frame is not in the stack, try to add it.
-		if self:TryRegisterFrame(_, frame) then
-			if self:AddFrame(frame) then
-				specialFrames[frame] = true;
-			end
-		-- The frame exists, but should not be added.
-		elseif GetFrameWidget(frame) then
-			specialFrames[frame] = true;
-		end
 	end
 
 	local function CheckSpecialFrames(self)
 		for manager, isAssociative in pairs(env.FrameManagers) do
 			if isAssociative then
 				for frame in pairs(manager) do
-					TryAddSpecialFrame(self, frame)
+					TryDiscoverFrame(self, frame)
 				end
 			else
 				for _, frame in ipairs(manager) do
-					TryAddSpecialFrame(self, frame)
+					TryDiscoverFrame(self, frame)
 				end
 			end
 		end
 	end
 
 	local function CatchNewFrame(frame)
-		local widget = GetFrameWidget(frame)
-		if widget and not Stack:IsFrameVisibleToCursor(widget) then
-			if Stack:TryRegisterFrame(_, widget:GetName()) then
-				Stack:AddFrame(widget)
-				Stack:UpdateFrames()
-			end
+		if TryDiscoverFrame(Stack, frame) then
+			Stack:UpdateFrames()
 		end
 	end
 
 	local function CatchPoolFrame(frame)
-		if not Stack:IsFrameVisibleToCursor(frame) then
-			if not poolFrames[frame] then
-				Stack:AddFrame(frame)
-				Stack:UpdateFrames()
-				poolFrames[frame] = true;
-				return true;
-			end
+		if not tracked[frame] then
+			trackWidget(frame)
+			Stack:UpdateFrames()
+			return true;
 		end
 	end
 
-	for name, method in pairs(env.FramePipelines) do
-		if type(method) == 'string' then
-			local object = _G[name];
+	for key, method in pairs(env.FramePipelines) do
+		if method then
+			local object = _G[key];
 			if object then
 				hooksecurefunc(object, method, CatchPoolFrame)
 			end
-		elseif type(method) == 'boolean' then
-			hooksecurefunc(name, CatchNewFrame)
+		else
+			hooksecurefunc(key, CatchNewFrame)
 		end
 	end
 
 	if (_G.Menu and _G.Menu.GetManager) then
-		local menu = _G.Menu; -- Blizzard's menu manager
+		local menu = _G.Menu;
 		local mgr  = menu.GetManager();
 		local function CatchOpenMenu()
 			local openMenu = mgr:GetOpenMenu()
 			if CatchPoolFrame(openMenu) then
-				-- EXPERIMENTAL: catch submenus, if the menu is tagged
 				for _, tag in ipairs(menu.GetOpenMenuTags()) do
 					menu.ModifyMenu(tag, function(_, description)
 						description:AddMenuAcquiredCallback(CatchPoolFrame)
@@ -394,13 +317,65 @@ do  local specialFrames, poolFrames, watchers = {}, {}, {};
 		if self.OnDataLoaded then return end;
 		CheckSpecialFrames(self)
 		for frame in pairs(watchers) do
-			if self:AddFrame(frame) then
+			local widget = GetFrameWidget(frame)
+			if widget then
+				trackWidget(widget)
 				watchers[frame] = nil;
 			end
 		end
 	end
+end
 
-	function Stack:AddFrameWatcher(frame)
-		watchers[frame] = true;
+---------------------------------------------------------------
+-- Events
+---------------------------------------------------------------
+function Stack:PLAYER_REGEN_ENABLED()
+	After(db('UIleaveCombatDelay'), function()
+		if not InCombatLockdown() then
+			isLocked = false;
+			self:UpdateFrames()
+		end
+	end)
+end
+
+function Stack:PLAYER_REGEN_DISABLED()
+	db.Cursor:OnStackChanged(false)
+	isLocked = true;
+end
+
+---------------------------------------------------------------
+-- Initialization
+---------------------------------------------------------------
+db:Save('Stack/Registry', 'ConsolePortUIStack')
+
+function Stack:OnDataLoaded()
+	db:Load('Stack/Registry', 'ConsolePortUIStack')
+
+	-- Register standalone frames
+	self:ToggleGroup(env.StandaloneFrameStack, true, true)
+	self:ToggleGroup(env.StaticPopupStack, db('UIenablePopups'), true)
+	self:ToggleGroup(env.GroupLootStack, db('UIenableGroupLoot'), true)
+
+	-- Toggle the stack core
+	self:ToggleCore()
+
+	-- Activate all existing frames in the registry
+	for addon in pairs(self.Registry) do
+		if CPAPI.IsAddOnLoaded(addon) then
+			self:LoadAddonFrames(addon)
+		end
 	end
+
+	self:RegisterEvent('ADDON_LOADED')
+	self.ADDON_LOADED = function(stack, addonName)
+		stack:LoadAddonFrames(addonName)
+		stack:UpdateFrames()
+	end;
+
+	db:RegisterSafeCallback('Settings/UIenableCursor', self.ToggleCore, self)
+	db:RegisterSafeCallback('Settings/UIshowOnDemand', self.ToggleCore, self)
+	db:RegisterSafeCallback('Settings/UIenablePopups', self.ToggleGroup, self, env.StaticPopupStack)
+	db:RegisterSafeCallback('Settings/UIenableGroupLoot', self.ToggleGroup, self, env.GroupLootStack)
+
+	return CPAPI.BurnAfterReading;
 end

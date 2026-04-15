@@ -144,9 +144,7 @@ function ConsolePort:AddInterfaceCursorFrame(frame)
 	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
 	if object then
 		EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
-			if db.Stack:AddFrame(object) then
-				db.Stack:UpdateFrames()
-			end
+			db.Stack:SetFrame(object, true)
 		end)
 		return true;
 	end
@@ -160,22 +158,7 @@ function ConsolePort:RemoveInterfaceCursorFrame(frame)
 	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
 	if object then
 		EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
-			db.Stack:RemoveFrame(object)
-		end)
-		return true;
-	end
-end
-
-
----------------------------------------------------------------
--- @brief Forbid a frame from being used by the interface cursor stack
--- @param frame: frame to forbid (string or frame)
--- @return success: true if frame was forbidden
-function ConsolePort:ForbidInterfaceCursorFrame(frame)
-	local object = C_Widget.IsFrameWidget(frame) and frame or _G[frame];
-	if object then
-		EventUtil.ContinueOnAddOnLoaded(CURSOR_ADDON_NAME, function()
-			db.Stack:ForbidFrame(object)
+			db.Stack:SetFrame(object, false)
 		end)
 		return true;
 	end
