@@ -273,12 +273,11 @@ end
 
 function InputMixin:EmulateFrontend(click, state, script, ...)
 	if click:IsEnabled() then
-		local emubutton = self:GetAttribute('emubutton') or 'LeftButton';
-		if ConsolePort:ProcessInterfaceClickEvent(script, click, state, emubutton) then
+		if ConsolePort:ProcessInterfaceClickEvent(script, click, state) then
 			self.postreset = self:GetAttribute(CPAPI.ActionTypeRelease)
 			self:SetAttribute(CPAPI.ActionTypeRelease, nil)
 		end
-		ExecuteFrameScript(click, script, emubutton, ...)
+		ExecuteFrameScript(click, script, ...)
 		return click:SetButtonState(state)
 	end
 end

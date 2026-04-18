@@ -297,127 +297,18 @@ end
 ---------------------------------------------------------------
 local PopoutFrame = CreateFromMixins(CPToolbarSixSliceInverterMixin)
 ---------------------------------------------------------------
-local IS_DYNAMIC_MICROMENU = CPAPI.IsRetailVersion or CPAPI.IsWrathVersion;
-local EnsureMicroMenuLoaded = nop;
-local CollectMicroButtons = function(self)
-	self.MicroButtons = {};
-	for i, name in ipairs(MICRO_BUTTONS or {}) do
-		local button = _G[name];
-		if button then
-			self.MicroButtons[button] = button.layoutIndex or i;
-		end
-	end
-end;
-
-if IS_DYNAMIC_MICROMENU then
-	local WRATH_MICRO_BUTTONS = {
-		'CharacterMicroButton';
-		'SpellbookMicroButton';
-		'TalentMicroButton';
-		'AchievementMicroButton';
-		'QuestLogMicroButton';
-		'SocialsMicroButton';
-		'GuildMicroButton';
-		'CollectionsMicroButton';
-		'PVPMicroButton';
-		'LFGMicroButton';
-		'MainMenuMicroButton';
-		'HelpMicroButton';
-	};
-	local RETAIL_MICRO_BUTTONS = {
-		'CharacterMicroButton';
-		'ProfessionMicroButton';
-		'PlayerSpellsMicroButton';
-		'AchievementMicroButton';
-		'QuestLogMicroButton';
-		'HousingMicroButton';
-		'GuildMicroButton';
-		'LFDMicroButton';
-		'CollectionsMicroButton';
-		'EJMicroButton';
-		'HelpMicroButton';
-		'StoreMicroButton';
-		'MainMenuMicroButton';
-	};
-
-	EnsureMicroMenuLoaded = function()
-		if not MicroMenu and not CPAPI.IsAddOnLoaded('Blizzard_MicroMenu') then
-			UIParentLoadAddOn('Blizzard_MicroMenu')
-		end
-	end;
-
-	CollectMicroButtons = function(self)
-		self.MicroButtons = {};
-
-		if MicroMenu then
-			for _, button in ipairs({MicroMenu:GetChildren()}) do
-				if button.layoutIndex then
-					self.MicroButtons[button] = button.layoutIndex;
-				end
-			end
-			if next(self.MicroButtons) then return end;
-
-			if MicroMenu.GenerateButtonInfos then
-				for i, info in ipairs(MicroMenu:GenerateButtonInfos() or {}) do
-					local button = info and info.button;
-					if button then
-						self.MicroButtons[button] = button.layoutIndex or i;
-					end
-				end
-				if next(self.MicroButtons) then return end;
-			end
-		end
-
-		local fallbackList = CPAPI.IsRetailVersion and RETAIL_MICRO_BUTTONS or WRATH_MICRO_BUTTONS;
-		for i, name in ipairs(fallbackList) do
-			local button = _G[name];
-			if button then
-				self.MicroButtons[button] = i;
-			end
-		end
-
-		if not self.didWarnFallbackMicroMenu then
-			self.didWarnFallbackMicroMenu = true;
-			CPAPI.Log('Toolbar micromenu fallback path active (%s list).', CPAPI.IsRetailVersion and 'Retail' or 'Wrath')
-		end
-	end;
-end
-
-function PopoutFrame:RefreshMicroButtons()
-	CollectMicroButtons(self)
-end
-
-function PopoutFrame:HookMicroMenu()
-	if self.microMenuHooked then return end;
-	if not MicroMenu or not MicroMenu.OverrideMicroMenuPosition then return end;
-	hooksecurefunc(MicroMenu, 'OverrideMicroMenuPosition', GenerateClosure(self.OnOverrideMicroMenuPosition, self))
-	self.microMenuHooked = true;
-end
-
-function PopoutFrame:OnEvent(event, ...)
-	if event == 'ADDON_LOADED' then
-		local addon = ...;
-		if addon ~= 'Blizzard_MicroMenu' then return end;
-	end
-	if event == 'ADDON_LOADED' or event == 'PLAYER_ENTERING_WORLD' then
-		self:HookMicroMenu()
-		self:RefreshMicroButtons()
-		if self.props and self.props.micromenu then
-			self:MoveMicroButtons()
-		end
-	end
-end
-
 function PopoutFrame:OnLoad()
 	Mixin(self.Eye, Eye):OnLoad()
 	Mixin(self.Config, Config):OnLoad()
 	Mixin(self.ExitVehicle, ExitVehicle):OnLoad()
-	self:RegisterEvent('ADDON_LOADED')
-	self:RegisterEvent('PLAYER_ENTERING_WORLD')
-	self:SetScript('OnEvent', self.OnEvent)
-	EnsureMicroMenuLoaded()
 
-	self:RefreshMicroButtons()
+	self.MicroButtons = {};
+	for i, name in ipairs(MICRO_BUTTONS) do
+		local button = _G[name];
+		if button then
+			self.MicroButtons[button] = CPAPI.IsRetailVersion and button.layoutIndex or i;
+		end
+	end
 
 	self:SlideOut()
 	RunNextFrame(function()
@@ -427,7 +318,6 @@ function PopoutFrame:OnLoad()
 	if OverrideMicroMenuPosition then
 		hooksecurefunc('OverrideMicroMenuPosition', GenerateClosure(self.OnOverrideMicroMenuPosition, self))
 	end
-	self:HookMicroMenu()
 	if UpdateMicroButtonsParent then
 		hooksecurefunc('UpdateMicroButtonsParent', GenerateClosure(self.OnUpdateMicroButtonsParent, self))
 	end
@@ -460,7 +350,6 @@ function PopoutFrame:Layout()
 end
 
 function PopoutFrame:MoveMicroButtons()
-	self:RefreshMicroButtons()
 	self.Divider1:SetShown(self.props.micromenu)
 	if not self.props.micromenu then return end;
 	for button, index in pairs(self.MicroButtons) do
@@ -518,7 +407,6 @@ end
 function PopoutFrame:OnOverrideMicroMenuPosition(...)
 	if not self.props.micromenu then return end;
 	if not MicroMenu then return end;
-	self:RefreshMicroButtons()
 	for button in pairs(self.MicroButtons) do
 		button:SetParent(MicroMenu)
 	end
