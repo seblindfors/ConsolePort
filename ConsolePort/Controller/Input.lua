@@ -167,7 +167,6 @@ end
 ---------------------------------------------------------------
 function InputMixin:SetOverride(data)
 	self[data.isPriority and 1 or 2] = data
-	self:SetAttribute('emubutton', data.button or 'LeftButton')
 	if data.attributes then
 		for attribute, value in pairs(data.attributes) do
 			self:SetAttribute(attribute, value)
