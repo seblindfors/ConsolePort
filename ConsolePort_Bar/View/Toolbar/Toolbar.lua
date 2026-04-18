@@ -297,18 +297,37 @@ end
 ---------------------------------------------------------------
 local PopoutFrame = CreateFromMixins(CPToolbarSixSliceInverterMixin)
 ---------------------------------------------------------------
+function PopoutFrame:RefreshMicroButtons()
+	local microButtons = {};
+
+	-- Titan Reforge: discover micro buttons from the MicroMenu container.
+	if MicroMenu then
+		for _, button in ipairs({MicroMenu:GetChildren()}) do
+			if button.layoutIndex then
+				microButtons[button] = button.layoutIndex;
+			end
+		end
+	end
+
+	-- Retail: fall back to the global list when available.
+	if not next(microButtons) and MICRO_BUTTONS then
+		for i, name in ipairs(MICRO_BUTTONS) do
+			local button = _G[name];
+			if button then
+				microButtons[button] = button.layoutIndex or i;
+			end
+		end
+	end
+
+	self.MicroButtons = microButtons;
+end
+
 function PopoutFrame:OnLoad()
 	Mixin(self.Eye, Eye):OnLoad()
 	Mixin(self.Config, Config):OnLoad()
 	Mixin(self.ExitVehicle, ExitVehicle):OnLoad()
 
-	self.MicroButtons = {};
-	for i, name in ipairs(MICRO_BUTTONS) do
-		local button = _G[name];
-		if button then
-			self.MicroButtons[button] = CPAPI.IsRetailVersion and button.layoutIndex or i;
-		end
-	end
+	self:RefreshMicroButtons()
 
 	self:SlideOut()
 	RunNextFrame(function()
@@ -352,6 +371,7 @@ end
 function PopoutFrame:MoveMicroButtons()
 	self.Divider1:SetShown(self.props.micromenu)
 	if not self.props.micromenu then return end;
+	self:RefreshMicroButtons()
 	for button, index in pairs(self.MicroButtons) do
 		button:SetParent(self)
 		button:ClearAllPoints()
